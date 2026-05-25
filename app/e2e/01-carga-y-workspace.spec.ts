@@ -95,8 +95,8 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
   await expect(page.getByRole("treeitem", { name: /SD/ })).toBeVisible();
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await expect(page.getByTestId("panel-opl-minimizado")).toBeVisible();
-  await expect(page.getByTestId("panel-opl-restaurar")).toContainText("OPL · 0 oraciones · Restaurar");
+  await expect(page.getByTestId("panel-opl")).toBeVisible();
+  await expect(page.getByTestId("panel-opl-minimizado")).toHaveCount(0);
 
   // Ronda Codex v2 L5: el menú lateral se retiró. El botón ☰ abre el command
   // palette `⌘K` (vía única de comandos), superset del menú: comprobamos que

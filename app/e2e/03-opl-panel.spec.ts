@@ -251,7 +251,7 @@ test("panel OPL minimiza y restaura desde barra colapsada", async ({ page }) => 
   expect(pageErrors).toEqual([]);
 });
 
-test("panel OPL queda fijado en marginalia derecha y persiste al recargar", async ({ page }) => {
+test("panel OPL queda fijado en marginalia izquierda y persiste al recargar", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -265,14 +265,14 @@ test("panel OPL queda fijado en marginalia derecha y persiste al recargar", asyn
   let oplBox = await oplInferior.boundingBox();
   let canvasBox = await canvas.boundingBox();
   if (!oplBox || !canvasBox) throw new Error("No se pudo medir layout marginalia OPL");
-  expect(oplBox.x).toBeGreaterThan(canvasBox.x);
+  expect(oplBox.x).toBeLessThan(canvasBox.x);
   expect(oplBox.width).toBeLessThan(canvasBox.width);
 
   await page.reload();
   oplBox = await page.getByTestId("opl-pane").boundingBox();
   canvasBox = await page.getByTestId("canvas-pane").boundingBox();
   if (!oplBox || !canvasBox) throw new Error("No se pudo medir layout marginalia OPL tras recarga");
-  expect(oplBox.x).toBeGreaterThan(canvasBox.x);
+  expect(oplBox.x).toBeLessThan(canvasBox.x);
 
   expect(pageErrors).toEqual([]);
 });
@@ -290,7 +290,7 @@ test("margen Codex se redimensiona horizontalmente desde su divisor", async ({ p
   const divisor = page.getByTestId("divisor-panel-inspector");
   await expect(panel).toBeVisible();
   await expect(divisor).toBeVisible();
-  await expect(page.getByTestId("divisor-panel-opl")).toBeVisible();
+  await expect(page.getByTestId("divisor-panel-indice-inspector")).toBeVisible();
 
   const anchoInicial = (await rectDeLocator(panel)).width;
   const divisorBox = await divisor.boundingBox();

@@ -172,9 +172,9 @@ test("arbol OPD mantiene filas densas sin toolbar embebida en nodo activo", asyn
   await expect(nodoSd1.locator('button[aria-label^="Renombrar OPD"]')).toBeHidden();
   await expect(nodoSd1.locator('button[aria-label^="Crear refinamiento"]')).toBeHidden();
 
-  await expect(page.locator('button[title^="Orden automático"]')).toHaveText("Auto");
-  await expect(page.locator('button[aria-label="Mostrar códigos"]')).toHaveText("ID");
-  await expect(page.locator('button[aria-label="Más opciones"]')).toHaveText("⋯");
+  await expect(page.locator('button[title^="Orden automático"]')).toHaveCount(0);
+  await expect(page.locator('button[aria-label="Mostrar códigos"]')).toHaveCount(0);
+  await expect(page.locator('button[aria-label="Más opciones"]')).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });
@@ -204,6 +204,51 @@ test("pestanas de sesion mantienen modelos independientes", async ({ page }) => 
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await page.getByTestId(/^cerrar-pestana-/).nth(1).click();
   await expect(page.getByRole("tab")).toHaveCount(1);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("barra de pestanas usa tabs tipograficas Codex v1.1", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await cerrarPantallaInicioSiVisible(page);
+
+  const botonNueva = page.getByTestId("nueva-pestana-btn");
+  await expect(botonNueva).toHaveText("+");
+  await expect(botonNueva).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(botonNueva).toHaveCSS("border-left-style", "none");
+
+  await botonNueva.click();
+
+  const tabs = page.getByRole("tab");
+  await expect(tabs).toHaveCount(2);
+  const tabInactiva = tabs.nth(0);
+  const tabActiva = tabs.nth(1);
+
+  await expect(tabActiva).toHaveCSS("font-family", /Inria Serif/);
+  await expect(tabActiva).toHaveCSS("font-weight", "600");
+  await expect(tabActiva).toHaveCSS("color", "rgb(23, 21, 17)");
+  await expect(tabActiva).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(tabActiva).toHaveCSS("border-bottom-width", "2px");
+  await expect(tabActiva).toHaveCSS("border-bottom-style", "solid");
+  await expect(tabActiva).toHaveCSS("border-bottom-color", "rgb(142, 42, 46)");
+
+  await expect(tabInactiva).toHaveCSS("font-family", /Inria Serif/);
+  await expect(tabInactiva).toHaveCSS("font-weight", "400");
+  await expect(tabInactiva).toHaveCSS("color", "rgb(90, 86, 76)");
+  await expect(tabInactiva).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(tabInactiva).toHaveCSS("border-bottom-style", "none");
+  await expect(tabInactiva).toHaveCSS("border-bottom-width", "0px");
+
+  const botonCerrar = tabInactiva.getByTestId(/^cerrar-pestana-/);
+  await expect(botonCerrar).toHaveText("×");
+  await expect(botonCerrar).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(botonCerrar).toHaveCSS("border-top-style", "none");
+  await expect(botonCerrar).toHaveCSS("color", "rgb(207, 203, 193)");
+  await botonCerrar.hover();
+  await expect(botonCerrar).toHaveCSS("color", "rgb(90, 86, 76)");
 
   expect(pageErrors).toEqual([]);
 });

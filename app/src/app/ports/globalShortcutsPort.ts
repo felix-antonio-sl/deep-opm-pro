@@ -178,13 +178,12 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     if (state.autoAvanceSimulacionActivo) state.pausarAutoAvanceSimulacion();
     else state.iniciarAutoAvanceSimulacion();
   };
-  // Ronda Codex v2 L5: ⌘/Ctrl+1 → SD raíz; ⌘/Ctrl+2..9 → SDN siguientes en el
-  // orden de despliegue del árbol OPD (mismo orden que muestra `ArbolOpd`).
-  const navegarAOpdPorIndice = (indice: number) => () => {
+  // Codex v1.1: ⌘/Ctrl+1..9 opera a nivel workspace y salta a la pestaña N.
+  // La navegación entre OPDs queda en el árbol y en Ctrl+↓ / Ctrl+↑.
+  const cambiarPestanaPorIndice = (indice: number) => () => {
     const state = s();
-    const ordenados = opdsEnOrdenDeArbol(state.modelo);
-    const destino = ordenados[indice];
-    if (destino && destino !== state.opdActivoId) state.cambiarOpdActivo(destino);
+    const destino = state.pestanasAbiertas?.[indice]?.id;
+    if (destino && destino !== state.pestanaActivaId) state.cambiarPestanaActiva?.(destino);
   };
   const cerrarModalSuperiorOVaciarSeleccion = () => {
     const state = s();
@@ -293,17 +292,16 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Ctrl+ArrowDown", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD hermano siguiente", handler: () => s().navegarOpdAbajo() }),
     registrarAtajo({ combo: "Ctrl+ArrowLeft", ctx: "global", categoria: "navegacion", descripcion: "Ir al OPD padre", handler: () => s().navegarOpdIzquierda() }),
     registrarAtajo({ combo: "Ctrl+ArrowRight", ctx: "global", categoria: "navegacion", descripcion: "Ir al primer OPD hijo", handler: () => s().navegarOpdDerecha() }),
-    // Ronda Codex v2 L5 (05-interactions §1 navegación, §9 NAVEGAR): salto
-    // directo por número. ⌘1 = SD raíz; ⌘2..9 = SDN en orden del árbol.
-    registrarAtajo({ combo: "Ctrl+1", ctx: "global", categoria: "navegacion", descripcion: "Ir al SD raíz", descripcionLarga: "Activa el diagrama raíz (SD) del modelo", handler: navegarAOpdPorIndice(0) }),
-    registrarAtajo({ combo: "Ctrl+2", ctx: "global", categoria: "navegacion", descripcion: "Ir al 2.º OPD del árbol", descripcionLarga: "Activa el segundo OPD en orden del árbol", handler: navegarAOpdPorIndice(1) }),
-    registrarAtajo({ combo: "Ctrl+3", ctx: "global", categoria: "navegacion", descripcion: "Ir al 3.º OPD del árbol", descripcionLarga: "Activa el tercer OPD en orden del árbol", handler: navegarAOpdPorIndice(2) }),
-    registrarAtajo({ combo: "Ctrl+4", ctx: "global", categoria: "navegacion", descripcion: "Ir al 4.º OPD del árbol", descripcionLarga: "Activa el cuarto OPD en orden del árbol", handler: navegarAOpdPorIndice(3) }),
-    registrarAtajo({ combo: "Ctrl+5", ctx: "global", categoria: "navegacion", descripcion: "Ir al 5.º OPD del árbol", descripcionLarga: "Activa el quinto OPD en orden del árbol", handler: navegarAOpdPorIndice(4) }),
-    registrarAtajo({ combo: "Ctrl+6", ctx: "global", categoria: "navegacion", descripcion: "Ir al 6.º OPD del árbol", descripcionLarga: "Activa el sexto OPD en orden del árbol", handler: navegarAOpdPorIndice(5) }),
-    registrarAtajo({ combo: "Ctrl+7", ctx: "global", categoria: "navegacion", descripcion: "Ir al 7.º OPD del árbol", descripcionLarga: "Activa el séptimo OPD en orden del árbol", handler: navegarAOpdPorIndice(6) }),
-    registrarAtajo({ combo: "Ctrl+8", ctx: "global", categoria: "navegacion", descripcion: "Ir al 8.º OPD del árbol", descripcionLarga: "Activa el octavo OPD en orden del árbol", handler: navegarAOpdPorIndice(7) }),
-    registrarAtajo({ combo: "Ctrl+9", ctx: "global", categoria: "navegacion", descripcion: "Ir al 9.º OPD del árbol", descripcionLarga: "Activa el noveno OPD en orden del árbol", handler: navegarAOpdPorIndice(8) }),
+    // Codex v1.1: salto directo por número a modelos abiertos en paralelo.
+    registrarAtajo({ combo: "Ctrl+1", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 1", descripcionLarga: "Activa el primer modelo abierto del workspace", handler: cambiarPestanaPorIndice(0) }),
+    registrarAtajo({ combo: "Ctrl+2", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 2", descripcionLarga: "Activa el segundo modelo abierto del workspace", handler: cambiarPestanaPorIndice(1) }),
+    registrarAtajo({ combo: "Ctrl+3", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 3", descripcionLarga: "Activa el tercer modelo abierto del workspace", handler: cambiarPestanaPorIndice(2) }),
+    registrarAtajo({ combo: "Ctrl+4", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 4", descripcionLarga: "Activa el cuarto modelo abierto del workspace", handler: cambiarPestanaPorIndice(3) }),
+    registrarAtajo({ combo: "Ctrl+5", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 5", descripcionLarga: "Activa el quinto modelo abierto del workspace", handler: cambiarPestanaPorIndice(4) }),
+    registrarAtajo({ combo: "Ctrl+6", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 6", descripcionLarga: "Activa el sexto modelo abierto del workspace", handler: cambiarPestanaPorIndice(5) }),
+    registrarAtajo({ combo: "Ctrl+7", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 7", descripcionLarga: "Activa el séptimo modelo abierto del workspace", handler: cambiarPestanaPorIndice(6) }),
+    registrarAtajo({ combo: "Ctrl+8", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 8", descripcionLarga: "Activa el octavo modelo abierto del workspace", handler: cambiarPestanaPorIndice(7) }),
+    registrarAtajo({ combo: "Ctrl+9", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 9", descripcionLarga: "Activa el noveno modelo abierto del workspace", handler: cambiarPestanaPorIndice(8) }),
     registrarAtajo({ combo: "Shift+I", ctx: "canvas", categoria: "edicion", descripcion: "Crear inzoom de la cosa seleccionada", handler: () => s().descomponerSeleccionada() }),
     registrarAtajo({ combo: "Shift+U", ctx: "canvas", categoria: "edicion", descripcion: "Desplegar selección", descripcionLarga: "Crea un OPD desplegado a partir de la cosa seleccionada", handler: () => s().desplegarSeleccionada() }),
     registrarAtajo({ combo: "Ctrl+Shift+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar formato de enlace seleccionado", handler: copiarEstiloEnlace }),
@@ -314,6 +312,8 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     } }),
     registrarAtajo({ combo: "Ctrl+Tab", ctx: "global", categoria: "navegacion", descripcion: "Siguiente pestaña", descripcionLarga: "Cambia el foco a la pestaña siguiente del workspace", handler: () => cambiarPestanaRelativa(s, 1) }),
     registrarAtajo({ combo: "Ctrl+Shift+Tab", ctx: "global", categoria: "navegacion", descripcion: "Pestaña anterior", descripcionLarga: "Cambia el foco a la pestaña previa del workspace", handler: () => cambiarPestanaRelativa(s, -1) }),
+    registrarAtajo({ combo: "Ctrl+Shift+]", ctx: "global", categoria: "navegacion", descripcion: "Siguiente pestaña", descripcionLarga: "Cambia el foco a la pestaña siguiente del workspace", handler: () => cambiarPestanaRelativa(s, 1) }),
+    registrarAtajo({ combo: "Ctrl+Shift+[", ctx: "global", categoria: "navegacion", descripcion: "Pestaña anterior", descripcionLarga: "Cambia el foco a la pestaña previa del workspace", handler: () => cambiarPestanaRelativa(s, -1) }),
     registrarAtajo({ combo: "Space", ctx: "global", categoria: "edicion", descripcion: "Reproducir/Pausar simulación", descripcionLarga: "En modo simulación, alterna entre reproducir y pausar", preventDefault: false, handler: togglePlaySimulacion }),
   ];
 

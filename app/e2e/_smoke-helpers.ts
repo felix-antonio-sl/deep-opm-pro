@@ -148,7 +148,9 @@ export async function clickCentroLink(page: import("@playwright/test").Page): Pr
 }
 
 export async function clickLinkPorIndice(page: import("@playwright/test").Page, index: number): Promise<void> {
-  const punto = await puntoMedioPath(page.locator(".joint-link [joint-selector=wrapper]").nth(index));
+  const link = page.locator(".joint-link [joint-selector=wrapper]").nth(index);
+  await link.scrollIntoViewIfNeeded();
+  const punto = await puntoMedioPath(link);
   await page.mouse.click(punto.x, punto.y);
 }
 
@@ -156,7 +158,9 @@ export async function clickLinkPorTipo(page: import("@playwright/test").Page, ti
   const links = page.locator(".joint-link [joint-selector=wrapper]");
   const total = await links.count();
   for (let index = 0; index < total; index += 1) {
-    const punto = await puntoMedioPath(links.nth(index));
+    const link = links.nth(index);
+    await link.scrollIntoViewIfNeeded();
+    const punto = await puntoMedioPath(link);
     await page.mouse.click(punto.x, punto.y);
     if (await page.getByText(`Enlace ${tipo}`).count() > 0) return;
   }
@@ -336,15 +340,18 @@ export async function cargarPrimerModelo(page: import("@playwright/test").Page):
 }
 
 export async function assertWorkbenchLayout(page: import("@playwright/test").Page): Promise<void> {
+  const opl = await rectDeLocator(page.getByTestId("opl-pane"));
   const tree = await rectDeLocator(page.getByTestId("tree-pane"));
   const canvas = await rectDeLocator(page.getByTestId("canvas-pane"));
   const inspector = await rectDeLocator(page.getByTestId("inspector-pane"));
 
-  expect(tree.x).toBeLessThan(canvas.x);
+  expect(opl.x).toBeLessThan(canvas.x);
   expect(canvas.x).toBeLessThan(inspector.x);
-  expect(tree.x + tree.width).toBeLessThanOrEqual(canvas.x + 1);
+  expect(opl.x + opl.width).toBeLessThanOrEqual(canvas.x + 8);
   expect(canvas.x + canvas.width).toBeLessThanOrEqual(inspector.x + 1);
+  expect(tree.x).toBeGreaterThanOrEqual(inspector.x - 1);
   expect(canvas.width).toBeGreaterThan(400);
+  expect(opl.width).toBeGreaterThan(250);
   expect(inspector.width).toBeGreaterThan(250);
   // L6: ANCHO_PANEL_INSPECTOR_DEFAULT pasó de 300 a 360; cota superior holgada.
   expect(inspector.width).toBeLessThan(380);

@@ -5,8 +5,8 @@
  *   - Fondo: paper (#FAFAFA). Cero gradientes, cero color corporativo.
  *   - Bordes: 1.5px ink (chrome bottom), 1.5px ink (botones), 1px ink-15 (chips).
  *   - Hover: ink-04 como wash neutro.
- *   - Glifos Objeto/Proceso: cuadrado/elipse 12×12 en ink. No usar fills
- *     verde/azul (eso es canvas semántico [JOYAS §1], lo gobierna L4).
+ *   - Glifos Objeto/Proceso/Estado: geometría 12×12 con stroke canónico
+ *     verde/azul/olive, sin fill.
  *   - Focus visible (focus-visible) y selección con cinabrio van por
  *     `toolbar.css` y `focus.css` (cascada).
  *   - Cero border-radius (radii.* ya colapsa a 2px desde L1).
@@ -26,18 +26,19 @@ import { colors, radii, spacing, stroke, typography } from "../tokens";
 export const toolbarStyle = {
   /**
    * Chrome bar — ronda 28 L2:
-   *   - fondo paper plano (cero gradiente, cero azul corporativo).
-   *   - border-bottom 1.5px ink (línea pura Bauhaus).
-   *   - sin box-shadow: la elevación se logra en menus/popovers, no en la
-   *     barra principal (la barra es estrato base, no flotante).
+   * Codex v1.1: controles inline dentro del header global. El header de
+   * CodexFrame dibuja la línea de separación; la toolbar no agrega caja.
    */
   bar: {
     display: "flex",
     alignItems: "center",
     gap: `${spacing.sm}px`,
-    padding: "8px 14px",
-    background: colors.paper,
-    borderBottom: `${stroke.base}px solid ${colors.ink}`,
+    width: "100%",
+    minWidth: 0,
+    height: "100%",
+    padding: "0 8px",
+    background: "transparent",
+    borderBottom: 0,
     boxShadow: "none",
     overflow: "hidden",
     color: colors.ink,
@@ -144,18 +145,66 @@ export const toolbarStyle = {
    * no con una caja. Ver `palabraTopBar()`.
    */
   objectButton: {
-    ...palabraTopBar(),
+    ...accionCreadorTopBar(),
   },
   objectActiveButton: {
-    ...palabraTopBar(),
-    boxShadow: `inset 0 -2px 0 0 ${colors.accent}`,
+    ...accionCreadorTopBar(),
+    boxShadow: `inset 0 -${stroke.bold}px 0 0 ${colors.accent}`,
   },
   processButton: {
-    ...palabraTopBar(),
+    ...accionCreadorTopBar(),
   },
   processActiveButton: {
-    ...palabraTopBar(),
-    boxShadow: `inset 0 -2px 0 0 ${colors.accent}`,
+    ...accionCreadorTopBar(),
+    boxShadow: `inset 0 -${stroke.bold}px 0 0 ${colors.accent}`,
+  },
+  creatorButton: {
+    ...accionCreadorTopBar(),
+  },
+  creatorButtonActive: {
+    ...accionCreadorTopBar(),
+    boxShadow: `inset 0 -${stroke.bold}px 0 0 ${colors.accent}`,
+  },
+  creatorButtonDisabled: {
+    ...accionCreadorTopBar(),
+    color: colors.ink30,
+    cursor: "default",
+    opacity: 0.72,
+  },
+  creatorGlyphSlot: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "14px",
+    height: "14px",
+    flex: "0 0 auto",
+  },
+  creatorLabel: {
+    display: "inline-flex",
+    alignItems: "center",
+    lineHeight: 1,
+  },
+  creatorShortcutDivider: {
+    width: `${stroke.hairline}px`,
+    height: "16px",
+    flex: "0 0 auto",
+    background: colors.rule,
+  },
+  creatorKbd: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: "12px",
+    height: "18px",
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    color: colors.ink70,
+    fontFamily: typography.fontFamilyMono,
+    fontSize: `${typography.sizes.xs}px`,
+    fontWeight: typography.weights.medium,
+    letterSpacing: 0,
+    lineHeight: 1,
   },
   /** Glyph mini para Objeto (cuadrado) / Proceso (elipse) 12×12 ink. */
   glyph: {
@@ -174,7 +223,7 @@ export const toolbarStyle = {
     fontWeight: typography.weights.semibold,
   },
   iconTextButton: {
-    ...palabraTopBar(),
+    ...accionCreadorTopBar(),
     padding: `0 ${spacing.sm + spacing.xs + 2}px`,
     display: "inline-flex",
     alignItems: "center",
@@ -196,6 +245,31 @@ export const toolbarStyle = {
     fontSize: `${typography.sizes.xs}px`,
     fontWeight: typography.weights.medium,
     letterSpacing: 0,
+    lineHeight: 1,
+  },
+  searchButton: {
+    height: "32px",
+    padding: "0 8px",
+    border: "1px solid transparent",
+    background: "transparent",
+    color: colors.ink,
+    cursor: "pointer",
+    fontFamily: typography.fontFamily,
+    fontSize: `${typography.sizes.base}px`,
+    fontWeight: typography.weights.medium,
+    whiteSpace: "nowrap",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "7px",
+    transition: "background 150ms ease-out, box-shadow 120ms ease",
+  },
+  searchButtonFocus: {
+    boxShadow: `inset 0 -${stroke.bold}px 0 0 ${colors.crimson}`,
+  },
+  searchIcon: {
+    fontFamily: typography.fontFamilyMono,
+    fontSize: `${typography.sizes.base}px`,
     lineHeight: 1,
   },
   smallIcon: {
@@ -313,6 +387,61 @@ export const toolbarStyle = {
     flex: "0 0 auto",
     margin: `0 ${spacing.xs}px`,
     background: colors.ink15,
+  },
+  inlineStatus: {
+    height: "24px",
+    padding: "0 2px",
+    border: "none",
+    background: "transparent",
+    color: colors.ink70,
+    cursor: "default",
+    fontFamily: typography.fontFamily,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.medium,
+    whiteSpace: "nowrap",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "5px",
+    boxShadow: "none",
+  },
+  inlineStatusButton: {
+    height: "24px",
+    padding: "0 2px",
+    border: "none",
+    background: "transparent",
+    color: colors.ink70,
+    cursor: "pointer",
+    fontFamily: typography.fontFamily,
+    fontSize: `${typography.sizes.sm}px`,
+    fontWeight: typography.weights.medium,
+    whiteSpace: "nowrap",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "5px",
+    boxShadow: "none",
+  },
+  statusDot: {
+    color: colors.ink70,
+    fontFamily: typography.fontFamilyMono,
+    fontSize: `${typography.sizes.xs}px`,
+    lineHeight: 1,
+  },
+  statusDotPending: {
+    color: colors.crimson,
+    fontFamily: typography.fontFamilyMono,
+    fontSize: `${typography.sizes.xs}px`,
+    lineHeight: 1,
+  },
+  statusLabel: {
+    lineHeight: 1,
+  },
+  statusKbd: {
+    color: colors.ink70,
+    fontFamily: typography.fontFamilyMono,
+    fontSize: `${typography.sizes.xs}px`,
+    fontWeight: typography.weights.medium,
+    letterSpacing: 0,
+    lineHeight: 1,
   },
   autosaveIdle: {
     color: colors.ink50,
@@ -468,5 +597,17 @@ function palabraTopBar(): preact.JSX.CSSProperties {
     fontWeight: typography.weights.medium,
     whiteSpace: "nowrap",
     transition: "background 150ms ease-out",
+  };
+}
+
+function accionCreadorTopBar(): preact.JSX.CSSProperties {
+  return {
+    ...palabraTopBar(),
+    padding: "0 8px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "7px",
+    boxShadow: "none",
   };
 }

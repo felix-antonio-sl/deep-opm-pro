@@ -20,6 +20,7 @@ export function BarraPestanas() {
   } = useBarraPestanasViewModel();
   const confirmarCierreDirty = useConfirmarCierreDirty();
   const [arrastrandoId, setArrastrandoId] = useState<string | null>(null);
+  const [cerrarHoverId, setCerrarHoverId] = useState<string | null>(null);
 
   const cerrarConConfirmacion = (pestana: Pestana) => {
     if (pestana.dirty) {
@@ -102,13 +103,18 @@ export function BarraPestanas() {
                     type="button"
                     aria-label="Cerrar pestana"
                     data-testid={`cerrar-pestana-${pestana.id}`}
-                    style={style.cerrar}
+                    style={{
+                      ...style.cerrar,
+                      ...(cerrarHoverId === pestana.id ? style.cerrarHover : {}),
+                    }}
+                    onMouseEnter={() => setCerrarHoverId(pestana.id)}
+                    onMouseLeave={() => setCerrarHoverId((actual) => (actual === pestana.id ? null : actual))}
                     onClick={(event) => {
                       event.stopPropagation();
                       cerrarConConfirmacion(pestana);
                     }}
                   >
-                    x
+                    ×
                   </button>
                 ) : null}
               </div>
@@ -130,27 +136,22 @@ export function BarraPestanas() {
 }
 
 /**
- * Estilos de BarraPestanas — Ronda 28 L2 (Bauhaus monocromática).
+ * Estilos de BarraPestanas — Codex v1.1 tabs tipograficas.
  *
- *   - Fondo paper, border-bottom 1px ink-15.
- *   - Pestana inactiva: paper + ink70 weight 400.
- *   - Pestana activa: ink04 + ink weight 500 + underline 2px accent
- *     cinabrio (antes: tinte azul corporativo). El cinabrio es el unico
- *     acento autorizado para marcar selección persistente en el chrome.
+ *   - Sin chip/background propio: la barra provee el papel.
+ *   - Pestana inactiva: inkMid regular, sin borde.
+ *   - Pestana activa: ink semibold + underline 2px crimson.
  *   - Dirty: italic (preserva la convención existente).
  */
 const style = {
   barra: {
     display: "grid",
-    // Ronda Codex v2 L2: el breadcrumb migró al header; las pestañas ocupan
-    // todo el ancho de la barra.
     gridTemplateColumns: "minmax(0, 1fr)",
     alignItems: "stretch",
     minWidth: 0,
-    height: 32,
-    borderBottom: `1px solid ${tokens.colors.ink15}`,
-    background: tokens.colors.paper,
-    fontFamily: tokens.typography.fontFamily,
+    height: "100%",
+    background: "transparent",
+    fontFamily: tokens.typography.serif,
   },
   tabsSlot: {
     minWidth: 0,
@@ -170,30 +171,27 @@ const style = {
   pestana: {
     minWidth: 120,
     maxWidth: 220,
-    height: 32,
+    height: "100%",
+    boxSizing: "border-box",
     display: "flex",
     alignItems: "center",
     gap: 8,
     padding: "0 10px 0 12px",
-    borderRight: `1px solid ${tokens.colors.ink15}`,
-    borderBottom: "2px solid transparent",
-    background: tokens.colors.paper,
-    color: tokens.colors.ink70,
+    border: 0,
+    background: "transparent",
+    color: tokens.colors.inkMid,
     cursor: "pointer",
     userSelect: "none",
-    fontFamily: tokens.typography.fontFamily,
+    fontFamily: tokens.typography.serif,
     fontSize: `${tokens.typography.sizes.sm}px`,
     fontWeight: tokens.typography.weights.normal,
-    transition: "background 150ms ease-out",
+    letterSpacing: 0,
+    transition: "color 120ms ease, border-color 120ms ease",
   },
   pestanaActiva: {
-    background: tokens.colors.ink04,
     color: tokens.colors.ink,
-    fontWeight: tokens.typography.weights.medium,
-    // Ronda 28 L2 Bauhaus: underline 2px cinabrio en pestana activa.
-    // Es el unico lugar donde el accent cromatico aparece en la barra
-    // de pestanas (resto monocromatico ink/paper).
-    borderBottom: `2px solid ${tokens.colors.accent}`,
+    fontWeight: tokens.typography.weights.semibold,
+    borderBottom: `2px solid ${tokens.colors.crimson}`,
   },
   pestanaDirty: {
     fontStyle: "italic",
@@ -206,29 +204,39 @@ const style = {
     flex: "1 1 auto",
   },
   cerrar: {
-    width: 20,
+    width: 18,
     height: 20,
-    border: "1px solid transparent",
+    display: "grid",
+    placeItems: "center",
+    border: 0,
     background: "transparent",
-    color: tokens.colors.ink50,
+    color: tokens.colors.inkFaint,
     cursor: "pointer",
     lineHeight: 1,
-    fontFamily: tokens.typography.fontFamily,
+    fontFamily: tokens.typography.serif,
     fontSize: `${tokens.typography.sizes.base}px`,
-    fontWeight: tokens.typography.weights.medium,
+    fontWeight: tokens.typography.weights.normal,
+    letterSpacing: 0,
     padding: 0,
+    transition: "color 120ms ease",
+  },
+  cerrarHover: {
+    color: tokens.colors.inkMid,
   },
   nueva: {
     width: 36,
-    height: 32,
+    height: "100%",
+    display: "grid",
+    placeItems: "center",
     border: 0,
-    borderLeft: `1px solid ${tokens.colors.ink15}`,
-    background: tokens.colors.paper,
+    background: "transparent",
     color: tokens.colors.ink,
     cursor: "pointer",
-    fontFamily: tokens.typography.fontFamily,
+    fontFamily: tokens.typography.serif,
     fontSize: `${tokens.typography.sizes.xl}px`,
     fontWeight: tokens.typography.weights.normal,
+    letterSpacing: 0,
     lineHeight: 1,
+    padding: 0,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

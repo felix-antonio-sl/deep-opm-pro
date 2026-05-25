@@ -6,15 +6,15 @@ describe("CodexFrame contract", () => {
     expect(codexFrameRows()).toBe("60px minmax(0, 1fr) 44px");
   });
 
-  test("compone columnas desktop preservando divisores legacy de 6px", () => {
-    expect(codexFrameColumns({ leftWidth: 280, rightWidth: 320, isTablet: false })).toBe(
-      "280px 6px minmax(0, 1fr) 6px 320px",
+  test("Codex v1.1 espeja columnas: OPL izquierda, canvas centro, edición derecha", () => {
+    expect(codexFrameColumns({ leftWidth: 360, rightWidth: 360, isTablet: false })).toBe(
+      "360px 6px minmax(0, 1fr) 6px 360px",
     );
   });
 
   test("acota columnas laterales en tablet para mantener canvas util", () => {
-    expect(codexFrameColumns({ leftWidth: 320, rightWidth: 420, isTablet: true })).toBe(
-      "220px 6px minmax(0, 1fr) 6px 300px",
+    expect(codexFrameColumns({ leftWidth: 360, rightWidth: 420, isTablet: true })).toBe(
+      "300px 6px minmax(0, 1fr) 6px 300px",
     );
   });
 

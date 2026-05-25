@@ -29,7 +29,7 @@ export function codexFrameRows(): string {
 }
 
 export function codexFrameColumns({ leftWidth, rightWidth, isTablet }: CodexFrameColumnsParams): string {
-  const left = isTablet ? Math.min(leftWidth, 220) : leftWidth;
+  const left = isTablet ? Math.min(leftWidth, 300) : leftWidth;
   const right = isTablet ? Math.min(rightWidth, 300) : rightWidth;
   return `${left}px 6px minmax(0, 1fr) 6px ${right}px`;
 }
@@ -67,8 +67,9 @@ export function CodexFrame({
       */}
       <header style={style.header}>
         <div data-testid="codex-wordmark" style={style.wordmark}>Opforja</div>
-        <div style={style.toolbarSlot}>{toolbar}</div>
+        <div style={style.headerTabsSlot}>{tabs}</div>
         <div style={style.breadcrumbSlot}>{breadcrumb}</div>
+        <div style={style.toolbarSlot}>{toolbar}</div>
         <div style={style.headerMeta}>{meta}</div>
         {menu}
       </header>
@@ -81,7 +82,7 @@ export function CodexFrame({
       </section>
       <footer style={style.footer}>
         <div style={style.footerLeft}>{footerLeft}</div>
-        <div style={style.tabsSlot}>{tabs}</div>
+        <div style={style.footerCenter} />
         <div style={style.footerRight}>{footerRight}</div>
       </footer>
     </div>
@@ -105,8 +106,10 @@ const style = {
     minWidth: 0,
     minHeight: 0,
     display: "grid",
-    // Ronda Codex v2 L2: wordmark · acciones │ breadcrumb (flex) │ meta.
-    gridTemplateColumns: "auto auto minmax(0, 1fr) auto",
+    // Codex v1.1: wordmark · tabs de modelos │ breadcrumb │ acciones │ meta.
+    // La toolbar es la región que flexa; breadcrumb mantiene un ancho táctil
+    // mínimo para que no quede debajo de las acciones.
+    gridTemplateColumns: "auto minmax(140px, 340px) minmax(130px, 220px) minmax(0, 1fr) auto auto",
     alignItems: "stretch",
     borderBottom: `1px solid ${tokens.colors.ruleStrong}`,
     background: tokens.colors.paper,
@@ -131,6 +134,16 @@ const style = {
     minWidth: 0,
     minHeight: 0,
     overflow: "hidden",
+    display: "flex",
+    alignItems: "stretch",
+  },
+  headerTabsSlot: {
+    minWidth: 0,
+    minHeight: 0,
+    display: "flex",
+    alignItems: "stretch",
+    overflow: "hidden",
+    borderRight: `1px solid ${tokens.colors.rule}`,
   },
   breadcrumbSlot: {
     minWidth: 0,
@@ -194,7 +207,7 @@ const style = {
     borderRight: `1px solid ${tokens.colors.rule}`,
     overflow: "hidden",
   },
-  tabsSlot: {
+  footerCenter: {
     minWidth: 0,
     minHeight: 0,
     overflow: "hidden",

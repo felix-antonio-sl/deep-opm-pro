@@ -16,7 +16,6 @@ import {
 } from "./arbol/togglesArbol";
 import type { Id } from "../modelo/tipos";
 import { tokens } from "./tokens";
-import { GLIFO_CARET, GLIFO_MARKER } from "./codex/glifos";
 
 /**
  * Barrel publico del arbol OPD. Lee el store y compone NodoOpd con handlers
@@ -46,7 +45,6 @@ export function ArbolOpd() {
   const [colapsado, setColapsado] = useState<Set<Id>>(new Set());
   const [renombrando, setRenombrando] = useState<{ id: Id; valor: string } | null>(null);
   const [dragOverId, setDragOverId] = useState<Id | null>(null);
-  const [colapsarTodo, setColapsarTodo] = useState(false);
   const [menuContextual, setMenuContextual] = useState<{ opdId: Id; x: number; y: number } | null>(null);
   const [opdCortadoId, setOpdCortadoId] = useState<Id | null>(null);
   const arboles = useMemo(() => construirArbol(modelo), [modelo]);
@@ -54,7 +52,6 @@ export function ArbolOpd() {
   const nodosVisibles = aplanarNodosVisibles(arboles, estaExpandidoNodo).filter((n) => n.visible);
   const nodosFoco = nodosVisibles.map(({ nodo }) => nodo);
   const idsNodosFoco = nodosFoco.map((nodo) => nodo.opd.id).join("|");
-  const totalConHijos = idsColapsables(arboles).size;
 
   useEffect(() => {
     if (!menuContextual) return;
@@ -72,11 +69,9 @@ export function ArbolOpd() {
 
   const expandirTodo = () => {
     setColapsado(expandirTodoArbol());
-    setColapsarTodo(false);
   };
   const colapsarTodoAccion = () => {
     setColapsado(idsColapsables(arboles));
-    setColapsarTodo(true);
   };
 
   useEffect(() => {
@@ -149,22 +144,6 @@ export function ArbolOpd() {
 
   return (
     <aside style={style.panel} aria-label="Árbol OPD" data-atajos-contexto="panel-arbol" tabIndex={-1}>
-      <div style={style.header}>
-        <button type="button" style={modoOrdenArbol === "manual" ? style.wordBtnActive : style.wordBtn} aria-pressed={modoOrdenArbol === "manual"} title={modoOrdenArbol === "manual" ? "Orden manual: arrastra OPDs para reordenar" : "Orden automático (según canvas)"} onClick={() => fijarModoOrdenArbol(modoOrdenArbol === "manual" ? "automatico" : "manual")}>
-          {modoOrdenArbol === "manual" ? "Manual" : "Auto"}
-        </button>
-        <button type="button" style={!nombresArbolVisibles ? style.wordBtnActive : style.wordBtn} title={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-label={nombresArbolVisibles ? "Mostrar códigos" : "Mostrar nombres"} aria-pressed={!nombresArbolVisibles} onClick={() => toggleNombresArbolVisibles()}>
-          {nombresArbolVisibles ? "ID" : "Aa"}
-        </button>
-        {totalConHijos > 0 ? (
-          <button type="button" style={style.glyphBtn} title={colapsarTodo ? "Expandir todo" : "Colapsar todo"} aria-label={colapsarTodo ? "Expandir todo" : "Colapsar todo"} onClick={colapsarTodo ? expandirTodo : colapsarTodoAccion}>
-            {colapsarTodo ? GLIFO_MARKER : GLIFO_CARET}
-          </button>
-        ) : null}
-        <button type="button" style={style.glyphBtn} title="Más opciones" aria-label="Más opciones" onClick={abrirGestionArbol}>
-          ⋯
-        </button>
-      </div>
       <div role="tree" aria-label="Árbol OPD" style={style.tree} data-atajos-contexto="panel-arbol">
         {nodosVisibles.length === 0 ? (
           <div style={style.empty}>Sin OPD</div>
@@ -307,65 +286,7 @@ const style = {
     background: tokens.colors.paper,
     borderRight: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
     display: "grid",
-    gridTemplateRows: "46px minmax(0, 1fr)",
-  },
-  // Barra de acciones del árbol (sin título: lo provee CodexColHeader de L2).
-  // Palabras kicker uppercase tracked + glifos; sin pills ni outlines.
-  header: {
-    display: "flex" as const,
-    alignItems: "center",
-    justifyContent: "flex-end" as const,
-    gap: tokens.spacing.sm,
-    padding: `0 ${tokens.spacing.sm}px`,
-    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
-    background: tokens.colors.paper,
-    minWidth: 0,
-    overflowX: "auto" as const,
-  },
-  wordBtn: {
-    minHeight: "22px",
-    border: 0,
-    background: "transparent",
-    cursor: "pointer",
-    fontFamily: tokens.typography.sans,
-    fontSize: tokens.typography.fs.fs10,
-    fontWeight: tokens.typography.weights.regular,
-    color: tokens.colors.inkMid,
-    textTransform: "uppercase" as const,
-    letterSpacing: tokens.typography.ls.kicker,
-    whiteSpace: "nowrap" as const,
-    padding: "2px 2px",
-    transition: tokens.transitions.fast,
-  },
-  wordBtnActive: {
-    minHeight: "22px",
-    border: 0,
-    background: "transparent",
-    cursor: "pointer",
-    fontFamily: tokens.typography.sans,
-    fontSize: tokens.typography.fs.fs10,
-    fontWeight: tokens.typography.weights.semibold,
-    color: tokens.colors.crimson,
-    textTransform: "uppercase" as const,
-    letterSpacing: tokens.typography.ls.kicker,
-    whiteSpace: "nowrap" as const,
-    padding: "2px 2px",
-    transition: tokens.transitions.fast,
-  },
-  glyphBtn: {
-    minWidth: "20px",
-    minHeight: "22px",
-    border: 0,
-    background: "transparent",
-    cursor: "pointer",
-    fontFamily: tokens.typography.mono,
-    fontSize: tokens.typography.fs.fs11,
-    color: tokens.colors.inkMid,
-    display: "inline-flex" as const,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 0,
-    transition: tokens.transitions.fast,
+    gridTemplateRows: "minmax(0, 1fr)",
   },
   tree: { overflow: "auto" as const, padding: "10px 8px", background: tokens.colors.paper },
   empty: { padding: "8px 4px", color: tokens.colors.inkSoft, fontSize: tokens.typography.sizes.sm, fontStyle: "italic" as const },

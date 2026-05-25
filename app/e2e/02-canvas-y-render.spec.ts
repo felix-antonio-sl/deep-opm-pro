@@ -618,21 +618,19 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.locator("main")).toHaveAttribute("data-context-submodo", "ninguno");
   await expect(page.getByTestId("viewpoint-heading")).toHaveText("Workbench OPM - edición");
   await expect(page.getByTestId("toolbar-root")).toBeVisible();
-  // Ronda 24 L4 #6: el cluster Conectar es contextual — se monta cuando hay
-  // entidad seleccionada o un modo activo. Al cargar (modelo vacío, sin
-  // selección, sin modo) está ausente del DOM, no solo deshabilitado.
-  for (const cluster of ["Modelo", "Modelar", "Ayuda"]) {
+  // Codex v1.1: todos los creadores viven inline; Relación aparece
+  // deshabilitada hasta tener una cosa origen.
+  for (const cluster of ["Modelo", "Modelar", "Conectar", "Ayuda"]) {
     await expect(page.getByRole("group", { name: cluster })).toBeVisible();
   }
-  await expect(page.getByRole("group", { name: "Conectar" })).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-modelo"]')).toBeVisible();
   await expect(page.locator('[data-slot="cluster-modelar"]')).toBeVisible();
-  await expect(page.locator('[data-slot="cluster-conectar"]')).toHaveCount(0);
+  await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
   await expect(page.locator('[data-slot="cluster-vista"]')).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-validar"]')).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-ayuda"]')).toBeVisible();
   await expect(page.getByRole("group", { name: "Modelar" }).getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
-  await expect(page.getByTestId("abrir-menu-tipo-enlace")).toHaveCount(0);
+  await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
   // Ronda 27 III.A cierre: el cluster Ayuda solo contiene `⌕ Buscar`. El
   // botón `⋯ Más` desapareció del chrome; sus items canónicos viven en
   // el menú principal `☰` (secciones Vista y Herramientas).
@@ -657,7 +655,7 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(paletteChrome.getByText("Mapa del sistema", { exact: true })).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
-  await expect(page.getByTestId("abrir-menu-tipo-enlace")).toHaveCount(0);
+  await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   const modal = page.getByTestId("modal-nombre-cosa");

@@ -38,11 +38,15 @@ function setup(
   sim: { activa: boolean; auto: boolean },
   opl: { minimizada: boolean } = { minimizada: false },
   nav: { modelo?: Modelo; opdActivoId?: Id } = {},
+  tabs: { abiertas?: Array<{ id: string }>; activa?: string | null } = {},
 ) {
   const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0 };
   const navegados: Id[] = [];
+  const pestanasCambiadas: string[] = [];
   const modelo = nav.modelo ?? crearModelo();
   const opdActivoId = nav.opdActivoId ?? modelo.opdRaizId;
+  const pestanasAbiertas = tabs.abiertas ?? [];
+  const pestanaActivaId = tabs.activa ?? pestanasAbiertas[0]?.id ?? null;
 
   const baseSnapshot = (): GlobalShortcutsSnapshot => ({
     modelo,
@@ -74,8 +78,8 @@ function setup(
     busquedaCosasAbierta: false,
     menuPrincipalAbierto: false,
     modoEnlace: null,
-    pestanasAbiertas: [],
-    pestanaActivaId: null,
+    pestanasAbiertas,
+    pestanaActivaId,
     abrirDialogoTraerConectados: () => {},
     ocultarAparienciaSeleccionada: () => {},
     copiarEstiloEnlaceAlPortapapeles: () => {},
@@ -119,7 +123,7 @@ function setup(
     desplegarSeleccionada: () => {},
     abrirPestanaNueva: () => {},
     cerrarPestana: () => {},
-    cambiarPestanaActiva: () => {},
+    cambiarPestanaActiva: (id: string) => { pestanasCambiadas.push(id); },
     toggleBibliotecaDock: () => {},
     // Simulation fields (B0.028)
     simulacionActiva: sim.activa,
@@ -142,7 +146,7 @@ function setup(
     return () => {};
   });
 
-  return { registros, calls, navegados };
+  return { registros, calls, navegados, pestanasCambiadas };
 }
 
 describe("atajo Espacio en simulación", () => {
@@ -197,7 +201,7 @@ describe("atajo Ctrl+. toggle de marginalia OPL (05-interactions §1)", () => {
   });
 });
 
-describe("navegación directa ⌘/Ctrl+1..9 (05-interactions §1)", () => {
+describe("navegación de pestañas workspace ⌘/Ctrl+1..9 (Codex v1.1)", () => {
   test("registra los nueve combos Ctrl+1..9 en contexto global", () => {
     const { registros } = setup({ activa: false, auto: false });
     for (let n = 1; n <= 9; n += 1) {
@@ -213,33 +217,65 @@ describe("navegación directa ⌘/Ctrl+1..9 (05-interactions §1)", () => {
     expect(opdsEnOrdenDeArbol(modelo)).toEqual(["opd-1", "opd-2", "opd-3", "opd-4"]);
   });
 
-  test("Ctrl+1 navega al SD raíz desde un SDN", () => {
-    const modelo = modeloConOpds(2);
-    const { registros, navegados } = setup({ activa: false, auto: false }, undefined, { modelo, opdActivoId: "opd-2" });
+  test("Ctrl+1 salta a la primera pestaña del workspace", () => {
+    const { registros, pestanasCambiadas, navegados } = setup(
+      { activa: false, auto: false },
+      undefined,
+      {},
+      { abiertas: [{ id: "tab-1" }, { id: "tab-2" }], activa: "tab-2" },
+    );
     registros.find((r) => r.combo === "Ctrl+1")!.handler(makeFakeEvent());
-    expect(navegados).toEqual(["opd-1"]);
+    expect(pestanasCambiadas).toEqual(["tab-1"]);
+    expect(navegados).toEqual([]);
   });
 
-  test("Ctrl+2 navega al primer SDN; Ctrl+3 al siguiente", () => {
-    const modelo = modeloConOpds(2);
-    const { registros, navegados } = setup({ activa: false, auto: false }, undefined, { modelo });
+  test("Ctrl+2 y Ctrl+3 saltan a modelos abiertos, no a OPDs", () => {
+    const { registros, pestanasCambiadas, navegados } = setup(
+      { activa: false, auto: false },
+      undefined,
+      { modelo: modeloConOpds(2) },
+      { abiertas: [{ id: "tab-1" }, { id: "tab-2" }, { id: "tab-3" }], activa: "tab-1" },
+    );
     registros.find((r) => r.combo === "Ctrl+2")!.handler(makeFakeEvent());
     registros.find((r) => r.combo === "Ctrl+3")!.handler(makeFakeEvent());
-    expect(navegados).toEqual(["opd-2", "opd-3"]);
+    expect(pestanasCambiadas).toEqual(["tab-2", "tab-3"]);
+    expect(navegados).toEqual([]);
   });
 
-  test("Ctrl+N no navega si el índice excede los OPDs disponibles", () => {
-    const modelo = modeloConOpds(1);
-    const { registros, navegados } = setup({ activa: false, auto: false }, undefined, { modelo });
+  test("Ctrl+N no actúa si el índice excede las pestañas abiertas", () => {
+    const { registros, pestanasCambiadas, navegados } = setup(
+      { activa: false, auto: false },
+      undefined,
+      {},
+      { abiertas: [{ id: "tab-1" }], activa: "tab-1" },
+    );
     registros.find((r) => r.combo === "Ctrl+5")!.handler(makeFakeEvent());
+    expect(pestanasCambiadas).toEqual([]);
     expect(navegados).toEqual([]);
   });
 
-  test("Ctrl+1 no re-navega si ya estás en el SD raíz", () => {
-    const modelo = modeloConOpds(2);
-    const { registros, navegados } = setup({ activa: false, auto: false }, undefined, { modelo, opdActivoId: "opd-1" });
+  test("Ctrl+1 no re-activa si ya estás en la primera pestaña", () => {
+    const { registros, pestanasCambiadas, navegados } = setup(
+      { activa: false, auto: false },
+      undefined,
+      {},
+      { abiertas: [{ id: "tab-1" }, { id: "tab-2" }], activa: "tab-1" },
+    );
     registros.find((r) => r.combo === "Ctrl+1")!.handler(makeFakeEvent());
+    expect(pestanasCambiadas).toEqual([]);
     expect(navegados).toEqual([]);
+  });
+
+  test("registra Ctrl+Shift+[ y Ctrl+Shift+] como anterior/siguiente tab", () => {
+    const { registros, pestanasCambiadas } = setup(
+      { activa: false, auto: false },
+      undefined,
+      {},
+      { abiertas: [{ id: "tab-1" }, { id: "tab-2" }], activa: "tab-1" },
+    );
+    registros.find((r) => r.combo === "Ctrl+Shift+]")!.handler(makeFakeEvent());
+    registros.find((r) => r.combo === "Ctrl+Shift+[")!.handler(makeFakeEvent());
+    expect(pestanasCambiadas).toEqual(["tab-2", "tab-2"]);
   });
 });
 

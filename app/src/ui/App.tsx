@@ -12,11 +12,11 @@ import { registrarAtajosAplicacion } from "../app/ports/globalShortcutsPort";
 import { crearZustandGlobalShortcutsPort } from "../app/ports/zustandGlobalShortcutsPort";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useAppShellViewModel } from "../app/viewmodels/appShellViewModel";
-import { panelOplMinimizadoEfectivo } from "../app/viewmodels/panelOplViewModel";
+import type { PanelOplViewModel } from "../app/viewmodels/panelOplViewModel";
+import { usePanelOplViewModel } from "../app/viewmodels/panelOplViewModel";
 import { usePrecargaBienvenida } from "../app/viewmodels/precargaBienvenidaViewModel";
 import { listarAvisosDiagnostico } from "../modelo/diagnostico";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
-import { generarOplInteractivo } from "../opl/generar";
 import type { Id, Modelo } from "../modelo/tipos";
 import type { JointCanvasAdapter } from "../render/jointjs/jointCanvasAdapter";
 import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_INSPECTOR_MIN } from "../store/runtime";
@@ -35,7 +35,7 @@ import { tituloViewPointWorkbench } from "./contextoWorkbench";
 import { CodexCanvasMount } from "./codex/CodexCanvasMount";
 import { CodexColHeader } from "./codex/CodexColHeader";
 import { CodexFooterDiagnostico, CodexFooterKey, CodexFooterKeys, estadoDiagnosticoFooter } from "./codex/CodexFooterKey";
-import { CodexFrame, modoMarginaliaCodex } from "./codex/CodexFrame";
+import { CodexFrame } from "./codex/CodexFrame";
 import { DivisorPanel } from "./divisorPanel";
 import { EstadoVacioOpm } from "./EstadoVacioOpm";
 import { Inspector } from "./Inspector";
@@ -48,7 +48,7 @@ import { useBreakpoint } from "./layoutResponsive";
 import { MensajeFlashBridge } from "./MensajeFlashBridge";
 import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobile";
 import { PanelDiagnostico } from "./PanelDiagnostico";
-import { PanelOpl } from "./PanelOpl";
+import { PanelOplView } from "./PanelOpl";
 import { BarraSimulacion } from "./simulacion/BarraSimulacion";
 import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
@@ -73,12 +73,9 @@ const ModalUrlsObjeto = lazy(() => import("./ModalUrlsObjeto").then((m) => ({ de
 export function App() {
   const {
     vistaMapaActiva,
-    anchoPanelArbol,
     anchoPanelInspector,
-    preferenciasOpl,
     modelo,
     opdActivoId,
-    fijarAnchoPanelArbol,
     fijarAnchoPanelInspector,
     asistenteAbierto,
     dialogoGuardarComoAbierto,
@@ -100,21 +97,19 @@ export function App() {
     cerrarDialogoComandos,
     modeloPersistidoId,
     pantallaInicioCerrada,
-    seleccionIdOpl,
-    enlaceSeleccionIdOpl,
     vistaMobileActiva,
     modoSimulacionActivo,
     modoEnlaceActivo,
     modoCreacionActivo,
   } = useAppShellViewModel();
-  const [inspectorAbierto, setInspectorAbierto] = useState(true);
+  const [, setInspectorAbierto] = useState(true);
   const [canvasAdapter, setCanvasAdapter] = useState<JointCanvasAdapter | null>(null);
   // Ronda 23 L3 #7: el primer paint sin modelos persistidos ni recientes
   // precarga el fixture "System Diagram" para que el operador entre directo
   // al canvas con un ejemplo en lugar del overlay con 3 caminos.
   usePrecargaBienvenida("System Diagram");
-  const oplMinimizado = panelOplMinimizadoEfectivo(preferenciasOpl?.oplMinimizado, seleccionIdOpl, enlaceSeleccionIdOpl);
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
+  const panelOplVm = usePanelOplViewModel();
   // L2 ronda 21: branch por viewport. Desktop preserva el grid canónico de 4
   // columnas; tablet conserva grid pero más estrecho; mobile delega a tabs.
   const breakpoint = useBreakpoint();
@@ -147,12 +142,11 @@ export function App() {
     modoCreacionActivo,
     bienvenidaActiva,
   });
-  const modoMarginalia = modoMarginaliaCodex(inspectorAbierto);
   // Ronda Codex v2 L2: meta editorial del header (N oraciones · ● sin guardar)
   // y estado de diagnóstico del footer-right. Derivados puros del modelo +
   // store, leídos por puertos read-only (no mutan estado).
   const { dirtyModelo } = useZustandPersistencePort();
-  const oracionesOpl = contarOracionesOpl(modelo, opdActivoId);
+  const oracionesOpl = panelOplVm.lineas.length;
   const avisosDiagnostico = listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: opdActivoId });
   const estadoDiagnostico = estadoDiagnosticoFooter(avisosDiagnostico.length);
 
@@ -210,7 +204,7 @@ export function App() {
                   ) : null}
                   {vistaMobileActiva === "opl" ? (
                     <div data-testid="opl-pane" style={layout.mobilePanelContent}>
-                      <PanelOpl />
+                      <PanelOplView vm={panelOplVm} />
                     </div>
                   ) : null}
                   {vistaMobileActiva === "issues" ? (
@@ -234,7 +228,7 @@ export function App() {
             `menu` de `CodexFrame` ya no recibe superficie paralela.
           */
           <CodexFrame
-            leftWidth={anchoPanelArbol}
+            leftWidth={ANCHO_PANEL_INSPECTOR_DEFAULT}
             rightWidth={anchoInspectorLayout}
             isTablet={esTablet}
             toolbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
@@ -250,18 +244,19 @@ export function App() {
             )}
             footerRight={<CodexFooterDiagnostico estado={estadoDiagnostico} />}
             leftPanel={(
-              <div data-testid="tree-pane" style={layout.treePane}>
-                <CodexColHeader kicker="ÍNDICE" title="OPDs" meta={Object.keys(modelo.opds).length} />
-                <div style={layout.treePaneArbol}>
-                  <ArbolOpd />
+              <section data-testid="opl-pane" style={layout.oplLeftPane}>
+                <CodexColHeader kicker="MARGINALIA" title="OPL" meta={<OplHeaderMeta vm={panelOplVm} />} />
+                <div style={layout.oplLeftContent}>
+                  <PanelOplView vm={panelOplVm} />
                 </div>
-              </div>
+              </section>
             )}
             leftDivider={(
-              <DivisorPanel
-                orientacion="vertical"
-                anchoInicial={anchoPanelArbol}
-                onAnchoChange={fijarAnchoPanelArbol}
+              <div
+                role="separator"
+                aria-orientation="vertical"
+                data-testid="divisor-panel-opl-canvas"
+                style={layout.codexLeftDivider}
               />
             )}
             canvas={(
@@ -295,38 +290,36 @@ export function App() {
               />
             )}
             rightPanel={(
-              <div data-testid="inspector-pane" data-marginalia-mode={modoMarginalia} style={marginaliaPaneStyle(modoMarginalia)}>
-                {inspectorAbierto ? (
-                  <section style={layout.marginaliaInspector}>
-                    <CodexColHeader kicker="Inspector" title="Selection" meta="live" />
-                    <div style={layout.inspectorContent}>
-                      <Inspector />
-                      {timelineDisponible ? (
-                        <div style={layout.timelineInInspector}>
-                          <Suspense fallback={<div style={layout.timelineFallback} />}>
-                            <Timeline />
-                          </Suspense>
-                        </div>
-                      ) : null}
-                    </div>
-                  </section>
-                ) : null}
+              <div data-testid="inspector-pane" style={layout.rightToolsPane}>
+                <section data-testid="tree-pane" style={layout.rightIndexPane}>
+                  <CodexColHeader kicker="ÍNDICE" title="OPDs" meta={Object.keys(modelo.opds).length} />
+                  <div style={layout.treePaneArbol}>
+                    <ArbolOpd />
+                  </div>
+                </section>
                 <div
                   role="separator"
                   aria-orientation="horizontal"
-                  data-testid="divisor-panel-opl"
-                  title="OPL marginalia"
+                  data-testid="divisor-panel-indice-inspector"
+                  title="Separador índice / inspector"
                   style={layout.marginaliaRule}
                 />
-                <section data-testid="opl-pane" style={oplMarginaliaStyle(oplMinimizado, modoMarginalia)}>
-                  {!oplMinimizado ? <CodexColHeader kicker="OPL" title="Marginalia" meta="live" /> : null}
-                  <div style={layout.oplMarginaliaContent}>
-                    <PanelOpl />
+                <section style={layout.rightInspectorPane}>
+                  <CodexColHeader kicker="INSPECTOR" title="Selection" meta="LIVE" />
+                  <div style={layout.inspectorContent}>
+                    <Inspector />
+                    {timelineDisponible ? (
+                      <div style={layout.timelineInInspector}>
+                        <Suspense fallback={<div style={layout.timelineFallback} />}>
+                          <Timeline />
+                        </Suspense>
+                      </div>
+                    ) : null}
+                    <div style={layout.diagnosticoMarginalia}>
+                      <PanelDiagnostico />
+                    </div>
                   </div>
                 </section>
-                <div style={layout.diagnosticoMarginalia}>
-                  <PanelDiagnostico />
-                </div>
               </div>
             )}
           />
@@ -366,27 +359,47 @@ export function App() {
 }
 
 /**
- * Ronda Codex v2 L2: cuenta las oraciones OPL del OPD activo para la meta del
- * header. Reusa el generador interactivo (misma fuente que el panel OPL), sin
- * tokenizar de más: cada `OplLineaInteractiva` es una oración.
- */
-function contarOracionesOpl(modelo: Modelo, opdActivoId: Id): number {
-  return generarOplInteractivo(modelo, opdActivoId).length;
-}
-
-/**
  * Meta editorial del header Codex: `N oraciones · ● sin guardar · ⌘K`.
  * El indicador "sin guardar" sólo aparece si el modelo está sucio; el `⌘K`
  * recuerda el atajo del command palette (que L5 cablea al ☰).
  */
+function OplHeaderMeta({ vm }: { vm: PanelOplViewModel }) {
+  if (!vm.filtroActivo) return <span>LIVE</span>;
+  return (
+    <span data-testid="opl-header-filtro" style={metaCodex.oplFilter}>
+      <span>filtrado</span>
+      {vm.filtroCodigo ? (
+        <>
+          <span aria-hidden="true" style={metaCodex.oplFilterSep}>·</span>
+          <span>{vm.filtroCodigo}</span>
+        </>
+      ) : null}
+      <span aria-hidden="true" style={metaCodex.oplFilterSep}>·</span>
+      <span>{vm.visibles.length}/{vm.lineas.length}</span>
+      <button
+        type="button"
+        data-testid="opl-header-filtro-limpiar"
+        aria-label="Quitar filtro OPL"
+        title="Quitar filtro OPL"
+        style={metaCodex.oplFilterClear}
+        onClick={() => vm.fijarFiltroOplPorSeleccion(false)}
+      >
+        ✕
+      </button>
+    </span>
+  );
+}
+
 function ChromeMetaCodex({ oraciones, dirty }: { oraciones: number; dirty: boolean }) {
   return (
-    <span data-testid="codex-header-meta" style={metaCodex.wrap}>
-      <span data-testid="codex-meta-oraciones">{oraciones === 1 ? "1 oración" : `${oraciones} oraciones`}</span>
+      <span data-testid="codex-header-meta" style={metaCodex.wrap}>
+      <span data-testid="codex-meta-oraciones">
+        {oraciones === 0 ? "editor vacío" : oraciones === 1 ? "1 oración" : `${oraciones} oraciones`}
+      </span>
       {dirty ? (
         <>
           <span aria-hidden="true" style={metaCodex.sep}>·</span>
-          <span data-testid="codex-meta-dirty" style={metaCodex.dirty}>● sin guardar</span>
+          <span data-testid="codex-meta-dirty" style={metaCodex.dirty}>sin guardar</span>
         </>
       ) : null}
       <span aria-hidden="true" style={metaCodex.sep}>·</span>
@@ -406,7 +419,7 @@ const metaCodex = {
     color: tokens.colors.inkSoft,
   },
   dirty: {
-    color: tokens.colors.accent,
+    color: tokens.colors.inkMid,
     fontStyle: "normal",
   },
   kbd: {
@@ -421,6 +434,34 @@ const metaCodex = {
     fontFamily: tokens.typography.mono,
     fontStyle: "normal",
     fontSize: `${tokens.typography.fs.fs10}px`,
+    lineHeight: 1,
+  },
+  oplFilter: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    color: tokens.colors.crimson,
+    fontFamily: tokens.typography.mono,
+    fontSize: "9.5px",
+    fontStyle: "italic",
+    letterSpacing: 0,
+    textTransform: "none",
+    whiteSpace: "nowrap",
+  },
+  oplFilterSep: {
+    color: tokens.colors.crimson,
+    opacity: 0.65,
+    fontStyle: "normal",
+  },
+  oplFilterClear: {
+    border: 0,
+    background: "transparent",
+    color: tokens.colors.crimson,
+    cursor: "pointer",
+    padding: "0 0 0 2px",
+    fontFamily: tokens.typography.mono,
+    fontSize: "9.5px",
+    fontStyle: "normal",
     lineHeight: 1,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
@@ -472,6 +513,59 @@ const layout = {
     alignItems: "center",
     gap: "16px",
     overflow: "hidden",
+  },
+  oplLeftPane: {
+    minWidth: 0,
+    minHeight: 0,
+    height: "100%",
+    display: "grid",
+    gridTemplateRows: "42px minmax(0, 1fr)",
+    overflow: "hidden",
+    background: tokens.colors.fondoPanel,
+    borderRight: `1px solid ${tokens.colors.rule}`,
+    boxShadow: tokens.shadows.panelInset,
+  },
+  oplLeftContent: {
+    minWidth: 0,
+    minHeight: 0,
+    overflow: "hidden",
+  },
+  codexLeftDivider: {
+    gridArea: "divisor",
+    width: "6px",
+    minWidth: "6px",
+    background: tokens.colors.paperWarm,
+    borderLeft: `1px solid ${tokens.colors.rule}`,
+    borderRight: `1px solid ${tokens.colors.ruleStrong}`,
+  },
+  rightToolsPane: {
+    minWidth: 0,
+    minHeight: 0,
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    background: tokens.colors.paper,
+    borderLeft: `1px solid ${tokens.colors.rule}`,
+    boxShadow: tokens.shadows.panelInset,
+  },
+  rightIndexPane: {
+    minWidth: 0,
+    minHeight: 0,
+    flex: "0 0 30%",
+    display: "grid",
+    gridTemplateRows: "42px minmax(0, 1fr)",
+    overflow: "hidden",
+    background: tokens.colors.paper,
+  },
+  rightInspectorPane: {
+    minWidth: 0,
+    minHeight: 0,
+    flex: "1 1 70%",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    background: tokens.colors.fondoPanel,
   },
   treePane: {
     gridArea: "tree",
@@ -635,31 +729,4 @@ function pageStyle(esMobile: boolean): preact.JSX.CSSProperties {
  */
 function anchoPanelInspectorLayout(anchoPanelInspector: number, esTablet: boolean): number {
   return esTablet ? Math.min(anchoPanelInspector, ANCHO_PANEL_INSPECTOR_DEFAULT) : anchoPanelInspector;
-}
-
-function marginaliaPaneStyle(modo: "split" | "opl"): preact.JSX.CSSProperties {
-  return {
-    minWidth: 0,
-    minHeight: 0,
-    height: "100%",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-    background: tokens.colors.paper,
-    borderLeft: `1px solid ${tokens.colors.rule}`,
-    boxShadow: tokens.shadows.panelInset,
-    ...(modo === "opl" ? { paddingTop: 0 } : {}),
-  };
-}
-
-function oplMarginaliaStyle(minimizado: boolean, modo: "split" | "opl"): preact.JSX.CSSProperties {
-  return {
-    minWidth: 0,
-    minHeight: 0,
-    flex: minimizado ? "0 0 38px" : modo === "split" ? "1 1 44%" : "1 1 auto",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-    background: tokens.colors.fondoPanel,
-  };
 }

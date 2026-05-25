@@ -218,5 +218,5 @@ export function panelOplMinimizadoEfectivo(
 ): boolean {
   if (preferencia === true) return true;
   if (seleccionId || enlaceSeleccionId) return false;
-  return preferencia ?? true;
+  return preferencia ?? false;
 }

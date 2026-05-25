@@ -20,22 +20,18 @@ export function Toolbar() {
         <ToolbarBase
           conectarSlot={<ToolbarCreacion />}
           statusSlot={(
-            <>
-              {autosalvado.activo ? (
-                <span
-                  data-testid="toolbar-autosave-status"
-                  style={autosalvado.salvando ? style.autosaveSaving : style.autosaveIdle}
-                  title={autosalvado.ultimo
-                    ? `Autosalvado activo · Último: ${new Date(autosalvado.ultimo).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}`
-                    : "Autosalvado activo"}
-                >
-                  {/* Ronda 28 L2 Bauhaus: glyph ● activo (autosalvado en curso)
-                      o ○ pausado, ink en ambos casos. NO usar verde. */}
-                  <span aria-hidden="true">{autosalvado.salvando ? "●" : "○"}</span>
-                  <span>Auto</span>
-                </span>
-              ) : null}
-            </>
+            <span
+              data-testid="toolbar-autosave-status"
+              style={style.inlineStatus}
+              role="status"
+              aria-label={autosalvado.activo ? "Autosalvado activo" : "Autosalvado pausado"}
+              title={autosalvado.ultimo
+                ? `Autosalvado ${autosalvado.activo ? "activo" : "pausado"} · Último: ${new Date(autosalvado.ultimo).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}`
+                : `Autosalvado ${autosalvado.activo ? "activo" : "pausado"}`}
+            >
+              <span aria-hidden="true" style={style.statusDot}>{autosalvado.activo ? "●" : "○"}</span>
+              <span style={style.statusLabel}>Auto</span>
+            </span>
           )}
         />
       </Suspense>

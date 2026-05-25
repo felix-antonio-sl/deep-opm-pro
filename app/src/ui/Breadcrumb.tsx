@@ -10,6 +10,17 @@ export interface SegmentoBreadcrumbOpd {
 export function Breadcrumb() {
   const { modelo, opdActivoId, cambiarOpdActivo } = useBreadcrumbViewModel();
   const segmentos = rutaBreadcrumbOpd(modelo, opdActivoId);
+
+  return <BreadcrumbView segmentos={segmentos} opdActivoId={opdActivoId} cambiarOpdActivo={cambiarOpdActivo} />;
+}
+
+interface BreadcrumbViewProps {
+  segmentos: SegmentoBreadcrumbOpd[];
+  opdActivoId: Id;
+  cambiarOpdActivo: (id: Id) => void;
+}
+
+export function BreadcrumbView({ segmentos, opdActivoId, cambiarOpdActivo }: BreadcrumbViewProps) {
   const activo = segmentos[segmentos.length - 1]?.id ?? opdActivoId;
 
   return (
@@ -21,7 +32,7 @@ export function Breadcrumb() {
           const esActivo = segmento.id === activo;
           return (
             <span key={segmento.id} style={style.segmentoWrap}>
-              {index > 0 ? <span aria-hidden="true" style={style.separador}>/</span> : null}
+              {index > 0 ? <span aria-hidden="true" style={style.separador}>·</span> : null}
               <button
                 type="button"
                 aria-current={esActivo ? "page" : undefined}
@@ -64,8 +75,8 @@ export function rutaBreadcrumbOpd(modelo: Modelo, opdActivoId: Id): SegmentoBrea
  *   - Vive en la columna central del header (`wordmark │ breadcrumb │ meta`),
  *     reemplazando el literal "Codex". Hereda el borde izquierdo del slot del
  *     header, así que el `nav` ya no pinta borde ni fondo propio.
- *   - Separadores `/` en ink-30 (discretos, monoespaciados).
- *   - Crumb inactivo: ink-70 weight 400. Crumb activo: ink weight 500. El peso
+ *   - Separadores `·` en inkFaint (discretos, serif).
+ *   - Crumb intermedio: inkMid weight 400. Crumb activo: ink weight 700. El peso
  *     tipográfico (Inria Serif) marca el activo, sin fondo.
  */
 const style = {
@@ -77,7 +88,7 @@ const style = {
     height: "100%",
     padding: "0 16px",
     overflow: "hidden",
-    color: tokens.colors.ink70,
+    color: tokens.colors.inkMid,
     background: "transparent",
     fontFamily: tokens.typography.fontFamily,
   },
@@ -96,8 +107,8 @@ const style = {
   separador: {
     flex: "0 0 auto",
     margin: "0 6px",
-    color: tokens.colors.ink30,
-    fontFamily: tokens.typography.fontFamilyMono,
+    color: tokens.colors.inkFaint,
+    fontFamily: tokens.typography.fontFamily,
     fontSize: `${tokens.typography.sizes.sm}px`,
     lineHeight: 1,
   },
@@ -107,7 +118,7 @@ const style = {
     height: "24px",
     border: "1px solid transparent",
     background: "transparent",
-    color: tokens.colors.ink70,
+    color: tokens.colors.inkMid,
     cursor: "pointer",
     padding: "0 4px",
     overflow: "hidden",
@@ -119,7 +130,7 @@ const style = {
   },
   segmentoActivo: {
     color: tokens.colors.ink,
-    fontWeight: tokens.typography.weights.medium,
+    fontWeight: tokens.typography.weights.bold,
     cursor: "default",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

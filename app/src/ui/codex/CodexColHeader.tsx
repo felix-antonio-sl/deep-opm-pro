@@ -59,6 +59,5 @@ const style = {
     fontFamily: tokens.typography.mono,
     fontSize: `${tokens.typography.fs.fs10}px`,
     letterSpacing: tokens.typography.ls.meta,
-    textTransform: "uppercase",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

@@ -4,8 +4,10 @@ import { useZustandInteractionModePort } from "../ports/zustandInteractionModePo
 import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
+import { useZustandPersistencePort } from "../ports/zustandPersistencePort";
 import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
+import { useZustandSelectedElementActionsPort } from "../ports/zustandSelectedElementActionsPort";
 import { useZustandToolbarChromePort } from "../ports/zustandToolbarChromePort";
 
 export function useToolbarBaseViewModel() {
@@ -27,6 +29,7 @@ export function useToolbarBaseViewModel() {
     descartarNuevaCosaPendiente,
   } = useZustandModelCreationPort();
   const { seleccionId, seleccionados, seleccionarEntidad, seleccionarEnlace } = useZustandSelectionPort();
+  const { agregarEstadoSmart } = useZustandSelectedElementActionsPort();
   const {
     eliminarSeleccion,
     conectarSeleccionAlTodo,
@@ -42,6 +45,7 @@ export function useToolbarBaseViewModel() {
     borrarEnlacesEnLote,
   } = useZustandLinkContextActionsPort();
   const { iniciarAutosalvado } = useZustandAutosavePort();
+  const persistencia = useZustandPersistencePort();
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
   const { modoEnlace } = useZustandInteractionModePort();
 
@@ -51,6 +55,7 @@ export function useToolbarBaseViewModel() {
     crearObjeto,
     crearProceso,
     crearAtributoNumerico,
+    agregarEstadoSmart,
     fijarModoCreacion,
     deshacer,
     rehacer,
@@ -80,6 +85,7 @@ export function useToolbarBaseViewModel() {
     alinearSeleccion,
     distribuirSeleccion,
     alinearSeleccionEnlaces,
+    persistencia,
   };
 }
 

@@ -4,8 +4,8 @@ import type { Modelo } from "../../modelo/tipos/modelo";
 import { codigoCanonicoSeleccion, panelOplMinimizadoEfectivo } from "./panelOplViewModel";
 
 describe("panelOplMinimizadoEfectivo", () => {
-  test("colapsa por default cuando no hay seleccion ni preferencia", () => {
-    expect(panelOplMinimizadoEfectivo(undefined, null, null)).toBe(true);
+  test("queda expandido por default en la marginalia izquierda Codex v1.1", () => {
+    expect(panelOplMinimizadoEfectivo(undefined, null, null)).toBe(false);
   });
 
   test("expande por DataFlow cuando hay seleccion y el usuario no lo minimizo explicitamente", () => {

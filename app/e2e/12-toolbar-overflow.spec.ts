@@ -10,7 +10,7 @@ import { cerrarPantallaInicioSiVisible, ejecutarComandoPalette } from "./_smoke-
  *   [☰ Modelo] [● Persistencia] [○ Objeto] [● Proceso] [⌕ Buscar (Ctrl+K)]
  *
  * Este spec verifica:
- * - El toolbar primario tiene exactamente 5 controles visibles sin
+ * - El toolbar primario tiene exactamente 7 controles visibles sin
  *   selección (objetivo III.A original).
  * - El botón `⋯ Más` ya no existe — sus items canónicos migraron al
  *   menú principal `☰` (secciones Vista y Herramientas) y las acciones
@@ -23,7 +23,7 @@ import { cerrarPantallaInicioSiVisible, ejecutarComandoPalette } from "./_smoke-
 
 test.use({ viewport: { width: 1280, height: 800 } });
 
-test("toolbar plano III.A: exactamente 5 controles visibles sin selección, sin overflow", async ({ page }) => {
+test("toolbar plano Codex v1.1: creadores visibles sin selección, sin overflow", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -33,9 +33,9 @@ test("toolbar plano III.A: exactamente 5 controles visibles sin selección, sin 
   const toolbarRoot = page.getByTestId("toolbar-root");
   await expect(toolbarRoot).toBeVisible();
 
-  // Contamos botones visibles dentro del toolbar-root. Sin selección el
-  // chrome cierra III.A: ☰ · ChipPersistencia · Objeto · Proceso · Buscar.
-  // (ChipPersistencia es un <button> con estado del autosalvado.)
+  // Contamos botones visibles dentro del toolbar-root. Codex v1.1 expone los
+  // cuatro creadores inline: ☰ · persistencia · Objeto · Proceso · Estado
+  // · Relación · Buscar. Estado/Relación pueden estar deshabilitados.
   const conteo = await toolbarRoot.evaluate((root) => {
     const visibles = (el: Element) => {
       const rect = (el as HTMLElement).getBoundingClientRect();
@@ -47,9 +47,16 @@ test("toolbar plano III.A: exactamente 5 controles visibles sin selección, sin 
     return { total: buttons.length, labels };
   });
 
-  // III.A original pide 5 elementos visibles planos. Sin selección activa,
-  // el chrome cumple geometría exacta.
-  expect(conteo.total).toBe(5);
+  expect(conteo.total).toBe(7);
+  expect(conteo.labels).toEqual([
+    "☰",
+    "●Sin guardar ⌃S",
+    "ObjetoO",
+    "ProcesoP",
+    "EstadoS",
+    "RelaciónR",
+    "⌕buscar…⌘K",
+  ]);
 
   // No hay overflow horizontal: scrollWidth no debe exceder al clientWidth con
   // tolerancia minima (rounding subpixel) en viewport desktop estandar.

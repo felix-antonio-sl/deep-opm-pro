@@ -9,6 +9,8 @@ import { useToolbarCreacionViewModel } from "../../app/viewmodels/toolbarCreacio
 import type { ModoEnlace } from "../../canvas/modoEnlace";
 import type { Id, TipoEnlace } from "../../modelo/tipos";
 import { MenuTipoEnlace, TIPOS_ENLACE_MENU } from "../MenuTipoEnlace";
+import { colors, stroke } from "../tokens";
+import { ToolbarActionButton } from "./toolbarPrimitives";
 import { toolbarStyle as style } from "./toolbarStyles";
 
 /**
@@ -17,6 +19,35 @@ import { toolbarStyle as style } from "./toolbarStyles";
  */
 export const TIPOS_ENLACE: Array<{ tipo: TipoEnlace; label: string }> = TIPOS_ENLACE_MENU;
 export const LIMITE_CONEXIONES_MANUALES_NUDGE_ANCHOR = 5;
+
+function GlyphRelacion(): preact.JSX.Element {
+  return (
+    <svg
+      width="14"
+      height="12"
+      viewBox="0 0 14 12"
+      aria-hidden="true"
+      focusable="false"
+      style={style.glyph}
+    >
+      <path
+        d="M1 6h10"
+        fill="none"
+        stroke={colors.ink}
+        strokeWidth={stroke.base}
+        strokeLinecap="square"
+      />
+      <path
+        d="M8.5 2.5 12 6 8.5 9.5"
+        fill="none"
+        stroke={colors.ink}
+        strokeWidth={stroke.base}
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+      />
+    </svg>
+  );
+}
 
 interface EstadoNudgeConexionAnchor {
   modoEnlace: Pick<ModoEnlace, "fase"> | null;
@@ -45,12 +76,6 @@ export function ToolbarCreacion() {
   const menuTiposRef = useRef<HTMLDivElement | null>(null);
   const menuTiposAbiertoRef = useRef(false);
   menuTiposAbiertoRef.current = menuTiposAbierto;
-
-  const estiloBotonTipos = selectorEnlaceDeshabilitado
-    ? style.disabledButton
-    : menuTiposAbierto
-      ? style.activeButton
-      : style.button;
 
   useEffect(() => {
     if (selectorEnlaceDeshabilitado) setMenuTiposAbierto(false);
@@ -137,19 +162,20 @@ export function ToolbarCreacion() {
 
   return (
     <>
-      <button
-        ref={triggerTiposRef}
-        style={estiloBotonTipos}
-        type="button"
+      <ToolbarActionButton
+        glyph={<GlyphRelacion />}
+        label="Relación"
+        shortcut="R"
+        active={menuTiposAbierto}
         onClick={handleToggleTiposValidos}
         disabled={selectorEnlaceDeshabilitado}
-        aria-haspopup="dialog"
-        aria-expanded={menuTiposAbierto}
-        data-testid="abrir-menu-tipo-enlace"
+        ariaHaspopup="dialog"
+        ariaExpanded={menuTiposAbierto}
+        testId="abrir-menu-tipo-enlace"
         title={selectorEnlaceDeshabilitado ? "Selecciona una cosa origen" : "Conectar cosas con tipos válidos"}
-      >
-        Conectar ⌖
-      </button>
+        ariaLabel="Crear relación"
+        buttonRef={triggerTiposRef}
+      />
       {modoEnlace ? <button style={style.secondaryButton} type="button" onClick={cancelarEnlace} title="Cancelar creación de enlace">Cancelar</button> : null}
       {/* P1 sticky ronda 4: barra de modo canonica unica. Reemplaza el badge */}
       {/* "Modo sticky" + chip de modoEnlace dispersos por una sola etiqueta */}

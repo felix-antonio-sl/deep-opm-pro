@@ -19,7 +19,12 @@ import type { JointCanvasAdapter } from "../../render/jointjs/jointCanvasAdapter
 import type { AccionContextualId } from "../../store/acciones-contextuales";
 import { primerEnlaceVisualDeEntidad } from "../BarraHerramientasElemento";
 import { useCanvasAdapter } from "../CanvasAdapterContext";
-import { ChipPersistencia } from "../ChipPersistencia";
+import {
+  clasificarVariante,
+  detallarChip,
+  formatearHoraGuardado,
+  labelChip,
+} from "../ChipPersistencia";
 import { ejecutarAccionContextualEntidad } from "../ejecutarAccionContextual";
 // L2 ronda 21: la toolbar primaria de modelado pesado se oculta en mobile
 // y se compacta en tablet. Decisión por viewport delegada a `layoutResponsive`.
@@ -29,13 +34,11 @@ import { MenuContextualEstado } from "../MenuContextualEstado";
 import { MenuContextualEntidad } from "../MenuContextualEntidad";
 import { colors, stroke } from "../tokens";
 import "./toolbar.css";
+import { labelPersistenciaToolbar, ToolbarActionButton } from "./toolbarPrimitives";
 import { dragAtributoNumerico, dragToolbar, toolbarStyle as style } from "./toolbarStyles";
 
 /**
- * Glyph mini ronda 28 L2: cuadrado (Objeto) / elipse (Proceso) 12×12
- * en stroke ink. NO usa fill verde/azul: la paleta semántica del canvas
- * [JOYAS §1] vive sólo en L4. Aquí el botón comunica la geometría OPM
- * (rectángulo vs elipse) sin acoplar al canvas cromático.
+ * Codex v1.1: creadores inline con glifo de geometría OPM y stroke canónico.
  */
 function GlyphObjeto(): preact.JSX.Element {
   return (
@@ -53,7 +56,7 @@ function GlyphObjeto(): preact.JSX.Element {
         width={12 - stroke.base}
         height={12 - stroke.base}
         fill="none"
-        stroke={colors.ink}
+        stroke={colors.opm.object}
         strokeWidth={stroke.base}
       />
     </svg>
@@ -76,8 +79,29 @@ function GlyphProceso(): preact.JSX.Element {
         rx={6 - stroke.base / 2}
         ry={4 - stroke.base / 2}
         fill="none"
-        stroke={colors.ink}
+        stroke={colors.opm.process}
         strokeWidth={stroke.base}
+      />
+    </svg>
+  );
+}
+
+function GlyphEstado(): preact.JSX.Element {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      aria-hidden="true"
+      focusable="false"
+      style={style.glyph}
+    >
+      <path
+        d="M6 1.5 10.5 6 6 10.5 1.5 6Z"
+        fill="none"
+        stroke={colors.opm.state}
+        strokeWidth={stroke.base}
+        strokeLinejoin="miter"
       />
     </svg>
   );
@@ -130,8 +154,11 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
     conectarSeleccionAlTodo,
     iniciarAutosalvado,
     modoCreacion,
+    agregarEstadoSmart,
+    persistencia,
   } = useToolbarBaseViewModel();
-  // Ronda 19 L5: `dirty` ya no se lee aqui; ChipPersistencia lo consume.
+  // Ronda 19 L5: `dirty` ya no se lee directamente aqui; el estado de
+  // persistencia inline lo consume desde el viewmodel.
   const [nombreNuevaCosa, setNombreNuevaCosa] = useState("");
   const [menuContextual, setMenuContextual] = useState<null | { enlaceId: Id; x: number; y: number }>(null);
   const [menuEntidad, setMenuEntidad] = useState<null | { aparienciaId: Id; entidadId: Id; x: number; y: number }>(null);
@@ -212,16 +239,11 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
   const entidadSeleccionada = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const puedeCrearAtributo = entidadSeleccionada?.tipo === "objeto";
   const todoMultiSeleccion = seleccionados.length >= 2 ? seleccionados[seleccionados.length - 1] : null;
-  // Ronda 24 L4 #6 sustracción de chrome: el cluster Conectar antes ocupaba
-  // espacio permanente con su botón disabled cuando no había nada que
-  // conectar. Ahora aparece solo cuando hay al menos una entidad
-  // seleccionada (origen disponible para conectar) o cuando hay un modo
-  // activo (`modoEnlace` para completar destino, `modoCreacion` sticky para
-  // mostrar el badge "Insertando…"). Si se ocultara solo por modoEnlace
-  // residual sin selección, el usuario quedaría sin botón Cancelar visible
-  // al deseleccionar durante el flujo conectar.
-  const hayEntidadSeleccionada = seleccionados.some((id) => !!modelo.entidades[id]);
-  const mostrarClusterConectar = hayEntidadSeleccionada || modoEnlace !== null || modoCreacion !== null;
+  // Codex v1.1 mecanico: Relación queda visible como creador inline; si no
+  // hay origen seleccionable, ToolbarCreacion conserva el disabled accesible.
+  // Los badges de modo seguirán apareciendo en este cluster cuando el flujo
+  // de conexión o inserción esté activo.
+  const mostrarClusterConectar = true;
   const entidadMenuContextual = menuEntidad ? modelo.entidades[menuEntidad.entidadId] ?? null : null;
   const enlaceEstiloMenuContextualId = entidadMenuContextual
     ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidadMenuContextual.id)
@@ -247,6 +269,10 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
       return;
     }
     crearProceso();
+  }
+  function handleAgregarEstado() {
+    if (!puedeCrearAtributo) return;
+    agregarEstadoSmart();
   }
   function handleGuardarNombreNuevaCosa(event: Event) {
     event.preventDefault();
@@ -288,7 +314,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
       {/* Ronda 25 L1 III.A: sustracción geométrica del chrome global. Se
           elimina la etiqueta visible "Modelo" (sigue como aria-label para
           accesibilidad) y los botones Undo/Redo del cluster: la
-          reversibilidad queda comunicada por el tooltip del ChipPersistencia
+          reversibilidad queda comunicada por el tooltip del estado de persistencia
           y los atajos Ctrl+Z / Ctrl+Shift+Z siguen activos via
           `globalShortcutsPort`. Esto reduce densidad visual sin perder
           funcionalidad ni esteerabilidad. */}
@@ -302,42 +328,50 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
               comandos). Ya no hay menú lateral paralelo. */}
           <button type="button" aria-haspopup="dialog" aria-label="Comandos" title="Comandos · Ctrl+K" data-testid="toolbar-menu" style={style.iconButton} onClick={handleAbrirComandos}>☰</button>
         </div>
-        {/* Ronda 19 L5: slot estable para chip de persistencia en cluster Modelo. */}
-        <ChipPersistencia />
+        {/* Ronda Codex v1.1: estado de persistencia inline, sin chip/caja. */}
+        <ToolbarPersistenceStatus persistencia={persistencia} />
         {statusSlot ?? null}
       </div>
       {esMobile ? null : (
       <div style={style.actions} data-testid="toolbar-actions-pesadas">
         <span style={style.divider} />
         <div role="group" aria-label="Modelar" style={style.cluster} data-slot="cluster-modelar" data-cluster="modelar">
-          <button
-            style={{ ...(modoCreacion === "objeto" ? style.objectActiveButton : style.objectButton), display: "inline-flex", alignItems: "center", gap: "8px" }}
-            type="button"
-            aria-pressed={modoCreacion === "objeto"}
+          <ToolbarActionButton
+            glyph={<GlyphObjeto />}
+            label="Objeto"
+            shortcut="O"
+            active={modoCreacion === "objeto"}
+            ariaPressed={modoCreacion === "objeto"}
             className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined}
             onClick={handleCrearObjeto}
             draggable
             onDragStart={dragToolbar("objeto")}
-            data-testid="toolbar-drag-objeto"
+            testId="toolbar-drag-objeto"
             title={modoCreacion === "objeto" ? "Inserción continua de objetos activa · Shift+clic para salir" : "Crear objeto · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}
-          >
-            <GlyphObjeto />
-            <span>Objeto</span>
-          </button>
-          <button
-            style={{ ...(modoCreacion === "proceso" ? style.processActiveButton : style.processButton), display: "inline-flex", alignItems: "center", gap: "8px" }}
-            type="button"
-            aria-pressed={modoCreacion === "proceso"}
+          />
+          <ToolbarActionButton
+            glyph={<GlyphProceso />}
+            label="Proceso"
+            shortcut="P"
+            active={modoCreacion === "proceso"}
+            ariaPressed={modoCreacion === "proceso"}
             className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined}
             onClick={handleCrearProceso}
             draggable
             onDragStart={dragToolbar("proceso")}
-            data-testid="toolbar-drag-proceso"
+            testId="toolbar-drag-proceso"
             title={modoCreacion === "proceso" ? "Inserción continua de procesos activa · Shift+clic para salir" : "Crear proceso · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}
-          >
-            <GlyphProceso />
-            <span>Proceso</span>
-          </button>
+          />
+          <ToolbarActionButton
+            glyph={<GlyphEstado />}
+            label="Estado"
+            shortcut="S"
+            disabled={!puedeCrearAtributo}
+            onClick={handleAgregarEstado}
+            testId="toolbar-crear-estado"
+            title={puedeCrearAtributo ? "Agregar estado al objeto seleccionado" : "Selecciona un objeto para agregar un estado"}
+            ariaLabel="Agregar estado al objeto seleccionado"
+          />
           {/* Corte 3.5 sustracción de chrome: "+ Atributo" aparece solo cuando
               la selección es un objeto que admite atributo. Antes ocupaba
               espacio permanente en estado deshabilitado. */}
@@ -372,19 +406,20 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
           {/* Ronda 27 III.A cierre: el botón `⋯ Más` desaparece del chrome.
               Sus acciones globales se absorben como secciones del menú
               principal `☰` (Vista, Herramientas). Las multi-selección
-              siguen en BarraHerramientasElemento. Chrome final: 5
-              elementos planos = ☰ · ChipPersistencia · Objeto · Proceso ·
-              ⌕ Buscar. */}
+              siguen en BarraHerramientasElemento. Chrome v1.1 mantiene
+              creadores mecanicos y busqueda inline. */}
           <button
             type="button"
-            style={style.iconTextButton}
+            style={style.searchButton}
             onClick={abrirDialogoComandos}
-            title="Buscar comandos · Ctrl+K"
+            title="Buscar comandos · ⌘K"
             data-testid="toolbar-command-palette"
             aria-label="Buscar comandos"
+            aria-keyshortcuts="Control+K"
           >
-            <span aria-hidden="true">Buscar</span>
-            <kbd style={style.kbd} aria-hidden="true">⌘ K</kbd>
+            <span aria-hidden="true" style={style.searchIcon}>⌕</span>
+            <span aria-hidden="true">buscar…</span>
+            <kbd style={style.creatorKbd} aria-hidden="true">⌘K</kbd>
           </button>
         </div>
       </div>
@@ -416,6 +451,43 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
     </>
   );
 }
+
+type PersistenciaToolbar = ReturnType<typeof useToolbarBaseViewModel>["persistencia"];
+
+function ToolbarPersistenceStatus({ persistencia }: { persistencia: PersistenciaToolbar }): preact.JSX.Element {
+  const variante = clasificarVariante({
+    modeloPersistidoId: persistencia.modeloPersistidoId,
+    dirty: persistencia.dirty,
+    cargadoDesde: persistencia.cargadoDesde,
+    esFixture: persistencia.esFixture,
+    versiones: persistencia.versiones,
+    tiempoRelativo: null,
+  });
+  const opcionesLabel = {
+    salvando: persistencia.autosalvadoEnCurso,
+    horaGuardado: formatearHoraGuardado(persistencia.ultimoAutosalvado),
+  };
+  const label = labelChip(variante, opcionesLabel);
+  const display = labelPersistenciaToolbar(variante.tipo, label, persistencia.autosalvadoEnCurso);
+  const pendiente = persistencia.autosalvadoEnCurso || variante.tipo !== "local-clean";
+
+  return (
+    <button
+      type="button"
+      style={style.inlineStatusButton}
+      title={detallarChip(variante, persistencia.modeloNombre, opcionesLabel)}
+      onClick={persistencia.abrirGuardarComo}
+      data-testid="chip-persistencia"
+      data-variante={variante.tipo}
+      data-salvando={persistencia.autosalvadoEnCurso ? "true" : "false"}
+      aria-label={`Estado de almacenamiento: ${label}`}
+    >
+      <span aria-hidden="true" style={pendiente ? style.statusDotPending : style.statusDot}>{pendiente ? "●" : "○"}</span>
+      <span style={style.statusLabel}>{display}</span>
+    </button>
+  );
+}
+
 
 function ModelessToolbarLayer(props: {
   nuevaCosa: { entidadId: Id; nombre: string } | null;

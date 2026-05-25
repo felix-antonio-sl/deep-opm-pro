@@ -10,7 +10,7 @@
  * Convención: data-testid es el anchor estable que ya expone ToolbarBase.
  */
 
-/* Hover/focus genérico del cluster Modelo (☰, OPFORJA, ChipPersistencia) */
+/* Hover/focus genérico del cluster Modelo (☰, estado de persistencia, Auto) */
 [data-testid="toolbar-root"] button:hover {
   background: var(--ink-04);
 }
@@ -19,18 +19,34 @@
   background: var(--ink-08);
 }
 
-/* Botones Objeto / Proceso: relación de glyph + label en hover */
+/* Creadores mecanicos: glyph + label + hairline + kbd */
 [data-testid="toolbar-drag-objeto"],
-[data-testid="toolbar-drag-proceso"] {
+[data-testid="toolbar-drag-proceso"],
+[data-testid="toolbar-crear-estado"],
+[data-testid="abrir-menu-tipo-enlace"] {
   position: relative;
 }
 
 [data-testid="toolbar-drag-objeto"]:hover,
-[data-testid="toolbar-drag-proceso"]:hover {
+[data-testid="toolbar-drag-proceso"]:hover,
+[data-testid="toolbar-crear-estado"]:hover,
+[data-testid="abrir-menu-tipo-enlace"]:hover {
   background: var(--ink-04);
+}
+
+[data-testid="toolbar-drag-objeto"]:disabled:hover,
+[data-testid="toolbar-drag-proceso"]:disabled:hover,
+[data-testid="toolbar-crear-estado"]:disabled:hover,
+[data-testid="abrir-menu-tipo-enlace"]:disabled:hover {
+  background: transparent;
 }
 
 /* Buscar: hover ink-04, mantiene el kbd visible */
 [data-testid="toolbar-command-palette"]:hover {
   background: var(--ink-04);
+}
+
+[data-testid="toolbar-command-palette"]:focus-visible {
+  background: transparent;
+  box-shadow: inset 0 -2px 0 0 var(--accent);
 }
