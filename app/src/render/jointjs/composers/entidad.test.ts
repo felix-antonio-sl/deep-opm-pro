@@ -205,7 +205,7 @@ describe("composer entidad", () => {
       fontFamily: "JetBrains Mono Variable, JetBrains Mono, ui-monospace, monospace",
       fontSize: 9.5,
       fontWeight: 500,
-      fill: "#a39e92",
+      fill: "#807b6e",
       letterSpacing: "0.08em",
       textAnchor: "start",
       refX: 0,

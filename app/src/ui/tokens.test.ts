@@ -25,13 +25,13 @@ describe("tokens.colors - contrato Codex [ronda-codex L1]", () => {
 
   test("paleta Codex base expone papel, tinta, crimson y canon OPM", () => {
     expect(colors.paper).toBe("#fafaf8");
-    expect(colors.paperWarm).toBe("#f4f3ec");
+    expect(colors.paperWarm).toBe("#eeece2");
     expect(colors.ink).toBe("#171511");
     expect(colors.inkMid).toBe("#5a564c");
-    expect(colors.inkSoft).toBe("#a39e92");
-    expect(colors.inkFaint).toBe("#cfcbc1");
-    expect(colors.rule).toBe("#e4e0d6");
-    expect(colors.ruleStrong).toBe("#c7c2b6");
+    expect(colors.inkSoft).toBe("#807b6e");
+    expect(colors.inkFaint).toBe("#b5b0a4");
+    expect(colors.rule).toBe("#d3cec1");
+    expect(colors.ruleStrong).toBe("#aea899");
     expect(colors.crimson).toBe("#8e2a2e");
     expect(colors.opm.object).toBe("#3a6b4d");
     expect(colors.opm.process).toBe("#26467a");

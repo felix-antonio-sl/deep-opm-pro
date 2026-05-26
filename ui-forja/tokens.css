@@ -14,13 +14,13 @@
 :root {
   /* ───── PAPEL Y TINTA ─────────────────────────────────────────────────── */
   --cx-paper:        #fafaf8;  /* fondo principal — gallery off-white frío */
-  --cx-paper-warm:   #f4f3ec;  /* fondo de zonas secundarias (marginalia, dividers) */
+  --cx-paper-warm:   #eeece2;  /* fondo de zonas secundarias (marginalia, dividers) — contraste intensificado */
   --cx-ink:          #171511;  /* tinta principal — paper-black ligeramente cálido */
   --cx-ink-mid:      #5a564c;  /* cuerpo de texto secundario, etiquetas en cursiva */
-  --cx-ink-soft:     #a39e92;  /* metadatos, kickers, números mono */
-  --cx-ink-faint:    #cfcbc1;  /* separadores tipográficos (·), elementos "off" */
-  --cx-rule:         #e4e0d6;  /* hairlines normales (1px) */
-  --cx-rule-strong:  #c7c2b6;  /* hairlines de divisor estructural (split inspector/OPL) */
+  --cx-ink-soft:     #807b6e;  /* metadatos, kickers, números mono — ~4:1 vs paper, legibilidad AA */
+  --cx-ink-faint:    #b5b0a4;  /* separadores tipográficos (·), elementos "off" — más presencia */
+  --cx-rule:         #d3cec1;  /* hairlines normales (1px) — borde más visible */
+  --cx-rule-strong:  #aea899;  /* hairlines de divisor estructural (split inspector/OPL) — borde más visible */
 
   /* ───── CANON OPM (V-63) ──────────────────────────────────────────────────
      Estos tres colores son SEMÁNTICOS — codifican la clase del símbolo.

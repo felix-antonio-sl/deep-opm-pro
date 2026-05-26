@@ -67,7 +67,7 @@ attrs: {
     fontFamily: 'JetBrains Mono, ui-monospace, monospace',
     fontSize: 9.5,
     fontWeight: 500,
-    fill: 'var(--cx-ink-soft)',               // #a39e92
+    fill: 'var(--cx-ink-soft)',               // #807b6e
     letterSpacing: '0.08em',
     textAnchor: 'start',
     refX: 0,
@@ -482,7 +482,7 @@ const TOKENS = {
   opmOlive: '#7e8338',
   stateFill: '#ece9e1',
   ink: '#171511',
-  inkSoft: '#a39e92',
+  inkSoft: '#807b6e',
   crimson: '#8e2a2e',
   paper: '#fafaf8',
 };

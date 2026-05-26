@@ -1,10 +1,10 @@
 export const CODEX = {
   colores: {
     paper: "#fafaf8", // espejo de ui-forja/tokens.css --cx-paper
-    paperWarm: "#f4f3ec", // espejo de ui-forja/tokens.css --cx-paper-warm
+    paperWarm: "#eeece2", // espejo de ui-forja/tokens.css --cx-paper-warm
     ink: "#171511", // espejo de ui-forja/tokens.css --cx-ink
     inkMid: "#5a564c", // espejo de ui-forja/tokens.css --cx-ink-mid
-    inkSoft: "#a39e92", // espejo de ui-forja/tokens.css --cx-ink-soft
+    inkSoft: "#807b6e", // espejo de ui-forja/tokens.css --cx-ink-soft
     opmObjeto: "#3a6b4d", // espejo de ui-forja/tokens.css --cx-opm-green
     opmProceso: "#26467a", // espejo de ui-forja/tokens.css --cx-opm-blue
     opmEstado: "#7e8338", // espejo de ui-forja/tokens.css --cx-opm-olive

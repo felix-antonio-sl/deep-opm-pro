@@ -11,13 +11,13 @@
 // ---------------------------------------------------------------------------
 
 const paper = "#fafaf8";
-const paperWarm = "#f4f3ec";
+const paperWarm = "#eeece2";
 const ink = "#171511";
 const inkMid = "#5a564c";
-const inkSoft = "#a39e92";
-const inkFaint = "#cfcbc1";
-const rule = "#e4e0d6";
-const ruleStrong = "#c7c2b6";
+const inkSoft = "#807b6e";
+const inkFaint = "#b5b0a4";
+const rule = "#d3cec1";
+const ruleStrong = "#aea899";
 
 const opmGreen = "#3a6b4d";
 const opmBlue = "#26467a";

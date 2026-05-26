@@ -20,13 +20,13 @@
 
 const CX = {
   paper:        '#fafaf8',
-  paperWarm:    '#f4f3ec',
+  paperWarm:    '#eeece2',
   ink:          '#171511',
   inkMid:       '#5a564c',
-  inkSoft:      '#a39e92',
-  inkFaint:     '#cfcbc1',
-  rule:         '#e4e0d6',
-  ruleStrong:   '#c7c2b6',
+  inkSoft:      '#807b6e',
+  inkFaint:     '#b5b0a4',
+  rule:         '#d3cec1',
+  ruleStrong:   '#aea899',
   // Canon OPM (mantenido)
   green:        '#3a6b4d',
   blue:         '#26467a',

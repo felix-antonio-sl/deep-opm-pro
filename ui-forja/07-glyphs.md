@@ -65,7 +65,7 @@ Codex **no usa iconos vectoriales**. Toda señal gráfica está hecha con caract
 ### `·` (middle dot)
 
 - **Separador inline universal.**
-- Color: inkFaint (`#cfcbc1`) entre items secundarios, inkSoft entre identificadores meta.
+- Color: inkFaint (`#b5b0a4`) entre items secundarios, inkSoft entre identificadores meta.
 - Spacing: `padding: 0 6px` o gap flex 6-8px.
 - NO usar `•` (bullet U+2022 — más grueso, indica lista). NO usar `,` para separar metadatos.
 

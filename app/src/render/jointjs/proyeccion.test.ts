@@ -142,7 +142,7 @@ describe("proyeccion JointJS", () => {
     const cell = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null, { tipo: "entidad", id: entidad.id })[0];
     const body = (cell?.attrs as Attrs | undefined)?.body as Attrs | undefined;
 
-    expect(body?.fill).toBe("#f4f3ec");
+    expect(body?.fill).toBe("#eeece2");
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0]?.estilo).toBeUndefined();
   });
 
