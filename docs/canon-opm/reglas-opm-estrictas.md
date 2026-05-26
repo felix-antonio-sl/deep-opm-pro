@@ -1297,7 +1297,7 @@ Al editar OPD:
 - **R-APP-4**: si la UI permite una construcción no canónica, la herramienta DEBE restringir por defecto, bloquear persistencia canónica o persistirla únicamente como error estructural recuperable.
 - **R-APP-5**: cuando la SSOT calle, la UI DEBE clasificar la construcción como `No canonizado` o `extensión declarada`; NO DEBE presentarla como prohibición ontológica ni como OPM nuclear.
 - **R-APP-6**: todo commit que modifique validación de canonicidad DEBE citar las reglas locales `R-*` afectadas y, si la regla deriva de SSOT, la regla primaria (`V-*`, sección OPL, ISO o metodología).
-- **R-APP-7**: toda divergencia OPCloud -> SSOT DEBE resolverse a favor de la SSOT salvo justificación explícita registrada en `docs/audits/`.
+- **R-APP-7**: toda divergencia OPCloud -> SSOT DEBE resolverse a favor de la SSOT salvo justificación explícita registrada en `docs/auditorias/`.
 
 ---
 

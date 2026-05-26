@@ -108,6 +108,7 @@ Instancia en `https://opforja.sanixai.com`. Procedimiento en `docs/deploy/opforj
 ## Convenciones
 
 - **Idioma**: español (es-CL) para docs y comunicación; inglés para identificadores de código y comandos.
+- **No-archivado de histórico sin valor**: no se conserva documentación histórica que ya no sirve (cortes implementados/desplegados, criterios superados). Las auditorías viven en `docs/auditorias/` (carpeta única; no crear `docs/audits/` ni variantes) solo mientras tengan **referencia viva** (citadas por código/tooling/normas) o **valor prospectivo** (brechas abiertas, decisiones vigentes). Lo implementado o superado se **elimina** — la historia git es la red de recuperación; la narrativa de cortes cerrados vive en `docs/HANDOFF.md`. Política e índice en `docs/auditorias/README.md`.
 - **Producción bloqueada por auth OPCloud**: no hay cuenta, HAR autenticado, schema Firestore ni backend code de OPCloud; `setup.sh` hardcodea hashes de bundles (actualizar si OPCloud cambia deploy).
 
 ## Fuentes externas
