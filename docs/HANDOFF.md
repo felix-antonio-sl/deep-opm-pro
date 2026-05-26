@@ -4,7 +4,26 @@
 **Commits de producto**: ronda commiteada **atómicamente por el operador** (co-implementación en `main`, ya en `origin/main`): `e2ec53d` atajos O/P/S/R, `1394a42` atajo capturador, `85e2db6` inspector vs diagnóstico, `21096a7` barra simulación — más bugs adicionales que resolvió por su cuenta (`dd28882` atributos, `9669f3a` usabilidad modelos, `d19f675` contraste tokens). **Desplegado** en producción con `docker compose up -d --build` (bundle `index-BEwvFCpF.js`).
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; bundle vivo `index-BEwvFCpF.js`.
 
-## Corte actual — spec-forja OPL: SSOT OPL consolidada de OPFORJA (producida)
+## Corte actual — Auditoría de alineación OPL + plan de remediación
+
+Tras producir la spec-forja OPL, se auditó el sistema de generación/parseo (`app/src/opl/**`) contra ella usando la tabla §20 como punto de partida. `app/src/opl/` estaba limpio (sin in-flight del operador), así que la corrección posterior no tiene conflictos.
+
+**Artefactos** (solo-docs, en `main`):
+- `docs/auditorias/2026-05-26-alineacion-opl/README.md` — triage: 48 GAPs distintos clasificados (tipo/veredicto/severidad) + olas.
+- `docs/auditorias/2026-05-26-alineacion-opl/auditoria-profunda.md` — forense por GAP accionable (código actual→canónico, causa raíz, fix, tests) + resolución de los 4 GAPs de decisión + 8 ajustes de spec + backlog.
+- `docs/superpowers/plans/2026-05-26-remediacion-gap-opl.md` — plan TDD en 3 olas.
+
+**Hallazgos forenses clave:**
+- **GAP-XOR reclasificado de bug a feature**: `emitirEspecializacion` emite `${hijo} es un ${padre}`, que ES canónico para generalización; `puede ser` solo se exige para especialización XOR exclusiva entre hermanos. Baja los bugs de 8 a 6/7.
+- **GAPs de decisión resueltos**: GAP-PARSE-TS4/TS5 → ya cubiertos por CS3/CS4 (`parsear.ts:628/635`); GAP-ABANICO-AGENTE-PARSE → parser-faltante (diferir); click→foco → vive en UI (ajuste de spec).
+
+**Decisión del operador (2026-05-26):** **GAP-PROB-SUPERFICIE = solo canónico** — el export DEBE emitir `Pr=p` por rama de fan XOR; se retira `(probabilidad: %)`. Con esto, **7 bugs reales** a corregir.
+
+**Bugs reales (Ola 1, todos en `generadores/`):** GAP-PLACEHOLDER-ENTIDAD (`entidadOplEsEmitible` siempre true), GAP-EVENTO-RESULTADO y GAP-CONDICION-RESULTADO (+ espejo fan; evento/condición sobre OUTPUT, viola INPUT-only; léxico `puede generarse`), GAP-EVENTO/CONDICION-INVOCACION, GAP-INVOCACION-TILDE (`despues`→`después`), GAP-PROB-SUPERFICIE (`Pr=p`).
+
+**Plan de remediación**: Ola 1 = 7 bugs TDD en `procedural.ts`/`abanico.ts`/`refsHints.ts`; Ola 2 = 8 ajustes de redacción en la spec (sin código) + reclasificar GAP-XOR en §20; Ola 3 = ~7 fixtures roundtrip con backend verificado (incl. TS4/TS5). Backlog: ~17 features/parsers (auditoría §4). **No ejecutado aún** — pendiente de arrancar Ola 1.
+
+## Corte previo — spec-forja OPL: SSOT OPL consolidada de OPFORJA (producida)
 
 Se produjo `docs/canon-opm/spec-forja-opl.md` (~3069 líneas): la **SSOT OPL única, bidireccional y operativa** de OPFORJA, conforme 100% a las specs KORA aplicables (KORA/MD v12 familia `spec` + spec-md v1 + knowledge-spec v3). Brainstorming → diseño (`docs/superpowers/specs/2026-05-26-spec-forja-opl-design.md`) → plan (`docs/superpowers/plans/2026-05-26-spec-forja-opl.md`) → ejecución subagent-driven (18 tareas, un `opm-specialist` por sección, commits aislados de solo-docs en `main`).
 

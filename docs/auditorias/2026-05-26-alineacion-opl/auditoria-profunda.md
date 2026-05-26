@@ -58,11 +58,12 @@
 - **Corrección**: `despues de` → `después de` en ambas líneas.
 - **Tests/roundtrip**: el parser DEBE aceptar `después de` (y normalizar `despues de` legacy, §18). Verificar `parsear.ts` (normalización de tildes) antes de cambiar, para no romper modelos guardados.
 
-### GAP-PROB-SUPERFICIE · media · corregir-código (con matiz)
+### GAP-PROB-SUPERFICIE · media · corregir-código (DECIDIDO: solo canónico)
 - **Conducta actual** (`procedural.ts:421-422`, `sufijoProbabilidad`): emite `(probabilidad: N%)` por enlace.
 - **Canónica esperada**: §8 R-FAN-6 — la probabilidad `Pr=p` es canónica SOLO dentro de un abanico XOR, por rama.
-- **Matiz**: el formato humano `(probabilidad: %)` por enlace es divergencia de superficie. **Requiere decisión**: ¿el canon `Pr=p` es obligatorio en export, o `(probabilidad: %)` es presentación aceptable? Recomendación: emitir `Pr=p` en la forma canónica de fan y reservar `(probabilidad: %)` como display si se quiere. Marcar para confirmación antes de tocar.
-- **Tests**: `procedural.test.ts`, `abanico.test.ts`.
+- **Decisión del operador (2026-05-26)**: **solo canónico**. El export DEBE emitir `Pr=p` por rama de fan XOR; `(probabilidad: %)` se retira. NO se conserva el formato humano como alias.
+- **Corrección**: en `sufijoProbabilidad` (`procedural.ts:421`) y `abanico.ts`, emitir `Pr=p` (con `p` la probabilidad de la rama) en la forma canónica de fan XOR; suprimir `(probabilidad: %)`.
+- **Tests**: `procedural.test.ts`, `abanico.test.ts` (actualizar snapshots de probabilidad). Roundtrip: confirmar que el parser reconoce `Pr=p`.
 
 ## 2. Reclasificación forense — GAP-XOR NO es bug de alta
 
@@ -96,7 +97,6 @@ Esta reclasificación reduce los bugs reales **de 8 a 6** (GAP-XOR sale; GAP-PRO
 
 ## 5. Resumen forense
 
-- **Bugs reales confirmados: 6** (tras reclasificar GAP-XOR como feature): GAP-PLACEHOLDER-ENTIDAD, GAP-EVENTO-RESULTADO, GAP-CONDICION-RESULTADO (+ espejo fan), GAP-EVENTO-INVOCACION, GAP-CONDICION-INVOCACION, GAP-INVOCACION-TILDE. Todos en `procedural.ts` (+ `abanico.ts` espejo, + `refsHints.ts` el de placeholder).
-- **Condicionado a decisión de superficie**: GAP-PROB-SUPERFICIE (`Pr=p` vs `(probabilidad: %)`).
+- **Bugs reales confirmados: 7** (tras reclasificar GAP-XOR como feature y decidir GAP-PROB-SUPERFICIE como solo-canónico): GAP-PLACEHOLDER-ENTIDAD, GAP-EVENTO-RESULTADO, GAP-CONDICION-RESULTADO (+ espejo fan), GAP-EVENTO-INVOCACION, GAP-CONDICION-INVOCACION, GAP-INVOCACION-TILDE, **GAP-PROB-SUPERFICIE** (`Pr=p` obligatorio). Todos en `procedural.ts` (+ `abanico.ts` espejo, + `refsHints.ts` el de placeholder).
 - **2 GAPs de decisión resueltos como ya-cubiertos** (TS4/TS5), 1 como diferir (fan agente), 1 como ajuste-spec (click→foco).
-- **Orden de corrección recomendado**: Ola 1 = los 6 bugs (`procedural.ts` + `refsHints.ts` + espejo `abanico.ts`) vía TDD; Ola 2 = los 8 ajustes de spec (§3, sin tocar código); Ola 3 = fixtures con backend ya listo (incl. TS4/TS5 ahora confirmados). Features y parsers → backlog.
+- **Orden de corrección recomendado**: Ola 1 = los 7 bugs (`procedural.ts` + `refsHints.ts` + espejo `abanico.ts`) vía TDD; Ola 2 = los 8 ajustes de spec (§3, sin tocar código); Ola 3 = fixtures con backend ya listo (incl. TS4/TS5 ahora confirmados). Features y parsers → backlog.

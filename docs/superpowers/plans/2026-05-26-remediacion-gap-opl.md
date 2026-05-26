@@ -59,11 +59,17 @@ Cada tarea: test rojo que exige la conducta canónica → fix mínimo → verde 
 - [ ] **Step 5 — verde**: test PASA; `bun run check`; si tocaste la regex del parser, correr `roundtrip.test.ts`.
 - [ ] **Step 6 — commit**: `git add app/src/opl/generadores/procedural.ts app/src/opl/generadores/procedural.test.ts [app/src/opl/parser/parsear.ts] && git commit -m "fix(opl): 'después de' con tilde en invocación (GAP-INVOCACION-TILDE)"`.
 
-### Task 1.5 — GAP-PROB-SUPERFICIE (CONDICIONADO a decisión del operador)
+### Task 1.5 — GAP-PROB-SUPERFICIE: `Pr=p` canónico (DECIDIDO: solo canónico)
 
-**Decisión requerida antes de ejecutar**: ¿el export canónico DEBE usar `Pr=p` por rama de fan XOR (canon §8 R-FAN-6), o `(probabilidad: %)` por enlace es presentación aceptable?
-- Si **canon manda**: test rojo exigiendo `Pr=` en fan XOR; fix en `procedural.ts:421-422·sufijoProbabilidad` + `abanico.ts`; actualizar tests; commit `fix(opl): probabilidad canónica Pr=p en fan XOR (GAP-PROB-SUPERFICIE)`.
-- Si **se acepta el formato humano**: mover a ajuste-spec (§22 de la spec reconoce `(probabilidad: %)` como display); no tocar código.
+Decisión del operador (2026-05-26): **solo canónico**; se retira `(probabilidad: %)`.
+
+**Files:** Modify `app/src/opl/generadores/procedural.ts:421-422` (`sufijoProbabilidad`) + `app/src/opl/generadores/abanico.ts`; Tests `procedural.test.ts`, `abanico.test.ts`.
+
+- [ ] **Step 1 — test rojo**: fan XOR probabilístico → cada rama emite `Pr=p` (p la probabilidad); la oración NO contiene `(probabilidad:`.
+- [ ] **Step 2 — correr**: `bun test src/opl/generadores/procedural.test.ts src/opl/generadores/abanico.test.ts` → FALLA.
+- [ ] **Step 3 — fix**: `sufijoProbabilidad` emite `Pr=p` por rama en fan XOR; suprimir `(probabilidad: %)`. Espejo en `abanico.ts`.
+- [ ] **Step 4 — verde**: tests PASAN; `bun run check`; confirmar que el parser reconoce `Pr=p` (roundtrip).
+- [ ] **Step 5 — commit**: `git add app/src/opl/generadores/procedural.ts app/src/opl/generadores/abanico.ts app/src/opl/generadores/procedural.test.ts app/src/opl/generadores/abanico.test.ts && git commit -m "fix(opl): probabilidad canónica Pr=p en fan XOR (GAP-PROB-SUPERFICIE)"`.
 
 ---
 
@@ -110,7 +116,7 @@ Cada tarea: test rojo que exige la conducta canónica → fix mínimo → verde 
 
 ## Resumen de cobertura
 
-- **Ola 1**: 6 bugs de canon (Task 1.1–1.4) + 1 condicionado (1.5).
+- **Ola 1**: 7 bugs de canon (Task 1.1–1.5; GAP-PROB-SUPERFICIE decidido solo-canónico).
 - **Ola 2**: 8 ajustes de spec + reclasificación GAP-XOR.
 - **Ola 3**: ~7 fixtures (incluye TS4/TS5 ahora confirmados).
 - **Diferido**: ~17 features/parsers (auditoría §4).
