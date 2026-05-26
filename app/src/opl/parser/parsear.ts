@@ -835,7 +835,7 @@ function astEvento(
 }
 
 function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
-  let match = /^(.+?) se invoca a s[ií] mismo(?: despues de .+)?$/iu.exec(texto);
+  let match = /^(.+?) se invoca a s[ií] mismo(?: despu[eé]s de .+)?$/iu.exec(texto);
   if (match) {
     const proceso = normalizarNombreOpl(match[1] ?? "");
     return astProcedimental(linea, { tipoEnlace: "invocacion", proceso, origen: proceso, destino: proceso });
@@ -919,7 +919,7 @@ function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
       ...(proceso.multiplicidad ? { multiplicidadDestino: proceso.multiplicidad } : {}),
     });
   }
-  match = /^(.+?) invocan? (.+?)(?: despues de .+)?$/iu.exec(texto);
+  match = /^(.+?) invocan? (.+?)(?: despu[eé]s de .+)?$/iu.exec(texto);
   if (match) {
     const origen = extraerMultiplicidadDeNombre(match[1] ?? "");
     const destino = extraerMultiplicidadDeNombre(match[2] ?? "");

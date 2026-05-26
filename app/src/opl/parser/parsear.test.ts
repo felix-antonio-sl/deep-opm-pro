@@ -54,6 +54,19 @@ describe("parser OPL reverse base", () => {
     });
   });
 
+  test("parsea invocacion con demora con o sin tilde", () => {
+    const conTilde = parsearParrafoOpl("*Preparar* invoca *Servir* después de 1s.");
+    const legacy = parsearParrafoOpl("*Preparar* invoca *Servir* despues de 1s.");
+    const autoConTilde = parsearParrafoOpl("*Validar* se invoca a sí mismo después de 1s.");
+
+    expect(conTilde.diagnosticos).toEqual([]);
+    expect(legacy.diagnosticos).toEqual([]);
+    expect(autoConTilde.diagnosticos).toEqual([]);
+    expect(conTilde.ast[0]).toMatchObject({ kind: "procedimental", tipoEnlace: "invocacion", origen: "Preparar", destino: "Servir" });
+    expect(legacy.ast[0]).toMatchObject({ kind: "procedimental", tipoEnlace: "invocacion", origen: "Preparar", destino: "Servir" });
+    expect(autoConTilde.ast[0]).toMatchObject({ kind: "procedimental", tipoEnlace: "invocacion", origen: "Validar", destino: "Validar" });
+  });
+
   test("parsea exhibicion opcional singular y agrupada", () => {
     const result = parsearParrafoOpl([
       "**Auto** tiene un **Techo Descapotable** opcional.",

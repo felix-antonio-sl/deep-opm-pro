@@ -184,7 +184,7 @@ export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string
     return oracionNegada(modelo, enlace, origen, destino, origenOpl, destinoOpl, origenPlural, destinoPlural);
   }
   if (esAutoInvocacion(enlace)) {
-    return `${origenOpl} se invoca a sí mismo${enlace.demora ? ` despues de ${enlace.demora}` : ""}.`;
+    return `${origenOpl} se invoca a sí mismo${enlace.demora ? ` después de ${enlace.demora}` : ""}.`;
   }
 
   switch (enlace.tipo) {
@@ -202,7 +202,7 @@ export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string
     case "efecto":
       return oracionEfecto(modelo, enlace, origen, destino);
     case "invocacion":
-      return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}${enlace.demora ? ` despues de ${enlace.demora}` : ""}.`;
+      return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}${enlace.demora ? ` después de ${enlace.demora}` : ""}.`;
     case "excepcionSobretiempo":
       return `${destinoOpl} ocurre si duración de ${origenOpl} excede ${formatoTiempoMaximo(enlace)}.`;
     case "excepcionSubtiempo":

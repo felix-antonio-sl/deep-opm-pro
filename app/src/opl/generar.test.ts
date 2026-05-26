@@ -277,7 +277,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     if (!enlaceId) throw new Error("La prueba esperaba enlace");
     modelo = must(definirDemora(modelo, enlaceId, "1s"));
 
-    expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir* despues de 1s.");
+    expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir* después de 1s.");
   });
 
   test("auto-invocacion emite IV2 con demora default", () => {
@@ -285,7 +285,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Validar"));
     modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, entidad(modelo, "Validar")));
 
-    expect(generarOpl(modelo)).toContain("*Validar* se invoca a sí mismo despues de 1s.");
+    expect(generarOpl(modelo)).toContain("*Validar* se invoca a sí mismo después de 1s.");
   });
 
   test("multiplicidad de agente pluraliza sujeto y verbo", () => {

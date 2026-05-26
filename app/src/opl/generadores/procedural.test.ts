@@ -90,6 +90,34 @@ describe("procedural OPL", () => {
     expect(texto).not.toContain("inicia e invoca");
   });
 
+  test("invocacion con demora usa después con tilde", () => {
+    const modelo = modeloBase();
+    const enlace: Enlace = {
+      id: "i1",
+      tipo: "invocacion",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "operador" },
+      etiqueta: "",
+      demora: "1s",
+    };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* invoca **Operador** después de 1s.");
+  });
+
+  test("auto-invocacion con demora usa después con tilde", () => {
+    const modelo = modeloBase();
+    const enlace: Enlace = {
+      id: "i1",
+      tipo: "invocacion",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "proceso" },
+      etiqueta: "",
+      demora: "1s",
+    };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* se invoca a sí mismo después de 1s.");
+  });
+
   test("par consumo resultado sobre estados emite transicion TS3 unica", () => {
     const modelo = modeloConEstados();
     const transiciones = transicionesEstado(modelo, modelo.opds.opd!);
