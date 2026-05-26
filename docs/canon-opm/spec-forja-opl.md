@@ -2189,3 +2189,404 @@ Rationale: `aplicar.ts` retorna `Resultado<Modelo>` y aborta la cadena de patche
 | Procedencia | §15 (clasificación/razones); V-180+ (firma de enlace); V-201 (unicidad); OPL-ES sintaxis (punto terminal) |
 
 Rationale: el contrato de fallo es cerrado y determinista — todo error tiene código, todo código tiene razón visible, y la cadena de aplicación es fail-fast — lo que permite un editor honesto que rechaza lo inaplicable, suspende lo inerte y aplica lo válido sin estados intermedios inconsistentes.
+
+## §18 EBNF formal OPL-ES
+
+EBNF normativa consolidada (es-CL, sin transformación de idioma). Cubre todas las familias canonizadas en §1–§12: declaraciones base, identificadores, descripción de cosas, procedimentales (transformadores + habilitadores + control), condición, estructurales, estructuras fundamentales, gestión de contexto, multiplicidad/cardinalidad y ruta. Las producciones con prefijo `(* ext §9 *)` son extensión de esta spec (oración compuesta/coordinada) y no figuran en el Apéndice A de `opm-opl-es`.
+
+```ebnf
+(* ===== A.1 — Estructura del documento ===== *)
+parrafo_opl_es = oracion_opl_es, { salto_de_linea, oracion_opl_es } ;
+oracion_opl_es = oracion_formal_opl_es, "." ;
+oracion_formal_opl_es = oracion_de_descripcion_de_cosa
+ | oracion_procedimental
+ | oracion_estructural
+ | oracion_de_gestion_de_contexto
+ | oracion_compuesta ;  (* ext §9 *)
+
+(* ===== A.2 — Declaraciones base ===== *)
+digito_no_cero = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+digito_decimal = '0' | digito_no_cero ;
+entero_positivo = digito_no_cero, {digito_decimal} ;
+nombre_simple = letra, {caracter_de_cadena} ;
+nombre = nombre_simple, { " ", nombre_simple } ;
+segmento_etiqueta_opd = "SD", [entero_positivo] ;
+palabra_capitalizada = letra_mayuscula, {caracter_de_cadena} ;
+palabra_no_capitalizada = letra_minuscula, {caracter_de_cadena} ;
+frase_no_capitalizada = palabra_no_capitalizada, { " ", palabra_no_capitalizada } ;
+letra = letra_mayuscula | letra_minuscula ;
+letra_mayuscula = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M'
+ | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z'
+ | 'Á' | 'É' | 'Í' | 'Ó' | 'Ú' | 'Ñ' | 'Ü' ;
+letra_minuscula = 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm'
+ | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z'
+ | 'á' | 'é' | 'í' | 'ó' | 'ú' | 'ñ' | 'ü' ;
+caracter_de_cadena = letra | digito_decimal | '-' | '_' ;
+identificador_de_tipo = "boolean" | "string" | tipo_numerico | "enumerated" ;
+tipo_numerico = [prefijo], "integer" | "float" | "double" | "short" | "long" ;
+prefijo = "unsigned " | "signed " ;
+restriccion_de_participacion = singular_inferior | singular_superior | plural_inferior | plural_superior
+ | ( "0" | limite_de_participacion, [ " a ", limite_de_participacion ] ) ;
+singular_inferior = "un" | "una" | "un opcional" | "una opcional" | "al menos un" | "al menos una" ;
+singular_superior = "exactamente un" | "exactamente una" ;
+plural_inferior = "al menos dos" ;
+plural_superior = "dos o más" ;
+limite_de_participacion = entero_positivo | nombre_simple ;
+unidad_de_medida = nombre_simple ;
+numero_decimal = [ "-" ], ( "0" | entero_positivo ), [ ".", digito_decimal, {digito_decimal} ] ;
+nombre_de_valor = nombre_simple | numero_decimal ;
+limite_de_rango = nombre_de_valor | "*" ;
+delimitador_inferior_de_rango = "[" | "(" ;
+delimitador_superior_de_rango = "]" | ")" ;
+intervalo_de_rango = delimitador_inferior_de_rango, limite_de_rango, "..", limite_de_rango, delimitador_superior_de_rango ;
+expresion_de_rango = intervalo_de_rango, { ", ", intervalo_de_rango } ;
+clausula_de_rango = " es ", ( nombre_de_valor | expresion_de_rango )
+ | " varía de ", nombre_de_valor, " a ", nombre_de_valor ;
+
+(* ===== A.3 — Identificadores ===== *)
+identificador_de_objeto = nombre_singular_de_objeto, [ " en ", unidad_de_medida ], [ clausula_de_rango ] ;
+identificador_de_proceso = nombre_singular_de_proceso | nombre_singular_de_proceso, " proceso" ;
+identificador_de_cosa = identificador_de_objeto | identificador_de_proceso ;
+identificador_de_estado = palabra_no_capitalizada ;
+expresion_de_etiqueta = frase_no_capitalizada ;
+nombre_singular_de_objeto = palabra_capitalizada, { " ", palabra_capitalizada | palabra_no_capitalizada } ;
+nombre_singular_de_proceso = palabra_capitalizada, { " ", palabra_capitalizada | palabra_no_capitalizada } ;
+estado_de_entrada = identificador_de_estado ;
+estado_de_salida = identificador_de_estado ;
+objeto_con_opcion_de_estado = identificador_de_objeto, [ " en ", identificador_de_estado ] ;
+objeto_origen = identificador_de_objeto ;
+objeto_destino = identificador_de_objeto ;
+proceso_origen = identificador_de_proceso ;
+proceso_destino = identificador_de_proceso ;
+objeto_todo = identificador_de_objeto ;
+proceso_todo = identificador_de_proceso ;
+objeto_general = identificador_de_objeto ;
+proceso_general = identificador_de_proceso ;
+clase_de_objeto = identificador_de_objeto ;
+clase_de_proceso = identificador_de_proceso ;
+objeto_especial = identificador_de_objeto ;
+objeto_con_estado = identificador_de_objeto, " en ", identificador_de_estado ;
+nombre_de_modelo = nombre ;
+etiqueta_visible_de_opd = segmento_etiqueta_opd, { ".", entero_positivo } ;
+opd_padre = etiqueta_visible_de_opd ;
+opd_hijo = etiqueta_visible_de_opd ;
+identificador_de_proceso_activo = identificador_de_proceso ;
+max_duracion_unidades_tiempo = nombre_de_valor, " unidades-tiempo" ;
+min_duracion_unidades_tiempo = nombre_de_valor, " unidades-tiempo" ;
+lista_de_estados = identificador_de_estado, { ", ", identificador_de_estado }, [ " o ", identificador_de_estado ] ;
+lista_de_objetos = identificador_de_objeto, { ", ", identificador_de_objeto }, [ " y ", identificador_de_objeto ] ;
+lista_de_procesos = identificador_de_proceso, { ", ", identificador_de_proceso }, [ " y ", identificador_de_proceso ] ;
+lista_de_atributos = identificador_de_objeto, { ", ", identificador_de_objeto }, [ " y ", identificador_de_objeto ] ;
+lista_de_operadores = identificador_de_proceso, { ", ", identificador_de_proceso }, [ " y ", identificador_de_proceso ] ;
+lista_de_objetos_especiales = lista_de_objetos ;
+lista_de_procesos_especiales = lista_de_procesos ;
+lista_de_objetos_instancia = lista_de_objetos ;
+lista_de_procesos_instancia = lista_de_procesos ;
+lista_de_objetos_con_estado = objeto_con_estado, { ", ", objeto_con_estado }, [ " y ", objeto_con_estado ] ;
+etiqueta_directa = expresion_de_etiqueta ;
+etiqueta_nula_definida_por_usuario = expresion_de_etiqueta ;
+
+(* ===== A.4 — Descripción de cosas ===== *)
+oracion_de_descripcion_de_cosa = oracion_de_propiedad_generica
+ | oracion_de_enumeracion_de_estados
+ | oracion_de_estados_iniciales
+ | oracion_de_estados_finales
+ | oracion_de_estado_por_defecto
+ | oracion_de_estado_current
+ | oracion_de_tipo_de_dato ;
+oracion_de_tipo_de_dato = identificador_de_objeto, " es de tipo ", identificador_de_tipo ;
+oracion_de_propiedad_generica = identificador_de_cosa, " es ", ( esencia | afiliacion | perseverancia ) ;
+oracion_de_enumeracion_de_estados = identificador_de_objeto, " puede estar ", lista_de_estados, [", y otros estados"] ;
+oracion_de_estados_iniciales = "Estado ", identificador_de_estado, " de ", identificador_de_objeto, " es inicial" ;
+oracion_de_estados_finales = "Estado ", identificador_de_estado, " de ", identificador_de_objeto, " es final" ;
+oracion_de_estado_por_defecto = "Estado ", identificador_de_estado, " de ", identificador_de_objeto, " es por defecto" ;
+oracion_de_estado_current = "Estado ", identificador_de_estado, " de ", identificador_de_objeto, " es declarado `Current`" ;
+esencia = "física" | "informacional" ;
+afiliacion = "ambiental" | "sistémica" ;
+perseverancia = "persistente" | "transitoria" ;
+
+(* ===== A.5 — Procedimentales ===== *)
+oracion_procedimental = oracion_transformadora | oracion_habilitadora | oracion_de_invocacion | oracion_de_control ;
+oracion_transformadora = oracion_de_consumo | oracion_de_resultado | oracion_de_efecto | oracion_de_cambio ;
+oracion_de_consumo = identificador_de_proceso, " consume ", objeto_con_opcion_de_estado ;
+oracion_de_resultado = identificador_de_proceso, " genera ", objeto_con_opcion_de_estado ;
+oracion_de_efecto = identificador_de_proceso, " afecta ", lista_de_objetos ;
+oracion_de_cambio = oracion_de_cambio_entrada_salida | oracion_de_cambio_solo_entrada | oracion_de_cambio_solo_salida ;
+frase_de_cambio_entrada_salida = identificador_de_objeto, " de ", estado_de_entrada, " a ", estado_de_salida ;
+frase_de_cambio_solo_entrada = identificador_de_objeto, " de ", estado_de_entrada ;
+frase_de_cambio_solo_salida = identificador_de_objeto, " a ", estado_de_salida ;
+oracion_de_cambio_entrada_salida = identificador_de_proceso, " cambia ", frase_de_cambio_entrada_salida ;
+oracion_de_cambio_solo_entrada = identificador_de_proceso, " cambia ", frase_de_cambio_solo_entrada ;
+oracion_de_cambio_solo_salida = identificador_de_proceso, " cambia ", frase_de_cambio_solo_salida ;
+oracion_habilitadora = oracion_de_agente | oracion_de_instrumento ;
+oracion_de_agente = objeto_con_opcion_de_estado, " maneja ", identificador_de_proceso ;
+oracion_de_instrumento = identificador_de_proceso, " requiere ", objeto_con_opcion_de_estado ;
+oracion_de_control = oracion_de_evento | oracion_de_condicion | oracion_de_excepcion ;
+oracion_de_evento = oracion_de_evento_de_consumo | oracion_de_evento_de_efecto
+ | oracion_de_evento_de_agente | oracion_de_evento_de_instrumento ;
+oracion_de_evento_de_consumo = objeto_con_opcion_de_estado, " inicia ", identificador_de_proceso,
+ ", que consume ", identificador_de_objeto ;
+oracion_de_evento_de_efecto = identificador_de_objeto, " inicia ", identificador_de_proceso,
+ ", que afecta ", identificador_de_objeto ;
+oracion_de_evento_de_agente = objeto_con_opcion_de_estado, " inicia y maneja ", identificador_de_proceso ;
+oracion_de_evento_de_instrumento = objeto_con_opcion_de_estado, " inicia ", identificador_de_proceso,
+ ", que requiere ", objeto_con_opcion_de_estado ;
+oracion_de_invocacion = identificador_de_proceso, " invoca ", lista_de_procesos
+ | identificador_de_proceso, " se invoca a sí mismo" ;
+oracion_de_excepcion = oracion_de_excepcion_por_sobretiempo | oracion_de_excepcion_por_subtiempo ;
+oracion_de_excepcion_por_sobretiempo = identificador_de_proceso_activo,
+ " ocurre si duración de ", identificador_de_proceso, " excede ", max_duracion_unidades_tiempo ;
+oracion_de_excepcion_por_subtiempo = identificador_de_proceso_activo,
+ " ocurre si duración de ", identificador_de_proceso, " es menor que ", min_duracion_unidades_tiempo ;
+oracion_de_ruta = "Por ruta ", cadena_etiqueta, ", ", oracion_procedimental ;
+cadena_etiqueta = nombre ;
+(* Abanicos lógicos: el complemento puede coordinar bajo cuantificador de fan *)
+operador_de_fan = "exactamente uno de" | "al menos uno de" ;
+
+(* ===== A.6 — Condición ===== *)
+oracion_de_condicion = oracion_transformadora_condicional | oracion_habilitadora_condicional ;
+oracion_transformadora_condicional = oracion_de_consumo_condicional
+ | oracion_de_consumo_condicional_con_estado
+ | oracion_de_efecto_condicional ;
+oracion_de_consumo_condicional = ( identificador_de_proceso, " ocurre si ", identificador_de_objeto,
+ " existe, en cuyo caso ", identificador_de_objeto, " se consume, de lo contrario ",
+ identificador_de_proceso, " se omite" )
+ | ( "Si ", identificador_de_objeto, " existe entonces ", identificador_de_proceso,
+ " ocurre y consume ", identificador_de_objeto, ", de lo contrario se omite ", identificador_de_proceso ) ;
+oracion_de_consumo_condicional_con_estado = identificador_de_proceso, " ocurre si ",
+ identificador_de_objeto, " está en ", estado_de_entrada, ", en cuyo caso ",
+ identificador_de_objeto, " se consume, de lo contrario ", identificador_de_proceso, " se omite" ;
+oracion_de_efecto_condicional = oracion_de_efecto_condicional_simple
+ | oracion_de_efecto_entrada_salida_condicional
+ | oracion_de_efecto_entrada_condicional
+ | oracion_de_efecto_salida_condicional ;
+oracion_de_efecto_condicional_simple = identificador_de_proceso, " ocurre si ",
+ identificador_de_objeto, " existe, en cuyo caso ", identificador_de_proceso,
+ " afecta ", identificador_de_objeto, ", de lo contrario ", identificador_de_proceso, " se omite" ;
+oracion_de_efecto_entrada_salida_condicional = identificador_de_proceso, " ocurre si ",
+ identificador_de_objeto, " está en ", estado_de_entrada, ", en cuyo caso ",
+ identificador_de_proceso, " cambia ", identificador_de_objeto, " de ", estado_de_entrada,
+ " a ", estado_de_salida, ", de lo contrario ", identificador_de_proceso, " se omite" ;
+oracion_de_efecto_entrada_condicional = identificador_de_proceso, " ocurre si ",
+ identificador_de_objeto, " está en ", estado_de_entrada, ", en cuyo caso ",
+ identificador_de_proceso, " cambia ", identificador_de_objeto, " de ", estado_de_entrada,
+ ", de lo contrario ", identificador_de_proceso, " se omite" ;
+oracion_de_efecto_salida_condicional = identificador_de_proceso, " ocurre si ",
+ identificador_de_objeto, " existe, en cuyo caso ", identificador_de_proceso,
+ " cambia ", identificador_de_objeto, " a ", estado_de_salida,
+ ", de lo contrario ", identificador_de_proceso, " se omite" ;
+oracion_habilitadora_condicional = oracion_de_agente_condicional | oracion_de_instrumento_condicional ;
+oracion_de_agente_condicional = ( objeto_con_opcion_de_estado, " maneja ",
+ identificador_de_proceso, " si ", identificador_de_objeto, " existe, de lo contrario ",
+ identificador_de_proceso, " se omite" )
+ | ( objeto_con_opcion_de_estado, " maneja ", identificador_de_proceso, " si ",
+ identificador_de_objeto, " está en ", identificador_de_estado, ", de lo contrario ",
+ identificador_de_proceso, " se omite" ) ;
+oracion_de_instrumento_condicional = ( identificador_de_proceso, " ocurre si ",
+ identificador_de_objeto, " existe, de lo contrario ", identificador_de_proceso, " se omite" )
+ | ( identificador_de_proceso, " ocurre si ", identificador_de_objeto, " está en ",
+ identificador_de_estado, ", de lo contrario ", identificador_de_proceso, " se omite" ) ;
+
+(* ===== A.7 — Multiplicidad, expresión y listas bifurcadas ===== *)
+restriccion_de_expresion = "donde ", nombre, ( ( operacion_logica, nombre_de_valor )
+ | ( inicio_conjunto, ( nombre | nombre_de_valor ), { ",", ( nombre | nombre_de_valor ) }, fin_conjunto ) ) ;
+operacion_logica = "=" | "<" | ">" | "<=" | ">=" ;
+inicio_conjunto = " en {" ;
+fin_conjunto = "}" ;
+conjunto_de_cosas_objeto = cosa_objeto, [ { ", ", cosa_objeto } ], " y ", ( cosa_objeto | "más" ),
+ [ ( ", ordenados por ", criterio_de_orden ) | ( ", en esa secuencia" ) ] ;
+conjunto_de_cosas_proceso = cosa_proceso, [ { ", ", cosa_proceso } ], " y ", ( cosa_proceso | "más" ),
+ [ ( ", ordenados por ", criterio_de_orden ) | ( ", en esa secuencia" ) ] ;
+criterio_de_orden = nombre ;
+cosa_objeto = [ restriccion_de_participacion, " " ], objeto_con_opcion_de_estado ;
+cosa_proceso = [ restriccion_de_participacion, " " ], identificador_de_proceso ;
+oracion_de_especializacion_xor_objeto = oracion_basica_xor_objeto | oracion_xor_objeto_separada_por_comas ;
+oracion_basica_xor_objeto = objeto_especial, " puede ser ", identificador_de_objeto, " o ", identificador_de_objeto ;
+oracion_xor_objeto_separada_por_comas = objeto_especial, " puede ser uno de ",
+ identificador_de_objeto, { ", ", identificador_de_objeto }, " o ", identificador_de_objeto ;
+oracion_de_herencia_multiple_objeto = objeto_especial, " es ", lista_de_objetos_generales ;
+lista_de_objetos_generales = " un ", identificador_de_objeto,
+ [ { " un ", identificador_de_objeto } ], " y un ", identificador_de_objeto ;
+
+(* ===== A.8 — Estructurales (enlaces etiquetados) ===== *)
+oracion_estructural = oracion_de_enlace_estructural_etiquetado | oracion_de_agregacion
+ | oracion_de_caracterizacion | oracion_de_especializacion | oracion_de_instanciacion ;
+oracion_de_enlace_estructural_etiquetado = oracion_etiquetado_unidireccional | oracion_etiquetado_bidireccional ;
+oracion_etiquetado_unidireccional = oracion_etiquetado_unidireccional_simple | oracion_etiquetado_bifurcada ;
+oracion_etiquetado_unidireccional_simple = oracion_etiquetado_nullTag_objeto
+ | oracion_etiquetado_nullTag_proceso | oracion_etiquetado_nonNullTag_objeto | oracion_etiquetado_nonNullTag_proceso ;
+oracion_etiquetado_nullTag_objeto = [restriccion_de_participacion, " "],
+ objeto_origen, etiqueta_nula_unidireccional, [restriccion_de_participacion, " "], objeto_destino ;
+oracion_etiquetado_nullTag_proceso = [restriccion_de_participacion, " "],
+ proceso_origen, etiqueta_nula_unidireccional, [restriccion_de_participacion, " "], proceso_destino ;
+oracion_etiquetado_nonNullTag_objeto = [restriccion_de_participacion, " "],
+ objeto_origen, " ", etiqueta_directa, " ", [restriccion_de_participacion, " "], objeto_destino,
+ [", ", restriccion_de_expresion] ;
+oracion_etiquetado_nonNullTag_proceso = [restriccion_de_participacion, " "],
+ proceso_origen, " ", etiqueta_directa, " ", [restriccion_de_participacion, " "], proceso_destino ;
+etiqueta_nula_unidireccional = " se relaciona con " | etiqueta_nula_definida_por_usuario ;
+oracion_etiquetado_bifurcada = oracion_bifurcada_nullTag_objeto | oracion_bifurcada_nullTag_proceso
+ | oracion_bifurcada_nonNullTag_objeto | oracion_bifurcada_nonNullTag_proceso ;
+oracion_bifurcada_nullTag_objeto = [restriccion_de_participacion, " "], objeto_origen,
+ etiqueta_nula_unidireccional, conjunto_de_cosas_objeto ;
+oracion_bifurcada_nullTag_proceso = [restriccion_de_participacion, " "], proceso_origen,
+ etiqueta_nula_unidireccional, conjunto_de_cosas_proceso ;
+oracion_bifurcada_nonNullTag_objeto = [restriccion_de_participacion, " "], objeto_origen,
+ " ", etiqueta_directa, " ", conjunto_de_cosas_objeto ;
+oracion_bifurcada_nonNullTag_proceso = [restriccion_de_participacion, " "], proceso_origen,
+ " ", etiqueta_directa, " ", conjunto_de_cosas_proceso ;
+oracion_etiquetado_bidireccional = oracion_bidireccional_asimetrica_objeto
+ | oracion_bidireccional_asimetrica_proceso | oracion_bidireccional_simetrica_objeto
+ | oracion_bidireccional_simetrica_proceso ;
+oracion_bidireccional_asimetrica_objeto = ( [restriccion_de_participacion, " "],
+ objeto_origen, etiqueta_directa_bidireccional, [restriccion_de_participacion, " "], objeto_destino,
+ [", ", restriccion_de_expresion] )
+ | ( [restriccion_de_participacion, " "], objeto_destino, etiqueta_inversa_bidireccional,
+ [restriccion_de_participacion, " "], objeto_origen, [", ", restriccion_de_expresion] ) ;
+oracion_bidireccional_simetrica_objeto = ( [restriccion_de_participacion, " "],
+ objeto_origen, " y ", [restriccion_de_participacion, " "], objeto_destino, " son ", etiqueta_simetrica )
+ | ( [restriccion_de_participacion, " "], objeto_origen, " y ", [restriccion_de_participacion, " "],
+ objeto_destino, etiqueta_nula_bidireccional ) ;
+oracion_bidireccional_asimetrica_proceso = ( [restriccion_de_participacion, " "],
+ proceso_origen, etiqueta_directa_bidireccional, [restriccion_de_participacion, " "], proceso_destino )
+ | ( [restriccion_de_participacion, " "], proceso_destino, etiqueta_inversa_bidireccional,
+ [restriccion_de_participacion, " "], proceso_origen ) ;
+oracion_bidireccional_simetrica_proceso = ( [restriccion_de_participacion, " "],
+ proceso_origen, " y ", [restriccion_de_participacion, " "], proceso_destino, " son ", etiqueta_simetrica )
+ | ( [restriccion_de_participacion, " "], proceso_origen, " y ", [restriccion_de_participacion, " "],
+ proceso_destino, etiqueta_nula_bidireccional ) ;
+etiqueta_simetrica = expresion_de_etiqueta ;
+etiqueta_directa_bidireccional = expresion_de_etiqueta ;
+etiqueta_inversa_bidireccional = expresion_de_etiqueta ;
+etiqueta_nula_bidireccional = " se relacionan" | etiqueta_nula_definida_por_usuario ;
+
+(* ===== A.9 — Estructuras fundamentales ===== *)
+oracion_de_agregacion = oracion_de_agregacion_objeto | oracion_de_agregacion_proceso ;
+oracion_de_agregacion_objeto = objeto_todo, " consta de ", lista_de_partes_objeto ;
+oracion_de_agregacion_proceso = proceso_todo, " consta de ", lista_de_partes_proceso ;
+lista_de_partes_objeto = parte_objeto, [ { ", ", parte_objeto } ], " y ", ( parte_objeto | "al menos otra parte" ) ;
+lista_de_partes_proceso = parte_proceso, [ { ", ", parte_proceso } ], " y ", ( parte_proceso | "al menos otra parte" ) ;
+parte_objeto = [restriccion_de_participacion, " "], identificador_de_objeto ;
+parte_proceso = [restriccion_de_participacion, " "], identificador_de_proceso ;
+oracion_de_caracterizacion = oracion_de_caract_objeto | oracion_de_caract_proceso ;
+oracion_de_caract_objeto = identificador_de_objeto, " exhibe ",
+ ( lista_de_atributos | lista_de_operadores | lista_de_atributos, ", así como ", lista_de_operadores ) ;
+oracion_de_caract_proceso = identificador_de_proceso, " exhibe ",
+ ( lista_de_operadores | lista_de_atributos | lista_de_operadores, ", así como ", lista_de_atributos ) ;
+oracion_de_especializacion = oracion_de_especializacion_objeto | oracion_de_especializacion_proceso
+ | oracion_de_especializacion_estado | oracion_de_especializacion_individual
+ | oracion_de_especializacion_xor_objeto | oracion_de_herencia_multiple_objeto ;
+oracion_de_especializacion_objeto = lista_de_objetos_especiales, " son ", identificador_de_objeto ;
+oracion_de_especializacion_proceso = lista_de_procesos_especiales, " son ", identificador_de_proceso ;
+oracion_de_especializacion_estado = lista_de_objetos_con_estado, " son ", objeto_con_estado ;
+oracion_de_especializacion_individual = identificador_de_objeto, " es ", articulo, identificador_de_objeto ;
+articulo = "un " | "una " ;
+oracion_de_instanciacion = oracion_de_instanciacion_objeto | oracion_de_instanciacion_proceso ;
+oracion_de_instanciacion_objeto = identificador_de_objeto, " es una instancia de ", identificador_de_objeto
+ | lista_de_objetos_instancia, " son instancias de ", identificador_de_objeto ;
+oracion_de_instanciacion_proceso = identificador_de_proceso, " es una instancia de ", identificador_de_proceso
+ | lista_de_procesos_instancia, " son instancias de ", identificador_de_proceso ;
+
+(* ===== A.10 — Gestión de contexto ===== *)
+oracion_de_gestion_de_contexto = oracion_de_despliegue | oracion_de_plegado
+ | oracion_de_descomposicion | oracion_de_recomposicion
+ | oracion_de_composicion_intermodelo | oracion_de_referencia_externa ;
+oracion_de_composicion_intermodelo = opd_hijo, " es una vista de sub-modelo de ", nombre_de_modelo
+ | opd_hijo, " referencia el sub-modelo ", nombre_de_modelo, " desde ", opd_padre ;
+oracion_de_referencia_externa = identificador_de_objeto, " en ", opd_hijo, " es referencia externa a ",
+ identificador_de_objeto, " del modelo propietario ", nombre_de_modelo ;
+oracion_de_despliegue = oracion_de_despliegue_objeto | oracion_de_despliegue_proceso ;
+oracion_de_despliegue_objeto = oracion_de_despliegue_objeto_inespecificado
+ | oracion_de_despliegue_objeto_todo | oracion_de_despliegue_objeto_general
+ | oracion_de_despliegue_objeto_clase | oracion_de_despliegue_objeto_exhibidor ;
+oracion_de_despliegue_objeto_inespecificado = identificador_de_objeto,
+ " se despliega en ", lista_de_atributos, [", así como ", lista_de_operadores] ;
+oracion_de_despliegue_objeto_todo = objeto_todo, " desde ", opd_padre,
+ " se despliega por partes en ", opd_hijo, " en ", lista_de_partes_objeto ;
+oracion_de_despliegue_objeto_general = objeto_general, " desde ", opd_padre,
+ " se despliega por especialización en ", opd_hijo, " en ", lista_de_objetos_especiales ;
+oracion_de_despliegue_objeto_clase = clase_de_objeto, " desde ", opd_padre,
+ " se despliega por instanciación en ", opd_hijo, " en ", lista_de_objetos_instancia ;
+oracion_de_despliegue_objeto_exhibidor = identificador_de_objeto, " desde ", opd_padre,
+ " se despliega por rasgos en ", opd_hijo, " en ", lista_de_atributos, [", así como ", lista_de_operadores] ;
+oracion_de_despliegue_proceso = oracion_de_despliegue_proceso_inespecificado
+ | oracion_de_despliegue_proceso_todo | oracion_de_despliegue_proceso_general
+ | oracion_de_despliegue_proceso_clase | oracion_de_despliegue_proceso_exhibidor ;
+oracion_de_despliegue_proceso_inespecificado = identificador_de_proceso,
+ " se despliega en ", lista_de_operadores, [", así como ", lista_de_atributos] ;
+oracion_de_despliegue_proceso_todo = proceso_todo, " desde ", opd_padre,
+ " se despliega por partes en ", opd_hijo, " en ", lista_de_partes_proceso ;
+oracion_de_despliegue_proceso_general = proceso_general, " desde ", opd_padre,
+ " se despliega por especialización en ", opd_hijo, " en ", lista_de_procesos_especiales ;
+oracion_de_despliegue_proceso_clase = clase_de_proceso, " desde ", opd_padre,
+ " se despliega por instanciación en ", opd_hijo, " en ", lista_de_procesos_instancia ;
+oracion_de_despliegue_proceso_exhibidor = identificador_de_proceso, " desde ", opd_padre,
+ " se despliega por rasgos en ", opd_hijo, " en ", lista_de_operadores, [", así como ", lista_de_atributos] ;
+oracion_de_plegado = oracion_de_plegado_objeto | oracion_de_plegado_proceso ;
+oracion_de_plegado_objeto = identificador_de_objeto, " se pliega en ", opd_padre ;
+oracion_de_plegado_proceso = identificador_de_proceso, " se pliega en ", opd_padre ;
+oracion_de_descomposicion = oracion_de_descomposicion_en_diagrama
+ | oracion_de_descomposicion_en_nuevo_diagrama | oracion_de_descomposicion_objeto_en_diagrama
+ | oracion_de_descomposicion_objeto_en_nuevo_diagrama ;
+oracion_de_descomposicion_en_diagrama = ( identificador_de_proceso, " se descompone en ",
+ lista_de_procesos, ", en esa secuencia", [", así como ", lista_de_objetos_en_zoom] )
+ | ( identificador_de_proceso, " se descompone en paralelo ", lista_de_procesos,
+ [", así como ", lista_de_objetos_en_zoom] )
+ | ( identificador_de_proceso, " se descompone en ", lista_de_procesos,
+ " y en paralelo ", lista_de_procesos, ", en esa secuencia", [", así como ", lista_de_objetos_en_zoom] ) ;
+oracion_de_descomposicion_en_nuevo_diagrama = ( identificador_de_proceso, " desde ", opd_padre,
+ " se descompone en ", opd_hijo, " en ", lista_de_procesos, ", en esa secuencia",
+ [", así como ", lista_de_objetos_en_zoom] )
+ | ( identificador_de_proceso, " desde ", opd_padre,
+ " se descompone en ", opd_hijo, " en paralelo ", lista_de_procesos, [", así como ", lista_de_objetos_en_zoom] )
+ | ( identificador_de_proceso, " desde ", opd_padre,
+ " se descompone en ", opd_hijo, " en ", lista_de_procesos,
+ " y en paralelo ", lista_de_procesos, ", en esa secuencia", [", así como ", lista_de_objetos_en_zoom] ) ;
+oracion_de_descomposicion_objeto_en_diagrama = identificador_de_objeto, " se descompone en ",
+ lista_de_objetos, ", en esa secuencia", [", así como ", lista_de_procesos_en_zoom] ;
+oracion_de_descomposicion_objeto_en_nuevo_diagrama = identificador_de_objeto, " desde ", opd_padre,
+ " se descompone en ", opd_hijo, " en ", lista_de_objetos, ", en esa secuencia",
+ [", así como ", lista_de_procesos_en_zoom] ;
+lista_de_objetos_en_zoom = lista_de_objetos ;
+lista_de_procesos_en_zoom = lista_de_procesos ;
+oracion_de_recomposicion = oracion_de_recomposicion_proceso | oracion_de_recomposicion_objeto ;
+oracion_de_recomposicion_proceso = identificador_de_proceso, " se recompone desde ", opd_hijo ;
+oracion_de_recomposicion_objeto = identificador_de_objeto, " se recompone desde ", opd_hijo ;
+
+(* ===== ext §9 — Oración compuesta / coordinada ===== *)
+(* Extensión de esta spec: NO figura en Apéndice A de opm-opl-es. Coordina N hechos
+   atómicos en UNA línea con sub-spans; cada hecho conserva ref+hint propios. *)
+oracion_compuesta = oracion_compuesta_predicado_coordinado
+ | oracion_compuesta_destino_enumerado
+ | oracion_compuesta_sujeto_coordinado ;
+conector_serial = ", " | " y " | " e " | " o " | " u " ;
+oracion_compuesta_predicado_coordinado = identificador_de_proceso, " ",
+ predicado_procedimental, { ", ", predicado_procedimental }, conector_final, predicado_procedimental ;
+predicado_procedimental = ( "consume ", objeto_con_opcion_de_estado )
+ | ( "genera ", objeto_con_opcion_de_estado )
+ | ( "afecta ", lista_de_objetos )
+ | ( "requiere ", objeto_con_opcion_de_estado )
+ | ( "cambia ", frase_de_cambio_entrada_salida )
+ | ( "consume ", operador_de_fan, " ", lista_de_objetos ) ;
+oracion_compuesta_destino_enumerado = ( identificador_de_objeto, " exhibe ", lista_de_objetos )
+ | ( identificador_de_objeto, " consta de ", lista_de_partes_objeto ) ;
+oracion_compuesta_sujeto_coordinado = lista_de_objetos, " ", verbo_concordado_plural,
+ " ", objeto_con_opcion_de_estado ;
+verbo_concordado_plural = "consumen" | "generan" | "afectan" | "requieren" | "manejan" ;
+conector_final = " y " | " e " | " o " | " u " ;
+salto_de_linea = "\n" ;
+```
+
+Restricciones (RFC 2119):
+
+- **R-§18-LEX-1** (`opm-opl-es A.2`, `reglas §4.14·R-OPL-LEX-1/2/3`): el alfabeto léxico ADMITE letras ASCII, vocales acentuadas, `ñ`, `ü` (mayúscula/minúscula); `caracter_de_cadena` SE LIMITA a letra, dígito decimal, `-` y `_`; `nombre_simple` COMIENZA con letra. Los no-terminales normativos SE ESCRIBEN en `snake_case`.
+- **R-§18-PART-1** (`A.2`, `reglas §4.14·R-OPL-PART-1`): las restricciones de participación textuales PERTENECEN al conjunto cerrado `un/una`, `un/una opcional`, `al menos un/una`, `exactamente un/una`, `al menos dos`, `dos o más`, o límites numéricos/paramétricos (`0`, `m a n`).
+- **R-§18-RANGO-1** (`A.2`, `A.7`, `reglas §4.14·R-OPL-RANGO-1/2/3`): el rango textual USA `valor`, `varía de X a Y`, o intervalos `[..]`/`(..)` con `*` exclusivamente como límite abierto; la restricción de expresión INICIA con `donde`; las operaciones lógicas SON el conjunto ASCII `=`, `<`, `>`, `<=`, `>=`. Cualquier símbolo Unicode equivalente DEBE normalizarse a ASCII o declararse como extensión de visualización.
+- **R-§18-CONJ-1** (`A.7`, `reglas §4.14·R-OPL-CONJ-1`): la pertenencia a conjunto SE EMITE con `en { ... }`.
+- **R-§18-LISTA-1** (`A.3`, `A.7`, `reglas §4.14·R-OPL-LISTA-1/2`): las listas SEPARAN miembros intermedios con coma y el último con `y`/`o` (alternancia `e`/`u` por fonética), SIN coma de Oxford; las listas bifurcadas TERMINAN en `más`, `ordenados por criterio` o `en esa secuencia` solo donde la producción lo permita.
+- **R-§18-NORM-1**: el parser NORMALIZA la entrada a la forma ASCII canónica antes de cotejar producciones; los caracteres del alfabeto extendido (acentos, `ñ`, `ü`) SE PRESERVAN en los nombres pero las operaciones lógicas y delimitadores SE NORMALIZAN a ASCII.
+- **R-§18-EXT-1** (ext `§9`): la `oracion_compuesta` es extensión de esta spec, no del Apéndice A. Coordina N hechos atómicos en UNA línea; cada hecho coordinado CONSERVA su `ref` y su sub-span (`hint`). NO SE ADMITE la fusión opaca que descarte tokens/refs por hecho. La coordinación de sujeto SOLO SE EMITE cuando el canon define el plural concordado.
+
+Trazabilidad de parser: `app/src/opl/parser/parsear.ts` (reconocimiento de producciones), `app/src/opl/parser/tipos.ts` (tipos de la superficie reconocida).
+
+Rationale: `opm-opl-es A.0–A.10` (gramática formal OPL-ES) + `reglas §4.14` (EBNF normativa). La extensión `oracion_compuesta` traza a §9 de esta spec.
