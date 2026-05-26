@@ -43,7 +43,8 @@ Cada forma de oración OPL es una entrada con **ID estable** (reutilizando los I
 | **Supresión** | cuándo NO se emite (placeholders, visibilidad de esencia, plegado, contexto de refinamiento/despliegue) |
 | **Tokenización** | segmentos (verbo/cópula, refs por entidad/enlace) para `refsHints` y resaltado bidireccional canvas↔OPL |
 | **Orden** | posición en la secuencia del panel |
-| **Reverse** | qué parsea/planifica/muta, o "solo-display" |
+| **Composabilidad** | perfil de composición de la oración (ver §9): ejes de coordinación que admite (sujeto-compartido / predicado-compartido / destino-enumerable), conectores aplicables, y **zonas donde la composición está prohibida** (p.ej. contexto de refinamiento/despliegue). Si no es componible, decirlo y por qué. |
+| **Reverse** | qué parsea/planifica/muta, o "solo-display"; **si participa en prosa compuesta, cómo se descompone de vuelta a hechos atómicos** |
 | **Edición** | ¿editable inline? qué edición se admite y a qué mutación mapea; qué queda bloqueado y por qué (razón de no-aplicable) |
 | **Interacción** | comportamiento hover/navegación/filtrado por referencia para esta oración (qué tokens son ref de entidad/enlace) |
 | **Roundtrip** | simetría esperada + fixture de referencia; ley/invariante que la defiende |
@@ -61,18 +62,26 @@ Cada forma de oración OPL es una entrada con **ID estable** (reutilizando los I
 5. **Modificadores de control**: evento · condición · excepción (sobretiempo/subtiempo) · invocación/autoinvocación.
 6. **Estructurales**: fundamentales (agregación, exhibición, generalización, instanciación) + etiquetados (uni/bidireccional).
 7. **Refinamiento/gestión de contexto**: in/out-zoom, unfolding/folding, expresión de estado; descomposición síncrona vs despliegue asíncrono; enlaces escindidos; distribución de enlaces.
-8. **Combinatoria y composición** (ampliada): producto cartesiano gobernado `rol × modificador de control × multiplicidad/cardinalidad × abanico (XOR/OR/AND) × probabilidad × ruta`. Cada celda relevante: **válida / inválida / no-canonizada**, con plantilla OPL compuesta y reglas de resolución (fuerza semántica y matriz de precedencia transformadora, procedentes de `reglas-opm-estrictas §6.5/§6.6` y consolidadas aquí; zonas no-canonizadas p.ej. `c+e`). No se inventa primitiva nueva (R-ZNC-2): lo que el canon calla se marca *no-canonizado* o *extensión declarada*.
-9. **Multiplicidad y cardinalidad**.
-10. **Etiquetas de ruta**.
-11. **Plegado/despliegue de OPL** (display, bloques jerárquicos).
-12. **Presentación del panel OPL**: orden global de oraciones, numeración, plegado-display, visibilidad de esencia, minimizar (de la observación OPCloud).
-13. **Interacción OPL↔OPD**: tokens y referencias (entidad/enlace), hover bidireccional (resaltado), navegación por click, filtrado de líneas por selección/referencia. (ancla: `interaccion.ts`, `refsHints.ts`)
-14. **Edición de OPL**: clasificación de líneas editadas (`aplicable`/`no-aplicable`/`ignorada-vacía`/`sin-cambio`), razones de no-aplicabilidad, mapeo edición→mutación, qué es editable inline vs bloqueado, edición de nombres/propiedades de enlace (observación OPCloud). (ancla: `clasificadorEdicion.ts`, `edicionCanvas.ts`)
-15. **Configuración/opciones que afectan OPL**: visibilidad de esencia (`siempre`/`solo-difiere`/`oculta`), numeración, idioma — siempre **display vs texto canónico** (las opciones NO alteran el canónico que alimenta parser/roundtrip). (ancla: `opciones.ts`)
-16. **Modos de fallo, validación y ambigüedad**: contrato de error del parser, oraciones no parseables/ambiguas, colisión de nombre desde OPL, partial-parse, qué se rechaza vs se suspende.
-17. **EBNF formal OPL-ES** consolidada (sin EN↔ES).
-18. **Roundtrip, invariantes y leyes**: simetría global, qué se parsea vs solo-display, ley *safe-lens* y demás invariantes (`leyes/opl-reverse`), dónde se rompe la bisimetría + convención.
-19. **Trazabilidad**: tabla maestra constructo/conducta ↔ generador ↔ parser ↔ módulo de comportamiento ↔ fixture/ley, marcando **GAPS** (oración o conducta sin código / código sin entrada en la spec) — insumo directo de la auditoría de alineación.
+8. **Combinatoria a nivel de modelo**: producto cartesiano gobernado `rol × modificador de control × multiplicidad/cardinalidad × abanico (XOR/OR/AND) × probabilidad × ruta`. Cada celda relevante: **válida / inválida / no-canonizada**, con plantilla OPL compuesta y reglas de resolución (fuerza semántica y matriz de precedencia transformadora, procedentes de `reglas-opm-estrictas §6.5/§6.6` y consolidadas aquí; zonas no-canonizadas p.ej. `c+e`). No se inventa primitiva nueva (R-ZNC-2): lo que el canon calla se marca *no-canonizado* o *extensión declarada*.
+9. **Composición de oraciones y prosa OPL** (sección crítica, máxima especificación). Define el **álgebra de composición** que fusiona varias oraciones atómicas en una sola oración/párrafo semánticamente más rico mediante conectores, **sin perder la direccionabilidad por hecho**. Cubre:
+   - **Regla maestra (lección BUG-f897bc)**: una oración compuesta es **UNA línea de texto con N sub-spans**, donde **cada hecho conserva su `ref` y su `hint`** (composición a nivel de token, nunca fusión opaca). `refs` de la línea = unión de refs de los hechos; `hints` = sub-span por hecho. Hover, filtrado, navegación y clasificación de edición resuelven al hecho individual, no a la línea entera.
+   - **Ejes de coordinación y conectores**: (a) **sujeto compartido / predicado coordinado** — "*P* consume **A**, genera **B** y requiere **C**."; (b) **predicado compartido / destino enumerado** — "**A** exhibe **B**, **C** y **D**."; (c) **sujeto coordinado** — "**A** y **B** consumen **C**." (si canónico); (d) conectores condicionales/temporales/causales donde el canon lo soporte; (e) operadores lógicos XOR/OR (remite a §8). Conector serial es-CL: `, … y` / `, … o` (sin coma de Oxford).
+   - **Reglas de elegibilidad**: mismo eje de coordinación, misma familia semántica, orden determinista estable de los hechos coordinados, y **preservación obligatoria de tokens**.
+   - **Zonas prohibidas de composición**: **contexto de refinamiento/despliegue (HU-50.015)** — los enlaces hijos de una entidad refinada NO se fusionan en plural ("son …") porque el resaltado/navegación exigen frase individual con token-verbo + ref por enlace (causa raíz del revert f897bc); toda composición que no pueda preservar refs/hints por hecho; toda oración que el parser no pueda descomponer.
+   - **Reverse / roundtrip**: el parser DEBE descomponer la oración compuesta de vuelta a los hechos atómicos; la composición es transformación display reversible (componer→parsear = identidad sobre el conjunto de hechos).
+   - **Configuración**: la prosa rica es **opción de presentación** ("OPL atómica" vs "OPL prosaica") que **NO altera el texto canónico** que alimenta parser/roundtrip (igual contrato display-vs-canónico que §16).
+   - **Edición**: editar una oración compuesta inline resuelve a los hechos componentes afectados (qué sub-span cambió → qué mutación); ver §15.
+10. **Multiplicidad y cardinalidad**.
+11. **Etiquetas de ruta**.
+12. **Plegado/despliegue de OPL** (display, bloques jerárquicos).
+13. **Presentación del panel OPL**: orden global de oraciones, numeración, plegado-display, visibilidad de esencia, minimizar (de la observación OPCloud).
+14. **Interacción OPL↔OPD**: tokens y referencias (entidad/enlace), hover bidireccional (resaltado), navegación por click, filtrado de líneas por selección/referencia; **resolución por sub-span en oraciones compuestas** (§9). (ancla: `interaccion.ts`, `refsHints.ts`)
+15. **Edición de OPL**: clasificación de líneas editadas (`aplicable`/`no-aplicable`/`ignorada-vacía`/`sin-cambio`), razones de no-aplicabilidad, mapeo edición→mutación, qué es editable inline vs bloqueado, edición de nombres/propiedades de enlace (observación OPCloud), **edición de oraciones compuestas → mutación por hecho** (§9). (ancla: `clasificadorEdicion.ts`, `edicionCanvas.ts`)
+16. **Configuración/opciones que afectan OPL**: visibilidad de esencia (`siempre`/`solo-difiere`/`oculta`), **modo prosa atómica vs compuesta** (§9), numeración, idioma — siempre **display vs texto canónico** (las opciones NO alteran el canónico que alimenta parser/roundtrip). (ancla: `opciones.ts`)
+17. **Modos de fallo, validación y ambigüedad**: contrato de error del parser, oraciones no parseables/ambiguas, colisión de nombre desde OPL, partial-parse, qué se rechaza vs se suspende.
+18. **EBNF formal OPL-ES** consolidada (sin EN↔ES), incluyendo las producciones de **oración compuesta/coordinada** (§9).
+19. **Roundtrip, invariantes y leyes**: simetría global, qué se parsea vs solo-display, ley *safe-lens*, **invariante de descomposición de prosa compuesta** (§9), demás invariantes (`leyes/opl-reverse`), dónde se rompe la bisimetría + convención.
+20. **Trazabilidad**: tabla maestra constructo/conducta ↔ generador ↔ parser ↔ módulo de comportamiento ↔ fixture/ley, marcando **GAPS** (oración o conducta sin código / código sin entrada en la spec) — insumo directo de la auditoría de alineación.
 
 **Apéndice A — Ejemplo end-to-end**: un modelo OPM completo → OPL completa con todas las familias.
 **Apéndice B — Patrones OPL sociotécnicos y agénticos**: construcciones recurrentes expresadas **como composición de constructos canónicos** (no OPL nuevo), ancladas a `sociotecnico.ts`:
@@ -99,19 +108,22 @@ Cada patrón etiqueta su estatus: **canon** (composición pura) · **extensión 
 Tamaño estimado ~2500–4000 líneas. Producción **por familias en líneas paralelas** (un `opm-specialist` por familia de constructo), cada una extrayendo de las 5 fuentes con el esquema fijo del §4 y trazando al código. Olas sugeridas:
 
 - **Ola 1 (constructos base)**: §1 vocabulario, §2 entidades, §3 transformadores, §4 habilitadores, §5 modificadores, §6 estructurales.
-- **Ola 2 (composición y refinamiento)**: §7 refinamiento, §8 combinatoria, §9 multiplicidad, §10 ruta, §11 plegado.
-- **Ola 3 (comportamiento de runtime)**: §12 panel, §13 interacción, §14 edición, §15 configuración, §16 modos de fallo.
-- **Ola 4 (transversales y cierre)**: §17 EBNF, §18 roundtrip/invariantes/leyes, §19 trazabilidad, Apéndices A/B/C.
+- **Ola 2 (composición y refinamiento)**: §7 refinamiento, §8 combinatoria de modelo, §9 **composición de prosa** (sección crítica), §10 multiplicidad, §11 ruta, §12 plegado.
+- **Ola 3 (comportamiento de runtime)**: §13 panel, §14 interacción, §15 edición, §16 configuración, §17 modos de fallo.
+- **Ola 4 (transversales y cierre)**: §18 EBNF, §19 roundtrip/invariantes/leyes, §20 trazabilidad, Apéndices A/B/C.
+
+Nota: §9 (composición de prosa) y §14/§15 (interacción/edición) comparten el contrato de tokenización por sub-span; deben producirse de forma coordinada o por el mismo agente para no divergir.
 - **Cierre**: consolidación, self-review de simetría/IDs/gaps, verificación de que cada entrada y cada conducta traza a código existente (generador/parser/módulo de comportamiento/ley) o queda marcada como gap.
 
 ## 8. Criterios de aceptación del artefacto
 
 - Cubre las 4 familias de enlace, todos los modificadores, abanicos, multiplicidad, ruta, refinamiento, designaciones, atributos, plegado y presentación del panel — cada uno con el contrato completo del §4.
-- Incluye la sección de combinatoria (§8) con el producto cartesiano gobernado y las reglas de resolución.
-- **Especifica todo el comportamiento de runtime OPL**: interacción OPL↔OPD (§13), edición y clasificación edición→mutación (§14), configuración display-vs-canónico (§15), modos de fallo/validación/ambigüedad (§16) e invariantes/leyes (§18). Ninguna conducta OPL del producto queda sin especificar.
+- Incluye la sección de combinatoria de modelo (§8) con el producto cartesiano gobernado y las reglas de resolución.
+- **Especifica exhaustivamente la composición de prosa (§9)**: álgebra de conectores, ejes de coordinación, regla maestra de sub-span (cada hecho conserva ref/hint), zonas prohibidas (refinamiento/despliegue, lección f897bc) e invariante de descomposición reversible. Resuelve correctamente el caso revertido BUG-f897bc.
+- **Especifica todo el comportamiento de runtime OPL**: interacción OPL↔OPD (§14), edición y clasificación edición→mutación (§15), configuración display-vs-canónico (§16), modos de fallo/validación/ambigüedad (§17) e invariantes/leyes (§19). Ninguna conducta OPL del producto queda sin especificar.
 - Incluye el Apéndice B de patrones sociotécnicos/agénticos, todo expresado como composición canónica con estatus etiquetado.
 - OPL en español únicamente; sin EN↔ES; sin intros.
-- Cada entrada y cada conducta traza a `app/src/opl/**` (o queda marcada como gap), de modo que la tabla §19 sea el punto de partida de la auditoría de alineación.
+- Cada entrada y cada conducta traza a `app/src/opl/**` (o queda marcada como gap), de modo que la tabla §20 sea el punto de partida de la auditoría de alineación.
 - Autocontenida: es **el único** documento que hay que abrir para entender, generar, parsear, presentar, editar y validar OPL en OPFORJA; no requiere `opm-opl-es.md` ni `reglas §4`.
 
 ## 9. Fuera de alcance
