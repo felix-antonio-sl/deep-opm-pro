@@ -37,9 +37,9 @@ test("capturador de bugs guarda texto sin screenshots y muestra id referenciable
   expect((payload?.context as Record<string, unknown>).modeloNombre).toBeTruthy();
 });
 
-test("capturador de bugs abre con Ctrl+Alt+B", async ({ page }) => {
+test("capturador de bugs abre con Ctrl+Shift+B", async ({ page }) => {
   await page.goto("/");
-  await page.keyboard.press("Control+Alt+B");
+  await page.keyboard.press("Control+Shift+B");
   await expect(page.getByRole("dialog", { name: "Capturar bug" })).toBeVisible();
 });
 

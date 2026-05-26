@@ -77,7 +77,7 @@ function CapturadorBugsInteractivo() {
   useEffect(() => {
     const abrirConAtajo = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() !== "b") return;
-      if (!event.altKey || (!event.ctrlKey && !event.metaKey)) return;
+      if (!event.shiftKey || (!event.ctrlKey && !event.metaKey)) return;
       event.preventDefault();
       event.stopPropagation();
       abrir();
