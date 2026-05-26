@@ -5,7 +5,28 @@
 **Commit documental de handoff**: este documento forma parte del mismo commit atomico de cierre.
 **Instancia**: `https://opforja.sanixai.com` — bundle **Tier 1 + capturador/scroll canvas** desplegado con `docker compose up -d --build`; contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
 
-## Corte actual — resolucion base de colisiones de nombre + captura viva
+## Corte actual — Tier 1 completo: simulación numérica CSV + e2e de cierre
+
+Se cierra la brecha **F** del Tier 1 (auditoría Opforja vs manual simulado OPCloud): la simulación numérica queda conectada de extremo a extremo a la UI, con export CSV. También se cierran los e2e de las brechas ya integradas (esencia OPL y colisión de nombre), dejando el corte Tier 1 verificado end-to-end.
+
+**Decisiones aplicadas:**
+- `generarDatosSimulados` (kernel existente) se conecta vía `DialogoSimulacionNumerica`, abierto desde el command palette (doctrina ⌘K-only), con N corridas síncronas, tabla de resultados y descarga CSV.
+- `filasSimulacionACsv` es una función pura con escape estilo RFC-4180, sin dependencias nuevas; columnas = atributos con `esAtributo && valorSlot && simulacion.simulable`; estado vacío guía a marcar atributos simulables.
+- Fuera de este corte (diferido): corridas async, export Excel, y la visibilidad de unidades/alias en OPL (tejida en la capa de nombres OPL — hints/parser/roundtrip; merece su propio corte).
+
+**Artefactos relevantes:**
+- `app/src/modelo/simulacion/csv.ts` (+ test) — `filasSimulacionACsv` puro.
+- `app/src/ui/DialogoSimulacionNumerica.tsx` + `app/src/app/ports/{,zustand}simulacionNumericaDialogPort.ts` + viewmodel + `CommandPalette.tsx` + `App.tsx` — UI de simulación numérica.
+- Tests focales: `e2e/30-simulacion-numerica.spec.ts`, `e2e/29-colision-nombre.spec.ts`, `e2e/28-opl-visibilidad-esencia.spec.ts`, `src/modelo/simulacion/csv.test.ts`.
+
+**Verificación del corte:**
+- `cd app && bun run check` -> **1755 pass / 0 fail**.
+- `cd app && bun run lint && bun run build && bun run design:governance` -> OK.
+- `cd app && bunx playwright test e2e/28-opl-visibilidad-esencia.spec.ts e2e/29-colision-nombre.spec.ts e2e/30-simulacion-numerica.spec.ts` -> **7/7 verde**.
+
+**Estado:** commiteado y pusheado a `origin/main`; **pendiente de deploy** (la instancia pública aún corre el bundle anterior). Spec y plan: `docs/superpowers/specs/2026-05-26-cierre-brechas-tier1-design.md`, `docs/superpowers/plans/2026-05-26-cierre-brechas-tier1.md`.
+
+## Corte previo — resolucion base de colisiones de nombre + captura viva
 
 Se consolida el siguiente incremento sobre `main`: el capturador sigue escribiendo artefactos versionables en `docs/bugs/` y el flujo de nombres duplicados deja de caer en error seco. La deteccion pura ya integrada se conecta ahora con estado suspendido, resolutores y un dialogo Codex minimo.
 
