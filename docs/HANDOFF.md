@@ -24,7 +24,7 @@ Se cierra la brecha **F** del Tier 1 (auditoría Opforja vs manual simulado OPCl
 - `cd app && bun run lint && bun run build && bun run design:governance` -> OK.
 - `cd app && bunx playwright test e2e/28-opl-visibilidad-esencia.spec.ts e2e/29-colision-nombre.spec.ts e2e/30-simulacion-numerica.spec.ts` -> **7/7 verde**.
 
-**Estado:** commiteado y pusheado a `origin/main`; **pendiente de deploy** (la instancia pública aún corre el bundle anterior). Spec y plan: `docs/superpowers/specs/2026-05-26-cierre-brechas-tier1-design.md`, `docs/superpowers/plans/2026-05-26-cierre-brechas-tier1.md`.
+**Estado:** commiteado y pusheado a `origin/main` y **desplegado** en `https://opforja.sanixai.com` (bundle `index-i8iXchqs.js`, `docker compose up -d --build`; `opforja` healthy + `bug-capture` up; HTTP/2 200). Spec y plan: `docs/superpowers/specs/2026-05-26-cierre-brechas-tier1-design.md`, `docs/superpowers/plans/2026-05-26-cierre-brechas-tier1.md`.
 
 ## Corte previo — resolucion base de colisiones de nombre + captura viva
 
