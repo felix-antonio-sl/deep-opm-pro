@@ -314,7 +314,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     if (!enlaceId) return;
     modelo = must(ajustarMultiplicidad(modelo, enlaceId, "origen", "*"));
 
-    expect(generarOpl(modelo)).toContain("*Contar* consume * **Veces**.");
+    expect(generarOpl(modelo)).toContain("*Contar* consume **Veces**.");
   });
 
   test("multiplicidad destino pluraliza vocal en resultado", () => {
@@ -327,7 +327,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     if (!enlaceId) return;
     modelo = must(ajustarMultiplicidad(modelo, enlaceId, "destino", "1..N"));
 
-    expect(generarOpl(modelo)).toContain("*Preparar* genera 1..N **Recursos**.");
+    expect(generarOpl(modelo)).toContain("*Preparar* genera al menos un **Recurso**.");
   });
 
   test("multiplicidad uno mantiene singular explicitando cardinalidad", () => {

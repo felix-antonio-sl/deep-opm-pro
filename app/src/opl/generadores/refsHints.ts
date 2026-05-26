@@ -188,9 +188,18 @@ export function nombreOplExtremo(modelo: Modelo, extremo: Enlace["origenId"], mu
 }
 
 export function nombreOplConMultiplicidad(entidad: Entidad, multiplicidad: string | undefined): string {
-  const nombre = multiplicidadPlural(multiplicidad) ? pluralizarCanonico(nombreCanonicoEntidad(entidad)) : nombreCanonicoEntidad(entidad);
+  const canonico = nombreCanonicoEntidad(entidad);
+  const nombre = multiplicidadPlural(multiplicidad) ? pluralizarCanonico(canonico) : canonico;
   const token = nombreOplBase(entidad, nombre);
-  if (multiplicidad === "?" || multiplicidad === "0..1") return `un ${token} opcional`;
+  if (multiplicidad === "?" || multiplicidad === "0..1") {
+    return `un ${token} opcional`;
+  }
+  if (multiplicidad === "+" || multiplicidad === "1..*" || multiplicidad === "1..N") {
+    return `al menos un ${token}`;
+  }
+  if (multiplicidad === "*" || multiplicidad === "0..*") {
+    return token;
+  }
   return multiplicidad ? `${multiplicidad} ${token}` : token;
 }
 
@@ -228,9 +237,13 @@ export function pluralizarCanonico(texto: string): string {
 
 export function multiplicidadPlural(multiplicidad: string | undefined): boolean {
   if (!multiplicidad) return false;
-  if (multiplicidad === "*" || multiplicidad === "+" || multiplicidad === "N") return true;
+  if (multiplicidad === "*" || multiplicidad === "N" || multiplicidad === "0..*") return true;
+  if (multiplicidad === "+" || multiplicidad === "1..*" || multiplicidad === "1..N") return false;
   if (/^\d+$/.test(multiplicidad)) return Number(multiplicidad) !== 1;
-  if (multiplicidad.endsWith("..N") || multiplicidad.endsWith("..*")) return true;
+  if (multiplicidad.endsWith("..N") || multiplicidad.endsWith("..*")) {
+    const [min] = multiplicidad.split("..");
+    return min === "0";
+  }
   const [, max] = multiplicidad.split("..");
   return Number(max) !== 1;
 }
