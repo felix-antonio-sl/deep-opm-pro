@@ -4,9 +4,11 @@
 **Commits de producto**: ronda commiteada **atómicamente por el operador** (co-implementación en `main`, ya en `origin/main`): `e2ec53d` atajos O/P/S/R, `1394a42` atajo capturador, `85e2db6` inspector vs diagnóstico, `21096a7` barra simulación — más bugs adicionales que resolvió por su cuenta (`dd28882` atributos, `9669f3a` usabilidad modelos, `d19f675` contraste tokens). **Desplegado** en producción con `docker compose up -d --build` (bundle `index-BEwvFCpF.js`).
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; bundle vivo `index-BEwvFCpF.js`.
 
-## Corte actual — Remediación GAP OPL ejecutada en rama `codex/remediacion-gap-opl`
+## Corte actual — D1 esencia/afiliación combinada (forma OPCloud) + cierre de remediación GAP OPL + auditoría de divergencias OPL vs OPCloud (rama `codex/remediacion-gap-opl`, integrada a `main`)
 
-Se ejecutó `docs/superpowers/plans/2026-05-26-remediacion-gap-opl.md` en 3 olas, manteniendo fuera los cambios locales ajenos del operador.
+**D1 combinada (commit `59ad3a9`):** `oracionEntidad` compone UNA oración con sustantivo de tipo — `**Cosa** es un {objeto|proceso} {esencia} y {afiliacion}.` (p.ej. `*Rescatar* es un proceso informacional y sistémico.`) — en vez de dos oraciones escindidas sin sustantivo de tipo. Es la forma del eco OPCloud (`docs/historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md`), consistente con la coordinación canónica de D5/D10. El parser ya reconocía la forma combinada (roundtrip preservado). Se invirtió la doctrina previa en spec-forja (R-ENT-3, §2.7, §2.8, §9 R-COMP-ELEG-2) y el comentario de `estructural.ts`; bajo `solo-difiere` coordina solo lo que difiere del default. Gate: `bun run check` → 1741 pass / 0 fail; lint OK. Tests/fixtures actualizados por el cambio de forma e índices de línea.
+
+**Remediación GAP OPL (ejecutada en 3 olas, commits del operador y del agente):**
 
 **Ola 1 — bugs reales cerrados con TDD:**
 - Placeholder OPL: `refsHints.ts·entidadOplEsEmitible` suprime procesos placeholder usando `esNombreProcesoPlaceholder`.
@@ -23,6 +25,7 @@ Se ejecutó `docs/superpowers/plans/2026-05-26-remediacion-gap-opl.md` en 3 olas
 - Las familias con reverse incompleto desde modelo vacío quedan explícitamente `bisimetricaEstricta: false`; las rutas ya cerradas quedan estrictas.
 - `docs/canon-opm/spec-forja-opl.md` marca esos fixture gaps como cerrados o cerrados-para-emisión, manteniendo vivos solo los gaps reales de parser/procedencia.
 
+**Auditoría de divergencias OPL vs OPCloud (commit `952346d`, `docs/auditorias/2026-05-26-alineacion-opl/divergencias-opcloud.md`):** se buscaron todas las divergencias entre la generación OPL de OPFORJA y el eco OPCloud (HU-SHARED-007), **arbitrando cada una por precedencia** (canon supremo `reglas-opm-estrictas`+`opm-opl-es` manda; OPCloud observacional). Resultado: **solo D1 era adoptable** (ya hecho). Las otras divergencias son **eco OPCloud equivocado** que OPFORJA correctamente NO clonó: D5 estados (`puede ser` es mal-traducción de "can be"; canon = `puede estar`), agregación (`consiste en` vs canon `consta de`), T6 dirección de habilitador (HU invierte sujeto/objeto). **Cero GAP-OPCLOUD de código nuevo; OPFORJA está alineado al canon.** Confirmado además que `duracionMetadata.ts:69` emite `puede estar` (el viejo bug C1 está resuelto). Lección: el eco OPCloud no es fiel al canon en ≥3 formas — OPCloud es observacional, no autoridad.
 **Backlog vivo**: features/parsers diferidos de la auditoría §4: `GAP-XOR-FEATURE/PARSER`, `GAP-ABANICO-AGENTE-PARSE`, `GAP-TAG-PARSER`, `GAP-SSE-PARSER`, `GAP-CX-PARSER`, `GAP-FAN-EVENTO`, `GAP-FAN-M`, `GAP-COMPOSICION/GAP-COMP-REVERSE`, `GAP-PARSE-TS4/TS5`, `GAP-PROCEDENCIA-ESCIND`, `GAP-NOMBRE-INSTANCIA`, `GAP-VARIA/TIPO/REFINA/PLIEGA/RECOMPONE`.
 
 ## Corte previo — spec-forja OPL: SSOT OPL consolidada de OPFORJA (producida)

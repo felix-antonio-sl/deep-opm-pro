@@ -98,9 +98,9 @@ describe("panel OPL como capacidad", () => {
     });
 
     // Las líneas de display NO deben contener la oración de esencia
-    expect(out.visibles.some((l) => l.texto.includes("es informacional"))).toBe(false);
+    expect(out.visibles.some((l) => l.texto.includes("informacional"))).toBe(false);
     // El texto canónico SÍ debe contener la oración de esencia (roundtrip protegido)
-    expect(out.textoOplActual.includes("es informacional")).toBe(true);
+    expect(out.textoOplActual.includes("informacional")).toBe(true);
   });
 });
 

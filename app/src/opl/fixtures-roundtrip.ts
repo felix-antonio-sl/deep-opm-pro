@@ -96,7 +96,7 @@ const fixtureObjetoSolo: FixtureRoundtrip = {
     m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Carro"));
     return m;
   },
-  oracionesEsperadas: ["**Carro** es informacional.", "**Carro** es sistémico."],
+  oracionesEsperadas: ["**Carro** es un objeto informacional y sistémico."],
   bisimetricaEstricta: true,
 };
 
@@ -108,7 +108,7 @@ const fixtureProcesoSolo: FixtureRoundtrip = {
     m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Procesar"));
     return m;
   },
-  oracionesEsperadas: ["*Procesar* es informacional.", "*Procesar* es sistémico."],
+  oracionesEsperadas: ["*Procesar* es un proceso informacional y sistémico."],
   bisimetricaEstricta: true,
 };
 
@@ -123,7 +123,7 @@ const fixtureObjetoEsenciaAfiliacion: FixtureRoundtrip = {
     m = must(cambiarAfiliacion(m, id, "ambiental"));
     return m;
   },
-  oracionesEsperadas: ["**Bomba** es físico.", "**Bomba** es ambiental."],
+  oracionesEsperadas: ["**Bomba** es un objeto físico y ambiental."],
   bisimetricaEstricta: true,
 };
 
@@ -154,8 +154,7 @@ const fixtureObjetoConEstados: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Pedido** es informacional.",
-    "**Pedido** es sistémico.",
+    "**Pedido** es un objeto informacional y sistémico.",
     "**Pedido** puede estar `pendiente` o `aprobado`.",
   ],
   bisimetricaEstricta: false,
@@ -172,10 +171,8 @@ const fixtureConsumoSimple: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Entrada** es informacional.",
-    "**Entrada** es sistémico.",
-    "*Procesar* es informacional.",
-    "*Procesar* es sistémico.",
+    "**Entrada** es un objeto informacional y sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
     "*Procesar* consume **Entrada**.",
   ],
   bisimetricaEstricta: true,
@@ -192,10 +189,8 @@ const fixtureResultadoSimple: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "*Procesar* es informacional.",
-    "*Procesar* es sistémico.",
-    "**Salida** es informacional.",
-    "**Salida** es sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
+    "**Salida** es un objeto informacional y sistémico.",
     "*Procesar* genera **Salida**.",
   ],
   bisimetricaEstricta: true,
@@ -212,10 +207,8 @@ const fixtureInstrumentoSimple: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Herramienta** es informacional.",
-    "**Herramienta** es sistémico.",
-    "*Procesar* es informacional.",
-    "*Procesar* es sistémico.",
+    "**Herramienta** es un objeto informacional y sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
     "*Procesar* requiere **Herramienta**.",
   ],
   bisimetricaEstricta: true,
@@ -233,10 +226,8 @@ const fixtureAgenteSimple: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Operador** es físico.",
-    "**Operador** es sistémico.",
-    "*Procesar* es informacional.",
-    "*Procesar* es sistémico.",
+    "**Operador** es un objeto físico y sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
     "**Operador** maneja *Procesar*.",
   ],
   bisimetricaEstricta: true,
@@ -253,10 +244,8 @@ const fixtureAgregacion: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Vehiculo** es informacional.",
-    "**Vehiculo** es sistémico.",
-    "**Motor** es informacional.",
-    "**Motor** es sistémico.",
+    "**Vehiculo** es un objeto informacional y sistémico.",
+    "**Motor** es un objeto informacional y sistémico.",
     "**Vehiculo** consta de **Motor**.",
   ],
   bisimetricaEstricta: true,
@@ -273,10 +262,8 @@ const fixtureGeneralizacion: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Vehiculo** es informacional.",
-    "**Vehiculo** es sistémico.",
-    "**Camion** es informacional.",
-    "**Camion** es sistémico.",
+    "**Vehiculo** es un objeto informacional y sistémico.",
+    "**Camion** es un objeto informacional y sistémico.",
     "**Camion** es un **Vehiculo**.",
   ],
   bisimetricaEstricta: true,
@@ -335,10 +322,8 @@ const fixtureBug62ee85AbanicoDeduplicado: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "*Procesar* es informacional.",
-    "*Procesar* es sistémico.",
-    "**Objeto 2** es informacional.",
-    "**Objeto 2** es sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
+    "**Objeto 2** es un objeto informacional y sistémico.",
     "*Procesar* genera **Objeto 2**.",
   ],
   bisimetricaEstricta: false,
@@ -384,10 +369,8 @@ const fixtureEfectoSimple: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "*Actualizar* es informacional.",
-    "*Actualizar* es sistémico.",
-    "**Sistema** es informacional.",
-    "**Sistema** es sistémico.",
+    "*Actualizar* es un proceso informacional y sistémico.",
+    "**Sistema** es un objeto informacional y sistémico.",
     "*Actualizar* afecta **Sistema**.",
   ],
   bisimetricaEstricta: true,
@@ -408,11 +391,9 @@ const fixtureTransicionTs3: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Pedido** es informacional.",
-    "**Pedido** es sistémico.",
+    "**Pedido** es un objeto informacional y sistémico.",
     "**Pedido** puede estar `pendiente` o `aprobado`.",
-    "*Aprobar* es informacional.",
-    "*Aprobar* es sistémico.",
+    "*Aprobar* es un proceso informacional y sistémico.",
     "*Aprobar* cambia **Pedido** de `pendiente` a `aprobado`.",
   ],
   bisimetricaEstricta: false,
@@ -432,11 +413,9 @@ const fixtureTransicionTs4: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Documento** es informacional.",
-    "**Documento** es sistémico.",
+    "**Documento** es un objeto informacional y sistémico.",
     "**Documento** puede estar `borrador` o `archivado`.",
-    "*Archivar* es informacional.",
-    "*Archivar* es sistémico.",
+    "*Archivar* es un proceso informacional y sistémico.",
     "*Archivar* cambia **Documento** a `borrador`.",
   ],
   bisimetricaEstricta: false,
@@ -456,11 +435,9 @@ const fixtureTransicionTs5: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Ticket** es informacional.",
-    "**Ticket** es sistémico.",
+    "**Ticket** es un objeto informacional y sistémico.",
     "**Ticket** puede estar `abierto` o `cerrado`.",
-    "*Resolver* es informacional.",
-    "*Resolver* es sistémico.",
+    "*Resolver* es un proceso informacional y sistémico.",
     "*Resolver* cambia **Ticket** de `abierto`.",
   ],
   bisimetricaEstricta: false,
@@ -484,14 +461,11 @@ const fixtureHabilitadorConEstado: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Operador** es físico.",
-    "**Operador** es sistémico.",
+    "**Operador** es un objeto físico y sistémico.",
     "**Operador** puede estar `disponible` o `ocupado`.",
-    "**Equipo** es informacional.",
-    "**Equipo** es sistémico.",
+    "**Equipo** es un objeto informacional y sistémico.",
     "**Equipo** puede estar `calibrado` o `fuera de servicio`.",
-    "*Operar* es informacional.",
-    "*Operar* es sistémico.",
+    "*Operar* es un proceso informacional y sistémico.",
     "**Operador** en `disponible` maneja *Operar*.",
     "*Operar* requiere **Equipo** en `calibrado`.",
   ],
@@ -508,10 +482,8 @@ const fixtureExhibicion: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Auto** es informacional.",
-    "**Auto** es sistémico.",
-    "**Color** es informacional.",
-    "**Color** es sistémico.",
+    "**Auto** es un objeto informacional y sistémico.",
+    "**Color** es un objeto informacional y sistémico.",
     "**Auto** exhibe **Color**.",
   ],
   bisimetricaEstricta: true,
@@ -527,10 +499,8 @@ const fixtureClasificacion: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Vehiculo** es informacional.",
-    "**Vehiculo** es sistémico.",
-    "**Patente 123** es informacional.",
-    "**Patente 123** es sistémico.",
+    "**Vehiculo** es un objeto informacional y sistémico.",
+    "**Patente 123** es un objeto informacional y sistémico.",
     "**Patente 123** es una instancia de **Vehiculo**.",
   ],
   bisimetricaEstricta: true,
@@ -547,10 +517,8 @@ const fixtureEventoConsumo: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "**Solicitud** es informacional.",
-    "**Solicitud** es sistémico.",
-    "*Procesar* es informacional.",
-    "*Procesar* es sistémico.",
+    "**Solicitud** es un objeto informacional y sistémico.",
+    "*Procesar* es un proceso informacional y sistémico.",
     "**Solicitud** inicia *Procesar*, que consume **Solicitud**.",
   ],
   bisimetricaEstricta: true,
@@ -567,10 +535,8 @@ const fixtureInvocacionTilde: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "*Preparar* es informacional.",
-    "*Preparar* es sistémico.",
-    "*Servir* es informacional.",
-    "*Servir* es sistémico.",
+    "*Preparar* es un proceso informacional y sistémico.",
+    "*Servir* es un proceso informacional y sistémico.",
     "*Preparar* invoca *Servir* después de 1s.",
   ],
   bisimetricaEstricta: false,
@@ -587,10 +553,8 @@ const fixtureEventoInvocacionDegrada: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "*Preparar* es informacional.",
-    "*Preparar* es sistémico.",
-    "*Servir* es informacional.",
-    "*Servir* es sistémico.",
+    "*Preparar* es un proceso informacional y sistémico.",
+    "*Servir* es un proceso informacional y sistémico.",
     "*Preparar* invoca *Servir*.",
   ],
   bisimetricaEstricta: true,
@@ -605,8 +569,7 @@ const fixtureAutoInvocacionTilde: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: [
-    "*Validar* es informacional.",
-    "*Validar* es sistémico.",
+    "*Validar* es un proceso informacional y sistémico.",
     "*Validar* se invoca a sí mismo después de 1s.",
   ],
   bisimetricaEstricta: false,
