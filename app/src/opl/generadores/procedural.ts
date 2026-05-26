@@ -42,11 +42,11 @@ export function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace): st
   if (!origen || !destino) return null;
   if (enlace.tipo === "resultado" && enlace.destinoId.kind === "estado" && origen.tipo === "proceso") {
     const estado = estadoDeExtremo(modelo, enlace.destinoId);
-    return estado ? `${nombreOpl(origen)} genera ${nombreOpl(destino)} en \`${nombreCanonicoEstado(estado)}\`.` : null;
+    return estado ? `${nombreOplConMultiplicidad(origen, enlace.multiplicidadOrigen)} genera ${nombreOplConMultiplicidad(destino, enlace.multiplicidadDestino)} en \`${nombreCanonicoEstado(estado)}\`.` : null;
   }
   if (enlace.tipo === "consumo" && enlace.origenId.kind === "estado" && destino.tipo === "proceso") {
     const estado = estadoDeExtremo(modelo, enlace.origenId);
-    return estado ? `${nombreOpl(destino)} consume ${nombreOpl(origen)} en \`${nombreCanonicoEstado(estado)}\`.` : null;
+    return estado ? `${nombreOplConMultiplicidad(destino, enlace.multiplicidadDestino)} consume ${nombreOplConMultiplicidad(origen, enlace.multiplicidadOrigen)} en \`${nombreCanonicoEstado(estado)}\`.` : null;
   }
   return oracionEnlace(modelo, enlace);
 }
@@ -95,7 +95,7 @@ function transicionesEstadoBase(modelo: Modelo, opd: Opd, enlacesExcluidos: Read
     const estadoEntrada = estadoDeExtremo(modelo, consumo.origenId);
     const estadoSalida = estadoDeExtremo(modelo, resultado.destinoId);
     if (!proceso || !objeto || !estadoEntrada || !estadoSalida) continue;
-    const texto = oracionTransicionEstados(proceso, objeto, estadoEntrada, estadoSalida, consumo, resultado);
+    const texto = oracionTransicionEstados(modelo, proceso, objeto, estadoEntrada, estadoSalida, consumo, resultado);
     lineaPorEnlaceConsumo.set(consumo.id, {
       texto,
       refs: [
@@ -122,6 +122,7 @@ function transicionesEstadoBase(modelo: Modelo, opd: Opd, enlacesExcluidos: Read
 }
 
 function oracionTransicionEstados(
+  modelo: Modelo,
   proceso: Entidad,
   objeto: Entidad,
   estadoEntrada: NonNullable<ReturnType<typeof estadoDeExtremo>>,
@@ -132,8 +133,10 @@ function oracionTransicionEstados(
   const modificador = consumo.modificador ?? resultado.modificador;
   const enlaceModificador = consumo.modificador ? consumo : resultado.modificador ? resultado : null;
   const sufijo = enlaceModificador ? sufijoProbabilidad(enlaceModificador) : "";
-  const procesoOpl = nombreOpl(proceso);
-  const objetoOpl = nombreOpl(objeto);
+  const multiplicidadProceso = resultado.multiplicidadOrigen ?? consumo.multiplicidadDestino;
+  const multiplicidadObjeto = resultado.multiplicidadDestino ?? consumo.multiplicidadOrigen;
+  const procesoOpl = nombreOplConMultiplicidad(proceso, multiplicidadProceso);
+  const objetoOpl = nombreOplConMultiplicidad(objeto, multiplicidadObjeto);
   const entrada = nombreCanonicoEstado(estadoEntrada);
   const salida = nombreCanonicoEstado(estadoSalida);
   switch (modificador) {
@@ -365,10 +368,18 @@ function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino:
   const estadoOrigen = estadoDeExtremo(modelo, enlace.origenId);
   const estadoDestino = estadoDeExtremo(modelo, enlace.destinoId);
   if (estadoOrigen && destino.tipo === "proceso") {
-    return `${nombreOpl(destino)} cambia ${nombreOpl(origen)} de \`${nombreCanonicoEstado(estadoOrigen)}\`.`;
+    const multiplicidadProceso = destino.id === entidadIdDeExtremo(modelo, enlace.destinoId)
+      ? enlace.multiplicidadDestino : enlace.multiplicidadOrigen;
+    const multiplicidadObjeto = origen.id === entidadIdDeExtremo(modelo, enlace.origenId)
+      ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
+    return `${nombreOplConMultiplicidad(destino, multiplicidadProceso)} cambia ${nombreOplConMultiplicidad(origen, multiplicidadObjeto)} de \`${nombreCanonicoEstado(estadoOrigen)}\`.`;
   }
   if (estadoDestino && origen.tipo === "proceso") {
-    return `${nombreOpl(origen)} cambia ${nombreOpl(destino)} a \`${nombreCanonicoEstado(estadoDestino)}\`.`;
+    const multiplicidadProceso = origen.id === entidadIdDeExtremo(modelo, enlace.origenId)
+      ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
+    const multiplicidadObjeto = destino.id === entidadIdDeExtremo(modelo, enlace.destinoId)
+      ? enlace.multiplicidadDestino : enlace.multiplicidadOrigen;
+    return `${nombreOplConMultiplicidad(origen, multiplicidadProceso)} cambia ${nombreOplConMultiplicidad(destino, multiplicidadObjeto)} a \`${nombreCanonicoEstado(estadoDestino)}\`.`;
   }
   const proceso = origen.tipo === "proceso" ? origen : destino.tipo === "proceso" ? destino : null;
   const objeto = origen.tipo === "objeto" ? origen : destino.tipo === "objeto" ? destino : null;
