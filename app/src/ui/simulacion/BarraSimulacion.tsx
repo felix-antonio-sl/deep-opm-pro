@@ -2,6 +2,7 @@
 import type { JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
+import { useBreakpoint } from "../layoutResponsive";
 import { tokens } from "../tokens";
 
 /**
@@ -30,6 +31,13 @@ export function BarraSimulacion(): JSX.Element | null {
     salir,
   } = useZustandSimulationPort();
 
+  // BUG-20260526T022101Z-f23d0a: en escritorio la barra se monta en el
+  // `toolbarSlot` del header (CodexFrame), celda de 60px con `overflow:hidden`
+  // que la clippeaba. Como banda fija de ancho completo bajo el header queda
+  // siempre visible. En mobile vive en una sección flex sin clip, así que se
+  // mantiene en flujo normal.
+  const esMobile = useBreakpoint() === "mobile";
+
   useEffect(() => {
     if (!contexto || !autoAvance || contexto.estado === "completado" || contexto.plan.length === 0) return;
     const timeoutId = window.setTimeout(ejecutarPaso, intervaloAutoAvanceMs(velocidadSimulacion));
@@ -44,7 +52,12 @@ export function BarraSimulacion(): JSX.Element | null {
   const ejecutados = contexto.trace.length;
 
   return (
-    <div data-testid="barra-simulacion" role="toolbar" aria-label="Controles de simulación" style={style.barra}>
+    <div
+      data-testid="barra-simulacion"
+      role="toolbar"
+      aria-label="Controles de simulación"
+      style={esMobile ? style.barra : { ...style.barra, ...style.barraOverlayDesktop }}
+    >
       <div style={style.cluster}>
         <span style={style.tag}>Simulación</span>
         <span style={style.contador} data-testid="barra-simulacion-progreso">
@@ -194,6 +207,21 @@ const style: Record<string, JSX.CSSProperties> = {
     borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
     minHeight: 44,
     flexWrap: "wrap",
+  },
+  // BUG-20260526T022101Z-f23d0a (sólo escritorio): la barra se monta en el
+  // `toolbarSlot` del header (CodexFrame), celda de 60px con `overflow:hidden`
+  // que clippeaba su contenido multi-cluster + wrap + trace. Como banda fija de
+  // ancho completo justo bajo el header (top = 60px = altura del header)
+  // `position:fixed` ignora el clip del slot y el grid del header; wordmark,
+  // tabs y breadcrumb siguen visibles arriba. zIndex 30 la deja sobre el header
+  // (20) y los overlays del canvas (10–13), pero bajo diálogos/menús modales
+  // (≥45/1000) que deben seguir tapándola.
+  barraOverlayDesktop: {
+    position: "fixed",
+    top: 60,
+    left: 0,
+    right: 0,
+    zIndex: 30,
   },
   cluster: {
     display: "flex",
