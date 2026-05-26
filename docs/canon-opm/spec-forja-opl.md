@@ -6,7 +6,7 @@ _manifest:
     created_at: "2026-05-26"
     source: "docs/canon-opm/reglas-opm-estrictas.md; /home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-opl-es.md; /home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/opm-libro-curado/; /home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/opm/transcripciones-videos-opcloud.txt; /home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/curso-dov-dori/"
 version: "1.0.0"
-status: borrador
+status: publicado
 tags: [opl, opforja, spec, generacion, parser]
 lang: "es"
 extensions:
