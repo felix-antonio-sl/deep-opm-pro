@@ -19,6 +19,7 @@ export interface EntityInspectorSemanticsPort {
   asignarValorAtributo: OpmStore["asignarValorAtributoSeleccionado"];
   cambiarTipoValorAtributo: OpmStore["cambiarTipoValorAtributoSeleccionado"];
   configurarSimulacionAtributo: OpmStore["configurarSimulacionAtributoSeleccionado"];
+  crearAtributo: OpmStore["crearAtributoEnObjetoSeleccionado"];
 }
 
 export interface EntityInspectorMetadataPort {

@@ -1783,6 +1783,48 @@ describe("store HU-11.012 etiqueta enlace estructural", () => {
 });
 
 
+describe("crearAtributoEnObjetoSeleccionado (affordance inspector + toolbar)", () => {
+  beforeEach(() => {
+    instalarLocalStorage();
+    instalarConfirmacion();
+    store.getState().importarJson(exportarModelo(crearModelo()));
+    store.getState().listarModelosGuardados();
+  });
+
+  test("crea un objeto-atributo exhibido por el objeto seleccionado", () => {
+    store.getState().crearObjetoDemo();
+    const objetoId = store.getState().seleccionId;
+    expect(objetoId).toBeTruthy();
+
+    store.getState().crearAtributoEnObjetoSeleccionado({ nombre: "Valor [u]", tipoSlot: "float" });
+
+    const modelo = store.getState().modelo;
+    const atributoId = store.getState().seleccionId;
+    expect(atributoId).not.toBe(objetoId);
+    const atributo = atributoId ? modelo.entidades[atributoId] : undefined;
+    expect(atributo?.tipo).toBe("objeto");
+    expect(atributo?.esAtributo).toBe(true);
+    expect(atributo?.valorSlot?.tipo).toBe("float");
+
+    const exhibicion = Object.values(modelo.enlaces).find(
+      (e) => e.tipo === "exhibicion"
+        && e.origenId.kind === "entidad" && e.origenId.id === objetoId
+        && e.destinoId.kind === "entidad" && e.destinoId.id === atributoId,
+    );
+    expect(exhibicion).toBeDefined();
+  });
+
+  test("no crea atributo si la selección es un proceso", () => {
+    store.getState().crearProcesoDemo();
+    const antes = Object.keys(store.getState().modelo.entidades).length;
+
+    store.getState().crearAtributoEnObjetoSeleccionado();
+
+    expect(Object.keys(store.getState().modelo.entidades).length).toBe(antes);
+    expect(store.getState().mensaje).toContain("objeto");
+  });
+});
+
 function undoStackLength(): number {
   const estado = store.getState();
   const pestana = estado.pestanasAbiertas.find((p) => p.id === estado.pestanaActivaId);

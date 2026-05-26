@@ -37,6 +37,7 @@ export function useZustandEntityInspectorSemanticsPort(): EntityInspectorSemanti
   const asignarValorAtributo = useOpmStore((s) => s.asignarValorAtributoSeleccionado);
   const cambiarTipoValorAtributo = useOpmStore((s) => s.cambiarTipoValorAtributoSeleccionado);
   const configurarSimulacionAtributo = useOpmStore((s) => s.configurarSimulacionAtributoSeleccionado);
+  const crearAtributo = useOpmStore((s) => s.crearAtributoEnObjetoSeleccionado);
 
   return {
     renombrar,
@@ -48,6 +49,7 @@ export function useZustandEntityInspectorSemanticsPort(): EntityInspectorSemanti
     asignarValorAtributo,
     cambiarTipoValorAtributo,
     configurarSimulacionAtributo,
+    crearAtributo,
   };
 }
 

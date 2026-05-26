@@ -8,6 +8,7 @@ import { useOpmStore } from "../store";
 import { identificadorInspector } from "./inspector/identificador";
 import { FichaSeccion } from "./inspector/FichaSeccion";
 import { inspectorStyles as style } from "./inspectorStyles";
+import { tokens } from "./tokens";
 import { coberturaApariencias } from "./inspector/aparicionesUtils";
 import { SeccionAlias } from "./inspector/SeccionAlias";
 import { SeccionApariciones } from "./inspector/SeccionApariciones";
@@ -84,6 +85,7 @@ export function InspectorEntidad({ entidad }: Props) {
     asignarValorAtributo,
     cambiarTipoValorAtributo,
     configurarSimulacionAtributo,
+    crearAtributo,
     fijarLayoutEstadosEntidad,
     seleccionados,
     aplicarEstiloASeleccion,
@@ -184,6 +186,7 @@ export function InspectorEntidad({ entidad }: Props) {
             onTipoAtributo={cambiarTipoValorAtributo}
             onValorAtributo={asignarValorAtributo}
             onSimulacionAtributo={configurarSimulacionAtributo}
+            onCrearAtributo={() => crearAtributo({ nombre: "Valor [u]", tipoSlot: "float" })}
             onAbrirUrls={abrirModalUrls}
             onAbrirImagen={abrirModalImagen}
             onQuitarImagen={quitarImagenEntidad}
@@ -284,6 +287,7 @@ interface PanelSemanticaProps {
   onTipoAtributo: (tipo: import("../modelo/tipos").TipoValorSlot) => void;
   onValorAtributo: (valor: import("../modelo/tipos").ValorConcreto) => void;
   onSimulacionAtributo: (parametros: import("../modelo/tipos").ParametrosSimulacionEntidad | undefined) => void;
+  onCrearAtributo: () => void;
   onAbrirUrls: (entidadId: Id) => void;
   onAbrirImagen: (entidadId: Id) => void;
   onQuitarImagen: (entidadId: Id) => void;
@@ -341,6 +345,26 @@ function PanelSemantica(props: PanelSemanticaProps) {
           onValor={props.onValorAtributo}
           onSimulacion={props.onSimulacionAtributo}
         />
+      ) : null}
+      {/*
+        BUG-...738f53: affordance directa para crear un atributo desde el
+        inspector (antes solo existía en la toolbar superior). Un atributo OPM
+        = objeto exhibido por la cosa portadora (relación de exhibición); la
+        acción reusa `crearAtributoEnObjetoSeleccionado` (dominio
+        `crearAtributoEnObjeto`). Se ofrece solo cuando la cosa seleccionada
+        es un objeto que no es ya un atributo de otra cosa, para no anidar
+        slots de valor sobre slots.
+      */}
+      {entidad.tipo === "objeto" && !atributoDerivado ? (
+        <button
+          type="button"
+          style={atributoCtaStyles.button}
+          onClick={props.onCrearAtributo}
+          data-testid="inspector-crear-atributo"
+          title="Crear un atributo (objeto exhibido) en este objeto"
+        >
+          + Atributo
+        </button>
       ) : null}
       <SeccionEsenciaAfiliacion
         esencia={entidad.esencia}
@@ -486,6 +510,25 @@ function PanelEstilo(props: PanelEstiloProps) {
 
 const advancedStyles = {
   section: { display: "grid", gap: "8px", marginBottom: "14px" },
+} satisfies Record<string, preact.JSX.CSSProperties>;
+
+const atributoCtaStyles = {
+  button: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    width: "fit-content",
+    height: "30px",
+    padding: "0 12px",
+    marginBottom: "14px",
+    border: `1px solid ${tokens.colors.bordeControl}`,
+    borderRadius: tokens.radii.sm,
+    background: tokens.colors.fondoChrome,
+    color: tokens.colors.textoPrimario,
+    fontSize: "12px",
+    fontWeight: 700,
+    cursor: "pointer",
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 /**
