@@ -933,3 +933,238 @@ Rationale: `reglas §4.9` (IV1, IV2), `§5.4` (R-INV-1..2B) y `opm-opl-es §8.2`
 - GAP-FIXTURE-EVENTO / GAP-FIXTURE-INVOCACION: no hay fixtures roundtrip dedicados de evento ni de invocación/autoinvocación en `fixtures-roundtrip.ts`; la simetría se apoya solo en los generadores y en `parser.condicionesExcepciones.test.ts` (que cubre condición y excepción, no evento ni invocación).
 - GAP-EXC-UNIDADES-LITERAL: la operacionalización de `unidades-tiempo` por `formatoTiempo` diverge del literal de la plantilla `opm-opl-es §8.1` (ver §5.3).
 - GAP-INVOCACION-TILDE: grafía `despues de` sin tilde en la emisión de invocación (ver §5.4).
+
+## §6 Enlaces estructurales
+
+Esta sección canoniza la realización OPL-ES de los enlaces **estructurales**: las cuatro relaciones fundamentales —**agregación-participación** (RF1), **exhibición-caracterización** (RF2/RF2b), **generalización-especialización** (RF3/RF3b) con su variante **XOR** (RX1/RX2) y herencia múltiple (RH1), **clasificación-instanciación** (RF4/RF4b)— y los **etiquetados** unidireccional, bidireccional y recíproco (SE1–SE5), con sus variantes de estado especificado (SSE1–SSE7).
+
+Un enlace estructural es **invariante en el tiempo** y conecta cosa↔cosa (no proceso↔objeto, salvo exhibición-caracterización). Su firma fija el extremo origen (vértice del triángulo: todo, exhibidor, general, clase) y el extremo destino (base: partes, rasgos, especializaciones, instancias). La generación NO DEBE emitir un verbo estructural fuera de {`consta de`, `exhibe`, `es un`/`son`, `puede ser`/`puede ser uno de`, `es una instancia de`/`son instancias de`, etiqueta-de-usuario, `se relaciona con`/`se relacionan`}; el parseo NO DEBE reconocer otro verbo como estructural.
+
+Rationale: `reglas §4.10` (SE1–RH1, SSE1–SSE7), `§5.5` (R-STRF-1..4, R-HER-1..8), `§5.6` (R-STRE-1) y `opm-opl-es §9`.
+
+### §6.0 Reglas duras transversales — perseverancia, firma y herencia
+
+- **R-EST-PERS-1**: salvo exhibición-caracterización, refinable y refinadores DEBEN tener la misma **perseverancia**: agregación de objetos agrega objetos, agregación de procesos agrega procesos; igual para generalización y clasificación. NO DEBE agregarse un *proceso* a un **objeto** ni viceversa.
+
+  Rationale: `reglas §5.5` (R-STRF-1) y `glosario 3.50`.
+
+- **R-EST-PERS-2**: la exhibición-caracterización es la ÚNICA estructural que PUEDE mezclar perseverancias. Las únicas mezclas válidas son **objeto** exhibe atributo, **objeto** exhibe operación, *proceso* exhibe atributo y *proceso* exhibe operación.
+
+  Rationale: `reglas §5.5` (R-STRF-2, R-STRF-2A).
+
+- **R-EST-DIR-1**: la oración estructural fundamental DEBE emitirse en la dirección del vértice → base, pero la superficie OPL-ES invierte el sujeto según la relación: agregación y exhibición ponen al vértice como sujeto (`**Todo** consta de …`, `**Exhibidor** exhibe …`); generalización y clasificación ponen la **base** como sujeto (`**Especialización** es un **General**`, `**Instancia** es una instancia de **Clase**`). El generador DEBE respetar esta inversión por relación.
+
+  Rationale: `estructural.ts·oracionEnlaceEstructural` (casos `agregacion`/`exhibicion` emiten `origen verbo destino`; `generalizacion`/`clasificacion` emiten `destino … origen`) y `opm-opl-es §9`.
+
+- **R-EST-HER-1**: una especialización hereda del general todas las partes, rasgos, enlaces estructurales etiquetados y enlaces procedimentales; los enlaces heredados NO DEBEN dibujarse como enlaces explícitos duplicados ni emitir OPL propia, salvo que la herramienta los marque como vista derivada no nuclear.
+
+  Rationale: `reglas §5.5` (R-HER-1, R-HER-8).
+
+### §6.1 Agregación-participación (RF1)
+
+**ID**: RF1 (básico), RF1i (colección incompleta).
+
+**Plantilla(s)**:
+- RF1: `**Todo** consta de **Parte1**, **Parte2** y **Parte3**.`
+- Plural por multiplicidad del todo: `**Todos** constan de **Parte1** y **Parte2**.`
+- RF1i (colección incompleta): `**Todo** consta de **Parte1**, **Parte2** y al menos otra parte.`
+
+**Emisión**: un enlace de tipo `agregacion` entre el **todo** (origen, vértice) y sus **partes** (destino, base) emite `consta de`, con el **todo** como sujeto. El verbo concuerda con el sujeto (`consta`/`constan`). Las partes enumeradas se separan por coma y la última se une con `y`/`e` según fonética.
+
+**Supresión**: si el **todo** o alguna **parte** tienen nombre placeholder, NO se emite (R-ENT-2). Un enlace heredado por especialización NO emite (R-EST-HER-1).
+
+**Tokenización**: span del **todo** con `ref`; `consta de`/`constan de` token-verbo del enum §1.1; cada **parte** es span con `ref` a su cosa; comas y `y`/`e` son conectores fijos (§1.3).
+
+**Orden**: **todo** → `consta de` → lista de **partes**. Invertir sujeto/predicado cambia qué cosa es el todo.
+
+**Composabilidad**: la agregación es **destino-enumerado**: múltiples enlaces `agregacion` desde el mismo **todo** se realizan en una sola oración con la lista de partes coordinada (no como RF1 individuales por parte). NO DEBE coordinarse con exhibición, generalización ni clasificación en una sola oración (verbos distintos). **Zona prohibida de composición en refinamiento/despliegue**: la enumeración estructural de partes NO DEBE agruparse cuando el enlace participa de un contexto de descomposición/despliegue (`se descompone en` / `se despliega en`), porque colisiona con la realización del refinamiento y borraría tokens/refs por enlace; en ese contexto la agregación se emite por enlace, sin coordinar (remite §9).
+
+**Reverse**: la oración `**Todo** consta de **A**, **B** y **C**` se parsea, vía `parsear.ts·astEstructural` (regex `^(.+?) consta de (.+)$`, `tipo: "agregacion"`), como enlaces `agregacion` con el **todo** como origen y cada **parte** como destino.
+
+**Edición**: agregar una parte a una agregación existente DEBERÍA extender la lista de la oración en su lugar; quitar la última parte de un todo PUEDE colapsar la oración.
+
+**Roundtrip**: el **todo**, el orden de las **partes** y la marca de colección incompleta DEBEN preservarse. GAP-FIXTURE-AGREGACION: no hay fixture dedicado de agregación en `fixtures-roundtrip.ts`; la simetría se apoya en `oracionEnlaceEstructural` y la regex de `astEstructural`.
+
+**Traza a código**: generación `app/src/opl/generadores/estructural.ts·oracionEnlaceEstructural` (caso `agregacion`, línea ~63); parseo `app/src/opl/parser/parsear.ts·astEstructural` (regex `consta de`, línea ~959).
+
+Rationale: `reglas §4.10` (RF1), `§5.5` (R-STRF-1, R-STRF-4) y `opm-opl-es §9.1`.
+
+### §6.2 Exhibición-caracterización (RF2, RF2b)
+
+**ID**: RF2 (atributos homogéneos), RF2b (mixto atributo + operación), RF2o (rasgo opcional).
+
+**Plantilla(s)**:
+- RF2: `**Exhibidor** exhibe **Atributo1** y **Atributo2**.`
+- RF2b (heterogénea): `**Exhibidor** exhibe **Atributo1** así como *Operación1*.`
+- RF2o (rasgo opcional): `**Exhibidor** tiene un **Rasgo** opcional.`
+- Plural por multiplicidad del exhibidor: `**Exhibidores** exhiben **Rasgo**.`
+
+**Emisión**: un enlace de tipo `exhibicion` entre el **exhibidor** (origen) y sus **rasgos** (destino) emite `exhibe`, con el exhibidor como sujeto. Cuando el destino porta multiplicidad opcional (`?`/`0..1`), el generador emite la variante `tiene un **Rasgo** opcional` en vez de `exhibe`. Los rasgos heterogéneos (atributos + operaciones) se unen con `así como` (§1.3).
+
+**Supresión**: placeholder NO emite. La exhibición es la única estructural que ADMITE mezcla de perseverancias (R-EST-PERS-2); las cuatro mezclas válidas son objeto/proceso × atributo/operación.
+
+**Tokenización**: span del **exhibidor** con `ref`; `exhibe`/`exhiben` token-verbo; cada rasgo es span con `ref`; `así como` conector de adición heterogénea; `tiene un … opcional` realiza la opcionalidad como rasgo (la palabra `opcional` es portadora de multiplicidad `?`).
+
+**Orden**: **exhibidor** → `exhibe` → lista de rasgos [con `así como` ante el bloque heterogéneo].
+
+**Composabilidad**: **destino-enumerado** (varios rasgos del mismo exhibidor en una oración). NO DEBE coordinarse con agregación/generalización/clasificación. **Zona prohibida de composición en refinamiento/despliegue**: igual que §6.1, la enumeración de rasgos NO DEBE agruparse cuando el enlace participa de un contexto de descomposición/despliegue; se emite por enlace (remite §9).
+
+**Reverse**: la oración `**Exhibidor** exhibe **A** así como *Op*` se parsea, vía `parsear.ts·astEstructural` (regex `^(.+?) exhibe(?:n)? (.+)$`, `tipo: "exhibicion"`); la variante `tiene un … opcional` se parsea con multiplicidad `0..1`.
+
+**Roundtrip**: exhibidor, rasgos, orden, opcionalidad y la frontera atributo/operación DEBEN preservarse. GAP-FIXTURE-EXHIBICION: no hay fixture dedicado de exhibición en `fixtures-roundtrip.ts`.
+
+**Edge cases**: el caso atributo-con-valor (`**Atributo** de **Objeto** es valor`) NO es exhibición sino entidad-atributo (§2.5); el generador lo separa (`estructural.ts` comenta esa frontera).
+
+**Traza a código**: generación `app/src/opl/generadores/estructural.ts·oracionEnlaceEstructural` (caso `exhibicion`, líneas ~64–68; variante opcional ~65–67); parseo `app/src/opl/parser/parsear.ts·astEstructural` (regex `exhibe`, línea ~961; opcional ~963–966).
+
+Rationale: `reglas §4.10` (RF2, RF2b), `§5.5` (R-STRF-2, R-STRF-2A, R-OPL-RF-2) y `opm-opl-es §9.2`.
+
+### §6.3 Generalización-especialización (RF3, RF3b; XOR RX1, RX2; herencia múltiple RH1)
+
+**ID**: RF3 (plural), RF3b (singular), RX1/RX2 (XOR), RH1 (herencia múltiple).
+
+**Plantilla(s)**:
+- RF3 (plural): `**Especialización1** y **Especialización2** son **General**.`
+- RF3b (singular): `**Especialización** es un **General**.`
+- RX1 (XOR, dos generales): `**Especial** puede ser **General1** o **General2**.`
+- RX2 (XOR, lista): `**Especial** puede ser uno de **General1**, **General2** o **General3**.`
+- RH1 (herencia múltiple): `**Especial** es un **General1** y un **General2**.`
+- Colección incompleta: `**Especialización1**, **Especialización2** y al menos otra especialización son **General**.`
+
+**Emisión**: un enlace de tipo `generalizacion` pone la **base** (especializaciones) como sujeto y el **general** como predicado nominal: con destino plural emite `son **General**`, con destino singular `es un **General**`. La variante **XOR** (generales mutuamente excluyentes) emite `puede ser` / `puede ser uno de` (remite a §1.2 R-VERB-EST-2). La herencia múltiple coordina los generales con artículos `un/una`.
+
+**Supresión**: placeholder NO emite. Los enlaces heredados por la especialización NO se duplican (R-EST-HER-1). Misma perseverancia obligatoria (R-EST-PERS-1).
+
+**Reglas duras**:
+- **R-EST-GEN-1**: la especialización XOR DEBE emitirse con `puede ser` o `puede ser uno de`, NUNCA con `son`/`es un` (que son inclusivos) ni con `puede estar` (que es enumeración de estados, §1.2 R-VERB-EST-1).
+
+  Correcto: `**Vehículo** puede ser **Auto** o **Camión**.`
+  Incorrecto: `**Vehículo** puede estar **Auto** o **Camión**.`
+  Rationale: `reglas §4.10` (RX1, RX2, R-OPL-RF-5) y §1.2 R-VERB-EST-2.
+
+- **R-EST-GEN-2**: la herencia múltiple DEBE emitirse con la lista de generales unida por artículos `un/una` (`es un **G1** y un **G2**`), preservando la trazabilidad de cada general.
+
+  Rationale: `reglas §4.10` (RH1, R-OPL-RF-6), `§5.5` (R-HER-2).
+
+**Tokenización**: cada **especialización** es span con `ref`; `son`/`es un`/`puede ser`/`puede ser uno de` token-verbo del enum §1.1; el **general** es span con `ref`; `o`/`u` conector XOR; `y`/`e` conector copulativo de especializaciones; `un`/`una` artículos de herencia múltiple.
+
+**Orden**: lista de **especializaciones** → (`son` | `es un`) → **general**. XOR: **especial** → (`puede ser` | `puede ser uno de`) → lista de **generales**.
+
+**Composabilidad**: **destino-enumerado** en el sujeto (varias especializaciones del mismo general en una oración) y en el predicado para herencia múltiple/XOR (varios generales). NO DEBE coordinarse con agregación/exhibición/clasificación. **Zona prohibida de composición en refinamiento/despliegue**: la agrupación de especializaciones NO DEBE aplicarse cuando el enlace participa de descomposición/despliegue, porque colisiona con la realización del refinamiento (despliegue de generalización-especialización, §6 de refinamientos) y borraría tokens/refs por enlace; se emite por enlace (remite §9).
+
+**Reverse**: `parsear.ts·astEstructural` reconoce `^(.+?) es un (.+)$` y `^(.+?) son (.+)$` como `generalizacion` con el general como origen y la(s) especialización(es) como destino. GAP-XOR-PARSER: la superficie `puede ser` / `puede ser uno de` NO tiene regex de parseo estructural dedicada hoy (el verbo es canónico —enum §1.1, marcado GAP-XOR en generación—, pero ni generador ni parser estructural lo realizan); la enumeración XOR de generalización queda como GAP de cobertura bidireccional.
+
+**Roundtrip**: especializaciones, general, exclusividad (XOR vs inclusivo) y herencia múltiple DEBEN preservarse. GAP-FIXTURE-GENERALIZACION: no hay fixture dedicado.
+
+**Traza a código**: generación `app/src/opl/generadores/estructural.ts·oracionEnlaceEstructural` (caso `generalizacion`, línea ~70; `son`/`es un`); parseo `app/src/opl/parser/parsear.ts·astEstructural` (regex `es un` ~967, `son` ~969). XOR `puede ser`: GAP-XOR (sin generador, §1.1) y GAP-XOR-PARSER (sin parser estructural).
+
+Rationale: `reglas §4.10` (RF3, RF3b, RX1, RX2, RH1), `§5.5` (R-STRF-1, R-HER-1..8) y `opm-opl-es §9.3`.
+
+### §6.4 Clasificación-instanciación (RF4, RF4b)
+
+**ID**: RF4 (singular), RF4b (plural).
+
+**Plantilla(s)**:
+- RF4 (singular): `**Instancia** es una instancia de **Clase**.`
+- RF4b (plural): `**Instancia1** y **Instancia2** son instancias de **Clase**.`
+
+**Emisión**: un enlace de tipo `clasificacion` pone la **instancia** (base) como sujeto y la **clase** (vértice) como complemento: con destino singular emite `es una instancia de`, con plural `son instancias de`. La clasificación NO distingue colección completa/incompleta (R-STRF-3): NO DEBE emitirse marca de colección incompleta para instanciación.
+
+**Supresión**: placeholder NO emite. Una **instancia visual** (misma cosa con apariencia local en otro OPD) NO emite oración de instanciación (§2.6 R-ENT-INS-1); solo la **instancia lógica** (cosas distintas relacionadas por clasificación) la emite. Misma perseverancia obligatoria (R-EST-PERS-1).
+
+**Tokenización**: span de cada **instancia** con `ref`; `es una instancia de`/`son instancias de` token-verbo del enum §1.1; span de la **clase** con `ref`.
+
+**Orden**: lista de **instancias** → (`es una instancia de` | `son instancias de`) → **clase**.
+
+**Composabilidad**: **destino-enumerado** en el sujeto (varias instancias de la misma clase en una oración, vía `son instancias de`). NO DEBE coordinarse con las otras tres estructurales. **Zona prohibida de composición en refinamiento/despliegue**: la agrupación de instancias NO DEBE aplicarse en contexto de despliegue de clasificación-instanciación; se emite por enlace (remite §9).
+
+**Reverse**: `parsear.ts·astEstructural` reconoce `^(.+?) es una instancia de (.+)$` (~971) y `^(.+?) son instancias de (.+)$` (~973) como `clasificacion` con la clase como origen y la(s) instancia(s) como destino.
+
+**Roundtrip**: instancias, clase y plural/singular DEBEN preservarse. El formato nominal `Instancia : Clase` (§2.6) es designación de nombre, no oración de instanciación; GAP-NOMBRE-INSTANCIA (declarado en §2.6) sigue vigente. GAP-FIXTURE-CLASIFICACION: no hay fixture dedicado.
+
+**Traza a código**: generación `app/src/opl/generadores/estructural.ts·oracionEnlaceEstructural` (caso `clasificacion`, línea ~72); parseo `app/src/opl/parser/parsear.ts·astEstructural` (regex `es una instancia de` ~971, `son instancias de` ~973).
+
+Rationale: `reglas §4.10` (RF4, RF4b, R-OPL-RF-4), `§5.5` (R-STRF-3, R-HER-6) y `opm-opl-es §9`.
+
+### §6.5 Etiquetados — unidireccional, bidireccional y recíproco (SE1–SE5)
+
+**ID**: SE1 (unidireccional con etiqueta de usuario), SE2 (unidireccional nulo), SE3 (bidireccional, dos etiquetas), SE4 (recíproco con etiqueta), SE5 (recíproco nulo).
+
+**Plantilla(s)**:
+- SE1 (unidireccional, etiqueta de usuario): `**Origen** etiqueta **Destino**.`
+- SE2 (unidireccional, etiqueta nula): `**Origen** se relaciona con **Destino**.`
+- SE3 (bidireccional, etiquetas distintas): `**Origen** etiqueta-f **Destino**.` seguido de `**Destino** etiqueta-b **Origen**.` (dos oraciones)
+- SE4 (recíproco con etiqueta): `**Origen** y **Destino** son etiqueta.`
+- SE5 (recíproco nulo): `**Origen** y **Destino** se relacionan.`
+
+**Naturaleza**: el enlace etiquetado es estructural **no fundamental**: expresa una relación arbitraria definida por el modelador entre dos cosas de la misma perseverancia (objeto↔objeto o proceso↔proceso, R-OPL-SE-2). La **etiqueta** de usuario es frase breve en minúscula que funciona como verbo o predicado nominal (R-OPL-SE-1).
+
+**Emisión**: un enlace `etiquetado` emite `**Origen** <tag> **Destino**` con la etiqueta de usuario como verbo; si no hay etiqueta, emite la etiqueta nula `se relaciona con` (SE2). Un enlace `etiquetadoBidireccional` recíproco sin etiqueta diferencial emite `**Origen** y **Destino** se relacionan` (SE5). La bidireccional con dos etiquetas distintas (SE3) emite dos oraciones, una por dirección (f-tag / b-tag); un bidireccional cuyas dos etiquetas coinciden DEBE tratarse como recíproco con esa etiqueta (R-STRE-1).
+
+**Supresión**: placeholder NO emite. Una etiqueta nula definida por usuario solo es válida si conserva trazabilidad como etiqueta de usuario (R-OPL-SE-5).
+
+**Reglas duras**:
+- **R-EST-TAG-1**: un enlace etiquetado DEBE conectar cosas de la misma perseverancia (objeto↔objeto o proceso↔proceso); las mezclas objeto↔proceso pertenecen a exhibición-caracterización cuando son canónicas, no a etiquetado.
+
+  Rationale: `reglas §4.10` (R-OPL-SE-2).
+
+- **R-EST-TAG-2**: `se relaciona con` (unidireccional) y `se relacionan` (recíproco) son las etiquetas nulas canónicas; el generador DEBE emitirlas cuando el enlace no porta etiqueta de usuario.
+
+  Rationale: `reglas §4.10` (R-OPL-SE-5) y `procedural.ts` (líneas ~240, ~244).
+
+**Tokenización**: span del **origen** con `ref`; la etiqueta de usuario o `se relaciona con`/`se relacionan` es token-verbo (la de usuario lleva `hint` de etiqueta editable); span del **destino** con `ref`; `y`/`e` conector en las formas recíprocas.
+
+**Orden**: SE1/SE2: **origen** → tag → **destino**. SE4/SE5: **origen** → `y` → **destino** → (`son` tag | `se relacionan`).
+
+**Composabilidad**: el etiquetado PUEDE bifurcarse hacia listas de objetos o procesos con `ordenados por` o `en esa secuencia` cuando el orden sea parte de la superficie (R-OPL-SE-4) y PUEDE incluir restricciones de participación en origen y destino (R-OPL-SE-3). NO DEBE coordinarse con las estructurales fundamentales. **Zona prohibida de composición en refinamiento/despliegue**: el etiquetado NO DEBE coordinarse cuando participa de un contexto de descomposición/despliegue (remite §9).
+
+**Reverse**: la oración con etiqueta de usuario se parsea como enlace `etiquetado` reconstruyendo el tag; `se relaciona con` como etiquetado nulo unidireccional; `se relacionan` como recíproco nulo. GAP-TAG-PARSER: la ruta de parseo estructural de `astEstructural` (`parsear.ts` ~959–973) cubre las cuatro fundamentales pero NO incluye regex dedicada para `se relaciona con` / `se relacionan` ni para etiquetas de usuario arbitrarias; el reverse de etiquetados es GAP de cobertura bidireccional (la generación existe en `procedural.ts`, el parseo estructural no).
+
+**Roundtrip**: origen, destino, dirección (uni/bi/recíproco), etiqueta de usuario y el orden (cuando aplica) DEBEN preservarse. GAP-FIXTURE-TAGGED: no hay fixture dedicado de etiquetado en `fixtures-roundtrip.ts`.
+
+**Edge cases**: SE3 con etiquetas idénticas colapsa a SE4 (R-STRE-1); la restricción V-30 (`reglas §4.10`) prohíbe las variantes bidireccional y recíproco para el caso de estado solo en destino (ver §6.6).
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEstructuralEtiquetada` (etiquetado/bidireccional, líneas ~152, ~168, ~239–244: `tag`/`se relaciona con`/`se relacionan`); parseo: GAP-TAG-PARSER (sin regex estructural dedicada en `parsear.ts·astEstructural`).
+
+Rationale: `reglas §4.10` (SE1–SE5, R-OPL-SE-1..5), `§5.6` (R-STRE-1) y `opm-opl-es §9.1`.
+
+### §6.6 Estructurales con estado especificado (SSE1–SSE7)
+
+**ID**: SSE1–SSE7 (`reglas §4.10`, `opm-opl-es §9.4`).
+
+**Plantilla(s)**:
+- SSE1 (estado en origen, unidireccional): `**Origen** en \`estado\` etiqueta **Destino**.`
+- SSE2 (estado en destino, unidireccional): `**Origen** etiqueta **Destino** en \`estado\`.`
+- SSE3 (estado en ambos, unidireccional): `**Origen** en \`sa\` etiqueta **Destino** en \`sb\`.`
+- SSE4 (estado en origen, bidireccional f-tag): `**Origen** en \`sa\` etiqueta-f **Destino**.`
+- SSE5 (estado en origen, bidireccional b-tag): `**Destino** etiqueta-b **Origen** en \`sa\`.`
+- SSE6 (estado en ambos, recíproco): `**Origen** en \`sa\` y **Destino** en \`sb\` son etiqueta.`
+- SSE7 (estado en origen, recíproco): `**Destino** y **Origen** en \`sa\` son etiqueta.`
+
+**Emisión**: un enlace estructural etiquetado cuyo extremo está fijado a un `estado` específico (no a la cosa entera) añade el sufijo `en \`estado\`` sobre la plantilla SE correspondiente, en el extremo que porta el estado.
+
+**Reglas duras**:
+- **R-EST-SSE-1** (`V-30`): las variantes **bidireccional** y **recíproco** NO existen para el caso de estado solo en destino; solo aplican SSE1–SSE7 según la tabla. NO DEBE emitirse una forma bidireccional/recíproca con estado únicamente en el destino.
+
+  Rationale: `reglas §4.10` (restricción V-30).
+
+**Tokenización**: spans de **origen**/**destino** con `ref`; cada `estado` entre backticks con `ref` al estado; la etiqueta como token-verbo; `en` precede al estado (posición de estado es post-cosa, no pre, §convenciones OPL-ES).
+
+**Orden**: el sufijo `en \`estado\`` sigue inmediatamente a la cosa cuyo estado especifica.
+
+**Composabilidad**: igual que §6.5; la **zona prohibida de composición en refinamiento/despliegue** aplica idéntica (remite §9).
+
+**Reverse**: GAP-SSE-PARSER: las variantes con estado especificado heredan el GAP-TAG-PARSER de §6.5; no hay regex de parseo estructural dedicada hoy.
+
+**Roundtrip**: origen, destino, etiqueta, dirección y cada `estado` especificado DEBEN preservarse. GAP-FIXTURE-SSE: sin fixture dedicado.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEstructuralEtiquetada` (composición del sufijo de estado en el extremo etiquetado); parseo GAP-SSE-PARSER.
+
+Rationale: `reglas §4.10` (SSE1–SSE7, V-30) y `opm-opl-es §9.4`.
+
+### §6.7 GAPs de cobertura — enlaces estructurales
+
+- GAP-XOR / GAP-XOR-PARSER: la especialización XOR (`puede ser` / `puede ser uno de`, RX1/RX2) tiene verbo canónico (enum §1.1) pero ningún generador de `app/src/opl/generadores/` la emite ni regex de `parsear.ts·astEstructural` la reconoce; cobertura bidireccional ausente.
+- GAP-TAG-PARSER / GAP-SSE-PARSER: la generación de etiquetados (SE1–SE5) y de estructurales con estado (SSE1–SSE7) existe en `procedural.ts·oracionEstructuralEtiquetada`, pero `parsear.ts·astEstructural` no incluye regex dedicada para `se relaciona con` / `se relacionan` ni para etiquetas de usuario; el reverse de etiquetados es GAP.
+- GAP-NOMBRE-INSTANCIA: el formato nominal `Instancia : Clase` (§2.6) no tiene generador dedicado que lo componga automáticamente; vigente desde §2.6.
+- GAP-FIXTURE-ESTRUCTURALES: no hay fixtures roundtrip dedicados de agregación, exhibición, generalización, clasificación ni etiquetado en `fixtures-roundtrip.ts`; la simetría de las cuatro fundamentales se apoya en `oracionEnlaceEstructural` y las regex de `astEstructural`; la de etiquetados solo en el generador (sin reverse, por GAP-TAG-PARSER).
