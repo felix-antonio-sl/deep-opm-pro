@@ -184,7 +184,7 @@ export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string
     return oracionNegada(modelo, enlace, origen, destino, origenOpl, destinoOpl, origenPlural, destinoPlural);
   }
   if (esAutoInvocacion(enlace)) {
-    return `${origenOpl} se invoca a sí mismo${enlace.demora ? ` despues de ${enlace.demora}` : ""}.`;
+    return `${origenOpl} se invoca a sí mismo${enlace.demora ? ` después de ${enlace.demora}` : ""}.`;
   }
 
   switch (enlace.tipo) {
@@ -202,7 +202,7 @@ export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string
     case "efecto":
       return oracionEfecto(modelo, enlace, origen, destino);
     case "invocacion":
-      return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}${enlace.demora ? ` despues de ${enlace.demora}` : ""}.`;
+      return `${origenOpl} ${verbo("invoca", "invocan", origenPlural)} ${destinoOpl}${enlace.demora ? ` después de ${enlace.demora}` : ""}.`;
     case "excepcionSobretiempo":
       return `${destinoOpl} ocurre si duración de ${origenOpl} excede ${formatoTiempoMaximo(enlace)}.`;
     case "excepcionSubtiempo":
@@ -269,18 +269,15 @@ function oracionEvento(
       if (estado) return `${origenOpl} inicia ${destinoOpl}, que consume ${origenOpl}${sufijo}.`;
       return `${origenOpl} inicia ${destinoOpl}, que consume ${origenOpl}${sufijo}.`;
     }
-    case "resultado": {
-      const estado = estadoDeExtremo(modelo, enlace.destinoId);
-      if (estado) return `${destinoOpl} inicia ${origenOpl}, que genera ${destinoOpl}${sufijo}.`;
-      return `${destinoOpl} inicia ${origenOpl}, que genera ${destinoOpl}${sufijo}.`;
-    }
+    case "resultado":
+      return oracionEnlaceSinModificador(modelo, enlace);
     case "efecto": {
       const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
       const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
       return proceso && objeto ? `${objeto} inicia ${proceso}, que afecta ${objeto}${sufijo}.` : null;
     }
     case "invocacion":
-      return `${origenOpl} inicia e invoca ${destinoOpl}${sufijo}.`;
+      return oracionEnlaceSinModificador(modelo, enlace);
     default:
       return oracionEnlaceSinModificador(modelo, enlace);
   }
@@ -310,18 +307,15 @@ function oracionCondicion(
       if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${nombreCanonicoEstado(estado)}\`, en cuyo caso ${destinoOpl} consume ${origenOpl}, de lo contrario ${destinoOpl} se omite.`;
       return `${destinoOpl} ocurre si ${origenOpl} existe, en cuyo caso ${origenOpl} se consume, de lo contrario ${destinoOpl} se omite.`;
     }
-    case "resultado": {
-      const estado = estadoDeExtremo(modelo, enlace.destinoId);
-      if (estado) return `${origenOpl} ocurre si ${destinoOpl} puede generarse, en cuyo caso ${origenOpl} genera ${destinoOpl}, de lo contrario ${origenOpl} se omite.`;
-      return `${origenOpl} ocurre si ${destinoOpl} puede generarse, en cuyo caso ${origenOpl} genera ${destinoOpl}, de lo contrario ${origenOpl} se omite.`;
-    }
+    case "resultado":
+      return oracionEnlaceSinModificador(modelo, enlace);
     case "efecto": {
       const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
       const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
       return proceso && objeto ? `${proceso} ocurre si ${objeto} existe, en cuyo caso ${proceso} afecta ${objeto}, de lo contrario ${proceso} se omite.` : null;
     }
     case "invocacion":
-      return `${origenOpl} invoca ${destinoOpl} si ${origenOpl} ocurre.`;
+      return oracionEnlaceSinModificador(modelo, enlace);
     default:
       return oracionEnlaceSinModificador(modelo, enlace);
   }
@@ -419,9 +413,9 @@ function verboReflexivoDesdeProceso(nombre: string): string | null {
 }
 
 function sufijoProbabilidad(enlace: Enlace): string {
-  return enlace.probabilidad === undefined ? "" : ` (probabilidad: ${formatearProbabilidad(enlace.probabilidad)})`;
+  return enlace.probabilidad === undefined ? "" : ` \`Pr=${formatearProbabilidad(enlace.probabilidad)}\``;
 }
 
 function formatearProbabilidad(value: number): string {
-  return `${Math.round(value * 100)}%`;
+  return Number(value.toFixed(6)).toString();
 }

@@ -54,6 +54,19 @@ describe("parser OPL reverse base", () => {
     });
   });
 
+  test("parsea invocacion con demora con o sin tilde", () => {
+    const conTilde = parsearParrafoOpl("*Preparar* invoca *Servir* después de 1s.");
+    const legacy = parsearParrafoOpl("*Preparar* invoca *Servir* despues de 1s.");
+    const autoConTilde = parsearParrafoOpl("*Validar* se invoca a sí mismo después de 1s.");
+
+    expect(conTilde.diagnosticos).toEqual([]);
+    expect(legacy.diagnosticos).toEqual([]);
+    expect(autoConTilde.diagnosticos).toEqual([]);
+    expect(conTilde.ast[0]).toMatchObject({ kind: "procedimental", tipoEnlace: "invocacion", origen: "Preparar", destino: "Servir" });
+    expect(legacy.ast[0]).toMatchObject({ kind: "procedimental", tipoEnlace: "invocacion", origen: "Preparar", destino: "Servir" });
+    expect(autoConTilde.ast[0]).toMatchObject({ kind: "procedimental", tipoEnlace: "invocacion", origen: "Validar", destino: "Validar" });
+  });
+
   test("parsea exhibicion opcional singular y agrupada", () => {
     const result = parsearParrafoOpl([
       "**Auto** tiene un **Techo Descapotable** opcional.",
@@ -121,8 +134,8 @@ describe("parser OPL — eventos (SSOT §6: ET/EH/ETS/EHS)", () => {
     });
   });
 
-  test("ET-consumo (ET1): 'X inicia Y, que consume X' con probabilidad descartable", () => {
-    const result = parsearParrafoOpl("**Producto** inicia *Procesar*, que consume **Producto** (probabilidad: 70%).");
+  test("ET-consumo (ET1): 'X inicia Y, que consume X' con probabilidad Pr descartable", () => {
+    const result = parsearParrafoOpl("**Producto** inicia *Procesar*, que consume **Producto** `Pr=0.7`.");
     expect(result.diagnosticos).toEqual([]);
     expect(result.ast[0]).toMatchObject({
       kind: "evento",
@@ -145,7 +158,7 @@ describe("parser OPL — eventos (SSOT §6: ET/EH/ETS/EHS)", () => {
   });
 
   test("ETS2 (transicion): 'X en `s1` inicia Y, que cambia X de `s1` a `s2`'", () => {
-    const result = parsearParrafoOpl("**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` (probabilidad: 70%).");
+    const result = parsearParrafoOpl("**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` `Pr=0.7`.");
     expect(result.diagnosticos).toEqual([]);
     expect(result.ast[0]).toMatchObject({
       kind: "evento",

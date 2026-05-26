@@ -32,7 +32,7 @@ describe("procedural OPL", () => {
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* cambia **Pedido** a `bueno`.");
   });
 
-  test("evento con probabilidad emite porcentaje canonico", () => {
+  test("evento con probabilidad emite Pr canónico", () => {
     const modelo = modeloBase();
     const enlace: Enlace = {
       id: "l1",
@@ -44,7 +44,10 @@ describe("procedural OPL", () => {
       subtipoModificador: "E",
       probabilidad: 0.7,
     };
-    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("**Producto** inicia *Procesar*, que consume **Producto** (probabilidad: 70%).");
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("**Producto** inicia *Procesar*, que consume **Producto** `Pr=0.7`.");
+    expect(texto).not.toContain("(probabilidad:");
   });
 
   test("evento sobre consumo de estado conserva verbo consumo y califica estado", () => {
@@ -56,20 +59,66 @@ describe("procedural OPL", () => {
       probabilidad: 0.7,
     } satisfies Enlace;
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "**Pedido** en `pendiente` inicia *Procesar*, que consume **Pedido** en `pendiente` (probabilidad: 70%).",
+      "**Pedido** en `pendiente` inicia *Procesar*, que consume **Pedido** en `pendiente` `Pr=0.7`.",
     );
   });
 
-  test("evento sobre resultado a estado conserva verbo resultado y califica estado", () => {
+  test("evento sobre resultado a estado degrada a resultado base", () => {
     const modelo = modeloConEstados();
     const enlace = {
       ...modelo.enlaces.r1!,
       modificador: "evento",
       subtipoModificador: "E",
     } satisfies Enlace;
-    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "**Pedido** en `aprobado` inicia *Procesar*, que genera **Pedido** en `aprobado`.",
-    );
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("*Procesar* genera **Pedido** en `aprobado`.");
+    expect(texto).not.toContain("inicia");
+  });
+
+  test("evento sobre invocacion degrada a invocacion base", () => {
+    const modelo = modeloBase();
+    const enlace: Enlace = {
+      id: "i1",
+      tipo: "invocacion",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "operador" },
+      etiqueta: "",
+      modificador: "evento",
+      subtipoModificador: "E",
+    };
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("*Procesar* invoca **Operador**.");
+    expect(texto).not.toContain("inicia e invoca");
+  });
+
+  test("invocacion con demora usa después con tilde", () => {
+    const modelo = modeloBase();
+    const enlace: Enlace = {
+      id: "i1",
+      tipo: "invocacion",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "operador" },
+      etiqueta: "",
+      demora: "1s",
+    };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* invoca **Operador** después de 1s.");
+  });
+
+  test("auto-invocacion con demora usa después con tilde", () => {
+    const modelo = modeloBase();
+    const enlace: Enlace = {
+      id: "i1",
+      tipo: "invocacion",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "proceso" },
+      etiqueta: "",
+      demora: "1s",
+    };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* se invoca a sí mismo después de 1s.");
   });
 
   test("par consumo resultado sobre estados emite transicion TS3 unica", () => {
@@ -89,7 +138,7 @@ describe("procedural OPL", () => {
     };
     const transiciones = transicionesEstado(modelo, modelo.opds.opd!);
     expect(transiciones.lineaPorEnlaceConsumo.get("c1")).toBe(
-      "**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` (probabilidad: 70%).",
+      "**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` `Pr=0.7`.",
     );
     expect(transiciones.enlacesCubiertos.has("r1")).toBe(true);
   });
@@ -120,16 +169,34 @@ describe("procedural OPL", () => {
     );
   });
 
-  test("condicion sobre resultado a estado conserva verbo resultado y califica estado", () => {
+  test("condicion sobre resultado a estado degrada a resultado base", () => {
     const modelo = modeloConEstados();
     const enlace = {
       ...modelo.enlaces.r1!,
       modificador: "condicion",
       subtipoModificador: "C",
     } satisfies Enlace;
-    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "*Procesar* ocurre si **Pedido** en `aprobado` puede generarse, en cuyo caso *Procesar* genera **Pedido** en `aprobado`, de lo contrario *Procesar* se omite.",
-    );
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("*Procesar* genera **Pedido** en `aprobado`.");
+    expect(texto).not.toContain("puede generarse");
+  });
+
+  test("condicion sobre invocacion degrada a invocacion base", () => {
+    const modelo = modeloBase();
+    const enlace: Enlace = {
+      id: "i1",
+      tipo: "invocacion",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "operador" },
+      etiqueta: "",
+      modificador: "condicion",
+      subtipoModificador: "C",
+    };
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("*Procesar* invoca **Operador**.");
+    expect(texto).not.toContain("si *Procesar* ocurre");
   });
 
   test("condicion sobre agente en estado no repite el estado como existencia", () => {

@@ -66,7 +66,7 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
     const clave = `${otro.extremo.kind}:${otro.extremo.id}`;
     if (otrosKeys.has(clave)) continue;
     otrosKeys.add(clave);
-    otrosNombres.push(nombreOplExtremo(modelo, otro.extremo, otro.multiplicidad));
+    otrosNombres.push(nombreRamaAbanico(modelo, abanico, enlace, otro));
   }
   if (otrosNombres.length === 1) {
     return oracionEnlaceConRuta(modelo, primer);
@@ -134,13 +134,8 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
  * - agente + destino convergente: proceso es manejado por {cuant} {agentes}, condicionalmente.
  * - efecto: idéntico patrón al consumo, con "afecta" en vez de "consume".
  *
- * [Ronda 26 / L3] Cierre de TODOs previos:
- *   - resultado + condicion + abanico: forma simetrica al individual de procedural.ts:304-307
- *     usando "<P> ocurre si <cuant> <lista> puede generarse, en cuyo caso <P> genera
- *     <cuant> <lista>, de lo contrario <P> se omite." (solo puertoEsOrigen=true).
- *   - invocacion + condicion + abanico: forma simetrica al individual de procedural.ts:314-315
- *     usando "<P> invoca <cuant> <lista> si <P> ocurre." (solo puertoEsOrigen=true).
- * Los espejos (puertoEsOrigen=false) carecen de canon paralelo y siguen devolviendo null.
+ * Resultado e invocacion condicionales no tienen forma canonica: degradan al
+ * abanico base porque `condicion` solo aplica a INPUT.
  */
 function oracionAbanicoCondicional(
   tipo: Enlace["tipo"],
@@ -167,23 +162,8 @@ function oracionAbanicoCondicional(
         ? `${puertoOpl} ocurre si ${cuantificador} ${lista} existe, en cuyo caso ${puertoOpl} afecta ${lista}, de lo contrario ${puertoOpl} se omite.`
         : `${cuantificador} ${lista} ocurre si ${puertoOpl} existe, en cuyo caso afecta ${puertoOpl}, de lo contrario se omite.`;
     case "resultado":
-      // [Ronda 26 / L3] TODO cerrado siguiendo `procedural.ts:304-307` individual:
-      //   `*Proceso* ocurre si <salida> puede generarse, en cuyo caso *Proceso* genera <salida>, de lo contrario *Proceso* se omite.`
-      // Para abanico inyectamos el cuantificador en ambas posiciones (simetrico al individual).
-      // Solo aplica al caso `puertoEsOrigen=true` (proceso -> N salidas). El espejo divergente
-      // (N procesos -> un objeto) no tiene canon paralelo; cae al default no condicional.
-      return puertoEsOrigen
-        ? `${puertoOpl} ocurre si ${cuantificador} ${lista} puede generarse, en cuyo caso ${puertoOpl} genera ${cuantificador} ${lista}, de lo contrario ${puertoOpl} se omite.`
-        : null;
     case "invocacion":
-      // [Ronda 26 / L3] TODO cerrado siguiendo `procedural.ts:314-315` individual:
-      //   `*Origen* invoca *Destino* si *Origen* ocurre.` (sin "de lo contrario").
-      // Para abanico aplicamos el cuantificador a la lista y mantenemos el sufijo "si ... ocurre".
-      // Solo aplica a `puertoEsOrigen=true` (un proceso -> N procesos invocados); el espejo
-      // (N procesos invocando uno) no tiene canon paralelo y cae al default.
-      return puertoEsOrigen
-        ? `${puertoOpl} invoca ${cuantificador} ${lista} si ${puertoOpl} ocurre.`
-        : null;
+      return null;
     default:
       return null;
   }
@@ -254,4 +234,15 @@ function extremoOpuestoAbanico(
     };
   }
   return null;
+}
+
+function nombreRamaAbanico(
+  modelo: Modelo,
+  abanico: Abanico,
+  enlace: Enlace,
+  otro: { extremo: Enlace["origenId"]; multiplicidad?: string },
+): string {
+  const nombre = nombreOplExtremo(modelo, otro.extremo, otro.multiplicidad);
+  if (abanico.operador !== "XOR" || enlace.probabilidad === undefined) return nombre;
+  return `${nombre} \`Pr=${Number(enlace.probabilidad.toFixed(6)).toString()}\``;
 }

@@ -35,7 +35,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(texto).not.toContain("Hospitalización_domiciliaria");
   });
 
-  test("R-NOM-PROC-1 advierte por diagnostico pero no suprime OPL de procesos placeholder", () => {
+  test("R-NOM-PROC-1 suprime OPL de procesos placeholder", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Proceso"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Resultado_clínico"));
@@ -43,8 +43,8 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
 
     const texto = generarOpl(modelo).join("\n");
 
-    expect(texto).toContain("*Proceso* es informacional.");
-    expect(texto).toContain("*Proceso* genera **Resultado Clínico**.");
+    expect(texto).not.toContain("*Proceso*");
+    expect(texto).not.toContain("genera **Resultado Clínico**.");
     expect(texto).toContain("**Resultado Clínico** es informacional.");
   });
 
@@ -231,7 +231,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(generarOpl(modelo)).toContain("*Manejar Omision* ocurre si duración de *Preparar* es menor que 5 s.");
   });
 
-  test("modificador evento emite inicia y probabilidad", () => {
+  test("modificador evento emite inicia y probabilidad Pr", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Orden"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Aprobar"));
@@ -241,7 +241,10 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(aplicarModificador(modelo, enlaceId, "evento"));
     modelo = must(definirProbabilidad(modelo, enlaceId, 0.7));
 
-    expect(generarOpl(modelo)).toContain("**Orden** inicia *Aprobar*, que consume **Orden** (probabilidad: 70%).");
+    const opl = generarOpl(modelo);
+
+    expect(opl).toContain("**Orden** inicia *Aprobar*, que consume **Orden** `Pr=0.7`.");
+    expect(opl.join("\n")).not.toContain("(probabilidad:");
   });
 
   test("modificador NO emite negacion", () => {
@@ -277,7 +280,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     if (!enlaceId) throw new Error("La prueba esperaba enlace");
     modelo = must(definirDemora(modelo, enlaceId, "1s"));
 
-    expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir* despues de 1s.");
+    expect(generarOpl(modelo)).toContain("*Preparar* invoca *Servir* después de 1s.");
   });
 
   test("auto-invocacion emite IV2 con demora default", () => {
@@ -285,7 +288,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Validar"));
     modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, entidad(modelo, "Validar")));
 
-    expect(generarOpl(modelo)).toContain("*Validar* se invoca a sí mismo despues de 1s.");
+    expect(generarOpl(modelo)).toContain("*Validar* se invoca a sí mismo después de 1s.");
   });
 
   test("multiplicidad de agente pluraliza sujeto y verbo", () => {

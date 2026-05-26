@@ -13,6 +13,14 @@ describe("abanico OPL", () => {
     expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* consume exactamente uno de **Entrada A** y **Entrada B**.");
   });
 
+  test("XOR probabilistico emite Pr por rama", () => {
+    const modelo = modeloResultados("XOR", "probabilidad");
+    const texto = oracionAbanico(modelo, modelo.abanicos!.ab1!);
+
+    expect(texto).toBe("*Procesar* genera exactamente uno de **Salida A** `Pr=0.6` y **Salida B** `Pr=0.4`.");
+    expect(texto).not.toContain("(probabilidad:");
+  });
+
   test("XOR de resultados a estados del mismo objeto no repite el objeto", () => {
     const modelo = modeloResultadosAEstados("XOR");
     expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* cambia **Pedido** a exactamente uno de `aprobado` y `rechazado`.");
@@ -54,13 +62,12 @@ describe("abanico OPL", () => {
     );
   });
 
-  test("OR de resultados condicionales emite forma 'ocurre si ... puede generarse'", () => {
-    // resultado + condicion + abanico: forma canónica resuelta en ronda26/L3 (B2).
-    // Patrón paralelo a la cláusula condicional de consumo, adaptado a la semántica de generación.
+  test("OR de resultados condicionales degrada a abanico base", () => {
     const modelo = modeloResultados("O", "condicion");
-    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe(
-      "*Procesar* ocurre si al menos uno de **Salida A** y **Salida B** puede generarse, en cuyo caso *Procesar* genera al menos uno de **Salida A** y **Salida B**, de lo contrario *Procesar* se omite.",
-    );
+    const texto = oracionAbanico(modelo, modelo.abanicos!.ab1!);
+
+    expect(texto).toBe("*Procesar* genera al menos uno de **Salida A** y **Salida B**.");
+    expect(texto).not.toContain("puede generarse");
   });
 
   // BUG-20260519T200211Z-62ee85: en el modelo del bug, dos resultados del mismo
@@ -124,8 +131,9 @@ function modeloInstrumentos(operador: "O" | "XOR", config: "condicion" | "mixto"
   };
 }
 
-function modeloResultados(operador: "O" | "XOR", modificador?: "condicion"): Modelo {
-  const mod = modificador ? { modificador } : {};
+function modeloResultados(operador: "O" | "XOR", modificador?: "condicion" | "probabilidad"): Modelo {
+  const mod1 = modificador === "condicion" ? { modificador } : modificador === "probabilidad" ? { modificador: "evento" as const, probabilidad: 0.6 } : {};
+  const mod2 = modificador === "condicion" ? { modificador } : modificador === "probabilidad" ? { modificador: "evento" as const, probabilidad: 0.4 } : {};
   return {
     id: "m1",
     nombre: "M",
@@ -138,8 +146,8 @@ function modeloResultados(operador: "O" | "XOR", modificador?: "condicion"): Mod
     },
     estados: {},
     enlaces: {
-      l1: { id: "l1", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "a" }, etiqueta: "", ...mod },
-      l2: { id: "l2", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "b" }, etiqueta: "", ...mod },
+      l1: { id: "l1", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "a" }, etiqueta: "", ...mod1 },
+      l2: { id: "l2", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "b" }, etiqueta: "", ...mod2 },
     },
     abanicos: { ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "proceso", lado: "origen", portId: "port-fan-proceso-origen" }, puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
     nextSeq: 1,

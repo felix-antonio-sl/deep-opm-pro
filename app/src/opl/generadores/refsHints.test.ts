@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
+import { esNombreProcesoPlaceholder } from "../../modelo/nombresCanonicos";
 import type { Entidad } from "../../modelo/tipos";
-import { hintEntidad, listarOpl, refEntidad } from "./refsHints";
+import { entidadOplEsEmitible, hintEntidad, listarOpl, refEntidad } from "./refsHints";
 
 describe("refsHints OPL", () => {
   test("refEntidad crea referencia canonica de entidad", () => {
@@ -14,5 +15,24 @@ describe("refsHints OPL", () => {
 
   test("listarOpl usa y final", () => {
     expect(listarOpl(["A", "B", "C"])).toBe("A, B y C");
+  });
+
+  test("suprime procesos placeholder de OPL", () => {
+    const procesoPlaceholder: Entidad = {
+      id: "p1",
+      tipo: "proceso",
+      nombre: "Proceso",
+      esencia: "informacional",
+      afiliacion: "sistemica",
+    };
+    const procesoCanonico: Entidad = {
+      ...procesoPlaceholder,
+      id: "p2",
+      nombre: "Procesar Pedido",
+    };
+
+    expect(esNombreProcesoPlaceholder(procesoPlaceholder.nombre)).toBe(true);
+    expect(entidadOplEsEmitible(procesoPlaceholder)).toBe(false);
+    expect(entidadOplEsEmitible(procesoCanonico)).toBe(true);
   });
 });

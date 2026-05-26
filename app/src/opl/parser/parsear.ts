@@ -95,6 +95,7 @@ export function normalizarLineas(texto: string): LineaOplNormalizada[] {
 export function normalizarNombreOpl(raw: string): string {
   return limpiarMarkdown(raw)
     .replace(/^\s*(?:\d+(?:\.\.(?:\d+|N))?|\*)\s+/i, "")
+    .replace(/\s+Pr\s*=\s*\d+(?:[.,]\d+)?\s*$/iu, "")
     .replace(/\s+\[[^\]\r\n]+\]/g, "")
     .replace(/\s+\{[^}\r\n]+\}/g, "")
     .replace(/\s+/g, " ")
@@ -670,8 +671,8 @@ function astCondicion(
 
 // SSOT §6: eventos. "X [en `s`] inicia Y[, que <verbo> Z]" emitido por el
 // generador cuando enlace tiene `modificador === "evento"`. Sufijo opcional
-// "(probabilidad: NN%)" se descarta para el match; la planificacion lo ignora.
-const PROBABILIDAD_SUFIX_RE = /\s*\(probabilidad:\s*[^)]+\)\s*$/iu;
+// de probabilidad se descarta para el match; la planificacion lo ignora.
+const PROBABILIDAD_SUFIX_RE = /\s*(?:\(probabilidad:\s*[^)]+\)|Pr\s*=\s*\d+(?:[.,]\d+)?)\s*$/iu;
 
 function parsearEvento(texto: string, linea: LineaOplNormalizada) {
   const textoSinProb = texto.replace(PROBABILIDAD_SUFIX_RE, "").trim();
@@ -835,7 +836,7 @@ function astEvento(
 }
 
 function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
-  let match = /^(.+?) se invoca a s[ií] mismo(?: despues de .+)?$/iu.exec(texto);
+  let match = /^(.+?) se invoca a s[ií] mismo(?: despu[eé]s de .+)?$/iu.exec(texto);
   if (match) {
     const proceso = normalizarNombreOpl(match[1] ?? "");
     return astProcedimental(linea, { tipoEnlace: "invocacion", proceso, origen: proceso, destino: proceso });
@@ -919,7 +920,7 @@ function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
       ...(proceso.multiplicidad ? { multiplicidadDestino: proceso.multiplicidad } : {}),
     });
   }
-  match = /^(.+?) invocan? (.+?)(?: despues de .+)?$/iu.exec(texto);
+  match = /^(.+?) invocan? (.+?)(?: despu[eé]s de .+)?$/iu.exec(texto);
   if (match) {
     const origen = extraerMultiplicidadDeNombre(match[1] ?? "");
     const destino = extraerMultiplicidadDeNombre(match[2] ?? "");

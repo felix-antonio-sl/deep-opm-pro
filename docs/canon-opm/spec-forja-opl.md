@@ -131,7 +131,7 @@ Rationale: `reglas §4.3` (R-OPL-VERB-1) y `opm-opl-es §2` cierran la superfici
 | varía de … a | el atributo recorre un rango de valores | rango de atributo | GAP-VARIA |
 | es de tipo | la cosa declara su tipo | declaración de tipo | GAP-TIPO |
 | puede estar | el objeto enumera sus estados posibles | enumeración de estados (D5, D6) | `duracionMetadata.ts·oracionEstados` (`puede estar`) |
-| puede ser | la especialización XOR enumera generales mutuamente excluyentes | especialización XOR (RX1, RX2) | GAP-XOR |
+| puede ser | la especialización XOR enumera generales mutuamente excluyentes | especialización XOR (RX1, RX2) | GAP-XOR-FEATURE |
 | se descompone | el proceso se descompone (in-zooming) en subprocesos | descomposición síncrona | `refinamiento.ts·oracionRefinamiento` (`se descompone en`) |
 | se despliega | la cosa se despliega (unfolding) en refinados | despliegue asíncrono | `refinamiento.ts·oracionRefinamiento` (`se despliega en`) |
 | se refina | refinamiento explícito entre OPDs por descomposición | refinamiento inter-OPD | GAP-REFINA |
@@ -141,7 +141,7 @@ Rationale: `reglas §4.3` (R-OPL-VERB-1) y `opm-opl-es §2` cierran la superfici
 Notas de traza:
 - `cambia` aparece además como `hint` de los enlaces consumo/resultado en `refsHints.ts·hintEnlace` y `refsHints.ts` (mapa `consumo`/`resultado`), coherente con la emisión de `oracionCambioEstado`.
 - `existe`, `se omite` y `se consume` solo se emiten dentro de plantillas condicionales/excepción, no como oración autónoma.
-- GAP-VARIA, GAP-TIPO, GAP-XOR, GAP-REFINA, GAP-PLIEGA, GAP-RECOMPONE: el verbo es canónico (`reglas §4.3` / `opm-opl-es §2`) pero ningún generador de `app/src/opl/generadores/` lo emite hoy.
+- GAP-VARIA, GAP-TIPO, GAP-XOR-FEATURE, GAP-REFINA, GAP-PLIEGA, GAP-RECOMPONE: el verbo es canónico (`reglas §4.3` / `opm-opl-es §2`) pero ningún generador de `app/src/opl/generadores/` lo emite hoy.
 
 Rationale: `reglas §4.3` (tabla de verbos) y `opm-opl-es §2`.
 
@@ -513,7 +513,7 @@ Rationale: `reglas §4.5` (T2, TS2), `§5.2` (R-RES-1) y `opm-opl-es §4.1`, `§
 
 **Reverse**: parser vía `ABANICO_VERBO_RE_LIST` (`/^(.+?)\s+afecta\s+(.+)$/`, `tipo: "efecto"`, `puertoEsOrigen: true`): *proceso* origen, **objeto** destino.
 
-**Roundtrip**: cubierto por el roundtrip de efecto; el verbo y los nombres DEBEN preservarse. GAP-FIXTURE-EFECTO: no hay fixture dedicado de efecto básico en `fixtures-roundtrip.ts` (los fixtures cubren consumo, resultado e instrumento); la simetría de `afecta` se apoya solo en la tabla de parseo y el generador.
+**Roundtrip**: cubierto por `fixtures-roundtrip.ts` (`enlace-efecto-simple`); el verbo y los nombres DEBEN preservarse.
 
 **Edge cases**: un *proceso* persistente (mantiene estado sin cambio neto) reusa la realización TS3 con `estado-entrada = estado-salida` (R-OPL-PERSIST-2), no T3.
 
@@ -543,7 +543,7 @@ Rationale: `reglas §4.5` (T3), `§5.2` (R-EFE-1, R-EFE-2, R-EFE-2A, R-EFE-2B) y
 
 **Reverse**: el parseo de cambio de estado completo (`/^(.+?)\s+cambia\s+(.+?)\s+de\s+\`?([^\`]+?)\`?\s+a\s+\`?([^\`]+?)\`?$/`, contexto condición/CS2 en `parsear.ts`) construye un enlace `efecto` con ambos estados especificados. El abanico de cambio se parsea por `ABANICO_CAMBIA_RE`.
 
-**Roundtrip**: el *proceso*, el **objeto** y ambos estados DEBEN preservarse, igual que su orden. GAP-FIXTURE-TS3: no hay fixture dedicado de cambio de estado en `fixtures-roundtrip.ts`.
+**Roundtrip**: el *proceso*, el **objeto** y ambos estados DEBEN preservarse, igual que su orden. `fixtures-roundtrip.ts` incluye `cambio-estado-ts3` como fixture de emisión canónica no estricta, porque el aplicador aún no reconstruye estados desde modelo vacío en esa ruta.
 
 **Edge cases**: si el modelo se descompone, TS3 se escinde en TS4+TS5 (§3.5, §3.6) y deja de emitirse como una sola oración.
 
@@ -573,7 +573,7 @@ Rationale: `reglas §4.5` (TS3), `§5.2` (R-EFE-2..2B), `§6.3` (R-TR-ASIM-3) y 
 
 **Reverse**: el parser produce el régimen **(b)** efecto parcial standalone; el régimen (a) NUNCA proviene de parseo (R-ESCIND-0). GAP-PARSE-TS4: no se verificó una regex dedicada de `cambia … de \`estado\`` sin `a` en `parsear.ts` (la rama de cambio detectada exige `… a …`); el parseo de TS4 standalone podría depender de la ruta de abanico o no estar conectado — marcar como GAP de cobertura de parseo.
 
-**Roundtrip**: GAP-FIXTURE-TS4: sin fixture dedicado.
+**Roundtrip**: `fixtures-roundtrip.ts` incluye `cambio-estado-ts4-solo-entrada` como fixture de emisión canónica no estricta. GAP-PARSE-TS4 y GAP-PROCEDENCIA-ESCIND siguen vigentes para reverse/procedencia.
 
 **Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEfecto` (rama `estadoOrigen && destino.tipo === "proceso"`, línea ~374: `cambia … de \`…\``). Escisión: `app/src/modelo/` (operación de descomposición; el metadato de procedencia escindido no se rastreó en este pase) — GAP-PROCEDENCIA-ESCIND.
 
@@ -599,7 +599,7 @@ Rationale: `reglas §4.5` (TS4), `§8.4` (R-ESCIND-0..3, R-ESC-1), `§5.2` (R-EF
 
 **Reverse**: GAP-PARSE-TS5: análogo a TS4, no se verificó regex dedicada de `cambia … a \`estado\`` sin `de` fuera de la ruta de abanico (`ABANICO_CAMBIA_RE` cubre `… a exactamente uno de …`, no el caso de un único estado de salida). Marcar como GAP de cobertura de parseo.
 
-**Roundtrip**: GAP-FIXTURE-TS5: sin fixture dedicado.
+**Roundtrip**: `fixtures-roundtrip.ts` incluye `cambio-estado-ts5-solo-salida` como fixture de emisión canónica no estricta. GAP-PARSE-TS5 sigue vigente para reverse completo.
 
 **Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEfecto` (rama `estadoDestino && origen.tipo === "proceso"`, línea ~377: `cambia … a \`…\``). Escisión: ver GAP-PROCEDENCIA-ESCIND (§3.5).
 
@@ -705,7 +705,7 @@ Rationale: `reglas §4.6` (H2, HS2), `§5.3` (R-AG-2, R-AG-3, R-AG-4) y `opm-opl
 
 ### §4.3 GAPs de cobertura — habilitadores
 
-- GAP-FIXTURE-HS: los fixtures `enlace-agente-simple` y `enlace-instrumento-simple` cubren H1 y H2 básicos; NO hay fixture dedicado de **estado especificado** (HS1/HS2) ni de las variantes evento/condición/negada de habilitador en `fixtures-roundtrip.ts`. La emisión y el parseo HS1/HS2 se apoyan en `nombreOplExtremo` (sufijo `en \`estado\``) y en `ABANICO_VERBO_RE_LIST`, pero la simetría no está sellada por un fixture roundtrip propio.
+- GAP-FIXTURE-HS: cerrado para emisión HS1/HS2 por `fixtures-roundtrip.ts` (`habilitador-con-estado-hs`). Las variantes evento/condición/negada de habilitador siguen cubiertas por tests de parser/generador, no por fixture estricta.
 - GAP-ABANICO-AGENTE-PARSE: el parser reconoce el abanico `exactamente uno de … maneja …` (`parsear.ts` línea ~382), pero el abanico de instrumento (`exactamente uno de … requiere …`) y el fan inverso requieren verificación de cobertura no completada en este pase.
 
 ## §5 Modificadores de control
@@ -776,12 +776,12 @@ Los modificadores `e` y `c` son **anotaciones INPUT-only**: solo aplican al lado
 
 **Reverse**: la oración de evento se parsea como enlace base con `modificador: "e"`. La forma de consumo con estado (ETS1) y cambio (ETS2) se reconstruye con el estado especificado del extremo Pre(P).
 
-**Roundtrip**: el disparador, el verbo base, el *proceso* y los estados (ETS\*/EHS\*) DEBEN preservarse. GAP-FIXTURE-EVENTO: no hay fixture dedicado de evento en `fixtures-roundtrip.ts`; la simetría se apoya en `oracionEvento` y en la ruta de parseo de eventos.
+**Roundtrip**: el disparador, el verbo base, el *proceso* y los estados (ETS\*/EHS\*) DEBEN preservarse. GAP-FIXTURE-EVENTO: cerrado para evento canónico básico por `fixtures-roundtrip.ts` (`evento-consumo-canonico`); los eventos con estado se mantienen cubiertos por tests dedicados de parser/generador.
 
 **Edge cases**:
 - El evento de efecto (ET2) sobre un **objeto** con estados es admisible porque el afectado existe en Pre(P) (R-MOD-INPUT-1).
-- GAP-EVENTO-RESULTADO: el generador (`procedural.ts·oracionEvento`, caso `resultado`, líneas ~272–276) emite `**X** inicia *Proceso*, que genera **X**`. Esta superficie VIOLA R-MOD-INPUT-2 / R-MOD-1: el resultado NO DEBE portar evento. La emisión actual es OPL no canónica; la spec manda y el generador DEBE corregirse para no producir evento de resultado.
-- GAP-EVENTO-INVOCACION: el mismo generador (caso `invocacion`, línea ~283) emite `**X** inicia e invoca *Y*`. Esta superficie VIOLA R-MOD-CAT-1: la invocación es familia autónoma proceso→proceso y NO admite modificador de control. Emisión no canónica; corregir hacia nodo de decisión booleano.
+- GAP-EVENTO-RESULTADO: cerrado. `procedural.ts·oracionEvento` degrada un evento sobre resultado a la oración base de resultado; `**X** inicia *Proceso*, que genera **X**` ya no se exporta.
+- GAP-EVENTO-INVOCACION: cerrado. `procedural.ts·oracionEvento` degrada un evento sobre invocación a la invocación base; `**X** inicia e invoca *Y*` ya no se exporta.
 
 **Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEvento` (líneas ~253–287); cambio de estado con evento `oracionTransicionEstados` (línea ~141); despacho del modificador `oracionEnlace` (línea ~178). Parseo `app/src/opl/parser/parsear.ts` (ruta de evento) y `parser.condicionesExcepciones.test.ts`.
 
@@ -831,8 +831,8 @@ Rationale: `reglas §4.7` (ET1–EHS2), `§6.3` (R-MOD-2, asimetría), `§6.5` (
 
 **Edge cases**:
 - La condición de efecto (CT2, CS2–CS4) es admisible porque el afectado existe en Pre(P) (R-MOD-INPUT-1).
-- GAP-CONDICION-RESULTADO: el generador (`procedural.ts·oracionCondicion`, caso `resultado`, líneas ~313–316) emite `*Proceso* ocurre si **X** puede generarse, en cuyo caso *Proceso* genera **X**, de lo contrario *Proceso* se omite`. Esta superficie VIOLA R-MOD-INPUT-2 / R-MOD-3: el resultado pertenece a Post(P) y NO admite condición; `puede generarse` no es vocabulario canónico del enum §1.1. Emisión no canónica; la spec manda y el generador DEBE dejar de producir condición de resultado.
-- GAP-CONDICION-INVOCACION: el mismo generador (caso `invocacion`, línea ~324) emite `*X* invoca *Y* si *X* ocurre`. VIOLA R-MOD-CAT-1: la invocación no admite modificador de control. Emisión no canónica.
+- GAP-CONDICION-RESULTADO: cerrado. `procedural.ts·oracionCondicion` degrada una condición sobre resultado a la oración base de resultado; la superficie `puede generarse` ya no se exporta.
+- GAP-CONDICION-INVOCACION: cerrado. `procedural.ts·oracionCondicion` degrada una condición sobre invocación a la invocación base; `*X* invoca *Y* si *X* ocurre` ya no se exporta.
 
 **Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionCondicion` (líneas ~289–328); cambio de estado condicional `oracionTransicionEstados` (línea ~143); despacho del modificador `oracionEnlace` (línea ~181). Parseo `app/src/opl/parser/parsear.ts` (`CONDICION_AGENTE_RE` línea ~544, `CONDICION_OCURRE_RE`, regex de cambio en contexto CS2 línea ~621); tests `parser.condicionesExcepciones.test.ts`.
 
@@ -876,6 +876,8 @@ Rationale: `reglas §4.8` (CT1–CS6, R-OPL-COND-ALT-1..2, R-OPL-SUP-1), `§6.1`
 
 > GAP-EXC-UNIDADES-LITERAL: la plantilla canónica `opm-opl-es §8.1` usa el literal `unidades-tiempo`; el generador compone valor+unidad concretos vía `formatoTiempo` (p. ej. `excede 5 minutos`) y, sin cota declarada, emite el respaldo `su duración máxima`. La superficie operativa diverge del literal de la plantilla sin contradecir el hecho; se declara como operacionalización local de `unidades-tiempo`.
 
+**Nota de realización**: `unidades-tiempo` es metavariable de plantilla. En OPFORJA la superficie exportada DEBE realizarla como `<valor> <unidad>` cuando ambos existen (`formatoTiempo`); si falta la cota, la frase de respaldo preserva el tipo de excepción sin inventar duración.
+
 Rationale: `reglas §4.9` (EX1, EX2), `§5.7` (R-EXC-1..5) y `opm-opl-es §8.1`.
 
 ### §5.4 Invocación (IV1) y autoinvocación (IV2)
@@ -904,7 +906,7 @@ Rationale: `reglas §4.9` (EX1, EX2), `§5.7` (R-EXC-1..5) y `opm-opl-es §8.1`.
 
   Rationale: `reglas §6.4` (modificador sobre invocación = AP-10) y R-MOD-CAT-1.
 
-**Emisión**: un enlace `invocacion` entre dos *procesos* distintos emite `*Invocador* invoca *Invocado*` (`invocan` en plural por multiplicidad). Si el enlace porta `demora`, se añade `despues de <demora>`. Cuando origen y destino son el mismo *proceso* (`esAutoInvocacion`), se emite `se invoca a sí mismo`.
+**Emisión**: un enlace `invocacion` entre dos *procesos* distintos emite `*Invocador* invoca *Invocado*` (`invocan` en plural por multiplicidad). Si el enlace porta `demora`, se añade `después de <demora>`. Cuando origen y destino son el mismo *proceso* (`esAutoInvocacion`), se emite `se invoca a sí mismo`.
 
 **Supresión**: placeholder NO emite (R-ENT-2). La invocación implícita de descomposición NO emite (R-IV-2). Un fan de invocación bajo XOR/OR se realiza con la oración de abanico (`invoca exactamente uno de …` / `exactamente uno de … invoca …`), no como IV1 individual.
 
@@ -916,11 +918,11 @@ Rationale: `reglas §4.9` (EX1, EX2), `§5.7` (R-EXC-1..5) y `opm-opl-es §8.1`.
 
 **Reverse**: la oración `*X* invoca *Y*` se parsea como enlace de invocación proceso→proceso; `*X* se invoca a sí mismo` como autoinvocación. El abanico de invocación se parsea por la ruta de abanico.
 
-**Roundtrip**: el *invocador*, el *invocado* y la demora DEBEN preservarse. GAP-FIXTURE-INVOCACION: no hay fixture dedicado de invocación/autoinvocación en `fixtures-roundtrip.ts`; la simetría se apoya en `oracionEnlaceSinModificador` y `esAutoInvocacion`.
+**Roundtrip**: el *invocador*, el *invocado* y la demora DEBEN preservarse. GAP-FIXTURE-INVOCACION: cerrado para emisión por `fixtures-roundtrip.ts` (`invocacion-con-demora-tilde`, `autoinvocacion-con-demora-tilde`) y para degradación de evento sobre invocación (`evento-invocacion-degrada-base`). La demora sigue no estricta en reverse porque el parser la acepta como superficie pero no la rehidrata en el patch.
 
 **Edge cases**:
-- La grafía `despues de` (sin tilde) es la emisión actual del generador; la forma canónica es `después de`. GAP-INVOCACION-TILDE: corregir la grafía en `procedural.ts` (líneas ~187, ~205) para concordar con la ortografía es-CL de la spec.
-- Las formas `inicia e invoca` (evento) e `invoca … si … ocurre` (condición) emitidas por el generador VIOLAN R-IV-3 / R-MOD-CAT-1 (ver GAP-EVENTO-INVOCACION en §5.1 y GAP-CONDICION-INVOCACION en §5.2); son OPL no canónica.
+- La grafía canónica es `después de`. GAP-INVOCACION-TILDE: cerrado en `procedural.ts`; el parser acepta además `despues de` como compatibilidad legacy.
+- Las formas `inicia e invoca` (evento) e `invoca … si … ocurre` (condición) VIOLAN R-IV-3 / R-MOD-CAT-1; el generador ya no las exporta y degrada a invocación base (ver GAP-EVENTO-INVOCACION en §5.1 y GAP-CONDICION-INVOCACION en §5.2).
 
 **Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEnlaceSinModificador` (autoinvocación línea ~187, invocación línea ~204–205); detección `app/src/modelo/autoinvocacion.ts·esAutoInvocacion`.
 
@@ -928,11 +930,11 @@ Rationale: `reglas §4.9` (IV1, IV2), `§5.4` (R-INV-1..2B) y `opm-opl-es §8.2`
 
 ### §5.5 GAPs de cobertura — modificadores de control
 
-- GAP-EVENTO-RESULTADO / GAP-CONDICION-RESULTADO: el generador emite evento y condición de **resultado** (`oracionEvento`/`oracionCondicion`, caso `resultado`), superficie que VIOLA R-MOD-INPUT-2 (Post(P) no admite `e`/`c`). La spec manda: el generador DEBE dejar de producir estas oraciones.
-- GAP-EVENTO-INVOCACION / GAP-CONDICION-INVOCACION: el generador emite `inicia e invoca` e `invoca … si … ocurre`, superficie que VIOLA R-MOD-CAT-1 / R-IV-3 (la invocación no admite modificador de control).
-- GAP-FIXTURE-EVENTO / GAP-FIXTURE-INVOCACION: no hay fixtures roundtrip dedicados de evento ni de invocación/autoinvocación en `fixtures-roundtrip.ts`; la simetría se apoya solo en los generadores y en `parser.condicionesExcepciones.test.ts` (que cubre condición y excepción, no evento ni invocación).
-- GAP-EXC-UNIDADES-LITERAL: la operacionalización de `unidades-tiempo` por `formatoTiempo` diverge del literal de la plantilla `opm-opl-es §8.1` (ver §5.3).
-- GAP-INVOCACION-TILDE: grafía `despues de` sin tilde en la emisión de invocación (ver §5.4).
+- GAP-EVENTO-RESULTADO / GAP-CONDICION-RESULTADO: cerrados; el generador degrada evento/condición de **resultado** a la oración base, preservando R-MOD-INPUT-2 (Post(P) no admite `e`/`c`).
+- GAP-EVENTO-INVOCACION / GAP-CONDICION-INVOCACION: cerrados; el generador degrada evento/condición de invocación a la invocación base, preservando R-MOD-CAT-1 / R-IV-3.
+- GAP-FIXTURE-EVENTO / GAP-FIXTURE-INVOCACION: cerrados para emisión y rutas básicas por `fixtures-roundtrip.ts`; las variantes con estado/demora quedan no estrictas cuando el reverse aún no rehidrata metadatos desde modelo vacío.
+- GAP-EXC-UNIDADES-LITERAL: cerrado por nota de realización; `unidades-tiempo` es metavariable y `formatoTiempo` realiza valor+unidad concretos (ver §5.3).
+- GAP-INVOCACION-TILDE: cerrado; emisión canónica `después de` y parser compatible con legacy (ver §5.4).
 
 ## §6 Enlaces estructurales
 
@@ -1011,7 +1013,7 @@ Rationale: `reglas §4.10` (RF1), `§5.5` (R-STRF-1, R-STRF-4) y `opm-opl-es §9
 
 **Reverse**: la oración `**Exhibidor** exhibe **A** así como *Op*` se parsea, vía `parsear.ts·astEstructural` (regex `^(.+?) exhibe(?:n)? (.+)$`, `tipo: "exhibicion"`); la variante `tiene un … opcional` se parsea con multiplicidad `0..1`.
 
-**Roundtrip**: exhibidor, rasgos, orden, opcionalidad y la frontera atributo/operación DEBEN preservarse. GAP-FIXTURE-EXHIBICION: no hay fixture dedicado de exhibición en `fixtures-roundtrip.ts`.
+**Roundtrip**: exhibidor, rasgos, orden, opcionalidad y la frontera atributo/operación DEBEN preservarse. GAP-FIXTURE-EXHIBICION: cerrado por `fixtures-roundtrip.ts` (`enlace-estructural-exhibicion`).
 
 **Edge cases**: el caso atributo-con-valor (`**Atributo** de **Objeto** es valor`) NO es exhibición sino entidad-atributo (§2.5); el generador lo separa (`estructural.ts` comenta esa frontera).
 
@@ -1052,11 +1054,13 @@ Rationale: `reglas §4.10` (RF2, RF2b), `§5.5` (R-STRF-2, R-STRF-2A, R-OPL-RF-2
 
 **Composabilidad**: **destino-enumerado** en el sujeto (varias especializaciones del mismo general en una oración) y en el predicado para herencia múltiple/XOR (varios generales). NO DEBE coordinarse con agregación/exhibición/clasificación. **Zona prohibida de composición en refinamiento/despliegue**: la agrupación de especializaciones NO DEBE aplicarse cuando el enlace participa de descomposición/despliegue, porque colisiona con la realización del refinamiento (despliegue de generalización-especialización, §6 de refinamientos) y borraría tokens/refs por enlace; se emite por enlace (remite §9).
 
-**Reverse**: `parsear.ts·astEstructural` reconoce `^(.+?) es un (.+)$` y `^(.+?) son (.+)$` como `generalizacion` con el general como origen y la(s) especialización(es) como destino. GAP-XOR-PARSER: la superficie `puede ser` / `puede ser uno de` NO tiene regex de parseo estructural dedicada hoy (el verbo es canónico —enum §1.1, marcado GAP-XOR en generación—, pero ni generador ni parser estructural lo realizan); la enumeración XOR de generalización queda como GAP de cobertura bidireccional.
+**Reverse**: `parsear.ts·astEstructural` reconoce `^(.+?) es un (.+)$` y `^(.+?) son (.+)$` como `generalizacion` con el general como origen y la(s) especialización(es) como destino. GAP-XOR-PARSER: la superficie `puede ser` / `puede ser uno de` NO tiene regex de parseo estructural dedicada hoy (el verbo es canónico —enum §1.1, marcado GAP-XOR-FEATURE en generación—, pero ni generador ni parser estructural lo realizan); la enumeración XOR de generalización queda como GAP de cobertura bidireccional.
 
 **Roundtrip**: especializaciones, general, exclusividad (XOR vs inclusivo) y herencia múltiple DEBEN preservarse. GAP-FIXTURE-GENERALIZACION: no hay fixture dedicado.
 
-**Traza a código**: generación `app/src/opl/generadores/estructural.ts·oracionEnlaceEstructural` (caso `generalizacion`, línea ~70; `son`/`es un`); parseo `app/src/opl/parser/parsear.ts·astEstructural` (regex `es un` ~967, `son` ~969). XOR `puede ser`: GAP-XOR (sin generador, §1.1) y GAP-XOR-PARSER (sin parser estructural).
+**Traza a código**: generación `app/src/opl/generadores/estructural.ts·oracionEnlaceEstructural` (caso `generalizacion`, línea ~70; `son`/`es un`); parseo `app/src/opl/parser/parsear.ts·astEstructural` (regex `es un` ~967, `son` ~969). XOR `puede ser`: GAP-XOR-FEATURE (sin generador, §1.1) y GAP-XOR-PARSER (sin parser estructural).
+
+**Nota de realización**: `app/src/opl/generadores/refinamiento.ts·emitirEspecializacion` emite el hecho individual de generalización como `es un`; NO realiza la superficie XOR parent-centric `puede ser`. GAP-XOR-FEATURE queda reclasificado como feature de especialización exclusiva, junto con GAP-XOR-PARSER.
 
 Rationale: `reglas §4.10` (RF3, RF3b, RX1, RX2, RH1), `§5.5` (R-STRF-1, R-HER-1..8) y `opm-opl-es §9.3`.
 
@@ -1080,7 +1084,7 @@ Rationale: `reglas §4.10` (RF3, RF3b, RX1, RX2, RH1), `§5.5` (R-STRF-1, R-HER-
 
 **Reverse**: `parsear.ts·astEstructural` reconoce `^(.+?) es una instancia de (.+)$` (~971) y `^(.+?) son instancias de (.+)$` (~973) como `clasificacion` con la clase como origen y la(s) instancia(s) como destino.
 
-**Roundtrip**: instancias, clase y plural/singular DEBEN preservarse. El formato nominal `Instancia : Clase` (§2.6) es designación de nombre, no oración de instanciación; GAP-NOMBRE-INSTANCIA (declarado en §2.6) sigue vigente. GAP-FIXTURE-CLASIFICACION: no hay fixture dedicado.
+**Roundtrip**: instancias, clase y plural/singular DEBEN preservarse. El formato nominal `Instancia : Clase` (§2.6) es designación de nombre, no oración de instanciación; GAP-NOMBRE-INSTANCIA (declarado en §2.6) sigue vigente. GAP-FIXTURE-CLASIFICACION: cerrado por `fixtures-roundtrip.ts` (`enlace-estructural-clasificacion`).
 
 **Traza a código**: generación `app/src/opl/generadores/estructural.ts·oracionEnlaceEstructural` (caso `clasificacion`, línea ~72); parseo `app/src/opl/parser/parsear.ts·astEstructural` (regex `es una instancia de` ~971, `son instancias de` ~973).
 
@@ -1164,10 +1168,10 @@ Rationale: `reglas §4.10` (SSE1–SSE7, V-30) y `opm-opl-es §9.4`.
 
 ### §6.7 GAPs de cobertura — enlaces estructurales
 
-- GAP-XOR / GAP-XOR-PARSER: la especialización XOR (`puede ser` / `puede ser uno de`, RX1/RX2) tiene verbo canónico (enum §1.1) pero ningún generador de `app/src/opl/generadores/` la emite ni regex de `parsear.ts·astEstructural` la reconoce; cobertura bidireccional ausente.
+- GAP-XOR-FEATURE / GAP-XOR-PARSER: la especialización XOR (`puede ser` / `puede ser uno de`, RX1/RX2) tiene verbo canónico (enum §1.1) pero ningún generador de `app/src/opl/generadores/` la emite ni regex de `parsear.ts·astEstructural` la reconoce; cobertura bidireccional ausente.
 - GAP-TAG-PARSER / GAP-SSE-PARSER: la generación de etiquetados (SE1–SE5) y de estructurales con estado (SSE1–SSE7) existe en `procedural.ts·oracionEstructuralEtiquetada`, pero `parsear.ts·astEstructural` no incluye regex dedicada para `se relaciona con` / `se relacionan` ni para etiquetas de usuario; el reverse de etiquetados es GAP.
 - GAP-NOMBRE-INSTANCIA: el formato nominal `Instancia : Clase` (§2.6) no tiene generador dedicado que lo componga automáticamente; vigente desde §2.6.
-- GAP-FIXTURE-ESTRUCTURALES: no hay fixtures roundtrip dedicados de agregación, exhibición, generalización, clasificación ni etiquetado en `fixtures-roundtrip.ts`; la simetría de las cuatro fundamentales se apoya en `oracionEnlaceEstructural` y las regex de `astEstructural`; la de etiquetados solo en el generador (sin reverse, por GAP-TAG-PARSER).
+- GAP-FIXTURE-ESTRUCTURALES: cerrado para las cuatro relaciones fundamentales (agregación, exhibición, generalización, clasificación) por `fixtures-roundtrip.ts`; etiquetados siguen fuera por GAP-TAG-PARSER / GAP-FIXTURE-TAGGED.
 
 ## §7 Refinamiento / gestión de contexto
 
@@ -1262,7 +1266,7 @@ Rationale: `reglas §4.11` (CX1, CX2), `§8.1`–`§8.2`, `§8.9` y `opm-opl-es 
 
 **Edge cases**: en despliegue por agregación las partes viven **fuera** del contenedor del padre y se conectan por enlaces estructurales canónicos; la pertenencia se determina por presencia en el OPD hijo, no por contención espacial (a diferencia de la descomposición, ver `aparienciasInternasDeRefinamiento`). El despliegue NO admite cambio de rol instrumento↔afectado (R-ROL-2).
 
-**Traza a código**: generación `app/src/opl/generadores/refinamiento.ts·oracionDespliegue` (modo agregación `se despliega en` ~76; exhibición `exhibe` ~77; generalización `son`/`es un` ~78; clasificación `son instancias de`/`es una instancia de` ~79) y `modoDespliegue`/`modoPorTipoEnlace` (~109, ~120); plegado parcial `app/src/opl/generadores/plegado.ts·oracionPlegadoParcial`; agrupación por OPD en `app/src/opl/bloquesJerarquicos.ts·agruparOracionesPorOpd`; reverse de plegado `app/src/opl/parser/parser.designacionesPlegado.test.ts`. GAP-PLIEGA para `se pliega en` autónomo.
+**Traza a código**: generación `app/src/opl/generadores/refinamiento.ts·oracionDespliegue` (modo agregación `se despliega en` ~76; exhibición `exhibe` ~77; generalización `son`/`es un` ~78; clasificación `son instancias de`/`es una instancia de` ~79), `emitirDespliegueOcurren` como emisor de despliegue con ocurrencia contextual y `modoDespliegue`/`modoPorTipoEnlace` (~109, ~120); plegado parcial `app/src/opl/generadores/plegado.ts·oracionPlegadoParcial`; agrupación por OPD en `app/src/opl/bloquesJerarquicos.ts·agruparOracionesPorOpd`; reverse de plegado `app/src/opl/parser/parser.designacionesPlegado.test.ts`. GAP-PLIEGA para `se pliega en` autónomo.
 
 Rationale: `reglas §4.11` (CX3, CX5, CX6), `§8.1`–`§8.2`, `§8.5`–`§8.6` y `opm-opl-es §10.2`, `§10.5`.
 
@@ -1311,6 +1315,8 @@ Rationale: `reglas §4.11` (CX4), `§8.10` (R-ARB-4, R-OPL-TOTAL-1..5) y `opm-op
 **Roundtrip**: el conjunto de estados visibles por OPD DEBE preservarse; el roundtrip por-OPD respeta R-OPL-TOTAL-4.
 
 **Traza a código**: `app/src/opl/generadores/duracionMetadata.ts·oracionEstados` (vía §2.3); visibilidad por OPD en `bloquesJerarquicos.ts·agruparOracionesPorOpd`.
+
+**Metadatos inline**: `duracionMetadata.ts·oracionesUnidadDescripcionEstados` compone la descripción de entidad, estados y metadatos inline de presentación (`formatearAliasInline`, `formatearUnidadInline`, `formatearDescripcionInline`, `formatearDuracion`). Estos formateadores son realización local de §2.5/§5: no introducen una plantilla OPL nueva, solo agregan alias, unidad, descripción o duración cuando el modelo los declara.
 
 Rationale: `reglas §8.1` (expresión/supresión de estados), `§8.10` (R-OPL-TOTAL-4, R-OPL-TOTAL-5) y `opm-opl-es §3.2`.
 
@@ -1395,7 +1401,7 @@ Esta subsección es el **preludio de §9** y fija la frontera de la coordinació
 
   Rationale: distinguir la enumeración de refinadores (un hecho de refinamiento) de la fusión de enlaces hijos (varios hechos de enlace) evita reintroducir BUG-f897bc por sobre-aplicación de R-CX-COMP-1.
 
-**Traza a código**: la agrupación por OPD (`bloquesJerarquicos.ts·agruparOracionesPorOpd`) mantiene cada enlace hijo como oración independiente dentro del bloque del OPD; la oración de refinamiento (`refinamiento.ts·oracionDescomposicion`/`oracionDespliegue`) enumera refinadores pero NO coordina sus enlaces. GAP-COMP-GUARDA: no existe hoy un guard explícito que prohíba programáticamente la coordinación de enlaces en contexto de refinamiento; la protección es por construcción (cada enlace genera su propia oración), no por una aserción dedicada — §9 DEBE materializar el guard.
+**Traza a código**: la agrupación por OPD (`bloquesJerarquicos.ts·agruparOracionesPorOpd`) mantiene cada enlace hijo como oración independiente dentro del bloque del OPD; la oración de refinamiento (`refinamiento.ts·oracionDescomposicion`/`oracionDespliegue`) enumera refinadores pero NO coordina sus enlaces. GAP-COMP-GUARDA queda no-aplicable hasta que exista GAP-COMPOSICION: hoy la protección es por construcción atómica (cada enlace genera su propia oración), sin transformador que pueda fusionarlos.
 
 Rationale: BUG-f897bc, `reglas §9` (bisimetría OPD↔OPL) y las cláusulas «zona prohibida» de §3.1–§3.3, §6.3–§6.6.
 
@@ -1406,7 +1412,7 @@ Rationale: BUG-f897bc, `reglas §9` (bisimetría OPD↔OPL) y las cláusulas «z
 - GAP-RECOMPONE: el verbo `se recompone desde` (CX7/CX8) es canónico pero sin generador ni parser.
 - GAP-REFINA: la oración explícita `se refina por descomposición/despliegue de … en` (CX4) es canónica pero sin generador autónomo ni parser; el árbol OPD se materializa por estructura del modelo.
 - GAP-FIXTURE-DESCOMPOSICION: no hay fixture roundtrip dedicado de descomposición/despliegue en `fixtures-roundtrip.ts`; la simetría se apoya en los generadores de `refinamiento.ts` y en `parser.designacionesPlegado.test.ts` (solo plegado parcial).
-- GAP-COMP-GUARDA: no hay guard programático que prohíba la coordinación de enlaces hijos en contexto de refinamiento (R-CX-COMP-1/2); la protección es por construcción y §9 DEBE materializarla.
+- GAP-COMP-GUARDA: cerrado-no-aplica hasta que exista GAP-COMPOSICION; la salida actual es atómica por construcción y no coordina enlaces hijos en contexto de refinamiento.
 
 ## §8 Combinatoria a nivel de modelo
 
@@ -1439,9 +1445,9 @@ Rationale: `reglas §6.4`–`§6.8`, `§7`, `§11.2` y `opm-opl-es §11`–`§13
 
   Rationale: `reglas §6.4` (`c` + `e` = no definido), `§11.2` (AP-28) y §5.3 (naturaleza de la excepción).
 
-- **R-COMB-4** (orden de composición superficial): cuando varias dimensiones coinciden sobre una misma oración, el orden de los marcadores en la superficie DEBE ser estable: `[Por ruta L,] <abanico con cuantificador> <enlace base> [en \`estado\`] [, modificador de evento/condición] [(probabilidad: p)]`. La ruta precede; la probabilidad cierra. Un orden distinto rompe el roundtrip.
+- **R-COMB-4** (orden de composición superficial): cuando varias dimensiones coinciden sobre una misma oración, el orden de los marcadores en la superficie DEBE ser estable: `[Por ruta L,] <abanico con cuantificador> <enlace base> [en \`estado\`] [, modificador de evento/condición] [\`Pr=p\`]`. La ruta precede; la probabilidad cierra. Un orden distinto rompe el roundtrip.
 
-  Rationale: `abanico.ts` resuelve primero ruta (líneas 17, 34), luego abanico, luego condicional; `procedural.ts·sufijoProbabilidad` (línea 421) añade la probabilidad como sufijo final.
+  Rationale: `abanico.ts` resuelve primero ruta (líneas 17, 34), luego abanico, luego condicional; `procedural.ts·sufijoProbabilidad` añade la probabilidad canónica como sufijo final `Pr=p`.
 
 - **R-COMB-5** (la ruta gana al agrupamiento de abanico): si **algún** enlace de un abanico porta etiqueta de ruta, el abanico NO DEBE realizarse como oración agrupada; DEBE emitirse **una oración por enlace** con prefijo `Por ruta L,`. Ruta y agrupamiento de fan son mutuamente excluyentes en la superficie.
 
@@ -1492,7 +1498,7 @@ Rationale: `reglas §6.4`–`§6.8`, `§7`, `§11.2` y `opm-opl-es §11`–`§13
 
 - **R-FAN-6** (probabilidad solo dentro de fan XOR): la anotación de probabilidad `Pr=p` SOLO es canónica **dentro de un abanico probabilístico**, que DEBE ser siempre XOR, con exactamente una rama activa por ejecución y suma de probabilidades `1.0`. Un `Pr=p` sobre un enlace **sin** abanico es **no-canonizado** (§8.4).
 
-  Rationale: `reglas §6.8` (R-PROB-1, R-PROB-1A), `§7.4` (R-FAN-PROB-1), `§11.2` (zona: «enlace probabilístico sin fan no tiene canonicidad»). GAP-PROB-SUPERFICIE: `procedural.ts·sufijoProbabilidad` (línea 421) emite la probabilidad como sufijo `(probabilidad: 40%)`, NO como `Pr=p` por rama; la superficie del código diverge del canon `Pr=p` y no liga la probabilidad a un fan XOR. La spec manda `Pr=p` por rama dentro de fan XOR.
+  Rationale: `reglas §6.8` (R-PROB-1, R-PROB-1A), `§7.4` (R-FAN-PROB-1), `§11.2` (zona: «enlace probabilístico sin fan no tiene canonicidad»). GAP-PROB-SUPERFICIE: cerrado; `procedural.ts·sufijoProbabilidad` y `abanico.ts` emiten `Pr=p`, y el parser lo descarta como anotación de superficie al reconstruir el hecho base.
 
 - **R-FAN-7** (resultado-fan-XOR como expansión de resultado a objeto con estados): un resultado simple hacia un **objeto** con `n` estados es semánticamente equivalente a un fan XOR de resultados con estado, uno por estado, cada uno con probabilidad `1/n` por defecto. Esta equivalencia NO autoriza modificadores `e`/`c` sobre el fan: las ramas siguen produciendo elementos de Post(P).
 
@@ -1545,9 +1551,9 @@ Para cada combinación con relevancia semántica/lógica, su **estatus**, la pla
 | C-17 | invocación × — × XOR/OR | válida | `*P* invoca exactamente uno de *Q* o *R*.` | R-FAN-2; invocación es proceso→proceso |
 | C-18 | consumo/efecto/instr × condición × XOR/OR (todas las ramas `c`, mismo tipo) | válida | `*P* ocurre si exactamente uno de **A**, **B** o **C** existe, en cuyo caso *P* consume exactamente uno de **A**, **B** o **C**, de lo contrario *P* se omite.` | R-FAN-3; abanico mixto recae en fan directo |
 | C-19 | cualquier transformador/habilitador × evento × XOR/OR (INPUT-only) | válida (canon) / GAP código | `**B** inicia exactamente uno de *P*, *Q* o *R*, que afecta **B**.` | R-FAN-4; GAP-FAN-EVENTO |
-| C-20 | resultado × condición × XOR/OR | **inválida** | — | R-COMB-2; GAP-FAN-RESULTADO-COND (`abanico.ts` línea 176 emite `puede generarse`, no canónico) |
+| C-20 | resultado × condición × XOR/OR | **inválida** | — | R-COMB-2; GAP-FAN-RESULTADO-COND cerrado: `abanico.ts` degrada a fan base sin `puede generarse` |
 | C-21 | consumo/resultado/efecto × — × XOR (ramas = estados de un objeto) | válida | `*P* cambia **Obj** a exactamente uno de \`s1\`, \`s2\` o \`s3\`.` | R-FAN-5; R-FAN-7 |
-| C-22 | resultado × — × XOR × probabilidad (fan probabilístico) | válida (canon) / GAP superficie | `*P* genera exactamente uno de **A** \`Pr=0.6\`, **B** \`Pr=0.4\`.` | R-FAN-6; suma=1; GAP-PROB-SUPERFICIE |
+| C-22 | resultado × — × XOR × probabilidad (fan probabilístico) | válida | `*P* genera exactamente uno de **A** \`Pr=0.6\`, **B** \`Pr=0.4\`.` | R-FAN-6; suma=1; GAP-PROB-SUPERFICIE cerrado |
 | C-23 | cualquier rol × — × — × probabilidad (sin fan) | **no-canonizada** | — | R-FAN-6; `reglas §11.2` (probabilístico fuera de fan sin canonicidad) |
 | C-24 | consumo/resultado × modificador/abanico/multiplicidad × **ruta** | válida | `Por ruta L1, *P* consume **A**.` | R-COMB-5; una oración por enlace, ruta degrada el fan |
 | C-25 | agente/instrumento × — × ruta | **no-canonizada** | — | `reglas §11.2` (ruta sobre habilitadores no canonizada; `opm-opl-es §13` solo consumo/resultado) |
@@ -1602,7 +1608,7 @@ Las siguientes combinaciones son **silencios de la SSOT** (`reglas §11.2`, R-ZN
 | `c` + `e` sobre el **mismo** enlace | No definida en gramática OPL ni en geometría visual | `reglas §6.4`, `§11.2` (AP-28); R-COMB-3 |
 | `Pr=p` sobre un enlace **sin** abanico | `Pr=p` solo se define dentro de fans XOR (`V-18`); fuera no tiene canonicidad | `reglas §11.2`; R-FAN-6 |
 | Etiqueta de **ruta** sobre enlace habilitador (agente/instrumento) | `opm-opl-es §13` canoniza ruta solo para consumo/resultado | `reglas §11.2`; C-25 |
-| Fan de **resultado** bajo condición (`puede generarse`) | El código emite `puede generarse` (`abanico.ts` línea 176) — vocabulario fuera del enum §1.1 | C-20; viola R-COMB-2 |
+| Fan de **resultado** bajo condición (`puede generarse`) | Histórico cerrado: el código degrada a fan base y ya no emite `puede generarse`; la combinación sigue inválida por R-COMB-2 | C-20; viola R-COMB-2 |
 | Fan **mixto** (algunas ramas `c`, otras sin control) bajo patrón condicional | El canon no define la realización condicional de un fan parcialmente condicional | R-FAN-3 (recae en fan directo, no en patrón condicional) |
 
 - **R-ZNC-COMB-1**: ante una de estas zonas, la herramienta DEBE o bien rechazar la entrada como no-canónica, o bien declararla **extensión local marcada**; NO DEBE silenciarla emitiendo una superficie inventada como si fuera canon.
@@ -1612,10 +1618,12 @@ Las siguientes combinaciones son **silencios de la SSOT** (`reglas §11.2`, R-ZN
 ### §8.5 GAPs de cobertura — combinatoria
 
 - GAP-FAN-EVENTO: `app/src/opl/generadores/abanico.ts` NO emite la forma de fan bajo evento (`inicia` + cuantificador, R-FAN-4 / C-19); solo `oracionAbanicoCondicional` cubre la combinación condicional. La forma de evento sobre fan es canónica pero sin generador.
-- GAP-FAN-RESULTADO-COND: `abanico.ts·oracionAbanicoCondicional` (línea 176) emite `… puede generarse …` para resultado+condición+fan (C-20). `puede generarse` NO pertenece al enum §1.1 y el resultado NO admite condición (R-COMB-2); emisión no canónica que la spec manda eliminar.
-- GAP-PROB-SUPERFICIE: `procedural.ts·sufijoProbabilidad` (línea 421) realiza la probabilidad como sufijo `(probabilidad: 40%)` por enlace, NO como `Pr=p` por rama ligado a un fan XOR (R-FAN-6 / C-22). La superficie del código diverge del canon `Pr=p`; falta validar suma `=1` y exclusividad XOR.
+- GAP-FAN-RESULTADO-COND: cerrado. `abanico.ts·oracionAbanicoCondicional` degrada resultado+condición+fan a fan base; `puede generarse` ya no se exporta.
+- GAP-PROB-SUPERFICIE: cerrado. `procedural.ts·sufijoProbabilidad` y `abanico.ts` emiten `Pr=p`; `parsear.ts` lo trata como anotación de superficie y preserva el hecho base.
 - GAP-FAN-M: no hay generador para `exactamente m de f` / `al menos m de f` (R-FAN-8 / C-30 sentido m-de-f); `abanico.ts` solo emite el caso `m=1`.
-- GAP-COL-RESOLUCION: la resolución de colisión de rol por fuerza semántica (§8.3.1) y la precedencia de recomposición (§8.3.2) son operaciones de modelo; no consta en `app/src/opl/generadores/` un generador OPL que materialice el reporte de desplazamiento/conflicto — la resolución vive en el kernel de modelo, no en la capa OPL.
+- GAP-COL-RESOLUCION: cerrado por ajuste-spec. La resolución de colisión de rol por fuerza semántica (§8.3.1) y la precedencia de recomposición (§8.3.2) son operaciones de modelo; la resolución vive en el kernel de modelo, no en la capa OPL.
+
+  Estado: alineado por ubicación arquitectónica. La OPL puede reflejar el resultado ya resuelto del kernel, pero NO tiene obligación de emitir un reporte narrativo de colisión o precedencia.
 
 ## §9 Composición de oraciones y prosa OPL
 
@@ -1732,7 +1740,9 @@ Una oración compuesta coordina hechos que comparten un **eje**. Esta spec canon
   - `hints` = concatenación de los `hintsEnlace` de cada predicado, un sub-span por verbo/objeto/estado (R-COMP-MAESTRA-1).
   El patrón de referencia es `refsHints.ts·refsAbanico`/`hintsAbanico`: ya construye una línea con unión de refs y un hint por enlace hijo; el eje (a) lo reusa para predicados heterogéneos.
 
-- **GAP-COMP-GUARDA** (remite §7.7): no existe guard programático que prohíba la coordinación de enlaces hijos en contexto de refinamiento/despliegue (R-COMP-ZP-1). La capa de composición del eje (a) DEBE materializar ese guard: antes de coordinar, descartar candidatos cuyos enlaces pertenezcan a un OPD hijo de refinamiento, y descartar la fusión si rompería R-COMP-ELEG-4 (spans ambiguos).
+- **GAP-COMP-GUARDA** (remite §7.7): no-aplicable hasta que exista GAP-COMPOSICION. Cuando se implemente la capa de composición del eje (a), DEBE materializar este guard: antes de coordinar, descartar candidatos cuyos enlaces pertenezcan a un OPD hijo de refinamiento, y descartar la fusión si rompería R-COMP-ELEG-4 (spans ambiguos).
+
+  Estado actual: no-aplicable hasta que exista la capa de composición GAP-COMPOSICION. Mientras la salida se mantenga atómica por construcción, los enlaces hijos de refinamiento no se coordinan porque no hay transformador que los fusione.
 
 - **GAP-COMP-REVERSE**: el parser (`parsear.ts`) descompone hoy el abanico (`ABANICO_VERBO_RE_LIST`) y la enumeración estructural, pero NO una línea de predicados coordinados de distinto verbo bajo un sujeto compartido (eje a). R-COMP-REV-1 exige una regla de descomposición que segmente la línea por conector serial y reparse cada predicado contra el sujeto compartido; sin ella, el eje (a) NO DEBE emitirse (R-COMP-ZP-3).
 
@@ -1866,7 +1876,7 @@ Esta sección canoniza la **presentación** de la OPL completa de un modelo: có
 | Traza a código | `app/src/opl/bloquesJerarquicos.ts·agruparOracionesPorOpd` / `ordenarOpdsParaOpl`; `app/src/opl/generadores/plegado.ts·oracionPlegadoParcial` |
 | Procedencia | §Convenciones (Display-vs-canónico); §7 (refinamiento); `reglas §9` (bisimetría) |
 
-Rationale: `bloquesJerarquicos.ts·agruparOracionesPorOpd`/`ordenarOpdsParaOpl` realizan la agrupación y el orden de la OPL completa; `plegado.ts·oracionPlegadoParcial` realiza el plegado parcial; el contrato display-vs-canónico hereda de §Convenciones y §9.5.
+Rationale: `bloquesJerarquicos.ts·agruparOracionesPorOpd`/`ordenarOpdsParaOpl` realizan la agrupación y el orden de la OPL completa; `aplanarBloquesOpl`, `chevronEstadoBloque` y `togglearColapsoBloque` realizan la mecánica display de colapso/expansión de bloques; `plegado.ts·oracionPlegadoParcial` realiza el plegado parcial; el contrato display-vs-canónico hereda de §Convenciones y §9.5.
 
 ## §13 Presentación del panel OPL
 
@@ -1915,7 +1925,7 @@ Esta sección canoniza la **presentación** del panel OPL: el orden global de la
 | Emisión | dos pases: canónico (`textoOplActual`) y display (`lineas`/`bloques`) |
 | Orden | determinista y estable por `ordenarOpdsParaOpl`; agrupación por `agruparOracionesPorOpd` |
 | Reverse | ningún ajuste de presentación (numeración, plegado, esencia, minimizado) altera el conjunto de hechos parseado |
-| Traza a código | `app/src/opl/panel.ts·derivarPanelOpl`; `app/src/opl/bloquesJerarquicos.ts·agruparOracionesPorOpd` / `ordenarOpdsParaOpl`; `app/src/opl/interaccion.ts·OplLineaInteractiva` (`ordinal`/`opdProfundidad`); `app/src/opl/opciones.ts·VisibilidadOpl` (detalle §16) |
+| Traza a código | `app/src/opl/panel.ts·derivarPanelOpl`; `app/src/opl/bloquesJerarquicos.ts·agruparOracionesPorOpd` / `ordenarOpdsParaOpl` / `aplanarBloquesOpl` / `chevronEstadoBloque` / `togglearColapsoBloque`; `app/src/opl/interaccion.ts·OplLineaInteractiva` (`ordinal`/`opdProfundidad`); `app/src/opl/opciones.ts·VisibilidadOpl` (detalle §16) |
 | Procedencia | §12 (display-vs-canónico); §16 (visibilidad de esencia); videos OPCloud (numeración, minimizar) — precedencia 3 |
 
 Rationale: `panel.ts·derivarPanelOpl` es el punto único de derivación de la presentación; separa el pase canónico del display para que numeración, plegado, esencia y minimizado nunca contaminen el roundtrip. La numeración y el minimizado se sostienen sobre evidencia observacional de OPCloud, no sobre canon.
@@ -1946,7 +1956,7 @@ Esta sección canoniza la **interacción bidireccional** entre las oraciones del
 
 - **R-OPL-INT-4**: el click sobre un token con referencia DEBE navegar al elemento referido en el canvas (foco/selección). El click NO DEBE mutar el modelo; es navegación, no edición.
 
-  Rationale: el token portador expone su `ref` (`OplToken.ref`); la navegación resuelve el destino desde esa referencia tipada. La edición inline de propiedades de elementos/enlaces (doble-click) es un canal distinto, no cubierto por esta regla. GAP-VERIFY: el handler de click→foco vive en la capa UI del panel (`app/src/ui`), fuera de las lecturas permitidas.
+  Rationale: el token portador expone su `ref` (`OplToken.ref`); la navegación resuelve el destino desde esa referencia tipada. La edición inline de propiedades de elementos/enlaces (doble-click) es un canal distinto, no cubierto por esta regla. La capa OPL pura solo entrega tokens y referencias; el handler click→foco vive en la UI del panel (`app/src/ui`) y no debe buscarse ni implementarse dentro de `app/src/opl/**`.
 
 ### §14.4 Filtrado por selección/referencia
 
@@ -2651,12 +2661,12 @@ Leyenda de **Estado**:
 |---------|--------------------|-----------------------------|--------------------------|---------------|--------|
 | §1.1 | Enum verbal `varía de … a` (rango) | — | — | — | GAP-VARIA |
 | §1.1 | Enum verbal `es de tipo` | — | — | — | GAP-TIPO |
-| §1.1 | Enum verbal `puede ser` (especialización XOR) | — | — | — | GAP-XOR |
+| §1.1 | Enum verbal `puede ser` (especialización XOR) | — | — | — | GAP-XOR-FEATURE |
 | §1.1 | Enum verbal `se refina` (refinamiento inter-OPD) | — | — | — | GAP-REFINA |
 | §1.1 | Enum verbal `se pliega` (plegado) | — | — | — | GAP-PLIEGA |
 | §1.1 | Enum verbal `se recompone` (recomposición) | — | — | — | GAP-RECOMPONE |
 | §2.1 | Entidad (objeto/proceso) | `estructural.ts·oracionEntidad` | — | — | alineado |
-| §2.1 | Supresión de placeholder (R-ENT-2) | `nombresCanonicos.ts·esNombreProcesoPlaceholder` (no conectado vía `refsHints.ts·entidadOplEsEmitible`) | — | — | GAP-PLACEHOLDER-ENTIDAD |
+| §2.1 | Supresión de placeholder (R-ENT-2) | `refsHints.ts·entidadOplEsEmitible` + `nombresCanonicos.ts·esNombreProcesoPlaceholder` | — | `refsHints.test.ts` / `generar.test.ts` | alineado |
 | §2.3 | Estados `puede estar` | `duracionMetadata.ts·oracionEstados` | — | — | alineado |
 | §2.4 | Designación de estado | `designaciones.ts·oracionDesignacionEstado` / `textoDesignacionEstado` | — | — | alineado |
 | §2.5 | Valor de atributo `es valor` | `estructural.ts·oracionValorAtributo` | — | — | alineado |
@@ -2665,27 +2675,27 @@ Leyenda de **Estado**:
 | §2.8 | Afiliación (sistémica/ambiental) | `estructural.ts·oracionEntidad` (vía `refsHints.ts·textoAfiliacion`) | — | — | alineado |
 | §3.1 | Consumo `consume` | `procedural.ts·oracionEnlaceSinEtiqueta` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`consume`) | `enlace-…` | alineado |
 | §3.2 | Resultado `genera` | `procedural.ts·oracionEnlaceSinEtiqueta` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`genera`) | — | alineado |
-| §3.3 | Efecto `afecta` | `procedural.ts·oracionEfecto` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`afecta`) | (sin fixture) | GAP-FIXTURE-EFECTO |
-| §3.4 | Cambio de estado TS3 (`de … a …`) | `procedural.ts·oracionTransicionEstados` | `parsear.ts·ABANICO_CAMBIA_RE` / regex CS2 | (sin fixture) | GAP-FIXTURE-TS3 |
-| §3.5 | Efecto parcial TS4 (`de \`estado\``) | `procedural.ts·oracionEfecto` (rama origen) | regex dedicada no verificada | (sin fixture) | GAP-PARSE-TS4 · GAP-FIXTURE-TS4 · GAP-PROCEDENCIA-ESCIND |
-| §3.6 | Efecto parcial TS5 (`a \`estado\``) | `procedural.ts·oracionEfecto` (rama destino) | regex dedicada no verificada | (sin fixture) | GAP-PARSE-TS5 · GAP-FIXTURE-TS5 |
+| §3.3 | Efecto `afecta` | `procedural.ts·oracionEfecto` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`afecta`) | `enlace-efecto-simple` | alineado |
+| §3.4 | Cambio de estado TS3 (`de … a …`) | `procedural.ts·oracionTransicionEstados` | `parsear.ts·ABANICO_CAMBIA_RE` / regex CS2 | `cambio-estado-ts3` (no estricta) | alineado-emision |
+| §3.5 | Efecto parcial TS4 (`de \`estado\``) | `procedural.ts·oracionEfecto` (rama origen) | regex dedicada no verificada | `cambio-estado-ts4-solo-entrada` (no estricta) | GAP-PARSE-TS4 · GAP-PROCEDENCIA-ESCIND |
+| §3.6 | Efecto parcial TS5 (`a \`estado\``) | `procedural.ts·oracionEfecto` (rama destino) | regex dedicada no verificada | `cambio-estado-ts5-solo-salida` (no estricta) | GAP-PARSE-TS5 |
 | §4.1 | Agente `maneja` (+ estado/evento/cond/negada) | `procedural.ts·oracionEnlaceSinEtiqueta` / `refsHints.ts·nombreOplExtremo` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`maneja`) / `CONDICION_AGENTE_RE` | `enlace-agente-simple` | alineado |
 | §4.2 | Instrumento `requiere` (+ estado/evento/cond/negada) | `procedural.ts·oracionEnlaceSinEtiqueta` / `refsHints.ts·nombreOplExtremo` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`requiere`) | `enlace-instrumento-simple` | alineado |
-| §4.x | Habilitador con estado especificado (HS1/HS2) | `refsHints.ts·nombreOplExtremo` (sufijo `en \`estado\``) | `ABANICO_VERBO_RE_LIST` (sin sellado) | (sin fixture) | GAP-FIXTURE-HS |
+| §4.x | Habilitador con estado especificado (HS1/HS2) | `refsHints.ts·nombreOplExtremo` (sufijo `en \`estado\``) | `ABANICO_VERBO_RE_LIST` | `habilitador-con-estado-hs` (no estricta) | alineado-emision |
 | §4.x | Abanico de instrumento/agente inverso | `abanico.ts` | `parsear.ts` (cobertura no completada) | — | GAP-ABANICO-AGENTE-PARSE |
-| §5.1 | Evento `inicia` | `procedural.ts·oracionEvento` | `parsear.ts` (ruta evento) | (sin fixture) | GAP-FIXTURE-EVENTO |
-| §5.1 | Evento sobre **resultado** (no canónico) | `procedural.ts·oracionEvento` (caso resultado) | — | — | GAP-EVENTO-RESULTADO |
-| §5.1 | Evento sobre **invocación** (no canónico) | `procedural.ts·oracionEvento` (caso invocación) | — | — | GAP-EVENTO-INVOCACION |
+| §5.1 | Evento `inicia` | `procedural.ts·oracionEvento` | `parsear.ts` (ruta evento) | `evento-consumo-canonico` | alineado |
+| §5.1 | Evento sobre **resultado** (no canónico) | `procedural.ts·oracionEvento` degrada a base | — | `procedural.test.ts` | cerrado |
+| §5.1 | Evento sobre **invocación** (no canónico) | `procedural.ts·oracionEvento` degrada a base | — | `procedural.test.ts` | cerrado |
 | §5.2 | Condición `ocurre si … en cuyo caso … de lo contrario` | `procedural.ts·oracionCondicion` | `parsear.ts·CONDICION_OCURRE_RE` / `CONDICION_AGENTE_RE` | `parser.condicionesExcepciones.test.ts` | alineado |
-| §5.2 | Condición sobre **resultado** (no canónico) | `procedural.ts·oracionCondicion` (caso resultado, `puede generarse`) | — | — | GAP-CONDICION-RESULTADO |
-| §5.2 | Condición sobre **invocación** (no canónico) | `procedural.ts·oracionCondicion` (caso invocación) | — | — | GAP-CONDICION-INVOCACION |
-| §5.3 | Excepción sobre/sub/sub-sobretiempo | `procedural.ts·oracionEnlaceSinModificador` / `formatoTiempo*` / `duracionMetadata.ts` | `parser.condicionesExcepciones.test.ts` | (test) | GAP-EXC-UNIDADES-LITERAL |
-| §5.4 | Invocación / autoinvocación | `procedural.ts·oracionEnlaceSinModificador` / `modelo/autoinvocacion.ts·esAutoInvocacion` | — | (sin fixture) | GAP-FIXTURE-INVOCACION · GAP-INVOCACION-TILDE |
+| §5.2 | Condición sobre **resultado** (no canónico) | `procedural.ts·oracionCondicion` degrada a base | — | `procedural.test.ts` | cerrado |
+| §5.2 | Condición sobre **invocación** (no canónico) | `procedural.ts·oracionCondicion` degrada a base | — | `procedural.test.ts` | cerrado |
+| §5.3 | Excepción sobre/sub/sub-sobretiempo | `procedural.ts·oracionEnlaceSinModificador` / `formatoTiempo*` / `duracionMetadata.ts` | `parser.condicionesExcepciones.test.ts` | (test) | alineado |
+| §5.4 | Invocación / autoinvocación | `procedural.ts·oracionEnlaceSinModificador` / `modelo/autoinvocacion.ts·esAutoInvocacion` | `parsear.ts` (`despu[eé]s`, sin rehidratar demora) | `invocacion-con-demora-tilde` / `autoinvocacion-con-demora-tilde` (no estrictas) / `evento-invocacion-degrada-base` | alineado-emision |
 | §6.1 | Agregación `consta de` | `estructural.ts·oracionEnlaceEstructural` (agregación) | `parsear.ts·astEstructural` (`consta de`) | (sin fixture) | GAP-FIXTURE-AGREGACION |
-| §6.2 | Exhibición `exhibe` / `así como` | `estructural.ts·oracionEnlaceEstructural` (exhibición) | `parsear.ts·astEstructural` (`exhibe`) | (sin fixture) | GAP-FIXTURE-EXHIBICION |
+| §6.2 | Exhibición `exhibe` / `así como` | `estructural.ts·oracionEnlaceEstructural` (exhibición) | `parsear.ts·astEstructural` (`exhibe`) | `enlace-estructural-exhibicion` | alineado |
 | §6.3 | Generalización `son` / `es un` | `estructural.ts·oracionEnlaceEstructural` (generalización) | `parsear.ts·astEstructural` (`es un` / `son`) | (sin fixture) | GAP-FIXTURE-GENERALIZACION |
-| §6.3 | Generalización XOR `puede ser` | — | — (sin regex estructural) | — | GAP-XOR · GAP-XOR-PARSER |
-| §6.4 | Clasificación `es una instancia de` / `son instancias de` | `estructural.ts·oracionEnlaceEstructural` (clasificación) | `parsear.ts·astEstructural` (`es una instancia de` / `son instancias de`) | (sin fixture) | GAP-FIXTURE-CLASIFICACION · GAP-NOMBRE-INSTANCIA |
+| §6.3 | Generalización XOR `puede ser` | — (feature pendiente; `emitirEspecializacion` emite `es un`) | — (sin regex estructural) | — | GAP-XOR-FEATURE · GAP-XOR-PARSER |
+| §6.4 | Clasificación `es una instancia de` / `son instancias de` | `estructural.ts·oracionEnlaceEstructural` (clasificación) | `parsear.ts·astEstructural` (`es una instancia de` / `son instancias de`) | `enlace-estructural-clasificacion` | GAP-NOMBRE-INSTANCIA |
 | §6.5 | Etiquetado `tag` / `se relaciona con` / `se relacionan` (SE1–SE5) | `procedural.ts·oracionEstructuralEtiquetada` | — (sin regex en `astEstructural`) | (sin fixture) | GAP-TAG-PARSER · GAP-FIXTURE-TAGGED |
 | §6.6 | Etiquetado con estado especificado (SSE1–SSE7) | `procedural.ts·oracionEstructuralEtiquetada` (sufijo de estado) | — | (sin fixture) | GAP-SSE-PARSER · GAP-FIXTURE-SSE |
 | §7.1 | Descomposición `se descompone en` / `paralelo` (CX1/CX2) | `refinamiento.ts·oracionDescomposicion` / `oracionParalelo` / `describirProcesosTemporales` | — (sin regex dedicada) | `parser.designacionesPlegado.test.ts` (parcial) | GAP-CX-PARSER · GAP-FIXTURE-DESCOMPOSICION |
@@ -2697,17 +2707,17 @@ Leyenda de **Estado**:
 | §7.4 | Visibilidad de estados por OPD | `duracionMetadata.ts·oracionEstados` / `bloquesJerarquicos.ts·agruparOracionesPorOpd` | — | — | alineado |
 | §7.5 | Marca temporal solo en descomposición de proceso | `refinamiento.ts·oracionesRefinamiento` / `describirProcesosTemporales` | — | — | alineado |
 | §8 | Distribución/migración de enlaces por OPD | `bloquesJerarquicos.ts·agruparOracionesPorOpd` (operación de modelo, `reglas §8.11`) | — | — | alineado |
-| §8.3 | Resolución de colisión de rol / precedencia recomposición | — (vive en kernel de modelo, no en capa OPL) | — | — | GAP-COL-RESOLUCION |
-| §7.7 / §9 | Guard anti-coordinación de enlaces en refinamiento | — (protección por construcción, sin guard) | — | — | GAP-COMP-GUARDA |
+| §8.3 | Resolución de colisión de rol / precedencia recomposición | kernel `modelo/**` (fuera de capa OPL) | — | — | alineado |
+| §7.7 / §9 | Guard anti-coordinación de enlaces en refinamiento | no-aplicable hasta GAP-COMPOSICION; protección por construcción | — | — | cerrado-no-aplica |
 | §7.6 | Fan bajo evento `inicia` + cuantificador (C-19) | — (`abanico.ts` solo condicional) | — | — | GAP-FAN-EVENTO |
-| §7.6 | Fan resultado+condición (C-20, `puede generarse`) | `abanico.ts·oracionAbanicoCondicional` (no canónico) | — | — | GAP-FAN-RESULTADO-COND |
-| §7.6 | Fan probabilístico `Pr=p` por rama (C-22) | `procedural.ts·sufijoProbabilidad` (sufijo `(probabilidad: %)`, no canónico) | — | — | GAP-PROB-SUPERFICIE |
+| §7.6 | Fan resultado+condición (C-20, `puede generarse`) | `abanico.ts·oracionAbanicoCondicional` degrada a fan base | — | `abanico.test.ts` | cerrado |
+| §7.6 | Fan probabilístico `Pr=p` por rama (C-22) | `abanico.ts` / `procedural.ts·sufijoProbabilidad` (`Pr=p`) | `parsear.ts` descarta `Pr=p` como anotación | `abanico.test.ts` / `procedural.test.ts` | alineado |
 | §7.6 | Fan `m de f` (R-FAN-8) | — (`abanico.ts` solo `m=1`) | — | — | GAP-FAN-M |
 | §9 | Composición eje (a) — predicados coordinados | — (capa de composición ausente) | — (descomposición serial ausente) | — | GAP-COMPOSICION · GAP-COMP-REVERSE |
 | §11 | Etiqueta de ruta (path label) | `refsHints.ts·nombreOplExtremo` / `procedural.ts` (etiqueta de ruta) | — | — | GAP-VERIFY |
 | §12–§13 | Display por OPD / orden / bloques | `bloquesJerarquicos.ts·agruparOracionesPorOpd` / `ordenarOpdsParaOpl` / `plegado.ts·oracionPlegadoParcial` | — | — | alineado |
 | §14.x | Panel OPL interactivo / tokens / referencias | `panel.ts·derivarPanelOpl` / `interaccion.ts·OplToken` / `crearLineaOplInteractiva` / `referenciaEnlaceEspecifico` | — | — | alineado |
-| §14.5 | Navegación click→foco (handler UI) | `interaccion.ts` (`OplToken.ref`) + handler en `app/src/ui` | — | — | GAP-VERIFY |
+| §14.5 | Navegación click→foco (handler UI) | `interaccion.ts` (`OplToken.ref`) + handler en `app/src/ui` | — | — | alineado-fuera-opl |
 | §15 | Edición OPL clasificada / aplicación | `clasificadorEdicion.ts·clasificarEdicionOpl` / `edicionCanvas.ts·aplicarEdicionOpl` | `aplicar.ts·aplicarPatchesOpl` / `aplicarPatchEnlace` / `aplicarPatchAbanico` | — | alineado |
 | §15.x | Mutación por hecho (re-tokenización sub-span) | — (se traza a §9 y §14.5, no a función nueva) | `interaccion.ts·referenciaEnlaceEspecifico` | — | GAP-VERIFY |
 | §16 | Visibilidad de esencia / orden canónico | `opciones.ts·VisibilidadOpl` / `VISIBILIDAD_OPL_DEFAULT` | — | — | alineado |
@@ -2721,47 +2731,47 @@ Lista consolidada de todos los marcadores `GAP-*` (sección de origen · descrip
 |-----|--------|-------------|
 | GAP-VARIA | §1.1 | `varía de … a` canónico, sin generador. |
 | GAP-TIPO | §1.1 | `es de tipo` canónico, sin generador. |
-| GAP-XOR | §1.1 / §6.3 | `puede ser` (especialización XOR) canónico, sin generador. |
+| GAP-XOR-FEATURE | §1.1 / §6.3 | `puede ser` (especialización XOR) canónico, reclasificado como feature pendiente; `es un` ya cubre la generalización individual. |
 | GAP-XOR-PARSER | §6.3 | `puede ser` sin regex estructural en `astEstructural`. |
 | GAP-REFINA | §1.1 / §7.3 | `se refina por …` (CX4) canónico, sin generador autónomo ni parser. |
 | GAP-PLIEGA | §1.1 / §7.2 | `se pliega en` (plegado total CX5/CX6) canónico, sin generador ni parser (existe plegado parcial). |
 | GAP-RECOMPONE | §1.1 / §7.1 | `se recompone desde` (CX7/CX8) canónico, sin generador ni parser. |
-| GAP-PLACEHOLDER-ENTIDAD | §2.1 | `esNombreProcesoPlaceholder` no conectado a la emisión (R-ENT-2 sin efecto). |
+| GAP-PLACEHOLDER-ENTIDAD | §2.1 | Cerrado: `entidadOplEsEmitible` suprime procesos placeholder antes de emitir OPL. |
 | GAP-NOMBRE-INSTANCIA | §2.6 / §6.4 | Formato nominal `Instancia : Clase` sin generador dedicado. |
-| GAP-FIXTURE-EFECTO | §3.3 | Sin fixture roundtrip dedicado de efecto básico. |
-| GAP-FIXTURE-TS3 | §3.4 | Sin fixture roundtrip dedicado de cambio de estado. |
+| GAP-FIXTURE-EFECTO | §3.3 | Cerrado: `enlace-efecto-simple`. |
+| GAP-FIXTURE-TS3 | §3.4 | Cerrado para emisión: `cambio-estado-ts3` no estricta. |
 | GAP-PARSE-TS4 | §3.5 | Regex de `cambia … de \`estado\`` sin `a` no verificada. |
-| GAP-FIXTURE-TS4 | §3.5 | Sin fixture dedicado de efecto parcial TS4. |
+| GAP-FIXTURE-TS4 | §3.5 | Cerrado para emisión: `cambio-estado-ts4-solo-entrada` no estricta. |
 | GAP-PROCEDENCIA-ESCIND | §3.5 | Metadato de procedencia escindido no rastreado en este pase. |
 | GAP-PARSE-TS5 | §3.6 | Regex de `cambia … a \`estado\`` sin `de` no verificada fuera del abanico. |
-| GAP-FIXTURE-TS5 | §3.6 | Sin fixture dedicado de efecto parcial TS5. |
-| GAP-FIXTURE-HS | §4.x | Sin fixture de habilitador con estado especificado (HS1/HS2) ni variantes evento/cond/negada. |
+| GAP-FIXTURE-TS5 | §3.6 | Cerrado para emisión: `cambio-estado-ts5-solo-salida` no estricta. |
+| GAP-FIXTURE-HS | §4.x | Cerrado para emisión HS1/HS2: `habilitador-con-estado-hs` no estricta. |
 | GAP-ABANICO-AGENTE-PARSE | §4.x | Abanico de instrumento y fan inverso sin verificación de cobertura de parseo. |
-| GAP-FIXTURE-EVENTO | §5.1 | Sin fixture roundtrip dedicado de evento. |
-| GAP-EVENTO-RESULTADO | §5.1 | Generador emite evento de resultado (VIOLA R-MOD-INPUT-2); no canónico. |
-| GAP-EVENTO-INVOCACION | §5.1 | Generador emite `inicia e invoca` (VIOLA R-MOD-CAT-1); no canónico. |
-| GAP-CONDICION-RESULTADO | §5.2 | Generador emite condición de resultado con `puede generarse` (VIOLA R-MOD-INPUT-2); no canónico. |
-| GAP-CONDICION-INVOCACION | §5.2 | Generador emite `invoca … si … ocurre` (VIOLA R-MOD-CAT-1); no canónico. |
-| GAP-EXC-UNIDADES-LITERAL | §5.3 | `formatoTiempo` operacionaliza `unidades-tiempo` con valor+unidad concretos; diverge del literal de plantilla. |
-| GAP-FIXTURE-INVOCACION | §5.4 | Sin fixture roundtrip dedicado de invocación/autoinvocación. |
-| GAP-INVOCACION-TILDE | §5.4 | Grafía `despues de` sin tilde en la emisión. |
+| GAP-FIXTURE-EVENTO | §5.1 | Cerrado: `evento-consumo-canonico`. |
+| GAP-EVENTO-RESULTADO | §5.1 | Cerrado: evento sobre resultado degrada a resultado base. |
+| GAP-EVENTO-INVOCACION | §5.1 | Cerrado: evento sobre invocación degrada a invocación base. |
+| GAP-CONDICION-RESULTADO | §5.2 | Cerrado: condición sobre resultado degrada a resultado base; `puede generarse` retirado. |
+| GAP-CONDICION-INVOCACION | §5.2 | Cerrado: condición sobre invocación degrada a invocación base. |
+| GAP-EXC-UNIDADES-LITERAL | §5.3 | Cerrado por ajuste-spec: `unidades-tiempo` es metavariable realizada como valor+unidad. |
+| GAP-FIXTURE-INVOCACION | §5.4 | Cerrado para emisión: `invocacion-con-demora-tilde`, `autoinvocacion-con-demora-tilde` y `evento-invocacion-degrada-base`. |
+| GAP-INVOCACION-TILDE | §5.4 | Cerrado: emisión canónica `después de`; parser acepta grafía legacy sin tilde. |
 | GAP-FIXTURE-AGREGACION | §6.1 | Sin fixture roundtrip dedicado de agregación. |
-| GAP-FIXTURE-EXHIBICION | §6.2 | Sin fixture roundtrip dedicado de exhibición. |
+| GAP-FIXTURE-EXHIBICION | §6.2 | Cerrado: `enlace-estructural-exhibicion`. |
 | GAP-FIXTURE-GENERALIZACION | §6.3 | Sin fixture roundtrip dedicado de generalización. |
-| GAP-FIXTURE-CLASIFICACION | §6.4 | Sin fixture roundtrip dedicado de clasificación. |
+| GAP-FIXTURE-CLASIFICACION | §6.4 | Cerrado: `enlace-estructural-clasificacion`. |
 | GAP-TAG-PARSER | §6.5 | `se relaciona con` / `se relacionan` / etiquetas de usuario sin regex en `astEstructural`. |
 | GAP-FIXTURE-TAGGED | §6.5 | Sin fixture roundtrip dedicado de etiquetado. |
 | GAP-SSE-PARSER | §6.6 | Etiquetados con estado especificado heredan GAP-TAG-PARSER (sin regex). |
 | GAP-FIXTURE-SSE | §6.6 | Sin fixture dedicado de estructural con estado especificado. |
-| GAP-FIXTURE-ESTRUCTURALES | §6.x | Sin fixtures roundtrip dedicados para las estructurales (agregación/exhibición/generalización/clasificación/etiquetado). |
+| GAP-FIXTURE-ESTRUCTURALES | §6.x | Cerrado para relaciones fundamentales; etiquetado sigue separado en GAP-TAG-PARSER / GAP-FIXTURE-TAGGED. |
 | GAP-CX-PARSER | §7.1 | `se descompone en` se genera pero no hay regex que la reconstruya como refinamiento. |
 | GAP-FIXTURE-DESCOMPOSICION | §7.1 | Sin fixture roundtrip dedicado de descomposición/despliegue. |
-| GAP-COMP-GUARDA | §7.7 / §9 | Sin guard programático que prohíba coordinar enlaces hijos en refinamiento (R-CX-COMP / R-COMP-ZP-1). |
+| GAP-COMP-GUARDA | §7.7 / §9 | Cerrado-no-aplica: guard pendiente solo cuando exista GAP-COMPOSICION; hoy la protección es por construcción atómica. |
 | GAP-FAN-EVENTO | §7.6 | `abanico.ts` no emite fan bajo evento (`inicia` + cuantificador, C-19). |
-| GAP-FAN-RESULTADO-COND | §7.6 | `oracionAbanicoCondicional` emite `puede generarse` para resultado+condición+fan (C-20); no canónico. |
-| GAP-PROB-SUPERFICIE | §7.6 | `sufijoProbabilidad` emite sufijo `(probabilidad: %)` por enlace, no `Pr=p` por rama en fan XOR (C-22). |
+| GAP-FAN-RESULTADO-COND | §7.6 | Cerrado: fan resultado+condición degrada a fan base; `puede generarse` retirado. |
+| GAP-PROB-SUPERFICIE | §7.6 | Cerrado: export OPL emite `Pr=p` y retira el sufijo porcentual legacy. |
 | GAP-FAN-M | §7.6 | Sin generador para `exactamente m de f` / `al menos m de f` (solo `m=1`). |
-| GAP-COL-RESOLUCION | §8.3 | Resolución de colisión de rol / precedencia de recomposición vive en kernel; sin generador OPL de reporte. |
+| GAP-COL-RESOLUCION | §8.3 | Cerrado por ajuste-spec: vive en kernel `modelo/**`, no exige generador OPL de reporte. |
 | GAP-COMPOSICION | §9 | Sin capa que coordine predicados de distinto verbo bajo sujeto-proceso compartido (eje a). |
 | GAP-COMP-REVERSE | §9 | Parser no descompone una línea de predicados coordinados de distinto verbo (R-COMP-REV-1). |
 | GAP-VERIFY | §11 / §14.5 / §15.x | Trazas no confirmadas en este pase: etiqueta de ruta, handler click→foco (UI), mutación por hecho. |
@@ -2776,25 +2786,25 @@ Barrido de los exports de `app/src/opl/**` para detectar símbolos sin entrada t
 | `oracionProcedimentalParaRuta` | `generadores/procedural.ts` | trazado §11 (GAP-VERIFY) |
 | `transicionesEstado` / `transicionesEstadoInteractivo` | `generadores/procedural.ts` | cubierto §3.4 (helpers de cambio de estado) |
 | `oracionesAbanicoInteractivo` / `oracionesAbanico` / `oracionAbanico` | `generadores/abanico.ts` | cubierto §7.6 (fan); ramas evento/m/prob en GAP-FAN-* |
-| `emitirDespliegueOcurren` | `generadores/refinamiento.ts` | GAP-spec — emisión de despliegue sin entrada explícita en §7.2 |
-| `emitirEspecializacion` | `generadores/refinamiento.ts` | GAP-spec — ligado a `puede ser` / generalización; sin traza explícita (relacionar con GAP-XOR) |
+| `emitirDespliegueOcurren` | `generadores/refinamiento.ts` | cubierto §7.2 (emisor contextual de despliegue con ocurrencia) |
+| `emitirEspecializacion` | `generadores/refinamiento.ts` | cubierto §6.3: emite generalización individual `es un`; XOR `puede ser` queda en GAP-XOR-FEATURE / GAP-XOR-PARSER |
 | `oracionRefinamiento` / `oracionesRefinamiento` | `generadores/refinamiento.ts` | cubierto §7.1–§7.5 |
-| `oracionesUnidadDescripcionEstados` / `formatearAliasInline` / `formatearUnidadInline` / `formatearDescripcionInline` | `generadores/duracionMetadata.ts` | GAP-spec — metadatos inline de duración/alias/unidad sin entrada dedicada en spec |
+| `oracionesUnidadDescripcionEstados` / `formatearAliasInline` / `formatearUnidadInline` / `formatearDescripcionInline` | `generadores/duracionMetadata.ts` | cubierto §7.4 (realización local de metadatos inline) |
 | `formatearDuracion` / `nombreEstadoOpl` | `generadores/duracionMetadata.ts` | cubierto §2.3 / §5.3 |
 | `pluralizarCanonico` / `multiplicidadPlural` / `verbo` / `listarOpl` / `listarEstadosOpl` / `listarDesignaciones` / `nombreOplConMultiplicidad` | `generadores/refsHints.ts` | cubierto (utilitarios de superficie; multiplicidad §10, listas en cada familia) |
 | `codigoOpd` | `generadores/refsHints.ts` | cubierto §7 / §12 (código de OPD) |
-| `entidadOplEsEmitible` / `estadoOplEsEmitible` / `extremoOplEsEmitible` / `enlaceOplEsEmitible` | `generadores/refsHints.ts` | cubierto §2.1 (emitibilidad); ligado a GAP-PLACEHOLDER-ENTIDAD |
+| `entidadOplEsEmitible` / `estadoOplEsEmitible` / `extremoOplEsEmitible` / `enlaceOplEsEmitible` | `generadores/refsHints.ts` | cubierto §2.1 (emitibilidad); GAP-PLACEHOLDER-ENTIDAD cerrado |
 | `extraerMultiplicidad` | `parser/parsear.ts` | cubierto §10 (multiplicidad reverse) |
 | `parsearParrafoOpl` / `normalizarLineas` / `normalizarNombreOpl` / `claveNombre` | `parser/parsear.ts` | cubierto §18 (normalización) / §19 (parseo) |
 | `planificarEdicionOplLibre` | `parser/planificar.ts` | cubierto §15 (planificación de edición) |
-| `aplanarBloquesOpl` / `chevronEstadoBloque` / `togglearColapsoBloque` | `bloquesJerarquicos.ts` | GAP-spec — mecánica de colapso/expansión de bloques sin entrada dedicada en §12–§13 |
+| `aplanarBloquesOpl` / `chevronEstadoBloque` / `togglearColapsoBloque` | `bloquesJerarquicos.ts` | cubierto §12–§13 (mecánica display de colapso/expansión de bloques) |
 | `OplReferencia` / `OplToken` / `OplLineaInteractiva` / `OplTokenHint` (tipos) | `interaccion.ts` | cubierto §14 (modelo de tokens) |
 | `RazonNoAplicable` / `EstadoLineaOpl` / `LineaClasificada` / `ResultadoClasificacion` (tipos) | `clasificadorEdicion.ts` | cubierto §15 / §18 |
 | `OracionOplAst` / `PatchOplPropuesto` / `ReferenciaEntidadPatch` / `PrevisualizacionOplReverse` (tipos) | `parser/tipos.ts` | cubierto §15 / §19 (AST y patches) |
 | `oracionPlegadoParcial` | `generadores/plegado.ts` | cubierto §7.2 / §12 |
 | `leyes/opl-reverse.test.ts` (ley `law-opl-safe-lens`) | `leyes/` | cubierto §19 |
 
-`GAP-spec` detectados (4): `emitirDespliegueOcurren`, `emitirEspecializacion`, los formateadores inline de `duracionMetadata.ts` (`oracionesUnidadDescripcionEstados`/`formatear{Alias,Unidad,Descripcion}Inline`), y la mecánica de colapso de bloques (`aplanarBloquesOpl`/`chevronEstadoBloque`/`togglearColapsoBloque`). La auditoría de alineación DEBE darles entrada en la spec o reclasificarlos como helpers no normativos.
+`GAP-spec` detectados (0) tras la reclasificación: `emitirDespliegueOcurren`, `emitirEspecializacion`, los formateadores inline de `duracionMetadata.ts` y la mecánica de colapso de bloques quedan trazados en §7.2, §6.3, §7.4 y §12–§13 respectivamente.
 
 Rationale: §20 materializa la disciplina de trazabilidad bidireccional (spec→código vía §20.1/§20.2; código→spec vía §20.3) declarada por el esquema de entrada (§0, campo `Traza a código`) y por la política de auditoría de alineación. Remite a `app/src/opl/**` y a `leyes/opl-reverse.test.ts` como superficie auditada.
 
@@ -2995,7 +3005,7 @@ El efecto (`TipoEfectoSim` = ask-human/tool-call/http/python/mqtt/sql/ros/genai)
 - *Aprobar* maneja *Preguntar Humano*. → HITL (agente humano, ver B.5)
 - *Escalar* ocurre si duración de *Preguntar Humano* excede 30 minutos. (sobretiempo; *Escalar* ambiental, R-EXC-AMBIENTAL-1)
 
-Estatus `extensión declarada`: la familia de efectos `ask-human/tool-call/http/python/mqtt/sql/ros/genai` se nombra como conjunto de *procesos* invocados; la invocación, el abanico y la excepción son canon, pero la **taxonomía de tipos de efecto** es nomenclatura operativa del runtime, no un constructo OPL nuevo. La forma `invoca … si … ocurre` que hoy emite el generador VIOLA R-IV-3/R-MOD-CAT-1 (GAP-CONDICION-INVOCACION, §5.2): NO canonizada.
+Estatus `extensión declarada`: la familia de efectos `ask-human/tool-call/http/python/mqtt/sql/ros/genai` se nombra como conjunto de *procesos* invocados; la invocación, el abanico y la excepción son canon, pero la **taxonomía de tipos de efecto** es nomenclatura operativa del runtime, no un constructo OPL nuevo. La forma `invoca … si … ocurre` VIOLA R-IV-3/R-MOD-CAT-1 y ya no se exporta: GAP-CONDICION-INVOCACION está cerrado por degradación a invocación base (§5.2).
 
 ### B.5 Supervisión humana HITL — estatus `canon`
 

@@ -32,6 +32,9 @@ import {
   renombrarEstado,
 } from "../modelo/operaciones";
 import { estadosDeEntidad } from "../modelo/operaciones";
+import { extremoEstado } from "../modelo/extremos";
+import { crearAutoInvocacion } from "../modelo/autoinvocacion";
+import { aplicarModificador, definirDemora } from "../modelo/modificadores";
 import type { Abanico, Id, Modelo, Resultado } from "../modelo/tipos";
 
 export interface FixtureRoundtrip {
@@ -63,6 +66,20 @@ function entidadId(modelo: Modelo, nombre: string): Id {
   const ent = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
   if (!ent) throw new Error(`fixture invalida: no existe entidad '${nombre}'`);
   return ent.id;
+}
+
+function enlaceIdUnico(modelo: Modelo): Id {
+  const enlace = Object.values(modelo.enlaces).at(-1);
+  if (!enlace) throw new Error("fixture invalida: no existe enlace");
+  return enlace.id;
+}
+
+function estadosNombrados(modelo: Modelo, entidad: Id, primero: string, segundo: string): Modelo {
+  const creados = must(crearEstadosIniciales(modelo, entidad));
+  let m = creados.modelo;
+  m = must(renombrarEstado(m, creados.estadoIds[0], primero));
+  m = must(renombrarEstado(m, creados.estadoIds[1], segundo));
+  return m;
 }
 
 // ── Fixtures bisimetricas iniciales (corte 08638a8) ──────────────────────
@@ -356,6 +373,258 @@ export const fixturesRoundtripNucleo: readonly FixtureRoundtrip[] = [
  * desde un init re-exportarlas. Lo que NO se debe hacer es mutar el nucleo.
  */
 export const fixturesRoundtripExtra: FixtureRoundtrip[] = [];
+
+const fixtureEfectoSimple: FixtureRoundtrip = {
+  nombre: "enlace-efecto-simple",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Actualizar"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 200, y: 0 }, "Sistema"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Actualizar"), entidadId(m, "Sistema"), "efecto"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "*Actualizar* es informacional.",
+    "*Actualizar* es sistémico.",
+    "**Sistema** es informacional.",
+    "**Sistema** es sistémico.",
+    "*Actualizar* afecta **Sistema**.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+const fixtureTransicionTs3: FixtureRoundtrip = {
+  nombre: "cambio-estado-ts3",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Aprobar"));
+    const pedidoId = entidadId(m, "Pedido");
+    m = estadosNombrados(m, pedidoId, "pendiente", "aprobado");
+    const [pendiente, aprobado] = estadosDeEntidad(m, pedidoId);
+    if (!pendiente || !aprobado) throw new Error("fixture invalida: estados TS3");
+    m = must(crearEnlace(m, m.opdRaizId, extremoEstado(pendiente.id), entidadId(m, "Aprobar"), "consumo"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Aprobar"), extremoEstado(aprobado.id), "resultado"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Pedido** es informacional.",
+    "**Pedido** es sistémico.",
+    "**Pedido** puede estar `pendiente` o `aprobado`.",
+    "*Aprobar* es informacional.",
+    "*Aprobar* es sistémico.",
+    "*Aprobar* cambia **Pedido** de `pendiente` a `aprobado`.",
+  ],
+  bisimetricaEstricta: false,
+};
+
+const fixtureTransicionTs4: FixtureRoundtrip = {
+  nombre: "cambio-estado-ts4-solo-entrada",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Documento"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Archivar"));
+    const documentoId = entidadId(m, "Documento");
+    m = estadosNombrados(m, documentoId, "borrador", "archivado");
+    const [borrador] = estadosDeEntidad(m, documentoId);
+    if (!borrador) throw new Error("fixture invalida: estado TS4");
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Archivar"), extremoEstado(borrador.id), "efecto"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Documento** es informacional.",
+    "**Documento** es sistémico.",
+    "**Documento** puede estar `borrador` o `archivado`.",
+    "*Archivar* es informacional.",
+    "*Archivar* es sistémico.",
+    "*Archivar* cambia **Documento** a `borrador`.",
+  ],
+  bisimetricaEstricta: false,
+};
+
+const fixtureTransicionTs5: FixtureRoundtrip = {
+  nombre: "cambio-estado-ts5-solo-salida",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Ticket"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Resolver"));
+    const ticketId = entidadId(m, "Ticket");
+    m = estadosNombrados(m, ticketId, "abierto", "cerrado");
+    const [abierto] = estadosDeEntidad(m, ticketId);
+    if (!abierto) throw new Error("fixture invalida: estado TS5");
+    m = must(crearEnlace(m, m.opdRaizId, extremoEstado(abierto.id), entidadId(m, "Resolver"), "efecto"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Ticket** es informacional.",
+    "**Ticket** es sistémico.",
+    "**Ticket** puede estar `abierto` o `cerrado`.",
+    "*Resolver* es informacional.",
+    "*Resolver* es sistémico.",
+    "*Resolver* cambia **Ticket** de `abierto`.",
+  ],
+  bisimetricaEstricta: false,
+};
+
+const fixtureHabilitadorConEstado: FixtureRoundtrip = {
+  nombre: "habilitador-con-estado-hs",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Operador"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 120 }, "Equipo"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 220, y: 0 }, "Operar"));
+    m = must(cambiarEsencia(m, entidadId(m, "Operador"), "fisica"));
+    m = estadosNombrados(m, entidadId(m, "Operador"), "disponible", "ocupado");
+    m = estadosNombrados(m, entidadId(m, "Equipo"), "calibrado", "fuera de servicio");
+    const [disponible] = estadosDeEntidad(m, entidadId(m, "Operador"));
+    const [calibrado] = estadosDeEntidad(m, entidadId(m, "Equipo"));
+    if (!disponible || !calibrado) throw new Error("fixture invalida: estados HS");
+    m = must(crearEnlace(m, m.opdRaizId, extremoEstado(disponible.id), entidadId(m, "Operar"), "agente"));
+    m = must(crearEnlace(m, m.opdRaizId, extremoEstado(calibrado.id), entidadId(m, "Operar"), "instrumento"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Operador** es físico.",
+    "**Operador** es sistémico.",
+    "**Operador** puede estar `disponible` o `ocupado`.",
+    "**Equipo** es informacional.",
+    "**Equipo** es sistémico.",
+    "**Equipo** puede estar `calibrado` o `fuera de servicio`.",
+    "*Operar* es informacional.",
+    "*Operar* es sistémico.",
+    "**Operador** en `disponible` maneja *Operar*.",
+    "*Operar* requiere **Equipo** en `calibrado`.",
+  ],
+  bisimetricaEstricta: false,
+};
+
+const fixtureExhibicion: FixtureRoundtrip = {
+  nombre: "enlace-estructural-exhibicion",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Auto"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 200, y: 0 }, "Color"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Auto"), entidadId(m, "Color"), "exhibicion"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Auto** es informacional.",
+    "**Auto** es sistémico.",
+    "**Color** es informacional.",
+    "**Color** es sistémico.",
+    "**Auto** exhibe **Color**.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+const fixtureClasificacion: FixtureRoundtrip = {
+  nombre: "enlace-estructural-clasificacion",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Vehiculo"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 200, y: 0 }, "Patente 123"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Vehiculo"), entidadId(m, "Patente 123"), "clasificacion"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Vehiculo** es informacional.",
+    "**Vehiculo** es sistémico.",
+    "**Patente 123** es informacional.",
+    "**Patente 123** es sistémico.",
+    "**Patente 123** es una instancia de **Vehiculo**.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+const fixtureEventoConsumo: FixtureRoundtrip = {
+  nombre: "evento-consumo-canonico",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Solicitud"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Solicitud"), entidadId(m, "Procesar"), "consumo"));
+    m = must(aplicarModificador(m, enlaceIdUnico(m), "evento"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Solicitud** es informacional.",
+    "**Solicitud** es sistémico.",
+    "*Procesar* es informacional.",
+    "*Procesar* es sistémico.",
+    "**Solicitud** inicia *Procesar*, que consume **Solicitud**.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+const fixtureInvocacionTilde: FixtureRoundtrip = {
+  nombre: "invocacion-con-demora-tilde",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Preparar"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Servir"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Preparar"), entidadId(m, "Servir"), "invocacion"));
+    m = must(definirDemora(m, enlaceIdUnico(m), "1s"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "*Preparar* es informacional.",
+    "*Preparar* es sistémico.",
+    "*Servir* es informacional.",
+    "*Servir* es sistémico.",
+    "*Preparar* invoca *Servir* después de 1s.",
+  ],
+  bisimetricaEstricta: false,
+};
+
+const fixtureEventoInvocacionDegrada: FixtureRoundtrip = {
+  nombre: "evento-invocacion-degrada-base",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Preparar"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Servir"));
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Preparar"), entidadId(m, "Servir"), "invocacion"));
+    m = must(aplicarModificador(m, enlaceIdUnico(m), "evento"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "*Preparar* es informacional.",
+    "*Preparar* es sistémico.",
+    "*Servir* es informacional.",
+    "*Servir* es sistémico.",
+    "*Preparar* invoca *Servir*.",
+  ],
+  bisimetricaEstricta: true,
+};
+
+const fixtureAutoInvocacionTilde: FixtureRoundtrip = {
+  nombre: "autoinvocacion-con-demora-tilde",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Validar"));
+    m = must(crearAutoInvocacion(m, m.opdRaizId, entidadId(m, "Validar"), "1s"));
+    return m;
+  },
+  oracionesEsperadas: [
+    "*Validar* es informacional.",
+    "*Validar* es sistémico.",
+    "*Validar* se invoca a sí mismo después de 1s.",
+  ],
+  bisimetricaEstricta: false,
+};
+
+fixturesRoundtripExtra.push(
+  fixtureEfectoSimple,
+  fixtureTransicionTs3,
+  fixtureTransicionTs4,
+  fixtureTransicionTs5,
+  fixtureHabilitadorConEstado,
+  fixtureExhibicion,
+  fixtureClasificacion,
+  fixtureEventoConsumo,
+  fixtureInvocacionTilde,
+  fixtureEventoInvocacionDegrada,
+  fixtureAutoInvocacionTilde,
+);
 
 /**
  * Vista combinada nucleo + extension para que los tests no tengan que
