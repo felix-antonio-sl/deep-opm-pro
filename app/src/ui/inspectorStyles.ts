@@ -14,8 +14,14 @@ import { tokens } from "./tokens";
 // expresión visual: colores ink/paper, stroke 1px ink-15, radii 2px,
 // labels en mayúscula tracking +0.08em.
 export const inspectorStyles = {
+  // BUG-20260526T015955Z-fbb0f1: el Inspector es el dueño del scroll dentro de
+  // la columna flex `inspectorContent` (App.tsx). `flex:1 1 0` + `minHeight:0`
+  // lo hacen flexar y recortar su propio contenido, en vez de crecer ilimitado
+  // y desplazar al panel de diagnóstico anclado al pie.
   panel: {
     minWidth: 0,
+    flex: "1 1 0",
+    minHeight: 0,
     overflow: "auto",
     padding: "14px 14px 18px",
     background: tokens.colors.paper,

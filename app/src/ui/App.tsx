@@ -300,7 +300,7 @@ export function App() {
                   {!diagnosticoExpandido ? <CodexColHeader kicker="INSPECTOR" title="Selection" /> : null}
                   <div style={layout.inspectorContent}>
                     {diagnosticoExpandido && avisosDiagnostico.length > 0 ? (
-                      <div style={{ ...layout.diagnosticoMarginalia, height: "100%", borderTop: 0 }}>
+                      <div style={{ ...layout.diagnosticoMarginalia, height: "100%", maxHeight: "100%", flex: "1 1 0", borderTop: 0 }}>
                         <PanelDiagnostico expandido={diagnosticoExpandido} onExpandidoChange={setDiagnosticoExpandido} />
                       </div>
                     ) : (
@@ -608,14 +608,25 @@ const layout = {
     borderLeft: `1px solid ${tokens.colors.bordePanel}`,
     boxShadow: tokens.shadows.panelInset,
   },
+  // BUG-20260526T015955Z-fbb0f1: propiedades (Inspector) y advertencias
+  // (PanelDiagnostico) compartían este contenedor con `overflow:auto` como
+  // bloque plano. El Inspector tiene su PROPIO `overflow:auto`, así que había
+  // doble scroll anidado y la marginalia de diagnóstico quedaba empujada fuera
+  // de vista — los dos paneles "competían" por el espacio. Ahora es una columna
+  // flex: el Inspector flexa y posee el scroll (su `overflow:auto`), mientras
+  // timeline y diagnóstico se fijan abajo (`flex:0 0 auto`) con su propia caja
+  // acotada, sin robarse el espacio mutuamente.
   inspectorContent: {
     minWidth: 0,
     minHeight: 0,
     flex: "1 1 0",
-    overflow: "auto",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
     background: tokens.colors.fondoPanel,
   },
   timelineInInspector: {
+    flex: "0 0 auto",
     height: "220px",
     minHeight: "220px",
     overflow: "hidden",
@@ -647,9 +658,15 @@ const layout = {
     flex: "1 1 auto",
     overflow: "hidden",
   },
+  // BUG-20260526T015955Z-fbb0f1: la marginalia de diagnóstico se ancla al pie
+  // del Inspector sin disputarle el espacio. Colapsada es sólo su header (~32px);
+  // el cuerpo expandido vive en la otra rama (reemplaza al Inspector). El
+  // `maxHeight` + `overflow:hidden` blinda contra que, si crece, empuje al
+  // Inspector fuera de vista.
   diagnosticoMarginalia: {
     flex: "0 0 auto",
     minWidth: 0,
+    maxHeight: "40%",
     overflow: "hidden",
     borderTop: `1px solid ${tokens.colors.rule}`,
   },
