@@ -411,4 +411,196 @@ Rationale: `reglas §2.2` (R-OBJ-3, R-OBJ-5..6), `§4.4` (D1, D2) y `opm-opl-es 
 
 Rationale: `reglas §2.2` (R-OBJ-3, R-OBJ-6..7), `§4.4` (D3, D4) y `opm-opl-es §3.1`.
 
-<!-- El cuerpo normativo restante (§3…) y las secciones de cierre se agregan en tareas siguientes. -->
+## §3 Enlaces transformadores
+
+Esta sección canoniza la realización OPL-ES de los enlaces **transformadores**: las tres formas básicas **consumo** (T1), **resultado** (T2) y **efecto** (T3), más las formas de efecto con estado especificado **TS3** (entrada-salida), **TS4** (solo entrada) y **TS5** (solo salida). El consumo y resultado con estado (TS1, TS2) se realizan con el sufijo `en \`estado\`` sobre T1/T2 y se tratan dentro de §3.1 y §3.2.
+
+Un enlace transformador conecta un *proceso* con un **objeto** transformado; su firma fija quién es origen y quién destino del span en la oración. La generación NO DEBE emitir un verbo transformador fuera de {`consume`, `genera`, `afecta`, `cambia … de … a`}; el parseo NO DEBE reconocer otro verbo como transformador.
+
+Rationale: `reglas §4.5` (T1–TS5), `§5.2` (R-CONS/R-RES/R-EFE) y `opm-opl-es §4`.
+
+### §3.0 Asimetría consumo / resultado bajo modificadores
+
+- **R-TR-ASIM-1**: el **consumo** (T1, TS1) PUEDE portar modificador de evento (`e`) o condición (`c`) porque el consumido pertenece a Pre(P).
+
+- **R-TR-ASIM-2**: el **resultado** (T2, TS2) NO DEBE portar modificador de evento ni de condición; el resultante pertenece a Post(P) y no existe antes del proceso, luego no puede ser disparador ni precondición.
+
+  Correcto: `**Disparador** inicia *Procesar*, que consume **Disparador**.`
+  Incorrecto: `**Resultado** inicia *Procesar*, que genera **Resultado**.`
+  Rationale: `reglas §6.3` (R-MOD-1, R-MOD-3, R-MOD-4) y `SSOT-iso §Enlaces transformadores`; Post(P) NO admite `e`/`c`.
+
+- **R-TR-ASIM-3**: el **efecto** (T3, TS3) sobre un **objeto** con estados PUEDE portar `e` o `c` porque el afectado existe en Pre(P) con su estado de entrada (ET2, CT2).
+
+- **R-TR-ASIM-4**: el generador NO DEBE producir una oración de evento/condición de resultado y el parser NO DEBE construir un enlace de resultado con modificador `e`/`c`; tal entrada es OPL no canónica.
+
+  Rationale: `reglas §6.3` (R-MOD-5: la matriz de fuerza semántica no contiene evento/condición de resultado).
+
+### §3.1 Consumo (T1, TS1)
+
+**ID**: T1 (básico), TS1 (con estado).
+
+**Plantilla(s)**:
+- T1: `*Proceso* consume **Objeto**.`
+- TS1: `*Proceso* consume **Objeto** en \`estado\`.`
+- Plural por multiplicidad: `*Proceso* consumen **Objetos**.` (verbo concuerda con el sujeto-proceso múltiple).
+
+**Emisión**: un enlace de tipo `consumo` entre *proceso* (destino del enlace) y **objeto** (origen) emite la oración con `consume`, sujeto = *proceso*, objeto directo = **objeto** consumido. Con estado especificado en el extremo del consumido (TS1) se añade `en \`estado\``.
+
+**Supresión**: si *proceso* u **objeto** tienen nombre placeholder, NO se emite (R-ENT-2). Un consumo bajo abanico XOR/OR se realiza con la oración de abanico, no como T1 individual.
+
+**Tokenización**: span de *proceso* con `ref` al proceso; `consume` token-verbo del enum §1.1; span de **objeto** con `ref` al objeto consumido; `estado` entre backticks con `ref` al estado (TS1).
+
+**Orden**: *proceso* → `consume` → **objeto** [→ `en` → `estado`]. El sujeto es el *proceso* (a diferencia del resultado, donde el sujeto es el proceso pero el orden lo emite con el objeto como complemento). El consumo se interpreta inmediato salvo declaración simultánea de tasa de consumo en el enlace y atributo de cantidad en el objeto.
+
+**Composabilidad**: participa en coordinación de predicados con sujeto compartido (preludio §9): varias oraciones `*P* consume **A**.` / `*P* consume **B**.` con el mismo *proceso* sujeto son candidatas a coordinación copulativa. La coordinación NO DEBE mezclar consumo con resultado/efecto en un solo predicado.
+
+**Reverse**: el parser, vía `ABANICO_VERBO_RE_LIST` (`/^(.+?)\s+consume\s+(.+)$/`, `tipo: "consumo"`, `puertoEsOrigen: false`), construye un enlace `consumo` con el **objeto** como origen y el *proceso* como destino; con `en \`estado\`` fija el estado especificado del extremo consumido.
+
+**Roundtrip**: fixture `enlace-consumo-simple` (`fixtures-roundtrip.ts`), bisimetría estricta, oración `*Procesar* consume **Entrada**.`. El nombre del objeto, el verbo y el estado (TS1) DEBEN preservarse.
+
+**Edge cases**: forma pasiva legacy `**Objeto** es consumido por *Proceso*` (`ABANICO_VERBO_RE_LIST`, `puertoEsOrigen: true`) es entrada parseable válida pero NO es la forma canónica emitida; el generador siempre emite la activa.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEnlaceSinEtiqueta` (caso `consumo`, línea ~199); parseo `app/src/opl/parser/parsear.ts·ABANICO_VERBO_RE_LIST` (entrada `consume`).
+
+Rationale: `reglas §4.5` (T1, TS1), `§5.2` (R-CONS-1..3) y `opm-opl-es §4.1`, `§4.2`.
+
+### §3.2 Resultado (T2, TS2)
+
+**ID**: T2 (básico), TS2 (con estado).
+
+**Plantilla(s)**:
+- T2: `*Proceso* genera **Objeto**.`
+- TS2: `*Proceso* genera **Objeto** en \`estado\`.`
+- Plural por multiplicidad: `*Procesos* generan **Objeto**.`
+
+**Emisión**: un enlace de tipo `resultado` entre *proceso* (origen del enlace) y **objeto** (destino) emite la oración con `genera`, sujeto = *proceso*. Con estado especificado en el extremo del resultante (TS2) se añade `en \`estado\``.
+
+**Supresión**: placeholder NO emite (R-ENT-2). Un enlace de resultado hacia un **objeto** con estado inicial NUNCA DEBE conectarse directamente al estado inicial (R-RES-1); la emisión refleja la conexión al rectángulo o a un estado distinto del inicial.
+
+**Tokenización**: span de *proceso* con `ref`; `genera` token-verbo; span de **objeto** con `ref`; `estado` con backticks y `ref` (TS2).
+
+**Orden**: *proceso* → `genera` → **objeto** [→ `en` → `estado`].
+
+**Composabilidad**: participa en coordinación con sujeto-proceso compartido (preludio §9): `*P* genera **A**.` / `*P* genera **B**.` son coordinables. NO DEBE coordinarse con consumo/efecto en un predicado.
+
+**Reverse**: parser vía `ABANICO_VERBO_RE_LIST` (`/^(.+?)\s+genera\s+(.+)$/`, `tipo: "resultado"`, `puertoEsOrigen: true`): el *proceso* es origen, el **objeto** destino. El resultado NO DEBE parsearse con modificador `e`/`c` (R-TR-ASIM-2, R-TR-ASIM-4).
+
+**Roundtrip**: fixture `enlace-resultado-simple` (`fixtures-roundtrip.ts`), bisimetría estricta, oración `*Procesar* genera **Salida**.`.
+
+**Edge cases**: forma pasiva legacy `**Objeto** es generado por *Proceso*` parseable (`puertoEsOrigen: false`), no canónica como emisión.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEnlaceSinEtiqueta` (caso `resultado`, línea ~201); parseo `app/src/opl/parser/parsear.ts·ABANICO_VERBO_RE_LIST` (entrada `genera`).
+
+Rationale: `reglas §4.5` (T2, TS2), `§5.2` (R-RES-1) y `opm-opl-es §4.1`, `§4.2`.
+
+### §3.3 Efecto (T3)
+
+**ID**: T3.
+
+**Plantilla(s)**:
+- T3: `*Proceso* afecta **Objeto**.`
+- Plural por multiplicidad: `*Procesos* afectan **Objeto**.`
+
+**Emisión**: un enlace de tipo `efecto` sin estado especificado en ningún extremo emite `afecta`, con el *proceso* como sujeto. El efecto REQUIERE un **objeto** con al menos un estado definido (R-EFE-1); aunque la oración T3 no nombre estados, el modelo subyacente sí los tiene. Una vez iniciado el proceso afector, el afectado DEBE salir del estado de entrada (R-EFE-2) y solo alcanza el de salida al completarse (R-EFE-2A).
+
+**Supresión**: placeholder NO emite. Si el efecto porta estados especificados, NO se emite T3 sino TS3/TS4/TS5 (§3.4–§3.6).
+
+**Tokenización**: span de *proceso* con `ref`; `afecta` token-verbo; span de **objeto** con `ref`.
+
+**Orden**: *proceso* → `afecta` → **objeto**.
+
+**Composabilidad**: coordinable por sujeto-proceso compartido (preludio §9); NO DEBE coordinarse con consumo/resultado.
+
+**Reverse**: parser vía `ABANICO_VERBO_RE_LIST` (`/^(.+?)\s+afecta\s+(.+)$/`, `tipo: "efecto"`, `puertoEsOrigen: true`): *proceso* origen, **objeto** destino.
+
+**Roundtrip**: cubierto por el roundtrip de efecto; el verbo y los nombres DEBEN preservarse. GAP-FIXTURE-EFECTO: no hay fixture dedicado de efecto básico en `fixtures-roundtrip.ts` (los fixtures cubren consumo, resultado e instrumento); la simetría de `afecta` se apoya solo en la tabla de parseo y el generador.
+
+**Edge cases**: un *proceso* persistente (mantiene estado sin cambio neto) reusa la realización TS3 con `estado-entrada = estado-salida` (R-OPL-PERSIST-2), no T3.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEfecto` (caso sin estados, línea ~387); parseo `app/src/opl/parser/parsear.ts·ABANICO_VERBO_RE_LIST` (entrada `afecta`).
+
+Rationale: `reglas §4.5` (T3), `§5.2` (R-EFE-1, R-EFE-2, R-EFE-2A, R-EFE-2B) y `opm-opl-es §4.1`.
+
+### §3.4 Efecto entrada-salida (TS3)
+
+**ID**: TS3 (cambio de estado).
+
+**Plantilla(s)**:
+- TS3: `*Proceso* cambia **Objeto** de \`estado-entrada\` a \`estado-salida\`.`
+- Variante evento: `**Objeto** en \`estado-entrada\` inicia *Proceso*, que cambia **Objeto** de \`estado-entrada\` a \`estado-salida\`.`
+- Variante condición: `*Proceso* ocurre si **Objeto** está en \`estado-entrada\`, en cuyo caso *Proceso* cambia **Objeto** de \`estado-entrada\` a \`estado-salida\`, de lo contrario *Proceso* se omite.`
+- Variante negada: `*Proceso* no cambia **Objeto** de \`estado-entrada\` a \`estado-salida\`.`
+
+**Emisión**: un efecto con estado especificado tanto en entrada como en salida emite el verbo compuesto `cambia … de … a`. El modificador `e`/`c` reescribe la superficie según las variantes (admisible por R-TR-ASIM-3: el afectado está en Pre(P)).
+
+**Supresión**: placeholder NO emite. Bajo abanico XOR/OR de estados de destino se emite la oración de abanico (`cambia … a exactamente uno de …`), no TS3 individual.
+
+**Tokenización**: span de *proceso* con `ref`; `cambia` + `de` + `a` tokens fijos; span de **objeto** con `ref`; `estado-entrada` y `estado-salida` entre backticks, cada uno con `ref` a su estado.
+
+**Orden**: *proceso* → `cambia` → **objeto** → `de` → `estado-entrada` → `a` → `estado-salida`. El orden `de … a` es fijo y portador de dirección; invertirlo cambia el hecho.
+
+**Composabilidad**: TS3 NO DEBE coordinarse en un predicado con consumo/resultado; un fan de estados de salida sobre el mismo objeto se realiza vía abanico, no por coordinación copulativa.
+
+**Reverse**: el parseo de cambio de estado completo (`/^(.+?)\s+cambia\s+(.+?)\s+de\s+\`?([^\`]+?)\`?\s+a\s+\`?([^\`]+?)\`?$/`, contexto condición/CS2 en `parsear.ts`) construye un enlace `efecto` con ambos estados especificados. El abanico de cambio se parsea por `ABANICO_CAMBIA_RE`.
+
+**Roundtrip**: el *proceso*, el **objeto** y ambos estados DEBEN preservarse, igual que su orden. GAP-FIXTURE-TS3: no hay fixture dedicado de cambio de estado en `fixtures-roundtrip.ts`.
+
+**Edge cases**: si el modelo se descompone, TS3 se escinde en TS4+TS5 (§3.5, §3.6) y deja de emitirse como una sola oración.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionTransicionEstados` (líneas ~141–147, variantes evento/condición/negada/base); parseo `app/src/opl/parser/parsear.ts` (regex de cambio en contexto condición/CS2, línea ~621; abanico `ABANICO_CAMBIA_RE`, línea ~298).
+
+Rationale: `reglas §4.5` (TS3), `§5.2` (R-EFE-2..2B), `§6.3` (R-TR-ASIM-3) y `opm-opl-es §4.2`.
+
+### §3.5 Efecto escindido / parcial — solo entrada (TS4)
+
+**ID**: TS4.
+
+**Plantilla**: `*Proceso* cambia **Objeto** de \`estado-entrada\`.`
+
+**Doble régimen** (R-ESCIND-0; misma superficie, distinta procedencia):
+- **(a) fragmento escindido**: mitad temprana de un par acoplado producido al descomponer un TS3; saca al **objeto** del `estado-entrada`. Solo tiene sentido junto a su TS5 tardío. NO DEBE portar modificador de control (R-ESC-1). NUNCA se origina por parseo de OPL aislado: solo por la operación de descomposición, y persiste con metadato de procedencia.
+- **(b) efecto parcial standalone**: enlace de efecto completo cuya salida, si no se especifica, se resuelve al estado por defecto del objeto o, en su ausencia, a la distribución de probabilidad de estados (R-EFE-3). Admite evento/condición (ETS3, ETS4).
+
+**Emisión**: efecto con estado especificado solo en el extremo de entrada (origen) emite `cambia … de \`estado\`` sin destino.
+
+**Supresión**: el fragmento escindido (a) NO DEBE emitirse con modificadores de control.
+
+**Tokenización**: span de *proceso*; `cambia` + `de` tokens; span de **objeto**; `estado-entrada` con backticks y `ref`.
+
+**Orden**: *proceso* → `cambia` → **objeto** → `de` → `estado-entrada`.
+
+**Composabilidad**: el fragmento escindido (a) DEBE acoplarse con su TS5; no se coordina como predicado independiente.
+
+**Reverse**: el parser produce el régimen **(b)** efecto parcial standalone; el régimen (a) NUNCA proviene de parseo (R-ESCIND-0). GAP-PARSE-TS4: no se verificó una regex dedicada de `cambia … de \`estado\`` sin `a` en `parsear.ts` (la rama de cambio detectada exige `… a …`); el parseo de TS4 standalone podría depender de la ruta de abanico o no estar conectado — marcar como GAP de cobertura de parseo.
+
+**Roundtrip**: GAP-FIXTURE-TS4: sin fixture dedicado.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEfecto` (rama `estadoOrigen && destino.tipo === "proceso"`, línea ~374: `cambia … de \`…\``). Escisión: `app/src/modelo/` (operación de descomposición; el metadato de procedencia escindido no se rastreó en este pase) — GAP-PROCEDENCIA-ESCIND.
+
+Rationale: `reglas §4.5` (TS4), `§8.4` (R-ESCIND-0..3, R-ESC-1), `§5.2` (R-EFE-3) y `opm-opl-es §4.2`.
+
+### §3.6 Efecto escindido / parcial — solo salida (TS5)
+
+**ID**: TS5.
+
+**Plantilla**: `*Proceso* cambia **Objeto** a \`estado-salida\`.`
+
+**Régimen**: mitad tardía del par escindido (R-ESCIND-3): pone al **objeto** en el `estado-salida`. Como fragmento escindido NO DEBE portar modificador de control (R-ESC-1). Como efecto parcial standalone solo-salida es válido y PUEDE portar evento/condición.
+
+**Emisión**: efecto con estado especificado solo en el extremo de salida (destino) emite `cambia … a \`estado\`` sin origen de estado.
+
+**Supresión**: fragmento escindido NO DEBE emitirse con modificador de control.
+
+**Tokenización**: span de *proceso*; `cambia` + `a` tokens; span de **objeto**; `estado-salida` con backticks y `ref`.
+
+**Orden**: *proceso* → `cambia` → **objeto** → `a` → `estado-salida`. El token `a` (no `de`) marca el régimen solo-salida; la asimetría con TS4 es portadora del hecho.
+
+**Composabilidad**: como fragmento escindido DEBE acoplarse con su TS4 temprano.
+
+**Reverse**: GAP-PARSE-TS5: análogo a TS4, no se verificó regex dedicada de `cambia … a \`estado\`` sin `de` fuera de la ruta de abanico (`ABANICO_CAMBIA_RE` cubre `… a exactamente uno de …`, no el caso de un único estado de salida). Marcar como GAP de cobertura de parseo.
+
+**Roundtrip**: GAP-FIXTURE-TS5: sin fixture dedicado.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEfecto` (rama `estadoDestino && origen.tipo === "proceso"`, línea ~377: `cambia … a \`…\``). Escisión: ver GAP-PROCEDENCIA-ESCIND (§3.5).
+
+Rationale: `reglas §4.5` (TS5), `§8.4` (R-ESCIND-0, R-ESCIND-3, R-ESC-1) y `opm-opl-es §4.2`.
