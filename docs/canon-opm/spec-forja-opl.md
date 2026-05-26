@@ -604,3 +604,106 @@ Rationale: `reglas §4.5` (TS4), `§8.4` (R-ESCIND-0..3, R-ESC-1), `§5.2` (R-EF
 **Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEfecto` (rama `estadoDestino && origen.tipo === "proceso"`, línea ~377: `cambia … a \`…\``). Escisión: ver GAP-PROCEDENCIA-ESCIND (§3.5).
 
 Rationale: `reglas §4.5` (TS5), `§8.4` (R-ESCIND-0, R-ESCIND-3, R-ESC-1) y `opm-opl-es §4.2`.
+
+## §4 Enlaces habilitadores
+
+Esta sección canoniza la realización OPL-ES de los enlaces **habilitadores**: **agente** (H1) e **instrumento** (H2), y sus variantes con estado especificado **HS1** (agente en estado) y **HS2** (instrumento en estado). Un enlace habilitador conecta un **objeto** (origen) con un *proceso* (destino): el habilitador DEBE estar presente para que el *proceso* se ejecute, pero NO se transforma. La generación NO DEBE emitir un verbo habilitador fuera de {`maneja`, `requiere`}; el parseo NO DEBE reconocer otro verbo como habilitador.
+
+Rationale: `reglas §4.6` (H1, H2, HS1, HS2), `§5.3` (R-AG-1..4) y `opm-opl-es §5`.
+
+### §4.0 Reglas duras transversales — agente vs instrumento
+
+La distinción agente/instrumento es **ontológica**, no estilística: fija qué clase de cosa habilita y qué decoración porta el enlace.
+
+- **R-HAB-AG-1**: el enlace de **agente** y el término "agente" DEBEN reservarse EXCLUSIVAMENTE para humanos o grupos de humanos. Un **agente** modifica el *qué* del proceso (aporta juicio, decisión, intención).
+
+  Rationale: `reglas §5.3` (R-AG-1), `glosario 3.3`; piruleta NEGRA en el extremo proceso.
+
+- **R-HAB-AG-2**: robots, agentes de software, IA y máquinas DEBEN modelarse como **instrumento**, NUNCA como agente, en el OPD/OPL canónico. Una descripción textual externa PUEDE llamar "agente" a un software, pero la realización canónica DEBE clasificarlo como instrumento.
+
+  Correcto: `*Procesar* requiere **Modelo de Lenguaje**.`
+  Incorrecto: `**Modelo de Lenguaje** maneja *Procesar*.`
+  Rationale: `reglas §5.3` (R-AG-1A, R-AG-1B); piruleta BLANCA en el extremo proceso.
+
+- **R-HAB-AG-3**: un **instrumento** NO se consume ni cambia de estado por el *proceso* que habilita; DEBE estar presente durante toda la ejecución. Si un habilitador deja de existir durante la ejecución, el *proceso* DEBE detenerse y el estado del afectado queda indeterminado.
+
+  Rationale: `reglas §5.3` (R-AG-2); el habilitador pertenece a la pre-condición persistente, no a Pre(P)∖Post(P).
+
+- **R-HAB-AG-4**: cuando el desgaste, degradación o amortización del **instrumento** es relevante al alcance, el instrumento DEBE reclasificarse como afectado (deja de ser habilitador y pasa a enlace de efecto). En ese caso el modelo DEBERÍA agregar atributo de degradación y *proceso* de mantenimiento separado; si el mantenimiento queda fuera del alcance, el modelo DEBE declarar esa exclusión.
+
+  Rationale: `reglas §5.3` (R-AG-3, R-AG-4); reclasificación por desgaste.
+
+- **R-HAB-AG-5**: un **objeto** y un *proceso* DEBEN conectarse por a lo más un enlace procedimental. Ante colisión de roles, el enlace transformador (consumo/resultado/efecto) tiene mayor fuerza semántica que el habilitador. Un mismo **objeto** NO DEBE ser simultáneamente habilitador y transformado del mismo *proceso* en el mismo nivel.
+
+  Rationale: `reglas §6.3` (matriz de fuerza semántica); unicidad de enlace procedimental.
+
+### §4.1 Agente (H1, HS1)
+
+**ID**: H1 (básico), HS1 (con estado).
+
+**Plantilla(s)**:
+- H1: `**Agente** maneja *Proceso*.`
+- HS1: `**Agente** en \`estado\` maneja *Proceso*.`
+- Plural por multiplicidad: `**Agentes** manejan *Proceso*.` (verbo concuerda con el sujeto-agente múltiple).
+- Variante evento (EH1, remite a §6): `**Agente** inicia y maneja *Proceso*.`
+- Variante condición (CH1/CS5, remite a §7): `**Agente** maneja *Proceso* si **Agente** existe, de lo contrario *Proceso* se omite.` · `**Agente** maneja *Proceso* si **Agente** está en \`estado\`, de lo contrario *Proceso* se omite.`
+- Variante negada: `**Agente** no maneja *Proceso*.`
+
+**Emisión**: un enlace de tipo `agente` entre **objeto** humano (origen del enlace) y *proceso* (destino) emite la oración con `maneja`, sujeto = **agente**, complemento = *proceso*. Con estado especificado en el extremo del agente (HS1) se añade `en \`estado\`` tras el **objeto**.
+
+**Supresión**: si **agente** o *proceso* tienen nombre placeholder, NO se emite (R-ENT-2). Un agente bajo abanico XOR/OR se realiza con la oración de abanico (`maneja exactamente uno de …` / fan inverso), no como H1 individual.
+
+**Tokenización**: span de **agente** con `ref` al objeto; `maneja`/`manejan` token-verbo del enum §1.1; span de *proceso* con `ref` al proceso; `estado` entre backticks con `ref` al estado (HS1).
+
+**Orden**: **agente** [→ `en` → `estado`] → `maneja` → *proceso*. El **agente** es el sujeto y precede al verbo (a diferencia del instrumento, donde el sujeto es el *proceso*). El orden es portador de rol: invertirlo convierte el agente en complemento.
+
+**Composabilidad**: participa en coordinación de habilitadores con *proceso* compartido (preludio §9): varias oraciones `**A** maneja *P*.` / `**B** maneja *P*.` con el mismo *proceso* son candidatas a coordinación. La coordinación de habilitadores NO DEBE mezclar agente con instrumento en un solo predicado (verbos distintos, sujetos distintos: agente=sujeto, instrumento=complemento). Un fan de agentes sobre el mismo proceso bajo operador lógico se realiza vía abanico, no por coordinación copulativa.
+
+**Reverse**: el parser, vía `ABANICO_VERBO_RE_LIST` (`/^(.+?)\s+maneja\s+(.+)$/`, `tipo: "agente"`, `puertoEsOrigen: true`), construye un enlace `agente` con el **objeto** como origen y el *proceso* como destino; con `en \`estado\`` fija el estado especificado del extremo agente. La forma condicional se parsea por `CONDICION_AGENTE_RE` (existe / `está en \`estado\``).
+
+**Roundtrip**: fixture `enlace-agente-simple` (`fixtures-roundtrip.ts`), bisimetría estricta, oración `**Operador** maneja *Procesar*.`. El nombre del agente, el verbo y el estado (HS1) DEBEN preservarse.
+
+**Edge cases**: forma pasiva legacy `*Proceso* es manejado por **Agente**` (`ABANICO_VERBO_RE_LIST`, `puertoEsOrigen: false`) es entrada parseable válida pero NO es la forma canónica emitida; el generador siempre emite la activa con el agente como sujeto.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEnlaceSinEtiqueta` (caso `agente`, línea ~191-192: `maneja`/`manejan`); estado especificado vía `app/src/opl/generadores/refsHints.ts·nombreOplExtremo` (sufijo `en \`estado\``, línea ~187); evento línea ~264; condición línea ~298-301; negada línea ~342. Parseo `app/src/opl/parser/parsear.ts·ABANICO_VERBO_RE_LIST` (entrada `maneja`, línea ~289) y `CONDICION_AGENTE_RE` (línea ~544).
+
+Rationale: `reglas §4.6` (H1, HS1), `§5.3` (R-AG-1, R-AG-1A, R-AG-1B, R-AG-2) y `opm-opl-es §5`, `§1.9`.
+
+### §4.2 Instrumento (H2, HS2)
+
+**ID**: H2 (básico), HS2 (con estado).
+
+**Plantilla(s)**:
+- H2: `*Proceso* requiere **Instrumento**.`
+- HS2: `*Proceso* requiere **Instrumento** en \`estado\`.`
+- Plural por multiplicidad: `*Procesos* requieren **Instrumento**.` (verbo concuerda con el sujeto-proceso múltiple).
+- Variante evento (EH2, remite a §6): `**Instrumento** inicia *Proceso*, que requiere **Instrumento**.`
+- Variante condición (CH2/CS6, remite a §7): `*Proceso* ocurre si **Instrumento** existe, de lo contrario *Proceso* se omite.` · `*Proceso* ocurre si **Instrumento** está en \`estado\`, de lo contrario *Proceso* se omite.`
+- Variante negada: `*Proceso* no requiere **Instrumento**.`
+
+**Emisión**: un enlace de tipo `instrumento` entre **objeto** no humano (origen del enlace) y *proceso* (destino) emite la oración con `requiere`, sujeto = *proceso*, complemento = **instrumento**. Con estado especificado en el extremo del instrumento (HS2) se añade `en \`estado\`` tras el **objeto**.
+
+**Supresión**: placeholder NO emite (R-ENT-2). Un instrumento bajo abanico XOR/OR se realiza con la oración de abanico (`exactamente uno de … requiere **B**`), no como H2 individual. Si el instrumento se reclasifica por desgaste (R-HAB-AG-4), deja de emitirse como `requiere` y pasa a la familia de efecto (§3.3–§3.6).
+
+**Tokenización**: span de *proceso* con `ref` al proceso; `requiere`/`requieren` token-verbo del enum §1.1; span de **instrumento** con `ref` al objeto; `estado` entre backticks con `ref` al estado (HS2).
+
+**Orden**: *proceso* → `requiere` → **instrumento** [→ `en` → `estado`]. El sujeto es el *proceso* (asimetría con el agente, donde el sujeto es el habilitador); esta asimetría sujeto-verbo es portadora de la distinción humano/no-humano y NO DEBE igualarse.
+
+**Composabilidad**: participa en coordinación de habilitadores con *proceso*-sujeto compartido (preludio §9): varias oraciones `*P* requiere **A**.` / `*P* requiere **B**.` con el mismo *proceso* son candidatas a coordinación copulativa de complementos. La coordinación NO DEBE mezclar instrumento con agente ni con transformadores (verbos distintos, roles distintos). Un fan de instrumentos sobre el mismo proceso bajo operador lógico se realiza vía abanico.
+
+**Reverse**: el parser, vía `ABANICO_VERBO_RE_LIST` (`/^(.+?)\s+requiere\s+(.+)$/`, `tipo: "instrumento"`, `puertoEsOrigen: false`), construye un enlace `instrumento` con el **objeto** como origen y el *proceso* como destino; con `en \`estado\`` fija el estado especificado del extremo instrumento. La forma condicional se parsea por la ruta `CONDICION_OCURRE_RE` con `base: "instrumento"`.
+
+**Roundtrip**: fixture `enlace-instrumento-simple` (`fixtures-roundtrip.ts`), bisimetría estricta, oración `*Procesar* requiere **Herramienta**.`. El nombre del instrumento, el verbo y el estado (HS2) DEBEN preservarse.
+
+**Edge cases**:
+- Forma pasiva legacy `**Instrumento** es requerido por *Proceso*` (`ABANICO_VERBO_RE_LIST`, `puertoEsOrigen: true`) es entrada parseable válida pero NO es la forma canónica emitida.
+- Forma posesiva: cuando el verbo del instrumento expresa conducción/manejo de la cosa (`manejar`/`conducir`), `oracionInstrumentoPosesiva` PUEDE emitir una superficie alterna (`procedural.ts·oracionInstrumentoPosesiva`, línea ~390); esta es realización condicionada por el verbo léxico, no la canónica `requiere`.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEnlaceSinEtiqueta` (caso `instrumento`, línea ~193-196: `requiere`/`requieren`); estado especificado vía `refsHints.ts·nombreOplExtremo` (línea ~187); evento línea ~266; condición línea ~303; negada línea ~344; posesiva línea ~390. Parseo `app/src/opl/parser/parsear.ts·ABANICO_VERBO_RE_LIST` (entrada `requiere`, línea ~286), ruta condición `base: "instrumento"` (línea ~578) y formas plurales `requieren?` (línea ~908).
+
+Rationale: `reglas §4.6` (H2, HS2), `§5.3` (R-AG-2, R-AG-3, R-AG-4) y `opm-opl-es §5`, `§1.9`.
+
+### §4.3 GAPs de cobertura — habilitadores
+
+- GAP-FIXTURE-HS: los fixtures `enlace-agente-simple` y `enlace-instrumento-simple` cubren H1 y H2 básicos; NO hay fixture dedicado de **estado especificado** (HS1/HS2) ni de las variantes evento/condición/negada de habilitador en `fixtures-roundtrip.ts`. La emisión y el parseo HS1/HS2 se apoyan en `nombreOplExtremo` (sufijo `en \`estado\``) y en `ABANICO_VERBO_RE_LIST`, pero la simetría no está sellada por un fixture roundtrip propio.
+- GAP-ABANICO-AGENTE-PARSE: el parser reconoce el abanico `exactamente uno de … maneja …` (`parsear.ts` línea ~382), pero el abanico de instrumento (`exactamente uno de … requiere …`) y el fan inverso requieren verificación de cobertura no completada en este pase.
