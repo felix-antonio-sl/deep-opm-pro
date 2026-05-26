@@ -2590,3 +2590,113 @@ Restricciones (RFC 2119):
 Trazabilidad de parser: `app/src/opl/parser/parsear.ts` (reconocimiento de producciones), `app/src/opl/parser/tipos.ts` (tipos de la superficie reconocida).
 
 Rationale: `opm-opl-es A.0–A.10` (gramática formal OPL-ES) + `reglas §4.14` (EBNF normativa). La extensión `oracion_compuesta` traza a §9 de esta spec.
+
+## §19 Roundtrip, bisimetría e invariantes de equivalencia
+
+OPFORJA mantiene una correspondencia bidireccional entre el OPD (modelo) y el panel OPL (texto). Esta sección fija qué significa esa correspondencia, dónde es total y dónde es parcial.
+
+### §19.1 Simetría global OPD↔OPL
+
+- **R-§19-SIM-1**: el generador OPL (`generadores/`, fachada `generar.ts`) DEBE producir, para todo modelo válido, una prosa OPL que el parser reverse (`parser/`) reconozca sin emitir diagnósticos de severidad `error`. La dirección forward (modelo→texto) es total sobre el kernel cubierto.
+- **R-§19-SIM-2**: la dirección reverse (texto→modelo) es total SOLO sobre el subconjunto de producciones que el aplicador soporta (`parser/aplicar.ts`). Las producciones reconocibles pero no aplicables DEBEN diagnosticarse con `unsupported-kernel` (severidad `warning`) y NO DEBEN mutar el modelo.
+- **R-§19-SIM-3**: un fixture marcado `bisimetricaEstricta` EXIGE igualdad línea-por-línea entre `generar(modelo)` y `generar(aplicar(parsear(generar(modelo))))` partiendo de un modelo vacío. La cobertura bisimétrica se amplía agregando fixtures, no tocando el framework.
+
+### §19.2 Parseado vs solo-display
+
+- **R-§19-DISP-1**: las líneas OPL clasificadas como **solo-display** (plegado/despliegue de §12, presentación de §13) SE GENERAN para lectura pero NO SE REVIERTEN como mutaciones de kernel. Editarlas en el panel NO DEBE producir patches; el parser DEBE tratarlas como ruido informativo, no como hechos.
+- **R-§19-DISP-2**: las líneas **parseables** (hechos atómicos de §3–§8 y composición de §9) SON las únicas portadoras de mutación reverse. La frontera display/parseable DEBE ser explícita en el clasificador del parser.
+
+### §19.3 Ley `safe-lens`
+
+La ley `law-opl-safe-lens` (`leyes/opl-reverse.test.ts`) gobierna el lente reverse:
+
+- **R-§19-LENS-1**: la **ausencia** de una línea en el texto editado NO DEBE borrar el hecho correspondiente del modelo. El planificador DEBE emitir el diagnóstico `no-delete-by-absence` (severidad `info`) y NO generar patches destructivos por omisión. El borrado es una acción explícita, nunca inferida por sustracción de prosa.
+- **R-§19-LENS-2**: `planificarEdicionOplLibre` (preview) NO DEBE mutar el modelo aunque proponga patches; el modelo solo cambia al aplicar (`aplicarPatchesOpl`). El preview es puro.
+- **R-§19-LENS-3**: al aplicar un conjunto de patches no destructivos, los hechos omitidos en el texto (enlaces, entidades, estados) DEBEN preservarse idénticos. `exportarModelo(aplicar(modelo, patchesVacíos)) == exportarModelo(modelo)`.
+
+### §19.4 Invariante de descomposición de prosa compuesta
+
+- **R-§19-COMP-1** (remite a §9.4): componer N hechos atómicos en una `oracion_compuesta` y luego parsearla DEBE rendir exactamente el mismo conjunto de hechos —ni más, ni menos—. La composición es una transformación de **superficie**, identidad sobre el conjunto de hechos subyacente.
+- **R-§19-COMP-2**: cada hecho coordinado DEBE conservar su `ref` y su sub-span (`hint`); la coordinación NO DEBE fusionar opacamente tokens que impidan re-derivar cada hecho individual. La descomposición de la prosa compuesta es inversa exacta de su composición.
+
+### §19.5 Dónde se rompe la bisimetría
+
+| Caso | Estado | Convención |
+|------|--------|------------|
+| Producción reconocida sin aplicador | parcial | `unsupported-kernel` (warning), sin mutación; bisimetría no exigida hasta cubrir el aplicador |
+| Línea solo-display editada | no aplica | tratada como ruido; sin patch |
+| Reordenamiento de líneas equivalentes | tolerado | el conjunto de hechos es invariante al orden; el generador reimpone orden canónico (§16) |
+| Variante léxica de superficie (display) normalizable | tolerado | el parser normaliza a ASCII canónico (§18) antes de cotejar |
+
+- **R-§19-ROT-1**: cuando la bisimetría sea parcial, la spec DEBE declararlo explícitamente y el fixture correspondiente DEBE marcarse no-estricto (`bisimetricaEstricta=false`), validando solo la dirección forward hasta cerrar la brecha.
+
+Rationale: `leyes/opl-reverse.test.ts` (ley `law-opl-safe-lens`: no-borrado-por-ausencia, preview puro, preservación de hechos, unsupported-kernel sin mutación) + `roundtrip.test.ts` (framework bisimétrico build→generar→parsear+aplicar→generar) + `fixtures-roundtrip.ts` (catálogo de fixtures estrictos/no-estrictos). Remite a §9.4 (composición), §12–§13 (display), §16 (orden canónico), §18 (normalización léxica).
+
+## §21 Invariantes
+
+### §21.1 Invariantes prescriptivos del documento
+
+Esta spec, como artefacto KORA/MD familia `spec`, DEBE preservar los siguientes invariantes del perfil prescriptivo (spec-md §9):
+
+| Invariante | Enunciado | Verificación |
+|------------|-----------|--------------|
+| **R-§21-PRESC-CONS** Consistencia interna | NO DEBEN coexistir reglas incompatibles sin una cláusula de precedencia explícita. Ante conflicto, la regla más específica o la cláusula declarada manda. | manual |
+| **R-§21-PRESC-AUTO** Auto-suficiencia de regla | Cada regla DEBE ser entendible con su contexto local (su sección y sus `Rationale:`), sin obligar a reconstruir el documento entero. | manual |
+| **R-§21-PRESC-CIRC** No-circularidad | Una regla NO DEBE justificarse remitiendo solo a otra regla opaca; toda cadena de remisión DEBE terminar en una fuente sustantiva (SSOT, ley, test). | manual |
+| **R-§21-PRESC-LANG** Preservación de idioma | El documento DEBE redactarse en es-CL; los anglicismos SE ADMITEN solo para términos técnicos inevitables (p. ej. `roundtrip`, `lens`, `display`, `EBNF`). | lint/manual |
+| **R-§21-PRESC-ENF** Enforcement declarado | Toda tabla de validación DEBE incluir la columna `Enforcement`. | lint |
+| **R-§21-PRESC-INTEG** Integridad del perfil prescriptivo | El documento DEBE cerrar con la tríada Invariantes → Validación → Migración y usar `Rationale:` (nunca `Traces to:`) para trazabilidad. | manual |
+
+### §21.2 Invariantes OPL del dominio
+
+| Invariante | Enunciado | Origen |
+|------------|-----------|--------|
+| **R-§21-OPL-VOCAB** Vocabulario cerrado | Los verbos, cópulas y conectores OPL PERTENECEN a un conjunto cerrado; ningún sinónimo libre es admisible. | §1 |
+| **R-§21-OPL-TIPO** Tipografía portadora de tipo | El tipo de cada token (objeto, proceso, estado) SE CODIFICA tipográficamente: **objeto** (negrita), *proceso* (cursiva), `estado` (monoespaciado). La tipografía es semántica, no decorativa. | §2, §13 |
+| **R-§21-OPL-MOD** Un modificador por enlace | Cada enlace ADMITE como máximo un modificador de control; la combinación de modificadores en un mismo enlace está PROHIBIDA. | §8 |
+| **R-§21-OPL-SPAN** Preservación de sub-span | La composición de prosa DEBE preservar el `ref` y el sub-span (`hint`) de cada hecho coordinado; sin fusión opaca. | §9 |
+| **R-§21-OPL-DISP** Display vs canónico | Existe una forma canónica (parseable, ordenada por §16) y formas de display (plegado, presentación); ambas DEBEN ser distinguibles y la canónica es la única autoritativa para reverse. | §16, §19.2 |
+
+Rationale: spec-md §9 (perfil prescriptivo: consistencia, auto-suficiencia, no-circularidad, idioma, enforcement, integridad) para §21.1; §1·§2·§8·§9·§13·§16 de esta spec + §19 (display-vs-canónico) para §21.2.
+
+## §22 Validación
+
+Toda regla de esta spec se verifica por alguno de los mecanismos declarados. Valores de `Enforcement` (gobernanza KORA §7): `schema` (validación estructural automática), `lint` (regla estática sobre el texto/código), `runtime` (chequeo en ejecución de la app), `eval` (test ejecutable que evalúa comportamiento), `manual` (revisión humana).
+
+| Clase de regla | Cómo se verifica | Artefacto | Enforcement |
+|----------------|------------------|-----------|-------------|
+| Plantillas y vocabulario fijo (§1–§8) | unit sobre el generador: que las frases emitidas coincidan con las plantillas y usen solo el vocabulario cerrado | `app/src/opl/generadores/*.test.ts` | lint, eval |
+| Roundtrip bisimétrico (§19.1, §19.4) | framework build→generar→parsear+aplicar→generar; igualdad línea-por-línea en fixtures estrictos | `app/src/opl/roundtrip.test.ts`, `fixtures-roundtrip.ts` | eval |
+| Bisimetría / ley `safe-lens` (§19.3) | leyes ejecutables: no-borrado-por-ausencia, preview puro, preservación de hechos, unsupported-kernel sin mutación | `app/src/leyes/opl-reverse.test.ts` | eval |
+| Estilo prescriptivo: RFC 2119, sin grasa, sin EN↔ES (§21.1) | lint de redacción donde sea automatizable + revisión humana del resto | gate de docs + revisión | lint, manual |
+| Cobertura de GAPs (huecos de canon abiertos) | rastreo de GAPs declarados contra fixtures/leyes que los cierren | revisión de seguimiento de GAPs | manual |
+| Conformidad KORA/MD familia `spec` (§21.1·INTEG) | tríada Invariantes→Validación→Migración presente; frontmatter y trazabilidad `Rationale:` correctos | revisión contra gobernanza KORA | manual |
+
+- **R-§22-ENF-1**: toda fila de toda tabla de validación de esta spec DEBE declarar su `Enforcement`. Una regla sin enforcement declarado es un defecto del documento (viola R-§21-PRESC-ENF).
+- **R-§22-ENF-2**: los enforcement `eval`/`lint`/`schema`/`runtime` DEBEN apuntar a un artefacto ejecutable concreto; `manual` DEBE nombrar el procedimiento de revisión.
+
+Rationale: gobernanza KORA §7 (taxonomía de Enforcement) + §19 (leyes y roundtrip como artefactos de evaluación) + §21.1·PRESC-ENF (obligatoriedad de la columna).
+
+## §23 Migración
+
+Esta spec es un **major bump 1.0.0**: consolida en un solo documento autoritativo lo que antes vivía disperso, y cambia la fuente de verdad operativa de OPL en OPFORJA.
+
+### §23.1 Qué cambia respecto del canon disperso previo
+
+| Antes | Ahora |
+|-------|-------|
+| OPL repartido entre `opm-opl-es` (gramática OPL-ES) y `reglas-opm-estrictas §4` (reglas de canon) | `spec-forja-opl.md` es la SSOT OPL bidireccional/operativa única de OPFORJA |
+| Para resolver una duda OPL había que cruzar dos fuentes y reconciliarlas a mano | una sola fuente con trazabilidad `Rationale:` hacia ambas |
+| La implementación (generadores/parser/leyes) se alineaba contra canon implícito | la implementación se alinea contra esta spec, vía la tabla de trazabilidad §20 |
+
+### §23.2 Qué migrar
+
+- **R-§23-MIG-1**: la implementación (`app/src/opl/`) DEBE alinearse contra esta spec usando la tabla de trazabilidad §20 (regla→artefacto). Toda divergencia entre código y spec es deuda a cerrar; ante conflicto, la SSOT de canon (`reglas-opm-estrictas.md`) sigue por encima de esta spec (regla de oro §1 del proyecto).
+- **R-§23-MIG-2**: los GAPs abiertos heredados del canon disperso DEBEN re-rastrearse contra esta spec y cerrarse vía fixtures/leyes (§22), no vía notas sueltas.
+
+### §23.3 Qué se deprecia
+
+- **R-§23-DEP-1**: SE DEPRECIA consultar dos fuentes dispersas (`opm-opl-es` + `reglas §4`) como ruta primaria para resolver OPL en OPFORJA. Esas fuentes SE CONSERVAN como SSOT de canon OPM general y como `Rationale:` de esta spec, pero la ruta operativa primaria para OPL es ahora este documento.
+- **R-§23-DEP-2**: NO SE ADMITE redactar reglas OPL nuevas fuera de esta spec; toda regla nueva ENTRA aquí con su `Rationale:` y su `Enforcement`.
+
+Rationale: regla de oro §1 del proyecto (`reglas-opm-estrictas.md` SSOT suprema; `opm-opl-es` SSOT externa) + tabla de trazabilidad §20 (alineación implementación↔spec) + §22 (cierre de GAPs por evaluación). Bump major 1.0.0 por cambio de fuente operativa.
