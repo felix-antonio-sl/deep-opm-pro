@@ -33,29 +33,6 @@ export const store = createStore<OpmStore>((set, get) => ({
 conectarRuntimeStore(store);
 inicializarSnapshot(modeloInicial);
 
-// Reset de tabs Inspector al cambiar de entidad/enlace seleccionado:
-// Why: si el operador navega vía Descomponer/Reasignar/Reanclar (tabs Refinamiento/Extremos),
-// la persistencia del tab dejaba inaccesibles secciones de la nueva entidad
-// (p.ej. botón Ambiental vive en Semántica). Decisión: al cambiar `seleccionId` /
-// `enlaceSeleccionId`, volver al tab default (Semántica/Propiedades).
-{
-  let prevSeleccionId = store.getState().seleccionId;
-  let prevEnlaceSeleccionId = store.getState().enlaceSeleccionId;
-  store.subscribe((state) => {
-    if (state.seleccionId !== prevSeleccionId) {
-      prevSeleccionId = state.seleccionId;
-      if (state.seleccionId !== null && state.tabInspectorEntidadActivo !== "semantica") {
-        store.setState({ tabInspectorEntidadActivo: "semantica" });
-      }
-    }
-    if (state.enlaceSeleccionId !== prevEnlaceSeleccionId) {
-      prevEnlaceSeleccionId = state.enlaceSeleccionId;
-      if (state.enlaceSeleccionId !== null && state.tabInspectorEnlaceActivo !== "propiedades") {
-        store.setState({ tabInspectorEnlaceActivo: "propiedades" });
-      }
-    }
-  });
-}
 
 export function useOpmStore<T>(selector: (state: OpmStore) => T): T {
   const [selected, setSelected] = useState(() => selector(store.getState()));

@@ -4,9 +4,7 @@ import type { OpmStore } from "../../store";
 export interface EntityInspectorShellPort {
   modelo: OpmStore["modelo"];
   opdActivoId: OpmStore["opdActivoId"];
-  tabActivo: OpmStore["tabInspectorEntidadActivo"];
   seleccionados: OpmStore["seleccionados"];
-  cambiarTab: OpmStore["cambiarTabInspectorEntidad"];
   cambiarOpdActivo: OpmStore["cambiarOpdActivo"];
   navegarAEnlace: OpmStore["navegarAEnlaceDesdeTabla"];
 }

@@ -14,18 +14,14 @@ import type {
 export function useZustandEntityInspectorShellPort(): EntityInspectorShellPort {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const tabActivo = useOpmStore((s) => s.tabInspectorEntidadActivo);
   const seleccionados = useOpmStore((s) => s.seleccionados);
-  const cambiarTab = useOpmStore((s) => s.cambiarTabInspectorEntidad);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const navegarAEnlace = useOpmStore((s) => s.navegarAEnlaceDesdeTabla);
 
   return {
     modelo,
     opdActivoId,
-    tabActivo,
     seleccionados,
-    cambiarTab,
     cambiarOpdActivo,
     navegarAEnlace,
   };

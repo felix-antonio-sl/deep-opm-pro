@@ -183,11 +183,6 @@ export type UiPanelSlice = Slice<
   | "toggleBibliotecaDock"
   | "abrirBibliotecaDock"
   | "cerrarBibliotecaDock"
-  // L1 ronda 20: tabs por intención del Inspector
-  | "tabInspectorEntidadActivo"
-  | "tabInspectorEnlaceActivo"
-  | "cambiarTabInspectorEntidad"
-  | "cambiarTabInspectorEnlace"
   // L4 ronda 23: default brutal — focus auto en input Nombre del Inspector
   // al crear objeto/proceso. El campo y el consumidor viven en el slice UI
   // porque el productor (acciones-entidad) es semánticamente del modelo pero

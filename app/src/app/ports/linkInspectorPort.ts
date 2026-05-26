@@ -3,8 +3,6 @@ import type { OpmStore } from "../../store";
 export interface LinkInspectorSessionPort {
   modelo: OpmStore["modelo"];
   opdActivoId: OpmStore["opdActivoId"];
-  tabActivo: OpmStore["tabInspectorEnlaceActivo"];
-  cambiarTab: OpmStore["cambiarTabInspectorEnlace"];
   cambiarOpdActivo: OpmStore["cambiarOpdActivo"];
   abrirInspectorEnlaceDesdeOpl: OpmStore["abrirInspectorEnlaceDesdeOpl"];
 }

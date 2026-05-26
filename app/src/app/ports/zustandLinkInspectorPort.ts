@@ -4,8 +4,6 @@ import type { LinkInspectorPort } from "./linkInspectorPort";
 export function useZustandLinkInspectorPort(): LinkInspectorPort {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
-  const tabActivo = useOpmStore((s) => s.tabInspectorEnlaceActivo);
-  const cambiarTab = useOpmStore((s) => s.cambiarTabInspectorEnlace);
   const cambiarOpdActivo = useOpmStore((s) => s.cambiarOpdActivo);
   const ajustarMultiplicidad = useOpmStore((s) => s.ajustarMultiplicidadSeleccionada);
   const apuntarExtremo = useOpmStore((s) => s.apuntarExtremoEnlaceSeleccionado);
@@ -50,8 +48,6 @@ export function useZustandLinkInspectorPort(): LinkInspectorPort {
   return {
     modelo,
     opdActivoId,
-    tabActivo,
-    cambiarTab,
     cambiarOpdActivo,
     ajustarMultiplicidad,
     apuntarExtremo,

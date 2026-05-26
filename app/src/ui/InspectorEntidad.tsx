@@ -38,9 +38,7 @@ interface Props {
  * cada una bajo un kicker mono uppercase y separada por hairline (ui-forja §9;
  * el apéndice §02:483 prohíbe los tabs con underline-active). Cada `Panel*` es
  * un wrapper local que monta las `Seccion*` existentes — cero cambios al
- * contenido de las secciones. Los campos `tabInspectorEntidadActivo` /
- * `cambiarTabInspectorEntidad` del store se conservan (los consumen ports y
- * persistencia fuera de scope) pero el Inspector ya no los usa.
+ * contenido de las secciones.
  */
 export function InspectorEntidad({ entidad }: Props) {
   const {

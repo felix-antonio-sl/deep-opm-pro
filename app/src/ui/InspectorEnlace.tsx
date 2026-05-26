@@ -39,10 +39,7 @@ interface Props {
  * Ronda Codex v2 / L3 (C9): el contenido dejó de particionarse en tabs y pasó
  * a una **ficha continua** — tres secciones (Propiedades → Extremos → Estilo)
  * apiladas bajo un kicker mono cada una, separadas por hairline. Cero cambios
- * en la lógica de cada `Seccion*`; solo se reorganizan en la ficha. Los campos
- * `tabInspectorEnlaceActivo` / `cambiarTabInspectorEnlace` del store se
- * conservan (los consumen ports/persistencia fuera de scope) pero el Inspector
- * ya no los usa.
+ * en la lógica de cada `Seccion*`; solo se reorganizan en la ficha.
  */
 export function InspectorEnlace({ enlace }: Props) {
   const {
