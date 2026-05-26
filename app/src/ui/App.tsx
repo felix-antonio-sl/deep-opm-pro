@@ -100,7 +100,10 @@ export function App() {
   const [, setInspectorAbierto] = useState(true);
   const [canvasAdapter, setCanvasAdapter] = useState<JointCanvasAdapter | null>(null);
   // L2 ronda 28: altura del panel índice (árbol OPD) sobre el panel inspector.
-  const [alturaIndicePct, setAlturaIndicePct] = useState(30);
+  const [alturaIndicePx, setAlturaIndicePx] = useState(300);
+  const alturaContainerPx = typeof window !== "undefined" ? window.innerHeight - 80 : 900;
+  const alturaIndicePct = Math.min(100, Math.max(0, Math.round((alturaIndicePx / alturaContainerPx) * 100)));
+  const fijarAlturaIndicePx = (px: number) => setAlturaIndicePx(px);
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
   const panelOplVm = usePanelOplViewModel();
   // L2 ronda 21: branch por viewport. Desktop preserva el grid canónico de 4
@@ -293,13 +296,13 @@ export function App() {
                 </section>
                 <DivisorPanel
                   orientacion="horizontal"
-                  anchoInicial={alturaIndicePct}
-                  anchoMin={10}
-                  anchoMax={70}
-                  resetValue={30}
+                  anchoInicial={alturaIndicePx}
+                  anchoMin={80}
+                  anchoMax={alturaContainerPx * 0.7}
+                  resetValue={300}
                   testId="divisor-panel-indice-inspector"
                   title="Ajustar altura del panel índice"
-                  onAnchoChange={setAlturaIndicePct}
+                  onAnchoChange={fijarAlturaIndicePx}
                 />
                 <section style={{ ...layout.rightInspectorPane, flex: `1 1 ${100 - alturaIndicePct}%` }}>
                   {!diagnosticoExpandido ? <CodexColHeader kicker="INSPECTOR" title="Selection" /> : null}
