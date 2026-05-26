@@ -513,7 +513,7 @@ Rationale: `reglas §4.5` (T2, TS2), `§5.2` (R-RES-1) y `opm-opl-es §4.1`, `§
 
 **Reverse**: parser vía `ABANICO_VERBO_RE_LIST` (`/^(.+?)\s+afecta\s+(.+)$/`, `tipo: "efecto"`, `puertoEsOrigen: true`): *proceso* origen, **objeto** destino.
 
-**Roundtrip**: cubierto por el roundtrip de efecto; el verbo y los nombres DEBEN preservarse. GAP-FIXTURE-EFECTO: no hay fixture dedicado de efecto básico en `fixtures-roundtrip.ts` (los fixtures cubren consumo, resultado e instrumento); la simetría de `afecta` se apoya solo en la tabla de parseo y el generador.
+**Roundtrip**: cubierto por `fixtures-roundtrip.ts` (`enlace-efecto-simple`); el verbo y los nombres DEBEN preservarse.
 
 **Edge cases**: un *proceso* persistente (mantiene estado sin cambio neto) reusa la realización TS3 con `estado-entrada = estado-salida` (R-OPL-PERSIST-2), no T3.
 
@@ -543,7 +543,7 @@ Rationale: `reglas §4.5` (T3), `§5.2` (R-EFE-1, R-EFE-2, R-EFE-2A, R-EFE-2B) y
 
 **Reverse**: el parseo de cambio de estado completo (`/^(.+?)\s+cambia\s+(.+?)\s+de\s+\`?([^\`]+?)\`?\s+a\s+\`?([^\`]+?)\`?$/`, contexto condición/CS2 en `parsear.ts`) construye un enlace `efecto` con ambos estados especificados. El abanico de cambio se parsea por `ABANICO_CAMBIA_RE`.
 
-**Roundtrip**: el *proceso*, el **objeto** y ambos estados DEBEN preservarse, igual que su orden. GAP-FIXTURE-TS3: no hay fixture dedicado de cambio de estado en `fixtures-roundtrip.ts`.
+**Roundtrip**: el *proceso*, el **objeto** y ambos estados DEBEN preservarse, igual que su orden. `fixtures-roundtrip.ts` incluye `cambio-estado-ts3` como fixture de emisión canónica no estricta, porque el aplicador aún no reconstruye estados desde modelo vacío en esa ruta.
 
 **Edge cases**: si el modelo se descompone, TS3 se escinde en TS4+TS5 (§3.5, §3.6) y deja de emitirse como una sola oración.
 
@@ -573,7 +573,7 @@ Rationale: `reglas §4.5` (TS3), `§5.2` (R-EFE-2..2B), `§6.3` (R-TR-ASIM-3) y 
 
 **Reverse**: el parser produce el régimen **(b)** efecto parcial standalone; el régimen (a) NUNCA proviene de parseo (R-ESCIND-0). GAP-PARSE-TS4: no se verificó una regex dedicada de `cambia … de \`estado\`` sin `a` en `parsear.ts` (la rama de cambio detectada exige `… a …`); el parseo de TS4 standalone podría depender de la ruta de abanico o no estar conectado — marcar como GAP de cobertura de parseo.
 
-**Roundtrip**: GAP-FIXTURE-TS4: sin fixture dedicado.
+**Roundtrip**: `fixtures-roundtrip.ts` incluye `cambio-estado-ts4-solo-entrada` como fixture de emisión canónica no estricta. GAP-PARSE-TS4 y GAP-PROCEDENCIA-ESCIND siguen vigentes para reverse/procedencia.
 
 **Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEfecto` (rama `estadoOrigen && destino.tipo === "proceso"`, línea ~374: `cambia … de \`…\``). Escisión: `app/src/modelo/` (operación de descomposición; el metadato de procedencia escindido no se rastreó en este pase) — GAP-PROCEDENCIA-ESCIND.
 
@@ -599,7 +599,7 @@ Rationale: `reglas §4.5` (TS4), `§8.4` (R-ESCIND-0..3, R-ESC-1), `§5.2` (R-EF
 
 **Reverse**: GAP-PARSE-TS5: análogo a TS4, no se verificó regex dedicada de `cambia … a \`estado\`` sin `de` fuera de la ruta de abanico (`ABANICO_CAMBIA_RE` cubre `… a exactamente uno de …`, no el caso de un único estado de salida). Marcar como GAP de cobertura de parseo.
 
-**Roundtrip**: GAP-FIXTURE-TS5: sin fixture dedicado.
+**Roundtrip**: `fixtures-roundtrip.ts` incluye `cambio-estado-ts5-solo-salida` como fixture de emisión canónica no estricta. GAP-PARSE-TS5 sigue vigente para reverse completo.
 
 **Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEfecto` (rama `estadoDestino && origen.tipo === "proceso"`, línea ~377: `cambia … a \`…\``). Escisión: ver GAP-PROCEDENCIA-ESCIND (§3.5).
 
@@ -705,7 +705,7 @@ Rationale: `reglas §4.6` (H2, HS2), `§5.3` (R-AG-2, R-AG-3, R-AG-4) y `opm-opl
 
 ### §4.3 GAPs de cobertura — habilitadores
 
-- GAP-FIXTURE-HS: los fixtures `enlace-agente-simple` y `enlace-instrumento-simple` cubren H1 y H2 básicos; NO hay fixture dedicado de **estado especificado** (HS1/HS2) ni de las variantes evento/condición/negada de habilitador en `fixtures-roundtrip.ts`. La emisión y el parseo HS1/HS2 se apoyan en `nombreOplExtremo` (sufijo `en \`estado\``) y en `ABANICO_VERBO_RE_LIST`, pero la simetría no está sellada por un fixture roundtrip propio.
+- GAP-FIXTURE-HS: cerrado para emisión HS1/HS2 por `fixtures-roundtrip.ts` (`habilitador-con-estado-hs`). Las variantes evento/condición/negada de habilitador siguen cubiertas por tests de parser/generador, no por fixture estricta.
 - GAP-ABANICO-AGENTE-PARSE: el parser reconoce el abanico `exactamente uno de … maneja …` (`parsear.ts` línea ~382), pero el abanico de instrumento (`exactamente uno de … requiere …`) y el fan inverso requieren verificación de cobertura no completada en este pase.
 
 ## §5 Modificadores de control
@@ -776,7 +776,7 @@ Los modificadores `e` y `c` son **anotaciones INPUT-only**: solo aplican al lado
 
 **Reverse**: la oración de evento se parsea como enlace base con `modificador: "e"`. La forma de consumo con estado (ETS1) y cambio (ETS2) se reconstruye con el estado especificado del extremo Pre(P).
 
-**Roundtrip**: el disparador, el verbo base, el *proceso* y los estados (ETS\*/EHS\*) DEBEN preservarse. GAP-FIXTURE-EVENTO: no hay fixture dedicado de evento en `fixtures-roundtrip.ts`; la simetría se apoya en `oracionEvento` y en la ruta de parseo de eventos.
+**Roundtrip**: el disparador, el verbo base, el *proceso* y los estados (ETS\*/EHS\*) DEBEN preservarse. GAP-FIXTURE-EVENTO: cerrado para evento canónico básico por `fixtures-roundtrip.ts` (`evento-consumo-canonico`); los eventos con estado se mantienen cubiertos por tests dedicados de parser/generador.
 
 **Edge cases**:
 - El evento de efecto (ET2) sobre un **objeto** con estados es admisible porque el afectado existe en Pre(P) (R-MOD-INPUT-1).
@@ -918,7 +918,7 @@ Rationale: `reglas §4.9` (EX1, EX2), `§5.7` (R-EXC-1..5) y `opm-opl-es §8.1`.
 
 **Reverse**: la oración `*X* invoca *Y*` se parsea como enlace de invocación proceso→proceso; `*X* se invoca a sí mismo` como autoinvocación. El abanico de invocación se parsea por la ruta de abanico.
 
-**Roundtrip**: el *invocador*, el *invocado* y la demora DEBEN preservarse. GAP-FIXTURE-INVOCACION: no hay fixture dedicado de invocación/autoinvocación en `fixtures-roundtrip.ts`; la simetría se apoya en `oracionEnlaceSinModificador` y `esAutoInvocacion`.
+**Roundtrip**: el *invocador*, el *invocado* y la demora DEBEN preservarse. GAP-FIXTURE-INVOCACION: cerrado para emisión por `fixtures-roundtrip.ts` (`invocacion-con-demora-tilde`, `autoinvocacion-con-demora-tilde`) y para degradación de evento sobre invocación (`evento-invocacion-degrada-base`). La demora sigue no estricta en reverse porque el parser la acepta como superficie pero no la rehidrata en el patch.
 
 **Edge cases**:
 - La grafía canónica es `después de`. GAP-INVOCACION-TILDE: cerrado en `procedural.ts`; el parser acepta además `despues de` como compatibilidad legacy.
@@ -932,7 +932,7 @@ Rationale: `reglas §4.9` (IV1, IV2), `§5.4` (R-INV-1..2B) y `opm-opl-es §8.2`
 
 - GAP-EVENTO-RESULTADO / GAP-CONDICION-RESULTADO: cerrados; el generador degrada evento/condición de **resultado** a la oración base, preservando R-MOD-INPUT-2 (Post(P) no admite `e`/`c`).
 - GAP-EVENTO-INVOCACION / GAP-CONDICION-INVOCACION: cerrados; el generador degrada evento/condición de invocación a la invocación base, preservando R-MOD-CAT-1 / R-IV-3.
-- GAP-FIXTURE-EVENTO / GAP-FIXTURE-INVOCACION: no hay fixtures roundtrip dedicados de evento ni de invocación/autoinvocación en `fixtures-roundtrip.ts`; la simetría se apoya solo en los generadores y en `parser.condicionesExcepciones.test.ts` (que cubre condición y excepción, no evento ni invocación).
+- GAP-FIXTURE-EVENTO / GAP-FIXTURE-INVOCACION: cerrados para emisión y rutas básicas por `fixtures-roundtrip.ts`; las variantes con estado/demora quedan no estrictas cuando el reverse aún no rehidrata metadatos desde modelo vacío.
 - GAP-EXC-UNIDADES-LITERAL: cerrado por nota de realización; `unidades-tiempo` es metavariable y `formatoTiempo` realiza valor+unidad concretos (ver §5.3).
 - GAP-INVOCACION-TILDE: cerrado; emisión canónica `después de` y parser compatible con legacy (ver §5.4).
 
@@ -1013,7 +1013,7 @@ Rationale: `reglas §4.10` (RF1), `§5.5` (R-STRF-1, R-STRF-4) y `opm-opl-es §9
 
 **Reverse**: la oración `**Exhibidor** exhibe **A** así como *Op*` se parsea, vía `parsear.ts·astEstructural` (regex `^(.+?) exhibe(?:n)? (.+)$`, `tipo: "exhibicion"`); la variante `tiene un … opcional` se parsea con multiplicidad `0..1`.
 
-**Roundtrip**: exhibidor, rasgos, orden, opcionalidad y la frontera atributo/operación DEBEN preservarse. GAP-FIXTURE-EXHIBICION: no hay fixture dedicado de exhibición en `fixtures-roundtrip.ts`.
+**Roundtrip**: exhibidor, rasgos, orden, opcionalidad y la frontera atributo/operación DEBEN preservarse. GAP-FIXTURE-EXHIBICION: cerrado por `fixtures-roundtrip.ts` (`enlace-estructural-exhibicion`).
 
 **Edge cases**: el caso atributo-con-valor (`**Atributo** de **Objeto** es valor`) NO es exhibición sino entidad-atributo (§2.5); el generador lo separa (`estructural.ts` comenta esa frontera).
 
@@ -1084,7 +1084,7 @@ Rationale: `reglas §4.10` (RF3, RF3b, RX1, RX2, RH1), `§5.5` (R-STRF-1, R-HER-
 
 **Reverse**: `parsear.ts·astEstructural` reconoce `^(.+?) es una instancia de (.+)$` (~971) y `^(.+?) son instancias de (.+)$` (~973) como `clasificacion` con la clase como origen y la(s) instancia(s) como destino.
 
-**Roundtrip**: instancias, clase y plural/singular DEBEN preservarse. El formato nominal `Instancia : Clase` (§2.6) es designación de nombre, no oración de instanciación; GAP-NOMBRE-INSTANCIA (declarado en §2.6) sigue vigente. GAP-FIXTURE-CLASIFICACION: no hay fixture dedicado.
+**Roundtrip**: instancias, clase y plural/singular DEBEN preservarse. El formato nominal `Instancia : Clase` (§2.6) es designación de nombre, no oración de instanciación; GAP-NOMBRE-INSTANCIA (declarado en §2.6) sigue vigente. GAP-FIXTURE-CLASIFICACION: cerrado por `fixtures-roundtrip.ts` (`enlace-estructural-clasificacion`).
 
 **Traza a código**: generación `app/src/opl/generadores/estructural.ts·oracionEnlaceEstructural` (caso `clasificacion`, línea ~72); parseo `app/src/opl/parser/parsear.ts·astEstructural` (regex `es una instancia de` ~971, `son instancias de` ~973).
 
@@ -1171,7 +1171,7 @@ Rationale: `reglas §4.10` (SSE1–SSE7, V-30) y `opm-opl-es §9.4`.
 - GAP-XOR-FEATURE / GAP-XOR-PARSER: la especialización XOR (`puede ser` / `puede ser uno de`, RX1/RX2) tiene verbo canónico (enum §1.1) pero ningún generador de `app/src/opl/generadores/` la emite ni regex de `parsear.ts·astEstructural` la reconoce; cobertura bidireccional ausente.
 - GAP-TAG-PARSER / GAP-SSE-PARSER: la generación de etiquetados (SE1–SE5) y de estructurales con estado (SSE1–SSE7) existe en `procedural.ts·oracionEstructuralEtiquetada`, pero `parsear.ts·astEstructural` no incluye regex dedicada para `se relaciona con` / `se relacionan` ni para etiquetas de usuario; el reverse de etiquetados es GAP.
 - GAP-NOMBRE-INSTANCIA: el formato nominal `Instancia : Clase` (§2.6) no tiene generador dedicado que lo componga automáticamente; vigente desde §2.6.
-- GAP-FIXTURE-ESTRUCTURALES: no hay fixtures roundtrip dedicados de agregación, exhibición, generalización, clasificación ni etiquetado en `fixtures-roundtrip.ts`; la simetría de las cuatro fundamentales se apoya en `oracionEnlaceEstructural` y las regex de `astEstructural`; la de etiquetados solo en el generador (sin reverse, por GAP-TAG-PARSER).
+- GAP-FIXTURE-ESTRUCTURALES: cerrado para las cuatro relaciones fundamentales (agregación, exhibición, generalización, clasificación) por `fixtures-roundtrip.ts`; etiquetados siguen fuera por GAP-TAG-PARSER / GAP-FIXTURE-TAGGED.
 
 ## §7 Refinamiento / gestión de contexto
 
@@ -2675,27 +2675,27 @@ Leyenda de **Estado**:
 | §2.8 | Afiliación (sistémica/ambiental) | `estructural.ts·oracionEntidad` (vía `refsHints.ts·textoAfiliacion`) | — | — | alineado |
 | §3.1 | Consumo `consume` | `procedural.ts·oracionEnlaceSinEtiqueta` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`consume`) | `enlace-…` | alineado |
 | §3.2 | Resultado `genera` | `procedural.ts·oracionEnlaceSinEtiqueta` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`genera`) | — | alineado |
-| §3.3 | Efecto `afecta` | `procedural.ts·oracionEfecto` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`afecta`) | (sin fixture) | GAP-FIXTURE-EFECTO |
-| §3.4 | Cambio de estado TS3 (`de … a …`) | `procedural.ts·oracionTransicionEstados` | `parsear.ts·ABANICO_CAMBIA_RE` / regex CS2 | (sin fixture) | GAP-FIXTURE-TS3 |
-| §3.5 | Efecto parcial TS4 (`de \`estado\``) | `procedural.ts·oracionEfecto` (rama origen) | regex dedicada no verificada | (sin fixture) | GAP-PARSE-TS4 · GAP-FIXTURE-TS4 · GAP-PROCEDENCIA-ESCIND |
-| §3.6 | Efecto parcial TS5 (`a \`estado\``) | `procedural.ts·oracionEfecto` (rama destino) | regex dedicada no verificada | (sin fixture) | GAP-PARSE-TS5 · GAP-FIXTURE-TS5 |
+| §3.3 | Efecto `afecta` | `procedural.ts·oracionEfecto` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`afecta`) | `enlace-efecto-simple` | alineado |
+| §3.4 | Cambio de estado TS3 (`de … a …`) | `procedural.ts·oracionTransicionEstados` | `parsear.ts·ABANICO_CAMBIA_RE` / regex CS2 | `cambio-estado-ts3` (no estricta) | alineado-emision |
+| §3.5 | Efecto parcial TS4 (`de \`estado\``) | `procedural.ts·oracionEfecto` (rama origen) | regex dedicada no verificada | `cambio-estado-ts4-solo-entrada` (no estricta) | GAP-PARSE-TS4 · GAP-PROCEDENCIA-ESCIND |
+| §3.6 | Efecto parcial TS5 (`a \`estado\``) | `procedural.ts·oracionEfecto` (rama destino) | regex dedicada no verificada | `cambio-estado-ts5-solo-salida` (no estricta) | GAP-PARSE-TS5 |
 | §4.1 | Agente `maneja` (+ estado/evento/cond/negada) | `procedural.ts·oracionEnlaceSinEtiqueta` / `refsHints.ts·nombreOplExtremo` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`maneja`) / `CONDICION_AGENTE_RE` | `enlace-agente-simple` | alineado |
 | §4.2 | Instrumento `requiere` (+ estado/evento/cond/negada) | `procedural.ts·oracionEnlaceSinEtiqueta` / `refsHints.ts·nombreOplExtremo` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`requiere`) | `enlace-instrumento-simple` | alineado |
-| §4.x | Habilitador con estado especificado (HS1/HS2) | `refsHints.ts·nombreOplExtremo` (sufijo `en \`estado\``) | `ABANICO_VERBO_RE_LIST` (sin sellado) | (sin fixture) | GAP-FIXTURE-HS |
+| §4.x | Habilitador con estado especificado (HS1/HS2) | `refsHints.ts·nombreOplExtremo` (sufijo `en \`estado\``) | `ABANICO_VERBO_RE_LIST` | `habilitador-con-estado-hs` (no estricta) | alineado-emision |
 | §4.x | Abanico de instrumento/agente inverso | `abanico.ts` | `parsear.ts` (cobertura no completada) | — | GAP-ABANICO-AGENTE-PARSE |
-| §5.1 | Evento `inicia` | `procedural.ts·oracionEvento` | `parsear.ts` (ruta evento) | (sin fixture) | GAP-FIXTURE-EVENTO |
+| §5.1 | Evento `inicia` | `procedural.ts·oracionEvento` | `parsear.ts` (ruta evento) | `evento-consumo-canonico` | alineado |
 | §5.1 | Evento sobre **resultado** (no canónico) | `procedural.ts·oracionEvento` degrada a base | — | `procedural.test.ts` | cerrado |
 | §5.1 | Evento sobre **invocación** (no canónico) | `procedural.ts·oracionEvento` degrada a base | — | `procedural.test.ts` | cerrado |
 | §5.2 | Condición `ocurre si … en cuyo caso … de lo contrario` | `procedural.ts·oracionCondicion` | `parsear.ts·CONDICION_OCURRE_RE` / `CONDICION_AGENTE_RE` | `parser.condicionesExcepciones.test.ts` | alineado |
 | §5.2 | Condición sobre **resultado** (no canónico) | `procedural.ts·oracionCondicion` degrada a base | — | `procedural.test.ts` | cerrado |
 | §5.2 | Condición sobre **invocación** (no canónico) | `procedural.ts·oracionCondicion` degrada a base | — | `procedural.test.ts` | cerrado |
 | §5.3 | Excepción sobre/sub/sub-sobretiempo | `procedural.ts·oracionEnlaceSinModificador` / `formatoTiempo*` / `duracionMetadata.ts` | `parser.condicionesExcepciones.test.ts` | (test) | alineado |
-| §5.4 | Invocación / autoinvocación | `procedural.ts·oracionEnlaceSinModificador` / `modelo/autoinvocacion.ts·esAutoInvocacion` | `parsear.ts` (`despu[eé]s`) | (sin fixture) | GAP-FIXTURE-INVOCACION |
+| §5.4 | Invocación / autoinvocación | `procedural.ts·oracionEnlaceSinModificador` / `modelo/autoinvocacion.ts·esAutoInvocacion` | `parsear.ts` (`despu[eé]s`, sin rehidratar demora) | `invocacion-con-demora-tilde` / `autoinvocacion-con-demora-tilde` (no estrictas) / `evento-invocacion-degrada-base` | alineado-emision |
 | §6.1 | Agregación `consta de` | `estructural.ts·oracionEnlaceEstructural` (agregación) | `parsear.ts·astEstructural` (`consta de`) | (sin fixture) | GAP-FIXTURE-AGREGACION |
-| §6.2 | Exhibición `exhibe` / `así como` | `estructural.ts·oracionEnlaceEstructural` (exhibición) | `parsear.ts·astEstructural` (`exhibe`) | (sin fixture) | GAP-FIXTURE-EXHIBICION |
+| §6.2 | Exhibición `exhibe` / `así como` | `estructural.ts·oracionEnlaceEstructural` (exhibición) | `parsear.ts·astEstructural` (`exhibe`) | `enlace-estructural-exhibicion` | alineado |
 | §6.3 | Generalización `son` / `es un` | `estructural.ts·oracionEnlaceEstructural` (generalización) | `parsear.ts·astEstructural` (`es un` / `son`) | (sin fixture) | GAP-FIXTURE-GENERALIZACION |
 | §6.3 | Generalización XOR `puede ser` | — (feature pendiente; `emitirEspecializacion` emite `es un`) | — (sin regex estructural) | — | GAP-XOR-FEATURE · GAP-XOR-PARSER |
-| §6.4 | Clasificación `es una instancia de` / `son instancias de` | `estructural.ts·oracionEnlaceEstructural` (clasificación) | `parsear.ts·astEstructural` (`es una instancia de` / `son instancias de`) | (sin fixture) | GAP-FIXTURE-CLASIFICACION · GAP-NOMBRE-INSTANCIA |
+| §6.4 | Clasificación `es una instancia de` / `son instancias de` | `estructural.ts·oracionEnlaceEstructural` (clasificación) | `parsear.ts·astEstructural` (`es una instancia de` / `son instancias de`) | `enlace-estructural-clasificacion` | GAP-NOMBRE-INSTANCIA |
 | §6.5 | Etiquetado `tag` / `se relaciona con` / `se relacionan` (SE1–SE5) | `procedural.ts·oracionEstructuralEtiquetada` | — (sin regex en `astEstructural`) | (sin fixture) | GAP-TAG-PARSER · GAP-FIXTURE-TAGGED |
 | §6.6 | Etiquetado con estado especificado (SSE1–SSE7) | `procedural.ts·oracionEstructuralEtiquetada` (sufijo de estado) | — | (sin fixture) | GAP-SSE-PARSER · GAP-FIXTURE-SSE |
 | §7.1 | Descomposición `se descompone en` / `paralelo` (CX1/CX2) | `refinamiento.ts·oracionDescomposicion` / `oracionParalelo` / `describirProcesosTemporales` | — (sin regex dedicada) | `parser.designacionesPlegado.test.ts` (parcial) | GAP-CX-PARSER · GAP-FIXTURE-DESCOMPOSICION |
@@ -2738,32 +2738,32 @@ Lista consolidada de todos los marcadores `GAP-*` (sección de origen · descrip
 | GAP-RECOMPONE | §1.1 / §7.1 | `se recompone desde` (CX7/CX8) canónico, sin generador ni parser. |
 | GAP-PLACEHOLDER-ENTIDAD | §2.1 | Cerrado: `entidadOplEsEmitible` suprime procesos placeholder antes de emitir OPL. |
 | GAP-NOMBRE-INSTANCIA | §2.6 / §6.4 | Formato nominal `Instancia : Clase` sin generador dedicado. |
-| GAP-FIXTURE-EFECTO | §3.3 | Sin fixture roundtrip dedicado de efecto básico. |
-| GAP-FIXTURE-TS3 | §3.4 | Sin fixture roundtrip dedicado de cambio de estado. |
+| GAP-FIXTURE-EFECTO | §3.3 | Cerrado: `enlace-efecto-simple`. |
+| GAP-FIXTURE-TS3 | §3.4 | Cerrado para emisión: `cambio-estado-ts3` no estricta. |
 | GAP-PARSE-TS4 | §3.5 | Regex de `cambia … de \`estado\`` sin `a` no verificada. |
-| GAP-FIXTURE-TS4 | §3.5 | Sin fixture dedicado de efecto parcial TS4. |
+| GAP-FIXTURE-TS4 | §3.5 | Cerrado para emisión: `cambio-estado-ts4-solo-entrada` no estricta. |
 | GAP-PROCEDENCIA-ESCIND | §3.5 | Metadato de procedencia escindido no rastreado en este pase. |
 | GAP-PARSE-TS5 | §3.6 | Regex de `cambia … a \`estado\`` sin `de` no verificada fuera del abanico. |
-| GAP-FIXTURE-TS5 | §3.6 | Sin fixture dedicado de efecto parcial TS5. |
-| GAP-FIXTURE-HS | §4.x | Sin fixture de habilitador con estado especificado (HS1/HS2) ni variantes evento/cond/negada. |
+| GAP-FIXTURE-TS5 | §3.6 | Cerrado para emisión: `cambio-estado-ts5-solo-salida` no estricta. |
+| GAP-FIXTURE-HS | §4.x | Cerrado para emisión HS1/HS2: `habilitador-con-estado-hs` no estricta. |
 | GAP-ABANICO-AGENTE-PARSE | §4.x | Abanico de instrumento y fan inverso sin verificación de cobertura de parseo. |
-| GAP-FIXTURE-EVENTO | §5.1 | Sin fixture roundtrip dedicado de evento. |
+| GAP-FIXTURE-EVENTO | §5.1 | Cerrado: `evento-consumo-canonico`. |
 | GAP-EVENTO-RESULTADO | §5.1 | Cerrado: evento sobre resultado degrada a resultado base. |
 | GAP-EVENTO-INVOCACION | §5.1 | Cerrado: evento sobre invocación degrada a invocación base. |
 | GAP-CONDICION-RESULTADO | §5.2 | Cerrado: condición sobre resultado degrada a resultado base; `puede generarse` retirado. |
 | GAP-CONDICION-INVOCACION | §5.2 | Cerrado: condición sobre invocación degrada a invocación base. |
 | GAP-EXC-UNIDADES-LITERAL | §5.3 | Cerrado por ajuste-spec: `unidades-tiempo` es metavariable realizada como valor+unidad. |
-| GAP-FIXTURE-INVOCACION | §5.4 | Sin fixture roundtrip dedicado de invocación/autoinvocación. |
+| GAP-FIXTURE-INVOCACION | §5.4 | Cerrado para emisión: `invocacion-con-demora-tilde`, `autoinvocacion-con-demora-tilde` y `evento-invocacion-degrada-base`. |
 | GAP-INVOCACION-TILDE | §5.4 | Cerrado: emisión canónica `después de`; parser acepta grafía legacy sin tilde. |
 | GAP-FIXTURE-AGREGACION | §6.1 | Sin fixture roundtrip dedicado de agregación. |
-| GAP-FIXTURE-EXHIBICION | §6.2 | Sin fixture roundtrip dedicado de exhibición. |
+| GAP-FIXTURE-EXHIBICION | §6.2 | Cerrado: `enlace-estructural-exhibicion`. |
 | GAP-FIXTURE-GENERALIZACION | §6.3 | Sin fixture roundtrip dedicado de generalización. |
-| GAP-FIXTURE-CLASIFICACION | §6.4 | Sin fixture roundtrip dedicado de clasificación. |
+| GAP-FIXTURE-CLASIFICACION | §6.4 | Cerrado: `enlace-estructural-clasificacion`. |
 | GAP-TAG-PARSER | §6.5 | `se relaciona con` / `se relacionan` / etiquetas de usuario sin regex en `astEstructural`. |
 | GAP-FIXTURE-TAGGED | §6.5 | Sin fixture roundtrip dedicado de etiquetado. |
 | GAP-SSE-PARSER | §6.6 | Etiquetados con estado especificado heredan GAP-TAG-PARSER (sin regex). |
 | GAP-FIXTURE-SSE | §6.6 | Sin fixture dedicado de estructural con estado especificado. |
-| GAP-FIXTURE-ESTRUCTURALES | §6.x | Sin fixtures roundtrip dedicados para las estructurales (agregación/exhibición/generalización/clasificación/etiquetado). |
+| GAP-FIXTURE-ESTRUCTURALES | §6.x | Cerrado para relaciones fundamentales; etiquetado sigue separado en GAP-TAG-PARSER / GAP-FIXTURE-TAGGED. |
 | GAP-CX-PARSER | §7.1 | `se descompone en` se genera pero no hay regex que la reconstruya como refinamiento. |
 | GAP-FIXTURE-DESCOMPOSICION | §7.1 | Sin fixture roundtrip dedicado de descomposición/despliegue. |
 | GAP-COMP-GUARDA | §7.7 / §9 | Cerrado-no-aplica: guard pendiente solo cuando exista GAP-COMPOSICION; hoy la protección es por construcción atómica. |

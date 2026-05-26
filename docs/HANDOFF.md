@@ -4,24 +4,26 @@
 **Commits de producto**: ronda commiteada **atómicamente por el operador** (co-implementación en `main`, ya en `origin/main`): `e2ec53d` atajos O/P/S/R, `1394a42` atajo capturador, `85e2db6` inspector vs diagnóstico, `21096a7` barra simulación — más bugs adicionales que resolvió por su cuenta (`dd28882` atributos, `9669f3a` usabilidad modelos, `d19f675` contraste tokens). **Desplegado** en producción con `docker compose up -d --build` (bundle `index-BEwvFCpF.js`).
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; bundle vivo `index-BEwvFCpF.js`.
 
-## Corte actual — Auditoría de alineación OPL + plan de remediación
+## Corte actual — Remediación GAP OPL ejecutada en rama `codex/remediacion-gap-opl`
 
-Tras producir la spec-forja OPL, se auditó el sistema de generación/parseo (`app/src/opl/**`) contra ella usando la tabla §20 como punto de partida. `app/src/opl/` estaba limpio (sin in-flight del operador), así que la corrección posterior no tiene conflictos.
+Se ejecutó `docs/superpowers/plans/2026-05-26-remediacion-gap-opl.md` en 3 olas, manteniendo fuera los cambios locales ajenos del operador.
 
-**Artefactos** (solo-docs, en `main`):
-- `docs/auditorias/2026-05-26-alineacion-opl/README.md` — triage: 48 GAPs distintos clasificados (tipo/veredicto/severidad) + olas.
-- `docs/auditorias/2026-05-26-alineacion-opl/auditoria-profunda.md` — forense por GAP accionable (código actual→canónico, causa raíz, fix, tests) + resolución de los 4 GAPs de decisión + 8 ajustes de spec + backlog.
-- `docs/superpowers/plans/2026-05-26-remediacion-gap-opl.md` — plan TDD en 3 olas.
+**Ola 1 — bugs reales cerrados con TDD:**
+- Placeholder OPL: `refsHints.ts·entidadOplEsEmitible` suprime procesos placeholder usando `esNombreProcesoPlaceholder`.
+- INPUT-only: evento/condición sobre resultado e invocación degradan a la oración base; se elimina la emisión no canónica `puede generarse` en fan resultado+condición.
+- Invocación: emisión canónica `después de`; parser compatible con `despues de` legacy.
+- Probabilidad: export OPL emite `Pr=p` y retira el sufijo porcentual legacy; parser descarta `Pr=p` como anotación de superficie.
 
-**Hallazgos forenses clave:**
-- **GAP-XOR reclasificado de bug a feature**: `emitirEspecializacion` emite `${hijo} es un ${padre}`, que ES canónico para generalización; `puede ser` solo se exige para especialización XOR exclusiva entre hermanos. Baja los bugs de 8 a 6/7.
-- **GAPs de decisión resueltos**: GAP-PARSE-TS4/TS5 → ya cubiertos por CS3/CS4 (`parsear.ts:628/635`); GAP-ABANICO-AGENTE-PARSE → parser-faltante (diferir); click→foco → vive en UI (ajuste de spec).
+**Ola 2 — spec-forja ajustada:**
+- `docs/canon-opm/spec-forja-opl.md` reclasifica `GAP-XOR` como `GAP-XOR-FEATURE`, documenta `unidades-tiempo` como metavariable, ubica colisión/recomposición en kernel de modelo, deja `GAP-COMP-GUARDA` como no-aplicable hasta `GAP-COMPOSICION`, y traza helpers display/metadatos antes marcados `GAP-spec`.
+- §20 quedó sincronizada con los fixes: placeholder, modificadores inválidos, invocación, probabilidad, fan resultado+condición, click→foco fuera de `app/src/opl/**`.
 
-**Decisión del operador (2026-05-26):** **GAP-PROB-SUPERFICIE = solo canónico** — el export DEBE emitir `Pr=p` por rama de fan XOR; se retira `(probabilidad: %)`. Con esto, **7 bugs reales** a corregir.
+**Ola 3 — fixtures roundtrip:**
+- `app/src/opl/fixtures-roundtrip.ts` agrega fixtures de efecto básico, TS3/TS4/TS5, habilitadores con estado HS1/HS2, exhibición, clasificación, evento canónico, invocación/autoinvocación con tilde y degradación evento→invocación base.
+- Las familias con reverse incompleto desde modelo vacío quedan explícitamente `bisimetricaEstricta: false`; las rutas ya cerradas quedan estrictas.
+- `docs/canon-opm/spec-forja-opl.md` marca esos fixture gaps como cerrados o cerrados-para-emisión, manteniendo vivos solo los gaps reales de parser/procedencia.
 
-**Bugs reales (Ola 1, todos en `generadores/`):** GAP-PLACEHOLDER-ENTIDAD (`entidadOplEsEmitible` siempre true), GAP-EVENTO-RESULTADO y GAP-CONDICION-RESULTADO (+ espejo fan; evento/condición sobre OUTPUT, viola INPUT-only; léxico `puede generarse`), GAP-EVENTO/CONDICION-INVOCACION, GAP-INVOCACION-TILDE (`despues`→`después`), GAP-PROB-SUPERFICIE (`Pr=p`).
-
-**Plan de remediación**: Ola 1 = 7 bugs TDD en `procedural.ts`/`abanico.ts`/`refsHints.ts`; Ola 2 = 8 ajustes de redacción en la spec (sin código) + reclasificar GAP-XOR en §20; Ola 3 = ~7 fixtures roundtrip con backend verificado (incl. TS4/TS5). Backlog: ~17 features/parsers (auditoría §4). **No ejecutado aún** — pendiente de arrancar Ola 1.
+**Backlog vivo**: features/parsers diferidos de la auditoría §4: `GAP-XOR-FEATURE/PARSER`, `GAP-ABANICO-AGENTE-PARSE`, `GAP-TAG-PARSER`, `GAP-SSE-PARSER`, `GAP-CX-PARSER`, `GAP-FAN-EVENTO`, `GAP-FAN-M`, `GAP-COMPOSICION/GAP-COMP-REVERSE`, `GAP-PARSE-TS4/TS5`, `GAP-PROCEDENCIA-ESCIND`, `GAP-NOMBRE-INSTANCIA`, `GAP-VARIA/TIPO/REFINA/PLIEGA/RECOMPONE`.
 
 ## Corte previo — spec-forja OPL: SSOT OPL consolidada de OPFORJA (producida)
 
