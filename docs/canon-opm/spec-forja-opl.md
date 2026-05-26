@@ -707,3 +707,229 @@ Rationale: `reglas §4.6` (H2, HS2), `§5.3` (R-AG-2, R-AG-3, R-AG-4) y `opm-opl
 
 - GAP-FIXTURE-HS: los fixtures `enlace-agente-simple` y `enlace-instrumento-simple` cubren H1 y H2 básicos; NO hay fixture dedicado de **estado especificado** (HS1/HS2) ni de las variantes evento/condición/negada de habilitador en `fixtures-roundtrip.ts`. La emisión y el parseo HS1/HS2 se apoyan en `nombreOplExtremo` (sufijo `en \`estado\``) y en `ABANICO_VERBO_RE_LIST`, pero la simetría no está sellada por un fixture roundtrip propio.
 - GAP-ABANICO-AGENTE-PARSE: el parser reconoce el abanico `exactamente uno de … maneja …` (`parsear.ts` línea ~382), pero el abanico de instrumento (`exactamente uno de … requiere …`) y el fan inverso requieren verificación de cobertura no completada en este pase.
+
+## §5 Modificadores de control
+
+Esta sección canoniza la realización OPL-ES de los **modificadores de control** (evento `e`, condición `c`) sobre enlaces transformadores y habilitadores, y de las dos familias de enlace que el canon trata como autónomas pero coloca junto a los controles por afinidad: **excepción** (sobretiempo `/`, subtiempo `//`) e **invocación** (IV1, IV2). Un modificador NO es una familia de enlace: anota un enlace base preexistente y le agrega semántica de disparo (`e`) o de bypass (`c`) sin alterar el hecho transformador/habilitador subyacente.
+
+Rationale: `reglas §6.1` (R-ECA-1..4, naturaleza de los modificadores), `§6.2`–`§6.3` (lado de aplicación y asimetría), `§4.7`–`§4.9` (plantillas E\*, C\*, EX\*, IV\*) y `opm-opl-es §6`, `§7`, `§8`.
+
+### §5.0 Reglas duras transversales — naturaleza y lado de aplicación
+
+Los modificadores `e` y `c` son **anotaciones INPUT-only**: solo aplican al lado de entrada del proceso (Pre(P)), nunca al de salida (Post(P)).
+
+- **R-MOD-NAT-1**: un modificador `e` o `c` NO DEBE introducirse como cosa ni como enlace nuevo. Anota un enlace base transformador o habilitador y preserva su firma, su verbo y la cardinalidad del constructo. La generación NO DEBE emitir un constructo de control que agregue entidades de modelo.
+
+  Rationale: `reglas §6.1` (R-ECA-4: «un modificador `e` o `c` NO agrega cosa ni enlace»).
+
+- **R-MOD-NAT-2**: la semántica de falla DEBE distinguirse en la superficie. Un enlace con `c` se realiza con la rama `de lo contrario *Proceso* se omite` (bypass: el proceso NO espera). Un enlace SIN modificador NO DEBE emitir esa rama (espera indefinida). El evento `e` se realiza con `inicia` y se pierde tras la evaluación aunque la precondición falle.
+
+  Rationale: `reglas §6.1` (tabla de modificadores: `c` omite, sin control espera, `e` consumido tras evaluación) y `SSOT-metod §10.1`.
+
+- **R-MOD-INPUT-1** (INPUT-only): los modificadores `e`/`c` DEBEN aplicarse exclusivamente sobre enlaces cuyo extremo objeto/estado pertenece a Pre(P) (consumido, afectado pre-transición, agente, instrumento). NO DEBEN aplicarse sobre Post(P) (resultante, afectado post-transición).
+
+  Rationale: `reglas §6.2` (R-MOD-0A, R-MOD-0B) y `§6.3` (R-MOD-4: «Post(P) NO admite evento ni condición»).
+
+- **R-MOD-INPUT-2**: el **resultado** (T2, TS2) NUNCA DEBE portar `e` ni `c`; el resultante no existe antes del proceso, luego no puede ser disparador ni precondición. La generación NO DEBE emitir una oración de evento/condición de resultado y el parser NO DEBE construir un enlace de resultado con modificador.
+
+  Correcto: `**Disparador** inicia *Procesar*, que consume **Disparador**.`
+  Incorrecto: `**Resultado** inicia *Procesar*, que genera **Resultado**.`
+  Rationale: `reglas §6.3` (R-MOD-1, R-MOD-3, R-MOD-5) y `§3.0` (R-TR-ASIM-2, R-TR-ASIM-4) de esta spec.
+
+- **R-MOD-CAT-1**: un modificador `e`/`c` NO DEBE anotar un enlace **estructural** ni un enlace de **invocación**; ambas son errores de categoría. El control sobre flujo proceso→proceso DEBE expresarse con nodo de decisión booleano, no con `e`/`c` sobre la invocación.
+
+  Rationale: `reglas §6.4` (modificador sobre estructural = AP-09; sobre invocación = AP-10).
+
+- **R-MOD-CAT-2**: un modificador de control NO DEBE anotar un enlace **escindido** (TS4/TS5 como fragmento de un par acoplado); saltar un subproceso de la escisión distorsiona la semántica del efecto.
+
+  Rationale: `reglas §6.4` (`V-41`, `V-110`, `SSOT-metod §7.4`) y `§3.5`–`§3.6` (R-ESC-1) de esta spec.
+
+- **R-MOD-CAT-3**: la combinación `c` + `e` sobre el mismo enlace NO está canonizada; la generación NO DEBE emitirla y el parser NO DEBE construirla.
+
+  Rationale: `reglas §6.4` (`c` + `e` sobre el mismo enlace = no definido en SSOT).
+
+### §5.1 Evento (E\*)
+
+**ID**: ET1 (evento de consumo), ET2 (evento de efecto), EH1 (evento de agente), EH2 (evento de instrumento), ETS1–ETS4 (evento con estado especificado de consumo/cambio), EHS1–EHS2 (evento habilitador con estado).
+
+**Plantilla(s)**:
+- ET1 (consumo): `**Objeto** inicia *Proceso*, que consume **Objeto**.`
+- ET2 (efecto): `**Objeto** inicia *Proceso*, que afecta **Objeto**.`
+- EH1 (agente): `**Agente** inicia y maneja *Proceso*.`
+- EH2 (instrumento): `**Instrumento** inicia *Proceso*, que requiere **Instrumento**.`
+- ETS1 (consumo en estado): `**Objeto** en \`estado\` inicia *Proceso*, que consume **Objeto**.`
+- ETS2 (cambio entrada-salida): `**Objeto** en \`estado-entrada\` inicia *Proceso*, que cambia **Objeto** de \`estado-entrada\` a \`estado-salida\`.`
+- ETS3 (solo entrada): `**Objeto** en \`estado-entrada\` inicia *Proceso*, que cambia **Objeto** de \`estado-entrada\`.`
+- ETS4 (solo salida): `**Objeto** en cualquier estado inicia *Proceso*, que cambia **Objeto** a \`estado-destino\`.`
+- EHS1 (agente en estado): `**Agente** en \`estado\` inicia y maneja *Proceso*.`
+- EHS2 (instrumento en estado): `**Instrumento** en \`estado\` inicia *Proceso*, que requiere **Instrumento** en \`estado\`.`
+
+**Emisión**: un enlace transformador (consumo/efecto) o habilitador (agente/instrumento) con modificador `e` emite la oración de evento correspondiente a su tipo. El **objeto**/estado disparador se nombra una vez como sujeto de `inicia` y reaparece en la cláusula relativa que realiza el enlace base. El agente colapsa disparo y habilitación en `inicia y maneja`.
+
+**Supresión**: si origen o destino tienen nombre placeholder, NO se emite (R-ENT-2). Un evento bajo abanico XOR/OR se realiza insertando `inicia` antes del verbo principal en la oración de abanico (`**B** inicia exactamente uno de *P*, *Q* o *R*, que afecta **B**`), no como E\* individual.
+
+**Tokenización**: span del **objeto**/estado disparador con `ref` al extremo Pre(P); `inicia` (e `inicia y maneja` para agente) token-clave de evento; la cláusula relativa reusa los tokens del enlace base (`consume`/`afecta`/`requiere`/`cambia … de … a`); `estado` entre backticks con `ref` (ETS\*, EHS\*). El sufijo de probabilidad (`Pr=p`) es un span con `hint`, no un hecho ontológico nuevo.
+
+**Orden**: disparador → `inicia` [`y maneja` para agente] → *proceso* → (`, que` + verbo base + objeto). El disparador precede al verbo de evento; invertir el orden cambia quién dispara.
+
+**Composabilidad**: múltiples enlaces de evento al mismo *proceso* tienen semántica OR (cualquiera dispara). Un evento NO DEBE coordinarse en un predicado con un enlace sin control del mismo proceso; la rama de evento es estructuralmente distinta.
+
+**Reverse**: la oración de evento se parsea como enlace base con `modificador: "e"`. La forma de consumo con estado (ETS1) y cambio (ETS2) se reconstruye con el estado especificado del extremo Pre(P).
+
+**Roundtrip**: el disparador, el verbo base, el *proceso* y los estados (ETS\*/EHS\*) DEBEN preservarse. GAP-FIXTURE-EVENTO: no hay fixture dedicado de evento en `fixtures-roundtrip.ts`; la simetría se apoya en `oracionEvento` y en la ruta de parseo de eventos.
+
+**Edge cases**:
+- El evento de efecto (ET2) sobre un **objeto** con estados es admisible porque el afectado existe en Pre(P) (R-MOD-INPUT-1).
+- GAP-EVENTO-RESULTADO: el generador (`procedural.ts·oracionEvento`, caso `resultado`, líneas ~272–276) emite `**X** inicia *Proceso*, que genera **X**`. Esta superficie VIOLA R-MOD-INPUT-2 / R-MOD-1: el resultado NO DEBE portar evento. La emisión actual es OPL no canónica; la spec manda y el generador DEBE corregirse para no producir evento de resultado.
+- GAP-EVENTO-INVOCACION: el mismo generador (caso `invocacion`, línea ~283) emite `**X** inicia e invoca *Y*`. Esta superficie VIOLA R-MOD-CAT-1: la invocación es familia autónoma proceso→proceso y NO admite modificador de control. Emisión no canónica; corregir hacia nodo de decisión booleano.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEvento` (líneas ~253–287); cambio de estado con evento `oracionTransicionEstados` (línea ~141); despacho del modificador `oracionEnlace` (línea ~178). Parseo `app/src/opl/parser/parsear.ts` (ruta de evento) y `parser.condicionesExcepciones.test.ts`.
+
+Rationale: `reglas §4.7` (ET1–EHS2), `§6.3` (R-MOD-2, asimetría), `§6.5` (niveles 1, 4, 7, 10 de fuerza semántica) y `opm-opl-es §6`.
+
+### §5.2 Condición (C\*)
+
+**ID**: CT1 (condición de consumo), CT2 (condición de efecto), CH1 (condición de agente), CH2 (condición de instrumento), CS1–CS6 (condición con estado especificado).
+
+**Plantilla(s)**:
+- CT1 (consumo): `*Proceso* ocurre si **Objeto** existe, en cuyo caso **Objeto** se consume, de lo contrario *Proceso* se omite.`
+- CT2 (efecto): `*Proceso* ocurre si **Objeto** existe, en cuyo caso *Proceso* afecta **Objeto**, de lo contrario *Proceso* se omite.`
+- CH1 (agente): `**Agente** maneja *Proceso* si **Agente** existe, de lo contrario *Proceso* se omite.`
+- CH2 (instrumento): `*Proceso* ocurre si **Instrumento** existe, de lo contrario *Proceso* se omite.`
+- CS1 (consumo en estado): `*Proceso* ocurre si **Objeto** está en \`estado\`, en cuyo caso **Objeto** se consume, de lo contrario *Proceso* se omite.`
+- CS2 (cambio entrada-salida en estado): `*Proceso* ocurre si **Objeto** está en \`estado-entrada\`, en cuyo caso *Proceso* cambia **Objeto** de \`estado-entrada\` a \`estado-salida\`, de lo contrario *Proceso* se omite.`
+- CS3 (cambio solo entrada): `*Proceso* ocurre si **Objeto** está en \`estado-entrada\`, en cuyo caso *Proceso* cambia **Objeto** de \`estado-entrada\`, de lo contrario *Proceso* se omite.`
+- CS4 (cambio solo salida): `*Proceso* ocurre si **Objeto** existe, en cuyo caso *Proceso* cambia **Objeto** a \`estado-salida\`, de lo contrario *Proceso* se omite.`
+- CS5 (agente en estado): `**Agente** maneja *Proceso* si **Agente** está en \`estado\`, de lo contrario *Proceso* se omite.`
+- CS6 (instrumento en estado): `*Proceso* ocurre si **Instrumento** está en \`estado\`, de lo contrario *Proceso* se omite.`
+
+**Estructura de ramas**: una oración de condición DEBE tener una **rama positiva** y una **rama negativa**. La positiva, cuando existe transformación visible, se introduce con `en cuyo caso` y realiza el enlace base (consumo: `**Objeto** se consume`; efecto: `*Proceso* afecta **Objeto**`; cambio: `*Proceso* cambia **Objeto** …`). La negativa se introduce con `de lo contrario` y DEBE ser `*Proceso* se omite` (bypass). El habilitador (CH1/CH2/CS5/CS6) omite la rama positiva porque no transforma: solo afirma la habilitación condicionada y la rama de omisión.
+
+- **R-COND-RAMA-1**: la rama negativa de toda oración de condición DEBE ser `de lo contrario *Proceso* se omite`. NO DEBE expresar espera ni una transformación alterna.
+
+  Rationale: `reglas §6.1` (la condición introduce bypass, el proceso se omite, no espera) y `opm-opl-es §7`.
+
+- **R-COND-RAMA-2**: la rama positiva de consumo DEBE usar la pasiva refleja `se consume` (no `es consumido`); la de efecto y cambio DEBEN usar la voz activa con el *proceso* como sujeto.
+
+  Correcto: `*Procesar* ocurre si **Pedido** existe, en cuyo caso **Pedido** se consume, de lo contrario *Procesar* se omite.`
+  Incorrecto: `*Procesar* ocurre si **Pedido** existe, en cuyo caso **Pedido** es consumido, de lo contrario *Procesar* se omite.`
+  Rationale: `reglas §4.16` (R-OPL-TRANS-8) y `opm-opl-es §7.1`.
+
+**Emisión**: un enlace transformador (consumo/efecto) o habilitador con modificador `c` emite la oración condicional según su tipo y según si porta estado especificado. Con estado en el extremo Pre(P) se emite la variante CS\* (`está en \`estado\``); sin estado, la variante CT\*/CH\* (`existe`).
+
+**Supresión**: placeholder NO emite (R-ENT-2). Un fan condicional bajo XOR/OR se realiza insertando la cláusula `si … existe/está en estado … de lo contrario … se omite` sobre la oración de abanico, no como C\* individual.
+
+**Tokenización**: span del *proceso* con `ref`; `ocurre si` / `maneja … si` clave de condición; span del extremo Pre(P) con `ref`; `existe` o `está en \`estado\``; `en cuyo caso` (rama positiva, cuando aplica); verbo base + objeto; `de lo contrario` + *proceso* + `se omite`.
+
+**Orden**: para consumo/efecto/instrumento: *proceso* → `ocurre si` → extremo → (`existe` | `está en \`estado\``) → [`en cuyo caso` + transformación] → `de lo contrario` → *proceso* → `se omite`. Para agente: **agente** → `maneja` → *proceso* → `si` → **agente** → (`existe` | `está en \`estado\``) → `de lo contrario` → *proceso* → `se omite`.
+
+**Composabilidad**: múltiples enlaces de condición al mismo *proceso* tienen semántica AND para ejecutar (todas las precondiciones DEBEN cumplirse) y OR para omitir (la ausencia de cualquiera causa el bypass). Una condición NO DEBE coordinarse en un predicado con un enlace sin control.
+
+**Reverse**: la oración condicional se parsea como enlace base con `modificador: "c"`. `parser.condicionesExcepciones.test.ts` cubre CT1 (línea ~94), CT2 (~108), CH2/existencia (~120), CS1 (~143), CS2 con cambio de estado (~157) y CS3/solo-entrada (~171). La forma condicional de agente se reconstruye por `CONDICION_AGENTE_RE`; la de instrumento por `CONDICION_OCURRE_RE` con `base: "instrumento"`.
+
+**Roundtrip**: el *proceso*, el extremo Pre(P), el verbo base, los estados (CS\*) y ambas ramas DEBEN preservarse. La variante alternativa de consumo condicional (`Si **Objeto** existe entonces *Proceso* ocurre y consume **Objeto**, de lo contrario se omite *Proceso*`) DEBE aceptarse en parseo (R-OPL-COND-ALT-1) pero NO DEBE preferirse en emisión: el generador canónico DEBE preferir CT1 (R-OPL-COND-ALT-2).
+
+**Edge cases**:
+- La condición de efecto (CT2, CS2–CS4) es admisible porque el afectado existe en Pre(P) (R-MOD-INPUT-1).
+- GAP-CONDICION-RESULTADO: el generador (`procedural.ts·oracionCondicion`, caso `resultado`, líneas ~313–316) emite `*Proceso* ocurre si **X** puede generarse, en cuyo caso *Proceso* genera **X**, de lo contrario *Proceso* se omite`. Esta superficie VIOLA R-MOD-INPUT-2 / R-MOD-3: el resultado pertenece a Post(P) y NO admite condición; `puede generarse` no es vocabulario canónico del enum §1.1. Emisión no canónica; la spec manda y el generador DEBE dejar de producir condición de resultado.
+- GAP-CONDICION-INVOCACION: el mismo generador (caso `invocacion`, línea ~324) emite `*X* invoca *Y* si *X* ocurre`. VIOLA R-MOD-CAT-1: la invocación no admite modificador de control. Emisión no canónica.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionCondicion` (líneas ~289–328); cambio de estado condicional `oracionTransicionEstados` (línea ~143); despacho del modificador `oracionEnlace` (línea ~181). Parseo `app/src/opl/parser/parsear.ts` (`CONDICION_AGENTE_RE` línea ~544, `CONDICION_OCURRE_RE`, regex de cambio en contexto CS2 línea ~621); tests `parser.condicionesExcepciones.test.ts`.
+
+Rationale: `reglas §4.8` (CT1–CS6, R-OPL-COND-ALT-1..2, R-OPL-SUP-1), `§6.1` (bypass), `§6.3` (R-MOD-2) y `opm-opl-es §7`.
+
+### §5.3 Excepción — sobretiempo (EX1) y subtiempo (EX2)
+
+**ID**: EX1 (sobretiempo `/`, overtime), EX2 (subtiempo `//`, undertime).
+
+**Plantilla(s)**:
+- EX1 (sobretiempo): `*Manejo* ocurre si duración de *Fuente* excede máx-duración unidades-tiempo.`
+- EX2 (subtiempo): `*Manejo* ocurre si duración de *Fuente* es menor que mín-duración unidades-tiempo.`
+- Variante combinada (extensión local): `*Manejo* ocurre si duración de *Fuente* es menor que mín-duración o excede máx-duración.`
+
+**Naturaleza**: el enlace de excepción NO es un modificador `e`/`c`: es una familia procedimental autónoma proceso→proceso que conecta un *proceso* fuente con un *proceso* de manejo, disparado por desviación temporal. El sobretiempo se marca `/`, el subtiempo `//`.
+
+- **R-EXC-AMBIENTAL-1**: el *proceso* de manejo de excepción DEBE ser **ambiental** (contorno discontinuo, `es ambiental` en §2.8). La fuente pertenece al sistema; el manejo del fallo temporal vive en el entorno.
+
+  Correcto: `*Manejar Excepción* ocurre si duración de *Procesar* excede 5 minutos.` (con *Manejar Excepción* declarado ambiental)
+  Rationale: `reglas §5.7` (R-EXC-1A) y `SSOT-visual §4.4`.
+
+- **R-EXC-DUR-1**: un enlace de sobretiempo (EX1) EXIGE duración máxima declarada del *proceso* fuente; uno de subtiempo (EX2) EXIGE duración mínima declarada. Sin la cota correspondiente, la emisión cae al texto de respaldo (`su duración máxima` / `su duración mínima`) en vez de un valor concreto.
+
+  Rationale: `reglas §5.7` (R-EXC-2, R-EXC-3) y la rama de respaldo de `formatoTiempoMaximo`/`formatoTiempoMinimo`.
+
+**Emisión**: un enlace `excepcionSobretiempo` emite `… excede <valor> <unidad>` con el *proceso* de manejo como sujeto (`ocurre`) y el *proceso* fuente tras `duración de`. Un enlace `excepcionSubtiempo` emite `… es menor que <valor> <unidad>`. El valor y la unidad se componen por `formatoTiempo`; si faltan, se emite el respaldo. La unidad temporal del sistema es default; un *proceso* con unidad distinta DEBE declararla (R-EXC-5).
+
+**Supresión**: placeholder NO emite. Un modificador `e`/`c` NUNCA DEBE anotar un enlace de excepción (familia autónoma; aplicar control sobre flujo proceso→proceso es error de categoría, R-MOD-CAT-1).
+
+**Tokenización**: span del *proceso* de manejo con `ref`; `ocurre si duración de` clave de excepción; span del *proceso* fuente con `ref`; `excede` (EX1) o `es menor que` (EX2) clave de cota; `<valor>` y `<unidad>` spans de magnitud temporal con `hint` de presentación.
+
+**Orden**: *manejo* → `ocurre si duración de` → *fuente* → (`excede` | `es menor que`) → valor → unidad. El verbo de cota (`excede` vs `es menor que`) es portador de la dirección del fallo (`/` vs `//`) y NO DEBE intercambiarse.
+
+**Composabilidad**: una misma fuente PUEDE tener simultáneamente sobretiempo y subtiempo; la variante combinada los une con `o`. La excepción no se coordina con enlaces transformadores/habilitadores en un predicado.
+
+**Reverse**: `parser.condicionesExcepciones.test.ts` cubre EX1 (`… excede 5 minutos`, línea ~33) y EX2 (`… es menor que 30 segundos`, línea ~44), reconstruyendo el enlace de excepción con su cota y unidad.
+
+**Roundtrip**: el *manejo*, la *fuente*, la dirección de cota, el valor y la unidad DEBEN preservarse. `parser.condicionesExcepciones.test.ts` defiende ida y vuelta (líneas ~61, ~78).
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEnlaceSinModificador` (casos `excepcionSobretiempo` ~206, `excepcionSubtiempo` ~208, `excepcionSubSobretiempo` ~210); composición de cota `formatoTiempoMaximo`/`formatoTiempoMinimo`/`formatoTiempo` (líneas ~217–232); metadato de duración `app/src/opl/generadores/duracionMetadata.ts`. Parseo y roundtrip `app/src/opl/parser/parser.condicionesExcepciones.test.ts`.
+
+> GAP-EXC-UNIDADES-LITERAL: la plantilla canónica `opm-opl-es §8.1` usa el literal `unidades-tiempo`; el generador compone valor+unidad concretos vía `formatoTiempo` (p. ej. `excede 5 minutos`) y, sin cota declarada, emite el respaldo `su duración máxima`. La superficie operativa diverge del literal de la plantilla sin contradecir el hecho; se declara como operacionalización local de `unidades-tiempo`.
+
+Rationale: `reglas §4.9` (EX1, EX2), `§5.7` (R-EXC-1..5) y `opm-opl-es §8.1`.
+
+### §5.4 Invocación (IV1) y autoinvocación (IV2)
+
+**ID**: IV1 (invocación), IV2 (autoinvocación).
+
+**Plantilla(s)**:
+- IV1 (invocación): `*Invocador* invoca *Invocado*.`
+- IV1 con demora (extensión local): `*Invocador* invoca *Invocado* despues de <demora>.`
+- IV2 (autoinvocación): `*Invocador* se invoca a sí mismo.`
+- IV2 con demora (extensión local): `*Invocador* se invoca a sí mismo despues de <demora>.`
+- Abanico XOR divergente: `*P* invoca exactamente uno de *Q* o *R*.`
+- Abanico XOR convergente: `Exactamente uno de *P* o *Q* invoca *R*.`
+
+**Naturaleza**: la invocación es **familia procedimental autónoma** con firma proceso→proceso, distinta de transformadora y habilitadora; se decora con rayo (zigzag). La autoinvocación es un bucle del proceso sobre sí mismo.
+
+- **R-IV-1**: la invocación DEBE tener firma *proceso* → *proceso*. NO DEBE conectar un **objeto**.
+
+  Rationale: `reglas §5.4` (R-INV-1, R-INV-1A).
+
+- **R-IV-2**: la invocación implícita (terminación de un subproceso que dispara al inmediatamente inferior por posición vertical dentro de una descomposición) NO DEBE dibujarse como enlace explícito ni emitir oración IV1 propia; subprocesos con borde superior a la misma altura inician en paralelo.
+
+  Rationale: `reglas §5.4` (R-INV-2, R-INV-2A, R-INV-2B).
+
+- **R-IV-3**: la invocación NO DEBE portar modificador `e`/`c` (familia autónoma; error de categoría). El control de flujo entre procesos DEBE expresarse con nodo de decisión booleano.
+
+  Rationale: `reglas §6.4` (modificador sobre invocación = AP-10) y R-MOD-CAT-1.
+
+**Emisión**: un enlace `invocacion` entre dos *procesos* distintos emite `*Invocador* invoca *Invocado*` (`invocan` en plural por multiplicidad). Si el enlace porta `demora`, se añade `despues de <demora>`. Cuando origen y destino son el mismo *proceso* (`esAutoInvocacion`), se emite `se invoca a sí mismo`.
+
+**Supresión**: placeholder NO emite (R-ENT-2). La invocación implícita de descomposición NO emite (R-IV-2). Un fan de invocación bajo XOR/OR se realiza con la oración de abanico (`invoca exactamente uno de …` / `exactamente uno de … invoca …`), no como IV1 individual.
+
+**Tokenización**: span del *invocador* con `ref`; `invoca`/`invocan` (IV1) o `se invoca a sí mismo` (IV2) clave de invocación; span del *invocado* con `ref` (IV1); `despues de <demora>` span de magnitud con `hint`.
+
+**Orden**: *invocador* → `invoca` → *invocado* [→ `despues de` → demora]. En autoinvocación el invocado es el propio invocador y no se nombra dos veces.
+
+**Composabilidad**: varias invocaciones desde el mismo *invocador* son oraciones IV1 separadas; bajo operador lógico se realizan vía abanico. La invocación NO se coordina con transformadores/habilitadores.
+
+**Reverse**: la oración `*X* invoca *Y*` se parsea como enlace de invocación proceso→proceso; `*X* se invoca a sí mismo` como autoinvocación. El abanico de invocación se parsea por la ruta de abanico.
+
+**Roundtrip**: el *invocador*, el *invocado* y la demora DEBEN preservarse. GAP-FIXTURE-INVOCACION: no hay fixture dedicado de invocación/autoinvocación en `fixtures-roundtrip.ts`; la simetría se apoya en `oracionEnlaceSinModificador` y `esAutoInvocacion`.
+
+**Edge cases**:
+- La grafía `despues de` (sin tilde) es la emisión actual del generador; la forma canónica es `después de`. GAP-INVOCACION-TILDE: corregir la grafía en `procedural.ts` (líneas ~187, ~205) para concordar con la ortografía es-CL de la spec.
+- Las formas `inicia e invoca` (evento) e `invoca … si … ocurre` (condición) emitidas por el generador VIOLAN R-IV-3 / R-MOD-CAT-1 (ver GAP-EVENTO-INVOCACION en §5.1 y GAP-CONDICION-INVOCACION en §5.2); son OPL no canónica.
+
+**Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEnlaceSinModificador` (autoinvocación línea ~187, invocación línea ~204–205); detección `app/src/modelo/autoinvocacion.ts·esAutoInvocacion`.
+
+Rationale: `reglas §4.9` (IV1, IV2), `§5.4` (R-INV-1..2B) y `opm-opl-es §8.2`.
+
+### §5.5 GAPs de cobertura — modificadores de control
+
+- GAP-EVENTO-RESULTADO / GAP-CONDICION-RESULTADO: el generador emite evento y condición de **resultado** (`oracionEvento`/`oracionCondicion`, caso `resultado`), superficie que VIOLA R-MOD-INPUT-2 (Post(P) no admite `e`/`c`). La spec manda: el generador DEBE dejar de producir estas oraciones.
+- GAP-EVENTO-INVOCACION / GAP-CONDICION-INVOCACION: el generador emite `inicia e invoca` e `invoca … si … ocurre`, superficie que VIOLA R-MOD-CAT-1 / R-IV-3 (la invocación no admite modificador de control).
+- GAP-FIXTURE-EVENTO / GAP-FIXTURE-INVOCACION: no hay fixtures roundtrip dedicados de evento ni de invocación/autoinvocación en `fixtures-roundtrip.ts`; la simetría se apoya solo en los generadores y en `parser.condicionesExcepciones.test.ts` (que cubre condición y excepción, no evento ni invocación).
+- GAP-EXC-UNIDADES-LITERAL: la operacionalización de `unidades-tiempo` por `formatoTiempo` diverge del literal de la plantilla `opm-opl-es §8.1` (ver §5.3).
+- GAP-INVOCACION-TILDE: grafía `despues de` sin tilde en la emisión de invocación (ver §5.4).
