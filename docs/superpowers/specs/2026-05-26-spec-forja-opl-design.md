@@ -18,6 +18,7 @@ El sistema de generación/parseo de OPL de OPFORJA (`app/src/opl/`, ~5457 LOC no
 4. **Organización**: eje **ontológico con contrato por constructo**. Cada forma de oración OPL es una entrada auditable de forma aislada.
 5. **Idioma**: OPL en **español (es-CL) únicamente**. Se poda toda conversión/equivalencia EN↔ES.
 6. **Combinatoria y dominios** (ampliación pedida por el operador): cobertura amplia de **combinaciones** de enlaces/modificadores/multiplicidad/abanicos/probabilidad/ruta con relevancia semántica y lógica, más patrones OPL para **sistemas sociotécnicos y sistemas computacionales agénticos complejos** (anclados a `app/src/modelo/simulacion/sociotecnico.ts`).
+7. **Cumplimiento KORA 100%** (artefacto orientado a agentes): el documento DEBE conformar las specs KORA que corresponden — **KORA/MD v12** (`md-spec`), **spec-md v1** (familia `spec`) y **knowledge-spec v3** (identidad/relations). Vive en `docs/canon-opm/spec-forja-opl.md` con **forma KORA 100%** y URN nominal `urn:opforja:kb:spec-forja-opl`; **NO** se registra en el catálogo/toolchain de KORA (es portable, ingestable después). Implica: frontmatter de dos capas, RFC 2119, patrón regla+ejemplo+traza, sin "grasa", esqueleto `spec` (Definición/Definiciones/…/Invariantes/Validación-con-`Enforcement`/Migración) y auto-declaración de precedencia. **Convención de trazabilidad**: `Traces to:` se reserva a la Formal Layer categorial de KORA; las reglas OPL usan `Rationale:` + campo **Procedencia** a la SSOT OPM (no fingen respaldo formal, spec-md §5).
 
 ## 3. Fuentes de extracción
 
@@ -30,6 +31,8 @@ El sistema de generación/parseo de OPL de OPFORJA (`app/src/opl/`, ~5457 LOC no
 | 5 | `~/kora/.../INBOX/curso-dov-dori/` (4 partes + guía) | Curso Dov Dori | 4ª (pedagógico) |
 
 Apoyo: `app/src/opl/**` (generadores/parser/panel) y `app/src/modelo/simulacion/sociotecnico.ts` para traza y patrones de dominio.
+
+**Specs KORA que gobiernan la FORMA** (no el contenido OPL, sino la conformidad del artefacto): `~/kora/serialization/md-spec.md` (KORA/MD v12), `~/kora/serialization/spec-md.md` (familia `spec`), `~/kora/serialization/knowledge-spec.md` (identidad/relations), `~/kora/CLAUDE.md` §Canon (precedencia, URN `gobernanza §4.3`).
 
 ## 4. Esquema de entrada (contrato por constructo)
 
@@ -50,11 +53,21 @@ Cada forma de oración OPL es una entrada con **ID estable** (reutilizando los I
 | **Roundtrip** | simetría esperada + fixture de referencia; ley/invariante que la defiende |
 | **Edge cases** | notas de implementación; modos de fallo/ambigüedad |
 | **Traza a código** | `generador.ts §x` · `parser/*.ts:L###` · fixture |
-| **Procedencia** | fuente(s) canónica(s) + enriquecimiento libro/OPCloud/curso |
+| **Procedencia** | fuente(s) canónica(s) + enriquecimiento libro/OPCloud/curso, expresada como `Rationale:` (no `Traces to:`, reservado a Formal Layer KORA) |
+
+Conformidad KORA por entrada: las obligaciones de cada entrada usan **RFC 2119**; las reglas de lectura ambigua siguen el patrón **regla + `Correcto:`/`Incorrecto:` + `Rationale:`** (spec-md §8). La prosa de una entrada solo existe si cumple una de las 4 funciones admitidas (justificar / prevenir ambigüedad / contextualizar / advertir límite de enforcement); lo demás es grasa y se elimina (spec-md §7, md-spec §5.3).
 
 ## 5. Índice del artefacto (`spec-forja-opl.md`)
 
-0. **Contrato editorial**: convenciones tipográficas, esquema de IDs, cómo leer una entrada, precedencia de fuentes, relación con `reglas-opm-estrictas.md`.
+El orden real del documento envuelve el cuerpo ontológico en el esqueleto `spec` de spec-md §10: **Frontmatter → Definición → Definiciones → Precedencia → Convenciones → [cuerpo normativo §1–§20] → Invariantes → Validación → Migración → Apéndices**. (La numeración secuencial final se asigna en producción; aquí el cuerpo conserva sus números de trabajo.)
+
+- **Frontmatter KORA/MD**: `_manifest.urn: urn:opforja:kb:spec-forja-opl`, `provenance`, `version`, `status`, `tags`≥3, `lang: es`, `extensions.opforja.family: spec`, `relations`.
+- **Definición**: alcance y audiencia (agentes de desarrollo + generación/parseo OPL de OPFORJA).
+- **Definiciones**: términos normativos (oración atómica, oración compuesta, sub-span, hecho, `ref`, `hint`, token, esencia, afiliación, placeholder, plegado…).
+- **Precedencia** (auto-declaración, spec-md §11): esta spec manda sobre la implementación OPL; queda **bajo** `reglas-opm-estrictas.md` para canon OPM nuclear y **bajo** la SSOT OPM externa.
+- **Convenciones**: tipografía (**objeto**/*proceso*/`estado`), esquema de IDs, **RFC 2119** (DEBE/NO DEBE/DEBERÍA/NO DEBERÍA/PUEDE), patrón **regla+ejemplo+traza** (`Correcto:`/`Incorrecto:`/`Rationale:`), cómo leer una entrada, precedencia de fuentes.
+
+Cuerpo normativo (números de trabajo):
 1. **Vocabulario fijo** de verbos y cópulas (es-CL).
 2. **Entidades**: objetos · procesos · estados · atributos/valores · instancias · designaciones · esencia/afiliación en OPL.
 3. **Enlaces transformadores**: consumo, resultado, efecto.
@@ -83,6 +96,12 @@ Cada forma de oración OPL es una entrada con **ID estable** (reutilizando los I
 19. **Roundtrip, invariantes y leyes**: simetría global, qué se parsea vs solo-display, ley *safe-lens*, **invariante de descomposición de prosa compuesta** (§9), demás invariantes (`leyes/opl-reverse`), dónde se rompe la bisimetría + convención.
 20. **Trazabilidad**: tabla maestra constructo/conducta ↔ generador ↔ parser ↔ módulo de comportamiento ↔ fixture/ley, marcando **GAPS** (oración o conducta sin código / código sin entrada en la spec) — insumo directo de la auditoría de alineación.
 
+Secciones de cierre (esqueleto `spec`):
+
+21. **Invariantes**: (a) prescriptivos del documento (spec-md §9: consistencia interna, auto-suficiencia de regla, no-circularidad, preservación de idioma); (b) invariantes OPL del dominio (bisimetría, descomposición de prosa compuesta, display-vs-canónico, *safe-lens*).
+22. **Validación**: tabla con columna **`Enforcement`** obligatoria (valores de `gobernanza §7`: `schema`/`lint`/`runtime`/`eval`/`manual`) — declara cómo se verifica cada clase de regla contra el código (p.ej. plantillas → unit en `generadores/*.test.ts`; roundtrip → `eval`/`runtime` en `roundtrip.test.ts`; bisimetría → `eval` en `leyes/opl-reverse`; RFC 2119/grasa → `lint`/`manual`).
+23. **Migración**: qué cambia respecto del canon disperso previo (`opm-opl-es` + `reglas §4`), qué migrar, qué se deprecia (obligatoria por ser primer corte mayor del artefacto).
+
 **Apéndice A — Ejemplo end-to-end**: un modelo OPM completo → OPL completa con todas las familias.
 **Apéndice B — Patrones OPL sociotécnicos y agénticos**: construcciones recurrentes expresadas **como composición de constructos canónicos** (no OPL nuevo), ancladas a `sociotecnico.ts`:
 - **Actor–rol–autoridad**: actor (humano/equipo/servicio/sistema-externo) como objeto; rol vía habilitadores (agente/instrumento); disponibilidad (`disponible`/`ocupado`/`no-disponible`) como estados.
@@ -110,7 +129,8 @@ Tamaño estimado ~2500–4000 líneas. Producción **por familias en líneas par
 - **Ola 1 (constructos base)**: §1 vocabulario, §2 entidades, §3 transformadores, §4 habilitadores, §5 modificadores, §6 estructurales.
 - **Ola 2 (composición y refinamiento)**: §7 refinamiento, §8 combinatoria de modelo, §9 **composición de prosa** (sección crítica), §10 multiplicidad, §11 ruta, §12 plegado.
 - **Ola 3 (comportamiento de runtime)**: §13 panel, §14 interacción, §15 edición, §16 configuración, §17 modos de fallo.
-- **Ola 4 (transversales y cierre)**: §18 EBNF, §19 roundtrip/invariantes/leyes, §20 trazabilidad, Apéndices A/B/C.
+- **Ola 4 (transversales y cierre)**: §18 EBNF, §19 roundtrip/invariantes/leyes, §20 trazabilidad, §21 invariantes, §22 validación (tabla `Enforcement`), §23 migración, Apéndices A/B/C.
+- **Pase de conformidad KORA (cierre)**: frontmatter de dos capas, familia `spec`, RFC 2119 en toda obligación, patrón regla+ejemplo+traza, poda de grasa, auto-declaración de precedencia, tabla de validación con `Enforcement`. Verificar contra md-spec/spec-md (manual, ya que no se registra en el toolchain KORA).
 
 Nota: §9 (composición de prosa) y §14/§15 (interacción/edición) comparten el contrato de tokenización por sub-span; deben producirse de forma coordinada o por el mismo agente para no divergir.
 - **Cierre**: consolidación, self-review de simetría/IDs/gaps, verificación de que cada entrada y cada conducta traza a código existente (generador/parser/módulo de comportamiento/ley) o queda marcada como gap.
@@ -125,10 +145,11 @@ Nota: §9 (composición de prosa) y §14/§15 (interacción/edición) comparten 
 - OPL en español únicamente; sin EN↔ES; sin intros.
 - Cada entrada y cada conducta traza a `app/src/opl/**` (o queda marcada como gap), de modo que la tabla §20 sea el punto de partida de la auditoría de alineación.
 - Autocontenida: es **el único** documento que hay que abrir para entender, generar, parsear, presentar, editar y validar OPL en OPFORJA; no requiere `opm-opl-es.md` ni `reglas §4`.
+- **Conforme 100% a KORA en forma**: KORA/MD v12 (frontmatter de dos capas, sin grasa, telegrafización), familia `spec` de spec-md (RFC 2119, regla+ejemplo+traza, invariantes, tabla de validación con `Enforcement`, auto-declaración de precedencia, sección Migración), knowledge-spec (URN `urn:opforja:kb:spec-forja-opl`, `relations`). `Traces to:` no se usa para canon OPL (reservado a Formal Layer KORA); se usa `Rationale:` + Procedencia.
 
 ## 9. Fuera de alcance
 
-- La auditoría de alineación del código en sí (es el paso siguiente, alimentado por la tabla §15).
+- La auditoría de alineación del código en sí (es el paso siguiente, alimentado por la tabla §20).
 - Cambios al sistema de generación/parser (este artefacto es la SSOT contra la cual se alineará después).
 - Reglas visuales/OPD, salvo lo estrictamente necesario para la bisimetría OPL↔OPD.
 - Idiomas distintos del español.
