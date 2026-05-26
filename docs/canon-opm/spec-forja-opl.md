@@ -1972,3 +1972,220 @@ Esta sección canoniza la **interacción bidireccional** entre las oraciones del
 | Procedencia | §9 (oraciones compuestas/sub-span); videos OPCloud (hover bidireccional, edición de enlace en oración compuesta) — precedencia 3 |
 
 Rationale: el modelo de tokens de `interaccion.ts` es el sustrato único de la bidireccionalidad OPL↔OPD; la igualdad por referencia tipada (`mismaReferencia`) y la resolución por posición (`referenciaEnlaceEspecifico`) permiten resaltar, navegar y filtrar con precisión de sub-span, sin recurrir a coincidencia textual ni a mutar el modelo.
+
+## §15 Edición de OPL
+
+La edición de OPL es el canal **reverse** del panel: el operador modifica texto OPL-ES y la forja deriva mutaciones sobre el modelo. La edición NO DEBE confundirse con la interacción de navegación de §14 (selección/hover, que nunca muta hechos). El sustrato de la edición libre es la **clasificación por línea** que `clasificadorEdicion.ts·clasificarEdicionOpl` produce sobre la previsualización del planificador (`PrevisualizacionOplReverse`), sin reescribir el parser ni mutar el modelo en seco.
+
+Rationale: `clasificadorEdicion.ts` consume el output de `parser`/`planificar` y agrupa patches y diagnósticos por línea; `aplicar.ts·aplicarPatchesOpl` materializa los patches aprobados. La separación clasificar→aplicar mantiene la edición honesta: el operador ve qué hará cada línea antes de comprometerla.
+
+### §15.1 Clasificación de líneas editadas
+
+- **R-OPL-EDIT-1**: cada línea del editor libre DEBE clasificarse en exactamente uno de cuatro estados estables (`EstadoLineaOpl`):
+
+  | Estado | Condición canónica | Acción |
+  | --- | --- | --- |
+  | `ignorada-vacia` | la línea es solo whitespace tras `trim` | se descarta; NO produce patch ni diagnóstico |
+  | `aplicable` | la línea tiene ≥1 patch propuesto | se ofrece para aplicar; `cambioId` apunta al primer patch; `descripcionCambio` lo resume |
+  | `no-aplicable` | sin patches y con diagnóstico `severidad=error` | se bloquea con una `RazonNoAplicable` canónica |
+  | `sin-cambio` | sin patches y sin error (parseada, consistente con el modelo, o warning/info) | se reconoce pero NO muta |
+
+  Rationale: `clasificarEdicionOpl` aplica el criterio en ese orden de precedencia (vacía → aplicable → error → sin-cambio); el orden DEBE respetarse porque una línea con patch jamás es no-aplicable, y una línea parseada sin mutación es `sin-cambio`, no error.
+
+- **R-OPL-EDIT-2**: el conteo del `ResumenClasificacion` (`total`, `aplicables`, `noAplicables`, `ignoradas`, `sinCambio`) DEBE ser estable y derivado de la clasificación línea a línea. El botón de aplicar DEBE rotularse con `etiquetaBotonAplicar(aplicables)`: `Aplicar N cambio(s)` cuando `aplicables>0`, y `Sin cambios aplicables` cuando `aplicables<=0`.
+
+  Rationale: `etiquetaBotonAplicar` es puro y testeable sin DOM; el rótulo honesto evita prometer aplicación cuando no hay nada que mutar.
+
+### §15.2 Razones de no-aplicabilidad
+
+- **R-OPL-EDIT-3**: cuando una línea es `no-aplicable`, la razón DEBE provenir del enum cerrado `RazonNoAplicable`, derivado del código de diagnóstico del parser:
+
+  | `RazonNoAplicable` | Texto visible | Cita SSOT | Diagnóstico origen |
+  | --- | --- | --- | --- |
+  | `forma-no-reconocida` | Forma OPL no reconocida | OPL-ES D1-D8, T1-T3 | `syntax-error` (sin marca de punto), default |
+  | `entidad-no-existe` | La entidad referida no existe en el modelo | Glos 3.55, 3.69 | `unknown-symbol` |
+  | `referencia-ambigua` | Más de una entidad con ese nombre | V-201 unicidad | `ambiguous-symbol` |
+  | `enlace-invalido-firma` | Firma de enlace inválida | V-180+ | `type-mismatch` |
+  | `conflicto-patches` | Cambios incompatibles sobre el mismo hecho | — | `patch-conflict` |
+  | `inversa-no-soportada` | Edición inversa no soportada / las líneas ausentes no borran hechos | — | `unsupported-kernel`, `no-delete-by-absence` |
+  | `puntuacion-faltante` | La oración OPL-ES debe terminar en punto | OPL-ES sintaxis | `syntax-error` con mensaje de punto |
+  | `cambio-ya-presente` | Este cambio ya está aplicado al modelo | — | (línea consistente sin patch ⇒ ver §15.1 `sin-cambio`) |
+
+  Rationale: `razonDesdeDiagnostico` realiza el mapeo cerrado; el enum NO DEBE crecer sin canonizar el diagnóstico correspondiente.
+
+- **R-OPL-EDIT-4**: una línea **ausente** NO DEBE borrar un hecho del modelo. La ausencia se trata como `no-delete-by-absence` (info), y de escalar a error se clasifica como `inversa-no-soportada`.
+
+  Rationale: la edición reverse es aditiva/mutadora explícita, no diferencial; borrar por omisión rompería la bidireccionalidad porque el texto display de §16 puede ocultar hechos sin que el operador los borre.
+
+### §15.3 Mapeo edición → mutación
+
+- **R-OPL-EDIT-5**: cada patch `aplicable` DEBE mapearse a la mutación de modelo que `aplicar.ts·aplicarPatchesOpl` ejecuta en tres fases ordenadas: (1) patches no-enlace, (2) patches de enlace, (3) abanicos. El orden DEBE respetarse: los enlaces dependen de entidades creadas en la fase 1; los abanicos requieren que los enlaces de sus ramas ya existan.
+
+  | `PatchOplPropuesto.tipo` | Operación de modelo | Descripción (`describirPatch`) |
+  | --- | --- | --- |
+  | `crear-entidad` | `crearObjeto` / `crearProceso` (+ `cambiarEsencia`/`cambiarAfiliacion` si la dimensión fue declarada) | `crear <tipo> <nombre>` |
+  | `renombrar-entidad` | `renombrarEntidad` | `renombrar A -> B` |
+  | `cambiar-esencia` | `cambiarEsencia` | `esencia A -> B` |
+  | `cambiar-afiliacion` | `cambiarAfiliacion` | `afiliacion A -> B` |
+  | `sincronizar-estados` | `sincronizarEstados` (crea/renombra estados) | `sincronizar estados (...)` |
+  | `renombrar-estado` | `renombrarEstado` | `estado A -> B` |
+  | `aplicar-designacion-estado` | `designarInicial`/`Final`/`Default`/`Current` | `designar estado X como D` |
+  | `crear-enlace` | `crearEnlace` (+ modificador/tiempos de excepción) | `crear enlace <tipo>` |
+  | `fijar-etiqueta-enlace` | `renombrarEtiquetaEnlace` | `etiqueta enlace -> X` |
+  | `crear-abanico` | `formarAbanico` (XOR/OR sobre ramas) | `crear abanico <op> (N ramas)` |
+
+  Rationale: las dos funciones de aplicación (`aplicarPatchesOpl` para el editor libre por patches; `edicionCanvas.ts·aplicarEdicionOpl` para intenciones inline acotadas) comparten las mismas operaciones de modelo, garantizando que la edición OPL no abra mutaciones fuera del kernel.
+
+- **R-OPL-EDIT-6**: la creación de enlace DEBE ser **idempotente**: si ya existe un enlace con la misma tripla (tipo, origen, destino), `aplicarPatchEnlace` lo reusa para aplicar modificador/tiempos en vez de duplicar.
+
+  Rationale: `buscarEnlaceCon` localiza la tripla y `aplicarMetadatosCondicionExcepcion` actualiza metadatos in situ; sin idempotencia, reaplicar una línea duplicaría hechos.
+
+### §15.4 Editable inline vs bloqueado
+
+- **R-OPL-EDIT-7**: el canal **inline** (`edicionCanvas.ts·IntencionEdicionOpl`) DEBE limitarse a un enum cerrado de cuatro intenciones acotadas, y cada una DEBE validar la existencia del id antes de mutar:
+
+  | `IntencionEdicionOpl.tipo` | Mutación | Editable inline |
+  | --- | --- | --- |
+  | `renombrar-entidad` | `renombrarEntidad` | sí (nombre de objeto/proceso) |
+  | `renombrar-estado` | `renombrarEstado` | sí (nombre de estado) |
+  | `fijar-etiqueta-enlace` | `renombrarEtiquetaEnlace` | sí (etiqueta de enlace) |
+  | `abrir-inspector-enlace` | ninguna (señal al store) | no muta; delega al inspector |
+
+  Toda mutación inline más rica que un renombrado/etiquetado (cambiar tipo de enlace, esencia, designaciones, abanicos) DEBE bloquearse en el canal inline y derivarse al editor libre por patches (§15.1–§15.3) o al inspector. `abrir-inspector-enlace` NO DEBE mutar el modelo; solo señala al store que abra el inspector del enlace.
+
+  Rationale: `aplicarEdicionOpl` retorna `fallo` si el id no existe y `ok(modelo)` sin cambios para `abrir-inspector-enlace`; restringir lo inline a renombrados/etiquetas evita que un edit de texto cambie la topología sin pasar por el flujo deliberado de patches.
+
+### §15.5 Edición de nombres y propiedades de enlace
+
+- **R-OPL-EDIT-8**: la edición de la **propiedad de un enlace** (etiqueta, condición/excepción, modificador, tiempos) DEBE pasar por `renombrarEtiquetaEnlace` (etiqueta) o por `aplicarMetadatosCondicionExcepcion` (modificador y tiempos máximo/mínimo, vía `aplicarModificador` y `definirTiempoExcepcionEnlace`). La edición NO DEBE escribir esos atributos por fuera de las operaciones de modelo validadas.
+
+  Rationale: OPCloud (observacional) permite editar la etiqueta de enlace y abrir su inspector desde el texto; la forja reproduce esa conducta encauzándola por operaciones que validan compatibilidad (`aplicarModificador` exige enlace procedural; `definirTiempoExcepcionEnlace` exige enlace de excepción temporal — SSOT §6-§7 condición, §8.1 excepción).
+
+### §15.6 Edición de oraciones compuestas
+
+- **R-OPL-EDIT-9**: editar una **oración compuesta** (múltiples hechos coordinados, remite §9) DEBE descomponerse en **mutación por hecho**: cada sub-span editado mapea al patch del enlace/hecho que ese sub-span realiza, no a la oración entera. La aplicación DEBE mutar solo los hechos cuyos sub-spans cambiaron.
+
+  Correcto: en una oración que coordina varios enlaces, cambiar el nombre del destino de un sub-span produce un patch sobre ese enlace; los demás hechos de la oración quedan intactos.
+  Incorrecto: una edición en cualquier parte de la oración compuesta reescribe o reemplaza todos sus hechos.
+  Rationale: la resolución por sub-span de §14.5 (`interaccion.ts·referenciaEnlaceEspecifico`) identifica el hecho objetivo; la mutación por hecho preserva la composabilidad de §9 y evita efectos colaterales sobre hechos no tocados. GAP-VERIFY: la spec define la regla de mutación por hecho; la mecánica exacta de re-tokenización por sub-span en el editor libre se traza a §9 y §14.5, no a una función nueva de edición compuesta.
+
+| Campo | Valor |
+| --- | --- |
+| ID | `R-OPL-EDIT-1`–`R-OPL-EDIT-9` |
+| Conducta | clasificación de 4 estados; razones cerradas; mapeo patch→operación en 3 fases; inline acotado vs bloqueado; propiedades de enlace; compuestas por hecho |
+| Reverse | clasificar (sin mutar) → aplicar patches aprobados; ausencia NO borra |
+| Edge cases | idempotencia de enlace; dimensión de clasificación escindida conserva default; ausencia no-delete |
+| Traza a código | `app/src/opl/clasificadorEdicion.ts·clasificarEdicionOpl` / `etiquetaBotonAplicar` / `RazonNoAplicable` / `razonDesdeDiagnostico`; `app/src/opl/edicionCanvas.ts·aplicarEdicionOpl` / `IntencionEdicionOpl`; `app/src/opl/parser/aplicar.ts·aplicarPatchesOpl` / `aplicarPatchEnlace` / `aplicarMetadatosCondicionExcepcion` / `aplicarPatchAbanico` |
+| Procedencia | §9 (compuestas/sub-span); §14.5 (resolución por sub-span); videos OPCloud (edición de etiqueta/inspector de enlace) — precedencia 3 |
+
+## §16 Configuración/opciones que afectan OPL
+
+Las opciones de presentación del OPL afectan **solo el display**. NO DEBEN alterar el **texto canónico** que alimenta el parser y el roundtrip. Esta es la frontera display-vs-canónico de §Convenciones, aplicada al panel OPL.
+
+Rationale: `opciones.ts` documenta explícitamente que las opciones "NO afectan el texto canónico (parser/roundtrip)"; sus consumidores son el panel (display) y los generadores interactivos, nunca el sustrato de bidireccionalidad.
+
+### §16.1 Visibilidad de esencia
+
+- **R-OPL-CFG-1**: la visibilidad de esencia DEBE ofrecer exactamente tres modos (`EsenciaVisibilidad`), con default `siempre`:
+
+  | Modo | Conducta de display |
+  | --- | --- |
+  | `siempre` (default) | la esencia (físico/informático) se anota en toda frase donde aplique |
+  | `solo-difiere` | la esencia se anota solo cuando difiere del default del tipo |
+  | `oculta` | la esencia nunca se anota en el display |
+
+  El valor por defecto DEBE ser `VISIBILIDAD_OPL_DEFAULT = { esencia: "siempre" }`.
+
+  Rationale: `opciones.ts` define `EsenciaVisibilidad` y el default; la visibilidad recorta ruido en el display sin tocar el modelo ni el canónico.
+
+- **R-OPL-CFG-2**: cualquiera de los tres modos NO DEBE alterar el texto canónico. El canónico que alimenta `parser`/`roundtrip` DEBE generarse con la esencia que el hecho posee, con independencia del modo de display elegido.
+
+  Correcto: con `esencia: "oculta"`, el panel muestra `*Cocinar* consume **Ingrediente**.` mientras el canónico conserva la marca de esencia para el roundtrip.
+  Incorrecto: ocultar la esencia en el display y omitirla también del canónico, rompiendo el roundtrip.
+  Rationale: la equivalencia gráfico-texto (§Convenciones, principio 7) exige que el canónico sea completo; el display es una proyección recortable.
+
+### §16.2 Modo prosa atómica vs compuesta
+
+- **R-OPL-CFG-3**: el modo de prosa (atómica = una frase por hecho; compuesta = frases coordinadas por objeto/proceso, remite §9) DEBE ser una opción de **display**. El modo compuesto NO DEBE introducir un canon paralelo: la presentación compuesta se normaliza a la forma canónica para equivalencia.
+
+  Rationale: §9.5 (R-COMP-CFG-1) ya fija que la presentación se normaliza al canónico; el plegado/coordinación NO introduce canon nuevo. La opción de prosa es presentación, no semántica.
+
+### §16.3 Numeración
+
+- **R-OPL-CFG-4**: la numeración de líneas/oraciones (remite §13) DEBE ser display. Activar o desactivar numeración NO DEBE alterar el texto canónico ni el orden de hechos que consume el parser.
+
+  Rationale: §13 gobierna numeración y agrupación display; el canónico es independiente del adorno de numeración.
+
+| Campo | Valor |
+| --- | --- |
+| ID | `R-OPL-CFG-1`–`R-OPL-CFG-4` |
+| Conducta | visibilidad de esencia (3 modos, default `siempre`); prosa atómica/compuesta; numeración — todo display |
+| Invariante | display-vs-canónico: ninguna opción altera el texto que alimenta parser/roundtrip |
+| Traza a código | `app/src/opl/opciones.ts·EsenciaVisibilidad` / `VisibilidadOpl` / `VISIBILIDAD_OPL_DEFAULT`; consumidores: panel OPL (display), `generarOpl`/`generarOplInteractivo` (barrel) |
+| Procedencia | §Convenciones (display-vs-canónico); §9 / §9.5 (compuestas); §13 (numeración) |
+
+Rationale: el contrato display-vs-canónico es el invariante rector de §16; cualquier opción futura de presentación DEBE heredarlo, recortando el display sin tocar el canónico.
+
+## §17 Modos de fallo, validación y ambigüedad
+
+El parser y el aplicador exponen un contrato de error explícito. La validación distingue lo que se **rechaza** (no se aplica, con razón) de lo que se **suspende** (queda parcialmente aplicado o pendiente de desambiguación). El sustrato es el `Resultado<Modelo>` discriminado (`ok` / `error`) y el conjunto de códigos de diagnóstico que `clasificadorEdicion.ts` traduce a `RazonNoAplicable` (§15.2).
+
+Rationale: `aplicar.ts` retorna `Resultado<Modelo>` y aborta la cadena de patches ante el primer `fallo`; `clasificadorEdicion.ts·razonDesdeDiagnostico` mapea los códigos del parser a razones visibles. El contrato es cerrado: no hay error sin código ni código sin razón.
+
+### §17.1 Contrato de error del parser
+
+- **R-OPL-FALLO-1**: el parser DEBE reportar fallos como diagnósticos tipados con `codigo`, `severidad` (`error`/`warning`/`info`) y `linea`. Solo `severidad=error` bloquea la aplicación de esa línea; `warning`/`info` NO DEBEN bloquear.
+
+  Rationale: `clasificarEdicionOpl` solo marca `no-aplicable` ante un diagnóstico `severidad=error`; warnings/info caen a `sin-cambio`.
+
+- **R-OPL-FALLO-2**: la aplicación de patches (`aplicarPatchesOpl`) DEBE ser **fail-fast por cadena**: ante el primer `fallo` de una operación de modelo, la cadena se aborta y se retorna `Resultado.error`, sin aplicar patches posteriores.
+
+  Rationale: cada fase de `aplicarPatchesOpl` retorna inmediatamente si una operación falla; esto evita estados intermedios inconsistentes (p. ej. enlace creado contra entidad que luego falla).
+
+### §17.2 Oraciones no parseables y ambiguas
+
+- **R-OPL-FALLO-3**: una oración cuya forma no reconoce el parser DEBE producir `forma-no-reconocida` (`syntax-error` genérico). Una oración válida pero sin punto final DEBE producir `puntuacion-faltante`.
+
+  Rationale: `razonDesdeDiagnostico` separa el `syntax-error` con marca de punto (`/punto/i`) de la forma no reconocida; la SSOT OPL-ES exige punto terminal.
+
+- **R-OPL-FALLO-4**: una referencia que matchea **más de una** entidad DEBE producir `referencia-ambigua` (`ambiguous-symbol`); el operador DEBE desambiguar por código de entidad. La línea ambigua se **rechaza** (no-aplicable), NO se aplica a una entidad arbitraria.
+
+  Rationale: V-201 (unicidad de nombres) obliga a 1:1 nombre↔cosa para aplicar; aplicar a un match arbitrario violaría la unicidad. La desambiguación por código es la salida canónica.
+
+### §17.3 Colisión de nombre desde OPL
+
+- **R-OPL-FALLO-5**: una entidad referida que no existe DEBE producir `entidad-no-existe` (`unknown-symbol`); una firma de enlace inválida para los participantes DEBE producir `enlace-invalido-firma` (`type-mismatch`). Ambas se rechazan.
+
+  Rationale: `crearEnlace` valida la firma (V-180+); el parser no puede inventar entidades ni aceptar enlaces con firma inválida sin romper el modelo.
+
+- **R-OPL-FALLO-6**: dos patches incompatibles sobre el **mismo hecho** DEBEN producir `conflicto-patches` (`patch-conflict`) y rechazarse, en vez de aplicarse en orden arbitrario.
+
+  Rationale: `razonDesdeDiagnostico` mapea `patch-conflict` a `conflicto-patches`; aplicar ambos dejaría el hecho en estado dependiente del orden, no determinista.
+
+### §17.4 Partial-parse: rechazo vs suspensión
+
+- **R-OPL-FALLO-7**: el editor DEBE soportar **partial-parse**: un documento con líneas mezcladas (aplicables, no-aplicables, sin-cambio) NO DEBE bloquearse en bloque. Las líneas `aplicable` se ofrecen para aplicar; las `no-aplicable` se **rechazan** individualmente con su razón; las `sin-cambio`/`ignorada-vacia` se **suspenden** sin error.
+
+  | Clase de línea | Tratamiento |
+  | --- | --- |
+  | `aplicable` | se aplica (sujeto a fail-fast de §17.1 al materializar) |
+  | `no-aplicable` | se rechaza con `RazonNoAplicable`; no muta |
+  | `sin-cambio` | se suspende: parseada, sin mutación |
+  | `ignorada-vacia` | se suspende: descartada silenciosamente |
+
+  Rationale: `clasificarEdicionOpl` clasifica línea a línea de forma independiente; el partial-parse es la consecuencia directa de esa granularidad. La aplicación de las `aplicable` sigue siendo fail-fast (§17.1) en el momento de materializar la cadena de patches.
+
+- **R-OPL-FALLO-8**: una edición inversa no soportada por el kernel DEBE producir `inversa-no-soportada` (`unsupported-kernel`), y la ausencia de una línea DEBE producir `no-delete-by-absence` (info, no borra). Ambas se rechazan/suspenden, NUNCA borran hechos por omisión.
+
+  Rationale: §15.2 y `razonDesdeDiagnostico` tratan ausencia y kernel no soportado sin destruir hechos; la edición reverse es aditiva/mutadora explícita, nunca diferencial-destructiva.
+
+| Campo | Valor |
+| --- | --- |
+| ID | `R-OPL-FALLO-1`–`R-OPL-FALLO-8` |
+| Conducta | diagnósticos tipados; fail-fast por cadena; no-parseable/ambiguo/colisión rechazados; partial-parse por línea; inversa no soportada/ausencia no borran |
+| Rechaza | forma-no-reconocida, puntuacion-faltante, referencia-ambigua, entidad-no-existe, enlace-invalido-firma, conflicto-patches, inversa-no-soportada |
+| Suspende | sin-cambio, ignorada-vacia (sin error) |
+| Traza a código | `app/src/opl/parser/aplicar.ts·aplicarPatchesOpl` (`Resultado<Modelo>` fail-fast); `app/src/opl/clasificadorEdicion.ts·razonDesdeDiagnostico` / `RazonNoAplicable`; `parser` (`DiagnosticoOpl` con `codigo`/`severidad`/`linea`) |
+| Procedencia | §15 (clasificación/razones); V-180+ (firma de enlace); V-201 (unicidad); OPL-ES sintaxis (punto terminal) |
+
+Rationale: el contrato de fallo es cerrado y determinista — todo error tiene código, todo código tiene razón visible, y la cadena de aplicación es fail-fast — lo que permite un editor honesto que rechaza lo inaplicable, suspende lo inerte y aplica lo válido sin estados intermedios inconsistentes.
