@@ -585,7 +585,7 @@ const layout = {
   treePaneArbol: {
     minWidth: 0,
     minHeight: 0,
-    overflow: "hidden",
+    overflow: "auto",
   },
   canvasPane: {
     gridArea: "canvas",

@@ -282,7 +282,7 @@ function tieneAparienciaEntidad(modelo: { opds: Record<Id, { apariencias: Record
 const style = {
   panel: {
     minWidth: 0,
-    overflow: "hidden",
+    height: "100%",
     background: tokens.colors.paper,
     borderRight: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
     display: "grid",
