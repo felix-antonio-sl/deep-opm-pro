@@ -106,5 +106,119 @@
     "status": "Resuelto",
     "resolution": "Los proxies externos creados al descomponer una cosa se ubican relativos al contorno refinado centrado, no en x absoluto 24.",
     "note": "Cubierto por operaciones.test BUG-20260525T063654Z-029853 y bloque de pruebas de refinamiento/layout."
+  },
+  "BUG-20260526T024016Z-b768d4": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El generador OPL ya no suprime oraciones por nombres no canonicos; conserva la trazabilidad y deja el diagnostico como advertencia separada.",
+    "note": "Cubierto por pruebas de OPL estructural/procedural."
+  },
+  "BUG-20260526T024127Z-00f799": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Backspace/Delete elimina estados seleccionados y limpia enlaces asociados sin dejar extremos huerfanos.",
+    "note": "Cubierto por e2e/31-domain-c-ui-interactions.spec.ts."
+  },
+  "BUG-20260526T024320Z-f81da4": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La anotacion contextual limita ancho, permite wrap y evita superponer textos/acciones.",
+    "note": "Cubierto por CodexSelectionAnnotation.test.tsx y e2e focal."
+  },
+  "BUG-20260526T024500Z-4c5463": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los enlaces con estados visibles vuelven a emitir OPL aunque el nombre base no pase heuristicas de canon.",
+    "note": "Cubierto por generar.test y procedural.test."
+  },
+  "BUG-20260526T024641Z-16a874": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los enlaces transformadores usan punta cerrada canonica y efecto queda bidireccional segun SSOT visual.",
+    "note": "Cubierto por markers.test y proyeccion.test."
+  },
+  "BUG-20260526T025025Z-5d7651": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Efecto acepta estado especifico como extremo de entrada Estado -> Proceso y conserva Proceso -> Objeto para efecto de salida.",
+    "note": "Cubierto por operaciones/enlaces.test, validaciones.test y split TS3."
+  },
+  "BUG-20260526T025059Z-0c3cde": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Dividir un efecto TS3 genera par canonico input/output sin objeto sintetico.",
+    "note": "Cubierto por operaciones.test y semantica de estado en enlaces."
+  },
+  "BUG-20260526T025233Z-a41f5c": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Cosas y estados proyectan handles de redimensionado y persisten ancho/alto en el modelo.",
+    "note": "Cubierto por proyeccion.test, acciones-estados.test y e2e/31-domain-c-ui-interactions.spec.ts."
+  },
+  "BUG-20260526T030227Z-affa5e": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "OPL de efecto Estado -> Proceso expresa cambio desde el estado de entrada.",
+    "note": "Cubierto por procedural.test."
+  },
+  "BUG-20260526T030422Z-83aad5": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "OPL de efecto Proceso -> Estado expresa cambio hacia el estado de salida.",
+    "note": "Cubierto por procedural.test."
+  },
+  "BUG-20260526T031431Z-45dbc2": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La multiplicidad opcional acepta '?' y '0..1' y se traduce como parte opcional en OPL.",
+    "note": "Cubierto por parsear.test, generar.test y estructural.test."
+  },
+  "BUG-20260526T031610Z-84a6ed": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "OPL agrupa exhibiciones opcionales y emite formulaciones plurales como partes opcionales.",
+    "note": "Cubierto por generacion OPL estructural."
+  },
+  "BUG-20260526T031854Z-bf4e25": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Instrumento de procesos como manejar/conducir emite forma reflexiva natural: el objeto se maneja/conduce con el instrumento.",
+    "note": "Cubierto por procedural.test y generar.test."
+  },
+  "BUG-20260526T031928Z-30f6ea": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La multiplicidad se refleja en OPL, incluyendo opcionales y agrupaciones estructurales.",
+    "note": "Cubierto por generadores OPL y parser inverso."
+  },
+  "BUG-20260526T032348Z-af718d": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La raiz visual del bus estructural se identifica como grupo de enlaces, no como la primera rama.",
+    "note": "Cubierto por proyeccion.test y handlers JointJS."
+  },
+  "BUG-20260526T032642Z-bfb79a": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La validacion rechaza efecto Objeto -> Proceso; solo permite Proceso -> Objeto o Estado -> Proceso como efecto de entrada.",
+    "note": "Cubierto por operaciones/enlaces.test y validaciones.test."
+  },
+  "BUG-20260526T032823Z-c37715": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los modificadores de enlace quedan capturados en OPL junto con probabilidad/demora cuando aplica.",
+    "note": "Cubierto por generadores OPL."
+  },
+  "BUG-20260526T033451Z-59993d": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "OPL de abanicos/estados preserva multiplicidad exacta y alternativas de estados de efecto.",
+    "note": "Cubierto por generacion OPL de abanico y procedural."
+  },
+  "BUG-20260526T032302Z-e12ad9": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La seleccion/metadata del simbolo raiz estructural ya opera sobre el grupo completo y no sobre una rama hija.",
+    "note": "Cubierto por proyeccion.test y herramientas de simbolo estructural."
   }
 }

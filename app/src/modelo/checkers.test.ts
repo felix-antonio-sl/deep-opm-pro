@@ -207,7 +207,7 @@ describe("checkProcesoTransforma", () => {
       modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Procesar"));
       const objetoId = entidadPorNombre(modelo, "Objeto");
       const procesoId = entidadPorNombre(modelo, "Procesar");
-      modelo = tipo === "resultado"
+      modelo = tipo === "resultado" || tipo === "efecto"
         ? must(crearEnlace(modelo, modelo.opdRaizId, procesoId, objetoId, tipo))
         : must(crearEnlace(modelo, modelo.opdRaizId, objetoId, procesoId, tipo));
       expect(checkProcesoTransforma(modelo)).toHaveLength(0);

@@ -54,6 +54,7 @@ export function oracionEnlaceEstructural(modelo: Modelo, enlace: Enlace): string
   if (!enlaceOplEsEmitible(modelo, enlace)) return null;
   const origen = nombreOplExtremo(modelo, enlace.origenId, enlace.multiplicidadOrigen);
   const destino = nombreOplExtremo(modelo, enlace.destinoId, enlace.multiplicidadDestino);
+  const destinoSinMultiplicidad = nombreOplExtremo(modelo, enlace.destinoId, undefined);
   const origenPlural = multiplicidadPlural(enlace.multiplicidadOrigen);
   const destinoPlural = multiplicidadPlural(enlace.multiplicidadDestino);
 
@@ -61,6 +62,9 @@ export function oracionEnlaceEstructural(modelo: Modelo, enlace: Enlace): string
     case "agregacion":
       return `${origen} ${verbo("consta", "constan", origenPlural)} de ${destino}.`;
     case "exhibicion":
+      if (esMultiplicidadOpcional(enlace.multiplicidadDestino)) {
+        return `${origen} tiene un ${destinoSinMultiplicidad} opcional.`;
+      }
       return `${origen} ${verbo("exhibe", "exhiben", origenPlural)} ${destino}.`;
     case "generalizacion":
       return destinoPlural ? `${destino} son ${origen}.` : `${destino} es un ${origen}.`;
@@ -69,6 +73,10 @@ export function oracionEnlaceEstructural(modelo: Modelo, enlace: Enlace): string
     default:
       return null;
   }
+}
+
+function esMultiplicidadOpcional(multiplicidad: string | undefined): boolean {
+  return multiplicidad === "0..1" || multiplicidad === "?";
 }
 
 export function agregarEntidadInteractiva(lineas: OplLineaPendiente[], entidad: Entidad): void {

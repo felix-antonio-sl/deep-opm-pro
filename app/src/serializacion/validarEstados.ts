@@ -45,6 +45,12 @@ export function validarEstados(value: unknown, entidades: Record<Id, Entidad>): 
     if (raw.suprimido !== undefined && typeof raw.suprimido !== "boolean") {
       return fallo(`Estado inválido: ${id}.suprimido`);
     }
+    if (raw.width !== undefined && (!esNumeroFinito(raw.width) || raw.width <= 0)) {
+      return fallo(`Estado inválido: ${id}.width`);
+    }
+    if (raw.height !== undefined && (!esNumeroFinito(raw.height) || raw.height <= 0)) {
+      return fallo(`Estado inválido: ${id}.height`);
+    }
     estados[id] = {
       id,
       entidadId: raw.entidadId,
@@ -54,6 +60,8 @@ export function validarEstados(value: unknown, entidades: Record<Id, Entidad>): 
       ...(designaciones.value.length > 0 ? { designaciones: designaciones.value } : {}),
       ...(duracion.value ? { duracion: duracion.value } : {}),
       ...(raw.suprimido ? { suprimido: true } : {}),
+      ...(raw.width !== undefined ? { width: Math.round(Math.max(52, raw.width)) } : {}),
+      ...(raw.height !== undefined ? { height: Math.round(Math.max(24, raw.height)) } : {}),
     };
   }
 

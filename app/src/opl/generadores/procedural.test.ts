@@ -15,6 +15,23 @@ describe("procedural OPL", () => {
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe("Por ruta exito, *Procesar* genera **Producto**.");
   });
 
+  test("efecto desde estado emite cambio desde estado aunque el estado sea no canonico", () => {
+    const modelo = modeloConEstados();
+    modelo.entidades.proceso = { ...modelo.entidades.proceso!, nombre: "Cargar" };
+    modelo.estados.s1 = { ...modelo.estados.s1!, nombre: "bueno" };
+    const enlace: Enlace = { id: "e1", tipo: "efecto", origenId: { kind: "estado", id: "s1" }, destinoId: { kind: "entidad", id: "proceso" }, etiqueta: "" };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Cargar* cambia **Pedido** de `bueno`.");
+  });
+
+  test("efecto hacia estado emite cambio a estado aunque el estado sea no canonico", () => {
+    const modelo = modeloConEstados();
+    modelo.estados.s2 = { ...modelo.estados.s2!, nombre: "bueno" };
+    const enlace: Enlace = { id: "e1", tipo: "efecto", origenId: { kind: "entidad", id: "proceso" }, destinoId: { kind: "estado", id: "s2" }, etiqueta: "" };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* cambia **Pedido** a `bueno`.");
+  });
+
   test("evento con probabilidad emite porcentaje canonico", () => {
     const modelo = modeloBase();
     const enlace: Enlace = {

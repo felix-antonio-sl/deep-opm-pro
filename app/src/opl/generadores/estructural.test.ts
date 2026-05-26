@@ -14,6 +14,20 @@ describe("estructural OPL", () => {
     expect(oracionEnlaceEstructural(modelo, enlace)).toBe("**Todo** consta de **Parte**.");
   });
 
+  test("exhibicion opcional emite forma posesiva natural", () => {
+    const modelo = modeloAuto();
+    const enlace: Enlace = {
+      id: "l1",
+      tipo: "exhibicion",
+      origenId: { kind: "entidad", id: "auto" },
+      destinoId: { kind: "entidad", id: "techo" },
+      etiqueta: "",
+      multiplicidadDestino: "0..1",
+    };
+
+    expect(oracionEnlaceEstructural(modelo, enlace)).toBe("**Auto** tiene un **Techo Descapotable** opcional.");
+  });
+
 	  test("clasificacion emite instancia", () => {
     const modelo = modeloBase();
     const enlace: Enlace = { id: "l1", tipo: "clasificacion", origenId: { kind: "entidad", id: "todo" }, destinoId: { kind: "entidad", id: "parte" }, etiqueta: "" };
@@ -80,6 +94,22 @@ function modeloBase(): Modelo {
     entidades: {
       todo: { id: "todo", tipo: "objeto", nombre: "Todo", esencia: "informacional", afiliacion: "sistemica" },
       parte: { id: "parte", tipo: "objeto", nombre: "Parte", esencia: "informacional", afiliacion: "sistemica" },
+    },
+    estados: {},
+    enlaces: {},
+    nextSeq: 1,
+  };
+}
+
+function modeloAuto(): Modelo {
+  return {
+    id: "m1",
+    nombre: "M",
+    opdRaizId: "opd",
+    opds: { opd: { id: "opd", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} } },
+    entidades: {
+      auto: { id: "auto", tipo: "objeto", nombre: "Auto", esencia: "informacional", afiliacion: "sistemica" },
+      techo: { id: "techo", tipo: "objeto", nombre: "Techo Descapotable", esencia: "informacional", afiliacion: "sistemica" },
     },
     estados: {},
     enlaces: {},

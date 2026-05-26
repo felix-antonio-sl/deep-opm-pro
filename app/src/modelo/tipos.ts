@@ -61,6 +61,8 @@ export type {
   EnlaceEstilo,
   ExtremoEnlace,
   DerivacionEnlace,
+  RolEfectoEscindido,
+  EfectoEscindido,
   Enlace,
   AnclajeSimboloEstructural,
   AnclajesSimboloEstructural,

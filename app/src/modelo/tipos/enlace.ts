@@ -53,6 +53,14 @@ export interface DerivacionEnlace {
   origen?: DerivacionOrigen;
 }
 
+export type RolEfectoEscindido = "entrada" | "salida";
+
+export interface EfectoEscindido {
+  grupoId: Id;
+  enlacePadreId: Id;
+  rol: RolEfectoEscindido;
+}
+
 export interface Enlace {
   id: Id;
   tipo: TipoEnlace;
@@ -87,6 +95,12 @@ export interface Enlace {
   unidadTiempoMinimo?: string;
   /** Separa o asocia manualmente ramas de una relación estructural fundamental. */
   grupoEstructuralId?: Id;
+  /** Estado de entrada de un efecto TS3 antes de escindirlo en TS4/TS5. */
+  estadoEntradaId?: Id;
+  /** Estado de salida de un efecto TS3 antes de escindirlo en TS4/TS5. */
+  estadoSalidaId?: Id;
+  /** Procedencia de una mitad escindida TS4/TS5 producida por descomposición. */
+  efectoEscindido?: EfectoEscindido;
   derivado?: DerivacionEnlace;
 }
 

@@ -117,4 +117,14 @@ describe("CodexSelectionAnnotation · posicionamiento", () => {
     expect(pos.placement).toBe("arriba");
     expect(pos.top).toBeLessThan(540);
   });
+
+  test("BUG-f81da4: clampa el centro horizontal para que la anotación no salga ni colisione en viewport angosto", () => {
+    const pos = posicionarAnotacion(
+      { x: 8, y: 100, width: 40, height: 40 },
+      600,
+      { anchoCanvas: 320, anchoEstimado: 300 },
+    );
+    expect(pos.left).toBeGreaterThanOrEqual(158);
+    expect(pos.left).toBeLessThanOrEqual(162);
+  });
 });

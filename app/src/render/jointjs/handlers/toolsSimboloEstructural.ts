@@ -26,9 +26,12 @@ export function instalarHerramientasSimboloEstructuralSeleccionado(
   if (!enlaceSeleccionId) return;
   const simbolos = adapter.graph.getElements().filter((cell) => {
     const meta = metadata(cell);
-    return meta?.kind === "enlace" &&
-      meta.rolEstructural === "simbolo" &&
-      (meta.enlaceId === enlaceSeleccionId || meta.enlaceIds?.includes(enlaceSeleccionId) === true) &&
+    const seleccionado = meta?.kind === "grupo-enlaces"
+      ? meta.enlaceIds.includes(enlaceSeleccionId)
+      : meta?.kind === "enlace" &&
+        meta.rolEstructural === "simbolo" &&
+        (meta.enlaceId === enlaceSeleccionId || meta.enlaceIds?.includes(enlaceSeleccionId) === true);
+    return seleccionado &&
       cell.hasPort("in") &&
       cell.hasPort("out");
   });
@@ -89,10 +92,12 @@ class SymbolAnchorControl extends elementTools.Control<SymbolAnchorControlOption
   private persistir(): void {
     const element = cellViewModel(this.relatedView) as dia.Element;
     const meta = metadata(element);
-    if (meta?.kind !== "enlace" || meta.rolEstructural !== "simbolo") return;
+    if (meta?.kind !== "grupo-enlaces" && !(meta?.kind === "enlace" && meta.rolEstructural === "simbolo")) return;
     const posicion = element.position();
     const size = element.size();
-    const aparienciaEnlaceIds = meta.aparienciaEnlaceIds?.length ? meta.aparienciaEnlaceIds : [meta.aparienciaEnlaceId];
+    const aparienciaEnlaceIds = meta.kind === "grupo-enlaces"
+      ? meta.aparienciaEnlaceIds
+      : meta.aparienciaEnlaceIds?.length ? meta.aparienciaEnlaceIds : [meta.aparienciaEnlaceId];
     this.options.onCommit(
       aparienciaEnlaceIds,
       {

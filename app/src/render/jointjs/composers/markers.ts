@@ -27,7 +27,9 @@ export function marcadoresEstructurales(
   const position = { x: center.x - size / 2, y: center.y - size / 2 };
   const strokeWidth = CODEX.strokes.estructural;
   const stroke = CODEX.colores.ink;
-  const cursor = meta.kind === "enlace" && meta.rolEstructural === "simbolo" ? "move" : "pointer";
+  const cursor = meta.kind === "grupo-enlaces" || (meta.kind === "enlace" && meta.rolEstructural === "simbolo")
+    ? "move"
+    : "pointer";
 
   if (tipo === "exhibicion") {
     // Canon OpCloud (shared.ts ExhibitionLink.getTriangleSVG): outer triangulo

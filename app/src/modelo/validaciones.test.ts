@@ -149,6 +149,28 @@ describe("validaciones metodologicas pasivas", () => {
     });
   });
 
+  test("efecto objeto->proceso reporta error de direccion semantica", () => {
+    const modelo = modeloCon({
+      entidades: [
+        entidad("o-beneficiario", "objeto", "Beneficiario", "informacional"),
+        entidad("p-atender", "proceso", "Atender", "informacional"),
+      ],
+      enlaces: [
+        enlace("e-efecto-invertido", "efecto", "o-beneficiario", "p-atender"),
+      ],
+    });
+
+    const avisos = avisosDeRegla(modelo, "efecto-direccion-canonica");
+
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]).toMatchObject({
+      severidad: "error",
+      citaSSOT: "reglas-opm-estrictas.md R-EFE-1 / SSOT-opl TS3-TS5",
+      elementoTipo: "enlace",
+      elementoId: "e-efecto-invertido",
+    });
+  });
+
   test("excepcion temporal hacia objeto o estado reporta error categorial", () => {
     const modeloObjeto = modeloCon({
       entidades: [

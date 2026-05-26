@@ -130,6 +130,12 @@ export function validarEnlaces(
     if (grupoEstructuralId.value && !esEnlaceEstructuralFundamental(raw.tipo)) {
       return fallo(`Enlace inválido: ${id}.grupoEstructuralId`);
     }
+    const estadoEntradaId = validarEstadoEfectoOpcional(id, "estadoEntradaId", raw.estadoEntradaId, raw.tipo, estados);
+    if (!estadoEntradaId.ok) return estadoEntradaId;
+    const estadoSalidaId = validarEstadoEfectoOpcional(id, "estadoSalidaId", raw.estadoSalidaId, raw.tipo, estados);
+    if (!estadoSalidaId.ok) return estadoSalidaId;
+    const efectoEscindido = validarEfectoEscindidoOpcional(id, raw.efectoEscindido, raw.tipo);
+    if (!efectoEscindido.ok) return efectoEscindido;
     const estilo = validarEstiloEnlaceOpcional(id, raw.estilo);
     if (!estilo.ok) return estilo;
     const enlace: Enlace = {
@@ -156,6 +162,9 @@ export function validarEnlaces(
       ...(tiempoMaximo.value ? { tiempoMaximo: tiempoMaximo.value } : {}),
       ...(tiempoMaximo.value && unidadTiempoMaximo.value ? { unidadTiempoMaximo: unidadTiempoMaximo.value } : {}),
       ...(grupoEstructuralId.value ? { grupoEstructuralId: grupoEstructuralId.value } : {}),
+      ...(estadoEntradaId.value ? { estadoEntradaId: estadoEntradaId.value } : {}),
+      ...(estadoSalidaId.value ? { estadoSalidaId: estadoSalidaId.value } : {}),
+      ...(efectoEscindido.value ? { efectoEscindido: efectoEscindido.value } : {}),
       ...(derivado.value ? { derivado: derivado.value } : {}),
     };
     const metadatos = validarMetadatosEnlace(enlace);
@@ -163,6 +172,36 @@ export function validarEnlaces(
     enlaces[id] = enlace;
   }
   return ok(enlaces);
+}
+
+function validarEstadoEfectoOpcional(
+  enlaceId: Id,
+  campo: "estadoEntradaId" | "estadoSalidaId",
+  value: unknown,
+  tipo: Enlace["tipo"],
+  estados: Record<Id, Estado>,
+): Resultado<Id | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (tipo !== "efecto" || typeof value !== "string" || !estados[value]) {
+    return fallo(`Enlace inválido: ${enlaceId}.${campo}`);
+  }
+  return ok(value);
+}
+
+function validarEfectoEscindidoOpcional(
+  enlaceId: Id,
+  value: unknown,
+  tipo: Enlace["tipo"],
+): Resultado<Enlace["efectoEscindido"]> {
+  if (value === undefined) return ok(undefined);
+  if (tipo !== "efecto" || !esRecord(value)) return fallo(`Enlace inválido: ${enlaceId}.efectoEscindido`);
+  if (typeof value.grupoId !== "string" || typeof value.enlacePadreId !== "string") {
+    return fallo(`Enlace inválido: ${enlaceId}.efectoEscindido`);
+  }
+  if (value.rol !== "entrada" && value.rol !== "salida") {
+    return fallo(`Enlace inválido: ${enlaceId}.efectoEscindido.rol`);
+  }
+  return ok({ grupoId: value.grupoId, enlacePadreId: value.enlacePadreId, rol: value.rol });
 }
 
 export function validarGrupoEstructuralIdOpcional(enlaceId: Id, value: unknown): Resultado<string | undefined> {

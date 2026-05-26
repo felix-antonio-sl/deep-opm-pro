@@ -47,6 +47,7 @@ import { GLIFO_REF, GLIFO_SEP } from "./glifos";
 const OFFSET = 10;
 const PADDING_VIEWPORT = 8;
 const ALTO_ESTIMADO = 46;
+const ANCHO_ESTIMADO = 300;
 
 export interface AccionAnotacion {
   label: string;
@@ -141,7 +142,10 @@ export function CodexSelectionAnnotation() {
         width: rectCliente.width,
         height: rectCliente.height,
       };
-      setPosicion(posicionarAnotacion(rectEnHost, host.clientHeight));
+      setPosicion(posicionarAnotacion(rectEnHost, host.clientHeight, {
+        anchoCanvas: host.clientWidth,
+        anchoEstimado: ANCHO_ESTIMADO,
+      }));
     };
     const onFrame = () => requestAnimationFrame(actualizar);
     actualizar();
@@ -285,8 +289,16 @@ function tituloAccion(accion: AccionBarra): string {
 export function posicionarAnotacion(
   rect: { x: number; y: number; width: number; height: number },
   altoCanvas: number,
+  opciones: { anchoCanvas?: number; anchoEstimado?: number } = {},
 ): PosicionAnotacion {
-  const left = rect.x + rect.width / 2;
+  const leftBase = rect.x + rect.width / 2;
+  const medioAncho = (opciones.anchoEstimado ?? ANCHO_ESTIMADO) / 2;
+  const left = opciones.anchoCanvas && opciones.anchoCanvas > 0
+    ? Math.min(
+        opciones.anchoCanvas - PADDING_VIEWPORT - medioAncho,
+        Math.max(PADDING_VIEWPORT + medioAncho, leftBase),
+      )
+    : leftBase;
   const yAbajo = rect.y + rect.height + OFFSET;
   if (altoCanvas > 0 && yAbajo + ALTO_ESTIMADO > altoCanvas - PADDING_VIEWPORT) {
     return { left, top: Math.max(PADDING_VIEWPORT, rect.y - OFFSET - ALTO_ESTIMADO), placement: "arriba" };
@@ -439,7 +451,10 @@ const style = {
     display: "flex",
     alignItems: "baseline",
     gap: "10px",
-    whiteSpace: "nowrap",
+    flexWrap: "wrap",
+    whiteSpace: "normal",
+    maxWidth: "100%",
+    rowGap: "2px",
   },
   marca: {
     color: tokens.colors.crimson,
@@ -463,7 +478,10 @@ const style = {
     lineHeight: tokens.typography.lh.tight,
   },
   acciones: {
-    display: "inline",
+    display: "inline-flex",
+    flexWrap: "wrap",
+    alignItems: "baseline",
+    maxWidth: "100%",
     color: tokens.colors.inkMid,
     fontFamily: tokens.typography.serif,
     fontSize: `${tokens.typography.fs.fs13}px`,

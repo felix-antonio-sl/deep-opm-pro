@@ -97,6 +97,7 @@ export function proyectarModeloAJointCells(
       // SEL-1: el underline embebido se emite solo en selección única; en multi
       // lo aporta la celda-halo de `proyectarHaloSeleccion`.
       seleccionUnica,
+      estadosSeleccionadosPorEntidad.get(entidad.id) ?? [],
     )];
   });
   const imagenes = apariencias.flatMap((apariencia) => {
@@ -277,7 +278,7 @@ function reservasDesdeTriangulos(cells: JointCellJson[]): ReservaSimboloEstructu
     if (cell.type !== "standard.Polygon") return [];
     if (!String(cell.id).endsWith("-triangulo")) return [];
     const meta = cell.opm;
-    if (meta.kind !== "enlace" || meta.rolEstructural !== "simbolo") return [];
+    if (meta.kind !== "grupo-enlaces") return [];
     const position = cell.position as { x?: unknown; y?: unknown } | undefined;
     const size = cell.size as { width?: unknown; height?: unknown } | undefined;
     if (typeof position?.x !== "number" || typeof position.y !== "number") return [];

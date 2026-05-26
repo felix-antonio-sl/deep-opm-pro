@@ -106,6 +106,7 @@ export type OracionOplAst =
       tipoEnlace: Extract<TipoEnlace, "agregacion" | "exhibicion" | "generalizacion" | "clasificacion">;
       origen: string;
       destinos: string[];
+      multiplicidadDestino?: string;
       etiqueta?: string;
     }
   | {

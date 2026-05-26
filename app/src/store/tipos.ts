@@ -452,6 +452,7 @@ export interface OpmStore {
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
   redimensionarSeleccionada: (width: number, height: number) => void;
   redimensionarAparienciaEnCanvas: (aparienciaId: Id, x: number, y: number, width: number, height: number) => void;
+  redimensionarEstadoEnCanvas: (estadoId: Id, width: number, height: number) => void;
   ajustarSeleccionadaAlTexto: () => void;
   volverSeleccionadaAAuto: () => void;
   alternarModoTamanoSeleccionado: () => void;

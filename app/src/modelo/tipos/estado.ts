@@ -28,6 +28,8 @@ export interface Estado {
   designaciones?: DesignacionEstado[];
   duracion?: DuracionTemporal;
   suprimido?: boolean;
+  width?: number;
+  height?: number;
   /**
    * Orden explícito dentro del objeto propietario. Cuando está presente, manda
    * sobre el orden por secuencia de id (fallback histórico). Introducido en

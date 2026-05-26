@@ -61,6 +61,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "fijarAfiliacionSeleccionada",
     "redimensionarSeleccionada",
     "redimensionarAparienciaEnCanvas",
+    "redimensionarEstadoEnCanvas",
     "ajustarSeleccionadaAlTexto",
     "volverSeleccionadaAAuto",
     "alternarModoTamanoSeleccionado",

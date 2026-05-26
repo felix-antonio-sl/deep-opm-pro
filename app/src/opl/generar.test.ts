@@ -35,7 +35,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(texto).not.toContain("Hospitalización_domiciliaria");
   });
 
-  test("R-NOM-PROC-1 no emite OPL para procesos placeholder", () => {
+  test("R-NOM-PROC-1 advierte por diagnostico pero no suprime OPL de procesos placeholder", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Proceso"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Resultado_clínico"));
@@ -43,12 +43,12 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
 
     const texto = generarOpl(modelo).join("\n");
 
-    expect(texto).not.toContain("*Proceso*");
-    expect(texto).not.toContain("genera");
+    expect(texto).toContain("*Proceso* es informacional.");
+    expect(texto).toContain("*Proceso* genera **Resultado Clínico**.");
     expect(texto).toContain("**Resultado Clínico** es informacional.");
   });
 
-  test("R-NOM-EST-1 suprime estados placeholder de la OPL canonica", () => {
+  test("R-NOM-EST-1 advierte por diagnostico pero no suprime estados no canonicos", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
     const objetoId = entidad(modelo, "Pedido");
@@ -56,9 +56,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
 
     const texto = generarOpl(modelo).join("\n");
 
-    expect(texto).not.toContain("puede estar");
-    expect(texto).not.toContain("estado1");
-    expect(texto).not.toContain("estado2");
+    expect(texto).toContain("**Pedido** puede estar `estado1` o `estado2`.");
   });
 
   test("agregacion emite consta de", () => {
@@ -164,6 +162,20 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Volante"), entidad(modelo, "Conducir"), "instrumento"));
 
     expect(generarOpl(modelo)).toContain("*Conducir* requiere **Volante**.");
+  });
+
+  test("instrumento con objeto transformado prefiere forma posesiva procedimental", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Coche"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 160 }, "Volante"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 80 }, "Manejar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Manejar"), entidad(modelo, "Coche"), "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Volante"), entidad(modelo, "Manejar"), "instrumento"));
+
+    const lineas = generarOpl(modelo);
+
+    expect(lineas).toContain("**Coche** se maneja con **Volante**.");
+    expect(lineas).not.toContain("*Manejar* requiere **Volante**.");
   });
 
   test("consumo emite consume", () => {
@@ -329,6 +341,26 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(generarOpl(modelo)).toContain("*Procesar* consume 1 **Recurso**.");
   });
 
+  test("exhibiciones opcionales del mismo objeto se agrupan sin perder refs de enlaces", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Auto"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Techo Descapotable"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 120 }, "Spoiler"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Auto"), entidad(modelo, "Techo Descapotable"), "exhibicion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Auto"), entidad(modelo, "Spoiler"), "exhibicion"));
+    const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id);
+    for (const enlaceId of enlaceIds) {
+      modelo = must(ajustarMultiplicidad(modelo, enlaceId, "destino", "0..1"));
+    }
+
+    const lineas = generarOpl(modelo);
+    const interactiva = generarOplInteractivo(modelo).find((linea) => linea.texto.includes("tiene"));
+
+    expect(lineas).toContain("**Auto** tiene **Techo Descapotable** y **Spoiler** opcionales.");
+    expect(lineas).not.toContain("**Auto** tiene un **Techo Descapotable** opcional.");
+    expect(interactiva?.refs).toEqual(expect.arrayContaining(enlaceIds.map((id) => ({ tipo: "enlace", id }))));
+  });
+
   test("estado de objeto emite puede estar con disyuncion y designaciones", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
@@ -356,7 +388,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(designarEstadoFinal(modelo, primero.id));
 
     const lineas = generarOpl(modelo);
-    expect(lineas).not.toContain("**Orden** puede estar `abierta` (inicial y final) o `estado2`.");
+    expect(lineas).toContain("**Orden** puede estar `abierta` (inicial y final) o `estado2`.");
     expect(lineas).toContain("**Orden** en `abierta` es inicial.");
     expect(lineas).toContain("**Orden** en `abierta` es final.");
   });
@@ -421,7 +453,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
 
     const lineas = generarOpl(modelo);
 
-    expect(lineas).not.toContain("*Procesar 2* consume **Objeto 4** en `estado1`.");
+    expect(lineas).toContain("*Procesar 2* consume **Objeto 4** en `estado1`.");
     expect(lineas).toContain("*Procesar 2* genera **Objeto 8** en `e1`.");
     expect(lineas).not.toContain("*Procesar 2* cambia **Objeto 4** de `estado1`.");
     expect(lineas).not.toContain("*Procesar 2* cambia **Objeto 8** a `e1`.");
@@ -499,6 +531,30 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(lineaInteractiva).toBeDefined();
     expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e2`")).toBe(true);
     expect(lineaInteractiva?.tokens.some((token) => token.markdown === "estado" && token.texto === "`e3`")).toBe(true);
+  });
+
+  test("abanico XOR de efectos hacia estados emite alternativa exacta de cambio", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 60 }, "Objeto"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 220 }, "Procesar"));
+    const objetoId = entidad(modelo, "Objeto");
+    const procesoId = entidad(modelo, "Procesar");
+    const creados = must(crearEstadosIniciales(modelo, objetoId));
+    modelo = creados.modelo;
+    const [s1, s2] = creados.estadoIds;
+    modelo = must(renombrarEstado(modelo, s1, "s1"));
+    modelo = must(renombrarEstado(modelo, s2, "s2"));
+    const s3 = must(agregarEstado(modelo, objetoId, "s3"));
+    modelo = s3.modelo;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(s1), "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(s2), "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(s3.estadoId), "efecto"));
+    const efectoIds = Object.values(modelo.enlaces).filter((enlace) => enlace.tipo === "efecto").map((enlace) => enlace.id);
+    modelo = fijarPuertoCompartidoEnlaces(modelo, efectoIds, "origen");
+    const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, efectoIds, "XOR"));
+
+    expect(generarOpl(modelo)).toContain("*Procesar* cambia **Objeto** a exactamente uno de `s1`, `s2` y `s3`.");
   });
 
   test("abanico XOR de resultados a estados no emite transicion determinista paralela", () => {
@@ -801,7 +857,7 @@ describe("generarOpl", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Whole"), entidad(modelo, "Part"), "agregacion"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Instrumento"), entidad(modelo, "Procesar"), "instrumento"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Part"), entidad(modelo, "Procesar"), "consumo"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Part"), entidad(modelo, "Procesar"), "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Part"), "efecto"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Subprocesar"), "invocacion"));
 
     const lineas = generarOpl(modelo);

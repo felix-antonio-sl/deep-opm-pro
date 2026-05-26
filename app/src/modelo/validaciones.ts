@@ -60,6 +60,7 @@ export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
     ...reglaGeneralizacionMismoTipo(modelo, opdActivoId),
     ...reglaEstructuralNoAceptaExtremoEstado(modelo, opdActivoId),
     ...reglaExcepcionTemporalProcesoProceso(modelo, opdActivoId),
+    ...reglaEfectoDireccionCanonica(modelo, opdActivoId),
     ...reglaProceduralNoObjetoObjeto(modelo, opdActivoId),
     ...reglaEstructuralSinDuplicar(modelo, opdActivoId),
     ...reglaOrdenEstructuralHuerfano(modelo, opdActivoId),
@@ -73,6 +74,23 @@ export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
     ...validarAmbientalDentroContorno(modelo, opdActivoId),
   ];
   return priorizarOpdActivo(avisos, opdActivoId);
+}
+
+function reglaEfectoDireccionCanonica(modelo: Modelo, opdActivoId: Id): Aviso[] {
+  return enlacesConExtremos(modelo)
+    .filter(({ enlace, origen, destino }) => (
+      enlace.tipo === "efecto" &&
+      !(
+        (origen.tipo === "proceso" && destino.tipo === "objeto") ||
+        (enlace.origenId.kind === "estado" && origen.tipo === "objeto" && destino.tipo === "proceso")
+      )
+    ))
+    .map(({ enlace }) => avisoEnlace(modelo, opdActivoId, enlace, {
+      reglaId: "efecto-direccion-canonica",
+      severidad: "error",
+      mensaje: `El efecto debe expresar que un proceso afecta a un objeto. Hoy va de ${nombreExtremo(modelo, enlace.origenId)} a ${nombreExtremo(modelo, enlace.destinoId)}; usa Proceso -> Objeto/Estado, o Estado -> Proceso solo para un efecto de entrada escindido.`,
+      citaSSOT: "reglas-opm-estrictas.md R-EFE-1 / SSOT-opl TS3-TS5",
+    }));
 }
 
 export function advertirConsumoDuplicado(modelo: Modelo, opdActivoId: Id = modelo.opdRaizId): Aviso[] {

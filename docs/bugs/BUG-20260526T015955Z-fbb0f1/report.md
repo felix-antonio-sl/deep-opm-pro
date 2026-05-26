@@ -1,0 +1,38 @@
+# BUG-20260526T015955Z-fbb0f1
+
+**Creado**: 2026-05-26T01:59:55.827Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+el panel de propiedades y de advertencias compiten no funcionalmente
+
+## Screenshots
+
+- [screenshots/01-cleanshot-2026-05-25-at-21.59.06.jpg](screenshots/01-cleanshot-2026-05-25-at-21.59.06.jpg)
+- [screenshots/02-google-chrome-2026-05-25-21.59.03.png](screenshots/02-google-chrome-2026-05-25-21.59.03.png)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": "o-9",
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-381ca07f-119b-4524-b257-171a847ade13",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 2133,
+    "height": 1032,
+    "devicePixelRatio": 0.8999999761581421
+  },
+  "capturedAt": "2026-05-26T01:59:52.424Z"
+}
+```

@@ -1,7 +1,7 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { puertoExactoCompartidoDeAbanico } from "../../modelo/abanicos";
 import { entidadDeExtremo, entidadIdDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
-import { esNombreProcesoPlaceholder, estadoTieneNombreCanonico, nombreCanonicoEntidad, nombreCanonicoEstado } from "../../modelo/nombresCanonicos";
+import { nombreCanonicoEntidad, nombreCanonicoEstado } from "../../modelo/nombresCanonicos";
 import type { Abanico, Enlace, Entidad, Estado, Id, Modelo, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia, OplTokenHint } from "../interaccion";
 
@@ -190,6 +190,7 @@ export function nombreOplExtremo(modelo: Modelo, extremo: Enlace["origenId"], mu
 export function nombreOplConMultiplicidad(entidad: Entidad, multiplicidad: string | undefined): string {
   const nombre = multiplicidadPlural(multiplicidad) ? pluralizarCanonico(nombreCanonicoEntidad(entidad)) : nombreCanonicoEntidad(entidad);
   const token = nombreOplBase(entidad, nombre);
+  if (multiplicidad === "?" || multiplicidad === "0..1") return `un ${token} opcional`;
   return multiplicidad ? `${multiplicidad} ${token}` : token;
 }
 
@@ -200,11 +201,12 @@ export function nombreOplBase(entidad: Entidad, nombre: string): string {
 }
 
 export function entidadOplEsEmitible(entidad: Entidad): boolean {
-  return entidad.tipo !== "proceso" || !esNombreProcesoPlaceholder(entidad.nombre);
+  void entidad;
+  return true;
 }
 
 export function estadoOplEsEmitible(estado: Estado | undefined): estado is Estado {
-  return !!estado && estadoTieneNombreCanonico(estado);
+  return !!estado;
 }
 
 export function extremoOplEsEmitible(modelo: Modelo, extremo: Enlace["origenId"]): boolean {

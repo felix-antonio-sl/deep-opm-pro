@@ -13,6 +13,7 @@ import {
   crearEstadosIniciales,
   eliminarEstado as eliminarEstadoOp,
   quitarEstadosObjeto,
+  redimensionarEstado,
   renombrarEstado,
   reordenarEstado,
 } from "../../modelo/operaciones";
@@ -222,6 +223,24 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
         estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: "Estado eliminado",
+      });
+    },
+
+    redimensionarEstadoEnCanvas(estadoId, width, height) {
+      const { modelo } = get();
+      const resultado = redimensionarEstado(modelo, estadoId, width, height);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        estadoSeleccionId: estadoId,
+        seleccionados: [estadoId],
+        modoSeleccion: "simple",
+        modoEnlace: null,
+        mensaje: null,
       });
     },
 

@@ -129,6 +129,43 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.enlaces[enlaceId]?.origenId).toEqual(expect.objectContaining(extremoEstado(pendiente.id)));
   });
 
+  test("preserva metadatos TS3/TS4 de efecto en round-trip", () => {
+    let modelo = crearModelo("Efecto TS3");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 20 }, "Actualizar"));
+    const sistemaId = entidadPorNombre(modelo, "Sistema");
+    const actualizarId = entidadPorNombre(modelo, "Actualizar");
+    const estados = must(crearEstadosIniciales(modelo, sistemaId));
+    modelo = estados.modelo;
+    const [entradaId, salidaId] = estados.estadoIds;
+    if (!entradaId || !salidaId) throw new Error("La prueba esperaba estados");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, actualizarId, sistemaId, "efecto"));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba enlace");
+    modelo = {
+      ...modelo,
+      enlaces: {
+        ...modelo.enlaces,
+        [enlaceId]: {
+          ...modelo.enlaces[enlaceId]!,
+          estadoEntradaId: entradaId,
+          estadoSalidaId: salidaId,
+          efectoEscindido: { grupoId: "efe-1", enlacePadreId: "e-padre", rol: "entrada" },
+        },
+      },
+    };
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[enlaceId]).toMatchObject({
+      estadoEntradaId: entradaId,
+      estadoSalidaId: salidaId,
+      efectoEscindido: { grupoId: "efe-1", enlacePadreId: "e-padre", rol: "entrada" },
+    });
+  });
+
   test("preserva ordenPartes opcional en apariencia y acepta legacy sin campo", () => {
     let modelo = crearModelo("Orden partes");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Vehiculo"));

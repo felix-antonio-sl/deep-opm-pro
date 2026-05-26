@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260526T032348Z-af718d",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-05-26T03:23:48.660Z",
+  "text": "la raíz del enlace no representa al grupo, sino al primer enlace",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-d2ed7806-1375-4707-98c1-9a7c83c29c94",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1422,
+      "height": 1032,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-05-26T03:23:46.450Z"
+  },
+  "screenshots": [
+    "screenshots/01-cleanshot-2026-05-25-at-23.23.08.jpg"
+  ]
+}

@@ -153,8 +153,15 @@ function proyectarGrupoEstructural(
     ladoRefinable: grupo.ladoRefinable,
   };
   const metaSimbolo: OpmJointMetadata = {
-    ...metaRefinable,
-    rolEstructural: "simbolo",
+    kind: "grupo-enlaces",
+    tipoGrupo: "estructural",
+    opdId,
+    grupoId,
+    tipo: grupo.tipo,
+    refinableId: grupo.refinableId,
+    enlaceIds,
+    aparienciaEnlaceIds,
+    ladoRefinable: grupo.ladoRefinable,
   };
   const ordenado = modelo.entidades[grupo.refinableId]?.orderedFundamentalTypes?.includes(grupo.tipo) ?? false;
 

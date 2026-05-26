@@ -59,6 +59,7 @@ describe("CanvasInteractionPort", () => {
       iniciarConexionDesdeApariencia: fn,
       cancelarEnlace: fn,
       redimensionarAparienciaEnCanvas: fn,
+      redimensionarEstadoEnCanvas: fn,
       reanclarExtremoAccion: fn,
       renombrarEntidadDesdeOpl: fn,
     } as unknown as ModelCommandPort;
@@ -100,6 +101,7 @@ describe("CanvasInteractionPort", () => {
       "opdActivoId",
       "reanclarExtremoAccion",
       "redimensionarAparienciaEnCanvas",
+      "redimensionarEstadoEnCanvas",
       "renombrarEntidadDesdeOpl",
       "seleccionId",
       "seleccionados",

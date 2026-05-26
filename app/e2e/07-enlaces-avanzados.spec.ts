@@ -432,43 +432,35 @@ test("edita rutas en ramas de abanico hacia estados y sincroniza OPL y JSON", as
   expect(pageErrors).toEqual([]);
 });
 
-test("split de efecto convierte enlace en consumo + resultado intermedio", async ({ page }) => {
+test("split de efecto TS3 convierte enlace en efectos entrada/salida sin objeto sintetico", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.getByLabel("Nombre").fill("Sistema");
-  await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  await page.getByLabel("Nombre").fill("Actualizar");
+  await jsonEditor(page).fill(JSON.stringify(modeloEfectoTs3ParaSplit(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
 
-  // Crear el efecto via toolbar: seleccionar origen, elegir tipo, click destino.
-  const sistema = page.locator(".joint-element").filter({ hasText: "Sistema" }).first();
-  const actualizar = page.locator(".joint-element").filter({ hasText: "Actualizar" }).first();
-  await sistema.click();
-  await elegirTipoEnlaceDesdeMenu(page, "efecto");
-  await clickCabeceraElemento(page, "Actualizar");
-
-  // Hay 2 entidades + 1 efecto.
+  // Hay 2 entidades + 1 efecto TS3 con estado de entrada/salida.
   await expect(page.locator(".joint-element")).toHaveCount(2);
   await expect(page.locator(".joint-link")).toHaveCount(1);
 
-  // Seleccionar el enlace de efecto y splittearlo.
-  await clickCentroLink(page);
+  // Seleccionar el enlace de efecto desde su verbo OPL y escindirlo.
+  await page.getByLabel("Panel OPL-ES").locator('[data-opl-rol="verbo"]').filter({ hasText: "afecta" }).dblclick();
+  await expect(page.getByText("Enlace Efecto")).toBeVisible();
   // Ronda 20 L1: Split en par vive en el tab `Extremos` del Inspector enlace.
   await irATabExtremos(page);
-  await page.getByRole("button", { name: "Split en par" }).click();
+  await page.getByRole("button", { name: "Split en par" }).click({ force: true });
 
-  // Tras el split: 3 entidades (Sistema, Actualizar, "Sistema modificado") y 2 enlaces.
-  await expect(page.locator(".joint-element")).toHaveCount(3);
-  await expect(page.locator(".joint-link")).toHaveCount(2);
-  await expect(elementoPorTexto(page, "Sistema modificado")).toHaveCount(1);
+  await expect.poll(async () => jsonEditor(page).first().inputValue()).toContain('"rol": "entrada"');
 
-  // El JSON exportado refleja consumo + resultado y NO efecto.
+  // El JSON exportado refleja el split canonico sin objeto sintetico ni consumo/resultado sustitutos.
   const json = await jsonEditor(page).first().inputValue();
-  expect(json).toContain('"consumo"');
-  expect(json).toContain('"resultado"');
-  expect(json).not.toMatch(/"tipo"\s*:\s*"efecto"/);
+  expect(json).toContain('"tipo": "efecto"');
+  expect(json).toContain('"rol": "entrada"');
+  expect(json).toContain('"rol": "salida"');
+  expect(json).not.toContain('"Sistema modificado"');
+  expect(json).not.toContain('"consumo"');
+  expect(json).not.toContain('"resultado"');
 
   expect(pageErrors).toEqual([]);
 });
@@ -605,6 +597,44 @@ test("L3 UX: DialogoTraerConectados muestra conteo por familia", async ({ page }
 
   expect(pageErrors).toEqual([]);
 });
+
+function modeloEfectoTs3ParaSplit() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-efecto-ts3-split",
+      nombre: "Efecto TS3 Split",
+      opdRaizId: "opd-1",
+      nextSeq: 20,
+      entidades: {
+        "o-sistema": objeto("o-sistema", "Sistema"),
+        "p-actualizar": proceso("p-actualizar", "Actualizar"),
+      },
+      estados: {
+        "s-antes": { id: "s-antes", entidadId: "o-sistema", nombre: "antes" },
+        "s-despues": { id: "s-despues", entidadId: "o-sistema", nombre: "despues" },
+      },
+      enlaces: {
+        "e-efecto": {
+          ...enlace("e-efecto", "efecto", "p-actualizar", "o-sistema"),
+          estadoEntradaId: "s-antes",
+          estadoSalidaId: "s-despues",
+        },
+      },
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: aparienciaPar("p-actualizar", "o-sistema", 80, 90),
+          enlaces: {
+            "ae-efecto": { id: "ae-efecto", enlaceId: "e-efecto", opdId: "opd-1", vertices: [] },
+          },
+        },
+      },
+    },
+  };
+}
 
 async function abrirTraerConectadosDesdeMenuEntidad(page: Page, nombreEntidad: string): Promise<void> {
   const entidad = elementoPorTexto(page, nombreEntidad).first();

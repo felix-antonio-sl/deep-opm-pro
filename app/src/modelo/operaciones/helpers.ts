@@ -85,9 +85,9 @@ export function validarFirmaEnlace(
       : fallo("Resultado requiere Proceso -> Objeto");
   }
   if (tipo === "efecto") {
-    return origen.tipo !== destino.tipo && (origen.tipo === "objeto" || destino.tipo === "objeto")
-      ? ok(true)
-      : fallo("Efecto requiere Objeto <-> Proceso");
+    if (origen.tipo === "proceso" && destino.tipo === "objeto") return ok(true);
+    if (origenExtremo.kind === "estado" && origen.tipo === "objeto" && destino.tipo === "proceso") return ok(true);
+    return fallo("Efecto requiere Proceso -> Objeto; usa Estado -> Proceso solo para efecto de entrada");
   }
   if (tipo === "invocacion") {
     return origen.tipo === "proceso" && destino.tipo === "proceso"

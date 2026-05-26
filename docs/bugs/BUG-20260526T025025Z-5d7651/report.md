@@ -1,0 +1,38 @@
+# BUG-20260526T025025Z-5d7651
+
+**Creado**: 2026-05-26T02:50:25.548Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+un link de efecto puede afectar en un estado específico?
+
+## Screenshots
+
+- [screenshots/01-google-chrome-2026-05-25-22.49.50.png](screenshots/01-google-chrome-2026-05-25-22.49.50.png)
+- [screenshots/02-google-chrome-2026-05-25-22.49.54.png](screenshots/02-google-chrome-2026-05-25-22.49.54.png)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-0ee4b001-ca99-489c-acb7-b1f356473b51",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1422,
+    "height": 1032,
+    "devicePixelRatio": 0.8999999761581421
+  },
+  "capturedAt": "2026-05-26T02:50:22.342Z"
+}
+```

@@ -165,6 +165,31 @@ export function eliminarEstado(modelo: Modelo, estadoId: Id): Resultado<Modelo> 
   return ok(eliminarEnlacesPorExtremosEstado({ ...modelo, estados: siguientes }, new Set([estadoId])));
 }
 
+export function redimensionarEstado(
+  modelo: Modelo,
+  estadoId: Id,
+  width: number,
+  height: number,
+): Resultado<Modelo> {
+  const estado = modelo.estados?.[estadoId];
+  if (!estado) return fallo(`Estado no existe: ${estadoId}`);
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return fallo("Tamaño de estado inválido");
+  const siguienteWidth = Math.round(Math.max(52, width));
+  const siguienteHeight = Math.round(Math.max(24, height));
+  if (estado.width === siguienteWidth && estado.height === siguienteHeight) return ok(modelo);
+  return ok({
+    ...modelo,
+    estados: {
+      ...(modelo.estados ?? {}),
+      [estadoId]: {
+        ...estado,
+        width: siguienteWidth,
+        height: siguienteHeight,
+      },
+    },
+  });
+}
+
 export function quitarEstadosObjeto(modelo: Modelo, entidadId: Id): Resultado<Modelo> {
   const entidad = modelo.entidades[entidadId];
   if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);

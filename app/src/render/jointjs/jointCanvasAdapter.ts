@@ -82,7 +82,9 @@ export function crearJointCanvasAdapter(args: CrearJointCanvasAdapterArgs): Join
         const enlaceSeleccionado = enlaceSeleccionIdRef.current;
         const seleccionado = meta?.kind === "enlace" && !!enlaceSeleccionado
           ? meta.enlaceId === enlaceSeleccionado || meta.enlaceIds?.includes(enlaceSeleccionado) === true
-          : false;
+          : meta?.kind === "grupo-enlaces" && !!enlaceSeleccionado
+            ? meta.enlaceIds.includes(enlaceSeleccionado)
+            : false;
         const editable = meta?.kind === "enlace" ? seleccionado && meta.tipo !== "agregacion" : false;
         return {
           arrowheadMove: false,
@@ -95,7 +97,7 @@ export function crearJointCanvasAdapter(args: CrearJointCanvasAdapterArgs): Join
         };
       }
       const meta = metadata(model);
-      const esSimboloEstructural = meta?.kind === "enlace" && meta.rolEstructural === "simbolo";
+      const esSimboloEstructural = meta?.kind === "grupo-enlaces" || (meta?.kind === "enlace" && meta.rolEstructural === "simbolo");
       return {
         addLinkFromMagnet: false,
         elementMove: (meta?.kind === "entidad" || esSimboloEstructural) && !modoEnlaceRef.current && !modoCreacionRef.current,

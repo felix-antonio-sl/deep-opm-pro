@@ -190,8 +190,11 @@ export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string
   switch (enlace.tipo) {
     case "agente":
       return `${origenOpl} ${verbo("maneja", "manejan", origenPlural)} ${destinoOpl}.`;
-    case "instrumento":
+    case "instrumento": {
+      const posesiva = oracionInstrumentoPosesiva(modelo, enlace, origen, destino);
+      if (posesiva) return posesiva;
       return `${destinoOpl} ${verbo("requiere", "requieren", destinoPlural)} ${origenOpl}.`;
+    }
     case "consumo":
       return `${destinoOpl} ${verbo("consume", "consumen", destinoPlural)} ${origenOpl}.`;
     case "resultado":
@@ -365,6 +368,14 @@ function oracionEnlaceSinModificador(modelo: Modelo, enlace: Enlace): string | n
 }
 
 function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino: Entidad): string | null {
+  const estadoOrigen = estadoDeExtremo(modelo, enlace.origenId);
+  const estadoDestino = estadoDeExtremo(modelo, enlace.destinoId);
+  if (estadoOrigen && destino.tipo === "proceso") {
+    return `${nombreOpl(destino)} cambia ${nombreOpl(origen)} de \`${nombreCanonicoEstado(estadoOrigen)}\`.`;
+  }
+  if (estadoDestino && origen.tipo === "proceso") {
+    return `${nombreOpl(origen)} cambia ${nombreOpl(destino)} a \`${nombreCanonicoEstado(estadoDestino)}\`.`;
+  }
   const proceso = origen.tipo === "proceso" ? origen : destino.tipo === "proceso" ? destino : null;
   const objeto = origen.tipo === "objeto" ? origen : destino.tipo === "objeto" ? destino : null;
   if (!proceso || !objeto) return null;
@@ -374,6 +385,37 @@ function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino:
   const multiplicidadObjeto = objetoEsOrigen ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
   const extremoObjeto = objetoEsOrigen ? enlace.origenId : enlace.destinoId;
   return `${nombreOplConMultiplicidad(proceso, multiplicidadProceso)} ${verbo("afecta", "afectan", multiplicidadPlural(multiplicidadProceso))} ${nombreOplExtremo(modelo, extremoObjeto, multiplicidadObjeto)}.`;
+}
+
+function oracionInstrumentoPosesiva(modelo: Modelo, enlace: Enlace, instrumento: Entidad, proceso: Entidad): string | null {
+  if (instrumento.tipo !== "objeto" || proceso.tipo !== "proceso") return null;
+  const afectado = Object.values(modelo.enlaces).find((candidato) => {
+    if (candidato.id === enlace.id || candidato.tipo !== "efecto") return false;
+    const origenId = entidadIdDeExtremo(modelo, candidato.origenId);
+    const destinoId = entidadIdDeExtremo(modelo, candidato.destinoId);
+    if (origenId !== proceso.id && destinoId !== proceso.id) return false;
+    const otroId = origenId === proceso.id ? destinoId : origenId;
+    const otro = otroId ? modelo.entidades[otroId] : undefined;
+    return otro?.tipo === "objeto";
+  });
+  if (!afectado) return null;
+  const origenId = entidadIdDeExtremo(modelo, afectado.origenId);
+  const destinoId = entidadIdDeExtremo(modelo, afectado.destinoId);
+  const objetoId = origenId === proceso.id ? destinoId : origenId;
+  const objeto = objetoId ? modelo.entidades[objetoId] : undefined;
+  if (!objeto || objeto.tipo !== "objeto") return null;
+  const verboReflexivo = verboReflexivoDesdeProceso(proceso.nombre);
+  if (!verboReflexivo) return null;
+  return `${nombreOpl(objeto)} se ${verboReflexivo} con ${nombreOpl(instrumento)}.`;
+}
+
+function verboReflexivoDesdeProceso(nombre: string): string | null {
+  const primera = nombre.trim().split(/\s+/)[0]?.toLocaleLowerCase("es");
+  if (!primera) return null;
+  if (primera !== "manejar" && primera !== "conducir") return null;
+  if (primera.endsWith("ar")) return `${primera.slice(0, -2)}a`;
+  if (primera.endsWith("er") || primera.endsWith("ir")) return `${primera.slice(0, -2)}e`;
+  return null;
 }
 
 function sufijoProbabilidad(enlace: Enlace): string {

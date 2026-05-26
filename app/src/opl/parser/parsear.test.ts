@@ -11,6 +11,7 @@ describe("parser OPL reverse base", () => {
     expect(extraerMultiplicidad("+ **Componentes**")).toEqual({ multiplicidad: "+", nombre: "**Componentes**" });
     expect(extraerMultiplicidad("2..* **Partes**")).toEqual({ multiplicidad: "2..*", nombre: "**Partes**" });
     expect(extraerMultiplicidad("* **Veces**")).toEqual({ multiplicidad: "*", nombre: "**Veces**" });
+    expect(extraerMultiplicidad("un **Techo Descapotable** opcional")).toEqual({ multiplicidad: "0..1", nombre: "**Techo Descapotable**" });
   });
 
   test("parsea descripcion canonica de cosa", () => {
@@ -50,6 +51,29 @@ describe("parser OPL reverse base", () => {
       tipoEnlace: "agregacion",
       origen: "Sistema",
       destinos: ["Pedido", "Operador"],
+    });
+  });
+
+  test("parsea exhibicion opcional singular y agrupada", () => {
+    const result = parsearParrafoOpl([
+      "**Auto** tiene un **Techo Descapotable** opcional.",
+      "**Auto** tiene **Techo Descapotable** y **Spoiler** opcionales.",
+    ].join("\n"));
+
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "estructural",
+      tipoEnlace: "exhibicion",
+      origen: "Auto",
+      destinos: ["Techo Descapotable"],
+      multiplicidadDestino: "0..1",
+    });
+    expect(result.ast[1]).toMatchObject({
+      kind: "estructural",
+      tipoEnlace: "exhibicion",
+      origen: "Auto",
+      destinos: ["Techo Descapotable", "Spoiler"],
+      multiplicidadDestino: "0..1",
     });
   });
 

@@ -338,6 +338,83 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 **Verificación verde:** `bun run check` = **1685 unit / 0 fail**; `bun run browser:smoke` = **237 e2e / 0 fail** (2 skips intencionales: AI-Text placeholder y resize-handles retirados); `lint` + `build` limpios. La reconciliación e2e final confirmó **cero regresiones de producto** (las 15 fallas eran aserciones obsoletas por el cambio de canon/anchos).
 
+## Corte actual — Ronda bugs OPM/OPL/OPD 2026-05-26
+
+Se cerro la tanda de 19 bugs capturados entre `BUG-20260526T024016Z-b768d4`
+y `BUG-20260526T033451Z-59993d`, con trabajo paralelo en tres dominios:
+OPL/canon, semantica de enlaces/render JointJS y UX de interaccion.
+
+**Fuentes normativas usadas:**
+- Repo: `docs/canon-opm/reglas-opm-estrictas.md`.
+- SSOT externa indicada por el operador:
+  - `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-iso-19450-es.md`
+  - `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-opl-es.md`
+
+**Decisiones y comportamiento cerrado:**
+- `efecto` ya no acepta `Objeto -> Proceso`; las firmas validas son
+  `Proceso -> Objeto` y `Estado -> Proceso` como efecto de entrada.
+- El split de efecto TS3 escinde a dos efectos TS4/TS5 acoplados
+  (`Estado -> Proceso` y `Proceso -> Estado`) sin crear objeto sintetico ni
+  reemplazar por consumo/resultado.
+- La serializacion JSON preserva metadatos de efecto TS3/TS4:
+  `estadoEntradaId`, `estadoSalidaId` y `efectoEscindido`.
+- OPL vuelve a emitirse aunque los nombres no pasen heuristicas de canon; las
+  heuristicas quedan como diagnostico, no como supresion de lenguaje.
+- OPL cubre efectos con estados, multiplicidad opcional (`?`, `0..1`),
+  agrupaciones opcionales, modificadores y frases naturales de instrumento
+  para procesos como manejar/conducir.
+- La raiz visual de un bus estructural se identifica como `grupo-enlaces`, no
+  como la primera rama.
+- Los markers de enlaces transformadores usan punta cerrada canonica.
+- Cosas y estados se pueden redimensionar; Backspace/Delete elimina estados
+  seleccionados y limpia enlaces asociados; la anotacion contextual ya no
+  desborda ni superpone acciones.
+
+**Artefactos principales:**
+- Modelo/kernel: `app/src/modelo/operaciones/helpers.ts`,
+  `app/src/modelo/operaciones/eliminacion.ts`,
+  `app/src/modelo/tipos/enlace.ts`,
+  `app/src/serializacion/validarEnlaces.ts`.
+- OPL: `app/src/opl/generar.ts`,
+  `app/src/opl/generadores/procedural.ts`,
+  `app/src/opl/generadores/estructural.ts`,
+  `app/src/opl/parser/parsear.ts`.
+- Render/UI: `app/src/render/jointjs/*`,
+  `app/src/store/modelo/acciones-estados.ts`,
+  `app/src/ui/codex/CodexSelectionAnnotation.tsx`.
+- Regresion e2e nueva: `app/e2e/31-domain-c-ui-interactions.spec.ts`.
+- Trazabilidad bugs: `docs/bugs/statuses.json`, `docs/bugs/INDEX.md`,
+  `docs/bugs/HISTORY.md`.
+
+**Verificacion verde del corte:**
+- `cd app && bun run check` -> **1723 pass / 0 fail**.
+- `cd app && bun run lint` -> OK.
+- `cd app && bun run build` -> OK.
+- `cd app && bun run design:governance` -> OK.
+- `git diff --check -- app/src app/e2e docs/bugs/statuses.json docs/bugs/INDEX.md docs/bugs/HISTORY.md` -> OK.
+- Playwright focal:
+  `bunx playwright test e2e/02-canvas-y-render.spec.ts e2e/07-enlaces-avanzados.spec.ts:435 e2e/14-canvas-fidelity.spec.ts e2e/25-produccion-backup.spec.ts e2e/31-domain-c-ui-interactions.spec.ts --workers=1`
+  -> **29 passed**.
+
+**Smoke completo observado:**
+- `cd app && bun run browser:smoke -- --workers=1` fue ejecutado antes de los
+  ultimos ajustes y arrojo **223 passed / 17 failed / 2 skipped**.
+- Las fallas de esta tanda detectadas por ese smoke (fixtures de markers con
+  efecto en direccion antigua, split TS3 y preservacion de metadata TS3/TS4)
+  quedaron corregidas y cubiertas por la verificacion focal anterior.
+- Persisten fallas e2e historicas/no relacionadas con este corte: aserciones
+  visuales obsoletas de colores, expectativas antiguas de OPL vacio en
+  refinamientos, grid/configuracion, tabla densa, simulacion multi-OPD, anchor
+  drag y colision de nombres. No bloquearon este commit por estar fuera del
+  alcance de los 19 bugs.
+
+**Estado git/documental:**
+- Rama de trabajo: `main`.
+- Hay cambios ajenos no relacionados en el worktree que no pertenecen a este
+  corte: deletes documentales previos y directorios nuevos bajo
+  `docs/auditorias/**` / `docs/bugs/BUG-*`. No stagear salvo instruccion
+  explicita.
+
 ## Fuentes normativas y técnicas
 
 - **SSOT suprema de canon OPM (repo)**: `docs/canon-opm/reglas-opm-estrictas.md` — autoritativa para verbos/plantillas OPL (estados=`puede estar`, especialización=`puede ser`).
@@ -391,4 +468,4 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Prompt de continuación
 
-> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Ronda de bugs UX delegada". Los 6 bugs de captura/atajos/paneles están en `origin/main` y **desplegados** (`https://opforja.sanixai.com`, bundle `index-BEwvFCpF.js`). Trabajo inmediato de valor: (1) **BUG-f897bc** (OPL prosaico) revertido — rediseñar la agrupación enumerada para excluir enlaces en contexto de refinamiento/despliegue preservando tokens por enlace; (2) triar la cola de ~24 bugs nuevos del capturador y correr `cd app && bun run bug:index`; (3) las brechas diferidas del Tier 1 (visibilidad unidades/alias OPL; D herencia; E condiciones/loops; G sociotécnico). Antes de tocar UI/canvas leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Gate UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance` + Playwright del layout/canvas afectado. Recordatorio operativo: vite-bg + e2e en paralelo produce flakes (correr e2e con `--workers=1` o apagar el dev server). No stagear `docs/auditorias/**` ni `docs/bugs/**` en el commit de código.
+> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Ronda bugs OPM/OPL/OPD 2026-05-26". La tanda de 19 bugs OPM/OPL/OPD quedo cerrada en `main` con verificacion verde local (`bun run check`, `lint`, `build`, `design:governance` y Playwright focal 29/29). Si se retoma producto, priorizar: (1) limpiar las fallas historicas de `browser:smoke` completo no relacionadas con este corte; (2) triar la cola documental de bugs capturados en `docs/bugs/BUG-*` antes de stagearla; (3) continuar brechas diferidas del Tier 1 (visibilidad unidades/alias OPL; D herencia; E condiciones/loops; G sociotecnico). Antes de tocar OPM/OPL leer `docs/canon-opm/reglas-opm-estrictas.md` y la SSOT externa `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`. Antes de tocar UI/canvas leer `ui-forja/GOVERNANCE.md`. Gate UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance` + Playwright del layout/canvas afectado. Recordatorio operativo: vite-bg + e2e en paralelo produce flakes (correr e2e con `--workers=1` o apagar el dev server). No stagear cambios ajenos (`docs/auditorias/**`, deletes documentales previos, bug dirs no triados) sin instruccion explicita.

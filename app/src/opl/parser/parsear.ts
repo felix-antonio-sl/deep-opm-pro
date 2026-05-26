@@ -14,7 +14,7 @@ const ETIQUETA_SUFIX = /\s*\[etiqueta:\s*([^\]]+)\]\s*$/i;
  * `2..N`, `2..*`, `0..3`, `+`, `*`. Cualquier otro prefijo no matchea y queda
  * como nombre.
  */
-const MULTIPLICIDAD_PREFIJO_RE = /^\s*(\d+(?:\.\.(?:\d+|N|\*))?|N|\+|\*)\s+(.+)$/iu;
+const MULTIPLICIDAD_PREFIJO_RE = /^\s*(?:(\d+(?:\.\.(?:\d+|N|\*))?|N|\+|\*)\s+(.+)|un\s+(.+?)\s+opcional(?:es)?|una\s+(.+?)\s+opcional(?:es)?)$/iu;
 
 /**
  * SSOT §13. Prefijo de ruta etiquetada. El generador emite
@@ -41,8 +41,8 @@ const RUTA_PREFIJO_RE = /^Por\s+ruta\s+(.+?),\s*(.+)$/iu;
 export function extraerMultiplicidad(texto: string): { multiplicidad?: string; nombre: string } {
   const match = MULTIPLICIDAD_PREFIJO_RE.exec(texto.trim());
   if (!match) return { nombre: texto.trim() };
-  const multiplicidad = (match[1] ?? "").trim();
-  const nombre = (match[2] ?? "").trim();
+  const multiplicidad = (match[1] ?? "").trim() || "0..1";
+  const nombre = (match[2] ?? match[3] ?? match[4] ?? "").trim();
   if (!multiplicidad || !nombre) return { nombre: texto.trim() };
   return { multiplicidad, nombre };
 }
@@ -960,6 +960,10 @@ function parsearEstructural(texto: string, linea: LineaOplNormalizada) {
   if (match) return astEstructural(linea, "agregacion", match[1] ?? "", match[2] ?? "");
   match = /^(.+?) exhibe(?:n)? (.+)$/iu.exec(texto);
   if (match) return astEstructural(linea, "exhibicion", match[1] ?? "", match[2] ?? "");
+  match = /^(.+?) tiene un (.+?) opcional$/iu.exec(texto);
+  if (match) return astEstructural(linea, "exhibicion", match[1] ?? "", match[2] ?? "", "0..1");
+  match = /^(.+?) tiene (.+?) opcionales$/iu.exec(texto);
+  if (match) return astEstructural(linea, "exhibicion", match[1] ?? "", match[2] ?? "", "0..1");
   match = /^(.+?) es un (.+)$/iu.exec(texto);
   if (match) return astEstructural(linea, "generalizacion", match[2] ?? "", match[1] ?? "");
   match = /^(.+?) son (.+)$/iu.exec(texto);
@@ -1074,7 +1078,13 @@ function astProcedimental(linea: LineaOplNormalizada, ast: Omit<Extract<OracionO
   return { ast: { kind: "procedimental" as const, linea: linea.linea, ...ast, ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}) }, diagnosticos: [] };
 }
 
-function astEstructural(linea: LineaOplNormalizada, tipoEnlace: Extract<OracionOplAst, { kind: "estructural" }>["tipoEnlace"], origen: string, destinos: string) {
+function astEstructural(
+  linea: LineaOplNormalizada,
+  tipoEnlace: Extract<OracionOplAst, { kind: "estructural" }>["tipoEnlace"],
+  origen: string,
+  destinos: string,
+  multiplicidadDestino?: string,
+) {
   return {
     ast: {
       kind: "estructural" as const,
@@ -1082,6 +1092,7 @@ function astEstructural(linea: LineaOplNormalizada, tipoEnlace: Extract<OracionO
       tipoEnlace,
       origen: normalizarNombreOpl(origen),
       destinos: dividirLista(destinos, "y").map(normalizarNombreOpl).filter(Boolean),
+      ...(multiplicidadDestino ? { multiplicidadDestino } : {}),
       ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
     },
     diagnosticos: [],

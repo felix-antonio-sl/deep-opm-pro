@@ -25,6 +25,17 @@ export type OpmJointMetadata =
       ladoRefinable?: "origen" | "destino";
     }
   | {
+      kind: "grupo-enlaces";
+      tipoGrupo: "estructural";
+      opdId: Id;
+      grupoId: Id;
+      tipo: TipoEnlace;
+      refinableId: Id;
+      enlaceIds: Id[];
+      aparienciaEnlaceIds: Id[];
+      ladoRefinable: "origen" | "destino";
+    }
+  | {
       kind: "proxy-plegado";
       opdId: Id;
       padreAparienciaId: Id;

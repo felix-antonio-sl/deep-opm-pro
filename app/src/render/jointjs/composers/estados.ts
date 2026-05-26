@@ -10,20 +10,27 @@ import type { Apariencia, Entidad, Estado, Id, Modelo, Posicion } from "../../..
  */
 export function dimensionesConEstados(apariencia: Apariencia, nombre: string, estados: Estado[], layout: Entidad["layoutEstados"]): { width: number; height: number } {
   const capsulas = estados.map((estado) => anchoCapsulaEstado(estado.nombre));
+  const altos = estados.map(altoCapsulaEstado);
   const vertical = layout === "vertical";
   const anchoEstados = vertical
     ? Math.max(...capsulas, ESTADOS.minWidth)
     : capsulas.reduce((total, ancho) => total + ancho, 0) + Math.max(0, capsulas.length - 1) * ESTADOS.gap;
   const altoEstados = vertical
-    ? estados.length * ESTADOS.capsuleHeight + Math.max(0, estados.length - 1) * ESTADOS.gap
-    : ESTADOS.regionHeight;
+    ? altos.reduce((total, alto) => total + alto, 0) + Math.max(0, altos.length - 1) * ESTADOS.gap
+    : Math.max(ESTADOS.regionHeight, Math.max(...altos, ESTADOS.capsuleHeight) + ESTADOS.paddingBottom + 4);
   const width = Math.max(apariencia.width, CANON.dims.cosaWidth, nombre.length * 7 + 24, anchoEstados + ESTADOS.paddingX * 2);
   const height = Math.max(apariencia.height, CANON.dims.cosaHeight + altoEstados + ESTADOS.paddingBottom);
   return { width, height };
 }
 
-export function anchoCapsulaEstado(nombre: string): number {
-  return Math.max(ESTADOS.minWidth, nombre.length * 7 + ESTADOS.paddingHorizontal * 2);
+export function anchoCapsulaEstado(estado: Estado | string): number {
+  const nombre = typeof estado === "string" ? estado : estado.nombre;
+  const manual = typeof estado === "string" ? undefined : estado.width;
+  return Math.max(ESTADOS.minWidth, manual ?? 0, nombre.length * 7 + ESTADOS.paddingHorizontal * 2);
+}
+
+export function altoCapsulaEstado(estado: Estado): number {
+  return Math.max(ESTADOS.capsuleHeight, estado.height ?? 0);
 }
 
 interface EndpointVisual {
@@ -48,9 +55,11 @@ export function rectCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estado
   const index = estados.findIndex((item) => item.id === estadoId);
   if (index < 0) return null;
   const size = dimensionesConEstados(apariencia, formatearNombreCompuesto(entidad), estados, entidad.layoutEstados);
-  const anchos = estados.map((item) => anchoCapsulaEstado(item.nombre));
+  const anchos = estados.map(anchoCapsulaEstado);
+  const altos = estados.map(altoCapsulaEstado);
   const vertical = entidad.layoutEstados === "vertical";
   const anchoActual = anchos[index] ?? ESTADOS.minWidth;
+  const altoActual = altos[index] ?? ESTADOS.capsuleHeight;
   const anchoTotal = vertical
     ? anchoActual
     : anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
@@ -59,17 +68,17 @@ export function rectCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estado
     ? xInicial
     : xInicial + anchos.slice(0, index).reduce((total, ancho) => total + ancho + ESTADOS.gap, 0);
   const altoTotal = vertical
-    ? estados.length * ESTADOS.capsuleHeight + Math.max(0, estados.length - 1) * ESTADOS.gap
-    : ESTADOS.capsuleHeight;
+    ? altos.reduce((total, alto) => total + alto, 0) + Math.max(0, altos.length - 1) * ESTADOS.gap
+    : Math.max(...altos, ESTADOS.capsuleHeight);
   const yBase = size.height - ESTADOS.paddingBottom - altoTotal;
   const y = vertical
-    ? yBase + index * (ESTADOS.capsuleHeight + ESTADOS.gap)
+    ? yBase + altos.slice(0, index).reduce((total, alto) => total + alto + ESTADOS.gap, 0)
     : yBase;
   return {
     x: apariencia.x + x,
     y: apariencia.y + y,
     width: anchoActual,
-    height: ESTADOS.capsuleHeight,
+    height: altoActual,
   };
 }
 

@@ -141,6 +141,7 @@ export function JointCanvas({
     toggleSeleccion,
     vaciarSeleccion,
     redimensionarAparienciaEnCanvas,
+    redimensionarEstadoEnCanvas,
     reanclarExtremoAccion,
     renombrarEntidadDesdeOpl,
     gridConfig,
@@ -194,6 +195,7 @@ export function JointCanvas({
   const toggleSeleccionRef = useRef(toggleSeleccion);
   const vaciarSeleccionRef = useRef(vaciarSeleccion);
   const redimensionarAparienciaEnCanvasRef = useRef(redimensionarAparienciaEnCanvas);
+  const redimensionarEstadoEnCanvasRef = useRef(redimensionarEstadoEnCanvas);
   const reanclarExtremoAccionRef = useRef(reanclarExtremoAccion);
   const renombrarEntidadDesdeOplRef = useRef(renombrarEntidadDesdeOpl);
   const [renombradoInline, setRenombradoInline] = useState<null | { aparienciaId: string; entidadId: string }>(null);
@@ -261,9 +263,10 @@ export function JointCanvas({
     toggleSeleccionRef.current = toggleSeleccion;
     vaciarSeleccionRef.current = vaciarSeleccion;
     redimensionarAparienciaEnCanvasRef.current = redimensionarAparienciaEnCanvas;
+    redimensionarEstadoEnCanvasRef.current = redimensionarEstadoEnCanvas;
     reanclarExtremoAccionRef.current = reanclarExtremoAccion;
     renombrarEntidadDesdeOplRef.current = renombrarEntidadDesdeOpl;
-  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, agregarEstadoASeleccion, alternarModoImagenEntidad, abrirModalImagen, cancelarEnlace, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearAparienciaEntidadEnCanvas, crearEnlaceEntreEntidades, crearEntidadEnCanvas, elegirTipoEnlace, extraerParteDePlegado, fijarHoverOpl, iniciarConexionDesdeApariencia, moverAparienciaConPuertos, reanclarExtremoAccion, redimensionarAparienciaEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstado, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, toggleSeleccionEstado, vaciarSeleccion]);
+  }, [actualizarAnclajesSimboloEstructural, actualizarPosicionLabelEnlace, actualizarPosicionSimboloEstructural, actualizarVerticesEnlace, agregarASeleccion, agregarEstadoASeleccion, alternarModoImagenEntidad, abrirModalImagen, cancelarEnlace, cambiarModoPlegadoApariencia, cambiarOpdActivo, crearAparienciaEntidadEnCanvas, crearEnlaceEntreEntidades, crearEntidadEnCanvas, elegirTipoEnlace, extraerParteDePlegado, fijarHoverOpl, iniciarConexionDesdeApariencia, moverAparienciaConPuertos, reanclarExtremoAccion, redimensionarAparienciaEnCanvas, redimensionarEstadoEnCanvas, renombrarEntidadDesdeOpl, seleccionarEnlace, seleccionarEntidad, seleccionarEstado, seleccionarEstadoComoExtremo, seleccionarGrupoEstructural, seleccionarPartePlegada, setSeleccion, toggleSeleccion, toggleSeleccionEstado, vaciarSeleccion]);
 
   useEffect(() => {
     abrirMenuTipoEnlaceCanvasRef.current = (input: MenuTipoEnlaceCanvasInput) => {
@@ -368,6 +371,7 @@ export function JointCanvas({
     cleanups.push(cablearResize({
       paper,
       redimensionarAparienciaRef: redimensionarAparienciaEnCanvasRef,
+      redimensionarEstadoRef: redimensionarEstadoEnCanvasRef,
     }));
 
     cleanups.push(cablearModoEnlace({
@@ -698,6 +702,9 @@ function seleccionActualVisibleEnViewport(
     if (seleccion.seleccionId && meta.kind === "entidad") return meta.entidadId === seleccion.seleccionId;
     if (seleccion.enlaceSeleccionId && meta.kind === "enlace") {
       return meta.enlaceId === seleccion.enlaceSeleccionId || meta.enlaceIds?.includes(seleccion.enlaceSeleccionId) === true;
+    }
+    if (seleccion.enlaceSeleccionId && meta.kind === "grupo-enlaces") {
+      return meta.enlaceIds.includes(seleccion.enlaceSeleccionId);
     }
     return false;
   });

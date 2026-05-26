@@ -17,6 +17,7 @@ export function useZustandModelCommandPort(): ModelCommandPort {
   const iniciarConexionDesdeApariencia = useOpmStore((s) => s.iniciarConexionDesdeApariencia);
   const cancelarEnlace = useOpmStore((s) => s.cancelarEnlace);
   const redimensionarAparienciaEnCanvas = useOpmStore((s) => s.redimensionarAparienciaEnCanvas);
+  const redimensionarEstadoEnCanvas = useOpmStore((s) => s.redimensionarEstadoEnCanvas);
   const reanclarExtremoAccion = useOpmStore((s) => s.reanclarExtremoAccion);
   const renombrarEntidadDesdeOpl = useOpmStore((s) => s.renombrarEntidadDesdeOpl);
 
@@ -36,6 +37,7 @@ export function useZustandModelCommandPort(): ModelCommandPort {
     iniciarConexionDesdeApariencia,
     cancelarEnlace,
     redimensionarAparienciaEnCanvas,
+    redimensionarEstadoEnCanvas,
     reanclarExtremoAccion,
     renombrarEntidadDesdeOpl,
   };

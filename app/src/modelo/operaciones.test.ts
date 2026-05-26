@@ -42,7 +42,6 @@ import {
 } from "./operaciones";
 import { formarAbanico } from "./abanicos";
 import { CANON } from "./constantes";
-import { solapa } from "./layout";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "./extremos";
 import { crearSdSyncInzoomed } from "./fixtures";
 import type { Enlace, Modelo, ModoDespliegueObjeto, Resultado, TipoEnlace } from "./tipos";
@@ -104,7 +103,7 @@ describe("operaciones de modelo", () => {
       ["agente", "Agente", "Proceso"],
       ["consumo", "Part", "Proceso"],
       ["resultado", "Proceso", "Part"],
-      ["efecto", "Part", "Proceso"],
+      ["efecto", "Proceso", "Part"],
       ["invocacion", "Proceso", "Subproceso"],
       ["excepcionSobretiempo", "Proceso", "Subproceso"],
       ["excepcionSubtiempo", "Proceso", "Subproceso"],
@@ -942,53 +941,69 @@ describe("operaciones de modelo", () => {
     ]));
   });
 
-  test("splitEffectEnPar convierte efecto objeto a proceso en consumo y resultado intermedio", () => {
+  test("splitEffectEnPar rechaza efecto objeto a proceso antes de escindir", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 120 }, "Sistema"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Actualizar"));
     const sistema = entidadPorNombre(modelo, "Sistema");
     const actualizar = entidadPorNombre(modelo, "Actualizar");
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema.id, actualizar.id, "efecto"));
-    const effectId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "efecto")?.id;
-    expect(effectId).toBeDefined();
-    if (!effectId) return;
 
-    const split = splitEffectEnPar(modelo, modelo.opdRaizId, effectId);
-
-    expect(split.ok).toBe(true);
-    if (!split.ok) return;
-    expect(Object.values(split.value.entidades)).toHaveLength(3);
-    expect(Object.values(split.value.enlaces).filter((enlace) => enlace.tipo === "efecto")).toHaveLength(0);
-    expect(Object.values(split.value.enlaces).map(enlaceSinPuertos)).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(actualizar.id) }),
-      expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(actualizar.id) }),
-    ]));
-    const intermedio = entidadPorNombre(split.value, "Sistema modificado");
-    const resultado = Object.values(split.value.enlaces).find((enlace) => enlace.tipo === "resultado");
-    expect(resultado?.destinoId).toEqual(expect.objectContaining(extremoEntidad(intermedio.id)));
-    expect(Object.values(split.value.opds[split.value.opdRaizId]?.enlaces ?? {})).toHaveLength(2);
+    const creado = crearEnlace(modelo, modelo.opdRaizId, sistema.id, actualizar.id, "efecto");
+    expect(creado.ok).toBe(false);
+    if (creado.ok) return;
+    expect(creado.error).toContain("Proceso -> Objeto");
   });
 
-  test("splitEffectEnPar convierte efecto proceso a objeto usando el objeto como consumido", () => {
+  test("splitEffectEnPar escinde efecto TS3 en efectos entrada/salida sin objeto sintetico", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Actualizar"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 120 }, "Sistema"));
     const actualizar = entidadPorNombre(modelo, "Actualizar");
     const sistema = entidadPorNombre(modelo, "Sistema");
+    const estados = must(crearEstadosIniciales(modelo, sistema.id));
+    modelo = estados.modelo;
+    const estadoEntradaId = estados.estadoIds[0];
+    const estadoSalidaId = estados.estadoIds[1];
+    if (!estadoEntradaId || !estadoSalidaId) throw new Error("La prueba esperaba dos estados");
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, actualizar.id, sistema.id, "efecto"));
     const effectId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "efecto")?.id;
     expect(effectId).toBeDefined();
     if (!effectId) return;
+    modelo = {
+      ...modelo,
+      enlaces: {
+        ...modelo.enlaces,
+        [effectId]: {
+          ...modelo.enlaces[effectId]!,
+          estadoEntradaId,
+          estadoSalidaId,
+        },
+      },
+    };
 
     const split = splitEffectEnPar(modelo, modelo.opdRaizId, effectId);
 
     expect(split.ok).toBe(true);
     if (!split.ok) return;
-    const intermedio = entidadPorNombre(split.value, "Sistema modificado");
-    expect(Object.values(split.value.enlaces).map(enlaceSinPuertos)).toEqual(expect.arrayContaining([
-      expect.objectContaining({ tipo: "consumo", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(actualizar.id) }),
-      expect.objectContaining({ tipo: "resultado", origenId: extremoEntidad(actualizar.id), destinoId: extremoEntidad(intermedio.id) }),
+    expect(Object.values(split.value.entidades)).toHaveLength(2);
+    expect(split.value.enlaces[effectId]).toBeUndefined();
+    const efectos = Object.values(split.value.enlaces).filter((enlace) => enlace.tipo === "efecto");
+    expect(efectos).toHaveLength(2);
+    expect(efectos.map(enlaceSinPuertos)).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        tipo: "efecto",
+        origenId: extremoEstado(estadoEntradaId),
+        destinoId: extremoEntidad(actualizar.id),
+        efectoEscindido: expect.objectContaining({ enlacePadreId: effectId, rol: "entrada" }),
+      }),
+      expect.objectContaining({
+        tipo: "efecto",
+        origenId: extremoEntidad(actualizar.id),
+        destinoId: extremoEstado(estadoSalidaId),
+        efectoEscindido: expect.objectContaining({ enlacePadreId: effectId, rol: "salida" }),
+      }),
     ]));
+    expect(efectos[0]?.efectoEscindido?.grupoId).toBe(efectos[1]?.efectoEscindido?.grupoId);
   });
 
   test("splitEffectEnPar rechaza enlaces que no son effect", () => {
@@ -1011,47 +1026,22 @@ describe("operaciones de modelo", () => {
     expect(Object.values(modelo.enlaces)).toHaveLength(1);
   });
 
-  test("splitEffectEnPar usa sufijo numerico cuando el nombre intermedio colisiona", () => {
+  test("splitEffectEnPar rechaza TS3 sin estados de entrada y salida", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 120 }, "Sistema"));
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 260 }, "Sistema modificado"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Actualizar"));
     const sistema = entidadPorNombre(modelo, "Sistema");
     const actualizar = entidadPorNombre(modelo, "Actualizar");
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema.id, actualizar.id, "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, actualizar.id, sistema.id, "efecto"));
     const effectId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "efecto")?.id;
     expect(effectId).toBeDefined();
     if (!effectId) return;
 
     const split = splitEffectEnPar(modelo, modelo.opdRaizId, effectId);
 
-    expect(split.ok).toBe(true);
-    if (!split.ok) return;
-    expect(Object.values(split.value.entidades).map((entidad) => entidad.nombre)).toContain("Sistema modificado 2");
-  });
-
-  test("splitEffectEnPar posiciona el intermedio sin solapar apariencias existentes", () => {
-    let modelo = crearModelo();
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 120 }, "Sistema"));
-    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Actualizar"));
-    const sistema = entidadPorNombre(modelo, "Sistema");
-    const actualizar = entidadPorNombre(modelo, "Actualizar");
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema.id, actualizar.id, "efecto"));
-    const aparienciasPrevias = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {});
-    const effectId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "efecto")?.id;
-    expect(effectId).toBeDefined();
-    if (!effectId) return;
-
-    const split = splitEffectEnPar(modelo, modelo.opdRaizId, effectId);
-
-    expect(split.ok).toBe(true);
-    if (!split.ok) return;
-    const intermedio = entidadPorNombre(split.value, "Sistema modificado");
-    const aparienciaIntermedia = Object.values(split.value.opds[split.value.opdRaizId]?.apariencias ?? {})
-      .find((apariencia) => apariencia.entidadId === intermedio.id);
-    expect(aparienciaIntermedia).toBeDefined();
-    if (!aparienciaIntermedia) return;
-    expect(aparienciasPrevias.some((apariencia) => solapa(aparienciaIntermedia, apariencia))).toBe(false);
+    expect(split.ok).toBe(false);
+    if (split.ok) return;
+    expect(split.error).toContain("estado de entrada");
   });
 
   test("redistribuye consumo al primer subproceso y resultado al ultimo", () => {
@@ -1516,7 +1506,7 @@ describe("operaciones de modelo", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Driver Rescuing"));
     const sistema = entidadPorNombre(modelo, "OnStar System");
     const rescate = entidadPorNombre(modelo, "Driver Rescuing");
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema.id, rescate.id, "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, rescate.id, sistema.id, "efecto"));
 
     const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, rescate.id));
     modelo = descompuesto.modelo;
@@ -1529,7 +1519,7 @@ describe("operaciones de modelo", () => {
     for (const index of [1, 2, 3]) {
       const subproceso = entidadPorNombre(modelo, `Driver Rescuing ${index}`);
       expect(enlacesHijo).toEqual(expect.arrayContaining([
-        expect.objectContaining({ tipo: "efecto", origenId: extremoEntidad(sistema.id), destinoId: extremoEntidad(subproceso.id) }),
+        expect.objectContaining({ tipo: "efecto", origenId: extremoEntidad(subproceso.id), destinoId: extremoEntidad(sistema.id) }),
       ]));
     }
   });

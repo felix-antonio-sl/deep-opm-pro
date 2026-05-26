@@ -265,7 +265,7 @@ describe("store undo/redo y dirty state", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
     const [objeto, proceso] = Object.values(modelo.entidades);
     if (!objeto || !proceso) throw new Error("La prueba esperaba dos entidades");
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, objeto.id, proceso.id, "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, proceso.id, objeto.id, "efecto"));
     store.getState().importarJson(exportarModelo(modelo));
 
     store.getState().seleccionarTodoEnOpd();

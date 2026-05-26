@@ -197,7 +197,7 @@ function oracionAbanicoEstados(
   cuantificador: string,
   puertoEsOrigen: boolean,
 ): string | null {
-  if (primer.tipo !== "consumo" && primer.tipo !== "resultado") return null;
+  if (primer.tipo !== "consumo" && primer.tipo !== "resultado" && primer.tipo !== "efecto") return null;
   if (primer.tipo === "consumo" && puertoEsOrigen) return null;
   if (primer.tipo === "resultado" && !puertoEsOrigen) return null;
 
@@ -222,7 +222,9 @@ function oracionAbanicoEstados(
   const puertoOpl = nombreOpl(puerto);
   const objetoOpl = nombreOpl(objeto);
   const lista = listarOpl(estados);
-  if (primer.tipo === "resultado") return `${puertoOpl} cambia ${objetoOpl} a ${cuantificador} ${lista}.`;
+  if (primer.tipo === "resultado" || (primer.tipo === "efecto" && puertoEsOrigen)) {
+    return `${puertoOpl} cambia ${objetoOpl} a ${cuantificador} ${lista}.`;
+  }
   return `${puertoOpl} cambia ${objetoOpl} de ${cuantificador} ${lista}.`;
 }
 

@@ -1,11 +1,86 @@
 import { describe, expect, test } from "bun:test";
-import { extremoEntidad, extremoEstado } from "../extremos";
-import { agregacionesInzoomFaltantes, apuntarExtremoEnlace, cambiarTipoGrupoEstructural, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, eliminarEnlace, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
+import { entidadIdDeExtremo, extremoEntidad, extremoEstado } from "../extremos";
+import { agregacionesInzoomFaltantes, apuntarExtremoEnlace, cambiarTipoGrupoEstructural, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, eliminarEnlace, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, splitEffectEnPar, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
 import { filasPlegadoParcial } from "../plegado";
 import type { Modelo, Resultado } from "../tipos";
 import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
 
 describe("operaciones/enlaces", () => {
+  test("efecto canonico bloquea objeto->proceso y permite variantes con estado en direccion legal", () => {
+    let modelo = crearModelo("Efectos canonicos");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    const pedidoId = entidad(modelo, "Pedido");
+    const procesarId = entidad(modelo, "Procesar");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [entradaId, salidaId] = estados.estadoIds;
+    if (!entradaId || !salidaId) throw new Error("La prueba esperaba estados");
+
+    expect(crearEnlace(modelo, modelo.opdRaizId, pedidoId, procesarId, "efecto")).toMatchObject({
+      ok: false,
+      error: expect.stringContaining("Efecto requiere Proceso -> Objeto"),
+    });
+
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, pedidoId, "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(entradaId), procesarId, "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, extremoEstado(salidaId), "efecto"));
+
+    const efectos = Object.values(modelo.enlaces).filter((enlace) => enlace.tipo === "efecto");
+    expect(efectos).toHaveLength(3);
+    expect(efectos.some((enlace) => enlace.origenId.kind === "estado" && enlace.destinoId.kind === "entidad")).toBe(true);
+    expect(efectos.some((enlace) => enlace.origenId.kind === "entidad" && enlace.destinoId.kind === "estado")).toBe(true);
+  });
+
+  test("splitEffectEnPar escinde TS3 en efecto input/output acoplado sin objeto sintetico", () => {
+    let modelo = crearModelo("Split TS3");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    const pedidoId = entidad(modelo, "Pedido");
+    const procesarId = entidad(modelo, "Procesar");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [entradaId, salidaId] = estados.estadoIds;
+    if (!entradaId || !salidaId) throw new Error("La prueba esperaba estados");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, pedidoId, "efecto"));
+    const efectoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "efecto")?.id;
+    if (!efectoId) throw new Error("La prueba esperaba efecto");
+    modelo = {
+      ...modelo,
+      enlaces: {
+        ...modelo.enlaces,
+        [efectoId]: {
+          ...modelo.enlaces[efectoId]!,
+          estadoEntradaId: entradaId,
+          estadoSalidaId: salidaId,
+        },
+      },
+    };
+    const entidadesAntes = Object.keys(modelo.entidades);
+
+    modelo = must(splitEffectEnPar(modelo, modelo.opdRaizId, efectoId));
+
+    expect(modelo.enlaces[efectoId]).toBeUndefined();
+    expect(Object.keys(modelo.entidades)).toEqual(entidadesAntes);
+    const efectos = Object.values(modelo.enlaces).filter((enlace) => enlace.tipo === "efecto");
+    expect(efectos).toHaveLength(2);
+    const entrada = efectos.find((enlace) => enlace.efectoEscindido?.rol === "entrada");
+    const salida = efectos.find((enlace) => enlace.efectoEscindido?.rol === "salida");
+    expect(entrada).toMatchObject({
+      origenId: extremoEstado(entradaId),
+      destinoId: extremoEntidad(procesarId),
+      efectoEscindido: { enlacePadreId: efectoId, rol: "entrada" },
+    });
+    expect(salida).toMatchObject({
+      origenId: extremoEntidad(procesarId),
+      destinoId: extremoEstado(salidaId),
+      efectoEscindido: { enlacePadreId: efectoId, rol: "salida" },
+    });
+    expect(entrada?.efectoEscindido?.grupoId).toBe(salida?.efectoEscindido?.grupoId);
+    expect(entrada ? entidadIdDeExtremo(modelo, entrada.origenId) : null).toBe(pedidoId);
+    expect(salida ? entidadIdDeExtremo(modelo, salida.destinoId) : null).toBe(pedidoId);
+  });
+
   test("moverPuertoEnlace cambia extremo y mantiene seleccionable el enlace", () => {
     let modelo = modeloBase();
     const enlaceId = Object.keys(modelo.enlaces)[0];

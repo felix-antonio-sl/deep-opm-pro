@@ -14,7 +14,7 @@ import type { FilaPlegadoParcialExtendida } from "../plegadoNesting";
 import type { JointCellJson, OpcionesProyeccion, RolApariencia } from "../proyeccionTipos";
 import { CODEX, colorEntidadCodex } from "../constantes.codex";
 import { colorTextoParaFill } from "./colores";
-import { anchoCapsulaEstado, dimensionesConEstados, ESTADOS } from "./estados";
+import { altoCapsulaEstado, anchoCapsulaEstado, dimensionesConEstados, ESTADOS } from "./estados";
 import { attrsPlegadoParcial, dimensionesPlegadoParcial, markupPlegadoParcial, selectoresPartesPlegadas, textoFilaPlegado, PLEGADO } from "./plegado";
 
 /**
@@ -33,6 +33,7 @@ export function proyectarEntidad(
   // entidad cuando es la selección única. Embebido (no celda-halo aparte) para
   // no inflar el conteo de `.joint-element`.
   seleccionUnica = false,
+  estadosSeleccionados: readonly Estado[] = [],
 ): JointCellJson {
   const stroke = apariencia.estilo?.borderColor ?? colorEntidadCodex(entidad.tipo);
   const fillBase = apariencia.estilo?.fill ?? "transparent";
@@ -145,7 +146,7 @@ export function proyectarEntidad(
   const renderBase = modoParcial
     ? { markup: markupPlegadoParcial(bodyTag, filasParciales), attrs: attrsPlegadoParcial(attrsBase, size, filasParciales) }
     : estadosVisibles.length > 0
-      ? { markup: markupConEstados(bodyTag, estadosVisibles, metadatos), attrs: attrsConEstados(attrsBase, size, estadosVisibles, metadatos, entidad.layoutEstados) }
+      ? { markup: markupConEstados(bodyTag, estadosVisibles, metadatos, estadosSeleccionados), attrs: attrsConEstados(attrsBase, size, estadosVisibles, metadatos, entidad.layoutEstados, estadosSeleccionados) }
       : tienePartes
         ? { markup: markupConBadge(bodyTag, metadatos), attrs: attrsConBadge(attrsBase, size, metadatos) }
         : metadatos.tieneMetadatos
@@ -161,13 +162,20 @@ export function proyectarEntidad(
     attrs: attrsConConnectAnchors(renderBase.attrs, size, entidad.tipo, seleccionada),
   };
   // SEL-1: underline crimson embebido bajo la etiqueta en selección única.
-  const render = seleccionUnica
+  const renderConResize = seleccionUnica
     ? {
         ...renderConAnchors,
-        markup: markupConSelectionUnderline(renderConAnchors.markup),
-        attrs: attrsConSelectionUnderline(renderConAnchors.attrs, size),
+        markup: markupConResizeHandles(renderConAnchors.markup),
+        attrs: attrsConResizeHandles(renderConAnchors.attrs, size),
       }
     : renderConAnchors;
+  const render = seleccionUnica
+    ? {
+        ...renderConResize,
+        markup: markupConSelectionUnderline(renderConResize.markup),
+        attrs: attrsConSelectionUnderline(renderConResize.attrs, size),
+      }
+    : renderConResize;
   const ports = portsEntidad(apariencia, entidad.tipo);
 
   return {
@@ -387,6 +395,55 @@ function attrsConSelectionUnderline(
   };
 }
 
+const RESIZE_HANDLES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
+type ResizeHandle = typeof RESIZE_HANDLES[number];
+
+function markupConResizeHandles(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  return [
+    ...markup,
+    ...RESIZE_HANDLES.map((handle) => ({ tagName: "rect", selector: `resize-${handle}` })),
+  ];
+}
+
+function attrsConResizeHandles(
+  attrsBase: Record<string, unknown>,
+  size: { width: number; height: number },
+): Record<string, unknown> {
+  return {
+    ...attrsBase,
+    ...Object.fromEntries(RESIZE_HANDLES.map((handle) => [`resize-${handle}`, attrsResizeHandle(puntoResizeHandle(size, handle), cursorResize(handle))])),
+  };
+}
+
+function puntoResizeHandle(size: { width: number; height: number }, handle: ResizeHandle): { x: number; y: number } {
+  const cx = handle.includes("w") ? 0 : handle.includes("e") ? size.width : size.width / 2;
+  const cy = handle.includes("n") ? 0 : handle.includes("s") ? size.height : size.height / 2;
+  return { x: cx - 4, y: cy - 4 };
+}
+
+function attrsResizeHandle(point: { x: number; y: number }, cursor: string): Record<string, unknown> {
+  return {
+    x: point.x,
+    y: point.y,
+    width: 8,
+    height: 8,
+    rx: 0,
+    ry: 0,
+    fill: CODEX.colores.paper,
+    stroke: CODEX.colores.crimson,
+    strokeWidth: 1,
+    cursor,
+    pointerEvents: "visiblePainted",
+  };
+}
+
+function cursorResize(handle: ResizeHandle): string {
+  if (handle === "n" || handle === "s") return "ns-resize";
+  if (handle === "e" || handle === "w") return "ew-resize";
+  if (handle === "nw" || handle === "se") return "nwse-resize";
+  return "nesw-resize";
+}
+
 export function rolApariencia(modelo: Modelo, opdId: Id, apariencia: Apariencia, esContorno: boolean): RolApariencia {
   return rolAparienciaEnRefinamiento(modelo, opdId, apariencia, esContorno);
 }
@@ -498,7 +555,9 @@ export function markupConEstados(
   bodyTag: "rect" | "ellipse",
   estados: Estado[],
   metadatos: MetadatosEntidadRender,
+  estadosSeleccionados: readonly Estado[] = [],
 ): Array<Record<string, unknown>> {
+  const seleccionados = new Set(estadosSeleccionados.map((estado) => estado.id));
   const capsulas = estados.flatMap((_, index) => [
     { tagName: "rect", selector: `stateCapsule${index}` },
     { tagName: "rect", selector: `stateFinalInner${index}` },
@@ -506,11 +565,17 @@ export function markupConEstados(
     { tagName: "text", selector: `stateDefaultMarker${index}` },
     { tagName: "text", selector: `stateCurrentMarker${index}` },
   ]);
+  const resizeEstados = estados.flatMap((estado, index) => (
+    seleccionados.has(estado.id)
+      ? RESIZE_HANDLES.map((handle) => ({ tagName: "rect", selector: `resize-state${index}-${handle}` }))
+      : []
+  ));
   return [
     { tagName: bodyTag, selector: "body" },
     { tagName: "text", selector: "label" },
     { tagName: "text", selector: "index" },
     ...capsulas,
+    ...resizeEstados,
     ...(metadatos.foldBadge ? [{ tagName: "text", selector: "foldBadge" }] : []),
     ...(metadatos.descripcion ? [{ tagName: "text", selector: "descBadge" }] : []),
     ...(metadatos.url ? [{
@@ -555,7 +620,9 @@ export function attrsConEstados(
   estados: Estado[],
   metadatos: MetadatosEntidadRender,
   layout: Entidad["layoutEstados"],
+  estadosSeleccionados: readonly Estado[] = [],
 ): Record<string, unknown> {
+  const seleccionados = new Set(estadosSeleccionados.map((estado) => estado.id));
   const attrs: Record<string, unknown> = {
     ...attrsBase,
     label: {
@@ -566,25 +633,27 @@ export function attrsConEstados(
   if (metadatos.foldBadge) attrs.foldBadge = attrsConBadge(attrsBase, size, metadatos).foldBadge;
   aplicarMetadatosAttrs(attrs, size, metadatos);
   const vertical = layout === "vertical";
-  const anchos = estados.map((estado) => anchoCapsulaEstado(nombreCanonicoEstado(estado)));
+  const anchos = estados.map((estado) => anchoCapsulaEstado({ ...estado, nombre: nombreCanonicoEstado(estado) }));
+  const altos = estados.map(altoCapsulaEstado);
   const anchoTotal = vertical
     ? Math.max(...anchos, ESTADOS.minWidth)
     : anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
   let x = (size.width - anchoTotal) / 2;
   const altoTotal = vertical
-    ? estados.length * ESTADOS.capsuleHeight + Math.max(0, estados.length - 1) * ESTADOS.gap
-    : ESTADOS.capsuleHeight;
+    ? altos.reduce((total, alto) => total + alto, 0) + Math.max(0, estados.length - 1) * ESTADOS.gap
+    : Math.max(...altos, ESTADOS.capsuleHeight);
   let y = size.height - ESTADOS.paddingBottom - altoTotal;
 
   for (const [index, estado] of estados.entries()) {
     const width = anchos[index] ?? ESTADOS.minWidth;
+    const height = altos[index] ?? ESTADOS.capsuleHeight;
     if (vertical) x = (size.width - width) / 2;
     const designaciones = designacionesEstado(estado);
     attrs[`stateCapsule${index}`] = {
       x,
       y,
       width,
-      height: ESTADOS.capsuleHeight,
+      height,
       // BUG-9e3b9b / canon §3.2 (línea 224): el estado OPM es un ROUNTANGLE
       // (rectángulo redondeado), NO un stadium/pill. La evidencia OPCloud
       // (export-legend-dialog `rx="5"` sobre h≈24-30; OpmObject.innerOuter rx:5)
@@ -612,7 +681,7 @@ export function attrsConEstados(
       x: x + 3,
       y: y + 3,
       width: Math.max(0, width - 6),
-      height: ESTADOS.capsuleHeight - 6,
+      height: Math.max(0, height - 6),
       rx: Math.max(0, ESTADOS.radius - 2),
       ry: Math.max(0, ESTADOS.radius - 2),
       fill: "transparent",
@@ -624,7 +693,7 @@ export function attrsConEstados(
     attrs[`stateLabel${index}`] = {
       text: nombreCanonicoEstado(estado),
       x: x + width / 2,
-      y: y + ESTADOS.capsuleHeight / 2,
+      y: y + height / 2,
       fill: CODEX.colores.ink,
       fontFamily: CODEX.fuentes.serif,
       fontSize: ESTADOS.fontSize,
@@ -632,7 +701,7 @@ export function attrsConEstados(
       fontStyle: "italic",
       textAnchor: "middle",
       textVerticalAnchor: "middle",
-      textWrap: { width: width - ESTADOS.paddingHorizontal * 2, height: ESTADOS.capsuleHeight - 4, ellipsis: false },
+      textWrap: { width: width - ESTADOS.paddingHorizontal * 2, height: height - 4, ellipsis: false },
       pointerEvents: "auto",
       cursor: "crosshair",
     };
@@ -662,7 +731,15 @@ export function attrsConEstados(
       pointerEvents: "none",
       display: designaciones.includes("current") ? undefined : "none",
     };
-    if (vertical) y += ESTADOS.capsuleHeight + ESTADOS.gap;
+    if (seleccionados.has(estado.id)) {
+      for (const handle of RESIZE_HANDLES) {
+        attrs[`resize-state${index}-${handle}`] = attrsResizeHandle(
+          { x: x + puntoResizeHandle({ width, height }, handle).x, y: y + puntoResizeHandle({ width, height }, handle).y },
+          cursorResize(handle),
+        );
+      }
+    }
+    if (vertical) y += height + ESTADOS.gap;
     else x += width + ESTADOS.gap;
   }
   return attrs;

@@ -40,7 +40,7 @@ function setup(
   nav: { modelo?: Modelo; opdActivoId?: Id } = {},
   tabs: { abiertas?: Array<{ id: string }>; activa?: string | null } = {},
 ) {
-  const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0 };
+  const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0, eliminar: 0 };
   const navegados: Id[] = [];
   const pestanasCambiadas: string[] = [];
   const modelo = nav.modelo ?? crearModelo();
@@ -111,7 +111,7 @@ function setup(
     seleccionarTodoEnOpd: () => {},
     copiarSeleccionAlBuffer: () => {},
     pegarBufferEnOpdActivo: () => {},
-    eliminarSeleccion: () => {},
+    eliminarSeleccion: () => { calls.eliminar++; },
     nudgeSeleccion: () => {},
     navegarOpdArriba: () => {},
     navegarOpdAbajo: () => {},
@@ -196,6 +196,21 @@ describe("atajo Ctrl+. toggle de marginalia OPL (05-interactions §1)", () => {
     registros.find((r) => r.combo === "Ctrl+.")!.handler(makeFakeEvent());
     expect(calls.oplRestaurar).toBe(1);
     expect(calls.oplMinimizar).toBe(0);
+  });
+});
+
+describe("atajos de eliminación de selección", () => {
+  test("Delete y Backspace comparten la acción de eliminar selección del canvas", () => {
+    const { registros, calls } = setup({ activa: false, auto: false });
+    const del = registros.find((r) => r.combo === "Delete" && r.ctx === "canvas");
+    const backspace = registros.find((r) => r.combo === "Backspace" && r.ctx === "canvas");
+    expect(del).toBeDefined();
+    expect(backspace).toBeDefined();
+
+    del!.handler(makeFakeEvent());
+    backspace!.handler(makeFakeEvent());
+
+    expect(calls.eliminar).toBe(2);
   });
 });
 

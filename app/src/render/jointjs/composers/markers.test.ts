@@ -16,14 +16,14 @@ const TODOS_LOS_TIPOS: TipoEnlace[] = [
 describe("composer markers", () => {
   test("ui-forja/08 §4.2: las 8 familias canonicas de marker estan resueltas desde assets", () => {
     // 1. Procedimental transformador: punta cerrada simple.
-    expect(marcadorDestino("consumo")?.d).toBe("M0,0 L10,-5 L10,5 z");
-    expect(marcadorDestino("resultado")?.d).toBe("M0,0 L10,-5 L10,5 z");
+    expect(marcadorDestino("consumo")?.d).toBe("M 9 -4 0 0 9 4 z");
+    expect(marcadorDestino("resultado")?.d).toBe("M 9 -4 0 0 9 4 z");
     // 2. Agente (lollipop lleno) — circulo ink fill.
     expect(marcadorDestino("agente")?.fill).toBe("#171511");
     // 3. Instrumento (lollipop hueco) — circulo outline fill paper.
     expect(marcadorDestino("instrumento")?.fill).toBe("#fafaf8");
     // 4. Invocacion: rayo en el tramo + punta cerrada en destino.
-    expect(marcadorDestino("invocacion")?.d).toBe("M0,0 L10,-5 L10,5 z");
+    expect(marcadorDestino("invocacion")?.d).toBe("M 9 -4 0 0 9 4 z");
     // 5. Agregacion (triangulo fill ink).
     // 6. Generalizacion (triangulo outline).
     // 7. Clasificacion/instanciacion (triangulo + dot).
@@ -84,7 +84,7 @@ describe("composer markers", () => {
   });
 
   test("BUG-20260525T063444Z-ad14a6 transformadores e invocacion usan punta cerrada canonica", () => {
-    const puntaCerrada = "M0,0 L10,-5 L10,5 z";
+    const puntaCerrada = "M 9 -4 0 0 9 4 z";
     expect(LINK_ASSETS.procedural.consumo.marker.d).toBe(puntaCerrada);
     expect(LINK_ASSETS.procedural.resultado.marker.d).toBe(puntaCerrada);
     expect(LINK_ASSETS.procedural.efecto.marker.d).toBe(puntaCerrada);

@@ -71,11 +71,13 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     if (dragAnchorActivo(paper)) return;
     const model = cellViewModel(elementView);
     const meta = metadata(model);
-    if (meta?.kind === "enlace" && meta.rolEstructural === "simbolo") {
+    if (meta?.kind === "grupo-enlaces" || (meta?.kind === "enlace" && meta.rolEstructural === "simbolo")) {
       const element = model as dia.Element;
       const posicion = element.position();
       const size = element.size();
-      const aparienciaEnlaceIds = meta.aparienciaEnlaceIds?.length ? meta.aparienciaEnlaceIds : [meta.aparienciaEnlaceId];
+      const aparienciaEnlaceIds = meta.kind === "grupo-enlaces"
+        ? meta.aparienciaEnlaceIds
+        : meta.aparienciaEnlaceIds?.length ? meta.aparienciaEnlaceIds : [meta.aparienciaEnlaceId];
       actualizarPosicionSimboloEstructuralRef.current(aparienciaEnlaceIds, {
         x: Math.round(posicion.x + size.width / 2),
         y: Math.round(posicion.y + size.height / 2),

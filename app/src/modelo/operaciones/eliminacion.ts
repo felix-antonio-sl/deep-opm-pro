@@ -1,18 +1,14 @@
-import { CANON, naturalezaDeEnlace } from "../constantes";
+import { naturalezaDeEnlace } from "../constantes";
 import { sincronizarAbanicos } from "../abanicos";
-import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad } from "../extremos";
-import { contenedorRefinamiento, posicionLibre, solapa } from "../layout";
-import { aparienciaDeEntidadEnOpd } from "../politicaApariciones";
+import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoEstado } from "../extremos";
 import { refinamientosDe, tieneRefinamiento } from "../refinamientos";
 import type {
-  Apariencia,
   Enlace,
   Entidad,
   Estado,
   Id,
   Modelo,
   Opd,
-  Posicion,
   Resultado,
 } from "../tipos";
 import { entidadVisibleEnOpd, fallo, ok, siguienteId } from "./helpers";
@@ -184,10 +180,8 @@ function existeEnlaceEstructuralDeTipoParaEntidad(modelo: Modelo, entidadId: Id,
   ));
 }
 
-// L2 ronda 2: convierte un enlace `efecto` en un par consumo + resultado con
-// un objeto intermedio sintetico ("<origen> modificado"). Operacion atomica
-// reversible via undo (HU-12.011 fase 2). El effect original se elimina; el
-// nombre del intermedio se serializa con sufijo numerico ante colision.
+// Convierte un efecto TS3 (Proceso -> Objeto con estadoEntradaId/estadoSalidaId)
+// en el par escindido canonico TS4/TS5: estado -> proceso y proceso -> estado.
 export function splitEffectEnPar(modelo: Modelo, opdId: Id, enlaceId: Id): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
@@ -202,62 +196,54 @@ export function splitEffectEnPar(modelo: Modelo, opdId: Id, enlaceId: Id): Resul
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
   if (!origen || !destino) return fallo("El enlace de efecto tiene extremos inválidos");
 
-  const extremos = extremosEffect(origen, destino);
-  if (!extremos.ok) return extremos;
-  if (!entidadVisibleEnOpd(opd, extremos.value.objeto.id) || !entidadVisibleEnOpd(opd, extremos.value.proceso.id)) {
+  if (origen.tipo !== "proceso" || destino.tipo !== "objeto" || enlace.origenId.kind !== "entidad" || enlace.destinoId.kind !== "entidad") {
+    return fallo("El split canónico requiere un efecto TS3 Proceso -> Objeto con estado de entrada y salida");
+  }
+  const estadoEntrada = enlace.estadoEntradaId ? modelo.estados[enlace.estadoEntradaId] : undefined;
+  const estadoSalida = enlace.estadoSalidaId ? modelo.estados[enlace.estadoSalidaId] : undefined;
+  if (!estadoEntrada || !estadoSalida) {
+    return fallo("El split requiere estado de entrada y estado de salida en el enlace de efecto");
+  }
+  if (estadoEntrada.entidadId !== destino.id || estadoSalida.entidadId !== destino.id) {
+    return fallo("Los estados de entrada y salida del efecto deben pertenecer al objeto afectado");
+  }
+  if (!entidadVisibleEnOpd(opd, destino.id) || !entidadVisibleEnOpd(opd, origen.id)) {
     return fallo("El split requiere que objeto y proceso tengan apariencia en el OPD activo");
   }
 
   let nextSeq = modelo.nextSeq;
-  const intermedioId = siguienteId({ ...modelo, nextSeq }, "o");
+  const grupoId = siguienteId({ ...modelo, nextSeq }, "efe");
   nextSeq += 1;
-  const aparienciaIntermediaId = siguienteId({ ...modelo, nextSeq }, "a");
+  const entradaId = siguienteId({ ...modelo, nextSeq }, "e");
   nextSeq += 1;
-  const consumoId = siguienteId({ ...modelo, nextSeq }, "e");
+  const aparienciaEntradaId = siguienteId({ ...modelo, nextSeq }, "ae");
   nextSeq += 1;
-  const aparienciaConsumoId = siguienteId({ ...modelo, nextSeq }, "ae");
+  const salidaId = siguienteId({ ...modelo, nextSeq }, "e");
   nextSeq += 1;
-  const resultadoId = siguienteId({ ...modelo, nextSeq }, "e");
-  nextSeq += 1;
-  const aparienciaResultadoId = siguienteId({ ...modelo, nextSeq }, "ae");
+  const aparienciaSalidaId = siguienteId({ ...modelo, nextSeq }, "ae");
   nextSeq += 1;
 
-  const intermedio: Entidad = {
-    id: intermedioId,
-    tipo: "objeto",
-    nombre: nombreIntermedioUnico(modelo, `${extremos.value.objeto.nombre} modificado`),
-    esencia: extremos.value.objeto.esencia,
-    afiliacion: extremos.value.objeto.afiliacion,
-  };
-  const posicion = posicionIntermedioSplit(modelo, opdId, extremos.value.proceso.id);
-  const aparienciaIntermedia: Apariencia = {
-    id: aparienciaIntermediaId,
-    entidadId: intermedioId,
-    opdId,
-    x: posicion.x,
-    y: posicion.y,
-    width: CANON.dims.cosaWidth,
-    height: CANON.dims.cosaHeight,
-  };
-  const consumo: Enlace = {
-    id: consumoId,
-    tipo: "consumo",
-    origenId: extremos.value.objeto.id === origen.id ? enlace.origenId : enlace.destinoId,
-    destinoId: extremoEntidad(extremos.value.proceso.id),
+  const entrada: Enlace = {
+    id: entradaId,
+    tipo: "efecto",
+    origenId: extremoEstado(estadoEntrada.id),
+    destinoId: extremoEntidad(origen.id),
     etiqueta: "",
+    efectoEscindido: { grupoId, enlacePadreId: enlaceId, rol: "entrada" },
   };
-  const resultado: Enlace = {
-    id: resultadoId,
-    tipo: "resultado",
-    origenId: extremoEntidad(extremos.value.proceso.id),
-    destinoId: extremoEntidad(intermedioId),
+  const salida: Enlace = {
+    id: salidaId,
+    tipo: "efecto",
+    origenId: extremoEntidad(origen.id),
+    destinoId: extremoEstado(estadoSalida.id),
     etiqueta: "",
+    efectoEscindido: { grupoId, enlacePadreId: enlaceId, rol: "salida" },
   };
 
   const enlaces = { ...modelo.enlaces };
   delete enlaces[enlaceId];
-  enlaces[consumoId] = consumo;
-  enlaces[resultadoId] = resultado;
+  enlaces[entradaId] = entrada;
+  enlaces[salidaId] = salida;
 
   const opds = Object.fromEntries(
     Object.entries(modelo.opds).map(([actualOpdId, actual]) => [
@@ -276,23 +262,16 @@ export function splitEffectEnPar(modelo: Modelo, opdId: Id, enlaceId: Id): Resul
   return ok({
     ...modelo,
     nextSeq,
-    entidades: {
-      ...modelo.entidades,
-      [intermedioId]: intermedio,
-    },
     enlaces,
     opds: {
       ...opds,
       [opdId]: {
         ...opdActualizado,
-        apariencias: {
-          ...opdActualizado.apariencias,
-          [aparienciaIntermediaId]: aparienciaIntermedia,
-        },
+        apariencias: opdActualizado.apariencias,
         enlaces: {
           ...opdActualizado.enlaces,
-          [aparienciaConsumoId]: { id: aparienciaConsumoId, enlaceId: consumoId, opdId, vertices: [] },
-          [aparienciaResultadoId]: { id: aparienciaResultadoId, enlaceId: resultadoId, opdId, vertices: [] },
+          [aparienciaEntradaId]: { id: aparienciaEntradaId, enlaceId: entradaId, opdId, vertices: [] },
+          [aparienciaSalidaId]: { id: aparienciaSalidaId, enlaceId: salidaId, opdId, vertices: [] },
         },
       },
     },
@@ -305,48 +284,6 @@ export function entidadesDelOpd(modelo: Modelo, opdId: Id): Entidad[] {
   return Object.values(opd.apariencias)
     .map((apariencia) => modelo.entidades[apariencia.entidadId])
     .filter((entidad): entidad is Entidad => entidad !== undefined);
-}
-
-function extremosEffect(origen: Entidad, destino: Entidad): Resultado<{ objeto: Entidad; proceso: Entidad }> {
-  if (origen.tipo === "objeto" && destino.tipo === "proceso") return ok({ objeto: origen, proceso: destino });
-  if (origen.tipo === "proceso" && destino.tipo === "objeto") return ok({ objeto: destino, proceso: origen });
-  return fallo("Efecto requiere Objeto <-> Proceso");
-}
-
-function nombreIntermedioUnico(modelo: Modelo, base: string): string {
-  const existentes = new Set(Object.values(modelo.entidades).map((entidad) => entidad.nombre));
-  if (!existentes.has(base)) return base;
-  for (let index = 2; index < Number.MAX_SAFE_INTEGER; index += 1) {
-    const candidato = `${base} ${index}`;
-    if (!existentes.has(candidato)) return candidato;
-  }
-  return base;
-}
-
-function posicionIntermedioSplit(modelo: Modelo, opdId: Id, procesoId: Id): Posicion {
-  const fallback = posicionLibre(modelo, opdId, "objeto");
-  const opd = modelo.opds[opdId];
-  if (!opd) return fallback;
-  const proceso = aparienciaDeEntidadEnOpd(opd, procesoId);
-  if (!proceso) return fallback;
-
-  const candidata = {
-    x: proceso.x + CANON.dims.cosaWidth + 200,
-    y: proceso.y,
-  };
-  const contenedor = contenedorRefinamiento(modelo, opdId);
-  if (contenedor && !posicionDentroDeContorno(candidata, contenedor)) return fallback;
-  if (Object.values(opd.apariencias).some((apariencia) => solapa(candidata, apariencia))) return fallback;
-  return candidata;
-}
-
-function posicionDentroDeContorno(posicion: Posicion, contenedor: { x: number; y: number; width: number; height: number }): boolean {
-  return (
-    posicion.x >= contenedor.x &&
-    posicion.y >= contenedor.y &&
-    posicion.x + CANON.dims.cosaWidth <= contenedor.x + contenedor.width &&
-    posicion.y + CANON.dims.cosaHeight <= contenedor.y + contenedor.height
-  );
 }
 
 function aparienciaEnlaceExiste(apariencias: Record<Id, { enlaceId: Id }>, enlaceId: Id): boolean {

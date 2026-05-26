@@ -43,6 +43,7 @@ export {
   agregarEstado,
   renombrarEstado,
   eliminarEstado,
+  redimensionarEstado,
   quitarEstadosObjeto,
   designarEstadoInicial,
   designarEstadoFinal,

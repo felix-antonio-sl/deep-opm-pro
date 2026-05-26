@@ -92,7 +92,7 @@ describe("proyeccion JointJS", () => {
     expect(((cells[0]?.attrs as Attrs | undefined)?.label as Attrs | undefined)?.textWrap).toEqual({ width: -16, height: -16, ellipsis: false });
   });
 
-  test("SEL-2: la entidad seleccionada no emite resize-handles flotantes", () => {
+  test("BUG-a41f5c: la entidad seleccionada emite handles de resize distinguibles de anclas de enlace", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Driver"));
     const entidad = Object.values(modelo.entidades)[0];
@@ -102,11 +102,51 @@ describe("proyeccion JointJS", () => {
     const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, entidad.id, null);
     const celdaEntidad = cells.find((cell) => cell.opm.kind === "entidad");
     const markup = (celdaEntidad?.markup as Array<Attrs> | undefined) ?? [];
-    const tieneResize = markup.some((item) => typeof item.selector === "string" && (item.selector as string).startsWith("resize-"));
-    expect(tieneResize).toBe(false);
+    const resize = markup
+      .map((item) => item.selector)
+      .filter((selector): selector is string => typeof selector === "string" && selector.startsWith("resize-"));
+    expect(resize).toEqual([
+      "resize-nw",
+      "resize-n",
+      "resize-ne",
+      "resize-e",
+      "resize-se",
+      "resize-s",
+      "resize-sw",
+      "resize-w",
+    ]);
     // Los connect-anchors del modo enlace SÍ siguen presentes en selección.
     const tieneAnchors = markup.some((item) => typeof item.selector === "string" && (item.selector as string).startsWith("connect-anchor-"));
     expect(tieneAnchors).toBe(true);
+  });
+
+  test("BUG-a41f5c: el estado seleccionado emite handles de resize propios", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Pedido"));
+    const entidad = Object.values(modelo.entidades)[0];
+    expect(entidad).toBeDefined();
+    if (!entidad) return;
+    modelo = must(crearEstadosIniciales(modelo, entidad.id)).modelo;
+    const [estado] = estadosDeEntidad(modelo, entidad.id);
+    expect(estado).toBeDefined();
+    if (!estado) return;
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null, null, [estado.id]);
+    const celdaEntidad = cells.find((cell) => cell.opm.kind === "entidad");
+    const markup = (celdaEntidad?.markup as Array<Attrs> | undefined) ?? [];
+    const resizeEstado = markup
+      .map((item) => item.selector)
+      .filter((selector): selector is string => typeof selector === "string" && selector.startsWith("resize-state0-"));
+    expect(resizeEstado).toEqual([
+      "resize-state0-nw",
+      "resize-state0-n",
+      "resize-state0-ne",
+      "resize-state0-e",
+      "resize-state0-se",
+      "resize-state0-s",
+      "resize-state0-sw",
+      "resize-state0-w",
+    ]);
   });
 
   test("SEL-1: selección única emite el underline crimson embebido en la celda", () => {
@@ -317,7 +357,7 @@ describe("proyeccion JointJS", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Objeto"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Proceso"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Objeto"), entidadPorNombre(modelo, "Proceso"), "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Proceso"), entidadPorNombre(modelo, "Objeto"), "efecto"));
 
     const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
@@ -569,7 +609,7 @@ describe("proyeccion JointJS", () => {
     // BUG-20260525T063444Z-ad14a6: invocacion = rayo en el tramo + punta
     // cerrada en destino, no rombo ni swallowtail.
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.invocacion.marker.d);
-    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M0,0 L10,-5 L10,5 z");
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M 9 -4 0 0 9 4 z");
     expect((line?.targetMarker as Attrs | undefined)?.strokeWidth).toBe(1);
   });
 
@@ -594,7 +634,7 @@ describe("proyeccion JointJS", () => {
     expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
     const line = ((retorno?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.invocacion.marker.d);
-    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M0,0 L10,-5 L10,5 z");
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M 9 -4 0 0 9 4 z");
   });
 
   test("BUG-06f1ed: auto-invocacion usa vertices OpCloud de cuatro puntos en cada tramo", () => {
@@ -946,14 +986,35 @@ describe("proyeccion JointJS", () => {
     const ramas = cells.filter((cell) => cell.type === "standard.Link" && String(cell.id).includes("-rama"));
 
     expect(triangulo?.position).toEqual({ x: 195, y: 205 });
-    expect(triangulo?.opm.kind === "enlace" ? triangulo.opm.aparienciaEnlaceIds : null).toEqual(aparienciaEnlaceIds);
-    expect(triangulo?.opm.kind === "enlace" ? triangulo.opm.enlaceIds : null).toEqual(Object.keys(modelo.enlaces));
+    expect(triangulo?.opm.kind === "grupo-enlaces" ? triangulo.opm.aparienciaEnlaceIds : null).toEqual(aparienciaEnlaceIds);
+    expect(triangulo?.opm.kind === "grupo-enlaces" ? triangulo.opm.enlaceIds : null).toEqual(Object.keys(modelo.enlaces));
     expect(posicionPuertoTriangulo(triangulo, "in")).toEqual({ x: 15, y: 1 });
     expect(posicionPuertoTriangulo(triangulo, "out")).toEqual({ x: 16, y: 30 });
     for (const rama of ramas) {
       const port = String((rama.source as { port?: unknown }).port);
       expect(port).toBe("out");
     }
+  });
+
+  test("simbolo de bus estructural se identifica como grupo, no como primera rama", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 90 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "Parte A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 170 }, "Parte B"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte A"), "agregacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Todo"), entidadPorNombre(modelo, "Parte B"), "agregacion"));
+    const enlaceIds = Object.keys(modelo.enlaces);
+
+    const triangulo = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Polygon" && cell.opm.kind === "grupo-enlaces");
+
+    expect(triangulo?.opm).toMatchObject({
+      kind: "grupo-enlaces",
+      tipoGrupo: "estructural",
+      tipo: "agregacion",
+      enlaceIds,
+    });
+    expect("enlaceId" in (triangulo?.opm as Record<string, unknown>)).toBe(false);
   });
 
   test("simbolo estructural seleccionado expone handles de anclas", () => {
@@ -1022,7 +1083,10 @@ describe("proyeccion JointJS", () => {
     modelo = { ...modelo, enlaces: { ...modelo.enlaces, [separadoId]: { ...modelo.enlaces[separadoId]!, grupoEstructuralId: "grupo-c" } } };
 
     const triangulos = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
-      .filter((cell) => cell.type === "standard.Polygon" && cell.opm.kind === "enlace" && cell.opm.rolEstructural === "simbolo");
+      .filter((cell) => cell.type === "standard.Polygon" && (
+        cell.opm.kind === "grupo-enlaces" ||
+        (cell.opm.kind === "enlace" && cell.opm.rolEstructural === "simbolo")
+      ));
     const centros = triangulos.map((cell) => centroTriangulo(cell));
 
     expect(centros).toHaveLength(2);
@@ -1522,7 +1586,7 @@ function modeloConEnlace(tipo: TipoEnlace): Modelo {
   const objeto = entidadPorNombre(modelo, "Objeto");
   const proceso = entidadPorNombre(modelo, "Proceso");
 
-  if (tipo === "resultado") {
+  if (tipo === "resultado" || tipo === "efecto") {
     return must(crearEnlace(modelo, modelo.opdRaizId, proceso, objeto, tipo));
   }
   if (tipo === "invocacion" || tipo === "excepcionSobretiempo" || tipo === "excepcionSubtiempo" || tipo === "excepcionSubSobretiempo") {

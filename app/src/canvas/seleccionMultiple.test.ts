@@ -45,7 +45,7 @@ function modeloBase(): Modelo {
   modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 50 }, "Hacer"));
   const [objeto, proceso] = Object.values(modelo.entidades);
   if (!objeto || !proceso) throw new Error("fixture inválido");
-  modelo = must(crearEnlace(modelo, modelo.opdRaizId, objeto.id, proceso.id, "efecto"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, proceso.id, objeto.id, "efecto"));
   return modelo;
 }
 

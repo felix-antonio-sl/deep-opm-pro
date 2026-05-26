@@ -337,8 +337,8 @@ function configuracionPara(tipo: TipoEnlace): [EntidadDeTest, EntidadDeTest] {
   }
   if (tipo === "efecto") {
     return [
-      { tipo: "objeto", esencia: "informacional", nombre: "Estado" },
       { tipo: "proceso", esencia: "informacional", nombre: "Cambio" },
+      { tipo: "objeto", esencia: "informacional", nombre: "Afectado" },
     ];
   }
   if (tipo === "invocacion" ||

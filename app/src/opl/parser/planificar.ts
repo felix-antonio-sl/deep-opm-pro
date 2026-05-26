@@ -267,7 +267,9 @@ function planificarEstructural(
     const origen = refEntidadPorNombre(modelo, ast.origen, undefined, ast.linea, registry);
     const destinoRef = refEntidadPorNombre(modelo, destino, undefined, ast.linea, registry);
     if (!origen || !destinoRef) continue;
-    planificarEnlace(modelo, ast.linea, ast.tipoEnlace, origen, destinoRef, ast.etiqueta, registry);
+    planificarEnlace(modelo, ast.linea, ast.tipoEnlace, origen, destinoRef, ast.etiqueta, registry, {
+      ...(ast.multiplicidadDestino ? { multiplicidadDestino: ast.multiplicidadDestino } : {}),
+    });
   }
 }
 

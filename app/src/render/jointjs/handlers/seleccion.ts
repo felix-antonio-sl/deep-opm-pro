@@ -159,6 +159,10 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
       }
       seleccionarEnlaceRef.current(meta.enlaceId);
     }
+    if (meta?.kind === "grupo-enlaces") {
+      const [primero] = meta.enlaceIds;
+      if (primero) seleccionarGrupoEstructuralRef.current(primero, meta.enlaceIds);
+    }
   };
 
   const onElementContextmenu = (elementView: dia.ElementView, evt: dia.Event) => {
@@ -239,6 +243,10 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
         return;
       }
       seleccionarEnlaceRef.current(meta.enlaceId);
+    }
+    if (meta?.kind === "grupo-enlaces") {
+      const [primero] = meta.enlaceIds;
+      if (primero) seleccionarGrupoEstructuralRef.current(primero, meta.enlaceIds);
     }
   };
 
