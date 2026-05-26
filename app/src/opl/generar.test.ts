@@ -231,7 +231,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(generarOpl(modelo)).toContain("*Manejar Omision* ocurre si duración de *Preparar* es menor que 5 s.");
   });
 
-  test("modificador evento emite inicia y probabilidad", () => {
+  test("modificador evento emite inicia y probabilidad Pr", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Orden"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Aprobar"));
@@ -241,7 +241,10 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(aplicarModificador(modelo, enlaceId, "evento"));
     modelo = must(definirProbabilidad(modelo, enlaceId, 0.7));
 
-    expect(generarOpl(modelo)).toContain("**Orden** inicia *Aprobar*, que consume **Orden** (probabilidad: 70%).");
+    const opl = generarOpl(modelo);
+
+    expect(opl).toContain("**Orden** inicia *Aprobar*, que consume **Orden** `Pr=0.7`.");
+    expect(opl.join("\n")).not.toContain("(probabilidad:");
   });
 
   test("modificador NO emite negacion", () => {

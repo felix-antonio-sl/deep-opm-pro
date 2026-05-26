@@ -134,8 +134,8 @@ describe("parser OPL — eventos (SSOT §6: ET/EH/ETS/EHS)", () => {
     });
   });
 
-  test("ET-consumo (ET1): 'X inicia Y, que consume X' con probabilidad descartable", () => {
-    const result = parsearParrafoOpl("**Producto** inicia *Procesar*, que consume **Producto** (probabilidad: 70%).");
+  test("ET-consumo (ET1): 'X inicia Y, que consume X' con probabilidad Pr descartable", () => {
+    const result = parsearParrafoOpl("**Producto** inicia *Procesar*, que consume **Producto** `Pr=0.7`.");
     expect(result.diagnosticos).toEqual([]);
     expect(result.ast[0]).toMatchObject({
       kind: "evento",
@@ -158,7 +158,7 @@ describe("parser OPL — eventos (SSOT §6: ET/EH/ETS/EHS)", () => {
   });
 
   test("ETS2 (transicion): 'X en `s1` inicia Y, que cambia X de `s1` a `s2`'", () => {
-    const result = parsearParrafoOpl("**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` (probabilidad: 70%).");
+    const result = parsearParrafoOpl("**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` `Pr=0.7`.");
     expect(result.diagnosticos).toEqual([]);
     expect(result.ast[0]).toMatchObject({
       kind: "evento",

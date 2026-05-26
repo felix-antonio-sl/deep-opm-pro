@@ -413,9 +413,9 @@ function verboReflexivoDesdeProceso(nombre: string): string | null {
 }
 
 function sufijoProbabilidad(enlace: Enlace): string {
-  return enlace.probabilidad === undefined ? "" : ` (probabilidad: ${formatearProbabilidad(enlace.probabilidad)})`;
+  return enlace.probabilidad === undefined ? "" : ` \`Pr=${formatearProbabilidad(enlace.probabilidad)}\``;
 }
 
 function formatearProbabilidad(value: number): string {
-  return `${Math.round(value * 100)}%`;
+  return Number(value.toFixed(6)).toString();
 }

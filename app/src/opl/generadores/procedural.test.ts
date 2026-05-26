@@ -32,7 +32,7 @@ describe("procedural OPL", () => {
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* cambia **Pedido** a `bueno`.");
   });
 
-  test("evento con probabilidad emite porcentaje canonico", () => {
+  test("evento con probabilidad emite Pr canónico", () => {
     const modelo = modeloBase();
     const enlace: Enlace = {
       id: "l1",
@@ -44,7 +44,10 @@ describe("procedural OPL", () => {
       subtipoModificador: "E",
       probabilidad: 0.7,
     };
-    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("**Producto** inicia *Procesar*, que consume **Producto** (probabilidad: 70%).");
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("**Producto** inicia *Procesar*, que consume **Producto** `Pr=0.7`.");
+    expect(texto).not.toContain("(probabilidad:");
   });
 
   test("evento sobre consumo de estado conserva verbo consumo y califica estado", () => {
@@ -56,7 +59,7 @@ describe("procedural OPL", () => {
       probabilidad: 0.7,
     } satisfies Enlace;
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "**Pedido** en `pendiente` inicia *Procesar*, que consume **Pedido** en `pendiente` (probabilidad: 70%).",
+      "**Pedido** en `pendiente` inicia *Procesar*, que consume **Pedido** en `pendiente` `Pr=0.7`.",
     );
   });
 
@@ -135,7 +138,7 @@ describe("procedural OPL", () => {
     };
     const transiciones = transicionesEstado(modelo, modelo.opds.opd!);
     expect(transiciones.lineaPorEnlaceConsumo.get("c1")).toBe(
-      "**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` (probabilidad: 70%).",
+      "**Pedido** en `pendiente` inicia *Procesar*, que cambia **Pedido** de `pendiente` a `aprobado` `Pr=0.7`.",
     );
     expect(transiciones.enlacesCubiertos.has("r1")).toBe(true);
   });

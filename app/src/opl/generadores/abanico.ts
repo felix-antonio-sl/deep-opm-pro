@@ -66,7 +66,7 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
     const clave = `${otro.extremo.kind}:${otro.extremo.id}`;
     if (otrosKeys.has(clave)) continue;
     otrosKeys.add(clave);
-    otrosNombres.push(nombreOplExtremo(modelo, otro.extremo, otro.multiplicidad));
+    otrosNombres.push(nombreRamaAbanico(modelo, abanico, enlace, otro));
   }
   if (otrosNombres.length === 1) {
     return oracionEnlaceConRuta(modelo, primer);
@@ -234,4 +234,15 @@ function extremoOpuestoAbanico(
     };
   }
   return null;
+}
+
+function nombreRamaAbanico(
+  modelo: Modelo,
+  abanico: Abanico,
+  enlace: Enlace,
+  otro: { extremo: Enlace["origenId"]; multiplicidad?: string },
+): string {
+  const nombre = nombreOplExtremo(modelo, otro.extremo, otro.multiplicidad);
+  if (abanico.operador !== "XOR" || enlace.probabilidad === undefined) return nombre;
+  return `${nombre} \`Pr=${Number(enlace.probabilidad.toFixed(6)).toString()}\``;
 }

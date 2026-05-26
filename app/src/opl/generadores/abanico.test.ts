@@ -13,6 +13,14 @@ describe("abanico OPL", () => {
     expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* consume exactamente uno de **Entrada A** y **Entrada B**.");
   });
 
+  test("XOR probabilistico emite Pr por rama", () => {
+    const modelo = modeloResultados("XOR", "probabilidad");
+    const texto = oracionAbanico(modelo, modelo.abanicos!.ab1!);
+
+    expect(texto).toBe("*Procesar* genera exactamente uno de **Salida A** `Pr=0.6` y **Salida B** `Pr=0.4`.");
+    expect(texto).not.toContain("(probabilidad:");
+  });
+
   test("XOR de resultados a estados del mismo objeto no repite el objeto", () => {
     const modelo = modeloResultadosAEstados("XOR");
     expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* cambia **Pedido** a exactamente uno de `aprobado` y `rechazado`.");
@@ -123,8 +131,9 @@ function modeloInstrumentos(operador: "O" | "XOR", config: "condicion" | "mixto"
   };
 }
 
-function modeloResultados(operador: "O" | "XOR", modificador?: "condicion"): Modelo {
-  const mod = modificador ? { modificador } : {};
+function modeloResultados(operador: "O" | "XOR", modificador?: "condicion" | "probabilidad"): Modelo {
+  const mod1 = modificador === "condicion" ? { modificador } : modificador === "probabilidad" ? { modificador: "evento" as const, probabilidad: 0.6 } : {};
+  const mod2 = modificador === "condicion" ? { modificador } : modificador === "probabilidad" ? { modificador: "evento" as const, probabilidad: 0.4 } : {};
   return {
     id: "m1",
     nombre: "M",
@@ -137,8 +146,8 @@ function modeloResultados(operador: "O" | "XOR", modificador?: "condicion"): Mod
     },
     estados: {},
     enlaces: {
-      l1: { id: "l1", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "a" }, etiqueta: "", ...mod },
-      l2: { id: "l2", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "b" }, etiqueta: "", ...mod },
+      l1: { id: "l1", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "a" }, etiqueta: "", ...mod1 },
+      l2: { id: "l2", tipo: "resultado", origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" }, destinoId: { kind: "entidad", id: "b" }, etiqueta: "", ...mod2 },
     },
     abanicos: { ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "proceso", lado: "origen", portId: "port-fan-proceso-origen" }, puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
     nextSeq: 1,
