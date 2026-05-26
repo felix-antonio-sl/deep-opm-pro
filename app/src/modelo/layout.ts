@@ -46,11 +46,11 @@ const COLUMNAS_LIBRES_CANVAS = [
 export function posicionLibre(modelo: Modelo, opdId: Id, tipo: TipoEntidad): Posicion {
   const contenedor = contenedorRefinamiento(modelo, opdId);
   const columnas = contenedor
-    ? columnasDentroDe(contenedor, tipo)
+    ? columnasFueraDe(contenedor, tipo)
     : COLUMNAS_LIBRES_CANVAS;
-  const yInicial = contenedor ? contenedor.y + PADDING_OFFSET : POSICION_INICIAL_CANVAS.y;
+  const yInicial = contenedor ? contenedor.y : POSICION_INICIAL_CANVAS.y;
   const yMax = contenedor
-    ? contenedor.y + contenedor.height - CANON.dims.cosaHeight - PADDING_INFERIOR
+    ? contenedor.y + contenedor.height - CANON.dims.cosaHeight
     : Number.POSITIVE_INFINITY;
   const apariencias = Object.values(modelo.opds[opdId]?.apariencias ?? {});
   for (let fila = 0; fila < FILAS_BUSQUEDA; fila += 1) {
@@ -96,6 +96,13 @@ export function columnasDentroDe(contenedor: { x: number; width: number }, tipo:
   const left = contenedor.x + MARGEN_INTERNO;
   const center = contenedor.x + Math.max(MARGEN_INTERNO, (contenedor.width - CANON.dims.cosaWidth) / 2);
   const right = contenedor.x + contenedor.width - CANON.dims.cosaWidth - MARGEN_INTERNO;
+  return tipo === "proceso" ? [center, left, right] : [left, center, right];
+}
+
+function columnasFueraDe(contenedor: { x: number; width: number }, tipo: TipoEntidad): number[] {
+  const left = contenedor.x + contenedor.width + MARGEN_INTERNO;
+  const center = contenedor.x + contenedor.width + MARGEN_INTERNO + OFFSET_COLUMNAS_CENTRO;
+  const right = contenedor.x + contenedor.width + MARGEN_INTERNO + OFFSET_COLUMNAS_CENTRO * 2;
   return tipo === "proceso" ? [center, left, right] : [left, center, right];
 }
 
