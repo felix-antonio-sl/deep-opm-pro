@@ -1,7 +1,7 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { puertoExactoCompartidoDeAbanico } from "../../modelo/abanicos";
 import { entidadDeExtremo, entidadIdDeExtremo, estadoDeExtremo } from "../../modelo/extremos";
-import { nombreCanonicoEntidad, nombreCanonicoEstado } from "../../modelo/nombresCanonicos";
+import { esNombreProcesoPlaceholder, nombreCanonicoEntidad, nombreCanonicoEstado } from "../../modelo/nombresCanonicos";
 import type { Abanico, Enlace, Entidad, Estado, Id, Modelo, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia, OplTokenHint } from "../interaccion";
 
@@ -201,7 +201,7 @@ export function nombreOplBase(entidad: Entidad, nombre: string): string {
 }
 
 export function entidadOplEsEmitible(entidad: Entidad): boolean {
-  void entidad;
+  if (entidad.tipo === "proceso") return !esNombreProcesoPlaceholder(entidad.nombre);
   return true;
 }
 

@@ -35,7 +35,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(texto).not.toContain("Hospitalización_domiciliaria");
   });
 
-  test("R-NOM-PROC-1 advierte por diagnostico pero no suprime OPL de procesos placeholder", () => {
+  test("R-NOM-PROC-1 suprime OPL de procesos placeholder", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Proceso"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Resultado_clínico"));
@@ -43,8 +43,8 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
 
     const texto = generarOpl(modelo).join("\n");
 
-    expect(texto).toContain("*Proceso* es informacional.");
-    expect(texto).toContain("*Proceso* genera **Resultado Clínico**.");
+    expect(texto).not.toContain("*Proceso*");
+    expect(texto).not.toContain("genera **Resultado Clínico**.");
     expect(texto).toContain("**Resultado Clínico** es informacional.");
   });
 
