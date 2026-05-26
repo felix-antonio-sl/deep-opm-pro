@@ -1616,3 +1616,124 @@ Las siguientes combinaciones son **silencios de la SSOT** (`reglas §11.2`, R-ZN
 - GAP-PROB-SUPERFICIE: `procedural.ts·sufijoProbabilidad` (línea 421) realiza la probabilidad como sufijo `(probabilidad: 40%)` por enlace, NO como `Pr=p` por rama ligado a un fan XOR (R-FAN-6 / C-22). La superficie del código diverge del canon `Pr=p`; falta validar suma `=1` y exclusividad XOR.
 - GAP-FAN-M: no hay generador para `exactamente m de f` / `al menos m de f` (R-FAN-8 / C-30 sentido m-de-f); `abanico.ts` solo emite el caso `m=1`.
 - GAP-COL-RESOLUCION: la resolución de colisión de rol por fuerza semántica (§8.3.1) y la precedencia de recomposición (§8.3.2) son operaciones de modelo; no consta en `app/src/opl/generadores/` un generador OPL que materialice el reporte de desplazamiento/conflicto — la resolución vive en el kernel de modelo, no en la capa OPL.
+
+## §9 Composición de oraciones y prosa OPL
+
+Las secciones §2–§8 canonizan la realización **atómica**: una oración, un hecho. Esta sección canoniza el **álgebra de composición** que coordina dos o más oraciones atómicas en una **prosa OPL más rica** mediante cópulas y conectores, sin perder direccionabilidad por hecho. La composición es una transformación de superficie: fusiona el **texto**, NUNCA el **mapeo a modelo**. Cada hecho coordinado conserva su `ref` y su sub-span.
+
+La composición de §9 es la **generalización** del patrón ya implementado para abanicos (`refsHints.ts·refsAbanico`/`hintsAbanico`): una sola línea, `refs` = unión de los enlaces participantes, `hints` = un sub-span por enlace. El abanico es composición de un fan del mismo enlace; §9 extiende esa mecánica a oraciones atómicas que comparten un eje de coordinación.
+
+Rationale: el operador requiere prosa OPL más prosaica con conectores; BUG-f897bc demostró que la fusión ingenua (colapsar enlaces en una línea opaca) rompe el resaltado bidireccional, el filtrado y la edición. §9 fija cómo componer **preservando** la direccionabilidad por hecho.
+
+### §9.0 Regla maestra — composición a nivel de token, nunca fusión opaca
+
+- **R-COMP-MAESTRA-1**: una oración compuesta DEBE ser **UNA línea de texto con N sub-spans**, donde cada hecho coordinado conserva **su propia `ref` y su propio `hint`**. La composición DEBE operar a nivel de token (concatena texto, preserva mapeo); NUNCA DEBE producir una fusión opaca que descarte los tokens/refs de los hechos individuales.
+
+  Correcto: `*Cocinar* consume **Agua**, genera **Sopa** y requiere **Olla**.` — una línea; `refs` = { enlace-consumo, enlace-resultado, enlace-instrumento, *Cocinar*, **Agua**, **Sopa**, **Olla** }; `hints` = un sub-span por cada verbo (`consume`/`genera`/`requiere`) y un sub-span por cada objeto, cada uno con su `ref`. El hover sobre `genera` resalta el enlace-resultado; el filtrado por **Olla** conserva la línea; la edición sobre `consume **Agua**` clasifica al enlace-consumo.
+  Incorrecto: una línea `*Cocinar* consume **Agua**, genera **Sopa** y requiere **Olla**.` con un único token de texto y `refs = []` (o solo el proceso) — fusión opaca; el hover, el filtrado y la edición ya no resuelven al hecho individual.
+  Rationale: BUG-f897bc fusionó los enlaces hijos en una línea plural que colapsó los tokens/refs por enlace, rompiendo el resaltado bidireccional y la edición; la regla maestra prohíbe exactamente esa pérdida.
+
+- **R-COMP-MAESTRA-2**: en una oración compuesta, `refs` de la línea DEBE ser la **unión** (sin duplicados por `tipo:id`, vía `refsUnicasPorTipoId`) de los `refs` de los hechos coordinados, y `hints` DEBE contener **un sub-span por hecho** (verbo, objeto, estado). NO DEBE existir un hecho coordinado sin su `ref` y su `hint` en la línea.
+
+  Rationale: `interaccion.ts·crearLineaOplInteractiva` ya construye `refs` como conjunto único y `tokens` por ubicación de `hints`; `lineaTocaReferencia` y `filtrarLineasPorReferencia` resuelven al hecho solo si su `ref` está en la unión.
+
+- **R-COMP-MAESTRA-3**: hover, filtrado, navegación y clasificación de edición DEBEN resolver al **hecho individual**, no a la oración completa. Un clic/hover sobre un sub-span DEBE devolver la `ref` de ese sub-span (vía `referenciaEnlaceEspecifico`), no la primera `ref` de la línea.
+
+  Rationale: `interaccion.ts·referenciaEnlaceEspecifico` ya resuelve la `ref` de enlace por posición de token; la composición DEBE poblar los tokens de modo que esa resolución siga funcionando span a span.
+
+### §9.1 Ejes de coordinación y conectores
+
+Una oración compuesta coordina hechos que comparten un **eje**. Esta spec canoniza estos ejes:
+
+| Eje | Patrón | Plantilla |
+| --- | --- | --- |
+| (a) sujeto compartido / predicado coordinado | un *proceso* sujeto, varios predicados procedimentales | `*P* consume **A**, genera **B** y requiere **C**.` |
+| (b) predicado compartido / destino enumerado | un sujeto y verbo, varios destinos | `**A** exhibe **B**, **C** y **D**.` |
+| (c) sujeto coordinado | varios sujetos, un predicado (solo si canónico) | `**A** y **B** consumen **C**.` |
+| (d) condicional / temporal / causal | coordinación donde el canon lo soporte | `*P* ocurre si **A** existe, en cuyo caso *P* consume **A**, de lo contrario *P* se omite.` |
+| (e) operadores lógicos XOR / OR | abanico — remite §8.1 | `*P* consume exactamente uno de **A**, **B** o **C**.` |
+
+- **R-COMP-EJE-1** (conector serial es-CL): la coordinación serial DEBE usar coma entre los primeros miembros y `y`/`o` antes del último, **sin coma de Oxford**. La alternancia `e`/`u` DEBE decidirse por la fonética del término siguiente (remite §1.3 R-VERB-KW-2).
+
+  Correcto: `*P* consume **A**, genera **B** y requiere **C**.`
+  Incorrecto: `*P* consume **A**, genera **B**, y requiere **C**.` (coma de Oxford)
+  Rationale: `opm-opl-es §2` (conector serial es-CL); la coma de Oxford no es es-CL.
+
+- **R-COMP-EJE-2** (eje a — predicado coordinado): varias oraciones procedimentales con el **mismo *proceso* sujeto** PUEDEN coordinarse en una línea, repitiendo el verbo por hecho. Cada par verbo+complemento conserva su sub-span y su `ref` de enlace. La composabilidad declarada en §3.1, §3.2, §3.3, §4 habilita este eje.
+
+- **R-COMP-EJE-3** (eje b — destino enumerado estructural): una relación estructural con **un exhibidor/todo/general** y varios destinos del mismo tipo de relación DEBE coordinar los destinos tras un solo verbo. Es el patrón ya canónico de §6 (`consta de`, `exhibe`): un verbo, N spans de destino, una `ref` de enlace por destino.
+
+  Correcto: `**Auto** consta de **Motor**, **Chasis** y **Rueda**.`
+  Rationale: `estructural.ts·oracionEstructural` ya emite la lista; la `ref` de cada parte vive en su sub-span.
+
+- **R-COMP-EJE-4** (eje c — sujeto coordinado): la coordinación de sujetos (`**A** y **B** consumen **C**.`) SOLO PUEDE emitirse cuando el canon define el plural concordado (multiplicidad / fan divergente de habilitador). Fuera de esos casos, NO DEBE coordinarse el sujeto; recae en oraciones atómicas.
+
+  Rationale: el verbo concuerda en número con el sujeto múltiple (R-MULT-COMB-1); el sujeto coordinado sin respaldo canónico inventaría una relación inexistente.
+
+- **R-COMP-EJE-5** (eje e — abanicos): la coordinación XOR/OR NO se canoniza aquí; es el abanico de §8.1 (`exactamente uno de` / `al menos uno de`). §9 NO DEBE duplicar ni redefinir el cuantificador de fan.
+
+  Rationale: el abanico es composición del mismo enlace bajo operador lógico; §8.1 ya lo gobierna.
+
+### §9.2 Reglas de elegibilidad
+
+- **R-COMP-ELEG-1** (mismo eje): solo PUEDEN coordinarse hechos que compartan **exactamente un** eje de §9.1. Mezclar ejes (p. ej. predicado coordinado con destino enumerado de otra relación) en una sola línea NO DEBE realizarse.
+
+- **R-COMP-ELEG-2** (misma familia semántica): el eje (a) NO DEBE coordinar familias incompatibles que el canon separa: un predicado transformador (`consume`/`genera`/`afecta`/`cambia`) PUEDE coordinarse con habilitadores (`requiere`/`maneja`) bajo sujeto-proceso compartido, pero NUNCA DEBE coordinar consumo con resultado **sobre el mismo objeto** ni mezclar clasificación genérica (esencia/afiliación, R-ENT-3) con enlaces.
+
+  Rationale: §3.1/§3.2 prohíben coordinar consumo con resultado en un predicado sobre el mismo objeto; §2 (R-ENT-3) exige oración separada por hecho de clasificación genérica.
+
+- **R-COMP-ELEG-3** (orden determinista estable): el orden de los hechos coordinados DEBE ser **determinista y estable** entre emisiones; DEBERÍA seguir el orden de fuerza semántica (consumo, resultado, efecto, agente, instrumento) en el eje (a) y el orden de modelo de los destinos en el eje (b). Un orden inestable rompe el roundtrip y la diffabilidad del texto.
+
+  Rationale: R-COMB-4 fija orden de marcadores superficiales estable; la composición hereda esa exigencia.
+
+- **R-COMP-ELEG-4** (preservación obligatoria de tokens): una coordinación es elegible SOLO si la línea resultante puede poblar `hints` con un sub-span por hecho sin solापamiento ambiguo. Si dos hechos producirían el **mismo** texto de span sin ancla de posición que los distinga, la coordinación NO DEBE realizarse; los hechos DEBEN emitirse atómicos.
+
+  Rationale: `interaccion.ts·tokenizarConHints` ubica cada hint por `indexOf` y ordena por posición; spans idénticos sin desambiguación posicional colisionarían, perdiendo direccionabilidad — exactamente la pérdida que la regla maestra prohíbe.
+
+### §9.3 Zonas prohibidas de composición
+
+- **R-COMP-ZP-1** (refinamiento / despliegue): la composición NO DEBE fusionar en plural los enlaces de los refinadores en contexto de refinamiento/despliegue (HU-50.015). La detección de candidatos a coordinación NO DEBE activarse sobre enlaces que pertenecen a un OPD hijo de refinamiento. Remite §7.7 (R-CX-COMP-1/2/3).
+
+  Correcto: `**Auto** es un **Vehículo**.` seguido de `**Camión** es un **Vehículo**.` (despliegue de generalización: un enlace, una oración, refs preservados)
+  Incorrecto: `**Auto** y **Camión** son **Vehículo**.` cuando el contexto es el despliegue de generalización-especialización del refinamiento de **Vehículo** — la fusión borra el token-verbo y la `ref` por enlace que el refinamiento necesita.
+  Rationale: BUG-f897bc; §7.7 sella esta colisión y §9 la materializa como zona prohibida del álgebra.
+
+- **R-COMP-ZP-2** (toda composición que pierda refs/hints): cualquier coordinación que no satisfaga R-COMP-MAESTRA-1/2/3 (sub-span por hecho, unión de refs, resolución al hecho individual) está **prohibida**, sin importar el eje. La prosa más rica NUNCA justifica perder direccionabilidad.
+
+- **R-COMP-ZP-3** (lo que el parser no descompone): NO DEBE emitirse una oración compuesta que el parser no pueda descomponer a sus hechos atómicos (R-COMP-REV-1). Composición sin reverse equivalente está prohibida.
+
+  Rationale: la bisimetría OPL (`reglas §9`) exige que toda forma emitida sea parseable; una composición no parseable rompe el roundtrip.
+
+### §9.4 Reverse / roundtrip
+
+- **R-COMP-REV-1** (descomposición obligatoria): el parser DEBE descomponer una oración compuesta en sus hechos atómicos, reconstruyendo un enlace/relación por sub-span coordinado. El parseo de la línea coordinada DEBE producir el **mismo conjunto de mutaciones** que el parseo de las oraciones atómicas equivalentes.
+
+  Rationale: el parser ya descompone el abanico (`parsear.ts·ABANICO_VERBO_RE_LIST`) en un enlace por miembro; la coordinación de §9 extiende esa descomposición a predicados/destinos enumerados.
+
+- **R-COMP-REV-2** (invariante de identidad): **componer → parsear = identidad sobre el conjunto de hechos**. Sea `F = {f1, …, fn}` el conjunto de hechos atómicos; `parsear(componer(F)) = F` como conjunto (no necesariamente como orden de líneas). El roundtrip se defiende sobre el conjunto de hechos, no sobre la cadena de texto.
+
+  Rationale: `roundtrip.test.ts` / `fixtures-roundtrip.ts` defienden bisimetría sobre hechos; la composición es display y NO DEBE alterar el conjunto de hechos recuperado.
+
+### §9.5 Configuración display-vs-canónico
+
+- **R-COMP-CFG-1**: prosa **atómica** (una oración por hecho) vs **compuesta** (coordinada) es una **opción de presentación**. NO DEBE alterar el **texto canónico** que alimenta al parser ni al roundtrip: ambas formas DEBEN parsear al mismo conjunto de hechos.
+
+  Rationale: §Convenciones (Display-vs-canónico); la forma visible se normaliza a la forma canónica para equivalencia, igual que cualquier otro hecho display.
+
+- **R-COMP-CFG-2**: el contrato display-vs-canónico de la composición DEBE ser el **mismo** que el del resto de la spec: la presentación PUEDE reordenar/coordinar; la equivalencia se evalúa sobre la forma canónica normalizada. La opción de prosa NO DEBE introducir un canon paralelo.
+
+### §9.6 Traza a código y GAPs
+
+**Estado actual**: los generadores de `app/src/opl/generadores/` emiten hoy oraciones **atómicas** por hecho procedimental (`procedural.ts·oracionEnlaceSinEtiqueta`), salvo dos casos ya coordinados: la **enumeración estructural de destinos** (`estructural.ts·oracionEstructural`, eje b) y el **abanico** (`abanico.ts` + `refsHints.ts·refsAbanico`/`hintsAbanico`, eje e). La coordinación de **predicados con sujeto-proceso compartido** (eje a) es **capacidad nueva**.
+
+- **GAP-COMPOSICION**: no existe hoy un generador que coordine predicados de distinto verbo bajo un sujeto-proceso compartido (eje a, R-COMP-EJE-2). El punto de implementación es una capa de composición que, **sobre el resultado atómico** de `procedural.ts·oracionEnlaceSinEtiqueta`, agrupe `OplLineaPendiente` por sujeto-proceso y produzca una `OplLineaPendiente` única con:
+  - `texto` = predicados concatenados con conector serial es-CL (§9.1 R-COMP-EJE-1);
+  - `refs` = unión de los `refsEnlace` de cada predicado (R-COMP-MAESTRA-2, vía el `refsUnicasPorTipoId` que `crearLineaOplInteractiva` ya aplica);
+  - `hints` = concatenación de los `hintsEnlace` de cada predicado, un sub-span por verbo/objeto/estado (R-COMP-MAESTRA-1).
+  El patrón de referencia es `refsHints.ts·refsAbanico`/`hintsAbanico`: ya construye una línea con unión de refs y un hint por enlace hijo; el eje (a) lo reusa para predicados heterogéneos.
+
+- **GAP-COMP-GUARDA** (remite §7.7): no existe guard programático que prohíba la coordinación de enlaces hijos en contexto de refinamiento/despliegue (R-COMP-ZP-1). La capa de composición del eje (a) DEBE materializar ese guard: antes de coordinar, descartar candidatos cuyos enlaces pertenezcan a un OPD hijo de refinamiento, y descartar la fusión si rompería R-COMP-ELEG-4 (spans ambiguos).
+
+- **GAP-COMP-REVERSE**: el parser (`parsear.ts`) descompone hoy el abanico (`ABANICO_VERBO_RE_LIST`) y la enumeración estructural, pero NO una línea de predicados coordinados de distinto verbo bajo un sujeto compartido (eje a). R-COMP-REV-1 exige una regla de descomposición que segmente la línea por conector serial y reparse cada predicado contra el sujeto compartido; sin ella, el eje (a) NO DEBE emitirse (R-COMP-ZP-3).
+
+Rationale: BUG-f897bc, `interaccion.ts` (tokens/refs/hints), `refsHints.ts` (`OplLineaPendiente`, `refsAbanico`/`hintsAbanico`), `reglas §9` (bisimetría OPD↔OPL) y §7.7 (zona prohibida en refinamiento).
