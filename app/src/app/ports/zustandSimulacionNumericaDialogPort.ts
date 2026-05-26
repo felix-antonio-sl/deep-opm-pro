@@ -16,7 +16,6 @@ export function useZustandSimulacionNumericaDialogPort(): SimulacionNumericaDial
   return {
     abierto,
     cerrar,
-    modelo,
     columnas,
     ejecutar,
   };
