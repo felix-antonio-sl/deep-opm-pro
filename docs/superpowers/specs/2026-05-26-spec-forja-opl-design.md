@@ -8,6 +8,8 @@ El sistema de generación/parseo de OPL de OPFORJA (`app/src/opl/`, ~5457 LOC no
 
 **Objetivo**: producir `docs/canon-opm/spec-forja-opl.md` — la **SSOT OPL única, consolidada y definitiva** de OPFORJA, que contenga con máximo detalle y precisión todo lo necesario para generar y parsear OPL, sin nada superfluo (intros, conversión EN↔ES, narrativa pedagógica no normativa). La spec nace conectada al código (traza + gaps) para alimentar la auditoría de alineación posterior.
 
+**Rol del documento (framing del operador)**: esta spec es **el instrumento con el que se especifica TODO el funcionamiento OPL de OPFORJA**. No es solo un catálogo canónico de oraciones: es la **especificación operativa completa** del subsistema OPL — canon lingüístico **más** comportamiento de runtime. Todo lo que OPL hace en el producto debe quedar especificado aquí: generación, parseo, presentación del panel, interacción OPL↔OPD (hover/navegación/filtrado), edición de OPL (clasificación edición→mutación, editable vs bloqueado), configuración (display vs canónico), modos de fallo/validación/ambigüedad e invariantes/leyes (p.ej. *safe-lens*). Si una conducta OPL del producto no está en esta spec, es un gap a cerrar — no un detalle de implementación.
+
 ## 2. Decisiones de alcance (selladas en brainstorming)
 
 1. **Rol del documento**: SSOT única consolidada. La spec-forja **absorbe y supera** el canon OPL para OPFORJA; `opm-opl-es.md` y `reglas §4` quedan como **procedencia**, no se consultan en runtime de desarrollo.
@@ -42,8 +44,10 @@ Cada forma de oración OPL es una entrada con **ID estable** (reutilizando los I
 | **Tokenización** | segmentos (verbo/cópula, refs por entidad/enlace) para `refsHints` y resaltado bidireccional canvas↔OPL |
 | **Orden** | posición en la secuencia del panel |
 | **Reverse** | qué parsea/planifica/muta, o "solo-display" |
-| **Roundtrip** | simetría esperada + fixture de referencia |
-| **Edge cases** | notas de implementación |
+| **Edición** | ¿editable inline? qué edición se admite y a qué mutación mapea; qué queda bloqueado y por qué (razón de no-aplicable) |
+| **Interacción** | comportamiento hover/navegación/filtrado por referencia para esta oración (qué tokens son ref de entidad/enlace) |
+| **Roundtrip** | simetría esperada + fixture de referencia; ley/invariante que la defiende |
+| **Edge cases** | notas de implementación; modos de fallo/ambigüedad |
 | **Traza a código** | `generador.ts §x` · `parser/*.ts:L###` · fixture |
 | **Procedencia** | fuente(s) canónica(s) + enriquecimiento libro/OPCloud/curso |
 
@@ -61,10 +65,14 @@ Cada forma de oración OPL es una entrada con **ID estable** (reutilizando los I
 9. **Multiplicidad y cardinalidad**.
 10. **Etiquetas de ruta**.
 11. **Plegado/despliegue de OPL** (display, bloques jerárquicos).
-12. **Presentación del panel OPL**: orden global de oraciones, numeración, hover bidireccional, visibilidad de esencia, minimizar/edición inline (de la observación OPCloud).
-13. **EBNF formal OPL-ES** consolidada (sin EN↔ES).
-14. **Roundtrip y simetría global**: invariantes, qué se parsea vs solo-display, dónde se rompe la bisimetría + convención.
-15. **Trazabilidad**: tabla maestra constructo ↔ generador ↔ parser ↔ fixture, marcando **GAPS** (oración canónica sin generador / generador sin entrada canónica) — insumo directo de la auditoría de alineación.
+12. **Presentación del panel OPL**: orden global de oraciones, numeración, plegado-display, visibilidad de esencia, minimizar (de la observación OPCloud).
+13. **Interacción OPL↔OPD**: tokens y referencias (entidad/enlace), hover bidireccional (resaltado), navegación por click, filtrado de líneas por selección/referencia. (ancla: `interaccion.ts`, `refsHints.ts`)
+14. **Edición de OPL**: clasificación de líneas editadas (`aplicable`/`no-aplicable`/`ignorada-vacía`/`sin-cambio`), razones de no-aplicabilidad, mapeo edición→mutación, qué es editable inline vs bloqueado, edición de nombres/propiedades de enlace (observación OPCloud). (ancla: `clasificadorEdicion.ts`, `edicionCanvas.ts`)
+15. **Configuración/opciones que afectan OPL**: visibilidad de esencia (`siempre`/`solo-difiere`/`oculta`), numeración, idioma — siempre **display vs texto canónico** (las opciones NO alteran el canónico que alimenta parser/roundtrip). (ancla: `opciones.ts`)
+16. **Modos de fallo, validación y ambigüedad**: contrato de error del parser, oraciones no parseables/ambiguas, colisión de nombre desde OPL, partial-parse, qué se rechaza vs se suspende.
+17. **EBNF formal OPL-ES** consolidada (sin EN↔ES).
+18. **Roundtrip, invariantes y leyes**: simetría global, qué se parsea vs solo-display, ley *safe-lens* y demás invariantes (`leyes/opl-reverse`), dónde se rompe la bisimetría + convención.
+19. **Trazabilidad**: tabla maestra constructo/conducta ↔ generador ↔ parser ↔ módulo de comportamiento ↔ fixture/ley, marcando **GAPS** (oración o conducta sin código / código sin entrada en la spec) — insumo directo de la auditoría de alineación.
 
 **Apéndice A — Ejemplo end-to-end**: un modelo OPM completo → OPL completa con todas las familias.
 **Apéndice B — Patrones OPL sociotécnicos y agénticos**: construcciones recurrentes expresadas **como composición de constructos canónicos** (no OPL nuevo), ancladas a `sociotecnico.ts`:
@@ -92,17 +100,19 @@ Tamaño estimado ~2500–4000 líneas. Producción **por familias en líneas par
 
 - **Ola 1 (constructos base)**: §1 vocabulario, §2 entidades, §3 transformadores, §4 habilitadores, §5 modificadores, §6 estructurales.
 - **Ola 2 (composición y refinamiento)**: §7 refinamiento, §8 combinatoria, §9 multiplicidad, §10 ruta, §11 plegado.
-- **Ola 3 (transversales)**: §12 panel, §13 EBNF, §14 roundtrip, §15 trazabilidad, Apéndices A/B/C.
-- **Cierre**: consolidación, self-review de simetría/IDs/gaps, verificación de que cada entrada traza a código existente o queda marcada como gap.
+- **Ola 3 (comportamiento de runtime)**: §12 panel, §13 interacción, §14 edición, §15 configuración, §16 modos de fallo.
+- **Ola 4 (transversales y cierre)**: §17 EBNF, §18 roundtrip/invariantes/leyes, §19 trazabilidad, Apéndices A/B/C.
+- **Cierre**: consolidación, self-review de simetría/IDs/gaps, verificación de que cada entrada y cada conducta traza a código existente (generador/parser/módulo de comportamiento/ley) o queda marcada como gap.
 
 ## 8. Criterios de aceptación del artefacto
 
 - Cubre las 4 familias de enlace, todos los modificadores, abanicos, multiplicidad, ruta, refinamiento, designaciones, atributos, plegado y presentación del panel — cada uno con el contrato completo del §4.
 - Incluye la sección de combinatoria (§8) con el producto cartesiano gobernado y las reglas de resolución.
+- **Especifica todo el comportamiento de runtime OPL**: interacción OPL↔OPD (§13), edición y clasificación edición→mutación (§14), configuración display-vs-canónico (§15), modos de fallo/validación/ambigüedad (§16) e invariantes/leyes (§18). Ninguna conducta OPL del producto queda sin especificar.
 - Incluye el Apéndice B de patrones sociotécnicos/agénticos, todo expresado como composición canónica con estatus etiquetado.
 - OPL en español únicamente; sin EN↔ES; sin intros.
-- Cada entrada traza a `app/src/opl/**` (o queda marcada como gap), de modo que la tabla §15 sea el punto de partida de la auditoría de alineación.
-- Autocontenida: no requiere abrir `opm-opl-es.md` ni `reglas §4` para generar/parsear.
+- Cada entrada y cada conducta traza a `app/src/opl/**` (o queda marcada como gap), de modo que la tabla §19 sea el punto de partida de la auditoría de alineación.
+- Autocontenida: es **el único** documento que hay que abrir para entender, generar, parsear, presentar, editar y validar OPL en OPFORJA; no requiere `opm-opl-es.md` ni `reglas §4`.
 
 ## 9. Fuera de alcance
 
