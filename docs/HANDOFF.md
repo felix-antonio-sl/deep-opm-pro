@@ -4,7 +4,21 @@
 **Commits de producto**: ronda commiteada **atómicamente por el operador** (co-implementación en `main`, ya en `origin/main`): `e2ec53d` atajos O/P/S/R, `1394a42` atajo capturador, `85e2db6` inspector vs diagnóstico, `21096a7` barra simulación — más bugs adicionales que resolvió por su cuenta (`dd28882` atributos, `9669f3a` usabilidad modelos, `d19f675` contraste tokens). **Desplegado** en producción con `docker compose up -d --build` (bundle `index-BEwvFCpF.js`).
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; bundle vivo `index-BEwvFCpF.js`.
 
-## Corte actual — Auditoría de canon `reglas-opm-estrictas.md` vs SSOT OPM
+## Corte actual — spec-forja OPL: SSOT OPL consolidada de OPFORJA (producida)
+
+Se produjo `docs/canon-opm/spec-forja-opl.md` (~3069 líneas): la **SSOT OPL única, bidireccional y operativa** de OPFORJA, conforme 100% a las specs KORA aplicables (KORA/MD v12 familia `spec` + spec-md v1 + knowledge-spec v3). Brainstorming → diseño (`docs/superpowers/specs/2026-05-26-spec-forja-opl-design.md`) → plan (`docs/superpowers/plans/2026-05-26-spec-forja-opl.md`) → ejecución subagent-driven (18 tareas, un `opm-specialist` por sección, commits aislados de solo-docs en `main`).
+
+**Decisiones selladas**: SSOT única consolidada (absorbe `opm-opl-es`+`reglas §4` para OPFORJA); bidireccional (generación+parser+presentación+roundtrip); precedencia canon-repo > Dori > OPCloud > curso; eje ontológico con contrato por constructo; combinatoria amplia + composición de prosa (§9) + patrones sociotécnicos/agénticos (Apéndice B); conformidad KORA en forma (vive en deep-opm-pro, URN nominal `urn:opforja:kb:spec-forja-opl`, NO registrado en toolchain KORA); OPL solo es-CL sin EN↔ES.
+
+**Contenido**: 4 secciones de preámbulo (Definición/Definiciones/Precedencia/Convenciones) + §1–§20 cuerpo (vocabulario, entidades, transformadores, habilitadores, modificadores, estructurales, refinamiento, combinatoria, **§9 composición de prosa** que resuelve BUG-f897bc por sub-spans con `ref`/`hint` por hecho, multiplicidad, ruta, plegado, panel, interacción, edición, configuración, fallos, EBNF, roundtrip, **§20 trazabilidad**) + §21 Invariantes/§22 Validación-con-`Enforcement`/§23 Migración + Apéndices A (ejemplo end-to-end), B (5 patrones sociotécnicos/agénticos, 4 canon + 1 extensión declarada), C (índice de IDs). Orden = esqueleto spec-md §10.
+
+**Hallazgo de valor — GAPs código↔canon (§20)**: 53 filas en tabla maestra, **44 GAPs consolidados**, **4 GAP-spec** (código sin entrada). GAPs notables: GAP-EVENTO-RESULTADO/GAP-CONDICION-RESULTADO (el generador emite evento/condición de resultado violando la regla INPUT-only de modificadores), GAP-XOR/XOR-PARSER (`puede ser` especialización XOR sin generador ni parser), GAP-PLACEHOLDER-ENTIDAD (`entidadOplEsEmitible` siempre true → supresión de placeholders no cableada), GAPs de fixtures roundtrip, GAP-COMPOSICION (capacidad nueva).
+
+**Verificación (gates KORA)**: hedging 0; EN↔ES 0 (solo mención legítima de la regla); `Traces to:` 0 usos reales (2 menciones que prohíben su uso); tabla `Validación` con columna `Enforcement`; 30 secciones H2 en orden de esqueleto `spec`. `status: borrador` (pendiente promover a `publicado` si el operador aprueba). Commits `f59c9b4`..`9896e5e` (solo-docs, aislados de los cambios in-flight del operador en `app/`).
+
+**Pendiente derivado (corte siguiente)**: **auditoría de alineación del sistema de generación/parser** (`app/src/opl/**`) contra esta spec, usando la tabla §20 como punto de partida — cerrar cada `GAP-*`.
+
+## Corte previo — Auditoría de canon `reglas-opm-estrictas.md` vs SSOT OPM
 
 Se auditó la SSOT suprema del repo (`docs/canon-opm/reglas-opm-estrictas.md`, 1412 líneas) contra la SSOT OPM original externa (`/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`: `opm-iso-19450-es.md`, `opm-opl-es.md`, `opm-visual-es.md`, `metodologia-opm-es.md`) en 4 líneas paralelas (un `opm-specialist` por dimensión: visual, OPL, ISO/ontología/enlaces, metodología/refinamiento).
 
