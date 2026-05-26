@@ -74,6 +74,7 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "exportar-json": "EXPORTAR",
   "exportar-svg": "EXPORTAR",
   "simulacion-conceptual": "VISTA",
+  "simulacion-numerica": "VISTA",
   "grid-canvas": "VISTA",
   "alias-visibles": "VISTA",
   "descripciones-visibles": "VISTA",
@@ -108,6 +109,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirDialogoGuardarPlantilla,
     abrirDialogoPlantillas,
     abrirDialogoVersiones,
+    abrirDialogoSimulacionNumerica,
     modeloPersistidoId,
     gridConfig,
     toggleGrid,
@@ -162,6 +164,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     gridActiva: gridConfig.activa,
     aplicarLayoutSugerido,
     iniciarModoSimulacion,
+    abrirDialogoSimulacionNumerica,
     abrirTablaEnlaces,
     abrirCheatsheetAtajos,
     exportarJson: exportarJsonAlPortapapeles,
@@ -435,6 +438,7 @@ interface AccionesMenuCommandPaletteDeps {
   gridActiva: boolean;
   aplicarLayoutSugerido: () => void;
   iniciarModoSimulacion: () => void;
+  abrirDialogoSimulacionNumerica: () => void;
   abrirTablaEnlaces: () => void;
   abrirCheatsheetAtajos: () => void;
   exportarJson: () => void;
@@ -478,6 +482,7 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
     ...(deps.exportarOpdSvg ? [{ id: "exportar-svg", label: "Exportar OPD actual como SVG", descripcion: "Descargar el OPD activo como imagen SVG", categoria: "archivo", run: deps.exportarOpdSvg }] : []),
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },
+    { id: "simulacion-numerica", label: "Simulación numérica", descripcion: "Generar datos simulados de atributos y descargar CSV", categoria: "vista", run: deps.abrirDialogoSimulacionNumerica },
     { id: "grid-canvas", label: deps.gridActiva ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas", descripcion: "Alternar la cuadrícula visual del canvas", categoria: "vista", run: deps.toggleGrid },
     { id: "alias-visibles", label: deps.aliasVisibles ? "Ocultar alias" : "Mostrar alias", descripcion: "Alternar la visibilidad de los alias de las cosas", categoria: "vista", run: deps.toggleAliasVisibles },
     { id: "descripciones-visibles", label: deps.descripcionesVisibles ? "Ocultar descripciones" : "Mostrar descripciones", descripcion: "Alternar la visibilidad de las descripciones de las cosas", categoria: "vista", run: deps.toggleDescripcionesVisibles },

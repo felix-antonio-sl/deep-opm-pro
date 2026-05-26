@@ -345,6 +345,7 @@ export interface OpmStore {
   frecuenciaUsoCommandPalette: Record<string, number>;
   pantallaInicioCerrada: boolean;
   dialogoConfiguracionAbierto: boolean;
+  dialogoSimulacionNumericaAbierto: boolean;
   dialogoTraerConectadosAbierto: boolean;
   /** [Met §8.8] Catálogo runtime de plantillas privadas, no serializado en Modelo. */
   plantillasGuardadas: PlantillaIndice[];
@@ -416,6 +417,8 @@ export interface OpmStore {
   cerrarPantallaInicio: () => void;
   abrirDialogoConfiguracion: () => void;
   cerrarDialogoConfiguracion: () => void;
+  abrirDialogoSimulacionNumerica: () => void;
+  cerrarDialogoSimulacionNumerica: () => void;
   abrirDialogoTraerConectados: () => void;
   cerrarDialogoTraerConectados: () => void;
   renombrarModeloActual: (nombre: string) => void;

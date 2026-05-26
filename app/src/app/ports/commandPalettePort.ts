@@ -52,6 +52,7 @@ export interface CommandPaletteViewPort {
   toggleGrid: () => void;
   aplicarLayoutSugerido: () => void;
   iniciarModoSimulacion: () => void;
+  abrirDialogoSimulacionNumerica: () => void;
   abrirTablaEnlaces: () => void;
   abrirCheatsheetAtajos: () => void;
 }

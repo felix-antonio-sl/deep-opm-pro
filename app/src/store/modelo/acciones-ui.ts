@@ -52,6 +52,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
     pantallaInicioCerrada: leerWelcomeBannerDescartado(),
     dialogoConfiguracionAbierto: false,
+    dialogoSimulacionNumericaAbierto: false,
     dialogoTraerConectadosAbierto: false,
     dialogoPlantillasAbierto: false,
     dialogoGuardarPlantillaAbierto: false,
@@ -297,6 +298,14 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
 
     cerrarDialogoConfiguracion() {
       set({ dialogoConfiguracionAbierto: false });
+    },
+
+    abrirDialogoSimulacionNumerica() {
+      set({ dialogoSimulacionNumericaAbierto: true, menuPrincipalAbierto: false, mensaje: null });
+    },
+
+    cerrarDialogoSimulacionNumerica() {
+      set({ dialogoSimulacionNumericaAbierto: false });
     },
 
     abrirDialogoTraerConectados() {

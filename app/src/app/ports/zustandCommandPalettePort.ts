@@ -19,6 +19,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const toggleGrid = useOpmStore((s) => s.toggleGrid);
   const aplicarLayoutSugerido = useOpmStore((s) => s.aplicarLayoutSugerido);
   const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
+  const abrirDialogoSimulacionNumerica = useOpmStore((s) => s.abrirDialogoSimulacionNumerica);
   const abrirTablaEnlaces = useOpmStore((s) => s.abrirTablaEnlaces);
   const abrirDialogoImportarExportarJson = useOpmStore((s) => s.abrirDialogoImportarExportarJson);
   const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
@@ -62,6 +63,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     toggleGrid,
     aplicarLayoutSugerido,
     iniciarModoSimulacion,
+    abrirDialogoSimulacionNumerica,
     abrirTablaEnlaces,
     abrirDialogoImportarExportarJson,
     abrirCheatsheetAtajos,

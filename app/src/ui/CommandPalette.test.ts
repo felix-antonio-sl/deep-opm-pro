@@ -154,6 +154,7 @@ function depsAccionesMenu(): Parameters<typeof construirAccionesMenuCommandPalet
     toggleGrid: () => {},
     aplicarLayoutSugerido: () => {},
     iniciarModoSimulacion: () => {},
+    abrirDialogoSimulacionNumerica: () => {},
     abrirTablaEnlaces: () => {},
     abrirCheatsheetAtajos: () => {},
     exportarJson: () => {},
