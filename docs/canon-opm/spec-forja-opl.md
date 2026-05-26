@@ -2632,6 +2632,172 @@ La ley `law-opl-safe-lens` (`leyes/opl-reverse.test.ts`) gobierna el lente rever
 
 Rationale: `leyes/opl-reverse.test.ts` (ley `law-opl-safe-lens`: no-borrado-por-ausencia, preview puro, preservación de hechos, unsupported-kernel sin mutación) + `roundtrip.test.ts` (framework bisimétrico build→generar→parsear+aplicar→generar) + `fixtures-roundtrip.ts` (catálogo de fixtures estrictos/no-estrictos). Remite a §9.4 (composición), §12–§13 (display), §16 (orden canónico), §18 (normalización léxica).
 
+## §20 Trazabilidad y gaps
+
+Esta sección CONSOLIDA, en una tabla maestra única, las trazas a código y los marcadores `GAP-*` que cada sección §1–§18 escribió por entrada. Es el insumo directo de la auditoría de alineación posterior (no de esta spec).
+
+**R-§20-AUD-1 (RFC 2119)**: la tabla §20 ES el punto de partida de la auditoría de alineación spec↔código. Toda fila con estado `GAP-*` DEBE resolverse en esa auditoría —cerrando el código, corrigiendo la emisión no canónica, añadiendo el fixture, o reclasificando el hecho—. Ninguna fila `GAP-*` se resuelve dentro de esta spec.
+
+Leyenda de **Estado**:
+
+- `alineado` — la oración canónica tiene generador y, cuando aplica, parser/fixture confirmados.
+- `GAP-código` — oración canónica sin generador y/o sin parser que la realice.
+- `GAP-spec` — símbolo de `app/src/opl/**` sin entrada trazada en la spec.
+- `GAP-VERIFY` — traza declarada pero no confirmada en este pase (regex, handler UI o función a verificar).
+
+### §20.1 Tabla maestra
+
+| Sección | Constructo / Regla | Generador (archivo·símbolo) | Parser (archivo·símbolo) | Fixture / Ley | Estado |
+|---------|--------------------|-----------------------------|--------------------------|---------------|--------|
+| §1.1 | Enum verbal `varía de … a` (rango) | — | — | — | GAP-VARIA |
+| §1.1 | Enum verbal `es de tipo` | — | — | — | GAP-TIPO |
+| §1.1 | Enum verbal `puede ser` (especialización XOR) | — | — | — | GAP-XOR |
+| §1.1 | Enum verbal `se refina` (refinamiento inter-OPD) | — | — | — | GAP-REFINA |
+| §1.1 | Enum verbal `se pliega` (plegado) | — | — | — | GAP-PLIEGA |
+| §1.1 | Enum verbal `se recompone` (recomposición) | — | — | — | GAP-RECOMPONE |
+| §2.1 | Entidad (objeto/proceso) | `estructural.ts·oracionEntidad` | — | — | alineado |
+| §2.1 | Supresión de placeholder (R-ENT-2) | `nombresCanonicos.ts·esNombreProcesoPlaceholder` (no conectado vía `refsHints.ts·entidadOplEsEmitible`) | — | — | GAP-PLACEHOLDER-ENTIDAD |
+| §2.3 | Estados `puede estar` | `duracionMetadata.ts·oracionEstados` | — | — | alineado |
+| §2.4 | Designación de estado | `designaciones.ts·oracionDesignacionEstado` / `textoDesignacionEstado` | — | — | alineado |
+| §2.5 | Valor de atributo `es valor` | `estructural.ts·oracionValorAtributo` | — | — | alineado |
+| §2.6 | Formato nominal `Instancia : Clase` | — (sin generador dedicado) | — | — | GAP-NOMBRE-INSTANCIA |
+| §2.7 | Esencia (física/informática) | `estructural.ts·oracionEntidad` (vía `refsHints.ts·textoEsencia`) | — | — | alineado |
+| §2.8 | Afiliación (sistémica/ambiental) | `estructural.ts·oracionEntidad` (vía `refsHints.ts·textoAfiliacion`) | — | — | alineado |
+| §3.1 | Consumo `consume` | `procedural.ts·oracionEnlaceSinEtiqueta` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`consume`) | `enlace-…` | alineado |
+| §3.2 | Resultado `genera` | `procedural.ts·oracionEnlaceSinEtiqueta` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`genera`) | — | alineado |
+| §3.3 | Efecto `afecta` | `procedural.ts·oracionEfecto` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`afecta`) | (sin fixture) | GAP-FIXTURE-EFECTO |
+| §3.4 | Cambio de estado TS3 (`de … a …`) | `procedural.ts·oracionTransicionEstados` | `parsear.ts·ABANICO_CAMBIA_RE` / regex CS2 | (sin fixture) | GAP-FIXTURE-TS3 |
+| §3.5 | Efecto parcial TS4 (`de \`estado\``) | `procedural.ts·oracionEfecto` (rama origen) | regex dedicada no verificada | (sin fixture) | GAP-PARSE-TS4 · GAP-FIXTURE-TS4 · GAP-PROCEDENCIA-ESCIND |
+| §3.6 | Efecto parcial TS5 (`a \`estado\``) | `procedural.ts·oracionEfecto` (rama destino) | regex dedicada no verificada | (sin fixture) | GAP-PARSE-TS5 · GAP-FIXTURE-TS5 |
+| §4.1 | Agente `maneja` (+ estado/evento/cond/negada) | `procedural.ts·oracionEnlaceSinEtiqueta` / `refsHints.ts·nombreOplExtremo` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`maneja`) / `CONDICION_AGENTE_RE` | `enlace-agente-simple` | alineado |
+| §4.2 | Instrumento `requiere` (+ estado/evento/cond/negada) | `procedural.ts·oracionEnlaceSinEtiqueta` / `refsHints.ts·nombreOplExtremo` | `parsear.ts·ABANICO_VERBO_RE_LIST` (`requiere`) | `enlace-instrumento-simple` | alineado |
+| §4.x | Habilitador con estado especificado (HS1/HS2) | `refsHints.ts·nombreOplExtremo` (sufijo `en \`estado\``) | `ABANICO_VERBO_RE_LIST` (sin sellado) | (sin fixture) | GAP-FIXTURE-HS |
+| §4.x | Abanico de instrumento/agente inverso | `abanico.ts` | `parsear.ts` (cobertura no completada) | — | GAP-ABANICO-AGENTE-PARSE |
+| §5.1 | Evento `inicia` | `procedural.ts·oracionEvento` | `parsear.ts` (ruta evento) | (sin fixture) | GAP-FIXTURE-EVENTO |
+| §5.1 | Evento sobre **resultado** (no canónico) | `procedural.ts·oracionEvento` (caso resultado) | — | — | GAP-EVENTO-RESULTADO |
+| §5.1 | Evento sobre **invocación** (no canónico) | `procedural.ts·oracionEvento` (caso invocación) | — | — | GAP-EVENTO-INVOCACION |
+| §5.2 | Condición `ocurre si … en cuyo caso … de lo contrario` | `procedural.ts·oracionCondicion` | `parsear.ts·CONDICION_OCURRE_RE` / `CONDICION_AGENTE_RE` | `parser.condicionesExcepciones.test.ts` | alineado |
+| §5.2 | Condición sobre **resultado** (no canónico) | `procedural.ts·oracionCondicion` (caso resultado, `puede generarse`) | — | — | GAP-CONDICION-RESULTADO |
+| §5.2 | Condición sobre **invocación** (no canónico) | `procedural.ts·oracionCondicion` (caso invocación) | — | — | GAP-CONDICION-INVOCACION |
+| §5.3 | Excepción sobre/sub/sub-sobretiempo | `procedural.ts·oracionEnlaceSinModificador` / `formatoTiempo*` / `duracionMetadata.ts` | `parser.condicionesExcepciones.test.ts` | (test) | GAP-EXC-UNIDADES-LITERAL |
+| §5.4 | Invocación / autoinvocación | `procedural.ts·oracionEnlaceSinModificador` / `modelo/autoinvocacion.ts·esAutoInvocacion` | — | (sin fixture) | GAP-FIXTURE-INVOCACION · GAP-INVOCACION-TILDE |
+| §6.1 | Agregación `consta de` | `estructural.ts·oracionEnlaceEstructural` (agregación) | `parsear.ts·astEstructural` (`consta de`) | (sin fixture) | GAP-FIXTURE-AGREGACION |
+| §6.2 | Exhibición `exhibe` / `así como` | `estructural.ts·oracionEnlaceEstructural` (exhibición) | `parsear.ts·astEstructural` (`exhibe`) | (sin fixture) | GAP-FIXTURE-EXHIBICION |
+| §6.3 | Generalización `son` / `es un` | `estructural.ts·oracionEnlaceEstructural` (generalización) | `parsear.ts·astEstructural` (`es un` / `son`) | (sin fixture) | GAP-FIXTURE-GENERALIZACION |
+| §6.3 | Generalización XOR `puede ser` | — | — (sin regex estructural) | — | GAP-XOR · GAP-XOR-PARSER |
+| §6.4 | Clasificación `es una instancia de` / `son instancias de` | `estructural.ts·oracionEnlaceEstructural` (clasificación) | `parsear.ts·astEstructural` (`es una instancia de` / `son instancias de`) | (sin fixture) | GAP-FIXTURE-CLASIFICACION · GAP-NOMBRE-INSTANCIA |
+| §6.5 | Etiquetado `tag` / `se relaciona con` / `se relacionan` (SE1–SE5) | `procedural.ts·oracionEstructuralEtiquetada` | — (sin regex en `astEstructural`) | (sin fixture) | GAP-TAG-PARSER · GAP-FIXTURE-TAGGED |
+| §6.6 | Etiquetado con estado especificado (SSE1–SSE7) | `procedural.ts·oracionEstructuralEtiquetada` (sufijo de estado) | — | (sin fixture) | GAP-SSE-PARSER · GAP-FIXTURE-SSE |
+| §7.1 | Descomposición `se descompone en` / `paralelo` (CX1/CX2) | `refinamiento.ts·oracionDescomposicion` / `oracionParalelo` / `describirProcesosTemporales` | — (sin regex dedicada) | `parser.designacionesPlegado.test.ts` (parcial) | GAP-CX-PARSER · GAP-FIXTURE-DESCOMPOSICION |
+| §7.1 | Recomposición `se recompone desde` (CX7/CX8) | — | — | — | GAP-RECOMPONE |
+| §7.2 | Despliegue por relación fundamental (CX3) | `refinamiento.ts·oracionDespliegue` / `modoDespliegue` / `modoPorTipoEnlace` | regex estructurales de §6 | `parser.designacionesPlegado.test.ts` | alineado |
+| §7.2 | Plegado parcial | `plegado.ts·oracionPlegadoParcial` / `bloquesJerarquicos.ts·agruparOracionesPorOpd` | `parser.designacionesPlegado.test.ts` | (test) | alineado |
+| §7.2 | Plegado total `se pliega en el OPD padre` (CX5/CX6) | — | — | — | GAP-PLIEGA |
+| §7.3 | Refinamiento autónomo `se refina por …` (CX4) | — (jerarquía vía `bloquesJerarquicos.ts·ordenarOpdsParaOpl` / `profundidadOpd`) | — | — | GAP-REFINA |
+| §7.4 | Visibilidad de estados por OPD | `duracionMetadata.ts·oracionEstados` / `bloquesJerarquicos.ts·agruparOracionesPorOpd` | — | — | alineado |
+| §7.5 | Marca temporal solo en descomposición de proceso | `refinamiento.ts·oracionesRefinamiento` / `describirProcesosTemporales` | — | — | alineado |
+| §8 | Distribución/migración de enlaces por OPD | `bloquesJerarquicos.ts·agruparOracionesPorOpd` (operación de modelo, `reglas §8.11`) | — | — | alineado |
+| §8.3 | Resolución de colisión de rol / precedencia recomposición | — (vive en kernel de modelo, no en capa OPL) | — | — | GAP-COL-RESOLUCION |
+| §7.7 / §9 | Guard anti-coordinación de enlaces en refinamiento | — (protección por construcción, sin guard) | — | — | GAP-COMP-GUARDA |
+| §7.6 | Fan bajo evento `inicia` + cuantificador (C-19) | — (`abanico.ts` solo condicional) | — | — | GAP-FAN-EVENTO |
+| §7.6 | Fan resultado+condición (C-20, `puede generarse`) | `abanico.ts·oracionAbanicoCondicional` (no canónico) | — | — | GAP-FAN-RESULTADO-COND |
+| §7.6 | Fan probabilístico `Pr=p` por rama (C-22) | `procedural.ts·sufijoProbabilidad` (sufijo `(probabilidad: %)`, no canónico) | — | — | GAP-PROB-SUPERFICIE |
+| §7.6 | Fan `m de f` (R-FAN-8) | — (`abanico.ts` solo `m=1`) | — | — | GAP-FAN-M |
+| §9 | Composición eje (a) — predicados coordinados | — (capa de composición ausente) | — (descomposición serial ausente) | — | GAP-COMPOSICION · GAP-COMP-REVERSE |
+| §11 | Etiqueta de ruta (path label) | `refsHints.ts·nombreOplExtremo` / `procedural.ts` (etiqueta de ruta) | — | — | GAP-VERIFY |
+| §12–§13 | Display por OPD / orden / bloques | `bloquesJerarquicos.ts·agruparOracionesPorOpd` / `ordenarOpdsParaOpl` / `plegado.ts·oracionPlegadoParcial` | — | — | alineado |
+| §14.x | Panel OPL interactivo / tokens / referencias | `panel.ts·derivarPanelOpl` / `interaccion.ts·OplToken` / `crearLineaOplInteractiva` / `referenciaEnlaceEspecifico` | — | — | alineado |
+| §14.5 | Navegación click→foco (handler UI) | `interaccion.ts` (`OplToken.ref`) + handler en `app/src/ui` | — | — | GAP-VERIFY |
+| §15 | Edición OPL clasificada / aplicación | `clasificadorEdicion.ts·clasificarEdicionOpl` / `edicionCanvas.ts·aplicarEdicionOpl` | `aplicar.ts·aplicarPatchesOpl` / `aplicarPatchEnlace` / `aplicarPatchAbanico` | — | alineado |
+| §15.x | Mutación por hecho (re-tokenización sub-span) | — (se traza a §9 y §14.5, no a función nueva) | `interaccion.ts·referenciaEnlaceEspecifico` | — | GAP-VERIFY |
+| §16 | Visibilidad de esencia / orden canónico | `opciones.ts·VisibilidadOpl` / `VISIBILIDAD_OPL_DEFAULT` | — | — | alineado |
+| §18 | Diagnóstico / fail-fast | — | `aplicar.ts·aplicarPatchesOpl` (`Resultado<Modelo>`) / `clasificadorEdicion.ts·razonDesdeDiagnostico` / parser `DiagnosticoOpl` | — | alineado |
+
+### §20.2 Índice de GAPs
+
+Lista consolidada de todos los marcadores `GAP-*` (sección de origen · descripción de una línea). La auditoría de alineación los cierra; aquí solo se enumeran.
+
+| GAP | Origen | Descripción |
+|-----|--------|-------------|
+| GAP-VARIA | §1.1 | `varía de … a` canónico, sin generador. |
+| GAP-TIPO | §1.1 | `es de tipo` canónico, sin generador. |
+| GAP-XOR | §1.1 / §6.3 | `puede ser` (especialización XOR) canónico, sin generador. |
+| GAP-XOR-PARSER | §6.3 | `puede ser` sin regex estructural en `astEstructural`. |
+| GAP-REFINA | §1.1 / §7.3 | `se refina por …` (CX4) canónico, sin generador autónomo ni parser. |
+| GAP-PLIEGA | §1.1 / §7.2 | `se pliega en` (plegado total CX5/CX6) canónico, sin generador ni parser (existe plegado parcial). |
+| GAP-RECOMPONE | §1.1 / §7.1 | `se recompone desde` (CX7/CX8) canónico, sin generador ni parser. |
+| GAP-PLACEHOLDER-ENTIDAD | §2.1 | `esNombreProcesoPlaceholder` no conectado a la emisión (R-ENT-2 sin efecto). |
+| GAP-NOMBRE-INSTANCIA | §2.6 / §6.4 | Formato nominal `Instancia : Clase` sin generador dedicado. |
+| GAP-FIXTURE-EFECTO | §3.3 | Sin fixture roundtrip dedicado de efecto básico. |
+| GAP-FIXTURE-TS3 | §3.4 | Sin fixture roundtrip dedicado de cambio de estado. |
+| GAP-PARSE-TS4 | §3.5 | Regex de `cambia … de \`estado\`` sin `a` no verificada. |
+| GAP-FIXTURE-TS4 | §3.5 | Sin fixture dedicado de efecto parcial TS4. |
+| GAP-PROCEDENCIA-ESCIND | §3.5 | Metadato de procedencia escindido no rastreado en este pase. |
+| GAP-PARSE-TS5 | §3.6 | Regex de `cambia … a \`estado\`` sin `de` no verificada fuera del abanico. |
+| GAP-FIXTURE-TS5 | §3.6 | Sin fixture dedicado de efecto parcial TS5. |
+| GAP-FIXTURE-HS | §4.x | Sin fixture de habilitador con estado especificado (HS1/HS2) ni variantes evento/cond/negada. |
+| GAP-ABANICO-AGENTE-PARSE | §4.x | Abanico de instrumento y fan inverso sin verificación de cobertura de parseo. |
+| GAP-FIXTURE-EVENTO | §5.1 | Sin fixture roundtrip dedicado de evento. |
+| GAP-EVENTO-RESULTADO | §5.1 | Generador emite evento de resultado (VIOLA R-MOD-INPUT-2); no canónico. |
+| GAP-EVENTO-INVOCACION | §5.1 | Generador emite `inicia e invoca` (VIOLA R-MOD-CAT-1); no canónico. |
+| GAP-CONDICION-RESULTADO | §5.2 | Generador emite condición de resultado con `puede generarse` (VIOLA R-MOD-INPUT-2); no canónico. |
+| GAP-CONDICION-INVOCACION | §5.2 | Generador emite `invoca … si … ocurre` (VIOLA R-MOD-CAT-1); no canónico. |
+| GAP-EXC-UNIDADES-LITERAL | §5.3 | `formatoTiempo` operacionaliza `unidades-tiempo` con valor+unidad concretos; diverge del literal de plantilla. |
+| GAP-FIXTURE-INVOCACION | §5.4 | Sin fixture roundtrip dedicado de invocación/autoinvocación. |
+| GAP-INVOCACION-TILDE | §5.4 | Grafía `despues de` sin tilde en la emisión. |
+| GAP-FIXTURE-AGREGACION | §6.1 | Sin fixture roundtrip dedicado de agregación. |
+| GAP-FIXTURE-EXHIBICION | §6.2 | Sin fixture roundtrip dedicado de exhibición. |
+| GAP-FIXTURE-GENERALIZACION | §6.3 | Sin fixture roundtrip dedicado de generalización. |
+| GAP-FIXTURE-CLASIFICACION | §6.4 | Sin fixture roundtrip dedicado de clasificación. |
+| GAP-TAG-PARSER | §6.5 | `se relaciona con` / `se relacionan` / etiquetas de usuario sin regex en `astEstructural`. |
+| GAP-FIXTURE-TAGGED | §6.5 | Sin fixture roundtrip dedicado de etiquetado. |
+| GAP-SSE-PARSER | §6.6 | Etiquetados con estado especificado heredan GAP-TAG-PARSER (sin regex). |
+| GAP-FIXTURE-SSE | §6.6 | Sin fixture dedicado de estructural con estado especificado. |
+| GAP-FIXTURE-ESTRUCTURALES | §6.x | Sin fixtures roundtrip dedicados para las estructurales (agregación/exhibición/generalización/clasificación/etiquetado). |
+| GAP-CX-PARSER | §7.1 | `se descompone en` se genera pero no hay regex que la reconstruya como refinamiento. |
+| GAP-FIXTURE-DESCOMPOSICION | §7.1 | Sin fixture roundtrip dedicado de descomposición/despliegue. |
+| GAP-COMP-GUARDA | §7.7 / §9 | Sin guard programático que prohíba coordinar enlaces hijos en refinamiento (R-CX-COMP / R-COMP-ZP-1). |
+| GAP-FAN-EVENTO | §7.6 | `abanico.ts` no emite fan bajo evento (`inicia` + cuantificador, C-19). |
+| GAP-FAN-RESULTADO-COND | §7.6 | `oracionAbanicoCondicional` emite `puede generarse` para resultado+condición+fan (C-20); no canónico. |
+| GAP-PROB-SUPERFICIE | §7.6 | `sufijoProbabilidad` emite sufijo `(probabilidad: %)` por enlace, no `Pr=p` por rama en fan XOR (C-22). |
+| GAP-FAN-M | §7.6 | Sin generador para `exactamente m de f` / `al menos m de f` (solo `m=1`). |
+| GAP-COL-RESOLUCION | §8.3 | Resolución de colisión de rol / precedencia de recomposición vive en kernel; sin generador OPL de reporte. |
+| GAP-COMPOSICION | §9 | Sin capa que coordine predicados de distinto verbo bajo sujeto-proceso compartido (eje a). |
+| GAP-COMP-REVERSE | §9 | Parser no descompone una línea de predicados coordinados de distinto verbo (R-COMP-REV-1). |
+| GAP-VERIFY | §11 / §14.5 / §15.x | Trazas no confirmadas en este pase: etiqueta de ruta, handler click→foco (UI), mutación por hecho. |
+
+### §20.3 Cobertura inversa
+
+Barrido de los exports de `app/src/opl/**` para detectar símbolos sin entrada trazada en §1–§18 (`GAP-spec`) o ya cubiertos.
+
+| Símbolo | Archivo | Estado |
+|---------|---------|--------|
+| `oracionEnlaceConRuta` | `generadores/procedural.ts` | trazado §11 (etiqueta de ruta, GAP-VERIFY) |
+| `oracionProcedimentalParaRuta` | `generadores/procedural.ts` | trazado §11 (GAP-VERIFY) |
+| `transicionesEstado` / `transicionesEstadoInteractivo` | `generadores/procedural.ts` | cubierto §3.4 (helpers de cambio de estado) |
+| `oracionesAbanicoInteractivo` / `oracionesAbanico` / `oracionAbanico` | `generadores/abanico.ts` | cubierto §7.6 (fan); ramas evento/m/prob en GAP-FAN-* |
+| `emitirDespliegueOcurren` | `generadores/refinamiento.ts` | GAP-spec — emisión de despliegue sin entrada explícita en §7.2 |
+| `emitirEspecializacion` | `generadores/refinamiento.ts` | GAP-spec — ligado a `puede ser` / generalización; sin traza explícita (relacionar con GAP-XOR) |
+| `oracionRefinamiento` / `oracionesRefinamiento` | `generadores/refinamiento.ts` | cubierto §7.1–§7.5 |
+| `oracionesUnidadDescripcionEstados` / `formatearAliasInline` / `formatearUnidadInline` / `formatearDescripcionInline` | `generadores/duracionMetadata.ts` | GAP-spec — metadatos inline de duración/alias/unidad sin entrada dedicada en spec |
+| `formatearDuracion` / `nombreEstadoOpl` | `generadores/duracionMetadata.ts` | cubierto §2.3 / §5.3 |
+| `pluralizarCanonico` / `multiplicidadPlural` / `verbo` / `listarOpl` / `listarEstadosOpl` / `listarDesignaciones` / `nombreOplConMultiplicidad` | `generadores/refsHints.ts` | cubierto (utilitarios de superficie; multiplicidad §10, listas en cada familia) |
+| `codigoOpd` | `generadores/refsHints.ts` | cubierto §7 / §12 (código de OPD) |
+| `entidadOplEsEmitible` / `estadoOplEsEmitible` / `extremoOplEsEmitible` / `enlaceOplEsEmitible` | `generadores/refsHints.ts` | cubierto §2.1 (emitibilidad); ligado a GAP-PLACEHOLDER-ENTIDAD |
+| `extraerMultiplicidad` | `parser/parsear.ts` | cubierto §10 (multiplicidad reverse) |
+| `parsearParrafoOpl` / `normalizarLineas` / `normalizarNombreOpl` / `claveNombre` | `parser/parsear.ts` | cubierto §18 (normalización) / §19 (parseo) |
+| `planificarEdicionOplLibre` | `parser/planificar.ts` | cubierto §15 (planificación de edición) |
+| `aplanarBloquesOpl` / `chevronEstadoBloque` / `togglearColapsoBloque` | `bloquesJerarquicos.ts` | GAP-spec — mecánica de colapso/expansión de bloques sin entrada dedicada en §12–§13 |
+| `OplReferencia` / `OplToken` / `OplLineaInteractiva` / `OplTokenHint` (tipos) | `interaccion.ts` | cubierto §14 (modelo de tokens) |
+| `RazonNoAplicable` / `EstadoLineaOpl` / `LineaClasificada` / `ResultadoClasificacion` (tipos) | `clasificadorEdicion.ts` | cubierto §15 / §18 |
+| `OracionOplAst` / `PatchOplPropuesto` / `ReferenciaEntidadPatch` / `PrevisualizacionOplReverse` (tipos) | `parser/tipos.ts` | cubierto §15 / §19 (AST y patches) |
+| `oracionPlegadoParcial` | `generadores/plegado.ts` | cubierto §7.2 / §12 |
+| `leyes/opl-reverse.test.ts` (ley `law-opl-safe-lens`) | `leyes/` | cubierto §19 |
+
+`GAP-spec` detectados (4): `emitirDespliegueOcurren`, `emitirEspecializacion`, los formateadores inline de `duracionMetadata.ts` (`oracionesUnidadDescripcionEstados`/`formatear{Alias,Unidad,Descripcion}Inline`), y la mecánica de colapso de bloques (`aplanarBloquesOpl`/`chevronEstadoBloque`/`togglearColapsoBloque`). La auditoría de alineación DEBE darles entrada en la spec o reclasificarlos como helpers no normativos.
+
+Rationale: §20 materializa la disciplina de trazabilidad bidireccional (spec→código vía §20.1/§20.2; código→spec vía §20.3) declarada por el esquema de entrada (§0, campo `Traza a código`) y por la política de auditoría de alineación. Remite a `app/src/opl/**` y a `leyes/opl-reverse.test.ts` como superficie auditada.
+
 ## §21 Invariantes
 
 ### §21.1 Invariantes prescriptivos del documento
