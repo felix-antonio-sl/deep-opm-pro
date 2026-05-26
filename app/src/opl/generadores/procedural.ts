@@ -307,18 +307,15 @@ function oracionCondicion(
       if (estado) return `${destinoOpl} ocurre si ${nombreOpl(origen)} está en \`${nombreCanonicoEstado(estado)}\`, en cuyo caso ${destinoOpl} consume ${origenOpl}, de lo contrario ${destinoOpl} se omite.`;
       return `${destinoOpl} ocurre si ${origenOpl} existe, en cuyo caso ${origenOpl} se consume, de lo contrario ${destinoOpl} se omite.`;
     }
-    case "resultado": {
-      const estado = estadoDeExtremo(modelo, enlace.destinoId);
-      if (estado) return `${origenOpl} ocurre si ${destinoOpl} puede generarse, en cuyo caso ${origenOpl} genera ${destinoOpl}, de lo contrario ${origenOpl} se omite.`;
-      return `${origenOpl} ocurre si ${destinoOpl} puede generarse, en cuyo caso ${origenOpl} genera ${destinoOpl}, de lo contrario ${origenOpl} se omite.`;
-    }
+    case "resultado":
+      return oracionEnlaceSinModificador(modelo, enlace);
     case "efecto": {
       const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
       const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
       return proceso && objeto ? `${proceso} ocurre si ${objeto} existe, en cuyo caso ${proceso} afecta ${objeto}, de lo contrario ${proceso} se omite.` : null;
     }
     case "invocacion":
-      return `${origenOpl} invoca ${destinoOpl} si ${origenOpl} ocurre.`;
+      return oracionEnlaceSinModificador(modelo, enlace);
     default:
       return oracionEnlaceSinModificador(modelo, enlace);
   }

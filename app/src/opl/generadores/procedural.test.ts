@@ -138,16 +138,34 @@ describe("procedural OPL", () => {
     );
   });
 
-  test("condicion sobre resultado a estado conserva verbo resultado y califica estado", () => {
+  test("condicion sobre resultado a estado degrada a resultado base", () => {
     const modelo = modeloConEstados();
     const enlace = {
       ...modelo.enlaces.r1!,
       modificador: "condicion",
       subtipoModificador: "C",
     } satisfies Enlace;
-    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "*Procesar* ocurre si **Pedido** en `aprobado` puede generarse, en cuyo caso *Procesar* genera **Pedido** en `aprobado`, de lo contrario *Procesar* se omite.",
-    );
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("*Procesar* genera **Pedido** en `aprobado`.");
+    expect(texto).not.toContain("puede generarse");
+  });
+
+  test("condicion sobre invocacion degrada a invocacion base", () => {
+    const modelo = modeloBase();
+    const enlace: Enlace = {
+      id: "i1",
+      tipo: "invocacion",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "operador" },
+      etiqueta: "",
+      modificador: "condicion",
+      subtipoModificador: "C",
+    };
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("*Procesar* invoca **Operador**.");
+    expect(texto).not.toContain("si *Procesar* ocurre");
   });
 
   test("condicion sobre agente en estado no repite el estado como existencia", () => {

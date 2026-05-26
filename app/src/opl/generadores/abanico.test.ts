@@ -54,13 +54,12 @@ describe("abanico OPL", () => {
     );
   });
 
-  test("OR de resultados condicionales emite forma 'ocurre si ... puede generarse'", () => {
-    // resultado + condicion + abanico: forma canónica resuelta en ronda26/L3 (B2).
-    // Patrón paralelo a la cláusula condicional de consumo, adaptado a la semántica de generación.
+  test("OR de resultados condicionales degrada a abanico base", () => {
     const modelo = modeloResultados("O", "condicion");
-    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe(
-      "*Procesar* ocurre si al menos uno de **Salida A** y **Salida B** puede generarse, en cuyo caso *Procesar* genera al menos uno de **Salida A** y **Salida B**, de lo contrario *Procesar* se omite.",
-    );
+    const texto = oracionAbanico(modelo, modelo.abanicos!.ab1!);
+
+    expect(texto).toBe("*Procesar* genera al menos uno de **Salida A** y **Salida B**.");
+    expect(texto).not.toContain("puede generarse");
   });
 
   // BUG-20260519T200211Z-62ee85: en el modelo del bug, dos resultados del mismo
