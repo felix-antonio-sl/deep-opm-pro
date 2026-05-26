@@ -214,11 +214,11 @@ Rationale: `opm-opl-es §3` (descripción de entidades) y `reglas §4.4` separan
 
   Rationale: `nombresCanonicos.ts` define `esNombreProcesoPlaceholder` y `esNombreEstadoCanonico`; un nombre placeholder no es un hecho de modelo afirmable.
 
-- **R-ENT-3**: cada hecho de clasificación de una cosa (esencia, afiliación, perseverancia) DEBE ir en **oración separada**. NO DEBE colapsarse «**X** es un objeto informacional y sistémico» — no es OPL-ES canónica.
+- **R-ENT-3**: esencia y afiliación de una cosa DEBEN **componerse en UNA sola oración** con el sustantivo de tipo, coordinadas con «y»: `**Cosa** es un {objeto|proceso} {esencia} y {afiliacion}.` Es la forma del eco OPCloud. Las designaciones atómicas D1–D4 son los bloques; el eco las coordina, como D5 (estados) y D10 (`es inicial y final`). La perseverancia (persistente/transitoria), si se emite, va en oración aparte.
 
-  Correcto: `**Sensor** es física.` seguido de `**Sensor** es ambiental.`
-  Incorrecto: `**Sensor** es física y ambiental.`
-  Rationale: `estructural.ts·oracionEntidad` emite una línea por hecho; `opm-opl-es §3.1` lista una plantilla (D1–D4) por propiedad.
+  Correcto: `**Sensor** es un objeto físico y ambiental.`
+  Incorrecto: `**Sensor** es física.` seguido de `**Sensor** es ambiental.` (escindido, sin sustantivo de tipo)
+  Rationale: `estructural.ts·oracionEntidad` compone una sola oración; `docs/historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md` documenta la forma OPCloud `*Rescatar* es un proceso informacional y sistémico.`. Bajo `solo-difiere` se coordinan solo las propiedades que difieren del default.
 
 ### §2.1 Objeto
 
@@ -373,9 +373,9 @@ Rationale: `reglas §2.7` (R-INS-1..6) y `opm-opl-es §3`.
 
 **ID**: ENT-ESENCIA (D1, D2).
 
-**Plantillas**: `**Cosa** es física.` (D1) · `**Cosa** es informacional.` (D2).
+**Plantillas**: la esencia se realiza **dentro de la oración combinada D1** con la afiliación (R-ENT-3, §2.8): `**Cosa** es un {objeto|proceso} {esencia} y {afiliacion}.` Las designaciones atómicas D1 (`es física`) / D2 (`es informacional`) son los bloques canónicos coordinados, no la forma de emisión.
 
-**Emisión**: `oracionEntidad` emite la oración de esencia cuando la visibilidad es `siempre`, o cuando la esencia **difiere del default** (informacional). Una cosa informacional con visibilidad por divergencia NO emite oración de esencia (el default se sobreentiende).
+**Emisión**: `oracionEntidad` incluye la esencia en la oración combinada cuando la visibilidad es `siempre`, o cuando la esencia **difiere del default** (informacional). Bajo `solo-difiere`, si solo la esencia difiere, la oración combinada lleva solo la esencia (`**Cosa** es un objeto físico.`).
 
 **Supresión**: con visibilidad `oculta`, NO se emite oración alguna de clasificación. El default informacional puede derivarse de perfil/preset, pero ese default NO DEBE sobrescribir esencia explícita.
 
@@ -393,9 +393,9 @@ Rationale: `reglas §2.2` (R-OBJ-3, R-OBJ-5..6), `§4.4` (D1, D2) y `opm-opl-es 
 
 **ID**: ENT-AFILIA (D3, D4).
 
-**Plantillas**: `**Cosa** es ambiental.` (D3) · `**Cosa** es sistémica.` (D4).
+**Plantillas**: la afiliación se realiza **en la misma oración combinada D1** que la esencia (§2.7): `**Cosa** es un {objeto|proceso} {esencia} y {afiliacion}.` D3 (`es ambiental`) / D4 (`es sistémica`) son los bloques atómicos coordinados.
 
-**Emisión**: `oracionEntidad` emite la oración de afiliación cuando la visibilidad es `siempre`, o cuando la afiliación **difiere del default** (sistémica).
+**Emisión**: `oracionEntidad` incluye la afiliación en la oración combinada cuando la visibilidad es `siempre`, o cuando la afiliación **difiere del default** (sistémica). Bajo `solo-difiere`, si solo la afiliación difiere, la oración lleva solo la afiliación (`**Cosa** es un objeto ambiental.`).
 
 **Supresión**: con visibilidad `oculta` no se emite. Un atributo de objeto ambiental DEBE ser ambiental; un *proceso* ejecutado por cosa ambiental DEBE modelarse ambiental.
 
@@ -405,7 +405,7 @@ Rationale: `reglas §2.2` (R-OBJ-3, R-OBJ-5..6), `§4.4` (D1, D2) y `opm-opl-es 
 
 **Roundtrip**: la afiliación DEBE preservarse.
 
-**Edge cases**: esencia y afiliación se emiten en **oraciones separadas** (R-ENT-3); nunca se coordinan en una sola frase.
+**Edge cases**: esencia y afiliación se **coordinan en una sola oración** con sustantivo de tipo (R-ENT-3, forma OPCloud); la coma de Oxford no se usa (solo dos propiedades → `{esencia} y {afiliacion}`).
 
 **Traza a código**: `app/src/opl/generadores/estructural.ts·oracionEntidad` (vía `textoAfiliacion` de `refsHints.ts`).
 
@@ -1686,9 +1686,9 @@ Una oración compuesta coordina hechos que comparten un **eje**. Esta spec canon
 
 - **R-COMP-ELEG-1** (mismo eje): solo PUEDEN coordinarse hechos que compartan **exactamente un** eje de §9.1. Mezclar ejes (p. ej. predicado coordinado con destino enumerado de otra relación) en una sola línea NO DEBE realizarse.
 
-- **R-COMP-ELEG-2** (misma familia semántica): el eje (a) NO DEBE coordinar familias incompatibles que el canon separa: un predicado transformador (`consume`/`genera`/`afecta`/`cambia`) PUEDE coordinarse con habilitadores (`requiere`/`maneja`) bajo sujeto-proceso compartido, pero NUNCA DEBE coordinar consumo con resultado **sobre el mismo objeto** ni mezclar clasificación genérica (esencia/afiliación, R-ENT-3) con enlaces.
+- **R-COMP-ELEG-2** (misma familia semántica): el eje (a) NO DEBE coordinar familias incompatibles que el canon separa: un predicado transformador (`consume`/`genera`/`afecta`/`cambia`) PUEDE coordinarse con habilitadores (`requiere`/`maneja`) bajo sujeto-proceso compartido, pero NUNCA DEBE coordinar consumo con resultado **sobre el mismo objeto** ni mezclar la designación de clasificación genérica (esencia/afiliación) con oraciones de enlace. La esencia y la afiliación entre sí **SÍ se coordinan** en la oración combinada D1 (R-ENT-3, §2.7/§2.8); lo prohibido es coordinarlas con predicados de enlace.
 
-  Rationale: §3.1/§3.2 prohíben coordinar consumo con resultado en un predicado sobre el mismo objeto; §2 (R-ENT-3) exige oración separada por hecho de clasificación genérica.
+  Rationale: §3.1/§3.2 prohíben coordinar consumo con resultado en un predicado sobre el mismo objeto; R-ENT-3 coordina esencia+afiliación en una sola oración de designación, distinta de las oraciones de enlace.
 
 - **R-COMP-ELEG-3** (orden determinista estable): el orden de los hechos coordinados DEBE ser **determinista y estable** entre emisiones; DEBERÍA seguir el orden de fuerza semántica (consumo, resultado, efecto, agente, instrumento) en el eje (a) y el orden de modelo de los destinos en el eje (b). Un orden inestable rompe el roundtrip y la diffabilidad del texto.
 

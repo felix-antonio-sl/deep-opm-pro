@@ -23,9 +23,13 @@ import {
  */
 
 /**
- * Clasificación de una cosa (G2 · canon-opm D1–D4, ui-forja/04-opl-rendering §3.1):
- * cada hecho de clasificación va en oración separada. NO colapsar como
- * «X es un objeto informacional y sistémico» — no es canónico OPL-ES.
+ * Clasificación de una cosa (D1 · OPCloud / HU-SHARED-007-eco-opl):
+ * esencia y afiliación se componen en UNA oración con el sustantivo de tipo,
+ * coordinadas con «y» — `**Objeto** es un objeto {esencia} y {afiliacion}.`
+ * (forma OPCloud: `*Rescatar* es un proceso informacional y sistémico.`).
+ * Las designaciones atómicas D1–D4 de la SSOT son los bloques; el eco las
+ * coordina, como D5 (estados) y D10 (`es inicial y final`).
+ * Bajo `solo-difiere` se coordinan solo las propiedades que difieren del default.
  * El caso atributo-con-valor es una sola oración (no es clasificación).
  */
 export function oracionEntidad(entidad: Entidad, opciones?: VisibilidadOpl): string[] {
@@ -34,12 +38,14 @@ export function oracionEntidad(entidad: Entidad, opciones?: VisibilidadOpl): str
   const nombre = nombreOpl(entidad);
   const visibilidad = opciones?.esencia ?? "siempre";
   if (visibilidad === "oculta") return [];
-  const lineas: string[] = [];
+  const sustantivoTipo = entidad.tipo === "proceso" ? "proceso" : "objeto";
   const esenciaDifiere = entidad.esencia !== "informacional";
   const afiliacionDifiere = entidad.afiliacion !== "sistemica";
-  if (visibilidad === "siempre" || esenciaDifiere) lineas.push(`${nombre} es ${textoEsencia(entidad)}.`);
-  if (visibilidad === "siempre" || afiliacionDifiere) lineas.push(`${nombre} es ${textoAfiliacion(entidad)}.`);
-  return lineas;
+  const propiedades: string[] = [];
+  if (visibilidad === "siempre" || esenciaDifiere) propiedades.push(textoEsencia(entidad));
+  if (visibilidad === "siempre" || afiliacionDifiere) propiedades.push(textoAfiliacion(entidad));
+  if (propiedades.length === 0) return [];
+  return [`${nombre} es un ${sustantivoTipo} ${propiedades.join(" y ")}.`];
 }
 
 export function oracionValorAtributo(entidad: Entidad): string | null {

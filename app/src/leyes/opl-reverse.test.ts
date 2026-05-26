@@ -31,8 +31,7 @@ describe("law-opl-safe-lens", () => {
     const snapshot = exportarModelo(modelo);
     const texto = generarOpl(modelo)
       .join("\n")
-      .replace("**Pedido** es informacional.", "**Orden** es física.")
-      .replace("**Pedido** es sistémico.", "**Orden** es ambiental.");
+      .replace("**Pedido** es un objeto informacional y sistémico.", "**Orden** es un objeto físico y ambiental.");
 
     const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
 

@@ -3,9 +3,9 @@ import type { Enlace, Entidad, Modelo } from "../../modelo/tipos";
 import { oracionEnlaceEstructural, oracionEntidad, oracionValorAtributo } from "./estructural";
 
 describe("estructural OPL", () => {
-  test("oracionEntidad escinde esencia y afiliacion en dos oraciones (G2, D1-D4)", () => {
+  test("oracionEntidad compone esencia y afiliacion en una oración con sustantivo de tipo (D1, OPCloud/HU-SHARED-007)", () => {
     const entidad: Entidad = { id: "e1", tipo: "objeto", nombre: "Nodo", esencia: "informacional", afiliacion: "sistemica" };
-    expect(oracionEntidad(entidad)).toEqual(["**Nodo** es informacional.", "**Nodo** es sistémico."]);
+    expect(oracionEntidad(entidad)).toEqual(["**Nodo** es un objeto informacional y sistémico."]);
   });
 
   test("agregacion emite consta de", () => {
@@ -57,8 +57,8 @@ describe("estructural OPL", () => {
 describe("oracionEntidad — visibilidad de esencia (VisibilidadOpl)", () => {
   const base: Entidad = { id: "o1", tipo: "objeto", nombre: "Sensor", esencia: "informacional", afiliacion: "sistemica" };
 
-  test("siempre (default): emite esencia y afiliación", () => {
-    expect(oracionEntidad(base)).toEqual(["**Sensor** es informacional.", "**Sensor** es sistémico."]);
+  test("siempre (default): compone esencia y afiliación con sustantivo de tipo", () => {
+    expect(oracionEntidad(base)).toEqual(["**Sensor** es un objeto informacional y sistémico."]);
   });
 
   test("oculta: no emite ni esencia ni afiliación", () => {
@@ -71,17 +71,17 @@ describe("oracionEntidad — visibilidad de esencia (VisibilidadOpl)", () => {
 
   test("solo-difiere: emite solo las que difieren del default", () => {
     const fisicoAmbiental: Entidad = { ...base, esencia: "fisica", afiliacion: "ambiental" };
-    expect(oracionEntidad(fisicoAmbiental, { esencia: "solo-difiere" })).toEqual(["**Sensor** es físico.", "**Sensor** es ambiental."]);
+    expect(oracionEntidad(fisicoAmbiental, { esencia: "solo-difiere" })).toEqual(["**Sensor** es un objeto físico y ambiental."]);
   });
 
   test("solo-difiere: caso mixto (esencia default, afiliación difiere)", () => {
     const mixto: Entidad = { ...base, afiliacion: "ambiental" };
-    expect(oracionEntidad(mixto, { esencia: "solo-difiere" })).toEqual(["**Sensor** es ambiental."]);
+    expect(oracionEntidad(mixto, { esencia: "solo-difiere" })).toEqual(["**Sensor** es un objeto ambiental."]);
   });
 
   test("proceso físico: solo-difiere emite la esencia que difiere del default", () => {
     const proceso: Entidad = { id: "p1", tipo: "proceso", nombre: "Combustión", esencia: "fisica", afiliacion: "sistemica" };
-    expect(oracionEntidad(proceso, { esencia: "solo-difiere" })).toEqual(["*Combustión* es físico."]);
+    expect(oracionEntidad(proceso, { esencia: "solo-difiere" })).toEqual(["*Combustión* es un proceso físico."]);
   });
 });
 
