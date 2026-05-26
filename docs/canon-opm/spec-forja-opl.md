@@ -1867,3 +1867,108 @@ Esta sección canoniza la **presentación** de la OPL completa de un modelo: có
 | Procedencia | §Convenciones (Display-vs-canónico); §7 (refinamiento); `reglas §9` (bisimetría) |
 
 Rationale: `bloquesJerarquicos.ts·agruparOracionesPorOpd`/`ordenarOpdsParaOpl` realizan la agrupación y el orden de la OPL completa; `plegado.ts·oracionPlegadoParcial` realiza el plegado parcial; el contrato display-vs-canónico hereda de §Convenciones y §9.5.
+
+## §13 Presentación del panel OPL
+
+Esta sección canoniza la **presentación** del panel OPL: el orden global de las oraciones, la numeración, el plegado-display, la visibilidad de esencia y el minimizado del panel. Toda regla de esta sección es **display**: la presentación NUNCA altera el texto canónico que alimenta al parser ni al roundtrip (remite §Convenciones, §12). El derivado del panel se computa en `panel.ts·derivarPanelOpl`, que produce dos pases: el **pase canónico** (`textoOplActual`, siempre con `VISIBILIDAD_OPL_DEFAULT`) y el **pase display** (`lineas`), que aplica las preferencias de presentación.
+
+### §13.1 Orden global de las oraciones
+
+- **R-OPL-PANEL-1**: el panel DEBE presentar las oraciones agrupadas **por OPD** y ordenadas según el orden jerárquico de los OPDs del modelo. El orden DEBE ser determinista y estable entre emisiones (remite §12 R-OPL-DISP-1, R-OPL-DISP-2).
+
+  Rationale: `panel.ts·derivarPanelOpl` ordena los OPDs con `ordenarOpdsParaOpl` y agrupa las oraciones en bloques con `agruparOracionesPorOpd`; un orden inestable rompería la diffabilidad del texto y la equivalencia del roundtrip.
+
+- **R-OPL-PANEL-2**: cada bloque del panel DEBE quedar rotulado con el OPD que lo origina, preservando su profundidad jerárquica para el sangrado-display. El rótulo DEBE derivar de `opdId`/`opdNombre`/`opdProfundidad` de cada línea interactiva.
+
+  Rationale: `interaccion.ts·OplLineaInteractiva` porta `opdId`, `opdNombre` y `opdProfundidad`; `panel.ts` deriva `bloques` a partir de esos metadatos para componer la jerarquía visible del panel.
+
+### §13.2 Numeración
+
+- **R-OPL-PANEL-3**: el panel DEBE ofrecer un conmutador de numeración on/off. La numeración es **display**: activarla o desactivarla NO DEBE alterar el texto canónico ni el conjunto de hechos recuperado por el parser.
+
+  Correcto: con numeración activa el panel antepone el `ordinal` a cada línea; con numeración inactiva muestra solo el texto.
+  Incorrecto: la numeración se incrusta en `textoOplActual` y el parser intenta leer el número como token OPL.
+  Rationale: el comportamiento observado de OPCloud expone un toggle de numeración tanto en el panel OPL como en los settings; el número es ordinal de presentación, no un token canónico. `interaccion.ts·OplLineaInteractiva` porta `ordinal` justamente para sostener esta presentación sin contaminar el texto.
+
+### §13.3 Plegado-display
+
+- **R-OPL-PANEL-4**: el panel DEBE renderizar la forma **plegada** de los hechos refinados en OPDs ascendentes (remite §12 R-OPL-DISP-3). El plegado-display NO DEBE alterar el texto canónico (remite §12 R-OPL-DISP-4); la forma plegada y la expandida DEBEN parsear al mismo conjunto de hechos.
+
+  Rationale: el plegado vive en el pase display; `panel.ts·derivarPanelOpl` agrupa siempre desde `lineas` (pase display) y deja `textoOplActual` intacto para el roundtrip (remite §12).
+
+### §13.4 Visibilidad de esencia
+
+- **R-OPL-PANEL-5**: el panel DEBE respetar la preferencia de visibilidad de esencia al renderizar las líneas display, sin afectar el texto canónico. El detalle del enum de visibilidad (`siempre` / `solo-difiere` / `oculta`) se canoniza en §16.
+
+  Rationale: `panel.ts·derivarPanelOpl` recibe `visibilidad` (`VisibilidadOpl`, ver `opciones.ts`) y la aplica **solo** al pase display: cuando `visibilidad.esencia` difiere del default regenera `lineas` con `generarOplInteractivo(modelo, id, visibilidad)`; `textoOplActual` se genera siempre con `VISIBILIDAD_OPL_DEFAULT`. El enum corresponde a §16, no a esta sección.
+
+### §13.5 Minimizar el panel
+
+- **R-OPL-PANEL-6**: el panel OPL DEBE poder minimizarse. Minimizado, el panel DEBERÍA detener el renderizado de las oraciones para liberar espacio y carga en OPDs densos; restaurarlo DEBE recuperar la presentación íntegra sin pérdida de hechos.
+
+  Rationale: comportamiento observado de OPCloud — "we can minimize the opl pane; this will stop rendering the opl" para dar un entorno OPD más limpio en diagramas saturados. La minimización es estado de UI; NO DEBE alterar el conjunto de hechos del modelo.
+
+| Campo | Valor |
+| --- | --- |
+| ID | `R-OPL-PANEL-1`–`R-OPL-PANEL-6` |
+| Conducta | orden por OPD jerárquico; rótulo de bloque; toggle de numeración; plegado-display; visibilidad de esencia; minimizar |
+| Emisión | dos pases: canónico (`textoOplActual`) y display (`lineas`/`bloques`) |
+| Orden | determinista y estable por `ordenarOpdsParaOpl`; agrupación por `agruparOracionesPorOpd` |
+| Reverse | ningún ajuste de presentación (numeración, plegado, esencia, minimizado) altera el conjunto de hechos parseado |
+| Traza a código | `app/src/opl/panel.ts·derivarPanelOpl`; `app/src/opl/bloquesJerarquicos.ts·agruparOracionesPorOpd` / `ordenarOpdsParaOpl`; `app/src/opl/interaccion.ts·OplLineaInteractiva` (`ordinal`/`opdProfundidad`); `app/src/opl/opciones.ts·VisibilidadOpl` (detalle §16) |
+| Procedencia | §12 (display-vs-canónico); §16 (visibilidad de esencia); videos OPCloud (numeración, minimizar) — precedencia 3 |
+
+Rationale: `panel.ts·derivarPanelOpl` es el punto único de derivación de la presentación; separa el pase canónico del display para que numeración, plegado, esencia y minimizado nunca contaminen el roundtrip. La numeración y el minimizado se sostienen sobre evidencia observacional de OPCloud, no sobre canon.
+
+## §14 Interacción OPL↔OPD
+
+Esta sección canoniza la **interacción bidireccional** entre las oraciones del panel OPL y los elementos del canvas OPD: el modelo de tokens y referencias, el resaltado recíproco al hacer hover, la navegación por click, el filtrado de líneas por selección, y la **resolución por sub-span** en oraciones compuestas. La interacción se apoya en el modelo de tokens de `interaccion.ts`; NUNCA altera el conjunto de hechos del modelo.
+
+### §14.1 Modelo de tokens y referencias
+
+- **R-OPL-INT-1**: cada línea interactiva DEBE descomponerse en **tokens** (`OplToken`), y cada token portador de un elemento del modelo DEBE llevar una **referencia** (`OplReferencia`) discriminada por tipo: `entidad`, `enlace` o `estado`. Los tokens sin referencia DEBEN tener rol `texto`.
+
+  Rationale: `interaccion.ts·OplReferencia` define el coproducto `entidad | enlace | estado` (cada variante con su `Id`); `OplToken` porta `rol` (`texto`/`nombre`/`verbo`/`estado`) y `ref` opcional. La tokenización con hints (`crearLineaOplInteractiva` → `tokenizarConHints`) ubica cada hint sobre el texto y asigna su `ref`.
+
+- **R-OPL-INT-2**: las referencias de una línea DEBEN ser únicas por par `tipo:id`. La deduplicación DEBE preservar el orden de primera aparición.
+
+  Rationale: `crearLineaOplInteractiva` normaliza `refs` con `refsUnicasPorTipoId`, que conserva la primera aparición y descarta duplicados por clave `tipo:id`; esto sostiene un filtrado y un resaltado deterministas.
+
+### §14.2 Hover bidireccional
+
+- **R-OPL-INT-3**: el hover DEBE ser **bidireccional**. Al posar el cursor sobre un elemento del canvas, el panel DEBE resaltar las líneas cuyas referencias tocan ese elemento; al posar el cursor sobre una línea OPL, el canvas DEBE resaltar los elementos referidos por esa línea.
+
+  Correcto: hover sobre el objeto **Llamada** resalta toda línea cuya `refs` contiene `{ tipo: "entidad", id: <Llamada> }`.
+  Incorrecto: el hover resalta por coincidencia textual del nombre en vez de por referencia tipada.
+  Rationale: `interaccion.ts·lineaTocaReferencia` resuelve la pertenencia comparando `refs` con la referencia activa vía `mismaReferencia` (igualdad por `tipo` e `id`). Comportamiento observado de OPCloud: "when I'm hovering over an element in opd the opl will be highlighted and when I'm hovering on an opl the opd will be highlighted" (precedencia 3).
+
+### §14.3 Navegación por click
+
+- **R-OPL-INT-4**: el click sobre un token con referencia DEBE navegar al elemento referido en el canvas (foco/selección). El click NO DEBE mutar el modelo; es navegación, no edición.
+
+  Rationale: el token portador expone su `ref` (`OplToken.ref`); la navegación resuelve el destino desde esa referencia tipada. La edición inline de propiedades de elementos/enlaces (doble-click) es un canal distinto, no cubierto por esta regla. GAP-VERIFY: el handler de click→foco vive en la capa UI del panel (`app/src/ui`), fuera de las lecturas permitidas.
+
+### §14.4 Filtrado por selección/referencia
+
+- **R-OPL-INT-5**: el panel DEBE poder **filtrar** sus líneas para mostrar solo las que tocan la referencia activa (selección). Sin referencia activa, el filtro DEBE devolver todas las líneas.
+
+  Rationale: `interaccion.ts·filtrarLineasPorReferencia` devuelve la lista completa cuando `ref` es `null`, y en caso contrario retiene las líneas que satisfacen `lineaTocaReferencia`. `panel.ts·derivarPanelOpl` aplica este filtro cuando `filtroActivo` está activo, derivando la referencia de selección con `referenciaSeleccionada` (`enlaceSeleccionId` tiene precedencia sobre `seleccionId`).
+
+### §14.5 Resolución por sub-span en oraciones compuestas
+
+- **R-OPL-INT-6**: en una oración **compuesta** (múltiples enlaces coordinados, remite §9), la interacción DEBE resolverse por **sub-span**: el punto de hover/click sobre un token específico DEBE seleccionar el enlace asociado a ese sub-span, no el conjunto entero de la oración.
+
+  Correcto: en una oración que coordina varios enlaces, hacer hover sobre el nombre de un objeto resuelve el enlace que ese sub-span realiza.
+  Incorrecto: hacer hover sobre cualquier parte de la oración compuesta selecciona indistintamente todos sus enlaces.
+  Rationale: `interaccion.ts·referenciaEnlaceEspecifico(linea, posicionToken)` resuelve el enlace por posición de token: si el token apunta a un `enlace`, lo devuelve directo; si apunta a una `entidad`, busca la referencia de enlace **inmediatamente previa** en `linea.refs` y la devuelve. Esto operacionaliza el sub-span de §9 (oraciones de composición/coordinación) y reproduce el comportamiento observado de OPCloud: en una oración con varios enlaces, el doble-click "will show me which link I want to select to edit" (precedencia 3).
+
+| Campo | Valor |
+| --- | --- |
+| ID | `R-OPL-INT-1`–`R-OPL-INT-6` |
+| Conducta | tokens+referencias tipadas; hover bidireccional; navegación por click; filtrado por selección; resolución por sub-span |
+| Tokenización | `crearLineaOplInteractiva` → `tokenizarConHints` ubica hints y asigna `ref`; `refsUnicasPorTipoId` deduplica por `tipo:id` |
+| Reverse | la interacción es navegación/resaltado; NUNCA muta el conjunto de hechos (la edición inline es canal aparte) |
+| Traza a código | `app/src/opl/interaccion.ts·OplToken` / `OplReferencia` / `OplTokenHint`; `·crearLineaOplInteractiva`; `·lineaTocaReferencia`; `·filtrarLineasPorReferencia`; `·referenciaEnlaceEspecifico`; `·mismaReferencia`; `app/src/opl/panel.ts·derivarPanelOpl` / `referenciaSeleccionada` |
+| Procedencia | §9 (oraciones compuestas/sub-span); videos OPCloud (hover bidireccional, edición de enlace en oración compuesta) — precedencia 3 |
+
+Rationale: el modelo de tokens de `interaccion.ts` es el sustrato único de la bidireccionalidad OPL↔OPD; la igualdad por referencia tipada (`mismaReferencia`) y la resolución por posición (`referenciaEnlaceEspecifico`) permiten resaltar, navegar y filtrar con precisión de sub-span, sin recurrir a coincidencia textual ni a mutar el modelo.
