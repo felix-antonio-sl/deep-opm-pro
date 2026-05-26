@@ -1168,3 +1168,242 @@ Rationale: `reglas §4.10` (SSE1–SSE7, V-30) y `opm-opl-es §9.4`.
 - GAP-TAG-PARSER / GAP-SSE-PARSER: la generación de etiquetados (SE1–SE5) y de estructurales con estado (SSE1–SSE7) existe en `procedural.ts·oracionEstructuralEtiquetada`, pero `parsear.ts·astEstructural` no incluye regex dedicada para `se relaciona con` / `se relacionan` ni para etiquetas de usuario; el reverse de etiquetados es GAP.
 - GAP-NOMBRE-INSTANCIA: el formato nominal `Instancia : Clase` (§2.6) no tiene generador dedicado que lo componga automáticamente; vigente desde §2.6.
 - GAP-FIXTURE-ESTRUCTURALES: no hay fixtures roundtrip dedicados de agregación, exhibición, generalización, clasificación ni etiquetado en `fixtures-roundtrip.ts`; la simetría de las cuatro fundamentales se apoya en `oracionEnlaceEstructural` y las regex de `astEstructural`; la de etiquetados solo en el generador (sin reverse, por GAP-TAG-PARSER).
+
+## §7 Refinamiento / gestión de contexto
+
+Esta sección canoniza la realización OPL-ES de la **gestión de contexto**: cómo el modelo proyecta a frases los mecanismos de refinamiento (descomposición/recomposición, despliegue/plegado, expresión/supresión de estados) y los enlaces que cruzan la frontera de un OPD refinado. La gestión de contexto NO crea hechos OPM nuevos: realiza textualmente la relación jerárquica entre un OPD padre y su(s) hijo(s), o la distribución de un enlace existente sobre subprocesos.
+
+Cada mecanismo aparea un **refinamiento** (revelar detalle) con su **abstracción** (suprimirlo); la spec realiza ambos sentidos. El refinamiento del modelo es un canal separado de la etiqueta visible `SDx.y`: la generación PUEDE emitir la etiqueta de navegación como `hint` de presentación, pero NO DEBE tratarla como identidad persistente (R-IDP-1, R-IDP-2).
+
+Rationale: `reglas §4.11` (CX1–CX8, CM1–CM3), `§8` (mecanismos, síncrona/asíncrona, escindidos, distribución) y `opm-opl-es §10`.
+
+### §7.0 Reglas duras transversales de refinamiento
+
+- **R-CX-0** (no-trivialidad): un refinamiento NO DEBE emitir oración de gestión de contexto cuando el hijo tiene **menos de 2** refinadores; un nodo con un solo hijo NO es refinamiento canónico (R-REF-NTRIV-1..3) y solo PUEDE persistir como placeholder de edición.
+
+  Rationale: `reglas §8.3` (R-REF-NTRIV-1, R-REF-NTRIV-2, R-REF-NTRIV-3).
+
+- **R-CX-1** (invariantes a través del refinamiento): esencia, perseverancia y nombre de la cosa refinada NO cambian al cruzar el refinamiento; la generación NO DEBE emitir una oración de refinamiento que reasigne esas propiedades.
+
+  Rationale: `reglas §8.8` (R-REF-4: `V-95`, `V-96`, `V-97`).
+
+- **R-CX-2** (identidad vs etiqueta): la oración de refinamiento entre OPDs (CX3, CX4) PUEDE mostrar la etiqueta `SDx.y` como superficie de navegación, pero el `ref` del span de OPD DEBE anclar al identificador persistente del OPD, no a la etiqueta mutable.
+
+  Correcto: `**Pedido** se despliega en SD1 en **Cabecera** y **Línea**.` (span `SD1` con `ref` al OPD persistente)
+  Incorrecto: usar `SD1` como clave de modelo para resolver el hijo en serialización.
+  Rationale: `reglas §8.7` (R-IDP-1, R-IDP-2, R-IDP-3) y `opm-opl-es §10.3`.
+
+### §7.1 Descomposición / recomposición de proceso (in-zoom / out-zoom, CX1, CX2)
+
+**ID**: CX1 (secuencial), CX2 (paralelo); inverso CX7 (recomposición, GAP-RECOMPONE).
+
+**Plantilla(s)**:
+- CX1 (secuencial): `*Proceso* se descompone en *P1*, *P2* y *P3*, en esa secuencia.`
+- CX2 (paralelo): `*Proceso* se descompone en paralelo *P1* y *P2*.`
+- Mixta: `*Proceso* se descompone en *P1*, paralelo *P2* y *P3*, y *P4*, en esa secuencia.` (preserva qué subprocesos van en paralelo dentro de la secuencia, R-OPL-CX-5).
+- Con objetos internos de zoom: `… se descompone en *P1* y *P2*, así como **ObjetoInterno**.` (R-OPL-CX-6).
+
+**Emisión**: cuando una entidad *proceso* porta un refinamiento `descomposicion` con `≥ 2` subprocesos (R-CX-0), se emite una oración con `se descompone en`, sujeto = *proceso* padre, complemento = lista de subprocesos. El orden temporal se deriva de la coordenada vertical de los subprocesos en el OPD hijo (R-IDP-0A); si hay secuencia detectable se añade `en esa secuencia`, y los subprocesos coetáneos se agrupan con `paralelo`.
+
+**Supresión**: padre o subproceso con nombre placeholder NO emite (R-ENT-2). Un OPD semidescompuesto (transitorio) NO DEBE emitir oración canónica de descomposición (R-OPD-OP-3). Si el hijo no llega a 2 refinadores, NO se emite (R-CX-0).
+
+**Tokenización**: span del *proceso* padre con `ref`; `se descompone en` token-verbo del enum §1.1; cada *subproceso* es span con `ref`; `paralelo` clave de coetaneidad; `en esa secuencia` clave de orden temporal; `así como` adición de objetos internos; `y`/`e`, `o`/`u` conectores según fonética.
+
+**Orden**: *proceso* padre → `se descompone en` → [`paralelo`] lista de subprocesos [`, así como` lista de objetos internos] [`, en esa secuencia`].
+
+**Composabilidad**: la lista de subprocesos es **destino-enumerado** dentro de la única oración de descomposición; NO se fragmenta en una oración por subproceso. La descomposición NO DEBE coordinarse con oraciones de enlace transformador/habilitador en un solo predicado. Aplica la **zona prohibida de composición en contexto de refinamiento** (§7.7): los enlaces de los subprocesos NO se fusionan al emitir la descomposición.
+
+**Reverse**: la oración `se descompone en` se parsea como creación/actualización del refinamiento `descomposicion` del *proceso*, con la lista de subprocesos como refinadores y la marca de secuencia/paralelo derivada de `en esa secuencia` / `paralelo`. GAP-CX-PARSER: `parsear.ts` no expone hoy una regex dedicada de `se descompone en`; el reverse de la descomposición es GAP de cobertura bidireccional (la generación existe en `refinamiento.ts·oracionDescomposicion`, el parseo estructural no).
+
+**Roundtrip**: el padre, la lista de subprocesos, el orden temporal (secuencia/paralelo) y los objetos internos DEBEN preservarse. GAP-FIXTURE-DESCOMPOSICION: no hay fixture roundtrip dedicado de descomposición en `fixtures-roundtrip.ts`; la simetría se apoya en el generador y, parcialmente, en `parser.designacionesPlegado.test.ts`.
+
+**Edge cases**: la **recomposición** (out-zoom, CX7 `se recompone desde`) tiene verbo canónico (enum §1.1) pero ningún generador la emite: GAP-RECOMPONE. Un objeto que es instrumento en el nivel abstracto PUEDE figurar como afectado en el hijo solo si el cambio neto del proceso abstracto es cero (R-ROL-1); ese cambio de rol aplica a descomposición, no a despliegue (R-ROL-2).
+
+**Traza a código**: generación `app/src/opl/generadores/refinamiento.ts·oracionDescomposicion` (verbo `se descompone en`, líneas ~93, ~102) y `oracionParalelo` (~106, `ocurren en paralelo`); orden temporal en `describirProcesosTemporales` / `compararOrdenTemporal` (~150). Parseo: GAP-CX-PARSER.
+
+Rationale: `reglas §4.11` (CX1, CX2), `§8.1`–`§8.2`, `§8.9` y `opm-opl-es §10.1`.
+
+### §7.2 Despliegue / plegado de cosa (unfolding / folding, CX3, CX5, CX6)
+
+**ID**: CX3 (despliegue), CX5/CX6 (plegado de proceso/objeto, GAP-PLIEGA).
+
+**Plantilla(s)**:
+- CX3 (despliegue genérico): `**Cosa** se despliega en SD1 en **T1**, **T2** y **T3**.`
+- Despliegue por relación fundamental (la superficie reusa el verbo de la relación, no `se despliega`):
+  - agregación: `**Todo** se despliega en **Parte1** y **Parte2**.`
+  - exhibición: `**Exhibidor** exhibe **Atributo1**, así como *Operación1*.`
+  - generalización: `**Especial1** y **Especial2** son **General**.`
+  - clasificación: `**Inst1** y **Inst2** son instancias de **Clase**.`
+- CX5/CX6 (plegado): `*Proceso* se pliega en el OPD padre.` · `**Objeto** se pliega en el OPD padre.`
+
+**Emisión**: cuando una **cosa** porta un refinamiento `despliegue` con `≥ 2` refinadores (R-CX-0), se emite la oración de despliegue. El **modo** se resuelve por la relación fundamental dominante en el OPD hijo (agregación, exhibición, generalización, clasificación) según `modoDespliegue`; si el modo es una de las cuatro fundamentales, la superficie emitida reusa el verbo de esa relación (`consta de`/`se despliega en`, `exhibe`, `son`/`es un`, `son instancias de`), no una forma genérica `se despliega`. El despliegue revela estructura estática y NO implica orden temporal (R-REF-SYNC-2): NUNCA DEBE añadir `en esa secuencia`.
+
+**Supresión**: placeholder NO emite. Menos de 2 refinadores NO emite (R-CX-0). El **plegado** (CX5, CX6) suprime los hechos refinados en el OPD ascendente; su oración solo describe la operación de abstracción y NO reemplaza la gramática del hecho interno.
+
+**Reglas duras**:
+- **R-CX-DESP-1**: el despliegue DEBE aplicarse **por relación fundamental** (agregación, exhibición, generalización o clasificación); NO DEBE mezclar dos relaciones fundamentales en una sola oración de despliegue.
+
+  Rationale: `reglas §8.1` (R-REF-MEC-1: `SSOT-iso §Mecanismos`).
+- **R-CX-DESP-2**: el despliegue NO DEBE portar marca temporal (`en esa secuencia`, `paralelo`); es asíncrono respecto del flujo de control.
+
+  Correcto: `**Pedido** se despliega en **Cabecera** y **Línea**.`
+  Incorrecto: `**Pedido** se despliega en **Cabecera** y **Línea**, en esa secuencia.`
+  Rationale: `reglas §8.2` (R-REF-SYNC-2).
+
+**Tokenización**: span de la **cosa** desplegada con `ref`; verbo de la relación fundamental (token del enum §1.1); span de cada **refinador** con `ref`; `así como` separa atributos de operaciones en exhibición; el span `SD1` (CX3) lleva `ref` al OPD persistente, no a la etiqueta (R-CX-2). En plegado: `se pliega en` token-verbo (GAP-PLIEGA); `el OPD padre` referencia al ascendente.
+
+**Orden**: **cosa** → verbo de relación → lista de refinadores [`, así como` lista heterogénea]. CX3: **cosa** → `se despliega en` → `SD1` → `en` → lista. Plegado: **cosa** → `se pliega en` → `el OPD padre`.
+
+**Composabilidad**: la lista de refinadores es **destino-enumerado** dentro de la única oración de despliegue. Aplica la **zona prohibida de composición en contexto de despliegue** (§7.7): los enlaces estructurales de los refinadores NO se fusionan en plural al desplegar; cada enlace conserva su token-verbo y `ref`. NO DEBE coordinarse con descomposición ni con enlaces procedimentales.
+
+**Reverse**: la oración de despliegue por relación fundamental se parsea por las regex estructurales de §6 (`consta de`, `exhibe`, `son`, `son instancias de`) reconstruyendo el refinamiento `despliegue`. `parser.designacionesPlegado.test.ts` defiende el reverse del plegado parcial (designaciones de estado bajo plegado). GAP-PLIEGA: la oración autónoma `se pliega en el OPD padre` (CX5/CX6) tiene verbo canónico pero ningún generador la emite ni regex dedicada la parsea.
+
+**Roundtrip**: la cosa desplegada, el modo (relación fundamental), la lista de refinadores y el estado de plegado parcial DEBEN preservarse. El plegado parcial (mostrar N partes y suprimir el resto con `al menos otro/a`) se realiza en `plegado.ts·oracionPlegadoParcial` y se defiende en `parser.designacionesPlegado.test.ts`.
+
+**Edge cases**: en despliegue por agregación las partes viven **fuera** del contenedor del padre y se conectan por enlaces estructurales canónicos; la pertenencia se determina por presencia en el OPD hijo, no por contención espacial (a diferencia de la descomposición, ver `aparienciasInternasDeRefinamiento`). El despliegue NO admite cambio de rol instrumento↔afectado (R-ROL-2).
+
+**Traza a código**: generación `app/src/opl/generadores/refinamiento.ts·oracionDespliegue` (modo agregación `se despliega en` ~76; exhibición `exhibe` ~77; generalización `son`/`es un` ~78; clasificación `son instancias de`/`es una instancia de` ~79) y `modoDespliegue`/`modoPorTipoEnlace` (~109, ~120); plegado parcial `app/src/opl/generadores/plegado.ts·oracionPlegadoParcial`; agrupación por OPD en `app/src/opl/bloquesJerarquicos.ts·agruparOracionesPorOpd`; reverse de plegado `app/src/opl/parser/parser.designacionesPlegado.test.ts`. GAP-PLIEGA para `se pliega en` autónomo.
+
+Rationale: `reglas §4.11` (CX3, CX5, CX6), `§8.1`–`§8.2`, `§8.5`–`§8.6` y `opm-opl-es §10.2`, `§10.5`.
+
+### §7.3 Refinamiento explícito entre OPDs (CX4)
+
+**ID**: CX4 (GAP-REFINA en generación autónoma).
+
+**Plantilla(s)**:
+- Descomposición: `SD se refina por descomposición de *Proceso* en SD1.`
+- Despliegue: `SD se refina por despliegue de **Cosa** en SD1.`
+
+**Emisión**: la arista del árbol OPD entre un OPD padre y su hijo tiene semántica equivalente a `se refina por descomposición de … en` o `se refina por despliegue de … en` (R-ARB-4). El OPL completo del sistema se obtiene concatenando los párrafos locales en orden de navegación del árbol (R-OPL-TOTAL-1), no describiendo un solo contexto.
+
+**Supresión**: NO se emite para un nodo que no cierra como refinamiento canónico (R-CX-0).
+
+**Tokenización**: span `SD`/`SD1` con `ref` al OPD persistente (R-CX-2); `se refina por descomposición de`/`se refina por despliegue de` token-verbo (enum §1.1, GAP-REFINA); span de la cosa refinada con `ref`.
+
+**Reverse**: GAP-REFINA: el verbo `se refina` es canónico pero ningún generador de `app/src/opl/generadores/` lo emite como oración autónoma ni regex de `parsear.ts` lo parsea; el árbol OPD se materializa por la estructura del modelo, no por oraciones CX4 emitidas. Cobertura bidireccional ausente.
+
+**Roundtrip**: si se materializara, el OPD padre, el OPD hijo y la cosa refinada DEBERÍAN preservarse vía identidad persistente. Hoy GAP-REFINA.
+
+**Traza a código**: la jerarquía de OPDs se ordena en `app/src/opl/bloquesJerarquicos.ts·ordenarOpdsParaOpl` / `profundidadOpd`; no hay generador de la oración CX4 (GAP-REFINA).
+
+Rationale: `reglas §4.11` (CX4), `§8.10` (R-ARB-4, R-OPL-TOTAL-1..5) y `opm-opl-es §10.3`.
+
+### §7.4 Expresión / supresión de estados como refinamiento
+
+**ID**: CX-EST (mecanismo de estados de §8.1).
+
+**Plantilla(s)**: reusa la enumeración de estados de §2.3 (`**Objeto** puede estar \`s1\`, \`s2\` o \`s3\`.`) y la designación de §2.4. La expresión de estados ES el refinamiento; la supresión de estados ES la abstracción correspondiente.
+
+**Emisión**: en un OPD donde un **objeto** tiene estados visibles, se emite la enumeración (§2.3). En un OPD ascendente que abstrae esos estados, la enumeración se suprime (el objeto figura solo como span). El OPL de un OPD DEBE expresar solo los estados **visibles o referenciados en ese OPD** (R-OPL-TOTAL-4); el conjunto completo de estados de un objeto es la unión a través de todos los OPDs del modelo (R-OPL-TOTAL-5).
+
+**Reglas duras**:
+- **R-CX-EST-1**: la expresión de estados DEBE usar `puede estar` (remite §1.2 R-VERB-EST-1, §2.3 R-ENT-EST-1); NUNCA `puede ser`.
+
+  Rationale: `reglas §4.3` y `§8.1` (mecanismo de estados).
+- **R-CX-EST-2**: la supresión de estados en un OPD ascendente NO DEBE borrar los estados del modelo; solo los oculta en la realización local de ese OPD.
+
+  Rationale: `reglas §8.10` (R-OPL-TOTAL-4, R-OPL-TOTAL-5).
+
+**Tokenización**: igual que §2.3 (span de objeto con `ref`, cada `estado` con `ref`).
+
+**Reverse**: igual que §2.3 (`puede estar` parseable como declaración de estados del objeto).
+
+**Roundtrip**: el conjunto de estados visibles por OPD DEBE preservarse; el roundtrip por-OPD respeta R-OPL-TOTAL-4.
+
+**Traza a código**: `app/src/opl/generadores/duracionMetadata.ts·oracionEstados` (vía §2.3); visibilidad por OPD en `bloquesJerarquicos.ts·agruparOracionesPorOpd`.
+
+Rationale: `reglas §8.1` (expresión/supresión de estados), `§8.10` (R-OPL-TOTAL-4, R-OPL-TOTAL-5) y `opm-opl-es §3.2`.
+
+### §7.5 Descomposición síncrona vs despliegue asíncrono
+
+**ID**: CX-SYNC.
+
+**Distinción normativa**:
+- **R-CX-SYNC-1**: la **descomposición** (in-zoom, §7.1) es **síncrona**: el proceso padre espera a que todos los subprocesos completen antes de devolver el control; su realización OPL PUEDE portar orden temporal (`en esa secuencia`, `paralelo`).
+
+  Rationale: `reglas §8.2` (R-REF-SYNC-1).
+- **R-CX-SYNC-2**: el **despliegue** (unfold, §7.2) es **asíncrono** respecto del flujo de control: revela estructura estática y NO implica secuenciación; su realización OPL NO DEBE portar orden temporal.
+
+  Correcto: `*Cocinar* se descompone en *Preparar Masa*, *Preparar Relleno* y *Hornear*, en esa secuencia.` (síncrona, ordenada)
+  Correcto: `**Empanada** se despliega en **Masa** y **Relleno**.` (asíncrona, sin orden)
+  Incorrecto: `**Empanada** se despliega en **Masa** y **Relleno**, en esa secuencia.` (orden temporal en despliegue)
+  Rationale: `reglas §8.2` (R-REF-SYNC-2).
+
+**Traza a código**: la distinción se materializa en el bucle de `refinamiento.ts·oracionesRefinamiento` (itera `["descomposicion", "despliegue"]`); solo la descomposición de proceso consulta `describirProcesosTemporales` y emite `en esa secuencia`/`paralelo`; el despliegue (`oracionDespliegue`) nunca añade marca temporal.
+
+Rationale: `reglas §8.2` (R-REF-SYNC-1, R-REF-SYNC-2) y `opm-opl-es §10.1`–`§10.2`.
+
+### §7.6 Distribución de enlaces al descomponer
+
+**ID**: CX-DIST.
+
+**Matriz de distribución** (al descomponer un *proceso* en subprocesos):
+
+| Tipo de enlace | Contorno exterior del padre | Distribución al hijo |
+| --- | --- | --- |
+| Consumo (T1, TS1) | **PROHIBIDO** | migra al **primer** subproceso |
+| Resultado (T2, TS2) | **PROHIBIDO** | migra al **último** subproceso |
+| Efecto básico (T3, sin estado) | PERMITIDO | a **todos** los subprocesos |
+| Efecto entrada-salida (TS3) | — | **escisión** TS4/TS5 (§7.6.1, remite §3) |
+| Agente | PERMITIDO | a **todos** los subprocesos |
+| Instrumento | PERMITIDO | a **todos** los subprocesos |
+| Estructural | NO se distribuye | permanece en el contenedor |
+| Evento sistémico | **PROHIBIDO** cruzar frontera | — |
+| Evento ambiental | permitido cruzar | con modelado de contingencia |
+
+**Reglas duras**:
+- **R-CX-DIST-1**: consumo y resultado NO DEBEN conectarse al contorno exterior de un *proceso* descompuesto; DEBEN conectarse al subproceso específico (consumo→primero, resultado→último).
+
+  Rationale: `reglas §8.5` (R-DIST-1, R-DIST-1A: `V-37`, `V-103`).
+- **R-CX-DIST-2**: un evento **sistémico** NO DEBE cruzar la frontera del proceso descompuesto; un evento ambiental PUEDE cruzarla con modelado de contingencia.
+
+  Rationale: `reglas §8.5` (`V-38`, `V-108`).
+
+**Efecto en OPL**: la migración de un enlace al subproceso correcto cambia el **sujeto/complemento** de la oración transformadora en el OPL del OPD hijo: `*ProcesoPadre* consume **X**` (en el padre) se realiza como `*PrimerSubproceso* consume **X**` (en el hijo). La identidad del hecho (mismo enlace) DEBE preservarse a través de la migración (R-OPD-OP-4).
+
+#### §7.6.1 Enlaces escindidos (remite §3 TS4/TS5)
+
+- **R-CX-ESC-1**: cuando un efecto entrada-salida (TS3) `*P* cambia **A** de \`s1\` a \`s2\`` se descompone, el modelo queda subespecificado hasta **escindir** el enlace en dos fragmentos (TS4/TS5).
+- **R-CX-ESC-2**: el subproceso **temprano** recibe el fragmento de entrada (TS4) y saca al objeto del estado de entrada: `*P1* cambia **A** de \`s1\`.`
+- **R-CX-ESC-3**: el subproceso **tardío** recibe el fragmento de salida (TS5) y coloca al objeto en el estado de salida: `*P2* cambia **A** a \`s2\`.`
+- **R-CX-ESC-4**: los fragmentos escindidos NO DEBEN portar modificador de control (`e`/`c`); la prohibición aplica al fragmento escindido, no al efecto parcial standalone (R-ESCIND-0, remite §3 TS4/TS5).
+
+  Rationale: `reglas §8.4` (R-ESCIND-0..3, R-ESC-1: `V-40`, `V-41`, `V-110`) y §3 (TS4/TS5).
+
+**Traza a código**: la distribución y migración de enlaces es operación de modelo (descomposición como operación de herramienta, `reglas §8.11`); la realización OPL por OPD se proyecta vía `bloquesJerarquicos.ts·agruparOracionesPorOpd`, que asigna cada oración transformadora al OPD donde reside su enlace. La escisión TS4/TS5 se canoniza en §3.
+
+Rationale: `reglas §8.4`–`§8.5`, `§8.11` y `opm-opl-es §10`.
+
+### §7.7 Zona prohibida de composición en contexto de refinamiento / despliegue
+
+Esta subsección es el **preludio de §9** y fija la frontera de la coordinación copulativa cuando un enlace participa de un contexto de refinamiento o despliegue. Es la lección de BUG-f897bc: agrupar enlaces hijos en una oración plural dentro de un contexto de refinamiento colisiona con la realización del refinamiento y borra tokens/refs por enlace.
+
+**Reglas duras**:
+- **R-CX-COMP-1**: los enlaces de los refinadores (subprocesos de una descomposición, partes/especializaciones/instancias/rasgos de un despliegue) NO DEBEN fusionarse en una oración plural única; cada enlace DEBE emitirse en su propia oración, preservando su **token-verbo** y su **`ref` por enlace**.
+
+  Correcto:
+  `**Especial1** son **General**.` no aplica aquí; en contexto de despliegue de generalización se emite por enlace:
+  `**Auto** es un **Vehículo**.` seguido de `**Camión** es un **Vehículo**.` (un enlace, una oración, refs preservados)
+  Incorrecto (zona prohibida): fusionar a `**Auto** y **Camión** son **Vehículo**.` cuando el contexto es el **despliegue de generalización-especialización** del refinamiento de **Vehículo**, porque la agrupación borra el token-verbo y la `ref` por enlace que el refinamiento necesita para mapear cada refinador a su arista.
+  Rationale: BUG-f897bc — agrupar «A, B y C son X» colisiona con la realización del despliegue (HU-50.015), borra tokens/refs por enlace y rompe la bisimetría del refinamiento; remite §9.
+
+- **R-CX-COMP-2**: la coordinación copulativa de §9 (predicados con sujeto-proceso compartido, destino-enumerado de estructurales) DEBE excluir explícitamente el contexto de refinamiento/despliegue de su dominio de aplicación. La detección de candidatos a coordinación NO DEBE activarse sobre enlaces que pertenecen a un OPD hijo de refinamiento.
+
+  Rationale: la composabilidad de §3, §5 y §6 declara «zona prohibida de composición en refinamiento/despliegue» precisamente para sellar esta colisión; §9 canoniza la coordinación general bajo esa exclusión.
+
+- **R-CX-COMP-3**: dentro de la **propia** oración de refinamiento (CX1–CX3), la lista de refinadores SÍ es un destino-enumerado legítimo (un solo verbo `se descompone en`/`se despliega en`, varios spans con `ref`); lo prohibido es coordinar **los enlaces de esos refinadores entre sí** en una oración plural separada. La enumeración interna de la oración de refinamiento y la coordinación de enlaces hijos son hechos distintos.
+
+  Rationale: distinguir la enumeración de refinadores (un hecho de refinamiento) de la fusión de enlaces hijos (varios hechos de enlace) evita reintroducir BUG-f897bc por sobre-aplicación de R-CX-COMP-1.
+
+**Traza a código**: la agrupación por OPD (`bloquesJerarquicos.ts·agruparOracionesPorOpd`) mantiene cada enlace hijo como oración independiente dentro del bloque del OPD; la oración de refinamiento (`refinamiento.ts·oracionDescomposicion`/`oracionDespliegue`) enumera refinadores pero NO coordina sus enlaces. GAP-COMP-GUARDA: no existe hoy un guard explícito que prohíba programáticamente la coordinación de enlaces en contexto de refinamiento; la protección es por construcción (cada enlace genera su propia oración), no por una aserción dedicada — §9 DEBE materializar el guard.
+
+Rationale: BUG-f897bc, `reglas §9` (bisimetría OPD↔OPL) y las cláusulas «zona prohibida» de §3.1–§3.3, §6.3–§6.6.
+
+### §7.8 GAPs de cobertura — refinamiento / gestión de contexto
+
+- GAP-CX-PARSER: la oración `se descompone en` (CX1/CX2) se genera (`refinamiento.ts·oracionDescomposicion`) pero `parsear.ts` no expone regex dedicada que la reconstruya como refinamiento `descomposicion`; reverse ausente.
+- GAP-PLIEGA: el verbo `se pliega en` (CX5/CX6) es canónico (enum §1.1) pero ningún generador emite la oración autónoma de plegado total ni regex la parsea; solo existe el plegado **parcial** (`plegado.ts·oracionPlegadoParcial`, defendido por `parser.designacionesPlegado.test.ts`).
+- GAP-RECOMPONE: el verbo `se recompone desde` (CX7/CX8) es canónico pero sin generador ni parser.
+- GAP-REFINA: la oración explícita `se refina por descomposición/despliegue de … en` (CX4) es canónica pero sin generador autónomo ni parser; el árbol OPD se materializa por estructura del modelo.
+- GAP-FIXTURE-DESCOMPOSICION: no hay fixture roundtrip dedicado de descomposición/despliegue en `fixtures-roundtrip.ts`; la simetría se apoya en los generadores de `refinamiento.ts` y en `parser.designacionesPlegado.test.ts` (solo plegado parcial).
+- GAP-COMP-GUARDA: no hay guard programático que prohíba la coordinación de enlaces hijos en contexto de refinamiento (R-CX-COMP-1/2); la protección es por construcción y §9 DEBE materializarla.
