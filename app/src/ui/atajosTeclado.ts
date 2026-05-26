@@ -101,7 +101,7 @@ function manejarKeydown(e: KeyboardEvent): void {
   if (e.target instanceof Element && e.target.closest("[data-atajos-local='true']")) return;
 
   const combo = comboDesdeEvento(e);
-  const ctx = contextoDesdeEvento(e);
+  const ctx = contextoDesdeEvento(e, combo);
   const candidato = registroAplicable(combo, ctx, e);
   if (!candidato) return;
 
@@ -145,13 +145,24 @@ function ultimoRegistro(combo: Combo, ctx: ContextoAtajo): RegistroAtajo | null 
   return null;
 }
 
-function contextoDesdeEvento(e: KeyboardEvent): ContextoAtajo {
+function contextoDesdeEvento(e: KeyboardEvent, combo?: Combo): ContextoAtajo {
   if (esEditable(e.target)) return "modal-input";
   if (contexto.vistaMapaActiva?.()) return "vista-mapa";
   const target = e.target instanceof Element ? e.target : document.activeElement;
   const contextual = target?.closest?.("[data-atajos-contexto]");
   const value = contextual?.getAttribute("data-atajos-contexto");
-  if (value === "panel-arbol" || value === "panel-opl" || value === "canvas") return value;
+  // BUG-20260526T003333Z-58fefc: al cambiar de OPD con click en un nodo del
+  // árbol, el foco queda en un treeitem dentro de [data-atajos-contexto=
+  // "panel-arbol"]. Los atajos de creación O/P/S/R solo viven en "canvas", así
+  // que morían hasta que el usuario tocaba un botón de la toolbar. Si el panel
+  // contextual NO tiene un registro propio para este combo, caemos a "canvas":
+  // los combos del panel (p.ej. Ctrl+↑/↓ del árbol) conservan su contexto, pero
+  // las teclas que solo existen en canvas vuelven a despachar sobre el lienzo.
+  if (value === "panel-arbol" || value === "panel-opl") {
+    if (combo && !ultimoRegistro(combo, value)) return "canvas";
+    return value;
+  }
+  if (value === "canvas") return "canvas";
   return "canvas";
 }
 

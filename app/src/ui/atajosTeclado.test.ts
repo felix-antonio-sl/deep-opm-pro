@@ -186,6 +186,60 @@ describe("registry central de atajos", () => {
     expect(evento.defaultPrevented).toBe(false);
   });
 
+  test("atajo de creación canvas (O) dispara aunque el foco quede en panel-arbol (BUG-58fefc)", () => {
+    // Regresión: tras cambiar de OPD con click en un nodo del árbol, el foco
+    // queda en un treeitem dentro de [data-atajos-contexto="panel-arbol"]. El
+    // contexto resolvía a "panel-arbol" y O/P/S/R (solo registrados en canvas)
+    // morían hasta que el usuario tocaba un botón de la toolbar. La resolución
+    // ahora cae a "canvas" cuando el panel no tiene registro para ese combo.
+    const llamados: string[] = [];
+    registrarAtajo({
+      combo: "O",
+      ctx: "canvas",
+      categoria: "edicion",
+      descripcion: "Crear objeto",
+      handler: () => llamados.push("objeto"),
+    });
+    escucharGlobal();
+
+    const target = new Element() as Element & { closest: (selector: string) => Element | null };
+    target.closest = (selector: string) =>
+      selector === "[data-atajos-contexto]" ? ({ getAttribute: () => "panel-arbol" } as unknown as Element) : null;
+
+    const evento = eventoTecla("o", { target });
+    despachar(evento);
+
+    expect(llamados).toEqual(["objeto"]);
+    expect(evento.defaultPrevented).toBe(true);
+  });
+
+  test("combo propio del panel-arbol (Ctrl+ArrowUp) sigue resolviéndose en su contexto", () => {
+    const llamados: string[] = [];
+    registrarAtajo({
+      combo: "Ctrl+ArrowUp",
+      ctx: "panel-arbol",
+      categoria: "navegacion",
+      descripcion: "Foco anterior árbol",
+      handler: () => llamados.push("arbol"),
+    });
+    registrarAtajo({
+      combo: "Ctrl+ArrowUp",
+      ctx: "global",
+      categoria: "navegacion",
+      descripcion: "OPD anterior",
+      handler: () => llamados.push("global"),
+    });
+    escucharGlobal();
+
+    const target = new Element() as Element & { closest: (selector: string) => Element | null };
+    target.closest = (selector: string) =>
+      selector === "[data-atajos-contexto]" ? ({ getAttribute: () => "panel-arbol" } as unknown as Element) : null;
+
+    despachar(eventoTecla("ArrowUp", { ctrlKey: true, target }));
+
+    expect(llamados).toEqual(["arbol"]);
+  });
+
   test("formatea combos para plataforma Mac sin remapear la definicion", () => {
     Object.defineProperty(globalThis.navigator, "platform", {
       configurable: true,
