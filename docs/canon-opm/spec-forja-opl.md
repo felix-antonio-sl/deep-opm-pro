@@ -2866,3 +2866,204 @@ Esta spec es un **major bump 1.0.0**: consolida en un solo documento autoritativ
 - **R-§23-DEP-2**: NO SE ADMITE redactar reglas OPL nuevas fuera de esta spec; toda regla nueva ENTRA aquí con su `Rationale:` y su `Enforcement`.
 
 Rationale: regla de oro §1 del proyecto (`reglas-opm-estrictas.md` SSOT suprema; `opm-opl-es` SSOT externa) + tabla de trazabilidad §20 (alineación implementación↔spec) + §22 (cierre de GAPs por evaluación). Bump major 1.0.0 por cambio de fuente operativa.
+
+## Apéndice A — Ejemplo end-to-end
+
+Modelo completo y pequeño: **sistema de despacho de pedidos**. Reúne todas las familias canonizadas en §2–§10: entidad (objeto físico/informático, estado), transformador (consumo/resultado/efecto/cambio), habilitador (agente/instrumento), modificador de control (evento/condición), estructural (agregación/exhibición/especialización/instanciación), abanico (XOR), multiplicidad y refinamiento (descomposición síncrona). Las oraciones respetan el vocabulario y plantillas de §1–§9.
+
+### A.1 Vocabulario del modelo
+
+- **Objetos**: **Pedido** (informático, estados `pendiente`/`despachado`), **Inventario** (físico, estado `disponible`/`agotado`), **Bulto** (físico, resultado), **Guía** (informático, resultado), **Furgón** (físico), **Repartidor** (físico, agente humano), **Cliente** (físico, beneficiario), **Sistema De Despacho** (informático, sistema), **Zona** (informático) con especializaciones **Zona Urbana** / **Zona Rural**.
+- **Proceso raíz**: *Despachar* (descompone en *Preparar*, *Embalar*, *Entregar*).
+- **Atributo**: **Prioridad** de **Pedido**.
+
+### A.2 OPL atómica (una oración, un hecho — §2–§8)
+
+Entidad y estado (§2):
+
+- **Pedido** es informático.
+- **Pedido** puede estar `pendiente` o `despachado`.
+- **Inventario** es físico.
+- **Inventario** puede estar `disponible` o `agotado`.
+- **Pedido** exhibe **Prioridad**.
+
+Estructural (§6):
+
+- **Sistema De Despacho** consta de **Furgón**, **Repartidor** y **Inventario**.
+- **Zona Urbana** y **Zona Rural** pueden ser **Zona**.
+- **Bulto** es una instancia de **Inventario**.
+
+Transformador (§3):
+
+- *Despachar* consume **Pedido**.
+- *Despachar* genera **Guía**.
+- *Despachar* afecta **Inventario**.
+- *Despachar* cambia **Pedido** de `pendiente` a `despachado`.
+
+Habilitador (§4):
+
+- **Repartidor** maneja *Despachar*.
+- *Despachar* requiere **Furgón**.
+
+Modificador de control (§5):
+
+- **Pedido** inicia *Despachar*, que consume **Pedido**.
+- *Despachar* ocurre si **Inventario** está en `disponible`, en cuyo caso *Despachar* afecta **Inventario**, de lo contrario *Despachar* se omite.
+
+Abanico XOR (§8.1) y multiplicidad (§10):
+
+- *Despachar* requiere exactamente uno de **Furgón** o **Repartidor**.
+- *Despachar* genera al menos una **Guía**.
+
+### A.3 OPL prosaica / compuesta (§9) del mismo modelo
+
+La forma compuesta coordina hechos con eje compartido en una sola línea, **preservando un sub-span y una `ref` por hecho** (R-COMP-MAESTRA-1/2):
+
+- Eje (a) — predicado coordinado, sujeto-proceso compartido:
+  `*Despachar* consume **Pedido**, genera **Guía**, afecta **Inventario** y requiere **Furgón**.`
+- Eje (b) — destino enumerado estructural:
+  `**Sistema De Despacho** consta de **Furgón**, **Repartidor** e **Inventario**.`
+
+**Anotación de tokens/refs (§9.0) sobre la oración compuesta del eje (a):**
+
+| sub-span | tipo de hecho | `ref` |
+| --- | --- | --- |
+| `*Despachar*` | proceso (sujeto compartido) | proceso:despachar |
+| `consume **Pedido**` | transformador consumo | enlace:consumo · objeto:pedido |
+| `genera **Guía**` | transformador resultado | enlace:resultado · objeto:guia |
+| `afecta **Inventario**` | transformador efecto | enlace:efecto · objeto:inventario |
+| `requiere **Furgón**` | habilitador instrumento | enlace:instrumento · objeto:furgon |
+
+`refs` de la línea = unión sin duplicados de las cinco filas (R-COMP-MAESTRA-2, vía `refsUnicasPorTipoId`); el hover sobre `genera` resuelve `enlace:resultado`, no la primera `ref` (R-COMP-MAESTRA-3). Orden estable por fuerza semántica consumo→resultado→efecto→instrumento (R-COMP-ELEG-3). `parsear(componer(F)) = F` como conjunto (R-COMP-REV-2).
+
+### A.4 Refinamiento (§7) — descomposición síncrona de *Despachar*
+
+OPD hijo SD1: *Despachar* se descompone en sus subprocesos en secuencia temporal (primero arriba, último abajo):
+
+- *Despachar* se descompone en *Preparar*, *Embalar* y *Entregar*, en esa secuencia.
+- *Preparar* consume **Pedido**. *Preparar* cambia **Pedido** de `pendiente`.
+- *Embalar* genera **Bulto**.
+- *Entregar* cambia **Pedido** a `despachado`. *Entregar* afecta **Cliente**.
+
+Nota (§7): el enlace de consumo de **Pedido** y el de resultado de **Guía** NO viven en el contorno de *Despachar* en el OPD hijo: migran al primer/último subproceso y se reasignan (R-CX-DIST-1/2). El cambio de estado `pendiente`→`despachado` se escinde: entrada en *Preparar*, salida en *Entregar* (R-ESC-1).
+
+Rationale: §2–§10 (todas las familias); §9.0 (composición a nivel de token); §7.5–§7.6 (distribución de enlaces y escisión de cambio de estado en descomposición síncrona). Ejemplo de referencia para fixtures y para enseñanza de la spec.
+
+## Apéndice B — Patrones OPL sociotécnicos y agénticos
+
+Patrones recurrentes del runtime sociotécnico/agéntico de OPFORJA, expresados **siempre como composición de constructos canónicos** de §2–§9. Anclados a `app/src/modelo/simulacion/sociotecnico.ts`. Ninguna primitiva nueva: cada patrón reusa entidad+estado, habilitador, abanico, condición/evento, excepción e invocación. Estatus etiquetado por patrón: `canon` (composición pura de §2–§9) · `extensión declarada` (superficie operativa sobre el canon, ya declarada en la spec) · `no-canonizado` (aún sin realización canónica cerrada).
+
+### B.1 Actor–rol–autoridad — estatus `canon`
+
+El actor (`ActorSim.tipo` = humano/equipo/servicio/sistema-externo) es un **objeto**; el rol se realiza vía habilitador (§4): **agente** si el actor es humano (`R-HAB-AG-1`, agente exclusivo de humanos), **instrumento** si es servicio/sistema-externo. La disponibilidad (`EstadoDisponibilidadActorSim`) son **estados** (§2.5).
+
+- **Repartidor** es físico. **Repartidor** puede estar `disponible`, `ocupado` o `no-disponible`.
+- **Repartidor** maneja *Despachar*. (actor humano → habilitador agente; rol = participación en el proceso)
+- **Servicio De Ruteo** maneja *Calcular Ruta*. → **incorrecto**; un servicio NO es humano. Forma canónica:
+  `*Calcular Ruta* requiere **Servicio De Ruteo**.` (actor no humano → habilitador instrumento)
+- Disponibilidad como condición de habilitación (CS5/CS6, §5.2):
+  `**Repartidor** maneja *Despachar* si **Repartidor** está en \`disponible\`, de lo contrario *Despachar* se omite.`
+
+Composición: objeto + estado + habilitador + condición con estado. El equipo (`tipo:equipo`) se nombra **Grupo** (plural humano, §1).
+
+### B.2 Agente–autonomía — estatus `canon`
+
+El agente (`AgenteSim`) es un **objeto informático** (R-OBJ-1) vinculado a su actor por estructural (§6); el nivel de autonomía (`NivelAutonomiaSim`) son **estados**; la política (`PoliticaAutonomiaSim` con `porDefecto`/`acciones`/`herramientas`) se realiza como **atributo** (exhibición §6.2) y se refina (§7) en política por acción y por herramienta.
+
+- **Agente** es informático. **Agente** puede estar `bloqueado`, `requiere-aprobación` o `autónomo`.
+- **Actor** consta de **Agente**. (vínculo `AgenteSim.actorId` → agregación)
+- **Agente** exhibe **Política**.
+- **Política** se descompone en **Política Por Defecto**, **Política Por Acción** y **Política Por Herramienta**. (refinamiento del atributo)
+
+Composición: objeto informático + estados + estructural + exhibición + refinamiento. Sin primitiva nueva.
+
+### B.3 Decisión — estatus `canon`
+
+La decisión (`DecisionSim`) es un **proceso**; el resultado (`EstadoResultadoDecisionSim`) es un **estado** de la decisión bajo **abanico XOR** (§8.1); la precedencia de política (`resolverNivelAutonomia`: herramienta > acción > porDefecto) se realiza como **condición** (§5.2).
+
+- *Decidir* cambia **Decisión** a exactamente uno de `permitida`, `suspendida` o `bloqueada`.
+- *Decidir* ocurre si **Política** está en `autónomo`, en cuyo caso *Decidir* cambia **Decisión** a `permitida`, de lo contrario *Decidir* se omite. (precedencia como condición de estado)
+
+Composición: proceso + abanico XOR de estado-salida + condición con estado. Mapea `evaluarDecisionSociotecnica`.
+
+### B.4 Efecto pendiente — estatus `extensión declarada`
+
+El efecto (`TipoEfectoSim` = ask-human/tool-call/http/python/mqtt/sql/ros/genai) es un **proceso invocado** vía **enlace de invocación** (§5.4, IV1); la aprobación humana es **condición/evento**; el escalamiento por demora es **excepción/sobretiempo** (§5.3, EX1).
+
+- *Decidir* invoca *Llamar Herramienta*. (IV1: proceso→proceso; un proceso de efecto por `TipoEfectoSim`)
+- *Decidir* invoca exactamente uno de *Preguntar Humano* o *Llamar Herramienta*. (abanico XOR de invocación, §5.4)
+- *Aprobar* maneja *Preguntar Humano*. → HITL (agente humano, ver B.5)
+- *Escalar* ocurre si duración de *Preguntar Humano* excede 30 minutos. (sobretiempo; *Escalar* ambiental, R-EXC-AMBIENTAL-1)
+
+Estatus `extensión declarada`: la familia de efectos `ask-human/tool-call/http/python/mqtt/sql/ros/genai` se nombra como conjunto de *procesos* invocados; la invocación, el abanico y la excepción son canon, pero la **taxonomía de tipos de efecto** es nomenclatura operativa del runtime, no un constructo OPL nuevo. La forma `invoca … si … ocurre` que hoy emite el generador VIOLA R-IV-3/R-MOD-CAT-1 (GAP-CONDICION-INVOCACION, §5.2): NO canonizada.
+
+### B.5 Supervisión humana HITL — estatus `canon`
+
+La aprobación humana = **condición** (§5.2) + **agente humano** (§4, R-HAB-AG-1). El `EfectoSim` de tipo `ask-human` que `crearEfectoAprobacion` produce se realiza como proceso *Preguntar Humano* manejado por un actor humano.
+
+- **Supervisor** es físico. **Supervisor** puede estar `disponible` o `no-disponible`.
+- **Supervisor** maneja *Aprobar*. (agente humano; HITL)
+- *Aprobar* ocurre si **Decisión** está en `suspendida`, en cuyo caso *Aprobar* cambia **Decisión** de `suspendida` a `permitida`, de lo contrario *Aprobar* se omite.
+- **Supervisor** inicia *Aprobar*, que afecta **Decisión**. (evento de disparo, §5.1)
+
+Composición: objeto humano + estados + habilitador agente + condición con estado + evento. Sin primitiva nueva; HITL es composición pura.
+
+Rationale: `sociotecnico.ts` (tipos `ActorSim`/`AgenteSim`/`DecisionSim`/`EfectoSim`/`ResultadoDecisionSim`); §2 (entidad/estado), §4 (habilitador agente/instrumento, R-HAB-AG-1), §5.1–§5.4 (evento/condición/excepción/invocación), §6 (estructural/exhibición), §7 (refinamiento), §8.1 (abanico XOR), §9 (composición). Todo patrón es composición de constructos canónicos; ninguna primitiva nueva.
+
+## Apéndice C — Índice de IDs
+
+Familias de identificadores de regla y de oración usados en §1–§23, con su sección de origen. Las IDs de oración (D*, T*/TS*, H*/HS*, E*, C*, SE*/SSE*, CX*, EX*, IV*) etiquetan hechos OPL atómicos; las IDs de regla (`R-*`) etiquetan normas con `Rationale:`/`Enforcement`.
+
+### C.1 IDs de oración (hechos atómicos)
+
+| Familia | Significado | Sección |
+| --- | --- | --- |
+| D1–D13 | Designaciones de entidad (esencia/afiliación/perseverancia) | §2 |
+| T1–T3 / TS1–TS5 | Transformadores: T1 consumo, T2 resultado, T3 efecto; TS* variantes con estado | §3 |
+| H1–H2 / HS1–HS2 | Habilitadores: H1 agente, H2 instrumento; HS* con estado | §4 |
+| ET1–ET2 / EH1–EH2 / ETS* / EHS* | Eventos: transformador/habilitador, con/sin estado | §5.1 |
+| CT1–CT2 / CH1–CH2 / CS1–CS6 | Condiciones: transformador/habilitador/con estado | §5.2 |
+| EX1–EX2 | Excepción: EX1 sobretiempo, EX2 subtiempo | §5.3 |
+| IV1–IV2 | Invocación / autoinvocación | §5.4 |
+| SE1–SE5 | Estructurales: agregación, exhibición, especialización, instanciación, tagged | §6 |
+| SSE1–SSE7 | Estructurales con estado especificado | §6 |
+| CX1–CX8 | Refinamiento / gestión de contexto (in-zoom, despliegue, escisión) | §7 |
+| CL | Token de composición / línea OPL | §9 |
+| EBNF | Producciones de la gramática formal | §18 |
+
+### C.2 IDs de regla por dominio
+
+| Prefijo de regla | Dominio | Sección |
+| --- | --- | --- |
+| R-ENT-*, R-OBJ-*, R-PROC-*, R-COSA-* | Entidad / objeto / proceso / cosa | §2 |
+| R-EST-*, R-ATR-*, R-VERB-EST-* | Estado / atributo / verbo de estado (`puede estar`) | §2 |
+| R-INS-*, R-ENT-INS-*, R-PRIN-9 | Instrumento / principio | §2,§4 |
+| R-CONS-*, R-RES-*, R-EFE-*, R-ESC-*, R-ESCIND-* | Transformadores y escisión de cambio de estado | §3 |
+| R-TR-ASIM-* | Asimetría transformadora | §3 |
+| R-AG-*, R-HAB-AG-*, R-HER-* | Agente (humano) / habilitador / herramienta | §4 |
+| R-MOD-*, R-MOD-INPUT-*, R-MOD-CAT-*, R-MOD-NAT-* | Modificadores de control (categoría/input/naturaleza) | §5 |
+| R-ECA-*, R-COND-RAMA-*, R-OPL-COND-ALT-*, R-OPL-SUP-* | Evento-condición-acción / ramas de condición | §5.1,§5.2 |
+| R-EXC-*, R-EXC-AMBIENTAL-*, R-EXC-DUR-* | Excepción / sobretiempo-subtiempo | §5.3 |
+| R-IV-*, R-INV-* | Invocación | §5.4 |
+| R-STRE-*, R-STRF-*, R-EST-TAG-*, R-EST-HER-*, R-EST-GEN-*, R-EST-DIR-*, R-EST-PERS-* | Estructurales y sus variantes con estado | §6 |
+| R-OPL-SE-* | Realización OPL de estructurales | §6 |
+| R-IDP-*, R-ROL-*, R-CX-*, R-REF-*, R-DIST-*, R-ESC-* | Refinamiento / contexto / distribución de enlaces | §7 |
+| R-OPL-RF-*, R-OPL-CX-*, R-OPL-TOTAL-* | OPL de refinamiento / despliegue total | §7 |
+| R-COMB-*, R-ZNC-*, R-FAN-*, R-FAN-EST-*, R-FAN-PROB-*, R-FAN-M-*, R-PROB-* | Combinatoria / abanicos (XOR/OR/probabilístico) | §8 |
+| R-COL-FUERZA-*, R-FUERZA-*, R-COL-PREC-*, R-PREC-* | Colisión de roles / fuerza / precedencia | §8 |
+| R-COMP-MAESTRA-*, R-COMP-EJE-*, R-COMP-ELEG-*, R-COMP-ZP-*, R-COMP-REV-*, R-COMP-CFG-* | Composición de oraciones / prosa OPL | §9 |
+| R-MULT-*, R-MULT-COMB-* | Multiplicidad y cardinalidad | §10 |
+| R-OPL-RUTA-* | Etiquetas de ruta | §11 |
+| R-OPL-DISP-* | Plegado / despliegue de display | §12 |
+| R-OPL-PANEL-* | Presentación del panel OPL | §13 |
+| R-OPL-INT-* | Interacción OPL↔OPD | §14 |
+| R-OPL-EDIT-* | Edición de OPL | §15 |
+| R-OPL-CFG-* | Configuración/opciones que afectan OPL | §16 |
+| R-OPL-FALLO-* | Modos de fallo / validación / ambigüedad | §17 |
+| R-OPL-LEX-*, R-OPL-PART-*, R-OPL-RANGO-*, R-OPL-CONJ-*, R-OPL-LISTA-* | Léxico / partículas / EBNF | §18 |
+| R-OPL-VERB-*, R-VERB-KW-*, R-OPL-KW-* | Vocabulario verbal / palabras clave | §1 |
+| R-OPL-PERSIST-*, R-OPL-TRANS-* | Persistencia de estado / transformación en OPL | §3,§5 |
+| R-ARB-* | Arbitraje canon/OPCloud | §1 |
+| R-§23-MIG-*, R-§23-DEP-* | Migración / depreciación | §23 |
+
+Rationale: índice derivado por extracción (`rg` de patrones de ID sobre §1–§23); facilita navegación cruzada regla↔oración↔sección y auditoría de cobertura (§20 trazabilidad, §22 validación). Las IDs sociotécnicas/agénticas del Apéndice B son composiciones de las familias anteriores, no nuevas familias de ID.
