@@ -237,6 +237,7 @@ export function pluralizarCanonico(texto: string): string {
 
 export function multiplicidadPlural(multiplicidad: string | undefined): boolean {
   if (!multiplicidad) return false;
+  if (multiplicidad === "?" || multiplicidad === "0..1") return false;
   if (multiplicidad === "*" || multiplicidad === "N" || multiplicidad === "0..*") return true;
   if (multiplicidad === "+" || multiplicidad === "1..*" || multiplicidad === "1..N") return false;
   if (/^\d+$/.test(multiplicidad)) return Number(multiplicidad) !== 1;

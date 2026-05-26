@@ -24,6 +24,7 @@ describe("validarMultiplicidad", () => {
     expect(validarMultiplicidad("2..N")).toBe(true);
     expect(validarMultiplicidad("2..*")).toBe(true);
     expect(validarMultiplicidad("100")).toBe(true);
+    expect(validarMultiplicidad("?")).toBe(true);
   });
 
   test("rechaza formatos inválidos", () => {
