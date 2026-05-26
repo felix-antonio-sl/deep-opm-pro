@@ -4,7 +4,28 @@
 **Commits de producto**: ronda commiteada **atómicamente por el operador** (co-implementación en `main`, ya en `origin/main`): `e2ec53d` atajos O/P/S/R, `1394a42` atajo capturador, `85e2db6` inspector vs diagnóstico, `21096a7` barra simulación — más bugs adicionales que resolvió por su cuenta (`dd28882` atributos, `9669f3a` usabilidad modelos, `d19f675` contraste tokens). **Desplegado** en producción con `docker compose up -d --build` (bundle `index-BEwvFCpF.js`).
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; bundle vivo `index-BEwvFCpF.js`.
 
-## Corte actual — Ronda de bugs UX delegada (captura/atajos/paneles)
+## Corte actual — Auditoría de canon `reglas-opm-estrictas.md` vs SSOT OPM
+
+Se auditó la SSOT suprema del repo (`docs/canon-opm/reglas-opm-estrictas.md`, 1412 líneas) contra la SSOT OPM original externa (`/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`: `opm-iso-19450-es.md`, `opm-opl-es.md`, `opm-visual-es.md`, `metodologia-opm-es.md`) en 4 líneas paralelas (un `opm-specialist` por dimensión: visual, OPL, ISO/ontología/enlaces, metodología/refinamiento).
+
+**Veredicto: cero conflictos semánticos de canon.** El archivo es fiel a OPM en entidades, taxonomía de enlaces, vocabulario/plantillas OPL-ES (verbos 1:1 con SSOT, EBNF y equivalencia EN↔ES consistentes), primitivas visuales, geometría de abanicos y mecanismos de refinamiento. Los hallazgos fueron **extensiones de producto presentadas como canon SSOT sin marcar** (no contradicciones).
+
+**Correcciones aplicadas (marcado de procedencia, sin alterar fuerza prescriptiva):**
+- **§3.12 R-LAY-1 / R-LAY-2**: umbral graduado + bloqueo de export y re-ruteo automático obligatorio marcados como *extensión de implementación* sobre `V-50`/`V-51` (que solo fijan límite de legibilidad y minimización de cruces).
+- **§4.13 R-ATR-3..6**: unidades/dominios/intervalos/mutabilidad marcados como extensión local; `SSOT-opl §14` solo canoniza las plantillas textuales.
+- **§4.12 R-OPL-RUTA-3**: la restricción a consumo/resultado marcada como decisión de producto; `A.5` admite cualquier procedimental tras `Por ruta`.
+- **§8.4 R-ESC-1A**: la escisión como mecanismo *único* marcada como endurecimiento local; `SSOT-metod §7.4` la describe como *la* resolución pero sin exclusividad.
+- **§5.8 R-ROL-UNIC-1**: distingue unicidad de rol (canon ISO) de la resolución por fuerza semántica (capa visual, §6.5).
+
+**Falsos hallazgos descartados tras verificación directa (no se tocaron):**
+- §5.7 R-EXC-1A (excepción ambiental): correcto — `SSOT-visual §4.4` lo dice literalmente.
+- "V-N son evidencia OPCloud": falso — §1.2 ya define `V-N` como reglas de `opm-visual-es.md`.
+- §6.5/§6.6 "mal atribuidos a ISO": ya citaban `SSOT-visual §13.x`/`V-43`/`V-44` inline.
+- Anexo B R-VIS-DUR-1 (formato duración): R-VIS-DUR-1 + R-VIS-DUR-2 cubren el formato completo de `V-45` entre ambas.
+
+**Artefacto:** `docs/canon-opm/reglas-opm-estrictas.md` (7 inserciones / 5 borrados). Corte de solo-docs, aislado de los cambios in-flight del operador en `app/src/**` y de la cola de bugs.
+
+## Corte previo — Ronda de bugs UX delegada (captura/atajos/paneles)
 
 Se paralelizó la resolución de una ronda de bugs reportados desde el capturador en producción, repartidos en **5 líneas con dominios disjuntos** delegadas a subagentes, con reconciliación final (gate unit + e2e afectado). **6 bugs resueltos, 1 revertido por requerir diseño.** El operador integró el resultado commiteándolo atómicamente en `main` (ver hashes arriba) y resolvió en paralelo bugs adicionales (atributos, usabilidad de modelos, contraste de paleta).
 

@@ -341,8 +341,8 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 
 ### 3.12 Tamaños, layout y grid
 
-- **R-LAY-1** (`V-50`): un OPD con hasta 20 cosas se considera legible; entre 21 y 25 cosas la herramienta DEBE emitir advertencia de legibilidad; con más de 25 cosas el export canónico DEBE bloquearse salvo vista tipificada o refinamiento declarado.
-- **R-LAY-2** (`V-51`): no DEBE haber oclusión entre cosas ni enlaces que atraviesen áreas ocupadas; si un re-ruteo automático sin cambio semántico elimina cruces, el export canónico DEBE aplicar el re-ruteo o reportar advertencia de layout.
+- **R-LAY-1** (`V-50` + extensión local): `V-50` fija el límite de legibilidad en 20-25 cosas por contexto. *Extensión de implementación de `deep-opm-pro`*: la herramienta DEBE emitir advertencia entre 21 y 25 cosas y DEBE bloquear el export canónico con más de 25 salvo vista tipificada o refinamiento declarado. El umbral graduado y el bloqueo de export son endurecimiento local, no texto de `V-50`.
+- **R-LAY-2** (`V-51` + extensión local): `V-51` prescribe no oclusión y minimización de cruces. *Extensión de implementación*: si un re-ruteo automático sin cambio semántico elimina cruces, el export canónico DEBE aplicar el re-ruteo o reportar advertencia. La obligación de re-ruteo automático es endurecimiento local, no texto de `V-51`.
 - **R-LAY-3** (`V-196`): la grid es decoración opcional de edición; se suprime en exportaciones canónicas.
 - **R-LAY-4** (`V-35`, `V-55`): toda herramienta de layout DEBE preservar la semántica temporal vertical definida por R-INV-2/R-INV-2A.
 
@@ -616,7 +616,7 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 
 - **R-OPL-RUTA-1** (`SSOT-opl §13`): `Por ruta` es expresión fija.
 - **R-OPL-RUTA-2**: la etiqueta de ruta DEBE ser nombre definido por el modelador.
-- **R-OPL-RUTA-3** (`A.5`): una oración de ruta PUEDE prefijar una oración procedimental; el canon local solo emite consumo/resultado salvo extensión documentada.
+- **R-OPL-RUTA-3** (`SSOT-opl §13`/`A.5` + restricción local): `A.5` admite que `Por ruta` prefije **cualquier** oración procedimental. *Restricción de implementación*: el canon local solo emite consumo/resultado salvo extensión documentada. La restricción a consumo/resultado es decisión de producto, no límite de `A.5`.
 
 ### 4.13 Atributos y valores (`§14`)
 
@@ -628,6 +628,8 @@ Toda cosa OPM se renderiza como una de exactamente **8** combinaciones:
 
 - **R-ATR-1** (`SSOT-iso §Valores de atributos`): un atributo DEBE modelarse como objeto que caracteriza una cosa vía exhibición-caracterización.
 - **R-ATR-2**: los valores de atributo DEBEN modelarse como estados del atributo.
+> **R-ATR-3..R-ATR-6 son extensiones de implementación de `deep-opm-pro`** (modelado computacional/simulación): `SSOT-opl §14` solo canoniza las plantillas textuales de atributo/valor (las tres filas de arriba). Unidades, dominios e intervalos tienen soporte léxico en `SSOT-opl A.2/A.3`, pero las obligaciones siguientes exceden la SSOT textual y se declaran como endurecimiento local.
+
 - **R-ATR-3**: un atributo cuantitativo PUEDE declarar unidad de medida; si se declara, la unidad DEBE persistirse y emitirse de forma recuperable.
 - **R-ATR-4**: un atributo PUEDE declarar dominio permitido como intervalo simple o lista de intervalos.
 - **R-ATR-5**: los intervalos de dominio DEBEN usar límites explícitos y semántica de inclusión/exclusión cuando el límite importe.
@@ -802,7 +804,7 @@ Toda relación expresable por enlace en un OPD conforme pertenece a **exactament
 
 ### 5.8 Principio de unicidad del enlace procedimental (`V-11`, `SSOT-iso §Panorama de enlaces`)
 
-- **R-ROL-UNIC-1** (`V-11`): un objeto/estado tiene exactamente un rol respecto de un proceso enlazado: transformado O habilitador, NUNCA ambos simultáneamente para el mismo enlace. Toda colisión DEBE resolverse por fuerza semántica (§6.5).
+- **R-ROL-UNIC-1** (unicidad: `SSOT-iso §Panorama de enlaces`; resolución: `V-11`/`SSOT-visual §13`): la **unicidad de rol** es canon ISO — un objeto/estado tiene exactamente un rol respecto de un proceso enlazado: transformado O habilitador, NUNCA ambos simultáneamente para el mismo enlace. La **resolución de colisión por fuerza semántica (§6.5)** es canon de la **capa visual**, no de ISO; aplicarla NO reinterpreta la unicidad ISO sino que prescribe cómo desempatar al recomponer.
 
 ---
 
@@ -1037,7 +1039,7 @@ Es decir: `*P* genera **Obj**` (con n estados) ≡ `*P* genera exactamente uno d
 - **R-ESCIND-3**: el subproceso tardío DEBE recibir el enlace de salida (TS5) y colocar al objeto en el estado de salida.
 
 - **R-ESC-1** (`V-41`, `V-110`, `SSOT-metod §7.4`): NO existen versiones con modificador de control de los enlaces escindidos.
-- **R-ESC-1A**: la escisión DEBE ser el único mecanismo canónico para resolver subespecificación de efecto al descomponer.
+- **R-ESC-1A** (extensión local): `SSOT-metod §7.4` describe la escisión como *la* resolución de la subespecificación de efecto al descomponer, pero no afirma exclusividad. *Endurecimiento de implementación*: la escisión DEBE ser el único mecanismo canónico admitido por `deep-opm-pro` para esa resolución. La cláusula de unicidad es decisión de producto, no texto de `SSOT-metod §7.4`.
 
 ### 8.5 Distribución de enlaces al descomponer (`SSOT-visual §11`, `SSOT-metod §7.4`)
 
