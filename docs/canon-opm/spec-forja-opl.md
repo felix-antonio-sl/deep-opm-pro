@@ -1737,3 +1737,133 @@ Una oración compuesta coordina hechos que comparten un **eje**. Esta spec canon
 - **GAP-COMP-REVERSE**: el parser (`parsear.ts`) descompone hoy el abanico (`ABANICO_VERBO_RE_LIST`) y la enumeración estructural, pero NO una línea de predicados coordinados de distinto verbo bajo un sujeto compartido (eje a). R-COMP-REV-1 exige una regla de descomposición que segmente la línea por conector serial y reparse cada predicado contra el sujeto compartido; sin ella, el eje (a) NO DEBE emitirse (R-COMP-ZP-3).
 
 Rationale: BUG-f897bc, `interaccion.ts` (tokens/refs/hints), `refsHints.ts` (`OplLineaPendiente`, `refsAbanico`/`hintsAbanico`), `reglas §9` (bisimetría OPD↔OPL) y §7.7 (zona prohibida en refinamiento).
+
+## §10 Multiplicidad y cardinalidad
+
+Esta sección canoniza la realización OPL de la multiplicidad y la cardinalidad de las cosas y enlaces. La multiplicidad es un modificador de superficie que cuantifica una participación; NUNCA es una cosa ni un enlace propio.
+
+### §10.1 Tabla canónica símbolo → rango → OPL-ES
+
+| Símbolo | Rango | Cardinalidad | Realización OPL-ES |
+| --- | --- | --- | --- |
+| `?` | `0..1` | opcional, a lo sumo uno | `un/una opcional` |
+| `*` | `0..*` | opcional, cero o más | `opcional (cero o más)` |
+| (sin símbolo) | `1..1` | exactamente uno (default) | (sin marca; emisión implícita) |
+| `+` | `1..*` | obligatorio, uno o más | `al menos un/una` |
+
+- **R-MULT-1**: la multiplicidad DEBE aplicarse SOLO a enlaces etiquetados, agregación-participación y enlaces procedimentales. La emisión OPL DEBE anteponer la frase de cardinalidad al sustantivo cuantificado, concordando género (`un/una`, `al menos un/una`).
+
+  Correcto: `*Cocinar* requiere al menos una **Olla**.`
+  Incorrecto: `*Cocinar* requiere 1..* **Olla**.` (símbolo crudo en superficie)
+  Rationale: la cardinalidad es portadora de cuantificación; la superficie es prosa es-CL, no glifo.
+
+- **R-MULT-1A**: la multiplicidad NO DEBE aplicarse directamente a un *proceso*. Un *proceso* NO tiene cardinalidad de instancia en la oración.
+
+- **R-MULT-1B**: la repetición **secuencial** de un *proceso* NO DEBE expresarse como multiplicidad; DEBE modelarse como *proceso* recurrente más un **contador** (objeto de iteración).
+
+  Rationale: la repetición temporal es dinámica; la multiplicidad cuantifica participación estática, no ejecuciones.
+
+- **R-MULT-1C**: la repetición **paralela** de un *proceso* NO DEBE expresarse como multiplicidad; DEBE modelarse como subprocesos síncronos o asíncronos en la descomposición (remite §7).
+
+- **R-MULT-2**: los nombres de parámetros de multiplicidad DEBEN ser únicos en todo el modelo. Dos participaciones distintas NO DEBEN compartir el mismo parámetro nombrado.
+
+### §10.2 Rangos, intervalos y restricciones
+
+- Los rangos canónicos DEBEN escribirse `qmín..qmáx`. Los intervalos DEBEN admitir las cuatro formas: `[a..b]`, `(a..b]`, `[a..b)`, `(a..b)`. Las listas de rangos DEBEN separarse por coma: `[1..10],[20..30]`. El extremo abierto DEBE escribirse `*`.
+
+- La superficie EBNF de restricción de cardinalidad DEBE usar los operadores ASCII `=`, `<`, `>`, `<=`, `>=` y la pertenencia a conjunto `en {conjunto}`.
+
+- **R-MULT-3** (normalización Unicode): los glifos Unicode `≠`, `≤`, `≥`, `∈` son **visualización** y DEBEN normalizarse a su forma ASCII (`<>`/`!=`, `<=`, `>=`, `en {…}`) en el texto canónico, o declararse explícitamente como extensión de producto. El texto que alimenta al parser NO DEBE contener glifos Unicode de restricción sin normalizar.
+
+  Rationale: el texto canónico es la forma que alimenta parser y roundtrip; los glifos son presentación, igual que el contrato display-vs-canónico del resto de la spec.
+
+### §10.3 Combinatoria
+
+La combinación de multiplicidad con rol y abanico remite a §8.2. Esta sección NO DEBE redefinir esa combinatoria; SOLO aporta la realización de la cardinalidad por participación.
+
+| Campo | Valor |
+| --- | --- |
+| ID | `R-MULT-1`–`R-MULT-3`, `R-MULT-1A/1B/1C` |
+| Plantilla | `<frase-cardinalidad> <sustantivo>` antepuesta al destino del enlace |
+| Tokenización | la frase de cardinalidad DEBE ser un sub-span propio, distinto del sub-span del objeto |
+| Orden | la cardinalidad precede al sustantivo; sin coma de Oxford en listas (remite §9.1 R-COMP-EJE-1) |
+| Composabilidad | combina con rol/abanico vía §8.2 |
+| Reverse | el parser DEBE reconstruir el rango desde la frase de cardinalidad y normalizar Unicode a ASCII |
+| Roundtrip | `parsear(emitir(rango)) = rango` sobre el rango normalizado |
+| Traza a código | `app/src/opl/generadores/refsHints.ts·nombreOplExtremo` |
+| Procedencia | `reglas-opm-estrictas.md §6.7` |
+
+Rationale: `reglas-opm-estrictas.md §6.7` canoniza la tabla símbolo→rango→OPL y los rangos/intervalos; `refsHints.ts·nombreOplExtremo` realiza el nombre de extremo cuantificado.
+
+## §11 Etiquetas de ruta
+
+Esta sección canoniza la realización OPL de las **etiquetas de ruta** (path labels), que desambiguan qué entrada mapea a qué salida en un *proceso* con múltiples rutas.
+
+### §11.1 Plantillas
+
+| Plantilla |
+| --- |
+| `Por ruta etiqueta, *Proceso* consume **Objeto**.` |
+| `Por ruta etiqueta, *Proceso* genera **Objeto**.` |
+
+- **R-OPL-RUTA-1**: `Por ruta` DEBE ser expresión fija. NO DEBE flexionarse ni sustituirse por sinónimos (`por la ruta`, `vía ruta`).
+
+  Correcto: `Por ruta rápida, *Cocinar* consume **Agua**.`
+  Incorrecto: `Por la ruta rápida, *Cocinar* consume **Agua**.`
+  Rationale: la expresión fija es el ancla léxica que el parser reconoce como prefijo de ruta.
+
+- **R-OPL-RUTA-2**: la `etiqueta` DEBE ser un nombre definido por el modelador. NO DEBE ser un literal genérico ni autogenerado; es referencia a una ruta nombrada del modelo.
+
+- **R-OPL-RUTA-3** (alcance canónico vs extensión): por `A.5`, `Por ruta` PUEDE prefijar **cualquier** oración procedimental. La restricción que limita `Por ruta` a oraciones de consumo o resultado es **extensión declarada de producto**, NO un límite del canon. Un agente conforme NO DEBE presentar esa restricción como canon OPM.
+
+  Rationale: el canon admite el prefijo de ruta sobre toda oración procedimental; OPFORJA PUEDE restringir su superficie a consumo/resultado, pero DEBE declararlo como extensión.
+
+| Campo | Valor |
+| --- | --- |
+| ID | `R-OPL-RUTA-1`–`R-OPL-RUTA-3` |
+| Plantilla | `Por ruta <etiqueta>, <oración procedimental>` |
+| Emisión | el prefijo `Por ruta <etiqueta>,` precede a la oración procedimental, con coma de separación |
+| Tokenización | `Por ruta` = token fijo; `<etiqueta>` = sub-span con `ref` a la ruta nombrada |
+| Composabilidad | combina con consumo/resultado (extensión de producto); canon admite toda oración procedimental |
+| Reverse | el parser DEBE detectar el prefijo `Por ruta <etiqueta>,` y asociar la etiqueta de ruta al enlace resultante |
+| Roundtrip | la etiqueta DEBE preservarse: `parsear(emitir(ruta)) = ruta` |
+| Traza a código | `app/src/opl/generadores/procedural.ts` (etiqueta de ruta); si la función no existe aún, `GAP-VERIFY` |
+| Procedencia | `reglas-opm-estrictas.md §4.12` |
+
+Rationale: `reglas-opm-estrictas.md §4.12` canoniza la etiqueta de ruta y la regla `A.5`; `procedural.ts` es el punto de emisión procedimental donde el prefijo de ruta se ancla.
+
+## §12 Plegado y despliegue de OPL (display)
+
+Esta sección canoniza la **presentación** de la OPL completa de un modelo: cómo se agrupan las oraciones por OPD, el orden de los OPDs y el **plegado parcial** en OPDs ascendentes. El plegado es **display**: NUNCA altera el texto canónico que alimenta parser y roundtrip.
+
+### §12.1 Agrupación y orden de la OPL completa
+
+- **R-OPL-DISP-1**: la OPL completa DEBE agrupar las oraciones **por OPD**: cada OPD aporta su bloque de oraciones, y los bloques DEBEN ordenarse según el orden de los OPDs del modelo.
+
+- **R-OPL-DISP-2**: el orden de los OPDs en la OPL completa DEBE ser **determinista y estable** entre emisiones, para preservar la diffabilidad del texto y la equivalencia del roundtrip.
+
+  Rationale: un orden inestable de bloques rompe la diffabilidad y la comparación de la OPL completa, igual que el orden inestable de hechos coordinados (§9.2 R-COMP-ELEG-3).
+
+### §12.2 Plegado parcial
+
+- **R-OPL-DISP-3**: en un OPD ascendente DEBEN suprimirse los hechos **refinados** en OPDs descendientes; su realización OPL DEBE quedar **plegada** (mostrada como hecho agregado, no expandida en sus hijos).
+
+  Rationale: el OPD ascendente expone el nivel de abstracción de ese OPD; expandir los hechos refinados duplicaría información que vive en el OPD hijo (remite §7).
+
+- **R-OPL-DISP-4** (display-vs-canónico): el plegado parcial es **presentación**. NO DEBE alterar el texto canónico que alimenta al parser ni al roundtrip. La forma plegada y la forma expandida DEBEN parsear al **mismo conjunto de hechos**.
+
+  Correcto: un OPD ascendente pliega los subprocesos de *Cocinar*; la OPL desplegada del OPD hijo y la plegada del padre parsean al mismo conjunto de hechos.
+  Incorrecto: el plegado descarta enlaces del conjunto de hechos recuperado por el parser.
+  Rationale: §Convenciones (Display-vs-canónico) y §9.5 R-COMP-CFG-1: la presentación se normaliza a la forma canónica para equivalencia; el plegado NO introduce un canon paralelo.
+
+| Campo | Valor |
+| --- | --- |
+| ID | `R-OPL-DISP-1`–`R-OPL-DISP-4` |
+| Emisión | bloques por OPD, orden determinista; hechos refinados plegados en OPD ascendente |
+| Composabilidad | combina con la composición de §9 y el refinamiento de §7 |
+| Reverse | el parser DEBE recuperar el mismo conjunto de hechos desde la forma plegada o la expandida |
+| Roundtrip | `parsear(plegada) = parsear(expandida)` sobre el conjunto de hechos |
+| Traza a código | `app/src/opl/bloquesJerarquicos.ts·agruparOracionesPorOpd` / `ordenarOpdsParaOpl`; `app/src/opl/generadores/plegado.ts·oracionPlegadoParcial` |
+| Procedencia | §Convenciones (Display-vs-canónico); §7 (refinamiento); `reglas §9` (bisimetría) |
+
+Rationale: `bloquesJerarquicos.ts·agruparOracionesPorOpd`/`ordenarOpdsParaOpl` realizan la agrupación y el orden de la OPL completa; `plegado.ts·oracionPlegadoParcial` realiza el plegado parcial; el contrato display-vs-canónico hereda de §Convenciones y §9.5.
