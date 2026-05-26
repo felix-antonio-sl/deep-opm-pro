@@ -196,4 +196,219 @@ Ambas fuentes son canon; donde difieren, esta spec lo declara explícitamente y 
 
 Rationale: la unión de ambas tablas canónicas maximiza cobertura sin relajar contratos; las divergencias se declaran, no se silencian.
 
-<!-- El cuerpo normativo restante (§2…) y las secciones de cierre se agregan en tareas siguientes. -->
+## §2 Entidades
+
+Esta sección canoniza la realización OPL-ES de cada **constructo de entidad** del modelo: las dos cosas (**objeto**, *proceso*), el `estado`, el par **atributo**/`valor`, la **instancia**, la designación de estado, y las propiedades genéricas **esencia** y **afiliación**. Cada entrada fija la(s) plantilla(s), cuándo se emite, cuándo se suprime, cómo se tokeniza, si es reversible y su traza a código.
+
+Las plantillas de enlace transformador, habilitador, estructural, evento, condición, excepción, invocación, refinamiento, abanico y multiplicidad NO pertenecen a esta sección; se canonizan en secciones posteriores. Aquí solo vive la **descripción de entidades** (`opm-opl-es §3`, `§14`).
+
+Rationale: `opm-opl-es §3` (descripción de entidades) y `reglas §4.4` separan la realización de cosas/estados/atributos de la realización de enlaces; esta spec conserva esa frontera.
+
+### §2.0 Reglas duras transversales
+
+- **R-ENT-1**: una entidad de modelo DEBE ser **objeto** o *proceso*; NO existe tercera clase de cosa. Un `estado`, un enlace, un **atributo** flotante, un comentario o un afordance de UI NO son cosas.
+
+  Rationale: `reglas §2.1` (R-COSA-1) y `§2.5`.
+
+- **R-ENT-2**: la generación NO DEBE emitir OPL canónica para una cosa con nombre **placeholder** (objeto/proceso sin nombrar) ni para un `estado` con nombre placeholder. La realización canónica solo procede cuando la cosa tiene nombre canónico.
+
+  Rationale: `nombresCanonicos.ts` define `esNombreProcesoPlaceholder` y `esNombreEstadoCanonico`; un nombre placeholder no es un hecho de modelo afirmable.
+
+- **R-ENT-3**: cada hecho de clasificación de una cosa (esencia, afiliación, perseverancia) DEBE ir en **oración separada**. NO DEBE colapsarse «**X** es un objeto informacional y sistémico» — no es OPL-ES canónica.
+
+  Correcto: `**Sensor** es física.` seguido de `**Sensor** es ambiental.`
+  Incorrecto: `**Sensor** es física y ambiental.`
+  Rationale: `estructural.ts·oracionEntidad` emite una línea por hecho; `opm-opl-es §3.1` lista una plantilla (D1–D4) por propiedad.
+
+### §2.1 Objeto
+
+**ID**: ENT-OBJ.
+
+**Plantilla**: el **objeto** se nombra como sustantivo singular en negrita; su mención léxica es el span de objeto dentro de cualquier oración. La descripción autónoma de un **objeto** se realiza mediante sus propiedades genéricas (§2.7, §2.8) y, si tiene estados, su enumeración (§2.3).
+
+**Emisión**: la presencia de un **objeto** en un OPD emite, según `oracionEntidad`, las oraciones de esencia y afiliación que apliquen (ver §2.7–§2.8). Un **objeto** sin propiedades divergentes y sin estados PUEDE no producir oración autónoma alguna; existe en el párrafo solo como span dentro de oraciones de enlace.
+
+**Supresión**: un **objeto** con nombre placeholder NO DEBE producir OPL canónica (R-ENT-2). La supresión se decide por `nombresCanonicos.ts`.
+
+**Tokenización**: el nombre del **objeto** es un token de objeto; su `ref` apunta a la entidad. Las palabras léxicas DEBEN capitalizarse; artículos y preposiciones breves PUEDEN quedar en minúscula.
+
+**Reverse**: el span de objeto se parsea como referencia a una cosa existente o como creación de cosa nueva, según el contexto de la oración. El nombre por sí solo no es oración parseable.
+
+**Roundtrip**: el nombre del **objeto** DEBE preservarse íntegro tras generación → parseo → generación.
+
+**Traza a código**: `app/src/opl/generadores/estructural.ts·oracionEntidad`; supresión de placeholder en `app/src/modelo/nombresCanonicos.ts`.
+
+> GAP-PLACEHOLDER-ENTIDAD: `nombresCanonicos.ts` expone `esNombreProcesoPlaceholder`, pero `refsHints.ts·entidadOplEsEmitible` retorna `true` para toda entidad; la supresión de cosas placeholder en generación (R-ENT-2) NO está conectada hoy.
+
+Rationale: `reglas §2.2` (R-OBJ-1..7) y `opm-opl-es §3`.
+
+### §2.2 Proceso
+
+**ID**: ENT-PROC.
+
+**Plantilla**: el *proceso* se nombra en cursiva, comenzando con infinitivo `-ar`/`-er`/`-ir` o nominalización `-ción`/`-miento`. Su mención léxica es el span de proceso dentro de oraciones de enlace.
+
+**Emisión**: igual que el **objeto**, un *proceso* emite sus oraciones de esencia/afiliación divergentes (§2.7–§2.8) y aparece como span en oraciones de transformación, habilitación, evento, condición, refinamiento e invocación. **OPM no admite estados de proceso**; «iniciado»/«en proceso»/«terminado» NO DEBEN modelarse como estados, sino como subprocesos.
+
+**Supresión**: un *proceso* con nombre placeholder (`proceso`, `proceso N`, `proceso parte N`) NO DEBE producir OPL canónica (R-ENT-2).
+
+**Tokenización**: el nombre del *proceso* es un token de proceso con `ref` a la entidad.
+
+**Reverse**: el span de proceso se parsea como referencia o creación de *proceso* según contexto.
+
+**Roundtrip**: el nombre del *proceso* DEBE preservarse íntegro.
+
+**Edge cases**: un *proceso* persistente (mantiene estado sin cambio neto) NO tiene familia verbal propia; su realización canónica reusa TS3 con `estado-entrada = estado-salida` (remite a la sección de enlaces transformadores y a `opm-opl-es §3.4`).
+
+**Traza a código**: span/clasificación en `app/src/opl/generadores/estructural.ts·oracionEntidad`; supresión en `app/src/modelo/nombresCanonicos.ts·esNombreProcesoPlaceholder` (ver GAP-PLACEHOLDER-ENTIDAD).
+
+Rationale: `reglas §2.3` (R-PROC-1..7) y `§2.4` (nombres), `opm-opl-es §3.4`.
+
+### §2.3 Estado y enumeración de estados
+
+**ID**: ENT-EST (enumeración: D5, D6).
+
+**Plantilla**:
+- D5: `**Objeto** puede estar \`estado1\`, \`estado2\` o \`estado3\`.`
+- D6 (colección incompleta): `**Objeto** puede estar \`estado1\`, …, y otros estados.`
+
+**Emisión**: cuando un **objeto** tiene `s ≥ 1` estados no suprimidos y todos son canónicos, se emite una sola oración de enumeración con `puede estar`. El último estado se une con `o`/`u` según fonética.
+
+**Supresión**: si algún estado del objeto NO es canónico (placeholder), la enumeración NO se emite; la emisión es atómica (todo-o-nada por objeto). Un estado individual marcado `suprimido` se excluye del listado.
+
+**Tokenización**: el span del objeto lleva `ref` a la entidad; cada `estado` lleva `ref` al estado. Los valores de estado van entre backticks, en minúscula, forma pasiva/descriptiva.
+
+**Reglas duras**:
+- **R-ENT-EST-1**: la enumeración de estados DEBE usar **puede estar**, NUNCA **puede ser** (remite a §1.2 R-VERB-EST-1).
+
+  Correcto: `**Pedido** puede estar \`pendiente\`, \`despachado\` o \`cerrado\`.`
+  Incorrecto: `**Pedido** puede ser \`pendiente\`, \`despachado\` o \`cerrado\`.`
+- **R-ENT-EST-2**: un `estado` NO existe fuera de su **objeto** propietario; NO DEBE haber estados flotantes ni estados de *proceso*.
+
+**Reverse**: la oración `puede estar` se parsea como declaración de estados del objeto (reversible).
+
+**Roundtrip**: la lista de estados y su orden DEBEN preservarse; `roundtrip.test.ts` defiende la enumeración.
+
+**Traza a código**: `app/src/opl/generadores/duracionMetadata.ts·oracionEstados` (`puede estar`), re-exportado por `app/src/opl/generadores/designaciones.ts`; canonicidad de nombre de estado en `app/src/modelo/nombresCanonicos.ts·esNombreEstadoCanonico`.
+
+Rationale: `reglas §4.4` (D5, D6), `§2.6` (R-EST-1) y `opm-opl-es §3.2`.
+
+### §2.4 Designación de estado
+
+**ID**: ENT-DESIG (D7–D10, D13).
+
+**Plantilla**: `Estado \`s\` de **Objeto** es <designación>.`, con designación ∈ {`inicial` (D7), `final` (D8), `por defecto` (D9), `inicial y final` (D10), `declarado \`Current\`` (D13)}.
+
+**Emisión**: se emite una oración de designación por cada `estado` con designación distinta de normal. Un `estado` PUEDE ser simultáneamente inicial y final (D10); en ese caso se emite una sola oración combinada, no dos.
+
+**Supresión**: un `estado` sin designación (normal) NO produce oración de designación. Un `estado` placeholder no la produce.
+
+**Tokenización**: el span `s` lleva `ref` al estado; el span del objeto lleva `ref` a la entidad. `inicial`/`final`/`por defecto`/`declarado Current` son palabras clave fijas de designación, no verbos del enum §1.1 (ver DIV-2).
+
+**Reverse**: la oración de designación se parsea como asignación de designación al estado.
+
+**Roundtrip**: la designación DEBE preservarse.
+
+**Traza a código**: `app/src/opl/generadores/designaciones.ts·oracionDesignacionEstado` y `textoDesignacionEstado`.
+
+Rationale: `reglas §4.4` (D7–D10, D13), `§2.6` (R-EST-2..4) y `opm-opl-es §3.3`.
+
+### §2.5 Atributo y valor
+
+**ID**: ENT-ATR.
+
+**Plantillas** (`opm-opl-es §14`):
+- Valor puntual: `**Atributo** de **Objeto** es valor.`
+- Rango: `**Atributo** de **Objeto** varía de X a Y.`
+- Enumeración de valores: `**Atributo** de **Objeto** puede estar \`valor1\`, \`valor2\` o \`valor3\`.`
+
+**Emisión**: cuando un **objeto** caracteriza un **atributo** (vía exhibición-caracterización), el **atributo** se realiza como cosa-objeto que pertenece al **objeto** mediante `de`. Si el **atributo** porta un `valorSlot`, se emite la oración `es valor` (con unidad opcional `[unidad]`). Los `valor` enumerados son **estados** del **atributo**, por lo que reusan la plantilla `puede estar` (§2.3).
+
+**Reglas duras**:
+- **R-ENT-ATR-1**: un **atributo** DEBE modelarse como **objeto** que caracteriza una cosa vía exhibición-caracterización; NO existe atributo flotante.
+
+  Rationale: `reglas §4.13` (R-ATR-1) y `glosario 3.4`.
+- **R-ENT-ATR-2**: los **valores** de un **atributo** DEBEN modelarse como **estados** del atributo, y por tanto enumerarse con **puede estar**, no con **puede ser**.
+
+  Correcto: `**Limpieza** de **Conjunto de Platos** puede estar \`sucia\` o \`limpia\`.`
+  Incorrecto: `**Limpieza** de **Conjunto de Platos** puede ser \`sucia\` o \`limpia\`.`
+  Rationale: `reglas §4.13` (R-ATR-2) y `opm-opl-es §14`.
+
+**Supresión**: un **atributo** sin `valorSlot` no produce la oración `es valor`; un **atributo** placeholder no produce OPL canónica.
+
+**Tokenización**: spans `ref` al atributo, al objeto caracterizado y a cada `valor`/`estado`. La unidad opcional es un span con `hint` de presentación, no un hecho ontológico nuevo.
+
+**Reverse**: la oración `es valor` se parsea como asignación de valor al atributo; la enumeración de valores reusa el parseo de `puede estar`.
+
+**Roundtrip**: atributo, valor y unidad DEBEN preservarse.
+
+**Traza a código**: `app/src/opl/generadores/estructural.ts·oracionValorAtributo` (`es valor`, unidad). El enlace de exhibición-caracterización (`exhibe`) y la plantilla de rango (`varía de … a`) se canonizan en la sección de enlaces estructurales; `varía de … a` no tiene generador hoy (GAP-VARIA, declarado en §1.1).
+
+Rationale: `reglas §4.13` (R-ATR-1, R-ATR-2) y `opm-opl-es §14`.
+
+### §2.6 Instancia
+
+**ID**: ENT-INS.
+
+**Plantilla** (clasificación-instanciación, realización autónoma de la instancia): el nombre de una instancia lógica DEBE escribirse `NombreInstancia : NombreClase`. La oración de relación (`es una instancia de`) se canoniza en la sección de enlaces estructurales.
+
+**Emisión**: una **instancia** lógica se realiza como cosa con nombre `Instancia : Clase`; la relación con su clase se emite vía `es una instancia de` / `son instancias de`.
+
+**Reglas duras**:
+- **R-ENT-INS-1**: DEBE distinguirse **instancia visual** (misma cosa con apariencia local en otro OPD) de **instancia lógica** (relación de clasificación-instanciación entre cosas distintas). La instancia visual NO produce oración de instanciación; solo reaparece como span de la misma cosa.
+
+  Rationale: `reglas §2.7` (R-INS-2).
+
+**Supresión**: una instancia visual NO emite oración propia de instanciación (la cosa ya se realizó en su OPD origen, por R-PRIN-9 / hecho único).
+
+**Tokenización**: el span `NombreInstancia` y el span `NombreClase` llevan `ref` a sus respectivas cosas.
+
+**Reverse**: la relación `es una instancia de` se parsea como enlace de clasificación.
+
+**Traza a código**: `app/src/opl/generadores/estructural.ts·oracionEnlaceEstructural` (caso `clasificacion`: `es una instancia de` / `son instancias de`). El formato de nombre `Instancia : Clase` es designación nominal; no hay generador dedicado que lo componga automáticamente (GAP-NOMBRE-INSTANCIA).
+
+Rationale: `reglas §2.7` (R-INS-1..6) y `opm-opl-es §3`.
+
+### §2.7 Esencia (física / informática)
+
+**ID**: ENT-ESENCIA (D1, D2).
+
+**Plantillas**: `**Cosa** es física.` (D1) · `**Cosa** es informacional.` (D2).
+
+**Emisión**: `oracionEntidad` emite la oración de esencia cuando la visibilidad es `siempre`, o cuando la esencia **difiere del default** (informacional). Una cosa informacional con visibilidad por divergencia NO emite oración de esencia (el default se sobreentiende).
+
+**Supresión**: con visibilidad `oculta`, NO se emite oración alguna de clasificación. El default informacional puede derivarse de perfil/preset, pero ese default NO DEBE sobrescribir esencia explícita.
+
+**Tokenización**: el span de la cosa lleva `ref`; `física`/`informacional` son palabras clave fijas de designación.
+
+**Reverse**: la oración de esencia se parsea como asignación de propiedad genérica.
+
+**Roundtrip**: la esencia DEBE preservarse.
+
+**Traza a código**: `app/src/opl/generadores/estructural.ts·oracionEntidad` (vía `textoEsencia` de `refsHints.ts`).
+
+Rationale: `reglas §2.2` (R-OBJ-3, R-OBJ-5..6), `§4.4` (D1, D2) y `opm-opl-es §3.1`.
+
+### §2.8 Afiliación (sistémica / ambiental)
+
+**ID**: ENT-AFILIA (D3, D4).
+
+**Plantillas**: `**Cosa** es ambiental.` (D3) · `**Cosa** es sistémica.` (D4).
+
+**Emisión**: `oracionEntidad` emite la oración de afiliación cuando la visibilidad es `siempre`, o cuando la afiliación **difiere del default** (sistémica).
+
+**Supresión**: con visibilidad `oculta` no se emite. Un atributo de objeto ambiental DEBE ser ambiental; un *proceso* ejecutado por cosa ambiental DEBE modelarse ambiental.
+
+**Tokenización**: span de la cosa con `ref`; `ambiental`/`sistémica` son palabras clave fijas de designación.
+
+**Reverse**: la oración de afiliación se parsea como asignación de propiedad genérica.
+
+**Roundtrip**: la afiliación DEBE preservarse.
+
+**Edge cases**: esencia y afiliación se emiten en **oraciones separadas** (R-ENT-3); nunca se coordinan en una sola frase.
+
+**Traza a código**: `app/src/opl/generadores/estructural.ts·oracionEntidad` (vía `textoAfiliacion` de `refsHints.ts`).
+
+Rationale: `reglas §2.2` (R-OBJ-3, R-OBJ-6..7), `§4.4` (D3, D4) y `opm-opl-es §3.1`.
+
+<!-- El cuerpo normativo restante (§3…) y las secciones de cierre se agregan en tareas siguientes. -->
