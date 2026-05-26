@@ -24,7 +24,9 @@ Se cierra la brecha **F** del Tier 1 (auditoría Opforja vs manual simulado OPCl
 - `cd app && bun run lint && bun run build && bun run design:governance` -> OK.
 - `cd app && bunx playwright test e2e/28-opl-visibilidad-esencia.spec.ts e2e/29-colision-nombre.spec.ts e2e/30-simulacion-numerica.spec.ts` -> **7/7 verde**.
 
-**Estado:** commiteado y pusheado a `origin/main` y **desplegado** en `https://opforja.sanixai.com` (bundle `index-i8iXchqs.js`, `docker compose up -d --build`; `opforja` healthy + `bug-capture` up; HTTP/2 200). Spec y plan: `docs/superpowers/specs/2026-05-26-cierre-brechas-tier1-design.md`, `docs/superpowers/plans/2026-05-26-cierre-brechas-tier1.md`.
+**Estado:** commiteado y pusheado a `origin/main` y **desplegado** en `https://opforja.sanixai.com` (bundle `index-i8iXchqs.js`, `docker compose up -d --build`; `opforja` healthy + `bug-capture` up; HTTP/2 200).
+
+**Procedencia (auditoría de cobertura Opforja vs manual simulado OPCloud):** 369 capacidades evaluadas → **47% cubierto / 24% parcial / 29% ausente**. El Tier 1 cerró las 3 brechas reales de mayor valor y bajo riesgo (A esencia OPL · B colisión de nombre · F simulación numérica CSV). Ausencias mayores que siguen abiertas: stereotypes, ontología organizacional, métricas del modelo, requisitos estructurados, informative grading, missing-knowledge (ver Pendientes).
 
 ## Corte previo — resolucion base de colisiones de nombre + captura viva
 
@@ -277,11 +279,19 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 ## Decisiones vigentes (no reabrir sin causa)
 
 - Inspector = ficha continua (sin tabs). Comandos = solo palette `⌘K` (sin menú lateral). Selección = solo underline crimson (sin resize-handles). OPL de estados = `puede estar`.
+- **OPL — visibilidad de esencia (Tier 1)**: la preferencia `oplEsenciaVisibilidad` (Configuración) es de **presentación**; el texto canónico que alimenta editor libre y parser SIEMPRE se genera completo (roundtrip protegido). No filtrar el canónico.
+- **Colisión de nombre (Tier 1)**: reuse-vs-rename; *reutilizar* solo crea una nueva aparición de la entidad existente (nunca entidad nueva ni fusión); tipos incompatibles no se reutilizan; rename hacia un nombre existente solo ofrece renombrar/cancelar.
+- **Simulación numérica (Tier 1)**: se abre desde command palette (no chrome); síncrona; export CSV con `filasSimulacionACsv` (puro, sin deps); columnas = atributos `simulable`.
 - Deuda categorial activa: trigger del coproducto tagged de selección (refactor A→B en `OpmStore`) — ver `CLAUDE.md` § "Deuda categorial".
 - Épicas descartadas: EPICA-70 (Importación OPCAT) y EPICA-91 (Modo tutorial).
 
 ## Pendientes
 
+- **Brechas diferidas del Tier 1** (cada una merece su propia spec→plan):
+  - *Visibilidad de unidades/alias en OPL*: están tejidas en la capa de nombres (`refsHints.ts` `nombreOpl`/`nombreOplBase`) usada por todos los generadores y por los hints de hover OPL↔canvas y la delimitación de tokens del parser; ocultarlas con consistencia exige enhebrar la opción por toda la capa + regresión hover/parser/roundtrip. Por eso A se acotó a esencia.
+  - *D — herencia de generalización computada*: propagar rasgos/estados/relaciones de generales a especializados; es cambio de kernel y debe alinearse con `docs/canon-opm/reglas-opm-estrictas.md`.
+  - *E — condiciones/loops ejecutables en simulación*: hoy `plan.ts`/`runner.ts` solo ordenan por Y; los modificadores `condicion`/`evento`/`invocacion`/`autoinvocacion` se modelan pero no se ejecutan.
+  - *G — cablear el runtime sociotécnico*: `sociotecnico.ts` está aislado (sin UI/persistencia); depende de E + de "procesos computacionales" (subsistema ausente).
 - **Auditoria post-deploy con modelo cargado**: tomar nueva captura de SD, SD1 y SD1.1 con diagnostico expandido y una seleccion activa para confirmar la resolucion visual completa de Ronda 2.
 - **Deuda Codex v1.1 fuera de este corte**: proceso activo in-flight, asistente SD wizard, sub-modelos, switcher de lengua OPL, dark mode, frame letterbox 1700×950.
 - **Integrar runtime sociotecnico con OPM**: mapear procesos computacionales/agenticos a `DecisionSim`, enlaces procedurales a pre/postcondiciones, y objetos/estados a contexto operativo.
@@ -309,4 +319,4 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Prompt de continuación
 
-> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Ronda 2 Codex v1.1: OPL canonica, canvas y diagnostico". Antes de tocar UI/canvas, leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Reaudita en vivo SD, SD1 y SD1.1 con modelo precargado, diagnostico expandido y una seleccion activa. Gate minimo para UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance`, mas Playwright del layout/canvas afectado. No stagear `docs/auditorias/inclumplimiento-visual-25-05-2026.md` ni `docs/manual-simulado-opcloud-capacidades.md` salvo instruccion explicita.
+> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Tier 1 completo". El Tier 1 (A esencia OPL · B colisión de nombre · F simulación numérica CSV) está cerrado, en `origin/main` y **desplegado** (`https://opforja.sanixai.com`, bundle `index-i8iXchqs.js`). Próximo trabajo de valor: las brechas diferidas (ver Pendientes — visibilidad unidades/alias OPL; D herencia; E condiciones/loops ejecutables; G cableado sociotécnico), cada una con su propia spec→plan; o seguir la matriz de cobertura vs manual (47/24/29). Antes de tocar UI/canvas leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Gate UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance` + Playwright del layout/canvas afectado. No stagear `docs/auditorias/inclumplimiento-visual-25-05-2026.md` ni `docs/manual-simulado-opcloud-capacidades.md` salvo instrucción explícita.
