@@ -1407,3 +1407,212 @@ Rationale: BUG-f897bc, `reglas §9` (bisimetría OPD↔OPL) y las cláusulas «z
 - GAP-REFINA: la oración explícita `se refina por descomposición/despliegue de … en` (CX4) es canónica pero sin generador autónomo ni parser; el árbol OPD se materializa por estructura del modelo.
 - GAP-FIXTURE-DESCOMPOSICION: no hay fixture roundtrip dedicado de descomposición/despliegue en `fixtures-roundtrip.ts`; la simetría se apoya en los generadores de `refinamiento.ts` y en `parser.designacionesPlegado.test.ts` (solo plegado parcial).
 - GAP-COMP-GUARDA: no hay guard programático que prohíba la coordinación de enlaces hijos en contexto de refinamiento (R-CX-COMP-1/2); la protección es por construcción y §9 DEBE materializarla.
+
+## §8 Combinatoria a nivel de modelo
+
+Las secciones §3–§7 canonizan cada constructo por separado. Esta sección canoniza el **producto cartesiano gobernado** de cómo esos constructos coexisten sobre un mismo enlace o sobre un mismo abanico en una situación de modelo real, especialmente las situaciones que aparecen al modelar sistemas sociotécnicos y agénticos complejos. El espacio combinatorio es:
+
+```
+rol (consumo | resultado | efecto | agente | instrumento)
+  × modificador de control (evento | condición | excepción | ninguno)
+  × multiplicidad / cardinalidad (?, *, 1..1, +)
+  × abanico (XOR | OR | AND)
+  × probabilidad (Pr=p)
+  × ruta (por ruta L)
+```
+
+No todas las celdas son válidas. Esta sección fija qué combinaciones son **válidas**, cuáles **inválidas** (error de categoría o de asimetría), y cuáles **no-canonizadas** (silencio de la SSOT). Para autosuficiencia, consolida AQUÍ la fuerza semántica de colisión de rol (`reglas §6.5`) y la matriz de precedencia transformadora de recomposición (`reglas §6.6`).
+
+Rationale: `reglas §6.4`–`§6.8`, `§7`, `§11.2` y `opm-opl-es §11`–`§13`; un constructo aislado es legible por su sección, pero su combinación con otro abre celdas que ninguna sección individual gobierna.
+
+### §8.0 Reglas duras de combinación
+
+- **R-COMB-1**: una combinación NO listada como válida ni como inválida en esta sección DEBE clasificarse como **no-canonizada**; la generación NO DEBE emitirla y el parser NO DEBE construirla. NO DEBE inventarse primitiva, verbo ni glifo nuevo para llenar el silencio.
+
+  Rationale: `reglas §11.2` (R-ZNC-1, R-ZNC-2): la herramienta NO inventa canon OPM nuclear para una zona no canonizada.
+
+- **R-COMB-2** (INPUT-only se conserva bajo combinación): cualquier combinación que coloque un modificador `e`/`c` sobre un extremo Post(P) (resultante, afectado post-transición) es **inválida**, sin importar el abanico, la multiplicidad, la probabilidad o la ruta que la acompañen. La combinatoria NO levanta la restricción INPUT-only de §5.0 (R-MOD-INPUT-1/2).
+
+  Rationale: `reglas §6.3` (R-MOD-4), §3.0 y §5.0 de esta spec.
+
+- **R-COMB-3** (un solo modificador por enlace): un enlace base PUEDE portar **a lo sumo un** modificador de control. La combinación `c` + `e` sobre el mismo enlace es **no-canonizada** (§8.4); excepción y modificador (`e`/`c`) no coexisten sobre el mismo enlace porque la excepción es familia autónoma proceso→proceso, no anotación de enlace.
+
+  Rationale: `reglas §6.4` (`c` + `e` = no definido), `§11.2` (AP-28) y §5.3 (naturaleza de la excepción).
+
+- **R-COMB-4** (orden de composición superficial): cuando varias dimensiones coinciden sobre una misma oración, el orden de los marcadores en la superficie DEBE ser estable: `[Por ruta L,] <abanico con cuantificador> <enlace base> [en \`estado\`] [, modificador de evento/condición] [(probabilidad: p)]`. La ruta precede; la probabilidad cierra. Un orden distinto rompe el roundtrip.
+
+  Rationale: `abanico.ts` resuelve primero ruta (líneas 17, 34), luego abanico, luego condicional; `procedural.ts·sufijoProbabilidad` (línea 421) añade la probabilidad como sufijo final.
+
+- **R-COMB-5** (la ruta gana al agrupamiento de abanico): si **algún** enlace de un abanico porta etiqueta de ruta, el abanico NO DEBE realizarse como oración agrupada; DEBE emitirse **una oración por enlace** con prefijo `Por ruta L,`. Ruta y agrupamiento de fan son mutuamente excluyentes en la superficie.
+
+  Rationale: `abanico.ts·oracionesAbanico` (líneas 34–39): la presencia de ruta degrada el fan a emisión por enlace.
+
+- **R-COMB-6** (multiplicidad y rol coexisten sin colisión): la multiplicidad anota un extremo de enlace; NO es un modificador de control ni altera el rol. PUEDE combinarse con cualquier rol, abanico o modificador admisible para ese rol. La multiplicidad NO DEBE aplicarse directamente a un *proceso* (R-MULT-1A).
+
+  Rationale: `reglas §6.7` (R-MULT-1, R-MULT-1A).
+
+### §8.1 Abanicos lógicos XOR / OR / AND
+
+**ID**: FAN-XOR, FAN-OR, FAN-AND.
+
+**Naturaleza**: un abanico agrupa `n ≥ 2` enlaces del **mismo rol** que comparten un puerto convergente o divergente. El operador fija cuántas ramas se activan: **AND** (todas), **XOR** (exactamente una), **OR** (al menos una).
+
+**Plantillas OPL** (cuantificador antes de la lista en el extremo del fan):
+
+| Operador | Marcador OPL | Activación |
+| --- | --- | --- |
+| AND | (implícito) — una oración por enlace, sin cuantificador | todas las ramas |
+| XOR | `exactamente uno de` | exactamente una rama |
+| OR | `al menos uno de` | al menos una rama |
+
+- **R-FAN-1** (AND = ausencia de arco): el AND NO se realiza con marcador léxico; se realiza emitiendo **una oración base por enlace** (varias oraciones T1/T2/T3/H\* separadas con el mismo puerto). NO DEBE inventarse un cuantificador `todos de`.
+
+  Correcto: `*Cocinar* consume **Agua**.` seguido de `*Cocinar* consume **Sal**.` (abanico AND de consumo convergente)
+  Incorrecto: `*Cocinar* consume todos de **Agua** y **Sal**.`
+  Rationale: `reglas §7.1` (AND = enlaces separados sin arco) y `opm-opl-es §11.1`.
+
+- **R-FAN-2** (XOR/OR según puerto): el cuantificador se inserta en el extremo del fan. En fan **convergente** (N→1) el cuantificador precede la lista de orígenes; en **divergente** (1→N) precede la lista de destinos.
+
+  Correcto (consumo convergente XOR): `*Procesar* consume exactamente uno de **A**, **B** o **C**.`
+  Correcto (resultado divergente OR): `*Procesar* genera al menos uno de **A**, **B** o **C**.`
+  Rationale: `reglas §7.2`–`§7.3`, `abanico.ts·oracionAbanico` (líneas 76, 96–121) y `opm-opl-es §11.2`–`§11.3`.
+
+- **R-FAN-3** (combinación abanico × modificador — condición): un abanico cuyos enlaces TODOS portan `c` **del mismo rol** se realiza con el patrón condicional sobre la oración de fan (no como C\* individuales por rama). Un abanico mixto (algunos `c`, otros sin control) NO DEBE realizarse con el patrón condicional; recae en la oración de fan directa.
+
+  Correcto: `*Procesar* ocurre si exactamente uno de **A**, **B** o **C** existe, en cuyo caso *Procesar* consume exactamente uno de **A**, **B** o **C**, de lo contrario *Procesar* se omite.`
+  Rationale: `abanico.ts·oracionAbanico` (líneas 89–94: `todosCondicionales && mismoTipo`) y `oracionAbanicoCondicional` (líneas 145–190); `reglas §7.4` y `opm-opl-es §11.4`.
+
+- **R-FAN-4** (combinación abanico × modificador — evento): un abanico bajo evento se realiza insertando `inicia` antes del verbo de la oración de fan (`**B** inicia exactamente uno de *P*, *Q* o *R*, que afecta **B**`). El evento sobre fan, como todo evento, es INPUT-only (R-COMB-2): NO DEBE aplicarse a un fan de resultado.
+
+  Rationale: `reglas §7.4` (Evento + XOR/OR) y §5.1. GAP-FAN-EVENTO: ningún generador de `app/src/opl/generadores/abanico.ts` emite la forma de fan con `inicia`; solo existe la forma condicional (`oracionAbanicoCondicional`). La forma de evento sobre fan está canonizada pero sin generador.
+
+- **R-FAN-5** (estado especificado por rama): cada enlace de un fan PUEDE portar estado especificado independientemente. Cuando todas las ramas de un fan de consumo/resultado/efecto difieren solo por el `estado` de un mismo objeto, el fan se realiza como cambio de estado agrupado: `*P* cambia **Obj** a exactamente uno de \`s1\`, \`s2\` o \`s3\`.` (resultado/efecto saliente) o `*P* cambia **Obj** de exactamente uno de \`s1\`, \`s2\`.` (consumo/efecto entrante).
+
+  Rationale: `reglas §7.4` (R-FAN-EST-1) y `abanico.ts·oracionAbanicoEstados` (líneas 192–229).
+
+- **R-FAN-6** (probabilidad solo dentro de fan XOR): la anotación de probabilidad `Pr=p` SOLO es canónica **dentro de un abanico probabilístico**, que DEBE ser siempre XOR, con exactamente una rama activa por ejecución y suma de probabilidades `1.0`. Un `Pr=p` sobre un enlace **sin** abanico es **no-canonizado** (§8.4).
+
+  Rationale: `reglas §6.8` (R-PROB-1, R-PROB-1A), `§7.4` (R-FAN-PROB-1), `§11.2` (zona: «enlace probabilístico sin fan no tiene canonicidad»). GAP-PROB-SUPERFICIE: `procedural.ts·sufijoProbabilidad` (línea 421) emite la probabilidad como sufijo `(probabilidad: 40%)`, NO como `Pr=p` por rama; la superficie del código diverge del canon `Pr=p` y no liga la probabilidad a un fan XOR. La spec manda `Pr=p` por rama dentro de fan XOR.
+
+- **R-FAN-7** (resultado-fan-XOR como expansión de resultado a objeto con estados): un resultado simple hacia un **objeto** con `n` estados es semánticamente equivalente a un fan XOR de resultados con estado, uno por estado, cada uno con probabilidad `1/n` por defecto. Esta equivalencia NO autoriza modificadores `e`/`c` sobre el fan: las ramas siguen produciendo elementos de Post(P).
+
+  Rationale: `reglas §7.5` (`V-19`).
+
+- **R-FAN-8** (m-de-f combinatorial): para fan-size `f > 2`, el modelador PUEDE generalizar a `exactamente m de f` (XOR combinatorial) o `al menos m de f` (OR combinatorial), con `m < f`, anotando `m` junto al arco. Es extensión declarada del cuantificador, no primitiva nueva.
+
+  Rationale: `reglas §7.6` (R-FAN-M-1..4). GAP-FAN-M: sin generador para `m de f`; `abanico.ts` solo emite `exactamente uno de` / `al menos uno de`.
+
+### §8.2 Multiplicidad / cardinalidad en combinación con rol y abanico
+
+**ID**: MULT-COMB.
+
+**Plantillas** (`opm-opl-es §12`): `?` → `un/una opcional`; `*` → `opcional (cero o más)`; `1..1` → sin marcador (default); `+` → `al menos un/una`. Rangos `qmín..qmáx`; intervalos `[a..b]`, `(a..b]`, `[a..b)`, `(a..b)`; listas `[1..10], [20..30]`; `*` como extremo abierto.
+
+- **R-MULT-COMB-1**: la multiplicidad anota un **extremo** del enlace (origen o destino) y concuerda en número con el verbo cuando fuerza plural (`*Procesos* generan **Objeto**`). PUEDE coexistir con cualquier rol y con el modificador de control admisible para ese rol.
+
+  Rationale: `reglas §6.7` (R-MULT-1); `procedural.ts` líneas 174–175, 384–387 (`multiplicidadPlural`, `nombreOplExtremo`).
+
+- **R-MULT-COMB-2**: dentro de un abanico, la multiplicidad de cada rama se realiza por extremo vía `nombreOplExtremo`; la multiplicidad del fan **no** sustituye al cuantificador XOR/OR. Cuantificador (cuántas ramas) y multiplicidad (cuántas instancias por rama) son dimensiones ortogonales.
+
+  Rationale: `abanico.ts·extremoOpuestoAbanico` (líneas 244–254) propaga `multiplicidadOrigen`/`multiplicidadDestino` por rama; `nombreOplExtremo` (importado en línea 6).
+
+- **R-MULT-COMB-3**: los nombres de parámetros de multiplicidad DEBEN ser únicos en todo el modelo; la repetición secuencial de un *proceso* NO DEBE expresarse con multiplicidad sobre el proceso, sino con proceso recurrente + contador; la paralela, con subprocesos síncronos/asíncronos.
+
+  Rationale: `reglas §6.7` (R-MULT-2, R-MULT-1A..1C).
+
+### §8.3 Matriz de combinaciones relevantes
+
+Para cada combinación con relevancia semántica/lógica, su **estatus**, la plantilla OPL compuesta y la regla de resolución de colisión. Estatus ∈ {válida, inválida, no-canonizada}.
+
+| # | Combinación (rol × modificador × abanico × otros) | Estatus | Plantilla OPL compuesta | Resolución / regla |
+| --- | --- | --- | --- | --- |
+| C-01 | consumo × evento × — | válida | `**A** inicia *P*, que consume **A**.` | A∈Pre(P); §5.1 |
+| C-02 | consumo × condición × — | válida | `*P* ocurre si **A** existe, en cuyo caso **A** se consume, de lo contrario *P* se omite.` | §5.2 |
+| C-03 | resultado × evento × — | **inválida** | — | R-COMB-2; Post(P) no admite `e` (GAP-EVENTO-RESULTADO) |
+| C-04 | resultado × condición × — | **inválida** | — | R-COMB-2; Post(P) no admite `c` (GAP-CONDICION-RESULTADO) |
+| C-05 | efecto × evento × — (objeto con estado) | válida | `**A** inicia *P*, que afecta **A**.` | afectado∈Pre(P); ET2 |
+| C-06 | efecto × condición × — | válida | `*P* ocurre si **A** existe, en cuyo caso *P* afecta **A**, de lo contrario *P* se omite.` | CT2 |
+| C-07 | agente × evento × — | válida | `**Agente** inicia y maneja *P*.` | EH1; agente solo humano |
+| C-08 | agente × condición × — | válida | `**Agente** maneja *P* si **Agente** existe, de lo contrario *P* se omite.` | CH1 |
+| C-09 | instrumento × evento × — | válida | `**Instrumento** inicia *P*, que requiere **Instrumento**.` | EH2 |
+| C-10 | instrumento × condición × — | válida | `*P* ocurre si **Instrumento** existe, de lo contrario *P* se omite.` | CH2 |
+| C-11 | consumo × — × XOR (convergente) | válida | `*P* consume exactamente uno de **A**, **B** o **C**.` | R-FAN-2 |
+| C-12 | consumo × — × OR (convergente) | válida | `*P* consume al menos uno de **A**, **B** o **C**.` | R-FAN-2 |
+| C-13 | resultado × — × XOR (divergente) | válida | `*P* genera exactamente uno de **A**, **B** o **C**.` | R-FAN-2 |
+| C-14 | efecto × — × XOR/OR | válida | `*P* afecta exactamente uno de **A**, **B** o **C**.` | R-FAN-2 |
+| C-15 | agente × — × XOR | válida | `**Agente** maneja exactamente uno de *P*, *Q* o *R*.` | R-FAN-2 |
+| C-16 | instrumento × — × XOR (divergente) | válida | `Exactamente uno de *P*, *Q* o *R* requiere **B**.` | R-FAN-2 |
+| C-17 | invocación × — × XOR/OR | válida | `*P* invoca exactamente uno de *Q* o *R*.` | R-FAN-2; invocación es proceso→proceso |
+| C-18 | consumo/efecto/instr × condición × XOR/OR (todas las ramas `c`, mismo tipo) | válida | `*P* ocurre si exactamente uno de **A**, **B** o **C** existe, en cuyo caso *P* consume exactamente uno de **A**, **B** o **C**, de lo contrario *P* se omite.` | R-FAN-3; abanico mixto recae en fan directo |
+| C-19 | cualquier transformador/habilitador × evento × XOR/OR (INPUT-only) | válida (canon) / GAP código | `**B** inicia exactamente uno de *P*, *Q* o *R*, que afecta **B**.` | R-FAN-4; GAP-FAN-EVENTO |
+| C-20 | resultado × condición × XOR/OR | **inválida** | — | R-COMB-2; GAP-FAN-RESULTADO-COND (`abanico.ts` línea 176 emite `puede generarse`, no canónico) |
+| C-21 | consumo/resultado/efecto × — × XOR (ramas = estados de un objeto) | válida | `*P* cambia **Obj** a exactamente uno de \`s1\`, \`s2\` o \`s3\`.` | R-FAN-5; R-FAN-7 |
+| C-22 | resultado × — × XOR × probabilidad (fan probabilístico) | válida (canon) / GAP superficie | `*P* genera exactamente uno de **A** \`Pr=0.6\`, **B** \`Pr=0.4\`.` | R-FAN-6; suma=1; GAP-PROB-SUPERFICIE |
+| C-23 | cualquier rol × — × — × probabilidad (sin fan) | **no-canonizada** | — | R-FAN-6; `reglas §11.2` (probabilístico fuera de fan sin canonicidad) |
+| C-24 | consumo/resultado × modificador/abanico/multiplicidad × **ruta** | válida | `Por ruta L1, *P* consume **A**.` | R-COMB-5; una oración por enlace, ruta degrada el fan |
+| C-25 | agente/instrumento × — × ruta | **no-canonizada** | — | `reglas §11.2` (ruta sobre habilitadores no canonizada; `opm-opl-es §13` solo consumo/resultado) |
+| C-26 | cualquier enlace × `c` + `e` (mismo enlace) | **no-canonizada** | — | R-COMB-3; §8.4 |
+| C-27 | estructural × `e`/`c` | **inválida** | — | error de categoría (R-MOD-CAT-1, AP-09) |
+| C-28 | invocación × `e`/`c` | **inválida** | — | error de categoría (R-MOD-CAT-1, AP-10); usar nodo de decisión booleano |
+| C-29 | enlace escindido TS4/TS5 × `e`/`c` | **inválida** | — | R-MOD-CAT-2 (`V-41`, `V-110`) |
+| C-30 | colisión de rol — dos enlaces procedimentales objeto↔mismo proceso | resolución | (prevalece el de mayor fuerza) | R-COL-FUERZA (§8.3.1) |
+| C-31 | recomposición — dos subprocesos, distinto rol hacia el mismo objeto | resolución | (matriz de precedencia) | R-COL-PREC (§8.3.2) |
+
+#### §8.3.1 Fuerza semántica de colisión de rol (consolidado de `reglas §6.5`)
+
+Cuando un **objeto** tendría dos enlaces procedimentales hacia el **mismo** *proceso* (violando la unicidad de enlace procedimental), prevalece el de mayor fuerza. Orden principal: `consumo = resultado > efecto > agente > instrumento`. Orden secundario por control dentro de cada clase: `evento > sin control > condición`.
+
+Orden completo de **12 niveles** (de más fuerte a más débil):
+
+| Nivel | Enlace | Nivel | Enlace |
+| --- | --- | --- | --- |
+| 1 | Evento de consumo | 7 | Evento de agente |
+| 2 | Consumo = Resultado | 8 | Agente |
+| 3 | Condición de consumo | 9 | Condición de agente |
+| 4 | Evento de efecto | 10 | Evento de instrumento |
+| 5 | Efecto | 11 | Instrumento |
+| 6 | Condición de efecto | 12 | Condición de instrumento |
+
+- **R-COL-FUERZA-1**: ante colisión de rol, la herramienta DEBE conservar el enlace de **menor número de nivel** (mayor fuerza) y reportar el desplazado; los niveles 1 y 3 contienen **consumo** únicamente — el resultado NUNCA DEBE aparecer con modificador (R-COMB-2). La condición de instrumento (nivel 12) es el enlace más débil del sistema.
+
+  Rationale: `reglas §6.5` (R-FUERZA-1..4); el modificador `c` debilita y `e` fortalece respecto del enlace base.
+
+#### §8.3.2 Matriz de precedencia transformadora en recomposición (consolidado de `reglas §6.6`)
+
+Al recomponer (out-zoom) dos subprocesos con distinto enlace hacia el mismo **objeto**, el enlace del padre se determina por:
+
+| B↔P1 \ B↔P2 | Efecto | Resultado | Consumo |
+| --- | --- | --- | --- |
+| **Efecto** | Efecto | Resultado | Consumo |
+| **Resultado** | Resultado | **Inválido** | Efecto |
+| **Consumo** | Consumo | Efecto | **Inválido** |
+
+- **R-COL-PREC-1**: Resultado+Resultado y Consumo+Consumo sobre el mismo objeto al recomponer son **inválidos** (`V-43`); el nivel hijo DEBE corregirse antes de recomponer (AP-30).
+- **R-COL-PREC-2**: Resultado+Consumo (o Consumo+Resultado) DEBE recomponerse como **Efecto** SOLO si hay continuidad de identidad y estados trazables; en su ausencia DEBE reportarse como conflicto, NO colapsarse automáticamente (R-PREC-2..4).
+- **R-COL-PREC-3**: un enlace **transformador** SIEMPRE prevalece sobre un **habilitador** al recomponer (`V-44`).
+
+  Rationale: `reglas §6.6` (R-PREC-1..5).
+
+### §8.4 Zonas no-canonizadas explícitas
+
+Las siguientes combinaciones son **silencios de la SSOT** (`reglas §11.2`, R-ZNC-1/2): NO están prohibidas explícitamente ni canonizadas. Se marcan **no-canonizadas**; la generación NO DEBE emitirlas, el parser NO DEBE construirlas, y NUNCA DEBE inventarse primitiva para llenarlas.
+
+| Zona no-canonizada | Estado | Fundamento |
+| --- | --- | --- |
+| `c` + `e` sobre el **mismo** enlace | No definida en gramática OPL ni en geometría visual | `reglas §6.4`, `§11.2` (AP-28); R-COMB-3 |
+| `Pr=p` sobre un enlace **sin** abanico | `Pr=p` solo se define dentro de fans XOR (`V-18`); fuera no tiene canonicidad | `reglas §11.2`; R-FAN-6 |
+| Etiqueta de **ruta** sobre enlace habilitador (agente/instrumento) | `opm-opl-es §13` canoniza ruta solo para consumo/resultado | `reglas §11.2`; C-25 |
+| Fan de **resultado** bajo condición (`puede generarse`) | El código emite `puede generarse` (`abanico.ts` línea 176) — vocabulario fuera del enum §1.1 | C-20; viola R-COMB-2 |
+| Fan **mixto** (algunas ramas `c`, otras sin control) bajo patrón condicional | El canon no define la realización condicional de un fan parcialmente condicional | R-FAN-3 (recae en fan directo, no en patrón condicional) |
+
+- **R-ZNC-COMB-1**: ante una de estas zonas, la herramienta DEBE o bien rechazar la entrada como no-canónica, o bien declararla **extensión local marcada**; NO DEBE silenciarla emitiendo una superficie inventada como si fuera canon.
+
+  Rationale: `reglas §11.2` (R-ZNC-2): la herramienta NO inventa regla OPM nuclear para una zona no canonizada.
+
+### §8.5 GAPs de cobertura — combinatoria
+
+- GAP-FAN-EVENTO: `app/src/opl/generadores/abanico.ts` NO emite la forma de fan bajo evento (`inicia` + cuantificador, R-FAN-4 / C-19); solo `oracionAbanicoCondicional` cubre la combinación condicional. La forma de evento sobre fan es canónica pero sin generador.
+- GAP-FAN-RESULTADO-COND: `abanico.ts·oracionAbanicoCondicional` (línea 176) emite `… puede generarse …` para resultado+condición+fan (C-20). `puede generarse` NO pertenece al enum §1.1 y el resultado NO admite condición (R-COMB-2); emisión no canónica que la spec manda eliminar.
+- GAP-PROB-SUPERFICIE: `procedural.ts·sufijoProbabilidad` (línea 421) realiza la probabilidad como sufijo `(probabilidad: 40%)` por enlace, NO como `Pr=p` por rama ligado a un fan XOR (R-FAN-6 / C-22). La superficie del código diverge del canon `Pr=p`; falta validar suma `=1` y exclusividad XOR.
+- GAP-FAN-M: no hay generador para `exactamente m de f` / `al menos m de f` (R-FAN-8 / C-30 sentido m-de-f); `abanico.ts` solo emite el caso `m=1`.
+- GAP-COL-RESOLUCION: la resolución de colisión de rol por fuerza semántica (§8.3.1) y la precedencia de recomposición (§8.3.2) son operaciones de modelo; no consta en `app/src/opl/generadores/` un generador OPL que materialice el reporte de desplazamiento/conflicto — la resolución vive en el kernel de modelo, no en la capa OPL.
