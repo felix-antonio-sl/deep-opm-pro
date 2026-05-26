@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
 import type { Entidad, Resultado } from "../../../modelo/tipos";
-import { ESTADOS, identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
+import { ESTADOS, identificadorCanonicoApariencia, identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
 
 describe("composer entidad", () => {
   test("proyecta objeto simple con metadata OPM estable", () => {
@@ -187,9 +187,9 @@ describe("composer entidad", () => {
     expect(body.strokeWidth).toBe(4);
   });
 
-  test("ui-forja/08 §1.3: index label `o.NN` mono inkSoft bajo el shape (objeto)", () => {
+  test("ui-forja/08 §1.3: index label hidden (oculto en canvas)", () => {
     let modelo = crearModelo();
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Orden"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sensor"));
     const entidad = Object.values(modelo.entidades)[0]!;
     const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0]!;
 
@@ -201,20 +201,11 @@ describe("composer entidad", () => {
     const indexAttr = attrs.index;
     if (!indexAttr) throw new Error("Falta attrs.index");
     expect(indexAttr).toMatchObject({
-      text: identificadorCanonicoEntidad(entidad),
-      fontFamily: "JetBrains Mono Variable, JetBrains Mono, ui-monospace, monospace",
-      fontSize: 9.5,
-      fontWeight: 500,
-      fill: "#807b6e",
-      letterSpacing: "0.08em",
-      textAnchor: "start",
-      refX: 0,
-      refY: "calc(h + 4)",
+      display: "none",
     });
-    expect((indexAttr.text as string).startsWith("o.")).toBe(true);
   });
 
-  test("ui-forja/08 §2: index label `p.NN` en proceso", () => {
+  test("ui-forja/08 §2: index label oculto en proceso", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Aprobar"));
     const entidad = Object.values(modelo.entidades)[0]!;
@@ -224,7 +215,7 @@ describe("composer entidad", () => {
     const attrs = cell.attrs as Record<string, Record<string, unknown>>;
     const indexAttr = attrs.index;
     if (!indexAttr) throw new Error("Falta attrs.index");
-    expect((indexAttr.text as string).startsWith("p.")).toBe(true);
+    expect(indexAttr).toMatchObject({ display: "none" });
   });
 
   test("identificadorCanonicoEntidad: prefijo por tipo + secuencia zero-pad", () => {
@@ -234,7 +225,7 @@ describe("composer entidad", () => {
     expect(identificadorCanonicoEntidad(proceso)).toBe("p.12");
   });
 
-  test("IDs de subprocesos internos usan ordinal jerarquico del refinable", () => {
+  test("identificadorCanonicoApariencia: ordinal jerarquico del refinable", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 40 }, "Procesar Pedido"));
     const proceso = Object.values(modelo.entidades)[0];
@@ -243,16 +234,11 @@ describe("composer entidad", () => {
     if (!descomp.ok) throw new Error(descomp.error);
     modelo = descomp.value.modelo;
     const opdHijoId = descomp.value.opdId;
-    const internas = Object.values(modelo.opds[opdHijoId]?.apariencias ?? {})
-      .filter((apariencia) => apariencia.contextoRefinamiento?.rol === "interno")
-      .sort((a, b) => a.y - b.y);
 
-    const indices = internas.map((apariencia) => {
-      const entidad = modelo.entidades[apariencia.entidadId];
-      if (!entidad) throw new Error("Entidad interna no encontrada");
-      const cell = proyectarEntidad(modelo, opdHijoId, apariencia, entidad, false, false, {});
-      return ((cell.attrs as Record<string, Record<string, unknown>>).index?.text);
-    });
+    const indices = Object.values(modelo.opds[opdHijoId]?.apariencias ?? {})
+      .filter((a) => a.contextoRefinamiento?.rol === "interno")
+      .sort((a, b) => a.y - b.y)
+      .map((a) => identificadorCanonicoApariencia(modelo, opdHijoId, a, modelo.entidades[a.entidadId]!));
 
     expect(indices).toEqual(["p.01.1", "p.01.2", "p.01.3"]);
   });

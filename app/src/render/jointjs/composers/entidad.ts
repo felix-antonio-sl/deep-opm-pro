@@ -131,7 +131,7 @@ export function proyectarEntidad(
       textAnchor: "middle",
       pointerEvents: "none",
     },
-    index: attrsIndiceEntidad(modelo, opdId, apariencia, entidad),
+    index: { display: "none" },
   };
   const metadatos = metadatosEntidad(
     entidad,
