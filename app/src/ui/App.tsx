@@ -99,6 +99,8 @@ export function App() {
   } = useAppShellViewModel();
   const [, setInspectorAbierto] = useState(true);
   const [canvasAdapter, setCanvasAdapter] = useState<JointCanvasAdapter | null>(null);
+  // L2 ronda 28: altura del panel índice (árbol OPD) sobre el panel inspector.
+  const [alturaIndicePct, setAlturaIndicePct] = useState(30);
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
   const panelOplVm = usePanelOplViewModel();
   // L2 ronda 21: branch por viewport. Desktop preserva el grid canónico de 4
@@ -283,20 +285,23 @@ export function App() {
             )}
             rightPanel={(
               <div data-testid="inspector-pane" style={layout.rightToolsPane}>
-                <section data-testid="tree-pane" style={layout.rightIndexPane}>
+                <section data-testid="tree-pane" style={{ ...layout.rightIndexPane, flex: `0 0 ${alturaIndicePct}%` }}>
                   <CodexColHeader kicker="ÍNDICE" title="OPDs" meta={Object.keys(modelo.opds).length} />
                   <div style={layout.treePaneArbol}>
                     <ArbolOpd />
                   </div>
                 </section>
-                <div
-                  role="separator"
-                  aria-orientation="horizontal"
-                  data-testid="divisor-panel-indice-inspector"
-                  title="Separador índice / inspector"
-                  style={layout.marginaliaRule}
+                <DivisorPanel
+                  orientacion="horizontal"
+                  anchoInicial={alturaIndicePct}
+                  anchoMin={10}
+                  anchoMax={70}
+                  resetValue={30}
+                  testId="divisor-panel-indice-inspector"
+                  title="Ajustar altura del panel índice"
+                  onAnchoChange={setAlturaIndicePct}
                 />
-                <section style={layout.rightInspectorPane}>
+                <section style={{ ...layout.rightInspectorPane, flex: `1 1 ${100 - alturaIndicePct}%` }}>
                   {!diagnosticoExpandido ? <CodexColHeader kicker="INSPECTOR" title="Selection" /> : null}
                   <div style={layout.inspectorContent}>
                     {diagnosticoExpandido && avisosDiagnostico.length > 0 ? (
