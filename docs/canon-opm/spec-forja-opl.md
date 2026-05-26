@@ -4,7 +4,7 @@ _manifest:
   provenance:
     created_by: "opforja"
     created_at: "2026-05-26"
-    source: "docs/canon-opm/reglas-opm-estrictas.md; ~/kora/.../opm-opl-es.md; opm-libro-curado; transcripciones-videos-opcloud; curso-dov-dori"
+    source: "docs/canon-opm/reglas-opm-estrictas.md; /home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-opl-es.md; /home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/opm-libro-curado/; /home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/opm/transcripciones-videos-opcloud.txt; /home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/curso-dov-dori/"
 version: "1.0.0"
 status: borrador
 tags: [opl, opforja, spec, generacion, parser]
