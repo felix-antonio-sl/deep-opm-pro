@@ -44,6 +44,8 @@ export function DialogoGuardarComo() {
     [workspace.modelosGuardados, nombre],
   );
 
+  const nombreDuplicado = !validacion.ok && validacion.error === "Ya existe un modelo local con ese nombre";
+
   const navegarBreadcrumb = useCallback((carpetaId: Id | null, _segmentIndex: number) => {
     workspace.abrirCarpeta(carpetaId);
   }, [workspace]);
@@ -130,7 +132,30 @@ export function DialogoGuardarComo() {
           />
           Crear versiones en guardados manuales
         </label>
-        {!validacion.ok ? <div role="alert" style={style.error}>{validacion.error}</div> : null}
+
+        {/* BUG-142989: aclara el modelo mental variante vs versión. */}
+        <div style={style.ayuda} data-testid="ayuda-variantes-versiones">
+          <p style={style.ayudaItem}>
+            <strong style={style.ayudaTermino}>Variante</strong>: guarda con un nombre nuevo y
+            obtienes un modelo independiente. El original queda intacto; los cambios futuros de
+            cada uno no se afectan entre sí.
+          </p>
+          <p style={style.ayudaItem}>
+            <strong style={style.ayudaTermino}>Versión</strong>: una instantánea fechada dentro
+            del <em>mismo</em> modelo. Si marcas la casilla, cada guardado manual deja una versión
+            que luego puedes consultar o restaurar como copia desde «Versiones».
+          </p>
+        </div>
+
+        {nombreDuplicado ? (
+          <div role="alert" style={style.error}>
+            Ya existe un modelo local con ese nombre. Cambia el nombre para crear una variante
+            independiente, o cierra este diálogo y usa «Guardar» para actualizar el modelo
+            existente.
+          </div>
+        ) : !validacion.ok ? (
+          <div role="alert" style={style.error}>{validacion.error}</div>
+        ) : null}
       </div>
     </Dialogo>
   );
@@ -220,5 +245,23 @@ const style = {
     fontFamily: tokens.typography.familyChrome,
     fontSize: "13px",
     fontWeight: 400,
+  },
+  ayuda: {
+    display: "grid",
+    gap: "6px",
+    paddingLeft: "10px",
+    borderLeft: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
+  },
+  ayudaItem: {
+    margin: 0,
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "12px",
+    fontWeight: 400,
+    lineHeight: 1.5,
+  },
+  ayudaTermino: {
+    color: tokens.colors.ink,
+    fontWeight: 600,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

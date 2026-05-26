@@ -25,6 +25,7 @@ export function DialogoCargarModelo() {
   const [seleccionadoId, setSeleccionadoId] = useState<Id | null>(null);
   const [orden, setOrden] = useState<OrdenCargar>(() => leerOrdenCargar());
   const [query, setQuery] = useState("");
+  const [menuAccionesId, setMenuAccionesId] = useState<Id | null>(null);
 
   useEffect(() => {
     if (!persistencia.dialogoCargarModeloAbierto) return;
@@ -68,6 +69,45 @@ export function DialogoCargarModelo() {
     if (!modeloId) return;
     confirmarSiDirty(() => persistencia.cargarLocal(modeloId));
   }, [confirmarSiDirty, persistencia.cargarLocal]);
+
+  // Acciones por modelo: solo se exponen operaciones que el dominio ya soporta
+  // (cargar, abrir en pestaña, versiones, archivar/restaurar, eliminar). No se
+  // ofrece duplicar/renombrar-por-id porque no existe acción de store por id.
+  const acciones = useMemo<AccionesModelo>(() => ({
+    onAbrir: abrirSeleccionado,
+    onAbrirEnPestana: (modeloId) => {
+      confirmarSiDirty(() => workspace.abrirPestanaConModelo(modeloId));
+      persistencia.cerrarCargarModelo();
+    },
+    onVersiones: (modeloId) => workspace.abrirDialogoVersiones(modeloId),
+    onArchivar: (modeloId) => workspace.archivarModeloPorId(modeloId),
+    onRestaurar: (modeloId) => workspace.restaurarModeloPorId(modeloId),
+    onEliminar: (modeloId, nombre) => {
+      const ok = typeof globalThis.confirm !== "function"
+        || globalThis.confirm(`¿Eliminar definitivamente el modelo "${nombre}"? Esta acción no se puede deshacer.`);
+      if (!ok) return;
+      persistencia.borrarLocal(modeloId);
+      if (seleccionadoId === modeloId) setSeleccionadoId(null);
+    },
+  }), [
+    abrirSeleccionado,
+    confirmarSiDirty,
+    persistencia.cerrarCargarModelo,
+    persistencia.borrarLocal,
+    seleccionadoId,
+    workspace.abrirPestanaConModelo,
+    workspace.abrirDialogoVersiones,
+    workspace.archivarModeloPorId,
+    workspace.restaurarModeloPorId,
+  ]);
+
+  const menuProps: MenuAccionesContexto = {
+    abiertoId: menuAccionesId,
+    onToggle: (modeloId) => setMenuAccionesId((actual) => (actual === modeloId ? null : modeloId)),
+    onCerrar: () => setMenuAccionesId(null),
+    acciones,
+  };
+
   return (
     <Dialogo
       open={persistencia.dialogoCargarModeloAbierto}
@@ -115,6 +155,7 @@ export function DialogoCargarModelo() {
               onOrden={alternarOrden}
               onSeleccionar={setSeleccionadoId}
               onAbrir={abrirSeleccionado}
+              menu={menuProps}
             />
           ) : (
             <div style={style.gridModelos}>
@@ -126,6 +167,7 @@ export function DialogoCargarModelo() {
                   mostrarVersiones={workspace.mostrarVersiones}
                   onSeleccionar={setSeleccionadoId}
                   onAbrir={abrirSeleccionado}
+                  menu={menuProps}
                 />
               ))}
             </div>
@@ -181,12 +223,74 @@ type OrdenCargar = { columna: "nombre" | "descripcion" | "actualizadoEn" | "byte
 const VISTA_CARGAR_KEY = "deep-opm-pro:ui:vista-cargar";
 const ORDEN_CARGAR_KEY = "deep-opm-pro:ui:orden-cargar";
 
+interface AccionesModelo {
+  onAbrir: (id: Id) => void;
+  onAbrirEnPestana: (id: Id) => void;
+  onVersiones: (id: Id) => void;
+  onArchivar: (id: Id) => void;
+  onRestaurar: (id: Id) => void;
+  onEliminar: (id: Id, nombre: string) => void;
+}
+
+interface MenuAccionesContexto {
+  abiertoId: Id | null;
+  onToggle: (id: Id) => void;
+  onCerrar: () => void;
+  acciones: AccionesModelo;
+}
+
+/** Menú de acciones por modelo. Solo expone lo que el dominio ya soporta. */
+function MenuAccionesModelo(props: { modelo: ResumenModeloPersistido; menu: MenuAccionesContexto }) {
+  const { modelo, menu } = props;
+  const abierto = menu.abiertoId === modelo.id;
+  return (
+    <span style={style.accionesCelda} onClick={(event) => event.stopPropagation()}>
+      <button
+        type="button"
+        data-testid="modelo-acciones-toggle"
+        style={style.accionesToggle}
+        aria-haspopup="menu"
+        aria-expanded={abierto}
+        aria-label={`Acciones de ${modelo.nombre}`}
+        title="Acciones del modelo"
+        onClick={(event) => { event.stopPropagation(); menu.onToggle(modelo.id); }}
+      >
+        Acciones <span aria-hidden="true">▾</span>
+      </button>
+      {abierto ? (
+        <div role="menu" style={style.accionesMenu} onMouseLeave={menu.onCerrar} data-testid="modelo-acciones-menu">
+          <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onAbrirEnPestana(modelo.id); }}>Abrir en pestaña nueva</AccionItem>
+          <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onVersiones(modelo.id); }}>Ver versiones</AccionItem>
+          {modelo.archivado
+            ? <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onRestaurar(modelo.id); }}>Restaurar</AccionItem>
+            : <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onArchivar(modelo.id); }}>Archivar</AccionItem>}
+          <AccionItem tono="danger" onClick={() => { menu.onCerrar(); menu.acciones.onEliminar(modelo.id, modelo.nombre); }}>Eliminar…</AccionItem>
+        </div>
+      ) : null}
+    </span>
+  );
+}
+
+function AccionItem(props: { onClick: () => void; tono?: "danger"; children: preact.ComponentChildren }) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      style={props.tono === "danger" ? style.accionItemDanger : style.accionItem}
+      onClick={(event) => { event.stopPropagation(); props.onClick(); }}
+    >
+      {props.children}
+    </button>
+  );
+}
+
 function TileModelo(props: {
   modelo: ResumenModeloPersistido;
   seleccionado: boolean;
   mostrarVersiones: boolean;
   onSeleccionar: (id: Id) => void;
   onAbrir: (id: Id) => void;
+  menu: MenuAccionesContexto;
 }) {
   return (
     <div
@@ -202,18 +306,21 @@ function TileModelo(props: {
       <span style={style.tileDate}>{new Date(props.modelo.actualizadoEn).toLocaleString("es-CL")}</span>
       <Glifos modelo={props.modelo} mostrarVersiones={props.mostrarVersiones} />
       {props.modelo.archivado ? <span style={style.archiveBadge}>Archivado</span> : null}
-      <button
-        type="button"
-        data-testid="reciente-modelo"
-        style={style.tileLoadButton}
-        onClick={(event) => {
-          event.stopPropagation();
-          props.onAbrir(props.modelo.id);
-        }}
-        onDblClick={(event) => event.stopPropagation()}
-      >
-        Abrir {props.modelo.nombre}
-      </button>
+      <div style={style.tileFooter}>
+        <button
+          type="button"
+          data-testid="reciente-modelo"
+          style={style.tileLoadButton}
+          onClick={(event) => {
+            event.stopPropagation();
+            props.onAbrir(props.modelo.id);
+          }}
+          onDblClick={(event) => event.stopPropagation()}
+        >
+          Abrir {props.modelo.nombre}
+        </button>
+        <MenuAccionesModelo modelo={props.modelo} menu={props.menu} />
+      </div>
     </div>
   );
 }
@@ -226,6 +333,7 @@ function TablaModelos(props: {
   onOrden: (columna: OrdenCargar["columna"]) => void;
   onSeleccionar: (id: Id) => void;
   onAbrir: (id: Id) => void;
+  menu: MenuAccionesContexto;
 }) {
   return (
     <table style={style.table}>
@@ -254,17 +362,20 @@ function TablaModelos(props: {
             <td style={style.td}>{tamanoModelo(modelo)}</td>
             <td style={style.td}><Glifos modelo={modelo} mostrarVersiones={props.mostrarVersiones} /></td>
             <td style={style.td}>
-              <button
-                type="button"
-                data-testid="reciente-modelo"
-                style={style.inlineLoadButton}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  props.onAbrir(modelo.id);
-                }}
-              >
-                Cargar {modelo.nombre}
-              </button>
+              <span style={style.accionesCelda}>
+                <button
+                  type="button"
+                  data-testid="reciente-modelo"
+                  style={style.inlineLoadButton}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    props.onAbrir(modelo.id);
+                  }}
+                >
+                  Cargar {modelo.nombre}
+                </button>
+                <MenuAccionesModelo modelo={modelo} menu={props.menu} />
+              </span>
             </td>
           </tr>
         ))}
@@ -440,6 +551,12 @@ const style = {
   tileDate: { color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "11px", fontWeight: 500 },
   tileLoadButton: { alignSelf: "end", minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   inlineLoadButton: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
+  tileFooter: { display: "flex", alignItems: "center", gap: "6px", minWidth: 0 },
+  accionesCelda: { position: "relative", display: "inline-flex", alignItems: "center", gap: "6px" },
+  accionesToggle: { minHeight: "28px", padding: "4px 10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink70, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, whiteSpace: "nowrap" },
+  accionesMenu: { position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 30, minWidth: "180px", display: "grid", gap: "2px", padding: "4px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, boxShadow: tokens.shadows.flat },
+  accionItem: { minHeight: "30px", padding: "0 10px", border: 0, borderRadius: 0, background: "transparent", color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, textAlign: "left" },
+  accionItemDanger: { minHeight: "30px", padding: "0 10px", border: 0, borderRadius: 0, background: "transparent", color: tokens.colors.crimson, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, textAlign: "left" },
   glyphs: { display: "inline-flex", gap: "6px", alignItems: "center", justifySelf: "end" },
   glyphIcon: { width: "14px", height: "14px" },
   glyphText: { color: tokens.colors.ink50, fontSize: "14px", fontWeight: 600, lineHeight: 1 },
