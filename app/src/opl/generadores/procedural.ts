@@ -269,18 +269,15 @@ function oracionEvento(
       if (estado) return `${origenOpl} inicia ${destinoOpl}, que consume ${origenOpl}${sufijo}.`;
       return `${origenOpl} inicia ${destinoOpl}, que consume ${origenOpl}${sufijo}.`;
     }
-    case "resultado": {
-      const estado = estadoDeExtremo(modelo, enlace.destinoId);
-      if (estado) return `${destinoOpl} inicia ${origenOpl}, que genera ${destinoOpl}${sufijo}.`;
-      return `${destinoOpl} inicia ${origenOpl}, que genera ${destinoOpl}${sufijo}.`;
-    }
+    case "resultado":
+      return oracionEnlaceSinModificador(modelo, enlace);
     case "efecto": {
       const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
       const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
       return proceso && objeto ? `${objeto} inicia ${proceso}, que afecta ${objeto}${sufijo}.` : null;
     }
     case "invocacion":
-      return `${origenOpl} inicia e invoca ${destinoOpl}${sufijo}.`;
+      return oracionEnlaceSinModificador(modelo, enlace);
     default:
       return oracionEnlaceSinModificador(modelo, enlace);
   }

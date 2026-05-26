@@ -60,16 +60,34 @@ describe("procedural OPL", () => {
     );
   });
 
-  test("evento sobre resultado a estado conserva verbo resultado y califica estado", () => {
+  test("evento sobre resultado a estado degrada a resultado base", () => {
     const modelo = modeloConEstados();
     const enlace = {
       ...modelo.enlaces.r1!,
       modificador: "evento",
       subtipoModificador: "E",
     } satisfies Enlace;
-    expect(oracionEnlaceConRuta(modelo, enlace)).toBe(
-      "**Pedido** en `aprobado` inicia *Procesar*, que genera **Pedido** en `aprobado`.",
-    );
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("*Procesar* genera **Pedido** en `aprobado`.");
+    expect(texto).not.toContain("inicia");
+  });
+
+  test("evento sobre invocacion degrada a invocacion base", () => {
+    const modelo = modeloBase();
+    const enlace: Enlace = {
+      id: "i1",
+      tipo: "invocacion",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "operador" },
+      etiqueta: "",
+      modificador: "evento",
+      subtipoModificador: "E",
+    };
+    const texto = oracionEnlaceConRuta(modelo, enlace);
+
+    expect(texto).toBe("*Procesar* invoca **Operador**.");
+    expect(texto).not.toContain("inicia e invoca");
   });
 
   test("par consumo resultado sobre estados emite transicion TS3 unica", () => {
