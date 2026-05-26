@@ -4,9 +4,7 @@ import {
   guardarModeloLocal,
   actualizarMetadataModeloLocal,
   renombrarModeloLocal,
-  type ModeloPersistido,
 } from "../../persistencia/local";
-import { guardarPlantilla, listarPlantillas } from "../../persistencia/plantillas";
 import {
   validarNombreModeloLocal,
   workspaceDesdeModelo,
@@ -36,8 +34,7 @@ import {
 import { crearPestanaNueva } from "../pestanas";
 import type { ModeloSlice } from "../tipos";
 
-let limpiarResaltadoPlantillaTimer: number | null = null;
-const WELCOME_BANNER_DISMISSED_KEY = "opforja:welcome-banner-dismissed:v1";
+let limpiarResaltadoTimer: number | null = null;
 
 /**
  * Acciones de UI: limpiar mensaje, abrir/cerrar menú principal y diálogos
@@ -45,17 +42,13 @@ const WELCOME_BANNER_DISMISSED_KEY = "opforja:welcome-banner-dismissed:v1";
  * diálogo, nuevo modelo (reemplaza pestaña vacía o abre nueva), modal URLs.
  *
  * L3 traer conectados: [Met §multi-OPD], [Glos 3.6].
- * L4 plantillas privadas: [Met §8.8], [V-52], [V-123], [JOYAS §1].
  * L1 persistencia/carga: [Met §6].
  */
 export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
-    pantallaInicioCerrada: leerWelcomeBannerDescartado(),
     dialogoConfiguracionAbierto: false,
     dialogoSimulacionNumericaAbierto: false,
     dialogoTraerConectadosAbierto: false,
-    dialogoPlantillasAbierto: false,
-    dialogoGuardarPlantillaAbierto: false,
     // Brecha B3/B4: estado del diálogo de colisión de nombre. null = cerrado.
     colisionPendiente: null,
 
@@ -238,7 +231,6 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         descripcionModeloLocal: guardado.value.descripcion,
         modelosGuardados: listarModelosGuardadosSeguro(),
         dialogoGuardarComoAbierto: false,
-        pantallaInicioCerrada: true,
         indice: nuevoIndice,
         workspaceLocal: workspaceDesdeModelo(modeloNombrado, guardado.value.id, guardado.value.descripcion, carpetaParaGuardar ?? null),
       }));
@@ -287,11 +279,6 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       }
     },
 
-    cerrarPantallaInicio() {
-      escribirWelcomeBannerDescartado();
-      set({ pantallaInicioCerrada: true });
-    },
-
     abrirDialogoConfiguracion() {
       set({ dialogoConfiguracionAbierto: true, menuPrincipalAbierto: false, mensaje: null });
     },
@@ -316,84 +303,14 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       set({ dialogoTraerConectadosAbierto: false });
     },
 
-    abrirDialogoPlantillas() {
-      const listado = listarPlantillas("privado");
-      if (!listado.ok) {
-        set({ mensaje: listado.error, menuPrincipalAbierto: false });
-        return;
-      }
-      set({
-        plantillasGuardadas: listado.value,
-        dialogoPlantillasAbierto: true,
-        menuPrincipalAbierto: false,
-        mensaje: null,
-      });
-    },
-
-    cerrarDialogoPlantillas() {
-      set({ dialogoPlantillasAbierto: false });
-    },
-
-    abrirDialogoGuardarPlantilla() {
-      set({
-        dialogoGuardarPlantillaAbierto: true,
-        menuPrincipalAbierto: false,
-        mensaje: null,
-      });
-    },
-
-    cerrarDialogoGuardarPlantilla() {
-      set({ dialogoGuardarPlantillaAbierto: false });
-    },
-
-    guardarComoPlantillaConfirmar(input) {
-      const { modelo, descripcionModeloLocal, indice } = get();
-      const ambito = input.ambito ?? "privado";
-      if (ambito !== "privado") {
-        set({ mensaje: "Disponible cuando se habilite multi-usuario" });
-        return;
-      }
-      const ahora = new Date().toISOString();
-      const modeloPersistido: ModeloPersistido = {
-        id: `plantilla-contenido-${modelo.id}`,
-        nombre: modelo.nombre,
-        descripcion: descripcionModeloLocal || modelo.descripcion || "",
-        creadoEn: ahora,
-        actualizadoEn: ahora,
-        json: exportarModelo(modelo),
-      };
-      const descripcion = input.descripcion?.trim();
-      const guardada = guardarPlantilla({
-        nombre: input.nombre,
-        modeloPersistido,
-        ambito,
-        ...(descripcion ? { descripcion } : {}),
-      });
-      if (!guardada.ok) {
-        set({ mensaje: guardada.error });
-        return;
-      }
-      const listado = listarPlantillas("privado");
-      const plantillasGuardadas = listado.ok ? listado.value : [guardada.value];
-      const indiceActualizado = { ...indice, plantillas: plantillasGuardadas };
-      escribirIndiceWorkspace(indiceActualizado);
-      set({
-        indice: indiceActualizado,
-        plantillasGuardadas,
-        dialogoGuardarPlantillaAbierto: false,
-        dialogoPlantillasAbierto: false,
-        mensaje: "Plantilla guardada",
-      });
-    },
-
     resaltarTemporalmente(ids, ms = 3000) {
-      if (limpiarResaltadoPlantillaTimer !== null) {
-        window.clearTimeout(limpiarResaltadoPlantillaTimer);
+      if (limpiarResaltadoTimer !== null) {
+        window.clearTimeout(limpiarResaltadoTimer);
       }
       set({ idsResaltadosTemporales: [...ids] });
-      limpiarResaltadoPlantillaTimer = window.setTimeout(() => {
+      limpiarResaltadoTimer = window.setTimeout(() => {
         set({ idsResaltadosTemporales: [] });
-        limpiarResaltadoPlantillaTimer = null;
+        limpiarResaltadoTimer = null;
       }, ms);
     },
 
@@ -450,26 +367,13 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
           menuPrincipalAbierto: false,
           dialogoGuardarComoAbierto: false,
           dialogoCargarModeloAbierto: false,
-          pantallaInicioCerrada: true,
           workspaceLocal: workspaceDesdeModelo(modelo, null),
           mensaje: "Nuevo modelo",
         }));
-        // Ronda 23 L3 #7: si reemplazamos una pestaña etiquetada como
-        // "bienvenida" (fixture precargado), hay que reetiquetarla como
-        // "nuevo" para que el banner no reaparezca en el próximo render.
-        if (actual.cargadoDesde === "bienvenida") {
-          const pestanasActualizadas = get().pestanasAbiertas.map((p) => (
-            p.id === actual.id
-              ? { ...p, cargadoDesde: "nuevo" as const, etiqueta: "Modelo", dirty: false }
-              : p
-          ));
-          set({ pestanasAbiertas: pestanasActualizadas });
-        }
         return;
       }
       const pestana = crearPestanaNueva({ modelo });
       activarPestanaNueva(set, get, pestana, "Nuevo modelo en pestana");
-      set({ pantallaInicioCerrada: true });
     },
 
     abrirModalUrls(entidadId) {
@@ -500,20 +404,4 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       set({ readOnly: activo, mensaje: activo ? "Modelo en solo lectura" : null });
     },
   };
-}
-
-function leerWelcomeBannerDescartado(): boolean {
-  try {
-    return globalThis.localStorage?.getItem(WELCOME_BANNER_DISMISSED_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function escribirWelcomeBannerDescartado(): void {
-  try {
-    globalThis.localStorage?.setItem(WELCOME_BANNER_DISMISSED_KEY, "1");
-  } catch {
-    // localStorage puede no existir en tests unitarios o entornos embebidos.
-  }
 }

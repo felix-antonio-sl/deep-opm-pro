@@ -15,7 +15,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, ejecutarAccionCommandPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, clickLinkPorTipo, ejecutarAccionCommandPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto } from "./_smoke-helpers";
 
 test("entidad muestra ficha continua con las 5 secciones apiladas y sin tabs", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -23,7 +23,7 @@ test("entidad muestra ficha continua con las 5 secciones apiladas y sin tabs", a
 
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
   const inspector = page.getByTestId("inspector");
@@ -59,7 +59,7 @@ test("header del inspector rotula con identificador canónico de punto", async (
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
   const inspector = page.getByTestId("inspector");
@@ -76,7 +76,7 @@ test("sección Apariciones lista OPDs y navega cross-OPD con un click", async ({
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   // Inzoom crea OPD hijo; el proceso aparece en el contorno del OPD hijo.
   await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
@@ -119,7 +119,7 @@ test("sección Enlaces lista in/out y navega al inspector del enlace", async ({ 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -153,7 +153,7 @@ test("inspector de enlace muestra ficha con las 3 secciones apiladas y sin tabs"
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -185,7 +185,7 @@ test("inspector vacío no muestra contadores N objetos · N procesos · N OPDs",
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   const inspector = page.getByTestId("inspector");
   await expect(inspector).toHaveAttribute("data-modo-inspector", "vacio");
@@ -194,7 +194,7 @@ test("inspector vacío no muestra contadores N objetos · N procesos · N OPDs",
   await expect(page.getByTestId("inspector-vacio-conteos")).toHaveCount(0);
   // Placeholder editorial en su lugar.
   await expect(page.getByTestId("inspector-vacio-placeholder")).toHaveText(
-    "Selecciona un objeto, proceso o enlace para ver sus propiedades aquí.",
+    "Selecciona un elemento.",
   );
   await expect(page.getByTestId("inspector-vacio-renombrar")).toHaveCount(0);
 

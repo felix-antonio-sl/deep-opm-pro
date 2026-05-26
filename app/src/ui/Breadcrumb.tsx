@@ -11,8 +11,8 @@ export function Breadcrumb() {
   const { modelo, opdActivoId, cambiarOpdActivo } = useBreadcrumbViewModel();
   const segmentos = rutaBreadcrumbCodex(modelo, opdActivoId);
   const navegar = (id: Id) => {
-    if (id === "sistema") return;
-    cambiarOpdActivo(id === "system-diagram" ? modelo.opdRaizId : id);
+    if (id === "modelo") return;
+    cambiarOpdActivo(id === "sd" ? modelo.opdRaizId : id);
   };
 
   return <BreadcrumbView segmentos={segmentos} opdActivoId={segmentos[segmentos.length - 1]?.id ?? opdActivoId} cambiarOpdActivo={navegar} />;
@@ -98,8 +98,8 @@ export function rutaBreadcrumbCodex(modelo: Modelo, opdActivoId: Id): SegmentoBr
   }));
 
   return [
-    { id: "sistema", nombre: "sistema" },
-    { id: "system-diagram", nombre: "system diagram" },
+    { id: "modelo", nombre: "modelo" },
+    { id: "sd", nombre: "sd" },
     ...hijos,
   ];
 }

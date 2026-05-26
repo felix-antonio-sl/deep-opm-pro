@@ -16,7 +16,7 @@
  *    propaga al stack global de modales.
  */
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, elementoPorTexto } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, elementoPorTexto } from "./_smoke-helpers";
 
 test.describe("Ronda 15 L3 IFML flow nueva-cosa", () => {
   test("Action crearEntidadEnCanvas dispara modal vía store, no por bus DOM", async ({ page }) => {
@@ -24,7 +24,7 @@ test.describe("Ronda 15 L3 IFML flow nueva-cosa", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     // Antes de cualquier interacción no debe haber listeners legacy
     // `opm:nueva-cosa` registrados en window: si el contrato es de store, el
@@ -68,7 +68,7 @@ test.describe("Ronda 15 L3 IFML flow nueva-cosa", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     const canvas = page.getByRole("img", { name: "OPD activo" });
     await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
@@ -98,7 +98,7 @@ test.describe("Ronda 15 L3 IFML flow nueva-cosa", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     // Sin nueva-cosa pendiente: Esc no debe lanzar errores ni abrir nada.
     await page.keyboard.press("Escape");

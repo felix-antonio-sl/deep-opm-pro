@@ -57,7 +57,6 @@ export interface GlobalShortcutsSnapshot {
   modalImagenAbierto: unknown | null;
   modalUrlsAbierto: unknown | null;
   modalDuracionAbierto: unknown | null;
-  asistente: unknown | null;
   busquedaCosasAbierta: boolean;
   menuPrincipalAbierto: boolean;
   modoEnlace: unknown | null;
@@ -81,7 +80,6 @@ export interface GlobalShortcutsSnapshot {
   cerrarModalImagen: () => void;
   cerrarModalUrls: () => void;
   cerrarModalDuracion: () => void;
-  cancelarAsistente: () => void;
   cerrarBusquedaCosas: () => void;
   cerrarMenuPrincipal: () => void;
   cancelarEnlace: () => void;
@@ -200,7 +198,6 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     if (state.modalImagenAbierto) return state.cerrarModalImagen();
     if (state.modalUrlsAbierto) return state.cerrarModalUrls();
     if (state.modalDuracionAbierto) return state.cerrarModalDuracion();
-    if (state.asistente) return state.cancelarAsistente();
     if (state.busquedaCosasAbierta) return state.cerrarBusquedaCosas();
     if (state.menuPrincipalAbierto) return state.cerrarMenuPrincipal();
     if (state.modoEnlace) return state.cancelarEnlace();
@@ -318,7 +315,7 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
   ];
 
   if (APP_FEATURES.bibliotecaDock) {
-    registrosBase.push(registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", descripcionLarga: "Muestra u oculta la biblioteca lateral de plantillas y formas", handler: () => s().toggleBibliotecaDock() }));
+    registrosBase.push(registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", descripcionLarga: "Muestra u oculta la biblioteca lateral de formas", handler: () => s().toggleBibliotecaDock() }));
   }
 
   return registrosBase;

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, exportadoActual } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, exportadoActual } from "./_smoke-helpers";
 
 /**
  * B-mount — Resolución de colisión de nombre (DialogoColisionNombre).
@@ -76,7 +76,7 @@ test.describe("B-mount: colisión de nombre", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     // Paso 1: crear el primer objeto "Sensor" vía canvas en modo sticky.
     await crearObjetoViaCanvasStickyActivo(page, "Sensor", false);
@@ -137,7 +137,7 @@ test.describe("B-mount: colisión de nombre", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     // Crear "Sensor" (primera vez, sin colisión).
     await crearObjetoViaCanvasStickyActivo(page, "Sensor", false);
@@ -169,7 +169,7 @@ test.describe("B-mount: colisión de nombre", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     // Crear "Sensor" vía botón Objeto (toolbar directo → crearObjetoDemo).
     await page.getByRole("button", { name: "Objeto", exact: true }).click();
@@ -218,7 +218,7 @@ test.describe("B-mount: colisión de nombre", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     // Crear "Sensor".
     await page.getByRole("button", { name: "Objeto", exact: true }).click();

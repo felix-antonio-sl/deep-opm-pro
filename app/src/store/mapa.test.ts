@@ -1,12 +1,17 @@
 import { describe, expect, test } from "bun:test";
+import { crearOnStarSystem } from "../modelo/fixtures";
 import { crearModelo, crearProceso, descomponerProceso } from "../modelo/operaciones";
 import type { Resultado } from "../modelo/tipos";
 import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
 
+function cargarModeloReferencia(): void {
+  store.getState().importarJson(exportarModelo(crearOnStarSystem().modelo));
+}
+
 describe("slice mapa", () => {
   test("abrirVistaMapa crea descriptor derivado y cerrarVistaMapa lo limpia", () => {
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
 
     store.getState().abrirVistaMapa();
     expect(store.getState().vistaMapaActiva).toBe(true);
@@ -18,7 +23,7 @@ describe("slice mapa", () => {
   });
 
   test("abrirVistaMapa sale de modo simulacion si esta activo", () => {
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     store.getState().crearObjetoDemo();
     store.getState().cerrarVistaMapa();
     // Entrar a simulacion
@@ -33,7 +38,7 @@ describe("slice mapa", () => {
   });
 
   test("abrirVistaMapa cancela modoEnlace y modoCreacion", () => {
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     // Seteamos modoEnlace y modoCreacion directamente para aislar el slice
     // mapa de la activacion de elegirTipoEnlace (cubierta en enlaces.test.ts).
     store.setState({
@@ -52,7 +57,7 @@ describe("slice mapa", () => {
 
 describe("slice simulacion (P0-2 exclusion mutua)", () => {
   test("iniciarModoSimulacion sale de vista mapa si esta activa", () => {
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     store.getState().crearObjetoDemo();
     store.getState().cancelarEnlace();
     store.getState().fijarModoCreacion(null);
@@ -71,7 +76,7 @@ describe("slice simulacion (P0-2 exclusion mutua)", () => {
     // Limpiamos estado residual (test previo dejo contextoSimulacion activo)
     store.getState().salirModoSimulacion();
     store.getState().cerrarVistaMapa();
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     // Seteamos modoEnlace y modoCreacion directamente (aislamos slice mapa
     // del flujo elegirTipoEnlace cubierto en enlaces.test.ts).
     store.setState({
@@ -163,7 +168,7 @@ describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de conte
   test("abrirVistaMapa descarta nuevaCosaPendiente", () => {
     store.getState().salirModoSimulacion();
     store.getState().cerrarVistaMapa();
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     activarPendienteStub();
     expect(store.getState().nuevaCosaPendiente).not.toBeNull();
     store.getState().abrirVistaMapa();
@@ -173,7 +178,7 @@ describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de conte
   test("iniciarModoSimulacion descarta nuevaCosaPendiente", () => {
     store.getState().salirModoSimulacion();
     store.getState().cerrarVistaMapa();
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     activarPendienteStub();
     expect(store.getState().nuevaCosaPendiente).not.toBeNull();
     store.getState().iniciarModoSimulacion();
@@ -183,7 +188,7 @@ describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de conte
   test("elegirTipoEnlace descarta nuevaCosaPendiente", () => {
     store.getState().salirModoSimulacion();
     store.getState().cerrarVistaMapa();
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     const origenId = Object.keys(store.getState().modelo.entidades)[0]!;
     store.getState().seleccionarEntidad(origenId);
     activarPendienteStub();
@@ -195,7 +200,7 @@ describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de conte
   test("fijarModoCreacion descarta nuevaCosaPendiente", () => {
     store.getState().salirModoSimulacion();
     store.getState().cerrarVistaMapa();
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     activarPendienteStub();
     store.getState().fijarModoCreacion("objeto");
     expect(store.getState().nuevaCosaPendiente).toBeNull();
@@ -205,7 +210,7 @@ describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de conte
   test("seleccionarEntidad preserva pendiente si es la misma, descarta si es otra", () => {
     store.getState().salirModoSimulacion();
     store.getState().cerrarVistaMapa();
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     const ids = Object.keys(store.getState().modelo.entidades);
     const idA = ids[0]!;
     const idB = ids[1]!;
@@ -223,10 +228,10 @@ describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de conte
   test("seleccionarEnlace descarta nuevaCosaPendiente", () => {
     store.getState().salirModoSimulacion();
     store.getState().cerrarVistaMapa();
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     const enlaceId = Object.keys(store.getState().modelo.enlaces)[0];
     if (!enlaceId) {
-      // El demo no tiene enlaces en este punto; saltamos preservando intencion.
+      // El el modelo no tiene enlaces en este punto; saltamos preservando intencion.
       expect(true).toBe(true);
       return;
     }
@@ -238,7 +243,7 @@ describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de conte
   test("cambiarOpdActivo descarta nuevaCosaPendiente", () => {
     store.getState().salirModoSimulacion();
     store.getState().cerrarVistaMapa();
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     activarPendienteStub();
     const opdActual = store.getState().opdActivoId;
     // Forzamos un OPD distinto si existe; si solo hay raiz, el cambiar no aplica.

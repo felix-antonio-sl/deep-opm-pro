@@ -8,7 +8,6 @@ import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/local";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
-import { listarFixtures } from "../store/runtime";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { PanelCarpetas, type VistaModo } from "./PanelCarpetas";
@@ -17,7 +16,6 @@ import { tokens } from "./tokens";
 
 /**
  * Diálogo de carga local. Persistencia/carga: [Met §6].
- * Los ejemplos se leen desde `fixtureTodos()` como catálogo único.
  */
 export function DialogoCargarModelo() {
   const persistencia = useZustandPersistencePort();
@@ -27,8 +25,6 @@ export function DialogoCargarModelo() {
   const [seleccionadoId, setSeleccionadoId] = useState<Id | null>(null);
   const [orden, setOrden] = useState<OrdenCargar>(() => leerOrdenCargar());
   const [query, setQuery] = useState("");
-  const [demoSeleccionado, setDemoSeleccionado] = useState("");
-  const demos = useMemo(() => listarFixtures(), []);
 
   useEffect(() => {
     if (!persistencia.dialogoCargarModeloAbierto) return;
@@ -72,50 +68,21 @@ export function DialogoCargarModelo() {
     if (!modeloId) return;
     confirmarSiDirty(() => persistencia.cargarLocal(modeloId));
   }, [confirmarSiDirty, persistencia.cargarLocal]);
-  const cargarEjemplo = useCallback((accion: () => void) => {
-    confirmarSiDirty(() => {
-      persistencia.cerrarCargarModelo();
-      accion();
-    });
-  }, [confirmarSiDirty, persistencia.cerrarCargarModelo]);
-
   return (
     <Dialogo
       open={persistencia.dialogoCargarModeloAbierto}
-      title="Abrir / importar modelo"
+      title="Abrir modelo"
       onCancel={persistencia.cerrarCargarModelo}
       size="xl"
       testId="dialogo-abrir-importar"
       actions={(
         <>
           <DialogoAccion onClick={persistencia.cerrarCargarModelo}>Cancelar</DialogoAccion>
-          <DialogoAccion tono="primaria" disabled={!seleccionado} onClick={() => abrirSeleccionado(seleccionado?.id ?? null)}>Cargar</DialogoAccion>
+          <DialogoAccion tono="primaria" disabled={!seleccionado} onClick={() => abrirSeleccionado(seleccionado?.id ?? null)}>Abrir</DialogoAccion>
         </>
       )}
     >
       <div style={style.container}>
-        <div style={style.exampleBar}>
-          <select
-            aria-label="Cargar modelo de ejemplo"
-            value={demoSeleccionado}
-            style={style.demoSelect}
-            onChange={(e) => {
-              const nombre = e.currentTarget.value;
-              if (!nombre) return;
-              setDemoSeleccionado("");
-              cargarEjemplo(() => {
-                persistencia.cargarFixtureDemo(nombre);
-              });
-            }}
-          >
-            <option value="" disabled>Ejemplos...</option>
-            {demos.map((d) => (
-              <option key={d.modelo.nombre} value={d.modelo.nombre} title={d.proposito}>
-                {d.modelo.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
         <div style={style.flagsBar}>
           <label style={style.flag}>
             <input type="checkbox" checked={workspace.mostrarArchivados} onChange={workspace.toggleMostrarArchivados} />
@@ -245,7 +212,7 @@ function TileModelo(props: {
         }}
         onDblClick={(event) => event.stopPropagation()}
       >
-        Cargar {props.modelo.nombre}
+        Abrir {props.modelo.nombre}
       </button>
     </div>
   );
@@ -386,25 +353,6 @@ const style = {
     flexDirection: "column",
     gap: "10px",
     minHeight: "300px",
-  },
-  exampleBar: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "8px",
-    alignItems: "center",
-  },
-  demoSelect: {
-    height: "34px",
-    padding: "0 8px",
-    border: `1px solid ${tokens.colors.ink15}`,
-    borderRadius: 0,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
-    cursor: "pointer",
-    fontFamily: tokens.typography.familyChrome,
-    fontSize: "13px",
-    fontWeight: 500,
-    maxWidth: "220px",
   },
   flagsBar: {
     display: "flex",

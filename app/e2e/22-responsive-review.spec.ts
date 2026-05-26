@@ -12,7 +12,7 @@
  * - Desktop (1280x800) preserva la toolbar y los paneles existentes.
  */
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { esperarWorkbenchInicial } from "./_smoke-helpers";
 
 const VIEWPORT_MOBILE = { width: 390, height: 844 } as const;
 const VIEWPORT_DESKTOP = { width: 1280, height: 800 } as const;
@@ -22,7 +22,7 @@ test.describe("mobile 390x844 — modo revisión sin toolbar saturada", () => {
 
   test("no hay overflow horizontal > 8px en mobile", async ({ page }) => {
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     const overflow = await page.evaluate(() => ({
       docScroll: document.documentElement.scrollWidth,
@@ -37,7 +37,7 @@ test.describe("mobile 390x844 — modo revisión sin toolbar saturada", () => {
 
   test("toolbar primaria de modelado pesado oculta a 390px", async ({ page }) => {
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     const toolbarRoot = page.getByTestId("toolbar-root");
     await expect(toolbarRoot).toBeVisible();
@@ -51,7 +51,7 @@ test.describe("mobile 390x844 — modo revisión sin toolbar saturada", () => {
 
   test("4 tabs Canvas/OPDs/OPL/Issues visibles y navegables", async ({ page }) => {
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     const nav = page.getByTestId("modo-revision-mobile");
     await expect(nav).toBeVisible();
@@ -97,7 +97,7 @@ test.describe("mobile 390x844 — modo revisión sin toolbar saturada", () => {
     // se deje un WARN explícito en lugar de un FAIL. Aquí no hay tab "Notas"
     // y no debe haberlo: las 4 tabs canónicas son Canvas/OPDs/OPL/Issues.
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
     const tabsCount = await page
       .getByTestId("modo-revision-mobile")
       .locator("[role=tab]")
@@ -115,7 +115,7 @@ test.describe("desktop 1280x800 — preserva toolbar y paneles existentes", () =
 
   test("toolbar primaria, tree y opl siguen visibles", async ({ page }) => {
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     await expect(page.getByTestId("toolbar-root")).toBeVisible();
     await expect(page.getByTestId("toolbar-actions-pesadas")).toBeVisible();

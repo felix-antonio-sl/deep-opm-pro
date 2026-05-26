@@ -1,7 +1,6 @@
 import type { OpmStore } from "../../store";
 
 export interface AppShellOverlaysPort {
-  asistenteAbierto: boolean;
   dialogoGuardarComoAbierto: OpmStore["dialogoGuardarComoAbierto"];
   dialogoConfiguracionAbierto: OpmStore["dialogoConfiguracionAbierto"];
   dialogoSimulacionNumericaAbierto: OpmStore["dialogoSimulacionNumericaAbierto"];

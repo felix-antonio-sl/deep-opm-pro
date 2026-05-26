@@ -12,7 +12,6 @@ import {
   distribuirUniformemente,
   eliminarBatch,
   eliminarEnlacesBatch,
-  insertarPlantillaBatch,
   nudgeApariencias,
   ocultarAparienciaBatch,
   pegarSeleccion,
@@ -196,71 +195,6 @@ describe("operacionesBatch", () => {
     expect(Object.values(eliminado.enlaces).some((enlace) => enlace.origenId.id === a || enlace.destinoId.id === a)).toBe(false);
   });
 
-  test("insertarPlantillaBatch copia entidades, enlaces, apariencias y genera IDs nuevos", () => {
-    const destino = must(crearObjeto(crearModelo("Destino"), "opd-1", { x: 20, y: 20 }, "Sensor"));
-    const fuente = plantillaConExhibicion();
-    const resultado = must(insertarPlantillaBatch(destino, destino.opdRaizId, fuente, fuente.opdRaizId));
-
-    expect(resultado.entidadesInsertadas).toBe(2);
-    expect(resultado.enlacesInsertados).toBe(1);
-    expect(Object.keys(resultado.modelo.entidades)).toHaveLength(Object.keys(destino.entidades).length + 2);
-    expect(resultado.idsNuevos.every((id) => !fuente.entidades[id] && !fuente.enlaces[id])).toBe(true);
-    expect(Object.values(resultado.modelo.opds[destino.opdRaizId]?.apariencias ?? {})).toHaveLength(3);
-  });
-
-  test("insertarPlantillaBatch aplica sufijo _2/_3 para colisiones nominales en OPD destino", () => {
-    let destino = crearModelo("Destino colisiones");
-    destino = must(crearObjeto(destino, destino.opdRaizId, { x: 20, y: 20 }, "Sensor"));
-    destino = must(crearObjeto(destino, destino.opdRaizId, { x: 180, y: 20 }, "Sensor_2"));
-    const fuente = plantillaConExhibicion("Sensor");
-
-    const resultado = must(insertarPlantillaBatch(destino, destino.opdRaizId, fuente, fuente.opdRaizId));
-    const nombres = Object.values(resultado.modelo.entidades).map((entidad) => entidad.nombre);
-    expect(nombres).toContain("Sensor_3");
-  });
-
-  test("insertarPlantillaBatch preserva etiqueta de enlace exhibición", () => {
-    const destino = crearModelo("Destino etiquetas");
-    const fuente = plantillaConExhibicion("Equipo", "Capacidad", "capacidad nominal");
-    const resultado = must(insertarPlantillaBatch(destino, destino.opdRaizId, fuente, fuente.opdRaizId));
-
-    expect(Object.values(resultado.modelo.enlaces).some((enlace) =>
-      enlace.tipo === "exhibicion" && enlace.etiqueta === "capacidad nominal"
-    )).toBe(true);
-  });
-
-  test("insertarPlantillaBatch crea sub-OPDs como descendientes del OPD activo", () => {
-    const destino = crearModelo("Destino subopd");
-    const fuente = plantillaConSubOpd();
-    const resultado = must(insertarPlantillaBatch(destino, destino.opdRaizId, fuente, fuente.opdRaizId));
-    const hijos = Object.values(resultado.modelo.opds).filter((opd) => opd.padreId === destino.opdRaizId);
-
-    expect(resultado.opdsInsertados).toBe(1);
-    expect(hijos).toHaveLength(1);
-    const proceso = Object.values(resultado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso plantilla");
-    expect(proceso?.refinamientos?.descomposicion?.opdId).toBe(hijos[0]?.id);
-    expect(Object.values(hijos[0]?.apariencias ?? {}).some((ap) =>
-      resultado.modelo.entidades[ap.entidadId]?.nombre === "Paso interno"
-    )).toBe(true);
-  });
-
-  test("HU-33.018: modificar plantilla fuente después de insertar no altera la copia destino", () => {
-    const destino = crearModelo("Destino desacople");
-    const fuente = plantillaConExhibicion("Sensor");
-    const resultado = must(insertarPlantillaBatch(destino, destino.opdRaizId, fuente, fuente.opdRaizId));
-    const nombreInsertado = Object.values(resultado.modelo.entidades).find((entidad) => entidad.nombre === "Sensor")?.nombre;
-    const fuenteMutada: Modelo = {
-      ...fuente,
-      entidades: Object.fromEntries(Object.entries(fuente.entidades).map(([id, entidad]) => [
-        id,
-        entidad.nombre === "Sensor" ? { ...entidad, nombre: "Sensor mutado" } : entidad,
-      ])),
-    };
-
-    expect(nombreInsertado).toBe("Sensor");
-    expect(Object.values(resultado.modelo.entidades).some((entidad) => entidad.nombre === "Sensor mutado")).toBe(false);
-    expect(Object.values(fuenteMutada.entidades).some((entidad) => entidad.nombre === "Sensor mutado")).toBe(true);
-  });
 });
 
 function modeloConTodoPartes(conEnlaces = true): { modelo: Modelo; todo: Id; partes: Id[]; enlaces: Id[] } {
@@ -357,51 +291,6 @@ function modeloEnlacesInternosSinApariencias(opts: { conEnlaceVisible?: boolean 
     },
   };
   return { modelo, opdId, a, b, c, d };
-}
-
-function plantillaConExhibicion(nombreBase = "Sensor", nombreAtributo = "Voltaje", etiqueta = "medición"): Modelo {
-  let modelo = crearModelo("Plantilla");
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, nombreBase));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 80 }, nombreAtributo));
-  const base = entidadPorNombre(modelo, nombreBase);
-  const atributo = entidadPorNombre(modelo, nombreAtributo);
-  modelo = must(crearEnlace(modelo, modelo.opdRaizId, base, atributo, "exhibicion", etiqueta));
-  return modelo;
-}
-
-function plantillaConSubOpd(): Modelo {
-  let modelo = crearModelo("Plantilla subOPD");
-  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 120, y: 80 }, "Proceso plantilla"));
-  const procesoId = entidadPorNombre(modelo, "Proceso plantilla");
-  const childId = "opd-plantilla-hijo";
-  modelo = {
-    ...modelo,
-    entidades: {
-      ...modelo.entidades,
-      [procesoId]: {
-        ...modelo.entidades[procesoId]!,
-        refinamientos: { descomposicion: { opdId: childId } },
-      },
-    },
-    opds: {
-      ...modelo.opds,
-      [childId]: {
-        id: childId,
-        nombre: "Detalle plantilla",
-        padreId: modelo.opdRaizId,
-        apariencias: {},
-        enlaces: {},
-      },
-    },
-  };
-  modelo = must(crearObjeto(modelo, childId, { x: 100, y: 120 }, "Paso interno"));
-  return modelo;
-}
-
-function entidadPorNombre(modelo: Modelo, nombre: string): Id {
-  const entidad = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
-  if (!entidad) throw new Error(`Entidad no encontrada: ${nombre}`);
-  return entidad.id;
 }
 
 function must<T>(resultado: Resultado<T>): T {

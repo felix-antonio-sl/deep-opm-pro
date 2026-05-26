@@ -72,11 +72,6 @@ describe("resolverContextSubModoWorkbench — Context.Modo.subModo IFML", () => 
 });
 
 describe("resolverViewPointWorkbench — ViewPoint efectivo", () => {
-  test("Bienvenida prevalece como ViewPoint de boot sin modelo cargado", () => {
-    expect(resolverViewPointWorkbench({ device: "desktop", modo: "edicion", bienvenidaActiva: true })).toBe("Bienvenida");
-    expect(resolverViewPointWorkbench({ device: "mobile", modo: "edicion", bienvenidaActiva: true })).toBe("Bienvenida");
-  });
-
   test("mobile sustituye la composicion aunque el modo sea alternativo", () => {
     expect(resolverViewPointWorkbench({ device: "mobile", modo: "edicion" })).toBe("Mobile");
     expect(resolverViewPointWorkbench({ device: "mobile", modo: "mapa" })).toBe("Mobile");
@@ -105,20 +100,6 @@ describe("resolverContextoWorkbench — contrato integrado", () => {
     expect(resolverContextoWorkbench({ breakpoint: "desktop", vistaMapaActiva: false, modoSimulacionActivo: true }).viewPointDefault).toBe(false);
   });
 
-  test("declara Bienvenida como ViewPoint no default antes de Edicion", () => {
-    expect(resolverContextoWorkbench({
-      breakpoint: "desktop",
-      vistaMapaActiva: false,
-      modoSimulacionActivo: false,
-      bienvenidaActiva: true,
-    })).toEqual({
-      device: "desktop",
-      modo: "edicion",
-      subModo: null,
-      viewPoint: "Bienvenida",
-      viewPointDefault: false,
-    });
-  });
 });
 
 describe("tituloViewPointWorkbench — heading accesible del ViewPoint", () => {
@@ -129,6 +110,5 @@ describe("tituloViewPointWorkbench — heading accesible del ViewPoint", () => {
     expect(tituloViewPointWorkbench({ viewPoint: "Mapa", subModo: null })).toBe("Mapa del sistema OPM");
     expect(tituloViewPointWorkbench({ viewPoint: "Simulacion", subModo: null })).toBe("Simulación conceptual OPM");
     expect(tituloViewPointWorkbench({ viewPoint: "Mobile", subModo: null })).toBe("Revisión mobile OPM");
-    expect(tituloViewPointWorkbench({ viewPoint: "Bienvenida", subModo: null })).toBe("Bienvenida deep-opm-pro");
   });
 });

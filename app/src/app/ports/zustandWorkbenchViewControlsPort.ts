@@ -4,7 +4,6 @@ import { useOpmStore } from "../../store";
 import type { WorkbenchViewControlsPort } from "./workbenchViewControlsPort";
 
 export function useZustandWorkbenchViewControlsPort(): WorkbenchViewControlsPort {
-  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
   const uiAliasVisibles = useOpmStore((s) => s.uiAliasVisibles);
   const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
   const toggleAliasVisibles = useOpmStore((s) => s.toggleAliasVisibles);
@@ -20,7 +19,6 @@ export function useZustandWorkbenchViewControlsPort(): WorkbenchViewControlsPort
   const iniciarModoSimulacion = useOpmStore((s) => s.iniciarModoSimulacion);
 
   return {
-    abrirDialogoPlantillas,
     uiAliasVisibles,
     uiDescripcionesVisibles,
     toggleAliasVisibles,

@@ -3,7 +3,7 @@ import {
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   crearAtributoNumericoSmoke,
   rectDeLocator,
   clickCabeceraElemento,
@@ -395,7 +395,7 @@ test("HU-SHARED-002: deshacer revierte creación de cosa con un solo Ctrl+Z (ato
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modal = page.getByTestId("modal-nombre-cosa");
@@ -423,7 +423,7 @@ test("L1 atajos Ctrl+Z y Ctrl+Shift+Z reemplazan los botones eliminados del chro
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await expect(page.getByTestId("toolbar-root")).toBeVisible();
   // Confirmamos que el chrome ya no expone botones visibles de Deshacer/Rehacer.
@@ -451,6 +451,6 @@ test("L1 atajos Ctrl+Z y Ctrl+Shift+Z reemplazan los botones eliminados del chro
 // efectivamente cierran sin persistir el modelo cuando el operador presiona
 // Esc. Anclaje SSOT: [Met §6 etapas SD persistencia].
 // Bloque pegable al final de `app/e2e/opm-smoke.spec.ts` (sin tocar tests
-// previos). Requiere helpers `cerrarPantallaInicioSiVisible` y
+// previos). Requiere helpers `esperarWorkbenchInicial` y
 // `exportadoActual` ya presentes en el archivo.
 // ─────────────────────────────────────────────────────────────────────────────

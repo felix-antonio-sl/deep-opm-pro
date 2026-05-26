@@ -18,7 +18,7 @@
 
 import { expect, test } from "@playwright/test";
 import {
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   elementoPorTexto,
 } from "./_smoke-helpers";
 
@@ -27,20 +27,19 @@ test("canvas vacio muestra hint inferior discreto, no overlay centrado", async (
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // El hint es discreto y vive dentro del canvas-pane.
   const hint = page.getByTestId("estado-vacio-hint");
   await expect(hint).toBeVisible();
   await expect(hint).toHaveAttribute("aria-label", "Iniciar SD");
-  await expect(hint).toContainText("Pulsa Objeto o Proceso arriba para empezar.");
+  await expect(hint).toContainText("O objeto · P proceso · R relación");
 
   // El bloque centrado "Iniciar SD" con sus 3 botones primarios ya no existe.
   await expect(page.getByTestId("estado-vacio-opm")).toHaveCount(0);
   await expect(page.getByTestId("estado-vacio-crear-proceso")).toHaveCount(0);
   await expect(page.getByTestId("estado-vacio-crear-objeto")).toHaveCount(0);
   await expect(page.getByTestId("estado-vacio-crear-agente-instrumento")).toHaveCount(0);
-  await expect(page.getByTestId("estado-vacio-abrir-asistente")).toHaveCount(0);
 
   // La toolbar es el único punto de entrada de creación primaria.
   await expect(page.getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
@@ -54,7 +53,7 @@ test("hint desaparece tras crear primera apariencia via toolbar", async ({ page 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await expect(page.getByTestId("estado-vacio-hint")).toBeVisible();
 
   // El click en "Proceso" crea directo (sin modal): la accion canonica de la
@@ -73,7 +72,7 @@ test("primera cosa creada desde toolbar queda centrada en el canvas visible", as
 
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   const elemento = page.locator(".joint-element").first();
@@ -110,7 +109,7 @@ test("tras 2 entidades con firma legal aparece nudge 'Conectar como resultado'",
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await expect(page.locator(".joint-element")).toHaveCount(1);
@@ -136,7 +135,7 @@ test("eval minimo: crear proceso + objeto + enlace resultado desde vacio en meno
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await expect(page.getByTestId("estado-vacio-hint")).toBeVisible();
 
   // Marca de inicio segun reloj de la pagina.

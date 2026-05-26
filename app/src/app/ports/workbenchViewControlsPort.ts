@@ -2,7 +2,6 @@ import type { GridConfig } from "../../canvas/grid";
 import type { OpmStore } from "../../store";
 
 export interface WorkbenchViewControlsPort {
-  abrirDialogoPlantillas: OpmStore["abrirDialogoPlantillas"];
   uiAliasVisibles: OpmStore["uiAliasVisibles"];
   uiDescripcionesVisibles: OpmStore["uiDescripcionesVisibles"];
   toggleAliasVisibles: OpmStore["toggleAliasVisibles"];

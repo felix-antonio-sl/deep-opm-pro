@@ -21,7 +21,7 @@
  */
 
 import { expect, test, type Page, type Locator } from "@playwright/test";
-import { abrirDialogoCargarModelo, cargarModeloEjemplo, cerrarPantallaInicioSiVisible, ejecutarComandoPalette } from "./_smoke-helpers";
+import { abrirDialogoCargarModelo, esperarWorkbenchInicial, ejecutarComandoPalette, importarModeloJson, modeloDosOpds } from "./_smoke-helpers";
 
 interface Rect { x: number; y: number; width: number; height: number }
 
@@ -60,8 +60,8 @@ test("[L1] DialogoCargarModelo pinta sobre canvas+grid e interactua", async ({ p
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "System Diagram");
+  await esperarWorkbenchInicial(page);
+  await importarModeloJson(page, modeloDosOpds());
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   const dialogo = await abrirDialogoCargarModelo(page);
@@ -88,8 +88,8 @@ test("[L1] DialogoConfiguracion pinta sobre canvas SVG y acepta edicion sin clic
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "System Diagram");
+  await esperarWorkbenchInicial(page);
+  await importarModeloJson(page, modeloDosOpds());
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await abrirConfigGridDesdeMenuPrincipal(page);
@@ -130,8 +130,8 @@ test("[L1] DialogoConfiguracion expone aria-labelledby y Esc captura", async ({ 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "System Diagram");
+  await esperarWorkbenchInicial(page);
+  await importarModeloJson(page, modeloDosOpds());
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await abrirConfigGridDesdeMenuPrincipal(page);
@@ -163,8 +163,8 @@ test("[L1] Dialogo se monta fuera del subarbol del workbench (portal a body)", a
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "System Diagram");
+  await esperarWorkbenchInicial(page);
+  await importarModeloJson(page, modeloDosOpds());
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   await abrirDialogoCargarModelo(page);

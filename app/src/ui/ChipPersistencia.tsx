@@ -6,7 +6,6 @@
  *   - local-clean: persistido y sin cambios pendientes.
  *   - local-dirty: persistido con cambios pendientes.
  *   - importado: cargado desde JSON, no persistido.
- *   - asistente: generado por asistente IA, no persistido.
  *   - nuevo: recien creado, no persistido y sin cambios.
  *
  * Decisiones (brief §10):
@@ -24,8 +23,6 @@ export type VarianteChipTipo =
   | "local-clean"
   | "local-dirty"
   | "importado"
-  | "fixture"
-  | "asistente"
   | "nuevo";
 
 export interface VarianteChip {
@@ -38,13 +35,12 @@ interface EntradaClasificarVariante {
   modeloPersistidoId: string | null;
   dirty: boolean;
   cargadoDesde: OrigenPestana;
-  esFixture: boolean;
   versiones: number;
   tiempoRelativo: string | null;
 }
 
 export function clasificarVariante(input: EntradaClasificarVariante): VarianteChip {
-  const { modeloPersistidoId, dirty, cargadoDesde, esFixture, versiones, tiempoRelativo } = input;
+  const { modeloPersistidoId, dirty, cargadoDesde, versiones, tiempoRelativo } = input;
   if (modeloPersistidoId) {
     return {
       tipo: dirty ? "local-dirty" : "local-clean",
@@ -54,12 +50,6 @@ export function clasificarVariante(input: EntradaClasificarVariante): VarianteCh
   }
   if (cargadoDesde === "importado") {
     return { tipo: "importado", versiones, tiempoRelativo: null };
-  }
-  if (esFixture) {
-    return { tipo: "fixture", versiones, tiempoRelativo: null };
-  }
-  if (cargadoDesde === "asistente") {
-    return { tipo: "asistente", versiones, tiempoRelativo: null };
   }
   return { tipo: "nuevo", versiones, tiempoRelativo: null };
 }
@@ -96,7 +86,7 @@ export function formatearTiempoRelativo(ultimoMs: number, ahoraMs: number = Date
  *   - "Cambios sin guardar"  · local-dirty (persistido + cambios en cola;
  *                              el autosalvado periodico los recogera).
  *   - "Sin guardar · Ctrl+S" · variantes no persistidas (importado,
- *                              fixture, asistente, nuevo); el autosalvado
+ *                              nuevo); el autosalvado
  *                              no opera sobre ellas, hay que invocar
  *                              Guardar como manualmente.
  *
@@ -150,14 +140,6 @@ export function detallarChip(
       lineas.push("Origen: importado desde archivo JSON");
       lineas.push("Cambios pendientes: sí (aún no persistido)");
       break;
-    case "fixture":
-      lineas.push("Origen: fixture del catálogo local");
-      lineas.push("Cambios pendientes: sí (aún no persistido)");
-      break;
-    case "asistente":
-      lineas.push("Origen: generado por asistente IA");
-      lineas.push("Cambios pendientes: sí (aún no persistido)");
-      break;
     case "nuevo":
       lineas.push("Origen: modelo nuevo");
       lineas.push("Cambios pendientes: sí (aún no persistido)");
@@ -177,8 +159,8 @@ interface IconoProps {
 
 /**
  * Ronda 28 L2 (Bauhaus): el chip muestra un dot 6×6 cuadrado en ink.
- * Las variantes con acción pendiente (dirty / importado / asistente /
- * nuevo / fixture) usan el mismo dot — la diferencia comunicativa la
+ * Las variantes con acción pendiente (dirty / importado / nuevo) usan el
+ * mismo dot — la diferencia comunicativa la
  * lleva el copy del label, no el icono. local-clean usa un dot vacío
  * (outline) para subrayar visualmente "estado en reposo".
  */
@@ -215,7 +197,6 @@ export function ChipPersistencia(): preact.JSX.Element {
     modeloPersistidoId,
     dirty,
     cargadoDesde,
-    esFixture,
     versiones,
     ultimoAutosalvado,
     autosalvadoEnCurso,
@@ -229,7 +210,6 @@ export function ChipPersistencia(): preact.JSX.Element {
     modeloPersistidoId,
     dirty,
     cargadoDesde,
-    esFixture,
     versiones,
     tiempoRelativo,
   });

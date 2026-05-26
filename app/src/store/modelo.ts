@@ -36,9 +36,6 @@ export const createModeloSlice: CrearSlice<ModeloSlice> = (set, get) => ({
   dirtyModelo: false,
   puedeDeshacer: false,
   puedeRehacer: false,
-  plantillasGuardadas: [],
-  dialogoPlantillasAbierto: false,
-  dialogoGuardarPlantillaAbierto: false,
   idsResaltadosTemporales: [],
   // IFML H-3 / Ronda 15 L3: NavigationFlow tipado del flujo de creación.
   nuevaCosaPendiente: null,

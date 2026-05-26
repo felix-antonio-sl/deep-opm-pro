@@ -12,14 +12,14 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, crearAtributoNumericoSmoke } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, crearAtributoNumericoSmoke } from "./_smoke-helpers";
 
 test("simulación numérica: abrir desde palette, estado vacío visible", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Abrir via ⌘K (Ctrl+K en Playwright Linux).
   await page.keyboard.press("Control+k");

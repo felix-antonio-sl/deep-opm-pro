@@ -284,7 +284,6 @@ export const shadows = {
   modalGrid: noShadow,
   flotante: noShadow,
   tabla: noShadow,
-  asistente: noShadow,
   inicio: noShadow,
   dropProceso: `0 0 0 2px ${crimson}`,
   appChrome: noShadow,

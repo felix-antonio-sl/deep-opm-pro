@@ -2,7 +2,6 @@ import { useOpmStore } from "../../store";
 import type { AppShellOverlaysPort } from "./appShellOverlaysPort";
 
 export function useZustandAppShellOverlaysPort(): AppShellOverlaysPort {
-  const asistenteAbierto = useOpmStore((s) => s.asistente !== null);
   const dialogoGuardarComoAbierto = useOpmStore((s) => s.dialogoGuardarComoAbierto);
   const dialogoConfiguracionAbierto = useOpmStore((s) => s.dialogoConfiguracionAbierto);
   const dialogoSimulacionNumericaAbierto = useOpmStore((s) => s.dialogoSimulacionNumericaAbierto);
@@ -23,7 +22,6 @@ export function useZustandAppShellOverlaysPort(): AppShellOverlaysPort {
   const cerrarDialogoComandos = useOpmStore((s) => s.cerrarDialogoComandos);
 
   return {
-    asistenteAbierto,
     dialogoGuardarComoAbierto,
     dialogoConfiguracionAbierto,
     dialogoSimulacionNumericaAbierto,

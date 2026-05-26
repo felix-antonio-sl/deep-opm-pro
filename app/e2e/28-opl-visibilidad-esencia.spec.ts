@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, ejecutarComandoPalette, restaurarPanelOplSiMinimizado } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, ejecutarComandoPalette, restaurarPanelOplSiMinimizado } from "./_smoke-helpers";
 
 /**
  * A7 — Visibilidad de esencia en OPL.
@@ -13,9 +13,9 @@ test("selector de esencia en Configuración filtra oraciones OPL de esencia", as
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
-  // Arranque: modelo demo (canvas precargado con pantalla de inicio).
+  // Arranque: modelo vacio sin onboarding.
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Crear un objeto; por defecto tendrá esencia informacional y afiliación sistémica.
   await page.getByRole("button", { name: "Objeto", exact: true }).click();

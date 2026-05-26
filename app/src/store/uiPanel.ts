@@ -155,7 +155,6 @@ import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
 import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
-import { datosAsistenteVacio, ETAPA_FUNCION, ETAPA_SEMBRAR, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
 import {
   aplicarMarcadores,
@@ -173,7 +172,6 @@ import {
   cambiarActiva as cambiarPestanaActivaEstado,
   cerrarPestana as cerrarPestanaEstado,
   clonarModelo,
-  crearPestanaDesdeModelo,
   crearPestanaNueva,
   duplicarPestana as duplicarPestanaEstado,
   reordenarPestanas as reordenarPestanasEstado,
@@ -203,8 +201,7 @@ import {
 } from "../canvas/operacionesBatch";
 import type { CrearSlice, UiPanelSlice } from "./tipos";
 import {
-  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearDemo, crearFixturePorNombre, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, generarHtmlOpl, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, limitarAnchoPanelInspector, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
-  pestanaReemplazable,
+  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, generarHtmlOpl, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, limitarAnchoPanelInspector, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
   deshacerRuntime,
   rehacerRuntime,
 } from "./runtime";
@@ -242,7 +239,6 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   // el breakpoint es "mobile". Default "canvas" porque ese es el primer valor
   // de revisión: ver el OPD activo antes de navegar tree/OPL/issues.
   vistaMobileActiva: "canvas",
-  asistente: null,
   // L3 ronda 20 / ronda 22 S.2: biblioteca dock acoplable.
   bibliotecaDockAbierto: false,
   // L4 ronda 23 (#15): bus de señal focus Nombre. Default `null`: no hay
@@ -441,60 +437,6 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 	    if (destino) get().cambiarOpdActivo(destino.id);
 	  },
 
-	  // ── L3: Asistente nuevo modelo ─────────────────────────────────
-
-  iniciarAsistente() {
-    set({
-      asistente: {
-        etapaActual: ETAPA_FUNCION,
-        datos: datosAsistenteVacio(),
-        cancelado: false,
-      },
-      mensaje: null,
-    });
-  },
-
-  siguienteEtapa(parcial) {
-    const actual = get().asistente;
-    if (!actual) return;
-    const datos = { ...actual.datos, ...parcial };
-    const validacion = validarDatosAsistente(datos, actual.etapaActual);
-    if (!validacion.ok) {
-      set({ mensaje: validacion.error });
-      return;
-    }
-    // Ronda 23 L3 #6: la última etapa es ETAPA_SEMBRAR; no avanzamos más
-    // allá. El sembrado final lo dispara `confirmarAsistente`.
-    const siguienteEtapa = Math.min(actual.etapaActual + 1, ETAPA_SEMBRAR) as EtapaAsistente;
-    set({
-      asistente: { ...actual, etapaActual: siguienteEtapa, datos },
-      mensaje: null,
-    });
-  },
-
-  etapaAnterior() {
-    const actual = get().asistente;
-    if (!actual || actual.etapaActual <= ETAPA_FUNCION) return;
-    set({
-      asistente: { ...actual, etapaActual: (actual.etapaActual - 1) as EtapaAsistente },
-      mensaje: null,
-    });
-  },
-
-  cancelarAsistente() {
-    const actual = get().asistente;
-    if (!actual) return;
-    // Si no hay datos ingresados, cerrar directo.
-    const datos = actual.datos;
-    const tieneDatos = datos.funcionPrincipal?.trim() || datos.beneficiario?.trim();
-    if (!tieneDatos) {
-      set({ asistente: null, mensaje: null });
-      return;
-    }
-    // Marcar como cancelado; el UI muestra confirmacion.
-    set({ asistente: { ...actual, cancelado: true } });
-  },
-
   /**
    * L2 ronda 21: cambia la vista activa del modo revisión mobile.
    * No-op funcional en desktop/tablet (App.tsx solo lo consume cuando el
@@ -502,95 +444,6 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
    */
   cambiarVistaMobile(vista) {
     set({ vistaMobileActiva: vista });
-  },
-
-  confirmarAsistente() {
-    const actual = get().asistente;
-    if (!actual) return;
-    // Validar y sembrar.
-    const datosCompletos = actual.datos as DatosAsistente;
-    const resultado = sembrarModeloDesdeAsistente(datosCompletos);
-    if (!resultado.ok) {
-      set({ mensaje: resultado.error });
-      return;
-    }
-    const modelo = resultado.value;
-    const actualPestana = get().pestanasAbiertas.find((pestana) => pestana.id === get().pestanaActivaId);
-    if (actualPestana && pestanaReemplazable(actualPestana)) {
-      resetHistorial(modelo);
-      set(estadoModelo(modelo, {
-        opdActivoId: modelo.opdRaizId,
-        seleccionId: null,
-        seleccionados: [],
-        modoSeleccion: "simple",
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        modoCreacion: null,
-        hoverOplRef: null,
-        modeloPersistidoId: null,
-        descripcionModeloLocal: "",
-        asistente: null,
-        menuPrincipalAbierto: false,
-        dirty: true,
-        mensaje: "Modelo creado desde asistente",
-      }));
-      return;
-    }
-    const pestana = crearPestanaDesdeModelo(modelo, {
-      modeloId: null,
-      nombre: "Modelo",
-      cargadoDesde: "asistente",
-      dirty: true,
-    });
-    activarPestanaNueva(set, get, pestana, "Modelo creado desde asistente");
-    set({ asistente: null, menuPrincipalAbierto: false });
-  },
-
-  /**
-   * Ronda 23 L3 #7: precarga el fixture canónico de bienvenida cuando el
-   * primer paint detecta usuario nuevo (sin recientes, sin contenido). La
-   * pestaña activa reemplazable se sustituye por el fixture y se etiqueta
-   * con `cargadoDesde: "bienvenida"` — flag derivado que el banner consume
-   * para distinguirse del estado "modelo recién guardado".
-   *
-   * Si no hay fixture con ese nombre o la pestaña no es reemplazable, el
-   * caller mantiene su estado original (no-op silencioso).
-   */
-  precargarBienvenida(nombreFixture) {
-    const modelo = crearFixturePorNombre(nombreFixture);
-    if (!modelo) {
-      set({ mensaje: `Fixture no encontrado: ${nombreFixture}` });
-      return;
-    }
-    const actualPestana = get().pestanasAbiertas.find((pestana) => pestana.id === get().pestanaActivaId);
-    if (!actualPestana || !pestanaReemplazable(actualPestana)) return;
-
-    resetHistorial(modelo);
-    set(estadoModelo(modelo, {
-      opdActivoId: modelo.opdRaizId,
-      seleccionId: null,
-      seleccionados: [],
-      modoSeleccion: "simple",
-      enlaceSeleccionId: null,
-      modoEnlace: null,
-      modoCreacion: null,
-      hoverOplRef: null,
-      modeloPersistidoId: null,
-      descripcionModeloLocal: "",
-      pantallaInicioCerrada: false,
-      dirty: false,
-      mensaje: null,
-    }));
-    // Re-etiqueta la pestaña activa con `cargadoDesde: "bienvenida"`; la
-    // pestaña hereda el modelo recién aplicado a través del slice de
-    // pestañas y la marca de origen.
-    set((s) => ({
-      pestanasAbiertas: s.pestanasAbiertas.map((p) => (
-        p.id === s.pestanaActivaId
-          ? { ...p, modelo, cargadoDesde: "bienvenida" as const, etiqueta: modelo.nombre, dirty: false }
-          : p
-      )),
-    }));
   },
 
   // ── L4 ronda 23 (#15): bus focus Nombre ──────────────────────────

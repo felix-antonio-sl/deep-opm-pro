@@ -107,7 +107,6 @@ function GlyphEstado(): preact.JSX.Element {
   );
 }
 
-const DialogoPlantillas = lazy(() => import("../DialogoPlantillas").then((m) => ({ default: m.DialogoPlantillas })));
 const DialogoTraerConectados = lazy(() => import("../DialogoTraerConectados").then((m) => ({ default: m.DialogoTraerConectados })));
 
 /**
@@ -128,9 +127,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
   // accesibilidad y smokes). El boton ☰ aqui solo abre/cierra via store;
   // el render lo hace App.tsx. Bug P0 introducido por hotfix `4f7dc66`.
   //
-  // Ronda 23 L3 #7: el viejo overlay `PantallaInicio` lazy-loaded desde aquí
-  // fue reemplazado por el banner inline que vive dentro del canvas-pane
-  // y se monta directamente desde App.tsx (ver `usePrecargaBienvenida`).
   const {
     crearObjeto,
     crearProceso,
@@ -450,7 +446,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
         onAccionMenuEntidad={handleAccionMenuEntidad}
         {...(todoMultiSeleccion ? { onConectarMultiAlTodo: handleConectarMultiContextual } : {})}
       />
-      <Suspense fallback={null}><DialogoTraerConectados /><DialogoPlantillas /></Suspense>
+      <Suspense fallback={null}><DialogoTraerConectados /></Suspense>
     </>
   );
 }
@@ -462,7 +458,6 @@ function ToolbarPersistenceStatus({ persistencia }: { persistencia: Persistencia
     modeloPersistidoId: persistencia.modeloPersistidoId,
     dirty: persistencia.dirty,
     cargadoDesde: persistencia.cargadoDesde,
-    esFixture: persistencia.esFixture,
     versiones: persistencia.versiones,
     tiempoRelativo: null,
   });

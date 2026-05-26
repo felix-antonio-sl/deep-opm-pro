@@ -1,12 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEntidad, extremoEstado } from "../modelo/extremos";
+import { crearOnStarSystem } from "../modelo/fixtures";
 import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
 
+function cargarModeloReferencia(): void {
+  store.getState().importarJson(exportarModelo(crearOnStarSystem().modelo));
+}
+
 describe("slice enlaces", () => {
   test("elegirTipoEnlace abre modo enlace y cancelarEnlace lo limpia", () => {
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     const id = Object.keys(store.getState().modelo.entidades)[0]!;
 
     store.getState().seleccionarEntidad(id);
@@ -18,7 +23,7 @@ describe("slice enlaces", () => {
   });
 
   test("elegirTipoEnlace acepta origen explicito sin depender de seleccion", () => {
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     const [seleccionId, origenExplicitoId] = Object.keys(store.getState().modelo.entidades);
     if (!seleccionId || !origenExplicitoId) throw new Error("La prueba esperaba al menos dos entidades");
 
@@ -29,7 +34,7 @@ describe("slice enlaces", () => {
   });
 
   test("iniciarConexionDesdeApariencia registra fase drag-from-anchor", () => {
-    store.getState().cargarDemo();
+    cargarModeloReferencia();
     const opdId = store.getState().opdActivoId;
     const apariencia = Object.values(store.getState().modelo.opds[opdId]?.apariencias ?? {})[0]!;
     const entidad = store.getState().modelo.entidades[apariencia.entidadId]!;

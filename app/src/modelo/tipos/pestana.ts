@@ -10,7 +10,7 @@ import type { Modelo } from "./modelo";
  *       opm-extracted/src/app/modules/app/tabsService.ts:5-130.
  */
 
-export type OrigenPestana = "nuevo" | "asistente" | "importado" | "persistido" | "bienvenida";
+export type OrigenPestana = "nuevo" | "importado" | "persistido";
 export type HistorialEntrada = Modelo;
 
 export interface Pestana {

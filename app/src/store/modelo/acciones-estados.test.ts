@@ -1,6 +1,8 @@
 import { describe, expect, test, beforeEach } from "bun:test";
 import { store } from "../../store";
+import { crearOnStarSystem } from "../../modelo/fixtures";
 import { estadosDeEntidad } from "../../modelo/operaciones";
+import { exportarModelo } from "../../serializacion/json";
 
 /**
  * Tests del slice modelo/acciones-estados — acciones "from-selection"
@@ -13,10 +15,9 @@ import { estadosDeEntidad } from "../../modelo/operaciones";
  */
 
 function sembrarObjetoCon3Estados(): { objetoId: string; estadoIds: string[] } {
-  const s = store.getState();
-  s.cargarDemo();
+  cargarModeloReferencia();
   // Aseguramos un objeto con 3 estados.
-  s.crearObjetoDemo();
+  store.getState().crearObjetoDemo();
   const objeto = Object.values(store.getState().modelo.entidades).find((e) => e.tipo === "objeto" && e.nombre.startsWith("Objeto"));
   if (!objeto) throw new Error("Seed sin objeto");
   store.getState().setSeleccion([objeto.id]);
@@ -28,9 +29,13 @@ function sembrarObjetoCon3Estados(): { objetoId: string; estadoIds: string[] } {
   return { objetoId: objeto.id, estadoIds };
 }
 
+function cargarModeloReferencia(): void {
+  store.getState().importarJson(exportarModelo(crearOnStarSystem().modelo));
+}
+
 describe("acciones-estados — from-selection", () => {
   beforeEach(() => {
-    // Reset implícito en sembrar (cargarDemo).
+    // Reset implicito en sembrarObjetoCon3Estados.
   });
 
   test("eliminarEstadoSeleccionado borra el estado y limpia estadoSeleccionId", () => {

@@ -10,7 +10,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { esperarWorkbenchInicial } from "./_smoke-helpers";
 
 test("crear objeto desde toolbar enfoca el input Nombre y selecciona el texto", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -18,7 +18,7 @@ test("crear objeto desde toolbar enfoca el input Nombre y selecciona el texto", 
 
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
@@ -49,7 +49,7 @@ test("crear proceso desde toolbar enfoca el input Nombre y selecciona el texto",
 
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
@@ -69,7 +69,7 @@ test("seleccionar entidad existente (no recién creada) NO roba focus al input N
 
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Primer objeto: focus por default brutal (esto se verifica en el primer
   // test). Confirmamos el nombre y soltamos el focus llevándolo al canvas.
@@ -96,7 +96,7 @@ test("sección Tamaño vive en el tab Estilo (movida desde Refinamiento en ronda
 
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
   // Codex v2 / L3 (C9): ficha continua — secciones siempre montadas. La

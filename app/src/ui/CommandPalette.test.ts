@@ -110,7 +110,7 @@ describe("CommandPalette", () => {
     ]);
   });
 
-  test("agrupa visualmente en las seis secciones Codex sin alterar categorias internas", () => {
+  test("agrupa visualmente en las secciones Codex sin alterar categorias internas", () => {
     const items = construirItemsCommandPalette(atajos, acciones, accionesMenu);
     const grupos = agruparItemsCommandPalette(items);
 
@@ -127,6 +127,32 @@ describe("CommandPalette", () => {
     expect(filtrarItemsCommandPalette(items, "modelo").map((item) => item.label)).toContain("Guardar modelo");
     expect(filtrarItemsCommandPalette(items, "crear").map((item) => item.label)).toContain("Descomponer");
     expect(filtrarItemsCommandPalette(items, "vista").map((item) => item.label)).toContain("Tabla de enlaces");
+  });
+
+  test("P0 elimina comandos de asistente, ejemplos y plantillas", () => {
+    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const ids = acciones.map((accion) => accion.id);
+    const abrirImportar = acciones.find((accion) => accion.id === "abrir-importar");
+    const items = construirItemsCommandPalette([], [], acciones);
+
+    expect(ids).not.toContain("asistente-guiado");
+    expect(ids).not.toContain("guardar-plantilla");
+    expect(ids).not.toContain("plantillas");
+    expect(abrirImportar?.descripcion).not.toMatch(/ejempl/i);
+    expect(filtrarItemsCommandPalette(items, "asistente")).toEqual([]);
+    expect(filtrarItemsCommandPalette(items, "plantilla")).toEqual([]);
+    expect(filtrarItemsCommandPalette(items, "ejemplo")).toEqual([]);
+  });
+
+  test("P1 con busqueda activa agrupa solo secciones con resultados", () => {
+    const items = filtrarItemsCommandPalette(
+      construirItemsCommandPalette(atajos, acciones, accionesMenu),
+      "tabla enlaces",
+    );
+    const grupos = agruparItemsCommandPalette(items, { incluirSeccionesVacias: false });
+
+    expect(grupos.map((grupo) => grupo.seccion)).toEqual(["VISTA"]);
+    expect(grupos[0]?.items.map((item) => item.label)).toEqual(["Tabla de enlaces"]);
   });
 
   test("MODELO incluye renombrar modelo como comando explícito", () => {
@@ -146,8 +172,6 @@ function depsAccionesMenu(): Parameters<typeof construirAccionesMenuCommandPalet
     abrirCargarModelo: () => {},
     abrirGuardarComo: () => {},
     abrirDialogoConfiguracion: () => {},
-    abrirDialogoGuardarPlantilla: () => {},
-    abrirDialogoPlantillas: () => {},
     abrirDialogoVersiones: null,
     modeloPersistidoId: null,
     gridActiva: false,
@@ -159,7 +183,6 @@ function depsAccionesMenu(): Parameters<typeof construirAccionesMenuCommandPalet
     abrirCheatsheetAtajos: () => {},
     exportarJson: () => {},
     exportarOpdSvg: null,
-    iniciarAsistente: () => {},
     abrirPestanaNueva: () => {},
     abrirBusquedaCosas: () => {},
     abrirBusquedaGlobal: () => {},

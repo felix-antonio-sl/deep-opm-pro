@@ -1,5 +1,4 @@
 import { store, useOpmStore } from "../../store";
-import { listarFixtures } from "../../store/runtime";
 import type { PersistencePort } from "./persistencePort";
 
 export function useZustandPersistencePort(): PersistencePort {
@@ -24,12 +23,10 @@ export function useZustandPersistencePort(): PersistencePort {
   const listarModelosGuardados = useOpmStore((s) => s.listarModelosGuardados);
   const cargarLocal = useOpmStore((s) => s.cargarLocal);
   const borrarLocal = useOpmStore((s) => s.borrarLocal);
-  const cargarFixtureDemo = useOpmStore((s) => s.cargarFixtureDemo);
   const exportarJson = useOpmStore((s) => s.exportarJson);
   const importarJson = useOpmStore((s) => s.importarJson);
   const pestanaActiva = pestanasAbiertas.find((p) => p.id === pestanaActivaId);
   const cargadoDesde = pestanaActiva?.cargadoDesde ?? "nuevo";
-  const esFixture = !modeloPersistidoId && listarFixtures().some((fixture) => fixture.modelo.nombre === modeloNombre);
   const versiones = modeloPersistidoId
     ? indice.modelos.find((m) => m.id === modeloPersistidoId)?.versiones?.length ?? 0
     : 0;
@@ -41,7 +38,6 @@ export function useZustandPersistencePort(): PersistencePort {
     dialogoGuardarComoAbierto,
     dialogoCargarModeloAbierto,
     cargadoDesde,
-    esFixture,
     versiones,
     ultimoAutosalvado,
     autosalvadoEnCurso,
@@ -56,7 +52,6 @@ export function useZustandPersistencePort(): PersistencePort {
     listarModelosGuardados,
     cargarLocal,
     borrarLocal,
-    cargarFixtureDemo,
     exportarJson,
     importarJson,
     hayDirty: () => store.getState().dirty,

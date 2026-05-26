@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, ejecutarComandoPalette } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, ejecutarComandoPalette } from "./_smoke-helpers";
 
 /**
  * Smoke ronda 27 III.A cierre — Chrome plano de 5 elementos.
@@ -28,7 +28,7 @@ test("toolbar plano Codex v1.1: creadores visibles sin selección, sin overflow"
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   const toolbarRoot = page.getByTestId("toolbar-root");
   await expect(toolbarRoot).toBeVisible();
@@ -74,7 +74,7 @@ test("toolbar omite rótulos redundantes de clusters de acción y conserva ⌕ B
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await expect(page.locator('[data-slot="cluster-modelar"] > span')).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-conectar"] > span')).toHaveCount(0);
@@ -92,7 +92,7 @@ test("III.A cierre: el botón ⋯ Más desaparece del chrome", async ({ page }) 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Ronda 27 III.A cierre: el botón `⋯ Más` ya no existe en el chrome.
   await expect(page.getByTestId("toolbar-mas-trigger")).toHaveCount(0);
@@ -115,7 +115,7 @@ test("el command palette absorbe los comandos de vista (grid, auto-layout, simul
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByTestId("toolbar-menu").click();
   const palette = page.getByTestId("command-palette");
@@ -151,7 +151,7 @@ test("modo imagen global cicla desde el command palette y refleja el estado en e
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Ronda Codex v2 L5: el comando "Imagen: …" cicla el modo global. Tras un
   // ciclo (null → imagen+nombre), el label refleja el nuevo estado.
@@ -164,16 +164,18 @@ test("modo imagen global cicla desde el command palette y refleja el estado en e
   expect(pageErrors).toEqual([]);
 });
 
-test("plantillas y configuración se invocan desde el command palette", async ({ page }) => {
-  // Ronda Codex v2 L5: ambos comandos viven en la sección MODELO del palette.
+test("configuración se invoca desde el command palette y plantillas no aparece", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
-  await ejecutarComandoPalette(page, "plantillas", "menu-plantillas");
-  await expect(page.getByRole("dialog", { name: /[Pp]lantillas/ })).toBeVisible();
+  await page.getByTestId("toolbar-menu").click();
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("plantillas");
+  await expect(palette).toContainText("sin resultados - escribe otro comando");
   await page.keyboard.press("Escape");
 
   await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
@@ -190,7 +192,7 @@ test("el command palette es superset del antiguo menú: archivo, datos y herrami
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Ronda Codex v2 L5: el botón ☰ abre el palette; sus comandos cubren las
   // acciones que el menú lateral exponía.
@@ -216,9 +218,9 @@ test("el command palette es superset del antiguo menú: archivo, datos y herrami
 
   // "Abrir / importar" desde el palette abre el diálogo unificado.
   await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
-  const dialogoAbrir = page.getByRole("dialog", { name: "Abrir / importar modelo" });
+  const dialogoAbrir = page.getByRole("dialog", { name: "Abrir modelo" });
   await expect(dialogoAbrir).toBeVisible();
-  await expect(dialogoAbrir.getByLabel("Cargar modelo de ejemplo")).toBeVisible();
+  await expect(dialogoAbrir.getByLabel("Cargar modelo de ejemplo")).toHaveCount(0);
   await expect(dialogoAbrir.getByTestId("panel-json-abrir-importar").locator("summary")).toHaveText("JSON");
   await dialogoAbrir.getByRole("button", { name: "Cancelar" }).click();
 
@@ -230,7 +232,7 @@ test("BUG-20260523T174915Z el command palette se cierra al hacer click fuera", a
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Ronda Codex v2 L5: el ☰ abre el palette; un click en el backdrop lo cierra.
   await page.getByTestId("toolbar-menu").click();

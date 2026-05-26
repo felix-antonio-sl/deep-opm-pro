@@ -45,8 +45,6 @@ export interface PreferenciasUiUsuario {
   oplEsenciaVisibilidad?: EsenciaVisibilidad;
   oplMinimizado?: boolean;
   oplBloquesContraidos?: Record<Id, true>;
-  /** [Met §8.8] Preferencia UI aditiva para ordenar plantillas privadas. */
-  plantillasOrden?: "actualizado-desc" | "nombre-asc";
   vistaCargar?: "tiles" | "lista";
   ordenCargar?: {
     columna: "nombre" | "descripcion" | "actualizadoEn" | "bytes";

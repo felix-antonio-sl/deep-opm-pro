@@ -3,8 +3,8 @@ import {
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
-  cerrarPantallaInicioSiVisible,
-  cargarModeloEjemplo,
+  esperarWorkbenchInicial,
+  importarModeloJson,
   abrirMenuPrincipal,
   crearAtributoNumericoSmoke,
   rectDeLocator,
@@ -67,7 +67,6 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);
   await expect(elementoPorTexto(page, "Proceso Hijo")).toHaveCount(0);
   await expect(page.getByText("Objeto Raiz").first()).toBeVisible();
-  await expect(page.getByTestId("breadcrumb-opd")).toHaveText(/sistema\s*·\s*system diagram/i);
 
   await nodoHijo.click();
 
@@ -75,8 +74,7 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(0);
   await expect(elementoPorTexto(page, "Proceso Hijo")).toHaveCount(1);
   await expect(page.getByText("Proceso Hijo").first()).toBeVisible();
-  await expect(page.getByTestId("breadcrumb-opd")).toHaveText(/sistema\s*·\s*system diagram\s*·\s*sd1/i);
-  await page.getByTestId("breadcrumb-opd-system-diagram").click();
+  await nodoRaiz.click();
   await expect(nodoRaiz).toHaveAttribute("aria-current", "page");
   await nodoHijo.click();
 
@@ -158,9 +156,9 @@ test("arbol OPD mantiene filas densas sin toolbar embebida en nodo activo", asyn
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cargarModeloEjemplo(page, "SD Async");
+  await importarModeloJson(page, modeloDosOpds());
 
-  const nodoSd1 = page.locator('[role="treeitem"]').filter({ hasText: "SD1:" }).first();
+  const nodoSd1 = page.locator('[role="treeitem"]').filter({ hasText: "SD1" }).first();
   await expect(nodoSd1).toBeVisible();
   await nodoSd1.click();
   await page.getByTestId("canvas-pane").click({ position: { x: 20, y: 20 } });
@@ -213,7 +211,7 @@ test("barra de pestanas usa tabs tipograficas Codex v1.1", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   const botonNueva = page.getByTestId("nueva-pestana-btn");
   await expect(botonNueva).toHaveText("+");
@@ -258,7 +256,7 @@ test("BUG-20260523T174837 barra de pestanas no muestra scrollbar horizontal", as
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   const tablist = page.getByRole("tablist", { name: "Modelos abiertos" });
   await expect(tablist).toBeVisible();

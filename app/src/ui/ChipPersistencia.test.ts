@@ -13,7 +13,6 @@ describe("ChipPersistencia · clasificarVariante", () => {
       modeloPersistidoId: "modelo-abc",
       dirty: false,
       cargadoDesde: "persistido",
-      esFixture: false,
       versiones: 3,
       tiempoRelativo: "hace 2 min",
     });
@@ -27,7 +26,6 @@ describe("ChipPersistencia · clasificarVariante", () => {
       modeloPersistidoId: "modelo-abc",
       dirty: true,
       cargadoDesde: "persistido",
-      esFixture: false,
       versiones: 3,
       tiempoRelativo: "hace 2 min",
     });
@@ -39,7 +37,6 @@ describe("ChipPersistencia · clasificarVariante", () => {
       modeloPersistidoId: null,
       dirty: true,
       cargadoDesde: "importado",
-      esFixture: false,
       versiones: 0,
       tiempoRelativo: null,
     });
@@ -47,36 +44,11 @@ describe("ChipPersistencia · clasificarVariante", () => {
     expect(v.tiempoRelativo).toBeNull();
   });
 
-  test("no persistido + modelo de fixture → fixture", () => {
-    const v = clasificarVariante({
-      modeloPersistidoId: null,
-      dirty: false,
-      cargadoDesde: "nuevo",
-      esFixture: true,
-      versiones: 0,
-      tiempoRelativo: null,
-    });
-    expect(v.tipo).toBe("fixture");
-  });
-
-  test("no persistido + cargadoDesde=asistente → asistente", () => {
-    const v = clasificarVariante({
-      modeloPersistidoId: null,
-      dirty: true,
-      cargadoDesde: "asistente",
-      esFixture: false,
-      versiones: 0,
-      tiempoRelativo: null,
-    });
-    expect(v.tipo).toBe("asistente");
-  });
-
   test("no persistido + cargadoDesde=nuevo → nuevo", () => {
     const v = clasificarVariante({
       modeloPersistidoId: null,
       dirty: false,
       cargadoDesde: "nuevo",
-      esFixture: false,
       versiones: 0,
       tiempoRelativo: null,
     });
@@ -88,7 +60,6 @@ describe("ChipPersistencia · clasificarVariante", () => {
       modeloPersistidoId: "modelo-abc",
       dirty: false,
       cargadoDesde: "importado",
-      esFixture: true,
       versiones: 1,
       tiempoRelativo: null,
     });
@@ -183,12 +154,6 @@ describe("ChipPersistencia · labelChip (Ronda 24 L2 #5)", () => {
     expect(labelChip({ tipo: "importado", versiones: 0, tiempoRelativo: null })).toBe(
       "Sin guardar · Ctrl+S",
     );
-    expect(labelChip({ tipo: "fixture", versiones: 0, tiempoRelativo: null })).toBe(
-      "Sin guardar · Ctrl+S",
-    );
-    expect(labelChip({ tipo: "asistente", versiones: 0, tiempoRelativo: null })).toBe(
-      "Sin guardar · Ctrl+S",
-    );
     expect(labelChip({ tipo: "nuevo", versiones: 0, tiempoRelativo: null })).toBe(
       "Sin guardar · Ctrl+S",
     );
@@ -223,16 +188,6 @@ describe("ChipPersistencia · detallarChip", () => {
       "M",
     );
     expect(importadoTip).toContain("no persistido");
-    const asistenteTip = detallarChip(
-      { tipo: "asistente", versiones: 0, tiempoRelativo: null },
-      "M",
-    );
-    expect(asistenteTip).toContain("no persistido");
-    const fixtureTip = detallarChip(
-      { tipo: "fixture", versiones: 0, tiempoRelativo: null },
-      "M",
-    );
-    expect(fixtureTip).toContain("catálogo local");
     const nuevoTip = detallarChip(
       { tipo: "nuevo", versiones: 0, tiempoRelativo: null },
       "M",

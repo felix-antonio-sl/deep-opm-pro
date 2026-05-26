@@ -3,12 +3,12 @@
 // pane, el ancho persiste en `indice.preferenciasUi.anchoPanelInspector`
 // (espejo de `anchoPanelArbol`) y el doble clic resetea al default 360.
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, rectDeLocator } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, rectDeLocator } from "./_smoke-helpers";
 
 test("BUG-20260511T225343Z-696858: el inspector derecho se redimensiona desde su divisor", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   const inspector = page.getByTestId("inspector-pane");
   const divisor = page.getByTestId("divisor-panel-inspector");

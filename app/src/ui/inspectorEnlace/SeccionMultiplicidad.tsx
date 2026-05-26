@@ -138,7 +138,7 @@ function subtiposPermitidos(modificador: Modificador): SubtipoModificador[] {
 
 // SSOT-OPL §7 (CT1, CT2, CH1, CH2, CS1-CS6) canoniza los modificadores
 // "condicion" y "evento" sobre enlaces input-side (consumo, instrumento,
-// agente, efecto). NO hay plantilla CT/CS canonica para resultado, asi que
+// agente, efecto). NO hay patron CT/CS canonico para resultado, asi que
 // el UI no los ofrece para `tipo === "resultado"`. Excepcion de backward-
 // compat: si un modelo legacy ya tiene el modificador asignado al resultado,
 // la opcion se sigue mostrando para permitir su edicion o eliminacion (no

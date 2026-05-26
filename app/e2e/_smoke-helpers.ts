@@ -84,20 +84,9 @@ export function modeloTraerConectadosSmoke() {
   };
 }
 
-/**
- * Ronda 23 L3 #7: el overlay legacy (telón opaco + 3 caminos) fue
- * reemplazado por la dupla canvas-precargado + banner inline descartable.
- * Bajo Playwright (`navigator.webdriver === true`) la precarga está
- * deshabilitada — los smokes siempre arrancan con canvas vacío y sin
- * banner. Este helper se conserva como no-op tolerante por compatibilidad
- * con los 26 specs históricos.
- */
-export async function cerrarPantallaInicioSiVisible(page: import("@playwright/test").Page): Promise<void> {
-  const pantalla = page.getByTestId("pantalla-inicio");
-  await pantalla.waitFor({ state: "visible", timeout: 750 }).catch(() => undefined);
-  if (await pantalla.count() === 0) return;
-  await pantalla.getByRole("button", { name: /Empezar vacío|Nuevo/ }).click();
-  await expect(pantalla).toHaveCount(0);
+export async function esperarWorkbenchInicial(page: import("@playwright/test").Page): Promise<void> {
+  await expect(page.getByTestId("toolbar-root")).toBeVisible();
+  await expect(page.getByTestId("canvas-pane")).toBeVisible();
 }
 
 export async function restaurarPanelOplSiMinimizado(page: import("@playwright/test").Page): Promise<void> {
@@ -109,7 +98,7 @@ export async function restaurarPanelOplSiMinimizado(page: import("@playwright/te
 }
 
 export async function crearAtributoNumericoSmoke(page: import("@playwright/test").Page): Promise<void> {
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   const modal = page.getByTestId("modal-nombre-cosa");
   if (await modal.count() > 0) {
@@ -316,17 +305,17 @@ export async function crearModeloNuevoDesdeMenu(page: import("@playwright/test")
   await ejecutarMenuPrincipal(page, "Nuevo");
 }
 
-export async function cargarModeloEjemplo(page: import("@playwright/test").Page, nombre: string): Promise<void> {
+export async function importarModeloJson(page: import("@playwright/test").Page, contenido: ExportadoModelo): Promise<void> {
   const dialogo = await abrirDialogoCargarModelo(page);
-  const selectorEjemplos = dialogo.getByLabel("Cargar modelo de ejemplo");
-  await expect(selectorEjemplos).toBeVisible();
-  await selectorEjemplos.selectOption(nombre);
+  await jsonEditor(page).fill(JSON.stringify(contenido, null, 2));
+  await expect(dialogo.getByTestId("import-preview")).toBeVisible();
+  await dialogo.getByRole("button", { name: "Importar", exact: true }).click();
   await expect(dialogo).toHaveCount(0);
 }
 
 export async function abrirDialogoCargarModelo(page: import("@playwright/test").Page): Promise<import("@playwright/test").Locator> {
   await ejecutarMenuPrincipal(page, "Abrir / importar...");
-  const dialogo = page.getByRole("dialog", { name: "Abrir / importar modelo" });
+  const dialogo = page.getByRole("dialog", { name: "Abrir modelo" });
   await expect(dialogo).toBeVisible();
   return dialogo;
 }

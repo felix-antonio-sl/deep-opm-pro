@@ -171,7 +171,6 @@ import { activarEstadoPestanas, activarPestanaNueva, estadoModelo, listarModelos
 import { cargarModeloLocal } from "../persistencia/local";
 import { workspaceDesdeModelo } from "../persistencia/workspace";
 import { hidratarModelo } from "../serializacion/json";
-import { datosAsistenteVacio } from "../modelo/creacionWizard";
 
 const pestanaInicial = crearPestanaNueva();
 const cerrarPestanaEstado = cerrarPestana;
@@ -186,18 +185,6 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
   abrirPestanaNueva() {
     const pestana = crearPestanaNueva();
     activarPestanaNueva(set, get, pestana, "Nueva pestana");
-  },
-
-  abrirPestanaConAsistente() {
-    set({
-      asistente: {
-        etapaActual: 0,
-        datos: datosAsistenteVacio(),
-        cancelado: false,
-      },
-      menuPrincipalAbierto: false,
-      mensaje: null,
-    });
   },
 
   abrirPestanaImportandoJson(json) {

@@ -156,10 +156,9 @@ import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, PlantillaIndice, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
-import { datosAsistenteVacio, sembrarModeloDesdeAsistente, validarDatosAsistente, type DatosAsistente, type EtapaAsistente } from "../modelo/creacionWizard";
 import { generarOpl } from "../opl/generar";
 import {
   type CriterioResaltado,
@@ -318,14 +317,9 @@ export interface OpmStore {
   dialogoImportarExportarJsonAbierto: boolean;
   dialogoComandosAbierto: boolean;
   frecuenciaUsoCommandPalette: Record<string, number>;
-  pantallaInicioCerrada: boolean;
   dialogoConfiguracionAbierto: boolean;
   dialogoSimulacionNumericaAbierto: boolean;
   dialogoTraerConectadosAbierto: boolean;
-  /** [Met §8.8] Catálogo runtime de plantillas privadas, no serializado en Modelo. */
-  plantillasGuardadas: PlantillaIndice[];
-  dialogoPlantillasAbierto: boolean;
-  dialogoGuardarPlantillaAbierto: boolean;
   /** [JOYAS §1] Halo temporal solicitado para inserción; amarillo canónico #FFFC7F. */
   idsResaltadosTemporales: Id[];
   workspaceLocal: WorkspaceModeloLocal;
@@ -368,12 +362,6 @@ export interface OpmStore {
   busquedaCosasFiltro: BusquedaCosasFiltro;
   // ── Autosalvado (L4) ──
   autosalvado: AutosalvadoEstado;
-  // ── Asistente nuevo modelo (L3) ──
-  asistente: null | {
-    etapaActual: EtapaAsistente;
-    datos: Partial<DatosAsistente>;
-    cancelado: boolean;
-  };
   limpiarMensaje: () => void;
   abrirMenuPrincipal: () => void;
   cerrarMenuPrincipal: () => void;
@@ -389,7 +377,6 @@ export interface OpmStore {
   abrirDialogoImportarExportarJson: () => void;
   cerrarDialogoImportarExportarJson: () => void;
   cargarLocalDesdeDialogo: (id: Id) => void;
-  cerrarPantallaInicio: () => void;
   abrirDialogoConfiguracion: () => void;
   cerrarDialogoConfiguracion: () => void;
   abrirDialogoSimulacionNumerica: () => void;
@@ -397,12 +384,6 @@ export interface OpmStore {
   abrirDialogoTraerConectados: () => void;
   cerrarDialogoTraerConectados: () => void;
   renombrarModeloActual: (nombre: string) => void;
-  abrirDialogoPlantillas: () => void;
-  cerrarDialogoPlantillas: () => void;
-  abrirDialogoGuardarPlantilla: () => void;
-  cerrarDialogoGuardarPlantilla: () => void;
-  guardarComoPlantillaConfirmar: (input: { nombre: string; descripcion?: string; ambito?: "privado" | "organizacional" | "global" }) => void;
-  insertarPlantillaEnOpdActivo: (plantillaId: Id) => void;
   resaltarTemporalmente: (ids: Id[], ms?: number) => void;
   nuevoModelo: () => void;
   crearObjetoDemo: () => void;
@@ -623,7 +604,6 @@ export interface OpmStore {
   exportarJson: () => string;
   importarJson: (json: string) => void;
   abrirPestanaNueva: () => void;
-  abrirPestanaConAsistente: () => void;
   abrirPestanaImportandoJson: (json: string) => void;
   abrirPestanaConModelo: (modeloId: Id) => void;
   duplicarPestana: (id: PestanaId) => void;
@@ -635,8 +615,6 @@ export interface OpmStore {
   guardarLocal: () => void;
   cargarLocal: (id?: Id) => void;
   borrarLocal: (id: Id) => void;
-  cargarDemo: () => void;
-  cargarFixtureDemo: (nombre: string) => void;
   // ── Carpetas (L4) ──
   crearCarpetaEnActual: (nombre: string) => void;
   renombrarCarpetaEnIndice: (carpetaId: Id, nombre: string) => void;
@@ -782,20 +760,6 @@ export interface OpmStore {
   abrirBibliotecaDock: () => void;
   cerrarBibliotecaDock: () => void;
   // ── /L3 ronda 20 ─────────────────────────────────────────────────
-  // ── L3: Asistente nuevo modelo ───────────────────────────────────
-  iniciarAsistente: () => void;
-  siguienteEtapa: (parcial: Partial<DatosAsistente>) => void;
-  etapaAnterior: () => void;
-  cancelarAsistente: () => void;
-  confirmarAsistente: () => void;
-  /**
-   * Ronda 23 L3 #7: reemplazo del modal de bienvenida. Reemplaza el modelo
-   * de la pestaña activa (si es reemplazable) por el fixture indicado y
-   * marca la pestaña con `cargadoDesde: "bienvenida"` para que la UI
-   * muestre el banner descartable arriba del canvas. Usuario nuevo entra
-   * directo al canvas con ejemplo en vez del overlay con 3 caminos.
-   */
-  precargarBienvenida: (nombreFixture: string) => void;
   // ── Beta2 / Ronda 17 L2: modo simulación conceptual ──────────────
   /** Contexto activo de simulación; `null` cuando no estamos en modo. */
   contextoSimulacion: import("../modelo/simulacion/tipos").ContextoSimulacion | null;

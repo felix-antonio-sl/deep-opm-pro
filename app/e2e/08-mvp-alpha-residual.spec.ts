@@ -5,7 +5,7 @@ import {
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   crearAtributoNumericoSmoke,
   rectDeLocator,
   clickCabeceraElemento,
@@ -18,7 +18,7 @@ import {
   guardarComoActual,
   abrirDialogoCargarModelo,
   abrirMenuPrincipal,
-  cargarModeloEjemplo,
+  importarModeloJson,
   cargarPrimerModelo,
   crearModeloNuevoDesdeMenu,
   assertWorkbenchLayout,
@@ -148,7 +148,7 @@ test("L4 arrastra cosa desde Toolbar al canvas y respeta posicion de drop", asyn
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
   const scrollInicial = await canvas.evaluate((element) => ({
     left: (element as HTMLElement).scrollLeft,
@@ -171,7 +171,7 @@ test("L4 menu de tipos validos muestra previsualización OPL y filtra por direcc
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -198,7 +198,7 @@ test("L4 biblioteca dock pausada y menu contextual borra enlace", async ({ page 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -314,16 +314,6 @@ async function clickModoImagenGlobalDesdeMas(page: Page): Promise<void> {
   await clickToolbarMasItem(page, "toolbar-mas-modo-imagen-global");
 }
 
-// Ronda 25 L2 III.A: "Plantillas…" y "Configuración…" se eliminan del
-// menú ⋯ Más por duplicación con el ☰ Menú principal. Los helpers ahora
-// invocan el menú principal, que es contenedor canónico de operaciones
-// de modelo (incluidas plantillas y configuración general).
-// Ronda Codex v2 L5: Plantillas y Configuración se invocan desde el command
-// palette (vía única de comandos; el menú lateral se retiró).
-async function abrirPlantillasDesdeMenuPrincipal(page: Page): Promise<void> {
-  await ejecutarComandoPalette(page, "plantillas", "menu-plantillas");
-}
-
 async function abrirConfiguracionDesdeMenuPrincipal(page: Page): Promise<void> {
   await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
 }
@@ -427,206 +417,12 @@ function modeloConImagenRefinada() {
   };
 }
 
-test("HU-33.001/.002/.003: guarda plantilla privada y aparece en catálogo", async ({ page }) => {
-  const pageErrors: string[] = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-
-  await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  const modal = page.getByTestId("modal-nombre-cosa");
-  if (await modal.count()) {
-    await modal.getByLabel("Nombre").fill("Bloque reusable");
-    await modal.getByRole("button", { name: "OK" }).click();
-  } else {
-    await page.getByLabel("Nombre").fill("Bloque reusable");
-  }
-
-  // Ronda Codex v2 L5: "Guardar como plantilla" se invoca desde el palette.
-  await ejecutarComandoPalette(page, "guardar plantilla", "menu-guardar-plantilla");
-  const guardar = page.getByTestId("dialogo-guardar-plantilla");
-  await expect(guardar).toBeVisible();
-  await expect(guardar.getByLabel("Ámbito de plantilla")).toHaveValue("privado");
-  await guardar.getByLabel("Nombre de plantilla").fill("Plantilla smoke privada");
-  await guardar.getByLabel("Descripción de plantilla").fill("Catálogo privado");
-  await page.getByTestId("guardar-plantilla-confirmar").click();
-  await expect(guardar).toHaveCount(0);
-
-  await abrirPlantillasDesdeMenuPrincipal(page);
-  const dialogo = page.getByTestId("dialogo-plantillas");
-  await expect(dialogo).toBeVisible();
-  await expect(dialogo.getByText("Mis plantillas")).toBeVisible();
-  await expect(dialogo.getByText("Plantilla smoke privada")).toBeVisible();
-  await dialogo.getByLabel("Buscar plantillas").fill("smoke");
-  await expect(dialogo.getByTestId("plantilla-tile")).toHaveCount(1);
-  expect(pageErrors).toEqual([]);
-});
-
-test("HU-33.006/.007/.008/.009/.018: inserta plantilla con sufijo, sub-OPD y etiqueta", async ({ page }) => {
-  const pageErrors: string[] = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-
-  await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await instalarPlantillaSmoke(page, "plantilla-insertar", modeloPlantillaSmoke());
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  const modal = page.getByTestId("modal-nombre-cosa");
-  if (await modal.count()) {
-    await modal.getByLabel("Nombre").fill("Sensor");
-    await modal.getByRole("button", { name: "OK" }).click();
-  } else {
-    await page.getByLabel("Nombre").fill("Sensor");
-  }
-
-  await abrirPlantillasDesdeMenuPrincipal(page);
-  const dialogo = page.getByTestId("dialogo-plantillas");
-  await expect(dialogo.getByText("Plantilla inserción")).toBeVisible();
-  await dialogo.getByTestId("insertar-plantilla").click();
-  await expect(dialogo).toHaveCount(0);
-
-  const exportado = await exportadoActual(page);
-  const nombres = Object.values(exportado.modelo.entidades).map((entidad) => entidad.nombre);
-  expect(nombres).toContain("Sensor_2");
-  expect(Object.values(exportado.modelo.enlaces).some((enlace) =>
-    enlace.tipo === "exhibicion" && enlace.etiqueta === "capacidad nominal"
-  )).toBe(true);
-  const hijos = Object.values(exportado.modelo.opds).filter((opd) => opd.padreId === exportado.modelo.opdRaizId);
-  expect(hijos.length).toBeGreaterThanOrEqual(1);
-  expect(Object.values(exportado.modelo.entidades).some((entidad) => entidad.nombre === "Paso interno")).toBe(true);
-  expect(pageErrors).toEqual([]);
-});
-
-test("HU-33.010: insertar plantilla enfoca temporalmente los ids nuevos", async ({ page }) => {
-  const pageErrors: string[] = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-
-  await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await instalarPlantillaSmoke(page, "plantilla-halo", modeloPlantillaSmoke());
-  await abrirPlantillasDesdeMenuPrincipal(page);
-  await page.getByTestId("insertar-plantilla").click();
-
-  // CANON-V3 Codex: halo seleccion en crimson UI-only.
-  await expect(page.locator(".joint-element").filter({ has: page.locator('[stroke="#8e2a2e"]') }).first()).toBeVisible();
-  await page.waitForTimeout(3200);
-  const exportado = await exportadoActual(page);
-  expect(Object.values(exportado.modelo.entidades).some((entidad) => entidad.nombre === "Sensor")).toBe(true);
-  expect(pageErrors).toEqual([]);
-});
-
-test("HU-33.022/.015: cancelar guardado no persiste y catálogo vacío muestra mensaje", async ({ page }) => {
-  const pageErrors: string[] = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-
-  await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  // Ronda Codex v2 L5: "Guardar como plantilla" se invoca desde el palette.
-  await ejecutarComandoPalette(page, "guardar plantilla", "menu-guardar-plantilla");
-  await expect(page.getByTestId("dialogo-guardar-plantilla")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("dialogo-guardar-plantilla")).toHaveCount(0);
-
-  await abrirPlantillasDesdeMenuPrincipal(page);
-  const catalogo = page.getByTestId("dialogo-plantillas");
-  await expect(catalogo.getByTestId("plantillas-vacio")).toContainText("Sin plantillas");
-  await catalogo.getByTestId("plantillas-vacio-cta").click();
-  await expect(page.getByTestId("dialogo-guardar-plantilla")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(catalogo).toBeVisible();
-  expect(pageErrors).toEqual([]);
-});
-
-async function instalarPlantillaSmoke(page: Page, id: string, contenido: ExportadoModelo): Promise<void> {
-  await page.evaluate(({ idPlantilla, modelo }) => {
-    const ahora = new Date().toISOString();
-    const contenidoPersistido = {
-      id: `contenido-${idPlantilla}`,
-      nombre: "Plantilla inserción",
-      descripcion: "",
-      creadoEn: ahora,
-      actualizadoEn: ahora,
-      json: JSON.stringify({ formato: "deep-opm-pro.modelo.v0", modelo: modelo.modelo }, null, 2),
-    };
-    const plantilla = {
-      id: idPlantilla,
-      nombre: "Plantilla inserción",
-      descripcion: "Incluye sub-OPD",
-      ambito: "privado",
-      contenido: contenidoPersistido,
-      creadoEn: ahora,
-      actualizadoEn: ahora,
-    };
-    const indice = {
-      id: plantilla.id,
-      nombre: plantilla.nombre,
-      descripcion: plantilla.descripcion,
-      ambito: plantilla.ambito,
-      creadoEn: plantilla.creadoEn,
-      actualizadoEn: plantilla.actualizadoEn,
-    };
-    localStorage.setItem("opm:plantillas-lista", JSON.stringify([idPlantilla]));
-    localStorage.setItem(`opm:plantilla:${idPlantilla}`, JSON.stringify({ formato: "deep-opm-pro.plantilla.local.v1", plantilla }));
-    localStorage.setItem(`opm:plantilla-indice:${idPlantilla}`, JSON.stringify({ formato: "deep-opm-pro.plantilla.local.v1", plantilla: indice }));
-  }, { idPlantilla: id, modelo: contenido });
-}
-
-function modeloPlantillaSmoke() {
-  return {
-    modelo: {
-      id: "modelo-plantilla-smoke",
-      nombre: "Plantilla inserción",
-      opdRaizId: "opd-plantilla-raiz",
-      nextSeq: 100,
-      entidades: {
-        "o-sensor": { id: "o-sensor", tipo: "objeto", nombre: "Sensor", esencia: "informacional", afiliacion: "sistemica" },
-        "o-capacidad": { id: "o-capacidad", tipo: "objeto", nombre: "Capacidad", esencia: "informacional", afiliacion: "sistemica" },
-        "p-proceso": { id: "p-proceso", tipo: "proceso", nombre: "Proceso plantilla", esencia: "informacional", afiliacion: "sistemica", refinamiento: { tipo: "descomposicion", opdId: "opd-plantilla-hijo" } },
-        "o-paso": { id: "o-paso", tipo: "objeto", nombre: "Paso interno", esencia: "informacional", afiliacion: "sistemica" },
-      },
-      estados: {},
-      enlaces: {
-        "e-exhibe": {
-          id: "e-exhibe",
-          tipo: "exhibicion",
-          origenId: extremoEntidad("o-sensor"),
-          destinoId: extremoEntidad("o-capacidad"),
-          etiqueta: "capacidad nominal",
-        },
-      },
-      abanicos: {},
-      opds: {
-        "opd-plantilla-raiz": {
-          id: "opd-plantilla-raiz",
-          nombre: "SD",
-          padreId: null,
-          apariencias: {
-            "a-sensor": { id: "a-sensor", entidadId: "o-sensor", opdId: "opd-plantilla-raiz", x: 80, y: 70, width: 135, height: 60 },
-            "a-capacidad": { id: "a-capacidad", entidadId: "o-capacidad", opdId: "opd-plantilla-raiz", x: 280, y: 70, width: 135, height: 60 },
-            "a-proceso": { id: "a-proceso", entidadId: "p-proceso", opdId: "opd-plantilla-raiz", x: 180, y: 190, width: 135, height: 60 },
-          },
-          enlaces: { "ae-exhibe": { id: "ae-exhibe", enlaceId: "e-exhibe", opdId: "opd-plantilla-raiz", vertices: [] } },
-        },
-        "opd-plantilla-hijo": {
-          id: "opd-plantilla-hijo",
-          nombre: "Detalle plantilla",
-          padreId: "opd-plantilla-raiz",
-          apariencias: {
-            "a-proceso-hijo": { id: "a-proceso-hijo", entidadId: "p-proceso", opdId: "opd-plantilla-hijo", x: 90, y: 80, width: 360, height: 220 },
-            "a-paso": { id: "a-paso", entidadId: "o-paso", opdId: "opd-plantilla-hijo", x: 140, y: 150, width: 135, height: 60 },
-          },
-          enlaces: {},
-        },
-      },
-    },
-  };
-}
-
 test("L3 UX: toolbar CN-CIM&B conserva tooltips primarios y mueve archivo al menú", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Ronda 25 L1 III.A: el botón ↶ del chrome global se eliminó. La affordance
   // de reversibilidad se traslada al tooltip del chip persistencia (el cual
@@ -640,7 +436,7 @@ test("L3 UX: toolbar CN-CIM&B conserva tooltips primarios y mueve archivo al men
   await expect(page.getByRole("button", { name: "Nuevo", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Cargar", exact: true })).toHaveCount(0);
   // Ronda Codex v2 L5: el menú lateral se retiró; el botón ☰ abre el command
-  // palette. Sus comandos "Nuevo modelo" y "Abrir / importar modelo" siguen
+  // palette. Sus comandos "Nuevo modelo" y "Abrir modelo" siguen
   // disponibles (el palette es superset del antiguo menú).
   const palette = await abrirMenuPrincipal(page);
   await palette.getByRole("combobox").fill("nuevo modelo");
@@ -657,7 +453,7 @@ test("HU-10.003: drag Objeto al canvas abre modal-nombre-cosa y Enter persiste e
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
@@ -679,7 +475,7 @@ test("HU-10.003: modal-nombre-cosa expone el form con input controlado para nomb
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
@@ -704,7 +500,7 @@ test("HU-30.019: doble clic sobre tile en DialogoCargarModelo carga modelo y cie
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modalNombre = page.getByTestId("modal-nombre-cosa");
@@ -734,7 +530,7 @@ test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga m
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   const canvas = page.getByRole("img", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modalNombre = page.getByTestId("modal-nombre-cosa");
@@ -751,7 +547,7 @@ test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga m
   const dialogo = await abrirDialogoCargarModelo(page);
   const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Click boton" }).first();
   await tile.click();
-  await dialogo.getByRole("button", { name: "Cargar", exact: true }).click();
+  await dialogo.getByRole("button", { name: "Abrir", exact: true }).click();
 
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Cargable boton")).toHaveCount(1);
@@ -764,15 +560,15 @@ test("HU-30.037: Esc cancela Abrir / importar sin persistir cambios", async ({ p
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "System Diagram");
+  await esperarWorkbenchInicial(page);
+  await importarModeloJson(page, modeloDosOpds());
 
   const exportadoAntes = await exportadoActual(page);
 
   // Ronda Codex v2 L5: "Abrir / importar" se invoca desde el palette.
   await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
 
-  const dialogo = page.getByRole("dialog", { name: "Abrir / importar modelo" });
+  const dialogo = page.getByRole("dialog", { name: "Abrir modelo" });
   await expect(dialogo).toBeVisible();
   await expect(dialogo.getByLabel("Mostrar archivados")).toBeVisible();
 
@@ -790,8 +586,8 @@ test("HU-30.037: Esc cancela Configuración sin persistir cambios al modelo", as
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "System Diagram");
+  await esperarWorkbenchInicial(page);
+  await importarModeloJson(page, modeloDosOpds());
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -817,8 +613,8 @@ test("HU-30.037: Esc cancela DialogoBuscarGlobal sin persistir cambios al modelo
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "System Diagram");
+  await esperarWorkbenchInicial(page);
+  await importarModeloJson(page, modeloDosOpds());
 
   const exportadoAntes = await exportadoActual(page);
 
@@ -841,8 +637,8 @@ test("HU-30.037: Esc cancela DialogoVersiones sin persistir cambios al modelo", 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "System Diagram");
+  await esperarWorkbenchInicial(page);
+  await importarModeloJson(page, modeloDosOpds());
 
   // Persistir el modelo: el diálogo de versiones requiere `modeloPersistidoId`.
   // Ronda Codex v2 L5: Guardar (Ctrl+S) sobre un modelo no persistido abre

@@ -12,7 +12,6 @@ export function useZustandAppShellWorkbenchPort(): AppShellWorkbenchPort {
   const fijarAnchoPanelArbol = useOpmStore((s) => s.fijarAnchoPanelArbol);
   const fijarAnchoPanelInspector = useOpmStore((s) => s.fijarAnchoPanelInspector);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
-  const pantallaInicioCerrada = useOpmStore((s) => s.pantallaInicioCerrada);
   const seleccionIdOpl = useOpmStore((s) => s.seleccionId);
   const enlaceSeleccionIdOpl = useOpmStore((s) => s.enlaceSeleccionId);
   const vistaMobileActiva = useOpmStore((s) => s.vistaMobileActiva);
@@ -31,7 +30,6 @@ export function useZustandAppShellWorkbenchPort(): AppShellWorkbenchPort {
     fijarAnchoPanelArbol,
     fijarAnchoPanelInspector,
     modeloPersistidoId,
-    pantallaInicioCerrada,
     seleccionIdOpl,
     enlaceSeleccionIdOpl,
     vistaMobileActiva,

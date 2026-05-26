@@ -11,8 +11,6 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
   const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
-  const abrirDialogoGuardarPlantilla = useOpmStore((s) => s.abrirDialogoGuardarPlantilla);
-  const abrirDialogoPlantillas = useOpmStore((s) => s.abrirDialogoPlantillas);
   const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
   const gridConfigBase = useOpmStore((s) => s.gridConfig ?? s.indice.preferenciasUi?.gridConfig);
@@ -28,7 +26,6 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const registrarUsoCommandPalette = useOpmStore((s) => s.registrarUsoCommandPalette);
   // Ronda Codex v2 L5: acciones absorbidas desde el `MenuPrincipal` lateral
   // (retirado). El palette pasa a ser superset de aquel menú.
-  const iniciarAsistente = useOpmStore((s) => s.iniciarAsistente);
   const abrirPestanaNueva = useOpmStore((s) => s.abrirPestanaNueva);
   const abrirBusquedaCosas = useOpmStore((s) => s.abrirBusquedaCosas);
   const abrirBusquedaGlobal = useOpmStore((s) => s.abrirDialogoBuscarGlobal);
@@ -55,8 +52,6 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     abrirCargarModelo,
     abrirGuardarComo,
     abrirDialogoConfiguracion,
-    abrirDialogoGuardarPlantilla,
-    abrirDialogoPlantillas,
     abrirDialogoVersiones,
     modeloPersistidoId,
     gridConfigBase,
@@ -70,7 +65,6 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     exportarJson,
     frecuenciaUso,
     registrarUsoCommandPalette,
-    iniciarAsistente,
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,

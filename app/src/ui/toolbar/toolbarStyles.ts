@@ -213,10 +213,6 @@ export const toolbarStyle = {
     display: "inline-block",
     flex: "0 0 auto",
   },
-  demoSelect: {
-    ...botonBase(),
-    padding: "0 8px",
-  },
   activeButton: {
     ...botonBase(),
     background: colors.ink04,

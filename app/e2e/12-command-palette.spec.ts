@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { esperarWorkbenchInicial } from "./_smoke-helpers";
 
 /**
  * Ronda 22 §7.10 — Command Palette como superficie discoverable.
@@ -13,7 +13,7 @@ test("Ctrl+K abre palette, busca accion de menu y Enter la ejecuta", async ({ pa
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
@@ -38,7 +38,7 @@ test("Escape cierra Command Palette sin ejecutar accion", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.keyboard.press("Control+k");
   await expect(page.getByTestId("command-palette")).toBeVisible();
@@ -55,7 +55,7 @@ test("Command Palette abre Abrir / importar unificado", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
@@ -64,10 +64,30 @@ test("Command Palette abre Abrir / importar unificado", async ({ page }) => {
   await expect(page.getByTestId("command-palette-item-menu-abrir-importar")).toBeVisible();
 
   await page.keyboard.press("Enter");
-  const dialogo = page.getByRole("dialog", { name: "Abrir / importar modelo" });
+  const dialogo = page.getByRole("dialog", { name: "Abrir modelo" });
   await expect(dialogo).toBeVisible();
-  await expect(dialogo.getByLabel("Cargar modelo de ejemplo")).toBeVisible();
+  await expect(dialogo.getByLabel("Cargar modelo de ejemplo")).toHaveCount(0);
   await expect(dialogo.getByTestId("panel-json-abrir-importar").locator("summary")).toHaveText("JSON");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("Command Palette no expone asistente, ejemplos ni plantillas", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+
+  for (const query of ["asistente", "ejemplo", "plantilla"]) {
+    await palette.getByRole("combobox").fill(query);
+    await expect(palette).toContainText("sin resultados - escribe otro comando");
+    await expect(palette.getByRole("option")).toHaveCount(0);
+  }
 
   expect(pageErrors).toEqual([]);
 });
@@ -77,7 +97,7 @@ test("Command Palette abre Configuración consolidada", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
@@ -99,7 +119,7 @@ test("Command Palette abre cheatsheet con estereotipo modal IFML", async ({ page
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");

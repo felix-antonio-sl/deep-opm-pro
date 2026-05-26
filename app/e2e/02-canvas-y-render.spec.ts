@@ -4,7 +4,7 @@ import {
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   crearAtributoNumericoSmoke,
   rectDeLocator,
   clickCabeceraElemento,
@@ -618,7 +618,7 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await expect(page.locator("main")).toHaveAttribute("data-context-submodo", "ninguno");
   await expect(page.getByTestId("viewpoint-heading")).toHaveText("Workbench OPM - edición");
   await expect(page.getByTestId("toolbar-root")).toBeVisible();
@@ -673,12 +673,12 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   // Ronda 24 L4 #6: tras crear y seleccionar el objeto, el cluster Conectar
   // se monta porque hay origen disponible.
   await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
-  // Ronda Codex v2 L5: "Plantillas" es ahora un comando del palette (sección
-  // MODELO), invocable desde ☰. Verificamos que el palette lo expone.
+  // P0 UI/UX 2026-05-26: plantillas deja de existir como superficie de producto.
   await page.getByTestId("toolbar-menu").click();
   await expect(page.getByTestId("command-palette")).toBeVisible();
   await page.getByTestId("command-palette").getByRole("combobox").fill("plantillas");
-  await expect(page.getByTestId("command-palette-item-menu-plantillas")).toBeVisible();
+  await expect(page.getByTestId("command-palette")).toContainText("sin resultados - escribe otro comando");
+  await expect(page.getByTestId("command-palette").getByRole("option")).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeEnabled();

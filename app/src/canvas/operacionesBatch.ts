@@ -4,11 +4,9 @@ import { aplicarEstiloEnlace } from "../modelo/enlaceEstilo";
 import { aplicarEstiloApariencia } from "../modelo/estilos";
 import { crearEnlace, eliminarEnlace, eliminarEntidad, moverAparienciaPorId } from "../modelo/operaciones";
 import { eliminarEnlacesBatch as eliminarEnlacesBatchModelo } from "../modelo/operaciones/enlaces";
-import { fijarRefinamiento, refinamientosDe } from "../modelo/refinamientos";
 import type {
   Apariencia,
   AparienciaEnlace,
-  Entidad,
   EnlaceEstilo,
   EstiloApariencia,
   Id,
@@ -16,7 +14,6 @@ import type {
   Opd,
   Posicion,
   Resultado,
-  Estado,
   TipoEnlace,
   UiPortapapelesVisual,
 } from "../modelo/tipos";
@@ -325,180 +322,6 @@ export function aplicarEstiloEnlacesBatch(
   return aplicarEstiloEnlaces(modelo, opdId, enlaceIds, estilo);
 }
 
-/**
- * Inserta una plantilla como copia local desacoplada en el OPD activo.
- * Citas SSOT: [Met §8.8] insertar plantilla crea copia local sin propagación;
- * [V-52]/[V-123] cada copia declara existencia propia y apariencias locales.
- * Evidencia OPCloud: templates-import + existing-name-dialog; MVP beta usa
- * sufijo `_n` automático en vez de diálogo "Use Existing Thing".
- */
-export interface ResultadoInsertarPlantilla {
-  modelo: Modelo;
-  idsNuevos: Id[];
-  entidadesInsertadas: number;
-  enlacesInsertados: number;
-  opdsInsertados: number;
-}
-
-export function insertarPlantillaBatch(
-  modeloDestino: Modelo,
-  opdDestinoId: Id,
-  modeloFuente: Modelo,
-  opdFuenteId = modeloFuente.opdRaizId,
-): Resultado<ResultadoInsertarPlantilla> {
-  const opdDestino = modeloDestino.opds[opdDestinoId];
-  const opdFuente = modeloFuente.opds[opdFuenteId];
-  if (!opdDestino) return fallo(`OPD destino no existe: ${opdDestinoId}`);
-  if (!opdFuente) return fallo(`OPD fuente no existe: ${opdFuenteId}`);
-
-  const subarbol = subarbolOpds(modeloFuente, opdFuenteId, 10);
-  const opdMap = new Map<Id, Id>([[opdFuenteId, opdDestinoId]]);
-  const entidadMap = new Map<Id, Id>();
-  const estadoMap = new Map<Id, Id>();
-  const enlaceMap = new Map<Id, Id>();
-  let nextSeq = modeloDestino.nextSeq;
-  const idsReservados = idsModelo(modeloDestino);
-  for (const id of idsModelo(modeloFuente)) idsReservados.add(id);
-
-  const nextId = (prefijo: string): Id => {
-    let id = siguienteId(nextSeq, prefijo);
-    nextSeq += 1;
-    while (idsReservados.has(id)) {
-      id = siguienteId(nextSeq, prefijo);
-      nextSeq += 1;
-    }
-    idsReservados.add(id);
-    return id;
-  };
-
-  for (const opd of subarbol) {
-    if (opd.id === opdFuenteId) continue;
-    opdMap.set(opd.id, nextId("opd"));
-  }
-
-  const entidadesFuente = entidadesEnOpds(modeloFuente, subarbol);
-  const nombresDestino = new Set(
-    Object.values(opdDestino.apariencias)
-      .map((apariencia) => modeloDestino.entidades[apariencia.entidadId]?.nombre)
-      .filter((nombre): nombre is string => typeof nombre === "string")
-      .map((nombre) => nombre.toLocaleLowerCase("es-CL")),
-  );
-  const entidades: Record<Id, Entidad> = { ...modeloDestino.entidades };
-  const idsNuevos: Id[] = [];
-
-  for (const entidadFuente of entidadesFuente) {
-    const nuevoId = nextId(entidadFuente.tipo === "objeto" ? "o" : "p");
-    entidadMap.set(entidadFuente.id, nuevoId);
-    const visibleEnRaiz = Object.values(opdFuente.apariencias).some((apariencia) => apariencia.entidadId === entidadFuente.id);
-    const nombre = visibleEnRaiz ? nombreSinColision(entidadFuente.nombre, nombresDestino) : entidadFuente.nombre;
-    if (visibleEnRaiz) nombresDestino.add(nombre.toLocaleLowerCase("es-CL"));
-    let entidadCopiada: Entidad = {
-      ...entidadFuente,
-      id: nuevoId,
-      nombre,
-    };
-    // Reset de refinamientos; se vuelven a fijar solo aquellos cuyo opd
-    // destino fue copiado (mapa opdMap). Ronda 15.2: ambos slots posibles.
-    const { refinamientos: _omitido, ...sinRefinamientos } = entidadCopiada;
-    entidadCopiada = sinRefinamientos as Entidad;
-    for (const ref of refinamientosDe(entidadFuente)) {
-      const nuevoOpdId = opdMap.get(ref.opdId);
-      if (!nuevoOpdId) continue;
-      const slot = ref.tipo === "despliegue"
-        ? { opdId: nuevoOpdId, ...(ref.modo ? { modo: ref.modo } : {}) }
-        : { opdId: nuevoOpdId };
-      entidadCopiada = fijarRefinamiento(entidadCopiada, ref.tipo, slot);
-    }
-    entidades[nuevoId] = entidadCopiada;
-    idsNuevos.push(nuevoId);
-  }
-
-  const estados: Record<Id, Estado> = { ...modeloDestino.estados };
-  for (const estadoFuente of Object.values(modeloFuente.estados)) {
-    const nuevaEntidadId = entidadMap.get(estadoFuente.entidadId);
-    if (!nuevaEntidadId) continue;
-    const nuevoEstadoId = nextId("s");
-    estadoMap.set(estadoFuente.id, nuevoEstadoId);
-    estados[nuevoEstadoId] = { ...estadoFuente, id: nuevoEstadoId, entidadId: nuevaEntidadId };
-  }
-
-  const enlaces: Modelo["enlaces"] = { ...modeloDestino.enlaces };
-  const opds: Record<Id, Opd> = { ...modeloDestino.opds };
-  for (const opdFuenteActual of subarbol) {
-    const opdDestinoActualId = opdMap.get(opdFuenteActual.id);
-    if (!opdDestinoActualId) continue;
-    const opdDestinoActual: Opd = opdFuenteActual.id === opdFuenteId
-      ? opds[opdDestinoId]!
-      : {
-          id: opdDestinoActualId,
-          nombre: opdFuenteActual.nombre,
-          padreId: opdFuenteActual.padreId ? opdMap.get(opdFuenteActual.padreId) ?? opdDestinoId : opdDestinoId,
-          apariencias: {},
-          enlaces: {},
-          ...(opdFuenteActual.ordenLocal !== undefined ? { ordenLocal: opdFuenteActual.ordenLocal } : {}),
-        };
-    const apariencias = { ...opdDestinoActual.apariencias };
-    const aparienciasMap = new Map<Id, Id>();
-    for (const aparienciaFuente of Object.values(opdFuenteActual.apariencias)) {
-      const nuevaEntidadId = entidadMap.get(aparienciaFuente.entidadId);
-      if (!nuevaEntidadId) continue;
-      const nuevaAparienciaId = nextId("a");
-      aparienciasMap.set(aparienciaFuente.id, nuevaAparienciaId);
-      const aparienciaCopiada: Apariencia = {
-        ...aparienciaFuente,
-        id: nuevaAparienciaId,
-        entidadId: nuevaEntidadId,
-        opdId: opdDestinoActualId,
-      };
-      if (aparienciaFuente.parteExtraidaDe) {
-        const parteExtraidaDe = remapParteExtraida(aparienciaFuente.parteExtraidaDe, aparienciasMap, entidadMap);
-        if (parteExtraidaDe) aparienciaCopiada.parteExtraidaDe = parteExtraidaDe;
-        else delete aparienciaCopiada.parteExtraidaDe;
-      }
-      apariencias[nuevaAparienciaId] = aparienciaCopiada;
-    }
-
-    const aparienciasEnlace = { ...opdDestinoActual.enlaces };
-    for (const aparienciaEnlaceFuente of Object.values(opdFuenteActual.enlaces)) {
-      const enlaceFuente = modeloFuente.enlaces[aparienciaEnlaceFuente.enlaceId];
-      if (!enlaceFuente) continue;
-      const origenId = remapExtremo(enlaceFuente.origenId, entidadMap, estadoMap);
-      const destinoId = remapExtremo(enlaceFuente.destinoId, entidadMap, estadoMap);
-      if (!origenId || !destinoId) continue;
-      let nuevoEnlaceId = enlaceMap.get(enlaceFuente.id);
-      if (!nuevoEnlaceId) {
-        nuevoEnlaceId = nextId("e");
-        enlaceMap.set(enlaceFuente.id, nuevoEnlaceId);
-        enlaces[nuevoEnlaceId] = {
-          ...enlaceFuente,
-          id: nuevoEnlaceId,
-          origenId,
-          destinoId,
-          ...(enlaceFuente.derivado ? { derivado: { ...enlaceFuente.derivado } } : {}),
-        };
-        idsNuevos.push(nuevoEnlaceId);
-      }
-      const nuevaAparienciaEnlaceId = nextId("ae");
-      aparienciasEnlace[nuevaAparienciaEnlaceId] = {
-        ...aparienciaEnlaceFuente,
-        id: nuevaAparienciaEnlaceId,
-        enlaceId: nuevoEnlaceId,
-        opdId: opdDestinoActualId,
-        vertices: aparienciaEnlaceFuente.vertices.map((vertice) => ({ ...vertice })),
-      };
-    }
-    opds[opdDestinoActualId] = { ...opdDestinoActual, apariencias, enlaces: aparienciasEnlace };
-  }
-
-  return ok({
-    modelo: { ...modeloDestino, nextSeq, entidades, estados, enlaces, opds },
-    idsNuevos,
-    entidadesInsertadas: entidadMap.size,
-    enlacesInsertados: enlaceMap.size,
-    opdsInsertados: Math.max(0, opdMap.size - 1),
-  });
-}
-
 export function alinearPorEje(modelo: Modelo, opdId: Id, ids: Id[], eje: EjeAlineacion): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
@@ -783,80 +606,6 @@ function purgarHuerfanos(modelo: Modelo): Modelo {
     },
   ]));
   return { ...modelo, entidades, estados, enlaces, opds };
-}
-
-function subarbolOpds(modelo: Modelo, raizId: Id, profundidadMaxima: number): Opd[] {
-  const raiz = modelo.opds[raizId];
-  if (!raiz) return [];
-  const salida: Opd[] = [];
-  const visitar = (opd: Opd, profundidad: number) => {
-    salida.push(opd);
-    if (profundidad >= profundidadMaxima) return;
-    const hijos = Object.values(modelo.opds)
-      .filter((hijo) => hijo.padreId === opd.id)
-      .sort((a, b) => (a.ordenLocal ?? 0) - (b.ordenLocal ?? 0) || a.id.localeCompare(b.id, "es-CL"));
-    for (const hijo of hijos) visitar(hijo, profundidad + 1);
-  };
-  visitar(raiz, 0);
-  return salida;
-}
-
-function entidadesEnOpds(modelo: Modelo, opds: Opd[]): Entidad[] {
-  const ids = new Set<Id>();
-  for (const opd of opds) {
-    for (const apariencia of Object.values(opd.apariencias)) ids.add(apariencia.entidadId);
-  }
-  return [...ids]
-    .map((id) => modelo.entidades[id])
-    .filter((entidad): entidad is Entidad => !!entidad);
-}
-
-function idsModelo(modelo: Modelo): Set<Id> {
-  const ids = new Set<Id>([
-    modelo.id,
-    ...Object.keys(modelo.entidades),
-    ...Object.keys(modelo.estados),
-    ...Object.keys(modelo.enlaces),
-    ...Object.keys(modelo.opds),
-  ]);
-  for (const opd of Object.values(modelo.opds)) {
-    for (const id of Object.keys(opd.apariencias)) ids.add(id);
-    for (const id of Object.keys(opd.enlaces)) ids.add(id);
-  }
-  return ids;
-}
-
-function nombreSinColision(nombreBase: string, nombresTomados: Set<string>): string {
-  const base = nombreBase.trim() || "Cosa";
-  if (!nombresTomados.has(base.toLocaleLowerCase("es-CL"))) return base;
-  for (let i = 2; i < 1000; i += 1) {
-    const candidato = `${base}_${i}`;
-    if (!nombresTomados.has(candidato.toLocaleLowerCase("es-CL"))) return candidato;
-  }
-  return `${base}_${Date.now().toString(36)}`;
-}
-
-function remapExtremo(
-  extremo: { kind: "entidad" | "estado"; id: Id },
-  entidadMap: Map<Id, Id>,
-  estadoMap: Map<Id, Id>,
-): { kind: "entidad" | "estado"; id: Id } | null {
-  if (extremo.kind === "entidad") {
-    const id = entidadMap.get(extremo.id);
-    return id ? { kind: "entidad", id } : null;
-  }
-  const id = estadoMap.get(extremo.id);
-  return id ? { kind: "estado", id } : null;
-}
-
-function remapParteExtraida(
-  extraida: { padreAparienciaId: Id; parteEntidadId: Id },
-  aparienciaMap: Map<Id, Id>,
-  entidadMap: Map<Id, Id>,
-): { padreAparienciaId: Id; parteEntidadId: Id } | undefined {
-  const padreAparienciaId = aparienciaMap.get(extraida.padreAparienciaId);
-  const parteEntidadId = entidadMap.get(extraida.parteEntidadId);
-  return padreAparienciaId && parteEntidadId ? { padreAparienciaId, parteEntidadId } : undefined;
 }
 
 function entidadIdDeExtremoLigero(modelo: Modelo, extremo: { kind: "entidad" | "estado"; id: Id }): Id {

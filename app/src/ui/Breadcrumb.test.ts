@@ -38,17 +38,17 @@ describe("Breadcrumb OPD", () => {
     const modelo = modeloConRuta();
 
     expect(rutaBreadcrumbCodex(modelo, "opd-1")).toEqual([
-      { id: "sistema", nombre: "sistema" },
-      { id: "system-diagram", nombre: "system diagram" },
+      { id: "modelo", nombre: "modelo" },
+      { id: "sd", nombre: "sd" },
     ]);
   });
 
-  test("agrega el OPD hijo despues de sistema y system diagram", () => {
+  test("agrega el OPD hijo despues de modelo y sd", () => {
     const modelo = modeloConRuta();
 
     expect(rutaBreadcrumbCodex(modelo, "opd-3")).toEqual([
-      { id: "sistema", nombre: "sistema" },
-      { id: "system-diagram", nombre: "system diagram" },
+      { id: "modelo", nombre: "modelo" },
+      { id: "sd", nombre: "sd" },
       { id: "opd-2", nombre: "atencion hodom" },
       { id: "opd-3", nombre: "visita" },
     ]);
@@ -64,8 +64,8 @@ describe("Breadcrumb OPD", () => {
   test("renderiza breadcrumb completo Codex v1.1 con separadores y jerarquia visual", () => {
     const v = BreadcrumbView({
       segmentos: [
-        { id: "sistema", nombre: "sistema" },
-        { id: "system-diagram", nombre: "system diagram" },
+        { id: "modelo", nombre: "modelo" },
+        { id: "sd", nombre: "sd" },
         { id: "sd1", nombre: "sd1" },
       ],
       opdActivoId: "sd1",
@@ -77,7 +77,7 @@ describe("Breadcrumb OPD", () => {
     const segundoSeparador = hijos(wraps[1]!)[0]!;
     const tercerSeparador = hijos(wraps[2]!)[0]!;
 
-    expect(botones.map((boton) => boton.props.children)).toEqual(["sistema", "system diagram", "sd1"]);
+    expect(botones.map((boton) => boton.props.children)).toEqual(["modelo", "sd", "sd1"]);
     expect(segundoSeparador.props.children).toBe("·");
     expect(tercerSeparador.props.children).toBe("·");
     expect(segundoSeparador.props.style.color).toBe(tokens.colors.inkFaint);
@@ -91,8 +91,8 @@ describe("Breadcrumb OPD", () => {
     const visitados: string[] = [];
     const v = BreadcrumbView({
       segmentos: [
-        { id: "sistema", nombre: "sistema" },
-        { id: "system-diagram", nombre: "system diagram" },
+        { id: "modelo", nombre: "modelo" },
+        { id: "sd", nombre: "sd" },
         { id: "sd1", nombre: "sd1" },
       ],
       opdActivoId: "sd1",
@@ -103,8 +103,8 @@ describe("Breadcrumb OPD", () => {
 
     expect(v.props["data-testid"]).toBe("breadcrumb-opd");
     expect(botones.map((boton) => boton.props["data-testid"])).toEqual([
-      "breadcrumb-opd-sistema",
-      "breadcrumb-opd-system-diagram",
+      "breadcrumb-opd-modelo",
+      "breadcrumb-opd-sd",
       "breadcrumb-opd-sd1",
     ]);
     expect(botones[2]!.props["aria-current"]).toBe("page");
@@ -112,21 +112,21 @@ describe("Breadcrumb OPD", () => {
     botones[0]!.props.onClick();
     botones[2]!.props.onClick();
 
-    expect(visitados).toEqual(["sistema"]);
+    expect(visitados).toEqual(["modelo"]);
   });
 
   test("colapsa breadcrumb largo con marca explicita y sin ellipsis CSS silencioso", () => {
     const segmentos = colapsarSegmentosBreadcrumb([
-      { id: "sistema", nombre: "sistema" },
-      { id: "system-diagram", nombre: "system diagram" },
+      { id: "modelo", nombre: "modelo" },
+      { id: "sd", nombre: "sd" },
       { id: "sd1", nombre: "sd1" },
       { id: "sd1-1", nombre: "sd1.1" },
       { id: "sd1-1-1", nombre: "sd1.1.1" },
     ]);
 
     expect(segmentos.map((segmento) => segmento.nombre)).toEqual([
-      "sistema",
-      "system diagram",
+      "modelo",
+      "sd",
       "…",
       "sd1.1",
       "sd1.1.1",
@@ -140,8 +140,8 @@ describe("Breadcrumb OPD", () => {
     const botones = botonesDe(v).filter(Boolean);
 
     expect(botones.map((boton) => boton.props.children)).toEqual([
-      "sistema",
-      "system diagram",
+      "modelo",
+      "sd",
       "sd1.1",
       "sd1.1.1",
     ]);

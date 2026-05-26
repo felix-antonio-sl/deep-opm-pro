@@ -11,14 +11,14 @@
  *   - Salir vuelve a la Toolbar de edición.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, clickToolbarMasItem, jsonEditor } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, clickToolbarMasItem, jsonEditor } from "./_smoke-helpers";
 
 test("modo simulación: entrar, paso, correr, reiniciar, salir", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Construir un modelo con 2 procesos para tener plan no vacío.
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -90,7 +90,7 @@ test("modo simulación: OPD sin procesos muestra mensaje y controles deshabilita
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion")).toBeVisible();
@@ -109,7 +109,7 @@ test("modo simulación: play avanza automaticamente hasta completar", async ({ p
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Preparar");
@@ -148,7 +148,7 @@ test("simulación: slider ajusta velocidad y Espacio togglea play", async ({ pag
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await crearDosProcesos(page, "Recibir", "Atender");
   await entrarSimulacionDesdeMas(page);
@@ -176,7 +176,7 @@ test("simulación: headless corre sin animación hasta completar", async ({ page
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await crearDosProcesos(page, "Preparar", "Resolver");
   await entrarSimulacionDesdeMas(page);
@@ -195,7 +195,7 @@ test("simulación: OPL resalta la frase del proceso activo", async ({ page }) =>
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Un único proceso ⇒ el plan tiene 1 paso y arranca activo. Canon L1 escinde
   // la clasificación del proceso en dos oraciones ("Recibir es informacional."
@@ -218,7 +218,7 @@ test("simulación: oculta Paso/Correr/Reiniciar durante auto-avance (B0.010)", a
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // 3 procesos + velocidad mínima (0.25×) ⇒ el auto-avance dura lo suficiente
   // para observar los controles ocultos a mitad de corrida sin sleeps.
@@ -262,7 +262,7 @@ test("simulación: navegar a otro OPD no aborta la corrida (B0.026)", async ({ p
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Modelo con dos OPDs: el raíz tiene un proceso (plan no vacío) y un OPD hijo.
   await jsonEditor(page).fill(JSON.stringify(modeloSimulacionDosOpds(), null, 2));

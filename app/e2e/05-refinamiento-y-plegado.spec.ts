@@ -3,7 +3,7 @@ import {
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   crearAtributoNumericoSmoke,
   rectDeLocator,
   clickCabeceraElemento,
@@ -138,7 +138,7 @@ test("descompone objeto desde barra contextual y navega al OPD hijo", async ({ p
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(page.getByTestId("barra-inzoom")).toBeVisible();
 
@@ -281,7 +281,7 @@ test("despliega objeto y navega al OPD hijo", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   // Ronda 22: Unfold vive en el catálogo contextual; Refinamiento muestra estado.
   await irATabRefinamiento(page);
@@ -325,7 +325,7 @@ test("despliega proceso desde inspector y navega al OPD hijo", async ({ page }) 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   // Ronda 22: Unfold vive en el catálogo contextual; Refinamiento muestra estado.
   await irATabRefinamiento(page);
@@ -380,7 +380,7 @@ test("ronda 15.2: una entidad acepta descomposicion + despliegue simultaneos y e
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   // Inzoom vive en el catálogo contextual.
   await irATabRefinamiento(page);
@@ -425,7 +425,7 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await desplegarComoAgregacion(page);
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
@@ -469,7 +469,7 @@ test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   // Ronda 20 L1: los swatches Fill/Borde viven en el tab `Estilo`.
   await irATabEstiloEntidad(page);
@@ -868,7 +868,7 @@ test("HU-10.021: desplegar objeto crea OPD hijo y entrada en árbol jerárquico"
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   const modalNombre = page.getByTestId("modal-nombre-cosa");
   if (await modalNombre.count()) {

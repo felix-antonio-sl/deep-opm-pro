@@ -3,7 +3,7 @@ import {
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   restaurarPanelOplSiMinimizado,
   crearAtributoNumericoSmoke,
   rectDeLocator,
@@ -53,7 +53,7 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -109,7 +109,7 @@ test("panel OPL aplica edicion libre con preview y propaga al canvas", async ({ 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
 
@@ -216,7 +216,7 @@ test("panel OPL alterna numeracion 123 sin perder seleccion", async ({ page }) =
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
   const panel = page.getByLabel("Panel OPL-ES");
@@ -236,7 +236,7 @@ test("panel OPL minimiza y restaura desde barra colapsada", async ({ page }) => 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByTestId("panel-opl-minimizar").click();
 
@@ -256,7 +256,7 @@ test("panel OPL queda fijado en marginalia izquierda y persiste al recargar", as
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
   const oplInferior = page.getByTestId("opl-pane");
@@ -283,7 +283,7 @@ test("margen Codex se redimensiona horizontalmente desde su divisor", async ({ p
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
   const panel = page.getByTestId("inspector-pane");
@@ -316,7 +316,7 @@ test("panel OPL indenta y contrae bloques jerarquicos desde preferencias", async
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
   await restaurarPanelOplSiMinimizado(page);
@@ -341,7 +341,7 @@ test("panel OPL selecciona enlace especifico en oracion multi-enlace", async ({ 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloAbanicoLogico(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
   await restaurarPanelOplSiMinimizado(page);
@@ -365,7 +365,7 @@ test.skip("panel OPL muestra placeholder de AI Text sin ejecutar funcionalidad",
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await restaurarPanelOplSiMinimizado(page);
   await page.getByTestId("panel-opl-ai-text").click();
   await expect(page.getByText("Próximamente: oraciones generadas por LLM")).toBeVisible();

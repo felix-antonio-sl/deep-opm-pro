@@ -31,8 +31,6 @@ import { mismaReferencia } from "../../opl/interaccion";
 import type { EsenciaVisibilidad } from "../../opl/opciones";
 import { generarOpl } from "../../opl/generar";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
-import { cargarPlantilla } from "../../persistencia/plantillas";
-import { hidratarModelo } from "../../serializacion/json";
 import {
   aparienciaSeleccionadaActiva,
   commitModelo,
@@ -51,7 +49,6 @@ import type { ModeloSlice } from "../tipos";
 import {
   alinearPorEje,
   distribuirUniformemente,
-  insertarPlantillaBatch,
   ocultarAparienciaBatch,
   traerConectadosBatch,
   traerEnlacesEntreBatch,
@@ -67,7 +64,6 @@ import { aplicarLayoutSugerido as aplicarLayoutSugeridoOp } from "../../canvas/l
  * estilo apariencia, mover apariencia y vértices de enlace, copiar/exportar OPL,
  * deshacer/rehacer.
  *
- * L4 plantillas privadas: [Met §8.8], [V-52], [V-123].
  */
 export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
@@ -819,40 +815,6 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       const resultado = resetearAnclajesSimboloEstructuralOp(modelo, opdActivoId, aparienciaEnlaceIds);
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
       else set({ mensaje: resultado.error });
-    },
-
-    insertarPlantillaEnOpdActivo(plantillaId) {
-      const estado = get();
-      if (estado.readOnly) {
-        set({ mensaje: "Modelo en solo lectura. Usa Guardar como para crear copia editable." });
-        return;
-      }
-      const plantilla = cargarPlantilla(plantillaId);
-      if (!plantilla.ok) {
-        set({ mensaje: plantilla.error });
-        return;
-      }
-      const fuente = hidratarModelo(plantilla.value.contenido.json);
-      if (!fuente.ok) {
-        set({ mensaje: fuente.error });
-        return;
-      }
-      const resultado = insertarPlantillaBatch(estado.modelo, estado.opdActivoId, fuente.value, fuente.value.opdRaizId);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      const idsEntidades = resultado.value.idsNuevos.filter((id) => !!resultado.value.modelo.entidades[id]);
-      commitModelo(set, estado.modelo, resultado.value.modelo, {
-        seleccionId: idsEntidades[0] ?? null,
-        seleccionados: resultado.value.idsNuevos,
-        modoSeleccion: resultado.value.idsNuevos.length > 1 ? "multi" : "simple",
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        dialogoPlantillasAbierto: false,
-        mensaje: `Insertar plantilla: ${resultado.value.entidadesInsertadas} entidades, ${resultado.value.enlacesInsertados} enlaces`,
-      });
-      get().resaltarTemporalmente(resultado.value.idsNuevos, 3000);
     },
 
     traerConectadosSeleccionado(familiasInput) {

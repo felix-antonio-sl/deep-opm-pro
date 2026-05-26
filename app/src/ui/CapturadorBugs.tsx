@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useBugCaptureContext } from "../app/viewmodels/capturadorBugsViewModel";
 import { Dialogo } from "./Dialogo";
-import { useBreakpoint } from "./layoutResponsive";
 import { tokens } from "./tokens";
 
 type ScreenshotAdjunto = {
@@ -49,7 +48,6 @@ export function CapturadorBugs() {
 }
 
 function CapturadorBugsInteractivo() {
-  const breakpoint = useBreakpoint();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [abierto, setAbierto] = useState(false);
   const [texto, setTexto] = useState("");
@@ -175,26 +173,6 @@ function CapturadorBugsInteractivo() {
 
   return (
     <>
-      <button
-        type="button"
-        aria-label="Capturar bug"
-        title="Capturar bug · Ctrl+Alt+B"
-        data-testid="bug-capture-open"
-        style={fabStyle(breakpoint === "mobile")}
-        onClick={abrir}
-      >
-        <span aria-hidden="true" style={style.fabGlyph}>◉</span>
-      </button>
-      <button
-        type="button"
-        aria-label="Ver bugs y features"
-        title="Ver bugs y features"
-        data-testid="bug-ledger-open"
-        style={ledgerFabStyle(breakpoint === "mobile")}
-        onClick={abrirLista}
-      >
-        <span aria-hidden="true" style={style.fabGlyph}>☷</span>
-      </button>
       <Dialogo
         open={abierto}
         title="Capturar bug"
@@ -411,38 +389,7 @@ function formatearBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-function ledgerFabStyle(mobile: boolean): preact.JSX.CSSProperties {
-  return {
-    ...fabStyle(mobile),
-    bottom: mobile ? 88 : `calc(${tokens.spacing.lg}px + 56px)`,
-  };
-}
-
 const style = {
-  fab: {
-    position: "fixed",
-    right: `calc(300px + ${tokens.spacing.lg}px)`,
-    bottom: tokens.spacing.lg,
-    zIndex: 920,
-    width: 48,
-    height: 48,
-    display: "grid",
-    placeItems: "center",
-    border: `${tokens.stroke.base}px solid ${tokens.colors.ink}`,
-    borderRadius: tokens.radii.full,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
-    boxShadow: "none",
-    fontFamily: tokens.typography.fontFamily,
-    cursor: "pointer",
-    transition: `background ${tokens.transitions.fast}`,
-  },
-  fabGlyph: {
-    fontFamily: tokens.typography.fontFamilyMono,
-    fontSize: 22,
-    lineHeight: 1,
-    color: tokens.colors.ink,
-  },
   ledgerBody: {
     display: "grid",
     gap: tokens.spacing.md,
@@ -669,12 +616,3 @@ const style = {
     fontSize: tokens.typography.sizes.md,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
-
-function fabStyle(esMobile: boolean): preact.JSX.CSSProperties {
-  if (!esMobile) return style.fab;
-  return {
-    ...style.fab,
-    right: tokens.spacing.lg,
-    bottom: tokens.mobileNav.altoBarra + tokens.spacing.lg,
-  };
-}

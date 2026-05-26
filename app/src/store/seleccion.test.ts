@@ -1,4 +1,6 @@
 import { describe, expect, test, beforeEach } from "bun:test";
+import { crearOnStarSystem } from "../modelo/fixtures";
+import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
 import type { KindSeleccion } from "./tipos";
 
@@ -35,12 +37,11 @@ function ids(): { entidadId: string; otraEntidadId: string; enlaceId: string; es
 }
 
 function sembrar(): void {
-  const s = store.getState();
-  s.cargarDemo();
+  cargarModeloReferencia();
   // Asegura que existen al menos 2 objetos con estados y 1 enlace.
   let estado = store.getState();
   let entidades = Object.values(estado.modelo.entidades).filter((e) => e.tipo === "objeto");
-  // Crea objetos extra si la demo no tiene 2 objetos.
+  // Crea objetos extra si el modelo de referencia no tiene 2 objetos.
   while (entidades.length < 2) {
     store.getState().crearObjetoDemo();
     estado = store.getState();
@@ -57,6 +58,10 @@ function sembrar(): void {
     }
   }
   store.getState().vaciarSeleccion();
+}
+
+function cargarModeloReferencia(): void {
+  store.getState().importarJson(exportarModelo(crearOnStarSystem().modelo));
 }
 
 describe("slice seleccion — sello del coproducto", () => {
@@ -91,7 +96,7 @@ describe("slice seleccion — sello del coproducto", () => {
       { kind: "vacia", id: null },
     ];
     for (const caso of casos) {
-      if (caso.kind === "enlace" && !caso.id) continue; // demo puede no tener enlaces
+      if (caso.kind === "enlace" && !caso.id) continue; // el modelo puede no tener enlaces
       store.getState().setSeleccionPorTipo(caso.kind, caso.id);
       const s = store.getState();
       const noNull = [s.seleccionId, s.enlaceSeleccionId, s.estadoSeleccionId].filter((v) => v !== null);

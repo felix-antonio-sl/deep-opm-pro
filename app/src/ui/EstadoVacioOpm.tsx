@@ -1,10 +1,9 @@
 /**
  * EstadoVacioOpm — Hint inferior discreto + nudge "Conectar como resultado".
  *
- * Corte 3.5 sustracción de chrome: se eliminó el bloque centrado "Iniciar SD"
- * con sus 3 botones primarios + botón de asistente. La toolbar (Objeto /
- * Proceso) y el PantallaInicio (cuando aplica) ya son los puntos de entrada
- * para crear la primera cosa. Aquí solo queda:
+ * Estado inicial prescriptivo: el canvas vacío muestra sólo las acciones
+ * primarias de modelado. La toolbar (Objeto / Proceso / Relación) es el punto
+ * de entrada para crear la primera cosa.
  *
  *  - Hint inferior discreto cuando el OPD activo está vacío.
  *  - Nudge "Conectar como resultado" cuando hay exactamente 1 proceso + 1
@@ -36,11 +35,6 @@ export function EstadoVacioOpm() {
 }
 
 function HintInicioVacio() {
-  // Ronda 28 L5: copy histórico preservado — el smoke
-  // `21-estado-vacio-opm.spec.ts:36` afirma el texto literal incluyendo
-  // "arriba" y "Pulsa" sin tilde. El brief L5 sugería "Pulsá Objeto o
-  // Proceso para empezar" pero respetamos el contrato de tests (scope: solo
-  // estilos, no copy). El cambio visual es el chrome del hint.
   return (
     <div
       data-testid="estado-vacio-hint"
@@ -48,7 +42,7 @@ function HintInicioVacio() {
       aria-label="Iniciar SD"
       style={style.hint}
     >
-      Pulsa Objeto o Proceso arriba para empezar.
+      O objeto · P proceso · R relación
     </div>
   );
 }

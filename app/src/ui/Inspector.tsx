@@ -52,7 +52,7 @@ function InspectorVacio() {
   return (
     <div style={style.vacioContainer} data-testid="inspector-vacio">
       <p style={style.vacioPlaceholder} data-testid="inspector-vacio-placeholder">
-        Selecciona un objeto, proceso o enlace para ver sus propiedades aquí.
+        Selecciona un elemento.
       </p>
     </div>
   );

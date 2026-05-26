@@ -5,7 +5,7 @@
  * atajos ni montaje visual de biblioteca dock por ahora.
  */
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible } from "./_smoke-helpers";
+import { esperarWorkbenchInicial } from "./_smoke-helpers";
 
 test.describe("biblioteca dock pausada", () => {
   test("no aparece en menú principal ni se abre con Ctrl+B", async ({ page }) => {
@@ -14,7 +14,7 @@ test.describe("biblioteca dock pausada", () => {
 
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     // Ronda Codex v2 L5: el menú lateral se retiró; el botón ☰ abre el command
     // palette. El dock sigue sin estar expuesto como comando.

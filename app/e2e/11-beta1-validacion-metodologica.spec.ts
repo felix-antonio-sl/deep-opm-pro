@@ -14,14 +14,14 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, elementoPorTexto } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, elementoPorTexto } from "./_smoke-helpers";
 
 test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Crear un proceso (placeholder "Proceso") y un objeto (placeholder "Objeto"):
   // ambos disparan avisos por nombre no verbal y, en el caso del proceso, por
@@ -67,7 +67,7 @@ test("L3 click en aviso navega al elemento y deja seleccion visible", async ({ p
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Modelo: un solo proceso con nombre no verbal (placeholder "Proceso"
   // ya viola PROCESO_NOMBRE_FORMA_VERBAL por construccion).
@@ -96,7 +96,7 @@ test("L3 ErrorBadge inline abre y resalta el aviso compartido", async ({ page })
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
@@ -118,7 +118,7 @@ test("L3 badge del arbol abre el mismo aviso diagnostico", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
@@ -140,7 +140,7 @@ test("L3 HoverTooltip describe cell OPM sin aria-live", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await elementoPorTexto(page, "Objeto").hover();
@@ -176,7 +176,7 @@ test("L3 ciclo de feedback completo cubre barra, badge, toast y tooltip", async 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
@@ -216,7 +216,7 @@ test("L3 aviso se resuelve tras corregir el nombre del proceso", async ({ page }
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Crear proceso con placeholder "Proceso" -> dispara aviso de forma verbal.
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -242,7 +242,7 @@ test("L3 panel metodologia marca SD sin proceso principal con cita §6.1/§6.11"
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // Crear solo un objeto (placeholder "Objeto") en el SD: no hay proceso sistemico.
   await page.getByRole("button", { name: "Objeto", exact: true }).click();

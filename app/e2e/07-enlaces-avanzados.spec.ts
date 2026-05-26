@@ -3,7 +3,7 @@ import {
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   crearAtributoNumericoSmoke,
   rectDeLocator,
   clickCabeceraElemento,
@@ -15,7 +15,7 @@ import {
   irATabExtremos,
   irATabEstiloEnlace,
   guardarComoActual,
-  cargarModeloEjemplo,
+  importarModeloJson,
   cargarPrimerModelo,
   restaurarPanelOplSiMinimizado,
   assertWorkbenchLayout,
@@ -72,6 +72,37 @@ async function verticesEnlacePorTipo(page: Page, tipo: string): Promise<Array<{ 
   const apariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.enlaces ?? {})
     .find((item) => item.enlaceId === enlace?.id);
   return apariencia?.vertices ?? [];
+}
+
+function modeloDosObjetosEtiquetado() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-etiquetado-smoke",
+      nombre: "Modelo etiquetado smoke",
+      opdRaizId: "opd-1",
+      nextSeq: 20,
+      entidades: {
+        "o-advisor": { id: "o-advisor", tipo: "objeto", nombre: "OnStar Advisor", esencia: "informacional", afiliacion: "sistemica" },
+        "o-console": { id: "o-console", tipo: "objeto", nombre: "OnStar Console", esencia: "informacional", afiliacion: "sistemica" },
+      },
+      estados: {},
+      enlaces: {},
+      abanicos: {},
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-advisor": { id: "a-advisor", entidadId: "o-advisor", opdId: "opd-1", x: 120, y: 120, width: 150, height: 60 },
+            "a-console": { id: "a-console", entidadId: "o-console", opdId: "opd-1", x: 430, y: 120, width: 150, height: 60 },
+          },
+          enlaces: {},
+        },
+      },
+    },
+  } satisfies ExportadoModelo;
 }
 
 test("crea enlace, edita vertices y elimina desde celdas JointJS", async ({ page }) => {
@@ -155,7 +186,7 @@ test("BUG-20260519T074543Z-842217 angular enlace etiquetado OnStar sin crash", a
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cargarModeloEjemplo(page, "OnStar System");
+  await importarModeloJson(page, modeloDosObjetosEtiquetado());
 
   await page.locator('.joint-element[aria-label^="Objeto OnStar Advisor"]').click();
   await elegirTipoEnlaceDesdeMenu(page, "etiquetado");
@@ -194,7 +225,7 @@ test("mueve vertices de enlace etiquetado no estructural sin crash", async ({ pa
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cargarModeloEjemplo(page, "OnStar System");
+  await importarModeloJson(page, modeloDosObjetosEtiquetado());
 
   await page.locator('.joint-element[aria-label^="Objeto OnStar Advisor"]').click();
   await elegirTipoEnlaceDesdeMenu(page, "etiquetado");
@@ -517,7 +548,7 @@ test("L4 dialogo de estilo de enlace persiste color grosor y copia estilo", asyn
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -554,11 +585,11 @@ test("L3 UX: DialogoTraerConectados muestra conteo por familia", async ({ page }
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
-  await cargarModeloEjemplo(page, "System Diagram");
+  await esperarWorkbenchInicial(page);
+  await importarModeloJson(page, modeloTraerConectadosSmoke());
 
-  await elementoPorTexto(page, "Main System Doing").first().click();
-  await abrirTraerConectadosDesdeMenuEntidad(page, "Main System Doing");
+  await elementoPorTexto(page, "Procesar").first().click();
+  await abrirTraerConectadosDesdeMenuEntidad(page, "Procesar");
   await expect(page.getByTestId("dialogo-traer-conectados")).toBeVisible();
 
   for (const familia of ["procedural-habilitador", "procedural-transformador", "direccional", "estructural"]) {
@@ -599,7 +630,7 @@ test("HU-11.012: editar etiqueta de enlace estructural persiste vía inspector",
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   let modalNombre = page.getByTestId("modal-nombre-cosa");

@@ -10,7 +10,6 @@ export interface AppShellWorkbenchPort {
   fijarAnchoPanelArbol: OpmStore["fijarAnchoPanelArbol"];
   fijarAnchoPanelInspector: OpmStore["fijarAnchoPanelInspector"];
   modeloPersistidoId: OpmStore["modeloPersistidoId"];
-  pantallaInicioCerrada: OpmStore["pantallaInicioCerrada"];
   seleccionIdOpl: OpmStore["seleccionId"];
   enlaceSeleccionIdOpl: OpmStore["enlaceSeleccionId"];
   vistaMobileActiva: OpmStore["vistaMobileActiva"];

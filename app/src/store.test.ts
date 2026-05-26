@@ -1198,17 +1198,10 @@ describe("store undo/redo y dirty state", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, aId, pId, "consumo"));
     const enlaceId = Object.values(modelo.enlaces).find((e) => e.tipo === "consumo")!.id;
 
-    // Cargar via el store
-    const cargarDemoOriginal = store.getState().cargarDemo;
-    store.getState().cargarDemo = () => {}; // evitar conflicto
-    try {
-      store.getState().abrirInspectorEnlaceDesdeOpl(enlaceId);
-      // El enlace no existe en el store actual (que se reseteó en beforeEach)
-      // Así que esperamos un mensaje de error, no selección
-      expect(store.getState().mensaje).toBeTruthy();
-    } finally {
-      store.getState().cargarDemo = cargarDemoOriginal;
-    }
+    store.getState().abrirInspectorEnlaceDesdeOpl(enlaceId);
+    // El enlace no existe en el store actual (que se reseteó en beforeEach):
+    // esperamos un mensaje de error, no selección.
+    expect(store.getState().mensaje).toBeTruthy();
   });
 
   test("fijarBusquedaOpl actualiza estado UI", () => {
@@ -1365,100 +1358,6 @@ function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string 
   if (!resultado.ok) throw new Error(resultado.error);
   return resultado.value;
 }
-
-// ── L3: Asistente nuevo modelo ───────────────────────────────────────
-
-describe("asistente nuevo modelo", () => {
-  beforeEach(() => {
-    instalarLocalStorage();
-    instalarConfirmacion();
-    store.getState().importarJson(exportarModelo(crearModelo()));
-    store.getState().listarModelosGuardados();
-  });
-
-  // Ronda 23 L3 #6: tras la poda 9→3 etapas, las pruebas usan únicamente los
-  // dos campos canónicos (`funcionPrincipal` y `beneficiario`) y validan que
-  // el wizard inicia en ETAPA_FUNCION (0) y termina en ETAPA_SEMBRAR (2).
-  test("iniciarAsistente setea etapa 0 (función) con datos vacios", () => {
-    store.getState().iniciarAsistente();
-    const a = store.getState().asistente;
-    expect(a).not.toBeNull();
-    expect(a!.etapaActual).toBe(0);
-    expect(a!.datos.funcionPrincipal).toBe("");
-    expect(a!.datos.beneficiario).toBe("");
-    expect(a!.cancelado).toBe(false);
-  });
-
-  test("siguienteEtapa avanza con datos validos hasta sembrar", () => {
-    store.getState().iniciarAsistente();
-    // Etapa 0 (función) -> 1 (beneficiario) con dato válido.
-    store.getState().siguienteEtapa({ funcionPrincipal: "Conducir" });
-    expect(store.getState().asistente!.etapaActual).toBe(1);
-
-    // Etapa 1 (beneficiario) -> 2 (sembrar) con dato válido.
-    store.getState().siguienteEtapa({ beneficiario: "Conductor" });
-    expect(store.getState().asistente!.etapaActual).toBe(2);
-
-    // Etapa 2 (sembrar) no avanza más: queda como techo.
-    store.getState().siguienteEtapa({});
-    expect(store.getState().asistente!.etapaActual).toBe(2);
-  });
-
-  test("siguienteEtapa falla con funcion principal vacia", () => {
-    store.getState().iniciarAsistente();
-    store.getState().siguienteEtapa({ funcionPrincipal: "" });
-    expect(store.getState().asistente!.etapaActual).toBe(0);
-    expect(store.getState().mensaje).toContain("función principal");
-  });
-
-  test("etapaAnterior preserva datos", () => {
-    store.getState().iniciarAsistente();
-    store.getState().siguienteEtapa({ funcionPrincipal: "Conducir" }); // 0 -> 1
-    expect(store.getState().asistente!.etapaActual).toBe(1);
-    expect(store.getState().asistente!.datos.funcionPrincipal).toBe("Conducir");
-
-    store.getState().etapaAnterior(); // 1 -> 0
-    expect(store.getState().asistente!.etapaActual).toBe(0);
-    expect(store.getState().asistente!.datos.funcionPrincipal).toBe("Conducir");
-  });
-
-  test("cancelarAsistente sin datos cierra directo", () => {
-    store.getState().iniciarAsistente();
-    store.getState().cancelarAsistente();
-    expect(store.getState().asistente).toBeNull();
-  });
-
-  test("cancelarAsistente con datos marca cancelado", () => {
-    store.getState().iniciarAsistente();
-    store.getState().siguienteEtapa({ funcionPrincipal: "Conducir" }); // 0 -> 1
-    store.getState().cancelarAsistente();
-    expect(store.getState().asistente).not.toBeNull();
-    expect(store.getState().asistente!.cancelado).toBe(true);
-  });
-
-  test("confirmarAsistente con dataset minimo produce modelo nuevo", () => {
-    store.getState().iniciarAsistente();
-    store.setState((s) => ({
-      asistente: s.asistente ? {
-        ...s.asistente,
-        etapaActual: 2,
-        datos: {
-          funcionPrincipal: "Conducir",
-          beneficiario: "Conductor",
-        },
-      } : null,
-    }));
-    store.getState().confirmarAsistente();
-
-    expect(store.getState().asistente).toBeNull();
-    expect(store.getState().modelo.nombre).toBe("Mi sistema");
-    // Contrato vigente ronda 6: el modelo post-asistente queda dirty hasta guardado manual.
-    expect(store.getState().dirty).toBe(true);
-    expect(store.getState().modeloPersistidoId).toBeNull();
-    // Debe haber al menos 3 entidades: proceso, beneficiario, sistema
-    expect(Object.keys(store.getState().modelo.entidades).length).toBeGreaterThanOrEqual(3);
-  });
-});
 
 // ── L5: Mapa del sistema y reordenamiento ──────────────────────────
 

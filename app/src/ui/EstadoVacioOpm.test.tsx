@@ -7,8 +7,7 @@
  *     este corte) produce apariencia 135x60 y deja el modelo dirty desde un
  *     OPD vacio.
  *
- * El bloque centrado "Iniciar SD" con sus 3 botones primarios + asistente
- * fue eliminado en el corte 3.5 — el render activo se valida via E2E
+ * El bloque centrado "Iniciar SD" fue eliminado en el corte 3.5; el render activo se valida via E2E
  * (`app/e2e/21-estado-vacio-opm.spec.ts`).
  */
 import { beforeEach, describe, expect, test } from "bun:test";
@@ -114,23 +113,6 @@ describe("EstadoVacioOpm · accion canonica desde canvas vacio", () => {
     expect(apariencia.width).toBe(135);
     expect(apariencia.height).toBe(60);
     expect(final.modelo.entidades[apariencia.entidadId]?.tipo).toBe("objeto");
-  });
-
-  test("iniciarAsistente desde canvas vacio activa el flujo asistente sin tocar modelo", () => {
-    expect(store.getState().asistente).toBeNull();
-    const aparienciasAntes = Object.keys(
-      store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias ?? {},
-    ).length;
-
-    store.getState().iniciarAsistente();
-
-    expect(store.getState().asistente).not.toBeNull();
-    expect(store.getState().asistente!.etapaActual).toBe(0);
-    const aparienciasDespues = Object.keys(
-      store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias ?? {},
-    ).length;
-    expect(aparienciasDespues).toBe(aparienciasAntes);
-    expect(store.getState().dirty).toBe(false);
   });
 });
 

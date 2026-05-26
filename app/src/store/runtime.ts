@@ -7,8 +7,7 @@ import { dentroDeApariencia } from "../modelo/layout";
 import { aparienciaDeEntidadEnOpd, opdIdDeEntidadVisible } from "../modelo/politicaApariciones";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import { sincronizarAbanicos } from "../modelo/abanicos";
-import { cambiarAfiliacion, cambiarEsencia, crearEnlace, crearModelo, crearObjeto, crearProceso, sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
-import { fixtureTodos, type FixtureDemo } from "../modelo/fixtures";
+import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import { listarModelosLocales, type ResumenModeloPersistido } from "../persistencia/local";
 import { indiceVacio, workspaceDesdeModelo, type MapaWorkspace, type WorkspaceIndice } from "../persistencia/workspace";
 import {
@@ -158,15 +157,9 @@ export function sincronizarPestanaActivaEnLista(state: OpmStore): Pestana[] {
 }
 
 export function pestanaReemplazable(pestana: Pestana): boolean {
-  // Ronda 23 L3 #7: pestañas precargadas con el fixture de bienvenida
-  // (cargadoDesde === "bienvenida") son tan transitorias como una pestaña
-  // "nuevo" recién creada — el operador todavía no editó nada, así que
-  // "Empezar vacío" o el asistente deben reemplazarlas sin abrir tab nueva.
-  const origenReemplazable = pestana.cargadoDesde === "nuevo" || pestana.cargadoDesde === "bienvenida";
-  if (!origenReemplazable) return false;
+  if (pestana.cargadoDesde !== "nuevo") return false;
   if (pestana.modeloId !== null) return false;
   if (pestana.dirty) return false;
-  if (pestana.cargadoDesde === "bienvenida") return true;
   return (
     Object.keys(pestana.modelo.entidades).length === 0 &&
     Object.keys(pestana.modelo.enlaces).length === 0 &&
@@ -353,7 +346,7 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
   // Layout puro (drag, nudge, auto-layout) conserva el valor actual via
   // extra.dirtyModelo explicito. commitModelo setea extra.dirtyModelo=true
   // por defecto para mutaciones semanticas. Para cargas y modelos nuevos
-  // (cargarDemo, nuevoModelo, cargarLocal, cargarFixture) que llaman
+  // (nuevoModelo, cargarLocal, importarJson) que llaman
   // estadoModelo tras resetHistorial, el modelo recien cargado no es dirty
   // ni semantica ni visualmente: derivamos dirtyModelo de dirty (false).
   // BUG-20260512T044458Z-d4931c: el fallback previo `?? true` dejaba un
@@ -477,51 +470,6 @@ export function opdIdDeEnlace(modelo: Modelo, enlaceId: Id, opdPreferidoId: Id):
 
 export function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id): Id | null {
   return opdIdDeEntidadVisible(modelo, entidadId, opdPreferidoId);
-}
-
-export function crearDemo(): Modelo {
-  const fixtures = fixtureTodos();
-  return fixtures[0]?.modelo ?? crearModeloOnStarMinimo();
-}
-
-function crearModeloOnStarMinimo(): Modelo {
-  let modelo = crearModelo("OnStar mínimo");
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 90, y: 90 }, "Driver"));
-  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 330, y: 90 }, "OnStar System"));
-  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 230 }, "Driver Rescuing"));
-
-  const driver = entidadPorNombre(modelo, "Driver");
-  const sistema = entidadPorNombre(modelo, "OnStar System");
-  const rescate = entidadPorNombre(modelo, "Driver Rescuing");
-
-  modelo = must(cambiarEsencia(modelo, driver, "fisica"));
-  modelo = must(cambiarAfiliacion(modelo, driver, "ambiental"));
-  modelo = must(cambiarEsencia(modelo, sistema, "fisica"));
-  modelo = must(cambiarEsencia(modelo, rescate, "fisica"));
-  modelo = must(crearEnlace(modelo, modelo.opdRaizId, driver, rescate, "agente"));
-  modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema, rescate, "efecto"));
-  return modelo;
-}
-
-export function listarFixtures(): FixtureDemo[] {
-  return fixtureTodos();
-}
-
-export function crearFixturePorNombre(nombre: string): Modelo | null {
-  const fixtures = fixtureTodos();
-  const fixture = fixtures.find((f) => f.modelo.nombre === nombre);
-  return fixture?.modelo ?? null;
-}
-
-export function entidadPorNombre(modelo: Modelo, nombre: string): Id {
-  const entidad = Object.values(modelo.entidades).find((item) => item.nombre === nombre);
-  if (!entidad) throw new Error(`Entidad demo no encontrada: ${nombre}`);
-  return entidad.id;
-}
-
-export function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
-  if (!resultado.ok) throw new Error(resultado.error);
-  return resultado.value;
 }
 
 // ── Persistencia del WorkspaceIndice ────────────────────────────

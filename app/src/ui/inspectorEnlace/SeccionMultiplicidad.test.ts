@@ -3,7 +3,7 @@ import { modificadorOfrecido } from "./SeccionMultiplicidad";
 
 describe("modificadorOfrecido — restriccion SSOT canonica", () => {
   // SSOT-OPL §7 canoniza c/e en input-side (consumo, instrumento, agente,
-  // efecto). No hay plantilla CT/CS para resultado, asi que el UI no los
+  // efecto). No hay patron CT/CS para resultado, asi que el UI no los
   // ofrece como nueva eleccion sobre resultado.
   test("oculta condicion en enlaces de resultado", () => {
     expect(modificadorOfrecido("resultado", undefined, "condicion")).toBe(false);

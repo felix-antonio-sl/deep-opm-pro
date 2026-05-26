@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, elementoPorTexto, exportadoActual, jsonEditor, rectDeLocator } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, elementoPorTexto, exportadoActual, jsonEditor, rectDeLocator } from "./_smoke-helpers";
 
 test("drag desde anchor abre MenuTipoEnlace anclado y confirma conexion", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloConexionAnchor(), null, 2));
   await page.getByRole("button", { name: "Importar", exact: true }).click();
   await expect(elementoPorTexto(page, "Entrada")).toBeVisible();
@@ -49,7 +49,7 @@ test("camino Conectar por boton muestra tip de anchor antes de elegir destino", 
     sessionStorage.removeItem("deep-opm-pro:ui:nudge-anchor-manuales");
   });
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloConexionAnchor(), null, 2));
   await page.getByRole("button", { name: "Importar", exact: true }).click();
   await elementoPorTexto(page, "Entrada").locator('[joint-selector="body"]').click();
@@ -66,7 +66,7 @@ test("teclado conecta foco origen y destino mediante MenuTipoEnlace", async ({ p
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloConexionAnchor(), null, 2));
   await page.getByRole("button", { name: "Importar", exact: true }).click();
 

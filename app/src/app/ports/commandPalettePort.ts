@@ -16,7 +16,6 @@ export interface CommandPaletteContextPort {
  * workspace, vista y navegación que ahora se invocan sólo desde el palette.
  */
 export interface CommandPaletteMenuExtrasPort {
-  iniciarAsistente: () => void;
   abrirPestanaNueva: () => void;
   abrirBusquedaCosas: () => void;
   abrirBusquedaGlobal: () => void;
@@ -39,8 +38,6 @@ export interface CommandPaletteWorkspacePort {
   abrirCargarModelo: (opciones?: { mostrarArchivados?: boolean }) => void;
   abrirGuardarComo: () => void;
   abrirDialogoConfiguracion: () => void;
-  abrirDialogoGuardarPlantilla: () => void;
-  abrirDialogoPlantillas: () => void;
   abrirDialogoVersiones: (modeloId: Id) => void;
   modeloPersistidoId: Id | null;
   abrirDialogoImportarExportarJson: () => void;

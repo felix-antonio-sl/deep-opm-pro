@@ -82,5 +82,3 @@ export type { OrigenPestana, HistorialEntrada, Pestana } from "./tipos/pestana";
 export type { BloqueOplEstado } from "./tipos/opl";
 
 export type { UiPortapapelesVisual, PreferenciasUiUsuario } from "./tipos/ui";
-
-export type { AmbitoPlantilla, ContenidoPlantillaModelo, Plantilla, PlantillaIndice } from "./tipos/plantilla";

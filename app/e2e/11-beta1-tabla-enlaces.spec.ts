@@ -13,7 +13,7 @@
  */
 
 import { expect, test, type Page } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, ejecutarComandoPalette, jsonEditor, modeloSmokeTablaEnlaces, modeloMarkersCanonicos, modeloTransicionEstados } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, ejecutarComandoPalette, jsonEditor, modeloSmokeTablaEnlaces, modeloMarkersCanonicos, modeloTransicionEstados } from "./_smoke-helpers";
 
 async function abrirTablaPorMenu(page: Page): Promise<void> {
   // Ronda Codex v2 L5: el menú lateral se retiró; la Tabla de enlaces se abre

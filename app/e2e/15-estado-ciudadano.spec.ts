@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import {
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   jsonEditor,
   objeto,
   extremoEntidad,
@@ -91,7 +91,7 @@ function modeloConModoEnlace() {
 
 async function importarJson(page: Page, modelo: unknown): Promise<void> {
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);

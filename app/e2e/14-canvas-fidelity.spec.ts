@@ -9,7 +9,7 @@
  */
 import { expect, test } from "@playwright/test";
 import {
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   clickToolbarMasItem,
   exportadoActual,
   jsonEditor,
@@ -110,7 +110,7 @@ test("aplicar layout en OPD vacio no rompe ni cambia el ledger", async ({ page }
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
 
   // No hay apariencias todavia. Click no debe romper.
   await clickToolbarMasItem(page, "toolbar-mas-auto-layout");

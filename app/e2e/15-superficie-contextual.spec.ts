@@ -12,14 +12,14 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { cerrarPantallaInicioSiVisible, clickLinkPorTipo, ejecutarComandoPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, clickLinkPorTipo, ejecutarComandoPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual } from "./_smoke-helpers";
 
 test("seleccionar una cosa enciende barra contextual e Inspector con la misma referencia", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
   // Inspector responde a la seleccion en modo entidad.
@@ -46,7 +46,7 @@ test("seleccionar un enlace conmuta Inspector a modo enlace y resalta su oracion
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -90,7 +90,7 @@ test("inzoom desde barra contextual navega al OPD hijo y arbol expone el descend
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
   // Inzoom desde la barra contextual flotante (no desde Inspector).
@@ -113,7 +113,7 @@ test("multiseleccion expone barra contextual con acciones de lote", async ({ pag
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.keyboard.press("Control+a");
@@ -138,7 +138,7 @@ test("PanelDiagnostico se expande y colapsa sin perder informacion critica", asy
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   // Modelo minimo: aseguro que ambos paneles se monten.
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
 
@@ -193,7 +193,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
 
     // Ronda Codex v2 L5: la Tabla de enlaces se abre desde el command palette.
     await ejecutarComandoPalette(page, "tabla de enlaces", "menu-tabla-enlaces");
@@ -214,7 +214,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
     await page.getByRole("button", { name: "Objeto", exact: true }).click();
     await page.getByLabel("Nombre").fill("Entrada");
     await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -246,7 +246,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
     await page.getByRole("button", { name: "Objeto", exact: true }).click();
     await page.getByLabel("Nombre").fill("Entrada");
     await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -271,7 +271,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
     await page.getByRole("button", { name: "Objeto", exact: true }).click();
     await page.getByLabel("Nombre").fill("Cliente");
     await page.getByRole("button", { name: "Objeto", exact: true }).click();
@@ -326,7 +326,7 @@ test.describe("Contrato TablaEnlaces Beta1", () => {
     page.on("pageerror", (error) => pageErrors.push(error.message));
 
     await page.goto("/");
-    await cerrarPantallaInicioSiVisible(page);
+    await esperarWorkbenchInicial(page);
     await page.getByRole("button", { name: "Objeto", exact: true }).click();
     await page.getByLabel("Nombre").fill("Entrada");
     await page.getByRole("button", { name: "Proceso", exact: true }).click();
@@ -370,7 +370,7 @@ test("Inspector vacio queda editorial y sin CTA redundante al limpiar seleccion"
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await expect(page.getByTestId("inspector")).toHaveAttribute("data-modo-inspector", "entidad");
 
@@ -380,7 +380,7 @@ test("Inspector vacio queda editorial y sin CTA redundante al limpiar seleccion"
   await expect(inspector).toHaveAttribute("data-modo-inspector", "vacio");
   await expect(page.getByTestId("inspector-vacio")).toBeVisible();
   await expect(page.getByTestId("inspector-vacio-placeholder")).toHaveText(
-    "Selecciona un objeto, proceso o enlace para ver sus propiedades aquí.",
+    "Selecciona un elemento.",
   );
   await expect(page.getByTestId("inspector-vacio-titulo")).toHaveCount(0);
   await expect(page.getByTestId("inspector-vacio-renombrar")).toHaveCount(0);

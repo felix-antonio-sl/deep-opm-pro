@@ -17,7 +17,6 @@ export interface PersistencePort {
   dialogoGuardarComoAbierto: boolean;
   dialogoCargarModeloAbierto: boolean;
   cargadoDesde: OrigenPestana;
-  esFixture: boolean;
   versiones: number;
   ultimoAutosalvado: number | null;
   autosalvadoEnCurso: boolean;
@@ -32,7 +31,6 @@ export interface PersistencePort {
   listarModelosGuardados: () => void;
   cargarLocal: (id?: Id) => void;
   borrarLocal: (id: Id) => void;
-  cargarFixtureDemo: (nombre: string) => void;
   exportarJson: () => string;
   importarJson: (json: string) => void;
   hayDirty: () => boolean;

@@ -43,12 +43,12 @@ test("capturador de bugs abre con Ctrl+Alt+B", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Capturar bug" })).toBeVisible();
 });
 
-test("capturador de bugs expone accesos directos visibles", async ({ page }) => {
+test("capturador de bugs no expone FABs visibles", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByTestId("bug-capture-open")).toBeVisible();
-  await expect(page.getByTestId("bug-ledger-open")).toBeVisible();
+  await expect(page.getByTestId("bug-capture-open")).toHaveCount(0);
+  await expect(page.getByTestId("bug-ledger-open")).toHaveCount(0);
 
-  await page.getByTestId("bug-capture-open").click();
+  await abrirCapturadorDesdePalette(page);
   await expect(page.getByRole("dialog", { name: "Capturar bug" })).toBeVisible();
 });
 

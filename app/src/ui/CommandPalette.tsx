@@ -49,7 +49,7 @@ export interface CommandPaletteMenuAction {
   run: () => void;
 }
 
-export const SECCIONES_COMMAND_PALETTE = ["MODELO", "CREAR", "NAVEGAR", "EXPORTAR", "VISTA", "ASISTENTE"] as const;
+export const SECCIONES_COMMAND_PALETTE = ["MODELO", "CREAR", "NAVEGAR", "EXPORTAR", "VISTA"] as const;
 
 export type CommandPaletteSeccion = (typeof SECCIONES_COMMAND_PALETTE)[number];
 
@@ -65,10 +65,7 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "abrir-pestana": "MODELO",
   configuracion: "MODELO",
   "renombrar-modelo": "MODELO",
-  "guardar-plantilla": "MODELO",
-  plantillas: "MODELO",
   "versiones-modelo": "MODELO",
-  "asistente-guiado": "ASISTENTE",
   "buscar-modelo": "NAVEGAR",
   "buscar-workspace": "NAVEGAR",
   "exportar-json": "EXPORTAR",
@@ -106,8 +103,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirCargarModelo,
     abrirGuardarComo,
     abrirDialogoConfiguracion,
-    abrirDialogoGuardarPlantilla,
-    abrirDialogoPlantillas,
     abrirDialogoVersiones,
     abrirDialogoSimulacionNumerica,
     modeloPersistidoId,
@@ -120,7 +115,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     frecuenciaUso,
     registrarUsoCommandPalette,
     exportarJsonAlPortapapeles,
-    iniciarAsistente,
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,
@@ -156,8 +150,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirCargarModelo,
     abrirGuardarComo,
     abrirDialogoConfiguracion,
-    abrirDialogoGuardarPlantilla,
-    abrirDialogoPlantillas,
     abrirDialogoVersiones: modeloPersistidoId ? () => abrirDialogoVersiones(modeloPersistidoId) : null,
     modeloPersistidoId,
     toggleGrid,
@@ -169,7 +161,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirCheatsheetAtajos,
     exportarJson: exportarJsonAlPortapapeles,
     exportarOpdSvg: canvasPaper ? () => { void descargarOpdActualSvg(canvasPaper, modelo, opdActivoId); } : null,
-    iniciarAsistente,
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,
@@ -193,8 +184,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const items = filtrarItemsCommandPalette(
     construirItemsCommandPalette(registros, accionesContextuales, accionesMenu, frecuenciaUso),
     query,
-  ).slice(0, 60);
-  const grupos = agruparItemsCommandPalette(items);
+  ).slice(0, query.trim() ? 12 : 60);
+  const grupos = agruparItemsCommandPalette(items, { incluirSeccionesVacias: !query.trim() });
   const indicePorItemId = new Map(items.map((item, index) => [item.id, index]));
   const itemActivo = items[activo] ?? items[0] ?? null;
 
@@ -301,7 +292,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
         </div>
         <div id="command-palette-list" role="listbox" style={style.lista}>
           {items.length === 0 ? (
-            <div style={style.empty}>sin resultados {GLIFO_VACIO} {GLIFO_CMD}. para registrar acción</div>
+            <div style={style.empty}>sin resultados - escribe otro comando</div>
           ) : grupos.map((grupo) => (
             <section
               key={grupo.seccion}
@@ -348,7 +339,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
           <span style={style.footerSep}>{GLIFO_SEP}</span>
           <span>{GLIFO_ENTER} ejecutar</span>
           <span style={style.footerSep}>{GLIFO_SEP}</span>
-          <span>{GLIFO_CMD}. ayuda</span>
+          <span>esc cerrar</span>
         </footer>
       </div>
     </div>
@@ -430,8 +421,6 @@ interface AccionesMenuCommandPaletteDeps {
   abrirCargarModelo: () => void;
   abrirGuardarComo: () => void;
   abrirDialogoConfiguracion: () => void;
-  abrirDialogoGuardarPlantilla: () => void;
-  abrirDialogoPlantillas: () => void;
   abrirDialogoVersiones: (() => void) | null;
   modeloPersistidoId: string | null;
   toggleGrid: () => void;
@@ -443,8 +432,6 @@ interface AccionesMenuCommandPaletteDeps {
   abrirCheatsheetAtajos: () => void;
   exportarJson: () => void;
   exportarOpdSvg: (() => void) | null;
-  // Ronda Codex v2 L5: acciones absorbidas del `MenuPrincipal` lateral retirado.
-  iniciarAsistente: () => void;
   abrirPestanaNueva: () => void;
   abrirBusquedaCosas: () => void;
   abrirBusquedaGlobal: () => void;
@@ -468,14 +455,11 @@ interface AccionesMenuCommandPaletteDeps {
 export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDeps): CommandPaletteMenuAction[] {
   return [
     { id: "nuevo-modelo", label: "Nuevo modelo", descripcion: "Crear un modelo vacío", categoria: "archivo", run: deps.nuevoModelo },
-    { id: "abrir-importar", label: "Abrir / importar modelo", descripcion: "Abrir modelos guardados, archivados, ejemplos o JSON", categoria: "archivo", run: deps.abrirCargarModelo },
+    { id: "abrir-importar", label: "Abrir / importar modelo", descripcion: "Abrir modelos guardados, archivados o JSON", categoria: "archivo", run: deps.abrirCargarModelo },
     { id: "guardar-como", label: "Guardar como", descripcion: "Guardar una copia editable del modelo", categoria: "archivo", run: deps.abrirGuardarComo },
     { id: "abrir-pestana", label: "Abrir como pestaña", descripcion: "Duplicar el modelo actual en una pestaña adicional", categoria: "archivo", atajo: "Ctrl+T", run: deps.abrirPestanaNueva },
     { id: "configuracion", label: "Configuración", descripcion: "Ajustar preferencias del modelo y cuadrícula", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
     { id: "renombrar-modelo", label: "Renombrar modelo", descripcion: "Cambiar el nombre del modelo activo", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
-    { id: "asistente-guiado", label: "Asistente guiado", descripcion: "Crear un modelo paso a paso con el asistente", categoria: "archivo", run: deps.iniciarAsistente },
-    { id: "guardar-plantilla", label: "Guardar como plantilla", descripcion: "Crear una plantilla privada desde la selección", categoria: "archivo", run: deps.abrirDialogoGuardarPlantilla },
-    { id: "plantillas", label: "Plantillas", descripcion: "Abrir el catálogo de plantillas privadas", categoria: "archivo", run: deps.abrirDialogoPlantillas },
     { id: "versiones-modelo", label: "Versiones del modelo", descripcion: "Abrir el historial de versiones del modelo", categoria: "archivo", enabled: !!deps.abrirDialogoVersiones, run: deps.abrirDialogoVersiones ?? (() => {}) },
     { id: "buscar-modelo", label: "Buscar en el modelo", descripcion: "Buscar objetos y procesos por nombre en el modelo activo", categoria: "navegacion", atajo: "Ctrl+F", run: deps.abrirBusquedaCosas },
     { id: "buscar-workspace", label: "Buscar en el workspace", descripcion: "Buscar en todos los modelos guardados del workspace", categoria: "navegacion", atajo: "Ctrl+Shift+F", run: deps.abrirBusquedaGlobal },
@@ -512,24 +496,29 @@ export function filtrarItemsCommandPalette(items: readonly CommandPaletteItem[],
   });
 }
 
-export function agruparItemsCommandPalette(items: readonly CommandPaletteItem[]): CommandPaletteGrupo[] {
+export function agruparItemsCommandPalette(
+  items: readonly CommandPaletteItem[],
+  opciones: { incluirSeccionesVacias?: boolean } = {},
+): CommandPaletteGrupo[] {
+  const incluirSeccionesVacias = opciones.incluirSeccionesVacias ?? true;
   const grupos = new Map<CommandPaletteSeccion, CommandPaletteItem[]>(
     SECCIONES_COMMAND_PALETTE.map((seccion) => [seccion, []]),
   );
   for (const item of items) {
     grupos.get(seccionVisualCommandPalette(item))?.push(item);
   }
-  return SECCIONES_COMMAND_PALETTE.map((seccion) => ({
-    seccion,
-    items: grupos.get(seccion) ?? [],
-  }));
+  return SECCIONES_COMMAND_PALETTE
+    .map((seccion) => ({
+      seccion,
+      items: grupos.get(seccion) ?? [],
+    }))
+    .filter((grupo) => incluirSeccionesVacias || grupo.items.length > 0);
 }
 
 export function seccionVisualCommandPalette(item: CommandPaletteItem): CommandPaletteSeccion {
   const seccionMenu = item.menuActionId ? seccionesPorAccionMenu[item.menuActionId] : undefined;
   if (seccionMenu) return seccionMenu;
   const texto = normalizarTextoBusqueda([item.label, item.descripcion, item.categoria, item.menuActionId ?? ""].join(" "));
-  if (texto.includes("asistente")) return "ASISTENTE";
   if (texto.includes("export") || texto.includes("json") || texto.includes("svg") || texto.includes("html")) return "EXPORTAR";
   if (item.categoria === "archivo") return "MODELO";
   if (item.categoria === "navegacion") return "NAVEGAR";

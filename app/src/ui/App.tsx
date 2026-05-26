@@ -14,7 +14,6 @@ import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useAppShellViewModel } from "../app/viewmodels/appShellViewModel";
 import type { PanelOplViewModel } from "../app/viewmodels/panelOplViewModel";
 import { usePanelOplViewModel } from "../app/viewmodels/panelOplViewModel";
-import { usePrecargaBienvenida } from "../app/viewmodels/precargaBienvenidaViewModel";
 import { listarAvisosDiagnostico } from "../modelo/diagnostico";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
@@ -27,7 +26,6 @@ import { Breadcrumb } from "./Breadcrumb";
 import { CapturadorBugs } from "./CapturadorBugs";
 import { HaloEstado } from "./HaloEstado";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
-import { modeloTieneContenidoVisible } from "./bienvenida";
 import { CanvasAdapterContext } from "./CanvasAdapterContext";
 import { ConfirmacionProvider } from "./ConfirmacionContext";
 import { resolverContextoWorkbench } from "./contexto";
@@ -40,8 +38,6 @@ import { DivisorPanel } from "./divisorPanel";
 import { EstadoVacioOpm } from "./EstadoVacioOpm";
 import { Inspector } from "./Inspector";
 import { JointCanvasFeedbackBoundary } from "./JointCanvasFeedbackBoundary";
-// Ronda 23 L3 #7: banner inline de bienvenida (canvas precargado).
-import { PantallaInicio } from "./PantallaInicio";
 // L2 ronda 21: viewport-aware layout — el grid desktop coexiste con el modo
 // revisión mobile (tabs inferiores) y tablet (drawers). Ver `layoutResponsive`.
 import { useBreakpoint } from "./layoutResponsive";
@@ -53,7 +49,6 @@ import { BarraSimulacion } from "./simulacion/BarraSimulacion";
 import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
 
-const AsistenteNuevoModelo = lazy(() => import("./asistente/Asistente").then((m) => ({ default: m.AsistenteNuevoModelo })));
 const CheatsheetAtajos = lazy(() => import("./CheatsheetAtajos").then((m) => ({ default: m.CheatsheetAtajos })));
 const CommandPalette = lazy(() => import("./CommandPalette").then((m) => ({ default: m.CommandPalette })));
 const DialogoBuscarCosas = lazy(() => import("./DialogoBuscarCosas").then((m) => ({ default: m.DialogoBuscarCosas })));
@@ -79,7 +74,6 @@ export function App() {
     modelo,
     opdActivoId,
     fijarAnchoPanelInspector,
-    asistenteAbierto,
     dialogoGuardarComoAbierto,
     dialogoConfiguracionAbierto,
     dialogoSimulacionNumericaAbierto,
@@ -98,8 +92,6 @@ export function App() {
     cerrarCheatsheetAtajos,
     dialogoComandosAbierto,
     cerrarDialogoComandos,
-    modeloPersistidoId,
-    pantallaInicioCerrada,
     vistaMobileActiva,
     modoSimulacionActivo,
     modoEnlaceActivo,
@@ -107,10 +99,6 @@ export function App() {
   } = useAppShellViewModel();
   const [, setInspectorAbierto] = useState(true);
   const [canvasAdapter, setCanvasAdapter] = useState<JointCanvasAdapter | null>(null);
-  // Ronda 23 L3 #7: el primer paint sin modelos persistidos ni recientes
-  // precarga el fixture "System Diagram" para que el operador entre directo
-  // al canvas con un ejemplo en lugar del overlay con 3 caminos.
-  usePrecargaBienvenida("System Diagram");
   const timelineDisponible = tieneTimelineDisponible(modelo, opdActivoId);
   const panelOplVm = usePanelOplViewModel();
   // L2 ronda 21: branch por viewport. Desktop preserva el grid canónico de 4
@@ -136,14 +124,12 @@ export function App() {
     };
   }, []);
 
-  const bienvenidaActiva = !modeloPersistidoId && !pantallaInicioCerrada && !modeloTieneContenidoVisible(modelo);
   const contextoWorkbench = resolverContextoWorkbench({
     breakpoint,
     vistaMapaActiva,
     modoSimulacionActivo,
     modoEnlaceActivo,
     modoCreacionActivo,
-    bienvenidaActiva,
   });
   // Ronda Codex v2 L2: meta editorial del header (N oraciones · ● sin guardar)
   // y estado de diagnóstico del footer-right. Derivados puros del modelo +
@@ -195,7 +181,6 @@ export function App() {
                   onAbrirInspector={() => setInspectorAbierto(true)}
                   onToggleInspector={() => setInspectorAbierto((abierto) => !abierto)}
                 />
-                <PantallaInicio />
               </div>
               {vistaMobileActiva !== "canvas" ? (
                 <div
@@ -232,7 +217,7 @@ export function App() {
             lateral se retiró. El command palette `⌘K` es la vía ÚNICA de
             comandos; el botón ☰ lo invoca (ver `ToolbarBase`), y el palette es
             ahora superset de las acciones que antes vivían en el menú lateral
-            (Guardar/Nuevo/Cargar/Plantillas/Exportar/Vista/Workspace). El prop
+            (Guardar/Nuevo/Cargar/Exportar/Vista/Workspace). El prop
             `menu` de `CodexFrame` ya no recibe superficie paralela.
           */
           <CodexFrame
@@ -280,7 +265,6 @@ export function App() {
                   y retira/repurposa `BarraHerramientasElemento`.
                 */}
                 <EstadoVacioOpm />
-                <PantallaInicio />
               </CodexCanvasMount>
             )}
             rightDivider={(
@@ -357,7 +341,6 @@ export function App() {
         {dialogoVersionesAbierto ? <Suspense fallback={null}><DialogoVersiones /></Suspense> : null}
         {tablaEnlacesAbierta ? <Suspense fallback={null}><TablaEnlaces /></Suspense> : null}
         {gestionArbolAbierta ? <Suspense fallback={null}><GestionArbolOpd /></Suspense> : null}
-        {asistenteAbierto ? <Suspense fallback={null}><AsistenteNuevoModelo /></Suspense> : null}
         {modalImagenAbierto ? <Suspense fallback={null}><ModalImagenObjeto /></Suspense> : null}
         {modalUrlsAbierto ? <Suspense fallback={null}><ModalUrlsObjeto /></Suspense> : null}
         {modalDuracionAbierto ? <Suspense fallback={null}><ModalDuracionEstado /></Suspense> : null}

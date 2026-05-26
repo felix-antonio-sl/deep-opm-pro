@@ -3,7 +3,7 @@ import type { BreakpointOpm } from "./layoutResponsive";
 export type ContextDeviceWorkbench = BreakpointOpm;
 export type ContextModoWorkbench = "edicion" | "mapa" | "simulacion";
 export type ContextSubModoEdicion = "conectando" | "insertando" | null;
-export type ViewPointWorkbench = "Bienvenida" | "Mobile" | "Edicion" | "Mapa" | "Simulacion";
+export type ViewPointWorkbench = "Mobile" | "Edicion" | "Mapa" | "Simulacion";
 
 export interface ContextoWorkbench {
   device: ContextDeviceWorkbench;
@@ -22,7 +22,6 @@ export interface ResolverModoWorkbenchInput {
 
 export interface ResolverContextoWorkbenchInput extends ResolverModoWorkbenchInput {
   breakpoint: BreakpointOpm;
-  bienvenidaActiva?: boolean;
 }
 
 /**
@@ -59,9 +58,7 @@ export function resolverContextSubModoWorkbench(input: ResolverModoWorkbenchInpu
 export function resolverViewPointWorkbench(input: {
   device: ContextDeviceWorkbench;
   modo: ContextModoWorkbench;
-  bienvenidaActiva?: boolean;
 }): ViewPointWorkbench {
-  if (input.bienvenidaActiva) return "Bienvenida";
   if (input.device === "mobile") return "Mobile";
   if (input.modo === "simulacion") return "Simulacion";
   if (input.modo === "mapa") return "Mapa";
@@ -72,7 +69,7 @@ export function resolverContextoWorkbench(input: ResolverContextoWorkbenchInput)
   const device = resolverContextDeviceWorkbench(input.breakpoint);
   const modo = resolverContextModoWorkbench(input);
   const subModo = resolverContextSubModoWorkbench(input);
-  const viewPoint = resolverViewPointWorkbench({ device, modo, bienvenidaActiva: input.bienvenidaActiva === true });
+  const viewPoint = resolverViewPointWorkbench({ device, modo });
   return {
     device,
     modo,
@@ -83,7 +80,6 @@ export function resolverContextoWorkbench(input: ResolverContextoWorkbenchInput)
 }
 
 export function tituloViewPointWorkbench(contexto: Pick<ContextoWorkbench, "viewPoint" | "subModo">): string {
-  if (contexto.viewPoint === "Bienvenida") return "Bienvenida deep-opm-pro";
   if (contexto.viewPoint === "Mobile") return "Revisión mobile OPM";
   if (contexto.viewPoint === "Mapa") return "Mapa del sistema OPM";
   if (contexto.viewPoint === "Simulacion") return "Simulación conceptual OPM";

@@ -3,7 +3,7 @@ import {
   elementoPorTexto,
   escapeRegExp,
   modeloTraerConectadosSmoke,
-  cerrarPantallaInicioSiVisible,
+  esperarWorkbenchInicial,
   restaurarPanelOplSiMinimizado,
   crearAtributoNumericoSmoke,
   rectDeLocator,
@@ -14,7 +14,6 @@ import {
   desplegarComoAgregacion,
   guardarComoActual,
   abrirDialogoCargarModelo,
-  cargarModeloEjemplo,
   cargarPrimerModelo,
   crearModeloNuevoDesdeMenu,
   abrirMenuPrincipal,
@@ -51,35 +50,21 @@ import {
   type ExtremoExportado,
 } from "./_smoke-helpers";
 
-test("carga demo OPM en canvas JointJS y mantiene OPL visible", async ({ page }) => {
+test("primer paint arranca vacio sin onboarding, ejemplos ni System Diagram", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await expect(page.getByRole("img", { name: "OPD activo" })).toBeVisible();
-
-  await cargarModeloEjemplo(page, "System Diagram");
-
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
-  expect(await page.locator(".joint-element").count()).toBeGreaterThanOrEqual(3);
-  expect(await page.locator(".joint-link").count()).toBeGreaterThanOrEqual(2);
-  await expect(elementoPorTexto(page, "Main System Doing")).toBeVisible();
+  await expect(page.locator(".joint-element")).toHaveCount(0);
+  await expect(page.locator(".joint-link")).toHaveCount(0);
+  await expect(page.getByRole("treeitem", { name: /SD/ })).toBeVisible();
+  await expect(page.getByTestId("breadcrumb-opd")).not.toContainText("System Diagram");
   await restaurarPanelOplSiMinimizado(page);
-  await expect(page.getByText("Main System Doing consume Main Input.")).toBeVisible();
-
-  await page.screenshot({ path: "test-results/opm-demo-jointjs.png", fullPage: true });
-  expect(pageErrors).toEqual([]);
-});
-
-test("footer diagnostico evalua System Diagram sandbox sin panel redundante", async ({ page }) => {
-  const pageErrors: string[] = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-
-  await page.goto("/");
-  await cargarModeloEjemplo(page, "System Diagram");
-
+  await expect(page.getByTestId("panel-opl")).toContainText("Sin OPL todavía.");
   await expect(page.getByTestId("panel-diagnostico")).toHaveCount(0);
-  await expect(page.getByTestId("codex-footer-diagnostico")).toContainText("ningún diagnóstico");
+  await expect(page.getByTestId("codex-footer-diagnostico")).toContainText(/sin pendientes|ningún diagnóstico/);
   expect(pageErrors).toEqual([]);
 });
 
@@ -142,20 +127,15 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   expect(pageErrors).toEqual([]);
 });
 
-test("HU-30.021 dialogo cargar abre ejemplo sandbox canonico", async ({ page }) => {
+test("HU-30.021 dialogo abrir no expone selector de ejemplos", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   const dialogo = await abrirDialogoCargarModelo(page);
-  const selectorEjemplos = dialogo.getByLabel("Cargar modelo de ejemplo");
-  await expect(selectorEjemplos.locator("option").filter({ hasText: /^System Diagram$/ })).toHaveCount(1);
-  await selectorEjemplos.selectOption("System Diagram");
-
-  await expect(dialogo).toHaveCount(0);
-  await expect(elementoPorTexto(page, "System Name")).toHaveCount(1);
-  await expect(elementoPorTexto(page, "Main System Doing")).toHaveCount(1);
-  expect(await page.locator(".joint-link").count()).toBeGreaterThanOrEqual(7);
+  await expect(dialogo.getByLabel("Cargar modelo de ejemplo")).toHaveCount(0);
+  await expect(dialogo).not.toContainText("Ejemplos");
+  await expect(page.locator(".joint-element")).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
 
@@ -173,7 +153,7 @@ test("L2 dialogo cargar busca descripcion, selecciona tile y carga", async ({ pa
   const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: /Busqueda L2/ });
   await expect(tile).toBeVisible();
   await tile.click();
-  await dialogo.getByRole("button", { name: "Cargar", exact: true }).click();
+  await dialogo.getByRole("button", { name: "Abrir", exact: true }).click();
 
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
@@ -185,7 +165,7 @@ test("workspace L4 mueve modelos y busca global con guard", async ({ page }) => 
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await cerrarPantallaInicioSiVisible(page);
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await page.keyboard.press("Control+S");
   const dialogoGuardar = page.getByRole("dialog", { name: "Guardar como" });
