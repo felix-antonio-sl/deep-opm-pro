@@ -1,11 +1,33 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-26 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commit de producto desplegado**: cierre actual `refactor(ui): elimina onboarding asistido y superficies demo`; consultar `git log -1 --oneline` para el hash final tras push.
-**Commit documental de handoff**: este documento forma parte del mismo commit atomico de cierre.
-**Instancia**: `https://opforja.sanixai.com` — bundle **primer paint vacío / sin onboarding demo** desplegado con `docker compose up -d --build`; contenedores `opforja` (healthy) + `opforja-bug-capture`, **HTTP 200 publico** (sin auth, ver Riesgos).
+**Commits de producto**: ronda commiteada **atómicamente por el operador** (co-implementación en `main`, ya en `origin/main`): `e2ec53d` atajos O/P/S/R, `1394a42` atajo capturador, `85e2db6` inspector vs diagnóstico, `21096a7` barra simulación — más bugs adicionales que resolvió por su cuenta (`dd28882` atributos, `9669f3a` usabilidad modelos, `d19f675` contraste tokens). **Deploy a producción aún pendiente** (el bundle vivo sigue siendo el del corte previo).
+**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); bundle vivo = corte previo (primer paint vacío / sin onboarding demo).
 
-## Corte actual — Auditoría prescriptiva Jobs + IFML: primer paint vacío y sin demo
+## Corte actual — Ronda de bugs UX delegada (captura/atajos/paneles)
+
+Se paralelizó la resolución de una ronda de bugs reportados desde el capturador en producción, repartidos en **5 líneas con dominios disjuntos** delegadas a subagentes, con reconciliación final (gate unit + e2e afectado). **6 bugs resueltos, 1 revertido por requerir diseño.** El operador integró el resultado commiteándolo atómicamente en `main` (ver hashes arriba) y resolvió en paralelo bugs adicionales (atributos, usabilidad de modelos, contraste de paleta).
+
+**Decisiones aplicadas (resueltos):**
+- **BUG-5a6c58** — atajo del capturador de bugs cambia de `Alt+Ctrl/Cmd+B` a **`Shift+Ctrl/Cmd+B`** (`CapturadorBugs.tsx`); e2e `10-capturador` reconciliado al nuevo combo.
+- **BUG-c76a40 + BUG-58fefc** — atajos de canvas (`O/P/S/R`) no disparaban tras cambiar de OPD por **click** en el árbol: el foco quedaba en `[data-atajos-contexto="panel-arbol"]`. Fix en `atajosTeclado.ts` `contextoDesdeEvento`: si el panel contextual no tiene registro propio para ese combo, cae a `canvas`. `R` sigue exigiendo cosa seleccionada **por contrato** (no se tocó).
+- **BUG-fbb0f1 + BUG-f23d0a** — apilamiento de paneles: Inspector y diagnóstico pasan a columna flex (un solo scroll, diagnóstico acotado a `40%`) en `App.tsx`/`inspectorStyles.ts`; la barra de simulación se vuelve overlay `position:fixed; top:60; zIndex:30` en escritorio/tablet (`BarraSimulacion.tsx`).
+- **BUG-895504** — auditoría de canonicidad de la barra superior: **veredicto canónica** (cero hex hardcodeado, sin sombras offset, tipografía/colores por token; `design:governance` OK). Sin cambios de código.
+
+**Revertido (pendiente de diseño):**
+- **BUG-f897bc** — "OPL más prosaico con cópulas/conectores". Se implementó agrupación enumerada estructural ("A exhibe B, C y D" en una frase, bisimétrica) pero **colisiona con la ruta de refinamiento/despliegue (HU-50.015)**: fusiona los enlaces hijos de un objeto refinado en la forma plural "son", eliminando las frases individuales con token-verbo + ref por enlace que el resaltado interactivo necesita (rompía 7 tests en `generar.test.ts`). Se revirtió. Requiere diseño: excluir de la agrupación los enlaces en contexto de despliegue/refinamiento preservando tokens por enlace.
+
+**Artefactos relevantes (7 archivos, solo `app/`):** `src/ui/CapturadorBugs.tsx`, `src/ui/atajosTeclado.ts` (+ `.test.ts`), `src/ui/App.tsx`, `src/ui/inspectorStyles.ts`, `src/ui/simulacion/BarraSimulacion.tsx`, `e2e/10-capturador-bugs.spec.ts`.
+
+**Verificación del corte:**
+- `cd app && bun run check` → **1707 pass / 0 fail**, typecheck limpio.
+- e2e afectado (`10`, `12-beta2`, `30-simulacion`, `inspector-focus`, `23-inspector-resize`, `--workers=1`) → **15/16 pass**. El único fallo (`12-beta2:260` B0.026) es **pre-existente y ajeno**: su aserción espera `"system diagram"` pero el modelo del propio test se llama `"Sim multi OPD"` y la importación no se aplica; ningún archivo tocado roza el flujo de import/breadcrumb.
+
+**Estado / pendientes derivados:**
+- El **marcado `Resuelto` en `docs/bugs/*` y la regeneración de `INDEX.md`/`HISTORY.md` (`cd app && bun run bug:index`) quedan al flujo del operador**: no se incluyeron en este commit para mantenerlo aislado y atómico (el índice ya contiene ~24 capturas nuevas sin triar de la cola del operador).
+- Bugs nuevos sin abordar en esta ronda (cola de triage): `0e3997, ec523c, b2477a, e7fe11, 9cad06, 86aa78, 738f53, 679f28, 142989, f28eb5, b768d4, 00f799, f81da4, 4c5463, 16a874, 5d7651, 0c3cde, a41f5c`.
+
+## Corte previo — Auditoría prescriptiva Jobs + IFML: primer paint vacío y sin demo
 
 Se ejecutó el P0 de `docs/auditorias/2026-05-26-jobs-ifml-opforja-prescriptivo/informe-prescriptivo-ui-ux-opforja.md`: Opforja deja de abrir como demo/asistente y pasa a abrir como herramienta de modelado vacía, honesta y lista para trabajar. El estado inicial real es `Modelo` + `SD`, sin OPL precargada y sin `System Diagram` como etiqueta visible por defecto.
 
@@ -348,4 +370,4 @@ Cierre completo de la **Auditoría Codex v1.0 ↔ Implementación rev2** (`/home
 
 ## Prompt de continuación
 
-> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Tier 1 completo". El Tier 1 (A esencia OPL · B colisión de nombre · F simulación numérica CSV) está cerrado, en `origin/main` y **desplegado** (`https://opforja.sanixai.com`, bundle `index-i8iXchqs.js`). Próximo trabajo de valor: las brechas diferidas (ver Pendientes — visibilidad unidades/alias OPL; D herencia; E condiciones/loops ejecutables; G cableado sociotécnico), cada una con su propia spec→plan; o seguir la matriz de cobertura vs manual (47/24/29). Antes de tocar UI/canvas leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Gate UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance` + Playwright del layout/canvas afectado. No stagear `docs/auditorias/inclumplimiento-visual-25-05-2026.md` ni `docs/manual-simulado-opcloud-capacidades.md` salvo instrucción explícita.
+> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Ronda de bugs UX delegada". Los 6 bugs de captura/atajos/paneles están en `main` (commit `fix(ui): ...`) pero **deploy pendiente** — si quieres publicar, `docker compose up -d --build` desde la raíz (ver `docs/deploy/opforja.md`). Trabajo inmediato de valor: (1) **BUG-f897bc** (OPL prosaico) revertido — rediseñar la agrupación enumerada para excluir enlaces en contexto de refinamiento/despliegue preservando tokens por enlace; (2) triar la cola de ~24 bugs nuevos del capturador y correr `cd app && bun run bug:index`; (3) las brechas diferidas del Tier 1 (visibilidad unidades/alias OPL; D herencia; E condiciones/loops; G sociotécnico). Antes de tocar UI/canvas leer `docs/canon-opm/reglas-opm-estrictas.md` y `ui-forja/GOVERNANCE.md`. Gate UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance` + Playwright del layout/canvas afectado. Recordatorio operativo: vite-bg + e2e en paralelo produce flakes (correr e2e con `--workers=1` o apagar el dev server). No stagear `docs/auditorias/**` ni `docs/bugs/**` en el commit de código.
