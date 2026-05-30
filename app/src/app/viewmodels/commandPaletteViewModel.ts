@@ -1,5 +1,6 @@
 import { useMemo } from "preact/hooks";
 import { normalizarGridConfig } from "../../canvas/grid";
+import { exportarDiagnosticoJson } from "../../modelo/exportarDiagnostico";
 import { useZustandCommandPalettePort } from "../ports/zustandCommandPalettePort";
 
 export function useCommandPaletteViewModel() {
@@ -48,6 +49,15 @@ export function useCommandPaletteViewModel() {
     void globalThis.navigator?.clipboard?.writeText(json);
   };
 
+  // Copia al portapapeles el diagnóstico completo del modelo (todas las
+  // sugerencias) serializado como JSON. Mismo patrón liviano que
+  // exportarJsonAlPortapapeles: la serialización es pura (kernel) y aquí solo
+  // se escribe al portapapeles.
+  const exportarDiagnosticoAlPortapapeles = () => {
+    const json = exportarDiagnosticoJson(modelo);
+    void globalThis.navigator?.clipboard?.writeText(json);
+  };
+
   return {
     modelo,
     opdActivoId,
@@ -70,6 +80,7 @@ export function useCommandPaletteViewModel() {
     frecuenciaUso,
     registrarUsoCommandPalette,
     exportarJsonAlPortapapeles,
+    exportarDiagnosticoAlPortapapeles,
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,

@@ -1,4 +1,6 @@
+import type { AvisoDiagnostico } from "./diagnostico";
 import type { AvisoMetodologico, CodigoChecker } from "./tipos";
+import type { SeveridadAviso } from "./validaciones";
 
 export type SeveridadIssue = "bloqueo" | "mejora" | "estilo";
 
@@ -50,4 +52,22 @@ export function resumenSeveridades(avisos: AvisoMetodologico[]): ResumenSeverida
 
 export function resumenSeveridadesTexto(resumen: ResumenSeveridades): string {
   return `${resumen.bloqueos} bloqueos estructurales / ${resumen.mejoras} mejoras metodologicas / ${resumen.estilo} sugerencias de estilo`;
+}
+
+/**
+ * Severidad visible (bloqueo/mejora/estilo) de un aviso unificado del
+ * diagnóstico. Es la misma clasificación que ve el usuario en el panel:
+ * la metodología se eleva a `mejora` aunque llegue como `info`; el resto
+ * mapea desde `SeveridadAviso`. Kernel puro — sin dependencias de capas
+ * superiores. El viewmodel del panel la re-exporta para presentación.
+ */
+export function severidadDiagnostico(aviso: AvisoDiagnostico): SeveridadIssue {
+  if (aviso.origen === "metodologia") return clasificarSeveridad({ codigo: aviso.codigo as CodigoChecker });
+  return severidadDesdeAviso(aviso.severidad);
+}
+
+export function severidadDesdeAviso(severidad: SeveridadAviso): SeveridadIssue {
+  if (severidad === "error") return "bloqueo";
+  if (severidad === "advertencia") return "mejora";
+  return "estilo";
 }

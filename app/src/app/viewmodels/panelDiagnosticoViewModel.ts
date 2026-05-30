@@ -1,9 +1,14 @@
 import type { AvisoDiagnostico } from "../../modelo/diagnostico";
-import { clasificarSeveridad, type SeveridadIssue } from "../../modelo/diagnosticoSeveridad";
-import type { CodigoChecker } from "../../modelo/tipos";
-import type { Aviso, SeveridadAviso } from "../../modelo/validaciones";
+import { severidadDesdeAviso, severidadDiagnostico, type SeveridadIssue } from "../../modelo/diagnosticoSeveridad";
+import type { Aviso } from "../../modelo/validaciones";
 
 export type SeveridadDiagnostico = SeveridadIssue;
+
+// Reexportadas desde el kernel (modelo/diagnosticoSeveridad). La clasificación
+// de severidad es lógica pura de dominio; vive en el kernel para que el
+// exportador de diagnóstico (modelo/exportarDiagnostico) pueda compartirla sin
+// que `modelo/` importe hacia `app/`. El panel las consume aquí por cercanía.
+export { severidadDesdeAviso, severidadDiagnostico };
 
 /**
  * Issue individual derivado de un aviso del diagnóstico. Lleva `titulo`
@@ -116,15 +121,4 @@ function agruparPorRegla(issues: DiagnosticoIssue[]): DiagnosticoIssueAgrupado[]
   }
 
   return orden;
-}
-
-export function severidadDiagnostico(aviso: AvisoDiagnostico): SeveridadDiagnostico {
-  if (aviso.origen === "metodologia") return clasificarSeveridad({ codigo: aviso.codigo as CodigoChecker });
-  return severidadDesdeAviso(aviso.severidad);
-}
-
-export function severidadDesdeAviso(severidad: SeveridadAviso): SeveridadDiagnostico {
-  if (severidad === "error") return "bloqueo";
-  if (severidad === "advertencia") return "mejora";
-  return "estilo";
 }

@@ -69,6 +69,7 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "buscar-modelo": "NAVEGAR",
   "buscar-workspace": "NAVEGAR",
   "exportar-json": "EXPORTAR",
+  "exportar-diagnostico": "EXPORTAR",
   "exportar-svg": "EXPORTAR",
   "simulacion-conceptual": "VISTA",
   "simulacion-numerica": "VISTA",
@@ -115,6 +116,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     frecuenciaUso,
     registrarUsoCommandPalette,
     exportarJsonAlPortapapeles,
+    exportarDiagnosticoAlPortapapeles,
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,
@@ -160,6 +162,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirTablaEnlaces,
     abrirCheatsheetAtajos,
     exportarJson: exportarJsonAlPortapapeles,
+    exportarDiagnostico: exportarDiagnosticoAlPortapapeles,
     exportarOpdSvg: canvasPaper ? () => { void descargarOpdActualSvg(canvasPaper, modelo, opdActivoId); } : null,
     abrirPestanaNueva,
     abrirBusquedaCosas,
@@ -431,6 +434,7 @@ interface AccionesMenuCommandPaletteDeps {
   abrirTablaEnlaces: () => void;
   abrirCheatsheetAtajos: () => void;
   exportarJson: () => void;
+  exportarDiagnostico: () => void;
   exportarOpdSvg: (() => void) | null;
   abrirPestanaNueva: () => void;
   abrirBusquedaCosas: () => void;
@@ -464,6 +468,7 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "buscar-modelo", label: "Buscar en el modelo", descripcion: "Buscar objetos y procesos por nombre en el modelo activo", categoria: "navegacion", atajo: "Ctrl+F", run: deps.abrirBusquedaCosas },
     { id: "buscar-workspace", label: "Buscar en el workspace", descripcion: "Buscar en todos los modelos guardados del workspace", categoria: "navegacion", atajo: "Ctrl+Shift+F", run: deps.abrirBusquedaGlobal },
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
+    { id: "exportar-diagnostico", label: "Exportar diagnóstico (JSON)", descripcion: "Copiar todas las sugerencias del diagnóstico al portapapeles", categoria: "archivo", run: deps.exportarDiagnostico },
     ...(deps.exportarOpdSvg ? [{ id: "exportar-svg", label: "Exportar OPD actual como SVG", descripcion: "Descargar el OPD activo como imagen SVG", categoria: "archivo", run: deps.exportarOpdSvg }] : []),
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },
     { id: "simulacion-numerica", label: "Simulación numérica", descripcion: "Generar datos simulados de atributos y descargar CSV", categoria: "vista", run: deps.abrirDialogoSimulacionNumerica },

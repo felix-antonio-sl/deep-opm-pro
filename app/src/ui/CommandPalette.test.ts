@@ -155,6 +155,25 @@ describe("CommandPalette", () => {
     expect(grupos[0]?.items.map((item) => item.label)).toEqual(["Tabla de enlaces"]);
   });
 
+  test("EXPORTAR incluye exportar diagnóstico (JSON) y enruta a EXPORTAR", () => {
+    let copiado = false;
+    const deps = { ...depsAccionesMenu(), exportarDiagnostico: () => { copiado = true; } };
+    const acciones = construirAccionesMenuCommandPalette(deps);
+    const accion = acciones.find((item) => item.id === "exportar-diagnostico");
+
+    expect(accion?.label).toBe("Exportar diagnóstico (JSON)");
+    expect(accion?.categoria).toBe("archivo");
+    accion?.run();
+    expect(copiado).toBe(true);
+
+    const items = construirItemsCommandPalette([], [], acciones);
+    const item = items.find((i) => i.menuActionId === "exportar-diagnostico");
+    expect(item ? seccionVisualCommandPalette(item) : null).toBe("EXPORTAR");
+    // El comando es encontrable buscando "diagnostico" y "json".
+    expect(filtrarItemsCommandPalette(items, "diagnostico").map((i) => i.label)).toContain("Exportar diagnóstico (JSON)");
+    expect(filtrarItemsCommandPalette(items, "json").map((i) => i.label)).toContain("Exportar diagnóstico (JSON)");
+  });
+
   test("MODELO incluye renombrar modelo como comando explícito", () => {
     const deps = depsAccionesMenu();
     const acciones = construirAccionesMenuCommandPalette(deps);
@@ -182,6 +201,7 @@ function depsAccionesMenu(): Parameters<typeof construirAccionesMenuCommandPalet
     abrirTablaEnlaces: () => {},
     abrirCheatsheetAtajos: () => {},
     exportarJson: () => {},
+    exportarDiagnostico: () => {},
     exportarOpdSvg: null,
     abrirPestanaNueva: () => {},
     abrirBusquedaCosas: () => {},

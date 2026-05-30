@@ -114,6 +114,33 @@ test("Command Palette abre Configuración consolidada", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("Command Palette ofrece Exportar diagnóstico (JSON) en EXPORTAR y lo ejecuta", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+
+  await palette.getByRole("combobox").fill("diagnostico");
+  const item = page.getByTestId("command-palette-item-menu-exportar-diagnostico");
+  await expect(item).toBeVisible();
+  await expect(item).toContainText("Exportar diagnóstico (JSON)");
+  // Vive bajo la sección EXPORTAR (enrutado por seccionVisualCommandPalette).
+  await expect(palette.getByTestId("command-palette-section-exportar")).toContainText("Exportar diagnóstico (JSON)");
+
+  // Ejecutarlo copia al portapapeles y cierra el palette sin errores. No
+  // afirmamos el contenido del portapapeles para no depender de permisos de
+  // clipboard del navegador headless.
+  await item.click();
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("Command Palette abre cheatsheet con estereotipo modal IFML", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
