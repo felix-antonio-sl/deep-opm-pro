@@ -1,10 +1,22 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-26 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commits de producto**: ronda commiteada **atómicamente por el operador** (co-implementación en `main`, ya en `origin/main`): `e2ec53d` atajos O/P/S/R, `1394a42` atajo capturador, `85e2db6` inspector vs diagnóstico, `21096a7` barra simulación — más bugs adicionales que resolvió por su cuenta (`dd28882` atributos, `9669f3a` usabilidad modelos, `d19f675` contraste tokens). **Desplegado** en producción con `docker compose up -d --build` (bundle `index-BEwvFCpF.js`).
-**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; bundle vivo `index-BEwvFCpF.js`.
+**Fecha**: 2026-05-30 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
+**Commits de producto**: `e5ff438` exportador de diagnóstico a JSON desde la paleta (commit atómico de 8 archivos, ya en `origin/main`). Cortes previos (co-implementación del operador en `main`): `59ad3a9` D1 esencia/afiliación combinada, ronda atajos/inspector/simulación (`e2ec53d`/`1394a42`/`85e2db6`/`21096a7`) + bugs (`dd28882`/`9669f3a`/`d19f675`). **Desplegado** en producción con `docker compose up -d --build` (entry bundle `index-CXLQ2-w2.js`; feature en chunk `CommandPalette-BLPl2eGv.js`).
+**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo `index-CXLQ2-w2.js`.
 
-## Corte actual — D1 esencia/afiliación combinada (forma OPCloud) + cierre de remediación GAP OPL + auditoría de divergencias OPL vs OPCloud (rama `codex/remediacion-gap-opl`, integrada a `main`)
+## Corte actual — Exportador de diagnóstico del modelo a JSON (paleta de comandos)
+
+**Commit `e5ff438` (atómico, 8 archivos):** nuevo comando **"Exportar diagnóstico (JSON)"** en la paleta (Cmd+K), sección EXPORTAR, que **copia al portapapeles** un JSON con **todas las sugerencias del diagnóstico del modelo completo** (alcance `{ tipo: "modelo" }`). Sin descarga de archivo, sin botón en panel — solo paleta, por decisión del operador.
+
+**Forma del JSON** (envoltorio + array, indentación 2): `{ modelo, fecha, alcance: "modelo", totales: { bloqueo, mejora, estilo, total }, sugerencias: [ { id, origen, severidad, codigo, titulo, mensaje, destino, citaSSOT, opdId?, elementoId?, elementoTipo? } ] }`. La `severidad` es la **clasificada visible** (bloqueo/mejora/estilo) vía `severidadDiagnostico`, no el `SeveridadAviso` crudo, para que el JSON coincida 1:1 con el panel. Se omiten campos no serializables (`navegar`, `avisoNavegable`). Fecha inyectable para tests deterministas.
+
+**Decisión de capa (relevante):** la serialización es función pura del kernel (`app/src/modelo/exportarDiagnostico.ts`). Como `severidadDiagnostico`/`severidadDesdeAviso` vivían en `app/viewmodels/` y `modelo/` no puede importar hacia arriba (regla de dependencia unidireccional), se **movieron al kernel** `app/src/modelo/diagnosticoSeveridad.ts` (donde ya viven `clasificarSeveridad`/`SeveridadIssue`) y el viewmodel ahora las **reexporta** para no romper consumidores. La clasificación de severidad es lógica de dominio pura; su sitio natural es el kernel.
+
+**Artefactos:** `app/src/modelo/exportarDiagnostico.ts` (+`.test.ts`, 8 unit), `app/src/modelo/diagnosticoSeveridad.ts` (severidad movida), `app/src/app/viewmodels/panelDiagnosticoViewModel.ts` (reexport), `app/src/app/viewmodels/commandPaletteViewModel.ts` (`exportarDiagnosticoAlPortapapeles`), `app/src/ui/CommandPalette.tsx` (+`.test.ts`, ítem `exportar-diagnostico`), `app/e2e/12-command-palette.spec.ts` (e2e paleta). Gate: `bun run check` → **1750 pass / 0 fail**; lint limpio; e2e 7/7. Verificado en bundle desplegado (chunk `CommandPalette-BLPl2eGv.js`).
+
+**Nota de flujo (e2e):** Playwright con `reuseExistingServer` se conecta al primer vite en `:5173`; si hay otro proyecto sirviendo ahí (p.ej. `hd-hsc-os`), usar `PW_PORT` libre o apagar el otro vite antes de correr el smoke de este repo.
+
+## Corte previo — D1 esencia/afiliación combinada (forma OPCloud) + cierre de remediación GAP OPL + auditoría de divergencias OPL vs OPCloud (rama `codex/remediacion-gap-opl`, integrada a `main`)
 
 **D1 combinada (commit `59ad3a9`):** `oracionEntidad` compone UNA oración con sustantivo de tipo — `**Cosa** es un {objeto|proceso} {esencia} y {afiliacion}.` (p.ej. `*Rescatar* es un proceso informacional y sistémico.`) — en vez de dos oraciones escindidas sin sustantivo de tipo. Es la forma del eco OPCloud (`docs/historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md`), consistente con la coordinación canónica de D5/D10. El parser ya reconocía la forma combinada (roundtrip preservado). Se invirtió la doctrina previa en spec-forja (R-ENT-3, §2.7, §2.8, §9 R-COMP-ELEG-2) y el comentario de `estructural.ts`; bajo `solo-difiere` coordina solo lo que difiere del default. Gate: `bun run check` → 1741 pass / 0 fail; lint OK. Tests/fixtures actualizados por el cambio de forma e índices de línea.
 
