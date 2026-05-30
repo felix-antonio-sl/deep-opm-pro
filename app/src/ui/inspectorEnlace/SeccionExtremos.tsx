@@ -1,4 +1,5 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
+import { esEnlaceEstructuralFundamental } from "../../modelo/constantes";
 import { entidadDeExtremo, extremoEntidad, extremoEstado } from "../../modelo/extremos";
 import { estadosDeEntidad } from "../../modelo/operaciones";
 import type { Enlace, ExtremoEnlace, Id, Modelo } from "../../modelo/tipos";
@@ -16,9 +17,20 @@ interface Props {
   onAbrirMoverPuerto: () => void;
 }
 
+// BUG-20260530T214922Z-fb6c2c: la sección "Extremos" (selectores de extremo +
+// "Reanclar extremo"/"Mover ancla exacta" → DialogoMoverPuerto) también debe
+// estar disponible para enlaces estructurales fundamentales. El kernel ya admite
+// reasignar su origen/destino (apuntarExtremoEnlace + validarFirmaEnlace exige
+// misma clase OPM para agregacion/generalizacion/clasificacion y deja libre
+// exhibicion); solo el fan/abanico es propio de los procedurales.
+export function seccionExtremosVisible(tipo: Enlace["tipo"]): boolean {
+  return enlaceProcedural(tipo) || esEnlaceEstructuralFundamental(tipo);
+}
+
 export function SeccionExtremos(props: Props) {
   const selectores = selectoresEstadoExtremo(props.modelo, props.enlace);
-  if (!enlaceProcedural(props.enlace.tipo)) return null;
+  if (!seccionExtremosVisible(props.enlace.tipo)) return null;
+  const muestraFan = enlaceProcedural(props.enlace.tipo);
   const contrato = detalleContratoPuertoEnlace(props.modelo, props.opdId, props.enlace);
   return (
     <section style={sectionStyle}>
@@ -26,7 +38,7 @@ export function SeccionExtremos(props: Props) {
       <div data-testid="contrato-puertos-enlace" style={contratoPanelStyle}>
         <div style={contratoHeaderStyle}>
           <span style={contratoTitleStyle}>Anclaje exacto</span>
-          {contrato.fan ? <span data-testid="contrato-fan-exacto" style={fanBadgeStyle}>Fan {contrato.fan.operador} · {contrato.fan.ramas} ramas</span> : null}
+          {muestraFan && contrato.fan ? <span data-testid="contrato-fan-exacto" style={fanBadgeStyle}>Fan {contrato.fan.operador} · {contrato.fan.ramas} ramas</span> : null}
         </div>
         <div style={contratoGridStyle}>
           {contrato.extremos.map((detalle) => (
@@ -38,7 +50,7 @@ export function SeccionExtremos(props: Props) {
             </div>
           ))}
         </div>
-        {contrato.fan ? (
+        {!muestraFan ? null : contrato.fan ? (
           <div data-testid="contrato-fan-puerto" style={fanDetalleStyle}>
             Puerto común: {contrato.fan.entidadNombre} · {contrato.fan.ladoCompartido} · {contrato.fan.hora ?? "exacto"}
           </div>

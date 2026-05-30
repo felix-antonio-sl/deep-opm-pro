@@ -123,6 +123,31 @@ describe("operaciones/enlaces", () => {
     expect(modelo.enlaces[enlaceId]).toEqual(original);
   });
 
+  test("apuntarExtremoEnlace reancla origen/destino de un enlace estructural a otra cosa", () => {
+    // BUG-20260530T214922Z-fb6c2c: el inspector ahora expone "Extremos" para
+    // estructurales fundamentales; el kernel debe permitir reasignar su cosa
+    // origen/destino respetando la firma (misma clase OPM para generalización).
+    let modelo = crearModelo("Reanclaje estructural");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Vehiculo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 80 }, "Auto"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 420, y: 80 }, "Camion"));
+    const vehiculoId = entidad(modelo, "Vehiculo");
+    const autoId = entidad(modelo, "Auto");
+    const camionId = entidad(modelo, "Camion");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, vehiculoId, autoId, "generalizacion"));
+    const enlaceId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "generalizacion")?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba generalización");
+
+    modelo = must(apuntarExtremoEnlace(modelo, enlaceId, "destino", extremoEntidad(camionId)));
+    expect(entidadIdDeExtremo(modelo, modelo.enlaces[enlaceId]!.destinoId)).toBe(camionId);
+
+    // Reanclar a un estado debe rechazarse en estructurales [V-237].
+    const estados = must(crearEstadosIniciales(modelo, camionId));
+    const estadoId = estados.estadoIds[0];
+    if (!estadoId) throw new Error("La prueba esperaba estado");
+    expect(apuntarExtremoEnlace(estados.modelo, enlaceId, "destino", extremoEstado(estadoId)).ok).toBe(false);
+  });
+
   test("eliminarEnlacesBatch elimina ids existentes e ignora ids ausentes", () => {
     let modelo = modeloBase();
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Validar"), "consumo"));
