@@ -48,7 +48,6 @@ export interface PanelOplViewModel {
   alternarBloqueOplContraido: (opdId: string) => void;
   mostrarPlaceholderAiOpl: () => void;
   copiarOplActualAlPortapapeles: () => void;
-  exportarOplActualHtml: () => void;
   alternarEditorLibre: () => void;
   fijarTextoLibre: (texto: string) => void;
   cancelarEditorLibre: () => void;
@@ -81,7 +80,6 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     alternarBloqueOplContraido,
     mostrarPlaceholderAiOpl,
     copiarOplActualAlPortapapeles,
-    exportarOplActualHtml,
   } = useZustandOplPort();
 
   const [editorLibre, setEditorLibre] = useState(false);
@@ -182,7 +180,6 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     alternarBloqueOplContraido,
     mostrarPlaceholderAiOpl,
     copiarOplActualAlPortapapeles,
-    exportarOplActualHtml,
     alternarEditorLibre,
     fijarTextoLibre: setTextoLibre,
     cancelarEditorLibre,

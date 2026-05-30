@@ -32,7 +32,6 @@ interface ToolbarOplProps {
   onPlaceholderAi: () => void;
   onBuscar: (texto: string) => void;
   onCopiar: () => void;
-  onExportarHtml: () => void;
   onFiltroSeleccion: (activo: boolean) => void;
   editorActivo: boolean;
   onEditarLibre: () => void;
@@ -119,30 +118,10 @@ export function ToolbarOpl(props: ToolbarOplProps) {
         data-testid="panel-opl-copiar"
         style={botonToolbar(sinOraciones)}
         disabled={sinOraciones}
-        title="Copiar todo el OPL al portapapeles"
+        title="Copiar el OPL del OPD en vista como Markdown, listo para pegar"
         onClick={props.onCopiar}
       >
-        copiar
-      </button>
-      <button
-        type="button"
-        data-testid="panel-opl-exportar-html"
-        style={botonToolbar(sinOraciones)}
-        disabled={sinOraciones}
-        title="Exportar OPL como archivo HTML"
-        onClick={props.onExportarHtml}
-      >
-        html
-      </button>
-      <button
-        type="button"
-        data-testid="panel-opl-exportar"
-        style={botonToolbar(sinOraciones)}
-        disabled={sinOraciones}
-        title="Exportar OPL como archivo HTML"
-        onClick={props.onExportarHtml}
-      >
-        exportar
+        copiar md
       </button>
       <span style={style.divider} aria-hidden="true" />
 

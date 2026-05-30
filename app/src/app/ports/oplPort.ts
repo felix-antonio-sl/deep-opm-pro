@@ -27,5 +27,4 @@ export interface OplPort {
   alternarBloqueOplContraido: (opdId: Id) => void;
   mostrarPlaceholderAiOpl: () => void;
   copiarOplActualAlPortapapeles: () => Promise<void>;
-  exportarOplActualHtml: () => Promise<void>;
 }

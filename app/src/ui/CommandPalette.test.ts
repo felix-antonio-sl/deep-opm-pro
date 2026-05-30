@@ -202,6 +202,7 @@ function depsAccionesMenu(): Parameters<typeof construirAccionesMenuCommandPalet
     abrirCheatsheetAtajos: () => {},
     exportarJson: () => {},
     exportarDiagnostico: () => {},
+    exportarOplModeloMarkdown: () => {},
     exportarOpdSvg: null,
     abrirPestanaNueva: () => {},
     abrirBusquedaCosas: () => {},

@@ -179,7 +179,7 @@ test("panel OPL busca texto y filtra lineas", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test("panel OPL copia y exporta HTML desde botones", async ({ page }) => {
+test("panel OPL copia Markdown del OPD en vista (sin HTML)", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -198,15 +198,15 @@ test("panel OPL copia y exporta HTML desde botones", async ({ page }) => {
 
   await page.getByTestId("panel-opl-copiar").click();
   const copiado = await page.evaluate(() => (window as Window & { __copiedOpl?: string }).__copiedOpl ?? "");
-  // Canon L1: clasificación escindida en dos oraciones (esencia + afiliación).
-  expect(copiado).toContain("**Objeto** es informacional.");
-  expect(copiado).toContain("**Objeto** es sistémico.");
+  // El panel copia Markdown con título del OPD + viñetas (sin HTML).
+  expect(copiado.startsWith("# ")).toBe(true);
+  // El objeto recién creado aparece como viñeta Markdown con su token **negrita**.
+  expect(copiado).toContain("\n- **Objeto**");
+  expect(copiado).not.toContain("<");
   await expect(page.getByText("OPL copiado al portapapeles")).toBeVisible();
 
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByTestId("panel-opl-exportar-html").click();
-  const download = await downloadPromise;
-  expect(download.suggestedFilename()).toMatch(/Modelo-opl\.html$/);
+  // La exportación a archivo HTML fue retirada: ya no existe el botón.
+  await expect(page.getByTestId("panel-opl-exportar-html")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });

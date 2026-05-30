@@ -145,7 +145,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "abrirInspectorEnlaceDesdeOpl",
     "aplicarEdicionOplLibre",
     "copiarOplActualAlPortapapeles",
-    "exportarOplActualHtml",
+    "copiarOplModeloMarkdownAlPortapapeles",
   ],
   canvasCommands: [
     "seleccionarEntidad",

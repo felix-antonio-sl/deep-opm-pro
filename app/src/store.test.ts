@@ -1223,19 +1223,17 @@ describe("store undo/redo y dirty state", () => {
     expect(textoCopiado.length).toBeGreaterThan(0);
   });
 
-  test("exportarOplActualHtml produce Blob text/html", async () => {
+  test("copiarOplModeloMarkdownAlPortapapeles copia Markdown de todo el modelo", async () => {
     store.getState().crearObjetoDemo();
-    let blobMime = "";
-    URL.createObjectURL = (blob: Blob) => {
-      blobMime = blob.type;
-      return "blob:test";
-    };
-    globalThis.document = {
-      createElement: () => ({ href: "", download: "", click: () => {} } as any),
-      body: { appendChild: () => {}, removeChild: () => {} },
-    } as any;
-    await store.getState().exportarOplActualHtml();
-    expect(blobMime).toContain("text/html");
+    let textoCopiado = "";
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true,
+      value: { clipboard: { writeText: async (text: string) => { textoCopiado = text; } } },
+    });
+    await store.getState().copiarOplModeloMarkdownAlPortapapeles();
+    expect(textoCopiado.startsWith("# ")).toBe(true);
+    expect(textoCopiado).toContain("## ");
+    expect(textoCopiado).not.toContain("<"); // Markdown, nunca HTML
   });
 });
 

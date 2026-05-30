@@ -26,7 +26,6 @@ export function useZustandOplPort(): OplPort {
   const alternarBloqueOplContraido = useOpmStore((s) => s.alternarBloqueOplContraido);
   const mostrarPlaceholderAiOpl = useOpmStore((s) => s.mostrarPlaceholderAiOpl);
   const copiarOplActualAlPortapapeles = useOpmStore((s) => s.copiarOplActualAlPortapapeles);
-  const exportarOplActualHtml = useOpmStore((s) => s.exportarOplActualHtml);
 
   return {
     modelo,
@@ -53,6 +52,5 @@ export function useZustandOplPort(): OplPort {
     alternarBloqueOplContraido,
     mostrarPlaceholderAiOpl,
     copiarOplActualAlPortapapeles,
-    exportarOplActualHtml,
   };
 }

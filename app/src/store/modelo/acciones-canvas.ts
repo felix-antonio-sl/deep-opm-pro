@@ -30,13 +30,13 @@ import { crearEnlaceTransaccional } from "../../modelo/transaccionEnlace";
 import { mismaReferencia } from "../../opl/interaccion";
 import type { EsenciaVisibilidad } from "../../opl/opciones";
 import { generarOpl } from "../../opl/generar";
+import { exportarOplModeloMarkdown, exportarOplOpdMarkdown } from "../../opl/exportarMarkdown";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
 import {
   aparienciaSeleccionadaActiva,
   commitModelo,
   deshacerRuntime,
   escribirIndiceWorkspace,
-  generarHtmlOpl,
   actualizarPreferenciasUi,
   limitar,
   rehacerRuntime,
@@ -355,10 +355,11 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       });
     },
 
+    // Copia el OPL del OPD en vista como Markdown listo para pegar (título +
+    // viñetas). Reemplaza la antigua exportación a archivo HTML.
     async copiarOplActualAlPortapapeles() {
       const { modelo, opdActivoId } = get();
-      const lineas = generarOpl(modelo, opdActivoId);
-      const texto = lineas.join("\n");
+      const texto = exportarOplOpdMarkdown(modelo, opdActivoId);
       try {
         await navigator.clipboard.writeText(texto);
         set({ mensaje: "OPL copiado al portapapeles" });
@@ -367,25 +368,17 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       }
     },
 
-    async exportarOplActualHtml() {
-      const { modelo, opdActivoId } = get();
-      const lineas = generarOpl(modelo, opdActivoId);
-      if (lineas.length === 0) {
-        set({ mensaje: "Sin OPL para exportar" });
-        return;
+    // Copia el OPL completo de TODO el modelo (todos los OPDs) como Markdown.
+    // Lo dispara la paleta de comandos (sección EXPORTAR).
+    async copiarOplModeloMarkdownAlPortapapeles() {
+      const { modelo } = get();
+      const texto = exportarOplModeloMarkdown(modelo);
+      try {
+        await navigator.clipboard.writeText(texto);
+        set({ mensaje: "OPL del modelo copiado al portapapeles (Markdown)" });
+      } catch {
+        set({ mensaje: "No se pudo copiar al portapapeles" });
       }
-      // Generar HTML usando los tokens con estilos canónicos (JOYAS §1)
-      const html = generarHtmlOpl(lineas, modelo.nombre);
-      const blob = new Blob([html], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${modelo.nombre.replace(/[^a-zA-Z0-9À-ɏ_-]/g, "_")}-opl.html`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      URL.revokeObjectURL(url);
-      set({ mensaje: null });
     },
 
     deshacer() {

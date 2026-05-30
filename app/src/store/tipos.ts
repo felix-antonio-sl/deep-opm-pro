@@ -435,7 +435,7 @@ export interface OpmStore {
   abrirInspectorEnlaceDesdeOpl: (enlaceId: Id) => void;
   aplicarEdicionOplLibre: (texto: string) => void;
   copiarOplActualAlPortapapeles: () => Promise<void>;
-  exportarOplActualHtml: () => Promise<void>;
+  copiarOplModeloMarkdownAlPortapapeles: () => Promise<void>;
   navegarAviso: (aviso: Aviso) => void;
   deshacer: () => void;
   rehacer: () => void;

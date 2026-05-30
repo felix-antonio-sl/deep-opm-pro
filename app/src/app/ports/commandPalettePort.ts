@@ -42,6 +42,7 @@ export interface CommandPaletteWorkspacePort {
   modeloPersistidoId: Id | null;
   abrirDialogoImportarExportarJson: () => void;
   exportarJson: () => string;
+  copiarOplModeloMarkdownAlPortapapeles: () => Promise<void>;
 }
 
 export interface CommandPaletteViewPort {

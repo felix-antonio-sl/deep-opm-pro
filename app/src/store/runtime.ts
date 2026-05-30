@@ -525,53 +525,6 @@ export function crearIdModeloLocal(): Id {
   return runtimeEffects.randomUUID() ?? `modelo-${runtimeEffects.now().getTime().toString(36)}-${runtimeEffects.random().toString(36).slice(2, 10)}`;
 }
 
-/**
- * HU-50.024: Genera HTML autocontenido con estilos canónicos OPL-ES (JOYAS §1).
- * Colores: objeto #70E483, proceso #3BC3FF, estado #586D8C.
- */
-export function generarHtmlOpl(lineas: string[], titulo: string): string {
-  const escapeHtml = (texto: string) =>
-    texto
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-
-  const filas = lineas
-    .map((linea, i) => {
-      // Colorear tokens markdown: **objeto** y *proceso*
-      const coloreada = linea
-        .replace(/\*\*([^*]+)\*\*/g, '<span class="obj">$1</span>')
-        .replace(/\*([^*\s][^*]*?)\*/g, '<span class="proc">$1</span>')
-        .replace(/`([^`]+)`/g, '<span class="est">$1</span>');
-      return `<tr><td class="num">${i + 1}.</td><td>${coloreada}</td></tr>`;
-    })
-    .join("\n");
-
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<title>OPL-ES — ${escapeHtml(titulo)}</title>
-<style>
-  body { font-family: Arial, sans-serif; font-size: 13px; line-height: 1.65; color: #1f2937; max-width: 960px; margin: 40px auto; padding: 0 20px; }
-  h1 { font-size: 18px; color: #334155; margin-bottom: 24px; }
-  table { border-collapse: collapse; width: 100%; }
-  td { vertical-align: top; padding: 2px 6px; }
-  td.num { color: #667085; text-align: right; width: 32px; font-variant-numeric: tabular-nums; }
-  .obj { color: #1f7a3c; font-weight: 700; }
-  .proc { color: #147aa5; font-style: italic; font-weight: 700; }
-  .est { color: #475467; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
-</style>
-</head>
-<body>
-<h1>OPL-ES &mdash; ${escapeHtml(titulo)}</h1>
-<table>${filas}</table>
-</body>
-</html>`;
-}
-
-
 export function deshacerRuntime(set: SetStore, get: GetStore): void {
   const { modelo, opdActivoId } = get();
   const previo = undoStack.pop();

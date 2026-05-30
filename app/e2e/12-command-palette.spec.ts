@@ -114,6 +114,44 @@ test("Command Palette abre Configuración consolidada", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("Command Palette ofrece Exportar OPL del modelo (Markdown) y copia todo el modelo", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (texto: string) => {
+          (window as Window & { __copiedOpl?: string }).__copiedOpl = texto;
+        },
+      },
+    });
+  });
+  // Modelo con contenido para que el OPL no sea vacío.
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("OPL del modelo");
+  const item = page.getByTestId("command-palette-item-menu-exportar-opl-modelo");
+  await expect(item).toBeVisible();
+  await expect(palette.getByTestId("command-palette-section-exportar")).toContainText("Exportar OPL del modelo (Markdown)");
+
+  await item.click();
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
+  const copiado = await page.evaluate(() => (window as Window & { __copiedOpl?: string }).__copiedOpl ?? "");
+  expect(copiado.startsWith("# ")).toBe(true); // título del modelo
+  expect(copiado).toContain("## "); // al menos una sección por OPD
+  expect(copiado).toContain("**Objeto**"); // el objeto creado, en Markdown
+  expect(copiado).not.toContain("<"); // Markdown, nunca HTML
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("Command Palette ofrece Exportar diagnóstico (JSON) en EXPORTAR y lo ejecuta", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

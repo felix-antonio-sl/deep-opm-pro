@@ -108,7 +108,6 @@ export function PanelOplView({ vm }: { vm: PanelOplViewModel }) {
         onPlaceholderAi={vm.mostrarPlaceholderAiOpl}
         onBuscar={vm.buscarEnPanelOpl}
         onCopiar={vm.copiarOplActualAlPortapapeles}
-        onExportarHtml={vm.exportarOplActualHtml}
         onFiltroSeleccion={vm.fijarFiltroOplPorSeleccion}
         editorActivo={vm.editorLibre}
         onEditarLibre={vm.alternarEditorLibre}
