@@ -10,7 +10,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Estado | Cantidad |
 |---|---:|
-| Activo / Nuevo | 23 |
+| Activo / Nuevo | 31 |
 | Activo / Resuelto | 37 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
@@ -20,7 +20,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 55 |
+| Activo / Bug | 63 |
 | Activo / Feat | 5 |
 | Histórico / Bug | 48 |
 
@@ -28,6 +28,14 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Nuevo | [BUG-20260531T031739Z-81ac46](BUG-20260531T031739Z-81ac46/report.md) | 2026-05-31 03:17Z | HODOM completo v1_3_2 / SD0-C - Hospitalizacion en domicilio | elimina todo el sistema de hover inferior con info redundante que se ve en las capturas. y elimina cualquier vestigio del mismo. que no aparezca nunc… | Pendiente. | 3 |  |
+| Activo | Bug | Nuevo | [BUG-20260530T214922Z-fb6c2c](BUG-20260530T214922Z-fb6c2c/report.md) | 2026-05-30 21:49Z | HODOM_completo v1_3 / SD0-C - Hospitalizacion en domicilio | los enlances estructurales no puedo anclarlos adecuadamente a la cosa origen y target | Pendiente. | 2 |  |
+| Activo | Bug | Nuevo | [BUG-20260526T150009Z-35087a](BUG-20260526T150009Z-35087a/report.md) | 2026-05-26 15:00Z | Modelo / SD | sigue sin generar opls canónicos ni aceptar simbolos como ? para multiplicidad | Pendiente. | 1 |  |
+| Activo | Bug | Nuevo | [BUG-20260526T132433Z-d5c889](BUG-20260526T132433Z-d5c889/report.md) | 2026-05-26 13:24Z | Modelo / SD | necesito que se redimensione la altura del panel de aprboles opd y del panel de propiedades | Pendiente. | 1 |  |
+| Activo | Bug | Nuevo | [BUG-20260526T115627Z-78ee6e](BUG-20260526T115627Z-78ee6e/report.md) | 2026-05-26 11:56Z | HODOM completo v1.1 / P2 - Capacidad y cupos | el arbol de sds está bloquedo. no se puede scrollear. seria bueno que se puede redimensionar el panel de sds / propiedades | Pendiente. | 1 |  |
+| Activo | Bug | Nuevo | [BUG-20260526T095401Z-810e7d](BUG-20260526T095401Z-810e7d/report.md) | 2026-05-26 09:54Z | Modelo / SD | opl no se ajusta a las multiplicidades | Pendiente. | 1 |  |
+| Activo | Bug | Nuevo | [BUG-20260526T095153Z-c65ba1](BUG-20260526T095153Z-c65ba1/report.md) | 2026-05-26 09:51Z | Modelo / SD | podemos sacar los id tipo 0.13 de las cosas? | Pendiente. | 1 |  |
+| Activo | Bug | Nuevo | [BUG-20260526T091316Z-dd058f](BUG-20260526T091316Z-dd058f/report.md) | 2026-05-26 09:13Z | Modelo / SD1 | cuando se crea una cosa en un diagrama de refinamiento in-zoom, siempre queda dentro del refinado | Pendiente. | 0 |  |
 | Activo | Bug | Nuevo | [BUG-20260526T033524Z-48967c](BUG-20260526T033524Z-48967c/report.md) | 2026-05-26 03:35Z | Modelo / SD | esta función parece que no funciona en nuestra app | Pendiente. | 1 |  |
 | Activo | Bug | Resuelto | [BUG-20260526T033451Z-59993d](BUG-20260526T033451Z-59993d/report.md) | 2026-05-26 03:34Z | Modelo / SD | deberia decir P cambia exactamente 1 de B en s1 , B en s2 o B en S3 | OPL de abanicos/estados preserva multiplicidad exacta y alternativas de estados de efecto. | 1 | Cubierto por generacion OPL de abanico y procedural. |
 | Activo | Bug | Resuelto | [BUG-20260526T032823Z-c37715](BUG-20260526T032823Z-c37715/report.md) | 2026-05-26 03:28Z | Modelo / SD | no se captura en opl el modificador de los enlances | Los modificadores de enlace quedan capturados en OPL junto con probabilidad/demora cuando aplica. | 0 | Cubierto por generadores OPL. |

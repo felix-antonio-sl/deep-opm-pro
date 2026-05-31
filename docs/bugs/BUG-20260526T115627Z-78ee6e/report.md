@@ -1,0 +1,37 @@
+# BUG-20260526T115627Z-78ee6e
+
+**Creado**: 2026-05-26T11:56:27.110Z
+**Tipo**: Bug
+**Estado**: Resuelto
+**Resolución**: Fix en `919ca52`. `treePaneArbol` wrapper: `overflow: "hidden"` → `overflow: "auto"`. Eliminado `overflow: "hidden"` duplicado del panel de ArbolOpd. El árbol de OPDs ahora scrollea normalmente.
+
+## Texto
+
+el arbol de sds está bloquedo. no se puede scrollear. seria bueno que se puede redimensionar el panel de sds / propiedades
+
+## Screenshots
+
+- [screenshots/01-cleanshot-2026-05-26-at-07.55.46.jpg](screenshots/01-cleanshot-2026-05-26-at-07.55.46.jpg)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-hodom-completo-v1-1",
+  "modeloNombre": "HODOM completo v1.1",
+  "opdActivoId": "opd-p2-capacidad",
+  "opdActivoNombre": "P2 - Capacidad y cupos",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-b7d2ad7b-5a51-48cc-aaf2-eb20f3f7b748",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 2133,
+    "height": 1032,
+    "devicePixelRatio": 0.8999999761581421
+  },
+  "capturedAt": "2026-05-26T11:56:24.129Z"
+}
+```

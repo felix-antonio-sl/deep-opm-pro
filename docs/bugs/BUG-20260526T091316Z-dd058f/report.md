@@ -1,0 +1,37 @@
+# BUG-20260526T091316Z-dd058f
+
+**Creado**: 2026-05-26T09:13:16.102Z
+**Tipo**: Bug
+**Estado**: Resuelto
+**Resolución**: Fix en `b6548b6`. `posicionLibre()` ahora coloca fuera del contorno de refinamiento (a la derecha). Se eliminó la lógica duplicada de `contextoRefinamiento` en `crearEntidad()` (`creacionInterna.ts` ya la maneja).
+
+## Texto
+
+cuando se crea una cosa en un diagrama de refinamiento in-zoom, siempre queda dentro del refinado
+
+## Screenshots
+
+Sin screenshots adjuntos.
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo",
+  "opdActivoId": "opd-13",
+  "opdActivoNombre": "SD1",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-f281f61d-9e14-4d6e-8b8e-8bf8fa48bab5",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 2133,
+    "height": 1032,
+    "devicePixelRatio": 0.8999999761581421
+  },
+  "capturedAt": "2026-05-26T09:13:14.180Z"
+}
+```

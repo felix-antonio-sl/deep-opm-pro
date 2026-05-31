@@ -1,7 +1,4 @@
-# Manual simulado de OPCLOUD — capacidades funcionales enriquecidas
-
-> Alcance: consolidación funcional de capacidades observadas o derivadas desde las fuentes OPM/OPCloud indicadas por el operador. El documento suma capacidades de OPCAT/OPCloud sin distinguir productos. Describe **qué permite hacer** el software, no cómo está implementado.
-> La numeración conserva el índice base entregado: no hay sección 8 porque el esquema original salta de 7 a 9.
+# Lo que queremos lograr con OPFORJA
 
 ## 1. Modelado OPM Nuclear
 
@@ -248,13 +245,11 @@
 - Minimizar el panel OPL para dejar de renderizarlo temporalmente y mejorar fluidez en diagramas grandes.
 - Expandir el OPL completo como script.
 - Copiar o reutilizar el script OPL completo en documentos externos.
-- Cambiar idioma de OPL.
 - Configurar visibilidad de oraciones de esencia.
 - Mostrar esencia solo cuando difiere del default.
 - Mostrar u ocultar unidades de objetos computacionales.
 - Mostrar u ocultar alias.
 - Activar o desactivar autoformato por defecto.
-- Mantener preferencias personales y organizacionales de presentación OPL.
 
 ## 4. Canvas, Navegación y Organización Visual
 
@@ -262,9 +257,7 @@
 
 - Hacer pan sobre el OPD.
 - Hacer zoom in y zoom out.
-- Usar full screen.
 - Abrir, cerrar, redimensionar o desacoplar paneles laterales.
-- Usar un navegador/mini-mapa de OPD.
 - Quitar y restaurar el navegador.
 - Desacoplar el navegador y moverlo libremente.
 - Ajustar tamaño del navegador.
@@ -449,9 +442,6 @@
 ### Ciclo de vida
 
 - Crear modelo nuevo.
-- Crear modelo desde wizard.
-- Crear modelo desde ejemplos globales.
-- Crear modelo desde ejemplos organizacionales.
 - Abrir varios modelos en tabs.
 - Indicar en tab si un modelo aún no está guardado.
 - Guardar modelo actual.
@@ -460,16 +450,10 @@
 - Cargar modelos desde navegador de modelos.
 - Abrir modelo con doble clic.
 - Cerrar modelo abierto.
-- Copiar enlace al modelo.
-- Copiar enlace incluyendo OPD específico.
-- Compartir enlace solo con usuarios con permisos adecuados.
-- Abrir modelo desde URL en cualquier equipo con acceso.
 - Autosalvar modelos según intervalo configurable.
 - Configurar intervalo de autosave.
 - Crear versiones por guardado manual.
 - Crear versiones por autosave.
-- Comparar modelos o versiones y descargar resultado en Excel.
-- Importar modelos OPCAT cuando se requiere compatibilidad hacia atrás.
 
 ### Organización
 
@@ -514,29 +498,12 @@
 - Restaurar modelos archivados.
 - Identificar en lista si un modelo está archivado.
 
-### Permisos y colaboración
-
-- Compartir modelo dentro de la misma organización.
-- Otorgar permiso de lectura a grupos.
-- Otorgar permiso de lectura a usuarios.
-- Otorgar permiso de edición mediante token de escritura.
-- Mostrar propietario del modelo.
-- Mostrar quién tiene el token editable actual.
-- Transferir permiso editable a otro usuario con lectura.
-- Recuperar permiso editable por propietario o administrador.
-- Impedir que un lector transfiera permisos.
-- Permitir que el editor transfiera escritura solo bajo reglas de propiedad/lectura.
-- Abrir save-as automáticamente cuando un usuario sin escritura intenta guardar cambios.
-- Restringir compartir entre organizaciones.
-
 ## 9. Reutilización y Gobierno Semántico
 
 ### Templates
 
 - Crear templates a partir de modelos o partes de modelo.
-- Guardar templates privados.
-- Guardar templates organizacionales si el usuario tiene permiso.
-- Guardar templates globales si el usuario tiene rol adecuado.
+- Guardar templates.
 - Insertar templates en el modelo actual.
 - Insertar templates mediante selección y carga.
 - Insertar templates con doble clic.
@@ -553,9 +520,7 @@
 
 ### Stereotypes
 
-- Usar stereotypes globales.
-- Usar stereotypes organizacionales.
-- Indicar visualmente si un stereotype es global u organizacional.
+- Usar stereotypes.
 - Anclar objetos o procesos a stereotypes.
 - Traer componentes internos de un stereotype al OPD.
 - Usar stereotypes para conjuntos de parámetros.
@@ -651,23 +616,6 @@
 - Usar requisitos enriquecidos dentro de stereotypes y templates.
 - Vincular requisitos a herramientas externas mediante URL.
 
-### AI Requirement Generation
-
-- Generar requisitos desde OPPL/OPL del modelo.
-- Generar requisitos desde tripletas source-link-target.
-- Combinar fuentes textuales y tripletas estructurales.
-- Producir statement.
-- Producir rationale.
-- Producir acceptance criteria.
-- Producir verification type.
-- Clasificar requisitos generados por categoría.
-- Mantener trazabilidad hacia la fuente del modelo.
-- Mostrar referencia de origen del requisito.
-- Copiar texto generado al portapapeles.
-- Descargar resultados a Excel/CSV según flujo disponible.
-- Incluir estadísticas del modelo usado para generación.
-- Advertir que los requisitos generados requieren revisión humana.
-
 ## 11. Análisis del Modelo
 
 ### Métricas
@@ -699,15 +647,14 @@
 
 ### Informative grading
 
-- Evaluar informatividad de oraciones OPPL/OPL.
+- Evaluar informatividad de oraciones OPL.
 - Clasificar oraciones por categoría informativa.
 - Medir score informativo por oración.
 - Calcular score ponderado del modelo.
 - Filtrar resultados por categoría.
 - Filtrar por score mínimo.
 - Revisar oraciones con baja informatividad.
-- Descargar resultados a Excel.
-- Usar el análisis como función premium o restringida cuando aplica.
+- Descargar resultados a CSV.
 
 ### Missing knowledge identification
 
@@ -719,22 +666,8 @@
 - Ajustar umbral de confianza.
 - Exportar sugerencias.
 - Usar las sugerencias como apoyo, no como verdad automática.
-- Considerar integración RGCN/Python como opción prevista o deshabilitada según entorno.
 
 ## 12. Importación y Exportación
-
-### Importación
-
-- Importar modelos OPCAT para compatibilidad hacia atrás.
-- Importar atributos, instancias y valores desde CSV.
-- Crear instancias de un objeto a partir de filas CSV.
-- Crear atributos de instancias a partir de columnas CSV.
-- Actualizar valores de instancias existentes.
-- Decidir si se ignoran o sobrescriben datos existentes.
-- Crear atributos computacionales por defecto desde CSV.
-- Crear atributos no computacionales cuando se selecciona esa opción.
-- Mantener o desactivar autoformato al importar nombres desde CSV.
-- Usar importación CSV para modelos grandes con muchas instancias o valores repetidos.
 
 ### Exportación OPL
 
@@ -834,8 +767,8 @@
 - Ejecutar una corrida.
 - Ejecutar múltiples corridas.
 - Ejecutar corridas asíncronas.
-- Descargar resultados a Excel.
-- Elegir orden de columnas en Excel.
+- Descargar resultados a CSV.
+- Elegir orden de columnas en CSV.
 - Descargar todos los objetos computacionales o un subconjunto ordenado.
 - Controlar frecuencia de descarga durante simulaciones largas.
 - Evitar perder resultados en corridas extensas mediante descargas parciales.
@@ -855,23 +788,6 @@
 - Forzar resultado a un estado específico.
 - Crear loops deterministas o probabilísticos.
 - Detener simulación cuando un loop infinito se produce por condición de salida ausente.
-
-### Integraciones de ejecución
-
-- Configurar conexión MQTT.
-- Publicar mensajes MQTT desde procesos computacionales.
-- Suscribirse a tópicos MQTT para recibir valores.
-- Usar aliases para construir tópicos o mensajes.
-- Ejecutar modelos conectados a sensores, microcontroladores o IoT.
-- Configurar conexión ROS.
-- Publicar mensajes hacia ROS master.
-- Suscribirse a tópicos ROS.
-- Usar servicios ROS cuando el entorno lo permite.
-- Escribir script ROS raw cuando se requiere control directo.
-- Construir mensajes desde valores del modelo.
-- Mezclar en un mismo modelo funciones definidas por usuario, Python externo, MQTT, ROS y URL externas cuando están disponibles.
-- Simular una conexión en vez de ejecutarla realmente cuando se desea prueba conceptual.
-- Configurar endpoints de servidores externos por usuario u organización.
 
 ## 14. Entrada de Usuario
 
@@ -897,13 +813,4 @@
 - Usar input para controlar loops.
 - Usar input para controlar profundidad, número de iteraciones u otros parámetros de ejecución.
 - Validar input dentro de la función o mediante rangos del objeto computacional.
-- Combinar input humano con simulación conceptual, ejecución computacional, ROS o MQTT.
-
-## Fuentes usadas
-
-- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/fxsl/opm-methodology/opm-curso-applied-modeling.md`
-- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/fxsl/opm-methodology/opm-curso-sd-wizard.md`
-- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/fxsl/opm-methodology/opm-iso.md`
-- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/fxsl/opm-methodology/OPM version felix.md`
-- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/opm-libro-curado/`
-- `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/opm/transcripciones-videos-opcloud.txt`
+- Combinar input humano con simulación conceptual, ejecución computacional

@@ -1,24 +1,24 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-23T21:25:22.216Z",
+  "generatedAt": "2026-05-31T12:57:15.857Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-23T21:25:22.216Z",
+    "generatedAt": "2026-05-31T12:57:15.857Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
-    "rulesMatched": 85,
-    "rulesUnmatched": 20,
+    "rulesMatched": 76,
+    "rulesUnmatched": 29,
     "sourceFiles": {
-      "count": 726,
+      "count": 765,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:f82417178969f788f43fcea15f55cfd5b13b194972c57f44813599a2bb0d6c11"
+      "signature": "sha256:c2a4f3ff98c7701accaa611578ebff9db1493271a969b382063f494a487b6257"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -100,14 +100,14 @@
   "summaries": {
     "total": {
       "total": 1125,
-      "cubierto": 305,
+      "cubierto": 264,
       "parcial": 10,
-      "pendiente": 432,
+      "pendiente": 473,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3000,
-      "pesoCubierto": 795,
-      "avance": 0.265
+      "pesoCubierto": 679,
+      "avance": 0.22633333333333333
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -117,70 +117,70 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 93,
+      "cubierto": 78,
       "parcial": 3,
-      "pendiente": 34,
+      "pendiente": 49,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 249,
-      "avance": 0.7477477477477478
+      "pesoCubierto": 203,
+      "avance": 0.6096096096096096
     },
     "alpha": {
       "total": 121,
-      "cubierto": 103,
+      "cubierto": 84,
       "parcial": 0,
-      "pendiente": 18,
+      "pendiente": 37,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 271,
-      "avance": 0.8312883435582822
+      "pesoCubierto": 215,
+      "avance": 0.6595092024539877
     },
     "beta": {
       "total": 192,
-      "cubierto": 87,
+      "cubierto": 79,
       "parcial": 4,
-      "pendiente": 101,
+      "pendiente": 109,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 541,
-      "pesoCubierto": 257,
-      "avance": 0.47504621072088726
+      "pesoCubierto": 233,
+      "avance": 0.43068391866913125
     },
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 103,
+        "cubierto": 84,
         "parcial": 0,
-        "pendiente": 18,
+        "pendiente": 37,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 271,
-        "avance": 0.8312883435582822
+        "pesoCubierto": 215,
+        "avance": 0.6595092024539877
       },
       "beta": {
         "total": 192,
-        "cubierto": 87,
+        "cubierto": 79,
         "parcial": 4,
-        "pendiente": 101,
+        "pendiente": 109,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 541,
-        "pesoCubierto": 257,
-        "avance": 0.47504621072088726
+        "pesoCubierto": 233,
+        "avance": 0.43068391866913125
       },
       "gamma": {
         "total": 434,
-        "cubierto": 115,
+        "cubierto": 101,
         "parcial": 6,
-        "pendiente": 313,
+        "pendiente": 327,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 267,
-        "avance": 0.23712255772646537
+        "pesoCubierto": 231,
+        "avance": 0.20515097690941386
       },
       "delta": {
         "total": 378,
@@ -208,47 +208,47 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 93,
+        "cubierto": 78,
         "parcial": 3,
-        "pendiente": 34,
+        "pendiente": 49,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 249,
-        "avance": 0.7477477477477478
+        "pesoCubierto": 203,
+        "avance": 0.6096096096096096
       },
       "M1": {
         "total": 160,
-        "cubierto": 106,
+        "cubierto": 97,
         "parcial": 2,
-        "pendiente": 46,
+        "pendiente": 55,
         "diferido": 6,
         "bloqueado": 0,
         "pesoTotal": 384,
-        "pesoCubierto": 254,
-        "avance": 0.6614583333333334
+        "pesoCubierto": 233,
+        "avance": 0.6067708333333334
       },
       "S": {
         "total": 471,
-        "cubierto": 94,
+        "cubierto": 78,
         "parcial": 2,
-        "pendiente": 213,
+        "pendiente": 229,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 262,
-        "avance": 0.21010425020048115
+        "pesoCubierto": 215,
+        "avance": 0.1724137931034483
       },
       "C": {
         "total": 247,
-        "cubierto": 12,
+        "cubierto": 11,
         "parcial": 3,
-        "pendiente": 131,
+        "pendiente": 132,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 30,
-        "avance": 0.0453857791225416
+        "pesoCubierto": 28,
+        "avance": 0.04236006051437216
       },
       "W": {
         "total": 117,
@@ -313,14 +313,14 @@
       "13": {
         "titulo": "Canvas — estados (designaciones, par entrada-salida, supresión, layout interno)",
         "total": 18,
-        "cubierto": 9,
+        "cubierto": 4,
         "parcial": 1,
-        "pendiente": 8,
+        "pendiente": 13,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 25,
-        "avance": 0.5208333333333334
+        "pesoCubierto": 13,
+        "avance": 0.2708333333333333
       },
       "14": {
         "titulo": "Canvas — estilado visual de cosas, texto y enlaces",
@@ -361,14 +361,14 @@
       "17": {
         "titulo": "Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración)",
         "total": 28,
-        "cubierto": 23,
+        "cubierto": 22,
         "parcial": 0,
-        "pendiente": 5,
+        "pendiente": 6,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 54,
-        "pesoCubierto": 43,
-        "avance": 0.7962962962962963
+        "pesoCubierto": 42,
+        "avance": 0.7777777777777778
       },
       "18": {
         "titulo": "Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo)",
@@ -421,14 +421,14 @@
       "30": {
         "titulo": "Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado",
         "total": 34,
-        "cubierto": 26,
+        "cubierto": 11,
         "parcial": 0,
-        "pendiente": 8,
+        "pendiente": 23,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 89,
-        "pesoCubierto": 70,
-        "avance": 0.7865168539325843
+        "pesoCubierto": 29,
+        "avance": 0.3258426966292135
       },
       "31": {
         "titulo": "Persistencia — carpetas, jerarquía, permisos y navegación del workspace",
@@ -457,14 +457,14 @@
       "33": {
         "titulo": "Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global)",
         "total": 22,
-        "cubierto": 13,
+        "cubierto": 0,
         "parcial": 0,
-        "pendiente": 9,
+        "pendiente": 22,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 57,
-        "pesoCubierto": 35,
-        "avance": 0.6140350877192983
+        "pesoCubierto": 0,
+        "avance": 0
       },
       "34": {
         "titulo": "Persistencia — creación de modelo nuevo (ruta simple + asistente de 12 etapas)",
@@ -529,14 +529,14 @@
       "50": {
         "titulo": "Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas",
         "total": 21,
-        "cubierto": 19,
+        "cubierto": 16,
         "parcial": 0,
-        "pendiente": 2,
+        "pendiente": 5,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 55,
-        "pesoCubierto": 49,
-        "avance": 0.8909090909090909
+        "pesoCubierto": 42,
+        "avance": 0.7636363636363637
       },
       "60": {
         "titulo": "Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir",
@@ -673,14 +673,14 @@
       "1C": {
         "titulo": "Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación)",
         "total": 17,
-        "cubierto": 3,
+        "cubierto": 0,
         "parcial": 0,
-        "pendiente": 14,
+        "pendiente": 17,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 48,
-        "pesoCubierto": 12,
-        "avance": 0.25
+        "pesoCubierto": 0,
+        "avance": 0
       },
       "A0": {
         "titulo": "Extensión — estereotipos OPM (mecanismo genérico de ampliación del lenguaje)",
@@ -853,14 +853,14 @@
       "SHARED": {
         "titulo": "Patrones transversales",
         "total": 8,
-        "cubierto": 5,
+        "cubierto": 4,
         "parcial": 2,
-        "pendiente": 1,
+        "pendiente": 2,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 44,
-        "pesoCubierto": 31,
-        "avance": 0.7045454545454546
+        "pesoCubierto": 23,
+        "avance": 0.5227272727272727
       }
     }
   },
@@ -1271,11 +1271,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md",
       "lineaInicio": 16,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 14 alpha-lock: OPL-ES forward + reverse editable cubierto con parser SSOT, diagnosticos, preview de patches, aplicacion undoable al store y smoke UI. El reverse acepta oraciones canonicas, no borra por ausencia y diagnostica familias fuera de kernel.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/panelOpl/Bloques.tsx: falta data-testid=\"opl-line\""
+      ],
       "evidencia": [
         {
           "path": "app/src/opl/generar.ts",
@@ -1335,8 +1337,8 @@
         }
       ],
       "peso": 8,
-      "score": 1,
-      "avancePonderado": 8,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md"
     },
     {
@@ -14161,7 +14163,8 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
-        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
       ],
       "evidencia": [
         {
@@ -14183,10 +14186,6 @@
         {
           "path": "app/src/ui/toolbar/ToolbarBase.tsx",
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
@@ -14240,7 +14239,8 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
-        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
       ],
       "evidencia": [
         {
@@ -14262,10 +14262,6 @@
         {
           "path": "app/src/ui/toolbar/ToolbarBase.tsx",
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
@@ -14317,7 +14313,8 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
-        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
       ],
       "evidencia": [
         {
@@ -14339,10 +14336,6 @@
         {
           "path": "app/src/ui/toolbar/ToolbarBase.tsx",
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
@@ -14395,7 +14388,8 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
-        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
       ],
       "evidencia": [
         {
@@ -14417,10 +14411,6 @@
         {
           "path": "app/src/ui/toolbar/ToolbarBase.tsx",
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
@@ -14515,7 +14505,8 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
-        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
       ],
       "evidencia": [
         {
@@ -14537,10 +14528,6 @@
         {
           "path": "app/src/ui/toolbar/ToolbarBase.tsx",
           "hrefDashboard": "../../app/src/ui/toolbar/ToolbarBase.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
         },
         {
           "path": "app/src/ui/DialogoConfiguracion.tsx",
@@ -16372,11 +16359,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md",
       "lineaInicio": 170,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto Corte 8: validador emite avisos con severidad/cita y PanelDiagnostico consume DiagnosticsPort/viewmodel.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/app/viewmodels/panelDiagnosticoViewModel.ts: falta clasificarSeveridad"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/validaciones.ts",
@@ -16396,8 +16385,8 @@
         }
       ],
       "peso": 8,
-      "score": 1,
-      "avancePonderado": 8,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md"
     },
     {
@@ -16424,11 +16413,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md",
       "lineaInicio": 189,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto Corte 8: validador emite avisos con severidad/cita y PanelDiagnostico consume DiagnosticsPort/viewmodel.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/app/viewmodels/panelDiagnosticoViewModel.ts: falta clasificarSeveridad"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/validaciones.ts",
@@ -16448,8 +16439,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md"
     },
     {
@@ -16639,11 +16630,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md",
       "lineaInicio": 226,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto Corte 8: validador emite avisos con severidad/cita y PanelDiagnostico consume DiagnosticsPort/viewmodel.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/app/viewmodels/panelDiagnosticoViewModel.ts: falta clasificarSeveridad"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/validaciones.ts",
@@ -16663,8 +16656,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md"
     },
     {
@@ -21432,11 +21425,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 86,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/completitud.test.ts: falta estado1"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/estadosDesignaciones.ts",
@@ -21472,8 +21467,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -21693,11 +21688,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 171,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/completitud.test.ts: falta estado1"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/estadosDesignaciones.ts",
@@ -21733,8 +21730,8 @@
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -21810,11 +21807,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 207,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/completitud.test.ts: falta estado1"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/estadosDesignaciones.ts",
@@ -21850,8 +21849,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -21884,11 +21883,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 225,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/completitud.test.ts: falta estado1"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/estadosDesignaciones.ts",
@@ -21924,8 +21925,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -22294,11 +22295,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md",
       "lineaInicio": 317,
       "corte": "beta",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/completitud.test.ts: falta estado1"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/estadosDesignaciones.ts",
@@ -22334,8 +22337,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-13-canvas-estados.md"
     },
     {
@@ -27954,11 +27957,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md",
       "lineaInicio": 374,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/completitud.test.ts: falta estado1"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/estadosDesignaciones.ts",
@@ -27994,8 +27999,8 @@
         }
       ],
       "peso": 1,
-      "score": 1,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-17-canvas-objetos-avanzados.md"
     },
     {
@@ -31923,16 +31928,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 65,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
+        "app/src/ui/DialogoCargarModelo.tsx: falta alguno de title=\"Cargar modelo\" | title=\"Abrir / importar modelo\""
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/ui/DialogoGuardarComo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
@@ -31947,8 +31951,8 @@
         }
       ],
       "peso": 1,
-      "score": 1,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32127,16 +32131,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 98,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
+        "app/src/ui/DialogoCargarModelo.tsx: falta alguno de title=\"Cargar modelo\" | title=\"Abrir / importar modelo\""
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/ui/DialogoGuardarComo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
@@ -32151,8 +32154,8 @@
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32178,16 +32181,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 108,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
+        "app/src/ui/DialogoCargarModelo.tsx: falta alguno de title=\"Cargar modelo\" | title=\"Abrir / importar modelo\""
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/ui/DialogoGuardarComo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
@@ -32202,8 +32204,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32281,11 +32283,16 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 128,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto 2026-05-18: catalogo de ejemplos reseteado a fixtures OPCloud sandbox via listarFixtures/cargarFixtureDemo en DialogoCargarModelo/PantallaInicio; sin asset paralelo app/examples ni demos sinteticas. Preservacion JSON local cubierta por test dedicado.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/DialogoCargarModelo.tsx: falta listarFixtures",
+        "app/src/ui/DialogoCargarModelo.tsx: falta cargarFixtureDemo",
+        "app/src/ui/DialogoCargarModelo.tsx: falta Cargar modelo de ejemplo",
+        "app/e2e/01-carga-y-workspace.spec.ts: falta selectOption(\"System Diagram\")"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/fixtures.ts",
@@ -32306,15 +32313,11 @@
         {
           "path": "app/src/modelo/fixtures.test.ts",
           "hrefDashboard": "../../app/src/modelo/fixtures.test.ts"
-        },
-        {
-          "path": "app/e2e/11-beta1-catalogo-ancla.spec.ts",
-          "hrefDashboard": "../../app/e2e/11-beta1-catalogo-ancla.spec.ts"
         }
       ],
       "peso": 8,
-      "score": 1,
-      "avancePonderado": 8,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32340,16 +32343,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 138,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
+        "app/src/ui/DialogoCargarModelo.tsx: falta alguno de title=\"Cargar modelo\" | title=\"Abrir / importar modelo\""
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/ui/DialogoGuardarComo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
@@ -32364,8 +32366,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32391,16 +32393,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 147,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
+        "app/src/ui/DialogoCargarModelo.tsx: falta alguno de title=\"Cargar modelo\" | title=\"Abrir / importar modelo\""
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/ui/DialogoGuardarComo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
@@ -32415,8 +32416,8 @@
         }
       ],
       "peso": 1,
-      "score": 1,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32442,20 +32443,17 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 156,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 11 L2: PantallaInicio con grid de modelos recientes, telon y busqueda local.",
-      "brechas": [],
-      "evidencia": [
-        {
-          "path": "app/src/ui/PantallaInicio.tsx",
-          "hrefDashboard": "../../app/src/ui/PantallaInicio.tsx"
-        }
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PantallaInicio.tsx: archivo no encontrado"
       ],
+      "evidencia": [],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32481,20 +32479,17 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 165,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 11 L2: PantallaInicio con grid de modelos recientes, telon y busqueda local.",
-      "brechas": [],
-      "evidencia": [
-        {
-          "path": "app/src/ui/PantallaInicio.tsx",
-          "hrefDashboard": "../../app/src/ui/PantallaInicio.tsx"
-        }
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PantallaInicio.tsx: archivo no encontrado"
       ],
+      "evidencia": [],
       "peso": 1,
-      "score": 1,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32521,16 +32516,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 174,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
+        "app/src/ui/DialogoCargarModelo.tsx: falta alguno de title=\"Cargar modelo\" | title=\"Abrir / importar modelo\""
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/ui/DialogoGuardarComo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
@@ -32545,8 +32539,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32637,16 +32631,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 193,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
+        "app/src/ui/DialogoCargarModelo.tsx: falta alguno de title=\"Cargar modelo\" | title=\"Abrir / importar modelo\""
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/ui/DialogoGuardarComo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
@@ -32661,8 +32654,8 @@
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32689,24 +32682,22 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 203,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 11 L2: renombrar modelo existente sin Guardar Como + Cargar Ejemplo Organizacional desde MenuPrincipal.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/persistencia/local.ts",
           "hrefDashboard": "../../app/src/persistencia/local.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32793,16 +32784,15 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 224,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
+        "app/src/ui/DialogoCargarModelo.tsx: falta alguno de title=\"Cargar modelo\" | title=\"Abrir / importar modelo\""
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/ui/DialogoGuardarComo.tsx",
           "hrefDashboard": "../../app/src/ui/DialogoGuardarComo.tsx"
@@ -32817,8 +32807,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -32944,11 +32934,16 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 252,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto 2026-05-18: catalogo de ejemplos reseteado a fixtures OPCloud sandbox via listarFixtures/cargarFixtureDemo en DialogoCargarModelo/PantallaInicio; sin asset paralelo app/examples ni demos sinteticas. Preservacion JSON local cubierta por test dedicado.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/DialogoCargarModelo.tsx: falta listarFixtures",
+        "app/src/ui/DialogoCargarModelo.tsx: falta cargarFixtureDemo",
+        "app/src/ui/DialogoCargarModelo.tsx: falta Cargar modelo de ejemplo",
+        "app/e2e/01-carga-y-workspace.spec.ts: falta selectOption(\"System Diagram\")"
+      ],
       "evidencia": [
         {
           "path": "app/src/modelo/fixtures.ts",
@@ -32969,15 +32964,11 @@
         {
           "path": "app/src/modelo/fixtures.test.ts",
           "hrefDashboard": "../../app/src/modelo/fixtures.test.ts"
-        },
-        {
-          "path": "app/e2e/11-beta1-catalogo-ancla.spec.ts",
-          "hrefDashboard": "../../app/e2e/11-beta1-catalogo-ancla.spec.ts"
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -33003,24 +32994,22 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 261,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 11 L2: renombrar modelo existente sin Guardar Como + Cargar Ejemplo Organizacional desde MenuPrincipal.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/persistencia/local.ts",
           "hrefDashboard": "../../app/src/persistencia/local.ts"
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -33251,20 +33240,17 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md",
       "lineaInicio": 318,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 11 L2: PantallaInicio con grid de modelos recientes, telon y busqueda local.",
-      "brechas": [],
-      "evidencia": [
-        {
-          "path": "app/src/ui/PantallaInicio.tsx",
-          "hrefDashboard": "../../app/src/ui/PantallaInicio.tsx"
-        }
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/PantallaInicio.tsx: archivo no encontrado"
       ],
+      "evidencia": [],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md"
     },
     {
@@ -35716,20 +35702,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 21,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -35739,25 +35723,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 1,
-      "score": 1,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -35783,20 +35755,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 24,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -35806,25 +35776,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -35849,20 +35807,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 27,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -35872,25 +35828,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -35987,20 +35931,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 36,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36010,25 +35952,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 8,
-      "score": 1,
-      "avancePonderado": 8,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36054,20 +35984,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 39,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36077,25 +36005,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36122,20 +36038,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 42,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36145,25 +36059,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36189,20 +36091,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 45,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36212,25 +36112,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36256,20 +36144,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 48,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36279,25 +36165,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36355,20 +36229,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 54,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36378,25 +36250,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36455,20 +36315,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 60,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36478,25 +36336,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36521,20 +36367,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 63,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36544,25 +36388,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 1,
-      "score": 1,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36656,20 +36488,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 72,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36679,25 +36509,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36830,20 +36648,18 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md",
       "lineaInicio": 84,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/tipos/plantilla.ts",
-          "hrefDashboard": "../../app/src/modelo/tipos/plantilla.ts"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.ts"
-        },
         {
           "path": "app/src/canvas/operacionesBatch.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.ts"
@@ -36853,25 +36669,13 @@
           "hrefDashboard": "../../app/src/store/modelo.ts"
         },
         {
-          "path": "app/src/ui/DialogoPlantillas.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoPlantillas.tsx"
-        },
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
-        {
-          "path": "app/src/persistencia/plantillas.test.ts",
-          "hrefDashboard": "../../app/src/persistencia/plantillas.test.ts"
-        },
-        {
           "path": "app/src/canvas/operacionesBatch.test.ts",
           "hrefDashboard": "../../app/src/canvas/operacionesBatch.test.ts"
         }
       ],
       "peso": 1,
-      "score": 1,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-33-persistencia-plantillas.md"
     },
     {
@@ -36902,13 +36706,10 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
         "app/src/ui/toolbar/ToolbarBase.tsx: falta alguno de No guardado"
       ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/store/modelo/acciones-ui.ts",
           "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
@@ -37048,13 +36849,10 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
         "app/src/ui/toolbar/ToolbarBase.tsx: falta alguno de No guardado"
       ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/store/modelo/acciones-ui.ts",
           "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
@@ -37102,13 +36900,10 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
         "app/src/ui/toolbar/ToolbarBase.tsx: falta alguno de No guardado"
       ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/store/modelo/acciones-ui.ts",
           "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
@@ -37155,13 +36950,10 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
         "app/src/ui/toolbar/ToolbarBase.tsx: falta alguno de No guardado"
       ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/store/modelo/acciones-ui.ts",
           "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
@@ -37211,13 +37003,10 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
         "app/src/ui/toolbar/ToolbarBase.tsx: falta alguno de No guardado"
       ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/store/modelo/acciones-ui.ts",
           "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
@@ -37263,13 +37052,10 @@
       "fuenteEvidencia": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
         "app/src/ui/toolbar/ToolbarBase.tsx: falta alguno de No guardado"
       ],
       "evidencia": [
-        {
-          "path": "app/src/ui/MenuPrincipal.tsx",
-          "hrefDashboard": "../../app/src/ui/MenuPrincipal.tsx"
-        },
         {
           "path": "app/src/store/modelo/acciones-ui.ts",
           "hrefDashboard": "../../app/src/store/modelo/acciones-ui.ts"
@@ -42136,11 +41922,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 111,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L5 + ronda 11 L3: PanelOpl/ToolbarOpl ofrecen copiar al portapapeles, exportar HTML y buscar texto con testids estables.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-exportar-html"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/panelOpl/Toolbar.tsx",
@@ -42156,8 +41944,8 @@
         }
       ],
       "peso": 1,
-      "score": 1,
-      "avancePonderado": 1,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -42182,11 +41970,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 114,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L5 + ronda 11 L3: PanelOpl/ToolbarOpl ofrecen copiar al portapapeles, exportar HTML y buscar texto con testids estables.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-exportar-html"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/panelOpl/Toolbar.tsx",
@@ -42202,8 +41992,8 @@
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {
@@ -42228,11 +42018,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-50-opl-pane.md",
       "lineaInicio": 117,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L5 + ronda 11 L3: PanelOpl/ToolbarOpl ofrecen copiar al portapapeles, exportar HTML y buscar texto con testids estables.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-exportar-html"
+      ],
       "evidencia": [
         {
           "path": "app/src/ui/panelOpl/Toolbar.tsx",
@@ -42248,8 +42040,8 @@
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-50-opl-pane.md"
     },
     {

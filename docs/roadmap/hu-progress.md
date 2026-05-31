@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-23T21:25:22.216Z
+**Generado:** 2026-05-31T12:57:15.857Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 85/105 reglas matcheadas sobre 726 archivos fuente.
+**Auditoria automatica:** 76/105 reglas matcheadas sobre 765 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -23,18 +23,18 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1125 | 305 | 10 | 432 | 378 | 26.5% |
-| M0 | 130 | 93 | 3 | 34 | 0 | 74.8% |
-| MVP-alpha | 121 | 103 | 0 | 18 | 0 | 83.1% |
-| MVP-beta | 192 | 87 | 4 | 101 | 0 | 47.5% |
+| Total backlog | 1125 | 264 | 10 | 473 | 378 | 22.6% |
+| M0 | 130 | 78 | 3 | 49 | 0 | 61.0% |
+| MVP-alpha | 121 | 84 | 0 | 37 | 0 | 66.0% |
+| MVP-beta | 192 | 79 | 4 | 109 | 0 | 43.1% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 103 | 0 | 18 | 0 | 83.1% |
-| MVP-beta | 192 | 87 | 4 | 101 | 0 | 47.5% |
-| MVP-gamma | 434 | 115 | 6 | 313 | 0 | 23.7% |
+| MVP-alpha | 121 | 84 | 0 | 37 | 0 | 66.0% |
+| MVP-beta | 192 | 79 | 4 | 109 | 0 | 43.1% |
+| MVP-gamma | 434 | 101 | 6 | 327 | 0 | 20.5% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
 | Sin corte | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -42,10 +42,10 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 93 | 3 | 34 | 0 | 74.8% |
-| M1 | 160 | 106 | 2 | 46 | 6 | 66.1% |
-| S | 471 | 94 | 2 | 213 | 162 | 21.0% |
-| C | 247 | 12 | 3 | 131 | 101 | 4.5% |
+| M0 | 130 | 78 | 3 | 49 | 0 | 61.0% |
+| M1 | 160 | 97 | 2 | 55 | 6 | 60.7% |
+| S | 471 | 78 | 2 | 229 | 162 | 17.2% |
+| C | 247 | 11 | 3 | 132 | 101 | 4.2% |
 | W | 117 | 0 | 0 | 8 | 109 | 0.0% |
 | sin-prioridad | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -56,25 +56,25 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 | 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 16 | 0 | 1 | 0 | 89.5% |
 | 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 16 | 0 | 6 | 0 | 67.9% |
 | 12 | Canvas — descomposición de procesos | 31 | 22 | 1 | 8 | 0 | 75.2% |
-| 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 9 | 1 | 8 | 0 | 52.1% |
+| 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 4 | 1 | 13 | 0 | 27.1% |
 | 14 | Canvas — estilado visual de cosas, texto y enlaces | 15 | 5 | 0 | 10 | 0 | 40.0% |
 | 15 | Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación) | 23 | 22 | 0 | 1 | 0 | 96.1% |
 | 16 | Canvas — enlaces: propiedades, Tabla de Enlaces y estilo | 17 | 14 | 0 | 3 | 0 | 82.9% |
-| 17 | Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración) | 28 | 23 | 0 | 5 | 0 | 79.6% |
+| 17 | Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración) | 28 | 22 | 0 | 6 | 0 | 77.8% |
 | 18 | Canvas — plegado parcial (vista compacta de refinadores intra-rectángulo) | 15 | 12 | 3 | 0 | 0 | 90.7% |
 | 19 | Canvas — imágenes incrustadas en cosas (URL, pool, alternar imagen/texto, exportación) | 16 | 11 | 0 | 5 | 0 | 63.2% |
 | 20 | Estructura — árbol OPD (navegación, orden, gestión, vistas derivadas) | 21 | 21 | 0 | 0 | 0 | 100.0% |
 | 21 | Estructura — mapa del sistema (meta-vista gráfica del árbol de OPDs) | 18 | 8 | 0 | 10 | 0 | 34.1% |
-| 30 | Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado | 34 | 26 | 0 | 8 | 0 | 78.7% |
+| 30 | Persistencia — guardar/cargar, diálogos modales, versiones, archivado, búsqueda global, autosalvado | 34 | 11 | 0 | 23 | 0 | 32.6% |
 | 31 | Persistencia — carpetas, jerarquía, permisos y navegación del workspace | 26 | 0 | 0 | 26 | 0 | 0.0% |
 | 32 | Persistencia — sub-modelos (vistas de subsistema, archivos peer, composición cross-modelo) | 31 | 0 | 0 | 31 | 0 | 0.0% |
-| 33 | Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global) | 22 | 13 | 0 | 9 | 0 | 61.4% |
+| 33 | Persistencia — plantillas (artefactos reutilizables, ámbitos Privado/Organizacional/Global) | 22 | 0 | 0 | 22 | 0 | 0.0% |
 | 34 | Persistencia — creación de modelo nuevo (ruta simple + asistente de 12 etapas) | 28 | 2 | 0 | 26 | 0 | 5.0% |
 | 35 | Persistencia — mover modelos y buscar cosas (Ctrl+F intra-modelo) | 20 | 15 | 0 | 5 | 0 | 68.2% |
 | 40 | Colaboración — permisos de modelo, token de edición y auto-lectura desde carpeta | 25 | 0 | 0 | 0 | 25 | 0.0% |
 | 41 | Colaboración — chat del modelo | 17 | 0 | 0 | 0 | 17 | 0.0% |
 | 42 | Colaboración — notas adhesivas (anclaje, toggle, integración) | 22 | 0 | 0 | 22 | 0 | 0.0% |
-| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 19 | 0 | 2 | 0 | 89.1% |
+| 50 | Panel OPL-ES — lente bimodal, edición inversa y sincronización con el canvas | 21 | 16 | 0 | 5 | 0 | 76.4% |
 | 60 | Exportar a PDF — pipeline papel, opciones, selección de OPDs, integración Compartir | 35 | 0 | 0 | 35 | 0 | 0.0% |
 | 61 | Exportar SVG — exportar diagramas OPD como imágenes vectoriales | 26 | 0 | 0 | 26 | 0 | 0.0% |
 | 70 | Interoperabilidad — importación de modelos OPCAT 4.2 (.opx) | 25 | 0 | 0 | 25 | 0 | 0.0% |
@@ -86,7 +86,7 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 | 91 | Interacción — modo tutorial, tooltips guiados y asistencia pedagógica | 16 | 0 | 0 | 16 | 0 | 0.0% |
 | 1A | Canvas — cuadrícula, imán, redimensión y alineación | 18 | 8 | 3 | 7 | 0 | 51.1% |
 | 1B | Canvas — operaciones de traer conectados (hidratar OPD con cosas y enlaces existentes) | 16 | 15 | 0 | 1 | 0 | 97.6% |
-| 1C | Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación) | 17 | 3 | 0 | 14 | 0 | 25.0% |
+| 1C | Canvas — validaciones (interior/exterior, nombres duplicados, verificación metodológica, alcance de eliminación) | 17 | 0 | 0 | 17 | 0 | 0.0% |
 | A0 | Extensión — estereotipos OPM (mecanismo genérico de ampliación del lenguaje) | 40 | 0 | 0 | 40 | 0 | 0.0% |
 | A1 | Extensión — modelado de requisitos OPM (trazabilidad, plantilla canónica, vistas proyectadas) | 34 | 0 | 0 | 34 | 0 | 0.0% |
 | A2 | Extensión — IA generativa para requisitos (AI Reqs Generation) | 24 | 0 | 0 | 0 | 24 | 0.0% |
@@ -101,11 +101,12 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 | C2 | Runtime ROS — integración con Robot Operating System | 28 | 0 | 0 | 0 | 28 | 0.0% |
 | D0 | Análisis — detección de conocimiento faltante (predicción de enlaces sobre el grafo del modelo) | 22 | 0 | 0 | 0 | 22 | 0.0% |
 | D1 | Análisis — calificación de informatividad del modelo (MFSP, INF, WINF, TWINF) | 16 | 0 | 0 | 0 | 16 | 0.0% |
-| SHARED | Patrones transversales | 8 | 5 | 2 | 1 | 0 | 70.5% |
+| SHARED | Patrones transversales | 8 | 4 | 2 | 2 | 0 | 52.3% |
 
 ## Pendientes M0 inmediatos
 
 - [HU-SHARED-002](../historias-usuario-v2/shared/HU-SHARED-002-undo-redo.md) — Pila de deshacer / rehacer (M0, pendiente)
+- [HU-SHARED-007](../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md) — Eco OPL-ES sincronizado (M0, pendiente)
 - [HU-1C.004](../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md) — Crear cosa interna correcta directamente dentro del contenedor (M0, pendiente)
 - [HU-10.007](../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md) — Iniciar enlace desde borde de cosa (M0, pendiente)
 - [HU-11.004](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Fusionar múltiples enlaces de agregación en bus vertical único (M0, pendiente)
@@ -119,11 +120,25 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 - [HU-12.022](../historias-usuario-v2/epicas/epica-12-canvas-descomposicion.md) — Conectar subproceso interno con objeto interno (M0, pendiente)
 - [HU-13.001](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Agregar primeros dos estados desde menú contextual (M0, pendiente)
 - [HU-13.002](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Agregar primeros dos estados desde toolbar contextual (M0, pendiente)
+- [HU-13.003](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Crear estado adicional individual con "Agregar estado" posterior (M0, pendiente)
 - [HU-13.004](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Renombrar estado con diálogo [especializa HU-SHARED-004] (M0, pendiente)
+- [HU-13.008](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Validar axioma "con estados ⇒ ≥ 2 estados" (M0, pendiente)
+- [HU-13.010](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Designar estado como Inicial (M0, pendiente)
+- [HU-13.011](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Designar estado como Final (M0, pendiente)
+- [HU-13.017](../historias-usuario-v2/epicas/epica-13-canvas-estados.md) — Eco OPL-ES de estados posibles al crear estados (M0, pendiente)
+- [HU-30.001](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Abrir menú principal hamburguesa desde barra de herramientas (M0, pendiente)
 - [HU-30.002](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Ver botón Guardar (disco) en barra principal (M0, pendiente)
 - [HU-30.003](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Ver botón Cargar (carpeta) en barra principal (M0, pendiente)
+- [HU-30.005](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Primer Guardar abre diálogo "Guardar como" (M0, pendiente)
+- [HU-30.006](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Ingresar nombre del modelo en diálogo (M0, pendiente)
+- [HU-30.008](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Persistir payload OPM íntegro al guardar (layout, stroke, dash, alias) (M0, pendiente)
+- [HU-30.009](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Navegar breadcrumb en diálogo modal (M0, pendiente)
+- [HU-30.010](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Retroceder un nivel con botón Atrás o flecha "<" (M0, pendiente)
+- [HU-30.013](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Guardar incremental con toast "guardado exitosamente" (M0, pendiente)
 - [HU-30.014](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Ctrl+S dispara guardado equivalente al botón (M0, pendiente)
+- [HU-30.015](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — "Guardar como" sobre modelo persistido (Nombre pre-cargado) (M0, pendiente)
 - [HU-30.017](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Crear modelo nuevo desde "Nuevo Modelo" (M0, pendiente)
+- [HU-30.018](../historias-usuario-v2/epicas/epica-30-persistencia-save-load.md) — Abrir diálogo "Cargar Modelo" (M0, pendiente)
 - [HU-34.001](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Activar "Nuevo Modelo" desde menú principal (M0, pendiente)
 - [HU-34.004](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Ver pestaña inicial con literal "Modelo (No guardado)" (M0, pendiente)
 - [HU-34.005](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Ver árbol OPD inicial con nodo único "SD" (M0, pendiente)

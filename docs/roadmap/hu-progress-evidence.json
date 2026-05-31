@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-05-23",
+  "updated": "2026-05-31",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -809,20 +809,20 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-23T21:25:22.216Z",
+    "generatedAt": "2026-05-31T12:57:15.857Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
-    "rulesMatched": 85,
-    "rulesUnmatched": 20,
+    "rulesMatched": 76,
+    "rulesUnmatched": 29,
     "sourceFiles": {
-      "count": 726,
+      "count": 765,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:f82417178969f788f43fcea15f55cfd5b13b194972c57f44813599a2bb0d6c11"
+      "signature": "sha256:c2a4f3ff98c7701accaa611578ebff9db1493271a969b382063f494a487b6257"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -852,10 +852,10 @@
       "ids": [
         "HU-SHARED-007"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 14 alpha-lock: OPL-ES forward + reverse editable cubierto con parser SSOT, diagnosticos, preview de patches, aplicacion undoable al store y smoke UI. El reverse acepta oraciones canonicas, no borra por ausencia y diagnostica familias fuera de kernel.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/opl/generar.ts",
         "app/src/opl/generadores/procedural.ts",
@@ -871,6 +871,9 @@
         "app/src/opl/parser/parser.test.ts",
         "app/e2e/03-opl-panel.spec.ts",
         "app/src/completitud.test.ts"
+      ],
+      "brechas": [
+        "app/src/ui/panelOpl/Bloques.tsx: falta data-testid=\"opl-line\""
       ]
     },
     {
@@ -1167,10 +1170,10 @@
         "HU-13.017",
         "HU-17.033"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: estados inicial/final se validan, renderizan, serializan y verbalizan en OPL con pruebas.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/estadosDesignaciones.ts",
         "app/src/opl/generadores/designaciones.ts",
@@ -1180,6 +1183,9 @@
         "app/src/render/jointjs/proyeccion.test.ts",
         "app/src/serializacion/json.ts",
         "app/src/opl/generar.ts"
+      ],
+      "brechas": [
+        "app/src/completitud.test.ts: falta estado1"
       ]
     },
     {
@@ -1229,15 +1235,18 @@
         "HU-1C.015",
         "HU-1C.019"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto Corte 8: validador emite avisos con severidad/cita y PanelDiagnostico consume DiagnosticsPort/viewmodel.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/validaciones.ts",
         "app/src/ui/PanelDiagnostico.tsx",
         "app/src/app/viewmodels/panelDiagnosticoViewModel.ts",
         "app/src/modelo/validaciones.test.ts"
+      ],
+      "brechas": [
+        "app/src/app/viewmodels/panelDiagnosticoViewModel.ts: falta clasificarSeveridad"
       ]
     },
     {
@@ -1573,15 +1582,18 @@
         "HU-30.015",
         "HU-30.018"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: menu hamburguesa con Guardar como y Abrir/importar unificado; primer Ctrl+S abre dialogo; guardado posterior reescribe id; importacion no autopersiste.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
-        "app/src/ui/MenuPrincipal.tsx",
         "app/src/ui/DialogoGuardarComo.tsx",
         "app/src/ui/DialogoCargarModelo.tsx",
         "app/src/persistencia/workspace.ts"
+      ],
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
+        "app/src/ui/DialogoCargarModelo.tsx: falta alguno de title=\"Cargar modelo\" | title=\"Abrir / importar modelo\""
       ]
     },
     {
@@ -1598,12 +1610,12 @@
       "fuente": "auto",
       "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
-        "app/src/ui/MenuPrincipal.tsx",
         "app/src/store/modelo/acciones-ui.ts",
         "app/src/store/modelo.ts",
         "app/src/ui/toolbar/ToolbarBase.tsx"
       ],
       "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado",
         "app/src/ui/toolbar/ToolbarBase.tsx: falta alguno de No guardado"
       ]
     },
@@ -1871,14 +1883,14 @@
         "app/src/modelo/tipos/ui.ts",
         "app/src/store/modelo/acciones-canvas.ts",
         "app/src/ui/toolbar/ToolbarBase.tsx",
-        "app/src/ui/MenuPrincipal.tsx",
         "app/src/ui/DialogoConfiguracion.tsx",
         "app/src/canvas/grid.test.ts",
         "app/src/render/jointjs/composers/grid.test.ts",
         "app/e2e/_smoke-helpers.ts"
       ],
       "brechas": [
-        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid"
+        "app/src/ui/toolbar/ToolbarBase.tsx: falta toolbar-mas-toggle-grid",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
       ]
     },
     {
@@ -2146,14 +2158,17 @@
         "HU-50.024",
         "HU-50.025"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 10 L5 + ronda 11 L3: PanelOpl/ToolbarOpl ofrecen copiar al portapapeles, exportar HTML y buscar texto con testids estables.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/ui/panelOpl/Toolbar.tsx",
         "app/src/store/modelo/acciones-canvas.ts",
         "app/e2e/_smoke-helpers.ts"
+      ],
+      "brechas": [
+        "app/src/ui/panelOpl/Toolbar.tsx: falta panel-opl-exportar-html"
       ]
     },
     {
@@ -2308,12 +2323,13 @@
         "HU-30.012",
         "HU-30.028"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 11 L2: PantallaInicio con grid de modelos recientes, telon y busqueda local.",
-      "evidencia": [
-        "app/src/ui/PantallaInicio.tsx"
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "evidencia": [],
+      "brechas": [
+        "app/src/ui/PantallaInicio.tsx: archivo no encontrado"
       ]
     },
     {
@@ -2321,13 +2337,15 @@
         "HU-30.016",
         "HU-30.022"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 11 L2: renombrar modelo existente sin Guardar Como + Cargar Ejemplo Organizacional desde MenuPrincipal.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
-        "app/src/ui/MenuPrincipal.tsx",
         "app/src/persistencia/local.ts"
+      ],
+      "brechas": [
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
       ]
     },
     {
@@ -2660,17 +2678,22 @@
         "HU-30.021",
         "HU-30.008"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto 2026-05-18: catalogo de ejemplos reseteado a fixtures OPCloud sandbox via listarFixtures/cargarFixtureDemo en DialogoCargarModelo/PantallaInicio; sin asset paralelo app/examples ni demos sinteticas. Preservacion JSON local cubierta por test dedicado.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/modelo/fixtures.ts",
         "app/src/ui/DialogoCargarModelo.tsx",
         "app/e2e/01-carga-y-workspace.spec.ts",
         "app/src/persistencia/local.test.ts",
-        "app/src/modelo/fixtures.test.ts",
-        "app/e2e/11-beta1-catalogo-ancla.spec.ts"
+        "app/src/modelo/fixtures.test.ts"
+      ],
+      "brechas": [
+        "app/src/ui/DialogoCargarModelo.tsx: falta listarFixtures",
+        "app/src/ui/DialogoCargarModelo.tsx: falta cargarFixtureDemo",
+        "app/src/ui/DialogoCargarModelo.tsx: falta Cargar modelo de ejemplo",
+        "app/e2e/01-carga-y-workspace.spec.ts: falta selectOption(\"System Diagram\")"
       ]
     },
     {
@@ -2746,19 +2769,21 @@
         "HU-33.018",
         "HU-33.022"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 12 L4: plantillas privadas EPICA-33 con persistencia separada, insercion atomica con IDs nuevos, sub-OPDs, sufijo, foco temporal y catalogo.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
-        "app/src/modelo/tipos/plantilla.ts",
-        "app/src/persistencia/plantillas.ts",
         "app/src/canvas/operacionesBatch.ts",
         "app/src/store/modelo.ts",
-        "app/src/ui/DialogoPlantillas.tsx",
-        "app/src/ui/MenuPrincipal.tsx",
-        "app/src/persistencia/plantillas.test.ts",
         "app/src/canvas/operacionesBatch.test.ts"
+      ],
+      "brechas": [
+        "app/src/modelo/tipos/plantilla.ts: archivo no encontrado",
+        "app/src/persistencia/plantillas.ts: archivo no encontrado",
+        "app/src/canvas/operacionesBatch.ts: falta insertarPlantillaBatch",
+        "app/src/ui/DialogoPlantillas.tsx: archivo no encontrado",
+        "app/src/ui/MenuPrincipal.tsx: archivo no encontrado"
       ]
     },
     {
