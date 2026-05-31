@@ -158,6 +158,14 @@ test("Command Palette ofrece Exportar diagnóstico (JSON) en EXPORTAR y lo ejecu
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
+  // El clipboard real del navegador headless deniega writeText y emitiría un
+  // pageerror; lo stubeamos para verificar el comando sin depender de permisos.
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async () => {} },
+    });
+  });
 
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
@@ -170,9 +178,7 @@ test("Command Palette ofrece Exportar diagnóstico (JSON) en EXPORTAR y lo ejecu
   // Vive bajo la sección EXPORTAR (enrutado por seccionVisualCommandPalette).
   await expect(palette.getByTestId("command-palette-section-exportar")).toContainText("Exportar diagnóstico (JSON)");
 
-  // Ejecutarlo copia al portapapeles y cierra el palette sin errores. No
-  // afirmamos el contenido del portapapeles para no depender de permisos de
-  // clipboard del navegador headless.
+  // Ejecutarlo copia al portapapeles (stub) y cierra el palette sin errores.
   await item.click();
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
 

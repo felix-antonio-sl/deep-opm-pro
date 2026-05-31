@@ -64,9 +64,9 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   await clickCabeceraElemento(page, "Procesar");
 
   const panel = page.getByLabel("Panel OPL-ES");
-  // Canon L1: la clasificación de cada entidad se escinde en dos oraciones
-  // (esencia + afiliación). Entrada (2) + Procesar (2) + consumo (1) = 5.
-  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(5);
+  // Canon vigente (59ad3a9, forma OPCloud): la clasificación de cada entidad
+  // se compone en UNA oración. Entrada (1) + Procesar (1) + consumo (1) = 3.
+  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(3);
   await expect(panel.locator('[data-opl-ordinal="1"]')).toBeVisible();
   await expect(panel.locator('[data-opl-ordinal="2"]')).toBeVisible();
   await expect(panel.locator('[data-opl-ordinal="3"]')).toBeVisible();
@@ -74,9 +74,9 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   const tokenEntrada = panel.getByText("Entrada").first();
   await tokenEntrada.hover();
   // Codex: el hover sutil del token OPL usa ink04/paperWarm
-  // (#f4f3ec = rgb(244,243,236)); la intención sigue siendo contraste tenue
-  // contra paper, ahora en la rampa editorial.
-  await expect(tokenEntrada).toHaveCSS("background-color", "rgb(244, 243, 236)");
+  // (tokens.ts: paperWarm = #eeece2 = rgb(238,236,226)); contraste tenue
+  // contra paper, en la rampa editorial vigente.
+  await expect(tokenEntrada).toHaveCSS("background-color", "rgb(238, 236, 226)");
 
   await elementoPorTexto(page, "Procesar").click();
   // Codex L6 (G7): al activar el filtro el checkbox se desmonta y lo reemplaza
@@ -96,8 +96,8 @@ test("sincroniza OPL interactivo con canvas y renombrado inverso", async ({ page
   await page.keyboard.press("Enter");
 
   await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
-  // Canon L1: "Cliente" aparece en 3 oraciones — esencia, afiliación y consumo.
-  await expect(panel.getByText("Cliente")).toHaveCount(3);
+  // Canon vigente: "Cliente" aparece en 2 oraciones — clasificación (1) y consumo (1).
+  await expect(panel.getByText("Cliente")).toHaveCount(2);
   await expect(panel.getByText(/Procesar\s+consume\s+Cliente\./)).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-opl-interactivo-inverso.png", fullPage: true });
@@ -122,9 +122,9 @@ test("panel OPL aplica edicion libre con preview y propaga al canvas", async ({ 
 
   await expect(elementoPorTexto(page, "Cliente")).toHaveCount(1);
   await restaurarPanelOplSiMinimizado(page);
-  // Canon L1: la clasificación se rinde como dos oraciones escindidas.
-  await expect(page.getByLabel("Panel OPL-ES").getByText("Cliente es físico.")).toBeVisible();
-  await expect(page.getByLabel("Panel OPL-ES").getByText("Cliente es ambiental.")).toBeVisible();
+  // Canon vigente (59ad3a9, forma OPCloud): la clasificación se rinde como una
+  // sola oración combinada con el sustantivo de tipo.
+  await expect(page.getByLabel("Panel OPL-ES").getByText("Cliente es un objeto físico y ambiental.")).toBeVisible();
   await expect(page.getByText("OPL aplicado: 3 cambios")).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
@@ -169,8 +169,8 @@ test("panel OPL busca texto y filtra lineas", async ({ page }) => {
   await elementoPorTexto(page, "Procesar").click();
 
   const panel = page.getByLabel("Panel OPL-ES");
-  // Canon L1: Entrada (2) + Procesar (2) + consumo (1) = 5 oraciones.
-  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(5);
+  // Canon vigente (forma OPCloud): Entrada (1) + Procesar (1) + consumo (1) = 3 oraciones.
+  await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(3);
   await page.getByTestId("panel-opl-buscar").fill("consume");
   await expect(panel.locator('[data-testid="opl-line"]')).toHaveCount(1);
   await expect(panel.getByText(/Procesar\s+consume\s+Entrada\./)).toBeVisible();
@@ -224,7 +224,7 @@ test("panel OPL alterna numeracion 123 sin perder seleccion", async ({ page }) =
 
   await page.getByTestId("panel-opl-toggle-numeracion").click();
   await expect(panel.locator('[data-opl-ordinal="1"] span').first()).toHaveCSS("opacity", "0");
-  // Canon L1: el nombre aparece en dos oraciones de clasificación; clic en la primera.
+  // Canon vigente: el nombre aparece en la oración de clasificación; clic en ella.
   await panel.getByText("Entrada").first().click();
   await expect(page.getByLabel("Nombre")).toHaveValue("Entrada");
 
@@ -241,12 +241,12 @@ test("panel OPL minimiza y restaura desde barra colapsada", async ({ page }) => 
   await page.getByTestId("panel-opl-minimizar").click();
 
   await expect(page.getByTestId("panel-opl-minimizado")).toBeVisible();
-  // Canon L1: un objeto rinde dos oraciones (esencia + afiliación).
-  await expect(page.getByTestId("panel-opl-restaurar")).toContainText("OPL · 2 oraciones · Restaurar");
+  // Canon vigente (forma OPCloud): un objeto rinde una sola oración de clasificación.
+  await expect(page.getByTestId("panel-opl-restaurar")).toContainText("OPL · 1 oraciones · Restaurar");
   await expect(page.locator('[data-testid="opl-line"]')).toHaveCount(0);
 
   await page.getByTestId("panel-opl-restaurar").click();
-  await expect(page.locator('[data-testid="opl-line"]')).toHaveCount(2);
+  await expect(page.locator('[data-testid="opl-line"]')).toHaveCount(1);
 
   expect(pageErrors).toEqual([]);
 });
