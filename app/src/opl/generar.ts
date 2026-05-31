@@ -1,4 +1,5 @@
 import { estadosDeEntidad } from "../modelo/operaciones";
+import { estadoVisibleEnAparicion } from "../modelo/visibilidadEstados";
 import type { Enlace, Entidad, Id, Modelo, Opd } from "../modelo/tipos";
 import type { VisibilidadOpl } from "./opciones";
 import { crearLineaOplInteractiva, type OplLineaInteractiva } from "./interaccion";
@@ -77,7 +78,12 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
       }
     }
     const estados = entidad.tipo === "objeto" ? estadosDeEntidad(modelo, entidad.id) : [];
-    const estadosVisibles = estados.filter((estado) => !estado.suprimido);
+    // Incremento 2 (SELLO 4): el OPL es por-OPD, así que enumera solo los estados
+    // VISIBLES en esta aparición — predicado efectivo `¬global ∧ ¬local`
+    // (`modelo/visibilidadEstados.ts`). La supresión local refleja en el OPL del
+    // OPD sin borrar el estado del modelo; el parser reverse no borra por omisión
+    // y mapea posición→id por refs, así que el roundtrip se preserva.
+    const estadosVisibles = estados.filter((estado) => estadoVisibleEnAparicion(estado, apariencia));
     const estadosCanonicos = estadosVisibles.filter(estadoOplEsEmitible);
     if (entidadOplEsEmitible(entidad) && estadosVisibles.length > 0 && estadosCanonicos.length === estadosVisibles.length) {
       agregarOracionEstadosInteractiva(lineas, entidad, estadosCanonicos);

@@ -55,4 +55,23 @@ export interface Apariencia {
   contextoRefinamiento?: ContextoRefinamientoApariencia;
   /** Ports dinámicos OPCloud-style usados como puntos de conexión por enlace. */
   ports?: Record<Id, PuertoApariencia>;
+  /**
+   * Supresión de estados POR APARICIÓN (per-OPD), análoga a OpmVisualState
+   * .suppress() de OPCloud. IDs de estado ocultos localmente en ESTA aparición,
+   * sin afectar las demás apariciones del objeto ni el modelo global.
+   *
+   * Refinamiento de la supresión GLOBAL `Estado.suprimido`: la visibilidad
+   * efectiva es el meet (∧) de ambas — global domina, local refina (ver
+   * `estadoVisibleEnAparicion` en `modelo/visibilidadEstados.ts`).
+   *
+   * SELLO cat-thinking (`urn:fxsl:kb:icas-topoi`): la visibilidad de estados es
+   * un presheaf `Vis : OPD^op → Set`; cada `Apariencia` realiza la fibra del
+   * objeto en su OPD, así que el dato local vive en la fibra (no en `Estado`,
+   * que colapsaría todas las fibras a una sección global). Fibras ortogonales →
+   * sin invariante cruzado O(N²); por eso una lista por aparición basta.
+   *
+   * Ausente = ninguno suprimido localmente (compat hacia atrás: campo opcional,
+   * no rompe modelos serializados previos). Normalizado: sin duplicados.
+   */
+  estadosSuprimidos?: Id[];
 }

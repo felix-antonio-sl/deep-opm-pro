@@ -2,6 +2,7 @@ import { CANON } from "../../../modelo/constantes";
 import { formatearNombreCompuesto } from "../../../modelo/objetoMetadata";
 import { estadosDeEntidad } from "../../../modelo/operaciones";
 import { modoPlegadoApariencia } from "../../../modelo/plegado";
+import { estadoVisibleEnAparicion } from "../../../modelo/visibilidadEstados";
 import type { Apariencia, Entidad, Estado, Id, Modelo, Posicion } from "../../../modelo/tipos";
 
 /**
@@ -51,7 +52,10 @@ export function rectCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estado
   const entidad = estado ? modelo.entidades[estado.entidadId] : undefined;
   if (!estado || !entidad) return null;
   if (modoPlegadoApariencia(apariencia) === "parcial") return null;
-  const estados = estadosDeEntidad(modelo, entidad.id).filter((item) => !item.suprimido);
+  // Predicado efectivo por aparición (SELLO 2): el índice de cápsula DEBE
+  // calcularse sobre el mismo conjunto visible que renderiza entidad.ts
+  // (visibles = ¬global ∧ ¬local), o los selectores stateCapsuleN se desalinean.
+  const estados = estadosDeEntidad(modelo, entidad.id).filter((item) => estadoVisibleEnAparicion(item, apariencia));
   const index = estados.findIndex((item) => item.id === estadoId);
   if (index < 0) return null;
   const size = dimensionesConEstados(apariencia, formatearNombreCompuesto(entidad), estados, entidad.layoutEstados);
@@ -108,7 +112,7 @@ export function selectorCapsulaEstado(
   const entidad = estado ? modelo.entidades[estado.entidadId] : undefined;
   if (!estado || !entidad) return null;
   if (modoPlegadoApariencia(apariencia) === "parcial") return null;
-  const estados = estadosDeEntidad(modelo, entidad.id).filter((item) => !item.suprimido);
+  const estados = estadosDeEntidad(modelo, entidad.id).filter((item) => estadoVisibleEnAparicion(item, apariencia));
   const index = estados.findIndex((item) => item.id === estadoId);
   if (index < 0) return null;
   return { selector: `stateCapsule${index}` };

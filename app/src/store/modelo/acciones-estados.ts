@@ -18,6 +18,13 @@ import {
   reordenarEstado,
 } from "../../modelo/operaciones";
 import { estadosDeEntidad } from "../../modelo/operaciones/estados";
+import { aparienciaDeEntidadEnOpd } from "../../modelo/politicaApariciones";
+import {
+  mostrarEstadoEnAparicion,
+  mostrarTodosLosEstadosEnAparicion,
+  suprimirEstadoEnAparicion,
+  suprimirTodosLosEstadosEnAparicion,
+} from "../../modelo/visibilidadEstados";
 import type { DesignacionEstado, Id, Modelo } from "../../modelo/tipos";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
@@ -313,6 +320,84 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
       });
     },
 
+    // ───── Supresión de estados POR APARICIÓN (per-OPD) ─────
+    // Oculta/muestra el estado seleccionado SOLO en el OPD activo. Distinto de
+    // suprimirEstadoSeleccionado (global) y de ocultarAparienciaSeleccionada
+    // (oculta la entidad completa del OPD). Visibilidad efectiva = ¬global ∧
+    // ¬local (ver `modelo/visibilidadEstados.ts`, SELLOs cat-thinking).
+
+    ocultarEstadoEnVistaSeleccionado() {
+      const ctx = resolverAparicionEstadoSeleccionado(get, set);
+      if (!ctx) return;
+      const { modelo, opdActivoId, aparienciaId, estadoSeleccionId } = ctx;
+      const resultado = suprimirEstadoEnAparicion(modelo, opdActivoId, aparienciaId, estadoSeleccionId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: "Estado ocultado en esta vista",
+      });
+    },
+
+    mostrarEstadoEnVistaSeleccionado() {
+      const ctx = resolverAparicionEstadoSeleccionado(get, set);
+      if (!ctx) return;
+      const { modelo, opdActivoId, aparienciaId, estadoSeleccionId } = ctx;
+      const resultado = mostrarEstadoEnAparicion(modelo, opdActivoId, aparienciaId, estadoSeleccionId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    ocultarTodosEstadosEnVistaDeSeleccionado() {
+      const ctx = resolverAparicionEstadoSeleccionado(get, set);
+      if (!ctx) return;
+      const { modelo, opdActivoId, aparienciaId, estadoSeleccionId } = ctx;
+      const resultado = suprimirTodosLosEstadosEnAparicion(modelo, opdActivoId, aparienciaId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: "Estados ocultados en esta vista",
+      });
+    },
+
+    mostrarTodosEstadosEnVistaDeSeleccionado() {
+      const ctx = resolverAparicionEstadoSeleccionado(get, set);
+      if (!ctx) return;
+      const { modelo, opdActivoId, aparienciaId, estadoSeleccionId } = ctx;
+      const resultado = mostrarTodosLosEstadosEnAparicion(modelo, opdActivoId, aparienciaId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        estadoSeleccionId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: "Estados restaurados en esta vista",
+      });
+    },
+
     abrirModalDuracionEstadoSeleccionado() {
       const { estadoSeleccionId } = get();
       if (!estadoSeleccionId) {
@@ -417,6 +502,35 @@ function aplicarDesignacionSimple(
     current: designarCurrent,
   };
   return acciones[designacion](modelo, estadoId);
+}
+
+/**
+ * Resuelve el contexto (modelo, OPD activo, aparición del objeto propietario,
+ * estado seleccionado) para las acciones de supresión por aparición. Setea
+ * `mensaje` y retorna null si falta selección o el objeto no aparece en el OPD
+ * activo (p.ej. el estado se seleccionó en otra pestaña/vista).
+ */
+function resolverAparicionEstadoSeleccionado(
+  get: GetStore,
+  set: SetStore,
+): { modelo: Modelo; opdActivoId: Id; aparienciaId: Id; estadoSeleccionId: Id } | null {
+  const { modelo, opdActivoId, estadoSeleccionId } = get();
+  if (!estadoSeleccionId) {
+    set({ mensaje: "Selecciona un estado para ocultarlo o mostrarlo en esta vista" });
+    return null;
+  }
+  const estado = modelo.estados?.[estadoSeleccionId];
+  if (!estado) {
+    set({ mensaje: `Estado no existe: ${estadoSeleccionId}` });
+    return null;
+  }
+  const opd = modelo.opds[opdActivoId];
+  const apariencia = opd ? aparienciaDeEntidadEnOpd(opd, estado.entidadId) : null;
+  if (!apariencia) {
+    set({ mensaje: "El objeto de este estado no aparece en el OPD activo" });
+    return null;
+  }
+  return { modelo, opdActivoId, aparienciaId: apariencia.id, estadoSeleccionId };
 }
 
 function designarEstadoEnStore(

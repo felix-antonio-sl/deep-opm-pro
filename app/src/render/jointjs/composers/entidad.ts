@@ -7,6 +7,7 @@ import { formatearNombreCompuesto } from "../../../modelo/objetoMetadata";
 import { estadosDeEntidad, relacionesEstructuralesOcultas } from "../../../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
 import { obtenerRefinamiento, tieneRefinamiento } from "../../../modelo/refinamientos";
+import { estadoVisibleEnAparicion } from "../../../modelo/visibilidadEstados";
 import type { Apariencia, Entidad, Estado, Id, Modelo } from "../../../modelo/tipos";
 import { targetsEstado } from "../estadoTargets";
 import { filasPlegadoConNesting } from "../plegadoNesting";
@@ -47,12 +48,16 @@ export function proyectarEntidad(
     : 0;
   const filasParciales = modoParcial ? filasPlegadoConNesting({ modelo, opdId, padreAparienciaId: apariencia.id }) : [];
   const estadosTotales = entidad.tipo === "objeto" && !modoParcial ? estadosDeEntidad(modelo, entidad.id) : [];
-  const estadosVisibles = estadosTotales.filter((estado) => !estado.suprimido);
-  // SSOT §1.8 / V-192: cuando un objeto tiene estados suprimidos no
-  // visibles en el OPD activo, el canon canonico exige un indicador
-  // textual `...` en esquina inferior derecha como gramatica auxiliar
-  // de "hay mas, no se muestra todo". Implementado abajo via
-  // metadatos.suppressedBadge para reusar la infraestructura de badges.
+  // Predicado efectivo (SELLO 2, `modelo/visibilidadEstados.ts`): un estado es
+  // visible en ESTA aparición si no está global-suprimido NI local-suprimido
+  // (per-OPD via `apariencia.estadosSuprimidos`). Global domina, local refina.
+  const estadosVisibles = estadosTotales.filter((estado) => estadoVisibleEnAparicion(estado, apariencia));
+  // SSOT §1.8 / V-192: cuando un objeto tiene estados ocultos no
+  // visibles en el OPD activo (por supresión global O local), el canon
+  // canonico exige un indicador textual `...` en esquina inferior derecha
+  // como gramatica auxiliar de "hay mas, no se muestra todo". Implementado
+  // abajo via metadatos.suppressedBadge para reusar la infraestructura de
+  // badges. El badge senala supresion por CUALQUIER causa en esta vista.
   const tieneEstadosSuprimidos = estadosTotales.length > estadosVisibles.length;
   const nombreRender = formatearNombreCompuesto(
     {

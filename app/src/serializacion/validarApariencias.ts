@@ -54,6 +54,8 @@ export function validarApariencias(
     if (!contextoRefinamiento.ok) return contextoRefinamiento;
     const ports = validarPuertosApariencia(id, raw.ports);
     if (!ports.ok) return ports;
+    const estadosSuprimidos = validarEstadosSuprimidos(id, raw.estadosSuprimidos);
+    if (!estadosSuprimidos.ok) return estadosSuprimidos;
     apariencias[id] = {
       id,
       entidadId: raw.entidadId,
@@ -69,6 +71,7 @@ export function validarApariencias(
       ...(parteExtraidaDe.value ? { parteExtraidaDe: parteExtraidaDe.value } : {}),
       ...(contextoRefinamiento.value ? { contextoRefinamiento: contextoRefinamiento.value } : {}),
       ...(ports.value ? { ports: ports.value } : {}),
+      ...(estadosSuprimidos.value ? { estadosSuprimidos: estadosSuprimidos.value } : {}),
     };
   }
   return ok(apariencias);
@@ -88,6 +91,28 @@ export function validarPuertosApariencia(
     ports[portId] = { x: raw.x, y: raw.y };
   }
   return ok(Object.keys(ports).length > 0 ? ports : undefined);
+}
+
+/**
+ * Valida `Apariencia.estadosSuprimidos` (supresión de estados por aparición):
+ * array de IDs de estado sin duplicados. Valida FORMA, no referencias cruzadas
+ * (no tiene acceso a `estados` aquí, igual que `enlacesPadreIds`); los IDs
+ * colgantes o ajenos al objeto se ignoran en lectura vía
+ * `modelo/visibilidadEstados.ts·estadosSuprimidosLocalmente`. Campo opcional:
+ * ausente o vacío → undefined (compat hacia atrás).
+ */
+export function validarEstadosSuprimidos(
+  aparienciaId: Id,
+  value: unknown,
+): Resultado<Id[] | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!Array.isArray(value)) return fallo(`Apariencia inválida: ${aparienciaId}.estadosSuprimidos`);
+  const ids: Id[] = [];
+  for (const raw of value) {
+    if (typeof raw !== "string") return fallo(`Apariencia inválida: ${aparienciaId}.estadosSuprimidos`);
+    if (!ids.includes(raw)) ids.push(raw);
+  }
+  return ok(ids.length > 0 ? ids : undefined);
 }
 
 export function validarEstiloApariencia(

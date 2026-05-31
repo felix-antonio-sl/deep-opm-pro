@@ -512,6 +512,18 @@ export interface OpmStore {
   designarEstadoSeleccionado: (designacion: DesignacionEstado) => void;
   quitarDesignacionEstadoSeleccionado: (designacion: DesignacionEstado) => void;
   suprimirEstadoSeleccionado: () => void;
+  /**
+   * Supresión de estados POR APARICIÓN (per-OPD): oculta/muestra el estado
+   * seleccionado solo en el OPD activo, sin afectar otras apariciones ni la
+   * supresión global. Distinta de `suprimirEstadoSeleccionado` (global) y de
+   * `ocultarAparienciaSeleccionada` (oculta la entidad completa del OPD).
+   * Visibilidad efectiva = ¬global ∧ ¬local (ver `modelo/visibilidadEstados.ts`).
+   */
+  ocultarEstadoEnVistaSeleccionado: () => void;
+  mostrarEstadoEnVistaSeleccionado: () => void;
+  /** suppressAll/expressAll por aparición: opera sobre todos los estados del objeto del estado seleccionado en el OPD activo. */
+  ocultarTodosEstadosEnVistaDeSeleccionado: () => void;
+  mostrarTodosEstadosEnVistaDeSeleccionado: () => void;
   abrirModalDuracionEstadoSeleccionado: () => void;
   agregarEstadoHermanoDeSeleccionado: () => void;
   /** Mueve el estado seleccionado al `indiceDestino` dentro de su objeto propietario. */

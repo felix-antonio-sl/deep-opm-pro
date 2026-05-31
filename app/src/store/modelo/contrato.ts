@@ -112,6 +112,13 @@ export const MODELO_SLICE_CAPABILITIES = {
     "designarEstadoSeleccionado",
     "quitarDesignacionEstadoSeleccionado",
     "suprimirEstadoSeleccionado",
+    // Supresión de estados POR APARICIÓN (per-OPD), análoga a OpmVisualState
+    // .suppress() de OPCloud. Oculta/muestra en el OPD activo sin tocar la
+    // supresión global ni otras apariciones (ver `modelo/visibilidadEstados.ts`).
+    "ocultarEstadoEnVistaSeleccionado",
+    "mostrarEstadoEnVistaSeleccionado",
+    "ocultarTodosEstadosEnVistaDeSeleccionado",
+    "mostrarTodosEstadosEnVistaDeSeleccionado",
     "abrirModalDuracionEstadoSeleccionado",
     "agregarEstadoHermanoDeSeleccionado",
     "reordenarEstadoSeleccionado",

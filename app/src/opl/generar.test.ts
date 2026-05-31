@@ -11,6 +11,9 @@ import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
 import { generarOplEstructurado, generarOplTexto } from "../modelo/opl/generador-opl";
 import { ordenarOpdsParaOpl } from "./bloquesJerarquicos";
 import { generarOpl, generarOplInteractivo } from "./generar";
+import { aparienciaDeEntidadEnOpd } from "../modelo/politicaApariciones";
+import { suprimirEstadoEnAparicion } from "../modelo/visibilidadEstados";
+import { aplicarPatchesOpl, planificarEdicionOplLibre } from "./parser";
 
 describe("OPL-ES — tipos de enlace canonicos", () => {
   test("lineas interactivas exponen opdId para bloques jerarquicos", () => {
@@ -56,6 +59,54 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     const texto = generarOpl(modelo).join("\n");
 
     expect(texto).toContain("**Pedido** puede estar `estado1` o `estado2`.");
+  });
+
+  test("incremento 2: el OPL por-OPD refleja la supresión local de estados (no enumera los ocultos en esta vista)", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const objetoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo; // estado1, estado2
+    modelo = must(agregarEstado(modelo, objetoId, "intermedio")).modelo; // tercer estado
+
+    // Supresión LOCAL de `estado2` solo en esta aparición (per-OPD).
+    const opd = modelo.opds[modelo.opdRaizId]!;
+    const aparienciaId = aparienciaDeEntidadEnOpd(opd, objetoId)!.id;
+    const estado2Id = estadosDeEntidad(modelo, objetoId).find((e) => e.nombre === "estado2")!.id;
+    modelo = must(suprimirEstadoEnAparicion(modelo, modelo.opdRaizId, aparienciaId, estado2Id));
+
+    const texto = generarOpl(modelo, modelo.opdRaizId).join("\n");
+
+    // El OPL del OPD enumera solo los estados visibles en esta vista.
+    expect(texto).toContain("`estado1`");
+    expect(texto).toContain("`intermedio`");
+    expect(texto).not.toContain("`estado2`");
+    // El estado sigue existiendo en el modelo: la supresión local es visual/por-vista, no lo borra.
+    expect(estadosDeEntidad(modelo, objetoId).map((e) => e.nombre)).toContain("estado2");
+  });
+
+  test("incremento 2: roundtrip OPL con supresión local NO borra ni renombra el estado oculto", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const objetoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, objetoId)).modelo;
+    modelo = must(agregarEstado(modelo, objetoId, "intermedio")).modelo;
+
+    const opd = modelo.opds[modelo.opdRaizId]!;
+    const aparienciaId = aparienciaDeEntidadEnOpd(opd, objetoId)!.id;
+    const estado2Id = estadosDeEntidad(modelo, objetoId).find((e) => e.nombre === "estado2")!.id;
+    modelo = must(suprimirEstadoEnAparicion(modelo, modelo.opdRaizId, aparienciaId, estado2Id));
+
+    // modelo → OPL (omite estado2) → parsear → aplicar
+    const opl = generarOpl(modelo, modelo.opdRaizId).join("\n");
+    const preview = planificarEdicionOplLibre(modelo, opl);
+    const recuperado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+
+    // El estado oculto sobrevive intacto: ni se borra por ausencia ni se renombra por posición.
+    const nombres = estadosDeEntidad(recuperado, objetoId).map((e) => e.nombre).sort();
+    expect(nombres).toEqual(["estado1", "estado2", "intermedio"].sort());
+    // La supresión local persiste tras el roundtrip.
+    const aparienciaRec = aparienciaDeEntidadEnOpd(recuperado.opds[modelo.opdRaizId]!, objetoId)!;
+    expect(aparienciaRec.estadosSuprimidos ?? []).toContain(estado2Id);
   });
 
   test("agregacion emite consta de", () => {

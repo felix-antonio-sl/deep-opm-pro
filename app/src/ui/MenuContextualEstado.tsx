@@ -31,6 +31,18 @@ export function MenuContextualEstado(props: Props) {
   const abrirDuracion = useOpmStore((s) => s.abrirModalDuracionEstadoSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarEstadoSeleccionado);
   const agregarHermano = useOpmStore((s) => s.agregarEstadoHermanoDeSeleccionado);
+  // Supresión por aparición (per-OPD): el estado puede estar oculto solo en
+  // esta vista. Decide entre "Ocultar" y "Mostrar" según el estado local.
+  const ocultadoEnVista = useOpmStore((s) => {
+    const opd = s.modelo.opds[s.opdActivoId];
+    const apariencia = opd
+      ? Object.values(opd.apariencias).find((ap) => ap.entidadId === props.entidadId)
+      : undefined;
+    return apariencia?.estadosSuprimidos?.includes(props.estadoId) ?? false;
+  });
+  const ocultarEnVista = useOpmStore((s) => s.ocultarEstadoEnVistaSeleccionado);
+  const mostrarEnVista = useOpmStore((s) => s.mostrarEstadoEnVistaSeleccionado);
+  const mostrarTodosEnVista = useOpmStore((s) => s.mostrarTodosEstadosEnVistaDeSeleccionado);
 
   const intentarRenombrar = () => {
     // Renombrado simple vía prompt — la versión inline vive en HaloEstado.
@@ -109,6 +121,38 @@ export function MenuContextualEstado(props: Props) {
       >
         Suprimir
       </button>
+      <div style={style.separator} />
+      {ocultadoEnVista ? (
+        <button
+          type="button"
+          role="menuitem"
+          style={style.item}
+          data-testid="menu-estado-mostrar-en-vista"
+          onClick={() => { mostrarEnVista(); props.onCerrar(); }}
+        >
+          Mostrar en esta vista
+        </button>
+      ) : (
+        <button
+          type="button"
+          role="menuitem"
+          style={style.item}
+          data-testid="menu-estado-ocultar-en-vista"
+          onClick={() => { ocultarEnVista(); props.onCerrar(); }}
+        >
+          Ocultar en esta vista
+        </button>
+      )}
+      <button
+        type="button"
+        role="menuitem"
+        style={style.item}
+        data-testid="menu-estado-mostrar-todos-en-vista"
+        onClick={() => { mostrarTodosEnVista(); props.onCerrar(); }}
+      >
+        Mostrar todos en esta vista
+      </button>
+      <div style={style.separator} />
       <button
         type="button"
         role="menuitem"
