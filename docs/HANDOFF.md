@@ -1,8 +1,8 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-31 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commits de producto (sesión 2026-05-31)**: `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado. **Desplegado** (`docker compose up -d --build`): entry bundle `index-DCJuglAp.js`. Previo ya en `origin/main`: `e5ff438` exportador de diagnóstico a JSON. Cortes anteriores: `59ad3a9` D1 esencia/afiliación combinada; ronda atajos/inspector/simulación.
-**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo `index-DCJuglAp.js`.
+**Commits de producto (sesión 2026-05-31)**: `5298ec2` revisión jobs-web-ux de UX OPCloud-isomorfa sin copiar gestos, `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado. **Desplegado** (`docker compose up -d --build`): entry bundle `index-B3ytqv2I.js`. Previo ya en `origin/main`: `e5ff438` exportador de diagnóstico a JSON. Cortes anteriores: `59ad3a9` D1 esencia/afiliación combinada; ronda atajos/inspector/simulación.
+**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo `index-B3ytqv2I.js`.
 
 ## Corte actual — UX/UI canónica para capacidades OPCloud aspiracionales
 
@@ -52,7 +52,7 @@ Se promovieron a KORA las dos piezas locales de canon que aún vivían completas
 - **Command palette:** los comandos se nombran según contexto (`Crear requisito vinculado`, `Vincular requisito existente`, `Conectar submodelo` con vista read-only, `Resolver decisión`) para que la operación sea descubrible sin entrenamiento.
 - **Calidad visual:** se corrigieron keys duplicadas en swatches de estilo (`StyleControls`) porque el smoke detectó warnings de render al seleccionar cosas.
 
-**Verificación de esta actualización:** smoke Playwright manual en dev (`ontology`, requisito vinculado, submodelo, navegación read-only) -> OK sin `pageerror`/`console.error`; `cd app && bun run check` -> **1800 pass / 0 fail**; `bun run lint` -> OK; `bun run build` -> OK (`index-H8aGiLp7.js` local); `bun run design:governance` -> OK; `git diff --check -- app/src` -> OK.
+**Verificación de esta actualización:** smoke Playwright manual en dev (`ontology`, requisito vinculado, submodelo, navegación read-only) -> OK sin `pageerror`/`console.error`; `cd app && bun run check` -> **1800 pass / 0 fail**; `bun run lint` -> OK; `bun run build` -> OK (`index-H8aGiLp7.js` local); `bun run design:governance` -> OK; `git diff --check -- app/src` -> OK. Deploy posterior: `docker compose up -d --build` OK; `opforja` healthy; `bug-capture` OK; `curl -fsSI https://opforja.sanixai.com/` -> HTTP/2 200; bundle vivo `index-B3ytqv2I.js` con chunks `CommandPalette-BrWQTeA5.js`, `DialogoOntologia-CbUMg9or.js`, `DialogoSubmodelo-IvGEHQIe.js`.
 
 **Pendientes tras esta actualización:** sigue pendiente el editor completo de policies de decisión, sugerencias inline de ontología, refresh dedicado de requirement/submodel views, lazy-load real LF-04 y gestión rica de compartidas transparentes. No clonar gestos OPCloud: cualquier siguiente superficie debe pasar por inspector, command palette o menú contextual op-forja.
 
