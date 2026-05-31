@@ -3,7 +3,8 @@ import { abanicoDeEnlace } from "../modelo/abanicos";
 import { esEnlaceEstructuralFundamental } from "../modelo/constantes";
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo } from "../modelo/extremos";
-import { relacionesEstructuralesFaltantes, validarMultiplicidad } from "../modelo/operaciones";
+import { estadosDeEntidad, relacionesEstructuralesFaltantes, validarMultiplicidad } from "../modelo/operaciones";
+import { obtenerRefinamiento } from "../modelo/refinamientos";
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, limitarAnclajeSimbolo, normalizarAnclajeSimbolo } from "../modelo/simboloEstructural";
 import { useInspectorEnlaceViewModel } from "../app/viewmodels/inspectorEnlaceViewModel";
 import { useOpmStore } from "../store";
@@ -207,6 +208,8 @@ export function InspectorEnlace({ enlace }: Props) {
   const enlaceFueraDelOpdActivo = opdsDelEnlace.length > 0 && !opdsDelEnlace.includes(opdActivoId);
   const opdDestinoNavegacion = enlaceFueraDelOpdActivo ? opdsDelEnlace[0] : null;
   const satisfaccionesEnlace = satisfaccionesDeTarget(modelo, { tipo: "enlace", id: enlace.id });
+  const accionContorno = accionContornoDisponible(modelo, opdActivoId, enlace);
+  const resolverComoEnlace = !abanico && decisionEnlaceDisponible(modelo, enlace);
   const abrirRequisito = (requisitoEntidadId: Id) => {
     const destino = primerOpdConEntidad(modelo, requisitoEntidadId, opdActivoId);
     if (destino && destino !== opdActivoId) cambiarOpdActivo(destino);
@@ -295,7 +298,7 @@ export function InspectorEnlace({ enlace }: Props) {
                 lógica del enlace (igual que multiplicidad/modificador), por lo que
                 vive en Propiedades. Smokes 02-canvas-y-render lo asumen visible al
                 seleccionar el enlace. */}
-            <SeccionAbanico modelo={modelo} abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} />
+            <SeccionAbanico modelo={modelo} abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} onResolver={resolverDecision} />
             <SeccionGrupoEstructural
               modelo={modelo}
               opdId={opdActivoId}
@@ -327,10 +330,15 @@ export function InspectorEnlace({ enlace }: Props) {
               onAutomatico={volverEnlaceExternoDerivadoAAutomatico}
             />
             {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffect} title="Convierte el efecto en consumo + objeto intermedio + resultado">Split en par</button> : null}
-            {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffectParcial} title="Convierte el efecto en TS4/TS5 con estado no especificado">Split parcial</button> : null}
-            <button type="button" style={style.secondaryButton} onClick={recolectarContorno} title="Materializa el enlace padre en este OPD de refinamiento">Recolectar contorno</button>
-            <button type="button" style={style.secondaryButton} onClick={distribuirContorno} title="Restaura la proyección automática del enlace de contorno">Distribuir contorno</button>
-            <button type="button" style={style.secondaryButton} onClick={resolverDecision} title="Evalúa la decisión del enlace o abanico XOR seleccionado">Resolver decisión</button>
+            {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffectParcial} title="Convierte el efecto en TS4/TS5 con estado no especificado">Split TS4/TS5 parcial</button> : null}
+            {accionContorno?.tipo === "recolectar" ? (
+              <button type="button" style={style.secondaryButton} onClick={recolectarContorno} title="Materializa el enlace padre en este OPD de refinamiento">Recolectar contorno</button>
+            ) : null}
+            {accionContorno?.tipo === "distribuir" ? (
+              <button type="button" style={style.secondaryButton} onClick={distribuirContorno} title="Restaura la proyección automática del enlace externo">Distribuir contorno</button>
+            ) : null}
+            {accionContorno ? <p style={style.hint}>{accionContorno.detalle}</p> : null}
+            {resolverComoEnlace ? <button type="button" style={style.secondaryButton} onClick={resolverDecision} title="Evalúa la decisión de este enlace">Resolver decisión</button> : null}
           </>
         </FichaSeccionEnlace>
         <FichaSeccionEnlace kicker="Estilo" testid="inspector-panel-enlace-estilo">
@@ -404,6 +412,39 @@ function opdsConEnlace(modelo: Modelo, enlaceId: Id): Id[] {
     }
   }
   return ids;
+}
+
+function accionContornoDisponible(modelo: Modelo, opdId: Id, enlace: Enlace): { tipo: "recolectar" | "distribuir"; detalle: string } | null {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return null;
+  if (enlace.derivado?.tipo === "enlace-externo-refinamiento") {
+    return { tipo: "recolectar", detalle: "Este enlace es una proyección automática del contorno. Recolectar lo materializa en este OPD." };
+  }
+  const contornoId = entidadContornoDescomposicion(modelo, opdId);
+  if (!contornoId) return null;
+  const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
+  const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+  if (origenId !== contornoId && destinoId !== contornoId) return null;
+  const visibleEnPadre = Object.values(modelo.opds[opd.padreId]?.enlaces ?? {}).some((apariencia) => apariencia.enlaceId === enlace.id);
+  if (!visibleEnPadre) return null;
+  const estaVisibleEnOpd = Object.values(opd.enlaces).some((apariencia) => apariencia.enlaceId === enlace.id);
+  if (estaVisibleEnOpd) {
+    return { tipo: "distribuir", detalle: "Este enlace está materializado en el refinamiento. Distribuir restaura la proyección automática." };
+  }
+  return null;
+}
+
+function entidadContornoDescomposicion(modelo: Modelo, opdId: Id): Id | null {
+  return Object.values(modelo.opds[opdId]?.apariencias ?? {}).find((apariencia) => {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    return entidad ? obtenerRefinamiento(entidad, "descomposicion")?.opdId === opdId : false;
+  })?.entidadId ?? null;
+}
+
+function decisionEnlaceDisponible(modelo: Modelo, enlace: Enlace): boolean {
+  if (enlace.origenId.kind === "estado" || enlace.destinoId.kind === "estado") return true;
+  if (enlace.destinoId.kind !== "entidad") return false;
+  return estadosDeEntidad(modelo, enlace.destinoId.id).some((estado) => !estado.suprimido);
 }
 
 function SeccionGrupoEstructural(props: {

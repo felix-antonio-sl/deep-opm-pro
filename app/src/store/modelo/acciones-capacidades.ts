@@ -147,6 +147,20 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         set({ mensaje: "Selecciona un requisito para crear su vista" });
         return;
       }
+      const existente = opdVistaRequisito(modelo, seleccionId);
+      if (existente) {
+        set({
+          opdActivoId: existente,
+          seleccionId,
+          seleccionados: [seleccionId],
+          modoSeleccion: "simple",
+          enlaceSeleccionId: null,
+          estadoSeleccionId: null,
+          modoEnlace: null,
+          mensaje: "Vista de requisito abierta",
+        });
+        return;
+      }
       const resultado = crearRequirementView(modelo, seleccionId);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
@@ -368,4 +382,8 @@ function enlaceDerivadoEnOpd(modelo: Modelo, opdId: Id, enlacePadreId: Id): Id |
   return Object.values(opd.enlaces)
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
     .find((enlace) => enlace?.derivado?.enlacePadreId === enlacePadreId)?.id ?? null;
+}
+
+function opdVistaRequisito(modelo: Modelo, requisitoEntidadId: Id): Id | null {
+  return Object.values(modelo.opds).find((opd) => opd.vista?.kind === "requirement-view" && opd.vista.requisitoEntidadId === requisitoEntidadId)?.id ?? null;
 }

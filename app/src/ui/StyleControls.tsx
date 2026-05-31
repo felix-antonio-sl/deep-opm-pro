@@ -150,11 +150,11 @@ function Swatches(props: {
     <div style={styles.row}>
       <span style={styles.rowLabel}>{props.label}</span>
       <div style={styles.swatches}>
-        {PALETA_ESTILO_COSA.map((color) => {
+        {PALETA_ESTILO_COSA.map((color, index) => {
           const selected = props.selected?.toLowerCase() === color;
           return (
             <button
-              key={`${props.label}-${color}`}
+              key={`${props.label}-${color}-${index}`}
               type="button"
               aria-label={`${props.label} ${color}`}
               aria-pressed={selected}
@@ -244,11 +244,11 @@ function SwatchesCompact(props: {
 }) {
   return (
     <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-      {COLORS_UI.map((color) => {
+      {COLORS_UI.map((color, index) => {
         const selected = props.selected?.toLowerCase() === color;
         return (
           <button
-            key={color}
+            key={`${color}-${index}`}
             type="button"
             aria-label={`Color ${color}`}
             title={color}

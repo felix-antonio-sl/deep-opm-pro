@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { agregacionesInzoomFaltantes, esAtributoDerivado, estadosDeEntidad, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
-import type { Entidad, Id, Modelo, OrdenPartesPlegado, SatisfaccionRequisito, SubmodeloReferencia } from "../modelo/tipos";
+import type { Entidad, EstadoCargaSubmodelo, Id, Modelo, OrdenPartesPlegado, SatisfaccionRequisito, SubmodeloReferencia } from "../modelo/tipos";
 import { useInspectorEntidadViewModel } from "../app/viewmodels/inspectorEntidadViewModel";
 import { useOpmStore } from "../store";
 import { identificadorInspector } from "./inspector/identificador";
@@ -102,6 +102,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const abrirDialogoRequisito = useOpmStore((s) => s.abrirDialogoRequisito);
   const crearRequirementViewSeleccionado = useOpmStore((s) => s.crearRequirementViewSeleccionado);
   const abrirDialogoSubmodelo = useOpmStore((s) => s.abrirDialogoSubmodelo);
+  const marcarEstadoSubmodeloSeleccionado = useOpmStore((s) => s.marcarEstadoSubmodeloSeleccionado);
   const desconectarSubmodeloSeleccionado = useOpmStore((s) => s.desconectarSubmodeloSeleccionado);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const inputNombreRef = useRef<HTMLInputElement | null>(null);
@@ -263,7 +264,9 @@ export function InspectorEntidad({ entidad }: Props) {
             onSatisfacerRequisito={() => abrirDialogoRequisito("satisfacer")}
             onRequirementView={crearRequirementViewSeleccionado}
             onSubmodelo={abrirDialogoSubmodelo}
+            onEstadoSubmodelo={marcarEstadoSubmodeloSeleccionado}
             onDesconectarSubmodelo={desconectarSubmodeloSeleccionado}
+            onAbrirSubmodelo={(opdVistaId) => cambiarOpdActivo(opdVistaId)}
             onAbrirEntidad={abrirEntidadReferenciada}
             onAbrirEnlace={navegarAEnlace}
           />
@@ -314,7 +317,9 @@ function PanelExtensiones(props: {
   onSatisfacerRequisito: () => void;
   onRequirementView: () => void;
   onSubmodelo: () => void;
+  onEstadoSubmodelo: (refId: Id, estado: EstadoCargaSubmodelo) => void;
   onDesconectarSubmodelo: (refId?: Id) => void;
+  onAbrirSubmodelo: (opdVistaId: Id) => void;
   onAbrirEntidad: (entidadId: Id) => void;
   onAbrirEnlace: (enlaceId: Id) => void;
 }) {
@@ -353,22 +358,51 @@ function PanelExtensiones(props: {
         <button type="button" style={style.secondaryButton} onClick={props.onSubmodelo}>Conectar submodelo</button>
       </div>
       {props.submodelos.length > 0 ? (
-        <div style={extensionesStyles.refs}>
+        <section style={extensionesStyles.refs} data-testid="inspector-submodelos">
+          <span class="opm-label-uppercase" style={style.label}>Submodelos</span>
           {props.submodelos.map((ref) => (
             <div key={ref.id} style={extensionesStyles.refRow}>
-              <span>{ref.nombre}</span>
-              <span style={extensionesStyles.refState}>{ref.estado}</span>
+              <div style={extensionesStyles.refCopy}>
+                <span style={extensionesStyles.refName}>{ref.nombre}</span>
+                <span style={extensionesStyles.refState}>{ref.modeloId}</span>
+              </div>
+              <select
+                aria-label={`Estado de submodelo ${ref.nombre}`}
+                style={extensionesStyles.refSelect}
+                value={ref.estado}
+                disabled={ref.estado === "desconectado"}
+                onChange={(event) => props.onEstadoSubmodelo(ref.id, event.currentTarget.value as EstadoCargaSubmodelo)}
+              >
+                <option value="descargado">descargado</option>
+                <option value="cargado-sincronizado">sincronizado</option>
+                <option value="cargado-no-sincronizado">no sincronizado</option>
+                {ref.estado === "desconectado" ? <option value="desconectado">desconectado</option> : null}
+              </select>
+              {ref.opdVistaId ? (
+                <button type="button" style={extensionesStyles.inlineButton} onClick={() => props.onAbrirSubmodelo(ref.opdVistaId!)}>
+                  Abrir
+                </button>
+              ) : null}
               {ref.estado !== "desconectado" ? (
-                <button type="button" style={extensionesStyles.inlineButton} onClick={() => props.onDesconectarSubmodelo(ref.id)}>
+                <button type="button" style={extensionesStyles.inlineButton} onClick={() => confirmarDesconexionSubmodelo(ref.nombre, () => props.onDesconectarSubmodelo(ref.id))}>
                   Desconectar
                 </button>
               ) : null}
             </div>
           ))}
-        </div>
-      ) : null}
+        </section>
+      ) : (
+        <p style={style.hint}>Sin submodelo conectado a esta cosa.</p>
+      )}
     </div>
   );
+}
+
+function confirmarDesconexionSubmodelo(nombre: string, accion: () => void): void {
+  const confirmar = typeof globalThis.confirm === "function"
+    ? globalThis.confirm(`Desconectar "${nombre}" es irreversible en esta referencia. ¿Continuar?`)
+    : true;
+  if (confirmar) accion();
 }
 
 // ── Panel: Semántica ───────────────────────────────────────────────────────
@@ -629,14 +663,26 @@ const extensionesStyles = {
   refs: { display: "grid", gap: "6px" },
   refRow: {
     display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) auto auto",
+    gridTemplateColumns: "minmax(0, 1fr) minmax(112px, auto) auto auto",
     gap: "8px",
     alignItems: "center",
     color: tokens.colors.ink,
     fontFamily: tokens.typography.familyChrome,
     fontSize: "12px",
   },
+  refCopy: { display: "grid", gap: "2px", minWidth: 0 },
+  refName: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 700 },
   refState: { color: tokens.colors.ink50, fontFamily: tokens.typography.fontFamilyMono, fontSize: "10px" },
+  refSelect: {
+    minWidth: 0,
+    height: "28px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    borderRadius: tokens.radii.xs,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "11px",
+  },
   inlineButton: {
     border: 0,
     background: "transparent",

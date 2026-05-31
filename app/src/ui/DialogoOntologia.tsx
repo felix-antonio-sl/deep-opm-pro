@@ -21,6 +21,8 @@ export function DialogoOntologia() {
   const guardar = () => {
     guardarOntologia({ modo, terminos: parsearTerminos(texto) });
   };
+  const terminos = parsearTerminos(texto);
+  const totalSinonimos = terminos.reduce((total, termino) => total + (termino.sinonimos?.length ?? 0), 0);
 
   return (
     <Dialogo
@@ -41,11 +43,15 @@ export function DialogoOntologia() {
         <label style={formStyles.field}>
           <span style={formStyles.label}>Modo</span>
           <select style={formStyles.input} value={modo} onChange={(event) => setModo(event.currentTarget.value as ModoReforzamientoOntologia)}>
-            <option value="none">none</option>
-            <option value="suggest">suggest</option>
-            <option value="enforce">enforce</option>
+            <option value="none">Sin control</option>
+            <option value="suggest">Sugerir canónico</option>
+            <option value="enforce">Reforzar canónico</option>
           </select>
         </label>
+        <div style={formStyles.status} data-testid="ontologia-resumen">
+          <span style={formStyles.statusStrong}>{etiquetaModo(modo)}</span>
+          <span>{terminos.length} términos · {totalSinonimos} sinónimos</span>
+        </div>
         <label style={formStyles.stack}>
           <span style={formStyles.label}>Términos</span>
           <textarea
@@ -56,7 +62,9 @@ export function DialogoOntologia() {
             onInput={(event) => setTexto(event.currentTarget.value)}
           />
         </label>
-        <p style={formStyles.hint}>Una línea por término: canónico = sinónimo, sinónimo.</p>
+        <p style={formStyles.hint}>
+          Una línea por término: canónico = sinónimo, sinónimo. Sugerir conserva el nombre escrito; reforzar reemplaza el sinónimo por el canónico.
+        </p>
       </div>
     </Dialogo>
   );
@@ -83,6 +91,12 @@ function parsearTerminos(texto: string): TerminoOntologia[] {
     });
 }
 
+function etiquetaModo(modo: ModoReforzamientoOntologia): string {
+  if (modo === "suggest") return "Sugerir";
+  if (modo === "enforce") return "Reforzar";
+  return "Sin control";
+}
+
 const formStyles = {
   body: { display: "grid", gap: "14px", width: "100%" },
   field: { display: "grid", gridTemplateColumns: "96px minmax(0, 1fr)", alignItems: "center", gap: "10px" },
@@ -91,4 +105,6 @@ const formStyles = {
   input: { height: "32px", minWidth: 0, border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`, borderRadius: 0, padding: "0 10px", background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px" },
   textarea: { minHeight: "180px", resize: "vertical", border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`, borderRadius: 0, padding: "10px", background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", lineHeight: 1.45 },
   hint: { margin: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "12px" },
+  status: { display: "grid", gridTemplateColumns: "auto 1fr", gap: "10px", alignItems: "center", padding: "8px 10px", border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "12px" },
+  statusStrong: { color: tokens.colors.ink, fontWeight: 700 },
 } satisfies Record<string, preact.JSX.CSSProperties>;

@@ -29,7 +29,7 @@ interface Props {
 export function SeccionMetadatosOpcloud(props: Props) {
   return (
     <section style={cardStyle}>
-      <h3 style={titleStyle}>OPCloud</h3>
+      <h3 style={titleStyle}>Metadatos de enlace</h3>
       {props.enlace.tipo === "etiquetadoBidireccional" ? (
         <label style={style.field}>
           <span class="opm-label-uppercase" style={style.label}>Etiqueta inversa</span>
@@ -91,7 +91,7 @@ export function SeccionMetadatosOpcloud(props: Props) {
         </div>
       ) : null}
       <label style={style.field}>
-        <span class="opm-label-uppercase" style={style.label}>Requisitos satisfechos</span>
+        <span class="opm-label-uppercase" style={style.label}>Satisfied textual</span>
         <input
           data-testid="requisitos-enlace-input"
           placeholder="REQ-1, REQ-2"
@@ -100,6 +100,7 @@ export function SeccionMetadatosOpcloud(props: Props) {
           onInput={(event) => props.onRequisitos(event.currentTarget.value, props.mostrarRequisitos)}
         />
       </label>
+      <p style={hintStyle}>Para requisitos estructurados usa “Crear requisito vinculado” o “Vincular requisito existente”.</p>
       <label style={checkRowStyle}>
         <input
           type="checkbox"
@@ -108,7 +109,7 @@ export function SeccionMetadatosOpcloud(props: Props) {
           disabled={props.requisitos.trim().length === 0}
           onChange={(event) => props.onRequisitos(props.requisitos, event.currentTarget.checked)}
         />
-        <span>Mostrar Satisfied</span>
+        <span>Mostrar etiqueta Satisfied</span>
       </label>
     </section>
   );
@@ -158,6 +159,7 @@ function valoresTiempo(props: Props) {
 
 const cardStyle = { display: "grid", gap: "8px", marginBottom: "14px", padding: "8px", background: tokens.colors.fondoCard, border: `1px solid ${tokens.colors.bordeTabla}`, borderRadius: tokens.radii.md } satisfies preact.JSX.CSSProperties;
 const titleStyle = { margin: "0 0 8px", color: tokens.colors.textoPrimario, fontSize: "13px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;
+const hintStyle = { margin: 0, color: tokens.colors.ink50, fontSize: "11px", lineHeight: 1.4 } satisfies preact.JSX.CSSProperties;
 const grid2Style = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "8px" } satisfies preact.JSX.CSSProperties;
 const timeFieldStyle = { display: "grid", gridTemplateColumns: "1fr 78px", gap: "6px", alignItems: "end" } satisfies preact.JSX.CSSProperties;
 const checkRowStyle = { display: "flex", alignItems: "center", gap: "8px", color: tokens.colors.textoSecundario, fontSize: "12px", fontWeight: 700 } satisfies preact.JSX.CSSProperties;

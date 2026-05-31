@@ -63,10 +63,15 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
     });
     store.getState().crearRequirementViewSeleccionado();
 
-    const estado = store.getState();
+    let estado = store.getState();
+    const viewId = estado.opdActivoId;
+    store.getState().crearRequirementViewSeleccionado();
+    estado = store.getState();
     expect(estado.modelo.entidades[requisitoId]?.estereotipo).toBe("requirement");
     expect(estado.modelo.entidades[requisitoId]?.requisito).toMatchObject({ idLogico: "REQ-UX-1" });
-    expect(estado.modelo.opds[estado.opdActivoId]?.vista).toMatchObject({
+    expect(estado.opdActivoId).toBe(viewId);
+    expect(Object.values(estado.modelo.opds).filter((opd) => opd.vista?.kind === "requirement-view" && opd.vista.requisitoEntidadId === requisitoId)).toHaveLength(1);
+    expect(estado.modelo.opds[viewId]?.vista).toMatchObject({
       kind: "requirement-view",
       requisitoEntidadId: requisitoId,
       readOnly: true,
