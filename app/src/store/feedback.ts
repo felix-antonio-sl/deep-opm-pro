@@ -15,6 +15,10 @@ export interface FeedbackState {
 }
 
 let secuenciaOverlay = 0;
+// Timers de auto-expiración de flashes, indexados por id de overlay. Permite
+// cancelarlos cuando el overlay se retira antes del ttl (removeOverlay) o cuando
+// se limpia todo (clearAll), evitando timers huérfanos en sesiones largas.
+const timersFlash = new Map<string, ReturnType<typeof setTimeout>>();
 
 export const feedbackStore = createStore<FeedbackState>((set, get) => ({
   overlays: [],
@@ -30,9 +34,16 @@ export const feedbackStore = createStore<FeedbackState>((set, get) => ({
     });
   },
   removeOverlay(id) {
+    const timer = timersFlash.get(id);
+    if (timer !== undefined) {
+      globalThis.clearTimeout?.(timer);
+      timersFlash.delete(id);
+    }
     set({ overlays: get().overlays.filter((item) => item.id !== id) });
   },
   clearAll() {
+    for (const timer of timersFlash.values()) globalThis.clearTimeout?.(timer);
+    timersFlash.clear();
     set({ overlays: [] });
   },
   addInlineError(cellId, mensaje, aviso) {
@@ -58,7 +69,11 @@ export const feedbackStore = createStore<FeedbackState>((set, get) => ({
       creadoEn: Date.now(),
     };
     get().addOverlay(overlay);
-    globalThis.setTimeout?.(() => get().removeOverlay(id), ttl);
+    const timer = globalThis.setTimeout?.(() => {
+      timersFlash.delete(id);
+      get().removeOverlay(id);
+    }, ttl);
+    if (timer !== undefined) timersFlash.set(id, timer);
     return id;
   },
   sincronizarBadgesDesdeAvisos(avisos) {

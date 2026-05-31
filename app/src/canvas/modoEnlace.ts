@@ -1,7 +1,7 @@
 import { ANCLAS_RELOJ_ENLACE, esAnclaRelojEnlace, type AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import { evaluarTiposEnlacePermitidos } from "../modelo/opcionesEnlace";
 import type { Apariencia, Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
-import { tokens } from "../ui/tokens";
+import { COLORES_CANON_OPM, COLOR_HALO_FALLBACK } from "./coloresCanon";
 
 export const ANCHORS_CONEXION = ANCLAS_RELOJ_ENLACE;
 export type AnchorConexion = AnclaRelojEnlace;
@@ -81,16 +81,16 @@ export function entidadDestinoValida(
 
 export function colorHaloPorTipo(tipo: TipoEnlace): string {
   if (tipo === "agregacion" || tipo === "exhibicion" || tipo === "generalizacion" || tipo === "clasificacion") {
-    return tokens.colors.canvas.enlace;
+    return COLORES_CANON_OPM.enlace;
   }
   if (tipo === "resultado" ||
     tipo === "efecto" ||
     tipo === "invocacion" ||
     tipo === "excepcionSobretiempo" ||
     tipo === "excepcionSubtiempo" ||
-    tipo === "excepcionSubSobretiempo") return tokens.colors.canvas.proceso;
-  if (tipo === "agente" || tipo === "instrumento" || tipo === "consumo") return tokens.colors.canvas.objeto;
-  return tokens.colors.acentoUi;
+    tipo === "excepcionSubSobretiempo") return COLORES_CANON_OPM.proceso;
+  if (tipo === "agente" || tipo === "instrumento" || tipo === "consumo") return COLORES_CANON_OPM.objeto;
+  return COLOR_HALO_FALLBACK;
 }
 
 export function esAnchorConexion(valor: string | null | undefined): valor is AnchorConexion {
