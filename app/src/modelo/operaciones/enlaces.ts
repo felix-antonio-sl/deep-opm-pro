@@ -64,7 +64,7 @@ export function ajustarMultiplicidad(
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
   if (texto !== "" && !validarMultiplicidad(texto)) {
-    return fallo("Multiplicidad inválida: usa 1, +, *, 2..*, 2..N o 1..5");
+    return fallo("Multiplicidad inválida: usa 1, +, *, ?, 0..1, 2..*, 2..N o 1..5");
   }
 
   const campo = lado === "origen" ? "multiplicidadOrigen" : "multiplicidadDestino";

@@ -66,7 +66,7 @@ function fijarMultiplicidad(
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
 
   if (valor !== "" && !validarMultiplicidad(valor)) {
-    return fallo("Multiplicidad inválida: usa 1, +, *, 2..*, 2..N, 0..N o 1..5");
+    return fallo("Multiplicidad inválida: usa 1, +, *, ?, 0..1, 0..N, 2..*, 2..N o 1..5");
   }
 
   const actual = enlace[campo];
