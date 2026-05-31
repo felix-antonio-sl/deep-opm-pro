@@ -1,5 +1,6 @@
 import { useMemo } from "preact/hooks";
 import { useZustandInteractionModePort } from "../ports/zustandInteractionModePort";
+import { useZustandEditabilityPort } from "../ports/zustandEditabilityPort";
 import { useZustandModelCommandPort } from "../ports/zustandModelCommandPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
@@ -11,6 +12,7 @@ export function useToolbarCreacionViewModel() {
   const { modelo } = useZustandOpdNavigationPort();
   const { seleccionId, seleccionados } = useZustandSelectionPort();
   const { modoEnlace, modoSeleccion } = useZustandInteractionModePort();
+  const { readOnly } = useZustandEditabilityPort();
 
   // P1-4 ronda 4: si modoEnlace esta activo, el origen viene de
   // `modoEnlace.origenId` (canon SSOT del modo conectar). El destino sigue
@@ -37,7 +39,7 @@ export function useToolbarCreacionViewModel() {
     crearEnlaceEntreEntidades,
     origenMenuTipo,
     destinoMenuTipo,
-    selectorEnlaceDeshabilitado: !origenMenuTipo && !modoEnlace,
+    selectorEnlaceDeshabilitado: readOnly || (!origenMenuTipo && !modoEnlace),
   };
 }
 

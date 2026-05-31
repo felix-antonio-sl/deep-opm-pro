@@ -5,6 +5,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const seleccionId = useOpmStore((s) => s.seleccionId);
+  const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
   const seleccionados = useOpmStore((s) => s.seleccionados);
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
@@ -42,11 +43,19 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const toggleMostrarArchivados = useOpmStore((s) => s.toggleMostrarArchivados);
   const mostrarVersiones = useOpmStore((s) => s.mostrarVersiones);
   const toggleMostrarVersiones = useOpmStore((s) => s.toggleMostrarVersiones);
+  const abrirDialogoOntologia = useOpmStore((s) => s.abrirDialogoOntologia);
+  const abrirDialogoRequisito = useOpmStore((s) => s.abrirDialogoRequisito);
+  const abrirDialogoSubmodelo = useOpmStore((s) => s.abrirDialogoSubmodelo);
+  const splitEffectParcialSeleccionado = useOpmStore((s) => s.splitEffectParcialSeleccionado);
+  const recolectarEnlaceContornoSeleccionado = useOpmStore((s) => s.recolectarEnlaceContornoSeleccionado);
+  const distribuirEnlaceContornoSeleccionado = useOpmStore((s) => s.distribuirEnlaceContornoSeleccionado);
+  const resolverDecisionSeleccionada = useOpmStore((s) => s.resolverDecisionSeleccionada);
 
   return {
     modelo,
     opdActivoId,
     seleccionId,
+    enlaceSeleccionId,
     enlaceEstiloPortapapeles,
     seleccionados,
     nuevoModelo,
@@ -82,5 +91,12 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     toggleMostrarArchivados,
     mostrarVersiones,
     toggleMostrarVersiones,
+    abrirDialogoOntologia,
+    abrirDialogoRequisito,
+    abrirDialogoSubmodelo,
+    splitEffectParcialSeleccionado,
+    recolectarEnlaceContornoSeleccionado,
+    distribuirEnlaceContornoSeleccionado,
+    resolverDecisionSeleccionada,
   };
 }

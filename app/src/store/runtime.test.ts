@@ -104,6 +104,38 @@ describe("runtime effects", () => {
 });
 
 describe("runtime undo per-pestaña", () => {
+  test("commitModelo bloquea mutaciones cuando el OPD activo es una vista derivada read-only", () => {
+    const base = crearModelo();
+    const opdId = base.opdRaizId;
+    const opd = base.opds[opdId]!;
+    const modeloVista = {
+      ...base,
+      opds: {
+        ...base.opds,
+        [opdId]: {
+          ...opd,
+          vista: {
+            kind: "requirement-view" as const,
+            requisitoEntidadId: "req-control",
+            readOnly: true as const,
+          },
+        },
+      },
+    };
+    store.setState({
+      modelo: modeloVista,
+      opdActivoId: opdId,
+      readOnly: false,
+      mensaje: null,
+    });
+    const antes = exportarModelo(store.getState().modelo);
+
+    store.getState().crearObjetoDemo();
+
+    expect(exportarModelo(store.getState().modelo)).toBe(antes);
+    expect(store.getState().mensaje).toBe("Vista derivada en solo lectura. Cambia al OPD fuente para editar.");
+  });
+
   test("commit en pestaña A no contamina historial de pestaña B", () => {
     const idA = store.getState().pestanaActivaId;
     store.getState().crearObjetoDemo();

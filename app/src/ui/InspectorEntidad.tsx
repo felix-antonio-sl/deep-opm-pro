@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { agregacionesInzoomFaltantes, esAtributoDerivado, estadosDeEntidad, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
-import type { Entidad, Id, OrdenPartesPlegado } from "../modelo/tipos";
+import type { Entidad, Id, OrdenPartesPlegado, SubmodeloReferencia } from "../modelo/tipos";
 import { useInspectorEntidadViewModel } from "../app/viewmodels/inspectorEntidadViewModel";
 import { useOpmStore } from "../store";
 import { identificadorInspector } from "./inspector/identificador";
@@ -98,6 +98,10 @@ export function InspectorEntidad({ entidad }: Props) {
   // resto del viewmodel).
   const solicitarFocusNombre = useOpmStore((s) => s.solicitarFocusNombre);
   const consumirFocusNombre = useOpmStore((s) => s.consumirFocusNombre);
+  const abrirDialogoRequisito = useOpmStore((s) => s.abrirDialogoRequisito);
+  const crearRequirementViewSeleccionado = useOpmStore((s) => s.crearRequirementViewSeleccionado);
+  const abrirDialogoSubmodelo = useOpmStore((s) => s.abrirDialogoSubmodelo);
+  const desconectarSubmodeloSeleccionado = useOpmStore((s) => s.desconectarSubmodeloSeleccionado);
   const inputNombreRef = useRef<HTMLInputElement | null>(null);
   const aparienciaActiva = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === entidad.id);
   const partesPlegables = partesDePlegado(modelo, entidad.id);
@@ -116,6 +120,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const atributoDerivado = entidad.tipo === "objeto" && esAtributoDerivado(modelo, entidad.id);
   const autoInvocacion = entidad.tipo === "proceso" ? autoInvocacionDeProceso(modelo, opdActivoId, entidad.id) : undefined;
   const cobertura = coberturaApariencias(modelo, entidad.id);
+  const submodelosEntidad = Object.values(modelo.submodelos ?? {}).filter((ref) => ref.anchorEntidadId === entidad.id);
 
   // L4 ronda 23 (#15): consume la señal `solicitarFocusNombre` cuando la
   // entidad montada coincide. Default brutal: enfoca y selecciona el texto
@@ -237,6 +242,18 @@ export function InspectorEntidad({ entidad }: Props) {
             onTraerAgregacionesInzoomFaltantes={traerAgregacionesInzoom}
           />
         </FichaSeccion>
+        <FichaSeccion kicker="Extensiones" testid="inspector-panel-extensiones">
+          <PanelExtensiones
+            entidad={entidad}
+            submodelos={submodelosEntidad}
+            onCrearRequisito={() => abrirDialogoRequisito("crear")}
+            onMarcarRequisito={() => abrirDialogoRequisito("marcar")}
+            onSatisfacerRequisito={() => abrirDialogoRequisito("satisfacer")}
+            onRequirementView={crearRequirementViewSeleccionado}
+            onSubmodelo={abrirDialogoSubmodelo}
+            onDesconectarSubmodelo={desconectarSubmodeloSeleccionado}
+          />
+        </FichaSeccion>
         <FichaSeccion kicker="Apariciones" testid="inspector-panel-apariciones">
           <SeccionApariciones
             modelo={modelo}
@@ -269,6 +286,54 @@ export function InspectorEntidad({ entidad }: Props) {
         </FichaSeccion>
       </div>
     </>
+  );
+}
+
+function PanelExtensiones(props: {
+  entidad: Entidad;
+  submodelos: readonly SubmodeloReferencia[];
+  onCrearRequisito: () => void;
+  onMarcarRequisito: () => void;
+  onSatisfacerRequisito: () => void;
+  onRequirementView: () => void;
+  onSubmodelo: () => void;
+  onDesconectarSubmodelo: (refId?: Id) => void;
+}) {
+  const requisito = props.entidad.requisito;
+  return (
+    <div style={extensionesStyles.body}>
+      {props.entidad.estereotipo === "requirement" && requisito ? (
+        <div style={extensionesStyles.meta}>
+          <span style={extensionesStyles.metaStrong}>{requisito.idLogico}</span>
+          <span>{requisito.dureza}</span>
+          <span>{requisito.satisfaction ?? "pendiente"}</span>
+        </div>
+      ) : (
+        <p style={style.hint}>Extensiones de producto declaradas: requisitos y submodelos.</p>
+      )}
+      <div style={extensionesStyles.actions}>
+        <button type="button" style={style.secondaryButton} onClick={props.onCrearRequisito}>Crear requisito</button>
+        <button type="button" style={style.secondaryButton} onClick={props.onMarcarRequisito} disabled={props.entidad.tipo !== "objeto"}>Marcar como requisito</button>
+        <button type="button" style={style.secondaryButton} onClick={props.onSatisfacerRequisito}>Satisfacer requisito</button>
+        <button type="button" style={style.secondaryButton} onClick={props.onRequirementView} disabled={props.entidad.estereotipo !== "requirement"}>Vista de requisito</button>
+        <button type="button" style={style.secondaryButton} onClick={props.onSubmodelo}>Conectar submodelo</button>
+      </div>
+      {props.submodelos.length > 0 ? (
+        <div style={extensionesStyles.refs}>
+          {props.submodelos.map((ref) => (
+            <div key={ref.id} style={extensionesStyles.refRow}>
+              <span>{ref.nombre}</span>
+              <span style={extensionesStyles.refState}>{ref.estado}</span>
+              {ref.estado !== "desconectado" ? (
+                <button type="button" style={extensionesStyles.inlineButton} onClick={() => props.onDesconectarSubmodelo(ref.id)}>
+                  Desconectar
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -510,6 +575,43 @@ function PanelEstilo(props: PanelEstiloProps) {
 
 const advancedStyles = {
   section: { display: "grid", gap: "8px", marginBottom: "14px" },
+} satisfies Record<string, preact.JSX.CSSProperties>;
+
+const extensionesStyles = {
+  body: { display: "grid", gap: "10px" },
+  actions: { display: "grid", gap: "6px" },
+  meta: {
+    display: "grid",
+    gridTemplateColumns: "1fr auto auto",
+    gap: "8px",
+    alignItems: "center",
+    padding: "8px 10px",
+    border: `1px solid ${tokens.colors.ink15}`,
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "12px",
+  },
+  metaStrong: { color: tokens.colors.ink, fontWeight: 700 },
+  refs: { display: "grid", gap: "6px" },
+  refRow: {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr) auto auto",
+    gap: "8px",
+    alignItems: "center",
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "12px",
+  },
+  refState: { color: tokens.colors.ink50, fontFamily: tokens.typography.fontFamilyMono, fontSize: "10px" },
+  inlineButton: {
+    border: 0,
+    background: "transparent",
+    color: tokens.colors.accentDark,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "12px",
+    cursor: "pointer",
+    padding: 0,
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;
 
 const atributoCtaStyles = {

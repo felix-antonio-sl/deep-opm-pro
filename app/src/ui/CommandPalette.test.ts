@@ -183,9 +183,33 @@ describe("CommandPalette", () => {
     expect(renombrar?.label).toBe("Renombrar modelo");
     expect(renombrar ? seccionVisualCommandPalette(renombrar) : null).toBe("MODELO");
   });
+
+  test("expone capacidades OPCloud isomorfas como comandos canónicos", () => {
+    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu({
+      hayEntidadSeleccionada: true,
+      hayEnlaceSeleccionado: true,
+    }));
+    const items = construirItemsCommandPalette([], [], acciones);
+
+    expect(filtrarItemsCommandPalette(items, "ontologia canon sinonimo").map((i) => i.menuActionId)).toContain("configurar-ontologia");
+    expect(filtrarItemsCommandPalette(items, "requisito").map((i) => i.menuActionId)).toEqual(expect.arrayContaining([
+      "crear-requisito",
+      "marcar-requisito",
+      "satisfacer-requisito",
+    ]));
+    expect(filtrarItemsCommandPalette(items, "submodelo").map((i) => i.menuActionId)).toContain("conectar-submodelo");
+    expect(filtrarItemsCommandPalette(items, "contorno").map((i) => i.menuActionId)).toEqual(expect.arrayContaining([
+      "recolectar-contorno",
+      "distribuir-contorno",
+    ]));
+    expect(filtrarItemsCommandPalette(items, "split parcial").map((i) => i.menuActionId)).toContain("split-parcial");
+    expect(filtrarItemsCommandPalette(items, "decision").map((i) => i.menuActionId)).toContain("resolver-decision");
+  });
 });
 
-function depsAccionesMenu(): Parameters<typeof construirAccionesMenuCommandPalette>[0] {
+function depsAccionesMenu(
+  overrides: Partial<Parameters<typeof construirAccionesMenuCommandPalette>[0]> = {},
+): Parameters<typeof construirAccionesMenuCommandPalette>[0] {
   return {
     nuevoModelo: () => {},
     abrirCargarModelo: () => {},
@@ -222,5 +246,17 @@ function depsAccionesMenu(): Parameters<typeof construirAccionesMenuCommandPalet
     mostrarVersiones: false,
     abrirCapturadorBug: () => {},
     abrirBugLedger: () => {},
+    abrirDialogoOntologia: () => {},
+    abrirCrearRequisito: () => {},
+    abrirMarcarRequisito: () => {},
+    abrirSatisfacerRequisito: () => {},
+    abrirDialogoSubmodelo: () => {},
+    splitEffectParcial: () => {},
+    recolectarContorno: () => {},
+    distribuirContorno: () => {},
+    resolverDecision: () => {},
+    hayEntidadSeleccionada: false,
+    hayEnlaceSeleccionado: false,
+    ...overrides,
   };
 }

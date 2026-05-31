@@ -3,6 +3,7 @@ import { useZustandHistoryPort } from "../ports/zustandHistoryPort";
 import { useZustandInteractionModePort } from "../ports/zustandInteractionModePort";
 import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
 import { useZustandModelCreationPort } from "../ports/zustandModelCreationPort";
+import { useZustandEditabilityPort } from "../ports/zustandEditabilityPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandPersistencePort } from "../ports/zustandPersistencePort";
 import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
@@ -45,6 +46,7 @@ export function useToolbarBaseViewModel() {
     borrarEnlacesEnLote,
   } = useZustandLinkContextActionsPort();
   const { iniciarAutosalvado } = useZustandAutosavePort();
+  const { readOnly } = useZustandEditabilityPort();
   const persistencia = useZustandPersistencePort();
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
   const { modoEnlace } = useZustandInteractionModePort();
@@ -85,6 +87,7 @@ export function useToolbarBaseViewModel() {
     alinearSeleccion,
     distribuirSeleccion,
     alinearSeleccionEnlaces,
+    readOnly,
     persistencia,
   };
 }

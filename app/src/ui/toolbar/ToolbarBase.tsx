@@ -150,6 +150,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
     conectarSeleccionAlTodo,
     iniciarAutosalvado,
     modoCreacion,
+    readOnly,
     agregarEstadoSmart,
     persistencia,
   } = useToolbarBaseViewModel();
@@ -233,7 +234,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
   }, [canvasAdapter, seleccionarEntidad]);
 
   const entidadSeleccionada = seleccionId ? modelo.entidades[seleccionId] : undefined;
-  const puedeCrearAtributo = entidadSeleccionada?.tipo === "objeto";
+  const puedeCrearAtributo = !readOnly && entidadSeleccionada?.tipo === "objeto";
   const todoMultiSeleccion = seleccionados.length >= 2 ? seleccionados[seleccionados.length - 1] : null;
   // Codex v1.1 mecanico: Relación queda visible como creador inline; si no
   // hay origen seleccionable, ToolbarCreacion conserva el disabled accesible.
@@ -253,6 +254,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
     abrirDialogoComandos();
   }
   function handleCrearObjeto(event: MouseEvent) {
+    if (readOnly) return;
     if (event.shiftKey) {
       fijarModoCreacion(modoCreacion === "objeto" ? null : "objeto");
       return;
@@ -260,6 +262,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
     crearObjeto();
   }
   function handleCrearProceso(event: MouseEvent) {
+    if (readOnly) return;
     if (event.shiftKey) {
       fijarModoCreacion(modoCreacion === "proceso" ? null : "proceso");
       return;
@@ -327,6 +330,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
         {/* Ronda Codex v1.1: estado de persistencia inline, sin chip/caja. */}
         <ToolbarPersistenceStatus persistencia={persistencia} />
         {statusSlot ?? null}
+        {readOnly ? <span style={style.readOnlyBadge} data-testid="toolbar-readonly">solo lectura</span> : null}
       </div>
       {esMobile ? null : (
       <div style={style.actions} data-testid="toolbar-actions-pesadas">
@@ -340,11 +344,12 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
             active={modoCreacion === "objeto"}
             ariaPressed={modoCreacion === "objeto"}
             className={modoCreacion === "objeto" ? "boton-toolbar-activo" : undefined}
+            disabled={readOnly}
             onClick={handleCrearObjeto}
             draggable
             onDragStart={dragToolbar("objeto")}
             testId="toolbar-drag-objeto"
-            title={modoCreacion === "objeto" ? "Inserción continua de objetos activa · Shift+clic para salir" : "Crear objeto · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}
+            title={readOnly ? "Vista derivada en solo lectura" : modoCreacion === "objeto" ? "Inserción continua de objetos activa · Shift+clic para salir" : "Crear objeto · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}
           />
           <ToolbarActionButton
             glyph={<GlyphProceso />}
@@ -354,11 +359,12 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
             active={modoCreacion === "proceso"}
             ariaPressed={modoCreacion === "proceso"}
             className={modoCreacion === "proceso" ? "boton-toolbar-activo" : undefined}
+            disabled={readOnly}
             onClick={handleCrearProceso}
             draggable
             onDragStart={dragToolbar("proceso")}
             testId="toolbar-drag-proceso"
-            title={modoCreacion === "proceso" ? "Inserción continua de procesos activa · Shift+clic para salir" : "Crear proceso · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}
+            title={readOnly ? "Vista derivada en solo lectura" : modoCreacion === "proceso" ? "Inserción continua de procesos activa · Shift+clic para salir" : "Crear proceso · arrastra al canvas, clic para insertar o Shift+clic para inserción continua"}
           />
           <ToolbarActionButton
             glyph={<GlyphEstado />}

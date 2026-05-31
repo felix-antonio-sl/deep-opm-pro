@@ -14,6 +14,8 @@ export interface ContextualActionExecutionSnapshot {
   quitarDescomposicionSeleccionada: () => void;
   quitarDespliegueSeleccionado: () => void;
   abrirModalImagen: (entidadId: Id) => void;
+  abrirDialogoRequisito: (modo: "crear" | "marcar" | "satisfacer") => void;
+  abrirDialogoSubmodelo: () => void;
   eliminarSeleccion: () => void;
   conectarSeleccionAlTodo: (todoId: Id, tipo: "agregacion") => void;
   alinearSeleccion: (eje: "izq") => void;

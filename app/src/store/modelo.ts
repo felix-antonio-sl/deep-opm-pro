@@ -1,6 +1,7 @@
 import { crearPestanaNueva } from "./pestanas";
 import type { CrearSlice, ModeloSlice } from "./tipos";
 import { accionesCanvas } from "./modelo/acciones-canvas";
+import { accionesCapacidades } from "./modelo/acciones-capacidades";
 import { accionesEnlace } from "./modelo/acciones-enlace";
 import { accionesEntidad } from "./modelo/acciones-entidad";
 import { accionesEstados } from "./modelo/acciones-estados";
@@ -44,6 +45,7 @@ export const createModeloSlice: CrearSlice<ModeloSlice> = (set, get) => ({
   ...accionesEstados(set, get),
   ...accionesOpd(set, get),
   ...accionesEnlace(set, get),
+  ...accionesCapacidades(set, get),
   ...accionesCanvas(set, get),
   ...accionesUI(set, get),
 } as ModeloSlice);

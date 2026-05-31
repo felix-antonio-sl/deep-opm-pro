@@ -153,4 +153,21 @@ describe("accionesContextualesEntidad", () => {
     expect(palette).toContain("editar-alias");
     expect(acciones.find((accion) => accion.id === "editar-alias")?.enabled).toBe(true);
   });
+
+  test("expone requisitos y submodelos sólo en menú contextual canónico", () => {
+    const acciones = accionesContextualesEntidad({
+      entidad: objeto,
+      enlaceEstiloId: null,
+      hayEstiloEnPortapapeles: false,
+      inspectorAbierto: false,
+      multi: false,
+    });
+    const menu = ids(accionesParaSuperficie(acciones, "menu-contextual"));
+    const palette = ids(accionesParaSuperficie(acciones, "command-palette"));
+
+    expect(menu).toEqual(expect.arrayContaining(["marcar-requisito", "satisfacer-requisito", "conectar-submodelo"]));
+    expect(palette).not.toContain("marcar-requisito");
+    expect(palette).not.toContain("satisfacer-requisito");
+    expect(palette).not.toContain("conectar-submodelo");
+  });
 });

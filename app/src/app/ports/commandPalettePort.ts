@@ -5,6 +5,7 @@ export interface CommandPaletteContextPort {
   modelo: Modelo;
   opdActivoId: Id;
   seleccionId: Id | null;
+  enlaceSeleccionId: Id | null;
   enlaceEstiloPortapapeles: EnlaceEstilo | null;
   seleccionados: Id[];
 }
@@ -31,6 +32,13 @@ export interface CommandPaletteMenuExtrasPort {
   toggleMostrarArchivados: () => void;
   mostrarVersiones: boolean;
   toggleMostrarVersiones: () => void;
+  abrirDialogoOntologia: () => void;
+  abrirDialogoRequisito: (modo: "crear" | "marcar" | "satisfacer") => void;
+  abrirDialogoSubmodelo: () => void;
+  splitEffectParcialSeleccionado: () => void;
+  recolectarEnlaceContornoSeleccionado: () => void;
+  distribuirEnlaceContornoSeleccionado: () => void;
+  resolverDecisionSeleccionada: () => void;
 }
 
 export interface CommandPaletteWorkspacePort {

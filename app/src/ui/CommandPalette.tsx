@@ -64,8 +64,17 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "guardar-como": "MODELO",
   "abrir-pestana": "MODELO",
   configuracion: "MODELO",
+  "configurar-ontologia": "MODELO",
   "renombrar-modelo": "MODELO",
   "versiones-modelo": "MODELO",
+  "crear-requisito": "CREAR",
+  "marcar-requisito": "CREAR",
+  "satisfacer-requisito": "CREAR",
+  "conectar-submodelo": "CREAR",
+  "split-parcial": "CREAR",
+  "recolectar-contorno": "CREAR",
+  "distribuir-contorno": "CREAR",
+  "resolver-decision": "VISTA",
   "buscar-modelo": "NAVEGAR",
   "buscar-workspace": "NAVEGAR",
   "exportar-json": "EXPORTAR",
@@ -99,6 +108,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     modelo,
     opdActivoId,
     seleccionId,
+    enlaceSeleccionId,
     enlaceEstiloPortapapeles,
     seleccionados,
     nuevoModelo,
@@ -134,6 +144,13 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     toggleMostrarArchivados,
     mostrarVersiones,
     toggleMostrarVersiones,
+    abrirDialogoOntologia,
+    abrirDialogoRequisito,
+    abrirDialogoSubmodelo,
+    splitEffectParcialSeleccionado,
+    recolectarEnlaceContornoSeleccionado,
+    distribuirEnlaceContornoSeleccionado,
+    resolverDecisionSeleccionada,
   } = useCommandPaletteViewModel();
 
   const objetoSeleccionadoId = seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? seleccionId : null;
@@ -154,6 +171,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirCargarModelo,
     abrirGuardarComo,
     abrirDialogoConfiguracion,
+    abrirDialogoOntologia,
     abrirDialogoVersiones: modeloPersistidoId ? () => abrirDialogoVersiones(modeloPersistidoId) : null,
     modeloPersistidoId,
     toggleGrid,
@@ -185,6 +203,16 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     mostrarVersiones,
     abrirCapturadorBug: () => emitirEventoBugCapture("opforja:bug-capture:open"),
     abrirBugLedger: () => emitirEventoBugCapture("opforja:bug-ledger:open"),
+    abrirCrearRequisito: () => abrirDialogoRequisito("crear"),
+    abrirMarcarRequisito: () => abrirDialogoRequisito("marcar"),
+    abrirSatisfacerRequisito: () => abrirDialogoRequisito("satisfacer"),
+    abrirDialogoSubmodelo,
+    splitEffectParcial: splitEffectParcialSeleccionado,
+    recolectarContorno: recolectarEnlaceContornoSeleccionado,
+    distribuirContorno: distribuirEnlaceContornoSeleccionado,
+    resolverDecision: resolverDecisionSeleccionada,
+    hayEntidadSeleccionada: !!seleccionId,
+    hayEnlaceSeleccionado: !!enlaceSeleccionId,
   });
   const registros = listarAtajos();
   const items = filtrarItemsCommandPalette(
@@ -427,6 +455,7 @@ interface AccionesMenuCommandPaletteDeps {
   abrirCargarModelo: () => void;
   abrirGuardarComo: () => void;
   abrirDialogoConfiguracion: () => void;
+  abrirDialogoOntologia: () => void;
   abrirDialogoVersiones: (() => void) | null;
   modeloPersistidoId: string | null;
   toggleGrid: () => void;
@@ -458,6 +487,16 @@ interface AccionesMenuCommandPaletteDeps {
   mostrarVersiones: boolean;
   abrirCapturadorBug: () => void;
   abrirBugLedger: () => void;
+  abrirCrearRequisito: () => void;
+  abrirMarcarRequisito: () => void;
+  abrirSatisfacerRequisito: () => void;
+  abrirDialogoSubmodelo: () => void;
+  splitEffectParcial: () => void;
+  recolectarContorno: () => void;
+  distribuirContorno: () => void;
+  resolverDecision: () => void;
+  hayEntidadSeleccionada: boolean;
+  hayEnlaceSeleccionado: boolean;
 }
 
 export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDeps): CommandPaletteMenuAction[] {
@@ -467,8 +506,17 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "guardar-como", label: "Guardar como", descripcion: "Guardar una copia editable del modelo", categoria: "archivo", run: deps.abrirGuardarComo },
     { id: "abrir-pestana", label: "Abrir como pestaña", descripcion: "Duplicar el modelo actual en una pestaña adicional", categoria: "archivo", atajo: "Ctrl+T", run: deps.abrirPestanaNueva },
     { id: "configuracion", label: "Configuración", descripcion: "Ajustar preferencias del modelo y cuadrícula", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
+    { id: "configurar-ontologia", label: "Configurar ontología", descripcion: "Editar canon, sinónimos y modo none/suggest/enforce", categoria: "archivo", run: deps.abrirDialogoOntologia },
     { id: "renombrar-modelo", label: "Renombrar modelo", descripcion: "Cambiar el nombre del modelo activo", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
     { id: "versiones-modelo", label: "Versiones del modelo", descripcion: "Abrir el historial de versiones del modelo", categoria: "archivo", enabled: !!deps.abrirDialogoVersiones, run: deps.abrirDialogoVersiones ?? (() => {}) },
+    { id: "crear-requisito", label: "Crear requisito", descripcion: "Crear un objeto <<Requirement>> estructurado", categoria: "edicion", run: deps.abrirCrearRequisito },
+    { id: "marcar-requisito", label: "Marcar como requisito", descripcion: "Convertir el objeto seleccionado en <<Requirement>>", categoria: "edicion", enabled: deps.hayEntidadSeleccionada, run: deps.abrirMarcarRequisito },
+    { id: "satisfacer-requisito", label: "Satisfacer requisito", descripcion: "Vincular un requisito a la selección actual", categoria: "edicion", enabled: deps.hayEntidadSeleccionada || deps.hayEnlaceSeleccionado, run: deps.abrirSatisfacerRequisito },
+    { id: "conectar-submodelo", label: "Conectar submodelo", descripcion: "Crear referencia LF-04 desde la cosa seleccionada", categoria: "refinamiento", enabled: deps.hayEntidadSeleccionada, run: deps.abrirDialogoSubmodelo },
+    { id: "split-parcial", label: "Split parcial TS4/TS5", descripcion: "Convertir un efecto con un estado no especificado en split parcial", categoria: "edicion", enabled: deps.hayEnlaceSeleccionado, run: deps.splitEffectParcial },
+    { id: "recolectar-contorno", label: "Recolectar enlace de contorno", descripcion: "Materializar el enlace padre en el OPD de refinamiento", categoria: "refinamiento", enabled: deps.hayEnlaceSeleccionado, run: deps.recolectarContorno },
+    { id: "distribuir-contorno", label: "Distribuir enlace de contorno", descripcion: "Restaurar la proyección automática del enlace externo", categoria: "refinamiento", enabled: deps.hayEnlaceSeleccionado, run: deps.distribuirContorno },
+    { id: "resolver-decision", label: "Resolver decisión XOR", descripcion: "Evaluar la política de decisión del enlace o abanico seleccionado", categoria: "vista", enabled: deps.hayEnlaceSeleccionado, run: deps.resolverDecision },
     { id: "buscar-modelo", label: "Buscar en el modelo", descripcion: "Buscar objetos y procesos por nombre en el modelo activo", categoria: "navegacion", atajo: "Ctrl+F", run: deps.abrirBusquedaCosas },
     { id: "buscar-workspace", label: "Buscar en el workspace", descripcion: "Buscar en todos los modelos guardados del workspace", categoria: "navegacion", atajo: "Ctrl+Shift+F", run: deps.abrirBusquedaGlobal },
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },

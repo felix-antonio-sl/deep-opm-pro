@@ -55,6 +55,18 @@ export function ejecutarAccionContextualEntidad(
       if (entidad?.tipo !== "objeto") return excepcional(accionId, "Editar imagen requiere un objeto seleccionado.");
       state.abrirModalImagen(entidad.id);
       return normal(accionId);
+    case "marcar-requisito":
+      if (entidad?.tipo !== "objeto") return excepcional(accionId, "Marcar requisito requiere un objeto seleccionado.");
+      state.abrirDialogoRequisito("marcar");
+      return normal(accionId);
+    case "satisfacer-requisito":
+      if (!entidad) return excepcional(accionId, "Satisfacer requisito requiere una cosa seleccionada.");
+      state.abrirDialogoRequisito("satisfacer");
+      return normal(accionId);
+    case "conectar-submodelo":
+      if (!entidad) return excepcional(accionId, "Conectar submodelo requiere una cosa seleccionada.");
+      state.abrirDialogoSubmodelo();
+      return normal(accionId);
     case "eliminar-seleccion":
       if (state.seleccionados.length === 0 && !state.seleccionId && !state.enlaceSeleccionId) return excepcional(accionId, "No hay selección para eliminar.");
       state.eliminarSeleccion();

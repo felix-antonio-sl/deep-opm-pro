@@ -1,39 +1,34 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-31 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commits de producto (sesión 2026-05-31)**: `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado. **Desplegado** (`docker compose up -d --build`): entry bundle `index-DWseXsaH.js`. Previo ya en `origin/main`: `e5ff438` exportador de diagnóstico a JSON. Cortes anteriores: `59ad3a9` D1 esencia/afiliación combinada; ronda atajos/inspector/simulación.
+**Commits de producto (sesión 2026-05-31)**: commit de este corte para UX/UI canónica de capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado. **Desplegado** (`docker compose up -d --build`): entry bundle `index-DWseXsaH.js`. Previo ya en `origin/main`: `e5ff438` exportador de diagnóstico a JSON. Cortes anteriores: `59ad3a9` D1 esencia/afiliación combinada; ronda atajos/inspector/simulación.
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo `index-DWseXsaH.js`.
 
-## Corte actual — Núcleo canónico para capacidades OPCloud aspiracionales (sin UX/UI completa)
+## Corte actual — UX/UI canónica para capacidades OPCloud aspiracionales
 
-**Estado:** implementado a nivel de **kernel de dominio, serialización JSON, parser OPL inverso y tests**. **No está implementado todo a nivel UX/UI**: no hay todavía superficie completa para configurar ontología, gestionar requisitos, conectar submodelos, ni resolver/distribuir desde controles de producto. La decisión vigente es construir una función **isomorfa** a OPCloud, no copiar sus gestos: OPCloud es evidencia observacional; la autoridad semántica sigue siendo `docs/canon-opm/reglas-opm-estrictas.md` y la bidireccionalidad OPL se rige por `docs/canon-opm/spec-forja-opl.md`.
+**Estado:** el corte pasa de "kernel sin UX/UI completa" a **superficie UX/UI base implementada en op-forja** para las capacidades objetivo, manteniendo función **isomorfa** y no gestos copiados de OPCloud. La decisión vigente se mantiene: OPCloud es evidencia observacional; la autoridad semántica sigue siendo `docs/canon-opm/reglas-opm-estrictas.md`, OPL sigue `docs/canon-opm/spec-forja-opl.md`, y la interacción de producto se resuelve con patrón op-forja: **runtime/store primero, command palette, inspector y menú contextual**.
 
-**Capacidades disponibles en dominio:**
-- **Distribuir/recolectar enlace de contorno:** operaciones puras `distribuirEnlaceExternoEnRefinamiento` y `recolectarEnlaceExternoEnRefinamiento` sobre refinamientos existentes. Recolectar quita derivados automáticos del OPD hijo y materializa el enlace padre; distribuir resincroniza la proyección derivada.
-- **Decisión XOR en 4 formas:** `resolverDecisionEnlace`, `resolverDecisionAbanico` y `resolverDecisionConPolicy` soportan estado fijo, uniforme 50/50 sobre estados de objeto, probabilidades explícitas y función registrada en runtime. No se serializa código de usuario; solo `funcionId`.
-- **Split TS4/TS5 parcial:** `splitEffectParcial` convierte un efecto TS3 con exactamente un estado no especificado en efecto standalone `Estado -> Proceso` o `Proceso -> Estado`; el parser OPL inverso interpreta `cambia X de estado` / `cambia X a estado` como efecto parcial, no como consumo/resultado.
-- **Ontología organizacional:** `OntologiaOrganizacional` con modos `none/suggest/enforce`; `suggest` informa canon/alias y `enforce` canoniza creación/renombrado de entidades desde operaciones puras.
-- **Requisitos estructurados:** objetos `<<Requirement>>` con `idLogico`, descripción, `hard/soft`, actor y satisfacción; `satisfacerRequisito` crea un set estructurado y mantiene compatibilidad con `Enlace.requisitos` legacy cuando el target es un enlace. `crearRequirementView` genera OPD read-only derivado por metadata.
-- **Submodelo LF-04 base:** `conectarSubmodelo`, `marcarEstadoSubmodelo`, `desconectarSubmodelo` y `registrarPadreSubmodelo` modelan referencia padre/hijo, OPD vista read-only y estados `descargado / cargado-sincronizado / cargado-no-sincronizado / desconectado`.
+**Decisiones UX/UI aplicadas:**
+- **Read-only por `opd.vista`:** `commitModelo` bloquea cualquier mutación cuando el OPD activo es una vista derivada `readOnly`; el puerto de editabilidad lo refleja en UI; la toolbar deshabilita creadores y muestra badge `solo lectura`. Las acciones que aún pueden abrir un diálogo caen igualmente en el bloqueo centralizado del store.
+- **Ontología organizacional:** comando "Configurar ontología" en paleta abre un diálogo plano Codex para editar modo `none/suggest/enforce` y términos `canónico = sinónimo, sinónimo`; persiste con `definirOntologiaOrganizacional`.
+- **Requisitos estructurados:** paleta, inspector y menú contextual permiten crear `<<Requirement>>`, marcar objeto existente, satisfacer requisito desde cosa/enlace y crear requirement view read-only.
+- **Submodelos LF-04:** paleta, inspector y menú contextual conectan un submodelo desde la cosa seleccionada; el inspector lista referencias y permite desconectar. La acción crea vista read-only pero conserva la edición en el OPD padre.
+- **Distribuir/recolectar contorno y split TS4/TS5 parcial:** expuestos como comandos de paleta e inspector de enlace; no se replica el gesto de arrastre OPCloud.
+- **Resolver decisión XOR:** comando de paleta e inspector de enlace evalúan la política de decisión existente (`estado`, uniforme 50/50, porcentajes o función registrada).
 
-**Artefactos principales:** tipos en `app/src/modelo/tipos/extensiones.ts`; operaciones en `app/src/modelo/{ontologia,requisitos,submodelos,decision}.ts`; refinamiento en `app/src/modelo/operaciones/refinamiento/proyeccion.ts`; split en `app/src/modelo/operaciones/eliminacion.ts`; parser OPL en `app/src/opl/parser/{parsear,planificar,aplicar,tipos}.ts`; validadores JSON en `app/src/serializacion/{json,validarEnlaces,validarEntidades,validarIntegridad,validarNormalizacion,validarOpds}.ts`; pruebas en `app/src/modelo/capacidadesOpcloud.test.ts` y `app/src/opl/parser/ts45.test.ts`.
+**Artefactos principales nuevos/modificados:** `app/src/store/modelo/acciones-capacidades.ts`; `app/src/store/{modelo,tipos,runtime}.ts`; puertos/viewmodels en `app/src/app/{ports,viewmodels}`; diálogos `app/src/ui/Dialogo{Ontologia,Requisito,Submodelo}.tsx`; superficies `app/src/ui/{CommandPalette,InspectorEntidad,InspectorEnlace,MenuContextualEntidad,ToolbarBase}.tsx`; ejecución contextual `app/src/ui/ejecutarAccionContextual.ts`; pruebas `app/src/store/capacidadesOpcloudUi.test.ts`, `app/src/store/runtime.test.ts`, `app/src/store/acciones-contextuales.test.ts`, `app/src/ui/CommandPalette.test.ts`.
 
-**Verificación:** `bun run check` -> **1789 pass / 0 fail**; `bun run lint` -> OK; `bun run build` -> OK; `git diff --check` -> OK.
+**Verificación del corte UX/UI:** `cd app && bun run check` -> **1798 pass / 0 fail**; `bun run lint` -> OK; `bun run design:governance` -> OK; `bun run build` -> OK; `git diff --check -- app/src docs/HANDOFF.md` -> OK.
 
-**Handoff explícito / pendientes UX/UI:**
-- Diseñar la interacción propia de op-forja para estas capacidades. No replicar doble-clic/drag exacto de OPCloud salvo que encaje con `ui-forja`; buscar equivalencia funcional, comandos claros, inspector/paleta cuando sea más canónico.
-- Cablear store/UI para ontología: editor de términos, modo `none/suggest/enforce`, feedback de sugerencia y confirmación cuando no sea enforcement.
-- Exponer requisitos: crear requisito, marcar entidad existente como requisito, asignar satisfacción a entidades/enlaces y navegar requirement views como vistas derivadas read-only.
-- Exponer submodelos: conectar desde una cosa mínima, mostrar estado de carga/sync, cargar/descargar, señalizar compartidas transparentes y confirmar desconexión irreversible. El lazy-load multiarchivo todavía no existe.
-- Exponer distribución/recolección de contorno y split parcial como comandos contextuales o acciones de inspector. El gesto OPCloud de arrastrar no es requisito; la función debe ser equivalente.
-- Enforce read-only por `opd.vista` en store/UI. Hoy queda representado y validado en modelo/JSON; la UI todavía debe bloquear edición por vista.
+**Handoff explícito / pendientes reales:**
+- No afirmar "UX/UI completa OPCloud": la cobertura actual es la superficie canónica mínima de op-forja. Faltan edición avanzada y feedback inline para sugerencias de ontología en modo `suggest`.
+- Requirement views y submodel views siguen siendo vistas derivadas simples/snapshots read-only; falta refresh incremental dedicado y navegación/gestión más rica.
+- Submodelo LF-04 aún no implementa lazy-load multiarchivo real, rendering transparente de compartidas, ni confirmación modal específica para desconexión irreversible.
+- Decisión XOR tiene resolución UI, pero no editor visual completo de las cuatro policies; la policy `funcion` depende del registry runtime y falla explícitamente si no existe.
+- Distribución/recolección y split parcial están en inspector/paleta; si se quiere menú contextual de enlace dedicado, hacerlo como adaptación op-forja, no como copia de gesto OPCloud.
+- Worktree sigue mezclado con cambios previos ajenos en `docs/bugs/**`, borrados de docs y auditorías sin versionar; no forman parte de este corte ni deben stagearse.
 
-**Supuestos y riesgos:**
-- Los nuevos campos son opcionales y aditivos; modelos previos hidratan sin migración manual.
-- `DecisionPolicy.modo="funcion"` depende de un registry en runtime; si no se registra la función, el resolver falla explícitamente.
-- Requirement views y submodel views son snapshots/vistas derivadas simples; falta una política de refresco incremental.
-- Submodelo LF-04 está como contrato de referencia y sincronización, no como persistencia distribuida completa.
-- Worktree tenía cambios previos ajenos en `docs/bugs/**`, borrados de docs y auditorías sin versionar; no forman parte de este corte.
+**Prompt breve de continuación:** "Retomar desde `docs/HANDOFF.md` sección `Corte actual — UX/UI canónica para capacidades OPCloud aspiracionales`; cerrar pendientes reales: suggestion UI de ontología, editor de policies de decisión, refresh/navegación de requirement/submodel views, LF-04 lazy-load/compartidas/confirmación irreversible y menú contextual de enlace si aporta a op-forja."
 
 ## Corte actual — Supresión de estados POR APARICIÓN (per-OPD) + chip de conteo (sesión 2026-05-31)
 

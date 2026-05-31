@@ -8,6 +8,7 @@ export function useCommandPaletteViewModel() {
     modelo,
     opdActivoId,
     seleccionId,
+    enlaceSeleccionId,
     enlaceEstiloPortapapeles,
     seleccionados,
     nuevoModelo,
@@ -42,6 +43,13 @@ export function useCommandPaletteViewModel() {
     toggleMostrarArchivados,
     mostrarVersiones,
     toggleMostrarVersiones,
+    abrirDialogoOntologia,
+    abrirDialogoRequisito,
+    abrirDialogoSubmodelo,
+    splitEffectParcialSeleccionado,
+    recolectarEnlaceContornoSeleccionado,
+    distribuirEnlaceContornoSeleccionado,
+    resolverDecisionSeleccionada,
   } = useZustandCommandPalettePort();
   const gridConfig = useMemo(() => normalizarGridConfig(gridConfigBase), [gridConfigBase]);
 
@@ -63,6 +71,7 @@ export function useCommandPaletteViewModel() {
     modelo,
     opdActivoId,
     seleccionId,
+    enlaceSeleccionId,
     enlaceEstiloPortapapeles,
     seleccionados,
     nuevoModelo,
@@ -98,6 +107,13 @@ export function useCommandPaletteViewModel() {
     toggleMostrarArchivados,
     mostrarVersiones,
     toggleMostrarVersiones,
+    abrirDialogoOntologia,
+    abrirDialogoRequisito,
+    abrirDialogoSubmodelo,
+    splitEffectParcialSeleccionado,
+    recolectarEnlaceContornoSeleccionado,
+    distribuirEnlaceContornoSeleccionado,
+    resolverDecisionSeleccionada,
   };
 }
 

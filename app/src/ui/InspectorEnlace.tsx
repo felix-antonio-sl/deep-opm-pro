@@ -6,6 +6,7 @@ import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo } from "../modelo/e
 import { relacionesEstructuralesFaltantes, validarMultiplicidad } from "../modelo/operaciones";
 import { anclajeRefinableSimbolo, anclajeRefinadorSimbolo, limitarAnclajeSimbolo, normalizarAnclajeSimbolo } from "../modelo/simboloEstructural";
 import { useInspectorEnlaceViewModel } from "../app/viewmodels/inspectorEnlaceViewModel";
+import { useOpmStore } from "../store";
 import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, AparienciaEnlace, Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace, UnidadTiempo } from "../modelo/tipos";
 import { identificadorEnlaceInspector } from "./inspector/identificador";
 import { inspectorStyles as style } from "./inspectorStyles";
@@ -108,6 +109,11 @@ export function InspectorEnlace({ enlace }: Props) {
   const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
   const [dialogoMoverPuertoAbierto, setDialogoMoverPuertoAbierto] = useState(false);
   const [dialogoEstiloAbierto, setDialogoEstiloAbierto] = useState(false);
+  const abrirDialogoRequisito = useOpmStore((s) => s.abrirDialogoRequisito);
+  const splitEffectParcial = useOpmStore((s) => s.splitEffectParcialSeleccionado);
+  const recolectarContorno = useOpmStore((s) => s.recolectarEnlaceContornoSeleccionado);
+  const distribuirContorno = useOpmStore((s) => s.distribuirEnlaceContornoSeleccionado);
+  const resolverDecision = useOpmStore((s) => s.resolverDecisionSeleccionada);
 
   useEffect(() => {
     setMultiplicidadOrigen(enlace.multiplicidadOrigen ?? "");
@@ -301,6 +307,11 @@ export function InspectorEnlace({ enlace }: Props) {
               onAutomatico={volverEnlaceExternoDerivadoAAutomatico}
             />
             {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffect} title="Convierte el efecto en consumo + objeto intermedio + resultado">Split en par</button> : null}
+            {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffectParcial} title="Convierte el efecto en TS4/TS5 con estado no especificado">Split parcial</button> : null}
+            <button type="button" style={style.secondaryButton} onClick={recolectarContorno} title="Materializa el enlace padre en este OPD de refinamiento">Recolectar contorno</button>
+            <button type="button" style={style.secondaryButton} onClick={distribuirContorno} title="Restaura la proyección automática del enlace de contorno">Distribuir contorno</button>
+            <button type="button" style={style.secondaryButton} onClick={resolverDecision} title="Evalúa la decisión del enlace o abanico XOR seleccionado">Resolver decisión</button>
+            <button type="button" style={style.secondaryButton} onClick={() => abrirDialogoRequisito("satisfacer")} title="Vincula un requisito estructurado a este enlace">Satisfacer requisito</button>
           </>
         </FichaSeccionEnlace>
         <FichaSeccionEnlace kicker="Estilo" testid="inspector-panel-enlace-estilo">

@@ -88,8 +88,11 @@ const ORDEN_MENU_ENTIDAD: readonly AccionContextualId[] = [
   "inzoom",
   "unfold",
   "agregar-estado",
+  "marcar-requisito",
+  "satisfacer-requisito",
   "editar-imagen",
   "editar-alias",
+  "conectar-submodelo",
   "copiar-estilo",
   "pegar-estilo",
   "traer-conectados",
@@ -105,8 +108,8 @@ export function ordenarAccionesMenuEntidad(acciones: readonly AccionContextual[]
 }
 
 export function grupoAccionMenuEntidad(id: AccionContextualId): "refinamiento" | "edicion" | "apariencia" | "enlaces" | "peligro" {
-  if (id === "inzoom" || id === "unfold") return "refinamiento";
-  if (id === "agregar-estado" || id === "editar-alias" || id === "editar-imagen") return "edicion";
+  if (id === "inzoom" || id === "unfold" || id === "conectar-submodelo") return "refinamiento";
+  if (id === "agregar-estado" || id === "editar-alias" || id === "editar-imagen" || id === "marcar-requisito" || id === "satisfacer-requisito") return "edicion";
   if (id === "copiar-estilo" || id === "pegar-estilo") return "apariencia";
   if (id === "ocultar-apariencia" || id === "quitar-descomposicion" || id === "quitar-despliegue") return "peligro";
   return "enlaces";

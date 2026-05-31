@@ -287,14 +287,30 @@ export function hermanosOrdenados(modelo: Modelo, padreId: Id | null): Opd[] {
     });
 }
 
+export function opdActivoEsSoloLectura(modelo: Modelo, opdActivoId: Id): boolean {
+  return modelo.opds[opdActivoId]?.vista?.readOnly === true;
+}
+
+export function mensajeSoloLecturaOpdActivo(modelo: Modelo, opdActivoId: Id): string | null {
+  return opdActivoEsSoloLectura(modelo, opdActivoId)
+    ? "Vista derivada en solo lectura. Cambia al OPD fuente para editar."
+    : null;
+}
+
 export function commitModelo(
   set: (partial: Partial<OpmStore>) => void,
   previo: Modelo,
   siguiente: Modelo,
   extra: Partial<OpmStore> = {},
 ): void {
-  if (storeApi?.getState().readOnly) {
+  const estado = storeApi?.getState();
+  if (estado?.readOnly) {
     set({ mensaje: "Modelo en solo lectura. Usa Guardar como para crear copia editable." });
+    return;
+  }
+  const mensajeVistaReadOnly = estado ? mensajeSoloLecturaOpdActivo(estado.modelo, estado.opdActivoId) : null;
+  if (mensajeVistaReadOnly) {
+    set({ mensaje: mensajeVistaReadOnly });
     return;
   }
   const previoSincronizado = sincronizarPuertosTodosLosOpd(previo);

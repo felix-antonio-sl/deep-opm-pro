@@ -13,6 +13,9 @@ export type AccionContextualId =
   | "quitar-despliegue"
   | "editar-alias"
   | "editar-imagen"
+  | "marcar-requisito"
+  | "satisfacer-requisito"
+  | "conectar-submodelo"
   | "eliminar-seleccion"
   | "agregar-como-partes"
   | "alinear-seleccion"
@@ -132,6 +135,18 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
     accion("editar-alias", "Editar alias", "barra-editar-alias", "edicion", esCosa, {
       visible: esCosa,
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
+    }),
+    accion("marcar-requisito", "Marcar como requisito", "accion-marcar-requisito", "edicion", !!esObjeto, {
+      visible: !!esObjeto,
+      superficies: ["menu-contextual"],
+    }),
+    accion("satisfacer-requisito", "Satisfacer requisito", "accion-satisfacer-requisito", "edicion", esCosa, {
+      visible: esCosa,
+      superficies: ["menu-contextual"],
+    }),
+    accion("conectar-submodelo", "Conectar submodelo", "accion-conectar-submodelo", "refinamiento", esCosa, {
+      visible: esCosa,
+      superficies: ["menu-contextual"],
     }),
     accion("editar-imagen", "Editar imagen", "barra-editar-imagen", "apariencia", !!esObjeto, {
       texto: "Img",

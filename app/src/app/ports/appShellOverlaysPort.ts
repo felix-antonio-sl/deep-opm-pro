@@ -4,6 +4,9 @@ export interface AppShellOverlaysPort {
   dialogoGuardarComoAbierto: OpmStore["dialogoGuardarComoAbierto"];
   dialogoConfiguracionAbierto: OpmStore["dialogoConfiguracionAbierto"];
   dialogoSimulacionNumericaAbierto: OpmStore["dialogoSimulacionNumericaAbierto"];
+  dialogoOntologiaAbierto: OpmStore["dialogoOntologiaAbierto"];
+  dialogoRequisitoAbierto: boolean;
+  dialogoSubmodeloAbierto: OpmStore["dialogoSubmodeloAbierto"];
   dialogoImportarExportarJsonAbierto: OpmStore["dialogoImportarExportarJsonAbierto"];
   cerrarDialogoImportarExportarJson: OpmStore["cerrarDialogoImportarExportarJson"];
   dialogoCargarModeloAbierto: OpmStore["dialogoCargarModeloAbierto"];

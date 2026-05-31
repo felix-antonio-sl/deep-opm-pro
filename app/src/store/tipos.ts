@@ -156,7 +156,7 @@ import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstadoCargaSubmodelo, EstadoSatisfaccionRequisito, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
 import { generarOpl } from "../opl/generar";
@@ -244,6 +244,8 @@ export type ResultadoBusquedaSalto =
   | { tipo: "estado"; estadoId: Id; entidadId: Id; opdId: Id; aparienciaId: Id }
   | { tipo: "enlace"; enlaceId: Id; opdId: Id };
 
+export type DialogoRequisitoModo = "crear" | "marcar" | "satisfacer";
+
 export interface OpmStore {
   modelo: Modelo;
   opdActivoId: Id;
@@ -320,6 +322,9 @@ export interface OpmStore {
   dialogoConfiguracionAbierto: boolean;
   dialogoSimulacionNumericaAbierto: boolean;
   dialogoTraerConectadosAbierto: boolean;
+  dialogoOntologiaAbierto: boolean;
+  dialogoRequisitoAbierto: DialogoRequisitoModo | null;
+  dialogoSubmodeloAbierto: boolean;
   /** [JOYAS §1] Halo temporal solicitado para inserción; amarillo canónico #FFFC7F. */
   idsResaltadosTemporales: Id[];
   workspaceLocal: WorkspaceModeloLocal;
@@ -383,6 +388,27 @@ export interface OpmStore {
   cerrarDialogoSimulacionNumerica: () => void;
   abrirDialogoTraerConectados: () => void;
   cerrarDialogoTraerConectados: () => void;
+  abrirDialogoOntologia: () => void;
+  cerrarDialogoOntologia: () => void;
+  definirOntologiaOrganizacionalActual: (ontologia: OntologiaOrganizacional | undefined) => void;
+  abrirDialogoRequisito: (modo: DialogoRequisitoModo) => void;
+  cerrarDialogoRequisito: () => void;
+  crearRequisitoEnOpd: (input: {
+    nombre: string;
+    metadata: Omit<RequisitoEntidadMetadata, "idLogico"> & { idLogico?: string };
+  }) => void;
+  marcarSeleccionComoRequisito: (metadata: RequisitoEntidadMetadata) => void;
+  satisfacerSeleccionConRequisito: (input: {
+    requisitoEntidadId: Id;
+    estado?: EstadoSatisfaccionRequisito;
+    descripcion?: string;
+  }) => void;
+  crearRequirementViewSeleccionado: () => void;
+  abrirDialogoSubmodelo: () => void;
+  cerrarDialogoSubmodelo: () => void;
+  conectarSubmodeloSeleccionado: (input: { modeloId: Id; nombre: string; compartidas?: Record<Id, Id> }) => void;
+  marcarEstadoSubmodeloSeleccionado: (refId: Id, estado: EstadoCargaSubmodelo) => void;
+  desconectarSubmodeloSeleccionado: (refId?: Id) => void;
   renombrarModeloActual: (nombre: string) => void;
   resaltarTemporalmente: (ids: Id[], ms?: number) => void;
   nuevoModelo: () => void;
@@ -558,6 +584,10 @@ export interface OpmStore {
   apuntarExtremoEnlaceSeleccionado: (lado: "origen" | "destino", extremo: ExtremoEnlace) => void;
   reanclarEnlaceExternoDerivado: (aparienciaEnlaceId: Id, nuevoEndpointEntidadId: Id) => void;
   splitEffectSeleccionado: () => void;
+  splitEffectParcialSeleccionado: () => void;
+  recolectarEnlaceContornoSeleccionado: () => void;
+  distribuirEnlaceContornoSeleccionado: () => void;
+  resolverDecisionSeleccionada: () => void;
   volverEnlaceExternoDerivadoAAutomatico: (aparienciaEnlaceId: Id) => void;
   alternarOperadorAbanicoSeleccionado: (operador: OperadorAbanico) => void;
   crearAbanicoDesdeEnlaceSeleccionado: (lado: "origen" | "destino", operador?: OperadorAbanico) => void;
