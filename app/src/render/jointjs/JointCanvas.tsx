@@ -14,7 +14,6 @@ import { proyectarModeloAJointCells } from "./proyeccion";
 import { cablearDrag, embedirContorno } from "./handlers/drag";
 import { CANVAS_BASE, metadata } from "./handlers/helpers";
 import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
-import { cablearHoverTooltipCanvas } from "./handlers/hoverTooltip";
 import {
   aplicarA11yConexionTeclado,
   aplicarFeedbackModoEnlace,
@@ -44,7 +43,7 @@ import {
 /**
  * Orquestador del canvas JointJS. Monta el paper con su configuración
  * (restrictTranslate, interactive) y compone los handlers por familia
- * desde `handlers/{seleccion,zoom,rubberBand,drag,hoverOpl,hoverTooltip,toolsEnlace}.ts`.
+ * desde `handlers/{seleccion,zoom,rubberBand,drag,hoverOpl,toolsEnlace}.ts`.
  *
  * Ronda 9 L2: la lógica de eventos antes inline (697 LOC) vive ahora en
  * sub-archivos por familia; este componente queda como orquestador delgado.
@@ -52,7 +51,7 @@ import {
 
 interface JointCanvasProps {
   onAdapterChange?: (adapter: JointCanvasAdapter | null) => void;
-  feedbackPort: Pick<FeedbackPort, "setHoverTooltip" | "clearHoverTooltip" | "sincronizarBadgesDesdeAvisos">;
+  feedbackPort: Pick<FeedbackPort, "sincronizarBadgesDesdeAvisos">;
   feedbackOverlays: readonly FeedbackOverlay[];
   renderMenuTipoEnlace: (props: CanvasMenuTipoEnlaceSlotProps) => ComponentChildren;
   renderRenombradoInline: (props: CanvasRenombradoInlineSlotProps) => ComponentChildren;
@@ -389,10 +388,6 @@ export function JointCanvas({
     cleanups.push(cablearHoverOpl({
       paper,
       fijarHoverOplRef,
-    }));
-    cleanups.push(cablearHoverTooltipCanvas(paper, modeloRef, {
-      setHoverTooltip: (cellId, contenido) => feedbackPortRef.current.setHoverTooltip(cellId, contenido),
-      clearHoverTooltip: () => feedbackPortRef.current.clearHoverTooltip(),
     }));
 
     adapterRef.current = adapter;

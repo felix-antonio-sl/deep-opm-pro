@@ -467,12 +467,6 @@ try {
   await screenshot(page, "05-feedback-errorbadge.png");
 
   await crearCosa(page, "Objeto", "Entrada");
-  await elementoPorTexto(page, "Entrada").hover();
-  const tooltip = page.getByTestId("hover-tooltip");
-  await recordVisible("4. Feedback overlay", "HoverTooltip aparece sobre cosa OPM", tooltip);
-  recordBool("4. Feedback overlay", "HoverTooltip no usa aria-live", (await attr(tooltip, "aria-live")) === null);
-  await screenshot(page, "06-hover-tooltip.png");
-  await page.mouse.move(8, 8);
 
   await conectarConsumo(page, "Entrada", "Procesar");
   const enlacesTrasConexion = await locatorCount(page.locator(".joint-link"));

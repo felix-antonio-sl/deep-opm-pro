@@ -135,43 +135,7 @@ test("L3 badge del arbol abre el mismo aviso diagnostico", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test("L3 HoverTooltip describe cell OPM sin aria-live", async ({ page }) => {
-  const pageErrors: string[] = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-
-  await page.goto("/");
-  await esperarWorkbenchInicial(page);
-
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await elementoPorTexto(page, "Objeto").hover();
-
-  const tooltip = page.getByTestId("hover-tooltip");
-  await expect(tooltip).toBeVisible();
-  await expect(tooltip).toContainText("Objeto OPM");
-  await expect(tooltip).not.toHaveAttribute("aria-live", /.+/);
-
-  await page.mouse.move(10, 10);
-  await expect(tooltip).toHaveCount(0);
-
-  const objeto = elementoPorTexto(page, "Objeto");
-  await objeto.focus();
-  await expect(tooltip).toBeVisible();
-  await expect(tooltip).toContainText("Objeto OPM");
-  const describedBy = await objeto.getAttribute("aria-describedby");
-  expect(describedBy).toMatch(/^hover-tooltip-/);
-  await expect(tooltip).toHaveAttribute("id", describedBy ?? "");
-
-  await page.evaluate(() => {
-    const active = document.activeElement as (Element & { blur?: () => void }) | null;
-    active?.blur?.();
-  });
-  await expect(objeto).not.toHaveAttribute("aria-describedby", /.+/);
-  await expect(tooltip).toHaveCount(0);
-
-  expect(pageErrors).toEqual([]);
-});
-
-test("L3 ciclo de feedback completo cubre barra, badge, toast y tooltip", async ({ page }) => {
+test("L3 ciclo de feedback completo cubre barra, badge y toast", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -199,14 +163,6 @@ test("L3 ciclo de feedback completo cubre barra, badge, toast y tooltip", async 
   await expect(toastEliminar).toBeVisible();
   await expect(toastEliminar).toHaveAttribute("role", "status");
   await expect(toastEliminar).toHaveAttribute("aria-live", "polite");
-
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await elementoPorTexto(page, "Objeto").hover();
-
-  const tooltip = page.getByTestId("hover-tooltip");
-  await expect(tooltip).toBeVisible();
-  await expect(tooltip).toContainText("Objeto OPM");
-  await expect(tooltip).not.toHaveAttribute("aria-live", /.+/);
 
   expect(pageErrors).toEqual([]);
 });

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { addFlash, clearHoverTooltip, feedbackStore, idHoverTooltip, setHoverTooltip, sincronizarBadgesDesdeAvisos } from "./feedback";
+import { addFlash, feedbackStore, sincronizarBadgesDesdeAvisos } from "./feedback";
 
 describe("feedbackStore", () => {
   beforeEach(() => {
@@ -69,27 +69,5 @@ describe("feedbackStore", () => {
     overlays = feedbackStore.getState().overlays;
     expect(overlays.filter((overlay) => overlay.tipo === "flash")).toHaveLength(1);
     expect(overlays.filter((overlay) => overlay.tipo === "inline-error")).toHaveLength(0);
-  });
-
-  test("mantiene un solo HoverTooltip y permite limpiarlo sin tocar otros overlays", () => {
-    addFlash("Modelo guardado exitosamente", 10_000);
-    setHoverTooltip("a-1", "Objeto OPM");
-    setHoverTooltip("a-2", "Proceso OPM");
-
-    let overlays = feedbackStore.getState().overlays;
-    expect(overlays.filter((overlay) => overlay.tipo === "flash")).toHaveLength(1);
-    expect(overlays.filter((overlay) => overlay.tipo === "hover-tooltip")).toEqual([
-      expect.objectContaining({ id: "hover-tooltip-a-2", anchorCellId: "a-2", contenido: "Proceso OPM" }),
-    ]);
-
-    clearHoverTooltip();
-    overlays = feedbackStore.getState().overlays;
-    expect(overlays.filter((overlay) => overlay.tipo === "flash")).toHaveLength(1);
-    expect(overlays.filter((overlay) => overlay.tipo === "hover-tooltip")).toHaveLength(0);
-  });
-
-  test("idHoverTooltip genera ids DOM estables para aria-describedby", () => {
-    expect(idHoverTooltip("ap-obj")).toBe("hover-tooltip-ap-obj");
-    expect(idHoverTooltip("ap/obj 1")).toBe("hover-tooltip-ap_obj_1");
   });
 });
