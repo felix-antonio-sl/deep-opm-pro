@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { agregacionesInzoomFaltantes, esAtributoDerivado, estadosDeEntidad, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
-import type { Entidad, Id, OrdenPartesPlegado, SubmodeloReferencia } from "../modelo/tipos";
+import type { Entidad, Id, Modelo, OrdenPartesPlegado, SatisfaccionRequisito, SubmodeloReferencia } from "../modelo/tipos";
 import { useInspectorEntidadViewModel } from "../app/viewmodels/inspectorEntidadViewModel";
 import { useOpmStore } from "../store";
 import { identificadorInspector } from "./inspector/identificador";
@@ -19,6 +19,7 @@ import { SeccionEnlaces } from "./inspector/SeccionEnlaces";
 import { SeccionImagen } from "./inspector/SeccionImagen";
 import { SeccionLayoutEstados } from "./inspector/SeccionLayoutEstados";
 import { SeccionRefinamiento, OPCIONES_DESPLIEGUE_OBJETO } from "./inspector/SeccionRefinamiento";
+import { primerOpdConEntidad, satisfaccionesDeRequisito, satisfaccionesDeTarget, SeccionCoberturaRequisito, SeccionRequisitosVinculados } from "./inspector/SeccionRequisitos";
 import { SeccionTamano } from "./inspector/SeccionTamano";
 import { SeccionUrls } from "./inspector/SeccionUrls";
 import { StyleControls } from "./StyleControls";
@@ -102,6 +103,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const crearRequirementViewSeleccionado = useOpmStore((s) => s.crearRequirementViewSeleccionado);
   const abrirDialogoSubmodelo = useOpmStore((s) => s.abrirDialogoSubmodelo);
   const desconectarSubmodeloSeleccionado = useOpmStore((s) => s.desconectarSubmodeloSeleccionado);
+  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const inputNombreRef = useRef<HTMLInputElement | null>(null);
   const aparienciaActiva = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === entidad.id);
   const partesPlegables = partesDePlegado(modelo, entidad.id);
@@ -121,6 +123,13 @@ export function InspectorEntidad({ entidad }: Props) {
   const autoInvocacion = entidad.tipo === "proceso" ? autoInvocacionDeProceso(modelo, opdActivoId, entidad.id) : undefined;
   const cobertura = coberturaApariencias(modelo, entidad.id);
   const submodelosEntidad = Object.values(modelo.submodelos ?? {}).filter((ref) => ref.anchorEntidadId === entidad.id);
+  const satisfaccionesEntidad = satisfaccionesDeTarget(modelo, { tipo: "entidad", id: entidad.id });
+  const satisfaccionesCubiertas = entidad.estereotipo === "requirement" ? satisfaccionesDeRequisito(modelo, entidad.id) : [];
+  const abrirEntidadReferenciada = (entidadId: Id) => {
+    const destino = primerOpdConEntidad(modelo, entidadId, opdActivoId);
+    if (destino && destino !== opdActivoId) cambiarOpdActivo(destino);
+    seleccionarEntidad(entidadId);
+  };
 
   // L4 ronda 23 (#15): consume la señal `solicitarFocusNombre` cuando la
   // entidad montada coincide. Default brutal: enfoca y selecciona el texto
@@ -245,13 +254,18 @@ export function InspectorEntidad({ entidad }: Props) {
         <FichaSeccion kicker="Extensiones" testid="inspector-panel-extensiones">
           <PanelExtensiones
             entidad={entidad}
+            modelo={modelo}
             submodelos={submodelosEntidad}
+            satisfaccionesEntidad={satisfaccionesEntidad}
+            satisfaccionesCubiertas={satisfaccionesCubiertas}
             onCrearRequisito={() => abrirDialogoRequisito("crear")}
             onMarcarRequisito={() => abrirDialogoRequisito("marcar")}
             onSatisfacerRequisito={() => abrirDialogoRequisito("satisfacer")}
             onRequirementView={crearRequirementViewSeleccionado}
             onSubmodelo={abrirDialogoSubmodelo}
             onDesconectarSubmodelo={desconectarSubmodeloSeleccionado}
+            onAbrirEntidad={abrirEntidadReferenciada}
+            onAbrirEnlace={navegarAEnlace}
           />
         </FichaSeccion>
         <FichaSeccion kicker="Apariciones" testid="inspector-panel-apariciones">
@@ -291,13 +305,18 @@ export function InspectorEntidad({ entidad }: Props) {
 
 function PanelExtensiones(props: {
   entidad: Entidad;
+  modelo: Modelo;
   submodelos: readonly SubmodeloReferencia[];
+  satisfaccionesEntidad: readonly SatisfaccionRequisito[];
+  satisfaccionesCubiertas: readonly SatisfaccionRequisito[];
   onCrearRequisito: () => void;
   onMarcarRequisito: () => void;
   onSatisfacerRequisito: () => void;
   onRequirementView: () => void;
   onSubmodelo: () => void;
   onDesconectarSubmodelo: (refId?: Id) => void;
+  onAbrirEntidad: (entidadId: Id) => void;
+  onAbrirEnlace: (enlaceId: Id) => void;
 }) {
   const requisito = props.entidad.requisito;
   return (
@@ -309,12 +328,27 @@ function PanelExtensiones(props: {
           <span>{requisito.satisfaction ?? "pendiente"}</span>
         </div>
       ) : (
-        <p style={style.hint}>Extensiones de producto declaradas: requisitos y submodelos.</p>
+        <SeccionRequisitosVinculados
+          modelo={props.modelo}
+          satisfacciones={props.satisfaccionesEntidad}
+          emptyText="Sin requisitos vinculados a esta cosa."
+          onAbrirRequisito={props.onAbrirEntidad}
+        />
       )}
+      {props.entidad.estereotipo === "requirement" && requisito ? (
+        <SeccionCoberturaRequisito
+          modelo={props.modelo}
+          satisfacciones={props.satisfaccionesCubiertas}
+          onAbrirEntidad={props.onAbrirEntidad}
+          onAbrirEnlace={props.onAbrirEnlace}
+        />
+      ) : null}
       <div style={extensionesStyles.actions}>
-        <button type="button" style={style.secondaryButton} onClick={props.onCrearRequisito}>Crear requisito</button>
+        <button type="button" style={style.secondaryButton} onClick={props.onCrearRequisito}>
+          {props.entidad.estereotipo === "requirement" ? "Crear requisito" : "Crear requisito vinculado"}
+        </button>
         <button type="button" style={style.secondaryButton} onClick={props.onMarcarRequisito} disabled={props.entidad.tipo !== "objeto"}>Marcar como requisito</button>
-        <button type="button" style={style.secondaryButton} onClick={props.onSatisfacerRequisito}>Satisfacer requisito</button>
+        <button type="button" style={style.secondaryButton} onClick={props.onSatisfacerRequisito}>Vincular requisito existente</button>
         <button type="button" style={style.secondaryButton} onClick={props.onRequirementView} disabled={props.entidad.estereotipo !== "requirement"}>Vista de requisito</button>
         <button type="button" style={style.secondaryButton} onClick={props.onSubmodelo}>Conectar submodelo</button>
       </div>

@@ -13,7 +13,7 @@ import {
   satisfacerRequisito,
   splitEffectParcial,
 } from "../../modelo/operaciones";
-import { posicionLibre } from "../../modelo/layout";
+import { posicionLibre, solapa } from "../../modelo/layout";
 import type { Id, Modelo, TargetSatisfaccionRequisito } from "../../modelo/tipos";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
@@ -54,11 +54,13 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
     },
 
     crearRequisitoEnOpd(input) {
-      const { modelo, opdActivoId } = get();
+      const state = get();
+      const { modelo, opdActivoId } = state;
+      const target = targetInicialRequisito(state);
       const resultado = crearRequisito(
         modelo,
         opdActivoId,
-        posicionLibre(modelo, opdActivoId, "objeto"),
+        posicionNuevoRequisito(modelo, opdActivoId, target),
         input.nombre,
         input.metadata,
       );
@@ -66,14 +68,30 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         set({ mensaje: resultado.error });
         return;
       }
-      commitModelo(set, modelo, resultado.value.modelo, {
-        seleccionId: resultado.value.requisitoEntidadId,
-        seleccionados: [resultado.value.requisitoEntidadId],
+      let modeloFinal = resultado.value.modelo;
+      let mensaje = "Requisito creado";
+      if (target) {
+        const vinculado = satisfacerRequisito(
+          modeloFinal,
+          resultado.value.requisitoEntidadId,
+          target,
+          input.metadata.satisfaction ?? "pendiente",
+        );
+        if (!vinculado.ok) {
+          set({ mensaje: vinculado.error });
+          return;
+        }
+        modeloFinal = vinculado.value;
+        mensaje = target.tipo === "entidad" ? "Requisito creado y vinculado a la cosa" : "Requisito creado y vinculado al enlace";
+      }
+      commitModelo(set, modelo, modeloFinal, {
+        seleccionId: target?.tipo === "entidad" ? target.id : target ? null : resultado.value.requisitoEntidadId,
+        seleccionados: target ? [target.id] : [resultado.value.requisitoEntidadId],
         modoSeleccion: "simple",
-        enlaceSeleccionId: null,
+        enlaceSeleccionId: target?.tipo === "enlace" ? target.id : null,
         estadoSeleccionId: null,
         dialogoRequisitoAbierto: null,
-        mensaje: "Requisito creado",
+        mensaje,
       });
     },
 
@@ -303,6 +321,27 @@ function targetSeleccionActual(state: ReturnType<GetStore>): TargetSatisfaccionR
   if (state.seleccionId) return { tipo: "entidad", id: state.seleccionId };
   if (state.enlaceSeleccionId) return { tipo: "enlace", id: state.enlaceSeleccionId };
   return null;
+}
+
+function targetInicialRequisito(state: ReturnType<GetStore>): TargetSatisfaccionRequisito | null {
+  const target = targetSeleccionActual(state);
+  if (!target) return null;
+  if (target.tipo === "entidad" && state.modelo.entidades[target.id]?.estereotipo === "requirement") return null;
+  return target;
+}
+
+function posicionNuevoRequisito(modelo: Modelo, opdActivoId: Id, target: TargetSatisfaccionRequisito | null): { x: number; y: number } {
+  const fallback = posicionLibre(modelo, opdActivoId, "objeto");
+  if (target?.tipo !== "entidad") return fallback;
+  const opd = modelo.opds[opdActivoId];
+  const apariencia = Object.values(opd?.apariencias ?? {}).find((item) => item.entidadId === target.id);
+  if (!apariencia) return fallback;
+  const candidata = {
+    x: apariencia.x + apariencia.width + 76,
+    y: apariencia.y,
+  };
+  const ocupada = Object.values(opd?.apariencias ?? {}).some((item) => solapa(candidata, item));
+  return ocupada ? fallback : candidata;
 }
 
 function refSubmodeloDesdeContexto(modelo: Modelo, seleccionId: Id | null, opdActivoId: Id): Id | null {

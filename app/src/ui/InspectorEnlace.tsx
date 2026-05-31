@@ -11,6 +11,7 @@ import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, AparienciaE
 import { identificadorEnlaceInspector } from "./inspector/identificador";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { FichaSeccionEnlace } from "./inspector/FichaSeccion";
+import { primerOpdConEntidad, satisfaccionesDeTarget, SeccionRequisitosVinculados } from "./inspector/SeccionRequisitos";
 import { SeccionAbanico } from "./inspectorEnlace/SeccionAbanico";
 import { SeccionEstilo } from "./inspectorEnlace/SeccionEstilo";
 import { SeccionEstiloEnlace } from "./inspectorEnlace/SeccionEstiloEnlace";
@@ -110,6 +111,7 @@ export function InspectorEnlace({ enlace }: Props) {
   const [dialogoMoverPuertoAbierto, setDialogoMoverPuertoAbierto] = useState(false);
   const [dialogoEstiloAbierto, setDialogoEstiloAbierto] = useState(false);
   const abrirDialogoRequisito = useOpmStore((s) => s.abrirDialogoRequisito);
+  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const splitEffectParcial = useOpmStore((s) => s.splitEffectParcialSeleccionado);
   const recolectarContorno = useOpmStore((s) => s.recolectarEnlaceContornoSeleccionado);
   const distribuirContorno = useOpmStore((s) => s.distribuirEnlaceContornoSeleccionado);
@@ -204,6 +206,12 @@ export function InspectorEnlace({ enlace }: Props) {
   const opdsDelEnlace = opdsConEnlace(modelo, enlace.id);
   const enlaceFueraDelOpdActivo = opdsDelEnlace.length > 0 && !opdsDelEnlace.includes(opdActivoId);
   const opdDestinoNavegacion = enlaceFueraDelOpdActivo ? opdsDelEnlace[0] : null;
+  const satisfaccionesEnlace = satisfaccionesDeTarget(modelo, { tipo: "enlace", id: enlace.id });
+  const abrirRequisito = (requisitoEntidadId: Id) => {
+    const destino = primerOpdConEntidad(modelo, requisitoEntidadId, opdActivoId);
+    if (destino && destino !== opdActivoId) cambiarOpdActivo(destino);
+    seleccionarEntidad(requisitoEntidadId);
+  };
 
   return (
     <>
@@ -271,6 +279,18 @@ export function InspectorEnlace({ enlace }: Props) {
               onTasa={cambiarTasa}
               onTiempoExcepcion={cambiarTiempoExcepcion}
             />
+            <SeccionRequisitosVinculados
+              modelo={modelo}
+              satisfacciones={satisfaccionesEnlace}
+              emptyText="Sin requisitos estructurados vinculados a este enlace."
+              onAbrirRequisito={abrirRequisito}
+            />
+            <button type="button" style={style.secondaryButton} onClick={() => abrirDialogoRequisito("crear")} title="Crea un requisito estructurado y lo vincula a este enlace">
+              Crear requisito vinculado
+            </button>
+            <button type="button" style={style.secondaryButton} onClick={() => abrirDialogoRequisito("satisfacer")} title="Vincula un requisito estructurado existente a este enlace">
+              Vincular requisito existente
+            </button>
             {/* Ronda 20 L1 ajuste post-merge: el operador del Abanico es propiedad
                 lógica del enlace (igual que multiplicidad/modificador), por lo que
                 vive en Propiedades. Smokes 02-canvas-y-render lo asumen visible al
@@ -311,7 +331,6 @@ export function InspectorEnlace({ enlace }: Props) {
             <button type="button" style={style.secondaryButton} onClick={recolectarContorno} title="Materializa el enlace padre en este OPD de refinamiento">Recolectar contorno</button>
             <button type="button" style={style.secondaryButton} onClick={distribuirContorno} title="Restaura la proyección automática del enlace de contorno">Distribuir contorno</button>
             <button type="button" style={style.secondaryButton} onClick={resolverDecision} title="Evalúa la decisión del enlace o abanico XOR seleccionado">Resolver decisión</button>
-            <button type="button" style={style.secondaryButton} onClick={() => abrirDialogoRequisito("satisfacer")} title="Vincula un requisito estructurado a este enlace">Satisfacer requisito</button>
           </>
         </FichaSeccionEnlace>
         <FichaSeccionEnlace kicker="Estilo" testid="inspector-panel-enlace-estilo">

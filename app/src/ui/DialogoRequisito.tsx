@@ -24,11 +24,7 @@ export function DialogoRequisito() {
     [modelo.entidades],
   );
   const [requisitoSeleccionado, setRequisitoSeleccionado] = useState("");
-  const targetLabel = seleccionId
-    ? modelo.entidades[seleccionId]?.nombre ?? seleccionId
-    : enlaceSeleccionId
-      ? enlaceSeleccionId
-      : "sin selección";
+  const target = describirTarget(modelo, seleccionId, enlaceSeleccionId);
 
   useEffect(() => {
     if (!modo) return;
@@ -86,10 +82,13 @@ export function DialogoRequisito() {
     >
       <div style={formStyles.body}>
         {modo === "crear" ? (
-          <label style={formStyles.field}>
-            <span style={formStyles.label}>Nombre</span>
-            <input style={formStyles.input} value={nombre} onInput={(event) => setNombre(event.currentTarget.value)} />
-          </label>
+          <>
+            <label style={formStyles.field}>
+              <span style={formStyles.label}>Nombre</span>
+              <input style={formStyles.input} value={nombre} onInput={(event) => setNombre(event.currentTarget.value)} />
+            </label>
+            <p style={formStyles.hint}>{target.vinculable ? `Se vinculará a: ${target.label}` : "Se creará como requisito independiente."}</p>
+          </>
         ) : null}
         {modo === "satisfacer" ? (
           <>
@@ -99,7 +98,7 @@ export function DialogoRequisito() {
                 {requisitos.map((entidad) => <option key={entidad.id} value={entidad.id}>{entidad.requisito?.idLogico} · {entidad.nombre}</option>)}
               </select>
             </label>
-            <p style={formStyles.hint}>Target: {targetLabel}</p>
+            <p style={formStyles.hint}>Target: {target.label}</p>
           </>
         ) : (
           <label style={formStyles.field}>
@@ -153,6 +152,20 @@ function siguienteReqId(modelo: Modelo): string {
     if (!usados.has(candidato)) return candidato;
   }
   return `REQ-${modelo.nextSeq}`;
+}
+
+function describirTarget(modelo: Modelo, seleccionId: string | null, enlaceSeleccionId: string | null): { label: string; vinculable: boolean } {
+  if (seleccionId) {
+    const entidad = modelo.entidades[seleccionId];
+    if (!entidad) return { label: seleccionId, vinculable: false };
+    if (entidad.estereotipo === "requirement") return { label: entidad.nombre, vinculable: false };
+    return { label: `${entidad.nombre} (${entidad.tipo})`, vinculable: true };
+  }
+  if (enlaceSeleccionId) {
+    const enlace = modelo.enlaces[enlaceSeleccionId];
+    return { label: enlace ? `enlace ${enlace.tipo}` : enlaceSeleccionId, vinculable: !!enlace };
+  }
+  return { label: "sin selección", vinculable: false };
 }
 
 const formStyles = {

@@ -73,6 +73,67 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
     });
   });
 
+  test("crea un requisito desde una cosa y deja visible el vínculo en la selección original", () => {
+    store.getState().crearObjetoDemo();
+    const targetId = Object.keys(store.getState().modelo.entidades)[0]!;
+    store.getState().seleccionarEntidad(targetId);
+
+    store.getState().crearRequisitoEnOpd({
+      nombre: "Trazabilidad verificable",
+      metadata: {
+        idLogico: "REQ-UX-AUTO",
+        descripcion: "La cosa debe conservar trazabilidad operable.",
+        dureza: "hard",
+        satisfaction: "satisface",
+      },
+    });
+
+    const estado = store.getState();
+    const requisito = Object.values(estado.modelo.entidades).find((entidad) => entidad.requisito?.idLogico === "REQ-UX-AUTO");
+    expect(requisito?.estereotipo).toBe("requirement");
+    expect(Object.values(estado.modelo.satisfaccionesRequisito ?? {})).toContainEqual(expect.objectContaining({
+      requisitoEntidadId: requisito?.id,
+      target: { tipo: "entidad", id: targetId },
+      estado: "satisface",
+    }));
+    expect(estado.seleccionId).toBe(targetId);
+    expect(estado.enlaceSeleccionId).toBeNull();
+    expect(estado.mensaje).toBe("Requisito creado y vinculado a la cosa");
+  });
+
+  test("crea un requisito desde un enlace y conserva el enlace como contexto visible", () => {
+    let modelo = crearModelo("Requisito de enlace");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Entrada"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+    const entradaId = entidadId(modelo, "Entrada");
+    const procesarId = entidadId(modelo, "Procesar");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId, procesarId, "consumo"));
+    const enlaceId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "consumo")!.id;
+    importar(modelo);
+    store.getState().seleccionarEnlace(enlaceId);
+
+    store.getState().crearRequisitoEnOpd({
+      nombre: "Consumo auditado",
+      metadata: {
+        idLogico: "REQ-LINK-AUTO",
+        descripcion: "El enlace debe quedar auditado.",
+        dureza: "soft",
+      },
+    });
+
+    const estado = store.getState();
+    const requisito = Object.values(estado.modelo.entidades).find((entidad) => entidad.requisito?.idLogico === "REQ-LINK-AUTO");
+    expect(requisito?.estereotipo).toBe("requirement");
+    expect(Object.values(estado.modelo.satisfaccionesRequisito ?? {})).toContainEqual(expect.objectContaining({
+      requisitoEntidadId: requisito?.id,
+      target: { tipo: "enlace", id: enlaceId },
+      estado: "pendiente",
+    }));
+    expect(estado.seleccionId).toBeNull();
+    expect(estado.enlaceSeleccionId).toBe(enlaceId);
+    expect(estado.modelo.enlaces[enlaceId]?.mostrarRequisitos).toBe(true);
+  });
+
   test("asigna satisfacción de requisito a la selección actual", () => {
     store.getState().crearObjetoDemo();
     const requisitoId = Object.keys(store.getState().modelo.entidades)[0]!;
