@@ -1,8 +1,8 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-05-31 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commits de producto (sesión 2026-05-31)**: commit de este corte para UX/UI canónica de capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado. **Desplegado** (`docker compose up -d --build`): entry bundle `index-DWseXsaH.js`. Previo ya en `origin/main`: `e5ff438` exportador de diagnóstico a JSON. Cortes anteriores: `59ad3a9` D1 esencia/afiliación combinada; ronda atajos/inspector/simulación.
-**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo `index-DWseXsaH.js`.
+**Commits de producto (sesión 2026-05-31)**: `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado. **Desplegado** (`docker compose up -d --build`): entry bundle `index-DCJuglAp.js`. Previo ya en `origin/main`: `e5ff438` exportador de diagnóstico a JSON. Cortes anteriores: `59ad3a9` D1 esencia/afiliación combinada; ronda atajos/inspector/simulación.
+**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo `index-DCJuglAp.js`.
 
 ## Corte actual — UX/UI canónica para capacidades OPCloud aspiracionales
 
@@ -18,7 +18,7 @@
 
 **Artefactos principales nuevos/modificados:** `app/src/store/modelo/acciones-capacidades.ts`; `app/src/store/{modelo,tipos,runtime}.ts`; puertos/viewmodels en `app/src/app/{ports,viewmodels}`; diálogos `app/src/ui/Dialogo{Ontologia,Requisito,Submodelo}.tsx`; superficies `app/src/ui/{CommandPalette,InspectorEntidad,InspectorEnlace,MenuContextualEntidad,ToolbarBase}.tsx`; ejecución contextual `app/src/ui/ejecutarAccionContextual.ts`; pruebas `app/src/store/capacidadesOpcloudUi.test.ts`, `app/src/store/runtime.test.ts`, `app/src/store/acciones-contextuales.test.ts`, `app/src/ui/CommandPalette.test.ts`.
 
-**Verificación del corte UX/UI:** `cd app && bun run check` -> **1798 pass / 0 fail**; `bun run lint` -> OK; `bun run design:governance` -> OK; `bun run build` -> OK; `git diff --check -- app/src docs/HANDOFF.md` -> OK.
+**Verificación del corte UX/UI:** `cd app && bun run check` -> **1798 pass / 0 fail**; `bun run lint` -> OK; `bun run design:governance` -> OK; `bun run build` -> OK; `git diff --check -- app/src docs/HANDOFF.md` -> OK. Deploy: `docker compose up -d --build` OK; `docker compose ps` -> `opforja` healthy; `curl -I https://opforja.sanixai.com` -> HTTP/2 200; assets vivos `index-DCJuglAp.js`, `CommandPalette-B4Fcp9Rv.js`, `DialogoOntologia-Be9YE3k_.js`.
 
 **Handoff explícito / pendientes reales:**
 - No afirmar "UX/UI completa OPCloud": la cobertura actual es la superficie canónica mínima de op-forja. Faltan edición avanzada y feedback inline para sugerencias de ontología en modo `suggest`.
