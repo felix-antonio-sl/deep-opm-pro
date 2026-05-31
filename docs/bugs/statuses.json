@@ -1,4 +1,10 @@
 {
+  "BUG-20260526T022325Z-738f53": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El inspector ofrece un boton '+ Atributo' (data-testid inspector-crear-atributo) para objetos no-atributo, que reusa crearAtributoEnObjetoSeleccionado (dominio crearAtributoEnObjeto).",
+    "note": "Fix integrado en main via InspectorEntidad.tsx:491; cubierto por store.test.ts (describe crearAtributoEnObjetoSeleccionado)."
+  },
   "BUG-20260513T050858Z-ad9486": {
     "type": "Feat",
     "status": "Resuelto",

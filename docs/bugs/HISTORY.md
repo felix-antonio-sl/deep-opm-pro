@@ -10,8 +10,8 @@ cualquier ID, activo o archivado.
 
 | Alcance / Estado | Cantidad |
 |---|---:|
-| Activo / Nuevo | 31 |
-| Activo / Resuelto | 37 |
+| Activo / Nuevo | 30 |
+| Activo / Resuelto | 38 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
 | Histórico / Resuelto | 43 |
@@ -59,7 +59,7 @@ cualquier ID, activo o archivado.
 | Activo | Bug | Nuevo | [BUG-20260526T022759Z-f28eb5](BUG-20260526T022759Z-f28eb5/report.md) | 2026-05-26 02:27Z | Modelo de test 2 / SD | intensificar en general el contraste de los colores de la paleta | Pendiente. | 0 |  |
 | Activo | Bug | Nuevo | [BUG-20260526T022658Z-142989](BUG-20260526T022658Z-142989/report.md) | 2026-05-26 02:26Z | Modelo de test 2 / SD2 | como funciona lo de las variantes de los modelos? | Pendiente. | 1 |  |
 | Activo | Bug | Nuevo | [BUG-20260526T022611Z-679f28](BUG-20260526T022611Z-679f28/report.md) | 2026-05-26 02:26Z | Modelo de test 2 / SD2 | hacer más usable esta vista en cuanto a lo que se puede hacer con los modelos | Pendiente. | 1 |  |
-| Activo | Bug | Nuevo | [BUG-20260526T022325Z-738f53](BUG-20260526T022325Z-738f53/report.md) | 2026-05-26 02:23Z | Modelo de test 2 / SD | no tiene función de agrgar atributos | Pendiente. | 0 |  |
+| Activo | Bug | Resuelto | [BUG-20260526T022325Z-738f53](BUG-20260526T022325Z-738f53/report.md) | 2026-05-26 02:23Z | Modelo de test 2 / SD | no tiene función de agrgar atributos | El inspector ofrece un boton '+ Atributo' (data-testid inspector-crear-atributo) para objetos no-atributo, que reusa crearAtribut… | 0 | Fix integrado en main via InspectorEntidad.tsx:491; cubierto por store.test.ts (describe crearAtributoEnObjetoSeleccionado). |
 | Activo | Bug | Nuevo | [BUG-20260526T022101Z-f23d0a](BUG-20260526T022101Z-f23d0a/report.md) | 2026-05-26 02:21Z | Modelo / SD1.1.1 | el panel de simulación queda detras y sin ver | Pendiente. | 1 |  |
 | Activo | Bug | Nuevo | [BUG-20260526T021643Z-86aa78](BUG-20260526T021643Z-86aa78/report.md) | 2026-05-26 02:16Z | Modelo / SD1.1.1 | la sombra de seleccionar al seleccionar el texto de los id de los bugs no se nota. es muy tenue | Pendiente. | 0 |  |
 | Activo | Bug | Nuevo | [BUG-20260526T021201Z-9cad06](BUG-20260526T021201Z-9cad06/report.md) | 2026-05-26 02:12Z | Modelo / SD1.1.1 | cuando hago click sobre un estado sale disparada hacia arriba una imagen de estado voladora. | Pendiente. | 0 |  |
