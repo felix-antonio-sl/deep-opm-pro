@@ -1,6 +1,7 @@
 import type { LayoutEstados } from "./apariencia";
 import type { Id } from "./comunes";
 import type { TipoEnlace } from "./enlace";
+import type { RequisitoEntidadMetadata } from "./extensiones";
 
 /**
  * Tipos del dominio Entidad (Object/Process en SSOT OPM) y su metadata.
@@ -124,6 +125,8 @@ export interface Entidad {
   valorSlot?: ValorSlot;
   simulacion?: ParametrosSimulacionEntidad;
   descripcion?: string;
+  estereotipo?: "requirement";
+  requisito?: RequisitoEntidadMetadata;
   urls?: UrlObjetoTipada[];
   imagen?: ImagenEntidad;
   layoutEstados?: LayoutEstados;

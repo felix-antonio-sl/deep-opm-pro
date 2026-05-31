@@ -17,9 +17,11 @@ export { detectarColisionNombre, type ColisionNombre } from "./operaciones/colis
 
 export {
   descomponerProceso,
+  distribuirEnlaceExternoEnRefinamiento,
   desplegarObjeto,
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
+  recolectarEnlaceExternoEnRefinamiento,
 } from "./operaciones/refinamiento";
 export type { DescomposicionProceso, DespliegueObjeto } from "./operaciones/refinamiento";
 
@@ -112,6 +114,7 @@ export {
   eliminarEntidad,
   eliminarEnlace,
   splitEffectEnPar,
+  splitEffectParcial,
   entidadesDelOpd,
 } from "./operaciones/eliminacion";
 
@@ -125,3 +128,25 @@ export {
   definirTasaEnlace,
   definirTiempoExcepcionEnlace,
 } from "./enlaceMetadatos";
+
+export {
+  definirOntologiaOrganizacional,
+  evaluarNombreOntologia,
+  nombreReforzadoPorOntologia,
+} from "./ontologia";
+
+export {
+  crearRequirementView,
+  crearRequisito,
+  marcarEntidadComoRequisito,
+  satisfacerRequisito,
+} from "./requisitos";
+export type { RequisitoCreado } from "./requisitos";
+
+export {
+  conectarSubmodelo,
+  desconectarSubmodelo,
+  marcarEstadoSubmodelo,
+  registrarPadreSubmodelo,
+} from "./submodelos";
+export type { SubmodeloConectado } from "./submodelos";

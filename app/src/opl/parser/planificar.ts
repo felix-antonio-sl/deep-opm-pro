@@ -228,6 +228,8 @@ function planificarProcedimental(
     ...(ast.multiplicidadOrigen ? { multiplicidadOrigen: ast.multiplicidadOrigen } : {}),
     ...(ast.multiplicidadDestino ? { multiplicidadDestino: ast.multiplicidadDestino } : {}),
     ...(ast.rutaEtiqueta ? { rutaEtiqueta: ast.rutaEtiqueta } : {}),
+    ...(ast.estadoEntrada ? { estadoEntrada: ast.estadoEntrada } : {}),
+    ...(ast.estadoSalida ? { estadoSalida: ast.estadoSalida } : {}),
   });
 }
 
@@ -254,6 +256,8 @@ function planificarEvento(
     ...(ast.base.multiplicidadOrigen ? { multiplicidadOrigen: ast.base.multiplicidadOrigen } : {}),
     ...(ast.base.multiplicidadDestino ? { multiplicidadDestino: ast.base.multiplicidadDestino } : {}),
     ...(ast.base.rutaEtiqueta ? { rutaEtiqueta: ast.base.rutaEtiqueta } : {}),
+    ...(ast.base.estadoEntrada ? { estadoEntrada: ast.base.estadoEntrada } : {}),
+    ...(ast.base.estadoSalida ? { estadoSalida: ast.base.estadoSalida } : {}),
   });
 }
 
@@ -333,6 +337,8 @@ function planificarEnlace(
     multiplicidadDestino?: string;
     /** Etiqueta de ruta capturada en parser (SSOT §13). */
     rutaEtiqueta?: string;
+    estadoEntrada?: string;
+    estadoSalida?: string;
   } = {},
 ): void {
   const origenId = resolverRefId(modelo, origen);
@@ -343,6 +349,8 @@ function planificarEnlace(
     ...(opciones.multiplicidadOrigen ? { multiplicidadOrigen: opciones.multiplicidadOrigen } : {}),
     ...(opciones.multiplicidadDestino ? { multiplicidadDestino: opciones.multiplicidadDestino } : {}),
     ...(opciones.rutaEtiqueta ? { rutaEtiqueta: opciones.rutaEtiqueta } : {}),
+    ...(opciones.estadoEntrada ? { estadoEntrada: opciones.estadoEntrada } : {}),
+    ...(opciones.estadoSalida ? { estadoSalida: opciones.estadoSalida } : {}),
   };
   if (!existente) {
     registry.add({
@@ -380,7 +388,7 @@ function planificarEnlace(
         sugerencia: "Quita el modificador anterior desde el canvas antes de cambiarlo desde OPL.",
       });
     }
-  } else if (opciones.multiplicidadOrigen || opciones.multiplicidadDestino || opciones.rutaEtiqueta) {
+  } else if (opciones.multiplicidadOrigen || opciones.multiplicidadDestino || opciones.rutaEtiqueta || opciones.estadoEntrada || opciones.estadoSalida) {
     // Enlace ya existe sin modificador, pero la oracion trae datos L4 (multiplicidad
     // o ruta) — emitimos un patch idempotente para actualizarlos. El aplicador
     // detecta que el enlace ya existe y solo aplica los campos L4.

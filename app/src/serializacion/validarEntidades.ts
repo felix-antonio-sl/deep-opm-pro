@@ -3,8 +3,10 @@ import { validarAlias, validarImagenEntidad, validarTipoUrlObjeto, validarUnidad
 import { normalizarParametrosSimulacion } from "../modelo/simulacion/parametros";
 import type {
   Entidad,
+  EstadoSatisfaccionRequisito,
   Id,
   ImagenEntidad,
+  RequisitoEntidadMetadata,
   Resultado,
   TipoEnlace,
   TipoValorSlot,
@@ -36,6 +38,8 @@ export function validarEntidades(value: Record<string, unknown>): Resultado<Reco
     if (!refinamientos.ok) return refinamientos;
     const avanzados = camposEntidadAvanzada(id, raw);
     if (!avanzados.ok) return avanzados;
+    const requisito = validarRequisitoEntidad(id, raw);
+    if (!requisito.ok) return requisito;
     entidades[id] = {
       id,
       tipo: raw.tipo,
@@ -43,10 +47,45 @@ export function validarEntidades(value: Record<string, unknown>): Resultado<Reco
       esencia: raw.esencia,
       afiliacion: raw.afiliacion,
       ...(refinamientos.value ? { refinamientos: refinamientos.value } : {}),
+      ...(requisito.value ? { estereotipo: "requirement", requisito: requisito.value } : {}),
       ...avanzados.value,
     };
   }
   return ok(entidades);
+}
+
+function validarRequisitoEntidad(entidadId: Id, raw: Record<string, unknown>): Resultado<RequisitoEntidadMetadata | undefined> {
+  if (raw.estereotipo === undefined && raw.requisito === undefined) return ok(undefined);
+  if (raw.estereotipo !== "requirement") return fallo(`Entidad inválida: ${entidadId}.estereotipo`);
+  if (!esRecord(raw.requisito)) return fallo(`Entidad inválida: ${entidadId}.requisito`);
+  if (typeof raw.requisito.idLogico !== "string" || !raw.requisito.idLogico.trim()) {
+    return fallo(`Entidad inválida: ${entidadId}.requisito.idLogico`);
+  }
+  if (typeof raw.requisito.descripcion !== "string" || !raw.requisito.descripcion.trim()) {
+    return fallo(`Entidad inválida: ${entidadId}.requisito.descripcion`);
+  }
+  if (raw.requisito.dureza !== "hard" && raw.requisito.dureza !== "soft") {
+    return fallo(`Entidad inválida: ${entidadId}.requisito.dureza`);
+  }
+  if (
+    raw.requisito.satisfaction !== undefined &&
+    raw.requisito.satisfaction !== "pendiente" &&
+    raw.requisito.satisfaction !== "satisface" &&
+    raw.requisito.satisfaction !== "parcial" &&
+    raw.requisito.satisfaction !== "no-satisface"
+  ) {
+    return fallo(`Entidad inválida: ${entidadId}.requisito.satisfaction`);
+  }
+  const satisfaction = typeof raw.requisito.satisfaction === "string"
+    ? raw.requisito.satisfaction as EstadoSatisfaccionRequisito
+    : undefined;
+  return ok({
+    idLogico: raw.requisito.idLogico.trim(),
+    descripcion: raw.requisito.descripcion.trim(),
+    dureza: raw.requisito.dureza,
+    ...(typeof raw.requisito.actor === "string" && raw.requisito.actor.trim() ? { actor: raw.requisito.actor.trim() } : {}),
+    ...(satisfaction ? { satisfaction } : {}),
+  });
 }
 
 export function camposEntidadAvanzada(entidadId: Id, raw: Record<string, unknown>): Resultado<Partial<Entidad>> {

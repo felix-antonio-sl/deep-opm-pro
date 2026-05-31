@@ -1,4 +1,5 @@
 import { CANON } from "../constantes";
+import { nombreReforzadoPorOntologia } from "../ontologia";
 import type { Apariencia, Entidad, Id, Modelo, Opd, Posicion, Resultado, TipoEntidad } from "../tipos";
 import { nombreEntidadDisponible, nombreUnicoEntidad } from "./entidad";
 import { fallo, ok, siguienteId } from "./helpers";
@@ -55,7 +56,7 @@ function crearEntidad(
 
   const nombreBase = tipo === "objeto" ? "Objeto" : "Proceso";
   const nombreLimpio = nombre?.trim();
-  const nombreFinal = nombreLimpio ? nombreLimpio : nombreUnicoEntidad(modelo, nombreBase);
+  const nombreFinal = nombreLimpio ? nombreReforzadoPorOntologia(modelo, nombreLimpio) : nombreUnicoEntidad(modelo, nombreBase);
   if (!nombreEntidadDisponible(modelo, nombreFinal)) {
     return fallo(`Ya existe '${nombreFinal}' en el modelo`);
   }

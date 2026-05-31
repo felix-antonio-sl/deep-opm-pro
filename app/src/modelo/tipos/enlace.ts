@@ -59,6 +59,7 @@ export interface EfectoEscindido {
   grupoId: Id;
   enlacePadreId: Id;
   rol: RolEfectoEscindido;
+  modo?: "par" | "standalone";
 }
 
 export interface Enlace {

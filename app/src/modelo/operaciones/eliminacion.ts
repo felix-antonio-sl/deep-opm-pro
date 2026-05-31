@@ -278,6 +278,86 @@ export function splitEffectEnPar(modelo: Modelo, opdId: Id, enlaceId: Id): Resul
   });
 }
 
+export function splitEffectParcial(modelo: Modelo, opdId: Id, enlaceId: Id): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+  if (!aparienciaEnlaceExiste(opd.enlaces, enlaceId)) {
+    return fallo("El split parcial requiere que el enlace tenga apariencia en el OPD activo");
+  }
+  if (enlace.tipo !== "efecto") return fallo("El split parcial requiere un enlace de efecto");
+
+  const origen = entidadDeExtremo(modelo, enlace.origenId);
+  const destino = entidadDeExtremo(modelo, enlace.destinoId);
+  if (!origen || !destino) return fallo("El enlace de efecto tiene extremos inválidos");
+  if (origen.tipo !== "proceso" || destino.tipo !== "objeto" || enlace.origenId.kind !== "entidad" || enlace.destinoId.kind !== "entidad") {
+    return fallo("El split parcial requiere un efecto TS3 Proceso -> Objeto");
+  }
+  const estadoEntrada = enlace.estadoEntradaId ? modelo.estados[enlace.estadoEntradaId] : undefined;
+  const estadoSalida = enlace.estadoSalidaId ? modelo.estados[enlace.estadoSalidaId] : undefined;
+  if (!!estadoEntrada === !!estadoSalida) {
+    return fallo("El split parcial requiere exactamente un estado de entrada o de salida");
+  }
+  const estado = estadoEntrada ?? estadoSalida;
+  if (!estado || estado.entidadId !== destino.id) {
+    return fallo("El estado parcial del efecto debe pertenecer al objeto afectado");
+  }
+  if (!entidadVisibleEnOpd(opd, destino.id) || !entidadVisibleEnOpd(opd, origen.id)) {
+    return fallo("El split parcial requiere que objeto y proceso tengan apariencia en el OPD activo");
+  }
+
+  let nextSeq = modelo.nextSeq;
+  const grupoId = siguienteId({ ...modelo, nextSeq }, "efe");
+  nextSeq += 1;
+  const parcialId = siguienteId({ ...modelo, nextSeq }, "e");
+  nextSeq += 1;
+  const aparienciaParcialId = siguienteId({ ...modelo, nextSeq }, "ae");
+  nextSeq += 1;
+  const rol = estadoEntrada ? "entrada" : "salida";
+  const parcial: Enlace = {
+    id: parcialId,
+    tipo: "efecto",
+    origenId: estadoEntrada ? extremoEstado(estado.id) : extremoEntidad(origen.id),
+    destinoId: estadoEntrada ? extremoEntidad(origen.id) : extremoEstado(estado.id),
+    etiqueta: "",
+    efectoEscindido: { grupoId, enlacePadreId: enlaceId, rol, modo: "standalone" },
+  };
+
+  const enlaces = { ...modelo.enlaces };
+  delete enlaces[enlaceId];
+  enlaces[parcialId] = parcial;
+  const opds = Object.fromEntries(
+    Object.entries(modelo.opds).map(([actualOpdId, actual]) => [
+      actualOpdId,
+      {
+        ...actual,
+        enlaces: Object.fromEntries(
+          Object.entries(actual.enlaces).filter(([, apariencia]) => apariencia.enlaceId !== enlaceId),
+        ),
+      },
+    ]),
+  );
+  const opdActualizado = opds[opdId];
+  if (!opdActualizado) return fallo(`OPD no existe: ${opdId}`);
+
+  return ok({
+    ...modelo,
+    nextSeq,
+    enlaces,
+    opds: {
+      ...opds,
+      [opdId]: {
+        ...opdActualizado,
+        enlaces: {
+          ...opdActualizado.enlaces,
+          [aparienciaParcialId]: { id: aparienciaParcialId, enlaceId: parcialId, opdId, vertices: [] },
+        },
+      },
+    },
+  });
+}
+
 export function entidadesDelOpd(modelo: Modelo, opdId: Id): Entidad[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];

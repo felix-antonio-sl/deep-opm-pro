@@ -77,6 +77,22 @@ export type { Opd } from "./tipos/opd";
 
 export type { VersionResumen, Modelo } from "./tipos/modelo";
 
+export type {
+  ModoReforzamientoOntologia,
+  TerminoOntologia,
+  OntologiaOrganizacional,
+  DurezaRequisito,
+  EstadoSatisfaccionRequisito,
+  RequisitoEntidadMetadata,
+  TargetSatisfaccionRequisito,
+  SatisfaccionRequisito,
+  EstadoCargaSubmodelo,
+  SubmodeloReferencia,
+  ReferenciaPadreSubmodelo,
+  OpdVista,
+  DecisionPolicy,
+} from "./tipos/extensiones";
+
 export type { SeveridadAviso, CodigoChecker, AvisoMetodologico, NavegacionAviso } from "./tipos/avisos";
 
 export type { OrigenPestana, HistorialEntrada, Pestana } from "./tipos/pestana";

@@ -3,6 +3,12 @@ import type { Id } from "./comunes";
 import type { Entidad } from "./entidad";
 import type { Enlace } from "./enlace";
 import type { Estado } from "./estado";
+import type {
+  OntologiaOrganizacional,
+  ReferenciaPadreSubmodelo,
+  SatisfaccionRequisito,
+  SubmodeloReferencia,
+} from "./extensiones";
 import type { Opd } from "./opd";
 
 /**
@@ -33,6 +39,10 @@ export interface Modelo {
   estados: Record<Id, Estado>;
   enlaces: Record<Id, Enlace>;
   abanicos?: Record<Id, Abanico>;
+  ontologia?: OntologiaOrganizacional;
+  satisfaccionesRequisito?: Record<Id, SatisfaccionRequisito>;
+  submodelos?: Record<Id, SubmodeloReferencia>;
+  referenciaPadreSubmodelo?: ReferenciaPadreSubmodelo;
   archivado?: boolean;
   archivadoEn?: string;
   versiones?: VersionResumen[];

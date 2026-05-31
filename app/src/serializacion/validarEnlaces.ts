@@ -8,6 +8,7 @@ import { rutaEtiquetaNormalizada } from "../modelo/rutas";
 import type {
   Abanico,
   DerivacionEnlace,
+  DecisionPolicy,
   Enlace,
   Entidad,
   Estado,
@@ -201,7 +202,15 @@ function validarEfectoEscindidoOpcional(
   if (value.rol !== "entrada" && value.rol !== "salida") {
     return fallo(`Enlace inválido: ${enlaceId}.efectoEscindido.rol`);
   }
-  return ok({ grupoId: value.grupoId, enlacePadreId: value.enlacePadreId, rol: value.rol });
+  if (value.modo !== undefined && value.modo !== "par" && value.modo !== "standalone") {
+    return fallo(`Enlace inválido: ${enlaceId}.efectoEscindido.modo`);
+  }
+  return ok({
+    grupoId: value.grupoId,
+    enlacePadreId: value.enlacePadreId,
+    rol: value.rol,
+    ...(value.modo ? { modo: value.modo } : {}),
+  });
 }
 
 export function validarGrupoEstructuralIdOpcional(enlaceId: Id, value: unknown): Resultado<string | undefined> {
@@ -341,6 +350,8 @@ export function validarAbanicos(
     if (!canonico.ok) {
       return fallo(`Abanico inválido: ${id}.puertoEntidadId`);
     }
+    const decision = validarDecisionPolicy(id, raw.decision);
+    if (!decision.ok) return decision;
     abanicos[id] = {
       id,
       opdId: raw.opdId,
@@ -352,10 +363,43 @@ export function validarAbanicos(
       puertoEntidadId: canonico.value.entidadId,
       operador: raw.operador,
       enlaceIds,
+      ...(decision.value ? { decision: decision.value } : {}),
     };
   }
 
   return ok(abanicos);
+}
+
+function validarDecisionPolicy(abanicoId: Id, value: unknown): Resultado<DecisionPolicy | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Abanico inválido: ${abanicoId}.decision`);
+  if (value.modo === "estado-fijo") {
+    if (typeof value.estadoId !== "string") return fallo(`Abanico inválido: ${abanicoId}.decision.estadoId`);
+    return ok({ modo: "estado-fijo", estadoId: value.estadoId });
+  }
+  if (value.modo === "uniforme") {
+    if (typeof value.objetoId !== "string") return fallo(`Abanico inválido: ${abanicoId}.decision.objetoId`);
+    return ok({ modo: "uniforme", objetoId: value.objetoId });
+  }
+  if (value.modo === "probabilidades") {
+    if (!esRecord(value.pesos)) return fallo(`Abanico inválido: ${abanicoId}.decision.pesos`);
+    const pesos: Record<Id, number> = {};
+    for (const [id, peso] of Object.entries(value.pesos)) {
+      if (typeof peso !== "number" || !Number.isFinite(peso) || peso < 0 || peso > 1) {
+        return fallo(`Abanico inválido: ${abanicoId}.decision.pesos`);
+      }
+      pesos[id] = peso;
+    }
+    return ok({ modo: "probabilidades", pesos });
+  }
+  if (value.modo === "funcion") {
+    if (typeof value.funcionId !== "string") return fallo(`Abanico inválido: ${abanicoId}.decision.funcionId`);
+    if (value.fallback !== undefined && value.fallback !== "uniforme" && value.fallback !== "probabilidades") {
+      return fallo(`Abanico inválido: ${abanicoId}.decision.fallback`);
+    }
+    return ok({ modo: "funcion", funcionId: value.funcionId, ...(value.fallback ? { fallback: value.fallback } : {}) });
+  }
+  return fallo(`Abanico inválido: ${abanicoId}.decision.modo`);
 }
 
 function validarPuertoComunAbanico(

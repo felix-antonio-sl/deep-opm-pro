@@ -23,7 +23,7 @@ import type {
   Resultado,
   TipoEnlace,
 } from "../../tipos";
-import { entidadVisibleEnOpd, ok, siguienteId, validarFirmaEnlace } from "../helpers";
+import { entidadVisibleEnOpd, fallo, ok, siguienteId, validarFirmaEnlace } from "../helpers";
 import {
   cosaDescompuestaEnOpd,
   enlacesExternosDeEntidad,
@@ -164,6 +164,85 @@ export function redistribuirEnlacesExternosSiPrimerSubproceso(modelo: Modelo, op
       ultimoId: subprocesoId,
     },
   });
+}
+
+export function distribuirEnlaceExternoEnRefinamiento(modelo: Modelo, opdId: Id, enlacePadreId: Id): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return fallo("La distribución requiere un OPD de refinamiento");
+  const contorno = procesoDescompuestoEnOpd(modelo, opd);
+  if (!contorno) return fallo("La distribución requiere una descomposición de proceso");
+  const padre = modelo.opds[opd.padreId];
+  const enlace = modelo.enlaces[enlacePadreId];
+  if (!padre || !enlace) return fallo("Enlace de contorno no existe");
+  if (!enlacesExternosDeEntidad(modelo, padre, contorno.entidad.id).some((item) => item.enlace.id === enlacePadreId)) {
+    return fallo("El enlace no pertenece al contorno del refinamiento");
+  }
+  return sincronizarRepresentacionRefinamiento(modelo, opdId);
+}
+
+export function recolectarEnlaceExternoEnRefinamiento(modelo: Modelo, opdId: Id, enlacePadreId: Id): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return fallo("La recolección requiere un OPD de refinamiento");
+  const contorno = procesoDescompuestoEnOpd(modelo, opd);
+  if (!contorno) return fallo("La recolección requiere una descomposición de proceso");
+  const padre = modelo.opds[opd.padreId];
+  const enlacePadre = modelo.enlaces[enlacePadreId];
+  if (!padre || !enlacePadre) return fallo("Enlace de contorno no existe");
+  if (!enlacesExternosDeEntidad(modelo, padre, contorno.entidad.id).some((item) => item.enlace.id === enlacePadreId)) {
+    return fallo("El enlace no pertenece al contorno del refinamiento");
+  }
+
+  let nextSeq = modelo.nextSeq;
+  const enlacesOpd = { ...opd.enlaces };
+  const enlacesRemovidos = new Set<Id>();
+  let cambio = false;
+  for (const [aparienciaId, apariencia] of Object.entries(enlacesOpd)) {
+    const enlace = modelo.enlaces[apariencia.enlaceId];
+    if (
+      enlace?.derivado?.tipo === "enlace-externo-refinamiento" &&
+      enlace.derivado.refinamientoId === contorno.entidad.id &&
+      enlace.derivado.enlacePadreId === enlacePadreId &&
+      enlace.derivado.origen !== "manual"
+    ) {
+      enlacesRemovidos.add(enlace.id);
+      delete enlacesOpd[aparienciaId];
+      cambio = true;
+    }
+  }
+
+  if (!aparienciaEnlaceExiste(enlacesOpd, enlacePadreId)) {
+    const origenId = entidadIdDeExtremo(modelo, enlacePadre.origenId);
+    const destinoId = entidadIdDeExtremo(modelo, enlacePadre.destinoId);
+    if (!origenId || !destinoId || !entidadVisibleEnOpd(opd, origenId) || !entidadVisibleEnOpd(opd, destinoId)) {
+      return fallo("La recolección requiere extremos visibles en el OPD de refinamiento");
+    }
+    const aparienciaId = siguienteId({ ...modelo, nextSeq }, "ae");
+    nextSeq += 1;
+    enlacesOpd[aparienciaId] = { id: aparienciaId, enlaceId: enlacePadreId, opdId, vertices: [] };
+    cambio = true;
+  }
+
+  if (!cambio) return ok(modelo);
+  const enlacesVisiblesEnOtrosOpds = new Set(
+    Object.values(modelo.opds)
+      .flatMap((actual) => Object.values(actual.id === opdId ? enlacesOpd : actual.enlaces))
+      .map((apariencia) => apariencia.enlaceId),
+  );
+  const enlaces = Object.fromEntries(
+    Object.entries(modelo.enlaces).filter(([id]) => !enlacesRemovidos.has(id) || enlacesVisiblesEnOtrosOpds.has(id)),
+  ) as Record<Id, Enlace>;
+  return ok(sincronizarAbanicos({
+    ...modelo,
+    nextSeq,
+    enlaces,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces: enlacesOpd,
+      },
+    },
+  }));
 }
 
 export function proyectarEnlacesExternosEnRefinamiento(

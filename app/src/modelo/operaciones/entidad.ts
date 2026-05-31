@@ -20,6 +20,7 @@ import type {
 import { normalizarParametrosSimulacion } from "../simulacion/parametros";
 import { aparienciaDeEntidadEnOpd } from "../politicaApariciones";
 import { placeholderValorSlot, validarValorSlot } from "../validadores/valorSlot";
+import { nombreReforzadoPorOntologia } from "../ontologia";
 import { fallo, ok, siguienteId } from "./helpers";
 
 /**
@@ -71,17 +72,18 @@ export function renombrarEntidad(modelo: Modelo, entidadId: Id, nombre: string, 
  */
 export function validarNombreEntidad(
   modelo: Modelo,
-  entidadId: Id,
+  entidadId: Id | undefined,
   nombre: string,
   _opdActivoId?: Id,
 ): Resultado<string> {
   const limpio = parsearNombreUnidadEntidad(nombre).nombre;
   if (limpio.length === 0) return fallo("El nombre no puede estar vacío");
-  const duplicada = entidadPorNombreCanonico(modelo, limpio, entidadId);
+  const reforzado = nombreReforzadoPorOntologia(modelo, limpio);
+  const duplicada = entidadPorNombreCanonico(modelo, reforzado, entidadId);
   if (duplicada) {
-    return fallo(`Ya existe '${limpio}' en el modelo`);
+    return fallo(`Ya existe '${reforzado}' en el modelo`);
   }
-  return ok(limpio);
+  return ok(reforzado);
 }
 
 export function nombreEntidadDisponible(modelo: Modelo, nombre: string, excluirEntidadId?: Id): boolean {
@@ -111,7 +113,7 @@ export function crearAtributoEnObjeto(
   if (!aparienciaPadre) return fallo("El objeto padre debe tener apariencia en el OPD activo");
 
   const compuesto = parsearNombreUnidadEntidad(nombreAtributo);
-  const nombre = compuesto.nombre || nombreUnicoEntidad(modelo, "Atributo");
+  const nombre = compuesto.nombre ? nombreReforzadoPorOntologia(modelo, compuesto.nombre) : nombreUnicoEntidad(modelo, "Atributo");
   if (!nombreEntidadDisponible(modelo, nombre)) return fallo(`Ya existe '${nombre}' en el modelo`);
   const unidad = opciones.unidad?.trim() || compuesto.unidad;
   const atributoId = siguienteId(modelo, "o");

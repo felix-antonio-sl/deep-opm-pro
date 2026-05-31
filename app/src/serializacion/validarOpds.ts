@@ -1,8 +1,10 @@
 import type {
   Entidad,
+  EstadoCargaSubmodelo,
   Id,
   ModoDespliegueObjeto,
   Opd,
+  OpdVista,
   RefinamientoEntidad,
   Resultado,
   SlotRefinamiento,
@@ -100,6 +102,8 @@ export function validarOpds(value: Record<string, unknown>, entidades: Record<Id
     }
     if (!esRecord(raw.apariencias)) return fallo(`OPD inválido: ${id}.apariencias`);
     if (!esRecord(raw.enlaces)) return fallo(`OPD inválido: ${id}.enlaces`);
+    const vista = validarVistaOpd(id, raw.vista);
+    if (!vista.ok) return vista;
 
     const apariencias = validarApariencias(id, raw.apariencias, entidades);
     if (!apariencias.ok) return apariencias;
@@ -118,8 +122,35 @@ export function validarOpds(value: Record<string, unknown>, entidades: Record<Id
       padreId: raw.padreId ?? null,
       apariencias: apariencias.value,
       enlaces: enlaces.value,
+      ...(vista.value ? { vista: vista.value } : {}),
       ...(ordenLocal !== undefined ? { ordenLocal } : {}),
     };
   }
   return ok(opds);
+}
+
+function validarVistaOpd(opdId: Id, value: unknown): Resultado<OpdVista | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`OPD inválido: ${opdId}.vista`);
+  if (value.kind === "requirement-view") {
+    if (typeof value.requisitoEntidadId !== "string" || value.readOnly !== true) {
+      return fallo(`OPD inválido: ${opdId}.vista`);
+    }
+    return ok({ kind: "requirement-view", requisitoEntidadId: value.requisitoEntidadId, readOnly: true });
+  }
+  if (value.kind === "submodel-view") {
+    if (
+      typeof value.submodeloRefId !== "string" ||
+      value.readOnly !== true ||
+      !esEstadoCargaSubmodelo(value.syncState)
+    ) {
+      return fallo(`OPD inválido: ${opdId}.vista`);
+    }
+    return ok({ kind: "submodel-view", submodeloRefId: value.submodeloRefId, readOnly: true, syncState: value.syncState });
+  }
+  return fallo(`OPD inválido: ${opdId}.vista.kind`);
+}
+
+function esEstadoCargaSubmodelo(value: unknown): value is EstadoCargaSubmodelo {
+  return value === "descargado" || value === "cargado-sincronizado" || value === "cargado-no-sincronizado" || value === "desconectado";
 }

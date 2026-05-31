@@ -19,7 +19,7 @@ import {
 } from "../../modelo/operaciones";
 import { aplicarModificador } from "../../modelo/modificadores";
 import { posicionLibre } from "../../modelo/layout";
-import { entidadIdDeExtremo } from "../../modelo/extremos";
+import { entidadIdDeExtremo, extremoEstado, mismoExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
 import { formarAbanico } from "../../modelo/abanicos";
 import type { DesignacionEstado, Enlace, Id, Modelo, Modificador, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { claveNombre } from "./parsear";
@@ -136,22 +136,30 @@ function aplicarPatchEnlace(
   const destinoId = resolverRef(modelo, patch.destino, creadas);
   if (!origenId) return fallo(`No se pudo resolver origen para enlace ${patch.tipoEnlace}`);
   if (!destinoId) return fallo(`No se pudo resolver destino para enlace ${patch.tipoEnlace}`);
+  const extremos = resolverExtremosPatch(modelo, patch, origenId, destinoId);
+  if (!extremos.ok) return extremos;
 
   // Idempotencia (D3): si ya existe un enlace con misma tripla, reusamos para
   // aplicar modificador/tiempos en lugar de duplicar.
   const existente = buscarEnlaceCon(modelo, patch.tipoEnlace, origenId, destinoId);
   if (existente) {
-    return aplicarMetadatosCondicionExcepcion(modelo, existente, patch);
+    return aplicarMetadatosCondicionExcepcion(modelo, existente, patch, extremos.value);
   }
 
-  const creado = crearEnlace(modelo, opdId, origenId, destinoId, patch.tipoEnlace, patch.etiqueta ?? "");
+  const creado = crearEnlace(modelo, opdId, extremos.value.origen, extremos.value.destino, patch.tipoEnlace, patch.etiqueta ?? "");
   if (!creado.ok) return creado;
-  if (patch.modificador === undefined && patch.tiempoMaximo === undefined && patch.tiempoMinimo === undefined) {
+  if (
+    patch.modificador === undefined &&
+    patch.tiempoMaximo === undefined &&
+    patch.tiempoMinimo === undefined &&
+    extremos.value.estadoEntradaId === undefined &&
+    extremos.value.estadoSalidaId === undefined
+  ) {
     return creado;
   }
-  const enlaceNuevo = enlaceMasReciente(modelo, creado.value, patch.tipoEnlace, origenId, destinoId);
+  const enlaceNuevo = enlaceMasRecientePorExtremos(modelo, creado.value, patch.tipoEnlace, extremos.value.origen, extremos.value.destino);
   if (!enlaceNuevo) return creado;
-  return aplicarMetadatosCondicionExcepcion(creado.value, enlaceNuevo, patch);
+  return aplicarMetadatosCondicionExcepcion(creado.value, enlaceNuevo, patch, extremos.value);
 }
 
 /**
@@ -164,8 +172,22 @@ function aplicarMetadatosCondicionExcepcion(
   modelo: Modelo,
   enlace: Enlace,
   patch: Extract<PatchOplPropuesto, { tipo: "crear-enlace" }>,
+  extremos?: { estadoEntradaId?: Id; estadoSalidaId?: Id },
 ): Resultado<Modelo> {
   let siguiente = modelo;
+  if (enlace.tipo === "efecto" && (extremos?.estadoEntradaId || extremos?.estadoSalidaId)) {
+    siguiente = {
+      ...siguiente,
+      enlaces: {
+        ...siguiente.enlaces,
+        [enlace.id]: {
+          ...siguiente.enlaces[enlace.id]!,
+          ...(extremos.estadoEntradaId ? { estadoEntradaId: extremos.estadoEntradaId } : {}),
+          ...(extremos.estadoSalidaId ? { estadoSalidaId: extremos.estadoSalidaId } : {}),
+        },
+      },
+    };
+  }
   if (patch.modificador && enlace.modificador !== patch.modificador) {
     const aplicado = aplicarModificador(siguiente, enlace.id, patch.modificador);
     if (!aplicado.ok) return aplicado;
@@ -193,16 +215,69 @@ function buscarEnlaceCon(modelo: Modelo, tipo: TipoEnlace, origenId: Id, destino
   }) ?? null;
 }
 
-function enlaceMasReciente(previo: Modelo, siguiente: Modelo, tipo: TipoEnlace, origenId: Id, destinoId: Id): Enlace | null {
+function enlaceMasRecientePorExtremos(
+  previo: Modelo,
+  siguiente: Modelo,
+  tipo: TipoEnlace,
+  origen: ExtremoEntrada,
+  destino: ExtremoEntrada,
+): Enlace | null {
   const previos = new Set(Object.keys(previo.enlaces));
+  const origenNormalizado = normalizarExtremo(origen);
+  const destinoNormalizado = normalizarExtremo(destino);
   for (const [id, enlace] of Object.entries(siguiente.enlaces)) {
     if (previos.has(id)) continue;
     if (enlace.tipo !== tipo) continue;
-    if (entidadIdDeExtremo(siguiente, enlace.origenId) !== origenId) continue;
-    if (entidadIdDeExtremo(siguiente, enlace.destinoId) !== destinoId) continue;
+    if (!mismoExtremo(enlace.origenId, origenNormalizado)) continue;
+    if (!mismoExtremo(enlace.destinoId, destinoNormalizado)) continue;
     return enlace;
   }
   return null;
+}
+
+function resolverExtremosPatch(
+  modelo: Modelo,
+  patch: Extract<PatchOplPropuesto, { tipo: "crear-enlace" }>,
+  origenId: Id,
+  destinoId: Id,
+): Resultado<{ origen: ExtremoEntrada; destino: ExtremoEntrada; estadoEntradaId?: Id; estadoSalidaId?: Id }> {
+  const estadoEntradaId = patch.estadoEntrada ? resolverEstadoPorNombre(modelo, destinoObjetoDeEntrada(patch.tipoEnlace, origenId, destinoId), patch.estadoEntrada) : undefined;
+  const estadoSalidaId = patch.estadoSalida ? resolverEstadoPorNombre(modelo, destinoObjetoDeSalida(patch.tipoEnlace, origenId, destinoId), patch.estadoSalida) : undefined;
+  if (patch.estadoEntrada && !estadoEntradaId) return fallo(`Estado de entrada no existe: ${patch.estadoEntrada}`);
+  if (patch.estadoSalida && !estadoSalidaId) return fallo(`Estado de salida no existe: ${patch.estadoSalida}`);
+
+  if (patch.tipoEnlace === "consumo" && estadoEntradaId) {
+    return ok({ origen: extremoEstado(estadoEntradaId), destino: destinoId });
+  }
+  if (patch.tipoEnlace === "resultado" && estadoSalidaId) {
+    return ok({ origen: origenId, destino: extremoEstado(estadoSalidaId) });
+  }
+  if (patch.tipoEnlace === "efecto") {
+    if (estadoEntradaId && !estadoSalidaId) return ok({ origen: extremoEstado(estadoEntradaId), destino: origenId, estadoEntradaId });
+    if (!estadoEntradaId && estadoSalidaId) return ok({ origen: origenId, destino: extremoEstado(estadoSalidaId), estadoSalidaId });
+    return ok({
+      origen: origenId,
+      destino: destinoId,
+      ...(estadoEntradaId ? { estadoEntradaId } : {}),
+      ...(estadoSalidaId ? { estadoSalidaId } : {}),
+    });
+  }
+  return ok({ origen: origenId, destino: destinoId });
+}
+
+function destinoObjetoDeEntrada(tipo: TipoEnlace, origenId: Id, destinoId: Id): Id {
+  if (tipo === "consumo") return origenId;
+  return destinoId;
+}
+
+function destinoObjetoDeSalida(tipo: TipoEnlace, origenId: Id, destinoId: Id): Id {
+  if (tipo === "resultado" || tipo === "efecto") return destinoId;
+  return origenId;
+}
+
+function resolverEstadoPorNombre(modelo: Modelo, entidadId: Id, nombre: string): Id | null {
+  const clave = claveNombre(nombre);
+  return estadosDeEntidad(modelo, entidadId).find((estado) => claveNombre(estado.nombre) === clave)?.id ?? null;
 }
 
 function sincronizarEstados(modelo: Modelo, objetoId: Id, nombres: string[]): Resultado<Modelo> {

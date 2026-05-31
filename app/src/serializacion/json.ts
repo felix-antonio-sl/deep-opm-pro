@@ -1,4 +1,14 @@
-import type { Id, Modelo, Resultado } from "../modelo/tipos";
+import type {
+  EstadoCargaSubmodelo,
+  EstadoSatisfaccionRequisito,
+  Id,
+  Modelo,
+  OntologiaOrganizacional,
+  ReferenciaPadreSubmodelo,
+  Resultado,
+  SatisfaccionRequisito,
+  SubmodeloReferencia,
+} from "../modelo/tipos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import { validarApariencias, validarAparienciasEnlace } from "./validarApariencias";
 import { validarEnlaces, validarAbanicos } from "./validarEnlaces";
@@ -127,6 +137,14 @@ function validarModelo(value: unknown): Resultado<Modelo> {
   if (!opdsValidados.value[opdRaizId]) return fallo(`OPD raíz no existe: ${opdRaizId}`);
   const enlacesValidados = validarEnlaces(enlaces, entidadesValidadas.value, estadosValidados.value);
   if (!enlacesValidados.ok) return enlacesValidados;
+  const ontologiaValidada = validarOntologiaOrganizacional(value.ontologia);
+  if (!ontologiaValidada.ok) return ontologiaValidada;
+  const satisfaccionesValidadas = validarSatisfaccionesRequisito(value.satisfaccionesRequisito, entidadesValidadas.value, enlacesValidados.value);
+  if (!satisfaccionesValidadas.ok) return satisfaccionesValidadas;
+  const submodelosValidados = validarSubmodelos(value.submodelos, entidadesValidadas.value, opdsValidados.value);
+  if (!submodelosValidados.ok) return submodelosValidados;
+  const padreSubmodeloValidado = validarReferenciaPadreSubmodelo(value.referenciaPadreSubmodelo, entidadesValidadas.value);
+  if (!padreSubmodeloValidado.ok) return padreSubmodeloValidado;
   const abanicosValidados = validarAbanicos(
     abanicos,
     opdsValidados.value,
@@ -147,6 +165,10 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     opds: opdsValidados.value,
     enlaces: enlacesValidados.value,
     abanicos: abanicosValidados.value,
+    ...(ontologiaValidada.value ? { ontologia: ontologiaValidada.value } : {}),
+    ...(Object.keys(satisfaccionesValidadas.value).length > 0 ? { satisfaccionesRequisito: satisfaccionesValidadas.value } : {}),
+    ...(Object.keys(submodelosValidados.value).length > 0 ? { submodelos: submodelosValidados.value } : {}),
+    ...(padreSubmodeloValidado.value ? { referenciaPadreSubmodelo: padreSubmodeloValidado.value } : {}),
     ...(value.archivado === true ? { archivado: true } : {}),
     ...(typeof value.archivadoEn === "string" ? { archivadoEn: value.archivadoEn } : {}),
     ...(Array.isArray(value.versiones) ? { versiones: normalizarVersiones(value.versiones) } : {}),
@@ -154,4 +176,112 @@ function validarModelo(value: unknown): Resultado<Modelo> {
   };
   const referencias = validarReferenciasOpd(modelo);
   return referencias.ok ? ok(modelo) : referencias;
+}
+
+function validarOntologiaOrganizacional(value: unknown): Resultado<OntologiaOrganizacional | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo("Modelo inválido: ontologia");
+  if (value.modo !== "none" && value.modo !== "suggest" && value.modo !== "enforce") {
+    return fallo("Modelo inválido: ontologia.modo");
+  }
+  if (!Array.isArray(value.terminos)) return fallo("Modelo inválido: ontologia.terminos");
+  const terminos: OntologiaOrganizacional["terminos"] = [];
+  for (const item of value.terminos) {
+    if (!esRecord(item) || typeof item.canonico !== "string" || !item.canonico.trim()) {
+      return fallo("Modelo inválido: ontologia.terminos");
+    }
+    if (item.sinonimos !== undefined && !Array.isArray(item.sinonimos)) {
+      return fallo("Modelo inválido: ontologia.terminos.sinonimos");
+    }
+    const sinonimos = (item.sinonimos ?? []).map((sinonimo: unknown) => {
+      if (typeof sinonimo !== "string") return null;
+      const limpio = sinonimo.trim();
+      return limpio || null;
+    });
+    if (sinonimos.some((sinonimo: string | null) => sinonimo === null)) {
+      return fallo("Modelo inválido: ontologia.terminos.sinonimos");
+    }
+    terminos.push({
+      canonico: item.canonico.trim(),
+      ...(sinonimos.length > 0 ? { sinonimos: sinonimos as string[] } : {}),
+      ...(typeof item.descripcion === "string" && item.descripcion.trim() ? { descripcion: item.descripcion.trim() } : {}),
+    });
+  }
+  return ok({ modo: value.modo, terminos });
+}
+
+function validarSatisfaccionesRequisito(
+  value: unknown,
+  entidades: Modelo["entidades"],
+  enlaces: Modelo["enlaces"],
+): Resultado<Record<Id, SatisfaccionRequisito>> {
+  if (value === undefined) return ok({});
+  if (!esRecord(value)) return fallo("Modelo inválido: satisfaccionesRequisito");
+  const satisfacciones: Record<Id, SatisfaccionRequisito> = {};
+  for (const [id, raw] of Object.entries(value)) {
+    if (!esRecord(raw) || raw.id !== id) return fallo(`Satisfacción de requisito inválida: ${id}`);
+    if (typeof raw.requisitoEntidadId !== "string" || entidades[raw.requisitoEntidadId]?.estereotipo !== "requirement") {
+      return fallo(`Satisfacción de requisito inválida: ${id}.requisitoEntidadId`);
+    }
+    if (!esRecord(raw.target) || (raw.target.tipo !== "entidad" && raw.target.tipo !== "enlace") || typeof raw.target.id !== "string") {
+      return fallo(`Satisfacción de requisito inválida: ${id}.target`);
+    }
+    if (raw.target.tipo === "entidad" && !entidades[raw.target.id]) return fallo(`Satisfacción de requisito inválida: ${id}.target.id`);
+    if (raw.target.tipo === "enlace" && !enlaces[raw.target.id]) return fallo(`Satisfacción de requisito inválida: ${id}.target.id`);
+    if (!esEstadoSatisfaccion(raw.estado)) return fallo(`Satisfacción de requisito inválida: ${id}.estado`);
+    satisfacciones[id] = {
+      id,
+      requisitoEntidadId: raw.requisitoEntidadId,
+      target: { tipo: raw.target.tipo, id: raw.target.id },
+      estado: raw.estado,
+      ...(typeof raw.descripcion === "string" && raw.descripcion.trim() ? { descripcion: raw.descripcion.trim() } : {}),
+    };
+  }
+  return ok(satisfacciones);
+}
+
+function validarSubmodelos(
+  value: unknown,
+  entidades: Modelo["entidades"],
+  opds: Modelo["opds"],
+): Resultado<Record<Id, SubmodeloReferencia>> {
+  if (value === undefined) return ok({});
+  if (!esRecord(value)) return fallo("Modelo inválido: submodelos");
+  const refs: Record<Id, SubmodeloReferencia> = {};
+  for (const [id, raw] of Object.entries(value)) {
+    if (!esRecord(raw) || raw.id !== id) return fallo(`Submodelo inválido: ${id}`);
+    if (typeof raw.modeloId !== "string" || typeof raw.nombre !== "string" || !raw.nombre.trim()) return fallo(`Submodelo inválido: ${id}`);
+    if (typeof raw.anchorEntidadId !== "string" || !entidades[raw.anchorEntidadId]) return fallo(`Submodelo inválido: ${id}.anchorEntidadId`);
+    if (!esEstadoCargaSubmodelo(raw.estado)) return fallo(`Submodelo inválido: ${id}.estado`);
+    if (raw.opdVistaId !== undefined && (typeof raw.opdVistaId !== "string" || !opds[raw.opdVistaId])) {
+      return fallo(`Submodelo inválido: ${id}.opdVistaId`);
+    }
+    refs[id] = {
+      id,
+      modeloId: raw.modeloId,
+      nombre: raw.nombre.trim(),
+      anchorEntidadId: raw.anchorEntidadId,
+      estado: raw.estado,
+      ...(raw.opdVistaId ? { opdVistaId: raw.opdVistaId } : {}),
+      ...(esRecord(raw.compartidas) ? { compartidas: Object.fromEntries(Object.entries(raw.compartidas).filter(([, v]) => typeof v === "string")) as Record<Id, Id> } : {}),
+    };
+  }
+  return ok(refs);
+}
+
+function validarReferenciaPadreSubmodelo(value: unknown, entidades: Modelo["entidades"]): Resultado<ReferenciaPadreSubmodelo | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo("Modelo inválido: referenciaPadreSubmodelo");
+  if (typeof value.modeloId !== "string" || typeof value.refId !== "string") return fallo("Modelo inválido: referenciaPadreSubmodelo");
+  if (typeof value.anchorEntidadId !== "string" || !entidades[value.anchorEntidadId]) return fallo("Modelo inválido: referenciaPadreSubmodelo.anchorEntidadId");
+  if (!esEstadoCargaSubmodelo(value.estado)) return fallo("Modelo inválido: referenciaPadreSubmodelo.estado");
+  return ok({ modeloId: value.modeloId, refId: value.refId, anchorEntidadId: value.anchorEntidadId, estado: value.estado });
+}
+
+function esEstadoCargaSubmodelo(value: unknown): value is EstadoCargaSubmodelo {
+  return value === "descargado" || value === "cargado-sincronizado" || value === "cargado-no-sincronizado" || value === "desconectado";
+}
+
+function esEstadoSatisfaccion(value: unknown): value is EstadoSatisfaccionRequisito {
+  return value === "pendiente" || value === "satisface" || value === "parcial" || value === "no-satisface";
 }

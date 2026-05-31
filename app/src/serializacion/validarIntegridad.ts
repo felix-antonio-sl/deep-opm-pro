@@ -44,6 +44,15 @@ export function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
     }
   }
   for (const [opdId, opd] of Object.entries(modelo.opds)) {
+    if (opd.vista?.kind === "requirement-view") {
+      const requisito = modelo.entidades[opd.vista.requisitoEntidadId];
+      if (requisito?.estereotipo !== "requirement") return fallo(`OPD inválido: ${opdId}.vista.requisitoEntidadId`);
+    }
+    if (opd.vista?.kind === "submodel-view") {
+      const ref = modelo.submodelos?.[opd.vista.submodeloRefId];
+      if (!ref) return fallo(`OPD inválido: ${opdId}.vista.submodeloRefId`);
+      if (ref.opdVistaId && ref.opdVistaId !== opdId) return fallo(`OPD inválido: ${opdId}.vista.submodeloRefId`);
+    }
     const extraidas = validarAparienciasExtraidas(modelo, opd);
     if (!extraidas.ok) return extraidas;
     for (const [aparienciaId, apariencia] of Object.entries(opd.enlaces)) {

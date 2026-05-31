@@ -25,7 +25,9 @@ export { desplegarObjeto, quitarDespliegueObjeto } from "./refinamiento/desplieg
 export type { DespliegueObjeto } from "./refinamiento/despliegue";
 
 export {
+  distribuirEnlaceExternoEnRefinamiento,
   refrescarEnlacesExternosDerivados,
+  recolectarEnlaceExternoEnRefinamiento,
   redistribuirEnlacesExternosSiPrimerSubproceso,
   sincronizarRepresentacionRefinamiento,
   sincronizarRepresentacionesHijasDeOpd,

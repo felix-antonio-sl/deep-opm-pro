@@ -284,6 +284,11 @@ export type PatchOplPropuesto =
       /** Tiempo minimo para enlaces de excepcion por subtiempo (SSOT §8.1 EX2). */
       tiempoMinimo?: string;
       unidadTiempoMinimo?: string;
+      estadoEntrada?: string;
+      estadoSalida?: string;
+      multiplicidadOrigen?: string;
+      multiplicidadDestino?: string;
+      rutaEtiqueta?: string;
     }
   | { tipo: "fijar-etiqueta-enlace"; linea: number; enlaceId: Id; anterior: string; siguiente: string }
   | { tipo: "aplicar-designacion-estado"; linea: number; entidadId: Id; estadoNombre: string; designacion: DesignacionEstado }

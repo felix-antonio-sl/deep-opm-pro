@@ -4,6 +4,37 @@
 **Commits de producto (sesión 2026-05-31)**: `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado. **Desplegado** (`docker compose up -d --build`): entry bundle `index-DWseXsaH.js`. Previo ya en `origin/main`: `e5ff438` exportador de diagnóstico a JSON. Cortes anteriores: `59ad3a9` D1 esencia/afiliación combinada; ronda atajos/inspector/simulación.
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo `index-DWseXsaH.js`.
 
+## Corte actual — Núcleo canónico para capacidades OPCloud aspiracionales (sin UX/UI completa)
+
+**Estado:** implementado a nivel de **kernel de dominio, serialización JSON, parser OPL inverso y tests**. **No está implementado todo a nivel UX/UI**: no hay todavía superficie completa para configurar ontología, gestionar requisitos, conectar submodelos, ni resolver/distribuir desde controles de producto. La decisión vigente es construir una función **isomorfa** a OPCloud, no copiar sus gestos: OPCloud es evidencia observacional; la autoridad semántica sigue siendo `docs/canon-opm/reglas-opm-estrictas.md` y la bidireccionalidad OPL se rige por `docs/canon-opm/spec-forja-opl.md`.
+
+**Capacidades disponibles en dominio:**
+- **Distribuir/recolectar enlace de contorno:** operaciones puras `distribuirEnlaceExternoEnRefinamiento` y `recolectarEnlaceExternoEnRefinamiento` sobre refinamientos existentes. Recolectar quita derivados automáticos del OPD hijo y materializa el enlace padre; distribuir resincroniza la proyección derivada.
+- **Decisión XOR en 4 formas:** `resolverDecisionEnlace`, `resolverDecisionAbanico` y `resolverDecisionConPolicy` soportan estado fijo, uniforme 50/50 sobre estados de objeto, probabilidades explícitas y función registrada en runtime. No se serializa código de usuario; solo `funcionId`.
+- **Split TS4/TS5 parcial:** `splitEffectParcial` convierte un efecto TS3 con exactamente un estado no especificado en efecto standalone `Estado -> Proceso` o `Proceso -> Estado`; el parser OPL inverso interpreta `cambia X de estado` / `cambia X a estado` como efecto parcial, no como consumo/resultado.
+- **Ontología organizacional:** `OntologiaOrganizacional` con modos `none/suggest/enforce`; `suggest` informa canon/alias y `enforce` canoniza creación/renombrado de entidades desde operaciones puras.
+- **Requisitos estructurados:** objetos `<<Requirement>>` con `idLogico`, descripción, `hard/soft`, actor y satisfacción; `satisfacerRequisito` crea un set estructurado y mantiene compatibilidad con `Enlace.requisitos` legacy cuando el target es un enlace. `crearRequirementView` genera OPD read-only derivado por metadata.
+- **Submodelo LF-04 base:** `conectarSubmodelo`, `marcarEstadoSubmodelo`, `desconectarSubmodelo` y `registrarPadreSubmodelo` modelan referencia padre/hijo, OPD vista read-only y estados `descargado / cargado-sincronizado / cargado-no-sincronizado / desconectado`.
+
+**Artefactos principales:** tipos en `app/src/modelo/tipos/extensiones.ts`; operaciones en `app/src/modelo/{ontologia,requisitos,submodelos,decision}.ts`; refinamiento en `app/src/modelo/operaciones/refinamiento/proyeccion.ts`; split en `app/src/modelo/operaciones/eliminacion.ts`; parser OPL en `app/src/opl/parser/{parsear,planificar,aplicar,tipos}.ts`; validadores JSON en `app/src/serializacion/{json,validarEnlaces,validarEntidades,validarIntegridad,validarNormalizacion,validarOpds}.ts`; pruebas en `app/src/modelo/capacidadesOpcloud.test.ts` y `app/src/opl/parser/ts45.test.ts`.
+
+**Verificación:** `bun run check` -> **1789 pass / 0 fail**; `bun run lint` -> OK; `bun run build` -> OK; `git diff --check` -> OK.
+
+**Handoff explícito / pendientes UX/UI:**
+- Diseñar la interacción propia de op-forja para estas capacidades. No replicar doble-clic/drag exacto de OPCloud salvo que encaje con `ui-forja`; buscar equivalencia funcional, comandos claros, inspector/paleta cuando sea más canónico.
+- Cablear store/UI para ontología: editor de términos, modo `none/suggest/enforce`, feedback de sugerencia y confirmación cuando no sea enforcement.
+- Exponer requisitos: crear requisito, marcar entidad existente como requisito, asignar satisfacción a entidades/enlaces y navegar requirement views como vistas derivadas read-only.
+- Exponer submodelos: conectar desde una cosa mínima, mostrar estado de carga/sync, cargar/descargar, señalizar compartidas transparentes y confirmar desconexión irreversible. El lazy-load multiarchivo todavía no existe.
+- Exponer distribución/recolección de contorno y split parcial como comandos contextuales o acciones de inspector. El gesto OPCloud de arrastrar no es requisito; la función debe ser equivalente.
+- Enforce read-only por `opd.vista` en store/UI. Hoy queda representado y validado en modelo/JSON; la UI todavía debe bloquear edición por vista.
+
+**Supuestos y riesgos:**
+- Los nuevos campos son opcionales y aditivos; modelos previos hidratan sin migración manual.
+- `DecisionPolicy.modo="funcion"` depende de un registry en runtime; si no se registra la función, el resolver falla explícitamente.
+- Requirement views y submodel views son snapshots/vistas derivadas simples; falta una política de refresco incremental.
+- Submodelo LF-04 está como contrato de referencia y sincronización, no como persistencia distribuida completa.
+- Worktree tenía cambios previos ajenos en `docs/bugs/**`, borrados de docs y auditorías sin versionar; no forman parte de este corte.
+
 ## Corte actual — Supresión de estados POR APARICIÓN (per-OPD) + chip de conteo (sesión 2026-05-31)
 
 **1. Supresión de estados por aparición (`e69cf1d`, 13 archivos, estilo OPCloud `suppress`/`suppressAll`/`expressAll`).** Se añade ocultar estados de un objeto en un OPD concreto **sin** afectar otras apariciones ni el modelo global, **conservando** la supresión GLOBAL (`Estado.suprimido`) intacta como override maestro. Diseño sellado con `cat-thinking` (`urn:fxsl:kb:icas-topoi`): la visibilidad de estados es un presheaf `Vis : OPD^op → Set`; el dato local vive en la **fibra** `Apariencia.estadosSuprimidos: Id[]` (no en `Estado`, que colapsaría las fibras); visibilidad efectiva = **meet** en Ω `visible = ¬global ∧ ¬local` (global domina, local refina); global y local son **ortogonales** (quitar la global no resucita lo ocultado localmente). SSOT del predicado + ops puras en `app/src/modelo/visibilidadEstados.ts` (`estadoVisibleEnAparicion`, `suprimir/mostrar[Todos]EnAparicion`); rechaza estados con enlaces incidentes (paridad con la global). Capas: campo en `apariencia.ts`; render filtra cápsulas por el predicado efectivo (`composers/{estados,entidad}.ts`, índices `stateCapsuleN` alineados); store expone 4 acciones vía la selección de estado ciudadano; UI "Ocultar/Mostrar (todos) en esta vista" en `MenuContextualEstado.tsx`; validador `validarApariencias.ts` sanea el campo; ley `leyes/supresion-estados-aparicion.test.ts` (no-contaminación entre apariciones, global-domina, ortogonalidad, render, roundtrip). Compat hacia atrás: campo opcional, ausente = ninguno.

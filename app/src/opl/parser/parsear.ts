@@ -780,22 +780,22 @@ function parsearSubClausulaEvento(
     };
   }
 
-  // "cambia X de `s`" → consumo de estado.
+  // "cambia X de `s`" → efecto parcial TS4 standalone.
   match = /^cambia\s+(.+?)\s+de\s+`?([^`]+?)`?$/iu.exec(sub);
   if (match) {
     return {
-      tipoEnlace: "consumo",
+      tipoEnlace: "efecto",
       proceso,
       objeto: normalizarNombreOpl(match[1] ?? ""),
       estadoEntrada: limpiarEstado(match[2] ?? ""),
     };
   }
 
-  // "cambia X a `s`" → resultado a estado.
+  // "cambia X a `s`" → efecto parcial TS5 standalone.
   match = /^cambia\s+(.+?)\s+a\s+`?([^`]+?)`?$/iu.exec(sub);
   if (match) {
     return {
-      tipoEnlace: "resultado",
+      tipoEnlace: "efecto",
       proceso,
       objeto: normalizarNombreOpl(match[1] ?? ""),
       estadoSalida: limpiarEstado(match[2] ?? ""),
@@ -890,9 +890,9 @@ function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
   match = /^(.+?) cambia (.+?) de (.+?) a (.+)$/iu.exec(texto);
   if (match) return astProcedimental(linea, { tipoEnlace: "efecto", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? ""), estadoEntrada: limpiarEstado(match[3] ?? ""), estadoSalida: limpiarEstado(match[4] ?? "") });
   match = /^(.+?) cambia (.+?) de (.+)$/iu.exec(texto);
-  if (match) return astProcedimental(linea, { tipoEnlace: "consumo", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? ""), estadoEntrada: limpiarEstado(match[3] ?? "") });
+  if (match) return astProcedimental(linea, { tipoEnlace: "efecto", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? ""), estadoEntrada: limpiarEstado(match[3] ?? "") });
   match = /^(.+?) cambia (.+?) a (.+)$/iu.exec(texto);
-  if (match) return astProcedimental(linea, { tipoEnlace: "resultado", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? ""), estadoSalida: limpiarEstado(match[3] ?? "") });
+  if (match) return astProcedimental(linea, { tipoEnlace: "efecto", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? ""), estadoSalida: limpiarEstado(match[3] ?? "") });
   match = /^(.+?) manejan? (.+)$/iu.exec(texto);
   if (match) {
     // En agente el objeto es origen (sujeto, ej. "Operador"), proceso es destino.

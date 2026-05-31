@@ -1,4 +1,5 @@
 import type { Id } from "./comunes";
+import type { DecisionPolicy } from "./extensiones";
 
 /**
  * Tipos del dominio Abanico (OR/XOR fan en OPM).
@@ -27,4 +28,5 @@ export interface Abanico {
   puertoEntidadId: Id;
   operador: OperadorAbanico;
   enlaceIds: Id[];
+  decision?: DecisionPolicy;
 }
