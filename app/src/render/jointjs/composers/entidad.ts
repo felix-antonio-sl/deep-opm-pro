@@ -58,7 +58,8 @@ export function proyectarEntidad(
   // como gramatica auxiliar de "hay mas, no se muestra todo". Implementado
   // abajo via metadatos.suppressedBadge para reusar la infraestructura de
   // badges. El badge senala supresion por CUALQUIER causa en esta vista.
-  const tieneEstadosSuprimidos = estadosTotales.length > estadosVisibles.length;
+  const estadosOcultosCount = estadosTotales.length - estadosVisibles.length;
+  const tieneEstadosSuprimidos = estadosOcultosCount > 0;
   const nombreRender = formatearNombreCompuesto(
     {
       nombre: nombreCanonicoEntidad(entidad),
@@ -147,6 +148,7 @@ export function proyectarEntidad(
     estructuralesOcultas > 0
       ? `${estructuralesOcultas} relación(es) estructural(es) plegadas`
       : "Plegado parcial",
+    estadosOcultosCount,
   );
   const renderBase = modoParcial
     ? { markup: markupPlegadoParcial(bodyTag, filasParciales), attrs: attrsPlegadoParcial(attrsBase, size, filasParciales) }
@@ -466,6 +468,8 @@ interface MetadatosEntidadRender {
   descripcion?: string;
   url?: string;
   suppressedBadge: boolean;
+  /** Cantidad de estados ocultos en esta vista (global O local). Alimenta el chip `⋯N`. */
+  suppressedCount: number;
   tieneMetadatos: boolean;
 }
 
@@ -476,6 +480,7 @@ export function metadatosEntidad(
   tieneEstadosSuprimidos = false,
   foldBadgeText = "▾",
   foldBadgeTitle = "Plegado parcial",
+  estadosOcultosCount = 0,
 ): MetadatosEntidadRender {
   const descripcion = opciones.descripcionesVisibles !== false ? entidad.descripcion?.trim() : undefined;
   const url = entidad.urls?.[0]?.url;
@@ -486,6 +491,7 @@ export function metadatosEntidad(
     ...(descripcion ? { descripcion } : {}),
     ...(url ? { url } : {}),
     suppressedBadge: tieneEstadosSuprimidos,
+    suppressedCount: estadosOcultosCount,
     tieneMetadatos: tienePartes || !!descripcion || !!url || tieneEstadosSuprimidos,
   };
 }
@@ -552,7 +558,7 @@ export function markupConBadge(bodyTag: "rect" | "ellipse", metadatos: Metadatos
       selector: "urlLink",
       children: [{ tagName: "text", selector: "urlBadge" }],
     }] : []),
-    ...(metadatos.suppressedBadge ? [{ tagName: "text", selector: "suppressedBadge" }] : []),
+    ...(metadatos.suppressedBadge ? [{ tagName: "rect", selector: "suppressedBadgeChip" }, { tagName: "text", selector: "suppressedBadge" }] : []),
   ];
 }
 
@@ -588,7 +594,7 @@ export function markupConEstados(
       selector: "urlLink",
       children: [{ tagName: "text", selector: "urlBadge" }],
     }] : []),
-    ...(metadatos.suppressedBadge ? [{ tagName: "text", selector: "suppressedBadge" }] : []),
+    ...(metadatos.suppressedBadge ? [{ tagName: "rect", selector: "suppressedBadgeChip" }, { tagName: "text", selector: "suppressedBadge" }] : []),
   ];
 }
 
@@ -812,20 +818,42 @@ export function aplicarMetadatosAttrs(
     };
   }
   if (metadatos.suppressedBadge) {
-    // SSOT §1.8 / V-192: "..." en esquina inferior derecha del objeto
-    // como indicador canonico de estados suprimidos en el OPD activo.
+    // SSOT §1.8 / V-192: indicador en esquina inferior derecha de "hay estados
+    // ocultos en este OPD" (por supresión global O local). Codex: chip hairline
+    // en TINTA (crimson es UI-only, reservado a foco/selección — no puede marcar
+    // semántica en el OPD, ui-forja/06 §100). El conteo `⋯N` hace explícito
+    // cuántos estados están ocultos en la vista.
+    const count = metadatos.suppressedCount;
+    const titulo = `${count} ${count === 1 ? "estado oculto" : "estados ocultos"} en este OPD`;
+    const chipAlto = 15;
+    const chipAncho = 16 + String(count).length * 7;
+    const chipX = size.width - chipAncho - 4;
+    const chipY = size.height - chipAlto - 4;
+    attrs.suppressedBadgeChip = {
+      x: chipX,
+      y: chipY,
+      width: chipAncho,
+      height: chipAlto,
+      rx: chipAlto / 2,
+      ry: chipAlto / 2,
+      fill: CODEX.colores.paper,
+      stroke: CODEX.colores.ink,
+      strokeWidth: 1,
+      pointerEvents: "none",
+      title: titulo,
+    };
     attrs.suppressedBadge = {
-      text: "…",
-      x: size.width - 14,
-      y: size.height - 8,
+      text: `⋯${count}`,
+      x: chipX + chipAncho / 2,
+      y: chipY + chipAlto / 2 + 0.5,
       fill: CODEX.colores.ink,
       fontFamily: CODEX.fuentes.serif,
-      fontSize: 14,
+      fontSize: 10,
       fontWeight: 700,
       textAnchor: "middle",
       textVerticalAnchor: "middle",
       pointerEvents: "none",
-      title: "Tiene estados suprimidos en este OPD",
+      title: titulo,
     };
   }
 }

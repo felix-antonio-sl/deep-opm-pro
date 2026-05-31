@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
 import type { Entidad, Resultado } from "../../../modelo/tipos";
 import { ESTADOS, identificadorCanonicoApariencia, identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
+import { suprimirEstadoEnAparicion } from "../../../modelo/visibilidadEstados";
 
 describe("composer entidad", () => {
   test("proyecta objeto simple con metadata OPM estable", () => {
@@ -21,6 +22,30 @@ describe("composer entidad", () => {
       entidadId: entidad.id,
       aparienciaId: apariencia.id,
       rol: "interno",
+    });
+  });
+
+  test("chip ⋯N: el badge de estados ocultos lleva el conteo y se dibuja como pastilla hairline en tinta", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Pedido"));
+    const entidad = Object.values(modelo.entidades)[0]!;
+    modelo = must(crearEstadosIniciales(modelo, entidad.id)).modelo; // estado1, estado2
+    const apariencia0 = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0]!;
+    const estado1Id = estadosDeEntidad(modelo, entidad.id)[0]!.id;
+    modelo = must(suprimirEstadoEnAparicion(modelo, modelo.opdRaizId, apariencia0.id, estado1Id));
+    const apariencia = modelo.opds[modelo.opdRaizId]!.apariencias[apariencia0.id]!;
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, modelo.entidades[entidad.id]!, false, false, {});
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+
+    // 1 oculto de 2 → conteo explícito y tooltip pluralizado en singular.
+    expect(attrs.suppressedBadge?.text).toBe("⋯1");
+    expect(attrs.suppressedBadge?.title).toBe("1 estado oculto en este OPD");
+    // Pastilla hairline: fondo paper, borde tinta (crimson es UI-only, no va en el OPD).
+    expect(attrs.suppressedBadgeChip).toMatchObject({
+      fill: "#fafaf8",
+      stroke: "#171511",
+      strokeWidth: 1,
     });
   });
 
