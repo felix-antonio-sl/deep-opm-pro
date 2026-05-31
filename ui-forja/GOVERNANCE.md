@@ -13,14 +13,14 @@
 
 La precedencia completa del repo es:
 
-1. `docs/canon-opm/reglas-opm-estrictas.md` — SSOT suprema para canonicidad OPM/OPD/OPL. Ninguna decisión visual puede contradecirla.
+1. `urn:fxsl:kb:reglas-opm-estrictas-es` — SSOT suprema para canonicidad OPM/OPD/OPL. El archivo `docs/canon-opm/reglas-opm-estrictas.md` es puente local. Ninguna decisión visual puede contradecirla.
 2. `ui-forja/GOVERNANCE.md` — autoridad normativa para diseño de producto y resolución de conflictos visuales.
 3. `ui-forja/01-design-spec.md` ... `ui-forja/08-jointjs-styling.md` — especificación prescriptiva por capa.
 4. `ui-forja/tokens.json` y `ui-forja/tokens.css` — fuente de valores de diseño; `app/src/ui/tokens.ts` es el espejo runtime.
 5. Implementación en `app/src/ui/` y `app/src/render/jointjs/`.
 6. Tests unitarios, e2e y auditorías visuales que verifican la implementación.
 
-Si `ui-forja` y `reglas-opm-estrictas.md` difieren, manda `reglas-opm-estrictas.md`. Si la implementación y `ui-forja` difieren, manda `ui-forja` salvo que exista una excepción documentada aquí.
+Si `ui-forja` y `urn:fxsl:kb:reglas-opm-estrictas-es` difieren, manda la SSOT KORA. Si la implementación y `ui-forja` difieren, manda `ui-forja` salvo que exista una excepción documentada aquí.
 
 ## 2. Invariantes de diseño
 
@@ -47,7 +47,7 @@ Estos invariantes son obligatorios para cualquier cambio de UI:
 - Reglas visuales de empty states, foco, hover, disabled, selección y estados de guardado.
 - E2E visuales y smokes de no-overflow.
 
-No rige semántica nuclear OPM. Esa capa pertenece a `reglas-opm-estrictas.md` y al kernel en `app/src/modelo/`.
+No rige semántica nuclear OPM. Esa capa pertenece a `urn:fxsl:kb:reglas-opm-estrictas-es` y al kernel en `app/src/modelo/`.
 
 ## 4. Excepciones permitidas
 
@@ -93,7 +93,7 @@ bunx playwright test e2e/02-canvas-y-render.spec.ts e2e/03-opl-panel.spec.ts e2e
 
 Cuando una decisión visual no esté especificada:
 
-1. Revisar `reglas-opm-estrictas.md` para descartar impacto semántico.
+1. Revisar `urn:fxsl:kb:reglas-opm-estrictas-es` para descartar impacto semántico.
 2. Revisar `ui-forja/01..08`.
 3. Revisar `docs/JOYAS.md` y assets canónicos si toca OPD/JointJS.
 4. Elegir la opción más tipográfica, plana, neutral y reversible.

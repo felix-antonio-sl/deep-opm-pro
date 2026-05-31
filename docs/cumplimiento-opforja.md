@@ -5,7 +5,8 @@
 > auditable; el estado real se llena ítem a ítem contra `app/src`, tests unit, `app/e2e`, UI viva
 > y OPL. Complementa —no reemplaza— `docs/historias-usuario-v2/` (backlog) ni
 > `docs/roadmap/hu-progress.*` (dashboard de HU). Para canon manda
-> `docs/canon-opm/reglas-opm-estrictas.md`; para diseño, `ui-forja/GOVERNANCE.md`.
+> `urn:fxsl:kb:reglas-opm-estrictas-es` en KORA (puente local:
+> `docs/canon-opm/reglas-opm-estrictas.md`); para diseño, `ui-forja/GOVERNANCE.md`.
 
 ## Cómo usar este documento
 

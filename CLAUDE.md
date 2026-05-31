@@ -71,7 +71,7 @@ deep-opm-pro/
 ├── ui-forja/                 # ui-forja-governance: autoridad normativa de diseño Codex
 ├── docs/
 │   ├── HANDOFF.md            # estado vigente, decisiones, pendientes, riesgos
-│   ├── canon-opm/            # reglas-opm-estrictas.md (SSOT suprema de canon)
+│   ├── canon-opm/            # puentes locales a las SSOT OPM/opforja en KORA
 │   ├── JOYAS.md              # hallazgos técnicos validados
 │   ├── deploy/opforja.md     # operación de la instancia
 │   ├── instrucciones-lineas-dev/  # rondas de desarrollo paralelo
@@ -85,8 +85,8 @@ deep-opm-pro/
 
 ## Reglas de oro del proyecto
 
-1. **Autoridad semántica = SSOT OPM**, no OPCloud. Para **canon OPM/OPD/OPL** la SSOT suprema del repo es `docs/canon-opm/reglas-opm-estrictas.md` (p.ej. estados=`puede estar`, especialización=`puede ser`). La SSOT externa es `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/` (`opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`). OPCloud operacionaliza OPM pero no lo redefine; ante conflicto, manda la SSOT.
-2. **Autoridad de diseño = `ui-forja/GOVERNANCE.md`**. `ui-forja-governance` gobierna frame, chrome, tokens, tipografía, composición, componentes, interacción visual y apariencia JointJS. Su precedencia está por debajo de `reglas-opm-estrictas.md` y por encima de la implementación. Todo cambio visual debe respetar `ui-forja/01-design-spec.md` ... `08-jointjs-styling.md`, `tokens.json`/`tokens.css` y el gate `cd app && bun run design:governance`.
+1. **Autoridad semántica = SSOT OPM en KORA**, no OPCloud. Para **canon OPM/OPD/OPL** la SSOT suprema operativa es `urn:fxsl:kb:reglas-opm-estrictas-es` (p.ej. estados=`puede estar`, especialización=`puede ser`). Para OPL operativo de opforja usar `urn:fxsl:kb:spec-forja-opl-es`; para método usar `urn:fxsl:kb:metodologia-forja-opm-es`. Los archivos en `docs/canon-opm/` son puentes locales a KORA. Las capas base viven en `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/` (`opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`). OPCloud operacionaliza OPM pero no lo redefine; ante conflicto, manda la SSOT.
+2. **Autoridad de diseño = `ui-forja/GOVERNANCE.md`**. `ui-forja-governance` gobierna frame, chrome, tokens, tipografía, composición, componentes, interacción visual y apariencia JointJS. Su precedencia está por debajo de `urn:fxsl:kb:reglas-opm-estrictas-es` y por encima de la implementación. Todo cambio visual debe respetar `ui-forja/01-design-spec.md` ... `08-jointjs-styling.md`, `tokens.json`/`tokens.css` y el gate `cd app && bun run design:governance`.
 3. **Antes de crear algo de novo** (marcador, shape, color, regla OPL), verifica que no exista en los insumos, en este orden: `assets/svg/` (+ `opm-extracted/assets/svg/`, markers en `links/procedural|structural/`) → `assets/png/` → `docs/JOYAS.md` → `opm-extracted/INDEX.md`+`MODULES.md`+`assets/INDEX.md` → `decompiled/` (solo si lo anterior no alcanza; regenerar con `bash setup.sh`) → `fixtures/` → `catalog/` → `config/`. **No copies bloques 1:1 de `opm-extracted/`/`decompiled/` a `app/`**: el stack diverge (Preact≠Angular, Zustand≠Firebase, JointJS core≠Rappid); úsalos para entender semántica, no para clonar.
 4. **Handoff único**: `docs/HANDOFF.md` es la única memoria de traspaso versionada. Reescríbela y consolídala — nunca crees handoffs paralelos/fechados.
 5. **Repo liviano**: no versiones artefactos regenerables/efímeros (ver Estructura). `opm-extracted/` **sí** se versiona (derivado curado; regenerable con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`).

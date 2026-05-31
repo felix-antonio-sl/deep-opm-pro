@@ -6,7 +6,16 @@
 
 ## Corte actual — UX/UI canónica para capacidades OPCloud aspiracionales
 
-**Estado:** el corte pasa de "kernel sin UX/UI completa" a **superficie UX/UI base implementada en op-forja** para las capacidades objetivo, manteniendo función **isomorfa** y no gestos copiados de OPCloud. La decisión vigente se mantiene: OPCloud es evidencia observacional; la autoridad semántica sigue siendo `docs/canon-opm/reglas-opm-estrictas.md`, OPL sigue `docs/canon-opm/spec-forja-opl.md`, y la interacción de producto se resuelve con patrón op-forja: **runtime/store primero, command palette, inspector y menú contextual**.
+**Estado:** el corte pasa de "kernel sin UX/UI completa" a **superficie UX/UI base implementada en op-forja** para las capacidades objetivo, manteniendo función **isomorfa** y no gestos copiados de OPCloud. La decisión vigente se mantiene: OPCloud es evidencia observacional; la autoridad semántica vive en KORA (`urn:fxsl:kb:reglas-opm-estrictas-es`), OPL operativo vive en KORA (`urn:fxsl:kb:spec-forja-opl-es`), y la interacción de producto se resuelve con patrón op-forja: **runtime/store primero, command palette, inspector y menú contextual**. Los archivos `docs/canon-opm/*.md` son puentes locales.
+
+## Corte actual — Canon OPM/OPL promovido a KORA y enlazado desde deep-opm-pro
+
+Se promovieron a KORA las dos piezas locales de canon que aún vivían completas en `docs/canon-opm/`:
+
+- `urn:fxsl:kb:reglas-opm-estrictas-es` → `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/reglas-opm-estrictas-es.md`
+- `urn:fxsl:kb:spec-forja-opl-es` → `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/spec-forja-opl-es.md`
+
+`docs/canon-opm/reglas-opm-estrictas.md`, `docs/canon-opm/spec-forja-opl.md` y `docs/canon-opm/metodologia-forja.md` quedan como **puentes operativos**, no como SSOT. Cualquier cambio de canon debe hacerse primero en KORA, validarse con `python3 toolchain/kora lint-md`, `python3 toolchain/kora check`, reindexarse con `python3 toolchain/kora index`, y recién entonces mantener los puentes estables.
 
 **Decisiones UX/UI aplicadas:**
 - **Read-only por `opd.vista`:** `commitModelo` bloquea cualquier mutación cuando el OPD activo es una vista derivada `readOnly`; el puerto de editabilidad lo refleja en UI; la toolbar deshabilita creadores y muestra badge `solo lectura`. Las acciones que aún pueden abrir un diálogo caen igualmente en el bloqueo centralizado del store.
@@ -88,9 +97,9 @@
 
 ## Corte previo — spec-forja OPL: SSOT OPL consolidada de OPFORJA (producida)
 
-Se produjo `docs/canon-opm/spec-forja-opl.md` (~3069 líneas): la **SSOT OPL única, bidireccional y operativa** de OPFORJA, conforme 100% a las specs KORA aplicables (KORA/MD v12 familia `spec` + spec-md v1 + knowledge-spec v3). Brainstorming → diseño (`docs/superpowers/specs/2026-05-26-spec-forja-opl-design.md`) → plan (`docs/superpowers/plans/2026-05-26-spec-forja-opl.md`) → ejecución subagent-driven (18 tareas, un `opm-specialist` por sección, commits aislados de solo-docs en `main`).
+Se produjo `docs/canon-opm/spec-forja-opl.md` (~3069 líneas), hoy promovida a KORA como `urn:fxsl:kb:spec-forja-opl-es`: la **SSOT OPL única, bidireccional y operativa** de OPFORJA, conforme 100% a las specs KORA aplicables (KORA/MD v12 familia `spec` + spec-md v1 + knowledge-spec v3). Brainstorming → diseño (`docs/superpowers/specs/2026-05-26-spec-forja-opl-design.md`) → plan (`docs/superpowers/plans/2026-05-26-spec-forja-opl.md`) → ejecución subagent-driven (18 tareas, un `opm-specialist` por sección, commits aislados de solo-docs en `main`).
 
-**Decisiones selladas**: SSOT única consolidada (absorbe `opm-opl-es`+`reglas §4` para OPFORJA); bidireccional (generación+parser+presentación+roundtrip); precedencia canon-repo > Dori > OPCloud > curso; eje ontológico con contrato por constructo; combinatoria amplia + composición de prosa (§9) + patrones sociotécnicos/agénticos (Apéndice B); conformidad KORA en forma (vive en deep-opm-pro, URN nominal `urn:opforja:kb:spec-forja-opl`, NO registrado en toolchain KORA); OPL solo es-CL sin EN↔ES.
+**Decisiones selladas**: SSOT única consolidada (absorbe `opm-opl-es`+`reglas §4` para OPFORJA); bidireccional (generación+parser+presentación+roundtrip); precedencia `urn:fxsl:kb:reglas-opm-estrictas-es` > Dori > OPCloud > curso; eje ontológico con contrato por constructo; combinatoria amplia + composición de prosa (§9) + patrones sociotécnicos/agénticos (Apéndice B); conformidad KORA en forma y en catálogo (`urn:fxsl:kb:spec-forja-opl-es`); OPL solo es-CL sin EN↔ES.
 
 **Contenido**: 4 secciones de preámbulo (Definición/Definiciones/Precedencia/Convenciones) + §1–§20 cuerpo (vocabulario, entidades, transformadores, habilitadores, modificadores, estructurales, refinamiento, combinatoria, **§9 composición de prosa** que resuelve BUG-f897bc por sub-spans con `ref`/`hint` por hecho, multiplicidad, ruta, plegado, panel, interacción, edición, configuración, fallos, EBNF, roundtrip, **§20 trazabilidad**) + §21 Invariantes/§22 Validación-con-`Enforcement`/§23 Migración + Apéndices A (ejemplo end-to-end), B (5 patrones sociotécnicos/agénticos, 4 canon + 1 extensión declarada), C (índice de IDs). Orden = esqueleto spec-md §10.
 
@@ -102,7 +111,7 @@ Se produjo `docs/canon-opm/spec-forja-opl.md` (~3069 líneas): la **SSOT OPL ún
 
 ## Corte previo — Auditoría de canon `reglas-opm-estrictas.md` vs SSOT OPM
 
-Se auditó la SSOT suprema del repo (`docs/canon-opm/reglas-opm-estrictas.md`, 1412 líneas) contra la SSOT OPM original externa (`/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`: `opm-iso-19450-es.md`, `opm-opl-es.md`, `opm-visual-es.md`, `metodologia-opm-es.md`) en 4 líneas paralelas (un `opm-specialist` por dimensión: visual, OPL, ISO/ontología/enlaces, metodología/refinamiento).
+Se auditó la SSOT suprema operativa (`docs/canon-opm/reglas-opm-estrictas.md`, hoy promovida a `urn:fxsl:kb:reglas-opm-estrictas-es`) contra la SSOT OPM original externa (`/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`: `opm-iso-19450-es.md`, `opm-opl-es.md`, `opm-visual-es.md`, `metodologia-opm-es.md`) en 4 líneas paralelas (un `opm-specialist` por dimensión: visual, OPL, ISO/ontología/enlaces, metodología/refinamiento).
 
 **Veredicto: cero conflictos semánticos de canon.** El archivo es fiel a OPM en entidades, taxonomía de enlaces, vocabulario/plantillas OPL-ES (verbos 1:1 con SSOT, EBNF y equivalencia EN↔ES consistentes), primitivas visuales, geometría de abanicos y mecanismos de refinamiento. Los hallazgos fueron **extensiones de producto presentadas como canon SSOT sin marcar** (no contradicciones).
 
@@ -119,7 +128,7 @@ Se auditó la SSOT suprema del repo (`docs/canon-opm/reglas-opm-estrictas.md`, 1
 - §6.5/§6.6 "mal atribuidos a ISO": ya citaban `SSOT-visual §13.x`/`V-43`/`V-44` inline.
 - Anexo B R-VIS-DUR-1 (formato duración): R-VIS-DUR-1 + R-VIS-DUR-2 cubren el formato completo de `V-45` entre ambas.
 
-**Artefacto:** `docs/canon-opm/reglas-opm-estrictas.md` (7 inserciones / 5 borrados). Corte de solo-docs, aislado de los cambios in-flight del operador en `app/src/**` y de la cola de bugs.
+**Artefacto:** `docs/canon-opm/reglas-opm-estrictas.md` (7 inserciones / 5 borrados), actualmente puente local a `urn:fxsl:kb:reglas-opm-estrictas-es`. Corte de solo-docs, aislado de los cambios in-flight del operador en `app/src/**` y de la cola de bugs.
 
 ## Corte previo — Ronda de bugs UX delegada (captura/atajos/paneles)
 
@@ -337,7 +346,7 @@ Se resolvió `docs/auditorias/inclumplimiento-visual-25-05-2026.md` contra la ca
 `ui-forja/` deja de ser una propuesta y queda consolidado como **ui-forja-governance**, autoridad normativa de diseño para Opforja.
 
 **Precedencia vigente:**
-1. `docs/canon-opm/reglas-opm-estrictas.md` manda para canonicidad OPM/OPD/OPL.
+1. `urn:fxsl:kb:reglas-opm-estrictas-es` manda para canonicidad OPM/OPD/OPL; `docs/canon-opm/reglas-opm-estrictas.md` es puente local.
 2. `ui-forja/GOVERNANCE.md` manda para frame, chrome, tokens, tipografía, composición, componentes, interacción visual y apariencia JointJS.
 3. `ui-forja/01-design-spec.md` ... `08-jointjs-styling.md` detallan la norma por capa.
 4. `app/src/ui/tokens.ts`, `app/src/ui/` y `app/src/render/jointjs/` implementan la norma.
@@ -513,8 +522,9 @@ OPL/canon, semantica de enlaces/render JointJS y UX de interaccion.
 
 ## Fuentes normativas y técnicas
 
-- **SSOT suprema de canon OPM (repo)**: `docs/canon-opm/reglas-opm-estrictas.md` — autoritativa para verbos/plantillas OPL (estados=`puede estar`, especialización=`puede ser`).
-- SSOT OPM externa: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
+- **SSOT suprema de canon OPM/opforja**: `urn:fxsl:kb:reglas-opm-estrictas-es` — autoritativa para verbos/plantillas OPL (estados=`puede estar`, especialización=`puede ser`); puente local en `docs/canon-opm/reglas-opm-estrictas.md`.
+- **SSOT OPL operativa de opforja**: `urn:fxsl:kb:spec-forja-opl-es`; puente local en `docs/canon-opm/spec-forja-opl.md`.
+- SSOT OPM base: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`.
 - Autoridad normativa de diseño: `ui-forja/GOVERNANCE.md` + `ui-forja/` (`01-design-spec.md` … `08-jointjs-styling.md`, `tokens.css`, `tokens.json`).
 - Evidencia OPCloud preferente: `opm-extracted/` (antes que `decompiled/`).
 - Baseline funcional OPCloud/OPCAT para auditoria de cumplimiento: `docs/manual-simulado-opcloud-capacidades.md`.
@@ -534,7 +544,7 @@ OPL/canon, semantica de enlaces/render JointJS y UX de interaccion.
 
 - **Brechas diferidas del Tier 1** (cada una merece su propia spec→plan):
   - *Visibilidad de unidades/alias en OPL*: están tejidas en la capa de nombres (`refsHints.ts` `nombreOpl`/`nombreOplBase`) usada por todos los generadores y por los hints de hover OPL↔canvas y la delimitación de tokens del parser; ocultarlas con consistencia exige enhebrar la opción por toda la capa + regresión hover/parser/roundtrip. Por eso A se acotó a esencia.
-  - *D — herencia de generalización computada*: propagar rasgos/estados/relaciones de generales a especializados; es cambio de kernel y debe alinearse con `docs/canon-opm/reglas-opm-estrictas.md`.
+  - *D — herencia de generalización computada*: propagar rasgos/estados/relaciones de generales a especializados; es cambio de kernel y debe alinearse con `urn:fxsl:kb:reglas-opm-estrictas-es`.
   - *E — condiciones/loops ejecutables en simulación*: hoy `plan.ts`/`runner.ts` solo ordenan por Y; los modificadores `condicion`/`evento`/`invocacion`/`autoinvocacion` se modelan pero no se ejecutan.
   - *G — cablear el runtime sociotécnico*: `sociotecnico.ts` está aislado (sin UI/persistencia); depende de E + de "procesos computacionales" (subsistema ausente).
 - **Auditoria post-deploy con modelo cargado**: tomar nueva captura de SD, SD1 y SD1.1 con diagnostico expandido y una seleccion activa para confirmar la resolucion visual completa de Ronda 2.
@@ -564,4 +574,4 @@ OPL/canon, semantica de enlaces/render JointJS y UX de interaccion.
 
 ## Prompt de continuación
 
-> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Ronda bugs OPM/OPL/OPD 2026-05-26". La tanda de 19 bugs OPM/OPL/OPD quedo cerrada en `main` con verificacion verde local (`bun run check`, `lint`, `build`, `design:governance` y Playwright focal 29/29). Si se retoma producto, priorizar: (1) limpiar las fallas historicas de `browser:smoke` completo no relacionadas con este corte; (2) triar la cola documental de bugs capturados en `docs/bugs/BUG-*` antes de stagearla; (3) continuar brechas diferidas del Tier 1 (visibilidad unidades/alias OPL; D herencia; E condiciones/loops; G sociotecnico). Antes de tocar OPM/OPL leer `docs/canon-opm/reglas-opm-estrictas.md` y la SSOT externa `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`. Antes de tocar UI/canvas leer `ui-forja/GOVERNANCE.md`. Gate UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance` + Playwright del layout/canvas afectado. Recordatorio operativo: vite-bg + e2e en paralelo produce flakes (correr e2e con `--workers=1` o apagar el dev server). No stagear cambios ajenos (`docs/auditorias/**`, deletes documentales previos, bug dirs no triados) sin instruccion explicita.
+> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Ronda bugs OPM/OPL/OPD 2026-05-26". La tanda de 19 bugs OPM/OPL/OPD quedo cerrada en `main` con verificacion verde local (`bun run check`, `lint`, `build`, `design:governance` y Playwright focal 29/29). Si se retoma producto, priorizar: (1) limpiar las fallas historicas de `browser:smoke` completo no relacionadas con este corte; (2) triar la cola documental de bugs capturados en `docs/bugs/BUG-*` antes de stagearla; (3) continuar brechas diferidas del Tier 1 (visibilidad unidades/alias OPL; D herencia; E condiciones/loops; G sociotecnico). Antes de tocar OPM/OPL leer las SSOT KORA `urn:fxsl:kb:reglas-opm-estrictas-es`, `urn:fxsl:kb:spec-forja-opl-es` y las capas base en `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`; los archivos `docs/canon-opm/*.md` son puentes. Antes de tocar UI/canvas leer `ui-forja/GOVERNANCE.md`. Gate UI: `cd app && bun run check && bun run lint && bun run build && bun run design:governance` + Playwright del layout/canvas afectado. Recordatorio operativo: vite-bg + e2e en paralelo produce flakes (correr e2e con `--workers=1` o apagar el dev server). No stagear cambios ajenos (`docs/auditorias/**`, deletes documentales previos, bug dirs no triados) sin instruccion explicita.
