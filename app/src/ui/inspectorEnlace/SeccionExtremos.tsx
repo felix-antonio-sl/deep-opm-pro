@@ -18,7 +18,7 @@ interface Props {
 }
 
 // BUG-20260530T214922Z-fb6c2c: la sección "Extremos" (selectores de extremo +
-// "Reanclar extremo"/"Mover ancla exacta" → DialogoMoverPuerto) también debe
+// "Reanclar extremo" → DialogoMoverPuerto) también debe
 // estar disponible para enlaces estructurales fundamentales. El kernel ya admite
 // reasignar su origen/destino (apuntarExtremoEnlace + validarFirmaEnlace exige
 // misma clase OPM para agregacion/generalizacion/clasificacion y deja libre
@@ -94,9 +94,6 @@ export function SeccionExtremos(props: Props) {
           </select>
         </label>
       ))}
-      <button type="button" data-testid="mover-puerto-btn" style={style.secondaryButton} onClick={props.onAbrirMoverPuerto}>
-        Mover ancla exacta
-      </button>
       <button type="button" data-testid="reanclar-extremo-btn" style={style.secondaryButton} onClick={props.onAbrirMoverPuerto} title="Reancla origen o destino preservando el puerto exacto">
         Reanclar extremo
       </button>

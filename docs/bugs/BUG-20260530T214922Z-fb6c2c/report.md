@@ -4,7 +4,7 @@
 **Tipo**: Bug
 **Estado**: Resuelto
 **Resolución**: La sección "Extremos" del inspector de enlaces (selectores de
-extremo + "Reanclar extremo"/"Mover ancla exacta" → DialogoMoverPuerto) se
+extremo + "Reanclar extremo" → DialogoMoverPuerto) se
 ocultaba para todo enlace no-procedural (`SeccionExtremos.tsx` retornaba `null`),
 dejando a los enlaces estructurales fundamentales sin ninguna vía para reasignar
 su cosa origen/destino — aunque el kernel (`apuntarExtremoEnlace` +

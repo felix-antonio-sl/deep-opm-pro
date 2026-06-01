@@ -178,15 +178,15 @@ test("mover puerto desde dialogo cambia extremo destino del enlace", async ({ pa
   await clickLinkPorTipo(page, "Consumo");
   // Ronda 20 L1: SeccionExtremos vive en tab `Extremos` del Inspector enlace.
   await irATabExtremos(page);
-  await page.getByTestId("mover-puerto-btn").click();
-  const dialogo = page.getByRole("dialog", { name: "Mover Puerto" });
+  await page.getByTestId("reanclar-extremo-btn").click();
+  const dialogo = page.getByRole("dialog", { name: "Reanclar extremo" });
   await expect(dialogo).toBeVisible();
   await dialogo.getByTestId("mover-puerto-extremo-select").selectOption("entidad:p-validar");
   await dialogo.getByTestId("mover-puerto-ancla-select").selectOption("SE");
   await expect(dialogo.getByTestId("mover-puerto-contrato")).toContainText("16:30");
-  await page.getByRole("dialog", { name: "Mover Puerto" }).getByRole("button", { name: "Aplicar ancla", exact: true }).click();
+  await page.getByRole("dialog", { name: "Reanclar extremo" }).getByRole("button", { name: "Aplicar", exact: true }).click();
 
-  await expect(page.getByText("Puerto movido")).toBeVisible();
+  await expect(page.getByText("Reanclaje aplicado")).toBeVisible();
   await expect(page.getByTestId("contrato-puerto-destino")).toContainText("Validar");
   await expect(page.getByTestId("contrato-puerto-destino")).toContainText("16:30");
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;

@@ -628,7 +628,10 @@ describe("proyeccion JointJS", () => {
     expect(tramos).toHaveLength(2);
     expect(tramos.every((cell) => cell.type === "standard.Link")).toBe(true);
     expect(tramos.every((cell) => cell.opm.kind === "enlace" && cell.opm.enlaceId === enlace.id)).toBe(true);
+    const salida = tramos.find((cell) => String(cell.id).endsWith("-auto-salida"));
     const retorno = tramos.find((cell) => String(cell.id).endsWith("-auto-retorno"));
+    expect(salida?.opm.kind === "enlace" ? salida.opm.rolInvocacion : null).toBe("auto-salida");
+    expect(retorno?.opm.kind === "enlace" ? retorno.opm.rolInvocacion : null).toBe("auto-retorno");
     const labels = retorno?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
     expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
     const line = ((retorno?.attrs as Attrs | undefined)?.line as Attrs | undefined);

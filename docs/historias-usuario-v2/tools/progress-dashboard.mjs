@@ -1094,10 +1094,10 @@ function autoAuditRules() {
       ids: ["HU-15.022", "HU-15.023"],
       estado: "cubierto",
       confianza: "alta-auto",
-      nota: "Auto ronda 10 L2: dialogo Mover Puerto cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
+      nota: "Auto ronda 10 L2: dialogo Reanclar extremo cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
       requires: [
-        { path: "app/src/ui/DialogoMoverPuerto.tsx", all: ["DialogoMoverPuerto", "Mover Puerto"] },
-        { path: "app/src/ui/inspectorEnlace/SeccionExtremos.tsx", all: ["mover-puerto-btn"] },
+        { path: "app/src/ui/DialogoMoverPuerto.tsx", all: ["DialogoMoverPuerto", "Reanclar extremo"] },
+        { path: "app/src/ui/inspectorEnlace/SeccionExtremos.tsx", all: ["reanclar-extremo-btn"] },
         { path: "app/src/ui/InspectorEnlace.tsx", all: ["DialogoMoverPuerto", "setDialogoMoverPuertoAbierto"] },
         { path: "app/src/modelo/operaciones/enlaces.ts", all: ["moverPuertoEnlace", "opcionRemover"] },
         { path: "app/src/store/modelo/acciones-enlace.ts", all: ["moverPuertoEnlaceSeleccionado", "opcionRemover"] },

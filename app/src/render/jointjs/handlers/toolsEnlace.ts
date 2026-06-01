@@ -1,4 +1,5 @@
 import { dia, linkTools } from "jointjs";
+import type { OpmJointMetadata } from "../proyeccionTipos";
 import { metadata } from "./helpers";
 
 /**
@@ -16,49 +17,77 @@ export interface AdapterMin {
 
 export function instalarHerramientasEnlaceSeleccionado(adapter: AdapterMin, enlaceSeleccionId: string | null): void {
   if (!enlaceSeleccionId) return;
-  const link = adapter.graph.getLinks().find((cell) => {
+  const links = linksParaHerramientasEnlaceSeleccionado(adapter.graph.getLinks(), enlaceSeleccionId);
+  for (const link of links) {
+    const meta = metadata(link);
+    if (meta?.kind !== "enlace") continue;
+    if (meta.tipo === "agregacion") continue;
+    const linkView = adapter.paper.findViewByModel<dia.LinkView>(link);
+    linkView.removeTools();
+    linkView.addTools(new dia.ToolsView({ tools: crearHerramientasEnlace(link, meta) }));
+  }
+}
+
+export function linksParaHerramientasEnlaceSeleccionado(links: dia.Link[], enlaceSeleccionId: string | null): dia.Link[] {
+  if (!enlaceSeleccionId) return [];
+  const candidatos = links.filter((cell) => {
     const meta = metadata(cell);
     return meta?.kind === "enlace" && meta.enlaceId === enlaceSeleccionId;
   });
-  if (!link) return;
-  const meta = metadata(link);
-  if (meta?.kind === "enlace" && meta.tipo === "agregacion") return;
-  const linkView = adapter.paper.findViewByModel<dia.LinkView>(link);
-  linkView.removeTools();
+  const tramosAutoInvocacion = candidatos.filter((cell) => {
+    const meta = metadata(cell);
+    return meta?.kind === "enlace" && !!meta.rolInvocacion;
+  });
+  if (tramosAutoInvocacion.length > 0) return tramosAutoInvocacion;
+  return candidatos.slice(0, 1);
+}
+
+export function ladosReanclablesPorMeta(meta: OpmJointMetadata | null): Array<"origen" | "destino"> {
+  if (meta?.kind !== "enlace") return [];
+  if (meta.rolInvocacion === "auto-salida") return ["origen"];
+  if (meta.rolInvocacion === "auto-retorno") return ["destino"];
+  return ["origen", "destino"];
+}
+
+function crearHerramientasEnlace(link: dia.Link, meta: Extract<OpmJointMetadata, { kind: "enlace" }>): dia.ToolView[] {
+  const ladosReanclables = ladosReanclablesPorMeta(meta);
   const tools: dia.ToolView[] = [
     new linkTools.Boundary({
       padding: 18,
       useModelGeometry: true,
     }),
-    new linkTools.SourceArrowhead({
-      scale: 1.05,
-      focusOpacity: 0.85,
-    }),
-    new linkTools.TargetArrowhead({
-      scale: 1.05,
-      focusOpacity: 0.85,
-    }),
-    new linkTools.Vertices({
-      redundancyRemoval: false,
-      snapRadius: 4,
-      vertexAdding: true,
-    }),
   ];
 
-  if (admiteSegmentsTool(routerDeLink(link), connectorDeLink(link))) {
+  if (ladosReanclables.includes("origen")) {
+    tools.push(new linkTools.SourceArrowhead({
+      scale: 1.05,
+      focusOpacity: 0.85,
+    }));
+  }
+  if (ladosReanclables.includes("destino")) {
+    tools.push(new linkTools.TargetArrowhead({
+      scale: 1.05,
+      focusOpacity: 0.85,
+    }));
+  }
+  if (!meta.rolInvocacion) {
     tools.push(
-      new linkTools.Segments({
+      new linkTools.Vertices({
         redundancyRemoval: false,
         snapRadius: 4,
+        vertexAdding: true,
       }),
     );
+    if (admiteSegmentsTool(routerDeLink(link), connectorDeLink(link))) {
+      tools.push(
+        new linkTools.Segments({
+          redundancyRemoval: false,
+          snapRadius: 4,
+        }),
+      );
+    }
   }
-
-  linkView.addTools(
-    new dia.ToolsView({
-      tools,
-    }),
-  );
+  return tools;
 }
 
 export function routerAdmiteSegmentsTool(router: unknown): boolean {

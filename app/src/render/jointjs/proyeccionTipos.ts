@@ -22,6 +22,7 @@ export type OpmJointMetadata =
       enlaceIds?: Id[];
       aparienciaEnlaceIds?: Id[];
       rolEstructural?: "refinable" | "rama" | "simbolo";
+      rolInvocacion?: "auto-salida" | "auto-retorno";
       ladoRefinable?: "origen" | "destino";
     }
   | {

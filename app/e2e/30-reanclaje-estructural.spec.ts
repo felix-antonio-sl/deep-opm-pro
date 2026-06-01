@@ -29,7 +29,6 @@ test("estructural: la sección Extremos expone reanclaje para una generalizació
   await clickLinkPorTipo(page, "Generalizacion");
   await irATabExtremos(page);
   await expect(page.getByTestId("reanclar-extremo-btn")).toBeVisible();
-  await expect(page.getByTestId("mover-puerto-btn")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });

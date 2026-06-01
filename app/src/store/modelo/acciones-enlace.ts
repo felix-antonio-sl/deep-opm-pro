@@ -481,7 +481,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         seleccionId: null,
         enlaceSeleccionId: enlaceExiste ? enlaceSeleccionId : null,
         modoEnlace: null,
-        mensaje: opcionRemover ? "Relacion removida" : "Puerto movido",
+        mensaje: opcionRemover ? "Relacion removida" : "Reanclaje aplicado",
       });
     },
 

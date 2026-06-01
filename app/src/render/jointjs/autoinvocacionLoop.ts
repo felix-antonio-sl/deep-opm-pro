@@ -11,13 +11,15 @@ export function proyectarAutoInvocacion(args: {
   proceso: Apariencia;
   seleccionada: boolean;
 }): JointCellJson[] {
-  const meta: OpmJointMetadata = {
+  const metaBase = {
     kind: "enlace",
     opdId: args.opdId,
     enlaceId: args.enlace.id,
     aparienciaEnlaceId: args.aparienciaEnlaceId,
     tipo: args.enlace.tipo,
-  };
+  } satisfies Omit<Extract<OpmJointMetadata, { kind: "enlace" }>, "rolInvocacion">;
+  const metaSalida: OpmJointMetadata = { ...metaBase, rolInvocacion: "auto-salida" };
+  const metaRetorno: OpmJointMetadata = { ...metaBase, rolInvocacion: "auto-retorno" };
   const geometria = loopAutoInvocacion(args.proceso);
   const attrsBase = attrsLinea(args.seleccionada);
 
@@ -31,7 +33,7 @@ export function proyectarAutoInvocacion(args: {
       connector: { name: "straight" },
       labels: [],
       attrs: attrsBase,
-      opm: meta,
+      opm: metaSalida,
       z: 1,
     },
     {
@@ -49,7 +51,7 @@ export function proyectarAutoInvocacion(args: {
           targetMarker: { ...LINK_ASSETS.procedural.invocacion.marker },
         },
       },
-      opm: meta,
+      opm: metaRetorno,
       z: 1,
     },
   ];

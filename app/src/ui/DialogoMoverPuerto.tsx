@@ -36,13 +36,13 @@ export function DialogoMoverPuerto(props: Props) {
   return (
     <Dialogo
       open={props.open}
-      title="Mover Puerto"
+      title="Reanclar extremo"
       onCancel={props.onCancel}
       actions={(
         <>
           <DialogoAccion tono="destructiva" onClick={props.onRemover}>Remover relación</DialogoAccion>
           <DialogoAccion onClick={props.onCancel}>Cancelar</DialogoAccion>
-          <DialogoAccion tono="primaria" onClick={() => props.onMover(lado, extremoSeleccionado, anclaHabilitada ? ancla : undefined)}>Aplicar ancla</DialogoAccion>
+          <DialogoAccion tono="primaria" onClick={() => props.onMover(lado, extremoSeleccionado, anclaHabilitada ? ancla : undefined)}>Aplicar</DialogoAccion>
         </>
       )}
     >
