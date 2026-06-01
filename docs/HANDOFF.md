@@ -1,8 +1,30 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-05-31 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Commits de producto (sesión 2026-05-31)**: `5298ec2` revisión jobs-web-ux de UX OPCloud-isomorfa sin copiar gestos, `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado. **Desplegado** (`docker compose up -d --build`): entry bundle `index-B3ytqv2I.js`. Previo ya en `origin/main`: `e5ff438` exportador de diagnóstico a JSON. Cortes anteriores: `59ad3a9` D1 esencia/afiliación combinada; ronda atajos/inspector/simulación.
-**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo `index-B3ytqv2I.js`.
+**Fecha**: 2026-06-01 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
+**Corte de producto vigente (2026-06-01)**: `BUG-20260601T023324Z-66ff2f` resuelto con marker transformador swallowtail OPCloud/JOYAS; cortes previos relevantes: `5298ec2` revisión jobs-web-ux de UX OPCloud-isomorfa sin copiar gestos, `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado, `e5ff438` exportador de diagnóstico a JSON.
+**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle esperado tras redeploy de este corte: `index-D1Ag4Th0.js`.
+
+## Corte actual — BUG-20260601T023324Z-66ff2f, triage vivo y refactor total
+
+**Estado 2026-06-01:** se corrigió el bug visual reportado como `BUG-20260601T023324Z-66ff2f`. La causa raíz era una inversión de criterio: `linkAssets.ts`, pruebas y `ui-forja/08` habían blindado "punta cerrada" como triángulo lleno simple para transformadores, mientras la evidencia curada `docs/JOYAS.md §5` y las capturas OPCloud del bug muestran el marker transformador como **swallowtail cerrado**. La interpretación vigente queda:
+
+- **Consumo / resultado / efecto:** swallowtail cerrado `M 0 0 L 23 8 L 12 0 L 23 -8 Z`, `fill=paper`, `stroke=ink`.
+- **Efecto:** mismo marker en source y target.
+- **Invocación:** rayo/zigzag en el tramo + punta simple `M 9 -4 0 0 9 4 z`; no usa swallowtail.
+
+**Artefactos tocados:** `app/src/render/jointjs/linkAssets.ts`, `app/src/render/jointjs/composers/markers.test.ts`, `app/e2e/14-canvas-fidelity.spec.ts`, `app/src/modelo/constantes.bauhaus.ts`, `ui-forja/08-jointjs-styling.md`, `docs/bugs/statuses.json`, `docs/bugs/INDEX.md`, `docs/bugs/HISTORY.md`, `docs/bugs/BUG-20260601T023324Z-66ff2f/report.md`.
+
+**Verificación focal:** `bun test src/render/jointjs/composers/markers.test.ts src/render/jointjs/proyeccion.test.ts -t "marker|efecto|procedimentales|transformadores|invocacion"` -> 15 pass / 0 fail. `PW_PORT=5187 bunx playwright test e2e/14-canvas-fidelity.spec.ts -g "modelo markers canonicos" --workers=1` -> 1 pass / 0 fail, con verificación DOM de marker en `defs`.
+
+**Triage activo consolidado:** el índice vivo sigue mezclando bugs resueltos y nuevos porque muchos reportes activos no han sido archivados, pero `statuses.json` ya resuelve los sobrescritos importantes. Prioridad operativa:
+
+1. `BUG-20260530T214922Z-fb6c2c`: el inspector ya permite reanclar estructurales, pero queda pendiente el reanclaje por arrastre de arrowheads en canvas.
+2. `BUG-20260526T020725Z-b2477a`: barra de alinear/distribuir visible pero no responde tras el primer uso.
+3. `BUG-20260526T021201Z-9cad06`: "estado volador" al seleccionar estado; requiere reproducción visual.
+4. `BUG-20260526T020413Z-ec523c`: orden del inspector nombre -> esencia -> afiliación -> descripción; cambio UI acotado.
+5. `BUG-20260526T020225Z-f897bc`: OPL más prosaico; requiere diseño, porque el intento anterior rompía refinamiento y resaltado por hecho.
+
+**Auditoría/refactorización total:** hubo ejecución real de refactor, no solo documentación: commits `refactor(...)` extraen viewmodels, puertos, adapter JointJS, persistencia/workspace, OPL/diagnóstico y contratos del store. El cierre vigente, sin embargo, **no está reproducible**: `bun run quality:gate` falla hoy por bundle gzip 135.55 kB > 129.62 kB, cobertura MVP-alpha 84/121 vs mínimo 104, avance alpha 66% vs 86.2%, reglas auto matched 76/105 vs mínimo 89, y dashboard HU stale. Estado correcto: refactorización ejecutada en gran parte, cierre histórico documentado, cierre actual roto o al menos no revalidado.
 
 ## Corte actual — UX/UI canónica para capacidades OPCloud aspiracionales
 

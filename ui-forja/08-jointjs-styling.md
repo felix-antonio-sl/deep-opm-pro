@@ -223,7 +223,8 @@ Connector recomendado: `'straight'` con `cornerType: 'point'` (sin redondeo).
 
 | Tipo | sourceMarker | targetMarker | Notas |
 |---|---|---|---|
-| **Procedimental** (consume, genera, afecta) | none | arrow simple `M 9 -4 0 0 9 4 z` (fill ink) | default |
+| **Transformador** (consume, genera, afecta) | none | swallowtail cerrado `M 0 0 L 23 8 L 12 0 L 23 -8 Z` (fill paper, stroke ink) | OPCloud/JOYAS; efecto usa source+target |
+| **Invocación** (invoca) | none | arrow simple `M 9 -4 0 0 9 4 z` (fill ink) | el tramo conserva rayo/zigzag |
 | **Cambio de estado** (cambia…de…a) | none | arrow doble (dos arrowheads consecutivos) | distintivo |
 | **Agregación** (consta de) | none | triángulo equilátero fill ink (12×12) | el triángulo apunta al refinable |
 | **Exhibición** (exhibe) | none | cuadrado outline ink 10×10 | sin fill |

@@ -104,8 +104,8 @@
   "BUG-20260525T063444Z-ad14a6": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "Los enlaces transformadores e invocacion usan punta cerrada simple segun SSOT visual; se retiran swallowtail en transformadores y rombo en invocacion.",
-    "note": "Cubierto por composers/markers.test, proyeccion.test de invocacion/auto-invocacion y composers/enlace.test."
+    "resolution": "La invocacion conserva rayo y punta simple; la interpretacion previa de transformadores como punta simple fue supersedida por BUG-20260601T023324Z-66ff2f.",
+    "note": "Ver nuevo criterio: transformadores con swallowtail OPCloud/JOYAS; invocacion sigue con punta simple."
   },
   "BUG-20260525T063654Z-029853": {
     "type": "Bug",
@@ -140,8 +140,8 @@
   "BUG-20260526T024641Z-16a874": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "Los enlaces transformadores usan punta cerrada canonica y efecto queda bidireccional segun SSOT visual.",
-    "note": "Cubierto por markers.test y proyeccion.test."
+    "resolution": "Supersedido por BUG-20260601T023324Z-66ff2f: consumo/resultado/efecto usan swallowtail cerrado con interior paper; efecto queda bidireccional.",
+    "note": "Cubierto por markers.test, proyeccion.test y smoke DOM de canvas fidelity."
   },
   "BUG-20260526T025025Z-5d7651": {
     "type": "Bug",
@@ -226,5 +226,11 @@
     "status": "Resuelto",
     "resolution": "La seleccion/metadata del simbolo raiz estructural ya opera sobre el grupo completo y no sobre una rama hija.",
     "note": "Cubierto por proyeccion.test y herramientas de simbolo estructural."
+  },
+  "BUG-20260601T023324Z-66ff2f": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los enlaces transformadores consumo, resultado y efecto usan swallowtail cerrado OPCloud/JOYAS con interior paper y contorno ink; invocacion conserva rayo con punta simple.",
+    "note": "Cubierto por markers.test, proyeccion.test y e2e/14-canvas-fidelity.spec.ts con verificacion DOM de marker."
   }
 }

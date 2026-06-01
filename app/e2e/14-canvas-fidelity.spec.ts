@@ -36,6 +36,11 @@ test("modelo markers canonicos se renderiza con todos los objetos/procesos visib
   expect(wrappers).toBeGreaterThanOrEqual(10);
   expect(lines).toBeGreaterThanOrEqual(10);
 
+  const transformadoresSwallowtail = await page.locator('defs marker path[d="M 0 0 L 23 8 L 12 0 L 23 -8 Z"]').count();
+  const invocacionesPuntaSimple = await page.locator('defs marker path[d="M 9 -4 0 0 9 4 z"]').count();
+  expect(transformadoresSwallowtail).toBeGreaterThanOrEqual(1);
+  expect(invocacionesPuntaSimple).toBeGreaterThanOrEqual(1);
+
   expect(pageErrors).toEqual([]);
 });
 

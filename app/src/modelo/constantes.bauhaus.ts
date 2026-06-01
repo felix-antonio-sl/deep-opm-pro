@@ -62,19 +62,19 @@ export const CANON_V2 = {
   cuadriculaDots: "#D2D2D2",
   /**
    * Markers canónicos OPM diferenciados por tipo de enlace (Ronda 28 L4):
-   *   - consumo/resultado: triángulo lleno ink (▶).
-   *   - efecto: doble flecha ink bidireccional.
+   *   - consumo/resultado: swallowtail cerrado con interior paper.
+   *   - efecto: swallowtail bidireccional.
    *   - instrumento: lollipop círculo vacío ink fill paper (○).
    *   - agente: lollipop círculo lleno ink (●).
-   *   - invocación: rombo vacío ink (◇).
+   *   - invocación: rayo en tramo + punta simple.
    */
   marcadores: {
-    consumo: "triangulo-lleno-ink",
-    resultado: "triangulo-lleno-ink",
-    efecto: "doble-flecha-ink",
+    consumo: "swallowtail-paper-ink",
+    resultado: "swallowtail-paper-ink",
+    efecto: "swallowtail-bidireccional-paper-ink",
     instrumento: "circulo-vacio-ink",
     agente: "circulo-lleno-ink",
-    invocacion: "rombo-vacio-ink",
+    invocacion: "rayo-punta-simple-ink",
   },
   /** Stroke base: 2px (no 1.5; el 1.5 colapsa en densidad). */
   strokeWidth: 2,

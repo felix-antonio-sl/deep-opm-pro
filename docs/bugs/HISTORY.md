@@ -11,7 +11,7 @@ cualquier ID, activo o archivado.
 | Alcance / Estado | Cantidad |
 |---|---:|
 | Activo / Nuevo | 30 |
-| Activo / Resuelto | 38 |
+| Activo / Resuelto | 39 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
 | Histórico / Resuelto | 43 |
@@ -20,7 +20,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 63 |
+| Activo / Bug | 64 |
 | Activo / Feat | 5 |
 | Histórico / Bug | 48 |
 
@@ -28,6 +28,7 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Resuelto | [BUG-20260601T023324Z-66ff2f](BUG-20260601T023324Z-66ff2f/report.md) | 2026-06-01 02:33Z | Modelo / SD | después de muchos intentos, aún no tenemos la flecha canónica para los enlaces de transformación. Primero adjunto la screenshot de como es ahora y de… | Los enlaces transformadores consumo, resultado y efecto usan swallowtail cerrado OPCloud/JOYAS con interior paper y contorno ink;… | 4 | Cubierto por markers.test, proyeccion.test y e2e/14-canvas-fidelity.spec.ts con verificacion DOM de marker. |
 | Activo | Bug | Nuevo | [BUG-20260531T031739Z-81ac46](BUG-20260531T031739Z-81ac46/report.md) | 2026-05-31 03:17Z | HODOM completo v1_3_2 / SD0-C - Hospitalizacion en domicilio | elimina todo el sistema de hover inferior con info redundante que se ve en las capturas. y elimina cualquier vestigio del mismo. que no aparezca nunc… | Pendiente. | 3 |  |
 | Activo | Bug | Nuevo | [BUG-20260530T214922Z-fb6c2c](BUG-20260530T214922Z-fb6c2c/report.md) | 2026-05-30 21:49Z | HODOM_completo v1_3 / SD0-C - Hospitalizacion en domicilio | los enlances estructurales no puedo anclarlos adecuadamente a la cosa origen y target | Pendiente. | 2 |  |
 | Activo | Bug | Nuevo | [BUG-20260526T150009Z-35087a](BUG-20260526T150009Z-35087a/report.md) | 2026-05-26 15:00Z | Modelo / SD | sigue sin generar opls canónicos ni aceptar simbolos como ? para multiplicidad | Pendiente. | 1 |  |
@@ -51,7 +52,7 @@ cualquier ID, activo o archivado.
 | Activo | Bug | Resuelto | [BUG-20260526T025233Z-a41f5c](BUG-20260526T025233Z-a41f5c/report.md) | 2026-05-26 02:52Z | Modelo / SD | no se pueden redimensionar ni las cosas ni los estados | Cosas y estados proyectan handles de redimensionado y persisten ancho/alto en el modelo. | 0 | Cubierto por proyeccion.test, acciones-estados.test y e2e/31-domain-c-ui-interactions.spec.ts. |
 | Activo | Bug | Resuelto | [BUG-20260526T025059Z-0c3cde](BUG-20260526T025059Z-0c3cde/report.md) | 2026-05-26 02:50Z | Modelo / SD | no se puede realizar la función de dividir un enlace de efecto por su par input output | Dividir un efecto TS3 genera par canonico input/output sin objeto sintetico. | 0 | Cubierto por operaciones.test y semantica de estado en enlaces. |
 | Activo | Bug | Resuelto | [BUG-20260526T025025Z-5d7651](BUG-20260526T025025Z-5d7651/report.md) | 2026-05-26 02:50Z | Modelo / SD | un link de efecto puede afectar en un estado específico? | Efecto acepta estado especifico como extremo de entrada Estado -> Proceso y conserva Proceso -> Objeto para efecto de salida. | 2 | Cubierto por operaciones/enlaces.test, validaciones.test y split TS3. |
-| Activo | Bug | Resuelto | [BUG-20260526T024641Z-16a874](BUG-20260526T024641Z-16a874/report.md) | 2026-05-26 02:46Z | Modelo / SD | flechas de enlaces transformadores no son correctos . Deberían ser | Los enlaces transformadores usan punta cerrada canonica y efecto queda bidireccional segun SSOT visual. | 2 | Cubierto por markers.test y proyeccion.test. |
+| Activo | Bug | Resuelto | [BUG-20260526T024641Z-16a874](BUG-20260526T024641Z-16a874/report.md) | 2026-05-26 02:46Z | Modelo / SD | flechas de enlaces transformadores no son correctos . Deberían ser | Supersedido por BUG-20260601T023324Z-66ff2f: consumo/resultado/efecto usan swallowtail cerrado con interior paper; efecto queda b… | 2 | Cubierto por markers.test, proyeccion.test y smoke DOM de canvas fidelity. |
 | Activo | Bug | Resuelto | [BUG-20260526T024500Z-4c5463](BUG-20260526T024500Z-4c5463/report.md) | 2026-05-26 02:45Z | Modelo / SD | con los estados tampoco se generan los opls si se considera que no cumplen con canon | Los enlaces con estados visibles vuelven a emitir OPL aunque el nombre base no pase heuristicas de canon. | 0 | Cubierto por generar.test y procedural.test. |
 | Activo | Bug | Resuelto | [BUG-20260526T024320Z-f81da4](BUG-20260526T024320Z-f81da4/report.md) | 2026-05-26 02:43Z | Modelo / SD | se sobreponen textos de barra y otros | La anotacion contextual limita ancho, permite wrap y evita superponer textos/acciones. | 1 | Cubierto por CodexSelectionAnnotation.test.tsx y e2e focal. |
 | Activo | Bug | Resuelto | [BUG-20260526T024127Z-00f799](BUG-20260526T024127Z-00f799/report.md) | 2026-05-26 02:41Z | Modelo / SD | no se pueden eliminar los estados ya creados | Backspace/Delete elimina estados seleccionados y limpia enlaces asociados sin dejar extremos huerfanos. | 0 | Cubierto por e2e/31-domain-c-ui-interactions.spec.ts. |
@@ -74,7 +75,7 @@ cualquier ID, activo o archivado.
 | Activo | Bug | Nuevo | [BUG-20260526T003333Z-58fefc](BUG-20260526T003333Z-58fefc/report.md) | 2026-05-26 00:33Z | Modelo / SD | cuando se cambia a una nueva vista no funciona de inmediato la generacion de cosas o estados con O, P, S, etc. Después de crear una cosa con los boto… | Pendiente. | 0 |  |
 | Activo | Bug | Nuevo | [BUG-20260525T233828Z-895504](BUG-20260525T233828Z-895504/report.md) | 2026-05-25 23:38Z | System Diagram / SD | la barra superior está canónica en cuanto al diseño? | Pendiente. | 1 |  |
 | Activo | Bug | Resuelto | [BUG-20260525T063654Z-029853](BUG-20260525T063654Z-029853/report.md) | 2026-05-25 06:36Z | Modelo / SD1.1 | al descomponer los objetos relacionados se presentan en el borde izquierdo del canvas, inclumpliendo la regla de que todo se tiene que armar y ordena… | Los proxies externos creados al descomponer una cosa se ubican relativos al contorno refinado centrado, no en x absoluto 24. | 1 | Cubierto por operaciones.test BUG-20260525T063654Z-029853 y bloque de pruebas de refinamiento/layout. |
-| Activo | Bug | Resuelto | [BUG-20260525T063444Z-ad14a6](BUG-20260525T063444Z-ad14a6/report.md) | 2026-05-25 06:34Z | Modelo / SD | las flechas de los enlaces de transformación e invocación siguen siendo anómalos | Los enlaces transformadores e invocacion usan punta cerrada simple segun SSOT visual; se retiran swallowtail en transformadores y… | 1 | Cubierto por composers/markers.test, proyeccion.test de invocacion/auto-invocacion y composers/enlace.test. |
+| Activo | Bug | Resuelto | [BUG-20260525T063444Z-ad14a6](BUG-20260525T063444Z-ad14a6/report.md) | 2026-05-25 06:34Z | Modelo / SD | las flechas de los enlaces de transformación e invocación siguen siendo anómalos | La invocacion conserva rayo y punta simple; la interpretacion previa de transformadores como punta simple fue supersedida por BUG… | 1 | Ver nuevo criterio: transformadores con swallowtail OPCloud/JOYAS; invocacion sigue con punta simple. |
 | Activo | Bug | Resuelto | [BUG-20260525T060646Z-4e8a3e](BUG-20260525T060646Z-4e8a3e/report.md) | 2026-05-25 06:06Z | Modelo / SD | la sombra de las cosas fisicas está muy tenue, apenas se distingue la diferencia con las cosas informacionales | La sombra fisica usa dropShadow mas visible (dx 4, dy 4, blur 2, rgba 0.55) sin aplicar sombra a cosas informacionales. | 1 | Regresion en leyes/proyecciones.test.ts para preservar una sombra semantica legible. |
 | Activo | Bug | Nuevo | [BUG-20260525T052239Z-445a97](BUG-20260525T052239Z-445a97/report.md) | 2026-05-25 05:22Z | System Diagram / SD | cuando esté modelando con el canvas activo asegúrate que lo de la imagen adjunta se cumpla, es decir, al apretar O se cree un objeto. al apretar S (c… | Pendiente. | 1 |  |
 | Activo | Bug | Nuevo | [BUG-20260525T021047Z-6ae261](BUG-20260525T021047Z-6ae261/report.md) | 2026-05-25 02:10Z | System Diagram 1 / SD1 | las sombras no logran efecto grafico correcto | Pendiente. | 2 |  |

@@ -15,9 +15,9 @@ const TODOS_LOS_TIPOS: TipoEnlace[] = [
 
 describe("composer markers", () => {
   test("ui-forja/08 §4.2: las 8 familias canonicas de marker estan resueltas desde assets", () => {
-    // 1. Procedimental transformador: punta cerrada simple.
-    expect(marcadorDestino("consumo")?.d).toBe("M 9 -4 0 0 9 4 z");
-    expect(marcadorDestino("resultado")?.d).toBe("M 9 -4 0 0 9 4 z");
+    // 1. Procedimental transformador: swallowtail cerrado OPCloud/JOYAS.
+    expect(marcadorDestino("consumo")?.d).toBe("M 0 0 L 23 8 L 12 0 L 23 -8 Z");
+    expect(marcadorDestino("resultado")?.d).toBe("M 0 0 L 23 8 L 12 0 L 23 -8 Z");
     // 2. Agente (lollipop lleno) — circulo ink fill.
     expect(marcadorDestino("agente")?.fill).toBe("#171511");
     // 3. Instrumento (lollipop hueco) — circulo outline fill paper.
@@ -66,7 +66,7 @@ describe("composer markers", () => {
 
   test("pinta markers canonicos con ink/paper Codex y hairline", () => {
     expect(LINK_ASSETS.procedural.consumo.marker).toMatchObject({
-      fill: "#171511",
+      fill: "#fafaf8",
       stroke: "#171511",
       strokeWidth: 1,
     });
@@ -83,14 +83,19 @@ describe("composer markers", () => {
     expect(LINK_ASSETS.structural.generalizacion.markerFill).toBe("#fafaf8");
   });
 
-  test("BUG-20260525T063444Z-ad14a6 transformadores e invocacion usan punta cerrada canonica", () => {
-    const puntaCerrada = "M 9 -4 0 0 9 4 z";
-    expect(LINK_ASSETS.procedural.consumo.marker.d).toBe(puntaCerrada);
-    expect(LINK_ASSETS.procedural.resultado.marker.d).toBe(puntaCerrada);
-    expect(LINK_ASSETS.procedural.efecto.marker.d).toBe(puntaCerrada);
-    expect(LINK_ASSETS.procedural.invocacion.marker.d).toBe(puntaCerrada);
-    expect(LINK_ASSETS.procedural.agente.marker.d).not.toBe(puntaCerrada);
-    expect(LINK_ASSETS.procedural.instrumento.marker.d).not.toBe(puntaCerrada);
+  test("BUG-20260601T023324Z-66ff2f transformadores usan swallowtail cerrado OPCloud/JOYAS", () => {
+    const swallowtail = "M 0 0 L 23 8 L 12 0 L 23 -8 Z";
+    const puntaSimple = "M 9 -4 0 0 9 4 z";
+    expect(LINK_ASSETS.procedural.consumo.marker.d).toBe(swallowtail);
+    expect(LINK_ASSETS.procedural.resultado.marker.d).toBe(swallowtail);
+    expect(LINK_ASSETS.procedural.efecto.marker.d).toBe(swallowtail);
+    expect(LINK_ASSETS.procedural.invocacion.marker.d).toBe(puntaSimple);
+    expect(LINK_ASSETS.procedural.agente.marker.d).not.toBe(swallowtail);
+    expect(LINK_ASSETS.procedural.instrumento.marker.d).not.toBe(swallowtail);
+    expect(LINK_ASSETS.procedural.consumo.marker).toMatchObject({
+      fill: "#fafaf8",
+      stroke: "#171511",
+    });
   });
 
   test("resuelve badges canonicos c/e/no desde subtipo o modificador base", () => {

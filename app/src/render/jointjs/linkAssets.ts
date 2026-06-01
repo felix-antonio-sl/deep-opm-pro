@@ -2,15 +2,15 @@
 // Runtime markers are normalized from those preview SVGs for JointJS marker
 // coordinates.
 //
-// CANON-V3 Codex + punta cerrada SSOT (2026-05-25):
+// CANON-V4 Codex + punta cerrada OPCloud/JOYAS (2026-06-01):
 //   Todos los markers reciclan los paths canonicos OPCloud y migran a ink
 //   editorial `#171511` con hairline 1px. Diferenciacion por tipo:
-//     - consumo/resultado: punta cerrada ink. La direccion del enlace
-//       (source vs target) separa consumo de resultado.
-//     - efecto: punta cerrada BIDIRECCIONAL ink (source+target marker).
+//     - consumo/resultado: punta cerrada swallowtail con interior paper. La
+//       direccion del enlace (source vs target) separa consumo de resultado.
+//     - efecto: punta cerrada swallowtail BIDIRECCIONAL (source+target marker).
 //     - instrumento: lollipop circulo vacio ink fill paper (○).
 //     - agente: lollipop circulo lleno ink (●).
-//     - invocacion: rayo en el tramo + punta cerrada en destino.
+//     - invocacion: rayo en el tramo + punta simple en destino.
 //     - excepciones temporales: polylines ink (zigzag tachadura).
 //     - etiquetado / etiquetado bidireccional: polyline ink abierta.
 //
@@ -22,6 +22,7 @@ const INK = CODEX.colores.ink;
 const PAPER = CODEX.colores.paper;
 const MARKER_STROKE_WIDTH = CODEX.strokes.enlace;
 const CLOSED_ARROWHEAD = "M 9 -4 0 0 9 4 z";
+const TRANSFORMING_ARROWHEAD = "M 0 0 L 23 8 L 12 0 L 23 -8 Z";
 
 export const LINK_ASSETS = {
   procedural: {
@@ -43,22 +44,23 @@ export const LINK_ASSETS = {
     consumo: {
       source: "assets/svg/links/procedural/consumption.svg",
       path: "M46.725 29L42.5404 32.9055L39.2249 36L43.5653 34.6848L63.8267 28.5449L67.2749 27.5L63.8267 26.4551L43.5653 20.3152L39.2249 19L42.5404 22.0945L46.725 26H15V29H46.725ZM49.6967 26.0378L46.8809 23.4099L60.3784 27.5L46.8809 31.5901L49.6967 28.9622L51.2632 27.5L49.6967 26.0378Z",
-      // BUG-20260525T063444Z-ad14a6: SSOT visual §2.5/§5.1 exige punta
-      // cerrada para enlaces transformadores; no swallowtail.
-      marker: { type: "path", d: CLOSED_ARROWHEAD, fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // BUG-20260601T023324Z-66ff2f: la punta cerrada transformadora en la
+      // evidencia OPCloud/JOYAS es swallowtail, con interior paper y contorno
+      // ink; no el triangulo lleno simple usado por invocacion.
+      marker: { type: "path", d: TRANSFORMING_ARROWHEAD, fill: PAPER, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     resultado: {
       source: "assets/svg/links/procedural/result.svg",
       path: "M35.132 24L39.428 20.0881L42.8196 17L38.4208 18.3005L17.5956 24.4573L14.0684 25.5L17.5956 26.5427L38.4208 32.6995L42.8196 34L39.428 30.9116L35.132 27L67.65 27V24L35.132 24ZM32.1382 26.9788L35.0293 29.6113L21.1228 25.5L35.0293 21.3887L32.1382 24.0212L30.5142 25.5L32.1382 26.9788Z",
-      // BUG-20260525T063444Z-ad14a6: resultado tambien usa punta cerrada; la
-      // direccion source/target ya distingue resultado de consumo.
-      marker: { type: "path", d: CLOSED_ARROWHEAD, fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // Resultado comparte swallowtail con consumo; la direccion source/target
+      // ya distingue el rol transformador.
+      marker: { type: "path", d: TRANSFORMING_ARROWHEAD, fill: PAPER, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     efecto: {
       source: "assets/svg/links/procedural/effect.svg",
       path: "M32.7345 31.9055L28.5499 28H53.7502L49.5657 31.9055L46.2501 35L50.5906 33.6848L70.8519 27.5449L74.3002 26.5L70.8519 25.4551L50.5906 19.3152L46.2501 18L49.5657 21.0945L53.7502 25H28.5499L32.7345 21.0945L36.05 18L31.7096 19.3152L11.4482 25.4551L8 26.5L11.4482 27.5449L31.7096 33.6848L36.05 35L32.7345 31.9055ZM28.394 22.4099L25.5782 25.0378L24.0117 26.5L25.5782 27.9622L28.394 30.5901L14.8965 26.5L28.394 22.4099ZM56.7219 25.0378L53.9061 22.4099L67.4037 26.5L53.9061 30.5901L56.7219 27.9622L58.2885 26.5L56.7219 25.0378Z",
-      // Efecto monta la misma punta cerrada en source+target.
-      marker: { type: "path", d: CLOSED_ARROWHEAD, fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // Efecto monta el mismo swallowtail en source+target.
+      marker: { type: "path", d: TRANSFORMING_ARROWHEAD, fill: PAPER, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     invocacion: {
       source: "assets/svg/links/procedural/invocation.svg",
