@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { extremoEstado } from "../modelo/extremos";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
-import { aplicarEstiloApariencia } from "../modelo/estilos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
@@ -155,24 +154,6 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(definirBackwardTag(modelo, enlaceId, "pertenece a"));
 
     expect(generarOpl(modelo)).toContain("**Todo** contiene **Parte**, y **Parte** pertenece a **Todo**.");
-  });
-
-  test("estilo de apariencia no cambia OPL", () => {
-    let modelo = crearModelo();
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Entrada"));
-    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Entrada"), entidad(modelo, "Procesar"), "consumo"));
-    const antes = generarOpl(modelo);
-    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})
-      .find((item) => item.entidadId === entidad(modelo, "Entrada"));
-    if (!apariencia) throw new Error("La prueba esperaba apariencia");
-
-    modelo = must(aplicarEstiloApariencia(modelo, modelo.opdRaizId, apariencia.id, {
-      fill: "#fef3c7",
-      borderColor: "#586d8c",
-    }));
-
-    expect(generarOpl(modelo)).toEqual(antes);
   });
 
   test("imagen de objeto no cambia OPL", () => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { agregacionesInzoomFaltantes, esAtributoDerivado, estadosDeEntidad, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
@@ -22,7 +22,6 @@ import { SeccionRefinamiento, OPCIONES_DESPLIEGUE_OBJETO } from "./inspector/Sec
 import { primerOpdConEntidad, satisfaccionesDeRequisito, satisfaccionesDeTarget, SeccionCoberturaRequisito, SeccionRequisitosVinculados } from "./inspector/SeccionRequisitos";
 import { SeccionTamano } from "./inspector/SeccionTamano";
 import { SeccionUrls } from "./inspector/SeccionUrls";
-import { StyleControls } from "./StyleControls";
 
 export { OPCIONES_DESPLIEGUE_OBJETO };
 
@@ -35,8 +34,8 @@ interface Props {
  * y delega secciones OPM atomicas respaldadas por SSOT 3.7, 3.68, 3.71a y V-1.
  *
  * Ronda Codex v2 / L3 (C9): el contenido dejó de particionarse en tabs y pasó
- * a una **ficha tipográfica continua** — las cinco secciones (Semántica →
- * Enlaces → Refinamiento → Apariciones → Estilo) se apilan verticalmente,
+ * a una **ficha tipográfica continua** — las seis secciones (Semántica →
+ * Enlaces → Refinamiento → Extensiones → Apariciones → Tamaño) se apilan verticalmente,
  * cada una bajo un kicker mono uppercase y separada por hairline (ui-forja §9;
  * el apéndice §02:483 prohíbe los tabs con underline-active). Cada `Panel*` es
  * un wrapper local que monta las `Seccion*` existentes — cero cambios al
@@ -55,10 +54,6 @@ export function InspectorEntidad({ entidad }: Props) {
     crearAutoInvocacion,
     cambiarModoPlegado,
     cambiarOrdenPartes,
-    aplicarEstilo,
-    resetearEstilo,
-    aplicarEstiloTexto,
-    resetearEstiloTexto,
     redimensionarSeleccionada,
     ajustarSeleccionadaAlTexto,
     volverSeleccionadaAAuto,
@@ -88,11 +83,8 @@ export function InspectorEntidad({ entidad }: Props) {
     configurarSimulacionAtributo,
     crearAtributo,
     fijarLayoutEstadosEntidad,
-    seleccionados,
-    aplicarEstiloASeleccion,
     crearEstadosConNombres,
   } = useInspectorEntidadViewModel(entidad.id);
-  const [aplicarABatch, setAplicarABatch] = useState(false);
   // L4 ronda 23 (#15): focus auto default brutal al crear objeto/proceso.
   // Lectura directa al store (no se infla `EntityInspectorShellPort` porque
   // la señal es estrictamente UI y de corta vida; pasaría como ruido en el
@@ -181,8 +173,8 @@ export function InspectorEntidad({ entidad }: Props) {
         />
       </label>
       {/*
-        Ficha continua (Codex C9): las cinco secciones se apilan en orden
-        estricto Semántica → Enlaces → Refinamiento → Apariciones → Estilo.
+        Ficha continua (Codex C9): las secciones se apilan en orden
+        estricto Semántica → Enlaces → Refinamiento → Extensiones → Apariciones → Tamaño.
         Cada bloque conserva su testid `inspector-panel-{id}` para que el
         smoke ubique su contenido sin tabs; ya no hay `role="tabpanel"`.
       */}
@@ -279,27 +271,18 @@ export function InspectorEntidad({ entidad }: Props) {
             onNavegar={cambiarOpdActivo}
           />
         </FichaSeccion>
-        <FichaSeccion kicker="Estilo" testid="inspector-panel-estilo">
-          <PanelEstilo
-            apariencia={aparienciaActiva}
-            seleccionMultipleCount={seleccionados.length}
-            aplicarABatch={aplicarABatch}
-            onCambiarAplicarABatch={setAplicarABatch}
-            onApply={(patch) => (aplicarABatch ? aplicarEstiloASeleccion(patch) : aplicarEstilo(patch))}
-            onReset={resetearEstilo}
-            onApplyText={(textPatch) => {
-              if (!aparienciaActiva) return;
-              if (aplicarABatch) aplicarEstiloASeleccion(textPatch);
-              else aplicarEstiloTexto(aparienciaActiva.id, textPatch);
-            }}
-            onResetText={() => {
-              if (aparienciaActiva) resetearEstiloTexto(aparienciaActiva.id);
-            }}
-            onRedimensionar={redimensionarSeleccionada}
-            onAjustarTexto={ajustarSeleccionadaAlTexto}
-            onVolverAuto={volverSeleccionadaAAuto}
-            onAlternarModo={alternarModoTamanoSeleccionado}
-          />
+        <FichaSeccion kicker="Tamaño" testid="inspector-panel-tamano">
+          {aparienciaActiva ? (
+            <SeccionTamano
+              apariencia={aparienciaActiva}
+              onRedimensionar={redimensionarSeleccionada}
+              onAjustarTexto={ajustarSeleccionadaAlTexto}
+              onVolverAuto={volverSeleccionadaAAuto}
+              onAlternarModo={alternarModoTamanoSeleccionado}
+            />
+          ) : (
+            <p style={style.empty}>La entidad no tiene aparición en el OPD activo.</p>
+          )}
         </FichaSeccion>
       </div>
     </>
@@ -558,8 +541,8 @@ interface PanelRefinamientoProps {
 /**
  * L4 ronda 23 (#11): Refinamiento contiene SOLO operaciones semánticas OPM
  * (inzoom/desplegar/estados/navegación). La sección Tamaño (Ancho/Alto/
- * Ajustar texto/Volver auto) se trasladó al tab Estilo porque pertenece a
- * presentación, no a estructura semántica.
+ * Ajustar texto/Volver auto) vive aparte porque es geometría de aparición, no
+ * estructura semántica.
  */
 function PanelRefinamiento(props: PanelRefinamientoProps) {
   return (
@@ -587,57 +570,6 @@ function PanelRefinamiento(props: PanelRefinamientoProps) {
       onQuitarPlegadoCompletoEstructural={props.onQuitarPlegadoCompletoEstructural}
       onTraerAgregacionesInzoomFaltantes={props.onTraerAgregacionesInzoomFaltantes}
     />
-  );
-}
-
-// ── Panel: Estilo ──────────────────────────────────────────────────────────
-
-/**
- * L4 ronda 23 (#11): además de las propiedades visuales (StyleControls), el
- * panel Estilo aloja la sección Tamaño (Ancho/Alto/Ajustar texto/Volver
- * auto), que vivía en Refinamiento. Esto separa semántica OPM (Refinamiento)
- * de presentación (Estilo).
- */
-interface PanelEstiloProps {
-  apariencia: import("../modelo/tipos").Apariencia | undefined;
-  seleccionMultipleCount: number;
-  aplicarABatch: boolean;
-  onCambiarAplicarABatch: (valor: boolean) => void;
-  onApply: (patch: import("../modelo/tipos").EstiloApariencia) => void;
-  onReset: () => void;
-  onApplyText: (patch: import("../modelo/tipos").EstiloApariencia) => void;
-  onResetText: () => void;
-  onRedimensionar: (width: number, height: number) => void;
-  onAjustarTexto: () => void;
-  onVolverAuto: () => void;
-  onAlternarModo: () => void;
-}
-
-function PanelEstilo(props: PanelEstiloProps) {
-  if (!props.apariencia) {
-    return <p style={style.empty}>El tab Estilo solo aplica cuando la entidad tiene apariencia en el OPD activo.</p>;
-  }
-  return (
-    <>
-      <SeccionTamano
-        apariencia={props.apariencia}
-        onRedimensionar={props.onRedimensionar}
-        onAjustarTexto={props.onAjustarTexto}
-        onVolverAuto={props.onVolverAuto}
-        onAlternarModo={props.onAlternarModo}
-      />
-      <StyleControls
-        estilo={props.apariencia.estilo}
-        onApply={props.onApply}
-        onReset={props.onReset}
-        showText
-        onApplyText={props.onApplyText}
-        onResetText={props.onResetText}
-        seleccionMultipleCount={props.seleccionMultipleCount}
-        aplicarASeleccion={props.aplicarABatch}
-        onCambiarAplicarASeleccion={props.onCambiarAplicarABatch}
-      />
-    </>
   );
 }
 

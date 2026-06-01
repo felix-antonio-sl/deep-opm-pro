@@ -82,8 +82,6 @@ export const MODELO_SLICE_CAPABILITIES = {
     "ajustarSeleccionadaAlTexto",
     "volverSeleccionadaAAuto",
     "alternarModoTamanoSeleccionado",
-    "aplicarEstiloSeleccionado",
-    "resetearEstiloSeleccionado",
     "editarAliasEntidad",
     "editarUnidadEntidad",
     "editarDescripcionEntidad",

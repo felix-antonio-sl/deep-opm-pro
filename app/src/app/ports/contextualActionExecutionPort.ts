@@ -6,8 +6,6 @@ export interface ContextualActionExecutionSnapshot {
   seleccionId: Id | null;
   seleccionados: Id[];
   enlaceSeleccionId: Id | null;
-  copiarEstiloEnlaceAlPortapapeles: (enlaceId: Id) => void;
-  pegarEstiloEnlaceDesdePortapapeles: (enlaceId: Id) => void;
   agregarEstadoSmart: () => void;
   descomponerSeleccionada: () => void;
   desplegarSeleccionada: () => void;

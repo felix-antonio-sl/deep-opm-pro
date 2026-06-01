@@ -12,12 +12,10 @@ import {
   ariaLabelBarra,
   atajoAria,
   cellIdActivoDeSeleccion,
-  endpointPerteneceAEntidad,
   entidadSeleccionUnica,
   enlaceSeleccionUnico,
   limitar,
   posicionarBarraConColisiones,
-  primerEnlaceVisualDeEntidad,
   rectOverlayAViewport,
   rectRelativoAContenedor,
   rectVisibleEnViewport,
@@ -49,7 +47,6 @@ function modeloBase(): Modelo {
         origenId: { kind: "entidad", id: objeto.id },
         destinoId: { kind: "entidad", id: proceso.id },
         etiqueta: "",
-        estilo: { color: "azul" },
       },
       "enlace-2": {
         id: "enlace-2",
@@ -162,7 +159,6 @@ describe("resolverContextoBarra", () => {
       tipo: "entidad",
       nombre: "Objeto",
       anchorCellIds: ["ap-obj"],
-      enlaceEstiloId: "enlace-1",
     });
   });
 
@@ -171,7 +167,6 @@ describe("resolverContextoBarra", () => {
       tipo: "enlace",
       nombre: "enlace consumo",
       anchorCellIds: ["ae-1"],
-      enlaceEstiloId: "enlace-1",
     });
   });
 
@@ -180,7 +175,6 @@ describe("resolverContextoBarra", () => {
       tipo: "multi",
       nombre: "3 seleccionadas",
       anchorCellIds: ["ap-obj", "ap-proc", "ae-1"],
-      enlaceEstiloId: null,
     });
   });
 });
@@ -220,35 +214,9 @@ describe("cellIdActivoDeSeleccion", () => {
   });
 });
 
-describe("enlace visual relacionado", () => {
-  test("detecta extremo entidad como perteneciente a la entidad", () => {
-    expect(endpointPerteneceAEntidad(modeloBase(), "obj-1", { kind: "entidad", id: "obj-1" })).toBe(true);
-  });
-
-  test("rechaza extremo entidad de otra entidad", () => {
-    expect(endpointPerteneceAEntidad(modeloBase(), "obj-1", { kind: "entidad", id: "proc-1" })).toBe(false);
-  });
-
-  test("detecta extremo estado como perteneciente al objeto dueño", () => {
-    expect(endpointPerteneceAEntidad(modeloBase(), "obj-1", { kind: "estado", id: "estado-1" })).toBe(true);
-  });
-
-  test("rechaza extremo estado inexistente", () => {
-    expect(endpointPerteneceAEntidad(modeloBase(), "obj-1", { kind: "estado", id: "missing" })).toBe(false);
-  });
-
-  test("retorna el primer enlace visual incidente en el OPD", () => {
-    expect(primerEnlaceVisualDeEntidad(modeloBase(), "opd-1", "obj-1")).toBe("enlace-1");
-  });
-
-  test("retorna null cuando la entidad no tiene enlace visual en el OPD", () => {
-    expect(primerEnlaceVisualDeEntidad(modeloBase(), "opd-vacio", "obj-1")).toBeNull();
-  });
-});
-
 describe("accionesPilotoBarra", () => {
   test("expone seis primarias para objeto en orden IFML", () => {
-    expect(accionesPilotoBarra(objeto, "enlace-1", true, true).filter((accion) => accion.visible).map((accion) => accion.id)).toEqual([
+    expect(accionesPilotoBarra(objeto, true).filter((accion) => accion.visible).map((accion) => accion.id)).toEqual([
       "inzoom",
       "unfold",
       "agregar-estado",
@@ -259,7 +227,7 @@ describe("accionesPilotoBarra", () => {
   });
 
   test("expone cuatro primarias para proceso", () => {
-    const acciones = accionesPilotoBarra(proceso, "enlace-1", true, true).filter((accion) => accion.visible);
+    const acciones = accionesPilotoBarra(proceso, true).filter((accion) => accion.visible);
     expect(acciones.map((accion) => accion.id)).toEqual([
       "inzoom",
       "unfold",
@@ -270,24 +238,17 @@ describe("accionesPilotoBarra", () => {
   });
 
   test("expone unfold para objeto y proceso", () => {
-    expect(accionesPilotoBarra(objeto, null, false, true).find((accion) => accion.id === "unfold")?.enabled).toBe(true);
-    expect(accionesPilotoBarra(proceso, null, false, true).find((accion) => accion.id === "unfold")?.enabled).toBe(true);
+    expect(accionesPilotoBarra(objeto, true).find((accion) => accion.id === "unfold")?.enabled).toBe(true);
+    expect(accionesPilotoBarra(proceso, true).find((accion) => accion.id === "unfold")?.enabled).toBe(true);
   });
 
   test("oculta agregar estado para proceso", () => {
-    expect(accionesPilotoBarra(proceso, null, false, true).map((accion) => accion.id as string)).not.toContain("agregar-estado");
-  });
-
-  test("mantiene copiar/pegar estilo fuera de primarias aunque haya enlace operable", () => {
-    const acciones = accionesPilotoBarra(objeto, "enlace-1", true, true);
-    const idsAcciones = acciones.map((accion) => accion.id as string);
-    expect(idsAcciones).not.toContain("copiar-estilo");
-    expect(idsAcciones).not.toContain("pegar-estilo");
+    expect(accionesPilotoBarra(proceso, true).map((accion) => accion.id as string)).not.toContain("agregar-estado");
   });
 
   test("cambia el label de mas opciones segun estado del Inspector", () => {
-    expect(accionesPilotoBarra(objeto, null, false, true).find((accion) => accion.id === "mas-opciones")?.label).toBe("Cerrar Inspector lateral");
-    expect(accionesPilotoBarra(objeto, null, false, false).find((accion) => accion.id === "mas-opciones")?.label).toBe("Abrir Inspector lateral");
+    expect(accionesPilotoBarra(objeto, true).find((accion) => accion.id === "mas-opciones")?.label).toBe("Cerrar Inspector lateral");
+    expect(accionesPilotoBarra(objeto, false).find((accion) => accion.id === "mas-opciones")?.label).toBe("Abrir Inspector lateral");
   });
 
   // Ronda24 L5 #9: la mini-toolbar contextual ahora muestra texto visible
@@ -295,7 +256,7 @@ describe("accionesPilotoBarra", () => {
   // Desplegar, Editar alias). Las demás acciones contextuales mantienen su
   // render previo (sólo ícono o sólo texto del catálogo).
   test("decora inzoom, unfold y editar-alias con texto visible y bandera compactaIconoTexto", () => {
-    const acciones = accionesPilotoBarra(objeto, null, false, false);
+    const acciones = accionesPilotoBarra(objeto, false);
     const inzoom = acciones.find((accion) => accion.id === "inzoom");
     const unfold = acciones.find((accion) => accion.id === "unfold");
     const editarAlias = acciones.find((accion) => accion.id === "editar-alias");
@@ -308,14 +269,14 @@ describe("accionesPilotoBarra", () => {
   });
 
   test("no fuerza texto visible en agregar-estado (mantiene icono sin label para no saturar la barra)", () => {
-    const acciones = accionesPilotoBarra(objeto, null, false, false);
+    const acciones = accionesPilotoBarra(objeto, false);
     const agregarEstado = acciones.find((accion) => accion.id === "agregar-estado");
     expect(agregarEstado?.texto).toBeUndefined();
     expect(agregarEstado?.compactaIconoTexto).toBeUndefined();
   });
 
   test("no aplica compactaIconoTexto a editar-imagen ni mas-opciones (ya tienen texto en catalogo)", () => {
-    const acciones = accionesPilotoBarra(objeto, null, false, false);
+    const acciones = accionesPilotoBarra(objeto, false);
     const editarImagen = acciones.find((accion) => accion.id === "editar-imagen");
     const masOpciones = acciones.find((accion) => accion.id === "mas-opciones");
     expect(editarImagen?.compactaIconoTexto).toBeUndefined();
@@ -328,20 +289,12 @@ describe("accionesPilotoBarra", () => {
 describe("accionesBarraEnlace", () => {
   test("expone primarias de enlace en orden IFML", () => {
     const enlace = modeloBase().enlaces["enlace-1"] ?? null;
-    expect(accionesBarraEnlace(enlace, true, false).filter((accion) => accion.visible).map((accion) => accion.id)).toEqual([
+    expect(accionesBarraEnlace(enlace, false).filter((accion) => accion.visible).map((accion) => accion.id)).toEqual([
       "cambiar-tipo-enlace",
-      "copiar-estilo",
-      "pegar-estilo",
       "mas-opciones",
     ]);
-    expect(accionesBarraEnlace(enlace, true, false).find((accion) => accion.id === "cambiar-tipo-enlace")?.texto).toBe("Propiedades");
-    expect(accionesBarraEnlace(enlace, true, false).find((accion) => accion.id === "mas-opciones")?.texto).toBe("Inspector");
-  });
-
-  test("omite pegar formato sin portapapeles", () => {
-    const enlace = modeloBase().enlaces["enlace-1"] ?? null;
-    const pegar = accionesBarraEnlace(enlace, false, false).find((accion) => accion.id === "pegar-estilo");
-    expect(pegar).toBeUndefined();
+    expect(accionesBarraEnlace(enlace, false).find((accion) => accion.id === "cambiar-tipo-enlace")?.texto).toBe("Propiedades");
+    expect(accionesBarraEnlace(enlace, false).find((accion) => accion.id === "mas-opciones")?.texto).toBe("Inspector");
   });
 });
 
@@ -369,7 +322,7 @@ describe("posicionamiento", () => {
 
   test("estima ancho real con botones de texto", () => {
     const enlace = modeloBase().enlaces["enlace-1"] ?? null;
-    expect(anchoEstimadoAccionesBarra(accionesBarraEnlace(enlace, true, false))).toBe(328);
+    expect(anchoEstimadoAccionesBarra(accionesBarraEnlace(enlace, false))).toBe(168);
   });
 
   // Ronda24 L5 #9: la barra contextual de objeto suma 3 botones
@@ -379,14 +332,14 @@ describe("posicionamiento", () => {
   // ancho clásico (Inspector = 76px). Ancho = 12 (padding) + 3*92 + 2*34 +
   // 76 + 5*4 (gaps) = 452.
   test("estima ancho real de acciones contextuales para objeto con icono+texto", () => {
-    expect(anchoEstimadoAccionesBarra(accionesPilotoBarra(objeto, null, false, false))).toBe(452);
+    expect(anchoEstimadoAccionesBarra(accionesPilotoBarra(objeto, false))).toBe(452);
   });
 
   // Proceso no expone agregar-estado ni editar-imagen: 3 botones icono+texto
   // (Descomp./Desplegar/Alias = 92px c/u) + 1 texto (Inspector = 76px).
   // Ancho = 12 (padding) + 3*92 + 76 + 3*4 (gaps) = 376.
   test("estima ancho real de acciones contextuales para proceso", () => {
-    expect(anchoEstimadoAccionesBarra(accionesPilotoBarra(proceso, null, false, false))).toBe(376);
+    expect(anchoEstimadoAccionesBarra(accionesPilotoBarra(proceso, false))).toBe(376);
   });
 
   test("estima ancho con resumen de multiseleccion", () => {
@@ -395,7 +348,7 @@ describe("posicionamiento", () => {
 
   test("estima ancho con resumen de enlace", () => {
     const enlace = modeloBase().enlaces["enlace-1"] ?? null;
-    expect(anchoEstimadoControlesBarra(accionesBarraEnlace(enlace, false, false), false, true)).toBe(368);
+    expect(anchoEstimadoControlesBarra(accionesBarraEnlace(enlace, false), false, true)).toBe(288);
   });
 
   test("retorna cero para barra sin botones", () => {

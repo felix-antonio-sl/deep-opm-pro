@@ -28,16 +28,11 @@ export interface EntityInspectorMetadataPort {
   quitarImagenEntidad: OpmStore["quitarImagenEntidad"];
 }
 
-export interface EntityInspectorStylePort {
-  aplicarEstilo: OpmStore["aplicarEstiloSeleccionado"];
-  resetearEstilo: OpmStore["resetearEstiloSeleccionado"];
-  aplicarEstiloTexto: OpmStore["aplicarEstiloTextoAccion"];
-  resetearEstiloTexto: OpmStore["resetEstiloTextoAccion"];
+export interface EntityInspectorGeometryPort {
   redimensionarSeleccionada: OpmStore["redimensionarSeleccionada"];
   ajustarSeleccionadaAlTexto: OpmStore["ajustarSeleccionadaAlTexto"];
   volverSeleccionadaAAuto: OpmStore["volverSeleccionadaAAuto"];
   alternarModoTamanoSeleccionado: OpmStore["alternarModoTamanoSeleccionado"];
-  aplicarEstiloASeleccion: OpmStore["aplicarEstiloASeleccion"];
 }
 
 export interface EntityInspectorRefinementPort {

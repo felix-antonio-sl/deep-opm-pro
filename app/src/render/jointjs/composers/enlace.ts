@@ -137,10 +137,9 @@ export function proyectarEnlace(
 ): JointCellJson {
   const verticesRender = verticesEnlace(enlace.tipo, origen, destino, vertices);
   const wrapWidth = anchoWrapEntreApariencias(etiquetaEnlaceNormalizada(enlace.etiqueta) || enlace.rutaEtiqueta || "", origen.apariencia, destino.apariencia);
-  const estiloE = enlace.estilo;
-  const colorEnlace = estiloE?.color ?? CODEX.colores.ink;
-  const grosorEnlace = estiloE?.strokeWidth ?? CODEX.strokes.enlace;
-  const dashOverride = estiloE?.dashArray !== undefined ? estiloE.dashArray || undefined : undefined;
+  const colorEnlace = CODEX.colores.ink;
+  const grosorEnlace = CODEX.strokes.enlace;
+  const dashOverride = undefined;
   // OPCloud (reverse-engineering opm-extracted): router selectivo.
   // - Procedurales (consumo, resultado, efecto, agente, instrumento, invocacion)
   //   van RECTOS, sin router (`OpmDefaultLink` shared.ts:2450-2458).

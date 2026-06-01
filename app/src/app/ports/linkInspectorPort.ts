@@ -3,6 +3,7 @@ import type { OpmStore } from "../../store";
 export interface LinkInspectorSessionPort {
   modelo: OpmStore["modelo"];
   opdActivoId: OpmStore["opdActivoId"];
+  seleccionados: OpmStore["seleccionados"];
   cambiarOpdActivo: OpmStore["cambiarOpdActivo"];
   abrirInspectorEnlaceDesdeOpl: OpmStore["abrirInspectorEnlaceDesdeOpl"];
 }
@@ -46,16 +47,6 @@ export interface StructuralLinkGroupPort {
   plegarCompletoGrupoEstructural: OpmStore["plegarCompletoGrupoEstructuralSeleccionado"];
 }
 
-export interface LinkStylePort {
-  aplicarEstiloEnlaceAccion: OpmStore["aplicarEstiloEnlaceAccion"];
-  resetEstiloEnlaceAccion: OpmStore["resetEstiloEnlaceAccion"];
-  copiarEstiloAlPortapapeles: OpmStore["copiarEstiloEnlaceAlPortapapeles"];
-  pegarEstiloDesdePortapapeles: OpmStore["pegarEstiloEnlaceDesdePortapapeles"];
-  enlaceEstiloPortapapeles: OpmStore["enlaceEstiloPortapapeles"];
-  seleccionados: OpmStore["seleccionados"];
-  aplicarEstiloASeleccion: OpmStore["aplicarEstiloASeleccion"];
-}
-
 export interface LinkDeletionPort {
   eliminar: OpmStore["eliminarSeleccion"];
 }
@@ -65,5 +56,4 @@ export interface LinkInspectorPort extends
   SelectedLinkPropertiesPort,
   SelectedLinkEndpointsPort,
   StructuralLinkGroupPort,
-  LinkStylePort,
   LinkDeletionPort {}

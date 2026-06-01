@@ -12,7 +12,6 @@ import { useToolbarBaseViewModel } from "../../app/viewmodels/toolbarBaseViewMod
 import type { Entidad, Id, TipoEnlace } from "../../modelo/tipos";
 import type { JointCanvasAdapter } from "../../render/jointjs/jointCanvasAdapter";
 import type { AccionContextualId } from "../../store/acciones-contextuales";
-import { primerEnlaceVisualDeEntidad } from "../BarraHerramientasElemento";
 import { useCanvasAdapter } from "../CanvasAdapterContext";
 import {
   clasificarVariante,
@@ -134,9 +133,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
     descartarNuevaCosaPendiente,
     seleccionarEntidad,
     seleccionarEnlace,
-    copiarEstiloEnlaceAlPortapapeles,
-    pegarEstiloEnlaceDesdePortapapeles,
-    enlaceEstiloPortapapeles,
     borrarEnlacesEnLote,
     conectarSeleccionAlTodo,
     iniciarAutosalvado,
@@ -233,9 +229,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
   // de conexión o inserción esté activo.
   const mostrarClusterConectar = true;
   const entidadMenuContextual = menuEntidad ? modelo.entidades[menuEntidad.entidadId] ?? null : null;
-  const enlaceEstiloMenuContextualId = entidadMenuContextual
-    ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidadMenuContextual.id)
-    : null;
 
   function handleCrearObjeto(event: MouseEvent) {
     if (readOnly) return;
@@ -264,16 +257,8 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
   function handleDescartarNuevaCosa() {
     descartarNuevaCosaPendiente();
   }
-  function handleEstiloEnlace(id: Id) {
+  function handleSeleccionarEnlace(id: Id) {
     seleccionarEnlace(id);
-    setMenuContextual(null);
-  }
-  function handleCopiarEstiloEnlace(id: Id) {
-    copiarEstiloEnlaceAlPortapapeles(id);
-    setMenuContextual(null);
-  }
-  function handlePegarEstiloEnlace(id: Id) {
-    pegarEstiloEnlaceDesdePortapapeles(id);
     setMenuContextual(null);
   }
   function handleEliminarEnlace(id: Id) {
@@ -394,14 +379,10 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
         setMenuContextual={setMenuContextual}
         menuEntidad={menuEntidad}
         entidadMenuContextual={entidadMenuContextual}
-        enlaceEstiloMenuContextualId={enlaceEstiloMenuContextualId}
-        hayEstiloEnPortapapeles={!!enlaceEstiloPortapapeles}
         setMenuEntidad={setMenuEntidad}
         menuEstado={menuEstado}
         setMenuEstado={setMenuEstado}
-        onEstiloEnlace={handleEstiloEnlace}
-        onCopiarEstilo={handleCopiarEstiloEnlace}
-        onPegarEstilo={handlePegarEstiloEnlace}
+        onSeleccionarEnlace={handleSeleccionarEnlace}
         onEliminarEnlace={handleEliminarEnlace}
         multi={seleccionados.length >= 2}
         onAccionMenuEntidad={handleAccionMenuEntidad}
@@ -458,14 +439,10 @@ function ModelessToolbarLayer(props: {
   setMenuContextual: (value: null | { enlaceId: Id; x: number; y: number }) => void;
   menuEntidad: { aparienciaId: Id; entidadId: Id; x: number; y: number } | null;
   entidadMenuContextual: Entidad | null;
-  enlaceEstiloMenuContextualId: Id | null;
-  hayEstiloEnPortapapeles: boolean;
   setMenuEntidad: (value: null | { aparienciaId: Id; entidadId: Id; x: number; y: number }) => void;
   menuEstado: { estadoId: Id; entidadId: Id; x: number; y: number } | null;
   setMenuEstado: (value: null | { estadoId: Id; entidadId: Id; x: number; y: number }) => void;
-  onEstiloEnlace: (id: Id) => void;
-  onCopiarEstilo: (id: Id) => void;
-  onPegarEstilo: (id: Id) => void;
+  onSeleccionarEnlace: (id: Id) => void;
   onEliminarEnlace: (id: Id) => void;
   onConectarMultiAlTodo?: (tipo: TipoEnlace) => void;
   multi: boolean;
@@ -483,14 +460,12 @@ function ModelessToolbarLayer(props: {
         </form>
       ) : null}
       {props.menuContextual ? (
-        <MenuContextualEnlace enlaceId={props.menuContextual.enlaceId} x={props.menuContextual.x} y={props.menuContextual.y} onCerrar={() => props.setMenuContextual(null)} onEstilo={props.onEstiloEnlace} onCopiarEstilo={props.onCopiarEstilo} onPegarEstilo={props.onPegarEstilo} onEliminar={props.onEliminarEnlace} onConectarMultiAlTodo={props.onConectarMultiAlTodo} />
+        <MenuContextualEnlace enlaceId={props.menuContextual.enlaceId} x={props.menuContextual.x} y={props.menuContextual.y} onCerrar={() => props.setMenuContextual(null)} onPropiedades={props.onSeleccionarEnlace} onEliminar={props.onEliminarEnlace} onConectarMultiAlTodo={props.onConectarMultiAlTodo} />
       ) : null}
       {props.menuEntidad ? (
         <MenuContextualEntidad
           aparienciaId={props.menuEntidad.aparienciaId}
           entidad={props.entidadMenuContextual}
-          enlaceEstiloId={props.enlaceEstiloMenuContextualId}
-          hayEstiloEnPortapapeles={props.hayEstiloEnPortapapeles}
           inspectorAbierto
           x={props.menuEntidad.x}
           y={props.menuEntidad.y}

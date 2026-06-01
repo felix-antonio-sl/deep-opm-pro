@@ -2,7 +2,7 @@ import type { Id } from "./comunes";
 
 /**
  * Tipos del dominio Apariencia (proyección visual de una entidad en un OPD).
- * Cubre Apariencia, estilo visual, modo de plegado y layout de estados.
+ * Cubre Apariencia, modo de plegado y layout de estados.
  *
  * Refs: SSOT opm-visual-es.md V-1..V-240, JOYAS §dimensiones,
  *       opm-extracted/src/app/models/DrawnPart/OpmObject.ts:5-15.
@@ -22,17 +22,6 @@ export interface ContextoRefinamientoApariencia {
   enlacesPadreIds?: Id[];
 }
 
-export interface EstiloApariencia {
-  fill?: string;
-  borderColor?: string;
-  fontFamily?: string;
-  fontSize?: number;
-  fontWeight?: number | "normal" | "bold";
-  fontStyle?: "normal" | "italic";
-  textColor?: string;
-  textAnchor?: "start" | "middle" | "end";
-}
-
 export interface PuertoApariencia {
   /** Coordenadas relativas 0..1 dentro del bbox de la apariencia. */
   x: number;
@@ -47,7 +36,6 @@ export interface Apariencia {
   y: number;
   width: number;
   height: number;
-  estilo?: EstiloApariencia;
   modoTamano?: ModoTamano;
   modoPlegado?: ModoPlegado;
   ordenPartes?: OrdenPartesPlegado;

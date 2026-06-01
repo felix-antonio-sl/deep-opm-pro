@@ -39,12 +39,7 @@ export function useToolbarBaseViewModel() {
     distribuirSeleccion,
     alinearSeleccionEnlaces,
   } = useZustandSelectionBatchActionsPort();
-  const {
-    copiarEstiloEnlaceAlPortapapeles,
-    pegarEstiloEnlaceDesdePortapapeles,
-    enlaceEstiloPortapapeles,
-    borrarEnlacesEnLote,
-  } = useZustandLinkContextActionsPort();
+  const borrarEnlacesEnLote = useZustandLinkContextActionsPort().borrarEnlacesEnLote;
   const { iniciarAutosalvado } = useZustandAutosavePort();
   const { readOnly } = useZustandEditabilityPort();
   const persistencia = useZustandPersistencePort();
@@ -74,9 +69,6 @@ export function useToolbarBaseViewModel() {
     descartarNuevaCosaPendiente,
     seleccionarEntidad,
     seleccionarEnlace,
-    copiarEstiloEnlaceAlPortapapeles,
-    pegarEstiloEnlaceDesdePortapapeles,
-    enlaceEstiloPortapapeles,
     borrarEnlacesEnLote,
     eliminarSeleccion,
     conectarSeleccionAlTodo,

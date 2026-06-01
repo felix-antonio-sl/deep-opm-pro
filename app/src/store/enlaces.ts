@@ -11,10 +11,6 @@ import {
   suprimirEstado,
 } from "../modelo/estadosDesignaciones";
 import {
-  aplicarEstiloApariencia,
-  resetearEstiloApariencia,
-} from "../modelo/estilos";
-import {
   contenedorRefinamiento,
   dentroDeApariencia,
   posicionLibre,
@@ -95,12 +91,6 @@ import {
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import {
-  aplicarEstiloEnlace,
-  copiarEstiloEnlace,
-  pegarEstiloEnlace,
-  resetEstiloEnlace,
-} from "../modelo/enlaceEstilo";
-import {
   fijarMultiplicidadOrigen,
   fijarMultiplicidadDestino,
   quitarMultiplicidad,
@@ -161,7 +151,7 @@ import {
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
-import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, Esencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { generarOpl } from "../opl/generar";
 import {
@@ -199,8 +189,6 @@ import {
   alinearEnlacesArriba,
   alinearEnlacesDerecha,
   alinearEnlacesIzquierda,
-  aplicarEstiloApariencias,
-  aplicarEstiloEnlaces,
   conectarMultiAlTodo,
   copiarSeleccion,
   eliminarBatch,
@@ -225,7 +213,6 @@ export const createEnlacesSlice: CrearSlice<EnlacesSlice> = (set, get) => ({
   tablaEnlacesFiltroTipo: "todos",
   tablaEnlacesOrdenColumna: null,
   tablaEnlacesOrdenDireccion: "asc",
-  enlaceEstiloPortapapeles: null,
 
   fijarMultiplicidadEnlace(enlaceId, lado, valor) {
     const { modelo } = get();
@@ -247,79 +234,6 @@ export const createEnlacesSlice: CrearSlice<EnlacesSlice> = (set, get) => ({
       return;
     }
     commitModelo(set, modelo, resultado.value, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
-  },
-
-  aplicarEstiloEnlaceAccion(enlaceId, estilo) {
-    const { modelo } = get();
-    const resultado = aplicarEstiloEnlace(modelo, enlaceId, estilo);
-    if (!resultado.ok) {
-      set({ mensaje: resultado.error });
-      return;
-    }
-    commitModelo(set, modelo, resultado.value, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
-  },
-
-  resetEstiloEnlaceAccion(enlaceId) {
-    const { modelo } = get();
-    const resultado = resetEstiloEnlace(modelo, enlaceId);
-    if (!resultado.ok) {
-      set({ mensaje: resultado.error });
-      return;
-    }
-    commitModelo(set, modelo, resultado.value, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: null });
-  },
-
-  copiarEstiloEnlaceAlPortapapeles(enlaceId) {
-    const { modelo } = get();
-    const copiado = copiarEstiloEnlace(modelo, enlaceId);
-    set({ enlaceEstiloPortapapeles: copiado, mensaje: copiado ? "Estilo copiado" : "Sin estilo que copiar" });
-  },
-
-  pegarEstiloEnlaceDesdePortapapeles(enlaceId) {
-    const { modelo, enlaceEstiloPortapapeles } = get();
-    if (!enlaceEstiloPortapapeles) {
-      set({ mensaje: "No hay estilo de enlace en el portapapeles" });
-      return;
-    }
-    const resultado = pegarEstiloEnlace(modelo, enlaceId, enlaceEstiloPortapapeles);
-    if (!resultado.ok) {
-      set({ mensaje: resultado.error });
-      return;
-    }
-    commitModelo(set, modelo, resultado.value, { seleccionId: null, enlaceSeleccionId: enlaceId, modoEnlace: null, mensaje: "Estilo pegado" });
-  },
-
-  aplicarEstiloTextoAccion(aparienciaId, estilo) {
-    const { modelo, opdActivoId } = get();
-    const opd = modelo.opds[opdActivoId];
-    if (!opd?.apariencias[aparienciaId]) {
-      set({ mensaje: "Apariencia no existe" });
-      return;
-    }
-    const resultado = aplicarEstiloApariencia(modelo, opdActivoId, aparienciaId, estilo);
-    if (!resultado.ok) {
-      set({ mensaje: resultado.error });
-      return;
-    }
-    const entidadId = opd.apariencias[aparienciaId]?.entidadId ?? null;
-    commitModelo(set, modelo, resultado.value, { seleccionId: entidadId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
-  },
-
-  resetEstiloTextoAccion(aparienciaId) {
-    const { modelo, opdActivoId } = get();
-    const opd = modelo.opds[opdActivoId];
-    if (!opd?.apariencias[aparienciaId]) {
-      set({ mensaje: "Apariencia no existe" });
-      return;
-    }
-    // Solo resetea campos de texto, preserva fill/border
-    const resultado = aplicarEstiloApariencia(modelo, opdActivoId, aparienciaId, { fontFamily: undefined, fontSize: undefined, fontWeight: undefined, fontStyle: undefined, textColor: undefined, textAnchor: undefined } as Record<string, undefined> as unknown as EstiloApariencia);
-    if (!resultado.ok) {
-      set({ mensaje: resultado.error });
-      return;
-    }
-    const entidadId = opd.apariencias[aparienciaId]?.entidadId ?? null;
-    commitModelo(set, modelo, resultado.value, { seleccionId: entidadId, enlaceSeleccionId: null, modoEnlace: null, mensaje: null });
   },
 
   insertarVerticeAccion(aparienciaEnlaceId, posicion) {

@@ -64,8 +64,6 @@ export interface GlobalShortcutsSnapshot {
   pestanaActivaId?: string | null;
   abrirDialogoTraerConectados: () => void;
   ocultarAparienciaSeleccionada: () => void;
-  copiarEstiloEnlaceAlPortapapeles: (enlaceId: Id) => void;
-  pegarEstiloEnlaceDesdePortapapeles: (enlaceId: Id) => void;
   conectarSeleccionAlTodo: (todoId: Id, tipo: "agregacion") => void;
   descartarNuevaCosaPendiente: () => void;
   cerrarDialogoComandos: () => void;
@@ -132,14 +130,6 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
   const s = () => port.snapshot();
   const abrirTraerConectados = () => s().abrirDialogoTraerConectados();
   const ocultarApariencia = () => s().ocultarAparienciaSeleccionada();
-  const copiarEstiloEnlace = () => {
-    const state = s();
-    if (state.enlaceSeleccionId) state.copiarEstiloEnlaceAlPortapapeles(state.enlaceSeleccionId);
-  };
-  const pegarEstiloEnlace = () => {
-    const state = s();
-    if (state.enlaceSeleccionId) state.pegarEstiloEnlaceDesdePortapapeles(state.enlaceSeleccionId);
-  };
   const conectarMultiAlTodo = () => {
     const state = s();
     const todo = state.seleccionados.length >= 2 ? state.seleccionados[state.seleccionados.length - 1] : null;
@@ -266,8 +256,6 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     }),
     registrarAtajo({ combo: "Ctrl+Shift+T", ctx: "canvas", categoria: "edicion", descripcion: "Traer conectados de la cosa seleccionada", handler: abrirTraerConectados }),
     registrarAtajo({ combo: "Ctrl+H", ctx: "canvas", categoria: "vista", descripcion: "Ocultar apariencia seleccionada", handler: ocultarApariencia }),
-    registrarAtajo({ combo: "Ctrl+Alt+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar estilo del enlace seleccionado", handler: copiarEstiloEnlace }),
-    registrarAtajo({ combo: "Ctrl+Alt+V", ctx: "canvas", categoria: "edicion", descripcion: "Pegar estilo al enlace seleccionado", handler: pegarEstiloEnlace }),
     registrarAtajo({
       combo: "Ctrl+Alt+T",
       ctx: "canvas",
@@ -302,7 +290,6 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Ctrl+9", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 9", descripcionLarga: "Activa el noveno modelo abierto del workspace", handler: cambiarPestanaPorIndice(8) }),
     registrarAtajo({ combo: "Shift+I", ctx: "canvas", categoria: "edicion", descripcion: "Crear inzoom de la cosa seleccionada", handler: () => s().descomponerSeleccionada() }),
     registrarAtajo({ combo: "Shift+U", ctx: "canvas", categoria: "edicion", descripcion: "Desplegar selección", descripcionLarga: "Crea un OPD desplegado a partir de la cosa seleccionada", handler: () => s().desplegarSeleccionada() }),
-    registrarAtajo({ combo: "Ctrl+Shift+C", ctx: "canvas", categoria: "edicion", descripcion: "Copiar formato de enlace seleccionado", handler: copiarEstiloEnlace }),
     registrarAtajo({ combo: "Ctrl+T", ctx: "global", categoria: "navegacion", descripcion: "Abrir pestaña nueva", descripcionLarga: "Duplica el modelo actual en una pestaña adicional para comparar", handler: () => s().abrirPestanaNueva?.() }),
     registrarAtajo({ combo: "Ctrl+W", ctx: "global", categoria: "navegacion", descripcion: "Cerrar pestaña activa", descripcionLarga: "Cierra el modelo abierto en la pestaña en foco", handler: () => {
       const state = s();

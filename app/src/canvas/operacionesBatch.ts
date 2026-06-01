@@ -1,14 +1,10 @@
 import { entidadIdDeExtremo, extremoEntidad } from "../modelo/extremos";
 import { CANON } from "../modelo/constantes";
-import { aplicarEstiloEnlace } from "../modelo/enlaceEstilo";
-import { aplicarEstiloApariencia } from "../modelo/estilos";
 import { crearEnlace, eliminarEnlace, eliminarEntidad, moverAparienciaPorId } from "../modelo/operaciones";
 import { eliminarEnlacesBatch as eliminarEnlacesBatchModelo } from "../modelo/operaciones/enlaces";
 import type {
   Apariencia,
   AparienciaEnlace,
-  EnlaceEstilo,
-  EstiloApariencia,
   Id,
   Modelo,
   Opd,
@@ -275,51 +271,8 @@ export function ocultarAparienciaBatch(modelo: Modelo, opdId: Id, aparienciaId: 
   return ok({ ...modelo, opds: { ...modelo.opds, [opdId]: { ...opd, apariencias, enlaces } } });
 }
 
-export function aplicarEstiloApariencias(
-  modelo: Modelo,
-  opdId: Id,
-  ids: Id[],
-  estilo: Partial<EstiloApariencia>,
-): Resultado<Modelo> {
-  let siguiente = modelo;
-  const opd = modelo.opds[opdId];
-  if (!opd) return fallo(`OPD no existe: ${opdId}`);
-  for (const apariencia of Object.values(opd.apariencias)) {
-    if (!ids.includes(apariencia.entidadId) && !ids.includes(apariencia.id)) continue;
-    const resultado = aplicarEstiloApariencia(siguiente, opdId, apariencia.id, estilo as EstiloApariencia);
-    if (!resultado.ok) return resultado;
-    siguiente = resultado.value;
-  }
-  return ok(siguiente);
-}
-
-export function aplicarEstiloEnlaces(
-  modelo: Modelo,
-  _opdId: Id,
-  ids: Id[],
-  estilo: Partial<EnlaceEstilo>,
-): Resultado<Modelo> {
-  let siguiente = modelo;
-  for (const enlaceId of ids) {
-    if (!siguiente.enlaces[enlaceId]) continue;
-    const resultado = aplicarEstiloEnlace(siguiente, enlaceId, estilo);
-    if (!resultado.ok) return resultado;
-    siguiente = resultado.value;
-  }
-  return ok(siguiente);
-}
-
 export function eliminarEnlacesBatch(modelo: Modelo, enlaceIds: Id[]): Resultado<Modelo> {
   return eliminarEnlacesBatchModelo(modelo, enlaceIds);
-}
-
-export function aplicarEstiloEnlacesBatch(
-  modelo: Modelo,
-  opdId: Id,
-  enlaceIds: Id[],
-  estilo: Partial<EnlaceEstilo>,
-): Resultado<Modelo> {
-  return aplicarEstiloEnlaces(modelo, opdId, enlaceIds, estilo);
 }
 
 export function alinearPorEje(modelo: Modelo, opdId: Id, ids: Id[], eje: EjeAlineacion): Resultado<Modelo> {
@@ -430,7 +383,6 @@ export function copiarSeleccion(modelo: Modelo, opdId: Id, ids: Id[]): UiPortapa
       offsetY: apariencia.y - minY,
       width: apariencia.width,
       height: apariencia.height,
-      ...(apariencia.estilo ? { estilo: { ...apariencia.estilo } } : {}),
     })),
     enlaces: enlaces.map((apariencia) => ({ enlaceId: apariencia.enlaceId })),
     origenOpdId: opdId,
@@ -466,7 +418,6 @@ export function pegarSeleccion(
       y: item.offsetY + dy,
       width: item.width,
       height: item.height,
-      ...(item.estilo ? { estilo: { ...item.estilo } } : {}),
     };
     entidadAApariencia.set(item.entidadId, id);
     seleccionados.push(item.entidadId);

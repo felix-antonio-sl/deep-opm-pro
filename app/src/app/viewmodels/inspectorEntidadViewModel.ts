@@ -4,7 +4,7 @@ import {
   useZustandEntityInspectorRefinementPort,
   useZustandEntityInspectorSemanticsPort,
   useZustandEntityInspectorShellPort,
-  useZustandEntityInspectorStylePort,
+  useZustandEntityInspectorGeometryPort,
   useZustandObjectStatesInspectorPort,
 } from "../ports/zustandEntityInspectorPorts";
 
@@ -12,7 +12,7 @@ export function useInspectorEntidadViewModel(entidadId: Id) {
   const shell = useZustandEntityInspectorShellPort();
   const semantics = useZustandEntityInspectorSemanticsPort();
   const metadata = useZustandEntityInspectorMetadataPort();
-  const style = useZustandEntityInspectorStylePort();
+  const geometry = useZustandEntityInspectorGeometryPort();
   const refinement = useZustandEntityInspectorRefinementPort();
   const states = useZustandObjectStatesInspectorPort(entidadId);
 
@@ -20,7 +20,7 @@ export function useInspectorEntidadViewModel(entidadId: Id) {
     ...shell,
     ...semantics,
     ...metadata,
-    ...style,
+    ...geometry,
     ...refinement,
     ...states,
   };

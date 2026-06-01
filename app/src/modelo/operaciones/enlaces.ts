@@ -13,7 +13,6 @@ import type {
   Apariencia,
   AparienciaEnlace,
   Enlace,
-  EnlaceEstilo,
   Id,
   ModoPlegado,
   Modelo,
@@ -553,12 +552,6 @@ export function eliminarEnlacesBatch(modelo: Modelo, enlaceIds: Id[]): Resultado
     siguiente = resultado.value;
   }
   return ok(siguiente);
-}
-
-export function copiarEstiloEnlace(modelo: Modelo, enlaceId: Id): Resultado<EnlaceEstilo> {
-  const enlace = modelo.enlaces[enlaceId];
-  if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
-  return ok({ ...(enlace.estilo ?? {}) });
 }
 
 export function reanclarEnlaceExternoDerivado(

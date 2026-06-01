@@ -21,8 +21,6 @@ import { tokens } from "./tokens";
 interface Props {
   aparienciaId: Id;
   entidad: Entidad | null;
-  enlaceEstiloId: Id | null;
-  hayEstiloEnPortapapeles: boolean;
   inspectorAbierto: boolean;
   x: number;
   y: number;
@@ -36,8 +34,6 @@ export function MenuContextualEntidad(props: Props) {
     accionesParaSuperficie(
       accionesContextualesEntidad({
         entidad: props.entidad,
-        enlaceEstiloId: props.enlaceEstiloId,
-        hayEstiloEnPortapapeles: props.hayEstiloEnPortapapeles,
         inspectorAbierto: props.inspectorAbierto,
         multi: props.multi,
       }),
@@ -93,8 +89,6 @@ const ORDEN_MENU_ENTIDAD: readonly AccionContextualId[] = [
   "editar-imagen",
   "editar-alias",
   "conectar-submodelo",
-  "copiar-estilo",
-  "pegar-estilo",
   "traer-conectados",
   "traer-conectados-default",
   "traer-enlaces",
@@ -110,7 +104,6 @@ export function ordenarAccionesMenuEntidad(acciones: readonly AccionContextual[]
 export function grupoAccionMenuEntidad(id: AccionContextualId): "refinamiento" | "edicion" | "apariencia" | "enlaces" | "peligro" {
   if (id === "inzoom" || id === "unfold" || id === "conectar-submodelo") return "refinamiento";
   if (id === "agregar-estado" || id === "editar-alias" || id === "editar-imagen" || id === "marcar-requisito" || id === "satisfacer-requisito") return "edicion";
-  if (id === "copiar-estilo" || id === "pegar-estilo") return "apariencia";
   if (id === "ocultar-apariencia" || id === "quitar-descomposicion" || id === "quitar-despliegue") return "peligro";
   return "enlaces";
 }

@@ -1,12 +1,11 @@
 import type { GridConfig } from "../../canvas/grid";
-import type { EnlaceEstilo, Id, Modelo, ModoImagenEntidad } from "../../modelo/tipos";
+import type { Id, Modelo, ModoImagenEntidad } from "../../modelo/tipos";
 
 export interface CommandPaletteContextPort {
   modelo: Modelo;
   opdActivoId: Id;
   seleccionId: Id | null;
   enlaceSeleccionId: Id | null;
-  enlaceEstiloPortapapeles: EnlaceEstilo | null;
   seleccionados: Id[];
 }
 

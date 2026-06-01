@@ -4,7 +4,6 @@ import type { Enlace, Entidad, Estado, Opd } from "../modelo/tipos";
 import {
   validarAbanicos,
   validarEnlaces,
-  validarEstiloEnlaceOpcional,
   validarMultiplicidadOpcional,
 } from "./validarEnlaces";
 
@@ -46,14 +45,6 @@ describe("validarEnlaces", () => {
   test("acepta multiplicidad canonica y rechaza invalida", () => {
     expect(validarMultiplicidadOpcional("l-1", "multiplicidadDestino", "1..N").ok).toBe(true);
     expect(validarMultiplicidadOpcional("l-1", "multiplicidadDestino", "abc").ok).toBe(false);
-  });
-
-  test("acepta estilo de enlace", () => {
-    const resultado = validarEstiloEnlaceOpcional("l-1", { color: "#FF0000", strokeWidth: 3, dashArray: "4 4" });
-
-    expect(resultado.ok).toBe(true);
-    if (!resultado.ok) return;
-    expect(resultado.value).toEqual({ color: "#ff0000", strokeWidth: 3, dashArray: "4 4" });
   });
 
   test("acepta abanico procedural con endpoint y portId compartidos", () => {

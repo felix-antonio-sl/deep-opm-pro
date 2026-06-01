@@ -35,7 +35,6 @@ const ctxEntidad: ContextoBarraSeleccion = {
   entidad: objeto,
   nombre: objeto.nombre,
   anchorCellIds: ["ap-1"],
-  enlaceEstiloId: null,
 };
 
 const ctxMulti: ContextoBarraSeleccion = {
@@ -43,7 +42,6 @@ const ctxMulti: ContextoBarraSeleccion = {
   cantidad: 3,
   nombre: "3 seleccionadas",
   anchorCellIds: ["ap-1", "ap-2", "ap-3"],
-  enlaceEstiloId: null,
 };
 
 const ctxEnlace: ContextoBarraSeleccion = {
@@ -51,7 +49,6 @@ const ctxEnlace: ContextoBarraSeleccion = {
   enlace,
   nombre: "enlace consumo",
   anchorCellIds: ["ae-1"],
-  enlaceEstiloId: "e.01",
 };
 
 describe("CodexSelectionAnnotation · marca", () => {
@@ -84,10 +81,10 @@ describe("CodexSelectionAnnotation · acciones", () => {
     expect(eliminar?.danger).toBe(true);
   });
 
-  test("enlace: muestra tipo (primaria) y estilo, sin acción de estado", () => {
+  test("enlace: muestra tipo (primaria) e inspector, sin acción de estado", () => {
     const labels = accionesDeContexto(ctxEnlace).map((a) => a.label);
     expect(labels).toContain("tipo");
-    expect(labels).toContain("estilo");
+    expect(labels).toContain("inspector");
     expect(labels).not.toContain("estado");
   });
 });

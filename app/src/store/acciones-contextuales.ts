@@ -1,11 +1,9 @@
-import type { Enlace, Entidad, Id } from "../modelo/tipos";
+import type { Enlace, Entidad } from "../modelo/tipos";
 
 export type SuperficieAccionContextual = "barra-flotante" | "menu-contextual" | "command-palette";
 
 export type AccionContextualId =
   | "cambiar-tipo-enlace"
-  | "copiar-estilo"
-  | "pegar-estilo"
   | "agregar-estado"
   | "inzoom"
   | "unfold"
@@ -56,8 +54,6 @@ export interface ActionEvent {
 export interface ContextoAccionesEntidad {
   entidad: Entidad | null;
   enlace?: Enlace | null;
-  enlaceEstiloId: Id | null;
-  hayEstiloEnPortapapeles: boolean;
   inspectorAbierto: boolean;
   multi: boolean;
   seleccionadosCount?: number;
@@ -76,30 +72,14 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
   const esCosa = !!ctx.entidad;
   const esEnlace = !!ctx.enlace;
   const esMulti = ctx.multi || (ctx.seleccionadosCount ?? 0) >= 2;
-  const tieneEnlaceOperable = !!ctx.enlace || !!ctx.enlaceEstiloId;
   const tieneDescomposicion = !!ctx.entidad?.refinamientos?.descomposicion;
   const tieneDespliegue = !!ctx.entidad?.refinamientos?.despliegue;
-  const superficiesEstiloEnlace: readonly SuperficieAccionContextual[] = esEnlace
-    ? ["barra-flotante", "menu-contextual", "command-palette"]
-    : ["menu-contextual", "command-palette"];
 
   return [
     accion("cambiar-tipo-enlace", "Editar propiedades del enlace", "barra-cambiar-tipo-enlace", "enlaces", esEnlace, {
       texto: "Propiedades",
       visible: esEnlace,
       superficies: ["barra-flotante", "command-palette"],
-    }),
-    accion("copiar-estilo", "Copiar formato", "barra-copiar-estilo", "apariencia", tieneEnlaceOperable, {
-      texto: "Copiar",
-      visible: tieneEnlaceOperable,
-      superficies: superficiesEstiloEnlace,
-      atajo: "Ctrl+Alt+C",
-    }),
-    accion("pegar-estilo", "Pegar formato", "barra-pegar-estilo", "apariencia", tieneEnlaceOperable && ctx.hayEstiloEnPortapapeles, {
-      texto: "Pegar",
-      visible: tieneEnlaceOperable && ctx.hayEstiloEnPortapapeles,
-      superficies: superficiesEstiloEnlace,
-      atajo: "Ctrl+Alt+V",
     }),
     accion("agregar-estado", "Agregar estado", "barra-agregar-estado", "edicion", !!esObjeto, {
       visible: !!esObjeto,

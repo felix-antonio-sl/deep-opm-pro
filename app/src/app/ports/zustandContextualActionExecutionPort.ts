@@ -15,8 +15,6 @@ function snapshotContextualActionExecution(state: OpmStore): ContextualActionExe
     seleccionId: state.seleccionId,
     seleccionados: state.seleccionados,
     enlaceSeleccionId: state.enlaceSeleccionId,
-    copiarEstiloEnlaceAlPortapapeles: state.copiarEstiloEnlaceAlPortapapeles,
-    pegarEstiloEnlaceDesdePortapapeles: state.pegarEstiloEnlaceDesdePortapapeles,
     agregarEstadoSmart: state.agregarEstadoSmart,
     descomponerSeleccionada: state.descomponerSeleccionada,
     desplegarSeleccionada: state.desplegarSeleccionada,

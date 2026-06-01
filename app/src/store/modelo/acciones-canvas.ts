@@ -1,9 +1,5 @@
 import { extremoEstado } from "../../modelo/extremos";
 import {
-  aplicarEstiloApariencia,
-  resetearEstiloApariencia,
-} from "../../modelo/estilos";
-import {
   cambiarOrdenPartes as cambiarOrdenPartesOp,
   cambiarModoPlegado as cambiarModoPlegadoOp,
   extraerParteDePlegado as extraerParteDePlegadoOp,
@@ -33,7 +29,6 @@ import { generarOpl } from "../../opl/generar";
 import { exportarOplModeloMarkdown, exportarOplOpdMarkdown } from "../../opl/exportarMarkdown";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
 import {
-  aparienciaSeleccionadaActiva,
   commitModelo,
   deshacerRuntime,
   escribirIndiceWorkspace,
@@ -61,7 +56,7 @@ import { aplicarLayoutSugerido as aplicarLayoutSugeridoOp } from "../../canvas/l
  * Acciones de canvas: selección (entidad/estado/enlace + multi vía Ctrl/Shift),
  * selección desde OPL, edición OPL inversa (renombrar entidad/estado/etiqueta),
  * filtros y hover OPL, plegado (modo + orden partes + extracción/reinserción),
- * estilo apariencia, mover apariencia y vértices de enlace, copiar/exportar OPL,
+ * mover apariencia y vértices de enlace, copiar/exportar OPL,
  * deshacer/rehacer.
  *
  */
@@ -455,46 +450,6 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
       commitModelo(set, modelo, resultado.value, {
         seleccionId: apariencia?.entidadId ?? null,
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        mensaje: null,
-      });
-    },
-
-    aplicarEstiloSeleccionado(patch) {
-      const { modelo, opdActivoId, seleccionId } = get();
-      const apariencia = aparienciaSeleccionadaActiva(modelo, opdActivoId, seleccionId);
-      if (!apariencia) {
-        set({ mensaje: "Selecciona una cosa con apariencia activa" });
-        return;
-      }
-      const resultado = aplicarEstiloApariencia(modelo, opdActivoId, apariencia.id, patch);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      commitModelo(set, modelo, resultado.value, {
-        seleccionId,
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        mensaje: null,
-      });
-    },
-
-    resetearEstiloSeleccionado() {
-      const { modelo, opdActivoId, seleccionId } = get();
-      const apariencia = aparienciaSeleccionadaActiva(modelo, opdActivoId, seleccionId);
-      if (!apariencia) {
-        set({ mensaje: "Selecciona una cosa con apariencia activa" });
-        return;
-      }
-      const resultado = resetearEstiloApariencia(modelo, opdActivoId, apariencia.id);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      commitModelo(set, modelo, resultado.value, {
-        seleccionId,
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: null,

@@ -10,10 +10,6 @@ import {
   suprimirEstado,
 } from "../modelo/estadosDesignaciones";
 import {
-  aplicarEstiloApariencia,
-  resetearEstiloApariencia,
-} from "../modelo/estilos";
-import {
   contenedorRefinamiento,
   dentroDeApariencia,
   posicionLibre,
@@ -87,12 +83,6 @@ import {
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import {
-  aplicarEstiloEnlace,
-  copiarEstiloEnlace,
-  pegarEstiloEnlace,
-  resetEstiloEnlace,
-} from "../modelo/enlaceEstilo";
-import {
   fijarMultiplicidadOrigen,
   fijarMultiplicidadDestino,
   quitarMultiplicidad,
@@ -153,7 +143,7 @@ import {
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
-import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, Esencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { generarOpl } from "../opl/generar";
 import {
@@ -191,8 +181,6 @@ import {
   alinearEnlacesArriba,
   alinearEnlacesDerecha,
   alinearEnlacesIzquierda,
-  aplicarEstiloApariencias,
-  aplicarEstiloEnlaces,
   conectarMultiAlTodo,
   copiarSeleccion,
   eliminarBatch,
@@ -398,33 +386,6 @@ export const createSeleccionSlice: CrearSlice<SeleccionSlice> = (set, get) => ({
       return;
     }
     commitModelo(set, modelo, resultado.value, { mensaje: "Selección conectada al todo" });
-  },
-
-  aplicarEstiloASeleccion(estilo) {
-    const { modelo, opdActivoId, seleccionados } = get();
-    if (seleccionados.length === 0) return;
-    const estiloApariencia = estilo as Partial<EstiloApariencia>;
-    const estiloEnlace = estilo as Partial<EnlaceEstilo>;
-    const aplicaApariencias = "fill" in estiloApariencia || "borderColor" in estiloApariencia || "fontFamily" in estiloApariencia || "fontSize" in estiloApariencia || "fontWeight" in estiloApariencia || "fontStyle" in estiloApariencia || "textColor" in estiloApariencia || "textAnchor" in estiloApariencia;
-    const aplicaEnlaces = "color" in estiloEnlace || "strokeWidth" in estiloEnlace || "dashArray" in estiloEnlace;
-    let siguiente = modelo;
-    if (aplicaApariencias) {
-      const resultado = aplicarEstiloApariencias(siguiente, opdActivoId, seleccionados, estiloApariencia);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      siguiente = resultado.value;
-    }
-    if (aplicaEnlaces) {
-      const resultado = aplicarEstiloEnlaces(siguiente, opdActivoId, seleccionados, estiloEnlace);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      siguiente = resultado.value;
-    }
-    commitModelo(set, modelo, siguiente, { seleccionados: [...seleccionados], ...estadoSeleccionDesdeIds(siguiente, seleccionados, get().modoSeleccion), mensaje: null });
   },
 
   copiarSeleccionAlBuffer() {

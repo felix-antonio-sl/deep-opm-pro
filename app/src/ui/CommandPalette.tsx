@@ -4,7 +4,6 @@ import type { AccionContextual, AccionContextualId } from "../store/acciones-con
 import { accionesContextualesEntidad, accionesParaSuperficie } from "../store/acciones-contextuales";
 import { listarAtajos, type RegistroAtajo } from "./atajosTeclado";
 import { descargarOpdActualSvg } from "../render/jointjs/mapaExport";
-import { primerEnlaceVisualDeEntidad } from "./BarraHerramientasElemento";
 import { useCanvasPaper } from "./CanvasAdapterContext";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import {
@@ -109,7 +108,6 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     opdActivoId,
     seleccionId,
     enlaceSeleccionId,
-    enlaceEstiloPortapapeles,
     seleccionados,
     nuevoModelo,
     abrirCargarModelo,
@@ -155,12 +153,9 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
 
   const objetoSeleccionadoId = seleccionId && modelo.entidades[seleccionId]?.tipo === "objeto" ? seleccionId : null;
   const entidad = seleccionId ? modelo.entidades[seleccionId] ?? null : null;
-  const enlaceEstiloId = entidad ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidad.id) : null;
   const accionesContextuales = accionesParaSuperficie(
     accionesContextualesEntidad({
       entidad,
-      enlaceEstiloId,
-      hayEstiloEnPortapapeles: !!enlaceEstiloPortapapeles,
       inspectorAbierto: true,
       multi: seleccionados.length >= 2,
     }),

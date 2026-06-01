@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/extremos";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
-import { aplicarEstiloApariencia } from "../modelo/estilos";
 import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
@@ -206,33 +205,6 @@ describe("serializacion JSON", () => {
     expect(aparienciaLegacy?.ordenPartes).toBeUndefined();
   });
 
-  test("hidrata legacy sin estilo y hace round-trip de estilo de apariencia", () => {
-    let modelo = crearModelo("Estilo JSON");
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));
-    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
-    if (!apariencia) throw new Error("La prueba esperaba apariencia");
-
-    const documentoLegacy = JSON.parse(exportarModelo(modelo));
-    delete documentoLegacy.modelo.opds[modelo.opdRaizId].apariencias[apariencia.id].estilo;
-    const legacy = hidratarModelo(JSON.stringify(documentoLegacy));
-    expect(legacy.ok).toBe(true);
-    if (!legacy.ok) return;
-    expect(legacy.value.opds[modelo.opdRaizId]?.apariencias[apariencia.id]?.estilo).toBeUndefined();
-
-    modelo = must(aplicarEstiloApariencia(modelo, modelo.opdRaizId, apariencia.id, {
-      fill: "#fef3c7",
-      borderColor: "#3BC3FF",
-    }));
-    const hidratado = hidratarModelo(exportarModelo(modelo));
-
-    expect(hidratado.ok).toBe(true);
-    if (!hidratado.ok) return;
-    expect(hidratado.value.opds[modelo.opdRaizId]?.apariencias[apariencia.id]?.estilo).toEqual({
-      fill: "#fef3c7",
-      borderColor: "#3bc3ff",
-    });
-  });
-
   test("no serializa estado UI transitorio de selección ni portapapeles visual", () => {
     const modelo = crearModelo();
     const exportado = exportarModelo({
@@ -307,33 +279,6 @@ describe("serializacion JSON", () => {
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
     expect(hidratado.value.entidades[entidadId]?.imagen).toEqual({ url: "https://example.com/sistema.png", modo: "imagen-texto" });
-  });
-
-  test("omite estilo vacio al exportar y rechaza colores invalidos", () => {
-    let modelo = crearModelo("Estilo vacio");
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Sistema"));
-    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
-    if (!apariencia) throw new Error("La prueba esperaba apariencia");
-    modelo = {
-      ...modelo,
-      opds: {
-        ...modelo.opds,
-        [modelo.opdRaizId]: {
-          ...modelo.opds[modelo.opdRaizId]!,
-          apariencias: {
-            ...modelo.opds[modelo.opdRaizId]!.apariencias,
-            [apariencia.id]: { ...apariencia, estilo: {} },
-          },
-        },
-      },
-    };
-
-    const exportado = JSON.parse(exportarModelo(modelo));
-    expect(exportado.modelo.opds[modelo.opdRaizId].apariencias[apariencia.id].estilo).toBeUndefined();
-
-    exportado.modelo.opds[modelo.opdRaizId].apariencias[apariencia.id].estilo = { fill: "red" };
-    const hidratado = hidratarModelo(JSON.stringify(exportado));
-    expect(hidratado.ok).toBe(false);
   });
 
   test("hidrata endpoints legacy string como extremos de entidad", () => {

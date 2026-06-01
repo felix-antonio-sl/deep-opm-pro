@@ -24,11 +24,9 @@ function ids(acciones: readonly { id: string }[]): string[] {
 }
 
 describe("accionesContextualesEntidad", () => {
-  test("deja copiar/pegar estilo fuera de barra y disponible en menú/paleta", () => {
+  test("expone acciones primarias de cosa sin controles de estilo", () => {
     const acciones = accionesContextualesEntidad({
       entidad: objeto,
-      enlaceEstiloId: "enlace-1",
-      hayEstiloEnPortapapeles: true,
       inspectorAbierto: true,
       multi: false,
     });
@@ -36,56 +34,32 @@ describe("accionesContextualesEntidad", () => {
     const menu = ids(accionesParaSuperficie(acciones, "menu-contextual"));
     const palette = ids(accionesParaSuperficie(acciones, "command-palette"));
 
-    expect(acciones.find((accion) => accion.id === "copiar-estilo")?.visible).toBe(true);
-    expect(acciones.find((accion) => accion.id === "pegar-estilo")?.visible).toBe(true);
-    expect(barra).not.toContain("copiar-estilo");
-    expect(barra).not.toContain("pegar-estilo");
     expect(barra).toContain("mas-opciones");
-    expect(menu).toContain("copiar-estilo");
-    expect(menu).toContain("pegar-estilo");
-    expect(palette).toContain("copiar-estilo");
-    expect(palette).toContain("pegar-estilo");
+    expect(menu).toContain("inzoom");
+    expect(menu).toContain("ocultar-apariencia");
+    expect(palette).toContain("editar-alias");
   });
 
   test("expone acciones primarias de enlace en barra", () => {
     const acciones = accionesContextualesEntidad({
       entidad: null,
       enlace,
-      enlaceEstiloId: enlace.id,
-      hayEstiloEnPortapapeles: true,
       inspectorAbierto: false,
       multi: false,
     });
     const barra = ids(accionesParaSuperficie(acciones, "barra-flotante"));
     const palette = ids(accionesParaSuperficie(acciones, "command-palette"));
 
-    expect(barra).toEqual(["cambiar-tipo-enlace", "copiar-estilo", "pegar-estilo", "mas-opciones"]);
+    expect(barra).toEqual(["cambiar-tipo-enlace", "mas-opciones"]);
     expect(acciones.find((accion) => accion.id === "cambiar-tipo-enlace")?.label).toBe("Editar propiedades del enlace");
     expect(acciones.find((accion) => accion.id === "cambiar-tipo-enlace")?.texto).toBe("Propiedades");
     expect(acciones.find((accion) => accion.id === "mas-opciones")?.texto).toBe("Inspector");
     expect(palette).toContain("cambiar-tipo-enlace");
   });
 
-  test("omite pegar formato de enlace mientras no haya formato copiado", () => {
-    const acciones = accionesContextualesEntidad({
-      entidad: null,
-      enlace,
-      enlaceEstiloId: enlace.id,
-      hayEstiloEnPortapapeles: false,
-      inspectorAbierto: false,
-      multi: false,
-    });
-    const barra = ids(accionesParaSuperficie(acciones, "barra-flotante"));
-
-    expect(barra).toEqual(["cambiar-tipo-enlace", "copiar-estilo", "mas-opciones"]);
-    expect(acciones.find((accion) => accion.id === "pegar-estilo")?.visible).toBe(false);
-  });
-
   test("expone menu contextual sin controles propios de barra", () => {
     const acciones = accionesContextualesEntidad({
       entidad: objeto,
-      enlaceEstiloId: "enlace-1",
-      hayEstiloEnPortapapeles: true,
       inspectorAbierto: false,
       multi: false,
     });
@@ -100,8 +74,6 @@ describe("accionesContextualesEntidad", () => {
   test("migra quitar refinamientos a menú contextual y command palette", () => {
     const acciones = accionesContextualesEntidad({
       entidad: objetoRefinado,
-      enlaceEstiloId: null,
-      hayEstiloEnPortapapeles: false,
       inspectorAbierto: false,
       multi: false,
     });
@@ -121,8 +93,6 @@ describe("accionesContextualesEntidad", () => {
   test("activa traer enlaces solo en multiseleccion", () => {
     const acciones = accionesContextualesEntidad({
       entidad: proceso,
-      enlaceEstiloId: "enlace-1",
-      hayEstiloEnPortapapeles: false,
       inspectorAbierto: false,
       multi: true,
     });
@@ -140,8 +110,6 @@ describe("accionesContextualesEntidad", () => {
   test("oculta acciones exclusivas de objeto para procesos y conserva alias habilitado", () => {
     const acciones = accionesContextualesEntidad({
       entidad: proceso,
-      enlaceEstiloId: "enlace-1",
-      hayEstiloEnPortapapeles: true,
       inspectorAbierto: false,
       multi: false,
     });
@@ -157,8 +125,6 @@ describe("accionesContextualesEntidad", () => {
   test("expone requisitos y submodelos sólo en menú contextual canónico", () => {
     const acciones = accionesContextualesEntidad({
       entidad: objeto,
-      enlaceEstiloId: null,
-      hayEstiloEnPortapapeles: false,
       inspectorAbierto: false,
       multi: false,
     });

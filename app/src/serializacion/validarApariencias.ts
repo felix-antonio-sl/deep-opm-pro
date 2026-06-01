@@ -1,4 +1,3 @@
-import { esColorEstilo, normalizarEstiloApariencia } from "../modelo/estilos";
 import type {
   AnclajeSimboloEstructural,
   AnclajesSimboloEstructural,
@@ -44,8 +43,6 @@ export function validarApariencias(
     if (!modoPlegado.ok) return modoPlegado;
     const modoTamano = validarModoTamano(id, raw.modoTamano);
     if (!modoTamano.ok) return modoTamano;
-    const estilo = validarEstiloApariencia(id, raw.estilo);
-    if (!estilo.ok) return estilo;
     const ordenPartes = validarOrdenPartes(id, raw.ordenPartes);
     if (!ordenPartes.ok) return ordenPartes;
     const parteExtraidaDe = validarParteExtraidaDe(id, raw.parteExtraidaDe);
@@ -64,7 +61,6 @@ export function validarApariencias(
       y: raw.y,
       width: raw.width,
       height: raw.height,
-      ...(estilo.value ? { estilo: estilo.value } : {}),
       ...(modoTamano.value ? { modoTamano: modoTamano.value } : {}),
       modoPlegado: modoPlegado.value,
       ...(ordenPartes.value ? { ordenPartes: ordenPartes.value } : {}),
@@ -113,21 +109,6 @@ export function validarEstadosSuprimidos(
     if (!ids.includes(raw)) ids.push(raw);
   }
   return ok(ids.length > 0 ? ids : undefined);
-}
-
-export function validarEstiloApariencia(
-  aparienciaId: Id,
-  value: unknown,
-): Resultado<Apariencia["estilo"] | undefined> {
-  if (value === undefined) return ok(undefined);
-  if (!esRecord(value)) return fallo(`Apariencia inválida: ${aparienciaId}.estilo`);
-  if (value.fill !== undefined && (typeof value.fill !== "string" || !esColorEstilo(value.fill))) {
-    return fallo(`Apariencia inválida: ${aparienciaId}.estilo.fill`);
-  }
-  if (value.borderColor !== undefined && (typeof value.borderColor !== "string" || !esColorEstilo(value.borderColor))) {
-    return fallo(`Apariencia inválida: ${aparienciaId}.estilo.borderColor`);
-  }
-  return ok(normalizarEstiloApariencia(value));
 }
 
 export function validarParteExtraidaDe(

@@ -3,7 +3,7 @@ import { entidadIdDeExtremo, extremoEntidad, extremoEstado } from "../extremos";
 import { agregacionesInzoomFaltantes, apuntarExtremoEnlace, cambiarTipoGrupoEstructural, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, eliminarEnlace, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, splitEffectEnPar, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
 import { filasPlegadoParcial } from "../plegado";
 import type { Modelo, Resultado } from "../tipos";
-import { copiarEstiloEnlace, eliminarEnlacesBatch } from "./enlaces";
+import { eliminarEnlacesBatch } from "./enlaces";
 
 describe("operaciones/enlaces", () => {
   test("efecto canonico bloquea objeto->proceso y permite variantes con estado en direccion legal", () => {
@@ -157,21 +157,6 @@ describe("operaciones/enlaces", () => {
 
     expect(Object.keys(modelo.enlaces)).toEqual([enlaces[1]!]);
     expect(Object.values(modelo.opds[modelo.opdRaizId]?.enlaces ?? {}).map((apariencia) => apariencia.enlaceId)).toEqual([enlaces[1]!]);
-  });
-
-  test("copiarEstiloEnlace retorna una copia defensiva del estilo", () => {
-    const modelo = modeloBase();
-    const enlaceId = Object.keys(modelo.enlaces)[0];
-    if (!enlaceId) throw new Error("La prueba esperaba enlace");
-    modelo.enlaces[enlaceId] = {
-      ...modelo.enlaces[enlaceId]!,
-      estilo: { color: "#1d4ed8", strokeWidth: 2, dashArray: "4 4" },
-    };
-
-    const estilo = must(copiarEstiloEnlace(modelo, enlaceId));
-
-    expect(estilo).toEqual({ color: "#1d4ed8", strokeWidth: 2, dashArray: "4 4" });
-    expect(estilo).not.toBe(modelo.enlaces[enlaceId]?.estilo);
   });
 
   test("cambiarTipoGrupoEstructural actualiza un grupo estructural compatible", () => {

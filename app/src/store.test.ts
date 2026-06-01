@@ -309,32 +309,6 @@ describe("store undo/redo y dirty state", () => {
     expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(0);
   });
 
-  test("aplicar y resetear estilo seleccionado entran al historial", () => {
-    store.getState().crearObjetoDemo();
-    const id = primeraEntidadId();
-    const aparienciaId = Object.values(store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias ?? {})[0]?.id;
-    if (!aparienciaId) throw new Error("La prueba esperaba apariencia");
-    store.getState().seleccionarEntidad(id);
-
-    store.getState().aplicarEstiloSeleccionado({ fill: "#fef3c7", borderColor: "#70E483" });
-
-    expect(store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias[aparienciaId]?.estilo).toEqual({
-      fill: "#fef3c7",
-      borderColor: "#70e483",
-    });
-    expect(store.getState().dirty).toBe(true);
-    expect(store.getState().puedeDeshacer).toBe(true);
-
-    store.getState().resetearEstiloSeleccionado();
-    expect(store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias[aparienciaId]?.estilo).toBeUndefined();
-
-    store.getState().deshacer();
-    expect(store.getState().modelo.opds[store.getState().opdActivoId]?.apariencias[aparienciaId]?.estilo).toEqual({
-      fill: "#fef3c7",
-      borderColor: "#70e483",
-    });
-  });
-
   test("navegar OPDs no entra al historial ni activa dirty", () => {
     const modelo = modeloConOpdHijo();
     store.getState().importarJson(exportarModelo(modelo));
@@ -1509,49 +1483,6 @@ describe("store HU-SHARED-002 undo granular comandos ronda 11", () => {
     store.getState().deshacer();
     expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(2);
     expect(undoStackLength()).toBe(antes);
-  });
-
-  test("aplicarEstiloEnlaceAccion emite un solo push en undoStack.length", () => {
-    montarTresObjetosConDosEnlaces();
-    const enlaceId = Object.keys(store.getState().modelo.enlaces)[0]!;
-    const antes = undoStackLength();
-
-    store.getState().aplicarEstiloEnlaceAccion(enlaceId, { color: "#d92d20", strokeWidth: 3 });
-    const despues = undoStackLength();
-
-    expect(despues - antes).toBe(1);
-    expect(store.getState().modelo.enlaces[enlaceId]?.estilo).toEqual({ color: "#d92d20", strokeWidth: 3 });
-    store.getState().deshacer();
-    expect(store.getState().modelo.enlaces[enlaceId]?.estilo).toBeUndefined();
-    expect(undoStackLength()).toBe(antes);
-  });
-
-  test("pegarEstiloEnlaceDesdePortapapeles emite un solo push en undoStack.length", () => {
-    montarTresObjetosConDosEnlaces();
-    const [origenId, destinoId] = Object.keys(store.getState().modelo.enlaces);
-    if (!origenId || !destinoId) throw new Error("La prueba esperaba dos enlaces");
-    store.getState().aplicarEstiloEnlaceAccion(origenId, { color: "#3da8ff", strokeWidth: 2 });
-    store.getState().copiarEstiloEnlaceAlPortapapeles(origenId);
-    const undoCopia = undoStackLength();
-
-    store.getState().pegarEstiloEnlaceDesdePortapapeles(destinoId);
-    const despues = undoStackLength();
-
-    expect(despues - undoCopia).toBe(1);
-    expect(store.getState().modelo.enlaces[destinoId]?.estilo).toEqual({ color: "#3da8ff", strokeWidth: 2 });
-  });
-
-  test("copiarEstiloEnlaceAlPortapapeles NO mueve undoStack.length (acción de buffer in-memory)", () => {
-    montarTresObjetosConDosEnlaces();
-    const enlaceId = Object.keys(store.getState().modelo.enlaces)[0]!;
-    store.getState().aplicarEstiloEnlaceAccion(enlaceId, { color: "#586D8C" });
-    const antes = undoStackLength();
-
-    store.getState().copiarEstiloEnlaceAlPortapapeles(enlaceId);
-    const despues = undoStackLength();
-
-    expect(despues - antes).toBe(0);
-    expect(store.getState().enlaceEstiloPortapapeles).toEqual({ color: "#586d8c" });
   });
 
   test("reanclarExtremoAccion emite un solo push en undoStack.length", () => {

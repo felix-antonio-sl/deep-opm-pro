@@ -1,4 +1,3 @@
-import { useZustandLinkContextActionsPort } from "../ports/zustandLinkContextActionsPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandSelectedElementActionsPort } from "../ports/zustandSelectedElementActionsPort";
 import { useZustandSelectionBatchActionsPort } from "../ports/zustandSelectionBatchActionsPort";
@@ -14,11 +13,6 @@ export function useBarraHerramientasElementoViewModel() {
     abrirModalImagen,
   } = useZustandSelectedElementActionsPort();
   const {
-    enlaceEstiloPortapapeles,
-    copiarEstiloEnlaceAlPortapapeles,
-    pegarEstiloEnlaceDesdePortapapeles,
-  } = useZustandLinkContextActionsPort();
-  const {
     eliminarSeleccion,
     conectarSeleccionAlTodo,
     traerEnlacesEntreSeleccionadas,
@@ -32,13 +26,10 @@ export function useBarraHerramientasElementoViewModel() {
     seleccionId,
     enlaceSeleccionId,
     seleccionados,
-    enlaceEstiloPortapapeles,
     agregarEstadoSmart,
     descomponer,
     desplegar,
     abrirModalImagen,
-    copiarEstiloEnlaceAlPortapapeles,
-    pegarEstiloEnlaceDesdePortapapeles,
     eliminarSeleccion,
     conectarSeleccionAlTodo,
     traerEnlacesEntreSeleccionadas,

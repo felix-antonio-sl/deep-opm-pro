@@ -176,7 +176,6 @@ describe("persistencia local estructurada", () => {
               height: 60,
               modoPlegado: "parcial",
               ordenPartes: "alfabetico",
-              estilo: { fill: "#fdffff", borderColor: "#70E483", fontFamily: "Arial", fontSize: 14, fontWeight: 600 },
             },
           },
           enlaces: {},

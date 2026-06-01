@@ -1,5 +1,4 @@
 import { normalizarExtremo } from "../modelo/extremos";
-import { esColorEstilo, normalizarEstiloApariencia } from "../modelo/estilos";
 import { rutaEtiquetaNormalizada } from "../modelo/rutas";
 import type {
   Apariencia,
@@ -29,14 +28,7 @@ export function normalizarModelo(modelo: Modelo): Modelo {
           ? opd.padreId
           : modelo.opdRaizId;
       const apariencias = Object.fromEntries(
-        Object.entries(opd.apariencias).map(([aparienciaId, apariencia]) => {
-          const estilo = normalizarEstiloApariencia(apariencia.estilo);
-          const { estilo: _estilo, ...base } = apariencia;
-          return [aparienciaId, {
-            ...base,
-            ...(estilo ? { estilo } : {}),
-          }];
-        }),
+        Object.entries(opd.apariencias).map(([aparienciaId, apariencia]) => [aparienciaId, apariencia]),
       ) as Record<Id, Apariencia>;
       return [id, { ...opd, padreId, apariencias }];
     }),
@@ -80,7 +72,6 @@ export function normalizarEntidad(entidad: Entidad): Entidad {
 
 export function normalizarEnlace(enlace: Enlace): Enlace {
   const rutaEtiqueta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
-  const estilo = normalizarEstiloEnlace(enlace.estilo);
   const backwardTag = textoOpcional(enlace.backwardTag);
   const requisitos = textoOpcional(enlace.requisitos);
   const tasa = textoOpcional(enlace.tasa);
@@ -94,7 +85,6 @@ export function normalizarEnlace(enlace: Enlace): Enlace {
     : undefined;
   const {
     rutaEtiqueta: _rutaEtiqueta,
-    estilo: _estilo,
     grupoEstructuralId: _grupoEstructuralId,
     backwardTag: _backwardTag,
     requisitos: _requisitos,
@@ -121,22 +111,12 @@ export function normalizarEnlace(enlace: Enlace): Enlace {
     ...(tiempoMinimo && unidadTiempoMinimo ? { unidadTiempoMinimo } : {}),
     ...(tiempoMaximo ? { tiempoMaximo } : {}),
     ...(tiempoMaximo && unidadTiempoMaximo ? { unidadTiempoMaximo } : {}),
-    ...(estilo ? { estilo } : {}),
     ...(grupoEstructuralId ? { grupoEstructuralId } : {}),
   };
 }
 
 function textoOpcional(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
-}
-
-export function normalizarEstiloEnlace(value: unknown): Enlace["estilo"] {
-  if (value === undefined || !esRecord(value)) return undefined;
-  const estilo: Enlace["estilo"] = {};
-  if (typeof value.color === "string" && esColorEstilo(value.color)) estilo.color = value.color.toLowerCase();
-  if (typeof value.strokeWidth === "number" && value.strokeWidth >= 1 && value.strokeWidth <= 6) estilo.strokeWidth = value.strokeWidth;
-  if (typeof value.dashArray === "string" && (value.dashArray === "" || value.dashArray === "4 4" || value.dashArray === "2 4" || value.dashArray === "6 4 2 4")) estilo.dashArray = value.dashArray;
-  return Object.keys(estilo).length > 0 ? estilo : undefined;
 }
 
 export function normalizarVersiones(value: unknown): VersionResumen[] {

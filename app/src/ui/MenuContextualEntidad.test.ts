@@ -18,10 +18,10 @@ describe("MenuContextualEntidad", () => {
   test("ordena las acciones con refinamiento primero y destructivas al final", () => {
     const acciones = ordenarAccionesMenuEntidad([
       accion("ocultar-apariencia", "peligro"),
-      accion("copiar-estilo", "apariencia"),
       accion("inzoom", "refinamiento"),
       accion("editar-alias", "edicion"),
       accion("unfold", "refinamiento"),
+      accion("marcar-requisito", "edicion"),
       accion("traer-conectados", "enlaces"),
       accion("quitar-descomposicion", "refinamiento"),
     ]);
@@ -29,8 +29,8 @@ describe("MenuContextualEntidad", () => {
     expect(acciones.map((item) => item.id)).toEqual([
       "inzoom",
       "unfold",
+      "marcar-requisito",
       "editar-alias",
-      "copiar-estilo",
       "traer-conectados",
       "quitar-descomposicion",
       "ocultar-apariencia",
@@ -40,7 +40,7 @@ describe("MenuContextualEntidad", () => {
   test("agrupa acciones para separadores visuales del menu vertical", () => {
     expect(grupoAccionMenuEntidad("inzoom")).toBe("refinamiento");
     expect(grupoAccionMenuEntidad("agregar-estado")).toBe("edicion");
-    expect(grupoAccionMenuEntidad("copiar-estilo")).toBe("apariencia");
+    expect(grupoAccionMenuEntidad("marcar-requisito")).toBe("edicion");
     expect(grupoAccionMenuEntidad("traer-conectados")).toBe("enlaces");
     expect(grupoAccionMenuEntidad("quitar-descomposicion")).toBe("peligro");
     expect(grupoAccionMenuEntidad("quitar-despliegue")).toBe("peligro");

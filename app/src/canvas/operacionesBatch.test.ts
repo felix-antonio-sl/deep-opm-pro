@@ -5,8 +5,6 @@ import { generarOpl } from "../opl/generar";
 import {
   alinearPorEje,
   alinearEnlacesIzquierda,
-  aplicarEstiloApariencias,
-  aplicarEstiloEnlacesBatch,
   conectarMultiAlTodo,
   copiarSeleccion,
   distribuirUniformemente,
@@ -59,22 +57,6 @@ describe("operacionesBatch", () => {
     expect(generarOpl(conectado, modelo.opdRaizId).filter((linea) => linea.includes("consta de"))).toHaveLength(3);
     const otraVez = must(conectarMultiAlTodo(conectado, modelo.opdRaizId, partes, todo, "agregacion"));
     expect(Object.keys(otraVez.enlaces)).toHaveLength(3);
-  });
-
-  test("aplicarEstiloApariencias aplica a subset seleccionado", () => {
-    const { modelo, partes } = modeloConTodoPartes();
-    const actualizado = must(aplicarEstiloApariencias(modelo, modelo.opdRaizId, partes, { fill: "#ff0000" }));
-    for (const parte of partes) {
-      expect(aparienciaDeEntidad(actualizado, parte)?.estilo?.fill).toBe("#ff0000");
-    }
-  });
-
-  test("aplicarEstiloEnlacesBatch aplica estilo solo a enlaces seleccionados", () => {
-    const { modelo, enlaces } = modeloConTodoPartes();
-    const actualizado = must(aplicarEstiloEnlacesBatch(modelo, modelo.opdRaizId, enlaces.slice(0, 2), { color: "#d92d20", strokeWidth: 3 }));
-    expect(actualizado.enlaces[enlaces[0]!]?.estilo).toEqual({ color: "#d92d20", strokeWidth: 3 });
-    expect(actualizado.enlaces[enlaces[1]!]?.estilo).toEqual({ color: "#d92d20", strokeWidth: 3 });
-    expect(actualizado.enlaces[enlaces[2]!]?.estilo).toBeUndefined();
   });
 
   test("copiarSeleccion y pegarSeleccion reutilizan entidadId con offset visual", () => {

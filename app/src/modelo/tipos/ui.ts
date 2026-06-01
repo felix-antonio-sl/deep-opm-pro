@@ -1,4 +1,3 @@
-import type { EstiloApariencia } from "./apariencia";
 import type { Id } from "./comunes";
 import type { GridConfig } from "../../canvas/grid";
 import type { EsenciaVisibilidad } from "../../opl/opciones";
@@ -20,7 +19,6 @@ export interface UiPortapapelesVisual {
     offsetY: number;
     width: number;
     height: number;
-    estilo?: EstiloApariencia;
   }>;
   enlaces: Array<{ enlaceId: Id }>;
   origenOpdId: Id;

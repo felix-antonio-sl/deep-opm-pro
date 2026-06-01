@@ -57,7 +57,7 @@ export function aplicarFeedbackModoEnlace(
     if (!el) continue;
     el.setAttribute("data-opm-modo-enlace", evaluado.esOrigen ? "origen" : evaluado.esValido ? "destino-valido" : "destino-invalido");
     if (evaluado.razonInvalidez) el.setAttribute("data-opm-modo-enlace-razon", evaluado.razonInvalidez);
-    aplicarEstilo(el, evaluado.esOrigen, evaluado.esValido, color);
+    pintarFeedbackNodoModoEnlace(el, evaluado.esOrigen, evaluado.esValido, color);
   }
 }
 
@@ -425,7 +425,7 @@ function limpiarFeedbackModoEnlace(paper: dia.Paper): void {
   }
 }
 
-function aplicarEstilo(el: HTMLElement | SVGElement, esOrigen: boolean, esValido: boolean, color: string): void {
+function pintarFeedbackNodoModoEnlace(el: HTMLElement | SVGElement, esOrigen: boolean, esValido: boolean, color: string): void {
   if (esOrigen) {
     el.style.outline = `2px solid ${color}`;
     el.style.outlineOffset = "4px";

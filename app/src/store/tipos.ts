@@ -10,10 +10,6 @@ import {
   suprimirEstado,
 } from "../modelo/estadosDesignaciones";
 import {
-  aplicarEstiloApariencia,
-  resetearEstiloApariencia,
-} from "../modelo/estilos";
-import {
   contenedorRefinamiento,
   dentroDeApariencia,
   posicionLibre,
@@ -88,12 +84,6 @@ import {
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import {
-  aplicarEstiloEnlace,
-  copiarEstiloEnlace,
-  pegarEstiloEnlace,
-  resetEstiloEnlace,
-} from "../modelo/enlaceEstilo";
-import {
   fijarMultiplicidadOrigen,
   fijarMultiplicidadDestino,
   quitarMultiplicidad,
@@ -156,7 +146,7 @@ import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstadoCargaSubmodelo, EstadoSatisfaccionRequisito, EstiloApariencia, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, Esencia, EstadoCargaSubmodelo, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
 import { generarOpl } from "../opl/generar";
@@ -192,8 +182,6 @@ import {
   alinearEnlacesArriba,
   alinearEnlacesDerecha,
   alinearEnlacesIzquierda,
-  aplicarEstiloApariencias,
-  aplicarEstiloEnlaces,
   conectarMultiAlTodo,
   copiarSeleccion,
   eliminarBatch,
@@ -332,7 +320,6 @@ export interface OpmStore {
   tablaEnlacesFiltroTipo: TipoEnlace | "todos";
   tablaEnlacesOrdenColumna: string | null;
   tablaEnlacesOrdenDireccion: "asc" | "desc";
-  enlaceEstiloPortapapeles: EnlaceEstilo | null;
   uiAliasVisibles: boolean;
   uiDescripcionesVisibles: boolean;
   gridConfig?: GridConfig;
@@ -487,8 +474,6 @@ export interface OpmStore {
   fijarModoPlegadoApariencia: (aparienciaId: Id, modo: ModoPlegado) => void;
   cambiarOrdenPartesSeleccionado: (orden: OrdenPartesPlegado) => void;
   fijarOrdenPartesApariencia: (aparienciaId: Id, orden: OrdenPartesPlegado) => void;
-  aplicarEstiloSeleccionado: (patch: EstiloApariencia) => void;
-  resetearEstiloSeleccionado: () => void;
   seleccionarPartePlegada: (padreAparienciaId: Id, parteEntidadId: Id) => void;
   extraerParteDePlegado: (padreAparienciaId: Id, parteEntidadId: Id) => void;
   extraerTodasLasPartesSeleccionadas: () => void;
@@ -641,7 +626,6 @@ export interface OpmStore {
   nudgeSeleccion: (dx: number, dy: number) => void;
   alinearSeleccionEnlaces: (direccion: "izquierda" | "derecha" | "arriba" | "abajo") => void;
   conectarSeleccionAlTodo: (todoApariencia: Id, tipo: TipoEnlace) => void;
-  aplicarEstiloASeleccion: (estilo: Partial<EstiloApariencia | EnlaceEstilo>) => void;
   copiarSeleccionAlBuffer: () => void;
   pegarBufferEnOpdActivo: () => void;
   exportarJson: () => string;
@@ -703,15 +687,9 @@ export interface OpmStore {
   // ── Autosalvado (L4) ──
   iniciarAutosalvado: () => void;
   detenerAutosalvado: () => void;
-  // ── L6: enlaces, estilo, tabla ──
+  // ── L6: enlaces y tabla ──
   fijarMultiplicidadEnlace: (enlaceId: Id, lado: "origen" | "destino", valor: string) => void;
   quitarMultiplicidadEnlace: (enlaceId: Id, lado: "origen" | "destino") => void;
-  aplicarEstiloEnlaceAccion: (enlaceId: Id, estilo: Partial<EnlaceEstilo>) => void;
-  resetEstiloEnlaceAccion: (enlaceId: Id) => void;
-  copiarEstiloEnlaceAlPortapapeles: (enlaceId: Id) => void;
-  pegarEstiloEnlaceDesdePortapapeles: (enlaceId: Id) => void;
-  aplicarEstiloTextoAccion: (aparienciaId: Id, estilo: Partial<EstiloApariencia>) => void;
-  resetEstiloTextoAccion: (aparienciaId: Id) => void;
   insertarVerticeAccion: (aparienciaEnlaceId: Id, posicion: Posicion) => void;
   reposicionarVerticeAccion: (aparienciaEnlaceId: Id, indice: number, posicion: Posicion) => void;
   reanclarExtremoAccion: (enlaceId: Id, lado: "origen" | "destino", nuevoExtremo: ExtremoEnlace) => void;

@@ -99,8 +99,6 @@ export interface AccionBarra {
 
 export type AccionBarraId =
   | "cambiar-tipo-enlace"
-  | "copiar-estilo"
-  | "pegar-estilo"
   | "agregar-estado"
   | "inzoom"
   | "unfold"
@@ -124,8 +122,6 @@ const ORDEN_ACCIONES_BARRA: readonly AccionBarraId[] = [
 
 const ORDEN_ACCIONES_BARRA_ENLACE: readonly AccionBarraId[] = [
   "cambiar-tipo-enlace",
-  "copiar-estilo",
-  "pegar-estilo",
   "mas-opciones",
 ];
 
@@ -181,13 +177,10 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
     seleccionId,
     enlaceSeleccionId,
     seleccionados,
-    enlaceEstiloPortapapeles,
     agregarEstadoSmart,
     descomponer,
     desplegar,
     abrirModalImagen,
-    copiarEstiloEnlaceAlPortapapeles,
-    pegarEstiloEnlaceDesdePortapapeles,
     eliminarSeleccion,
     conectarSeleccionAlTodo,
     traerEnlacesEntreSeleccionadas,
@@ -204,8 +197,8 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   const entidad = contextoSeleccion?.tipo === "entidad" ? contextoSeleccion.entidad : null;
   const enlace = contextoSeleccion?.tipo === "enlace" ? contextoSeleccion.enlace : null;
   const acciones = useMemo(
-    () => accionesParaContextoBarra(contextoSeleccion, !!enlaceEstiloPortapapeles, inspectorAbierto),
-    [enlaceEstiloPortapapeles, contextoSeleccion, inspectorAbierto],
+    () => accionesParaContextoBarra(contextoSeleccion, inspectorAbierto),
+    [contextoSeleccion, inspectorAbierto],
   );
   const accionesVisibles = useMemo(() => acciones.filter((accion) => accion.visible), [acciones]);
   const anchoBarraAcciones = useMemo(
@@ -286,14 +279,6 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
     // continua `inspector-panel-enlace-propiedades`.
     enfocarSeccionInspector("inspector-panel-enlace-propiedades");
   };
-  const handleCopiarEstilo = () => {
-    if (!enlace) return;
-    copiarEstiloEnlaceAlPortapapeles(enlace.id);
-  };
-  const handlePegarEstilo = () => {
-    if (!enlace) return;
-    pegarEstiloEnlaceDesdePortapapeles(enlace.id);
-  };
   const handleEliminarSeleccion = () => {
     eliminarSeleccion();
   };
@@ -314,8 +299,6 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
 
   const handlers: Record<AccionBarraId, () => void> = {
     "cambiar-tipo-enlace": handleCambiarTipoEnlace,
-    "copiar-estilo": handleCopiarEstilo,
-    "pegar-estilo": handlePegarEstilo,
     "agregar-estado": handleAgregarEstado,
     inzoom: handleInzoom,
     unfold: handleUnfold,
@@ -398,21 +381,18 @@ export type ContextoBarraSeleccion =
       entidad: Entidad;
       nombre: string;
       anchorCellIds: readonly Id[];
-      enlaceEstiloId: Id | null;
     }
   | {
       tipo: "enlace";
       enlace: Enlace;
       nombre: string;
       anchorCellIds: readonly Id[];
-      enlaceEstiloId: Id;
     }
   | {
       tipo: "multi";
       cantidad: number;
       nombre: string;
       anchorCellIds: readonly Id[];
-      enlaceEstiloId: null;
     };
 
 export function resolverContextoBarra(
@@ -433,7 +413,6 @@ export function resolverContextoBarra(
       cantidad: seleccionados.length,
       nombre: `${seleccionados.length} seleccionadas`,
       anchorCellIds,
-      enlaceEstiloId: null,
     };
   }
   const entidad = entidadSeleccionUnica(modelo, seleccionId, enlaceSeleccionId, seleccionados);
@@ -445,7 +424,6 @@ export function resolverContextoBarra(
       entidad,
       nombre: entidad.nombre,
       anchorCellIds: [apariencia.id],
-      enlaceEstiloId: primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidad.id),
     };
   }
   const enlace = enlaceSeleccionUnico(modelo, enlaceSeleccionId, seleccionados);
@@ -457,7 +435,6 @@ export function resolverContextoBarra(
     enlace,
     nombre: `enlace ${enlace.tipo}`,
     anchorCellIds: [apariencia.id],
-    enlaceEstiloId: enlace.id,
   };
 }
 
@@ -489,36 +466,12 @@ export function aparienciaActivaDeEnlace(modelo: Modelo, opdActivoId: Id, enlace
   return Object.values(opd.enlaces).find((apariencia) => apariencia.enlaceId === enlaceId) ?? null;
 }
 
-export function endpointPerteneceAEntidad(modelo: Modelo, entidadId: Id, extremo: { kind: string; id: Id }): boolean {
-  if (extremo.kind === "entidad") return extremo.id === entidadId;
-  if (extremo.kind === "estado") return modelo.estados[extremo.id]?.entidadId === entidadId;
-  return false;
-}
-
-export function primerEnlaceVisualDeEntidad(modelo: Modelo, opdActivoId: Id, entidadId: Id): Id | null {
-  const opd = modelo.opds[opdActivoId];
-  if (!opd) return null;
-  for (const aparienciaEnlace of Object.values(opd.enlaces)) {
-    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
-    if (!enlace) continue;
-    if (
-      endpointPerteneceAEntidad(modelo, entidadId, enlace.origenId) ||
-      endpointPerteneceAEntidad(modelo, entidadId, enlace.destinoId)
-    ) return enlace.id;
-  }
-  return null;
-}
-
 export function accionesPilotoBarra(
   entidad: Entidad | null,
-  enlaceEstiloId: Id | null,
-  hayEstiloEnPortapapeles: boolean,
   inspectorAbierto: boolean,
 ): AccionBarra[] {
   const acciones = accionesContextualesEntidad({
     entidad,
-    enlaceEstiloId,
-    hayEstiloEnPortapapeles,
     inspectorAbierto,
     multi: false,
   });
@@ -527,14 +480,11 @@ export function accionesPilotoBarra(
 
 export function accionesBarraEnlace(
   enlace: Enlace | null,
-  hayEstiloEnPortapapeles: boolean,
   inspectorAbierto: boolean,
 ): AccionBarra[] {
   const acciones = accionesContextualesEntidad({
     entidad: null,
     enlace,
-    enlaceEstiloId: enlace?.id ?? null,
-    hayEstiloEnPortapapeles,
     inspectorAbierto,
     multi: false,
   });
@@ -543,13 +493,12 @@ export function accionesBarraEnlace(
 
 export function accionesParaContextoBarra(
   contexto: ContextoBarraSeleccion | null,
-  hayEstiloEnPortapapeles: boolean,
   inspectorAbierto: boolean,
 ): AccionBarra[] {
   if (!contexto) return [];
-  if (contexto.tipo === "enlace") return accionesBarraEnlace(contexto.enlace, hayEstiloEnPortapapeles, inspectorAbierto);
+  if (contexto.tipo === "enlace") return accionesBarraEnlace(contexto.enlace, inspectorAbierto);
   if (contexto.tipo === "multi") return accionesBarraMulti(contexto.cantidad, inspectorAbierto);
-  return accionesPilotoBarra(contexto.entidad, contexto.enlaceEstiloId, hayEstiloEnPortapapeles, inspectorAbierto);
+  return accionesPilotoBarra(contexto.entidad, inspectorAbierto);
 }
 
 export function accionesBarraMulti(cantidad: number, inspectorAbierto: boolean): AccionBarra[] {
@@ -557,8 +506,6 @@ export function accionesBarraMulti(cantidad: number, inspectorAbierto: boolean):
   const acciones = accionesContextualesEntidad({
     entidad: null,
     enlace: null,
-    enlaceEstiloId: null,
-    hayEstiloEnPortapapeles: false,
     inspectorAbierto,
     multi: cantidad >= 2,
     seleccionadosCount: cantidad,
@@ -601,8 +548,6 @@ function decorarAccionBarra(accion: AccionContextual & { id: AccionBarraId }): A
     visible: accion.visible,
     ...(accion.atajo ? { atajo: accion.atajo } : {}),
     wide: accion.id === "cambiar-tipo-enlace" ||
-      accion.id === "copiar-estilo" ||
-      accion.id === "pegar-estilo" ||
       accion.id === "mas-opciones" ||
       accion.id === "eliminar-seleccion" ||
       accion.id === "agregar-como-partes" ||

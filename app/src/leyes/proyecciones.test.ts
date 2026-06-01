@@ -233,9 +233,6 @@ function modeloRefinamientoThing(tipo: "objeto" | "proceso", refinamiento: "desc
   const entidadId = entidadPorNombre(modelo, nombre).id;
   modelo = must(cambiarEsencia(modelo, entidadId, "fisica"));
   modelo = must(cambiarAfiliacion(modelo, entidadId, "ambiental"));
-  modelo = withApariencia(modelo, modelo.opdRaizId, aparienciaDeEntidad(modelo, modelo.opdRaizId, entidadId).id, {
-    estilo: { borderColor: "#3bc3ff", fill: "#fdffff" },
-  });
 
   if (tipo === "objeto") {
     modelo = must(crearEstadosIniciales(modelo, entidadId)).modelo;
@@ -417,8 +414,8 @@ function aparienciasDeEntidad(modelo: Modelo, entidadId: Id): Record<Id, Aparien
   return apariencias;
 }
 
-function snapshotAparienciasContorno(modelo: Modelo, entidadId: Id): Record<Id, Pick<Apariencia, "id" | "entidadId" | "opdId" | "x" | "y" | "width" | "height" | "estilo">> {
-  const snapshot: Record<Id, Pick<Apariencia, "id" | "entidadId" | "opdId" | "x" | "y" | "width" | "height" | "estilo">> = {};
+function snapshotAparienciasContorno(modelo: Modelo, entidadId: Id): Record<Id, Pick<Apariencia, "id" | "entidadId" | "opdId" | "x" | "y" | "width" | "height">> {
+  const snapshot: Record<Id, Pick<Apariencia, "id" | "entidadId" | "opdId" | "x" | "y" | "width" | "height">> = {};
   for (const [aparienciaId, apariencia] of Object.entries(aparienciasDeEntidad(modelo, entidadId))) {
     snapshot[aparienciaId] = {
       id: apariencia.id,
@@ -428,7 +425,6 @@ function snapshotAparienciasContorno(modelo: Modelo, entidadId: Id): Record<Id, 
       y: apariencia.y,
       width: apariencia.width,
       height: apariencia.height,
-      ...(apariencia.estilo ? { estilo: apariencia.estilo } : {}),
     };
   }
   return snapshot;
@@ -480,25 +476,6 @@ function refinamientoDe(
     if (slot) return { tipo, ...slot };
   }
   throw new Error(`Refinamiento no encontrado: ${entidadId}`);
-}
-
-function withApariencia(modelo: Modelo, opdId: Id, aparienciaId: Id, patch: Partial<Apariencia>): Modelo {
-  const opd = opdRequerido(modelo, opdId);
-  const apariencia = opd.apariencias[aparienciaId];
-  if (!apariencia) throw new Error(`Apariencia no encontrada: ${aparienciaId}`);
-  return {
-    ...modelo,
-    opds: {
-      ...modelo.opds,
-      [opdId]: {
-        ...opd,
-        apariencias: {
-          ...opd.apariencias,
-          [aparienciaId]: { ...apariencia, ...patch },
-        },
-      },
-    },
-  };
 }
 
 function estadosDeEntidad(modelo: Modelo, entidadId: Id): Array<{ id: Id }> {

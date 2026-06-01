@@ -1,7 +1,6 @@
 import { enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, esEnlaceEstructuralFundamental } from "../modelo/constantes";
 import { validarAbanicoCanonico } from "../modelo/abanicos";
 import { entidadDeExtremo, extremoEntidad, normalizarExtremo } from "../modelo/extremos";
-import { esColorEstilo } from "../modelo/estilos";
 import { esModificador, esSubtipoModificador, validarMetadatosEnlace } from "../modelo/modificadores";
 import { validarFirmaEnlace, validarMultiplicidad } from "../modelo/operaciones";
 import { rutaEtiquetaNormalizada } from "../modelo/rutas";
@@ -31,7 +30,7 @@ import {
 import { modeloParaExtremos } from "./validarIntegridad";
 
 /**
- * Validadores para enlaces, extremos, estilos, multiplicidad y abanicos.
+ * Validadores para enlaces, extremos, multiplicidad y abanicos.
  *
  * Consumidores conocidos: `serializacion/json.ts`. Anclaje: SSOT OPM ISO
  * 19450 §3.36 enlace, §Modelo de enlace y §Multiplicidad de objetos.
@@ -137,8 +136,6 @@ export function validarEnlaces(
     if (!estadoSalidaId.ok) return estadoSalidaId;
     const efectoEscindido = validarEfectoEscindidoOpcional(id, raw.efectoEscindido, raw.tipo);
     if (!efectoEscindido.ok) return efectoEscindido;
-    const estilo = validarEstiloEnlaceOpcional(id, raw.estilo);
-    if (!estilo.ok) return estilo;
     const enlace: Enlace = {
       id,
       tipo: raw.tipo,
@@ -147,7 +144,6 @@ export function validarEnlaces(
       etiqueta: raw.etiqueta,
       ...(multiplicidadOrigen.value ? { multiplicidadOrigen: multiplicidadOrigen.value } : {}),
       ...(multiplicidadDestino.value ? { multiplicidadDestino: multiplicidadDestino.value } : {}),
-      ...(estilo.value ? { estilo: estilo.value } : {}),
       ...(raw.modificador ? { modificador: raw.modificador } : {}),
       ...(subtipoModificador ? { subtipoModificador } : {}),
       ...(raw.probabilidad !== undefined ? { probabilidad: raw.probabilidad } : {}),
@@ -235,25 +231,6 @@ export function validarTextoOpcional(
   if (typeof value !== "string") return fallo(`Enlace inválido: ${enlaceId}.${campo}`);
   const normalizado = value.trim();
   return ok(normalizado || undefined);
-}
-
-export function validarEstiloEnlaceOpcional(enlaceId: Id, value: unknown): Resultado<Enlace["estilo"]> {
-  if (value === undefined) return ok(undefined);
-  if (!esRecord(value)) return fallo(`Enlace inválido: ${enlaceId}.estilo`);
-  const estilo: Enlace["estilo"] = {};
-  if (value.color !== undefined) {
-    if (typeof value.color !== "string" || !esColorEstilo(value.color)) return fallo(`Enlace inválido: ${enlaceId}.estilo.color`);
-    estilo.color = value.color.toLowerCase();
-  }
-  if (value.strokeWidth !== undefined) {
-    if (typeof value.strokeWidth !== "number" || value.strokeWidth < 1 || value.strokeWidth > 6) return fallo(`Enlace inválido: ${enlaceId}.estilo.strokeWidth`);
-    estilo.strokeWidth = value.strokeWidth;
-  }
-  if (value.dashArray !== undefined) {
-    if (typeof value.dashArray !== "string" || !["", "4 4", "2 4", "6 4 2 4"].includes(value.dashArray)) return fallo(`Enlace inválido: ${enlaceId}.estilo.dashArray`);
-    estilo.dashArray = value.dashArray;
-  }
-  return ok(Object.keys(estilo).length > 0 ? estilo : undefined);
 }
 
 export function validarExtremoEnlace(

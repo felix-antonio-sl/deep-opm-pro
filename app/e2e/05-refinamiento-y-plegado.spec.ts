@@ -15,7 +15,6 @@ import {
   ejecutarAccionCommandPalette,
   irATabRefinamiento,
   irATabExtremos,
-  irATabEstiloEntidad,
   guardarComoActual,
   cargarPrimerModelo,
   crearModeloNuevoDesdeMenu,
@@ -461,57 +460,6 @@ test("activa plegado parcial desde Inspector y persiste la vista compacta", asyn
   await expect(page.getByRole("button", { name: "Plegado completo" })).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-plegado-parcial.png", fullPage: true });
-  expect(pageErrors).toEqual([]);
-});
-
-test("edita estilo visual de cosa, persiste local y resetea defaults", async ({ page }) => {
-  const pageErrors: string[] = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-
-  await page.goto("/");
-  await esperarWorkbenchInicial(page);
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  // Ronda 20 L1: los swatches Fill/Borde viven en el tab `Estilo`.
-  await irATabEstiloEntidad(page);
-  await expect(page.getByRole("button", { name: "Fill #fef3c7" })).toBeVisible();
-
-  await page.getByRole("button", { name: "Fill #fef3c7" }).click();
-  await page.getByRole("button", { name: "Borde #3bc3ff" }).click();
-
-  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fef3c7");
-  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");
-  let json = await jsonEditor(page).inputValue();
-  let exportado = JSON.parse(json) as ExportadoModelo;
-  let objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
-  if (!objeto) throw new Error("No se exporto objeto");
-  let apariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
-    .find((item) => item.entidadId === objeto.id);
-  expect(apariencia?.estilo).toEqual({ fill: "#fef3c7", borderColor: "#3bc3ff" });
-
-  await guardarComoActual(page, "Estilo visual local");
-  await crearModeloNuevoDesdeMenu(page);
-  await cargarPrimerModelo(page);
-  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "#fef3c7");
-  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("stroke", "#3bc3ff");
-
-  await elementoPorTexto(page, "Objeto").click();
-  // Ronda 20 L1: Reset Style vive en el tab `Estilo`.
-  await irATabEstiloEntidad(page);
-  // Tras L6 ronda6 hay dos botones "Reset": uno para Style (apariencia) y otro
-  // para texto del rotulo. El test apunta al de apariencia (Reset Style).
-  await page.getByTitle("Reset Style").click();
-  // CANON-V3 Codex: el fill default vuelve a outline-only; los overrides de
-  // usuario siguen persistiendo hasta Reset Style.
-  await expect(page.locator('.joint-element rect[joint-selector="body"]')).toHaveAttribute("fill", "transparent");
-  json = await jsonEditor(page).inputValue();
-  exportado = JSON.parse(json) as ExportadoModelo;
-  objeto = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Objeto");
-  if (!objeto) throw new Error("No se exporto objeto tras reset");
-  apariencia = Object.values(exportado.modelo.opds[exportado.modelo.opdRaizId]?.apariencias ?? {})
-    .find((item) => item.entidadId === objeto.id);
-  expect(apariencia?.estilo).toBeUndefined();
-
-  await page.screenshot({ path: "test-results/opm-estilo-visual-cosa.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });
 

@@ -6,7 +6,7 @@ import type {
   EntityInspectorRefinementPort,
   EntityInspectorSemanticsPort,
   EntityInspectorShellPort,
-  EntityInspectorStylePort,
+  EntityInspectorGeometryPort,
   EstadoRenombrable,
   ObjectStatesInspectorPort,
 } from "./entityInspectorPorts";
@@ -65,27 +65,17 @@ export function useZustandEntityInspectorMetadataPort(): EntityInspectorMetadata
   };
 }
 
-export function useZustandEntityInspectorStylePort(): EntityInspectorStylePort {
-  const aplicarEstilo = useOpmStore((s) => s.aplicarEstiloSeleccionado);
-  const resetearEstilo = useOpmStore((s) => s.resetearEstiloSeleccionado);
-  const aplicarEstiloTexto = useOpmStore((s) => s.aplicarEstiloTextoAccion);
-  const resetearEstiloTexto = useOpmStore((s) => s.resetEstiloTextoAccion);
+export function useZustandEntityInspectorGeometryPort(): EntityInspectorGeometryPort {
   const redimensionarSeleccionada = useOpmStore((s) => s.redimensionarSeleccionada);
   const ajustarSeleccionadaAlTexto = useOpmStore((s) => s.ajustarSeleccionadaAlTexto);
   const volverSeleccionadaAAuto = useOpmStore((s) => s.volverSeleccionadaAAuto);
   const alternarModoTamanoSeleccionado = useOpmStore((s) => s.alternarModoTamanoSeleccionado);
-  const aplicarEstiloASeleccion = useOpmStore((s) => s.aplicarEstiloASeleccion);
 
   return {
-    aplicarEstilo,
-    resetearEstilo,
-    aplicarEstiloTexto,
-    resetearEstiloTexto,
     redimensionarSeleccionada,
     ajustarSeleccionadaAlTexto,
     volverSeleccionadaAAuto,
     alternarModoTamanoSeleccionado,
-    aplicarEstiloASeleccion,
   };
 }
 

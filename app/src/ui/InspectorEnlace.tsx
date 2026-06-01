@@ -14,14 +14,11 @@ import { inspectorStyles as style } from "./inspectorStyles";
 import { FichaSeccionEnlace } from "./inspector/FichaSeccion";
 import { primerOpdConEntidad, satisfaccionesDeTarget, SeccionRequisitosVinculados } from "./inspector/SeccionRequisitos";
 import { SeccionAbanico } from "./inspectorEnlace/SeccionAbanico";
-import { SeccionEstilo } from "./inspectorEnlace/SeccionEstilo";
-import { SeccionEstiloEnlace } from "./inspectorEnlace/SeccionEstiloEnlace";
 import { SeccionExtremos } from "./inspectorEnlace/SeccionExtremos";
 import { SeccionEtiquetaEnlace, SeccionMultiplicidad, probabilidadValida } from "./inspectorEnlace/SeccionMultiplicidad";
 import { SeccionMetadatosOpcloud } from "./inspectorEnlace/SeccionMetadatosOpcloud";
 import { SeccionReanclaje, contextoReanclaje } from "./inspectorEnlace/SeccionReanclaje";
 import { SeccionRuta } from "./inspectorEnlace/SeccionRuta";
-import { DialogoEstiloEnlace } from "./DialogoEstiloEnlace";
 import { DialogoMoverPuerto } from "./DialogoMoverPuerto";
 import { tokens } from "./tokens";
 
@@ -40,7 +37,7 @@ interface Props {
  * bajo el describe.skip "Contrato TablaEnlaces Beta1".
  *
  * Ronda Codex v2 / L3 (C9): el contenido dejó de particionarse en tabs y pasó
- * a una **ficha continua** — tres secciones (Propiedades → Extremos → Estilo)
+ * a una **ficha continua** — dos secciones (Propiedades → Extremos)
  * apiladas bajo un kicker mono cada una, separadas por hairline. Cero cambios
  * en la lógica de cada `Seccion*`; solo se reorganizan en la ficha.
  */
@@ -80,13 +77,7 @@ export function InspectorEnlace({ enlace }: Props) {
     plegarGrupoEstructural,
     plegarCompletoGrupoEstructural,
     eliminar,
-    aplicarEstiloEnlaceAccion,
-    resetEstiloEnlaceAccion,
-    copiarEstiloAlPortapapeles,
-    pegarEstiloDesdePortapapeles,
-    enlaceEstiloPortapapeles,
     seleccionados,
-    aplicarEstiloASeleccion,
     abrirInspectorEnlaceDesdeOpl,
   } = useInspectorEnlaceViewModel();
   const abanico = abanicoDeEnlace(modelo, enlace.id);
@@ -110,7 +101,6 @@ export function InspectorEnlace({ enlace }: Props) {
   const [unidadTiempoMaximo, setUnidadTiempoMaximo] = useState<UnidadTiempo | "">((enlace.unidadTiempoMaximo as UnidadTiempo | undefined) ?? "");
   const [endpointSeleccionado, setEndpointSeleccionado] = useState(endpointActual);
   const [dialogoMoverPuertoAbierto, setDialogoMoverPuertoAbierto] = useState(false);
-  const [dialogoEstiloAbierto, setDialogoEstiloAbierto] = useState(false);
   const abrirDialogoRequisito = useOpmStore((s) => s.abrirDialogoRequisito);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
   const splitEffectParcial = useOpmStore((s) => s.splitEffectParcialSeleccionado);
@@ -246,7 +236,7 @@ export function InspectorEnlace({ enlace }: Props) {
         </button>
       ) : null}
       {/*
-        Ficha continua (Codex C9): Propiedades → Extremos → Estilo apiladas.
+        Ficha continua (Codex C9): Propiedades → Extremos apiladas.
         Cada bloque conserva su testid `inspector-panel-enlace-{id}`; ya no hay
         `role="tabpanel"`.
       */}
@@ -341,37 +331,7 @@ export function InspectorEnlace({ enlace }: Props) {
             {resolverComoEnlace ? <button type="button" style={style.secondaryButton} onClick={resolverDecision} title="Evalúa la decisión de este enlace">Resolver decisión</button> : null}
           </>
         </FichaSeccionEnlace>
-        <FichaSeccionEnlace kicker="Estilo" testid="inspector-panel-enlace-estilo">
-          <>
-            <SeccionEstilo
-              enlace={enlace}
-              hayPortapapeles={!!enlaceEstiloPortapapeles}
-              onAbrirDialogo={() => setDialogoEstiloAbierto(true)}
-              onCopiar={copiarEstiloAlPortapapeles}
-              onPegar={pegarEstiloDesdePortapapeles}
-              onReset={resetEstiloEnlaceAccion}
-              onAplicar={aplicarEstiloEnlaceAccion}
-            />
-            <SeccionEstiloEnlace
-              enlace={enlace}
-              modelo={modelo}
-              seleccionados={seleccionados}
-              enlaceEstiloPortapapeles={enlaceEstiloPortapapeles}
-              onAplicarEstilo={aplicarEstiloEnlaceAccion}
-              onReset={resetEstiloEnlaceAccion}
-              onCopiar={copiarEstiloAlPortapapeles}
-              onPegar={pegarEstiloDesdePortapapeles}
-              onAplicarSeleccion={aplicarEstiloASeleccion}
-            />
-          </>
-        </FichaSeccionEnlace>
       </div>
-      <DialogoEstiloEnlace
-        abierto={dialogoEstiloAbierto}
-        enlace={enlace}
-        onCerrar={() => setDialogoEstiloAbierto(false)}
-        onAplicar={aplicarEstiloEnlaceAccion}
-      />
       <DialogoMoverPuerto
         open={dialogoMoverPuertoAbierto}
         modelo={modelo}

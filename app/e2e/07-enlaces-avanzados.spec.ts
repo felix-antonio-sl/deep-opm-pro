@@ -13,7 +13,6 @@ import {
   clickLinkPorTipo,
   desplegarComoAgregacion,
   irATabExtremos,
-  irATabEstiloEnlace,
   guardarComoActual,
   importarModeloJson,
   cargarPrimerModelo,
@@ -532,43 +531,6 @@ test("HU-1B.015 ocultar apariencia no borra entidad logical", async ({ page }) =
   await expect(elementoPorTexto(page, "Resultado")).toHaveCount(0);
   const exportado = await exportadoActual(page);
   expect(Object.values(exportado.modelo.entidades).some((entidad) => entidad.nombre === "Resultado")).toBe(true);
-  expect(pageErrors).toEqual([]);
-});
-
-test("L4 dialogo de estilo de enlace persiste color grosor y copia estilo", async ({ page }) => {
-  const pageErrors: string[] = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-
-  await page.goto("/");
-  await esperarWorkbenchInicial(page);
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
-  await page.getByLabel("Nombre").fill("Entrada");
-  await page.getByRole("button", { name: "Proceso", exact: true }).click();
-  await page.getByLabel("Nombre").fill("Procesar");
-  await elementoPorTexto(page, "Entrada").click();
-  await elegirTipoEnlaceDesdeMenu(page, "consumo");
-  await elementoPorTexto(page, "Procesar").click();
-  await clickLinkPorTipo(page, "Consumo");
-
-  // Ronda 20 L1: SeccionEstilo del enlace vive en el tab `Estilo`.
-  await irATabEstiloEnlace(page);
-  await page.getByTestId("abrir-dialogo-estilo-enlace").click();
-  const dialogo = page.getByTestId("dialogo-estilo-enlace");
-  await expect(dialogo).toBeVisible();
-  await expect(dialogo).toHaveAttribute("data-ifml-stereotype", "Modal");
-  // Codex: el swatch "rojo" del dialogo deriva de tokens.colors.errorBase,
-  // que ahora vale #8e2a2e (crimson Codex) en lugar del cinabrio Bauhaus.
-  // El aria-label se construye con el hex actual; el estilo persistido tambien.
-  await dialogo.getByRole("button", { name: "Color #8e2a2e" }).first().click();
-  await dialogo.getByRole("button", { name: "3px" }).click();
-  await dialogo.getByRole("button", { name: "Discontinua" }).click();
-  await dialogo.getByRole("button", { name: "Listo" }).click();
-
-  await page.getByRole("button", { name: "Copiar estilo" }).click();
-  await expect(page.getByText("Estilo copiado")).toBeVisible();
-  const exportado = await exportadoActual(page);
-  const enlace = Object.values(exportado.modelo.enlaces)[0];
-  expect(enlace?.estilo).toEqual({ color: "#8e2a2e", strokeWidth: 3, dashArray: "4 4" });
   expect(pageErrors).toEqual([]);
 });
 

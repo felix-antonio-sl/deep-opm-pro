@@ -6,7 +6,7 @@
  * común; ahorrar el clic de focus + select reduce fricción medible.
  *
  * También cubre #11: la sección Tamaño (Ancho/Alto/Ajustar texto/Volver
- * auto) vive en el tab Estilo, NO en Refinamiento.
+ * auto) vive como panel propio, NO en Refinamiento.
  */
 
 import { expect, test } from "@playwright/test";
@@ -90,7 +90,7 @@ test("seleccionar entidad existente (no recién creada) NO roba focus al input N
   expect(pageErrors).toEqual([]);
 });
 
-test("sección Tamaño vive en el tab Estilo (movida desde Refinamiento en ronda 23)", async ({ page }) => {
+test("sección Tamaño vive como panel propio fuera de Refinamiento", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -107,11 +107,11 @@ test("sección Tamaño vive en el tab Estilo (movida desde Refinamiento en ronda
     page.getByTestId("inspector-panel-refinamiento").locator('section[aria-label="Tamaño"]'),
   ).toHaveCount(0);
 
-  // La sección Estilo SÍ contiene Tamaño con sus controles (Ancho/Alto/Ajustar
-  // texto/Volver auto).
-  await expect(page.getByTestId("inspector-panel-estilo")).toBeVisible();
+  // La sección Tamaño queda como panel propio con controles Ancho/Alto/Ajustar
+  // texto/Volver auto.
+  await expect(page.getByTestId("inspector-panel-tamano")).toBeVisible();
   const seccionTamano = page
-    .getByTestId("inspector-panel-estilo")
+    .getByTestId("inspector-panel-tamano")
     .locator('section[aria-label="Tamaño"]');
   await expect(seccionTamano).toBeVisible();
   await expect(seccionTamano.getByRole("button", { name: "Ajustar texto" })).toBeVisible();

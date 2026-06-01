@@ -36,13 +36,7 @@ export function useZustandLinkInspectorPort(): LinkInspectorPort {
   const plegarGrupoEstructural = useOpmStore((s) => s.plegarGrupoEstructuralSeleccionado);
   const plegarCompletoGrupoEstructural = useOpmStore((s) => s.plegarCompletoGrupoEstructuralSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarSeleccion);
-  const aplicarEstiloEnlaceAccion = useOpmStore((s) => s.aplicarEstiloEnlaceAccion);
-  const resetEstiloEnlaceAccion = useOpmStore((s) => s.resetEstiloEnlaceAccion);
-  const copiarEstiloAlPortapapeles = useOpmStore((s) => s.copiarEstiloEnlaceAlPortapapeles);
-  const pegarEstiloDesdePortapapeles = useOpmStore((s) => s.pegarEstiloEnlaceDesdePortapapeles);
-  const enlaceEstiloPortapapeles = useOpmStore((s) => s.enlaceEstiloPortapapeles);
   const seleccionados = useOpmStore((s) => s.seleccionados);
-  const aplicarEstiloASeleccion = useOpmStore((s) => s.aplicarEstiloASeleccion);
   const abrirInspectorEnlaceDesdeOpl = useOpmStore((s) => s.abrirInspectorEnlaceDesdeOpl);
 
   return {
@@ -80,13 +74,7 @@ export function useZustandLinkInspectorPort(): LinkInspectorPort {
     plegarGrupoEstructural,
     plegarCompletoGrupoEstructural,
     eliminar,
-    aplicarEstiloEnlaceAccion,
-    resetEstiloEnlaceAccion,
-    copiarEstiloAlPortapapeles,
-    pegarEstiloDesdePortapapeles,
-    enlaceEstiloPortapapeles,
     seleccionados,
-    aplicarEstiloASeleccion,
     abrirInspectorEnlaceDesdeOpl,
   };
 }

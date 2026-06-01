@@ -4,7 +4,7 @@ import { LINK_ASSETS } from "../linkAssets";
 import { connectorJumpover, connectorRecto, endpointJoint, etiquetasMultiplicidad, proyectarEnlace, routerManhattan, verticesInvocacion } from "./enlace";
 
 describe("composer enlace", () => {
-  test("proyecta enlace con multiplicidad, estilo y metadata OPM", () => {
+  test("proyecta enlace con multiplicidad y metadata OPM", () => {
     const enlace: Enlace = {
       id: "en-1",
       tipo: "consumo",
@@ -12,7 +12,6 @@ describe("composer enlace", () => {
       destinoId: { kind: "entidad", id: "destino" },
       etiqueta: "",
       multiplicidadOrigen: "1..N",
-      estilo: { color: "#3BC3FF", strokeWidth: 3, dashArray: "2 2" },
     };
 
     const cell = proyectarEnlace("opd-1", enlace, "ae-1", { apariencia: origen }, { apariencia: destino }, [{ x: 50, y: 60 }], undefined, true);
@@ -21,8 +20,9 @@ describe("composer enlace", () => {
 
     expect(cell.id).toBe("ae-1");
     expect(cell.vertices).toEqual([{ x: 50, y: 60 }]);
-    expect(line.stroke).toBe("#3BC3FF");
-    expect(line.strokeDasharray).toBe("2 2");
+    expect(line.stroke).toBe("#171511");
+    expect(line.strokeWidth).toBe(3);
+    expect(line.strokeDasharray).toBeUndefined();
     expect(line.targetMarker).toEqual(LINK_ASSETS.procedural.consumo.marker);
     expect(cell.opm).toMatchObject({ kind: "enlace", enlaceId: "en-1", aparienciaEnlaceId: "ae-1", tipo: "consumo" });
     expect(cell.z).toBeLessThan(10);

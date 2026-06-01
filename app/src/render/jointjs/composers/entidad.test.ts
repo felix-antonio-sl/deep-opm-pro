@@ -49,7 +49,7 @@ describe("composer entidad", () => {
     });
   });
 
-  test("aplica CANON-V3 Codex a objeto sin romper overrides de usuario", () => {
+  test("aplica CANON-V3 Codex a objeto", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Orden"));
     const entidad = Object.values(modelo.entidades)[0];
@@ -74,21 +74,6 @@ describe("composer entidad", () => {
       fontStyle: "normal",
       textWrap: { width: -16, height: -16, ellipsis: false },
     });
-
-    const override = proyectarEntidad(
-      modelo,
-      modelo.opdRaizId,
-      { ...apariencia, estilo: { borderColor: "#123456", fill: "#abcdef" } },
-      entidad,
-      false,
-      false,
-      {},
-    );
-    const overrideAttrs = override.attrs as Record<string, Record<string, unknown>>;
-    const overrideBody = overrideAttrs.body;
-    if (!overrideBody) throw new Error("Fixture invalido: falta attrs.body");
-    expect(overrideBody.stroke).toBe("#123456");
-    expect(overrideBody.fill).toBe("#abcdef");
   });
 
   test("V-212 renderiza nombre canonico sin underscores y expande ancho para evitar cortes de palabra", () => {

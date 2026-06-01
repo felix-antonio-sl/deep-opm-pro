@@ -3,7 +3,6 @@ import type { Entidad } from "../modelo/tipos";
 import {
   validarApariencias,
   validarAparienciasEnlace,
-  validarEstiloApariencia,
   validarModoTamano,
   validarPuertosApariencia,
   validarVertices,
@@ -79,20 +78,6 @@ describe("validarApariencias", () => {
     const resultado = validarAparienciasEnlace("opd-1", {
       "ae-1": { id: "ae-1", enlaceId: "l-1", opdId: "opd-1", vertices: [{ x: 1, y: Number.NaN }] },
     });
-
-    expect(resultado.ok).toBe(false);
-  });
-
-  test("normaliza estilo de apariencia", () => {
-    const resultado = validarEstiloApariencia("a-1", { fill: "#FF0000", borderColor: "#000" });
-
-    expect(resultado.ok).toBe(true);
-    if (!resultado.ok) return;
-    expect(resultado.value).toEqual({ fill: "#ff0000", borderColor: "#000" });
-  });
-
-  test("rechaza color invalido", () => {
-    const resultado = validarEstiloApariencia("a-1", { fill: "red" });
 
     expect(resultado.ok).toBe(false);
   });

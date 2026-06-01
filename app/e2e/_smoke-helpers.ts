@@ -167,7 +167,7 @@ export async function elegirTipoEnlaceDesdeMenu(page: import("@playwright/test")
 
 /**
  * Codex v2 / L3 (C9): el Inspector pasó de tabs a una ficha continua — todas
- * las secciones (Refinamiento, Apariciones, Estilo, Extremos, …) están siempre
+ * las secciones (Refinamiento, Apariciones, Tamaño, Extremos, …) están siempre
  * montadas y visibles, no hay tab que activar. Estos helpers se conservan para
  * no tocar todos los specs consumidores: como el testid del tab ya no existe,
  * la guarda `count === 0` los convierte en no-ops idempotentes; el control
@@ -185,20 +185,8 @@ export async function irATabApariciones(page: import("@playwright/test").Page): 
   await tab.click();
 }
 
-export async function irATabEstiloEntidad(page: import("@playwright/test").Page): Promise<void> {
-  const tab = page.getByTestId("inspector-tab-estilo");
-  if ((await tab.count()) === 0) return;
-  await tab.click();
-}
-
 export async function irATabExtremos(page: import("@playwright/test").Page): Promise<void> {
   const tab = page.getByTestId("inspector-enlace-tab-extremos");
-  if ((await tab.count()) === 0) return;
-  await tab.click();
-}
-
-export async function irATabEstiloEnlace(page: import("@playwright/test").Page): Promise<void> {
-  const tab = page.getByTestId("inspector-enlace-tab-estilo");
   if ((await tab.count()) === 0) return;
   await tab.click();
 }
@@ -1105,7 +1093,6 @@ export interface ExportadoModelo {
           height: number;
           modoTamano?: string;
           modoPlegado?: string;
-          estilo?: { fill?: string; borderColor?: string };
           parteExtraidaDe?: { padreAparienciaId: string; parteEntidadId: string };
         }>;
         enlaces: Record<string, { enlaceId: string; vertices: Array<{ x: number; y: number }>; symbolPos?: { x: number; y: number } }>;

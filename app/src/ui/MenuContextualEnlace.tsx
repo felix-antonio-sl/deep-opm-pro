@@ -7,9 +7,7 @@ interface Props {
   x: number;
   y: number;
   onCerrar: () => void;
-  onEstilo: (enlaceId: Id) => void;
-  onCopiarEstilo: (enlaceId: Id) => void;
-  onPegarEstilo: (enlaceId: Id) => void;
+  onPropiedades: (enlaceId: Id) => void;
   onEliminar: (enlaceId: Id) => void;
   onConectarMultiAlTodo?: ((tipo: TipoEnlace) => void) | undefined;
 }
@@ -21,9 +19,7 @@ interface Props {
 export function MenuContextualEnlace(props: Props) {
   return (
     <div style={{ ...style.menu, left: props.x, top: props.y }} role="menu" data-testid="menu-contextual-enlace">
-      <button type="button" role="menuitem" style={style.item} onClick={() => props.onEstilo(props.enlaceId)}>Estilo</button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => props.onCopiarEstilo(props.enlaceId)}>Copiar estilo</button>
-      <button type="button" role="menuitem" style={style.item} onClick={() => props.onPegarEstilo(props.enlaceId)}>Pegar estilo</button>
+      <button type="button" role="menuitem" style={style.item} onClick={() => props.onPropiedades(props.enlaceId)}>Propiedades</button>
       <button
         type="button"
         role="menuitem"

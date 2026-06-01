@@ -1,7 +1,6 @@
 import type { ContextualActionExecutionPort } from "../app/ports/contextualActionExecutionPort";
 import { crearZustandContextualActionExecutionPort } from "../app/ports/zustandContextualActionExecutionPort";
 import type { AccionContextualId, ActionEvent } from "../store/acciones-contextuales";
-import { primerEnlaceVisualDeEntidad } from "./BarraHerramientasElemento";
 
 interface OpcionesEjecucionAccionContextual {
   onEditarAlias?: () => void;
@@ -14,19 +13,10 @@ export function ejecutarAccionContextualEntidad(
 ): ActionEvent {
   const state = (opciones.port ?? crearZustandContextualActionExecutionPort()).snapshot();
   const entidad = state.seleccionId ? state.modelo.entidades[state.seleccionId] ?? null : null;
-  const enlaceEstiloId = entidad ? primerEnlaceVisualDeEntidad(state.modelo, state.opdActivoId, entidad.id) : null;
 
   switch (accionId) {
     case "cambiar-tipo-enlace":
       return excepcional(accionId, "La acción se resuelve desde el Inspector de enlace.");
-    case "copiar-estilo":
-      if (!enlaceEstiloId) return excepcional(accionId, "No hay enlace visual disponible para copiar formato.");
-      state.copiarEstiloEnlaceAlPortapapeles(enlaceEstiloId);
-      return normal(accionId);
-    case "pegar-estilo":
-      if (!enlaceEstiloId) return excepcional(accionId, "No hay enlace visual disponible para pegar formato.");
-      state.pegarEstiloEnlaceDesdePortapapeles(enlaceEstiloId);
-      return normal(accionId);
     case "agregar-estado":
       if (entidad?.tipo !== "objeto") return excepcional(accionId, "Agregar estado requiere un objeto seleccionado.");
       state.agregarEstadoSmart();

@@ -16,7 +16,7 @@ import { accionesUI } from "./modelo/acciones-ui";
  * - acciones-estados: estados de objeto, designaciones, suprimir, duración modal.
  * - acciones-opd: refinamiento (descomponer/desplegar), navegación OPD, eliminar OPD desde árbol, navegarAviso.
  * - acciones-enlace: tipo enlace, multiplicidad, extremos, abanicos, modificadores, auto-invocación, etiqueta, ruta.
- * - acciones-canvas: selección, edición desde OPL, plegado, mover apariencia/vértices, estilo, copiar/exportar OPL, deshacer/rehacer.
+ * - acciones-canvas: selección, edición desde OPL, plegado, mover apariencia/vértices, copiar/exportar OPL, deshacer/rehacer.
  * - acciones-ui: menú principal, diálogos persistencia, nuevo modelo, modal URLs.
  *
  * Refs:

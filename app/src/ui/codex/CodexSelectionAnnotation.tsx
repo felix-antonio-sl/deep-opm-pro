@@ -70,13 +70,10 @@ export function CodexSelectionAnnotation() {
     seleccionId,
     enlaceSeleccionId,
     seleccionados,
-    enlaceEstiloPortapapeles,
     agregarEstadoSmart,
     descomponer,
     desplegar,
     abrirModalImagen,
-    copiarEstiloEnlaceAlPortapapeles,
-    pegarEstiloEnlaceDesdePortapapeles,
     eliminarSeleccion,
     conectarSeleccionAlTodo,
     traerEnlacesEntreSeleccionadas,
@@ -96,8 +93,8 @@ export function CodexSelectionAnnotation() {
   // acciones la enfocan en vez de colapsar el chrome (App.tsx, fuera de L4).
   const abrirInspector = () => enfocarSeccionInspector("inspector-pane");
   const acciones = useMemo(
-    () => accionesParaContextoBarra(contexto, !!enlaceEstiloPortapapeles, true).filter((a) => a.visible),
-    [contexto, enlaceEstiloPortapapeles],
+    () => accionesParaContextoBarra(contexto, true).filter((a) => a.visible),
+    [contexto],
   );
 
   const entidad = contexto?.tipo === "entidad" ? contexto.entidad : null;
@@ -169,12 +166,6 @@ export function CodexSelectionAnnotation() {
       if (!enlace) return;
       abrirInspector();
       enfocarSeccionInspector("inspector-panel-enlace-propiedades");
-    },
-    "copiar-estilo": () => {
-      if (enlace) copiarEstiloEnlaceAlPortapapeles(enlace.id);
-    },
-    "pegar-estilo": () => {
-      if (enlace) pegarEstiloEnlaceDesdePortapapeles(enlace.id);
     },
     "agregar-estado": () => {
       if (entidad?.tipo === "objeto") agregarEstadoSmart();
@@ -379,7 +370,6 @@ export function accionesDeContexto(contexto: ContextoBarraSeleccion): AccionAnot
   if (contexto.tipo === "enlace") {
     return [
       { label: "tipo", primary: true },
-      { label: "estilo" },
       { label: "inspector" },
     ];
   }

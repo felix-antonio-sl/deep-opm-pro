@@ -10,10 +10,6 @@ import {
   suprimirEstado,
 } from "../modelo/estadosDesignaciones";
 import {
-  aplicarEstiloApariencia,
-  resetearEstiloApariencia,
-} from "../modelo/estilos";
-import {
   contenedorRefinamiento,
   dentroDeApariencia,
   posicionLibre,
@@ -87,12 +83,6 @@ import {
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import {
-  aplicarEstiloEnlace,
-  copiarEstiloEnlace,
-  pegarEstiloEnlace,
-  resetEstiloEnlace,
-} from "../modelo/enlaceEstilo";
-import {
   fijarMultiplicidadOrigen,
   fijarMultiplicidadDestino,
   quitarMultiplicidad,
@@ -153,7 +143,7 @@ import {
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
-import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, EnlaceEstilo, Esencia, EstiloApariencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, Esencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { generarOpl } from "../opl/generar";
 import {
@@ -183,8 +173,6 @@ import {
   alinearEnlacesArriba,
   alinearEnlacesDerecha,
   alinearEnlacesIzquierda,
-  aplicarEstiloApariencias,
-  aplicarEstiloEnlaces,
   conectarMultiAlTodo,
   copiarSeleccion,
   eliminarBatch,

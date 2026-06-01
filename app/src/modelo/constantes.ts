@@ -18,8 +18,7 @@ export type TipoEnlaceExcepcionTemporal = Extract<
  *   - `colores.objeto` ahora es el FILL lavado del objeto (verde papel).
  *     Antes era el stroke verde clasico. Bajo V2 el stroke default de
  *     objetos viene de `colores.enlace` (ink); composers/entidad.ts hizo
- *     el ajuste explicitamente. Si un usuario fijo `apariencia.estilo`
- *     con `borderColor`/`fill`, sigue dominando (override persistido).
+ *     el ajuste explicitamente.
  *   - `colores.proceso` ahora es el FILL azul papel lavado del proceso.
  *   - `colores.enlace` ahora es ink puro `#0A0A0A` — todos los markers,
  *     etiquetas auxiliares y rejillas estructurales se renderizan con el.

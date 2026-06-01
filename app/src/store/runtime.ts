@@ -33,8 +33,6 @@ import {
   alinearEnlacesArriba,
   alinearEnlacesDerecha,
   alinearEnlacesIzquierda,
-  aplicarEstiloApariencias,
-  aplicarEstiloEnlaces,
   conectarMultiAlTodo,
   copiarSeleccion,
   eliminarBatch,

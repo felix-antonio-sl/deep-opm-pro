@@ -356,10 +356,6 @@ test("barra flotante aparece anclada a la cosa seleccionada con acciones piloto"
 
   const barra = page.getByTestId("barra-herramientas-elemento");
   await expect(barra).toBeVisible();
-  // BUG-d78ae2: copiar/pegar-estilo solo aparecen si hay enlace operable.
-  // En este punto la entidad recien creada no tiene enlaces visibles.
-  await expect(page.getByTestId("barra-copiar-estilo")).toHaveCount(0);
-  await expect(page.getByTestId("barra-pegar-estilo")).toHaveCount(0);
   await expect(page.getByTestId("barra-agregar-estado")).toBeVisible();
   await expect(page.getByTestId("barra-inzoom")).toBeVisible();
   await expect(page.getByTestId("barra-unfold")).toBeVisible();

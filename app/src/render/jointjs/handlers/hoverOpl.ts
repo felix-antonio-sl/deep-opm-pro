@@ -53,8 +53,7 @@ export function aplicarHoverOpl(graph: dia.Graph, modelo: Modelo, ref: OplRefere
       if (!entidad || !apariencia) continue;
       const resaltada = ref?.tipo === "entidad" && ref.id === entidad.id
         || ref?.tipo === "estado" && modelo.estados[ref.id]?.entidadId === entidad.id;
-      const fillDefault = "transparent";
-      cell.attr("body/fill", resaltada ? CODEX.colores.paperWarm : apariencia.estilo?.fill ?? fillDefault);
+      cell.attr("body/fill", resaltada ? CODEX.colores.paperWarm : "transparent");
       continue;
     }
     if (meta?.kind === "enlace") {

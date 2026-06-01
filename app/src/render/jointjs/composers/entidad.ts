@@ -36,8 +36,8 @@ export function proyectarEntidad(
   seleccionUnica = false,
   estadosSeleccionados: readonly Estado[] = [],
 ): JointCellJson {
-  const stroke = apariencia.estilo?.borderColor ?? colorEntidadCodex(entidad.tipo);
-  const fillBase = apariencia.estilo?.fill ?? "transparent";
+  const stroke = colorEntidadCodex(entidad.tipo);
+  const fillBase = "transparent";
   const fill = resaltada ? CODEX.colores.paperWarm : fillBase;
   const partes = partesDePlegado(modelo, entidad.id);
   const tienePartes = partes.length > 0;

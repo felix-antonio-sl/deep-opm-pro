@@ -4,7 +4,7 @@ import type { Id } from "./comunes";
  * Tipos del dominio Enlace (link en OPM).
  * Cubre tipos canónicos (estructurales y procedurales), extremos polimorfos
  * (entidad o estado), modificadores (condición/evento/no), derivación en
- * refinamiento externo, estilo visual y apariencia (vértices manuales).
+ * refinamiento externo y apariencia (vértices manuales).
  *
  * Refs: SSOT opm-iso-19450-es.md §3.* (Link), opm-visual-es.md V-237/V-239,
  *       opm-extracted/src/app/models/DrawnPart/Links/AggregationLink.ts,
@@ -32,12 +32,6 @@ export type DerivacionOrigen = "automatico" | "manual";
 export type ExtremoKind = "entidad" | "estado";
 export type Modificador = "condicion" | "evento" | "no";
 export type SubtipoModificador = "C" | "E" | "no";
-
-export interface EnlaceEstilo {
-  color?: string;
-  strokeWidth?: number;
-  dashArray?: string;
-}
 
 export interface ExtremoEnlace {
   kind: ExtremoKind;
@@ -70,7 +64,6 @@ export interface Enlace {
   etiqueta: string;
   multiplicidadOrigen?: string;
   multiplicidadDestino?: string;
-  estilo?: EnlaceEstilo;
   modificador?: Modificador;
   subtipoModificador?: SubtipoModificador;
   probabilidad?: number;
