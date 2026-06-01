@@ -1,4 +1,4 @@
-import type { Abanico, Id, Modelo } from "../tipos";
+import type { Abanico, Enlace, Id, Modelo } from "../tipos";
 import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
 import type { ContextoSimulacion, EntradaTraceSim, TransicionEstadoSim } from "./tipos";
 import { aplicarCambiosValor, iniciarValoresRuntime } from "./valores";
@@ -35,11 +35,16 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   }
 
   const paso = contexto.plan[contexto.pasoActual]!;
+  const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
+  const estadosRama = abanico ? estadosDestinoDeRamas(modelo, abanico) : new Set<Id>();
   const transicionesAplicadas: TransicionEstadoSim[] = [];
   const motivosBloqueo: string[] = [];
   const estadosCurrent: Record<Id, Id> = { ...contexto.estadosCurrent };
 
   for (const transicion of paso.transicionesPlanificadas) {
+    // Las transiciones cuyo destino es un estado del abanico XOR son ALTERNATIVAS
+    // de rama: no se aplican en bloque, sólo la de la rama elegida (S2, BUG-1).
+    if (transicion.estadoDespuesId !== null && estadosRama.has(transicion.estadoDespuesId)) continue;
     if (transicion.estadoAntesId !== null) {
       const observado = estadosCurrent[transicion.entidadId] ?? null;
       if (observado !== transicion.estadoAntesId) {
@@ -93,43 +98,24 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     reloj: relojNuevo,
   };
 
-  const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
+  if (!abanico) return efectoUnico(siguiente);
+
   const modo = contexto.modo ?? "determinista";
-  if (abanico) {
-    if (modo === "exhaustivo") {
-      return {
-        sucesores: abanico.enlaceIds.map((enlaceId) => ({
-          estado: aplicarRamaAbanico(modelo, siguiente, abanico, enlaceId, paso),
-          rama: modelo.enlaces[enlaceId]?.etiqueta || enlaceId,
-          peso: 1 / abanico.enlaceIds.length,
-        })),
-      };
-    }
-    if (modo === "muestreo") {
-      const random = rngSembrado(contexto.semilla ?? Date.now());
-      const d = resolverDecisionAbanico(modelo, abanico.id, { random });
-      if (d.ok && d.value.enlaceId) {
-        return {
-          sucesores: [{
-            estado: aplicarRamaAbanico(modelo, siguiente, abanico, d.value.enlaceId, paso),
-            rama: modelo.enlaces[d.value.enlaceId]?.etiqueta || d.value.enlaceId,
-            peso: d.value.probabilidades?.[d.value.enlaceId] ?? 1,
-          }],
-        };
-      }
-    }
-    const elegido = [...abanico.enlaceIds].sort(
-      (x, y) => (modelo.enlaces[y]?.probabilidad ?? 0) - (modelo.enlaces[x]?.probabilidad ?? 0),
-    )[0]!;
-    return {
-      sucesores: [{
-        estado: aplicarRamaAbanico(modelo, siguiente, abanico, elegido, paso),
-        rama: modelo.enlaces[elegido]?.etiqueta || elegido,
-        peso: 1,
-      }],
-    };
+  if (modo === "exhaustivo") {
+    const peso = 1 / abanico.enlaceIds.length;
+    return { sucesores: abanico.enlaceIds.map((enlaceId) => sucesorDeRama(modelo, siguiente, enlaceId, peso)) };
   }
-  return efectoUnico(siguiente);
+  if (modo === "muestreo") {
+    const random = rngSembrado(contexto.semilla ?? 0);
+    const d = resolverDecisionAbanico(modelo, abanico.id, { random });
+    const enlaceId = d.ok && d.value.enlaceId ? d.value.enlaceId : abanico.enlaceIds[0]!;
+    const peso = (d.ok && d.value.probabilidades?.[enlaceId]) || 1;
+    return { sucesores: [sucesorDeRama(modelo, siguiente, enlaceId, peso)] };
+  }
+  const elegido = [...abanico.enlaceIds].sort(
+    (x, y) => (modelo.enlaces[y]?.probabilidad ?? 0) - (modelo.enlaces[x]?.probabilidad ?? 0),
+  )[0]!;
+  return { sucesores: [sucesorDeRama(modelo, siguiente, elegido)] };
 }
 
 /**
@@ -145,31 +131,63 @@ function abanicoXorDeSalida(modelo: Modelo, procesoId: Id): Abanico | undefined 
   );
 }
 
-/**
- * Aplica al estado la transicion de la rama elegida del abanico XOR.
- * Anota la rama en el diagnostico/no-anotacion de la ultima entrada del trace.
- */
-function aplicarRamaAbanico(
-  modelo: Modelo,
-  estado: ContextoSimulacion,
-  abanico: Abanico,
-  enlaceId: Id,
-  _paso: ContextoSimulacion["plan"][number],
-): ContextoSimulacion {
-  const enlace = modelo.enlaces[enlaceId];
-  if (!enlace) return estado;
+/** Estados destino de las ramas de un abanico XOR: sus transiciones son alternativas. */
+function estadosDestinoDeRamas(modelo: Modelo, abanico: Abanico): Set<Id> {
+  const estados = new Set<Id>();
+  for (const enlaceId of abanico.enlaceIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    if (enlace?.destinoId.kind === "estado") estados.add(enlace.destinoId.id);
+  }
+  return estados;
+}
 
-  const trace = [...estado.trace];
-  const ultima = trace[trace.length - 1];
-  if (ultima) {
-    const ramaEtiqueta = enlace.etiqueta || enlaceId;
-    const modo = estado.modo ?? "determinista";
-    const semillaStr = estado.semilla != null ? `, semilla ${estado.semilla}` : "";
-    const prStr = modo === "muestreo" ? `Pr ${enlace.probabilidad ?? "-"}` : "";
-    ultima.diagnostico = `rama «${ramaEtiqueta}» · ${modo}${prStr ? ` (${prStr})` : ""}${semillaStr}`;
+/** Sucesor de una rama del abanico: aplica SU transición sobre el estado base. */
+function sucesorDeRama(modelo: Modelo, base: ContextoSimulacion, enlaceId: Id, peso = 1): Sucesor<ContextoSimulacion> {
+  const enlace = modelo.enlaces[enlaceId];
+  const rama = enlace?.etiqueta || enlaceId;
+  return { estado: aplicarTransicionDeRama(modelo, base, enlace, rama), rama, peso };
+}
+
+/**
+ * Aplica la transición de la rama elegida sobre el estado base, INMUTABLEMENTE.
+ * Los sucesores de un abanico comparten `base` pero cada uno produce su propio
+ * estado (no se muta `base.trace`): copia la última entrada y le añade la
+ * transición de la rama + la anotación (S2, BUG-1/BUG-6).
+ */
+function aplicarTransicionDeRama(
+  modelo: Modelo,
+  base: ContextoSimulacion,
+  enlace: Enlace | undefined,
+  rama: string,
+): ContextoSimulacion {
+  const estadosCurrent: Record<Id, Id> = { ...base.estadosCurrent };
+  let transicionRama: TransicionEstadoSim | undefined;
+  if (enlace && enlace.destinoId.kind === "estado") {
+    const destino = modelo.estados[enlace.destinoId.id];
+    if (destino) {
+      const antes = base.estadosCurrent[destino.entidadId] ?? null;
+      estadosCurrent[destino.entidadId] = destino.id;
+      transicionRama = { entidadId: destino.entidadId, estadoAntesId: antes, estadoDespuesId: destino.id };
+    }
   }
 
-  return estado;
+  const trace = [...base.trace];
+  const idx = trace.length - 1;
+  const ultima = idx >= 0 ? trace[idx] : undefined;
+  if (ultima) {
+    const modo = base.modo ?? "determinista";
+    const semillaStr = base.semilla != null ? `, semilla ${base.semilla}` : "";
+    const prStr = modo === "muestreo" && enlace?.probabilidad != null ? ` (Pr ${enlace.probabilidad})` : "";
+    trace[idx] = {
+      ...ultima,
+      transicionesAplicadas: transicionRama
+        ? [...ultima.transicionesAplicadas, transicionRama]
+        : ultima.transicionesAplicadas,
+      diagnostico: `rama «${rama}» · ${modo}${prStr}${semillaStr}`,
+    };
+  }
+
+  return { ...base, estadosCurrent, trace };
 }
 
 function inferirDuracionPaso(
