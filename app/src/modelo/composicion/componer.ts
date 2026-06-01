@@ -5,6 +5,7 @@ import type {
   Enlace,
   Entidad,
   Estado,
+  ExtremoEnlace,
   Id,
   Modelo,
   Opd,
@@ -27,10 +28,10 @@ function namespaceId(originalId: Id, suffix: string): Id {
 }
 
 function remapExtremo(
-  extremo: { kind: string; id: Id },
+  extremo: ExtremoEnlace,
   entidadMap: Map<Id, Id>,
   estadoMap: Map<Id, Id>,
-): { kind: string; id: Id } | null {
+): ExtremoEnlace | null {
   if (extremo.kind === "entidad") {
     const mapped = entidadMap.get(extremo.id);
     if (!mapped) return null;
