@@ -19,13 +19,13 @@
 - Cambios a la SSOT OPM (KORA) = **propuestas**, no ejecución; deciden operador + `custodio-kora`.
 - La **simulación es el anamorfismo** (unfold de una coalgebra) y el **gemelo dinámico del razonamiento** (catamorfismo); B0 ya es un anamorfismo a medio construir (`runner.ts::ejecutarPaso` = coalgebra pura). Se **generaliza**, no se reescribe.
 
-**Artefactos:** diseño maestro `docs/roadmap/capa-categorial-opforja.md` (cimiento + 4 pisos); simulación `docs/roadmap/simulacion-categorial-opforja.md` (motor anamórfico + experiencia); planes ejecutables `docs/superpowers/plans/2026-06-01-capa-categorial-{cimiento,composicion,equivalencia,razonamiento}.md` y `…-simulacion-coalgebra.md`. Código F0: `app/src/modelo/hechos/` + `app/src/leyes/hechos-pegado.test.ts` (commit `e7822ee`).
+**Artefactos:** diseño maestro `docs/roadmap/capa-categorial-opforja.md` (cimiento + 4 pisos); simulación `docs/roadmap/simulacion-categorial-opforja.md` (motor anamórfico + experiencia); planes ejecutables `docs/superpowers/plans/2026-06-01-capa-categorial-{cimiento,composicion,equivalencia,razonamiento}.md`. Código F0: `app/src/modelo/hechos/` + `app/src/leyes/hechos-pegado.test.ts` (commit `e7822ee`).
 
 **Handoff explícito — pendientes:**
 - **F1 (Composición + Linealidad)** — plan kernel listo; ejecutar (TDD, kernel primero, UX en plan hermano). `componerModelos` (pushout por `compartidas`) es la pieza compleja; reusa el namespacing de `submodelos/materializacion.ts`.
 - **F2 (Equivalencia)** — plan listo; cierra el método A0 de `metodologia-forja`. Depende de F0 (verificación) + F1 (variantes).
 - **F3 (Razonamiento)** — plan listo, **versión mínima** (motor de derivación sobre hechos); frontera dura anti-FOL/Datalog documentada.
-- **Simulación** — plan S0 (coalgebra explícita) listo; S1–S4 mapeadas en el doc de diseño. Generalizar `ejecutarPaso` a unfold parametrizado por functor de efecto `F` (reusa `decision.ts`, `parametros.ts`, `DuracionTemporal`, hoy desconectados).
+- **Simulación** — a cargo de otro agente; el diseño maestro en `docs/roadmap/simulacion-categorial-opforja.md` queda como referencia. Generalizar `ejecutarPaso` a unfold parametrizado por functor de efecto `F` (reusa `decision.ts`, `parametros.ts`, `DuracionTemporal`, hoy desconectados).
 - **UX de cada piso** — planes hermanos posteriores a cada kernel (no antes; dependen del kernel respectivo).
 - **Propuestas SSOT** — linealidad como 4ª genérica en `opm-es`; equivalencia como cierre de A0 en `metodologia-forja`; composición por interfaz en `spec-forja-opl §21`. Pendientes de `custodio-kora`.
 
