@@ -32,7 +32,6 @@ import { resolverContextoWorkbench } from "./contexto";
 import { tituloViewPointWorkbench } from "./contextoWorkbench";
 import { CodexCanvasMount } from "./codex/CodexCanvasMount";
 import { CodexColHeader } from "./codex/CodexColHeader";
-import { CodexFooterDiagnostico, CodexFooterKey, CodexFooterKeys, estadoDiagnosticoFooter } from "./codex/CodexFooterKey";
 import { CodexFrame } from "./codex/CodexFrame";
 import { DivisorPanel } from "./divisorPanel";
 import { EstadoVacioOpm } from "./EstadoVacioOpm";
@@ -142,13 +141,11 @@ export function App() {
     modoEnlaceActivo,
     modoCreacionActivo,
   });
-  // Ronda Codex v2 L2: meta editorial del header (N oraciones · ● sin guardar)
-  // y estado de diagnóstico del footer-right. Derivados puros del modelo +
-  // store, leídos por puertos read-only (no mutan estado).
+  // Ronda Codex v2 L2: meta editorial del header (N oraciones · ● sin guardar).
+  // Derivado puro del modelo + store, leído por puertos read-only (no muta estado).
   const { dirtyModelo } = useZustandPersistencePort();
   const oracionesOpl = panelOplVm.lineas.length;
   const avisosDiagnostico = listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: opdActivoId });
-  const estadoDiagnostico = estadoDiagnosticoFooter(avisosDiagnostico.length);
   const [diagnosticoExpandido, setDiagnosticoExpandido] = useState(false);
 
   useEffect(() => {
@@ -224,12 +221,10 @@ export function App() {
           </>
         ) : (
           /*
-            Ronda Codex v2 L5 (CRÍT-Comandos, ejecutado): el `MenuPrincipal`
-            lateral se retiró. El command palette `⌘K` es la vía ÚNICA de
-            comandos; el botón ☰ lo invoca (ver `ToolbarBase`), y el palette es
-            ahora superset de las acciones que antes vivían en el menú lateral
-            (Guardar/Nuevo/Cargar/Exportar/Vista/Workspace). El prop
-            `menu` de `CodexFrame` ya no recibe superficie paralela.
+            BUG-20260601T164709/164807: el footer Codex y los botones visibles
+            para abrir la paleta se retiran del chrome. La paleta sigue viva por
+            atajo global `⌘K/Ctrl+K`; el diagnóstico pasa bajo OPL como
+            marginalia operativa, sin duplicarse abajo ni en el inspector.
           */
           <CodexFrame
             leftWidth={ANCHO_PANEL_INSPECTOR_DEFAULT}
@@ -240,19 +235,22 @@ export function App() {
             tabs={<BarraPestanas />}
             breadcrumb={<Breadcrumb />}
             meta={<ChromeMetaCodex oraciones={oracionesOpl} dirty={dirtyModelo} />}
-            footerLeft={(
-              <div style={layout.footerLeftCluster}>
-                <CodexFooterKey label="View" value={contextoWorkbench.viewPoint} />
-                <CodexFooterKeys />
-              </div>
-            )}
-            footerRight={<CodexFooterDiagnostico estado={estadoDiagnostico} />}
             leftPanel={(
               <section data-testid="opl-pane" style={layout.oplLeftPane}>
                 <CodexColHeader kicker="MARGINALIA" title="OPL" meta={<OplHeaderMeta vm={panelOplVm} />} />
                 <div style={layout.oplLeftContent}>
                   <PanelOplView vm={panelOplVm} />
                 </div>
+                {avisosDiagnostico.length > 0 ? (
+                  <div
+                    style={{
+                      ...layout.diagnosticoOplMarginalia,
+                      ...(diagnosticoExpandido ? layout.diagnosticoOplMarginaliaExpandida : {}),
+                    }}
+                  >
+                    <PanelDiagnostico expandido={diagnosticoExpandido} onExpandidoChange={setDiagnosticoExpandido} />
+                  </div>
+                ) : null}
               </section>
             )}
             leftDivider={(
@@ -311,29 +309,16 @@ export function App() {
                   onAnchoChange={fijarAlturaIndicePx}
                 />
                 <section style={{ ...layout.rightInspectorPane, flex: `1 1 ${100 - alturaIndicePct}%` }}>
-                  {!diagnosticoExpandido ? <CodexColHeader kicker="INSPECTOR" title="Selection" /> : null}
+                  <CodexColHeader kicker="INSPECTOR" title="Selection" />
                   <div style={layout.inspectorContent}>
-                    {diagnosticoExpandido && avisosDiagnostico.length > 0 ? (
-                      <div style={{ ...layout.diagnosticoMarginalia, height: "100%", maxHeight: "100%", flex: "1 1 0", borderTop: 0 }}>
-                        <PanelDiagnostico expandido={diagnosticoExpandido} onExpandidoChange={setDiagnosticoExpandido} />
+                    <Inspector />
+                    {timelineDisponible ? (
+                      <div style={layout.timelineInInspector}>
+                        <Suspense fallback={<div style={layout.timelineFallback} />}>
+                          <Timeline />
+                        </Suspense>
                       </div>
-                    ) : (
-                      <>
-                        <Inspector />
-                        {timelineDisponible ? (
-                          <div style={layout.timelineInInspector}>
-                            <Suspense fallback={<div style={layout.timelineFallback} />}>
-                              <Timeline />
-                            </Suspense>
-                          </div>
-                        ) : null}
-                        {avisosDiagnostico.length > 0 ? (
-                          <div style={layout.diagnosticoMarginalia}>
-                            <PanelDiagnostico expandido={diagnosticoExpandido} onExpandidoChange={setDiagnosticoExpandido} />
-                          </div>
-                        ) : null}
-                      </>
-                    )}
+                    ) : null}
                   </div>
                 </section>
               </div>
@@ -380,8 +365,8 @@ export function App() {
 
 /**
  * Meta editorial del header Codex: `N oraciones · ● sin guardar · ⌘K`.
- * El indicador "sin guardar" sólo aparece si el modelo está sucio; el `⌘K`
- * recuerda el atajo del command palette (que L5 cablea al ☰).
+ * El indicador "sin guardar" sólo aparece si el modelo está sucio; `⌘K`
+ * queda como recordatorio mínimo de la paleta sin botón visible dedicado.
  */
 function OplHeaderMeta({ vm }: { vm: PanelOplViewModel }) {
   if (!vm.filtroActivo) return null;
@@ -526,20 +511,12 @@ const layout = {
     borderTop: `1px solid ${tokens.colors.bordePanel}`,
     borderBottom: `1px solid ${tokens.colors.bordePanel}`,
   },
-  // Ronda Codex v2 L2: footer-left agrupa contexto (View) + leyenda de teclas.
-  footerLeftCluster: {
-    minWidth: 0,
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    overflow: "hidden",
-  },
   oplLeftPane: {
     minWidth: 0,
     minHeight: 0,
     height: "100%",
-    display: "grid",
-    gridTemplateRows: "42px minmax(0, 1fr)",
+    display: "flex",
+    flexDirection: "column",
     overflow: "hidden",
     background: tokens.colors.fondoPanel,
     borderRight: `1px solid ${tokens.colors.rule}`,
@@ -548,7 +525,20 @@ const layout = {
   oplLeftContent: {
     minWidth: 0,
     minHeight: 0,
+    flex: "1 1 0",
     overflow: "hidden",
+  },
+  diagnosticoOplMarginalia: {
+    flex: "0 0 auto",
+    minWidth: 0,
+    maxHeight: "44%",
+    overflow: "hidden",
+    borderTop: `1px solid ${tokens.colors.rule}`,
+    background: tokens.colors.fondoPanel,
+  },
+  diagnosticoOplMarginaliaExpandida: {
+    flexBasis: "44%",
+    minHeight: "200px",
   },
   codexLeftDivider: {
     gridArea: "divisor",

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo, crearObjeto } from "./operaciones";
 import { aplicarEstiloApariencia, normalizarEstiloApariencia, resetearEstiloApariencia } from "./estilos";
-import type { Modelo, Resultado } from "./tipos";
+import type { EstiloApariencia, Modelo, Resultado } from "./tipos";
 
 describe("estilos de apariencia", () => {
   test("aplica fill y borderColor preservando los otros campos de apariencia", () => {
@@ -48,6 +48,49 @@ describe("estilos de apariencia", () => {
       y: apariencia.y,
       width: apariencia.width,
       height: apariencia.height,
+    });
+  });
+
+  test("aplica y limpia estilo tipografico preservando fill y borde", () => {
+    const modelo = modeloConObjeto();
+    const apariencia = primeraApariencia(modelo);
+    const conColor = must(aplicarEstiloApariencia(modelo, modelo.opdRaizId, apariencia.id, {
+      fill: "#fef3c7",
+      borderColor: "#586d8c",
+    }));
+
+    const conTexto = must(aplicarEstiloApariencia(conColor, modelo.opdRaizId, apariencia.id, {
+      fontFamily: "Helvetica",
+      fontSize: 18,
+      fontWeight: 700,
+      fontStyle: "italic",
+      textColor: "#3BC3FF",
+      textAnchor: "end",
+    }));
+
+    expect(conTexto.opds[modelo.opdRaizId]?.apariencias[apariencia.id]?.estilo).toEqual({
+      fill: "#fef3c7",
+      borderColor: "#586d8c",
+      fontFamily: "Helvetica",
+      fontSize: 18,
+      fontWeight: 700,
+      fontStyle: "italic",
+      textColor: "#3bc3ff",
+      textAnchor: "end",
+    });
+
+    const sinTexto = must(aplicarEstiloApariencia(conTexto, modelo.opdRaizId, apariencia.id, {
+      fontFamily: undefined,
+      fontSize: undefined,
+      fontWeight: undefined,
+      fontStyle: undefined,
+      textColor: undefined,
+      textAnchor: undefined,
+    } as Record<string, undefined> as Partial<EstiloApariencia>));
+
+    expect(sinTexto.opds[modelo.opdRaizId]?.apariencias[apariencia.id]?.estilo).toEqual({
+      fill: "#fef3c7",
+      borderColor: "#586d8c",
     });
   });
 

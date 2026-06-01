@@ -64,7 +64,7 @@ test("primer paint arranca vacio sin onboarding, ejemplos ni System Diagram", as
   await restaurarPanelOplSiMinimizado(page);
   await expect(page.getByTestId("panel-opl")).toContainText("Sin OPL todavía.");
   await expect(page.getByTestId("panel-diagnostico")).toHaveCount(0);
-  await expect(page.getByTestId("codex-footer-diagnostico")).toContainText(/sin pendientes|ningún diagnóstico/);
+  await expect(page.locator("footer")).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
 
@@ -79,8 +79,8 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   await expect(page.getByTestId("panel-opl")).toBeVisible();
   await expect(page.getByTestId("panel-opl-minimizado")).toHaveCount(0);
 
-  // Ronda Codex v2 L5: el menú lateral se retiró. El botón ☰ abre el command
-  // palette `⌘K` (vía única de comandos), superset del menú: comprobamos que
+  // Ronda Codex v2 L5: el menú lateral se retiró. Ctrl/Cmd+K abre el command
+  // palette (vía única de comandos), superset del menú: comprobamos que
   // el comando "Nuevo modelo" está disponible y cerramos el palette.
   const palette = await abrirMenuPrincipal(page);
   await palette.getByRole("combobox").fill("nuevo modelo");

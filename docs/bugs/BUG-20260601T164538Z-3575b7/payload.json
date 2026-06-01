@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260601T164538Z-3575b7",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-01T16:45:38.503Z",
+  "text": "El panel de diagnóstico de modelo con advertencias quiero que lo cambiemos al lado izquirdo bajo el panel del OPL. Conservar comportamiento y caracteristicas , pero a la izquierda",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-11",
+    "opdActivoNombre": "SD1",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-5dd2c7f1-2206-4c08-b194-b1d451fc0be0",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2133,
+      "height": 1102,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-06-01T16:45:36.267Z"
+  },
+  "screenshots": [
+    "screenshots/01-google-chrome-2026-06-01-12.42.17.png"
+  ]
+}

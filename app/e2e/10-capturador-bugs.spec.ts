@@ -218,7 +218,7 @@ async function expectClipboard(page: import("@playwright/test").Page, expected: 
 }
 
 async function abrirCapturadorDesdePalette(page: import("@playwright/test").Page): Promise<void> {
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   await palette.getByRole("combobox").fill("capturar bug");
@@ -226,7 +226,7 @@ async function abrirCapturadorDesdePalette(page: import("@playwright/test").Page
 }
 
 async function abrirLedgerDesdePalette(page: import("@playwright/test").Page): Promise<void> {
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   await palette.getByRole("combobox").fill("bugs y features");

@@ -60,19 +60,18 @@ test("grid: toggle, configuración y snap al mover cosa", async ({ page }) => {
 
   await page.goto("/");
   // Ronda 27 III.A cierre: los toggles del antiguo `⋯ Más` viven ahora en
-  // el menú principal `☰` (sección Vista). El helper unificado abre el
-  // menú principal y clickea el item; `aria-pressed` se inspecciona
-  // reabriendo el menú porque el clic lo cierra.
+  // el command palette. El helper unificado abre el palette por atajo y clickea
+  // el item; el estado se inspecciona reabriendo el palette porque el clic lo cierra.
   await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
   // Ronda Codex v2 L5: tras alternar la cuadrícula, el comando del palette
   // refleja el nuevo estado en su label ("Mostrar"/"Ocultar cuadrícula").
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   await expect(page.getByTestId("command-palette-item-menu-grid-canvas")).toContainText("Mostrar cuadrícula del canvas");
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
   await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
   // Ronda 25 L2 III.A: Configuración… ya no se duplica en ⋯ Más; vive
-  // solamente en ☰ Menú principal (sección Modelo).
+  // solamente en el command palette (sección Modelo).
   await abrirConfiguracionDesdeMenuPrincipal(page);
   const dialog = page.getByTestId("modal-config-grid");
   await expect(dialog).toBeVisible();
@@ -203,9 +202,9 @@ test("L4 biblioteca dock pausada y menu contextual borra enlace", async ({ page 
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
-  // Ronda Codex v2 L5: el menú lateral se retiró; el ☰ abre el palette. El
+  // Ronda Codex v2 L5: el menú lateral se retiró; Ctrl/Cmd+K abre el palette. El
   // dock sigue sin estar expuesto como comando.
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   await expect(page.getByTestId("command-palette")).toBeVisible();
   await expect(page.getByTestId("command-palette").getByText("Biblioteca dock", { exact: true })).toHaveCount(0);
   await page.keyboard.press("Escape");
@@ -289,7 +288,7 @@ test("imagenes: toggle global modo texto oculta bitmaps del OPD activo", async (
 
   // Ronda Codex v2 L5: el comando "Imagen: …" del palette refleja el modo
   // global tras ciclar (null → imagen+nombre → solo imagen → solo nombre).
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   await expect(page.getByTestId("command-palette-item-menu-modo-imagen-global")).toContainText("solo nombre");
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);

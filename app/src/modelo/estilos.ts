@@ -14,7 +14,7 @@ export function aplicarEstiloApariencia(
   modelo: Modelo,
   opdId: Id,
   aparienciaId: Id,
-  patch: EstiloApariencia,
+  patch: Partial<EstiloApariencia>,
 ): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
@@ -24,10 +24,13 @@ export function aplicarEstiloApariencia(
   const patchNormalizado = normalizarPatchEstilo(patch);
   if (!patchNormalizado.ok) return patchNormalizado;
 
-  const siguienteEstilo = normalizarEstiloApariencia({
-    ...(apariencia.estilo ?? {}),
-    ...patchNormalizado.value,
-  });
+  const estiloBase: Record<string, unknown> = { ...(apariencia.estilo ?? {}) };
+  for (const key of Object.keys(patchNormalizado.value) as Array<keyof EstiloApariencia>) {
+    const value = patchNormalizado.value[key];
+    if (value === undefined) delete estiloBase[key];
+    else estiloBase[key] = value;
+  }
+  const siguienteEstilo = normalizarEstiloApariencia(estiloBase);
 
   return ok({
     ...modelo,
@@ -111,17 +114,56 @@ export function esColorEstilo(value: string): boolean {
   return HEX_COLOR_RE.test(value);
 }
 
-function normalizarPatchEstilo(patch: EstiloApariencia): Resultado<EstiloApariencia> {
-  const normalizado: EstiloApariencia = {};
-  if (patch.fill !== undefined) {
-    if (!esColorEstilo(patch.fill)) return fallo("Color de relleno inválido");
-    normalizado.fill = normalizarColor(patch.fill);
+type EstiloPatchNormalizado = Partial<Record<keyof EstiloApariencia, EstiloApariencia[keyof EstiloApariencia] | undefined>>;
+
+function normalizarPatchEstilo(patch: Partial<EstiloApariencia>): Resultado<EstiloPatchNormalizado> {
+  const normalizado: EstiloPatchNormalizado = {};
+  if (tienePatch(patch, "fill")) {
+    if (patch.fill === undefined) normalizado.fill = undefined;
+    else if (!esColorEstilo(patch.fill)) return fallo("Color de relleno inválido");
+    else normalizado.fill = normalizarColor(patch.fill);
   }
-  if (patch.borderColor !== undefined) {
-    if (!esColorEstilo(patch.borderColor)) return fallo("Color de borde inválido");
-    normalizado.borderColor = normalizarColor(patch.borderColor);
+  if (tienePatch(patch, "borderColor")) {
+    if (patch.borderColor === undefined) normalizado.borderColor = undefined;
+    else if (!esColorEstilo(patch.borderColor)) return fallo("Color de borde inválido");
+    else normalizado.borderColor = normalizarColor(patch.borderColor);
+  }
+  if (tienePatch(patch, "fontFamily")) {
+    if (patch.fontFamily === undefined) normalizado.fontFamily = undefined;
+    else if (FONT_FAMILIES.includes(patch.fontFamily as typeof FONT_FAMILIES[number])) normalizado.fontFamily = patch.fontFamily;
+    else return fallo("Familia tipográfica inválida");
+  }
+  if (tienePatch(patch, "fontSize")) {
+    if (patch.fontSize === undefined) normalizado.fontSize = undefined;
+    else if (typeof patch.fontSize === "number" && patch.fontSize >= 8 && patch.fontSize <= 24) normalizado.fontSize = patch.fontSize;
+    else return fallo("Tamaño de fuente inválido");
+  }
+  if (tienePatch(patch, "fontWeight")) {
+    if (patch.fontWeight === undefined) normalizado.fontWeight = undefined;
+    else if (typeof patch.fontWeight === "number" && [100, 200, 300, 400, 500, 600, 700, 800, 900].includes(patch.fontWeight)) normalizado.fontWeight = patch.fontWeight;
+    else if (patch.fontWeight === "normal" || patch.fontWeight === "bold") normalizado.fontWeight = patch.fontWeight;
+    else return fallo("Peso tipográfico inválido");
+  }
+  if (tienePatch(patch, "fontStyle")) {
+    if (patch.fontStyle === undefined) normalizado.fontStyle = undefined;
+    else if (patch.fontStyle === "normal" || patch.fontStyle === "italic") normalizado.fontStyle = patch.fontStyle;
+    else return fallo("Estilo tipográfico inválido");
+  }
+  if (tienePatch(patch, "textColor")) {
+    if (patch.textColor === undefined) normalizado.textColor = undefined;
+    else if (esColorEstilo(patch.textColor)) normalizado.textColor = normalizarColor(patch.textColor);
+    else return fallo("Color de texto inválido");
+  }
+  if (tienePatch(patch, "textAnchor")) {
+    if (patch.textAnchor === undefined) normalizado.textAnchor = undefined;
+    else if (patch.textAnchor === "start" || patch.textAnchor === "middle" || patch.textAnchor === "end") normalizado.textAnchor = patch.textAnchor;
+    else return fallo("Alineación de texto inválida");
   }
   return ok(normalizado);
+}
+
+function tienePatch<Key extends keyof EstiloApariencia>(patch: Partial<EstiloApariencia>, key: Key): patch is Partial<EstiloApariencia> & Record<Key, EstiloApariencia[Key] | undefined> {
+  return Object.prototype.hasOwnProperty.call(patch, key);
 }
 
 function normalizarColor(value: string): string {

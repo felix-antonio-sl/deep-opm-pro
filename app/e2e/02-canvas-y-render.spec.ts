@@ -624,7 +624,7 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.getByTestId("toolbar-root")).toBeVisible();
   // Codex v1.1: todos los creadores viven inline; Relación aparece
   // deshabilitada hasta tener una cosa origen.
-  for (const cluster of ["Modelo", "Modelar", "Conectar", "Ayuda"]) {
+  for (const cluster of ["Modelo", "Modelar", "Conectar"]) {
     await expect(page.getByRole("group", { name: cluster })).toBeVisible();
   }
   await expect(page.locator('[data-slot="cluster-modelo"]')).toBeVisible();
@@ -632,18 +632,16 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
   await expect(page.locator('[data-slot="cluster-vista"]')).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-validar"]')).toHaveCount(0);
-  await expect(page.locator('[data-slot="cluster-ayuda"]')).toBeVisible();
+  await expect(page.locator('[data-slot="cluster-ayuda"]')).toHaveCount(0);
   await expect(page.getByRole("group", { name: "Modelar" }).getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeDisabled();
-  // Ronda 27 III.A cierre: el cluster Ayuda solo contiene `⌕ Buscar`. El
-  // botón `⋯ Más` desapareció del chrome; sus items canónicos viven en
-  // el menú principal `☰` (secciones Vista y Herramientas).
-  await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-mas-trigger")).toHaveCount(0);
-  await expect(page.getByRole("group", { name: "Ayuda" }).getByTestId("toolbar-command-palette")).toBeVisible();
-  // Ronda Codex v2 L5: el menú lateral se retiró; el botón ☰ abre el command
-  // palette (vía única de comandos). Sus comandos canónicos están disponibles;
+  await expect(page.getByTestId("toolbar-mas-trigger")).toHaveCount(0);
+  await expect(page.getByTestId("toolbar-command-palette")).toHaveCount(0);
+  await expect(page.getByTestId("toolbar-menu")).toHaveCount(0);
+  // Ronda Codex v2 L5: el menú lateral se retiró; Ctrl/Cmd+K abre el command
+  // palette. Sus comandos canónicos están disponibles;
   // biblioteca-dock y mapa siguen ausentes.
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   const paletteChrome = page.getByTestId("command-palette");
   await expect(paletteChrome).toBeVisible();
   const comboChrome = paletteChrome.getByRole("combobox");
@@ -674,7 +672,7 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   // se monta porque hay origen disponible.
   await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
   // P0 UI/UX 2026-05-26: plantillas deja de existir como superficie de producto.
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   await expect(page.getByTestId("command-palette")).toBeVisible();
   await page.getByTestId("command-palette").getByRole("combobox").fill("plantillas");
   await expect(page.getByTestId("command-palette")).toContainText("sin resultados - escribe otro comando");

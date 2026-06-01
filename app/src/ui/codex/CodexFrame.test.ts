@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { codexFrameColumns, codexFrameRows, modoMarginaliaCodex } from "./CodexFrame";
 
 describe("CodexFrame contract", () => {
-  test("declara las tres filas editoriales Codex", () => {
-    expect(codexFrameRows()).toBe("60px minmax(0, 1fr) 44px");
+  test("declara header y cuerpo sin barra inferior redundante", () => {
+    expect(codexFrameRows()).toBe("60px minmax(0, 1fr)");
   });
 
   test("Codex v1.1 espeja columnas: OPL izquierda, canvas centro, edición derecha", () => {

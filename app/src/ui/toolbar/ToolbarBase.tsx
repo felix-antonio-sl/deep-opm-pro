@@ -1,14 +1,9 @@
 /**
  * ViewContainer ToolbarBase: chrome estable del modelador. [JOYAS §1-3], [V-0c], IFML H-2/H-5/H-12.
  *
- * Ronda 27 III.A cierre: el botón `⋯ Más` desaparece del chrome para
- * cumplir la geometría de 5 elementos planos que pide el veredicto
- * jobs-web-ux original (sección III.A). Las acciones globales del Más
- * (alias, descripciones, modo imagen, cuadrícula, biblioteca dock,
- * auto-layout, mapa del sistema, simulación) se absorben como secciones
- * del menú principal `☰`. Las acciones multi-selección (eliminar,
- * agregar como partes, alinear, distribuir) siguen viviendo en la barra
- * contextual flotante sobre la selección, no se duplican.
+ * BUG-20260601T164807Z-b5a202: los botones visibles dedicados a abrir la
+ * paleta de comandos salen del chrome. La paleta se conserva como entrada
+ * de teclado global `Ctrl/Cmd+K`; los comandos no se duplican como botón.
  */
 import { lazy, Suspense } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
@@ -121,18 +116,14 @@ interface ToolbarBaseProps {
 }
 
 export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }: ToolbarBaseProps) {
-  // P0-2 (informe UI/UX 2026-05-07): MenuPrincipal se monta UNA sola vez en
-  // App.tsx. Antes ToolbarBase tambien tenia su propia instancia lazy y se
-  // duplicaba en el DOM (`role="menu"` aparecia dos veces, rompiendo
-  // accesibilidad y smokes). El boton ☰ aqui solo abre/cierra via store;
-  // el render lo hace App.tsx. Bug P0 introducido por hotfix `4f7dc66`.
-  //
+  // P0-2 (informe UI/UX 2026-05-07): MenuPrincipal dejó de montarse en
+  // ToolbarBase. El command palette se conserva por atajo global, sin botón
+  // visible dedicado en este chrome.
   const {
     crearObjeto,
     crearProceso,
     crearAtributoNumerico,
     fijarModoCreacion,
-    abrirDialogoComandos,
     modelo,
     opdActivoId,
     seleccionId,
@@ -246,13 +237,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
     ? primerEnlaceVisualDeEntidad(modelo, opdActivoId, entidadMenuContextual.id)
     : null;
 
-  // Ronda Codex v2 L5 (CRÍT-Comandos): el botón ☰ deja de abrir el menú
-  // lateral (retirado) y pasa a invocar el command palette `⌘K`, vía única
-  // de comandos. El botón "Buscar" abre el mismo palette: ☰ es su gemelo
-  // top-left, conservando la affordance de "abrir comandos" familiar.
-  function handleAbrirComandos() {
-    abrirDialogoComandos();
-  }
   function handleCrearObjeto(event: MouseEvent) {
     if (readOnly) return;
     if (event.shiftKey) {
@@ -322,11 +306,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
             "OPFORJA" duplicado se elimina de la toolbar. El único wordmark del
             chrome es ahora "Opforja" (Inria Serif italic) en el header de
             CodexFrame; aquí ya no se repite. */}
-        <div style={style.menuWrapper}>
-          {/* Ronda Codex v2 L5: ☰ abre el command palette `⌘K` (vía única de
-              comandos). Ya no hay menú lateral paralelo. */}
-          <button type="button" aria-haspopup="dialog" aria-label="Comandos" title="Comandos · Ctrl+K" data-testid="toolbar-menu" style={style.iconButton} onClick={handleAbrirComandos}>☰</button>
-        </div>
         {/* Ronda Codex v1.1: estado de persistencia inline, sin chip/caja. */}
         <ToolbarPersistenceStatus persistencia={persistencia} />
         {statusSlot ?? null}
@@ -403,30 +382,6 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
             </div>
           </>
         ) : null}
-        <span style={style.divider} />
-        <div role="group" aria-label="Ayuda" style={style.cluster} data-slot="cluster-ayuda" data-cluster="ayuda">
-          {/* Corte 3.5 sustracción de chrome: el botón mostraba solo el
-              símbolo `⌕` (lupa). Ahora exhibe label "Buscar" para que su
-              propósito sea legible sin tooltip. */}
-          {/* Ronda 27 III.A cierre: el botón `⋯ Más` desaparece del chrome.
-              Sus acciones globales se absorben como secciones del menú
-              principal `☰` (Vista, Herramientas). Las multi-selección
-              siguen en BarraHerramientasElemento. Chrome v1.1 mantiene
-              creadores mecanicos y busqueda inline. */}
-          <button
-            type="button"
-            style={style.searchButton}
-            onClick={abrirDialogoComandos}
-            title="Buscar comandos · ⌘K"
-            data-testid="toolbar-command-palette"
-            aria-label="Buscar comandos"
-            aria-keyshortcuts="Control+K"
-          >
-            <span aria-hidden="true" style={style.searchIcon}>⌕</span>
-            <span aria-hidden="true">buscar…</span>
-            <kbd style={style.creatorKbd} aria-hidden="true">⌘K</kbd>
-          </button>
-        </div>
       </div>
       )}
       <ModelessToolbarLayer

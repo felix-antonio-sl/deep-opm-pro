@@ -214,9 +214,9 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Ctrl+Z", ctx: "global", categoria: "edicion", descripcion: "Deshacer", descripcionLarga: "Revierte el último cambio en el modelo activo", handler: () => s().deshacer() }),
     registrarAtajo({ combo: "Ctrl+Y", ctx: "global", categoria: "edicion", descripcion: "Rehacer", descripcionLarga: "Reaplica el último cambio deshecho", handler: () => s().rehacer() }),
     registrarAtajo({ combo: "Ctrl+Shift+Z", ctx: "global", categoria: "edicion", descripcion: "Rehacer", descripcionLarga: "Reaplica el último cambio deshecho", handler: () => s().rehacer() }),
-    // Línea D (BUG-20260525T052239Z-445a97): leyenda del footer-key
-    // "O objeto · P proceso · S estado · R relación · ⌘K comandos". Cuatro
-    // teclas simples en contexto canvas. El registry ya excluye inputs/textarea/
+    // Línea D (BUG-20260525T052239Z-445a97): atajos simples de creación.
+    // La leyenda inferior fue retirada; los botones de creación conservan sus
+    // kbd visibles y `⌘K` queda en el header meta. El registry ya excluye inputs/textarea/
     // contenteditable (`esEditable`) y diálogos modales (`hayDialogoModalAbierto`).
     registrarAtajo({ combo: "O", ctx: "canvas", categoria: "edicion", descripcion: "Crear objeto", descripcionLarga: "Inserta un objeto nuevo en el OPD activo (misma acción que el botón Objeto)", handler: crearObjetoAtajo }),
     registrarAtajo({ combo: "P", ctx: "canvas", categoria: "edicion", descripcion: "Crear proceso", descripcionLarga: "Inserta un proceso nuevo en el OPD activo (misma acción que el botón Proceso)", handler: crearProcesoAtajo }),

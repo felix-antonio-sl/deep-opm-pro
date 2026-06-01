@@ -7,7 +7,7 @@ import { esperarWorkbenchInicial, ejecutarComandoPalette } from "./_smoke-helper
  * El veredicto jobs-web-ux original §III.A pide reducir el chrome al 70%:
  * eliminar 4 de los 9 grupos de menú existentes y aterrizar en 5 botones
  * planos:
- *   [☰ Modelo] [● Persistencia] [○ Objeto] [● Proceso] [⌕ Buscar (Ctrl+K)]
+ *   [● Persistencia] [○ Objeto] [● Proceso] [Estado] [Relación]
  *
  * Este spec verifica:
  * - El toolbar primario tiene exactamente 7 controles visibles sin
@@ -34,8 +34,8 @@ test("toolbar plano Codex v1.1: creadores visibles sin selección, sin overflow"
   await expect(toolbarRoot).toBeVisible();
 
   // Contamos botones visibles dentro del toolbar-root. Codex v1.1 expone los
-  // cuatro creadores inline: ☰ · persistencia · Objeto · Proceso · Estado
-  // · Relación · Buscar. Estado/Relación pueden estar deshabilitados.
+  // creadores inline y persistencia. La paleta de comandos ya no tiene botón
+  // visible: se abre por Ctrl/Cmd+K.
   const conteo = await toolbarRoot.evaluate((root) => {
     const visibles = (el: Element) => {
       const rect = (el as HTMLElement).getBoundingClientRect();
@@ -47,15 +47,13 @@ test("toolbar plano Codex v1.1: creadores visibles sin selección, sin overflow"
     return { total: buttons.length, labels };
   });
 
-  expect(conteo.total).toBe(7);
+  expect(conteo.total).toBe(5);
   expect(conteo.labels).toEqual([
-    "☰",
     "●Sin guardar ⌃S",
     "ObjetoO",
     "ProcesoP",
     "EstadoS",
     "RelaciónR",
-    "⌕buscar…⌘K",
   ]);
 
   // No hay overflow horizontal: scrollWidth no debe exceder al clientWidth con
@@ -69,7 +67,7 @@ test("toolbar plano Codex v1.1: creadores visibles sin selección, sin overflow"
   expect(pageErrors).toEqual([]);
 });
 
-test("toolbar omite rótulos redundantes de clusters de acción y conserva ⌕ Buscar", async ({ page }) => {
+test("toolbar omite rótulos redundantes y no duplica la paleta como botón", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -78,11 +76,13 @@ test("toolbar omite rótulos redundantes de clusters de acción y conserva ⌕ B
 
   await expect(page.locator('[data-slot="cluster-modelar"] > span')).toHaveCount(0);
   await expect(page.locator('[data-slot="cluster-conectar"] > span')).toHaveCount(0);
-  await expect(page.locator('[data-slot="cluster-ayuda"] > span')).toHaveCount(0);
+  await expect(page.locator('[data-slot="cluster-ayuda"]')).toHaveCount(0);
   await expect(page.getByRole("group", { name: "Modelar" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Proceso", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Buscar comandos" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Buscar comandos" })).toHaveCount(0);
+  await page.keyboard.press("Control+k");
+  await expect(page.getByTestId("command-palette")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
@@ -97,17 +97,15 @@ test("III.A cierre: el botón ⋯ Más desaparece del chrome", async ({ page }) 
   // Ronda 27 III.A cierre: el botón `⋯ Más` ya no existe en el chrome.
   await expect(page.getByTestId("toolbar-mas-trigger")).toHaveCount(0);
   await expect(page.getByTestId("toolbar-mas-menu")).toHaveCount(0);
-  // El cluster Ayuda solo contiene `⌕ Buscar`.
-  const ayuda = page.getByRole("group", { name: "Ayuda" });
-  await expect(ayuda).toBeVisible();
-  await expect(ayuda.getByRole("button")).toHaveCount(1);
-  await expect(ayuda.getByTestId("toolbar-command-palette")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Ayuda" })).toHaveCount(0);
+  await expect(page.getByTestId("toolbar-command-palette")).toHaveCount(0);
+  await expect(page.getByTestId("toolbar-menu")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });
 
 test("el command palette absorbe los comandos de vista (grid, auto-layout, simulación, modo imagen)", async ({ page }) => {
-  // Ronda Codex v2 L5 (CRÍT-Comandos): el menú lateral se retiró. El botón ☰
+  // Ronda Codex v2 L5 (CRÍT-Comandos): el menú lateral se retiró. El atajo
   // abre el command palette `⌘K` (vía única de comandos). Verificamos que los
   // comandos de la antigua sección Vista están disponibles; biblioteca-dock y
   // mapa siguen ausentes.
@@ -117,7 +115,7 @@ test("el command palette absorbe los comandos de vista (grid, auto-layout, simul
   await page.goto("/");
   await esperarWorkbenchInicial(page);
 
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   const combobox = palette.getByRole("combobox");
@@ -139,7 +137,7 @@ test("el command palette absorbe los comandos de vista (grid, auto-layout, simul
   await combobox.fill("mapa del sistema");
   await expect(palette.getByText("Mapa del sistema", { exact: true })).toHaveCount(0);
 
-  // Escape cierra y devuelve el control al botón ☰.
+  // Escape cierra sin depender de chrome visible.
   await page.keyboard.press("Escape");
   await expect(palette).toHaveCount(0);
 
@@ -156,9 +154,9 @@ test("modo imagen global cicla desde el command palette y refleja el estado en e
   // Ronda Codex v2 L5: el comando "Imagen: …" cicla el modo global. Tras un
   // ciclo (null → imagen+nombre), el label refleja el nuevo estado.
   await ejecutarComandoPalette(page, "imagen", "menu-modo-imagen-global");
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   await expect(page.getByTestId("command-palette-item-menu-modo-imagen-global")).toContainText("imagen + nombre");
-  await page.keyboard.press("Escape");
+  await page.mouse.click(20, 20);
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
@@ -171,7 +169,7 @@ test("configuración se invoca desde el command palette y plantillas no aparece"
   await page.goto("/");
   await esperarWorkbenchInicial(page);
 
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   await palette.getByRole("combobox").fill("plantillas");
@@ -194,9 +192,9 @@ test("el command palette es superset del antiguo menú: archivo, datos y herrami
   await page.goto("/");
   await esperarWorkbenchInicial(page);
 
-  // Ronda Codex v2 L5: el botón ☰ abre el palette; sus comandos cubren las
+  // Ronda Codex v2 L5: el atajo abre el palette; sus comandos cubren las
   // acciones que el menú lateral exponía.
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   const combobox = palette.getByRole("combobox");
@@ -234,8 +232,8 @@ test("BUG-20260523T174915Z el command palette se cierra al hacer click fuera", a
   await page.goto("/");
   await esperarWorkbenchInicial(page);
 
-  // Ronda Codex v2 L5: el ☰ abre el palette; un click en el backdrop lo cierra.
-  await page.getByTestId("toolbar-menu").click();
+  // Ronda Codex v2 L5: Ctrl/Cmd+K abre el palette; un click en el backdrop lo cierra.
+  await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
 

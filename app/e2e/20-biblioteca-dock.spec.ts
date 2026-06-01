@@ -16,9 +16,9 @@ test.describe("biblioteca dock pausada", () => {
     await page.goto("/");
     await esperarWorkbenchInicial(page);
 
-    // Ronda Codex v2 L5: el menú lateral se retiró; el botón ☰ abre el command
+    // Ronda Codex v2 L5: el menú lateral se retiró; Ctrl/Cmd+K abre el command
     // palette. El dock sigue sin estar expuesto como comando.
-    await page.getByTestId("toolbar-menu").click();
+    await page.keyboard.press("Control+k");
     const palette = page.getByTestId("command-palette");
     await expect(palette).toBeVisible();
     await expect(palette.getByText("Biblioteca dock", { exact: true })).toHaveCount(0);

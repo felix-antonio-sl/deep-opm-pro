@@ -234,17 +234,15 @@ export async function guardarComoActual(page: import("@playwright/test").Page, n
 }
 
 /**
- * Ronda Codex v2 L5 (CRÍT-Comandos): el menú lateral `MenuPrincipal` se
- * retiró. El command palette `⌘K` (el botón ☰ lo invoca) es la vía ÚNICA de
- * comandos y superset de las acciones que el menú exponía. Este helper abre
- * el palette y devuelve su locator para los specs que aún quieran inspeccionar
- * comandos disponibles.
+ * BUG-20260601T164807Z-b5a202: el botón visible de comandos salió del chrome.
+ * El command palette se abre por atajo global `Ctrl/Cmd+K`, vía única de
+ * comandos y superset de las acciones que el menú exponía.
  */
 export async function abrirMenuPrincipal(page: import("@playwright/test").Page): Promise<import("@playwright/test").Locator> {
   await page.evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   });
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   return palette;
@@ -276,7 +274,7 @@ export async function ejecutarComandoPalette(page: import("@playwright/test").Pa
   await page.evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   });
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   await palette.getByRole("combobox").fill(query);

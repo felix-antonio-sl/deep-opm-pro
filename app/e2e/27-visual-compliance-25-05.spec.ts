@@ -6,7 +6,7 @@ test("chrome Codex elimina cajas residuales en estado vacio", async ({ page }) =
   await esperarWorkbenchInicial(page);
 
   await expect(page.getByTestId("breadcrumb-opd")).toHaveText(/modelo\s*·\s*sd/i);
-  await expect(page.locator("footer").first()).toContainText("Edición");
+  await expect(page.locator("footer")).toHaveCount(0);
 
   const inspector = page.getByTestId("inspector-pane");
   await expect(inspector).toBeVisible();
@@ -42,7 +42,7 @@ test("command palette contiene comandos de modelo, vista y soporte", async ({ pa
   await page.goto("/");
   await esperarWorkbenchInicial(page);
 
-  await page.getByTestId("toolbar-menu").click();
+  await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
 

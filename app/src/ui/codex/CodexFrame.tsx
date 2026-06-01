@@ -20,12 +20,10 @@ interface CodexFrameProps extends CodexFrameColumnsParams {
   canvas: ComponentChildren;
   rightDivider: ComponentChildren;
   rightPanel: ComponentChildren;
-  footerLeft?: ComponentChildren;
-  footerRight?: ComponentChildren;
 }
 
 export function codexFrameRows(): string {
-  return "60px minmax(0, 1fr) 44px";
+  return "60px minmax(0, 1fr)";
 }
 
 export function codexFrameColumns({ leftWidth, rightWidth, isTablet }: CodexFrameColumnsParams): string {
@@ -49,8 +47,6 @@ export function CodexFrame({
   canvas,
   rightDivider,
   rightPanel,
-  footerLeft,
-  footerRight,
   leftWidth,
   rightWidth,
   isTablet,
@@ -80,11 +76,6 @@ export function CodexFrame({
         {rightDivider}
         <aside style={style.rightSlot}>{rightPanel}</aside>
       </section>
-      <footer style={style.footer}>
-        <div style={style.footerLeft}>{footerLeft}</div>
-        <div style={style.footerCenter} />
-        <div style={style.footerRight}>{footerRight}</div>
-      </footer>
     </div>
   );
 }
@@ -186,40 +177,5 @@ const style = {
     minHeight: 0,
     overflow: "hidden",
     background: tokens.colors.paper,
-  },
-  footer: {
-    minWidth: 0,
-    minHeight: 0,
-    display: "grid",
-    // Ronda Codex v2 L2: left (contexto + leyenda de teclas) y right
-    // (diagnóstico) se dimensionan a su contenido; las pestañas flexan al
-    // centro. Antes el left era un 20% que ahogaba la leyenda `O P S R ⌘K`.
-    gridTemplateColumns: "auto minmax(0, 1fr) auto",
-    alignItems: "stretch",
-    borderTop: `1px solid ${tokens.colors.ruleStrong}`,
-    background: tokens.colors.paper,
-  },
-  footerLeft: {
-    minWidth: 0,
-    display: "flex",
-    alignItems: "center",
-    padding: "0 12px",
-    borderRight: `1px solid ${tokens.colors.rule}`,
-    overflow: "hidden",
-  },
-  footerCenter: {
-    minWidth: 0,
-    minHeight: 0,
-    overflow: "hidden",
-  },
-  footerRight: {
-    minWidth: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: "10px",
-    padding: "0 12px",
-    borderLeft: `1px solid ${tokens.colors.rule}`,
-    overflow: "hidden",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

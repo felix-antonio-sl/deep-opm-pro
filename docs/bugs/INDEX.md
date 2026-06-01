@@ -17,19 +17,23 @@ cd app && bun run bug:index
 | Estado | Cantidad |
 |---|---:|
 | Nuevo | 30 |
-| Resuelto | 39 |
+| Resuelto | 43 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 64 |
+| Bug | 68 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Resuelto | [BUG-20260601T164807Z-b5a202](BUG-20260601T164807Z-b5a202/report.md) | 2026-06-01 16:48Z | Modelo / SD1 | el botón para abrir la paleta de comandos, no lo uso. saquemoslo | Se retiran los botones visibles dedicados a abrir la paleta de comandos; la paleta sigue disponible por Ctrl/Cmd+K y los tests/he… | 1 | Cubierto por e2e/12-toolbar-overflow.spec.ts y helpers Playwright actualizados. |
+| Bug | Resuelto | [BUG-20260601T164709Z-aad990](BUG-20260601T164709Z-aad990/report.md) | 2026-06-01 16:47Z | Modelo / SD1 | esto en la barra inferiore es redundante. De hecho creo que deberíamos eliminar la barra inferior ¿cual es su funcionalidad real en este momento? | Se elimina la barra inferior Codex. Su funcion real era redundante: viewpoint, atajos y resumen de diagnostico ya viven en breadc… | 1 | Cubierto por CodexFrame.test y e2e/01-carga-y-workspace + 27-visual-compliance. |
+| Bug | Resuelto | [BUG-20260601T164538Z-3575b7](BUG-20260601T164538Z-3575b7/report.md) | 2026-06-01 16:45Z | Modelo / SD1 | El panel de diagnóstico de modelo con advertencias quiero que lo cambiemos al lado izquirdo bajo el panel del OPL. Conservar comportamiento y caracte… | PanelDiagnostico se monta bajo OPL en el margen izquierdo y conserva expandir, colapsar, revalidar, cita y navegacion; el inspect… | 1 | Cubierto por e2e/15-superficie-contextual.spec.ts y smoke focal de toolbar/layout. |
+| Bug | Resuelto | [BUG-20260601T164425Z-844f4e](BUG-20260601T164425Z-844f4e/report.md) | 2026-06-01 16:44Z | Modelo / SD1 | ninguno de estos controles de este subpanel funcionan | Los controles de Texto del rotulo aplican familia, tamano, negrita, cursiva, color y alineacion al estilo de apariencia; Reset el… | 1 | Causa raiz: normalizarPatchEstilo descartaba patches tipograficos. Cubierto por estilos.test. |
 | Bug | Resuelto | [BUG-20260601T023324Z-66ff2f](BUG-20260601T023324Z-66ff2f/report.md) | 2026-06-01 02:33Z | Modelo / SD | después de muchos intentos, aún no tenemos la flecha canónica para los enlaces de transformación. Primero adjunto la screenshot de como es ahora y de… | Los enlaces transformadores consumo, resultado, efecto e invocacion usan swallowtail cerrado OPCloud/JOYAS con interior paper y c… | 4 | Cubierto por markers.test, proyeccion.test y e2e/14-canvas-fidelity.spec.ts con verificacion DOM de marker. |
 | Bug | Nuevo | [BUG-20260531T031739Z-81ac46](BUG-20260531T031739Z-81ac46/report.md) | 2026-05-31 03:17Z | HODOM completo v1_3_2 / SD0-C - Hospitalizacion en domicilio | elimina todo el sistema de hover inferior con info redundante que se ve en las capturas. y elimina cualquier vestigio del mismo. que no aparezca nunc… | Pendiente. | 3 |  |
 | Bug | Nuevo | [BUG-20260530T214922Z-fb6c2c](BUG-20260530T214922Z-fb6c2c/report.md) | 2026-05-30 21:49Z | HODOM_completo v1_3 / SD0-C - Hospitalizacion en domicilio | los enlances estructurales no puedo anclarlos adecuadamente a la cosa origen y target | Pendiente. | 2 |  |

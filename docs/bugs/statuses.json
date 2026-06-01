@@ -232,5 +232,29 @@
     "status": "Resuelto",
     "resolution": "Los enlaces transformadores consumo, resultado, efecto e invocacion usan swallowtail cerrado OPCloud/JOYAS con interior paper y contorno ink; invocacion conserva rayo/zigzag en el tramo.",
     "note": "Cubierto por markers.test, proyeccion.test y e2e/14-canvas-fidelity.spec.ts con verificacion DOM de marker."
+  },
+  "BUG-20260601T164425Z-844f4e": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los controles de Texto del rotulo aplican familia, tamano, negrita, cursiva, color y alineacion al estilo de apariencia; Reset elimina solo los campos tipograficos y preserva fill/borde.",
+    "note": "Causa raiz: normalizarPatchEstilo descartaba patches tipograficos. Cubierto por estilos.test."
+  },
+  "BUG-20260601T164538Z-3575b7": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "PanelDiagnostico se monta bajo OPL en el margen izquierdo y conserva expandir, colapsar, revalidar, cita y navegacion; el inspector derecho queda dedicado a propiedades.",
+    "note": "Cubierto por e2e/15-superficie-contextual.spec.ts y smoke focal de toolbar/layout."
+  },
+  "BUG-20260601T164709Z-aad990": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Se elimina la barra inferior Codex. Su funcion real era redundante: viewpoint, atajos y resumen de diagnostico ya viven en breadcrumb/header, botones de creacion y diagnostico bajo OPL.",
+    "note": "Cubierto por CodexFrame.test y e2e/01-carga-y-workspace + 27-visual-compliance."
+  },
+  "BUG-20260601T164807Z-b5a202": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Se retiran los botones visibles dedicados a abrir la paleta de comandos; la paleta sigue disponible por Ctrl/Cmd+K y los tests/helpers usan esa entrada canonica.",
+    "note": "Cubierto por e2e/12-toolbar-overflow.spec.ts y helpers Playwright actualizados."
   }
 }
