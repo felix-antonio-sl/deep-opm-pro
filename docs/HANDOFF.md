@@ -2,7 +2,7 @@
 
 **Fecha**: 2026-06-01 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
 **Corte de producto vigente (2026-06-01)**: submodelos LF-04 se conectan seleccionando un modelo existente desde el catálogo guardado; la función de estilo queda retirada de UI, dominio, store, render, serialización, atajos, menús y tests. Se conserva tamaño/geometría como capacidad real. Cortes previos relevantes: `9436b64` reanclaje de enlaces; `d95132a` invocación normal sin quiebre distal; `e099cd3` ghost limpio, contraste canvas, sombra física y marker de invocación; `a36d275` marker transformador swallowtail OPCloud/JOYAS; `5298ec2` revisión jobs-web-ux OPCloud-isomorfa; `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales; `a29e15a` chip `⋯N`; `e69cf1d` supresión de estados por aparición; `2bbff4e` reanclaje estructural; `9767912` exportación OPL a Markdown; `8caf4d1` reconciliación e2e; `e5ff438` exportador de diagnóstico JSON.
-**Instancia**: `https://opforja.sanixai.com` — último estado conocido: **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo previo al corte actual: `index-CnGXeYbr.js`.
+**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo tras redeploy del corte actual: `index-CkxBp0hi.js`, lazy chunks `DialogoSubmodelo-2rJhzM9D.js` y `CommandPalette-DR8gsPAa.js`.
 
 ## Corte actual — Selector de submodelo existente y retiro total de estilo
 
@@ -14,9 +14,9 @@
 
 **Artefactos principales:** `app/src/ui/DialogoSubmodelo.tsx`, `app/src/ui/InspectorEntidad.tsx`, `app/src/ui/InspectorEnlace.tsx`, `app/src/ui/{BarraHerramientasElemento,CommandPalette,MenuContextualEntidad,MenuContextualEnlace}.tsx`, puertos/viewmodels en `app/src/app/{ports,viewmodels}`, `app/src/modelo/tipos/{apariencia,enlace,ui}.ts`, render JointJS, serialización, store y e2e `15/20/inspector-focus`.
 
-**Verificación:** `cd app && bun run check` -> **1769 pass / 0 fail**; `bun run lint` -> OK; `bun run design:governance` -> OK; `bun run build` -> OK (`index-Dd6-JrJu.js` local); `PW_PORT=5205 bunx playwright test e2e/20-inspector-tabs.spec.ts e2e/inspector-focus.spec.ts e2e/15-superficie-contextual.spec.ts --workers=1` -> **22 pass / 0 fail**. El e2e nuevo valida que el diálogo de submodelo lista un modelo persistido real, lo selecciona y crea la referencia LF-04 con vista read-only.
+**Verificación:** `cd app && bun run check` -> **1769 pass / 0 fail**; `bun run lint` -> OK; `bun run design:governance` -> OK; `bun run build` -> OK (`index-Dd6-JrJu.js` local); `PW_PORT=5205 bunx playwright test e2e/20-inspector-tabs.spec.ts e2e/inspector-focus.spec.ts e2e/15-superficie-contextual.spec.ts --workers=1` -> **22 pass / 0 fail**. El e2e nuevo valida que el diálogo de submodelo lista un modelo persistido real, lo selecciona y crea la referencia LF-04 con vista read-only. Deploy: `docker compose up -d --build` OK; `docker compose ps` -> `opforja` healthy y `opforja-bug-capture` up; `curl -fsSI https://opforja.sanixai.com/` -> HTTP/2 200; bundle servido `index-CkxBp0hi.js`; chunk `DialogoSubmodelo-2rJhzM9D.js` HTTP/2 200; grep del entry sin `StyleControls` ni `DialogoEstiloEnlace`.
 
-**Handoff explícito / pendientes:** falta redeploy si este corte debe publicarse inmediatamente en `opforja.sanixai.com`. Si se reintroduce personalización visual en el futuro, debe ser una feature nueva con semántica, persistencia y pruebas propias; no resucitar el panel retirado.
+**Handoff explícito / pendientes:** publicado en `opforja.sanixai.com`. Si se reintroduce personalización visual en el futuro, debe ser una feature nueva con semántica, persistencia y pruebas propias; no resucitar el panel retirado.
 
 ## Corte actual — Bugs UX de inspector, diagnóstico y chrome Codex
 
