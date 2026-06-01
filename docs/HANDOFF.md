@@ -2,7 +2,7 @@
 
 **Fecha**: 2026-06-01 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
 **Corte de producto vigente (2026-06-01)**: `9436b64` consolida reanclaje de enlaces, elimina la opción duplicada y habilita herramientas por tramo en autoinvocación; `d95132a` elimina el quiebre distal de invocación normal; `e099cd3` ajusta ghost de enlace, contraste canvas, sombra física y marker de invocación; `a36d275` resuelve `BUG-20260601T023324Z-66ff2f` con marker transformador swallowtail OPCloud/JOYAS; cortes previos relevantes: `5298ec2` revisión jobs-web-ux de UX OPCloud-isomorfa sin copiar gestos, `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado, `e5ff438` exportador de diagnóstico a JSON.
-**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo tras redeploy: `index-DnS9V4zF.js`.
+**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo tras redeploy: `index-DmbCsWyp.js`.
 
 ## Corte actual — Reanclaje de enlaces sin duplicidad y autoinvocación operable
 
@@ -12,7 +12,7 @@ Para autoinvocación, el bug estaba en render/tools: el loop se proyecta como do
 
 **Artefactos principales:** `app/src/ui/inspectorEnlace/SeccionExtremos.tsx`, `app/src/ui/DialogoMoverPuerto.tsx`, `app/src/store/modelo/acciones-enlace.ts`, `app/src/render/jointjs/autoinvocacionLoop.ts`, `app/src/render/jointjs/handlers/toolsEnlace.ts`, `app/src/render/jointjs/proyeccionTipos.ts` y tests/e2e vinculados.
 
-**Verificación local:** `bun run check` -> 1807 pass / 0 fail; `bun run lint` -> OK; `bun run design:governance` -> OK; `bun run build` -> OK (`index-B2tf9gvu.js` local); `PW_PORT=5193 bunx playwright test e2e/02-canvas-y-render.spec.ts -g "mover puerto" --workers=1` -> 1 pass / 0 fail; `PW_PORT=5194 bunx playwright test e2e/30-reanclaje-estructural.spec.ts --workers=1` -> 1 pass / 0 fail.
+**Verificación:** `bun run check` -> 1807 pass / 0 fail; `bun run lint` -> OK; `bun run design:governance` -> OK; `bun run build` -> OK (`index-B2tf9gvu.js` local); `PW_PORT=5193 bunx playwright test e2e/02-canvas-y-render.spec.ts -g "mover puerto" --workers=1` -> 1 pass / 0 fail; `PW_PORT=5194 bunx playwright test e2e/30-reanclaje-estructural.spec.ts --workers=1` -> 1 pass / 0 fail; `docker compose up -d --build` -> OK; producción `HTTP/2 200`, `opforja` healthy, bundle servido `index-DmbCsWyp.js`.
 
 ## Corte actual — Invocación normal sin quiebre distal
 
