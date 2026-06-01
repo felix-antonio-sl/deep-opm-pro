@@ -103,8 +103,8 @@ export function componerModelos(
     enlaces[mappedId] = {
       ...deepClone(enl),
       id: mappedId,
-      origenId: origen,
-      destinoId: destino,
+      origenId: origen as ExtremoEnlace,
+      destinoId: destino as ExtremoEnlace,
     };
   }
 

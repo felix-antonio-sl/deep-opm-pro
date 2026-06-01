@@ -1,20 +1,9 @@
-// [JOYAS §1-3] Chrome consume tokens centralizados; sin colores nuevos.
 import type { JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { useBreakpoint } from "../layoutResponsive";
 import { tokens } from "../tokens";
 
-/**
- * BarraSimulacion — Beta2 / Ronda 17 L2.
- *
- * Vive sobre el header, reemplazando la Toolbar de edición cuando
- * `contextoSimulacion !== null`. Slice mínimo:
- *   - Indicador "Modo simulación" + opdActivo.
- *   - Próximo paso ("▶ {procesoNombre}") o estado del contexto.
- *   - Controles: Play/Pausa, velocidad, Paso, Correr, Reiniciar, Salir.
- *   - Panel trace compacto: últimos pasos ejecutados.
- */
 export function BarraSimulacion(): JSX.Element | null {
   const {
     contexto,
@@ -31,11 +20,6 @@ export function BarraSimulacion(): JSX.Element | null {
     salir,
   } = useZustandSimulationPort();
 
-  // BUG-20260526T022101Z-f23d0a: en escritorio la barra se monta en el
-  // `toolbarSlot` del header (CodexFrame), celda de 60px con `overflow:hidden`
-  // que la clippeaba. Como banda fija de ancho completo bajo el header queda
-  // siempre visible. En mobile vive en una sección flex sin clip, así que se
-  // mantiene en flujo normal.
   const esMobile = useBreakpoint() === "mobile";
 
   useEffect(() => {
@@ -50,144 +34,153 @@ export function BarraSimulacion(): JSX.Element | null {
   const completado = contexto.estado === "completado";
   const totalPasos = contexto.plan.length;
   const ejecutados = contexto.trace.length;
+  const sinProcesos = totalPasos === 0;
+  const C = tokens.colors;
+
+  const handleScrub = (n: number) => {
+    if (sinProcesos || n < 0 || n > totalPasos) return;
+    reiniciar();
+    for (let i = 0; i < n; i++) ejecutarPaso();
+  };
+
+  const velocidades = [0.5, 1, 2, 4] as const;
 
   return (
     <div
       data-testid="barra-simulacion"
       role="toolbar"
-      aria-label="Controles de simulación"
-      style={esMobile ? style.barra : { ...style.barra, ...style.barraOverlayDesktop }}
+      aria-label="Controles de simulacion"
+      style={esMobile ? s.barra : { ...s.barra, ...s.barraOverlayDesktop }}
     >
-      <div style={style.cluster}>
-        <span style={style.tag}>Simulación</span>
-        <span style={style.contador} data-testid="barra-simulacion-progreso">
-          {totalPasos === 0
-            ? "Sin procesos en este OPD"
-            : completado
-              ? `Completado · ${ejecutados}/${totalPasos}`
-              : `Paso ${ejecutados + 1}/${totalPasos}${autoAvance ? ` · auto ${velocidadSimulacion}x` : ""}`}
-        </span>
+      <div style={s.fila}>
+        <span style={s.tag}>Simulacion</span>
+        {sinProcesos ? (
+          <span style={s.contador}>Este modelo no tiene procesos que simular</span>
+        ) : completado ? (
+          <span style={{ ...s.estadoTexto, color: C.success }} data-testid="barra-simulacion-progreso">
+            Completada &middot; {totalPasos} pasos
+          </span>
+        ) : (
+          <span style={s.estadoTexto} data-testid="barra-simulacion-progreso">
+            {autoAvance ? "Reproduciendo" : "Listo para simular"} &middot; paso {Math.min(ejecutados + 1, totalPasos)} de {totalPasos}
+          </span>
+        )}
         {pasoActual && !completado ? (
-          <span style={style.activo} data-testid="barra-simulacion-proceso-activo">
-            ▶ {pasoActual.procesoNombre}
+          <span style={s.procesoActivo} data-testid="barra-simulacion-proceso-activo">
+            {pasoActual.procesoNombre}
           </span>
         ) : null}
-        {pasoActual && !completado ? (
-          <span style={style.opd} data-testid="barra-simulacion-opd">
-            Diagrama {pasoActual.opdNombre}
-            {pasoActual.opdHijoNombre ? ` > ${pasoActual.opdHijoNombre}` : ""}
+        {pasoActual ? (
+          <span style={s.opd} data-testid="barra-simulacion-opd">
+            {pasoActual.opdNombre}{pasoActual.opdHijoNombre ? ` \u25b8 ${pasoActual.opdHijoNombre}` : ""}
           </span>
+        ) : null}
+        {completado ? (
+          <span style={s.check}>listo</span>
         ) : null}
       </div>
-      <div style={style.cluster}>
+
+      <div style={s.fila}>
+        {/* Controles como palabras */}
         <button
           type="button"
-          style={autoAvance ? style.botonPausa : style.botonPrimario}
+          style={{ ...s.control, ...(autoAvance ? s.controlActivo : {}), fontWeight: 600 }}
           onClick={autoAvance ? pausarAutoAvance : iniciarAutoAvance}
-          disabled={totalPasos === 0 || completado}
+          disabled={sinProcesos || completado}
           data-testid="barra-simulacion-auto"
           aria-pressed={autoAvance}
-          title={autoAvance ? "Pausar (Espacio)" : "Reproducir (Espacio)"}
+          title={autoAvance ? "Pausar (Espacio)" : "Reproducir (Ctrl+P)"}
         >
-          {autoAvance ? "Pausa" : "Play"}
+          {autoAvance ? "pausa" : "reproducir"}
+          <kbd style={s.kbd}>P</kbd>
         </button>
-        <label style={style.velocidadControl} title="Velocidad de reproducción (0.25× a 4×)">
-          <span style={style.velocidadTexto}>Velocidad {velocidadSimulacion}×</span>
-          <input
-            type="range"
-            min="0.25"
-            max="4"
-            step="0.25"
-            value={String(velocidadSimulacion)}
-            onInput={(event) => {
-              const target = event.currentTarget as HTMLInputElement;
-              fijarVelocidad(Number(target.value));
-            }}
-            disabled={totalPasos === 0}
-            style={style.velocidadSlider}
-            data-testid="barra-simulacion-velocidad"
-          />
-        </label>
+        <span style={s.sep}>&middot;</span>
+
         {!autoAvance ? (
           <>
-            <button
-              type="button"
-              style={style.boton}
-              onClick={ejecutarPaso}
-              disabled={totalPasos === 0 || completado}
-              data-testid="barra-simulacion-paso"
-              title="Ejecutar un paso"
-            >
-              Paso
+            <button type="button" style={s.control} onClick={ejecutarPaso} disabled={sinProcesos || completado} data-testid="barra-simulacion-paso" title="Avanzar un paso">
+              paso <span style={s.flecha}>&#9656;</span>
             </button>
-            <button
-              type="button"
-              style={style.boton}
-              onClick={ejecutarCorrida}
-              disabled={totalPasos === 0 || completado}
-              data-testid="barra-simulacion-correr"
-              title="Ejecutar toda la corrida"
-            >
-              Correr
-            </button>
-            <button
-              type="button"
-              style={style.boton}
-              onClick={reiniciar}
-              disabled={totalPasos === 0}
-              data-testid="barra-simulacion-reiniciar"
-              title="Volver al estado inicial"
-            >
-              Reiniciar
-            </button>
+            <span style={s.sep}>&middot;</span>
           </>
         ) : null}
-        <button
-          type="button"
-          style={style.boton}
-          onClick={alternarHeadless}
-          aria-pressed={headless}
-          aria-label={headless ? "Headless activado: sin animación de tokens" : "Headless desactivado: con animación de tokens"}
-          title="Headless: corre sin animación, salto directo al final"
-          data-testid="barra-simulacion-headless"
-        >
-          {headless ? "Headless ✓" : "Headless"}
+
+        <button type="button" style={s.control} onClick={ejecutarCorrida} disabled={sinProcesos || completado} data-testid="barra-simulacion-correr" title="Ejecutar todos los pasos restantes sin animacion">
+          correr
         </button>
-        <button
-          type="button"
-          style={style.botonSalir}
-          onClick={salir}
-          data-testid="barra-simulacion-salir"
-          title="Salir del modo simulación"
-        >
-          Salir
+        <span style={s.sep}>&middot;</span>
+
+        <button type="button" style={s.control} onClick={reiniciar} disabled={sinProcesos} data-testid="barra-simulacion-reiniciar" title="Volver al paso 0">
+          reiniciar
         </button>
+        <span style={s.sep}>&middot;</span>
+
+        <button type="button" style={s.control} onClick={alternarHeadless} aria-pressed={headless} title="Headless: corre sin animacion de tokens" data-testid="barra-simulacion-headless">
+          {headless ? "headless activo" : "headless"}
+        </button>
+        <span style={s.sep}>&middot;</span>
+
+        <button type="button" style={{ ...s.control, marginLeft: 4 }} onClick={salir} data-testid="barra-simulacion-salir" title="Salir del modo simulacion (Escape)">
+          salir
+          <kbd style={s.kbd}>&#x238B;</kbd>
+        </button>
+
+        {/* Velocidad: segmented inline */}
+        {!sinProcesos ? (
+          <span style={s.segmented} data-testid="barra-simulacion-velocidad">
+            {velocidades.map((v) => (
+              <button
+                key={v}
+                type="button"
+                style={{ ...s.segmentBtn, ...(velocidadSimulacion === v ? s.segmentActivo : {}) }}
+                onClick={() => fijarVelocidad(v)}
+                title={`Velocidad ${v}x`}
+              >
+                {v === 0.5 ? "\u00BDx" : `${v}x`}
+              </button>
+            ))}
+          </span>
+        ) : null}
       </div>
-      {contexto.trace.length > 0 ? (
-        <ol style={style.trace} data-testid="barra-simulacion-trace" aria-label="Trace de simulación">
-          {contexto.trace.slice(-4).map((entrada) => (
-            <li key={entrada.numero} style={style.traceItem}>
-              <span style={style.traceNumero}>#{entrada.numero}</span>
-              <span style={style.traceProceso}>{entrada.procesoNombre}</span>
-              <span style={style.traceDetalle}>{entrada.opdNombre}</span>
-              {entrada.transicionesAplicadas.length > 0 ? (
-                <span style={style.traceDetalle}>
-                  {entrada.transicionesAplicadas.length} transición{entrada.transicionesAplicadas.length === 1 ? "" : "es"}
-                </span>
-              ) : null}
-              {entrada.cambiosValor.length > 0 ? (
-                <span style={style.traceDetalle}>
-                  {entrada.cambiosValor.length} valor{entrada.cambiosValor.length === 1 ? "" : "es"}
-                </span>
-              ) : null}
-              {entrada.diagnostico ? (
-                <span style={style.traceDiagnostico} title={entrada.diagnostico}>
-                  ⚠
-                </span>
-              ) : null}
-            </li>
+
+      {/* Timeline: marcos navegables (scrubbing) */}
+      {!sinProcesos && totalPasos <= 30 ? (
+        <div style={s.timeline} data-testid="barra-simulacion-timeline">
+          {Array.from({ length: Math.max(1, totalPasos) }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              style={{ ...s.marco, ...(i === ejecutados ? s.marcoActual : {}) }}
+              onClick={() => handleScrub(i)}
+              title={`Ir al paso ${i === 0 ? "inicial" : i}`}
+            >
+              {i === 0 ? "ini" : i}
+            </button>
           ))}
-        </ol>
+        </div>
+      ) : !sinProcesos ? (
+        <span style={s.timelineGrande}>
+          {ejecutados} de {totalPasos} pasos &middot; usar paso &#9656; para navegar
+        </span>
+      ) : null}
+
+      {/* Timer mono */}
+      {!sinProcesos ? (
+        <span style={s.timer}>
+          {String(ejecutados).padStart(2, "0")} / {String(totalPasos).padStart(2, "0")}
+        </span>
+      ) : null}
+
+      {contexto.trace.length > 0 ? (
+        <div style={s.trace} data-testid="barra-simulacion-trace" aria-label="Trace de simulacion">
+          {contexto.trace.slice(-4).map((entrada) => (
+            <span key={entrada.numero} style={s.traceItem}>
+              <span style={s.traceNumero}>#{entrada.numero}</span>
+              <span style={s.traceProceso}>{entrada.procesoNombre}</span>
+              {entrada.diagnostico ? <span style={s.traceDiag} title={entrada.diagnostico}>!</span> : null}
+            </span>
+          ))}
+        </div>
       ) : null}
     </div>
   );
@@ -197,25 +190,23 @@ function intervaloAutoAvanceMs(velocidad: number): number {
   return Math.round(900 / velocidad);
 }
 
-const style: Record<string, JSX.CSSProperties> = {
+const C = tokens.colors;
+const T = tokens.typography;
+
+const s: Record<string, JSX.CSSProperties> = {
   barra: {
     display: "flex",
     alignItems: "center",
-    gap: tokens.spacing.md,
-    padding: `${tokens.spacing.sm}px ${tokens.spacing.md}px`,
-    background: tokens.colors.fondoChrome,
-    borderBottom: `1px solid ${tokens.colors.bordeChrome}`,
+    gap: tokens.spacing.sm,
+    padding: `6px ${tokens.spacing.md}px`,
+    background: C.paper,
+    borderBottom: `1px solid ${C.rule}`,
     minHeight: 44,
     flexWrap: "wrap",
+    fontFamily: T.fontFamily,
+    fontSize: T.sizes.sm,
+    color: C.ink,
   },
-  // BUG-20260526T022101Z-f23d0a (sólo escritorio): la barra se monta en el
-  // `toolbarSlot` del header (CodexFrame), celda de 60px con `overflow:hidden`
-  // que clippeaba su contenido multi-cluster + wrap + trace. Como banda fija de
-  // ancho completo justo bajo el header (top = 60px = altura del header)
-  // `position:fixed` ignora el clip del slot y el grid del header; wordmark,
-  // tabs y breadcrumb siguen visibles arriba. zIndex 30 la deja sobre el header
-  // (20) y los overlays del canvas (10–13), pero bajo diálogos/menús modales
-  // (≥45/1000) que deben seguir tapándola.
   barraOverlayDesktop: {
     position: "fixed",
     top: 60,
@@ -223,135 +214,177 @@ const style: Record<string, JSX.CSSProperties> = {
     right: 0,
     zIndex: 30,
   },
-  cluster: {
+  fila: {
     display: "flex",
     alignItems: "center",
-    gap: tokens.spacing.sm,
+    gap: 4,
+    flexWrap: "wrap" as const,
   },
   tag: {
-    fontWeight: tokens.typography.weights.bold,
-    fontSize: tokens.typography.sizes.sm,
-    color: tokens.colors.fondoChrome,
-    background: tokens.colors.acentoSecundario,
-    padding: `2px ${tokens.spacing.sm}px`,
-    borderRadius: tokens.radii.sm,
-    letterSpacing: "0.04em",
-    textTransform: "uppercase",
+    fontWeight: 600,
+    fontSize: T.sizes.xs,
+    color: C.crimson,
+    letterSpacing: "0.06em",
+    textTransform: "uppercase" as const,
+    marginRight: 4,
   },
   contador: {
-    fontVariantNumeric: "tabular-nums",
-    fontSize: tokens.typography.sizes.sm,
-    color: tokens.colors.textoSecundario,
+    fontSize: T.sizes.sm,
+    color: C.inkSoft,
+    fontStyle: "italic",
   },
-  activo: {
-    fontWeight: tokens.typography.weights.semibold,
-    fontSize: tokens.typography.sizes.sm,
-    color: tokens.colors.textoPrimario,
-    padding: `2px ${tokens.spacing.sm}px`,
-    background: tokens.colors.acentoUiSuave,
-    border: `1px solid ${tokens.colors.acentoUi}`,
-    borderRadius: tokens.radii.sm,
+  estadoTexto: {
+    fontSize: T.sizes.sm,
+    color: C.inkMid,
+    fontStyle: "italic",
+  },
+  procesoActivo: {
+    fontStyle: "italic",
+    fontSize: T.sizes.sm,
+    color: C.crimson,
+    padding: `1px 6px`,
   },
   opd: {
-    fontSize: tokens.typography.sizes.sm,
-    color: tokens.colors.textoSecundario,
-    padding: `2px ${tokens.spacing.sm}px`,
-    background: tokens.colors.fondoCard,
-    border: `1px solid ${tokens.colors.bordeSuave}`,
-    borderRadius: tokens.radii.sm,
+    fontSize: T.sizes.sm,
+    color: C.inkSoft,
+    fontFamily: T.fontFamilyMono,
   },
-  boton: {
-    height: 28,
-    padding: `0 ${tokens.spacing.sm}px`,
-    fontSize: tokens.typography.sizes.sm,
-    background: tokens.colors.fondoChrome,
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.control,
-    cursor: "pointer",
+  check: {
+    fontSize: T.sizes.sm,
+    color: C.success,
+    fontStyle: "italic",
   },
-  botonPrimario: {
-    height: 28,
-    padding: `0 ${tokens.spacing.md}px`,
-    fontSize: tokens.typography.sizes.sm,
-    fontWeight: tokens.typography.weights.semibold,
-    background: tokens.colors.acentoUi,
-    color: tokens.colors.fondoChrome,
-    border: `1px solid ${tokens.colors.acentoUi}`,
-    borderRadius: tokens.radii.control,
-    cursor: "pointer",
-  },
-  botonPausa: {
-    height: 28,
-    padding: `0 ${tokens.spacing.md}px`,
-    fontSize: tokens.typography.sizes.sm,
-    fontWeight: tokens.typography.weights.semibold,
-    background: tokens.colors.advertenciaFondo,
-    color: tokens.colors.alertaTexto,
-    border: `1px solid ${tokens.colors.advertenciaBorde}`,
-    borderRadius: tokens.radii.control,
-    cursor: "pointer",
-  },
-  velocidadControl: {
+  control: {
     display: "inline-flex",
     alignItems: "center",
-    gap: 4,
+    gap: 3,
     height: 28,
-    padding: `0 ${tokens.spacing.xs}px 0 ${tokens.spacing.sm}px`,
-    fontSize: tokens.typography.sizes.sm,
-    color: tokens.colors.textoSecundario,
-    background: tokens.colors.fondoChrome,
-    border: `1px solid ${tokens.colors.bordeControl}`,
-    borderRadius: tokens.radii.control,
-  },
-  velocidadTexto: {
-    lineHeight: "26px",
-  },
-  velocidadSlider: {
-    width: 96,
+    padding: "0 6px",
+    fontSize: T.sizes.sm,
+    fontFamily: T.fontFamily,
+    color: C.ink,
+    background: "transparent",
+    border: "none",
+    borderBottom: "1px solid transparent",
+    borderRadius: 0,
     cursor: "pointer",
-    accentColor: tokens.colors.acentoUi,
+    transition: "color 120ms ease, border-color 120ms ease",
   },
-  botonSalir: {
+  controlActivo: {
+    borderBottom: `1px solid ${C.crimson}`,
+    color: C.ink,
+  },
+  sep: {
+    color: C.inkFaint,
+    userSelect: "none" as const,
+    fontSize: T.sizes.sm,
+  },
+  kbd: {
+    fontFamily: T.fontFamilyMono,
+    fontSize: 10,
+    letterSpacing: "0.06em",
+    color: C.inkFaint,
+    border: `1px solid ${C.rule}`,
+    padding: "0 3px",
+    borderRadius: 0,
+    lineHeight: "16px",
+  },
+  flecha: {
+    fontSize: 9,
+  },
+  segmented: {
+    display: "inline-flex",
+    alignItems: "center",
+    marginLeft: tokens.spacing.sm,
+    border: `1px solid ${C.rule}`,
+  },
+  segmentBtn: {
+    display: "inline-flex",
+    alignItems: "center",
     height: 28,
-    padding: `0 ${tokens.spacing.sm}px`,
-    fontSize: tokens.typography.sizes.sm,
-    background: tokens.colors.fondoChrome,
-    border: `1px solid ${tokens.colors.chromeNeutral}`,
-    borderRadius: tokens.radii.control,
+    padding: "0 8px",
+    fontSize: 11,
+    fontFamily: T.fontFamilyMono,
+    fontVariantNumeric: "tabular-nums",
+    color: C.inkSoft,
+    background: "transparent",
+    border: "none",
+    borderRadius: 0,
     cursor: "pointer",
+    transition: "color 120ms ease, background 120ms ease",
+  },
+  segmentActivo: {
+    fontWeight: 600,
+    color: C.ink,
+    background: C.paperWarm,
+  },
+  timeline: {
+    display: "flex",
+    alignItems: "center",
+    gap: 0,
+    marginLeft: tokens.spacing.sm,
+    flexWrap: "wrap" as const,
+  },
+  marco: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 26,
+    height: 22,
+    padding: "0 4px",
+    fontSize: 10,
+    fontFamily: T.fontFamilyMono,
+    fontVariantNumeric: "tabular-nums",
+    color: C.inkFaint,
+    background: "transparent",
+    border: "none",
+    borderRadius: 0,
+    cursor: "pointer",
+    transition: "color 120ms ease, fontWeight 120ms ease",
+  },
+  marcoActual: {
+    fontWeight: 600,
+    color: C.crimson,
+  },
+  timelineGrande: {
+    fontSize: 10,
+    fontFamily: T.fontFamilyMono,
+    color: C.inkFaint,
+    marginLeft: tokens.spacing.sm,
+  },
+  timer: {
+    fontSize: 10,
+    fontFamily: T.fontFamilyMono,
+    fontVariantNumeric: "tabular-nums",
+    color: C.inkSoft,
     marginLeft: tokens.spacing.sm,
   },
   trace: {
     display: "flex",
     alignItems: "center",
-    gap: tokens.spacing.sm,
-    listStyle: "none",
-    margin: 0,
-    padding: 0,
-    overflowX: "auto",
+    gap: 4,
+    flexWrap: "wrap" as const,
   },
   traceItem: {
     display: "inline-flex",
     alignItems: "center",
     gap: 4,
-    padding: `2px ${tokens.spacing.sm}px`,
-    background: tokens.colors.fondoCard,
-    border: `1px solid ${tokens.colors.bordeSuave}`,
-    borderRadius: tokens.radii.sm,
-    fontSize: tokens.typography.sizes.xs,
+    padding: "2px 6px",
+    background: C.paperWarm,
+    border: `1px solid ${C.rule}`,
+    fontSize: 10,
+    fontFamily: T.fontFamilyMono,
   },
   traceNumero: {
-    fontWeight: tokens.typography.weights.bold,
-    color: tokens.colors.textoSecundario,
+    fontWeight: 600,
+    color: C.inkSoft,
   },
   traceProceso: {
-    fontWeight: tokens.typography.weights.medium,
-    color: tokens.colors.textoPrimario,
+    fontWeight: 500,
+    color: C.ink,
   },
-  traceDetalle: {
-    color: tokens.colors.textoSecundario,
-  },
-  traceDiagnostico: {
-    color: tokens.colors.alertaTexto,
+  traceDiag: {
+    color: C.crimson,
+    fontWeight: 700,
   },
 };

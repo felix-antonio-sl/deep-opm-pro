@@ -119,10 +119,9 @@ export function refResaltaEnlace(enlace: Enlace, ref: OplReferencia | null): boo
 }
 
 /**
- * Halo del proceso activo en modo simulación (Ronda 17 L2 — pulido visual).
- * Color verde brillante diferenciado del halo azul de selección y del halo
- * amarillo `idsResaltadosTemporales`. Stroke más grueso para hacerlo
- * inmediatamente legible.
+ * Halo del proceso activo en modo simulacion.
+ * Crimson dashed canonico (Codex V-132): crimson = registro de foco/current;
+ * dashed = textura temporal. Resuelve V-132 sin color nuevo.
  */
 export function proyectarHaloSimulacionProceso(opdId: Id, apariencia: Apariencia, entidad: Entidad): JointCellJson {
   const pad = 6;
@@ -136,7 +135,7 @@ export function proyectarHaloSimulacionProceso(opdId: Id, apariencia: Apariencia
     attrs: {
       body: {
         fill: "transparent",
-        stroke: SIM_VERDE,
+        stroke: CODEX.colores.crimson,
         strokeWidth: 3,
         strokeDasharray: "6 3",
         cx: width / 2,
@@ -202,10 +201,11 @@ export function proyectarHaloSimulacionEntidadInvolucrada(opdId: Id, apariencia:
 }
 
 /**
- * Halo del estado current de un objeto en modo simulación. Color dorado
- * suave; cuando el estado esta visible como capsula interna, usa un pin
- * externo anclado al borde del estado (SSOT V-54/V-133). Si la capsula no
- * puede localizarse, cae al halo de objeto completo como degradacion segura.
+ * Halo del estado current de un objeto en modo simulacion.
+ * Anillo crimson sobre la capsula del estado; si la capsula no puede
+ * localizarse, cae al halo de objeto completo como degradacion segura.
+ * Retira el pin ambar (#f59e0b) fuera de canon; crimson = registro de
+ * foco/current de Codex.
  */
 export function proyectarHaloSimulacionEstadoCurrent(
   modelo: Modelo,
@@ -226,8 +226,8 @@ export function proyectarHaloSimulacionEstadoCurrent(
       attrs: {
         body: {
           d: "M7 0 C3 0 0 3 0 7 c0 5 7 11 7 11 s7-6 7-11 C14 3 11 0 7 0 Z",
-          fill: "#f59e0b",
-          stroke: "#92400e",
+          fill: CODEX.colores.crimson,
+          stroke: CODEX.colores.crimson,
           strokeWidth: 1.5,
           pointerEvents: "none",
         },
@@ -254,7 +254,7 @@ export function proyectarHaloSimulacionEstadoCurrent(
     attrs: {
       body: {
         fill: "transparent",
-        stroke: "#f59e0b",
+        stroke: CODEX.colores.crimson,
         strokeWidth: 2,
         rx: 8,
         ry: 8,
