@@ -2,6 +2,7 @@ import type { Id, Modelo } from "../tipos";
 import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
 import type { ContextoSimulacion, EntradaTraceSim, TransicionEstadoSim } from "./tipos";
 import { aplicarCambiosValor, iniciarValoresRuntime } from "./valores";
+import { efectoUnico, tomarUnico, type Efecto } from "./efecto";
 
 /**
  * Inicia una simulación conceptual sobre un OPD. No muta el modelo.
@@ -22,19 +23,13 @@ export function iniciarSimulacion(modelo: Modelo, opdId: Id): ContextoSimulacion
 }
 
 /**
- * Ejecuta el próximo paso planificado. Determinista; sin efectos sobre el
- * modelo persistente. Devuelve nuevo contexto.
- *
- * Reglas de aplicación:
- *   - Si pasoActual >= plan.length: marca completado, no produce trace nuevo.
- *   - Para cada transición planificada con `estadoAntesId`: si el current del
- *     objeto no coincide, NO se aplica esa transición y se acumula diagnóstico.
- *   - Transiciones con `estadoAntesId=null` (creación) siempre aplican.
- *   - Transiciones con `estadoDespuesId=null` (terminación) borran el current.
+ * La coalgebra: dado el estado actual, produce el efecto con su(s) sucesor(es).
+ * F = Identidad (un sucesor). S2 extendera esta funcion para Powerset/Dist.
  */
-export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion): ContextoSimulacion {
+export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto<ContextoSimulacion> {
   if (contexto.pasoActual >= contexto.plan.length) {
-    return contexto.estado === "completado" ? contexto : { ...contexto, estado: "completado" };
+    const completado = contexto.estado === "completado" ? contexto : { ...contexto, estado: "completado" as const };
+    return efectoUnico(completado);
   }
 
   const paso = contexto.plan[contexto.pasoActual]!;
@@ -81,7 +76,7 @@ export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion): Cont
   }
 
   const nuevoPaso = contexto.pasoActual + 1;
-  return {
+  const siguiente: ContextoSimulacion = {
     ...contexto,
     pasoActual: nuevoPaso,
     estado: nuevoPaso >= contexto.plan.length ? "completado" : "ejecutando",
@@ -89,6 +84,27 @@ export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion): Cont
     valoresRuntime: valoresNuevos,
     trace: [...contexto.trace, entrada],
   };
+  return efectoUnico(siguiente);
+}
+
+/**
+ * Compat: avanza un paso tomando el sucesor canonico. Comportamiento identico al previo.
+ */
+export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion): ContextoSimulacion {
+  return tomarUnico(pasoEfecto(modelo, contexto));
+}
+
+/**
+ * El unfold (anamorfismo): despliega la coalgebra desde un estado hasta
+ * completar, tomando el sucesor canonico en cada paso. F = Identidad =>
+ * traza determinista identica a iterar `ejecutarPaso`.
+ */
+export function desplegar(modelo: Modelo, estadoInicial: ContextoSimulacion): ContextoSimulacion {
+  let actual = estadoInicial;
+  while (actual.pasoActual < actual.plan.length) {
+    actual = tomarUnico(pasoEfecto(modelo, actual));
+  }
+  return actual;
 }
 
 /**
@@ -100,13 +116,8 @@ export function reiniciarSimulacion(modelo: Modelo, contexto: ContextoSimulacion
 }
 
 /**
- * Ejecuta todos los pasos restantes en orden hasta completar. Útil para
- * "Play" sin animación. Cap de seguridad implícito: el plan es finito.
+ * Compat: corre todos los pasos restantes. Delega en el unfold.
  */
 export function ejecutarCorrida(modelo: Modelo, contexto: ContextoSimulacion): ContextoSimulacion {
-  let actual = contexto;
-  while (actual.pasoActual < actual.plan.length) {
-    actual = ejecutarPaso(modelo, actual);
-  }
-  return actual;
+  return desplegar(modelo, contexto);
 }
