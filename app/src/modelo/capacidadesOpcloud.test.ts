@@ -3,6 +3,7 @@ import { formarAbanico } from "./abanicos";
 import { resolverDecisionAbanico, resolverDecisionEnlace } from "./decision";
 import { extremoEntidad, extremoEstado } from "./extremos";
 import {
+  actualizarMaterializacionSubmodelo,
   conectarSubmodelo,
   crearEnlace,
   crearEstadosIniciales,
@@ -13,6 +14,7 @@ import {
   crearRequisito,
   definirOntologiaOrganizacional,
   descomponerProceso,
+  descargarVistaSubmodelo,
   desconectarSubmodelo,
   distribuirEnlaceExternoEnRefinamiento,
   evaluarNombreOntologia,
@@ -279,5 +281,37 @@ describe("capacidades objetivo OPCloud canonizadas en kernel", () => {
     expect(Object.keys(abanico.decision.pesos).sort()).toEqual([...abanico.enlaceIds].sort());
     expect(must(resolverDecisionAbanico(modelo, abanico.id, { random: () => 0.7 })).enlaceId).toBe(abanico.enlaceIds[1]);
     expect(hidratarModelo(exportarModelo(modelo)).ok).toBe(true);
+  });
+
+  test("submodelo LF-04 descarga y actualiza la vista materializada sin romper la referencia", () => {
+    let padre = crearModelo("Padre");
+    padre = must(crearProceso(padre, padre.opdRaizId, { x: 240, y: 80 }, "Validar"));
+    const validarId = entidadId(padre, "Validar");
+
+    let hijo = crearModelo("Hijo");
+    hijo = must(crearObjeto(hijo, hijo.opdRaizId, { x: 40, y: 80 }, "Entrada"));
+    hijo = must(crearProceso(hijo, hijo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+
+    const conectado = must(conectarSubmodelo(padre, {
+      anchorEntidadId: validarId,
+      modeloId: "modelo-hijo",
+      nombre: "Validar detalle",
+      snapshot: hijo,
+    }));
+    const entidadesMaterializadas = Object.values(conectado.modelo.submodelos![conectado.refId]!.materializacion!.entidadMap);
+    let modelo = must(descargarVistaSubmodelo(conectado.modelo, conectado.refId));
+    expect(modelo.submodelos?.[conectado.refId]?.estado).toBe("descargado");
+    expect(Object.keys(modelo.opds[conectado.opdVistaId]!.apariencias)).toHaveLength(0);
+    expect(entidadesMaterializadas.some((id) => modelo.entidades[id])).toBe(false);
+
+    hijo = must(crearObjeto(hijo, hijo.opdRaizId, { x: 500, y: 80 }, "Salida"));
+    const actualizado = must(actualizarMaterializacionSubmodelo(modelo, conectado.refId, hijo));
+    modelo = actualizado.modelo;
+    expect(modelo.submodelos?.[conectado.refId]?.estado).toBe("cargado-sincronizado");
+    expect(Object.values(modelo.opds[conectado.opdVistaId]!.apariencias).map((apariencia) => modelo.entidades[apariencia.entidadId]?.nombre).sort()).toEqual([
+      "Entrada",
+      "Procesar",
+      "Salida",
+    ]);
   });
 });

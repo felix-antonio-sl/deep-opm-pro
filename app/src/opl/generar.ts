@@ -5,6 +5,7 @@ import type { VisibilidadOpl } from "./opciones";
 import { crearLineaOplInteractiva, type OplLineaInteractiva } from "./interaccion";
 import { profundidadOpd } from "./bloquesJerarquicos";
 import { oracionesAbanicoInteractivo } from "./generadores/abanico";
+import { oracionesComposicionIntermodelo } from "./generadores/composicionIntermodelo";
 import { agregarOracionEstadosInteractiva } from "./generadores/designaciones";
 import { oracionesUnidadDescripcionEstados } from "./generadores/duracionMetadata";
 import { oracionEntidad } from "./generadores/estructural";
@@ -115,6 +116,8 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
       }
     }
   }
+
+  lineas.push(...oracionesComposicionIntermodelo(modelo, opd));
 
   const enlacesEnAbanico = new Set<Id>();
   for (const abanico of Object.values(modelo.abanicos ?? {}).filter((item) => item.opdId === opd.id)) {

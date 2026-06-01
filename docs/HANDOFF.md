@@ -637,6 +637,71 @@ OPL/canon, semantica de enlaces/render JointJS y UX de interaccion.
   `docs/auditorias/**` / `docs/bugs/BUG-*`. No stagear salvo instruccion
   explicita.
 
+## Corte actual — Submodelos LF-04 canónicos: kernel → store → UI
+
+Se implementó la primera versión estructural del rediseño aprobado para
+submodelos LF-04. La regla de producto queda explícita: un submodelo en op-forja
+es una **referencia inter-modelo materializable**, no un OPD hijo editable ni una
+copia silenciosa de cosas.
+
+**Decisiones cerradas:**
+- El estado visible del submodelo ya no es una propiedad editable desde UI. Se
+  deriva de la referencia (`source`), la materialización (`materializacion`) y
+  el estado irreversible `desconectado`.
+- La referencia mantiene compatibilidad v0 (`modeloId`, `anchorEntidadId`,
+  `opdVistaId`, `estado`, `compartidas`), pero ahora puede persistir:
+  `source`, `anchor`, `contrato` y `materializacion`.
+- La materialización guarda mapas fuente→vista para entidades, estados, enlaces
+  y abanicos. Esto permite descargar/actualizar la vista sin dejar residuos
+  globales ni romper validación referencial.
+- La UI del inspector reemplaza el selector manual de estado por acciones:
+  `Abrir`, `Actualizar`, `Descargar`, `Desvincular`, más badge derivado
+  (`sin cargar`, `sincronizado`, `desactualizado`, `desvinculado`).
+- El árbol OPD etiqueta vistas de submodelo con badge `SM` y estado corto.
+- OPL emite composición inter-modelo CM1/CM2 para `submodel-view`, sin sustituir
+  la OPL interna de la vista materializada.
+
+**Artefactos principales:**
+- Kernel: `app/src/modelo/submodelos.ts`,
+  `app/src/modelo/submodelos/estado.ts`,
+  `app/src/modelo/submodelos/materializacion.ts`.
+- Tipos/persistencia: `app/src/modelo/tipos/extensiones.ts`,
+  `app/src/modelo/tipos.ts`, `app/src/serializacion/json.ts`.
+- Store/UI: `app/src/store/modelo/acciones-capacidades.ts`,
+  `app/src/store/tipos.ts`, `app/src/ui/InspectorEntidad.tsx`,
+  `app/src/ui/arbol/NodoOpd.tsx`.
+- OPL: `app/src/opl/generadores/composicionIntermodelo.ts`,
+  `app/src/opl/generar.ts`.
+
+**Verificación ejecutada:**
+- `cd app && bun run typecheck` -> OK.
+- `cd app && bun run lint` -> OK.
+- `cd app && bun run build` -> OK (`index-B29GF8Nt.js`,
+  `DialogoSubmodelo-CdHOppzx.js`, `CommandPalette-w8v6A7sa.js`).
+- `cd app && bun run test` -> **1771 pass / 0 fail**.
+- Focal adicional post-ajuste:
+  `bun test src/modelo/capacidadesOpcloud.test.ts src/store/capacidadesOpcloudUi.test.ts src/opl/generar.test.ts`
+  -> **90 pass / 0 fail**.
+
+**Pendientes/riesgos:**
+- CM3 queda implementado solo para `compartidas` explícitas resolubles; la UI aún
+  no ofrece un mapeo inteligente de cosas compartidas/frozen boundary.
+- `Actualizar` depende de que el modelo hijo exista en persistencia local. Si no,
+  el store muestra mensaje y no muta.
+- `Descargar` usa mapas de materialización nuevos y reconstruye mapas para
+  materializaciones legacy con IDs prefijados. Si un archivo antiguo fue editado
+  manualmente y perdió esos prefijos, se bloquea con mensaje en vez de dejar
+  residuos huérfanos.
+- Falta Playwright específico de inspector/árbol para acciones `Actualizar` y
+  `Descargar`; hoy queda cubierto por kernel, store y tests OPL.
+
+**Prompt de continuación breve:**
+> Continúa desde `docs/HANDOFF.md`, sección "Corte actual — Submodelos LF-04
+> canónicos: kernel → store → UI". Validar in-vivo la UX de inspector/árbol:
+> conectar modelo, abrir vista derivada read-only, descargar, actualizar y
+> desvincular. Si se agregan compartidas LF-04, diseñar UI de mapeo de boundary
+> antes de emitir CM3 como feature completa.
+
 ## Fuentes normativas y técnicas
 
 - **SSOT suprema de canon OPM/opforja**: `urn:fxsl:kb:reglas-opm-estrictas-es` — autoritativa para verbos/plantillas OPL (estados=`puede estar`, especialización=`puede ser`); puente local en `docs/canon-opm/reglas-opm-estrictas.md`.

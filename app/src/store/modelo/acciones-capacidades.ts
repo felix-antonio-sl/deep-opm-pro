@@ -1,10 +1,12 @@
 import { abanicoDeEnlace } from "../../modelo/abanicos";
 import { resolverDecisionAbanico, resolverDecisionEnlace } from "../../modelo/decision";
 import {
+  actualizarMaterializacionSubmodelo,
   conectarSubmodelo,
   crearRequirementView,
   crearRequisito,
   definirOntologiaOrganizacional,
+  descargarVistaSubmodelo,
   desconectarSubmodelo,
   distribuirEnlaceExternoEnRefinamiento,
   marcarEntidadComoRequisito,
@@ -202,6 +204,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         anchorEntidadId: seleccionId,
         modeloId: input.modeloId,
         nombre: input.nombre,
+        anchorOpdId: opdActivoId,
         ...(input.compartidas ? { compartidas: input.compartidas } : {}),
         ...(snapshot.value ? { snapshot: snapshot.value } : {}),
       });
@@ -229,6 +232,52 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         return;
       }
       commitModelo(set, modelo, resultado.value, { mensaje: `Submodelo ${estado}` });
+    },
+
+    actualizarSubmodeloSeleccionado(refId) {
+      const { modelo, seleccionId, opdActivoId } = get();
+      const id = refId ?? refSubmodeloDesdeContexto(modelo, seleccionId, opdActivoId);
+      if (!id) {
+        set({ mensaje: "No hay submodelo asociado a la selección" });
+        return;
+      }
+      const ref = modelo.submodelos?.[id];
+      if (!ref) {
+        set({ mensaje: "Submodelo no encontrado" });
+        return;
+      }
+      const snapshot = cargarSnapshotSubmodeloLocal(ref.source?.modeloId ?? ref.modeloId);
+      if (!snapshot.ok) {
+        set({ mensaje: snapshot.error });
+        return;
+      }
+      if (!snapshot.value) {
+        set({ mensaje: "No se encontró el modelo local del submodelo" });
+        return;
+      }
+      const resultado = actualizarMaterializacionSubmodelo(modelo, id, snapshot.value);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value.modelo, {
+        mensaje: "Submodelo actualizado",
+      });
+    },
+
+    descargarSubmodeloSeleccionado(refId) {
+      const { modelo, seleccionId, opdActivoId } = get();
+      const id = refId ?? refSubmodeloDesdeContexto(modelo, seleccionId, opdActivoId);
+      if (!id) {
+        set({ mensaje: "No hay submodelo asociado a la selección" });
+        return;
+      }
+      const resultado = descargarVistaSubmodelo(modelo, id);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { mensaje: "Vista de submodelo descargada" });
     },
 
     desconectarSubmodeloSeleccionado(refId) {

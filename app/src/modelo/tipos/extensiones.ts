@@ -43,14 +43,50 @@ export type EstadoCargaSubmodelo =
   | "cargado-no-sincronizado"
   | "desconectado";
 
+export interface SubmodeloSource {
+  modeloId: Id;
+  nombre?: string;
+  revisionHash?: string;
+}
+
+export interface SubmodeloAnchor {
+  entidadId: Id;
+  opdId?: Id;
+}
+
+export interface SubmodeloContrato {
+  compartidas?: Record<Id, Id>;
+  frozenAtHash?: string;
+}
+
+export interface SubmodeloMaterializacion {
+  opdVistaId: Id;
+  scope: "sd-root";
+  entidadMap: Record<Id, Id>;
+  estadoMap: Record<Id, Id>;
+  enlaceMap: Record<Id, Id>;
+  abanicoMap: Record<Id, Id>;
+  sourceHash?: string;
+  materializedAt?: string;
+}
+
 export interface SubmodeloReferencia {
   id: Id;
+  /** Compatibilidad v0: duplicado por source.modeloId. */
   modeloId: Id;
   nombre: string;
+  /** Compatibilidad v0: duplicado por anchor.entidadId. */
   anchorEntidadId: Id;
+  /** Compatibilidad v0: duplicado por materializacion.opdVistaId cuando está cargado. */
   opdVistaId?: Id;
+  /** Estado de lectura rápida; el estado efectivo se deriva de source/materializacion. */
   estado: EstadoCargaSubmodelo;
+  /** Compatibilidad v0: duplicado por contrato.compartidas. */
   compartidas?: Record<Id, Id>;
+  source?: SubmodeloSource;
+  anchor?: SubmodeloAnchor;
+  contrato?: SubmodeloContrato;
+  materializacion?: SubmodeloMaterializacion;
 }
 
 export interface ReferenciaPadreSubmodelo {

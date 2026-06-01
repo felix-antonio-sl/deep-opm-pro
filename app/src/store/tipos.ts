@@ -395,6 +395,8 @@ export interface OpmStore {
   cerrarDialogoSubmodelo: () => void;
   conectarSubmodeloSeleccionado: (input: { modeloId: Id; nombre: string; compartidas?: Record<Id, Id> }) => void;
   marcarEstadoSubmodeloSeleccionado: (refId: Id, estado: EstadoCargaSubmodelo) => void;
+  actualizarSubmodeloSeleccionado: (refId?: Id) => void;
+  descargarSubmodeloSeleccionado: (refId?: Id) => void;
   desconectarSubmodeloSeleccionado: (refId?: Id) => void;
   renombrarModeloActual: (nombre: string) => void;
   resaltarTemporalmente: (ids: Id[], ms?: number) => void;

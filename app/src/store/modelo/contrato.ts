@@ -51,6 +51,8 @@ export const MODELO_SLICE_CAPABILITIES = {
     "cerrarDialogoSubmodelo",
     "conectarSubmodeloSeleccionado",
     "marcarEstadoSubmodeloSeleccionado",
+    "actualizarSubmodeloSeleccionado",
+    "descargarSubmodeloSeleccionado",
     "desconectarSubmodeloSeleccionado",
     "renombrarModeloActual",
     "resaltarTemporalmente",

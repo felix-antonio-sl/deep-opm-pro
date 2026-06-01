@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { refinaA } from "../../modelo/refinamientos";
+import { estadoSubmodelo } from "../../modelo/submodelos";
 import type { Entidad, Id, Modelo, Opd, TipoRefinamiento } from "../../modelo/tipos";
 import { tokens } from "../tokens";
 import { GLIFO_BORRAR, GLIFO_CARET, GLIFO_MARKER, GLIFO_REF, GLIFO_WARN } from "../codex/glifos";
@@ -67,6 +68,9 @@ export function NodoOpd(props: NodoOpdProps) {
   const esRenombrando = props.renombrando?.id === props.nodo.opd.id;
   const tipoAccionable = Boolean(badges.refinadorId && badges.tipo !== "raiz");
   const etiquetaTipo = labelTipoBadge(badges.tipo);
+  const submodeloRef = props.nodo.opd.vista?.kind === "submodel-view"
+    ? props.modelo.submodelos?.[props.nodo.opd.vista.submodeloRefId]
+    : undefined;
 
   return (
     <div
@@ -133,6 +137,11 @@ export function NodoOpd(props: NodoOpdProps) {
         >
           <span style={style.code}>{code}</span>
           {props.nombresArbolVisibles && descriptivo ? <span style={style.label}>{descriptivo}</span> : null}
+          {submodeloRef ? (
+            <span style={style.viewTag} title={`Submodelo ${labelEstadoSubmodelo(estadoSubmodelo(submodeloRef))}`}>
+              SM {labelEstadoSubmodelo(estadoSubmodelo(submodeloRef))}
+            </span>
+          ) : null}
         </span>
       )}
 
@@ -196,6 +205,13 @@ function ariaLabelNodo(nombre: string, badges: BadgesNodoOpd): string {
 
 function ariaLabelIssues(nombre: string, badges: BadgesNodoOpd): string {
   return `${nombre}: ${badges.errores} errores y ${badges.advertencias} advertencias`;
+}
+
+function labelEstadoSubmodelo(estado: ReturnType<typeof estadoSubmodelo>): string {
+  if (estado === "cargado-sincronizado") return "sync";
+  if (estado === "cargado-no-sincronizado") return "out";
+  if (estado === "desconectado") return "off";
+  return "cold";
 }
 
 export function nombreNodo(modelo: Modelo, opd: Opd): string {
@@ -312,6 +328,12 @@ const style = {
   label: {
     fontFamily: tokens.typography.serif,
     fontSize: tokens.typography.fs.fs14,
+  },
+  viewTag: {
+    marginLeft: "6px",
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.mono,
+    fontSize: tokens.typography.fs.fs10,
   },
   refBtn: { ...actionBase, color: tokens.colors.crimson, cursor: "pointer" },
   // Marca de diagnóstico: △ crimson tipográfica (no pill). Error en peso bold.

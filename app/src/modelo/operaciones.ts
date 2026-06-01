@@ -144,8 +144,12 @@ export {
 export type { RequisitoCreado } from "./requisitos";
 
 export {
+  actualizarMaterializacionSubmodelo,
   conectarSubmodelo,
+  descargarVistaSubmodelo,
   desconectarSubmodelo,
+  estadoSubmodelo,
+  materializacionEfectivaSubmodelo,
   marcarEstadoSubmodelo,
   registrarPadreSubmodelo,
 } from "./submodelos";

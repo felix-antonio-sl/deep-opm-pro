@@ -1,22 +1,24 @@
 import type {
-  Abanico,
-  Apariencia,
-  AparienciaEnlace,
-  ContextoRefinamientoApariencia,
-  DecisionPolicy,
-  DerivacionEnlace,
-  EfectoEscindido,
-  Enlace,
-  Entidad,
-  Estado,
   EstadoCargaSubmodelo,
-  ExtremoEnlace,
   Id,
   Modelo,
   Opd,
   Resultado,
   SubmodeloReferencia,
 } from "./tipos";
+import {
+  estadoSubmodelo,
+  firmaSnapshotSubmodelo,
+  refConEstadoDerivado,
+} from "./submodelos/estado";
+import {
+  materializacionEfectivaSubmodelo,
+  materializarSnapshotSubmodelo,
+  opdSubmodeloVacio,
+} from "./submodelos/materializacion";
+
+export { estadoSubmodelo, firmaSnapshotSubmodelo } from "./submodelos/estado";
+export { materializacionEfectivaSubmodelo } from "./submodelos/materializacion";
 
 export interface SubmodeloConectado {
   modelo: Modelo;
@@ -32,6 +34,7 @@ export function conectarSubmodelo(
     nombre: string;
     compartidas?: Record<Id, Id>;
     snapshot?: Modelo;
+    anchorOpdId?: Id;
   },
 ): Resultado<SubmodeloConectado> {
   const anchor = modelo.entidades[opciones.anchorEntidadId];
@@ -40,31 +43,35 @@ export function conectarSubmodelo(
   if (!nombre) return { ok: false, error: "El submodelo requiere nombre" };
 
   let nextSeq = modelo.nextSeq;
-  const refId = siguienteId({ ...modelo, nextSeq }, "sm");
+  const refId = siguienteId(nextSeq, "sm");
   nextSeq += 1;
-  const opdVistaId = siguienteId({ ...modelo, nextSeq }, "opd");
+  const opdVistaId = siguienteId(nextSeq, "opd");
   nextSeq += 1;
-  const snapshot = opciones.snapshot
-    ? materializarSnapshotSubmodelo(opciones.snapshot, opdVistaId, refId, nombre, modelo.opdRaizId)
+  const padreId = opciones.anchorOpdId && modelo.opds[opciones.anchorOpdId] ? opciones.anchorOpdId : modelo.opdRaizId;
+  const materializado = opciones.snapshot
+    ? materializarSnapshotSubmodelo(opciones.snapshot, opdVistaId, refId, nombre, padreId)
     : null;
-  const estado: EstadoCargaSubmodelo = snapshot ? "cargado-sincronizado" : "descargado";
-  const referencia: SubmodeloReferencia = {
+  const estado: EstadoCargaSubmodelo = materializado ? "cargado-sincronizado" : "descargado";
+  const revisionHash = materializado?.materializacion.sourceHash ?? (opciones.snapshot ? firmaSnapshotSubmodelo(opciones.snapshot) : undefined);
+  const compartidas = normalizarCompartidas(opciones.compartidas);
+  const referencia = refConEstadoDerivado({
     id: refId,
     modeloId: opciones.modeloId,
     nombre,
     anchorEntidadId: opciones.anchorEntidadId,
     opdVistaId,
     estado,
-    ...(opciones.compartidas && Object.keys(opciones.compartidas).length > 0 ? { compartidas: opciones.compartidas } : {}),
-  };
-  const opd: Opd = snapshot?.opd ?? {
-    id: opdVistaId,
-    nombre,
-    padreId: modelo.opdRaizId,
-    apariencias: {},
-    enlaces: {},
-    vista: { kind: "submodel-view", submodeloRefId: refId, readOnly: true, syncState: estado },
-  };
+    ...(compartidas ? { compartidas } : {}),
+    source: {
+      modeloId: opciones.modeloId,
+      ...(opciones.snapshot?.nombre ? { nombre: opciones.snapshot.nombre } : {}),
+      ...(revisionHash ? { revisionHash } : {}),
+    },
+    anchor: { entidadId: opciones.anchorEntidadId, opdId: padreId },
+    ...(compartidas || revisionHash ? { contrato: { ...(compartidas ? { compartidas } : {}), ...(revisionHash ? { frozenAtHash: revisionHash } : {}) } } : {}),
+    ...(materializado ? { materializacion: materializado.materializacion } : {}),
+  });
+  const opd: Opd = materializado?.opd ?? opdSubmodeloVacio(opdVistaId, refId, nombre, padreId, estado);
 
   return {
     ok: true,
@@ -80,11 +87,11 @@ export function conectarSubmodelo(
           ...modelo.opds,
           [opdVistaId]: opd,
         },
-        ...(snapshot ? {
-          entidades: { ...modelo.entidades, ...snapshot.entidades },
-          estados: { ...modelo.estados, ...snapshot.estados },
-          enlaces: { ...modelo.enlaces, ...snapshot.enlaces },
-          abanicos: { ...(modelo.abanicos ?? {}), ...snapshot.abanicos },
+        ...(materializado ? {
+          entidades: { ...modelo.entidades, ...materializado.entidades },
+          estados: { ...modelo.estados, ...materializado.estados },
+          enlaces: { ...modelo.enlaces, ...materializado.enlaces },
+          abanicos: { ...(modelo.abanicos ?? {}), ...materializado.abanicos },
         } : {}),
       },
       refId,
@@ -93,262 +100,118 @@ export function conectarSubmodelo(
   };
 }
 
-interface SnapshotSubmodelo {
-  opd: Opd;
-  entidades: Record<Id, Entidad>;
-  estados: Record<Id, Estado>;
-  enlaces: Record<Id, Enlace>;
-  abanicos: Record<Id, Abanico>;
-}
+export function actualizarMaterializacionSubmodelo(modelo: Modelo, refId: Id, snapshot: Modelo): Resultado<SubmodeloConectado> {
+  const ref = modelo.submodelos?.[refId];
+  if (!ref) return { ok: false, error: `Submodelo no existe: ${refId}` };
+  if (estadoSubmodelo(ref) === "desconectado") return { ok: false, error: "El submodelo está desconectado" };
 
-function materializarSnapshotSubmodelo(snapshot: Modelo, opdVistaId: Id, refId: Id, nombre: string, padreId: Id): SnapshotSubmodelo {
-  const root = snapshot.opds[snapshot.opdRaizId];
-  if (!root) {
-    return {
-      opd: {
-        id: opdVistaId,
-        nombre,
-        padreId,
-        apariencias: {},
-        enlaces: {},
-        vista: { kind: "submodel-view", submodeloRefId: refId, readOnly: true, syncState: "cargado-sincronizado" },
-      },
-      entidades: {},
-      estados: {},
-      enlaces: {},
-      abanicos: {},
-    };
-  }
+  const descargado = materializacionEfectivaSubmodelo(modelo, ref)
+    ? descargarVistaSubmodelo(modelo, refId)
+    : { ok: true as const, value: modelo };
+  if (!descargado.ok) return descargado;
 
-  const entidadMap = new Map<Id, Id>();
-  const estadoMap = new Map<Id, Id>();
-  const enlaceMap = new Map<Id, Id>();
-  const aparienciaMap = new Map<Id, Id>();
-
-  const entidades: Record<Id, Entidad> = {};
-  for (const apariencia of Object.values(root.apariencias)) {
-    const entidad = snapshot.entidades[apariencia.entidadId];
-    if (!entidad) continue;
-    const id = idSnapshot(refId, prefijoEntidad(entidad), entidad.id);
-    entidadMap.set(entidad.id, id);
-    const { refinamientos: _refinamientos, ...resto } = clonar(entidad);
-    entidades[id] = { ...resto, id };
-  }
-
-  const estados: Record<Id, Estado> = {};
-  for (const estado of Object.values(snapshot.estados ?? {})) {
-    const entidadId = entidadMap.get(estado.entidadId);
-    if (!entidadId) continue;
-    const id = idSnapshot(refId, "s", estado.id);
-    estadoMap.set(estado.id, id);
-    estados[id] = { ...clonar(estado), id, entidadId };
-  }
-
-  const enlaces: Record<Id, Enlace> = {};
-  for (const apariencia of Object.values(root.enlaces)) {
-    const enlace = snapshot.enlaces[apariencia.enlaceId];
-    if (!enlace) continue;
-    const origen = remapExtremo(enlace.origenId, entidadMap, estadoMap);
-    const destino = remapExtremo(enlace.destinoId, entidadMap, estadoMap);
-    if (!origen || !destino) continue;
-    const id = idSnapshot(refId, "e", enlace.id);
-    enlaceMap.set(enlace.id, id);
-    enlaces[id] = remapEnlace(clonar(enlace), id, origen, destino, refId, estadoMap, enlaceMap);
-  }
-
-  const apariencias: Record<Id, Apariencia> = {};
-  for (const apariencia of Object.values(root.apariencias)) {
-    const entidadId = entidadMap.get(apariencia.entidadId);
-    if (!entidadId) continue;
-    const id = idSnapshot(refId, "a", apariencia.id);
-    aparienciaMap.set(apariencia.id, id);
-    apariencias[id] = remapApariencia(clonar(apariencia), id, opdVistaId, entidadId, entidadMap, estadoMap, aparienciaMap);
-  }
-
-  const aparienciasEnlace: Record<Id, AparienciaEnlace> = {};
-  for (const apariencia of Object.values(root.enlaces)) {
-    const enlaceId = enlaceMap.get(apariencia.enlaceId);
-    if (!enlaceId) continue;
-    const id = idSnapshot(refId, "ae", apariencia.id);
-    aparienciasEnlace[id] = { ...clonar(apariencia), id, enlaceId, opdId: opdVistaId };
-  }
-
-  const abanicos: Record<Id, Abanico> = {};
-  for (const abanico of Object.values(snapshot.abanicos ?? {})) {
-    if (abanico.opdId !== root.id) continue;
-    const linkIds = abanico.enlaceIds.map((id) => enlaceMap.get(id)).filter((id): id is Id => !!id);
-    if (linkIds.length !== abanico.enlaceIds.length || linkIds.length < 2) continue;
-    const entidadId = entidadMap.get(abanico.puertoComun.entidadId);
-    if (!entidadId) continue;
-    const id = idSnapshot(refId, "ab", abanico.id);
-    abanicos[id] = {
-      ...clonar(abanico),
-      id,
-      opdId: opdVistaId,
-      puertoComun: { ...abanico.puertoComun, entidadId },
-      puertoEntidadId: entidadId,
-      enlaceIds: linkIds,
-      ...(abanico.decision ? { decision: remapDecision(abanico.decision, entidadMap, estadoMap, enlaceMap) } : {}),
-    };
-  }
-
-  return {
-    opd: {
-      id: opdVistaId,
-      nombre,
-      padreId,
-      apariencias,
-      enlaces: aparienciasEnlace,
-      vista: { kind: "submodel-view", submodeloRefId: refId, readOnly: true, syncState: "cargado-sincronizado" },
+  const base = descargado.value;
+  const refBase = base.submodelos?.[refId] ?? ref;
+  let nextSeq = base.nextSeq;
+  const opdVistaId = refBase.opdVistaId ?? siguienteId(nextSeq++, "opd");
+  const padreId = base.opds[opdVistaId]?.padreId ?? refBase.anchor?.opdId ?? base.opdRaizId;
+  const materializado = materializarSnapshotSubmodelo(snapshot, opdVistaId, refId, refBase.nombre, padreId);
+  const revisionHash = materializado.materializacion.sourceHash ?? firmaSnapshotSubmodelo(snapshot);
+  const compartidas = normalizarCompartidas(refBase.contrato?.compartidas ?? refBase.compartidas);
+  const refActualizada = refConEstadoDerivado({
+    ...refBase,
+    modeloId: refBase.source?.modeloId ?? refBase.modeloId,
+    anchorEntidadId: refBase.anchor?.entidadId ?? refBase.anchorEntidadId,
+    opdVistaId,
+    estado: "cargado-sincronizado",
+    ...(compartidas ? { compartidas } : {}),
+    source: {
+      modeloId: refBase.source?.modeloId ?? refBase.modeloId,
+      ...(snapshot.nombre ? { nombre: snapshot.nombre } : {}),
+      revisionHash,
     },
-    entidades,
-    estados,
-    enlaces,
-    abanicos,
-  };
-}
+    anchor: refBase.anchor ?? { entidadId: refBase.anchorEntidadId, opdId: padreId },
+    contrato: {
+      ...(compartidas ? { compartidas } : {}),
+      frozenAtHash: refBase.contrato?.frozenAtHash ?? revisionHash,
+    },
+    materializacion: materializado.materializacion,
+  });
 
-function remapApariencia(
-  apariencia: Apariencia,
-  id: Id,
-  opdId: Id,
-  entidadId: Id,
-  entidadMap: Map<Id, Id>,
-  estadoMap: Map<Id, Id>,
-  aparienciaMap: Map<Id, Id>,
-): Apariencia {
-  const {
-    parteExtraidaDe: _parteExtraidaDe,
-    contextoRefinamiento: _contextoRefinamiento,
-    estadosSuprimidos: _estadosSuprimidos,
-    ...base
-  } = apariencia;
-  const parteExtraidaDe = apariencia.parteExtraidaDe
-    ? {
-        padreAparienciaId: aparienciaMap.get(apariencia.parteExtraidaDe.padreAparienciaId) ?? apariencia.parteExtraidaDe.padreAparienciaId,
-        parteEntidadId: entidadMap.get(apariencia.parteExtraidaDe.parteEntidadId) ?? apariencia.parteExtraidaDe.parteEntidadId,
-      }
-    : undefined;
-  const contextoRefinamiento = apariencia.contextoRefinamiento
-    ? remapContextoRefinamiento(apariencia.contextoRefinamiento, entidadMap, aparienciaMap)
-    : undefined;
   return {
-    ...base,
-    id,
-    opdId,
-    entidadId,
-    ...(parteExtraidaDe ? { parteExtraidaDe } : {}),
-    ...(contextoRefinamiento ? { contextoRefinamiento } : {}),
-    ...(apariencia.estadosSuprimidos ? { estadosSuprimidos: apariencia.estadosSuprimidos.map((estadoId) => estadoMap.get(estadoId) ?? estadoId) } : {}),
+    ok: true,
+    value: {
+      modelo: {
+        ...base,
+        nextSeq,
+        submodelos: {
+          ...(base.submodelos ?? {}),
+          [refId]: refActualizada,
+        },
+        opds: {
+          ...base.opds,
+          [opdVistaId]: materializado.opd,
+        },
+        entidades: { ...base.entidades, ...materializado.entidades },
+        estados: { ...base.estados, ...materializado.estados },
+        enlaces: { ...base.enlaces, ...materializado.enlaces },
+        abanicos: { ...(base.abanicos ?? {}), ...materializado.abanicos },
+      },
+      refId,
+      opdVistaId,
+    },
   };
 }
 
-function remapContextoRefinamiento(
-  contexto: ContextoRefinamientoApariencia,
-  entidadMap: Map<Id, Id>,
-  aparienciaMap: Map<Id, Id>,
-): ContextoRefinamientoApariencia {
-  return {
-    ...contexto,
-    refinableEntidadId: entidadMap.get(contexto.refinableEntidadId) ?? contexto.refinableEntidadId,
-    ...(contexto.contenedorAparienciaId ? { contenedorAparienciaId: aparienciaMap.get(contexto.contenedorAparienciaId) ?? contexto.contenedorAparienciaId } : {}),
-  };
-}
-
-function remapEnlace(
-  enlace: Enlace,
-  id: Id,
-  origenId: ExtremoEnlace,
-  destinoId: ExtremoEnlace,
-  refId: Id,
-  estadoMap: Map<Id, Id>,
-  enlaceMap: Map<Id, Id>,
-): Enlace {
-  const {
-    derivado: _derivado,
-    efectoEscindido: _efectoEscindido,
-    estadoEntradaId: _estadoEntradaId,
-    estadoSalidaId: _estadoSalidaId,
-    ...base
-  } = enlace;
-  const derivado = remapDerivacion(enlace.derivado, enlaceMap);
-  const efectoEscindido = remapEfectoEscindido(enlace.efectoEscindido, refId, enlaceMap);
-  return {
-    ...base,
-    id,
-    origenId,
-    destinoId,
-    ...(enlace.grupoEstructuralId ? { grupoEstructuralId: idSnapshot(refId, "ge", enlace.grupoEstructuralId) } : {}),
-    ...(enlace.estadoEntradaId ? { estadoEntradaId: estadoMap.get(enlace.estadoEntradaId) ?? enlace.estadoEntradaId } : {}),
-    ...(enlace.estadoSalidaId ? { estadoSalidaId: estadoMap.get(enlace.estadoSalidaId) ?? enlace.estadoSalidaId } : {}),
-    ...(derivado ? { derivado } : {}),
-    ...(efectoEscindido ? { efectoEscindido } : {}),
-  };
-}
-
-function remapDerivacion(derivado: DerivacionEnlace | undefined, enlaceMap: Map<Id, Id>): DerivacionEnlace | undefined {
-  if (!derivado) return undefined;
-  const enlacePadreId = enlaceMap.get(derivado.enlacePadreId);
-  if (!enlacePadreId) return undefined;
-  return { ...derivado, enlacePadreId };
-}
-
-function remapEfectoEscindido(
-  efecto: EfectoEscindido | undefined,
-  refId: Id,
-  enlaceMap: Map<Id, Id>,
-): EfectoEscindido | undefined {
-  if (!efecto) return undefined;
-  const enlacePadreId = enlaceMap.get(efecto.enlacePadreId);
-  if (!enlacePadreId) return undefined;
-  return {
-    ...efecto,
-    grupoId: idSnapshot(refId, "efe", efecto.grupoId),
-    enlacePadreId,
-  };
-}
-
-function remapExtremo(
-  extremo: ExtremoEnlace,
-  entidadMap: Map<Id, Id>,
-  estadoMap: Map<Id, Id>,
-): ExtremoEnlace | null {
-  const id = extremo.kind === "estado" ? estadoMap.get(extremo.id) : entidadMap.get(extremo.id);
-  return id ? { ...extremo, id } : null;
-}
-
-function remapDecision(
-  decision: DecisionPolicy,
-  entidadMap: Map<Id, Id>,
-  estadoMap: Map<Id, Id>,
-  enlaceMap: Map<Id, Id>,
-): DecisionPolicy {
-  if (decision.modo === "estado-fijo") {
-    return { ...decision, estadoId: estadoMap.get(decision.estadoId) ?? decision.estadoId };
+export function descargarVistaSubmodelo(modelo: Modelo, refId: Id): Resultado<Modelo> {
+  const ref = modelo.submodelos?.[refId];
+  if (!ref) return { ok: false, error: `Submodelo no existe: ${refId}` };
+  if (estadoSubmodelo(ref) === "desconectado") return { ok: false, error: "El submodelo está desconectado" };
+  const materializacion = materializacionEfectivaSubmodelo(modelo, ref);
+  if (!materializacion) {
+    if (estadoSubmodelo(ref) === "descargado") return { ok: true, value: modelo };
+    return { ok: false, error: "La vista no tiene mapa de materialización para descargar" };
   }
-  if (decision.modo === "uniforme") {
-    return { ...decision, objetoId: entidadMap.get(decision.objetoId) ?? decision.objetoId };
-  }
-  if (decision.modo === "probabilidades") {
-    return {
-      ...decision,
-      pesos: Object.fromEntries(Object.entries(decision.pesos).map(([id, peso]) => [enlaceMap.get(id) ?? id, peso])),
-    };
-  }
-  return decision;
-}
+  const opd = modelo.opds[materializacion.opdVistaId];
+  if (!opd) return { ok: false, error: `OPD de submodelo no existe: ${materializacion.opdVistaId}` };
+  const estado: EstadoCargaSubmodelo = "descargado";
+  const { materializacion: _materializacion, ...refSinMaterializacion } = ref;
+  const revisionHash = ref.source?.revisionHash ?? materializacion.sourceHash;
+  const refDescargada = refConEstadoDerivado({
+    ...refSinMaterializacion,
+    opdVistaId: materializacion.opdVistaId,
+    estado,
+    source: {
+      modeloId: ref.source?.modeloId ?? ref.modeloId,
+      ...(ref.source?.nombre ? { nombre: ref.source.nombre } : {}),
+      ...(revisionHash ? { revisionHash } : {}),
+    },
+    anchor: ref.anchor ?? { entidadId: ref.anchorEntidadId, opdId: opd.padreId ?? modelo.opdRaizId },
+  });
 
-function prefijoEntidad(entidad: Entidad): "o" | "p" {
-  return entidad.tipo === "objeto" ? "o" : "p";
-}
-
-function idSnapshot(refId: Id, prefijo: string, id: Id): Id {
-  return `${prefijo}-${refId}-${id}`;
-}
-
-function clonar<T>(value: T): T {
-  if (typeof structuredClone === "function") return structuredClone(value);
-  return JSON.parse(JSON.stringify(value)) as T;
+  return {
+    ok: true,
+    value: {
+      ...modelo,
+      submodelos: {
+        ...(modelo.submodelos ?? {}),
+        [refId]: refDescargada,
+      },
+      opds: {
+        ...modelo.opds,
+        [opd.id]: {
+          ...opd,
+          apariencias: {},
+          enlaces: {},
+          vista: { kind: "submodel-view", submodeloRefId: refId, readOnly: true, syncState: estado },
+        },
+      },
+      entidades: omitirIds(modelo.entidades, Object.values(materializacion.entidadMap)),
+      estados: omitirIds(modelo.estados, Object.values(materializacion.estadoMap)),
+      enlaces: omitirIds(modelo.enlaces, Object.values(materializacion.enlaceMap)),
+      abanicos: omitirIds(modelo.abanicos ?? {}, Object.values(materializacion.abanicoMap)),
+    },
+  };
 }
 
 export function marcarEstadoSubmodelo(modelo: Modelo, refId: Id, estado: EstadoCargaSubmodelo): Resultado<Modelo> {
@@ -356,13 +219,14 @@ export function marcarEstadoSubmodelo(modelo: Modelo, refId: Id, estado: EstadoC
   if (!ref) return { ok: false, error: `Submodelo no existe: ${refId}` };
   const opdVistaId = ref.opdVistaId;
   const opd = opdVistaId ? modelo.opds[opdVistaId] : undefined;
+  const refActualizada = refConEstadoDerivado({ ...ref, estado });
   return {
     ok: true,
     value: {
       ...modelo,
       submodelos: {
         ...(modelo.submodelos ?? {}),
-        [refId]: { ...ref, estado },
+        [refId]: estado === "desconectado" ? { ...refActualizada, estado } : refActualizada,
       },
       opds: opd && opdVistaId
         ? {
@@ -380,7 +244,7 @@ export function marcarEstadoSubmodelo(modelo: Modelo, refId: Id, estado: EstadoC
 export function desconectarSubmodelo(modelo: Modelo, refId: Id): Resultado<Modelo> {
   const ref = modelo.submodelos?.[refId];
   if (!ref) return { ok: false, error: `Submodelo no existe: ${refId}` };
-  if (ref.estado === "desconectado") return { ok: true, value: modelo };
+  if (estadoSubmodelo(ref) === "desconectado") return { ok: true, value: modelo };
   return marcarEstadoSubmodelo(modelo, refId, "desconectado");
 }
 
@@ -403,6 +267,16 @@ export function registrarPadreSubmodelo(
   };
 }
 
-function siguienteId(modelo: Modelo, prefijo: string): Id {
-  return `${prefijo}-${modelo.nextSeq}`;
+function siguienteId(nextSeq: number, prefijo: string): Id {
+  return `${prefijo}-${nextSeq}`;
+}
+
+function normalizarCompartidas(value: Record<Id, Id> | undefined): Record<Id, Id> | undefined {
+  if (!value || Object.keys(value).length === 0) return undefined;
+  return { ...value };
+}
+
+function omitirIds<T>(record: Record<Id, T>, ids: readonly Id[]): Record<Id, T> {
+  const omitidos = new Set(ids);
+  return Object.fromEntries(Object.entries(record).filter(([id]) => !omitidos.has(id))) as Record<Id, T>;
 }

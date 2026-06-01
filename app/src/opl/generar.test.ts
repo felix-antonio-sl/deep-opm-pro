@@ -3,7 +3,7 @@ import { extremoEstado } from "../modelo/extremos";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
-import { ajustarMultiplicidad, cambiarEsencia, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarEsencia, conectarSubmodelo, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
@@ -687,6 +687,31 @@ describe("OPL-ES — refinamiento", () => {
     modelo = must(cambiarModoPlegado(modelo, modelo.opdRaizId, apariencia.id, "parcial"));
 
     expect(generarOpl(modelo, modelo.opdRaizId)).toContain("**Vehiculo** se lista con **Vehiculo parte 1**, **Vehiculo parte 2** y **Vehiculo parte 3** como rasgos.");
+  });
+});
+
+describe("OPL-ES — composición inter-modelo", () => {
+  test("submodelo LF-04 emite CM1 y CM2 sin reemplazar OPL interna", () => {
+    let padre = crearModelo("Modelo Principal");
+    padre = must(crearProceso(padre, padre.opdRaizId, { x: 160, y: 120 }, "Coordinar"));
+    const coordinarId = entidad(padre, "Coordinar");
+
+    let hijo = crearModelo("Modelo Subsistema");
+    hijo = must(crearObjeto(hijo, hijo.opdRaizId, { x: 60, y: 120 }, "Entrada"));
+    hijo = must(crearProceso(hijo, hijo.opdRaizId, { x: 280, y: 120 }, "Procesar"));
+
+    const conectado = must(conectarSubmodelo(padre, {
+      anchorEntidadId: coordinarId,
+      modeloId: "modelo-subsistema",
+      nombre: "SD1.1",
+      snapshot: hijo,
+    }));
+    const lineas = generarOpl(conectado.modelo, conectado.opdVistaId);
+
+    expect(lineas).toContain("SD1.1 es una vista de sub-modelo de Modelo Subsistema.");
+    expect(lineas).toContain("SD1.1 referencia el sub-modelo Modelo Subsistema desde SD.");
+    expect(lineas).toContain("**Entrada** es un objeto informacional y sistémico.");
+    expect(lineas).toContain("*Procesar* es un proceso informacional y sistémico.");
   });
 });
 
