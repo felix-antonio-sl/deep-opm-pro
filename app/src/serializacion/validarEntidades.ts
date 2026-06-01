@@ -149,6 +149,10 @@ export function camposEntidadAvanzada(entidadId: Id, raw: Record<string, unknown
     if (!ordered.ok) return ordered;
     if (ordered.value.length > 0) campos.orderedFundamentalTypes = ordered.value;
   }
+  if (raw.lineal !== undefined) {
+    if (typeof raw.lineal !== "boolean") return fallo(`Entidad inválida: ${entidadId}.lineal`);
+    if (raw.lineal) campos.lineal = true;
+  }
   return ok(campos);
 }
 

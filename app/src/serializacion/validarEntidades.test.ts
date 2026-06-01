@@ -70,6 +70,39 @@ describe("validarEntidades", () => {
     expect(resultado.value["e-1"]?.alias).toBeUndefined();
   });
 
+  test("lineal se preserva en roundtrip de entidad", () => {
+    const resultado = validarEntidades({
+      "o1": {
+        id: "o1",
+        tipo: "objeto",
+        nombre: "Energia",
+        esencia: "fisica",
+        afiliacion: "sistemica",
+        lineal: true,
+      },
+    });
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value["o1"]?.lineal).toBe(true);
+  });
+
+  test("lineal ausente es undefined (retrocompatible)", () => {
+    const resultado = validarEntidades({
+      "o2": {
+        id: "o2",
+        tipo: "objeto",
+        nombre: "Agua",
+        esencia: "fisica",
+        afiliacion: "ambiental",
+      },
+    });
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value["o2"]?.lineal).toBeUndefined();
+  });
+
   test("camposEntidadAvanzada rechaza urls no array", () => {
     const resultado = camposEntidadAvanzada("e-1", { urls: "no-array" });
 

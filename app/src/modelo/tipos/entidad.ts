@@ -130,6 +130,8 @@ export interface Entidad {
   urls?: UrlObjetoTipada[];
   imagen?: ImagenEntidad;
   layoutEstados?: LayoutEstados;
+  /** Recurso lineal: se consume, no se copia (default false = copiable). Capa categorial F1. */
+  lineal?: boolean;
   /**
    * Tipos estructurales fundamentales marcados como ordenados para esta cosa
    * refinable. Emula `orderedFundamentalTypes` de OPCloud: el orden pertenece
