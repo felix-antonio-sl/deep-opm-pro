@@ -205,3 +205,37 @@ test("Command Palette abre cheatsheet con estereotipo modal IFML", async ({ page
 
   expect(pageErrors).toEqual([]);
 });
+
+test("Command Palette activa modo solo canvas 100% y Ctrl+Shift+M lo revierte", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("100 canvas");
+  const item = page.getByTestId("command-palette-item-menu-solo-canvas");
+  await expect(item).toBeVisible();
+  await expect(item).toContainText("Modo solo canvas");
+
+  await item.click();
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
+  await expect(page.getByTestId("codex-frame")).toHaveAttribute("data-canvas-only", "true");
+  await expect(page.getByTestId("canvas-pane")).toBeVisible();
+  await expect(page.getByTestId("toolbar-root")).toHaveCount(0);
+  await expect(page.getByTestId("opl-pane")).toHaveCount(0);
+  await expect(page.getByTestId("inspector-pane")).toHaveCount(0);
+  await expect(page.getByTestId("canvas-header")).toHaveCount(0);
+
+  await page.keyboard.press("Control+Shift+M");
+  await expect(page.getByTestId("codex-frame")).toHaveAttribute("data-canvas-only", "false");
+  await expect(page.getByTestId("toolbar-root")).toBeVisible();
+  await expect(page.getByTestId("opl-pane")).toBeVisible();
+  await expect(page.getByTestId("inspector-pane")).toBeVisible();
+  await expect(page.getByTestId("canvas-header")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});

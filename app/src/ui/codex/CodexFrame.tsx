@@ -5,6 +5,7 @@ interface CodexFrameColumnsParams {
   leftWidth: number;
   rightWidth: number;
   isTablet: boolean;
+  canvasOnly?: boolean;
 }
 
 interface CodexFrameProps extends CodexFrameColumnsParams {
@@ -20,16 +21,22 @@ interface CodexFrameProps extends CodexFrameColumnsParams {
   canvas: ComponentChildren;
   rightDivider: ComponentChildren;
   rightPanel: ComponentChildren;
+  canvasOnly?: boolean;
 }
 
-export function codexFrameRows(): string {
-  return "60px minmax(0, 1fr)";
+export function codexFrameRows(canvasOnly = false): string {
+  return canvasOnly ? "minmax(0, 1fr)" : "60px minmax(0, 1fr)";
 }
 
-export function codexFrameColumns({ leftWidth, rightWidth, isTablet }: CodexFrameColumnsParams): string {
+export function codexFrameColumns({ leftWidth, rightWidth, isTablet, canvasOnly = false }: CodexFrameColumnsParams): string {
+  if (canvasOnly) return "minmax(0, 1fr)";
   const left = isTablet ? Math.min(leftWidth, 300) : leftWidth;
   const right = isTablet ? Math.min(rightWidth, 300) : rightWidth;
   return `${left}px 6px minmax(0, 1fr) 6px ${right}px`;
+}
+
+export function codexFrameAreas(canvasOnly = false): string {
+  return canvasOnly ? `"canvas"` : `"left divisor canvas divisorInspector right"`;
 }
 
 export function modoMarginaliaCodex(inspectorOpen: boolean): "split" | "opl" {
@@ -50,9 +57,10 @@ export function CodexFrame({
   leftWidth,
   rightWidth,
   isTablet,
+  canvasOnly = false,
 }: CodexFrameProps) {
   return (
-    <div data-testid="codex-frame" style={style.frame}>
+    <div data-testid="codex-frame" data-canvas-only={canvasOnly ? "true" : "false"} style={{ ...style.frame, gridTemplateRows: codexFrameRows(canvasOnly) }}>
       {/*
         Ronda Codex v2 L2 (auditoría rev2 §05): el header pasa del literal
         "Codex" al esquema editorial canónico `wordmark · acciones │ breadcrumb │ meta`.
@@ -61,20 +69,27 @@ export function CodexFrame({
         breadcrumb del manuscrito; la derecha imprime la meta (`N oraciones ·
         ● sin guardar · ⌘K`).
       */}
-      <header style={style.header}>
+      {canvasOnly ? null : <header style={style.header}>
         <div data-testid="codex-wordmark" style={style.wordmark}>Opforja</div>
         <div style={style.headerTabsSlot}>{tabs}</div>
         <div style={style.breadcrumbSlot}>{breadcrumb}</div>
         <div style={style.toolbarSlot}>{toolbar}</div>
         <div style={style.headerMeta}>{meta}</div>
         {menu}
-      </header>
-      <section style={{ ...style.body, gridTemplateColumns: codexFrameColumns({ leftWidth, rightWidth, isTablet }) }}>
-        <div style={style.leftSlot}>{leftPanel}</div>
-        {leftDivider}
+      </header>}
+      <section
+        data-testid="codex-frame-body"
+        style={{
+          ...style.body,
+          gridTemplateColumns: codexFrameColumns({ leftWidth, rightWidth, isTablet, canvasOnly }),
+          gridTemplateAreas: codexFrameAreas(canvasOnly),
+        }}
+      >
+        {canvasOnly ? null : <div style={style.leftSlot}>{leftPanel}</div>}
+        {canvasOnly ? null : leftDivider}
         {canvas}
-        {rightDivider}
-        <aside style={style.rightSlot}>{rightPanel}</aside>
+        {canvasOnly ? null : rightDivider}
+        {canvasOnly ? null : <aside style={style.rightSlot}>{rightPanel}</aside>}
       </section>
     </div>
   );
@@ -161,7 +176,7 @@ const style = {
     minWidth: 0,
     minHeight: 0,
     display: "grid",
-    gridTemplateAreas: `"left divisor canvas divisorInspector right"`,
+    gridTemplateAreas: codexFrameAreas(false),
     overflow: "hidden",
     background: tokens.colors.paperWarm,
   },

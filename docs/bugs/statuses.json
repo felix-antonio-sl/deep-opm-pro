@@ -256,5 +256,11 @@
     "status": "Resuelto",
     "resolution": "Se retiran los botones visibles dedicados a abrir la paleta de comandos; la paleta sigue disponible por Ctrl/Cmd+K y los tests/helpers usan esa entrada canonica.",
     "note": "Cubierto por e2e/12-toolbar-overflow.spec.ts y helpers Playwright actualizados."
+  },
+  "BUG-20260601T212527Z-d7f92b": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Se agrega Modo solo canvas: una superficie 100% canvas que oculta OPL, arbol/indice, inspector, header y chrome secundario, reversible desde Command Palette o Ctrl+Shift+M.",
+    "note": "Cubierto por CodexFrame.test, CommandPalette.test, globalShortcutsPort.test y e2e/12-command-palette.spec.ts."
   }
 }

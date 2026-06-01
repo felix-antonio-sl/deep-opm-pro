@@ -210,6 +210,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   dialogoComandosAbierto: false,
   uiAliasVisibles: true,
   uiDescripcionesVisibles: true,
+  uiSoloCanvas: false,
   solicitudFitToken: 0,
   readOnly: false,
   modalUrlsAbierto: null,
@@ -360,6 +361,16 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 	    const indice = actualizarPreferenciasUi(get().indice, { nombresArbolVisibles });
 	    escribirIndiceWorkspace(indice);
 	    set({ indice, nombresArbolVisibles });
+	  },
+
+	  toggleSoloCanvas() {
+	    const uiSoloCanvas = !get().uiSoloCanvas;
+	    set({ uiSoloCanvas, solicitudFitToken: get().solicitudFitToken + 1, mensaje: uiSoloCanvas ? "Modo solo canvas" : "Modo completo" });
+	  },
+
+	  fijarSoloCanvas(activo: boolean) {
+	    if (get().uiSoloCanvas === activo) return;
+	    set({ uiSoloCanvas: activo, solicitudFitToken: get().solicitudFitToken + 1 });
 	  },
 
 	  abrirCheatsheetAtajos() {

@@ -10,9 +10,10 @@ import { GLIFO_SEP } from "./glifos";
 interface CodexCanvasMountProps {
   children: ComponentChildren;
   floating?: ComponentChildren;
+  chromeVisible?: boolean;
 }
 
-export function CodexCanvasMount({ children, floating }: CodexCanvasMountProps) {
+export function CodexCanvasMount({ children, floating, chromeVisible = true }: CodexCanvasMountProps) {
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
   const opdActivo = modelo.opds[opdActivoId];
   const code = opdActivo ? codigoOpd(opdActivo.nombre) : "SD";
@@ -24,10 +25,10 @@ export function CodexCanvasMount({ children, floating }: CodexCanvasMountProps) 
 
   return (
     <div data-testid="canvas-pane" style={style.canvas}>
-      <div data-testid="canvas-header" style={style.header}>
+      {chromeVisible ? <div data-testid="canvas-header" style={style.header}>
         <span style={style.kicker}>{kicker}</span>
         <span data-testid="canvas-zoom" style={style.zoom}>{`zoom ${GLIFO_SEP} ${zoom}`}</span>
-      </div>
+      </div> : null}
       <div style={style.paperHost}>
         {children}
         {floating ? <div style={style.floating}>{floating}</div> : null}

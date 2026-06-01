@@ -35,6 +35,8 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const toggleAliasVisibles = useOpmStore((s) => s.toggleAliasVisibles);
   const uiDescripcionesVisibles = useOpmStore((s) => s.uiDescripcionesVisibles);
   const toggleDescripcionesVisibles = useOpmStore((s) => s.toggleDescripcionesVisibles);
+  const uiSoloCanvas = useOpmStore((s) => s.uiSoloCanvas);
+  const toggleSoloCanvas = useOpmStore((s) => s.toggleSoloCanvas);
   const uiModoImagenGlobal = useOpmStore((s) => s.uiModoImagenGlobal);
   const fijarModoImagenGlobal = useOpmStore((s) => s.fijarModoImagenGlobal);
   const abrirModalImagen = useOpmStore((s) => s.abrirModalImagen);
@@ -82,6 +84,8 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     toggleAliasVisibles,
     uiDescripcionesVisibles,
     toggleDescripcionesVisibles,
+    uiSoloCanvas,
+    toggleSoloCanvas,
     uiModoImagenGlobal,
     fijarModoImagenGlobal,
     abrirModalImagen,

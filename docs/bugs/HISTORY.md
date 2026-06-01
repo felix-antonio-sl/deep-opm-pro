@@ -11,7 +11,7 @@ cualquier ID, activo o archivado.
 | Alcance / Estado | Cantidad |
 |---|---:|
 | Activo / Nuevo | 30 |
-| Activo / Resuelto | 43 |
+| Activo / Resuelto | 44 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
 | Histórico / Resuelto | 43 |
@@ -20,7 +20,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 68 |
+| Activo / Bug | 69 |
 | Activo / Feat | 5 |
 | Histórico / Bug | 48 |
 
@@ -28,6 +28,7 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Resuelto | [BUG-20260601T212527Z-d7f92b](BUG-20260601T212527Z-d7f92b/report.md) | 2026-06-01 21:25Z | HODOM completo v1.4 / SD1.M1.3 - Evaluacion inicial | quiero una función de 100% canvas en donde se visualice solo el canvas | Se agrega Modo solo canvas: una superficie 100% canvas que oculta OPL, arbol/indice, inspector, header y chrome secundario, rever… | 0 | Cubierto por CodexFrame.test, CommandPalette.test, globalShortcutsPort.test y e2e/12-command-palette.spec.ts. |
 | Activo | Bug | Resuelto | [BUG-20260601T164807Z-b5a202](BUG-20260601T164807Z-b5a202/report.md) | 2026-06-01 16:48Z | Modelo / SD1 | el botón para abrir la paleta de comandos, no lo uso. saquemoslo | Se retiran los botones visibles dedicados a abrir la paleta de comandos; la paleta sigue disponible por Ctrl/Cmd+K y los tests/he… | 1 | Cubierto por e2e/12-toolbar-overflow.spec.ts y helpers Playwright actualizados. |
 | Activo | Bug | Resuelto | [BUG-20260601T164709Z-aad990](BUG-20260601T164709Z-aad990/report.md) | 2026-06-01 16:47Z | Modelo / SD1 | esto en la barra inferiore es redundante. De hecho creo que deberíamos eliminar la barra inferior ¿cual es su funcionalidad real en este momento? | Se elimina la barra inferior Codex. Su funcion real era redundante: viewpoint, atajos y resumen de diagnostico ya viven en breadc… | 1 | Cubierto por CodexFrame.test y e2e/01-carga-y-workspace + 27-visual-compliance. |
 | Activo | Bug | Resuelto | [BUG-20260601T164538Z-3575b7](BUG-20260601T164538Z-3575b7/report.md) | 2026-06-01 16:45Z | Modelo / SD1 | El panel de diagnóstico de modelo con advertencias quiero que lo cambiemos al lado izquirdo bajo el panel del OPL. Conservar comportamiento y caracte… | PanelDiagnostico se monta bajo OPL en el margen izquierdo y conserva expandir, colapsar, revalidar, cita y navegacion; el inspect… | 1 | Cubierto por e2e/15-superficie-contextual.spec.ts y smoke focal de toolbar/layout. |

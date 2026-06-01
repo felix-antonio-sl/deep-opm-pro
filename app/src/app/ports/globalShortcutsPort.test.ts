@@ -40,7 +40,7 @@ function setup(
   nav: { modelo?: Modelo; opdActivoId?: Id } = {},
   tabs: { abiertas?: Array<{ id: string }>; activa?: string | null } = {},
 ) {
-  const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0, eliminar: 0 };
+  const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0, eliminar: 0, soloCanvas: 0 };
   const navegados: Id[] = [];
   const pestanasCambiadas: string[] = [];
   const modelo = nav.modelo ?? crearModelo();
@@ -101,6 +101,7 @@ function setup(
     vaciarSeleccion: () => {},
     guardarLocal: () => {},
     abrirDialogoComandos: () => {},
+    toggleSoloCanvas: () => { calls.soloCanvas++; },
     abrirBusquedaCosas: () => {},
     abrirDialogoBuscarGlobal: () => {},
     abrirGestionArbol: () => {},
@@ -194,6 +195,19 @@ describe("atajo Ctrl+. toggle de marginalia OPL (05-interactions §1)", () => {
     registros.find((r) => r.combo === "Ctrl+.")!.handler(makeFakeEvent());
     expect(calls.oplRestaurar).toBe(1);
     expect(calls.oplMinimizar).toBe(0);
+  });
+});
+
+describe("atajo Ctrl+Shift+M modo solo canvas", () => {
+  test("registra el combo global y alterna el modo de enfoque", () => {
+    const { registros, calls } = setup({ activa: false, auto: false });
+    const atajo = registros.find((r) => r.combo === "Ctrl+Shift+M");
+
+    expect(atajo).toBeDefined();
+    expect(atajo!.ctx).toBe("global");
+    expect(atajo!.categoria).toBe("vista");
+    atajo!.handler(makeFakeEvent());
+    expect(calls.soloCanvas).toBe(1);
   });
 });
 
@@ -349,6 +363,7 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
       descartarNuevaCosaPendiente: () => {},
       cerrarDialogoComandos: () => {},
       cerrarCheatsheetAtajos: () => {},
+      toggleSoloCanvas: () => {},
       cerrarGestionArbol: () => {},
       cerrarGuardarComo: () => {},
       cerrarDialogoConfiguracion: () => {},

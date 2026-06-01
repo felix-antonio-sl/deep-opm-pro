@@ -322,6 +322,8 @@ export interface OpmStore {
   tablaEnlacesOrdenDireccion: "asc" | "desc";
   uiAliasVisibles: boolean;
   uiDescripcionesVisibles: boolean;
+  /** Modo de enfoque: oculta marginalia, árbol, inspector y chrome secundario para dejar el canvas al 100%. */
+  uiSoloCanvas: boolean;
   gridConfig?: GridConfig;
   /**
    * P0-5 (informe UI/UX 2026-05-07): contador monotonicamente creciente
@@ -764,6 +766,8 @@ export interface OpmStore {
   /** BUG-20260511T225343Z-696858: setea ancho Inspector con clamp + persistencia. */
   fijarAnchoPanelInspector: (px: number) => void;
   toggleNombresArbolVisibles: () => void;
+  toggleSoloCanvas: () => void;
+  fijarSoloCanvas: (activo: boolean) => void;
   abrirCheatsheetAtajos: () => void;
   cerrarCheatsheetAtajos: () => void;
   abrirDialogoComandos: () => void;

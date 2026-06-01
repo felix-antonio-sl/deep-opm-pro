@@ -205,6 +205,16 @@ describe("CommandPalette", () => {
     expect(filtrarItemsCommandPalette(items, "split parcial").map((i) => i.menuActionId)).toContain("split-parcial");
     expect(filtrarItemsCommandPalette(items, "decision").map((i) => i.menuActionId)).toContain("resolver-decision");
   });
+
+  test("expone modo solo canvas como comando de vista buscable por 100% canvas", () => {
+    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const items = construirItemsCommandPalette([], [], acciones);
+    const soloCanvas = filtrarItemsCommandPalette(items, "100 canvas").find((item) => item.menuActionId === "solo-canvas");
+
+    expect(soloCanvas?.label).toBe("Modo solo canvas");
+    expect(soloCanvas?.atajo).toBe("Ctrl+Shift+M");
+    expect(soloCanvas ? seccionVisualCommandPalette(soloCanvas) : null).toBe("VISTA");
+  });
 });
 
 function depsAccionesMenu(
@@ -237,6 +247,8 @@ function depsAccionesMenu(
     aliasVisibles: false,
     toggleDescripcionesVisibles: () => {},
     descripcionesVisibles: false,
+    toggleSoloCanvas: () => {},
+    soloCanvasActivo: false,
     ciclarModoImagenGlobal: () => {},
     etiquetaModoImagenGlobal: "por cosa",
     modoImagenGlobalActivo: false,

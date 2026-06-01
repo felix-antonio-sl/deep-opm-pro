@@ -135,6 +135,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     toggleAliasVisibles,
     uiDescripcionesVisibles,
     toggleDescripcionesVisibles,
+    uiSoloCanvas,
+    toggleSoloCanvas,
     uiModoImagenGlobal,
     fijarModoImagenGlobal,
     abrirModalImagen,
@@ -189,6 +191,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     aliasVisibles: uiAliasVisibles,
     toggleDescripcionesVisibles,
     descripcionesVisibles: uiDescripcionesVisibles,
+    toggleSoloCanvas,
+    soloCanvasActivo: uiSoloCanvas,
     ciclarModoImagenGlobal: () => fijarModoImagenGlobal(siguienteModoGlobal(uiModoImagenGlobal)),
     etiquetaModoImagenGlobal: etiquetaModoGlobal(uiModoImagenGlobal),
     modoImagenGlobalActivo: uiModoImagenGlobal !== null,
@@ -473,6 +477,8 @@ interface AccionesMenuCommandPaletteDeps {
   aliasVisibles: boolean;
   toggleDescripcionesVisibles: () => void;
   descripcionesVisibles: boolean;
+  toggleSoloCanvas: () => void;
+  soloCanvasActivo: boolean;
   ciclarModoImagenGlobal: () => void;
   etiquetaModoImagenGlobal: string;
   modoImagenGlobalActivo: boolean;
@@ -521,6 +527,7 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },
     { id: "simulacion-numerica", label: "Simulación numérica", descripcion: "Generar datos simulados de atributos y descargar CSV", categoria: "vista", run: deps.abrirDialogoSimulacionNumerica },
     { id: "grid-canvas", label: deps.gridActiva ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas", descripcion: "Alternar la cuadrícula visual del canvas", categoria: "vista", run: deps.toggleGrid },
+    { id: "solo-canvas", label: deps.soloCanvasActivo ? "Salir de modo solo canvas" : "Modo solo canvas", descripcion: "100% canvas: oculta OPL, índice, inspector y chrome secundario", categoria: "vista", atajo: "Ctrl+Shift+M", run: deps.toggleSoloCanvas },
     { id: "alias-visibles", label: deps.aliasVisibles ? "Ocultar alias" : "Mostrar alias", descripcion: "Alternar la visibilidad de los alias de las cosas", categoria: "vista", run: deps.toggleAliasVisibles },
     { id: "descripciones-visibles", label: deps.descripcionesVisibles ? "Ocultar descripciones" : "Mostrar descripciones", descripcion: "Alternar la visibilidad de las descripciones de las cosas", categoria: "vista", run: deps.toggleDescripcionesVisibles },
     { id: "modo-imagen-global", label: `Imagen: ${deps.etiquetaModoImagenGlobal}`, descripcion: "Ciclar el modo de imagen global de los objetos", categoria: "vista", run: deps.ciclarModoImagenGlobal },

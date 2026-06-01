@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { codexFrameColumns, codexFrameRows, modoMarginaliaCodex } from "./CodexFrame";
+import { codexFrameAreas, codexFrameColumns, codexFrameRows, modoMarginaliaCodex } from "./CodexFrame";
 
 describe("CodexFrame contract", () => {
   test("declara header y cuerpo sin barra inferior redundante", () => {
@@ -16,6 +16,12 @@ describe("CodexFrame contract", () => {
     expect(codexFrameColumns({ leftWidth: 360, rightWidth: 420, isTablet: true })).toBe(
       "300px 6px minmax(0, 1fr) 6px 300px",
     );
+  });
+
+  test("modo solo canvas colapsa el cuerpo a una columna de lienzo", () => {
+    expect(codexFrameRows(true)).toBe("minmax(0, 1fr)");
+    expect(codexFrameColumns({ leftWidth: 360, rightWidth: 360, isTablet: false, canvasOnly: true })).toBe("minmax(0, 1fr)");
+    expect(codexFrameAreas(true)).toBe('"canvas"');
   });
 
   test("mantiene marginalia OPL aunque el inspector este oculto", () => {

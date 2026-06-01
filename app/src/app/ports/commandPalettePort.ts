@@ -24,6 +24,8 @@ export interface CommandPaletteMenuExtrasPort {
   uiAliasVisibles: boolean;
   toggleDescripcionesVisibles: () => void;
   uiDescripcionesVisibles: boolean;
+  uiSoloCanvas: boolean;
+  toggleSoloCanvas: () => void;
   uiModoImagenGlobal: ModoImagenEntidad | null;
   fijarModoImagenGlobal: (modo: ModoImagenEntidad | null) => void;
   abrirModalImagen: (objetoId: Id) => void;

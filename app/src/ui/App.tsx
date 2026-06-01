@@ -73,6 +73,7 @@ export function App() {
   const {
     vistaMapaActiva,
     anchoPanelInspector,
+    uiSoloCanvas,
     modelo,
     opdActivoId,
     fijarAnchoPanelInspector,
@@ -230,6 +231,7 @@ export function App() {
             leftWidth={ANCHO_PANEL_INSPECTOR_DEFAULT}
             rightWidth={anchoInspectorLayout}
             isTablet={esTablet}
+            canvasOnly={uiSoloCanvas}
             toolbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
             menu={null}
             tabs={<BarraPestanas />}
@@ -262,7 +264,7 @@ export function App() {
               />
             )}
             canvas={(
-              <CodexCanvasMount>
+              <CodexCanvasMount chromeVisible={!uiSoloCanvas}>
                 <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
                 {/*
                   Ronda Codex v2 L2 (prep L4, auditoría rev2 §05 SEL-1/SEL-2): se
