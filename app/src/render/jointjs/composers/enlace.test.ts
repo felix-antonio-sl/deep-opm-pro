@@ -67,12 +67,12 @@ describe("composer enlace", () => {
 
     const vertices = verticesInvocacion(sourceEndpoint, targetEndpoint);
 
-    expect(vertices).toHaveLength(3);
+    expect(vertices).toHaveLength(2);
     expect(vertices[0]?.y).toBeGreaterThan(250);
-    expect(vertices[2]?.y).toBeLessThan(280);
+    expect(vertices[1]?.y).toBeLessThan(280);
   });
 
-  test("invocacion vuelve al eje antes del destino para que la flecha entre limpia", () => {
+  test("invocacion no agrega quiebre de retorno cerca del destino", () => {
     const sourceEndpoint = {
       apariencia: {
         ...origen,
@@ -94,8 +94,10 @@ describe("composer enlace", () => {
 
     const vertices = verticesInvocacion(sourceEndpoint, targetEndpoint);
     const ultimo = vertices.at(-1);
+    const ejeX = 285 + origen.width / 2;
 
-    expect(Math.abs((ultimo?.x ?? 0) - (285 + origen.width / 2))).toBeLessThanOrEqual(1);
+    expect(vertices).toHaveLength(2);
+    expect(Math.abs((ultimo?.x ?? 0) - ejeX)).toBeGreaterThan(1);
   });
 
   test("enlace en abanico mantiene connector straight (dock-point explicito)", () => {
@@ -115,7 +117,7 @@ describe("composer enlace", () => {
     expect(routerManhattan()).toEqual({ name: "manhattan", args: { padding: 5, step: 11 } });
     expect(connectorJumpover()).toEqual({ name: "jumpover", args: { type: "arc", size: 8 } });
     expect(connectorRecto()).toEqual({ name: "straight" });
-    expect(verticesInvocacion(origen, destino)).toHaveLength(3);
+    expect(verticesInvocacion(origen, destino)).toHaveLength(2);
   });
 
   test("endpointJoint conecta a port dinamico cuando existe", () => {

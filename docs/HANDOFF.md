@@ -1,8 +1,16 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-06-01 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Corte de producto vigente (2026-06-01)**: `e099cd3` ajusta ghost de enlace, contraste canvas, sombra física y marker de invocación; `a36d275` resuelve `BUG-20260601T023324Z-66ff2f` con marker transformador swallowtail OPCloud/JOYAS; cortes previos relevantes: `5298ec2` revisión jobs-web-ux de UX OPCloud-isomorfa sin copiar gestos, `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado, `e5ff438` exportador de diagnóstico a JSON.
+**Corte de producto vigente (2026-06-01)**: `7a4908d` elimina el quiebre distal de invocación normal; `e099cd3` ajusta ghost de enlace, contraste canvas, sombra física y marker de invocación; `a36d275` resuelve `BUG-20260601T023324Z-66ff2f` con marker transformador swallowtail OPCloud/JOYAS; cortes previos relevantes: `5298ec2` revisión jobs-web-ux de UX OPCloud-isomorfa sin copiar gestos, `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado, `e5ff438` exportador de diagnóstico a JSON.
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo tras redeploy: `index-h0FUG43n.js`.
+
+## Corte actual — Invocación normal sin quiebre distal
+
+**Estado 2026-06-01:** el enlace de invocación normal conserva el marker transformador swallowtail canónico, pero el rayo/zigzag deja de agregar el tercer vértice de retorno al eje cerca del target. La geometría queda en dos puntos manuales: un punto axial y un punto lateral. La autoinvocación mantiene su loop dedicado con vértices OPCloud porque es otro compositor visual.
+
+**Artefactos principales:** `app/src/render/jointjs/composers/enlace.ts`, `app/src/render/jointjs/composers/enlace.test.ts`, `app/src/render/jointjs/proyeccion.test.ts`.
+
+**Verificación:** `bun test src/render/jointjs/composers/enlace.test.ts src/render/jointjs/proyeccion.test.ts -t "invocacion|markers"` -> 8 pass / 0 fail; `bun run check` -> 1805 pass / 0 fail; `bun run lint` -> OK; `bun run design:governance` -> OK; `bun run build` -> OK (`index-Bk0rCKtz.js` local).
 
 ## Corte actual — Ajustes visuales canvas: ghost limpio, contraste y marker de invocación
 

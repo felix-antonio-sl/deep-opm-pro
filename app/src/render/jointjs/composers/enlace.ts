@@ -766,16 +766,13 @@ export function verticesInvocacion(origen: Apariencia | EndpointVisual, destino:
   const dx = target.x - source.x;
   const dy = target.y - source.y;
   const length = Math.hypot(dx, dy) || 1;
-  const ux = dx / length;
-  const uy = dy / length;
-  const px = -uy;
-  const py = ux;
+  const px = -dy / length;
+  const py = dx / length;
   const offset = Math.min(22, Math.max(12, length * 0.08));
 
   return [
     puntoZigzag(source, dx, dy, px, py, 0.62, 0),
     puntoZigzag(source, dx, dy, px, py, 0.48, offset),
-    puntoZigzag(source, dx, dy, px, py, 0.86, 0),
   ];
 }
 
