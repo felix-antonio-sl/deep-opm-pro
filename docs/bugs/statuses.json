@@ -104,8 +104,8 @@
   "BUG-20260525T063444Z-ad14a6": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "La invocacion conserva rayo y punta simple; la interpretacion previa de transformadores como punta simple fue supersedida por BUG-20260601T023324Z-66ff2f.",
-    "note": "Ver nuevo criterio: transformadores con swallowtail OPCloud/JOYAS; invocacion sigue con punta simple."
+    "resolution": "La invocacion conserva el rayo/zigzag, pero su marker de destino ahora usa el swallowtail transformador; la interpretacion previa de transformadores/invocacion como punta simple fue supersedida.",
+    "note": "Ver nuevo criterio: transformadores e invocacion con swallowtail OPCloud/JOYAS."
   },
   "BUG-20260525T063654Z-029853": {
     "type": "Bug",
@@ -230,7 +230,7 @@
   "BUG-20260601T023324Z-66ff2f": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "Los enlaces transformadores consumo, resultado y efecto usan swallowtail cerrado OPCloud/JOYAS con interior paper y contorno ink; invocacion conserva rayo con punta simple.",
+    "resolution": "Los enlaces transformadores consumo, resultado, efecto e invocacion usan swallowtail cerrado OPCloud/JOYAS con interior paper y contorno ink; invocacion conserva rayo/zigzag en el tramo.",
     "note": "Cubierto por markers.test, proyeccion.test y e2e/14-canvas-fidelity.spec.ts con verificacion DOM de marker."
   }
 }

@@ -4,13 +4,26 @@
 **Corte de producto vigente (2026-06-01)**: `a36d275` resuelve `BUG-20260601T023324Z-66ff2f` con marker transformador swallowtail OPCloud/JOYAS; cortes previos relevantes: `5298ec2` revisión jobs-web-ux de UX OPCloud-isomorfa sin copiar gestos, `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado, `e5ff438` exportador de diagnóstico a JSON.
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo tras redeploy: `index-0gzwgxxd.js`.
 
+## Corte actual — Ajustes visuales canvas: ghost limpio, contraste y marker de invocación
+
+**Estado 2026-06-01:** se aplicó un ajuste de canonicidad visual sobre el canvas:
+
+- El ghost temporal al lanzar un enlace desde un anchor queda **sin marker** (`sourceMarker=null`, `targetMarker=null`) hasta que existe target y tipo canónico confirmado. Evita mostrar el swallowtail transformador como si el enlace ya estuviera decidido.
+- Invocación y autoinvocación conservan el rayo/zigzag del tramo, pero su marker de destino pasa al **mismo swallowtail transformador** que consumo/resultado/efecto: `M 0 0 L 23 8 L 12 0 L 23 -8 Z`, `fill=paper`, `stroke=ink`.
+- La paleta OPM del canvas mantiene la familia cromática pero aumenta contraste: objeto `#27613f`, proceso `#1d3f78`, estado `#68711f`, fill de estado `#dedacb`, fill final `#d6d2c6`.
+- La sombra semántica de cosas físicas queda más marcada: `dropShadow(dx=6, dy=6, blur=2, color=rgba(23, 21, 17, 0.68))`. Se documenta como excepción OPM semántica; no habilita sombras de elevación UI.
+
+**Artefactos principales:** `app/src/render/jointjs/linkAssets.ts`, `app/src/render/jointjs/handlers/modoEnlace.ts`, `app/src/render/jointjs/composers/entidad.ts`, `app/src/render/jointjs/constantes.codex.ts`, `app/src/ui/tokens.ts`, `ui-forja/{tokens.css,tokens.json,GOVERNANCE.md,08-jointjs-styling.md}` y tests focales de render/tokens/canvas.
+
+**Verificación:** TDD red observado en markers/proyección/ghost/tokens/sombra; luego `cd app && bun run check` -> 1805 pass / 0 fail; `bun run lint` -> OK; `bun run design:governance` -> OK; `bun run build` -> OK (`index-Bz_kB9TN.js` local); `PW_PORT=5189 bunx playwright test e2e/14-canvas-fidelity.spec.ts -g "modelo markers canonicos" --workers=1` -> 1 pass / 0 fail.
+
 ## Corte actual — BUG-20260601T023324Z-66ff2f, triage vivo y refactor total
 
 **Estado 2026-06-01:** se corrigió el bug visual reportado como `BUG-20260601T023324Z-66ff2f`. La causa raíz era una inversión de criterio: `linkAssets.ts`, pruebas y `ui-forja/08` habían blindado "punta cerrada" como triángulo lleno simple para transformadores, mientras la evidencia curada `docs/JOYAS.md §5` y las capturas OPCloud del bug muestran el marker transformador como **swallowtail cerrado**. La interpretación vigente queda:
 
 - **Consumo / resultado / efecto:** swallowtail cerrado `M 0 0 L 23 8 L 12 0 L 23 -8 Z`, `fill=paper`, `stroke=ink`.
 - **Efecto:** mismo marker en source y target.
-- **Invocación:** rayo/zigzag en el tramo + punta simple `M 9 -4 0 0 9 4 z`; no usa swallowtail.
+- **Invocación:** rayo/zigzag en el tramo + el mismo swallowtail transformador `M 0 0 L 23 8 L 12 0 L 23 -8 Z`.
 
 **Artefactos tocados:** `app/src/render/jointjs/linkAssets.ts`, `app/src/render/jointjs/composers/markers.test.ts`, `app/e2e/14-canvas-fidelity.spec.ts`, `app/src/modelo/constantes.bauhaus.ts`, `ui-forja/08-jointjs-styling.md`, `docs/bugs/statuses.json`, `docs/bugs/INDEX.md`, `docs/bugs/HISTORY.md`, `docs/bugs/BUG-20260601T023324Z-66ff2f/report.md`.
 

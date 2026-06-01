@@ -46,7 +46,7 @@ Recomendación: extender `joint.shapes.standard.Rectangle` o definir un shape cu
 ```js
 attrs: {
   body: {
-    stroke: 'var(--cx-opm-green)',           // #3a6b4d
+    stroke: 'var(--cx-opm-green)',           // #27613f
     strokeWidth: 1.5,
     fill: 'transparent',
     rx: 0,                                    // SIN border-radius
@@ -117,7 +117,7 @@ Recomendación: extender `joint.shapes.standard.Ellipse`.
 ```js
 attrs: {
   body: {
-    stroke: 'var(--cx-opm-blue)',            // #26467a
+    stroke: 'var(--cx-opm-blue)',            // #1d3f78
     strokeWidth: 1.5,
     fill: 'transparent',
   },
@@ -163,9 +163,9 @@ Stadium / rountangle. No hay equivalente directo en `shapes.standard`; defínelo
 ```js
 attrs: {
   body: {
-    stroke: 'var(--cx-opm-olive)',           // #7e8338
+    stroke: 'var(--cx-opm-olive)',           // #68711f
     strokeWidth: 1.2,                         // ← más fino que objeto/proceso
-    fill: 'var(--cx-state-fill)',             // #ece9e1
+    fill: 'var(--cx-state-fill)',             // #dedacb
     rx: 'calc(h/2)',                          // stadium pill
     ry: 'calc(h/2)',
   },
@@ -206,12 +206,7 @@ attrs: {
     stroke: 'var(--cx-ink)',                  // #171511
     strokeWidth: 1,
     fill: 'none',
-    targetMarker: {                           // flecha simple por defecto
-      type: 'path',
-      d: 'M 9 -4 0 0 9 4 z',
-      fill: 'var(--cx-ink)',
-      stroke: 'none',
-    },
+    targetMarker: null,                       // sin marker hasta resolver tipo canónico
     sourceMarker: null,
   },
 }
@@ -224,7 +219,7 @@ Connector recomendado: `'straight'` con `cornerType: 'point'` (sin redondeo).
 | Tipo | sourceMarker | targetMarker | Notas |
 |---|---|---|---|
 | **Transformador** (consume, genera, afecta) | none | swallowtail cerrado `M 0 0 L 23 8 L 12 0 L 23 -8 Z` (fill paper, stroke ink) | OPCloud/JOYAS; efecto usa source+target |
-| **Invocación** (invoca) | none | arrow simple `M 9 -4 0 0 9 4 z` (fill ink) | el tramo conserva rayo/zigzag |
+| **Invocación** (invoca) | none | swallowtail cerrado `M 0 0 L 23 8 L 12 0 L 23 -8 Z` (fill paper, stroke ink) | el tramo conserva rayo/zigzag |
 | **Cambio de estado** (cambia…de…a) | none | arrow doble (dos arrowheads consecutivos) | distintivo |
 | **Agregación** (consta de) | none | triángulo equilátero fill ink (12×12) | el triángulo apunta al refinable |
 | **Exhibición** (exhibe) | none | cuadrado outline ink 10×10 | sin fill |
@@ -295,7 +290,7 @@ trazado:      mismo underline que §5.1, pero al 50% opacity
 
 ### 5.3 Sin glow / sin shadow
 
-JointJS soporta `filter` con `dropShadow`, etc. **NO usar**. Codex es liso por filosofía (ver [`01-design-spec.md` §11](01-design-spec.md#11-lo-que-no-hay-en-codex)).
+JointJS soporta `filter` con `dropShadow`, etc. **NO usar para elevación UI**. La excepción permitida es semántica OPM: una cosa de esencia física puede usar `filter: { name: 'dropShadow', args: { dx: 6, dy: 6, blur: 2, color: 'rgba(23, 21, 17, 0.68)' } }` en el shape del canvas.
 
 ---
 
@@ -478,10 +473,10 @@ JointJS no consume CSS custom properties directamente desde los attrs SVG. Hay d
 
 ```js
 const TOKENS = {
-  opmGreen: '#3a6b4d',
-  opmBlue: '#26467a',
-  opmOlive: '#7e8338',
-  stateFill: '#ece9e1',
+  opmGreen: '#27613f',
+  opmBlue: '#1d3f78',
+  opmOlive: '#68711f',
+  stateFill: '#dedacb',
   ink: '#171511',
   inkSoft: '#807b6e',
   crimson: '#8e2a2e',
@@ -531,7 +526,7 @@ Recordatorios:
 
 - ❌ NO usar `drawGrid: true` — Codex es liso.
 - ❌ NO usar `defaultConnector: 'smooth'` o `'rounded'` con radio grande.
-- ❌ NO usar `filter: dropShadow` ni equivalentes.
+- ❌ NO usar `filter: dropShadow` ni equivalentes para elevación UI; la sombra semántica de esencia física es la única excepción.
 - ❌ NO usar `rx`/`ry` en `codex.Object` (rectángulos cuadrados, sin redondeo).
 - ❌ NO usar `elementTools.Remove` ni `elementTools.Connect` (cubre la barra emergente HTML).
 - ❌ NO mezclar shapes de `joint.shapes.standard` sin reestilizar — los defaults de JointJS no son Codex.

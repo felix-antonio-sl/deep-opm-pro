@@ -27,10 +27,10 @@
      No usar en chrome. Solo en el OPD y en pills/contadores que refuercen
      la asociación a esa clase.
      ─────────────────────────────────────────────────────────────────────── */
-  --cx-opm-green:    #3a6b4d;  /* OBJETO — borde + insignia */
-  --cx-opm-blue:     #26467a;  /* PROCESO — borde + insignia */
-  --cx-opm-olive:    #7e8338;  /* ESTADO — borde + insignia */
-  --cx-state-fill:   #ece9e1;  /* ESTADO — relleno gris-paper para stadiums */
+  --cx-opm-green:    #27613f;  /* OBJETO — borde + insignia; contraste intensificado */
+  --cx-opm-blue:     #1d3f78;  /* PROCESO — borde + insignia; contraste intensificado */
+  --cx-opm-olive:    #68711f;  /* ESTADO — borde + insignia; contraste intensificado */
+  --cx-state-fill:   #dedacb;  /* ESTADO — relleno gris-paper para stadiums; separable del paper */
 
   /* ───── ACENTO EDITORIAL (UI) ─────────────────────────────────────────────
      Crimson manuscrito. Canal RESERVADO a UI (V-203):

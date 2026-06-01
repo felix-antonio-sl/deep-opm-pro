@@ -97,7 +97,7 @@ describe("leyes de proyeccion JSON/render/refinement", () => {
     expect(bodyAttrs(cellContorno).strokeDasharray).toBe("8 4");
     // SSOT V-124/V-127: sombra de esencia "fisica" via filtro SVG nativo
     // dropShadow (no shorthand CSS). Ver `composers/entidad.ts` para refs.
-    expect(bodyAttrs(cellContorno).filter).toEqual({ name: "dropShadow", args: { dx: 4, dy: 4, blur: 2, color: "rgba(23, 21, 17, 0.55)" } }); // BUG-4e8a3e: sombra semantica legible
+    expect(bodyAttrs(cellContorno).filter).toEqual({ name: "dropShadow", args: { dx: 6, dy: 6, blur: 2, color: "rgba(23, 21, 17, 0.68)" } }); // sombra semantica fisica marcada
     expect(cellContorno?.z).toBe(0);
     if (!enlacePadre) throw new Error("La ley esperaba enlace padre visible");
     expect(cellEnlace?.opm).toEqual({

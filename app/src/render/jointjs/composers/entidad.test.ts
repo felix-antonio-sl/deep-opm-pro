@@ -61,7 +61,7 @@ describe("composer entidad", () => {
 
     expect(attrs.body).toMatchObject({
       fill: "transparent",
-      stroke: "#3a6b4d",
+      stroke: "#27613f",
       strokeWidth: 1.5,
       rx: 0,
       ry: 0,
@@ -118,7 +118,7 @@ describe("composer entidad", () => {
 
     expect(attrs.body).toMatchObject({
       fill: "transparent",
-      stroke: "#26467a",
+      stroke: "#1d3f78",
       strokeWidth: 1.5,
     });
     expect(attrs.label).toMatchObject({
@@ -154,8 +154,8 @@ describe("composer entidad", () => {
       ]),
     );
     expect(attrs.stateCapsule0).toMatchObject({
-      fill: "#ece9e1",
-      stroke: "#7e8338",
+      fill: "#dedacb",
+      stroke: "#68711f",
       strokeWidth: 1.2,
       // BUG-9e3b9b: rountangle (rectangulo redondeado), no stadium/pill.
       rx: ESTADOS.radius,

@@ -5,11 +5,11 @@ export const CODEX = {
     ink: "#171511", // espejo de ui-forja/tokens.css --cx-ink
     inkMid: "#5a564c", // espejo de ui-forja/tokens.css --cx-ink-mid
     inkSoft: "#807b6e", // espejo de ui-forja/tokens.css --cx-ink-soft
-    opmObjeto: "#3a6b4d", // espejo de ui-forja/tokens.css --cx-opm-green
-    opmProceso: "#26467a", // espejo de ui-forja/tokens.css --cx-opm-blue
-    opmEstado: "#7e8338", // espejo de ui-forja/tokens.css --cx-opm-olive
-    estadoFill: "#ece9e1", // espejo de ui-forja/tokens.css --cx-state-fill
-    estadoFinalFill: "#E8E8E8", // marcador visual heredado para designacion final
+    opmObjeto: "#27613f", // espejo de ui-forja/tokens.css --cx-opm-green
+    opmProceso: "#1d3f78", // espejo de ui-forja/tokens.css --cx-opm-blue
+    opmEstado: "#68711f", // espejo de ui-forja/tokens.css --cx-opm-olive
+    estadoFill: "#dedacb", // espejo de ui-forja/tokens.css --cx-state-fill
+    estadoFinalFill: "#d6d2c6", // marcador visual heredado para designacion final
     crimson: "#8e2a2e", // espejo de ui-forja/tokens.css --cx-crimson
     crimsonSuave: "rgba(142, 42, 46, 0.06)", // espejo de ui-forja/tokens.css --cx-crimson al 6%
   },

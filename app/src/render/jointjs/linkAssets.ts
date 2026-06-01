@@ -10,7 +10,7 @@
 //     - efecto: punta cerrada swallowtail BIDIRECCIONAL (source+target marker).
 //     - instrumento: lollipop circulo vacio ink fill paper (○).
 //     - agente: lollipop circulo lleno ink (●).
-//     - invocacion: rayo en el tramo + punta simple en destino.
+//     - invocacion: rayo en el tramo + swallowtail transformador en destino.
 //     - excepciones temporales: polylines ink (zigzag tachadura).
 //     - etiquetado / etiquetado bidireccional: polyline ink abierta.
 //
@@ -21,7 +21,6 @@ import { CODEX } from "./constantes.codex";
 const INK = CODEX.colores.ink;
 const PAPER = CODEX.colores.paper;
 const MARKER_STROKE_WIDTH = CODEX.strokes.enlace;
-const CLOSED_ARROWHEAD = "M 9 -4 0 0 9 4 z";
 const TRANSFORMING_ARROWHEAD = "M 0 0 L 23 8 L 12 0 L 23 -8 Z";
 
 export const LINK_ASSETS = {
@@ -46,7 +45,7 @@ export const LINK_ASSETS = {
       path: "M46.725 29L42.5404 32.9055L39.2249 36L43.5653 34.6848L63.8267 28.5449L67.2749 27.5L63.8267 26.4551L43.5653 20.3152L39.2249 19L42.5404 22.0945L46.725 26H15V29H46.725ZM49.6967 26.0378L46.8809 23.4099L60.3784 27.5L46.8809 31.5901L49.6967 28.9622L51.2632 27.5L49.6967 26.0378Z",
       // BUG-20260601T023324Z-66ff2f: la punta cerrada transformadora en la
       // evidencia OPCloud/JOYAS es swallowtail, con interior paper y contorno
-      // ink; no el triangulo lleno simple usado por invocacion.
+      // ink.
       marker: { type: "path", d: TRANSFORMING_ARROWHEAD, fill: PAPER, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     resultado: {
@@ -66,8 +65,8 @@ export const LINK_ASSETS = {
       source: "assets/svg/links/procedural/invocation.svg",
       path: "M64.9736 24H59.5H26V27H54.0264L45.2353 32.2096L40.5264 35H46H73V32H51.4736L60.2647 26.7904L64.9736 24Z",
       arrowPath: "M25.6034 24.7689L33.172 17.7049L7.44819 25.5L33.172 33.2951L25.6034 26.2311L24.8201 25.5L25.6034 24.7689Z",
-      // SSOT visual: rayo proceso→proceso con punta cerrada en destino.
-      marker: { type: "path", d: CLOSED_ARROWHEAD, fill: INK, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
+      // SSOT visual: rayo proceso→proceso con swallowtail transformador en destino.
+      marker: { type: "path", d: TRANSFORMING_ARROWHEAD, fill: PAPER, stroke: INK, strokeWidth: MARKER_STROKE_WIDTH },
     },
     excepcionSobretiempo: {
       source: "assets/svg/links/procedural/overtimeexception.svg",

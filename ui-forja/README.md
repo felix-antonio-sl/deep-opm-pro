@@ -205,7 +205,7 @@ Para decisiones que no resuelve este handoff:
 ## 10. Filosofía resumida (para imprimir y pegar al monitor)
 
 > 1. **Tipografía antes que UI.** Si una cosa puede ser texto, es texto.
-> 2. **Hairlines, no shadows.** Cero elevación.
+> 2. **Hairlines, no shadows.** Cero elevación; excepción: sombra semántica de cosa física en canvas.
 > 3. **El canon OPM manda en el OPD.** Chrome neutro. (Y JointJS dibuja, no tú.)
 > 4. **Marginalia como herramienta semántica.** Las validaciones son notas al pie.
 

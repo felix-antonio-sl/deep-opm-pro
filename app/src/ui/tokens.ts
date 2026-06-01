@@ -19,10 +19,10 @@ const inkFaint = "#b5b0a4";
 const rule = "#d3cec1";
 const ruleStrong = "#aea899";
 
-const opmGreen = "#3a6b4d";
-const opmBlue = "#26467a";
-const opmOlive = "#7e8338";
-const stateFill = "#ece9e1";
+const opmGreen = "#27613f";
+const opmBlue = "#1d3f78";
+const opmOlive = "#68711f";
+const stateFill = "#dedacb";
 
 const crimson = "#8e2a2e";
 

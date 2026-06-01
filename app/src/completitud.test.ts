@@ -263,7 +263,7 @@ describe("completitud / estados de objeto", () => {
     expect(attrs?.stateCapsule0?.strokeWidth).toBe(3);
     // CANON-V2 (ronda 28 L4): estado final fill en ink-08 Bauhaus
     // (antes #eef8ff azul corporate).
-    expect(attrs?.stateCapsule0?.fill).toBe("#E8E8E8");
+    expect(attrs?.stateCapsule0?.fill).toBe("#d6d2c6");
   });
 });
 

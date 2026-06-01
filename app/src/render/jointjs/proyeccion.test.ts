@@ -606,10 +606,10 @@ describe("proyeccion JointJS", () => {
     expect(cellEnlace?.router).toBeUndefined();
     const line = ((cellEnlace?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect(line?.sourceMarker).toBeNull();
-    // BUG-20260525T063444Z-ad14a6: invocacion = rayo en el tramo + punta
-    // cerrada en destino, no rombo ni swallowtail.
+    // Canon vigente: invocacion = rayo en el tramo + swallowtail
+    // transformador en destino.
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.invocacion.marker.d);
-    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M 9 -4 0 0 9 4 z");
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M 0 0 L 23 8 L 12 0 L 23 -8 Z");
     expect((line?.targetMarker as Attrs | undefined)?.strokeWidth).toBe(1);
   });
 
@@ -634,7 +634,7 @@ describe("proyeccion JointJS", () => {
     expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
     const line = ((retorno?.attrs as Attrs | undefined)?.line as Attrs | undefined);
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.invocacion.marker.d);
-    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M 9 -4 0 0 9 4 z");
+    expect((line?.targetMarker as Attrs | undefined)?.d).toBe("M 0 0 L 23 8 L 12 0 L 23 -8 Z");
   });
 
   test("BUG-06f1ed: auto-invocacion usa vertices OpCloud de cuatro puntos en cada tramo", () => {
@@ -1316,8 +1316,8 @@ describe("proyeccion JointJS", () => {
     expect((cell?.markup as Array<Attrs> | undefined)?.filter((item) => String(item.selector).startsWith("stateCapsule"))).toHaveLength(2);
     // CANON-V2 (ronda 28 L4): capsulas de estado en paper Bauhaus + stroke
     // ink. Final con tinte ink-08 (antes #eef8ff azul corporate); regular
-    expect(attrs?.stateCapsule0).toMatchObject({ height: 24, rx: 8, fill: "#ece9e1", stroke: "#7e8338", strokeWidth: 3 }); // BUG-9e3b9b: rountangle rx=ESTADOS.radius
-    expect(attrs?.stateCapsule1).toMatchObject({ height: 24, rx: 8, fill: "#E8E8E8", stroke: "#7e8338", strokeWidth: 1.2 }); // BUG-9e3b9b: rountangle rx=ESTADOS.radius
+    expect(attrs?.stateCapsule0).toMatchObject({ height: 24, rx: 8, fill: "#dedacb", stroke: "#68711f", strokeWidth: 3 }); // BUG-9e3b9b: rountangle rx=ESTADOS.radius
+    expect(attrs?.stateCapsule1).toMatchObject({ height: 24, rx: 8, fill: "#d6d2c6", stroke: "#68711f", strokeWidth: 1.2 }); // BUG-9e3b9b: rountangle rx=ESTADOS.radius
     expect((attrs?.stateCapsule0 as Attrs | undefined)?.y).toBe(70);
     expect((attrs?.stateLabel0 as Attrs | undefined)?.text).toBe("pendiente");
     expect((attrs?.stateLabel1 as Attrs | undefined)?.text).toBe("cerrado");

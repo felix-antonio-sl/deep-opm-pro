@@ -56,6 +56,7 @@ Estas excepciones están permitidas mientras estén cubiertas por tests:
 - `tokens.colors.canvas.*` conserva aliases legacy OPCloud/JOYAS para compatibilidad con apariencias antiguas y pruebas de estilo persistido. Las nuevas superficies deben preferir `colors.opm.*`, `colors.ink*`, `colors.rule*` y `colors.crimson`.
 - `tokens.radii.pill` y `tokens.radii.full` pueden usarse para estados OPM, dots, swatches circulares o badges cuyo significado depende de la forma.
 - `box-shadow` puede usarse solo como ring sin blur (`0 0 0 ...`) o como `inset` hairline. Las sombras offset de elevación están prohibidas.
+- `filter: dropShadow` está prohibido como elevación UI, pero permitido como marca semántica OPM de esencia física en shapes JointJS del canvas, cubierto por tests.
 - El command palette y modales pueden usar backdrop, pero el panel interno sigue siendo hairline + papel.
 - SVG/JointJS puede usar geometría propia cuando representa símbolos OPM canónicos, markers o highlighters.
 

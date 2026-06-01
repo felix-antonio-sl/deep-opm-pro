@@ -114,10 +114,10 @@ export function proyectarEntidad(
     // sombra como propiedad recuperable del canon-diagrama y evita colision
     // perceptual con filtros CSS UI (ver halo de modo enlace, N11).
     // BUG-6ae261: `blur:0` + `color:grey` opaco producía un duplicado duro del
-    // contorno (efecto "doble línea"), no una sombra. BUG-4e8a3e: el ajuste
-    // suave posterior era demasiado tenue; la fisicidad debe leerse de un vistazo.
-    // Offset visible abajo-derecha, blur breve y tinta ink semi-transparente.
-    ...(entidad.esencia === "fisica" ? { filter: { name: "dropShadow", args: { dx: 4, dy: 4, blur: 2, color: "rgba(23, 21, 17, 0.55)" } } } : {}),
+    // contorno (efecto "doble línea"), no una sombra. La fisicidad debe leerse
+    // de un vistazo: offset abajo-derecha marcado, blur breve y tinta ink
+    // semi-transparente.
+    ...(entidad.esencia === "fisica" ? { filter: { name: "dropShadow", args: { dx: 6, dy: 6, blur: 2, color: "rgba(23, 21, 17, 0.68)" } } } : {}),
     cursor: "pointer",
   };
   const attrsBase = {

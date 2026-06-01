@@ -33,10 +33,10 @@ describe("tokens.colors - contrato Codex [ronda-codex L1]", () => {
     expect(colors.rule).toBe("#d3cec1");
     expect(colors.ruleStrong).toBe("#aea899");
     expect(colors.crimson).toBe("#8e2a2e");
-    expect(colors.opm.object).toBe("#3a6b4d");
-    expect(colors.opm.process).toBe("#26467a");
-    expect(colors.opm.state).toBe("#7e8338");
-    expect(colors.opm.stateFill).toBe("#ece9e1");
+    expect(colors.opm.object).toBe("#27613f");
+    expect(colors.opm.process).toBe("#1d3f78");
+    expect(colors.opm.state).toBe("#68711f");
+    expect(colors.opm.stateFill).toBe("#dedacb");
   });
 
   test("crimson es UI-only y no colisiona con el canon OPM/canvas", () => {

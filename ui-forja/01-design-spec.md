@@ -46,7 +46,7 @@ Codex trata al editor OPM como un manuscrito anotado: el OPD vive en el centro c
 Cuatro principios:
 
 1. **Tipografía antes que UI.** Si una cosa puede ser texto, es texto. Los toolbars son palabras separadas por `·`. Los toggles son palabras subrayables.
-2. **Hairlines, no shadows.** Solo dos pesos de hairline. Cero sombras, cero elevación, cero rounded corners salvo el rountangle canónico del estado.
+2. **Hairlines, no shadows.** Solo dos pesos de hairline. Cero sombras de elevación, cero rounded corners salvo el rountangle canónico del estado. Excepción: sombra semántica OPM para cosas físicas en canvas.
 3. **El canon OPM manda en el OPD.** Objetos verdes, procesos azul oscuro, estados verde oliva (V-63). El chrome alrededor usa una paleta editorial completamente distinta para no competir.
 4. **Marginalia como herramienta semántica.** Las validaciones (CRÍTICA/ALTA/MEDIA) aparecen como anotaciones al pie de la oración OPL correspondiente, no como toasts.
 
@@ -114,10 +114,10 @@ Tres colores **semánticos** que codifican la clase del símbolo. JointJS los ap
 
 | Token | Hex | Clase OPM |
 |---|---|---|
-| `--cx-opm-green` | `#3a6b4d` | Objeto — borde |
-| `--cx-opm-blue` | `#26467a` | Proceso — borde |
-| `--cx-opm-olive` | `#7e8338` | Estado — borde |
-| `--cx-state-fill` | `#ece9e1` | Estado — fill gris paper claro |
+| `--cx-opm-green` | `#27613f` | Objeto — borde |
+| `--cx-opm-blue` | `#1d3f78` | Proceso — borde |
+| `--cx-opm-olive` | `#68711f` | Estado — borde |
+| `--cx-state-fill` | `#dedacb` | Estado — fill gris paper claro |
 
 En el chrome estos colores aparecen **solo en pills/contadores que refuercen la asociación de clase** (footer keys, identificadores en tree). El chrome general permanece neutro.
 
@@ -202,7 +202,7 @@ Codex usa el tracking como instrumento. Ocho valores:
 
 ## 6. Hairlines
 
-Solo dos pesos. **No usar shadows.** No usar elevación.
+Solo dos pesos. **No usar shadows de elevación.** La única sombra permitida es la marca semántica OPM de esencia física en JointJS.
 
 | Token | Valor | Uso |
 |---|---|---|
@@ -277,7 +277,7 @@ Transición: `100ms ease` en color únicamente.
 ## 11. Lo que **NO** hay en Codex
 
 - ❌ Iconos vectoriales (todo glifo es Unicode)
-- ❌ Sombras / `box-shadow` (excepto backdrop del command palette)
+- ❌ Sombras / `box-shadow` de elevación (excepto backdrop del command palette y sombra semántica OPM de cosa física)
 - ❌ Border-radius en chrome (los rountangles de estado son la única excepción, dentro de JointJS)
 - ❌ Gradientes
 - ❌ Animaciones decorativas (transiciones < 150ms en color)

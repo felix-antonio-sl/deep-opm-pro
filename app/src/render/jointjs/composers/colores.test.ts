@@ -4,7 +4,7 @@ import { colorTextoParaFill, normalizarHex6 } from "./colores";
 describe("composer colores", () => {
   test("elige tinta Codex para fills claros y transparentes", () => {
     expect(colorTextoParaFill("transparent")).toBe("#171511");
-    expect(colorTextoParaFill("#ece9e1")).toBe("#171511");
+    expect(colorTextoParaFill("#dedacb")).toBe("#171511");
   });
 
   test("elige tinta Codex para fill paper", () => {

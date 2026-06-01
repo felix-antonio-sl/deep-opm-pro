@@ -28,10 +28,10 @@ const CX = {
   rule:         '#d3cec1',
   ruleStrong:   '#aea899',
   // Canon OPM (mantenido)
-  green:        '#3a6b4d',
-  blue:         '#26467a',
-  olive:        '#7e8338',
-  stateFill:    '#ece9e1',
+  green:        '#27613f',
+  blue:         '#1d3f78',
+  olive:        '#68711f',
+  stateFill:    '#dedacb',
   // Acento editorial (UI-only, reemplaza el magenta de Drafting)
   crimson:      '#8e2a2e',
 };

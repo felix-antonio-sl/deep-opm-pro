@@ -22,8 +22,8 @@ describe("composer markers", () => {
     expect(marcadorDestino("agente")?.fill).toBe("#171511");
     // 3. Instrumento (lollipop hueco) — circulo outline fill paper.
     expect(marcadorDestino("instrumento")?.fill).toBe("#fafaf8");
-    // 4. Invocacion: rayo en el tramo + punta cerrada en destino.
-    expect(marcadorDestino("invocacion")?.d).toBe("M 9 -4 0 0 9 4 z");
+    // 4. Invocacion: rayo en el tramo + swallowtail transformador.
+    expect(marcadorDestino("invocacion")?.d).toBe("M 0 0 L 23 8 L 12 0 L 23 -8 Z");
     // 5. Agregacion (triangulo fill ink).
     // 6. Generalizacion (triangulo outline).
     // 7. Clasificacion/instanciacion (triangulo + dot).
@@ -76,23 +76,26 @@ describe("composer markers", () => {
       strokeWidth: 1,
     });
     expect(LINK_ASSETS.procedural.invocacion.marker).toMatchObject({
-      fill: "#171511",
+      fill: "#fafaf8",
       stroke: "#171511",
       strokeWidth: 1,
     });
     expect(LINK_ASSETS.structural.generalizacion.markerFill).toBe("#fafaf8");
   });
 
-  test("BUG-20260601T023324Z-66ff2f transformadores usan swallowtail cerrado OPCloud/JOYAS", () => {
+  test("BUG-20260601T023324Z-66ff2f transformadores e invocacion usan swallowtail cerrado OPCloud/JOYAS", () => {
     const swallowtail = "M 0 0 L 23 8 L 12 0 L 23 -8 Z";
-    const puntaSimple = "M 9 -4 0 0 9 4 z";
     expect(LINK_ASSETS.procedural.consumo.marker.d).toBe(swallowtail);
     expect(LINK_ASSETS.procedural.resultado.marker.d).toBe(swallowtail);
     expect(LINK_ASSETS.procedural.efecto.marker.d).toBe(swallowtail);
-    expect(LINK_ASSETS.procedural.invocacion.marker.d).toBe(puntaSimple);
+    expect(LINK_ASSETS.procedural.invocacion.marker.d).toBe(swallowtail);
     expect(LINK_ASSETS.procedural.agente.marker.d).not.toBe(swallowtail);
     expect(LINK_ASSETS.procedural.instrumento.marker.d).not.toBe(swallowtail);
     expect(LINK_ASSETS.procedural.consumo.marker).toMatchObject({
+      fill: "#fafaf8",
+      stroke: "#171511",
+    });
+    expect(LINK_ASSETS.procedural.invocacion.marker).toMatchObject({
       fill: "#fafaf8",
       stroke: "#171511",
     });

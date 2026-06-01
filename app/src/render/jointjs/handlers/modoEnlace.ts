@@ -10,7 +10,6 @@ import {
 } from "../../../canvas/modoEnlace";
 import type { Id, Modelo, TipoEnlace } from "../../../modelo/tipos";
 import { CODEX } from "../constantes.codex";
-import { LINK_ASSETS } from "../linkAssets";
 import { cellViewModel, jointSelector, metadata, paperOff, posicionCanvasDesdeEvento } from "./helpers";
 
 interface CablearModoEnlaceArgs {
@@ -281,8 +280,9 @@ function crearGhostEnlace(
         strokeDasharray: "6 4",
         strokeWidth: CODEX.strokes.enlace,
         pointerEvents: "none",
-        targetMarker: { ...LINK_ASSETS.procedural.resultado.marker },
-      },
+        sourceMarker: null,
+        targetMarker: null,
+      } as Record<string, unknown>,
       wrapper: { stroke: "transparent", strokeWidth: 14, pointerEvents: "none" },
     },
     z: 5,

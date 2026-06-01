@@ -66,7 +66,7 @@ export const CANON_V2 = {
    *   - efecto: swallowtail bidireccional.
    *   - instrumento: lollipop círculo vacío ink fill paper (○).
    *   - agente: lollipop círculo lleno ink (●).
-   *   - invocación: rayo en tramo + punta simple.
+   *   - invocación: rayo en tramo + swallowtail cerrado.
    */
   marcadores: {
     consumo: "swallowtail-paper-ink",
@@ -74,7 +74,7 @@ export const CANON_V2 = {
     efecto: "swallowtail-bidireccional-paper-ink",
     instrumento: "circulo-vacio-ink",
     agente: "circulo-lleno-ink",
-    invocacion: "rayo-punta-simple-ink",
+    invocacion: "rayo-swallowtail-paper-ink",
   },
   /** Stroke base: 2px (no 1.5; el 1.5 colapsa en densidad). */
   strokeWidth: 2,

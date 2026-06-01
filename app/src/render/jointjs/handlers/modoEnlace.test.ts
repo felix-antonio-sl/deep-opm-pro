@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { labelA11yConexionEntidad, puntoAnchorDesdeBBox } from "./modoEnlace";
 
 describe("handlers/modoEnlace", () => {
@@ -14,5 +16,12 @@ describe("handlers/modoEnlace", () => {
   test("labelA11yConexionEntidad anuncia tipo canonico y accion", () => {
     expect(labelA11yConexionEntidad("Entrada", "objeto")).toBe("Objeto Entrada. Enter para seleccionar o conectar.");
     expect(labelA11yConexionEntidad("Procesar", "proceso")).toBe("Proceso Procesar. Enter para seleccionar o conectar.");
+  });
+
+  test("el ghost de enlace no muestra marker antes de tener target", () => {
+    const source = readFileSync(resolve(import.meta.dir, "modoEnlace.ts"), "utf8");
+
+    expect(source).not.toContain("targetMarker: { ...LINK_ASSETS.procedural.resultado.marker }");
+    expect(source).toContain("targetMarker: null");
   });
 });

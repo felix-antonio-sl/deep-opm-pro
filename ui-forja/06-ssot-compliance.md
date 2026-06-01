@@ -27,9 +27,9 @@ Las cuatro capas canónicas referenciadas:
 
 | Decisión Codex | Token | Cumple |
 |---|---|---|
-| Objetos con borde verde `#3a6b4d` | `--cx-opm-green` | ✓ |
-| Procesos con borde azul oscuro `#26467a` | `--cx-opm-blue` | ✓ |
-| Estados con borde verde oliva `#7e8338` + fill gris claro `#ece9e1` | `--cx-opm-olive`, `--cx-state-fill` | ✓ |
+| Objetos con borde verde `#27613f` | `--cx-opm-green` | ✓ |
+| Procesos con borde azul oscuro `#1d3f78` | `--cx-opm-blue` | ✓ |
+| Estados con borde verde oliva `#68711f` + fill gris claro `#dedacb` | `--cx-opm-olive`, `--cx-state-fill` | ✓ |
 | Todos los enlaces (estructurales y procedimentales) en negro `#171511` | `--cx-ink` | ✓ |
 | Pills/contadores del chrome usan los colores canónicos por clase | footer keys: verde objeto, azul proceso, olive estado | ✓ refuerza |
 

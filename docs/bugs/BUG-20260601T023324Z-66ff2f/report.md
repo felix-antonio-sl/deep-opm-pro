@@ -3,7 +3,7 @@
 **Creado**: 2026-06-01T02:33:24.975Z
 **Tipo**: Bug
 **Estado**: Resuelto
-**Resolución**: Los enlaces transformadores consumo, resultado y efecto usan swallowtail cerrado OPCloud/JOYAS con interior paper y contorno ink; invocación conserva rayo con punta simple.
+**Resolución**: Los enlaces transformadores consumo, resultado, efecto e invocación usan swallowtail cerrado OPCloud/JOYAS con interior paper y contorno ink; invocación conserva rayo/zigzag en el tramo.
 
 ## Texto
 
