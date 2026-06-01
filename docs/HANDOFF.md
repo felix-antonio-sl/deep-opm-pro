@@ -1,8 +1,8 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-06-01 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Corte de producto vigente (2026-06-01)**: `BUG-20260601T023324Z-66ff2f` resuelto con marker transformador swallowtail OPCloud/JOYAS; cortes previos relevantes: `5298ec2` revisión jobs-web-ux de UX OPCloud-isomorfa sin copiar gestos, `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado, `e5ff438` exportador de diagnóstico a JSON.
-**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle esperado tras redeploy de este corte: `index-D1Ag4Th0.js`.
+**Corte de producto vigente (2026-06-01)**: `a36d275` resuelve `BUG-20260601T023324Z-66ff2f` con marker transformador swallowtail OPCloud/JOYAS; cortes previos relevantes: `5298ec2` revisión jobs-web-ux de UX OPCloud-isomorfa sin copiar gestos, `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales, `a29e15a` chip `⋯N` de estados ocultos, `e69cf1d` supresión de estados por aparición (per-OPD), `2bbff4e` reanclaje de extremos para enlaces estructurales (BUG-fb6c2c), `9767912` exportación OPL a Markdown + retiro de HTML, `8caf4d1` reconciliación e2e con canon combinado, `e5ff438` exportador de diagnóstico a JSON.
+**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo tras redeploy: `index-0gzwgxxd.js`.
 
 ## Corte actual — BUG-20260601T023324Z-66ff2f, triage vivo y refactor total
 
