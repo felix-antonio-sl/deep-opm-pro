@@ -83,4 +83,42 @@ describe("composicion/componer", () => {
       Math.max(a.nextSeq, b.nextSeq)
     );
   });
+
+  test("las apariencias de A se preservan en el OPD raiz del compuesto", () => {
+    const a = unObjeto("A");
+    const b = unObjeto("B");
+    const compuesto = must(componerModelos(a, b, {}));
+    const rootOpd = compuesto.opds[compuesto.opdRaizId];
+    expect(rootOpd).toBeDefined();
+    const idsA = Object.keys(a.entidades);
+    const visibles = Object.values(rootOpd!.apariencias).map((ap) => ap.entidadId);
+    for (const id of idsA) {
+      expect(visibles).toContain(id);
+    }
+  });
+
+  test("las apariencias de B namespaceadas aparecen en el OPD raiz del compuesto", () => {
+    const a = unObjeto("A");
+    const b = unObjeto("B");
+    const compuesto = must(componerModelos(a, b, {}));
+    const rootOpd = compuesto.opds[compuesto.opdRaizId];
+    const nombresVisibles = Object.values(rootOpd!.apariencias)
+      .map((ap) => compuesto.entidades[ap.entidadId]?.nombre)
+      .filter(Boolean)
+      .sort();
+    expect(nombresVisibles).toContain("A");
+    expect(nombresVisibles).toContain("B");
+  });
+
+  test("los IDs namespaceados de B son predecibles y no colisionan con los de A", () => {
+    const a = unObjeto("A");
+    const b = unObjeto("B");
+    const compuesto = must(componerModelos(a, b, {}));
+    const idsA = new Set(Object.keys(a.entidades));
+    for (const id of Object.keys(compuesto.entidades)) {
+      if (!idsA.has(id)) {
+        expect(id).toMatch(/c\d+$/);
+      }
+    }
+  });
 });

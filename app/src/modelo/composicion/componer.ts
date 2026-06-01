@@ -19,12 +19,8 @@ function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-function namespaceId(originalId: Id, suffix: string): Id {
-  const parts = originalId.split("-");
-  if (parts.length >= 2) {
-    return `${parts[0]}-c-${parts.slice(1).join("-")}`;
-  }
-  return `c-${originalId}`;
+function namespaceId(originalId: Id, ns: string): Id {
+  return `${originalId}-c${ns}`;
 }
 
 function remapExtremo(
@@ -59,6 +55,7 @@ export function componerModelos(
   const estadoMap = new Map<Id, Id>();
   const enlaceMap = new Map<Id, Id>();
   const opdMap = new Map<Id, Id>();
+  const opdsDeB = new Set<Id>();
 
   for (const [bEntId] of Object.entries(compartidas)) {
     const aEntId = compartidas[bEntId]!;
@@ -68,11 +65,15 @@ export function componerModelos(
   let nextSeq = Math.max(a.nextSeq, b.nextSeq) + 100;
 
   const opds: Record<Id, Opd> = { ...deepClone(a.opds) };
+  const rootB = b.opds[b.opdRaizId];
   for (const [opdId, opd] of Object.entries(b.opds)) {
-    const mappedId = opdId === b.opdRaizId ? a.opdRaizId : namespaceId(opdId, String(nextSeq++));
-    opdMap.set(opdId, mappedId);
-    if (!opds[mappedId]) {
+    if (opdId === b.opdRaizId) {
+      opdMap.set(opdId, a.opdRaizId);
+    } else {
+      const mappedId = namespaceId(opdId, String(nextSeq++));
+      opdMap.set(opdId, mappedId);
       opds[mappedId] = { ...deepClone(opd), id: mappedId };
+      opdsDeB.add(mappedId);
     }
   }
 
@@ -108,19 +109,43 @@ export function componerModelos(
     };
   }
 
+  if (rootB) {
+    const rootA = opds[a.opdRaizId]!;
+    for (const [apId, ap] of Object.entries(rootB.apariencias)) {
+      const mappedEnt = entidadMap.get(ap.entidadId);
+      if (mappedEnt) {
+        const newApId = namespaceId(apId, String(nextSeq++));
+        rootA.apariencias[newApId] = { ...deepClone(ap), id: newApId, entidadId: mappedEnt };
+      }
+    }
+    for (const [aeId, ae] of Object.entries(rootB.enlaces)) {
+      const mappedEnl = enlaceMap.get(ae.enlaceId);
+      if (mappedEnl) {
+        const newAeId = namespaceId(aeId, String(nextSeq++));
+        rootA.enlaces[newAeId] = { ...deepClone(ae), id: newAeId, enlaceId: mappedEnl };
+      }
+    }
+  }
+
   for (const [opdId, opd] of Object.entries(opds)) {
     const mappedPadre = opd.padreId !== null ? opdMap.get(opd.padreId) ?? opd.padreId : null;
     const apariencias: Record<Id, Apariencia> = {};
-    for (const [apId, ap] of Object.entries(opd.apariencias)) {
-      const mappedEnt = entidadMap.get(ap.entidadId);
-      if (!mappedEnt) continue;
-      apariencias[apId] = { ...ap, entidadId: mappedEnt };
+    if (opdsDeB.has(opdId)) {
+      for (const [apId, ap] of Object.entries(opd.apariencias)) {
+        const mappedEnt = entidadMap.get(ap.entidadId) ?? ap.entidadId;
+        apariencias[apId] = { ...ap, entidadId: mappedEnt };
+      }
+    } else {
+      Object.assign(apariencias, opd.apariencias);
     }
     const aparienciasEnlace: Record<Id, AparienciaEnlace> = {};
-    for (const [aeId, ae] of Object.entries(opd.enlaces)) {
-      const mappedEnl = enlaceMap.get(ae.enlaceId);
-      if (!mappedEnl) continue;
-      aparienciasEnlace[aeId] = { ...ae, enlaceId: mappedEnl };
+    if (opdsDeB.has(opdId)) {
+      for (const [aeId, ae] of Object.entries(opd.enlaces)) {
+        const mappedEnl = enlaceMap.get(ae.enlaceId) ?? ae.enlaceId;
+        aparienciasEnlace[aeId] = { ...ae, enlaceId: mappedEnl };
+      }
+    } else {
+      Object.assign(aparienciasEnlace, opd.enlaces);
     }
     opds[opdId] = { ...opd, padreId: mappedPadre, apariencias, enlaces: aparienciasEnlace };
   }
@@ -134,11 +159,14 @@ export function componerModelos(
       const mappedEnlaces = ab.enlaceIds.map((id) => enlaceMap.get(id)).filter((id): id is Id => !!id);
       if (mappedEnlaces.length !== ab.enlaceIds.length) continue;
       const mappedId = namespaceId(abId, String(nextSeq++));
+      const mappedPuertoEntidad = entidadMap.get(ab.puertoComun.entidadId) ?? ab.puertoComun.entidadId;
       abanicos[mappedId] = {
         ...deepClone(ab),
         id: mappedId,
         opdId: mappedOpd,
         enlaceIds: mappedEnlaces,
+        puertoComun: { ...ab.puertoComun, entidadId: mappedPuertoEntidad },
+        puertoEntidadId: mappedPuertoEntidad,
       };
     }
   }
