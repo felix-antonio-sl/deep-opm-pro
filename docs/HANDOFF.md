@@ -1,8 +1,8 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-06-01 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Corte de producto vigente (2026-06-01)**: las vistas de submodelo LF-04 ya no abren en blanco desde el árbol OPD cuando el submodelo proviene del catálogo local; se materializa una instantánea read-only del SD raíz seleccionado y se conserva el fallback `descargado` si no hay snapshot local. Cortes previos relevantes: `ca428b1` selector de submodelo existente y retiro total de estilo; `9436b64` reanclaje de enlaces; `d95132a` invocación normal sin quiebre distal; `e099cd3` ghost limpio, contraste canvas, sombra física y marker de invocación; `a36d275` marker transformador swallowtail OPCloud/JOYAS; `5298ec2` revisión jobs-web-ux OPCloud-isomorfa; `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales; `a29e15a` chip `⋯N`; `e69cf1d` supresión de estados por aparición; `2bbff4e` reanclaje estructural; `9767912` exportación OPL a Markdown; `8caf4d1` reconciliación e2e; `e5ff438` exportador de diagnóstico JSON.
-**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo tras redeploy del corte actual: `index-rh0x1ujK.js`, lazy chunks `DialogoSubmodelo-C2uxh_zU.js` y `CommandPalette-Db968qZ5.js`.
+**Corte de producto vigente (2026-06-01)**: submodelos LF-04 canonizados como referencia inter-modelo materializable: estado derivado, acciones `Abrir/Actualizar/Descargar/Desvincular`, mapas de materialización, árbol con badge `SM` y OPL CM1/CM2. Corte vigente: `5a52f1f`. Cortes previos relevantes: `f4778c0` vista LF-04 materializada al navegar desde árbol; `ca428b1` selector de submodelo existente y retiro total de estilo; `9436b64` reanclaje de enlaces; `d95132a` invocación normal sin quiebre distal; `e099cd3` ghost limpio, contraste canvas, sombra física y marker de invocación; `a36d275` marker transformador swallowtail OPCloud/JOYAS; `5298ec2` revisión jobs-web-ux OPCloud-isomorfa; `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales; `a29e15a` chip `⋯N`; `e69cf1d` supresión de estados por aparición; `2bbff4e` reanclaje estructural; `9767912` exportación OPL a Markdown; `8caf4d1` reconciliación e2e; `e5ff438` exportador de diagnóstico JSON.
+**Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo tras redeploy del corte actual: `index-Cbp89wDk.js`, lazy chunks `DialogoSubmodelo-B3mgpFq2.js` y `CommandPalette-Dkh0LyuS.js`.
 
 ## Corte actual — Vista LF-04 materializada al navegar desde árbol OPD
 
@@ -682,6 +682,13 @@ copia silenciosa de cosas.
 - Focal adicional post-ajuste:
   `bun test src/modelo/capacidadesOpcloud.test.ts src/store/capacidadesOpcloudUi.test.ts src/opl/generar.test.ts`
   -> **90 pass / 0 fail**.
+- Commit/push: `5a52f1f feat(opforja): canonizar submodelos LF-04`,
+  pusheado a `origin/main`.
+- Deploy: `docker compose up -d --build` -> OK; `opforja` healthy,
+  `opforja-bug-capture` up; healthz interno `ok`; bug-capture healthz
+  `{"ok":true}`; `curl -fsSI https://opforja.sanixai.com/` -> HTTP/2 200.
+  Bundle servido: `index-Cbp89wDk.js`, `DialogoSubmodelo-B3mgpFq2.js`,
+  `CommandPalette-Dkh0LyuS.js`.
 
 **Pendientes/riesgos:**
 - CM3 queda implementado solo para `compartidas` explícitas resolubles; la UI aún
