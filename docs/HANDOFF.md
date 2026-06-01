@@ -3,6 +3,37 @@
 **Fecha**: 2026-06-01 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
 **Corte de producto vigente (2026-06-01)**: submodelos LF-04 canonizados como referencia inter-modelo materializable: estado derivado, acciones `Abrir/Actualizar/Descargar/Desvincular`, mapas de materialización, árbol con badge `SM` y OPL CM1/CM2. Corte vigente: `5a52f1f`. Cortes previos relevantes: `f4778c0` vista LF-04 materializada al navegar desde árbol; `ca428b1` selector de submodelo existente y retiro total de estilo; `9436b64` reanclaje de enlaces; `d95132a` invocación normal sin quiebre distal; `e099cd3` ghost limpio, contraste canvas, sombra física y marker de invocación; `a36d275` marker transformador swallowtail OPCloud/JOYAS; `5298ec2` revisión jobs-web-ux OPCloud-isomorfa; `d794dbf` UX/UI canónica para capacidades OPCloud aspiracionales; `a29e15a` chip `⋯N`; `e69cf1d` supresión de estados por aparición; `2bbff4e` reanclaje estructural; `9767912` exportación OPL a Markdown; `8caf4d1` reconciliación e2e; `e5ff438` exportador de diagnóstico JSON.
 **Instancia**: `https://opforja.sanixai.com` — **HTTP 200 publico** (sin auth, ver Riesgos); `opforja` healthy + `opforja-bug-capture` ok; entry bundle vivo tras redeploy del corte actual: `index-Cbp89wDk.js`, lazy chunks `DialogoSubmodelo-B3mgpFq2.js` y `CommandPalette-Dkh0LyuS.js`.
+**Programa en curso (no desplegado)**: **capa categorial** — cimiento F0 commiteado (`e7822ee`, kernel puro `modelo/hechos/`); diseño y planes en `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`. Ver sección `Corte actual — Capa categorial`.
+
+## Corte actual — Capa categorial OPM (cimiento F0 commiteado + planes de fases)
+
+**Estado 2026-06-01:** se abrió un programa de **capa categorial** para opforja: dotar al kernel del eje horizontal de OPM (composición, equivalencia, razonamiento) y refundar la simulación, como **semántica verificable bajo la superficie** — sin tocar primitivas OPM. **Cimiento F0 implementado por Codex (rama `codex/capa-categorial-cimiento`), revisado y commiteado AISLADO en `main` como `e7822ee`.** No desplegado (kernel puro, sin UI; no es corte de producto).
+
+**Qué es F0 (cimiento):** módulo puro `app/src/modelo/hechos/` que reifica el **hecho OPM** como dato computable (`Hecho`, `ConjuntoDeHechos`, `claveHecho`, `hechosDe`, `seccionLocal`) + el **sheaf-check de pegado** entre OPDs (`verificarPegado`, ley `law-pegado-opd`). Es la base de los 4 pisos (linealidad, composición, equivalencia, razonamiento) y de la simulación. F0 detecta **separación** (un OPD que muestra un enlace hacia un estado que él mismo suprime); el **gluing** entra en F1. Diagnóstico puro: **no toca `validarModelo` ni el wire format**.
+
+**Revisión de F0 (verificada de primera mano, no del reporte):** módulo puro (cero imports fuera del kernel); **13 tests pass / 0 fail** (corridos por mí); typecheck global limpio; F0 aislado (único consumidor = la ley). Codex corrigió en revisión delegada dos cosas legítimas, una de ellas un **bug latente del plan original**: usar `designacionesEstado` (consolida flags legacy `esInicial/esFinal`) en vez de `designaciones ?? []`; y clonar extremos / congelar designaciones para que los hechos no aliasen el modelo. Ambas con tests dirigidos.
+
+**Decisiones canónicas:**
+- La capa categorial está **pre-autorizada por el corpus** (`metodologia-forja §0.2-0.3`: lente formal como nota al margen, nunca principio para el humano). Lenguaje OPM/dominio en código; lectura formal solo en docs.
+- Principio rector: **comparar en la denotación de hechos**, no en la superficie (strings OPL ni layout).
+- Cambios a la SSOT OPM (KORA) = **propuestas**, no ejecución; deciden operador + `custodio-kora`.
+- La **simulación es el anamorfismo** (unfold de una coalgebra) y el **gemelo dinámico del razonamiento** (catamorfismo); B0 ya es un anamorfismo a medio construir (`runner.ts::ejecutarPaso` = coalgebra pura). Se **generaliza**, no se reescribe.
+
+**Artefactos:** diseño maestro `docs/roadmap/capa-categorial-opforja.md` (cimiento + 4 pisos); simulación `docs/roadmap/simulacion-categorial-opforja.md` (motor anamórfico + experiencia); planes ejecutables `docs/superpowers/plans/2026-06-01-capa-categorial-{cimiento,composicion,equivalencia,razonamiento}.md` y `…-simulacion-coalgebra.md`. Código F0: `app/src/modelo/hechos/` + `app/src/leyes/hechos-pegado.test.ts` (commit `e7822ee`).
+
+**Handoff explícito — pendientes:**
+- **F1 (Composición + Linealidad)** — plan kernel listo; ejecutar (TDD, kernel primero, UX en plan hermano). `componerModelos` (pushout por `compartidas`) es la pieza compleja; reusa el namespacing de `submodelos/materializacion.ts`.
+- **F2 (Equivalencia)** — plan listo; cierra el método A0 de `metodologia-forja`. Depende de F0 (verificación) + F1 (variantes).
+- **F3 (Razonamiento)** — plan listo, **versión mínima** (motor de derivación sobre hechos); frontera dura anti-FOL/Datalog documentada.
+- **Simulación** — plan S0 (coalgebra explícita) listo; S1–S4 mapeadas en el doc de diseño. Generalizar `ejecutarPaso` a unfold parametrizado por functor de efecto `F` (reusa `decision.ts`, `parametros.ts`, `DuracionTemporal`, hoy desconectados).
+- **UX de cada piso** — planes hermanos posteriores a cada kernel (no antes; dependen del kernel respectivo).
+- **Propuestas SSOT** — linealidad como 4ª genérica en `opm-es`; equivalencia como cierre de A0 en `metodologia-forja`; composición por interfaz en `spec-forja-opl §21`. Pendientes de `custodio-kora`.
+
+**Supuestos:** F0 no está desplegado (kernel); el cimiento de hechos es la base común de pisos + simulación; B0 simulación se generaliza, no se reescribe; los planes de F1+ anclan código fino contra el repo al iniciar cada fase (su prerrequisito puede no estar aún en `main`).
+
+**Riesgos:** (1) `componerModelos` (renombrado de IDs / pushout) — confirmar API de `submodelos/materializacion`. (2) Techo de legibilidad: jamás exponer jerga categorial al usuario; UX en lenguaje de dominio. (3) Razonamiento: scope creep hacia demostrador — frontera dura en CONTRIBUTING. (4) Working tree de Felix activo (WIP command-palette/mapa/codex-frame) — **commitear siempre con `git add` específico**, nunca `git add -A`.
+
+**Prompt breve de continuación:** "Retomar desde `docs/HANDOFF.md`, sección `Corte actual — Capa categorial OPM`; F0 (`e7822ee`) está en `main` verde y aislado. Siguiente: ejecutar el plan F1 kernel (`docs/superpowers/plans/2026-06-01-capa-categorial-composicion.md`) vía subagent-driven, revisar como se hizo con F0, commitear aislado. Mantener: no tocar primitivas OPM ni `validarModelo`; lenguaje OPM en código / formal en docs; `git add` específico (working tree de Felix activo)."
 
 ## Corte actual — Vista LF-04 materializada al navegar desde árbol OPD
 
