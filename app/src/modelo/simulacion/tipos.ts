@@ -77,6 +77,8 @@ export interface EntradaTraceSim {
 
 export type EstadoSimulacion = "preparado" | "ejecutando" | "completado" | "bloqueado";
 
+export type ModoSimulacion = "determinista" | "muestreo" | "exhaustivo";
+
 /** Contexto de simulación. Inmutable: cada operación devuelve uno nuevo. */
 export interface ContextoSimulacion {
   modeloId: Id;
@@ -92,4 +94,8 @@ export interface ContextoSimulacion {
    *  `Entidad.valorSlot.valor` original. */
   valoresRuntime: Record<Id, ValorConcreto>;
   trace: EntradaTraceSim[];
+  /** Modo del functor de efecto F. Ausente -> "determinista" (paridad S1). */
+  modo?: ModoSimulacion;
+  /** Semilla del RNG en modo muestreo (reproducibilidad). */
+  semilla?: number;
 }
