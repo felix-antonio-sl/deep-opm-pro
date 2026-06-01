@@ -15,7 +15,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { esperarWorkbenchInicial, clickLinkPorTipo, ejecutarAccionCommandPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual, modeloDosOpds } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, clickLinkPorTipo, ejecutarAccionCommandPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual, modeloSmokeTablaEnlaces } from "./_smoke-helpers";
 
 test("entidad muestra ficha continua con las 6 secciones apiladas y sin tabs", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -66,7 +66,7 @@ test("conectar submodelo selecciona un modelo existente desde catálogo y crea r
     creadoEn: "2026-06-01T00:00:00.000Z",
     actualizadoEn: "2026-06-01T00:05:00.000Z",
   };
-  const payload = modeloDosOpds();
+  const payload = modeloSmokeTablaEnlaces();
   await page.addInitScript(({ resumen, modelo }) => {
     localStorage.setItem(
       "deep-opm-pro:persistencia:index",
@@ -102,13 +102,17 @@ test("conectar submodelo selecciona un modelo existente desde catálogo y crea r
   expect(submodelo).toMatchObject({
     modeloId: "modelo-sub-e2e",
     nombre: "Modelo sub E2E",
-    estado: "descargado",
+    estado: "cargado-sincronizado",
   });
   expect(exportado.modelo.opds[submodelo!.opdVistaId!]?.vista).toMatchObject({
     kind: "submodel-view",
     submodeloRefId: submodelo!.id,
     readOnly: true,
   });
+
+  await page.getByTestId(`tree-node-${submodelo!.opdVistaId}`).click();
+  await expect(elementoPorTexto(page, "Cliente")).toBeVisible();
+  await expect(elementoPorTexto(page, "Resolver solicitud")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });

@@ -14,7 +14,9 @@ import {
   splitEffectParcial,
 } from "../../modelo/operaciones";
 import { posicionLibre, solapa } from "../../modelo/layout";
-import type { Id, Modelo, TargetSatisfaccionRequisito } from "../../modelo/tipos";
+import type { Id, Modelo, Resultado, TargetSatisfaccionRequisito } from "../../modelo/tipos";
+import { cargarModeloLocal } from "../../persistencia/local";
+import { hidratarModelo } from "../../serializacion/json";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
 
@@ -191,11 +193,17 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         set({ mensaje: "Selecciona la cosa que ancla el submodelo" });
         return;
       }
+      const snapshot = cargarSnapshotSubmodeloLocal(input.modeloId);
+      if (!snapshot.ok) {
+        set({ mensaje: snapshot.error });
+        return;
+      }
       const resultado = conectarSubmodelo(modelo, {
         anchorEntidadId: seleccionId,
         modeloId: input.modeloId,
         nombre: input.nombre,
         ...(input.compartidas ? { compartidas: input.compartidas } : {}),
+        ...(snapshot.value ? { snapshot: snapshot.value } : {}),
       });
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
@@ -209,7 +217,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         enlaceSeleccionId: null,
         estadoSeleccionId: null,
         dialogoSubmodeloAbierto: false,
-        mensaje: "Submodelo conectado",
+        mensaje: snapshot.value ? "Submodelo conectado y cargado" : "Submodelo conectado",
       });
     },
 
@@ -386,4 +394,16 @@ function enlaceDerivadoEnOpd(modelo: Modelo, opdId: Id, enlacePadreId: Id): Id |
 
 function opdVistaRequisito(modelo: Modelo, requisitoEntidadId: Id): Id | null {
   return Object.values(modelo.opds).find((opd) => opd.vista?.kind === "requirement-view" && opd.vista.requisitoEntidadId === requisitoEntidadId)?.id ?? null;
+}
+
+function cargarSnapshotSubmodeloLocal(modeloId: Id): Resultado<Modelo | undefined> {
+  const cargado = cargarModeloLocal(modeloId);
+  if (!cargado.ok) {
+    return cargado.error === "Modelo local no encontrado" || cargado.error === "Storage local no disponible"
+      ? { ok: true, value: undefined }
+      : cargado;
+  }
+  const hidratado = hidratarModelo(cargado.value.json);
+  if (!hidratado.ok) return { ok: false, error: `No se pudo cargar el submodelo: ${hidratado.error}` };
+  return { ok: true, value: hidratado.value };
 }

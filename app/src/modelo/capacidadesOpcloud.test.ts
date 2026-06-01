@@ -213,4 +213,71 @@ describe("capacidades objetivo OPCloud canonizadas en kernel", () => {
     expect(hidratado.value.submodelos?.[submodelo.refId]?.estado).toBe("desconectado");
     expect(hidratado.value.opds[submodelo.opdVistaId]?.vista).toMatchObject({ kind: "submodel-view", syncState: "desconectado" });
   });
+
+  test("submodelo LF-04 materializa snapshot visible del SD raíz seleccionado", () => {
+    let padre = crearModelo("Padre");
+    padre = must(crearProceso(padre, padre.opdRaizId, { x: 240, y: 80 }, "Validar"));
+    const validarId = entidadId(padre, "Validar");
+
+    let hijo = crearModelo("Hijo");
+    hijo = must(crearObjeto(hijo, hijo.opdRaizId, { x: 40, y: 80 }, "Entrada hijo"));
+    hijo = must(crearProceso(hijo, hijo.opdRaizId, { x: 260, y: 80 }, "Procesar hijo"));
+    hijo = must(crearObjeto(hijo, hijo.opdRaizId, { x: 500, y: 40 }, "Salida A"));
+    hijo = must(crearObjeto(hijo, hijo.opdRaizId, { x: 500, y: 140 }, "Salida B"));
+    const entradaId = entidadId(hijo, "Entrada hijo");
+    const procesarId = entidadId(hijo, "Procesar hijo");
+    const salidaAId = entidadId(hijo, "Salida A");
+    const salidaBId = entidadId(hijo, "Salida B");
+    hijo = must(crearEnlace(hijo, hijo.opdRaizId, entradaId, procesarId, "consumo"));
+    hijo = must(crearEnlace(hijo, hijo.opdRaizId, procesarId, salidaAId, "resultado"));
+    hijo = must(crearEnlace(hijo, hijo.opdRaizId, procesarId, salidaBId, "resultado"));
+    const ramas = Object.values(hijo.enlaces).filter((enlace) => enlace.tipo === "resultado");
+    if (ramas.length !== 2) throw new Error("La prueba esperaba dos resultados para el abanico");
+    hijo = {
+      ...hijo,
+      enlaces: {
+        ...hijo.enlaces,
+        [ramas[0]!.id]: { ...ramas[0]!, origenId: { ...ramas[0]!.origenId, portId: "port-xor-submodelo" } },
+        [ramas[1]!.id]: { ...ramas[1]!, origenId: { ...ramas[1]!.origenId, portId: "port-xor-submodelo" } },
+      },
+    };
+    hijo = must(formarAbanico(hijo, hijo.opdRaizId, ramas.map((enlace) => enlace.id), "XOR"));
+    const abanicoHijoId = Object.keys(hijo.abanicos ?? {})[0]!;
+    hijo = {
+      ...hijo,
+      abanicos: {
+        ...hijo.abanicos,
+        [abanicoHijoId]: {
+          ...hijo.abanicos![abanicoHijoId]!,
+          decision: { modo: "probabilidades", pesos: { [ramas[0]!.id]: 0.6, [ramas[1]!.id]: 0.4 } },
+        },
+      },
+    };
+
+    const conectado = must(conectarSubmodelo(padre, {
+      anchorEntidadId: validarId,
+      modeloId: "modelo-hijo",
+      nombre: "Validar detalle",
+      snapshot: hijo,
+    }));
+
+    const modelo = conectado.modelo;
+    const ref = modelo.submodelos?.[conectado.refId];
+    const vista = modelo.opds[conectado.opdVistaId];
+    expect(ref?.estado).toBe("cargado-sincronizado");
+    expect(vista?.vista).toMatchObject({ kind: "submodel-view", readOnly: true, syncState: "cargado-sincronizado" });
+    expect(Object.values(vista?.apariencias ?? {}).map((apariencia) => modelo.entidades[apariencia.entidadId]?.nombre).sort()).toEqual([
+      "Entrada hijo",
+      "Procesar hijo",
+      "Salida A",
+      "Salida B",
+    ]);
+    expect(Object.values(vista?.enlaces ?? {}).map((apariencia) => modelo.enlaces[apariencia.enlaceId]?.tipo).sort()).toEqual(["consumo", "resultado", "resultado"]);
+    const abanico = Object.values(modelo.abanicos ?? {}).find((item) => item.opdId === conectado.opdVistaId);
+    expect(abanico?.decision?.modo).toBe("probabilidades");
+    if (abanico?.decision?.modo !== "probabilidades") throw new Error("La prueba esperaba decisión por probabilidades");
+    expect(Object.keys(abanico.decision.pesos).sort()).toEqual([...abanico.enlaceIds].sort());
+    expect(must(resolverDecisionAbanico(modelo, abanico.id, { random: () => 0.7 })).enlaceId).toBe(abanico.enlaceIds[1]);
+    expect(hidratarModelo(exportarModelo(modelo)).ok).toBe(true);
+  });
 });
