@@ -183,10 +183,11 @@ export function BarraSimulacion(): JSX.Element | null {
         </span>
       ) : null}
 
-      {/* Timer mono */}
+      {/* Timer mono desde reloj */}
       {!sinProcesos ? (
         <span style={s.timer}>
           {String(ejecutados).padStart(2, "0")} / {String(totalPasos).padStart(2, "0")}
+          {contexto.reloj != null ? ` \u00b7 ${contexto.reloj}u` : ""}
         </span>
       ) : null}
 

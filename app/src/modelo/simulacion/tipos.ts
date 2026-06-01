@@ -68,11 +68,13 @@ export interface EntradaTraceSim {
   procesoId: Id;
   procesoNombre: string;
   transicionesAplicadas: TransicionEstadoSim[];
-  /** Cambios de valor runtime aplicados (asignación atributo→atributo, L3). */
+  /** Cambios de valor runtime aplicados (asignacion atributo->atributo, L3). */
   cambiosValor: CambioValorRuntime[];
-  /** Texto canónico cuando el paso no pudo aplicar todas las transiciones
-   *  planificadas o cambios de valor. Razón corta legible. */
+  /** Texto canonico cuando el paso no pudo aplicar todas las transiciones
+   *  planificadas o cambios de valor. Razon corta legible. */
   diagnostico?: string;
+  /** Duracion muestreada del paso (unidades de reloj). S3 tiempo hibrido. */
+  duracion?: number;
 }
 
 export type EstadoSimulacion = "preparado" | "ejecutando" | "completado" | "bloqueado";
@@ -98,4 +100,6 @@ export interface ContextoSimulacion {
   modo?: ModoSimulacion;
   /** Semilla del RNG en modo muestreo (reproducibilidad). */
   semilla?: number;
+  /** Reloj acumulado de la simulacion (S3 tiempo hibrido). */
+  reloj?: number;
 }

@@ -73,11 +73,16 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     transicionesAplicadas,
     cambiosValor,
   };
+
+  const duracionPaso = inferirDuracionPaso(modelo, transicionesAplicadas);
+  if (duracionPaso !== undefined) entrada.duracion = duracionPaso;
+
   if (motivosBloqueo.length > 0) {
     entrada.diagnostico = `No simulable: ${motivosBloqueo.join("; ")}`;
   }
 
   const nuevoPaso = contexto.pasoActual + 1;
+  const relojNuevo = (contexto.reloj ?? 0) + (duracionPaso ?? 0);
   const siguiente: ContextoSimulacion = {
     ...contexto,
     pasoActual: nuevoPaso,
@@ -85,6 +90,7 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     estadosCurrent,
     valoresRuntime: valoresNuevos,
     trace: [...contexto.trace, entrada],
+    reloj: relojNuevo,
   };
 
   const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
@@ -164,6 +170,19 @@ function aplicarRamaAbanico(
   }
 
   return estado;
+}
+
+function inferirDuracionPaso(
+  modelo: Modelo,
+  transiciones: TransicionEstadoSim[],
+): number | undefined {
+  for (const t of transiciones) {
+    const estadoId = t.estadoDespuesId ?? t.estadoAntesId;
+    if (!estadoId) continue;
+    const estado = modelo.estados[estadoId];
+    if (estado?.duracion) return estado.duracion.nominal;
+  }
+  return undefined;
 }
 
 /**
