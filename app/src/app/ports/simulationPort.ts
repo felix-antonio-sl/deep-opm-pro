@@ -1,3 +1,4 @@
+import type { ModoSimulacion } from "../../modelo/simulacion/tipos";
 import type { OpmStore } from "../../store";
 
 export interface SimulationPort {
@@ -13,4 +14,6 @@ export interface SimulationPort {
   fijarVelocidad: OpmStore["fijarVelocidadSimulacion"];
   alternarHeadless: OpmStore["alternarHeadlessSimulacion"];
   salir: OpmStore["salirModoSimulacion"];
+  fijarModo: (modo: ModoSimulacion) => void;
+  fijarSemilla: (semilla: number) => void;
 }

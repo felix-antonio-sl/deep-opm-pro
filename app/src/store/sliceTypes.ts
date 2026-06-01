@@ -254,6 +254,8 @@ export type SimulacionSlice = Slice<
   | "fijarVelocidadSimulacion"
   | "asignarValorRuntimeSimulacion"
   | "alternarHeadlessSimulacion"
+  | "fijarModoSimulacion"
+  | "fijarSemillaSimulacion"
 >;
 
 export type OpmStoreSlices =

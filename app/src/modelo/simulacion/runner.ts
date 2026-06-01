@@ -1,8 +1,10 @@
-import type { Id, Modelo } from "../tipos";
+import type { Abanico, Id, Modelo } from "../tipos";
 import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
 import type { ContextoSimulacion, EntradaTraceSim, TransicionEstadoSim } from "./tipos";
 import { aplicarCambiosValor, iniciarValoresRuntime } from "./valores";
-import { efectoUnico, tomarUnico, type Efecto } from "./efecto";
+import { efectoUnico, tomarUnico, type Efecto, type Sucesor } from "./efecto";
+import { resolverDecisionAbanico } from "../decision";
+import { rngSembrado } from "./rng";
 
 /**
  * Inicia una simulación conceptual sobre un OPD. No muta el modelo.
@@ -84,6 +86,43 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     valoresRuntime: valoresNuevos,
     trace: [...contexto.trace, entrada],
   };
+
+  const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
+  const modo = contexto.modo ?? "determinista";
+  if (abanico) {
+    if (modo === "exhaustivo") {
+      return {
+        sucesores: abanico.enlaceIds.map((enlaceId) => ({
+          estado: aplicarRamaAbanico(modelo, siguiente, abanico, enlaceId, paso),
+          rama: modelo.enlaces[enlaceId]?.etiqueta || enlaceId,
+          peso: 1 / abanico.enlaceIds.length,
+        })),
+      };
+    }
+    if (modo === "muestreo") {
+      const random = rngSembrado(contexto.semilla ?? Date.now());
+      const d = resolverDecisionAbanico(modelo, abanico.id, { random });
+      if (d.ok && d.value.enlaceId) {
+        return {
+          sucesores: [{
+            estado: aplicarRamaAbanico(modelo, siguiente, abanico, d.value.enlaceId, paso),
+            rama: modelo.enlaces[d.value.enlaceId]?.etiqueta || d.value.enlaceId,
+            peso: d.value.probabilidades?.[d.value.enlaceId] ?? 1,
+          }],
+        };
+      }
+    }
+    const elegido = [...abanico.enlaceIds].sort(
+      (x, y) => (modelo.enlaces[y]?.probabilidad ?? 0) - (modelo.enlaces[x]?.probabilidad ?? 0),
+    )[0]!;
+    return {
+      sucesores: [{
+        estado: aplicarRamaAbanico(modelo, siguiente, abanico, elegido, paso),
+        rama: modelo.enlaces[elegido]?.etiqueta || elegido,
+        peso: 1,
+      }],
+    };
+  }
   return efectoUnico(siguiente);
 }
 
@@ -92,6 +131,39 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
  */
 export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion): ContextoSimulacion {
   return tomarUnico(pasoEfecto(modelo, contexto));
+}
+
+function abanicoXorDeSalida(modelo: Modelo, procesoId: Id): Abanico | undefined {
+  return Object.values(modelo.abanicos ?? {}).find(
+    (a) => a.operador === "XOR" && a.puertoEntidadId === procesoId,
+  );
+}
+
+/**
+ * Aplica al estado la transicion de la rama elegida del abanico XOR.
+ * Anota la rama en el diagnostico/no-anotacion de la ultima entrada del trace.
+ */
+function aplicarRamaAbanico(
+  modelo: Modelo,
+  estado: ContextoSimulacion,
+  abanico: Abanico,
+  enlaceId: Id,
+  _paso: ContextoSimulacion["plan"][number],
+): ContextoSimulacion {
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace) return estado;
+
+  const trace = [...estado.trace];
+  const ultima = trace[trace.length - 1];
+  if (ultima) {
+    const ramaEtiqueta = enlace.etiqueta || enlaceId;
+    const modo = estado.modo ?? "determinista";
+    const semillaStr = estado.semilla != null ? `, semilla ${estado.semilla}` : "";
+    const prStr = modo === "muestreo" ? `Pr ${enlace.probabilidad ?? "-"}` : "";
+    ultima.diagnostico = `rama «${ramaEtiqueta}» · ${modo}${prStr ? ` (${prStr})` : ""}${semillaStr}`;
+  }
+
+  return estado;
 }
 
 /**
@@ -120,4 +192,34 @@ export function reiniciarSimulacion(modelo: Modelo, contexto: ContextoSimulacion
  */
 export function ejecutarCorrida(modelo: Modelo, contexto: ContextoSimulacion): ContextoSimulacion {
   return desplegar(modelo, contexto);
+}
+
+export interface NodoTraza {
+  estado: ContextoSimulacion;
+  rama?: string;
+  hijos: NodoTraza[];
+}
+
+/**
+ * Exhaustivo: arbol de ejecucion hasta un limite de nodos (anti-explosion).
+ */
+export function desplegarArbol(modelo: Modelo, ini: ContextoSimulacion, limite = 200): { raiz: NodoTraza; truncado: boolean } {
+  let contador = 0;
+  let truncado = false;
+  const construir = (estado: ContextoSimulacion): NodoTraza => {
+    if (estado.pasoActual >= estado.plan.length || contador >= limite) {
+      if (contador >= limite) truncado = true;
+      return { estado, hijos: [] };
+    }
+    contador += 1;
+    const e = pasoEfecto(modelo, estado);
+    const nodo: NodoTraza = { estado, hijos: [] };
+    nodo.hijos = e.sucesores.map((s) => {
+      const hijo = construir(s.estado);
+      if (s.rama !== undefined) hijo.rama = s.rama;
+      return hijo;
+    });
+    return nodo;
+  };
+  return { raiz: construir(ini), truncado };
 }

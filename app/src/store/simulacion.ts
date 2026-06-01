@@ -1,5 +1,5 @@
 import { ejecutarCorrida, ejecutarPaso, iniciarSimulacion, reiniciarSimulacion } from "../modelo/simulacion/runner";
-import type { ContextoSimulacion } from "../modelo/simulacion/tipos";
+import type { ContextoSimulacion, ModoSimulacion } from "../modelo/simulacion/tipos";
 import type { Id } from "../modelo/tipos";
 import type { CrearSlice, SimulacionSlice } from "./sliceTypes";
 import type { OpmStore } from "./tipos";
@@ -132,6 +132,18 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
 
   alternarHeadlessSimulacion() {
     set({ headlessSimulacion: !get().headlessSimulacion });
+  },
+
+  fijarModoSimulacion(modo: ModoSimulacion) {
+    const { contextoSimulacion } = get();
+    if (!contextoSimulacion) return;
+    set({ contextoSimulacion: { ...contextoSimulacion, modo } });
+  },
+
+  fijarSemillaSimulacion(semilla: number) {
+    const { contextoSimulacion } = get();
+    if (!contextoSimulacion) return;
+    set({ contextoSimulacion: { ...contextoSimulacion, semilla } });
   },
 
   asignarValorRuntimeSimulacion(entidadId, valor) {

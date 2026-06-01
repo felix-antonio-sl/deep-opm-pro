@@ -809,6 +809,8 @@ export interface OpmStore {
   /** HU B0.015: preferencia de modo headless — salta animación de tokens. */
   headlessSimulacion: boolean;
   alternarHeadlessSimulacion: () => void;
+  fijarModoSimulacion: (modo: import("../modelo/simulacion/tipos").ModoSimulacion) => void;
+  fijarSemillaSimulacion: (semilla: number) => void;
 }
 
 

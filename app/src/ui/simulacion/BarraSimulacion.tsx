@@ -18,6 +18,8 @@ export function BarraSimulacion(): JSX.Element | null {
     fijarVelocidad,
     alternarHeadless,
     salir,
+    fijarModo,
+    fijarSemilla,
   } = useZustandSimulationPort();
 
   const esMobile = useBreakpoint() === "mobile";
@@ -124,6 +126,23 @@ export function BarraSimulacion(): JSX.Element | null {
           salir
           <kbd style={s.kbd}>&#x238B;</kbd>
         </button>
+
+        {/* Modo: segmented inline */}
+        {!sinProcesos ? (
+          <span style={s.segmented} data-testid="barra-simulacion-modo">
+            {(["determinista", "muestreo", "exhaustivo"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                style={{ ...s.segmentBtn, ...((contexto.modo ?? "determinista") === m ? s.segmentActivo : {}) }}
+                onClick={() => fijarModo(m)}
+                title={`Modo ${m}`}
+              >
+                {m}
+              </button>
+            ))}
+          </span>
+        ) : null}
 
         {/* Velocidad: segmented inline */}
         {!sinProcesos ? (

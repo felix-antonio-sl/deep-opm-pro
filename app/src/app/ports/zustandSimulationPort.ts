@@ -14,6 +14,8 @@ export function useZustandSimulationPort(): SimulationPort {
   const fijarVelocidad = useOpmStore((s) => s.fijarVelocidadSimulacion);
   const alternarHeadless = useOpmStore((s) => s.alternarHeadlessSimulacion);
   const salir = useOpmStore((s) => s.salirModoSimulacion);
+  const fijarModo = useOpmStore((s) => s.fijarModoSimulacion);
+  const fijarSemilla = useOpmStore((s) => s.fijarSemillaSimulacion);
 
   return {
     contexto,
@@ -28,5 +30,7 @@ export function useZustandSimulationPort(): SimulationPort {
     fijarVelocidad,
     alternarHeadless,
     salir,
+    fijarModo,
+    fijarSemilla,
   };
 }
