@@ -11,8 +11,16 @@ export function sugerirCompartidasPorInterfaz(a: Modelo, b: Modelo): Compartidas
   const entidadesA = Object.values(a.entidades);
 
   for (const entidadB of Object.values(b.entidades)) {
+    // Identidad por id: SOLO vale si el nombre también coincide. Los ids de
+    // opforja son secuenciales por modelo (o-1, p-1…), así que dos modelos
+    // independientes del catálogo casi siempre colisionan en id sin ser la
+    // misma entidad. Exigir nombre igual preserva el caso versión/derivado
+    // (mismo id + mismo nombre) y descarta la fusión falsa por id coincidente.
     const mismaIdentidad = a.entidades[entidadB.id];
-    if (mismaIdentidad?.tipo === entidadB.tipo) {
+    if (
+      mismaIdentidad?.tipo === entidadB.tipo &&
+      claveInterfaz(mismaIdentidad.nombre) === claveInterfaz(entidadB.nombre)
+    ) {
       compartidas[entidadB.id] = mismaIdentidad.id;
       usadosA.add(mismaIdentidad.id);
       continue;

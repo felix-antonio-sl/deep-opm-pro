@@ -35,13 +35,14 @@ describe("sugerirCompartidasPorInterfaz", () => {
     expect(sugerirCompartidasPorInterfaz(a, b)).toEqual({});
   });
 
-  test("prefiere identidad de id cuando existe en ambos modelos", () => {
+  test("sugiere por id SOLO cuando el nombre también coincide (versión/derivado de A)", () => {
     let a = crearModelo("A");
     a = must(crearObjeto(a, a.opdRaizId, { x: 0, y: 0 }, "Cuenta"));
     let b = crearModelo("B");
-    b = must(crearObjeto(b, b.opdRaizId, { x: 0, y: 0 }, "Cuenta externa"));
+    b = must(crearObjeto(b, b.opdRaizId, { x: 0, y: 0 }, "Cuenta"));
     const aId = entidadId(a, "Cuenta");
-    const bOriginal = b.entidades[entidadId(b, "Cuenta externa")]!;
+    const bOriginal = b.entidades[entidadId(b, "Cuenta")]!;
+    // B reusa el id de A para la misma entidad (derivado/versión): mismo id + mismo nombre.
     b = {
       ...b,
       entidades: {
@@ -59,5 +60,19 @@ describe("sugerirCompartidasPorInterfaz", () => {
     };
 
     expect(sugerirCompartidasPorInterfaz(a, b)).toEqual({ [aId]: aId });
+  });
+
+  test("NO fusiona por id si los nombres difieren (modelos independientes con ids secuenciales colisionados)", () => {
+    // Dos modelos creados por separado comparten ids secuenciales (o-1, p-1…),
+    // pero son entidades semánticamente distintas: el id coincidente es
+    // coincidencia, no identidad. Fusionarlas corrompería la composición.
+    let a = crearModelo("A");
+    a = must(crearObjeto(a, a.opdRaizId, { x: 0, y: 0 }, "Paciente"));
+    let b = crearModelo("B");
+    b = must(crearObjeto(b, b.opdRaizId, { x: 0, y: 0 }, "Factura"));
+    // Precondición del caso: el primer objeto de ambos comparte id secuencial.
+    expect(Object.values(a.entidades)[0]!.id).toBe(Object.values(b.entidades)[0]!.id);
+
+    expect(sugerirCompartidasPorInterfaz(a, b)).toEqual({});
   });
 });
