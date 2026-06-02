@@ -1,0 +1,71 @@
+import { describe, expect, test } from "bun:test";
+import { crearModelo, crearObjeto, crearProceso, crearEnlace } from "../operaciones";
+import type { Id, Modelo, Resultado } from "../tipos";
+import { derivar } from "./derivar";
+
+function must<T>(r: Resultado<T>): T {
+  if (!r.ok) throw new Error(r.error);
+  return r.value;
+}
+function idPorNombre(modelo: Modelo, nombre: string): Id {
+  return Object.values(modelo.entidades).find((e) => e.nombre === nombre)!.id;
+}
+
+/** Doc (objeto) consumido por Editar (proceso). */
+function modeloAfecta(): Modelo {
+  let m = crearModelo();
+  m = must(crearObjeto(m, m.opdRaizId, { x: 100, y: 100 }, "Doc"));
+  m = must(crearProceso(m, m.opdRaizId, { x: 320, y: 100 }, "Editar"));
+  m = must(crearEnlace(m, m.opdRaizId, idPorNombre(m, "Doc"), idPorNombre(m, "Editar"), "consumo"));
+  return m;
+}
+
+/** Fabricar →(resultado) Pieza →(consumo) Ensamblar : cadena de precondición. */
+function modeloCadena(): Modelo {
+  let m = crearModelo();
+  m = must(crearProceso(m, m.opdRaizId, { x: 100, y: 100 }, "Fabricar"));
+  m = must(crearObjeto(m, m.opdRaizId, { x: 300, y: 100 }, "Pieza"));
+  m = must(crearProceso(m, m.opdRaizId, { x: 500, y: 100 }, "Ensamblar"));
+  m = must(crearEnlace(m, m.opdRaizId, idPorNombre(m, "Fabricar"), idPorNombre(m, "Pieza"), "resultado"));
+  m = must(crearEnlace(m, m.opdRaizId, idPorNombre(m, "Pieza"), idPorNombre(m, "Ensamblar"), "consumo"));
+  return m;
+}
+
+describe("razonamiento/derivar", () => {
+  test("afectan-a: lista el proceso que consume/afecta a un objeto", () => {
+    const m = modeloAfecta();
+    const editar = idPorNombre(m, "Editar");
+    const r = derivar(m, { tipo: "afectan-a", entidadId: idPorNombre(m, "Doc") });
+    expect(r.some((h) => h.inferido && h.procesoId === editar)).toBe(true);
+  });
+
+  test("requerido-por: cierre transitivo de precondiciones (Pieza y su productor Fabricar)", () => {
+    const m = modeloCadena();
+    const r = derivar(m, { tipo: "requerido-por", procesoId: idPorNombre(m, "Ensamblar") });
+    const ids = new Set(r.map((h) => h.entidadId));
+    expect(ids.has(idPorNombre(m, "Pieza"))).toBe(true);
+    expect(ids.has(idPorNombre(m, "Fabricar"))).toBe(true); // transitivo: productor de Pieza
+  });
+
+  test("impacto-de-eliminar: incluye los enlaces incidentes al elemento", () => {
+    const m = modeloAfecta();
+    const r = derivar(m, { tipo: "impacto-de-eliminar", elementoId: idPorNombre(m, "Doc") });
+    expect(r.some((h) => h.enlaceId !== undefined)).toBe(true);
+  });
+
+  test("todo HechoDerivado está marcado inferido (nunca se confunde con hecho declarado)", () => {
+    const m = modeloCadena();
+    const r = derivar(m, { tipo: "requerido-por", procesoId: idPorNombre(m, "Ensamblar") });
+    expect(r.length).toBeGreaterThan(0);
+    expect(r.every((h) => h.inferido === true)).toBe(true);
+  });
+
+  test("derivar es puro y determinista", () => {
+    const m = modeloCadena();
+    const antes = JSON.stringify(m);
+    const r1 = derivar(m, { tipo: "requerido-por", procesoId: idPorNombre(m, "Ensamblar") });
+    const r2 = derivar(m, { tipo: "requerido-por", procesoId: idPorNombre(m, "Ensamblar") });
+    expect(JSON.stringify(m)).toBe(antes);
+    expect(r1).toEqual(r2);
+  });
+});
