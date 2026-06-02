@@ -146,6 +146,7 @@ import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
+import type { Consulta } from "../modelo/razonamiento";
 import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, Esencia, EstadoCargaSubmodelo, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
@@ -578,6 +579,8 @@ export interface OpmStore {
   recolectarEnlaceContornoSeleccionado: () => void;
   distribuirEnlaceContornoSeleccionado: () => void;
   resolverDecisionSeleccionada: () => void;
+  /** Piso 3 (Razonamiento): deriva un subgrafo y lo proyecta a selección + toast. */
+  consultarRazonamiento: (consulta: Consulta) => void;
   volverEnlaceExternoDerivadoAAutomatico: (aparienciaEnlaceId: Id) => void;
   alternarOperadorAbanicoSeleccionado: (operador: OperadorAbanico) => void;
   crearAbanicoDesdeEnlaceSeleccionado: (lado: "origen" | "destino", operador?: OperadorAbanico) => void;

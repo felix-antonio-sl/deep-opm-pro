@@ -222,6 +222,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "recolectarEnlaceContornoSeleccionado",
     "distribuirEnlaceContornoSeleccionado",
     "resolverDecisionSeleccionada",
+    "consultarRazonamiento",
     "volverEnlaceExternoDerivadoAAutomatico",
     "alternarOperadorAbanicoSeleccionado",
     "crearAbanicoDesdeEnlaceSeleccionado",

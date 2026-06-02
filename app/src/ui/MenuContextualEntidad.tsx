@@ -92,6 +92,9 @@ const ORDEN_MENU_ENTIDAD: readonly AccionContextualId[] = [
   "traer-conectados",
   "traer-conectados-default",
   "traer-enlaces",
+  "razonar-afectan-a",
+  "razonar-requerido-por",
+  "razonar-impacto-eliminar",
   "quitar-descomposicion",
   "quitar-despliegue",
   "ocultar-apariencia",
@@ -101,9 +104,10 @@ export function ordenarAccionesMenuEntidad(acciones: readonly AccionContextual[]
   return [...acciones].sort((a, b) => indiceOrdenMenuEntidad(a.id) - indiceOrdenMenuEntidad(b.id));
 }
 
-export function grupoAccionMenuEntidad(id: AccionContextualId): "refinamiento" | "edicion" | "apariencia" | "enlaces" | "peligro" {
+export function grupoAccionMenuEntidad(id: AccionContextualId): "refinamiento" | "edicion" | "apariencia" | "enlaces" | "razonamiento" | "peligro" {
   if (id === "inzoom" || id === "unfold" || id === "conectar-submodelo") return "refinamiento";
   if (id === "agregar-estado" || id === "editar-alias" || id === "editar-imagen" || id === "marcar-requisito" || id === "satisfacer-requisito") return "edicion";
+  if (id === "razonar-afectan-a" || id === "razonar-requerido-por" || id === "razonar-impacto-eliminar") return "razonamiento";
   if (id === "ocultar-apariencia" || id === "quitar-descomposicion" || id === "quitar-despliegue") return "peligro";
   return "enlaces";
 }

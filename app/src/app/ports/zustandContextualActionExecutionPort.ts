@@ -31,5 +31,6 @@ function snapshotContextualActionExecution(state: OpmStore): ContextualActionExe
     traerConectadosSeleccionado: state.traerConectadosSeleccionado,
     traerEnlacesEntreSeleccionadas: state.traerEnlacesEntreSeleccionadas,
     ocultarAparienciaSeleccionada: state.ocultarAparienciaSeleccionada,
+    consultarRazonamiento: state.consultarRazonamiento,
   };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso } from "../modelo/operaciones";
+import { crearModelo, crearObjeto, crearProceso, crearEnlace, desplegarObjeto, descomponerProceso } from "../modelo/operaciones";
 import type { Id, Modelo, Resultado } from "../modelo/tipos";
 import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
@@ -41,7 +41,52 @@ describe("ejecutarAccionContextualEntidad", () => {
       kind: "exceptional",
     });
   });
+
+  test("razonar-afectan-a (objeto) selecciona los procesos que lo afectan", () => {
+    const { modelo, docId, editarId } = modeloDocEditar();
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().seleccionarEntidad(docId);
+
+    expect(ejecutarAccionContextualEntidad("razonar-afectan-a")).toEqual({
+      actionId: "razonar-afectan-a",
+      kind: "normal",
+    });
+    expect(store.getState().seleccionados).toContain(editarId);
+  });
+
+  test("razonar-afectan-a es exceptional si la selección no es objeto", () => {
+    const { modelo, editarId } = modeloDocEditar();
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().seleccionarEntidad(editarId); // proceso
+
+    expect(ejecutarAccionContextualEntidad("razonar-afectan-a")).toMatchObject({
+      actionId: "razonar-afectan-a",
+      kind: "exceptional",
+    });
+  });
+
+  test("razonar-impacto-eliminar informa por toast para cualquier cosa", () => {
+    const { modelo, editarId } = modeloDocEditar();
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().seleccionarEntidad(editarId);
+
+    expect(ejecutarAccionContextualEntidad("razonar-impacto-eliminar")).toEqual({
+      actionId: "razonar-impacto-eliminar",
+      kind: "normal",
+    });
+    expect(store.getState().mensaje).toMatch(/afectar[íi]a/i);
+  });
 });
+
+function modeloDocEditar(): { modelo: Modelo; docId: Id; editarId: Id } {
+  let modelo = crearModelo("Contextual razonamiento");
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Doc"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Editar"));
+  const docId = entidad(modelo, "Doc");
+  const editarId = entidad(modelo, "Editar");
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, docId, editarId, "consumo"));
+  return { modelo, docId, editarId };
+}
 
 function modeloConDescomposicion(): { modelo: Modelo; entidadId: Id } {
   let modelo = crearModelo("Contextual inzoom");

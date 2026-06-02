@@ -1,3 +1,4 @@
+import type { Consulta } from "../../modelo/razonamiento";
 import type { Id, Modelo } from "../../modelo/tipos";
 
 export interface ContextualActionExecutionSnapshot {
@@ -22,6 +23,7 @@ export interface ContextualActionExecutionSnapshot {
   traerConectadosSeleccionado: () => void;
   traerEnlacesEntreSeleccionadas: () => void;
   ocultarAparienciaSeleccionada: () => void;
+  consultarRazonamiento: (consulta: Consulta) => void;
 }
 
 export interface ContextualActionExecutionPort {

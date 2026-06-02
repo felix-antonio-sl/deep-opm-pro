@@ -16,10 +16,11 @@ import {
   splitEffectParcial,
 } from "../../modelo/operaciones";
 import { posicionLibre, solapa } from "../../modelo/layout";
+import { derivar } from "../../modelo/razonamiento";
 import type { Id, Modelo, Resultado, TargetSatisfaccionRequisito } from "../../modelo/tipos";
 import { cargarModeloLocal } from "../../persistencia/local";
 import { hidratarModelo } from "../../serializacion/json";
-import { commitModelo, type GetStore, type SetStore } from "../runtime";
+import { commitModelo, estadoSeleccionDesdeIds, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
 
 export function accionesCapacidades(set: SetStore, get: GetStore): Partial<ModeloSlice> {
@@ -384,6 +385,44 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
       }
       const elegido = resultado.value.enlaceId ? ` · rama ${resultado.value.enlaceId}` : "";
       set({ mensaje: `Decisión resuelta (${resultado.value.modo})${elegido}` });
+    },
+
+    consultarRazonamiento(consulta) {
+      const { modelo } = get();
+      const derivados = derivar(modelo, consulta);
+      const nombre = (id: Id): string => modelo.entidades[id]?.nombre ?? "(?)";
+
+      // impacto-de-eliminar: advertencia. El resultado son sobre todo enlaces,
+      // que no encajan en la multiselección (singular); se reporta por toast.
+      if (consulta.tipo === "impacto-de-eliminar") {
+        set({ mensaje: `Eliminar "${nombre(consulta.elementoId)}" afectaría ${derivados.length} hecho(s) derivado(s)` });
+        return;
+      }
+
+      // afectan-a / requerido-por: el subgrafo derivado son COSAS; se proyectan
+      // a la selección múltiple del canvas (halo existente) + toast con conteo.
+      const cosas =
+        consulta.tipo === "afectan-a"
+          ? derivados.map((h) => h.procesoId)
+          : derivados.map((h) => h.entidadId);
+      const ids = [...new Set(cosas.filter((id): id is Id => Boolean(id)))];
+
+      if (ids.length === 0) {
+        const objetivo = consulta.tipo === "afectan-a" ? consulta.entidadId : consulta.procesoId;
+        set({
+          mensaje:
+            consulta.tipo === "afectan-a"
+              ? `Nada afecta a "${nombre(objetivo)}"`
+              : `"${nombre(objetivo)}" no requiere precondiciones`,
+        });
+        return;
+      }
+
+      const mensaje =
+        consulta.tipo === "afectan-a"
+          ? `${ids.length} proceso(s) afectan a "${nombre(consulta.entidadId)}"`
+          : `"${nombre(consulta.procesoId)}" requiere ${ids.length} cosa(s)`;
+      set({ ...estadoSeleccionDesdeIds(modelo, ids, "simple"), mensaje });
     },
   };
 }

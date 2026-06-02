@@ -22,6 +22,9 @@ export type AccionContextualId =
   | "traer-conectados"
   | "traer-conectados-default"
   | "traer-enlaces"
+  | "razonar-afectan-a"
+  | "razonar-requerido-por"
+  | "razonar-impacto-eliminar"
   | "ocultar-apariencia";
 
 export interface AccionContextual {
@@ -177,6 +180,25 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
     accion("traer-enlaces", "Traer enlaces entre seleccionadas", "accion-traer-enlaces", "enlaces", ctx.multi, {
       visible: ctx.multi,
       superficies: ["barra-flotante", "menu-contextual", "command-palette"],
+    }),
+    // Piso 3 (Razonamiento): consultas derivadas sobre el grafo de hechos.
+    // No mutan el modelo; proyectan el subgrafo a selección/toast. Por eso
+    // viven fuera de la barra flotante (acciones de manipulación), en el menú
+    // contextual y el command palette (acciones de exploración).
+    accion("razonar-afectan-a", "Mostrar qué la afecta", "accion-razonar-afectan-a", "navegacion", esObjeto, {
+      visible: esObjeto,
+      superficies: ["menu-contextual", "command-palette"],
+      aliasBusqueda: ["razonar", "afecta", "afectan", "derivar", "procesos"],
+    }),
+    accion("razonar-requerido-por", "Mostrar qué requiere", "accion-razonar-requerido-por", "navegacion", ctx.entidad?.tipo === "proceso", {
+      visible: ctx.entidad?.tipo === "proceso",
+      superficies: ["menu-contextual", "command-palette"],
+      aliasBusqueda: ["razonar", "requiere", "requerido", "precondiciones", "derivar"],
+    }),
+    accion("razonar-impacto-eliminar", "Calcular impacto de eliminar", "accion-razonar-impacto-eliminar", "navegacion", esCosa, {
+      visible: esCosa,
+      superficies: ["menu-contextual", "command-palette"],
+      aliasBusqueda: ["razonar", "impacto", "eliminar", "derivar", "dependencias"],
     }),
     accion("ocultar-apariencia", "Ocultar de este OPD", "accion-ocultar-apariencia", "peligro", esCosa, {
       visible: esCosa,

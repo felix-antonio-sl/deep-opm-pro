@@ -92,6 +92,18 @@ export function ejecutarAccionContextualEntidad(
       if (!entidad) return excepcional(accionId, "Ocultar apariencia requiere una cosa seleccionada.");
       state.ocultarAparienciaSeleccionada();
       return normal(accionId);
+    case "razonar-afectan-a":
+      if (entidad?.tipo !== "objeto") return excepcional(accionId, "Mostrar qué la afecta requiere un objeto seleccionado.");
+      state.consultarRazonamiento({ tipo: "afectan-a", entidadId: entidad.id });
+      return normal(accionId);
+    case "razonar-requerido-por":
+      if (entidad?.tipo !== "proceso") return excepcional(accionId, "Mostrar qué requiere necesita un proceso seleccionado.");
+      state.consultarRazonamiento({ tipo: "requerido-por", procesoId: entidad.id });
+      return normal(accionId);
+    case "razonar-impacto-eliminar":
+      if (!entidad) return excepcional(accionId, "Calcular impacto requiere una cosa seleccionada.");
+      state.consultarRazonamiento({ tipo: "impacto-de-eliminar", elementoId: entidad.id });
+      return normal(accionId);
     case "mas-opciones":
       return excepcional(accionId, "Más opciones se resuelve en la superficie que la invoca.");
   }

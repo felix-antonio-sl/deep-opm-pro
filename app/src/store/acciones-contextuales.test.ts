@@ -136,4 +136,38 @@ describe("accionesContextualesEntidad", () => {
     expect(palette).not.toContain("satisfacer-requisito");
     expect(palette).not.toContain("conectar-submodelo");
   });
+
+  describe("consultas de razonamiento (Piso 3)", () => {
+    test("objeto: ofrece 'qué afecta' e 'impacto de eliminar', no 'qué requiere'", () => {
+      const acciones = accionesContextualesEntidad({ entidad: objeto, inspectorAbierto: false, multi: false });
+      const menu = ids(accionesParaSuperficie(acciones, "menu-contextual"));
+      expect(menu).toContain("razonar-afectan-a");
+      expect(menu).toContain("razonar-impacto-eliminar");
+      expect(menu).not.toContain("razonar-requerido-por");
+    });
+
+    test("proceso: ofrece 'qué requiere' e 'impacto', no 'qué afecta'", () => {
+      const acciones = accionesContextualesEntidad({ entidad: proceso, inspectorAbierto: false, multi: false });
+      const menu = ids(accionesParaSuperficie(acciones, "menu-contextual"));
+      expect(menu).toContain("razonar-requerido-por");
+      expect(menu).toContain("razonar-impacto-eliminar");
+      expect(menu).not.toContain("razonar-afectan-a");
+    });
+
+    test("disponibles también en el command palette", () => {
+      const acciones = accionesContextualesEntidad({ entidad: proceso, inspectorAbierto: false, multi: false });
+      const palette = ids(accionesParaSuperficie(acciones, "command-palette"));
+      expect(palette).toContain("razonar-requerido-por");
+      expect(palette).toContain("razonar-impacto-eliminar");
+    });
+
+    test("no aparecen en la barra flotante ni sin cosa seleccionada", () => {
+      const conObjeto = accionesContextualesEntidad({ entidad: objeto, inspectorAbierto: false, multi: false });
+      expect(ids(accionesParaSuperficie(conObjeto, "barra-flotante"))).not.toContain("razonar-afectan-a");
+      const sinCosa = accionesContextualesEntidad({ entidad: null, inspectorAbierto: false, multi: false });
+      const menu = ids(accionesParaSuperficie(sinCosa, "menu-contextual"));
+      expect(menu).not.toContain("razonar-afectan-a");
+      expect(menu).not.toContain("razonar-impacto-eliminar");
+    });
+  });
 });
