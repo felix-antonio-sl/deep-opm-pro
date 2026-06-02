@@ -57,7 +57,7 @@ export function BarraSimulacion(): JSX.Element | null {
       <div style={s.fila}>
         <span style={s.tag}>Simulacion</span>
         {sinProcesos ? (
-          <span style={s.contador}>Este modelo no tiene procesos que simular</span>
+          <span style={s.contador} data-testid="barra-simulacion-progreso">Este modelo no tiene procesos que simular</span>
         ) : completado ? (
           <span style={{ ...s.estadoTexto, color: C.success }} data-testid="barra-simulacion-progreso">
             Completada &middot; {totalPasos} pasos
@@ -153,6 +153,7 @@ export function BarraSimulacion(): JSX.Element | null {
                 type="button"
                 style={{ ...s.segmentBtn, ...(velocidadSimulacion === v ? s.segmentActivo : {}) }}
                 onClick={() => fijarVelocidad(v)}
+                aria-label={`Velocidad ${v}x`}
                 title={`Velocidad ${v}x`}
               >
                 {v === 0.5 ? "\u00BDx" : `${v}x`}

@@ -182,7 +182,10 @@ test("simulacion: OPL resalta la frase del proceso activo", async ({ page }) => 
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Recibir");
 
-  await expect(page.locator('[data-testid="opl-line"][data-sim-activa="true"]')).toHaveCount(2);
+  // Canon OPL vigente: una entidad genera UNA frase de designacion combinada
+  // ("*Recibir* es un proceso informacional y sistemico.", cf. fixtures-roundtrip).
+  // Un proceso solo => 1 frase lo toca => 1 linea con data-sim-activa.
+  await expect(page.locator('[data-testid="opl-line"][data-sim-activa="true"]')).toHaveCount(1);
 
   expect(pageErrors).toEqual([]);
 });
@@ -197,7 +200,9 @@ test("simulacion: navegar a otro OPD no aborta la corrida (B0.026)", async ({ pa
 
   await jsonEditor(page).fill(JSON.stringify(modeloSimulacionDosOpds(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
-  await expect(page.getByTestId("breadcrumb-opd")).toContainText("system diagram");
+  // El fixture nombra al OPD raiz "SD" (render: "sd"); "system diagram" era el
+  // default historico ya retirado del codigo. El OPD hijo "SD1" se valida abajo.
+  await expect(page.getByTestId("breadcrumb-opd")).toContainText("sd");
 
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion")).toBeVisible();
