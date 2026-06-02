@@ -107,3 +107,47 @@ describe("razonamiento/derivar", () => {
     expect(derivar(m, { tipo: "impacto-de-eliminar", elementoId: idPorNombre(m, "Suelto") })).toHaveLength(0);
   });
 });
+
+/** Huevo: crudo -(Cocinar)-> cocido; `podrido` queda desconectado del inicial. */
+function modeloTransicionEstados(): Modelo {
+  return {
+    id: "m",
+    nombre: "m",
+    opdRaizId: "raiz",
+    nextSeq: 100,
+    entidades: {
+      Huevo: { id: "Huevo", tipo: "objeto", nombre: "Huevo", esencia: "fisica", afiliacion: "sistemica" },
+      Cocinar: { id: "Cocinar", tipo: "proceso", nombre: "Cocinar", esencia: "informacional", afiliacion: "sistemica" },
+    },
+    estados: {
+      crudo: { id: "crudo", entidadId: "Huevo", nombre: "crudo", designaciones: ["inicial"] },
+      cocido: { id: "cocido", entidadId: "Huevo", nombre: "cocido" },
+      podrido: { id: "podrido", entidadId: "Huevo", nombre: "podrido" },
+    },
+    enlaces: {
+      cons: { id: "cons", tipo: "consumo", origenId: { kind: "estado", id: "crudo" }, destinoId: { kind: "entidad", id: "Cocinar" }, etiqueta: "c" },
+      res: { id: "res", tipo: "resultado", origenId: { kind: "entidad", id: "Cocinar" }, destinoId: { kind: "estado", id: "cocido" }, etiqueta: "r" },
+    },
+    opds: { raiz: { id: "raiz", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} } },
+  };
+}
+
+describe("razonamiento/derivar — alcanzable (reachability de estados)", () => {
+  test("estado conectado por transición desde el inicial: alcanzable (con evidencia)", () => {
+    const m = modeloTransicionEstados();
+    const r = derivar(m, { tipo: "alcanzable", entidadId: "Huevo", estado: "cocido" });
+    expect(r.length).toBeGreaterThan(0); // no vacío = alcanzable
+    expect(r.some((h) => h.estadoId === "cocido")).toBe(true);
+    expect(r.some((h) => h.procesoId === "Cocinar")).toBe(true); // el proceso del camino
+  });
+
+  test("control negativo: estado sin transición entrante desde el inicial NO es alcanzable", () => {
+    const m = modeloTransicionEstados();
+    expect(derivar(m, { tipo: "alcanzable", entidadId: "Huevo", estado: "podrido" })).toHaveLength(0);
+  });
+
+  test("control negativo: estado inexistente NO es alcanzable", () => {
+    const m = modeloTransicionEstados();
+    expect(derivar(m, { tipo: "alcanzable", entidadId: "Huevo", estado: "fosilizado" })).toHaveLength(0);
+  });
+});

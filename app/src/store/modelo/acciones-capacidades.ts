@@ -449,6 +449,18 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         return;
       }
 
+      // alcanzable: ¿la entidad puede llegar al estado meta? (no vacío = sí). Se
+      // reporta por toast; el camino son estados+procesos, no encaja en multiselección.
+      if (consulta.tipo === "alcanzable") {
+        const objetivo = nombre(consulta.entidadId);
+        set({
+          mensaje: derivados.length > 0
+            ? `El estado "${consulta.estado}" de "${objetivo}" es alcanzable`
+            : `El estado "${consulta.estado}" de "${objetivo}" NO es alcanzable`,
+        });
+        return;
+      }
+
       // afectan-a / requerido-por: el subgrafo derivado son COSAS; se proyectan
       // a la selección múltiple del canvas (halo existente) + toast con conteo.
       const cosas =

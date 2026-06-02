@@ -1,3 +1,4 @@
+import { tieneDesignacion } from "../estadosDesignaciones";
 import type { ExtremoEnlace, Id, Modelo } from "../tipos";
 
 /**
@@ -20,6 +21,7 @@ import type { ExtremoEnlace, Id, Modelo } from "../tipos";
 export type Consulta =
   | { tipo: "afectan-a"; entidadId: Id }
   | { tipo: "requerido-por"; procesoId: Id }
+  | { tipo: "alcanzable"; entidadId: Id; estado: string }
   | { tipo: "impacto-de-eliminar"; elementoId: Id };
 
 export interface HechoDerivado {
@@ -109,6 +111,73 @@ function impactoDeEliminar(modelo: Modelo, elementoId: Id): HechoDerivado[] {
   return out;
 }
 
+/**
+ * Reachability de estados: ¿la entidad puede llegar al estado nombrado desde sus
+ * estados de partida (designados inicial/default/current; fallback: todos)? El
+ * grafo de transición es s1→s2 cuando un proceso consume s1 y produce s2 del
+ * mismo objeto — la MISMA relación que la simulación recorre. Es el dual ESTÁTICO
+ * del recorrido dinámico del unfold (urn:fxsl:kb:icas-efectos: fold/unfold sobre
+ * el mismo grafo). Devuelve evidencia (estados alcanzados + procesos del camino)
+ * si es alcanzable; vacío si no.
+ */
+function alcanzable(modelo: Modelo, entidadId: Id, estadoNombre: string): HechoDerivado[] {
+  const estadosEntidad = Object.values(modelo.estados).filter((e) => e.entidadId === entidadId);
+  const meta = estadosEntidad.find((e) => e.nombre === estadoNombre);
+  if (!meta) return [];
+
+  // Grafo de transición de estados inducido por procesos (consumo de estado + resultado a estado).
+  const entradasPorProceso = new Map<Id, Id[]>();
+  const salidasPorProceso = new Map<Id, Id[]>();
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (enlace.tipo === "consumo" && enlace.origenId.kind === "estado" && enlace.destinoId.kind === "entidad"
+      && modelo.estados[enlace.origenId.id]?.entidadId === entidadId) {
+      const lista = entradasPorProceso.get(enlace.destinoId.id) ?? [];
+      lista.push(enlace.origenId.id);
+      entradasPorProceso.set(enlace.destinoId.id, lista);
+    }
+    if (enlace.tipo === "resultado" && enlace.origenId.kind === "entidad" && enlace.destinoId.kind === "estado"
+      && modelo.estados[enlace.destinoId.id]?.entidadId === entidadId) {
+      const lista = salidasPorProceso.get(enlace.origenId.id) ?? [];
+      lista.push(enlace.destinoId.id);
+      salidasPorProceso.set(enlace.origenId.id, lista);
+    }
+  }
+  const adyacencia = new Map<Id, Array<{ a: Id; proceso: Id }>>();
+  for (const [proceso, entradas] of entradasPorProceso) {
+    const salidas = salidasPorProceso.get(proceso) ?? [];
+    for (const de of entradas) for (const a of salidas) {
+      const lista = adyacencia.get(de) ?? [];
+      lista.push({ a, proceso });
+      adyacencia.set(de, lista);
+    }
+  }
+
+  const designados = estadosEntidad.filter(
+    (e) => tieneDesignacion(e, "current") || tieneDesignacion(e, "default") || tieneDesignacion(e, "inicial"),
+  );
+  const partida = designados.length > 0 ? designados : estadosEntidad;
+
+  const visitados = new Set<Id>(partida.map((e) => e.id));
+  const procesosUsados = new Set<Id>();
+  const cola = [...visitados];
+  while (cola.length > 0) {
+    const actual = cola.shift()!;
+    for (const { a, proceso } of adyacencia.get(actual) ?? []) {
+      procesosUsados.add(proceso);
+      if (!visitados.has(a)) {
+        visitados.add(a);
+        cola.push(a);
+      }
+    }
+  }
+
+  if (!visitados.has(meta.id)) return [];
+  const out: HechoDerivado[] = [];
+  for (const estadoId of visitados) out.push({ inferido: true, via: "alcanzable", entidadId, estadoId });
+  for (const proceso of procesosUsados) out.push({ inferido: true, via: "alcanzable", procesoId: proceso });
+  return out;
+}
+
 /** Motor de derivación puro. Toda salida es `inferido: true`. */
 export function derivar(modelo: Modelo, consulta: Consulta): HechoDerivado[] {
   switch (consulta.tipo) {
@@ -116,6 +185,8 @@ export function derivar(modelo: Modelo, consulta: Consulta): HechoDerivado[] {
       return afectanA(modelo, consulta.entidadId);
     case "requerido-por":
       return requeridoPor(modelo, consulta.procesoId);
+    case "alcanzable":
+      return alcanzable(modelo, consulta.entidadId, consulta.estado);
     case "impacto-de-eliminar":
       return impactoDeEliminar(modelo, consulta.elementoId);
   }
