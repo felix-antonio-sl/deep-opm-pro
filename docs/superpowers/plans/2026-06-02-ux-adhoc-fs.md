@@ -10,24 +10,35 @@
 
 ---
 
-## Capacidad 1 — Razonamiento (F3) · consultas en Cmd+K  [recomendada primero: aditiva, bajo riesgo]
+## Capacidad 1 — Razonamiento (F3) · consultas derivadas  ✅ HECHA (commit d1c1edd)
 
-**Kernel listo:** `modelo/razonamiento::derivar(modelo, consulta)` (consultas `afectan-a` / `requerido-por` / `impacto-de-eliminar`), todo `inferido:true`.
+**Entregada por una ruta MEJOR que la planeada.** En vez de editar `CommandPalette.tsx`
+(que estaba en WIP del operador con el feature export-SVG-ZIP), se modelaron las 3
+consultas como **acciones contextuales** (`store/acciones-contextuales.ts`). El catálogo
+de acciones es una sola estructura (IFML §7.3) que se proyecta a 3 superficies: barra
+flotante, menú contextual y command palette. Al registrar el hecho ahí, aparece en menú
+contextual + Cmd+K **sin tocar el render** → cero colisión con el WIP, y semánticamente
+más limpio. Lección para Capacidad 2 y 3: usar también acción contextual para el comando
+de apertura del diálogo, evitando `CommandPalette.tsx`.
 
-**Superficie:** 3 comandos contextuales en CommandPalette (sección nueva `RAZONAR`), habilitados cuando hay entidad seleccionada:
-- "¿Qué afecta a esta cosa?" → `derivar({tipo:"afectan-a", entidadId: seleccionId})`
-- "¿Qué requiere este proceso?" → `derivar({tipo:"requerido-por", procesoId: seleccionId})` (solo si la selección es proceso)
-- "Impacto de eliminar esta cosa" → `derivar({tipo:"impacto-de-eliminar", elementoId: seleccionId})`
+**Corrección del plan (Ψ):** `idsResaltadosTemporales` NO existía. La proyección correcta
+del subgrafo derivado es la **selección múltiple** (`estadoSeleccionDesdeIds` / `setSeleccion`):
+el halo de selección del canvas YA es el resaltado.
 
-**Resultado (elige una, mínimo riesgo primero):** resaltar el subgrafo derivado en canvas vía `idsResaltadosTemporales` (patrón existente) **y/o** toast con el conteo (`set({ mensaje: "N procesos afectan a X" })`). Distinguir visualmente "inferido" (no es hecho declarado).
-
-**Cableado (receta validada en linealidad):**
-- [ ] `store/modelo/acciones-capacidades.ts`: acción `consultarRazonamiento(consulta)` que llama `derivar` y hace `set({ idsResaltadosTemporales, mensaje })`. Puro respecto al modelo (derivar no muta).
-- [ ] `store/tipos.ts` + `store/modelo/contrato.ts`: registrar la acción.
-- [ ] `app/ports/zustandCommandPalettePort.ts` + `viewmodels/commandPaletteViewModel.ts`: exponer.
-- [ ] `ui/CommandPalette.tsx`: 3 ítems en `construirAccionesMenuCommandPalette` + sección `RAZONAR` en `seccionesPorAccionMenu` + deps (`haySeleccion`, `seleccionEsProceso`).
-- [ ] Tests: `CommandPalette.test.ts` (los ítems aparecen con selección) + e2e en `12-command-palette.spec.ts` (ejecutar una consulta y verificar resaltado/toast).
-- [ ] Gate: check + design:governance + e2e.
+**Lo implementado:**
+- `store/modelo/acciones-capacidades.ts::consultarRazonamiento(consulta)`: afectan-a /
+  requerido-por → seleccionan el subgrafo de COSAS + toast con conteo; impacto-de-eliminar
+  → toast-advertencia (sus resultados son enlaces, que no encajan en multiselección singular).
+- `acciones-contextuales.ts`: `razonar-afectan-a` (objeto), `razonar-requerido-por` (proceso),
+  `razonar-impacto-eliminar` (cualquier cosa); categoría `navegacion`; superficies
+  `["menu-contextual","command-palette"]` (fuera de la barra: son exploración, no manipulación).
+- `ejecutarAccionContextual.ts` + `contextualActionExecutionPort` (+ wiring zustand): dispatch
+  con validación de tipo de selección.
+- `MenuContextualEntidad.tsx`: grupo propio `"razonamiento"` con separador + orden.
+- TDD: `razonamiento-ux.test.ts` (4), `acciones-contextuales.test.ts` (+4), `ejecutarAccionContextual.test.ts` (+3).
+- Gate: 1862 unit pass, typecheck limpio, design:governance OK.
+- [ ] **Pendiente menor (reconciliación):** e2e — añadir a `12-*.spec.ts` cuando el WIP de
+  Felix en ese spec esté commiteado (no tocar su archivo en vuelo).
 
 ---
 
