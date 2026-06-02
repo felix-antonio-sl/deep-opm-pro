@@ -314,6 +314,7 @@ export interface OpmStore {
   dialogoOntologiaAbierto: boolean;
   dialogoRequisitoAbierto: DialogoRequisitoModo | null;
   dialogoSubmodeloAbierto: boolean;
+  dialogoComposicionAbierto: boolean;
   /** [JOYAS §1] Halo temporal solicitado para inserción; amarillo canónico #FFFC7F. */
   idsResaltadosTemporales: Id[];
   workspaceLocal: WorkspaceModeloLocal;
@@ -397,6 +398,9 @@ export interface OpmStore {
   abrirDialogoSubmodelo: () => void;
   cerrarDialogoSubmodelo: () => void;
   conectarSubmodeloSeleccionado: (input: { modeloId: Id; nombre: string; compartidas?: Record<Id, Id> }) => void;
+  abrirDialogoComposicion: () => void;
+  cerrarDialogoComposicion: () => void;
+  componerConModeloGuardado: (input: { modeloId: Id; compartidas?: Record<Id, Id> }) => void;
   marcarEstadoSubmodeloSeleccionado: (refId: Id, estado: EstadoCargaSubmodelo) => void;
   actualizarSubmodeloSeleccionado: (refId?: Id) => void;
   descargarSubmodeloSeleccionado: (refId?: Id) => void;

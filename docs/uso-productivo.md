@@ -122,13 +122,14 @@ descargado.
 
 ## Exportar Para Compartir
 
-Para entregar el diagrama del OPD activo como imagen vectorial:
+Para entregar el diagrama del OPD activo como imagen raster:
 
-`Menú principal (☰) > Exportar OPD actual como SVG`.
+`Cmd/Ctrl+K > Exportar OPD actual como PNG`.
 
-El archivo `.svg` resultante contiene solo el contenido del OPD: sin
-toolbar, sin inspector, sin OPL. Se abre en cualquier navegador o
-editor vectorial y se inserta directamente en documentos.
+El archivo `.png` resultante contiene solo el contenido del OPD: sin
+toolbar, sin inspector, sin OPL. Para documentación de un modelo completo,
+usar `Cmd/Ctrl+K > Exportar todos los OPDs como PNG`; descarga un `.zip`
+con una imagen por OPD.
 
 ## Si Algo Se Rompe
 

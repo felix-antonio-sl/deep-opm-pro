@@ -190,4 +190,20 @@ describe("accionesContextualesEntidad", () => {
       expect(ids(accionesParaSuperficie(acciones, "barra-flotante"))).not.toContain("verificar-coherencia-descomposicion");
     });
   });
+
+  describe("composición por interfaz (Piso 1)", () => {
+    test("ofrece componer con modelo en menú contextual y command palette", () => {
+      const acciones = accionesContextualesEntidad({ entidad: objeto, inspectorAbierto: false, multi: false });
+
+      expect(ids(accionesParaSuperficie(acciones, "menu-contextual"))).toContain("componer-modelo");
+      expect(ids(accionesParaSuperficie(acciones, "command-palette"))).toContain("componer-modelo");
+      expect(ids(accionesParaSuperficie(acciones, "barra-flotante"))).not.toContain("componer-modelo");
+    });
+
+    test("ofrece componer con modelo desde la paleta aun sin selección", () => {
+      const acciones = accionesContextualesEntidad({ entidad: null, inspectorAbierto: false, multi: false });
+
+      expect(ids(accionesParaSuperficie(acciones, "command-palette"))).toContain("componer-modelo");
+    });
+  });
 });

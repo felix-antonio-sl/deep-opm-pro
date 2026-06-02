@@ -53,7 +53,7 @@ import {
   type ExtremoExportado,
 } from "./_smoke-helpers";
 
-test("Exportar OPD actual como SVG descarga el paper del canvas sin chrome de aplicacion", async ({ page }) => {
+test("Exportar OPD actual como PNG descarga el paper del canvas sin chrome de aplicacion", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -64,22 +64,52 @@ test("Exportar OPD actual como SVG descarga el paper del canvas sin chrome de ap
   await expect(svgText(page, "Agente")).toBeVisible();
 
   const downloadPromise = page.waitForEvent("download");
-  // Ronda Codex v2 L5: la exportación SVG se invoca desde el command palette.
-  await ejecutarComandoPalette(page, "exportar opd svg", "menu-exportar-svg");
+  await ejecutarComandoPalette(page, "exportar opd png", "menu-exportar-opd-png");
   const download = await downloadPromise;
-  expect(download.suggestedFilename()).toMatch(/^markers-canonicos-sd-\d{4}-\d{2}-\d{2}\.svg$/);
+  expect(download.suggestedFilename()).toMatch(/^markers-canonicos-sd-\d{4}-\d{2}-\d{2}\.png$/);
   const path = await download.path();
-  if (!path) throw new Error("Playwright no entrego path de descarga SVG");
-  const svg = await readFile(path, "utf8");
+  if (!path) throw new Error("Playwright no entrego path de descarga PNG");
+  const bytes = await readFile(path);
 
-  expect(svg).toContain("<svg");
-  expect(svg).toContain("xmlns=\"http://www.w3.org/2000/svg\"");
-  expect(svg).toContain("Agente");
-  expect(svg).toContain("Instrumento");
-  expect(svg).not.toContain("Menú principal");
-  expect(svg).not.toContain("Inspector");
+  expect([...bytes.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  expect(bytes.byteLength).toBeGreaterThan(1000);
+  await page.keyboard.press("Control+k");
+  const palette = page.getByTestId("command-palette");
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("exportar svg");
+  await expect(palette).toContainText("sin resultados - escribe otro comando");
+  await page.keyboard.press("Escape");
   expect(pageErrors).toEqual([]);
 });
+
+test("Exportar todos los OPDs como PNG descarga paquete ZIP", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+  await expect(page.locator(".joint-paper svg")).toHaveCount(1);
+
+  const downloadPromise = page.waitForEvent("download");
+  await ejecutarComandoPalette(page, "todos opds png", "menu-exportar-opds-png-zip");
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/^modelo-multi-opd-opds-png-\d{4}-\d{2}-\d{2}\.zip$/);
+  const path = await download.path();
+  if (!path) throw new Error("Playwright no entrego path de descarga ZIP");
+  const bytes = await readFile(path);
+
+  expect([...bytes.subarray(0, 4)]).toEqual([0x50, 0x4b, 0x03, 0x04]);
+  expect(bytes.toString("utf8")).toContain("01-sd.png");
+  expect(bytes.toString("utf8")).toContain("02-sd1.png");
+  expect(tamanoPrimeraEntradaZip(bytes)).toBeGreaterThan(1000);
+  expect(pageErrors).toEqual([]);
+});
+
+function tamanoPrimeraEntradaZip(bytes: Buffer): number {
+  if (bytes.length < 30) return 0;
+  return bytes.readUInt32LE(22);
+}
 
 test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
   const pageErrors: string[] = [];

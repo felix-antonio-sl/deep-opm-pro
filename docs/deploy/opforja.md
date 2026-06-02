@@ -8,7 +8,7 @@ Docker externa `web`.
 por decisión del operador. No guardar contrasenas en claro en este repo.
 
 > Doc del **administrador** de la instancia. Para uso operativo del
-> modelador (entrar, crear, guardar, respaldar, exportar SVG) ver
+> modelador (entrar, crear, guardar, respaldar, exportar PNG) ver
 > `docs/uso-productivo.md`.
 
 ## Patrón Operativo
@@ -114,7 +114,7 @@ Esperado: certificado emitido para `CN = opforja.sanixai.com` por Let's Encrypt.
 2. Ejecutar `docker compose up -d --build`.
 3. Verificar `docker compose ps`, `healthz` interno y `curl -I` externo.
 4. Abrir la app y ejecutar smoke manual minimo:
-   crear/cargar modelo, descargar backup JSON, exportar SVG del OPD activo y
+   crear/cargar modelo, descargar backup JSON, exportar PNG del OPD activo y
    crear un bug de prueba con texto corto para verificar `docs/bugs/BUG-*`.
 
 ## Datos Del Usuario

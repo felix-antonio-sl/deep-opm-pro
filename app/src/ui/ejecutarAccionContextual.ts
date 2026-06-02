@@ -57,6 +57,9 @@ export function ejecutarAccionContextualEntidad(
       if (!entidad) return excepcional(accionId, "Conectar submodelo requiere una cosa seleccionada.");
       state.abrirDialogoSubmodelo();
       return normal(accionId);
+    case "componer-modelo":
+      state.abrirDialogoComposicion();
+      return normal(accionId);
     case "eliminar-seleccion":
       if (state.seleccionados.length === 0 && !state.seleccionId && !state.enlaceSeleccionId) return excepcional(accionId, "No hay selección para eliminar.");
       state.eliminarSeleccion();

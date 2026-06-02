@@ -2,7 +2,7 @@
 import { dia, shapes } from "jointjs";
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { useMapaSistemaViewModel } from "../app/viewmodels/mapaSistemaViewModel";
-import { descargarMapa, type FormatoExport } from "../render/jointjs/mapaExport";
+import { descargarMapa } from "../render/jointjs/mapaExport";
 import { proyectarMapaSistemaAJointCells, type NodoMapa } from "../render/jointjs/mapaSistema";
 import { MapaFiltros } from "./MapaFiltros";
 import { MapaPanelEstadisticas } from "./MapaPanelEstadisticas";
@@ -169,17 +169,17 @@ export function MapaSistema() {
 
   useEffect(() => {
     const handler = (event: Event) => {
-      const formato = (event as CustomEvent<{ formato: FormatoExport }>).detail?.formato;
-      if (formato === "png" || formato === "svg") void exportar(formato);
+      const formato = (event as CustomEvent<{ formato: "png" }>).detail?.formato;
+      if (formato === "png") void exportar();
     };
     window.addEventListener("deep-opm-pro:exportar-mapa", handler);
     return () => window.removeEventListener("deep-opm-pro:exportar-mapa", handler);
   });
 
-  const exportar = async (formato: FormatoExport) => {
+  const exportar = async () => {
     const paper = paperRef.current;
     if (!paper) return;
-    await descargarMapa(paper, modelo, { formato, fondo: "blanco" });
+    await descargarMapa(paper, modelo, { fondo: "blanco" });
   };
 
   if (!descriptorBase) {
@@ -212,8 +212,7 @@ export function MapaSistema() {
           >
             Auto-refresh
           </button>
-          <button type="button" style={style.btn} onClick={() => void exportar("png")}>PNG</button>
-          <button type="button" style={style.btn} onClick={() => void exportar("svg")}>SVG</button>
+          <button type="button" style={style.btn} onClick={() => void exportar()}>PNG</button>
           <button type="button" style={style.btn} onClick={cerrarVistaMapa} title="Cerrar mapa del sistema">
             Cerrar mapa
           </button>

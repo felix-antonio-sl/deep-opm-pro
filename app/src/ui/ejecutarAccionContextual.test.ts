@@ -98,6 +98,17 @@ describe("ejecutarAccionContextualEntidad", () => {
       kind: "exceptional",
     });
   });
+
+  test("componer-modelo abre el diálogo global de composición", () => {
+    const modelo = crearModelo("Contextual composicion");
+    store.getState().importarJson(exportarModelo(modelo));
+
+    expect(ejecutarAccionContextualEntidad("componer-modelo")).toEqual({
+      actionId: "componer-modelo",
+      kind: "normal",
+    });
+    expect(store.getState().dialogoComposicionAbierto).toBe(true);
+  });
 });
 
 function modeloDocEditar(): { modelo: Modelo; docId: Id; editarId: Id } {

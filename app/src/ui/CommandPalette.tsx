@@ -3,7 +3,7 @@ import { useCommandPaletteViewModel } from "../app/viewmodels/commandPaletteView
 import type { AccionContextual, AccionContextualId } from "../store/acciones-contextuales";
 import { accionesContextualesEntidad, accionesParaSuperficie } from "../store/acciones-contextuales";
 import { listarAtajos, type RegistroAtajo } from "./atajosTeclado";
-import { descargarOpdActualSvg } from "../render/jointjs/mapaExport";
+import { descargarOpdActualPng, descargarTodosLosOpdsPngZip } from "../render/jointjs/mapaExport";
 import { useCanvasPaper } from "./CanvasAdapterContext";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import {
@@ -79,7 +79,8 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "exportar-json": "EXPORTAR",
   "exportar-diagnostico": "EXPORTAR",
   "exportar-opl-modelo": "EXPORTAR",
-  "exportar-svg": "EXPORTAR",
+  "exportar-opd-png": "EXPORTAR",
+  "exportar-opds-png-zip": "EXPORTAR",
   "simulacion-conceptual": "VISTA",
   "simulacion-numerica": "VISTA",
   "grid-canvas": "VISTA",
@@ -181,7 +182,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     exportarJson: exportarJsonAlPortapapeles,
     exportarDiagnostico: exportarDiagnosticoAlPortapapeles,
     exportarOplModeloMarkdown: exportarOplModeloMarkdownAlPortapapeles,
-    exportarOpdSvg: canvasPaper ? () => { void descargarOpdActualSvg(canvasPaper, modelo, opdActivoId); } : null,
+    exportarOpdPng: canvasPaper ? () => { void descargarOpdActualPng(canvasPaper, modelo, opdActivoId); } : null,
+    exportarOpdsPngZip: () => { void descargarTodosLosOpdsPngZip(modelo); },
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,
@@ -456,7 +458,7 @@ export function construirItemsCommandPalette(
 }
 
 function claveAtajoPalette(combo: string, label: string): string {
-  return combo + "|" + normalizarTextoBusqueda(label);
+  return `${combo}|${normalizarTextoBusqueda(label)}`;
 }
 
 interface AccionesMenuCommandPaletteDeps {
@@ -477,7 +479,8 @@ interface AccionesMenuCommandPaletteDeps {
   exportarJson: () => void;
   exportarDiagnostico: () => void;
   exportarOplModeloMarkdown: () => void;
-  exportarOpdSvg: (() => void) | null;
+  exportarOpdPng: (() => void) | null;
+  exportarOpdsPngZip: (() => void) | null;
   abrirPestanaNueva: () => void;
   abrirBusquedaCosas: () => void;
   abrirBusquedaGlobal: () => void;
@@ -533,7 +536,8 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
     { id: "exportar-diagnostico", label: "Exportar diagnóstico (JSON)", descripcion: "Copiar todas las sugerencias del diagnóstico al portapapeles", categoria: "archivo", run: deps.exportarDiagnostico },
     { id: "exportar-opl-modelo", label: "Exportar OPL del modelo (Markdown)", descripcion: "Copiar el OPL completo de todos los OPDs al portapapeles como Markdown", categoria: "archivo", run: deps.exportarOplModeloMarkdown },
-    ...(deps.exportarOpdSvg ? [{ id: "exportar-svg", label: "Exportar OPD actual como SVG", descripcion: "Descargar el OPD activo como imagen SVG", categoria: "archivo", run: deps.exportarOpdSvg }] : []),
+    ...(deps.exportarOpdPng ? [{ id: "exportar-opd-png", label: "Exportar OPD actual como PNG", descripcion: "Descargar el OPD activo como imagen PNG", categoria: "archivo", run: deps.exportarOpdPng }] : []),
+    ...(deps.exportarOpdsPngZip ? [{ id: "exportar-opds-png-zip", label: "Exportar todos los OPDs como PNG", descripcion: "Descargar un ZIP con una imagen PNG por OPD", categoria: "archivo", run: deps.exportarOpdsPngZip }] : []),
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },
     { id: "simulacion-numerica", label: "Simulación numérica", descripcion: "Generar datos simulados de atributos y descargar CSV", categoria: "vista", run: deps.abrirDialogoSimulacionNumerica },
     { id: "grid-canvas", label: deps.gridActiva ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas", descripcion: "Alternar la cuadrícula visual del canvas", categoria: "vista", run: deps.toggleGrid },
@@ -589,7 +593,7 @@ export function seccionVisualCommandPalette(item: CommandPaletteItem): CommandPa
   const seccionMenu = item.menuActionId ? seccionesPorAccionMenu[item.menuActionId] : undefined;
   if (seccionMenu) return seccionMenu;
   const texto = normalizarTextoBusqueda([item.label, item.descripcion, item.categoria, item.menuActionId ?? ""].join(" "));
-  if (texto.includes("export") || texto.includes("json") || texto.includes("svg") || texto.includes("html")) return "EXPORTAR";
+  if (texto.includes("export") || texto.includes("json") || texto.includes("png") || texto.includes("zip") || texto.includes("html")) return "EXPORTAR";
   if (item.categoria === "archivo") return "MODELO";
   if (item.categoria === "navegacion") return "NAVEGAR";
   if (item.categoria === "vista") return "VISTA";

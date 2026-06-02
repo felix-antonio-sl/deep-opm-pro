@@ -1,4 +1,5 @@
 import { abanicoDeEnlace } from "../../modelo/abanicos";
+import { componerModelos } from "../../modelo/composicion";
 import { resolverDecisionAbanico, resolverDecisionEnlace } from "../../modelo/decision";
 import {
   actualizarMaterializacionSubmodelo,
@@ -30,6 +31,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
     dialogoOntologiaAbierto: false,
     dialogoRequisitoAbierto: null,
     dialogoSubmodeloAbierto: false,
+    dialogoComposicionAbierto: false,
 
     abrirDialogoOntologia() {
       set({ dialogoOntologiaAbierto: true, mensaje: null });
@@ -190,6 +192,45 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
 
     cerrarDialogoSubmodelo() {
       set({ dialogoSubmodeloAbierto: false });
+    },
+
+    abrirDialogoComposicion() {
+      set({ dialogoComposicionAbierto: true, mensaje: null });
+    },
+
+    cerrarDialogoComposicion() {
+      set({ dialogoComposicionAbierto: false });
+    },
+
+    componerConModeloGuardado(input) {
+      const { modelo } = get();
+      const cargado = cargarModeloLocal(input.modeloId);
+      if (!cargado.ok) {
+        set({ mensaje: cargado.error });
+        return;
+      }
+      const hidratado = hidratarModelo(cargado.value.json);
+      if (!hidratado.ok) {
+        set({ mensaje: `No se pudo cargar el modelo para composición: ${hidratado.error}` });
+        return;
+      }
+      const resultado = componerModelos(modelo, hidratado.value, input.compartidas ?? {});
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      const totalCompartidas = Object.keys(input.compartidas ?? {}).length;
+      commitModelo(set, modelo, resultado.value, {
+        opdActivoId: modelo.opdRaizId,
+        seleccionId: null,
+        seleccionados: [],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        estadoSeleccionId: null,
+        modoEnlace: null,
+        dialogoComposicionAbierto: false,
+        mensaje: `Modelo compuesto con "${hidratado.value.nombre}" (${totalCompartidas} compartida${totalCompartidas === 1 ? "" : "s"})`,
+      });
     },
 
     conectarSubmodeloSeleccionado(input) {

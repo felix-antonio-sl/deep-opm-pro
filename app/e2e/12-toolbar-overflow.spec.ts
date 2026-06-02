@@ -206,7 +206,8 @@ test("el command palette es superset del antiguo menú: archivo, datos y herrami
   await visiblePorQuery("abrir importar", "menu-abrir-importar");
   await visiblePorQuery("abrir pestana", "menu-abrir-pestana");
   await visiblePorQuery("configuracion", "menu-configuracion");
-  await visiblePorQuery("exportar svg", "menu-exportar-svg");
+  await visiblePorQuery("exportar opd png", "menu-exportar-opd-png");
+  await visiblePorQuery("todos opds png", "menu-exportar-opds-png-zip");
   await visiblePorQuery("tabla de enlaces", "menu-tabla-enlaces");
   await visiblePorQuery("simulacion", "menu-simulacion-conceptual");
   await visiblePorQuery("auto layout", "menu-auto-layout");

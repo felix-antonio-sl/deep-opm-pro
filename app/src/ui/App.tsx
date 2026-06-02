@@ -57,6 +57,7 @@ const DialogoConfiguracion = lazy(() => import("./DialogoConfiguracion").then((m
 const DialogoOntologia = lazy(() => import("./DialogoOntologia").then((m) => ({ default: m.DialogoOntologia })));
 const DialogoRequisito = lazy(() => import("./DialogoRequisito").then((m) => ({ default: m.DialogoRequisito })));
 const DialogoSubmodelo = lazy(() => import("./DialogoSubmodelo").then((m) => ({ default: m.DialogoSubmodelo })));
+const DialogoComposicion = lazy(() => import("./DialogoComposicion").then((m) => ({ default: m.DialogoComposicion })));
 const DialogoSimulacionNumerica = lazy(() => import("./DialogoSimulacionNumerica").then((m) => ({ default: m.DialogoSimulacionNumerica })));
 const DialogoColisionNombre = lazy(() => import("./DialogoColisionNombre").then((m) => ({ default: m.DialogoColisionNombre })));
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
@@ -82,6 +83,7 @@ export function App() {
     dialogoOntologiaAbierto,
     dialogoRequisitoAbierto,
     dialogoSubmodeloAbierto,
+    dialogoComposicionAbierto,
     dialogoSimulacionNumericaAbierto,
     dialogoImportarExportarJsonAbierto,
     cerrarDialogoImportarExportarJson,
@@ -332,6 +334,7 @@ export function App() {
         {dialogoOntologiaAbierto ? <Suspense fallback={null}><DialogoOntologia /></Suspense> : null}
         {dialogoRequisitoAbierto ? <Suspense fallback={null}><DialogoRequisito /></Suspense> : null}
         {dialogoSubmodeloAbierto ? <Suspense fallback={null}><DialogoSubmodelo /></Suspense> : null}
+        {dialogoComposicionAbierto ? <Suspense fallback={null}><DialogoComposicion /></Suspense> : null}
         {dialogoSimulacionNumericaAbierto ? <Suspense fallback={null}><DialogoSimulacionNumerica /></Suspense> : null}
         <Suspense fallback={null}><DialogoColisionNombre /></Suspense>
         {dialogoImportarExportarJsonAbierto ? (

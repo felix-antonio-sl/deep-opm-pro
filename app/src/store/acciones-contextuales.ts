@@ -14,6 +14,7 @@ export type AccionContextualId =
   | "marcar-requisito"
   | "satisfacer-requisito"
   | "conectar-submodelo"
+  | "componer-modelo"
   | "eliminar-seleccion"
   | "agregar-como-partes"
   | "alinear-seleccion"
@@ -131,6 +132,11 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
     accion("conectar-submodelo", "Conectar submodelo", "accion-conectar-submodelo", "refinamiento", esCosa, {
       visible: esCosa,
       superficies: ["menu-contextual"],
+    }),
+    accion("componer-modelo", "Componer con modelo...", "accion-componer-modelo", "refinamiento", true, {
+      visible: true,
+      superficies: ["menu-contextual", "command-palette"],
+      aliasBusqueda: ["composicion", "interfaz", "pushout", "modelo"],
     }),
     accion("editar-imagen", "Editar imagen", "barra-editar-imagen", "apariencia", !!esObjeto, {
       texto: "Img",

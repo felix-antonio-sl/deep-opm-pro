@@ -368,7 +368,7 @@ Overlay invocado por `⌘K`. Reemplaza el menú hamburguesa entero.
 | `MODELO` | guardar, guardar como…, nuevo modelo, abrir/importar…, renombrar modelo |
 | `CREAR` | nuevo objeto (O), nuevo proceso (P), nuevo estado en objeto seleccionado (S), nueva relación (R), nuevo OPD hijo (`⌘⇧I`) |
 | `NAVEGAR` | ir al SD raíz, ir a SD1, mapa del sistema, siguiente OPD |
-| `EXPORTAR` | OPD actual como SVG, modelo como JSON, OPL como HTML |
+| `EXPORTAR` | OPD actual como PNG, todos los OPDs como ZIP de PNGs, modelo como JSON, OPL como HTML |
 | `VISTA` | alias visibles, descripciones visibles, cuadrícula, biblioteca dock (toggles `✓` / `—`) |
 | `ASISTENTE` | iniciar asistente SD (`⌘⇧A`), ir a etapa actual |
 

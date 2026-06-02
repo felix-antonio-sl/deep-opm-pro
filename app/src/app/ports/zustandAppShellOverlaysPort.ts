@@ -8,6 +8,7 @@ export function useZustandAppShellOverlaysPort(): AppShellOverlaysPort {
   const dialogoOntologiaAbierto = useOpmStore((s) => s.dialogoOntologiaAbierto);
   const dialogoRequisitoAbierto = useOpmStore((s) => s.dialogoRequisitoAbierto !== null);
   const dialogoSubmodeloAbierto = useOpmStore((s) => s.dialogoSubmodeloAbierto);
+  const dialogoComposicionAbierto = useOpmStore((s) => s.dialogoComposicionAbierto);
   const dialogoImportarExportarJsonAbierto = useOpmStore((s) => s.dialogoImportarExportarJsonAbierto);
   const cerrarDialogoImportarExportarJson = useOpmStore((s) => s.cerrarDialogoImportarExportarJson);
   const dialogoCargarModeloAbierto = useOpmStore((s) => s.dialogoCargarModeloAbierto);
@@ -31,6 +32,7 @@ export function useZustandAppShellOverlaysPort(): AppShellOverlaysPort {
     dialogoOntologiaAbierto,
     dialogoRequisitoAbierto,
     dialogoSubmodeloAbierto,
+    dialogoComposicionAbierto,
     dialogoImportarExportarJsonAbierto,
     cerrarDialogoImportarExportarJson,
     dialogoCargarModeloAbierto,

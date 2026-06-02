@@ -23,6 +23,7 @@ function snapshotContextualActionExecution(state: OpmStore): ContextualActionExe
     abrirModalImagen: state.abrirModalImagen,
     abrirDialogoRequisito: state.abrirDialogoRequisito,
     abrirDialogoSubmodelo: state.abrirDialogoSubmodelo,
+    abrirDialogoComposicion: state.abrirDialogoComposicion,
     eliminarSeleccion: state.eliminarSeleccion,
     conectarSeleccionAlTodo: state.conectarSeleccionAlTodo,
     alinearSeleccion: state.alinearSeleccion,

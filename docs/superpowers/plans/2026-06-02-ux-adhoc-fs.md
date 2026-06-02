@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development. Pasos checkbox. Una capacidad por sesión (no las tres de una tanda).
 
-**Goal:** Dar superficie de UX op-forja a cada kernel de los Fs que aún no la tiene. **Linealidad ya tiene UX completa** (toggle en Inspector `fea7ae7` + diagnóstico `21889b5`) — sirve de plantilla validada. Faltan: **Razonamiento (F3), Equivalencia (F2), Composición (F1)**.
+**Goal:** Dar superficie de UX op-forja a cada kernel de los Fs que aún no la tiene. **Linealidad ya tiene UX completa** (toggle en Inspector `fea7ae7` + diagnóstico `21889b5`) — sirve de plantilla validada. Estado: **Razonamiento (F3), Equivalencia (F2), Composición (F1) COMPLETAS**.
 
 **Patrón op-forja validado (úsalo idéntico):** `store action → contrato → port → viewmodel → CommandPalette / Inspector → (diagnóstico)`. Gobernanza: `cd app && bun run design:governance` (sin hex; usar primitivas Codex `CodexInspect*`). Gate: `bun run check` + design:governance + e2e afectado (apagar dev server antes de `browser:smoke`; `PW_PORT` libre).
 
@@ -13,7 +13,7 @@
 ## Capacidad 1 — Razonamiento (F3) · consultas derivadas  ✅ HECHA (commit d1c1edd)
 
 **Entregada por una ruta MEJOR que la planeada.** En vez de editar `CommandPalette.tsx`
-(que estaba en WIP del operador con el feature export-SVG-ZIP), se modelaron las 3
+(que estaba en WIP del operador con el feature export-PNG-ZIP), se modelaron las 3
 consultas como **acciones contextuales** (`store/acciones-contextuales.ts`). El catálogo
 de acciones es una sola estructura (IFML §7.3) que se proyecta a 3 superficies: barra
 flotante, menú contextual y command palette. Al registrar el hecho ahí, aparece en menú
@@ -71,15 +71,20 @@ realizaciones por proceso), no es "UX ad-hoc" de un kernel ya hecho.
 
 ---
 
-## Capacidad 3 — Composición (F1) · componer con otro modelo por interfaz
+## Capacidad 3 — Composición (F1) · componer con otro modelo por interfaz ✅ HECHA (rama `codex/ux-composicion-f1`)
 
 **Kernel listo:** `modelo/composicion::componerModelos(a, b, compartidas)` (pushout; ya corregido en `3515f5f`).
 
-**Superficie:** reusar el patrón de **submodelos LF-04** (`DialogoSubmodelo` ya selecciona un modelo del catálogo).
-- Comando Cmd+K "Componer con modelo…" → diálogo de catálogo (como LF-04) para elegir B + mapeo de interfaz (`compartidas`: auto-match por nombre/identidad + ajuste manual) → `componerModelos` → materializar el compuesto.
-- Render: cosas compartidas transparentes (el pendiente ya anotado en HANDOFF LF-04).
+**Implementado:**
+- Helper puro `modelo/composicion/interfaz.ts::sugerirCompartidasPorInterfaz(a,b)`: auto-match por identidad de id o nombre normalizado + mismo tipo OPM.
+- Acción contextual `componer-modelo`: menú contextual + Cmd+K, sin tocar `CommandPalette.tsx`.
+- `DialogoComposicion`: catálogo local de modelos, búsqueda, archivados/versiones, mapeo manual de interfaz con selects y contador de compartidas activas.
+- Store `componerConModeloGuardado`: carga/hidrata B desde persistencia local, ejecuta `componerModelos`, materializa el compuesto en el modelo activo, cierra diálogo y deja undo disponible.
+- E2E `e2e/32-composicion-modelos.spec.ts`: crea A, usa B guardado en catálogo, abre paleta, compone y verifica que `Cliente` queda compartido y `Factura` entra al compuesto.
 
-**Cableado:** comando-con-diálogo (mayor esfuerzo: el mapeo de interfaz es UI nueva). Reusar `materializacion`/`compartidas` de submodelos. Tests + e2e. **Es la más compleja — hacerla al final.**
+**Verificación:** `bun run check` → 1887 pass / 0 fail; `bun run lint` OK; `bun run design:governance` OK; `PW_PORT=5217 bunx playwright test e2e/32-composicion-modelos.spec.ts --workers=1` → 1 pass / 0 fail.
+
+**Pendiente no bloqueante:** render rico de cosas compartidas transparentes queda como mejora visual futura; este corte entrega la UX operable del pushout por interfaz.
 
 ---
 

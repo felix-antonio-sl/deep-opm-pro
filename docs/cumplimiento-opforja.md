@@ -536,7 +536,7 @@
 | §6.4-012 | Aplicar modo visual de imágenes a un OPD completo. | ✅ | src/store/modelo/acciones-ui.ts:400 (fijarModoImagenGlobal); src/render/jointjs/proyeccion.ts:105 (modoImagenGlobal); src/ui/CommandPalette.tsx:473; e2e/08-mvp-alpha-residual.spec.ts:293; e2e/12-toolbar-overflow.spec.ts:158 | Modo de imagen global del OPD (ciclar solo nombre/imagen/imagen+nombre); e2e ciclan modo-imagen-global. |
 | §6.4-013 | Usar imágenes en templates. | ❌ | — | No hay imágenes en templates. Las plantillas viven en persistencia local sin pool de imágenes asociado; busqué imagen en templates, ausente. |
 | §6.4-014 | Usar imágenes en stereotypes. | ❌ | — | No existen stereotypes en el modelo (TipoEntidad solo objeto/proceso); sin imágenes de stereotype. |
-| §6.4-015 | Exportar diagramas considerando imágenes embebidas por URL. | 🟡 | src/render/jointjs/mapaExport.ts:88 (toSVG convertImagesToDataUris:true); src/render/jointjs/mapaExport.test.ts:31 | Export SVG/PNG convierte imágenes a data-uris; el test mockea toSVG y no asevera el embebido de la imagen URL en el SVG exportado. |
+| §6.4-015 | Exportar diagramas considerando imágenes embebidas por URL. | 🟡 | src/render/jointjs/mapaExport.ts:163 (toSVG convertImagesToDataUris:true); src/render/jointjs/mapaExport.test.ts:30 | Export PNG rasteriza desde el SVG del paper; se mantiene `convertImagesToDataUris` cuando hay `toSVG`, pero no hay test específico de imagen URL embebida. |
 
 ---
 
@@ -826,14 +826,14 @@
 
 | ID | Capacidad | Estado | Evidencia | Notas |
 |---|---|---|---|---|
-| §12.2-001 | Exportar OPD actual como imagen. | ✅ | src/render/jointjs/mapaExport.ts:53; src/ui/CommandPalette.tsx:467 | descargarOpdActualSvg exporta OPD actual como imagen SVG; comando en CommandPalette |
-| §12.2-002 | Exportar todo el OPD tree. | 🟡 | src/render/jointjs/mapaExport.ts:18; src/ui/MapaSistema.tsx:182 | exportarMapa exporta el mapa-de-sistema (todo el OPD tree como vista navegable) a PNG/SVG; test mapaExport.test.ts:24-46. Exporta la VISTA tree, no cada OPD individual del árbol |
-| §12.2-003 | Exportar solo System Diagram. | 🟡 | src/render/jointjs/mapaExport.ts:53; src/ui/CommandPalette.tsx:163 | Puede exportar el OPD activo (que puede ser el SD/raíz), pero no hay opción explícita "solo System Diagram"; sin test del caso SD |
-| §12.2-004 | Configurar resolución/DPI. | ❌ | — | No hay configuración de resolución/DPI; OpcionesExport (mapaExport.ts:6) solo formato+fondo |
+| §12.2-001 | Exportar OPD actual como imagen. | ✅ | src/render/jointjs/mapaExport.ts:46; src/ui/CommandPalette.tsx:536 | descargarOpdActualPng exporta el OPD activo como PNG; comando en CommandPalette |
+| §12.2-002 | Exportar todo el OPD tree. | ✅ | src/render/jointjs/mapaExport.ts:59; src/ui/CommandPalette.tsx:537 | descargarTodosLosOpdsPngZip genera un ZIP con una imagen PNG por OPD, ordenado por árbol OPL |
+| §12.2-003 | Exportar solo System Diagram. | 🟡 | src/render/jointjs/mapaExport.ts:46; src/ui/CommandPalette.tsx:536 | Puede exportar el OPD activo (que puede ser el SD/raíz), pero no hay opción explícita "solo System Diagram"; sin test del caso SD |
+| §12.2-004 | Configurar resolución/DPI. | ❌ | — | No hay configuración de resolución/DPI; OpcionesExport solo permite nombre, padding y fondo |
 | §12.2-005 | Exportar a mayor calidad para documentación. | ❌ | — | Sin opción de mayor calidad/escala para documentación |
 | §12.2-006 | Incluir o excluir tooltips de procesos computacionales. | ❌ | — | No incluye/excluye tooltips de procesos computacionales en la imagen |
-| §12.2-007 | Exportar visualmente diagramas con imágenes asociadas. | 🟡 | src/render/jointjs/mapaExport.ts:24 | Exporta el SVG del paper tal cual (incluye imágenes embebidas del render); no hay control específico de "imágenes asociadas"; sin test del caso |
-| §12.2-008 | Generar imagen navegable o inspeccionable después de exportar. | 🟡 | src/render/jointjs/mapaExport.ts:25 | Salida SVG es inspeccionable/escalable (vectorial); "navegable" no implementado como tal; cubierto parcialmente por export SVG |
+| §12.2-007 | Exportar visualmente diagramas con imágenes asociadas. | 🟡 | src/render/jointjs/mapaExport.ts:234 | Rasteriza el SVG del paper a PNG; no hay control específico de "imágenes asociadas"; sin test del caso |
+| §12.2-008 | Generar imagen navegable o inspeccionable después de exportar. | ❌ | — | La salida vigente es PNG/ZIP de PNGs; no genera imagen navegable ni vector inspeccionable |
 
 ### 12.3 Exportación PDF
 

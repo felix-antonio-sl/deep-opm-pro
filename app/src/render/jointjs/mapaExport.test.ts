@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../../modelo/operaciones";
-import { descargarMapa, exportarMapa, nombreArchivoMapa, nombreArchivoOpd } from "./mapaExport";
+import { descargarMapa, exportarMapa, exportarTodosLosOpdsPngZip, nombreArchivoMapa, nombreArchivoOpdPng, nombreArchivoOpdsPngZip } from "./mapaExport";
 
 function paperFalso(svg = "<svg width=\"320\" height=\"180\"><rect width=\"10\" height=\"10\"/></svg>") {
   return {
@@ -21,24 +21,14 @@ function paperOssFalso(svg = "<svg width=\"320\" height=\"180\"><text>SD</text><
 }
 
 describe("mapaExport", () => {
-  test("exportarMapa retorna SVG serializado", async () => {
-    const blob = await exportarMapa(paperFalso(), crearModelo("Mapa"), { formato: "svg" });
+  test("exportarMapa retorna PNG rasterizado desde el paper", async () => {
+    const blob = await exportarMapa(paperFalso(), crearModelo("Mapa"), {});
 
-    expect(blob.type).toBe("image/svg+xml");
-    expect(await blob.text()).toContain("<svg");
+    expect(blob.type).toBe("image/png");
   });
 
   test("exportarMapa funciona con el SVG DOM del paper OSS sin plugin toSVG", async () => {
-    const blob = await exportarMapa(paperOssFalso(), crearModelo("Mapa"), { formato: "svg" });
-    const svg = await blob.text();
-
-    expect(blob.type).toBe("image/svg+xml");
-    expect(svg).toContain("xmlns=\"http://www.w3.org/2000/svg\"");
-    expect(svg).toContain("<text>SD</text>");
-  });
-
-  test("exportarMapa retorna PNG sin dependencia externa", async () => {
-    const blob = await exportarMapa(paperFalso(), crearModelo("Mapa"), { formato: "png" });
+    const blob = await exportarMapa(paperOssFalso(), crearModelo("Mapa"), {});
 
     expect(blob.type).toBe("image/png");
   });
@@ -53,7 +43,7 @@ describe("mapaExport", () => {
     }) as typeof URL.createObjectURL;
     URL.revokeObjectURL = (() => undefined) as typeof URL.revokeObjectURL;
     try {
-      await descargarMapa(paperFalso("<svg></svg>"), crearModelo("Mapa"), { formato: "svg" });
+      await descargarMapa(paperFalso("<svg></svg>"), crearModelo("Mapa"), {});
     } finally {
       URL.createObjectURL = originalCreate;
       URL.revokeObjectURL = originalRevoke;
@@ -62,17 +52,43 @@ describe("mapaExport", () => {
     if (typeof document === "undefined") {
       expect(urls).toEqual([]);
     } else {
-      expect(urls).toEqual(["image/svg+xml"]);
+      expect(urls).toEqual(["image/png"]);
     }
   });
 
   test("nombreArchivoMapa normaliza nombre y fecha", () => {
-    expect(nombreArchivoMapa(crearModelo("Mi Modelo"), "svg", new Date("2026-05-05T12:00:00.000Z")))
-      .toBe("mi-modelo-mapa-2026-05-05.svg");
+    expect(nombreArchivoMapa(crearModelo("Mi Modelo"), new Date("2026-05-05T12:00:00.000Z")))
+      .toBe("mi-modelo-mapa-2026-05-05.png");
   });
 
   test("nombreArchivoOpd deriva nombre portable desde modelo y OPD", () => {
-    expect(nombreArchivoOpd(crearModelo("Mi Modelo"), "SD Principal", new Date("2026-05-05T12:00:00.000Z")))
-      .toBe("mi-modelo-sd-principal-2026-05-05.svg");
+    expect(nombreArchivoOpdPng(crearModelo("Mi Modelo"), "SD Principal", new Date("2026-05-05T12:00:00.000Z")))
+      .toBe("mi-modelo-sd-principal-2026-05-05.png");
+  });
+
+  test("nombreArchivoOpdsPngZip deriva paquete portable", () => {
+    expect(nombreArchivoOpdsPngZip(crearModelo("Mi Modelo"), new Date("2026-05-05T12:00:00.000Z")))
+      .toBe("mi-modelo-opds-png-2026-05-05.zip");
+  });
+
+  test("exportarTodosLosOpdsPngZip empaqueta una imagen PNG por OPD", async () => {
+    const modelo = crearModelo("Mi Modelo");
+    modelo.opds["opd-hijo"] = {
+      id: "opd-hijo",
+      nombre: "SD Hijo",
+      padreId: modelo.opdRaizId,
+      apariencias: {},
+      enlaces: {},
+    };
+
+    const zip = await exportarTodosLosOpdsPngZip(modelo);
+    const bytes = new Uint8Array(await zip.arrayBuffer());
+    const texto = new TextDecoder().decode(bytes);
+
+    expect(zip.type).toBe("application/zip");
+    expect(bytes[0]).toBe(0x50);
+    expect(bytes[1]).toBe(0x4b);
+    expect(texto).toContain("01-sd.png");
+    expect(texto).toContain("02-sd-hijo.png");
   });
 });

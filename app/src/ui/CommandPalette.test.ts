@@ -174,6 +174,24 @@ describe("CommandPalette", () => {
     expect(filtrarItemsCommandPalette(items, "json").map((i) => i.label)).toContain("Exportar diagnóstico (JSON)");
   });
 
+  test("EXPORTAR reemplaza SVG por PNG actual y ZIP de todos los OPDs", () => {
+    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu({
+      exportarOpdPng: () => {},
+    }));
+    const items = construirItemsCommandPalette([], [], acciones);
+
+    expect(items.map((i) => i.menuActionId)).not.toContain("exportar-opd-svg");
+    expect(filtrarItemsCommandPalette(items, "exportar opd png").map((i) => i.menuActionId))
+      .toContain("exportar-opd-png");
+    expect(filtrarItemsCommandPalette(items, "todos opds png zip").map((i) => i.menuActionId))
+      .toContain("exportar-opds-png-zip");
+    expect(filtrarItemsCommandPalette(items, "exportar svg")).toEqual([]);
+    const opdPng = items.find((item) => item.menuActionId === "exportar-opd-png");
+    const zip = items.find((item) => item.menuActionId === "exportar-opds-png-zip");
+    expect(opdPng ? seccionVisualCommandPalette(opdPng) : null).toBe("EXPORTAR");
+    expect(zip ? seccionVisualCommandPalette(zip) : null).toBe("EXPORTAR");
+  });
+
   test("MODELO incluye renombrar modelo como comando explícito", () => {
     const deps = depsAccionesMenu();
     const acciones = construirAccionesMenuCommandPalette(deps);
@@ -257,7 +275,8 @@ function depsAccionesMenu(
     exportarJson: () => {},
     exportarDiagnostico: () => {},
     exportarOplModeloMarkdown: () => {},
-    exportarOpdSvg: null,
+    exportarOpdPng: null,
+    exportarOpdsPngZip: () => {},
     abrirPestanaNueva: () => {},
     abrirBusquedaCosas: () => {},
     abrirBusquedaGlobal: () => {},
