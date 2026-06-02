@@ -131,6 +131,7 @@ import {
   pegarCarpeta,
   pegarModelo,
 } from "../persistencia/movimientoModelos";
+import { guardarVersionBackend } from "../persistencia/backend";
 import { crearVersionResultado } from "../persistencia/versiones";
 import {
   crearAutosalvado,
@@ -430,6 +431,9 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       set({ mensaje: version.error.mensaje });
       return;
     }
+    void guardarVersionBackend(modeloPersistidoId, version.value, exportarModelo(modelo)).then((resultado) => {
+      if (!resultado.ok) set({ mensaje: `Versión creada localmente; ${resultado.error}` });
+    });
     try {
       const resumen = listarModelosGuardadosSeguro().find((item) => item.id === modeloPersistidoId);
       const versiones = [version.value, ...(resumen?.versiones ?? [])];

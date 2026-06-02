@@ -3,8 +3,8 @@
 **Dominio:** `https://opforja.sanixai.com`
 **Modo:** SPA estatica Vite servida por Nginx, sidecar interno Bun para captura
 de bugs (`/__deep-opm/bug-reports`) y API interna Bun/Postgres para modelos
-nuevos (`/__deep-opm/modelos`), publicada por Traefik en la red Docker externa
-`web`.
+nuevos (`/__deep-opm/session`, `/__deep-opm/workspace`,
+`/__deep-opm/modelos`), publicada por Traefik en la red Docker externa `web`.
 **Acceso actual:** publico (`HTTP 200`). El Basic Auth de Traefik fue retirado
 por decisión del operador. No guardar contrasenas en claro en este repo.
 
@@ -31,9 +31,12 @@ y Nginx reenvia `POST /__deep-opm/bug-reports` al sidecar privado
 local, con el mismo formato usado por Vite en desarrollo.
 
 La persistencia de modelos nuevos vive en `opforja-postgres` y se expone a la
-SPA por `model-api` bajo `/__deep-opm/modelos`. `localStorage` queda como cache
-local transicional para preservar flujos existentes que aun esperan lectura
-sincrona; no es la fuente primaria de datos nuevos.
+SPA por `model-api`. El backend emite una cookie HTTP-only firmada
+`opforja_session` para crear un tenant anonimo por navegador; modelos,
+workspace/carpetas, versiones y autosave quedan aislados por `tenant_id`.
+`localStorage` queda como cache local transicional para preservar flujos
+existentes que aun esperan lectura sincrona; no es la fuente primaria de datos
+nuevos.
 
 ## Contrato Funcional De Apariciones
 
@@ -94,7 +97,11 @@ Verificar dominio publico:
 curl -I https://opforja.sanixai.com
 # Esperado vigente: HTTP/2 200 con content-type: text/html
 curl -sS https://opforja.sanixai.com/__deep-opm/modelos
-# Esperado vigente tras corte sin migracion: {"modelos":[]} o lista de modelos nuevos
+# Esperado vigente para una sesion nueva: {"modelos":[]}
+curl -sS -c /tmp/opforja.cookies https://opforja.sanixai.com/__deep-opm/session
+# Esperado: {"session":{"tenantId":"tenant-...","userId":"user-..."}}
+curl -sS -b /tmp/opforja.cookies https://opforja.sanixai.com/__deep-opm/workspace
+# Esperado: {"indice":{"modelos":[],"carpetas":[],"recientes":[]}} o workspace del tenant
 ```
 
 Si se reactiva Basic Auth, verificar acceso autenticado sin escribir la
@@ -129,11 +136,18 @@ Esperado: certificado emitido para `CN = opforja.sanixai.com` por Let's Encrypt.
 ## Datos Del Usuario
 
 La persistencia primaria de modelos nuevos vive en Postgres, volumen Docker
-`opforja-postgres-data`, tabla `opforja_models`. El payload OPM se almacena como
-`JSONB` real; la API devuelve el JSON como texto para hidratar la app.
-`localStorage` del navegador queda como cache/espejo transicional, no como SSOT.
-No hay migracion de modelos locales antiguos porque el corte parte sin datos
-productivos previos.
+`opforja-postgres-data`. Tablas vigentes:
+
+- `opforja_tenants` y `opforja_users`: identidad anonima firmada por cookie.
+- `opforja_models`: payload OPM como `JSONB` real, scope `(tenant_id, id)`.
+- `opforja_workspaces`: snapshot JSONB del `WorkspaceIndice` (carpetas,
+  recientes, preferencias de workspace).
+- `opforja_model_versions`: snapshots versionados por modelo.
+- `opforja_model_autosaves`: ultimo autosave por modelo.
+
+La API devuelve JSON como texto para hidratar la app. `localStorage` del
+navegador queda como cache/espejo transicional, no como SSOT. No hay migracion
+de modelos locales antiguos porque el corte parte sin datos productivos previos.
 
 Procedimiento detallado de respaldo manual por JSON:
 `docs/uso-productivo.md` §Respaldo Manual.
@@ -162,13 +176,15 @@ No usar `docker compose down -v` salvo que se quiera borrar la base de datos.
 
 ## Limites
 
-- No hay auth de aplicacion, multiusuario ni ownership por usuario; la instancia
-  publica expone un catalogo compartido.
+- No hay auth de aplicacion, roles ni login multiusuario. Hay ownership
+  operativo por tenant anonimo firmado en cookie HTTP-only; si se pierde la
+  cookie del navegador, se pierde el acceso directo a ese tenant.
 - La instancia esta publica mientras `opforja-auth@docker` no este aplicado.
 - `localStorage` no es backup; el respaldo portable sigue siendo el JSON
   descargado o el backup de Postgres.
 - El endpoint de modelos acepta hasta 15 MiB por request en `model-api`;
-  Nginx permite hasta 25 MB en `/__deep-opm/modelos`.
+  Nginx permite hasta 25 MB en `/__deep-opm/modelos` y
+  `/__deep-opm/workspace`.
 - El sidecar de captura de bugs escribe en el filesystem local del servidor,
   no en una base de datos. Mientras la instancia sea publica, el endpoint
   `POST /__deep-opm/bug-reports` queda expuesto a internet.

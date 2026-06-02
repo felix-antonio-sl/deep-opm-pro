@@ -6,7 +6,7 @@ import {
   renombrarModeloLocal,
   type ModeloPersistido,
 } from "../../persistencia/local";
-import { guardarModeloBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
+import { guardarModeloBackend, guardarVersionBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
 import {
   validarNombreModeloLocal,
   workspaceDesdeModelo,
@@ -135,6 +135,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         const version = crearVersionResultado(modeloNombrado, { descripcion: "Versión inicial" });
         if (version.ok) {
           versiones = [version.value];
+          sincronizarVersionBackendGuardadoComo(guardado.value.id, version.value, exportarModelo(modeloNombrado), set);
           actualizarMetadataModeloLocal(guardado.value.id, {
             versiones,
             crearVersionAlGuardar: true,
@@ -207,6 +208,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         const version = crearVersionResultado(modeloNombrado, { descripcion: "Versión inicial" });
         if (version.ok) {
           versiones = [version.value, ...versiones];
+          sincronizarVersionBackendGuardadoComo(guardado.value.id, version.value, exportarModelo(modeloNombrado), set);
           actualizarMetadataModeloLocal(guardado.value.id, {
             versiones,
             crearVersionAlGuardar: true,
@@ -419,6 +421,13 @@ function sincronizarGuardadoBackendGuardadoComo(modelo: ModeloPersistido, set: S
   if (!persistenciaBackendHabilitada()) return;
   void guardarModeloBackend(modelo).then((resultado) => {
     if (!resultado.ok) set({ mensaje: `Modelo guardado localmente; ${resultado.error}` });
+  });
+}
+
+function sincronizarVersionBackendGuardadoComo(modeloId: string, version: VersionResumen, json: string, set: SetStore): void {
+  if (!persistenciaBackendHabilitada()) return;
+  void guardarVersionBackend(modeloId, version, json).then((resultado) => {
+    if (!resultado.ok) set({ mensaje: `Versión creada localmente; ${resultado.error}` });
   });
 }
 

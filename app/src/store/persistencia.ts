@@ -103,8 +103,12 @@ import {
 import {
   borrarModeloBackend,
   cargarModeloBackendConCache,
+  cargarWorkspaceBackend,
+  guardarAutosalvadoBackend,
   guardarModeloBackend,
+  guardarVersionBackend,
   listarModelosBackendConCache,
+  obtenerSesionBackend,
   persistenciaBackendHabilitada,
 } from "../persistencia/backend";
 import {
@@ -301,6 +305,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       const version = crearVersionResultado(modelo, { descripcion: "Guardado manual" });
       if (version.ok) {
         versiones = [version.value, ...versiones];
+        sincronizarVersionBackend(guardado.value.id, version.value, exportarModelo(modelo), set);
         actualizarMetadataModeloLocal(guardado.value.id, { versiones });
         const indiceActualizado = {
           ...indice,
@@ -442,6 +447,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
         });
         if (guardado.ok) {
           sincronizarGuardadoBackend(guardado.value, setEstadoStore, obtenerEstadoStore);
+          void guardarAutosalvadoBackend(guardado.value.id, guardado.value.json);
           marcarSnapshotModelo(state.modelo);
           setEstadoStore(estadoModelo(state.modelo, {
             dirty: false,
@@ -464,13 +470,15 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
 
 function sincronizarListadoBackend(set: SetStore, get: GetStore): void {
   if (!persistenciaBackendHabilitada()) return;
-  void listarModelosBackendConCache().then((resultado) => {
-    if (!resultado.ok) return;
-    const indice = sincronizarIndiceConModelosGuardados(resultado.value, get().indice);
+  void obtenerSesionBackend().then(() => Promise.all([listarModelosBackendConCache(), cargarWorkspaceBackend()])).then(([modelosResultado, workspaceResultado]) => {
+    if (!modelosResultado.ok) return;
+    const indiceBase = workspaceResultado.ok ? workspaceResultado.value : get().indice;
+    const indice = sincronizarIndiceConModelosGuardados(modelosResultado.value, indiceBase);
+    escribirIndiceWorkspace(indice);
     set({
-      modelosGuardados: resultado.value,
+      modelosGuardados: modelosResultado.value,
       indice,
-      modelosRecientes: modelosRecientesDeIndice(indice, resultado.value),
+      modelosRecientes: modelosRecientesDeIndice(indice, modelosResultado.value),
     });
   });
 }
@@ -502,6 +510,13 @@ function sincronizarBorradoBackend(id: string, set: SetStore, get: GetStore): vo
     const modelosGuardados = listarModelosGuardadosSeguro();
     const indice = sincronizarIndiceConModelosGuardados(modelosGuardados, get().indice);
     set({ modelosGuardados, indice });
+  });
+}
+
+function sincronizarVersionBackend(modeloId: string, version: VersionResumen, json: string, set: SetStore): void {
+  if (!persistenciaBackendHabilitada()) return;
+  void guardarVersionBackend(modeloId, version, json).then((resultado) => {
+    if (!resultado.ok) set({ mensaje: `Versión creada localmente; ${resultado.error}` });
   });
 }
 

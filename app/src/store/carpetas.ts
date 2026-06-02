@@ -131,6 +131,7 @@ import {
   pegarCarpeta,
   pegarModelo,
 } from "../persistencia/movimientoModelos";
+import { borrarVersionBackend, cargarVersionBackend, guardarModeloBackend } from "../persistencia/backend";
 import {
   eliminarVersionResultado,
   restaurarVersionResultado,
@@ -224,11 +225,20 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       return;
     }
     const restauradoResultado = await restaurarVersionResultado(version.modeloPayloadKey);
-    if (!restauradoResultado.ok) {
-      set({ mensaje: restauradoResultado.error.mensaje });
-      return;
+    let restaurado: Modelo | null = restauradoResultado.ok ? restauradoResultado.value : null;
+    if (!restaurado) {
+      const backend = await cargarVersionBackend(modeloId, versionId);
+      if (!backend.ok) {
+        set({ mensaje: restauradoResultado.ok ? backend.error : restauradoResultado.error.mensaje });
+        return;
+      }
+      const hidratado = hidratarModelo(backend.value.json);
+      if (!hidratado.ok) {
+        set({ mensaje: hidratado.error });
+        return;
+      }
+      restaurado = hidratado.value;
     }
-    const restaurado = restauradoResultado.value;
     const fecha = version.creadoEn.slice(0, 10);
     const nombre = `${restaurado.nombre} (restaurado ${fecha})`;
     const { archivado: _archivado, archivadoEn: _archivadoEn, versiones: _versiones, ...restauradoActivo } = restaurado;
@@ -244,6 +254,9 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       set({ mensaje: guardado.error });
       return;
     }
+    void guardarModeloBackend(guardado.value).then((resultado) => {
+      if (!resultado.ok) set({ mensaje: `Modelo restaurado localmente; ${resultado.error}` });
+    });
     const indice = {
       ...get().indice,
       modelos: [...get().indice.modelos, { id: guardado.value.id, carpetaId }],
@@ -276,6 +289,7 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     }
     const indice = eliminado.value;
     actualizarMetadataModeloLocal(modeloId, { versiones });
+    void borrarVersionBackend(modeloId, versionId);
     escribirIndiceWorkspace(indice);
     set({
       indice,

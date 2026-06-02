@@ -63,6 +63,7 @@ services:
     environment:
       DATABASE_URL: postgres://opforja:${OPFORJA_DB_PASSWORD:-opforja-dev}@postgres:5432/opforja
       MODEL_API_PORT: "3001"
+      MODEL_SESSION_SECRET: ${OPFORJA_SESSION_SECRET:-opforja-dev-session}
     networks:
       - opforja-internal
     healthcheck:

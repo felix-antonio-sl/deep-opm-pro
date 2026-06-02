@@ -9,6 +9,7 @@ import { obtenerRefinamiento } from "../modelo/refinamientos";
 import { sincronizarAbanicos } from "../modelo/abanicos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import { listarModelosLocales, type ResumenModeloPersistido } from "../persistencia/local";
+import { guardarWorkspaceBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
 import { indiceVacio, workspaceDesdeModelo, type MapaWorkspace, type WorkspaceIndice } from "../persistencia/workspace";
 import {
   PREF_MOSTRAR_ARCHIVADOS_KEY as PREF_ARCHIVADOS_STORAGE_KEY,
@@ -490,6 +491,9 @@ export function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id
 
 export function escribirIndiceWorkspace(indice: WorkspaceIndice): void {
   escribirIndiceWorkspaceEnStorage(runtimeEffects, indice);
+  if (persistenciaBackendHabilitada()) {
+    void guardarWorkspaceBackend(indice);
+  }
 }
 
 export function leerIndiceWorkspace(): WorkspaceIndice {
@@ -503,9 +507,9 @@ export function sincronizarIndiceConModelosGuardados(modelosGuardados: ResumenMo
     return {
       ...existente,
       id: m.id,
-      carpetaId: m.carpetaId ?? existente?.carpetaId ?? null,
-      ...(m.archivado ? { archivado: true } : {}),
-      ...(m.archivadoEn ? { archivadoEn: m.archivadoEn } : {}),
+      carpetaId: existente?.carpetaId ?? m.carpetaId ?? null,
+      ...(existente?.archivado !== undefined ? { archivado: existente.archivado } : m.archivado ? { archivado: true } : {}),
+      ...(existente?.archivadoEn ? { archivadoEn: existente.archivadoEn } : m.archivadoEn ? { archivadoEn: m.archivadoEn } : {}),
       ...(m.versiones ? { versiones: m.versiones } : {}),
       ...(existente?.mapa ? { mapa: existente.mapa } : {}),
     };
