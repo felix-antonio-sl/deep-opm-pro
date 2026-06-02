@@ -54,6 +54,22 @@ describe("slice persistencia", () => {
     expect(store.getState().descripcionModeloLocal).toBe("Actualizado desde Guardar como");
     expect(store.getState().modelosGuardados.filter((modelo) => modelo.nombre === "HODOM completo v14")).toHaveLength(1);
   });
+
+  test("permite guardar modelos importados con version semantica en el nombre", () => {
+    store.getState().importarJson(exportarModelo(crearModelo("HODOM completo v1.4")));
+
+    store.getState().guardarComoLocalConDescripcion({
+      nombre: "HODOM completo v1.4",
+      descripcion: "Importado",
+    });
+
+    expect(store.getState().mensaje).toBe("Modelo guardado exitosamente");
+    expect(store.getState().modeloPersistidoId).toBeTruthy();
+    expect(store.getState().modelosGuardados).toContainEqual(expect.objectContaining({
+      nombre: "HODOM completo v1.4",
+      descripcion: "Importado",
+    }));
+  });
 });
 
 function instalarLocalStorage(): void {

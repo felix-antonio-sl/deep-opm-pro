@@ -92,7 +92,7 @@ export interface ValidacionNombreModelo {
 
 export const BREADCRUMB_RAIZ = ["Inicio", "Modelos locales"] as const;
 
-const NOMBRE_MODELO_RE = /^(?=[\S])[^\\/:*?"<>|.$[\]#]+$/;
+const NOMBRE_MODELO_RE = /^(?=[\S])[^\\/:*?"<>|$[\]#]+$/;
 const NOMBRE_CARPETA_RE = /^(?=[\S])[^\\/:*?"<>|.$[\]#]+$/;
 
 export function validarNombreModeloLocal(
