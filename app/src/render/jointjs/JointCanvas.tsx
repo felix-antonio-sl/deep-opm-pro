@@ -7,7 +7,6 @@ import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort"
 import { CENTRO_CANVAS_GEOMETRICO } from "../../modelo/layout";
 import { estadosInicialesDelModelo, focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import { debeAnimarTokensSim, tokensViajeDelPaso } from "../../modelo/simulacion/animacionTokens";
-import { SIM_VERDE } from "./composers/halos";
 import { CODEX } from "./constantes.codex";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../../modelo/tipos";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";

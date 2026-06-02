@@ -6,19 +6,10 @@ import type { JointCellJson } from "../proyeccionTipos";
 import { puntoCapsulaEstado, rectCapsulaEstado } from "./estados";
 
 /**
- * Verde de simulacion (Ronda 17 L2). Color canonico del foco activo en modo
- * simulacion: halo del proceso activo y token viajero (B0.017). Vive aqui
- * como unica fuente del verde-sim en la capa render para no duplicar el hex.
- */
-export const SIM_VERDE = "#16a34a";
-
-/**
  * Oliva de simulacion (B0.019). Borde distintivo del estado INICIAL designado
- * de un objeto durante la simulacion, espejo del disco dorado del estado
- * current pero en oliva (verde-amarillento apagado) para diferenciarse del
- * dorado (#f59e0b) sin colisionar con el verde-sim (#16a34a) ni el cinabrio
- * de entidad involucrada. Vive aqui como unica fuente del oliva-sim en la capa
- * render, siguiendo la convencion de `SIM_VERDE`.
+ * de un objeto durante la simulacion. Oliva (verde-amarillento apagado) para
+ * distinguirse del foco crimson del proceso activo y de los estados alcanzados.
+ * Unica fuente del oliva-sim en la capa render.
  */
 export const SIM_OLIVA = "#6B7B2A";
 export const SIM_OLIVA_OSCURO = "#3F4A16";
