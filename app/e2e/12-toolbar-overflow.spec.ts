@@ -210,6 +210,9 @@ test("el command palette es superset del antiguo menú: archivo, datos y herrami
   await visiblePorQuery("tabla de enlaces", "menu-tabla-enlaces");
   await visiblePorQuery("simulacion", "menu-simulacion-conceptual");
   await visiblePorQuery("auto layout", "menu-auto-layout");
+  await combobox.fill("modo solo canvas");
+  await expect(palette.getByTestId("command-palette-item-menu-solo-canvas")).toBeVisible();
+  await expect(palette.getByRole("option")).toHaveCount(1);
   await combobox.fill("mapa del sistema");
   await expect(palette.getByText("Mapa del sistema", { exact: true })).toHaveCount(0);
   await page.keyboard.press("Escape");

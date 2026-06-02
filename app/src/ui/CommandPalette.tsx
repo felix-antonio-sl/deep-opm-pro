@@ -385,6 +385,12 @@ export function construirItemsCommandPalette(
   accionesMenu: readonly CommandPaletteMenuAction[] = [],
   frecuenciaUso: Readonly<Record<string, number>> = {},
 ): CommandPaletteItem[] {
+  const accionesMenuHabilitadas = accionesMenu.filter((accion) => accion.enabled !== false);
+  const accionesMenuPorAtajo = new Set(
+    accionesMenuHabilitadas
+      .filter((accion) => accion.atajo)
+      .map((accion) => claveAtajoPalette(accion.atajo!, accion.label)),
+  );
   // Ronda23 L1 #3: dedup palette por (combo + label). Si un mismo atajo se
   // registra en varios contextos (p.ej. Ctrl+D en `global` y `panel-arbol`
   // para abrir gestión del árbol OPD) muestra una sola fila en el buscador.
@@ -393,7 +399,8 @@ export function construirItemsCommandPalette(
   const itemsAtajos = registros.flatMap((registro, index) => {
     const label = registro.etiqueta ?? registro.descripcion;
     const descripcion = registro.descripcionLarga ?? registro.descripcion;
-    const clave = `${registro.combo}|${label}`;
+    const clave = claveAtajoPalette(registro.combo, label);
+    if (accionesMenuPorAtajo.has(clave)) return [];
     if (atajosVistos.has(clave)) return [];
     atajosVistos.add(clave);
     const id = `atajo-${index}-${normalizarTextoBusqueda(registro.ctx)}-${normalizarTextoBusqueda(registro.combo)}`;
@@ -427,8 +434,7 @@ export function construirItemsCommandPalette(
       frecuenciaUso: frecuenciaUso[id] ?? 0,
     };
   });
-  const itemsMenu = accionesMenu
-    .filter((accion) => accion.enabled !== false)
+  const itemsMenu = accionesMenuHabilitadas
     .map((accion) => {
       const id = `menu-${accion.id}`;
       return {
@@ -447,6 +453,10 @@ export function construirItemsCommandPalette(
     const frecuencia = b.frecuenciaUso - a.frecuenciaUso;
     return frecuencia === 0 ? a.label.localeCompare(b.label, "es") : frecuencia;
   });
+}
+
+function claveAtajoPalette(combo: string, label: string): string {
+  return combo + "|" + normalizarTextoBusqueda(label);
 }
 
 interface AccionesMenuCommandPaletteDeps {

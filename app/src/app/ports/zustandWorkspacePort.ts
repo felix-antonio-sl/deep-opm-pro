@@ -61,6 +61,6 @@ export function useZustandWorkspacePort(): WorkspacePort {
     toggleMostrarVersiones,
     rutaCarpetaActual: () => rutaWorkspaceActual(indice, carpetaActualId),
     listarHijosActuales: (opciones) => resolverHijosWorkspace(indice, carpetaActualId, modelosGuardados, opciones),
-    validarNombreModelo: (nombre) => validarNombreWorkspace(nombre, modelosGuardados),
+    validarNombreModelo: (nombre, idPermitido) => validarNombreWorkspace(nombre, modelosGuardados, idPermitido ?? null),
   };
 }

@@ -1,0 +1,37 @@
+# BUG-20260602T014326Z-6ce450
+
+**Creado**: 2026-06-02T01:43:26.026Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+no puedo guardar. al apretar el guardar no pasa nada
+
+## Screenshots
+
+- [screenshots/01-cleanshot-2026-06-01-at-21.43.02.jpg](screenshots/01-cleanshot-2026-06-01-at-21.43.02.jpg)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-hodom-completo-v1-4",
+  "modeloNombre": "HODOM completo v1.4",
+  "opdActivoId": "opd-sd0-clinico",
+  "opdActivoNombre": "SD0-C - Hospitalizacion en domicilio",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-9cb908df-cecb-46f3-9968-5a7c7cd46e62",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 2133,
+    "height": 1070,
+    "devicePixelRatio": 0.8999999761581421
+  },
+  "capturedAt": "2026-06-02T01:43:22.393Z"
+}
+```

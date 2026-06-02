@@ -32,6 +32,7 @@ export const toolbarStyle = {
   bar: {
     display: "flex",
     alignItems: "center",
+    justifyContent: "flex-end",
     gap: `${spacing.sm}px`,
     width: "100%",
     minWidth: 0,
@@ -86,7 +87,7 @@ export const toolbarStyle = {
     alignItems: "center",
     gap: `${spacing.xs}px`,
     minWidth: 0,
-    flex: "1 1 auto",
+    flex: "0 1 auto",
     overflowX: "auto",
   },
   cluster: {

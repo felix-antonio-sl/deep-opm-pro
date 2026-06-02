@@ -262,5 +262,23 @@
     "status": "Resuelto",
     "resolution": "Se agrega Modo solo canvas: una superficie 100% canvas que oculta OPL, arbol/indice, inspector, header y chrome secundario, reversible desde Command Palette o Ctrl+Shift+M.",
     "note": "Cubierto por CodexFrame.test, CommandPalette.test, globalShortcutsPort.test y e2e/12-command-palette.spec.ts."
+  },
+  "BUG-20260601T214246Z-38acaa": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Se redistribuye el header: las acciones de modelado y persistencia se agrupan hacia el borde derecho, junto a la meta, dejando el tramo documental sin controles sueltos en el centro.",
+    "note": "Cubierto por toolbarStyles.test e inspeccion Playwright con viewport 2133x1070; captura local en app/test-results/bug-214246-header-after.png."
+  },
+  "BUG-20260601T214534Z-98f2fb": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Command Palette deduplica acciones equivalentes por atajo+label; Modo solo canvas aparece una sola vez y conserva la accion de menu como fila canonica.",
+    "note": "Cubierto por CommandPalette.test y e2e/12-toolbar-overflow.spec.ts con conteo de una sola opcion."
+  },
+  "BUG-20260602T014326Z-6ce450": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Guardar como permite confirmar el mismo nombre del modelo persistido actual y lo trata como actualizacion del modelo, no como duplicado bloqueado.",
+    "note": "Causa raiz: validacion de nombre no pasaba idPermitido para el modelo actual. Cubierto por persistencia.test y e2e/31-gestion-modelos.spec.ts."
   }
 }

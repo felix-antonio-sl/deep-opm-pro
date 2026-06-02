@@ -17,19 +17,22 @@ cd app && bun run bug:index
 | Estado | Cantidad |
 |---|---:|
 | Nuevo | 30 |
-| Resuelto | 44 |
+| Resuelto | 47 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 69 |
+| Bug | 72 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Resuelto | [BUG-20260602T014326Z-6ce450](BUG-20260602T014326Z-6ce450/report.md) | 2026-06-02 01:43Z | HODOM completo v1.4 / SD0-C - Hospitalizacion en domicilio | no puedo guardar. al apretar el guardar no pasa nada | Guardar como permite confirmar el mismo nombre del modelo persistido actual y lo trata como actualizacion del modelo, no como dup… | 1 | Causa raiz: validacion de nombre no pasaba idPermitido para el modelo actual. Cubierto por persistencia.test y e2e/31-gestion-modelos.spec.ts. |
+| Bug | Resuelto | [BUG-20260601T214534Z-98f2fb](BUG-20260601T214534Z-98f2fb/report.md) | 2026-06-01 21:45Z | HODOM completo v1.4 / SD0-C - Hospitalizacion en domicilio | cual es la diferencia entre estas 2? si no hay diferencia solo deja 1 | Command Palette deduplica acciones equivalentes por atajo+label; Modo solo canvas aparece una sola vez y conserva la accion de me… | 1 | Cubierto por CommandPalette.test y e2e/12-toolbar-overflow.spec.ts con conteo de una sola opcion. |
+| Bug | Resuelto | [BUG-20260601T214246Z-38acaa](BUG-20260601T214246Z-38acaa/report.md) | 2026-06-01 21:42Z | Modelo / SD | repiensa desde 0 la mejor distribución en esta barra. ahora es incómoda y poco funcional. Lleva el diseño al nivel q se merece | Se redistribuye el header: las acciones de modelado y persistencia se agrupan hacia el borde derecho, junto a la meta, dejando el… | 1 | Cubierto por toolbarStyles.test e inspeccion Playwright con viewport 2133x1070; captura local en app/test-results/bug-214246-header-after.png. |
 | Bug | Resuelto | [BUG-20260601T212527Z-d7f92b](BUG-20260601T212527Z-d7f92b/report.md) | 2026-06-01 21:25Z | HODOM completo v1.4 / SD1.M1.3 - Evaluacion inicial | quiero una función de 100% canvas en donde se visualice solo el canvas | Se agrega Modo solo canvas: una superficie 100% canvas que oculta OPL, arbol/indice, inspector, header y chrome secundario, rever… | 0 | Cubierto por CodexFrame.test, CommandPalette.test, globalShortcutsPort.test y e2e/12-command-palette.spec.ts. |
 | Bug | Resuelto | [BUG-20260601T164807Z-b5a202](BUG-20260601T164807Z-b5a202/report.md) | 2026-06-01 16:48Z | Modelo / SD1 | el botón para abrir la paleta de comandos, no lo uso. saquemoslo | Se retiran los botones visibles dedicados a abrir la paleta de comandos; la paleta sigue disponible por Ctrl/Cmd+K y los tests/he… | 1 | Cubierto por e2e/12-toolbar-overflow.spec.ts y helpers Playwright actualizados. |
 | Bug | Resuelto | [BUG-20260601T164709Z-aad990](BUG-20260601T164709Z-aad990/report.md) | 2026-06-01 16:47Z | Modelo / SD1 | esto en la barra inferiore es redundante. De hecho creo que deberíamos eliminar la barra inferior ¿cual es su funcionalidad real en este momento? | Se elimina la barra inferior Codex. Su funcion real era redundante: viewpoint, atajos y resumen de diagnostico ya viven en breadc… | 1 | Cubierto por CodexFrame.test y e2e/01-carga-y-workspace + 27-visual-compliance. |

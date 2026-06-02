@@ -17,6 +17,8 @@ describe("toolbarStyle Codex v1.1 mecanico", () => {
   test("los creadores son controles inline con separador hairline y kbd mecanico", () => {
     const style = toolbarStyle as Record<string, preact.JSX.CSSProperties>;
 
+    expect(style.bar?.justifyContent).toBe("flex-end");
+    expect(style.actions?.flex).toBe("0 1 auto");
     expect(style.creatorButton?.background).toBe("transparent");
     expect(style.creatorButton?.border).toBe("1px solid transparent");
     expect(style.creatorButton?.boxShadow).toBe("none");

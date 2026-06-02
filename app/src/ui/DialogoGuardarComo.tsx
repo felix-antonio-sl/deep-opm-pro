@@ -40,8 +40,8 @@ export function DialogoGuardarComo() {
   }, [workspace.indice, workspace.carpetaActualId, workspace.modelosGuardados]);
 
   const validacion = useMemo(
-    () => workspace.validarNombreModelo(nombre),
-    [workspace.modelosGuardados, nombre],
+    () => workspace.validarNombreModelo(nombre, workspace.workspaceLocal.id),
+    [workspace.modelosGuardados, workspace.workspaceLocal.id, nombre],
   );
 
   const nombreDuplicado = !validacion.ok && validacion.error === "Ya existe un modelo local con ese nombre";

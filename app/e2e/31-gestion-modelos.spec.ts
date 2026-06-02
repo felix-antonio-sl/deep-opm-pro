@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   abrirDialogoCargarModelo,
   crearModeloNuevoDesdeMenu,
+  ejecutarComandoPalette,
   esperarWorkbenchInicial,
   guardarComoActual,
 } from "./_smoke-helpers";
@@ -75,5 +76,29 @@ test("BUG-142989: Guardar como aclara variante vs versión y guía ante nombre d
 
   await page.keyboard.press("Escape");
   await expect(dialogo).toHaveCount(0);
+  expect(pageErrors).toEqual([]);
+});
+
+test("BUG-20260602T014326Z-6ce450: Guardar como no bloquea el nombre del modelo actual", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+  await guardarComoActual(page, "HODOM completo v14", "Base");
+
+  await ejecutarComandoPalette(page, "guardar como", "menu-guardar-como");
+  const dialogo = page.getByRole("dialog", { name: "Guardar como" });
+  await expect(dialogo).toBeVisible();
+  await expect(dialogo.getByLabel("Nombre del modelo")).toHaveValue("HODOM completo v14");
+  await expect(dialogo.getByRole("button", { name: "Guardar" })).toBeEnabled();
+
+  await dialogo.getByLabel("Descripción").fill("Actualizado desde Guardar como");
+  await dialogo.getByRole("button", { name: "Guardar" }).click();
+  await expect(dialogo).toHaveCount(0);
+  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
+
+  const abrir = await abrirDialogoCargarModelo(page);
+  await expect(abrir.getByTestId("modelo-tile-cargar").filter({ hasText: "HODOM completo v14" })).toHaveCount(1);
   expect(pageErrors).toEqual([]);
 });

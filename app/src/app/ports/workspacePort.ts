@@ -44,7 +44,7 @@ export interface WorkspacePort {
   toggleMostrarVersiones: () => void;
   rutaCarpetaActual: () => CarpetaIndice[];
   listarHijosActuales: (opciones?: { incluirArchivados?: boolean }) => WorkspaceChildren;
-  validarNombreModelo: (nombre: string) => ValidacionNombreModelo;
+  validarNombreModelo: (nombre: string, idPermitido?: Id | null) => ValidacionNombreModelo;
 }
 
 export function resolverHijosWorkspace(
@@ -80,6 +80,7 @@ export function rutaWorkspaceActual(indice: WorkspaceIndice, carpetaActualId: Id
 export function validarNombreWorkspace(
   nombre: string,
   modelosGuardados: ResumenModeloPersistido[],
+  idPermitido: Id | null = null,
 ): ValidacionNombreModelo {
-  return validarNombreModeloLocal(nombre, modelosGuardados);
+  return validarNombreModeloLocal(nombre, modelosGuardados, idPermitido);
 }

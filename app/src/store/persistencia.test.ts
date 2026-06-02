@@ -33,6 +33,27 @@ describe("slice persistencia", () => {
       "Modelo publicado copia",
     ]);
   });
+
+  test("BUG-20260602T014326Z-6ce450: Guardar como permite actualizar el modelo actual con su mismo nombre", () => {
+    store.getState().crearObjetoDemo();
+    store.getState().guardarComoLocal({ nombre: "HODOM completo v14", descripcion: "Base" });
+    const idPersistido = store.getState().modeloPersistidoId;
+    expect(idPersistido).toBeTruthy();
+
+    store.getState().crearProcesoDemo();
+    expect(store.getState().dirty).toBe(true);
+    store.getState().abrirGuardarComo();
+    store.getState().guardarComoLocalConDescripcion({
+      nombre: "HODOM completo v14",
+      descripcion: "Actualizado desde Guardar como",
+    });
+
+    expect(store.getState().dialogoGuardarComoAbierto).toBe(false);
+    expect(store.getState().modeloPersistidoId).toBe(idPersistido);
+    expect(store.getState().dirty).toBe(false);
+    expect(store.getState().descripcionModeloLocal).toBe("Actualizado desde Guardar como");
+    expect(store.getState().modelosGuardados.filter((modelo) => modelo.nombre === "HODOM completo v14")).toHaveLength(1);
+  });
 });
 
 function instalarLocalStorage(): void {

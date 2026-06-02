@@ -170,8 +170,8 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
     },
 
     guardarComoLocalConDescripcion(input) {
-      const { modelo, modelosGuardados, opdActivoId, carpetaActualId, indice } = get();
-      const validacion = validarNombreModeloLocal(input.nombre, modelosGuardados);
+      const { modelo, modeloPersistidoId, modelosGuardados, opdActivoId, carpetaActualId, indice } = get();
+      const validacion = validarNombreModeloLocal(input.nombre, modelosGuardados, modeloPersistidoId);
       if (!validacion.ok) {
         set({ mensaje: validacion.error ?? "Nombre de modelo inválido" });
         return;
@@ -180,8 +180,13 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       const modeloNombrado: Modelo = { ...modelo, nombre: validacion.nombre, ...(descripcion ? { descripcion } : {}) };
       const carpetaParaGuardar = carpetaActualId;
       const json = exportarModelo(modeloNombrado, carpetaParaGuardar);
+      const modeloActualPersistido = modeloPersistidoId
+        ? modelosGuardados.find((guardado) => guardado.id === modeloPersistidoId)
+        : undefined;
+      const actualizarModeloActual = modeloPersistidoId !== null &&
+        nombresModeloIguales(modeloActualPersistido?.nombre ?? modelo.nombre, validacion.nombre);
       const guardado = guardarModeloLocal({
-        id: null,
+        id: actualizarModeloActual ? modeloPersistidoId : null,
         nombre: validacion.nombre,
         descripcion,
         json,
@@ -193,11 +198,11 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         return;
       }
       marcarSnapshotModelo(modeloNombrado);
-      let versiones: VersionResumen[] = [];
+      let versiones: VersionResumen[] = actualizarModeloActual ? guardado.value.versiones ?? [] : [];
       if (input.crearVersionAlGuardar) {
         const version = crearVersionResultado(modeloNombrado, { descripcion: "Versión inicial" });
         if (version.ok) {
-          versiones = [version.value];
+          versiones = [version.value, ...versiones];
           actualizarMetadataModeloLocal(guardado.value.id, {
             versiones,
             crearVersionAlGuardar: true,
@@ -404,4 +409,8 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       set({ readOnly: activo, mensaje: activo ? "Modelo en solo lectura" : null });
     },
   };
+}
+
+function nombresModeloIguales(a: string, b: string): boolean {
+  return a.trim().toLocaleLowerCase("es-CL") === b.trim().toLocaleLowerCase("es-CL");
 }

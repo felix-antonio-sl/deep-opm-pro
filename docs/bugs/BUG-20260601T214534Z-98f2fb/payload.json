@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260601T214534Z-98f2fb",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-01T21:45:34.344Z",
+  "text": "cual es la diferencia entre estas 2? \nsi no hay diferencia solo deja 1",
+  "context": {
+    "modeloId": "modelo-hodom-completo-v1-4",
+    "modeloNombre": "HODOM completo v1.4",
+    "opdActivoId": "opd-sd0-clinico",
+    "opdActivoNombre": "SD0-C - Hospitalizacion en domicilio",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-c428ca53-4093-47f1-96f5-b0b7496a4c52",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2133,
+      "height": 1070,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-06-01T21:45:32.436Z"
+  },
+  "screenshots": [
+    "screenshots/01-cleanshot-2026-06-01-at-17.45.11.jpg"
+  ]
+}

@@ -215,6 +215,26 @@ describe("CommandPalette", () => {
     expect(soloCanvas?.atajo).toBe("Ctrl+Shift+M");
     expect(soloCanvas ? seccionVisualCommandPalette(soloCanvas) : null).toBe("VISTA");
   });
+
+  test("BUG-20260601T214534Z-98f2fb: deduplica Modo solo canvas entre atajo y accion de menu", () => {
+    const registros: RegistroAtajo[] = [
+      {
+        combo: "Ctrl+Shift+M",
+        ctx: "global",
+        categoria: "vista",
+        descripcion: "Modo solo canvas",
+        descripcionLarga: "Alterna una superficie 100% canvas ocultando marginalia, índice e inspector",
+        handler: () => {},
+      },
+    ];
+    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const items = construirItemsCommandPalette(registros, [], acciones);
+    const resultados = filtrarItemsCommandPalette(items, "modo solo canvas");
+
+    expect(resultados).toHaveLength(1);
+    expect(resultados[0]?.tipo).toBe("accion-menu");
+    expect(resultados[0]?.menuActionId).toBe("solo-canvas");
+  });
 });
 
 function depsAccionesMenu(
