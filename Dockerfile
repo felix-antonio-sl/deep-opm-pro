@@ -39,6 +39,21 @@ EXPOSE 3000
 CMD ["bun", "run", "./app/scripts/bug-capture-api.ts"]
 
 # -----------------------------------------------------------------------------
+# Stage opcional - model-api: API interna para persistir modelos en Postgres.
+# -----------------------------------------------------------------------------
+FROM oven/bun:1.3.10-slim AS model-api
+WORKDIR /workspace
+
+COPY app/src/server ./app/src/server
+COPY app/src/persistencia ./app/src/persistencia
+COPY app/src/modelo/tipos ./app/src/modelo/tipos
+COPY app/scripts/model-persistence-api.ts ./app/scripts/model-persistence-api.ts
+
+EXPOSE 3001
+
+CMD ["bun", "run", "./app/scripts/model-persistence-api.ts"]
+
+# -----------------------------------------------------------------------------
 # Stage 3 - runner: Nginx sirve la SPA estatica con fallback a index.html.
 # -----------------------------------------------------------------------------
 FROM nginx:1.27-alpine AS runner

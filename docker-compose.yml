@@ -11,6 +11,8 @@ services:
     depends_on:
       bug-capture:
         condition: service_started
+      model-api:
+        condition: service_healthy
     networks:
       - web
       - opforja-internal
@@ -28,6 +30,47 @@ services:
       - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Referrer-Policy=strict-origin-when-cross-origin"
       - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Permissions-Policy=camera=(), microphone=(), geolocation=()"
       - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: opforja-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: opforja
+      POSTGRES_USER: opforja
+      POSTGRES_PASSWORD: ${OPFORJA_DB_PASSWORD:-opforja-dev}
+    volumes:
+      - opforja-postgres-data:/var/lib/postgresql/data
+    networks:
+      - opforja-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opforja -d opforja"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  model-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: model-api
+    image: deep-opm-pro-model-api:latest
+    container_name: opforja-model-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://opforja:${OPFORJA_DB_PASSWORD:-opforja-dev}@postgres:5432/opforja
+      MODEL_API_PORT: "3001"
+    networks:
+      - opforja-internal
+    healthcheck:
+      test: ["CMD", "bun", "-e", "const r=await fetch('http://127.0.0.1:3001/healthz'); process.exit(r.ok ? 0 : 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   bug-capture:
     build:
@@ -51,3 +94,6 @@ networks:
     external: true
   opforja-internal:
     internal: true
+
+volumes:
+  opforja-postgres-data:

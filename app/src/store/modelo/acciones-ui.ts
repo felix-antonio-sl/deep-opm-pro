@@ -4,7 +4,9 @@ import {
   guardarModeloLocal,
   actualizarMetadataModeloLocal,
   renombrarModeloLocal,
+  type ModeloPersistido,
 } from "../../persistencia/local";
+import { guardarModeloBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
 import {
   validarNombreModeloLocal,
   workspaceDesdeModelo,
@@ -125,6 +127,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         set({ mensaje: guardado.error });
         return;
       }
+      sincronizarGuardadoBackendGuardadoComo(guardado.value, set);
       // Snapshot para dirty tracking sin carpetaId (normalizado)
       marcarSnapshotModelo(modeloNombrado);
       let versiones: VersionResumen[] = [];
@@ -197,6 +200,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         set({ mensaje: guardado.error });
         return;
       }
+      sincronizarGuardadoBackendGuardadoComo(guardado.value, set);
       marcarSnapshotModelo(modeloNombrado);
       let versiones: VersionResumen[] = actualizarModeloActual ? guardado.value.versiones ?? [] : [];
       if (input.crearVersionAlGuardar) {
@@ -409,6 +413,13 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       set({ readOnly: activo, mensaje: activo ? "Modelo en solo lectura" : null });
     },
   };
+}
+
+function sincronizarGuardadoBackendGuardadoComo(modelo: ModeloPersistido, set: SetStore): void {
+  if (!persistenciaBackendHabilitada()) return;
+  void guardarModeloBackend(modelo).then((resultado) => {
+    if (!resultado.ok) set({ mensaje: `Modelo guardado localmente; ${resultado.error}` });
+  });
 }
 
 function nombresModeloIguales(a: string, b: string): boolean {

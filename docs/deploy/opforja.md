@@ -1,9 +1,10 @@
 # Deploy Opforja
 
 **Dominio:** `https://opforja.sanixai.com`
-**Modo:** SPA estatica Vite servida por Nginx, con sidecar interno Bun para
-captura de bugs (`/__deep-opm/bug-reports`), publicada por Traefik en la red
-Docker externa `web`.
+**Modo:** SPA estatica Vite servida por Nginx, sidecar interno Bun para captura
+de bugs (`/__deep-opm/bug-reports`) y API interna Bun/Postgres para modelos
+nuevos (`/__deep-opm/modelos`), publicada por Traefik en la red Docker externa
+`web`.
 **Acceso actual:** publico (`HTTP 200`). El Basic Auth de Traefik fue retirado
 por decisión del operador. No guardar contrasenas en claro en este repo.
 
@@ -28,6 +29,11 @@ usuario. En `opforja` se habilita por build arg `VITE_ENABLE_BUG_CAPTURE=true`
 y Nginx reenvia `POST /__deep-opm/bug-reports` al sidecar privado
 `bug-capture`. El sidecar escribe reportes en `./docs/bugs` mediante bind mount
 local, con el mismo formato usado por Vite en desarrollo.
+
+La persistencia de modelos nuevos vive en `opforja-postgres` y se expone a la
+SPA por `model-api` bajo `/__deep-opm/modelos`. `localStorage` queda como cache
+local transicional para preservar flujos existentes que aun esperan lectura
+sincrona; no es la fuente primaria de datos nuevos.
 
 ## Contrato Funcional De Apariciones
 
@@ -79,6 +85,7 @@ Verificar contenedor:
 docker compose ps
 docker exec opforja wget -qO- http://127.0.0.1:8080/healthz
 docker exec opforja wget -qO- http://bug-capture:3000/healthz
+docker exec opforja-model-api bun -e 'const r=await fetch("http://127.0.0.1:3001/healthz"); console.log(r.status, await r.text())'
 ```
 
 Verificar dominio publico:
@@ -86,6 +93,8 @@ Verificar dominio publico:
 ```bash
 curl -I https://opforja.sanixai.com
 # Esperado vigente: HTTP/2 200 con content-type: text/html
+curl -sS https://opforja.sanixai.com/__deep-opm/modelos
+# Esperado vigente tras corte sin migracion: {"modelos":[]} o lista de modelos nuevos
 ```
 
 Si se reactiva Basic Auth, verificar acceso autenticado sin escribir la
@@ -119,20 +128,20 @@ Esperado: certificado emitido para `CN = opforja.sanixai.com` por Let's Encrypt.
 
 ## Datos Del Usuario
 
-La persistencia de modelos vive en `localStorage` del navegador del
-usuario y queda ligada al origen `https://opforja.sanixai.com`. El admin
-no tiene acceso a esos modelos desde la infraestructura: no hay backend,
-no hay base de datos. El respaldo es responsabilidad del usuario via JSON
-descargado.
+La persistencia primaria de modelos nuevos vive en Postgres, volumen Docker
+`opforja-postgres-data`, tabla `opforja_models`. El payload OPM se almacena como
+`JSONB` real; la API devuelve el JSON como texto para hidratar la app.
+`localStorage` del navegador queda como cache/espejo transicional, no como SSOT.
+No hay migracion de modelos locales antiguos porque el corte parte sin datos
+productivos previos.
 
-Procedimiento detallado de respaldo, restore y migración entre orígenes:
+Procedimiento detallado de respaldo manual por JSON:
 `docs/uso-productivo.md` §Respaldo Manual.
 
-Implicación operativa para el admin: una actualización del contenedor
-no afecta los datos del usuario (viven en el navegador), pero cualquier
-cambio que modifique el origen, el navegador del usuario o el storage
-del navegador sí. Avisar al usuario antes de operaciones que afecten su
-sesión activa.
+Implicación operativa para el admin: una actualización de contenedor no debe
+borrar el volumen `opforja-postgres-data`. `docker compose down` conserva el
+volumen; `docker compose down -v` lo elimina y debe tratarse como operación
+destructiva.
 
 ## Rollback
 
@@ -149,13 +158,19 @@ Apagar el servicio:
 docker compose down
 ```
 
+No usar `docker compose down -v` salvo que se quiera borrar la base de datos.
+
 ## Limites
 
-- No hay auth de aplicacion, multiusuario, backend ni sincronizacion remota.
+- No hay auth de aplicacion, multiusuario ni ownership por usuario; la instancia
+  publica expone un catalogo compartido.
 - La instancia esta publica mientras `opforja-auth@docker` no este aplicado.
-- `localStorage` no es backup; el respaldo portable es el JSON descargado.
+- `localStorage` no es backup; el respaldo portable sigue siendo el JSON
+  descargado o el backup de Postgres.
+- El endpoint de modelos acepta hasta 15 MiB por request en `model-api`;
+  Nginx permite hasta 25 MB en `/__deep-opm/modelos`.
 - El sidecar de captura de bugs escribe en el filesystem local del servidor,
   no en una base de datos. Mientras la instancia sea publica, el endpoint
   `POST /__deep-opm/bug-reports` queda expuesto a internet.
-- El endpoint `/healthz` verifica Nginx/contenedor, no integridad funcional de
-  modelado.
+- `/healthz` de Nginx verifica el contenedor web; `/healthz` de `model-api`
+  verifica conectividad Postgres basica, no integridad funcional de modelado.

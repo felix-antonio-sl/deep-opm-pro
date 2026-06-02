@@ -101,6 +101,13 @@ import {
   type ResumenModeloPersistido,
 } from "../persistencia/local";
 import {
+  borrarModeloBackend,
+  cargarModeloBackendConCache,
+  guardarModeloBackend,
+  listarModelosBackendConCache,
+  persistenciaBackendHabilitada,
+} from "../persistencia/backend";
+import {
   archivarCarpeta as archivarCarpetaEnIndiceOp,
   archivarModelo as archivarModeloEnIndiceOp,
   buscarGlobal,
@@ -191,6 +198,8 @@ import {
   pestanaReemplazable,
   deshacerRuntime,
   rehacerRuntime,
+  type GetStore,
+  type SetStore,
 } from "./runtime";
 
 import { modeloInicial } from "./modelo";
@@ -251,9 +260,10 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     const listado = listarModelosLocales();
     if (!listado.ok) {
       set({ modelosGuardados: [], mensaje: listado.error });
-      return;
+    } else {
+      set({ modelosGuardados: listado.value });
     }
-    set({ modelosGuardados: listado.value });
+    sincronizarListadoBackend(set, get);
   },
 
   guardarLocal() {
@@ -285,6 +295,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       set({ mensaje: guardado.error });
       return;
     }
+    sincronizarGuardadoBackend(guardado.value, set, get);
     let versiones = guardado.value.versiones ?? [];
     if (guardado.value.crearVersionAlGuardar) {
       const version = crearVersionResultado(modelo, { descripcion: "Guardado manual" });
@@ -324,6 +335,17 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     }
     const cargado = cargarModeloLocal(modeloId);
     if (!cargado.ok) {
+      if (persistenciaBackendHabilitada()) {
+        set({ mensaje: "Cargando modelo desde servidor..." });
+        void cargarModeloBackendConCache(modeloId).then((resultado) => {
+          if (!resultado.ok) {
+            set({ mensaje: cargado.error, modelosGuardados: listarModelosGuardadosSeguro() });
+            return;
+          }
+          get().cargarLocal(modeloId);
+        });
+        return;
+      }
       set({ mensaje: cargado.error, modelosGuardados: listarModelosGuardadosSeguro() });
       return;
     }
@@ -341,6 +363,10 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       ultimaApertura: new Date().toISOString(),
       ...(cargado.value.carpetaId !== undefined ? { carpetaId: cargado.value.carpetaId } : {}),
     });
+    sincronizarGuardadoBackend({
+      ...cargado.value,
+      ultimaApertura: new Date().toISOString(),
+    }, set, get);
     // Actualizar índice de workspace
     const indice = leerIndiceWorkspace();
     const carpetaId = cargado.value.carpetaId ?? null;
@@ -382,6 +408,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       set({ mensaje: borrado.error });
       return;
     }
+    sincronizarBorradoBackend(id, set, get);
     const extra: Partial<OpmStore> = {
       modelosGuardados: listarModelosGuardadosSeguro(),
       mensaje: "Modelo local borrado",
@@ -414,6 +441,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
           ...(carpetaId !== undefined ? { carpetaId } : {}),
         });
         if (guardado.ok) {
+          sincronizarGuardadoBackend(guardado.value, setEstadoStore, obtenerEstadoStore);
           marcarSnapshotModelo(state.modelo);
           setEstadoStore(estadoModelo(state.modelo, {
             dirty: false,
@@ -433,6 +461,49 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     set({ autosalvado: { activo: false, ultimo: null, salvando: false } });
   }
 });
+
+function sincronizarListadoBackend(set: SetStore, get: GetStore): void {
+  if (!persistenciaBackendHabilitada()) return;
+  void listarModelosBackendConCache().then((resultado) => {
+    if (!resultado.ok) return;
+    const indice = sincronizarIndiceConModelosGuardados(resultado.value, get().indice);
+    set({
+      modelosGuardados: resultado.value,
+      indice,
+      modelosRecientes: modelosRecientesDeIndice(indice, resultado.value),
+    });
+  });
+}
+
+function sincronizarGuardadoBackend(
+  modelo: import("../persistencia/local").ModeloPersistido,
+  set: SetStore,
+  get: GetStore,
+): void {
+  if (!persistenciaBackendHabilitada()) return;
+  void guardarModeloBackend(modelo).then((resultado) => {
+    if (!resultado.ok) {
+      set({ mensaje: `Modelo guardado localmente; ${resultado.error}` });
+      return;
+    }
+    const modelosGuardados = listarModelosGuardadosSeguro();
+    const indice = sincronizarIndiceConModelosGuardados(modelosGuardados, get().indice);
+    set({ modelosGuardados, indice });
+  });
+}
+
+function sincronizarBorradoBackend(id: string, set: SetStore, get: GetStore): void {
+  if (!persistenciaBackendHabilitada()) return;
+  void borrarModeloBackend(id).then((resultado) => {
+    if (!resultado.ok && resultado.error !== "Modelo no encontrado") {
+      set({ mensaje: `Modelo borrado localmente; ${resultado.error}` });
+      return;
+    }
+    const modelosGuardados = listarModelosGuardadosSeguro();
+    const indice = sincronizarIndiceConModelosGuardados(modelosGuardados, get().indice);
+    set({ modelosGuardados, indice });
+  });
+}
 
 function nombreCopiaReadOnly(nombre: string, modelos: ResumenModeloPersistido[]): string {
   const base = `${nombre.trim() || "Modelo"} copia`;

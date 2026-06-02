@@ -124,6 +124,39 @@ export function guardarModeloLocal(input: GuardarModeloLocalInput): Resultado<Mo
   return ok(modelo);
 }
 
+export function espejarModeloLocal(modelo: ModeloPersistido): Resultado<ModeloPersistido> {
+  const storage = storageLocal();
+  if (!storage.ok) return storage;
+  const normalizado = normalizarModeloPersistido({
+    ...modelo,
+    json: compactarJsonDocumento(modelo.json),
+  });
+  if (!normalizado) return fallo("Modelo local inválido");
+  const indice = leerIndice(storage.value);
+  const resumen: ResumenModeloPersistido = {
+    id: normalizado.id,
+    nombre: normalizado.nombre,
+    descripcion: normalizado.descripcion,
+    creadoEn: normalizado.creadoEn,
+    actualizadoEn: normalizado.actualizadoEn,
+    ...(normalizado.carpetaId !== undefined ? { carpetaId: normalizado.carpetaId } : {}),
+    ...(normalizado.ultimaApertura !== undefined ? { ultimaApertura: normalizado.ultimaApertura } : {}),
+    ...(normalizado.autosalvado !== undefined ? { autosalvado: normalizado.autosalvado } : {}),
+    ...(normalizado.archivado !== undefined ? { archivado: normalizado.archivado } : {}),
+    ...(normalizado.archivadoEn !== undefined ? { archivadoEn: normalizado.archivadoEn } : {}),
+    ...(normalizado.archivadoAuto !== undefined ? { archivadoAuto: normalizado.archivadoAuto } : {}),
+    ...(normalizado.versiones !== undefined ? { versiones: normalizado.versiones } : {}),
+    ...(normalizado.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: normalizado.crearVersionAlGuardar } : {}),
+  };
+  try {
+    storage.value.setItem(modelKey(normalizado.id), JSON.stringify({ formato: FORMATO_PERSISTENCIA, modelo: normalizado } satisfies DocumentoPersistido));
+    escribirIndice(storage.value, [resumen, ...indice.filter((item) => item.id !== normalizado.id)]);
+  } catch (error) {
+    return fallo(mensajeErrorEscrituraLocal(error));
+  }
+  return ok(normalizado);
+}
+
 export function cargarModeloLocal(id: string): Resultado<ModeloPersistido> {
   const storage = storageLocal();
   if (!storage.ok) return storage;
