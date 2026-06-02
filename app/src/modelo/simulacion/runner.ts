@@ -108,13 +108,22 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   if (modo === "muestreo") {
     const random = rngSembrado(contexto.semilla ?? 0);
     const d = resolverDecisionAbanico(modelo, abanico.id, { random });
+    let enlaceId: Id;
+    let peso: number;
     if (d.ok && d.value.enlaceId) {
-      const enlaceId = d.value.enlaceId;
-      return { sucesores: [sucesorDeRama(modelo, siguiente, enlaceId, d.value.probabilidades?.[enlaceId] ?? 1)] };
+      enlaceId = d.value.enlaceId;
+      peso = d.value.probabilidades?.[enlaceId] ?? 1;
+    } else {
+      // Sin política resoluble (ramas hacia estados sin Pr): Dist uniforme sobre las ramas.
+      const idx = Math.min(Math.floor(random() * abanico.enlaceIds.length), abanico.enlaceIds.length - 1);
+      enlaceId = abanico.enlaceIds[idx]!;
+      peso = 1 / abanico.enlaceIds.length;
     }
-    // Sin política resoluble (ramas hacia estados sin Pr): Dist uniforme sobre las ramas.
-    const idx = Math.min(Math.floor(random() * abanico.enlaceIds.length), abanico.enlaceIds.length - 1);
-    return { sucesores: [sucesorDeRama(modelo, siguiente, abanico.enlaceIds[idx]!, 1 / abanico.enlaceIds.length)] };
+    // La semilla EVOLUCIONA para el próximo paso: abanicos sucesivos deben ser
+    // independientes (no correlacionados) pero reproducibles desde la semilla raíz.
+    const semillaSiguiente = Math.floor(random() * 0x100000000);
+    const suc = sucesorDeRama(modelo, siguiente, enlaceId, peso);
+    return { sucesores: [{ ...suc, estado: { ...suc.estado, semilla: semillaSiguiente } }] };
   }
   const elegido = [...abanico.enlaceIds].sort(
     (x, y) => (modelo.enlaces[y]?.probabilidad ?? 0) - (modelo.enlaces[x]?.probabilidad ?? 0),
