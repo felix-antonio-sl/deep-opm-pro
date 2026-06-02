@@ -32,7 +32,7 @@ describe("persistencia local estructurada", () => {
     const cargado = cargarModeloLocal(guardado.value.id);
     expect(cargado.ok).toBe(true);
     if (!cargado.ok) return;
-    expect(cargado.value.json).toBe(exportarModelo(modelo));
+    expectJsonEquivalente(cargado.value.json, exportarModelo(modelo));
 
     const borrado = borrarModeloLocal(guardado.value.id);
     expect(borrado.ok).toBe(true);
@@ -62,10 +62,10 @@ describe("persistencia local estructurada", () => {
     expect(listado.value).toHaveLength(1);
     expect(listado.value[0]?.id).toBe(inicial.value.id);
     expect(listado.value[0]?.nombre).toBe("Modelo incremental actualizado");
-    expect(cargarModeloLocal(inicial.value.id)).toEqual(expect.objectContaining({
-      ok: true,
-      value: expect.objectContaining({ json: exportarModelo(actualizadoModelo.value) }),
-    }));
+    const recargado = cargarModeloLocal(inicial.value.id);
+    expect(recargado.ok).toBe(true);
+    if (!recargado.ok) return;
+    expectJsonEquivalente(recargado.value.json, exportarModelo(actualizadoModelo.value));
   });
 
 	  test("tolera entradas legacy sin descripcion en indice y documento", () => {
@@ -96,10 +96,12 @@ describe("persistencia local estructurada", () => {
 	      ok: true,
 	      value: [expect.objectContaining({ id: "legacy-1", descripcion: "" })],
 	    });
-	    expect(cargarModeloLocal("legacy-1")).toEqual({
+	    const cargado = cargarModeloLocal("legacy-1");
+	    expect(cargado).toEqual({
 	      ok: true,
-	      value: expect.objectContaining({ id: "legacy-1", descripcion: "", json }),
+	      value: expect.objectContaining({ id: "legacy-1", descripcion: "" }),
 	    });
+	    if (cargado.ok) expectJsonEquivalente(cargado.value.json, json);
 	  });
 
 	  test("preserva JSON local con valorSlot y esAtributo sin alterar payload", () => {
@@ -133,10 +135,9 @@ describe("persistencia local estructurada", () => {
     const guardado = guardarModeloLocal({ nombre: "Modelo atributo", json });
     expect(guardado.ok).toBe(true);
     if (!guardado.ok) return;
-	    expect(cargarModeloLocal(guardado.value.id)).toEqual({
-	      ok: true,
-	      value: expect.objectContaining({ json }),
-	    });
+	    const cargado = cargarModeloLocal(guardado.value.id);
+	    expect(cargado.ok).toBe(true);
+	    if (cargado.ok) expectJsonEquivalente(cargado.value.json, json);
 	  });
 
   test("HU-30.008 preserva payload OPM integro en roundtrip JSON local", () => {
@@ -187,10 +188,9 @@ describe("persistencia local estructurada", () => {
     const guardado = guardarModeloLocal({ nombre: "Roundtrip integro", json: serializado });
     expect(guardado.ok).toBe(true);
     if (!guardado.ok) return;
-    expect(cargarModeloLocal(guardado.value.id)).toEqual({
-      ok: true,
-      value: expect.objectContaining({ json: serializado }),
-    });
+    const cargado = cargarModeloLocal(guardado.value.id);
+    expect(cargado.ok).toBe(true);
+    if (cargado.ok) expectJsonEquivalente(cargado.value.json, serializado);
   });
 
   test("preserva metadatos de archivado y versiones en el indice local", () => {
@@ -235,8 +235,69 @@ describe("persistencia local estructurada", () => {
     expect(renombrado.ok).toBe(true);
     if (!renombrado.ok) return;
     expect(renombrado.value.nombre).toBe("Modelo renombrado");
-    expect(renombrado.value.json).toContain('"nombre": "Modelo renombrado"');
+    expect(nombreModeloEnJson(renombrado.value.json)).toBe("Modelo renombrado");
     expect(renombrarModeloLocal(primero.value.id, "Otro modelo").ok).toBe(false);
+  });
+
+  test("compacta payloads legacy y nuevos para liberar cuota local antes de guardar", () => {
+    const storage = instalarLocalStorage();
+    const ahora = "2026-06-02T00:00:00.000Z";
+    const versionKey = "deep-opm-pro:version:legacy-1:v1";
+    const versionJson = JSON.stringify({
+      filas: Array.from({ length: 80 }, (_, index) => ({ index, nombre: "Version legacy", valores: [1, 2, 3] })),
+    }, null, 2);
+    const legacyJson = JSON.stringify({
+      filas: Array.from({ length: 160 }, (_, index) => ({ index, nombre: "Modelo legacy", valores: [1, 2, 3] })),
+    }, null, 2);
+    const legacyVersion = {
+      id: "v1",
+      creadoEn: ahora,
+      nombre: "v1",
+      modeloPayloadKey: versionKey,
+      bytes: versionJson.length,
+    };
+
+    localStorage.setItem(versionKey, versionJson);
+    localStorage.setItem("deep-opm-pro:persistencia:index", JSON.stringify({
+      formato: "deep-opm-pro.persistencia.local.v1",
+      modelos: [{
+        id: "legacy-1",
+        nombre: "Legacy",
+        descripcion: "",
+        creadoEn: ahora,
+        actualizadoEn: ahora,
+        versiones: [legacyVersion],
+      }],
+    }));
+    localStorage.setItem("deep-opm-pro:persistencia:modelo:legacy-1", JSON.stringify({
+      formato: "deep-opm-pro.persistencia.local.v1",
+      modelo: {
+        id: "legacy-1",
+        nombre: "Legacy",
+        descripcion: "",
+        creadoEn: ahora,
+        actualizadoEn: ahora,
+        versiones: [legacyVersion],
+        json: legacyJson,
+      },
+    }));
+
+    storage.cuotaBytes = storage.totalBytes() + 200;
+    const nuevoJson = JSON.stringify({
+      filas: Array.from({ length: 24 }, (_, index) => ({ index, nombre: "Nuevo", valores: [4, 5, 6] })),
+    }, null, 2);
+    expect(nuevoJson.length).toBeGreaterThan(200);
+
+    const guardado = guardarModeloLocal({ nombre: "Nuevo grande", json: nuevoJson });
+
+    expect(guardado.ok).toBe(true);
+    expect(localStorage.getItem(versionKey)).toBe(JSON.stringify(JSON.parse(versionJson)));
+    const indice = JSON.parse(localStorage.getItem("deep-opm-pro:persistencia:index") ?? "{}");
+    const legacy = indice.modelos.find((modelo: { id?: string }) => modelo.id === "legacy-1");
+    expect(legacy.versiones[0].bytes).toBe(JSON.stringify(JSON.parse(versionJson)).length);
+    const docLegacy = JSON.parse(localStorage.getItem("deep-opm-pro:persistencia:modelo:legacy-1") ?? "{}");
+    expect(docLegacy.modelo.json).toBe(JSON.stringify(JSON.parse(legacyJson)));
+    if (guardado.ok) expectJsonEquivalente(guardado.value.json, nuevoJson);
   });
 
   test("tocarUltimoUso actualiza timestamp y listarRecientes ordena por ultimo uso", () => {
@@ -256,17 +317,47 @@ describe("persistencia local estructurada", () => {
   });
 });
 
-function instalarLocalStorage(): void {
+function expectJsonEquivalente(actual: string, esperado: string): void {
+  expect(JSON.parse(actual)).toEqual(JSON.parse(esperado));
+}
+
+function nombreModeloEnJson(json: string): string | undefined {
+  const parsed = JSON.parse(json);
+  return typeof parsed?.modelo?.nombre === "string" ? parsed.modelo.nombre : undefined;
+}
+
+function instalarLocalStorage(): { datos: Map<string, string>; cuotaBytes: number; totalBytes: () => number } {
   const datos = new Map<string, string>();
+  const control = {
+    datos,
+    cuotaBytes: Number.POSITIVE_INFINITY,
+    totalBytes: () => Array.from(datos).reduce((total, [key, value]) => total + key.length + value.length, 0),
+  };
   Object.defineProperty(globalThis, "localStorage", {
     configurable: true,
     value: {
+      get length() {
+        return datos.size;
+      },
+      key: (index: number) => Array.from(datos.keys())[index] ?? null,
       getItem: (key: string) => datos.get(key) ?? null,
-      setItem: (key: string, value: string) => datos.set(key, value),
+      setItem: (key: string, value: string) => {
+        const previo = datos.get(key);
+        datos.set(key, value);
+        if (control.totalBytes() > control.cuotaBytes) {
+          if (previo === undefined) datos.delete(key);
+          else datos.set(key, previo);
+          const error = new Error("Quota exceeded") as Error & { code: number };
+          error.name = "QuotaExceededError";
+          error.code = 22;
+          throw error;
+        }
+      },
       removeItem: (key: string) => datos.delete(key),
       clear: () => datos.clear(),
     },
   });
+  return control;
 }
 
 // ── Operaciones de workspace (L4: jerarquía de carpetas) ───────────

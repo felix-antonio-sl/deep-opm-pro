@@ -1,5 +1,6 @@
 import type { Id, Modelo, Resultado, VersionResumen } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
+import { compactarJsonDocumento } from "./compactacion";
 import type { WorkspaceIndice } from "./workspace";
 
 const VERSION_KEY_PREFIX = "deep-opm-pro:version:";
@@ -38,7 +39,7 @@ export function crearVersionResultado(
   if (!storage.ok) return storage;
   const versionId = generarId();
   const creadoEn = opts.ahora ?? new Date().toISOString();
-  const payload = exportarModelo(modelo);
+  const payload = compactarJsonDocumento(exportarModelo(modelo));
   const modeloPayloadKey = claveVersion(modelo.id, versionId);
   try {
     storage.value.setItem(modeloPayloadKey, payload);

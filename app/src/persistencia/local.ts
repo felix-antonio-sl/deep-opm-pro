@@ -1,8 +1,10 @@
 import type { Resultado, VersionResumen } from "../modelo/tipos";
+import { compactarJsonDocumento } from "./compactacion";
 
 const FORMATO_PERSISTENCIA = "deep-opm-pro.persistencia.local.v1";
 const INDEX_KEY = "deep-opm-pro:persistencia:index";
 const MODEL_KEY_PREFIX = "deep-opm-pro:persistencia:modelo:";
+const VERSION_KEY_PREFIX = "deep-opm-pro:version:";
 
 export interface ResumenModeloPersistido {
   id: string;
@@ -57,12 +59,14 @@ interface DocumentoPersistido {
 export function listarModelosLocales(): Resultado<ResumenModeloPersistido[]> {
   const storage = storageLocal();
   if (!storage.ok) return storage;
+  compactarPersistenciaLocal(storage.value);
   return ok(ordenarPorActualizacion(leerIndice(storage.value)));
 }
 
 export function guardarModeloLocal(input: GuardarModeloLocalInput): Resultado<ModeloPersistido> {
   const storage = storageLocal();
   if (!storage.ok) return storage;
+  compactarPersistenciaLocal(storage.value);
   const nombre = input.nombre.trim() || "Modelo OPM";
   const descripcion = typeof input.descripcion === "string" ? input.descripcion.trim() : "";
   const id = input.id?.trim() || generarId();
@@ -108,13 +112,13 @@ export function guardarModeloLocal(input: GuardarModeloLocalInput): Resultado<Mo
   if (crearVersionAlGuardar !== undefined) {
     resumen.crearVersionAlGuardar = crearVersionAlGuardar;
   }
-  const modelo: ModeloPersistido = { ...resumen, json: input.json };
+  const modelo: ModeloPersistido = { ...resumen, json: compactarJsonDocumento(input.json) };
 
   try {
     storage.value.setItem(modelKey(id), JSON.stringify({ formato: FORMATO_PERSISTENCIA, modelo } satisfies DocumentoPersistido));
     escribirIndice(storage.value, [resumen, ...indice.filter((item) => item.id !== id)]);
-  } catch {
-    return fallo("No se pudo guardar en storage local");
+  } catch (error) {
+    return fallo(mensajeErrorEscrituraLocal(error));
   }
 
   return ok(modelo);
@@ -155,7 +159,7 @@ export function renombrarModeloLocal(id: string, nombre: string): Resultado<Mode
   if (duplicado) return fallo("Ya existe un modelo local con ese nombre");
   const cargado = cargarModeloLocal(limpio);
   if (!cargado.ok) return cargado;
-  const json = renombrarModeloEnJson(cargado.value.json, nuevoNombre);
+  const json = compactarJsonDocumento(renombrarModeloEnJson(cargado.value.json, nuevoNombre));
   const actualizado = aplicarPatchResumen(existente, { nombre: nuevoNombre });
   const modelo: ModeloPersistido = { ...cargado.value, ...actualizado, json };
   try {
@@ -239,6 +243,84 @@ function leerIndice(storage: Storage): ResumenModeloPersistido[] {
   return parsed.modelos
     .map(normalizarResumenModeloPersistido)
     .filter((modelo): modelo is ResumenModeloPersistido => modelo !== null);
+}
+
+function compactarPersistenciaLocal(storage: Storage): void {
+  try {
+    const keys = clavesStorage(storage);
+    const bytesVersion = new Map<string, number>();
+    for (const key of keys) {
+      if (!key.startsWith(VERSION_KEY_PREFIX)) continue;
+      const raw = storage.getItem(key);
+      if (typeof raw !== "string") continue;
+      const compacto = compactarJsonDocumento(raw);
+      if (compacto !== raw) storage.setItem(key, compacto);
+      bytesVersion.set(key, compacto.length);
+    }
+    for (const key of keys) {
+      if (!key.startsWith(MODEL_KEY_PREFIX)) continue;
+      compactarDocumentoModelo(storage, key, bytesVersion);
+    }
+    compactarIndicePersistencia(storage, bytesVersion);
+  } catch {
+    // Compactar libera espacio, pero no debe impedir leer ni guardar si falla.
+  }
+}
+
+function compactarDocumentoModelo(storage: Storage, key: string, bytesVersion: Map<string, number>): void {
+  const raw = storage.getItem(key);
+  const parsed = parseJson(raw);
+  if (!esRecord(parsed) || parsed.formato !== FORMATO_PERSISTENCIA || !esRecord(parsed.modelo)) return;
+  const modelo = parsed.modelo;
+  const json = typeof modelo.json === "string" ? compactarJsonDocumento(modelo.json) : modelo.json;
+  const versiones = Array.isArray(modelo.versiones)
+    ? modelo.versiones.map((version) => actualizarBytesVersion(version, bytesVersion))
+    : modelo.versiones;
+  const actualizado = {
+    ...parsed,
+    modelo: {
+      ...modelo,
+      json,
+      ...(versiones !== undefined ? { versiones } : {}),
+    },
+  };
+  const serializado = JSON.stringify(actualizado);
+  if (typeof raw === "string" && serializado.length >= raw.length) return;
+  storage.setItem(key, serializado);
+}
+
+function compactarIndicePersistencia(storage: Storage, bytesVersion: Map<string, number>): void {
+  if (bytesVersion.size === 0) return;
+  const raw = storage.getItem(INDEX_KEY);
+  const parsed = parseJson(raw);
+  if (!esRecord(parsed) || parsed.formato !== FORMATO_PERSISTENCIA || !Array.isArray(parsed.modelos)) return;
+  const modelos = parsed.modelos.map((modelo) => {
+    if (!esRecord(modelo) || !Array.isArray(modelo.versiones)) return modelo;
+    return {
+      ...modelo,
+      versiones: modelo.versiones.map((version) => actualizarBytesVersion(version, bytesVersion)),
+    };
+  });
+  const serializado = JSON.stringify({ ...parsed, modelos });
+  if (typeof raw === "string" && serializado === raw) return;
+  storage.setItem(INDEX_KEY, serializado);
+}
+
+function actualizarBytesVersion(version: unknown, bytesVersion: Map<string, number>): unknown {
+  if (!esRecord(version) || typeof version.modeloPayloadKey !== "string") return version;
+  const bytes = bytesVersion.get(version.modeloPayloadKey);
+  return typeof bytes === "number" ? { ...version, bytes } : version;
+}
+
+function clavesStorage(storage: Storage): string[] {
+  const length = Number(storage.length);
+  if (!Number.isFinite(length) || length <= 0 || typeof storage.key !== "function") return [];
+  const keys: string[] = [];
+  for (let index = 0; index < length; index += 1) {
+    const key = storage.key(index);
+    if (typeof key === "string") keys.push(key);
+  }
+  return keys;
 }
 
 function escribirIndice(storage: Storage, modelos: ResumenModeloPersistido[]): void {
@@ -391,5 +473,22 @@ function renombrarModeloEnJson(json: string, nombre: string): string {
       ...parsed.modelo,
       nombre,
     },
-  }, null, 2);
+  });
+}
+
+function mensajeErrorEscrituraLocal(error: unknown): string {
+  if (esErrorCuotaStorage(error)) {
+    return "Almacenamiento local lleno: borra o exporta modelos/versiones antiguas y vuelve a guardar";
+  }
+  return "No se pudo guardar en storage local";
+}
+
+function esErrorCuotaStorage(error: unknown): boolean {
+  if (!esRecord(error)) return false;
+  const name = typeof error.name === "string" ? error.name : "";
+  const code = typeof error.code === "number" ? error.code : undefined;
+  return name === "QuotaExceededError" ||
+    name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+    code === 22 ||
+    code === 1014;
 }
