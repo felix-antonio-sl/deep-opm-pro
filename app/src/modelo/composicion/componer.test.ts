@@ -183,4 +183,17 @@ describe("composicion/componer", () => {
       }
     }
   });
+
+  test("law-composicion-sin-solape: las apariencias de B se desplazan fuera del bbox de A en el raíz", () => {
+    // Sin offset, B copiaba sus coordenadas verbatim y se dibujaba ENCIMA de A
+    // (ambos modelos nacen cerca del origen) → OPD raíz ilegible.
+    const a = unObjeto("A");
+    const b = unObjeto("B");
+    const compuesto = must(componerModelos(a, b, {}));
+    const aps = Object.values(compuesto.opds[compuesto.opdRaizId]!.apariencias);
+    const apA = aps.find((ap) => compuesto.entidades[ap.entidadId]?.nombre === "A")!;
+    const apB = aps.find((ap) => compuesto.entidades[ap.entidadId]?.nombre === "B")!;
+    // B arranca a la derecha del borde derecho de A: bounding boxes disjuntos en x.
+    expect(apB.x).toBeGreaterThanOrEqual(apA.x + apA.width);
+  });
 });

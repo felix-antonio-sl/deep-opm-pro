@@ -18,6 +18,9 @@ import type {
 
 export type Compartidas = Record<Id, Id>;
 
+/** Separación horizontal al desplazar las apariencias de B fuera del bbox de A en el raíz. */
+const MARGEN_COMPOSICION = 80;
+
 type Refinamientos = NonNullable<Entidad["refinamientos"]>;
 
 function deepClone<T>(value: T): T {
@@ -251,10 +254,14 @@ export function componerModelos(a: Modelo, b: Modelo, compartidas: Compartidas):
       // se remapeó a su mismo entidadId. Fusionarla crearía un doble visual.
       // Deduplicar por entidad: conservar la apariencia de A, descartar la de B.
       const entidadesEnRaizA = new Set(Object.values(rootA.apariencias).map((ap) => ap.entidadId));
+      // Desplazar B a la derecha del bounding-box de A: sin offset, B copiaba sus
+      // coordenadas verbatim y se dibujaba ENCIMA de A (ambos nacen junto al origen).
+      const bordeDerechoA = Object.values(rootA.apariencias).reduce((max, ap) => Math.max(max, ap.x + ap.width), 0);
+      const offsetX = Object.keys(rootA.apariencias).length > 0 ? bordeDerechoA + MARGEN_COMPOSICION : 0;
       const aparienciasSinDuplicar: Record<Id, Apariencia> = {};
       for (const [apId, ap] of Object.entries(apariencias)) {
         if (entidadesEnRaizA.has(ap.entidadId)) continue;
-        aparienciasSinDuplicar[apId] = ap;
+        aparienciasSinDuplicar[apId] = offsetX > 0 ? { ...ap, x: ap.x + offsetX } : ap;
       }
       opds[a.opdRaizId] = {
         ...rootA,
