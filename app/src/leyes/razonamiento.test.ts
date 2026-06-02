@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo, crearObjeto, crearProceso, crearEnlace } from "../modelo/operaciones";
 import { derivar } from "../modelo/razonamiento";
+import type { Consulta } from "../modelo/razonamiento";
+import { hechosDe } from "../modelo/hechos";
 import type { Id, Modelo, Resultado } from "../modelo/tipos";
 
 function must<T>(r: Resultado<T>): T {
@@ -41,5 +43,39 @@ describe("LEY law-derivacion", () => {
     const r = derivar(m, { tipo: "requerido-por", procesoId: idPorNombre(m, "Ensamblar") });
     expect(r.length).toBeGreaterThan(0);
     expect(r.every((h) => h.inferido === true)).toBe(true);
+  });
+});
+
+describe("LEY law-derivacion-no-contradice", () => {
+  test("todo hecho derivado referencia elementos DECLARADOS en hechosDe (no inventa ni contradice)", () => {
+    const m = modeloCadena();
+    // hechos declarados de F0: el conjunto contra el cual lo inferido no debe contradecir.
+    const declarados = new Set<string>();
+    for (const h of hechosDe(m).values()) {
+      if (h.tipo === "entidad") declarados.add(h.entidadId);
+      else if (h.tipo === "estado") {
+        declarados.add(h.estadoId);
+        declarados.add(h.entidadId);
+      } else declarados.add(h.enlaceId);
+    }
+    const consultas: Consulta[] = [
+      { tipo: "afectan-a", entidadId: idPorNombre(m, "Pieza") },
+      { tipo: "requerido-por", procesoId: idPorNombre(m, "Ensamblar") },
+      { tipo: "impacto-de-eliminar", elementoId: idPorNombre(m, "Pieza") },
+    ];
+    let total = 0;
+    for (const c of consultas) {
+      for (const h of derivar(m, c)) {
+        total += 1;
+        // marcado inferido: nunca se mezcla con lo declarado.
+        expect(h.inferido).toBe(true);
+        // toda referencia derivada existe entre los hechos declarados (no inventa).
+        if (h.entidadId) expect(declarados.has(h.entidadId)).toBe(true);
+        if (h.procesoId) expect(declarados.has(h.procesoId)).toBe(true);
+        if (h.enlaceId) expect(declarados.has(h.enlaceId)).toBe(true);
+        if (h.estadoId) expect(declarados.has(h.estadoId)).toBe(true);
+      }
+    }
+    expect(total).toBeGreaterThan(0); // la ley no es vacua
   });
 });

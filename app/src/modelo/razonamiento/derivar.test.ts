@@ -68,4 +68,42 @@ describe("razonamiento/derivar", () => {
     expect(JSON.stringify(m)).toBe(antes);
     expect(r1).toEqual(r2);
   });
+
+  test("impacto-de-eliminar: distingue cada estado de la entidad por estadoId", () => {
+    const base = modeloAfecta();
+    const doc = idPorNombre(base, "Doc");
+    const m: Modelo = {
+      ...base,
+      estados: {
+        ...base.estados,
+        e1: { id: "e1", entidadId: doc, nombre: "borrador" },
+        e2: { id: "e2", entidadId: doc, nombre: "final" },
+      },
+    };
+    const r = derivar(m, { tipo: "impacto-de-eliminar", elementoId: doc });
+    const estados = new Set(r.map((h) => h.estadoId).filter(Boolean));
+    // sin estadoId, eliminar Doc producía N hechos {entidadId:Doc} indistinguibles.
+    expect(estados.has("e1")).toBe(true);
+    expect(estados.has("e2")).toBe(true);
+  });
+
+  // Controles NEGATIVOS (la auditoría halló la unidad solo con casos positivos):
+  // la derivación no debe inferir lo que la estructura no implica.
+  test("control negativo: entidad aislada no es afectada por ningún proceso", () => {
+    let m = crearModelo();
+    m = must(crearObjeto(m, m.opdRaizId, { x: 100, y: 100 }, "Aislado"));
+    expect(derivar(m, { tipo: "afectan-a", entidadId: idPorNombre(m, "Aislado") })).toHaveLength(0);
+  });
+
+  test("control negativo: proceso sin precondiciones no requiere nada", () => {
+    let m = crearModelo();
+    m = must(crearProceso(m, m.opdRaizId, { x: 100, y: 100 }, "Solo"));
+    expect(derivar(m, { tipo: "requerido-por", procesoId: idPorNombre(m, "Solo") })).toHaveLength(0);
+  });
+
+  test("control negativo: elemento sin incidencias no impacta nada al eliminarse", () => {
+    let m = crearModelo();
+    m = must(crearObjeto(m, m.opdRaizId, { x: 100, y: 100 }, "Suelto"));
+    expect(derivar(m, { tipo: "impacto-de-eliminar", elementoId: idPorNombre(m, "Suelto") })).toHaveLength(0);
+  });
 });

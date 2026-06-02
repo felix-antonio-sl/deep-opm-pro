@@ -28,6 +28,7 @@ export interface HechoDerivado {
   readonly entidadId?: Id;
   readonly procesoId?: Id;
   readonly enlaceId?: Id;
+  readonly estadoId?: Id;
 }
 
 const TRANSFORMADORES: ReadonlySet<string> = new Set(["consumo", "resultado", "efecto"]);
@@ -97,7 +98,8 @@ function impactoDeEliminar(modelo: Modelo, elementoId: Id): HechoDerivado[] {
   }
   for (const estado of Object.values(modelo.estados)) {
     if (estado.entidadId === elementoId) {
-      out.push({ inferido: true, via: "impacto-de-eliminar", entidadId: elementoId });
+      // estadoId distingue cada estado: sin él, N estados colapsaban a N hechos idénticos.
+      out.push({ inferido: true, via: "impacto-de-eliminar", entidadId: elementoId, estadoId: estado.id });
     }
   }
   const ent = modelo.entidades[elementoId];
