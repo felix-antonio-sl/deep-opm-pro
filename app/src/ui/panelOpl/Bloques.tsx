@@ -190,10 +190,11 @@ const style = {
     boxShadow: `inset 2px 0 0 ${tokens.colors.accent}`,
     background: tokens.colors.ink04,
   },
-  // B0.025: frase del proceso activo durante la simulacion. Reusa el mismo
-  // mecanismo de barra lateral + tinte que la seleccion, pero en la familia
-  // bosque (verde) para alinear con el halo SIM_VERDE del proceso activo en
-  // el canvas. Sólo se aplica mientras `procesoActivoSimId != null` (simulando).
+  // B0.025: frase del proceso activo durante la simulacion. Barra lateral + tinte
+  // bosque (verde). PENDIENTE BUG-8b: el halo del proceso activo en el canvas migro
+  // a crimson (Codex V-132); este resaltado OPL deberia alinearse a crimson, pero
+  // distinguirlo de la seleccion (tambien crimson) exige una decision de canon
+  // (token de tinte crimson claro). Solo se aplica mientras `procesoActivoSimId != null`.
   lineaSimActiva: {
     boxShadow: `inset 2px 0 0 ${tokens.colors.bosque}`,
     background: tokens.colors.bosqueSoft,
