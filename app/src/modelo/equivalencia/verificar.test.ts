@@ -1,156 +1,97 @@
 import { describe, expect, test } from "bun:test";
-import { seccionLocal, conjunto, type ConjuntoDeHechos, type Hecho } from "../hechos";
-import type { Id, Modelo, Resultado } from "../tipos";
+import type { Apariencia, AparienciaEnlace, Enlace, Entidad, Modelo, Opd, TipoEnlace } from "../tipos";
 import { verificarEquivalencia, type RealizacionAlternativa } from "./verificar";
 
-function must<T>(r: Resultado<T>): T {
-  if (!r.ok) throw new Error(r.error);
-  return r.value;
+// Tests REALES de equivalencia funcional (no tautológicos): un proceso P
+// (consume A, produce B) con DOS descomposiciones de interior DISTINTO pero
+// mismo rol neto de frontera. La equivalencia correcta (método A0) las ve
+// equivalentes; distinto rol neto → no equivalentes.
+
+function ent(id: string, tipo: "objeto" | "proceso", nombre: string): Entidad {
+  return { id, tipo, nombre, esencia: "informacional", afiliacion: "sistemica" };
 }
-
-function hechosDeMap(c: ConjuntoDeHechos): Hecho[] {
-  return [...c.values()];
+function ap(id: string, entidadId: string, opdId: string): Apariencia {
+  return { id, entidadId, opdId, x: 0, y: 0, width: 100, height: 50 };
 }
-
-function construirDosVariantesEquivalentes(): {
-  modelo: Modelo;
-  eq: RealizacionAlternativa;
-} {
-  const modelo = crearModeloRaiz();
-  const { procesoId, aId, bId } = agregarProcesoConFrontiera(modelo);
-  const opdA = crearOpdHijo(modelo, "SD1-A", "SD1");
-  const opdB = crearOpdHijo(modelo, "SD1-B", "SD1");
-  agregarApariencias(modelo, opdA, [aId, bId, procesoId]);
-  agregarApariencias(modelo, opdB, [aId, bId, procesoId]);
-  return { modelo, eq: { padreId: procesoId, opdA, opdB } };
+function enl(id: string, tipo: TipoEnlace, origen: string, destino: string): Enlace {
+  return { id, tipo, origenId: { kind: "entidad", id: origen }, destinoId: { kind: "entidad", id: destino }, etiqueta: "" };
 }
-
-function construirDosVariantesDistintas(): {
-  modelo: Modelo;
-  eq: RealizacionAlternativa;
-} {
-  const modelo = crearModeloRaiz();
-  const { procesoId, aId } = agregarProcesoConFrontiera(modelo);
-  const opdA = crearOpdHijo(modelo, "SD1-A", "SD1");
-  const opdB = crearOpdHijo(modelo, "SD1-B", "SD1");
-  agregarApariencias(modelo, opdA, [aId, procesoId]);
-  agregarApariencias(modelo, opdB, [procesoId]);
-  return { modelo, eq: { padreId: procesoId, opdA, opdB } };
+function ae(id: string, enlaceId: string, opdId: string): AparienciaEnlace {
+  return { id, enlaceId, opdId, vertices: [] };
 }
-
-let _nextSeq = 1000;
-
-function crearModeloRaiz(): Modelo {
+function opd(id: string, padreId: string | null, aps: Apariencia[], aes: AparienciaEnlace[]): Opd {
   return {
-    id: "modelo-eq",
-    nombre: "Modelo Equivalencia",
-    opdRaizId: "opd-raiz",
-    opds: {
-      "opd-raiz": { id: "opd-raiz", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} },
-    },
-    entidades: {},
-    estados: {},
-    enlaces: {},
-    nextSeq: 1,
+    id,
+    nombre: id,
+    padreId,
+    apariencias: Object.fromEntries(aps.map((a) => [a.id, a])),
+    enlaces: Object.fromEntries(aes.map((x) => [x.id, x])),
   };
 }
 
-function crearOpdHijo(modelo: Modelo, nombre: string, padreNombre: string): Id {
-  const padreId = Object.keys(modelo.opds).find(
-    (k) => modelo.opds[k]!.nombre === padreNombre,
-  )!;
-  const id = `opd-eq-${_nextSeq++}`;
-  modelo.opds[id] = { id, nombre, padreId, apariencias: {}, enlaces: {} };
-  return id;
+function modeloDosRealizaciones(): { modelo: Modelo; eq: RealizacionAlternativa } {
+  const entidades: Record<string, Entidad> = {
+    P: ent("P", "proceso", "Procesar"),
+    A: ent("A", "objeto", "Insumo"),
+    B: ent("B", "objeto", "Producto"),
+    P1: ent("P1", "proceso", "Directo"),
+    Q1: ent("Q1", "proceso", "Alterno"),
+    X: ent("X", "objeto", "Intermedio"),
+    Q2: ent("Q2", "proceso", "Segundo"),
+  };
+  const enlaces: Record<string, Enlace> = {
+    "e-cA": enl("e-cA", "consumo", "A", "P"),
+    "e-rB": enl("e-rB", "resultado", "P", "B"),
+    // A: A → P1 → B (un subproceso directo)
+    "ea-cA": enl("ea-cA", "consumo", "A", "P1"),
+    "ea-rB": enl("ea-rB", "resultado", "P1", "B"),
+    // B: A → Q1 → X → Q2 → B (dos subprocesos + intermedio; mismo rol neto sobre A y B)
+    "eb-cA": enl("eb-cA", "consumo", "A", "Q1"),
+    "eb-rX": enl("eb-rX", "resultado", "Q1", "X"),
+    "eb-cX": enl("eb-cX", "consumo", "X", "Q2"),
+    "eb-rB": enl("eb-rB", "resultado", "Q2", "B"),
+  };
+  const opds: Record<string, Opd> = {
+    r: opd("r", null, [ap("apP", "P", "r"), ap("apA", "A", "r"), ap("apB", "B", "r")], [ae("aeCA", "e-cA", "r"), ae("aeRB", "e-rB", "r")]),
+    a: opd("a", "r", [ap("aA", "A", "a"), ap("aB", "B", "a"), ap("aP1", "P1", "a")], [ae("aeaCA", "ea-cA", "a"), ae("aeaRB", "ea-rB", "a")]),
+    b: opd(
+      "b",
+      "r",
+      [ap("bA", "A", "b"), ap("bB", "B", "b"), ap("bQ1", "Q1", "b"), ap("bX", "X", "b"), ap("bQ2", "Q2", "b")],
+      [ae("aebCA", "eb-cA", "b"), ae("aebRX", "eb-rX", "b"), ae("aebCX", "eb-cX", "b"), ae("aebRB", "eb-rB", "b")],
+    ),
+  };
+  const modelo: Modelo = { id: "m", nombre: "m", opdRaizId: "r", opds, entidades, estados: {}, enlaces, nextSeq: 100 };
+  return { modelo, eq: { padreId: "P", opdA: "a", opdB: "b" } };
 }
 
-function agregarProcesoConFrontiera(modelo: Modelo): {
-  procesoId: Id;
-  aId: Id;
-  bId: Id;
-} {
-  const aId = `ent-a-${_nextSeq++}`;
-  const bId = `ent-b-${_nextSeq++}`;
-  const pId = `ent-p-${_nextSeq++}`;
-  const aAparId = `ap-a-${_nextSeq++}`;
-  const bAparId = `ap-b-${_nextSeq++}`;
-  const pAparId = `ap-p-${_nextSeq++}`;
-
-  modelo.entidades[aId] = {
-    id: aId, tipo: "objeto", nombre: "MateriaPrima",
-    esencia: "fisica", afiliacion: "sistemica",
-  };
-  modelo.entidades[bId] = {
-    id: bId, tipo: "objeto", nombre: "Producto",
-    esencia: "fisica", afiliacion: "sistemica",
-  };
-  modelo.entidades[pId] = {
-    id: pId, tipo: "proceso", nombre: "Transformar",
-    esencia: "informacional", afiliacion: "sistemica",
-  };
-
-  const raiz = modelo.opds[modelo.opdRaizId]!;
-  raiz.apariencias[aAparId] = { id: aAparId, entidadId: aId, opdId: raiz.id, x: 100, y: 60, width: 120, height: 50 };
-  raiz.apariencias[bAparId] = { id: bAparId, entidadId: bId, opdId: raiz.id, x: 100, y: 160, width: 120, height: 50 };
-  raiz.apariencias[pAparId] = { id: pAparId, entidadId: pId, opdId: raiz.id, x: 320, y: 110, width: 140, height: 60 };
-
-  const enlConsumo = `enl-c-${_nextSeq++}`;
-  const enlResultado = `enl-r-${_nextSeq++}`;
-  const aeConsumo = `ae-c-${_nextSeq++}`;
-  const aeResultado = `ae-r-${_nextSeq++}`;
-
-  modelo.enlaces[enlConsumo] = {
-    id: enlConsumo, tipo: "consumo",
-    origenId: { kind: "entidad", id: aId },
-    destinoId: { kind: "entidad", id: pId },
-    etiqueta: "",
-  };
-  modelo.enlaces[enlResultado] = {
-    id: enlResultado, tipo: "resultado",
-    origenId: { kind: "entidad", id: pId },
-    destinoId: { kind: "entidad", id: bId },
-    etiqueta: "",
-  };
-  raiz.enlaces[aeConsumo] = { id: aeConsumo, enlaceId: enlConsumo, opdId: raiz.id, vertices: [] };
-  raiz.enlaces[aeResultado] = { id: aeResultado, enlaceId: enlResultado, opdId: raiz.id, vertices: [] };
-
-  return { procesoId: pId, aId, bId };
-}
-
-function agregarApariencias(modelo: Modelo, opdId: Id, entidadIds: Id[]): void {
-  const opd = modelo.opds[opdId]!;
-  for (const entidadId of entidadIds) {
-    const ent = modelo.entidades[entidadId];
-    if (!ent) continue;
-    const apId = `ap-${opdId}-${entidadId}`;
-    opd.apariencias[apId] = {
-      id: apId, entidadId, opdId,
-      x: 100, y: 100, width: 120, height: 50,
-    };
-  }
-}
-
-describe("equivalencia/verificar", () => {
-  test("dos descomposiciones con misma frontera → equivalente", () => {
-    const { modelo, eq } = construirDosVariantesEquivalentes();
+describe("equivalencia/verificar — funcional (realizaciones alternativas, A0)", () => {
+  test("interior distinto, mismo rol neto de frontera (A consumida, B producida) → equivalentes", () => {
+    const { modelo, eq } = modeloDosRealizaciones();
     const r = verificarEquivalencia(modelo, eq);
     expect(r.ok).toBe(true);
     if (r.ok) expect(r.value.equivalente).toBe(true);
   });
 
-  test("frontera distinta → no equivalente, reporta diferencias", () => {
-    const { modelo, eq } = construirDosVariantesDistintas();
-    const r = verificarEquivalencia(modelo, eq);
+  test("rol neto distinto (una descomposición no consume A) → no equivalentes, reporta diferencia", () => {
+    const { modelo, eq } = modeloDosRealizaciones();
+    const sinConsumo: Modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        b: { ...modelo.opds.b!, enlaces: { aebRB: modelo.opds.b!.enlaces.aebRB! } },
+      },
+    };
+    const r = verificarEquivalencia(sinConsumo, eq);
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.value.equivalente).toBe(false);
-      expect(r.value.diferencias).toBeDefined();
-      expect(r.value.diferencias!.size).toBeGreaterThan(0);
+      expect(r.value.diferencias && r.value.diferencias.length > 0).toBe(true);
     }
   });
 
   test("verificarEquivalencia es pura: no muta el modelo", () => {
-    const { modelo, eq } = construirDosVariantesEquivalentes();
+    const { modelo, eq } = modeloDosRealizaciones();
     const antes = JSON.stringify(modelo);
     verificarEquivalencia(modelo, eq);
     expect(JSON.stringify(modelo)).toBe(antes);

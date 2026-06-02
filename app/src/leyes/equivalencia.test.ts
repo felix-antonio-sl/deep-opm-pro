@@ -1,76 +1,77 @@
 import { describe, expect, test } from "bun:test";
 import { verificarEquivalencia } from "../modelo/equivalencia";
-import type { Id, Modelo, Resultado } from "../modelo/tipos";
+import type { Apariencia, AparienciaEnlace, Enlace, Entidad, Modelo, Opd, TipoEnlace } from "../modelo/tipos";
 
-function must<T>(r: Resultado<T>): T {
-  if (!r.ok) throw new Error(r.error);
-  return r.value;
+// Leyes de equivalencia funcional, sobre realizaciones de interior REALMENTE
+// distinto (no OPDs idénticos): reflexiva, simétrica, pura.
+
+function ent(id: string, tipo: "objeto" | "proceso"): Entidad {
+  return { id, tipo, nombre: id, esencia: "informacional", afiliacion: "sistemica" };
+}
+function ap(id: string, entidadId: string, opdId: string): Apariencia {
+  return { id, entidadId, opdId, x: 0, y: 0, width: 100, height: 50 };
+}
+function enl(id: string, tipo: TipoEnlace, origen: string, destino: string): Enlace {
+  return { id, tipo, origenId: { kind: "entidad", id: origen }, destinoId: { kind: "entidad", id: destino }, etiqueta: "" };
+}
+function ae(id: string, enlaceId: string, opdId: string): AparienciaEnlace {
+  return { id, enlaceId, opdId, vertices: [] };
+}
+function opd(id: string, padreId: string | null, aps: Apariencia[], aes: AparienciaEnlace[]): Opd {
+  return {
+    id,
+    nombre: id,
+    padreId,
+    apariencias: Object.fromEntries(aps.map((a) => [a.id, a])),
+    enlaces: Object.fromEntries(aes.map((x) => [x.id, x])),
+  };
 }
 
-function modeloMinimoConFrontiera(): { modelo: Modelo; padreId: Id; opdA: Id; opdB: Id; entA: Id; entB: Id } {
-  const modelo: Modelo = {
-    id: "m-ley",
-    nombre: "Ley",
-    opdRaizId: "r",
-    opds: {
-      r: { id: "r", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} },
-      a: { id: "a", nombre: "SD1-A", padreId: "r", apariencias: {}, enlaces: {} },
-      b: { id: "b", nombre: "SD1-B", padreId: "r", apariencias: {}, enlaces: {} },
-    },
-    entidades: {
-      pa: { id: "pa", tipo: "proceso", nombre: "P", esencia: "informacional", afiliacion: "sistemica" },
-      e1: { id: "e1", tipo: "objeto", nombre: "In", esencia: "fisica", afiliacion: "sistemica" },
-      e2: { id: "e2", tipo: "objeto", nombre: "Out", esencia: "fisica", afiliacion: "sistemica" },
-    },
-    estados: {},
-    enlaces: {
-      c1: { id: "c1", tipo: "consumo", origenId: { kind: "entidad", id: "e1" }, destinoId: { kind: "entidad", id: "pa" }, etiqueta: "" },
-      r1: { id: "r1", tipo: "resultado", origenId: { kind: "entidad", id: "pa" }, destinoId: { kind: "entidad", id: "e2" }, etiqueta: "" },
-    },
-    nextSeq: 100,
+// P consume A produce B; opd 'a' usa subproceso P1, opd 'b' usa subproceso Q1
+// (interior distinto, mismo rol neto de frontera → equivalentes).
+function modelo(): { modelo: Modelo; padreId: string; opdA: string; opdB: string } {
+  const entidades: Record<string, Entidad> = {
+    P: ent("P", "proceso"), A: ent("A", "objeto"), B: ent("B", "objeto"),
+    P1: ent("P1", "proceso"), Q1: ent("Q1", "proceso"),
   };
-  modelo.opds.r!.apariencias = {
-    apa: { id: "apa", entidadId: "pa", opdId: "r", x: 200, y: 100, width: 140, height: 60 },
-    ap1: { id: "ap1", entidadId: "e1", opdId: "r", x: 80, y: 120, width: 120, height: 50 },
-    ap2: { id: "ap2", entidadId: "e2", opdId: "r", x: 360, y: 120, width: 120, height: 50 },
+  const enlaces: Record<string, Enlace> = {
+    cA: enl("cA", "consumo", "A", "P"), rB: enl("rB", "resultado", "P", "B"),
+    acA: enl("acA", "consumo", "A", "P1"), arB: enl("arB", "resultado", "P1", "B"),
+    bcA: enl("bcA", "consumo", "A", "Q1"), brB: enl("brB", "resultado", "Q1", "B"),
   };
-  modelo.opds.r!.enlaces = {
-    ae1: { id: "ae1", enlaceId: "c1", opdId: "r", vertices: [] },
-    ae2: { id: "ae2", enlaceId: "r1", opdId: "r", vertices: [] },
+  const opds: Record<string, Opd> = {
+    r: opd("r", null, [ap("rP", "P", "r"), ap("rA", "A", "r"), ap("rB", "B", "r")], [ae("aeC", "cA", "r"), ae("aeR", "rB", "r")]),
+    a: opd("a", "r", [ap("aA", "A", "a"), ap("aB", "B", "a"), ap("aP1", "P1", "a")], [ae("aeAC", "acA", "a"), ae("aeAR", "arB", "a")]),
+    b: opd("b", "r", [ap("bA", "A", "b"), ap("bB", "B", "b"), ap("bQ1", "Q1", "b")], [ae("aeBC", "bcA", "b"), ae("aeBR", "brB", "b")]),
   };
-  modelo.opds.a!.apariencias = {
-    apa: { id: "apa", entidadId: "pa", opdId: "a", x: 200, y: 100, width: 140, height: 60 },
-    ap1: { id: "ap1", entidadId: "e1", opdId: "a", x: 80, y: 120, width: 120, height: 50 },
-    ap2: { id: "ap2", entidadId: "e2", opdId: "a", x: 360, y: 120, width: 120, height: 50 },
-  };
-  modelo.opds.b!.apariencias = {
-    apa: { id: "apa", entidadId: "pa", opdId: "b", x: 200, y: 100, width: 140, height: 60 },
-    ap1: { id: "ap1", entidadId: "e1", opdId: "b", x: 80, y: 120, width: 120, height: 50 },
-    ap2: { id: "ap2", entidadId: "e2", opdId: "b", x: 360, y: 120, width: 120, height: 50 },
-  };
-  return { modelo, padreId: "pa", opdA: "a", opdB: "b", entA: "e1", entB: "e2" };
+  return { modelo: { id: "m", nombre: "m", opdRaizId: "r", opds, entidades, estados: {}, enlaces, nextSeq: 100 }, padreId: "P", opdA: "a", opdB: "b" };
 }
 
-describe("LEY law-equivalencia-frontera", () => {
-  test("reflexiva: mismo OPD en ambos lados → equivalente", () => {
-    const { modelo, padreId, opdA } = modeloMinimoConFrontiera();
-    const r = verificarEquivalencia(modelo, { padreId, opdA, opdB: opdA });
-    expect(r.ok).toBe(true);
-    if (r.ok) expect(r.value.equivalente).toBe(true);
+describe("LEY law-equivalencia-frontera (funcional)", () => {
+  test("reflexiva: una realización es equivalente a sí misma", () => {
+    const { modelo: m, padreId, opdA } = modelo();
+    const r = verificarEquivalencia(m, { padreId, opdA, opdB: opdA });
+    expect(r.ok && r.value.equivalente).toBe(true);
   });
 
-  test("simetrica: intercambiar opdA/opdB no cambia el veredicto", () => {
-    const { modelo, padreId, opdA, opdB } = modeloMinimoConFrontiera();
-    const r1 = verificarEquivalencia(modelo, { padreId, opdA, opdB });
-    const r2 = verificarEquivalencia(modelo, { padreId, opdA: opdB, opdB: opdA });
+  test("equivalencia funcional real: a≡b con interior distinto", () => {
+    const { modelo: m, padreId, opdA, opdB } = modelo();
+    const r = verificarEquivalencia(m, { padreId, opdA, opdB });
+    expect(r.ok && r.value.equivalente).toBe(true);
+  });
+
+  test("simétrica: (a,b) y (b,a) dan el mismo veredicto", () => {
+    const { modelo: m, padreId, opdA, opdB } = modelo();
+    const r1 = verificarEquivalencia(m, { padreId, opdA, opdB });
+    const r2 = verificarEquivalencia(m, { padreId, opdA: opdB, opdB: opdA });
     expect(r1.ok && r2.ok).toBe(true);
     if (r1.ok && r2.ok) expect(r1.value.equivalente).toBe(r2.value.equivalente);
   });
 
-  test("verificarEquivalencia es pura: no muta el modelo", () => {
-    const { modelo, padreId, opdA, opdB } = modeloMinimoConFrontiera();
-    const antes = JSON.stringify(modelo);
-    verificarEquivalencia(modelo, { padreId, opdA, opdB });
-    expect(JSON.stringify(modelo)).toBe(antes);
+  test("pura: no muta el modelo", () => {
+    const { modelo: m, padreId, opdA, opdB } = modelo();
+    const antes = JSON.stringify(m);
+    verificarEquivalencia(m, { padreId, opdA, opdB });
+    expect(JSON.stringify(m)).toBe(antes);
   });
 });
