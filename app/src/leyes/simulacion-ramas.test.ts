@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { pasoEfecto } from "../modelo/simulacion/runner";
+import { desplegarArbol, pasoEfecto } from "../modelo/simulacion/runner";
 import type { ContextoSimulacion, ModoSimulacion } from "../modelo/simulacion/tipos";
 import type { Modelo } from "../modelo/tipos";
 
@@ -120,5 +120,24 @@ describe("LEY law-simulacion-ramas (S2)", () => {
     // la rama elegida realmente transicionó el objeto (no quedó en el "último gana")
     const oFinal = a.estado.estadosCurrent["O"];
     expect(oFinal === "s1" || oFinal === "s2").toBe(true);
+  });
+
+  test("muestreo: distintas semillas pueden elegir ramas distintas (Dist uniforme, no fallback fijo) (BUG-4)", () => {
+    const m = modeloAbanicoXorAEstados();
+    const ramas = new Set<string>();
+    for (let s = 0; s < 12; s += 1) {
+      const suc = pasoEfecto(m, ctx(m, "muestreo", s)).sucesores[0]!;
+      if (suc.rama) ramas.add(suc.rama);
+    }
+    expect(ramas.has("r1")).toBe(true);
+    expect(ramas.has("r2")).toBe(true);
+  });
+
+  test("exhaustivo: desplegarArbol ramifica en la raíz, un hijo por rama (BUG-5)", () => {
+    const m = modeloAbanicoXorAEstados();
+    const { raiz, truncado } = desplegarArbol(m, ctx(m, "exhaustivo"), 50);
+    expect(truncado).toBe(false);
+    expect(raiz.hijos.length).toBe(2);
+    expect(new Set(raiz.hijos.map((h) => h.rama)).size).toBe(2);
   });
 });

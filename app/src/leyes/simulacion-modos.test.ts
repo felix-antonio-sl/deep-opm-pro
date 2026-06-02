@@ -29,14 +29,8 @@ describe("LEY law-simulacion-modos", () => {
     expect(porModo.trace).toEqual(porDefault.trace);
   });
 
-  test("law-muestreo-reproducible: misma semilla -> misma traza", () => {
-    const m = modeloConProcesos();
-    const ini = iniciarSimulacion(m, m.opdRaizId);
-    const a = desplegar(m, conModo(ini, "muestreo", 42));
-    const b = desplegar(m, conModo(ini, "muestreo", 42));
-    expect(a.trace.map((t) => t.procesoNombre)).toEqual(b.trace.map((t) => t.procesoNombre));
-    expect(a.estadosCurrent).toEqual(b.estadosCurrent);
-  });
+  // La reproducibilidad GENUINA del muestreo (con abanico que ejerce el RNG)
+  // vive en leyes/simulacion-ramas.test.ts. Aquí, sin abanicos, sería tautológica.
 
   test("law-pasoEfecto-efecto-identidad: sin abanicos, cualquier modo rinde 1 sucesor peso 1", () => {
     const m = modeloConProcesos();
@@ -64,6 +58,6 @@ describe("LEY law-simulacion-modos", () => {
       nodo = nodo.hijos[0]!;
       profundidad += 1;
     }
-    expect(profundidad).toBe(m.opds[m.opdRaizId] ? 2 : 0);
+    expect(profundidad).toBe(ini.plan.length); // árbol lineal: un nodo por paso del plan (F=Identidad, sin abanicos)
   });
 });
