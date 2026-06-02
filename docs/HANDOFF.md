@@ -1,9 +1,23 @@
 # HANDOFF — Estado operativo del modelador OPM
 
 **Fecha**: 2026-06-03 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
-**Corte de producto vigente (2026-06-03)**: persistencia backend consolidada para modelos nuevos: modelos, workspace/carpetas, versiones, autosave y ownership por tenant anonimo con cookie firmada. Corte anterior público: `bc69829` (`feat(opforja): agregar persistencia backend postgres`). Este corte reduce la dependencia de `localStorage` a cache/espejo transicional y mantiene la UX existente sin migrar pruebas antiguas.
+**Corte de producto vigente (2026-06-03)**: persistencia backend consolidada para modelos nuevos: modelos, workspace/carpetas, versiones, autosave y ownership por tenant anonimo con cookie firmada. Corte anterior público: `bc69829` (`feat(opforja): agregar persistencia backend postgres`). Este corte reduce la dependencia de `localStorage` a cache/espejo transicional y mantiene la UX existente sin migrar pruebas antiguas. Corte de ingenieria posterior: correcciones P0 de composicion F1 documentadas abajo; deploy queda como decision operativa separada.
 **Instancia**: `https://opforja.sanixai.com` — pública sin auth perimetral. Redeploy verificado: contenedor `opforja` healthy, sidecar `opforja-bug-capture` ok, `opforja-model-api` healthy, `opforja-postgres` healthy, `curl -fsSI` externo HTTP/2 200. Bundle servido tras backend extendido: entry `index-Ds65PY5U.js`. Smoke producción: sesión/cookie, tenant aislado, workspace, modelo, versión, autosave y cleanup OK.
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2; rama `codex/ux-composicion-f1` fue squash-mergeada sobre `main` para cerrar la brecha de composición. Diseño/planes relevantes: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`, `docs/superpowers/plans/2026-06-02-ux-adhoc-fs.md`.
+
+## Corte actual — Correcciones P0 de composición F1
+
+**Estado 2026-06-03:** `main` incorpora dos fixes locales de composición F1: `34239d9` desplaza las apariencias no compartidas del modelo B fuera del bounding box del modelo A al fusionar el OPD raíz, y `c5e852e` advierte al usuario si la composición crea conflictos de linealidad. Ambos son correcciones de calidad de UX/canon sobre la capacidad ya integrada; no cambian wire format ni introducen una nueva superficie.
+
+**Decisiones:** la composición sigue siendo undoable y no bloqueante. El solape visual se corrige en el kernel de composición con un margen horizontal constante, porque el resultado compuesto debe ser legible desde el primer render sin exigir intervención manual. La linealidad se valida después de componer y se comunica en el mensaje de resultado: se evita una fusión silenciosa a estado inválido, pero se mantiene la autonomía del operador para deshacer o ajustar.
+
+**Artefactos principales:** `app/src/modelo/composicion/componer.ts`, `app/src/modelo/composicion/componer.test.ts`, `app/src/store/modelo/acciones-capacidades.ts`, `app/src/store/modelo/composicion-ux.test.ts`.
+
+**Verificación:** composición kernel + UX focal registrada en commits: 31/31 y 4/4 verdes respectivamente. Verificación fresca de cierre: `bun run check` -> **1911 pass / 0 fail**; `bun run lint` -> OK; `bun run design:governance` -> OK; `git diff --check` -> OK.
+
+**Handoff explícito:** estado actual: fixes P0 de composición F1 listos para quedar en `main` remoto junto con esta consolidación documental. Pendientes: deploy solo si se quiere que producción tome estos fixes inmediatamente. Supuestos: los modelos A y B suelen nacer cerca del origen, por eso el desplazamiento horizontal resuelve el caso común; el aviso de linealidad basta como UX honesta porque la operación ya es reversible. Riesgos: el margen fijo no es todavía un layout automático completo para composiciones grandes; el aviso de linealidad no abre un panel de diagnóstico dedicado.
+
+**Prompt breve de continuación:** "Retomar desde `docs/HANDOFF.md`, sección `Corte actual — Correcciones P0 de composición F1`; decidir si redeploy inmediato para llevar a producción los fixes P0, y si se continua producto mejorar layout de composición grande y diagnóstico visual de linealidad sin copiar gestos OPCloud."
 
 ## Corte actual — Persistencia backend con tenant, workspace, versiones y autosave
 
