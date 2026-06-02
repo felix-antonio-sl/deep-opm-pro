@@ -50,6 +50,7 @@ export function InspectorEntidad({ entidad }: Props) {
     renombrar,
     fijarEsencia,
     fijarAfiliacion,
+    fijarLinealidad,
     reasignarEnlaceExternoManual,
     crearAutoInvocacion,
     cambiarModoPlegado,
@@ -200,6 +201,7 @@ export function InspectorEntidad({ entidad }: Props) {
             onQuitarImagen={quitarImagenEntidad}
             onEsencia={fijarEsencia}
             onAfiliacion={fijarAfiliacion}
+            onLineal={fijarLinealidad}
             onCrearEstadosConNombres={crearEstadosConNombres}
             onEliminarEstado={eliminarEstado}
             onQuitarEstados={quitarEstados}
@@ -436,6 +438,7 @@ interface PanelSemanticaProps {
   onQuitarImagen: (entidadId: Id) => void;
   onEsencia: (esencia: import("../modelo/tipos").Esencia) => void;
   onAfiliacion: (afiliacion: import("../modelo/tipos").Afiliacion) => void;
+  onLineal: (lineal: boolean) => void;
   onCrearEstadosConNombres: (nombres: string[]) => void;
   onEliminarEstado: (estadoId: Id) => void;
   onQuitarEstados: () => void;
@@ -514,6 +517,9 @@ function PanelSemantica(props: PanelSemanticaProps) {
         afiliacion={entidad.afiliacion}
         onEsencia={props.onEsencia}
         onAfiliacion={props.onAfiliacion}
+        lineal={entidad.lineal ?? false}
+        onLineal={props.onLineal}
+        mostrarLinealidad={entidad.tipo === "objeto"}
       />
       {entidad.tipo === "objeto" ? (
         <SeccionLayoutEstados

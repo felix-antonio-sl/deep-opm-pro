@@ -5,6 +5,9 @@
 // activa subrayada). Las opciones siguen siendo `<button>` con el mismo nombre
 // accesible ("Informacional"/"Física"/"Sistémica"/"Ambiental") para preservar
 // los e2e que las localizan por rol+nombre. testIds de hints inmutables.
+//
+// Capa categorial F1: sección "Linealidad" (solo objetos) con el mismo idioma
+// Codex; toggle entre recurso Copiable / Lineal.
 import type { Afiliacion, Esencia } from "../../modelo/tipos";
 import { CodexInspectSection } from "../codex/CodexInspectSection";
 import { CodexInspectInline } from "../codex/CodexInspectInline";
@@ -15,6 +18,9 @@ interface Props {
   afiliacion: Afiliacion;
   onEsencia: (value: Esencia) => void;
   onAfiliacion: (value: Afiliacion) => void;
+  lineal?: boolean;
+  onLineal?: (value: boolean) => void;
+  mostrarLinealidad?: boolean;
 }
 
 const ESENCIAS: ReadonlyArray<Esencia> = ["informacional", "fisica"];
@@ -43,6 +49,18 @@ export function SeccionEsenciaAfiliacion(props: Props) {
           Sistémica: parte del sistema. Ambiental: contexto externo.
         </p>
       </CodexInspectSection>
+      {props.mostrarLinealidad && props.onLineal ? (
+        <CodexInspectSection label="Linealidad">
+          <CodexInspectInline
+            options={["Copiable", "Lineal"]}
+            active={props.lineal ? 1 : 0}
+            onSelect={(i) => props.onLineal!(i === 1)}
+          />
+          <p data-testid="hint-linealidad" style={style.hint}>
+            Copiable: el recurso se reutiliza. Lineal: se consume al usarse (un solo consumidor).
+          </p>
+        </CodexInspectSection>
+      ) : null}
     </>
   );
 }

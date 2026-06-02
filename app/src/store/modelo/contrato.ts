@@ -78,6 +78,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "configurarSimulacionAtributoSeleccionado",
     "fijarEsenciaSeleccionada",
     "fijarAfiliacionSeleccionada",
+    "fijarLinealidadSeleccionada",
     "redimensionarSeleccionada",
     "redimensionarAparienciaEnCanvas",
     "redimensionarEstadoEnCanvas",

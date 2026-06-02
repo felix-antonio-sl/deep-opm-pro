@@ -31,6 +31,7 @@ export function useZustandEntityInspectorSemanticsPort(): EntityInspectorSemanti
   const renombrar = useOpmStore((s) => s.renombrarSeleccionada);
   const fijarEsencia = useOpmStore((s) => s.fijarEsenciaSeleccionada);
   const fijarAfiliacion = useOpmStore((s) => s.fijarAfiliacionSeleccionada);
+  const fijarLinealidad = useOpmStore((s) => s.fijarLinealidadSeleccionada);
   const editarAliasEntidad = useOpmStore((s) => s.editarAliasEntidad);
   const editarUnidadEntidad = useOpmStore((s) => s.editarUnidadEntidad);
   const editarDescripcionEntidad = useOpmStore((s) => s.editarDescripcionEntidad);
@@ -43,6 +44,7 @@ export function useZustandEntityInspectorSemanticsPort(): EntityInspectorSemanti
     renombrar,
     fijarEsencia,
     fijarAfiliacion,
+    fijarLinealidad,
     editarAliasEntidad,
     editarUnidadEntidad,
     editarDescripcionEntidad,

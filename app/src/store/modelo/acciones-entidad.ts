@@ -7,6 +7,7 @@ import {
   asignarValorAtributo,
   cambiarAfiliacion,
   cambiarEsencia,
+  cambiarLinealidad,
   cambiarTipoValorAtributo,
   configurarSimulacionAtributo,
   crearAtributoEnObjeto,
@@ -311,6 +312,13 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       const { modelo, seleccionId } = get();
       if (!seleccionId) return;
       const resultado = cambiarAfiliacion(modelo, seleccionId, afiliacion);
+      if (resultado.ok) commitModelo(set, modelo, resultado.value, { mensaje: null });
+    },
+
+    fijarLinealidadSeleccionada(lineal) {
+      const { modelo, seleccionId } = get();
+      if (!seleccionId) return;
+      const resultado = cambiarLinealidad(modelo, seleccionId, lineal);
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { mensaje: null });
     },
 

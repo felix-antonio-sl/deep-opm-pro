@@ -13,6 +13,7 @@ export interface EntityInspectorSemanticsPort {
   renombrar: OpmStore["renombrarSeleccionada"];
   fijarEsencia: OpmStore["fijarEsenciaSeleccionada"];
   fijarAfiliacion: OpmStore["fijarAfiliacionSeleccionada"];
+  fijarLinealidad: OpmStore["fijarLinealidadSeleccionada"];
   editarAliasEntidad: OpmStore["editarAliasEntidad"];
   editarUnidadEntidad: OpmStore["editarUnidadEntidad"];
   editarDescripcionEntidad: OpmStore["editarDescripcionEntidad"];

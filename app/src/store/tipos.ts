@@ -467,6 +467,7 @@ export interface OpmStore {
 	  configurarSimulacionAtributoSeleccionado: (parametros: ParametrosSimulacionEntidad | undefined) => void;
 	  fijarEsenciaSeleccionada: (esencia: Esencia) => void;
   fijarAfiliacionSeleccionada: (afiliacion: Afiliacion) => void;
+  fijarLinealidadSeleccionada: (lineal: boolean) => void;
   redimensionarSeleccionada: (width: number, height: number) => void;
   redimensionarAparienciaEnCanvas: (aparienciaId: Id, x: number, y: number, width: number, height: number) => void;
   redimensionarEstadoEnCanvas: (estadoId: Id, width: number, height: number) => void;
