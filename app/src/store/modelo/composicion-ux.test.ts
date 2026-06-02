@@ -80,6 +80,31 @@ describe("componerConModeloGuardado — UX del Piso 1", () => {
     expect(exportarModelo(store.getState().modelo)).toBe(antes);
     expect(store.getState().mensaje).toBe("Modelo local no encontrado");
   });
+
+  test("advierte cuando la composición crea un conflicto de recurso lineal", () => {
+    // Objeto lineal "Bateria" consumido en A y en B; al fusionarlo quedan DOS
+    // consumidores del mismo recurso lineal -> estado inválido. La capacidad
+    // verificarLinealidad existía pero no se reflejaba en la UX (fusión silenciosa).
+    let a = crearModelo("Lineal A");
+    a = must(crearObjeto(a, a.opdRaizId, { x: 20, y: 80 }, "Bateria"));
+    const objA = entidadId(a, "Bateria");
+    a = { ...a, entidades: { ...a.entidades, [objA]: { ...a.entidades[objA]!, lineal: true } } };
+    a = must(crearProceso(a, a.opdRaizId, { x: 220, y: 80 }, "Motor A"));
+    a = must(crearEnlace(a, a.opdRaizId, objA, entidadId(a, "Motor A"), "consumo"));
+
+    let b = crearModelo("Lineal B");
+    b = must(crearObjeto(b, b.opdRaizId, { x: 20, y: 80 }, "Bateria"));
+    const objB = entidadId(b, "Bateria");
+    b = { ...b, entidades: { ...b.entidades, [objB]: { ...b.entidades[objB]!, lineal: true } } };
+    b = must(crearProceso(b, b.opdRaizId, { x: 220, y: 80 }, "Motor B"));
+    b = must(crearEnlace(b, b.opdRaizId, objB, entidadId(b, "Motor B"), "consumo"));
+
+    store.getState().importarJson(exportarModelo(a));
+    must(guardarModeloLocal({ id: "lineal-b", nombre: "Lineal B", json: exportarModelo(b) }));
+    store.getState().componerConModeloGuardado({ modeloId: "lineal-b", compartidas: { [objB]: objA } });
+
+    expect(store.getState().mensaje).toContain("linealidad");
+  });
 });
 
 function storageFake(): Storage {

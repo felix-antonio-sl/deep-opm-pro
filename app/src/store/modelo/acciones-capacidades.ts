@@ -1,5 +1,5 @@
 import { abanicoDeEnlace } from "../../modelo/abanicos";
-import { componerModelos } from "../../modelo/composicion";
+import { componerModelos, verificarLinealidad } from "../../modelo/composicion";
 import { resolverDecisionAbanico, resolverDecisionEnlace } from "../../modelo/decision";
 import {
   actualizarMaterializacionSubmodelo,
@@ -220,6 +220,13 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         return;
       }
       const totalCompartidas = Object.keys(input.compartidas ?? {}).length;
+      // Confianza calibrada: advertir si la fusión creó un conflicto de recurso
+      // lineal (objeto lineal con múltiples consumidores). No bloquea —es undoable—
+      // pero no se fusiona a un estado inválido en silencio.
+      const conflictosLineal = verificarLinealidad(resultado.value).filter((o) => o.severidad === "error-linealidad");
+      const avisoLineal = conflictosLineal.length > 0
+        ? ` · ⚠ ${conflictosLineal.length} conflicto${conflictosLineal.length === 1 ? "" : "s"} de linealidad`
+        : "";
       commitModelo(set, modelo, resultado.value, {
         opdActivoId: modelo.opdRaizId,
         seleccionId: null,
@@ -229,7 +236,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         estadoSeleccionId: null,
         modoEnlace: null,
         dialogoComposicionAbierto: false,
-        mensaje: `Modelo compuesto con "${hidratado.value.nombre}" (${totalCompartidas} compartida${totalCompartidas === 1 ? "" : "s"})`,
+        mensaje: `Modelo compuesto con "${hidratado.value.nombre}" (${totalCompartidas} compartida${totalCompartidas === 1 ? "" : "s"})${avisoLineal}`,
       });
     },
 
