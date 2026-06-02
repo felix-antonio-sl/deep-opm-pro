@@ -42,15 +42,32 @@ el halo de selección del canvas YA es el resaltado.
 
 ---
 
-## Capacidad 2 — Equivalencia (F2) · declarar y verificar realizaciones alternativas
+## Capacidad 2 — Equivalencia (F2)  ✅ HECHA (commit 14af2d2)
 
-**Kernel listo:** `modelo/equivalencia::verificarEquivalencia(modelo, {padreId, opdA, opdB})` (firma de frontera; devuelve `{equivalente, diferencias?}`).
+**Replanteada por reachability (Ψ).** El plan original ("comparar realizaciones
+hermanas en un diálogo") NO era reachable: opforja no permite autorear dos
+descomposiciones de un mismo proceso → el diálogo no tendría qué comparar. La
+aplicación reachable del MISMO kernel es la **ley in-zoom ↔ out-zoom**: la
+descomposición de un proceso debe ser frontera-equivalente al proceso abstracto.
+Esto existe para todo proceso descompuesto y detecta errores reales de modelado.
 
-**Superficie (op-forja):** dos OPDs hermanos del mismo padre se comparan como realizaciones alternativas.
-- Comando Cmd+K "Comparar realizaciones del proceso…" (selección = proceso descompuesto con ≥2 hijos) → abre `DialogoEquivalencia` que lista los OPD hijos, deja elegir A y B, y muestra el veredicto (`equivalente` / lista de `diferencias`).
-- Resultado al `PanelMetodologia` como aviso si NO equivalentes (reusar el patrón de aviso navegable).
+**Verificación empírica (en vez de asumir):** `descomponerProceso` siembra los
+enlaces de contorno → el inzoom recién creado es coherente → cero falsos positivos.
 
-**Cableado:** igual que linealidad/ontología (comando-con-diálogo: `abrirDialogoEquivalencia` en acciones-capacidades + `DialogoEquivalencia.tsx` montado en AppShell + `verificarEquivalencia` invocado al elegir A/B). Tests: unit del viewmodel + e2e del diálogo. Líneas rojas: patrón `Dialogo` existente (testid propio).
+**Lo implementado:**
+- `equivalencia/preservacion.ts::observarPreservacionFrontera(modelo)`: por proceso
+  descompuesto, `verificarEquivalencia(opdPadre, opdHijo)`; devuelve solo las
+  incoherentes (`{procesoId, opdAbstractoId, opdDescomposicionId, diferencias}`).
+- Checker `DESCOMPOSICION_NO_PRESERVA_FRONTERA` (navegable, severidad `mejora`) en
+  `PanelMetodologia` — pasivo, surge solo si el modelador rompe la frontera del hijo.
+- Acción contextual `verificar-coherencia-descomposicion` (proceso con inzoom) →
+  toast con veredicto; menú contextual + Cmd+K, grupo `razonamiento`.
+- TDD: 9 tests (helper, checker, acción de store, visibilidad, dispatch).
+- Gate: 1882 unit pass, typecheck limpio, design:governance OK.
+
+**Nota:** "realizaciones alternativas" (autoría de variantes + diálogo comparador)
+queda como épica futura aparte; requiere un cambio de modelo de datos (lista de
+realizaciones por proceso), no es "UX ad-hoc" de un kernel ya hecho.
 
 ---
 
