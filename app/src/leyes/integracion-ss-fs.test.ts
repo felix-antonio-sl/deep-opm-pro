@@ -7,7 +7,13 @@ import {
 } from "../modelo/simulacion/integracionHechos";
 import { hechosDe } from "../modelo/hechos";
 import { derivar } from "../modelo/razonamiento";
-import type { Modelo } from "../modelo/tipos";
+import { componerModelos } from "../modelo/composicion";
+import type { Modelo, Resultado } from "../modelo/tipos";
+
+function must<T>(r: Resultado<T>): T {
+  if (!r.ok) throw new Error(r.error);
+  return r.value;
+}
 
 /**
  * LEYES DE INTEGRACIÓN Ss↔Fs — la simulación (anamorfismo) y el cimiento de
@@ -132,5 +138,44 @@ describe("integración Ss↔Fs (anamorfismo/catamorfismo sobre F0)", () => {
     const { modelo, fin } = corrida();
     expect(entidadesVisitadas(fin).has("Sal")).toBe(false);
     expect(derivar(modelo, { tipo: "afectan-a", entidadId: "Sal" }).length).toBe(0);
+  });
+});
+
+/** Modelo B simulable mínimo: un proceso «Hornear» en el OPD raíz. */
+function modeloHornear(): Modelo {
+  return {
+    id: "b",
+    nombre: "b",
+    opdRaizId: "raiz",
+    nextSeq: 100,
+    entidades: {
+      Hornear: { id: "Hornear", tipo: "proceso", nombre: "Hornear", esencia: "informacional", afiliacion: "sistemica" },
+    },
+    estados: {},
+    enlaces: {},
+    opds: {
+      raiz: {
+        id: "raiz",
+        nombre: "SD",
+        padreId: null,
+        apariencias: { apHor: { id: "apHor", entidadId: "Hornear", opdId: "raiz", x: 0, y: 0, width: 100, height: 50 } },
+        enlaces: {},
+      },
+    },
+  };
+}
+
+describe("integración F1↔S (la composición preserva la simulabilidad)", () => {
+  test("LEY F1↔S: simular(A∘B) ejerce los procesos de A Y de B (componer no pierde dinámica)", () => {
+    const a = modeloCocinarHuevo(); // proceso «Cocinar»
+    const b = modeloHornear(); // proceso «Hornear»
+    const compuesto = must(componerModelos(a, b, {}));
+    const fin = desplegar(compuesto, iniciarSimulacion(compuesto, compuesto.opdRaizId));
+    // Por nombre (los ids de B se namespacearon): ambos procesos fueron ejercidos.
+    const nombresVisitados = new Set(
+      [...entidadesVisitadas(fin)].map((id) => compuesto.entidades[id]?.nombre),
+    );
+    expect(nombresVisitados.has("Cocinar")).toBe(true); // de A
+    expect(nombresVisitados.has("Hornear")).toBe(true); // de B
   });
 });
