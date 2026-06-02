@@ -28,6 +28,7 @@ const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   PROCESO_NO_TRANSFORMA: "mejora",
   PROCESO_SISTEMICO_DESCONECTADO: "mejora",
   RECURSO_LINEAL_MULTIPLES_CONSUMIDORES: "mejora",
+  DESCOMPOSICION_NO_PRESERVA_FRONTERA: "mejora",
 };
 
 export function clasificarSeveridad(aviso: Pick<AvisoMetodologico, "codigo">): SeveridadIssue {

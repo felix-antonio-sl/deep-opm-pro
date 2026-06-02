@@ -24,6 +24,7 @@ export interface ContextualActionExecutionSnapshot {
   traerEnlacesEntreSeleccionadas: () => void;
   ocultarAparienciaSeleccionada: () => void;
   consultarRazonamiento: (consulta: Consulta) => void;
+  verificarCoherenciaDescomposicion: () => void;
 }
 
 export interface ContextualActionExecutionPort {

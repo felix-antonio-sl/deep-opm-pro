@@ -170,4 +170,24 @@ describe("accionesContextualesEntidad", () => {
       expect(menu).not.toContain("razonar-impacto-eliminar");
     });
   });
+
+  describe("verificación de coherencia de descomposición (Piso 2)", () => {
+    const procesoDescompuesto: Entidad = { ...proceso, refinamientos: { descomposicion: { opdId: "opd-z" } } };
+
+    test("proceso descompuesto: ofrece verificar coherencia (menú + paleta)", () => {
+      const acciones = accionesContextualesEntidad({ entidad: procesoDescompuesto, inspectorAbierto: false, multi: false });
+      expect(ids(accionesParaSuperficie(acciones, "menu-contextual"))).toContain("verificar-coherencia-descomposicion");
+      expect(ids(accionesParaSuperficie(acciones, "command-palette"))).toContain("verificar-coherencia-descomposicion");
+    });
+
+    test("proceso sin descomposición: no la ofrece", () => {
+      const acciones = accionesContextualesEntidad({ entidad: proceso, inspectorAbierto: false, multi: false });
+      expect(ids(accionesParaSuperficie(acciones, "menu-contextual"))).not.toContain("verificar-coherencia-descomposicion");
+    });
+
+    test("no se ofrece en la barra flotante", () => {
+      const acciones = accionesContextualesEntidad({ entidad: procesoDescompuesto, inspectorAbierto: false, multi: false });
+      expect(ids(accionesParaSuperficie(acciones, "barra-flotante"))).not.toContain("verificar-coherencia-descomposicion");
+    });
+  });
 });

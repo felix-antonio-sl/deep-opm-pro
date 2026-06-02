@@ -25,6 +25,7 @@ export type AccionContextualId =
   | "razonar-afectan-a"
   | "razonar-requerido-por"
   | "razonar-impacto-eliminar"
+  | "verificar-coherencia-descomposicion"
   | "ocultar-apariencia";
 
 export interface AccionContextual {
@@ -199,6 +200,13 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       visible: esCosa,
       superficies: ["menu-contextual", "command-palette"],
       aliasBusqueda: ["razonar", "impacto", "eliminar", "derivar", "dependencias"],
+    }),
+    // Piso 2 (Equivalencia): la descomposición debe ser frontera-equivalente al
+    // proceso abstracto (ley in-zoom ↔ out-zoom). Solo para procesos con inzoom.
+    accion("verificar-coherencia-descomposicion", "Verificar coherencia de la descomposición", "accion-verificar-coherencia-descomposicion", "navegacion", ctx.entidad?.tipo === "proceso" && tieneDescomposicion, {
+      visible: ctx.entidad?.tipo === "proceso" && tieneDescomposicion,
+      superficies: ["menu-contextual", "command-palette"],
+      aliasBusqueda: ["equivalencia", "coherencia", "frontera", "inzoom", "preserva", "descomposicion"],
     }),
     accion("ocultar-apariencia", "Ocultar de este OPD", "accion-ocultar-apariencia", "peligro", esCosa, {
       visible: esCosa,

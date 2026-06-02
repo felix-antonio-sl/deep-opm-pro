@@ -17,6 +17,8 @@ import {
 } from "../../modelo/operaciones";
 import { posicionLibre, solapa } from "../../modelo/layout";
 import { derivar } from "../../modelo/razonamiento";
+import { observarPreservacionFrontera } from "../../modelo/equivalencia";
+import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import type { Id, Modelo, Resultado, TargetSatisfaccionRequisito } from "../../modelo/tipos";
 import { cargarModeloLocal } from "../../persistencia/local";
 import { hidratarModelo } from "../../serializacion/json";
@@ -423,6 +425,23 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
           ? `${ids.length} proceso(s) afectan a "${nombre(consulta.entidadId)}"`
           : `"${nombre(consulta.procesoId)}" requiere ${ids.length} cosa(s)`;
       set({ ...estadoSeleccionDesdeIds(modelo, ids, "simple"), mensaje });
+    },
+
+    verificarCoherenciaDescomposicion() {
+      const { modelo, seleccionId } = get();
+      const entidad = seleccionId ? modelo.entidades[seleccionId] : null;
+      if (!entidad || entidad.tipo !== "proceso" || !obtenerRefinamiento(entidad, "descomposicion")) {
+        set({ mensaje: "Selecciona un proceso descompuesto para verificar la coherencia de su frontera" });
+        return;
+      }
+      // Equivalencia funcional (F2): la descomposición debe ser frontera-equivalente
+      // al proceso abstracto. observarPreservacionFrontera solo lista las incoherentes.
+      const incoherencia = observarPreservacionFrontera(modelo).find((obs) => obs.procesoId === entidad.id);
+      if (!incoherencia) {
+        set({ mensaje: `✓ La descomposición de "${entidad.nombre}" preserva su frontera` });
+        return;
+      }
+      set({ mensaje: `La descomposición de "${entidad.nombre}" NO preserva la frontera: difiere en ${incoherencia.diferencias.join(", ")}` });
     },
   };
 }

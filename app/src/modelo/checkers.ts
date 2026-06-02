@@ -32,6 +32,7 @@
 import { naturalezaDeEnlace } from "./constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad } from "./extremos";
 import { verificarLinealidad } from "./composicion";
+import { observarPreservacionFrontera } from "./equivalencia";
 import { estadoTieneNombreCanonico } from "./nombresCanonicos";
 import { obtenerRefinamiento, refinamientosDe, tieneRefinamiento } from "./refinamientos";
 import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, TipoEnlace, TipoRefinamiento } from "./tipos";
@@ -65,7 +66,34 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkProcesoTransforma(modelo),
     ...checkProcesoSistemicoConectado(modelo),
     ...checkRecursoLinealMultiplesConsumidores(modelo),
+    ...checkDescomposicionPreservaFrontera(modelo),
   ];
+}
+
+/**
+ * Preservación de frontera (capa categorial F2): la descomposición de un proceso
+ * debe ser FRONTERA-EQUIVALENTE al proceso abstracto (ley in-zoom ↔ out-zoom).
+ * Si el OPD hijo deja de ejercer un rol de contorno que el proceso sí ejerce
+ * (o lo introduce de más), el inzoom no realiza fielmente el proceso. Reusa
+ * `observarPreservacionFrontera` del kernel de equivalencia.
+ */
+export function checkDescomposicionPreservaFrontera(modelo: Modelo): AvisoMetodologico[] {
+  return observarPreservacionFrontera(modelo).map((obs) => {
+    const entidad = modelo.entidades[obs.procesoId];
+    return {
+      codigo: "DESCOMPOSICION_NO_PRESERVA_FRONTERA",
+      severidad: "advertencia",
+      entidadId: obs.procesoId,
+      navegarA: { tipo: "entidad", id: obs.procesoId },
+      mensaje: `La descomposición de "${entidad?.nombre ?? obs.procesoId}" no preserva su frontera: difiere en ${obs.diferencias.join(", ")}. El OPD hijo debe ejercer sobre el contorno los mismos roles (consumo/resultado/efecto…) que el proceso abstracto.`,
+      rationale: "La realización in-zoom de un proceso debe ser frontera-equivalente a su vista abstracta (out-zoom).",
+      ssotRef: "metodologia-opm-es.md §7.1 (consistencia in-zoom/out-zoom) / capa categorial F2",
+      accionesSugeridas: [
+        "Recolecta o distribuye los enlaces de contorno faltantes en el OPD hijo (clic derecho sobre el enlace externo).",
+        "O ajusta los enlaces del proceso abstracto para que coincidan con su descomposición.",
+      ],
+    } satisfies AvisoMetodologico;
+  });
 }
 
 /**

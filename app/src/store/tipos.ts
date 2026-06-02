@@ -581,6 +581,8 @@ export interface OpmStore {
   resolverDecisionSeleccionada: () => void;
   /** Piso 3 (Razonamiento): deriva un subgrafo y lo proyecta a selección + toast. */
   consultarRazonamiento: (consulta: Consulta) => void;
+  /** Piso 2 (Equivalencia): ¿la descomposición seleccionada preserva su frontera? Toast. */
+  verificarCoherenciaDescomposicion: () => void;
   volverEnlaceExternoDerivadoAAutomatico: (aparienciaEnlaceId: Id) => void;
   alternarOperadorAbanicoSeleccionado: (operador: OperadorAbanico) => void;
   crearAbanicoDesdeEnlaceSeleccionado: (lado: "origen" | "destino", operador?: OperadorAbanico) => void;

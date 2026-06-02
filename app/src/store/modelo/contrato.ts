@@ -223,6 +223,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "distribuirEnlaceContornoSeleccionado",
     "resolverDecisionSeleccionada",
     "consultarRazonamiento",
+    "verificarCoherenciaDescomposicion",
     "volverEnlaceExternoDerivadoAAutomatico",
     "alternarOperadorAbanicoSeleccionado",
     "crearAbanicoDesdeEnlaceSeleccionado",

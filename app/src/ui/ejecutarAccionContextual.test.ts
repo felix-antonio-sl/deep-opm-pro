@@ -76,6 +76,28 @@ describe("ejecutarAccionContextualEntidad", () => {
     });
     expect(store.getState().mensaje).toMatch(/afectar[íi]a/i);
   });
+
+  test("verificar-coherencia-descomposicion (proceso descompuesto) informa por toast", () => {
+    const { modelo, entidadId } = modeloConDescomposicion();
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().seleccionarEntidad(entidadId);
+
+    expect(ejecutarAccionContextualEntidad("verificar-coherencia-descomposicion")).toEqual({
+      actionId: "verificar-coherencia-descomposicion",
+      kind: "normal",
+    });
+    expect(store.getState().mensaje).toContain("frontera");
+  });
+
+  test("verificar-coherencia-descomposicion es exceptional sin descomposición", () => {
+    const modelo = crearModelo("Sin descomposicion");
+    store.getState().importarJson(exportarModelo(modelo));
+
+    expect(ejecutarAccionContextualEntidad("verificar-coherencia-descomposicion")).toMatchObject({
+      actionId: "verificar-coherencia-descomposicion",
+      kind: "exceptional",
+    });
+  });
 });
 
 function modeloDocEditar(): { modelo: Modelo; docId: Id; editarId: Id } {
