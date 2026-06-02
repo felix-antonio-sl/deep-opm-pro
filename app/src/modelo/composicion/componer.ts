@@ -79,6 +79,7 @@ function remapContextoRefinamiento(
   contexto: ContextoRefinamientoApariencia,
   entidadMap: Map<Id, Id>,
   aparienciaMap: Map<Id, Id>,
+  enlaceMap: Map<Id, Id>,
 ): ContextoRefinamientoApariencia {
   return {
     ...contexto,
@@ -86,8 +87,10 @@ function remapContextoRefinamiento(
     ...(contexto.contenedorAparienciaId
       ? { contenedorAparienciaId: aparienciaMap.get(contexto.contenedorAparienciaId) ?? contexto.contenedorAparienciaId }
       : {}),
+    // Los enlaces padre heredados se renombran con el resto de enlaces de B; sin
+    // este remapeo quedaban refs colgantes (ningún validador las atrapa).
     ...(contexto.enlacesPadreIds
-      ? { enlacesPadreIds: contexto.enlacesPadreIds.map((id) => id) }
+      ? { enlacesPadreIds: contexto.enlacesPadreIds.map((id) => enlaceMap.get(id) ?? id) }
       : {}),
   };
 }
@@ -134,6 +137,7 @@ function remapAparienciaB(
   entidadMap: Map<Id, Id>,
   estadoMap: Map<Id, Id>,
   aparienciaMap: Map<Id, Id>,
+  enlaceMap: Map<Id, Id>,
 ): Apariencia {
   const { parteExtraidaDe, contextoRefinamiento, estadosSuprimidos, ...base } = deepClone(apariencia);
   return {
@@ -150,7 +154,7 @@ function remapAparienciaB(
         }
       : {}),
     ...(contextoRefinamiento
-      ? { contextoRefinamiento: remapContextoRefinamiento(contextoRefinamiento, entidadMap, aparienciaMap) }
+      ? { contextoRefinamiento: remapContextoRefinamiento(contextoRefinamiento, entidadMap, aparienciaMap, enlaceMap) }
       : {}),
     ...(estadosSuprimidos ? { estadosSuprimidos: estadosSuprimidos.map((eId) => estadoMap.get(eId) ?? eId) } : {}),
   };
@@ -232,7 +236,7 @@ export function componerModelos(a: Modelo, b: Modelo, compartidas: Compartidas):
     for (const ap of Object.values(opd.apariencias)) {
       if (!entidadMap.has(ap.entidadId)) continue;
       const apMapped = aparienciaMap.get(ap.id)!;
-      apariencias[apMapped] = remapAparienciaB(ap, apMapped, destinoOpdId, entidadMap, estadoMap, aparienciaMap);
+      apariencias[apMapped] = remapAparienciaB(ap, apMapped, destinoOpdId, entidadMap, estadoMap, aparienciaMap, enlaceMap);
     }
     const aparienciasEnlace: Record<Id, AparienciaEnlace> = {};
     for (const ae of Object.values(opd.enlaces)) {
@@ -243,9 +247,18 @@ export function componerModelos(a: Modelo, b: Modelo, compartidas: Compartidas):
     }
     if (opdId === b.opdRaizId) {
       const rootA = opds[a.opdRaizId]!;
+      // C1: una entidad COMPARTIDA ya tiene apariencia en el raíz de A; la de B
+      // se remapeó a su mismo entidadId. Fusionarla crearía un doble visual.
+      // Deduplicar por entidad: conservar la apariencia de A, descartar la de B.
+      const entidadesEnRaizA = new Set(Object.values(rootA.apariencias).map((ap) => ap.entidadId));
+      const aparienciasSinDuplicar: Record<Id, Apariencia> = {};
+      for (const [apId, ap] of Object.entries(apariencias)) {
+        if (entidadesEnRaizA.has(ap.entidadId)) continue;
+        aparienciasSinDuplicar[apId] = ap;
+      }
       opds[a.opdRaizId] = {
         ...rootA,
-        apariencias: { ...rootA.apariencias, ...apariencias },
+        apariencias: { ...rootA.apariencias, ...aparienciasSinDuplicar },
         enlaces: { ...rootA.enlaces, ...aparienciasEnlace },
       };
     } else {

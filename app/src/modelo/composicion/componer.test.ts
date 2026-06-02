@@ -42,6 +42,68 @@ describe("composicion/componer", () => {
       (e) => e.nombre === "Comun"
     );
     expect(comunes).toHaveLength(1);
+    // C1: la entidad compartida tampoco se duplica en las apariencias del OPD
+    // raíz. No basta deduplicar `entidades`: el merge del raíz creaba DOS
+    // apariencias del objeto compartido (la de A + la de B remapeada a idComunA).
+    const root = compuesto.opds[compuesto.opdRaizId]!;
+    const aparicionesComun = Object.values(root.apariencias).filter(
+      (ap) => ap.entidadId === idComunA
+    );
+    expect(aparicionesComun).toHaveLength(1);
+  });
+
+  test("law-composicion-sin-refs-colgantes: enlacesPadreIds del contexto de refinamiento se remapean", () => {
+    const a = unObjeto("A");
+    // B trae una apariencia cuyo contexto de refinamiento HEREDA un enlace padre
+    // (`enlacesPadreIds`). Al namespacear B, ese id debe seguir al enlace renombrado.
+    const b: Modelo = {
+      id: "b",
+      nombre: "b",
+      opdRaizId: "rb",
+      nextSeq: 50,
+      entidades: {
+        pb: { id: "pb", tipo: "proceso", nombre: "Pb", esencia: "informacional", afiliacion: "sistemica" },
+        ob: { id: "ob", tipo: "objeto", nombre: "Ob", esencia: "informacional", afiliacion: "sistemica" },
+      },
+      estados: {},
+      enlaces: {
+        eb: { id: "eb", tipo: "resultado", origenId: { kind: "entidad", id: "pb" }, destinoId: { kind: "entidad", id: "ob" }, etiqueta: "eb" },
+      },
+      opds: {
+        rb: {
+          id: "rb",
+          nombre: "SDb",
+          padreId: null,
+          apariencias: {
+            apb: {
+              id: "apb",
+              entidadId: "pb",
+              opdId: "rb",
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 50,
+              contextoRefinamiento: { tipo: "descomposicion", refinableEntidadId: "pb", rol: "contorno", enlacesPadreIds: ["eb"] },
+            },
+          },
+          enlaces: {
+            aeb: { id: "aeb", enlaceId: "eb", opdId: "rb", vertices: [] },
+          },
+        },
+      },
+    };
+    const compuesto = must(componerModelos(a, b, {}));
+    let ctx: { enlacesPadreIds?: string[] } | undefined;
+    for (const opd of Object.values(compuesto.opds)) {
+      for (const ap of Object.values(opd.apariencias)) {
+        if (ap.contextoRefinamiento?.enlacesPadreIds) ctx = ap.contextoRefinamiento;
+      }
+    }
+    expect(ctx).toBeDefined();
+    // cada enlacePadreId remapeado debe existir como enlace del compuesto (no colgar).
+    for (const id of ctx!.enlacesPadreIds!) {
+      expect(compuesto.enlaces[id]).toBeDefined();
+    }
   });
 
   test("no hay colision de IDs tras componer (todos los ids son unicos)", () => {
