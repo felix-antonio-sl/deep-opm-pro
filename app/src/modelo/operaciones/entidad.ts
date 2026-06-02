@@ -277,6 +277,19 @@ export function cambiarAfiliacion(modelo: Modelo, entidadId: Id, afiliacion: Afi
   });
 }
 
+/** Marca una entidad como recurso lineal (se consume, no se copia) o copiable. Capa categorial F1. */
+export function cambiarLinealidad(modelo: Modelo, entidadId: Id, lineal: boolean): Resultado<Modelo> {
+  const entidad = modelo.entidades[entidadId];
+  if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
+  const siguiente = { ...entidad };
+  if (lineal) siguiente.lineal = true;
+  else delete siguiente.lineal;
+  return ok({
+    ...modelo,
+    entidades: { ...modelo.entidades, [entidadId]: siguiente },
+  });
+}
+
 function crearValorSlotInicial(tipo: TipoValorSlot, valor?: ValorConcreto): Resultado<ValorSlot> {
   const base: ValorSlot = { tipo, placeholder: placeholderValorSlot() };
   if (valor === undefined) return ok(base);

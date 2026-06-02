@@ -31,6 +31,7 @@
 
 import { naturalezaDeEnlace } from "./constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad } from "./extremos";
+import { verificarLinealidad } from "./composicion";
 import { estadoTieneNombreCanonico } from "./nombresCanonicos";
 import { obtenerRefinamiento, refinamientosDe, tieneRefinamiento } from "./refinamientos";
 import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, TipoEnlace, TipoRefinamiento } from "./tipos";
@@ -63,7 +64,33 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkUnfoldContenido(modelo),
     ...checkProcesoTransforma(modelo),
     ...checkProcesoSistemicoConectado(modelo),
+    ...checkRecursoLinealMultiplesConsumidores(modelo),
   ];
+}
+
+/**
+ * Recurso lineal (capa categorial F1) consumido por más de un proceso: un
+ * objeto `lineal` se consume y no se copia, así que su consumo es exclusivo.
+ * Reusa `verificarLinealidad` del kernel de composición y lo eleva a aviso
+ * metodológico navegable.
+ */
+export function checkRecursoLinealMultiplesConsumidores(modelo: Modelo): AvisoMetodologico[] {
+  return verificarLinealidad(modelo).map((obs) => {
+    const entidad = modelo.entidades[obs.entidadId];
+    return {
+      codigo: "RECURSO_LINEAL_MULTIPLES_CONSUMIDORES",
+      severidad: "advertencia",
+      entidadId: obs.entidadId,
+      navegarA: { tipo: "entidad", id: obs.entidadId },
+      mensaje: `El recurso lineal "${entidad?.nombre ?? obs.entidadId}" es consumido por ${obs.procesos.length} procesos. Un recurso lineal se consume (no se reutiliza): si varios procesos lo necesitan, replícalo o reclasifícalo como no lineal.`,
+      rationale: "Un objeto lineal no se copia: su consumo es exclusivo de un proceso.",
+      ssotRef: "opm-iso-19450-es §recursos lineales (capa categorial F1)",
+      accionesSugeridas: [
+        "Si varios procesos lo necesitan en paralelo, quita la marca 'lineal' (recurso copiable).",
+        "Si es exclusivamente lineal, rediseña para que un solo proceso lo consuma.",
+      ],
+    } satisfies AvisoMetodologico;
+  });
 }
 
 export function checkEstadoNombreCanonico(modelo: Modelo): AvisoMetodologico[] {

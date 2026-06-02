@@ -29,6 +29,7 @@ export {
   renombrarEntidad,
   cambiarEsencia,
   cambiarAfiliacion,
+  cambiarLinealidad,
   validarNombreEntidad,
   crearAtributoEnObjeto,
   asignarValorAtributo,
