@@ -26,7 +26,7 @@ Criterio rector (de la sesión Fs/Ss): **un frente vale si produce una garantía
 - **URN:** `urn:fxsl:kb:icas-adjunciones` (unit/counit, free/forgetful, Σ⊣Δ⊣Π).
 - **Garantía implementada:** `firmaFronteraEntidad` permite verificar la **unit** η: `out-zoom ∘ in-zoom` preserva exactamente la frontera del proceso ("módulo detalle añadido"), más la idempotencia de in-zoom. La cara estática (counit en estado: padre ≅ hijo) ya la cubría `observarPreservacionFrontera`. Ley en `app/src/leyes/refinamiento-adjuncion.test.ts` con control de no-tautología (`quitarEnlaceFronteraDe`).
 - **Puente clave:** la ley `F-V1↔F-D2` demuestra que la frontera que la **bisimulación** (F-D2) ejerce es la que la adjunción **preserva** — convierte la hipótesis sobre la que descansaba F-D2 en **teorema verificado**.
-- **Estado:** cerrado como ley operativa. No afirma las identidades triangulares completas (lectura más débil que cumple); el round-trip para `despliegue` queda como extensión.
+- **Estado:** cerrado y **profundizado (2026-06-03)**. Se añadieron: (a) el round-trip para `despliegue` (unfold preserva la frontera externa del objeto; distinción verificada: su fibración es parte-todo, sin lift cartesiano de frontera); (b) las **identidades triangulares** como observable de que `T = out-zoom ∘ in-zoom` es operador clausura (`T²=T` sobre la frontera) y el refinamiento libre es reproducible. No se afirma la naturalidad plena de η/ε (lectura más débil que cumple).
 
 ### F-V2 · Árbol de refinamiento como fibración de Grothendieck  **[cerrado inicial · 2026-06-03]**
 - **Pregunta:** ¿el árbol de OPDs es una fibración (cada OPD fibra sobre su padre; navegar el árbol = cambio de base)?
@@ -77,13 +77,13 @@ Criterio rector (de la sesión Fs/Ss): **un frente vale si produce una garantía
 - **Estado:** cerrado como ley operativa en `app/src/leyes/integracion-ss-fs.test.ts` con control de no-tautología; queda como base para F-D1/F-D3, no como deuda abierta.
 - **Nota:** la lectura adjunta del eje vertical sigue siendo hipótesis estructural útil; la ley no afirma todavía una adjunción completa in-zoom ⊣ out-zoom con unit/counit.
 
-### F-D3 · Enriquecimiento cuantitativo (Cost-categories)  **[cerrado inicial · 2026-06-03]**
+### F-D3 · Enriquecimiento cuantitativo (Cost-categories)  **[cerrado · Cost-category formal · 2026-06-03]**
 - **Pregunta:** ¿costos, duración, probabilidad y recursos como **enriquecimiento** de la categoría OPM (no como atributos sueltos)?
 - **URN:** `urn:fxsl:kb:icas-enriquecimiento` (Bool/Cost-categories, profunctors, QoS).
-- **Garantía implementada:** `resumirEnriquecimientoCuantitativo` reduce corridas a duración total/media/min/max y conteos de eventos temporales por tipo/enlace; la ley verifica que dos corridas se agregan como magnitudes enriquecidas de la traza.
-- **Estado:** cerrado como base cuantitativa inicial. Costos/recursos/probabilidades agregadas quedan como extensiones del mismo patrón, no como frente abierto sin ancla.
+- **Garantía implementada (dos capas):** (a) agregación estadística — `resumirEnriquecimientoCuantitativo` reduce corridas a duración total/media/min/max y conteos de eventos; (b) **Cost-category formal (2026-06-03)** — `simulacion/costoCategoria.ts` modela el costo como el monoide `(ℝ≥0,+,0)`: `costoDeCamino = foldMap(duración)` (el homomorfismo del monoide libre de pasos, `icas-adjunciones`), y `categoriaDeCosto` construye la categoría enriquecida en Cost vía cerradura (min,+) (Floyd-Warshall) con `X(x,x)=0`, desigualdad triangular y shortest-path. Ley en `leyes/enriquecimiento-cost.test.ts` con controles de no-tautología (suma ≠ máximo; el directo caro se corrige al rodeo barato).
+- **Estado:** cerrado de agregación a estructura. Ya NO es solo agregación — la composición de la categoría **es** la suma del monoide.
 - **Esfuerzo/riesgo:** medio / medio.
-- **Nota:** no afirma optimización ni QoS completa; fija el operador de resumen que permite crecer hacia ellas.
+- **Nota:** la lectura de QoS/optimización (caminos críticos, [0,1]-enriquecimiento de fiabilidad, profunctors de co-design) queda como extensión natural sobre la Cost-category ya instalada.
 
 ### F-D4 · Sistemas dinámicos abiertos / lentes  **[P3]**
 - **Pregunta:** ¿procesos como sistemas abiertos componibles por **lentes / polynomial functors** (entrada/salida que se enchufan)?
@@ -130,7 +130,7 @@ Criterio rector (de la sesión Fs/Ss): **un frente vale si produce una garantía
 
 1. **Sesión "identidad"** — F-H1 (Yoneda) para afinar composición/equivalencia si aparece una ley concreta.
 2. **Sesión "sistemas abiertos"** — F-D4 (lentes) solo si F1+Ss necesitan composición dinámica, no antes.
-3. ~~**Sesión "eje vertical 2"** — F-V1 + F-V2~~ **hecho (2026-06-03).** Extensiones abiertas: round-trip para `despliegue`, identidades triangulares completas, Cost-category real (F-D3).
+3. ~~**Sesión "eje vertical 2"** — F-V1 + F-V2~~ **hecho (2026-06-03)**, incluidas las extensiones: round-trip para `despliegue`, identidades triangulares (operador clausura) y Cost-category formal (F-D3). Extensiones menores restantes: otros modos de unfold, naturalidad plena de η/ε, QoS/optimización sobre la Cost-category.
 4. **Solo si emergen naturalmente:** F-H2 (2-categoría), F-H3 (pullbacks), F-M1/F-M2.
 
 **Antes de abrir cualquier frente, el test de admisión:** *¿esto da una garantía verificable por ley, o solo elegancia?* Si solo elegancia → no se abre.

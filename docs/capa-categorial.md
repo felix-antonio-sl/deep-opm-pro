@@ -66,6 +66,9 @@ Ss  simulacion/     anamorfismo (unfold): runner.ts = coalgebra + desplegar.
 | **F-V1 adjunción** | `out-zoom ∘ in-zoom` preserva exactamente la frontera del proceso (unit iso) + in-zoom idempotente | `leyes/refinamiento-adjuncion.test.ts` | `icas-adjunciones` |
 | **F-V2 fibración** | biyección {enlaces de frontera del padre} ↔ {derivados del hijo} = lift cartesiano (existencia + unicidad + cambio de base coherente) | `leyes/refinamiento-adjuncion.test.ts` | `icas-extension` |
 | **F-V1↔F-D2** | la frontera que la bisimulación ejerce es la que la adjunción preserva (puente: hipótesis → teorema) | `leyes/refinamiento-adjuncion.test.ts` | `icas-adjunciones` |
+| **F-V1 (despliegue)** | `out-zoom ∘ in-zoom(unfold)` preserva la frontera externa del objeto; la lectura cartesiana de frontera es vacía en unfold (su fibración es parte-todo) | `leyes/refinamiento-adjuncion.test.ts` | `icas-adjunciones` |
+| **F-V1-tri (triangular)** | el round-trip es operador clausura: `T²=T` sobre la frontera; re-refinar reproduce el mismo lift | `leyes/refinamiento-adjuncion.test.ts` | `icas-adjunciones` |
+| **F-D3 (Cost-category)** | el costo es monoide `(ℝ≥0,+,0)`: `costoDeCamino=foldMap(duración)`; categoría enriquecida en Cost con `X(x,x)=0`, triángulo y shortest-path (min,+) | `leyes/enriquecimiento-cost.test.ts` | `icas-enriquecimiento` |
 
 ## Lecciones metodológicas (lo que costó aprender — no repetir)
 
@@ -86,10 +89,11 @@ Ss  simulacion/     anamorfismo (unfold): runner.ts = coalgebra + desplegar.
 
 - **Bisimulación de frontera plena (F-D2): cerrada.** `verificarBisimulacionFrontera` (`leyes/integracion-ss-fs.test.ts`) compara la firma de frontera abstracta del padre con la ejercida por la traza del hijo, con control de no-tautología (`quitarDerivadoDeFrontera`). Lo que era "diseño-mayor pendiente" ya es ley.
 - **Eje vertical formalizado (F-V1/F-V2): cerrado inicial.** La bisimulación descansaba sobre una **hipótesis** —que la frontera del proceso es estable bajo refinamiento—. F-V1 (round-trip de la adjunción in-zoom ⊣ out-zoom preserva la frontera) y el puente F-V1↔F-D2 la convierten en **teorema verificado**. F-V2 garantiza que la proyección de frontera es un lift cartesiano único.
-- **Pendientes reales (honestidad Ψ):**
-  - F-V1 se prueba sobre `descomposicion`; el round-trip para `despliegue` (unfold de objeto con frontera externa) queda como extensión del mismo patrón, sin ley aún.
-  - No se afirman las **identidades triangulares completas** de la adjunción (unit/counit con coherencia), solo el observable iso-sobre-frontera. Igual que F-D2 no afirmó la adjunción completa: la lectura más débil que cumple (cat-thinking §9).
-  - F-D3 (enriquecimiento cuantitativo) es **agregación estadística**, no una Cost-category formal; el nombre promete más que lo entregado. Subirlo a hom-objeto en monoide ordenado queda abierto.
+- **Pendientes honestos: CERRADOS (2026-06-03).** Los tres se implementaron como leyes falsificables con control de no-tautología:
+  - **Round-trip de `despliegue`** — `out-zoom ∘ in-zoom(unfold)` preserva la frontera externa del objeto (`leyes/refinamiento-adjuncion.test.ts`). Distinción verificada: unfold NO proyecta frontera externa como derivados (su fibración es parte-todo), así que su lectura cartesiana de frontera es vacía — lo opuesto a `descomposicion`.
+  - **Identidades triangulares** — verificadas como el observable de que `T = out-zoom ∘ in-zoom` es un **operador clausura** (idempotente sobre la frontera, `icas-adjunciones §Galois`) y que el refinamiento libre es reproducible (re-refinar tras un round-trip da el mismo lift). NO se afirma la naturalidad plena de η/ε (lectura más débil que cumple, cat-thinking §9); se distingue lo formal de lo observable (rule 3).
+  - **F-D3 a Cost-category** — `simulacion/costoCategoria.ts` + `leyes/enriquecimiento-cost.test.ts`: el costo es el monoide `(ℝ≥0,+,0)` (`costoDeCamino = foldMap(duración)`, el homomorfismo del monoide libre de pasos de `icas-adjunciones`); `categoriaDeCosto` es la categoría enriquecida en Cost (cerradura (min,+), Floyd-Warshall) con `X(x,x)=0`, desigualdad triangular y shortest-path. Ya es estructura, no agregación. El resumen estadístico de `enriquecimiento.ts` se conserva como complemento.
+- **Extensiones abiertas (nuevas, menores):** round-trip de despliegue para los otros modos de unfold (`exhibicion/generalizacion/clasificacion`); naturalidad plena de la adjunción; QoS/optimización sobre la Cost-category (caminos críticos, profunctors de co-design).
 
 ## Referencias
 

@@ -5,6 +5,7 @@ import {
   crearObjeto,
   crearProceso,
   descomponerProceso,
+  desplegarObjeto,
 } from "../modelo/operaciones";
 import { quitarRefinamientoEntidad } from "../modelo/operaciones/refinamiento";
 import { extremoEntidad } from "../modelo/extremos";
@@ -35,6 +36,17 @@ function modeloEntradaProcesoSalida(): Modelo {
   modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 560, y: 120 }, "Salida"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(eid(modelo, "Entrada")), extremoEntidad(eid(modelo, "Procesar")), "consumo"));
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(eid(modelo, "Procesar")), extremoEntidad(eid(modelo, "Salida")), "resultado"));
+  return modelo;
+}
+
+/** Generar --resultado--> Lote --consumo--> Consumir (frontera externa no trivial del objeto Lote). */
+function modeloObjetoConFrontera(): Modelo {
+  let modelo = crearModelo("Eje vertical unfold");
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 40 }, "Generar"));
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Lote"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 520, y: 200 }, "Consumir"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(eid(modelo, "Generar")), extremoEntidad(eid(modelo, "Lote")), "resultado"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(eid(modelo, "Lote")), extremoEntidad(eid(modelo, "Consumir")), "consumo"));
   return modelo;
 }
 
@@ -199,5 +211,119 @@ describe("PUENTE F-V1 ↔ F-D2 — la bisimulación descansa sobre la adjunción
     const outZoom = must(quitarRefinamientoEntidad(inZoom.modelo, procesoId, "descomposicion"));
     const firmaRecuperada = firmaFronteraEntidad(outZoom, outZoom.opdRaizId, procesoId);
     expect(igualFirma(firmaRecuperada, firmaAbstracta)).toBe(true);
+  });
+});
+
+describe("LEY F-V1 (despliegue) — round-trip de unfold ⊣ fold preserva la frontera del objeto", () => {
+  // OPM: desplegar un objeto muestra su estructura parte-todo (agregacion/exhibicion/...), NO
+  // redistribuye sus enlaces externos. La adjunción del eje vertical aplica igual: el round-trip
+  // preserva la frontera EXTERNA del objeto, que vive en el padre y unfold no toca.
+
+  test("F-V1 unfold: out-zoom ∘ in-zoom(despliegue) preserva la frontera externa del objeto", () => {
+    const modelo = modeloObjetoConFrontera();
+    const objetoId = eid(modelo, "Lote");
+    const firmaAntes = firmaFronteraEntidad(modelo, modelo.opdRaizId, objetoId);
+    expect(firmaAntes.size).toBeGreaterThan(0); // resultado(Generar) + consumo(Consumir)
+
+    const inZoom = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId, "agregacion"));
+    const outZoom = must(quitarRefinamientoEntidad(inZoom.modelo, objetoId, "despliegue"));
+    const firmaDespues = firmaFronteraEntidad(outZoom, outZoom.opdRaizId, objetoId);
+
+    expect(igualFirma(firmaDespues, firmaAntes)).toBe(true);
+    expect(tieneRefinamiento(outZoom.entidades[objetoId]!)).toBe(false);
+  });
+
+  test("F-V1 unfold (distinción con descomposición): la lectura cartesiana de frontera es vacía en unfold", () => {
+    const modelo = modeloObjetoConFrontera();
+    const objetoId = eid(modelo, "Lote");
+    const inZoom = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId, "agregacion"));
+
+    const lift = verificarLiftCartesianoFrontera(inZoom.modelo, modelo.opdRaizId, objetoId, inZoom.opdId);
+    // los 2 enlaces externos siguen en el padre, pero unfold NO los proyecta como derivados:
+    // su fibración es sobre los enlaces estructurales parte-todo, no sobre la frontera externa.
+    expect(lift.enlacesFronteraPadre.length).toBe(2);
+    expect(lift.faltantes.length).toBe(2); // ningún derivado de frontera → lift cartesiano de frontera vacío
+    expect(lift.huerfanos).toEqual([]);
+  });
+
+  test("F-V1 unfold idempotencia: desplegar dos veces no re-crea el OPD hijo", () => {
+    const modelo = modeloObjetoConFrontera();
+    const objetoId = eid(modelo, "Lote");
+    const z1 = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId, "agregacion"));
+    const z2 = must(desplegarObjeto(z1.modelo, modelo.opdRaizId, objetoId, "agregacion"));
+    expect(z1.creado).toBe(true);
+    expect(z2.creado).toBe(false);
+    expect(z2.opdId).toBe(z1.opdId);
+  });
+
+  test("F-V1 unfold control de no-tautología: frontera mutilada se detecta tras el round-trip", () => {
+    const modelo = modeloObjetoConFrontera();
+    const objetoId = eid(modelo, "Lote");
+    const firmaAntes = firmaFronteraEntidad(modelo, modelo.opdRaizId, objetoId);
+
+    const inZoom = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId, "agregacion"));
+    const outZoom = must(quitarRefinamientoEntidad(inZoom.modelo, objetoId, "despliegue"));
+    const mutilado = quitarEnlaceFronteraDe(outZoom, objetoId, "consumo");
+    const firmaMutilada = firmaFronteraEntidad(mutilado, mutilado.opdRaizId, objetoId);
+
+    expect(igualFirma(firmaMutilada, firmaAntes)).toBe(false);
+    const perdidos = [...firmaAntes].filter((f) => !firmaMutilada.has(f));
+    expect(perdidos.some((f) => f.includes("consumo"))).toBe(true);
+  });
+});
+
+describe("LEY F-V1-tri — identidades triangulares: el round-trip es operador clausura", () => {
+  // icas-adjunciones: ε_{Ld} ∘ L(η_d) = id_{Ld}. Observable verificable (no la naturalidad plena):
+  // T = out-zoom ∘ in-zoom es un OPERADOR CLAUSURA (idempotente sobre la frontera, corpus §Galois),
+  // y el refinamiento libre es REPRODUCIBLE: re-refinar tras un round-trip da la misma estructura.
+
+  test("triangular: re-refinar tras out-zoom reproduce el mismo lift cartesiano y la misma frontera", () => {
+    const modelo = modeloEntradaProcesoSalida();
+    const procesoId = eid(modelo, "Procesar");
+
+    const z1 = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
+    const lift1 = verificarLiftCartesianoFrontera(z1.modelo, modelo.opdRaizId, procesoId, z1.opdId);
+    const firma1 = firmaFronteraEntidad(z1.modelo, modelo.opdRaizId, procesoId);
+
+    const tModelo = must(quitarRefinamientoEntidad(z1.modelo, procesoId, "descomposicion"));
+    const z2 = must(descomponerProceso(tModelo, modelo.opdRaizId, procesoId));
+    const lift2 = verificarLiftCartesianoFrontera(z2.modelo, modelo.opdRaizId, procesoId, z2.opdId);
+    const firma2 = firmaFronteraEntidad(z2.modelo, modelo.opdRaizId, procesoId);
+
+    expect(lift1.cartesiano).toBe(true);
+    expect(lift2.cartesiano).toBe(true);
+    expect(lift2.enlacesFronteraPadre.length).toBe(lift1.enlacesFronteraPadre.length);
+    expect(igualFirma(firma2, firma1)).toBe(true);
+  });
+
+  test("triangular (idempotencia del operador clausura): T(T(M)) preserva la frontera igual que T(M)", () => {
+    const modelo = modeloEntradaProcesoSalida();
+    const procesoId = eid(modelo, "Procesar");
+    const firma0 = firmaFronteraEntidad(modelo, modelo.opdRaizId, procesoId);
+
+    const tModelo = must(quitarRefinamientoEntidad(
+      must(descomponerProceso(modelo, modelo.opdRaizId, procesoId)).modelo, procesoId, "descomposicion"));
+    const ttModelo = must(quitarRefinamientoEntidad(
+      must(descomponerProceso(tModelo, modelo.opdRaizId, procesoId)).modelo, procesoId, "descomposicion"));
+
+    const firmaT = firmaFronteraEntidad(tModelo, tModelo.opdRaizId, procesoId);
+    const firmaTT = firmaFronteraEntidad(ttModelo, ttModelo.opdRaizId, procesoId);
+    expect(igualFirma(firmaT, firma0)).toBe(true);
+    expect(igualFirma(firmaTT, firmaT)).toBe(true); // T² = T sobre la frontera
+  });
+
+  test("triangular control de no-tautología: mutilar entre round-trips impide reproducir el lift", () => {
+    const modelo = modeloEntradaProcesoSalida();
+    const procesoId = eid(modelo, "Procesar");
+
+    const z1 = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId));
+    const lift1 = verificarLiftCartesianoFrontera(z1.modelo, modelo.opdRaizId, procesoId, z1.opdId);
+
+    const tModelo = must(quitarRefinamientoEntidad(z1.modelo, procesoId, "descomposicion"));
+    const tMutilado = quitarEnlaceFronteraDe(tModelo, procesoId, "consumo"); // rompe la frontera antes de re-refinar
+    const z2 = must(descomponerProceso(tMutilado, modelo.opdRaizId, procesoId));
+    const lift2 = verificarLiftCartesianoFrontera(z2.modelo, modelo.opdRaizId, procesoId, z2.opdId);
+
+    expect(lift2.enlacesFronteraPadre.length).toBeLessThan(lift1.enlacesFronteraPadre.length);
   });
 });
