@@ -870,7 +870,7 @@ describe("OPL-ES — abanicos logicos", () => {
     expect(generarOpl(modelo)).toContain("*Procesar* consume exactamente uno de **Entrada A** y **Entrada B**.");
   });
 
-  test("emite afecta para abanico XOR de efecto desde objeto a procesos", () => {
+  test("emite inicia para abanico XOR de efecto desde objeto a procesos", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 160 }, "B"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 40 }, "P"));
@@ -884,7 +884,7 @@ describe("OPL-ES — abanicos logicos", () => {
     const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
 
-    expect(generarOpl(modelo)).toContain("**B** afecta a exactamente uno de los procesos *P*, *Q* o *R*.");
+    expect(generarOpl(modelo)).toContain("**B** inicia exactamente uno de *P*, *Q* y *R*, que afecta el proceso que ocurre.");
   });
 
   test("emite inicia para abanico XOR evento de efecto desde objeto a procesos", () => {

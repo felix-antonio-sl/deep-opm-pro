@@ -119,7 +119,7 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
 
     const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
     expect(Object.values(aplicado.abanicos ?? {})).toHaveLength(1);
-    expect(generarOpl(aplicado)).toContain("**B** afecta a exactamente uno de los procesos *P*, *Q* o *R*.");
+    expect(generarOpl(aplicado)).toContain("**B** inicia exactamente uno de *P*, *Q* y *R*, que afecta el proceso que ocurre.");
   });
 
   test("aplica abanico evento de efecto desde objeto a procesos con OPL tipo OPCloud", () => {

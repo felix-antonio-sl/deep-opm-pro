@@ -320,7 +320,7 @@
   "BUG-20260603T050454Z-276ea7": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "El OPL de abanicos XOR/O de efecto con modificador evento Objeto -> Procesos ahora emite la forma OPCloud en espanol: O inicia exactamente uno de P, Q y R, que afecta el proceso que ocurre.",
-    "note": "Causa raiz: oracionAbanico ignoraba modificador evento y caia a la plantilla directa de efecto. Cubierto por generar.test y parser.test."
+    "resolution": "El OPL de abanicos XOR/O de efecto Objeto -> Procesos, con o sin metadato evento, ahora emite la forma OPCloud-es: O inicia exactamente uno de P, Q y R, que afecta el proceso que ocurre.",
+    "note": "Causa raiz: la primera correccion dependia de modificador evento explicito, pero el caso real era estructuralmente Effect_Event aunque venia como efecto plano. Cubierto por generar.test y parser.test."
   }
 }
