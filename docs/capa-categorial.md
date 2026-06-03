@@ -86,6 +86,7 @@ Ss  simulacion/     anamorfismo (unfold): runner.ts = coalgebra + desplegar.
 ## Referencias
 
 - Diseño detallado: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`.
+- **Frentes futuros (preludio prospectivo): `docs/capa-categorial-frentes.md`** — los frentes de la piedra de Rosetta que valen la pena, priorizados, con veredicto de cuáles son deriva.
 - Estado operativo y cierre: `docs/HANDOFF.md` § *Cierre de la capa categorial*.
 - Corpus categorial (SSOT): `urn:fxsl:kb:icas-*` (24 piezas ICAS-BoK).
 - Canon OPM (SSOT): `urn:fxsl:kb:{opm-es,opd-es,opl-es,manual-metodologico-opm-es,reglas-opm-estrictas-es,spec-forja-opl-es,metodologia-forja-opm-es}`.
