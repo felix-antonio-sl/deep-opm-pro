@@ -12,7 +12,7 @@ Criterio rector (de la sesión Fs/Ss): **un frente vale si produce una garantía
 
 | Eje | Estado | Frentes |
 |-----|--------|---------|
-| **Vertical** (refinamiento ⊣ abstracción) | el orgullo de OPM, **casi sin formalizar** | F-V1 adjunción, F-V2 fibración |
+| **Vertical** (refinamiento ⊣ abstracción) | **formalizado inicial 2026-06-03**: F-V1 adjunción + F-V2 fibración cerrados | F-V1 adjunción ✓, F-V2 fibración ✓ |
 | **Horizontal** (componer / comparar / razonar) | iniciado: F1/F2/F3 | F-H1 Yoneda, F-H2 2-categoría, F-H3 pullbacks |
 | **Dinámico** (comportamiento / tiempo) | iniciado: simulación Ss; F-D1/F-D2/F-D3 cerrados iniciales | F-D4 sistemas abiertos |
 | **Meta** (herramienta y modelo) | no tocado | F-M1 migración, F-M2 lifecycle/drift, y descartados |
@@ -21,19 +21,18 @@ Criterio rector (de la sesión Fs/Ss): **un frente vale si produce una garantía
 
 ## Eje vertical — el frente más maduro para abrir
 
-### F-V1 · Refinamiento como adjunción explícita  **[P1]**
+### F-V1 · Refinamiento como adjunción explícita  **[cerrado inicial · 2026-06-03]**
 - **Pregunta:** ¿in-zoom ⊣ out-zoom es una adjunción genuina (con unit/counit), o solo una pareja informal? ¿Vale el round-trip (refinar y luego abstraer recupera el original, módulo detalle)?
 - **URN:** `urn:fxsl:kb:icas-adjunciones` (unit/counit, free/forgetful, Σ⊣Δ⊣Π).
-- **Garantía:** leyes de coherencia del eje más usado de OPM — `out-zoom ∘ in-zoom ≅ id` (módulo detalle añadido), abstracción como adjunto izquierdo/derecho del refinamiento. Hoy ese eje funciona pero **no tiene una sola ley que lo proteja**.
-- **Esfuerzo/riesgo:** medio / medio. El árbol de OPDs ya existe; falta nombrar la adjunción y testearla.
-- **Por qué P1:** es el eje **fuerte** de OPM y el único mayor **sin tocar**. Además **desbloquea F-D2** (la bisimulación de frontera es una propiedad de esta adjunción).
+- **Garantía implementada:** `firmaFronteraEntidad` permite verificar la **unit** η: `out-zoom ∘ in-zoom` preserva exactamente la frontera del proceso ("módulo detalle añadido"), más la idempotencia de in-zoom. La cara estática (counit en estado: padre ≅ hijo) ya la cubría `observarPreservacionFrontera`. Ley en `app/src/leyes/refinamiento-adjuncion.test.ts` con control de no-tautología (`quitarEnlaceFronteraDe`).
+- **Puente clave:** la ley `F-V1↔F-D2` demuestra que la frontera que la **bisimulación** (F-D2) ejerce es la que la adjunción **preserva** — convierte la hipótesis sobre la que descansaba F-D2 en **teorema verificado**.
+- **Estado:** cerrado como ley operativa. No afirma las identidades triangulares completas (lectura más débil que cumple); el round-trip para `despliegue` queda como extensión.
 
-### F-V2 · Árbol de refinamiento como fibración de Grothendieck  **[P1, junto a F-V1]**
+### F-V2 · Árbol de refinamiento como fibración de Grothendieck  **[cerrado inicial · 2026-06-03]**
 - **Pregunta:** ¿el árbol de OPDs es una fibración (cada OPD fibra sobre su padre; navegar el árbol = cambio de base)?
 - **URN:** `urn:fxsl:kb:icas-extension` (Grothendieck, fibrations, Kan extensions).
-- **Garantía:** navegación y consistencia del árbol con base formal; "traer" elementos entre OPDs (Bring) como cambio de base; Kan extensions para extender un modelo conservando estructura.
-- **Esfuerzo/riesgo:** medio / medio.
-- **Por qué P1:** complementa F-V1; juntos formalizan TODO el eje vertical de OPM por primera vez.
+- **Garantía implementada:** `verificarLiftCartesianoFrontera` comprueba que la proyección de frontera padre→hijo es un **lift cartesiano**: biyección {enlaces de frontera del padre} ↔ {derivados `enlace-externo-refinamiento` del hijo}, con existencia (sin faltantes), unicidad (sin duplicados ni huérfanos) y cambio de base coherente (`refinamientoId` = entidad refinada que sube a ese OPD). Verifica también el **cambio de base funtorial** (un enlace de frontera creado tras el in-zoom recibe su lift). Ley en `refinamiento-adjuncion.test.ts` con dos controles de no-tautología (lift huérfano, lift faltante).
+- **Estado:** cerrado como ley operativa para `descomposicion`. Juntos, F-V1 + F-V2 formalizan por primera vez el eje vertical de OPM con leyes falsificables.
 
 ---
 
@@ -131,7 +130,7 @@ Criterio rector (de la sesión Fs/Ss): **un frente vale si produce una garantía
 
 1. **Sesión "identidad"** — F-H1 (Yoneda) para afinar composición/equivalencia si aparece una ley concreta.
 2. **Sesión "sistemas abiertos"** — F-D4 (lentes) solo si F1+Ss necesitan composición dinámica, no antes.
-3. **Sesión "eje vertical 2"** — F-V1 + F-V2 si se quiere formalizar unit/counit o fibración más allá de la bisimulación ya cerrada.
+3. ~~**Sesión "eje vertical 2"** — F-V1 + F-V2~~ **hecho (2026-06-03).** Extensiones abiertas: round-trip para `despliegue`, identidades triangulares completas, Cost-category real (F-D3).
 4. **Solo si emergen naturalmente:** F-H2 (2-categoría), F-H3 (pullbacks), F-M1/F-M2.
 
 **Antes de abrir cualquier frente, el test de admisión:** *¿esto da una garantía verificable por ley, o solo elegancia?* Si solo elegancia → no se abre.

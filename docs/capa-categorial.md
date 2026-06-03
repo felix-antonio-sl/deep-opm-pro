@@ -13,7 +13,7 @@ Leer OPM (ISO 19450) con **teoría de categorías como piedra de Rosetta**. OPM 
 | Objetos, procesos, enlaces | objetos y morfismos de una categoría | `icas-composicion` |
 | Hecho OPM (denotación atómica) | elemento del haz de hechos (presheaf) | `icas-topoi` |
 | Pegado de OPDs (consistencia entre vistas) | **sheaf / gluing** sobre el cubrimiento de OPDs | `icas-topoi` |
-| Refinamiento (in-zoom/unfold) ↔ abstracción | fibración / extensión entre niveles | `icas-extension` |
+| Refinamiento (in-zoom) ⊣ abstracción (out-zoom) | **adjunción** (unit/counit) + **fibración de Grothendieck** (lift cartesiano) | `icas-adjunciones`, `icas-extension` |
 | Composición de modelos (interfaz compartida) | **pushout / structured cospan** | `icas-universales` |
 | Equivalencia de realizaciones (mismo efecto, interior distinto) | **2-célula / equivalencia** por firma de frontera | `icas-higher-categories`, `icas-comparacion` |
 | **Simulación** (desplegar el comportamiento) | **anamorfismo** (unfold de una coalgebra) | `icas-efectos` |
@@ -22,7 +22,7 @@ Leer OPM (ISO 19450) con **teoría de categorías como piedra de Rosetta**. OPM 
 
 ## El mapa inverso TC → OPM: dónde estaba la frontera
 
-OPM tiene el **eje vertical** (refinamiento ⊣ abstracción) muy desarrollado. La carencia estaba en el **eje horizontal**: **composición**, **equivalencia** y **razonamiento** entre modelos/realizaciones, más la **linealidad** como cuarta dimensión designable. La capa categorial añade ese eje horizontal como semántica verificable, no como primitiva nueva.
+OPM tiene el **eje vertical** (refinamiento ⊣ abstracción) muy desarrollado *como mecanismo*, pero hasta ahora **sin una sola ley que lo protegiera**. La carencia más visible estaba en el **eje horizontal**: **composición**, **equivalencia** y **razonamiento** entre modelos/realizaciones, más la **linealidad** como cuarta dimensión designable. La capa categorial añadió primero ese eje horizontal (F1/F2/F3) y la dinámica (Ss), y luego **formalizó el eje vertical** (F-V1 adjunción, F-V2 fibración) — todo como semántica verificable, no como primitiva nueva.
 
 ## Arquitectura: cimiento + pisos + dinámica
 
@@ -63,6 +63,9 @@ Ss  simulacion/     anamorfismo (unfold): runner.ts = coalgebra + desplegar.
 | **dualidad S→F3** | todo objeto que S transicionó, F3 lo reconoce (`afectan-a≠∅`) | `leyes/integracion-ss-fs.test.ts` | `icas-efectos` |
 | **F1↔S** | la composición preserva la simulabilidad | `leyes/integracion-ss-fs.test.ts` | `icas-composicion` |
 | **F2↔S** | un in-zoom F2-coherente es simulable y respeta S⊑F0 | `leyes/integracion-ss-fs.test.ts` | `icas-efectos` |
+| **F-V1 adjunción** | `out-zoom ∘ in-zoom` preserva exactamente la frontera del proceso (unit iso) + in-zoom idempotente | `leyes/refinamiento-adjuncion.test.ts` | `icas-adjunciones` |
+| **F-V2 fibración** | biyección {enlaces de frontera del padre} ↔ {derivados del hijo} = lift cartesiano (existencia + unicidad + cambio de base coherente) | `leyes/refinamiento-adjuncion.test.ts` | `icas-extension` |
+| **F-V1↔F-D2** | la frontera que la bisimulación ejerce es la que la adjunción preserva (puente: hipótesis → teorema) | `leyes/refinamiento-adjuncion.test.ts` | `icas-adjunciones` |
 
 ## Lecciones metodológicas (lo que costó aprender — no repetir)
 
@@ -79,9 +82,14 @@ Ss  simulacion/     anamorfismo (unfold): runner.ts = coalgebra + desplegar.
 - **SSOT categorial** (`urn:fxsl:kb:icas-*`, corpus ICAS-BoK): el **mapa OPM↔TC** de arriba es conocimiento-puente entre dominios; candidato a artefacto KORA que conecte OPM e ICAS-BoK. También es propuesta a `custodio-kora`.
 - **Las leyes y la arquitectura de opforja** son de la **implementación**, no de la metodología OPM. Su lugar es el repo (este doc + el código), no la SSOT.
 
-## Pendiente de fundamento
+## Estado de fundamento y pendientes honestos
 
-**Bisimulación de frontera plena (F2↔S).** Hoy F2↔S sella la lectura débil (in-zoom coherente ⇒ simulable + S⊑F0). La plena —que la simulación del in-zoom **ejerza** las entidades de frontera del proceso abstracto— exige confirmar que los subprocesos creados por `descomponerProceso` ejercen los enlaces heredados (`enlacesPadreIds`). Camino: instrumentar `desplegar` sobre un in-zoom y comparar `hechosEjercidosPorTraza ∩ frontera` contra `fronteraDe(padre)`.
+- **Bisimulación de frontera plena (F-D2): cerrada.** `verificarBisimulacionFrontera` (`leyes/integracion-ss-fs.test.ts`) compara la firma de frontera abstracta del padre con la ejercida por la traza del hijo, con control de no-tautología (`quitarDerivadoDeFrontera`). Lo que era "diseño-mayor pendiente" ya es ley.
+- **Eje vertical formalizado (F-V1/F-V2): cerrado inicial.** La bisimulación descansaba sobre una **hipótesis** —que la frontera del proceso es estable bajo refinamiento—. F-V1 (round-trip de la adjunción in-zoom ⊣ out-zoom preserva la frontera) y el puente F-V1↔F-D2 la convierten en **teorema verificado**. F-V2 garantiza que la proyección de frontera es un lift cartesiano único.
+- **Pendientes reales (honestidad Ψ):**
+  - F-V1 se prueba sobre `descomposicion`; el round-trip para `despliegue` (unfold de objeto con frontera externa) queda como extensión del mismo patrón, sin ley aún.
+  - No se afirman las **identidades triangulares completas** de la adjunción (unit/counit con coherencia), solo el observable iso-sobre-frontera. Igual que F-D2 no afirmó la adjunción completa: la lectura más débil que cumple (cat-thinking §9).
+  - F-D3 (enriquecimiento cuantitativo) es **agregación estadística**, no una Cost-category formal; el nombre promete más que lo entregado. Subirlo a hom-objeto en monoide ordenado queda abierto.
 
 ## Referencias
 

@@ -5,3 +5,8 @@ export {
 } from "./frontera";
 export { verificarEquivalencia, type RealizacionAlternativa } from "./verificar";
 export { observarPreservacionFrontera, type DescomposicionIncoherente } from "./preservacion";
+export {
+  firmaFronteraEntidad,
+  verificarLiftCartesianoFrontera,
+  type LiftCartesianoFrontera,
+} from "./verticalidad";
