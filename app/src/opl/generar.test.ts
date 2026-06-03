@@ -870,7 +870,7 @@ describe("OPL-ES — abanicos logicos", () => {
     expect(generarOpl(modelo)).toContain("*Procesar* consume exactamente uno de **Entrada A** y **Entrada B**.");
   });
 
-  test("emite inicia para abanico XOR de efecto desde objeto a procesos", () => {
+  test("emite pasiva para abanico XOR de efecto desde objeto a procesos sin evento", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 160 }, "B"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 40 }, "P"));
@@ -884,7 +884,7 @@ describe("OPL-ES — abanicos logicos", () => {
     const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
 
-    expect(generarOpl(modelo)).toContain("**B** inicia exactamente uno de *P*, *Q* y *R*, que afecta el proceso que ocurre.");
+    expect(generarOpl(modelo)).toContain("**B** es afectado por exactamente uno de *P*, *Q* y *R*.");
   });
 
   test("emite inicia para abanico XOR evento de efecto desde objeto a procesos", () => {
@@ -904,7 +904,27 @@ describe("OPL-ES — abanicos logicos", () => {
     const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
 
-    expect(generarOpl(modelo)).toContain("**O** inicia exactamente uno de *P*, *Q* y *R*, que afecta el proceso que ocurre.");
+    expect(generarOpl(modelo)).toContain("**O** inicia exactamente uno de *P*, *Q* y *R*, y es afectado por el proceso que ocurre.");
+  });
+
+  test("emite condicion semantica para abanico XOR de efecto desde objeto a procesos", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 160 }, "B"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 40 }, "P"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 160 }, "Q"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 280 }, "R"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "B"), entidad(modelo, "P"), "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "B"), entidad(modelo, "Q"), "efecto"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "B"), entidad(modelo, "R"), "efecto"));
+    const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id);
+    for (const enlaceId of enlaceIds) {
+      modelo = must(aplicarModificador(modelo, enlaceId, "condicion"));
+    }
+    modelo = fijarPuertoCompartidoEnlaces(modelo, enlaceIds, "origen");
+    const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
+
+    expect(generarOpl(modelo)).toContain("Exactamente uno de *P*, *Q* y *R* ocurre si **B** existe, en cuyo caso afecta **B**, de lo contrario se omite.");
   });
 
   test("emite ramas con Por ruta hacia estados distintos sin perder destino", () => {

@@ -35,7 +35,7 @@ Veredictos: `corregir-código` · `relajar/ajustar-spec` · `diferir-feature` ·
 | GAP-REFINA | generador-faltante | `se refina por …` (CX4) sin generador autónomo ni parser | `refinamiento.ts` (jerarquía implícita) | diferir-feature | media | La jerarquía OPD se expresa por bloques, no por oración `se refina`. Feature de superficie. |
 | GAP-PLIEGA | generador-faltante | `se pliega en el OPD padre` (plegado total CX5/CX6) sin generador ni parser (existe plegado parcial) | `plegado.ts` | diferir-feature | media | Plegado parcial alineado; total ausente. Feature. |
 | GAP-RECOMPONE | generador-faltante | `se recompone desde` (CX7/CX8) sin generador ni parser | — | diferir-feature | baja | Feature avanzada. |
-| GAP-FAN-EVENTO | generador-faltante | `abanico.ts` no emite fan bajo evento (`inicia` + cuantificador, C-19) | `generadores/abanico.ts` | diferir-feature | media | Fan solo condicional. Feature. |
+| GAP-FAN-EVENTO | generador-faltante/parcial | `abanico.ts` emite fan bajo evento solo para efecto con objeto común y procesos alternativos; otros roles bajo evento siguen sin plantilla | `generadores/abanico.ts` | diferir-feature-restante | media | Parcial cerrado por `BUG-20260603T050454Z-276ea7`; restan otros roles. |
 | GAP-FAN-M | generador-faltante | Sin generador `exactamente m de f` / `al menos m de f` (solo m=1) | `generadores/abanico.ts:76` | diferir-feature | media | Solo `exactamente uno de`/`al menos uno de`. Feature de cardinalidad de fan. |
 | GAP-COMPOSICION | generador-faltante | Sin capa que coordine predicados de distinto verbo bajo proceso compartido (eje a) | — | diferir-feature | media | Capa de composición ausente; feature mayor §9. |
 | GAP-COMP-REVERSE | parser-faltante | Parser no descompone línea de predicados coordinados de distinto verbo (R-COMP-REV-1) | `parser/parsear.ts` | diferir-feature | media | Pareja inversa de GAP-COMPOSICION; mismo paquete. |
@@ -100,7 +100,7 @@ Solo fixtures con gen+parser ya existentes y verificados:
 **Tests**: `roundtrip.test.ts` + `fixtures-roundtrip.ts`. Riesgo bajo: solo agrega filas al catálogo; si la bisimetría falla, marca `bisimetricaEstricta=false` y abre GAP de parser.
 
 ### Diferidos (no entran a olas de corrección)
-Features: GAP-VARIA, GAP-TIPO, GAP-REFINA, GAP-PLIEGA, GAP-RECOMPONE, GAP-FAN-EVENTO, GAP-FAN-M, GAP-COMPOSICION/GAP-COMP-REVERSE, GAP-NOMBRE-INSTANCIA. Parsers sin reverse: GAP-TAG-PARSER, GAP-SSE-PARSER, GAP-CX-PARSER, GAP-XOR-PARSER (tras Ola 2). Fixtures bloqueados: GAP-FIXTURE-{TS4,TS5,TAGGED,SSE,DESCOMPOSICION}.
+Features: GAP-VARIA, GAP-TIPO, GAP-REFINA, GAP-PLIEGA, GAP-RECOMPONE, GAP-FAN-EVENTO parcial (restan otros roles bajo evento), GAP-FAN-M, GAP-COMPOSICION/GAP-COMP-REVERSE, GAP-NOMBRE-INSTANCIA. Parsers sin reverse: GAP-TAG-PARSER, GAP-SSE-PARSER, GAP-CX-PARSER, GAP-XOR-PARSER (tras Ola 2). Fixtures bloqueados: GAP-FIXTURE-{TS4,TS5,TAGGED,SSE,DESCOMPOSICION}.
 
 ## 4. Resumen ejecutivo
 

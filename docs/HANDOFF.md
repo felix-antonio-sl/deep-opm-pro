@@ -5,6 +5,19 @@
 **Instancia**: `https://opforja.sanixai.com` — pública sin auth perimetral. Redeploy verificado: contenedor `opforja` healthy, sidecar `opforja-bug-capture` ok, `opforja-model-api` healthy, `opforja-postgres` healthy, `curl -fsSI` externo HTTP/2 200. Bundle servido tras cierre categorial: entry `index-BkxFMKQ2.js`. Smoke producción: sesión/cookie y workspace vacío para tenant nuevo OK.
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2; rama `codex/ux-composicion-f1` fue squash-mergeada sobre `main` para cerrar la brecha de composición. Diseño/planes relevantes: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`, `docs/superpowers/plans/2026-06-02-ux-adhoc-fs.md`.
 
+## Actualización 2026-06-03 — OPL fan de efecto Objeto→Procesos
+
+**Estado:** remediado `BUG-20260603T050454Z-276ea7` por corrección semántica, no por clonación de gesto/texto OPCloud. En OPM, un efecto lo ejerce un proceso sobre un objeto; por tanto el objeto común de un abanico hacia procesos no puede verbalizarse como sujeto afectante.
+
+**Decisión canónica:** fan de efecto con objeto común y procesos alternativos:
+- sin control explícito: `**O** es afectado por exactamente uno de *P*, *Q* y *R*.`
+- con evento: `**O** inicia exactamente uno de *P*, *Q* y *R*, y es afectado por el proceso que ocurre.`
+- con condición: `Exactamente uno de *P*, *Q* y *R* ocurre si **O** existe, en cuyo caso afecta **O**, de lo contrario se omite.`
+
+**Artefactos:** `app/src/opl/generadores/abanico.ts`, `app/src/opl/parser/parsear.ts`, pruebas en `app/src/opl/generar.test.ts` y `app/src/opl/parser/parser.test.ts`, reporte `docs/bugs/BUG-20260603T050454Z-276ea7/report.md`. En KORA se alinearon las SSOTs `urn:fxsl:kb:reglas-opm-estrictas-es` v1.1.1, `urn:fxsl:kb:spec-forja-opl-es` v1.1.1 y `urn:fxsl:kb:opl-es` v3.0.1; commit KORA `917878a`. El parser conserva compatibilidad de entrada con la forma legacy `O afecta a exactamente uno de los procesos ...`, pero al regenerar normaliza a la pasiva canónica.
+
+**Handoff:** `GAP-FAN-EVENTO` queda parcial, no cerrado global: efecto con objeto común y procesos alternativos está implementado forward+reverse; otros roles bajo evento con fan siguen como GAP. Pendiente tras deploy: smoke visual en producción creando O→{P,Q,R} con/sin evento si se quiere validar la captura exacta del caso reportado.
+
 ## Corte actual — Cierre de la capa categorial (Fs + Ss + integración + UX)
 
 **Estado 2026-06-03:** la capa categorial queda **cerrada y verificada end-to-end por leyes falsificables** — deja de ser dos teorías inconexas con verde tautológico y pasa a ser una capa coherente. Trabajo de ingeniería de kernel + leyes + UX de composición; no cambia el corte de producto (persistencia backend, otra línea). Commits del corte en `main` (`34239d9`/`c5e852e` ya en origin; el resto se pushea con este cierre): `34239d9` (P0 solape composición), `c5e852e` (P0 aviso linealidad en UX), `3104bab` (F3 `alcanzable`), `825d227` (ley F1↔S), `05372c7` (UX composición P1/P2: preview + flags locales + aviso in-place), `a31d1a7` (coherencia F0-F3 por ley), `d504f05` (ley F2↔S).
@@ -336,7 +349,7 @@ Se promovieron a KORA las dos piezas locales de canon que aún vivían completas
 - `docs/canon-opm/spec-forja-opl.md` marca esos fixture gaps como cerrados o cerrados-para-emisión, manteniendo vivos solo los gaps reales de parser/procedencia.
 
 **Auditoría de divergencias OPL vs OPCloud (commit `952346d`, `docs/auditorias/2026-05-26-alineacion-opl/divergencias-opcloud.md`):** se buscaron todas las divergencias entre la generación OPL de OPFORJA y el eco OPCloud (HU-SHARED-007), **arbitrando cada una por precedencia** (canon supremo `reglas-opm-estrictas`+`opm-opl-es` manda; OPCloud observacional). Resultado: **solo D1 era adoptable** (ya hecho). Las otras divergencias son **eco OPCloud equivocado** que OPFORJA correctamente NO clonó: D5 estados (`puede ser` es mal-traducción de "can be"; canon = `puede estar`), agregación (`consiste en` vs canon `consta de`), T6 dirección de habilitador (HU invierte sujeto/objeto). **Cero GAP-OPCLOUD de código nuevo; OPFORJA está alineado al canon.** Confirmado además que `duracionMetadata.ts:69` emite `puede estar` (el viejo bug C1 está resuelto). Lección: el eco OPCloud no es fiel al canon en ≥3 formas — OPCloud es observacional, no autoridad.
-**Backlog vivo**: features/parsers diferidos de la auditoría §4: `GAP-XOR-FEATURE/PARSER`, `GAP-ABANICO-AGENTE-PARSE`, `GAP-TAG-PARSER`, `GAP-SSE-PARSER`, `GAP-CX-PARSER`, `GAP-FAN-EVENTO`, `GAP-FAN-M`, `GAP-COMPOSICION/GAP-COMP-REVERSE`, `GAP-PARSE-TS4/TS5`, `GAP-PROCEDENCIA-ESCIND`, `GAP-NOMBRE-INSTANCIA`, `GAP-VARIA/TIPO/REFINA/PLIEGA/RECOMPONE`.
+**Backlog vivo**: features/parsers diferidos de la auditoría §4: `GAP-XOR-FEATURE/PARSER`, `GAP-ABANICO-AGENTE-PARSE`, `GAP-TAG-PARSER`, `GAP-SSE-PARSER`, `GAP-CX-PARSER`, `GAP-FAN-EVENTO` parcial (restan roles bajo evento distintos de efecto con objeto común y procesos alternativos), `GAP-FAN-M`, `GAP-COMPOSICION/GAP-COMP-REVERSE`, `GAP-PARSE-TS4/TS5`, `GAP-PROCEDENCIA-ESCIND`, `GAP-NOMBRE-INSTANCIA`, `GAP-VARIA/TIPO/REFINA/PLIEGA/RECOMPONE`.
 
 ## Corte previo — spec-forja OPL: SSOT OPL consolidada de OPFORJA (producida)
 

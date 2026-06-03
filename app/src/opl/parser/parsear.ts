@@ -244,7 +244,7 @@ function parsearAbanico(texto: string, linea: LineaOplNormalizada) {
 }
 
 const ABANICO_EFECTO_EVENTO_OBJETO_PROCESOS_RE =
-  /^(.+?)\s+inicia\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+),\s*que\s+afecta\s+(?:el|al)\s+proceso\s+que\s+ocurre$/iu;
+  /^(.+?)\s+inicia\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+?),\s*(?:y\s+es\s+afectado\s+por\s+el\s+proceso\s+que\s+ocurre|que\s+afecta\s+(?:el|al)\s+proceso\s+que\s+ocurre)$/iu;
 
 function parsearAbanicoEvento(texto: string, linea: LineaOplNormalizada) {
   const match = ABANICO_EFECTO_EVENTO_OBJETO_PROCESOS_RE.exec(texto);
@@ -318,6 +318,8 @@ const ABANICO_VERBO_RE_LIST = [
 
 const ABANICO_CAMBIA_RE =
   /^(.+?)\s+cambia\s+(.+?)\s+(a|de)\s+(exactamente uno de|al menos uno de)\s+(.+)$/iu;
+const ABANICO_EFECTO_OBJETO_AFECTADO_PROCESOS_RE =
+  /^(.+?)\s+es\s+afectado\s+por\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+)$/iu;
 const ABANICO_EFECTO_OBJETO_PROCESOS_RE =
   /^(.+?)\s+afecta\s+a\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+)$/iu;
 
@@ -339,7 +341,8 @@ function parsearAbanicoDirecto(texto: string, linea: LineaOplNormalizada) {
     });
   }
 
-  const efectoObjetoProcesos = ABANICO_EFECTO_OBJETO_PROCESOS_RE.exec(texto);
+  const efectoObjetoProcesos = ABANICO_EFECTO_OBJETO_AFECTADO_PROCESOS_RE.exec(texto)
+    ?? ABANICO_EFECTO_OBJETO_PROCESOS_RE.exec(texto);
   if (efectoObjetoProcesos) {
     const proceso = normalizarNombreOpl(efectoObjetoProcesos[1] ?? "");
     const operador = operadorDeCuantificador(efectoObjetoProcesos[2] ?? "");

@@ -58,6 +58,7 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   // se devuelve la oracion individual del primer enlace en lugar del abanico.
   const otrosNombres: string[] = [];
   const otrosKeys = new Set<string>();
+  let otrosSonObjetos = true;
   let otrosSonProcesos = true;
   for (const enlace of enlaces) {
     const otro = extremoOpuestoAbanico(modelo, abanico, enlace);
@@ -67,6 +68,7 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
     const clave = `${otro.extremo.kind}:${otro.extremo.id}`;
     if (otrosKeys.has(clave)) continue;
     otrosKeys.add(clave);
+    if (otraEnt.tipo !== "objeto") otrosSonObjetos = false;
     if (otraEnt.tipo !== "proceso") otrosSonProcesos = false;
     otrosNombres.push(nombreRamaAbanico(modelo, abanico, enlace, otro));
   }
@@ -89,10 +91,16 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   // un abanico mixto (algunos con `condicion`, otros sin) recae en el comportamiento
   // por defecto, porque la semántica condicional debe valer para todas las ramas.
   const todosCondicionales = enlaces.every((enlace) => enlace.modificador === "condicion");
-  const todosSinModificadorOEvento = enlaces.every((enlace) => enlace.modificador === undefined || enlace.modificador === "evento");
+  const todosEventos = enlaces.every((enlace) => enlace.modificador === "evento");
   const mismoTipo = enlaces.every((enlace) => enlace.tipo === primer.tipo);
-  if (todosSinModificadorOEvento && mismoTipo && primer.tipo === "efecto" && puertoEsOrigen && puerto.tipo === "objeto" && otrosSonProcesos) {
-    return `${puertoOpl} inicia ${cuantificador} ${lista}, que afecta el proceso que ocurre.`;
+  if (mismoTipo && primer.tipo === "efecto" && puerto.tipo === "objeto" && otrosSonProcesos) {
+    if (todosEventos) {
+      return `${puertoOpl} inicia ${cuantificador} ${lista}, y es afectado por el proceso que ocurre.`;
+    }
+    if (todosCondicionales) {
+      return `${capitalizarInicial(cuantificador)} ${lista} ocurre si ${puertoOpl} existe, en cuyo caso afecta ${puertoOpl}, de lo contrario se omite.`;
+    }
+    return `${puertoOpl} es afectado por ${cuantificador} ${lista}.`;
   }
   if (todosCondicionales && mismoTipo) {
     const condicional = oracionAbanicoCondicional(primer.tipo, puertoOpl, cuantificador, lista, puertoEsOrigen);
@@ -117,8 +125,11 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
         ? `${puertoOpl} genera ${cuantificador} ${lista}.`
         : `${puertoOpl} es generado por ${cuantificador} ${lista}.`;
     case "efecto":
-      if (puertoEsOrigen && puerto.tipo === "objeto" && otrosSonProcesos) {
-        return `${puertoOpl} afecta a ${cuantificador} los procesos ${listarAlternativasOpl(otrosNombres)}.`;
+      if (puerto.tipo === "objeto" && otrosSonProcesos) {
+        return `${puertoOpl} es afectado por ${cuantificador} ${lista}.`;
+      }
+      if (puerto.tipo === "proceso" && otrosSonObjetos) {
+        return `${puertoOpl} afecta ${cuantificador} ${lista}.`;
       }
       return `${puertoOpl} afecta ${cuantificador} ${lista}.`;
     case "invocacion":
@@ -130,10 +141,8 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   }
 }
 
-function listarAlternativasOpl(items: readonly string[]): string {
-  if (items.length <= 1) return items[0] ?? "";
-  if (items.length === 2) return `${items[0]} o ${items[1]}`;
-  return `${items.slice(0, -1).join(", ")} o ${items[items.length - 1]}`;
+function capitalizarInicial(texto: string): string {
+  return texto.length > 0 ? texto[0]!.toLocaleUpperCase("es") + texto.slice(1) : texto;
 }
 
 /**

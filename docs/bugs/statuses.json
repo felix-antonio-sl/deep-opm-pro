@@ -320,7 +320,7 @@
   "BUG-20260603T050454Z-276ea7": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "El OPL de abanicos XOR/O de efecto Objeto -> Procesos, con o sin metadato evento, ahora emite la forma OPCloud-es: O inicia exactamente uno de P, Q y R, que afecta el proceso que ocurre.",
-    "note": "Causa raiz: la primera correccion dependia de modificador evento explicito, pero el caso real era estructuralmente Effect_Event aunque venia como efecto plano. Cubierto por generar.test y parser.test."
+    "resolution": "El OPL de abanicos XOR/O de efecto Objeto -> Procesos ya no invierte la semantica: sin evento emite O es afectado por P/Q/R; con evento emite O inicia P/Q/R y es afectado por el proceso que ocurre.",
+    "note": "Causa raiz final: se trato el objeto comun como sujeto afectante, pero en OPM el efecto lo ejerce el proceso sobre el objeto. Cubierto por generar.test y parser.test; legacy O afecta a... se acepta solo para normalizar a pasiva."
   }
 }

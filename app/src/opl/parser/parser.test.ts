@@ -96,7 +96,7 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     expect(generarOpl(aplicado)).toContain("*Procesar* consume **Entrada**.");
   });
 
-  test("aplica abanico de efecto desde objeto a procesos sin invertir el sujeto", () => {
+  test("aplica abanico de efecto desde objeto a procesos con pasiva canonica", () => {
     let modelo = crearModelo("reverse");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 90 }, "B"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "P"));
@@ -104,7 +104,7 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 180 }, "R"));
     const texto = [
       ...generarOpl(modelo),
-      "**B** afecta a exactamente uno de los procesos *P*, *Q* o *R*.",
+      "**B** es afectado por exactamente uno de *P*, *Q* y *R*.",
     ].join("\n");
 
     const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
@@ -119,7 +119,26 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
 
     const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
     expect(Object.values(aplicado.abanicos ?? {})).toHaveLength(1);
-    expect(generarOpl(aplicado)).toContain("**B** inicia exactamente uno de *P*, *Q* y *R*, que afecta el proceso que ocurre.");
+    expect(generarOpl(aplicado)).toContain("**B** es afectado por exactamente uno de *P*, *Q* y *R*.");
+  });
+
+  test("normaliza abanico legacy 'objeto afecta procesos' a pasiva canonica", () => {
+    let modelo = crearModelo("reverse");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 90 }, "B"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "P"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 90 }, "Q"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 180 }, "R"));
+    const texto = [
+      ...generarOpl(modelo),
+      "**B** afecta a exactamente uno de los procesos *P*, *Q* o *R*.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    expect(preview.patches.filter((patch) => patch.tipo === "crear-enlace" && patch.tipoEnlace === "efecto")).toHaveLength(3);
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    expect(generarOpl(aplicado)).toContain("**B** es afectado por exactamente uno de *P*, *Q* y *R*.");
   });
 
   test("aplica abanico evento de efecto desde objeto a procesos con OPL tipo OPCloud", () => {
@@ -130,7 +149,7 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 180 }, "R"));
     const texto = [
       ...generarOpl(modelo),
-      "**O** inicia exactamente uno de *P*, *Q* y *R*, que afecta el proceso que ocurre.",
+      "**O** inicia exactamente uno de *P*, *Q* y *R*, y es afectado por el proceso que ocurre.",
     ].join("\n");
 
     const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
@@ -152,7 +171,7 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
     expect(Object.values(aplicado.abanicos ?? {})).toHaveLength(1);
     expect(Object.values(aplicado.enlaces).every((enlace) => enlace.modificador === "evento")).toBe(true);
-    expect(generarOpl(aplicado)).toContain("**O** inicia exactamente uno de *P*, *Q* y *R*, que afecta el proceso que ocurre.");
+    expect(generarOpl(aplicado)).toContain("**O** inicia exactamente uno de *P*, *Q* y *R*, y es afectado por el proceso que ocurre.");
   });
 
   test("crea entidades y enlaces declarados en el mismo lote OPL", () => {

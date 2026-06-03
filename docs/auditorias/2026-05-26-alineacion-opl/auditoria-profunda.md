@@ -90,7 +90,7 @@ Esta reclasificación reduce los bugs reales **de 8 a 6** (GAP-XOR sale; GAP-PRO
 
 ## 4. Backlog diferido (features/parsers; fuera de las olas de corrección)
 
-- **Generadores faltantes**: GAP-VARIA (`varía de … a`), GAP-TIPO (`es de tipo`), GAP-NOMBRE-INSTANCIA (`Instancia : Clase`), GAP-REFINA (`se refina por`), GAP-PLIEGA (plegado total), GAP-RECOMPONE, GAP-FAN-EVENTO (fan bajo evento), GAP-FAN-M (`exactamente m de f`), GAP-COMPOSICION (capa §9), GAP-XOR (`puede ser` XOR, reclasificado §2).
+- **Generadores faltantes**: GAP-VARIA (`varía de … a`), GAP-TIPO (`es de tipo`), GAP-NOMBRE-INSTANCIA (`Instancia : Clase`), GAP-REFINA (`se refina por`), GAP-PLIEGA (plegado total), GAP-RECOMPONE, GAP-FAN-EVENTO parcial (restan roles bajo evento distintos de efecto con objeto común y procesos alternativos), GAP-FAN-M (`exactamente m de f`), GAP-COMPOSICION (capa §9), GAP-XOR (`puede ser` XOR, reclasificado §2).
 - **Parsers faltantes**: GAP-XOR-PARSER, GAP-TAG-PARSER, GAP-SSE-PARSER, GAP-CX-PARSER (descomposición serial), GAP-COMP-REVERSE, GAP-ABANICO-AGENTE-PARSE.
 - **Fixtures bloqueados por parser ausente**: GAP-FIXTURE-{TAGGED, SSE, DESCOMPOSICION}.
 - **Confirmar-y-cerrar (ya cubiertos)**: GAP-FIXTURE-AGREGACION y GAP-FIXTURE-GENERALIZACION (fixtures existen), GAP-PARSE-TS4/TS5 (CS3/CS4 existen), GAP-PROCEDENCIA-ESCIND, GAP-VERIFY ruta/sub-span.
