@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import regFileIcon from "../../../assets/svg/regFile.svg";
-import { sugerirCompartidasPorInterfaz } from "../modelo/composicion";
+import { resumenComposicion, sugerirCompartidasPorInterfaz } from "../modelo/composicion";
 import type { Id, Modelo, TipoEntidad } from "../modelo/tipos";
 import { cargarModeloLocal, type ResumenModeloPersistido } from "../persistencia/local";
 import { hidratarModelo } from "../serializacion/json";
@@ -23,6 +23,10 @@ export function DialogoComposicion() {
   const [modeloB, setModeloB] = useState<Modelo | null>(null);
   const [errorModelo, setErrorModelo] = useState<string | null>(null);
   const [compartidas, setCompartidas] = useState<Record<Id, Id>>({});
+  // Flags LOCALES al diálogo: antes toggleaban estado global del workspace (afectaba
+  // el árbol de toda la app) — efecto secundario sorpresivo desde un modal.
+  const [mostrarArchivados, setMostrarArchivados] = useState(false);
+  const [mostrarVersiones, setMostrarVersiones] = useState(false);
 
   useEffect(() => {
     if (!abierto) return;
@@ -32,11 +36,13 @@ export function DialogoComposicion() {
     setModeloB(null);
     setErrorModelo(null);
     setCompartidas({});
+    setMostrarArchivados(false);
+    setMostrarVersiones(false);
   }, [abierto, persistencia.listarModelosGuardados]);
 
   const hijos = useMemo(() => {
-    return workspace.listarHijosActuales({ incluirArchivados: workspace.mostrarArchivados });
-  }, [workspace.indice, workspace.carpetaActualId, workspace.modelosGuardados, workspace.mostrarArchivados]);
+    return workspace.listarHijosActuales({ incluirArchivados: mostrarArchivados });
+  }, [workspace.indice, workspace.carpetaActualId, workspace.modelosGuardados, mostrarArchivados]);
 
   const modelosCatalogo = useMemo(() => ordenarModelos(
     hijos.modelos
@@ -70,6 +76,11 @@ export function DialogoComposicion() {
   const entidadesA = useMemo(() => ordenarEntidades(modelo), [modelo]);
   const entidadesB = useMemo(() => ordenarEntidades(modeloB), [modeloB]);
   const compartirActivas = normalizarCompartidas(compartidas, modelo, modeloB);
+  // Preview del delta antes de confirmar (anti Generation Surprise).
+  const resumen = useMemo(
+    () => (modeloB ? resumenComposicion(modelo, modeloB, normalizarCompartidas(compartidas, modelo, modeloB)) : null),
+    [modelo, modeloB, compartidas],
+  );
 
   const fijarCompartida = (bId: Id, aId: Id | "") => {
     setCompartidas((actual) => {
@@ -102,11 +113,11 @@ export function DialogoComposicion() {
       <div style={styles.body}>
         <div style={styles.flagsBar}>
           <label style={styles.flag}>
-            <input type="checkbox" checked={workspace.mostrarArchivados} onChange={workspace.toggleMostrarArchivados} />
+            <input type="checkbox" checked={mostrarArchivados} onChange={(event) => setMostrarArchivados(event.currentTarget.checked)} />
             Mostrar archivados
           </label>
           <label style={styles.flag}>
-            <input type="checkbox" checked={workspace.mostrarVersiones} onChange={workspace.toggleMostrarVersiones} />
+            <input type="checkbox" checked={mostrarVersiones} onChange={(event) => setMostrarVersiones(event.currentTarget.checked)} />
             Mostrar versiones
           </label>
         </div>
@@ -126,7 +137,7 @@ export function DialogoComposicion() {
                   key={item.id}
                   modelo={item}
                   seleccionado={item.id === seleccionadoId}
-                  mostrarVersiones={workspace.mostrarVersiones}
+                  mostrarVersiones={mostrarVersiones}
                   onSeleccionar={seleccionarModelo}
                 />
               ))}
@@ -142,6 +153,12 @@ export function DialogoComposicion() {
             <strong style={styles.sectionTitle}>Interfaz compartida</strong>
             <span style={styles.sectionMeta}>{Object.keys(compartirActivas).length} activa{Object.keys(compartirActivas).length === 1 ? "" : "s"}</span>
           </div>
+          {resumen ? (
+            <div style={resumen.conflictosLineal > 0 ? styles.previewWarn : styles.preview} data-testid="composicion-preview">
+              {`Resultado: +${resumen.entidadesNuevas} cosa${resumen.entidadesNuevas === 1 ? "" : "s"}, +${resumen.enlacesNuevos} enlace${resumen.enlacesNuevos === 1 ? "" : "s"} · ${resumen.compartidas} compartida${resumen.compartidas === 1 ? "" : "s"}`}
+              {resumen.conflictosLineal > 0 ? ` · ⚠ ${resumen.conflictosLineal} conflicto${resumen.conflictosLineal === 1 ? "" : "s"} de linealidad` : ""}
+            </div>
+          ) : null}
           {errorModelo ? <div style={styles.error}>{errorModelo}</div> : null}
           {!modeloB && !errorModelo ? <div style={styles.empty}>Selecciona un modelo para revisar la interfaz.</div> : null}
           {modeloB && entidadesB.length > 0 ? (
@@ -170,6 +187,7 @@ export function DialogoComposicion() {
             </div>
           ) : null}
         </section>
+        <p style={styles.inPlace}>Se compone sobre el modelo activo; es reversible con deshacer.</p>
       </div>
     </Dialogo>
   );
@@ -261,4 +279,7 @@ const styles = {
   select: { height: "32px", minWidth: 0, border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`, borderRadius: 0, padding: "0 8px", background: tokens.colors.paper, color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px" },
   empty: { padding: "18px", border: `${tokens.stroke.hairline}px dashed ${tokens.colors.ink15}`, borderRadius: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 400, textAlign: "center" },
   error: { padding: "10px", border: `${tokens.stroke.hairline}px solid ${tokens.colors.accentDark}`, borderRadius: 0, color: tokens.colors.accentDark, background: tokens.colors.paper, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
+  preview: { padding: "8px 10px", border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.ink04, color: tokens.colors.ink70, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
+  previewWarn: { padding: "8px 10px", border: `${tokens.stroke.hairline}px solid ${tokens.colors.accentDark}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.accentDark, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 600 },
+  inPlace: { margin: 0, color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "11px", fontWeight: 400, fontStyle: "italic" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

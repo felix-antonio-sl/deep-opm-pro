@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { crearModelo, crearObjeto, crearProceso } from "../operaciones";
+import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../operaciones";
 import type { Id, Modelo, Resultado } from "../tipos";
-import { sugerirCompartidasPorInterfaz } from "./interfaz";
+import { resumenComposicion, sugerirCompartidasPorInterfaz } from "./interfaz";
 
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
@@ -74,5 +74,41 @@ describe("sugerirCompartidasPorInterfaz", () => {
     expect(Object.values(a.entidades)[0]!.id).toBe(Object.values(b.entidades)[0]!.id);
 
     expect(sugerirCompartidasPorInterfaz(a, b)).toEqual({});
+  });
+});
+
+describe("resumenComposicion (preview del delta antes de componer)", () => {
+  test("cuenta entidades nuevas, compartidas y conflictos de linealidad", () => {
+    let a = crearModelo("A");
+    a = must(crearObjeto(a, a.opdRaizId, { x: 0, y: 0 }, "Cliente"));
+    let b = crearModelo("B");
+    b = must(crearObjeto(b, b.opdRaizId, { x: 0, y: 0 }, "Cliente"));
+    b = must(crearObjeto(b, b.opdRaizId, { x: 100, y: 0 }, "Factura"));
+    const clienteA = entidadId(a, "Cliente");
+    const clienteB = entidadId(b, "Cliente");
+
+    const r = resumenComposicion(a, b, { [clienteB]: clienteA });
+    expect(r).not.toBeNull();
+    expect(r!.compartidas).toBe(1);
+    expect(r!.entidadesNuevas).toBe(1); // solo "Factura" entra; "Cliente" se fusiona
+    expect(r!.conflictosLineal).toBe(0);
+  });
+
+  test("reporta conflicto de linealidad en el preview (sin componer en firme)", () => {
+    let a = crearModelo("A");
+    a = must(crearObjeto(a, a.opdRaizId, { x: 0, y: 0 }, "Bateria"));
+    const objA = entidadId(a, "Bateria");
+    a = { ...a, entidades: { ...a.entidades, [objA]: { ...a.entidades[objA]!, lineal: true } } };
+    a = must(crearProceso(a, a.opdRaizId, { x: 200, y: 0 }, "Motor A"));
+    a = must(crearEnlace(a, a.opdRaizId, objA, entidadId(a, "Motor A"), "consumo"));
+    let b = crearModelo("B");
+    b = must(crearObjeto(b, b.opdRaizId, { x: 0, y: 0 }, "Bateria"));
+    const objB = entidadId(b, "Bateria");
+    b = { ...b, entidades: { ...b.entidades, [objB]: { ...b.entidades[objB]!, lineal: true } } };
+    b = must(crearProceso(b, b.opdRaizId, { x: 200, y: 0 }, "Motor B"));
+    b = must(crearEnlace(b, b.opdRaizId, objB, entidadId(b, "Motor B"), "consumo"));
+
+    const r = resumenComposicion(a, b, { [objB]: objA });
+    expect(r!.conflictosLineal).toBeGreaterThan(0);
   });
 });
