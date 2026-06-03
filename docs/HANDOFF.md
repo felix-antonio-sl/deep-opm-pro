@@ -6,6 +6,14 @@
 **Frente: canvas infinito — DESPLEGADO 2026-06-03** (commit `849930e`, bundle `index-DaVSdw1e.js`). El OPD vacío parte a pantalla y el paper crece/desplaza sus límites en cualquier dirección con `paper.fitToContent({allowNewOrigin:'any'})`, reemplazando el piso fijo 7200×5200 + crecimiento solo derecha/abajo. Detalle del corte abajo (§ Canvas infinito); el spec de origen fue consolidado aquí y eliminado (historia git: `aec1bcd`).
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2; rama `codex/ux-composicion-f1` fue squash-mergeada sobre `main` para cerrar la brecha de composición. Diseño/planes relevantes: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`, `docs/superpowers/plans/2026-06-02-ux-adhoc-fs.md`.
 
+## Actualización 2026-06-03 — Ciclo estado-objeto del reverse-aplicador CERRADO (L5)
+
+**Estado:** cerrado y verificado (commit `20d61af`). La frase de estados (`X puede estar ...`) ahora acepta un objeto declarado en una línea previa del MISMO texto: el planificador emite una referencia pendiente por nombre (mismo mecanismo `refEntidadPendiente` que los enlaces) y el aplicador la resuelve vía el mapa `creadas` tras `crear-entidad` (orden por línea). El patch `sincronizar-estados` pasa de `objetoId: Id` a `objeto: ReferenciaEntidadPatch`.
+
+**Resultado:** **5 fixtures de roundtrip suben a bisimetría ESTRICTA** (`objeto-con-estados`, `cambio-estado-ts3` escindida, `cambio-estado-ts3-compacto` del BUG-f314c4, `ts4`, `ts5`) — el territorio de transiciones de estado queda amarrado ida-y-vuelta entre generador y parser. Quedan no-estrictas, con razón documentada en el catálogo, tres limitaciones de OTROS territorios (candidatos a frentes futuros): (1) gramática HS del parser — `X en \`estado\` maneja Y` llega con el sufijo crudo como nombre; (2) la demora de invocación no se inversa (el enlace recreado pierde `después de Ns`); (3) el self-link de autoinvocación no está soportado en reverse.
+
+**Verificación:** roundtrip 24/24; `bun test src/` **2009 pass / 0 fail**; typecheck/lint/governance/build OK; e2e 03 (panel OPL) 11 passed.
+
 ## Actualización 2026-06-03 — BUG-f314c4 resuelto + e2e 02/04/05 reconciliados
 
 **Estado:** ambos frentes cerrados y verificados. Commits `3813bfe` (fix OPL), `42f77d0` (e2e), `752720a` (triage).
