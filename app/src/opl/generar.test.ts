@@ -884,7 +884,7 @@ describe("OPL-ES — abanicos logicos", () => {
     const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
 
-    expect(generarOpl(modelo)).toContain("**B** afecta exactamente uno de *P*, *Q* y *R*.");
+    expect(generarOpl(modelo)).toContain("**B** afecta a exactamente uno de los procesos *P*, *Q* o *R*.");
   });
 
   test("emite ramas con Por ruta hacia estados distintos sin perder destino", () => {

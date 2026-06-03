@@ -104,7 +104,7 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 180 }, "R"));
     const texto = [
       ...generarOpl(modelo),
-      "**B** afecta exactamente uno de *P*, *Q* y *R*.",
+      "**B** afecta a exactamente uno de los procesos *P*, *Q* o *R*.",
     ].join("\n");
 
     const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
@@ -119,7 +119,7 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
 
     const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
     expect(Object.values(aplicado.abanicos ?? {})).toHaveLength(1);
-    expect(generarOpl(aplicado)).toContain("**B** afecta exactamente uno de *P*, *Q* y *R*.");
+    expect(generarOpl(aplicado)).toContain("**B** afecta a exactamente uno de los procesos *P*, *Q* o *R*.");
   });
 
   test("crea entidades y enlaces declarados en el mismo lote OPL", () => {

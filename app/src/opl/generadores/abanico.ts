@@ -58,6 +58,7 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   // se devuelve la oracion individual del primer enlace en lugar del abanico.
   const otrosNombres: string[] = [];
   const otrosKeys = new Set<string>();
+  let otrosSonProcesos = true;
   for (const enlace of enlaces) {
     const otro = extremoOpuestoAbanico(modelo, abanico, enlace);
     if (!otro) continue;
@@ -66,6 +67,7 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
     const clave = `${otro.extremo.kind}:${otro.extremo.id}`;
     if (otrosKeys.has(clave)) continue;
     otrosKeys.add(clave);
+    if (otraEnt.tipo !== "proceso") otrosSonProcesos = false;
     otrosNombres.push(nombreRamaAbanico(modelo, abanico, enlace, otro));
   }
   if (otrosNombres.length === 1) {
@@ -111,6 +113,9 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
         ? `${puertoOpl} genera ${cuantificador} ${lista}.`
         : `${puertoOpl} es generado por ${cuantificador} ${lista}.`;
     case "efecto":
+      if (puertoEsOrigen && puerto.tipo === "objeto" && otrosSonProcesos) {
+        return `${puertoOpl} afecta a ${cuantificador} los procesos ${listarAlternativasOpl(otrosNombres)}.`;
+      }
       return `${puertoOpl} afecta ${cuantificador} ${lista}.`;
     case "invocacion":
       return puertoEsOrigen
@@ -119,6 +124,12 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
     default:
       return null;
   }
+}
+
+function listarAlternativasOpl(items: readonly string[]): string {
+  if (items.length <= 1) return items[0] ?? "";
+  if (items.length === 2) return `${items[0]} o ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} o ${items[items.length - 1]}`;
 }
 
 /**

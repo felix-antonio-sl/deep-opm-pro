@@ -1,0 +1,44 @@
+# BUG-20260603T050454Z-276ea7
+
+**Creado**: 2026-06-03T05:04:54.090Z
+**Tipo**: Bug
+**Estado**: Resuelto
+**Resolución**: El OPL de abanicos XOR/O de efecto Objeto -> Procesos ahora emite una forma explícita: `O afecta a exactamente uno de los procesos P, Q o R.`
+
+## Texto
+
+sigue estando muy mal el opl de esto
+
+## Cierre
+
+- Causa raíz: la plantilla de abanico de efecto reutilizaba la forma genérica `afecta exactamente uno de ...`, sin preposición `a`, sin explicitar que las alternativas eran procesos y con conjunción `y`.
+- Cambio aplicado: cuando el puerto común es un objeto y todas las ramas alternativas son procesos, el generador emite `afecta a exactamente/al menos uno de los procesos ...` y lista alternativas con `o`.
+- Parser inverso: acepta la nueva forma y conserva el sujeto objeto al crear los enlaces de efecto y el abanico.
+- Verificación: `bun test src/opl/generar.test.ts src/opl/parser/parser.test.ts`, `bun run check`, `bun run lint`, `bun run design:governance`, `bun run build`.
+
+## Screenshots
+
+- [screenshots/01-cleanshot-2026-06-03-at-01.04.21.jpg](screenshots/01-cleanshot-2026-06-03-at-01.04.21.jpg)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-527e3c27-e0f5-4e47-a2c2-d0342d283e15",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 2133,
+    "height": 1070,
+    "devicePixelRatio": 0.8999999761581421
+  },
+  "capturedAt": "2026-06-03T05:04:51.828Z"
+}
+```

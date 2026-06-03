@@ -11,7 +11,7 @@ cualquier ID, activo o archivado.
 | Alcance / Estado | Cantidad |
 |---|---:|
 | Activo / Nuevo | 30 |
-| Activo / Resuelto | 53 |
+| Activo / Resuelto | 54 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
 | Histórico / Resuelto | 43 |
@@ -20,7 +20,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 78 |
+| Activo / Bug | 79 |
 | Activo / Feat | 5 |
 | Histórico / Bug | 48 |
 
@@ -28,6 +28,7 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Resuelto | [BUG-20260603T050454Z-276ea7](BUG-20260603T050454Z-276ea7/report.md) | 2026-06-03 05:04Z | Modelo / SD | sigue estando muy mal el opl de esto | El OPL de abanicos XOR/O de efecto Objeto -> Procesos ahora emite una forma explicita: O afecta a exactamente uno de los procesos… | 1 | Causa raiz: la plantilla generica omitía la preposicion 'a', el tipo de alternativa y usaba 'y'. Cubierto por generar.test y parser.test. |
 | Activo | Bug | Resuelto | [BUG-20260603T022341Z-cc4801](BUG-20260603T022341Z-cc4801/report.md) | 2026-06-03 02:23Z | Modelo / SD | No está en la UI/UX la asignación de probabilidades | El inspector de enlaces expone un editor de porcentajes para abanicos XOR; aplica una policy de probabilidades por rama, valida s… | 1 | Causa raiz: la semantica de probabilidades existia en kernel/render/decision, pero la UI solo exponia probabilidad para enlaces evento. Cubierto por abanicos.test, store.test, SeccionAbanico.test, enlace.test y e2e/02-canvas-y-render.spec.ts. |
 | Activo | Bug | Resuelto | [BUG-20260603T020848Z-7b49ec](BUG-20260603T020848Z-7b49ec/report.md) | 2026-06-03 02:08Z | Modelo / SD | quiero mostrar un nuevo patrón súper relevante que se comporta inadecuadamente en nuestro OPforja. pongo como se presenta en OPcloud que es referente… | op-forja soporta el patron OPCloud de abanico logico de efecto desde un objeto hacia procesos: B afecta exactamente/al menos uno … | 4 | Causa raiz: la firma y el reverse asumian efecto solo Proceso -> Objeto, por lo que el patron objeto -> procesos no era operable/canonico. Cubierto por operaciones/enlaces.test, validaciones.test, generar.test y parser.test. |
 | Activo | Bug | Resuelto | [BUG-20260603T010945Z-923dcf](BUG-20260603T010945Z-923dcf/report.md) | 2026-06-03 01:09Z | Modelo / SD | a continuación una comparación entre la referencia opcloud vs nosotros. En este caso representando el patrón de Logical And. Como podemos ver en nues… | OPL compone AND procedimental simple en una sola oracion, por ejemplo un proceso requiere Llave A, Llave B y Llave C. | 4 | Causa raiz: el generador solo agrupaba abanicos OR/XOR y exhibiciones opcionales. Cubierto por generar.test. |

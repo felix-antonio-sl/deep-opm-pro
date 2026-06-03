@@ -230,7 +230,7 @@ function operadorDeCuantificador(cuant: string): OperadorAbanico {
 function tokenizarListaAbanico(texto: string): string[] {
   return texto
     .split(/\s*,\s*/u)
-    .flatMap((parte) => parte.split(/\s+y\s+/iu))
+    .flatMap((parte) => parte.split(/\s+(?:y|o)\s+/iu))
     .map((item) => item.trim())
     .filter(Boolean);
 }
@@ -297,6 +297,8 @@ const ABANICO_VERBO_RE_LIST = [
 
 const ABANICO_CAMBIA_RE =
   /^(.+?)\s+cambia\s+(.+?)\s+(a|de)\s+(exactamente uno de|al menos uno de)\s+(.+)$/iu;
+const ABANICO_EFECTO_OBJETO_PROCESOS_RE =
+  /^(.+?)\s+afecta\s+a\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+)$/iu;
 
 function parsearAbanicoDirecto(texto: string, linea: LineaOplNormalizada) {
   const cambia = ABANICO_CAMBIA_RE.exec(texto);
@@ -314,6 +316,18 @@ function parsearAbanicoDirecto(texto: string, linea: LineaOplNormalizada) {
       otrosEstados: estados,
       puertoEsOrigen: direccion === "a",
     });
+  }
+
+  const efectoObjetoProcesos = ABANICO_EFECTO_OBJETO_PROCESOS_RE.exec(texto);
+  if (efectoObjetoProcesos) {
+    const proceso = normalizarNombreOpl(efectoObjetoProcesos[1] ?? "");
+    const operador = operadorDeCuantificador(efectoObjetoProcesos[2] ?? "");
+    const otros = tokenizarListaAbanico(efectoObjetoProcesos[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
+    if (proceso && otros.length >= 2) {
+      return astAbanico(linea, {
+        proceso, operador, tipoEnlace: "efecto", otros, puertoEsOrigen: true,
+      });
+    }
   }
 
   for (const entry of ABANICO_VERBO_RE_LIST) {

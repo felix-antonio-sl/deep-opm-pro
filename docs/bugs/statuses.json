@@ -316,5 +316,11 @@
     "status": "Resuelto",
     "resolution": "El inspector de enlaces expone un editor de porcentajes para abanicos XOR; aplica una policy de probabilidades por rama, valida suma 100%, persiste pesos y muestra los porcentajes en el canvas.",
     "note": "Causa raiz: la semantica de probabilidades existia en kernel/render/decision, pero la UI solo exponia probabilidad para enlaces evento. Cubierto por abanicos.test, store.test, SeccionAbanico.test, enlace.test y e2e/02-canvas-y-render.spec.ts."
+  },
+  "BUG-20260603T050454Z-276ea7": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El OPL de abanicos XOR/O de efecto Objeto -> Procesos ahora emite una forma explicita: O afecta a exactamente uno de los procesos P, Q o R.",
+    "note": "Causa raiz: la plantilla generica omitía la preposicion 'a', el tipo de alternativa y usaba 'y'. Cubierto por generar.test y parser.test."
   }
 }
