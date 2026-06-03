@@ -13,7 +13,7 @@
 
 **Archivos:** `app/src/autoria/{tipos,dsl,layout,bundle,index}.ts` + `_fixtures/cafetera.ts` (demo NO-HODOM) + `autoria.test.ts`. **Verificación:** typecheck limpio bajo config estricto (`exactOptionalPropertyTypes`); `bun test src/autoria` → 9/9 pass (DSL re-entrante, agregación consumida a contención, pipeline end-to-end con **cero solapamientos** y canon sin bloqueantes sobre un dominio NO-HODOM). Spec/plan: `~/projects/hd-opm/docs/superpowers/{specs,plans}/2026-06-03-autoria-bundle-agnostico*`.
 
-**Pendiente (no bloquea):** dogfooding — migrar `hd-opm/scripts/generar-bundle-hodom.ts` a CONSUMIR esta librería (hoy duplica el DSL+layout+pipeline inline). Prueba la extracción a escala (32 OPDs) y elimina la duplicación. Roadmap en el plan citado (Task 5).
+**Dogfood — HECHO (hd-opm `6db1c74`):** `hd-opm/scripts/generar-bundle-hodom.ts` ya CONSUME esta librería (borró el DSL+layout+pipeline inline, ~1000 líneas; 3186→2182). Prueba de la extracción a escala (36 OPDs): regenera el bundle v1.6 **byte-idéntico** (JSON y OPL; `diff -q` vacío), **261·192·430·36**, cero solapes, canon PASS (0 bloqueantes), round-trip/contención PASS. La capacidad reproduce fielmente, sobre el dominio real más grande, lo que producía el generador artesanal. Único cambio derivado: el reporte usa la cabecera genérica de `emitirBundle` + `reporteExtra` (corrige de paso el título obsoleto "v1.3"). Roadmap completo en el plan citado (Tasks 1-7 ✓).
 
 ## Actualización 2026-06-03 — auditoría categorial y saneamiento UX de simulación/razonamiento
 
