@@ -4,7 +4,7 @@ import type { ModoEnlace } from "../../canvas/modoEnlace";
 import type { TipoEntidad } from "../../modelo/tipos";
 import { configurarGridPaper } from "./composers/grid";
 import { opmShapes } from "./customShapes";
-import { CANVAS_BASE, cellViewModel, dimensionesPaper, metadata, paperView, setPaperDimensions } from "./handlers/helpers";
+import { CANVAS_BASE, cellViewModel, metadata, paperView, setPaperDimensions } from "./handlers/helpers";
 import { jointCanvasPalette } from "./palette";
 
 export interface JointCanvasAdapter {
@@ -114,9 +114,11 @@ export function actualizarGridJointCanvasAdapter(adapter: JointCanvasAdapter, gr
   configurarGridPaper(adapter.paper, gridConfig);
 }
 
+// Canvas infinito: el ajuste del paper al contenido (fitToContent) NO se hace
+// aquí, sino en JointCanvas.tsx tras embeber contornos / rutear enlaces, cuando
+// la geometría ya es estable; así el bbox incluye contornos y labels finales.
 export function sincronizarCellsJointCanvasAdapter(adapter: JointCanvasAdapter, cells: dia.Cell.JSON[]): void {
   adapter.graph.resetCells(cells);
-  setPaperDimensions(adapter.paper, dimensionesPaper(cells));
 }
 
 export function destruirJointCanvasAdapter(adapter: JointCanvasAdapter): void {

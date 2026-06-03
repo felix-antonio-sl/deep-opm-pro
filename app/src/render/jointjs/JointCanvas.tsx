@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort";
 import { useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
-import { CENTRO_CANVAS_GEOMETRICO } from "../../modelo/layout";
 import { estadosInicialesDelModelo, focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import { debeAnimarTokensSim, tokensViajeDelPaso } from "../../modelo/simulacion/animacionTokens";
 import { CODEX } from "./constantes.codex";
@@ -12,7 +11,7 @@ import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } f
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { proyectarModeloAJointCells } from "./proyeccion";
 import { cablearDrag, embedirContorno } from "./handlers/drag";
-import { CANVAS_BASE, metadata } from "./handlers/helpers";
+import { ajustarPaperAContenido, calcularAjusteScroll, contentBBoxPaper, metadata } from "./handlers/helpers";
 import { aplicarHoverOpl, cablearHoverOpl } from "./handlers/hoverOpl";
 import {
   aplicarA11yConexionTeclado,
@@ -479,11 +478,38 @@ export function JointCanvas({
     const ultimoConteo = ultimoConteoAparienciasRef.current;
     const primeraAparienciaEnOpdVacio = ultimoConteo?.opdId === opdActivoId && ultimoConteo.count === 0 && aparienciaCount > 0;
     ultimoConteoAparienciasRef.current = { opdId: opdActivoId, count: aparienciaCount };
-    if (primeraAparienciaEnOpdVacio) {
-      centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto");
-    } else if (ultimoOpdCentradoRef.current !== opdActivoId) {
+    // Canvas infinito: ajusta el paper al bbox de su contenido (crece/desplaza
+    // sus límites en cualquier dirección). Un OPD vacío parte a pantalla porque
+    // minWidth/minHeight = viewport. El ajuste corre tras embeber/rutear, con la
+    // geometría ya estable.
+    const viewport = viewportRef.current;
+    const cambioOpd = ultimoOpdCentradoRef.current !== opdActivoId;
+    const scrollAntes = viewport
+      ? { left: viewport.scrollLeft, top: viewport.scrollTop }
+      : { left: 0, top: 0 };
+    const ajustePaper = ajustarPaperAContenido(
+      adapter.paper,
+      viewport ? { minWidth: viewport.clientWidth, minHeight: viewport.clientHeight } : {},
+    );
+    if (primeraAparienciaEnOpdVacio || cambioOpd) {
+      // Encuadre al contenido: centra la vista en el bbox real (reemplaza el
+      // centro fijo 3600/2600). Vacío → bbox null → no-op (host == viewport).
       ultimoOpdCentradoRef.current = opdActivoId;
-      requestAnimationFrame(() => centrarViewportEnPuntoCanvas(viewportRef.current, CENTRO_CANVAS_GEOMETRICO, "auto"));
+      requestAnimationFrame(() => {
+        const adapterAhora = adapterRef.current;
+        const vp = viewportRef.current;
+        if (!adapterAhora || !vp) return;
+        const bbox = contentBBoxPaper(adapterAhora.paper);
+        if (!bbox) return;
+        centrarViewportEnPuntoCanvas(vp, { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 }, "auto");
+      });
+    } else if (viewport) {
+      // Edición normal: si el origen del paper se desplazó (contenido creció
+      // hacia arriba/izquierda), seguir con el scroll para que no salte.
+      const siguiente = calcularAjusteScroll(scrollAntes, ajustePaper.translateAntes, ajustePaper.translateDespues);
+      if (siguiente.left !== scrollAntes.left || siguiente.top !== scrollAntes.top) {
+        viewport.scrollTo({ left: siguiente.left, top: siguiente.top, behavior: "auto" });
+      }
     }
   }, [enlaceSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
 
@@ -782,11 +808,14 @@ const style = {
     overscrollBehavior: "contain",
   },
   paperHost: {
+    // Canvas infinito: el tamaño del host lo fija `fitToContent` (inline px) en
+    // cada sync; aquí solo damos un fallback que ocupa el viewport (estado vacío
+    // = a pantalla) sin piso fijo que impida encoger ni crecer en 4 direcciones.
     position: "relative",
-    width: `${CANVAS_BASE.width}px`,
-    height: `${CANVAS_BASE.height}px`,
-    minWidth: `${CANVAS_BASE.width}px`,
-    minHeight: `${CANVAS_BASE.height}px`,
+    width: "100%",
+    height: "100%",
+    minWidth: 0,
+    minHeight: 0,
     overflow: "hidden",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;

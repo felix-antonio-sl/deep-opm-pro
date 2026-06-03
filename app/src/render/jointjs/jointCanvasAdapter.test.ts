@@ -18,17 +18,20 @@ describe("jointCanvasAdapter", () => {
     });
   });
 
-  test("sincroniza cells proyectadas y ajusta dimensiones del paper", () => {
+  // Canvas infinito: sincronizar SOLO resetea cells. El ajuste del paper al
+  // contenido (fitToContent) corre después, en JointCanvas.tsx, tras embeber
+  // contornos / rutear enlaces — cuando la geometría ya es estable. Este test
+  // sella esa separación: si alguien re-mete el sizing aquí, el bbox se
+  // calcularía antes de tiempo y recortaría contornos/labels.
+  test("sincroniza cells proyectadas sin dimensionar el paper", () => {
     const cellsRecibidas: dia.Cell.JSON[][] = [];
-    const dimensiones: Array<{ width: number; height: number }> = [];
-    const paperEl = { style: {} } as HTMLElement;
+    let setDimensionsLlamado = false;
     const adapter = {
       graph: {
         resetCells(cells: dia.Cell.JSON[]) { cellsRecibidas.push(cells); },
       },
       paper: {
-        el: paperEl,
-        setDimensions(width: number, height: number) { dimensiones.push({ width, height }); },
+        setDimensions() { setDimensionsLlamado = true; },
       },
     } as unknown as { graph: dia.Graph; paper: dia.Paper };
     const cells: dia.Cell.JSON[] = [{
@@ -41,8 +44,6 @@ describe("jointCanvasAdapter", () => {
     sincronizarCellsJointCanvasAdapter(adapter, cells);
 
     expect(cellsRecibidas[0]).toBe(cells);
-    expect(dimensiones[0]).toEqual({ width: 9235, height: 7160 });
-    expect(paperEl.style.width).toBe("9235px");
-    expect(paperEl.style.height).toBe("7160px");
+    expect(setDimensionsLlamado).toBe(false);
   });
 });

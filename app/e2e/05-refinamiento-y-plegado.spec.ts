@@ -90,8 +90,12 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
     left: el.scrollLeft,
     top: el.scrollTop,
   }));
-  expect(scrollRefinado.left).toBeGreaterThan(2500);
-  expect(scrollRefinado.top).toBeGreaterThan(1800);
+  // Canvas infinito: el viewport enfoca el centro del contenido (verificado
+  // arriba por el centrado del contorno). El centro ya no es el punto fijo
+  // 3600/2600; basta confirmar que el viewport se desplazó del origen (no quedó
+  // en la esquina 0,0), que era la regresión del bug.
+  expect(scrollRefinado.left).toBeGreaterThan(0);
+  expect(scrollRefinado.top).toBeGreaterThan(0);
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Proceso");

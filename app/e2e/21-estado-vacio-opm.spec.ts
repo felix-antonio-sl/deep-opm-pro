@@ -98,8 +98,11 @@ test("primera cosa creada desde toolbar queda centrada en el canvas visible", as
     left: el.scrollLeft,
     top: el.scrollTop,
   }));
-  expect(scroll.left).toBeGreaterThan(2500);
-  expect(scroll.top).toBeGreaterThan(1800);
+  // Canvas infinito: el viewport enfoca el contenido (centrado verificado
+  // arriba); el centro ya no es 3600/2600 fijo, así que solo exigimos que no
+  // quede en la esquina (0,0).
+  expect(scroll.left).toBeGreaterThan(0);
+  expect(scroll.top).toBeGreaterThan(0);
 
   expect(pageErrors).toEqual([]);
 });

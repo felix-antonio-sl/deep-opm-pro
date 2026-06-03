@@ -3,7 +3,7 @@ import { dia as jointDia } from "jointjs";
 import type { Modelo } from "../../modelo/tipos";
 import { ordenarOpdsParaOpl } from "../../opl/bloquesJerarquicos";
 import { embedirContorno } from "./handlers/drag";
-import { dimensionesPaper, setPaperDimensions } from "./handlers/helpers";
+import { ajustarPaperAContenido } from "./handlers/helpers";
 import { crearJointCellNamespace, opcionesPaperCodex } from "./jointCanvasAdapter";
 import { aplicarRuteoOpcloudEnlaces } from "./opcloudRouting";
 import { proyectarModeloAJointCells } from "./proyeccion";
@@ -128,9 +128,12 @@ async function exportarOpdOffscreenPng(modelo: Modelo, opdId: string, fondo: "bl
   try {
     const cells = proyectarModeloAJointCells(modeloParaExportar(modelo), opdId, null, null);
     graph.resetCells(cells as dia.Cell.JSON[]);
-    setPaperDimensions(paper, dimensionesPaper(cells as dia.Cell.JSON[]));
     embedirContorno(graph);
     aplicarRuteoOpcloudEnlaces(graph);
+    // Canvas infinito: ajusta el paper al bbox real (incluidas coordenadas
+    // negativas) tras embeber/rutear, para que el SVG offscreen no recorte
+    // contenido a la izquierda/arriba del origen.
+    ajustarPaperAContenido(paper, { padding: PADDING_EXPORT_PNG });
     (paper as unknown as { updateViews?: (opt?: { viewport?: () => boolean }) => void }).updateViews?.({ viewport: () => true });
     await esperarFrame();
     return await exportarMapa(paper, modelo, { fondo });
