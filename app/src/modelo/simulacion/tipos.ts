@@ -1,4 +1,4 @@
-import type { Id, ValorConcreto } from "../tipos";
+import type { DuracionTemporal, Id, UnidadTiempo, ValorConcreto } from "../tipos";
 
 /**
  * Tipos del kernel de simulación conceptual (Beta2 / Ronda 17 L1).
@@ -59,6 +59,23 @@ export interface CambioValorRuntime {
   despues: ValorConcreto;
 }
 
+export type TipoEventoTemporalSim = "sobretiempo" | "subtiempo";
+
+/** Evento temporal observado durante un paso de simulacion. */
+export interface EventoTemporalSim {
+  tipo: TipoEventoTemporalSim;
+  enlaceId: Id;
+  procesoOrigenId: Id;
+  procesoManejoId: Id;
+  /** Duracion observada en unidad canonica de reloj. */
+  duracion: number;
+  /** Umbral comparado en unidad canonica de reloj. */
+  umbral: number;
+  unidadReloj: "s";
+  /** Valor OPM original, preservado para UI/OPL. */
+  umbralOriginal: { valor: number; unidad: UnidadTiempo };
+}
+
 /** Una entrada del trace tras ejecutar un paso. */
 export interface EntradaTraceSim {
   /** 1-indexed. */
@@ -73,8 +90,11 @@ export interface EntradaTraceSim {
   /** Texto canonico cuando el paso no pudo aplicar todas las transiciones
    *  planificadas o cambios de valor. Razon corta legible. */
   diagnostico?: string;
-  /** Duracion muestreada del paso (unidades de reloj). S3 tiempo hibrido. */
+  /** Ventana temporal OPM original del estado que aporto duracion. */
+  ventanaDuracion?: DuracionTemporal;
+  /** Duracion muestreada del paso en segundos, unidad canonica de reloj. */
   duracion?: number;
+  eventosTemporales?: EventoTemporalSim[];
 }
 
 export type EstadoSimulacion = "preparado" | "ejecutando" | "completado" | "bloqueado";

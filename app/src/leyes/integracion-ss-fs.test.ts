@@ -4,13 +4,14 @@ import {
   entidadesVisitadas,
   hechosEjercidosPorTraza,
   razonarSobreCorrida,
+  verificarBisimulacionFrontera,
 } from "../modelo/simulacion/integracionHechos";
 import { hechosDe } from "../modelo/hechos";
 import { derivar } from "../modelo/razonamiento";
 import { componerModelos } from "../modelo/composicion";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "../modelo/operaciones";
 import { observarPreservacionFrontera } from "../modelo/equivalencia";
-import type { Modelo, Resultado } from "../modelo/tipos";
+import type { Id, Modelo, Resultado } from "../modelo/tipos";
 
 function must<T>(r: Resultado<T>): T {
   if (!r.ok) throw new Error(r.error);
@@ -211,4 +212,70 @@ describe("integración F2↔S (la descomposición es simulable y coherente con F
       expect(todos.has(clave)).toBe(true);
     }
   });
+
+  test("LEY F2↔S frontera plena: simular el in-zoom ejerce la firma de frontera del proceso abstracto", () => {
+    const { modelo, procesarId, pedidoId, despachoId, opdHijoId } = modeloPedidoProcesarDespachoDescompuesto();
+
+    const fin = desplegar(modelo, iniciarSimulacion(modelo, opdHijoId));
+    const bisimulacion = verificarBisimulacionFrontera(modelo, fin, procesarId);
+
+    expect(bisimulacion.equivalente).toBe(true);
+    expect(bisimulacion.firmaAbstracta).toContain(`${pedidoId}|consumo|origen`);
+    expect(bisimulacion.firmaAbstracta).toContain(`${despachoId}|resultado|destino`);
+    expect(bisimulacion.firmaEjercida).toEqual(bisimulacion.firmaAbstracta);
+  });
+
+  test("control de no-tautología F2↔S: si el hijo no ejerce un derivado de frontera, la bisimulación falla", () => {
+    const fixture = modeloPedidoProcesarDespachoDescompuesto();
+    const modeloRoto = quitarDerivadoDeFrontera(fixture.modelo, fixture.opdHijoId, "consumo");
+
+    const fin = desplegar(modeloRoto, iniciarSimulacion(modeloRoto, fixture.opdHijoId));
+    const bisimulacion = verificarBisimulacionFrontera(modeloRoto, fin, fixture.procesarId);
+
+    expect(bisimulacion.equivalente).toBe(false);
+    expect(bisimulacion.diferencias).toContain(`${fixture.pedidoId}|consumo|origen`);
+  });
 });
+
+function modeloPedidoProcesarDespachoDescompuesto(): {
+  modelo: Modelo;
+  procesarId: Id;
+  pedidoId: Id;
+  despachoId: Id;
+  opdHijoId: Id;
+} {
+  let base = crearModelo("Pedido");
+  base = must(crearObjeto(base, base.opdRaizId, { x: 40, y: 80 }, "Pedido"));
+  base = must(crearProceso(base, base.opdRaizId, { x: 240, y: 80 }, "Procesar"));
+  base = must(crearObjeto(base, base.opdRaizId, { x: 440, y: 80 }, "Despacho"));
+  const procesarId = Object.values(base.entidades).find((e) => e.tipo === "proceso")!.id;
+  const pedidoId = Object.values(base.entidades).find((e) => e.nombre === "Pedido")!.id;
+  const despachoId = Object.values(base.entidades).find((e) => e.nombre === "Despacho")!.id;
+  base = must(crearEnlace(base, base.opdRaizId, pedidoId, procesarId, "consumo"));
+  base = must(crearEnlace(base, base.opdRaizId, procesarId, despachoId, "resultado"));
+
+  const modelo = must(descomponerProceso(base, base.opdRaizId, procesarId)).modelo;
+  const opdHijoId = modelo.entidades[procesarId]?.refinamientos?.descomposicion?.opdId;
+  if (!opdHijoId) throw new Error("Fixture sin OPD hijo");
+  return { modelo, procesarId, pedidoId, despachoId, opdHijoId };
+}
+
+function quitarDerivadoDeFrontera(modelo: Modelo, opdId: Id, tipo: "consumo" | "resultado"): Modelo {
+  const opd = modelo.opds[opdId];
+  if (!opd) throw new Error(`OPD no encontrado: ${opdId}`);
+  return {
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: {
+        ...opd,
+        enlaces: Object.fromEntries(
+          Object.entries(opd.enlaces).filter(([, apariencia]) => {
+            const enlace = modelo.enlaces[apariencia.enlaceId];
+            return enlace?.tipo !== tipo || enlace.derivado?.tipo !== "enlace-externo-refinamiento";
+          }),
+        ),
+      },
+    },
+  };
+}

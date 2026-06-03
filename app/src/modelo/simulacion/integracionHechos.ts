@@ -1,4 +1,9 @@
 import { conjunto, hechosDe, type ConjuntoDeHechos, type Hecho } from "../hechos";
+import {
+  entidadDeExtremoFrontera,
+  firmaFronteraDeEnlaces,
+  fronteraDe,
+} from "../equivalencia/frontera";
 import { derivar, type HechoDerivado } from "../razonamiento";
 import type { Id, Modelo } from "../tipos";
 import type { ContextoSimulacion } from "./tipos";
@@ -49,6 +54,73 @@ function enlacesEjercidos(contexto: ContextoSimulacion): Set<Id> {
     for (const id of paso.enlacesSalidaIds) ids.add(id);
   }
   return ids;
+}
+
+function firmaFronteraAbstracta(modelo: Modelo, refinamientoId: Id): Set<string> {
+  const frontera = new Set(fronteraDe(modelo, refinamientoId));
+  const enlacesContorno: Id[] = [];
+  for (const enlace of Object.values(modelo.enlaces)) {
+    const origen = entidadDeExtremoFrontera(enlace.origenId, modelo);
+    const destino = entidadDeExtremoFrontera(enlace.destinoId, modelo);
+    if (origen === refinamientoId || destino === refinamientoId) enlacesContorno.push(enlace.id);
+  }
+  return firmaFronteraDeEnlaces(modelo, frontera, enlacesContorno);
+}
+
+function diferenciaFirma(esperada: ReadonlySet<string>, observada: ReadonlySet<string>): string[] {
+  const diferencias: string[] = [];
+  for (const item of esperada) if (!observada.has(item)) diferencias.push(item);
+  for (const item of observada) if (!esperada.has(item)) diferencias.push(item);
+  return diferencias.sort();
+}
+
+function firmaOrdenada(firma: ReadonlySet<string>): string[] {
+  return [...firma].sort();
+}
+
+export interface BisimulacionFrontera {
+  equivalente: boolean;
+  firmaAbstracta: string[];
+  firmaEjercida: string[];
+  diferencias?: string[];
+}
+
+/**
+ * Firma dinámica de frontera: qué roles netos sobre la frontera del proceso
+ * abstracto fueron realmente ejercidos por la traza del OPD refinado.
+ *
+ * Es la lectura operacional de F2↔S: no basta con que el hijo contenga enlaces
+ * derivados; la simulación debe ejercerlos. Fundamento formal: bisimulación
+ * observacional (`urn:fxsl:kb:icas-efectos`) sobre la frontera que el eje
+ * vertical preserva (`urn:fxsl:kb:icas-adjunciones`, como hipótesis de
+ * round-trip in-zoom/out-zoom).
+ */
+export function firmaFronteraEjercidaPorTraza(
+  modelo: Modelo,
+  contexto: ContextoSimulacion,
+  refinamientoId: Id,
+): Set<string> {
+  return firmaFronteraDeEnlaces(
+    modelo,
+    new Set(fronteraDe(modelo, refinamientoId)),
+    enlacesEjercidos(contexto),
+  );
+}
+
+export function verificarBisimulacionFrontera(
+  modelo: Modelo,
+  contexto: ContextoSimulacion,
+  refinamientoId: Id,
+): BisimulacionFrontera {
+  const firmaAbstracta = firmaFronteraAbstracta(modelo, refinamientoId);
+  const firmaEjercida = firmaFronteraEjercidaPorTraza(modelo, contexto, refinamientoId);
+  const diferencias = diferenciaFirma(firmaAbstracta, firmaEjercida);
+  return {
+    equivalente: diferencias.length === 0,
+    firmaAbstracta: firmaOrdenada(firmaAbstracta),
+    firmaEjercida: firmaOrdenada(firmaEjercida),
+    ...(diferencias.length > 0 ? { diferencias } : {}),
+  };
 }
 
 /**

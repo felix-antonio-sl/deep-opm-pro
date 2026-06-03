@@ -1,10 +1,11 @@
 import type { Abanico, Enlace, Id, Modelo } from "../tipos";
 import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
-import type { ContextoSimulacion, EntradaTraceSim, TransicionEstadoSim } from "./tipos";
+import type { ContextoSimulacion, EntradaTraceSim, ModoSimulacion, TransicionEstadoSim } from "./tipos";
 import { aplicarCambiosValor, iniciarValoresRuntime } from "./valores";
 import { efectoUnico, tomarUnico, type Efecto, type Sucesor } from "./efecto";
 import { resolverDecisionAbanico } from "../decision";
 import { rngSembrado } from "./rng";
+import { detectarEventosTemporalesPaso, inferirDuracionPasoSim } from "./tiempo";
 
 /**
  * Inicia una simulación conceptual sobre un OPD. No muta el modelo.
@@ -35,6 +36,14 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   }
 
   const paso = contexto.plan[contexto.pasoActual]!;
+  const modo = contexto.modo ?? "determinista";
+  let rngMuestreo: (() => number) | undefined;
+  let rngConsumido = false;
+  const randomMuestreo = (): number => {
+    rngConsumido = true;
+    rngMuestreo ??= rngSembrado(contexto.semilla ?? 0);
+    return rngMuestreo();
+  };
   const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
   const estadosRama = abanico ? estadosDestinoDeRamas(modelo, abanico) : new Set<Id>();
   const transicionesAplicadas: TransicionEstadoSim[] = [];
@@ -79,15 +88,25 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     cambiosValor,
   };
 
-  const duracionPaso = inferirDuracionPaso(modelo, transicionesAplicadas);
-  if (duracionPaso !== undefined) entrada.duracion = duracionPaso;
+  const duracionPaso = inferirDuracionPasoSim(
+    modelo,
+    transicionesAplicadas,
+    modo,
+    modo === "muestreo" ? randomMuestreo : undefined,
+  );
+  if (duracionPaso !== undefined) {
+    entrada.ventanaDuracion = duracionPaso.ventana;
+    entrada.duracion = duracionPaso.observada;
+    const eventosTemporales = detectarEventosTemporalesPaso(modelo, paso, duracionPaso.observada);
+    if (eventosTemporales.length > 0) entrada.eventosTemporales = eventosTemporales;
+  }
 
   if (motivosBloqueo.length > 0) {
     entrada.diagnostico = `No simulable: ${motivosBloqueo.join("; ")}`;
   }
 
   const nuevoPaso = contexto.pasoActual + 1;
-  const relojNuevo = (contexto.reloj ?? 0) + (duracionPaso ?? 0);
+  const relojNuevo = (contexto.reloj ?? 0) + (duracionPaso?.observada ?? 0);
   const siguiente: ContextoSimulacion = {
     ...contexto,
     pasoActual: nuevoPaso,
@@ -98,16 +117,16 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     reloj: relojNuevo,
   };
 
-  if (!abanico) return efectoUnico(siguiente);
+  if (!abanico) {
+    return efectoUnico(avanzarSemillaSiFueConsumida(siguiente, modo, rngConsumido, randomMuestreo));
+  }
 
-  const modo = contexto.modo ?? "determinista";
   if (modo === "exhaustivo") {
     const peso = 1 / abanico.enlaceIds.length;
     return { sucesores: abanico.enlaceIds.map((enlaceId) => sucesorDeRama(modelo, siguiente, enlaceId, peso)) };
   }
   if (modo === "muestreo") {
-    const random = rngSembrado(contexto.semilla ?? 0);
-    const d = resolverDecisionAbanico(modelo, abanico.id, { random });
+    const d = resolverDecisionAbanico(modelo, abanico.id, { random: randomMuestreo });
     let enlaceId: Id;
     let peso: number;
     if (d.ok && d.value.enlaceId) {
@@ -115,13 +134,13 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
       peso = d.value.probabilidades?.[enlaceId] ?? 1;
     } else {
       // Sin política resoluble (ramas hacia estados sin Pr): Dist uniforme sobre las ramas.
-      const idx = Math.min(Math.floor(random() * abanico.enlaceIds.length), abanico.enlaceIds.length - 1);
+      const idx = Math.min(Math.floor(randomMuestreo() * abanico.enlaceIds.length), abanico.enlaceIds.length - 1);
       enlaceId = abanico.enlaceIds[idx]!;
       peso = 1 / abanico.enlaceIds.length;
     }
     // La semilla EVOLUCIONA para el próximo paso: abanicos sucesivos deben ser
     // independientes (no correlacionados) pero reproducibles desde la semilla raíz.
-    const semillaSiguiente = Math.floor(random() * 0x100000000);
+    const semillaSiguiente = Math.floor(randomMuestreo() * 0x100000000);
     const suc = sucesorDeRama(modelo, siguiente, enlaceId, peso);
     return { sucesores: [{ ...suc, estado: { ...suc.estado, semilla: semillaSiguiente } }] };
   }
@@ -203,17 +222,14 @@ function aplicarTransicionDeRama(
   return { ...base, estadosCurrent, trace };
 }
 
-function inferirDuracionPaso(
-  modelo: Modelo,
-  transiciones: TransicionEstadoSim[],
-): number | undefined {
-  for (const t of transiciones) {
-    const estadoId = t.estadoDespuesId ?? t.estadoAntesId;
-    if (!estadoId) continue;
-    const estado = modelo.estados[estadoId];
-    if (estado?.duracion) return estado.duracion.nominal;
-  }
-  return undefined;
+function avanzarSemillaSiFueConsumida(
+  contexto: ContextoSimulacion,
+  modo: ModoSimulacion,
+  rngConsumido: boolean,
+  random: () => number,
+): ContextoSimulacion {
+  if (modo !== "muestreo" || !rngConsumido) return contexto;
+  return { ...contexto, semilla: Math.floor(random() * 0x100000000) };
 }
 
 /**

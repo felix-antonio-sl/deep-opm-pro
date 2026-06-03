@@ -14,7 +14,7 @@ Criterio rector (de la sesión Fs/Ss): **un frente vale si produce una garantía
 |-----|--------|---------|
 | **Vertical** (refinamiento ⊣ abstracción) | el orgullo de OPM, **casi sin formalizar** | F-V1 adjunción, F-V2 fibración |
 | **Horizontal** (componer / comparar / razonar) | iniciado: F1/F2/F3 | F-H1 Yoneda, F-H2 2-categoría, F-H3 pullbacks |
-| **Dinámico** (comportamiento / tiempo) | iniciado: simulación Ss | F-D1 tiempo, F-D2 bisimulación plena, F-D3 enriquecimiento, F-D4 sistemas abiertos |
+| **Dinámico** (comportamiento / tiempo) | iniciado: simulación Ss; F-D1/F-D2/F-D3 cerrados iniciales | F-D4 sistemas abiertos |
 | **Meta** (herramienta y modelo) | no tocado | F-M1 migración, F-M2 lifecycle/drift, y descartados |
 
 ---
@@ -63,26 +63,28 @@ Criterio rector (de la sesión Fs/Ss): **un frente vale si produce una garantía
 
 ## Eje dinámico — la frontera de la simulación
 
-### F-D1 · El tiempo (behavior types / sheaves temporales)  **[P1]**
+### F-D1 · El tiempo (behavior types / sheaves temporales)  **[cerrado inicial · 2026-06-03]**
 - **Pregunta:** ¿cómo modela OPM la duración real, el sobretiempo/subtiempo, la concurrencia temporal? Hoy la simulación tiene **reloj sin semántica**.
 - **URN:** `urn:fxsl:kb:icas-tiempo` (behavior types, sheaves temporales, contratos).
-- **Garantía:** cierra **S3** (excepciones temporales, declarado pendiente desde el diseño de la simulación); modela la **distribución** de duración (no solo el nominal); contratos temporales verificables.
+- **Garantía implementada:** cierra el mínimo S3: `DuracionTemporal` se conserva como ventana de traza, la duración observada entra al reloj en segundos y los enlaces `excepcionSobretiempo`/`excepcionSubtiempo`/`excepcionSubSobretiempo` disparan eventos por umbral.
+- **Estado:** ley operativa en `app/src/leyes/tiempo-enriquecimiento.test.ts`; queda pendiente solo la UX rica de concurrencia temporal, no el contrato semántico mínimo.
 - **Esfuerzo/riesgo:** alto / medio. Toca el tipo compartido `DuracionTemporal` (decisión de arquitectura).
-- **Por qué P1:** frontera **ya identificada** por la simulación; es donde Ss tiene su próxima profundidad real.
+- **Nota:** la lectura sheaf temporal sigue como marco conceptual; el código implementa la sección observada mínima sin meter jerga categorial al usuario.
 
-### F-D2 · Bisimulación de frontera plena (cierre de F2↔S)  **[P2]**
+### F-D2 · Bisimulación de frontera plena (cierre de F2↔S)  **[cerrado inicial · 2026-06-03]**
 - **Pregunta:** ¿la simulación de un in-zoom **ejerce** las entidades de frontera del proceso abstracto?
 - **URN:** `urn:fxsl:kb:icas-efectos` (bisimulación).
-- **Garantía:** cierra el **teorema enunciado pero no demostrado** en la sesión Fs/Ss. Camino ya trazado: comparar `hechosEjercidosPorTraza ∩ frontera` contra `fronteraDe(padre)`.
-- **Esfuerzo/riesgo:** medio / bajo (acotado). **Depende de F-V1/F-V2** (la frontera es propiedad de la adjunción de refinamiento).
-- **Por qué P2:** deuda explícita, acotada; abrir tras el eje vertical.
+- **Garantía implementada:** `verificarBisimulacionFrontera` compara la firma abstracta de frontera del proceso padre con la firma ejercida por la traza del OPD hijo. La ley `F2↔S frontera plena` falla si falta un derivado de frontera ejercido.
+- **Estado:** cerrado como ley operativa en `app/src/leyes/integracion-ss-fs.test.ts` con control de no-tautología; queda como base para F-D1/F-D3, no como deuda abierta.
+- **Nota:** la lectura adjunta del eje vertical sigue siendo hipótesis estructural útil; la ley no afirma todavía una adjunción completa in-zoom ⊣ out-zoom con unit/counit.
 
-### F-D3 · Enriquecimiento cuantitativo (Cost-categories)  **[P2]**
+### F-D3 · Enriquecimiento cuantitativo (Cost-categories)  **[cerrado inicial · 2026-06-03]**
 - **Pregunta:** ¿costos, duración, probabilidad y recursos como **enriquecimiento** de la categoría OPM (no como atributos sueltos)?
 - **URN:** `urn:fxsl:kb:icas-enriquecimiento` (Bool/Cost-categories, profunctors, QoS).
-- **Garantía:** base formal para la **simulación cuantitativa** (Monte Carlo ya existe pero sin garantías); atributos de calidad (RAM) como enriquecimiento; optimización con cota.
+- **Garantía implementada:** `resumirEnriquecimientoCuantitativo` reduce corridas a duración total/media/min/max y conteos de eventos temporales por tipo/enlace; la ley verifica que dos corridas se agregan como magnitudes enriquecidas de la traza.
+- **Estado:** cerrado como base cuantitativa inicial. Costos/recursos/probabilidades agregadas quedan como extensiones del mismo patrón, no como frente abierto sin ancla.
 - **Esfuerzo/riesgo:** medio / medio.
-- **Por qué P2:** conecta simulación Monte Carlo + métricas; OPM ya tiene duración/probabilidad dispersas que esto unificaría.
+- **Nota:** no afirma optimización ni QoS completa; fija el operador de resumen que permite crecer hacia ellas.
 
 ### F-D4 · Sistemas dinámicos abiertos / lentes  **[P3]**
 - **Pregunta:** ¿procesos como sistemas abiertos componibles por **lentes / polynomial functors** (entrada/salida que se enchufan)?
@@ -127,11 +129,10 @@ Criterio rector (de la sesión Fs/Ss): **un frente vale si produce una garantía
 
 ## Orden sugerido para sesiones futuras
 
-1. **Sesión "eje vertical"** — F-V1 + F-V2 (adjunción + fibración del refinamiento). El frente más maduro; desbloquea F-D2.
-2. **Sesión "tiempo"** — F-D1 (behavior types). Cierra S3; la frontera real de la simulación.
-3. **Sesión "cierre + cuantitativo"** — F-D2 (bisimulación plena, ya acotada) + F-D3 (enriquecimiento). Tras el eje vertical.
-4. **Sesión "identidad"** — F-H1 (Yoneda) para afinar composición/equivalencia.
-5. **Solo si emergen naturalmente:** F-H2 (2-categoría), F-D4 (lentes), F-H3 (pullbacks), F-M1/F-M2.
+1. **Sesión "identidad"** — F-H1 (Yoneda) para afinar composición/equivalencia si aparece una ley concreta.
+2. **Sesión "sistemas abiertos"** — F-D4 (lentes) solo si F1+Ss necesitan composición dinámica, no antes.
+3. **Sesión "eje vertical 2"** — F-V1 + F-V2 si se quiere formalizar unit/counit o fibración más allá de la bisimulación ya cerrada.
+4. **Solo si emergen naturalmente:** F-H2 (2-categoría), F-H3 (pullbacks), F-M1/F-M2.
 
 **Antes de abrir cualquier frente, el test de admisión:** *¿esto da una garantía verificable por ley, o solo elegancia?* Si solo elegancia → no se abre.
 

@@ -1,15 +1,10 @@
-import { fronteraDe } from "./frontera";
+import { firmaFronteraDeOpd, fronteraDe } from "./frontera";
 import type { Id, Modelo, Resultado } from "../tipos";
 
 export interface RealizacionAlternativa {
   padreId: Id;
   opdA: Id;
   opdB: Id;
-}
-
-function entidadDeExtremo(extremo: { kind: string; id: Id }, modelo: Modelo): Id | null {
-  if (extremo.kind === "entidad") return extremo.id;
-  return modelo.estados[extremo.id]?.entidadId ?? null;
 }
 
 /**
@@ -31,28 +26,14 @@ function entidadDeExtremo(extremo: { kind: string; id: Id }, modelo: Modelo): Id
  * Limitación declarada (MVP): la firma captura entidad-frontera + tipo de enlace
  * + rol; no distingue aún por estado especificado del enlace (consumo en estado X).
  */
-function firmaFrontera(modelo: Modelo, frontera: ReadonlySet<Id>, opdId: Id): Set<string> {
-  const firma = new Set<string>();
-  const opd = modelo.opds[opdId];
-  if (!opd) return firma;
-  for (const aparienciaEnlace of Object.values(opd.enlaces)) {
-    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
-    if (!enlace) continue;
-    const origen = entidadDeExtremo(enlace.origenId, modelo);
-    const destino = entidadDeExtremo(enlace.destinoId, modelo);
-    if (origen && frontera.has(origen)) firma.add(`${origen}|${enlace.tipo}|origen`);
-    if (destino && frontera.has(destino)) firma.add(`${destino}|${enlace.tipo}|destino`);
-  }
-  return firma;
-}
 
 export function verificarEquivalencia(
   modelo: Modelo,
   eq: RealizacionAlternativa,
 ): Resultado<{ equivalente: boolean; diferencias?: string[] }> {
   const frontera = new Set(fronteraDe(modelo, eq.padreId));
-  const firmaA = firmaFrontera(modelo, frontera, eq.opdA);
-  const firmaB = firmaFrontera(modelo, frontera, eq.opdB);
+  const firmaA = firmaFronteraDeOpd(modelo, frontera, eq.opdA);
+  const firmaB = firmaFronteraDeOpd(modelo, frontera, eq.opdB);
   const diferencias: string[] = [];
   for (const f of firmaA) if (!firmaB.has(f)) diferencias.push(f);
   for (const f of firmaB) if (!firmaA.has(f)) diferencias.push(f);
