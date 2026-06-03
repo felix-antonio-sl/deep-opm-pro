@@ -461,17 +461,19 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         return;
       }
 
-      // impacto-aguas-abajo: el cono descendente transitivo son COSAS; se proyecta
-      // al canvas (multiselección + halo) para responder "qué se cae aguas abajo".
+      // impacto-aguas-abajo: se resalta el CONO COMPLETO en el canvas — las cosas
+      // afectadas y los enlaces que propagan el impacto (las rutas de la cascada).
+      // estadoSeleccionDesdeIds + la proyección admiten ids mixtos entidad/enlace.
       if (consulta.tipo === "impacto-aguas-abajo") {
-        const ids = [...new Set(derivados.map((h) => h.entidadId).filter((id): id is Id => Boolean(id)))];
-        if (ids.length === 0) {
+        const cosas = [...new Set(derivados.map((h) => h.entidadId).filter((id): id is Id => Boolean(id)))];
+        if (cosas.length === 0) {
           set({ mensaje: `Si colapsa "${nombre(consulta.elementoId)}" no se cae nada aguas abajo` });
           return;
         }
+        const enlaces = derivados.map((h) => h.enlaceId).filter((id): id is Id => Boolean(id));
         set({
-          ...estadoSeleccionDesdeIds(modelo, ids, "simple"),
-          mensaje: `Si colapsa "${nombre(consulta.elementoId)}" se caen ${ids.length} cosa(s) aguas abajo`,
+          ...estadoSeleccionDesdeIds(modelo, [...new Set([...cosas, ...enlaces])], "simple"),
+          mensaje: `Si colapsa "${nombre(consulta.elementoId)}" se caen ${cosas.length} cosa(s) aguas abajo`,
         });
         return;
       }

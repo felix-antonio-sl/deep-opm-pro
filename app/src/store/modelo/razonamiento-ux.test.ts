@@ -81,19 +81,24 @@ describe("consultarRazonamiento — proyección UX del Piso 3", () => {
     expect(s.mensaje).toMatch(/afectar[íi]a/i);
   });
 
-  test("impacto-aguas-abajo: selecciona el cono descendente en el canvas + toast", () => {
+  test("impacto-aguas-abajo: resalta el cono descendente COMPLETO (cosas + enlaces) en el canvas + toast", () => {
     cargar(modeloCadena());
-    const fabricarId = idPorNombre(store.getState().modelo, "Fabricar");
-    const piezaId = idPorNombre(store.getState().modelo, "Pieza");
-    const ensamblarId = idPorNombre(store.getState().modelo, "Ensamblar");
+    const m = store.getState().modelo;
+    const fabricarId = idPorNombre(m, "Fabricar");
+    const piezaId = idPorNombre(m, "Pieza");
+    const ensamblarId = idPorNombre(m, "Ensamblar");
+    const enlacesCono = Object.keys(m.enlaces); // ambos enlaces propagan el impacto desde Fabricar
 
     store.getState().consultarRazonamiento({ tipo: "impacto-aguas-abajo", elementoId: fabricarId });
 
     const s = store.getState();
     expect(s.seleccionados).toContain(piezaId); // 1 salto
     expect(s.seleccionados).toContain(ensamblarId); // 2 saltos (transitivo)
+    // los enlaces del cono (rutas de la cascada) también quedan resaltados.
+    expect(enlacesCono.length).toBeGreaterThan(0);
+    for (const e of enlacesCono) expect(s.seleccionados).toContain(e);
     expect(s.seleccionados).not.toContain(fabricarId); // excluye el propio elemento
-    expect(s.mensaje).toMatch(/aguas abajo/i);
+    expect(s.mensaje).toMatch(/2 cosa\(s\) aguas abajo/i); // el conteo es de cosas, no enlaces
   });
 
   test("consulta sin resultados: informa por toast y no introduce selección espuria", () => {
