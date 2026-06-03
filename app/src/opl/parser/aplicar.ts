@@ -93,8 +93,16 @@ function aplicarPatchNoEnlace(
       }
       return ok(conProps);
     }
-    case "sincronizar-estados":
-      return sincronizarEstados(modelo, patch.objetoId, patch.nombres);
+    case "sincronizar-estados": {
+      // La referencia puede ser pendiente por nombre (objeto declarado en una
+      // línea previa del mismo texto): `creadas` la resuelve tras crear-entidad.
+      const objetoId = resolverRef(modelo, patch.objeto, creadas);
+      if (!objetoId) {
+        const nombre = patch.objeto.tipo === "nombre" ? patch.objeto.nombre : patch.objeto.id;
+        return fallo(`No existe el objeto '${nombre}' para sincronizar estados`);
+      }
+      return sincronizarEstados(modelo, objetoId, patch.nombres);
+    }
     case "renombrar-estado":
       return renombrarEstado(modelo, patch.estadoId, patch.siguiente);
     case "aplicar-designacion-estado":

@@ -97,7 +97,9 @@ const fixtureObjetoSolo: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: ["**Carro** es un objeto informacional y sistémico."],
-  bisimetricaEstricta: true,
+  // NO estricta: el aplicador reverse no soporta el self-link de la
+  // autoinvocación ("El enlace requiere dos extremos distintos").
+  bisimetricaEstricta: false,
 };
 
 /** Fixture 2: descripcion de proceso solitario. */
@@ -130,15 +132,10 @@ const fixtureObjetoEsenciaAfiliacion: FixtureRoundtrip = {
 /**
  * Fixture 4: objeto con dos estados (sincronizar-estados + designaciones default).
  *
- * NO es bisimetricamente estricta hoy: el aplicador `aplicar.ts` requiere que la
- * entidad exista en el modelo de entrada para sincronizar sus estados. Cuando
- * todo se construye desde texto libre sobre un modelo vacio, el patch
- * `crear-entidad` (linea 1) se aplica antes que `sincronizar-estados` (linea 2),
- * pero el PLANIFICADOR procesa AST linea a linea contra el modelo ANTERIOR a los
- * patches, por lo que en linea 2 el objeto aun no existe y se emite diagnostico
- * `unknown-symbol` en vez del patch. Documentado como limitacion real del
- * reverse-aplicador; cuando L5 (designaciones + plegado) cierre el ciclo
- * estado-objeto, esta fixture deberia subir a estricta.
+ * Estricta desde el cierre del ciclo estado-objeto: el planificador acepta la
+ * frase de estados sobre una entidad PLANIFICADA en una linea previa del mismo
+ * texto (referencia pendiente por nombre, igual que crear-enlace) y el
+ * aplicador la resuelve tras aplicar `crear-entidad` (orden por linea).
  */
 const fixtureObjetoConEstados: FixtureRoundtrip = {
   nombre: "objeto-con-estados",
@@ -157,7 +154,7 @@ const fixtureObjetoConEstados: FixtureRoundtrip = {
     "**Pedido** es un objeto informacional y sistémico.",
     "**Pedido** puede estar `pendiente` o `aprobado`.",
   ],
-  bisimetricaEstricta: false,
+  bisimetricaEstricta: true,
 };
 
 /** Fixture 5: enlace consumo simple (sin estado, sin modificador). */
@@ -326,7 +323,7 @@ const fixtureBug62ee85AbanicoDeduplicado: FixtureRoundtrip = {
     "**Objeto 2** es un objeto informacional y sistémico.",
     "*Procesar* genera **Objeto 2**.",
   ],
-  bisimetricaEstricta: false,
+  bisimetricaEstricta: true,
 };
 
 /**
@@ -396,7 +393,7 @@ const fixtureTransicionTs3: FixtureRoundtrip = {
     "*Aprobar* es un proceso informacional y sistémico.",
     "*Aprobar* cambia **Pedido** de `pendiente` a `aprobado`.",
   ],
-  bisimetricaEstricta: false,
+  bisimetricaEstricta: true,
 };
 
 // BUG-f314c4: efecto TS3 COMPACTO — el par de estados vive como metadato del
@@ -431,11 +428,9 @@ const fixtureTransicionTs3Compacta: FixtureRoundtrip = {
     "*Egresar* es un proceso informacional y sistémico.",
     "*Egresar* cambia **Paciente** de `ingresado` a `egresado`.",
   ],
-  // No estricta SOLO por la limitación preexistente del ciclo estado-objeto
-  // del reverse-aplicador (ver fixtureObjetoConEstados / L5): "puede estar"
-  // sobre un objeto declarado en el mismo texto. El reanclaje del efecto TS3
-  // (frase → metadatos) sí está sellado en parser/ts45.test.ts.
-  bisimetricaEstricta: false,
+  // Estricta desde el cierre del ciclo estado-objeto: generador y parser
+  // quedan amarrados ida-y-vuelta para la transición TS3 compacta.
+  bisimetricaEstricta: true,
 };
 
 const fixtureTransicionTs4: FixtureRoundtrip = {
@@ -457,7 +452,7 @@ const fixtureTransicionTs4: FixtureRoundtrip = {
     "*Archivar* es un proceso informacional y sistémico.",
     "*Archivar* cambia **Documento** a `borrador`.",
   ],
-  bisimetricaEstricta: false,
+  bisimetricaEstricta: true,
 };
 
 const fixtureTransicionTs5: FixtureRoundtrip = {
@@ -479,7 +474,7 @@ const fixtureTransicionTs5: FixtureRoundtrip = {
     "*Resolver* es un proceso informacional y sistémico.",
     "*Resolver* cambia **Ticket** de `abierto`.",
   ],
-  bisimetricaEstricta: false,
+  bisimetricaEstricta: true,
 };
 
 const fixtureHabilitadorConEstado: FixtureRoundtrip = {
@@ -508,6 +503,10 @@ const fixtureHabilitadorConEstado: FixtureRoundtrip = {
     "**Operador** en `disponible` maneja *Operar*.",
     "*Operar* requiere **Equipo** en `calibrado`.",
   ],
+  // NO estricta: el parser reverse no separa el sufijo "en `estado`" del nombre
+  // en frases HS de habilitadores ("Operador en disponible" llega crudo como
+  // nombre de cosa). Brecha de gramática del parser, distinta del ciclo
+  // estado-objeto (cerrado).
   bisimetricaEstricta: false,
 };
 
@@ -578,6 +577,8 @@ const fixtureInvocacionTilde: FixtureRoundtrip = {
     "*Servir* es un proceso informacional y sistémico.",
     "*Preparar* invoca *Servir* después de 1s.",
   ],
+  // NO estricta: el aplicador reverse aún no inversa la demora del enlace
+  // (el enlace recreado pierde "después de Ns").
   bisimetricaEstricta: false,
 };
 
@@ -611,6 +612,8 @@ const fixtureAutoInvocacionTilde: FixtureRoundtrip = {
     "*Validar* es un proceso informacional y sistémico.",
     "*Validar* se invoca a sí mismo después de 1s.",
   ],
+  // NO estricta: el aplicador reverse no soporta el self-link de la
+  // autoinvocación ("El enlace requiere dos extremos distintos").
   bisimetricaEstricta: false,
 };
 

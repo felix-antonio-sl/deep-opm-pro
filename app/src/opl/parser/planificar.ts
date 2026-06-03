@@ -179,16 +179,6 @@ function planificarEstados(
 ): void {
   const entidad = resolverEntidad(modelo, ast.objeto, "objeto", ast.linea, registry, { silenciosoSiNoExiste: true })
     ?? entidadDeRefAnterior(modelo, anterior, "objeto");
-  if (!entidad) {
-    registry.diagnostico({
-      codigo: "unknown-symbol",
-      severidad: "error",
-      linea: ast.linea,
-      columna: 1,
-      mensaje: `No existe el objeto '${ast.objeto}' para sincronizar estados.`,
-    });
-    return;
-  }
   if (ast.estados.length < 2) {
     registry.diagnostico({
       codigo: "syntax-error",
@@ -199,11 +189,30 @@ function planificarEstados(
     });
     return;
   }
+  if (!entidad) {
+    // Cierre del ciclo estado-objeto: el objeto puede venir declarado en una
+    // línea previa del MISMO texto (patch `crear-entidad` ya planificado).
+    // Igual que los enlaces, se emite una referencia pendiente por nombre que
+    // el aplicador resuelve tras crear la entidad (orden por línea).
+    const pendiente = registry.refEntidadPendiente(modelo, ast.objeto, "objeto", ast.linea);
+    if (pendiente) {
+      registry.add({ tipo: "sincronizar-estados", linea: ast.linea, objeto: pendiente, nombres: ast.estados });
+      return;
+    }
+    registry.diagnostico({
+      codigo: "unknown-symbol",
+      severidad: "error",
+      linea: ast.linea,
+      columna: 1,
+      mensaje: `No existe el objeto '${ast.objeto}' para sincronizar estados.`,
+    });
+    return;
+  }
 
   const actuales = estadosDeEntidad(modelo, entidad.id);
   const refsEstado = anterior?.refs.filter((ref) => ref.tipo === "estado") ?? [];
   if (actuales.length === 0 || ast.estados.length > actuales.length) {
-    registry.add({ tipo: "sincronizar-estados", linea: ast.linea, objetoId: entidad.id, nombres: ast.estados });
+    registry.add({ tipo: "sincronizar-estados", linea: ast.linea, objeto: { tipo: "id", id: entidad.id }, nombres: ast.estados });
     return;
   }
 
@@ -884,7 +893,7 @@ function patchKey(patch: PatchOplPropuesto): string {
     case "crear-entidad":
       return `${patch.tipo}:${patch.nombre}:${patch.entidadTipo}`;
     case "sincronizar-estados":
-      return `${patch.tipo}:${patch.objetoId}`;
+      return `${patch.tipo}:${patch.objeto.tipo === "id" ? patch.objeto.id : claveNombre(patch.objeto.nombre)}`;
     case "renombrar-estado":
       return `${patch.tipo}:${patch.estadoId}`;
     case "crear-enlace":

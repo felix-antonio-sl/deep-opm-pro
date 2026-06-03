@@ -267,7 +267,10 @@ export type PatchOplPropuesto =
   // ausente. Dos oraciones consecutivas (esencia + afiliación) se fusionan en
   // un único `crear-entidad` (ver `PatchRegistry.add`).
   | { tipo: "crear-entidad"; linea: number; nombre: string; entidadTipo: TipoEntidad; esencia?: Esencia; afiliacion?: Afiliacion }
-  | { tipo: "sincronizar-estados"; linea: number; objetoId: Id; nombres: string[] }
+  // `objeto` admite referencia pendiente por nombre (cierre del ciclo
+  // estado-objeto): la frase de estados puede referir a un objeto declarado en
+  // una línea previa del mismo texto; el aplicador resuelve tras crear-entidad.
+  | { tipo: "sincronizar-estados"; linea: number; objeto: ReferenciaEntidadPatch; nombres: string[] }
   | { tipo: "renombrar-estado"; linea: number; estadoId: Id; anterior: string; siguiente: string }
   | {
       tipo: "crear-enlace";
