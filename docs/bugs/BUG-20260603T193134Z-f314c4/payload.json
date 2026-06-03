@@ -1,0 +1,23 @@
+{
+  "id": "BUG-20260603T193134Z-f314c4",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-03T19:31:34.000Z",
+  "text": "El generador OPL no verbaliza la transición de estados de un efecto TS3 compacto: todo enlace efecto con estadoEntradaId/estadoSalidaId se emite como '*Proceso* afecta **Objeto**.' (T3 genérico), descartando el par de estados. Evidencia: bundle HODOM v1.6, e-6 del SD0-C (requiere→egresado) sale 'afecta Paciente'; patrón global (e-12/e-21 con estados visibles igual). Causa: oracionTransicionEstados (procedural.ts ~L95) solo cubre el patrón escindido TS4/TS5 (par consumo+resultado desde/hacia estados visibles); el efecto TS3 compacto (enlace.ts L92-94) no tiene rama de emisión. Esperado: '*Proceso* cambia **Objeto** de `A` a `B`.' con parser inverso. Origen: acta de Mesa hd-opm 2026-06-03 (fe de erratas), comportamiento 6 del emisor.",
+  "context": {
+    "modeloId": "hodom-completo",
+    "modeloNombre": "HODOM completo v1.6",
+    "opdActivoId": "opd-sd0-clinico",
+    "opdActivoNombre": "SD0-C - Hospitalizacion en domicilio",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": "e-6",
+    "pestanaActivaId": null,
+    "vistaMapaActiva": false,
+    "url": "manual://hd-opm/scripts/generar-bundle-hodom.ts",
+    "userAgent": "claude-code/manual-report (hd-opm headless consumer)",
+    "viewport": null,
+    "capturedAt": "2026-06-03T19:31:34.000Z"
+  },
+  "screenshots": []
+}

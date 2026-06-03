@@ -10,6 +10,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Estado | Cantidad |
 |---|---:|
+| Activo / Nuevo | 1 |
 | Activo / Resuelto | 84 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
@@ -19,7 +20,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 79 |
+| Activo / Bug | 80 |
 | Activo / Feat | 5 |
 | Histórico / Bug | 48 |
 
@@ -27,6 +28,7 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Nuevo | [BUG-20260603T193134Z-f314c4](BUG-20260603T193134Z-f314c4/report.md) | 2026-06-03 19:31Z | HODOM completo v1.6 / SD0-C - Hospitalizacion en domicilio | El generador OPL no verbaliza la transición de estados de un efecto TS3 compacto: todo enlace efecto con estadoEntradaId/estadoSalidaId se emite como… | Pendiente. | 0 |  |
 | Activo | Bug | Resuelto | [BUG-20260603T050454Z-276ea7](BUG-20260603T050454Z-276ea7/report.md) | 2026-06-03 05:04Z | Modelo / SD | sigue estando muy mal el opl de esto | El OPL de abanicos XOR/O de efecto Objeto -> Procesos ya no invierte la semantica: sin evento emite O es afectado por P/Q/R; con … | 1 | Causa raiz final: se trato el objeto comun como sujeto afectante, pero en OPM el efecto lo ejerce el proceso sobre el objeto. Cubierto por generar.test y parser.test; legacy O afecta a... se acepta solo para normalizar a pasiva. |
 | Activo | Bug | Resuelto | [BUG-20260603T022341Z-cc4801](BUG-20260603T022341Z-cc4801/report.md) | 2026-06-03 02:23Z | Modelo / SD | No está en la UI/UX la asignación de probabilidades | El inspector de enlaces expone un editor de porcentajes para abanicos XOR; aplica una policy de probabilidades por rama, valida s… | 1 | Causa raiz: la semantica de probabilidades existia en kernel/render/decision, pero la UI solo exponia probabilidad para enlaces evento. Cubierto por abanicos.test, store.test, SeccionAbanico.test, enlace.test y e2e/02-canvas-y-render.spec.ts. |
 | Activo | Bug | Resuelto | [BUG-20260603T020848Z-7b49ec](BUG-20260603T020848Z-7b49ec/report.md) | 2026-06-03 02:08Z | Modelo / SD | quiero mostrar un nuevo patrón súper relevante que se comporta inadecuadamente en nuestro OPforja. pongo como se presenta en OPcloud que es referente… | op-forja soporta el patron OPCloud de abanico logico de efecto desde un objeto hacia procesos: B afecta exactamente/al menos uno … | 4 | Causa raiz: la firma y el reverse asumian efecto solo Proceso -> Objeto, por lo que el patron objeto -> procesos no era operable/canonico. Cubierto por operaciones/enlaces.test, validaciones.test, generar.test y parser.test. |
