@@ -70,9 +70,14 @@ test("Exportar OPD actual como PNG descarga el paper del canvas sin chrome de ap
   const path = await download.path();
   if (!path) throw new Error("Playwright no entrego path de descarga PNG");
   const bytes = await readFile(path);
+  const dimensiones = dimensionesPng(bytes);
 
   expect([...bytes.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   expect(bytes.byteLength).toBeGreaterThan(1000);
+  expect(dimensiones.width).toBeGreaterThan(350);
+  expect(dimensiones.width).toBeLessThan(900);
+  expect(dimensiones.height).toBeGreaterThan(500);
+  expect(dimensiones.height).toBeLessThan(900);
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
@@ -81,6 +86,13 @@ test("Exportar OPD actual como PNG descarga el paper del canvas sin chrome de ap
   await page.keyboard.press("Escape");
   expect(pageErrors).toEqual([]);
 });
+
+function dimensionesPng(bytes: Buffer): { width: number; height: number } {
+  return {
+    width: bytes.readUInt32BE(16),
+    height: bytes.readUInt32BE(20),
+  };
+}
 
 test("Exportar todos los OPDs como PNG descarga paquete ZIP", async ({ page }) => {
   const pageErrors: string[] = [];

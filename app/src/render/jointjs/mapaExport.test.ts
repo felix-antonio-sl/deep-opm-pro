@@ -2,8 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../../modelo/operaciones";
 import { descargarMapa, exportarMapa, exportarTodosLosOpdsPngZip, nombreArchivoMapa, nombreArchivoOpdPng, nombreArchivoOpdsPngZip } from "./mapaExport";
 
-function paperFalso(svg = "<svg width=\"320\" height=\"180\"><rect width=\"10\" height=\"10\"/></svg>") {
+function paperFalso(
+  svg = "<svg width=\"320\" height=\"180\"><rect width=\"10\" height=\"10\"/></svg>",
+  bbox?: { x: number; y: number; width: number; height: number },
+) {
   return {
+    ...(bbox ? { getContentBBox: () => bbox } : {}),
     toSVG() {
       return svg;
     },
@@ -31,6 +35,23 @@ describe("mapaExport", () => {
     const blob = await exportarMapa(paperOssFalso(), crearModelo("Mapa"), {});
 
     expect(blob.type).toBe("image/png");
+  });
+
+  test("exportarMapa recorta el PNG al bbox del diagrama con margen pequeno", async () => {
+    const blob = await exportarMapa(
+      paperFalso(
+        "<svg width=\"2400\" height=\"1800\" viewBox=\"0 0 2400 1800\"><g class=\"joint-viewport\"><rect x=\"500\" y=\"700\" width=\"120\" height=\"60\"/></g></svg>",
+        { x: 500, y: 700, width: 120, height: 60 },
+      ),
+      crearModelo("Mapa"),
+      { paddingPx: 24 },
+    );
+    const texto = await blob.text();
+
+    expect(texto).toContain("width=\"168\"");
+    expect(texto).toContain("height=\"108\"");
+    expect(texto).toContain("viewBox=\"476 676 168 108\"");
+    expect(texto).toContain("<rect x=\"476\" y=\"676\" width=\"168\" height=\"108\" fill=\"#ffffff\"/>");
   });
 
   test("descargarMapa no rechaza con paper vacío", async () => {

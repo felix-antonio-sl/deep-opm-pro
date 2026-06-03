@@ -24,6 +24,8 @@ export interface OpcionesDescargaOpdsPngZip {
   fondo?: "blanco" | "transparente";
 }
 
+const PADDING_EXPORT_PNG = 32;
+
 export async function exportarMapa(
   paper: dia.Paper,
   modelo: Modelo,
@@ -151,10 +153,10 @@ function modeloParaExportar(modelo: Modelo): Modelo {
 
 function obtenerSvgPaper(paper: dia.Paper, opts: OpcionesExport): string {
   const paperConEl = paper as unknown as { el?: Element };
-  const dimensiones = dimensionesElementoPaper(paperConEl.el);
+  const encuadre = encuadreExportacion(paper, paperConEl.el, opts);
   const svgElement = paperConEl.el?.querySelector?.("svg");
   const svgDom = svgElement ? serializarSvg(svgElement) : "";
-  if (svgDom?.includes("<svg")) return normalizarSvg(svgDom, opts, dimensiones);
+  if (svgDom?.includes("<svg")) return normalizarSvg(svgDom, opts, encuadre);
 
   const paperConToSvg = paper as unknown as {
     toSVG?: (callback?: (svg: string) => void, options?: Record<string, unknown>) => string | void;
@@ -162,12 +164,12 @@ function obtenerSvgPaper(paper: dia.Paper, opts: OpcionesExport): string {
   };
   if (typeof paperConToSvg.toSVG === "function") {
     const directo = paperConToSvg.toSVG(undefined, { preserveDimensions: true, convertImagesToDataUris: true });
-    if (typeof directo === "string" && directo.includes("<svg")) return normalizarSvg(directo, opts, dimensiones);
+    if (typeof directo === "string" && directo.includes("<svg")) return normalizarSvg(directo, opts, encuadre);
     let capturado = "";
     paperConToSvg.toSVG((svg) => {
       capturado = svg;
     }, { preserveDimensions: true, convertImagesToDataUris: true });
-    if (capturado.includes("<svg")) return normalizarSvg(capturado, opts, dimensiones);
+    if (capturado.includes("<svg")) return normalizarSvg(capturado, opts, encuadre);
   }
   return normalizarSvg("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1\" height=\"1\"></svg>", opts);
 }
@@ -179,16 +181,70 @@ function serializarSvg(svgElement: Element): string {
   return (svgElement as HTMLElement).outerHTML;
 }
 
-function normalizarSvg(svg: string, opts: OpcionesExport, dimensiones?: { width: number; height: number }): string {
+function normalizarSvg(svg: string, opts: OpcionesExport, encuadre?: EncuadreSvg): string {
   const fondo = opts.fondo ?? "blanco";
   const conXmlns = svg.includes("xmlns=\"http://www.w3.org/2000/svg\"")
     ? svg
     : svg.replace("<svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"");
-  const normalizado = normalizarColoresSvg(dimensiones ? fijarDimensionesSvg(conXmlns, dimensiones) : conXmlns);
+  const normalizado = normalizarColoresSvg(encuadre ? fijarEncuadreSvg(conXmlns, encuadre) : conXmlns);
   return fondo === "blanco" ? inyectarFondoBlanco(normalizado) : normalizado;
 }
 
-function dimensionesElementoPaper(el?: Element): { width: number; height: number } | undefined {
+interface EncuadreSvg {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function encuadreExportacion(paper: dia.Paper, el: Element | undefined, opts: OpcionesExport): EncuadreSvg | undefined {
+  const contenido = bboxContenidoPaper(paper) ?? bboxContenidoSvg(el);
+  if (contenido) return expandirEncuadre(contenido, opts.paddingPx ?? PADDING_EXPORT_PNG);
+  const dimensiones = dimensionesElementoPaper(el);
+  return dimensiones ? { x: 0, y: 0, ...dimensiones } : undefined;
+}
+
+function bboxContenidoPaper(paper: dia.Paper): EncuadreSvg | null {
+  const paperConBBox = paper as unknown as {
+    getContentBBox?: (options?: { useModelGeometry?: boolean }) => { x: number; y: number; width: number; height: number } | null;
+  };
+  if (typeof paperConBBox.getContentBBox !== "function") return null;
+  try {
+    return normalizarEncuadre(paperConBBox.getContentBBox());
+  } catch {
+    return null;
+  }
+}
+
+function bboxContenidoSvg(el?: Element): EncuadreSvg | null {
+  const svg = el?.querySelector?.("svg");
+  const target = svg?.querySelector?.(".joint-viewport, .joint-cells-layer, g") ?? svg;
+  if (!target || typeof SVGGraphicsElement === "undefined" || !(target instanceof SVGGraphicsElement)) return null;
+  try {
+    return normalizarEncuadre(target.getBBox());
+  } catch {
+    return null;
+  }
+}
+
+function normalizarEncuadre(bbox?: { x: number; y: number; width: number; height: number } | null): EncuadreSvg | null {
+  if (!bbox) return null;
+  const { x, y, width, height } = bbox;
+  if (![x, y, width, height].every(Number.isFinite) || width <= 0 || height <= 0) return null;
+  return { x, y, width, height };
+}
+
+function expandirEncuadre(bbox: EncuadreSvg, paddingPx: number): EncuadreSvg {
+  const padding = Math.max(0, Number.isFinite(paddingPx) ? paddingPx : PADDING_EXPORT_PNG);
+  return {
+    x: Math.floor(bbox.x - padding),
+    y: Math.floor(bbox.y - padding),
+    width: Math.max(1, Math.ceil(bbox.width + padding * 2)),
+    height: Math.max(1, Math.ceil(bbox.height + padding * 2)),
+  };
+}
+
+function dimensionesElementoPaper(el?: Element): Pick<EncuadreSvg, "width" | "height"> | undefined {
   if (!el) return undefined;
   const elemento = el as Element & {
     clientWidth?: number;
@@ -206,7 +262,7 @@ function parseDimension(value: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function fijarDimensionesSvg(svg: string, dimensiones: { width: number; height: number }): string {
+function fijarEncuadreSvg(svg: string, encuadre: EncuadreSvg): string {
   const match = /<svg\b([^>]*)>/i.exec(svg);
   if (!match) return svg;
   const attrs = match[1] ?? "";
@@ -214,8 +270,12 @@ function fijarDimensionesSvg(svg: string, dimensiones: { width: number; height: 
     .replace(/\swidth="[^"]*"/i, "")
     .replace(/\sheight="[^"]*"/i, "")
     .replace(/\sviewBox="[^"]*"/i, "");
-  const siguiente = `<svg${sinDimensiones} width="${dimensiones.width}" height="${dimensiones.height}" viewBox="0 0 ${dimensiones.width} ${dimensiones.height}">`;
+  const siguiente = `<svg${sinDimensiones} width="${fmtSvg(encuadre.width)}" height="${fmtSvg(encuadre.height)}" viewBox="${fmtSvg(encuadre.x)} ${fmtSvg(encuadre.y)} ${fmtSvg(encuadre.width)} ${fmtSvg(encuadre.height)}">`;
   return svg.replace(match[0], siguiente);
+}
+
+function fmtSvg(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, "");
 }
 
 function normalizarColoresSvg(svg: string): string {
@@ -226,9 +286,21 @@ function inyectarFondoBlanco(svg: string): string {
   const match = /<svg\b([^>]*)>/i.exec(svg);
   if (!match) return svg;
   const attrs = match[1] ?? "";
+  const viewBox = parseViewBox(attrs);
+  if (viewBox) {
+    return svg.replace(match[0], `${match[0]}<rect x="${fmtSvg(viewBox.x)}" y="${fmtSvg(viewBox.y)}" width="${fmtSvg(viewBox.width)}" height="${fmtSvg(viewBox.height)}" fill="#ffffff"/>`);
+  }
   const width = /width="([^"]+)"/.exec(attrs)?.[1] ?? "100%";
   const height = /height="([^"]+)"/.exec(attrs)?.[1] ?? "100%";
   return svg.replace(match[0], `${match[0]}<rect width="${width}" height="${height}" fill="#ffffff"/>`);
+}
+
+function parseViewBox(attrs: string): EncuadreSvg | null {
+  const raw = /viewBox="([^"]+)"/i.exec(attrs)?.[1];
+  if (!raw) return null;
+  const partes = raw.trim().split(/[\s,]+/).map(Number);
+  if (partes.length !== 4 || partes.some((valor) => !Number.isFinite(valor))) return null;
+  return normalizarEncuadre({ x: partes[0]!, y: partes[1]!, width: partes[2]!, height: partes[3]! });
 }
 
 async function svgAPng(svg: string, fondo: "blanco" | "transparente"): Promise<Blob> {
