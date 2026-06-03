@@ -97,9 +97,7 @@ const fixtureObjetoSolo: FixtureRoundtrip = {
     return m;
   },
   oracionesEsperadas: ["**Carro** es un objeto informacional y sistémico."],
-  // NO estricta: el aplicador reverse no soporta el self-link de la
-  // autoinvocación ("El enlace requiere dos extremos distintos").
-  bisimetricaEstricta: false,
+  bisimetricaEstricta: true,
 };
 
 /** Fixture 2: descripcion de proceso solitario. */
