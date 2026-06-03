@@ -55,6 +55,7 @@ export function InspectorEnlace({ enlace }: Props) {
     crearAbanicoDesdeEnlace,
     quitarRamaDeAbanico,
     disolverAbanico,
+    definirProbabilidadesAbanico,
     aplicarModificador,
     aplicarSubtipoModificador,
     quitarModificador,
@@ -288,7 +289,15 @@ export function InspectorEnlace({ enlace }: Props) {
                 lógica del enlace (igual que multiplicidad/modificador), por lo que
                 vive en Propiedades. Smokes 02-canvas-y-render lo asumen visible al
                 seleccionar el enlace. */}
-            <SeccionAbanico modelo={modelo} abanico={abanico} onAlternarOperador={alternarOperadorAbanico} onQuitarRama={quitarRamaDeAbanico} onDisolver={disolverAbanico} onResolver={resolverDecision} />
+            <SeccionAbanico
+              modelo={modelo}
+              abanico={abanico}
+              onAlternarOperador={alternarOperadorAbanico}
+              onProbabilidades={definirProbabilidadesAbanico}
+              onQuitarRama={quitarRamaDeAbanico}
+              onDisolver={disolverAbanico}
+              onResolver={resolverDecision}
+            />
             <SeccionGrupoEstructural
               modelo={modelo}
               opdId={opdActivoId}

@@ -14,6 +14,7 @@ export interface SelectedLinkPropertiesPort {
   crearAbanicoDesdeEnlace: OpmStore["crearAbanicoDesdeEnlaceSeleccionado"];
   quitarRamaDeAbanico: OpmStore["quitarRamaDeAbanicoSeleccionado"];
   disolverAbanico: OpmStore["disolverAbanicoSeleccionado"];
+  definirProbabilidadesAbanico: OpmStore["definirProbabilidadesAbanicoSeleccionado"];
   aplicarModificador: OpmStore["aplicarModificadorEnlaceSeleccionado"];
   aplicarSubtipoModificador: OpmStore["aplicarSubtipoModificadorEnlaceSeleccionado"];
   quitarModificador: OpmStore["quitarModificadorEnlaceSeleccionado"];

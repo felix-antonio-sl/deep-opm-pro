@@ -163,6 +163,20 @@ test("renderiza abanicos O/XOR con conectores canonicos sin texto de marcador", 
   await expect(svgText(page, "O")).toHaveCount(0);
   await expect(svgText(page, "XOR")).toHaveCount(0);
 
+  const inputsProbabilidad = page.getByTestId("abanico-probabilidades").locator("input");
+  await expect(inputsProbabilidad).toHaveCount(2);
+  await inputsProbabilidad.nth(0).fill("40");
+  await inputsProbabilidad.nth(1).fill("60");
+  await page.getByTestId("abanico-probabilidades-aplicar").click();
+  await expect(page.getByText("Probabilidades del abanico actualizadas")).toBeVisible();
+  await expect(svgText(page, "40%")).toHaveCount(1);
+  await expect(svgText(page, "60%")).toHaveCount(1);
+  const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
+  const abanico = Object.values(exportado.modelo.abanicos ?? {})[0];
+  expect(abanico?.decision).toMatchObject({ modo: "probabilidades" });
+  const enlacesFan = abanico?.enlaceIds.map((id) => exportado.modelo.enlaces[id]?.probabilidad);
+  expect(enlacesFan).toEqual([0.4, 0.6]);
+
   await page.screenshot({ path: "test-results/opm-abanico-logico-canonico.png", fullPage: true });
   expect(pageErrors).toEqual([]);
 });

@@ -233,6 +233,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "crearAbanicoDesdeEnlaceSeleccionado",
     "quitarRamaDeAbanicoSeleccionado",
     "disolverAbanicoSeleccionado",
+    "definirProbabilidadesAbanicoSeleccionado",
     "crearAutoInvocacionSeleccionada",
     "aplicarModificadorEnlaceSeleccionado",
     "aplicarSubtipoModificadorEnlaceSeleccionado",

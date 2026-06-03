@@ -592,6 +592,7 @@ export interface OpmStore {
   crearAbanicoDesdeEnlaceSeleccionado: (lado: "origen" | "destino", operador?: OperadorAbanico) => void;
   quitarRamaDeAbanicoSeleccionado: () => void;
   disolverAbanicoSeleccionado: () => void;
+  definirProbabilidadesAbanicoSeleccionado: (probabilidades: Record<Id, number> | undefined) => void;
   crearAutoInvocacionSeleccionada: () => void;
   aplicarModificadorEnlaceSeleccionado: (modificador: Modificador) => void;
   aplicarSubtipoModificadorEnlaceSeleccionado: (subtipo: SubtipoModificador) => void;

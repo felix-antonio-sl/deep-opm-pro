@@ -64,11 +64,13 @@ export function quitarRamaDeAbanico(modelo: Modelo, abanicoId: Id, enlaceId: Id)
   if (!abanico.enlaceIds.includes(enlaceId)) return ok(modelo);
   const restantes = abanico.enlaceIds.filter((id) => id !== enlaceId);
   if (restantes.length < 2) return disolverAbanico(modelo, abanicoId);
+  const siguienteAbanico = normalizarDecisionAbanico({ ...abanico, enlaceIds: restantes });
   return ok({
     ...modelo,
+    enlaces: limpiarProbabilidadesDecision(modelo, abanico),
     abanicos: {
       ...(modelo.abanicos ?? {}),
-      [abanicoId]: { ...abanico, enlaceIds: restantes },
+      [abanicoId]: siguienteAbanico,
     },
   });
 }
@@ -78,20 +80,67 @@ export function alternarOperadorAbanico(modelo: Modelo, abanicoId: Id, operador:
   const abanico = (modelo.abanicos ?? {})[abanicoId];
   if (!abanico) return fallo(`Abanico no existe: ${abanicoId}`);
   if (abanico.operador === operador) return ok(modelo);
+  const siguienteAbanico = operador === "XOR"
+    ? { ...abanico, operador }
+    : limpiarDecisionAbanico({ ...abanico, operador });
   return ok({
     ...modelo,
+    enlaces: operador === "XOR" ? modelo.enlaces : limpiarProbabilidadesDecision(modelo, abanico),
     abanicos: {
       ...(modelo.abanicos ?? {}),
-      [abanicoId]: { ...abanico, operador },
+      [abanicoId]: siguienteAbanico,
+    },
+  });
+}
+
+export function definirProbabilidadesAbanico(
+  modelo: Modelo,
+  abanicoId: Id,
+  probabilidades: Record<Id, number> | undefined,
+): Resultado<Modelo> {
+  const abanico = (modelo.abanicos ?? {})[abanicoId];
+  if (!abanico) return fallo(`Abanico no existe: ${abanicoId}`);
+  if (abanico.operador !== "XOR") return fallo("Las probabilidades explícitas requieren abanico XOR");
+  const enlaces = abanico.enlaceIds.map((id) => modelo.enlaces[id]);
+  if (enlaces.some((enlace) => !enlace)) return fallo("Abanico inválido: contiene enlaces inexistentes");
+  if (!probabilidades) {
+    return ok({
+      ...modelo,
+      enlaces: limpiarProbabilidadesRamas(modelo, abanico.enlaceIds),
+      abanicos: {
+        ...(modelo.abanicos ?? {}),
+        [abanicoId]: limpiarDecisionAbanico(abanico),
+      },
+    });
+  }
+
+  const validado = validarProbabilidadesAbanico(abanico.enlaceIds, probabilidades);
+  if (!validado.ok) return validado;
+  const siguientesEnlaces = { ...modelo.enlaces };
+  for (const enlaceId of abanico.enlaceIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace) continue;
+    siguientesEnlaces[enlaceId] = { ...enlace, probabilidad: validado.value[enlaceId]! };
+  }
+  return ok({
+    ...modelo,
+    enlaces: siguientesEnlaces,
+    abanicos: {
+      ...(modelo.abanicos ?? {}),
+      [abanicoId]: {
+        ...abanico,
+        decision: { modo: "probabilidades", pesos: validado.value },
+      },
     },
   });
 }
 
 export function disolverAbanico(modelo: Modelo, abanicoId: Id): Resultado<Modelo> {
-  if (!(modelo.abanicos ?? {})[abanicoId]) return ok(modelo);
+  const abanico = (modelo.abanicos ?? {})[abanicoId];
+  if (!abanico) return ok(modelo);
   const abanicos = { ...(modelo.abanicos ?? {}) };
   delete abanicos[abanicoId];
-  return ok({ ...modelo, abanicos });
+  return ok({ ...modelo, enlaces: limpiarProbabilidadesDecision(modelo, abanico), abanicos });
 }
 
 export function detectarPuertoCompartido(modelo: Modelo, opdId: Id, enlace: Enlace): Abanico | undefined {
@@ -170,7 +219,7 @@ export function sincronizarAbanicos(modelo: Modelo): Modelo {
     const validado = validarCandidatoAbanico(modelo, abanico.opdId, enlaceIds, abanico.operador, puertoEsperadoDeAbanico(abanico), abanico.id);
     if (!validado.ok) continue;
     const puertoComun = puertoAbanicoDesdeExacto(validado.value.puertoComun);
-    siguientes[abanico.id] = { ...abanico, puertoComun, puertoEntidadId: puertoComun.entidadId, enlaceIds };
+    siguientes[abanico.id] = normalizarDecisionAbanico({ ...abanico, puertoComun, puertoEntidadId: puertoComun.entidadId, enlaceIds });
   }
   return { ...modelo, abanicos: siguientes };
 }
@@ -351,6 +400,60 @@ function ordenarConSeleccionPrimero(enlaceIds: Id[], enlaceSeleccionId: Id): Id[
     enlaceSeleccionId,
     ...enlaceIds.filter((id) => id !== enlaceSeleccionId),
   ];
+}
+
+function validarProbabilidadesAbanico(enlaceIds: Id[], probabilidades: Record<Id, number>): Resultado<Record<Id, number>> {
+  const ids = new Set(enlaceIds);
+  const claves = Object.keys(probabilidades);
+  if (claves.some((id) => !ids.has(id))) return fallo("Las probabilidades contienen ramas ajenas al abanico");
+  if (enlaceIds.some((id) => !(id in probabilidades))) return fallo("Todas las ramas del abanico requieren probabilidad");
+
+  const normalizadas: Record<Id, number> = {};
+  for (const enlaceId of enlaceIds) {
+    const valor = probabilidades[enlaceId];
+    if (typeof valor !== "number" || !Number.isFinite(valor) || valor < 0 || valor > 1) {
+      return fallo(`Probabilidad inválida para rama ${enlaceId}`);
+    }
+    normalizadas[enlaceId] = valor;
+  }
+  const suma = Object.values(normalizadas).reduce((acc, valor) => acc + valor, 0);
+  if (Math.abs(suma - 1) > 1e-9) return fallo("Las probabilidades del abanico deben sumar 1");
+  return ok(normalizadas);
+}
+
+function limpiarProbabilidadesRamas(modelo: Modelo, enlaceIds: Id[], pesosEsperados?: Record<Id, number>): Modelo["enlaces"] {
+  let cambiado = false;
+  const enlaces = { ...modelo.enlaces };
+  for (const enlaceId of enlaceIds) {
+    const enlace = enlaces[enlaceId];
+    if (!enlace || enlace.probabilidad === undefined) continue;
+    if (pesosEsperados && enlace.probabilidad !== pesosEsperados[enlaceId]) continue;
+    const { probabilidad: _probabilidad, ...sinProbabilidad } = enlace;
+    enlaces[enlaceId] = sinProbabilidad;
+    cambiado = true;
+  }
+  return cambiado ? enlaces : modelo.enlaces;
+}
+
+function limpiarProbabilidadesDecision(modelo: Modelo, abanico: Abanico): Modelo["enlaces"] {
+  return abanico.decision?.modo === "probabilidades"
+    ? limpiarProbabilidadesRamas(modelo, abanico.enlaceIds, abanico.decision.pesos)
+    : modelo.enlaces;
+}
+
+function limpiarDecisionAbanico(abanico: Abanico): Abanico {
+  if (!abanico.decision) return abanico;
+  const { decision: _decision, ...sinDecision } = abanico;
+  return sinDecision;
+}
+
+function normalizarDecisionAbanico(abanico: Abanico): Abanico {
+  if (abanico.operador !== "XOR") return limpiarDecisionAbanico(abanico);
+  if (abanico.decision?.modo !== "probabilidades") return abanico;
+  const ids = new Set(abanico.enlaceIds);
+  const pesos = abanico.decision.pesos;
+  const completo = abanico.enlaceIds.every((id) => id in pesos) && Object.keys(pesos).every((id) => ids.has(id));
+  return completo ? abanico : limpiarDecisionAbanico(abanico);
 }
 
 function puertoAbanicoDesdeExacto(puerto: PuertoComunExacto | PuertoAbanicoExacto): PuertoAbanicoExacto {

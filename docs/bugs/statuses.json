@@ -310,5 +310,11 @@
     "status": "Resuelto",
     "resolution": "op-forja soporta el patron OPCloud de abanico logico de efecto desde un objeto hacia procesos: B afecta exactamente/al menos uno de P, Q y R. La creacion permite esas ramas, el diagnostico solo las acepta cuando estan agrupadas en O/XOR y OPL reverse conserva el sujeto objeto.",
     "note": "Causa raiz: la firma y el reverse asumian efecto solo Proceso -> Objeto, por lo que el patron objeto -> procesos no era operable/canonico. Cubierto por operaciones/enlaces.test, validaciones.test, generar.test y parser.test."
+  },
+  "BUG-20260603T022341Z-cc4801": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El inspector de enlaces expone un editor de porcentajes para abanicos XOR; aplica una policy de probabilidades por rama, valida suma 100%, persiste pesos y muestra los porcentajes en el canvas.",
+    "note": "Causa raiz: la semantica de probabilidades existia en kernel/render/decision, pero la UI solo exponia probabilidad para enlaces evento. Cubierto por abanicos.test, store.test, SeccionAbanico.test, enlace.test y e2e/02-canvas-y-render.spec.ts."
   }
 }

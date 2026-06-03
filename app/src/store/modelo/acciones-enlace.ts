@@ -2,6 +2,7 @@ import {
   abanicoDeEnlace,
   alternarOperadorAbanico as alternarOperadorAbanicoOp,
   candidatosAbanicoExacto,
+  definirProbabilidadesAbanico as definirProbabilidadesAbanicoOp,
   disolverAbanico as disolverAbanicoOp,
   formarAbanico,
   quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
@@ -210,6 +211,27 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       commitModelo(set, modelo, resultado.value, { mensaje: `Operador actualizado a ${operador}` });
+    },
+
+    definirProbabilidadesAbanicoSeleccionado(probabilidades) {
+      const { modelo, enlaceSeleccionId } = get();
+      if (!enlaceSeleccionId) {
+        set({ mensaje: "Selecciona un enlace del abanico para definir probabilidades" });
+        return;
+      }
+      const abanico = abanicoDeEnlace(modelo, enlaceSeleccionId);
+      if (!abanico) {
+        set({ mensaje: "El enlace no pertenece a un abanico" });
+        return;
+      }
+      const resultado = definirProbabilidadesAbanicoOp(modelo, abanico.id, probabilidades);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        mensaje: probabilidades ? "Probabilidades del abanico actualizadas" : "Probabilidades del abanico eliminadas",
+      });
     },
 
     quitarRamaDeAbanicoSeleccionado() {

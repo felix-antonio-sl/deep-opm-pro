@@ -14,6 +14,7 @@ export function useZustandLinkInspectorPort(): LinkInspectorPort {
   const crearAbanicoDesdeEnlace = useOpmStore((s) => s.crearAbanicoDesdeEnlaceSeleccionado);
   const quitarRamaDeAbanico = useOpmStore((s) => s.quitarRamaDeAbanicoSeleccionado);
   const disolverAbanico = useOpmStore((s) => s.disolverAbanicoSeleccionado);
+  const definirProbabilidadesAbanico = useOpmStore((s) => s.definirProbabilidadesAbanicoSeleccionado);
   const aplicarModificador = useOpmStore((s) => s.aplicarModificadorEnlaceSeleccionado);
   const aplicarSubtipoModificador = useOpmStore((s) => s.aplicarSubtipoModificadorEnlaceSeleccionado);
   const quitarModificador = useOpmStore((s) => s.quitarModificadorEnlaceSeleccionado);
@@ -52,6 +53,7 @@ export function useZustandLinkInspectorPort(): LinkInspectorPort {
     crearAbanicoDesdeEnlace,
     quitarRamaDeAbanico,
     disolverAbanico,
+    definirProbabilidadesAbanico,
     aplicarModificador,
     aplicarSubtipoModificador,
     quitarModificador,

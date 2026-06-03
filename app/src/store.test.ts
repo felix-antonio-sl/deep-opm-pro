@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+import { formarAbanico } from "./modelo/abanicos";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "./modelo/extremos";
 import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto, estadosDeEntidad } from "./modelo/operaciones";
 import type { Modelo } from "./modelo/tipos";
@@ -476,6 +477,44 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().modelo.enlaces[consumoId]?.modificador).toBeUndefined();
     expect(store.getState().modelo.enlaces[consumoId]?.probabilidad).toBeUndefined();
     expect(store.getState().puedeDeshacer).toBe(true);
+  });
+
+  test("probabilidades de abanico XOR entran al historial desde enlace seleccionado", () => {
+    let modelo = crearModelo("Store probabilidades XOR");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 80 }, "P"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 10 }, "A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "B"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 230 }, "C"));
+    const procesoId = entidadPorNombre(modelo, "P");
+    for (const nombre of ["A", "B", "C"]) {
+      modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, entidadPorNombre(modelo, nombre), "resultado"));
+    }
+    const enlaces = Object.keys(modelo.enlaces);
+    modelo = {
+      ...modelo,
+      enlaces: Object.fromEntries(enlaces.map((id) => {
+        const enlace = modelo.enlaces[id]!;
+        return [id, { ...enlace, origenId: { ...enlace.origenId, portId: "port-test-origen" } }];
+      })),
+    };
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaces, "XOR"));
+    const abanico = Object.values(modelo.abanicos ?? {})[0];
+    if (!abanico) throw new Error("La prueba esperaba abanico");
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().seleccionarEnlace(enlaces[1]!);
+    store.getState().definirProbabilidadesAbanicoSeleccionado({
+      [enlaces[0]!]: 0.25,
+      [enlaces[1]!]: 0.25,
+      [enlaces[2]!]: 0.5,
+    });
+
+    expect(store.getState().modelo.abanicos?.[abanico.id]?.decision).toMatchObject({ modo: "probabilidades" });
+    expect(enlaces.map((id) => store.getState().modelo.enlaces[id]?.probabilidad)).toEqual([0.25, 0.25, 0.5]);
+    expect(store.getState().puedeDeshacer).toBe(true);
+
+    store.getState().deshacer();
+    expect(enlaces.map((id) => store.getState().modelo.enlaces[id]?.probabilidad)).toEqual([undefined, undefined, undefined]);
   });
 
   test("renombrar etiqueta de enlace seleccionado entra al historial y conserva seleccion", () => {

@@ -3,6 +3,7 @@ import {
   agregarRamaAAbanico,
   alternarOperadorAbanico,
   candidatosAbanicoExacto,
+  definirProbabilidadesAbanico,
   detectarPuertoCompartido,
   disolverAbanico,
   formarAbanico,
@@ -145,6 +146,66 @@ describe("abanicos lógicos O/XOR", () => {
 
     expect(modelo.abanicos?.[abanico.id]?.operador).toBe("XOR");
     expect(modelo.abanicos?.[abanico.id]?.enlaceIds).toEqual(enlaces);
+  });
+
+  test("definirProbabilidadesAbanico guarda una policy XOR completa por rama", () => {
+    const { modelo: base, enlaces } = modeloConResultados(["A", "B", "C"]);
+    let modelo = must(formarAbanico(base, base.opdRaizId, enlaces, "XOR"));
+    const abanico = unicoAbanico(modelo);
+
+    modelo = must(definirProbabilidadesAbanico(modelo, abanico.id, {
+      [enlaces[0]!]: 0.2,
+      [enlaces[1]!]: 0.3,
+      [enlaces[2]!]: 0.5,
+    }));
+
+    expect(modelo.abanicos?.[abanico.id]?.decision).toEqual({
+      modo: "probabilidades",
+      pesos: {
+        [enlaces[0]!]: 0.2,
+        [enlaces[1]!]: 0.3,
+        [enlaces[2]!]: 0.5,
+      },
+    });
+    expect(enlaces.map((id) => modelo.enlaces[id]?.probabilidad)).toEqual([0.2, 0.3, 0.5]);
+  });
+
+  test("definirProbabilidadesAbanico exige suma 1 y operador XOR", () => {
+    const { modelo: base, enlaces } = modeloConResultados(["A", "B"]);
+    const modelo = must(formarAbanico(base, base.opdRaizId, enlaces, "O"));
+    const abanico = unicoAbanico(modelo);
+
+    const enO = definirProbabilidadesAbanico(modelo, abanico.id, {
+      [enlaces[0]!]: 0.5,
+      [enlaces[1]!]: 0.5,
+    });
+    expect(enO.ok).toBe(false);
+    if (enO.ok) return;
+    expect(enO.error).toContain("XOR");
+
+    const comoXor = must(alternarOperadorAbanico(modelo, abanico.id, "XOR"));
+    const sumaInvalida = definirProbabilidadesAbanico(comoXor, abanico.id, {
+      [enlaces[0]!]: 0.7,
+      [enlaces[1]!]: 0.7,
+    });
+    expect(sumaInvalida.ok).toBe(false);
+    if (sumaInvalida.ok) return;
+    expect(sumaInvalida.error).toContain("sumar 1");
+  });
+
+  test("definirProbabilidadesAbanico limpia la policy explicita al recibir undefined", () => {
+    const { modelo: base, enlaces } = modeloConResultados(["A", "B"]);
+    let modelo = must(formarAbanico(base, base.opdRaizId, enlaces, "XOR"));
+    const abanico = unicoAbanico(modelo);
+    modelo = must(definirProbabilidadesAbanico(modelo, abanico.id, {
+      [enlaces[0]!]: 0.6,
+      [enlaces[1]!]: 0.4,
+    }));
+
+    modelo = must(definirProbabilidadesAbanico(modelo, abanico.id, undefined));
+
+    expect(modelo.abanicos?.[abanico.id]?.decision).toBeUndefined();
+    expect(enlaces.map((id) => modelo.enlaces[id]?.probabilidad)).toEqual([undefined, undefined]);
   });
 
   test("disolverAbanico elimina sólo el agrupador", () => {

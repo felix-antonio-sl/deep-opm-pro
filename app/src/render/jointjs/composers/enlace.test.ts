@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { Apariencia, Enlace } from "../../../modelo/tipos";
 import { LINK_ASSETS } from "../linkAssets";
-import { connectorJumpover, connectorRecto, endpointJoint, etiquetasMultiplicidad, proyectarEnlace, routerManhattan, verticesInvocacion } from "./enlace";
+import { connectorJumpover, connectorRecto, endpointJoint, etiquetasModificador, etiquetasMultiplicidad, proyectarEnlace, routerManhattan, verticesInvocacion } from "./enlace";
 
 describe("composer enlace", () => {
   test("proyecta enlace con multiplicidad y metadata OPM", () => {
@@ -104,6 +104,15 @@ describe("composer enlace", () => {
     const cell = proyectarEnlace("opd-1", enlaceBase, "ae-aba", { apariencia: origen }, { apariencia: destino }, [], undefined, false, true);
     expect(cell.router).toBeUndefined();
     expect(cell.connector).toEqual({ name: "straight" });
+  });
+
+  test("probabilidad de rama XOR se proyecta sin requerir modificador evento", () => {
+    const labels = etiquetasModificador({ ...enlaceBase, probabilidad: 0.35 });
+    const textos = labels
+      .map((label) => label.attrs as Record<string, Record<string, unknown>> | undefined)
+      .map((attrs) => attrs?.label?.text);
+
+    expect(textos).toContain("35%");
   });
 
   test("modelo denso puede desactivar jumpover para evitar ruido visual", () => {

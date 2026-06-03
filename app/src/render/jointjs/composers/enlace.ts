@@ -347,7 +347,7 @@ export function etiquetasModificador(enlace: Enlace, labelPositions?: LayoutLabe
   if (subtipo) {
     labels.push(aplicarLayoutLabel(etiquetaBadgeModificadorCanonico(subtipo, 0.5), LABEL_KEY_MODIFICADOR, labelPositions));
   }
-  if (enlace.modificador === "evento" && enlace.probabilidad !== undefined) {
+  if (enlace.probabilidad !== undefined) {
     labels.push(aplicarLayoutLabel(etiquetaTextoModificador(`${Math.round(enlace.probabilidad * 100)}%`, 0.5, 22, wrapWidth), LABEL_KEY_PROBABILIDAD, labelPositions));
   }
   if (enlace.tipo === "invocacion" && enlace.demora) {
