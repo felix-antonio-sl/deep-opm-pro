@@ -3,6 +3,7 @@ import { useEffect } from "preact/hooks";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { useBreakpoint } from "../layoutResponsive";
 import { tokens } from "../tokens";
+import { proyectarEstadoBarraSimulacion, rotuloTraceSimulacion } from "./proyeccionBarra";
 
 export function BarraSimulacion(): JSX.Element | null {
   const {
@@ -25,7 +26,7 @@ export function BarraSimulacion(): JSX.Element | null {
   const esMobile = useBreakpoint() === "mobile";
 
   useEffect(() => {
-    if (!contexto || !autoAvance || contexto.estado === "completado" || contexto.plan.length === 0) return;
+    if (!contexto || !autoAvance || contexto.estado === "completado" || contexto.estado === "bloqueado" || contexto.plan.length === 0) return;
     const timeoutId = window.setTimeout(ejecutarPaso, intervaloAutoAvanceMs(velocidadSimulacion));
     return () => window.clearTimeout(timeoutId);
   }, [autoAvance, contexto?.estado, contexto?.modeloId, contexto?.pasoActual, contexto?.plan.length, ejecutarPaso, velocidadSimulacion]);
@@ -33,10 +34,13 @@ export function BarraSimulacion(): JSX.Element | null {
   if (!contexto) return null;
 
   const pasoActual = contexto.plan[contexto.pasoActual];
-  const completado = contexto.estado === "completado";
   const totalPasos = contexto.plan.length;
   const ejecutados = contexto.trace.length;
   const sinProcesos = totalPasos === 0;
+  const estadoBarra = proyectarEstadoBarraSimulacion(contexto, autoAvance);
+  const completado = estadoBarra.completado;
+  const bloqueado = estadoBarra.bloqueado;
+  const controlesDeshabilitados = sinProcesos || !estadoBarra.puedeEjecutar;
   const C = tokens.colors;
 
   const handleScrub = (n: number) => {
@@ -60,11 +64,15 @@ export function BarraSimulacion(): JSX.Element | null {
           <span style={s.contador} data-testid="barra-simulacion-progreso">Este modelo no tiene procesos que simular</span>
         ) : completado ? (
           <span style={{ ...s.estadoTexto, color: C.success }} data-testid="barra-simulacion-progreso">
-            Completada &middot; {totalPasos} pasos
+            {estadoBarra.textoProgreso}
+          </span>
+        ) : bloqueado ? (
+          <span style={{ ...s.estadoTexto, color: C.crimson, fontWeight: 600 }} data-testid="barra-simulacion-progreso">
+            {estadoBarra.textoProgreso}
           </span>
         ) : (
           <span style={s.estadoTexto} data-testid="barra-simulacion-progreso">
-            {autoAvance ? "Reproduciendo" : "Listo para simular"} &middot; paso {Math.min(ejecutados + 1, totalPasos)} de {totalPasos}
+            {estadoBarra.textoProgreso}
           </span>
         )}
         {pasoActual && !completado ? (
@@ -88,7 +96,7 @@ export function BarraSimulacion(): JSX.Element | null {
           type="button"
           style={{ ...s.control, ...(autoAvance ? s.controlActivo : {}), fontWeight: 600 }}
           onClick={autoAvance ? pausarAutoAvance : iniciarAutoAvance}
-          disabled={sinProcesos || completado}
+          disabled={controlesDeshabilitados}
           data-testid="barra-simulacion-auto"
           aria-pressed={autoAvance}
           title={autoAvance ? "Pausar (Espacio)" : "Reproducir (Ctrl+P)"}
@@ -100,14 +108,14 @@ export function BarraSimulacion(): JSX.Element | null {
 
         {!autoAvance ? (
           <>
-            <button type="button" style={s.control} onClick={ejecutarPaso} disabled={sinProcesos || completado} data-testid="barra-simulacion-paso" title="Avanzar un paso">
+            <button type="button" style={s.control} onClick={ejecutarPaso} disabled={controlesDeshabilitados} data-testid="barra-simulacion-paso" title="Avanzar un paso">
               paso <span style={s.flecha}>&#9656;</span>
             </button>
             <span style={s.sep}>&middot;</span>
           </>
         ) : null}
 
-        <button type="button" style={s.control} onClick={ejecutarCorrida} disabled={sinProcesos || completado} data-testid="barra-simulacion-correr" title="Ejecutar todos los pasos restantes sin animacion">
+        <button type="button" style={s.control} onClick={ejecutarCorrida} disabled={controlesDeshabilitados} data-testid="barra-simulacion-correr" title="Ejecutar todos los pasos restantes sin animacion">
           correr
         </button>
         <span style={s.sep}>&middot;</span>
@@ -194,13 +202,20 @@ export function BarraSimulacion(): JSX.Element | null {
 
       {contexto.trace.length > 0 ? (
         <div style={s.trace} data-testid="barra-simulacion-trace" aria-label="Trace de simulacion">
-          {contexto.trace.slice(-4).map((entrada) => (
-            <span key={entrada.numero} style={s.traceItem}>
-              <span style={s.traceNumero}>#{entrada.numero}</span>
-              <span style={s.traceProceso}>{entrada.procesoNombre}</span>
-              {entrada.diagnostico ? <span style={s.traceDiag} title={entrada.diagnostico}>!</span> : null}
-            </span>
-          ))}
+          {contexto.trace.slice(-4).map((entrada) => {
+            const rotulo = rotuloTraceSimulacion(entrada);
+            return (
+              <span key={entrada.numero} style={entrada.omitido ? { ...s.traceItem, ...s.traceItemOmitido } : s.traceItem}>
+                <span style={s.traceNumero}>#{entrada.numero}</span>
+                <span style={s.traceProceso}>{entrada.procesoNombre}</span>
+                {rotulo ? (
+                  <span style={rotulo.tipo === "omitido" ? s.traceOmitido : s.traceDiag} title={rotulo.titulo}>
+                    {rotulo.texto}
+                  </span>
+                ) : null}
+              </span>
+            );
+          })}
         </div>
       ) : null}
     </div>
@@ -396,6 +411,9 @@ const s: Record<string, JSX.CSSProperties> = {
     fontSize: 10,
     fontFamily: T.fontFamilyMono,
   },
+  traceItemOmitido: {
+    borderColor: C.crimson,
+  },
   traceNumero: {
     fontWeight: 600,
     color: C.inkSoft,
@@ -407,5 +425,11 @@ const s: Record<string, JSX.CSSProperties> = {
   traceDiag: {
     color: C.crimson,
     fontWeight: 700,
+  },
+  traceOmitido: {
+    color: C.crimson,
+    fontWeight: 700,
+    textTransform: "uppercase" as const,
+    fontSize: 9,
   },
 };

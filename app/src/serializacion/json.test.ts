@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/extremos";
+import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
@@ -588,6 +589,25 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.enlaces[consumoId]?.modificador).toBe("evento");
     expect(hidratado.value.enlaces[consumoId]?.probabilidad).toBe(0.7);
     expect(hidratado.value.enlaces[invocacionId]?.demora).toBe("1s");
+  });
+
+  test("preserva autoinvocacion en round-trip JSON", () => {
+    let modelo = crearModelo("Auto invocacion JSON");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Reintentar"));
+    const procesoId = entidadPorNombre(modelo, "Reintentar");
+    modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, procesoId));
+    const enlaceId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "invocacion")?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba autoinvocacion");
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    const enlace = hidratado.value.enlaces[enlaceId];
+    expect(enlace?.tipo).toBe("invocacion");
+    expect(enlace?.origenId).toEqual({ kind: "entidad", id: procesoId });
+    expect(enlace?.destinoId).toEqual({ kind: "entidad", id: procesoId });
+    expect(enlace?.demora).toBe("1s");
   });
 
   test("preserva rutaEtiqueta en round-trip y normaliza whitespace", () => {

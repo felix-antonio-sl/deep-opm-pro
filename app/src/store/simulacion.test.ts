@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { exportarModelo } from "../serializacion/json";
-import { crearModelo } from "../modelo/operaciones";
+import { crearAutoInvocacion } from "../modelo/autoinvocacion";
+import { crearModelo, crearProceso } from "../modelo/operaciones";
+import type { Resultado } from "../modelo/tipos";
 import { store } from "../store";
 import { normalizarVelocidadSimulacion } from "./simulacion";
 
@@ -38,6 +40,29 @@ describe("headless simulacion", () => {
   });
 });
 
+describe("simulacion bloqueada", () => {
+  beforeEach(() => {
+    store.getState().importarJson(exportarModelo(crearModelo()));
+  });
+
+  test("autoavance se detiene si un loop alcanza el limite de seguridad", () => {
+    let modelo = crearModelo("Loop store");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Reintentar"));
+    const procesoId = Object.values(modelo.entidades)[0]?.id;
+    if (!procesoId) throw new Error("La prueba esperaba un proceso");
+    modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, procesoId));
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().iniciarModoSimulacion();
+    store.getState().iniciarAutoAvanceSimulacion();
+    for (let i = 0; i < 201; i += 1) store.getState().ejecutarPasoSimulacion();
+
+    expect(store.getState().contextoSimulacion?.estado).toBe("bloqueado");
+    expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
+    expect(store.getState().mensaje).toContain("límite");
+  });
+});
+
 describe("normalizarVelocidadSimulacion", () => {
   test("clamp continuo al rango [0.25, 4]", () => {
     expect(normalizarVelocidadSimulacion(0.25)).toBe(0.25);
@@ -54,3 +79,8 @@ describe("normalizarVelocidadSimulacion", () => {
     expect(normalizarVelocidadSimulacion(Number.NEGATIVE_INFINITY)).toBe(1);
   });
 });
+
+function must<T>(resultado: Resultado<T>): T {
+  if (!resultado.ok) throw new Error(resultado.error);
+  return resultado.value;
+}

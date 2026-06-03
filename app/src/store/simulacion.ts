@@ -63,7 +63,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   ejecutarPasoSimulacion() {
     const { contextoSimulacion, modelo, opdActivoId } = get();
     if (!contextoSimulacion) return;
-    if (contextoSimulacion.estado === "completado") {
+    if (contextoSimulacion.estado === "completado" || contextoSimulacion.estado === "bloqueado") {
       if (get().autoAvanceSimulacionActivo) set({ autoAvanceSimulacionActivo: false });
       return;
     }
@@ -71,8 +71,11 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     const siguiente = ejecutarPaso(modelo, contextoSimulacion);
     const destino = opdParaMostrar(siguiente, opdActivoId);
     const patch: Partial<OpmStore> = { contextoSimulacion: siguiente };
-    if (siguiente.estado === "completado") {
+    if (siguiente.estado === "completado" || siguiente.estado === "bloqueado") {
       patch.autoAvanceSimulacionActivo = false;
+    }
+    if (siguiente.estado === "bloqueado") {
+      patch.mensaje = siguiente.trace.at(-1)?.diagnostico ?? "Simulación bloqueada.";
     }
     if (destino !== opdActivoId) {
       Object.assign(patch, patchNavegacionSimulacion(destino));
@@ -93,6 +96,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     set({
       contextoSimulacion: final,
       autoAvanceSimulacionActivo: false,
+      ...(final.estado === "bloqueado" ? { mensaje: final.trace.at(-1)?.diagnostico ?? "Simulación bloqueada." } : {}),
       ...(destino !== opdActivoId ? patchNavegacionSimulacion(destino) : {}),
     });
   },
@@ -111,7 +115,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
 
   iniciarAutoAvanceSimulacion() {
     const { contextoSimulacion } = get();
-    if (!contextoSimulacion || contextoSimulacion.plan.length === 0 || contextoSimulacion.estado === "completado") return;
+    if (!contextoSimulacion || contextoSimulacion.plan.length === 0 || contextoSimulacion.estado === "completado" || contextoSimulacion.estado === "bloqueado") return;
     set({
       autoAvanceSimulacionActivo: true,
       mensaje: "Simulación automática iniciada.",

@@ -8,6 +8,8 @@ import { resolverDecisionAbanico } from "../decision";
 import { rngSembrado } from "./rng";
 import { detectarEventosTemporalesPaso, inferirDuracionPasoSim } from "./tiempo";
 
+export const LIMITE_PASOS_SIMULACION = 200;
+
 /**
  * Inicia una simulación conceptual sobre un OPD. No muta el modelo.
  * Si no hay procesos en el OPD, el contexto nace `completado` con plan vacío.
@@ -31,6 +33,7 @@ export function iniciarSimulacion(modelo: Modelo, opdId: Id): ContextoSimulacion
  * F = Identidad (un sucesor). S2 extendera esta funcion para Powerset/Dist.
  */
 export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto<ContextoSimulacion> {
+  if (contexto.estado === "bloqueado") return efectoUnico(contexto);
   if (contexto.pasoActual >= contexto.plan.length) {
     const completado = contexto.estado === "completado" ? contexto : { ...contexto, estado: "completado" as const };
     return efectoUnico(completado);
@@ -174,9 +177,14 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
 }
 
 /**
- * Compat: avanza un paso tomando el sucesor canonico. Comportamiento identico al previo.
+ * Avanza un paso tomando el sucesor canonico. El mismo limite de seguridad del
+ * unfold completo aplica tambien a paso manual/autoavance.
  */
-export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion): ContextoSimulacion {
+export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion, limite = LIMITE_PASOS_SIMULACION): ContextoSimulacion {
+  if (contexto.estado === "bloqueado") return contexto;
+  if (contexto.pasoActual < contexto.plan.length && contexto.trace.length >= limite) {
+    return bloquearPorLimite(contexto, limite);
+  }
   return tomarUnico(pasoEfecto(modelo, contexto));
 }
 
@@ -346,7 +354,7 @@ function resolverSiguientePasoPorInvocacion(
  * completar, tomando el sucesor canonico en cada paso. F = Identidad =>
  * traza determinista identica a iterar `ejecutarPaso`.
  */
-export function desplegar(modelo: Modelo, estadoInicial: ContextoSimulacion, limite = 200): ContextoSimulacion {
+export function desplegar(modelo: Modelo, estadoInicial: ContextoSimulacion, limite = LIMITE_PASOS_SIMULACION): ContextoSimulacion {
   let actual = estadoInicial;
   let pasos = 0;
   while (actual.pasoActual < actual.plan.length && actual.estado !== "bloqueado" && pasos < limite) {

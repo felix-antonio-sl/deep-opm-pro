@@ -55,7 +55,11 @@ export function validarEnlaces(
     const destino = entidadDeExtremo(modeloParcial, destinoExtremo.value);
     if (!origen) return fallo(`Enlace inválido: ${id}.origenId`);
     if (!destino) return fallo(`Enlace inválido: ${id}.destinoId`);
-    if (origenExtremo.value.kind === destinoExtremo.value.kind && origenExtremo.value.id === destinoExtremo.value.id) {
+    const selfInvocacion = raw.tipo === "invocacion" &&
+      origenExtremo.value.kind === "entidad" &&
+      destinoExtremo.value.kind === "entidad" &&
+      origenExtremo.value.id === destinoExtremo.value.id;
+    if (!selfInvocacion && origenExtremo.value.kind === destinoExtremo.value.kind && origenExtremo.value.id === destinoExtremo.value.id) {
       return fallo(`Enlace inválido: ${id}.self`);
     }
     if (typeof raw.etiqueta !== "string") return fallo(`Enlace inválido: ${id}.etiqueta`);

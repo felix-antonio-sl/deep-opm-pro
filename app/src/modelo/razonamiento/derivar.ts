@@ -244,4 +244,9 @@ export function derivar(modelo: Modelo, consulta: Consulta): HechoDerivado[] {
     case "impacto-aguas-abajo":
       return impactoAguasAbajo(modelo, consulta.elementoId);
   }
+  return assertNever(consulta);
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Consulta de razonamiento no implementada: ${JSON.stringify(value)}`);
 }
