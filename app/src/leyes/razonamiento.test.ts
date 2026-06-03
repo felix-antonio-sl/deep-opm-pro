@@ -78,4 +78,42 @@ describe("LEY law-derivacion-no-contradice", () => {
     }
     expect(total).toBeGreaterThan(0); // la ley no es vacua
   });
+
+  test("alcanzable tampoco inventa: sus hechos referencian estados/procesos DECLARADOS en hechosDe", () => {
+    const m: Modelo = {
+      id: "m",
+      nombre: "m",
+      opdRaizId: "raiz",
+      nextSeq: 100,
+      entidades: {
+        Huevo: { id: "Huevo", tipo: "objeto", nombre: "Huevo", esencia: "fisica", afiliacion: "sistemica" },
+        Cocinar: { id: "Cocinar", tipo: "proceso", nombre: "Cocinar", esencia: "informacional", afiliacion: "sistemica" },
+      },
+      estados: {
+        crudo: { id: "crudo", entidadId: "Huevo", nombre: "crudo", designaciones: ["inicial"] },
+        cocido: { id: "cocido", entidadId: "Huevo", nombre: "cocido" },
+      },
+      enlaces: {
+        cons: { id: "cons", tipo: "consumo", origenId: { kind: "estado", id: "crudo" }, destinoId: { kind: "entidad", id: "Cocinar" }, etiqueta: "c" },
+        res: { id: "res", tipo: "resultado", origenId: { kind: "entidad", id: "Cocinar" }, destinoId: { kind: "estado", id: "cocido" }, etiqueta: "r" },
+      },
+      opds: { raiz: { id: "raiz", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} } },
+    };
+    const declarados = new Set<string>();
+    for (const h of hechosDe(m).values()) {
+      if (h.tipo === "entidad") declarados.add(h.entidadId);
+      else if (h.tipo === "estado") {
+        declarados.add(h.estadoId);
+        declarados.add(h.entidadId);
+      } else declarados.add(h.enlaceId);
+    }
+    const r = derivar(m, { tipo: "alcanzable", entidadId: "Huevo", estado: "cocido" });
+    expect(r.length).toBeGreaterThan(0);
+    for (const h of r) {
+      expect(h.inferido).toBe(true);
+      if (h.entidadId) expect(declarados.has(h.entidadId)).toBe(true);
+      if (h.procesoId) expect(declarados.has(h.procesoId)).toBe(true);
+      if (h.estadoId) expect(declarados.has(h.estadoId)).toBe(true);
+    }
+  });
 });

@@ -2,12 +2,19 @@ import { tieneDesignacion } from "../estadosDesignaciones";
 import type { ExtremoEnlace, Id, Modelo } from "../tipos";
 
 /**
- * Razonamiento (Piso 3) — motor de DERIVACIÓN sobre el grafo de hechos.
+ * Razonamiento (Piso 3) — motor de DERIVACIÓN sobre el grafo estructural del modelo.
  *
  * Hace computables las inferencias que OPM ya implica estructuralmente
- * (qué afecta a algo, qué requiere un proceso, qué impacta una eliminación).
- * Es el catamorfismo dual de la simulación (anamorfismo): mismo espacio,
- * sentido opuesto. Ver `docs/roadmap/capa-categorial-opforja.md` §6.
+ * (qué afecta a algo, qué requiere un proceso, qué impacta una eliminación,
+ * qué estados son alcanzables). Es el catamorfismo dual de la simulación
+ * (anamorfismo): mismo espacio, sentido opuesto.
+ *
+ * COHERENCIA CON F0 (decisión declarada): deriva del `Modelo` directamente, NO de
+ * `hechosDe`, porque `impacto-de-eliminar` necesita los refinamientos y F0 no los
+ * proyecta (hechosDe = entidades + estados + enlaces). La no-divergencia con el
+ * cimiento de hechos NO se logra compartiendo implementación, sino por la LEY
+ * `law-derivacion-no-contradice`: toda referencia derivada existe en `hechosDe`.
+ * Ver `docs/roadmap/capa-categorial-opforja.md` §6.
  *
  * ── FRONTERA DURA (anti scope-creep; rechazar en review lo que la cruce) ──
  * Esto es un CONJUNTO CERRADO de consultas predefinidas sobre la estructura.
