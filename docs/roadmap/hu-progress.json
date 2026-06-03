@@ -1,24 +1,24 @@
 {
   "schema": "deep-opm-pro.hu-progress-report.v1",
-  "generatedAt": "2026-05-31T12:57:15.857Z",
+  "generatedAt": "2026-06-03T06:08:07.460Z",
   "repoRoot": "/home/felix/projects/deep-opm-pro",
   "backlogRoot": "docs/historias-usuario-v2",
   "evidenceLedger": "docs/roadmap/hu-progress-evidence.json",
   "autoAudit": {
-    "generatedAt": "2026-05-31T12:57:15.857Z",
+    "generatedAt": "2026-06-03T06:08:07.460Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
-    "rulesMatched": 76,
-    "rulesUnmatched": 29,
+    "rulesMatched": 73,
+    "rulesUnmatched": 32,
     "sourceFiles": {
-      "count": 765,
+      "count": 823,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:c2a4f3ff98c7701accaa611578ebff9db1493271a969b382063f494a487b6257"
+      "signature": "sha256:fc0e5e2162123b0084e9d3d22291e4451139e038003498a639552bcbd4c8c8ea"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -100,14 +100,14 @@
   "summaries": {
     "total": {
       "total": 1125,
-      "cubierto": 264,
+      "cubierto": 256,
       "parcial": 10,
-      "pendiente": 473,
+      "pendiente": 481,
       "diferido": 378,
       "bloqueado": 0,
       "pesoTotal": 3000,
-      "pesoCubierto": 679,
-      "avance": 0.22633333333333333
+      "pesoCubierto": 659,
+      "avance": 0.21966666666666668
     },
     "inventario": {
       "totalParseadas": 1173,
@@ -117,25 +117,25 @@
     },
     "m0": {
       "total": 130,
-      "cubierto": 78,
+      "cubierto": 77,
       "parcial": 3,
-      "pendiente": 49,
+      "pendiente": 50,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 333,
-      "pesoCubierto": 203,
-      "avance": 0.6096096096096096
+      "pesoCubierto": 199,
+      "avance": 0.5975975975975976
     },
     "alpha": {
       "total": 121,
-      "cubierto": 84,
+      "cubierto": 81,
       "parcial": 0,
-      "pendiente": 37,
+      "pendiente": 40,
       "diferido": 0,
       "bloqueado": 0,
       "pesoTotal": 326,
-      "pesoCubierto": 215,
-      "avance": 0.6595092024539877
+      "pesoCubierto": 207,
+      "avance": 0.6349693251533742
     },
     "beta": {
       "total": 192,
@@ -151,14 +151,14 @@
     "byCut": {
       "alpha": {
         "total": 121,
-        "cubierto": 84,
+        "cubierto": 81,
         "parcial": 0,
-        "pendiente": 37,
+        "pendiente": 40,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 326,
-        "pesoCubierto": 215,
-        "avance": 0.6595092024539877
+        "pesoCubierto": 207,
+        "avance": 0.6349693251533742
       },
       "beta": {
         "total": 192,
@@ -173,14 +173,14 @@
       },
       "gamma": {
         "total": 434,
-        "cubierto": 101,
+        "cubierto": 96,
         "parcial": 6,
-        "pendiente": 327,
+        "pendiente": 332,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 1126,
-        "pesoCubierto": 231,
-        "avance": 0.20515097690941386
+        "pesoCubierto": 219,
+        "avance": 0.19449378330373002
       },
       "delta": {
         "total": 378,
@@ -208,14 +208,14 @@
     "byPriority": {
       "M0": {
         "total": 130,
-        "cubierto": 78,
+        "cubierto": 77,
         "parcial": 3,
-        "pendiente": 49,
+        "pendiente": 50,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 333,
-        "pesoCubierto": 203,
-        "avance": 0.6096096096096096
+        "pesoCubierto": 199,
+        "avance": 0.5975975975975976
       },
       "M1": {
         "total": 160,
@@ -230,25 +230,25 @@
       },
       "S": {
         "total": 471,
-        "cubierto": 78,
+        "cubierto": 72,
         "parcial": 2,
-        "pendiente": 229,
+        "pendiente": 235,
         "diferido": 162,
         "bloqueado": 0,
         "pesoTotal": 1247,
-        "pesoCubierto": 215,
-        "avance": 0.1724137931034483
+        "pesoCubierto": 203,
+        "avance": 0.16279069767441862
       },
       "C": {
         "total": 247,
-        "cubierto": 11,
+        "cubierto": 10,
         "parcial": 3,
-        "pendiente": 132,
+        "pendiente": 133,
         "diferido": 101,
         "bloqueado": 0,
         "pesoTotal": 661,
-        "pesoCubierto": 28,
-        "avance": 0.04236006051437216
+        "pesoCubierto": 24,
+        "avance": 0.036308623298033284
       },
       "W": {
         "total": 117,
@@ -289,14 +289,14 @@
       "11": {
         "titulo": "Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado)",
         "total": 22,
-        "cubierto": 16,
+        "cubierto": 14,
         "parcial": 0,
-        "pendiente": 6,
+        "pendiente": 8,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 56,
-        "pesoCubierto": 38,
-        "avance": 0.6785714285714286
+        "pesoCubierto": 34,
+        "avance": 0.6071428571428571
       },
       "12": {
         "titulo": "Canvas — descomposición de procesos",
@@ -325,14 +325,14 @@
       "14": {
         "titulo": "Canvas — estilado visual de cosas, texto y enlaces",
         "total": 15,
-        "cubierto": 5,
+        "cubierto": 0,
         "parcial": 0,
-        "pendiente": 10,
+        "pendiente": 15,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 30,
-        "pesoCubierto": 12,
-        "avance": 0.4
+        "pesoCubierto": 0,
+        "avance": 0
       },
       "15": {
         "titulo": "Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación)",
@@ -853,14 +853,14 @@
       "SHARED": {
         "titulo": "Patrones transversales",
         "total": 8,
-        "cubierto": 4,
+        "cubierto": 3,
         "parcial": 2,
-        "pendiente": 2,
+        "pendiente": 3,
         "diferido": 0,
         "bloqueado": 0,
         "pesoTotal": 44,
-        "pesoCubierto": 23,
-        "avance": 0.5227272727272727
+        "pesoCubierto": 19,
+        "avance": 0.4318181818181818
       }
     }
   },
@@ -1369,11 +1369,13 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/shared/HU-SHARED-008-seleccion-canvas.md",
       "lineaInicio": 22,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: multi-seleccion canonica con Ctrl+clic, rubber band Shift y operaciones batch atomicas en undo.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/canvas/operacionesBatch.ts: falta aplicarEstiloApariencias"
+      ],
       "evidencia": [
         {
           "path": "app/src/canvas/seleccionMultiple.ts",
@@ -1401,8 +1403,8 @@
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/shared/HU-SHARED-008-seleccion-canvas.md"
     },
     {
@@ -18755,32 +18757,25 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 463,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 11 L4: DialogoEstiloEnlace con paleta + grosor + dash + copiar/pegar estilo entre enlaces vía store y kernel.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/DialogoEstiloEnlace.tsx: archivo no encontrado",
+        "app/src/ui/inspectorEnlace/SeccionEstilo.tsx: archivo no encontrado",
+        "app/src/modelo/enlaceEstilo.ts: archivo no encontrado",
+        "app/src/store/tipos.ts: falta alguno de copiarEstiloEnlaceAlPortapapeles | enlaceEstiloPortapapeles"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/DialogoEstiloEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoEstiloEnlace.tsx"
-        },
-        {
-          "path": "app/src/ui/inspectorEnlace/SeccionEstilo.tsx",
-          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionEstilo.tsx"
-        },
-        {
-          "path": "app/src/modelo/enlaceEstilo.ts",
-          "hrefDashboard": "../../app/src/modelo/enlaceEstilo.ts"
-        },
         {
           "path": "app/src/store/tipos.ts",
           "hrefDashboard": "../../app/src/store/tipos.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -18811,32 +18806,25 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md",
       "lineaInicio": 494,
       "corte": "alpha",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 11 L4: DialogoEstiloEnlace con paleta + grosor + dash + copiar/pegar estilo entre enlaces vía store y kernel.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/ui/DialogoEstiloEnlace.tsx: archivo no encontrado",
+        "app/src/ui/inspectorEnlace/SeccionEstilo.tsx: archivo no encontrado",
+        "app/src/modelo/enlaceEstilo.ts: archivo no encontrado",
+        "app/src/store/tipos.ts: falta alguno de copiarEstiloEnlaceAlPortapapeles | enlaceEstiloPortapapeles"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/ui/DialogoEstiloEnlace.tsx",
-          "hrefDashboard": "../../app/src/ui/DialogoEstiloEnlace.tsx"
-        },
-        {
-          "path": "app/src/ui/inspectorEnlace/SeccionEstilo.tsx",
-          "hrefDashboard": "../../app/src/ui/inspectorEnlace/SeccionEstilo.tsx"
-        },
-        {
-          "path": "app/src/modelo/enlaceEstilo.ts",
-          "hrefDashboard": "../../app/src/modelo/enlaceEstilo.ts"
-        },
         {
           "path": "app/src/store/tipos.ts",
           "hrefDashboard": "../../app/src/store/tipos.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md"
     },
     {
@@ -22517,32 +22505,25 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 45,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/estilos.ts: archivo no encontrado",
+        "app/src/ui/StyleControls.tsx: archivo no encontrado",
+        "app/src/serializacion/json.ts: falta validarEstiloApariencia",
+        "app/src/serializacion/json.ts: falta estilo"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/estilos.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.ts"
-        },
-        {
-          "path": "app/src/ui/StyleControls.tsx",
-          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
-        },
         {
           "path": "app/src/serializacion/json.ts",
           "hrefDashboard": "../../app/src/serializacion/json.ts"
-        },
-        {
-          "path": "app/src/modelo/estilos.test.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -22574,32 +22555,25 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 57,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/estilos.ts: archivo no encontrado",
+        "app/src/ui/StyleControls.tsx: archivo no encontrado",
+        "app/src/serializacion/json.ts: falta validarEstiloApariencia",
+        "app/src/serializacion/json.ts: falta estilo"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/estilos.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.ts"
-        },
-        {
-          "path": "app/src/ui/StyleControls.tsx",
-          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
-        },
         {
           "path": "app/src/serializacion/json.ts",
           "hrefDashboard": "../../app/src/serializacion/json.ts"
-        },
-        {
-          "path": "app/src/modelo/estilos.test.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -22630,32 +22604,25 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 71,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/estilos.ts: archivo no encontrado",
+        "app/src/ui/StyleControls.tsx: archivo no encontrado",
+        "app/src/serializacion/json.ts: falta validarEstiloApariencia",
+        "app/src/serializacion/json.ts: falta estilo"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/estilos.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.ts"
-        },
-        {
-          "path": "app/src/ui/StyleControls.tsx",
-          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
-        },
         {
           "path": "app/src/serializacion/json.ts",
           "hrefDashboard": "../../app/src/serializacion/json.ts"
-        },
-        {
-          "path": "app/src/modelo/estilos.test.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -23077,32 +23044,25 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 208,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/estilos.ts: archivo no encontrado",
+        "app/src/ui/StyleControls.tsx: archivo no encontrado",
+        "app/src/serializacion/json.ts: falta validarEstiloApariencia",
+        "app/src/serializacion/json.ts: falta estilo"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/estilos.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.ts"
-        },
-        {
-          "path": "app/src/ui/StyleControls.tsx",
-          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
-        },
         {
           "path": "app/src/serializacion/json.ts",
           "hrefDashboard": "../../app/src/serializacion/json.ts"
-        },
-        {
-          "path": "app/src/modelo/estilos.test.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
         }
       ],
       "peso": 2,
-      "score": 1,
-      "avancePonderado": 2,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -23175,32 +23135,25 @@
       "archivoRelativoDashboard": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md",
       "lineaInicio": 234,
       "corte": "gamma",
-      "estadoAvance": "cubierto",
+      "estadoAvance": "pendiente",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
-      "brechas": [],
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
+      "brechas": [
+        "app/src/modelo/estilos.ts: archivo no encontrado",
+        "app/src/ui/StyleControls.tsx: archivo no encontrado",
+        "app/src/serializacion/json.ts: falta validarEstiloApariencia",
+        "app/src/serializacion/json.ts: falta estilo"
+      ],
       "evidencia": [
-        {
-          "path": "app/src/modelo/estilos.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.ts"
-        },
-        {
-          "path": "app/src/ui/StyleControls.tsx",
-          "hrefDashboard": "../../app/src/ui/StyleControls.tsx"
-        },
         {
           "path": "app/src/serializacion/json.ts",
           "hrefDashboard": "../../app/src/serializacion/json.ts"
-        },
-        {
-          "path": "app/src/modelo/estilos.test.ts",
-          "hrefDashboard": "../../app/src/modelo/estilos.test.ts"
         }
       ],
       "peso": 4,
-      "score": 1,
-      "avancePonderado": 4,
+      "score": 0,
+      "avancePonderado": 0,
       "enlaceFuente": "../historias-usuario-v2/epicas/epica-14-canvas-styling.md"
     },
     {
@@ -24630,7 +24583,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L2: dialogo Mover Puerto cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
+      "nota": "Auto ronda 10 L2: dialogo Reanclar extremo cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
       "brechas": [],
       "evidencia": [
         {
@@ -24694,7 +24647,7 @@
       "estadoAvance": "cubierto",
       "confianza": "alta-auto",
       "fuenteEvidencia": "auto",
-      "nota": "Auto ronda 10 L2: dialogo Mover Puerto cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
+      "nota": "Auto ronda 10 L2: dialogo Reanclar extremo cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
       "brechas": [],
       "evidencia": [
         {

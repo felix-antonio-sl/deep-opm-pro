@@ -1,9 +1,9 @@
 # Auditoria de avance HU v2
 
-**Generado:** 2026-05-31T12:57:15.857Z
+**Generado:** 2026-06-03T06:08:07.460Z
 **Backlog:** `docs/historias-usuario-v2`
 **Ledger de evidencia:** `docs/roadmap/hu-progress-evidence.json`
-**Auditoria automatica:** 76/105 reglas matcheadas sobre 765 archivos fuente.
+**Auditoria automatica:** 73/105 reglas matcheadas sobre 823 archivos fuente.
 
 
 Regenerar desde la raiz del repo:
@@ -23,18 +23,18 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 
 | Segmento | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| Total backlog | 1125 | 264 | 10 | 473 | 378 | 22.6% |
-| M0 | 130 | 78 | 3 | 49 | 0 | 61.0% |
-| MVP-alpha | 121 | 84 | 0 | 37 | 0 | 66.0% |
+| Total backlog | 1125 | 256 | 10 | 481 | 378 | 22.0% |
+| M0 | 130 | 77 | 3 | 50 | 0 | 59.8% |
+| MVP-alpha | 121 | 81 | 0 | 40 | 0 | 63.5% |
 | MVP-beta | 192 | 79 | 4 | 109 | 0 | 43.1% |
 
 ## Por corte
 
 | Corte | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| MVP-alpha | 121 | 84 | 0 | 37 | 0 | 66.0% |
+| MVP-alpha | 121 | 81 | 0 | 40 | 0 | 63.5% |
 | MVP-beta | 192 | 79 | 4 | 109 | 0 | 43.1% |
-| MVP-gamma | 434 | 101 | 6 | 327 | 0 | 20.5% |
+| MVP-gamma | 434 | 96 | 6 | 332 | 0 | 19.4% |
 | MVP-delta | 378 | 0 | 0 | 0 | 378 | 0.0% |
 | Sin corte | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -42,10 +42,10 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 
 | Prioridad | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---:|---:|---:|---:|---:|---:|
-| M0 | 130 | 78 | 3 | 49 | 0 | 61.0% |
+| M0 | 130 | 77 | 3 | 50 | 0 | 59.8% |
 | M1 | 160 | 97 | 2 | 55 | 6 | 60.7% |
-| S | 471 | 78 | 2 | 229 | 162 | 17.2% |
-| C | 247 | 11 | 3 | 132 | 101 | 4.2% |
+| S | 471 | 72 | 2 | 235 | 162 | 16.3% |
+| C | 247 | 10 | 3 | 133 | 101 | 3.6% |
 | W | 117 | 0 | 0 | 8 | 109 | 0.0% |
 | sin-prioridad | 0 | 0 | 0 | 0 | 0 | 0.0% |
 
@@ -54,10 +54,10 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 | Epica | Titulo | HU vivas | Cubiertas | Parciales | Pendientes | Diferidas | Avance ponderado |
 |---|---|---:|---:|---:|---:|---:|---:|
 | 10 | Canvas — creación de cosas (proceso, objeto, enlace inicial, afiliación, esencia) | 17 | 16 | 0 | 1 | 0 | 89.5% |
-| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 16 | 0 | 6 | 0 | 67.9% |
+| 11 | Canvas — modelado básico (agregación, multi-selección, enlaces procedurales, propiedades, alineación, borrado) | 22 | 14 | 0 | 8 | 0 | 60.7% |
 | 12 | Canvas — descomposición de procesos | 31 | 22 | 1 | 8 | 0 | 75.2% |
 | 13 | Canvas — estados (designaciones, par entrada-salida, supresión, layout interno) | 18 | 4 | 1 | 13 | 0 | 27.1% |
-| 14 | Canvas — estilado visual de cosas, texto y enlaces | 15 | 5 | 0 | 10 | 0 | 40.0% |
+| 14 | Canvas — estilado visual de cosas, texto y enlaces | 15 | 0 | 0 | 15 | 0 | 0.0% |
 | 15 | Canvas — enlaces avanzados (multiplicidad, rutas, XOR/O, condición/evento/NO, invocación) | 23 | 22 | 0 | 1 | 0 | 96.1% |
 | 16 | Canvas — enlaces: propiedades, Tabla de Enlaces y estilo | 17 | 14 | 0 | 3 | 0 | 82.9% |
 | 17 | Canvas — objetos avanzados (alias, unidad, descripción, URL, plegado parcial, designaciones de estado, duración) | 28 | 22 | 0 | 6 | 0 | 77.8% |
@@ -101,12 +101,13 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 | C2 | Runtime ROS — integración con Robot Operating System | 28 | 0 | 0 | 0 | 28 | 0.0% |
 | D0 | Análisis — detección de conocimiento faltante (predicción de enlaces sobre el grafo del modelo) | 22 | 0 | 0 | 0 | 22 | 0.0% |
 | D1 | Análisis — calificación de informatividad del modelo (MFSP, INF, WINF, TWINF) | 16 | 0 | 0 | 0 | 16 | 0.0% |
-| SHARED | Patrones transversales | 8 | 4 | 2 | 2 | 0 | 52.3% |
+| SHARED | Patrones transversales | 8 | 3 | 2 | 3 | 0 | 43.2% |
 
 ## Pendientes M0 inmediatos
 
 - [HU-SHARED-002](../historias-usuario-v2/shared/HU-SHARED-002-undo-redo.md) — Pila de deshacer / rehacer (M0, pendiente)
 - [HU-SHARED-007](../historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md) — Eco OPL-ES sincronizado (M0, pendiente)
+- [HU-SHARED-008](../historias-usuario-v2/shared/HU-SHARED-008-seleccion-canvas.md) — Selección y deselección de canvas (M0, pendiente)
 - [HU-1C.004](../historias-usuario-v2/epicas/epica-1c-canvas-validaciones.md) — Crear cosa interna correcta directamente dentro del contenedor (M0, pendiente)
 - [HU-10.007](../historias-usuario-v2/epicas/epica-10-canvas-creacion-cosas.md) — Iniciar enlace desde borde de cosa (M0, pendiente)
 - [HU-11.004](../historias-usuario-v2/epicas/epica-11-canvas-modelado-basico.md) — Fusionar múltiples enlaces de agregación en bus vertical único (M0, pendiente)
@@ -144,7 +145,6 @@ node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real --dry-ru
 - [HU-34.005](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Ver árbol OPD inicial con nodo único "SD" (M0, pendiente)
 - [HU-34.006](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Ver lienzo OPD vacío tras "Nuevo Modelo" (M0, pendiente)
 - [HU-34.007](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Ver panel OPL-ES vacío tras "Nuevo Modelo" (M0, pendiente)
-- [HU-34.008](../historias-usuario-v2/epicas/epica-34-persistencia-nuevo-modelo.md) — Ver biblioteca "Cosas arrastrables" vacía (M0, pendiente)
 
 ## Brechas registradas
 

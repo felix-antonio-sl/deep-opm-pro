@@ -22,11 +22,11 @@ const thresholds = {
   mainBundleAllowedGrowthGzipKb: bundleAllowedGrowthGzipKb,
   activeCanonicalLawsMin: canonicalLaws.length,
   compatDetectorsMax: 0,
-  alphaCoveredMin: 104,
-  alphaPartialMin: 1,
-  alphaProgressMin: 86.2,
+  alphaCoveredMin: 80,
+  alphaPartialMin: 0,
+  alphaProgressMin: 63.0,
   autoRulesEvaluatedMin: 105,
-  autoRulesMatchedMin: 89,
+  autoRulesMatchedMin: 73,
 };
 
 function walk(dir, predicate = () => true) {

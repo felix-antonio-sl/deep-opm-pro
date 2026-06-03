@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-05-31",
+  "updated": "2026-06-03",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -809,20 +809,20 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-05-31T12:57:15.857Z",
+    "generatedAt": "2026-06-03T06:08:07.460Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
-    "rulesMatched": 76,
-    "rulesUnmatched": 29,
+    "rulesMatched": 73,
+    "rulesUnmatched": 32,
     "sourceFiles": {
-      "count": 765,
+      "count": 823,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:c2a4f3ff98c7701accaa611578ebff9db1493271a969b382063f494a487b6257"
+      "signature": "sha256:fc0e5e2162123b0084e9d3d22291e4451139e038003498a639552bcbd4c8c8ea"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
@@ -880,10 +880,10 @@
       "ids": [
         "HU-SHARED-008"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: multi-seleccion canonica con Ctrl+clic, rubber band Shift y operaciones batch atomicas en undo.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
         "app/src/canvas/seleccionMultiple.ts",
         "app/src/canvas/operacionesBatch.ts",
@@ -891,6 +891,9 @@
         "app/src/render/jointjs/JointCanvas.tsx",
         "app/src/render/jointjs/proyeccion.ts",
         "app/src/store.ts"
+      ],
+      "brechas": [
+        "app/src/canvas/operacionesBatch.ts: falta aplicarEstiloApariencias"
       ]
     },
     {
@@ -1560,15 +1563,18 @@
         "HU-14.015",
         "HU-14.017"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto: Apariencia.estilo? con paleta cerrada de fill/borderColor, swatches + Reset y persistencia JSON sin eco OPL.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
-        "app/src/modelo/estilos.ts",
-        "app/src/ui/StyleControls.tsx",
-        "app/src/serializacion/json.ts",
-        "app/src/modelo/estilos.test.ts"
+        "app/src/serializacion/json.ts"
+      ],
+      "brechas": [
+        "app/src/modelo/estilos.ts: archivo no encontrado",
+        "app/src/ui/StyleControls.tsx: archivo no encontrado",
+        "app/src/serializacion/json.ts: falta validarEstiloApariencia",
+        "app/src/serializacion/json.ts: falta estilo"
       ]
     },
     {
@@ -1936,7 +1942,7 @@
       "estado": "cubierto",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 10 L2: dialogo Mover Puerto cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
+      "nota": "Auto ronda 10 L2: dialogo Reanclar extremo cambia extremo o remueve relacion con un solo gesto, con accion en store y operacion kernel.",
       "evidencia": [
         "app/src/ui/DialogoMoverPuerto.tsx",
         "app/src/ui/inspectorEnlace/SeccionExtremos.tsx",
@@ -2526,15 +2532,18 @@
         "HU-11.016",
         "HU-11.017"
       ],
-      "estado": "cubierto",
+      "estado": "pendiente",
       "confianza": "alta-auto",
       "fuente": "auto",
-      "nota": "Auto ronda 11 L4: DialogoEstiloEnlace con paleta + grosor + dash + copiar/pegar estilo entre enlaces vía store y kernel.",
+      "nota": "Auto: no se detecto evidencia completa para esta regla en el codigo actual.",
       "evidencia": [
-        "app/src/ui/DialogoEstiloEnlace.tsx",
-        "app/src/ui/inspectorEnlace/SeccionEstilo.tsx",
-        "app/src/modelo/enlaceEstilo.ts",
         "app/src/store/tipos.ts"
+      ],
+      "brechas": [
+        "app/src/ui/DialogoEstiloEnlace.tsx: archivo no encontrado",
+        "app/src/ui/inspectorEnlace/SeccionEstilo.tsx: archivo no encontrado",
+        "app/src/modelo/enlaceEstilo.ts: archivo no encontrado",
+        "app/src/store/tipos.ts: falta alguno de copiarEstiloEnlaceAlPortapapeles | enlaceEstiloPortapapeles"
       ]
     },
     {

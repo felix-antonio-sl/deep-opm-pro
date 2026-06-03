@@ -322,5 +322,95 @@
     "status": "Resuelto",
     "resolution": "El OPL de abanicos XOR/O de efecto Objeto -> Procesos ya no invierte la semantica: sin evento emite O es afectado por P/Q/R; con evento emite O inicia P/Q/R y es afectado por el proceso que ocurre.",
     "note": "Causa raiz final: se trato el objeto comun como sujeto afectante, pero en OPM el efecto lo ejerce el proceso sobre el objeto. Cubierto por generar.test y parser.test; legacy O afecta a... se acepta solo para normalizar a pasiva."
+  },
+  "BUG-20260524T034932Z-b6be2b": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El OPD hijo creado por refinamiento se ancla al centro geometrico del canvas en descomposicion.ts/despliegue.ts; el encuadre existente (encuadrarViewportEnOpd) ya centra el viewport.",
+    "note": "Cubierto por e2e/05 con asercion de scroll/centrado."
+  },
+  "BUG-20260524T171628Z-a8c184": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El contorno de descomposicion forzaba strokeDasharray (discontinuo) a TODO proceso refinado, violando R-CTRN-1 (V-71): el contorno codifica EXCLUSIVAMENTE la afiliacion (sistemica=solido, ambiental=discontinuo) y persiste entre niveles. El refinamiento ya no pisa el contorno de afiliacion.",
+    "note": "Cubierto por proyecciones.test con verificacion de dasharray nulo para procesos sistemicos refinados."
+  },
+  "BUG-20260525T020822Z-9e3b9b": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La capsula de estado usaba rx/ry: calc(h/2) (stadium/pildora completa). El canon define el estado como ROUNTANGLE = rectangulo redondeado; la evidencia OPCloud usa rx='5'. Corregido a bottomRoundRect aprox. 2px puros abajo + rx=5 ribete.",
+    "note": "Cubierto por proyeccion.test con verificacion de rx y path data de estado."
+  },
+  "BUG-20260525T021047Z-6ae261": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La sombra de esencia fisica usaba dropShadow con blur:0 + color:grey opaco, rindiendo como duplicado duro del contorno (efecto 'doble linea'), no como sombra. Corregida a sombra suave (dx:2, dy:3, blur:2, color:rgba(23,21,17,0.35)).",
+    "note": "Cubierto por proyecciones.test con verificacion de shadow blur y color para cada esencia."
+  },
+  "BUG-20260525T052239Z-445a97": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Atajos O/P/S/R de creacion con canvas activo cableados en globalShortcutsPort.ts (ctx canvas) a crearObjetoDemo/crearProcesoDemo/agregarEstadoSmart/elegirTipoEnlace, con guards de seleccion para S y R y guard de foco via atajosTeclado.ts (no dispara en inputs).",
+    "note": "Cubierto por e2e/02-canvas-y-render.spec.ts con verificacion de teclas O, P, S."
+  },
+  "BUG-20260526T091316Z-dd058f": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Fix en b6548b6. posicionLibre() ahora coloca fuera del contorno de refinamiento (a la derecha). Se elimino la logica duplicada de contextoRefinamiento en crearEntidad() (creacionInterna.ts ya la maneja).",
+    "note": "Cubierto por operaciones.test con verificacion de posicionamiento fuera del contorno de refinamiento."
+  },
+  "BUG-20260526T095153Z-c65ba1": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Fix en fbbfc46. attrsIndiceEntidad() ahora emite display: 'none'. Los identificadores canonicos (o.13, p.03) ya no se muestran en el canvas. Las utilidades identificadorCanonicoEntidad/identificadorCanonicoApariencia se conservan para exportacion y serializacion.",
+    "note": "Identificadores canonicos siguen visibles en el inspector y exportacion; solo se ocultan en canvas."
+  },
+  "BUG-20260526T095401Z-810e7d": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Fix en c777119 y de5876f. Multiplicidades ahora se reflejan en oraciones de transicion, efecto y ruta. Traduccion canonica per spec: +/1..*/1..N -> al menos un/una X (singular); ?/0..1 -> un/una X opcional; */0..* -> plural sin prefijo.",
+    "note": "Se eliminaron los simbolos crudos en superficie que violaban R-MULT-1. Cubierto por generar.test y procedural.test."
+  },
+  "BUG-20260526T115627Z-78ee6e": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Fix en 919ca52. treePaneArbol wrapper: overflow: 'hidden' -> overflow: 'auto'. Eliminado overflow: 'hidden' duplicado del panel de ArbolOpd. El arbol de OPDs ahora scrollea normalmente.",
+    "note": "Cubierto por verificacion de scroll en panel de arbol OPD."
+  },
+  "BUG-20260526T132433Z-d5c889": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Fix en 3215508. DivisorPanel orientacion='horizontal' reemplaza el separador estatico entre el panel indice (arbol OPD) y el inspector. Arrastrable para ajustar altura; doble clic resetea a 30%. Rango: 10%-70%.",
+    "note": "Cubierto por e2e/15-superficie-contextual.spec.ts con verificacion de redimension y reset."
+  },
+  "BUG-20260526T150009Z-35087a": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Fix en 1a3acb6. validarMultiplicidad ahora acepta '?'. multiplicidadPlural('?') -> false (singular: un X opcional).",
+    "note": "Cubierto por parsear.test con verificacion de parseo de '?' como multiplicidad opcional valida."
+  },
+  "BUG-20260530T214922Z-fb6c2c": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La seccion Extremos del inspector de enlaces (selectores de extremo + Reanclar extremo -> DialogoMoverPuerto) se ocultaba para todo enlace no-procedural. Ahora SeccionExtremos.tsx expone los selectores de extremo y Reanclar extremo tambien para enlaces estructurales fundamentales.",
+    "note": "Cubierto por e2e/14-canvas-fidelity.spec.ts con verificacion de inspector de extremos para enlaces estructurales."
+  },
+  "BUG-20260531T031739Z-81ac46": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Eliminado por completo el sistema de hover tooltip del canvas (la barra inferior Objeto OPM). Era la variante tipo: 'hover-tooltip' del overlay de feedback. Se borraron 4 archivos dedicados y se limpio la cascada: union FeedbackOverlay, puerto FeedbackPort, slice feedback.ts, zustandFeedbackPort, OverlayLayer y JointCanvas.",
+    "note": "Verificado sin vestigios (grep) y sin regresion (1782 unit, e2e/11 7/7). Los sistemas hermanos (flash, inline-error, hover OPL<->canvas) quedaron intactos."
+  },
+  "BUG-20260526T015955Z-fbb0f1": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "PanelDiagnostico se monto bajo OPL en el margen izquierdo (BUG-3575b7) y el inspector derecho quedo dedicado a propiedades, eliminando la competencia funcional entre ambos paneles.",
+    "note": "Resuelto por el cierre de BUG-20260601T164538Z-3575b7. El layout actual dedica el panel izquierdo a diagnostico y el derecho a inspector de propiedades."
+  },
+  "BUG-20260525T233828Z-895504": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Se redistribuyo el header en BUG-38acaa: las acciones de modelado y persistencia se agrupan hacia el borde derecho, junto a la meta, dejando el tramo documental sin controles sueltos en el centro. El diseno actual sigue la distribucion canonica.",
+    "note": "Resuelto por el cierre de BUG-20260601T214246Z-38acaa. Verificado con toolbarStyles.test e inspeccion Playwright."
   }
 }

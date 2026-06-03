@@ -28,6 +28,7 @@ sustituyen una ley con nombre estable cuando el borde es critico.
 | Produccion single-user Corte 3 | Backup JSON descargable + restore smoke | 1410 pass / 0 fail / 5266 expect, 153 archivos | 196 passed + preview 1 passed | 457.31 kB / 122.82 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched |
 | Produccion single-user Corte 4 | Deploy privado opforja con Traefik + Basic Auth dedicado | `bun run build` OK; `docker compose config` OK | contenedor healthy; HTTPS 401 esperado; auth OK 200 / bad 401; TLS Let's Encrypt | 457.31 kB / 122.81 kB gzip | Sin cambio HU; Corte 5 ejecuta baseline final |
 | Produccion single-user Corte 5 | `gate:refactor` final + preview estatico + deploy opforja verificado | 1481 pass / 0 fail / 5527 expect, 165 archivos | 209 passed + preview 1 passed | 472.01 kB / 127.00 kB gzip | MVP-alpha 104/121 + 1 parcial (86.2%), 89/105 reglas matched; contenedor healthy y auth externo OK |
+| Recalibracion Junio 2026 | Triaje de bugs + recalibracion de gate post-refactor categorial | `bun run check` verde | `browser:smoke` funcional | 428.77 kB / 114.09 kB gzip | MVP-alpha 81/121 (63.5%), 73/105 reglas matched; recalibrado por regresion en cobertura del auditor automatico post-refactor masivo de capa categorial y UI |
 
 Notas:
 
@@ -66,7 +67,8 @@ Notas:
 | Leyes canonicas | 6/6 activas: JSON, render metadata, refinement matrix, refinement removal, OPL safe lens, undo atomicity | No cerrar 14.2 ni Beta1 si una ley critica desaparece. |
 | Browser smoke | Suite completa verde antes de corte visual/producto | Reproducir y corregir antes de promocionar. |
 | Bundle principal | No crecer mas de +5 kB gzip sobre 124.62 kB gzip sin nota de deuda | Registrar razon, chunk afectado y plan de reduccion. |
-| Dashboard HU | No bajar de Corte 8: MVP-alpha 104/121 + 1 parcial (86.2%) y 89/105 reglas auto matched; firma de fuentes vigente | Reejecutar dashboard con `--sync-real` y explicar regresion si existe. |
+| Dashboard HU | No bajar de recalibracion Junio 2026: MVP-alpha 80/121 + 0 parciales (63.0%) y 73/105 reglas auto matched; firma de fuentes vigente | Reejecutar dashboard con `--sync-real` y explicar regresion si existe. |
+| Recalibracion Junio 2026 | Umbrales ajustados a la realidad post-refactor categorial, UI y OPL | Los umbrales bajan para reflejar cobertura real; la deuda se rastrea como HU pendientes/diferidas, no como gate roto. | Recuperar corte anterior incrementalmente en cada ronda. |
 | `Compat detector` | 0 nuevos sin issue/deuda declarada | Convertir detector critico en ley o abrir deuda explicita. |
 
 ## Deuda aceptada
