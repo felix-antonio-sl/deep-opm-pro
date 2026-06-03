@@ -6,7 +6,7 @@ import type { Modelo, Resultado } from "../tipos";
 import { eliminarEnlacesBatch } from "./enlaces";
 
 describe("operaciones/enlaces", () => {
-  test("efecto canonico bloquea objeto->proceso y permite variantes con estado en direccion legal", () => {
+  test("efecto permite objeto->proceso como rama potencial de abanico y conserva variantes con estado", () => {
     let modelo = crearModelo("Efectos canonicos");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Pedido"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
@@ -17,17 +17,15 @@ describe("operaciones/enlaces", () => {
     const [entradaId, salidaId] = estados.estadoIds;
     if (!entradaId || !salidaId) throw new Error("La prueba esperaba estados");
 
-    expect(crearEnlace(modelo, modelo.opdRaizId, pedidoId, procesarId, "efecto")).toMatchObject({
-      ok: false,
-      error: expect.stringContaining("Efecto requiere Proceso -> Objeto"),
-    });
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, pedidoId, procesarId, "efecto"));
 
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, pedidoId, "efecto"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(entradaId), procesarId, "efecto"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, extremoEstado(salidaId), "efecto"));
 
     const efectos = Object.values(modelo.enlaces).filter((enlace) => enlace.tipo === "efecto");
-    expect(efectos).toHaveLength(3);
+    expect(efectos).toHaveLength(4);
+    expect(efectos.some((enlace) => enlace.origenId.kind === "entidad" && enlace.destinoId.kind === "entidad")).toBe(true);
     expect(efectos.some((enlace) => enlace.origenId.kind === "estado" && enlace.destinoId.kind === "entidad")).toBe(true);
     expect(efectos.some((enlace) => enlace.origenId.kind === "entidad" && enlace.destinoId.kind === "estado")).toBe(true);
   });

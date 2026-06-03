@@ -15,6 +15,7 @@
  */
 
 import { naturalezaDeEnlace } from "./constantes";
+import { puertoExactoCompartidoDeAbanico } from "./abanicos";
 import { aparienciaEsExternaDeRefinamiento } from "./contextoRefinamiento";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoKey, nombreExtremo } from "./extremos";
 import { imagenIncluyeBitmap } from "./imagenObjeto";
@@ -82,7 +83,8 @@ function reglaEfectoDireccionCanonica(modelo: Modelo, opdActivoId: Id): Aviso[] 
       enlace.tipo === "efecto" &&
       !(
         (origen.tipo === "proceso" && destino.tipo === "objeto") ||
-        (enlace.origenId.kind === "estado" && origen.tipo === "objeto" && destino.tipo === "proceso")
+        (enlace.origenId.kind === "estado" && origen.tipo === "objeto" && destino.tipo === "proceso") ||
+        efectoObjetoAProcesosEnAbanicoLogico(modelo, enlace)
       )
     ))
     .map(({ enlace }) => avisoEnlace(modelo, opdActivoId, enlace, {
@@ -91,6 +93,36 @@ function reglaEfectoDireccionCanonica(modelo: Modelo, opdActivoId: Id): Aviso[] 
       mensaje: `El efecto debe expresar que un proceso afecta a un objeto. Hoy va de ${nombreExtremo(modelo, enlace.origenId)} a ${nombreExtremo(modelo, enlace.destinoId)}; usa Proceso -> Objeto/Estado, o Estado -> Proceso solo para un efecto de entrada escindido.`,
       citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-EFE-1 / urn:fxsl:kb:opl-es TS3-TS5",
     }));
+}
+
+function efectoObjetoAProcesosEnAbanicoLogico(modelo: Modelo, enlace: Enlace): boolean {
+  const origen = entidadDeExtremo(modelo, enlace.origenId);
+  const destino = entidadDeExtremo(modelo, enlace.destinoId);
+  if (
+    enlace.tipo !== "efecto" ||
+    enlace.origenId.kind !== "entidad" ||
+    enlace.destinoId.kind !== "entidad" ||
+    origen?.tipo !== "objeto" ||
+    destino?.tipo !== "proceso"
+  ) return false;
+
+  return Object.values(modelo.abanicos ?? {}).some((abanico) => {
+    if (!abanico.enlaceIds.includes(enlace.id)) return false;
+    const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
+    if (!puertoComun || puertoComun.lado !== "origen" || puertoComun.entidadId !== origen.id) return false;
+    const ramas = abanico.enlaceIds.map((enlaceId) => modelo.enlaces[enlaceId]);
+    if (ramas.length < 2 || ramas.some((rama) => !rama)) return false;
+    return ramas.every((rama) => {
+      if (
+        !rama ||
+        rama.tipo !== "efecto" ||
+        rama.origenId.kind !== "entidad" ||
+        rama.destinoId.kind !== "entidad" ||
+        rama.origenId.id !== origen.id
+      ) return false;
+      return entidadDeExtremo(modelo, rama.destinoId)?.tipo === "proceso";
+    });
+  });
 }
 
 export function advertirConsumoDuplicado(modelo: Modelo, opdActivoId: Id = modelo.opdRaizId): Aviso[] {

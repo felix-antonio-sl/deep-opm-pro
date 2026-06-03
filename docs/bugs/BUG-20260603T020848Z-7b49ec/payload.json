@@ -1,0 +1,32 @@
+{
+  "id": "BUG-20260603T020848Z-7b49ec",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-03T02:08:48.310Z",
+  "text": "quiero mostrar un nuevo patrón súper relevante que se comporta inadecuadamente en nuestro OPforja. pongo como se presenta en OPcloud que es referente .",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-263f2490-94d8-4f0d-8d2a-c1cbfe9ca68c",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1603,
+      "height": 1070,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-06-03T02:08:44.091Z"
+  },
+  "screenshots": [
+    "screenshots/01-google-chrome-2026-06-02-22.01.36.png",
+    "screenshots/02-google-chrome-2026-06-02-22.03.00.png",
+    "screenshots/03-google-chrome-2026-06-02-22.06.05.png",
+    "screenshots/04-google-chrome-2026-06-02-22.06.11.png"
+  ]
+}

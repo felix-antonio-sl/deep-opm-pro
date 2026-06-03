@@ -17,19 +17,20 @@ cd app && bun run bug:index
 | Estado | Cantidad |
 |---|---:|
 | Nuevo | 30 |
-| Resuelto | 51 |
+| Resuelto | 52 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 76 |
+| Bug | 77 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Resuelto | [BUG-20260603T020848Z-7b49ec](BUG-20260603T020848Z-7b49ec/report.md) | 2026-06-03 02:08Z | Modelo / SD | quiero mostrar un nuevo patrón súper relevante que se comporta inadecuadamente en nuestro OPforja. pongo como se presenta en OPcloud que es referente… | op-forja soporta el patron OPCloud de abanico logico de efecto desde un objeto hacia procesos: B afecta exactamente/al menos uno … | 4 | Causa raiz: la firma y el reverse asumian efecto solo Proceso -> Objeto, por lo que el patron objeto -> procesos no era operable/canonico. Cubierto por operaciones/enlaces.test, validaciones.test, generar.test y parser.test. |
 | Bug | Resuelto | [BUG-20260603T010945Z-923dcf](BUG-20260603T010945Z-923dcf/report.md) | 2026-06-03 01:09Z | Modelo / SD | a continuación una comparación entre la referencia opcloud vs nosotros. En este caso representando el patrón de Logical And. Como podemos ver en nues… | OPL compone AND procedimental simple en una sola oracion, por ejemplo un proceso requiere Llave A, Llave B y Llave C. | 4 | Causa raiz: el generador solo agrupaba abanicos OR/XOR y exhibiciones opcionales. Cubierto por generar.test. |
 | Bug | Resuelto | [BUG-20260603T005926Z-f22ba6](BUG-20260603T005926Z-f22ba6/report.md) | 2026-06-03 00:59Z | Modelo / SD | split del enlace no funcionó | Split parcial TS4/TS5 acepta tanto metadato TS3 como efectos ya reanclados visualmente a estado de entrada o salida. | 1 | Causa raiz: splitEffectParcial rechazaba extremos Estado visibles y solo aceptaba metadato oculto. Cubierto por capacidadesOpcloud.test. |
 | Bug | Resuelto | [BUG-20260603T002025Z-cffd05](BUG-20260603T002025Z-cffd05/report.md) | 2026-06-03 00:20Z | HODOM completo v1_5_ / P5.4 - Servicios territoriales de campo | eliminar este solapamiento de texto | El header local del canvas extrae prefijos OPD canonicos como P5.4/LF-04 y trunca el kicker sin invadir el indicador de zoom. | 2 | Causa raiz: codigoOpd devolvia el nombre descriptivo completo. Cubierto por NodoOpd.test y CodexFrame.test. |
@@ -54,7 +55,7 @@ cd app && bun run bug:index
 | Bug | Nuevo | [BUG-20260526T033524Z-48967c](BUG-20260526T033524Z-48967c/report.md) | 2026-05-26 03:35Z | Modelo / SD | esta función parece que no funciona en nuestra app | Pendiente. | 1 |  |
 | Bug | Resuelto | [BUG-20260526T033451Z-59993d](BUG-20260526T033451Z-59993d/report.md) | 2026-05-26 03:34Z | Modelo / SD | deberia decir P cambia exactamente 1 de B en s1 , B en s2 o B en S3 | OPL de abanicos/estados preserva multiplicidad exacta y alternativas de estados de efecto. | 1 | Cubierto por generacion OPL de abanico y procedural. |
 | Bug | Resuelto | [BUG-20260526T032823Z-c37715](BUG-20260526T032823Z-c37715/report.md) | 2026-05-26 03:28Z | Modelo / SD | no se captura en opl el modificador de los enlances | Los modificadores de enlace quedan capturados en OPL junto con probabilidad/demora cuando aplica. | 0 | Cubierto por generadores OPL. |
-| Bug | Resuelto | [BUG-20260526T032642Z-bfb79a](BUG-20260526T032642Z-bfb79a/report.md) | 2026-05-26 03:26Z | Modelo / SD | un objeto no puede afectar a un proceso | La validacion rechaza efecto Objeto -> Proceso; solo permite Proceso -> Objeto o Estado -> Proceso como efecto de entrada. | 1 | Cubierto por operaciones/enlaces.test y validaciones.test. |
+| Bug | Resuelto | [BUG-20260526T032642Z-bfb79a](BUG-20260526T032642Z-bfb79a/report.md) | 2026-05-26 03:26Z | Modelo / SD | un objeto no puede afectar a un proceso | La validacion rechaza efecto Objeto -> Proceso suelto; solo permite Proceso -> Objeto, Estado -> Proceso como efecto de entrada, … | 1 | Supersedido de forma estrecha por BUG-20260603T020848Z-7b49ec; cubierto por operaciones/enlaces.test y validaciones.test. |
 | Bug | Resuelto | [BUG-20260526T032348Z-af718d](BUG-20260526T032348Z-af718d/report.md) | 2026-05-26 03:23Z | Modelo / SD | la raíz del enlace no representa al grupo, sino al primer enlace | La raiz visual del bus estructural se identifica como grupo de enlaces, no como la primera rama. | 1 | Cubierto por proyeccion.test y handlers JointJS. |
 | Bug | Resuelto | [BUG-20260526T032302Z-e12ad9](BUG-20260526T032302Z-e12ad9/report.md) | 2026-05-26 03:23Z | Modelo / SD | esto no lo podemos hacer | La seleccion/metadata del simbolo raiz estructural ya opera sobre el grupo completo y no sobre una rama hija. | 1 | Cubierto por proyeccion.test y herramientas de simbolo estructural. |
 | Bug | Resuelto | [BUG-20260526T031928Z-30f6ea](BUG-20260526T031928Z-30f6ea/report.md) | 2026-05-26 03:19Z | Modelo / SD | toda la multiplicidad no tiene adecuada traducción opl | La multiplicidad se refleja en OPL, incluyendo opcionales y agrupaciones estructurales. | 0 | Cubierto por generadores OPL y parser inverso. |

@@ -171,6 +171,44 @@ describe("validaciones metodologicas pasivas", () => {
     });
   });
 
+  test("abanico de efecto objeto->procesos no reporta direccion invertida", () => {
+    const base = modeloCon({
+      entidades: [
+        entidad("o-b", "objeto", "B", "informacional"),
+        entidad("p-p", "proceso", "P", "informacional"),
+        entidad("p-q", "proceso", "Q", "informacional"),
+        entidad("p-r", "proceso", "R", "informacional"),
+      ],
+      enlaces: [
+        enlace("e-b-p", "efecto", "o-b", "p-p"),
+        enlace("e-b-q", "efecto", "o-b", "p-q"),
+        enlace("e-b-r", "efecto", "o-b", "p-r"),
+      ],
+    });
+    const portId = "port-b-efecto-fan";
+    const modelo: Modelo = {
+      ...base,
+      enlaces: Object.fromEntries(Object.entries(base.enlaces).map(([id, item]) => [
+        id,
+        { ...item, origenId: { ...item.origenId, portId } },
+      ])),
+      abanicos: {
+        "ab-b-efecto": {
+          id: "ab-b-efecto",
+          opdId: base.opdRaizId,
+          puertoComun: { entidadId: "o-b", lado: "origen", portId },
+          puertoEntidadId: "o-b",
+          operador: "XOR",
+          enlaceIds: ["e-b-p", "e-b-q", "e-b-r"],
+        },
+      },
+    };
+
+    const avisos = avisosDeRegla(modelo, "efecto-direccion-canonica");
+
+    expect(avisos).toHaveLength(0);
+  });
+
   test("excepcion temporal hacia objeto o estado reporta error categorial", () => {
     const modeloObjeto = modeloCon({
       entidades: [

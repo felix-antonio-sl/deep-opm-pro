@@ -96,6 +96,32 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     expect(generarOpl(aplicado)).toContain("*Procesar* consume **Entrada**.");
   });
 
+  test("aplica abanico de efecto desde objeto a procesos sin invertir el sujeto", () => {
+    let modelo = crearModelo("reverse");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 90 }, "B"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "P"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 90 }, "Q"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 180 }, "R"));
+    const texto = [
+      ...generarOpl(modelo),
+      "**B** afecta exactamente uno de *P*, *Q* y *R*.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    expect(preview.patches.filter((patch) => patch.tipo === "crear-enlace" && patch.tipoEnlace === "efecto")).toHaveLength(3);
+    expect(preview.patches).toContainEqual(expect.objectContaining({
+      tipo: "crear-abanico",
+      operador: "XOR",
+      tipoEnlace: "efecto",
+      procesoEsOrigen: true,
+    }));
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    expect(Object.values(aplicado.abanicos ?? {})).toHaveLength(1);
+    expect(generarOpl(aplicado)).toContain("**B** afecta exactamente uno de *P*, *Q* y *R*.");
+  });
+
   test("crea entidades y enlaces declarados en el mismo lote OPL", () => {
     const modelo = crearModelo("reverse");
     const texto = [

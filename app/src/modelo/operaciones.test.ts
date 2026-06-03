@@ -948,10 +948,16 @@ describe("operaciones de modelo", () => {
     const sistema = entidadPorNombre(modelo, "Sistema");
     const actualizar = entidadPorNombre(modelo, "Actualizar");
 
-    const creado = crearEnlace(modelo, modelo.opdRaizId, sistema.id, actualizar.id, "efecto");
-    expect(creado.ok).toBe(false);
-    if (creado.ok) return;
-    expect(creado.error).toContain("Proceso -> Objeto");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistema.id, actualizar.id, "efecto"));
+    const effectId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "efecto")?.id;
+    expect(effectId).toBeDefined();
+    if (!effectId) return;
+
+    const split = splitEffectEnPar(modelo, modelo.opdRaizId, effectId);
+
+    expect(split.ok).toBe(false);
+    if (split.ok) return;
+    expect(split.error).toContain("Proceso -> Objeto");
   });
 
   test("splitEffectEnPar escinde efecto TS3 en efectos entrada/salida sin objeto sintetico", () => {

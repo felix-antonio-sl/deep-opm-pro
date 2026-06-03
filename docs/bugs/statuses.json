@@ -206,8 +206,8 @@
   "BUG-20260526T032642Z-bfb79a": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "La validacion rechaza efecto Objeto -> Proceso; solo permite Proceso -> Objeto o Estado -> Proceso como efecto de entrada.",
-    "note": "Cubierto por operaciones/enlaces.test y validaciones.test."
+    "resolution": "La validacion rechaza efecto Objeto -> Proceso suelto; solo permite Proceso -> Objeto, Estado -> Proceso como efecto de entrada, o Objeto -> Proceso si pertenece a un abanico logico de efecto.",
+    "note": "Supersedido de forma estrecha por BUG-20260603T020848Z-7b49ec; cubierto por operaciones/enlaces.test y validaciones.test."
   },
   "BUG-20260526T032823Z-c37715": {
     "type": "Bug",
@@ -304,5 +304,11 @@
     "status": "Resuelto",
     "resolution": "OPL compone AND procedimental simple en una sola oracion, por ejemplo un proceso requiere Llave A, Llave B y Llave C.",
     "note": "Causa raiz: el generador solo agrupaba abanicos OR/XOR y exhibiciones opcionales. Cubierto por generar.test."
+  },
+  "BUG-20260603T020848Z-7b49ec": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "op-forja soporta el patron OPCloud de abanico logico de efecto desde un objeto hacia procesos: B afecta exactamente/al menos uno de P, Q y R. La creacion permite esas ramas, el diagnostico solo las acepta cuando estan agrupadas en O/XOR y OPL reverse conserva el sujeto objeto.",
+    "note": "Causa raiz: la firma y el reverse asumian efecto solo Proceso -> Objeto, por lo que el patron objeto -> procesos no era operable/canonico. Cubierto por operaciones/enlaces.test, validaciones.test, generar.test y parser.test."
   }
 }

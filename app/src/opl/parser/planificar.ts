@@ -484,6 +484,10 @@ function planificarAbanico(
   ast: Extract<OracionOplAst, { kind: "abanico" }>,
   registry: PatchRegistry,
 ): void {
+  if (ast.tipoEnlace === "efecto" && !ast.otrosEstados && planificarAbanicoEfectoObjetoAProcesos(modelo, ast, registry)) {
+    return;
+  }
+
   const procesoRef = refEntidadPorNombre(modelo, ast.proceso, "proceso", ast.linea, registry);
   if (!procesoRef) return;
 
@@ -536,6 +540,50 @@ function planificarAbanico(
     ramas: ramasRefs.map((rama) => ({ origen: rama.origen, destino: rama.destino })),
     ...(ast.modificador ? { modificador: ast.modificador } : {}),
   });
+}
+
+function planificarAbanicoEfectoObjetoAProcesos(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "abanico" }>,
+  registry: PatchRegistry,
+): boolean {
+  if (refEntidadPorNombreSilenciosa(modelo, ast.proceso, "proceso", ast.linea, registry)) {
+    return false;
+  }
+  const objetoRef = refEntidadPorNombreSilenciosa(modelo, ast.proceso, "objeto", ast.linea, registry);
+  if (!objetoRef) return false;
+
+  const ramasRefs: Array<{ origen: ReferenciaEntidadPatch; destino: ReferenciaEntidadPatch }> = [];
+  for (const procesoNombre of ast.otros) {
+    const procesoRef = refEntidadPorNombre(modelo, procesoNombre, "proceso", ast.linea, registry);
+    if (!procesoRef) continue;
+    const ramaRefs = { origen: objetoRef, destino: procesoRef };
+    planificarEnlace(
+      modelo,
+      ast.linea,
+      ast.tipoEnlace,
+      ramaRefs.origen,
+      ramaRefs.destino,
+      ast.etiqueta,
+      registry,
+      ast.modificador ? { modificador: ast.modificador } : {},
+    );
+    ramasRefs.push(ramaRefs);
+  }
+
+  if (ramasRefs.length < 2) return true;
+
+  registry.add({
+    tipo: "crear-abanico",
+    linea: ast.linea,
+    operador: ast.operador,
+    tipoEnlace: ast.tipoEnlace,
+    procesoRef: objetoRef,
+    procesoEsOrigen: true,
+    ramas: ramasRefs.map((rama) => ({ origen: rama.origen, destino: rama.destino })),
+    ...(ast.modificador ? { modificador: ast.modificador } : {}),
+  });
+  return true;
 }
 
 function planificarRamaAbanico(
@@ -669,6 +717,18 @@ function refEntidadPorNombre(
     sugerencia: "Declara primero la cosa con una oracion 'Nombre es un objeto/proceso ...'.",
   });
   return null;
+}
+
+function refEntidadPorNombreSilenciosa(
+  modelo: Modelo,
+  nombre: string,
+  entidadTipo: TipoEntidad,
+  linea: number,
+  registry: PatchRegistry,
+): ReferenciaEntidadPatch | null {
+  const entidad = resolverEntidad(modelo, nombre, entidadTipo, linea, registry, { silenciosoSiNoExiste: true });
+  if (entidad) return { tipo: "id", id: entidad.id };
+  return registry.refEntidadPendiente(modelo, nombre, entidadTipo, linea);
 }
 
 function resolverEntidad(
