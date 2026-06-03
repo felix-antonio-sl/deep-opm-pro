@@ -2,8 +2,15 @@
 
 **Creado**: 2026-06-03T19:31:34.000Z
 **Tipo**: Bug
-**Estado**: Nuevo
-**Resolución**: Pendiente.
+**Estado**: Resuelto
+**Resolución**: 2026-06-03 — `oracionEfecto` (`app/src/opl/generadores/procedural.ts`) emite la
+transición para el efecto TS3 compacto: par completo `*Proceso* cambia **Objeto** de
+\`entrada\` a \`salida\`.` y variantes parciales (`de \`entrada\`.` / `a \`salida\`.`), en ambas
+direcciones del enlace. La dirección reverse YA existía (parser ETS2 + `aplicar.ts` reancla la
+frase al metadato `estadoEntradaId`/`estadoSalidaId`); quedó sellada con test del par completo
+en `src/opl/parser/ts45.test.ts`. Roundtrip: fixture `cambio-estado-ts3-compacto`
+(no-estricta solo por la limitación preexistente del ciclo estado-objeto del aplicador, ver L5).
+Tests: 4 nuevos en `procedural.test.ts` + control de no-regresión del `afecta` genérico.
 
 ## Texto
 
