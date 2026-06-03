@@ -55,4 +55,21 @@ describe("OPL reverse TS4/TS5 parcial standalone", () => {
       estadoSalidaId,
     });
   });
+
+  // BUG-f314c4 (reverse): la transición completa se reancla al metadato TS3
+  // compacto del enlace efecto (par estadoEntradaId/estadoSalidaId), que es lo
+  // que el generador ahora verbaliza con la misma frase.
+  test("aplica 'cambia de estado a estado' como efecto TS3 compacto con ambos metadatos", () => {
+    const { modelo, estadoEntradaId, estadoSalidaId } = modeloBase();
+    const preview = planificarEdicionOplLibre(modelo, "*Resolver* cambia **Pedido** de `estado1` a `estado2`.");
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toEqual([]);
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches));
+
+    const efecto = Object.values(aplicado.enlaces).find((enlace) => enlace.tipo === "efecto");
+    expect(efecto).toMatchObject({
+      estadoEntradaId,
+      estadoSalidaId,
+    });
+  });
 });

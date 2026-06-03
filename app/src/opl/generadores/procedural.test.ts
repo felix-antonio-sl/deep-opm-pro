@@ -32,6 +32,81 @@ describe("procedural OPL", () => {
     expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* cambia **Pedido** a `bueno`.");
   });
 
+  // BUG-f314c4: el efecto TS3 compacto (enlace entidad→entidad con metadato
+  // estadoEntradaId/estadoSalidaId) debe verbalizar la transición de estados,
+  // no caer al genérico "afecta" — la misma oración que produce la vía
+  // escindida TS4/TS5 (oracionTransicionEstados).
+  test("efecto TS3 compacto con par de estados emite la transición completa", () => {
+    const modelo = modeloConEstados();
+    const enlace: Enlace = {
+      id: "e1",
+      tipo: "efecto",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "pedido" },
+      etiqueta: "",
+      estadoEntradaId: "s1",
+      estadoSalidaId: "s2",
+    };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* cambia **Pedido** de `pendiente` a `aprobado`.");
+  });
+
+  test("efecto TS3 compacto con solo estado de entrada emite la variante parcial 'de'", () => {
+    const modelo = modeloConEstados();
+    const enlace: Enlace = {
+      id: "e1",
+      tipo: "efecto",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "pedido" },
+      etiqueta: "",
+      estadoEntradaId: "s1",
+    };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* cambia **Pedido** de `pendiente`.");
+  });
+
+  test("efecto TS3 compacto con solo estado de salida emite la variante parcial 'a'", () => {
+    const modelo = modeloConEstados();
+    const enlace: Enlace = {
+      id: "e1",
+      tipo: "efecto",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "pedido" },
+      etiqueta: "",
+      estadoSalidaId: "s2",
+    };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* cambia **Pedido** a `aprobado`.");
+  });
+
+  test("efecto TS3 compacto en dirección objeto→proceso también verbaliza la transición", () => {
+    const modelo = modeloConEstados();
+    const enlace: Enlace = {
+      id: "e1",
+      tipo: "efecto",
+      origenId: { kind: "entidad", id: "pedido" },
+      destinoId: { kind: "entidad", id: "proceso" },
+      etiqueta: "",
+      estadoEntradaId: "s1",
+      estadoSalidaId: "s2",
+    };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* cambia **Pedido** de `pendiente` a `aprobado`.");
+  });
+
+  test("efecto sin metadatos de transición conserva la forma afecta", () => {
+    const modelo = modeloConEstados();
+    const enlace: Enlace = {
+      id: "e1",
+      tipo: "efecto",
+      origenId: { kind: "entidad", id: "proceso" },
+      destinoId: { kind: "entidad", id: "pedido" },
+      etiqueta: "",
+    };
+
+    expect(oracionEnlaceConRuta(modelo, enlace)).toBe("*Procesar* afecta **Pedido**.");
+  });
+
   test("evento con probabilidad emite Pr canónico", () => {
     const modelo = modeloBase();
     const enlace: Enlace = {

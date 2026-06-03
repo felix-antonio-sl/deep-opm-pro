@@ -399,6 +399,45 @@ const fixtureTransicionTs3: FixtureRoundtrip = {
   bisimetricaEstricta: false,
 };
 
+// BUG-f314c4: efecto TS3 COMPACTO — el par de estados vive como metadato del
+// enlace efecto entidad→entidad (no escindido en consumo+resultado). El
+// generador debe emitir la transición `cambia ... de ... a ...` y el parser
+// (ETS2 + aplicador) la reancla al metadato: bisimetría estricta.
+const fixtureTransicionTs3Compacta: FixtureRoundtrip = {
+  nombre: "cambio-estado-ts3-compacto",
+  construir: () => {
+    let m = crearModelo("M");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Paciente"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Egresar"));
+    const pacienteId = entidadId(m, "Paciente");
+    m = estadosNombrados(m, pacienteId, "ingresado", "egresado");
+    const [ingresado, egresado] = estadosDeEntidad(m, pacienteId);
+    if (!ingresado || !egresado) throw new Error("fixture invalida: estados TS3 compacto");
+    m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Egresar"), pacienteId, "efecto"));
+    const enlaceId = Object.keys(m.enlaces).find((id) => m.enlaces[id]?.tipo === "efecto");
+    if (!enlaceId) throw new Error("fixture invalida: enlace TS3 compacto");
+    m = {
+      ...m,
+      enlaces: {
+        ...m.enlaces,
+        [enlaceId]: { ...m.enlaces[enlaceId]!, estadoEntradaId: ingresado.id, estadoSalidaId: egresado.id },
+      },
+    };
+    return m;
+  },
+  oracionesEsperadas: [
+    "**Paciente** es un objeto informacional y sistémico.",
+    "**Paciente** puede estar `ingresado` o `egresado`.",
+    "*Egresar* es un proceso informacional y sistémico.",
+    "*Egresar* cambia **Paciente** de `ingresado` a `egresado`.",
+  ],
+  // No estricta SOLO por la limitación preexistente del ciclo estado-objeto
+  // del reverse-aplicador (ver fixtureObjetoConEstados / L5): "puede estar"
+  // sobre un objeto declarado en el mismo texto. El reanclaje del efecto TS3
+  // (frase → metadatos) sí está sellado en parser/ts45.test.ts.
+  bisimetricaEstricta: false,
+};
+
 const fixtureTransicionTs4: FixtureRoundtrip = {
   nombre: "cambio-estado-ts4-solo-entrada",
   construir: () => {
@@ -578,6 +617,7 @@ const fixtureAutoInvocacionTilde: FixtureRoundtrip = {
 fixturesRoundtripExtra.push(
   fixtureEfectoSimple,
   fixtureTransicionTs3,
+  fixtureTransicionTs3Compacta,
   fixtureTransicionTs4,
   fixtureTransicionTs5,
   fixtureHabilitadorConEstado,

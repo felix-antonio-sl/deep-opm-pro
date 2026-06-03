@@ -365,6 +365,32 @@ function oracionEnlaceSinModificador(modelo: Modelo, enlace: Enlace): string | n
 }
 
 function oracionEfecto(modelo: Modelo, enlace: Enlace, origen: Entidad, destino: Entidad): string | null {
+  // BUG-f314c4: efecto TS3 compacto — la transición vive como metadato del
+  // enlace entidad→entidad (estadoEntradaId/estadoSalidaId). Se verbaliza con
+  // la misma plantilla `cambia` de la vía escindida TS4/TS5
+  // (oracionTransicionEstados); con un solo extremo, la variante parcial.
+  const entradaTs3 = enlace.estadoEntradaId ? modelo.estados[enlace.estadoEntradaId] : undefined;
+  const salidaTs3 = enlace.estadoSalidaId ? modelo.estados[enlace.estadoSalidaId] : undefined;
+  if (entradaTs3 || salidaTs3) {
+    const proceso = origen.tipo === "proceso" ? origen : destino.tipo === "proceso" ? destino : null;
+    const objeto = origen.tipo === "objeto" ? origen : destino.tipo === "objeto" ? destino : null;
+    if (proceso && objeto) {
+      const procesoEsOrigen = entidadIdDeExtremo(modelo, enlace.origenId) === proceso.id;
+      const multiplicidadProceso = procesoEsOrigen ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino;
+      const multiplicidadObjeto = procesoEsOrigen ? enlace.multiplicidadDestino : enlace.multiplicidadOrigen;
+      const procesoOpl = nombreOplConMultiplicidad(proceso, multiplicidadProceso);
+      const objetoOpl = nombreOplConMultiplicidad(objeto, multiplicidadObjeto);
+      if (entradaTs3 && salidaTs3) {
+        return `${procesoOpl} cambia ${objetoOpl} de \`${nombreCanonicoEstado(entradaTs3)}\` a \`${nombreCanonicoEstado(salidaTs3)}\`.`;
+      }
+      if (entradaTs3) {
+        return `${procesoOpl} cambia ${objetoOpl} de \`${nombreCanonicoEstado(entradaTs3)}\`.`;
+      }
+      if (salidaTs3) {
+        return `${procesoOpl} cambia ${objetoOpl} a \`${nombreCanonicoEstado(salidaTs3)}\`.`;
+      }
+    }
+  }
   const estadoOrigen = estadoDeExtremo(modelo, enlace.origenId);
   const estadoDestino = estadoDeExtremo(modelo, enlace.destinoId);
   if (estadoOrigen && destino.tipo === "proceso") {
