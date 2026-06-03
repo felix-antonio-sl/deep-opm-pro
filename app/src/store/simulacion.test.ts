@@ -48,7 +48,7 @@ describe("simulacion bloqueada", () => {
   test("autoavance se detiene si un loop alcanza el limite de seguridad", () => {
     let modelo = crearModelo("Loop store");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Reintentar"));
-    const procesoId = Object.values(modelo.entidades)[0]?.id;
+    const procesoId = Object.values(modelo.entidades).find((e) => e.nombre === "Reintentar")?.id;
     if (!procesoId) throw new Error("La prueba esperaba un proceso");
     modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, procesoId));
     store.getState().importarJson(exportarModelo(modelo));

@@ -332,6 +332,9 @@ function resolverSiguientePasoPorInvocacion(
   paso: PasoConEnlaces,
 ): number {
   const secuencial = contexto.pasoActual + 1;
+  // Si un proceso tiene MÚLTIPLES invocaciones de salida, OPM no prescribe el orden;
+  // se elige la primera por id (desempate determinista y estable). Tomar solo la
+  // primera es una decisión deliberada: la simulación es de un camino, no de un fan-out.
   const invocacion = [...paso.enlacesSalidaIds]
     .map((id) => modelo.enlaces[id])
     .filter((enlace): enlace is Enlace => Boolean(enlace))

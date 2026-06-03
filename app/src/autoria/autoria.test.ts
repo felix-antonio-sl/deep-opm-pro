@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearAutor, emitirBundle } from "./index";
 import { construirCafetera } from "./_fixtures/cafetera";
+import { hidratarModelo } from "../serializacion/json";
 
 describe("autoría DSL", () => {
   test("construye un modelo y resuelve claves a ids", () => {
@@ -41,6 +42,52 @@ describe("autoría DSL", () => {
   });
 });
 
+describe("autoría DSL — métodos y validación (cobertura)", () => {
+  test("estados rechaza un único estado (deep-opm-pro exige ≥2)", () => {
+    const a = crearAutor();
+    a.entidad("o", "objeto", "Cosa", "fisica", "sistemica");
+    expect(() => a.estados("o", ["solo"])).toThrow(/unico estado/);
+  });
+
+  test("idOpd e idEstado lanzan ante clave no registrada", () => {
+    const a = crearAutor();
+    a.entidad("o", "objeto", "Cosa", "fisica", "sistemica");
+    expect(() => a.idOpd("no-existe")).toThrow(/OPD no registrado/);
+    expect(() => a.idEstado("o", "fantasma")).toThrow(/Estado no registrado/);
+  });
+
+  test("atributo declara value slot; atributoEstados solo marca esAtributo", () => {
+    const a = crearAutor();
+    const attrId = a.atributo("color", "Color");
+    const attrEstId = a.atributoEstados("nivel", "Nivel");
+    expect(a.modelo.entidades[attrId]!.esAtributo).toBe(true);
+    expect(a.modelo.entidades[attrId]!.valorSlot).toBeDefined();
+    expect(a.modelo.entidades[attrEstId]!.esAtributo).toBe(true);
+    expect(a.modelo.entidades[attrEstId]!.valorSlot).toBeUndefined();
+  });
+
+  test("extremo resuelve entidad y estado", () => {
+    const a = crearAutor();
+    a.entidad("o", "objeto", "Cosa", "fisica", "sistemica");
+    a.estados("o", ["a", "b"], "a");
+    expect(a.extremo("o")).toEqual({ kind: "entidad", id: a.id("o") });
+    expect(a.extremo({ entidad: "o", estado: "a" })).toEqual({ kind: "estado", id: a.idEstado("o", "a") });
+  });
+
+  test("refDespliegue / refDespliegueExh / refDespliegueGen registran el modo correcto", () => {
+    const modo = (fn: "refDespliegue" | "refDespliegueExh" | "refDespliegueGen") => {
+      const a = crearAutor();
+      a.entidad("o", "objeto", "Cosa", "fisica", "sistemica");
+      a.opd("d1", "D1", null);
+      a[fn]("o", "d1");
+      return a.modelo.entidades[a.id("o")]!.refinamientos?.despliegue?.modo;
+    };
+    expect(modo("refDespliegue")).toBe("agregacion");
+    expect(modo("refDespliegueExh")).toBe("exhibicion");
+    expect(modo("refDespliegueGen")).toBe("generalizacion");
+  });
+});
+
 describe("autoría — emitirBundle (cafetera, dominio NO-HODOM)", () => {
   const bundle = emitirBundle(construirCafetera());
 
@@ -50,10 +97,13 @@ describe("autoría — emitirBundle (cafetera, dominio NO-HODOM)", () => {
     expect(bundle.conteos.estados).toBe(2);
   });
 
-  test("el JSON es un bundle deep-opm-pro.modelo.v0 válido", () => {
+  test("el JSON es un bundle deep-opm-pro.modelo.v0 válido y re-hidratable", () => {
     const parsed = JSON.parse(bundle.json);
     expect(parsed.formato).toBe("deep-opm-pro.modelo.v0");
     expect(parsed.modelo.opds).toBeDefined();
+    // control fuerte (no tautológico): el JSON re-hidrata sin error, no solo parsea.
+    const re = hidratarModelo(bundle.json);
+    expect(re.ok).toBe(true);
   });
 
   test("canon sin bloqueantes (0 avisos de severidad error)", () => {
