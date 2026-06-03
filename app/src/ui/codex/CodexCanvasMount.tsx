@@ -81,6 +81,7 @@ const style = {
   },
   header: {
     flex: "0 0 auto",
+    minWidth: 0,
     display: "flex",
     alignItems: "baseline",
     justifyContent: "space-between",
@@ -89,6 +90,12 @@ const style = {
     borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
   },
   kicker: {
+    flex: "1 1 auto",
+    minWidth: 0,
+    display: "block",
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    textOverflow: "ellipsis",
     color: tokens.colors.inkSoft,
     fontFamily: tokens.typography.mono,
     fontSize: `${tokens.typography.fs.fs9}px`,
@@ -96,6 +103,8 @@ const style = {
     textTransform: "uppercase",
   },
   zoom: {
+    flex: "0 0 auto",
+    whiteSpace: "nowrap",
     color: tokens.colors.inkSoft,
     fontFamily: tokens.typography.mono,
     fontSize: `${tokens.typography.fs.fs10}px`,

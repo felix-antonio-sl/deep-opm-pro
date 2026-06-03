@@ -288,22 +288,10 @@ export function splitEffectParcial(modelo: Modelo, opdId: Id, enlaceId: Id): Res
   }
   if (enlace.tipo !== "efecto") return fallo("El split parcial requiere un enlace de efecto");
 
-  const origen = entidadDeExtremo(modelo, enlace.origenId);
-  const destino = entidadDeExtremo(modelo, enlace.destinoId);
-  if (!origen || !destino) return fallo("El enlace de efecto tiene extremos inválidos");
-  if (origen.tipo !== "proceso" || destino.tipo !== "objeto" || enlace.origenId.kind !== "entidad" || enlace.destinoId.kind !== "entidad") {
-    return fallo("El split parcial requiere un efecto TS3 Proceso -> Objeto");
-  }
-  const estadoEntrada = enlace.estadoEntradaId ? modelo.estados[enlace.estadoEntradaId] : undefined;
-  const estadoSalida = enlace.estadoSalidaId ? modelo.estados[enlace.estadoSalidaId] : undefined;
-  if (!!estadoEntrada === !!estadoSalida) {
-    return fallo("El split parcial requiere exactamente un estado de entrada o de salida");
-  }
-  const estado = estadoEntrada ?? estadoSalida;
-  if (!estado || estado.entidadId !== destino.id) {
-    return fallo("El estado parcial del efecto debe pertenecer al objeto afectado");
-  }
-  if (!entidadVisibleEnOpd(opd, destino.id) || !entidadVisibleEnOpd(opd, origen.id)) {
+  const parcialResuelto = resolverSplitEffectParcial(modelo, enlace);
+  if (!parcialResuelto.ok) return parcialResuelto;
+  const { proceso, objeto, estado, rol } = parcialResuelto.value;
+  if (!entidadVisibleEnOpd(opd, objeto.id) || !entidadVisibleEnOpd(opd, proceso.id)) {
     return fallo("El split parcial requiere que objeto y proceso tengan apariencia en el OPD activo");
   }
 
@@ -314,12 +302,11 @@ export function splitEffectParcial(modelo: Modelo, opdId: Id, enlaceId: Id): Res
   nextSeq += 1;
   const aparienciaParcialId = siguienteId({ ...modelo, nextSeq }, "ae");
   nextSeq += 1;
-  const rol = estadoEntrada ? "entrada" : "salida";
   const parcial: Enlace = {
     id: parcialId,
     tipo: "efecto",
-    origenId: estadoEntrada ? extremoEstado(estado.id) : extremoEntidad(origen.id),
-    destinoId: estadoEntrada ? extremoEntidad(origen.id) : extremoEstado(estado.id),
+    origenId: rol === "entrada" ? extremoEstado(estado.id) : extremoEntidad(proceso.id),
+    destinoId: rol === "entrada" ? extremoEntidad(proceso.id) : extremoEstado(estado.id),
     etiqueta: "",
     efectoEscindido: { grupoId, enlacePadreId: enlaceId, rol, modo: "standalone" },
   };
@@ -356,6 +343,58 @@ export function splitEffectParcial(modelo: Modelo, opdId: Id, enlaceId: Id): Res
       },
     },
   });
+}
+
+function resolverSplitEffectParcial(
+  modelo: Modelo,
+  enlace: Enlace,
+): Resultado<{ proceso: Entidad; objeto: Entidad; estado: Estado; rol: "entrada" | "salida" }> {
+  const origen = entidadDeExtremo(modelo, enlace.origenId);
+  const destino = entidadDeExtremo(modelo, enlace.destinoId);
+  if (!origen || !destino) return fallo("El enlace de efecto tiene extremos inválidos");
+
+  const estadoEntrada = enlace.estadoEntradaId ? modelo.estados[enlace.estadoEntradaId] : undefined;
+  const estadoSalida = enlace.estadoSalidaId ? modelo.estados[enlace.estadoSalidaId] : undefined;
+  const estadoOrigen = enlace.origenId.kind === "estado" ? modelo.estados[enlace.origenId.id] : undefined;
+  const estadoDestino = enlace.destinoId.kind === "estado" ? modelo.estados[enlace.destinoId.id] : undefined;
+  const estadosDeclarados = [estadoEntrada, estadoSalida, estadoOrigen, estadoDestino].filter(Boolean);
+  if (estadosDeclarados.length !== 1) {
+    return fallo("El split parcial requiere exactamente un estado de entrada o de salida");
+  }
+
+  if (estadoEntrada) {
+    if (origen.tipo !== "proceso" || destino.tipo !== "objeto" || enlace.origenId.kind !== "entidad" || enlace.destinoId.kind !== "entidad") {
+      return fallo("El split parcial requiere un efecto TS3 Proceso -> Objeto o un efecto ya anclado a estado");
+    }
+    if (estadoEntrada.entidadId !== destino.id) return fallo("El estado parcial del efecto debe pertenecer al objeto afectado");
+    return ok({ proceso: origen, objeto: destino, estado: estadoEntrada, rol: "entrada" });
+  }
+
+  if (estadoSalida) {
+    if (origen.tipo !== "proceso" || destino.tipo !== "objeto" || enlace.origenId.kind !== "entidad" || enlace.destinoId.kind !== "entidad") {
+      return fallo("El split parcial requiere un efecto TS3 Proceso -> Objeto o un efecto ya anclado a estado");
+    }
+    if (estadoSalida.entidadId !== destino.id) return fallo("El estado parcial del efecto debe pertenecer al objeto afectado");
+    return ok({ proceso: origen, objeto: destino, estado: estadoSalida, rol: "salida" });
+  }
+
+  if (estadoOrigen) {
+    if (origen.tipo !== "objeto" || destino.tipo !== "proceso" || enlace.destinoId.kind !== "entidad") {
+      return fallo("El split parcial de entrada requiere Estado -> Proceso");
+    }
+    if (estadoOrigen.entidadId !== origen.id) return fallo("El estado parcial del efecto debe pertenecer al objeto afectado");
+    return ok({ proceso: destino, objeto: origen, estado: estadoOrigen, rol: "entrada" });
+  }
+
+  if (estadoDestino) {
+    if (origen.tipo !== "proceso" || destino.tipo !== "objeto" || enlace.origenId.kind !== "entidad") {
+      return fallo("El split parcial de salida requiere Proceso -> Estado");
+    }
+    if (estadoDestino.entidadId !== destino.id) return fallo("El estado parcial del efecto debe pertenecer al objeto afectado");
+    return ok({ proceso: origen, objeto: destino, estado: estadoDestino, rol: "salida" });
+  }
+
+  return fallo("El split parcial requiere exactamente un estado de entrada o de salida");
 }
 
 export function entidadesDelOpd(modelo: Modelo, opdId: Id): Entidad[] {

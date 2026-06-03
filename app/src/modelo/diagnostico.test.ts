@@ -14,9 +14,11 @@ describe("diagnostico unificado", () => {
     expect(codigos).toContain("PROCESO_NOMBRE_FORMA_VERBAL");
     expect(avisos.find((aviso) => aviso.reglaId === "PROCESO_NOMBRE_FORMA_VERBAL")).toMatchObject({
       origen: "metodologia",
+      titulo: "Nombre de proceso no es canónico",
       severidad: "info",
       elementoTipo: "entidad",
       destino: "Proceso",
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-NOM-PROC-1 / urn:fxsl:kb:opl-es §1.1",
     });
   });
 
@@ -50,9 +52,10 @@ describe("diagnostico unificado", () => {
     expect(avisos).toContainEqual(expect.objectContaining({
       origen: "metodologia",
       reglaId: "ESTADO_NOMBRE_CANONICO",
+      titulo: "Estado tiene nombre no canónico",
       severidad: "advertencia",
       destino: "Pedido",
-      citaSSOT: "reglas-opm-estrictas.md R-NOM-EST-1",
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-NOM-EST-1 / urn:fxsl:kb:opl-es §1.3",
     }));
   });
 });

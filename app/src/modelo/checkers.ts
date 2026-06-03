@@ -1,7 +1,7 @@
 /**
  * Verificacion metodologica OPM. Avisos accionables, blandos.
  *
- * Citas SSOT canonicas (todas a `metodologia-opm-es.md`):
+ * Citas SSOT canonicas (KORA):
  *   §6.1   Identificacion del Proceso Principal
  *   §6.4   Funcion Principal
  *   §6.9   Objetos Ambientales (contorno discontinuo)
@@ -39,6 +39,11 @@ import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, TipoEnlace,
 
 const TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 const INVARIABLES_SINGULAR = new Set(["analisis", "sintesis", "crisis", "tesis", "hipotesis", "virus", "gas"]);
+const KB_OPM = "urn:fxsl:kb:opm-es";
+const KB_OPD = "urn:fxsl:kb:opd-es";
+const KB_OPL = "urn:fxsl:kb:opl-es";
+const KB_METODO = "urn:fxsl:kb:manual-metodologico-opm-es";
+const KB_REGLAS = "urn:fxsl:kb:reglas-opm-estrictas-es";
 /**
  * Patron de placeholders auto-generados.
  * Casos cubiertos:
@@ -87,7 +92,7 @@ export function checkDescomposicionPreservaFrontera(modelo: Modelo): AvisoMetodo
       navegarA: { tipo: "entidad", id: obs.procesoId },
       mensaje: `La descomposición de "${entidad?.nombre ?? obs.procesoId}" no preserva su frontera: difiere en ${obs.diferencias.join(", ")}. El OPD hijo debe ejercer sobre el contorno los mismos roles (consumo/resultado/efecto…) que el proceso abstracto.`,
       rationale: "La realización in-zoom de un proceso debe ser frontera-equivalente a su vista abstracta (out-zoom).",
-      ssotRef: "metodologia-opm-es.md §7.1 (consistencia in-zoom/out-zoom) / capa categorial F2",
+      ssotRef: `${KB_METODO} §7.1 / urn:fxsl:kb:opm-categorial-es F2`,
       accionesSugeridas: [
         "Recolecta o distribuye los enlaces de contorno faltantes en el OPD hijo (clic derecho sobre el enlace externo).",
         "O ajusta los enlaces del proceso abstracto para que coincidan con su descomposición.",
@@ -112,7 +117,7 @@ export function checkRecursoLinealMultiplesConsumidores(modelo: Modelo): AvisoMe
       navegarA: { tipo: "entidad", id: obs.entidadId },
       mensaje: `El recurso lineal "${entidad?.nombre ?? obs.entidadId}" es consumido por ${obs.procesos.length} procesos. Un recurso lineal se consume (no se reutiliza): si varios procesos lo necesitan, replícalo o reclasifícalo como no lineal.`,
       rationale: "Un objeto lineal no se copia: su consumo es exclusivo de un proceso.",
-      ssotRef: "opm-iso-19450-es §recursos lineales (capa categorial F1)",
+      ssotRef: `${KB_OPM} §recursos lineales / urn:fxsl:kb:opm-categorial-es F1`,
       accionesSugeridas: [
         "Si varios procesos lo necesitan en paralelo, quita la marca 'lineal' (recurso copiable).",
         "Si es exclusivamente lineal, rediseña para que un solo proceso lo consuma.",
@@ -133,7 +138,7 @@ export function checkEstadoNombreCanonico(modelo: Modelo): AvisoMetodologico[] {
       severidad: "advertencia",
       mensaje: `El objeto "${entidad.nombre}" tiene estados con nombre por defecto. Nombra cada estado en minúsculas descriptivas antes de emitir OPL canónica.`,
       rationale: "Los estados placeholder como estado1/estado2 son ruido de edición y no nombres OPL-ES válidos.",
-      ssotRef: "reglas-opm-estrictas.md R-NOM-EST-1",
+      ssotRef: `${KB_REGLAS} R-NOM-EST-1 / ${KB_OPL} §1.3`,
       accionesSugeridas: [
         "Renombra los estados con formas descriptivas en minúscula, por ejemplo 'pendiente', 'aprobado' o 'cerrado'.",
       ],
@@ -145,9 +150,9 @@ export function checkProcesoNombreFormaVerbal(modelo: Modelo): AvisoMetodologico
     .filter((proceso) => !esFormaVerbalValida(proceso.nombre))
     .map((proceso) => aviso("PROCESO_NOMBRE_FORMA_VERBAL", proceso, {
       severidad: "sugerencia",
-      mensaje: `El proceso "${proceso.nombre}" no parece nombrado como una acción; un proceso describe qué se hace, así que conviene usar un verbo o un sustantivo deverbal.`,
-      rationale: "El nombre del proceso debe expresar accion o transformacion identificable.",
-      ssotRef: "metodologia-opm-es.md §6.1 / [Glos 3.69 Process]",
+      mensaje: `El proceso "${proceso.nombre}" no sigue la política léxica OPL-ES; usa infinitivo o una nominalización de dominio cuando corresponda.`,
+      rationale: "El nombre del proceso debe expresar accion o transformacion identificable mediante forma canónica OPL-ES.",
+      ssotRef: `${KB_REGLAS} R-NOM-PROC-1 / ${KB_OPL} §1.1`,
       accionesSugeridas: [
         "Renombra usando una forma verbal o un sustantivo deverbal (ej. 'Procesar Pedido', 'Recoleccion').",
         "Si la cosa describe una clase de objeto, conviertela en objeto en vez de proceso.",
@@ -160,9 +165,9 @@ export function checkObjetoNombreSingular(modelo: Modelo): AvisoMetodologico[] {
     .filter((objeto) => !esNombreObjetoSingular(objeto.nombre))
     .map((objeto) => aviso("OBJETO_NOMBRE_SINGULAR", objeto, {
       severidad: "sugerencia",
-      mensaje: `El objeto "${objeto.nombre}" parece estar en plural. Un objeto representa una cosa: nómbralo en singular, o usa "Conjunto", "Grupo" o la multiplicidad del enlace si necesitas hablar de varios.`,
+      mensaje: `El objeto "${objeto.nombre}" no está nombrado en singular. Un objeto representa una cosa: usa singular, o modela el conjunto mediante nombre de dominio, multiplicidad o estructura.`,
       rationale: "Un objeto representa una cosa persistente; el nombre canonico se mantiene singular.",
-      ssotRef: "metodologia-opm-es.md §6.2 / [Glos 3.55 Object]",
+      ssotRef: `${KB_REGLAS} R-NOM-OBJ-1 / ${KB_OPL} §1.2`,
       accionesSugeridas: [
         "Renombra al singular ('Cliente').",
         "Si necesitas multiplicidad, usa 'Conjunto', 'Grupo' o anota la multiplicidad en el enlace.",
@@ -193,7 +198,7 @@ export function checkObjetoAmbientalSinContornoDiscontinuo(modelo: Modelo): Avis
       severidad: "advertencia",
       mensaje: `Marcaste "${objeto.nombre}" como ambiental, pero un proceso del sistema lo está consumiendo o produciendo. Si participa de la función del sistema, pásalo a sistémico; si pertenece al entorno, reemplaza el enlace por exhibición, efecto o agente según corresponda.`,
       rationale: "Un objeto ambiental no deberia ser consumido, producido ni afectado por la funcion del sistema; revisa la afiliacion o reclasificalo como sistemico.",
-      ssotRef: "metodologia-opm-es.md §6.9 / opm-visual-es §contorno discontinuo",
+      ssotRef: `${KB_METODO} §6.9 / ${KB_OPD} §1.1`,
       accionesSugeridas: [
         "Cambia la afiliacion a sistemica si es parte del sistema modelado.",
         "Si pertenece al entorno, reemplaza el enlace transformador por exhibicion/efecto/agente segun corresponda.",
@@ -209,7 +214,7 @@ export function checkInzoomContenido(modelo: Modelo): AvisoMetodologico[] {
       severidad: "advertencia",
       mensaje: `La descomposición de "${entidad.nombre}" tiene menos de dos cosas internas. Un refinamiento con una sola cosa no aporta información nueva: agrega otro subproceso o parte, o pospón la descomposición.`,
       rationale: "Una cosa descompuesta debe agregar al menos dos refinadores internos para que el inzoom aporte informacion.",
-      ssotRef: "metodologia-opm-es.md §7.1 (Refinamiento no trivial)",
+      ssotRef: `${KB_METODO} §7.1`,
       accionesSugeridas: [
         "Agrega al menos un subproceso/parte mas dentro del OPD hijo.",
         "Si no puedes identificar otro refinador, posterga la descomposicion hasta tener al menos dos.",
@@ -238,7 +243,7 @@ export function checkInzoomNombresPlaceholderHijos(modelo: Modelo): AvisoMetodol
           severidad: "sugerencia",
           mensaje: `El refinador "${hijo.nombre}" del OPD "${opd?.nombre ?? opdId}" todavía tiene el nombre por defecto que se sembró al descomponer. Renómbralo con vocabulario del dominio antes de seguir profundizando.`,
           rationale: "La elaboracion progresiva de SD1 indica renombrar los subprocesos/partes con nombres significativos antes de avanzar.",
-          ssotRef: "metodologia-opm-es.md §7.1 (Elaboracion progresiva)",
+          ssotRef: `${KB_METODO} §7.1`,
           opdId: opd?.id,
           accionesSugeridas: [
             `Abre el OPD "${opd?.nombre ?? "hijo"}" y renombra "${hijo.nombre}" con vocabulario de dominio.`,
@@ -263,7 +268,7 @@ export function checkUnfoldContenido(modelo: Modelo): AvisoMetodologico[] {
       severidad: "advertencia",
       mensaje: `El despliegue de "${entidad.nombre}" tiene menos de dos refinadores estructurales. Un unfold con uno solo no agrega información: agrega otra parte, exhibición, especialización o instancia, o pliega el despliegue.`,
       rationale: "Un despliegue debe revelar al menos dos refinadores para agregar informacion al modelo.",
-      ssotRef: "metodologia-opm-es.md §7.2 (Refinamiento no trivial)",
+      ssotRef: `${KB_METODO} §7.2`,
       accionesSugeridas: [
         "Agrega un refinador estructural mas en el OPD hijo (otra parte/exhibicion/especializacion/instancia).",
         "Si solo hay uno, considera plegar el despliegue.",
@@ -278,7 +283,7 @@ export function checkProcesoTransforma(modelo: Modelo): AvisoMetodologico[] {
       severidad: "advertencia",
       mensaje: `El proceso "${proceso.nombre}" no consume, produce ni afecta ningún objeto. Todo proceso debe transformar algo: conéctalo con un objeto por consumo, resultado o efecto, o descompónlo dejando el rol transformador en un subproceso.`,
       rationale: "Un proceso debe transformar al menos un objeto mediante consumo, resultado o efecto, directamente o via un subproceso.",
-      ssotRef: "metodologia-opm-es.md §7.6 / opm-iso-19450 V-115",
+      ssotRef: `${KB_METODO} §7.6 / ${KB_OPM} V-115`,
       accionesSugeridas: [
         "Conecta el proceso con al menos un objeto via consumo, resultado o efecto.",
         "Si el proceso es solo orquestador, descomponlo y deja el rol transformador en un subproceso.",
@@ -296,7 +301,7 @@ export function checkProcesoSistemicoConectado(modelo: Modelo): AvisoMetodologic
       severidad: "advertencia",
       mensaje: `El proceso sistémico "${proceso.nombre}" no llega a la función principal del SD por enlaces ni por refinamiento. Conéctalo a la cadena del proceso principal, o reclasifícalo como ambiental si no aporta a la función del sistema.`,
       rationale: "Todo proceso sistemico debe integrarse a la funcion principal por refinamiento o enlaces estructurales.",
-      ssotRef: "metodologia-opm-es.md §6.4 (Funcion Principal)",
+      ssotRef: `${KB_METODO} §6.4`,
       accionesSugeridas: [
         "Conecta el proceso a la cadena que parte de la funcion principal.",
         "Reclasifica como ambiental si no aporta a la funcion del sistema.",
@@ -326,7 +331,7 @@ export function checkSdSinProcesoPrincipal(modelo: Modelo): AvisoMetodologico[] 
     opdId: sd.id,
     mensaje: `El SD "${sd.nombre}" todavía no tiene un proceso sistémico. Sin proceso principal el modelo no expresa la función del sistema: agrega el proceso que da el propósito y conéctalo al beneficiario por efecto o consumo/resultado.`,
     rationale: "El SD debe contener el proceso principal del sistema (sistemico, transformador), que define su proposito.",
-    ssotRef: "metodologia-opm-es.md §6.1 / §6.11",
+    ssotRef: `${KB_METODO} §6.1 / §6.11`,
     navegarA: { tipo: "opd", id: sd.id },
     accionesSugeridas: [
       "Agrega un proceso sistemico al SD que represente la funcion principal del sistema.",

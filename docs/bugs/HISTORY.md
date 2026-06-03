@@ -11,7 +11,7 @@ cualquier ID, activo o archivado.
 | Alcance / Estado | Cantidad |
 |---|---:|
 | Activo / Nuevo | 30 |
-| Activo / Resuelto | 47 |
+| Activo / Resuelto | 51 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
 | Histórico / Resuelto | 43 |
@@ -20,7 +20,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 72 |
+| Activo / Bug | 76 |
 | Activo / Feat | 5 |
 | Histórico / Bug | 48 |
 
@@ -28,6 +28,10 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Resuelto | [BUG-20260603T010945Z-923dcf](BUG-20260603T010945Z-923dcf/report.md) | 2026-06-03 01:09Z | Modelo / SD | a continuación una comparación entre la referencia opcloud vs nosotros. En este caso representando el patrón de Logical And. Como podemos ver en nues… | OPL compone AND procedimental simple en una sola oracion, por ejemplo un proceso requiere Llave A, Llave B y Llave C. | 4 | Causa raiz: el generador solo agrupaba abanicos OR/XOR y exhibiciones opcionales. Cubierto por generar.test. |
+| Activo | Bug | Resuelto | [BUG-20260603T005926Z-f22ba6](BUG-20260603T005926Z-f22ba6/report.md) | 2026-06-03 00:59Z | Modelo / SD | split del enlace no funcionó | Split parcial TS4/TS5 acepta tanto metadato TS3 como efectos ya reanclados visualmente a estado de entrada o salida. | 1 | Causa raiz: splitEffectParcial rechazaba extremos Estado visibles y solo aceptaba metadato oculto. Cubierto por capacidadesOpcloud.test. |
+| Activo | Bug | Resuelto | [BUG-20260603T002025Z-cffd05](BUG-20260603T002025Z-cffd05/report.md) | 2026-06-03 00:20Z | HODOM completo v1_5_ / P5.4 - Servicios territoriales de campo | eliminar este solapamiento de texto | El header local del canvas extrae prefijos OPD canonicos como P5.4/LF-04 y trunca el kicker sin invadir el indicador de zoom. | 2 | Causa raiz: codigoOpd devolvia el nombre descriptivo completo. Cubierto por NodoOpd.test y CodexFrame.test. |
+| Activo | Bug | Resuelto | [BUG-20260603T001951Z-fe9662](BUG-20260603T001951Z-fe9662/report.md) | 2026-06-03 00:19Z | HODOM completo v1_5_ / SD1 - In-zoom Hospitalizacion en domicilio | actualiza a la nueva ssot y canon el sistema para generar diagnóstico y adventencias | Diagnostico y advertencias metodologicas usan titulos canonicos y citas visibles por URN KORA para R-NOM-PROC, R-NOM-OBJ, R-NOM-E… | 1 | Causa raiz: superficie UI conservaba titulos/refs del puente local. Cubierto por diagnostico.test, checkers.test y validaciones.test. |
 | Activo | Bug | Resuelto | [BUG-20260602T014326Z-6ce450](BUG-20260602T014326Z-6ce450/report.md) | 2026-06-02 01:43Z | HODOM completo v1.4 / SD0-C - Hospitalizacion en domicilio | no puedo guardar. al apretar el guardar no pasa nada | Guardar como permite confirmar el mismo nombre del modelo persistido actual y lo trata como actualizacion del modelo, no como dup… | 1 | Causa raiz: validacion de nombre no pasaba idPermitido para el modelo actual. Cubierto por persistencia.test y e2e/31-gestion-modelos.spec.ts. |
 | Activo | Bug | Resuelto | [BUG-20260601T214534Z-98f2fb](BUG-20260601T214534Z-98f2fb/report.md) | 2026-06-01 21:45Z | HODOM completo v1.4 / SD0-C - Hospitalizacion en domicilio | cual es la diferencia entre estas 2? si no hay diferencia solo deja 1 | Command Palette deduplica acciones equivalentes por atajo+label; Modo solo canvas aparece una sola vez y conserva la accion de me… | 1 | Cubierto por CommandPalette.test y e2e/12-toolbar-overflow.spec.ts con conteo de una sola opcion. |
 | Activo | Bug | Resuelto | [BUG-20260601T214246Z-38acaa](BUG-20260601T214246Z-38acaa/report.md) | 2026-06-01 21:42Z | Modelo / SD | repiensa desde 0 la mejor distribución en esta barra. ahora es incómoda y poco funcional. Lleva el diseño al nivel q se merece | Se redistribuye el header: las acciones de modelado y persistencia se agrupan hacia el borde derecho, junto a la meta, dejando el… | 1 | Cubierto por toolbarStyles.test e inspeccion Playwright con viewport 2133x1070; captura local en app/test-results/bug-214246-header-after.png. |

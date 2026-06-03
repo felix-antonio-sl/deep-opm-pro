@@ -89,7 +89,7 @@ function reglaEfectoDireccionCanonica(modelo: Modelo, opdActivoId: Id): Aviso[] 
       reglaId: "efecto-direccion-canonica",
       severidad: "error",
       mensaje: `El efecto debe expresar que un proceso afecta a un objeto. Hoy va de ${nombreExtremo(modelo, enlace.origenId)} a ${nombreExtremo(modelo, enlace.destinoId)}; usa Proceso -> Objeto/Estado, o Estado -> Proceso solo para un efecto de entrada escindido.`,
-      citaSSOT: "reglas-opm-estrictas.md R-EFE-1 / SSOT-opl TS3-TS5",
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-EFE-1 / urn:fxsl:kb:opl-es TS3-TS5",
     }));
 }
 

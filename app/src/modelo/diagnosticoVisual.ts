@@ -24,8 +24,8 @@ import type {
 } from "./tipos";
 import type { Aviso } from "./validaciones";
 
-const CITA_VISUAL = "opm-visual-es.md §OPD / §Enlaces";
-const CITA_REFINAMIENTO = "metodologia-opm-es.md §7.1 / opm-visual-es.md §in-zoom";
+const CITA_VISUAL = "urn:fxsl:kb:opd-es §OPD / §Enlaces";
+const CITA_REFINAMIENTO = "urn:fxsl:kb:manual-metodologico-opm-es §7.1 / urn:fxsl:kb:opd-es §in-zoom";
 const EPSILON_PUERTO = 0.001;
 const TIPOS_TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 

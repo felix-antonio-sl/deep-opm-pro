@@ -222,7 +222,11 @@ export function nombreNodo(modelo: Modelo, opd: Opd): string {
 }
 
 export function codigoOpd(nombre: string): string {
-  return /^SD(?:\d+(?:\.\d+)*)?/.exec(nombre.trim())?.[0] ?? nombre;
+  const limpio = nombre.trim();
+  const prefijo = /^(?:SD\d*(?:\.\d+)*|P\d+(?:\.\d+)*|LF-\d+(?:\.\d+)*|OPD\d+(?:\.\d+)*)/i.exec(limpio)?.[0];
+  if (prefijo) return prefijo;
+  const [segmento] = limpio.split(/\s(?:[-–—]|:)\s/);
+  return segmento?.trim() || limpio;
 }
 
 // Separa el `label` descriptivo (Inria Serif) del `code` mono inicial. Conserva

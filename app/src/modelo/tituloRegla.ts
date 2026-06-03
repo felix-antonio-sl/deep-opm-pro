@@ -49,10 +49,10 @@ const TITULO_POR_REGLA: Record<string, string> = {
 
   // ── checkers metodológicos (checkers.ts) ──────────────────────────
   SD_SIN_PROCESO_PRINCIPAL: "SD sin proceso principal",
-  PROCESO_NOMBRE_FORMA_VERBAL: "Nombre de proceso no es un verbo",
-  ESTADO_NOMBRE_CANONICO: "Estado conserva nombre placeholder",
-  OBJETO_NOMBRE_SINGULAR: "Nombre de objeto está en plural",
-  OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO: "Objeto ambiental se comporta como sistémico",
+  PROCESO_NOMBRE_FORMA_VERBAL: "Nombre de proceso no es canónico",
+  ESTADO_NOMBRE_CANONICO: "Estado tiene nombre no canónico",
+  OBJETO_NOMBRE_SINGULAR: "Nombre de objeto no está en singular",
+  OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO: "Objeto ambiental contradice su rol",
   INZOOM_CONTENIDO_INSUFICIENTE: "Descomposición con muy poco contenido",
   INZOOM_NOMBRES_PLACEHOLDER_HIJOS: "Subproceso conserva nombre placeholder",
   UNFOLD_CONTENIDO_INSUFICIENTE: "Despliegue con muy poco contenido",

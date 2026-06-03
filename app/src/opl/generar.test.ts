@@ -195,6 +195,28 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(generarOpl(modelo)).toContain("*Conducir* requiere **Volante**.");
   });
 
+  test("instrumentos AND al mismo proceso se componen en una sola oración OPL", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Llave A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 100 }, "Llave B"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 200 }, "Llave C"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 100 }, "Abrir Seguro"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Llave A"), entidad(modelo, "Abrir Seguro"), "instrumento"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Llave B"), entidad(modelo, "Abrir Seguro"), "instrumento"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Llave C"), entidad(modelo, "Abrir Seguro"), "instrumento"));
+
+    const lineas = generarOpl(modelo);
+
+    expect(lineas).toContain("*Abrir Seguro* requiere **Llave A**, **Llave B** y **Llave C**.");
+    expect(lineas).not.toContain("*Abrir Seguro* requiere **Llave A**.");
+    expect(lineas).not.toContain("*Abrir Seguro* requiere **Llave B**.");
+    expect(lineas).not.toContain("*Abrir Seguro* requiere **Llave C**.");
+
+    const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id).sort();
+    const interactiva = generarOplInteractivo(modelo).find((linea) => linea.texto.includes("requiere **Llave A**,"));
+    expect(interactiva?.refs.filter((ref) => ref.tipo === "enlace").map((ref) => ref.id).sort()).toEqual(enlaceIds);
+  });
+
   test("instrumento con objeto transformado prefiere forma posesiva procedimental", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Coche"));

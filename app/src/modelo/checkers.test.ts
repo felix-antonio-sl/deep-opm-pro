@@ -339,8 +339,8 @@ describe("verificarMetodologia", () => {
     const avisos = verificarMetodologia(modelo);
     expect(avisos.length).toBeGreaterThan(0);
     expect(avisos.every((aviso) => typeof aviso.ssotRef === "string" && aviso.ssotRef.trim().length > 0)).toBe(true);
-    // todas las refs apuntan a metodologia-opm-es.md o glosario, no inventadas.
-    expect(avisos.every((aviso) => /metodologia-opm-es|Glos|opm-iso-19450|opm-visual/.test(aviso.ssotRef ?? ""))).toBe(true);
+    // las refs visibles apuntan a la SSOT KORA, no a nombres de archivo puente.
+    expect(avisos.every((aviso) => /urn:fxsl:kb:/.test(aviso.ssotRef ?? ""))).toBe(true);
   });
 
   test("ronda 16 L3: cada aviso lleva accionesSugeridas no vacias para corrigibilidad", () => {

@@ -1,0 +1,30 @@
+{
+  "id": "BUG-20260603T002025Z-cffd05",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-03T00:20:25.222Z",
+  "text": "eliminar este solapamiento de texto",
+  "context": {
+    "modeloId": "modelo-hodom-completo-v1-5",
+    "modeloNombre": "HODOM completo v1_5_",
+    "opdActivoId": "opd-p5-servicios",
+    "opdActivoNombre": "P5.4 - Servicios territoriales de campo",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-d9b12888-e1a3-420e-9ae0-3dba8ac0d5aa",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2133,
+      "height": 1070,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-06-03T00:20:23.519Z"
+  },
+  "screenshots": [
+    "screenshots/01-google-chrome-2026-06-02-20.20.09.png",
+    "screenshots/02-google-chrome-2026-06-02-20.20.03.png"
+  ]
+}

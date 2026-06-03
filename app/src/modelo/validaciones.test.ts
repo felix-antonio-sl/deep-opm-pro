@@ -165,7 +165,7 @@ describe("validaciones metodologicas pasivas", () => {
     expect(avisos).toHaveLength(1);
     expect(avisos[0]).toMatchObject({
       severidad: "error",
-      citaSSOT: "reglas-opm-estrictas.md R-EFE-1 / SSOT-opl TS3-TS5",
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-EFE-1 / urn:fxsl:kb:opl-es TS3-TS5",
       elementoTipo: "enlace",
       elementoId: "e-efecto-invertido",
     });

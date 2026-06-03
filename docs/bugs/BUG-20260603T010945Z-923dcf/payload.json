@@ -1,0 +1,32 @@
+{
+  "id": "BUG-20260603T010945Z-923dcf",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-03T01:09:45.915Z",
+  "text": "a continuación una comparación entre la referencia opcloud vs nosotros. En este caso representando el patrón de Logical And.\nComo podemos ver en nuestro caso OPL opforja los \"Ys\" son atómicos, mientras que en cambio en opcloud están compuestos en una sola sentencia.\nQuiero replicar ese comportamiento. Si es un problema de SSOT o canon opforja lo modificaremos a ese nivel, pero ese comportamiento si que va.",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-d8c69663-f86c-47ea-a1f8-7dd3145d8adb",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2133,
+      "height": 1070,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-06-03T01:09:39.164Z"
+  },
+  "screenshots": [
+    "screenshots/01-google-chrome-2026-06-02-21.06.56.png",
+    "screenshots/02-google-chrome-2026-06-02-21.08.11.png",
+    "screenshots/03-google-chrome-2026-06-02-21.06.01.png",
+    "screenshots/04-google-chrome-2026-06-02-21.08.03.png"
+  ]
+}

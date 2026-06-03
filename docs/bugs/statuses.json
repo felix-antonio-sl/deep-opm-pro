@@ -280,5 +280,29 @@
     "status": "Resuelto",
     "resolution": "Guardar como permite confirmar el mismo nombre del modelo persistido actual y lo trata como actualizacion del modelo, no como duplicado bloqueado.",
     "note": "Causa raiz: validacion de nombre no pasaba idPermitido para el modelo actual. Cubierto por persistencia.test y e2e/31-gestion-modelos.spec.ts."
+  },
+  "BUG-20260603T001951Z-fe9662": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Diagnostico y advertencias metodologicas usan titulos canonicos y citas visibles por URN KORA para R-NOM-PROC, R-NOM-OBJ, R-NOM-EST y capa visual.",
+    "note": "Causa raiz: superficie UI conservaba titulos/refs del puente local. Cubierto por diagnostico.test, checkers.test y validaciones.test."
+  },
+  "BUG-20260603T002025Z-cffd05": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El header local del canvas extrae prefijos OPD canonicos como P5.4/LF-04 y trunca el kicker sin invadir el indicador de zoom.",
+    "note": "Causa raiz: codigoOpd devolvia el nombre descriptivo completo. Cubierto por NodoOpd.test y CodexFrame.test."
+  },
+  "BUG-20260603T005926Z-f22ba6": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Split parcial TS4/TS5 acepta tanto metadato TS3 como efectos ya reanclados visualmente a estado de entrada o salida.",
+    "note": "Causa raiz: splitEffectParcial rechazaba extremos Estado visibles y solo aceptaba metadato oculto. Cubierto por capacidadesOpcloud.test."
+  },
+  "BUG-20260603T010945Z-923dcf": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "OPL compone AND procedimental simple en una sola oracion, por ejemplo un proceso requiere Llave A, Llave B y Llave C.",
+    "note": "Causa raiz: el generador solo agrupaba abanicos OR/XOR y exhibiciones opcionales. Cubierto por generar.test."
   }
 }

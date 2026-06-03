@@ -137,6 +137,16 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
     for (const enlace of grupo) enlacesAgrupados.add(enlace.id);
   }
 
+  for (const grupo of gruposAndProcedural(modelo, opd, enlacesEnAbanico)) {
+    agregarLinea(
+      lineas,
+      oracionGrupoAndProcedural(grupo),
+      refsGrupoEnlaces(modelo, grupo.enlaces),
+      hintsGrupoAndProcedural(grupo),
+    );
+    for (const enlace of grupo.enlaces) enlacesAgrupados.add(enlace.id);
+  }
+
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace || enlacesEnAbanico.has(enlace.id) || enlacesAgrupados.has(enlace.id)) continue;
@@ -156,6 +166,120 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
   }
 
   return lineas;
+}
+
+interface GrupoAndProcedural {
+  sujeto: Entidad;
+  verbo: string;
+  enlaces: Enlace[];
+  complementos: Entidad[];
+  complementosTexto: string[];
+}
+
+function gruposAndProcedural(modelo: Modelo, opd: Opd, enlacesExcluidos: ReadonlySet<Id>): GrupoAndProcedural[] {
+  const grupos = new Map<string, GrupoAndProcedural>();
+  for (const apariencia of Object.values(opd.enlaces)) {
+    const enlace = modelo.enlaces[apariencia.enlaceId];
+    if (!enlace || enlacesExcluidos.has(enlace.id)) continue;
+    const candidato = candidatoAndProcedural(modelo, opd, enlace);
+    if (!candidato) continue;
+    const grupo = grupos.get(candidato.clave) ?? {
+      sujeto: candidato.sujeto,
+      verbo: candidato.verbo,
+      enlaces: [],
+      complementos: [],
+      complementosTexto: [],
+    };
+    grupo.enlaces.push(enlace);
+    grupo.complementos.push(candidato.complemento);
+    grupo.complementosTexto.push(candidato.complementoTexto);
+    grupos.set(candidato.clave, grupo);
+  }
+  return [...grupos.values()].filter((grupo) => grupo.enlaces.length > 1);
+}
+
+function candidatoAndProcedural(
+  modelo: Modelo,
+  opd: Opd,
+  enlace: Enlace,
+): { clave: string; sujeto: Entidad; verbo: string; complemento: Entidad; complementoTexto: string } | null {
+  if (!enlaceProceduralSimpleAgrupable(enlace)) return null;
+  const origen = enlace.origenId.kind === "entidad" ? modelo.entidades[enlace.origenId.id] : undefined;
+  const destino = enlace.destinoId.kind === "entidad" ? modelo.entidades[enlace.destinoId.id] : undefined;
+  if (!origen || !destino || !entidadOplEsEmitible(origen) || !entidadOplEsEmitible(destino)) return null;
+
+  if (enlace.tipo === "instrumento") {
+    if (oracionInstrumentoNatural(modelo, opd, enlace)) return null;
+    if (origen.tipo !== "objeto" || destino.tipo !== "proceso") return null;
+    return {
+      clave: `${enlace.tipo}:destino:${destino.id}`,
+      sujeto: destino,
+      verbo: "requiere",
+      complemento: origen,
+      complementoTexto: nombreOplExtremo(modelo, enlace.origenId, enlace.multiplicidadOrigen),
+    };
+  }
+  if (enlace.tipo === "consumo") {
+    if (origen.tipo !== "objeto" || destino.tipo !== "proceso") return null;
+    return {
+      clave: `${enlace.tipo}:destino:${destino.id}`,
+      sujeto: destino,
+      verbo: "consume",
+      complemento: origen,
+      complementoTexto: nombreOplExtremo(modelo, enlace.origenId, enlace.multiplicidadOrigen),
+    };
+  }
+  if (enlace.tipo === "resultado") {
+    if (origen.tipo !== "proceso" || destino.tipo !== "objeto") return null;
+    return {
+      clave: `${enlace.tipo}:origen:${origen.id}`,
+      sujeto: origen,
+      verbo: "genera",
+      complemento: destino,
+      complementoTexto: nombreOplExtremo(modelo, enlace.destinoId, enlace.multiplicidadDestino),
+    };
+  }
+  if (enlace.tipo === "efecto") {
+    if (origen.tipo !== "proceso" || destino.tipo !== "objeto") return null;
+    return {
+      clave: `${enlace.tipo}:origen:${origen.id}`,
+      sujeto: origen,
+      verbo: "afecta",
+      complemento: destino,
+      complementoTexto: nombreOplExtremo(modelo, enlace.destinoId, enlace.multiplicidadDestino),
+    };
+  }
+  if (enlace.tipo === "invocacion") {
+    if (origen.tipo !== "proceso" || destino.tipo !== "proceso") return null;
+    return {
+      clave: `${enlace.tipo}:origen:${origen.id}`,
+      sujeto: origen,
+      verbo: "invoca",
+      complemento: destino,
+      complementoTexto: nombreOplExtremo(modelo, enlace.destinoId, enlace.multiplicidadDestino),
+    };
+  }
+  return null;
+}
+
+function enlaceProceduralSimpleAgrupable(enlace: Enlace): boolean {
+  if (!["instrumento", "consumo", "resultado", "efecto", "invocacion"].includes(enlace.tipo)) return false;
+  if (enlace.origenId.kind !== "entidad" || enlace.destinoId.kind !== "entidad") return false;
+  if (enlace.modificador || enlace.etiqueta || enlace.rutaEtiqueta) return false;
+  if (enlace.estadoEntradaId || enlace.estadoSalidaId || enlace.efectoEscindido) return false;
+  return true;
+}
+
+function oracionGrupoAndProcedural(grupo: GrupoAndProcedural): string {
+  return `${nombreOpl(grupo.sujeto)} ${grupo.verbo} ${listarOpl(grupo.complementosTexto)}.`;
+}
+
+function hintsGrupoAndProcedural(grupo: GrupoAndProcedural) {
+  const hints = [hintEntidad(grupo.sujeto)];
+  const primero = grupo.enlaces[0];
+  if (primero) hints.push(hintEnlace(primero, grupo.verbo));
+  for (const complemento of grupo.complementos) hints.push(hintEntidad(complemento));
+  return hints;
 }
 
 function gruposExhibicionOpcional(modelo: Modelo, opd: Opd, enlacesExcluidos: ReadonlySet<Id>): Enlace[][] {

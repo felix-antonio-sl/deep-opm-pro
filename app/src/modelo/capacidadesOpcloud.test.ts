@@ -103,6 +103,31 @@ describe("capacidades objetivo OPCloud canonizadas en kernel", () => {
     });
   });
 
+  test("split parcial TS4/TS5 acepta efecto ya conectado visualmente a un estado de salida", () => {
+    let modelo = crearModelo("Split parcial visible");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Caja Fuerte"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Abrir"));
+    const cajaId = entidadId(modelo, "Caja Fuerte");
+    const abrirId = entidadId(modelo, "Abrir");
+    const estados = must(crearEstadosIniciales(modelo, cajaId));
+    modelo = estados.modelo;
+    const [, salidaId] = estados.estadoIds;
+    if (!salidaId) throw new Error("La prueba esperaba estado de salida");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(abrirId), extremoEstado(salidaId), "efecto"));
+    const efectoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "efecto")?.id;
+    if (!efectoId) throw new Error("La prueba esperaba efecto parcial visual");
+
+    modelo = must(splitEffectParcial(modelo, modelo.opdRaizId, efectoId));
+
+    expect(modelo.enlaces[efectoId]).toBeUndefined();
+    const parcial = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "efecto");
+    expect(parcial).toMatchObject({
+      origenId: extremoEntidad(abrirId),
+      destinoId: extremoEstado(salidaId),
+      efectoEscindido: { enlacePadreId: efectoId, rol: "salida", modo: "standalone" },
+    });
+  });
+
   test("recolecta y redistribuye un enlace externo del contorno sin perder el enlace padre", () => {
     let modelo = crearModelo("Recolectar contorno");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Entrada"));
