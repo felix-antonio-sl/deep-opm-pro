@@ -142,6 +142,29 @@ describe("integración Ss↔Fs (anamorfismo/catamorfismo sobre F0)", () => {
     expect(entidadesVisitadas(fin).has("Sal")).toBe(false);
     expect(derivar(modelo, { tipo: "afectan-a", entidadId: "Sal" }).length).toBe(0);
   });
+
+  test("invocación no contamina hechos ejercidos con pasos saltados del plan", () => {
+    let modelo = crearModelo("Invocacion");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "A"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 220 }, "B"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 340 }, "C"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 220 }, "Objeto B"));
+    const aId = Object.values(modelo.entidades).find((e) => e.nombre === "A")!.id;
+    const bId = Object.values(modelo.entidades).find((e) => e.nombre === "B")!.id;
+    const cId = Object.values(modelo.entidades).find((e) => e.nombre === "C")!.id;
+    const objBId = Object.values(modelo.entidades).find((e) => e.nombre === "Objeto B")!.id;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, aId, cId, "invocacion"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, bId, objBId, "resultado"));
+    const enlaceSaltadoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "resultado")!.id;
+
+    const fin = desplegar(modelo, iniciarSimulacion(modelo, modelo.opdRaizId));
+    const enlacesEjercidos = [...hechosEjercidosPorTraza(modelo, fin).values()]
+      .filter((hecho) => hecho.tipo === "enlace")
+      .map((hecho) => hecho.enlaceId);
+
+    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["A", "C"]);
+    expect(enlacesEjercidos).not.toContain(enlaceSaltadoId);
+  });
 });
 
 /** Modelo B simulable mínimo: un proceso «Hornear» en el OPD raíz. */

@@ -5,6 +5,18 @@
 **Instancia**: `https://opforja.sanixai.com` — pública sin auth perimetral. Redeploy verificado: contenedor `opforja` healthy, sidecar `opforja-bug-capture` ok, `opforja-model-api` healthy, `opforja-postgres` healthy, `curl -fsSI` externo HTTP/2 200. Bundle servido tras cierre categorial: entry `index-BkxFMKQ2.js`. Smoke producción: sesión/cookie y workspace vacío para tenant nuevo OK.
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2; rama `codex/ux-composicion-f1` fue squash-mergeada sobre `main` para cerrar la brecha de composición. Diseño/planes relevantes: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`, `docs/superpowers/plans/2026-06-02-ux-adhoc-fs.md`.
 
+## Actualización 2026-06-03 — condiciones y loops OPM ejecutables
+
+**Estado:** implementado en el kernel de simulación sin añadir primitiva OPM nueva. La investigación web/local confirmó el canon: condición `c` = bypass/omisión; loops = invocación/autoinvocación y, en descomposición, orden/altura como invocación implícita. No se implementa un símbolo `while`.
+
+**Decisiones:** una condición incumplida se registra como `trace.omitido`, no aplica transiciones, valores, duración ni salidas, y avanza al siguiente paso. Múltiples condiciones son AND para ejecutar y OR para omitir. Una invocación explícita `Proceso → Proceso` toma el destino como siguiente paso al terminar exitosamente; la autoinvocación repite el mismo proceso hasta que una condición de salida produzca bypass. Bucle sin salida: límite de seguridad de runtime con diagnóstico `bloqueado`, sin persistir semántica nueva en el modelo.
+
+**Artefactos:** `app/src/modelo/simulacion/runner.ts`, `app/src/modelo/simulacion/tipos.ts`, `app/src/modelo/simulacion/integracionHechos.ts`, pruebas en `app/src/modelo/simulacion/runner.test.ts` y `app/src/leyes/integracion-ss-fs.test.ts`. SSOT KORA actualizadas: `urn:fxsl:kb:reglas-opm-estrictas-es` v1.1.2 (`R-EJEC-7..10`), `urn:fxsl:kb:metodologia-forja-opm-es` v1.4.1 (`F.2 Runtime opforja — condiciones y bucles`) y `urn:fxsl:kb:opm-categorial-es` fuente ajustada a esas versiones.
+
+**Verificación local:** `bun test src/modelo/simulacion/runner.test.ts` -> 13 pass / 0 fail; `bun test src/leyes/integracion-ss-fs.test.ts` -> 11 pass / 0 fail; foco combinado -> 24 pass / 0 fail. `bun run typecheck` queda bloqueado por WIP ajeno ya sucio en `app/src/modelo/razonamiento/derivar.ts` / `app/src/store/modelo/acciones-capacidades.ts` (`impacto-aguas-abajo`), fuera de este corte y no revertido.
+
+**Riesgos/limitaciones:** la existencia runtime de objetos sin estados aún no se modela como token consumible; para ausencia/presencia ejecutable usar estados explícitos `existente`/`no-existente` o condición a estado. Los abanicos XOR de invocación complejos quedan fuera de este slice; se mantiene soporte de invocación explícita simple/autoinvocación.
+
 ## Actualización 2026-06-03 — OPL fan de efecto Objeto→Procesos
 
 **Estado:** remediado `BUG-20260603T050454Z-276ea7` por corrección semántica, no por clonación de gesto/texto OPCloud. En OPM, un efecto lo ejerce un proceso sobre un objeto; por tanto el objeto común de un abanico hacia procesos no puede verbalizarse como sujeto afectante.

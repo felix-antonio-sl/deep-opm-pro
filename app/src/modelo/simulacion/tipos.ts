@@ -90,6 +90,8 @@ export interface EntradaTraceSim {
   /** Texto canonico cuando el paso no pudo aplicar todas las transiciones
    *  planificadas o cambios de valor. Razon corta legible. */
   diagnostico?: string;
+  /** True cuando el proceso fue omitido por semántica OPM de condición/bypass. */
+  omitido?: boolean;
   /** Ventana temporal OPM original del estado que aporto duracion. */
   ventanaDuracion?: DuracionTemporal;
   /** Duracion muestreada del paso en segundos, unidad canonica de reloj. */

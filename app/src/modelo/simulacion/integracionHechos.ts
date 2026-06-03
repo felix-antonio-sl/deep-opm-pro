@@ -46,10 +46,18 @@ function estadosEjercidos(contexto: ContextoSimulacion): Set<Id> {
 }
 
 /** Enlaces que la corrida ejerció: entrada/salida de cada paso efectivamente ejecutado. */
-function enlacesEjercidos(contexto: ContextoSimulacion): Set<Id> {
+function enlacesEjercidos(modelo: Modelo, contexto: ContextoSimulacion): Set<Id> {
   const ids = new Set<Id>();
-  const ejecutados = contexto.plan.slice(0, contexto.trace.length);
-  for (const paso of ejecutados) {
+  for (const entrada of contexto.trace) {
+    const paso = contexto.plan.find((item) => item.opdId === entrada.opdId && item.procesoId === entrada.procesoId);
+    if (!paso) continue;
+    if (entrada.omitido) {
+      for (const id of [...paso.enlacesEntradaIds, ...paso.enlacesSalidaIds]) {
+        const enlace = modelo.enlaces[id];
+        if (enlace?.modificador === "condicion") ids.add(id);
+      }
+      continue;
+    }
     for (const id of paso.enlacesEntradaIds) ids.add(id);
     for (const id of paso.enlacesSalidaIds) ids.add(id);
   }
@@ -103,7 +111,7 @@ export function firmaFronteraEjercidaPorTraza(
   return firmaFronteraDeEnlaces(
     modelo,
     new Set(fronteraDe(modelo, refinamientoId)),
-    enlacesEjercidos(contexto),
+    enlacesEjercidos(modelo, contexto),
   );
 }
 
@@ -132,7 +140,7 @@ export function verificarBisimulacionFrontera(
 export function hechosEjercidosPorTraza(modelo: Modelo, contexto: ContextoSimulacion): ConjuntoDeHechos {
   const entidades = entidadesVisitadas(contexto);
   const estados = estadosEjercidos(contexto);
-  const enlaces = enlacesEjercidos(contexto);
+  const enlaces = enlacesEjercidos(modelo, contexto);
   const seleccion: Hecho[] = [];
   for (const hecho of hechosDe(modelo).values()) {
     if (hecho.tipo === "entidad" && entidades.has(hecho.entidadId)) seleccion.push(hecho);

@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { crearAutoInvocacion } from "../autoinvocacion";
 import { extremoEntidad, extremoEstado } from "../extremos";
 import { designarInicial } from "../estadosDesignaciones";
+import { aplicarModificador } from "../modificadores";
 import {
   crearEnlace,
   crearEstadosIniciales,
@@ -9,7 +11,7 @@ import {
   crearProceso,
 } from "../operaciones";
 import type { Modelo, Resultado } from "../tipos";
-import { ejecutarCorrida, ejecutarPaso, iniciarSimulacion, reiniciarSimulacion } from "./runner";
+import { desplegar, ejecutarCorrida, ejecutarPaso, iniciarSimulacion, reiniciarSimulacion } from "./runner";
 
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(`Fixture fail: ${resultado.error}`);
@@ -20,6 +22,17 @@ function entidadId(modelo: Modelo, nombre: string): string {
   const e = Object.values(modelo.entidades).find((it) => it.nombre === nombre);
   if (!e) throw new Error(`Entidad no encontrada: ${nombre}`);
   return e.id;
+}
+
+function enlaceId(modelo: Modelo, tipo: string, origenId: string, destinoId: string): string {
+  const enlace = Object.values(modelo.enlaces).find(
+    (it) =>
+      it.tipo === tipo &&
+      it.origenId.id === origenId &&
+      it.destinoId.id === destinoId,
+  );
+  if (!enlace) throw new Error(`Enlace no encontrado: ${tipo} ${origenId}->${destinoId}`);
+  return enlace.id;
 }
 
 function modeloTransicionAprobar(): { modelo: Modelo; pendienteId: string; aprobadoId: string; pedidoId: string } {
@@ -120,6 +133,106 @@ describe("ejecutarCorrida", () => {
     expect(ctxFinal.estado).toBe("completado");
     expect(ctxFinal.pasoActual).toBe(3);
     expect(ctxFinal.trace.map((t) => t.procesoNombre)).toEqual(["Paso1", "Paso2", "Paso3"]);
+  });
+});
+
+describe("condiciones e invocaciones OPM", () => {
+  test("condición incumplida omite el proceso y continúa con el siguiente", () => {
+    let modelo = crearModelo("Condicion");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 100 }, "Revisar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 220 }, "Archivar"));
+    const pedidoId = entidadId(modelo, "Pedido");
+    const revisarId = entidadId(modelo, "Revisar");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [pendienteId, cerradoId] = estados.estadoIds;
+    modelo = must(designarInicial(modelo, pendienteId));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendienteId), extremoEntidad(revisarId), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(revisarId), extremoEstado(cerradoId), "resultado"));
+    modelo = must(aplicarModificador(modelo, enlaceId(modelo, "consumo", pendienteId, revisarId), "condicion"));
+
+    const ctx0 = iniciarSimulacion(modelo, modelo.opdRaizId);
+    const ctx1 = { ...ctx0, estadosCurrent: { ...ctx0.estadosCurrent, [pedidoId]: cerradoId } };
+    const fin = ejecutarCorrida(modelo, ctx1);
+
+    expect(fin.estado).toBe("completado");
+    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["Revisar", "Archivar"]);
+    expect(fin.trace[0]?.diagnostico).toContain("Omitido");
+    expect(fin.trace[0]?.transicionesAplicadas).toEqual([]);
+    expect(fin.estadosCurrent[pedidoId]).toBe(cerradoId);
+  });
+
+  test("invocación explícita proceso→proceso controla el siguiente paso", () => {
+    let modelo = crearModelo("Invocacion");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "A"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 220 }, "B"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 340 }, "C"));
+    const aId = entidadId(modelo, "A");
+    const cId = entidadId(modelo, "C");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(aId), extremoEntidad(cId), "invocacion"));
+
+    const fin = ejecutarCorrida(modelo, iniciarSimulacion(modelo, modelo.opdRaizId));
+
+    expect(fin.estado).toBe("completado");
+    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["A", "C"]);
+  });
+
+  test("efecto condicional solo salida evalúa existencia del objeto, no el estado destino", () => {
+    let modelo = crearModelo("Efecto condicional");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 100 }, "Completar"));
+    const pedidoId = entidadId(modelo, "Pedido");
+    const completarId = entidadId(modelo, "Completar");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [abiertoId, cerradoId] = estados.estadoIds;
+    modelo = must(designarInicial(modelo, abiertoId));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(completarId), extremoEstado(cerradoId), "efecto"));
+    modelo = must(aplicarModificador(modelo, enlaceId(modelo, "efecto", completarId, cerradoId), "condicion"));
+
+    const fin = ejecutarCorrida(modelo, iniciarSimulacion(modelo, modelo.opdRaizId));
+
+    expect(fin.estado).toBe("completado");
+    expect(fin.trace[0]?.diagnostico).toBeUndefined();
+    expect(fin.estadosCurrent[pedidoId]).toBe(cerradoId);
+  });
+
+  test("autoinvocación con condición de salida repite y luego sale por bypass", () => {
+    let modelo = crearModelo("Loop");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 100 }, "Intentar"));
+    const pedidoId = entidadId(modelo, "Pedido");
+    const intentarId = entidadId(modelo, "Intentar");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [pendienteId, listoId] = estados.estadoIds;
+    modelo = must(designarInicial(modelo, pendienteId));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendienteId), extremoEntidad(intentarId), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(intentarId), extremoEstado(listoId), "resultado"));
+    modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, intentarId));
+    modelo = must(aplicarModificador(modelo, enlaceId(modelo, "consumo", pendienteId, intentarId), "condicion"));
+
+    const fin = ejecutarCorrida(modelo, iniciarSimulacion(modelo, modelo.opdRaizId));
+
+    expect(fin.estado).toBe("completado");
+    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["Intentar", "Intentar"]);
+    expect(fin.trace[0]?.diagnostico).toBeUndefined();
+    expect(fin.trace[1]?.diagnostico).toContain("Omitido");
+    expect(fin.estadosCurrent[pedidoId]).toBe(listoId);
+  });
+
+  test("autoinvocación sin condición terminal queda bloqueada por límite de seguridad", () => {
+    let modelo = crearModelo("Loop infinito");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "P"));
+    const pId = entidadId(modelo, "P");
+    modelo = must(crearAutoInvocacion(modelo, modelo.opdRaizId, pId));
+
+    const fin = desplegar(modelo, iniciarSimulacion(modelo, modelo.opdRaizId), 3);
+
+    expect(fin.estado).toBe("bloqueado");
+    expect(fin.trace).toHaveLength(3);
+    expect(fin.trace.at(-1)?.diagnostico).toContain("límite");
   });
 });
 

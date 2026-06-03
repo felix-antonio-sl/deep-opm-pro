@@ -1,4 +1,5 @@
 import type { Abanico, Enlace, Id, Modelo } from "../tipos";
+import { entidadIdDeExtremo, nombreExtremo } from "../extremos";
 import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
 import type { ContextoSimulacion, EntradaTraceSim, ModoSimulacion, TransicionEstadoSim } from "./tipos";
 import { aplicarCambiosValor, iniciarValoresRuntime } from "./valores";
@@ -36,6 +37,28 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   }
 
   const paso = contexto.plan[contexto.pasoActual]!;
+  const motivosOmitir = motivosOmitirPorCondicion(modelo, paso, contexto.estadosCurrent);
+  if (motivosOmitir.length > 0) {
+    const nuevoPaso = contexto.pasoActual + 1;
+    const entrada: EntradaTraceSim = {
+      numero: contexto.trace.length + 1,
+      opdId: paso.opdId,
+      opdNombre: paso.opdNombre,
+      procesoId: paso.procesoId,
+      procesoNombre: paso.procesoNombre,
+      transicionesAplicadas: [],
+      cambiosValor: [],
+      omitido: true,
+      diagnostico: `Omitido: condición no satisfecha (${motivosOmitir.join("; ")})`,
+    };
+    return efectoUnico({
+      ...contexto,
+      pasoActual: nuevoPaso,
+      estado: nuevoPaso >= contexto.plan.length ? "completado" : "ejecutando",
+      trace: [...contexto.trace, entrada],
+    });
+  }
+
   const modo = contexto.modo ?? "determinista";
   let rngMuestreo: (() => number) | undefined;
   let rngConsumido = false;
@@ -79,7 +102,7 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   motivosBloqueo.push(...motivosValor);
 
   const entrada: EntradaTraceSim = {
-    numero: contexto.pasoActual + 1,
+    numero: contexto.trace.length + 1,
     opdId: paso.opdId,
     opdNombre: paso.opdNombre,
     procesoId: paso.procesoId,
@@ -105,7 +128,7 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     entrada.diagnostico = `No simulable: ${motivosBloqueo.join("; ")}`;
   }
 
-  const nuevoPaso = contexto.pasoActual + 1;
+  const nuevoPaso = resolverSiguientePasoPorInvocacion(modelo, contexto, paso);
   const relojNuevo = (contexto.reloj ?? 0) + (duracionPaso?.observada ?? 0);
   const siguiente: ContextoSimulacion = {
     ...contexto,
@@ -232,17 +255,122 @@ function avanzarSemillaSiFueConsumida(
   return { ...contexto, semilla: Math.floor(random() * 0x100000000) };
 }
 
+type PasoConEnlaces = ContextoSimulacion["plan"][number];
+
+const TIPOS_CONDICION_EJECUTABLES = new Set(["consumo", "efecto", "agente", "instrumento"]);
+
+function motivosOmitirPorCondicion(
+  modelo: Modelo,
+  paso: PasoConEnlaces,
+  estadosCurrent: Record<Id, Id>,
+): string[] {
+  const motivos: string[] = [];
+  const enlacesIds = new Set([...paso.enlacesEntradaIds, ...paso.enlacesSalidaIds]);
+  for (const enlaceId of enlacesIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace || enlace.modificador !== "condicion") continue;
+    if (!TIPOS_CONDICION_EJECUTABLES.has(enlace.tipo)) continue;
+    const condicionante = extremoCondicionanteDeProceso(modelo, enlace, paso.procesoId);
+    if (!condicionante) continue;
+    const motivo = motivoCondicionIncumplida(modelo, condicionante, estadosCurrent);
+    if (motivo) motivos.push(motivo);
+  }
+  return motivos;
+}
+
+function extremoCondicionanteDeProceso(
+  modelo: Modelo,
+  enlace: Enlace,
+  procesoId: Id,
+): Enlace["origenId"] | undefined {
+  const origenEntidadId = entidadIdDeExtremo(modelo, enlace.origenId);
+  const destinoEntidadId = entidadIdDeExtremo(modelo, enlace.destinoId);
+  if (origenEntidadId === procesoId && destinoEntidadId !== procesoId) {
+    if (enlace.tipo === "efecto" && enlace.destinoId.kind === "estado") {
+      const estado = modelo.estados[enlace.destinoId.id];
+      return estado ? { kind: "entidad", id: estado.entidadId } : enlace.destinoId;
+    }
+    return enlace.destinoId;
+  }
+  if (destinoEntidadId === procesoId && origenEntidadId !== procesoId) return enlace.origenId;
+  return undefined;
+}
+
+function motivoCondicionIncumplida(
+  modelo: Modelo,
+  extremo: Enlace["origenId"],
+  estadosCurrent: Record<Id, Id>,
+): string | undefined {
+  if (extremo.kind === "estado") {
+    const estado = modelo.estados[extremo.id];
+    if (!estado) return `${extremo.id} no existe`;
+    const observado = estadosCurrent[estado.entidadId] ?? null;
+    if (observado !== estado.id) {
+      return `${nombreExtremo(modelo, extremo)} no está vigente`;
+    }
+    return undefined;
+  }
+
+  const entidad = modelo.entidades[extremo.id];
+  if (!entidad || entidad.tipo !== "objeto") return undefined;
+  const estados = Object.values(modelo.estados ?? {}).filter((estado) => estado.entidadId === entidad.id && !estado.suprimido);
+  if (estados.length === 0) return undefined;
+  return estadosCurrent[entidad.id] ? undefined : `${entidad.nombre} no existe`;
+}
+
+function resolverSiguientePasoPorInvocacion(
+  modelo: Modelo,
+  contexto: ContextoSimulacion,
+  paso: PasoConEnlaces,
+): number {
+  const secuencial = contexto.pasoActual + 1;
+  const invocacion = [...paso.enlacesSalidaIds]
+    .map((id) => modelo.enlaces[id])
+    .filter((enlace): enlace is Enlace => Boolean(enlace))
+    .filter((enlace) =>
+      enlace.tipo === "invocacion" &&
+      enlace.origenId.kind === "entidad" &&
+      enlace.origenId.id === paso.procesoId &&
+      enlace.destinoId.kind === "entidad" &&
+      modelo.entidades[enlace.destinoId.id]?.tipo === "proceso",
+    )
+    .sort((a, b) => a.id.localeCompare(b.id))[0];
+  if (!invocacion || invocacion.destinoId.kind !== "entidad") return secuencial;
+  const destinoId = invocacion.destinoId.id;
+  const indice = contexto.plan.findIndex((item) => item.procesoId === destinoId);
+  return indice >= 0 ? indice : secuencial;
+}
+
 /**
  * El unfold (anamorfismo): despliega la coalgebra desde un estado hasta
  * completar, tomando el sucesor canonico en cada paso. F = Identidad =>
  * traza determinista identica a iterar `ejecutarPaso`.
  */
-export function desplegar(modelo: Modelo, estadoInicial: ContextoSimulacion): ContextoSimulacion {
+export function desplegar(modelo: Modelo, estadoInicial: ContextoSimulacion, limite = 200): ContextoSimulacion {
   let actual = estadoInicial;
-  while (actual.pasoActual < actual.plan.length) {
+  let pasos = 0;
+  while (actual.pasoActual < actual.plan.length && actual.estado !== "bloqueado" && pasos < limite) {
     actual = tomarUnico(pasoEfecto(modelo, actual));
+    pasos += 1;
+  }
+  if (actual.pasoActual < actual.plan.length && actual.estado !== "bloqueado" && pasos >= limite) {
+    return bloquearPorLimite(actual, limite);
   }
   return actual;
+}
+
+function bloquearPorLimite(contexto: ContextoSimulacion, limite: number): ContextoSimulacion {
+  const trace = [...contexto.trace];
+  const idx = trace.length - 1;
+  const diagnostico = `Bloqueado: límite de ${limite} pasos alcanzado`;
+  if (idx >= 0) {
+    const ultima = trace[idx]!;
+    trace[idx] = {
+      ...ultima,
+      diagnostico: ultima.diagnostico ? `${ultima.diagnostico}; ${diagnostico}` : diagnostico,
+    };
+  }
+  return { ...contexto, estado: "bloqueado", trace };
 }
 
 /**
@@ -273,7 +401,7 @@ export function desplegarArbol(modelo: Modelo, ini: ContextoSimulacion, limite =
   let contador = 0;
   let truncado = false;
   const construir = (estado: ContextoSimulacion): NodoTraza => {
-    if (estado.pasoActual >= estado.plan.length || contador >= limite) {
+    if (estado.estado === "bloqueado" || estado.pasoActual >= estado.plan.length || contador >= limite) {
       if (contador >= limite) truncado = true;
       return { estado, hijos: [] };
     }
