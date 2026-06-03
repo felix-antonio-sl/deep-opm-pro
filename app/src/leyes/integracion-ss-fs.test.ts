@@ -8,6 +8,8 @@ import {
 import { hechosDe } from "../modelo/hechos";
 import { derivar } from "../modelo/razonamiento";
 import { componerModelos } from "../modelo/composicion";
+import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso } from "../modelo/operaciones";
+import { observarPreservacionFrontera } from "../modelo/equivalencia";
 import type { Modelo, Resultado } from "../modelo/tipos";
 
 function must<T>(r: Resultado<T>): T {
@@ -177,5 +179,36 @@ describe("integración F1↔S (la composición preserva la simulabilidad)", () =
     );
     expect(nombresVisitados.has("Cocinar")).toBe(true); // de A
     expect(nombresVisitados.has("Hornear")).toBe(true); // de B
+  });
+});
+
+describe("integración F2↔S (la descomposición es simulable y coherente con F0)", () => {
+  test("LEY F2↔S: un in-zoom F2-coherente es simulable y respeta S⊑F0 (puente S↔descomposición↔F2)", () => {
+    // Transformador con frontera: Pedido -(consumo)-> Procesar -(resultado)-> Despacho.
+    let base = crearModelo("Pedido");
+    base = must(crearObjeto(base, base.opdRaizId, { x: 40, y: 80 }, "Pedido"));
+    base = must(crearProceso(base, base.opdRaizId, { x: 240, y: 80 }, "Procesar"));
+    base = must(crearObjeto(base, base.opdRaizId, { x: 440, y: 80 }, "Despacho"));
+    const procesarId = Object.values(base.entidades).find((e) => e.tipo === "proceso")!.id;
+    const pedidoId = Object.values(base.entidades).find((e) => e.nombre === "Pedido")!.id;
+    const despachoId = Object.values(base.entidades).find((e) => e.nombre === "Despacho")!.id;
+    base = must(crearEnlace(base, base.opdRaizId, pedidoId, procesarId, "consumo"));
+    base = must(crearEnlace(base, base.opdRaizId, procesarId, despachoId, "resultado"));
+
+    const modelo = must(descomponerProceso(base, base.opdRaizId, procesarId)).modelo;
+    const opdHijoId = modelo.entidades[procesarId]?.refinamientos?.descomposicion?.opdId;
+    expect(opdHijoId).toBeDefined();
+
+    // Precondición F2: el in-zoom fresco PRESERVA la frontera de "Procesar" (coherente).
+    expect(observarPreservacionFrontera(modelo).some((o) => o.procesoId === procesarId)).toBe(false);
+
+    // Ley S⊑F0 sobre la descomposición: simular el in-zoom NO inventa estructura fuera de F0.
+    // (la bisimulación de frontera plena —que S ejerza las entidades de frontera— queda como
+    //  diseño-mayor: exige confirmar que los subprocesos del in-zoom ejercen los enlaces heredados.)
+    const fin = desplegar(modelo, iniciarSimulacion(modelo, opdHijoId!));
+    const todos = hechosDe(modelo);
+    for (const clave of hechosEjercidosPorTraza(modelo, fin).keys()) {
+      expect(todos.has(clave)).toBe(true);
+    }
   });
 });
