@@ -122,6 +122,39 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     expect(generarOpl(aplicado)).toContain("**B** afecta a exactamente uno de los procesos *P*, *Q* o *R*.");
   });
 
+  test("aplica abanico evento de efecto desde objeto a procesos con OPL tipo OPCloud", () => {
+    let modelo = crearModelo("reverse");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 90 }, "O"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "P"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 90 }, "Q"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 180 }, "R"));
+    const texto = [
+      ...generarOpl(modelo),
+      "**O** inicia exactamente uno de *P*, *Q* y *R*, que afecta el proceso que ocurre.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    const patchesEnlace = preview.patches.filter((patch) => patch.tipo === "crear-enlace" && patch.tipoEnlace === "efecto");
+    expect(patchesEnlace).toHaveLength(3);
+    for (const patch of patchesEnlace) {
+      if (patch.tipo !== "crear-enlace") throw new Error("esperaba patch crear-enlace");
+      expect(patch.modificador).toBe("evento");
+    }
+    expect(preview.patches).toContainEqual(expect.objectContaining({
+      tipo: "crear-abanico",
+      operador: "XOR",
+      tipoEnlace: "efecto",
+      procesoEsOrigen: true,
+      modificador: "evento",
+    }));
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    expect(Object.values(aplicado.abanicos ?? {})).toHaveLength(1);
+    expect(Object.values(aplicado.enlaces).every((enlace) => enlace.modificador === "evento")).toBe(true);
+    expect(generarOpl(aplicado)).toContain("**O** inicia exactamente uno de *P*, *Q* y *R*, que afecta el proceso que ocurre.");
+  });
+
   test("crea entidades y enlaces declarados en el mismo lote OPL", () => {
     const modelo = crearModelo("reverse");
     const texto = [

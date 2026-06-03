@@ -89,7 +89,11 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
   // un abanico mixto (algunos con `condicion`, otros sin) recae en el comportamiento
   // por defecto, porque la semántica condicional debe valer para todas las ramas.
   const todosCondicionales = enlaces.every((enlace) => enlace.modificador === "condicion");
+  const todosEventos = enlaces.every((enlace) => enlace.modificador === "evento");
   const mismoTipo = enlaces.every((enlace) => enlace.tipo === primer.tipo);
+  if (todosEventos && mismoTipo && primer.tipo === "efecto" && puertoEsOrigen && puerto.tipo === "objeto" && otrosSonProcesos) {
+    return `${puertoOpl} inicia ${cuantificador} ${lista}, que afecta el proceso que ocurre.`;
+  }
   if (todosCondicionales && mismoTipo) {
     const condicional = oracionAbanicoCondicional(primer.tipo, puertoOpl, cuantificador, lista, puertoEsOrigen);
     if (condicional) return condicional;

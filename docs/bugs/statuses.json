@@ -320,7 +320,7 @@
   "BUG-20260603T050454Z-276ea7": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "El OPL de abanicos XOR/O de efecto Objeto -> Procesos ahora emite una forma explicita: O afecta a exactamente uno de los procesos P, Q o R.",
-    "note": "Causa raiz: la plantilla generica omitía la preposicion 'a', el tipo de alternativa y usaba 'y'. Cubierto por generar.test y parser.test."
+    "resolution": "El OPL de abanicos XOR/O de efecto con modificador evento Objeto -> Procesos ahora emite la forma OPCloud en espanol: O inicia exactamente uno de P, Q y R, que afecta el proceso que ocurre.",
+    "note": "Causa raiz: oracionAbanico ignoraba modificador evento y caia a la plantilla directa de efecto. Cubierto por generar.test y parser.test."
   }
 }

@@ -149,6 +149,7 @@ function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: Oraci
   return parsearDescripcion(texto, linea)
     ?? parsearClasificacionRasgo(texto, linea)
     ?? parsearEstados(texto, linea)
+    ?? parsearAbanicoEvento(texto, linea)
     ?? parsearEvento(texto, linea)
     ?? parsearExcepcion(texto, linea)
     // `parsearAbanico` (ronda 26/L3) DEBE correr antes de `parsearCondicion` y
@@ -240,6 +241,26 @@ function parsearAbanico(texto: string, linea: LineaOplNormalizada) {
     ?? parsearAbanicoInvocacionCondicional(texto, linea)
     ?? parsearAbanicoCondicional(texto, linea)
     ?? parsearAbanicoDirecto(texto, linea);
+}
+
+const ABANICO_EFECTO_EVENTO_OBJETO_PROCESOS_RE =
+  /^(.+?)\s+inicia\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+),\s*que\s+afecta\s+(?:el|al)\s+proceso\s+que\s+ocurre$/iu;
+
+function parsearAbanicoEvento(texto: string, linea: LineaOplNormalizada) {
+  const match = ABANICO_EFECTO_EVENTO_OBJETO_PROCESOS_RE.exec(texto);
+  if (!match) return null;
+  const proceso = normalizarNombreOpl(match[1] ?? "");
+  const operador = operadorDeCuantificador(match[2] ?? "");
+  const otros = tokenizarListaAbanico(match[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
+  if (!proceso || otros.length < 2) return null;
+  return astAbanico(linea, {
+    proceso,
+    operador,
+    tipoEnlace: "efecto",
+    otros,
+    puertoEsOrigen: true,
+    modificador: "evento",
+  });
 }
 
 // Variante (C) resultado + condicion + abanico (TODO cerrado en L3).
@@ -418,7 +439,7 @@ function astAbanico(
     otros: string[];
     otrosEstados?: string[];
     puertoEsOrigen: boolean;
-    modificador?: "condicion";
+    modificador?: "condicion" | "evento";
   },
 ) {
   return {
