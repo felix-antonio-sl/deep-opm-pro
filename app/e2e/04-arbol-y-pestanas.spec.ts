@@ -247,7 +247,9 @@ test("barra de pestanas usa tabs tipograficas Codex v1.1", async ({ page }) => {
   await expect(botonCerrar).toHaveText("×");
   await expect(botonCerrar).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(botonCerrar).toHaveCSS("border-top-style", "none");
-  await expect(botonCerrar).toHaveCSS("color", "rgb(207, 203, 193)");
+  // d19f675 intensificó la paleta (BUG-f28eb5): inkFaint #cfcbc1 → #b5b0a4
+  // (normado en ui-forja/tokens.json); el reposo del botón cerrar usa inkFaint.
+  await expect(botonCerrar).toHaveCSS("color", "rgb(181, 176, 164)");
   await botonCerrar.hover();
   await expect(botonCerrar).toHaveCSS("color", "rgb(90, 86, 76)");
 

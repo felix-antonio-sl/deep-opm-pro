@@ -196,8 +196,11 @@ test("renderiza modificadores evento/condicion y demora de invocacion", async ({
   await expect(svgText(page, "c")).toBeVisible();
   await expect(svgText(page, "1s")).toBeVisible();
   await restaurarPanelOplSiMinimizado(page);
-  await expect(page.getByText("Orden inicia Aprobar, que consume Orden (probabilidad: 70%).")).toBeVisible();
-  await expect(page.getByText("Aprobar invoca Validar despues de 1s.")).toBeVisible();
+  // Canon OPL vigente: probabilidad se emite como `Pr=` (procedural.ts:427;
+  // el unit del generador rechaza la forma vieja "(probabilidad:") y la
+  // demora va con tilde ("después").
+  await expect(page.getByText("Orden inicia Aprobar, que consume Orden `Pr=0.7`.")).toBeVisible();
+  await expect(page.getByText("Aprobar invoca Validar después de 1s.")).toBeVisible();
 
   await page.screenshot({ path: "test-results/opm-modificadores-enlace.png", fullPage: true });
   expect(pageErrors).toEqual([]);
@@ -357,7 +360,7 @@ test("crea auto-invocacion desde Inspector con demora default", async ({ page })
 
   await expect(page.locator(".joint-link")).toHaveCount(2);
   await expect(svgText(page, "1s")).toBeVisible();
-  await expect(page.getByText("Procesar se invoca a sí mismo despues de 1s.")).toBeVisible();
+  await expect(page.getByText("Procesar se invoca a sí mismo después de 1s.")).toBeVisible();
   const json = await jsonEditor(page).inputValue();
   const exportado = JSON.parse(json) as ExportadoModelo;
   const proceso = Object.values(exportado.modelo.entidades).find((entidad) => entidad.nombre === "Procesar");

@@ -710,6 +710,11 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   await expect(elementoPorTexto(page, "Validar Entrada")).toHaveCount(1);
   await expect(page.getByText(/Validar Entrada\s+consume\s+Entrada/)).toBeVisible();
 
+  // Tras reasignar/renombrar el viewport puede quedar lejos del contenido
+  // (scroll preservado); el drag por mouse solo agarra elementos visibles.
+  // Como haría un humano: scrollear al subproceso antes de arrastrarlo y
+  // releer las coordenadas ya con la vista puesta.
+  await elementoPorTexto(page, "Procesar 1").scrollIntoViewIfNeeded();
   const p1 = await elementoPorTexto(page, "Procesar 1").boundingBox();
   const p2 = await elementoPorTexto(page, "Validar Entrada").boundingBox();
   if (!p1 || !p2) throw new Error("No se pudo ubicar subprocesos para paralelo");
@@ -717,12 +722,31 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
   await page.mouse.down();
   await page.mouse.move(p1.x + p1.width / 2, p2.y + p2.height / 2, { steps: 8 });
   await page.mouse.up();
-  await expect(page.getByText(/Procesar se descompone en paralelo/).first()).toBeVisible();
+  // \s+ entre nodos inline del OPL renderizado (regex no normaliza whitespace),
+  // mismo patrón que el assert de "consume" de arriba.
+  await expect(page.getByText(/Procesar\s+se descompone en paralelo/).first()).toBeVisible();
 
-  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  // El botón "Objeto" hoy crea directo en posición libre — FUERA del contorno
+  // por diseño (posicionLibre → columnasFueraDe). Para crear DENTRO y verificar
+  // el clamp se usa el modo sticky (Shift+clic) con clic posicionado.
+  await elementoPorTexto(page, "Procesar").evaluate((el) => el.scrollIntoView({ block: "end", inline: "end" }));
   const contorno = await elementoPorTexto(page, "Procesar").boundingBox();
   if (!contorno) throw new Error("No se pudo ubicar contorno para creacion ambiental");
-  await page.mouse.click(contorno.x + contorno.width - 10, contorno.y + contorno.height - 10);
+  await page.getByTestId("toolbar-drag-objeto").click({ modifiers: ["Shift"] });
+  await expect(page.getByTestId("indicador-modo-canonico")).toContainText("Insertando objetos");
+  // El contorno inzoom es una ELIPSE: la esquina del boundingBox queda fuera
+  // del path. Punto dentro de la elipse cerca del borde inferior-derecho:
+  // centro + 0.64·radio en ambos ejes (0.64² + 0.64² ≈ 0.82 < 1).
+  await page.mouse.click(contorno.x + contorno.width * 0.82, contorno.y + contorno.height * 0.82);
+  const modalNombre = page.getByTestId("modal-nombre-cosa");
+  await expect(modalNombre).toBeVisible();
+  await modalNombre.getByLabel("Nombre").fill("Objeto");
+  await modalNombre.getByRole("button", { name: "OK" }).click();
+  await expect(modalNombre).toHaveCount(0);
+  // Salir del modo sticky con otro Shift+clic (Escape no lo desactiva); si
+  // siguiera activo, el clic de selección crearía un "Objeto 2".
+  await page.getByTestId("toolbar-drag-objeto").click({ modifiers: ["Shift"] });
+  await expect(page.getByTestId("indicador-modo-canonico")).toHaveCount(0);
   await elementoPorTexto(page, "Objeto").click();
   // Codex v2 / L3 (C9): el toggle Ambiental/Sistémica vive en
   // SeccionEsenciaAfiliacion, sección Semántica de la ficha continua —
