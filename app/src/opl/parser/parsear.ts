@@ -874,10 +874,17 @@ function astEvento(
 }
 
 function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
-  let match = /^(.+?) se invoca a s[ií] mismo(?: despu[eé]s de .+)?$/iu.exec(texto);
+  let match = /^(.+?) se invoca a s[ií] mismo(?: despu[eé]s de (.+?))?$/iu.exec(texto);
   if (match) {
     const proceso = normalizarNombreOpl(match[1] ?? "");
-    return astProcedimental(linea, { tipoEnlace: "invocacion", proceso, origen: proceso, destino: proceso });
+    const demora = (match[2] ?? "").trim();
+    return astProcedimental(linea, {
+      tipoEnlace: "invocacion",
+      proceso,
+      origen: proceso,
+      destino: proceso,
+      ...(demora ? { demora } : {}),
+    });
   }
   // SSOT §12: verbos aceptan variante plural (`consume[n]?`, `genera[n]?`,
   // `maneja[n]?`, `requiere[n]?`, `invoca[n]?`, `afecta[n]?`). El generador
@@ -934,12 +941,14 @@ function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
   match = /^(.+?) manejan? (.+)$/iu.exec(texto);
   if (match) {
     // En agente el objeto es origen (sujeto, ej. "Operador"), proceso es destino.
-    const objeto = extraerMultiplicidadDeNombre(match[1] ?? "");
+    // Gramática HS: el sujeto puede calificar estado ("Operador en `disponible`").
+    const objeto = limpiarObjetoConEstadoConMultiplicidad(match[1] ?? "");
     const proceso = extraerMultiplicidadDeNombre(match[2] ?? "");
     return astProcedimental(linea, {
       tipoEnlace: "agente",
       objeto: objeto.nombre,
       proceso: proceso.nombre,
+      ...(objeto.estado ? { estadoEntrada: objeto.estado } : {}),
       ...(objeto.multiplicidad ? { multiplicidadOrigen: objeto.multiplicidad } : {}),
       ...(proceso.multiplicidad ? { multiplicidadDestino: proceso.multiplicidad } : {}),
     });
@@ -948,26 +957,30 @@ function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
   if (match) {
     // En instrumento el proceso es destino (sujeto), el objeto es origen
     // (complemento, ej. "Procesar requiere Equipo" → Equipo→Procesar).
+    // Gramática HS: el complemento puede calificar estado ("Equipo en `calibrado`").
     const proceso = extraerMultiplicidadDeNombre(match[1] ?? "");
-    const objeto = extraerMultiplicidadDeNombre(match[2] ?? "");
+    const objeto = limpiarObjetoConEstadoConMultiplicidad(match[2] ?? "");
     return astProcedimental(linea, {
       tipoEnlace: "instrumento",
       proceso: proceso.nombre,
       objeto: objeto.nombre,
+      ...(objeto.estado ? { estadoEntrada: objeto.estado } : {}),
       ...(objeto.multiplicidad ? { multiplicidadOrigen: objeto.multiplicidad } : {}),
       ...(proceso.multiplicidad ? { multiplicidadDestino: proceso.multiplicidad } : {}),
     });
   }
-  match = /^(.+?) invocan? (.+?)(?: despu[eé]s de .+)?$/iu.exec(texto);
+  match = /^(.+?) invocan? (.+?)(?: despu[eé]s de (.+?))?$/iu.exec(texto);
   if (match) {
     const origen = extraerMultiplicidadDeNombre(match[1] ?? "");
     const destino = extraerMultiplicidadDeNombre(match[2] ?? "");
+    const demora = (match[3] ?? "").trim();
     return astProcedimental(linea, {
       tipoEnlace: "invocacion",
       origen: origen.nombre,
       destino: destino.nombre,
       ...(origen.multiplicidad ? { multiplicidadOrigen: origen.multiplicidad } : {}),
       ...(destino.multiplicidad ? { multiplicidadDestino: destino.multiplicidad } : {}),
+      ...(demora ? { demora } : {}),
     });
   }
   return null;

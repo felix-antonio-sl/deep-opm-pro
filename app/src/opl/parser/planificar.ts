@@ -239,6 +239,7 @@ function planificarProcedimental(
     ...(ast.rutaEtiqueta ? { rutaEtiqueta: ast.rutaEtiqueta } : {}),
     ...(ast.estadoEntrada ? { estadoEntrada: ast.estadoEntrada } : {}),
     ...(ast.estadoSalida ? { estadoSalida: ast.estadoSalida } : {}),
+    ...(ast.demora ? { demora: ast.demora } : {}),
   });
 }
 
@@ -348,6 +349,8 @@ function planificarEnlace(
     rutaEtiqueta?: string;
     estadoEntrada?: string;
     estadoSalida?: string;
+    /** Demora de invocación/autoinvocación (SSOT §8). */
+    demora?: string;
   } = {},
 ): void {
   const origenId = resolverRefId(modelo, origen);
@@ -360,6 +363,7 @@ function planificarEnlace(
     ...(opciones.rutaEtiqueta ? { rutaEtiqueta: opciones.rutaEtiqueta } : {}),
     ...(opciones.estadoEntrada ? { estadoEntrada: opciones.estadoEntrada } : {}),
     ...(opciones.estadoSalida ? { estadoSalida: opciones.estadoSalida } : {}),
+    ...(opciones.demora ? { demora: opciones.demora } : {}),
   };
   if (!existente) {
     registry.add({
@@ -397,7 +401,7 @@ function planificarEnlace(
         sugerencia: "Quita el modificador anterior desde el canvas antes de cambiarlo desde OPL.",
       });
     }
-  } else if (opciones.multiplicidadOrigen || opciones.multiplicidadDestino || opciones.rutaEtiqueta || opciones.estadoEntrada || opciones.estadoSalida) {
+  } else if (opciones.multiplicidadOrigen || opciones.multiplicidadDestino || opciones.rutaEtiqueta || opciones.estadoEntrada || opciones.estadoSalida || opciones.demora) {
     // Enlace ya existe sin modificador, pero la oracion trae datos L4 (multiplicidad
     // o ruta) — emitimos un patch idempotente para actualizarlos. El aplicador
     // detecta que el enlace ya existe y solo aplica los campos L4.

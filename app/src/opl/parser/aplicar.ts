@@ -17,7 +17,8 @@ import {
   renombrarEntidad,
   renombrarEstado,
 } from "../../modelo/operaciones";
-import { aplicarModificador } from "../../modelo/modificadores";
+import { aplicarModificador, definirDemora } from "../../modelo/modificadores";
+import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { posicionLibre } from "../../modelo/layout";
 import { entidadIdDeExtremo, extremoEstado, mismoExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
 import { formarAbanico } from "../../modelo/abanicos";
@@ -154,12 +155,21 @@ function aplicarPatchEnlace(
     return aplicarMetadatosCondicionExcepcion(modelo, existente, patch, extremos.value);
   }
 
+  // Autoinvocación (IV2): self-link Proceso→Proceso. `crearEnlace` rechaza
+  // extremos idénticos; el kernel tiene su propia operación con demora default.
+  if (patch.tipoEnlace === "invocacion" && origenId === destinoId) {
+    return patch.demora !== undefined
+      ? crearAutoInvocacion(modelo, opdId, origenId, patch.demora)
+      : crearAutoInvocacion(modelo, opdId, origenId);
+  }
+
   const creado = crearEnlace(modelo, opdId, extremos.value.origen, extremos.value.destino, patch.tipoEnlace, patch.etiqueta ?? "");
   if (!creado.ok) return creado;
   if (
     patch.modificador === undefined &&
     patch.tiempoMaximo === undefined &&
     patch.tiempoMinimo === undefined &&
+    patch.demora === undefined &&
     extremos.value.estadoEntradaId === undefined &&
     extremos.value.estadoSalidaId === undefined
   ) {
@@ -212,6 +222,11 @@ function aplicarMetadatosCondicionExcepcion(
     if (!aplicado.ok) return aplicado;
     siguiente = aplicado.value;
   }
+  if (patch.demora !== undefined && enlace.demora !== patch.demora) {
+    const aplicado = definirDemora(siguiente, enlace.id, patch.demora);
+    if (!aplicado.ok) return aplicado;
+    siguiente = aplicado.value;
+  }
   return ok(siguiente);
 }
 
@@ -257,6 +272,11 @@ function resolverExtremosPatch(
   if (patch.tipoEnlace === "consumo" && estadoEntradaId) {
     return ok({ origen: extremoEstado(estadoEntradaId), destino: destinoId });
   }
+  // Gramática HS: habilitador calificado por estado — el origen es el estado
+  // del objeto ("Operador en `disponible` maneja P" / "P requiere Equipo en `calibrado`").
+  if ((patch.tipoEnlace === "agente" || patch.tipoEnlace === "instrumento") && estadoEntradaId) {
+    return ok({ origen: extremoEstado(estadoEntradaId), destino: destinoId });
+  }
   if (patch.tipoEnlace === "resultado" && estadoSalidaId) {
     return ok({ origen: origenId, destino: extremoEstado(estadoSalidaId) });
   }
@@ -274,7 +294,9 @@ function resolverExtremosPatch(
 }
 
 function destinoObjetoDeEntrada(tipo: TipoEnlace, origenId: Id, destinoId: Id): Id {
-  if (tipo === "consumo") return origenId;
+  // El estado de entrada pertenece al OBJETO, que en consumo y en los
+  // habilitadores (agente/instrumento) es el extremo ORIGEN del enlace.
+  if (tipo === "consumo" || tipo === "agente" || tipo === "instrumento") return origenId;
   return destinoId;
 }
 

@@ -501,11 +501,10 @@ const fixtureHabilitadorConEstado: FixtureRoundtrip = {
     "**Operador** en `disponible` maneja *Operar*.",
     "*Operar* requiere **Equipo** en `calibrado`.",
   ],
-  // NO estricta: el parser reverse no separa el sufijo "en `estado`" del nombre
-  // en frases HS de habilitadores ("Operador en disponible" llega crudo como
-  // nombre de cosa). Brecha de gramática del parser, distinta del ciclo
-  // estado-objeto (cerrado).
-  bisimetricaEstricta: false,
+  // Estricta desde el cierre de la gramática HS del reverse: el parser separa
+  // el sufijo "en `estado`" del habilitador y el aplicador ancla el extremo
+  // origen al estado del objeto.
+  bisimetricaEstricta: true,
 };
 
 const fixtureExhibicion: FixtureRoundtrip = {
@@ -575,9 +574,9 @@ const fixtureInvocacionTilde: FixtureRoundtrip = {
     "*Servir* es un proceso informacional y sistémico.",
     "*Preparar* invoca *Servir* después de 1s.",
   ],
-  // NO estricta: el aplicador reverse aún no inversa la demora del enlace
-  // (el enlace recreado pierde "después de Ns").
-  bisimetricaEstricta: false,
+  // Estricta desde el cierre del reverse de demora: el parser captura
+  // "después de Ns" y el aplicador la aplica con definirDemora.
+  bisimetricaEstricta: true,
 };
 
 const fixtureEventoInvocacionDegrada: FixtureRoundtrip = {
@@ -610,9 +609,9 @@ const fixtureAutoInvocacionTilde: FixtureRoundtrip = {
     "*Validar* es un proceso informacional y sistémico.",
     "*Validar* se invoca a sí mismo después de 1s.",
   ],
-  // NO estricta: el aplicador reverse no soporta el self-link de la
-  // autoinvocación ("El enlace requiere dos extremos distintos").
-  bisimetricaEstricta: false,
+  // Estricta desde el cierre del reverse de autoinvocación: el aplicador
+  // desvía el self-link Proceso→Proceso a crearAutoInvocacion (con demora).
+  bisimetricaEstricta: true,
 };
 
 fixturesRoundtripExtra.push(

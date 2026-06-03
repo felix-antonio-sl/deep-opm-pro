@@ -50,6 +50,8 @@ export interface AstProcedimentalBase {
   multiplicidadOrigen?: string;
   multiplicidadDestino?: string;
   rutaEtiqueta?: string;
+  /** Demora de invocación/autoinvocación ("después de Ns", SSOT §8). */
+  demora?: string;
 }
 
 export type OracionOplAst =
@@ -289,6 +291,8 @@ export type PatchOplPropuesto =
       unidadTiempoMinimo?: string;
       estadoEntrada?: string;
       estadoSalida?: string;
+      /** Demora de invocación/autoinvocación a aplicar tras crear (SSOT §8). */
+      demora?: string;
       multiplicidadOrigen?: string;
       multiplicidadDestino?: string;
       rutaEtiqueta?: string;
