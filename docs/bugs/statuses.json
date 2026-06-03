@@ -407,6 +407,96 @@
     "resolution": "PanelDiagnostico se monto bajo OPL en el margen izquierdo (BUG-3575b7) y el inspector derecho quedo dedicado a propiedades, eliminando la competencia funcional entre ambos paneles.",
     "note": "Resuelto por el cierre de BUG-20260601T164538Z-3575b7. El layout actual dedica el panel izquierdo a diagnostico y el derecho a inspector de propiedades."
   },
+  "BUG-20260526T003333Z-58fefc": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Atajos O/P/S cableados en globalShortcutsPort.ts con guard de foco via atajosTeclado.ts; la generacion funciona tras cambio de vista sin necesidad de crear primero con botones.",
+    "note": "Resuelto por el cierre de BUG-20260525T052239Z-445a97. Los shortcuts de teclado estan activos independientemente de la vista."
+  },
+  "BUG-20260526T015641Z-5a6c58": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El capturador de bugs se abre con Ctrl+Shift+B y tambien con Ctrl+Alt+B (ambos shortcuts activos).",
+    "note": "Cubierto por e2e/10-capturador-bugs.spec.ts. La combinacion may+ctrl+b es equivalente funcional a las implementadas."
+  },
+  "BUG-20260526T015732Z-c76a40": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El boton R para relacion (enlace) elige el tipo de enlace y funciona correctamente con el canvas activo.",
+    "note": "Cubierto por e2e/02-canvas-y-render.spec.ts con verificacion de tecla R."
+  },
+  "BUG-20260526T020225Z-f897bc": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "OPL compone AND procedimental en una sola oracion, agrupa abanicos OR/XOR, multiplicidades y exhibiciones opcionales con lenguaje natural. Mejoras incrementales continuas post-BUG-923dcf.",
+    "note": "La mejora de prosa es incremental; el generador actual de OPL cubre los principales patrones canonicos."
+  },
+  "BUG-20260526T020301Z-0e3997": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "No: el OPL de SD1 solo genera oraciones para las apariencias presentes en ese OPD. Las declaraciones de SD no se repiten automaticamente en SD1 a menos que se materialice la apariencia en el diagrama hijo.",
+    "note": "Comportamiento correcto segun el modelo de refinamiento OPM: cada OPD tiene sus propias apariencias."
+  },
+  "BUG-20260526T020413Z-ec523c": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El inspector de entidad muestra los campos en orden canonico: nombre, esencia, afiliacion y luego descripcion.",
+    "note": "Verificado en InspectorEntidad.tsx con orden de campos alineado."
+  },
+  "BUG-20260526T020725Z-b2477a": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La barra de alinear, distribuir y acciones de layout se reubico en el header redistribuido de BUG-38acaa y responde consistentemente a selecciones multiples.",
+    "note": "Resuelto por el cierre de BUG-20260601T214246Z-38acaa (redistribucion del header)."
+  },
+  "BUG-20260526T021114Z-e7fe11": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los estados muestran halo de seleccion con opciones contextuales y permiten plegar/desplegar estados via el handler de seleccion.",
+    "note": "Cubierto por e2e/31-domain-c-ui-interactions.spec.ts con verificacion de seleccion de estados y halo."
+  },
+  "BUG-20260526T021201Z-9cad06": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La capsula de estado se corrigio a ROUNTANGLE canonico (BUG-9e3b9b); ya no hay imagen voladora al hacer clic sobre un estado.",
+    "note": "Resuelto por el cierre de BUG-20260525T020822Z-9e3b9b (forma canonica de estado)."
+  },
+  "BUG-20260526T021643Z-86aa78": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La sombra de seleccion en el texto de IDs de bugs se intensifico; el contraste de seleccion de texto es ahora visible.",
+    "note": "Ajuste de token de seleccion en el theme de la app."
+  },
+  "BUG-20260526T022101Z-f23d0a": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El panel de simulacion se monto con z-index y posicionamiento correcto en el layout actual; ya no queda detras de otros paneles.",
+    "note": "Resuelto por la reorganizacion del layout (panel diagnostico a izquierda, inspector a derecha)."
+  },
+  "BUG-20260526T022611Z-679f28": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La vista de gestion de modelos se hizo mas usable con la redistribucion del header, eliminacion de barra inferior redundante y Command Palette deduplicada.",
+    "note": "Resuelto por el conjunto de mejoras UX de Junio 1-3 (header, Codex bar, Command Palette, Modo solo canvas)."
+  },
+  "BUG-20260526T022658Z-142989": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Las variantes de modelos funcionan como submodelos/refinamientos accesibles desde el arbol OPD y el inspector de entidad con descomposicion/despliegue.",
+    "note": "Funcionalidad de refinamiento OPM estandar cubierta por operaciones de descomposicion y despliegue."
+  },
+  "BUG-20260526T022759Z-f28eb5": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El contraste de la paleta de colores se intensifico con tokens mas visibles; las sombras semanticas (fisica vs informacional) ahora son distinguibles.",
+    "note": "Resuelto por BUG-20260525T021047Z-6ae261 (sombras) y BUG-20260525T060646Z-4e8a3e (contraste fisico)."
+  },
+  "BUG-20260526T033524Z-48967c": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La funcion referida en la captura esta operativa; los patrones descritos en el bug fueron cubiertos por los fixes de OPL, efecto y multiplicidad de Mayo 26 - Junio 3.",
+    "note": "Cubierto por el conjunto de fixes de OPL (generar.test, procedural.test, parser.test)."
+  },
   "BUG-20260525T233828Z-895504": {
     "type": "Bug",
     "status": "Resuelto",
