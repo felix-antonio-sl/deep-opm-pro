@@ -58,7 +58,8 @@ Ss  simulacion/     anamorfismo (unfold): runner.ts = coalgebra + desplegar.
 | `law-composicion-bien-tipada` | componer válidos no introduce avisos de error | `leyes/composicion.test.ts` | `icas-preservacion` |
 | `law-composicion-respeta-lineal` | objeto lineal multi-consumido se detecta | `leyes/composicion.test.ts` | `icas-composicion-estructura` |
 | `law-derivacion-pura` | derivar es puro y determinista | `leyes/razonamiento.test.ts` | `icas-efectos` |
-| `law-derivacion-no-contradice` | toda referencia derivada existe en `hechosDe` (4 consultas) | `leyes/razonamiento.test.ts` | `icas-topoi` |
+| `law-derivacion-no-contradice` | toda referencia derivada existe en `hechosDe` (5 consultas) | `leyes/razonamiento.test.ts` | `icas-topoi` |
+| `law-impacto-aguas-abajo` | cono de impacto descendente = cierre transitivo del flujo forward (dual de `requerido-por`); direccional, transitivo, excluye el seed | `leyes/razonamiento.test.ts` | `icas-efectos` |
 | **S⊑F0** | el unfold no inventa estructura fuera de la denotación | `leyes/integracion-ss-fs.test.ts` | `icas-efectos` |
 | **dualidad S→F3** | todo objeto que S transicionó, F3 lo reconoce (`afectan-a≠∅`) | `leyes/integracion-ss-fs.test.ts` | `icas-efectos` |
 | **F1↔S** | la composición preserva la simulabilidad | `leyes/integracion-ss-fs.test.ts` | `icas-composicion` |

@@ -26,6 +26,7 @@ export type AccionContextualId =
   | "razonar-afectan-a"
   | "razonar-requerido-por"
   | "razonar-impacto-eliminar"
+  | "razonar-impacto-aguas-abajo"
   | "verificar-coherencia-descomposicion"
   | "ocultar-apariencia";
 
@@ -206,6 +207,11 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       visible: esCosa,
       superficies: ["menu-contextual", "command-palette"],
       aliasBusqueda: ["razonar", "impacto", "eliminar", "derivar", "dependencias"],
+    }),
+    accion("razonar-impacto-aguas-abajo", "Ver impacto aguas abajo", "accion-razonar-impacto-aguas-abajo", "navegacion", esCosa, {
+      visible: esCosa,
+      superficies: ["menu-contextual", "command-palette"],
+      aliasBusqueda: ["razonar", "impacto", "aguas", "abajo", "cascada", "downstream", "dependencias", "derivar"],
     }),
     // Piso 2 (Equivalencia): la descomposición debe ser frontera-equivalente al
     // proceso abstracto (ley in-zoom ↔ out-zoom). Solo para procesos con inzoom.

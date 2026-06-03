@@ -107,6 +107,10 @@ export function ejecutarAccionContextualEntidad(
       if (!entidad) return excepcional(accionId, "Calcular impacto requiere una cosa seleccionada.");
       state.consultarRazonamiento({ tipo: "impacto-de-eliminar", elementoId: entidad.id });
       return normal(accionId);
+    case "razonar-impacto-aguas-abajo":
+      if (!entidad) return excepcional(accionId, "Ver impacto aguas abajo requiere una cosa seleccionada.");
+      state.consultarRazonamiento({ tipo: "impacto-aguas-abajo", elementoId: entidad.id });
+      return normal(accionId);
     case "verificar-coherencia-descomposicion":
       if (entidad?.tipo !== "proceso" || !entidad.refinamientos?.descomposicion) {
         return excepcional(accionId, "Verificar coherencia requiere un proceso descompuesto.");

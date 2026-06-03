@@ -96,6 +96,7 @@ const ORDEN_MENU_ENTIDAD: readonly AccionContextualId[] = [
   "razonar-afectan-a",
   "razonar-requerido-por",
   "razonar-impacto-eliminar",
+  "razonar-impacto-aguas-abajo",
   "verificar-coherencia-descomposicion",
   "quitar-descomposicion",
   "quitar-despliegue",
@@ -109,7 +110,7 @@ export function ordenarAccionesMenuEntidad(acciones: readonly AccionContextual[]
 export function grupoAccionMenuEntidad(id: AccionContextualId): "refinamiento" | "edicion" | "apariencia" | "enlaces" | "razonamiento" | "peligro" {
   if (id === "inzoom" || id === "unfold" || id === "conectar-submodelo" || id === "componer-modelo") return "refinamiento";
   if (id === "agregar-estado" || id === "editar-alias" || id === "editar-imagen" || id === "marcar-requisito" || id === "satisfacer-requisito") return "edicion";
-  if (id === "razonar-afectan-a" || id === "razonar-requerido-por" || id === "razonar-impacto-eliminar" || id === "verificar-coherencia-descomposicion") return "razonamiento";
+  if (id === "razonar-afectan-a" || id === "razonar-requerido-por" || id === "razonar-impacto-eliminar" || id === "razonar-impacto-aguas-abajo" || id === "verificar-coherencia-descomposicion") return "razonamiento";
   if (id === "ocultar-apariencia" || id === "quitar-descomposicion" || id === "quitar-despliegue") return "peligro";
   return "enlaces";
 }

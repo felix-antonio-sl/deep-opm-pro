@@ -81,6 +81,21 @@ describe("consultarRazonamiento — proyección UX del Piso 3", () => {
     expect(s.mensaje).toMatch(/afectar[íi]a/i);
   });
 
+  test("impacto-aguas-abajo: selecciona el cono descendente en el canvas + toast", () => {
+    cargar(modeloCadena());
+    const fabricarId = idPorNombre(store.getState().modelo, "Fabricar");
+    const piezaId = idPorNombre(store.getState().modelo, "Pieza");
+    const ensamblarId = idPorNombre(store.getState().modelo, "Ensamblar");
+
+    store.getState().consultarRazonamiento({ tipo: "impacto-aguas-abajo", elementoId: fabricarId });
+
+    const s = store.getState();
+    expect(s.seleccionados).toContain(piezaId); // 1 salto
+    expect(s.seleccionados).toContain(ensamblarId); // 2 saltos (transitivo)
+    expect(s.seleccionados).not.toContain(fabricarId); // excluye el propio elemento
+    expect(s.mensaje).toMatch(/aguas abajo/i);
+  });
+
   test("consulta sin resultados: informa por toast y no introduce selección espuria", () => {
     let m = crearModelo();
     m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Solo"));

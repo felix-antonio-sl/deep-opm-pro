@@ -62,6 +62,7 @@ describe("LEY law-derivacion-no-contradice", () => {
       { tipo: "afectan-a", entidadId: idPorNombre(m, "Pieza") },
       { tipo: "requerido-por", procesoId: idPorNombre(m, "Ensamblar") },
       { tipo: "impacto-de-eliminar", elementoId: idPorNombre(m, "Pieza") },
+      { tipo: "impacto-aguas-abajo", elementoId: idPorNombre(m, "Fabricar") },
     ];
     let total = 0;
     for (const c of consultas) {
@@ -115,5 +116,67 @@ describe("LEY law-derivacion-no-contradice", () => {
       if (h.procesoId) expect(declarados.has(h.procesoId)).toBe(true);
       if (h.estadoId) expect(declarados.has(h.estadoId)).toBe(true);
     }
+  });
+});
+
+// Insumo →(consumo) Fabricar →(resultado) Pieza →(consumo) Ensamblar →(resultado) Producto
+function modeloCadenaLarga(): Modelo {
+  let m = crearModelo();
+  m = must(crearObjeto(m, m.opdRaizId, { x: 40, y: 100 }, "Insumo"));
+  m = must(crearProceso(m, m.opdRaizId, { x: 220, y: 100 }, "Fabricar"));
+  m = must(crearObjeto(m, m.opdRaizId, { x: 400, y: 100 }, "Pieza"));
+  m = must(crearProceso(m, m.opdRaizId, { x: 580, y: 100 }, "Ensamblar"));
+  m = must(crearObjeto(m, m.opdRaizId, { x: 760, y: 100 }, "Producto"));
+  m = must(crearEnlace(m, m.opdRaizId, idPorNombre(m, "Insumo"), idPorNombre(m, "Fabricar"), "consumo"));
+  m = must(crearEnlace(m, m.opdRaizId, idPorNombre(m, "Fabricar"), idPorNombre(m, "Pieza"), "resultado"));
+  m = must(crearEnlace(m, m.opdRaizId, idPorNombre(m, "Pieza"), idPorNombre(m, "Ensamblar"), "consumo"));
+  m = must(crearEnlace(m, m.opdRaizId, idPorNombre(m, "Ensamblar"), idPorNombre(m, "Producto"), "resultado"));
+  return m;
+}
+
+describe("LEY law-impacto-aguas-abajo (cono descendente transitivo)", () => {
+  test("transitivo y direccional: alcanza aguas abajo, excluye lo de aguas arriba y el propio elemento", () => {
+    const m = modeloCadenaLarga();
+    const ids = (nombre: string) => idPorNombre(m, nombre);
+    const afectados = derivar(m, { tipo: "impacto-aguas-abajo", elementoId: ids("Fabricar") })
+      .map((h) => h.entidadId);
+
+    // aguas abajo de Fabricar: Pieza (1 salto), Ensamblar (2), Producto (3) → transitivo, no primer nivel.
+    expect(afectados).toContain(ids("Pieza"));
+    expect(afectados).toContain(ids("Ensamblar"));
+    expect(afectados).toContain(ids("Producto"));
+    // control de no-tautología (direccionalidad): Insumo está AGUAS ARRIBA → NO debe aparecer.
+    // si el cierre fuese no-dirigido, Insumo entraría.
+    expect(afectados).not.toContain(ids("Insumo"));
+    // excluye el propio elemento colapsado.
+    expect(afectados).not.toContain(ids("Fabricar"));
+  });
+
+  test("control de no-tautología: es MÁS que el primer nivel de impacto-de-eliminar", () => {
+    const m = modeloCadenaLarga();
+    const fabricarId = idPorNombre(m, "Fabricar");
+    const productoId = idPorNombre(m, "Producto");
+
+    const aguasAbajo = derivar(m, { tipo: "impacto-aguas-abajo", elementoId: fabricarId }).map((h) => h.entidadId);
+    const primerNivel = derivar(m, { tipo: "impacto-de-eliminar", elementoId: fabricarId });
+
+    // aguas-abajo alcanza Producto (3 saltos); impacto-de-eliminar (incidencias directas) NO lo lista.
+    expect(aguasAbajo).toContain(productoId);
+    expect(primerNivel.some((h) => h.entidadId === productoId)).toBe(false);
+  });
+
+  test("hoja terminal: un elemento sin flujo descendente tiene impacto vacío (unidad)", () => {
+    const m = modeloCadenaLarga();
+    const afectados = derivar(m, { tipo: "impacto-aguas-abajo", elementoId: idPorNombre(m, "Producto") });
+    expect(afectados).toEqual([]);
+  });
+
+  test("pura y todo inferido", () => {
+    const m = modeloCadenaLarga();
+    const antes = JSON.stringify(m);
+    const r = derivar(m, { tipo: "impacto-aguas-abajo", elementoId: idPorNombre(m, "Insumo") });
+    expect(JSON.stringify(m)).toBe(antes);
+    expect(r.length).toBeGreaterThan(0);
+    expect(r.every((h) => h.inferido === true && h.via === "impacto-aguas-abajo")).toBe(true);
   });
 });

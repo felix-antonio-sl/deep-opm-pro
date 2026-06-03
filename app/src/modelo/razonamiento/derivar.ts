@@ -29,7 +29,8 @@ export type Consulta =
   | { tipo: "afectan-a"; entidadId: Id }
   | { tipo: "requerido-por"; procesoId: Id }
   | { tipo: "alcanzable"; entidadId: Id; estado: string }
-  | { tipo: "impacto-de-eliminar"; elementoId: Id };
+  | { tipo: "impacto-de-eliminar"; elementoId: Id }
+  | { tipo: "impacto-aguas-abajo"; elementoId: Id };
 
 export interface HechoDerivado {
   readonly inferido: true;
@@ -42,6 +43,10 @@ export interface HechoDerivado {
 
 const TRANSFORMADORES: ReadonlySet<string> = new Set(["consumo", "resultado", "efecto"]);
 const REQUIERE_ENTRANTE: ReadonlySet<string> = new Set(["consumo", "agente", "instrumento"]);
+// Flujo descendente: resultado/efecto van proceso→objeto (lo que produce/afecta);
+// consumo/agente/instrumento van objeto→proceso (lo que lo usa).
+const SALIDA_PROCESO: ReadonlySet<string> = new Set(["resultado", "efecto"]);
+const ENTRADA_PROCESO: ReadonlySet<string> = new Set(["consumo", "agente", "instrumento"]);
 
 function entidadDeExtremo(extremo: ExtremoEnlace, modelo: Modelo): Id | null {
   if (extremo.kind === "entidad") return extremo.id;
@@ -185,6 +190,46 @@ function alcanzable(modelo: Modelo, entidadId: Id, estadoNombre: string): HechoD
   return out;
 }
 
+/**
+ * Cono de impacto AGUAS ABAJO: cierre transitivo del flujo descendente desde un
+ * elemento. resultado/efecto llevan proceso→objeto (lo producido/afectado);
+ * consumo/agente/instrumento llevan objeto→proceso (lo que lo usa). Si el
+ * elemento colapsa, todo lo alcanzable hacia adelante queda comprometido. Es el
+ * dual DESCENDENTE de `requerido-por` (que cierra aguas arriba). Transitivo (no
+ * primer nivel como `impacto-de-eliminar`). Excluye el propio elemento.
+ */
+function impactoAguasAbajo(modelo: Modelo, elementoId: Id): HechoDerivado[] {
+  const forward = new Map<Id, Array<{ a: Id; enlaceId: Id }>>();
+  const agregarArista = (de: Id, a: Id, enlaceId: Id): void => {
+    const lista = forward.get(de) ?? [];
+    lista.push({ a, enlaceId });
+    forward.set(de, lista);
+  };
+  for (const enlace of Object.values(modelo.enlaces)) {
+    const o = entidadDeExtremo(enlace.origenId, modelo);
+    const d = entidadDeExtremo(enlace.destinoId, modelo);
+    if (!o || !d || o === d) continue;
+    const proceso = modelo.entidades[o]?.tipo === "proceso" ? o : modelo.entidades[d]?.tipo === "proceso" ? d : null;
+    if (!proceso) continue;
+    const objeto = proceso === o ? d : o;
+    if (SALIDA_PROCESO.has(enlace.tipo)) agregarArista(proceso, objeto, enlace.id); // proceso → objeto
+    else if (ENTRADA_PROCESO.has(enlace.tipo)) agregarArista(objeto, proceso, enlace.id); // objeto → proceso
+  }
+  const visitados = new Set<Id>([elementoId]);
+  const cola: Id[] = [elementoId];
+  const out: HechoDerivado[] = [];
+  while (cola.length > 0) {
+    const actual = cola.shift()!;
+    for (const { a, enlaceId } of forward.get(actual) ?? []) {
+      if (visitados.has(a)) continue;
+      visitados.add(a);
+      cola.push(a);
+      out.push({ inferido: true, via: "impacto-aguas-abajo", entidadId: a, enlaceId });
+    }
+  }
+  return out;
+}
+
 /** Motor de derivación puro. Toda salida es `inferido: true`. */
 export function derivar(modelo: Modelo, consulta: Consulta): HechoDerivado[] {
   switch (consulta.tipo) {
@@ -196,5 +241,7 @@ export function derivar(modelo: Modelo, consulta: Consulta): HechoDerivado[] {
       return alcanzable(modelo, consulta.entidadId, consulta.estado);
     case "impacto-de-eliminar":
       return impactoDeEliminar(modelo, consulta.elementoId);
+    case "impacto-aguas-abajo":
+      return impactoAguasAbajo(modelo, consulta.elementoId);
   }
 }
