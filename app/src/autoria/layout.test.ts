@@ -132,6 +132,50 @@ describe("autoria/layout — cobertura directa del motor", () => {
     expect(solapesReales(a.modelo)).toBe(0);
   });
 
+  // V16-5 (validación visual HODOM v1.6, U4): en unfolds multi-fila, el drop vertical
+  // del bus (x = centro de cada caja) atravesaba las cajas de la fila superior.
+  test("unfold multi-fila: el centro de cada caja de filas 2+ cae en un hueco de la fila superior", () => {
+    const a = crearAutor({ id: "mf", nombre: "Multifila" });
+    a.opd("sd0", "SD0", null);
+    a.opd("desp", "Doc (unfold)", "sd0", 10);
+    a.entidad("hacer", "proceso", "Hacer", "fisica", "sistemica");
+    a.entidad("doc", "objeto", "Documento maestro", "informacional", "sistemica");
+    a.ver("sd0", "hacer", 0, 0);
+    a.ver("sd0", "doc", 0, 0);
+    a.enlazar("sd0", "hacer", "doc", "resultado");
+    a.refDespliegue("doc", "desp");
+    a.ver("desp", "doc", 0, 0);
+    // 14 partes con nombres variados → varias filas con wrap a 2200
+    for (let i = 0; i < 14; i++) {
+      const key = `p${i}`;
+      a.entidad(key, "objeto", `Parte documental número ${i} del episodio`, "informacional", "sistemica");
+      a.ver("desp", key, 0, 0);
+      a.enlazar("desp", "doc", key, "agregacion");
+    }
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+    expect(solapesReales(a.modelo)).toBe(0);
+    const desp = a.modelo.opds[a.idOpd("desp")]!;
+    const partes = Object.values(desp.apariencias).filter((ap) => ap.entidadId !== a.id("doc"));
+    // filas por banda Y
+    const porY = new Map<number, typeof partes>();
+    for (const p of partes) {
+      const fila = porY.get(p.y) ?? [];
+      fila.push(p);
+      porY.set(p.y, fila);
+    }
+    const ys = [...porY.keys()].sort((m, n) => m - n);
+    expect(ys.length).toBeGreaterThan(1); // el escenario realmente produce multi-fila
+    for (let i = 1; i < ys.length; i++) {
+      const sup = porY.get(ys[i - 1]!)!;
+      const inf = porY.get(ys[i]!)!;
+      for (const caja of inf) {
+        const cx = caja.x + caja.width / 2;
+        const invade = sup.some((s) => cx > s.x - 14 && cx < s.x + s.width + 14);
+        expect(invade).toBe(false);
+      }
+    }
+  });
+
   test("determinista: dos corridas del layout dan posiciones idénticas", () => {
     const a1 = modeloUnfold();
     const a2 = modeloUnfold();

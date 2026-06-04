@@ -17,19 +17,20 @@ cd app && bun run bug:index
 | Estado | Cantidad |
 |---|---:|
 | Nuevo | 1 |
-| Resuelto | 93 |
+| Resuelto | 94 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 89 |
+| Bug | 90 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Resuelto | [BUG-20260604T045849Z-7ae086](BUG-20260604T045849Z-7ae086/report.md) | 2026-06-04 04:58Z | - | Las cápsulas de estado truncan la última letra en nombres largos (competente→competent, programada→programad, despachado→despachad, etc.), confirmado… | 2026-06-04 — factor 8 px/char + margen designacion en anchoCapsulaEstado (render) y metrica alineada + alto real en autoria/layou… | 0 |  |
 | Bug | Resuelto | [BUG-20260604T040903Z-37ebd2](BUG-20260604T040903Z-37ebd2/report.md) | 2026-06-04 04:09Z | Modelo_simu / SD | simula 1 solo paso en vez de 2. transitó un sólo par de transición quedando a medio camino | El planificador expande cadenas ruteadas de transiciones de estado sobre el mismo objeto en ocurrencias sucesivas del proceso, en… | 2 | Cubierto por plan.test, runner.test y foco.test: Agua/Calentar ejecuta sol-liq y luego liq-gas, termina en gaseosa y el foco visual avanza ruta por ruta. |
 | Bug | Resuelto | [BUG-20260604T032108Z-e1458f](BUG-20260604T032108Z-e1458f/report.md) | 2026-06-04 03:21Z | Modelo_simu / SD | no se visualiza en canvas la etiqueta de ruta en ambos enlaces de cada par a pesar de que el opl está bien y en el panel de propiedades la etiqueta e… | El canvas vuelve a proyectar la etiqueta de ruta en ambos enlaces de cada par, alineado con el inspector y el OPL. | 1 | Cubierto por proyeccion.test: una transicion Estado-Proceso-Estado con ruta sol-liq muestra dos labels sol-liq, uno por enlace. |
 | Bug | Resuelto | [BUG-20260604T031955Z-5f7132](BUG-20260604T031955Z-5f7132/report.md) | 2026-06-04 03:19Z | Modelo_simu / SD | mira que feo se ve la representación visual de simulación | El foco visual de simulacion filtra enlaces por la ruta activa antes de pintar highlights y tokens; ya no resalta todas las rutas… | 1 | Cubierto por foco.test: current solidificada resalta solo sol-liq y current liquida resalta solo liq-gas. |

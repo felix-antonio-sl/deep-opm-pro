@@ -17,6 +17,23 @@ describe("composer estados", () => {
     expect(size.height).toBe(100);
   });
 
+  // BUG-20260604T045849Z-7ae086: nombres largos perdian la ultima letra porque la
+  // heuristica (7 px/char) subestima la serif italica y no compensa el stroke grueso
+  // de estados designados inicial/final. Piso: factor de entidades (8 px/char).
+  test("capsula cubre nombres largos en italica y compensa designacion inicial/final", () => {
+    // factor por caracter alineado al de entidades (entidad.ts usa length*8+28)
+    expect(anchoCapsulaEstado("competente")).toBeGreaterThanOrEqual(10 * 8 + 12);
+    expect(anchoCapsulaEstado("programada")).toBeGreaterThanOrEqual(10 * 8 + 12);
+    // designacion inicial/final agrega stroke (3px inicial, doble contorno final)
+    const base = anchoCapsulaEstado({ id: "s", entidadId: "o", nombre: "programada" });
+    const inicial = anchoCapsulaEstado({ id: "s", entidadId: "o", nombre: "programada", esInicial: true });
+    const final = anchoCapsulaEstado({ id: "s", entidadId: "o", nombre: "programada", esFinal: true });
+    expect(inicial).toBeGreaterThan(base);
+    expect(final).toBeGreaterThan(base);
+    // el ancho manual sigue mandando si es mayor
+    expect(anchoCapsulaEstado({ id: "s", entidadId: "o", nombre: "ok", width: 200 })).toBe(200);
+  });
+
   test("calcula punto absoluto de capsula de estado visible", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));

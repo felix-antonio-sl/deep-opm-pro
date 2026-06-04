@@ -1,0 +1,67 @@
+{
+  "id": "BUG-20260604T045849Z-7ae086",
+  "type": "Bug",
+  "status": "Resuelto",
+  "resolution": "2026-06-04 — factor 8 px/char + margen designacion en anchoCapsulaEstado (render) y metrica alineada + alto real en autoria/layout.ts. Tests sellados; bun test src 2020 pass.",
+  "createdAt": "2026-06-04T04:58:49.000Z",
+  "text": "Las cápsulas de estado truncan la última letra en nombres largos (competente→competent, programada→programad, despachado→despachad, etc.), confirmado en vivo. Causa raíz: anchoCapsulaEstado (app/src/render/jointjs/composers/estados.ts:30) usa heurística nombre.length*7+padding que subestima la métrica de la fuente itálica (entidades usan factor 8 en entidad.ts:331) y no compensa el stroke grueso de estados designados inicial/final. Fix sugerido: factor ≥8 + compensación de stroke, o measureText real cacheado compartido entre entidad y estado. Evidencia: ≥8 ocurrencias en el bundle HODOM v1.6 (37 OPDs), capturas 2026-06-04. Solo render; JSON y OPL portan el nombre completo.",
+  "repro": {
+    "formato": "deep-opm-pro.modelo.v0",
+    "modelo": {
+      "id": "repro-trunc-badge",
+      "nombre": "Repro truncamiento badge",
+      "opdRaizId": "opd-sd",
+      "entidades": {
+        "o-x": {
+          "id": "o-x",
+          "tipo": "objeto",
+          "nombre": "Objeto X",
+          "esencia": "informacional",
+          "afiliacion": "sistemica"
+        }
+      },
+      "estados": {
+        "s-1": {
+          "id": "s-1",
+          "entidadId": "o-x",
+          "nombre": "competente",
+          "designacion": "inicial"
+        },
+        "s-2": {
+          "id": "s-2",
+          "entidadId": "o-x",
+          "nombre": "programada",
+          "designacion": "final"
+        },
+        "s-3": {
+          "id": "s-3",
+          "entidadId": "o-x",
+          "nombre": "despachado"
+        }
+      },
+      "nextSeq": 10,
+      "opds": {
+        "opd-sd": {
+          "id": "opd-sd",
+          "nombre": "SD",
+          "padreId": null,
+          "apariencias": {
+            "a-1": {
+              "id": "a-1",
+              "entidadId": "o-x",
+              "x": 100,
+              "y": 100,
+              "width": 0,
+              "height": 0
+            }
+          },
+          "enlaces": {},
+          "ordenLocal": 0
+        }
+      },
+      "enlaces": {},
+      "abanicos": {}
+    }
+  },
+  "nota_repro": "Importar y observar los badges: 'competente' (inicial, stroke grueso) y 'programada' (final) pierden la última letra; 'despachado' sin designación puede truncar según zoom/fuente. El ancho calculado por anchoCapsulaEstado para 10 chars = 70+2*paddingHorizontal px, insuficiente para serif itálica a tamaño de render."
+}

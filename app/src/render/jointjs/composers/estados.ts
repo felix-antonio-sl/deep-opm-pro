@@ -10,7 +10,9 @@ import type { Apariencia, Entidad, Estado, Id, Modelo, Posicion } from "../../..
  * para estados OPM contenidos por objetos. Consumidores: entidad y enlace.
  */
 export function dimensionesConEstados(apariencia: Apariencia, nombre: string, estados: Estado[], layout: Entidad["layoutEstados"]): { width: number; height: number } {
-  const capsulas = estados.map((estado) => anchoCapsulaEstado(estado.nombre));
+  // Pasa el Estado completo (no solo el nombre) para que la compensacion de
+  // designacion inicial/final participe del calculo (BUG-7ae086).
+  const capsulas = estados.map((estado) => anchoCapsulaEstado(estado));
   const altos = estados.map(altoCapsulaEstado);
   const vertical = layout === "vertical";
   const anchoEstados = vertical
@@ -27,7 +29,12 @@ export function dimensionesConEstados(apariencia: Apariencia, nombre: string, es
 export function anchoCapsulaEstado(estado: Estado | string): number {
   const nombre = typeof estado === "string" ? estado : estado.nombre;
   const manual = typeof estado === "string" ? undefined : estado.width;
-  return Math.max(ESTADOS.minWidth, manual ?? 0, nombre.length * 7 + ESTADOS.paddingHorizontal * 2);
+  // BUG-7ae086: 8 px/char (alineado a entidad.ts) — 7 subestimaba la serif italica y
+  // recortaba la ultima letra en nombres largos. La designacion inicial/final agrega
+  // stroke (3px inicial / doble contorno final) que consume interior de la capsula.
+  const designada = typeof estado !== "string" && (estado.esInicial || estado.esFinal || (estado.designaciones ?? []).length > 0);
+  const margenDesignacion = designada ? 6 : 0;
+  return Math.max(ESTADOS.minWidth, manual ?? 0, nombre.length * 8 + ESTADOS.paddingHorizontal * 2 + margenDesignacion);
 }
 
 export function altoCapsulaEstado(estado: Estado): number {

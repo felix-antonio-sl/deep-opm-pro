@@ -37,8 +37,30 @@ export function aplicarLayoutCompleto(modelo: Modelo, internosInzoom: Map<Id, Se
     if (!e) return 190;
     const nombreW = e.nombre.length * 7.4 + 34;
     const estados = Object.values(modelo.estados).filter((s) => s.entidadId === entidadId);
-    const estadosW = estados.length ? estados.reduce((acc, s) => acc + s.nombre.length * 6 + 26, 0) + 24 : 0;
-    return Math.min(560, Math.ceil(Math.max(190, nombreW, estadosW)));
+    // Metrica alineada al render (BUG-7ae086 / pasada F3): capsula = 8 px/char + 12 de
+    // padding (+6 si designada inicial/final, por el stroke grueso), gap 4 entre capsulas
+    // y 16 de padding lateral de la region. Antes (6 px/char + cap 560) las cajas del
+    // bundle nacian mas angostas que su render y la app las inflaba en vivo.
+    const capsW = (s: { nombre: string; esInicial?: boolean; esFinal?: boolean; designaciones?: readonly string[] }) =>
+      Math.max(52, s.nombre.length * 8 + 12 + (s.esInicial || s.esFinal || (s.designaciones ?? []).length > 0 ? 6 : 0));
+    const estadosW = estados.length
+      ? estados.reduce((acc, s) => acc + capsW(s), 0) + (estados.length - 1) * 4 + 16
+      : 0;
+    return Math.min(820, Math.ceil(Math.max(190, nombreW, estadosW)));
+  }
+
+  // Alto real de la caja en render: con estados visibles lleva la region de capsulas
+  // (cosaHeight 60 + regionHeight 34 + padding ≈ 100). Declararlo en el bundle evita que
+  // el render infle alturas que los colocadores no consideraron (solapes visuales tipo
+  // V16-7 que el checker de cajas declaradas no ve).
+  function altoPorTexto(entidadId: Id): number {
+    const tieneEstados = Object.values(modelo.estados).some((s) => s.entidadId === entidadId);
+    return tieneEstados ? 100 : 72;
+  }
+
+  function dimensionarPorTexto(ap: Apariencia): void {
+    ap.width = anchoPorTexto(ap.entidadId);
+    ap.height = Math.max(ap.height, altoPorTexto(ap.entidadId));
   }
 
   function ajustarAnchosPorTexto(): void {
@@ -47,7 +69,7 @@ export function aplicarLayoutCompleto(modelo: Modelo, internosInzoom: Map<Id, Se
       if (!contorno || modelo.entidades[contorno.entidadId]?.tipo !== "proceso") continue;
       for (const ap of Object.values(opd.apariencias)) {
         if (ap.id === contorno.id) continue;
-        ap.width = anchoPorTexto(ap.entidadId);
+        dimensionarPorTexto(ap);
       }
     }
   }
@@ -168,30 +190,69 @@ export function aplicarLayoutCompleto(modelo: Modelo, internosInzoom: Map<Id, Se
     }
     const partes = [...partesIds].map((id) => apById.get(id)!);
     const otros = Object.values(opd.apariencias).filter((a) => a.id !== refinable.id && !partesIds.has(a.entidadId));
-    for (const a of [...partes, ...otros]) a.width = anchoPorTexto(a.entidadId);
+    for (const a of [...partes, ...otros]) dimensionarPorTexto(a);
     const MAXW = 2200, GAPx = 70, GAPy = 150;
     refinable.width = anchoPorTexto(refId);
     refinable.height = Math.max(refinable.height, 84);
     refinable.x = 80;
     refinable.y = 40;
-    const filaWrap = (items: Apariencia[], yStart: number): number => {
+    // filaWrap registra las filas resultantes para el post-proceso de drops (V16-5).
+    const filaWrap = (items: Apariencia[], yStart: number, filas: Apariencia[][]): number => {
       let x = 80, y = yStart, hRow = 72;
+      let fila: Apariencia[] = [];
       for (const a of items) {
-        if (x > 80 && x + a.width > MAXW) { x = 80; y += GAPy; hRow = 72; }
-        a.x = x; a.y = y; a.height = Math.max(a.height, 72);
+        if (x > 80 && x + a.width > MAXW) {
+          filas.push(fila); fila = [];
+          x = 80; y += GAPy + Math.max(0, hRow - 72); hRow = 72;
+        }
+        a.x = x; a.y = y;
         x += a.width + GAPx; hRow = Math.max(hRow, a.height);
+        fila.push(a);
       }
+      if (fila.length) filas.push(fila);
       return y + hRow;
     };
-    const yTrasPartes = filaWrap(partes, refinable.y + refinable.height + 150);
-    filaWrap(otros, yTrasPartes + 150);
+    // V16-5: el drop vertical del bus de refinamiento baja en x = centro de cada caja.
+    // Para cajas de filas 2+, ese drop atravesaba las cajas de la fila superior (visto
+    // en U4 del bundle HODOM). Se corre cada caja hacia la derecha lo minimo necesario
+    // para que su CENTRO caiga en un hueco de la fila inmediatamente superior.
+    const alinearDropsAHuecos = (filas: Apariencia[][]): void => {
+      for (let i = 1; i < filas.length; i++) {
+        const sup = filas[i - 1]!;
+        const inf = filas[i]!;
+        const MARGEN = 14;
+        const intervalos = sup
+          .map((a) => [a.x - MARGEN, a.x + a.width + MARGEN] as const)
+          .sort((p, q) => p[0] - q[0]);
+        let xMin = 80;
+        for (const a of inf) {
+          let x = Math.max(a.x, xMin);
+          let cx = x + a.width / 2;
+          for (const [i0, i1] of intervalos) {
+            if (cx > i0 && cx < i1) {
+              cx = i1; // primer punto libre a la derecha del bloque superior
+              x = cx - a.width / 2;
+              if (x < xMin) { x = xMin; cx = x + a.width / 2; }
+            }
+          }
+          a.x = Math.max(x, xMin);
+          xMin = a.x + a.width + GAPx;
+        }
+      }
+    };
+    const filasPartes: Apariencia[][] = [];
+    const filasOtros: Apariencia[][] = [];
+    const yTrasPartes = filaWrap(partes, refinable.y + refinable.height + 150, filasPartes);
+    filaWrap(otros, yTrasPartes + 150, filasOtros);
+    alinearDropsAHuecos(filasPartes);
+    alinearDropsAHuecos(filasOtros);
   }
 
   // SD raíz PLANO (sin refinable local): proceso central + objetos alrededor por rol.
   function layoutRaizPlana(opd: Opd): void {
     const aps = Object.values(opd.apariencias);
     if (aps.length === 0) return;
-    for (const a of aps) a.width = anchoPorTexto(a.entidadId);
+    for (const a of aps) dimensionarPorTexto(a);
     const grado = (a: Apariencia) =>
       Object.values(opd.enlaces).filter((ae) => {
         const e = modelo.enlaces[ae.enlaceId];

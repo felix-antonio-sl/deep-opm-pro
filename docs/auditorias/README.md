@@ -16,6 +16,8 @@ Cuando una auditoría queda **implementada o superada** (su corte se desplegó, 
 | Artefacto | Por qué vive |
 |-----------|--------------|
 | `2026-06-04-persistencia-backend.md` | Diagnóstico vigente de persistencia (NO implementado, en pausa): críticos activos (secret default, sin backup, sin rate-limit), techo de almacenamiento = localStorage, 4 cortes propuestos. |
+| `2026-06-04-acta-mesa-flujo-canonico-dominio-opforja.md` | **Acta de consenso vigente** (mesa Besto/Resto, orquestación, 3 ciclos): arquitectura unificada de las dos líneas (hd-opm autoría ↔ OpForja), flujo canónico E0-E6, leyes L1-L8, plan F0-F5 NO implementado. HITL resueltas en adenda (laxitud=bastante libre; re-pin aprobado; backlog contingencial → `docs/roadmap/backlog-contingencial.md`). |
+| `2026-06-04-acta-mesa-equilibrio-encarnacion.md` | **Acta de consenso vigente** (mesa Asto/Besto/Resto, encarnación, 2 ciclos): decisión EQUILIBRIO VALIDADA con C1-C5 (registro [RATIFICAR] tipificado — la app registra, no decide; L9 convergencia; paquete `deep-opm-pro.paquete.v0` sellado en emisión; **gate de release: sin paquetes en instancia pública sin re-protección** — HITL de despliegue abierta). |
 | `2026-05-07-opl-reverse-ssot-opm-extracted.md` | Citado por `docs/roadmap/cortes-operativos.md` y `progress-dashboard.mjs` como evidencia. |
 | `2026-05-07-ssot-opm-extracted.md` | Citado por código vivo (`app/src/modelo/validaciones.ts` §4.4 / RF-3). |
 | `opcloud-enlaces-pendientes/` | Documento vivo de roadmap: brechas avanzadas de enlaces aún abiertas (labels, tagged/bidirectional). |
