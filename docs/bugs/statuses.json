@@ -519,18 +519,36 @@
     "type": "Bug",
     "status": "Resuelto",
     "resolution": "La logica de paths de estado ahora empareja consumo y resultado solo por rutaEtiqueta; las etiquetas libres no participan en el ruteo OPM.",
-    "note": "Cubierto por generar.test y proyeccion.test: varios paths sobre el mismo proceso no reutilizan la misma salida ni duplican marcas visuales de ruta."
+    "note": "Cubierto por generar.test y proyeccion.test: varios paths sobre el mismo proceso no reutilizan la misma salida y conservan ruta visible en cada enlace."
   },
   "BUG-20260604T022156Z-ffe132": {
     "type": "Bug",
     "status": "Resuelto",
-    "resolution": "La proyeccion reconoce el par Estado -> Proceso -> Estado como una ruta logica de transicion y suprime marcas duplicadas en la rama de salida.",
-    "note": "Cubierto por proyeccion.test: si ambas mitades tienen la misma rutaEtiqueta, el canvas muestra una sola marca de ruta para el path."
+    "resolution": "La proyeccion conserva la rutaEtiqueta como propiedad visual de cada enlace del par Estado -> Proceso -> Estado.",
+    "note": "Cubierto por proyeccion.test: si ambas mitades tienen la misma rutaEtiqueta, el canvas muestra la marca de ruta en ambas mitades."
   },
   "BUG-20260604T022418Z-a4d837": {
     "type": "Bug",
     "status": "Resuelto",
     "resolution": "El generador OPL empareja paths de estado por rutaEtiqueta y no reutiliza resultados; asi liquida -> gaseosa no queda como resultado suelto ni se produce liquida -> liquida.",
     "note": "Reproducido desde la captura Agua/Calentar con rutas sol-liq y liq-gas. Cubierto por generar.test paths de estado y proyeccion.test marcas de ruta."
+  },
+  "BUG-20260604T031923Z-df336b": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La simulacion integra rutaEtiqueta: planifica pares consumo-resultado por ruta y ejecuta solo la transicion compatible con el estado current inicial del paso.",
+    "note": "Cubierto por plan.test y runner.test con Agua/Calentar: solidificada -> liquida no encadena liq-gas en el mismo paso."
+  },
+  "BUG-20260604T031955Z-5f7132": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El foco visual de simulacion filtra enlaces por la ruta activa antes de pintar highlights y tokens; ya no resalta todas las rutas alternativas del proceso.",
+    "note": "Cubierto por foco.test: current solidificada resalta solo sol-liq y current liquida resalta solo liq-gas."
+  },
+  "BUG-20260604T032108Z-e1458f": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El canvas vuelve a proyectar la etiqueta de ruta en ambos enlaces de cada par, alineado con el inspector y el OPL.",
+    "note": "Cubierto por proyeccion.test: una transicion Estado-Proceso-Estado con ruta sol-liq muestra dos labels sol-liq, uno por enlace."
   }
 }

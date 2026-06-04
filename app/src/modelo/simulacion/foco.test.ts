@@ -1,8 +1,11 @@
 import { describe, expect, test } from "bun:test";
+import { extremoEntidad, extremoEstado } from "../extremos";
 import { designarInicial } from "../estadosDesignaciones";
-import { crearEstadosIniciales, crearModelo, crearObjeto } from "../operaciones";
+import { agregarEstado, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, renombrarEstado } from "../operaciones";
+import { definirRutaEtiqueta } from "../rutas";
 import type { Id, Modelo, Resultado } from "../tipos";
-import { estadosInicialesDelModelo } from "./foco";
+import { focoPasoActualSimulacion, estadosInicialesDelModelo } from "./foco";
+import { iniciarSimulacion } from "./runner";
 
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
@@ -34,3 +37,59 @@ describe("estadosInicialesDelModelo", () => {
     expect(estadosInicialesDelModelo(modelo)).toEqual([pendienteId]);
   });
 });
+
+describe("focoPasoActualSimulacion — rutas de transición", () => {
+  test("en simulación resalta solo los enlaces de la ruta compatible con el current", () => {
+    const { modelo, aguaId, solidificadaId, liquidaId, solLiqIds, liqGasIds } = modeloRutasAgua();
+    const contexto = iniciarSimulacion(modelo, modelo.opdRaizId);
+    expect(contexto.estadosCurrent[aguaId]).toBe(solidificadaId);
+
+    const focoSolida = focoPasoActualSimulacion(modelo, contexto);
+    const focoLiquida = focoPasoActualSimulacion(modelo, {
+      ...contexto,
+      estadosCurrent: { ...contexto.estadosCurrent, [aguaId]: liquidaId },
+    });
+
+    expect([...focoSolida.enlacesInvolucradosIds].sort()).toEqual([...solLiqIds].sort());
+    expect([...focoLiquida.enlacesInvolucradosIds].sort()).toEqual([...liqGasIds].sort());
+  });
+});
+
+function modeloRutasAgua(): {
+  modelo: Modelo;
+  aguaId: string;
+  solidificadaId: string;
+  liquidaId: string;
+  solLiqIds: string[];
+  liqGasIds: string[];
+} {
+  let modelo = crearModelo("Rutas foco");
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 80 }, "Agua"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 320, y: 220 }, "Calentar"));
+  const aguaId = entidadPorNombre(modelo, "Agua");
+  const calentarId = entidadPorNombre(modelo, "Calentar");
+  modelo = must(crearEstadosIniciales(modelo, aguaId)).modelo;
+  const estadoIds = Object.values(modelo.estados).filter((estado) => estado.entidadId === aguaId).map((estado) => estado.id);
+  const [solidificadaId, liquidaId] = estadoIds;
+  if (!solidificadaId || !liquidaId) throw new Error("La prueba esperaba estados iniciales");
+  modelo = must(renombrarEstado(modelo, solidificadaId, "solidificada"));
+  modelo = must(renombrarEstado(modelo, liquidaId, "líquida"));
+  const gaseosa = must(agregarEstado(modelo, aguaId, "gaseosa"));
+  modelo = gaseosa.modelo;
+  modelo = must(designarInicial(modelo, solidificadaId));
+
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(solidificadaId), extremoEntidad(calentarId), "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(calentarId), extremoEstado(liquidaId), "resultado"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(liquidaId), extremoEntidad(calentarId), "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(calentarId), extremoEstado(gaseosa.estadoId), "resultado"));
+
+  const solLiqIds = Object.values(modelo.enlaces)
+    .filter((item) => item.origenId.id === solidificadaId || item.destinoId.id === liquidaId)
+    .map((item) => item.id);
+  const liqGasIds = Object.values(modelo.enlaces)
+    .filter((item) => item.origenId.id === liquidaId || item.destinoId.id === gaseosa.estadoId)
+    .map((item) => item.id);
+  for (const enlaceId of solLiqIds) modelo = must(definirRutaEtiqueta(modelo, enlaceId, "sol-liq"));
+  for (const enlaceId of liqGasIds) modelo = must(definirRutaEtiqueta(modelo, enlaceId, "liq-gas"));
+  return { modelo, aguaId, solidificadaId, liquidaId, solLiqIds, liqGasIds };
+}

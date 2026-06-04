@@ -572,7 +572,7 @@ describe("proyeccion JointJS", () => {
     expect(ruta?.position).toMatchObject({ distance: 0.33, offset: -24 });
   });
 
-  test("proyecta una sola marca de ruta para transicion Estado-Proceso-Estado", () => {
+  test("proyecta la marca de ruta en ambas mitades de una transicion Estado-Proceso-Estado", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 60 }, "Agua"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 360, y: 260 }, "Calentar"));
@@ -593,7 +593,7 @@ describe("proyeccion JointJS", () => {
       .filter((cell) => cell.type === "standard.Link")
       .flatMap((cell) => (cell.labels ?? []) as Array<{ attrs?: { label?: { text?: unknown } } }>);
 
-    expect(labels.filter((label) => label.attrs?.label?.text === "sol-liq")).toHaveLength(1);
+    expect(labels.filter((label) => label.attrs?.label?.text === "sol-liq")).toHaveLength(2);
   });
 
   test("proyecta invocacion como rayo zigzag por defecto", () => {

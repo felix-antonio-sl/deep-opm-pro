@@ -1,7 +1,8 @@
 import { tieneDesignacion } from "../estadosDesignaciones";
 import { entidadIdDeExtremo } from "../extremos";
+import { rutaEtiquetaNormalizada } from "../rutas";
 import type { Id, Modelo } from "../tipos";
-import type { ContextoSimulacion, PasoSimulacion } from "./tipos";
+import type { ContextoSimulacion, PasoSimulacion, TransicionEstadoSim } from "./tipos";
 
 export interface FocoPasoSimulacion {
   paso: PasoSimulacion | null;
@@ -14,7 +15,7 @@ export function focoPasoActualSimulacion(modelo: Modelo, contexto: ContextoSimul
   const paso = contexto && contexto.pasoActual < contexto.plan.length
     ? contexto.plan[contexto.pasoActual] ?? null
     : null;
-  if (!paso) {
+  if (!contexto || !paso) {
     return {
       paso: null,
       procesoActivoId: null,
@@ -26,8 +27,8 @@ export function focoPasoActualSimulacion(modelo: Modelo, contexto: ContextoSimul
   return {
     paso,
     procesoActivoId: paso.procesoId,
-    entidadesInvolucradasIds: entidadesInvolucradasEnPaso(modelo, paso),
-    enlacesInvolucradosIds: enlacesInvolucradosEnPaso(paso),
+    entidadesInvolucradasIds: entidadesInvolucradasEnPaso(modelo, paso, contexto.estadosCurrent),
+    enlacesInvolucradosIds: enlacesInvolucradosEnPaso(modelo, paso, contexto.estadosCurrent),
   };
 }
 
@@ -43,16 +44,33 @@ export function estadosInicialesDelModelo(modelo: Modelo): Id[] {
     .map((estado) => estado.id);
 }
 
-export function enlacesInvolucradosEnPaso(paso: PasoSimulacion): Id[] {
-  return Array.from(new Set([...paso.enlacesEntradaIds, ...paso.enlacesSalidaIds]));
+export function enlacesInvolucradosEnPaso(
+  modelo: Modelo,
+  paso: PasoSimulacion,
+  estadosCurrent?: Record<Id, Id>,
+): Id[] {
+  const todos = Array.from(new Set([...paso.enlacesEntradaIds, ...paso.enlacesSalidaIds]));
+  if (!estadosCurrent) return todos;
+  const rutasActivas = new Set(
+    transicionesActivasEnPaso(paso, estadosCurrent)
+      .map((transicion) => transicion.rutaEtiqueta)
+      .filter((ruta): ruta is string => Boolean(ruta)),
+  );
+  if (rutasActivas.size === 0) return todos;
+  return todos.filter((enlaceId) => {
+    const enlace = modelo.enlaces[enlaceId];
+    const ruta = rutaEtiquetaNormalizada(enlace?.rutaEtiqueta);
+    return ruta ? rutasActivas.has(ruta) : false;
+  });
 }
 
-export function entidadesInvolucradasEnPaso(modelo: Modelo, paso: PasoSimulacion): Id[] {
+export function entidadesInvolucradasEnPaso(modelo: Modelo, paso: PasoSimulacion, estadosCurrent?: Record<Id, Id>): Id[] {
   const ids = new Set<Id>([paso.procesoId]);
-  for (const transicion of paso.transicionesPlanificadas) {
+  const transiciones = estadosCurrent ? transicionesActivasEnPaso(paso, estadosCurrent) : paso.transicionesPlanificadas;
+  for (const transicion of transiciones) {
     ids.add(transicion.entidadId);
   }
-  for (const enlaceId of enlacesInvolucradosEnPaso(paso)) {
+  for (const enlaceId of enlacesInvolucradosEnPaso(modelo, paso, estadosCurrent)) {
     const enlace = modelo.enlaces[enlaceId];
     if (!enlace) continue;
     const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
@@ -61,4 +79,27 @@ export function entidadesInvolucradasEnPaso(modelo: Modelo, paso: PasoSimulacion
     if (destinoId) ids.add(destinoId);
   }
   return Array.from(ids);
+}
+
+function transicionesActivasEnPaso(paso: PasoSimulacion, estadosCurrent: Record<Id, Id>): TransicionEstadoSim[] {
+  const grupos = new Map<Id, TransicionEstadoSim[]>();
+  for (const transicion of paso.transicionesPlanificadas) {
+    const grupo = grupos.get(transicion.entidadId);
+    if (grupo) grupo.push(transicion);
+    else grupos.set(transicion.entidadId, [transicion]);
+  }
+  const activas: TransicionEstadoSim[] = [];
+  for (const [entidadId, transiciones] of grupos) {
+    if (transiciones.length === 1) {
+      activas.push(...transiciones);
+      continue;
+    }
+    const conEstadoEntrada = transiciones.filter((transicion) => transicion.estadoAntesId !== null);
+    if (conEstadoEntrada.length === 0) {
+      activas.push(...transiciones);
+      continue;
+    }
+    activas.push(...conEstadoEntrada.filter((transicion) => estadosCurrent[entidadId] === transicion.estadoAntesId));
+  }
+  return activas;
 }

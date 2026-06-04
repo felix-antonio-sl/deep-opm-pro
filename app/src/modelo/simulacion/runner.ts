@@ -75,26 +75,38 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   const transicionesAplicadas: TransicionEstadoSim[] = [];
   const motivosBloqueo: string[] = [];
   const estadosCurrent: Record<Id, Id> = { ...contexto.estadosCurrent };
+  const transicionesPorEntidad = agruparTransicionesPorEntidad(
+    paso.transicionesPlanificadas.filter((transicion) => (
+      transicion.estadoDespuesId === null || !estadosRama.has(transicion.estadoDespuesId)
+    )),
+  );
 
-  for (const transicion of paso.transicionesPlanificadas) {
-    // Las transiciones cuyo destino es un estado del abanico XOR son ALTERNATIVAS
-    // de rama: no se aplican en bloque, sólo la de la rama elegida (S2, BUG-1).
-    if (transicion.estadoDespuesId !== null && estadosRama.has(transicion.estadoDespuesId)) continue;
-    if (transicion.estadoAntesId !== null) {
-      const observado = estadosCurrent[transicion.entidadId] ?? null;
-      if (observado !== transicion.estadoAntesId) {
-        const entidadNombre = modelo.entidades[transicion.entidadId]?.nombre ?? transicion.entidadId;
-        const esperado = modelo.estados[transicion.estadoAntesId]?.nombre ?? transicion.estadoAntesId;
-        motivosBloqueo.push(`${entidadNombre} no está en estado ${esperado}`);
-        continue;
+  for (const [entidadId, transicionesEntidad] of transicionesPorEntidad) {
+    const alternativas = transicionesEntidad.length > 1;
+    const transicionesEjecutables = alternativas
+      ? transicionesCompatiblesConCurrent(transicionesEntidad, contexto.estadosCurrent)
+      : transicionesEntidad;
+    if (alternativas && transicionesEjecutables.length === 0) {
+      motivosBloqueo.push(motivoSinRutaVigente(modelo, entidadId, transicionesEntidad, contexto.estadosCurrent));
+      continue;
+    }
+    for (const transicion of transicionesEjecutables) {
+      if (transicion.estadoAntesId !== null) {
+        const observado = contexto.estadosCurrent[transicion.entidadId] ?? null;
+        if (observado !== transicion.estadoAntesId) {
+          const entidadNombre = modelo.entidades[transicion.entidadId]?.nombre ?? transicion.entidadId;
+          const esperado = modelo.estados[transicion.estadoAntesId]?.nombre ?? transicion.estadoAntesId;
+          motivosBloqueo.push(`${entidadNombre} no está en estado ${esperado}`);
+          continue;
+        }
       }
+      if (transicion.estadoDespuesId !== null) {
+        estadosCurrent[transicion.entidadId] = transicion.estadoDespuesId;
+      } else if (transicion.estadoAntesId !== null) {
+        delete estadosCurrent[transicion.entidadId];
+      }
+      transicionesAplicadas.push(transicion);
     }
-    if (transicion.estadoDespuesId !== null) {
-      estadosCurrent[transicion.entidadId] = transicion.estadoDespuesId;
-    } else if (transicion.estadoAntesId !== null) {
-      delete estadosCurrent[transicion.entidadId];
-    }
-    transicionesAplicadas.push(transicion);
   }
 
   const { valoresNuevos, cambios: cambiosValor, motivos: motivosValor } = aplicarCambiosValor(
@@ -202,6 +214,42 @@ function estadosDestinoDeRamas(modelo: Modelo, abanico: Abanico): Set<Id> {
     if (enlace?.destinoId.kind === "estado") estados.add(enlace.destinoId.id);
   }
   return estados;
+}
+
+function agruparTransicionesPorEntidad(transiciones: readonly TransicionEstadoSim[]): Map<Id, TransicionEstadoSim[]> {
+  const grupos = new Map<Id, TransicionEstadoSim[]>();
+  for (const transicion of transiciones) {
+    const grupo = grupos.get(transicion.entidadId);
+    if (grupo) grupo.push(transicion);
+    else grupos.set(transicion.entidadId, [transicion]);
+  }
+  return grupos;
+}
+
+function transicionesCompatiblesConCurrent(
+  transiciones: readonly TransicionEstadoSim[],
+  estadosCurrent: Record<Id, Id>,
+): TransicionEstadoSim[] {
+  const conEstadoEntrada = transiciones.filter((transicion) => transicion.estadoAntesId !== null);
+  if (conEstadoEntrada.length === 0) return [...transiciones];
+  return conEstadoEntrada.filter((transicion) => estadosCurrent[transicion.entidadId] === transicion.estadoAntesId);
+}
+
+function motivoSinRutaVigente(
+  modelo: Modelo,
+  entidadId: Id,
+  transiciones: readonly TransicionEstadoSim[],
+  estadosCurrent: Record<Id, Id>,
+): string {
+  const entidadNombre = modelo.entidades[entidadId]?.nombre ?? entidadId;
+  const observadoId = estadosCurrent[entidadId] ?? null;
+  const observado = observadoId ? modelo.estados[observadoId]?.nombre ?? observadoId : "sin estado";
+  const esperados = transiciones
+    .map((transicion) => transicion.estadoAntesId)
+    .filter((estadoId): estadoId is Id => estadoId !== null)
+    .map((estadoId) => modelo.estados[estadoId]?.nombre ?? estadoId);
+  const lista = esperados.length > 0 ? esperados.join(", ") : "sin estado previo";
+  return `${entidadNombre} está en ${observado}; ninguna ruta vigente coincide con ${lista}`;
 }
 
 /** Sucesor de una rama del abanico: aplica SU transición sobre el estado base. */

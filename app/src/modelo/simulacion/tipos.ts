@@ -23,6 +23,9 @@ export interface TransicionEstadoSim {
   /** Estado resultante tras ejecutar el paso. `null` = el estado se consume
    *  sin reemplazo (terminación). */
   estadoDespuesId: Id | null;
+  /** Etiqueta de ruta OPM que empareja consumo y resultado cuando el proceso
+   *  tiene multiples trayectorias entrada/salida. */
+  rutaEtiqueta?: string;
 }
 
 /** Un paso ejecutable del plan de simulación. */

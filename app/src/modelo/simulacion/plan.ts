@@ -1,5 +1,6 @@
 import { tieneDesignacion } from "../estadosDesignaciones";
 import { obtenerRefinamiento } from "../refinamientos";
+import { rutaEtiquetaNormalizada } from "../rutas";
 import type { Enlace, ExtremoEnlace, Id, Modelo } from "../tipos";
 import type { PasoSimulacion, TransicionEstadoSim } from "./tipos";
 
@@ -165,18 +166,20 @@ function inferirTransiciones(
     if (!estadoAntes) continue;
     const entidadId = estadoAntes.entidadId;
 
-    const resultado = salidasEstado.find((s) => {
-      const estadoDespues = modelo.estados[s.destinoId.id];
-      return estadoDespues?.entidadId === entidadId;
-    });
+    const candidatos = salidasEstado
+      .filter((salida) => !producidos.has(salida.id))
+      .filter((salida) => modelo.estados[salida.destinoId.id]?.entidadId === entidadId);
+    const resultado = elegirResultadoParaRuta(consumo, candidatos);
 
     if (resultado) {
       const estadoDespues = modelo.estados[resultado.destinoId.id];
       if (estadoDespues) {
+        const rutaEtiqueta = rutaCompartida(consumo, resultado);
         transiciones.push({
           entidadId,
           estadoAntesId: estadoAntes.id,
           estadoDespuesId: estadoDespues.id,
+          ...(rutaEtiqueta ? { rutaEtiqueta } : {}),
         });
         consumidos.add(consumo.id);
         producidos.add(resultado.id);
@@ -203,4 +206,22 @@ function inferirTransiciones(
   }
 
   return transiciones;
+}
+
+function elegirResultadoParaRuta(consumo: Enlace, candidatos: Enlace[]): Enlace | undefined {
+  const ruta = rutaEtiquetaNormalizada(consumo.rutaEtiqueta);
+  if (ruta) {
+    return candidatos.find((resultado) => rutaEtiquetaNormalizada(resultado.rutaEtiqueta) === ruta);
+  }
+
+  const sinRuta = candidatos.filter((resultado) => !rutaEtiquetaNormalizada(resultado.rutaEtiqueta));
+  if (sinRuta.length === 1) return sinRuta[0];
+  if (sinRuta.length === 0 && candidatos.length === 1) return candidatos[0];
+  return undefined;
+}
+
+function rutaCompartida(consumo: Enlace, resultado: Enlace): string | undefined {
+  const rutaConsumo = rutaEtiquetaNormalizada(consumo.rutaEtiqueta);
+  const rutaResultado = rutaEtiquetaNormalizada(resultado.rutaEtiqueta);
+  return rutaConsumo && rutaConsumo === rutaResultado ? rutaConsumo : undefined;
 }

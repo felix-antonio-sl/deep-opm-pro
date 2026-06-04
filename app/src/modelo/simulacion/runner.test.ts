@@ -4,12 +4,15 @@ import { extremoEntidad, extremoEstado } from "../extremos";
 import { designarInicial } from "../estadosDesignaciones";
 import { aplicarModificador } from "../modificadores";
 import {
+  agregarEstado,
   crearEnlace,
   crearEstadosIniciales,
   crearModelo,
   crearObjeto,
   crearProceso,
+  renombrarEstado,
 } from "../operaciones";
+import { definirRutaEtiqueta } from "../rutas";
 import type { Modelo, Resultado } from "../tipos";
 import { desplegar, ejecutarCorrida, ejecutarPaso, iniciarSimulacion, reiniciarSimulacion } from "./runner";
 
@@ -118,6 +121,21 @@ describe("ejecutarPaso — flujo determinista", () => {
     // El estado original sigue en pendiente (no se persistió la transición)
     const estadoOriginal = modelo.estados[pendienteId];
     expect(estadoOriginal?.entidadId).toBe(pedidoId);
+  });
+
+  test("ejecuta solo la ruta de transición compatible con el estado current inicial del paso", () => {
+    const { modelo, aguaId, solidificadaId, liquidaId, gaseosaId } = modeloRutasAgua();
+    const ctx0 = iniciarSimulacion(modelo, modelo.opdRaizId);
+    expect(ctx0.estadosCurrent[aguaId]).toBe(solidificadaId);
+
+    const ctx1 = ejecutarPaso(modelo, ctx0);
+
+    expect(ctx1.estadosCurrent[aguaId]).toBe(liquidaId);
+    expect(ctx1.estadosCurrent[aguaId]).not.toBe(gaseosaId);
+    expect(ctx1.trace[0]?.diagnostico).toBeUndefined();
+    expect(ctx1.trace[0]?.transicionesAplicadas).toEqual([
+      { entidadId: aguaId, estadoAntesId: solidificadaId, estadoDespuesId: liquidaId, rutaEtiqueta: "sol-liq" },
+    ]);
   });
 });
 
@@ -250,3 +268,39 @@ describe("reiniciarSimulacion", () => {
     expect(ctxReiniciado.opdId).toBe(ctx.opdId);
   });
 });
+
+function modeloRutasAgua(): {
+  modelo: Modelo;
+  aguaId: string;
+  solidificadaId: string;
+  liquidaId: string;
+  gaseosaId: string;
+} {
+  let modelo = crearModelo("Rutas agua");
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 80 }, "Agua"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 320, y: 220 }, "Calentar"));
+  const aguaId = entidadId(modelo, "Agua");
+  const calentarId = entidadId(modelo, "Calentar");
+  modelo = must(crearEstadosIniciales(modelo, aguaId)).modelo;
+  const estadoIds = Object.values(modelo.estados).filter((estado) => estado.entidadId === aguaId).map((estado) => estado.id);
+  const [solidificadaId, liquidaId] = estadoIds;
+  if (!solidificadaId || !liquidaId) throw new Error("La prueba esperaba estados iniciales");
+  modelo = must(renombrarEstado(modelo, solidificadaId, "solidificada"));
+  modelo = must(renombrarEstado(modelo, liquidaId, "líquida"));
+  const gaseosa = must(agregarEstado(modelo, aguaId, "gaseosa"));
+  modelo = gaseosa.modelo;
+  modelo = must(designarInicial(modelo, solidificadaId));
+
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(solidificadaId), extremoEntidad(calentarId), "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(calentarId), extremoEstado(liquidaId), "resultado"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(liquidaId), extremoEntidad(calentarId), "consumo"));
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(calentarId), extremoEstado(gaseosa.estadoId), "resultado"));
+  const enlaces = Object.values(modelo.enlaces);
+  for (const enlace of enlaces.filter((item) => item.origenId.id === solidificadaId || item.destinoId.id === liquidaId)) {
+    modelo = must(definirRutaEtiqueta(modelo, enlace.id, "sol-liq"));
+  }
+  for (const enlace of enlaces.filter((item) => item.origenId.id === liquidaId || item.destinoId.id === gaseosa.estadoId)) {
+    modelo = must(definirRutaEtiqueta(modelo, enlace.id, "liq-gas"));
+  }
+  return { modelo, aguaId, solidificadaId, liquidaId, gaseosaId: gaseosa.estadoId };
+}
