@@ -3,10 +3,11 @@ import { useEffect } from "preact/hooks";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { useBreakpoint } from "../layoutResponsive";
 import { tokens } from "../tokens";
-import { proyectarEstadoBarraSimulacion, rotuloTraceSimulacion } from "./proyeccionBarra";
+import { proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion, type NarrativaSimulacion } from "./proyeccionBarra";
 
 export function BarraSimulacion(): JSX.Element | null {
   const {
+    modelo,
     contexto,
     autoAvance,
     velocidad: velocidadSimulacion,
@@ -38,6 +39,7 @@ export function BarraSimulacion(): JSX.Element | null {
   const ejecutados = contexto.trace.length;
   const sinProcesos = totalPasos === 0;
   const estadoBarra = proyectarEstadoBarraSimulacion(contexto, autoAvance);
+  const narrativa = proyectarNarrativaSimulacion(modelo, contexto, autoAvance);
   const completado = estadoBarra.completado;
   const bloqueado = estadoBarra.bloqueado;
   const controlesDeshabilitados = sinProcesos || !estadoBarra.puedeEjecutar;
@@ -56,10 +58,20 @@ export function BarraSimulacion(): JSX.Element | null {
       data-testid="barra-simulacion"
       role="toolbar"
       aria-label="Controles de simulacion"
-      style={esMobile ? s.barra : { ...s.barra, ...s.barraOverlayDesktop }}
+      style={esMobile ? { ...s.barra, ...s.barraMobile } : { ...s.barra, ...s.barraOverlayDesktop }}
     >
       <div style={s.fila}>
         <span style={s.tag}>Simulacion</span>
+        {esMobile ? (
+          <span
+            style={s.narrativaInlineMobile}
+            data-testid="barra-simulacion-narrativa"
+            aria-live="polite"
+            title={narrativa.detalle}
+          >
+            {narrativa.titulo}
+          </span>
+        ) : null}
         {sinProcesos ? (
           <span style={s.contador} data-testid="barra-simulacion-progreso">Este modelo no tiene procesos que simular</span>
         ) : completado ? (
@@ -89,6 +101,25 @@ export function BarraSimulacion(): JSX.Element | null {
           <span style={s.check}>listo</span>
         ) : null}
       </div>
+
+      {!esMobile ? (
+        <div
+          style={{ ...s.narrativa, ...estiloNarrativa(narrativa.tono) }}
+          data-testid="barra-simulacion-narrativa"
+          aria-live="polite"
+        >
+          <span style={s.narrativaMarca} aria-hidden="true">{marcaNarrativa(narrativa.tono)}</span>
+          <span style={s.narrativaTexto}>
+            <strong style={s.narrativaTitulo}>{narrativa.titulo}</strong>
+            <span style={s.narrativaDetalle}>{narrativa.detalle}</span>
+          </span>
+          <span style={s.narrativaContexto} aria-label={`Contexto: ${narrativa.contexto.join(", ")}`}>
+            {narrativa.contexto.map((item) => (
+              <span key={item} style={s.narrativaChip}>{item}</span>
+            ))}
+          </span>
+        </div>
+      ) : null}
 
       <div style={s.fila}>
         {/* Controles como palabras */}
@@ -226,6 +257,20 @@ function intervaloAutoAvanceMs(velocidad: number): number {
   return Math.round(900 / velocidad);
 }
 
+function marcaNarrativa(tono: NarrativaSimulacion["tono"]): string {
+  if (tono === "exito") return "✓";
+  if (tono === "alerta") return "!";
+  if (tono === "activo") return "▶";
+  return "·";
+}
+
+function estiloNarrativa(tono: NarrativaSimulacion["tono"]): JSX.CSSProperties {
+  if (tono === "exito") return { borderLeftColor: C.success };
+  if (tono === "alerta") return { borderLeftColor: C.crimson, background: C.paperWarm };
+  if (tono === "activo") return { borderLeftColor: C.crimson };
+  return { borderLeftColor: C.ruleStrong };
+}
+
 const C = tokens.colors;
 const T = tokens.typography;
 
@@ -249,6 +294,18 @@ const s: Record<string, JSX.CSSProperties> = {
     left: 0,
     right: 0,
     zIndex: 30,
+    pointerEvents: "none",
+  },
+  barraMobile: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "nowrap",
+    gap: 4,
+    padding: "4px 8px",
+    minHeight: 48,
+    height: 48,
+    overflowX: "auto",
+    overflowY: "hidden",
   },
   fila: {
     display: "flex",
@@ -290,6 +347,81 @@ const s: Record<string, JSX.CSSProperties> = {
     color: C.success,
     fontStyle: "italic",
   },
+  narrativa: {
+    display: "flex",
+    alignItems: "center",
+    gap: tokens.spacing.sm,
+    flex: "1 1 520px",
+    minWidth: 280,
+    maxWidth: "100%",
+    padding: "5px 8px",
+    background: C.paper,
+    borderLeft: `3px solid ${C.ruleStrong}`,
+    borderTop: `1px solid ${C.rule}`,
+    borderBottom: `1px solid ${C.rule}`,
+  },
+  narrativaInlineMobile: {
+    minWidth: 0,
+    maxWidth: 150,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap" as const,
+    color: C.ink,
+    fontSize: T.sizes.sm,
+    fontWeight: 700,
+  },
+  narrativaMarca: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 18,
+    height: 18,
+    flex: "0 0 18px",
+    color: C.crimson,
+    fontFamily: T.fontFamilyMono,
+    fontSize: 11,
+    fontWeight: 700,
+  },
+  narrativaTexto: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: tokens.spacing.sm,
+    minWidth: 0,
+    flex: "1 1 auto",
+    flexWrap: "wrap" as const,
+  },
+  narrativaTitulo: {
+    color: C.ink,
+    fontSize: T.sizes.sm,
+    fontWeight: 700,
+    whiteSpace: "nowrap" as const,
+  },
+  narrativaDetalle: {
+    color: C.inkMid,
+    fontSize: T.sizes.sm,
+    lineHeight: 1.35,
+    overflowWrap: "anywhere" as const,
+  },
+  narrativaContexto: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+    flex: "0 1 auto",
+    flexWrap: "wrap" as const,
+    justifyContent: "flex-end",
+  },
+  narrativaChip: {
+    display: "inline-flex",
+    alignItems: "center",
+    height: 18,
+    padding: "0 5px",
+    border: `1px solid ${C.rule}`,
+    color: C.inkSoft,
+    background: C.paperWarm,
+    fontFamily: T.fontFamilyMono,
+    fontSize: 10,
+    fontVariantNumeric: "tabular-nums",
+  },
   control: {
     display: "inline-flex",
     alignItems: "center",
@@ -304,6 +436,7 @@ const s: Record<string, JSX.CSSProperties> = {
     borderBottom: "1px solid transparent",
     borderRadius: 0,
     cursor: "pointer",
+    pointerEvents: "auto",
     transition: "color 120ms ease, border-color 120ms ease",
   },
   controlActivo: {
@@ -347,6 +480,7 @@ const s: Record<string, JSX.CSSProperties> = {
     border: "none",
     borderRadius: 0,
     cursor: "pointer",
+    pointerEvents: "auto",
     transition: "color 120ms ease, background 120ms ease",
   },
   segmentActivo: {
@@ -376,6 +510,7 @@ const s: Record<string, JSX.CSSProperties> = {
     border: "none",
     borderRadius: 0,
     cursor: "pointer",
+    pointerEvents: "auto",
     transition: "color 120ms ease, fontWeight 120ms ease",
   },
   marcoActual: {
@@ -410,6 +545,7 @@ const s: Record<string, JSX.CSSProperties> = {
     border: `1px solid ${C.rule}`,
     fontSize: 10,
     fontFamily: T.fontFamilyMono,
+    pointerEvents: "auto",
   },
   traceItemOmitido: {
     borderColor: C.crimson,

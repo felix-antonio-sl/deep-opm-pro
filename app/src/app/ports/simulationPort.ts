@@ -2,6 +2,7 @@ import type { ModoSimulacion } from "../../modelo/simulacion/tipos";
 import type { OpmStore } from "../../store";
 
 export interface SimulationPort {
+  modelo: OpmStore["modelo"];
   contexto: OpmStore["contextoSimulacion"];
   autoAvance: OpmStore["autoAvanceSimulacionActivo"];
   velocidad: OpmStore["velocidadSimulacion"];

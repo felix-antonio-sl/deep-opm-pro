@@ -2,6 +2,7 @@ import { useOpmStore } from "../../store";
 import type { SimulationPort } from "./simulationPort";
 
 export function useZustandSimulationPort(): SimulationPort {
+  const modelo = useOpmStore((s) => s.modelo);
   const contexto = useOpmStore((s) => s.contextoSimulacion);
   const autoAvance = useOpmStore((s) => s.autoAvanceSimulacionActivo);
   const velocidad = useOpmStore((s) => s.velocidadSimulacion);
@@ -18,6 +19,7 @@ export function useZustandSimulationPort(): SimulationPort {
   const fijarSemilla = useOpmStore((s) => s.fijarSemillaSimulacion);
 
   return {
+    modelo,
     contexto,
     autoAvance,
     velocidad,

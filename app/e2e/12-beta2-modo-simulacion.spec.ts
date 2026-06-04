@@ -38,6 +38,9 @@ test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page })
   await expect(page.getByRole("button", { name: "Objeto", exact: true })).toHaveCount(0);
 
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/paso\s+1\s+de\s+2/);
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Próximo: (Recibir|Atender)/);
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("se registrará como avance de traza");
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("paso 1 de 2");
   const primeraVez = page.getByTestId("barra-simulacion-proceso-activo");
   await expect(primeraVez).toContainText(/Recibir|Atender/);
 
@@ -50,6 +53,8 @@ test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page })
   // Ejecutar Paso -> avanza a paso 2 de 2 con el OTRO proceso.
   await page.getByTestId("barra-simulacion-paso").click();
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/paso\s+2\s+de\s+2/);
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Próximo: (Recibir|Atender)/);
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("paso 2 de 2");
   await expect(page.getByTestId("barra-simulacion-trace")).toBeVisible();
   const haloPasoDos = await page.evaluate(() => {
     return document.querySelectorAll('[model-id^="sim-proceso-"]').length;
@@ -59,6 +64,8 @@ test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page })
   // Correr -> completa los pasos restantes.
   await page.getByTestId("barra-simulacion-correr").click();
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/Completada\s+·\s+2\s+pasos/);
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("Simulación completada");
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("se ejecutó sin cambios de estado");
   await expect(page.getByTestId("barra-simulacion-paso")).toBeDisabled();
 
   // Reiniciar -> vuelve a paso 1 de 2.
