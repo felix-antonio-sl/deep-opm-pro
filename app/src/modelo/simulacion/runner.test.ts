@@ -152,6 +152,21 @@ describe("ejecutarCorrida", () => {
     expect(ctxFinal.pasoActual).toBe(3);
     expect(ctxFinal.trace.map((t) => t.procesoNombre)).toEqual(["Paso1", "Paso2", "Paso3"]);
   });
+
+  test("repite el proceso por cada ruta de una cadena consumo-resultado", () => {
+    const { modelo, aguaId, solidificadaId, liquidaId, gaseosaId } = modeloRutasAgua();
+
+    const fin = ejecutarCorrida(modelo, iniciarSimulacion(modelo, modelo.opdRaizId));
+
+    expect(fin.estado).toBe("completado");
+    expect(fin.estadosCurrent[aguaId]).toBe(gaseosaId);
+    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["Calentar", "Calentar"]);
+    expect(fin.trace.map((t) => t.diagnostico)).toEqual([undefined, undefined]);
+    expect(fin.trace.map((t) => t.transicionesAplicadas)).toEqual([
+      [{ entidadId: aguaId, estadoAntesId: solidificadaId, estadoDespuesId: liquidaId, rutaEtiqueta: "sol-liq" }],
+      [{ entidadId: aguaId, estadoAntesId: liquidaId, estadoDespuesId: gaseosaId, rutaEtiqueta: "liq-gas" }],
+    ]);
+  });
 });
 
 describe("condiciones e invocaciones OPM", () => {

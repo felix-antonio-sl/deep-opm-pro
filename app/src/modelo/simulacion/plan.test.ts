@@ -188,9 +188,14 @@ describe("planificarSimulacion — transiciones de estado inferidas", () => {
 
     const plan = planificarSimulacion(modelo, modelo.opdRaizId);
 
-    expect(plan[0]?.transicionesPlanificadas).toEqual([
-      { entidadId: aguaId, estadoAntesId: solidificadaId, estadoDespuesId: liquidaId, rutaEtiqueta: "sol-liq" },
-      { entidadId: aguaId, estadoAntesId: liquidaId, estadoDespuesId: gaseosa.estadoId, rutaEtiqueta: "liq-gas" },
+    expect(plan.map((paso) => paso.procesoNombre)).toEqual(["Calentar", "Calentar"]);
+    expect(plan.map((paso) => paso.transicionesPlanificadas)).toEqual([
+      [
+        { entidadId: aguaId, estadoAntesId: solidificadaId, estadoDespuesId: liquidaId, rutaEtiqueta: "sol-liq" },
+      ],
+      [
+        { entidadId: aguaId, estadoAntesId: liquidaId, estadoDespuesId: gaseosa.estadoId, rutaEtiqueta: "liq-gas" },
+      ],
     ]);
   });
 });

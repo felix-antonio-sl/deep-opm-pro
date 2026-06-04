@@ -11,7 +11,7 @@ cualquier ID, activo o archivado.
 | Alcance / Estado | Cantidad |
 |---|---:|
 | Activo / Nuevo | 1 |
-| Activo / Resuelto | 92 |
+| Activo / Resuelto | 93 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
 | Histórico / Resuelto | 43 |
@@ -20,7 +20,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 88 |
+| Activo / Bug | 89 |
 | Activo / Feat | 5 |
 | Histórico / Bug | 48 |
 
@@ -28,6 +28,7 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Resuelto | [BUG-20260604T040903Z-37ebd2](BUG-20260604T040903Z-37ebd2/report.md) | 2026-06-04 04:09Z | Modelo_simu / SD | simula 1 solo paso en vez de 2. transitó un sólo par de transición quedando a medio camino | El planificador expande cadenas ruteadas de transiciones de estado sobre el mismo objeto en ocurrencias sucesivas del proceso, en… | 2 | Cubierto por plan.test, runner.test y foco.test: Agua/Calentar ejecuta sol-liq y luego liq-gas, termina en gaseosa y el foco visual avanza ruta por ruta. |
 | Activo | Bug | Resuelto | [BUG-20260604T032108Z-e1458f](BUG-20260604T032108Z-e1458f/report.md) | 2026-06-04 03:21Z | Modelo_simu / SD | no se visualiza en canvas la etiqueta de ruta en ambos enlaces de cada par a pesar de que el opl está bien y en el panel de propiedades la etiqueta e… | El canvas vuelve a proyectar la etiqueta de ruta en ambos enlaces de cada par, alineado con el inspector y el OPL. | 1 | Cubierto por proyeccion.test: una transicion Estado-Proceso-Estado con ruta sol-liq muestra dos labels sol-liq, uno por enlace. |
 | Activo | Bug | Resuelto | [BUG-20260604T031955Z-5f7132](BUG-20260604T031955Z-5f7132/report.md) | 2026-06-04 03:19Z | Modelo_simu / SD | mira que feo se ve la representación visual de simulación | El foco visual de simulacion filtra enlaces por la ruta activa antes de pintar highlights y tokens; ya no resalta todas las rutas… | 1 | Cubierto por foco.test: current solidificada resalta solo sol-liq y current liquida resalta solo liq-gas. |
 | Activo | Bug | Resuelto | [BUG-20260604T031923Z-df336b](BUG-20260604T031923Z-df336b/report.md) | 2026-06-04 03:19Z | Modelo_simu / SD | la función de simulación no tiene adecuadamente integrada su lógica a las rutas de transición | La simulacion integra rutaEtiqueta: planifica pares consumo-resultado por ruta y ejecuta solo la transicion compatible con el est… | 2 | Cubierto por plan.test y runner.test con Agua/Calentar: solidificada -> liquida no encadena liq-gas en el mismo paso. |

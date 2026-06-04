@@ -5,7 +5,7 @@ import { agregarEstado, crearEnlace, crearEstadosIniciales, crearModelo, crearOb
 import { definirRutaEtiqueta } from "../rutas";
 import type { Id, Modelo, Resultado } from "../tipos";
 import { focoPasoActualSimulacion, estadosInicialesDelModelo } from "./foco";
-import { iniciarSimulacion } from "./runner";
+import { ejecutarPaso, iniciarSimulacion } from "./runner";
 
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
@@ -40,15 +40,13 @@ describe("estadosInicialesDelModelo", () => {
 
 describe("focoPasoActualSimulacion — rutas de transición", () => {
   test("en simulación resalta solo los enlaces de la ruta compatible con el current", () => {
-    const { modelo, aguaId, solidificadaId, liquidaId, solLiqIds, liqGasIds } = modeloRutasAgua();
+    const { modelo, aguaId, solidificadaId, solLiqIds, liqGasIds } = modeloRutasAgua();
     const contexto = iniciarSimulacion(modelo, modelo.opdRaizId);
+    expect(contexto.plan).toHaveLength(2);
     expect(contexto.estadosCurrent[aguaId]).toBe(solidificadaId);
 
     const focoSolida = focoPasoActualSimulacion(modelo, contexto);
-    const focoLiquida = focoPasoActualSimulacion(modelo, {
-      ...contexto,
-      estadosCurrent: { ...contexto.estadosCurrent, [aguaId]: liquidaId },
-    });
+    const focoLiquida = focoPasoActualSimulacion(modelo, ejecutarPaso(modelo, contexto));
 
     expect([...focoSolida.enlacesInvolucradosIds].sort()).toEqual([...solLiqIds].sort());
     expect([...focoLiquida.enlacesInvolucradosIds].sort()).toEqual([...liqGasIds].sort());

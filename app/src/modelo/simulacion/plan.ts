@@ -52,7 +52,7 @@ function planificarOpd(
     const opdHijoId = obtenerRefinamiento(entidad, "descomposicion")?.opdId;
     const opdHijo = opdHijoId && opdHijoId !== opdId ? modelo.opds[opdHijoId] : undefined;
 
-    pasos.push({
+    const pasoBase: PasoSimulacion = {
       opdId,
       opdNombre: opd.nombre,
       profundidad,
@@ -64,7 +64,8 @@ function planificarOpd(
       enlacesEntradaIds,
       enlacesSalidaIds,
       transicionesPlanificadas,
-    });
+    };
+    pasos.push(...expandirPasoPorRutas(modelo, pasoBase));
   }
 
   const ordenados = pasos.sort((a, b) => {
@@ -224,4 +225,50 @@ function rutaCompartida(consumo: Enlace, resultado: Enlace): string | undefined 
   const rutaConsumo = rutaEtiquetaNormalizada(consumo.rutaEtiqueta);
   const rutaResultado = rutaEtiquetaNormalizada(resultado.rutaEtiqueta);
   return rutaConsumo && rutaConsumo === rutaResultado ? rutaConsumo : undefined;
+}
+
+function expandirPasoPorRutas(modelo: Modelo, paso: PasoSimulacion): PasoSimulacion[] {
+  const ruteadasCompletas = paso.transicionesPlanificadas.filter(
+    (transicion) => Boolean(transicion.rutaEtiqueta) && transicion.estadoAntesId !== null && transicion.estadoDespuesId !== null,
+  );
+  if (ruteadasCompletas.length <= 1) return [paso];
+  if (ruteadasCompletas.length !== paso.transicionesPlanificadas.length) return [paso];
+
+  const entidadIds = new Set(ruteadasCompletas.map((transicion) => transicion.entidadId));
+  if (entidadIds.size !== 1) return [paso];
+
+  return ordenarCadenaRuteada(ruteadasCompletas).map((transicion) => ({
+    ...paso,
+    enlacesEntradaIds: filtrarEnlacesPorRuta(modelo, paso.enlacesEntradaIds, transicion.rutaEtiqueta),
+    enlacesSalidaIds: filtrarEnlacesPorRuta(modelo, paso.enlacesSalidaIds, transicion.rutaEtiqueta),
+    transicionesPlanificadas: [transicion],
+  }));
+}
+
+function ordenarCadenaRuteada(transiciones: TransicionEstadoSim[]): TransicionEstadoSim[] {
+  const restantes = [...transiciones];
+  const estadosDestino = new Set(
+    restantes
+      .map((transicion) => transicion.estadoDespuesId)
+      .filter((estadoId): estadoId is Id => estadoId !== null),
+  );
+  const indiceInicio = restantes.findIndex(
+    (transicion) => transicion.estadoAntesId !== null && !estadosDestino.has(transicion.estadoAntesId),
+  );
+  const ordenadas: TransicionEstadoSim[] = [];
+  let actual = restantes.splice(indiceInicio >= 0 ? indiceInicio : 0, 1)[0];
+
+  while (actual) {
+    ordenadas.push(actual);
+    const siguienteIndice = restantes.findIndex((transicion) => transicion.estadoAntesId === actual?.estadoDespuesId);
+    actual = siguienteIndice >= 0 ? restantes.splice(siguienteIndice, 1)[0] : undefined;
+  }
+
+  return [...ordenadas, ...restantes];
+}
+
+function filtrarEnlacesPorRuta(modelo: Modelo, enlaceIds: Id[], rutaEtiqueta: string | undefined): Id[] {
+  const ruta = rutaEtiquetaNormalizada(rutaEtiqueta);
+  if (!ruta) return enlaceIds;
+  return enlaceIds.filter((enlaceId) => rutaEtiquetaNormalizada(modelo.enlaces[enlaceId]?.rutaEtiqueta) === ruta);
 }

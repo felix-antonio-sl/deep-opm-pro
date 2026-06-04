@@ -550,5 +550,11 @@
     "status": "Resuelto",
     "resolution": "El canvas vuelve a proyectar la etiqueta de ruta en ambos enlaces de cada par, alineado con el inspector y el OPL.",
     "note": "Cubierto por proyeccion.test: una transicion Estado-Proceso-Estado con ruta sol-liq muestra dos labels sol-liq, uno por enlace."
+  },
+  "BUG-20260604T040903Z-37ebd2": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El planificador expande cadenas ruteadas de transiciones de estado sobre el mismo objeto en ocurrencias sucesivas del proceso, en vez de dejar varios paths dentro de un unico paso.",
+    "note": "Cubierto por plan.test, runner.test y foco.test: Agua/Calentar ejecuta sol-liq y luego liq-gas, termina en gaseosa y el foco visual avanza ruta por ruta."
   }
 }
