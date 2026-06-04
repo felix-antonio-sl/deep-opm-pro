@@ -1091,6 +1091,43 @@ describe("store undo/redo y dirty state", () => {
     expect(estado.mensaje).toContain("Fan O creado");
   });
 
+  test("forma abanico automatico al conectar segunda rama", () => {
+    let modelo = crearModelo("Store fan automatico");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 420, y: 60 }, "Pedido aprobado"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 420, y: 180 }, "Pedido rechazado"));
+    const aprobarId = entidadPorNombre(modelo, "Aprobar");
+    const aprobadoId = entidadPorNombre(modelo, "Pedido aprobado");
+    const rechazadoId = entidadPorNombre(modelo, "Pedido rechazado");
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().crearEnlaceEntreEntidades(extremoEntidad(aprobarId), extremoEntidad(aprobadoId), "resultado", {
+      anclaOrigen: "N",
+    });
+    const primerEnlaceId = store.getState().enlaceSeleccionId;
+    if (!primerEnlaceId) throw new Error("La prueba esperaba primer enlace");
+    store.getState().crearEnlaceEntreEntidades(extremoEntidad(aprobarId), extremoEntidad(rechazadoId), "resultado", {
+      anclaOrigen: "N",
+    });
+    const segundoEnlaceId = store.getState().enlaceSeleccionId;
+    if (!segundoEnlaceId) throw new Error("La prueba esperaba segundo enlace");
+
+    const estado = store.getState();
+    const abanicos = Object.values(estado.modelo.abanicos ?? {});
+    expect(abanicos).toHaveLength(1);
+    expect(abanicos[0]).toMatchObject({
+      operador: "O",
+      puertoEntidadId: aprobarId,
+      enlaceIds: [primerEnlaceId, segundoEnlaceId],
+      puertoComun: {
+        entidadId: aprobarId,
+        lado: "origen",
+      },
+    });
+    expect(estado.modelo.enlaces[primerEnlaceId]?.origenId.portId).toBe(estado.modelo.enlaces[segundoEnlaceId]?.origenId.portId);
+    expect(estado.puedeDeshacer).toBe(true);
+  });
+
   test("limita undo a 100 snapshots", () => {
     for (let index = 0; index < 105; index += 1) {
       store.getState().crearObjetoDemo();

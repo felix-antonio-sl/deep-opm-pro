@@ -1,6 +1,6 @@
 {
   "schema": "deep-opm-pro.hu-progress-evidence.v1",
-  "updated": "2026-06-03",
+  "updated": "2026-06-04",
   "source": "Auditoria automatica local contra app/src, app/e2e, app/scripts y assets/svg/links.",
   "statusDefinitions": {
     "cubierto": "La HU tiene implementacion usable y evidencia local directa en codigo, tests o smoke.",
@@ -809,20 +809,20 @@
   ],
   "knownGaps": [],
   "autoAudit": {
-    "generatedAt": "2026-06-03T07:16:40.068Z",
+    "generatedAt": "2026-06-04T18:35:56.413Z",
     "mode": "sync-real",
     "rulesEvaluated": 105,
     "rulesMatched": 73,
     "rulesUnmatched": 32,
     "sourceFiles": {
-      "count": 833,
+      "count": 850,
       "roots": [
         "app/src",
         "app/e2e",
         "app/scripts",
         "assets/svg/links"
       ],
-      "signature": "sha256:4b4fb364eab8d126c73cb78abca7d1c809c16481eb32431b5f3b845c2baf0c07"
+      "signature": "sha256:c70e146d1b57a8e1ad5d95c25c0c77b406f7f5e8291a829c4fa7848dc3e67072"
     },
     "note": "autoEntries se regenera; cada regla escribe cobertura detectada o pendiente. entries manuales queda como respaldo solo para HU sin regla automatica."
   },
