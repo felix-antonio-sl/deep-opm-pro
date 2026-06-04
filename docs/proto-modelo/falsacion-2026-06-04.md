@@ -14,14 +14,15 @@ Total de líneas no vacías clasificadas: **472**.
 |---|---:|---:|
 | estricta | 232 | 49.2% |
 | normalizada | 186 | 39.4% |
+| compuesta | 26 | 5.5% |
 | estructura | 11 | 2.3% |
 | comentario | 12 | 2.5% |
-| rechazada | 31 | 6.6% |
+| rechazada | 5 | 1.1% |
 
-**Cobertura T1+T2+estructura** (estricta + normalizada + estructura, sobre el total): **429/472 = 90.9%**.
-**Cobertura sobre hechos** (excluyendo 12 comentarios): **429/460 = 93.3%**.
+**Cobertura T1+T2+V+estructura** (estricta + normalizada + compuesta + estructura, sobre el total): **455/472 = 96.4%**.
+**Cobertura sobre hechos** (excluyendo 12 comentarios): **455/460 = 98.9%**.
 
-## 2. Reglas T2 aplicadas (líneas `normalizada`)
+## 2. Reglas T2/V aplicadas (líneas `normalizada` + `compuesta`)
 
 | Regla | N |
 |---|---:|
@@ -33,47 +34,43 @@ Total de líneas no vacías clasificadas: **472**.
 | A8 — conector `e`/`así como` → `y` | 6 |
 | A9 — cola `como su operación` separada | 2 |
 | AESS — esencia/afiliación sin `un objeto/proceso` | 84 |
+| V1 — `habilita` (obj→proc) → instrumento-condición | 2 |
+| V10 — `cumple` → tagged «cumple» + cola anotada | 1 |
+| V11 — `habilita` (obj→obj) → tagged «habilita» | 1 |
+| V12 — cola condicional / R4 → hecho + cola anotada | 6 |
+| V13 — guard compuesto → evento + instrumento-condición | 1 |
+| V14 — `cambia X a 'e', o inicia Q` → TS + evento (+XOR) | 1 |
+| V15 — `inicia A o B` → ramas evento + abanico XOR | 2 |
+| V2 — `restringe` (binario) → condición sobre estado complementario | 1 |
+| V3 — `puede iniciar` → evento (ruta `inicia`) | 2 |
+| V4 — `alimenta` → instrumento (`requiere`) | 2 |
+| V5 — `detecta` → resultado (`genera`) | 1 |
+| V6 — `compromete`/`libera` → afecta + verbo anotado | 2 |
+| V7 — `precede a` → invocación | 2 |
+| V8 — `puede suceder a` → tagged «sucede a» (+0..1) | 1 |
+| V9 — `corresponde a` → tagged «corresponde a» | 1 |
 
 ## 3. Rechazos por categoría (R1–R7)
 
-Total de líneas rechazadas: **31** (6.6% del corpus).
+Total de líneas rechazadas: **5** (1.1% del corpus).
 
-### R1 — cláusula condicional (`cuando`/`según`/guard compuesto) — 6 línea(s)
+### R3 — verbo fuera del enum cerrado — 2 línea(s)
 
-- `Registro de la atención cambia Indicación médica a 'cumplida' cuando se completa la orden.`
-- `Integración diagnóstica requiere Voluntad anticipada vigente cuando la decisión puede escalar.`
-- `Ajuste terapéutico cambia Indicación médica a 'suspendida' cuando supersede una indicación previa.`
-
-### R2 — disyunción de hechos alternativos — 3 línea(s)
-
-- `Atención de acciones emergentes cambia Condición de estabilidad clínica a 'estable', o inicia Cierre por reingreso hospitalario.`
-- `Decisión de conducta clínica en estado 'proceder a egreso' inicia Cierre por alta médica por recuperación o Cierre por cumplimiento del plan terapéutico.`
-- `Suspensión de la atención puede iniciar Cierre por alta disciplinaria o Cierre por renuncia voluntaria.`
-
-### R3 — verbo fuera del enum cerrado — 14 línea(s)
-
-- `Evento de deterioro clínico habilita Atención de acciones emergentes.`
-- `Profesional ejecutor cumple Competencia requerida para el acto.`
-- `Monitorización de signos vitales detecta Evento de deterioro clínico.`
-
-### R4 — estado no declarado usado por A4 — 1 línea(s)
-
-- `Verificación de condición domiciliaria y territorial requiere Domicilio dentro del Radio de cobertura.`
+- `Inspección pre-ruta habilita Vehículo de transporte para 'en ruta'.`
+- `Cupo HODOM proyecta la Capacidad de prestaciones comprometida como día-cama para REM.`
 
 ### R6 — cola informal en lista — 2 línea(s)
 
 - `Evaluación clínica de elegibilidad, Informe social, Veredicto de voluntariedad y los demás veredictos parciales determinan Solicitud de ingreso HODOM como 'aceptada', 'en espera' o 'rechazada'.`
 - `Equipo HODOM consta de Dirección Técnica, Coordinación, Médico de Atención Directa, Médico Regulador, Enfermero clínico, Kinesiólogo, Técnico de enfermería, Trabajador Social y Otros profesionales según prestaciones.`
 
-### R7 — relación no primitiva — 5 línea(s)
+### R7 — relación no primitiva — 1 línea(s)
 
-- `Episodio HODOM puede suceder a un Episodio HODOM previo opcional.`
-- `Traslado del paciente al establecimiento precede a Cierre por reingreso hospitalario.`
-- `Parada corresponde a un Domicilio.`
+- `Acceso del colaborador de cuidado a la información clínica está acotado por Deber de reserva.`
 
 ## 4. Segundo eje — aceptación real del parser (ley L1)
 
-De **418** líneas `estricta|normalizada` (clase `estructura` excluida por L1), el parser real acepta **418** sin `unsupported-kernel` (= **100.0%**).
+De **421** oraciones verificables por L1 (`estricta|normalizada` + emisiones-oración de `compuesta`; clase `estructura` y emisiones-directiva excluidas por L1), el parser real acepta **421** sin `unsupported-kernel` (= **100.0%**).
 
 **Ley L1 verde:** toda salida estricta|normalizada parsea de verdad. Cero deuda GAP.
 
@@ -91,9 +88,9 @@ La spec v0 fijó la regla, el parser fijó la realidad. Estos puntos divergen y 
 
 ## 6. Veredicto del gate W1.3 (recomendación para el operador)
 
-- **Cobertura sobre hechos:** 429/460 = 93.3% (estricta+normalizada+estructura).
+- **Cobertura sobre hechos:** 455/460 = 98.9% (estricta+normalizada+estructura).
 - **Ley L1:** **verde** (100%).
-- **Rechazos:** 31 (6.6%) — decisiones de modelado reales (guards compuestos, alternativas, verbos de dominio), no fallos del normalizador.
+- **Rechazos:** 5 (1.1%) — decisiones de modelado reales (guards compuestos, alternativas, verbos de dominio), no fallos del normalizador.
 
-**Recomendación: PASA.** El normalizador cubre el 93.3% de los hechos del corpus real con L1 verde, idempotencia y trazabilidad por regla. Los rechazos están bien diagnosticados y devuelven el barro al humano (anti-complacencia). Antes de promover a KORA, la spec v0 debe absorber las 4 divergencias de la sección 5 (especialización=`es un`, A2 invertida, AESS obligatoria, A7 sin condicional) y abrir un GAP de parser por la degradación silenciosa de multiplicidad/estado.
+**Recomendación: PASA.** El normalizador cubre el 98.9% de los hechos del corpus real con L1 verde, idempotencia y trazabilidad por regla. Los rechazos están bien diagnosticados y devuelven el barro al humano (anti-complacencia). Antes de promover a KORA, la spec v0 debe absorber las 4 divergencias de la sección 5 (especialización=`es un`, A2 invertida, AESS obligatoria, A7 sin condicional) y abrir un GAP de parser por la degradación silenciosa de multiplicidad/estado.
 

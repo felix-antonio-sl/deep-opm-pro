@@ -17,6 +17,7 @@ import type { OracionOplAst } from "../../opl/parser/tipos";
 import type { TipoEnlace } from "../../modelo/tipos";
 import { aplicarModificador } from "../../modelo/modificadores";
 import { Resolutor } from "./resolutor";
+import type { Directiva, Emision, LineaNormalizada } from "./tipos";
 
 /** Un hecho emitido al DSL (para contabilidad L2). */
 export interface HechoEmitido {
@@ -32,9 +33,11 @@ export interface HechoEmitido {
   detalle: string;
 }
 
-/** Resultado de emitir UNA oración. */
+/** Resultado de emitir UNA oración o directiva. `enlaceIds` lista los enlaces
+ *  creados (cuando aplica), para que una línea `compuesta` pueda agruparlos en un
+ *  abanico (familia V14/V15). */
 export type ResultadoEmision =
-  | { estado: "aplicada"; hechos: HechoEmitido[] }
+  | { estado: "aplicada"; hechos: HechoEmitido[]; enlaceIds?: string[] }
   | { estado: "excluida"; clase: string; razon: string }
   | { estado: "fallo"; razon: string };
 
@@ -570,31 +573,47 @@ function emitirEventoSinPortador(
   ast: Extract<OracionOplAst, { kind: "evento" }>,
   ctx: ContextoEmision,
 ): ResultadoEmision {
-  const iniciadorTipo = ctx.resolutor.buscar(ast.iniciador)?.tipo ?? tipoSembrado(ast.iniciador, ctx);
-  const estado = ast.iniciadorEstado ? limpiarEstado(ast.iniciadorEstado) : undefined;
+  return emitirEventoCore(
+    ast.iniciador,
+    ast.proceso,
+    ast.iniciadorEstado ? limpiarEstado(ast.iniciadorEstado) : undefined,
+    ctx,
+    ast.etiqueta,
+  );
+}
+
+/**
+ * Núcleo del evento sin portador (ruta W4.3), reusable por el AST `evento` y por
+ * la directiva `evento` de la familia V (V3/V13/V14/V15). Un iniciador proceso (o
+ * sin estado-gatillo) produce una invocación proceso→proceso evento; un iniciador
+ * objeto-en-estado produce un instrumento-evento con el gatillo en el origen
+ * (gatillo sin consumo, V-59) — sin gatillo si el objeto no porta ≥2 estados.
+ */
+function emitirEventoCore(
+  iniciador: string,
+  proceso: string,
+  estado: string | undefined,
+  ctx: ContextoEmision,
+  etiqueta?: string,
+): ResultadoEmision {
+  const iniciadorTipo = ctx.resolutor.buscar(iniciador)?.tipo ?? tipoSembrado(iniciador, ctx);
 
   // Iniciador proceso (o sin estado-gatillo): invocacion proceso→proceso evento.
   if (iniciadorTipo === "proceso" || !estado) {
-    const origen = keyEntidad(ast.iniciador, ctx, "proceso");
-    const destino = keyEntidad(ast.proceso, ctx, "proceso");
+    const origen = keyEntidad(iniciador, ctx, "proceso");
+    const destino = keyEntidad(proceso, ctx, "proceso");
     return enlazarConDedup(ctx, origen, destino, "invocacion", { modificador: "evento" });
   }
 
   // Iniciador objeto-en-estado: instrumento-evento (gatillo sin consumo, V-59).
-  // `keyEntidad` declara el state set del objeto si el proto le atribuye ≥2
-  // estados. El gatillo solo va en el extremo origen si ese estado quedó
-  // declarado: un objeto-evento de UN SOLO estado (`Evento de deterioro clínico`
-  // = `detectado`) no puede portar estados en OPM (≥2 obligatorio) — el evento
-  // se modela entonces como instrumento-evento SIN estado-gatillo (preserva la
-  // reactividad; el estado único no es representable).
-  const objetoKey = keyEntidad(ast.iniciador, ctx, "objeto");
-  const procesoKey = keyEntidad(ast.proceso, ctx, "proceso");
-  const tieneStateSet = (ctx.estadosUnion.get(claveEntidad(ast.iniciador))?.length ?? 0) >= 2;
+  const objetoKey = keyEntidad(iniciador, ctx, "objeto");
+  const procesoKey = keyEntidad(proceso, ctx, "proceso");
+  const tieneStateSet = (ctx.estadosUnion.get(claveEntidad(iniciador))?.length ?? 0) >= 2;
   const origen: ExtremoEntrada =
     estado && tieneStateSet && typeof objetoKey === "string" ? { estado, entidad: objetoKey } : objetoKey;
   return enlazarConDedup(ctx, origen, procesoKey, "instrumento", {
     modificador: "evento",
-    ...(ast.etiqueta ? { etiqueta: ast.etiqueta } : {}),
+    ...(etiqueta ? { etiqueta } : {}),
   });
 }
 
@@ -747,7 +766,11 @@ function enlazar(
     if (id) ctx.enlacesProcedurales.set(claveEnlace(ctx.opdKey, origen, destino, tipo), id);
     // `enlazar` devuelve null cuando consume una agregación contorno→sub como
     // contención interna (no hay enlace, pero es semántica válida del in-zoom).
-    return { estado: "aplicada", hechos: [{ primitiva: "enlace", detalle: id ? tipo : `${tipo} (contención interna)` }] };
+    return {
+      estado: "aplicada",
+      hechos: [{ primitiva: "enlace", detalle: id ? tipo : `${tipo} (contención interna)` }],
+      ...(id ? { enlaceIds: [id] } : {}),
+    };
   } catch (e) {
     return { estado: "fallo", razon: e instanceof Error ? e.message : String(e) };
   }
@@ -810,6 +833,7 @@ function enlazarConDedup(
       return {
         estado: "aplicada",
         hechos: cambio ? [{ primitiva: "enlace", detalle: `${tipo} (adjunción evento)` }] : [],
+        enlaceIds: [existenteId],
       };
     }
   }
@@ -832,4 +856,190 @@ function ramaEnlace(
   return puertoEsOrigen
     ? { origen: procesoKey, destino: otroKey }
     : { origen: otroKey, destino: procesoKey };
+}
+
+// ── FAMILIA V — emisión de líneas compuestas y directivas ───────────────────
+
+/** Contador global de claveProto para anclas de cola (la unicidad la exige el DSL). */
+let claveAnclaSeq = 0;
+
+/**
+ * Emite una línea `compuesta` (familia V): cada emisión (oración o directiva)
+ * produce 0..N hechos; si la línea pide `agrupar`, forma un abanico XOR/OR sobre
+ * los enlaces creados por las emisiones. Devuelve una emisión `aplicada` con
+ * todos los hechos, o `fallo`/`excluida` si una emisión falla.
+ */
+export function emitirCompuesta(
+  linea: Extract<LineaNormalizada, { clase: "compuesta" }>,
+  ctx: ContextoEmision,
+): ResultadoEmision {
+  const hechos: HechoEmitido[] = [];
+  const enlaceIds: string[] = [];
+  for (const emision of linea.emisiones) {
+    const res = emitirEmision(emision, ctx);
+    if (res.estado === "fallo") return res;
+    if (res.estado === "excluida") return res;
+    hechos.push(...res.hechos);
+    if (res.enlaceIds) enlaceIds.push(...res.enlaceIds);
+  }
+  // Abanico XOR/OR sobre los enlaces creados (V14/V15). Requiere ≥2 enlaces que
+  // compartan un puerto (el proceso/iniciador común) y sean HOMOGÉNEOS (mismo
+  // tipo) — restricción del kernel. La agrupación es BEST-EFFORT: si los enlaces
+  // son heterogéneos (p.ej. V14: un efecto-TS y una invocación-evento no son del
+  // mismo tipo y el kernel no los agrupa en un único abanico), los enlaces se
+  // CONSERVAN y la línea NO falla — la decisión XOR queda anotada como ancla
+  // pendiente sobre los enlaces (canal de modelado fino), no se pierde.
+  if (linea.agrupar && enlaceIds.length >= 2) {
+    const operador = linea.agrupar.operador === "XOR" ? "XOR" : "O";
+    try {
+      ctx.autor.abanico(ctx.opdKey, enlaceIds, operador);
+      hechos.push({ primitiva: "abanico", detalle: `${operador} (${enlaceIds.length} ramas)` });
+    } catch {
+      // Heterogéneo (o sin puerto común): no se forma el abanico, pero la decisión
+      // XOR se preserva como ancla pendiente sobre cada rama (no se aborta el hecho).
+      for (const enlaceId of enlaceIds) {
+        adjuntarAncla(ctx, enlaceId, `decisión ${operador} entre ${enlaceIds.length} consecuencias alternativas (modelado fino pendiente)`);
+      }
+      hechos.push({ primitiva: "ver", detalle: `${operador} no agrupable (ramas heterogéneas); anotado` });
+    }
+  }
+  return { estado: "aplicada", hechos, enlaceIds };
+}
+
+/** Emite una emisión individual: oración (ruta parser) o directiva (ruta directa). */
+function emitirEmision(emision: Emision, ctx: ContextoEmision): ResultadoEmision {
+  if (emision.via === "oracion") return emitirOracion(emision.oracion, ctx);
+  return emitirDirectiva(emision.directiva, ctx);
+}
+
+/**
+ * Emite una DIRECTIVA de la familia V directamente al DSL (sin pasar por el
+ * parser→AST), para los efectos que el parser reverse no sabe re-leer (tagged,
+ * modificador con gatillo, anotaciones). Devuelve el/los enlace(s) creados.
+ */
+function emitirDirectiva(directiva: Directiva, ctx: ContextoEmision): ResultadoEmision {
+  switch (directiva.tipo) {
+    case "instrumento-condicion": {
+      // X→P instrumento con `modificador: condicion`, gatillo opcional en origen.
+      const procesoKey = keyEntidad(directiva.proceso, ctx, "proceso");
+      const objetoKey = keyEntidad(directiva.objeto, ctx, "objeto");
+      const tieneStateSet = (ctx.estadosUnion.get(claveEntidad(directiva.objeto))?.length ?? 0) >= 2;
+      const origen: ExtremoEntrada =
+        directiva.estado && tieneStateSet && typeof objetoKey === "string"
+          ? { estado: directiva.estado, entidad: objetoKey }
+          : objetoKey;
+      return enlazar(ctx, origen, procesoKey, "instrumento", { modificador: "condicion" });
+    }
+    case "evento":
+      return emitirEventoCore(directiva.iniciador, directiva.proceso, directiva.estado, ctx);
+    case "instrumento": {
+      const procesoKey = keyEntidad(directiva.proceso, ctx, "proceso");
+      const objetoKey = keyEntidad(directiva.objeto, ctx, "objeto");
+      return enlazarConDedup(ctx, objetoKey, procesoKey, "instrumento", {});
+    }
+    case "resultado": {
+      const procesoKey = keyEntidad(directiva.proceso, ctx, "proceso");
+      const objetoKey = keyEntidad(directiva.objeto, ctx, "objeto");
+      return enlazar(ctx, procesoKey, objetoKey, "resultado", {});
+    }
+    case "efecto-anotado": {
+      // P afecta O, con el verbo original (compromete/libera) en la etiqueta del
+      // enlace — canal serializable que round-trip en el OPL forward (`[etiqueta: …]`).
+      const procesoKey = keyEntidad(directiva.proceso, ctx, "proceso");
+      const objetoKey = keyEntidad(directiva.objeto, ctx, "objeto");
+      return enlazar(ctx, procesoKey, objetoKey, "efecto", { etiqueta: directiva.anotacionEtiqueta });
+    }
+    case "transicion": {
+      // Efecto P→O con estado de salida, resolviendo el objeto por su nombre
+      // COMPLETO (sin la degradación parser que parte ` de ` en objeto+estado).
+      const procesoKey = keyEntidad(directiva.proceso, ctx, "proceso");
+      const objetoKey = keyEntidad(directiva.objeto, ctx, "objeto");
+      const opts: OpcionesEnlace = {
+        salida: directiva.estadoSalida,
+        ...(directiva.estadoEntrada ? { entrada: directiva.estadoEntrada } : {}),
+      };
+      return enlazar(ctx, procesoKey, objetoKey, "efecto", opts);
+    }
+    case "invocacion": {
+      const origenKey = keyEntidad(directiva.origen, ctx, "proceso");
+      const destinoKey = keyEntidad(directiva.destino, ctx, "proceso");
+      return enlazar(ctx, origenKey, destinoKey, "invocacion", {});
+    }
+    case "tagged":
+      return emitirTagged(directiva, ctx);
+    case "hecho-anotado":
+      return emitirHechoAnotado(directiva, ctx);
+    default:
+      return { estado: "fallo", razon: `directiva no manejada: ${(directiva as { tipo: string }).tipo}` };
+  }
+}
+
+/**
+ * Emite un enlace estructural TAGGED (`etiquetado`) origen→destino con `etiqueta`.
+ * El generador OPL forward lo emite como `Origen <etiqueta> Destino.` (round-trip
+ * forward); el parser reverse no lo re-lee (no hay `kind` de AST tagged). La cola
+ * opcional (`para el acto`) se adjunta como ancla normativa pendiente.
+ */
+function emitirTagged(
+  directiva: Extract<Directiva, { tipo: "tagged" }>,
+  ctx: ContextoEmision,
+): ResultadoEmision {
+  const origenKey = keyEntidad(directiva.origen, ctx, "objeto");
+  const destinoKey = keyEntidad(directiva.destino, ctx, "objeto");
+  const opts: OpcionesEnlace = {
+    etiqueta: directiva.etiqueta,
+    ...(directiva.multiplicidadDestino ? { multiplicidadDestino: directiva.multiplicidadDestino } : {}),
+  };
+  let enlaceId: string | null = null;
+  try {
+    enlaceId = ctx.autor.enlazar(ctx.opdKey, origenKey, destinoKey, "etiquetado", opts);
+  } catch (e) {
+    return { estado: "fallo", razon: e instanceof Error ? e.message : String(e) };
+  }
+  if (!enlaceId) return { estado: "fallo", razon: "enlace etiquetado no creado" };
+  const hechos: HechoEmitido[] = [{ primitiva: "enlace", detalle: `etiquetado «${directiva.etiqueta}»` }];
+  if (directiva.colaAnotada) {
+    adjuntarAncla(ctx, enlaceId, directiva.colaAnotada);
+    hechos.push({ primitiva: "ver", detalle: `cola anotada: ${directiva.colaAnotada}` });
+  }
+  return { estado: "aplicada", hechos, enlaceIds: [enlaceId] };
+}
+
+/**
+ * Emite el hecho principal (una oración estricta) y adjunta su cola de modelado
+ * fino como ancla normativa PENDIENTE sobre el enlace que la oración crea (V12).
+ */
+function emitirHechoAnotado(
+  directiva: Extract<Directiva, { tipo: "hecho-anotado" }>,
+  ctx: ContextoEmision,
+): ResultadoEmision {
+  const res = emitirOracion(directiva.oracion, ctx);
+  if (res.estado === "aplicada" && res.enlaceIds && res.enlaceIds.length > 0) {
+    adjuntarAncla(ctx, res.enlaceIds[res.enlaceIds.length - 1]!, directiva.colaAnotada);
+    return {
+      estado: "aplicada",
+      hechos: [{ primitiva: "ver", detalle: `cola anotada: ${directiva.colaAnotada}` }],
+      ...(res.enlaceIds ? { enlaceIds: res.enlaceIds } : {}),
+    };
+  }
+  // Si la oración principal no creó un enlace al que anclar (idempotencia, dedup),
+  // la cola no tiene destino enlace — se descarta sin perder el hecho principal.
+  return { estado: "aplicada", hechos: [] };
+}
+
+/** Adjunta una ancla normativa PENDIENTE (cola de modelado fino) sobre un enlace. */
+function adjuntarAncla(ctx: ContextoEmision, enlaceId: string, nota: string): void {
+  try {
+    ctx.autor.ancla(
+      { enlace: enlaceId },
+      {
+        claveProto: `cola-fina-${++claveAnclaSeq}`,
+        estado: "pendiente-ratificacion",
+        nota,
+        nivelAutoridad: "operador-modelado",
+      },
+    );
+  } catch {
+    // El ancla es trazabilidad meta; un fallo de adjunción no debe abortar el hecho.
+  }
 }

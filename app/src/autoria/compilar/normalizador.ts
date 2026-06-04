@@ -13,7 +13,7 @@
 //
 // Sin IO, sin JointJS, sin Zustand: solo strings -> clasificacion.
 
-import type { Ancla, CategoriaRechazo, ContextoProto, LineaNormalizada, ReglaT2 } from "./tipos";
+import type { Ancla, CategoriaRechazo, ContextoProto, Directiva, Emision, LineaNormalizada, ReglaT2 } from "./tipos";
 
 // ── Lexico canonico ─────────────────────────────────────────────────────
 
@@ -311,21 +311,31 @@ function normalizarLinea(linea: string, contexto: ContextoProto): LineaNormaliza
   const estructura = clasificarEstructura(sinPunto);
   if (estructura) return [conAnclas(estructura)];
 
-  // 4) Rechazos que el parser aceptaria como falso positivo si los dejamos
+  // 4) FAMILIA V — mapeos de verbos/patrones extendidos decididos por el operador
+  //    (W4.3-rechazos, 2026-06-04). Reemplazan rechazos R1/R2/R3/R4/R7 por
+  //    primitivas OPM. Se evalúan ANTES de los rechazos tempranos para
+  //    interceptar las colas condicionales/guards/disyunciones que de otro modo
+  //    serían R1/R2, y antes del R3/R7 para los verbos extendidos (habilita,
+  //    alimenta, detecta, compromete, libera, precede a, sucede a, corresponde a,
+  //    cumple, restringe, puede iniciar). Si NO mapea, sigue el flujo de rechazo.
+  const familiaV = mapearFamiliaV(sinPunto, contexto);
+  if (familiaV) return [conAnclas(familiaV)];
+
+  // 5) Rechazos que el parser aceptaria como falso positivo si los dejamos
   //    pasar (R1 según/cuando/con-guard, R2 disyuncion, R6 cola informal).
   //    Se evaluan ANTES de las reescrituras para no "limpiar" la condicion.
   const rechazoTemprano = detectarRechazoTemprano(sinPunto);
   if (rechazoTemprano) return [conAnclas({ clase: "rechazada", original: sinAnclas, ...rechazoTemprano })];
 
-  // 5) Reescrituras T2 que pueden EXPANDIR (A1 esencia-lista, A6 TS multi-destino).
+  // 6) Reescrituras T2 que pueden EXPANDIR (A1 esencia-lista, A6 TS multi-destino).
   const expandida = expandir(sinPunto, contexto);
   if (expandida) return expandida.map((l) => conAnclas(l));
 
-  // 6) Reescrituras T2 1:1 (A2, A3, A4/R4, A8, A9, AESS).
+  // 7) Reescrituras T2 1:1 (A2, A3, A4/R4, A8, A9, AESS).
   const reescrita = reescribir1a1(sinPunto, contexto);
   if (reescrita) return [conAnclas(reescrita)];
 
-  // 7) Verbo fuera del enum -> R3. Se evalua tras las reescrituras para no
+  // 8) Verbo fuera del enum -> R3. Se evalua tras las reescrituras para no
   //    confundir formas validas (copular, estados, refinamiento) con R3.
   const r3 = detectarVerboNoCanonico(sinPunto);
   if (r3) return [conAnclas({ clase: "rechazada", original: sinAnclas, ...r3 })];
@@ -399,6 +409,390 @@ function detectarRechazoTemprano(sinPunto: string): { categoria: CategoriaRechaz
     };
   }
   return null;
+}
+
+// ── FAMILIA V — verbos/patrones extendidos (decisiones del operador 2026-06-04) ──
+//
+// Cada mapeo convierte una oración que ANTES rechazaba el normalizador en una
+// línea `normalizada` (1:1) o `compuesta` (1:N emisiones, opcionalmente con
+// abanico). Las que conservan superficie de parser emiten `{via:"oracion"}`; las
+// que el parser reverse no sabe re-leer (tagged, modificador con gatillo,
+// anotaciones) emiten `{via:"directiva"}`. Ver `docs/proto-modelo/
+// gramatica-subdialecto-v0.md` §«Familia V».
+
+/** ¿La entidad es un OBJETO según el contexto (default objeto si no se vio)? */
+function esObjeto(nombre: string, contexto: ContextoProto): boolean {
+  return (contexto.tipoPorEntidad.get(claveNombre(nombre)) ?? "objeto") === "objeto";
+}
+
+/** ¿La entidad es un PROCESO según el contexto? */
+function esProceso(nombre: string, contexto: ContextoProto): boolean {
+  return contexto.tipoPorEntidad.get(claveNombre(nombre)) === "proceso";
+}
+
+/** Estados declarados (display) de una entidad, en orden de descubrimiento. */
+function estadosDeclaradosDe(nombre: string, contexto: ContextoProto): string[] {
+  const set = contexto.estadosPorEntidad.get(claveNombre(nombre));
+  return set ? [...set] : [];
+}
+
+/** Construye una línea `compuesta` con trazabilidad. */
+function compuesta(
+  original: string,
+  regla: ReglaT2,
+  emisiones: Emision[],
+  agrupar?: { operador: "O" | "XOR" },
+): LineaNormalizada {
+  return { clase: "compuesta", emisiones, original: asegurarPunto(original), regla, ...(agrupar ? { agrupar } : {}) };
+}
+
+const dir = (directiva: Directiva): Emision => ({ via: "directiva", directiva });
+const ora = (oracion: string): Emision => ({ via: "oracion", oracion: asegurarPunto(oracion) });
+
+/** Despacha una oración a su mapeo de familia V, o null si ninguno aplica. */
+function mapearFamiliaV(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  return (
+    mapearGuardCompuesto(sinPunto, contexto) ?? // V13 (antes que R1/R2)
+    mapearTsODisyuncion(sinPunto, contexto) ?? // V14
+    mapearInicioDisyuncion(sinPunto, contexto) ?? // V15
+    mapearColaCondicional(sinPunto, contexto) ?? // V12 (antes que R1)
+    mapearPuedeIniciar(sinPunto, contexto) ?? // V3
+    mapearHabilita(sinPunto, contexto) ?? // V1 / V11
+    mapearRestringe(sinPunto, contexto) ?? // V2
+    mapearAlimenta(sinPunto) ?? // V4
+    mapearDetecta(sinPunto) ?? // V5
+    mapearCapacidad(sinPunto) ?? // V6
+    mapearPrecedeA(sinPunto, contexto) ?? // V7
+    mapearSucedeA(sinPunto) ?? // V8
+    mapearCorrespondeA(sinPunto) ?? // V9
+    mapearCumple(sinPunto) // V10
+  );
+}
+
+// ── V1 / V11: `habilita` ────────────────────────────────────────────────────
+// `X [en 's'] habilita P` con X objeto, P proceso → instrumento-condición.
+// `A habilita B` con AMBOS objetos → enlace estructural tagged «habilita».
+// Excluido (en reflexión): proceso→objeto con cola `para …` (Inspección pre-ruta).
+const HABILITA_RE = /^(.+?)\s+habilita\s+(.+)$/iu;
+
+function mapearHabilita(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  const m = HABILITA_RE.exec(sinPunto);
+  if (!m) return null;
+  const sujetoBruto = (m[1] ?? "").trim();
+  const objetoBruto = (m[2] ?? "").trim();
+
+  // En reflexión: `Inspección pre-ruta habilita Vehículo … para 'en ruta'` —
+  // proceso→objeto con cola `para …`. NO se mapea (sigue R3). El `para …` o un
+  // sujeto-proceso/destino-objeto delata este caso.
+  const tieneColaPara = /\s+para\s+/iu.test(objetoBruto);
+
+  const { entidad: sujeto, estado } = separarEstadoEnComillas(sujetoBruto);
+
+  // V1: X objeto (con o sin estado) habilita P proceso.
+  if (esObjeto(sujeto, contexto) && esProceso(objetoBruto, contexto) && !tieneColaPara) {
+    return compuesta(sinPunto, "V1", [
+      dir({ tipo: "instrumento-condicion", proceso: objetoBruto, objeto: sujeto, ...(estado ? { estado } : {}) }),
+    ]);
+  }
+
+  // V11: A objeto habilita B objeto (sin estado-gatillo, sin cola) → tagged.
+  if (esObjeto(sujetoBruto, contexto) && esObjeto(objetoBruto, contexto) && !estado && !tieneColaPara) {
+    return compuesta(sinPunto, "V11", [
+      dir({ tipo: "tagged", origen: sujetoBruto, destino: objetoBruto, etiqueta: "habilita" }),
+    ]);
+  }
+
+  return null; // proceso→objeto con `para …`, u otra forma: sigue al rechazo.
+}
+
+// ── V2: `restringe` (solo binario) ──────────────────────────────────────────
+// `X en 'e' restringe P` ≡ instrumento-condición desde X en el estado
+// COMPLEMENTARIO, SOLO si X tiene exactamente 2 estados declarados.
+const RESTRINGE_RE = /^(.+?)\s+en\s+(?:estado\s+)?['`]([^'`]+)['`]\s+restringe\s+(.+)$/iu;
+
+function mapearRestringe(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  const m = RESTRINGE_RE.exec(sinPunto);
+  if (!m) return null;
+  const objeto = (m[1] ?? "").trim();
+  const estadoRestrictor = (m[2] ?? "").trim();
+  const proceso = (m[3] ?? "").trim();
+  const estados = estadosDeclaradosDe(objeto, contexto);
+  // Binariedad: exactamente 2 estados declarados; si no, sigue rechazado (R3).
+  if (estados.length !== 2) return null;
+  const restrictorClave = claveEstado(estadoRestrictor);
+  const complemento = estados.find((e) => claveEstado(e) !== restrictorClave);
+  if (!complemento) return null;
+  return compuesta(sinPunto, "V2", [
+    dir({ tipo: "instrumento-condicion", proceso, objeto, estado: complemento }),
+  ]);
+}
+
+// ── V3: `puede iniciar` (forma de un solo destino) ──────────────────────────
+// `X [en 's'] puede iniciar P` → misma ruta evento que `inicia`. La disyunción
+// `puede iniciar A o B` la maneja V15 (mapearInicioDisyuncion), evaluada antes.
+const PUEDE_INICIAR_RE = /^(.+?)\s+puede\s+iniciar\s+(.+)$/iu;
+
+function mapearPuedeIniciar(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  const m = PUEDE_INICIAR_RE.exec(sinPunto);
+  if (!m) return null;
+  const destino = (m[2] ?? "").trim();
+  // Disyunción → V15 (no aquí). Si quedó algo con ` o ` fuera de comillas, ceder.
+  if (tieneDisyuncionDeProcesos(destino)) return null;
+  const { entidad: iniciador, estado } = separarEstadoEnComillas((m[1] ?? "").trim());
+  return compuesta(sinPunto, "V3", [
+    dir({ tipo: "evento", iniciador, proceso: destino, ...(estado ? { estado } : {}) }),
+  ]);
+}
+
+// ── V4: `alimenta` → instrumento (P requiere O) ─────────────────────────────
+const ALIMENTA_RE = /^(.+?)\s+alimenta\s+(.+)$/iu;
+
+function mapearAlimenta(sinPunto: string): LineaNormalizada | null {
+  const m = ALIMENTA_RE.exec(sinPunto);
+  if (!m) return null;
+  const objeto = (m[1] ?? "").trim();
+  const proceso = (m[2] ?? "").trim();
+  return compuesta(sinPunto, "V4", [ora(`${proceso} requiere ${objeto}`)]);
+}
+
+// ── V5: `detecta` → resultado (P genera O) ──────────────────────────────────
+const DETECTA_RE = /^(.+?)\s+detecta\s+(.+)$/iu;
+
+function mapearDetecta(sinPunto: string): LineaNormalizada | null {
+  const m = DETECTA_RE.exec(sinPunto);
+  if (!m) return null;
+  const proceso = (m[1] ?? "").trim();
+  const objeto = (m[2] ?? "").trim();
+  return compuesta(sinPunto, "V5", [ora(`${proceso} genera ${objeto}`)]);
+}
+
+// ── V6: `compromete`/`libera` → afecta + verbo original en etiqueta ─────────
+const CAPACIDAD_RE = /^(.+?)\s+(compromete|libera)\s+(.+)$/iu;
+
+function mapearCapacidad(sinPunto: string): LineaNormalizada | null {
+  const m = CAPACIDAD_RE.exec(sinPunto);
+  if (!m) return null;
+  const proceso = (m[1] ?? "").trim();
+  const verbo = (m[2] ?? "").toLocaleLowerCase("es");
+  const objeto = (m[3] ?? "").trim();
+  return compuesta(sinPunto, "V6", [
+    dir({ tipo: "efecto-anotado", proceso, objeto, anotacionEtiqueta: verbo }),
+  ]);
+}
+
+// ── V7: `precede a` (procesos) → invocación A→B ─────────────────────────────
+const PRECEDE_RE = /^(.+?)\s+precede\s+a\s+(.+)$/iu;
+
+function mapearPrecedeA(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  const m = PRECEDE_RE.exec(sinPunto);
+  if (!m) return null;
+  const origen = (m[1] ?? "").trim();
+  const destino = (m[2] ?? "").trim();
+  // El operador decidió: ambos procesos → invocación. Si el contexto los conoce
+  // como objetos, igual se modela invocación (decisión del operador es el verbo).
+  void contexto;
+  return compuesta(sinPunto, "V7", [dir({ tipo: "invocacion", origen, destino })]);
+}
+
+// ── V8: `A puede suceder a un B [opcional]` → tagged «sucede a» (+0..1) ──────
+const SUCEDE_RE = /^(.+?)\s+puede\s+suceder\s+a\s+un[ao]?\s+(.+)$/iu;
+
+function mapearSucedeA(sinPunto: string): LineaNormalizada | null {
+  const m = SUCEDE_RE.exec(sinPunto);
+  if (!m) return null;
+  const origen = (m[1] ?? "").trim();
+  let destino = (m[2] ?? "").trim();
+  const opcional = /\bopcional\b\.?$/iu.test(destino);
+  destino = destino.replace(/\s*\bopcional\b\.?$/iu, "").trim();
+  return compuesta(sinPunto, "V8", [
+    dir({ tipo: "tagged", origen, destino, etiqueta: "sucede a", ...(opcional ? { multiplicidadDestino: "0..1" } : {}) }),
+  ]);
+}
+
+// ── V9: `A corresponde a un B` → tagged «corresponde a» ─────────────────────
+const CORRESPONDE_RE = /^(.+?)\s+corresponde\s+a\s+un[ao]?\s+(.+)$/iu;
+
+function mapearCorrespondeA(sinPunto: string): LineaNormalizada | null {
+  const m = CORRESPONDE_RE.exec(sinPunto);
+  if (!m) return null;
+  const origen = (m[1] ?? "").trim();
+  const destino = (m[2] ?? "").trim();
+  return compuesta(sinPunto, "V9", [
+    dir({ tipo: "tagged", origen, destino, etiqueta: "corresponde a" }),
+  ]);
+}
+
+// ── V10: `A cumple B [para …]` → tagged «cumple» + cola anotada ──────────────
+const CUMPLE_RE = /^(.+?)\s+cumple\s+(.+)$/iu;
+
+function mapearCumple(sinPunto: string): LineaNormalizada | null {
+  const m = CUMPLE_RE.exec(sinPunto);
+  if (!m) return null;
+  const origen = (m[1] ?? "").trim();
+  let destino = (m[2] ?? "").trim();
+  let cola: string | undefined;
+  const colaM = /^(.+?)\s+(para\s+.+)$/iu.exec(destino);
+  if (colaM) {
+    destino = (colaM[1] ?? "").trim();
+    cola = (colaM[2] ?? "").trim();
+  }
+  return compuesta(sinPunto, "V10", [
+    dir({ tipo: "tagged", origen, destino, etiqueta: "cumple", ...(cola ? { colaAnotada: cola } : {}) }),
+  ]);
+}
+
+// ── V12: colas condicionales (`cuando`/`según`/`por una`) o R4 ──────────────
+// `<hecho principal> cuando/según/por una <cola>` → compila el hecho principal
+// (TS/efecto/requiere) y adjunta la cola como ancla pendiente sobre el enlace.
+// También R4: `requiere Domicilio dentro del Radio de cobertura` → requiere
+// Domicilio + cola anotada.
+const COLA_CUANDO_RE = /^(.+?)\s+(cuando\s+.+)$/iu;
+const COLA_SEGUN_RE = /^(.+?)\s+(seg[uú]n\s+.+)$/iu;
+
+function mapearColaCondicional(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  // R4: `<proceso> requiere <objeto> dentro del <ámbito>` (estado no declarado
+  // del corpus). Compila `requiere <objeto>` + cola `dentro del <ámbito>`.
+  const r4 = /^(.+?)\s+requiere\s+(.+?)\s+(dentro\s+del?\s+.+)$/iu.exec(sinPunto);
+  if (r4) {
+    const proceso = (r4[1] ?? "").trim();
+    const objeto = (r4[2] ?? "").trim();
+    const cola = (r4[3] ?? "").trim();
+    // La directiva `hecho-anotado` emite la oración principal Y adjunta la cola
+    // sobre el enlace que crea (no duplicar con un `ora()` aparte).
+    return compuesta(sinPunto, "V12", [
+      dir({ tipo: "hecho-anotado", oracion: `${proceso} requiere ${objeto}`, colaAnotada: cola }),
+    ]);
+  }
+
+  // NO capturar oraciones ESTRUCTURALES (`consta de`/`exhibe`/`se descompone`):
+  // un `según prestaciones` tras una lista `consta de … y Otros profesionales` es
+  // una cola informal de lista (R6, en reflexión del operador), no una cola
+  // condicional de un hecho procedural.
+  if (/\b(consta\s+(?:tambi[eé]n\s+)?de|exhibe[n]?|se\s+(?:descompone|despliega))\b/iu.test(sinPunto)) return null;
+
+  const m = COLA_CUANDO_RE.exec(sinPunto) ?? COLA_SEGUN_RE.exec(sinPunto);
+  if (!m) return null;
+  let principal = (m[1] ?? "").trim();
+  const cola = (m[2] ?? "").trim();
+
+  // El guard compuesto `con Y 'b'` lo maneja V13; aquí solo `cuando`/`según`.
+  // Si el principal trae `, o inicia` lo dejamos a V14.
+  if (/,\s*o\s+inicia\b/iu.test(principal)) return null;
+
+  principal = principal.replace(/,\s*$/u, "").trim();
+  void contexto;
+
+  // El principal puede ser una TS MULTI-DESTINO (`cambia X a 'a', 'b' o 'c'`),
+  // que el parser no acepta en una sola oración: la expandimos a una TS por
+  // destino (espejo de A6). Las primeras N-1 emiten como oración; la ÚLTIMA va por
+  // `hecho-anotado` (emite la oración Y adjunta la cola sobre su enlace — sin
+  // duplicar). Si el principal es 1:1, la única emisión es la `hecho-anotado`.
+  const oraciones = expandirTsMultidestino(principal);
+  const emisiones: Emision[] = oraciones.slice(0, -1).map((o) => ora(o));
+  emisiones.push(dir({ tipo: "hecho-anotado", oracion: asegurarPunto(oraciones[oraciones.length - 1]!), colaAnotada: cola }));
+  return compuesta(sinPunto, "V12", emisiones);
+}
+
+/** Expande `P cambia X a 'a', 'b' o 'c'` en N oraciones TS (una por destino).
+ *  Si no es multi-destino, devuelve la oración tal cual (un único elemento). */
+function expandirTsMultidestino(principal: string): string[] {
+  const m = /^(.+?)\s+cambia\s+(.+?)\s+a\s+(.+)$/iu.exec(principal);
+  if (m && !/\bde\b/iu.test(m[2] ?? "")) {
+    const estados = dividirEstados(m[3] ?? "");
+    if (estados.length >= 2) {
+      const proceso = (m[1] ?? "").trim();
+      const objeto = (m[2] ?? "").trim();
+      return estados.map((e) => asegurarPunto(`${proceso} cambia ${objeto} a ${e}`));
+    }
+  }
+  return [asegurarPunto(principal)];
+}
+
+// ── V13: guard compuesto `X en 'a' con Y 'b' inicia P` ──────────────────────
+// → evento desde X en 'a' (ruta W4.3) + instrumento-condición desde Y en 'b'.
+const GUARD_COMPUESTO_RE =
+  /^(.+?)\s+en\s+(?:estado\s+)?['`]([^'`]+)['`]\s+con\s+(.+?)\s+['`]([^'`]+)['`]\s+inicia\s+(.+)$/iu;
+
+function mapearGuardCompuesto(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  const m = GUARD_COMPUESTO_RE.exec(sinPunto);
+  if (!m) return null;
+  const iniciador = (m[1] ?? "").trim();
+  const estadoIni = (m[2] ?? "").trim();
+  const condicionante = (m[3] ?? "").trim();
+  const estadoCond = (m[4] ?? "").trim();
+  const proceso = (m[5] ?? "").trim();
+  void contexto;
+  return compuesta(sinPunto, "V13", [
+    dir({ tipo: "evento", iniciador, proceso, estado: estadoIni }),
+    dir({ tipo: "instrumento-condicion", proceso, objeto: condicionante, estado: estadoCond }),
+  ]);
+}
+
+// ── V14: `P cambia X a 'e', o inicia Q` → TS + evento + abanico XOR ─────────
+const TS_O_INICIA_RE = /^(.+?)\s+cambia\s+(.+?)\s+a\s+['`]([^'`]+)['`]\s*,\s*o\s+inicia\s+(.+)$/iu;
+
+function mapearTsODisyuncion(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  const m = TS_O_INICIA_RE.exec(sinPunto);
+  if (!m) return null;
+  const proceso = (m[1] ?? "").trim();
+  const objeto = (m[2] ?? "").trim();
+  const estado = (m[3] ?? "").trim();
+  const otroProceso = (m[4] ?? "").trim();
+  void contexto;
+  // La TS (efecto P→X a 'estado', vía directiva para resolver el objeto por nombre
+  // completo) + la invocación-evento P→Q, agrupadas en XOR.
+  return compuesta(
+    sinPunto,
+    "V14",
+    [
+      dir({ tipo: "transicion", proceso, objeto, estadoSalida: estado }),
+      dir({ tipo: "evento", iniciador: proceso, proceso: otroProceso }),
+    ],
+    { operador: "XOR" },
+  );
+}
+
+// ── V15: `X en 's' inicia A o B` / `S puede iniciar A o B` → ramas + XOR ────
+const INICIA_DISYUNCION_RE = /^(.+?)\s+(?:puede\s+iniciar|inicia)\s+(.+)$/iu;
+
+function mapearInicioDisyuncion(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  const m = INICIA_DISYUNCION_RE.exec(sinPunto);
+  if (!m) return null;
+  const destinos = (m[2] ?? "").trim();
+  if (!tieneDisyuncionDeProcesos(destinos)) return null;
+  const ramas = dividirProcesosDisyuncion(destinos);
+  if (ramas.length < 2) return null;
+  const { entidad: iniciador, estado } = separarEstadoEnComillas((m[1] ?? "").trim());
+  void contexto;
+  return compuesta(
+    sinPunto,
+    "V15",
+    ramas.map((proc) => dir({ tipo: "evento", iniciador, proceso: proc, ...(estado ? { estado } : {}) })),
+    { operador: "XOR" },
+  );
+}
+
+// ── Helpers de familia V ─────────────────────────────────────────────────────
+
+/** Separa `Nombre en 'estado'` → {entidad, estado}; si no hay estado, {entidad, undefined}. */
+function separarEstadoEnComillas(texto: string): { entidad: string; estado?: string } {
+  const m = /^(.+?)\s+en\s+(?:estado\s+)?['`]([^'`]+)['`]\s*$/iu.exec(texto.trim());
+  if (m) return { entidad: (m[1] ?? "").trim(), estado: (m[2] ?? "").trim() };
+  return { entidad: texto.trim() };
+}
+
+/** ¿La frase contiene una disyunción ` o ` de procesos FUERA de comillas (no una
+ *  lista de estados `'a' o 'b'`)? */
+function tieneDisyuncionDeProcesos(texto: string): boolean {
+  return /\bo\b/iu.test(texto.replace(/['`][^'`]*['`]/gu, ""));
+}
+
+/** Divide `A o B [o C]` en procesos (sin tocar listas de estados entre comillas). */
+function dividirProcesosDisyuncion(texto: string): string[] {
+  return texto
+    .split(/\s+o\s+/iu)
+    .map((s) => s.trim().replace(/\.\s*$/u, "").trim())
+    .filter(Boolean);
 }
 
 // ── Reescrituras que expanden (A1, A6) ───────────────────────────────────
@@ -754,9 +1148,15 @@ function capturarEstados(sinPunto: string): { entidad: string; estados: string[]
 }
 
 /** Divide una lista de estados `'a', 'b' o 'c'` en tokens normalizados con sus
- *  comillas (`'a'`), descartando designaciones `(inicial)` adosadas. */
+ *  comillas (`'a'`), descartando designaciones `(inicial)` adosadas. Parte por
+ *  coma, ` o ` y ` u ` (la disyunción española ante sonido /o/, p.ej. `'disponible'
+ *  u 'ocupado'`): sin esto, el contexto contaba dos estados como uno solo, lo que
+ *  rompía la binariedad de V2 (`restringe`). */
 function dividirEstados(texto: string): string[] {
-  return texto
+  // Normaliza la disyunción ` u '` → ` o '` (solo ante comilla, igual que A12)
+  // antes de partir, para no tocar un ` u ` interno de un nombre sin comillas.
+  const normalizado = texto.replace(/\s+u\s+(['`])/giu, " o $1");
+  return normalizado
     .split(/\s*,\s*|\s+o\s+/iu)
     .map((s) => s.trim())
     .filter(Boolean)

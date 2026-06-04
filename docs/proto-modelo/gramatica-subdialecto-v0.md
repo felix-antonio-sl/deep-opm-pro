@@ -1,6 +1,6 @@
-# Gramática del sub-dialecto del proto-modelo — v0.1 (falsada contra HODOM)
+# Gramática del sub-dialecto del proto-modelo — v0.2 (familia V de verbos extendidos)
 
-**Fecha:** 2026-06-04 · **Estatus:** v0.1 — **falsada** contra el corpus HODOM (52 bloques, 469 líneas; cobertura sobre hechos 93.4%, ley L1 verde 100%; evidencia: `docs/proto-modelo/falsacion-2026-06-04.md`). Absorbe las 4 divergencias spec-vs-parser de la falsación. Candidata a promoción KORA cuando estabilice.
+**Fecha:** 2026-06-04 · **Estatus:** v0.2 — **falsada** contra el corpus HODOM (52 bloques, 472 líneas; cobertura sobre hechos 93.3%, ley L1 verde 100%; evidencia: `docs/proto-modelo/falsacion-2026-06-04.md`). Absorbe las 4 divergencias spec-vs-parser de la falsación **y** la **Familia V** de verbos/patrones extendidos decididos por el operador (sesión W4.3-rechazos, 2026-06-04): los rechazos del corpus bajan de **31 → 5** (las 5 restantes están EN REFLEXIÓN del operador). Candidata a promoción KORA cuando estabilice.
 **Autoridad:** realiza la decisión D2 del acta `2026-06-04-acta-mesa-flujo-canonico-dominio-opforja.md` bajo HITL-1 ("**bastante libre**"). El vocabulario estricto de destino es el de `docs/canon-opm/spec-forja-opl.md` §1.1; el árbitro operativo de "estricto" es **lo que `app/src/opl/parser/parsear.ts` acepta sin `unsupported-kernel`**.
 **Custodia:** este documento + el normalizador + sus fixtures viven en `deep-opm-pro` (D1). Las instancias de proto-modelo viven en cada repo de dominio.
 
@@ -52,19 +52,53 @@ Estados SIN prefijo (`X puede estar 'a', 'b' o 'c'.` — **[v0.1]** la forma con
 
 Reglas T2 obligatorias: (i) cada reescritura registra `{original, regla}`; (ii) **idempotencia**: normalizar(normalizar(x)) = normalizar(x); (iii) ninguna regla inventa información que no esté en la línea o en el proto ya leído (A4 mira declaraciones previas, jamás adivina nombres de estado).
 
+## Familia V — verbos/patrones extendidos (decisiones del operador 2026-06-04)
+
+**[v0.2]** El operador (sesión W4.3-rechazos) decidió mapear hacia primitivas OPM la mayoría de los rechazos T3 del corpus. Cada mapeo produce una línea `normalizada` (1:1) o `compuesta` (1:N emisiones, con o sin abanico). Las emisiones que conservan superficie de parser van como **oración** (ruta parser→AST→emisor); las que el parser reverse no sabe re-leer (enlaces TAGGED, modificador con gatillo, anotaciones libres) van como **directiva** (ruta directa del emisor). Implementación: `app/src/autoria/compilar/normalizador.ts` (`mapearFamiliaV`) + `emisor.ts` (`emitirDirectiva`/`emitirCompuesta`).
+
+**Canal de anotación elegido** (decisión registrada): el verbo de capacidad preservado (V6) viaja en `enlace.etiqueta` — canal serializable que **round-trip en el OPL forward** (`P afecta O. [etiqueta: compromete]`), el menos invasivo que ya serializa sin contaminar el verbo nuclear. Las **colas de modelado fino** (V10 `para …`, V12 `cuando/según/dentro de …`, y la decisión XOR no agrupable de V14/V15) viajan como **`AnclaNormativa` con `estado: pendiente-ratificacion`** sobre el enlace target — el canal diseñado para "pendiente de modelado fino" (`docs/proto-modelo/diseno-ancla-normativa.md`), trazable y no-OPL.
+
+| # | Forma del corpus (rechazo previo) | Mapeo OPM | Fundamento |
+|---|---|---|---|
+| V1 | `X [en 's'] habilita P` (X objeto, P proceso) | instrumento con `modificador: condicion` desde X[ en `s`] hacia P | "habilitar" = el estado/existencia de X es **condición** del proceso (gatillo sin consumo). Incluye `X habilita P` sin estado. |
+| V2 | `X en 'e' restringe P` | instrumento-condición desde X en el estado **complementario**, SOLO si X es **binario** (exactamente 2 estados); si no → rechazo con diagnóstico | "restringir desde 'e'" ≡ "habilitar desde el complemento". La binariedad es la única lectura unívoca (`Cupo ocupado restringe` ≡ `Cupo disponible habilita`). |
+| V3 | `X [en 's'] puede iniciar P` | misma ruta evento que `inicia` (evento sin portador: instrumento-evento si X objeto-en-estado, invocación-evento si X proceso) | `puede iniciar` = `inicia` con modalidad; el modelo no distingue la modalidad deóntica. |
+| V4 | `O alimenta P` | `P requiere O` (instrumento) | "alimentar" un proceso con un objeto = el proceso lo **requiere** como insumo persistente. |
+| V5 | `P detecta O` | `P genera O` (resultado) | "detectar" produce el objeto-evento detectado como **resultado** del proceso de vigilancia. |
+| V6 | `P compromete/libera O` | `P afecta O` + verbo original en `enlace.etiqueta` | "comprometer/liberar" capacidad = un **efecto** sobre el recurso; el matiz se preserva como anotación serializable. |
+| V7 | `A precede a B` (procesos) | `A invoca B` (invocación) | precedencia temporal estricta proceso→proceso = invocación (disparo secuencial). |
+| V8 | `A puede suceder a un B [opcional]` | enlace **etiquetado** «sucede a» A→B (+ multiplicidad `0..1` si `opcional`) | relación de orden no procedural entre objetos = relación estructural fundamental **etiquetada** (no hay primitiva nuclear). |
+| V9 | `A corresponde a un B` | etiquetado «corresponde a» A→B | correspondencia/mapeo entre objetos = relación estructural etiquetada. |
+| V10 | `A cumple B [para el acto]` | etiquetado «cumple» A→B + cola `para …` anotada (ancla pendiente) | "cumplir" un requisito/competencia = relación etiquetada; el alcance (`para …`) es modelado fino pendiente. |
+| V11 | `A habilita B` (AMBOS objetos) | etiquetado «habilita» A→B | habilitación objeto→objeto (no proceso) = relación estructural etiquetada (distinta de V1). |
+| V12 | cola condicional `… cuando/según/por una …`; y R4 `requiere X dentro del Y` | compila el hecho principal (TS/efecto/requiere) + cola anotada como ancla pendiente sobre el enlace | la cláusula condicional/de alcance es **decisión de modelado fino** que no degrada el hecho nuclear ya verdadero. |
+| V13 | guard compuesto `X en 'a' con Y 'b' inicia P` | evento desde X en `a` (ruta W4.3) **+** instrumento-condición desde Y en `b` hacia P | dos guards conjuntos = dos enlaces reactivos (uno evento-gatillo, otro condición). |
+| V14 | `P cambia X a 'e', o inicia Q` | transición (efecto P→X a `e`) + invocación-evento P→Q + **abanico XOR** | dos consecuencias alternativas. El kernel exige abanicos **homogéneos**: efecto+invocación no agrupan → la decisión XOR queda anotada como ancla pendiente sobre cada rama. |
+| V15 | `X en 's' inicia A o B` / `S puede iniciar A o B` | dos ramas evento + **abanico XOR** | disyunción de consecuencias. El XOR se forma cuando las ramas comparten un puerto de **entidad** (S proceso → invocaciones); con gatillo-estado (X objeto), el kernel no agrupa puertos-estado → la decisión XOR queda anotada. |
+
+**Los 5 que SIGUEN rechazados (EN REFLEXIÓN del operador, no se mapean):**
+
+1. `Cupo HODOM proyecta la Capacidad de prestaciones comprometida como día-cama para REM.` (R3 `proyecta` — proyección/derivación no resuelta).
+2. `Acceso del colaborador … está acotado por Deber de reserva.` (R7 `está acotado por` — restricción normativa no primitiva).
+3. `… y los demás veredictos parciales determinan Solicitud … como 'aceptada', 'en espera' o 'rechazada'.` (R6 cola informal de lista + `determinan…como`).
+4. `Equipo HODOM consta de … y Otros profesionales según prestaciones.` (R6 cola informal `y Otros … según …`).
+5. `Inspección pre-ruta habilita Vehículo de transporte para 'en ruta'.` (R3 — proceso→objeto con cola `para 'estado'`; V1 NO la captura por exigir objeto→proceso sin cola `para`).
+
 ## T3 — Rechazos con diagnóstico (categorías)
 
-| Cat | Patrón | Ejemplos del corpus | Diagnóstico al modelador |
-|---|---|---|---|
-| R1 | cláusula condicional `cuando ...` / `por una ...` / `según ...` | L139, L199, L268, L398, L435, L482 | "condición no modelable como cláusula: modélala como estado-guard, evento o declárala supuesto" |
-| R2 | disyunción de cláusulas (`..., o inicia Y` / `inicia A o B`) | L183, L201, L429 | "dos hechos alternativos en una oración: sepáralos o modela la decisión (abanico XOR)" |
-| R3 | verbo fuera del enum cerrado | `determinan...como` L66, `detecta` L181, `restringe` L237, `alimenta` L307/420, `cumple` L130, `corresponde a` L346, `está acotado por` L438, `precede a` L279/426, `habilita` L110/232/238/333, `suceder a` L21, `compromete/libera/proyecta` L483-485 | "verbo '<v>' no es del catálogo: elige el verbo OPM que corresponde (propuestas: …) o declara el hecho como pendiente" |
-| R4 | estado no declarado usado por A4/A7 | — | "el estado '<e>' no está declarado para <X>" |
-| R5 | TS sin origen no aceptada por el parser | — | "indica el estado de origen" |
-| R6 | cola informal en lista (`y Otros profesionales según prestaciones`) | L171 | "elemento de lista no nominal: nómbralo o decláralo fuera del modelo" |
-| R7 | oración relacional libre | L438, L21, L346 | "relación no primitiva: usa enlace etiquetado canónico o exhibición" |
+**[v0.2]** Tras la Familia V, R3/R7 se reducen a los verbos **aún sin mapeo decidido** (`proyecta`, `determinan…como`, `está acotado por`) y a la forma proceso→objeto-con-cola de `habilita`. Las colas condicionales (R1) y disyunciones (R2) ya NO se rechazan salvo la cola informal de lista (R6).
 
-**Importante:** un rechazo NO es fracaso del flujo — es el sub-dialecto haciendo su trabajo: las líneas R1-R3 del corpus codifican decisiones de modelado reales (guards compuestos, alternativas, semántica de dominio) que el modelador debe resolver con la skill, no que un normalizador deba adivinar.
+| Cat | Patrón | Estado en v0.2 | Diagnóstico al modelador |
+|---|---|---|---|
+| R1 | cláusula condicional `cuando ...` / `por una ...` / `según ...` | **mayoría → V12/V13** (cola anotada / guard compuesto); solo persiste lo que no es hecho procedural compilable | "condición no modelable como cláusula: modélala como estado-guard, evento o declárala supuesto" |
+| R2 | disyunción de cláusulas (`..., o inicia Y` / `inicia A o B`) | **→ V14/V15** (TS+evento / ramas evento + abanico XOR) | "dos hechos alternativos en una oración: sepáralos o modela la decisión (abanico XOR)" |
+| R3 | verbo fuera del enum cerrado | **reducido**: `alimenta`→V4, `detecta`→V5, `compromete/libera`→V6, `habilita`(obj→proc)→V1, `restringe`(binario)→V2, `puede iniciar`→V3/V15, `cumple`→V10. **Persisten SIN mapeo**: `proyecta`, `determinan…como`, `habilita`(proc→obj con cola `para 'estado'`) | "verbo '<v>' no es del catálogo: elige el verbo OPM que corresponde (propuestas: …) o declara el hecho como pendiente" |
+| R4 | estado no declarado usado por A4/A7 | `requiere X dentro del Y` → **V12** (requiere X + cola anotada) | "el estado '<e>' no está declarado para <X>" |
+| R5 | TS sin origen no aceptada por el parser | — (cero en el corpus) | "indica el estado de origen" |
+| R6 | cola informal en lista (`y Otros profesionales según prestaciones`) | **persiste** (EN REFLEXIÓN): elemento no nominal no se adivina | "elemento de lista no nominal: nómbralo o decláralo fuera del modelo" |
+| R7 | oración relacional libre | `precede a`→V7, `suceder a`→V8, `corresponde a`→V9. **Persiste**: `está acotado por` (EN REFLEXIÓN) | "relación no primitiva: usa enlace etiquetado canónico o exhibición" |
+
+**Importante:** un rechazo NO es fracaso del flujo — es el sub-dialecto haciendo su trabajo. Tras la Familia V, los rechazos del corpus HODOM bajan de **31 → 5**, y esas 5 están EN REFLEXIÓN del operador (no decidió aún su mapeo): el normalizador devuelve el barro al humano (anti-complacencia) en lugar de adivinar una semántica no resuelta.
 
 ## Anclas inline (diseño preliminar; se consolida en W1.5)
 
@@ -78,14 +112,18 @@ Reglas T2 obligatorias: (i) cada reescritura registra `{original, regla}`; (ii) 
 // app/src/autoria/compilar/normalizador.ts — función pura, sin IO
 type LineaNormalizada =
   | { clase: "estricta"; oracion: string }
-  | { clase: "normalizada"; oracion: string; original: string; regla: string }   // A1..A11
+  | { clase: "normalizada"; oracion: string; original: string; regla: string }   // A1..A12/AESS
   | { clase: "estructura"; oracion: string; secuencial?: boolean; aditiva?: boolean }
   | { clase: "comentario"; texto: string; anclas: Ancla[] }
+  // [v0.2] FAMILIA V: 1..N emisiones (oración → parser; directiva → emisor directo),
+  // opcionalmente agrupadas en un abanico XOR/OR sobre los enlaces creados.
+  | { clase: "compuesta"; emisiones: Emision[]; original: string; regla: "V1".."V15";
+      agrupar?: { operador: "O"|"XOR" } }
   | { clase: "rechazada"; original: string; categoria: "R1"|...|"R7"; diagnostico: string };
 normalizarBloqueOpl(lineas: string[], contexto: ContextoProto): LineaNormalizada[]
-// contexto acumula estados declarados por entidad (para A4/R4) — se construye en una pasada previa.
+// contexto acumula estados declarados por entidad (para A4/R4/V2) — se construye en una pasada previa.
 ```
 
 ## Ley L1 (sella esta gramática)
 
-El normalizador es **total** sobre T1+T2 (toda línea T1/T2 produce `estricta|normalizada` cuyo texto **parsea sin `unsupported-kernel`** en `parsear.ts`, salvo clase `estructura`), **idempotente**, y **rechaza-con-diagnóstico** todo lo demás. Fixtures positivos y negativos obligatorios; primera falsación: el corpus HODOM completo (reporte en `docs/proto-modelo/falsacion-2026-06-04.md`).
+El normalizador es **total** sobre T1+T2 (toda línea T1/T2 produce `estricta|normalizada` cuyo texto **parsea sin `unsupported-kernel`** en `parsear.ts`, salvo clase `estructura`), **idempotente**, y **rechaza-con-diagnóstico** todo lo demás. **[v0.2]** Para la Familia V, la ley L1 aplica sobre las emisiones-**oración** de una línea `compuesta` (cada una parsea estricta); las emisiones-**directiva** se validan por el efecto en el modelo emitido (firma de enlace del kernel + round-trip OPL forward donde el generador tiene superficie: tagged `A sucede a B.`, efecto anotado `[etiqueta: …]`). Fixtures positivos y negativos obligatorios (`app/src/autoria/compilar/familia-v.test.ts`); falsación: el corpus HODOM completo (reporte en `docs/proto-modelo/falsacion-2026-06-04.md`), rechazos 31→5.

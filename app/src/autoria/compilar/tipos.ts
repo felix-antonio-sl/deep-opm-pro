@@ -16,7 +16,13 @@ export type CategoriaRechazo = "R1" | "R2" | "R3" | "R4" | "R5" | "R6" | "R7";
 
 /** Reglas T2 de reescritura determinista (A1-A11), mas las variantes que el
  *  parser real obligo a introducir (esencia sin "un objeto", estados con
- *  prefijo "en uno de los estados"). Cada `normalizada` registra cual aplico. */
+ *  prefijo "en uno de los estados"). Cada `normalizada` registra cual aplico.
+ *
+ *  La familia V (V1-V15) son los VERBOS/PATRONES EXTENDIDOS decididos por el
+ *  operador (sesión W4.3-rechazos, 2026-06-04): mapeos de oraciones que el
+ *  normalizador antes RECHAZABA (R1/R2/R3/R4/R6/R7) hacia primitivas OPM
+ *  canónicas. Cada regla V se documenta en
+ *  `docs/proto-modelo/gramatica-subdialecto-v0.md` §«Familia V». */
 export type ReglaT2 =
   | "A1" // distribuir esencia/afiliacion sobre lista de entidades
   | "A2" // estados: normalizar "en uno de los estados" (la realidad: STRIP)
@@ -30,7 +36,23 @@ export type ReglaT2 =
   | "A10" // "se descompone en ... en esa secuencia" -> estructura secuencial
   | "A11" // concordancia de genero del verbo copular
   | "A12" // disyuncion `u` (ante sonido /o/) -> `o` en listas de estados
-  | "AESS"; // esencia/afiliacion sin "un objeto/proceso" -> inyectar tipo entidad
+  | "AESS" // esencia/afiliacion sin "un objeto/proceso" -> inyectar tipo entidad
+  // ── Familia V — verbos/patrones extendidos (decisiones del operador) ──
+  | "V1" // "X [en 's'] habilita P" (X obj, P proc) -> instrumento-condicion
+  | "V2" // "X en 'e' restringe P" -> instrumento-condicion sobre estado complementario (binario)
+  | "V3" // "X [en 's'] puede iniciar P" -> evento (misma ruta que `inicia`)
+  | "V4" // "O alimenta P" -> "P requiere O" (instrumento)
+  | "V5" // "P detecta O" -> "P genera O" (resultado)
+  | "V6" // "P compromete/libera O" -> "P afecta O" + verbo original en `etiqueta`
+  | "V7" // "A precede a B" (procesos) -> "A invoca B"
+  | "V8" // "A puede suceder a un B [opcional]" -> tagged «sucede a» (+ 0..1 si opcional)
+  | "V9" // "A corresponde a un B" -> tagged «corresponde a»
+  | "V10" // "A cumple B [para …]" -> tagged «cumple» + cola anotada
+  | "V11" // "A habilita B" (ambos objetos) -> tagged «habilita»
+  | "V12" // cola condicional (`cuando`/`según`/`por una`) o R4 -> hecho + cola anotada
+  | "V13" // guard compuesto (`X en 'a' con Y 'b' inicia P`) -> evento + instrumento-condicion
+  | "V14" // "P cambia X a 'e', o inicia Q" -> TS + evento + abanico XOR
+  | "V15"; // "X en 's' inicia A o B" / "S puede iniciar A o B" -> ramas + abanico XOR
 
 /** Ancla normativa o de seccion extraida inline (W1.5/F5 la consumira; hoy se
  *  conserva junto a la linea, no compila). */
@@ -44,6 +66,71 @@ export interface Ancla {
 }
 
 /**
+ * Una DIRECTIVA es una instrucción de emisión que el emisor aplica DIRECTAMENTE
+ * (sin pasar por el parser→AST). Existe porque varios mapeos de la familia V
+ * producen efectos que el parser reverse NO tiene superficie para re-leer:
+ *
+ *  - enlaces TAGGED (`etiquetado`): el generador OPL forward los emite (`A sucede
+ *    a B.`), pero el parser reverse no los reconoce — no hay `kind` de AST. Por
+ *    eso el emisor crea el enlace `etiquetado` a mano vía el DSL.
+ *  - un modificador `condicion`/`evento` con un estado-gatillo o sin él, sin
+ *    construir la superficie verbosa CT/CH/CS/ET que el parser exigiría para
+ *    re-derivar el modificador desde texto.
+ *  - anotaciones libres (cola `cuando …`, verbo de capacidad preservado) que se
+ *    adjuntan al enlace por un canal serializable (etiqueta del enlace o ancla
+ *    normativa pendiente), sin contaminar el verbo OPL nuclear.
+ *
+ * El emisor traduce cada directiva a 1..N llamadas del DSL (igual que una
+ * oración, pero con control total de extremos/modificador/anotación). Toda
+ * directiva devuelve el Id del enlace creado (para agrupar en abanico, V14/V15).
+ */
+export type Directiva =
+  /** Instrumento (X→P) con `modificador: condicion`, estado-gatillo opcional en el origen. V1/V2/V13. */
+  | { tipo: "instrumento-condicion"; proceso: string; objeto: string; estado?: string }
+  /** Evento `X [en 's'] inicia P` por la ruta W4.3 (evento sin portador). V3/V13/V14/V15. */
+  | { tipo: "evento"; iniciador: string; proceso: string; estado?: string }
+  /** Instrumento simple P←O (X requiere O). V4. */
+  | { tipo: "instrumento"; proceso: string; objeto: string }
+  /** Resultado P→O (P genera O). V5. */
+  | { tipo: "resultado"; proceso: string; objeto: string }
+  /** Efecto P→O con el verbo original conservado en la `etiqueta` del enlace. V6. */
+  | { tipo: "efecto-anotado"; proceso: string; objeto: string; anotacionEtiqueta: string }
+  /**
+   * Transición (efecto P→O con estado de salida). Resuelve el objeto por su nombre
+   * COMPLETO (evita la degradación del parser que parte un nombre con ` de ` en
+   * objeto+estado). Estado origen opcional. V14.
+   */
+  | { tipo: "transicion"; proceso: string; objeto: string; estadoSalida: string; estadoEntrada?: string }
+  /** Invocación proceso→proceso (A invoca B). V7. */
+  | { tipo: "invocacion"; origen: string; destino: string }
+  /**
+   * Enlace estructural TAGGED (`etiquetado`) origen→destino con `etiqueta`. La
+   * cola opcional (`para el acto`, V10) y el `cuando …` se adjuntan como ancla
+   * normativa pendiente sobre el enlace. `multiplicidadDestino` para V8 opcional.
+   */
+  | {
+      tipo: "tagged";
+      origen: string;
+      destino: string;
+      etiqueta: string;
+      multiplicidadDestino?: string;
+      colaAnotada?: string;
+    }
+  /**
+   * Hecho principal (una oración estricta) MÁS una cola de modelado fino
+   * adjuntada como ancla normativa PENDIENTE sobre el enlace que esa oración
+   * crea. V12 (colas `cuando`/`según`/`por una`/R4). La oración se parsea y
+   * emite normalmente; el emisor adjunta la nota al último enlace creado.
+   */
+  | { tipo: "hecho-anotado"; oracion: string; colaAnotada: string };
+
+/** Una EMISIÓN dentro de una línea `compuesta`: o una oración (ruta parser) o
+ *  una directiva (ruta directa del emisor). Ver `Directiva`. */
+export type Emision =
+  | { via: "oracion"; oracion: string }
+  | { via: "directiva"; directiva: Directiva };
+
+/**
  * Resultado de clasificar UNA linea de un bloque `opl`. Union discriminada por
  * `clase` (cf. contrato W1.2 de la gramatica):
  *
@@ -54,13 +141,28 @@ export interface Ancla {
  *                  pero las marca `unsupported-kernel` por diseno; por eso la
  *                  ley L1 las EXCLUYE del test de aceptacion del parser.
  * - `comentario`:  linea `#...` dentro del bloque; se conserva como anotacion.
- * - `rechazada`:   excede T1+T2; diagnostico con categoria + sugerencia.
+ * - `compuesta`:   un mapeo de la familia V que produce 1..N emisiones (oraciones
+ *                  y/o directivas), opcionalmente agrupadas en un abanico XOR/OR.
+ *                  Conserva `{original, regla}` para trazabilidad, igual que
+ *                  `normalizada`. El emisor expande cada emisión y, si `agrupar`
+ *                  está presente, forma el abanico sobre los enlaces creados.
+ * - `rechazada`:   excede T1+T2 y NO tiene mapeo decidido; diagnostico con
+ *                  categoria + sugerencia.
  */
 export type LineaNormalizada =
   | { clase: "estricta"; oracion: string; anclas?: Ancla[] }
   | { clase: "normalizada"; oracion: string; original: string; regla: ReglaT2; anclas?: Ancla[] }
   | { clase: "estructura"; oracion: string; secuencial?: boolean; aditiva?: boolean; anclas?: Ancla[] }
   | { clase: "comentario"; texto: string; anclas: Ancla[] }
+  | {
+      clase: "compuesta";
+      emisiones: Emision[];
+      original: string;
+      regla: ReglaT2;
+      /** Si presente, agrupa los enlaces creados por `emisiones` en un abanico. */
+      agrupar?: { operador: "O" | "XOR" };
+      anclas?: Ancla[];
+    }
   | { clase: "rechazada"; original: string; categoria: CategoriaRechazo; diagnostico: string; anclas?: Ancla[] };
 
 /**

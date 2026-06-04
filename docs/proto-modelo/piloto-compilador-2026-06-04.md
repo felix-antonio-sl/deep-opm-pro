@@ -9,38 +9,36 @@
 
 - OPDs creados                      : 11
 - Bundle emite (validarModelo PASS) : SÍ
-- Entidades (bundle)                : 248
+- Entidades (bundle)                : 251
 - Estados (bundle)                  : 175
-- Enlaces (bundle)                  : 299
+- Enlaces (bundle)                  : 328
 - OPDs (bundle)                     : 11
 - Avisos de severidad error         : 0
-- Canon                             : FAIL (10 bloqueantes, 99 metodológicos, 46 info).
+- Canon                             : FAIL (10 bloqueantes, 100 metodológicos, 46 info).
 
 ## 2. Hechos aplicados por tipo de primitiva DSL
 
-- Oraciones aplicadas     : 418
-- Hechos emitidos (total) : 443
--   · enlace              : 299
+- Oraciones aplicadas     : 444
+- Hechos emitidos (total) : 476
+-   · abanico             : 1
+-   · enlace              : 323
 -   · entidad             : 87
 -   · estados             : 51
--   · ver                 : 6
+-   · ver                 : 14
 
 ## 3. Exclusiones, rechazos y fallos (L2 — nada se pierde en silencio)
 
 - Líneas estructura (refinamientos)            : 9
 - Comentarios conservados                      : 12
 - Excluidas (clase sin primitiva)              : 0
-- Rechazadas (T3 del normalizador)             : 31
+- Rechazadas (T3 del normalizador)             : 5
 - Fallos (emisión rechazada por kernel/parser) : 0
 
 ### Rechazos del normalizador por categoría T3
 
-- `R1`: 6
-- `R2`: 3
-- `R3`: 14
-- `R4`: 1
+- `R3`: 2
 - `R6`: 2
-- `R7`: 5
+- `R7`: 1
 
 ### Fallos de emisión por causa (tensiones de la convención v0)
 
@@ -50,14 +48,14 @@ Ejemplos de fallo (oración :: razón):
 
 ## 4. Round-trip OPL forward (los hechos aplicados reaparecen)
 
-- Hechos aplicados verificables (cosa/estados/procedural) : 361
-- Presentes en el OPL forward del modelo                  : 332
-- Cobertura round-trip                                    : 92.0%
+- Hechos aplicados verificables (cosa/estados/procedural) : 367
+- Presentes en el OPL forward del modelo                  : 334
+- Cobertura round-trip                                    : 91.0%
 
 ## 5. L2 — contabilidad
 
 - Líneas sin destino reconocido      : 0
-- Hechos en ledger == resumen.hechos : 443 == 443
+- Hechos en ledger == resumen.hechos : 476 == 476
 - L2 coherente                       : SÍ
 
 ## 6. Veredicto

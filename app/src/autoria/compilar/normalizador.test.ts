@@ -345,54 +345,58 @@ describe("estructura — `se descompone en` / `se despliega en`", () => {
   });
 });
 
-// ── R1 — clausula condicional (`cuando`/`según`/`por`/`con`) ─────────────
+// ── Familia V — colas condicionales y guard compuesto (antes R1) ─────────
+// El operador decidió mapear las colas `cuando`/`según` (V12) y el guard
+// compuesto (V13) hacia primitivas OPM. Estas oraciones ya NO se rechazan.
 
-describe("R1 — clausulas condicionales se rechazan con diagnostico", () => {
-  test("`según` adosado a una TS", () => {
+describe("V12/V13 — colas condicionales y guard compuesto se mapean (antes R1)", () => {
+  test("`según` adosado a una TS → V12 (hecho principal + cola anotada)", () => {
     const l = una(
       "Verificación cambia Solicitud a 'aceptada', 'en espera' o 'rechazada' según Disponibilidad de admisión.",
     );
-    expect(l.clase).toBe("rechazada");
-    if (l.clase === "rechazada") expect(l.categoria).toBe("R1");
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") expect(l.regla).toBe("V12");
   });
 
-  test("`cuando` adosado a un resultado", () => {
+  test("`cuando` adosado a un resultado → V12", () => {
     const l = una("Vigilancia y prevención de IAAS genera Evento adverso cuando detecta una IAAS.");
-    expect(l.clase).toBe("rechazada");
-    if (l.clase === "rechazada") expect(l.categoria).toBe("R1");
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") expect(l.regla).toBe("V12");
   });
 
-  test("guard compuesto con `con` en un evento", () => {
+  test("guard compuesto con `con` en un evento → V13", () => {
     const l = una(
       "Evento adverso en estado 'detectado' con Notificabilidad 'notificable' inicia Notificación a la autoridad sanitaria.",
     );
-    expect(l.clase).toBe("rechazada");
-    if (l.clase === "rechazada") expect(l.categoria).toBe("R1");
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") expect(l.regla).toBe("V13");
   });
 });
 
-// ── R2 — disyuncion de clausulas ────────────────────────────────────────
+// ── Familia V — disyunción de consecuencias (antes R2) ───────────────────
+// El operador decidió mapear `inicia A o B` / `puede iniciar A o B` (V15) a dos
+// ramas evento + abanico XOR. Ya NO se rechazan.
 
-describe("R2 — disyuncion de hechos alternativos se rechaza", () => {
-  test("`puede iniciar A o B`", () => {
+describe("V15 — disyunción de consecuencias se mapea (antes R2)", () => {
+  test("`puede iniciar A o B` → V15", () => {
     const l = una("Suspensión de la atención puede iniciar Cierre por alta disciplinaria o Cierre por renuncia voluntaria.");
-    expect(l.clase).toBe("rechazada");
-    if (l.clase === "rechazada") expect(l.categoria).toBe("R2");
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") {
+      expect(l.regla).toBe("V15");
+      expect(l.agrupar?.operador).toBe("XOR");
+    }
   });
 
-  // Tensión 1/2: `… inicia A o B` (sin `puede`, sin coma) — disyunción genuina de
-  // procesos-consecuencia que el parser absorbía como un proceso de nombre
-  // compuesto `A o B`. La spec ya la lista como R2; ahora la implementación la
-  // captura. El estado `'…'` entre comillas ANTES de `inicia` no la dispara.
-  test("`X en `s` inicia A o B` (disyunción de consecuencias) → R2", () => {
+  test("`X en `s` inicia A o B` (disyunción de consecuencias) → V15", () => {
     const l = una("Decisión de conducta clínica en `proceder a egreso` inicia Cierre por alta o Cierre por cumplimiento.");
-    expect(l.clase).toBe("rechazada");
-    if (l.clase === "rechazada") expect(l.categoria).toBe("R2");
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") expect(l.regla).toBe("V15");
   });
 
-  test("un evento simple `X en `s` inicia P` (sin `o`) NO es R2", () => {
+  test("un evento simple `X en `s` inicia P` (sin `o`) NO es V15 ni rechazo", () => {
     const l = una("Paciente en `hospitalizado en domicilio` inicia Operación clínica.");
     expect(l.clase).not.toBe("rechazada");
+    expect(l.clase).not.toBe("compuesta");
   });
 });
 
@@ -429,25 +433,29 @@ describe("A12 — disyuncion `u` (ante sonido /o/) se normaliza a `o`", () => {
 
 // ── R3 — verbo fuera del enum cerrado ───────────────────────────────────
 
-describe("R3 — verbos no canonicos se rechazan", () => {
-  test("`alimenta`", () => {
+describe("R3 — verbos no canonicos se rechazan (los SIN mapeo) / familia V (los mapeados)", () => {
+  test("`alimenta` → V4 (instrumento), ya no R3", () => {
     const l = una("Resultado de interconsulta alimenta Evaluación clínica evolutiva.");
-    expect(l.clase).toBe("rechazada");
-    if (l.clase === "rechazada") expect(l.categoria).toBe("R3");
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") expect(l.regla).toBe("V4");
   });
 
-  test("`precede a` (relacional con preposición -> R7, divergencia documentada)", () => {
-    // La spec v0 lista `precede a` en R3, pero es una relación de orden con
-    // preposición: el normalizador la clasifica R7 (relación no primitiva), que
-    // es semánticamente más preciso. Divergencia spec-vs-realidad reportada.
+  test("`precede a` (procesos) → V7 (invocación), ya no R3/R7", () => {
     const l = una("Evaluación de entorno seguro precede a Realización de la atención en domicilio.");
-    expect(l.clase).toBe("rechazada");
-    if (l.clase === "rechazada") expect(["R3", "R7"]).toContain(l.categoria);
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") expect(l.regla).toBe("V7");
   });
 
-  test("`compromete` / `libera` / `proyecta`", () => {
-    expect((una("Ingreso HODOM compromete Capacidad de prestaciones.") as { categoria?: string }).categoria).toBe("R3");
-    expect((una("Cierre del episodio HODOM libera Capacidad de prestaciones.") as { categoria?: string }).categoria).toBe("R3");
+  test("`compromete` / `libera` → V6 (afecta + verbo anotado); `proyecta` SIGUE R3", () => {
+    const compromete = una("Ingreso HODOM compromete Capacidad de prestaciones.");
+    expect(compromete.clase).toBe("compuesta");
+    if (compromete.clase === "compuesta") expect(compromete.regla).toBe("V6");
+    const libera = una("Cierre del episodio HODOM libera Capacidad de prestaciones.");
+    expect(libera.clase).toBe("compuesta");
+    // `proyecta` está EN REFLEXIÓN del operador: sigue rechazada (R3).
+    const proyecta = una("Cupo HODOM proyecta la Capacidad de prestaciones comprometida como día-cama para REM.");
+    expect(proyecta.clase).toBe("rechazada");
+    if (proyecta.clase === "rechazada") expect(proyecta.categoria).toBe("R3");
   });
 });
 
@@ -495,10 +503,16 @@ describe("R7 — relacion libre se rechaza", () => {
     }
   });
 
-  test("`puede suceder a`", () => {
+  test("`puede suceder a` → V8 (tagged «sucede a»), ya no R7", () => {
     const l = una("Episodio HODOM puede suceder a un Episodio HODOM previo opcional.");
-    expect(l.clase).toBe("rechazada");
-    if (l.clase === "rechazada") expect(["R3", "R7"]).toContain(l.categoria);
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") expect(l.regla).toBe("V8");
+  });
+
+  test("`corresponde a` → V9 (tagged «corresponde a»), ya no R7", () => {
+    const l = una("Parada corresponde a un Domicilio.");
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") expect(l.regla).toBe("V9");
   });
 });
 

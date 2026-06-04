@@ -17,7 +17,7 @@ import type { Autor } from "../dsl";
 import { leerEstructura } from "./estructura";
 import type { NodoOpd, LineaEstructural } from "./estructura";
 import { Resolutor } from "./resolutor";
-import { emitirOracion, recolectarEstadosUnion, recolectarRasgos } from "./emisor";
+import { emitirCompuesta, emitirOracion, recolectarEstadosUnion, recolectarRasgos } from "./emisor";
 import type { HechoEmitido } from "./emisor";
 import type { LineaNormalizada } from "./tipos";
 
@@ -90,7 +90,13 @@ export function compilarProto(markdown: string, opciones: OpcionesCompilacion = 
   // TODO el proto: declara el state set completo la primera vez que se referencia
   // un objeto, para que las transiciones a estados solo declarados por uso no fallen.
   const oraciones = plan.opds.flatMap((opd) =>
-    opd.hechos.flatMap((h) => (h.clase === "estricta" || h.clase === "normalizada" ? [h.oracion] : [])),
+    opd.hechos.flatMap((h) => {
+      if (h.clase === "estricta" || h.clase === "normalizada") return [h.oracion];
+      // Las emisiones-oración de una línea `compuesta` (familia V) también aportan
+      // estados/rasgos (p.ej. una TS `cambia X a 'e'` reescrita por V12/V14).
+      if (h.clase === "compuesta") return h.emisiones.flatMap((e) => (e.via === "oracion" ? [e.oracion] : []));
+      return [];
+    }),
   );
   const estadosUnion = recolectarEstadosUnion(oraciones);
   // Rasgos esencia/afiliación declarados en el proto: una entidad nombrada antes de
@@ -202,6 +208,27 @@ function emitirLinea(
         entradas.push({ tipo: "excluida", oracion: linea.oracion, clase: res.clase, razon: res.razon });
       } else {
         entradas.push({ tipo: "fallo", oracion: linea.oracion, razon: res.razon });
+      }
+      return;
+    }
+    case "compuesta": {
+      // Familia V: emite cada emisión (oración o directiva) y, si la línea pide
+      // agrupar, forma el abanico sobre los enlaces creados. Una sola entrada de
+      // ledger `aplicada` con todos los hechos (trazabilidad por `regla`/`original`).
+      const res = emitirCompuesta(linea, ctx);
+      if (res.estado === "aplicada") {
+        entradas.push({
+          tipo: "aplicada",
+          oracion: linea.original,
+          opd: ctx.opdClave,
+          regla: linea.regla,
+          original: linea.original,
+          hechos: res.hechos,
+        });
+      } else if (res.estado === "excluida") {
+        entradas.push({ tipo: "excluida", oracion: linea.original, clase: res.clase, razon: res.razon });
+      } else {
+        entradas.push({ tipo: "fallo", oracion: linea.original, razon: res.razon });
       }
       return;
     }
