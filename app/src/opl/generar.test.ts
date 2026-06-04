@@ -632,6 +632,7 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     const resultados = Object.values(modelo.enlaces)
       .filter((enlace) => enlace.tipo === "resultado")
       .map((enlace) => enlace.id);
+    modelo = fijarPuertoCompartidoEnlaces(modelo, resultados, "origen");
     const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, resultados, "XOR"));
 
@@ -940,6 +941,7 @@ describe("OPL-ES — abanicos logicos", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Aprobar"), extremoEstado(aprobado.id), "resultado"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Aprobar"), extremoEstado(pendiente.id), "resultado"));
     const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id);
+    modelo = fijarPuertoCompartidoEnlaces(modelo, enlaceIds, "origen");
     const { formarAbanico } = require("../modelo/abanicos") as typeof import("../modelo/abanicos");
     modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "XOR"));
     modelo = must(definirRutaEtiqueta(modelo, enlaceIds[0]!, "exitoso"));

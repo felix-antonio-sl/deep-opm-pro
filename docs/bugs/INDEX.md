@@ -16,20 +16,23 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
-| Nuevo | 1 |
-| Resuelto | 84 |
+| Nuevo | 2 |
+| Resuelto | 86 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 80 |
+| Bug | 83 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Nuevo | [BUG-20260604T021520Z-c96ad9](BUG-20260604T021520Z-c96ad9/report.md) | 2026-06-04 02:15Z | Modelo_simu / SD | no tiene lógica de rutas (paths) OPL sin sentido lógico | Pendiente. | 1 |  |
+| Bug | Resuelto | [BUG-20260604T003122Z-6a6a06](BUG-20260604T003122Z-6a6a06/report.md) | 2026-06-04 00:31Z | Modelo_simu / SD | no funciona el sitema de ruteo. Adjunto nuestro opforja y el comportamiento opcloud (no considerar la captura de la simulación) | El ruteo de transiciones de estado deja de formar un bus/abanico O automatico. La union implicita de puertos para enlaces con est… | 2 | Reproducido con Agua/Calentar. Verificado in-vivo: cuatro enlaces directos estado-proceso, cero overlays de abanico y sin vertices artificiales. |
+| Bug | Resuelto | [BUG-20260604T001937Z-82cc4f](BUG-20260604T001937Z-82cc4f/report.md) | 2026-06-04 00:19Z | Modelo_simu / SD | que se pueda iniciar y terminar los enlances en los estado de los objetos | Los enlaces procedurales pueden iniciar o terminar en estados de objeto sin que el kernel los convierta en abanicos implicitos. | 0 | Cubierto por transaccionEnlace.test, ports.test y abanicos.test: Estado -> Proceso y Proceso -> Estado conservan puertos independientes salvo abanico explicito. |
 | Bug | Nuevo | [BUG-20260603T193134Z-f314c4](BUG-20260603T193134Z-f314c4/report.md) | 2026-06-03 19:31Z | HODOM completo v1.6 / SD0-C - Hospitalizacion en domicilio | El generador OPL no verbaliza la transición de estados de un efecto TS3 compacto: todo enlace efecto con estadoEntradaId/estadoSalidaId se emite como… | Pendiente. | 0 |  |
 | Bug | Resuelto | [BUG-20260603T050454Z-276ea7](BUG-20260603T050454Z-276ea7/report.md) | 2026-06-03 05:04Z | Modelo / SD | sigue estando muy mal el opl de esto | El OPL de abanicos XOR/O de efecto Objeto -> Procesos ya no invierte la semantica: sin evento emite O es afectado por P/Q/R; con … | 1 | Causa raiz final: se trato el objeto comun como sujeto afectante, pero en OPM el efecto lo ejerce el proceso sobre el objeto. Cubierto por generar.test y parser.test; legacy O afecta a... se acepta solo para normalizar a pasiva. |
 | Bug | Resuelto | [BUG-20260603T022341Z-cc4801](BUG-20260603T022341Z-cc4801/report.md) | 2026-06-03 02:23Z | Modelo / SD | No está en la UI/UX la asignación de probabilidades | El inspector de enlaces expone un editor de porcentajes para abanicos XOR; aplica una policy de probabilidades por rama, valida s… | 1 | Causa raiz: la semantica de probabilidades existia en kernel/render/decision, pero la UI solo exponia probabilidad para enlaces evento. Cubierto por abanicos.test, store.test, SeccionAbanico.test, enlace.test y e2e/02-canvas-y-render.spec.ts. |

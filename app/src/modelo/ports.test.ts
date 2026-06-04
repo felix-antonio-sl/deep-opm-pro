@@ -70,7 +70,7 @@ describe("puertos dinámicos OPCloud-style", () => {
     expect(puertosOrigen[1]).toEqual({ x: 1, y: 0.6 });
   });
 
-  test("unifica resultados desde un proceso hacia estados del mismo objeto", () => {
+  test("mantiene puertos independientes en resultados hacia estados del mismo objeto", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Procesar"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Pedido"));
@@ -83,12 +83,14 @@ describe("puertos dinámicos OPCloud-style", () => {
     modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
 
     const portIds = Object.values(modelo.enlaces).map((enlace) => enlace.origenId.portId);
-    expect(new Set(portIds).size).toBe(1);
+    expect(new Set(portIds).size).toBe(2);
     const proceso = apariencia(modelo, "Procesar");
-    expect(proceso.ports?.[portIds[0]!]).toEqual({ x: 1, y: 1 });
+    for (const portId of portIds) {
+      expect(proceso.ports?.[portId!]).toBeDefined();
+    }
   });
 
-  test("unifica consumos desde estados del mismo objeto hacia un proceso", () => {
+  test("mantiene puertos independientes en consumos desde estados del mismo objeto", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Pedido"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 20 }, "Procesar"));
@@ -101,9 +103,11 @@ describe("puertos dinámicos OPCloud-style", () => {
     modelo = sincronizarPuertosEnlaces(modelo, modelo.opdRaizId);
 
     const portIds = Object.values(modelo.enlaces).map((enlace) => enlace.destinoId.portId);
-    expect(new Set(portIds).size).toBe(1);
+    expect(new Set(portIds).size).toBe(2);
     const proceso = apariencia(modelo, "Procesar");
-    expect(proceso.ports?.[portIds[0]!]).toEqual({ x: 0, y: 1 });
+    for (const portId of portIds) {
+      expect(proceso.ports?.[portId!]).toBeDefined();
+    }
   });
 
   test("beautifyConnectedLinks persiste puerto desde punto opuesto real y sincronizacion no lo pisa", () => {

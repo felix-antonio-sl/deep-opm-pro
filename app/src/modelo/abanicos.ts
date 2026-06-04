@@ -200,6 +200,7 @@ export function formarAbanicoAutomatico(
 ): Resultado<Modelo> {
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
+  if (enlaceTocaEstado(enlace)) return ok(modelo);
   const existente = detectarPuertoCompartido(modelo, opdId, enlace);
   if (existente) return agregarRamaAAbanico(modelo, existente.id, enlaceId);
 
@@ -209,6 +210,10 @@ export function formarAbanicoAutomatico(
   const primero = candidatos[0];
   if (!primero) return ok(modelo);
   return formarAbanico(modelo, opdId, [primero.id, enlaceId], operador);
+}
+
+function enlaceTocaEstado(enlace: Enlace): boolean {
+  return enlace.origenId.kind === "estado" || enlace.destinoId.kind === "estado";
 }
 
 export function sincronizarAbanicos(modelo: Modelo): Modelo {

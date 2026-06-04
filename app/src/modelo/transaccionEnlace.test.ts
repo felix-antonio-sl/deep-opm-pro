@@ -9,17 +9,16 @@ describe("transaccion de enlace", () => {
   test("crea enlace, materializa puertos y forma abanico automatico en una operacion canonica", () => {
     let modelo = crearModelo("Transaccion enlaces");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 80 }, "Aprobar"));
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 80 }, "Pedido"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 40 }, "Pedido aprobado"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 160 }, "Pedido rechazado"));
     const procesoId = entidad(modelo, "Aprobar");
-    const pedidoId = entidad(modelo, "Pedido");
-    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
-    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
-    if (!pendiente || !aprobado) throw new Error("La prueba esperaba estados");
-    modelo = must(renombrarEstado(modelo, pendiente.id, "pendiente"));
-    modelo = must(renombrarEstado(modelo, aprobado.id, "aprobado"));
 
-    const primero = must(crearEnlaceTransaccional(modelo, modelo.opdRaizId, procesoId, extremoEstado(pendiente.id), "resultado"));
-    const segundo = must(crearEnlaceTransaccional(primero.modelo, primero.modelo.opdRaizId, procesoId, extremoEstado(aprobado.id), "resultado"));
+    const primero = must(crearEnlaceTransaccional(modelo, modelo.opdRaizId, procesoId, entidad(modelo, "Pedido aprobado"), "resultado", {
+      anclaOrigen: "N",
+    }));
+    const segundo = must(crearEnlaceTransaccional(primero.modelo, primero.modelo.opdRaizId, procesoId, entidad(primero.modelo, "Pedido rechazado"), "resultado", {
+      anclaOrigen: "N",
+    }));
     const primeroId = mustId(primero.enlaceId);
     const segundoId = mustId(segundo.enlaceId);
 
@@ -45,15 +44,14 @@ describe("transaccion de enlace", () => {
   test("conserva ancla manual del puerto compartido tras formar abanico automatico", () => {
     let modelo = crearModelo("Transaccion ancla fan estados");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 80 }, "Aprobar"));
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 80 }, "Pedido"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 40 }, "Pedido aprobado"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 160 }, "Pedido rechazado"));
     const procesoId = entidad(modelo, "Aprobar");
-    const pedidoId = entidad(modelo, "Pedido");
-    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
-    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
-    if (!pendiente || !aprobado) throw new Error("La prueba esperaba estados");
 
-    const primero = must(crearEnlaceTransaccional(modelo, modelo.opdRaizId, procesoId, extremoEstado(pendiente.id), "resultado"));
-    const segundo = must(crearEnlaceTransaccional(primero.modelo, primero.modelo.opdRaizId, procesoId, extremoEstado(aprobado.id), "resultado", {
+    const primero = must(crearEnlaceTransaccional(modelo, modelo.opdRaizId, procesoId, entidad(modelo, "Pedido aprobado"), "resultado", {
+      anclaOrigen: "N",
+    }));
+    const segundo = must(crearEnlaceTransaccional(primero.modelo, primero.modelo.opdRaizId, procesoId, entidad(primero.modelo, "Pedido rechazado"), "resultado", {
       anclaOrigen: "N",
     }));
     const primeroId = mustId(primero.enlaceId);
@@ -70,6 +68,28 @@ describe("transaccion de enlace", () => {
       .map((enlace) => enlace.origenId.portId);
     expect(new Set(puertos).size).toBe(1);
     expect(apariencia(segundo.modelo, "Aprobar").ports?.[puertos[0]!]).toEqual(puertoRelativoAnclaEnlace("N"));
+  });
+
+  test("no forma abanico automatico para transiciones entre estados de un mismo objeto", () => {
+    let modelo = crearModelo("Transicion estados sin fan automatico");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 60 }, "Agua"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 360, y: 330 }, "Calentar"));
+    const aguaId = entidad(modelo, "Agua");
+    const calentarId = entidad(modelo, "Calentar");
+    modelo = must(crearEstadosIniciales(modelo, aguaId)).modelo;
+    const [hielo, liquido] = estadosDeEntidad(modelo, aguaId);
+    if (!hielo || !liquido) throw new Error("La prueba esperaba estados");
+    modelo = must(renombrarEstado(modelo, hielo.id, "hielo"));
+    modelo = must(renombrarEstado(modelo, liquido.id, "liquido"));
+
+    const primero = must(crearEnlaceTransaccional(modelo, modelo.opdRaizId, extremoEstado(hielo.id), calentarId, "consumo"));
+    const segundo = must(crearEnlaceTransaccional(primero.modelo, primero.modelo.opdRaizId, calentarId, extremoEstado(liquido.id), "resultado"));
+    const tercero = must(crearEnlaceTransaccional(segundo.modelo, segundo.modelo.opdRaizId, extremoEstado(liquido.id), calentarId, "consumo"));
+
+    expect(Object.values(tercero.modelo.abanicos ?? {})).toEqual([]);
+    const consumos = Object.values(tercero.modelo.enlaces).filter((enlace) => enlace.tipo === "consumo");
+    const puertosDestino = consumos.map((enlace) => enlace.destinoId.kind === "entidad" ? enlace.destinoId.portId : undefined);
+    expect(new Set(puertosDestino).size).toBe(consumos.length);
   });
 
   test("usa la misma ancla explicita como puerto comun para crear abanico de resultados", () => {

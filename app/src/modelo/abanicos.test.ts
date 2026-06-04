@@ -272,6 +272,7 @@ describe("abanicos lógicos O/XOR", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(pendiente.id), "resultado"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(aprobado.id), "resultado"));
     const enlaces = Object.keys(modelo.enlaces);
+    modelo = fijarPuertoCompartido(modelo, enlaces, "origen", "port-fan-estados-origen");
 
     const resultado = formarAbanico(modelo, modelo.opdRaizId, enlaces, "XOR");
 
@@ -282,6 +283,27 @@ describe("abanicos lógicos O/XOR", () => {
       operador: "XOR",
       enlaceIds: enlaces,
     });
+  });
+
+  test("formarAbanicoAutomatico no agrupa enlaces que apuntan a estados", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 80 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 280, y: 80 }, "Pedido"));
+    const procesoId = entidad(modelo, "Aprobar");
+    const pedidoId = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
+    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
+    if (!pendiente || !aprobado) throw new Error("La prueba esperaba dos estados");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(pendiente.id), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesoId, extremoEstado(aprobado.id), "resultado"));
+    const segundo = Object.keys(modelo.enlaces)[1];
+    if (!segundo) throw new Error("La prueba esperaba segundo enlace");
+
+    const resultado = formarAbanicoAutomatico(modelo, modelo.opdRaizId, segundo);
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(Object.values(resultado.value.abanicos ?? {})).toEqual([]);
   });
 
   test("eliminarEnlace sincroniza abanicos y disuelve agrupadores con menos de dos ramas", () => {

@@ -502,5 +502,17 @@
     "status": "Resuelto",
     "resolution": "Se redistribuyo el header en BUG-38acaa: las acciones de modelado y persistencia se agrupan hacia el borde derecho, junto a la meta, dejando el tramo documental sin controles sueltos en el centro. El diseno actual sigue la distribucion canonica.",
     "note": "Resuelto por el cierre de BUG-20260601T214246Z-38acaa. Verificado con toolbarStyles.test e inspeccion Playwright."
+  },
+  "BUG-20260604T001937Z-82cc4f": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los enlaces procedurales pueden iniciar o terminar en estados de objeto sin que el kernel los convierta en abanicos implicitos.",
+    "note": "Cubierto por transaccionEnlace.test, ports.test y abanicos.test: Estado -> Proceso y Proceso -> Estado conservan puertos independientes salvo abanico explicito."
+  },
+  "BUG-20260604T003122Z-6a6a06": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El ruteo de transiciones de estado deja de formar un bus/abanico O automatico. La union implicita de puertos para enlaces con estados se elimino, y el auto-abanico ignora enlaces que tocan estados.",
+    "note": "Reproducido con Agua/Calentar. Verificado in-vivo: cuatro enlaces directos estado-proceso, cero overlays de abanico y sin vertices artificiales."
   }
 }

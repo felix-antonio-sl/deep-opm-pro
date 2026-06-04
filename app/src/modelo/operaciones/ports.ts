@@ -50,7 +50,6 @@ export function sincronizarPuertosEnlaces(modelo: Modelo, opdId: Id): Modelo {
   const puertosUsadosPorApariencia = new Map<Id, Set<Id>>();
   const ranurasEstructurales = asignarRanurasEstructurales(modelo, opdId, aparienciasPorEntidad, enlacesEnAbanico);
   const puertosCompartidosAbanico = asignarPuertosCompartidosAbanico(modelo, opdId, aparienciasPorEntidad);
-  const puertosCompartidosEstado = asignarPuertosCompartidosEstado(modelo, opdId, aparienciasPorEntidad, enlacesEnAbanico);
 
   for (const aparienciaEnlace of Object.values(opd.enlaces)) {
     const enlace = enlaces[aparienciaEnlace.enlaceId];
@@ -68,7 +67,6 @@ export function sincronizarPuertosEnlaces(modelo: Modelo, opdId: Id): Modelo {
       apOrigen,
       centro(apDestino),
       {
-        ...puertosCompartidosEstado.get(keyExtremo(enlace.id, "origen")),
         ...puertosCompartidosAbanico.get(keyExtremo(enlace.id, "origen")),
         desplazamientoRanura: ranurasEstructurales.get(keyExtremo(enlace.id, "origen")) ?? 0,
       },
@@ -79,7 +77,6 @@ export function sincronizarPuertosEnlaces(modelo: Modelo, opdId: Id): Modelo {
       apDestino,
       centro(apOrigen),
       {
-        ...puertosCompartidosEstado.get(keyExtremo(enlace.id, "destino")),
         ...puertosCompartidosAbanico.get(keyExtremo(enlace.id, "destino")),
         desplazamientoRanura: ranurasEstructurales.get(keyExtremo(enlace.id, "destino")) ?? 0,
       },
@@ -355,71 +352,6 @@ function asignarRanurasEstructurales(
   return resultado;
 }
 
-function asignarPuertosCompartidosEstado(
-  modelo: Modelo,
-  opdId: Id,
-  aparienciasPorEntidad: Map<Id, Apariencia>,
-  enlacesEnAbanico: Set<Id>,
-): Map<string, PuertoCompartidoEstado> {
-  const opd = modelo.opds[opdId];
-  const grupos = new Map<string, Array<{ key: string; puntoOpuesto: Posicion }>>();
-  if (!opd) return new Map();
-
-  for (const aparienciaEnlace of Object.values(opd.enlaces)) {
-    if (enlacesEnAbanico.has(aparienciaEnlace.enlaceId)) continue;
-    const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
-    if (!enlace) continue;
-
-    if (enlace.tipo === "resultado" && enlace.origenId.kind === "entidad" && enlace.destinoId.kind === "estado") {
-      const procesoId = entidadIdDeExtremo(modelo, enlace.origenId);
-      const objetoId = entidadIdDeExtremo(modelo, enlace.destinoId);
-      if (procesoId && objetoId && modelo.entidades[procesoId]?.tipo === "proceso") {
-        const objeto = aparienciasPorEntidad.get(objetoId);
-        if (objeto) {
-          agregarGrupoPuertoCompartido(
-            grupos,
-            `resultado:${procesoId}:${objetoId}:origen`,
-            keyExtremo(enlace.id, "origen"),
-            centroInferior(objeto),
-          );
-        }
-      }
-      continue;
-    }
-
-    if (
-      (enlace.tipo === "consumo" || enlace.tipo === "agente" || enlace.tipo === "instrumento")
-      && enlace.origenId.kind === "estado"
-      && enlace.destinoId.kind === "entidad"
-    ) {
-      const objetoId = entidadIdDeExtremo(modelo, enlace.origenId);
-      const procesoId = entidadIdDeExtremo(modelo, enlace.destinoId);
-      if (objetoId && procesoId && modelo.entidades[procesoId]?.tipo === "proceso") {
-        const objeto = aparienciasPorEntidad.get(objetoId);
-        if (objeto) {
-          const familia = enlace.tipo === "consumo" ? "consumo" : "agente-instrumento";
-          agregarGrupoPuertoCompartido(
-            grupos,
-            `${familia}:${objetoId}:${procesoId}:destino`,
-            keyExtremo(enlace.id, "destino"),
-            centroInferior(objeto),
-          );
-        }
-      }
-    }
-  }
-
-  const resultado = new Map<string, PuertoCompartidoEstado>();
-  for (const [grupoKey, items] of grupos.entries()) {
-    if (items.length < 2) continue;
-    const portId = `port-union-${sanitizarId(grupoKey)}`;
-    for (const item of items) {
-      resultado.set(item.key, { portId, puntoOpuesto: item.puntoOpuesto });
-    }
-  }
-  return resultado;
-}
-
 function asignarPuertosCompartidosAbanico(
   modelo: Modelo,
   opdId: Id,
@@ -457,17 +389,6 @@ function asignarPuertosCompartidosAbanico(
     }
   }
   return resultado;
-}
-
-function agregarGrupoPuertoCompartido(
-  grupos: Map<string, Array<{ key: string; puntoOpuesto: Posicion }>>,
-  grupoKey: string,
-  key: string,
-  puntoOpuesto: Posicion,
-): void {
-  const actuales = grupos.get(grupoKey) ?? [];
-  actuales.push({ key, puntoOpuesto });
-  grupos.set(grupoKey, actuales);
 }
 
 function aplicarRanuraEstructural(base: PuertoApariencia, desplazamiento: number): PuertoApariencia {
@@ -530,13 +451,6 @@ function centroide(puntos: Posicion[]): Posicion {
   return {
     x: puntos.reduce((suma, punto) => suma + punto.x, 0) / puntos.length,
     y: puntos.reduce((suma, punto) => suma + punto.y, 0) / puntos.length,
-  };
-}
-
-function centroInferior(apariencia: Apariencia): Posicion {
-  return {
-    x: apariencia.x + apariencia.width / 2,
-    y: apariencia.y + apariencia.height,
   };
 }
 

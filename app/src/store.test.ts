@@ -1023,21 +1023,26 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().mensaje).toContain(store.getState().opdActivoId);
   });
 
-  test("forma abanico automatico al conectar segunda rama por puerto exacto y alterna operador desde inspector", () => {
+  test("alterna operador y disuelve abanico explicito desde inspector", () => {
     let modelo = crearModelo("Store abanicos");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 200 }, "Procesar"));
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 120 }, "Pedido"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 120 }, "Salida A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 420, y: 120 }, "Salida B"));
     const procesarId = entidadPorNombre(modelo, "Procesar");
-    const pedidoId = entidadPorNombre(modelo, "Pedido");
-    modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
-    const [pendiente, aprobado] = estadosDeEntidad(modelo, pedidoId);
-    if (!pendiente || !aprobado) throw new Error("La prueba esperaba dos estados");
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, extremoEstado(pendiente.id), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, entidadPorNombre(modelo, "Salida A"), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, entidadPorNombre(modelo, "Salida B"), "resultado"));
+    const enlaceIds = Object.values(modelo.enlaces).map((enlace) => enlace.id);
+    modelo = {
+      ...modelo,
+      enlaces: Object.fromEntries(Object.entries(modelo.enlaces).map(([id, enlace]) => [
+        id,
+        enlace.origenId.kind === "entidad"
+          ? { ...enlace, origenId: { ...enlace.origenId, portId: "port-fan-store-origen" } }
+          : enlace,
+      ])),
+    };
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, enlaceIds, "O"));
     store.getState().importarJson(exportarModelo(modelo));
-
-    store.getState().seleccionarEntidad(procesarId);
-    store.getState().elegirTipoEnlace("resultado");
-    store.getState().seleccionarEstadoComoExtremo(aprobado.id);
 
     const abanicos = Object.values(store.getState().modelo.abanicos ?? {});
     expect(abanicos).toHaveLength(1);
