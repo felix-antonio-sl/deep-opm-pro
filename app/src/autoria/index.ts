@@ -12,6 +12,17 @@
 export { crearAutor } from "./dsl";
 export type { Autor } from "./dsl";
 export { emitirBundle } from "./bundle";
+// W4.2 — compilador proto-modelo → Modelo.
+export { compilarProto } from "./compilar/compilador";
+export type {
+  ResultadoCompilacion,
+  Ledger,
+  DestinoLedger,
+  ResumenLedger,
+  OpcionesCompilacion,
+} from "./compilar/compilador";
+export { leerEstructura } from "./compilar/estructura";
+export type { PlanEstructura, NodoOpd } from "./compilar/estructura";
 export { aplicarLayoutCompleto, LAYOUT } from "./layout";
 export type {
   EntKey,
