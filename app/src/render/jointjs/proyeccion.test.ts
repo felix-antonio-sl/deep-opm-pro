@@ -223,21 +223,32 @@ describe("proyeccion JointJS", () => {
         estadosCurrent: { [pedidoId]: pendienteId },
         entidadesInvolucradasIds: [pedidoId, aprobarId],
         enlacesInvolucradosIds: enlaceIds,
+        estadosResultadoIds: [aprobadoId],
       },
     );
 
     const procesoHalo = cells.find((item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "proceso-activo");
     const objetoHalo = cells.find((item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "entidad-involucrada" && item.opm.targetId === pedidoId);
     const currentPin = cells.find((item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "estado-current");
+    const resultadoHalo = cells.find((item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "estado-resultado");
     const enlaceActivo = cells.find((item) => item.opm.kind === "enlace" && item.opm.enlaceId === enlaceIds[0]);
     const line = (enlaceActivo?.attrs as Attrs | undefined)?.line as Attrs | undefined;
-    const labels = enlaceActivo?.labels as Array<{ markup?: Array<{ selector?: string }> }> | undefined;
+    const labels = enlaceActivo?.labels as Array<{ markup?: Array<{ selector?: string }>; attrs?: Record<string, Attrs> }> | undefined;
+    const tokenLabel = labels?.find((label) => label.markup?.some((node) => node.selector === "token"));
+    const currentBody = (currentPin?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+    const resultadoBody = (resultadoHalo?.attrs as Attrs | undefined)?.body as Attrs | undefined;
 
     expect(procesoHalo).toBeDefined();
     expect(objetoHalo).toBeDefined();
-    expect(currentPin?.type).toBe("standard.Path");
+    expect(currentPin?.type).toBe("standard.Rectangle");
+    expect(resultadoHalo?.type).toBe("standard.Rectangle");
     expect(line?.stroke).toBe("#8e2a2e");
-    expect(labels?.some((label) => label.markup?.some((node) => node.selector === "token"))).toBe(true);
+    expect(line?.strokeDasharray).toBe("7 4");
+    expect(line?.["data-opm-sim"]).toBe("runtime-link");
+    expect(currentBody?.["data-opm-sim"]).toBe("state-current");
+    expect(resultadoBody?.["data-opm-sim"]).toBe("state-result");
+    expect(tokenLabel?.markup?.map((node) => node.selector)).toEqual(["tokenAura", "tokenTrail", "token"]);
+    expect(tokenLabel?.attrs?.token?.["data-opm-sim-token"]).toBe("core");
   });
 
   test("proyecta halo del estado inicial designado durante simulacion (B0.019)", () => {

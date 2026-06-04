@@ -13,7 +13,7 @@
  * Actualizado S0 Codex: controles-palabra + segmented velocidad + scrubbing.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { esperarWorkbenchInicial, clickToolbarMasItem, jsonEditor } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, clickToolbarMasItem, jsonEditor, modeloTransicionEstados } from "./_smoke-helpers";
 
 test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -226,6 +226,45 @@ test("simulacion: navegar a otro OPD no aborta la corrida (B0.026)", async ({ pa
   expect(pageErrors).toEqual([]);
 });
 
+test("simulacion: estados, enlaces y tokens se activan visualmente en el canvas", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+
+  await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstadosVisual(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await entrarSimulacionDesdeMas(page);
+  await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Aprobar");
+  await expect.poll(async () => page.evaluate(
+    () => document.querySelectorAll('[data-opm-sim-token="viaje"]').length,
+  ), { timeout: 1500 }).toBeGreaterThan(0);
+
+  const visual = await page.evaluate(() => ({
+    procesoActivo: document.querySelectorAll('[data-opm-sim="process-active"]').length,
+    estadoCurrent: document.querySelectorAll('[data-opm-sim="state-current"]').length,
+    estadoResultado: document.querySelectorAll('[data-opm-sim="state-result"]').length,
+    enlaceRuntime: document.querySelectorAll('[data-opm-sim="runtime-link"]').length,
+    tokenCore: document.querySelectorAll('[data-opm-sim-token="core"]').length,
+    tokenAura: document.querySelectorAll('[data-opm-sim-token="aura"]').length,
+    tokenTrail: document.querySelectorAll('[data-opm-sim-token="trail"]').length,
+  }));
+
+  expect(visual).toEqual({
+    procesoActivo: 1,
+    estadoCurrent: 1,
+    estadoResultado: 1,
+    enlaceRuntime: 2,
+    tokenCore: 2,
+    tokenAura: 2,
+    tokenTrail: 2,
+  });
+
+  expect(pageErrors).toEqual([]);
+});
+
 async function entrarSimulacionDesdeMas(page: Page): Promise<void> {
   await clickToolbarMasItem(page, "toolbar-mas-simulacion");
 }
@@ -281,4 +320,14 @@ function modeloSimulacionDosOpds() {
       },
     },
   };
+}
+
+function modeloTransicionEstadosVisual() {
+  const payload = modeloTransicionEstados();
+  payload.modelo.estados["s-pendiente"] = {
+    ...payload.modelo.estados["s-pendiente"],
+    esInicial: true,
+    designaciones: ["inicial"],
+  };
+  return payload;
 }

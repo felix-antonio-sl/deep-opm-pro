@@ -9,6 +9,8 @@ export interface FocoPasoSimulacion {
   procesoActivoId: Id | null;
   entidadesInvolucradasIds: Id[];
   enlacesInvolucradosIds: Id[];
+  estadosOrigenIds: Id[];
+  estadosResultadoIds: Id[];
 }
 
 export function focoPasoActualSimulacion(modelo: Modelo, contexto: ContextoSimulacion | null): FocoPasoSimulacion {
@@ -21,14 +23,19 @@ export function focoPasoActualSimulacion(modelo: Modelo, contexto: ContextoSimul
       procesoActivoId: null,
       entidadesInvolucradasIds: [],
       enlacesInvolucradosIds: [],
+      estadosOrigenIds: [],
+      estadosResultadoIds: [],
     };
   }
+  const transicionesActivas = transicionesActivasEnPaso(paso, contexto.estadosCurrent);
 
   return {
     paso,
     procesoActivoId: paso.procesoId,
     entidadesInvolucradasIds: entidadesInvolucradasEnPaso(modelo, paso, contexto.estadosCurrent),
     enlacesInvolucradosIds: enlacesInvolucradosEnPaso(modelo, paso, contexto.estadosCurrent),
+    estadosOrigenIds: idsEstadosOrigen(transicionesActivas),
+    estadosResultadoIds: idsEstadosResultado(transicionesActivas),
   };
 }
 
@@ -102,4 +109,20 @@ function transicionesActivasEnPaso(paso: PasoSimulacion, estadosCurrent: Record<
     activas.push(...conEstadoEntrada.filter((transicion) => estadosCurrent[entidadId] === transicion.estadoAntesId));
   }
   return activas;
+}
+
+function idsEstadosOrigen(transiciones: readonly TransicionEstadoSim[]): Id[] {
+  return Array.from(new Set(
+    transiciones
+      .map((transicion) => transicion.estadoAntesId)
+      .filter((estadoId): estadoId is Id => estadoId !== null),
+  ));
+}
+
+function idsEstadosResultado(transiciones: readonly TransicionEstadoSim[]): Id[] {
+  return Array.from(new Set(
+    transiciones
+      .map((transicion) => transicion.estadoDespuesId)
+      .filter((estadoId): estadoId is Id => estadoId !== null),
+  ));
 }

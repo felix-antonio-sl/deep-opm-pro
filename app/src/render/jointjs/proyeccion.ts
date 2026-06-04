@@ -15,6 +15,7 @@ import {
   proyectarHaloSimulacionEntidadInvolucrada,
   proyectarHaloSimulacionEstadoCurrent,
   proyectarHaloSimulacionEstadoInicial,
+  proyectarHaloSimulacionEstadoResultado,
   proyectarHaloSimulacionProceso,
   refResaltaEnlace,
   refResaltaEntidad,
@@ -42,6 +43,7 @@ export interface OpcionesSimulacionRender {
   entidadesInvolucradasIds?: readonly Id[];
   enlacesInvolucradosIds?: readonly Id[];
   estadosInicialesIds?: readonly Id[];
+  estadosResultadoIds?: readonly Id[];
 }
 
 export function proyectarModeloAJointCells(
@@ -62,6 +64,7 @@ export function proyectarModeloAJointCells(
   const entidadesInvolucradasSim = new Set(simulacion?.entidadesInvolucradasIds ?? []);
   const enlacesInvolucradosSim = new Set(simulacion?.enlacesInvolucradosIds ?? []);
   const estadosInicialesSim = new Set(simulacion?.estadosInicialesIds ?? []);
+  const estadosResultadoSim = new Set(simulacion?.estadosResultadoIds ?? []);
 
   const apariencias = aparicionesVisiblesEnOpd(opd);
   const estadosSeleccionadosPorEntidad = new Map<Id, Estado[]>();
@@ -230,15 +233,22 @@ export function proyectarModeloAJointCells(
         if (!entidad) return [];
         const cells: JointCellJson[] = [];
         if (entidadesInvolucradasSim.has(entidad.id) && entidad.id !== simulacion.procesoActivoId) {
-          cells.push(proyectarHaloSimulacionEntidadInvolucrada(opdId, apariencia, entidad));
+          cells.push(proyectarHaloSimulacionEntidadInvolucrada(modeloRender, opdId, apariencia, entidad, opcionesRender));
         }
         if (simulacion.procesoActivoId && entidad.id === simulacion.procesoActivoId && entidad.tipo === "proceso") {
-          cells.push(proyectarHaloSimulacionProceso(opdId, apariencia, entidad));
+          cells.push(proyectarHaloSimulacionProceso(modeloRender, opdId, apariencia, entidad, opcionesRender));
         }
         const currentId = simulacion.estadosCurrent[entidad.id];
-        if (currentId && entidad.tipo === "objeto") {
+        if (currentId && entidad.tipo === "objeto" && entidadesInvolucradasSim.has(entidad.id)) {
           const estado = modeloRender.estados[currentId];
           if (estado) cells.push(proyectarHaloSimulacionEstadoCurrent(modeloRender, opdId, apariencia, entidad, estado));
+        }
+        if (entidad.tipo === "objeto") {
+          for (const estadoResultadoId of estadosResultadoSim) {
+            const estado = modeloRender.estados[estadoResultadoId];
+            if (!estado || estado.entidadId !== entidad.id || estado.id === currentId) continue;
+            cells.push(proyectarHaloSimulacionEstadoResultado(modeloRender, opdId, apariencia, entidad, estado));
+          }
         }
         if (entidad.tipo === "objeto") {
           for (const estado of Object.values(modeloRender.estados)) {

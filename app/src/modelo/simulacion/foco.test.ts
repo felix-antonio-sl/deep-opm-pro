@@ -40,7 +40,7 @@ describe("estadosInicialesDelModelo", () => {
 
 describe("focoPasoActualSimulacion — rutas de transición", () => {
   test("en simulación resalta solo los enlaces de la ruta compatible con el current", () => {
-    const { modelo, aguaId, solidificadaId, solLiqIds, liqGasIds } = modeloRutasAgua();
+    const { modelo, aguaId, solidificadaId, liquidaId, gaseosaId, solLiqIds, liqGasIds } = modeloRutasAgua();
     const contexto = iniciarSimulacion(modelo, modelo.opdRaizId);
     expect(contexto.plan).toHaveLength(2);
     expect(contexto.estadosCurrent[aguaId]).toBe(solidificadaId);
@@ -49,7 +49,11 @@ describe("focoPasoActualSimulacion — rutas de transición", () => {
     const focoLiquida = focoPasoActualSimulacion(modelo, ejecutarPaso(modelo, contexto));
 
     expect([...focoSolida.enlacesInvolucradosIds].sort()).toEqual([...solLiqIds].sort());
+    expect(focoSolida.estadosOrigenIds).toEqual([solidificadaId]);
+    expect(focoSolida.estadosResultadoIds).toEqual([liquidaId]);
     expect([...focoLiquida.enlacesInvolucradosIds].sort()).toEqual([...liqGasIds].sort());
+    expect(focoLiquida.estadosOrigenIds).toEqual([liquidaId]);
+    expect(focoLiquida.estadosResultadoIds).toEqual([gaseosaId]);
   });
 });
 
@@ -58,6 +62,7 @@ function modeloRutasAgua(): {
   aguaId: string;
   solidificadaId: string;
   liquidaId: string;
+  gaseosaId: string;
   solLiqIds: string[];
   liqGasIds: string[];
 } {
@@ -89,5 +94,5 @@ function modeloRutasAgua(): {
     .map((item) => item.id);
   for (const enlaceId of solLiqIds) modelo = must(definirRutaEtiqueta(modelo, enlaceId, "sol-liq"));
   for (const enlaceId of liqGasIds) modelo = must(definirRutaEtiqueta(modelo, enlaceId, "liq-gas"));
-  return { modelo, aguaId, solidificadaId, liquidaId, solLiqIds, liqGasIds };
+  return { modelo, aguaId, solidificadaId, liquidaId, gaseosaId: gaseosa.estadoId, solLiqIds, liqGasIds };
 }

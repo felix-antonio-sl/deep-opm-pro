@@ -78,14 +78,7 @@ export function proyectarEntidad(
   // Ronda 15.2: la entidad puede tener ambos refinamientos. El contorno
   // aplica solo cuando el OPD activo es el de descomposicion del slot.
   const contornoRefinamiento = obtenerRefinamiento(entidad, "descomposicion")?.opdId === opdId;
-  const sizeBase = modoParcial
-    ? dimensionesPlegadoParcial(apariencia, nombreRender, filasParciales)
-    : estadosVisibles.length > 0
-      ? dimensionesConEstados(apariencia, nombreRender, estadosVisibles, entidad.layoutEstados)
-      : dimensionesEntidadSinEstados(apariencia, nombreRender);
-  const size = contornoRefinamiento
-    ? dimensionesContornoConPadding(modelo, opdId, apariencia, sizeBase)
-    : sizeBase;
+  const size = dimensionesEntidadRenderizada(modelo, opdId, apariencia, entidad, opciones);
   const strokeBase = refinada ? 4 : CODEX.strokes.entidad;
   const strokeWidth = strokeBase;
   const strokeColor = stroke;
@@ -203,6 +196,38 @@ export function proyectarEntidad(
     },
     z: contornoRefinamiento ? 0 : 10,
   };
+}
+
+export function dimensionesEntidadRenderizada(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  entidad: Entidad,
+  opciones: OpcionesProyeccion,
+): { width: number; height: number } {
+  const partes = partesDePlegado(modelo, entidad.id);
+  const tienePartes = partes.length > 0;
+  const modoPlegado = modoPlegadoApariencia(apariencia);
+  const modoParcial = modoPlegado === "parcial" && tienePartes;
+  const filasParciales = modoParcial ? filasPlegadoConNesting({ modelo, opdId, padreAparienciaId: apariencia.id }) : [];
+  const estadosTotales = entidad.tipo === "objeto" && !modoParcial ? estadosDeEntidad(modelo, entidad.id) : [];
+  const estadosVisibles = estadosTotales.filter((estado) => estadoVisibleEnAparicion(estado, apariencia));
+  const nombreRender = formatearNombreCompuesto(
+    {
+      nombre: nombreCanonicoEntidad(entidad),
+      ...(entidad.unidad ? { unidad: entidad.unidad } : {}),
+      ...(entidad.alias ? { alias: entidad.alias } : {}),
+    },
+    { aliasVisible: opciones.aliasVisibles !== false },
+  );
+  const sizeBase = modoParcial
+    ? dimensionesPlegadoParcial(apariencia, nombreRender, filasParciales)
+    : estadosVisibles.length > 0
+      ? dimensionesConEstados(apariencia, nombreRender, estadosVisibles, entidad.layoutEstados)
+      : dimensionesEntidadSinEstados(apariencia, nombreRender);
+  return obtenerRefinamiento(entidad, "descomposicion")?.opdId === opdId
+    ? dimensionesContornoConPadding(modelo, opdId, apariencia, sizeBase)
+    : sizeBase;
 }
 
 function portsEntidad(apariencia: Apariencia, tipo: Entidad["tipo"]): Record<string, unknown> | undefined {

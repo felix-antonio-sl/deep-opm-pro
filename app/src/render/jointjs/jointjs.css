@@ -70,8 +70,116 @@
   cursor: grabbing;
 }
 
+/*
+ * Simulacion visual: el modelo cobra vida sin alterar la gramatica OPM.
+ * Los colores vienen del set Codex/OPM: crimson = foco temporal, verde =
+ * objeto/resultado, azul = proceso, oliva = estado. Todo es affordance runtime.
+ */
+.joint-paper [data-opm-sim="runtime-link"] {
+  animation: opm-sim-flow-line 900ms linear infinite;
+}
+
+.joint-paper [data-opm-sim="process-active"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    opm-sim-dash 1100ms linear infinite,
+    opm-sim-breathe 1450ms ease-in-out infinite;
+}
+
+.joint-paper [data-opm-sim="entity-involved"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    opm-sim-dash 1350ms linear infinite,
+    opm-sim-soft-breathe 1700ms ease-in-out infinite;
+}
+
+.joint-paper [data-opm-sim="state-current"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    opm-sim-dash 950ms linear infinite,
+    opm-sim-state-current 1200ms ease-in-out infinite;
+}
+
+.joint-paper [data-opm-sim="state-result"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    opm-sim-dash 1250ms linear infinite,
+    opm-sim-state-result 1450ms ease-in-out infinite;
+}
+
+.joint-paper [data-opm-sim-token="aura"],
+.joint-paper [data-opm-sim-token="viaje-aura"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: opm-sim-token-aura 900ms ease-in-out infinite;
+}
+
+.joint-paper [data-opm-sim-token="core"],
+.joint-paper [data-opm-sim-token="viaje-core"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: opm-sim-token-core 760ms ease-in-out infinite;
+}
+
+.joint-paper [data-opm-sim-token="trail"],
+.joint-paper [data-opm-sim-token="viaje-trail"] {
+  animation: opm-sim-token-trail 760ms ease-in-out infinite;
+}
+
+@keyframes opm-sim-flow-line {
+  to { stroke-dashoffset: -22; }
+}
+
+@keyframes opm-sim-dash {
+  to { stroke-dashoffset: -18; }
+}
+
+@keyframes opm-sim-breathe {
+  0%, 100% { opacity: 0.74; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.018); }
+}
+
+@keyframes opm-sim-soft-breathe {
+  0%, 100% { opacity: 0.62; transform: scale(1); }
+  50% { opacity: 0.92; transform: scale(1.01); }
+}
+
+@keyframes opm-sim-state-current {
+  0%, 100% { opacity: 0.78; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.035); }
+}
+
+@keyframes opm-sim-state-result {
+  0%, 100% { opacity: 0.58; transform: scale(1); }
+  50% { opacity: 0.94; transform: scale(1.025); }
+}
+
+@keyframes opm-sim-token-aura {
+  0%, 100% { opacity: 0.10; transform: scale(0.86); }
+  50% { opacity: 0.22; transform: scale(1.08); }
+}
+
+@keyframes opm-sim-token-core {
+  0%, 100% { transform: scale(0.92); }
+  50% { transform: scale(1.12); }
+}
+
+@keyframes opm-sim-token-trail {
+  0%, 100% { opacity: 0.28; }
+  50% { opacity: 0.62; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .joint-paper [joint-selector^="stateCapsule"][data-cap-rol="estado"] {
     transition: none;
+  }
+
+  .joint-paper [data-opm-sim],
+  .joint-paper [data-opm-sim-token] {
+    animation: none;
   }
 }

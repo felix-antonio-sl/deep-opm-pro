@@ -7,6 +7,8 @@ const focoEn = (opdId: string, enlaces: string[]): FocoPasoSimulacion => ({
   procesoActivoId: "p1",
   entidadesInvolucradasIds: [],
   enlacesInvolucradosIds: enlaces,
+  estadosOrigenIds: [],
+  estadosResultadoIds: [],
 });
 
 describe("debeAnimarTokensSim", () => {
@@ -20,7 +22,14 @@ describe("debeAnimarTokensSim", () => {
     expect(debeAnimarTokensSim(focoEn("SD1", ["e1"]), "SD", false)).toBe(false);
   });
   test("no anima sin paso activo", () => {
-    const sinPaso: FocoPasoSimulacion = { paso: null, procesoActivoId: null, entidadesInvolucradasIds: [], enlacesInvolucradosIds: [] };
+    const sinPaso: FocoPasoSimulacion = {
+      paso: null,
+      procesoActivoId: null,
+      entidadesInvolucradasIds: [],
+      enlacesInvolucradosIds: [],
+      estadosOrigenIds: [],
+      estadosResultadoIds: [],
+    };
     expect(debeAnimarTokensSim(sinPaso, "SD", false)).toBe(false);
   });
   test("no anima sin enlaces", () => {

@@ -6,6 +6,32 @@
 **Frente: canvas infinito — DESPLEGADO 2026-06-03** (commit `849930e`, bundle `index-DaVSdw1e.js`). El OPD vacío parte a pantalla y el paper crece/desplaza sus límites en cualquier dirección con `paper.fitToContent({allowNewOrigin:'any'})`, reemplazando el piso fijo 7200×5200 + crecimiento solo derecha/abajo. Detalle del corte abajo (§ Canvas infinito); el spec de origen fue consolidado aquí y eliminado (historia git: `aec1bcd`).
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2; rama `codex/ux-composicion-f1` fue squash-mergeada sobre `main` para cerrar la brecha de composición. Diseño/planes relevantes: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`, `docs/superpowers/plans/2026-06-02-ux-adhoc-fs.md`.
 
+## Actualización 2026-06-04 — Simulación visual viva: tokens viajeros, estados current/resultado y halos geométricos
+
+**Estado:** la simulación cobra vida visual sobre el diagrama. Proceso activo con pulso crimson, objetos involucrados con respiración verde/azul OPM, estados `current` y `resultado` resaltados sobre la cápsula de la entidad, enlaces runtime con trazo animado y tokens con aura/estela viajando por el path. Todo es affordance runtime vía atributos `data-opm-sim` + CSS `@keyframes`, sin nueva primitiva OPM.
+
+**Cambios principales:**
+- **Foco de simulación** (`modelo/simulacion/foco.ts`): expone `estadosOrigenIds` y `estadosResultadoIds` (antes solo proceso activo + entidades/enlaces involucrados). Derivados de `transicionesActivasEnPaso`.
+- **Halos de simulación** (`render/jointjs/composers/halos.ts`): geometría corregida para entidades con estados — usan `dimensionesEntidadRenderizada()` compartida en lugar de `apariencia.width/height` (la entidad crece al renderizar estados). Fills semánticos: proceso activo con `fill=opmProcesoSuave` + `data-opm-sim="process-active"`; entidad involucrada con fill OPM + `data-opm-sim="entity-involved"`; nuevos halos para `state-current` y `state-result`. Los halos reciben `Modelo` + `OpcionesProyeccion` completos.
+- **Función extractada** `dimensionesEntidadRenderizada()` en `composers/entidad.ts:198`: geometría efectiva de una entidad considerando estados, plegado parcial y contorno de descomposición. Consumida tanto por la proyección de entidad como por los halos de simulación.
+- **Enlaces runtime** (`composers/enlace.ts`): `strokeDasharray="7 4"` + `data-opm-sim="runtime-link"`; tokens estáticos coloreados por tipo de enlace (`colorTokenSimulacion`: resultado→verde, efecto/invocación→azul, agente/instrumento→oliva); token markup enriquecido con aura + trail + core + `data-opm-sim-token` attributes.
+- **Tokens viajeros** (`JointCanvas.tsx`): corregido el lookup de `cell` JointJS — antes buscaba por id semántico del enlace, pero la celda JointJS usa id de apariencia; ahora resuelve por metadata `opm.enlaceId` (`celdaJointDeEnlaceSimulacion`). Cada enlace activo emite 3 tokens escalonados (0ms, 22%, 44% de duración) con `<g>` SVG que agrupa aura-circle + trail-path + core-circle. Soporta `prefers-reduced-motion` (suprime toda animación de simulación). Limpieza vía `clearTimeout` + `token.remove()`.
+- **CSS de animación** (`jointjs.css`): `@keyframes` para flow-line (stroke-dashoffset infinito), dash (offset en halos), breathe/soft-breathe (opacity+scale en proceso/objeto), state-current/state-result (opacity+scale diferenciados), token-aura/core/trail (opacity+scale). Todo encapsulado bajo `[data-opm-sim]` / `[data-opm-sim-token]`. `@media (prefers-reduced-motion: reduce)` suprime todas las animaciones.
+- **Proyección** (`proyeccion.ts`, `proyeccionTipos.ts`, `constantes.codex.ts`): firma de `proyectarHaloSimulacion*` ampliada para pasar modelo y opciones; nuevas constantes `opmProcesoSuave`.
+
+**Verificación:**
+- `bun run check` -> **2136 pass / 0 fail** (regresión en `halos.test.ts:90`: halo `196×110` cubre entidad `186×100`, exactamente +5 px/lado)
+- `bun run lint` -> OK
+- `bun run build` -> OK, bundle `index-DceuzejP.js`
+- `bun run design:governance` -> OK
+- `PW_PORT=5213 bunx playwright test e2e/12-beta2-modo-simulacion.spec.ts --workers=1` -> **8 passed**
+- Sonda visual Playwright: 1 proceso activo, 1 estado current, 1 estado resultado, 2 enlaces runtime, 2 tokens estáticos, 4 tokens viajeros; sin `pageErrors`
+
+**Handoff explícito:**
+- *Estado actual:* simulación visual viva y verificada end-to-end. No se tocó `runner.ts` ni el kernel de simulación; todo el enriquecimiento es capa de proyección visual con atributos `data-opm-sim`.
+- *Supuestos:* los colores de token viajero se derivan de `colorTokenSimulacion(tipoEnlace)`; la geometría de halos comparte `dimensionesEntidadRenderizada` con la proyección de entidad; `prefers-reduced-motion` es respetado tanto en CSS como en JS.
+- *Riesgos:* los tokens viajeros son efímeros (se limpian al cambiar de paso); `celdaJointDeEnlaceSimulacion` hace O(n) walk sobre `getCells()` como fallback — ok para la escala actual de simulación pero podría iterarse si se simulan cientos de enlaces simultáneos.
+
 ## Actualización 2026-06-04 — Flujo canónico dominio→OpForja: consenso de mesa + ejecución autónoma W1–W5.1
 
 **Estado:** las dos líneas evolutivas (hd-opm autoría ↔ OpForja plataforma) quedaron **reconciliadas por consenso deliberativo y ejecutadas hasta W5.1** bajo mandato autónomo del operador. Autoridad: `docs/auditorias/2026-06-04-acta-mesa-flujo-canonico-dominio-opforja.md` (mesa Besto/Resto, orquestación, 3 ciclos, 9 críticas resueltas) + `2026-06-04-acta-mesa-equilibrio-encarnacion.md` (mesa Asto/Besto/Resto, DOS deliberaciones: realización EQUILIBRIO C1-C5 + distribución del LLM por naturaleza del juicio). Corte operativo: `docs/roadmap/backlog-contingencial.md` (HU v2 + cortes-operativos CONGELADOS por HITL-3; § Estado de ejecución al día).

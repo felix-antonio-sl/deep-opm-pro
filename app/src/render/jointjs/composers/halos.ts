@@ -2,7 +2,8 @@ import type { Apariencia, Enlace, Entidad, Id, Modelo, Estado } from "../../../m
 import type { OplReferencia } from "../../../opl/interaccion";
 import { CODEX } from "../constantes.codex";
 import { jointCanvasPalette } from "../palette";
-import type { JointCellJson } from "../proyeccionTipos";
+import type { JointCellJson, OpcionesProyeccion } from "../proyeccionTipos";
+import { dimensionesEntidadRenderizada } from "./entidad";
 import { puntoCapsulaEstado, rectCapsulaEstado } from "./estados";
 
 /**
@@ -114,10 +115,17 @@ export function refResaltaEnlace(enlace: Enlace, ref: OplReferencia | null): boo
  * Crimson dashed canonico (Codex V-132): crimson = registro de foco/current;
  * dashed = textura temporal. Resuelve V-132 sin color nuevo.
  */
-export function proyectarHaloSimulacionProceso(opdId: Id, apariencia: Apariencia, entidad: Entidad): JointCellJson {
+export function proyectarHaloSimulacionProceso(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  entidad: Entidad,
+  opciones: OpcionesProyeccion,
+): JointCellJson {
   const pad = 6;
-  const width = apariencia.width + pad * 2;
-  const height = apariencia.height + pad * 2;
+  const sizeRender = dimensionesEntidadRenderizada(modelo, opdId, apariencia, entidad, opciones);
+  const width = sizeRender.width + pad * 2;
+  const height = sizeRender.height + pad * 2;
   return {
     id: `sim-proceso-${apariencia.id}`,
     type: "standard.Ellipse",
@@ -125,10 +133,11 @@ export function proyectarHaloSimulacionProceso(opdId: Id, apariencia: Apariencia
     size: { width, height },
     attrs: {
       body: {
-        fill: "transparent",
+        fill: CODEX.colores.opmProcesoSuave,
         stroke: CODEX.colores.crimson,
         strokeWidth: 3,
         strokeDasharray: "6 3",
+        "data-opm-sim": "process-active",
         cx: width / 2,
         cy: height / 2,
         rx: width / 2,
@@ -147,11 +156,20 @@ export function proyectarHaloSimulacionProceso(opdId: Id, apariencia: Apariencia
   };
 }
 
-export function proyectarHaloSimulacionEntidadInvolucrada(opdId: Id, apariencia: Apariencia, entidad: Entidad): JointCellJson {
+export function proyectarHaloSimulacionEntidadInvolucrada(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  entidad: Entidad,
+  opciones: OpcionesProyeccion,
+): JointCellJson {
   const pad = 5;
   const type = entidad.tipo === "objeto" ? "standard.Rectangle" : "standard.Ellipse";
-  const width = apariencia.width + pad * 2;
-  const height = apariencia.height + pad * 2;
+  const sizeRender = dimensionesEntidadRenderizada(modelo, opdId, apariencia, entidad, opciones);
+  const width = sizeRender.width + pad * 2;
+  const height = sizeRender.height + pad * 2;
+  const stroke = entidad.tipo === "objeto" ? CODEX.colores.opmObjeto : CODEX.colores.opmProceso;
+  const fill = entidad.tipo === "objeto" ? CODEX.colores.opmObjetoSuave : CODEX.colores.opmProcesoSuave;
   return {
     id: `sim-involucrada-${apariencia.id}`,
     type,
@@ -160,19 +178,21 @@ export function proyectarHaloSimulacionEntidadInvolucrada(opdId: Id, apariencia:
     attrs: {
       body: entidad.tipo === "objeto"
         ? {
-            fill: CODEX.colores.crimsonSuave,
-            stroke: CODEX.colores.crimson,
+            fill,
+            stroke,
             strokeWidth: 2,
-            strokeDasharray: "3 3",
+            strokeDasharray: "4 3",
+            "data-opm-sim": "entity-involved",
             rx: 7,
             ry: 7,
             pointerEvents: "none",
           }
         : {
-            fill: CODEX.colores.crimsonSuave,
-            stroke: CODEX.colores.crimson,
+            fill,
+            stroke,
             strokeWidth: 2,
-            strokeDasharray: "3 3",
+            strokeDasharray: "4 3",
+            "data-opm-sim": "entity-involved",
             cx: width / 2,
             cy: height / 2,
             rx: width / 2,
@@ -205,21 +225,23 @@ export function proyectarHaloSimulacionEstadoCurrent(
   entidad: Entidad,
   estado: Estado,
 ): JointCellJson {
-  const punto = puntoCapsulaEstado(modelo, apariencia, estado.id);
-  if (punto) {
-    const width = 14;
-    const height = 18;
+  const rect = rectCapsulaEstado(modelo, apariencia, estado.id);
+  if (rect) {
+    const pad = 3;
     return {
       id: `sim-current-${apariencia.id}-${estado.id}`,
-      type: "standard.Path",
-      position: { x: punto.x - width / 2, y: punto.y - height - 12 },
-      size: { width, height },
+      type: "standard.Rectangle",
+      position: { x: rect.x - pad, y: rect.y - pad },
+      size: { width: rect.width + pad * 2, height: rect.height + pad * 2 },
       attrs: {
         body: {
-          d: "M7 0 C3 0 0 3 0 7 c0 5 7 11 7 11 s7-6 7-11 C14 3 11 0 7 0 Z",
-          fill: CODEX.colores.crimson,
+          fill: CODEX.colores.opmEstadoSuave,
           stroke: CODEX.colores.crimson,
-          strokeWidth: 1.5,
+          strokeWidth: 2,
+          strokeDasharray: "4 2",
+          "data-opm-sim": "state-current",
+          rx: 11,
+          ry: 11,
           pointerEvents: "none",
         },
         label: { text: "", display: "none" },
@@ -227,7 +249,7 @@ export function proyectarHaloSimulacionEstadoCurrent(
       opm: {
         kind: "simulacion-halo",
         opdId,
-        targetId: entidad.id,
+        targetId: estado.id,
         tipo: "estado-current",
       },
       z: 36,
@@ -247,6 +269,8 @@ export function proyectarHaloSimulacionEstadoCurrent(
         fill: "transparent",
         stroke: CODEX.colores.crimson,
         strokeWidth: 2,
+        strokeDasharray: "4 2",
+        "data-opm-sim": "state-current",
         rx: 8,
         ry: 8,
         pointerEvents: "none",
@@ -258,6 +282,75 @@ export function proyectarHaloSimulacionEstadoCurrent(
       opdId,
       targetId: entidad.id,
       tipo: "estado-current",
+    },
+    z: 34,
+  };
+}
+
+export function proyectarHaloSimulacionEstadoResultado(
+  modelo: Modelo,
+  opdId: Id,
+  apariencia: Apariencia,
+  entidad: Entidad,
+  estado: Estado,
+): JointCellJson {
+  const rect = rectCapsulaEstado(modelo, apariencia, estado.id);
+  if (rect) {
+    const pad = 4;
+    return {
+      id: `sim-resultado-${apariencia.id}-${estado.id}`,
+      type: "standard.Rectangle",
+      position: { x: rect.x - pad, y: rect.y - pad },
+      size: { width: rect.width + pad * 2, height: rect.height + pad * 2 },
+      attrs: {
+        body: {
+          fill: CODEX.colores.opmObjetoSuave,
+          stroke: CODEX.colores.opmObjeto,
+          strokeWidth: 2,
+          strokeDasharray: "7 3",
+          "data-opm-sim": "state-result",
+          rx: 12,
+          ry: 12,
+          pointerEvents: "none",
+        },
+        label: { text: "", display: "none" },
+      },
+      opm: {
+        kind: "simulacion-halo",
+        opdId,
+        targetId: estado.id,
+        tipo: "estado-resultado",
+      },
+      z: 37,
+    };
+  }
+
+  const pad = 4;
+  const width = apariencia.width + pad * 2;
+  const height = apariencia.height + pad * 2;
+  return {
+    id: `sim-resultado-${apariencia.id}-${estado.id}`,
+    type: "standard.Rectangle",
+    position: { x: apariencia.x - pad, y: apariencia.y - pad },
+    size: { width, height },
+    attrs: {
+      body: {
+        fill: CODEX.colores.opmObjetoSuave,
+        stroke: CODEX.colores.opmObjeto,
+        strokeWidth: 2,
+        strokeDasharray: "7 3",
+        "data-opm-sim": "state-result",
+        rx: 8,
+        ry: 8,
+        pointerEvents: "none",
+      },
+      label: { text: "", display: "none" },
+    },
+    opm: {
+      kind: "simulacion-halo",
+      opdId,
+      targetId: entidad.id,
+      tipo: "estado-resultado",
     },
     z: 34,
   };
@@ -296,6 +389,7 @@ export function proyectarHaloSimulacionEstadoInicial(
           fill: SIM_OLIVA,
           stroke: SIM_OLIVA_OSCURO,
           strokeWidth: 1.5,
+          "data-opm-sim": "state-initial",
           pointerEvents: "none",
         },
         label: { text: "", display: "none" },
@@ -323,6 +417,7 @@ export function proyectarHaloSimulacionEstadoInicial(
         fill: "transparent",
         stroke: SIM_OLIVA,
         strokeWidth: 2,
+        "data-opm-sim": "state-initial",
         rx: 8,
         ry: 8,
         pointerEvents: "none",

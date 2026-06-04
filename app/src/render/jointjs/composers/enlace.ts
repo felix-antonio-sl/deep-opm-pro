@@ -186,7 +186,7 @@ export function proyectarEnlace(
       ...etiquetasRuta(enlace, labelPositions, wrapWidth),
       ...etiquetasOpcloudAvanzadas(enlace, labelPositions, wrapWidth),
       ...etiquetasProxyParte(origen, destino, labelPositions, wrapWidth),
-      ...(activoRuntime ? [etiquetaTokenSimulacion()] : []),
+      ...(activoRuntime ? [etiquetaTokenSimulacion(enlace.tipo)] : []),
     ],
     attrs: {
       wrapper: {
@@ -201,6 +201,7 @@ export function proyectarEnlace(
       line: {
         stroke: activoRuntime ? CODEX.colores.crimson : colorEnlace,
         strokeWidth: seleccionada ? grosorEnlace + 2 : activoRuntime ? grosorEnlace + 1.5 : grosorEnlace,
+        ...(activoRuntime ? { strokeDasharray: "7 4", strokeLinecap: "round", "data-opm-sim": "runtime-link" } : {}),
         ...(dashOverride !== undefined ? { strokeDasharray: dashOverride } : {}),
         sourceMarker: marcadorBidireccional ?? marcadorFuente(enlace.tipo),
         targetMarker: marcadorBidireccional ?? marcadorDestino(enlace.tipo),
@@ -221,15 +222,38 @@ function deltaXEntreApariencias(origen: Apariencia, destino: Apariencia): number
   return destino.x + destino.width / 2 - (origen.x + origen.width / 2);
 }
 
-export function etiquetaTokenSimulacion(): Record<string, unknown> {
+export function etiquetaTokenSimulacion(tipo: TipoEnlace = "consumo"): Record<string, unknown> {
+  const color = colorTokenSimulacion(tipo);
   return {
-    markup: [{ tagName: "circle", selector: "token" }],
+    markup: [
+      { tagName: "circle", selector: "tokenAura" },
+      { tagName: "path", selector: "tokenTrail" },
+      { tagName: "circle", selector: "token" },
+    ],
     attrs: {
-      token: {
-        r: 5,
-        fill: CODEX.colores.crimson,
-        stroke: CODEX.colores.ink,
+      tokenAura: {
+        r: 10,
+        fill: color,
+        opacity: 0.13,
+        "data-opm-sim-token": "aura",
+        pointerEvents: "none",
+      },
+      tokenTrail: {
+        d: "M -12 0 L -3 0",
+        fill: "none",
+        stroke: color,
         strokeWidth: 1.5,
+        strokeLinecap: "round",
+        opacity: 0.45,
+        "data-opm-sim-token": "trail",
+        pointerEvents: "none",
+      },
+      token: {
+        r: 5.5,
+        fill: color,
+        stroke: CODEX.colores.paper,
+        strokeWidth: 1.2,
+        "data-opm-sim-token": "core",
         pointerEvents: "none",
       },
     },
@@ -238,11 +262,18 @@ export function etiquetaTokenSimulacion(): Record<string, unknown> {
       offset: 0,
       angle: 0,
       args: {
-        keepGradient: false,
+        keepGradient: true,
         ensureLegibility: false,
       },
     },
   };
+}
+
+export function colorTokenSimulacion(tipo: TipoEnlace): string {
+  if (tipo === "resultado") return CODEX.colores.opmObjeto;
+  if (tipo === "efecto" || tipo === "invocacion") return CODEX.colores.opmProceso;
+  if (tipo === "agente" || tipo === "instrumento") return CODEX.colores.opmEstado;
+  return CODEX.colores.crimson;
 }
 
 export function etiquetasProxyParte(

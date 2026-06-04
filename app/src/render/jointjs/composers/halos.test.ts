@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import type { Apariencia, Entidad, Modelo } from "../../../modelo/tipos";
 import { jointCanvasPalette } from "../palette";
-import { proyectarHaloSeleccion, proyectarHaloSeleccionEstado, refResaltaEntidad, refResaltaEnlace } from "./halos";
+import { proyectarEntidad } from "./entidad";
+import { proyectarHaloSeleccion, proyectarHaloSeleccionEstado, proyectarHaloSimulacionEntidadInvolucrada, refResaltaEntidad, refResaltaEnlace } from "./halos";
 
 describe("composer halos", () => {
   test("proyecta seleccion Codex como underline crimson sin redibujar borde", () => {
@@ -85,6 +86,18 @@ describe("composer halos", () => {
     expect(refResaltaEntidad(modelo, entidad, { tipo: "estado", id: "est-1" })).toBe(true);
     expect(refResaltaEnlace({ id: "en-1", tipo: "consumo", origenId: { kind: "entidad", id: "a" }, destinoId: { kind: "entidad", id: "b" }, etiqueta: "" }, { tipo: "enlace", id: "en-1" })).toBe(true);
   });
+
+  test("simulacion: halo de objeto involucrado cubre la geometria renderizada con estados", () => {
+    const modelo = modeloConEstadosVisibles();
+    const objeto = modelo.entidades[entidad.id]!;
+    const entidadCell = proyectarEntidad(modelo, "opd-1", apariencia, objeto, false, false, {});
+    const halo = proyectarHaloSimulacionEntidadInvolucrada(modelo, "opd-1", apariencia, objeto, {});
+    const sizeEntidad = entidadCell.size as { width: number; height: number };
+
+    expect(sizeEntidad.height).toBeGreaterThan(apariencia.height);
+    expect(halo.position).toEqual({ x: apariencia.x - 5, y: apariencia.y - 5 });
+    expect(halo.size).toEqual({ width: sizeEntidad.width + 10, height: sizeEntidad.height + 10 });
+  });
 });
 
 const apariencia: Apariencia = {
@@ -104,3 +117,27 @@ const entidad: Entidad = {
   esencia: "informacional",
   afiliacion: "sistemica",
 };
+
+function modeloConEstadosVisibles(): Modelo {
+  return {
+    id: "m",
+    nombre: "m",
+    opdRaizId: "opd-1",
+    opds: {
+      "opd-1": {
+        id: "opd-1",
+        nombre: "SD",
+        padreId: null,
+        apariencias: { [apariencia.id]: apariencia },
+        enlaces: {},
+      },
+    },
+    entidades: { [entidad.id]: entidad },
+    estados: {
+      "est-1": { id: "est-1", entidadId: entidad.id, nombre: "recibida" },
+      "est-2": { id: "est-2", entidadId: entidad.id, nombre: "validada" },
+    },
+    enlaces: {},
+    nextSeq: 1,
+  };
+}

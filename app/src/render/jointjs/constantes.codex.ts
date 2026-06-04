@@ -8,6 +8,9 @@ export const CODEX = {
     opmObjeto: "#27613f", // espejo de ui-forja/tokens.css --cx-opm-green
     opmProceso: "#1d3f78", // espejo de ui-forja/tokens.css --cx-opm-blue
     opmEstado: "#68711f", // espejo de ui-forja/tokens.css --cx-opm-olive
+    opmObjetoSuave: "rgba(39, 97, 63, 0.10)",
+    opmProcesoSuave: "rgba(29, 63, 120, 0.10)",
+    opmEstadoSuave: "rgba(104, 113, 31, 0.16)",
     estadoFill: "#dedacb", // espejo de ui-forja/tokens.css --cx-state-fill
     estadoFinalFill: "#d6d2c6", // marcador visual heredado para designacion final
     crimson: "#8e2a2e", // espejo de ui-forja/tokens.css --cx-crimson

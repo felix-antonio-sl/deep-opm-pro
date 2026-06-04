@@ -1,4 +1,4 @@
-import { V, type dia } from "jointjs";
+import type { dia } from "jointjs";
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort";
@@ -10,6 +10,7 @@ import { CODEX } from "./constantes.codex";
 import { entidadIdDeExtremo, nombreExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../../modelo/tipos";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
+import { colorTokenSimulacion } from "./composers/enlace";
 import { proyectarModeloAJointCells } from "./proyeccion";
 import { cablearDrag, embedirContorno } from "./handlers/drag";
 import { ajustarPaperAContenido, calcularAjusteScroll, contentBBoxPaper, metadata } from "./handlers/helpers";
@@ -442,6 +443,7 @@ export function JointCanvas({
             entidadesInvolucradasIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.entidadesInvolucradasIds : [],
             enlacesInvolucradosIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.enlacesInvolucradosIds : [],
             estadosInicialesIds: estadosInicialesDelModelo(modelo),
+            estadosResultadoIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.estadosResultadoIds : [],
           }
         : null,
     );
@@ -527,23 +529,37 @@ export function JointCanvas({
     if (!adapter) return;
     const foco = focoPasoActualSimulacion(modelo, contextoSimulacion);
     if (!debeAnimarTokensSim(foco, opdActivoId, simHeadless)) return;
-    const duracion = Math.round(900 / simVelocidad);
-    const tokensVivos: ReturnType<typeof V>[] = [];
+    if (prefiereReducirMovimiento()) return;
+    const duracion = Math.max(420, Math.round(980 / simVelocidad));
+    const tokensVivos: SVGElement[] = [];
+    const timeouts: number[] = [];
     for (const enlaceId of tokensViajeDelPaso(foco)) {
-      const cell = adapter.graph.getCell(enlaceId);
+      const cell = celdaJointDeEnlaceSimulacion(adapter, enlaceId);
       if (!cell) continue;
       const linkView = adapter.paper.findViewByModel(cell);
       if (!linkView || typeof (linkView as { sendToken?: unknown }).sendToken !== "function") continue;
-      const token = V("circle", {
-        r: 6,
-        fill: CODEX.colores.opmObjeto,
-        stroke: jointCanvasPalette.background,
-        "stroke-width": 1,
-      });
-      tokensVivos.push(token);
-      (linkView as unknown as { sendToken: (t: SVGElement, d: number) => void }).sendToken(token.node, duracion);
+      const enlace = modelo.enlaces[enlaceId];
+      const color = enlace ? colorTokenSimulacion(enlace.tipo) : CODEX.colores.crimson;
+      const sendToken = (delay: number, ordinal: number) => {
+        const timeout = window.setTimeout(() => {
+          const token = crearTokenViajeSimulacion(color, ordinal);
+          tokensVivos.push(token);
+          (linkView as unknown as {
+            sendToken: (
+              token: SVGElement,
+              opt: { duration: number; direction: "normal" },
+              callback?: () => void,
+            ) => void;
+          }).sendToken(token, { duration: duracion, direction: "normal" }, () => token.remove());
+        }, delay);
+        timeouts.push(timeout);
+      };
+      sendToken(0, 0);
+      sendToken(Math.round(duracion * 0.22), 1);
+      sendToken(Math.round(duracion * 0.44), 2);
     }
     return () => {
+      for (const timeout of timeouts) window.clearTimeout(timeout);
       for (const token of tokensVivos) token.remove();
     };
   }, [adapterState, modelo, contextoSimulacion, opdActivoId, simHeadless, simVelocidad]);
@@ -686,6 +702,56 @@ function tituloMenuConexion(modelo: Modelo, origenEntrada: ExtremoEntrada, desti
   const origen = entidadIdDeExtremo(modelo, normalizarExtremo(origenEntrada)) ? nombreExtremo(modelo, normalizarExtremo(origenEntrada)) : "Origen";
   const destino = entidadIdDeExtremo(modelo, normalizarExtremo(destinoEntrada)) ? nombreExtremo(modelo, normalizarExtremo(destinoEntrada)) : "Destino";
   return `Conectar ${origen} → ${destino}`;
+}
+
+function crearTokenViajeSimulacion(color: string, ordinal: number): SVGElement {
+  const ns = "http://www.w3.org/2000/svg";
+  const group = document.createElementNS(ns, "g");
+  group.setAttribute("data-opm-sim-token", "viaje");
+  group.setAttribute("data-opm-sim-token-ordinal", String(ordinal));
+
+  const aura = document.createElementNS(ns, "circle");
+  aura.setAttribute("r", "11");
+  aura.setAttribute("fill", color);
+  aura.setAttribute("opacity", "0.16");
+  aura.setAttribute("data-opm-sim-token", "viaje-aura");
+
+  const trail = document.createElementNS(ns, "path");
+  trail.setAttribute("d", "M -15 0 L -4 0");
+  trail.setAttribute("fill", "none");
+  trail.setAttribute("stroke", color);
+  trail.setAttribute("stroke-width", "1.7");
+  trail.setAttribute("stroke-linecap", "round");
+  trail.setAttribute("opacity", "0.45");
+  trail.setAttribute("data-opm-sim-token", "viaje-trail");
+
+  const core = document.createElementNS(ns, "circle");
+  core.setAttribute("r", "5.8");
+  core.setAttribute("fill", color);
+  core.setAttribute("stroke", CODEX.colores.paper);
+  core.setAttribute("stroke-width", "1.4");
+  core.setAttribute("data-opm-sim-token", "viaje-core");
+
+  group.append(aura, trail, core);
+  return group;
+}
+
+function prefiereReducirMovimiento(): boolean {
+  if (typeof globalThis.matchMedia !== "function") return false;
+  try {
+    return globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return false;
+  }
+}
+
+function celdaJointDeEnlaceSimulacion(adapter: JointCanvasAdapter, enlaceId: Id): dia.Cell | null {
+  const directa = adapter.graph.getCell(enlaceId);
+  if (directa) return directa;
+  return adapter.graph.getCells().find((cell) => {
+    const meta = metadata(cell);
+    return meta?.kind === "enlace" && meta.enlaceId === enlaceId;
+  }) ?? null;
 }
 
 /**
