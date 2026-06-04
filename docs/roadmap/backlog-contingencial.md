@@ -6,6 +6,24 @@
 **Qué congela:** `cortes-operativos.md` (2026-05-07) y la priorización HU v2 quedan congelados operativamente — no eliminados, no autoritativos para planificar rondas mientras este documento viva. El concern del quality-gate baseline (93f184f) queda aparcado con nota, no resuelto.
 **Documento vivo:** se reescribe, no se acumula (política de handoff único aplicada a roadmap).
 
+## ⚡ Estado de ejecución (mandato autónomo 2026-06-04, mismo día)
+
+Bajo el mandato del operador («terminar todo de forma completamente autónoma y hasta el final») se ejecutó:
+
+| WS | Estado | Evidencia |
+|---|---|---|
+| **W1 completo** | ✅ CERRADO | gramática v0.1 falsada (93.4% hechos, L1 verde 100%) · normalizador TDD 42 tests · inventario 46 clases · AnclaNormativa adjudicada §10 — `docs/proto-modelo/` |
+| **W2 completo** | ✅ CERRADO | W2.1 `protocolo-re-pin.md` · W2.2 hecha por el operador en paralelo (fixes V16, commit 51b58ed) · W2.3 conteo reconciliado **262/192/433/37** + regeneración byte-idéntica verificada |
+| **W3 completo** | ✅ CERRADO | DSL valida firma vía kernel (vía b; residuo entidades documentado en dsl.ts) · constantes in-zoom unificadas (`canvas/constantesInzoom.ts`; hallazgo: la "triplicación" era doble) · ley L7 falsificable por ROL declarado — gate byte-identidad verde en cada paso |
+| **W4.1 completo** | ✅ CERRADO | 6 primitivas tanda 1 (abanico/multiplicidadOrigen/demora/autoinvocación/no/designaciones), 23 tests con round-trip OPL |
+| **W4.2 completo** | ✅ CERRADO | compilador 4 etapas (`compilar/{estructura,resolutor,emisor,compilador}.ts`) + **piloto sobre el proto v1.9 ENTERO**: 11 OPDs/250 ent/284 enl, validación PASS, L2 coherente, roundtrip 92.3%, 17 tensiones documentadas — `piloto-compilador-2026-06-04.md` |
+| **W4.3** | ⏳ PENDIENTE | migración real de `generar-bundle-hodom.ts` OPD-por-OPD (el piloto probó el compilador; la migración resuelve además las 17 tensiones + 30 rechazos T3 CON el operador — son decisiones de modelado) |
+| **W5.1 completo** | ✅ CERRADO | `AnclaNormativa` aditiva en el formato + DSL `ancla()` + L8 round-trip nivel-enlace + L9 preparatorio — 12 tests |
+| **W5.2/W5.3** | ⏳ PENDIENTES | compilación de anclas desde el proto (el normalizador ya las captura) · procedencia/staleness L6 |
+| **W6** | ⏳ PENDIENTE | superficie UX (W6.0 puente primero); W6.1 tiene gate de release HITL (re-protección) |
+
+Suite final: **2117/0** · byte-identidad hd-opm intacta en TODAS las ondas · commits 8ddb772→3c6140f en deep-opm-pro + 2376ea8 en hd-opm (sin push).
+
 ## Decisiones rectoras (resueltas, no reabrir sin acta)
 
 | ID | Decisión | Consecuencia operativa |
