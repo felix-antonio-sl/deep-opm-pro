@@ -1,19 +1,61 @@
 // DSL imperativo re-entrante para construir un Modelo OPM programáticamente (dominio-agnóstico).
 // Extraído del generador de hd-opm; los globales de módulo se convirtieron en estado de instancia
 // (closure de `crearAutor`), de modo que se pueden construir N modelos por proceso sin colisión.
+//
+// W3.2 (D4 del acta de consenso) — validación incremental sobre las operaciones del kernel:
+// El DSL escribe los bytes del modelo directamente (conserva su esquema de ids `e-${seq}`/`a-${seq}`/
+// `ae-${seq}`/`o|p-${key}`/`opd-${key}`/`s-${key}-${slug}`, exigido por la byte-identidad del bundle
+// golden de hd-opm). Pero la VALIDACIÓN de firmas ya NO es implícita: `enlazar` compone el validador
+// canónico del kernel (`validarFirmaEnlace`, la misma firma que usa `crearEnlace`) y RECHAZA en el
+// punto de construcción —no en la emisión— todo enlace cuya firma sea ilegal (p.ej. agente
+// objeto→objeto, consumo proceso→objeto). Se eligió la vía (b) del brief (componer la validación
+// del kernel con la escritura del DSL) sobre la vía (a) (extender las operaciones kernel con un
+// `idForzado`): las operaciones `crearObjeto`/`crearProceso`/`crearEnlace` acoplan creación de
+// entidad+apariencia, fuerzan esencia/afiliación canónicas, renombran por unicidad
+// (`nombreUnicoEntidad`) y refuerzan por ontología — todas mutaciones que CAMBIARÍAN los bytes del
+// bundle. La vía (b) gana la validación temprana sin tocar la salida (verificado: los 433 enlaces
+// del golden HODOM pasan `validarFirmaEnlace`).
+//
+// Residuo documentado (deuda visible): la creación de ENTIDADES (`entidad`/`atributo`/…) NO pasa por
+// `crearObjeto`/`crearProceso`. Esas operaciones (1) generan id propio vía `nextSeq` —incompatible
+// con el esquema `o|p-${key}` del DSL—, (2) fuerzan `esencia: "informacional"`/`afiliacion:
+// "sistemica"` —el DSL toma esencia/afiliación arbitrarias del autor—, (3) renombran por unicidad
+// y refuerzan por ontología —el DSL preserva el nombre EXACTO del autor, pilar de la byte-identidad—
+// y (4) crean apariencia acoplada —el DSL separa `entidad()` de `ver()`. Pasar entidades por el
+// kernel sin re-pin del golden es imposible hoy; queda como deuda para cuando se versione el bundle.
+//
+// W4.1 (Tanda 1 del inventario `docs/proto-modelo/inventario-primitivas-dsl.md`) — primitivas
+// ADITIVAS que delegan 1:1 a operaciones del kernel ya existentes. Ninguna altera el comportamiento
+// de los métodos previos (verificado por byte-identidad del golden HODOM, que no las usa). Seis
+// primitivas: (1) `abanico()` → `formarAbanico` (cierra la exclusión rectora L2 #30); (2)
+// `OpcionesEnlace.multiplicidadOrigen` → espejo de `multiplicidadDestino` en la escritura del enlace
+// (#31); (3) `OpcionesEnlace.demora` → `definirDemora` (#21); (4) `autoinvocacion()` →
+// `crearAutoInvocacion` (#22); (5) `OpcionesEnlace.modificador: "no"` → ya fluía por `modificador`,
+// pero el subtipo no se mapeaba; ahora `"no"`→`"no"` (#19); (6) `designarEstado()` → designaciones
+// default/current, espejo de inicial/final de `estados()` (#5). El abanico replica el pin de puerto
+// compartido que hace el reverse antes de `formarAbanico` (`opl/parser/aplicar.ts:390-405`): los
+// enlaces del DSL no tienen `portId` hasta el layout, así que `abanico()` asigna un portId de
+// fan-out al lado del puerto común antes de delegar al kernel.
 import type {
   Afiliacion,
   Apariencia,
   AparienciaEnlace,
+  DesignacionEstado,
   Entidad,
   Esencia,
   Estado,
   ExtremoEnlace,
   Id,
   Modelo,
+  OperadorAbanico,
   SubtipoModificador,
   TipoEnlace,
 } from "../modelo/tipos";
+import { entidadDeExtremo } from "../modelo/extremos";
+import { validarFirmaEnlace } from "../modelo/operaciones/helpers";
+import { formarAbanico } from "../modelo/abanicos";
+import { definirDemora } from "../modelo/modificadores";
+import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import type { EntKey, ExtremoEntrada, OpcionesAutor, OpcionesEnlace, OpdKey } from "./tipos";
 
 export interface Autor {
@@ -47,8 +89,29 @@ export interface Autor {
   refDespliegueGen(entidadKey: EntKey, opdKey: OpdKey): void;
   /** Coloca una aparición de la entidad en el OPD (geometría inicial; el layout la reubica). */
   ver(opdKey: OpdKey, entidadKey: EntKey, x: number, y: number, width?: number, height?: number, estadosSuprimidos?: string[]): void;
-  /** Crea un enlace en el OPD. Las agregaciones del contorno→sub se consumen como contención interna. */
-  enlazar(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opts?: OpcionesEnlace): void;
+  /**
+   * Crea un enlace en el OPD y devuelve su Id (para componer abanicos con `abanico()`).
+   * Las agregaciones del contorno→sub se consumen como contención interna (devuelve `null`).
+   */
+  enlazar(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opts?: OpcionesEnlace): Id | null;
+  /**
+   * Agrupa ≥2 enlaces que comparten un puerto en un abanico O/XOR. W4.1 Tanda 1 (#30).
+   * Delega en `formarAbanico` del kernel (mismo validador que el reverse). Replica el pin de
+   * puerto compartido del aplicador antes de delegar. Lanza si el kernel rechaza (p.ej. <2 enlaces,
+   * enlaces no procedurales/heterogéneos, o sin puerto común).
+   */
+  abanico(opdKey: OpdKey, enlaceIds: Id[], operador?: OperadorAbanico): Id;
+  /**
+   * Auto-invocación de un proceso (`se invoca a sí mismo [después de Ns]`). W4.1 Tanda 1 (#22).
+   * Delega en `crearAutoInvocacion` del kernel (el proceso debe tener apariencia en el OPD). Lanza si
+   * el kernel rechaza. Devuelve el Id del enlace de invocación creado.
+   */
+  autoinvocacion(opdKey: OpdKey, procesoKey: EntKey, demora?: string): Id;
+  /**
+   * Designa un estado como `default` o `current` (espejo de inicial/final de `estados()`).
+   * W4.1 Tanda 1 (#5). Escribe la designación en el estado ya declarado.
+   */
+  designarEstado(entidadKey: EntKey, estado: string, designacion: DesignacionEstado): void;
   /** Construye un ExtremoEnlace desde una clave de entidad o {estado, entidad}. */
   extremo(input: ExtremoEntrada): ExtremoEnlace;
   /** La apariencia de contorno (refinable por descomposición) local a un OPD, si existe. */
@@ -83,6 +146,7 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
   let aparienciaSeq = 1;
   let enlaceSeq = 1;
   let aparienciaEnlaceSeq = 1;
+  let abanicoSeq = 1;
 
   function idEntidad(key: EntKey): Id {
     const id = eid.get(key);
@@ -229,7 +293,92 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     internosInzoom.set(opdId, internos);
   }
 
-  function enlazar(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opts: OpcionesEnlace = {}): void {
+  function designarEstado(entidadKey: EntKey, nombre: string, designacion: DesignacionEstado): void {
+    const estadoId = idEstado(entidadKey, nombre);
+    const estado = modelo.estados[estadoId]!;
+    const previas = estado.designaciones ?? [];
+    if (!previas.includes(designacion)) {
+      estado.designaciones = [...previas, designacion];
+    }
+    // Espejo de `estados(…, inicial, final)`: las designaciones default/current no setean
+    // `esInicial`/`esFinal` (eso es exclusivo de inicial/final). El forward emite la línea
+    // `X en \`s\` es Default|Current` desde `estado.designaciones`.
+  }
+
+  function abanico(opdKey: OpdKey, enlaceIds: Id[], operador: OperadorAbanico = "O"): Id {
+    const opdId = idOpd(opdKey);
+    // El kernel exige que las ramas compartan un puerto EXACTO (entidadId+lado+portId). Los enlaces
+    // del DSL aún no tienen portId (lo asigna el layout), así que replicamos el pin de puerto
+    // compartido del reverse (`opl/parser/aplicar.ts:390-405`): detectamos la entidad común y el
+    // lado por el que entra a cada rama, y le ponemos un portId de fan-out compartido.
+    const enlaces = enlaceIds.map((id) => {
+      const enlace = modelo.enlaces[id];
+      if (!enlace) throw new Error(`Abanico en OPD '${opdKey}': enlace inexistente '${id}'`);
+      return enlace;
+    });
+    if (enlaces.length >= 2) {
+      const pivote = entidadPivoteComun(enlaces);
+      if (pivote) {
+        const portId: Id = `port-fan-${pivote.entidadId}-${pivote.lado}-${abanicoSeq++}`;
+        for (const enlace of enlaces) {
+          const campo = pivote.lado === "origen" ? "origenId" : "destinoId";
+          const extremoActual = enlace[campo];
+          if (extremoActual.kind === "entidad" && extremoActual.id === pivote.entidadId) {
+            modelo.enlaces[enlace.id] = { ...enlace, [campo]: { ...extremoActual, portId } };
+          }
+        }
+      }
+    }
+    const formado = formarAbanico(modelo, opdId, enlaceIds, operador);
+    if (!formado.ok) {
+      throw new Error(`Abanico ilegal en OPD '${opdKey}': ${formado.error}`);
+    }
+    // Vuelca el resultado inmutable (abanicos + nextSeq) al modelo mutable del autor.
+    modelo.abanicos = formado.value.abanicos ?? {};
+    modelo.nextSeq = formado.value.nextSeq;
+    const nuevo = Object.values(formado.value.abanicos ?? {}).find((ab) =>
+      ab.opdId === opdId && enlaceIds.every((id) => ab.enlaceIds.includes(id)),
+    );
+    if (!nuevo) throw new Error(`Abanico en OPD '${opdKey}': no se pudo localizar el abanico formado`);
+    return nuevo.id;
+  }
+
+  function autoinvocacion(opdKey: OpdKey, procesoKey: EntKey, demora?: string): Id {
+    const opdId = idOpd(opdKey);
+    const procesoId = idEntidad(procesoKey);
+    const previos = new Set(Object.keys(modelo.enlaces));
+    const creado = demora !== undefined
+      ? crearAutoInvocacion(modelo, opdId, procesoId, demora)
+      : crearAutoInvocacion(modelo, opdId, procesoId);
+    if (!creado.ok) {
+      throw new Error(`Auto-invocación ilegal en OPD '${opdKey}' (${procesoKey}): ${creado.error}`);
+    }
+    // Vuelca el resultado inmutable (enlaces + apariencia del OPD + nextSeq) al modelo mutable.
+    modelo.enlaces = creado.value.enlaces;
+    modelo.opds[opdId]!.enlaces = creado.value.opds[opdId]!.enlaces;
+    modelo.nextSeq = creado.value.nextSeq;
+    const enlaceId = Object.keys(modelo.enlaces).find((id) => !previos.has(id));
+    if (!enlaceId) throw new Error(`Auto-invocación en OPD '${opdKey}': no se pudo localizar el enlace creado`);
+    return enlaceId;
+  }
+
+  /** Entidad común (puerto del abanico) y el lado por el que entra a todas las ramas, o null. */
+  function entidadPivoteComun(enlaces: { origenId: ExtremoEnlace; destinoId: ExtremoEnlace }[]): { entidadId: Id; lado: "origen" | "destino" } | null {
+    for (const lado of ["origen", "destino"] as const) {
+      const campo = lado === "origen" ? "origenId" : "destinoId";
+      const primer = enlaces[0]![campo];
+      if (primer.kind !== "entidad") continue;
+      const entidadId = primer.id;
+      const todas = enlaces.every((enlace) => {
+        const ext = enlace[campo];
+        return ext.kind === "entidad" && ext.id === entidadId;
+      });
+      if (todas) return { entidadId, lado };
+    }
+    return null;
+  }
+
+  function enlazar(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opts: OpcionesEnlace = {}): Id | null {
     const opdId = idOpd(opdKey);
     // Agregación del contorno hacia un subproceso: se CONSUME como contención interna (no se crea enlace).
     if (
@@ -238,27 +387,64 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
       modelo.entidades[idEntidad(origen)]!.refinamientos?.descomposicion?.opdId === opdId
     ) {
       if (typeof destino === "string") registrarInternoInzoom(opdId, idEntidad(destino));
-      return;
+      return null;
+    }
+    // W3.2 (vía b): validación incremental de la firma EN el punto de construcción.
+    // Resuelve los extremos a sus Entidad y delega en el validador canónico del kernel
+    // (el mismo que usa `crearEnlace`). Una firma ilegal (p.ej. agente objeto→objeto) lanza
+    // aquí, no en la emisión — error temprano, trazable a la línea del autor que lo creó.
+    const origenExtremo = extremo(origen);
+    const destinoExtremo = extremo(destino);
+    const origenEntidad = entidadDeExtremo(modelo, origenExtremo);
+    const destinoEntidad = entidadDeExtremo(modelo, destinoExtremo);
+    if (!origenEntidad || !destinoEntidad) {
+      throw new Error(`Enlace ${tipo} con extremo inexistente en OPD '${opdKey}'`);
+    }
+    const firma = validarFirmaEnlace(tipo, origenEntidad, destinoEntidad, {
+      origen: origenExtremo,
+      destino: destinoExtremo,
+    });
+    if (!firma.ok) {
+      throw new Error(
+        `Firma de enlace ilegal en OPD '${opdKey}' (${origenEntidad.nombre} ${tipo} ${destinoEntidad.nombre}): ${firma.error}`,
+      );
     }
     const id = `e-${enlaceSeq++}`;
-    const subtipoEvento: SubtipoModificador | undefined =
-      opts.modificador === "evento" ? "E" : opts.modificador === "condicion" ? "C" : undefined;
+    // W4.1 (#19): el modificador `no` ya fluía por `opts.modificador`, pero el subtipo solo se
+    // mapeaba para evento/condición. Ahora `"no"`→`"no"` (espejo del kernel `aplicarModificador`),
+    // de modo que el subtipo del enlace `no` queda consistente con el resto de la capa.
+    const subtipoModificador: SubtipoModificador | undefined =
+      opts.modificador === "evento" ? "E" : opts.modificador === "condicion" ? "C" : opts.modificador === "no" ? "no" : undefined;
     const enlace = {
       id,
       tipo,
-      origenId: extremo(origen),
-      destinoId: extremo(destino),
+      origenId: origenExtremo,
+      destinoId: destinoExtremo,
       etiqueta: opts.etiqueta ?? "",
       ...(opts.entrada ? { estadoEntradaId: idEstado(destino as EntKey, opts.entrada) } : {}),
       ...(opts.salida ? { estadoSalidaId: idEstado(destino as EntKey, opts.salida) } : {}),
+      // W4.1 (#31): multiplicidad de origen, espejo exacto de la de destino ya soportada.
+      ...(opts.multiplicidadOrigen ? { multiplicidadOrigen: opts.multiplicidadOrigen } : {}),
       ...(opts.multiplicidadDestino ? { multiplicidadDestino: opts.multiplicidadDestino } : {}),
       ...(opts.modificador ? { modificador: opts.modificador } : {}),
-      ...(subtipoEvento ? { subtipoModificador: subtipoEvento } : {}),
+      ...(subtipoModificador ? { subtipoModificador } : {}),
     };
     modelo.enlaces[id] = enlace;
     const apId = `ae-${aparienciaEnlaceSeq++}`;
     const apariencia: AparienciaEnlace = { id: apId, enlaceId: id, opdId, vertices: [] };
     modelo.opds[opdId]!.enlaces[apId] = apariencia;
+    // W4.1 (#21): demora de invocación delegada al kernel (`definirDemora`), aplicada sobre el
+    // enlace recién escrito. Vuelca el resultado inmutable al modelo mutable del autor.
+    if (opts.demora) {
+      const conDemora = definirDemora(modelo, id, opts.demora);
+      if (!conDemora.ok) {
+        throw new Error(
+          `Demora ilegal en OPD '${opdKey}' (${origenEntidad.nombre} ${tipo} ${destinoEntidad.nombre}): ${conDemora.error}`,
+        );
+      }
+      modelo.enlaces[id] = conDemora.value.enlaces[id]!;
+    }
+    return id;
   }
 
   return {
@@ -278,6 +464,9 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     refDespliegueGen,
     ver,
     enlazar,
+    abanico,
+    autoinvocacion,
+    designarEstado,
     extremo,
     contornoLocal,
   };

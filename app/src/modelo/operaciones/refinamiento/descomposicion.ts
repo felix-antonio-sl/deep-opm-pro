@@ -1,4 +1,9 @@
 import { CANON } from "../../constantes";
+import {
+  INZOOM_CANON,
+  contornoHeightCanonico,
+  contornoWidthCanonico,
+} from "../../../canvas/constantesInzoom";
 import { CENTRO_CANVAS_GEOMETRICO } from "../../layout";
 import {
   contextoContornoDescomposicion,
@@ -35,13 +40,17 @@ export interface DescomposicionProceso {
   creado: boolean;
 }
 
+// W3.1: las constantes de dimensionado canónico (paddingSuperior/separacionVertical/
+// contornoWidth/contornoHeight, derivadas de minSubthings/multAncho) vienen ahora de la
+// fuente única `canvas/constantesInzoom`. Lo exclusivo de la semilla se queda local:
+// `subprocesosIniciales` (= minSubthings canónico) y `toleranciaParaleloY` (umbral propio).
 const INZOOM = {
-  subprocesosIniciales: 3,
-  paddingSuperior: 100,
-  separacionVertical: 30,
+  subprocesosIniciales: INZOOM_CANON.minSubthings,
+  paddingSuperior: INZOOM_CANON.paddingSuperior,
+  separacionVertical: INZOOM_CANON.gapInterno,
   toleranciaParaleloY: 4,
-  contornoWidth: CANON.dims.cosaWidth * 3,
-  contornoHeight: (CANON.dims.cosaHeight + 30) * 3 + 100 + 65,
+  contornoWidth: contornoWidthCanonico,
+  contornoHeight: contornoHeightCanonico(),
 } as const;
 
 // BUG-20260524T034932Z-b6be2b: el OPD hijo recién creado por descomposición

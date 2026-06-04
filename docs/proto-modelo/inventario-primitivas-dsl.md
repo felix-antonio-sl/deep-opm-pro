@@ -72,18 +72,24 @@ Convención de la columna DSL: **sí** = primitiva/opción dedicada; **parcial**
 
 Lo que el compilador proto→Modelo (L2) **no podrá garantizar** hasta cerrar cada hueco. Es el complemento operativo de las exclusiones ya declaradas en el backlog (`backlog-contingencial.md:95`: "abanicos (hasta W4.1) y clase-ancla (hasta W5.1)"). Aquí se priorizan **por presión real del corpus HODOM**.
 
+> **CERRADAS por W4.1 (2026-06-04).** La Tanda 1 (esfuerzo bajo, delegación 1:1 al kernel) quedó **implementada y cubierta por tests** en el DSL: abanico XOR/OR (#30), multiplicidad de origen (#31), demora de invocación (#21), autoinvocación (#22), modificador NO (#19) y designaciones default/current (#5). Superficie: `app/src/autoria/dsl.ts` (`abanico()`, `autoinvocacion()`, `designarEstado()`, y `OpcionesEnlace.multiplicidadOrigen|demora|modificador:"no"` en `tipos.ts`). Tests: `app/src/autoria/dsl-primitivas.test.ts` (23 tests: feliz + error de kernel + round-trip OPL por primitiva). Cambios ADITIVOS puros (golden HODOM no las usa; byte-identidad intacta). Las entradas marcadas `~~CERRADA W4.1~~` abajo dejan de ser exclusiones; las demás siguen abiertas.
+
 ### Prioridad ALTA — el corpus ya las necesita y hoy las falsea por workaround
 
-1. **Abanico XOR/OR (#30).** Exclusión rectora. HODOM modela 6 causales XOR como **gen-spec** (`generalizacion` + `refDespliegueGen`), comentado como "abanico XOR de SD1" (`generar-bundle-hodom.ts:166,387,877,1640`). El workaround es semánticamente distinto del coproducto OPM: afirma especialización, no exclusividad de rama por puerto. El kernel **ya tiene** `formarAbanico`; el reverse ya lo invierte (`aplicar.ts:405`). El único faltante es la superficie DSL. **Sin esto, L2 no puede emitir un abanico genuino y el proto seguirá obligado al workaround.**
-2. **Multiplicidad de origen (#31).** HODOM usa 8 `multiplicidadDestino` pero `multiplicidadOrigen` no tiene superficie. Toda cardinalidad del lado origen (p.ej. `2 **Pedidos** generan …`) queda inexpresable por DSL aunque forward/reverse la soportan.
+1. ~~**Abanico XOR/OR (#30).**~~ **CERRADA W4.1.** Exclusión rectora resuelta: `dsl.ts:abanico()` delega en `formarAbanico` (replica el pin de puerto compartido del reverse, `aplicar.ts:390-405`, antes de delegar). Elimina la necesidad del workaround gen-spec de HODOM. *(Contexto histórico: HODOM modelaba 6 causales XOR como `generalizacion`+`refDespliegueGen`, comentado "abanico XOR de SD1" en `generar-bundle-hodom.ts:166,387,877,1640`.)*
+2. ~~**Multiplicidad de origen (#31).**~~ **CERRADA W4.1.** `OpcionesEnlace.multiplicidadOrigen` escribe el campo espejo de `multiplicidadDestino`; el forward emite el prefijo (`*Despachar* consume 2 **Pedidos**.`). *(Contexto: HODOM usaba 8 `multiplicidadDestino`; el lado origen era inexpresable.)*
 
 ### Prioridad MEDIA — soportadas por forward+reverse, sin presión inmediata pero dentro del catálogo 23/23
 
-3. **Demora de invocación (#21)** — reverse la aplica (`aplicar.ts:225`), kernel `definirDemora`; falta opción DSL `demora`.
-4. **Autoinvocación (#22)** — reverse la desvía a `crearAutoInvocacion`; el DSL no la distingue de un self-link.
-5. **Modificador NO (#19)** — `aplicarModificador(…, "no")` existe; el DSL no lo mapea a subtipo y el reverse no lo planifica.
-6. **Excepciones sobretiempo/subtiempo (#23)** — forward+reverse completos; sin superficie DSL ni en `OpcionesEnlace`.
-7. **TS3 compacta (#14)** — la transición como metadato del enlace efecto entidad→entidad; el DSL solo arma la vía escindida.
+3. ~~**Demora de invocación (#21)**~~ **CERRADA W4.1.** `OpcionesEnlace.demora` delega en `definirDemora` (kernel); solo legal en invocación, error temprano en caso contrario.
+4. ~~**Autoinvocación (#22)**~~ **CERRADA W4.1.** `dsl.ts:autoinvocacion(opd, proceso, demora?)` delega en `crearAutoInvocacion`; método dedicado, no ambiguo con un self-link manual.
+5. ~~**Modificador NO (#19)**~~ **CERRADA W4.1 (lado DSL).** `enlazar(…, {modificador:"no"})` ahora mapea el subtipo `"no"` (antes caía a `undefined`); el forward verbaliza la negación. **Nota:** el *reverse* sigue sin planificar `no` (es trabajo de parser, no de DSL); la garantía de round-trip de L2 sobre `no` queda pendiente de W4.2.
+6. **Excepciones sobretiempo/subtiempo (#23)** — forward+reverse completos; sin superficie DSL ni en `OpcionesEnlace`. *(Tanda 2, fuera de W4.1.)*
+7. **TS3 compacta (#14)** — la transición como metadato del enlace efecto entidad→entidad; el DSL solo arma la vía escindida. *(Tanda 2, fuera de W4.1.)*
+
+### Designaciones default/current (#5) — CERRADA W4.1
+
+`dsl.ts:designarEstado(entidad, estado, designacion)` escribe `estado.designaciones` (espejo de inicial/final de `estados()`); el forward emite `… en \`s\` es Default|Current`. Completa la fila #5 de la tabla maestra, que estaba en **parcial** (solo inicial/final).
 
 ### Prioridad BAJA — fuera del catálogo estricto, o vista, o sin demanda de corpus
 
