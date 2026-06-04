@@ -211,8 +211,12 @@ function main(): void {
   if (!verde) process.exitCode = 1;
 }
 
-/** Agrupa la razón de un fallo en una categoría legible (tensión v0). */
+/** Agrupa la razón de un fallo en una categoría legible (tensión v0).
+ *  Tras W4.3, el residuo son CONTRADICCIONES REALES del proto (una entidad usada
+ *  con dos clases OPM incompatibles), no tensiones del compilador. */
 function categorizarFallo(razon: string): string {
+  if (/heterogénea/.test(razon)) return "contradicción de clase del proto: una entidad usada como objeto Y proceso (agregación homogénea heterogénea)";
+  if (/Resultado requiere Proceso/.test(razon)) return "contradicción de clase del proto: entidad-agente (objeto) usada como sujeto de `genera` (resultado exige proceso origen)";
   if (/Invocación requiere Proceso/.test(razon)) return "evento desde objeto-en-estado (`X en \\`s\\` inicia P`) → invocación objeto→proceso ilegal";
   if (/Agente requiere Objeto/.test(razon)) return "agente no-físico (descripción informacional explícita vs rol agente)";
   if (/Agregación requiere/.test(razon)) return "agregación de clase mixta (objeto+proceso)";

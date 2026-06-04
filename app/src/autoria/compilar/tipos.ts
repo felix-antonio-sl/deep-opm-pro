@@ -29,6 +29,7 @@ export type ReglaT2 =
   | "A9" // "exhibe Y como su operacion[ de programa]" -> "exhibe Y" + etiqueta
   | "A10" // "se descompone en ... en esa secuencia" -> estructura secuencial
   | "A11" // concordancia de genero del verbo copular
+  | "A12" // disyuncion `u` (ante sonido /o/) -> `o` en listas de estados
   | "AESS"; // esencia/afiliacion sin "un objeto/proceso" -> inyectar tipo entidad
 
 /** Ancla normativa o de seccion extraida inline (W1.5/F5 la consumira; hoy se
@@ -79,4 +80,11 @@ export interface ContextoProto {
    *  a A4/R4 reconocer un estado pegado: si el prefijo es entidad conocida y el
    *  sufijo NO es estado declarado, es R4 (no se adivina). */
   entidades: Map<string, string>;
+  /** clave-nombre de las entidades con clase OPM declarada EXPLICITAMENTE
+   *  (descripcion `es un objeto/proceso`, sujeto de `puede estar`/`exhibe`/
+   *  `consta de`/`maneja`/verbo procedural -salvo `genera`-, refinable de
+   *  `se descompone`). Una parte de `consta de` que NO esta aqui hereda la clase
+   *  del todo (agregacion homogenea, tension 4); una con clase contraria
+   *  explicita es contradiccion real -> diagnostico. */
+  claseExplicita: Set<string>;
 }

@@ -49,6 +49,13 @@ export class Resolutor {
   private readonly tipoSemilla = new Map<string, TipoEntidad>();
   /** clave-nombre → rasgos esencia/afiliación declarados en alguna descripción del proto. */
   private readonly rasgosSemilla = new Map<string, Rasgos>();
+  /** clave-nombre de entidades con clase OPM declarada EXPLÍCITAMENTE en el proto. */
+  private readonly claseExplicita = new Set<string>();
+  /** clave-nombre de TODO nombre de entidad declarado en el proto (cualquier OPD,
+   *  cualquier orden). Permite el «nombre conocido más largo» de la tensión 3
+   *  sin depender del orden de creación (`Resumen clínico en domicilio` se
+   *  declara en una lista `consta de` posterior a su primer uso). */
+  private readonly nombresConocidos = new Set<string>();
   private contador = 0;
 
   /**
@@ -73,6 +80,30 @@ export class Resolutor {
     for (const [clave, rasgos] of rasgosPorClave) this.rasgosSemilla.set(clave, rasgos);
   }
 
+  /** Pre-siembra las claves con clase OPM declarada explícitamente (tensión 4). */
+  sembrarClaseExplicita(claves: Set<string>): void {
+    for (const clave of claves) this.claseExplicita.add(clave);
+  }
+
+  /** Pre-siembra TODO nombre de entidad declarado en el proto (tensión 3). La
+   *  clave de entrada es el nombre display; se normaliza con `claveNombre`. */
+  sembrarNombresConocidos(nombres: Iterable<string>): void {
+    for (const nombre of nombres) this.nombresConocidos.add(claveNombre(nombre));
+  }
+
+  /** ¿El nombre corresponde a una entidad declarada en el proto (en cualquier
+   *  OPD/orden)? Mira el pre-sembrado del contexto Y lo ya creado. */
+  esConocido(nombre: string): boolean {
+    const clave = claveNombre(nombre);
+    return this.nombresConocidos.has(clave) || this.porClave.has(clave);
+  }
+
+  /** ¿La entidad tiene clase OPM declarada explícitamente (vs heredable)? Vale
+   *  tanto si ya está creada como si solo está pre-sembrada por el contexto. */
+  tieneClaseExplicita(nombre: string): boolean {
+    return this.claseExplicita.has(claveNombre(nombre));
+  }
+
   /** Devuelve la entidad conocida por nombre, o undefined. */
   buscar(nombre: string): EntidadConocida | undefined {
     return this.porClave.get(claveNombre(nombre));
@@ -83,19 +114,26 @@ export class Resolutor {
     return this.porClave.has(claveNombre(nombre));
   }
 
+  /** Tipo PRE-SEMBRADO por el contexto del proto (sin crear la entidad). */
+  tipoSemillaDe(nombre: string): TipoEntidad | undefined {
+    return this.tipoSemilla.get(claveNombre(nombre));
+  }
+
   /**
    * Resuelve una mención de entidad en el OPD activo. Si no existe, la registra
    * como nueva del tipo indicado (default `objeto`). Si existe pero su tipo aún
    * era ambiguo y ahora se conoce, NO lo cambia (la primera evidencia fija el
    * tipo; igual que el normalizador). Marca la aparición en el OPD activo.
    */
-  resolver(nombre: string, opdClave: string, tipoSugerido: TipoEntidad = "objeto"): Resolucion {
+  resolver(nombre: string, opdClave: string, tipoSugerido: TipoEntidad = "objeto", forzarTipo = false): Resolucion {
     const clave = claveNombre(nombre);
     const existente = this.porClave.get(clave);
     if (!existente) {
       // La semilla del contexto (uso global) gana al tipo sugerido por la posición
-      // sintáctica de esta mención puntual.
-      const tipo = this.tipoSemilla.get(clave) ?? tipoSugerido;
+      // sintáctica de esta mención puntual — SALVO `forzarTipo` (tensión 4: una
+      // parte de agregación homogénea SIN clase explícita hereda la del todo,
+      // aunque un heurístico débil/over-split la haya sembrado al revés).
+      const tipo = forzarTipo ? tipoSugerido : (this.tipoSemilla.get(clave) ?? tipoSugerido);
       const rasgos = this.rasgosSemilla.get(clave) ?? { esencia: "informacional", afiliacion: "sistemica" };
       const key = this.nuevaKey(nombre);
       const conocida: EntidadConocida = {

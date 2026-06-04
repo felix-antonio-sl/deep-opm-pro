@@ -44,6 +44,9 @@ Estados SIN prefijo (`X puede estar 'a', 'b' o 'c'.` — **[v0.1]** la forma con
 | A11 | género/número del verbo copular (`es física y sistémica`) | aceptado en concordancia, PERO sujeto a AESS (ver T1 [v0.1]): sin `un objeto/proceso` no es estricta | passim |
 | AESS **[v0.1]** | `X es físico/a\|informacional y sistémico/a\|ambiental.` | inyectar tipo desde contexto: `X es un objeto\|proceso … .` | 83 líneas en falsación |
 | A4' **[v0.1]** | `requiere X en estado 'e'` | el estado canónico va en backticks: `` requiere X en `e` `` (evita degradación silenciosa del parser) | 17 líneas |
+| A12 **[W4.3]** | disyunción `u` ante sonido /o/ en lista de estados: `puede estar 'disponible' u 'ocupado'.` | reescribir ` u '`/`` u ` `` → ` o '`/`` o ` `` **solo** tras `puede estar` (contexto de estados). El divisor de listas del parser parte SOLO por ` o `; el `u` ortográfico español rompía el split y dejaba un objeto con <2 estados. | L344, L792, L1085 |
+
+**[W4.3] Decisión del operador (tensión 2) + GAP ortográfico A12:** el español exige `u` (no `o`) ante palabra que empieza por sonido /o/ (`'disponible' u 'ocupado'`, `'pendiente' u 'otorgado'`). El sub-dialecto del proto admite la forma ortográficamente correcta con `u`, pero el **canónico interno** queda con `o` uniforme — igual que el generador OPL forward, que nunca emite `u`. Es un GAP ortográfico ACEPTADO (decisión registrada): el proto puede escribir `u`, el modelo lo unifica a `o`. A12 NO toca `u` fuera de una lista de estados.
 
 **[v0.1] GAP de parser registrado (no es deuda del normalizador):** la multiplicidad SUFIJA (`… con multiplicidad 0..N.`) parsea sin error pero el AST la absorbe en el nombre del destino (9 líneas del corpus — degradación silenciosa). La canónica es PREFIJA (`1..N **X**`). Pendiente: o el normalizador reescribe a prefija, o el parser gana soporte del sufijo — decidir en W4.2.
 

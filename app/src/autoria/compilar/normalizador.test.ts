@@ -379,6 +379,52 @@ describe("R2 — disyuncion de hechos alternativos se rechaza", () => {
     expect(l.clase).toBe("rechazada");
     if (l.clase === "rechazada") expect(l.categoria).toBe("R2");
   });
+
+  // Tensión 1/2: `… inicia A o B` (sin `puede`, sin coma) — disyunción genuina de
+  // procesos-consecuencia que el parser absorbía como un proceso de nombre
+  // compuesto `A o B`. La spec ya la lista como R2; ahora la implementación la
+  // captura. El estado `'…'` entre comillas ANTES de `inicia` no la dispara.
+  test("`X en `s` inicia A o B` (disyunción de consecuencias) → R2", () => {
+    const l = una("Decisión de conducta clínica en `proceder a egreso` inicia Cierre por alta o Cierre por cumplimiento.");
+    expect(l.clase).toBe("rechazada");
+    if (l.clase === "rechazada") expect(l.categoria).toBe("R2");
+  });
+
+  test("un evento simple `X en `s` inicia P` (sin `o`) NO es R2", () => {
+    const l = una("Paciente en `hospitalizado en domicilio` inicia Operación clínica.");
+    expect(l.clase).not.toBe("rechazada");
+  });
+});
+
+// ── A12 — disyuncion `u` -> `o` en listas de estados (tensión 2) ─────────
+
+describe("A12 — disyuncion `u` (ante sonido /o/) se normaliza a `o`", () => {
+  test("`puede estar 'disponible' u 'ocupado'` → `… 'disponible' o 'ocupado'` (A12)", () => {
+    const l = una("Cupo HODOM puede estar 'disponible' u 'ocupado'.");
+    expect(l.clase).toBe("normalizada");
+    if (l.clase === "normalizada") {
+      expect(l.regla).toBe("A12");
+      expect(l.oracion).toContain("'disponible' o 'ocupado'");
+      expect(l.oracion).not.toContain(" u '");
+    }
+  });
+
+  test("A12 también opera con el prefijo `en uno de los estados` (combina con A2)", () => {
+    const l = una("Consentimiento informado puede estar en uno de los estados 'pendiente' u 'otorgado'.");
+    expect(l.clase).toBe("normalizada");
+    if (l.clase === "normalizada") {
+      // El `u` ya quedó reescrito a `o` (lo aplica A12 antes que A2 strippee el prefijo).
+      expect(l.oracion).toContain("'pendiente' o 'otorgado'");
+      expect(l.oracion).not.toContain(" u '");
+    }
+  });
+
+  test("fixture negativo: `u` fuera de una lista de estados NO se toca", () => {
+    // Sin `puede estar`, A12 no aplica (no es contexto de estados).
+    const l = una("Unidad u oficina coordina la ruta.");
+    if (l.clase === "normalizada") expect(l.regla).not.toBe("A12");
+    // (la oración puede caer en otra clase; lo esencial es que A12 no la reescribe)
+  });
 });
 
 // ── R3 — verbo fuera del enum cerrado ───────────────────────────────────

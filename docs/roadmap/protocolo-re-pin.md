@@ -19,7 +19,7 @@ Cuando un cambio intencional (mejora de layout, cambio de esquema de ids, semán
 
 1. **Checks deterministas** (todos PASS antes de pedir el ojo del operador):
    - canon nativo PASS (0 bloqueantes), round-trip JSON PASS, contención PASS, cero solapes;
-   - conteos del generador iguales al golden vivo (hoy **262/192/433/37** — verificado por regeneración real 2026-06-04; los 37 OPDs incluyen U-EST de la mesa arquitectura-raíz de hd-opm);
+   - conteos del generador iguales al golden vivo (el número exacto evoluciona con el dominio — la fuente es la salida del propio generador, no ningún documento; última verificación 2026-06-04: 264/192/438/37);
    - **OPL forward comparado bajo vista fija** — condición de validez RR-2: el OPL es proyección de modelo×vista; solo es oráculo cuando los campos de vista (`modoPlegado`, `estadosSuprimidos`, …) no cambian.
 2. **Validación visual del operador** (Felix) en opforja — el oráculo de la geometría aprobada es humano y está formalizado aquí. Sin su visto bueno no hay re-pin.
 3. **Bump explícito de versión** del componente que cambió (`autoriaVersion` / `layoutVersion` — campos de procedencia desde F5; hasta entonces, anotación en el commit).

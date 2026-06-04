@@ -215,3 +215,187 @@ describe("(iii) round-trip — el OPL del modelo compilado contiene los hechos a
     expect(hechos).toContain("resultado:verter:cafe");
   });
 });
+
+// ── Resolución de las 17 tensiones del piloto (W4.3) ────────────────────────
+
+/** Busca el enlace entre dos entidades por nombre (origen→destino) de un tipo. */
+function enlaceEntre(
+  modelo: ResultadoCompilacion["modelo"],
+  origenNombre: string,
+  destinoNombre: string,
+  tipo: string,
+) {
+  const idDe = (n: string) => Object.values(modelo.entidades).find((e) => e.nombre === n)?.id;
+  const oid = idDe(origenNombre);
+  const did = idDe(destinoNombre);
+  return Object.values(modelo.enlaces).filter((l) => {
+    if (l.tipo !== tipo) return false;
+    const o = l.origenId.kind === "entidad" ? l.origenId.id : undefined;
+    const d = l.destinoId.kind === "entidad" ? l.destinoId.id : undefined;
+    // El origen puede ser un estado de la entidad (instrumento-evento con gatillo).
+    const oEnt = l.origenId.kind === "estado" ? modelo.estados[l.origenId.id]?.entidadId : o;
+    return oEnt === oid && d === did;
+  });
+}
+
+describe("Tensión 1 — evento sin portador → instrumento-evento (con adjunción)", () => {
+  test("`Objeto en `s` inicia Proceso` crea un instrumento-evento objeto→proceso (no invocación ilegal)", () => {
+    const proto = `# SD0
+\`\`\`opl
+Atender es un proceso físico y sistémico.
+Paciente es un objeto físico y ambiental.
+Paciente puede estar 'estable' o 'crítico'.
+Paciente en \`crítico\` inicia Atender.
+\`\`\`
+`;
+    const { autor, modelo } = compilarProto(proto, { id: "t1", nombre: "T1" });
+    const bundle = emitirBundle(autor, { lanzarEnError: false });
+    expect(bundle.avisos.filter((a) => a.severidad === "error")).toHaveLength(0);
+    const instr = enlaceEntre(modelo, "Paciente", "Atender", "instrumento");
+    expect(instr).toHaveLength(1);
+    expect(instr[0]!.modificador).toBe("evento");
+    // El gatillo va en el extremo origen (estado del objeto).
+    expect(instr[0]!.origenId.kind).toBe("estado");
+    // NO se creó una invocación ilegal objeto→proceso.
+    expect(enlaceEntre(modelo, "Paciente", "Atender", "invocacion")).toHaveLength(0);
+  });
+
+  test("iniciador PROCESO conserva la invocación proceso→proceso evento", () => {
+    const proto = `# SD0
+\`\`\`opl
+Ajustar es un proceso físico y sistémico.
+Prescribir es un proceso físico y sistémico.
+Ajustar inicia Prescribir.
+\`\`\`
+`;
+    const { autor, modelo } = compilarProto(proto, { id: "t1b", nombre: "T1b" });
+    emitirBundle(autor, { lanzarEnError: false });
+    const inv = enlaceEntre(modelo, "Ajustar", "Prescribir", "invocacion");
+    expect(inv).toHaveLength(1);
+    expect(inv[0]!.modificador).toBe("evento");
+  });
+
+  test("ADJUNCIÓN: un `requiere` coexistente NO duplica — el evento adjunta evento al instrumento existente", () => {
+    // El evento (antes) y el `requiere` (después) describen el MISMO enlace X→P.
+    const proto = `# SD0
+\`\`\`opl
+Operar es un proceso físico y sistémico.
+Paciente es un objeto físico y ambiental.
+Paciente puede estar 'ingresado' o 'egresado'.
+Paciente en \`ingresado\` inicia Operar.
+Operar requiere Paciente en estado 'ingresado'.
+\`\`\`
+`;
+    const { autor, modelo } = compilarProto(proto, { id: "t1c", nombre: "T1c" });
+    emitirBundle(autor, { lanzarEnError: false });
+    // UN solo instrumento Paciente→Operar (no dos), y es evento.
+    const instr = enlaceEntre(modelo, "Paciente", "Operar", "instrumento");
+    expect(instr).toHaveLength(1);
+    expect(instr[0]!.modificador).toBe("evento");
+  });
+
+  test("objeto-evento de UN solo estado → instrumento-evento SIN gatillo (estado único no es representable)", () => {
+    const proto = `# SD0
+\`\`\`opl
+Reaccionar es un proceso físico y sistémico.
+Alarma es un objeto físico y sistémico.
+Alarma en estado 'activa' inicia Reaccionar.
+\`\`\`
+`;
+    const { autor, modelo } = compilarProto(proto, { id: "t1d", nombre: "T1d" });
+    const bundle = emitirBundle(autor, { lanzarEnError: false });
+    expect(bundle.avisos.filter((a) => a.severidad === "error")).toHaveLength(0);
+    const instr = enlaceEntre(modelo, "Alarma", "Reaccionar", "instrumento");
+    expect(instr).toHaveLength(1);
+    expect(instr[0]!.modificador).toBe("evento");
+    // Sin state set ≥2, el gatillo no va en el origen (entidad pelada).
+    expect(instr[0]!.origenId.kind).toBe("entidad");
+  });
+});
+
+describe("Tensión 3 — nombre con ` en ` declarado gana sobre la lectura objeto+estado", () => {
+  test("`P genera Resumen en domicilio` con el nombre completo declarado → resultado al nombre entero", () => {
+    const proto = `# SD0
+\`\`\`opl
+Episodio es un objeto físico y sistémico.
+Consolidar es un proceso físico y sistémico.
+Episodio consta de Resumen clínico en domicilio.
+Consolidar genera Resumen clínico en domicilio.
+\`\`\`
+`;
+    const { autor, modelo } = compilarProto(proto, { id: "t3", nombre: "T3" });
+    const bundle = emitirBundle(autor, { lanzarEnError: false });
+    expect(bundle.avisos.filter((a) => a.severidad === "error")).toHaveLength(0);
+    // La entidad COMPLETA existe; no se creó un objeto `Resumen clínico` + estado.
+    expect(Object.values(modelo.entidades).some((e) => e.nombre === "Resumen clínico en domicilio")).toBe(true);
+    expect(Object.values(modelo.entidades).some((e) => e.nombre === "Resumen clínico")).toBe(false);
+    expect(enlaceEntre(modelo, "Consolidar", "Resumen clínico en domicilio", "resultado")).toHaveLength(1);
+  });
+
+  test("si el nombre completo NO está declarado, ` en X` SÍ se lee como estado (sin merge espurio)", () => {
+    const proto = `# SD0
+\`\`\`opl
+Mover es un proceso físico y sistémico.
+Caja es un objeto físico y sistémico.
+Caja puede estar 'origen' o 'destino'.
+Mover genera Caja en estado 'destino'.
+\`\`\`
+`;
+    const { modelo } = compilarProto(proto, { id: "t3b", nombre: "T3b" });
+    // `Caja en destino` NO es entidad conocida → se mantiene Caja + estado destino.
+    expect(Object.values(modelo.entidades).some((e) => e.nombre === "Caja")).toBe(true);
+    expect(Object.values(modelo.entidades).some((e) => e.nombre === "Caja en destino")).toBe(false);
+  });
+});
+
+describe("Tensión 4 — agregación homogénea: partes heredan la clase del todo", () => {
+  test("partes con ` y ` interno (re-juntadas) y sin clase propia heredan la clase del todo", () => {
+    const proto = `# SD0
+\`\`\`opl
+Plan es un objeto físico y sistémico.
+Plan consta de Tratamiento médico, Vigilancia y monitorización clínica y Educación del cuidador.
+\`\`\`
+`;
+    const { autor, modelo } = compilarProto(proto, { id: "t4", nombre: "T4" });
+    const bundle = emitirBundle(autor, { lanzarEnError: false });
+    expect(bundle.avisos.filter((a) => a.severidad === "error")).toHaveLength(0);
+    // El nombre compuesto NO se fragmentó: existe la entidad entera (objeto).
+    const vig = Object.values(modelo.entidades).find((e) => e.nombre === "Vigilancia y monitorización clínica");
+    expect(vig?.tipo).toBe("objeto");
+    expect(enlaceEntre(modelo, "Plan", "Vigilancia y monitorización clínica", "agregacion")).toHaveLength(1);
+  });
+
+  test("NEGATIVO: parte declarada EXPLÍCITAMENTE con clase contraria → diagnóstico (no silencio)", () => {
+    const proto = `# SD0
+\`\`\`opl
+Plan es un objeto físico y sistémico.
+Cocinar es un proceso físico y sistémico.
+Plan consta de Cocinar.
+\`\`\`
+`;
+    const { ledger } = compilarProto(proto, { id: "t4b", nombre: "T4b" });
+    const fallo = ledger.entradas.find(
+      (e) => e.tipo === "fallo" && /heterogénea/.test(e.razon),
+    );
+    expect(fallo).toBeDefined();
+  });
+});
+
+describe("Tensión 5 — el agente (sujeto de `maneja`) es objeto, no proceso", () => {
+  test("un sujeto de `genera` que ADEMÁS es agente (`maneja`) se resuelve a objeto", () => {
+    const proto = `# SD0
+\`\`\`opl
+Autoridad es física y ambiental.
+Documento es un objeto informacional y ambiental.
+Fiscalizar es un proceso físico y sistémico.
+Autoridad genera Documento.
+Autoridad maneja Fiscalizar.
+\`\`\`
+`;
+    const { modelo } = compilarProto(proto, { id: "t5", nombre: "T5" });
+    const autoridad = Object.values(modelo.entidades).find((e) => e.nombre === "Autoridad");
+    expect(autoridad?.tipo).toBe("objeto");
+    // El enlace `agente` Autoridad→Fiscalizar es legal (origen objeto físico).
+    expect(enlaceEntre(modelo, "Autoridad", "Fiscalizar", "agente")).toHaveLength(1);
+  });
+});

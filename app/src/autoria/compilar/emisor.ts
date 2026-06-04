@@ -15,6 +15,7 @@ import type { ExtremoEntrada, OpcionesEnlace } from "../tipos";
 import { parsearParrafoOpl } from "../../opl/parser/parsear";
 import type { OracionOplAst } from "../../opl/parser/tipos";
 import type { TipoEnlace } from "../../modelo/tipos";
+import { aplicarModificador } from "../../modelo/modificadores";
 import { Resolutor } from "./resolutor";
 
 /** Un hecho emitido al DSL (para contabilidad L2). */
@@ -55,6 +56,16 @@ export interface ContextoEmision {
   estadosUnion: Map<string, string[]>;
   /** Conjunto de keys de entidad cuyos estados ya se declararon (idempotencia). */
   estadosDeclarados: Set<string>;
+  /**
+   * Registro de enlaces procedurales emitidos por OPD: `opdKey|origenKey>destinoKey`
+   * → Id del enlace. Permite la ADJUNCIÓN del evento sin portador (tensión 1): si
+   * un enlace procedimental X→P ya existe en el OPD (p.ej. un `requiere` previo),
+   * el evento no crea un duplicado — adjunta `modificador: evento` + estado de
+   * gatillo al enlace existente. Y al revés: un `requiere` posterior reusa el
+   * instrumento-evento que el evento ya creó (no duplica). Provisto por el
+   * compilador y compartido entre OPDs (la clave incluye el OPD).
+   */
+  enlacesProcedurales: Map<string, string>;
 }
 
 /**
@@ -86,10 +97,13 @@ export function recolectarEstadosUnion(oraciones: string[]): Map<string, string[
       else if (a.kind === "procedimental") {
         if (a.estadoEntrada) agregar(estadoPortador(a), [a.estadoEntrada]);
         if (a.estadoSalida) agregar(a.objeto ?? "", [a.estadoSalida]);
-      } else if (a.kind === "evento" && a.base) {
-        if (a.base.estadoEntrada) agregar(a.base.objeto ?? "", [a.base.estadoEntrada]);
-        if (a.base.estadoSalida) agregar(a.base.objeto ?? "", [a.base.estadoSalida]);
+      } else if (a.kind === "evento") {
+        // El estado-gatillo del iniciador lo porta el iniciador (objeto), tenga o
+        // no sub-cláusula base — el evento sin portador (`X en \`s\` inicia P`)
+        // también lo declara para X (tensión 1: el instrumento-evento lo usa).
         if (a.iniciadorEstado) agregar(a.iniciador, [a.iniciadorEstado]);
+        if (a.base?.estadoEntrada) agregar(a.base.objeto ?? "", [a.base.estadoEntrada]);
+        if (a.base?.estadoSalida) agregar(a.base.objeto ?? "", [a.base.estadoSalida]);
       }
     }
   }
@@ -102,6 +116,32 @@ export function recolectarEstadosUnion(oraciones: string[]): Map<string, string[
 /** El portador del estado de entrada en un AST procedimental es el objeto. */
 function estadoPortador(a: { objeto?: string; proceso?: string }): string {
   return a.objeto ?? a.proceso ?? "";
+}
+
+/**
+ * Tensión 3 — preferir el nombre conocido más largo. El parser parte
+ * `Objeto en X` por el último ` en `: `Resumen clínico en domicilio` →
+ * `objeto="Resumen clínico"`, `estado="domicilio"`. Si `"objeto en estado"`
+ * reconstruye una ENTIDAD CONOCIDA del proto (declarada p.ej. en una lista
+ * `consta de`), devolvemos el nombre COMPLETO y descartamos el estado espurio.
+ * Si no, devolvemos los extremos tal cual (el ` en ` SÍ era un estado).
+ */
+function reconstituirNombreConEn(
+  objeto: string | undefined,
+  estado: string | undefined,
+  ctx: ContextoEmision,
+): { nombre: string; estado: string | undefined; merged: boolean } {
+  if (!objeto || !estado) return { nombre: objeto ?? "", estado, merged: false };
+  const estadoLimpio = estado.replace(/^['"`]|['"`]$/gu, "").trim();
+  const completo = `${objeto.trim()} en ${estadoLimpio}`;
+  // Preferir el nombre conocido MÁS LARGO: si el nombre completo es una entidad
+  // conocida del proto, gana sobre la lectura `objeto + estado` (el ` en ` era
+  // parte del nombre, no un estado). Si el completo NO es conocido pero el objeto
+  // sí porta ese estado (declarado), respetamos la lectura de estado.
+  if (ctx.resolutor.esConocido(completo)) {
+    return { nombre: completo, estado: undefined, merged: true };
+  }
+  return { nombre: objeto, estado, merged: false };
 }
 
 /**
@@ -330,8 +370,16 @@ function emitirBase(
   ctx: ContextoEmision,
   extrasOpts: OpcionesEnlace,
 ): ResultadoEmision {
-  const entrada = base.estadoEntrada ? limpiarEstado(base.estadoEntrada) : undefined;
-  const salida = base.estadoSalida ? limpiarEstado(base.estadoSalida) : undefined;
+  // Tensión 3: el parser parte `Objeto en X` en `objeto` + estado `X` por el
+  // último ` en `. Si `Objeto en X` es una ENTIDAD CONOCIDA del proto (declarada
+  // p.ej. en una lista `consta de`: `Resumen clínico en domicilio`), preferimos
+  // el nombre conocido COMPLETO y descartamos el estado espurio.
+  const ent = reconstituirNombreConEn(base.objeto, base.estadoEntrada, ctx);
+  const sal = reconstituirNombreConEn(base.objeto, base.estadoSalida, ctx);
+  const objetoEntrada = ent.nombre;
+  const objetoSalida = sal.nombre;
+  const entrada = ent.estado ? limpiarEstado(ent.estado) : undefined;
+  const salida = sal.estado ? limpiarEstado(sal.estado) : undefined;
   const proc = base.proceso ?? base.origen ?? base.destino;
 
   switch (tipo) {
@@ -339,18 +387,22 @@ function emitirBase(
     case "instrumento":
     case "consumo": {
       if (!base.objeto || !base.proceso) return { estado: "fallo", razon: `extremos incompletos de ${tipo}` };
-      const objetoKey = keyEntidad(base.objeto, ctx, "objeto");
+      const objetoKey = keyEntidad(objetoEntrada, ctx, "objeto");
       const procesoKey = keyEntidad(base.proceso, ctx, "proceso");
       // El estado de entrada (del objeto) va en el extremo origen.
       const origen: ExtremoEntrada = entrada && typeof objetoKey === "string"
         ? { estado: entrada, entidad: objetoKey }
         : objetoKey;
-      return enlazar(ctx, origen, procesoKey, tipo, extrasOpts);
+      // Instrumento pasa por dedup (simetría con el evento sin portador: un
+      // `requiere` posterior reusa el instrumento-evento que el evento creó).
+      return tipo === "instrumento"
+        ? enlazarConDedup(ctx, origen, procesoKey, tipo, extrasOpts)
+        : enlazar(ctx, origen, procesoKey, tipo, extrasOpts);
     }
     case "resultado": {
       if (!base.proceso || !base.objeto) return { estado: "fallo", razon: "extremos incompletos de resultado" };
       const procesoKey = keyEntidad(base.proceso, ctx, "proceso");
-      const objetoKey = keyEntidad(base.objeto, ctx, "objeto");
+      const objetoKey = keyEntidad(objetoSalida, ctx, "objeto");
       // El estado de salida (del objeto) va en el extremo destino.
       const destino: ExtremoEntrada = salida && typeof objetoKey === "string"
         ? { estado: salida, entidad: objetoKey }
@@ -360,7 +412,9 @@ function emitirBase(
     case "efecto": {
       if (!base.proceso || !base.objeto) return { estado: "fallo", razon: "extremos incompletos de efecto" };
       const procesoKey = keyEntidad(base.proceso, ctx, "proceso");
-      const objetoKey = keyEntidad(base.objeto, ctx, "objeto");
+      // Nombre reconstituido (tensión 3): prefiere el merge que sí ocurrió.
+      const objetoEfecto = ent.merged ? objetoEntrada : sal.merged ? objetoSalida : base.objeto;
+      const objetoKey = keyEntidad(objetoEfecto, ctx, "objeto");
       // En efecto el estado va como metadato del enlace (estadoEntradaId/SalidaId).
       const opts: OpcionesEnlace = {
         ...extrasOpts,
@@ -387,16 +441,46 @@ function emitirEstructural(
   // Agregación/exhibición: origen objeto; generalización/clasificación: el
   // general/clase es el origen del enlace (`estructural.ts`/`planificar` mapean
   // `A es un B` → generalizacion(B, A): origen=B, destinos=[A]).
+  //
+  // Tensión 4 — agregación HOMOGÉNEA. Agregación/generalización/clasificación son
+  // de clase única (el kernel exige mismo lado OPM); `exhibicion` NO (admite
+  // cross-class: un objeto exhibe un proceso-operación). Para los homogéneos: el
+  // TODO fija la clase; una PARTE sin clase OPM propia HEREDA la del todo
+  // (objeto⊃objetos, proceso⊃procesos). Una parte con clase contraria EXPLÍCITA
+  // es contradicción real del proto → diagnóstico (no silencio, no herencia
+  // forzada que la oculte).
+  const homogeneo = ast.tipoEnlace === "agregacion" || ast.tipoEnlace === "generalizacion" || ast.tipoEnlace === "clasificacion";
+  const claseTodo = claseDeNombre(ast.origen, ctx, "objeto");
+  const origenKey = keyEntidad(ast.origen, ctx, homogeneo ? claseTodo : "objeto");
+
+  // El parser divide la lista por ` y `, fragmentando nombres con ` y ` interno
+  // (`Vigilancia y monitorización clínica` → `Vigilancia` + `monitorización
+  // clínica`). Re-junta los fragmentos adyacentes cuando su unión es una entidad
+  // CONOCIDA del proto (nombre más largo gana, tensión 3/4).
+  const destinos = rejuntarDestinos(ast.destinos, ctx);
+
   const hechos: HechoEmitido[] = [];
-  for (const destino of ast.destinos) {
+  for (const destino of destinos) {
+    const claseParte = claseDeNombre(destino, ctx, homogeneo ? claseTodo : "objeto");
+    if (homogeneo && claseParte !== claseTodo && ctx.resolutor.tieneClaseExplicita(destino)) {
+      return {
+        estado: "fallo",
+        razon:
+          `agregación heterogénea: '${ast.origen.trim()}' es ${claseTodo} pero '${destino.trim()}' ` +
+          `está declarado ${claseParte} en otra parte del proto (clase contraria explícita)`,
+      };
+    }
     const opts: OpcionesEnlace = {
       ...(ast.multiplicidadDestino ? { multiplicidadDestino: ast.multiplicidadDestino } : {}),
       ...(ast.etiqueta ? { etiqueta: ast.etiqueta } : {}),
     };
+    // En homogéneo la parte hereda la clase del todo (salvo clase explícita propia,
+    // ya filtrada): `forzarTipo` ignora una semilla débil/over-split contraria. En
+    // exhibición se resuelve con su clase conocida/sembrada.
     const res = enlazar(
       ctx,
-      keyEntidad(ast.origen, ctx, "objeto"),
-      keyEntidad(destino, ctx, "objeto"),
+      origenKey,
+      keyEntidad(destino, ctx, homogeneo ? claseTodo : claseParte, homogeneo),
       ast.tipoEnlace,
       opts,
     );
@@ -407,15 +491,53 @@ function emitirEstructural(
   return { estado: "aplicada", hechos };
 }
 
+/**
+ * Re-junta fragmentos de lista que el parser partió por un ` y ` INTERNO de un
+ * nombre compuesto. Greedy de izquierda a derecha: para cada posición intenta la
+ * unión más larga `frag_i y frag_{i+1} [y …]` que sea una entidad CONOCIDA del
+ * proto; si la encuentra, la consume entera. Si no, deja el fragmento tal cual.
+ * Idempotente cuando no hay nombres compuestos (devuelve la lista original).
+ */
+function rejuntarDestinos(destinos: string[], ctx: ContextoEmision): string[] {
+  const out: string[] = [];
+  let i = 0;
+  while (i < destinos.length) {
+    // Busca la unión MÁS CORTA `frag_i [y frag_{i+1} …]` (≥2 fragmentos) que sea
+    // una entidad conocida — el PRIMER nombre completo gana, sin tragarse el
+    // siguiente ítem de la lista. Si ninguna unión es conocida, deja el fragmento
+    // solo (el ` y ` era separador de lista, no nombre interno).
+    let mejorFin = i;
+    let candidato = destinos[i]!;
+    let acumulado = destinos[i]!;
+    for (let j = i + 1; j < destinos.length; j++) {
+      acumulado = `${acumulado} y ${destinos[j]!}`;
+      if (ctx.resolutor.esConocido(acumulado)) {
+        mejorFin = j;
+        candidato = acumulado;
+        break; // primer nombre completo conocido: no seguir extendiendo
+      }
+    }
+    out.push(candidato);
+    i = mejorFin + 1;
+  }
+  return out;
+}
+
+/** Clase OPM con que se resolverá un nombre: la ya conocida/sembrada si existe,
+ *  o el `default` (la clase del todo, en agregación homogénea). NO crea entidad. */
+function claseDeNombre(nombre: string, ctx: ContextoEmision, porDefecto: "objeto" | "proceso"): "objeto" | "proceso" {
+  const conocida = ctx.resolutor.buscar(nombre);
+  if (conocida) return conocida.tipo === "proceso" ? "proceso" : "objeto";
+  const sembrado = ctx.resolutor.tipoSemillaDe(nombre);
+  return sembrado === "proceso" ? "proceso" : sembrado === "objeto" ? "objeto" : porDefecto;
+}
+
 function emitirEvento(
   ast: Extract<OracionOplAst, { kind: "evento" }>,
   ctx: ContextoEmision,
 ): ResultadoEmision {
   if (!ast.base) {
-    // "X inicia Y" pelado → invocacion proceso→proceso con modificador evento.
-    const origen = keyEntidad(ast.iniciador, ctx, "proceso");
-    const destino = keyEntidad(ast.proceso, ctx, "proceso");
-    return enlazar(ctx, origen, destino, "invocacion", { modificador: "evento" });
+    return emitirEventoSinPortador(ast, ctx);
   }
   const b = ast.base;
   return emitirBase(b.tipoEnlace, b, ctx, {
@@ -424,6 +546,61 @@ function emitirEvento(
     ...(b.multiplicidadDestino ? { multiplicidadDestino: b.multiplicidadDestino } : {}),
     ...(ast.etiqueta ? { etiqueta: ast.etiqueta } : {}),
   });
+}
+
+/**
+ * Evento de la forma desnuda `X [en \`s\`] inicia P` (sin cola `, que <verbo> Z`).
+ * El parser no le adjunta un enlace BASE portador, así que aquí lo completamos a
+ * la forma canónica SSOT §6 (tensión 1, decisión del operador):
+ *
+ *   - Si el INICIADOR es un PROCESO → `invocacion` proceso→proceso `modificador:
+ *     evento` (comportamiento previo; `Ajuste terapéutico inicia Prescribir`).
+ *   - Si el INICIADOR es un OBJETO con estado-gatillo `s` (`Paciente en
+ *     \`hospitalizado…\` inicia Operación clínica`) → el proceso usa el estado
+ *     como gatillo SIN consumirlo: instrumento `requiere` X→P con estado en el
+ *     extremo origen y `modificador: evento` (idiom V-59).
+ *
+ * ADJUNCIÓN (no duplicar): si en el MISMO OPD ya existe un instrumento X→P
+ * declarado por otra oración (`Operación clínica requiere Paciente en \`s\``),
+ * se ADJUNTA el modificador `evento` al enlace existente en lugar de crear un
+ * segundo enlace. Y a la inversa: un `requiere` posterior reusa el instrumento-
+ * evento que el evento ya creó (la dedup la cierra `emitirBase` vía el registro).
+ */
+function emitirEventoSinPortador(
+  ast: Extract<OracionOplAst, { kind: "evento" }>,
+  ctx: ContextoEmision,
+): ResultadoEmision {
+  const iniciadorTipo = ctx.resolutor.buscar(ast.iniciador)?.tipo ?? tipoSembrado(ast.iniciador, ctx);
+  const estado = ast.iniciadorEstado ? limpiarEstado(ast.iniciadorEstado) : undefined;
+
+  // Iniciador proceso (o sin estado-gatillo): invocacion proceso→proceso evento.
+  if (iniciadorTipo === "proceso" || !estado) {
+    const origen = keyEntidad(ast.iniciador, ctx, "proceso");
+    const destino = keyEntidad(ast.proceso, ctx, "proceso");
+    return enlazarConDedup(ctx, origen, destino, "invocacion", { modificador: "evento" });
+  }
+
+  // Iniciador objeto-en-estado: instrumento-evento (gatillo sin consumo, V-59).
+  // `keyEntidad` declara el state set del objeto si el proto le atribuye ≥2
+  // estados. El gatillo solo va en el extremo origen si ese estado quedó
+  // declarado: un objeto-evento de UN SOLO estado (`Evento de deterioro clínico`
+  // = `detectado`) no puede portar estados en OPM (≥2 obligatorio) — el evento
+  // se modela entonces como instrumento-evento SIN estado-gatillo (preserva la
+  // reactividad; el estado único no es representable).
+  const objetoKey = keyEntidad(ast.iniciador, ctx, "objeto");
+  const procesoKey = keyEntidad(ast.proceso, ctx, "proceso");
+  const tieneStateSet = (ctx.estadosUnion.get(claveEntidad(ast.iniciador))?.length ?? 0) >= 2;
+  const origen: ExtremoEntrada =
+    estado && tieneStateSet && typeof objetoKey === "string" ? { estado, entidad: objetoKey } : objetoKey;
+  return enlazarConDedup(ctx, origen, procesoKey, "instrumento", {
+    modificador: "evento",
+    ...(ast.etiqueta ? { etiqueta: ast.etiqueta } : {}),
+  });
+}
+
+/** Tipo pre-sembrado del contexto para un nombre aún no creado. */
+function tipoSembrado(nombre: string, ctx: ContextoEmision): "objeto" | "proceso" {
+  return ctx.resolutor.tipoSemillaDe(nombre) ?? "objeto";
 }
 
 function emitirCondicion(
@@ -509,8 +686,8 @@ function emitirDesignacion(
  * la afina), y coloca su aparición en el OPD activo (creación o proyección de otro
  * OPD). El layout (`aplicarLayoutCompleto`) reubica todas las apariencias después.
  */
-function keyEntidad(nombre: string, ctx: ContextoEmision, tipo: "objeto" | "proceso"): ExtremoEntrada {
-  const r = ctx.resolutor.resolver(nombre, ctx.opdClave, tipo);
+function keyEntidad(nombre: string, ctx: ContextoEmision, tipo: "objeto" | "proceso", forzarTipo = false): ExtremoEntrada {
+  const r = ctx.resolutor.resolver(nombre, ctx.opdClave, tipo, forzarTipo);
   if (r.accion === "crear") {
     // Usa el tipo RESUELTO (semilla del contexto > hint posicional) y los rasgos
     // esencia/afiliación declarados en el proto: un proceso/agente nombrado antes
@@ -565,12 +742,83 @@ function enlazar(
 ): ResultadoEmision {
   try {
     const id = ctx.autor.enlazar(ctx.opdKey, origen, destino, tipo, opts);
+    // Registra el enlace procedural (clave por OPD + extremos-entidad + tipo) para
+    // la adjunción/dedup del evento sin portador (tensión 1).
+    if (id) ctx.enlacesProcedurales.set(claveEnlace(ctx.opdKey, origen, destino, tipo), id);
     // `enlazar` devuelve null cuando consume una agregación contorno→sub como
     // contención interna (no hay enlace, pero es semántica válida del in-zoom).
     return { estado: "aplicada", hechos: [{ primitiva: "enlace", detalle: id ? tipo : `${tipo} (contención interna)` }] };
   } catch (e) {
     return { estado: "fallo", razon: e instanceof Error ? e.message : String(e) };
   }
+}
+
+/** Clave de un enlace procedural en el registro (OPD + entidades-extremo + tipo).
+ *  Ignora el estado de un extremo `{estado, entidad}`: lo que importa para la
+ *  dedup del evento es el par de entidades y el tipo, no el estado-gatillo. */
+function claveEnlace(opdKey: string, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace): string {
+  return `${opdKey}|${entidadDeExtremo(origen)}>${entidadDeExtremo(destino)}|${tipo}`;
+}
+
+/**
+ * Enlaza con dedup/adjunción (tensión 1). Antes de crear, mira el registro:
+ *
+ *   - Si YA existe un enlace del mismo (OPD, extremos-entidad, tipo):
+ *     · si esta emisión trae `modificador: evento` y el existente no lo tiene →
+ *       ADJUNTA el modificador evento al existente (no duplica). Si el existente
+ *       trae un estado-gatillo solo en esta emisión, lo re-apunta al origen.
+ *     · si no aporta nada nuevo (ya es evento, o esta emisión es el `requiere`
+ *       plano y el existente ya es instrumento-evento) → reusa, idempotente.
+ *   - Si no existe → crea normalmente (vía `enlazar`, que lo registra).
+ */
+function enlazarConDedup(
+  ctx: ContextoEmision,
+  origen: ExtremoEntrada,
+  destino: ExtremoEntrada,
+  tipo: TipoEnlace,
+  opts: OpcionesEnlace,
+): ResultadoEmision {
+  const clave = claveEnlace(ctx.opdKey, origen, destino, tipo);
+  const existenteId = ctx.enlacesProcedurales.get(clave);
+  if (existenteId) {
+    const existente = ctx.autor.modelo.enlaces[existenteId];
+    if (existente) {
+      // Adjunta el modificador evento si esta emisión lo pide y el existente no
+      // lo tiene (la oración `requiere` plana ya creó el instrumento; el evento
+      // lo convierte en gatillo). Re-apunta el origen al estado-gatillo si esta
+      // emisión lo aporta y el existente no.
+      let cambio = false;
+      if (opts.modificador === "evento" && existente.modificador !== "evento") {
+        const aplicado = aplicarModificador(ctx.autor.modelo, existenteId, "evento");
+        if (aplicado.ok) {
+          ctx.autor.modelo.enlaces[existenteId] = aplicado.value.enlaces[existenteId]!;
+          cambio = true;
+        }
+      }
+      // El existente apuntaba a la entidad pelada y esta emisión aporta el
+      // estado-gatillo en el origen → re-apunta el origen al estado (idempotente
+      // con el reverse: el gatillo vive en el extremo origen del instrumento).
+      if (typeof origen !== "string" && ctx.autor.modelo.enlaces[existenteId]!.origenId.kind === "entidad") {
+        const estadoId = ctx.autor.idEstado(origen.entidad, origen.estado);
+        ctx.autor.modelo.enlaces[existenteId] = {
+          ...ctx.autor.modelo.enlaces[existenteId]!,
+          origenId: { kind: "estado", id: estadoId },
+        };
+        cambio = true;
+      }
+      // Idempotente: ya existe el enlace (con o sin upgrade). No duplica.
+      return {
+        estado: "aplicada",
+        hechos: cambio ? [{ primitiva: "enlace", detalle: `${tipo} (adjunción evento)` }] : [],
+      };
+    }
+  }
+  return enlazar(ctx, origen, destino, tipo, opts);
+}
+
+/** Extrae la key de entidad de un ExtremoEntrada (entidad sola o `{estado, entidad}`). */
+function entidadDeExtremo(e: ExtremoEntrada): string {
+  return typeof e === "string" ? e : e.entidad;
 }
 
 /** Calcula (origen, destino) de una rama de abanico (espejo de `ramaEnlaceAbanico`). */

@@ -8,18 +8,18 @@
 
 ## 1. Conteo por clase
 
-Total de líneas no vacías clasificadas: **469**.
+Total de líneas no vacías clasificadas: **472**.
 
 | Clase | N | % |
 |---|---:|---:|
-| estricta | 230 | 49.0% |
-| normalizada | 186 | 39.7% |
+| estricta | 232 | 49.2% |
+| normalizada | 186 | 39.4% |
 | estructura | 11 | 2.3% |
-| comentario | 12 | 2.6% |
-| rechazada | 30 | 6.4% |
+| comentario | 12 | 2.5% |
+| rechazada | 31 | 6.6% |
 
-**Cobertura T1+T2+estructura** (estricta + normalizada + estructura, sobre el total): **427/469 = 91.0%**.
-**Cobertura sobre hechos** (excluyendo 12 comentarios): **427/457 = 93.4%**.
+**Cobertura T1+T2+estructura** (estricta + normalizada + estructura, sobre el total): **429/472 = 90.9%**.
+**Cobertura sobre hechos** (excluyendo 12 comentarios): **429/460 = 93.3%**.
 
 ## 2. Reglas T2 aplicadas (líneas `normalizada`)
 
@@ -28,15 +28,15 @@ Total de líneas no vacías clasificadas: **469**.
 | A1 — distribuir esencia/afiliación sobre lista | 13 |
 | A2 — normalizar prefijo `en uno de los estados` | 45 |
 | A3 — `afecta X (de a a b)` → `cambia X de a a b` | 2 |
-| A4 — estado pegado → `en \`estado\`` | 30 |
+| A4 — estado pegado → `en \`estado\`` | 29 |
 | A6 — TS multi-destino → una por destino | 5 |
 | A8 — conector `e`/`así como` → `y` | 6 |
 | A9 — cola `como su operación` separada | 2 |
-| AESS — esencia/afiliación sin `un objeto/proceso` | 83 |
+| AESS — esencia/afiliación sin `un objeto/proceso` | 84 |
 
 ## 3. Rechazos por categoría (R1–R7)
 
-Total de líneas rechazadas: **30** (6.4% del corpus).
+Total de líneas rechazadas: **31** (6.6% del corpus).
 
 ### R1 — cláusula condicional (`cuando`/`según`/guard compuesto) — 6 línea(s)
 
@@ -44,9 +44,10 @@ Total de líneas rechazadas: **30** (6.4% del corpus).
 - `Integración diagnóstica requiere Voluntad anticipada vigente cuando la decisión puede escalar.`
 - `Ajuste terapéutico cambia Indicación médica a 'suspendida' cuando supersede una indicación previa.`
 
-### R2 — disyunción de hechos alternativos — 2 línea(s)
+### R2 — disyunción de hechos alternativos — 3 línea(s)
 
 - `Atención de acciones emergentes cambia Condición de estabilidad clínica a 'estable', o inicia Cierre por reingreso hospitalario.`
+- `Decisión de conducta clínica en estado 'proceder a egreso' inicia Cierre por alta médica por recuperación o Cierre por cumplimiento del plan terapéutico.`
 - `Suspensión de la atención puede iniciar Cierre por alta disciplinaria o Cierre por renuncia voluntaria.`
 
 ### R3 — verbo fuera del enum cerrado — 14 línea(s)
@@ -72,7 +73,7 @@ Total de líneas rechazadas: **30** (6.4% del corpus).
 
 ## 4. Segundo eje — aceptación real del parser (ley L1)
 
-De **416** líneas `estricta|normalizada` (clase `estructura` excluida por L1), el parser real acepta **416** sin `unsupported-kernel` (= **100.0%**).
+De **418** líneas `estricta|normalizada` (clase `estructura` excluida por L1), el parser real acepta **418** sin `unsupported-kernel` (= **100.0%**).
 
 **Ley L1 verde:** toda salida estricta|normalizada parsea de verdad. Cero deuda GAP.
 
@@ -90,9 +91,9 @@ La spec v0 fijó la regla, el parser fijó la realidad. Estos puntos divergen y 
 
 ## 6. Veredicto del gate W1.3 (recomendación para el operador)
 
-- **Cobertura sobre hechos:** 427/457 = 93.4% (estricta+normalizada+estructura).
+- **Cobertura sobre hechos:** 429/460 = 93.3% (estricta+normalizada+estructura).
 - **Ley L1:** **verde** (100%).
-- **Rechazos:** 30 (6.4%) — decisiones de modelado reales (guards compuestos, alternativas, verbos de dominio), no fallos del normalizador.
+- **Rechazos:** 31 (6.6%) — decisiones de modelado reales (guards compuestos, alternativas, verbos de dominio), no fallos del normalizador.
 
-**Recomendación: PASA.** El normalizador cubre el 93.4% de los hechos del corpus real con L1 verde, idempotencia y trazabilidad por regla. Los rechazos están bien diagnosticados y devuelven el barro al humano (anti-complacencia). Antes de promover a KORA, la spec v0 debe absorber las 4 divergencias de la sección 5 (especialización=`es un`, A2 invertida, AESS obligatoria, A7 sin condicional) y abrir un GAP de parser por la degradación silenciosa de multiplicidad/estado.
+**Recomendación: PASA.** El normalizador cubre el 93.3% de los hechos del corpus real con L1 verde, idempotencia y trazabilidad por regla. Los rechazos están bien diagnosticados y devuelven el barro al humano (anti-complacencia). Antes de promover a KORA, la spec v0 debe absorber las 4 divergencias de la sección 5 (especialización=`es un`, A2 invertida, AESS obligatoria, A7 sin condicional) y abrir un GAP de parser por la degradación silenciosa de multiplicidad/estado.
 

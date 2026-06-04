@@ -78,6 +78,14 @@ export function compilarProto(markdown: string, opciones: OpcionesCompilacion = 
   // proceso por uso global. Sembrarlos evita que un proceso nombrado antes de su
   // descripción se cree como objeto (firma de enlace ilegal).
   resolutor.sembrarTipos(plan.contexto.tipoPorEntidad);
+  // Clase explícita (tensión 4): qué entidades tienen clase OPM declarada de
+  // forma fuerte. El emisor la usa para que una parte de `consta de` sin clase
+  // propia herede la clase del todo (agregación homogénea).
+  resolutor.sembrarClaseExplicita(plan.contexto.claseExplicita);
+  // Nombres conocidos (tensión 3): el universo de entidades declaradas en TODO el
+  // proto, para preferir el nombre conocido más largo (`Resumen clínico en
+  // domicilio`) sobre la lectura `objeto + estado` aunque se declare después.
+  resolutor.sembrarNombresConocidos(plan.contexto.entidades.values());
   // Unión de estados por entidad (explícitos + implícitos por transición) sobre
   // TODO el proto: declara el state set completo la primera vez que se referencia
   // un objeto, para que las transiciones a estados solo declarados por uso no fallen.
@@ -89,6 +97,9 @@ export function compilarProto(markdown: string, opciones: OpcionesCompilacion = 
   // su descripción (p.ej. un agente físico) se crea con la esencia correcta.
   resolutor.sembrarRasgos(recolectarRasgos(oraciones));
   const estadosDeclarados = new Set<string>();
+  // Registro de enlaces procedurales por OPD (tensión 1: adjunción del evento sin
+  // portador sobre un `requiere` coexistente, sin duplicar). Compartido entre OPDs.
+  const enlacesProcedurales = new Map<string, string>();
   const entradas: DestinoLedger[] = [];
 
   // Las líneas markdown no-hecho (encabezados, prosa, fences) van al ledger como
@@ -106,7 +117,7 @@ export function compilarProto(markdown: string, opciones: OpcionesCompilacion = 
   // Procesa cada OPD en orden: el raíz puebla entidades; los hijos registran su
   // refinamiento, proyectan el contorno y emiten su detalle.
   for (const nodo of plan.opds) {
-    procesarOpd(nodo, autor, resolutor, entradas, estadosUnion, estadosDeclarados);
+    procesarOpd(nodo, autor, resolutor, entradas, estadosUnion, estadosDeclarados, enlacesProcedurales);
   }
 
   const resumen = resumir(entradas, plan.opds.length);
@@ -120,6 +131,7 @@ function procesarOpd(
   entradas: DestinoLedger[],
   estadosUnion: Map<string, string[]>,
   estadosDeclarados: Set<string>,
+  enlacesProcedurales: Map<string, string>,
 ): void {
   // 1) Para un OPD de refinamiento: registra el refinamiento y proyecta el
   //    contorno. El refinable debe existir (creado en el OPD padre). Si no existe
@@ -144,7 +156,7 @@ function procesarOpd(
   }
 
   // 2) Emite los hechos del OPD.
-  const ctx = { autor, resolutor, opdClave: nodo.clave, opdKey: nodo.clave, estadosUnion, estadosDeclarados };
+  const ctx = { autor, resolutor, opdClave: nodo.clave, opdKey: nodo.clave, estadosUnion, estadosDeclarados, enlacesProcedurales };
   for (const linea of nodo.hechos) {
     emitirLinea(linea, ctx, entradas);
   }
@@ -159,6 +171,7 @@ function emitirLinea(
     opdKey: string;
     estadosUnion: Map<string, string[]>;
     estadosDeclarados: Set<string>;
+    enlacesProcedurales: Map<string, string>;
   },
   entradas: DestinoLedger[],
 ): void {

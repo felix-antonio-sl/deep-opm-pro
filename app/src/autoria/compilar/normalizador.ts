@@ -67,6 +67,11 @@ const R1_CON_GUARD_RE = /\s+con\s+[A-ZÁÉÍÓÚÑ].*?['`].+?['`]\s+inicia\s+/iu
  *  (`'a', 'b' o 'c'`) NO es R2 — se distingue por el verbo. */
 const R2_PUEDE_INICIAR_RE = /\bpuede\s+iniciar\b.+\bo\b/iu;
 const R2_O_INICIA_RE = /,\s*o\s+inicia\b/iu;
+/** R2 (gramatica v0 §R2): `… inicia A o B` — dos procesos-consecuencia
+ *  alternativos en un solo evento. La spec ya lo lista como R2; el parser lo
+ *  absorbía como un proceso de nombre compuesto (`A o B`). El `o` debe estar
+ *  FUERA de comillas/backticks (una lista de estados `'a' o 'b'` no es R2). */
+const R2_INICIA_DISYUNCION_RE = /\binicia\s+(?:(?!['`]).)*\bo\b(?:(?!['`]).)*$/iu;
 
 /** Cola informal de lista (R6): `y los demás ...`, `y otros ... según ...`,
  *  `y los demas <algo> parciales`. */
@@ -92,6 +97,18 @@ export function construirContextoProto(bloques: string[][]): ContextoProto {
   const estadosPorEntidad = new Map<string, Set<string>>();
   const tipoPorEntidad = new Map<string, "objeto" | "proceso">();
   const entidades = new Map<string, string>();
+  // Entidades con una clase OPM declarada EXPLÍCITAMENTE (descripción `es un
+  // objeto/proceso`, sujeto de `puede estar`/`exhibe`/`consta de`, refinable de
+  // `se descompone/despliega`, o sujeto de un verbo procedural). Distingue una
+  // clase fuerte de la heredada por agregación homogénea (tensión 4): una parte
+  // de `consta de` SIN clase explícita hereda la del todo; una parte con clase
+  // contraria explícita es contradicción real (diagnóstico, no silencio).
+  const claseExplicita = new Set<string>();
+  // Agentes: sujeto de `maneja` (rol agente OPM). Un agente es SIEMPRE objeto
+  // físico; esta evidencia es decisiva y gana sobre el heurístico débil de
+  // "sujeto de genera/afecta ⇒ proceso" (instituciones como la SEREMI "generan"
+  // documentos de forma laxa pero son agentes, no procesos). Tensión 5.
+  const esAgente = new Set<string>();
 
   const registrar = (nombre: string) => {
     const limpio = nombre.trim();
@@ -99,10 +116,11 @@ export function construirContextoProto(bloques: string[][]): ContextoProto {
     if (clave && !entidades.has(clave)) entidades.set(clave, limpio);
   };
 
-  const marcarTipo = (nombre: string, tipo: "objeto" | "proceso") => {
+  const marcarTipo = (nombre: string, tipo: "objeto" | "proceso", explicita = false) => {
     registrar(nombre);
     const clave = claveNombre(nombre);
     if (!clave) return;
+    if (explicita) claseExplicita.add(clave);
     // El proceso "gana": una vez proceso, no se degrada a objeto.
     if (tipo === "proceso") {
       tipoPorEntidad.set(clave, "proceso");
@@ -124,7 +142,8 @@ export function construirContextoProto(bloques: string[][]): ContextoProto {
         const set = estadosPorEntidad.get(clave) ?? new Set<string>();
         for (const e of estados.estados) set.add(claveEstado(e));
         estadosPorEntidad.set(clave, set);
-        marcarTipo(estados.entidad, "objeto");
+        // Portar estados es evidencia explícita de OBJETO (clase fuerte).
+        marcarTipo(estados.entidad, "objeto", true);
         continue;
       }
 
@@ -151,15 +170,40 @@ export function construirContextoProto(bloques: string[][]): ContextoProto {
         const verbo = (proc[2] ?? "").toLocaleLowerCase("es");
         const complemento = (proc[3] ?? "").trim();
         if (verbo.startsWith("maneja")) {
-          // "Agente maneja Proceso": sujeto=objeto, complemento=proceso.
-          marcarTipo(sujeto, "objeto");
-          for (const item of dividirListaSimple(complemento)) marcarTipo(item, "proceso");
+          // "Agente maneja Proceso": sujeto=objeto (rol agente, evidencia decisiva
+          // — tensión 5), complemento=proceso (manejado). El complemento NO se
+          // marca como clase explícita: la lista del proto puede contener nombres
+          // con ` y ` interno (`Vigilancia y seguridad asistencial`) que
+          // `dividirListaSimple` fragmenta; un fragmento espurio NO debe sellar una
+          // clase contraria que dispare un falso diagnóstico de agregación
+          // heterogénea (tensión 4). El tipo seguido (proceso) basta como semilla.
+          marcarTipo(sujeto, "objeto", true);
+          esAgente.add(claveNombre(sujeto));
+          for (const item of dividirListaSimple(complemento)) marcarTipo(item, "proceso", false);
         } else if (verbo.startsWith("exhibe") || verbo.startsWith("consta")) {
-          // "Objeto exhibe/consta de ...": sujeto y complementos son objetos.
-          marcarTipo(sujeto, "objeto");
+          // "Objeto exhibe/consta de ...": el sujeto es objeto con clase explícita.
+          // Para `consta de` (agregación homogénea, tensión 3/4) registramos las
+          // PARTES como entidades conocidas — sin tiparlas: la parte sin clase
+          // propia hereda la del todo en el emisor. El registro permite además
+          // que un nombre con ` en ` (`Resumen clínico en domicilio`) declarado en
+          // una lista `consta de` se reconozca como entidad completa, no como
+          // `objeto + estado` (tensión 3).
+          marcarTipo(sujeto, "objeto", true);
+          if (verbo.startsWith("consta")) {
+            // Registra los segmentos de la lista CONSERVANDO el ` y ` interno de
+            // los nombres compuestos (`Vigilancia y monitorización clínica`), para
+            // que el emisor pueda preferir el nombre conocido más largo y la
+            // agregación homogénea cierre sobre el ítem entero (tensión 3/4). El
+            // `consta DE …` deja la preposición pegada al primer ítem: la quitamos.
+            const lista = quitarColaMultiplicidad(complemento).replace(/^de\s+/iu, "");
+            for (const item of segmentosLista(lista)) registrar(item);
+          }
         } else {
-          // consume/genera/afecta/requiere/invoca/cambia: sujeto=proceso.
-          marcarTipo(sujeto, "proceso");
+          // consume/genera/afecta/requiere/invoca/cambia: sujeto=proceso. Es clase
+          // explícita SALVO `genera` (instituciones agente "generan" documentos de
+          // forma laxa; no es evidencia fuerte de proceso — tensión 5). El sujeto
+          // de `genera` que además es agente (`maneja`) se resolverá a objeto.
+          marcarTipo(sujeto, "proceso", !verbo.startsWith("genera"));
         }
         continue;
       }
@@ -168,17 +212,21 @@ export function construirContextoProto(bloques: string[][]): ContextoProto {
       // partes como entidades conocidas).
       const desc = /^(.+?)\s+se\s+(?:descompone|despliega)(?:\s+tambi[eé]n)?\s+en\s+(.+)$/iu.exec(sinPunto);
       if (desc) {
-        marcarTipo((desc[1] ?? "").trim(), "proceso");
+        const esDespliegue = /\bse\s+despliega(?:\s+tambi[eé]n)?\s+en\b/iu.test(sinPunto);
+        // `se descompone en` refina un PROCESO (clase explícita fuerte); `se
+        // despliega en` puede refinar un objeto — no forzamos proceso ahí.
+        if (!esDespliegue) marcarTipo((desc[1] ?? "").trim(), "proceso", true);
+        else registrar((desc[1] ?? "").trim());
         for (const parte of dividirListaSimple((desc[2] ?? "").replace(/\s+en\s+esa\s+secuencia$/iu, ""))) {
           registrar(parte);
         }
         continue;
       }
 
-      // Descripcion explicita con `un objeto/proceso` -> registra y tipa.
+      // Descripcion explicita con `un objeto/proceso` -> registra y tipa (explícita).
       const dcanon = /^(.+?)\s+es\s+un\s+(objeto|proceso)\s+/iu.exec(sinPunto);
       if (dcanon) {
-        marcarTipo((dcanon[1] ?? "").trim(), dcanon[2] === "proceso" ? "proceso" : "objeto");
+        marcarTipo((dcanon[1] ?? "").trim(), dcanon[2] === "proceso" ? "proceso" : "objeto", true);
         continue;
       }
 
@@ -192,7 +240,25 @@ export function construirContextoProto(bloques: string[][]): ContextoProto {
     }
   }
 
-  return { estadosPorEntidad, tipoPorEntidad, entidades };
+  // Reconciliación final (tensión 5): un agente (sujeto de `maneja`) es objeto
+  // físico por regla OPM. Si quedó tipado `proceso` por un heurístico débil
+  // (`X genera …` con X institución), lo forzamos a objeto — la evidencia de
+  // rol-agente es decisiva. No tocamos un agente que ya es objeto.
+  for (const clave of esAgente) {
+    if (tipoPorEntidad.get(clave) === "proceso") {
+      tipoPorEntidad.set(clave, "objeto");
+      claseExplicita.add(clave);
+    }
+  }
+
+  return { estadosPorEntidad, tipoPorEntidad, entidades, claseExplicita };
+}
+
+/** Quita la cola `… con multiplicidad N..M` que el corpus pega a una parte de
+ *  `consta de` (`Parada con multiplicidad 1..N`). El registro de la parte no la
+ *  necesita; el parser la maneja por separado. */
+function quitarColaMultiplicidad(texto: string): string {
+  return texto.replace(/\s+con\s+multiplicidad\s+[\d.Nn*+]+\s*$/iu, "").trim();
 }
 
 // ── Normalizador principal ───────────────────────────────────────────────
@@ -221,8 +287,24 @@ function normalizarLinea(linea: string, contexto: ContextoProto): LineaNormaliza
   // 2) Extraer anclas inline (se conservan junto a la linea; no compilan ni rechazan).
   const anclas = extraerAnclas(linea);
   const sinAnclas = quitarAnclas(linea).trim();
-  const sinPunto = sinAnclas.replace(/\.\s*$/, "").trim();
+  const sinPuntoCrudo = sinAnclas.replace(/\.\s*$/, "").trim();
   const conAnclas = <T extends LineaNormalizada>(l: T): T => (anclas.length ? { ...l, anclas } : l);
+
+  // A12 (tensión 2): disyunción `u` (ante sonido /o/) → `o` en LISTAS DE ESTADOS.
+  // El español exige `u` ante palabra que empieza por /o/ (`'disponible' u
+  // 'ocupado'`), pero el divisor de listas del parser parte SOLO por ` o `. Se
+  // reescribe ` u '`/`` u ` `` → ` o '`/`` o ` `` únicamente tras `puede estar`
+  // (contexto de estados) para no tocar otras `u`. El canónico queda con `o`
+  // uniforme, igual que el generador forward (GAP ortográfico aceptado, §A12).
+  const a12 = aplicarA12(sinPuntoCrudo);
+  const sinPunto = a12.texto;
+  // Si A12 reescribió, la línea es `normalizada` con regla A12 — salvo que aún
+  // requiera otra clase (estructura/rechazo): esos pasos corren sobre el texto ya
+  // reescrito y el wrapper preserva el `original` previo a A12.
+  const conA12 = <T extends LineaNormalizada>(l: T): T =>
+    a12.aplico && l.clase === "estricta"
+      ? ({ clase: "normalizada", oracion: l.oracion, original: asegurarPunto(sinPuntoCrudo), regla: "A12" } as unknown as T)
+      : l;
 
   // 3) Refinamiento (clase estructura). Debe ir ANTES de los rechazos por verbo,
   //    porque `se descompone en` no es un verbo del enum procedural.
@@ -248,8 +330,19 @@ function normalizarLinea(linea: string, contexto: ContextoProto): LineaNormaliza
   const r3 = detectarVerboNoCanonico(sinPunto);
   if (r3) return [conAnclas({ clase: "rechazada", original: sinAnclas, ...r3 })];
 
-  // 8) Por defecto: ya es estricta (el parser la acepta tal cual).
-  return [conAnclas({ clase: "estricta", oracion: asegurarPunto(sinAnclas) })];
+  // 8) Por defecto: ya es estricta (el parser la acepta tal cual). Si A12
+  //    reescribió, se reporta como `normalizada` (regla A12) vía `conA12`.
+  return [conAnclas(conA12({ clase: "estricta", oracion: asegurarPunto(sinPunto) }))];
+}
+
+/** A12: reescribe la disyunción de estados `… 'a' u 'b'` → `… 'a' o 'b'`.
+ *  Solo en contexto de lista de estados (tras `puede estar`). */
+function aplicarA12(sinPunto: string): { texto: string; aplico: boolean } {
+  if (!/\bpuede\s+estar\b/iu.test(sinPunto) || !/\s+u\s+['`]/u.test(sinPunto)) {
+    return { texto: sinPunto, aplico: false };
+  }
+  const texto = sinPunto.replace(/\s+u\s+(['`])/gu, " o $1");
+  return { texto, aplico: texto !== sinPunto };
 }
 
 // ── Refinamiento (clase estructura) ──────────────────────────────────────
@@ -286,7 +379,11 @@ function detectarRechazoTemprano(sinPunto: string): { categoria: CategoriaRechaz
     };
   }
   // R2: disyuncion de clausulas alternativas.
-  if (R2_PUEDE_INICIAR_RE.test(sinPunto) || R2_O_INICIA_RE.test(sinPunto)) {
+  if (
+    R2_PUEDE_INICIAR_RE.test(sinPunto) ||
+    R2_O_INICIA_RE.test(sinPunto) ||
+    R2_INICIA_DISYUNCION_RE.test(sinPunto)
+  ) {
     return {
       categoria: "R2",
       diagnostico:
@@ -727,6 +824,34 @@ function dividirListaSimple(texto: string): string[] {
     .split(/\s*,\s*|\s+y\s+/iu)
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+/**
+ * Segmenta una lista CONSERVANDO el ` y ` interno de los nombres compuestos
+ * (`Vigilancia y monitorización clínica`). La convención del proto: los ítems
+ * van separados por COMA; el último ítem se une con `, y ` o ` y `. Esta función
+ * parte por comas y, en el ÚLTIMO segmento, separa por el ` y ` final SOLO si lo
+ * que queda a cada lado no forma parte de un nombre con ` y ` interno conocido.
+ * Como heurística sin registro, parte el último segmento por su PRIMER ` y `
+ * únicamente cuando hubo comas (lista multi-ítem con cierre `, y X`); si no hubo
+ * comas (`A y B`) trata todo como un solo nombre candidato y también ofrece la
+ * partición. Devuelve los segmentos candidatos (nombres compuestos potenciales),
+ * NO la fragmentación máxima. Sirve para REGISTRAR nombres con ` y ` interno.
+ */
+function segmentosLista(texto: string): string[] {
+  const partes = texto.split(/\s*,\s*/u).map((s) => s.trim()).filter(Boolean);
+  if (partes.length === 0) return [];
+  // El último segmento puede traer un ` y ` de cierre (`X y Y` → dos ítems) o ser
+  // un nombre compuesto (`Coordinación y criterios de escalamiento`). Registramos
+  // AMBAS lecturas: el segmento completo y, si hay ` y `, sus dos mitades por el
+  // último ` y `. El emisor (con registro) elige el nombre conocido más largo.
+  const ultimo = partes[partes.length - 1]!;
+  const out = [...partes];
+  const mY = /^(.+)\s+y\s+(.+)$/iu.exec(ultimo);
+  if (mY) {
+    out.push((mY[1] ?? "").trim(), (mY[2] ?? "").trim());
+  }
+  return out.filter(Boolean);
 }
 
 /** Clave de comparacion de estados: como `claveNombre` pero ademas descarta
