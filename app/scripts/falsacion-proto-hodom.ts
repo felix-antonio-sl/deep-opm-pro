@@ -70,8 +70,11 @@ interface Acum {
   porClase: Record<string, number>;
   porRegla: Map<string, number>;
   porRechazo: Map<CategoriaRechazo, { n: number; ejemplos: string[] }>;
-  // Eje 2: estricta|normalizada que el parser ACEPTA vs deuda GAP.
+  // Eje 2: oraciones verificadas por L1 (estricta|normalizada + emisiones-oración
+  // de compuesta) que el parser ACEPTA vs deuda GAP. `parserVerificables` es el
+  // denominador real (incluye las emisiones-oración de la familia V).
   parserOk: number;
+  parserVerificables: number;
   parserGap: { oracion: string; clase: string }[];
   // Divergencias spec-vs-realidad: parsea (L1 verde) pero la semantica se
   // degrada (multiplicidad/estado absorbidos como parte del nombre).
@@ -81,10 +84,11 @@ interface Acum {
 function nuevoAcum(): Acum {
   return {
     total: 0,
-    porClase: { estricta: 0, normalizada: 0, estructura: 0, comentario: 0, rechazada: 0 },
+    porClase: { estricta: 0, normalizada: 0, estructura: 0, comentario: 0, compuesta: 0, rechazada: 0 },
     porRegla: new Map(),
     porRechazo: new Map(),
     parserOk: 0,
+    parserVerificables: 0,
     parserGap: [],
     degradaciones: [],
   };
@@ -119,7 +123,7 @@ function registrar(acum: Acum, l: LineaNormalizada): void {
   acum.total += 1;
   acum.porClase[l.clase] = (acum.porClase[l.clase] ?? 0) + 1;
 
-  if (l.clase === "normalizada") {
+  if (l.clase === "normalizada" || l.clase === "compuesta") {
     acum.porRegla.set(l.regla, (acum.porRegla.get(l.regla) ?? 0) + 1);
   }
   if (l.clase === "rechazada") {
@@ -128,12 +132,23 @@ function registrar(acum: Acum, l: LineaNormalizada): void {
     if (e.ejemplos.length < 3) e.ejemplos.push(l.original);
     acum.porRechazo.set(l.categoria, e);
   }
-  // Eje 2: la ley L1 aplica a estricta|normalizada, NO a estructura.
+  // Eje 2: la ley L1 aplica a estricta|normalizada, NO a estructura. Para una
+  // línea `compuesta` (familia V), L1 aplica a sus emisiones-ORACIÓN (cada una
+  // debe parsear estricta); las emisiones-directiva se validan por efecto (no L1).
   if (l.clase === "estricta" || l.clase === "normalizada") {
+    acum.parserVerificables += 1;
     if (parserAcepta(l.oracion)) acum.parserOk += 1;
     else acum.parserGap.push({ oracion: l.oracion, clase: l.clase });
     const motivo = detectarDegradacion(l.oracion);
     if (motivo) acum.degradaciones.push({ motivo, oracion: l.oracion });
+  }
+  if (l.clase === "compuesta") {
+    for (const em of l.emisiones) {
+      if (em.via !== "oracion") continue;
+      acum.parserVerificables += 1;
+      if (parserAcepta(em.oracion)) acum.parserOk += 1;
+      else acum.parserGap.push({ oracion: em.oracion, clase: "compuesta" });
+    }
   }
 }
 
@@ -148,6 +163,22 @@ const ETIQUETA_REGLA: Record<string, string> = {
   A8: "A8 — conector `e`/`así como` → `y`",
   A9: "A9 — cola `como su operación` separada",
   AESS: "AESS — esencia/afiliación sin `un objeto/proceso`",
+  // [v0.2] Familia V — verbos/patrones extendidos (decisiones del operador).
+  V1: "V1 — `habilita` (obj→proc) → instrumento-condición",
+  V2: "V2 — `restringe` (binario) → condición sobre estado complementario",
+  V3: "V3 — `puede iniciar` → evento (ruta `inicia`)",
+  V4: "V4 — `alimenta` → instrumento (`requiere`)",
+  V5: "V5 — `detecta` → resultado (`genera`)",
+  V6: "V6 — `compromete`/`libera` → afecta + verbo anotado",
+  V7: "V7 — `precede a` → invocación",
+  V8: "V8 — `puede suceder a` → tagged «sucede a» (+0..1)",
+  V9: "V9 — `corresponde a` → tagged «corresponde a»",
+  V10: "V10 — `cumple` → tagged «cumple» + cola anotada",
+  V11: "V11 — `habilita` (obj→obj) → tagged «habilita»",
+  V12: "V12 — cola condicional / R4 → hecho + cola anotada",
+  V13: "V13 — guard compuesto → evento + instrumento-condición",
+  V14: "V14 — `cambia X a 'e', o inicia Q` → TS + evento (+XOR)",
+  V15: "V15 — `inicia A o B` → ramas evento + abanico XOR",
 };
 
 const ETIQUETA_RECHAZO: Record<CategoriaRechazo, string> = {
@@ -166,8 +197,11 @@ function pct(n: number, total: number): string {
 
 function render(acum: Acum, nBloques: number): string {
   const t = acum.total;
+  // [v0.2] La cobertura incluye la clase `compuesta` (familia V): son hechos
+  // mapeados a primitivas OPM, igual que `normalizada`.
   const cubiertas =
-    (acum.porClase.estricta ?? 0) + (acum.porClase.normalizada ?? 0) + (acum.porClase.estructura ?? 0);
+    (acum.porClase.estricta ?? 0) + (acum.porClase.normalizada ?? 0) +
+    (acum.porClase.compuesta ?? 0) + (acum.porClase.estructura ?? 0);
   const out: string[] = [];
 
   out.push("# Falsación del normalizador del sub-dialecto del proto-modelo — HODOM (W1.3)");
@@ -186,12 +220,12 @@ function render(acum: Acum, nBloques: number): string {
   out.push("");
   out.push("| Clase | N | % |");
   out.push("|---|---:|---:|");
-  for (const clase of ["estricta", "normalizada", "estructura", "comentario", "rechazada"]) {
+  for (const clase of ["estricta", "normalizada", "compuesta", "estructura", "comentario", "rechazada"]) {
     out.push(`| ${clase} | ${acum.porClase[clase] ?? 0} | ${pct(acum.porClase[clase] ?? 0, t)} |`);
   }
   out.push("");
   out.push(
-    `**Cobertura T1+T2+estructura** (estricta + normalizada + estructura, sobre el total): **${cubiertas}/${t} = ${pct(cubiertas, t)}**.`,
+    `**Cobertura T1+T2+V+estructura** (estricta + normalizada + compuesta + estructura, sobre el total): **${cubiertas}/${t} = ${pct(cubiertas, t)}**.`,
   );
   const factuales = t - (acum.porClase.comentario ?? 0);
   out.push(
@@ -200,7 +234,7 @@ function render(acum: Acum, nBloques: number): string {
   out.push("");
 
   // ── Reglas T2 aplicadas ──
-  out.push("## 2. Reglas T2 aplicadas (líneas `normalizada`)");
+  out.push("## 2. Reglas T2/V aplicadas (líneas `normalizada` + `compuesta`)");
   out.push("");
   if (acum.porRegla.size === 0) {
     out.push("_(ninguna)_");
@@ -232,9 +266,9 @@ function render(acum: Acum, nBloques: number): string {
   // ── Eje 2: aceptacion del parser ──
   out.push("## 4. Segundo eje — aceptación real del parser (ley L1)");
   out.push("");
-  const totalEN = (acum.porClase.estricta ?? 0) + (acum.porClase.normalizada ?? 0);
+  const totalEN = acum.parserVerificables;
   out.push(
-    `De **${totalEN}** líneas \`estricta|normalizada\` (clase \`estructura\` excluida por L1), el parser real acepta **${acum.parserOk}** sin \`unsupported-kernel\` (= **${pct(acum.parserOk, totalEN)}**).`,
+    `De **${totalEN}** oraciones verificables por L1 (\`estricta|normalizada\` + emisiones-oración de \`compuesta\`; clase \`estructura\` y emisiones-directiva excluidas por L1), el parser real acepta **${acum.parserOk}** sin \`unsupported-kernel\` (= **${pct(acum.parserOk, totalEN)}**).`,
   );
   out.push("");
   if (acum.parserGap.length === 0) {
@@ -328,15 +362,17 @@ function main(): void {
 
   // Resumen a stdout (para el operador y CI).
   const cubiertas =
-    (acum.porClase.estricta ?? 0) + (acum.porClase.normalizada ?? 0) + (acum.porClase.estructura ?? 0);
-  const totalEN = (acum.porClase.estricta ?? 0) + (acum.porClase.normalizada ?? 0);
+    (acum.porClase.estricta ?? 0) + (acum.porClase.normalizada ?? 0) +
+    (acum.porClase.compuesta ?? 0) + (acum.porClase.estructura ?? 0);
+  const totalEN = acum.parserVerificables;
   console.log(`Bloques opl: ${bloques.length}`);
   console.log(`Líneas no vacías: ${acum.total}`);
   console.log(
     `Clases — estricta=${acum.porClase.estricta} normalizada=${acum.porClase.normalizada} ` +
-      `estructura=${acum.porClase.estructura} comentario=${acum.porClase.comentario} rechazada=${acum.porClase.rechazada}`,
+      `compuesta=${acum.porClase.compuesta} estructura=${acum.porClase.estructura} ` +
+      `comentario=${acum.porClase.comentario} rechazada=${acum.porClase.rechazada}`,
   );
-  console.log(`Cobertura T1+T2+estructura: ${cubiertas}/${acum.total} = ${pct(cubiertas, acum.total)}`);
+  console.log(`Cobertura T1+T2+V+estructura: ${cubiertas}/${acum.total} = ${pct(cubiertas, acum.total)}`);
   console.log(`Eje 2 (parser acepta estricta|normalizada): ${acum.parserOk}/${totalEN} = ${pct(acum.parserOk, totalEN)}`);
   console.log(`Deuda GAP (canónicas sin soporte de parser): ${acum.parserGap.length}`);
   console.log(`Reporte escrito en: ${REPORTE}`);
