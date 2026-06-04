@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef, useState } from "preact/hooks";
+import { entidadDeExtremo, nombreExtremo, normalizarExtremo, type ExtremoEntrada } from "../modelo/extremos";
 import type { Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import {
   evaluarTiposEnlacePermitidos,
@@ -37,21 +38,27 @@ interface Props {
   modelo: Modelo;
   origenId: Id | null;
   destinoId: Id | null;
+  origenExtremo?: ExtremoEntrada | null;
+  destinoExtremo?: ExtremoEntrada | null;
   direccion: DireccionFiltro;
   onDireccion: (direccion: DireccionFiltro) => void;
-  onElegir: (tipo: TipoEnlace, origenId: Id, destinoId: Id) => void;
+  onElegir: (tipo: TipoEnlace, origen: ExtremoEntrada, destino: ExtremoEntrada) => void;
   onElegirPendiente?: (tipo: TipoEnlace) => void;
   anchor?: { left: number; top: number };
   titulo?: string;
   autoFocusFirstOption?: boolean;
 }
 
-export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDireccion, onElegir, onElegirPendiente, anchor, titulo, autoFocusFirstOption }: Props) {
+export function MenuTipoEnlace({ modelo, origenId, destinoId, origenExtremo, destinoExtremo, direccion, onDireccion, onElegir, onElegirPendiente, anchor, titulo, autoFocusFirstOption }: Props) {
   const [tipoPreview, setTipoPreview] = useState<TipoEnlace | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const origen = origenId ? modelo.entidades[origenId] : undefined;
-  const destino = destinoId ? modelo.entidades[destinoId] : undefined;
-  const evaluaciones = origen && destino ? evaluarTiposEnlacePermitidos(modelo, origen.id, destino.id, direccion) : [];
+  const origenEntrada = origenExtremo ?? origenId ?? null;
+  const destinoEntrada = destinoExtremo ?? destinoId ?? null;
+  const origen = origenEntrada ? entidadDeExtremo(modelo, normalizarExtremo(origenEntrada)) : undefined;
+  const destino = destinoEntrada ? entidadDeExtremo(modelo, normalizarExtremo(destinoEntrada)) : undefined;
+  const origenNombre = origenEntrada ? nombreExtremo(modelo, normalizarExtremo(origenEntrada)) : undefined;
+  const destinoNombre = destinoEntrada ? nombreExtremo(modelo, normalizarExtremo(destinoEntrada)) : undefined;
+  const evaluaciones = origenEntrada && destinoEntrada ? evaluarTiposEnlacePermitidos(modelo, origenEntrada, destinoEntrada, direccion) : [];
   const opciones = tiposValidos(evaluaciones);
   const opcionesPendientes = origen && !destino ? tiposPendientes(modelo, origen) : [];
   const opcionPreview = opciones.find((opcion) => opcion.tipo === tipoPreview) ?? opciones[0] ?? null;
@@ -96,7 +103,7 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
         <div style={style.estado} data-testid="menu-tipo-enlace-estado-sin-destino">
           <p style={style.estadoLinea}>
             <span style={style.estadoEtiqueta}>Origen</span>
-            <strong style={style.estadoNombre}>{origen.nombre}</strong>
+            <strong style={style.estadoNombre}>{origenNombre ?? origen.nombre}</strong>
           </p>
           <p style={style.estadoHint}>Elige un tipo para entrar en modo Conectar, o selecciona otra cosa para filtrar por firma y previsualizar OPL.</p>
           {onElegirPendiente && opcionesPendientes.length > 0 ? (
@@ -124,11 +131,11 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
         <div style={style.estado} data-testid="menu-tipo-enlace-estado-sin-tipos">
           <p style={style.estadoLinea}>
             <span style={style.estadoEtiqueta}>Origen</span>
-            <strong style={style.estadoNombre}>{origen.nombre}</strong>
+            <strong style={style.estadoNombre}>{origenNombre ?? origen.nombre}</strong>
           </p>
           <p style={style.estadoLinea}>
             <span style={style.estadoEtiqueta}>Destino</span>
-            <strong style={style.estadoNombre}>{destino.nombre}</strong>
+            <strong style={style.estadoNombre}>{destinoNombre ?? destino.nombre}</strong>
           </p>
           <p style={style.estadoHint}>No hay tipos válidos para esta firma. Prueba invertir la dirección o cambiar la selección.</p>
           {motivosNoAplican ? (
@@ -156,7 +163,7 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, direccion, onDirec
               data-menu-tipo-enlace-option="true"
               onPointerEnter={() => setTipoPreview(opcion.tipo)}
               onFocus={() => setTipoPreview(opcion.tipo)}
-              onClick={() => onElegir(opcion.tipo, opcion.origen.id, opcion.destino.id)}
+              onClick={() => onElegir(opcion.tipo, opcion.origenExtremo, opcion.destinoExtremo)}
             >
               <span style={style.icon}>{iconoTipo(opcion.tipo)}</span>
               <span style={style.itemText}>
@@ -213,7 +220,13 @@ function tituloPorDefecto(origen: Entidad | undefined, destino: Entidad | undefi
 function tiposValidos(evaluaciones: EvaluacionTipoEnlace[]) {
   return evaluaciones.flatMap((evaluacion) => {
     if (!evaluacion.permitido || !evaluacion.origen || !evaluacion.destino) return [];
-    return [{ tipo: evaluacion.tipo, origen: evaluacion.origen, destino: evaluacion.destino }];
+    return [{
+      tipo: evaluacion.tipo,
+      origen: evaluacion.origen,
+      destino: evaluacion.destino,
+      origenExtremo: evaluacion.origenExtremo,
+      destinoExtremo: evaluacion.destinoExtremo,
+    }];
   });
 }
 

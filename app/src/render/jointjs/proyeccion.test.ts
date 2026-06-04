@@ -572,6 +572,30 @@ describe("proyeccion JointJS", () => {
     expect(ruta?.position).toMatchObject({ distance: 0.33, offset: -24 });
   });
 
+  test("proyecta una sola marca de ruta para transicion Estado-Proceso-Estado", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 60 }, "Agua"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 360, y: 260 }, "Calentar"));
+    const aguaId = entidadPorNombre(modelo, "Agua");
+    const calentarId = entidadPorNombre(modelo, "Calentar");
+    modelo = must(crearEstadosIniciales(modelo, aguaId)).modelo;
+    const [solida, liquida] = estadosDeEntidad(modelo, aguaId);
+    if (!solida || !liquida) throw new Error("La prueba esperaba estados");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(solida.id), calentarId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, calentarId, extremoEstado(liquida.id), "resultado"));
+    const [consumoId, resultadoId] = Object.keys(modelo.enlaces);
+    if (!consumoId || !resultadoId) throw new Error("La prueba esperaba par de enlaces");
+    modelo = must(definirRutaEtiqueta(modelo, consumoId, "sol-liq"));
+    modelo = must(definirRutaEtiqueta(modelo, resultadoId, "sol-liq"));
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null);
+    const labels = cells
+      .filter((cell) => cell.type === "standard.Link")
+      .flatMap((cell) => (cell.labels ?? []) as Array<{ attrs?: { label?: { text?: unknown } } }>);
+
+    expect(labels.filter((label) => label.attrs?.label?.text === "sol-liq")).toHaveLength(1);
+  });
+
   test("proyecta invocacion como rayo zigzag por defecto", () => {
     const modelo = modeloConEnlace("invocacion");
     const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
@@ -1304,14 +1328,22 @@ describe("proyeccion JointJS", () => {
     expect((attrs?.stateCapsule0 as Attrs | undefined)?.pointerEvents).toBe("auto");
     expect((attrs?.stateLabel0 as Attrs | undefined)?.pointerEvents).toBe("auto");
     expect((attrs?.stateCapsule0 as Attrs | undefined)?.cursor).toBe("crosshair");
-    expect(cell?.opm).toMatchObject({
-      kind: "entidad",
-      estadosInteractivos: [
+    expect(cell?.opm.kind).toBe("entidad");
+    expect(cell?.opm.kind === "entidad" ? cell.opm.estadosInteractivos : []).toEqual(
+      expect.arrayContaining([
         { selector: "stateCapsule0", estadoId: primero.id },
         { selector: "stateLabel0", estadoId: primero.id },
+        { selector: "connect-anchor-e-state0", estadoId: primero.id },
         { selector: "stateCapsule1", estadoId: segundo.id },
         { selector: "stateLabel1", estadoId: segundo.id },
-      ],
+        { selector: "connect-anchor-o-state1", estadoId: segundo.id },
+      ]),
+    );
+    expect(attrs?.["connect-anchor-e-state0"]).toMatchObject({
+      opacity: 0,
+      pointerEvents: "none",
+      cursor: "crosshair",
+      "data-opm-connect-state-id": primero.id,
     });
   });
 

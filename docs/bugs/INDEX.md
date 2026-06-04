@@ -16,21 +16,23 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
-| Nuevo | 2 |
-| Resuelto | 86 |
+| Nuevo | 1 |
+| Resuelto | 89 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 83 |
+| Bug | 85 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
-| Bug | Nuevo | [BUG-20260604T021520Z-c96ad9](BUG-20260604T021520Z-c96ad9/report.md) | 2026-06-04 02:15Z | Modelo_simu / SD | no tiene lógica de rutas (paths) OPL sin sentido lógico | Pendiente. | 1 |  |
+| Bug | Resuelto | [BUG-20260604T022418Z-a4d837](BUG-20260604T022418Z-a4d837/report.md) | 2026-06-04 02:24Z | Modelo_simu / SD | la logica de rutas (paths) no funciona | El generador OPL empareja paths de estado por rutaEtiqueta y no reutiliza resultados; asi liquida -> gaseosa no queda como result… | 1 | Reproducido desde la captura Agua/Calentar con rutas sol-liq y liq-gas. Cubierto por generar.test paths de estado y proyeccion.test marcas de ruta. |
+| Bug | Resuelto | [BUG-20260604T022156Z-ffe132](BUG-20260604T022156Z-ffe132/report.md) | 2026-06-04 02:21Z | Modelo_simu / SD | la lógica de rutas (paths) no está realizada | La proyeccion reconoce el par Estado -> Proceso -> Estado como una ruta logica de transicion y suprime marcas duplicadas en la ra… | 1 | Cubierto por proyeccion.test: si ambas mitades tienen la misma rutaEtiqueta, el canvas muestra una sola marca de ruta para el path. |
+| Bug | Resuelto | [BUG-20260604T021520Z-c96ad9](BUG-20260604T021520Z-c96ad9/report.md) | 2026-06-04 02:15Z | Modelo_simu / SD | no tiene lógica de rutas (paths) OPL sin sentido lógico | La logica de paths de estado ahora empareja consumo y resultado solo por rutaEtiqueta; las etiquetas libres no participan en el r… | 1 | Cubierto por generar.test y proyeccion.test: varios paths sobre el mismo proceso no reutilizan la misma salida ni duplican marcas visuales de ruta. |
 | Bug | Resuelto | [BUG-20260604T003122Z-6a6a06](BUG-20260604T003122Z-6a6a06/report.md) | 2026-06-04 00:31Z | Modelo_simu / SD | no funciona el sitema de ruteo. Adjunto nuestro opforja y el comportamiento opcloud (no considerar la captura de la simulación) | El ruteo de transiciones de estado deja de formar un bus/abanico O automatico. La union implicita de puertos para enlaces con est… | 2 | Reproducido con Agua/Calentar. Verificado in-vivo: cuatro enlaces directos estado-proceso, cero overlays de abanico y sin vertices artificiales. |
 | Bug | Resuelto | [BUG-20260604T001937Z-82cc4f](BUG-20260604T001937Z-82cc4f/report.md) | 2026-06-04 00:19Z | Modelo_simu / SD | que se pueda iniciar y terminar los enlances en los estado de los objetos | Los enlaces procedurales pueden iniciar o terminar en estados de objeto sin que el kernel los convierta en abanicos implicitos. | 0 | Cubierto por transaccionEnlace.test, ports.test y abanicos.test: Estado -> Proceso y Proceso -> Estado conservan puertos independientes salvo abanico explicito. |
 | Bug | Nuevo | [BUG-20260603T193134Z-f314c4](BUG-20260603T193134Z-f314c4/report.md) | 2026-06-03 19:31Z | HODOM completo v1.6 / SD0-C - Hospitalizacion en domicilio | El generador OPL no verbaliza la transición de estados de un efecto TS3 compacto: todo enlace efecto con estadoEntradaId/estadoSalidaId se emite como… | Pendiente. | 0 |  |

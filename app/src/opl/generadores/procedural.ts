@@ -80,15 +80,18 @@ function transicionesEstadoBase(modelo: Modelo, opd: Opd, enlacesExcluidos: Read
     .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "resultado" && enlace.destinoId.kind === "estado" && enlaceOplEsEmitible(modelo, enlace));
   const lineaPorEnlaceConsumo = new Map<Id, { texto: string; refs: ReturnType<typeof refsEnlace>; hints: ReturnType<typeof hintsEnlace> }>();
   const enlacesCubiertos = new Set<Id>();
+  const resultadosUsados = new Set<Id>();
 
   for (const consumo of consumos) {
     const objetoEntradaId = entidadIdDeExtremo(modelo, consumo.origenId);
     const procesoId = entidadIdDeExtremo(modelo, consumo.destinoId);
     if (!objetoEntradaId || !procesoId) continue;
-    const resultado = resultados.find((candidato) => (
-      entidadIdDeExtremo(modelo, candidato.origenId) === procesoId &&
-      entidadIdDeExtremo(modelo, candidato.destinoId) === objetoEntradaId
+    const candidatos = resultados.filter((candidato) => (
+      !resultadosUsados.has(candidato.id)
+      && entidadIdDeExtremo(modelo, candidato.origenId) === procesoId
+      && entidadIdDeExtremo(modelo, candidato.destinoId) === objetoEntradaId
     ));
+    const resultado = elegirResultadoParaPath(consumo, candidatos);
     if (!resultado) continue;
     const proceso = modelo.entidades[procesoId];
     const objeto = modelo.entidades[objetoEntradaId];
@@ -116,9 +119,23 @@ function transicionesEstadoBase(modelo: Modelo, opd: Opd, enlacesExcluidos: Read
     });
     enlacesCubiertos.add(consumo.id);
     enlacesCubiertos.add(resultado.id);
+    resultadosUsados.add(resultado.id);
   }
 
   return { lineaPorEnlaceConsumo, enlacesCubiertos };
+}
+
+function elegirResultadoParaPath(consumo: Enlace, candidatos: Enlace[]): Enlace | undefined {
+  const ruta = rutaEtiquetaNormalizada(consumo.rutaEtiqueta);
+  if (ruta) {
+    const porRuta = candidatos.find((resultado) => rutaEtiquetaNormalizada(resultado.rutaEtiqueta) === ruta);
+    return porRuta;
+  }
+
+  const sinRuta = candidatos.filter((resultado) => !rutaEtiquetaNormalizada(resultado.rutaEtiqueta));
+  if (sinRuta.length === 1) return sinRuta[0];
+  if (sinRuta.length === 0 && candidatos.length === 1) return candidatos[0];
+  return undefined;
 }
 
 function oracionTransicionEstados(
@@ -139,15 +156,18 @@ function oracionTransicionEstados(
   const objetoOpl = nombreOplConMultiplicidad(objeto, multiplicidadObjeto);
   const entrada = nombreCanonicoEstado(estadoEntrada);
   const salida = nombreCanonicoEstado(estadoSalida);
+  const rutaConsumo = rutaEtiquetaNormalizada(consumo.rutaEtiqueta);
+  const rutaResultado = rutaEtiquetaNormalizada(resultado.rutaEtiqueta);
+  const prefijoRuta = rutaConsumo && rutaConsumo === rutaResultado ? `Por ruta ${rutaConsumo}, ` : "";
   switch (modificador) {
     case "evento":
-      return `${objetoOpl} en \`${entrada}\` inicia ${procesoOpl}, que cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`${sufijo}.`;
+      return `${prefijoRuta}${objetoOpl} en \`${entrada}\` inicia ${procesoOpl}, que cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`${sufijo}.`;
     case "condicion":
-      return `${procesoOpl} ocurre si ${objetoOpl} está en \`${entrada}\`, en cuyo caso ${procesoOpl} cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`, de lo contrario ${procesoOpl} se omite.`;
+      return `${prefijoRuta}${procesoOpl} ocurre si ${objetoOpl} está en \`${entrada}\`, en cuyo caso ${procesoOpl} cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`, de lo contrario ${procesoOpl} se omite.`;
     case "no":
-      return `${procesoOpl} no cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`.`;
+      return `${prefijoRuta}${procesoOpl} no cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`.`;
     default:
-      return `${procesoOpl} cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`.`;
+      return `${prefijoRuta}${procesoOpl} cambia ${objetoOpl} de \`${entrada}\` a \`${salida}\`.`;
   }
 }
 

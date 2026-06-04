@@ -535,6 +535,72 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(lineas).not.toContain("*Aprobar* cambia **Pedido** a `aprobado`.");
   });
 
+  test("paths de estado emparejan consumo y resultado por ruta sin reutilizar salidas", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 60 }, "Agua"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 360, y: 260 }, "Calentar"));
+    const aguaId = entidad(modelo, "Agua");
+    const calentarId = entidad(modelo, "Calentar");
+    modelo = must(crearEstadosIniciales(modelo, aguaId)).modelo;
+    const [solidificada, liquida] = estadosDeEntidad(modelo, aguaId);
+    if (!solidificada || !liquida) throw new Error("La prueba esperaba estados iniciales");
+    modelo = must(renombrarEstado(modelo, solidificada.id, "solidificada"));
+    modelo = must(renombrarEstado(modelo, liquida.id, "líquida"));
+    const gaseosa = must(agregarEstado(modelo, aguaId, "gaseosa"));
+    modelo = gaseosa.modelo;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(solidificada.id), calentarId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, calentarId, extremoEstado(liquida.id), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(liquida.id), calentarId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, calentarId, extremoEstado(gaseosa.estadoId), "resultado"));
+    const enlaces = Object.values(modelo.enlaces);
+    const solLiq = enlaces.filter((enlace) => entidad(modelo, "Agua") && (
+      enlace.origenId.id === solidificada.id
+      || enlace.destinoId.id === liquida.id
+    ));
+    const liqGas = enlaces.filter((enlace) => (
+      enlace.origenId.id === liquida.id
+      || enlace.destinoId.id === gaseosa.estadoId
+    ));
+    for (const enlace of solLiq) modelo = must(definirRutaEtiqueta(modelo, enlace.id, "sol-liq"));
+    for (const enlace of liqGas) modelo = must(definirRutaEtiqueta(modelo, enlace.id, "liq-gas"));
+
+    const lineas = generarOpl(modelo);
+
+    expect(lineas).toContain("Por ruta sol-liq, *Calentar* cambia **Agua** de `solidificada` a `líquida`.");
+    expect(lineas).toContain("Por ruta liq-gas, *Calentar* cambia **Agua** de `líquida` a `gaseosa`.");
+    expect(lineas).not.toContain("*Calentar* cambia **Agua** de `líquida` a `líquida`.");
+    expect(lineas).not.toContain("Por ruta liq-gas, *Calentar* genera **Agua** en `gaseosa`.");
+  });
+
+  test("etiquetas libres no sustituyen la ruta para emparejar transiciones ambiguas", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 300, y: 60 }, "Agua"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 360, y: 260 }, "Calentar"));
+    const aguaId = entidad(modelo, "Agua");
+    const calentarId = entidad(modelo, "Calentar");
+    modelo = must(crearEstadosIniciales(modelo, aguaId)).modelo;
+    const [solidificada, liquida] = estadosDeEntidad(modelo, aguaId);
+    if (!solidificada || !liquida) throw new Error("La prueba esperaba estados iniciales");
+    modelo = must(renombrarEstado(modelo, solidificada.id, "solidificada"));
+    modelo = must(renombrarEstado(modelo, liquida.id, "líquida"));
+    const gaseosa = must(agregarEstado(modelo, aguaId, "gaseosa"));
+    modelo = gaseosa.modelo;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(solidificada.id), calentarId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, calentarId, extremoEstado(liquida.id), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(liquida.id), calentarId, "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, calentarId, extremoEstado(gaseosa.estadoId), "resultado"));
+    for (const enlace of Object.values(modelo.enlaces)) {
+      modelo = must(renombrarEtiquetaEnlace(modelo, enlace.id, "decorativo"));
+    }
+
+    const lineas = generarOpl(modelo);
+
+    expect(lineas).not.toContain("*Calentar* cambia **Agua** de `solidificada` a `líquida`.");
+    expect(lineas).not.toContain("*Calentar* cambia **Agua** de `líquida` a `gaseosa`.");
+    expect(lineas).toContain("*Calentar* consume **Agua** en `solidificada`. [etiqueta: decorativo]");
+    expect(lineas).toContain("*Calentar* genera **Agua** en `gaseosa`. [etiqueta: decorativo]");
+  });
+
   test("abanico de resultados hacia estados agrupa estados sin repetir el objeto", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 60 }, "Objeto_2"));

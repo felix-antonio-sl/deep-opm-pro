@@ -9,7 +9,7 @@ import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado"
 import { obtenerRefinamiento, tieneRefinamiento } from "../../../modelo/refinamientos";
 import { estadoVisibleEnAparicion } from "../../../modelo/visibilidadEstados";
 import type { Apariencia, Entidad, Estado, Id, Modelo } from "../../../modelo/tipos";
-import { targetsEstado } from "../estadoTargets";
+import { selectorAnchorEstado, targetsEstado } from "../estadoTargets";
 import { filasPlegadoConNesting } from "../plegadoNesting";
 import type { FilaPlegadoParcialExtendida } from "../plegadoNesting";
 import type { JointCellJson, OpcionesProyeccion, RolApariencia } from "../proyeccionTipos";
@@ -575,6 +575,7 @@ export function markupConEstados(
     { tagName: "text", selector: `stateLabel${index}` },
     { tagName: "text", selector: `stateDefaultMarker${index}` },
     { tagName: "text", selector: `stateCurrentMarker${index}` },
+    ...ANCLAS_RELOJ_ENLACE.map((anchor) => ({ tagName: "circle", selector: selectorAnchorEstado(index, anchor) })),
   ]);
   const resizeEstados = estados.flatMap((estado, index) => (
     seleccionados.has(estado.id)
@@ -742,6 +743,16 @@ export function attrsConEstados(
       pointerEvents: "none",
       display: designaciones.includes("current") ? undefined : "none",
     };
+    for (const anchor of ANCLAS_RELOJ_ENLACE) {
+      const selector = selectorAnchorEstado(index, anchor);
+      attrs[selector] = attrsAnchorEstado(
+        { width, height },
+        x,
+        y,
+        anchor,
+        estado.id,
+      );
+    }
     if (seleccionados.has(estado.id)) {
       for (const handle of RESIZE_HANDLES) {
         attrs[`resize-state${index}-${handle}`] = attrsResizeHandle(
@@ -754,6 +765,30 @@ export function attrsConEstados(
     else x += width + ESTADOS.gap;
   }
   return attrs;
+}
+
+function attrsAnchorEstado(
+  size: { width: number; height: number },
+  offsetX: number,
+  offsetY: number,
+  anchor: AnclaRelojEnlace,
+  estadoId: Id,
+): Record<string, unknown> {
+  const rel = puertoRelativoAnclaEnlace(anchor);
+  return {
+    cx: offsetX + rel.x * size.width,
+    cy: offsetY + rel.y * size.height,
+    r: 5,
+    fill: CODEX.colores.paper,
+    stroke: CODEX.colores.ink,
+    strokeWidth: 1,
+    cursor: "crosshair",
+    opacity: 0,
+    pointerEvents: "none",
+    magnet: true,
+    "data-opm-connect-anchor": anchor,
+    "data-opm-connect-state-id": estadoId,
+  };
 }
 
 export function aplicarMetadatosAttrs(

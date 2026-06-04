@@ -82,6 +82,7 @@ describe("modo enlace canvas", () => {
     expect(anchorConexionDesdeSelector("connect-anchor-so")).toBe("SO");
     expect(anchorConexionDesdeSelector("connect-anchor-o")).toBe("O");
     expect(anchorConexionDesdeSelector("connect-anchor-no")).toBe("NO");
+    expect(anchorConexionDesdeSelector("connect-anchor-e-state0")).toBe("E");
     expect(anchorConexionDesdeSelector("resize-n")).toBeNull();
   });
 

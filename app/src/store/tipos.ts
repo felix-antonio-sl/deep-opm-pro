@@ -1,5 +1,5 @@
 import { crearCosaEnPosicion } from "../modelo/creacionInterna";
-import { extremoEstado } from "../modelo/extremos";
+import { extremoEstado, type ExtremoEntrada } from "../modelo/extremos";
 import {
   designarCurrent,
   designarDefault,
@@ -462,8 +462,8 @@ export interface OpmStore {
   deshacer: () => void;
   rehacer: () => void;
   elegirTipoEnlace: (tipo: TipoEnlace, origenId?: Id) => void;
-  iniciarConexionDesdeApariencia: (aparienciaId: Id, anchor: AnchorConexion) => void;
-  crearEnlaceEntreEntidades: (origenId: Id, destinoId: Id, tipo: TipoEnlace, opciones?: { anclaOrigen?: AnchorConexion; anclaDestino?: AnchorConexion }) => void;
+  iniciarConexionDesdeApariencia: (aparienciaId: Id, anchor: AnchorConexion, estadoOrigenId?: Id) => void;
+  crearEnlaceEntreEntidades: (origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opciones?: { anclaOrigen?: AnchorConexion; anclaDestino?: AnchorConexion }) => void;
   cancelarEnlace: () => void;
 	  renombrarSeleccionada: (nombre: string) => void;
 	  crearAtributoEnObjetoSeleccionado: (input?: { nombre?: string; tipoSlot?: TipoValorSlot; unidad?: string }) => void;

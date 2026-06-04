@@ -8,18 +8,19 @@ import {
   type AnchorConexion,
   type ModoEnlace,
 } from "../../../canvas/modoEnlace";
+import { entidadIdDeExtremo, extremoEstado, normalizarExtremo, type ExtremoEntrada } from "../../../modelo/extremos";
 import type { Id, Modelo, TipoEnlace } from "../../../modelo/tipos";
 import { CODEX } from "../constantes.codex";
-import { cellViewModel, jointSelector, metadata, paperOff, posicionCanvasDesdeEvento } from "./helpers";
+import { cellViewModel, estadoDesdeSelector, jointSelector, metadata, paperOff, posicionCanvasDesdeEvento } from "./helpers";
 
 interface CablearModoEnlaceArgs {
   paper: dia.Paper;
   modeloRef: { current: Modelo };
   opdActivoIdRef: { current: Id };
   modoEnlaceRef: { current: ModoEnlace | null };
-  iniciarConexionDesdeAparienciaRef: { current: (aparienciaId: Id, anchor: AnchorConexion) => void };
+  iniciarConexionDesdeAparienciaRef: { current: (aparienciaId: Id, anchor: AnchorConexion, estadoOrigenId?: Id) => void };
   elegirTipoEnlaceRef: { current: (tipo: TipoEnlace, origenId?: Id) => void };
-  crearEnlaceEntreEntidadesRef: { current: (origenId: Id, destinoId: Id, tipo: TipoEnlace, opciones?: { anclaOrigen?: AnchorConexion; anclaDestino?: AnchorConexion }) => void };
+  crearEnlaceEntreEntidadesRef: { current: (origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opciones?: { anclaOrigen?: AnchorConexion; anclaDestino?: AnchorConexion }) => void };
   cancelarEnlaceRef: { current: () => void };
   abrirMenuTipoEnlaceCanvasRef: { current: (input: MenuTipoEnlaceCanvasInput) => void };
 }
@@ -27,6 +28,8 @@ interface CablearModoEnlaceArgs {
 export interface MenuTipoEnlaceCanvasInput {
   origenId: Id;
   destinoId: Id;
+  origenExtremo?: ExtremoEntrada;
+  destinoExtremo?: ExtremoEntrada;
   anchor: AnchorConexion;
   clientX: number;
   clientY: number;
@@ -43,7 +46,7 @@ export function aplicarFeedbackModoEnlace(
   if (!modoEnlace) return;
 
   const color = colorHaloPorTipo(modoEnlace.tipo);
-  const evaluados = evaluarDestinos(modelo, opdId, modoEnlace.origenId, modoEnlace.tipo);
+  const evaluados = evaluarDestinos(modelo, opdId, modoEnlace.origenExtremo ?? modoEnlace.origenId, modoEnlace.tipo);
   const porApariencia = new Map(evaluados.map((item) => [item.apariencia.id, item]));
   const graph = (paper as unknown as { model: dia.Graph }).model;
   const cells = (graph as unknown as { getCells(): dia.Cell[] }).getCells();
@@ -78,6 +81,7 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
     origenId: Id;
     aparienciaId: Id;
     anchor: AnchorConexion;
+    origenExtremo: ExtremoEntrada;
     ghost: dia.Link;
     element: dia.Element;
     posicionOriginal: { x: number; y: number };
@@ -88,23 +92,31 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
   const onElementPointerdown = (elementView: dia.ElementView, evt: dia.Event) => {
     const cell = cellViewModel(elementView);
     const meta = metadata(cell);
-    const anchor = anchorConexionDesdeSelector(jointSelector(evt.target));
+    const selector = jointSelector(evt.target);
+    const anchor = anchorConexionDesdeSelector(selector);
     if (anchor && meta?.kind === "entidad") {
       evt.stopPropagation();
       (evt as unknown as MouseEvent).preventDefault?.();
+      const estadoOrigenId = estadoDesdeSelector(meta, selector);
+      const origenExtremo = estadoOrigenId ? extremoEstado(estadoOrigenId) : meta.entidadId;
       dragOrigenId = null;
       removerGhost(dragDesdeAnchor?.ghost);
       marcarDragAnchorActivo(paper, true);
       const element = cell as dia.Element;
-      iniciarConexionDesdeAparienciaRef.current(meta.aparienciaId, anchor);
+      iniciarConexionDesdeAparienciaRef.current(meta.aparienciaId, anchor, estadoOrigenId ?? undefined);
       dragDesdeAnchor = {
         origenId: meta.entidadId,
+        origenExtremo,
         aparienciaId: meta.aparienciaId,
         anchor,
         element,
         posicionOriginal: element.position(),
         ...puntoClienteDesdeEvento(evt),
-        ghost: crearGhostEnlace(paper, puntoAnchorDesdeBBox(element.getBBox(), anchor), posicionCanvasDesdeEvento(paper, evt)),
+        ghost: crearGhostEnlace(
+          paper,
+          estadoOrigenId ? posicionCanvasDesdeEvento(paper, evt) : puntoAnchorDesdeBBox(element.getBBox(), anchor),
+          posicionCanvasDesdeEvento(paper, evt),
+        ),
       };
       return;
     }
@@ -131,9 +143,10 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
     if (!modo || !origenId) return;
     const meta = metadata(cellViewModel(elementView));
     if (meta?.kind !== "entidad" || meta.entidadId === origenId) return;
-    if (!entidadDestinoValida(modeloRef.current, opdActivoIdRef.current, origenId, meta.entidadId, modo.tipo)) return;
+    const origenExtremo = modo.origenExtremo ?? origenId;
+    if (!entidadDestinoValida(modeloRef.current, opdActivoIdRef.current, origenExtremo, meta.entidadId, modo.tipo)) return;
     evt.stopPropagation();
-    crearEnlaceEntreEntidadesRef.current(origenId, meta.entidadId, modo.tipo);
+    crearEnlaceEntreEntidadesRef.current(origenExtremo, meta.entidadId, modo.tipo);
   };
 
   const onBlankPointerup = (evt: dia.Event) => {
@@ -169,7 +182,7 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
       return;
     }
     if (meta.entidadId === modo.origenId) return;
-    if (!entidadDestinoValida(modeloRef.current, opdActivoIdRef.current, modo.origenId, meta.entidadId, modo.tipo)) return;
+    if (!entidadDestinoValida(modeloRef.current, opdActivoIdRef.current, modo.origenExtremo ?? modo.origenId, meta.entidadId, modo.tipo)) return;
     const punto = centroClienteDeView(view);
     abrirMenuTipoEnlaceCanvasRef.current({
       origenId: modo.origenId,
@@ -189,15 +202,16 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
     restaurarElemento(dragAnchor.element, dragAnchor.posicionOriginal);
     removerGhost(dragAnchor.ghost);
     const clientPoint = puntoClienteDesdeEvento(evt, dragAnchor);
-    const metaView = metadataDestinoDesdeView(elementView);
-    const meta = metaView?.kind === "entidad" && metaView.entidadId !== dragAnchor.origenId
-      ? metaView
-      : metadataDestinoEnPunto(paper, clientPoint);
-    if (meta?.kind === "entidad" && meta.entidadId !== dragAnchor.origenId) {
+    const destino = extremoDestinoDesdeViewYEvento(modeloRef.current, elementView, evt)
+      ?? extremoDestinoEnPunto(modeloRef.current, paper, clientPoint);
+    const destinoEntidadId = destino ? entidadIdDeExtremo(modeloRef.current, normalizarExtremo(destino.extremo)) : null;
+    if (destino && destinoEntidadId && !mismoExtremoEntrada(modeloRef.current, dragAnchor.origenExtremo, destino.extremo)) {
       evt.stopPropagation();
       abrirMenuTipoEnlaceCanvasRef.current({
         origenId: dragAnchor.origenId,
-        destinoId: meta.entidadId,
+        destinoId: destinoEntidadId,
+        origenExtremo: dragAnchor.origenExtremo,
+        destinoExtremo: destino.extremo,
         anchor: dragAnchor.anchor,
         clientX: clientPoint.clientX,
         clientY: clientPoint.clientY,
@@ -311,8 +325,16 @@ function marcarDragAnchorActivo(paper: dia.Paper, activo: boolean): void {
   else el.removeAttribute("data-opm-anchor-drag");
 }
 
-function metadataDestinoDesdeView(elementView: dia.ElementView | null): ReturnType<typeof metadata> {
-  return elementView ? metadata(cellViewModel(elementView)) : null;
+function extremoDestinoDesdeViewYEvento(
+  _modelo: Modelo,
+  elementView: dia.ElementView | null,
+  evt: dia.Event,
+): { extremo: ExtremoEntrada } | null {
+  if (!elementView) return null;
+  const meta = metadata(cellViewModel(elementView));
+  if (meta?.kind !== "entidad") return null;
+  const estadoId = estadoDesdeSelector(meta, jointSelector(evt.target));
+  return { extremo: estadoId ? extremoEstado(estadoId) : meta.entidadId };
 }
 
 function cellViewDesdeEvento(paper: dia.Paper, evt: KeyboardEvent): dia.CellView | null {
@@ -350,7 +372,7 @@ function focalizarSiguienteDestinoValido(
       : (actualIndex + offset) % vistas.length;
     const candidato = vistas[index];
     if (!candidato || candidato.meta.entidadId === modo.origenId) continue;
-    if (!entidadDestinoValida(modelo, opdId, modo.origenId, candidato.meta.entidadId, modo.tipo)) continue;
+    if (!entidadDestinoValida(modelo, opdId, modo.origenExtremo ?? modo.origenId, candidato.meta.entidadId, modo.tipo)) continue;
     focoView(candidato.view);
     return true;
   }
@@ -401,6 +423,29 @@ function metadataDestinoEnPunto(
   const element = document.elementFromPoint(clientPoint.clientX, clientPoint.clientY);
   const view = element ? paperConBusqueda.findView?.(element) : undefined;
   return view ? metadata(cellViewModel(view)) : null;
+}
+
+function extremoDestinoEnPunto(
+  _modelo: Modelo,
+  paper: dia.Paper,
+  clientPoint: { clientX: number; clientY: number },
+): { extremo: ExtremoEntrada } | null {
+  const paperConBusqueda = paper as unknown as {
+    findView?: (element: Element) => dia.CellView | undefined;
+  };
+  const element = document.elementFromPoint(clientPoint.clientX, clientPoint.clientY);
+  const view = element ? paperConBusqueda.findView?.(element) : undefined;
+  const meta = view ? metadata(cellViewModel(view)) : metadataDestinoEnPunto(paper, clientPoint);
+  if (meta?.kind !== "entidad") return null;
+  const estadoId = element ? estadoDesdeSelector(meta, jointSelector(element)) : null;
+  return { extremo: estadoId ? extremoEstado(estadoId) : meta.entidadId };
+}
+
+function mismoExtremoEntrada(modelo: Modelo, a: ExtremoEntrada, b: ExtremoEntrada): boolean {
+  const ea = normalizarExtremo(a);
+  const eb = normalizarExtremo(b);
+  if (ea.kind === eb.kind && ea.id === eb.id) return true;
+  return entidadIdDeExtremo(modelo, ea) === entidadIdDeExtremo(modelo, eb) && ea.kind === "entidad" && eb.kind === "entidad";
 }
 
 function puntoClienteDesdeEvento(

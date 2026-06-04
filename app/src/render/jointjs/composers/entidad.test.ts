@@ -130,12 +130,15 @@ describe("composer entidad", () => {
     const attrs = cell.attrs as Record<string, unknown>;
 
     expect((cell.markup as Array<Record<string, unknown>>).some((item) => item.selector === "stateCapsule0")).toBe(true);
+    expect((cell.markup as Array<Record<string, unknown>>).some((item) => item.selector === "connect-anchor-e-state0")).toBe(true);
     expect((attrs.stateLabel0 as Record<string, unknown>).text).toBe("pendiente");
     expect(cell.opm).toMatchObject({ kind: "entidad" });
     expect(cell.opm.kind === "entidad" ? cell.opm.estadosInteractivos : []).toEqual(
       expect.arrayContaining([
         { selector: "stateCapsule0", estadoId: estado.id },
         { selector: "stateLabel0", estadoId: estado.id },
+        { selector: "connect-anchor-e-state0", estadoId: estado.id },
+        { selector: "connect-anchor-o-state0", estadoId: estado.id },
       ]),
     );
     expect(attrs.stateCapsule0).toMatchObject({
@@ -153,6 +156,12 @@ describe("composer entidad", () => {
       fontWeight: 400,
       fontStyle: "italic",
       textWrap: { height: 20, ellipsis: false },
+    });
+    expect(attrs["connect-anchor-e-state0"]).toMatchObject({
+      opacity: 0,
+      pointerEvents: "none",
+      magnet: true,
+      "data-opm-connect-state-id": estado.id,
     });
   });
 

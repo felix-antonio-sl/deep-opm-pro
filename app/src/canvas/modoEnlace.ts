@@ -1,4 +1,5 @@
 import { ANCLAS_RELOJ_ENLACE, esAnclaRelojEnlace, type AnclaRelojEnlace } from "../modelo/anclajesEnlace";
+import { entidadIdDeExtremo, normalizarExtremo, type ExtremoEntrada } from "../modelo/extremos";
 import { evaluarTiposEnlacePermitidos } from "../modelo/opcionesEnlace";
 import type { Apariencia, Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import { COLORES_CANON_OPM, COLOR_HALO_FALLBACK } from "./coloresCanon";
@@ -9,6 +10,7 @@ export type AnchorConexion = AnclaRelojEnlace;
 export interface ModoEnlace {
   tipo: TipoEnlace;
   origenId: Id;
+  origenExtremo?: ExtremoEntrada;
   fase?: "boton" | "drag-from-anchor";
   origenAparienciaId?: Id;
   anchor?: AnchorConexion;
@@ -43,10 +45,13 @@ export interface DestinoEvaluado {
 export function evaluarDestinos(
   modelo: Modelo,
   opdId: Id,
-  origenId: Id,
+  origenEntrada: ExtremoEntrada,
   tipo: TipoEnlace,
 ): DestinoEvaluado[] {
   const opd = modelo.opds[opdId];
+  const origenExtremo = normalizarExtremo(origenEntrada);
+  const origenId = entidadIdDeExtremo(modelo, origenExtremo);
+  if (!origenId) return [];
   const origen = modelo.entidades[origenId];
   if (!opd || !origen) return [];
 
@@ -55,7 +60,7 @@ export function evaluarDestinos(
     const entidad = modelo.entidades[apariencia.entidadId];
     if (!entidad) continue;
     const esOrigen = entidad.id === origenId;
-    const evaluacion = evaluarTiposEnlacePermitidos(modelo, origenId, entidad.id, "saliente", [tipo])[0];
+    const evaluacion = evaluarTiposEnlacePermitidos(modelo, origenExtremo, entidad.id, "saliente", [tipo])[0];
     evaluados.push({
       apariencia,
       entidad,
@@ -70,13 +75,15 @@ export function evaluarDestinos(
 export function entidadDestinoValida(
   modelo: Modelo,
   opdId: Id,
-  origenId: Id,
-  destinoId: Id,
+  origenEntrada: ExtremoEntrada,
+  destinoEntrada: ExtremoEntrada,
   tipo: TipoEnlace,
 ): boolean {
-  return evaluarDestinos(modelo, opdId, origenId, tipo).some((destino) =>
-    destino.entidad.id === destinoId && destino.esValido
-  );
+  const origenId = entidadIdDeExtremo(modelo, normalizarExtremo(origenEntrada));
+  const destinoId = entidadIdDeExtremo(modelo, normalizarExtremo(destinoEntrada));
+  if (!origenId || !destinoId) return false;
+  return evaluarTiposEnlacePermitidos(modelo, origenEntrada, destinoEntrada, "saliente", [tipo])[0]?.permitido === true
+    && evaluarDestinos(modelo, opdId, origenId, tipo).some((destino) => destino.entidad.id === destinoId);
 }
 
 export function colorHaloPorTipo(tipo: TipoEnlace): string {
@@ -99,7 +106,7 @@ export function esAnchorConexion(valor: string | null | undefined): valor is Anc
 
 export function anchorConexionDesdeSelector(selector: string | null): AnchorConexion | null {
   if (!selector?.startsWith("connect-anchor-")) return null;
-  const anchor = selector.slice("connect-anchor-".length).toUpperCase();
+  const anchor = selector.slice("connect-anchor-".length).split("-")[0]?.toUpperCase();
   return esAnchorConexion(anchor) ? anchor : null;
 }
 

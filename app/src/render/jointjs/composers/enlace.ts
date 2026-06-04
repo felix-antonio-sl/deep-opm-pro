@@ -133,7 +133,7 @@ export function proyectarEnlace(
   labelPositions: LayoutLabelsEnlace,
   seleccionada: boolean,
   enAbanico = false,
-  opciones: { usarJumpover?: boolean; activaSimulacion?: boolean } = {},
+  opciones: { usarJumpover?: boolean; activaSimulacion?: boolean; ocultarRutaEtiqueta?: boolean } = {},
 ): JointCellJson {
   const verticesRender = verticesEnlace(enlace.tipo, origen, destino, vertices);
   const wrapWidth = anchoWrapEntreApariencias(etiquetaEnlaceNormalizada(enlace.etiqueta) || enlace.rutaEtiqueta || "", origen.apariencia, destino.apariencia);
@@ -183,7 +183,7 @@ export function proyectarEnlace(
       ...etiquetasModificador(enlace, labelPositions, wrapWidth),
       ...etiquetasTagged(enlace, labelPositions, wrapWidth),
       ...(esEnlaceEstructuralEtiquetado(enlace.tipo) ? [] : etiquetaEnlace(enlace, labelPositions, wrapWidth)),
-      ...etiquetasRuta(enlace, labelPositions, wrapWidth),
+      ...(opciones.ocultarRutaEtiqueta ? [] : etiquetasRuta(enlace, labelPositions, wrapWidth)),
       ...etiquetasOpcloudAvanzadas(enlace, labelPositions, wrapWidth),
       ...etiquetasProxyParte(origen, destino, labelPositions, wrapWidth),
       ...(activoRuntime ? [etiquetaTokenSimulacion()] : []),

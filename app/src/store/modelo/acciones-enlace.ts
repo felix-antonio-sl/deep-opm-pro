@@ -10,6 +10,7 @@ import {
 import { anclaEnlaceMasCercana, type AnclaRelojEnlace } from "../../modelo/anclajesEnlace";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { tipoInicialConexionDesdeEntidad } from "../../canvas/modoEnlace";
+import { extremoEstado } from "../../modelo/extremos";
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { crearEnlaceTransaccional } from "../../modelo/transaccionEnlace";
 import {
@@ -59,7 +60,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       set({ modoEnlace: { tipo, origenId, fase: "boton" }, modoCreacion: null, nuevaCosaPendiente: null, mensaje: "Selecciona la entidad destino" });
     },
 
-    iniciarConexionDesdeApariencia(aparienciaId, anchor) {
+    iniciarConexionDesdeApariencia(aparienciaId, anchor, estadoOrigenId) {
       const { modelo, opdActivoId } = get();
       const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
       if (!apariencia) {
@@ -71,11 +72,17 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         set({ mensaje: "Entidad origen no encontrada para conectar" });
         return;
       }
+      const estadoOrigen = estadoOrigenId ? modelo.estados[estadoOrigenId] : undefined;
+      if (estadoOrigenId && (!estadoOrigen || estadoOrigen.entidadId !== entidad.id)) {
+        set({ mensaje: "Estado origen no encontrado para conectar" });
+        return;
+      }
       const tipo = tipoInicialConexionDesdeEntidad(modelo, opdActivoId, entidad.id);
       set({
         modoEnlace: {
           tipo,
           origenId: entidad.id,
+          ...(estadoOrigen ? { origenExtremo: extremoEstado(estadoOrigen.id) } : {}),
           fase: "drag-from-anchor",
           origenAparienciaId: apariencia.id,
           anchor,

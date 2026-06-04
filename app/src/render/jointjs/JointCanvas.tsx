@@ -7,6 +7,7 @@ import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort"
 import { estadosInicialesDelModelo, focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import { debeAnimarTokensSim, tokensViajeDelPaso } from "../../modelo/simulacion/animacionTokens";
 import { CODEX } from "./constantes.codex";
+import { entidadIdDeExtremo, nombreExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../../modelo/tipos";
 import { recalcularOverlaysAbanicoDesdeLinkViews } from "./abanicoDragSync";
 import { proyectarModeloAJointCells } from "./proyeccion";
@@ -67,9 +68,11 @@ export interface CanvasMenuTipoEnlaceSlotProps {
   modelo: Modelo;
   origenId: Id;
   destinoId: Id;
+  origenExtremo?: ExtremoEntrada;
+  destinoExtremo?: ExtremoEntrada;
   direccion: DireccionTipoEnlaceCanvas;
   onDireccion: (direccion: DireccionTipoEnlaceCanvas) => void;
-  onElegir: (tipo: TipoEnlace, origenId: Id, destinoId: Id) => void;
+  onElegir: (tipo: TipoEnlace, origen: ExtremoEntrada, destino: ExtremoEntrada) => void;
   anchor: { left: number; top: number };
   titulo: string;
   autoFocusFirstOption: boolean;
@@ -648,14 +651,16 @@ export function JointCanvas({
               modelo,
               origenId: menuTipoEnlaceCanvas.origenId,
               destinoId: menuTipoEnlaceCanvas.destinoId,
+              ...(menuTipoEnlaceCanvas.origenExtremo ? { origenExtremo: menuTipoEnlaceCanvas.origenExtremo } : {}),
+              ...(menuTipoEnlaceCanvas.destinoExtremo ? { destinoExtremo: menuTipoEnlaceCanvas.destinoExtremo } : {}),
               direccion: direccionTipoEnlaceCanvas,
               onDireccion: setDireccionTipoEnlaceCanvas,
-              onElegir: (tipo, origenId, destinoId) => {
-                crearEnlaceEntreEntidadesRef.current(origenId, destinoId, tipo, { anclaOrigen: menuTipoEnlaceCanvas.anchor });
+              onElegir: (tipo, origen, destino) => {
+                crearEnlaceEntreEntidadesRef.current(origen, destino, tipo, { anclaOrigen: menuTipoEnlaceCanvas.anchor });
                 setMenuTipoEnlaceCanvas(null);
               },
               anchor: { left: menuTipoEnlaceCanvas.left, top: menuTipoEnlaceCanvas.top },
-              titulo: tituloMenuConexion(modelo, menuTipoEnlaceCanvas.origenId, menuTipoEnlaceCanvas.destinoId),
+              titulo: tituloMenuConexion(modelo, menuTipoEnlaceCanvas.origenExtremo ?? menuTipoEnlaceCanvas.origenId, menuTipoEnlaceCanvas.destinoExtremo ?? menuTipoEnlaceCanvas.destinoId),
               autoFocusFirstOption: menuTipoEnlaceCanvas.autoFocusFirstOption === true,
             })}
           </div>
@@ -677,9 +682,9 @@ function posicionMenuTipoEnlace(clientX: number, clientY: number): { left: numbe
   };
 }
 
-function tituloMenuConexion(modelo: Modelo, origenId: string, destinoId: string): string {
-  const origen = modelo.entidades[origenId]?.nombre ?? "Origen";
-  const destino = modelo.entidades[destinoId]?.nombre ?? "Destino";
+function tituloMenuConexion(modelo: Modelo, origenEntrada: ExtremoEntrada, destinoEntrada: ExtremoEntrada): string {
+  const origen = entidadIdDeExtremo(modelo, normalizarExtremo(origenEntrada)) ? nombreExtremo(modelo, normalizarExtremo(origenEntrada)) : "Origen";
+  const destino = entidadIdDeExtremo(modelo, normalizarExtremo(destinoEntrada)) ? nombreExtremo(modelo, normalizarExtremo(destinoEntrada)) : "Destino";
   return `Conectar ${origen} → ${destino}`;
 }
 

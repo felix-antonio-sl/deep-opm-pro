@@ -2,6 +2,7 @@ import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { aparicionesVisiblesEnOpd } from "../../modelo/politicaApariciones";
 import { puertoComunDeAbanico } from "../../modelo/abanicos";
+import { rutaEtiquetaNormalizada } from "../../modelo/rutas";
 import type { Apariencia, Enlace, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
@@ -127,6 +128,7 @@ export function proyectarModeloAJointCells(
       .filter((abanico) => abanico.opdId === opdId)
       .flatMap((abanico) => abanico.enlaceIds),
   );
+  const marcasTransicionSuprimidas = marcasDuplicadasTransicionEstado(modeloRender, opd, enlacesEnAbanico);
   const enlacesConEndpoint = Object.values(opd.enlaces).flatMap((aparienciaEnlace): EnlaceConEndpointVisual[] => {
     const enlace = modeloRender.enlaces[aparienciaEnlace.enlaceId];
     if (!enlace) return [];
@@ -184,7 +186,11 @@ export function proyectarModeloAJointCells(
       const symbolPos = symbolPosEstructural(aparienciaEnlace.symbolPos, origen.apariencia, destino.apariencia, reservasSimbolosEstructurales);
       return proyectarRefinamientoEstructural(opdId, enlace, aparienciaEnlace.id, origen, destino, enlaceResaltado, symbolPos, ordenado, aparienciaEnlace.symbolAnchors, aparienciaEnlace.labelPositions);
     }
-    return [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, aparienciaEnlace.labelPositions, enlaceResaltado, enlacesEnAbanico.has(enlace.id), { usarJumpover, activaSimulacion: enlaceActivoRuntime })];
+    return [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, aparienciaEnlace.labelPositions, enlaceResaltado, enlacesEnAbanico.has(enlace.id), {
+      usarJumpover,
+      activaSimulacion: enlaceActivoRuntime,
+      ocultarRutaEtiqueta: marcasTransicionSuprimidas.rutas.has(enlace.id),
+    })];
   });
 
   // SEL-1 (Codex rev2 §5.1): el underline crimson persistente bajo la etiqueta.
@@ -249,6 +255,51 @@ export function proyectarModeloAJointCells(
     : [];
 
   return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...imagenes, ...halos, ...halosSimulacion];
+}
+
+function marcasDuplicadasTransicionEstado(
+  modelo: Modelo,
+  opd: { enlaces: Record<Id, { enlaceId: Id }> },
+  enlacesExcluidos: ReadonlySet<Id>,
+): { rutas: Set<Id> } {
+  const entradas = Object.values(opd.enlaces)
+    .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && esEntradaTransicionEstado(enlace));
+  const salidas = Object.values(opd.enlaces)
+    .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
+    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && esSalidaTransicionEstado(enlace));
+  const rutas = new Set<Id>();
+
+  for (const entrada of entradas) {
+    const objetoEntradaId = entidadIdDeExtremo(modelo, entrada.origenId);
+    const procesoId = entidadIdDeExtremo(modelo, entrada.destinoId);
+    if (!objetoEntradaId || !procesoId) continue;
+    for (const salida of salidas) {
+      if (entidadIdDeExtremo(modelo, salida.origenId) !== procesoId) continue;
+      if (entidadIdDeExtremo(modelo, salida.destinoId) !== objetoEntradaId) continue;
+      if (marcasIguales(rutaEtiquetaNormalizada(entrada.rutaEtiqueta), rutaEtiquetaNormalizada(salida.rutaEtiqueta))) {
+        rutas.add(salida.id);
+      }
+    }
+  }
+
+  return { rutas };
+}
+
+function esEntradaTransicionEstado(enlace: Enlace): boolean {
+  return enlace.origenId.kind === "estado"
+    && enlace.destinoId.kind === "entidad"
+    && (enlace.tipo === "consumo" || enlace.tipo === "efecto");
+}
+
+function esSalidaTransicionEstado(enlace: Enlace): boolean {
+  return enlace.origenId.kind === "entidad"
+    && enlace.destinoId.kind === "estado"
+    && (enlace.tipo === "resultado" || enlace.tipo === "efecto");
+}
+
+function marcasIguales(entrada: string | undefined, salida: string | undefined): boolean {
+  return !!entrada && entrada === salida;
 }
 
 function symbolPosEstructural(
