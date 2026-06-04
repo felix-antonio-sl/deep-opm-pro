@@ -193,6 +193,27 @@ function main(): void {
     ["L2 coherente", l2Coherente ? "SÍ" : "NO"],
   ]));
   lineas.push("");
+  // ── W5.2: anclas normativas compiladas desde el corpus real ──
+  const anclasBundleHodom = Object.values(modelo.anclasNormativas ?? {});
+  const pendientesHodom = anclasBundleHodom.filter((a) => a.estado === "pendiente-ratificacion").length;
+  const l8Coherente =
+    resumen.anclasDetectadas === resumen.anclasCompiladas + resumen.anclasCandidatas + resumen.anclasEnRechazadas;
+  lineas.push("## 5b. Anclas normativas (W5.2 — compilación determinista)");
+  lineas.push("");
+  lineas.push("> El compilador determinista solo procesa marcas DENTRO de bloques ```opl (hechos y comentarios `#`).");
+  lineas.push("> En el corpus HODOM las citas normativas viven mayormente en PROSA interbloque — alcance de la skill E2,");
+  lineas.push("> FUERA de W5.2. Por eso el conteo de anclas compiladas es honestamente bajo: NO es un fallo del compilador.");
+  lineas.push("");
+  lineas.push(fmtTabla([
+    ["Anclas detectadas en bloques opl", resumen.anclasDetectadas],
+    ["  · compiladas a AnclaNormativa", resumen.anclasCompiladas],
+    ["  · candidatas conservadas (`[C1]`-style, §10.3)", resumen.anclasCandidatas],
+    ["  · en líneas rechazadas (en ledger, no compiladas)", resumen.anclasEnRechazadas],
+    ["Anclas en el bundle", anclasBundleHodom.length],
+    ["  · pendientes de ratificación", pendientesHodom],
+    ["L8 coherente (detectadas == compiladas + candidatas + rechazadas)", l8Coherente ? "SÍ" : "NO"],
+  ]));
+  lineas.push("");
   lineas.push("## 6. Veredicto");
   lineas.push("");
   const verde = bundleOk && avisosError === 0 && l2Coherente;
