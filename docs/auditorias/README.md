@@ -15,6 +15,7 @@ Cuando una auditoría queda **implementada o superada** (su corte se desplegó, 
 
 | Artefacto | Por qué vive |
 |-----------|--------------|
+| `2026-06-04-persistencia-backend.md` | Diagnóstico vigente de persistencia (NO implementado, en pausa): críticos activos (secret default, sin backup, sin rate-limit), techo de almacenamiento = localStorage, 4 cortes propuestos. |
 | `2026-05-07-opl-reverse-ssot-opm-extracted.md` | Citado por `docs/roadmap/cortes-operativos.md` y `progress-dashboard.mjs` como evidencia. |
 | `2026-05-07-ssot-opm-extracted.md` | Citado por código vivo (`app/src/modelo/validaciones.ts` §4.4 / RF-3). |
 | `opcloud-enlaces-pendientes/` | Documento vivo de roadmap: brechas avanzadas de enlaces aún abiertas (labels, tagged/bidirectional). |
