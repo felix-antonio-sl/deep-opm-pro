@@ -8,6 +8,7 @@ import type {
   ModoPlegado,
   ModoTamano,
   OrdenPartesPlegado,
+  PosicionLabelEnlace,
   PuertoApariencia,
   Resultado,
 } from "../modelo/tipos";
@@ -189,6 +190,8 @@ export function validarAparienciasEnlace(opdId: Id, value: Record<string, unknow
     if (!symbolPos.ok) return symbolPos;
     const symbolAnchors = validarAnclajesSimbolo(`${id}.symbolAnchors`, raw.symbolAnchors);
     if (!symbolAnchors.ok) return symbolAnchors;
+    const labelPositions = validarLabelPositions(`${id}.labelPositions`, raw.labelPositions);
+    if (!labelPositions.ok) return labelPositions;
     apariencias[id] = {
       id,
       enlaceId: raw.enlaceId,
@@ -196,9 +199,35 @@ export function validarAparienciasEnlace(opdId: Id, value: Record<string, unknow
       vertices: vertices.value,
       ...(symbolPos.value ? { symbolPos: symbolPos.value } : {}),
       ...(symbolAnchors.value ? { symbolAnchors: symbolAnchors.value } : {}),
+      ...(labelPositions.value ? { labelPositions: labelPositions.value } : {}),
     };
   }
   return ok(apariencias);
+}
+
+// labelPositions (enlace.ts:135) era declarado por el tipo y consumido por el render,
+// pero la whitelist de import lo descartaba: una etiqueta arrastrada en vivo se perdia
+// al exportar/reimportar (detectado al fijar la posicion de la etiqueta e-47, V16-4).
+function validarLabelPositions(contexto: string, raw: unknown): Resultado<Record<string, PosicionLabelEnlace> | undefined> {
+  if (raw === undefined) return ok(undefined);
+  if (!esRecord(raw)) return fallo(`labelPositions inválido: ${contexto}`);
+  const out: Record<string, PosicionLabelEnlace> = {};
+  for (const [key, val] of Object.entries(raw)) {
+    if (!esRecord(val) || !esNumeroFinito(val.distance)) return fallo(`labelPositions inválido: ${contexto}.${key}`);
+    let offset: PosicionLabelEnlace["offset"];
+    if (val.offset !== undefined) {
+      if (esNumeroFinito(val.offset)) offset = val.offset;
+      else if (esRecord(val.offset) && esNumeroFinito(val.offset.x) && esNumeroFinito(val.offset.y)) offset = { x: val.offset.x, y: val.offset.y };
+      else return fallo(`labelPositions inválido: ${contexto}.${key}.offset`);
+    }
+    if (val.angle !== undefined && !esNumeroFinito(val.angle)) return fallo(`labelPositions inválido: ${contexto}.${key}.angle`);
+    out[key] = {
+      distance: val.distance,
+      ...(offset !== undefined ? { offset } : {}),
+      ...(val.angle !== undefined ? { angle: val.angle as number } : {}),
+    };
+  }
+  return Object.keys(out).length ? ok(out) : ok(undefined);
 }
 
 function validarAnclajesSimbolo(contexto: string, raw: unknown): Resultado<AnclajesSimboloEstructural | undefined> {

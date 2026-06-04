@@ -51,6 +51,12 @@ export function validarEstados(value: unknown, entidades: Record<Id, Entidad>): 
     if (raw.height !== undefined && (!esNumeroFinito(raw.height) || raw.height <= 0)) {
       return fallo(`Estado inválido: ${id}.height`);
     }
+    // V16-2: `orden` (posicion de declaracion/reordenamiento, consumido por
+    // estadosDeEntidad) no estaba en la whitelist y se perdia al reimportar —
+    // los badges caian al desempate por id (alfabetico) en vez del orden real.
+    if (raw.orden !== undefined && !esNumeroFinito(raw.orden)) {
+      return fallo(`Estado inválido: ${id}.orden`);
+    }
     estados[id] = {
       id,
       entidadId: raw.entidadId,
@@ -62,6 +68,7 @@ export function validarEstados(value: unknown, entidades: Record<Id, Entidad>): 
       ...(raw.suprimido ? { suprimido: true } : {}),
       ...(raw.width !== undefined ? { width: Math.round(Math.max(52, raw.width)) } : {}),
       ...(raw.height !== undefined ? { height: Math.round(Math.max(24, raw.height)) } : {}),
+      ...(raw.orden !== undefined ? { orden: raw.orden as number } : {}),
     };
   }
 

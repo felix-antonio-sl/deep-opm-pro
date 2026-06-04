@@ -148,13 +148,17 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
   function estados(entidadKey: EntKey, nombres: string[], inicial?: string, final?: string): void {
     if (nombres.length === 1) throw new Error(`deep-opm-pro no acepta un unico estado: ${entidadKey}`);
     const entidadId = idEntidad(entidadKey);
-    for (const nombre of nombres) {
+    for (const [indice, nombre] of nombres.entries()) {
       const id = `s-${entidadKey}-${slug(nombre)}`;
       sid.set(`${entidadKey}:${nombre}`, id);
       const estado: Estado = {
         id,
         entidadId,
         nombre,
+        // V16-2: orden explicito = orden de declaracion (el autor declara en orden
+        // temporal/logico). Sin esto, estadosDeEntidad desempata por id y los badges
+        // salian alfabeticos (egresado|hospitalizado|requiere en vez del ciclo real).
+        orden: indice,
         ...(nombre === inicial ? { esInicial: true, designaciones: ["inicial"] } : {}),
         ...(nombre === final ? { esFinal: true, designaciones: ["final"] } : {}),
       };

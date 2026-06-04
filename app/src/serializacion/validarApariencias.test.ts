@@ -82,6 +82,28 @@ describe("validarApariencias", () => {
     expect(resultado.ok).toBe(false);
   });
 
+  // V16-4: labelPositions era declarado por el tipo y consumido por el render, pero la
+  // whitelist de import lo descartaba — etiquetas arrastradas se perdian al reimportar.
+  test("preserva labelPositions y rechaza malformados", () => {
+    const ok = validarAparienciasEnlace("opd-1", {
+      "ae-1": {
+        id: "ae-1", enlaceId: "l-1", opdId: "opd-1", vertices: [],
+        labelPositions: { etiqueta: { distance: 0.18, offset: { x: 4, y: -10 } }, "multiplicidad:destino": { distance: 0.9 } },
+      },
+    });
+    expect(ok.ok).toBe(true);
+    if (!ok.ok) return;
+    expect(ok.value["ae-1"]?.labelPositions).toEqual({
+      etiqueta: { distance: 0.18, offset: { x: 4, y: -10 } },
+      "multiplicidad:destino": { distance: 0.9 },
+    });
+
+    const mal = validarAparienciasEnlace("opd-1", {
+      "ae-1": { id: "ae-1", enlaceId: "l-1", opdId: "opd-1", vertices: [], labelPositions: { etiqueta: { distance: "lejos" } } },
+    });
+    expect(mal.ok).toBe(false);
+  });
+
   test("preserva puertos dinamicos OPCloud-style y valida rango relativo", () => {
     const resultado = validarApariencias("opd-1", {
       "a-1": {

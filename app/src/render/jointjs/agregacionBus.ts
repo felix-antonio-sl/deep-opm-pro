@@ -5,9 +5,9 @@ import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, Apariencia,
 import { etiquetaEnlaceNormalizada } from "../../modelo/etiquetasEnlace";
 import type { JointCellJson, OpmJointMetadata } from "./proyeccion";
 import { marcadoresEstructurales, type PuertoSimboloEstructural } from "./composers/markers";
-import { etiquetaOrdenEstructural, extremoTriangulo } from "./composers/enlace";
+import { etiquetaMultiplicidad, etiquetaOrdenEstructural, extremoTriangulo } from "./composers/enlace";
 import { CODEX } from "./constantes.codex";
-import { aplicarLayoutLabel, anchoWrapEntreApariencias, LABEL_KEY_ETIQUETA, LABEL_KEY_ORDEN, type LayoutLabelsEnlace } from "./labelLayout";
+import { aplicarLayoutLabel, anchoWrapEntreApariencias, LABEL_KEY_ETIQUETA, LABEL_KEY_MULTIPLICIDAD_DESTINO, LABEL_KEY_ORDEN, type LayoutLabelsEnlace } from "./labelLayout";
 import { labelTextWrap } from "./labelText";
 
 const Z_ENLACE_BUS = 4;
@@ -203,6 +203,11 @@ function ramaEstructural(
     width: 30,
     height: 30,
   } as Apariencia);
+  // V16-9: el bus consume el enlace original, pero antes perdia sus labels de
+  // multiplicidad (el «1..N» de la agregacion desaparecia del canvas). La rama
+  // re-emite la multiplicidad del lado del refinador (destino si el refinable es
+  // origen, origen si es destino), cerca del refinador (fraccion 0.9 del path).
+  const multiplicidadRefinador = ladoRefinable === "origen" ? rama.enlace.multiplicidadDestino : rama.enlace.multiplicidadOrigen;
   return {
     id: `${grupoId}-${rama.aparienciaEnlaceId}-rama`,
     type: "standard.Link",
@@ -210,7 +215,12 @@ function ramaEstructural(
     target: extremo(refinador.id, portRefinador(rama, ladoRefinable)),
     router: routerManhattan(),
     connector: { name: "straight" },
-    labels: etiqueta ? [aplicarLayoutLabel(etiquetaRama(etiqueta, wrapWidth), LABEL_KEY_ETIQUETA, rama.labelPositions)] : [],
+    labels: [
+      ...(etiqueta ? [aplicarLayoutLabel(etiquetaRama(etiqueta, wrapWidth), LABEL_KEY_ETIQUETA, rama.labelPositions)] : []),
+      ...(multiplicidadRefinador
+        ? [aplicarLayoutLabel(etiquetaMultiplicidad(multiplicidadRefinador, 0.9), LABEL_KEY_MULTIPLICIDAD_DESTINO, rama.labelPositions)]
+        : []),
+    ],
     attrs: attrsLinea(seleccionada),
     opm: {
       kind: "enlace",

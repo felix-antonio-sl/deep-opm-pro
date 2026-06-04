@@ -47,4 +47,23 @@ describe("validarEstados", () => {
 
     expect(resultado.ok).toBe(true);
   });
+
+  // V16-2: `orden` no estaba en la whitelist y se perdia al reimportar — los badges
+  // caian al desempate alfabetico por id en vez del orden declarado/reordenado.
+  test("preserva orden explicito y rechaza orden no numerico", () => {
+    const ok = validarEstados({
+      "s-1": { id: "s-1", entidadId: "e-1", nombre: "abierto", orden: 0 },
+      "s-2": { id: "s-2", entidadId: "e-1", nombre: "cerrado", orden: 1 },
+    }, entidades);
+    expect(ok.ok).toBe(true);
+    if (!ok.ok) return;
+    expect(ok.value["s-1"]?.orden).toBe(0);
+    expect(ok.value["s-2"]?.orden).toBe(1);
+
+    const mal = validarEstados({
+      "s-1": { id: "s-1", entidadId: "e-1", nombre: "abierto", orden: "primero" },
+      "s-2": { id: "s-2", entidadId: "e-1", nombre: "cerrado" },
+    }, entidades);
+    expect(mal.ok).toBe(false);
+  });
 });
