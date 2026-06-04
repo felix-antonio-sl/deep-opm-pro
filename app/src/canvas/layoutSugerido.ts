@@ -2,6 +2,7 @@ import { entidadIdDeExtremo } from "../modelo/extremos";
 import { CANON, naturalezaDeEnlace } from "../modelo/constantes";
 import { dentroDeApariencia, contenedorRefinamiento } from "../modelo/layout";
 import { refrescarEnlacesExternosDerivados } from "../modelo/operaciones/refinamiento/proyeccion";
+import { INZOOM_CANON } from "./constantesInzoom";
 import { RESIZE_MIN } from "./grid";
 import type { Apariencia, Id, Modelo, Posicion, Resultado, TipoEnlace } from "../modelo/tipos";
 
@@ -60,17 +61,13 @@ export interface PosicionSugerida {
   height?: number;
 }
 
+// W3.1 (H1): las 5 constantes de dimensionado canónico (paddingSuperior/paddingInferior/
+// gapInterno/multAncho/minSubthings) vienen de la fuente única `constantesInzoom` (antes
+// estaban duplicadas con la semilla `descomposicion.ts`, coincidiendo por casualidad). Las 4
+// constantes restantes son EXCLUSIVAS de este auto-layout denso (multi-columna de externos,
+// grilla densa de embedded): no existen en la semilla, se quedan locales.
 const INZOOM = {
-  /** Padding vertical superior dentro del contorno (espacio para titulo). */
-  paddingSuperior: 100,
-  /** Padding inferior dentro del contorno (espacio bajo el ultimo subthing). */
-  paddingInferior: 65,
-  /** Separacion vertical entre subthings apilados dentro del contorno. */
-  gapInterno: 30,
-  /** Multiplicador de ancho del contorno relativo a `cosaWidth`. */
-  multAncho: 3,
-  /** Numero minimo de subthings considerado para dimensionar el contorno. */
-  minSubthings: 3,
+  ...INZOOM_CANON,
   /** Padding horizontal izq/der de externos respecto al contorno. */
   margenExterno: 24,
   /** Separacion vertical entre externos apilados en cada columna. */

@@ -1,6 +1,28 @@
 // DSL imperativo re-entrante para construir un Modelo OPM programáticamente (dominio-agnóstico).
 // Extraído del generador de hd-opm; los globales de módulo se convirtieron en estado de instancia
 // (closure de `crearAutor`), de modo que se pueden construir N modelos por proceso sin colisión.
+//
+// W3.2 (D4 del acta de consenso) — validación incremental sobre las operaciones del kernel:
+// El DSL escribe los bytes del modelo directamente (conserva su esquema de ids `e-${seq}`/`a-${seq}`/
+// `ae-${seq}`/`o|p-${key}`/`opd-${key}`/`s-${key}-${slug}`, exigido por la byte-identidad del bundle
+// golden de hd-opm). Pero la VALIDACIÓN de firmas ya NO es implícita: `enlazar` compone el validador
+// canónico del kernel (`validarFirmaEnlace`, la misma firma que usa `crearEnlace`) y RECHAZA en el
+// punto de construcción —no en la emisión— todo enlace cuya firma sea ilegal (p.ej. agente
+// objeto→objeto, consumo proceso→objeto). Se eligió la vía (b) del brief (componer la validación
+// del kernel con la escritura del DSL) sobre la vía (a) (extender las operaciones kernel con un
+// `idForzado`): las operaciones `crearObjeto`/`crearProceso`/`crearEnlace` acoplan creación de
+// entidad+apariencia, fuerzan esencia/afiliación canónicas, renombran por unicidad
+// (`nombreUnicoEntidad`) y refuerzan por ontología — todas mutaciones que CAMBIARÍAN los bytes del
+// bundle. La vía (b) gana la validación temprana sin tocar la salida (verificado: los 433 enlaces
+// del golden HODOM pasan `validarFirmaEnlace`).
+//
+// Residuo documentado (deuda visible): la creación de ENTIDADES (`entidad`/`atributo`/…) NO pasa por
+// `crearObjeto`/`crearProceso`. Esas operaciones (1) generan id propio vía `nextSeq` —incompatible
+// con el esquema `o|p-${key}` del DSL—, (2) fuerzan `esencia: "informacional"`/`afiliacion:
+// "sistemica"` —el DSL toma esencia/afiliación arbitrarias del autor—, (3) renombran por unicidad
+// y refuerzan por ontología —el DSL preserva el nombre EXACTO del autor, pilar de la byte-identidad—
+// y (4) crean apariencia acoplada —el DSL separa `entidad()` de `ver()`. Pasar entidades por el
+// kernel sin re-pin del golden es imposible hoy; queda como deuda para cuando se versione el bundle.
 import type {
   Afiliacion,
   Apariencia,
@@ -14,6 +36,8 @@ import type {
   SubtipoModificador,
   TipoEnlace,
 } from "../modelo/tipos";
+import { entidadDeExtremo } from "../modelo/extremos";
+import { validarFirmaEnlace } from "../modelo/operaciones/helpers";
 import type { EntKey, ExtremoEntrada, OpcionesAutor, OpcionesEnlace, OpdKey } from "./tipos";
 
 export interface Autor {
@@ -240,14 +264,34 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
       if (typeof destino === "string") registrarInternoInzoom(opdId, idEntidad(destino));
       return;
     }
+    // W3.2 (vía b): validación incremental de la firma EN el punto de construcción.
+    // Resuelve los extremos a sus Entidad y delega en el validador canónico del kernel
+    // (el mismo que usa `crearEnlace`). Una firma ilegal (p.ej. agente objeto→objeto) lanza
+    // aquí, no en la emisión — error temprano, trazable a la línea del autor que lo creó.
+    const origenExtremo = extremo(origen);
+    const destinoExtremo = extremo(destino);
+    const origenEntidad = entidadDeExtremo(modelo, origenExtremo);
+    const destinoEntidad = entidadDeExtremo(modelo, destinoExtremo);
+    if (!origenEntidad || !destinoEntidad) {
+      throw new Error(`Enlace ${tipo} con extremo inexistente en OPD '${opdKey}'`);
+    }
+    const firma = validarFirmaEnlace(tipo, origenEntidad, destinoEntidad, {
+      origen: origenExtremo,
+      destino: destinoExtremo,
+    });
+    if (!firma.ok) {
+      throw new Error(
+        `Firma de enlace ilegal en OPD '${opdKey}' (${origenEntidad.nombre} ${tipo} ${destinoEntidad.nombre}): ${firma.error}`,
+      );
+    }
     const id = `e-${enlaceSeq++}`;
     const subtipoEvento: SubtipoModificador | undefined =
       opts.modificador === "evento" ? "E" : opts.modificador === "condicion" ? "C" : undefined;
     const enlace = {
       id,
       tipo,
-      origenId: extremo(origen),
-      destinoId: extremo(destino),
+      origenId: origenExtremo,
+      destinoId: destinoExtremo,
       etiqueta: opts.etiqueta ?? "",
       ...(opts.entrada ? { estadoEntradaId: idEstado(destino as EntKey, opts.entrada) } : {}),
       ...(opts.salida ? { estadoSalidaId: idEstado(destino as EntKey, opts.salida) } : {}),

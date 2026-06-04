@@ -1,14 +1,14 @@
 // Pipeline de emisión de bundle (dominio-agnóstico). Aplica el layout canónico, valida
 // (round-trip estable + contención de refinamientos + política de canon) y emite el JSON
 // `deep-opm-pro.modelo.v0` + OPL + reporte genérico. Extraído de hd-opm (escribirSalidas).
-import { aparienciaEsInternaDeRefinamiento } from "../modelo/contextoRefinamiento";
-import { contenedorRefinamiento, dentroDeApariencia } from "../modelo/layout";
+import { contenedorRefinamiento } from "../modelo/layout";
 import type { AvisoDiagnostico } from "../modelo/diagnostico";
 import { listarAvisosDiagnostico } from "../modelo/diagnostico";
 import { moverAparienciaPorId } from "../modelo/operaciones/apariencias";
 import type { Modelo } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import { generarOpl } from "../opl/generar";
+import { clasificarContencionOpd } from "./contencion";
 import type { Autor } from "./dsl";
 import { aplicarLayoutCompleto } from "./layout";
 import type { OpcionesBundle, ResultadoBundle } from "./tipos";
@@ -29,16 +29,11 @@ function verificarContencion(modeloHidratado: Modelo): ResumenContencion {
   for (const opd of Object.values(modeloHidratado.opds).sort((a, b) => (a.ordenLocal ?? 0) - (b.ordenLocal ?? 0))) {
     const contorno = contenedorRefinamiento(modeloHidratado, opd.id);
     if (!contorno) continue;
-    const contornoAp = opd.apariencias[contorno.id]!;
+    // W3.3: la clasificación geométrica (internas/externas + incumplimientos) vive en
+    // `clasificarContencionOpd`; aquí se mantiene la verificación de rigidez de arrastre.
+    const clasificacion = clasificarContencionOpd(modeloHidratado, opd.id)!;
+    const { internas, externas, externosDentro } = clasificacion;
     resumen.opds += 1;
-    const internas = Object.values(opd.apariencias)
-      .filter((apariencia) => apariencia.id !== contorno.id)
-      .filter((apariencia) => aparienciaEsInternaDeRefinamiento(modeloHidratado, opd.id, apariencia, contornoAp));
-    const externas = Object.values(opd.apariencias)
-      .filter((apariencia) => apariencia.id !== contorno.id)
-      .filter((apariencia) => !aparienciaEsInternaDeRefinamiento(modeloHidratado, opd.id, apariencia, contornoAp))
-      .filter((apariencia) => apariencia.contextoRefinamiento?.rol === "externo");
-    const externosDentro = externas.filter((apariencia) => dentroDeApariencia(apariencia, contorno));
     resumen.internas += internas.length;
     resumen.externas += externas.length;
     resumen.externosDentro += externosDentro.length;

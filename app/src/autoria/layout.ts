@@ -4,6 +4,19 @@
 // colocación ADAPTIVA de objetos internos (R26: fila-abajo vs columna-derecha, la de menor área).
 // Implementación por closure: una sola función pública captura `modelo` + `internosInzoom`; los
 // helpers son cierres internos. Pura: muta las apariencias del modelo en sitio.
+//
+// W3.1 (H1, parte 2 — núcleo compartido NO extraído, deuda diferida): este motor (bandas
+// topológicas del bundle) y `canvas/layoutSugerido.ts` (grilla densa del OPD activo) son el MISMO
+// funtor Modelo→Geometría implementado dos veces, pero con HEURÍSTICAS DISTINTAS: aquí el ancho de
+// caja se deriva del TEXTO (8 px/char + cápsulas de estado, `anchoPorTexto`) y el contorno se
+// dimensiona al contenido (`maxX + MARGEN`); allá se usa el `width` REAL de cada apariencia y el
+// contorno sigue la fórmula canónica. Externos: aquí por ROL (agente/entrada/salida/instrumento,
+// `rolYAnchorExterno`); allá por DIRECCIÓN del enlace. Fusionar estas heurísticas CAMBIARÍA bytes
+// del bundle y píxeles del layout interactivo, por lo que NO se extrae hoy (regla W3.1: si extraer
+// cambia un byte/píxel, no se extrae). Las CONSTANTES de in-zoom sí se unificaron (ver
+// `canvas/constantesInzoom`). TODO(D5 del acta de consenso): converger ambos motores a un único
+// funtor parametrizado (métrica de ancho + estrategia de externos como parámetros) — mejora de
+// comportamiento, requiere re-pin del golden.
 import type { Apariencia, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../modelo/tipos";
 
 /** Constantes de layout (tuneables): gaps, alto de banda, origen, márgenes. */
