@@ -55,6 +55,8 @@ export function normalizarModelo(modelo: Modelo): Modelo {
     abanicos: modelo.abanicos ?? {},
     ...(modelo.ontologia ? { ontologia: modelo.ontologia } : {}),
     ...(modelo.satisfaccionesRequisito ? { satisfaccionesRequisito: modelo.satisfaccionesRequisito } : {}),
+    // W5.1: extensión meta del autor; allowlist condicional (ausente/{} ⇒ no se emite = byte-identidad).
+    ...(modelo.anclasNormativas && Object.keys(modelo.anclasNormativas).length > 0 ? { anclasNormativas: modelo.anclasNormativas } : {}),
     ...(modelo.submodelos ? { submodelos: modelo.submodelos } : {}),
     ...(modelo.referenciaPadreSubmodelo ? { referenciaPadreSubmodelo: modelo.referenciaPadreSubmodelo } : {}),
     ...(modelo.archivado ? { archivado: true } : {}),

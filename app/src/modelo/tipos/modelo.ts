@@ -4,6 +4,7 @@ import type { Entidad } from "./entidad";
 import type { Enlace } from "./enlace";
 import type { Estado } from "./estado";
 import type {
+  AnclaNormativa,
   OntologiaOrganizacional,
   ReferenciaPadreSubmodelo,
   SatisfaccionRequisito,
@@ -41,6 +42,8 @@ export interface Modelo {
   abanicos?: Record<Id, Abanico>;
   ontologia?: OntologiaOrganizacional;
   satisfaccionesRequisito?: Record<Id, SatisfaccionRequisito>;
+  /** W5.1: trazabilidad de procedencia normativa. Aditivo y opcional (extensión declarada). */
+  anclasNormativas?: Record<Id, AnclaNormativa>;
   submodelos?: Record<Id, SubmodeloReferencia>;
   referenciaPadreSubmodelo?: ReferenciaPadreSubmodelo;
   archivado?: boolean;

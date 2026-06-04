@@ -32,4 +32,6 @@ export type {
   OpcionesAutor,
   OpcionesBundle,
   ResultadoBundle,
+  OpcionesAncla,
+  TargetAnclaEntrada,
 } from "./tipos";

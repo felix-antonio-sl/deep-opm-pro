@@ -125,6 +125,10 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
     enlaces: Object.keys(hidratado.enlaces).length,
     opds: Object.keys(hidratado.opds).length,
   };
+  // W5.1: las anclas normativas viajan en el bundle (extensión meta del autor; no son cosas
+  // y por eso no entran en `conteos`). Se reportan aparte solo si existen (byte-identidad:
+  // un bundle sin anclas no gana líneas en el reporte).
+  const numAnclas = Object.keys(hidratado.anclasNormativas ?? {}).length;
 
   const reporte = [
     `# Reporte de bundle — ${modelo.nombre}`,
@@ -135,6 +139,7 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
     "- Round-trip JSON: PASS estable tras hidratar y reexportar.",
     `- Canon: ${canon.bloqueantes.length === 0 ? "PASS" : "FAIL"} (${canon.bloqueantes.length} bloqueantes, ${canon.metodologicos} metodológicos, ${canon.info} info).`,
     `- Contención de in-zoom: PASS (${contencion.opds} OPDs, ${contencion.internas} internas, ${contencion.externas} externas, ${contencion.externosDentro} externas dentro de contorno).`,
+    ...(numAnclas > 0 ? [`- Anclas normativas (extensión meta, no-OPL): ${numAnclas}.`] : []),
     ...(opciones.reporteExtra && opciones.reporteExtra.length ? ["", ...opciones.reporteExtra] : []),
   ].join("\n");
 

@@ -2,7 +2,14 @@
 // El módulo permite construir un Modelo OPM programáticamente (DSL imperativo re-entrante) y
 // emitir un bundle validado (deep-opm-pro.modelo.v0) + OPL + reporte, con layout canónico.
 import type { AvisoDiagnostico } from "../modelo/diagnostico";
-import type { Modificador } from "../modelo/tipos";
+import type {
+  EstadoAncla,
+  Id,
+  Modificador,
+  NivelAutoridad,
+  RatificacionAncla,
+  ReferenciaNorma,
+} from "../modelo/tipos";
 
 /** Clave estable de dominio para una entidad (objeto/proceso). El autor la elige; el DSL la mapea a un Id. */
 export type EntKey = string;
@@ -29,6 +36,37 @@ export interface OpcionesEnlace {
    * `definirDemora` del kernel. W4.1 Tanda 1 (#21).
    */
   demora?: string;
+}
+
+/**
+ * Target de un ancla normativa expresado en claves de dominio (W5.1). El DSL las resuelve a ids:
+ * - `{ entidad }` / `{ opd }` por clave estable de dominio;
+ * - `{ enlace }` por el Id que `enlazar()` devuelve (los enlaces no tienen clave de dominio);
+ * - `{ modelo: true }` para el modelo entero.
+ */
+export type TargetAnclaEntrada =
+  | { entidad: EntKey }
+  | { enlace: Id }
+  | { opd: OpdKey }
+  | { modelo: true };
+
+/** Opciones de un ancla normativa (W5.1). `claveProto` es la clave estable nacida en el proto. */
+export interface OpcionesAncla {
+  /** Clave estable de trazabilidad nacida en el proto (slug, p.ej. `frontera-art17`). Obligatoria. */
+  claveProto: string;
+  /** `vigente` (hecho) o `pendiente-ratificacion` ([RATIFICAR]). Default `vigente`. */
+  estado?: EstadoAncla;
+  /** 0..N normas (verbatim). */
+  referencias?: ReferenciaNorma[];
+  /** Glosa del autor. */
+  nota?: string;
+  /**
+   * Sub-estructura C1 (solo para `pendiente-ratificacion`). Si se pasa `nivelAutoridad`
+   * suelto se arma una ratificación `estadoRatificacion:"pendiente"` por conveniencia.
+   */
+  ratificacion?: RatificacionAncla;
+  /** Azúcar: nivel de autoridad declarado; arma `ratificacion` pendiente si no se pasó `ratificacion`. */
+  nivelAutoridad?: NivelAutoridad;
 }
 
 /** Opciones de creación del autor (metadatos del modelo). */

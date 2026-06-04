@@ -56,7 +56,16 @@ import { validarFirmaEnlace } from "../modelo/operaciones/helpers";
 import { formarAbanico } from "../modelo/abanicos";
 import { definirDemora } from "../modelo/modificadores";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
-import type { EntKey, ExtremoEntrada, OpcionesAutor, OpcionesEnlace, OpdKey } from "./tipos";
+import type { AnclaNormativa } from "../modelo/tipos";
+import type {
+  EntKey,
+  ExtremoEntrada,
+  OpcionesAncla,
+  OpcionesAutor,
+  OpcionesEnlace,
+  OpdKey,
+  TargetAnclaEntrada,
+} from "./tipos";
 
 export interface Autor {
   /** El modelo en construcción (mutado por los métodos). */
@@ -112,6 +121,14 @@ export interface Autor {
    * W4.1 Tanda 1 (#5). Escribe la designación en el estado ya declarado.
    */
   designarEstado(entidadKey: EntKey, estado: string, designacion: DesignacionEstado): void;
+  /**
+   * Adjunta un ancla normativa (W5.1) a entidad/enlace/OPD/modelo por clave de dominio.
+   * Extensión ADITIVA: contenido meta del autor (R-DOC-7/V-204), NO emite OPL nuclear ni
+   * cuenta como cosa. `target.enlace` toma el Id que `enlazar()` devuelve. Devuelve el Id
+   * posicional del ancla en el bundle; `opts.claveProto` es la clave estable de trazabilidad.
+   * Lanza ante target irresoluble o clave duplicada.
+   */
+  ancla(target: TargetAnclaEntrada, opts: OpcionesAncla): Id;
   /** Construye un ExtremoEnlace desde una clave de entidad o {estado, entidad}. */
   extremo(input: ExtremoEntrada): ExtremoEnlace;
   /** La apariencia de contorno (refinable por descomposición) local a un OPD, si existe. */
@@ -147,6 +164,7 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
   let enlaceSeq = 1;
   let aparienciaEnlaceSeq = 1;
   let abanicoSeq = 1;
+  let anclaSeq = 1;
 
   function idEntidad(key: EntKey): Id {
     const id = eid.get(key);
@@ -378,6 +396,50 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     return null;
   }
 
+  function ancla(target: TargetAnclaEntrada, opts: OpcionesAncla): Id {
+    if (!opts.claveProto || !opts.claveProto.trim()) {
+      throw new Error("Ancla normativa sin claveProto (clave estable nacida en el proto).");
+    }
+    const claveProto = opts.claveProto.trim();
+    const anclas = modelo.anclasNormativas ?? {};
+    for (const existente of Object.values(anclas)) {
+      if (existente.claveProto === claveProto) {
+        throw new Error(`Ancla normativa con claveProto duplicada: '${claveProto}'.`);
+      }
+    }
+    // Resuelve el target de dominio a un target con ids del bundle, lanzando si es irresoluble.
+    let targetResuelto: AnclaNormativa["target"];
+    if ("modelo" in target) {
+      targetResuelto = { tipo: "modelo" };
+    } else if ("entidad" in target) {
+      targetResuelto = { tipo: "entidad", id: idEntidad(target.entidad) };
+    } else if ("opd" in target) {
+      targetResuelto = { tipo: "opd", id: idOpd(target.opd) };
+    } else {
+      if (!modelo.enlaces[target.enlace]) {
+        throw new Error(`Ancla normativa con enlace inexistente: '${target.enlace}'.`);
+      }
+      targetResuelto = { tipo: "enlace", id: target.enlace };
+    }
+    const estado = opts.estado ?? "vigente";
+    // Azúcar C1: `nivelAutoridad` suelto arma una ratificación pendiente.
+    const ratificacion: AnclaNormativa["ratificacion"] | undefined =
+      opts.ratificacion ??
+      (opts.nivelAutoridad ? { nivelAutoridad: opts.nivelAutoridad, estadoRatificacion: "pendiente" } : undefined);
+    const id = `anc-${anclaSeq++}`;
+    const nueva: AnclaNormativa = {
+      id,
+      claveProto,
+      target: targetResuelto,
+      estado,
+      ...(opts.referencias && opts.referencias.length ? { referencias: opts.referencias } : {}),
+      ...(opts.nota && opts.nota.trim() ? { nota: opts.nota.trim() } : {}),
+      ...(ratificacion ? { ratificacion } : {}),
+    };
+    modelo.anclasNormativas = { ...anclas, [id]: nueva };
+    return id;
+  }
+
   function enlazar(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opts: OpcionesEnlace = {}): Id | null {
     const opdId = idOpd(opdKey);
     // Agregación del contorno hacia un subproceso: se CONSUME como contención interna (no se crea enlace).
@@ -467,6 +529,7 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     abanico,
     autoinvocacion,
     designarEstado,
+    ancla,
     extremo,
     contornoLocal,
   };
