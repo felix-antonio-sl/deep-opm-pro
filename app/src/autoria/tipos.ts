@@ -19,9 +19,16 @@ export interface OpcionesEnlace {
   entrada?: string;
   /** Estado de salida del destino. */
   salida?: string;
+  /** Cardinalidad del lado origen (prefijo `2..N`, `+`, `*`); espejo de `multiplicidadDestino`. W4.1 Tanda 1 (#31). */
+  multiplicidadOrigen?: string;
   multiplicidadDestino?: string;
-  /** Modificador reactivo (evento/condición) del enlace; solo legal en enlaces procedurales objeto→proceso. */
+  /** Modificador reactivo (evento/condición/no) del enlace; solo legal en enlaces procedurales. */
   modificador?: Modificador;
+  /**
+   * Demora de invocación (`después de Ns`). Solo legal en enlaces `invocacion`; delega a
+   * `definirDemora` del kernel. W4.1 Tanda 1 (#21).
+   */
+  demora?: string;
 }
 
 /** Opciones de creación del autor (metadatos del modelo). */
