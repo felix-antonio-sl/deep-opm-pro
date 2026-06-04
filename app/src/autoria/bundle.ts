@@ -125,10 +125,13 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
     enlaces: Object.keys(hidratado.enlaces).length,
     opds: Object.keys(hidratado.opds).length,
   };
-  // W5.1: las anclas normativas viajan en el bundle (extensión meta del autor; no son cosas
-  // y por eso no entran en `conteos`). Se reportan aparte solo si existen (byte-identidad:
-  // un bundle sin anclas no gana líneas en el reporte).
-  const numAnclas = Object.keys(hidratado.anclasNormativas ?? {}).length;
+  // W5.1/W5.2: las anclas normativas viajan en el bundle (extensión meta del autor; no son
+  // cosas y por eso no entran en `conteos`). Se reportan aparte solo si existen (byte-identidad:
+  // un bundle sin anclas no gana líneas en el reporte). El conteo incluye el desglose de
+  // pendientes de ratificación (registro consultable, L8).
+  const anclasBundle = Object.values(hidratado.anclasNormativas ?? {});
+  const numAnclas = anclasBundle.length;
+  const numAnclasPendientes = anclasBundle.filter((a) => a.estado === "pendiente-ratificacion").length;
 
   const reporte = [
     `# Reporte de bundle — ${modelo.nombre}`,
@@ -139,7 +142,7 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
     "- Round-trip JSON: PASS estable tras hidratar y reexportar.",
     `- Canon: ${canon.bloqueantes.length === 0 ? "PASS" : "FAIL"} (${canon.bloqueantes.length} bloqueantes, ${canon.metodologicos} metodológicos, ${canon.info} info).`,
     `- Contención de in-zoom: PASS (${contencion.opds} OPDs, ${contencion.internas} internas, ${contencion.externas} externas, ${contencion.externosDentro} externas dentro de contorno).`,
-    ...(numAnclas > 0 ? [`- Anclas normativas (extensión meta, no-OPL): ${numAnclas}.`] : []),
+    ...(numAnclas > 0 ? [`- Anclas normativas (extensión meta, no-OPL): ${numAnclas} (${numAnclasPendientes} pendiente(s) de ratificación).`] : []),
     ...(opciones.reporteExtra && opciones.reporteExtra.length ? ["", ...opciones.reporteExtra] : []),
   ].join("\n");
 

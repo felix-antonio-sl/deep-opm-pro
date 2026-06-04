@@ -18,7 +18,7 @@ Toda línea se clasifica en exactamente una de:
 | `normalizada` | azúcar T2 → reescrita a estricta por regla determinista | parser, con `{original, regla}` trazados |
 | `estructura` | oración de refinamiento (`se descompone en`, `se despliega en`, variantes `también`/`en esa secuencia`) | lector de estructura (etapa 2) — el parser reverse las rechaza por diseño (`parsear.ts:1123`) |
 | `comentario` | línea `#`... dentro del bloque | se conserva como anotación del bloque (no compila) |
-| `ancla` | marcador `[C1]`/`[Q14]`/`(DS art. N)`/`[RATIFICAR ...]` inline o en comentario | capa de anclas (W1.5/F5); hasta entonces, conservada con la oración |
+| `ancla` | marcador `[C1]`/`[Q14]`/`(DS art. N)`/`[RATIFICAR ...]` inline o en comentario | **W5.2 (implementado)**: extraída y stripeada; `norma`/`ratificacion` compilan a `AnclaNormativa`, `[C1]`-style se conservan como candidatas (§Anclas inline) |
 | `rechazada` | excede T1+T2 | diagnóstico con categoría + línea + sugerencia; vuelve al modelador/skill |
 
 ## T1 — Formas estrictas aceptadas (identidad)
@@ -100,11 +100,49 @@ Reglas T2 obligatorias: (i) cada reescritura registra `{original, regla}`; (ii) 
 
 **Importante:** un rechazo NO es fracaso del flujo — es el sub-dialecto haciendo su trabajo. Tras la Familia V, los rechazos del corpus HODOM bajan de **31 → 5**, y esas 5 están EN REFLEXIÓN del operador (no decidió aún su mapeo): el normalizador devuelve el barro al humano (anti-complacencia) en lugar de adivinar una semántica no resuelta.
 
-## Anclas inline (diseño preliminar; se consolida en W1.5)
+## Anclas inline (W5.2 — IMPLEMENTADO)
 
-- En comentario de bloque: `# Flota y móviles [C1]` → ancla de sección `{tipo: consenso, id: C1}`.
-- Inline en prosa/hecho: `(DS art. 17)`, `(NT 2024 §X)`, `[RATIFICAR: ...]` → ancla `{norma, articulo}` / pendiente.
-- El normalizador las **extrae y conserva** junto a la línea; no las compila (hasta F5/`AnclaNormativa`) ni las rechaza.
+> **Estado:** implementado en `app/src/autoria/compilar/{normalizador,anclas,compilador}.ts`
+> (W5.2, 2026-06-04). El diseño adjudicado es `docs/proto-modelo/diseno-ancla-normativa.md`.
+> El alcance determinista del compilador son las marcas DENTRO de bloques ```opl (hechos y
+> comentarios `#`); las citas en PROSA interbloque son alcance de la skill E2, fuera de W5.2.
+
+### Extracción (`extraerAnclasDeLinea`, clase `ancla`)
+
+El normalizador EXTRAE (y **stripea** antes de clasificar/parsear) las marcas; la oración
+LIMPIA sigue su camino normal. Tres clases de ancla, espejo del diseño:
+
+| Forma en el proto | Clase extraída | Compila a |
+|---|---|---|
+| `(DS art. N[, M…])` · `(NT 2024 §X)` · `(Ley N art. M)` | `norma` (con `referencias`) | `AnclaNormativa` `estado: vigente` |
+| `… DS art. 17 #frontera-art17` (inline con `#clave`, sin paréntesis) | `norma` + `claveExplicita` | `AnclaNormativa` `vigente` |
+| `[RATIFICAR[ #clave][: texto]]` | `ratificacion` | `AnclaNormativa` `pendiente-ratificacion` |
+| `[C1]` · `[Q14]` · `[B3]` · `[C4/D]` | `candidata` | **NADA** (§10.3: jamás compila por defecto) |
+
+Los `articulos` se conservan **verbatim** (`["15-17"]` NO se expande a `["15","16","17"]` — §10.5).
+
+### Compilación al modelo (`compilar/anclas.ts`)
+
+- **Regla de target.** El ancla se adjunta al hecho PRINCIPAL de su línea, en este orden:
+  (1) si la línea emite uno o más ENLACES → target = el **primer enlace** creado;
+  (2) si no, pero la línea declara una ENTIDAD (descripción/`puede estar`) → target = esa **entidad**;
+  (3) si la línea es un COMENTARIO de bloque (o no produjo enlace/entidad) → target = el **OPD** del bloque.
+- **Regla de claveProto.** Si el autor acuñó `#clave` explícita, esa manda (con prefijo de
+  género `ancla:`/`ratificar:`). Si no, derivación **determinista** que **NO depende de la nota
+  libre editable** (C1/L9): `<genero>:<norma+articulos>-<slug-del-target>` para normas,
+  `ratificar:<slug-del-target>` para `[RATIFICAR]`. Sobrevive a cualquier reedición de la nota.
+  Colisiones → sufijo numérico `-N` estable.
+- **Estado.** `vigente` para citas normativas; `pendiente-ratificacion` para `[RATIFICAR]`
+  (con `nivelAutoridad: operador-modelado` por default — la app NO decide autoridad, §8).
+
+### Contabilidad L8 (registro consultable + ledger)
+
+`ResumenLedger` reporta `anclasDetectadas / anclasCompiladas / anclasCandidatas / anclasEnRechazadas`,
+con la invariante **detectadas == compiladas + candidatas + en-rechazadas**. Un ancla sobre una
+línea RECHAZADA NO se pierde: queda en el ledger junto al diagnóstico de su línea (no se compila,
+porque el hecho no tiene target). El registro consultable son `enumerarAnclas` / `anclasPendientes`
+(kernel `app/src/modelo/anclasNormativas.ts`); el reporte de `emitirBundle` lista el conteo con el
+desglose de pendientes (solo si hay anclas — byte-identidad preservada).
 
 ## Contrato del normalizador (W1.2)
 

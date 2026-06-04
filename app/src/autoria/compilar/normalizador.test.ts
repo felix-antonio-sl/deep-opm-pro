@@ -307,26 +307,26 @@ describe("AESS — esencia/afiliacion sin `un objeto/proceso` se completa", () =
 // ── Comentarios y anclas ────────────────────────────────────────────────
 
 describe("Comentarios `#` y anclas inline", () => {
-  test("comentario con ancla de consenso `[C1]`", () => {
+  test("comentario con etiqueta `[C1]` → ancla CANDIDATA (no compila; W5.2 §10.3)", () => {
     const l = una("# Flota y móviles [C1]");
     expect(l.clase).toBe("comentario");
     if (l.clase === "comentario") {
-      expect(l.anclas.some((a) => a.id === "C1" && a.tipo === "consenso")).toBe(true);
+      expect(l.anclas.some((a) => a.clase === "candidata" && a.id === "C1")).toBe(true);
     }
   });
 
-  test("comentario con pregunta `[Q14]`", () => {
+  test("comentario con etiqueta `[Q14]` → ancla CANDIDATA", () => {
     const l = una("# Cadena de custodia / trazabilidad de dominio [Q14]");
     expect(l.clase).toBe("comentario");
     if (l.clase === "comentario") {
-      expect(l.anclas.some((a) => a.id === "Q14" && a.tipo === "pregunta")).toBe(true);
+      expect(l.anclas.some((a) => a.clase === "candidata" && a.id === "Q14")).toBe(true);
     }
   });
 
   test("ancla normativa inline en un hecho se conserva, no rechaza", () => {
     const l = una("Domicilio puede estar 'viable' o 'no viable' (DS art. 17).");
     expect(l.clase === "estricta" || l.clase === "normalizada").toBe(true);
-    expect(l.anclas?.some((a) => a.tipo === "norma")).toBe(true);
+    expect(l.anclas?.some((a) => a.clase === "norma")).toBe(true);
   });
 });
 

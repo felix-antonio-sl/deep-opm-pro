@@ -19,17 +19,26 @@ import type { NodoOpd, LineaEstructural } from "./estructura";
 import { Resolutor } from "./resolutor";
 import { emitirCompuesta, emitirOracion, recolectarEstadosUnion, recolectarRasgos } from "./emisor";
 import type { HechoEmitido } from "./emisor";
-import type { LineaNormalizada } from "./tipos";
+import type { Ancla, LineaNormalizada } from "./tipos";
+import {
+  compilarAnclasDeLinea,
+  contabilizarAnclasNoCompiladas,
+  nuevoEstadoClaves,
+  sumarContabilidad,
+} from "./anclas";
+import type { ContabilidadAnclas, EstadoClaves } from "./anclas";
 
-/** Destino L2 de una línea del proto (cada línea cae en exactamente uno). */
+/** Destino L2 de una línea del proto (cada línea cae en exactamente uno). `anclas`
+ *  conserva las anclas detectadas en la línea (W5.2): en líneas RECHAZADAS, el ancla
+ *  no se pierde — queda junto al diagnóstico (L8). */
 export type DestinoLedger =
-  | { tipo: "aplicada"; oracion: string; opd: string; regla?: string; original?: string; hechos: HechoEmitido[] }
+  | { tipo: "aplicada"; oracion: string; opd: string; regla?: string; original?: string; hechos: HechoEmitido[]; anclas?: Ancla[] }
   | { tipo: "estructura"; oracion: string; opd: string; refinable: string | null }
-  | { tipo: "rechazada"; original: string; categoria: string; diagnostico: string }
-  | { tipo: "excluida"; oracion: string; clase: string; razon: string }
-  | { tipo: "comentario"; texto: string }
+  | { tipo: "rechazada"; original: string; categoria: string; diagnostico: string; anclas?: Ancla[] }
+  | { tipo: "excluida"; oracion: string; clase: string; razon: string; anclas?: Ancla[] }
+  | { tipo: "comentario"; texto: string; anclas?: Ancla[] }
   | { tipo: "estructural-md"; texto: string; clase: LineaEstructural["clase"] }
-  | { tipo: "fallo"; oracion: string; razon: string };
+  | { tipo: "fallo"; oracion: string; razon: string; anclas?: Ancla[] };
 
 export interface Ledger {
   /** Una entrada por línea/oración del proto, con su destino final. */
@@ -55,6 +64,15 @@ export interface ResumenLedger {
   comentarios: number;
   fallos: number;
   opds: number;
+  // ── Contabilidad de anclas normativas (W5.2 / L8) ──
+  /** Total de anclas detectadas en el proto (norma + ratificacion + candidatas). */
+  anclasDetectadas: number;
+  /** Anclas (norma/ratificacion) compiladas a `AnclaNormativa` en el bundle. */
+  anclasCompiladas: number;
+  /** Etiquetas `[C1]`-style conservadas, NO compiladas (§10.3). */
+  anclasCandidatas: number;
+  /** Anclas norma/ratificacion de líneas rechazadas/fallidas (no compiladas, en ledger). */
+  anclasEnRechazadas: number;
 }
 
 export interface OpcionesCompilacion {
@@ -106,6 +124,12 @@ export function compilarProto(markdown: string, opciones: OpcionesCompilacion = 
   // Registro de enlaces procedurales por OPD (tensión 1: adjunción del evento sin
   // portador sobre un `requiere` coexistente, sin duplicar). Compartido entre OPDs.
   const enlacesProcedurales = new Map<string, string>();
+  // W5.2: estado de claves de ancla (desambiguación estable de colisiones) +
+  // contabilidad L8 acumulada (detectadas == compiladas + candidatas + en-rechazadas).
+  const clavesAncla = nuevoEstadoClaves();
+  const contabAnclas: { total: ContabilidadAnclas } = {
+    total: { detectadas: 0, compiladas: 0, candidatas: 0, enRechazadas: 0 },
+  };
   const entradas: DestinoLedger[] = [];
 
   // Las líneas markdown no-hecho (encabezados, prosa, fences) van al ledger como
@@ -123,10 +147,10 @@ export function compilarProto(markdown: string, opciones: OpcionesCompilacion = 
   // Procesa cada OPD en orden: el raíz puebla entidades; los hijos registran su
   // refinamiento, proyectan el contorno y emiten su detalle.
   for (const nodo of plan.opds) {
-    procesarOpd(nodo, autor, resolutor, entradas, estadosUnion, estadosDeclarados, enlacesProcedurales);
+    procesarOpd(nodo, autor, resolutor, entradas, estadosUnion, estadosDeclarados, enlacesProcedurales, clavesAncla, contabAnclas);
   }
 
-  const resumen = resumir(entradas, plan.opds.length);
+  const resumen = resumir(entradas, plan.opds.length, contabAnclas.total);
   return { autor, modelo: autor.modelo, ledger: { entradas }, resumen };
 }
 
@@ -138,6 +162,8 @@ function procesarOpd(
   estadosUnion: Map<string, string[]>,
   estadosDeclarados: Set<string>,
   enlacesProcedurales: Map<string, string>,
+  clavesAncla: EstadoClaves,
+  contabAnclas: { total: ContabilidadAnclas },
 ): void {
   // 1) Para un OPD de refinamiento: registra el refinamiento y proyecta el
   //    contorno. El refinable debe existir (creado en el OPD padre). Si no existe
@@ -164,7 +190,8 @@ function procesarOpd(
   // 2) Emite los hechos del OPD.
   const ctx = { autor, resolutor, opdClave: nodo.clave, opdKey: nodo.clave, estadosUnion, estadosDeclarados, enlacesProcedurales };
   for (const linea of nodo.hechos) {
-    emitirLinea(linea, ctx, entradas);
+    const contab = emitirLinea(linea, ctx, entradas, clavesAncla);
+    contabAnclas.total = sumarContabilidad(contabAnclas.total, contab);
   }
 }
 
@@ -180,36 +207,51 @@ function emitirLinea(
     enlacesProcedurales: Map<string, string>;
   },
   entradas: DestinoLedger[],
-): void {
+  clavesAncla: EstadoClaves,
+): ContabilidadAnclas {
+  const conAnclas = <T extends DestinoLedger>(e: T, anclas?: Ancla[]): T =>
+    anclas && anclas.length ? { ...e, anclas } : e;
   switch (linea.clase) {
-    case "comentario":
-      entradas.push({ tipo: "comentario", texto: linea.texto });
-      return;
+    case "comentario": {
+      // W5.2: las citas normativas del comentario de bloque compilan a ancla con
+      // target = el OPD del bloque; las `[C1]`-style se conservan como candidatas.
+      const contab = compilarAnclasDeLinea(linea.anclas, { opdKey: ctx.opdKey }, ctx.autor, clavesAncla);
+      entradas.push(conAnclas({ tipo: "comentario", texto: linea.texto }, linea.anclas));
+      return contab;
+    }
     case "rechazada":
-      entradas.push({ tipo: "rechazada", original: linea.original, categoria: linea.categoria, diagnostico: linea.diagnostico });
-      return;
+      // L8: el ancla de una línea rechazada NO se pierde — queda junto al diagnóstico
+      // (contabilizada como `enRechazadas`, NO compilada: el hecho no tiene target).
+      entradas.push(conAnclas({ tipo: "rechazada", original: linea.original, categoria: linea.categoria, diagnostico: linea.diagnostico }, linea.anclas));
+      return contabilizarAnclasNoCompiladas(linea.anclas);
     case "estructura":
       // Una oración estructural fuera de cabecera de bloque (no abrió OPD): se
       // registra como estructura sin refinable separado (continuación aditiva).
       entradas.push({ tipo: "estructura", oracion: linea.oracion, opd: ctx.opdClave, refinable: null });
-      return;
+      return contabilizarAnclasNoCompiladas(linea.anclas);
     case "estricta":
     case "normalizada": {
       const res = emitirOracion(linea.oracion, ctx);
       if (res.estado === "aplicada") {
-        entradas.push({
+        entradas.push(conAnclas({
           tipo: "aplicada",
           oracion: linea.oracion,
           opd: ctx.opdClave,
           ...(linea.clase === "normalizada" ? { regla: linea.regla, original: linea.original } : {}),
           hechos: res.hechos,
-        });
+        }, linea.anclas));
+        return compilarAnclasDeLinea(
+          linea.anclas,
+          { ...(res.enlaceIds ? { enlaceIds: res.enlaceIds } : {}), ...(res.entidadKey ? { entidadKey: res.entidadKey } : {}), opdKey: ctx.opdKey },
+          ctx.autor,
+          clavesAncla,
+        );
       } else if (res.estado === "excluida") {
-        entradas.push({ tipo: "excluida", oracion: linea.oracion, clase: res.clase, razon: res.razon });
+        entradas.push(conAnclas({ tipo: "excluida", oracion: linea.oracion, clase: res.clase, razon: res.razon }, linea.anclas));
       } else {
-        entradas.push({ tipo: "fallo", oracion: linea.oracion, razon: res.razon });
+        entradas.push(conAnclas({ tipo: "fallo", oracion: linea.oracion, razon: res.razon }, linea.anclas));
       }
-      return;
+      return contabilizarAnclasNoCompiladas(linea.anclas);
     }
     case "compuesta": {
       // Familia V: emite cada emisión (oración o directiva) y, si la línea pide
@@ -217,25 +259,31 @@ function emitirLinea(
       // ledger `aplicada` con todos los hechos (trazabilidad por `regla`/`original`).
       const res = emitirCompuesta(linea, ctx);
       if (res.estado === "aplicada") {
-        entradas.push({
+        entradas.push(conAnclas({
           tipo: "aplicada",
           oracion: linea.original,
           opd: ctx.opdClave,
           regla: linea.regla,
           original: linea.original,
           hechos: res.hechos,
-        });
+        }, linea.anclas));
+        return compilarAnclasDeLinea(
+          linea.anclas,
+          { ...(res.enlaceIds ? { enlaceIds: res.enlaceIds } : {}), ...(res.entidadKey ? { entidadKey: res.entidadKey } : {}), opdKey: ctx.opdKey },
+          ctx.autor,
+          clavesAncla,
+        );
       } else if (res.estado === "excluida") {
-        entradas.push({ tipo: "excluida", oracion: linea.original, clase: res.clase, razon: res.razon });
+        entradas.push(conAnclas({ tipo: "excluida", oracion: linea.original, clase: res.clase, razon: res.razon }, linea.anclas));
       } else {
-        entradas.push({ tipo: "fallo", oracion: linea.original, razon: res.razon });
+        entradas.push(conAnclas({ tipo: "fallo", oracion: linea.original, razon: res.razon }, linea.anclas));
       }
-      return;
+      return contabilizarAnclasNoCompiladas(linea.anclas);
     }
   }
 }
 
-function resumir(entradas: DestinoLedger[], opds: number): ResumenLedger {
+function resumir(entradas: DestinoLedger[], opds: number, anclas: ContabilidadAnclas): ResumenLedger {
   const hechosPorPrimitiva: Record<string, number> = {};
   let aplicadas = 0;
   let hechos = 0;
@@ -261,5 +309,19 @@ function resumir(entradas: DestinoLedger[], opds: number): ResumenLedger {
       default: break;
     }
   }
-  return { aplicadas, hechos, hechosPorPrimitiva, estructura, excluidas, rechazadas, comentarios, fallos, opds };
+  return {
+    aplicadas,
+    hechos,
+    hechosPorPrimitiva,
+    estructura,
+    excluidas,
+    rechazadas,
+    comentarios,
+    fallos,
+    opds,
+    anclasDetectadas: anclas.detectadas,
+    anclasCompiladas: anclas.compiladas,
+    anclasCandidatas: anclas.candidatas,
+    anclasEnRechazadas: anclas.enRechazadas,
+  };
 }

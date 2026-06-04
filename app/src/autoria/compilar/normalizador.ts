@@ -13,7 +13,16 @@
 //
 // Sin IO, sin JointJS, sin Zustand: solo strings -> clasificacion.
 
-import type { Ancla, CategoriaRechazo, ContextoProto, Directiva, Emision, LineaNormalizada, ReglaT2 } from "./tipos";
+import type {
+  Ancla,
+  CategoriaRechazo,
+  ContextoProto,
+  Directiva,
+  Emision,
+  LineaNormalizada,
+  ReferenciaNormaExtraida,
+  ReglaT2,
+} from "./tipos";
 
 // ── Lexico canonico ─────────────────────────────────────────────────────
 
@@ -281,11 +290,12 @@ function normalizarLinea(linea: string, contexto: ContextoProto): LineaNormaliza
   // 1) Comentario.
   if (linea.startsWith("#")) {
     const texto = linea.replace(/^#\s*/, "");
-    return [{ clase: "comentario", texto, anclas: extraerAnclas(linea) }];
+    return [{ clase: "comentario", texto, anclas: extraerAnclasDeLinea(linea) }];
   }
 
-  // 2) Extraer anclas inline (se conservan junto a la linea; no compilan ni rechazan).
-  const anclas = extraerAnclas(linea);
+  // 2) Extraer anclas inline (se conservan junto a la linea; el emisor las compila
+  //    a `AnclaNormativa` con target = el/los hecho(s) de la línea — W5.2).
+  const anclas = extraerAnclasDeLinea(linea);
   const sinAnclas = quitarAnclas(linea).trim();
   const sinPuntoCrudo = sinAnclas.replace(/\.\s*$/, "").trim();
   const conAnclas = <T extends LineaNormalizada>(l: T): T => (anclas.length ? { ...l, anclas } : l);
@@ -1066,40 +1076,136 @@ function detectarVerboNoCanonico(sinPunto: string): { categoria: CategoriaRechaz
   };
 }
 
-// ── Anclas ───────────────────────────────────────────────────────────────
+// ── Anclas (W5.2) ──────────────────────────────────────────────────────────
+//
+// Tres formas se EXTRAEN (y se STRIPEAN antes de clasificar/parsear la oración):
+//   · cita normativa entre paréntesis  `(DS art. N[, M…])`, `(NT 2024 §X)`,
+//     `(Ley N art. M)`  → ancla `norma` (compila a `vigente`).
+//   · cita normativa inline con `#clave`  `Anclaje DS art. 17 #frontera-art17.`
+//     → ancla `norma` con `claveExplicita` (sin paréntesis).
+//   · `[RATIFICAR[ #clave][: texto]]`  → ancla `ratificacion` (compila a pendiente).
+//   · `[C1]`/`[Q14]`/`[B3]`-style  → ancla `candidata` (JAMÁS compila; §10.3).
+//
+// La oración LIMPIA (sin las marcas) sigue su camino normal de clasificación.
 
+/** Una cita entre paréntesis que empieza por una norma reconocida (con `#clave` opcional). */
+const ANCLA_PAREN_NORMA_RE = /\(\s*((?:DS|NT|DTO|Ley|Decreto)[^)]*?)\s*(?:#([a-z0-9][a-z0-9-]*))?\s*\)/giu;
+/** Cita normativa inline con `#clave` explícita, FUERA de paréntesis: `… DS art. 17 #frontera-art17`. */
+const ANCLA_NORMA_INLINE_RE =
+  /\b((?:DS|NT|DTO|Ley|Decreto)(?:\s+[\d./-]+)?(?:\s+(?:art\.?|arts\.?|§)[^#.\n]*?)?)\s+#([a-z0-9][a-z0-9-]*)/giu;
+/** `[RATIFICAR[ #clave][: texto]]`. */
+const ANCLA_RATIFICAR_RE = /\[\s*RATIFICAR\s*(?:#([a-z0-9][a-z0-9-]*))?\s*(?::\s*([^\]]*?))?\s*\]/giu;
+/** Cualquier otra etiqueta entre corchetes (candidata): `[C1]`, `[Q14]`, `[C4/D]`. */
 const ANCLA_CORCHETE_RE = /\[([^\]]+)\]/gu;
-const ANCLA_PAREN_NORMA_RE = /\(((?:DS|NT|DTO|Ley|Decreto)[^)]*)\)/giu;
 
-function extraerAnclas(texto: string): Ancla[] {
+/**
+ * Extrae todas las anclas de una línea cruda del proto, parseando cada forma a su
+ * estructura. Función PURA y exportada (la usa el test de extracción por forma).
+ * El ORDEN de detección importa: `[RATIFICAR…]` antes que el corchete genérico
+ * (para no clasificar un RATIFICAR como candidata).
+ */
+export function extraerAnclasDeLinea(texto: string): Ancla[] {
   const anclas: Ancla[] = [];
-  for (const m of texto.matchAll(ANCLA_CORCHETE_RE)) {
-    const bruto = m[0];
-    const id = (m[1] ?? "").trim();
-    anclas.push({ tipo: tipoDeAnclaCorchete(id), id: idDeAncla(id), bruto });
-  }
+
+  // 1) Citas normativas entre paréntesis (DS/NT/Ley/Decreto).
   for (const m of texto.matchAll(ANCLA_PAREN_NORMA_RE)) {
-    anclas.push({ tipo: "norma", id: (m[1] ?? "").trim(), bruto: m[0] });
+    const cuerpo = (m[1] ?? "").trim();
+    const claveExplicita = m[2]?.trim();
+    anclas.push({
+      clase: "norma",
+      referencias: parsearReferencias(cuerpo),
+      ...(claveExplicita ? { claveExplicita } : {}),
+      bruto: m[0],
+    });
   }
+
+  // 2) Citas normativas inline con `#clave` (fuera de paréntesis).
+  for (const m of texto.matchAll(ANCLA_NORMA_INLINE_RE)) {
+    const cuerpo = (m[1] ?? "").trim();
+    const claveExplicita = (m[2] ?? "").trim();
+    anclas.push({
+      clase: "norma",
+      referencias: parsearReferencias(cuerpo),
+      claveExplicita,
+      bruto: m[0],
+    });
+  }
+
+  // 3) `[RATIFICAR …]`.
+  for (const m of texto.matchAll(ANCLA_RATIFICAR_RE)) {
+    const claveExplicita = m[1]?.trim();
+    const nota = m[2]?.trim();
+    anclas.push({
+      clase: "ratificacion",
+      ...(claveExplicita ? { claveExplicita } : {}),
+      ...(nota ? { nota } : {}),
+      bruto: m[0],
+    });
+  }
+
+  // 4) Resto de etiquetas `[…]` → candidatas (NO compilan, §10.3). Excluye las que
+  //    ya consumió RATIFICAR.
+  for (const m of texto.matchAll(ANCLA_CORCHETE_RE)) {
+    const inner = (m[1] ?? "").trim();
+    if (/^RATIFICAR/iu.test(inner)) continue;
+    anclas.push({ clase: "candidata", id: idDeCandidata(inner), bruto: m[0] });
+  }
+
   return anclas;
 }
 
-function tipoDeAnclaCorchete(id: string): Ancla["tipo"] {
-  if (/^RATIFICAR/iu.test(id)) return "pendiente";
-  if (/^Q\d/iu.test(id)) return "pregunta";
-  if (/^C\d/iu.test(id)) return "consenso";
-  return "otro";
+/** Parsea el cuerpo de una cita (`DS art. 15, 17`, `NT 2024 §X`, `Ley 20.584 art. 12-13`)
+ *  a una lista de `ReferenciaNormaExtraida`. Los artículos son VERBATIM (no se
+ *  expanden rangos — §10.5). Soporta multi-norma separada por `;`. */
+function parsearReferencias(cuerpo: string): ReferenciaNormaExtraida[] {
+  const refs: ReferenciaNormaExtraida[] = [];
+  for (const trozo of cuerpo.split(/\s*;\s*/u)) {
+    const ref = parsearReferenciaUnica(trozo.trim());
+    if (ref) refs.push(ref);
+  }
+  return refs.length ? refs : [{ norma: cuerpo.trim() }];
 }
 
-function idDeAncla(id: string): string {
-  // `Q14 — pata logística` -> `Q14`; `C4/D` -> `C4/D`; `RATIFICAR: x` -> `RATIFICAR`.
-  const m = /^([A-Z]+\d+[A-Za-z0-9/]*|RATIFICAR)/iu.exec(id.trim());
-  return m ? (m[1] ?? id).trim() : id.trim();
+function parsearReferenciaUnica(trozo: string): ReferenciaNormaExtraida | null {
+  if (!trozo) return null;
+  // Sección `§…` (puede ir sola o tras la norma).
+  let seccion: string | undefined;
+  let resto = trozo;
+  const secM = /\s*(§[^§]+)$/u.exec(resto);
+  if (secM) {
+    seccion = (secM[1] ?? "").trim();
+    resto = resto.slice(0, secM.index).trim();
+  }
+  // Artículos `art. N`, `arts. N, M`, `art. N-M` — VERBATIM (no expandir).
+  let articulos: string[] | undefined;
+  const artM = /\s*\b(?:art\.?|arts\.?)\s+(.+)$/iu.exec(resto);
+  if (artM) {
+    articulos = (artM[1] ?? "")
+      .split(/\s*,\s*/u)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    resto = resto.slice(0, artM.index).trim();
+  }
+  const norma = resto.trim();
+  return {
+    norma: norma || trozo.trim(),
+    ...(articulos && articulos.length ? { articulos } : {}),
+    ...(seccion ? { seccion } : {}),
+  };
 }
 
+/** `Q14 — pata logística` → `Q14`; `C4/D` → `C4/D`; `B3` → `B3`. */
+function idDeCandidata(inner: string): string {
+  const m = /^([A-Za-z]+\d+[A-Za-z0-9/]*)/u.exec(inner.trim());
+  return m ? (m[1] ?? inner).trim() : inner.trim();
+}
+
+/** Strip de TODAS las marcas de ancla; deja la oración limpia para clasificar/parsear. */
 function quitarAnclas(texto: string): string {
   return texto
     .replace(ANCLA_PAREN_NORMA_RE, "")
+    .replace(ANCLA_NORMA_INLINE_RE, "")
+    .replace(ANCLA_RATIFICAR_RE, "")
     .replace(ANCLA_CORCHETE_RE, "")
     .replace(/\s{2,}/gu, " ")
     .replace(/\s+\./gu, ".")

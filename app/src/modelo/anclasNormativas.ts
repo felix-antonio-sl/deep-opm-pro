@@ -14,6 +14,14 @@ export function enumerarAnclas(modelo: Modelo): AnclaNormativa[] {
   return Object.values(anclas).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 
+/**
+ * Registro consultable de anclas PENDIENTES de ratificación (L8: "registro
+ * consultable"). Filtra `estado === "pendiente-ratificacion"`. Orden estable por `id`.
+ */
+export function anclasPendientes(modelo: Modelo): AnclaNormativa[] {
+  return enumerarAnclas(modelo).filter((ancla) => ancla.estado === "pendiente-ratificacion");
+}
+
 /** Busca un ancla por su clave estable nacida en el proto (la clave de trazabilidad, §3). */
 export function anclaPorClaveProto(modelo: Modelo, claveProto: string): AnclaNormativa | undefined {
   return enumerarAnclas(modelo).find((ancla) => ancla.claveProto === claveProto);

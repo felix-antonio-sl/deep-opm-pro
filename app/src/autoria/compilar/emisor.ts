@@ -35,9 +35,11 @@ export interface HechoEmitido {
 
 /** Resultado de emitir UNA oración o directiva. `enlaceIds` lista los enlaces
  *  creados (cuando aplica), para que una línea `compuesta` pueda agruparlos en un
- *  abanico (familia V14/V15). */
+ *  abanico (familia V14/V15). `entidadKey` es la CLAVE DE DOMINIO de la entidad
+ *  PRINCIPAL que la línea declara (target preferente de un ancla cuando la línea no
+ *  emite enlace — W5.2; la consume `ctx.autor.ancla({entidad: key})`). */
 export type ResultadoEmision =
-  | { estado: "aplicada"; hechos: HechoEmitido[]; enlaceIds?: string[] }
+  | { estado: "aplicada"; hechos: HechoEmitido[]; enlaceIds?: string[]; entidadKey?: string }
   | { estado: "excluida"; clase: string; razon: string }
   | { estado: "fallo"; razon: string };
 
@@ -270,13 +272,13 @@ function emitirDescripcion(
     );
     asegurarEstados(ast.nombre, r.key, ctx);
     colocarAparicion(r.accion, r.key, ctx);
-    return { estado: "aplicada", hechos: [{ primitiva: "entidad", detalle: `${ast.tipoEntidad} ${ast.nombre.trim()}` }] };
+    return { estado: "aplicada", hechos: [{ primitiva: "entidad", detalle: `${ast.tipoEntidad} ${ast.nombre.trim()}` }], entidadKey: r.key };
   }
   // La cosa ya existe: una segunda descripción es idempotente para el bootstrap
   // (no re-creamos ni mutamos esencia/afiliación — el proto declara una vez).
   // Si la mención cae en otro OPD, asegura su aparición vía `ver()`.
   colocarAparicion(r.accion, r.key, ctx);
-  return { estado: "aplicada", hechos: r.accion === "proyectar" ? [{ primitiva: "ver", detalle: ast.nombre.trim() }] : [] };
+  return { estado: "aplicada", hechos: r.accion === "proyectar" ? [{ primitiva: "ver", detalle: ast.nombre.trim() }] : [], entidadKey: r.key };
 }
 
 function emitirEstados(
@@ -313,7 +315,7 @@ function emitirEstados(
   }
   colocarAparicion(r.accion, r.key, ctx);
   hechos.push({ primitiva: "estados", detalle: `${ast.objeto.trim()} (${nombres.length})` });
-  return { estado: "aplicada", hechos };
+  return { estado: "aplicada", hechos, ...(typeof r.key === "string" ? { entidadKey: r.key } : {}) };
 }
 
 /**

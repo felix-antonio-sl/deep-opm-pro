@@ -54,16 +54,53 @@ export type ReglaT2 =
   | "V14" // "P cambia X a 'e', o inicia Q" -> TS + evento + abanico XOR
   | "V15"; // "X en 's' inicia A o B" / "S puede iniciar A o B" -> ramas + abanico XOR
 
-/** Ancla normativa o de seccion extraida inline (W1.5/F5 la consumira; hoy se
- *  conserva junto a la linea, no compila). */
-export interface Ancla {
-  /** Tipo de ancla detectada. */
-  tipo: "consenso" | "pregunta" | "norma" | "pendiente" | "otro";
-  /** Identificador crudo tal cual aparece (`C1`, `Q14`, `DS art. 17`, ...). */
-  id: string;
-  /** Texto completo del marcador, incluida la decoracion (`[C1]`, `(DS art. 17)`). */
-  bruto: string;
+/** Referencia normativa atómica extraída de una forma inline (`(DS art. N)`,
+ *  `(NT 2024 §X)`, `(Ley N art. M)`). Espejo de `ReferenciaNorma` del kernel:
+ *  `articulos` es VERBATIM (no se expanden rangos — diseño §10.5). */
+export interface ReferenciaNormaExtraida {
+  norma: string;
+  articulos?: string[];
+  seccion?: string;
 }
+
+/**
+ * Ancla extraída inline de una línea del proto (W5.2). Unión discriminada por
+ * `clase`, espejo del diseño adjudicado `diseno-ancla-normativa.md`:
+ *
+ *  - `norma`:        cita normativa explícita (DS/NT/Ley/Decreto). Compila a
+ *                    `AnclaNormativa` con `estado: "vigente"`. `referencias` es la
+ *                    lista de normas; `claveExplicita` el `#slug` si el autor lo puso.
+ *  - `ratificacion`: marca `[RATIFICAR[ #clave][: texto]]`. Compila a
+ *                    `AnclaNormativa` con `estado: "pendiente-ratificacion"`.
+ *  - `candidata`:    etiqueta `[C1]`/`[Q14]`/`[B3]`-style. **JAMÁS compila** por
+ *                    defecto (adjudicación §10.3): se conserva como anotación.
+ *
+ * `bruto` conserva el marcador completo tal cual aparece (trazabilidad).
+ */
+export type Ancla =
+  | {
+      clase: "norma";
+      referencias: ReferenciaNormaExtraida[];
+      /** `#slug` explícito junto a la cita, si el autor lo acuñó. */
+      claveExplicita?: string;
+      /** Glosa libre del autor adosada a la cita (rara; normalmente vacía). */
+      nota?: string;
+      bruto: string;
+    }
+  | {
+      clase: "ratificacion";
+      /** Texto libre tras los dos puntos (`[RATIFICAR: <texto>]`). */
+      nota?: string;
+      /** `#slug` explícito (`[RATIFICAR #clave: …]`). */
+      claveExplicita?: string;
+      bruto: string;
+    }
+  | {
+      clase: "candidata";
+      /** Identificador crudo de la etiqueta (`C1`, `Q14`, `B3`, `C4/D`). */
+      id: string;
+      bruto: string;
+    };
 
 /**
  * Una DIRECTIVA es una instrucción de emisión que el emisor aplica DIRECTAMENTE

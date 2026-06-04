@@ -58,6 +58,20 @@ Ejemplos de fallo (oración :: razón):
 - Hechos en ledger == resumen.hechos : 476 == 476
 - L2 coherente                       : SÍ
 
+## 5b. Anclas normativas (W5.2 — compilación determinista)
+
+> El compilador determinista solo procesa marcas DENTRO de bloques ```opl (hechos y comentarios `#`).
+> En el corpus HODOM las citas normativas viven mayormente en PROSA interbloque — alcance de la skill E2,
+> FUERA de W5.2. Por eso el conteo de anclas compiladas es honestamente bajo: NO es un fallo del compilador.
+
+- Anclas detectadas en bloques opl                                  : 9
+-   · compiladas a AnclaNormativa                                   : 0
+-   · candidatas conservadas (`[C1]`-style, §10.3)                  : 9
+-   · en líneas rechazadas (en ledger, no compiladas)               : 0
+- Anclas en el bundle                                               : 10
+-   · pendientes de ratificación                                    : 10
+- L8 coherente (detectadas == compiladas + candidatas + rechazadas) : SÍ
+
 ## 6. Veredicto
 
 El compilador produce un Modelo OPM **válido** desde el proto real completo; L2 cierra (ninguna línea sin destino, hechos == oraciones aplicables); el round-trip OPL forward reproduce los hechos aplicados. Los fallos restantes son **tensiones reales de la convención v0 / del parser / del modelo** (ver §3), reportadas honestamente, no forzadas.
