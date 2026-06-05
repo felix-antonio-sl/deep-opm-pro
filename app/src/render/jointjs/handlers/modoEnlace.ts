@@ -136,7 +136,7 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
   const onBlankPointermove = (evt: dia.Event) => actualizarDragDesdeAnchor(evt);
 
   const onElementPointerup = (elementView: dia.ElementView, evt: dia.Event) => {
-    if (finalizarDragDesdeAnchor(elementView, evt)) return;
+    if (finalizarDragDesdeAnchor(evt)) return;
     const modo = modoEnlaceRef.current;
     const origenId = dragOrigenId;
     dragOrigenId = null;
@@ -150,7 +150,7 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
   };
 
   const onBlankPointerup = (evt: dia.Event) => {
-    finalizarDragDesdeAnchor(null, evt);
+    finalizarDragDesdeAnchor(evt);
   };
   const onKeyDown = (evt: KeyboardEvent) => {
     if (evt.key === "Tab") {
@@ -194,7 +194,13 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
     });
   };
 
-  const finalizarDragDesdeAnchor = (elementView: dia.ElementView | null, evt: dia.Event): boolean => {
+  // BUG-20260605T010727Z-916191: el elementView de element:pointerup es
+  // SIEMPRE la sourceView del gesto (Paper.mjs entrega pointermove/pointerup
+  // a la vista del pointerdown), nunca la vista bajo el cursor. Resolver el
+  // destino desde esa vista devolvía el propio origen (cancelación silenciosa)
+  // o su entidad dueña ("Conectar O [s1] → O"). El destino se resuelve solo
+  // por punto.
+  const finalizarDragDesdeAnchor = (evt: dia.Event): boolean => {
     const dragAnchor = dragDesdeAnchor;
     if (!dragAnchor) return false;
     dragDesdeAnchor = null;
@@ -202,8 +208,7 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
     restaurarElemento(dragAnchor.element, dragAnchor.posicionOriginal);
     removerGhost(dragAnchor.ghost);
     const clientPoint = puntoClienteDesdeEvento(evt, dragAnchor);
-    const destino = extremoDestinoDesdeViewYEvento(modeloRef.current, elementView, evt)
-      ?? extremoDestinoEnPunto(modeloRef.current, paper, clientPoint);
+    const destino = extremoDestinoEnPunto(modeloRef.current, paper, clientPoint);
     const destinoEntidadId = destino ? entidadIdDeExtremo(modeloRef.current, normalizarExtremo(destino.extremo)) : null;
     if (destino && destinoEntidadId && !mismoExtremoEntrada(modeloRef.current, dragAnchor.origenExtremo, destino.extremo)) {
       evt.stopPropagation();
@@ -323,18 +328,6 @@ function marcarDragAnchorActivo(paper: dia.Paper, activo: boolean): void {
   const el = (paper as unknown as { el: HTMLElement }).el;
   if (activo) el.setAttribute("data-opm-anchor-drag", "true");
   else el.removeAttribute("data-opm-anchor-drag");
-}
-
-function extremoDestinoDesdeViewYEvento(
-  _modelo: Modelo,
-  elementView: dia.ElementView | null,
-  evt: dia.Event,
-): { extremo: ExtremoEntrada } | null {
-  if (!elementView) return null;
-  const meta = metadata(cellViewModel(elementView));
-  if (meta?.kind !== "entidad") return null;
-  const estadoId = estadoDesdeSelector(meta, jointSelector(evt.target));
-  return { extremo: estadoId ? extremoEstado(estadoId) : meta.entidadId };
 }
 
 function cellViewDesdeEvento(paper: dia.Paper, evt: KeyboardEvent): dia.CellView | null {
