@@ -11,8 +11,12 @@
 // rechazada). El consumidor (etapa 2/3 del compilador) decide a donde enrutar
 // cada linea segun su `clase`.
 
-/** Categorias de rechazo T3 (R1-R7) de la gramatica del sub-dialecto. */
-export type CategoriaRechazo = "R1" | "R2" | "R3" | "R4" | "R5" | "R6" | "R7";
+/** Categorias de rechazo T3 (R1-R8) de la gramatica del sub-dialecto.
+ *  R8 = nombre plural sin sufijo Conjunto/Grupo (adjudicación dov-dori 2026-06-05,
+ *  hallazgo (a), R-NOM-OBJ-1/2): se RECHAZA con sugerencia, jamás se normaliza
+ *  en silencio. (R9 = guard del emisor sobre nombres con residuo no nominal;
+ *  cae como `fallo` con diagnóstico, no es categoría T3 del normalizador.) */
+export type CategoriaRechazo = "R1" | "R2" | "R3" | "R4" | "R5" | "R6" | "R7" | "R8";
 
 /** Reglas T2 de reescritura determinista (A1-A11), mas las variantes que el
  *  parser real obligo a introducir (esencia sin "un objeto", estados con
@@ -52,7 +56,10 @@ export type ReglaT2 =
   | "V12" // cola condicional (`cuando`/`según`/`por una`) o R4 -> hecho + cola anotada
   | "V13" // guard compuesto (`X en 'a' con Y 'b' inicia P`) -> evento + instrumento-condicion
   | "V14" // "P cambia X a 'e', o inicia Q" -> TS + evento + abanico XOR
-  | "V15"; // "X en 's' inicia A o B" / "S puede iniciar A o B" -> ramas + abanico XOR
+  | "V15" // "X en 's' inicia A o B" / "S puede iniciar A o B" -> ramas + abanico XOR
+  // ── Adjudicación dov-dori 2026-06-05 (hallazgos d/e del segundo dominio) ──
+  | "V16" // "P notifica a R [contenido]" -> "P genera Notificación" + tagged «dirigido a» (el enum de verbos NO se infla)
+  | "V17"; // "X está acotado por Y" bifurcado por firma: temporal -> exhibe Plazo + cola; abstracto<->abstracto -> tagged «está acotado por»
 
 /** Referencia normativa atómica extraída de una forma inline (`(DS art. N)`,
  *  `(NT 2024 §X)`, `(Ley N art. M)`). Espejo de `ReferenciaNorma` del kernel:

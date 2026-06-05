@@ -491,15 +491,15 @@ describe("R6 — elemento de lista no nominal se rechaza", () => {
 // ── R7 — relacion no primitiva ──────────────────────────────────────────
 
 describe("R7 — relacion libre se rechaza", () => {
-  test("`está acotado por`", () => {
+  test("`está acotado por` YA NO es R7: lo mapea V17 (adjudicación dov-dori 2026-06-05)", () => {
+    // Histórico: era rechazo R3/R7 y una de las 5 en-reflexión del operador.
+    // La adjudicación (d) lo bifurcó por firma de extremos: abstracto↔abstracto
+    // → estructural etiquetado «está acotado por». Detalle en
+    // `adjudicacion-dov-dori.test.ts` (P2-d).
     const l = una("Acceso del colaborador de cuidado a la información clínica está acotado por Deber de reserva.");
-    expect(l.clase).toBe("rechazada");
-    // `está acotado por` no es del enum: puede caer en R3 (verbo) o R7
-    // (relacion). El normalizador decide; aceptamos cualquiera de las dos
-    // siempre que sea rechazo con diagnostico no vacio.
-    if (l.clase === "rechazada") {
-      expect(["R3", "R7"]).toContain(l.categoria);
-      expect(l.diagnostico.length).toBeGreaterThan(0);
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") {
+      expect(l.regla).toBe("V17");
     }
   });
 

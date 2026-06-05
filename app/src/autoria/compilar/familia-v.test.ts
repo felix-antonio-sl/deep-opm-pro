@@ -356,12 +356,15 @@ Suspensión de la atención puede iniciar Cierre por alta disciplinaria o Cierre
   });
 });
 
-// ── NEGATIVOS: las 5 oraciones EN REFLEXIÓN del operador siguen rechazadas ──
+// ── NEGATIVOS: las oraciones EN REFLEXIÓN del operador siguen rechazadas ──
+// (eran 5; «está acotado por» SALIÓ de la lista al ser ADJUDICADA — dov-dori
+// 2026-06-05 §1(d): V17 bifurcado por firma de extremos. Cobertura positiva en
+// `adjudicacion-dov-dori.test.ts` P2-d; acta en
+// `docs/proto-modelo/adjudicacion-dov-dori-2026-06-05.md`.)
 
-describe("EN REFLEXIÓN — las 5 oraciones del operador siguen rechazadas con diagnóstico", () => {
+describe("EN REFLEXIÓN — las 4 oraciones del operador siguen rechazadas con diagnóstico", () => {
   const enReflexion: Array<[string, string]> = [
     ["proyecta", "Cupo HODOM proyecta la Capacidad de prestaciones comprometida como día-cama para REM."],
-    ["acotado por", "Acceso del colaborador de cuidado a la información clínica está acotado por Deber de reserva."],
     ["determinan…como", "Evaluación clínica de elegibilidad, Informe social, Veredicto de voluntariedad y los demás veredictos parciales determinan Solicitud de ingreso HODOM como 'aceptada', 'en espera' o 'rechazada'."],
     ["consta…y Otros…según", "Equipo HODOM consta de Dirección Técnica, Coordinación, Médico de Atención Directa, Médico Regulador, Enfermero clínico, Kinesiólogo, Técnico de enfermería, Trabajador Social y Otros profesionales según prestaciones."],
     ["habilita…para 'estado' (proc→obj)", "Inspección pre-ruta habilita Vehículo de transporte para 'en ruta'."],

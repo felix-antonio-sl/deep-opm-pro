@@ -75,14 +75,23 @@ Reglas T2 obligatorias: (i) cada reescritura registra `{original, regla}`; (ii) 
 | V13 | guard compuesto `X en 'a' con Y 'b' inicia P` | evento desde X en `a` (ruta W4.3) **+** instrumento-condición desde Y en `b` hacia P | dos guards conjuntos = dos enlaces reactivos (uno evento-gatillo, otro condición). |
 | V14 | `P cambia X a 'e', o inicia Q` | transición (efecto P→X a `e`) + invocación-evento P→Q + **abanico XOR** | dos consecuencias alternativas. El kernel exige abanicos **homogéneos**: efecto+invocación no agrupan → la decisión XOR queda anotada como ancla pendiente sobre cada rama. |
 | V15 | `X en 's' inicia A o B` / `S puede iniciar A o B` | dos ramas evento + **abanico XOR** | disyunción de consecuencias. El XOR se forma cuando las ramas comparten un puerto de **entidad** (S proceso → invocaciones); con gatillo-estado (X objeto), el kernel no agrupa puertos-estado → la decisión XOR queda anotada. |
+| V16 | `P notifica a <R> [contenido]` | `P genera Notificación` (resultado) + etiquetado «dirigido a» Notificación→R; el contenido → cola anotada | **[adjudicación dov-dori 2026-06-05 (e)]** notificar = producir un mensaje y entregarlo. Descompone en primitivas existentes — el enum de verbos NUNCA se infla. NO es `afecta <R>`: el receptor no cambia de estado; lo nuevo en el mundo es el mensaje. |
+| V17 | `X está acotado por <Y>` | **bifurcado por firma de extremos** (R-OPL-SE-2): `<Y>` temporal (`plazo de N días`) → `X exhibe Plazo` + literal como cola anotada; `<Y>` restricción abstracta → etiquetado «está acotado por» X→Y | **[adjudicación dov-dori 2026-06-05 (d)]** OPM no tiene primitiva de timing (límite del formalismo, declarado): la salida canónica es R-PROC-6/R-OPL-PERSIST-3. El valor («30 días») es DATO del atributo, no parte del nombre. Resuelve la ex-en-reflexión #2 de HODOM. |
 
-**Los 5 que SIGUEN rechazados (EN REFLEXIÓN del operador, no se mapean):**
+**Guards anti-silencio (adjudicación dov-dori 2026-06-05, hallazgos (a)/(c) — la lección: reconocer formas y rechazar, jamás enumerar instancias ni absorber lo ambiguo):**
+
+- **R8** (normalizador): esencia con `son` sobre sujeto NO-lista = nombre plural sin sufijo `Conjunto`/`Grupo` (R-NOM-OBJ-1/2) → rechazo con sugerencia. JAMÁS se normaliza a esencia singular conservando el nombre plural (sería plantar barro).
+- **R9** (guard del emisor, cae como `fallo` con diagnóstico): un nombre-a-crear con material no nominal residual (paréntesis/corchete colgante, localizador `art./§/N°` suelto) NO crea entidad en silencio — casi siempre es una cita normativa no extraída absorbida al nombre (el bug del segundo dominio: `Permiso de edificación (LGUC art. 116)` ≠ `Permiso de edificación`, dos entidades para una cosa). Capa 2: `detectarDuplicadosPorAbsorcion(modelo)` (`compilar/absorcion.ts`) atrapa el patrón en modelos ya construidos.
+- **Detector de citas por LOCALIZADOR** (no por enum de cuerpos): el alfabeto de cuerpos normativos es ABIERTO (LGUC, OGUC, DFL, NCh, Código Civil, ISO…) — la señal cerrada y transversal es el localizador (`art./§/inc./letra/N°/numeral/título`) o cuerpo-en-mayúscula + numeración legal. Ver §Anclas.
+
+**Los 4 que SIGUEN rechazados (EN REFLEXIÓN del operador, no se mapean):**
 
 1. `Cupo HODOM proyecta la Capacidad de prestaciones comprometida como día-cama para REM.` (R3 `proyecta` — proyección/derivación no resuelta).
-2. `Acceso del colaborador … está acotado por Deber de reserva.` (R7 `está acotado por` — restricción normativa no primitiva).
-3. `… y los demás veredictos parciales determinan Solicitud … como 'aceptada', 'en espera' o 'rechazada'.` (R6 cola informal de lista + `determinan…como`).
-4. `Equipo HODOM consta de … y Otros profesionales según prestaciones.` (R6 cola informal `y Otros … según …`).
-5. `Inspección pre-ruta habilita Vehículo de transporte para 'en ruta'.` (R3 — proceso→objeto con cola `para 'estado'`; V1 NO la captura por exigir objeto→proceso sin cola `para`).
+2. `… y los demás veredictos parciales determinan Solicitud … como 'aceptada', 'en espera' o 'rechazada'.` (R6 cola informal de lista + `determinan…como`).
+3. `Equipo HODOM consta de … y Otros profesionales según prestaciones.` (R6 cola informal `y Otros … según …`).
+4. `Inspección pre-ruta habilita Vehículo de transporte para 'en ruta'.` (R3 — proceso→objeto con cola `para 'estado'`; V1 NO la captura por exigir objeto→proceso sin cola `para`).
+
+(El histórico #2, `está acotado por`, salió de la lista: adjudicado → **V17**.)
 
 ## T3 — Rechazos con diagnóstico (categorías)
 
@@ -96,7 +105,8 @@ Reglas T2 obligatorias: (i) cada reescritura registra `{original, regla}`; (ii) 
 | R4 | estado no declarado usado por A4/A7 | `requiere X dentro del Y` → **V12** (requiere X + cola anotada) | "el estado '<e>' no está declarado para <X>" |
 | R5 | TS sin origen no aceptada por el parser | — (cero en el corpus) | "indica el estado de origen" |
 | R6 | cola informal en lista (`y Otros profesionales según prestaciones`) | **persiste** (EN REFLEXIÓN): elemento no nominal no se adivina | "elemento de lista no nominal: nómbralo o decláralo fuera del modelo" |
-| R7 | oración relacional libre | `precede a`→V7, `suceder a`→V8, `corresponde a`→V9. **Persiste**: `está acotado por` (EN REFLEXIÓN) | "relación no primitiva: usa enlace etiquetado canónico o exhibición" |
+| R7 | oración relacional libre | `precede a`→V7, `suceder a`→V8, `corresponde a`→V9, `está acotado por`→**V17** (adjudicado 2026-06-05) | "relación no primitiva: usa enlace etiquetado canónico o exhibición" |
+| R8 | esencia con `son` sobre sujeto no-lista (nombre plural) | **nuevo** (adjudicación (a)) | "nombre plural sin sufijo Conjunto/Grupo (R-NOM-OBJ-1/2): renómbralo 'Conjunto de …'/'Grupo de …' o usa el singular" |
 
 **Importante:** un rechazo NO es fracaso del flujo — es el sub-dialecto haciendo su trabajo. Tras la Familia V, los rechazos del corpus HODOM bajan de **31 → 5**, y esas 5 están EN REFLEXIÓN del operador (no decidió aún su mapeo): el normalizador devuelve el barro al humano (anti-complacencia) en lugar de adivinar una semántica no resuelta.
 

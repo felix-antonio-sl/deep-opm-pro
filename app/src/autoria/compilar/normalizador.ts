@@ -345,6 +345,15 @@ function normalizarLinea(linea: string, contexto: ContextoProto): LineaNormaliza
   const reescrita = reescribir1a1(sinPunto, contexto);
   if (reescrita) return [conAnclas(reescrita)];
 
+  // 7b) R8 — esencia/afiliación con `son` sobre sujeto NO-lista (adjudicación
+  //     dov-dori 2026-06-05, hallazgo (a)): si el autor escribió `son` y A1 no
+  //     capturó una lista (ya retornó en el paso 6), el sujeto es un nombre
+  //     PLURAL (`Planos de arquitectura`), que viola R-NOM-OBJ-1/2. Se RECHAZA
+  //     con sugerencia (Conjunto/Grupo o singular) — jamás se normaliza en
+  //     silencio: absorber plurales mal formados es el mismo error de (b)/(c).
+  const r8 = detectarPluralSinSufijo(sinPunto);
+  if (r8) return [conAnclas({ clase: "rechazada", original: sinAnclas, ...r8 })];
+
   // 8) Verbo fuera del enum -> R3. Se evalua tras las reescrituras para no
   //    confundir formas validas (copular, estados, refinamiento) con R3.
   const r3 = detectarVerboNoCanonico(sinPunto);
@@ -430,6 +439,27 @@ function detectarRechazoTemprano(sinPunto: string): { categoria: CategoriaRechaz
 // anotaciones) emiten `{via:"directiva"}`. Ver `docs/proto-modelo/
 // gramatica-subdialecto-v0.md` §«Familia V».
 
+// ── R8: nombre plural sin sufijo Conjunto/Grupo (adjudicación (a)) ───────────
+// Señal: verbo copular PLURAL `son` + esencia/afiliación, con sujeto que A1 no
+// reconoció como lista. La pluralidad la declaró el propio autor al escribir
+// `son` — no se necesita morfología frágil del nombre (`Análisis es…` no entra
+// aquí porque usa `es`). Los sufijos canónicos `Conjunto de…`/`Grupo de…` son
+// nombres SINGULARES y por R-NOM-OBJ-2 llevan `es`, no `son`.
+const ESENCIA_PLURAL_RE =
+  /^(.+?)\s+son\s+(?:objetos|procesos|f[íi]sic\w+|informacional\w*|ambiental\w*|sist[ée]mic\w+|human\w+)/iu;
+
+function detectarPluralSinSufijo(sinPunto: string): { categoria: CategoriaRechazo; diagnostico: string } | null {
+  const m = ESENCIA_PLURAL_RE.exec(sinPunto);
+  if (!m) return null;
+  const sujeto = (m[1] ?? "").trim();
+  return {
+    categoria: "R8",
+    diagnostico:
+      `Nombre plural sin sufijo Conjunto/Grupo (R-NOM-OBJ-1/2): renombra "${sujeto}" como ` +
+      `"Conjunto de ${sujeto.toLocaleLowerCase("es")}" (inanimados) / "Grupo de …" (humanos), o usa el singular.`,
+  };
+}
+
 /** ¿La entidad es un OBJETO según el contexto (default objeto si no se vio)? */
 function esObjeto(nombre: string, contexto: ContextoProto): boolean {
   return (contexto.tipoPorEntidad.get(claveNombre(nombre)) ?? "objeto") === "objeto";
@@ -475,7 +505,9 @@ function mapearFamiliaV(sinPunto: string, contexto: ContextoProto): LineaNormali
     mapearPrecedeA(sinPunto, contexto) ?? // V7
     mapearSucedeA(sinPunto) ?? // V8
     mapearCorrespondeA(sinPunto) ?? // V9
-    mapearCumple(sinPunto) // V10
+    mapearCumple(sinPunto) ?? // V10
+    mapearNotifica(sinPunto, contexto) ?? // V16
+    mapearAcotadoPor(sinPunto) // V17
   );
 }
 
@@ -648,6 +680,74 @@ function mapearCumple(sinPunto: string): LineaNormalizada | null {
   }
   return compuesta(sinPunto, "V10", [
     dir({ tipo: "tagged", origen, destino, etiqueta: "cumple", ...(cola ? { colaAnotada: cola } : {}) }),
+  ]);
+}
+
+// ── V16: `notifica a` → genera <Mensaje> + tagged «dirigido a» ───────────────
+// Adjudicación dov-dori 2026-06-05 (e): notificar = producir un mensaje y
+// entregarlo. Descompone en primitivas existentes (el enum de verbos NUNCA se
+// infla): `P genera Notificación` (resultado) + `Notificación` —«dirigido a»→
+// `<R>` (estructural etiquetado objeto↔objeto, R-OPL-SE-1/2). El receptor se
+// resuelve como el PREFIJO MÁS LARGO del resto que sea entidad conocida del
+// contexto; lo que sigue es el contenido (cola anotada del enlace). NO es
+// `afecta <R>`: el receptor no cambia de estado — lo nuevo en el mundo es el
+// mensaje, no un cambio en el receptor.
+const NOTIFICA_RE = /^(.+?)\s+notifica\s+a(?:l)?\s+(.+)$/iu;
+
+function mapearNotifica(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+  const m = NOTIFICA_RE.exec(sinPunto);
+  if (!m) return null;
+  const emisor = (m[1] ?? "").trim();
+  const resto = (m[2] ?? "").trim();
+  // Prefijo más largo que sea entidad conocida → receptor; el resto → contenido.
+  const palabras = resto.split(/\s+/u);
+  let receptor = resto;
+  let contenido = "";
+  for (let n = palabras.length; n >= 1; n--) {
+    const candidato = palabras.slice(0, n).join(" ");
+    if (contexto.entidades.has(claveNombre(candidato))) {
+      receptor = candidato;
+      contenido = palabras.slice(n).join(" ").trim();
+      break;
+    }
+  }
+  return compuesta(sinPunto, "V16", [
+    ora(`${emisor} genera Notificación`),
+    dir({
+      tipo: "tagged",
+      origen: "Notificación",
+      destino: receptor,
+      etiqueta: "dirigido a",
+      ...(contenido ? { colaAnotada: contenido } : {}),
+    }),
+  ]);
+}
+
+// ── V17: `está acotado por` bifurcado por firma de extremos ──────────────────
+// Adjudicación dov-dori 2026-06-05 (d) — destraba la en-reflexión #2 de HODOM.
+// NO es UN mapeo, son DOS según el tipo de <Y> (R-OPL-SE-2):
+//  · <Y> temporal (`un plazo de 30 días`) → exhibición (`X exhibe Plazo`) con el
+//    literal completo como cola anotada (el valor es DATO del atributo, no parte
+//    del nombre — §4.7 del acta). OPM no tiene primitiva de timing: límite del
+//    formalismo declarado; la salida canónica es R-PROC-6/R-OPL-PERSIST-3.
+//  · <Y> restricción abstracta (`Deber de reserva`) → estructural etiquetado
+//    «está acotado por» (objeto↔objeto; si la firma real fuese mixta, el kernel
+//    rechaza la emisión con diagnóstico — no se adivina).
+const ACOTADO_RE = /^(.+?)\s+est[áa]n?\s+acotad[oa]s?\s+por\s+(.+)$/iu;
+const ACOTACION_TEMPORAL_RE = /\b(?:plazos?|d[íi]as?|horas?|min(?:utos)?|semanas?|meses|años?)\b/iu;
+
+function mapearAcotadoPor(sinPunto: string): LineaNormalizada | null {
+  const m = ACOTADO_RE.exec(sinPunto);
+  if (!m) return null;
+  const sujeto = (m[1] ?? "").trim();
+  const resto = (m[2] ?? "").trim();
+  if (ACOTACION_TEMPORAL_RE.test(resto)) {
+    return compuesta(sinPunto, "V17", [
+      dir({ tipo: "hecho-anotado", oracion: `${sujeto} exhibe Plazo`, colaAnotada: resto }),
+    ]);
+  }
+  return compuesta(sinPunto, "V17", [
+    dir({ tipo: "tagged", origen: sujeto, destino: resto, etiqueta: "está acotado por" }),
   ]);
 }
 
@@ -1088,8 +1188,33 @@ function detectarVerboNoCanonico(sinPunto: string): { categoria: CategoriaRechaz
 //
 // La oración LIMPIA (sin las marcas) sigue su camino normal de clasificación.
 
-/** Una cita entre paréntesis que empieza por una norma reconocida (con `#clave` opcional). */
-const ANCLA_PAREN_NORMA_RE = /\(\s*((?:DS|NT|DTO|Ley|Decreto)[^)]*?)\s*(?:#([a-z0-9][a-z0-9-]*))?\s*\)/giu;
+/**
+ * Una cita entre paréntesis, reconocida por su FORMA, no por un enum de cuerpos
+ * (adjudicación dov-dori 2026-06-05, hallazgo (b): el alfabeto de cuerpos
+ * normativos es ABIERTO — LGUC, OGUC, DFL, Res. Ex., NCh, Código Civil, ISO… —
+ * y enumerar instancias es el error de eje que indignó al operador). Dos señales
+ * independientes, cualquiera basta:
+ *
+ *  1. LOCALIZADOR (la fuerte, conjunto CERRADO y transversal a todo el derecho):
+ *     `art./arts./artículo`, `§`, `inc.`, `letra`, `N°`, `numeral`, `título`
+ *     seguido de número/identificador. El cuerpo es lo que PRECEDE, capturado
+ *     libre (puede estar vacío: `(art. 17)`).
+ *  2. CUERPO-CON-NUMERACIÓN LEGAL (la débil, para citas sin localizador):
+ *     sigla/nombre que EMPIEZA EN MAYÚSCULA + número con forma legal (con
+ *     punto/barra/guión, o ≥3 dígitos) — `DFL 458`, `DS 1/2022`, `NCh 433`,
+ *     `Ley 20.584`. Mitigación anti-falso-positivo: `(versión 2.1)` no dispara
+ *     (minúscula); `(v 2.1)` no dispara (decimal corto sin forma legal).
+ */
+// Localizadores-PALABRA exigen dígito a continuación (evita `(con título
+// profesional)`); `§` es símbolo legal inequívoco y acepta identificador
+// (`§emergencias`, `§Protocolos clínicos`, `§5.1.6`).
+const LOCALIZADOR_CITA = /(?:(?:art[s]?\.?|art[íi]culos?|inc\.?|letra|N°|n[uú]m(?:eral)?|t[íi]tulos?)\s*\d|§\s*[\wáéíóúñÁÉÍÓÚÑ])/u;
+const ANCLA_PAREN_LOCALIZADOR_RE = new RegExp(
+  String.raw`\(\s*([^)]*?${LOCALIZADOR_CITA.source}[^)]*?)\s*(?:#([a-z0-9][a-z0-9-]*))?\s*\)`,
+  "giu",
+);
+const ANCLA_PAREN_CUERPO_NUM_RE =
+  /\(\s*((?:[A-ZÁÉÍÓÚÑ][\w.áéíóúñ]*\s+)*[A-ZÁÉÍÓÚÑ][\w.áéíóúñ]*\s+(?:\d{3,}|\d+[./-][\d./-]+))\s*(?:#([a-z0-9][a-z0-9-]*))?\s*\)/gu;
 /** Cita normativa inline con `#clave` explícita, FUERA de paréntesis: `… DS art. 17 #frontera-art17`. */
 const ANCLA_NORMA_INLINE_RE =
   /\b((?:DS|NT|DTO|Ley|Decreto)(?:\s+[\d./-]+)?(?:\s+(?:art\.?|arts\.?|§)[^#.\n]*?)?)\s+#([a-z0-9][a-z0-9-]*)/giu;
@@ -1107,16 +1232,23 @@ const ANCLA_CORCHETE_RE = /\[([^\]]+)\]/gu;
 export function extraerAnclasDeLinea(texto: string): Ancla[] {
   const anclas: Ancla[] = [];
 
-  // 1) Citas normativas entre paréntesis (DS/NT/Ley/Decreto).
-  for (const m of texto.matchAll(ANCLA_PAREN_NORMA_RE)) {
-    const cuerpo = (m[1] ?? "").trim();
-    const claveExplicita = m[2]?.trim();
-    anclas.push({
-      clase: "norma",
-      referencias: parsearReferencias(cuerpo),
-      ...(claveExplicita ? { claveExplicita } : {}),
-      bruto: m[0],
-    });
+  // 1) Citas normativas entre paréntesis, por FORMA (señal-localizador primero,
+  //    luego cuerpo-con-numeración para las que no tienen localizador). Un mismo
+  //    paréntesis no se extrae dos veces (dedup por span bruto).
+  const brutosVistos = new Set<string>();
+  for (const re of [ANCLA_PAREN_LOCALIZADOR_RE, ANCLA_PAREN_CUERPO_NUM_RE]) {
+    for (const m of texto.matchAll(re)) {
+      if (brutosVistos.has(m[0])) continue;
+      brutosVistos.add(m[0]);
+      const cuerpo = (m[1] ?? "").trim();
+      const claveExplicita = m[2]?.trim();
+      anclas.push({
+        clase: "norma",
+        referencias: parsearReferencias(cuerpo),
+        ...(claveExplicita ? { claveExplicita } : {}),
+        bruto: m[0],
+      });
+    }
   }
 
   // 2) Citas normativas inline con `#clave` (fuera de paréntesis).
@@ -1203,7 +1335,8 @@ function idDeCandidata(inner: string): string {
 /** Strip de TODAS las marcas de ancla; deja la oración limpia para clasificar/parsear. */
 function quitarAnclas(texto: string): string {
   return texto
-    .replace(ANCLA_PAREN_NORMA_RE, "")
+    .replace(ANCLA_PAREN_LOCALIZADOR_RE, "")
+    .replace(ANCLA_PAREN_CUERPO_NUM_RE, "")
     .replace(ANCLA_NORMA_INLINE_RE, "")
     .replace(ANCLA_RATIFICAR_RE, "")
     .replace(ANCLA_CORCHETE_RE, "")

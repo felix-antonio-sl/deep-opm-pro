@@ -42,6 +42,32 @@ export type Resolucion =
   | { accion: "reusar"; key: EntKey; tipo: TipoEntidad }
   | { accion: "proyectar"; key: EntKey; tipo: TipoEntidad };
 
+// ── Guard anti-silencio R9 (adjudicación dov-dori 2026-06-05, hallazgo (c)) ──
+//
+// Un nombre de cosa con material no nominal residual (paréntesis/corchete
+// colgante, o un localizador de cita `art.`/`§`/`N°` suelto) delata casi siempre
+// una CITA NORMATIVA NO EXTRAÍDA que el parser absorbió al nombre. Crear esa
+// entidad en silencio produce duplicados semánticos (`Permiso de edificación
+// (LGUC art. 116)` ≠ `Permiso de edificación`) que violan R-NOM-OBJ-1 y la
+// garantía L2/L8 («nada se pierde en silencio»). El guard DETECTA y DIAGNOSTICA;
+// NO adivina (no decide que el residuo es norma, no fusiona, no extrae solo).
+
+/** Localizador de cita suelto en el nombre (`art. 118`, `§5.1.6`, `N° 4`). La
+ *  palabra léxica `Artículo de aseo` NO dispara (exige número a continuación). */
+const RESIDUO_LOCALIZADOR_RE = /(?:\bart[s]?\.|§|\bN°|\bn[uú]m(?:eral)?\.?\s)\s*\d/iu;
+
+/**
+ * Devuelve el residuo no nominal hallado en un nombre-a-crear, o null si el
+ * nombre es limpio. Puro y exportado (lo usa el test del guard).
+ */
+export function residuoNoNominal(nombre: string): string | null {
+  const paren = /\(([^)]*)\)|\[([^\]]*)\]/u.exec(nombre);
+  if (paren) return paren[0] ?? null;
+  const loc = RESIDUO_LOCALIZADOR_RE.exec(nombre);
+  if (loc) return loc[0] ?? null;
+  return null;
+}
+
 export class Resolutor {
   /** clave-nombre → entidad conocida. */
   private readonly porClave = new Map<string, EntidadConocida>();
@@ -129,6 +155,16 @@ export class Resolutor {
     const clave = claveNombre(nombre);
     const existente = this.porClave.get(clave);
     if (!existente) {
+      // Guard R9 (hallazgo (c)): NO crear en silencio una entidad cuyo nombre
+      // arrastra material no nominal — casi siempre una cita no extraída. El
+      // throw lo captura el compilador y lo registra como fallo con diagnóstico.
+      const residuo = residuoNoNominal(nombre);
+      if (residuo) {
+        throw new Error(
+          `Nombre con material no nominal residual (R9): "${nombre.trim()}" arrastra "${residuo}" — ` +
+            `parece una cita normativa no extraída; usa una forma de cita reconocida (Cuerpo art. N / §X) o declárala como ancla.`,
+        );
+      }
       // La semilla del contexto (uso global) gana al tipo sugerido por la posición
       // sintáctica de esta mención puntual — SALVO `forzarTipo` (tensión 4: una
       // parte de agregación homogénea SIN clase explícita hereda la del todo,

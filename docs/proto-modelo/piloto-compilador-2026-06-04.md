@@ -9,20 +9,20 @@
 
 - OPDs creados                      : 11
 - Bundle emite (validarModelo PASS) : SÍ
-- Entidades (bundle)                : 251
+- Entidades (bundle)                : 252
 - Estados (bundle)                  : 175
-- Enlaces (bundle)                  : 328
+- Enlaces (bundle)                  : 329
 - OPDs (bundle)                     : 11
 - Avisos de severidad error         : 0
-- Canon                             : FAIL (10 bloqueantes, 100 metodológicos, 46 info).
+- Canon                             : FAIL (10 bloqueantes, 99 metodológicos, 46 info).
 
 ## 2. Hechos aplicados por tipo de primitiva DSL
 
-- Oraciones aplicadas     : 444
+- Oraciones aplicadas     : 445
 - Hechos emitidos (total) : 476
 -   · abanico             : 1
--   · enlace              : 323
--   · entidad             : 87
+-   · enlace              : 324
+-   · entidad             : 86
 -   · estados             : 51
 -   · ver                 : 14
 
@@ -31,14 +31,13 @@
 - Líneas estructura (refinamientos)            : 9
 - Comentarios conservados                      : 12
 - Excluidas (clase sin primitiva)              : 0
-- Rechazadas (T3 del normalizador)             : 5
+- Rechazadas (T3 del normalizador)             : 4
 - Fallos (emisión rechazada por kernel/parser) : 0
 
 ### Rechazos del normalizador por categoría T3
 
 - `R3`: 2
 - `R6`: 2
-- `R7`: 1
 
 ### Fallos de emisión por causa (tensiones de la convención v0)
 
@@ -77,8 +76,8 @@ Ejemplos de fallo (oración :: razón):
 > Staleness sobre artefactos estables (hashes de contenido), no ids internos. La divergencia
 > se REPORTA, no degrada: el proto sigue siendo el portador canónico de la trazabilidad legal.
 
-- protoHash (proto-modelo)                 : 4eddf283849c1fd7
-- glosarioHash (glosario de dominio)       : 90f41609e535facf
+- protoHash (proto-modelo)                 : ca0831e8176a43a9
+- glosarioHash (glosario de dominio)       : 9b4180ce3c4d1c97
 - autoriaVersion                           : 1
 - layoutVersion                            : 1
 - Sello presente en el bundle (round-trip) : SÍ

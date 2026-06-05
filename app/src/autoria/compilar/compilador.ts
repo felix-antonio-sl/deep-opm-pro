@@ -231,7 +231,7 @@ function emitirLinea(
       return contabilizarAnclasNoCompiladas(linea.anclas);
     case "estricta":
     case "normalizada": {
-      const res = emitirOracion(linea.oracion, ctx);
+      const res = emitirSegura(() => emitirOracion(linea.oracion, ctx));
       if (res.estado === "aplicada") {
         entradas.push(conAnclas({
           tipo: "aplicada",
@@ -257,7 +257,7 @@ function emitirLinea(
       // Familia V: emite cada emisión (oración o directiva) y, si la línea pide
       // agrupar, forma el abanico sobre los enlaces creados. Una sola entrada de
       // ledger `aplicada` con todos los hechos (trazabilidad por `regla`/`original`).
-      const res = emitirCompuesta(linea, ctx);
+      const res = emitirSegura(() => emitirCompuesta(linea, ctx));
       if (res.estado === "aplicada") {
         entradas.push(conAnclas({
           tipo: "aplicada",
@@ -280,6 +280,20 @@ function emitirLinea(
       }
       return contabilizarAnclasNoCompiladas(linea.anclas);
     }
+  }
+}
+
+/**
+ * Envuelve una emisión capturando los throws de los guards (R9 del resolutor,
+ * firmas ilegales del DSL fuera de rutas con try propio) como destino `fallo`
+ * con la razón — L2: la línea cae a un destino con diagnóstico, jamás revienta
+ * la compilación entera ni se pierde en silencio.
+ */
+function emitirSegura(emitir: () => ReturnType<typeof emitirOracion>): ReturnType<typeof emitirOracion> {
+  try {
+    return emitir();
+  } catch (e) {
+    return { estado: "fallo", razon: e instanceof Error ? e.message : String(e) };
   }
 }
 

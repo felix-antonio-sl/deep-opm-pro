@@ -21,6 +21,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { compilarProto } from "../src/autoria/compilar/compilador";
 import type { DestinoLedger } from "../src/autoria/compilar/compilador";
+import { detectarDuplicadosPorAbsorcion } from "../src/autoria/compilar/absorcion";
 import { emitirBundle } from "../src/autoria/bundle";
 import { compararProcedencia, construirSello } from "../src/autoria/procedencia";
 import { hidratarModelo } from "../src/serializacion/json";
@@ -75,6 +76,10 @@ function main(): void {
   // Mismo criterio que el piloto HODOM: cobertura = aplicadas / (aplicadas + rechazadas + fallos).
   const intentadas = aplicadas.length + rechazadas.length + fallos.length;
   const cobertura = intentadas ? (aplicadas.length / intentadas) * 100 : 0;
+  // MÉTRICA HONESTA (adjudicación dov-dori §3.10): una "aplicada" que produjo
+  // entidad duplicada por absorción es corrupción, no éxito. Se descuenta.
+  const duplicados = detectarDuplicadosPorAbsorcion(modelo);
+  const coberturaSana = intentadas ? ((aplicadas.length - duplicados.length) / intentadas) * 100 : 0;
 
   const reglasUsadas = new Map<string, number>();
   for (const a of aplicadas) {
@@ -98,6 +103,8 @@ function main(): void {
     ["Fallos de emisión", fallos.length],
     ["Excluidas (clase sin primitiva)", excluidas.length],
     ["Cobertura (aplicadas / intentadas)", `${cobertura.toFixed(1)}%`],
+    ["Duplicados por absorción (corrupción silenciosa)", duplicados.length],
+    ["Cobertura SANA (descuenta corrupciones)", `${coberturaSana.toFixed(1)}%`],
     ["— Referencia HODOM (piloto)", `${HODOM.cobertura}% (${HODOM.aplicadas} aplicadas, ${HODOM.rechazadas} rechazadas, ${HODOM.fallos} fallos)`],
     ["Hechos emitidos", resumen.hechos],
     ["OPDs", resumen.opds],
@@ -131,42 +138,29 @@ function main(): void {
   }
   if (!fallos.length) lineas.push("- (sin fallos)");
   lineas.push("");
-  lineas.push("## 5. Análisis de generalidad (adjudicación 2026-06-05 sobre el proto v0.1)");
+  lineas.push("## 5. Hallazgos, adjudicación y remediación (ciclo completo 2026-06-05)");
   lineas.push("");
-  lineas.push("**Lo que GENERALIZÓ** (núcleo confirmado): las reglas T2 (A1 listas, A2 estados, A4, A6 multi-destino,");
-  lineas.push("A9 exhibe-como, AESS) y la familia V ejercitada (V5 `detecta`, V7 `precede a`, V12 colas `cuando`)");
-  lineas.push("operaron sin fricción sobre un dominio ajeno; el lector de estructura armó los 4 OPDs (raíz + 2");
-  lineas.push("in-zoom + 1 despliegue) con la misma convención; el bundle valida y porta sello L6.");
+  lineas.push("La PRIMERA corrida (proto v0.1, gramática pre-adjudicación) arrojó 93.0% con 4 rechazos y dos");
+  lineas.push("defectos de borde; el operador convocó a **dov-dori**, cuya adjudicación");
+  lineas.push("(`adjudicacion-dov-dori-2026-06-05.md`) fue IMPLEMENTADA el mismo día. Resolución por hallazgo:");
   lineas.push("");
-  lineas.push("**SOBREAJUSTE CONFIRMADO** (2 hallazgos léxicos de borde — mapeos candidatos, DECISIÓN DEL OPERADOR):");
+  lineas.push("| # | Hallazgo (1ª corrida) | Adjudicación | Estado |");
+  lineas.push("|---|---|---|---|");
+  lineas.push("| (a) | `Planos de arquitectura son…` → R3 | **R8**: plural sin Conjunto/Grupo se RECHAZA con sugerencia (R-NOM-OBJ-1/2) — jamás se normaliza en silencio | implementado (rechazo correcto: el barro vuelve al modelador) |");
+  lineas.push("| (b) | alfabeto cerrado `DS\\|NT\\|DTO\\|Ley\\|Decreto` | detector por **LOCALIZADOR** (`art./§/inc./letra/N°`, conjunto cerrado) + cuerpo-con-numeración legal; el alfabeto de cuerpos es ABIERTO y no se enumera | implementado (`(LGUC art. 116)`, `(OGUC §5.1.6)` ahora compilan a ancla) |");
+  lineas.push("| (c) | cita absorbida al nombre → entidad DUPLICADA silenciosa | guard **R9** en el punto de creación (residuo no nominal ⇒ fallo con diagnóstico) + check `detectarDuplicadosPorAbsorcion` | implementado (BLOQUEANTE, fue primero) |");
+  lineas.push("| (d) | `está acotada por un plazo de 30 días` → R7 | **V17** bifurcado por firma de extremos: temporal→`exhibe Plazo`+cola; abstracto↔abstracto→etiquetado «está acotado por». Destraba la ex-en-reflexión #2 de HODOM | implementado |");
+  lineas.push("| (e) | `notifica al Solicitante` → R3 | **V16**: `genera Notificación` + etiquetado «dirigido a» (+contenido como cola). El enum de verbos NUNCA se infla | implementado |");
   lineas.push("");
-  lineas.push("1. **Esencia plural de entidad singular**: `Planos de arquitectura son informacionales y ambientales`");
-  lineas.push("   → R3 (×2). La ruta singular de esencia exige `es`; la plural existe solo para LISTAS (A1). Un");
-  lineas.push("   dominio con entidades de nombre gramaticalmente plural (Planos, Especificaciones) no puede declarar");
-  lineas.push("   esencia. HODOM casi no las tiene (cf. cola «Otros profesionales» en-reflexión). Mapeo candidato:");
-  lineas.push("   `X son <esencia-pl> y <afiliacion-pl>` con X sin separadores de lista → esencia singular.");
-  lineas.push("2. **Alfabeto cerrado de normas** (`ANCLA_PAREN_NORMA_RE`: `DS|NT|DTO|Ley|Decreto`): `(LGUC art. 116)`");
-  lineas.push("   y `(OGUC §…)` NO se reconocen como ancla — el vocabulario normativo está sobreajustado a HODOM.");
-  lineas.push("   Candidatos: LGUC, OGUC, DFL, Res. Ex., Circular (o patrón genérico `<SIGLA> art./§ N`).");
+  lineas.push("**Los números de §1-§4 de este reporte reflejan la gramática POST-adjudicación.** Los rechazos");
+  lineas.push("residuales esperados del proto v0.1 son los R8 (plurales mal formados que el AUTOR debe renombrar");
+  lineas.push("`Conjunto de…` — rechazo correcto, no sobreajuste).");
   lineas.push("");
-  lineas.push("**HALLAZGO SERIO — degradación SILENCIOSA** (peor que un rechazo): la cita no reconocida NO se rechaza —");
-  lineas.push("se pega al NOMBRE: el bundle contiene `Permiso de edificación (LGUC art. 116)` **Y** `Permiso de");
-  lineas.push("edificación` como DOS entidades distintas (SD0 genera la primera; SD1 referencia la segunda). Modelo");
-  lineas.push("válido pero semánticamente corrupto, sin diagnóstico. Viola el espíritu de L2/L8 («nada se pierde en");
-  lineas.push("silencio») por la rendija del nombre. Guard candidato (decisión del operador): paréntesis con patrón");
-  lineas.push("`art./§` y sigla NO reconocida → diagnóstico, no absorber al nombre.");
-  lineas.push("");
-  lineas.push("**Rechazos correctos (NO sobreajuste)**: `está acotada por un plazo de 30 días` (R7) COLISIONA con la");
-  lineas.push("oración en-reflexión de HODOM `está-acotado-por` — el patrón es TRANSVERSAL a dominios, lo que sube la");
-  lineas.push("prioridad de esa reflexión del operador. `notifica al Solicitante` (R3) es verbo nuevo legítimo,");
-  lineas.push("candidato a familia V futura. Ambos con diagnóstico útil.");
-  lineas.push("");
-  lineas.push("**Honestidad de la métrica**: la cobertura de §1 SOBRESTIMA — la oración del art. 116 cuenta como");
-  lineas.push("`aplicada` pero produjo la entidad duplicada (corrupción silenciosa). Cobertura sana real: 52/57.");
-  lineas.push("");
-  lineas.push("**Veredicto**: la gramática NUCLEAR generaliza; el sobreajuste vive en los BORDES LÉXICOS (alfabeto");
-  lineas.push("normativo, morfología plural) + 1 bug de silencio en la absorción de citas. Ninguno se corrige sin el");
-  lineas.push("operador (los mapeos son decisiones de dialecto, como la familia V).");
+  lineas.push("**Veredicto de fondo (dov-dori §2, pendiente de ratificación del operador como P3):** la gramática");
+  lineas.push("determinista NO es utopía — la que pretende enumerar léxico de dominio SÍ lo es. Frontera recomendada:");
+  lineas.push("el léxico abierto (mapeos verbo-de-dominio, citas, morfología) sube al LLM en E2 (propone, humano");
+  lineas.push("confirma); el compilador queda como VERIFICADOR TOTAL sobre el enum cerrado + emisor reproducible.");
+  lineas.push("El LLM nunca toca el bundle; el compilador nunca adivina semántica de dominio.");
   lineas.push("");
 
   writeFileSync(REPORTE_PATH, lineas.join("\n") + "\n", "utf8");
