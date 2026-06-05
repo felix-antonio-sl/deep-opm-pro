@@ -427,7 +427,11 @@ function attrsConSelectionUnderline(
   };
 }
 
-const RESIZE_HANDLES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
+// BUG-20260605T010727Z-916191 (hallazgo B): resize SOLO en las 4 esquinas.
+// Los handles cardinales (n/e/s/w) se dibujaban exactamente sobre los
+// connect-anchors N/E/S/O (mismo punto, z superior en el markup) y tapaban
+// el inicio de conexión cuando la entidad/estado estaba en selección única.
+const RESIZE_HANDLES = ["nw", "ne", "se", "sw"] as const;
 type ResizeHandle = typeof RESIZE_HANDLES[number];
 
 function markupConResizeHandles(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
@@ -470,8 +474,6 @@ function attrsResizeHandle(point: { x: number; y: number }, cursor: string): Rec
 }
 
 function cursorResize(handle: ResizeHandle): string {
-  if (handle === "n" || handle === "s") return "ns-resize";
-  if (handle === "e" || handle === "w") return "ew-resize";
   if (handle === "nw" || handle === "se") return "nwse-resize";
   return "nesw-resize";
 }

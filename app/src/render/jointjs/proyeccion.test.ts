@@ -104,15 +104,13 @@ describe("proyeccion JointJS", () => {
     const resize = markup
       .map((item) => item.selector)
       .filter((selector): selector is string => typeof selector === "string" && selector.startsWith("resize-"));
+    // BUG-20260605T010727Z-916191 (hallazgo B): resize SOLO en esquinas para
+    // no tapar los connect-anchors cardinales (N/E/S/O) en selección única.
     expect(resize).toEqual([
       "resize-nw",
-      "resize-n",
       "resize-ne",
-      "resize-e",
       "resize-se",
-      "resize-s",
       "resize-sw",
-      "resize-w",
     ]);
     // Los connect-anchors del modo enlace SÍ siguen presentes en selección.
     const tieneAnchors = markup.some((item) => typeof item.selector === "string" && (item.selector as string).startsWith("connect-anchor-"));
@@ -136,15 +134,13 @@ describe("proyeccion JointJS", () => {
     const resizeEstado = markup
       .map((item) => item.selector)
       .filter((selector): selector is string => typeof selector === "string" && selector.startsWith("resize-state0-"));
+    // BUG-20260605T010727Z-916191 (hallazgo B): mismas 4 esquinas que la
+    // entidad — los anchors cardinales del estado quedan libres para conectar.
     expect(resizeEstado).toEqual([
       "resize-state0-nw",
-      "resize-state0-n",
       "resize-state0-ne",
-      "resize-state0-e",
       "resize-state0-se",
-      "resize-state0-s",
       "resize-state0-sw",
-      "resize-state0-w",
     ]);
   });
 
