@@ -16,10 +16,13 @@ import { resolve } from "node:path";
 import { compilarProto } from "../src/autoria/compilar/compilador";
 import type { DestinoLedger } from "../src/autoria/compilar/compilador";
 import { emitirBundle } from "../src/autoria/bundle";
+import { compararProcedencia, construirSello } from "../src/autoria/procedencia";
+import { hidratarModelo } from "../src/serializacion/json";
 import { generarOpl } from "../src/opl/generar";
 import { parsearParrafoOpl, claveNombre } from "../src/opl/parser/parsear";
 
 const PROTO_PATH = "/home/felix/projects/hd-opm/docs/modelo-opm-hodom-completo.md";
+const GLOSARIO_PATH = "/home/felix/projects/hd-opm/docs/glosario-opm-hodom.md";
 const REPORTE_PATH = resolve(import.meta.dir, "../../docs/proto-modelo/piloto-compilador-2026-06-04.md");
 
 function clavesHechosOpl(lineas: string[]): Set<string> {
@@ -47,7 +50,12 @@ function fmtTabla(filas: Array<[string, string | number]>): string {
 
 function main(): void {
   const md = readFileSync(PROTO_PATH, "utf8");
+  const glosario = readFileSync(GLOSARIO_PATH, "utf8");
   const { autor, modelo, ledger, resumen } = compilarProto(md, { id: "hodom-piloto", nombre: "HODOM (piloto compilador)" });
+
+  // W5.3/L6: sello de procedencia de ESTA emisión (función pura del contenido de
+  // proto + glosario + versiones declaradas; determinista — cambia solo si ellos cambian).
+  const sello = construirSello({ protoTexto: md, glosarioTexto: glosario });
 
   // ── Bundle + validación ──
   let bundleOk = false;
@@ -56,13 +64,15 @@ function main(): void {
   let canonLinea = "";
   let bundleError = "";
   let opl = "";
+  let bundleJson = "";
   try {
-    const bundle = emitirBundle(autor, { lanzarEnError: false });
+    const bundle = emitirBundle(autor, { lanzarEnError: false, procedencia: sello });
     bundleOk = true;
     conteos = bundle.conteos;
     avisosError = bundle.avisos.filter((a) => a.severidad === "error").length;
     canonLinea = bundle.reporte.split("\n").find((l) => l.startsWith("- Canon:")) ?? "";
     opl = bundle.opl;
+    bundleJson = bundle.json;
   } catch (e) {
     bundleError = e instanceof Error ? e.message : String(e);
   }
@@ -214,12 +224,42 @@ function main(): void {
     ["L8 coherente (detectadas == compiladas + candidatas + rechazadas)", l8Coherente ? "SÍ" : "NO"],
   ]));
   lineas.push("");
+  // ── W5.3/L6: procedencia del bundle + verificación de staleness ──
+  // El sello viaja DENTRO del JSON emitido; aquí se verifica el ciclo completo:
+  // hidratar el bundle → comparar su sello contra el recomputado de los archivos
+  // actuales. Por construcción (misma corrida) NO debe divergir — el fixture
+  // negativo (proto editado ⇒ divergencia detectada) vive en
+  // `src/leyes/procedencia-staleness.test.ts`.
+  let procedenciaEnBundle = false;
+  let divergencia: ReturnType<typeof compararProcedencia> | null = null;
+  if (bundleJson) {
+    const hidratado = hidratarModelo(bundleJson);
+    if (hidratado.ok && hidratado.value.procedencia) {
+      procedenciaEnBundle = true;
+      divergencia = compararProcedencia(hidratado.value.procedencia, sello);
+    }
+  }
+  lineas.push("## 5c. Procedencia y staleness (W5.3 — L6)");
+  lineas.push("");
+  lineas.push("> Staleness sobre artefactos estables (hashes de contenido), no ids internos. La divergencia");
+  lineas.push("> se REPORTA, no degrada: el proto sigue siendo el portador canónico de la trazabilidad legal.");
+  lineas.push("");
+  lineas.push(fmtTabla([
+    ["protoHash (proto-modelo)", sello.protoHash],
+    ["glosarioHash (glosario de dominio)", sello.glosarioHash],
+    ["autoriaVersion", sello.autoriaVersion],
+    ["layoutVersion", sello.layoutVersion],
+    ["Sello presente en el bundle (round-trip)", procedenciaEnBundle ? "SÍ" : "NO"],
+    ["Divergencia bundle↔archivos actuales", divergencia ? (divergencia.divergente ? `SÍ — ${divergencia.componentes.map((c) => c.componente).join(", ")}` : "NO (sin staleness)") : "n/a"],
+  ]));
+  lineas.push("");
   lineas.push("## 6. Veredicto");
   lineas.push("");
-  const verde = bundleOk && avisosError === 0 && l2Coherente;
+  const l6Verde = procedenciaEnBundle && divergencia !== null && !divergencia.divergente;
+  const verde = bundleOk && avisosError === 0 && l2Coherente && l6Verde;
   lineas.push(verde
-    ? "El compilador produce un Modelo OPM **válido** desde el proto real completo; L2 cierra (ninguna línea sin destino, hechos == oraciones aplicables); el round-trip OPL forward reproduce los hechos aplicados. Los fallos restantes son **tensiones reales de la convención v0 / del parser / del modelo** (ver §3), reportadas honestamente, no forzadas."
-    : "El compilador NO cierra el oráculo interno; revisar §1/§5.");
+    ? "El compilador produce un Modelo OPM **válido** desde el proto real completo; L2 cierra (ninguna línea sin destino, hechos == oraciones aplicables); el round-trip OPL forward reproduce los hechos aplicados; L6 cierra (el sello de procedencia viaja en el bundle y coincide con los artefactos de la emisión). Los fallos restantes son **tensiones reales de la convención v0 / del parser / del modelo** (ver §3), reportadas honestamente, no forzadas."
+    : "El compilador NO cierra el oráculo interno; revisar §1/§5/§5c.");
 
   writeFileSync(REPORTE_PATH, lineas.join("\n") + "\n", "utf8");
 
@@ -228,6 +268,7 @@ function main(): void {
   console.log(`aplicadas: ${resumen.aplicadas} · hechos: ${resumen.hechos} · excluidas: ${resumen.excluidas} · rechazadas: ${resumen.rechazadas} · fallos: ${resumen.fallos}`);
   console.log(`bundle válido: ${bundleOk} · avisos error: ${avisosError} · round-trip: ${roundtripPresentes}/${roundtripVerificables} (${pct}%)`);
   console.log(`L2 coherente: ${l2Coherente} (sin destino: ${sinDestino})`);
+  console.log(`procedencia L6: sello en bundle: ${procedenciaEnBundle} · divergencia: ${divergencia ? divergencia.divergente : "n/a"}`);
   console.log(`Reporte: ${REPORTE_PATH}`);
   if (!verde) process.exitCode = 1;
 }

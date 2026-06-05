@@ -9,6 +9,7 @@ import type {
   NivelAutoridad,
   RatificacionAncla,
   ReferenciaNorma,
+  SelloProcedencia,
 } from "../modelo/tipos";
 
 /** Clave estable de dominio para una entidad (objeto/proceso). El autor la elige; el DSL la mapea a un Id. */
@@ -83,6 +84,13 @@ export interface OpcionesBundle {
   reporteExtra?: string[];
   /** Si true (default), lanza ante avisos de severidad `error` o round-trip inestable. */
   lanzarEnError?: boolean;
+  /**
+   * Sello de procedencia (W5.3/L6): `{protoHash, glosarioHash, autoriaVersion, layoutVersion}`.
+   * El consumidor lo construye con `construirSello` (autoria/procedencia) desde el contenido
+   * del proto y del glosario. Ausente ⇒ el bundle no gana la clave ni el reporte líneas
+   * (byte-identidad de los consumidores existentes).
+   */
+  procedencia?: SelloProcedencia;
 }
 
 /** Resultado de emitir un bundle. */

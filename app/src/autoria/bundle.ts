@@ -87,6 +87,11 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
   if (opciones.descripcion && opciones.descripcion.length) {
     modelo.descripcion = opciones.descripcion.join(" ");
   }
+  // W5.3/L6: el sello de procedencia viaja DENTRO del modelo serializado (sobrevive al
+  // round-trip y queda consultable al importar en opforja). Solo si el consumidor lo pasa.
+  if (opciones.procedencia) {
+    modelo.procedencia = opciones.procedencia;
+  }
 
   aplicarLayoutCompleto(modelo, internosInzoom);
 
@@ -143,6 +148,12 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
     `- Canon: ${canon.bloqueantes.length === 0 ? "PASS" : "FAIL"} (${canon.bloqueantes.length} bloqueantes, ${canon.metodologicos} metodológicos, ${canon.info} info).`,
     `- Contención de in-zoom: PASS (${contencion.opds} OPDs, ${contencion.internas} internas, ${contencion.externas} externas, ${contencion.externosDentro} externas dentro de contorno).`,
     ...(numAnclas > 0 ? [`- Anclas normativas (extensión meta, no-OPL): ${numAnclas} (${numAnclasPendientes} pendiente(s) de ratificación).`] : []),
+    // W5.3/L6: el reporte declara el sello solo si existe (byte-identidad sin procedencia).
+    ...(hidratado.procedencia
+      ? [
+          `- Procedencia (L6): proto \`${hidratado.procedencia.protoHash}\` · glosario \`${hidratado.procedencia.glosarioHash}\` · autoría v${hidratado.procedencia.autoriaVersion} · layout v${hidratado.procedencia.layoutVersion}.`,
+        ]
+      : []),
     ...(opciones.reporteExtra && opciones.reporteExtra.length ? ["", ...opciones.reporteExtra] : []),
   ].join("\n");
 

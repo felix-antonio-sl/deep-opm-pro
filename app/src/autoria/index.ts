@@ -23,7 +23,10 @@ export type {
 } from "./compilar/compilador";
 export { leerEstructura } from "./compilar/estructura";
 export type { PlanEstructura, NodoOpd } from "./compilar/estructura";
-export { aplicarLayoutCompleto, LAYOUT } from "./layout";
+export { aplicarLayoutCompleto, LAYOUT, LAYOUT_VERSION } from "./layout";
+// W5.3 — sello de procedencia + detección de divergencia (L6).
+export { AUTORIA_VERSION, hashContenido, construirSello, compararProcedencia } from "./procedencia";
+export type { InsumosSello, ComponenteDivergente, DivergenciaProcedencia } from "./procedencia";
 export type {
   EntKey,
   OpdKey,

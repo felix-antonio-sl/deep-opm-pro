@@ -57,6 +57,8 @@ export function normalizarModelo(modelo: Modelo): Modelo {
     ...(modelo.satisfaccionesRequisito ? { satisfaccionesRequisito: modelo.satisfaccionesRequisito } : {}),
     // W5.1: extensión meta del autor; allowlist condicional (ausente/{} ⇒ no se emite = byte-identidad).
     ...(modelo.anclasNormativas && Object.keys(modelo.anclasNormativas).length > 0 ? { anclasNormativas: modelo.anclasNormativas } : {}),
+    // W5.3/L6: sello de procedencia; allowlist condicional (ausente ⇒ no se emite = byte-identidad).
+    ...(modelo.procedencia ? { procedencia: modelo.procedencia } : {}),
     ...(modelo.submodelos ? { submodelos: modelo.submodelos } : {}),
     ...(modelo.referenciaPadreSubmodelo ? { referenciaPadreSubmodelo: modelo.referenciaPadreSubmodelo } : {}),
     ...(modelo.archivado ? { archivado: true } : {}),

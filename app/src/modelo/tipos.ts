@@ -91,6 +91,7 @@ export type {
   TargetAncla,
   RatificacionAncla,
   AnclaNormativa,
+  SelloProcedencia,
   EstadoCargaSubmodelo,
   SubmodeloSource,
   SubmodeloAnchor,

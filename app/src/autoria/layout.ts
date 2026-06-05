@@ -21,6 +21,14 @@ import type { Apariencia, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../
 
 /** Constantes de layout (tuneables): gaps, alto de banda, origen, márgenes. */
 export const LAYOUT = { GAP_H: 90, GAP_SUB: 70, ROWH: 200, X0: 80, Y0: 150, GAP_OBJ: 50, MARGEN: 80 };
+
+/**
+ * Versión declarada del motor de layout canónico (W5.3/L6, componente del
+ * `SelloProcedencia`). Se incrementa SOLO con un cambio deliberado de geometría
+ * (protocolo re-pin del golden hd-opm); un bundle sellado con otra versión
+ * reporta divergencia de procedencia sin tocar bytes.
+ */
+export const LAYOUT_VERSION = "1";
 const TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 const ESTRUCTURALES = new Set<TipoEnlace>(["agregacion", "exhibicion", "generalizacion", "clasificacion"]);
 

@@ -13,6 +13,7 @@ import type {
   ReferenciaPadreSubmodelo,
   Resultado,
   SatisfaccionRequisito,
+  SelloProcedencia,
   SubmodeloReferencia,
 } from "../modelo/tipos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
@@ -152,6 +153,8 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     opdsValidados.value,
   );
   if (!anclasValidadas.ok) return anclasValidadas;
+  const procedenciaValidada = validarProcedencia(value.procedencia);
+  if (!procedenciaValidada.ok) return procedenciaValidada;
   const submodelosValidados = validarSubmodelos(value.submodelos, entidadesValidadas.value, opdsValidados.value);
   if (!submodelosValidados.ok) return submodelosValidados;
   const padreSubmodeloValidado = validarReferenciaPadreSubmodelo(value.referenciaPadreSubmodelo, entidadesValidadas.value);
@@ -179,6 +182,7 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     ...(ontologiaValidada.value ? { ontologia: ontologiaValidada.value } : {}),
     ...(Object.keys(satisfaccionesValidadas.value).length > 0 ? { satisfaccionesRequisito: satisfaccionesValidadas.value } : {}),
     ...(Object.keys(anclasValidadas.value).length > 0 ? { anclasNormativas: anclasValidadas.value } : {}),
+    ...(procedenciaValidada.value ? { procedencia: procedenciaValidada.value } : {}),
     ...(Object.keys(submodelosValidados.value).length > 0 ? { submodelos: submodelosValidados.value } : {}),
     ...(padreSubmodeloValidado.value ? { referenciaPadreSubmodelo: padreSubmodeloValidado.value } : {}),
     ...(value.archivado === true ? { archivado: true } : {}),
@@ -290,6 +294,27 @@ function validarAnclasNormativas(
     };
   }
   return ok(anclas);
+}
+
+/**
+ * Valida `procedencia` (W5.3/L6). Extensión aditiva: ausente ⇒ undefined (byte-identidad
+ * sobre opcional ausente). Presente ⇒ las 4 componentes del sello deben ser strings no
+ * vacíos; un sello malformado se RECHAZA con diagnóstico (no se descarta en silencio).
+ */
+function validarProcedencia(value: unknown): Resultado<SelloProcedencia | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo("Modelo inválido: procedencia");
+  const componentes = ["protoHash", "glosarioHash", "autoriaVersion", "layoutVersion"] as const;
+  for (const componente of componentes) {
+    const v = value[componente];
+    if (typeof v !== "string" || !v.trim()) return fallo(`Modelo inválido: procedencia.${componente}`);
+  }
+  return ok({
+    protoHash: (value.protoHash as string).trim(),
+    glosarioHash: (value.glosarioHash as string).trim(),
+    autoriaVersion: (value.autoriaVersion as string).trim(),
+    layoutVersion: (value.layoutVersion as string).trim(),
+  });
 }
 
 function validarTargetAncla(

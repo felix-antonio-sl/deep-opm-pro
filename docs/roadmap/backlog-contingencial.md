@@ -19,7 +19,8 @@ Bajo el mandato del operador («terminar todo de forma completamente autónoma y
 | **W4.2 completo** | ✅ CERRADO | compilador 4 etapas (`compilar/{estructura,resolutor,emisor,compilador}.ts`) + **piloto sobre el proto v1.9 ENTERO**: 11 OPDs/250 ent/284 enl, validación PASS, L2 coherente, roundtrip 92.3%, 17 tensiones documentadas — `piloto-compilador-2026-06-04.md` |
 | **W4.3** | ⏳ PENDIENTE | migración real de `generar-bundle-hodom.ts` OPD-por-OPD (el piloto probó el compilador; la migración resuelve además las 17 tensiones + 30 rechazos T3 CON el operador — son decisiones de modelado) |
 | **W5.1 completo** | ✅ CERRADO | `AnclaNormativa` aditiva en el formato + DSL `ancla()` + L8 round-trip nivel-enlace + L9 preparatorio — 12 tests |
-| **W5.2/W5.3** | ⏳ PENDIENTES | compilación de anclas desde el proto (el normalizador ya las captura) · procedencia/staleness L6 |
+| **W5.2 completo** | ✅ CERRADO | anclas inline del proto compiladas a `AnclaNormativa` (5 formas, claveProto determinista, ledger L8) — `4b6e3d9` |
+| **W5.3 completo** | ✅ CERRADO (2026-06-05) | `SelloProcedencia` aditivo en el formato + `autoria/procedencia.ts` (hash FNV-1a puro, `construirSello`, `compararProcedencia`) + `OpcionesBundle.procedencia` + ley **L6** con fixture negativo (`src/leyes/procedencia-staleness.test.ts`) + piloto HODOM §5c (sello en bundle, sin divergencia) — suite 2212/0, byte-identidad hd-opm verde (el generador no pasa procedencia) |
 | **W6** | ⏳ PENDIENTE | superficie UX (W6.0 puente primero); W6.1 tiene gate de release HITL (re-protección) |
 
 Suite final: **2117/0** · byte-identidad hd-opm intacta en TODAS las ondas · commits 8ddb772→3c6140f en deep-opm-pro + 2376ea8 en hd-opm (sin push).

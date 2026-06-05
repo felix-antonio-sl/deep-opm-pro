@@ -72,6 +72,18 @@ Ejemplos de fallo (oración :: razón):
 -   · pendientes de ratificación                                    : 10
 - L8 coherente (detectadas == compiladas + candidatas + rechazadas) : SÍ
 
+## 5c. Procedencia y staleness (W5.3 — L6)
+
+> Staleness sobre artefactos estables (hashes de contenido), no ids internos. La divergencia
+> se REPORTA, no degrada: el proto sigue siendo el portador canónico de la trazabilidad legal.
+
+- protoHash (proto-modelo)                 : 4eddf283849c1fd7
+- glosarioHash (glosario de dominio)       : 90f41609e535facf
+- autoriaVersion                           : 1
+- layoutVersion                            : 1
+- Sello presente en el bundle (round-trip) : SÍ
+- Divergencia bundle↔archivos actuales     : NO (sin staleness)
+
 ## 6. Veredicto
 
-El compilador produce un Modelo OPM **válido** desde el proto real completo; L2 cierra (ninguna línea sin destino, hechos == oraciones aplicables); el round-trip OPL forward reproduce los hechos aplicados. Los fallos restantes son **tensiones reales de la convención v0 / del parser / del modelo** (ver §3), reportadas honestamente, no forzadas.
+El compilador produce un Modelo OPM **válido** desde el proto real completo; L2 cierra (ninguna línea sin destino, hechos == oraciones aplicables); el round-trip OPL forward reproduce los hechos aplicados; L6 cierra (el sello de procedencia viaja en el bundle y coincide con los artefactos de la emisión). Los fallos restantes son **tensiones reales de la convención v0 / del parser / del modelo** (ver §3), reportadas honestamente, no forzadas.

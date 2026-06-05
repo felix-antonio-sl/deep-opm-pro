@@ -8,6 +8,7 @@ import type {
   OntologiaOrganizacional,
   ReferenciaPadreSubmodelo,
   SatisfaccionRequisito,
+  SelloProcedencia,
   SubmodeloReferencia,
 } from "./extensiones";
 import type { Opd } from "./opd";
@@ -44,6 +45,8 @@ export interface Modelo {
   satisfaccionesRequisito?: Record<Id, SatisfaccionRequisito>;
   /** W5.1: trazabilidad de procedencia normativa. Aditivo y opcional (extensión declarada). */
   anclasNormativas?: Record<Id, AnclaNormativa>;
+  /** W5.3/L6: sello de origen del bundle emitido (proto+glosario+versiones). Aditivo y opcional. */
+  procedencia?: SelloProcedencia;
   submodelos?: Record<Id, SubmodeloReferencia>;
   referenciaPadreSubmodelo?: ReferenciaPadreSubmodelo;
   archivado?: boolean;
