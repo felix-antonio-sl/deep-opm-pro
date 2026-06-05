@@ -1,10 +1,18 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-06-04 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
+**Fecha**: 2026-06-05 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
 **Corte de producto vigente (2026-06-03)**: persistencia backend consolidada para modelos nuevos: modelos, workspace/carpetas, versiones, autosave y ownership por tenant anonimo con cookie firmada. Corte anterior público: `bc69829` (`feat(opforja): agregar persistencia backend postgres`). Este corte reduce la dependencia de `localStorage` a cache/espejo transicional y mantiene la UX existente sin migrar pruebas antiguas. Corte de ingenieria posterior: CIERRE de la capa categorial (Fs + Ss + integración + UX de composición + F2↔S + F-D1/F-D3) documentado abajo; runtime desplegado desde el cierre categorial `c37ef98`.
 **Instancia**: `https://opforja.sanixai.com` — pública sin auth perimetral. **Redeploy 2026-06-03** (consolidación de `main` @ `f77dad5`: saneamiento de simulación + módulo de autoría headless + remediación de auditoría de cobertura/robustez + sync dashboard HU): `docker compose up -d --build`; `opforja` healthy, `opforja-bug-capture` ok, `opforja-model-api` healthy, `opforja-postgres` healthy (volumen preservado), `curl -fsSI` externo HTTP/2 200, `/__deep-opm/modelos` → `{"modelos":[]}`. Bundle servido: entry **`index-DOCrDXTQ.js`**. (build docker con `VITE_ENABLE_BUG_CAPTURE=true`; hash difiere del build local sin esa flag).
 **Frente: canvas infinito — DESPLEGADO 2026-06-03** (commit `849930e`, bundle `index-DaVSdw1e.js`). El OPD vacío parte a pantalla y el paper crece/desplaza sus límites en cualquier dirección con `paper.fitToContent({allowNewOrigin:'any'})`, reemplazando el piso fijo 7200×5200 + crecimiento solo derecha/abajo. Detalle del corte abajo (§ Canvas infinito); el spec de origen fue consolidado aquí y eliminado (historia git: `aec1bcd`).
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2; rama `codex/ux-composicion-f1` fue squash-mergeada sobre `main` para cerrar la brecha de composición. Diseño/planes relevantes: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`, `docs/superpowers/plans/2026-06-02-ux-adhoc-fs.md`.
+
+## Actualización 2026-06-05 — metodología Forja v1.5.0: integridad de estados y auditorías sobre JSON
+
+**Estado:** `urn:fxsl:kb:metodologia-forja-opm-es` quedó en **v1.5.0** en KORA con `LF-19` consolidada: los estados se auditan por categoría metodológica (**flujo**, **caracterización**, **ambiental-observado**) y no mediante una sola regla indiferenciada de "estado sin escritor". `A8` además agrega dos advertencias operativas para auditorías: barrer el **JSON canónico**, no el OPL generado, y validar la métrica del barrido contra la SSOT semántica antes de concluir. Se corrigió también el H1 del documento KORA para que refleje v1.5.0.
+
+**Propagación local:** el puente `docs/canon-opm/metodologia-forja.md` declara la versión vigente observada y deja la cascada operativa sin copiar la SSOT. No hay cambio de producto en este corte: `app/src` ya valida serialización desde JSON y no existe un checker local de LF-19; implementarlo sin un campo/glosa estructurada para distinguir caracterización y ambiental-observado produciría falsos positivos.
+
+**Consecuencia para próximos frentes:** cualquier barrido de integridad de estados en W4/W5/W6 o en consumidores headless (`hd-opm`) debe partir de `deep-opm-pro.modelo.v0` hidratado/exportado, reportar su métrica y justificar la clasificación usada. No derivar conteos desde OPL ni concluir "sin escritor" si el estado es caracterización declarada o ambiental-observado.
 
 ## Actualización 2026-06-04 — Simulación visual viva: tokens viajeros, estados current/resultado y halos geométricos
 

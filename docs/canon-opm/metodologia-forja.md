@@ -29,6 +29,7 @@ Este archivo no es la SSOT. La autoridad primaria vive en KORA:
 - URN: `urn:fxsl:kb:metodologia-forja-opm-es`
 - Path: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/metodologia-forja-es.md`
 - Estado: `publicado`
+- Versión vigente observada: `1.5.0` (2026-06-05)
 
 ## Rol En Opforja
 
@@ -55,6 +56,15 @@ OPM. Complementa a las otras dos piezas KORA enlazadas desde
 No copiar contenido de la metodología en este archivo. Si la metodología cambia,
 editar la SSOT KORA, validar con `python3 toolchain/kora lint-md`, reindexar KORA
 y mantener este puente estable.
+
+## Cascada Vigente 2026-06-05
+
+La versión `1.5.0` añadió `LF-19` sobre integridad de estados y reforzó `A8`
+con dos advertencias operativas: los barridos de integridad deben ejecutarse
+sobre el JSON canónico, y toda métrica de auditoría debe validarse contra la
+SSOT semántica antes de fundar conclusiones. En `deep-opm-pro`, cualquier
+checker futuro de estados debe distinguir al menos flujo, caracterización y
+ambiental-observado; no basta contar estados "sin escritor" desde OPL.
 
 ## Acceso Rápido
 

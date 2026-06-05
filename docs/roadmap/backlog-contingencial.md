@@ -25,6 +25,8 @@ Bajo el mandato del operador («terminar todo de forma completamente autónoma y
 
 Suite final: **2117/0** · byte-identidad hd-opm intacta en TODAS las ondas · commits 8ddb772→3c6140f en deep-opm-pro + 2376ea8 en hd-opm (sin push).
 
+**Nota normativa 2026-06-05:** `metodologia-forja-opm-es` v1.5.0 añade `LF-19` y endurece `A8` para auditorías. Todo barrido futuro de integridad de estados en W4/W5/W6 debe operar sobre JSON canónico hidratado/exportado, no sobre OPL; la métrica debe distinguir estados de flujo, caracterización y ambiental-observado antes de concluir deuda o error. Esta nota evita reabrir falsos positivos de "estado sin escritor" en dominios donde el estado es value-set caracterizador o lectura ambiental.
+
 ## Decisiones rectoras (resueltas, no reabrir sin acta)
 
 | ID | Decisión | Consecuencia operativa |
