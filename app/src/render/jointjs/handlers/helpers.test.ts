@@ -1,6 +1,28 @@
 import { describe, expect, test } from "bun:test";
 import type { dia } from "jointjs";
-import { ajustarPaperAContenido, calcularAjusteScroll, CANVAS_PADDING } from "./helpers";
+import { ajustarPaperAContenido, calcularAjusteScroll, CANVAS_PADDING, prevenirInteraccionNativa, selectorEsAnchorConexion } from "./helpers";
+
+describe("selectores interactivos", () => {
+  test("detecta anchors de conexion como affordance exclusiva de enlace", () => {
+    expect(selectorEsAnchorConexion("connect-anchor-e")).toBe(true);
+    expect(selectorEsAnchorConexion("connect-anchor-e-state0")).toBe(true);
+    expect(selectorEsAnchorConexion("stateCapsule0")).toBe(false);
+    expect(selectorEsAnchorConexion(null)).toBe(false);
+  });
+
+  test("prevenirInteraccionNativa delega en JointJS para cortar elementMove", () => {
+    let invocado = false;
+    const view = {
+      preventDefaultInteraction() {
+        invocado = true;
+      },
+    } as unknown as dia.CellView;
+
+    prevenirInteraccionNativa(view, {} as dia.Event);
+
+    expect(invocado).toBe(true);
+  });
+});
 
 // Canvas infinito: cuando fitToContent({allowNewOrigin:'any'}) reposiciona el
 // origen del paper (translate) porque el contenido creció hacia arriba/izquierda,

@@ -31,6 +31,7 @@ import {
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
   quitarEstadosObjeto,
+  redimensionarApariencia,
   reanclarEnlaceExternoDerivado,
   renombrarEntidad,
   renombrarEstado,
@@ -1449,6 +1450,38 @@ describe("operaciones de modelo", () => {
     // El externo proxy se mantiene en su posicion absoluta.
     expect(apariencasMovidas[externoProxy.id]?.x).toBe(externoProxy.x);
     expect(apariencasMovidas[externoProxy.id]?.y).toBe(externoProxy.y);
+  });
+
+  test("redimensionar apariencia interna la conserva dentro del contorno", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 320, y: 220 }, "PadreRefinable"));
+    const padreId = entidadPorNombre(modelo, "PadreRefinable").id;
+    const descomposicion = must(descomponerProceso(modelo, modelo.opdRaizId, padreId));
+    modelo = descomposicion.modelo;
+    const opdHijoId = descomposicion.opdId;
+    const apariencias = Object.values(modelo.opds[opdHijoId]?.apariencias ?? {});
+    const contorno = apariencias.find((apariencia) => apariencia.entidadId === padreId);
+    const interno = apariencias.find((apariencia) => apariencia.entidadId !== padreId);
+    expect(contorno).toBeDefined();
+    expect(interno).toBeDefined();
+    if (!contorno || !interno) return;
+
+    const redimensionado = must(redimensionarApariencia(
+      modelo,
+      opdHijoId,
+      interno.id,
+      contorno.width * 2,
+      contorno.height * 2,
+      { x: contorno.x - 120, y: contorno.y - 120 },
+    ));
+    const siguiente = redimensionado.opds[opdHijoId]?.apariencias[interno.id];
+    expect(siguiente).toBeDefined();
+    if (!siguiente) return;
+
+    expect(siguiente.x).toBeGreaterThanOrEqual(contorno.x);
+    expect(siguiente.y).toBeGreaterThanOrEqual(contorno.y);
+    expect(siguiente.x + siguiente.width).toBeLessThanOrEqual(contorno.x + contorno.width);
+    expect(siguiente.y + siguiente.height).toBeLessThanOrEqual(contorno.y + contorno.height);
   });
 
   test("mover hijos de despliegue estructural no los clampea sobre el padre", () => {

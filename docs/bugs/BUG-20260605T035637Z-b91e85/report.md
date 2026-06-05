@@ -1,0 +1,42 @@
+# BUG-20260605T035637Z-b91e85
+
+**Creado**: 2026-06-05T03:56:37.839Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+mira la secuencia desastrosa tras tu intento de arreglar el bug. un desastre
+
+## Screenshots
+
+- [screenshots/01-google-chrome-2026-06-04-23.55.24.png](screenshots/01-google-chrome-2026-06-04-23.55.24.png)
+- [screenshots/02-google-chrome-2026-06-04-23.55.31.png](screenshots/02-google-chrome-2026-06-04-23.55.31.png)
+- [screenshots/03-google-chrome-2026-06-04-23.55.36.png](screenshots/03-google-chrome-2026-06-04-23.55.36.png)
+- [screenshots/04-google-chrome-2026-06-04-23.55.45.png](screenshots/04-google-chrome-2026-06-04-23.55.45.png)
+- [screenshots/05-google-chrome-2026-06-04-23.55.52.png](screenshots/05-google-chrome-2026-06-04-23.55.52.png)
+- [screenshots/06-google-chrome-2026-06-04-23.55.56.png](screenshots/06-google-chrome-2026-06-04-23.55.56.png)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo copia",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-2f210202-a5dc-4005-859f-871982b7af1c",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 2133,
+    "height": 1070,
+    "devicePixelRatio": 0.8999999761581421
+  },
+  "capturedAt": "2026-06-05T03:56:35.552Z"
+}
+```

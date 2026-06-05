@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { agregarEstado, crearEstadosIniciales, crearModelo, crearObjeto, estadosDeEntidad, moverEstado, reordenarEstado } from "../operaciones";
+import { agregarEstado, crearEstadosIniciales, crearModelo, crearObjeto, estadosDeEntidad, moverEstado, redimensionarEstado, reordenarEstado } from "../operaciones";
 import type { Modelo, Resultado } from "../tipos";
 
 /**
@@ -141,6 +141,21 @@ describe("operaciones/estados — moverEstado", () => {
   test("rechaza coordenadas no finitas", () => {
     const { modelo, estadoIds } = sembrarObjetoCon3Estados();
     const resultado = moverEstado(modelo, estadoIds[0], Number.NaN, 10);
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) expect(resultado.error).toMatch(/posición/i);
+  });
+});
+
+describe("operaciones/estados — redimensionarEstado", () => {
+  test("persiste tamaño y posición opcional en una sola mutación", () => {
+    const { modelo, estadoIds } = sembrarObjetoCon3Estados();
+    const resultado = debeOk(redimensionarEstado(modelo, estadoIds[0], 92.4, 31.6, { x: 18.2, y: 44.8 }));
+    expect(resultado.estados[estadoIds[0]]).toMatchObject({ width: 92, height: 32, x: 18, y: 45 });
+  });
+
+  test("rechaza posición opcional no finita", () => {
+    const { modelo, estadoIds } = sembrarObjetoCon3Estados();
+    const resultado = redimensionarEstado(modelo, estadoIds[0], 92, 32, { x: Number.NaN, y: 44 });
     expect(resultado.ok).toBe(false);
     if (!resultado.ok) expect(resultado.error).toMatch(/posición/i);
   });

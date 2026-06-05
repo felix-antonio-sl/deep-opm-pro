@@ -562,5 +562,83 @@
     "status": "Resuelto",
     "resolution": "La simulacion conceptual ahora tiene frame visual de inicio y situacion final: inicio resalta las entradas/current iniciales, los pasos mantienen proceso/enlaces/tokens, y final resalta resultados/salidas.",
     "note": "Cubierto por foco.test, proyeccion.test y e2e/12-beta2-modo-simulacion; QA Playwright con inicio -> paso -> fin sin errores de consola."
+  },
+  "BUG-20260605T010727Z-916191": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La conexion desde anchors de estado usa preventDefaultInteraction y resuelve el destino por punto, evitando que el padre se mueva o que el menu apunte al propio objeto.",
+    "note": "Cubierto por handlers/helpers.test, handlers/modoEnlace.test y proyeccion.test; el ghost queda sobre el diagrama y los anchors de estado no inician drag de capsula."
+  },
+  "BUG-20260605T033029Z-9ce8c1": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El menu de tipo de enlace conserva extremos Estado en opciones y preview, por lo que Estado -> Proceso ofrece y crea consumo/efecto/roles procedurales validos segun firma.",
+    "note": "Cubierto por MenuTipoEnlace.test y opcionesEnlace.test del corte previo, y por handlers/modoEnlace.test en este corte."
+  },
+  "BUG-20260605T033130Z-9bc7e0": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El preview OPL del menu de enlaces preserva los extremos Estado en vez de degradarlos al objeto propietario.",
+    "note": "Cubierto por MenuTipoEnlace.test del corte fix(canvas): preservar estados en menu de enlaces."
+  },
+  "BUG-20260605T035637Z-b91e85": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Se retiro la geometria libre de estados en canvas: las capsulas son layout-managed, no se arrastran ni redimensionan, y los anchors quedan reservados para conexion.",
+    "note": "Cubierto por composers/estados.test, proyeccion.test, handlers/modoEnlace.test y e2e/31-domain-c-ui-interactions.spec.ts."
+  },
+  "BUG-20260605T035813Z-0cdec2": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Pointerdown sobre capsula de estado ya no inicia drag custom ni acopla desplazamientos del estado con el objeto.",
+    "note": "Cubierto por handlers/modoEnlace.test y composers/estados.test; la capsula ignora coordenadas manuales persistidas."
+  },
+  "BUG-20260605T035848Z-1637da": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los estados ya no proyectan handles resize-state, por lo que el resize libre de estado no desplaza ni el estado ni el objeto.",
+    "note": "Cubierto por proyeccion.test y e2e/31-domain-c-ui-interactions.spec.ts."
+  },
+  "BUG-20260605T035952Z-67d9e3": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Click sobre estado no instala listeners de drag ni emite copias/traslaciones visuales; solo selecciona o conecta segun modo.",
+    "note": "Cubierto por handlers/modoEnlace.test y e2e/31-domain-c-ui-interactions.spec.ts."
+  },
+  "BUG-20260605T041152Z-f77842": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los anchors de las capsulas de estado vuelven a ser affordances exclusivas de conexion: cortan la interaccion nativa de JointJS y permiten iniciar enlaces Estado -> Proceso sin arrastrar el objeto padre.",
+    "note": "Cubierto por handlers/helpers.test, handlers/modoEnlace.test y proyeccion.test; se consulto CellView.preventDefaultInteraction en la documentacion oficial JointJS."
+  },
+  "BUG-20260605T041307Z-eb3b17": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La geometria renderizada de estados vuelve a ser layout-managed dentro del objeto: el renderer ignora x/y/width/height manuales persistidos en estados.",
+    "note": "Cubierto por composers/estados.test y proyeccion.test: una posicion manual extrema no saca la capsula del objeto."
+  },
+  "BUG-20260605T041353Z-0c6ed9": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El resize de apariencias internas de un refinamiento queda clampeado al rectangulo interior del contorno antes de persistirse.",
+    "note": "Cubierto por operaciones.test: redimensionar una apariencia interna con caja imposible conserva x/y/width/height dentro del contorno."
+  },
+  "BUG-20260605T041451Z-1daba8": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Click/pointerdown sobre una capsula de estado ya no instala drag custom ni persiste coordenadas manuales; solo conserva seleccion/conexion.",
+    "note": "Cubierto por handlers/modoEnlace.test y composers/estados.test; se retiro la ruta de drag visual de estado que generaba capsulas voladoras."
+  },
+  "BUG-20260605T041523Z-fcaeaf": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los estados seleccionados ya no emiten handles resize-state; las capsulas mantienen anchors de conexion pero no resize libre.",
+    "note": "Cubierto por proyeccion.test: el estado seleccionado no proyecta resize-state* y conserva stateCapsule/connect-anchor."
+  },
+  "BUG-20260605T041627Z-b0416c": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El ghost de aproximacion de enlace se proyecta con z=60, por encima de entidades, enlaces a estado y halos runtime.",
+    "note": "Cubierto por handlers/modoEnlace.test; alineado con el modelo de ordenamiento z de JointJS."
   }
 }

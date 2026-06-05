@@ -22,31 +22,30 @@ export function dimensionesConEstados(apariencia: Apariencia, nombre: string, es
   const altoEstados = vertical
     ? altos.reduce((total, alto) => total + alto, 0) + Math.max(0, altos.length - 1) * ESTADOS.gap
     : Math.max(ESTADOS.regionHeight, Math.max(...altos, ESTADOS.capsuleHeight) + ESTADOS.paddingBottom + 4);
-  const boundsManuales = boundsEstadosManuales(estados);
   const width = Math.max(
     apariencia.width,
     CANON.dims.cosaWidth,
     nombre.length * 7 + 24,
     anchoEstados + ESTADOS.paddingX * 2,
-    boundsManuales.width,
   );
-  const height = Math.max(apariencia.height, CANON.dims.cosaHeight + altoEstados + ESTADOS.paddingBottom, boundsManuales.height);
+  const height = Math.max(apariencia.height, CANON.dims.cosaHeight + altoEstados + ESTADOS.paddingBottom);
   return { width, height };
 }
 
 export function anchoCapsulaEstado(estado: Estado | string): number {
   const nombre = typeof estado === "string" ? estado : estado.nombre;
-  const manual = typeof estado === "string" ? undefined : estado.width;
   // BUG-7ae086: 8 px/char (alineado a entidad.ts) — 7 subestimaba la serif italica y
   // recortaba la ultima letra en nombres largos. La designacion inicial/final agrega
   // stroke (3px inicial / doble contorno final) que consume interior de la capsula.
   const designada = typeof estado !== "string" && (estado.esInicial || estado.esFinal || (estado.designaciones ?? []).length > 0);
   const margenDesignacion = designada ? 6 : 0;
-  return Math.max(ESTADOS.minWidth, manual ?? 0, nombre.length * 8 + ESTADOS.paddingHorizontal * 2 + margenDesignacion);
+  const manual = typeof estado !== "string" && Number.isFinite(estado.width) ? Number(estado.width) : 0;
+  return Math.max(ESTADOS.minWidth, manual, nombre.length * 8 + ESTADOS.paddingHorizontal * 2 + margenDesignacion);
 }
 
 export function altoCapsulaEstado(estado: Estado): number {
-  return Math.max(ESTADOS.capsuleHeight, estado.height ?? 0);
+  const manual = Number.isFinite(estado.height) ? Number(estado.height) : 0;
+  return Math.max(ESTADOS.capsuleHeight, manual);
 }
 
 interface EndpointVisual {
@@ -111,12 +110,14 @@ export function rectCapsulaEstadoLocal(
   const y = vertical
     ? yBase + altos.slice(0, index).reduce((total, alto) => total + alto + ESTADOS.gap, 0)
     : yBase;
-  return {
-    x: typeof estado.x === "number" && Number.isFinite(estado.x) ? estado.x : x,
-    y: typeof estado.y === "number" && Number.isFinite(estado.y) ? estado.y : y,
+  const solicitadoX = Number.isFinite(estado.x) ? Number(estado.x) : x;
+  const solicitadoY = Number.isFinite(estado.y) ? Number(estado.y) : y;
+  return limitarRectCapsulaALocal({
+    x: solicitadoX,
+    y: solicitadoY,
     width: anchoActual,
     height: altoActual,
-  };
+  }, size);
 }
 
 export function puntoCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estadoId: Id): Posicion | null {
@@ -155,20 +156,28 @@ function estadoRenderCanonico(estado: Estado): Estado {
   return { ...estado, nombre: nombreCanonicoEstado(estado) };
 }
 
-function boundsEstadosManuales(estados: Estado[]): { width: number; height: number } {
-  let width = 0;
-  let height = 0;
-  for (const estado of estados) {
-    const capsuleWidth = anchoCapsulaEstado(estadoRenderCanonico(estado));
-    const capsuleHeight = altoCapsulaEstado(estado);
-    if (typeof estado.x === "number" && Number.isFinite(estado.x)) {
-      width = Math.max(width, estado.x + capsuleWidth + ESTADOS.paddingX);
-    }
-    if (typeof estado.y === "number" && Number.isFinite(estado.y)) {
-      height = Math.max(height, estado.y + capsuleHeight + ESTADOS.paddingBottom);
-    }
-  }
-  return { width, height };
+function limitarRectCapsulaALocal(
+  rect: RectCapsulaEstado,
+  size: { width: number; height: number },
+): RectCapsulaEstado {
+  const minX = ESTADOS.paddingX;
+  const minY = 6;
+  const maxWidth = Math.max(ESTADOS.minWidth, size.width - ESTADOS.paddingX * 2);
+  const maxHeight = Math.max(ESTADOS.capsuleHeight, size.height - minY - ESTADOS.paddingBottom);
+  const width = Math.round(clamp(rect.width, ESTADOS.minWidth, maxWidth));
+  const height = Math.round(clamp(rect.height, ESTADOS.capsuleHeight, maxHeight));
+  const maxX = Math.max(minX, size.width - ESTADOS.paddingX - width);
+  const maxY = Math.max(minY, size.height - ESTADOS.paddingBottom - height);
+  return {
+    x: Math.round(clamp(rect.x, minX, maxX)),
+    y: Math.round(clamp(rect.y, minY, maxY)),
+    width,
+    height,
+  };
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 export const ESTADOS = {

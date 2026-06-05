@@ -108,6 +108,7 @@ export function JointCanvas({
     seleccionados,
     idsResaltadosTemporales,
     enlaceSeleccionId,
+    estadoSeleccionId,
     hoverOplRef,
     uiAliasVisibles,
     uiDescripcionesVisibles,
@@ -425,9 +426,11 @@ export function JointCanvas({
     const adapter = adapterRef.current;
     if (!adapter) return;
     const focoSimulacion = focoPasoActualSimulacion(modelo, contextoSimulacion);
-    const seleccionadosRender = idsResaltadosTemporales.length > 0
-      ? Array.from(new Set([...seleccionados, ...idsResaltadosTemporales]))
-      : seleccionados;
+    const seleccionadosRender = Array.from(new Set([
+      ...seleccionados,
+      ...(estadoSeleccionId ? [estadoSeleccionId] : []),
+      ...idsResaltadosTemporales,
+    ]));
     const cells = proyectarModeloAJointCells(
       modelo,
       opdActivoId,
@@ -520,7 +523,7 @@ export function JointCanvas({
         viewport.scrollTo({ left: siguiente.left, top: siguiente.top, behavior: "auto" });
       }
     }
-  }, [enlaceSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
+  }, [enlaceSeleccionId, estadoSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
 
   // B0.017 — token verde viajero sobre cada enlace en uso del paso activo.
   // Animacion solo-render (no es verdad del modelo). Se dispara en cada
@@ -676,7 +679,8 @@ export function JointCanvas({
               direccion: direccionTipoEnlaceCanvas,
               onDireccion: setDireccionTipoEnlaceCanvas,
               onElegir: (tipo, origen, destino) => {
-                crearEnlaceEntreEntidadesRef.current(origen, destino, tipo, { anclaOrigen: menuTipoEnlaceCanvas.anchor });
+                const opciones = normalizarExtremo(origen).kind === "entidad" ? { anclaOrigen: menuTipoEnlaceCanvas.anchor } : undefined;
+                crearEnlaceEntreEntidadesRef.current(origen, destino, tipo, opciones);
                 setMenuTipoEnlaceCanvas(null);
               },
               anchor: { left: menuTipoEnlaceCanvas.left, top: menuTipoEnlaceCanvas.top },

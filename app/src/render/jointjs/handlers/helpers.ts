@@ -49,6 +49,15 @@ export function jointSelector(target: EventTarget | null): string | null {
   return target.closest("[joint-selector]")?.getAttribute("joint-selector") ?? null;
 }
 
+export function selectorEsAnchorConexion(selector: string | null): boolean {
+  return selector?.startsWith("connect-anchor-") === true;
+}
+
+export function prevenirInteraccionNativa(cellView: dia.CellView, evt: dia.Event): void {
+  (cellView as unknown as { preventDefaultInteraction?: (event: dia.Event) => void })
+    .preventDefaultInteraction?.(evt);
+}
+
 export function paperView(paper: dia.Paper): { remove(): void } {
   return paper as unknown as { remove(): void };
 }

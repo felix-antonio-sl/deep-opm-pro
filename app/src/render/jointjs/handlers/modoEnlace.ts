@@ -11,7 +11,9 @@ import {
 import { entidadIdDeExtremo, extremoEstado, normalizarExtremo, type ExtremoEntrada } from "../../../modelo/extremos";
 import type { Id, Modelo, TipoEnlace } from "../../../modelo/tipos";
 import { CODEX } from "../constantes.codex";
-import { cellViewModel, estadoDesdeSelector, jointSelector, metadata, paperOff, posicionCanvasDesdeEvento } from "./helpers";
+import { cellViewModel, estadoDesdeSelector, jointSelector, metadata, paperOff, posicionCanvasDesdeEvento, prevenirInteraccionNativa } from "./helpers";
+
+export const Z_GHOST_ENLACE = 60;
 
 interface CablearModoEnlaceArgs {
   paper: dia.Paper;
@@ -95,6 +97,7 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
     const selector = jointSelector(evt.target);
     const anchor = anchorConexionDesdeSelector(selector);
     if (anchor && meta?.kind === "entidad") {
+      prevenirInteraccionNativa(elementView, evt);
       evt.stopPropagation();
       (evt as unknown as MouseEvent).preventDefault?.();
       const estadoOrigenId = estadoDesdeSelector(meta, selector);
@@ -304,7 +307,7 @@ function crearGhostEnlace(
       } as Record<string, unknown>,
       wrapper: { stroke: "transparent", strokeWidth: 14, pointerEvents: "none" },
     },
-    z: 5,
+    z: Z_GHOST_ENLACE,
   }) as dia.Link;
   ghost.addTo(graph);
   return ghost;

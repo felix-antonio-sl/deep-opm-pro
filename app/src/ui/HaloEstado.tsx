@@ -47,7 +47,13 @@ export function HaloEstado() {
     }
     let raf = 0;
     const actualizar = () => {
-      const node = document.querySelector(`[data-estado-id="${estadoSeleccionId}"]`);
+      if (document.querySelector(".joint-paper[data-opm-state-gesture='true']")) {
+        setPos(null);
+        return;
+      }
+      const node = document.querySelector(
+        `.joint-paper [joint-selector^="stateCapsule"][data-estado-id="${escapeSelectorAttr(estadoSeleccionId)}"]`,
+      );
       if (!node) {
         setPos(null);
         return;
@@ -113,7 +119,7 @@ export function HaloEstado() {
       role="toolbar"
       aria-label="Acciones de estado"
       data-testid="halo-estado"
-      data-estado-id={estadoSeleccionId}
+      data-halo-estado-id={estadoSeleccionId}
       onClick={(e) => e.stopPropagation()}
     >
       {renombradoInline !== null ? (
@@ -194,6 +200,11 @@ export function HaloEstado() {
       ) : null}
     </div>
   );
+}
+
+function escapeSelectorAttr(value: string): string {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") return CSS.escape(value);
+  return value.replace(/["\\]/g, "\\$&");
 }
 
 const style = {

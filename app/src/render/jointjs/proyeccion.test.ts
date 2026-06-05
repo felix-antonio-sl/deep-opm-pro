@@ -117,7 +117,7 @@ describe("proyeccion JointJS", () => {
     expect(tieneAnchors).toBe(true);
   });
 
-  test("BUG-a41f5c: el estado seleccionado emite handles de resize propios", () => {
+  test("BUG-a41f5c/BUG-20260605T041523Z: el estado seleccionado emite handles de resize sin eliminar anchors", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Pedido"));
     const entidad = Object.values(modelo.entidades)[0];
@@ -134,14 +134,15 @@ describe("proyeccion JointJS", () => {
     const resizeEstado = markup
       .map((item) => item.selector)
       .filter((selector): selector is string => typeof selector === "string" && selector.startsWith("resize-state0-"));
-    // BUG-20260605T010727Z-916191 (hallazgo B): mismas 4 esquinas que la
-    // entidad — los anchors cardinales del estado quedan libres para conectar.
     expect(resizeEstado).toEqual([
       "resize-state0-nw",
       "resize-state0-ne",
       "resize-state0-se",
       "resize-state0-sw",
     ]);
+    expect(markup.some((item) => item.selector === "connect-anchor-e-state0")).toBe(true);
+    expect(markup.some((item) => item.selector === "stateCapsule0")).toBe(true);
+    expect(((celdaEntidad?.attrs as Attrs | undefined)?.stateCapsule0 as Attrs | undefined)?.["data-selected"]).toBe("true");
   });
 
   test("SEL-1: selección única emite el underline crimson embebido en la celda", () => {
@@ -1368,7 +1369,7 @@ describe("proyeccion JointJS", () => {
     expect((attrs?.stateLabel1 as Attrs | undefined)?.text).toBe("cerrado");
     expect((attrs?.stateCapsule0 as Attrs | undefined)?.pointerEvents).toBe("auto");
     expect((attrs?.stateLabel0 as Attrs | undefined)?.pointerEvents).toBe("auto");
-    expect((attrs?.stateCapsule0 as Attrs | undefined)?.cursor).toBe("crosshair");
+    expect((attrs?.stateCapsule0 as Attrs | undefined)?.cursor).toBe("grab");
     expect(cell?.opm.kind).toBe("entidad");
     expect(cell?.opm.kind === "entidad" ? cell.opm.estadosInteractivos : []).toEqual(
       expect.arrayContaining([

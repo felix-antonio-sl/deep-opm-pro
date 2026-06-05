@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { labelA11yConexionEntidad, puntoAnchorDesdeBBox } from "./modoEnlace";
+import { selectorCapsulaDesdeSelector } from "./drag";
+import { labelA11yConexionEntidad, puntoAnchorDesdeBBox, Z_GHOST_ENLACE } from "./modoEnlace";
 
 describe("handlers/modoEnlace", () => {
   test("puntoAnchorDesdeBBox resuelve puntos cardinales de una apariencia", () => {
@@ -23,5 +24,15 @@ describe("handlers/modoEnlace", () => {
 
     expect(source).not.toContain("targetMarker: { ...LINK_ASSETS.procedural.resultado.marker }");
     expect(source).toContain("targetMarker: null");
+  });
+
+  test("el ghost de enlace queda sobre entidades, enlaces a estados y halos runtime", () => {
+    expect(Z_GHOST_ENLACE).toBeGreaterThan(37);
+  });
+
+  test("anchors de estado no inician drag de capsula", () => {
+    expect(selectorCapsulaDesdeSelector("stateCapsule0")).toBe("stateCapsule0");
+    expect(selectorCapsulaDesdeSelector("stateLabel0")).toBe("stateCapsule0");
+    expect(selectorCapsulaDesdeSelector("connect-anchor-e-state0")).toBeNull();
   });
 });

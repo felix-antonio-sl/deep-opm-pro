@@ -170,13 +170,22 @@ export function redimensionarEstado(
   estadoId: Id,
   width: number,
   height: number,
+  posicion?: { x: number; y: number },
 ): Resultado<Modelo> {
   const estado = modelo.estados?.[estadoId];
   if (!estado) return fallo(`Estado no existe: ${estadoId}`);
   if (!Number.isFinite(width) || !Number.isFinite(height)) return fallo("Tamaño de estado inválido");
+  if (posicion && (!Number.isFinite(posicion.x) || !Number.isFinite(posicion.y))) return fallo("Posición de estado inválida");
   const siguienteWidth = Math.round(Math.max(52, width));
   const siguienteHeight = Math.round(Math.max(24, height));
-  if (estado.width === siguienteWidth && estado.height === siguienteHeight) return ok(modelo);
+  const siguienteX = posicion ? Math.round(posicion.x) : estado.x;
+  const siguienteY = posicion ? Math.round(posicion.y) : estado.y;
+  if (
+    estado.width === siguienteWidth &&
+    estado.height === siguienteHeight &&
+    estado.x === siguienteX &&
+    estado.y === siguienteY
+  ) return ok(modelo);
   return ok({
     ...modelo,
     estados: {
@@ -185,6 +194,7 @@ export function redimensionarEstado(
         ...estado,
         width: siguienteWidth,
         height: siguienteHeight,
+        ...(posicion ? { x: siguienteX, y: siguienteY } : {}),
       },
     },
   });

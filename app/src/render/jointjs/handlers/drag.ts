@@ -11,7 +11,18 @@ import { ajustesPuertosConectadosDesdeLinkViews } from "../beautifyConnectedLink
 import { labelKeyDesdeJoint, posicionLabelDesdeJoint } from "../labelLayout";
 import type { OpmJointMetadata } from "../proyeccion";
 import { ordenarEnlacesEstructuralesConectados } from "../sortStructuralLinks";
-import { cellViewModel, estadoDesdeSelector, graphEvents, jointSelector, metadata, paperOff, parteEntidadDesdeSelector, posicionCanvasDesdeEvento } from "./helpers";
+import { cellViewModel, estadoDesdeSelector, graphEvents, jointSelector, metadata, paperOff, parteEntidadDesdeSelector, posicionCanvasDesdeEvento, prevenirInteraccionNativa, selectorEsAnchorConexion } from "./helpers";
+import {
+  aplicarRectEstadoLive,
+  gestoEstadoSuperaUmbral,
+  indiceEstadoDesdeSelector,
+  limitarRectEstadoAElemento,
+  marcarDragEstado,
+  marcarGestoEstadoActivo,
+  rectSelectorEstado,
+  selectorCapsulaDesdeSelector,
+  type RectEstado,
+} from "./estadoGeometry";
 
 /**
  * Handlers de drag JointCanvas: pointerup para persistir movimiento de
@@ -68,22 +79,23 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     const meta = metadata(model);
     if (meta?.kind !== "entidad") return;
     const selector = jointSelector(evt.target);
+    if (selectorEsAnchorConexion(selector)) return;
     const estadoId = estadoDesdeSelector(meta, selector);
     const selectorCapsula = selectorCapsulaDesdeSelector(selector);
     if (estadoId && selectorCapsula) {
+      prevenirInteraccionNativa(elementView, evt);
       evt.preventDefault();
-      evt.stopPropagation();
       const element = model as dia.Element;
-      const attrs = rectSelector(element, selectorCapsula);
       dragEstado = {
         element,
         estadoId,
         selectorCapsula,
         index: indiceEstadoDesdeSelector(selectorCapsula),
         startPoint: posicionCanvasDesdeEvento(paper, evt),
-        startRect: attrs,
+        startRect: rectSelectorEstado(element, selectorCapsula),
+        moved: false,
       };
-      element.attr(selectorCapsula, { ...attrs, "data-dragging": "true" });
+      marcarGestoEstadoActivo(paper, true);
       window.addEventListener("mousemove", onMouseMoveEstado);
       window.addEventListener("mouseup", onMouseUpEstado);
       return;
@@ -151,24 +163,26 @@ export function cablearDrag(args: CablearDragArgs): () => void {
   const onMouseMoveEstado = (event: MouseEvent) => {
     if (!dragEstado) return;
     event.preventDefault();
+    const punto = posicionCanvasDesdeEvento(paper, event as unknown as dia.Event);
+    if (!dragEstado.moved && !gestoEstadoSuperaUmbral(dragEstado.startPoint, punto)) return;
+    dragEstado.moved = true;
+    marcarDragEstado(dragEstado.element, dragEstado.selectorCapsula, true);
     const rect = rectEstadoDesdeEvento(paper, dragEstado, event);
-    aplicarTraslacionEstadoLive(dragEstado.element, dragEstado.index, rect);
+    aplicarRectEstadoLive(dragEstado.element, dragEstado.index, rect);
   };
 
   const onMouseUpEstado = (event: MouseEvent) => {
     if (!dragEstado) return;
     event.preventDefault();
     const activo = dragEstado;
-    const rect = rectEstadoDesdeEvento(paper, activo, event);
-    aplicarTraslacionEstadoLive(activo.element, activo.index, rect);
-    activo.element.attr(activo.selectorCapsula, {
-      ...(activo.element.attr(activo.selectorCapsula) as Record<string, unknown> | undefined),
-      "data-dragging": undefined,
-    });
+    const rect = activo.moved ? rectEstadoDesdeEvento(paper, activo, event) : activo.startRect;
+    if (activo.moved) aplicarRectEstadoLive(activo.element, activo.index, rect);
+    marcarDragEstado(activo.element, activo.selectorCapsula, false);
     dragEstado = null;
+    marcarGestoEstadoActivo(paper, false);
     window.removeEventListener("mousemove", onMouseMoveEstado);
     window.removeEventListener("mouseup", onMouseUpEstado);
-    moverEstadoEnCanvasRef.current(activo.estadoId, rect.x, rect.y);
+    if (activo.moved) moverEstadoEnCanvasRef.current(activo.estadoId, rect.x, rect.y);
   };
 
   let dragVerticeActivo = false;
@@ -253,6 +267,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     paperOff(paper, "element:pointerup", onElementPointerup as (...args: never[]) => void);
     paperOff(paper, "element:pointerdblclick", onElementPointerdblclick as (...args: never[]) => void);
     paperOff(paper, "element:pointerclick", onElementPointerclickRenombrado as (...args: never[]) => void);
+    marcarGestoEstadoActivo(paper, false);
     window.removeEventListener("mousemove", onMouseMoveEstado);
     window.removeEventListener("mouseup", onMouseUpEstado);
     paperEl.removeEventListener("pointerdown", onPaperPointerdown, true);
@@ -271,109 +286,25 @@ interface DragEstadoActivo {
   selectorCapsula: string;
   index: number;
   startPoint: { x: number; y: number };
-  startRect: { x: number; y: number; width: number; height: number };
-}
-
-function selectorCapsulaDesdeSelector(selector: string | null): string | null {
-  if (!selector) return null;
-  const match = /^(stateCapsule|stateLabel|stateFinalInner|stateDefaultMarker|stateCurrentMarker)(\d+)$/.exec(selector);
-  if (match) return `stateCapsule${match[2]}`;
-  const anchorMatch = /^connect-anchor-[a-z]+-state(\d+)$/.exec(selector);
-  return anchorMatch ? `stateCapsule${anchorMatch[1]}` : null;
-}
-
-function indiceEstadoDesdeSelector(selectorCapsula: string): number {
-  return Number.parseInt(selectorCapsula.replace("stateCapsule", ""), 10);
-}
-
-function rectSelector(element: dia.Element, selector: string): { x: number; y: number; width: number; height: number } {
-  const attrs = (element.attr(selector) as { x?: number; y?: number; width?: number; height?: number } | undefined) ?? {};
-  return {
-    x: Number.isFinite(attrs.x) ? Number(attrs.x) : 0,
-    y: Number.isFinite(attrs.y) ? Number(attrs.y) : 0,
-    width: Number.isFinite(attrs.width) ? Number(attrs.width) : 52,
-    height: Number.isFinite(attrs.height) ? Number(attrs.height) : 24,
-  };
+  startRect: RectEstado;
+  moved: boolean;
 }
 
 function rectEstadoDesdeEvento(
   paper: dia.Paper,
   activo: DragEstadoActivo,
   event: MouseEvent,
-): { x: number; y: number; width: number; height: number } {
+): RectEstado {
   const punto = posicionCanvasDesdeEvento(paper, event as unknown as dia.Event);
-  return {
+  return limitarRectEstadoAElemento(activo.element, {
     x: Math.round(activo.startRect.x + punto.x - activo.startPoint.x),
     y: Math.round(activo.startRect.y + punto.y - activo.startPoint.y),
     width: activo.startRect.width,
     height: activo.startRect.height,
-  };
-}
-
-function aplicarTraslacionEstadoLive(
-  element: dia.Element,
-  index: number,
-  rect: { x: number; y: number; width: number; height: number },
-): void {
-  const prevCapsule = (element.attr(`stateCapsule${index}`) as Record<string, unknown> | undefined) ?? {};
-  element.attr(`stateCapsule${index}`, { ...prevCapsule, ...rect });
-  const prevFinal = (element.attr(`stateFinalInner${index}`) as Record<string, unknown> | undefined) ?? {};
-  element.attr(`stateFinalInner${index}`, {
-    ...prevFinal,
-    x: rect.x + 3,
-    y: rect.y + 3,
-    width: Math.max(0, rect.width - 6),
-    height: Math.max(0, rect.height - 6),
   });
-  const prevLabel = (element.attr(`stateLabel${index}`) as Record<string, unknown> | undefined) ?? {};
-  element.attr(`stateLabel${index}`, { ...prevLabel, x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
-  const prevDefault = (element.attr(`stateDefaultMarker${index}`) as Record<string, unknown> | undefined) ?? {};
-  element.attr(`stateDefaultMarker${index}`, { ...prevDefault, x: rect.x + rect.width - 10, y: rect.y + 7 });
-  const prevCurrent = (element.attr(`stateCurrentMarker${index}`) as Record<string, unknown> | undefined) ?? {};
-  element.attr(`stateCurrentMarker${index}`, { ...prevCurrent, x: rect.x + 10, y: rect.y + 7 });
-
-  const attrs = ((element as unknown as { attributes?: { attrs?: Record<string, unknown> } }).attributes?.attrs ?? {});
-  for (const selector of Object.keys(attrs)) {
-    const anchorMatch = new RegExp(`^connect-anchor-([a-z]+)-state${index}$`).exec(selector);
-    const anchor = anchorMatch?.[1];
-    if (anchor) {
-      const rel = relativoAnchorEstado(anchor);
-      const prev = (element.attr(selector) as Record<string, unknown> | undefined) ?? {};
-      element.attr(selector, { ...prev, cx: rect.x + rel.x * rect.width, cy: rect.y + rel.y * rect.height });
-      continue;
-    }
-    const handleMatch = new RegExp(`^resize-state${index}-(nw|ne|se|sw)$`).exec(selector);
-    const handle = handleMatch?.[1];
-    if (handle) {
-      const point = puntoHandleEstado(rect, handle);
-      const prev = (element.attr(selector) as Record<string, unknown> | undefined) ?? {};
-      element.attr(selector, { ...prev, x: point.x - 4, y: point.y - 4 });
-    }
-  }
 }
 
-function relativoAnchorEstado(anchor: string): { x: number; y: number } {
-  switch (anchor.toUpperCase()) {
-    case "N": return { x: 0.5, y: 0 };
-    case "NE": return { x: 1, y: 0 };
-    case "E": return { x: 1, y: 0.5 };
-    case "SE": return { x: 1, y: 1 };
-    case "S": return { x: 0.5, y: 1 };
-    case "SW": return { x: 0, y: 1 };
-    case "W": return { x: 0, y: 0.5 };
-    case "NW": return { x: 0, y: 0 };
-    default: return { x: 0.5, y: 0.5 };
-  }
-}
-
-function puntoHandleEstado(
-  rect: { x: number; y: number; width: number; height: number },
-  handle: string,
-): { x: number; y: number } {
-  const x = handle.includes("e") ? rect.x + rect.width : rect.x;
-  const y = handle.includes("s") ? rect.y + rect.height : rect.y;
-  return { x, y };
-}
+export { selectorCapsulaDesdeSelector } from "./estadoGeometry";
 
 function targetDentroDeVerticesTool(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return false;

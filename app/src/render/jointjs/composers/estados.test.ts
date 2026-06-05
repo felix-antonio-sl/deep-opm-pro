@@ -30,7 +30,7 @@ describe("composer estados", () => {
     const final = anchoCapsulaEstado({ id: "s", entidadId: "o", nombre: "programada", esFinal: true });
     expect(inicial).toBeGreaterThan(base);
     expect(final).toBeGreaterThan(base);
-    // el ancho manual sigue mandando si es mayor
+    // La geometria manual persistida debe participar en la cápsula interactiva.
     expect(anchoCapsulaEstado({ id: "s", entidadId: "o", nombre: "ok", width: 200 })).toBe(200);
   });
 
@@ -52,7 +52,7 @@ describe("composer estados", () => {
     expect(punto?.y).toBeGreaterThan(ap.y);
   });
 
-  test("usa posición manual persistida para capsula, anchors y halos derivados", () => {
+  test("respeta posición manual persistida y la limita dentro del objeto", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));
     const entidad = Object.values(modelo.entidades)[0];
@@ -60,15 +60,39 @@ describe("composer estados", () => {
     const iniciales = must(crearEstadosIniciales(modelo, entidad.id));
     modelo = iniciales.modelo;
     const estadoId = iniciales.estadoIds[0];
-    modelo = must(moverEstado(modelo, estadoId, 22, 31));
+    modelo = must(moverEstado(modelo, estadoId, 34, 58));
     const ap = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
     if (!ap) throw new Error("Apariencia no encontrada");
 
     const rect = rectCapsulaEstado(modelo, ap, estadoId);
     const punto = puntoCapsulaEstado(modelo, ap, estadoId);
 
-    expect(rect).toMatchObject({ x: ap.x + 22, y: ap.y + 31 });
+    expect(rect?.x).toBe(ap.x + 34);
+    expect(rect?.y).toBe(ap.y + 58);
+    expect((rect?.x ?? 0) + (rect?.width ?? 0)).toBeLessThanOrEqual(ap.x + ap.width);
+    expect((rect?.y ?? 0) + (rect?.height ?? 0)).toBeLessThanOrEqual(ap.y + 100);
     expect(punto).toMatchObject({ x: (rect?.x ?? 0) + (rect?.width ?? 0) / 2, y: (rect?.y ?? 0) + (rect?.height ?? 0) / 2 });
+  });
+
+  test("limita posición manual extrema dentro del objeto", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));
+    const entidad = Object.values(modelo.entidades)[0];
+    if (!entidad) throw new Error("Entidad no encontrada");
+    const iniciales = must(crearEstadosIniciales(modelo, entidad.id));
+    modelo = iniciales.modelo;
+    const estadoId = iniciales.estadoIds[0];
+    modelo = must(moverEstado(modelo, estadoId, 2200, -310));
+    const ap = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
+    if (!ap) throw new Error("Apariencia no encontrada");
+
+    const rect = rectCapsulaEstado(modelo, ap, estadoId);
+    const size = dimensionesConEstados(ap, "Pedido", estadosDeEntidad(modelo, entidad.id), entidad.layoutEstados);
+
+    expect(rect?.x).toBeGreaterThanOrEqual(ap.x);
+    expect(rect?.y).toBeGreaterThanOrEqual(ap.y);
+    expect((rect?.x ?? 0) + (rect?.width ?? 0)).toBeLessThanOrEqual(ap.x + size.width);
+    expect((rect?.y ?? 0) + (rect?.height ?? 0)).toBeLessThanOrEqual(ap.y + size.height);
   });
 });
 

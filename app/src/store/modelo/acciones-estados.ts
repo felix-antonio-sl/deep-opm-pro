@@ -234,9 +234,9 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
       });
     },
 
-    redimensionarEstadoEnCanvas(estadoId, width, height) {
+    redimensionarEstadoEnCanvas(estadoId, width, height, posicion) {
       const { modelo } = get();
-      const resultado = redimensionarEstado(modelo, estadoId, width, height);
+      const resultado = redimensionarEstado(modelo, estadoId, width, height, posicion);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
         return;

@@ -1,12 +1,12 @@
-import { expect, test } from "@playwright/test";
-import { elementoPorTexto, exportadoActual, jsonEditor, modeloTransicionEstados } from "./_smoke-helpers";
+import { expect, test, type Locator } from "@playwright/test";
+import { clickCabeceraElemento, elementoPorTexto, exportadoActual, jsonEditor, modeloTransicionEstados } from "./_smoke-helpers";
 
 test("BUG-a41f5c: redimensiona una cosa desde handles de selección", async ({ page }) => {
   await page.goto("/");
-  await jsonEditor(page).fill(JSON.stringify(modeloResizeEstados(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloEntidadSimple(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
-  await elementoPorTexto(page, "Pedido").click();
+  await clickCabeceraElemento(page, "Pedido");
   const handle = page.locator('[joint-selector="resize-se"]').first();
   await expect(handle).toBeVisible();
   const box = await handle.boundingBox();
@@ -14,7 +14,7 @@ test("BUG-a41f5c: redimensiona una cosa desde handles de selección", async ({ p
 
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 + 50, box.y + box.height / 2 + 30);
+  await page.mouse.move(box.x + box.width / 2 + 50, box.y + box.height / 2 + 50);
   await page.mouse.up();
 
   const exportado = await exportadoActual(page);
@@ -24,25 +24,53 @@ test("BUG-a41f5c: redimensiona una cosa desde handles de selección", async ({ p
   expect(apariencia?.modoTamano).toBe("manual");
 });
 
-test("BUG-a41f5c + BUG-00f799: redimensiona estado y Backspace elimina estado enlazado sin extremos huérfanos", async ({ page }) => {
+test("BUG-20260605T041307Z/041523Z: estado se mueve, redimensiona y conserva anchors", async ({ page }) => {
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloEstadosInteractivos(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  const estado = page.locator('.joint-element [data-estado-id="s-pendiente"]');
+  await estado.click();
+  const estadoIndex = await indiceVisualEstado(estado);
+  await expect(page.locator(`[joint-selector="resize-state${estadoIndex}-se"]`)).toBeVisible();
+  await expect(page.locator(`[joint-selector="connect-anchor-e-state${estadoIndex}"]`)).toHaveCount(1);
+
+  const estadoBox = await estado.boundingBox();
+  if (!estadoBox) throw new Error("No se renderizó cápsula de estado");
+  await page.mouse.move(estadoBox.x + estadoBox.width / 2, estadoBox.y + estadoBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(estadoBox.x + estadoBox.width / 2 - 28, estadoBox.y + estadoBox.height / 2 - 12, { steps: 5 });
+  await page.mouse.up();
+
+  let exportado = await exportadoActual(page);
+  const movido = exportado.modelo.estados["s-pendiente"];
+  expect(movido?.x).toBeLessThan(118);
+  expect(movido?.y).toBeLessThan(90);
+
+  const handle = page.locator(`[joint-selector="resize-state${estadoIndex}-se"]`);
+  const handleBox = await handle.boundingBox();
+  if (!handleBox) throw new Error("No se renderizó handle de resize de estado");
+  await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(handleBox.x + handleBox.width / 2 + 46, handleBox.y + handleBox.height / 2 + 18, { steps: 5 });
+  await page.mouse.up();
+
+  exportado = await exportadoActual(page);
+  const redimensionado = exportado.modelo.estados["s-pendiente"];
+  expect(redimensionado?.width).toBeGreaterThan(90);
+  expect(redimensionado?.height).toBeGreaterThan(24);
+});
+
+test("BUG-20260605T041307Z: Backspace elimina estado sin extremos huérfanos", async ({ page }) => {
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloResizeEstados(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
-  await page.locator('.joint-element [data-estado-id="s-pendiente"]').click();
-  const handle = page.locator('[joint-selector^="resize-state"][joint-selector$="-se"]').first();
-  await expect(handle).toBeVisible();
-  const box = await handle.boundingBox();
-  if (!box) throw new Error("No se renderizó handle de resize de estado");
-
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 + 45, box.y + box.height / 2 + 12);
-  await page.mouse.up();
+  const estado = page.locator('.joint-element [data-estado-id="s-pendiente"]');
+  await estado.click();
 
   let exportado = await exportadoActual(page);
-  expect(exportado.modelo.estados["s-pendiente"]?.width).toBeGreaterThan(52);
-  expect(exportado.modelo.estados["s-pendiente"]?.height).toBeGreaterThan(24);
+  expect(exportado.modelo.estados["s-pendiente"]).toBeDefined();
 
   await page.keyboard.press("Backspace");
   exportado = await exportadoActual(page);
@@ -51,13 +79,41 @@ test("BUG-a41f5c + BUG-00f799: redimensiona estado y Backspace elimina estado en
   expect(extremos.some((extremo) => extremo.kind === "estado" && extremo.id === "s-pendiente")).toBe(false);
 });
 
+test("BUG-20260605T041152Z: anchor de estado conecta estado a proceso", async ({ page }) => {
+  await page.goto("/");
+  await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstadosSinEnlaces(modeloEstadosInteractivos()), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  const estado = page.locator('.joint-element [data-estado-id="s-pendiente"]');
+  const proceso = elementoPorTexto(page, "Aprobar").locator('[joint-selector="body"]');
+  const estadoIndex = await indiceVisualEstado(estado);
+  await estado.hover();
+  const anchor = page.locator(`[joint-selector="connect-anchor-e-state${estadoIndex}"]`);
+  const anchorBox = await anchor.boundingBox();
+  const procesoBox = await proceso.boundingBox();
+  if (!anchorBox || !procesoBox) throw new Error("No se pudo medir anchor/destino");
+  await page.mouse.move(anchorBox.x + anchorBox.width / 2, anchorBox.y + anchorBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(procesoBox.x + procesoBox.width / 2, procesoBox.y + procesoBox.height / 2, { steps: 8 });
+  await page.mouse.up();
+
+  const menu = page.getByTestId("menu-tipo-enlace");
+  await expect(menu).toBeVisible();
+  await menu.getByTestId("menu-tipo-enlace-consumo").click();
+
+  const exportado = await exportadoActual(page);
+  const enlace = Object.values(exportado.modelo.enlaces).find((item) => item.tipo === "consumo");
+  expect(enlace?.origenId).toEqual({ kind: "estado", id: "s-pendiente" });
+  expect(enlace?.destinoId).toMatchObject({ kind: "entidad", id: "p-aprobar" });
+});
+
 test("BUG-f81da4: la anotación contextual no desborda ni superpone acciones", async ({ page }) => {
   await page.setViewportSize({ width: 900, height: 700 });
   await page.goto("/");
-  await jsonEditor(page).fill(JSON.stringify(modeloResizeEstados(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloEntidadSimple(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
-  await elementoPorTexto(page, "Pedido").click();
+  await clickCabeceraElemento(page, "Pedido");
   const barra = page.getByTestId("barra-herramientas-elemento");
   await expect(barra).toBeVisible();
 
@@ -86,6 +142,41 @@ test("BUG-f81da4: la anotación contextual no desborda ni superpone acciones", a
 
 function modeloResizeEstados() {
   const base = modeloTransicionEstados();
+  base.modelo.estados["s-pendiente"] = {
+    ...base.modelo.estados["s-pendiente"]!,
+    x: 2200,
+    y: -310,
+    width: 360,
+    height: 120,
+  };
   base.modelo.estados["s-rechazado"] = { id: "s-rechazado", entidadId: "o-pedido", nombre: "rechazado" };
   return base;
+}
+
+function modeloTransicionEstadosSinEnlaces(base = modeloTransicionEstados()) {
+  base.modelo.enlaces = {};
+  base.modelo.opds["opd-1"].enlaces = {};
+  return base;
+}
+
+function modeloEstadosInteractivos() {
+  const base = modeloTransicionEstados();
+  base.modelo.opds["opd-1"].apariencias["a-pedido"].width = 240;
+  base.modelo.opds["opd-1"].apariencias["a-pedido"].height = 120;
+  base.modelo.opds["opd-1"].apariencias["a-aprobar"].x = 400;
+  return base;
+}
+
+function modeloEntidadSimple() {
+  const base = modeloTransicionEstadosSinEnlaces();
+  base.modelo.estados = {};
+  base.modelo.opds["opd-1"].apariencias["a-pedido"].width = 135;
+  base.modelo.opds["opd-1"].apariencias["a-pedido"].height = 60;
+  return base;
+}
+
+async function indiceVisualEstado(estado: Locator): Promise<string> {
+  const index = await estado.getAttribute("data-estado-index");
+  if (!index) throw new Error("Cápsula de estado sin data-estado-index");
+  return index;
 }

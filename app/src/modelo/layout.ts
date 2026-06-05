@@ -135,3 +135,13 @@ export function encajarAparienciaEnContorno(
     y: Math.round(Math.max(minY, Math.min(maxY, apariencia.y))),
   };
 }
+
+export function encajarCajaAparienciaEnContorno(
+  apariencia: { x: number; y: number; width: number; height: number },
+  contorno: { x: number; y: number; width: number; height: number },
+): { x: number; y: number; width: number; height: number } {
+  const width = Math.round(Math.min(apariencia.width, Math.max(1, contorno.width - 2 * CONTORNO_PAD_X)));
+  const height = Math.round(Math.min(apariencia.height, Math.max(1, contorno.height - CONTORNO_PAD_TOP - CONTORNO_PAD_BOTTOM)));
+  const posicion = encajarAparienciaEnContorno({ ...apariencia, width, height }, contorno);
+  return { ...posicion, width, height };
+}

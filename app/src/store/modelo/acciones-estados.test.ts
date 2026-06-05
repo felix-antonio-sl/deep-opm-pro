@@ -112,6 +112,15 @@ describe("acciones-estados — from-selection", () => {
     expect(store.getState().seleccionados).toEqual([estadoIds[0]!]);
   });
 
+  test("redimensionarEstadoEnCanvas persiste tamaño y posición local opcional", () => {
+    const { estadoIds } = sembrarObjetoCon3Estados();
+    store.getState().redimensionarEstadoEnCanvas(estadoIds[0]!, 92.2, 31.8, { x: 14.4, y: 49.1 });
+    const estado = store.getState().modelo.estados[estadoIds[0]!];
+    expect(estado).toMatchObject({ width: 92, height: 32, x: 14, y: 49 });
+    expect(store.getState().estadoSeleccionId).toBe(estadoIds[0]!);
+    expect(store.getState().seleccionados).toEqual([estadoIds[0]!]);
+  });
+
   test("designarBatch aplica designación a varios estados", () => {
     const { estadoIds } = sembrarObjetoCon3Estados();
     store.getState().designarBatch([estadoIds[0]!, estadoIds[1]!], "default");

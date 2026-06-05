@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260605T033130Z-9bc7e0",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-05T03:31:30.899Z",
+  "text": "cuando se intenta enlazar desde proceso a estado , la previsualización de texto OPL no es correcta, aunque el opl que se crea finalmente si es el correcto",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo copia",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-9b8bf7d5-c054-4b87-b8dd-07b9f88bdd09",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 2133,
+      "height": 1070,
+      "devicePixelRatio": 0.8999999761581421
+    },
+    "capturedAt": "2026-06-05T03:31:28.287Z"
+  },
+  "screenshots": [
+    "screenshots/01-google-chrome-2026-06-04-23.30.18.png"
+  ]
+}

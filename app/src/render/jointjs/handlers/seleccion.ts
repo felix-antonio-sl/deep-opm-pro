@@ -12,6 +12,7 @@ import {
   paperOff,
   parteEntidadDesdeSelector,
   posicionCanvasDesdeEvento,
+  selectorEsAnchorConexion,
 } from "./helpers";
 
 /**
@@ -110,6 +111,7 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     }
     if (meta?.kind === "entidad") {
       const selector = jointSelector(evt.target);
+      if (selectorEsAnchorConexion(selector)) return;
       // Paquete "Estados ciudadanos de primera clase" (2026-05-23):
       // el check de cápsula precede al check de multi-evento sobre entidad.
       // Si el click impacta en una cápsula de estado, el flujo es del

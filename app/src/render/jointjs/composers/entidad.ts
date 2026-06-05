@@ -16,6 +16,7 @@ import type { JointCellJson, OpcionesProyeccion, RolApariencia } from "../proyec
 import { CODEX, colorEntidadCodex } from "../constantes.codex";
 import { colorTextoParaFill } from "./colores";
 import { dimensionesConEstados, ESTADOS, rectCapsulaEstadoLocal } from "./estados";
+import { puntoHandleEstado } from "../handlers/estadoGeometry";
 import { attrsPlegadoParcial, dimensionesPlegadoParcial, markupPlegadoParcial, selectoresPartesPlegadas, textoFilaPlegado, PLEGADO } from "./plegado";
 
 /**
@@ -596,25 +597,22 @@ export function markupConEstados(
   estadosSeleccionados: readonly Estado[] = [],
 ): Array<Record<string, unknown>> {
   const seleccionados = new Set(estadosSeleccionados.map((estado) => estado.id));
-  const capsulas = estados.flatMap((_, index) => [
+  const capsulas = estados.flatMap((estado, index) => [
     { tagName: "rect", selector: `stateCapsule${index}` },
     { tagName: "rect", selector: `stateFinalInner${index}` },
     { tagName: "text", selector: `stateLabel${index}` },
     { tagName: "text", selector: `stateDefaultMarker${index}` },
     { tagName: "text", selector: `stateCurrentMarker${index}` },
     ...ANCLAS_RELOJ_ENLACE.map((anchor) => ({ tagName: "circle", selector: selectorAnchorEstado(index, anchor) })),
-  ]);
-  const resizeEstados = estados.flatMap((estado, index) => (
-    seleccionados.has(estado.id)
+    ...(seleccionados.has(estado.id)
       ? RESIZE_HANDLES.map((handle) => ({ tagName: "rect", selector: `resize-state${index}-${handle}` }))
-      : []
-  ));
+      : []),
+  ]);
   return [
     { tagName: bodyTag, selector: "body" },
     { tagName: "text", selector: "label" },
     { tagName: "text", selector: "index" },
     ...capsulas,
-    ...resizeEstados,
     ...(metadatos.foldBadge ? [{ tagName: "text", selector: "foldBadge" }] : []),
     ...(metadatos.descripcion ? [{ tagName: "text", selector: "descBadge" }] : []),
     ...(metadatos.url ? [{
@@ -693,7 +691,7 @@ export function attrsConEstados(
       stroke: CODEX.colores.opmEstado,
       strokeWidth: designaciones.includes("inicial") ? 3 : CODEX.strokes.estado,
       pointerEvents: "auto",
-      cursor: "crosshair",
+      cursor: "grab",
       // Paquete "Estados ciudadanos de primera clase" (2026-05-23): los
       // estados son ciudadanos visualmente identificables en la cápsula.
       // El CSS (jointjs.css) reacciona a estos atributos para hover/focus/
@@ -703,6 +701,7 @@ export function attrsConEstados(
       "data-estado-id": estado.id,
       "data-estado-index": String(index),
       "data-cap-rol": "estado",
+      "data-selected": seleccionados.has(estado.id) ? "true" : undefined,
     };
     attrs[`stateFinalInner${index}`] = {
       x: x + 3,
@@ -730,7 +729,7 @@ export function attrsConEstados(
       textVerticalAnchor: "middle",
       textWrap: { width: width - ESTADOS.paddingHorizontal * 2, height: height - 4, ellipsis: false },
       pointerEvents: "auto",
-      cursor: "crosshair",
+      cursor: "grab",
     };
     attrs[`stateDefaultMarker${index}`] = {
       text: "↗",
@@ -770,10 +769,7 @@ export function attrsConEstados(
     }
     if (seleccionados.has(estado.id)) {
       for (const handle of RESIZE_HANDLES) {
-        attrs[`resize-state${index}-${handle}`] = attrsResizeHandle(
-          { x: x + puntoResizeHandle({ width, height }, handle).x, y: y + puntoResizeHandle({ width, height }, handle).y },
-          cursorResize(handle),
-        );
+        attrs[`resize-state${index}-${handle}`] = attrsResizeHandle(puntoHandleEstado({ x, y, width, height }, handle), cursorResize(handle));
       }
     }
   }

@@ -1,4 +1,4 @@
-import { contenedorRefinamiento, encajarAparienciaEnContorno } from "../layout";
+import { contenedorRefinamiento, encajarAparienciaEnContorno, encajarCajaAparienciaEnContorno } from "../layout";
 import { CANON } from "../constantes";
 import { formatearNombreCompuesto } from "../objetoMetadata";
 import { mismosAnclajesSimbolo, normalizarAnclajesSimbolo } from "../simboloEstructural";
@@ -100,10 +100,20 @@ export function redimensionarApariencia(
   if (!apariencia) return fallo(`Apariencia no existe: ${aparienciaId}`);
   if (!Number.isFinite(width) || !Number.isFinite(height)) return fallo("Tamaño inválido");
 
-  const siguienteWidth = Math.round(Math.max(RESIZE_MIN.width, width));
-  const siguienteHeight = Math.round(Math.max(RESIZE_MIN.height, height));
-  const siguienteX = Math.round(posicion?.x ?? apariencia.x);
-  const siguienteY = Math.round(posicion?.y ?? apariencia.y);
+  const contorno = contenedorRefinamiento(modelo, opdId);
+  const cajaSolicitada = {
+    x: Math.round(posicion?.x ?? apariencia.x),
+    y: Math.round(posicion?.y ?? apariencia.y),
+    width: Math.round(Math.max(RESIZE_MIN.width, width)),
+    height: Math.round(Math.max(RESIZE_MIN.height, height)),
+  };
+  const caja = contorno && contorno.id !== aparienciaId && aparienciaEsInternaDeRefinamiento(modelo, opdId, apariencia)
+    ? encajarCajaAparienciaEnContorno(cajaSolicitada, contorno)
+    : cajaSolicitada;
+  const siguienteWidth = caja.width;
+  const siguienteHeight = caja.height;
+  const siguienteX = caja.x;
+  const siguienteY = caja.y;
   if (
     apariencia.width === siguienteWidth &&
     apariencia.height === siguienteHeight &&
