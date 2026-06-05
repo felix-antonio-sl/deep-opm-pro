@@ -2,9 +2,10 @@ import { tieneDesignacion } from "../estadosDesignaciones";
 import { entidadIdDeExtremo } from "../extremos";
 import { rutaEtiquetaNormalizada } from "../rutas";
 import type { Id, Modelo } from "../tipos";
-import type { ContextoSimulacion, PasoSimulacion, TransicionEstadoSim } from "./tipos";
+import type { ContextoSimulacion, EntradaTraceSim, PasoSimulacion, TransicionEstadoSim } from "./tipos";
 
 export interface FocoPasoSimulacion {
+  fase: "inactivo" | "inicio" | "paso" | "final";
   paso: PasoSimulacion | null;
   procesoActivoId: Id | null;
   entidadesInvolucradasIds: Id[];
@@ -14,28 +15,65 @@ export interface FocoPasoSimulacion {
 }
 
 export function focoPasoActualSimulacion(modelo: Modelo, contexto: ContextoSimulacion | null): FocoPasoSimulacion {
-  const paso = contexto && contexto.pasoActual < contexto.plan.length
-    ? contexto.plan[contexto.pasoActual] ?? null
-    : null;
-  if (!contexto || !paso) {
+  if (!contexto || contexto.plan.length === 0) {
+    return focoVacio("inactivo");
+  }
+
+  if (contexto.estado === "completado" || contexto.pasoActual >= contexto.plan.length) {
+    const ultimaEntrada = contexto.trace.at(-1);
+    const pasoFinal = pasoDeEntrada(contexto, ultimaEntrada) ?? contexto.plan.at(-1) ?? null;
+    if (!pasoFinal) return focoVacio("final");
+    const entidadesFinalesIds = entidadesFinales(modelo, pasoFinal, ultimaEntrada);
     return {
-      paso: null,
+      fase: "final",
+      paso: pasoFinal,
       procesoActivoId: null,
-      entidadesInvolucradasIds: [],
+      entidadesInvolucradasIds: entidadesFinalesIds,
       enlacesInvolucradosIds: [],
       estadosOrigenIds: [],
+      estadosResultadoIds: estadosFinales(contexto, entidadesFinalesIds, ultimaEntrada),
+    };
+  }
+
+  const paso = contexto.plan[contexto.pasoActual] ?? null;
+  if (!paso) return focoVacio("inactivo");
+
+  if (contexto.estado === "preparado" && contexto.trace.length === 0) {
+    const transicionesActivas = transicionesActivasEnPaso(paso, contexto.estadosCurrent);
+    const entidadesInicioIds = entidadesEntradaEnPaso(modelo, paso, transicionesActivas);
+    return {
+      fase: "inicio",
+      paso,
+      procesoActivoId: null,
+      entidadesInvolucradasIds: entidadesInicioIds,
+      enlacesInvolucradosIds: [],
+      estadosOrigenIds: unirIds(idsEstadosOrigen(transicionesActivas), estadosCurrentDeEntidades(contexto, entidadesInicioIds)),
       estadosResultadoIds: [],
     };
   }
+
   const transicionesActivas = transicionesActivasEnPaso(paso, contexto.estadosCurrent);
 
   return {
+    fase: "paso",
     paso,
     procesoActivoId: paso.procesoId,
     entidadesInvolucradasIds: entidadesInvolucradasEnPaso(modelo, paso, contexto.estadosCurrent),
     enlacesInvolucradosIds: enlacesInvolucradosEnPaso(modelo, paso, contexto.estadosCurrent),
     estadosOrigenIds: idsEstadosOrigen(transicionesActivas),
     estadosResultadoIds: idsEstadosResultado(transicionesActivas),
+  };
+}
+
+function focoVacio(fase: FocoPasoSimulacion["fase"]): FocoPasoSimulacion {
+  return {
+    fase,
+    paso: null,
+    procesoActivoId: null,
+    entidadesInvolucradasIds: [],
+    enlacesInvolucradosIds: [],
+    estadosOrigenIds: [],
+    estadosResultadoIds: [],
   };
 }
 
@@ -88,6 +126,67 @@ export function entidadesInvolucradasEnPaso(modelo: Modelo, paso: PasoSimulacion
   return Array.from(ids);
 }
 
+function entidadesEntradaEnPaso(
+  modelo: Modelo,
+  paso: PasoSimulacion,
+  transicionesActivas: readonly TransicionEstadoSim[],
+): Id[] {
+  const ids = new Set<Id>();
+  for (const transicion of transicionesActivas) {
+    if (transicion.estadoAntesId !== null) ids.add(transicion.entidadId);
+  }
+  for (const enlaceId of paso.enlacesEntradaIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    const entidadId = enlace ? entidadIdDeExtremo(modelo, enlace.origenId) : null;
+    if (entidadId) ids.add(entidadId);
+  }
+  return Array.from(ids);
+}
+
+function entidadesFinales(
+  modelo: Modelo,
+  paso: PasoSimulacion,
+  ultimaEntrada: EntradaTraceSim | undefined,
+): Id[] {
+  const ids = new Set<Id>();
+  for (const transicion of ultimaEntrada?.transicionesAplicadas ?? []) {
+    if (transicion.estadoDespuesId !== null) ids.add(transicion.entidadId);
+  }
+  for (const enlaceId of paso.enlacesSalidaIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    const entidadId = enlace ? entidadIdDeExtremo(modelo, enlace.destinoId) : null;
+    if (entidadId) ids.add(entidadId);
+  }
+  return Array.from(ids);
+}
+
+function estadosFinales(
+  contexto: ContextoSimulacion,
+  entidadesFinalesIds: readonly Id[],
+  ultimaEntrada: EntradaTraceSim | undefined,
+): Id[] {
+  const ids = new Set<Id>();
+  for (const transicion of ultimaEntrada?.transicionesAplicadas ?? []) {
+    if (transicion.estadoDespuesId !== null) ids.add(transicion.estadoDespuesId);
+  }
+  for (const entidadId of entidadesFinalesIds) {
+    const estadoCurrentId = contexto.estadosCurrent[entidadId];
+    if (estadoCurrentId) ids.add(estadoCurrentId);
+  }
+  return Array.from(ids);
+}
+
+function estadosCurrentDeEntidades(contexto: ContextoSimulacion, entidadesIds: readonly Id[]): Id[] {
+  return entidadesIds
+    .map((entidadId) => contexto.estadosCurrent[entidadId])
+    .filter((estadoId): estadoId is Id => Boolean(estadoId));
+}
+
+function pasoDeEntrada(contexto: ContextoSimulacion, entrada: EntradaTraceSim | undefined): PasoSimulacion | null {
+  if (!entrada) return null;
+  return contexto.plan.find((paso) => paso.opdId === entrada.opdId && paso.procesoId === entrada.procesoId) ?? null;
+}
+
 function transicionesActivasEnPaso(paso: PasoSimulacion, estadosCurrent: Record<Id, Id>): TransicionEstadoSim[] {
   const grupos = new Map<Id, TransicionEstadoSim[]>();
   for (const transicion of paso.transicionesPlanificadas) {
@@ -125,4 +224,8 @@ function idsEstadosResultado(transiciones: readonly TransicionEstadoSim[]): Id[]
       .map((transicion) => transicion.estadoDespuesId)
       .filter((estadoId): estadoId is Id => estadoId !== null),
   ));
+}
+
+function unirIds(...listas: readonly Id[][]): Id[] {
+  return Array.from(new Set(listas.flat()));
 }

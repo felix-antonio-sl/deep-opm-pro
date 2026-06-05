@@ -44,11 +44,11 @@ test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page })
   const primeraVez = page.getByTestId("barra-simulacion-proceso-activo");
   await expect(primeraVez).toContainText(/Recibir|Atender/);
 
-  // Halo crimson dashed sobre el proceso activo en el canvas.
-  const haloProceso = await page.evaluate(() => {
+  // Marco inicial: al entrar todavía no hay proceso activo en canvas.
+  const haloProcesoInicial = await page.evaluate(() => {
     return document.querySelectorAll('[model-id^="sim-proceso-"]').length;
   });
-  expect(haloProceso).toBe(1);
+  expect(haloProcesoInicial).toBe(0);
 
   // Ejecutar Paso -> avanza a paso 2 de 2 con el OTRO proceso.
   await page.getByTestId("barra-simulacion-paso").click();
@@ -174,8 +174,8 @@ test("simulacion: headless corre sin animacion hasta completar", async ({ page }
   expect(pageErrors).toEqual([]);
 });
 
-// B0.025: resaltado OPL del proceso activo (data-sim-activa).
-test("simulacion: OPL resalta la frase del proceso activo", async ({ page }) => {
+// B0.025: el marco inicial no marca OPL como proceso activo.
+test("simulacion: marco inicial no resalta frase OPL como proceso activo", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -187,12 +187,7 @@ test("simulacion: OPL resalta la frase del proceso activo", async ({ page }) => 
   await page.keyboard.press("Enter");
 
   await entrarSimulacionDesdeMas(page);
-  await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Recibir");
-
-  // Canon OPL vigente: una entidad genera UNA frase de designacion combinada
-  // ("*Recibir* es un proceso informacional y sistemico.", cf. fixtures-roundtrip).
-  // Un proceso solo => 1 frase lo toca => 1 linea con data-sim-activa.
-  await expect(page.locator('[data-testid="opl-line"][data-sim-activa="true"]')).toHaveCount(1);
+  await expect(page.locator('[data-testid="opl-line"][data-sim-activa="true"]')).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });
@@ -233,11 +228,16 @@ test("simulacion: estados, enlaces y tokens se activan visualmente en el canvas"
   await page.goto("/");
   await esperarWorkbenchInicial(page);
 
-  await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstadosVisual(), null, 2));
+  await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstadosDosPasosVisual(), null, 2));
   await page.getByRole("button", { name: "Importar" }).click();
 
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Aprobar");
+  await expect.poll(async () => page.evaluate(
+    () => document.querySelectorAll('[data-opm-sim-token="viaje"]').length,
+  ), { timeout: 500 }).toBe(0);
+  await page.getByTestId("barra-simulacion-paso").click();
+  await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Archivar");
   await expect.poll(async () => page.evaluate(
     () => document.querySelectorAll('[data-opm-sim-token="viaje"]').length,
   ), { timeout: 1500 }).toBeGreaterThan(0);
@@ -328,6 +328,58 @@ function modeloTransicionEstadosVisual() {
     ...payload.modelo.estados["s-pendiente"],
     esInicial: true,
     designaciones: ["inicial"],
+  };
+  return payload;
+}
+
+function modeloTransicionEstadosDosPasosVisual() {
+  const payload = modeloTransicionEstadosVisual();
+  payload.modelo.entidades["p-archivar"] = {
+    id: "p-archivar",
+    tipo: "proceso",
+    nombre: "Archivar",
+    esencia: "informacional",
+    afiliacion: "sistemica",
+  };
+  payload.modelo.estados["s-archivado"] = {
+    id: "s-archivado",
+    entidadId: "o-pedido",
+    nombre: "archivado",
+  };
+  payload.modelo.enlaces["e-consumo-archivar"] = {
+    id: "e-consumo-archivar",
+    tipo: "consumo",
+    origenId: { kind: "estado", id: "s-aprobado" },
+    destinoId: { kind: "entidad", id: "p-archivar" },
+    etiqueta: "",
+  };
+  payload.modelo.enlaces["e-resultado-archivar"] = {
+    id: "e-resultado-archivar",
+    tipo: "resultado",
+    origenId: { kind: "entidad", id: "p-archivar" },
+    destinoId: { kind: "estado", id: "s-archivado" },
+    etiqueta: "",
+  };
+  payload.modelo.opds["opd-1"].apariencias["a-archivar"] = {
+    id: "a-archivar",
+    entidadId: "p-archivar",
+    opdId: "opd-1",
+    x: 500,
+    y: 220,
+    width: 135,
+    height: 60,
+  };
+  payload.modelo.opds["opd-1"].enlaces["ae-consumo-archivar"] = {
+    id: "ae-consumo-archivar",
+    enlaceId: "e-consumo-archivar",
+    opdId: "opd-1",
+    vertices: [],
+  };
+  payload.modelo.opds["opd-1"].enlaces["ae-resultado-archivar"] = {
+    id: "ae-resultado-archivar",
+    enlaceId: "e-resultado-archivar",
+    opdId: "opd-1",
+    vertices: [],
   };
   return payload;
 }

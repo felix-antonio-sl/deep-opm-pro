@@ -205,15 +205,15 @@ export function BarraSimulacion(): JSX.Element | null {
       {/* Timeline: marcos navegables (scrubbing) */}
       {!sinProcesos && totalPasos <= 30 ? (
         <div style={s.timeline} data-testid="barra-simulacion-timeline">
-          {Array.from({ length: Math.max(1, totalPasos) }, (_, i) => (
+          {Array.from({ length: totalPasos + 1 }, (_, i) => (
             <button
               key={i}
               type="button"
               style={{ ...s.marco, ...(i === ejecutados ? s.marcoActual : {}) }}
               onClick={() => handleScrub(i)}
-              title={`Ir al paso ${i === 0 ? "inicial" : i}`}
+              title={i === 0 ? "Ir al estado inicial" : i === totalPasos ? "Ir a la situación final" : `Ir al paso ${i}`}
             >
-              {i === 0 ? "ini" : i}
+              {i === 0 ? "ini" : i === totalPasos ? "fin" : i}
             </button>
           ))}
         </div>

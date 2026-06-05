@@ -39,13 +39,39 @@ describe("estadosInicialesDelModelo", () => {
 });
 
 describe("focoPasoActualSimulacion — rutas de transición", () => {
+  test("representa frame visual de inicio y final en una simulacion objeto-proceso-objeto", () => {
+    let modelo = crearModelo("Inicio final");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 60, y: 80 }, "O"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 140 }, "P"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 480, y: 80 }, "B"));
+    const origenId = entidadPorNombre(modelo, "O");
+    const procesoId = entidadPorNombre(modelo, "P");
+    const resultadoId = entidadPorNombre(modelo, "B");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(origenId), extremoEntidad(procesoId), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(procesoId), extremoEntidad(resultadoId), "resultado"));
+
+    const inicio = iniciarSimulacion(modelo, modelo.opdRaizId);
+    const focoInicio = focoPasoActualSimulacion(modelo, inicio);
+    const completado = ejecutarPaso(modelo, inicio);
+    const focoFinal = focoPasoActualSimulacion(modelo, completado);
+
+    expect(focoInicio.fase).toBe("inicio");
+    expect(focoInicio.procesoActivoId).toBeNull();
+    expect(focoInicio.entidadesInvolucradasIds).toEqual([origenId]);
+    expect(focoInicio.enlacesInvolucradosIds).toEqual([]);
+    expect(focoFinal.fase).toBe("final");
+    expect(focoFinal.procesoActivoId).toBeNull();
+    expect(focoFinal.entidadesInvolucradasIds).toEqual([resultadoId]);
+    expect(focoFinal.enlacesInvolucradosIds).toEqual([]);
+  });
+
   test("en simulación resalta solo los enlaces de la ruta compatible con el current", () => {
     const { modelo, aguaId, solidificadaId, liquidaId, gaseosaId, solLiqIds, liqGasIds } = modeloRutasAgua();
     const contexto = iniciarSimulacion(modelo, modelo.opdRaizId);
     expect(contexto.plan).toHaveLength(2);
     expect(contexto.estadosCurrent[aguaId]).toBe(solidificadaId);
 
-    const focoSolida = focoPasoActualSimulacion(modelo, contexto);
+    const focoSolida = focoPasoActualSimulacion(modelo, { ...contexto, estado: "ejecutando" });
     const focoLiquida = focoPasoActualSimulacion(modelo, ejecutarPaso(modelo, contexto));
 
     expect([...focoSolida.enlacesInvolucradosIds].sort()).toEqual([...solLiqIds].sort());

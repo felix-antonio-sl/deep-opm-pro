@@ -239,14 +239,15 @@ export function proyectarModeloAJointCells(
           cells.push(proyectarHaloSimulacionProceso(modeloRender, opdId, apariencia, entidad, opcionesRender));
         }
         const currentId = simulacion.estadosCurrent[entidad.id];
-        if (currentId && entidad.tipo === "objeto" && entidadesInvolucradasSim.has(entidad.id)) {
+        const currentEsResultadoFinal = simulacion.procesoActivoId === null && currentId !== undefined && estadosResultadoSim.has(currentId);
+        if (currentId && entidad.tipo === "objeto" && entidadesInvolucradasSim.has(entidad.id) && !currentEsResultadoFinal) {
           const estado = modeloRender.estados[currentId];
           if (estado) cells.push(proyectarHaloSimulacionEstadoCurrent(modeloRender, opdId, apariencia, entidad, estado));
         }
         if (entidad.tipo === "objeto") {
           for (const estadoResultadoId of estadosResultadoSim) {
             const estado = modeloRender.estados[estadoResultadoId];
-            if (!estado || estado.entidadId !== entidad.id || estado.id === currentId) continue;
+            if (!estado || estado.entidadId !== entidad.id || (estado.id === currentId && !currentEsResultadoFinal)) continue;
             cells.push(proyectarHaloSimulacionEstadoResultado(modeloRender, opdId, apariencia, entidad, estado));
           }
         }

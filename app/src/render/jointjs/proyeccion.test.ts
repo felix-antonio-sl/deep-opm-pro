@@ -289,6 +289,40 @@ describe("proyeccion JointJS", () => {
     }
   });
 
+  test("simulacion final: un estado resultante que ya es current conserva halo de resultado", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 40 }, "Pedido"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [, aprobadoId] = estados.estadoIds;
+
+    const cells = proyectarModeloAJointCells(
+      modelo,
+      modelo.opdRaizId,
+      null,
+      null,
+      null,
+      [],
+      {},
+      {
+        procesoActivoId: null,
+        estadosCurrent: { [pedidoId]: aprobadoId },
+        entidadesInvolucradasIds: [pedidoId],
+        enlacesInvolucradosIds: [],
+        estadosResultadoIds: [aprobadoId],
+      },
+    );
+
+    const currentHalo = cells.find((item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "estado-current");
+    const resultadoHalo = cells.find((item) => item.opm.kind === "simulacion-halo" && item.opm.tipo === "estado-resultado");
+    const resultadoBody = (resultadoHalo?.attrs as Attrs | undefined)?.body as Attrs | undefined;
+
+    expect(currentHalo).toBeUndefined();
+    expect(resultadoHalo).toBeDefined();
+    expect(resultadoBody?.["data-opm-sim"]).toBe("state-result");
+  });
+
   test("preserva dash de afiliacion ambiental con color canonico", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Ambiente"));
