@@ -4,6 +4,7 @@
 **Estado:** contrato operativo inicial, sin cambio de producto.
 **Autoridad inmediata:** P3 ratificado por Felix en `docs/HANDOFF.md` y `docs/roadmap/backlog-contingencial.md` (`P3-NORMALIZAR-PROTO`).
 **Artefacto relacionado:** `docs/proto-modelo/gramatica-subdialecto-v0.md` § Familia V.
+**Ledger F1:** `docs/proto-modelo/ledger-familia-v-skill.md`.
 
 ## Decisión
 
@@ -39,7 +40,7 @@ Lectura categorial usada solo como heurística de ingeniería: el compilador deb
 | Fase | Objetivo | Salida |
 |---|---|---|
 | F0 | Publicar este contrato | Documento versionado y handoff actualizado |
-| F1 | Inventariar `V1`..`V17` como ledger skill-side | Tabla por regla: superficie, decisión semántica, salida E2 esperada, fixture positivo/negativo |
+| F1 | Inventariar `V1`..`V17` como ledger skill-side | **CERRADO:** `docs/proto-modelo/ledger-familia-v-skill.md` |
 | F2 | Agregar fixtures de equivalencia | Pares `proto laxo familia-V` → `proto E2 estricto` y resultado HODOM equivalente, sin cambiar comportamiento del compilador |
 | F3 | Instrumentar modo auditoría | Conteo `usoFamiliaV` por compilación/reporte; default no bloqueante |
 | F4 | Migrar pilotos a proto E2 | HODOM y segundo dominio compilan con `usoFamiliaV == 0` en modo auditoría |
@@ -97,4 +98,4 @@ Con cambios al compilador o fixtures:
 
 ## Prompt breve de continuación
 
-Retomar desde `docs/proto-modelo/contrato-migracion-familia-v-skill.md`. F0 está documentada: `mapearFamiliaV()` sigue como adaptador legacy, pero P3 manda que léxico abierto y estándar normativo vivan en `modelamiento-opm` E2 (`normalizar-proto`). Siguiente paso: F1, inventariar `V1`..`V17` como ledger skill-side con superficie, salida E2 esperada, fixtures positivos/negativos y criterio de retiro; no tocar default del compilador hasta tener HODOM/segundo dominio equivalentes y byte-identidad verde.
+Retomar desde `docs/proto-modelo/ledger-familia-v-skill.md`. F1 está documentada: cada `V1`..`V17` tiene superficie legacy, salida E2 esperada, fixture positivo/negativo y criterio de retiro. Siguiente paso: F2, convertir esos fixtures documentales en pares ejecutables laxo→E2 y medir equivalencia contra HODOM/segundo dominio; no tocar default del compilador hasta auditoría `usoFamiliaV == 0`, byte-identidad verde y re-pin si aplica.
