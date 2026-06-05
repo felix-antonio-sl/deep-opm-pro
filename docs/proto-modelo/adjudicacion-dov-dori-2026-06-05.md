@@ -728,6 +728,43 @@ el operador decida y la mecánica (compilador / skill `modelamiento-opm`) ejecut
 
 ---
 
+## §5 · Addendum de ratificación P3 — frontera skill/compilador
+
+**Ratificación del operador (2026-06-05):** Felix ratifica P3 y añade una
+precisión vinculante: **llevar lo normativo a estándar también es responsabilidad
+de la skill**. No queda como tarea del compilador.
+
+**Decisión operativa.** La skill `modelamiento-opm`, en E0-E2 y fuera de la app,
+debe:
+
+1. normalizar el léxico abierto de dominio hacia OPL-ES estricto;
+2. identificar referencias normativas por forma/localizador, no por enum de
+   cuerpos normativos;
+3. estandarizar cada referencia normativa en el proto con `cuerpo normativo`,
+   `localizador`, `artículos/sección`, `target`, `claveProto`, `estado` y
+   `nivelAutoridad` cuando aplique;
+4. emitir ledger de normalización y devolver al operador cualquier barro
+   normativo que no pueda confirmar;
+5. dejar el proto listo para que `autoria/compilar` verifique, no para que
+   adivine.
+
+**Frontera dura.** El compilador sigue siendo determinista: verifica OPL-ES
+estricto, rechaza con diagnóstico, emite `deep-opm-pro.modelo.v0`, preserva
+byte-identidad y porta el sello L6. No aprende verbos de dominio, no inventa
+procedencia jurídica y no convierte citas ambiguas en `AnclaNormativa` vigente.
+
+**Lectura categorial (heurística, no norma OPM).** La traducción compilador
+proto→bundle se mantiene como funtor de preservación: debe conservar identidad y
+composición de los hechos (`urn:fxsl:kb:icas-preservacion`). El LLM/skill queda
+aguas arriba como normalizador-proponente de superficie abierta. No se afirma
+teorema de adjunción; es la lectura más débil que conserva la garantía
+verificable.
+
+**Cambio aplicado en KORA/local:** `modelamiento-opm` v1.5.2 agrega el estado
+`normalizar-proto`, reglas P3 y protocolo de estandarización normativa E2.
+
+---
+
 *Fin de la adjudicación. dov-dori — persona sintética; los juicios OPM se anclan a
 `urn:fxsl:kb:reglas-opm-estrictas-es` y `urn:fxsl:kb:spec-forja-opl-es` (KORA), y a
 las actas y diseños citados del repo. La verdad del dominio (qué dice realmente la
