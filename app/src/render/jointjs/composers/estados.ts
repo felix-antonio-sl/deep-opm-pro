@@ -1,4 +1,5 @@
 import { CANON } from "../../../modelo/constantes";
+import { nombreCanonicoEstado } from "../../../modelo/nombresCanonicos";
 import { formatearNombreCompuesto } from "../../../modelo/objetoMetadata";
 import { estadosDeEntidad } from "../../../modelo/operaciones";
 import { modoPlegadoApariencia } from "../../../modelo/plegado";
@@ -12,7 +13,7 @@ import type { Apariencia, Entidad, Estado, Id, Modelo, Posicion } from "../../..
 export function dimensionesConEstados(apariencia: Apariencia, nombre: string, estados: Estado[], layout: Entidad["layoutEstados"]): { width: number; height: number } {
   // Pasa el Estado completo (no solo el nombre) para que la compensacion de
   // designacion inicial/final participe del calculo (BUG-7ae086).
-  const capsulas = estados.map((estado) => anchoCapsulaEstado(estado));
+  const capsulas = estados.map((estado) => anchoCapsulaEstado(estadoRenderCanonico(estado)));
   const altos = estados.map(altoCapsulaEstado);
   const vertical = layout === "vertical";
   const anchoEstados = vertical
@@ -21,8 +22,15 @@ export function dimensionesConEstados(apariencia: Apariencia, nombre: string, es
   const altoEstados = vertical
     ? altos.reduce((total, alto) => total + alto, 0) + Math.max(0, altos.length - 1) * ESTADOS.gap
     : Math.max(ESTADOS.regionHeight, Math.max(...altos, ESTADOS.capsuleHeight) + ESTADOS.paddingBottom + 4);
-  const width = Math.max(apariencia.width, CANON.dims.cosaWidth, nombre.length * 7 + 24, anchoEstados + ESTADOS.paddingX * 2);
-  const height = Math.max(apariencia.height, CANON.dims.cosaHeight + altoEstados + ESTADOS.paddingBottom);
+  const boundsManuales = boundsEstadosManuales(estados);
+  const width = Math.max(
+    apariencia.width,
+    CANON.dims.cosaWidth,
+    nombre.length * 7 + 24,
+    anchoEstados + ESTADOS.paddingX * 2,
+    boundsManuales.width,
+  );
+  const height = Math.max(apariencia.height, CANON.dims.cosaHeight + altoEstados + ESTADOS.paddingBottom, boundsManuales.height);
   return { width, height };
 }
 
@@ -66,9 +74,27 @@ export function rectCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estado
   const index = estados.findIndex((item) => item.id === estadoId);
   if (index < 0) return null;
   const size = dimensionesConEstados(apariencia, formatearNombreCompuesto(entidad), estados, entidad.layoutEstados);
-  const anchos = estados.map(anchoCapsulaEstado);
+  const rect = rectCapsulaEstadoLocal(size, estados, entidad.layoutEstados, index);
+  if (!rect) return null;
+  return {
+    x: apariencia.x + rect.x,
+    y: apariencia.y + rect.y,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+export function rectCapsulaEstadoLocal(
+  size: { width: number; height: number },
+  estados: Estado[],
+  layout: Entidad["layoutEstados"],
+  index: number,
+): RectCapsulaEstado | null {
+  const estado = estados[index];
+  if (!estado) return null;
+  const anchos = estados.map((item) => anchoCapsulaEstado(estadoRenderCanonico(item)));
   const altos = estados.map(altoCapsulaEstado);
-  const vertical = entidad.layoutEstados === "vertical";
+  const vertical = layout === "vertical";
   const anchoActual = anchos[index] ?? ESTADOS.minWidth;
   const altoActual = altos[index] ?? ESTADOS.capsuleHeight;
   const anchoTotal = vertical
@@ -86,8 +112,8 @@ export function rectCapsulaEstado(modelo: Modelo, apariencia: Apariencia, estado
     ? yBase + altos.slice(0, index).reduce((total, alto) => total + alto + ESTADOS.gap, 0)
     : yBase;
   return {
-    x: apariencia.x + x,
-    y: apariencia.y + y,
+    x: typeof estado.x === "number" && Number.isFinite(estado.x) ? estado.x : x,
+    y: typeof estado.y === "number" && Number.isFinite(estado.y) ? estado.y : y,
     width: anchoActual,
     height: altoActual,
   };
@@ -123,6 +149,26 @@ export function selectorCapsulaEstado(
   const index = estados.findIndex((item) => item.id === estadoId);
   if (index < 0) return null;
   return { selector: `stateCapsule${index}` };
+}
+
+function estadoRenderCanonico(estado: Estado): Estado {
+  return { ...estado, nombre: nombreCanonicoEstado(estado) };
+}
+
+function boundsEstadosManuales(estados: Estado[]): { width: number; height: number } {
+  let width = 0;
+  let height = 0;
+  for (const estado of estados) {
+    const capsuleWidth = anchoCapsulaEstado(estadoRenderCanonico(estado));
+    const capsuleHeight = altoCapsulaEstado(estado);
+    if (typeof estado.x === "number" && Number.isFinite(estado.x)) {
+      width = Math.max(width, estado.x + capsuleWidth + ESTADOS.paddingX);
+    }
+    if (typeof estado.y === "number" && Number.isFinite(estado.y)) {
+      height = Math.max(height, estado.y + capsuleHeight + ESTADOS.paddingBottom);
+    }
+  }
+  return { width, height };
 }
 
 export const ESTADOS = {

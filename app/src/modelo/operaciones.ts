@@ -46,6 +46,7 @@ export {
   agregarEstado,
   renombrarEstado,
   eliminarEstado,
+  moverEstado,
   redimensionarEstado,
   quitarEstadosObjeto,
   designarEstadoInicial,

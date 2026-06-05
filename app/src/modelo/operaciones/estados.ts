@@ -190,6 +190,26 @@ export function redimensionarEstado(
   });
 }
 
+export function moverEstado(modelo: Modelo, estadoId: Id, x: number, y: number): Resultado<Modelo> {
+  const estado = modelo.estados?.[estadoId];
+  if (!estado) return fallo(`Estado no existe: ${estadoId}`);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return fallo("Posición de estado inválida");
+  const siguienteX = Math.round(x);
+  const siguienteY = Math.round(y);
+  if (estado.x === siguienteX && estado.y === siguienteY) return ok(modelo);
+  return ok({
+    ...modelo,
+    estados: {
+      ...(modelo.estados ?? {}),
+      [estadoId]: {
+        ...estado,
+        x: siguienteX,
+        y: siguienteY,
+      },
+    },
+  });
+}
+
 export function quitarEstadosObjeto(modelo: Modelo, entidadId: Id): Resultado<Modelo> {
   const entidad = modelo.entidades[entidadId];
   if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);

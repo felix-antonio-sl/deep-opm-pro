@@ -17,6 +17,7 @@ export interface ModelCommandPort {
   cancelarEnlace: OpmStore["cancelarEnlace"];
   redimensionarAparienciaEnCanvas: OpmStore["redimensionarAparienciaEnCanvas"];
   redimensionarEstadoEnCanvas: OpmStore["redimensionarEstadoEnCanvas"];
+  moverEstadoEnCanvas: OpmStore["moverEstadoEnCanvas"];
   reanclarExtremoAccion: OpmStore["reanclarExtremoAccion"];
   renombrarEntidadDesdeOpl: OpmStore["renombrarEntidadDesdeOpl"];
 }

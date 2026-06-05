@@ -15,7 +15,7 @@ import type { FilaPlegadoParcialExtendida } from "../plegadoNesting";
 import type { JointCellJson, OpcionesProyeccion, RolApariencia } from "../proyeccionTipos";
 import { CODEX, colorEntidadCodex } from "../constantes.codex";
 import { colorTextoParaFill } from "./colores";
-import { altoCapsulaEstado, anchoCapsulaEstado, dimensionesConEstados, ESTADOS } from "./estados";
+import { dimensionesConEstados, ESTADOS, rectCapsulaEstadoLocal } from "./estados";
 import { attrsPlegadoParcial, dimensionesPlegadoParcial, markupPlegadoParcial, selectoresPartesPlegadas, textoFilaPlegado, PLEGADO } from "./plegado";
 
 /**
@@ -671,22 +671,10 @@ export function attrsConEstados(
   };
   if (metadatos.foldBadge) attrs.foldBadge = attrsConBadge(attrsBase, size, metadatos).foldBadge;
   aplicarMetadatosAttrs(attrs, size, metadatos);
-  const vertical = layout === "vertical";
-  const anchos = estados.map((estado) => anchoCapsulaEstado({ ...estado, nombre: nombreCanonicoEstado(estado) }));
-  const altos = estados.map(altoCapsulaEstado);
-  const anchoTotal = vertical
-    ? Math.max(...anchos, ESTADOS.minWidth)
-    : anchos.reduce((total, ancho) => total + ancho, 0) + Math.max(0, anchos.length - 1) * ESTADOS.gap;
-  let x = (size.width - anchoTotal) / 2;
-  const altoTotal = vertical
-    ? altos.reduce((total, alto) => total + alto, 0) + Math.max(0, estados.length - 1) * ESTADOS.gap
-    : Math.max(...altos, ESTADOS.capsuleHeight);
-  let y = size.height - ESTADOS.paddingBottom - altoTotal;
-
   for (const [index, estado] of estados.entries()) {
-    const width = anchos[index] ?? ESTADOS.minWidth;
-    const height = altos[index] ?? ESTADOS.capsuleHeight;
-    if (vertical) x = (size.width - width) / 2;
+    const rect = rectCapsulaEstadoLocal(size, estados, layout, index);
+    if (!rect) continue;
+    const { x, y, width, height } = rect;
     const designaciones = designacionesEstado(estado);
     attrs[`stateCapsule${index}`] = {
       x,
@@ -788,8 +776,6 @@ export function attrsConEstados(
         );
       }
     }
-    if (vertical) y += height + ESTADOS.gap;
-    else x += width + ESTADOS.gap;
   }
   return attrs;
 }

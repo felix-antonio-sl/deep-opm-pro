@@ -102,6 +102,16 @@ describe("acciones-estados — from-selection", () => {
     expect(orden[2]).toBe(estadoIds[0]!);
   });
 
+  test("moverEstadoEnCanvas persiste posición local y selecciona el estado", () => {
+    const { estadoIds } = sembrarObjetoCon3Estados();
+    store.getState().moverEstadoEnCanvas(estadoIds[0]!, 34.2, 58.8);
+    const estado = store.getState().modelo.estados[estadoIds[0]!];
+    expect(estado?.x).toBe(34);
+    expect(estado?.y).toBe(59);
+    expect(store.getState().estadoSeleccionId).toBe(estadoIds[0]!);
+    expect(store.getState().seleccionados).toEqual([estadoIds[0]!]);
+  });
+
   test("designarBatch aplica designación a varios estados", () => {
     const { estadoIds } = sembrarObjetoCon3Estados();
     store.getState().designarBatch([estadoIds[0]!, estadoIds[1]!], "default");

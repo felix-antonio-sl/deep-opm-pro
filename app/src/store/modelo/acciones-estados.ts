@@ -12,6 +12,7 @@ import {
   agregarEstado,
   crearEstadosIniciales,
   eliminarEstado as eliminarEstadoOp,
+  moverEstado,
   quitarEstadosObjeto,
   redimensionarEstado,
   renombrarEstado,
@@ -236,6 +237,24 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
     redimensionarEstadoEnCanvas(estadoId, width, height) {
       const { modelo } = get();
       const resultado = redimensionarEstado(modelo, estadoId, width, height);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        estadoSeleccionId: estadoId,
+        seleccionados: [estadoId],
+        modoSeleccion: "simple",
+        modoEnlace: null,
+        mensaje: null,
+      });
+    },
+
+    moverEstadoEnCanvas(estadoId, x, y) {
+      const { modelo } = get();
+      const resultado = moverEstado(modelo, estadoId, x, y);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
         return;

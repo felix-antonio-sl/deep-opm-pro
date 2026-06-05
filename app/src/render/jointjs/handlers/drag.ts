@@ -11,7 +11,7 @@ import { ajustesPuertosConectadosDesdeLinkViews } from "../beautifyConnectedLink
 import { labelKeyDesdeJoint, posicionLabelDesdeJoint } from "../labelLayout";
 import type { OpmJointMetadata } from "../proyeccion";
 import { ordenarEnlacesEstructuralesConectados } from "../sortStructuralLinks";
-import { cellViewModel, graphEvents, jointSelector, metadata, paperOff, parteEntidadDesdeSelector } from "./helpers";
+import { cellViewModel, estadoDesdeSelector, graphEvents, jointSelector, metadata, paperOff, parteEntidadDesdeSelector, posicionCanvasDesdeEvento } from "./helpers";
 
 /**
  * Handlers de drag JointCanvas: pointerup para persistir movimiento de
@@ -34,6 +34,7 @@ export interface CablearDragArgs {
   modeloRef: { current: Modelo };
   opdActivoIdRef: { current: string };
   moverAparienciaConPuertosRef: { current: (aparienciaId: string, x: number, y: number, ajustes: AjustePuertoEnlace[]) => void };
+  moverEstadoEnCanvasRef: { current: (estadoId: string, x: number, y: number) => void };
   actualizarPosicionSimboloEstructuralRef: { current: (aparienciaEnlaceIds: string[], posicion: { x: number; y: number }) => void };
   actualizarPosicionLabelEnlaceRef: { current: (aparienciaEnlaceId: string, labelKey: string, posicion: { distance: number; offset?: number | { x: number; y: number }; angle?: number }) => void };
   actualizarVerticesEnlaceRef: { current: (aparienciaEnlaceId: string, vertices: { x: number; y: number }[]) => void };
@@ -50,6 +51,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     modeloRef,
     opdActivoIdRef,
     moverAparienciaConPuertosRef,
+    moverEstadoEnCanvasRef,
     actualizarPosicionSimboloEstructuralRef,
     actualizarPosicionLabelEnlaceRef,
     actualizarVerticesEnlaceRef,
@@ -57,18 +59,42 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     extraerParteDePlegadoRef,
     abrirRenombradoInlineRef,
   } = args;
-  const onElementPointerdown = (elementView: dia.ElementView) => {
+  let dragEstado: DragEstadoActivo | null = null;
+
+  const onElementPointerdown = (elementView: dia.ElementView, evt: dia.Event) => {
     if (sincronizandoRef.current) return;
     if (dragAnchorActivo(paper)) return;
     const model = cellViewModel(elementView);
     const meta = metadata(model);
     if (meta?.kind !== "entidad") return;
+    const selector = jointSelector(evt.target);
+    const estadoId = estadoDesdeSelector(meta, selector);
+    const selectorCapsula = selectorCapsulaDesdeSelector(selector);
+    if (estadoId && selectorCapsula) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      const element = model as dia.Element;
+      const attrs = rectSelector(element, selectorCapsula);
+      dragEstado = {
+        element,
+        estadoId,
+        selectorCapsula,
+        index: indiceEstadoDesdeSelector(selectorCapsula),
+        startPoint: posicionCanvasDesdeEvento(paper, evt),
+        startRect: attrs,
+      };
+      element.attr(selectorCapsula, { ...attrs, "data-dragging": "true" });
+      window.addEventListener("mousemove", onMouseMoveEstado);
+      window.addEventListener("mouseup", onMouseUpEstado);
+      return;
+    }
     quitarToolsPaper(paper);
   };
 
   const onElementPointerup = (elementView: dia.ElementView) => {
     if (sincronizandoRef.current) return;
     if (dragAnchorActivo(paper)) return;
+    if (dragEstado) return;
     const model = cellViewModel(elementView);
     const meta = metadata(model);
     if (meta?.kind === "grupo-enlaces" || (meta?.kind === "enlace" && meta.rolEstructural === "simbolo")) {
@@ -121,6 +147,29 @@ export function cablearDrag(args: CablearDragArgs): () => void {
   paper.on("element:pointerup", onElementPointerup);
   paper.on("element:pointerdblclick", onElementPointerdblclick);
   paper.on("element:pointerclick", onElementPointerclickRenombrado);
+
+  const onMouseMoveEstado = (event: MouseEvent) => {
+    if (!dragEstado) return;
+    event.preventDefault();
+    const rect = rectEstadoDesdeEvento(paper, dragEstado, event);
+    aplicarTraslacionEstadoLive(dragEstado.element, dragEstado.index, rect);
+  };
+
+  const onMouseUpEstado = (event: MouseEvent) => {
+    if (!dragEstado) return;
+    event.preventDefault();
+    const activo = dragEstado;
+    const rect = rectEstadoDesdeEvento(paper, activo, event);
+    aplicarTraslacionEstadoLive(activo.element, activo.index, rect);
+    activo.element.attr(activo.selectorCapsula, {
+      ...(activo.element.attr(activo.selectorCapsula) as Record<string, unknown> | undefined),
+      "data-dragging": undefined,
+    });
+    dragEstado = null;
+    window.removeEventListener("mousemove", onMouseMoveEstado);
+    window.removeEventListener("mouseup", onMouseUpEstado);
+    moverEstadoEnCanvasRef.current(activo.estadoId, rect.x, rect.y);
+  };
 
   let dragVerticeActivo = false;
   const verticesPendientes = new Map<string, { x: number; y: number }[]>();
@@ -204,6 +253,8 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     paperOff(paper, "element:pointerup", onElementPointerup as (...args: never[]) => void);
     paperOff(paper, "element:pointerdblclick", onElementPointerdblclick as (...args: never[]) => void);
     paperOff(paper, "element:pointerclick", onElementPointerclickRenombrado as (...args: never[]) => void);
+    window.removeEventListener("mousemove", onMouseMoveEstado);
+    window.removeEventListener("mouseup", onMouseUpEstado);
     paperEl.removeEventListener("pointerdown", onPaperPointerdown, true);
     window.removeEventListener("pointerup", finalizarDragVertice, true);
     window.removeEventListener("pointercancel", finalizarDragVertice, true);
@@ -212,6 +263,116 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     // se destruye junto con el paper en el cleanup del componente; los
     // closures quedan recolectables.
   };
+}
+
+interface DragEstadoActivo {
+  element: dia.Element;
+  estadoId: string;
+  selectorCapsula: string;
+  index: number;
+  startPoint: { x: number; y: number };
+  startRect: { x: number; y: number; width: number; height: number };
+}
+
+function selectorCapsulaDesdeSelector(selector: string | null): string | null {
+  if (!selector) return null;
+  const match = /^(stateCapsule|stateLabel|stateFinalInner|stateDefaultMarker|stateCurrentMarker)(\d+)$/.exec(selector);
+  if (match) return `stateCapsule${match[2]}`;
+  const anchorMatch = /^connect-anchor-[a-z]+-state(\d+)$/.exec(selector);
+  return anchorMatch ? `stateCapsule${anchorMatch[1]}` : null;
+}
+
+function indiceEstadoDesdeSelector(selectorCapsula: string): number {
+  return Number.parseInt(selectorCapsula.replace("stateCapsule", ""), 10);
+}
+
+function rectSelector(element: dia.Element, selector: string): { x: number; y: number; width: number; height: number } {
+  const attrs = (element.attr(selector) as { x?: number; y?: number; width?: number; height?: number } | undefined) ?? {};
+  return {
+    x: Number.isFinite(attrs.x) ? Number(attrs.x) : 0,
+    y: Number.isFinite(attrs.y) ? Number(attrs.y) : 0,
+    width: Number.isFinite(attrs.width) ? Number(attrs.width) : 52,
+    height: Number.isFinite(attrs.height) ? Number(attrs.height) : 24,
+  };
+}
+
+function rectEstadoDesdeEvento(
+  paper: dia.Paper,
+  activo: DragEstadoActivo,
+  event: MouseEvent,
+): { x: number; y: number; width: number; height: number } {
+  const punto = posicionCanvasDesdeEvento(paper, event as unknown as dia.Event);
+  return {
+    x: Math.round(activo.startRect.x + punto.x - activo.startPoint.x),
+    y: Math.round(activo.startRect.y + punto.y - activo.startPoint.y),
+    width: activo.startRect.width,
+    height: activo.startRect.height,
+  };
+}
+
+function aplicarTraslacionEstadoLive(
+  element: dia.Element,
+  index: number,
+  rect: { x: number; y: number; width: number; height: number },
+): void {
+  const prevCapsule = (element.attr(`stateCapsule${index}`) as Record<string, unknown> | undefined) ?? {};
+  element.attr(`stateCapsule${index}`, { ...prevCapsule, ...rect });
+  const prevFinal = (element.attr(`stateFinalInner${index}`) as Record<string, unknown> | undefined) ?? {};
+  element.attr(`stateFinalInner${index}`, {
+    ...prevFinal,
+    x: rect.x + 3,
+    y: rect.y + 3,
+    width: Math.max(0, rect.width - 6),
+    height: Math.max(0, rect.height - 6),
+  });
+  const prevLabel = (element.attr(`stateLabel${index}`) as Record<string, unknown> | undefined) ?? {};
+  element.attr(`stateLabel${index}`, { ...prevLabel, x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 });
+  const prevDefault = (element.attr(`stateDefaultMarker${index}`) as Record<string, unknown> | undefined) ?? {};
+  element.attr(`stateDefaultMarker${index}`, { ...prevDefault, x: rect.x + rect.width - 10, y: rect.y + 7 });
+  const prevCurrent = (element.attr(`stateCurrentMarker${index}`) as Record<string, unknown> | undefined) ?? {};
+  element.attr(`stateCurrentMarker${index}`, { ...prevCurrent, x: rect.x + 10, y: rect.y + 7 });
+
+  const attrs = ((element as unknown as { attributes?: { attrs?: Record<string, unknown> } }).attributes?.attrs ?? {});
+  for (const selector of Object.keys(attrs)) {
+    const anchorMatch = new RegExp(`^connect-anchor-([a-z]+)-state${index}$`).exec(selector);
+    const anchor = anchorMatch?.[1];
+    if (anchor) {
+      const rel = relativoAnchorEstado(anchor);
+      const prev = (element.attr(selector) as Record<string, unknown> | undefined) ?? {};
+      element.attr(selector, { ...prev, cx: rect.x + rel.x * rect.width, cy: rect.y + rel.y * rect.height });
+      continue;
+    }
+    const handleMatch = new RegExp(`^resize-state${index}-(nw|ne|se|sw)$`).exec(selector);
+    const handle = handleMatch?.[1];
+    if (handle) {
+      const point = puntoHandleEstado(rect, handle);
+      const prev = (element.attr(selector) as Record<string, unknown> | undefined) ?? {};
+      element.attr(selector, { ...prev, x: point.x - 4, y: point.y - 4 });
+    }
+  }
+}
+
+function relativoAnchorEstado(anchor: string): { x: number; y: number } {
+  switch (anchor.toUpperCase()) {
+    case "N": return { x: 0.5, y: 0 };
+    case "NE": return { x: 1, y: 0 };
+    case "E": return { x: 1, y: 0.5 };
+    case "SE": return { x: 1, y: 1 };
+    case "S": return { x: 0.5, y: 1 };
+    case "SW": return { x: 0, y: 1 };
+    case "W": return { x: 0, y: 0.5 };
+    case "NW": return { x: 0, y: 0 };
+    default: return { x: 0.5, y: 0.5 };
+  }
+}
+
+function puntoHandleEstado(
+  rect: { x: number; y: number; width: number; height: number },
+  handle: string,
+): { x: number; y: number } {
+  const x = handle.includes("e") ? rect.x + rect.width : rect.x;
+  const y = handle.includes("s") ? rect.y + rect.height : rect.y;
+  return { x, y };
 }
 
 function targetDentroDeVerticesTool(target: EventTarget | null): boolean {

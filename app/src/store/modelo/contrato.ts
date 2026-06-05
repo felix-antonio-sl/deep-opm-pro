@@ -186,6 +186,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "moverEntidad",
     "moverApariencia",
     "moverAparienciaConPuertos",
+    "moverEstadoEnCanvas",
     "actualizarPosicionSimboloEstructural",
     "actualizarAnclajesSimboloEstructural",
     "resetearAnclajesSimboloEstructural",

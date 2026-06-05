@@ -55,6 +55,7 @@ export type CanvasInteractionPort =
     | "cancelarEnlace"
     | "redimensionarAparienciaEnCanvas"
     | "redimensionarEstadoEnCanvas"
+    | "moverEstadoEnCanvas"
     | "reanclarExtremoAccion"
     | "renombrarEntidadDesdeOpl"
   >;
@@ -112,6 +113,7 @@ export function componerCanvasInteractionPort(
     cancelarEnlace: commands.cancelarEnlace,
     redimensionarAparienciaEnCanvas: commands.redimensionarAparienciaEnCanvas,
     redimensionarEstadoEnCanvas: commands.redimensionarEstadoEnCanvas,
+    moverEstadoEnCanvas: commands.moverEstadoEnCanvas,
     reanclarExtremoAccion: commands.reanclarExtremoAccion,
     renombrarEntidadDesdeOpl: commands.renombrarEntidadDesdeOpl,
   };

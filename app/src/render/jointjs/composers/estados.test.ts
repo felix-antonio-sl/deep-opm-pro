@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { crearEstadosIniciales, crearModelo, crearObjeto, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
+import { crearEstadosIniciales, crearModelo, crearObjeto, estadosDeEntidad, moverEstado, renombrarEstado } from "../../../modelo/operaciones";
 import type { Apariencia, Modelo, Resultado } from "../../../modelo/tipos";
-import { anchoCapsulaEstado, dimensionesConEstados, puntoCapsulaEstado } from "./estados";
+import { anchoCapsulaEstado, dimensionesConEstados, puntoCapsulaEstado, rectCapsulaEstado } from "./estados";
 
 describe("composer estados", () => {
   test("dimensiona capsulas con minimo y layout horizontal", () => {
@@ -50,6 +50,25 @@ describe("composer estados", () => {
 
     expect(punto?.x).toBeGreaterThan(ap.x);
     expect(punto?.y).toBeGreaterThan(ap.y);
+  });
+
+  test("usa posición manual persistida para capsula, anchors y halos derivados", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 90 }, "Pedido"));
+    const entidad = Object.values(modelo.entidades)[0];
+    if (!entidad) throw new Error("Entidad no encontrada");
+    const iniciales = must(crearEstadosIniciales(modelo, entidad.id));
+    modelo = iniciales.modelo;
+    const estadoId = iniciales.estadoIds[0];
+    modelo = must(moverEstado(modelo, estadoId, 22, 31));
+    const ap = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
+    if (!ap) throw new Error("Apariencia no encontrada");
+
+    const rect = rectCapsulaEstado(modelo, ap, estadoId);
+    const punto = puntoCapsulaEstado(modelo, ap, estadoId);
+
+    expect(rect).toMatchObject({ x: ap.x + 22, y: ap.y + 31 });
+    expect(punto).toMatchObject({ x: (rect?.x ?? 0) + (rect?.width ?? 0) / 2, y: (rect?.y ?? 0) + (rect?.height ?? 0) / 2 });
   });
 });
 

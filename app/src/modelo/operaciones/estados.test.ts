@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { agregarEstado, crearEstadosIniciales, crearModelo, crearObjeto, estadosDeEntidad, reordenarEstado } from "../operaciones";
+import { agregarEstado, crearEstadosIniciales, crearModelo, crearObjeto, estadosDeEntidad, moverEstado, reordenarEstado } from "../operaciones";
 import type { Modelo, Resultado } from "../tipos";
 
 /**
@@ -120,5 +120,28 @@ describe("operaciones/estados — reordenarEstado", () => {
     // Verifica orden final usando view.
     const orden = estadosDeEntidad(resultado, objetoId).map((estado) => estado.id);
     expect(orden[2]).toBe(estadoIds[0]);
+  });
+});
+
+describe("operaciones/estados — moverEstado", () => {
+  test("persiste posición local redondeada del estado", () => {
+    const { modelo, estadoIds } = sembrarObjetoCon3Estados();
+    const resultado = debeOk(moverEstado(modelo, estadoIds[0], 42.4, 78.6));
+    expect(resultado.estados[estadoIds[0]]?.x).toBe(42);
+    expect(resultado.estados[estadoIds[0]]?.y).toBe(79);
+  });
+
+  test("idempotente: misma posición retorna el mismo modelo", () => {
+    const { modelo, estadoIds } = sembrarObjetoCon3Estados();
+    const movido = debeOk(moverEstado(modelo, estadoIds[0], 42, 79));
+    const resultado = debeOk(moverEstado(movido, estadoIds[0], 42, 79));
+    expect(resultado).toBe(movido);
+  });
+
+  test("rechaza coordenadas no finitas", () => {
+    const { modelo, estadoIds } = sembrarObjetoCon3Estados();
+    const resultado = moverEstado(modelo, estadoIds[0], Number.NaN, 10);
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) expect(resultado.error).toMatch(/posición/i);
   });
 });

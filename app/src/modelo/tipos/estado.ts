@@ -30,6 +30,8 @@ export interface Estado {
   suprimido?: boolean;
   width?: number;
   height?: number;
+  x?: number;
+  y?: number;
   /**
    * Orden explícito dentro del objeto propietario. Cuando está presente, manda
    * sobre el orden por secuencia de id (fallback histórico). Introducido en
