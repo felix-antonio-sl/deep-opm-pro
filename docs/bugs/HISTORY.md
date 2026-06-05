@@ -11,7 +11,7 @@ cualquier ID, activo o archivado.
 | Alcance / Estado | Cantidad |
 |---|---:|
 | Activo / Nuevo | 2 |
-| Activo / Resuelto | 94 |
+| Activo / Resuelto | 95 |
 | Histórico / Absorbido | 4 |
 | Histórico / No defecto | 1 |
 | Histórico / Resuelto | 43 |
@@ -20,7 +20,7 @@ cualquier ID, activo o archivado.
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 91 |
+| Activo / Bug | 92 |
 | Activo / Feat | 5 |
 | Histórico / Bug | 48 |
 
@@ -28,6 +28,7 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Resuelto | [BUG-20260605T023336Z-551dbf](BUG-20260605T023336Z-551dbf/report.md) | 2026-06-05 02:33Z | Modelo / SD | actualmente en la simulación conceptual no existe el estado de inicio ni la situación final realizados visualmente tal como los pasos propiamente tal… | La simulacion conceptual ahora tiene frame visual de inicio y situacion final: inicio resalta las entradas/current iniciales, los… | 3 | Cubierto por foco.test, proyeccion.test y e2e/12-beta2-modo-simulacion; QA Playwright con inicio -> paso -> fin sin errores de consola. |
 | Activo | Bug | Nuevo | [BUG-20260605T010727Z-916191](BUG-20260605T010727Z-916191/report.md) | 2026-06-05 01:07Z | Modelo / SD | A continuación la secuencia que falla: - intento hacer un enlace desde un estado a un proceso dando alternativas de enlace limitadas - Tras ello no s… | Pendiente. | 7 |  |
 | Activo | Bug | Resuelto | [BUG-20260604T045849Z-7ae086](BUG-20260604T045849Z-7ae086/report.md) | 2026-06-04 04:58Z | - | Las cápsulas de estado truncan la última letra en nombres largos (competente→competent, programada→programad, despachado→despachad, etc.), confirmado… | 2026-06-04 — factor 8 px/char + margen designacion en anchoCapsulaEstado (render) y metrica alineada + alto real en autoria/layou… | 0 |  |
 | Activo | Bug | Resuelto | [BUG-20260604T040903Z-37ebd2](BUG-20260604T040903Z-37ebd2/report.md) | 2026-06-04 04:09Z | Modelo_simu / SD | simula 1 solo paso en vez de 2. transitó un sólo par de transición quedando a medio camino | El planificador expande cadenas ruteadas de transiciones de estado sobre el mismo objeto en ocurrencias sucesivas del proceso, en… | 2 | Cubierto por plan.test, runner.test y foco.test: Agua/Calentar ejecuta sol-liq y luego liq-gas, termina en gaseosa y el foco visual avanza ruta por ruta. |

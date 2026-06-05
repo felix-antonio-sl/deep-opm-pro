@@ -556,5 +556,11 @@
     "status": "Resuelto",
     "resolution": "El planificador expande cadenas ruteadas de transiciones de estado sobre el mismo objeto en ocurrencias sucesivas del proceso, en vez de dejar varios paths dentro de un unico paso.",
     "note": "Cubierto por plan.test, runner.test y foco.test: Agua/Calentar ejecuta sol-liq y luego liq-gas, termina en gaseosa y el foco visual avanza ruta por ruta."
+  },
+  "BUG-20260605T023336Z-551dbf": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "La simulacion conceptual ahora tiene frame visual de inicio y situacion final: inicio resalta las entradas/current iniciales, los pasos mantienen proceso/enlaces/tokens, y final resalta resultados/salidas.",
+    "note": "Cubierto por foco.test, proyeccion.test y e2e/12-beta2-modo-simulacion; QA Playwright con inicio -> paso -> fin sin errores de consola."
   }
 }
