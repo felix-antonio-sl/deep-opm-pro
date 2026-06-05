@@ -232,7 +232,6 @@ bun run browser:smoke                      # 40/40 + nuevo smoke = 41/41
 
 **No requiere `bun run build`** (no afecta bundle).
 
-Detector: L4 puede agregar 1 regla nueva en `progress-dashboard.mjs` que evidencie `historialUndo` per-pestaña en `runtime.ts` + smoke. L_scaffolding puede dejar el placeholder y L_consolidación recalibra.
 
 **Verificación manual (recomendada)** en `bun run dev`:
 1. Crear modelo en pestaña 1 (objeto A).

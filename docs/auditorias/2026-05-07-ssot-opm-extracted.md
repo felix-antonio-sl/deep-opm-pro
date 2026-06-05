@@ -332,5 +332,3 @@ app/src/modelo/tipos/abanico.ts:8
 - `opm-extracted/README.md` §"Política y licencia" (líneas 152–187)
 - `docs/historias-usuario-v2/00-METODOLOGIA.md` §6 (jerarquía SSOT, citas obligatorias)
 - `docs/historias-usuario-v2/06-PROVENANCE.md` §2 (no inventar funcionalidad ausente; reutilizar SVGs/dimensiones/OPL)
-- `docs/roadmap/hu-progress.md` y `hu-progress.json` (estado actual del MVP-α)
-- `docs/roadmap/hu-progress-evidence.json` (atribución HU ↔ archivos)

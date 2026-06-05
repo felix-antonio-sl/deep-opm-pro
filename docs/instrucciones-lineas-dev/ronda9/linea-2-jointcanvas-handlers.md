@@ -235,7 +235,6 @@ bun run browser:smoke                      # Playwright Chromium 40/40
 bun run build                              # bundle vite, chunk principal sin regresión
 ```
 
-Detector: L2 no toca `progress-dashboard.mjs` directamente. L_scaffolding declara reglas tolerantes para `handlers/*`.
 
 ## 9. Decisiones bloqueadas (no reabrir)
 

@@ -6,6 +6,22 @@
 **Frente: canvas infinito — DESPLEGADO 2026-06-03** (commit `849930e`, bundle `index-DaVSdw1e.js`). El OPD vacío parte a pantalla y el paper crece/desplaza sus límites en cualquier dirección con `paper.fitToContent({allowNewOrigin:'any'})`, reemplazando el piso fijo 7200×5200 + crecimiento solo derecha/abajo. Detalle del corte abajo (§ Canvas infinito); el spec de origen fue consolidado aquí y eliminado (historia git: `aec1bcd`).
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2; rama `codex/ux-composicion-f1` fue squash-mergeada sobre `main` para cerrar la brecha de composición. Diseño/planes relevantes: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`, `docs/superpowers/plans/2026-06-02-ux-adhoc-fs.md`.
 
+## Actualización 2026-06-05 — retiro del sistema de avance HU
+
+**Estado:** retirado el subsistema que convertía historias de usuario en porcentaje de avance. El generador, dashboards, baselines derivados y acoplamientos de gate fueron eliminados. `gate:refactor` y `quality:gate` vuelven a medir solo artefactos ejecutables: check, lint, build, governance, smoke, bundle, leyes canónicas y compat detectors.
+
+**Decisiones:** `docs/historias-usuario-v2/` se conserva como backlog documental, pero ya no gobierna progreso ni cierre. No reintroducir `progress-dashboard`, `hu-progress.*`, firmas de fuente HU, reglas automáticas HU ni umbrales `MVP-alpha` como gate sin decisión explícita del operador. La lectura categorial vigente: el dashboard era un observador parcial y no preservaba identidad/comportamiento suficiente para actuar como funtor de calidad.
+
+**Artefactos relevantes:** eliminados `docs/historias-usuario-v2/tools/progress-dashboard.mjs`, `docs/roadmap/hu-progress.*`, `docs/roadmap/hu-baseline-2026-05-16.md` y `docs/roadmap/hu-no-cubiertas-2026-05-16.md`; actualizados `app/package.json`, `app/scripts/quality-ledger.mjs`, `docs/roadmap/quality-ledger.md`, `CLAUDE.md` y docs operativos con referencias al retiro.
+
+**Handoff explícito:**
+- *Estado actual:* `quality-ledger` schema v2 no lee HU; `gate:refactor` no ejecuta herramientas HU. El backlog HU queda navegable, no autoritativo.
+- *Pendientes:* correr los gates después de este retiro y commitear el corte atómico. Cambios ajenos en `app/src/modelo/simulacion/tipos.ts` y `app/src/modelo/simulacion/fases.ts` siguen fuera de este corte.
+- *Supuestos:* retirar el medidor no elimina la historia git ni impide consultar HU como material de contexto; solo elimina su rol como sistema de seguimiento.
+- *Riesgos:* planes antiguos pueden nombrar cortes `MVP-alpha` como contexto histórico; eso no revive el dashboard ni habilita porcentajes HU como gate.
+
+**Prompt breve de continuación:** "Retomar desde `docs/HANDOFF.md`, sección `Actualización 2026-06-05 — retiro del sistema de avance HU`. Verificar que `rg 'progress-dashboard|hu-progress|sync-real|Dashboard HU'` no devuelve instrucciones vivas, correr `cd app && bun run build && bun run quality:gate`, y cerrar con commit atómico del retiro. No tocar cambios ajenos en `app/src/modelo/simulacion/*`."
+
 ## Actualización 2026-06-05 — estados interactivos restaurados y deploy productivo
 
 **Estado:** cerrado el frente de bugs de interacción de estados reportado el 2026-06-05. Las cápsulas de estado vuelven a comportarse como ciudadanos visuales de primera clase: se seleccionan, muestran handles propios, se mueven dentro del objeto contenedor, se redimensionan con persistencia de tamaño/posición, conservan anchors de conexión y permiten crear enlaces desde estado hacia proceso. El halo HTML de acciones de estado ya no se mide a sí mismo ni se desplaza fuera de la cápsula durante gestos activos.
@@ -20,7 +36,7 @@
 - *Estado actual:* `main` contiene `b0572f1` y `origin/main` está sincronizado. Producción sirve `assets/index-B9oKuKKA.js`. En la instancia pública, el smoke Playwright confirmó movimiento, redimensión y enlace consumo estado→proceso desde una cápsula real.
 - *Pendientes:* validación manual del operador sobre modelos reales con muchas cápsulas y links cruzados; si reaparecen solapes de wrappers de enlace sobre cápsulas, priorizar z-order/pointer-events de wrappers durante selección de estado antes de tocar semántica del modelo. La suite Playwright completa no se corrió en este cierre; se corrieron focos de interacción y regresiones de estado/anchor.
 - *Supuestos:* la posición/tamaño de estados es geometría local de presentación dentro del objeto, no una nueva semántica OPM. `portId` en extremos entidad sigue siendo detalle de anclaje aceptable; los extremos estado se serializan como `{kind:"estado", id}`. La fuente canónica para gestos de estado es el render JointJS actual, no el halo HTML.
-- *Riesgos:* el worktree tenía `docs/roadmap/hu-progress*` modificados por una regeneración de dashboard previa/no atribuida a este cierre; no se deben mezclar con commits de bugfix salvo que el operador pida consolidar el dashboard HU. La interacción de estados depende de selectores `stateCapsuleN` derivados del orden visual de estados visibles: cualquier refactor de orden/visibilidad debe mantener `data-estado-index` y metadata en sincronía.
+- *Riesgos:* la interacción de estados depende de selectores `stateCapsuleN` derivados del orden visual de estados visibles: cualquier refactor de orden/visibilidad debe mantener `data-estado-index` y metadata en sincronía.
 
 **Prompt breve de continuación:** "Retomar desde `docs/HANDOFF.md`, sección `Actualización 2026-06-05 — estados interactivos restaurados y deploy productivo`. Revisar en producción `https://opforja.sanixai.com` modelos reales con varios estados por objeto: confirmar que cada cápsula se selecciona, mueve, redimensiona y enlaza estado→proceso sin que el halo HTML interfiera. No tocar semántica OPM salvo evidencia nueva; si falla, aislar primero z-order/pointer-events/selector `stateCapsuleN` contra `estadoGeometry.ts` y los specs `e2e/31`, `e2e/16`, `e2e/24`."
 
@@ -181,7 +197,7 @@
 
 **Artefactos:** `app/src/modelo/simulacion/runner.ts`, `app/src/store/simulacion.ts`, `app/src/ui/simulacion/BarraSimulacion.tsx`, `app/src/ui/simulacion/proyeccionBarra.ts`, `app/src/serializacion/validarEnlaces.ts`, `app/src/modelo/razonamiento/derivar.ts`, `app/src/store/modelo/acciones-capacidades.ts`. Tests nuevos/reforzados: `app/src/ui/simulacion/proyeccionBarra.test.ts`, `app/src/store/simulacion.test.ts`, `app/src/serializacion/json.test.ts`, `app/src/store/modelo/razonamiento-ux.test.ts`.
 
-**Verificación:** `cd app && bun run check` -> **1979 pass / 0 fail**; `bun run lint` -> OK; `bun run build` -> OK; `bun run design:governance` -> OK; `bun run quality:gate` -> PASS tras regenerar `docs/roadmap/hu-progress.*` con `progress-dashboard --sync-real`; `git diff --check` -> OK.
+**Verificación:** `cd app && bun run check` -> **1979 pass / 0 fail**; `bun run lint` -> OK; `bun run build` -> OK; `bun run design:governance` -> OK; `bun run quality:gate` -> PASS en el corte histórico; `git diff --check` -> OK.
 
 **Commit/push/deploy:** corte de código `ef746d0` (`fix(simulacion): sanear loops y trace canonico`) en `origin/main`. Deploy con `docker compose up -d --build` desde `main`: bundle servido `assets/index-DOCrDXTQ.js`; `opforja` healthy, `opforja-model-api` healthy, `opforja-postgres` healthy, `opforja-bug-capture` up; `healthz` web interno `ok`; APIs internas `200 {"ok":true}`; `https://opforja.sanixai.com/` HTTP/2 200.
 
@@ -439,7 +455,7 @@ Para autoinvocación, el bug estaba en render/tools: el loop se proyecta como do
 4. `BUG-20260526T020413Z-ec523c`: orden del inspector nombre -> esencia -> afiliación -> descripción; cambio UI acotado.
 5. `BUG-20260526T020225Z-f897bc`: OPL más prosaico; requiere diseño, porque el intento anterior rompía refinamiento y resaltado por hecho.
 
-**Auditoría/refactorización total:** hubo ejecución real de refactor, no solo documentación: commits `refactor(...)` extraen viewmodels, puertos, adapter JointJS, persistencia/workspace, OPL/diagnóstico y contratos del store. El cierre vigente, sin embargo, **no está reproducible**: `bun run quality:gate` falla hoy por bundle gzip 135.55 kB > 129.62 kB, cobertura MVP-alpha 84/121 vs mínimo 104, avance alpha 66% vs 86.2%, reglas auto matched 76/105 vs mínimo 89, y dashboard HU stale. Estado correcto: refactorización ejecutada en gran parte, cierre histórico documentado, cierre actual roto o al menos no revalidado.
+**Auditoría/refactorización total:** hubo ejecución real de refactor, no solo documentación: commits `refactor(...)` extraen viewmodels, puertos, adapter JointJS, persistencia/workspace, OPL/diagnóstico y contratos del store. El cierre histórico no estaba reproducible por el gate vigente de ese momento; esa lectura fue reemplazada por el quality ledger law-first sin dashboard HU.
 
 ## Corte actual — UX/UI canónica para capacidades OPCloud aspiracionales
 
@@ -852,7 +868,7 @@ Se consolido un manual funcional simulado de capacidades OPCloud/OPCAT como arte
 - `/home/felix/kora/artifacts/knowledge/_SCRIPTORIUM/INBOX/opm/transcripciones-videos-opcloud.txt`
 
 **Decision de uso:**
-- Este manual queda como baseline externo funcional para auditorias de brecha Opforja vs. capacidades OPCloud/OPCAT, complementario al backlog HU (`docs/historias-usuario-v2/`) y al dashboard `docs/roadmap/hu-progress.*`.
+- Este manual queda como baseline externo funcional para auditorias de brecha Opforja vs. capacidades OPCloud/OPCAT, complementario al backlog documental (`docs/historias-usuario-v2/`).
 - No reemplaza la SSOT OPM ni `docs/canon-opm/reglas-opm-estrictas.md`; cuando una capacidad OPCloud/OPCAT diverge del canon, manda la SSOT.
 - Para medir avance, convertir cada capacidad del manual en criterio verificable contra codigo, tests, e2e, UI viva o artefacto documental antes de marcarla cubierta.
 

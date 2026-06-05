@@ -590,7 +590,6 @@ cd app && bun run typecheck
 cd app && bun run test
 cd app && bun run build
 cd app && bun run browser:smoke
-node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 ```
 
 ### Corte 8 - Consistencia Transversal Y Cierre De Drift
@@ -625,7 +624,6 @@ cd app && bun run typecheck
 cd app && bun run test
 cd app && bun run build
 cd app && bun run browser:smoke
-node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 cd app && bun run scripts/quality-ledger.mjs --markdown
 ```
 

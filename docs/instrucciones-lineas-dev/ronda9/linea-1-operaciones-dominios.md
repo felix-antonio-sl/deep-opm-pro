@@ -58,7 +58,6 @@ export { ... } from "./operaciones/refinamiento";
 |---|---|---|
 | Monolito `operaciones.ts` congelado por doctrina desde ronda 4 | `/home/felix/projects/deep-opm-pro/app/src/modelo/operaciones.ts` (1743 LOC) | Reduce a < 200 LOC en barrel; 7 sub-archivos < 350 LOC c/u (refinamiento puede llegar a < 700 LOC con desviación declarada). |
 | HANDOFF "deuda técnica `app/src/modelo/operaciones.ts` 1743 LOC (congelado)" | `/home/felix/projects/deep-opm-pro/docs/HANDOFF.md §Pendientes Inmediatos` | Cierra el ítem explícito; la subcarpeta `app/src/modelo/operaciones/` se crea con 7 dominios trazables. |
-| Reglas del detector que evidencian operaciones.ts | `/home/felix/projects/deep-opm-pro/docs/historias-usuario-v2/tools/progress-dashboard.mjs` (varias reglas con `path: "app/src/modelo/operaciones.ts"`) | Barrel preserva strings; ninguna regla cae. L_scaffolding declara reglas tolerantes a sub-archivos para futuras evidencias granulares. |
 
 ## 3. Anclaje a evidencia
 
@@ -196,7 +195,6 @@ bun run check              # typecheck + tests integrados
 
 **No se requiere `browser:smoke` ni `build`** porque L1 es 100% refactor de modelo (no toca UI/render/build).
 
-Detector: L1 no toca `progress-dashboard.mjs` directamente. Las reglas que apuntan a `operaciones.ts` siguen matcheando porque el barrel re-exporta los strings. L_scaffolding (línea cero, antes de L1) declara reglas tolerantes para `operaciones/*` con paths nuevos.
 
 ## 9. Decisiones bloqueadas (no reabrir)
 

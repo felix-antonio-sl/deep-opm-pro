@@ -40,12 +40,6 @@ historias-usuario-v2/
 # Linter completo (debe imprimir "Violaciones: 0")
 bun run tools/validate-hu.ts
 
-# Auditar avance real contra app y actualizar dashboard/ledger
-node tools/progress-dashboard.mjs --sync-real
-
-# Regenerar dashboard desde el ledger vigente sin reescanear codigo
-node tools/progress-dashboard.mjs
-
 # Generar grafo de dependencias y métricas de centralidad
 bun run tools/grafo-dependencias.ts
 

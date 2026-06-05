@@ -212,7 +212,6 @@ bun run check                                  # typecheck + tests
 # bun run build no es obligatorio (los tipos son zero-cost)
 ```
 
-Detector: L5 no toca `progress-dashboard.mjs` directamente. L_scaffolding declara reglas tolerantes para `tipos/*` con paths nuevos (las reglas que evidencian tipos como `"alias?:"`, `"unidad?:"`, `"DesignacionEstado"`, etc. siguen matcheando porque el barrel re-exporta los tipos en su archivo correspondiente).
 
 ## 9. Decisiones bloqueadas (no reabrir)
 

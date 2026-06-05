@@ -573,7 +573,7 @@ operacional (`urn:fxsl:kb:icas-escala`, `urn:fxsl:kb:icas-lifecycle`).
 
 Impacto:
 
-- El progreso HU puede parecer mas cerrado de lo que esta en UI real.
+- Los resúmenes documentales pueden parecer más cerrados que la UI real.
 - Comentarios de compatibilidad pueden fosilizar deuda.
 
 Recomendacion:

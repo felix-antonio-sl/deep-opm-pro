@@ -27,7 +27,7 @@ bun run visual:deep      # auditoría visual profunda → app/test-results/
 - Unit: `bun test src/modelo/abanicos.test.ts` (o `bun test -t "nombre del test"` para filtrar por título)
 - E2E: `bunx playwright test e2e/03-opl-panel.spec.ts` (añade `--headed` para ver el navegador)
 
-**Gate pesado de refactor** (corre todo + sync de progreso HU + quality ledger): `bun run gate:refactor`.
+**Gate pesado de refactor** (corre check + lint + build + governance + smoke + quality ledger, sin dashboard HU): `bun run gate:refactor`.
 
 **Importante**: vite en background + `browser:smoke` en paralelo produce flakes en specs sensibles al canvas (02, 05). Apaga el dev server antes de correr smoke.
 
@@ -90,7 +90,7 @@ deep-opm-pro/
 3. **Antes de crear algo de novo** (marcador, shape, color, regla OPL), verifica que no exista en los insumos, en este orden: `assets/svg/` (+ `opm-extracted/assets/svg/`, markers en `links/procedural|structural/`) → `assets/png/` → `docs/JOYAS.md` → `opm-extracted/INDEX.md`+`MODULES.md`+`assets/INDEX.md` → `decompiled/` (solo si lo anterior no alcanza; regenerar con `bash setup.sh`) → `fixtures/` → `catalog/` → `config/`. **No copies bloques 1:1 de `opm-extracted/`/`decompiled/` a `app/`**: el stack diverge (Preact≠Angular, Zustand≠Firebase, JointJS core≠Rappid); úsalos para entender semántica, no para clonar.
 4. **Handoff único**: `docs/HANDOFF.md` es la única memoria de traspaso versionada. Reescríbela y consolídala — nunca crees handoffs paralelos/fechados.
 5. **Repo liviano**: no versiones artefactos regenerables/efímeros (ver Estructura). `opm-extracted/` **sí** se versiona (derivado curado; regenerable con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`).
-6. **Backlog vs corte activo**: `docs/historias-usuario-v2/` es el backlog completo (no lo arrastres entero); `docs/roadmap/` define el corte operativo. Auditoría de avance: `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` (escanea `app/src`, `app/e2e`, `app/scripts`, `assets/svg/links`; regenera `docs/roadmap/hu-progress.{html,md,json}`).
+6. **Backlog vs corte activo**: `docs/historias-usuario-v2/` queda como backlog documental completo (no lo arrastres entero); `docs/roadmap/` define el corte operativo. El dashboard de avance HU fue retirado por decisión del operador el 2026-06-05: no lo regeneres, no lo uses como gate y no agregues reglas nuevas de progreso sobre HU.
 7. **Trabajo paralelo en rondas**: para particionar pendientes en líneas concurrentes usar la skill `lineas-paralelas` (genera README + briefs en `docs/instrucciones-lineas-dev/<ronda>/`). Patrón validado: worktrees aislados, olas con orden de merge, y un paso final de **reconciliación e2e** sobre el `main` integrado (cada línea solo mantiene su gate contra su base).
 
 ## Deuda categorial activa

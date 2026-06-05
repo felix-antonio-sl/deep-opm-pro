@@ -49,7 +49,6 @@ bun run dev            # localhost:5173
 Auditoría HU al cierre de consolidación:
 
 ```bash
-node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 ```
 
 ## 4. Diagnóstico estructural (qué se rompe)
@@ -66,7 +65,6 @@ Estado post-ronda 8:
 
 Bundle post-ronda 8: chunk principal 138 KB / 38 KB gzip; vendor-jointjs separado 469 KB / 129 KB gzip; `feature-asistente` lazy 248 KB / 64 KB gzip (este último cae más en L3 al particionar el wizard).
 
-Detector ledger post-ronda 8: 55/55 reglas matched sobre 249 archivos. Ronda 9 puede requerir L6a (scaffolding declarativo de reglas tolerantes para sub-archivos nuevos) y L6b (medición final con `--sync-real`).
 
 **Regla de oro continuada**:
 
@@ -166,8 +164,6 @@ Convención: `aditivo` = solo agregar imports/re-exports; `nuevo` = archivo crea
 | `app/src/modelo/tipos/opl.ts` | — | — | — | — | **nuevo** opcional |
 | `app/src/modelo/tipos/ui.ts` | — | — | — | — | **nuevo** (UiPortapapelesVisual, PreferenciasUiUsuario) |
 | `app/vite.config.ts` | — | — | — | — | — |
-| `docs/historias-usuario-v2/tools/progress-dashboard.mjs` | aditivo (reglas para `operaciones/*`) | aditivo (reglas para `handlers/*`) | aditivo (reglas para `asistente/*`) | aditivo (regla undo per-pestaña) | aditivo (reglas para `tipos/*`) |
-| `docs/roadmap/hu-progress-evidence.json` | regenera (`--sync-real` final) | regenera | regenera | regenera | regenera |
 | `app/e2e/opm-smoke.spec.ts` | — | aditivo (smoke nuevo si la partición altera selectores) | aditivo (smoke por etapa si selector cambia) | aditivo (smoke undo cross-pestaña) | — |
 | `opm-extracted/**` | LECTURA | LECTURA | LECTURA | LECTURA | LECTURA |
 | `assets/svg/**` | LECTURA | LECTURA | LECTURA | LECTURA | LECTURA |
@@ -181,7 +177,6 @@ Reglas de colisión:
 - **`AsistenteNuevoModelo.tsx`** lo toca solo L3 (barrel). `App.tsx` lo consume sin cambios.
 - **`tipos.ts`** lo toca solo L5 (barrel). Los 122 consumidores siguen importando desde `tipos.ts`.
 - **`runtime.ts` + `pestanas.ts`** los toca solo L4 (wiring interno). `commitModelo` mantiene firma; el cambio es dónde empuja.
-- **Detector ledger**: cada línea declara reglas tolerantes para sus archivos nuevos. La regeneración final `--sync-real` se reserva para consolidación.
 - **`opm-extracted/`** es lectura universal; ninguna línea modifica nada ahí.
 - **`docs/HANDOFF.md`** y `docs/historias-usuario-v2/` son intocables.
 
@@ -196,9 +191,7 @@ Rationale (`urn:fxsl:kb:icas-lifecycle` — deuda categorial):
 3. **L2 tercero** (medio blast): partir `JointCanvas.tsx`. Composers L2 ronda 8 dieron piso. No depende de L1 (no llama operaciones directamente — el store sí lo hace).
 4. **L3 cuarto** (medio blast): partir `AsistenteNuevoModelo.tsx`. UI aislada del kernel; lee del store sin tocar.
 5. **L4 quinto** (bajo blast técnico, alto blast cognitivo): undo per-pestaña. Toca `runtime.ts` que muchos slices leen pero ninguno edita. Reservar al final para que L1-L3 hayan validado patrones.
-6. **L_consolidación**: medición final del detector con `--sync-real`, resolución de cascadas, actualización de `docs/HANDOFF.md` como handoff único.
 
-Después de cada merge: `cd app && bun run check`; si tocó UI/render: `bun run browser:smoke`; al cierre de ronda: `bun run build` y auditoría HU con `--sync-real`. **Reservar el último commit del ciclo para una capa explícita de cascadas resueltas** (rondas 6, 7 y 8 demostraron que esa capa es ineludible).
 
 Chequeo de contrato por merge:
 
@@ -243,7 +236,6 @@ bun run check
 bun run browser:smoke
 bun run build
 cd ..
-node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 ```
 
 Métricas esperadas post-ronda 9 (sobre base post-ronda 8: 558 unit / 2357 expect, 40/40 smoke, chunk principal 138 KB / 38 KB gzip, detector 55/55 reglas):
@@ -257,7 +249,6 @@ Métricas esperadas post-ronda 9 (sobre base post-ronda 8: 558 unit / 2357 expec
 - **Undo per-pestaña funcional**: cambiar de pestaña preserva historial independiente; `puedeDeshacer`/`puedeRehacer` reflejan stack de la pestaña activa; commits en pestaña A no contaminan historial de pestaña B.
 - **Unit tests ≥ 558 verdes** (sin regresión). **Tests nuevos esperados: ~30-50** distribuidos entre L1 sub-archivos, L2 handlers, L3 etapas, L4 undo cross-pestaña. Total razonable ≥ 590.
 - **Smoke browser ≥ 40 verdes** (sin regresión). Idealmente +1-2 smokes nuevos en L4 (undo cross-pestaña) y L2 (rubber band si selector cambia).
-- **Detector ledger ≥ 55 reglas matched** post-consolidación. L_scaffolding declara reglas tolerantes para archivos nuevos; L_consolidación ejecuta `--sync-real` final. Objetivo: ≥ 60 reglas (las 55 actuales + ~5 nuevas para sub-archivos L1/L2/L3/L5 y wiring L4).
 - **APIs públicas sin cambios**: cada barrel re-exporta exactamente las firmas públicas previas. Tests existentes no se reescriben.
 - **Contratos observables sin cambios**: JSON y OPL son carácter-por-carácter equivalentes; `JointCellJson` mantiene orden/id/type/selectores/metadata `opm`; UI mantiene `data-testid`, foco y propagación de eventos; `Pestana.historialUndo` ahora se usa pero su forma serializada no cambia (era ya parte del tipo).
 - **`docs/HANDOFF.md` permanece intacto** durante las líneas; se actualiza solo en consolidación final con la nueva forma del repo.

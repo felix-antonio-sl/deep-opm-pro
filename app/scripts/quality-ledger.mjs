@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,11 +21,6 @@ const thresholds = {
   mainBundleAllowedGrowthGzipKb: bundleAllowedGrowthGzipKb,
   activeCanonicalLawsMin: canonicalLaws.length,
   compatDetectorsMax: 0,
-  alphaCoveredMin: 80,
-  alphaPartialMin: 0,
-  alphaProgressMin: 63.0,
-  autoRulesEvaluatedMin: 105,
-  autoRulesMatchedMin: 73,
 };
 
 function walk(dir, predicate = () => true) {
@@ -80,37 +74,13 @@ const jsAssets = walk(distAssets, (item) => item.endsWith(".js")).map((file) => 
 }).sort((a, b) => b.rawKb - a.rawKb);
 const mainJs = jsAssets.find((asset) => /^dist\/assets\/index-.*\.js$/.test(asset.file)) ?? null;
 
-const currentHuSourceSnapshot = buildHuSourceSnapshot();
-let dashboard = null;
-const huProgressPath = path.join(repoRoot, "docs", "roadmap", "hu-progress.json");
-if (existsSync(huProgressPath)) {
-  const progress = JSON.parse(readFileSync(huProgressPath, "utf8"));
-  const autoAudit = progress.autoAudit;
-  const alpha = progress.summaries?.alpha;
-  const reportedSourceFiles = autoAudit?.sourceFiles ?? null;
-  dashboard = {
-    generatedAt: progress.generatedAt,
-    autoAudit: autoAudit ? { rulesEvaluated: autoAudit.rulesEvaluated, rulesMatched: autoAudit.rulesMatched, rulesUnmatched: autoAudit.rulesUnmatched, sourceFiles: reportedSourceFiles?.count } : null,
-    alpha: alpha ? { total: alpha.total, covered: alpha.cubierto, partial: alpha.parcial, pending: alpha.pendiente, progress: Number((alpha.avance * 100).toFixed(1)) } : null,
-    sourceSnapshot: {
-      current: currentHuSourceSnapshot,
-      reported: reportedSourceFiles ? {
-        count: reportedSourceFiles.count,
-        roots: reportedSourceFiles.roots,
-        signature: reportedSourceFiles.signature ?? null,
-      } : null,
-    },
-  };
-}
-
 const report = {
-  schema: "deep-opm-pro.quality-ledger.metrics.v1",
+  schema: "deep-opm-pro.quality-ledger.metrics.v2",
   generatedAt: new Date().toISOString(),
   thresholds,
   bundle: { distPresent: existsSync(distAssets), mainJs, jsAssets },
   laws: { canonicalTotal: canonicalLaws.length, activeCanonical: canonicalStatus.filter((item) => item.active).length, missingCanonical: canonicalStatus.filter((item) => !item.active).map((item) => item.id), canonicalStatus, rawLawIds: [...lawEvidence.keys()].sort() },
   compatDetectors: { total: compatEntries.length, entries: compatEntries },
-  dashboard,
 };
 
 function gateFailures(metrics) {
@@ -131,48 +101,7 @@ function gateFailures(metrics) {
     failures.push(`compat detectors ${metrics.compatDetectors.total}; maximo permitido ${thresholds.compatDetectorsMax}`);
   }
 
-  if (!metrics.dashboard?.alpha) {
-    failures.push("dashboard HU sin resumen MVP-alpha");
-  } else {
-    const alpha = metrics.dashboard.alpha;
-    if (alpha.covered < thresholds.alphaCoveredMin) failures.push(`MVP-alpha cubiertas ${alpha.covered}; minimo ${thresholds.alphaCoveredMin}`);
-    if (alpha.partial < thresholds.alphaPartialMin) failures.push(`MVP-alpha parciales ${alpha.partial}; minimo ${thresholds.alphaPartialMin}`);
-    if (alpha.progress < thresholds.alphaProgressMin) failures.push(`MVP-alpha avance ${alpha.progress}%; minimo ${thresholds.alphaProgressMin}%`);
-  }
-
-  if (!metrics.dashboard?.autoAudit) {
-    failures.push("dashboard HU sin auditor automatico");
-  } else {
-    const auto = metrics.dashboard.autoAudit;
-    if (auto.rulesEvaluated < thresholds.autoRulesEvaluatedMin) failures.push(`reglas auto evaluadas ${auto.rulesEvaluated}; minimo ${thresholds.autoRulesEvaluatedMin}`);
-    if (auto.rulesMatched < thresholds.autoRulesMatchedMin) failures.push(`reglas auto matched ${auto.rulesMatched}; minimo ${thresholds.autoRulesMatchedMin}`);
-    const currentSignature = metrics.dashboard.sourceSnapshot?.current?.signature;
-    const reportedSignature = metrics.dashboard.sourceSnapshot?.reported?.signature;
-    if (!reportedSignature) {
-      failures.push("dashboard HU sin firma de fuentes; ejecuta node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real");
-    } else if (reportedSignature !== currentSignature) {
-      failures.push("dashboard HU stale; ejecuta node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real");
-    }
-  }
-
   return failures;
-}
-
-function buildHuSourceSnapshot() {
-  const roots = ["app/src", "app/e2e", "app/scripts", "assets/svg/links"];
-  const files = roots.flatMap((root) => {
-    const absoluteRoot = path.join(repoRoot, root);
-    return walk(absoluteRoot, (item) => /\.(?:css|js|mjs|svg|ts|tsx)$/i.test(item))
-      .map((file) => ({ file: rel(file), text: readFileSync(file, "utf8") }));
-  }).sort((a, b) => a.file.localeCompare(b.file, "es"));
-  const hash = createHash("sha256");
-  for (const { file, text } of files) {
-    hash.update(file);
-    hash.update("\0");
-    hash.update(text);
-    hash.update("\0");
-  }
-  return { count: files.length, roots, signature: `sha256:${hash.digest("hex")}` };
 }
 
 const failures = check ? gateFailures(report) : [];
@@ -183,8 +112,6 @@ if (markdown) {
   console.log(`- Main bundle: ${mainJs ? `${mainJs.rawKb} kB / ${mainJs.gzipKb} kB gzip (${mainJs.file})` : "dist not built"}`);
   console.log(`- Canonical laws: ${report.laws.activeCanonical}/${report.laws.canonicalTotal}`);
   console.log(`- Compat detectors: ${report.compatDetectors.total}`);
-  if (dashboard?.alpha) console.log(`- MVP-alpha: ${dashboard.alpha.covered}/${dashboard.alpha.total} (${dashboard.alpha.progress}%)`);
-  if (dashboard?.autoAudit) console.log(`- Auto rules: ${dashboard.autoAudit.rulesMatched}/${dashboard.autoAudit.rulesEvaluated} matched`);
   if (check) {
     console.log(`- Gate: ${report.gate.passed ? "PASS" : "FAIL"}`);
     for (const failure of failures) console.log(`  - ${failure}`);

@@ -256,7 +256,6 @@ ls -lah app/dist/assets/feature-asistente-*.js
 
 Esperado: igual o menor que el actual (~248 KB / ~64 KB gzip). Si se aplicó imports dinámicos, esperar reducción.
 
-Detector: L3 no toca `progress-dashboard.mjs` directamente. L_scaffolding declara reglas tolerantes para `asistente/*.tsx`.
 
 ## 9. Decisiones bloqueadas (no reabrir)
 

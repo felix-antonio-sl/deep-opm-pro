@@ -3,7 +3,7 @@
 **Fecha:** 2026-06-04
 **Estado:** corte operativo VIGENTE por decisión del operador (HITL-3 de la adenda del acta).
 **Fuente de autoridad:** `docs/auditorias/2026-06-04-acta-mesa-flujo-canonico-dominio-opforja.md` (consenso Besto/Resto + adenda HITL).
-**Qué congela:** `cortes-operativos.md` (2026-05-07) y la priorización HU v2 quedan congelados operativamente — no eliminados, no autoritativos para planificar rondas mientras este documento viva. El concern del quality-gate baseline (93f184f) queda aparcado con nota, no resuelto.
+**Qué congela:** `cortes-operativos.md` (2026-05-07) y la priorización HU v2 quedan congelados operativamente — no eliminados, no autoritativos para planificar rondas mientras este documento viva.
 **Documento vivo:** se reescribe, no se acumula (política de handoff único aplicada a roadmap).
 
 ## ⚡ Estado de ejecución (mandato autónomo 2026-06-04, mismo día)
@@ -117,6 +117,5 @@ W6.3 independiente · W6.7 candidato
 ## Restricciones y aparcados (visibles, no silenciados)
 
 - **Techo localStorage** (~5-10MB; v1.6 = 654KB): no bloquea el flujo; acota la mesa como repositorio multi-dominio. Se resuelve cuando se retome el backend (track propio, pausado).
-- **Quality-gate baseline** (93f184f, alphaProgress 86.2→63): aparcado con el backlog previo; investigar al descongelar HU v2.
 - **Exclusiones vigentes de L2** (registro público): abanicos (hasta W4.1) y clase-ancla (hasta W5.1).
 - El backlog previo (HU v2 + cortes-operativos) se **re-reconcilia** cuando este corte entregue W1-W4 o cuando el operador lo pida — lo que ocurra primero.

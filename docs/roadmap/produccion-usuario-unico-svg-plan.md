@@ -147,7 +147,6 @@ cd app && bunx playwright test e2e/02-canvas-y-render.spec.ts --grep "Exportar O
 
 cd app && bun run gate:refactor
 # typecheck OK; 1409 pass / 0 fail / 5265 expect; lint src/ OK; build OK; browser:smoke 194 passed
-# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
 # Quality gate PASS: bundle 465.35 kB / 125.28 kB gzip; leyes 6/6; compat detectors 0
 ```
 
@@ -205,7 +204,6 @@ cd app && bun run browser:preview
 
 cd app && bun run gate:refactor
 # typecheck OK; 1410 pass / 0 fail / 5266 expect; lint src/ OK; build OK; browser:smoke 195 passed
-# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
 # Quality gate PASS: bundle 457.31 kB / 122.81 kB gzip; leyes 6/6; compat detectors 0
 ```
 
@@ -261,7 +259,6 @@ cd app && bun run browser:preview
 
 cd app && bun run gate:refactor
 # typecheck OK; 1410 pass / 0 fail / 5266 expect; lint src/ OK; build OK; browser:smoke 196 passed
-# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
 # Quality gate PASS: bundle 457.31 kB / 122.82 kB gzip; leyes 6/6; compat detectors 0
 ```
 
@@ -398,7 +395,6 @@ Validacion ejecutada:
 cd app && bun run gate:refactor
 # typecheck OK; 1481 pass / 0 fail / 5527 expect; lint OK; build OK
 # browser:smoke 209 passed
-# Dashboard HU: Total 27.4%; MVP-alpha 104/121 + 1 parcial (86.2%); 89/105 reglas auto
 # quality:gate PASS; leyes canonicas 6/6; compat detectors 0
 
 cd app && bun run browser:preview

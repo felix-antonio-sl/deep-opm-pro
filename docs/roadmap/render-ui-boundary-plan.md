@@ -190,7 +190,6 @@ Validacion ejecutada:
 ```bash
 cd app && bun run gate:refactor
 # typecheck OK; 1410 pass / 0 fail / 5266 expect; lint src/ OK; build OK; browser:smoke 194 passed
-# Dashboard HU: Total 24.8%; MVP-alpha 86.2%; 89/105 reglas auto; firma de fuentes vigente
 # Quality gate PASS: bundle 465.66 kB / 125.20 kB gzip; leyes 6/6; compat detectors 0
 ```
 

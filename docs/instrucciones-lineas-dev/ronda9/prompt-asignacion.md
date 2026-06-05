@@ -42,7 +42,6 @@ Loop verde obligatorio antes de cerrar:
 - cd app && bun run check
 - cd app && bun run browser:smoke (si tu línea toca UI o render)
 - cd app && bun run build (si tu línea toca proyección o bundle)
-- node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real (NO ejecutar tú; lo hace consolidación final)
 
 Forma del entregable (al cerrar):
 - Hash final del último commit en main.
@@ -205,7 +204,6 @@ Tras todas las líneas commiteadas, la consolidación final hace:
 1. `cd app && bun run check` (full suite verde).
 2. `cd app && bun run browser:smoke` (40+/40+ con smokes nuevos).
 3. `cd app && bun run build` (chunks reportados).
-4. `node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real` (detector ≥ 55 reglas, idealmente más).
 5. Resolución de cascadas residuales (test legacy, recalibración detector si surgen archivos nuevos no mapeados, etc.).
 6. Update de `docs/HANDOFF.md` como handoff único (consolidación ronda 9).
 7. Commits semánticos: `fix(test): ...`, `chore(detector): ...`, `chore(ledger): ...`, `docs(handoff): consolida ronda 9`.

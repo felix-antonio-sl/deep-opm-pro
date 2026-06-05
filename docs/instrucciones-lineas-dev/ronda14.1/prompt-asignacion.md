@@ -32,7 +32,6 @@ Loop verde obligatorio:
 - cd app && bun run lint
 - cd app && bun run build
 - cd app && bun run browser:smoke
-- node docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real
 
 Entregable:
 - hashes;

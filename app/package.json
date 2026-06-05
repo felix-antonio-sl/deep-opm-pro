@@ -14,7 +14,7 @@
     "lint": "eslint src/",
     "design:governance": "bun run scripts/design-governance-audit.mjs",
     "quality:gate": "bun run scripts/quality-ledger.mjs --markdown --check",
-    "gate:refactor": "bun run check && bun run lint && bun run build && bun run design:governance && bun run browser:smoke && node ../docs/historias-usuario-v2/tools/progress-dashboard.mjs --sync-real && bun run quality:gate",
+    "gate:refactor": "bun run check && bun run lint && bun run build && bun run design:governance && bun run browser:smoke && bun run quality:gate",
     "security:scan": "bun pm scan",
     "visual:audit": "node scripts/in-vivo-test.mjs",
     "visual:deep": "node scripts/in-vivo-deep-checks.mjs",
