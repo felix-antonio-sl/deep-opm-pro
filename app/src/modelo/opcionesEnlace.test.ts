@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { crearModelo, crearObjeto, crearProceso } from "./operaciones";
+import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "./operaciones";
+import { extremoEstado } from "./extremos";
 import type { Id, Modelo, TipoEnlace } from "./tipos";
 import {
   evaluarTiposEnlacePermitidos,
@@ -37,6 +38,32 @@ describe("opciones preventivas de enlace", () => {
     expect(porTipo(evaluadas, "etiquetado").permitido).toBe(false);
     expect(porTipo(evaluadas, "etiquetado").motivo).toContain("dos extremos distintos");
   });
+
+  test("preserva extremos Estado -> Proceso para consumo canonico", () => {
+    const { modelo, estado, proceso } = modeloConEstado();
+
+    const evaluadas = evaluarTiposEnlacePermitidos(modelo, extremoEstado(estado), proceso);
+
+    expect(porTipo(evaluadas, "consumo")).toMatchObject({
+      permitido: true,
+      origenExtremo: extremoEstado(estado),
+      destinoExtremo: { kind: "entidad", id: proceso },
+    });
+    expect(tiposEnlacePermitidos(modelo, extremoEstado(estado), proceso)).toContain("consumo");
+  });
+
+  test("preserva extremos Proceso -> Estado para resultado canonico", () => {
+    const { modelo, estado, proceso } = modeloConEstado();
+
+    const evaluadas = evaluarTiposEnlacePermitidos(modelo, proceso, extremoEstado(estado));
+
+    expect(porTipo(evaluadas, "resultado")).toMatchObject({
+      permitido: true,
+      origenExtremo: { kind: "entidad", id: proceso },
+      destinoExtremo: extremoEstado(estado),
+    });
+    expect(tiposEnlacePermitidos(modelo, proceso, extremoEstado(estado))).toContain("resultado");
+  });
 });
 
 function modeloBase(): { modelo: Modelo; objeto: Id; proceso: Id; manejador: Id } {
@@ -49,6 +76,21 @@ function modeloBase(): { modelo: Modelo; objeto: Id; proceso: Id; manejador: Id 
     objeto: entidadPorNombre(modelo, "Orden"),
     proceso: entidadPorNombre(modelo, "Procesar"),
     manejador: entidadPorNombre(modelo, "Manejar Excepcion"),
+  };
+}
+
+function modeloConEstado(): { modelo: Modelo; objeto: Id; estado: Id; proceso: Id } {
+  let modelo = crearModelo("Opciones enlace con estado");
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Orden"));
+  const objeto = entidadPorNombre(modelo, "Orden");
+  const estados = must(crearEstadosIniciales(modelo, objeto));
+  modelo = estados.modelo;
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+  return {
+    modelo,
+    objeto,
+    estado: estados.estadoIds[0],
+    proceso: entidadPorNombre(modelo, "Procesar"),
   };
 }
 

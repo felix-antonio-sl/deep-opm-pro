@@ -1,7 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef, useState } from "preact/hooks";
-import { entidadDeExtremo, nombreExtremo, normalizarExtremo, type ExtremoEntrada } from "../modelo/extremos";
-import type { Entidad, Id, Modelo, TipoEnlace } from "../modelo/tipos";
+import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo, normalizarExtremo, type ExtremoEntrada } from "../modelo/extremos";
+import type { Entidad, ExtremoEnlace, Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import {
   evaluarTiposEnlacePermitidos,
   resumirMotivosTiposNoPermitidos,
@@ -60,7 +60,7 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, origenExtremo, des
   const destinoNombre = destinoEntrada ? nombreExtremo(modelo, normalizarExtremo(destinoEntrada)) : undefined;
   const evaluaciones = origenEntrada && destinoEntrada ? evaluarTiposEnlacePermitidos(modelo, origenEntrada, destinoEntrada, direccion) : [];
   const opciones = tiposValidos(evaluaciones);
-  const opcionesPendientes = origen && !destino ? tiposPendientes(modelo, origen) : [];
+  const opcionesPendientes = origenEntrada && origen && !destino ? tiposPendientes(modelo, origenEntrada) : [];
   const opcionPreview = opciones.find((opcion) => opcion.tipo === tipoPreview) ?? opciones[0] ?? null;
   const totalNoAplican = evaluaciones.filter((evaluacion) => !evaluacion.permitido).length;
   const motivosNoAplican = resumirMotivosTiposNoPermitidos(evaluaciones);
@@ -168,14 +168,14 @@ export function MenuTipoEnlace({ modelo, origenId, destinoId, origenExtremo, des
               <span style={style.icon}>{iconoTipo(opcion.tipo)}</span>
               <span style={style.itemText}>
                 <strong>{etiquetaTipo(opcion.tipo)}</strong>
-                <small style={style.preview}>{previewOpl(opcion.tipo, opcion.origen, opcion.destino)}</small>
+                <small style={style.preview}>{previewOpl(modelo, opcion.tipo, opcion.origenExtremo, opcion.destinoExtremo)}</small>
               </span>
             </button>
           ))}
           {opcionPreview ? (
             <div style={style.previewBox} data-testid="menu-tipo-enlace-preview-opl">
               <span style={style.previewLabel}>Previsualización OPL</span>
-              <strong>{previewOpl(opcionPreview.tipo, opcionPreview.origen, opcionPreview.destino)}</strong>
+              <strong>{previewOpl(modelo, opcionPreview.tipo, opcionPreview.origenExtremo, opcionPreview.destinoExtremo)}</strong>
             </div>
           ) : null}
         </div>
@@ -230,10 +230,13 @@ function tiposValidos(evaluaciones: EvaluacionTipoEnlace[]) {
   });
 }
 
-function tiposPendientes(modelo: Modelo, origen: Entidad) {
-  const destinos = Object.values(modelo.entidades).filter((entidad) => entidad.id !== origen.id);
+export function tiposPendientes(modelo: Modelo, origenEntrada: ExtremoEntrada) {
+  const origenExtremo = normalizarExtremo(origenEntrada);
+  const origenId = entidadIdDeExtremo(modelo, origenExtremo);
+  if (!origenId) return [];
+  const destinos = Object.values(modelo.entidades).filter((entidad) => entidad.id !== origenId);
   return TIPOS_ENLACE_MENU.filter(({ tipo }) => (
-    destinos.some((destino) => tiposEnlacePermitidos(modelo, origen.id, destino.id, "saliente", [tipo]).includes(tipo))
+    destinos.some((destino) => tiposEnlacePermitidos(modelo, origenExtremo, destino.id, "saliente", [tipo]).includes(tipo))
   ));
 }
 
@@ -259,12 +262,15 @@ function iconoTipo(tipo: TipoEnlace): string {
   return "Iv";
 }
 
-function previewOpl(tipo: TipoEnlace, origen: Entidad, destino: Entidad): string {
-  const o = nombreOpl(origen);
-  const d = nombreOpl(destino);
+export function previewOpl(modelo: Modelo, tipo: TipoEnlace, origenEntrada: ExtremoEntrada, destinoEntrada: ExtremoEntrada): string {
+  const origenExtremo = normalizarExtremo(origenEntrada);
+  const destinoExtremo = normalizarExtremo(destinoEntrada);
+  const origen = entidadDeExtremo(modelo, origenExtremo);
+  const o = nombreOplExtremo(modelo, origenExtremo);
+  const d = nombreOplExtremo(modelo, destinoExtremo);
   if (tipo === "consumo") return `${d} consume ${o}.`;
   if (tipo === "resultado") return `${o} genera ${d}.`;
-  if (tipo === "efecto") return origen.tipo === "proceso" ? `${o} afecta ${d}.` : `${d} afecta ${o}.`;
+  if (tipo === "efecto") return origen?.tipo === "proceso" ? `${o} afecta ${d}.` : `${d} afecta ${o}.`;
   if (tipo === "agente") return `${o} maneja ${d}.`;
   if (tipo === "instrumento") return `${d} requiere ${o}.`;
   if (tipo === "invocacion") return `${o} invoca ${d}.`;
@@ -279,8 +285,10 @@ function previewOpl(tipo: TipoEnlace, origen: Entidad, destino: Entidad): string
   return `${d} es una instancia de ${o}.`;
 }
 
-function nombreOpl(entidad: Entidad): string {
-  return entidad.tipo === "proceso" ? `*${entidad.nombre}*` : `**${entidad.nombre}**`;
+function nombreOplExtremo(modelo: Modelo, extremo: ExtremoEnlace): string {
+  const entidad = entidadDeExtremo(modelo, extremo);
+  const nombre = nombreExtremo(modelo, extremo);
+  return entidad?.tipo === "proceso" && extremo.kind === "entidad" ? `*${nombre}*` : `**${nombre}**`;
 }
 
 /**
