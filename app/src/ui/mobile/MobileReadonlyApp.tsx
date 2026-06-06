@@ -8,16 +8,28 @@
  */
 
 import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { useAppShellViewModel } from "../../app/viewmodels/appShellViewModel";
 import { usePanelOplViewModel } from "../../app/viewmodels/panelOplViewModel";
 import type { JointCanvasAdapter } from "../../render/jointjs/jointCanvasAdapter";
+import { useOpmStore } from "../../store";
 import { ArbolOpd } from "../ArbolOpd";
 import { JointCanvasFeedbackBoundary } from "../JointCanvasFeedbackBoundary";
 import { PanelOplView } from "../PanelOpl";
 import { tokens } from "../tokens";
+import { parsearRutaMobile, empujarUrlMobile, type RutaMobileLectura } from "./routerMovil";
+import { VistaBusquedaLectura } from "./VistaBusquedaLectura";
 
 export type MobileVistaLectura = "diagrama" | "opds" | "opl" | "acerca";
+
+function vistaDesdeRuta(ruta: RutaMobileLectura | null): MobileVistaLectura {
+  if (ruta?.vista && VISTAS.has(ruta.vista as MobileVistaLectura)) {
+    return ruta.vista as MobileVistaLectura;
+  }
+  return "diagrama";
+}
+
+const VISTAS = new Set<MobileVistaLectura>(["diagrama", "opds", "opl", "acerca"]);
 
 interface Props {
   onAdapterChange: (adapter: JointCanvasAdapter | null) => void;
@@ -34,9 +46,46 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
   const {
     modelo,
     opdActivoId,
+    cambiarOpdActivo,
   } = useAppShellViewModel();
   const panelOplVm = usePanelOplViewModel();
-  const [vista, setVista] = useState<MobileVistaLectura>("diagrama");
+  const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
+  const rutaInicial = parsearRutaMobile();
+  const [vista, setVista] = useState<MobileVistaLectura>(vistaDesdeRuta(rutaInicial));
+  const [busquedaActiva, setBusquedaActiva] = useState(false);
+
+  // Sincroniza OPD desde URL si aplica
+  useEffect(() => {
+    if (rutaInicial?.opdId && modelo.opds[rutaInicial.opdId]) {
+      cambiarOpdActivo(rutaInicial.opdId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Actualiza URL cuando cambia vista u OPD
+  useEffect(() => {
+    const ruta: RutaMobileLectura = {
+      modeloId: modelo.id ?? "modelo",
+      opdId: opdActivoId,
+      vista: vista === "diagrama" ? null : vista,
+    };
+    empujarUrlMobile(ruta);
+  }, [vista, opdActivoId, modelo.id]);
+
+  // Escucha popstate (botón atrás)
+  useEffect(() => {
+    const onPop = () => {
+      const ruta = parsearRutaMobile();
+      if (ruta?.vista && VISTAS.has(ruta.vista as MobileVistaLectura)) {
+        setVista(ruta.vista as MobileVistaLectura);
+      }
+      if (ruta?.opdId && modelo.opds[ruta.opdId]) {
+        cambiarOpdActivo(ruta.opdId);
+      }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [modelo.opds, cambiarOpdActivo]);
 
   const opd = modelo.opds[opdActivoId];
   const nombreOpd = opd?.nombre ?? "Sin OPD";
@@ -52,10 +101,29 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
         <div style={style.headerInner}>
           <span data-testid="mobile-breadcrumb-opd" style={style.breadcrumb}>{nombreOpd}</span>
         </div>
+        <button
+          data-testid="mobile-boton-buscar"
+          type="button"
+          style={style.botonBuscar}
+          onClick={() => setBusquedaActiva(true)}
+          aria-label="Buscar"
+        >
+          🔍
+        </button>
       </header>
 
       <main style={style.main}>
-        {vista === "diagrama" ? (
+        {busquedaActiva ? (
+          <div style={style.vistaFull}>
+            <VistaBusquedaLectura
+              modelo={modelo}
+              opdActivoId={opdActivoId}
+              onSeleccionarEntidad={(id) => { seleccionarEntidad(id); setBusquedaActiva(false); }}
+              onSeleccionarOpd={(id) => { cambiarOpdActivo(id); setBusquedaActiva(false); }}
+              onCerrar={() => setBusquedaActiva(false)}
+            />
+          </div>
+        ) : vista === "diagrama" ? (
           <div data-testid="mobile-vista-diagrama" style={style.vistaFull}>
             <JointCanvasFeedbackBoundary readonlyMode={true} onAdapterChange={onAdapterChange} />
           </div>
@@ -139,6 +207,15 @@ const style: Record<string, preact.JSX.CSSProperties> = {
     fontSize: `${tokens.typography.fs.fs13}px`,
     fontWeight: tokens.typography.weights.bold,
     color: tokens.colors.ink,
+  },
+  botonBuscar: {
+    flex: "0 0 auto",
+    padding: `${tokens.spacing.sm}px`,
+    border: 0,
+    background: "transparent",
+    color: tokens.colors.inkSoft,
+    cursor: "pointer",
+    fontSize: `${tokens.typography.fs.fs14}px`,
   },
   main: {
     minWidth: 0,
