@@ -446,7 +446,7 @@ export function JointCanvas({
       contextoSimulacion
         ? {
             procesoActivoId: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.procesoActivoId : null,
-            estadosCurrent: contextoSimulacion.estadosCurrent,
+            estadosCurrent: focoSimulacion.estadosCurrentVisual,
             entidadesInvolucradasIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.entidadesInvolucradasIds : [],
             enlacesInvolucradosIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.enlacesInvolucradosIds : [],
             estadosInicialesIds: estadosInicialesDelModelo(modelo),

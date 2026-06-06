@@ -4,13 +4,13 @@
  * Cubre el slice minimo del brief r17-L2 S6:
  *   - Accion "Simulacion" desde ... Mas entra al modo.
  *   - BarraSimulacion reemplaza la Toolbar de edicion (sin boton "Objeto").
- *   - Paso ejecuta el siguiente proceso del plan y avanza el contador.
+ *   - Paso avanza una microfase conceptual del proceso actual.
  *   - Auto reproduce con velocidad seleccionable y pausa implicita al completar.
  *   - Correr ejecuta todos los pasos restantes; queda Completada.
  *   - Reiniciar vuelve al paso inicial.
  *   - Salir vuelve a la Toolbar de edicion.
  *
- * Actualizado S0 Codex: controles-palabra + segmented velocidad + scrubbing.
+ * Actualizado S1 Codex: avance por microfases OPM runtime.
  */
 import { expect, test, type Page } from "@playwright/test";
 import { esperarWorkbenchInicial, clickToolbarMasItem, jsonEditor, modeloTransicionEstados } from "./_smoke-helpers";
@@ -38,8 +38,8 @@ test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page })
   await expect(page.getByRole("button", { name: "Objeto", exact: true })).toHaveCount(0);
 
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/paso\s+1\s+de\s+2/);
-  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Próximo: (Recibir|Atender)/);
-  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("se registrará como avance de traza");
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Preparación: (Recibir|Atender)/);
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("Se verifican condiciones y habilitadores");
   await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("paso 1 de 2");
   const primeraVez = page.getByTestId("barra-simulacion-proceso-activo");
   await expect(primeraVez).toContainText(/Recibir|Atender/);
@@ -50,16 +50,22 @@ test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page })
   });
   expect(haloProcesoInicial).toBe(0);
 
-  // Ejecutar Paso -> avanza a paso 2 de 2 con el OTRO proceso.
-  await page.getByTestId("barra-simulacion-paso").click();
+  // Avanzar fases de un proceso sin enlaces: preparación -> proceso -> cierre -> siguiente proceso.
+  await avanzarFases(page, 3);
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/paso\s+2\s+de\s+2/);
-  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Próximo: (Recibir|Atender)/);
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Preparación: (Recibir|Atender)/);
   await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("paso 2 de 2");
   await expect(page.getByTestId("barra-simulacion-trace")).toBeVisible();
-  const haloPasoDos = await page.evaluate(() => {
+  const haloPasoDosPreparacion = await page.evaluate(() => {
     return document.querySelectorAll('[model-id^="sim-proceso-"]').length;
   });
-  expect(haloPasoDos).toBe(1);
+  expect(haloPasoDosPreparacion).toBe(0);
+
+  await page.getByTestId("barra-simulacion-paso").click();
+  const haloProcesoPasoDos = await page.evaluate(() => {
+    return document.querySelectorAll('[model-id^="sim-proceso-"]').length;
+  });
+  expect(haloProcesoPasoDos).toBe(1);
 
   // Correr -> completa los pasos restantes.
   await page.getByTestId("barra-simulacion-correr").click();
@@ -123,7 +129,7 @@ test("modo simulacion: play avanza automaticamente hasta completar", async ({ pa
   await expect(page.getByTestId("barra-simulacion-auto")).toContainText("pausa");
   await expect(page.getByTestId("barra-simulacion-paso")).toBeDisabled();
   await expect(page.getByTestId("barra-simulacion-correr")).toBeDisabled();
-  await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/Completada\s+·\s+2\s+pasos/, { timeout: 3000 });
+  await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/Completada\s+·\s+2\s+pasos/, { timeout: 7000 });
   await expect(page.getByTestId("barra-simulacion-auto")).toBeDisabled();
 
   expect(pageErrors).toEqual([]);
@@ -237,12 +243,12 @@ test("simulacion: estados, enlaces y tokens se activan visualmente en el canvas"
     () => document.querySelectorAll('[data-opm-sim-token="viaje"]').length,
   ), { timeout: 500 }).toBe(0);
   await page.getByTestId("barra-simulacion-paso").click();
-  await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Archivar");
+  await expect(page.getByTestId("barra-simulacion-progreso")).toContainText("consumo");
   await expect.poll(async () => page.evaluate(
     () => document.querySelectorAll('[data-opm-sim-token="viaje"]').length,
   ), { timeout: 1500 }).toBeGreaterThan(0);
 
-  const visual = await page.evaluate(() => ({
+  const visualConsumo = await page.evaluate(() => ({
     procesoActivo: document.querySelectorAll('[data-opm-sim="process-active"]').length,
     estadoCurrent: document.querySelectorAll('[data-opm-sim="state-current"]').length,
     estadoResultado: document.querySelectorAll('[data-opm-sim="state-result"]').length,
@@ -252,14 +258,36 @@ test("simulacion: estados, enlaces y tokens se activan visualmente en el canvas"
     tokenTrail: document.querySelectorAll('[data-opm-sim-token="trail"]').length,
   }));
 
-  expect(visual).toEqual({
+  expect(visualConsumo).toEqual({
     procesoActivo: 1,
     estadoCurrent: 1,
+    estadoResultado: 0,
+    enlaceRuntime: 1,
+    tokenCore: 1,
+    tokenAura: 1,
+    tokenTrail: 1,
+  });
+
+  await avanzarFases(page, 2);
+  await expect(page.getByTestId("barra-simulacion-progreso")).toContainText("resultado");
+  const visualResultado = await page.evaluate(() => ({
+    procesoActivo: document.querySelectorAll('[data-opm-sim="process-active"]').length,
+    estadoCurrent: document.querySelectorAll('[data-opm-sim="state-current"]').length,
+    estadoResultado: document.querySelectorAll('[data-opm-sim="state-result"]').length,
+    enlaceRuntime: document.querySelectorAll('[data-opm-sim="runtime-link"]').length,
+    tokenCore: document.querySelectorAll('[data-opm-sim-token="core"]').length,
+    tokenAura: document.querySelectorAll('[data-opm-sim-token="aura"]').length,
+    tokenTrail: document.querySelectorAll('[data-opm-sim-token="trail"]').length,
+  }));
+
+  expect(visualResultado).toEqual({
+    procesoActivo: 1,
+    estadoCurrent: 0,
     estadoResultado: 1,
-    enlaceRuntime: 2,
-    tokenCore: 2,
-    tokenAura: 2,
-    tokenTrail: 2,
+    enlaceRuntime: 1,
+    tokenCore: 1,
+    tokenAura: 1,
+    tokenTrail: 1,
   });
 
   expect(pageErrors).toEqual([]);
@@ -267,6 +295,12 @@ test("simulacion: estados, enlaces y tokens se activan visualmente en el canvas"
 
 async function entrarSimulacionDesdeMas(page: Page): Promise<void> {
   await clickToolbarMasItem(page, "toolbar-mas-simulacion");
+}
+
+async function avanzarFases(page: Page, total: number): Promise<void> {
+  for (let i = 0; i < total; i += 1) {
+    await page.getByTestId("barra-simulacion-paso").click();
+  }
 }
 
 async function quitarFoco(page: Page): Promise<void> {

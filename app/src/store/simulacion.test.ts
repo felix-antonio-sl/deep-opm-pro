@@ -55,7 +55,7 @@ describe("simulacion bloqueada", () => {
 
     store.getState().iniciarModoSimulacion();
     store.getState().iniciarAutoAvanceSimulacion();
-    for (let i = 0; i < 201; i += 1) store.getState().ejecutarPasoSimulacion();
+    for (let i = 0; i < 805; i += 1) store.getState().ejecutarPasoSimulacion();
 
     expect(store.getState().contextoSimulacion?.estado).toBe("bloqueado");
     expect(store.getState().autoAvanceSimulacionActivo).toBe(false);

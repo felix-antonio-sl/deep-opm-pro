@@ -14,7 +14,7 @@ import {
 } from "../operaciones";
 import { definirRutaEtiqueta } from "../rutas";
 import type { Modelo, Resultado } from "../tipos";
-import { desplegar, ejecutarCorrida, ejecutarPaso, iniciarSimulacion, reiniciarSimulacion } from "./runner";
+import { desplegar, ejecutarCorrida, ejecutarFaseSimulacion, ejecutarPaso, iniciarSimulacion, reiniciarSimulacion } from "./runner";
 
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(`Fixture fail: ${resultado.error}`);
@@ -73,6 +73,41 @@ describe("iniciarSimulacion", () => {
 });
 
 describe("ejecutarPaso — flujo determinista", () => {
+  test("ejecutarFaseSimulacion separa consumo, proceso, resultado y cierre sin mutar current antes del cierre", () => {
+    const { modelo, pendienteId, aprobadoId, pedidoId } = modeloTransicionAprobar();
+    let ctx = iniciarSimulacion(modelo, modelo.opdRaizId);
+
+    expect(ctx.faseActual).toBe("preparacion");
+    expect(ctx.trace).toHaveLength(0);
+    expect(ctx.estadosCurrent[pedidoId]).toBe(pendienteId);
+
+    ctx = ejecutarFaseSimulacion(modelo, ctx);
+    expect(ctx.faseActual).toBe("consumo");
+    expect(ctx.trace).toHaveLength(0);
+    expect(ctx.estadosCurrent[pedidoId]).toBe(pendienteId);
+
+    ctx = ejecutarFaseSimulacion(modelo, ctx);
+    expect(ctx.faseActual).toBe("proceso");
+    expect(ctx.trace).toHaveLength(0);
+    expect(ctx.estadosCurrent[pedidoId]).toBe(pendienteId);
+
+    ctx = ejecutarFaseSimulacion(modelo, ctx);
+    expect(ctx.faseActual).toBe("resultado");
+    expect(ctx.trace).toHaveLength(0);
+    expect(ctx.estadosCurrent[pedidoId]).toBe(pendienteId);
+
+    ctx = ejecutarFaseSimulacion(modelo, ctx);
+    expect(ctx.faseActual).toBe("cierre");
+    expect(ctx.trace).toHaveLength(0);
+    expect(ctx.estadosCurrent[pedidoId]).toBe(pendienteId);
+
+    ctx = ejecutarFaseSimulacion(modelo, ctx);
+    expect(ctx.estado).toBe("completado");
+    expect(ctx.faseActual).toBeUndefined();
+    expect(ctx.trace).toHaveLength(1);
+    expect(ctx.estadosCurrent[pedidoId]).toBe(aprobadoId);
+  });
+
   test("aplica transición A→B y actualiza estadosCurrent", () => {
     const { modelo, pendienteId, aprobadoId, pedidoId } = modeloTransicionAprobar();
     let ctx = iniciarSimulacion(modelo, modelo.opdRaizId);

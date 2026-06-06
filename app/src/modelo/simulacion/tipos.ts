@@ -54,6 +54,15 @@ export interface PasoSimulacion {
   transicionesPlanificadas: TransicionEstadoSim[];
 }
 
+/**
+ * Microfase observable de un paso de simulación conceptual.
+ *
+ * No agrega semántica OPM persistente: descompone el efecto runtime de un
+ * proceso en observables canónicos. Consumo ocurre al inicio; resultado al
+ * cierre; preparación/cierre son marcos de lectura de la traza.
+ */
+export type FaseSimulacion = "preparacion" | "consumo" | "proceso" | "resultado" | "cierre";
+
 /** Un cambio de valor runtime sobre un atributo durante un paso (Beta2 L3). */
 export interface CambioValorRuntime {
   entidadId: Id;
@@ -113,6 +122,8 @@ export interface ContextoSimulacion {
   plan: PasoSimulacion[];
   /** Índice del próximo paso a ejecutar (0..plan.length). */
   pasoActual: number;
+  /** Microfase visual/conceptual del paso actual. Ausente si no hay paso vivo. */
+  faseActual?: FaseSimulacion | undefined;
   estado: EstadoSimulacion;
   /** Estado current por entidadId derivado de designaciones + transiciones. */
   estadosCurrent: Record<Id, Id>;

@@ -4,12 +4,14 @@ import type { FocoPasoSimulacion } from "./foco";
 
 const focoEn = (opdId: string, enlaces: string[]): FocoPasoSimulacion => ({
   fase: "paso",
+  faseConceptual: "consumo",
   paso: { opdId } as FocoPasoSimulacion["paso"],
   procesoActivoId: "p1",
   entidadesInvolucradasIds: [],
   enlacesInvolucradosIds: enlaces,
   estadosOrigenIds: [],
   estadosResultadoIds: [],
+  estadosCurrentVisual: {},
 });
 
 describe("debeAnimarTokensSim", () => {
@@ -25,12 +27,14 @@ describe("debeAnimarTokensSim", () => {
   test("no anima sin paso activo", () => {
     const sinPaso: FocoPasoSimulacion = {
       fase: "inactivo",
+      faseConceptual: null,
       paso: null,
       procesoActivoId: null,
       entidadesInvolucradasIds: [],
       enlacesInvolucradosIds: [],
       estadosOrigenIds: [],
       estadosResultadoIds: [],
+      estadosCurrentVisual: {},
     };
     expect(debeAnimarTokensSim(sinPaso, "SD", false)).toBe(false);
   });

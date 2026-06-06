@@ -1,4 +1,4 @@
-import { ejecutarCorrida, ejecutarPaso, iniciarSimulacion, reiniciarSimulacion } from "../modelo/simulacion/runner";
+import { ejecutarCorrida, ejecutarFaseSimulacion, iniciarSimulacion, reiniciarSimulacion } from "../modelo/simulacion/runner";
 import type { ContextoSimulacion, ModoSimulacion } from "../modelo/simulacion/tipos";
 import type { Id } from "../modelo/tipos";
 import type { CrearSlice, SimulacionSlice } from "./sliceTypes";
@@ -68,7 +68,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
       return;
     }
     const pasoPrevio = contextoSimulacion.plan[contextoSimulacion.pasoActual];
-    const siguiente = ejecutarPaso(modelo, contextoSimulacion);
+    const siguiente = ejecutarFaseSimulacion(modelo, contextoSimulacion);
     const destino = opdParaMostrar(siguiente, opdActivoId);
     const patch: Partial<OpmStore> = { contextoSimulacion: siguiente };
     if (siguiente.estado === "completado" || siguiente.estado === "bloqueado") {

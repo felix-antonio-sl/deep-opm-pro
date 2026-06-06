@@ -2,16 +2,24 @@ import { tieneDesignacion } from "../estadosDesignaciones";
 import { entidadIdDeExtremo } from "../extremos";
 import { rutaEtiquetaNormalizada } from "../rutas";
 import type { Id, Modelo } from "../tipos";
-import type { ContextoSimulacion, EntradaTraceSim, PasoSimulacion, TransicionEstadoSim } from "./tipos";
+import {
+  enlacesDeFaseSimulacion,
+  estadosCurrentVisualesFase,
+  normalizarFaseSimulacion,
+  transicionesVigentesSimulacion,
+} from "./fases";
+import type { ContextoSimulacion, EntradaTraceSim, FaseSimulacion, PasoSimulacion, TransicionEstadoSim } from "./tipos";
 
 export interface FocoPasoSimulacion {
   fase: "inactivo" | "inicio" | "paso" | "final";
+  faseConceptual: FaseSimulacion | null;
   paso: PasoSimulacion | null;
   procesoActivoId: Id | null;
   entidadesInvolucradasIds: Id[];
   enlacesInvolucradosIds: Id[];
   estadosOrigenIds: Id[];
   estadosResultadoIds: Id[];
+  estadosCurrentVisual: Record<Id, Id>;
 }
 
 export function focoPasoActualSimulacion(modelo: Modelo, contexto: ContextoSimulacion | null): FocoPasoSimulacion {
@@ -26,54 +34,68 @@ export function focoPasoActualSimulacion(modelo: Modelo, contexto: ContextoSimul
     const entidadesFinalesIds = entidadesFinales(modelo, pasoFinal, ultimaEntrada);
     return {
       fase: "final",
+      faseConceptual: null,
       paso: pasoFinal,
       procesoActivoId: null,
       entidadesInvolucradasIds: entidadesFinalesIds,
       enlacesInvolucradosIds: [],
       estadosOrigenIds: [],
       estadosResultadoIds: estadosFinales(contexto, entidadesFinalesIds, ultimaEntrada),
+      estadosCurrentVisual: contexto.estadosCurrent,
     };
   }
 
   const paso = contexto.plan[contexto.pasoActual] ?? null;
   if (!paso) return focoVacio("inactivo");
+  const faseActual = normalizarFaseSimulacion(modelo, paso, contexto.faseActual);
+  const transicionesActivas = transicionesVigentesSimulacion(paso, contexto.estadosCurrent);
+  const estadosCurrentVisual = estadosCurrentVisualesFase(contexto.estadosCurrent, transicionesActivas, faseActual);
 
   if (contexto.estado === "preparado" && contexto.trace.length === 0) {
-    const transicionesActivas = transicionesActivasEnPaso(paso, contexto.estadosCurrent);
     const entidadesInicioIds = entidadesEntradaEnPaso(modelo, paso, transicionesActivas);
     return {
       fase: "inicio",
+      faseConceptual: faseActual,
       paso,
       procesoActivoId: null,
       entidadesInvolucradasIds: entidadesInicioIds,
-      enlacesInvolucradosIds: [],
+      enlacesInvolucradosIds: enlacesDeFaseSimulacion(modelo, paso, faseActual, contexto.estadosCurrent),
       estadosOrigenIds: unirIds(idsEstadosOrigen(transicionesActivas), estadosCurrentDeEntidades(contexto, entidadesInicioIds)),
       estadosResultadoIds: [],
+      estadosCurrentVisual,
     };
   }
 
-  const transicionesActivas = transicionesActivasEnPaso(paso, contexto.estadosCurrent);
+  const enlacesFase = enlacesDeFaseSimulacion(modelo, paso, faseActual, contexto.estadosCurrent);
+  const procesoActivoId = faseActual === "preparacion" || faseActual === "cierre" ? null : paso.procesoId;
+  const estadosResultadoIds = faseActual === "resultado" || faseActual === "cierre"
+    ? idsEstadosResultado(transicionesActivas)
+    : [];
 
   return {
     fase: "paso",
+    faseConceptual: faseActual,
     paso,
-    procesoActivoId: paso.procesoId,
-    entidadesInvolucradasIds: entidadesInvolucradasEnPaso(modelo, paso, contexto.estadosCurrent),
-    enlacesInvolucradosIds: enlacesInvolucradosEnPaso(modelo, paso, contexto.estadosCurrent),
-    estadosOrigenIds: idsEstadosOrigen(transicionesActivas),
-    estadosResultadoIds: idsEstadosResultado(transicionesActivas),
+    procesoActivoId,
+    entidadesInvolucradasIds: entidadesInvolucradasEnFase(modelo, paso, procesoActivoId, enlacesFase, transicionesActivas, faseActual),
+    enlacesInvolucradosIds: enlacesFase,
+    estadosOrigenIds: faseActual === "consumo" || faseActual === "proceso" ? idsEstadosOrigen(transicionesActivas) : [],
+    estadosResultadoIds,
+    estadosCurrentVisual,
   };
 }
 
 function focoVacio(fase: FocoPasoSimulacion["fase"]): FocoPasoSimulacion {
   return {
     fase,
+    faseConceptual: null,
     paso: null,
     procesoActivoId: null,
     entidadesInvolucradasIds: [],
     enlacesInvolucradosIds: [],
     estadosOrigenIds: [],
     estadosResultadoIds: [],
+    estadosCurrentVisual: {},
   };
 }
 
@@ -97,7 +119,7 @@ export function enlacesInvolucradosEnPaso(
   const todos = Array.from(new Set([...paso.enlacesEntradaIds, ...paso.enlacesSalidaIds]));
   if (!estadosCurrent) return todos;
   const rutasActivas = new Set(
-    transicionesActivasEnPaso(paso, estadosCurrent)
+    transicionesVigentesSimulacion(paso, estadosCurrent)
       .map((transicion) => transicion.rutaEtiqueta)
       .filter((ruta): ruta is string => Boolean(ruta)),
   );
@@ -111,7 +133,7 @@ export function enlacesInvolucradosEnPaso(
 
 export function entidadesInvolucradasEnPaso(modelo: Modelo, paso: PasoSimulacion, estadosCurrent?: Record<Id, Id>): Id[] {
   const ids = new Set<Id>([paso.procesoId]);
-  const transiciones = estadosCurrent ? transicionesActivasEnPaso(paso, estadosCurrent) : paso.transicionesPlanificadas;
+  const transiciones = estadosCurrent ? transicionesVigentesSimulacion(paso, estadosCurrent) : paso.transicionesPlanificadas;
   for (const transicion of transiciones) {
     ids.add(transicion.entidadId);
   }
@@ -123,6 +145,38 @@ export function entidadesInvolucradasEnPaso(modelo: Modelo, paso: PasoSimulacion
     if (origenId) ids.add(origenId);
     if (destinoId) ids.add(destinoId);
   }
+  return Array.from(ids);
+}
+
+function entidadesInvolucradasEnFase(
+  modelo: Modelo,
+  paso: PasoSimulacion,
+  procesoActivoId: Id | null,
+  enlacesIds: readonly Id[],
+  transiciones: readonly TransicionEstadoSim[],
+  fase: FaseSimulacion,
+): Id[] {
+  const ids = new Set<Id>();
+  if (procesoActivoId) ids.add(procesoActivoId);
+  for (const enlaceId of enlacesIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace) continue;
+    const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
+    const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+    if (origenId) ids.add(origenId);
+    if (destinoId) ids.add(destinoId);
+  }
+  if (fase === "consumo" || fase === "proceso") {
+    for (const transicion of transiciones) {
+      if (transicion.estadoAntesId !== null) ids.add(transicion.entidadId);
+    }
+  }
+  if (fase === "resultado" || fase === "cierre") {
+    for (const transicion of transiciones) {
+      if (transicion.estadoDespuesId !== null) ids.add(transicion.entidadId);
+    }
+  }
+  if (ids.size === 0) ids.add(paso.procesoId);
   return Array.from(ids);
 }
 
@@ -185,29 +239,6 @@ function estadosCurrentDeEntidades(contexto: ContextoSimulacion, entidadesIds: r
 function pasoDeEntrada(contexto: ContextoSimulacion, entrada: EntradaTraceSim | undefined): PasoSimulacion | null {
   if (!entrada) return null;
   return contexto.plan.find((paso) => paso.opdId === entrada.opdId && paso.procesoId === entrada.procesoId) ?? null;
-}
-
-function transicionesActivasEnPaso(paso: PasoSimulacion, estadosCurrent: Record<Id, Id>): TransicionEstadoSim[] {
-  const grupos = new Map<Id, TransicionEstadoSim[]>();
-  for (const transicion of paso.transicionesPlanificadas) {
-    const grupo = grupos.get(transicion.entidadId);
-    if (grupo) grupo.push(transicion);
-    else grupos.set(transicion.entidadId, [transicion]);
-  }
-  const activas: TransicionEstadoSim[] = [];
-  for (const [entidadId, transiciones] of grupos) {
-    if (transiciones.length === 1) {
-      activas.push(...transiciones);
-      continue;
-    }
-    const conEstadoEntrada = transiciones.filter((transicion) => transicion.estadoAntesId !== null);
-    if (conEstadoEntrada.length === 0) {
-      activas.push(...transiciones);
-      continue;
-    }
-    activas.push(...conEstadoEntrada.filter((transicion) => estadosCurrent[entidadId] === transicion.estadoAntesId));
-  }
-  return activas;
 }
 
 function idsEstadosOrigen(transiciones: readonly TransicionEstadoSim[]): Id[] {

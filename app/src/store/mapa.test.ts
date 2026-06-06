@@ -106,7 +106,7 @@ describe("slice simulacion (P0-2 exclusion mutua)", () => {
     store.getState().iniciarModoSimulacion();
     expect(store.getState().opdActivoId).toBe(modelo.opdRaizId);
 
-    store.getState().ejecutarPasoSimulacion();
+    avanzarHastaCambioDePasoSimulacion();
     expect(store.getState().opdActivoId).toBe(descompuesto.opdId);
     expect(store.getState().contextoSimulacion?.plan[store.getState().contextoSimulacion?.pasoActual ?? 0]?.opdId).toBe(descompuesto.opdId);
   });
@@ -123,7 +123,7 @@ describe("slice simulacion (P0-2 exclusion mutua)", () => {
 
     store.getState().iniciarAutoAvanceSimulacion();
     expect(store.getState().autoAvanceSimulacionActivo).toBe(true);
-    store.getState().ejecutarPasoSimulacion();
+    avanzarHastaCambioDePasoSimulacion();
     expect(store.getState().contextoSimulacion?.estado).toBe("completado");
     expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
 
@@ -157,6 +157,15 @@ describe("slice simulacion (P0-2 exclusion mutua)", () => {
     expect(store.getState().velocidadSimulacion).toBe(4); // clamp superior
   });
 });
+
+function avanzarHastaCambioDePasoSimulacion(): void {
+  const inicial = store.getState().contextoSimulacion?.pasoActual ?? 0;
+  for (let i = 0; i < 10; i += 1) {
+    store.getState().ejecutarPasoSimulacion();
+    const contexto = store.getState().contextoSimulacion;
+    if (!contexto || contexto.estado === "completado" || contexto.estado === "bloqueado" || contexto.pasoActual !== inicial) return;
+  }
+}
 
 describe("slice P1-5 ronda 4: nuevaCosaPendiente se descarta en cambios de contexto", () => {
   function activarPendienteStub() {

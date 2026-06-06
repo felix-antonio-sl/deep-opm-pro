@@ -1,6 +1,7 @@
 import type { JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
+import { descriptorFaseSimulacion, fasesDelPasoSimulacion } from "../../modelo/simulacion/fases";
 import { useBreakpoint } from "../layoutResponsive";
 import { tokens } from "../tokens";
 import { proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion, type NarrativaSimulacion } from "./proyeccionBarra";
@@ -30,7 +31,7 @@ export function BarraSimulacion(): JSX.Element | null {
     if (!contexto || !autoAvance || contexto.estado === "completado" || contexto.estado === "bloqueado" || contexto.plan.length === 0) return;
     const timeoutId = window.setTimeout(ejecutarPaso, intervaloAutoAvanceMs(velocidadSimulacion));
     return () => window.clearTimeout(timeoutId);
-  }, [autoAvance, contexto?.estado, contexto?.modeloId, contexto?.pasoActual, contexto?.plan.length, ejecutarPaso, velocidadSimulacion]);
+  }, [autoAvance, contexto?.estado, contexto?.faseActual, contexto?.modeloId, contexto?.pasoActual, contexto?.plan.length, ejecutarPaso, velocidadSimulacion]);
 
   if (!contexto) return null;
 
@@ -40,16 +41,12 @@ export function BarraSimulacion(): JSX.Element | null {
   const sinProcesos = totalPasos === 0;
   const estadoBarra = proyectarEstadoBarraSimulacion(contexto, autoAvance);
   const narrativa = proyectarNarrativaSimulacion(modelo, contexto, autoAvance);
+  const faseActual = pasoActual ? descriptorFaseSimulacion(modelo, pasoActual, contexto.faseActual) : null;
+  const fasesPasoActual = pasoActual ? fasesDelPasoSimulacion(modelo, pasoActual) : [];
   const completado = estadoBarra.completado;
   const bloqueado = estadoBarra.bloqueado;
   const controlesDeshabilitados = sinProcesos || !estadoBarra.puedeEjecutar;
   const C = tokens.colors;
-
-  const handleScrub = (n: number) => {
-    if (sinProcesos || n < 0 || n > totalPasos) return;
-    reiniciar();
-    for (let i = 0; i < n; i++) ejecutarPaso();
-  };
 
   const velocidades = [0.5, 1, 2, 4] as const;
 
@@ -139,8 +136,8 @@ export function BarraSimulacion(): JSX.Element | null {
 
         {!autoAvance ? (
           <>
-            <button type="button" style={s.control} onClick={ejecutarPaso} disabled={controlesDeshabilitados} data-testid="barra-simulacion-paso" title="Avanzar un paso">
-              paso <span style={s.flecha}>&#9656;</span>
+            <button type="button" style={s.control} onClick={ejecutarPaso} disabled={controlesDeshabilitados} data-testid="barra-simulacion-paso" title="Avanzar una fase">
+              fase <span style={s.flecha}>&#9656;</span>
             </button>
             <span style={s.sep}>&middot;</span>
           </>
@@ -202,24 +199,27 @@ export function BarraSimulacion(): JSX.Element | null {
         ) : null}
       </div>
 
-      {/* Timeline: marcos navegables (scrubbing) */}
-      {!sinProcesos && totalPasos <= 30 ? (
-        <div style={s.timeline} data-testid="barra-simulacion-timeline">
-          {Array.from({ length: totalPasos + 1 }, (_, i) => (
-            <button
-              key={i}
-              type="button"
-              style={{ ...s.marco, ...(i === ejecutados ? s.marcoActual : {}) }}
-              onClick={() => handleScrub(i)}
-              title={i === 0 ? "Ir al estado inicial" : i === totalPasos ? "Ir a la situación final" : `Ir al paso ${i}`}
-            >
-              {i === 0 ? "ini" : i === totalPasos ? "fin" : i}
-            </button>
-          ))}
+      {/* Timeline de microfases del proceso actual. */}
+      {!sinProcesos && fasesPasoActual.length > 0 ? (
+        <div style={s.timeline} data-testid="barra-simulacion-timeline" aria-label="Fases del proceso actual">
+          {fasesPasoActual.map((fase, i) => {
+            const indice = i + 1;
+            const activa = faseActual?.indice === indice;
+            const cerrada = faseActual ? indice < faseActual.indice : false;
+            return (
+              <span
+                key={fase}
+                style={{ ...s.marco, ...(cerrada ? s.marcoCompletado : {}), ...(activa ? s.marcoActual : {}) }}
+                title={rotuloFase(fase)}
+              >
+                {rotuloCortoFase(fase)}
+              </span>
+            );
+          })}
         </div>
       ) : !sinProcesos ? (
         <span style={s.timelineGrande}>
-          {ejecutados} de {totalPasos} pasos &middot; usar paso &#9656; para navegar
+          {ejecutados} de {totalPasos} procesos consolidados
         </span>
       ) : null}
 
@@ -255,6 +255,22 @@ export function BarraSimulacion(): JSX.Element | null {
 
 function intervaloAutoAvanceMs(velocidad: number): number {
   return Math.round(900 / velocidad);
+}
+
+function rotuloCortoFase(fase: string): string {
+  if (fase === "preparacion") return "prep";
+  if (fase === "consumo") return "cons";
+  if (fase === "proceso") return "proc";
+  if (fase === "resultado") return "res";
+  return "cierre";
+}
+
+function rotuloFase(fase: string): string {
+  if (fase === "preparacion") return "Preparación";
+  if (fase === "consumo") return "Consumo";
+  if (fase === "proceso") return "Proceso activo";
+  if (fase === "resultado") return "Resultado";
+  return "Cierre";
 }
 
 function marcaNarrativa(tono: NarrativaSimulacion["tono"]): string {
@@ -509,9 +525,12 @@ const s: Record<string, JSX.CSSProperties> = {
     background: "transparent",
     border: "none",
     borderRadius: 0,
-    cursor: "pointer",
+    cursor: "default",
     pointerEvents: "auto",
     transition: "color 120ms ease, fontWeight 120ms ease",
+  },
+  marcoCompletado: {
+    color: C.inkSoft,
   },
   marcoActual: {
     fontWeight: 600,

@@ -56,9 +56,9 @@ describe("proyeccionBarraSimulacion", () => {
 
     expect(ui).toEqual({
       tono: "neutro",
-      titulo: "Próximo: Calentar",
-      detalle: "Aplicará Agua: solidificada -> líquida por ruta sol-liq.",
-      contexto: ["paso 1 de 1", "SD", "determinista"],
+      titulo: "Preparación: Calentar",
+      detalle: "Se verifican condiciones y habilitadores; todavía no se consume ni produce estado.",
+      contexto: ["paso 1 de 1", "fase 1/5", "SD", "determinista"],
     });
   });
 

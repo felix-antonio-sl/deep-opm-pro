@@ -7,6 +7,7 @@ import { efectoUnico, tomarUnico, type Efecto, type Sucesor } from "./efecto";
 import { resolverDecisionAbanico } from "../decision";
 import { rngSembrado } from "./rng";
 import { detectarEventosTemporalesPaso, inferirDuracionPasoSim } from "./tiempo";
+import { primeraFaseSimulacion, siguienteFaseSimulacion } from "./fases";
 
 export const LIMITE_PASOS_SIMULACION = 200;
 
@@ -21,6 +22,7 @@ export function iniciarSimulacion(modelo: Modelo, opdId: Id): ContextoSimulacion
     opdId,
     plan,
     pasoActual: 0,
+    faseActual: primeraFaseSimulacion(modelo, plan[0]),
     estado: plan.length === 0 ? "completado" : "preparado",
     estadosCurrent: estadosCurrentIniciales(modelo),
     valoresRuntime: iniciarValoresRuntime(modelo),
@@ -57,6 +59,7 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     return efectoUnico({
       ...contexto,
       pasoActual: nuevoPaso,
+      faseActual: primeraFaseSimulacion(modelo, contexto.plan[nuevoPaso]),
       estado: nuevoPaso >= contexto.plan.length ? "completado" : "ejecutando",
       trace: [...contexto.trace, entrada],
     });
@@ -148,6 +151,7 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   const siguiente: ContextoSimulacion = {
     ...contexto,
     pasoActual: nuevoPaso,
+    faseActual: primeraFaseSimulacion(modelo, contexto.plan[nuevoPaso]),
     estado: nuevoPaso >= contexto.plan.length ? "completado" : "ejecutando",
     estadosCurrent,
     valoresRuntime: valoresNuevos,
@@ -198,6 +202,25 @@ export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion, limit
     return bloquearPorLimite(contexto, limite);
   }
   return tomarUnico(pasoEfecto(modelo, contexto));
+}
+
+/**
+ * Avanza una microfase observable. Solo al cerrar la fase `cierre` delega en
+ * `ejecutarPaso`, que aplica el efecto semántico completo del proceso.
+ */
+export function ejecutarFaseSimulacion(
+  modelo: Modelo,
+  contexto: ContextoSimulacion,
+  limite = LIMITE_PASOS_SIMULACION,
+): ContextoSimulacion {
+  if (contexto.estado === "bloqueado" || contexto.estado === "completado") return contexto;
+  const paso = contexto.plan[contexto.pasoActual];
+  if (!paso) return { ...contexto, estado: "completado", faseActual: undefined };
+  const siguienteFase = siguienteFaseSimulacion(modelo, paso, contexto.faseActual);
+  if (siguienteFase) {
+    return { ...contexto, estado: "ejecutando", faseActual: siguienteFase };
+  }
+  return ejecutarPaso(modelo, contexto, limite);
 }
 
 function abanicoXorDeSalida(modelo: Modelo, procesoId: Id): Abanico | undefined {

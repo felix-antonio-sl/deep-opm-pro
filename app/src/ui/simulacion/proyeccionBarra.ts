@@ -1,5 +1,6 @@
 import type { Modelo } from "../../modelo/tipos";
 import type { ContextoSimulacion, EntradaTraceSim, PasoSimulacion, TransicionEstadoSim } from "../../modelo/simulacion/tipos";
+import { descriptorFaseSimulacion, transicionesVigentesSimulacion } from "../../modelo/simulacion/fases";
 
 export interface ProyeccionEstadoBarraSimulacion {
   bloqueado: boolean;
@@ -52,7 +53,7 @@ export function proyectarEstadoBarraSimulacion(
     bloqueado,
     completado,
     puedeEjecutar: totalPasos > 0,
-    textoProgreso: `${autoAvance ? "Reproduciendo" : "Listo para simular"} · paso ${Math.min(ejecutados + 1, totalPasos)} de ${totalPasos}`,
+    textoProgreso: textoProgresoVivo(contexto, autoAvance),
   };
 }
 
@@ -122,24 +123,57 @@ export function proyectarNarrativaSimulacion(
     };
   }
 
+  const fase = descriptorFaseSimulacion(modelo, paso, contexto.faseActual);
   return {
     tono: autoAvance ? "activo" : "neutro",
-    titulo: `${autoAvance ? "Ejecutando" : "Próximo"}: ${paso.procesoNombre}`,
-    detalle: describirPasoPlanificado(modelo, paso, contexto.estadosCurrent),
-    contexto: [`paso ${Math.min(ejecutados + 1, totalPasos)} de ${totalPasos}`, paso.opdNombre, modo],
+    titulo: `${tituloFase(fase?.fase, autoAvance)}: ${paso.procesoNombre}`,
+    detalle: describirFasePlanificada(modelo, paso, contexto.estadosCurrent, fase?.fase),
+    contexto: [
+      `paso ${Math.min(contexto.pasoActual + 1, totalPasos)} de ${totalPasos}`,
+      fase ? `fase ${fase.indice}/${fase.total}` : "sin fase",
+      paso.opdNombre,
+      modo,
+    ],
   };
 }
 
-function describirPasoPlanificado(
+function textoProgresoVivo(
+  contexto: ContextoSimulacion,
+  autoAvance: boolean,
+): string {
+  const totalPasos = contexto.plan.length;
+  const pasoTexto = `paso ${Math.min(contexto.pasoActual + 1, totalPasos)} de ${totalPasos}`;
+  const faseReal = contexto.faseActual;
+  return `${autoAvance ? "Reproduciendo" : "Listo para simular"} · ${pasoTexto}${faseReal ? ` · ${rotuloProgresoFase(faseReal)}` : ""}`;
+}
+
+function describirFasePlanificada(
   modelo: Modelo,
   paso: PasoSimulacion,
   estadosCurrent: Record<string, string>,
+  fase: ContextoSimulacion["faseActual"],
 ): string {
-  const transiciones = transicionesVigentes(paso, estadosCurrent);
-  if (transiciones.length === 0) {
-    return "Este proceso no tiene cambios de estado inferidos; se registrará como avance de traza.";
+  const transiciones = transicionesVigentesSimulacion(paso, estadosCurrent);
+  if (fase === "preparacion") {
+    return "Se verifican condiciones y habilitadores; todavía no se consume ni produce estado.";
   }
-  return `Aplicará ${describirTransiciones(modelo, transiciones)}.`;
+  if (fase === "consumo") {
+    if (transiciones.length === 0) return "El proceso toma sus entradas de consumo; no hay cambio de estado inferido.";
+    return `Inicio del proceso: consume ${describirTransiciones(modelo, transiciones)}.`;
+  }
+  if (fase === "proceso") {
+    return transiciones.length > 0
+      ? "El proceso está activo; los objetos afectados quedan en transición hasta el resultado."
+      : "El proceso está activo y se registrará como avance de traza.";
+  }
+  if (fase === "resultado") {
+    if (transiciones.length === 0) return "Cierre del proceso: no hay resultado de estado inferido.";
+    return `Cierre del proceso: produce ${describirTransiciones(modelo, transiciones)}.`;
+  }
+  if (fase === "cierre") {
+    return "La traza se consolidará y la simulación avanzará al siguiente proceso.";
+  }
+  return "Este proceso no tiene cambios de estado inferidos; se registrará como avance de traza.";
 }
 
 function describirEntradaTrace(modelo: Modelo, entrada: EntradaTraceSim): string {
@@ -162,32 +196,28 @@ function describirEntradaTrace(modelo: Modelo, entrada: EntradaTraceSim): string
   return partes.length > 0 ? `${partes.join("; ")}.` : `${entrada.procesoNombre} se ejecutó sin cambios de estado.`;
 }
 
-function transicionesVigentes(paso: PasoSimulacion, estadosCurrent: Record<string, string>): TransicionEstadoSim[] {
-  const grupos = new Map<string, TransicionEstadoSim[]>();
-  for (const transicion of paso.transicionesPlanificadas) {
-    const previas = grupos.get(transicion.entidadId);
-    if (previas) previas.push(transicion);
-    else grupos.set(transicion.entidadId, [transicion]);
-  }
-
-  const vigentes: TransicionEstadoSim[] = [];
-  for (const [entidadId, transiciones] of grupos) {
-    if (transiciones.length === 1) {
-      vigentes.push(transiciones[0]!);
-      continue;
-    }
-    const compatibles = transiciones.filter(
-      (transicion) => transicion.estadoAntesId === null || estadosCurrent[entidadId] === transicion.estadoAntesId,
-    );
-    vigentes.push(...(compatibles.length > 0 ? compatibles : transiciones));
-  }
-  return vigentes;
-}
-
 function describirTransiciones(modelo: Modelo, transiciones: readonly TransicionEstadoSim[]): string {
   const visibles = transiciones.slice(0, 2).map((transicion) => describirTransicion(modelo, transicion));
   const restantes = transiciones.length - visibles.length;
   return restantes > 0 ? `${visibles.join("; ")} y ${restantes} más` : visibles.join("; ");
+}
+
+function tituloFase(fase: ContextoSimulacion["faseActual"], autoAvance: boolean): string {
+  if (autoAvance) return "Ejecutando";
+  if (fase === "preparacion") return "Preparación";
+  if (fase === "consumo") return "Consumo";
+  if (fase === "proceso") return "Proceso activo";
+  if (fase === "resultado") return "Resultado";
+  if (fase === "cierre") return "Cierre";
+  return "Próximo";
+}
+
+function rotuloProgresoFase(fase: NonNullable<ContextoSimulacion["faseActual"]>): string {
+  if (fase === "preparacion") return "preparación";
+  if (fase === "consumo") return "consumo";
+  if (fase === "proceso") return "proceso";
+  if (fase === "resultado") return "resultado";
+  return "cierre";
 }
 
 function describirTransicion(modelo: Modelo, transicion: TransicionEstadoSim): string {

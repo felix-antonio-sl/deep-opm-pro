@@ -71,17 +71,30 @@ describe("focoPasoActualSimulacion — rutas de transición", () => {
     expect(contexto.plan).toHaveLength(2);
     expect(contexto.estadosCurrent[aguaId]).toBe(solidificadaId);
 
-    const focoSolida = focoPasoActualSimulacion(modelo, { ...contexto, estado: "ejecutando" });
-    const focoLiquida = focoPasoActualSimulacion(modelo, ejecutarPaso(modelo, contexto));
+    const focoConsumoSolida = focoPasoActualSimulacion(modelo, { ...contexto, estado: "ejecutando", faseActual: "consumo" });
+    const focoResultadoSolida = focoPasoActualSimulacion(modelo, { ...contexto, estado: "ejecutando", faseActual: "resultado" });
+    const contextoLiquida = ejecutarPaso(modelo, contexto);
+    const focoConsumoLiquida = focoPasoActualSimulacion(modelo, { ...contextoLiquida, estado: "ejecutando", faseActual: "consumo" });
+    const focoResultadoLiquida = focoPasoActualSimulacion(modelo, { ...contextoLiquida, estado: "ejecutando", faseActual: "resultado" });
 
-    expect([...focoSolida.enlacesInvolucradosIds].sort()).toEqual([...solLiqIds].sort());
-    expect(focoSolida.estadosOrigenIds).toEqual([solidificadaId]);
-    expect(focoSolida.estadosResultadoIds).toEqual([liquidaId]);
-    expect([...focoLiquida.enlacesInvolucradosIds].sort()).toEqual([...liqGasIds].sort());
-    expect(focoLiquida.estadosOrigenIds).toEqual([liquidaId]);
-    expect(focoLiquida.estadosResultadoIds).toEqual([gaseosaId]);
+    expect(focoConsumoSolida.enlacesInvolucradosIds).toEqual(enlacesPorTipo(modelo, solLiqIds, "consumo"));
+    expect(focoConsumoSolida.estadosOrigenIds).toEqual([solidificadaId]);
+    expect(focoConsumoSolida.estadosResultadoIds).toEqual([]);
+    expect(focoResultadoSolida.enlacesInvolucradosIds).toEqual(enlacesPorTipo(modelo, solLiqIds, "resultado"));
+    expect(focoResultadoSolida.estadosResultadoIds).toEqual([liquidaId]);
+    expect(focoResultadoSolida.estadosCurrentVisual[aguaId]).toBe(liquidaId);
+    expect(contexto.estadosCurrent[aguaId]).toBe(solidificadaId);
+
+    expect(focoConsumoLiquida.enlacesInvolucradosIds).toEqual(enlacesPorTipo(modelo, liqGasIds, "consumo"));
+    expect(focoConsumoLiquida.estadosOrigenIds).toEqual([liquidaId]);
+    expect(focoResultadoLiquida.enlacesInvolucradosIds).toEqual(enlacesPorTipo(modelo, liqGasIds, "resultado"));
+    expect(focoResultadoLiquida.estadosResultadoIds).toEqual([gaseosaId]);
   });
 });
+
+function enlacesPorTipo(modelo: Modelo, ids: readonly string[], tipo: "consumo" | "resultado"): string[] {
+  return ids.filter((id) => modelo.enlaces[id]?.tipo === tipo);
+}
 
 function modeloRutasAgua(): {
   modelo: Modelo;
