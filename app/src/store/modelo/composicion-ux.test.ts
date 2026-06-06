@@ -1,9 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../../modelo/operaciones";
 import type { Id, Modelo, Resultado } from "../../modelo/tipos";
-import { guardarModeloLocal } from "../../persistencia/local";
+import type { ModeloPersistido } from "../../persistencia/modelos";
 import { exportarModelo } from "../../serializacion/json";
 import { store } from "../../store";
+
+let originalFetch: typeof fetch;
+let backend: BackendMock;
 
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
@@ -17,15 +20,13 @@ function entidadId(modelo: Modelo, nombre: string): Id {
 }
 
 beforeEach(() => {
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: storageFake(),
-  });
+  backend = instalarBackendMock();
   store.getState().importarJson(exportarModelo(crearModelo("Base")));
 });
 
 afterEach(() => {
-  Reflect.deleteProperty(globalThis, "localStorage");
+  globalThis.fetch = originalFetch;
+  Reflect.deleteProperty(globalThis, "window");
 });
 
 describe("componerConModeloGuardado — UX del Piso 1", () => {
@@ -37,7 +38,7 @@ describe("componerConModeloGuardado — UX del Piso 1", () => {
     expect(store.getState().dialogoComposicionAbierto).toBe(false);
   });
 
-  test("carga un modelo guardado, aplica compartidas y materializa el compuesto en el modelo activo", () => {
+  test("carga un modelo guardado, aplica compartidas y materializa el compuesto en el modelo activo", async () => {
     let a = crearModelo("Modelo A");
     a = must(crearObjeto(a, a.opdRaizId, { x: 20, y: 80 }, "Cliente"));
     a = must(crearProceso(a, a.opdRaizId, { x: 220, y: 80 }, "Comprar"));
@@ -50,18 +51,18 @@ describe("componerConModeloGuardado — UX del Piso 1", () => {
     const clienteB = entidadId(b, "Cliente");
 
     store.getState().importarJson(exportarModelo(a));
-    const guardado = guardarModeloLocal({
+    guardarModeloEnBackendMock({
       id: "modelo-b",
       nombre: "Modelo B",
       json: exportarModelo(b),
     });
-    expect(guardado.ok).toBe(true);
     store.getState().abrirDialogoComposicion();
 
     store.getState().componerConModeloGuardado({
       modeloId: "modelo-b",
       compartidas: { [clienteB]: clienteA },
     });
+    await esperar(() => store.getState().mensaje?.startsWith("Modelo compuesto") === true);
 
     const estado = store.getState();
     expect(estado.dialogoComposicionAbierto).toBe(false);
@@ -72,16 +73,17 @@ describe("componerConModeloGuardado — UX del Piso 1", () => {
     expect(Object.values(estado.modelo.entidades).some((entidad) => entidad.nombre === "Factura")).toBe(true);
   });
 
-  test("informa error si el modelo local no existe y no muta el modelo activo", () => {
+  test("informa error si el modelo backend no existe y no muta el modelo activo", async () => {
     const antes = exportarModelo(store.getState().modelo);
 
     store.getState().componerConModeloGuardado({ modeloId: "inexistente", compartidas: {} });
+    await esperar(() => store.getState().mensaje === "Modelo no encontrado en servidor");
 
     expect(exportarModelo(store.getState().modelo)).toBe(antes);
-    expect(store.getState().mensaje).toBe("Modelo local no encontrado");
+    expect(store.getState().mensaje).toBe("Modelo no encontrado en servidor");
   });
 
-  test("advierte cuando la composición crea un conflicto de recurso lineal", () => {
+  test("advierte cuando la composición crea un conflicto de recurso lineal", async () => {
     // Objeto lineal "Bateria" consumido en A y en B; al fusionarlo quedan DOS
     // consumidores del mismo recurso lineal -> estado inválido. La capacidad
     // verificarLinealidad existía pero no se reflejaba en la UX (fusión silenciosa).
@@ -100,33 +102,59 @@ describe("componerConModeloGuardado — UX del Piso 1", () => {
     b = must(crearEnlace(b, b.opdRaizId, objB, entidadId(b, "Motor B"), "consumo"));
 
     store.getState().importarJson(exportarModelo(a));
-    must(guardarModeloLocal({ id: "lineal-b", nombre: "Lineal B", json: exportarModelo(b) }));
+    guardarModeloEnBackendMock({ id: "lineal-b", nombre: "Lineal B", json: exportarModelo(b) });
     store.getState().componerConModeloGuardado({ modeloId: "lineal-b", compartidas: { [objB]: objA } });
+    await esperar(() => store.getState().mensaje?.includes("linealidad") === true);
 
     expect(store.getState().mensaje).toContain("linealidad");
   });
 });
 
-function storageFake(): Storage {
-  const data = new Map<string, string>();
-  return {
-    get length() {
-      return data.size;
-    },
-    key(index: number) {
-      return [...data.keys()][index] ?? null;
-    },
-    getItem(key: string) {
-      return data.get(key) ?? null;
-    },
-    setItem(key: string, value: string) {
-      data.set(key, value);
-    },
-    removeItem(key: string) {
-      data.delete(key);
-    },
-    clear() {
-      data.clear();
-    },
-  };
+interface BackendMock {
+  modelos: Map<string, ModeloPersistido>;
+}
+
+function guardarModeloEnBackendMock(input: Pick<ModeloPersistido, "id" | "nombre" | "json"> & Partial<ModeloPersistido>): void {
+  const ahora = "2026-06-06T00:00:00.000Z";
+  backend.modelos.set(input.id, {
+    descripcion: "",
+    creadoEn: ahora,
+    actualizadoEn: ahora,
+    carpetaId: null,
+    revision: 1,
+    ...input,
+  });
+}
+
+function instalarBackendMock(): BackendMock {
+  Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+  originalFetch = globalThis.fetch;
+  const mock: BackendMock = { modelos: new Map() };
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const method = init?.method ?? "GET";
+    if (url.startsWith("/__deep-opm/modelos/") && method === "GET") {
+      const id = decodeURIComponent(url.split("/").pop() ?? "");
+      const modelo = mock.modelos.get(id);
+      return Promise.resolve(modelo
+        ? jsonResponse({ modelo })
+        : jsonResponse({ error: "Modelo no encontrado en servidor" }, 404));
+    }
+    return Promise.resolve(jsonResponse({ error: "unexpected" }, 404));
+  }) as unknown as typeof fetch;
+  return mock;
+}
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+async function esperar(condicion: () => boolean): Promise<void> {
+  for (let intento = 0; intento < 30; intento += 1) {
+    if (condicion()) return;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
 }

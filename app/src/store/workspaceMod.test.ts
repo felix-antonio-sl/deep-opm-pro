@@ -5,7 +5,6 @@ import { store } from "../store";
 
 describe("slice workspaceMod", () => {
   beforeEach(() => {
-    instalarLocalStorage();
     store.getState().activarReadOnly(false);
     store.getState().importarJson(exportarModelo(crearModelo("Workspace")));
     store.getState().listarModelosGuardados();
@@ -17,35 +16,11 @@ describe("slice workspaceMod", () => {
     expect(store.getState().modelo.opdRaizId).toBeTruthy();
   });
 
-  test("crearVersionAhora propaga error tipado de version sin lanzar excepcion", async () => {
-    const storage = instalarLocalStorage();
-    store.getState().guardarComoLocal({ nombre: "Versionado" });
+  test("crearVersionAhora no usa fallback local sin backend", async () => {
+    store.setState({ modeloPersistidoId: "modelo-versionado" });
 
-    storage.fallarSetVersion = true;
     await store.getState().crearVersionAhora({ descripcion: "manual" });
 
-    expect(store.getState().mensaje).toBe("No se pudo crear versión");
+    expect(store.getState().mensaje).toBe("Backend de modelos no disponible");
   });
 });
-
-function instalarLocalStorage(): { fallarSetVersion: boolean } {
-  const datos = new Map<string, string>();
-  const control = { fallarSetVersion: false };
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: {
-      get length() {
-        return datos.size;
-      },
-      key: (index: number) => Array.from(datos.keys())[index] ?? null,
-      getItem: (key: string) => datos.get(key) ?? null,
-      setItem: (key: string, value: string) => {
-        if (control.fallarSetVersion && key.startsWith("deep-opm-pro:version:")) throw new Error("setItem");
-        datos.set(key, value);
-      },
-      removeItem: (key: string) => datos.delete(key),
-      clear: () => datos.clear(),
-    },
-  });
-  return control;
-}

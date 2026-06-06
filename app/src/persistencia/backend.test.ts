@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { cargarModeloLocal } from "./local";
 import {
   cargarWorkspaceBackend,
   guardarAutosalvadoBackend,
@@ -14,11 +13,9 @@ import {
 describe("persistencia backend cliente", () => {
   afterEach(() => {
     Reflect.deleteProperty(globalThis, "window");
-    Reflect.deleteProperty(globalThis, "localStorage");
   });
 
-  test("lista modelos del backend sin escribir payloads OPM en localStorage", async () => {
-    instalarLocalStorage();
+  test("lista modelos del backend sin requerir storage navegador", async () => {
     Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
     const modelo = {
       id: "backend-1",
@@ -39,15 +36,12 @@ describe("persistencia backend cliente", () => {
       expect(persistenciaBackendHabilitada()).toBe(true);
       const listado = await listarModelosBackend();
       expect(listado).toEqual({ ok: true, value: [expect.objectContaining({ id: "backend-1", nombre: "Backend 1", revision: 7 })] });
-      const local = cargarModeloLocal("backend-1");
-      expect(local.ok).toBe(false);
     } finally {
       globalThis.fetch = originalFetch;
     }
   });
 
-  test("guardar modelo backend no toca localStorage aunque localStorage rechace escrituras", async () => {
-    instalarLocalStorage({ rechazarEscrituras: true });
+  test("guardar modelo backend no requiere storage navegador", async () => {
     Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
     const modelo = {
       id: "backend-storage-falla",
@@ -69,7 +63,6 @@ describe("persistencia backend cliente", () => {
   });
 
   test("opera sesion, workspace, versiones y autosave contra endpoints backend", async () => {
-    instalarLocalStorage();
     Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
     const indice = {
       modelos: [{ id: "m1", carpetaId: "c1" }],
@@ -80,7 +73,7 @@ describe("persistencia backend cliente", () => {
       id: "v1",
       creadoEn: "2026-06-03T00:00:00.000Z",
       nombre: "Snapshot",
-      modeloPayloadKey: "deep-opm-pro:version:m1:v1",
+      modeloPayloadKey: "m1:v1",
       bytes: 100,
     };
     const originalFetch = globalThis.fetch;
@@ -135,25 +128,5 @@ function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "content-type": "application/json" },
-  });
-}
-
-function instalarLocalStorage(opts: { rechazarEscrituras?: boolean } = {}): void {
-  const datos = new Map<string, string>();
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: {
-      get length() {
-        return datos.size;
-      },
-      key: (index: number) => Array.from(datos.keys())[index] ?? null,
-      getItem: (key: string) => datos.get(key) ?? null,
-      setItem: (key: string, value: string) => {
-        if (opts.rechazarEscrituras) throw new Error("quota");
-        datos.set(key, value);
-      },
-      removeItem: (key: string) => datos.delete(key),
-      clear: () => datos.clear(),
-    },
   });
 }

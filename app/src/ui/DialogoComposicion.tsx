@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import { resumenComposicion, sugerirCompartidasPorInterfaz } from "../modelo/composicion";
 import type { Id, Modelo, TipoEntidad } from "../modelo/tipos";
-import { cargarModeloLocal, type ResumenModeloPersistido } from "../persistencia/local";
+import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import { cargarModeloBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
 import { hidratarModelo } from "../serializacion/json";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
@@ -79,23 +79,9 @@ export function DialogoComposicion() {
       });
       return;
     }
-    const cargado = cargarModeloLocal(id);
-    if (!cargado.ok) {
-      setModeloB(null);
-      setErrorModelo(cargado.error);
-      setCompartidas({});
-      return;
-    }
-    const hidratado = hidratarModelo(cargado.value.json);
-    if (!hidratado.ok) {
-      setModeloB(null);
-      setErrorModelo(`No se pudo leer el modelo: ${hidratado.error}`);
-      setCompartidas({});
-      return;
-    }
-    setModeloB(hidratado.value);
-    setErrorModelo(null);
-    setCompartidas(sugerirCompartidasPorInterfaz(modelo, hidratado.value));
+    setModeloB(null);
+    setErrorModelo("Backend de modelos no disponible");
+    setCompartidas({});
   };
 
   const entidadesA = useMemo(() => ordenarEntidades(modelo), [modelo]);

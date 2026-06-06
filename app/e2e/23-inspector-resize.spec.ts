@@ -1,7 +1,6 @@
 // BUG-20260511T225343Z-696858: el inspector derecho debe ser redimensionable
 // vía DivisorPanel. Smoke aditivo: arrastrar el divisor cambia el ancho del
-// pane, el ancho persiste en `indice.preferenciasUi.anchoPanelInspector`
-// (espejo de `anchoPanelArbol`) y el doble clic resetea al default 360.
+// pane y el doble clic resetea al default 360.
 import { expect, test } from "@playwright/test";
 import { esperarWorkbenchInicial, rectDeLocator } from "./_smoke-helpers";
 
@@ -29,13 +28,6 @@ test("BUG-20260511T225343Z-696858: el inspector derecho se redimensiona desde su
   await expect
     .poll(async () => (await rectDeLocator(inspector)).width)
     .toBeGreaterThan(anchoInicial + 90);
-
-  // Persistencia espejo a `anchoPanelArbol`: workspace.preferenciasUi.
-  const preferencias = await page.evaluate(() => {
-    const raw = localStorage.getItem("deep-opm-pro:persistencia:workspace");
-    return raw ? JSON.parse(raw).preferenciasUi : null;
-  });
-  expect(preferencias?.anchoPanelInspector).toBeGreaterThan(anchoInicial + 90);
 
   // Doble clic reset a 360 (ANCHO_PANEL_INSPECTOR_DEFAULT).
   await divisor.dblclick();

@@ -15,7 +15,7 @@ Cuando una auditoría queda **implementada o superada** (su corte se desplegó, 
 
 | Artefacto | Por qué vive |
 |-----------|--------------|
-| `2026-06-04-persistencia-backend.md` | Diagnóstico vigente de persistencia (NO implementado, en pausa): críticos activos (secret default, sin backup, sin rate-limit), techo de almacenamiento = localStorage, 4 cortes propuestos. |
+| `2026-06-04-persistencia-backend.md` | Auditoría viva de persistencia: cortes 1-4 desplegados, storage navegador retirado del runtime OPM; pendientes auth/tenants real y deudas operativas menores. |
 | `2026-06-04-acta-mesa-flujo-canonico-dominio-opforja.md` | **Acta de consenso vigente** (mesa Besto/Resto, orquestación, 3 ciclos): arquitectura unificada de las dos líneas (hd-opm autoría ↔ OpForja), flujo canónico E0-E6, leyes L1-L8, plan F0-F5 NO implementado. HITL resueltas en adenda (laxitud=bastante libre; re-pin aprobado; backlog contingencial → `docs/roadmap/backlog-contingencial.md`). |
 | `2026-06-04-acta-mesa-equilibrio-encarnacion.md` | **Acta de consenso vigente** (mesa Asto/Besto/Resto, encarnación, DOS deliberaciones): (1) realización EQUILIBRIO validada con C1-C5 (registro [RATIFICAR] tipificado — la app registra, no decide; L9; paquete `deep-opm-pro.paquete.v0`; **gate de release: sin paquetes en instancia pública sin re-protección** — HITL abierta); (2) **distribución del LLM ratificada por naturaleza del juicio** (matriz E0-E6: dialéctica+corpus=skill, "IA de la app"=capa de lenguaje determinista; puente W6.0 con contador; gatillos falsables g1/g2/g3). |
 | `2026-05-07-opl-reverse-ssot-opm-extracted.md` | Citado por `docs/roadmap/cortes-operativos.md` como evidencia. |

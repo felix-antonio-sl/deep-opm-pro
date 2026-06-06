@@ -55,7 +55,7 @@ Otros subsistemas:
 - **`src/opl/` — OPL bisimétrico (bidireccional canvas↔texto).** Dos pipelines espejo: `generadores/` (modelo → frases OPL, "forward") y `parser/` (frases OPL → mutaciones, "reverse": `parsear.ts` → `planificar.ts` → `aplicar.ts`). **Un cambio semántico en un pipeline casi siempre obliga a revisar el otro**; `roundtrip.test.ts` y `fixtures-roundtrip.ts` defienden la simetría.
 - **`src/leyes/`** — invariantes/leyes verificadas por tests (undo, proyecciones, cascadas de refinamiento, opl-reverse). Red de seguridad conceptual.
 - **`src/serializacion/`** — JSON de modelo + validadores de integridad (`validar*.ts`) por dimensión.
-- **`src/persistencia/`** — almacenamiento local del workspace, autosalvado, versiones, plantillas (no hay backend; persistencia en navegador).
+- **`src/persistencia/`** — contrato backend de modelos/workspace/versiones/autosalvado y normalizadores. La SSOT de persistencia vive en Postgres/API; no hay cache ni fallback OPM en storage del navegador.
 - **`src/canvas/`** — geometría/layout pura (grid, layout radial/sugerido, modo enlace, selección múltiple) independiente de JointJS.
 - **`src/server/`** — `bugCapture.ts`: endpoint de captura de bugs (gated por `VITE_ENABLE_BUG_CAPTURE`).
 

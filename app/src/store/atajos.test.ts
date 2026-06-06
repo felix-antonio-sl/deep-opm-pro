@@ -1,25 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
   ATAJOS_SLICE_KEYS,
-  COMMAND_PALETTE_FRECUENCIA_KEY,
   createAtajosSlice,
-  escribirFrecuenciaUsoCommandPalette,
   incrementarFrecuenciaUsoCommandPalette,
-  leerFrecuenciaUsoCommandPalette,
 } from "./atajos";
 import type { OpmStore } from "./tipos";
-
-class FakeStorage {
-  private values = new Map<string, string>();
-
-  getItem(key: string): string | null {
-    return this.values.get(key) ?? null;
-  }
-
-  setItem(key: string, value: string): void {
-    this.values.set(key, value);
-  }
-}
 
 describe("frecuencia Command Palette", () => {
   test("expone una capacidad de atajos con contrato propio", () => {
@@ -42,23 +27,13 @@ describe("frecuencia Command Palette", () => {
     expect(incrementarFrecuenciaUsoCommandPalette({ a: 1 }, " ")).toEqual({ a: 1 });
   });
 
-  test("lee solo valores positivos finitos desde storage", () => {
-    const storage = new FakeStorage();
-    storage.setItem(COMMAND_PALETTE_FRECUENCIA_KEY, JSON.stringify({
-      "accion-inzoom": 4.8,
-      "menu-tabla": 0,
-      "bad-nan": Number.NaN,
-      "bad-string": "7",
-    }));
+  test("registrarUsoCommandPalette actualiza frecuencia en memoria del slice", () => {
+    const estado = { frecuenciaUsoCommandPalette: {} as Record<string, number> };
+    const slice = createAtajosSlice((partial) => Object.assign(estado, partial), () => estado as OpmStore);
 
-    expect(leerFrecuenciaUsoCommandPalette(storage)).toEqual({ "accion-inzoom": 4 });
-  });
+    slice.registrarUsoCommandPalette("menu-tabla-enlaces");
+    slice.registrarUsoCommandPalette("menu-tabla-enlaces");
 
-  test("persistencia round-trip por storage", () => {
-    const storage = new FakeStorage();
-
-    escribirFrecuenciaUsoCommandPalette({ "menu-tabla-enlaces": 2 }, storage);
-
-    expect(leerFrecuenciaUsoCommandPalette(storage)).toEqual({ "menu-tabla-enlaces": 2 });
+    expect(estado.frecuenciaUsoCommandPalette).toEqual({ "menu-tabla-enlaces": 2 });
   });
 });

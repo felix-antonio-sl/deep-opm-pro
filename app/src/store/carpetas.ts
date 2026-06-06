@@ -93,16 +93,11 @@ import {
   reanclarExtremoEnlace as reanclarExtremoEnlaceOp,
 } from "../modelo/enlaceVertices";
 import {
-  borrarModeloLocal,
-  cargarModeloLocal,
   construirModeloPersistido,
-  guardarModeloLocal,
-  listarModelosLocales,
   resumenDesdeModeloPersistido,
-  actualizarMetadataModeloLocal,
   type ModeloPersistido,
   type ResumenModeloPersistido,
-} from "../persistencia/local";
+} from "../persistencia/modelos";
 import {
   archivarCarpeta as archivarCarpetaEnIndiceOp,
   archivarModelo as archivarModeloEnIndiceOp,
@@ -135,10 +130,7 @@ import {
   pegarModelo,
 } from "../persistencia/movimientoModelos";
 import { borrarVersionBackend, cargarVersionBackend, guardarModeloBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
-import {
-  eliminarVersionResultado,
-  restaurarVersionResultado,
-} from "../persistencia/versiones";
+import { eliminarVersionResultado } from "../persistencia/versiones";
 import {
   crearAutosalvado,
   type AutosalvadoEstado,
@@ -227,27 +219,21 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       set({ mensaje: "Versión no encontrada" });
       return;
     }
-    let restaurado: Modelo | null = null;
-    if (persistenciaBackendHabilitada()) {
-      const backend = await cargarVersionBackend(modeloId, versionId);
-      if (!backend.ok) {
-        set({ mensaje: backend.error });
-        return;
-      }
-      const hidratado = hidratarModelo(backend.value.json);
-      if (!hidratado.ok) {
-        set({ mensaje: hidratado.error });
-        return;
-      }
-      restaurado = hidratado.value;
-    } else {
-      const restauradoResultado = await restaurarVersionResultado(version.modeloPayloadKey);
-      if (!restauradoResultado.ok) {
-        set({ mensaje: restauradoResultado.error.mensaje });
-        return;
-      }
-      restaurado = restauradoResultado.value;
+    if (!persistenciaBackendHabilitada()) {
+      set({ mensaje: "Backend de modelos no disponible" });
+      return;
     }
+    const backend = await cargarVersionBackend(modeloId, versionId);
+    if (!backend.ok) {
+      set({ mensaje: backend.error });
+      return;
+    }
+    const hidratado = hidratarModelo(backend.value.json);
+    if (!hidratado.ok) {
+      set({ mensaje: hidratado.error });
+      return;
+    }
+    const restaurado = hidratado.value;
     const fecha = version.creadoEn.slice(0, 10);
     const nombre = `${restaurado.nombre} (restaurado ${fecha})`;
     const { archivado: _archivado, archivadoEn: _archivadoEn, versiones: _versiones, ...restauradoActivo } = restaurado;
@@ -260,21 +246,12 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       carpetaId,
     };
     let guardado: ModeloPersistido;
-    if (persistenciaBackendHabilitada()) {
-      const resultado = await guardarModeloBackend(construirModeloPersistido(inputGuardado));
-      if (!resultado.ok) {
-        set({ mensaje: `No se pudo restaurar versión en servidor: ${resultado.error}` });
-        return;
-      }
-      guardado = resultado.value;
-    } else {
-      const resultado = guardarModeloLocal(inputGuardado);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      guardado = resultado.value;
+    const resultado = await guardarModeloBackend(construirModeloPersistido(inputGuardado));
+    if (!resultado.ok) {
+      set({ mensaje: `No se pudo restaurar versión en servidor: ${resultado.error}` });
+      return;
     }
+    guardado = resultado.value;
     const indice = {
       ...get().indice,
       modelos: [...get().indice.modelos, { id: guardado.id, carpetaId }],
@@ -289,9 +266,7 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       modoEnlace: null,
       modeloPersistidoId: guardado.id,
       descripcionModeloLocal: guardado.descripcion,
-      modelosGuardados: persistenciaBackendHabilitada()
-        ? [resumenDesdeModeloPersistido(guardado), ...get().modelosGuardados.filter((item) => item.id !== guardado.id)]
-        : listarModelosGuardadosSeguro(),
+      modelosGuardados: [resumenDesdeModeloPersistido(guardado), ...get().modelosGuardados.filter((item) => item.id !== guardado.id)],
       indice,
       dialogoVersionesAbierto: null,
       workspaceLocal: workspaceDesdeModelo(modeloCopia, guardado.id, guardado.descripcion, carpetaId),
@@ -308,14 +283,15 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       return;
     }
     const indice = eliminado.value;
-    if (!persistenciaBackendHabilitada()) actualizarMetadataModeloLocal(modeloId, { versiones });
-    else void borrarVersionBackend(modeloId, versionId);
+    if (!persistenciaBackendHabilitada()) {
+      set({ mensaje: "Backend de modelos no disponible" });
+      return;
+    }
+    void borrarVersionBackend(modeloId, versionId);
     escribirIndiceWorkspace(indice);
     set({
       indice,
-      modelosGuardados: persistenciaBackendHabilitada()
-        ? get().modelosGuardados.map((item) => item.id === modeloId ? { ...item, versiones } : item)
-        : listarModelosGuardadosSeguro(),
+      modelosGuardados: get().modelosGuardados.map((item) => item.id === modeloId ? { ...item, versiones } : item),
       mensaje: "Versión eliminada",
     });
   },

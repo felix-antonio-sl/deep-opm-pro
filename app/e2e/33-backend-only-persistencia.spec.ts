@@ -6,7 +6,7 @@ import {
   guardarComoActual,
 } from "./_smoke-helpers";
 
-test("persistencia backend-only no escribe payloads OPM en localStorage", async ({ page }) => {
+test("persistencia backend-only guarda y carga desde API", async ({ page }) => {
   const backend = instalarBackendPersistenciaMock(page);
   await page.goto("/");
 
@@ -18,14 +18,10 @@ test("persistencia backend-only no escribe payloads OPM en localStorage", async 
     await expect(modalNombreObjeto).toHaveCount(0);
   }
 
-  await guardarComoActual(page, "Backend Only E2E", "sin localStorage OPM");
+  await guardarComoActual(page, "Backend Only E2E", "backend SSOT");
   expect(backend.modelos.size).toBe(1);
   const [guardado] = [...backend.modelos.values()];
   expect(guardado?.revision).toBe(1);
-
-  const storageTrasGuardar = await snapshotLocalStorage(page);
-  expect(storageTrasGuardar.opmPayloadKeys).toEqual([]);
-  expect(storageTrasGuardar.opmPayloadValues).toEqual([]);
 
   await crearModeloNuevoDesdeMenu(page);
   const dialogo = await abrirDialogoCargarModelo(page);
@@ -33,10 +29,6 @@ test("persistencia backend-only no escribe payloads OPM en localStorage", async 
   await dialogo.getByTestId("reciente-modelo").filter({ hasText: /Backend Only E2E/ }).dblclick();
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
-
-  const storageTrasCargar = await snapshotLocalStorage(page);
-  expect(storageTrasCargar.opmPayloadKeys).toEqual([]);
-  expect(storageTrasCargar.opmPayloadValues).toEqual([]);
 });
 
 function instalarBackendPersistenciaMock(page: Page) {
@@ -99,23 +91,6 @@ function instalarBackendPersistenciaMock(page: Page) {
   });
 
   return { modelos };
-}
-
-async function snapshotLocalStorage(page: Page): Promise<{ opmPayloadKeys: string[]; opmPayloadValues: string[] }> {
-  return page.evaluate(() => {
-    const entries = Array.from({ length: localStorage.length }, (_, index) => {
-      const key = localStorage.key(index) ?? "";
-      return [key, localStorage.getItem(key) ?? ""] as const;
-    });
-    return {
-      opmPayloadKeys: entries
-        .map(([key]) => key)
-        .filter((key) => key.startsWith("deep-opm-pro:persistencia:modelo:") || key.startsWith("deep-opm-pro:version:")),
-      opmPayloadValues: entries
-        .filter(([, value]) => value.includes("deep-opm-pro.modelo.v0"))
-        .map(([key]) => key),
-    };
-  });
 }
 
 interface ModeloApi {

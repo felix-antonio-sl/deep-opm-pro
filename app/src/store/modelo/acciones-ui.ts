@@ -2,20 +2,17 @@ import { crearModelo } from "../../modelo/operaciones";
 import type { Modelo, VersionResumen } from "../../modelo/tipos";
 import {
   construirModeloPersistido,
-  guardarModeloLocal,
-  actualizarMetadataModeloLocal,
-  renombrarModeloLocal,
   resumenDesdeModeloPersistido,
   type ModeloPersistido,
   type ResumenModeloPersistido,
-} from "../../persistencia/local";
+} from "../../persistencia/modelos";
 import { guardarModeloBackend, guardarVersionBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
 import {
   validarNombreModeloLocal,
   workspaceDesdeModelo,
   type WorkspaceIndice,
 } from "../../persistencia/workspace";
-import { construirVersionPersistible, crearVersionResultado } from "../../persistencia/versiones";
+import { construirVersionPersistible } from "../../persistencia/versiones";
 import { exportarModelo, hidratarModelo } from "../../serializacion/json";
 import {
   activarPestanaNueva,
@@ -132,24 +129,12 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         marcarSnapshotModelo(modeloNombrado);
         let versiones: VersionResumen[] = [];
         if (input.crearVersionAlGuardar) {
-          if (persistenciaBackendHabilitada()) {
-            const version = construirVersionPersistible(modeloNombrado, { descripcion: "Versión inicial" });
-            versiones = [version.version];
-            guardado = { ...guardado, versiones, crearVersionAlGuardar: true };
-            void guardarVersionBackend(guardado.id, version.version, version.json).then((resultado) => {
-              if (!resultado.ok) set({ mensaje: `Modelo guardado; no se pudo guardar versión en servidor: ${resultado.error}` });
-            });
-          } else {
-            const version = crearVersionResultado(modeloNombrado, { descripcion: "Versión inicial" });
-            if (version.ok) {
-              versiones = [version.value];
-              guardado = { ...guardado, versiones, crearVersionAlGuardar: true };
-              actualizarMetadataModeloLocal(guardado.id, {
-                versiones,
-                crearVersionAlGuardar: true,
-              });
-            }
-          }
+          const version = construirVersionPersistible(modeloNombrado, { descripcion: "Versión inicial" });
+          versiones = [version.version];
+          guardado = { ...guardado, versiones, crearVersionAlGuardar: true };
+          void guardarVersionBackend(guardado.id, version.version, version.json).then((resultado) => {
+            if (!resultado.ok) set({ mensaje: `Modelo guardado; no se pudo guardar versión en servidor: ${resultado.error}` });
+          });
         }
         const nuevoIndice: WorkspaceIndice = {
           ...indice,
@@ -192,12 +177,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         });
         return;
       }
-      const guardado = guardarModeloLocal(inputGuardado);
-      if (!guardado.ok) {
-        set({ mensaje: guardado.error });
-        return;
-      }
-      finalizarGuardadoComo(guardado.value);
+      set({ mensaje: "Backend de modelos no disponible" });
     },
 
     guardarComoLocalConDescripcion(input) {
@@ -230,24 +210,12 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         marcarSnapshotModelo(modeloNombrado);
         let versiones: VersionResumen[] = actualizarModeloActual ? guardado.versiones ?? [] : [];
         if (input.crearVersionAlGuardar) {
-          if (persistenciaBackendHabilitada()) {
-            const version = construirVersionPersistible(modeloNombrado, { descripcion: "Versión inicial" });
-            versiones = [version.version, ...versiones];
-            guardado = { ...guardado, versiones, crearVersionAlGuardar: true };
-            void guardarVersionBackend(guardado.id, version.version, version.json).then((resultado) => {
-              if (!resultado.ok) set({ mensaje: `Modelo guardado; no se pudo guardar versión en servidor: ${resultado.error}` });
-            });
-          } else {
-            const version = crearVersionResultado(modeloNombrado, { descripcion: "Versión inicial" });
-            if (version.ok) {
-              versiones = [version.value, ...versiones];
-              guardado = { ...guardado, versiones, crearVersionAlGuardar: true };
-              actualizarMetadataModeloLocal(guardado.id, {
-                versiones,
-                crearVersionAlGuardar: true,
-              });
-            }
-          }
+          const version = construirVersionPersistible(modeloNombrado, { descripcion: "Versión inicial" });
+          versiones = [version.version, ...versiones];
+          guardado = { ...guardado, versiones, crearVersionAlGuardar: true };
+          void guardarVersionBackend(guardado.id, version.version, version.json).then((resultado) => {
+            if (!resultado.ok) set({ mensaje: `Modelo guardado; no se pudo guardar versión en servidor: ${resultado.error}` });
+          });
         }
         const nuevoIndice: WorkspaceIndice = {
           ...indice,
@@ -291,12 +259,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         });
         return;
       }
-      const guardado = guardarModeloLocal(inputGuardado);
-      if (!guardado.ok) {
-        set({ mensaje: guardado.error });
-        return;
-      }
-      finalizarGuardadoComo(guardado.value);
+      set({ mensaje: "Backend de modelos no disponible" });
     },
 
     abrirCargarModelo(opciones) {
@@ -424,26 +387,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         });
         return;
       }
-      const renombrado = renombrarModeloLocal(modeloPersistidoId, validacion.nombre);
-      if (!renombrado.ok) {
-        set({ mensaje: renombrado.error });
-        return;
-      }
-      marcarSnapshotModelo(modeloRenombrado);
-      const indice = {
-        ...get().indice,
-        modelos: get().indice.modelos.map((item) => item.id === modeloPersistidoId ? { ...item } : item),
-      };
-      escribirIndiceWorkspace(indice);
-      set(estadoModelo(modeloRenombrado, {
-        dialogoConfiguracionAbierto: false,
-        modelosGuardados: listarModelosGuardadosSeguro(),
-        indice,
-        workspaceLocal: workspaceDesdeModelo(modeloRenombrado, modeloPersistidoId, descripcionModeloLocal, carpetaActualId),
-        mensaje: "Modelo renombrado",
-        dirty: false,
-        dirtyModelo: false,
-      }));
+      set({ mensaje: "Backend de modelos no disponible" });
     },
 
     nuevoModelo() {

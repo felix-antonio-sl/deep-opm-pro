@@ -92,14 +92,7 @@ import {
   reposicionarVerticeApariencia,
   reanclarExtremoEnlace as reanclarExtremoEnlaceOp,
 } from "../modelo/enlaceVertices";
-import {
-  borrarModeloLocal,
-  cargarModeloLocal,
-  guardarModeloLocal,
-  listarModelosLocales,
-  actualizarMetadataModeloLocal,
-  type ResumenModeloPersistido,
-} from "../persistencia/local";
+import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import {
   archivarCarpeta as archivarCarpetaEnIndiceOp,
   archivarModelo as archivarModeloEnIndiceOp,

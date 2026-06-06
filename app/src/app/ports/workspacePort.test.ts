@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ResumenModeloPersistido } from "../../persistencia/local";
+import type { ResumenModeloPersistido } from "../../persistencia/modelos";
 import type { WorkspaceIndice } from "../../persistencia/workspace";
 import { resolverHijosWorkspace, rutaWorkspaceActual, validarNombreWorkspace } from "./workspacePort";
 

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { ejecutarComandoPalette, esperarWorkbenchInicial, exportadoActual } from "./_smoke-helpers";
 
 test("componer con modelo desde catálogo aplica interfaz compartida sugerida", async ({ page }) => {
@@ -12,20 +12,12 @@ test("componer con modelo desde catálogo aplica interfaz compartida sugerida", 
     creadoEn: "2026-06-02T00:00:00.000Z",
     actualizadoEn: "2026-06-02T00:05:00.000Z",
   };
-  await page.addInitScript(({ resumenPersistido, modelo }) => {
-    localStorage.setItem(
-      "deep-opm-pro:persistencia:index",
-      JSON.stringify({ formato: "deep-opm-pro.persistencia.local.v1", modelos: [resumenPersistido] }),
-    );
-    localStorage.setItem(
-      `deep-opm-pro:persistencia:modelo:${resumenPersistido.id}`,
-      JSON.stringify({ formato: "deep-opm-pro.persistencia.local.v1", modelo: { ...resumenPersistido, json: JSON.stringify(modelo) } }),
-    );
-    localStorage.setItem(
-      "deep-opm-pro:persistencia:workspace",
-      JSON.stringify({ modelos: [{ id: resumenPersistido.id, carpetaId: null }], carpetas: [], recientes: [] }),
-    );
-  }, { resumenPersistido: resumen, modelo: modeloFacturacion() });
+  await instalarCatalogoBackendMock(page, [{
+    ...resumen,
+    carpetaId: null,
+    json: JSON.stringify(modeloFacturacion()),
+    revision: 1,
+  }]);
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
@@ -78,4 +70,44 @@ function modeloFacturacion() {
       },
     },
   };
+}
+
+async function instalarCatalogoBackendMock(page: Page, modelos: ModeloApi[]): Promise<void> {
+  let workspace = { modelos: modelos.map((modelo) => ({ id: modelo.id, carpetaId: modelo.carpetaId ?? null })), carpetas: [], recientes: modelos.map((modelo) => modelo.id) };
+  await page.route("**/__deep-opm/session", async (route) => {
+    await route.fulfill({ json: { session: { tenantId: "tenant-e2e", userId: "user-e2e" } } });
+  });
+  await page.route("**/__deep-opm/workspace", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { indice: workspace } });
+      return;
+    }
+    const body = JSON.parse(route.request().postData() ?? "{}") as { indice?: typeof workspace };
+    workspace = body.indice ?? workspace;
+    await route.fulfill({ json: { indice: workspace } });
+  });
+  await page.route("**/__deep-opm/modelos**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname !== "/__deep-opm/modelos") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({ json: { modelos } });
+  });
+  await page.route("**/__deep-opm/modelos/*", async (route) => {
+    const id = decodeURIComponent(new URL(route.request().url()).pathname.split("/").pop() ?? "");
+    const modelo = modelos.find((item) => item.id === id);
+    await route.fulfill(modelo ? { json: { modelo } } : { status: 404, json: { error: "Modelo no encontrado" } });
+  });
+}
+
+interface ModeloApi {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  creadoEn: string;
+  actualizadoEn: string;
+  carpetaId?: string | null;
+  json: string;
+  revision: number;
 }

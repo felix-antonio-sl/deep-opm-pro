@@ -1,8 +1,8 @@
 # Mobile Solo-Lectura v1 — Especificación Técnica
 
-**Estado**: propuesta de implementación
-**Versión**: 1.0
-**Fecha**: 2026-06-06
+**Estado**: decisiones §14 confirmadas 2026-06-06, lista para implementación
+**Versión**: 1.1
+**Fecha**: 2026-06-06 (decisiones confirmadas)
 **Encadre**: el dispositivo móvil del modelador OPM es un **lector**, no un autor. Esta spec refactoriza el `data-context-modo="mobile"` para que el runtime sea genuinamente de lectura, eliminando affordances de edición y agregando affordances de consulta.
 
 ---
@@ -127,7 +127,7 @@ El `data-context-modo` del `<main>` ya pasa el audit; el nuevo valor `"lectura"`
 | `app/src/app/viewmodels/diagramaLecturaViewModel.ts` | pan/zoom, tap detection, sin edición | 130 LOC |
 | `app/src/app/viewmodels/oplLecturaViewModel.ts` | oraciones filtradas, búsqueda | 110 LOC |
 | `app/src/app/viewmodels/arbolOpdsLecturaViewModel.ts` | árbol colapsable, OPD activo | 100 LOC |
-| `app/src/app/viewmodels/busquedaLecturaViewModel.ts` | fuzzy 3-secciones | 150 LOC |
+| `app/src/app/viewmodels/busquedaLecturaViewModel.ts` | fuzzy 4-secciones con toggle "incluir diagnóstico" | 180 LOC |
 | `app/src/app/viewmodels/bottomSheetViewModel.ts` | drag gesture, dismiss, history | 90 LOC |
 | `app/src/ui/mobile/mobileReadonly.test.tsx` | tests de composición, navegación, deep link | 250 LOC |
 
@@ -253,8 +253,10 @@ export interface DiagramaLecturaViewModel {
 ### 4.4 `VistaBusqueda`
 
 ```ts
+export type BusquedaHitClase = "opd" | "entidad" | "enlace" | "oracion-opl" | "issue";
+
 export interface BusquedaHit {
-  readonly clase: "opd" | "entidad" | "enlace" | "oracion-opl";
+  readonly clase: BusquedaHitClase;
   readonly id: string;
   readonly titulo: string;
   readonly subtitulo: string;               // p.ej. "objeto · sistémica" o "M1.1 · Admisión"
@@ -263,11 +265,20 @@ export interface BusquedaHit {
 
 export interface BusquedaLecturaViewModel {
   readonly query: string;
-  readonly hits: ReadonlyArray<BusquedaHit>;
+  readonly incluirDiagnostico: boolean;     // toggle en memoria de sesión/store
+  readonly hits: ReadonlyArray<BusquedaHit>; // filtrado por incluirDiagnostico
+  readonly hitsPorClase: ReadonlyMap<BusquedaHitClase, ReadonlyArray<BusquedaHit>>; // agrupa para render
   readonly setQuery: (q: string) => void;
+  readonly toggleIncluirDiagnostico: () => void;
   readonly seleccionar: (hit: BusquedaHit) => void;  // navega y cierra
 }
 ```
+
+**Toggle de sesión**: la preferencia del usuario sobre `incluirDiagnostico` vive en memoria de runtime/store, sin persistencia en navegador. Default: `false`. El toggle aparece en la barra superior de `VistaBusqueda` con etiqueta clara:
+
+> "Buscar también en diagnóstico"  [toggle off]
+
+Cuando `incluirDiagnostico === true`, los hits de clase `"issue"` se renderizan en una **sección colapsable** separada al final de la lista, con badge ámbar y etiqueta "Diagnóstico". Si el toggle está off, esa sección no se monta.
 
 ## 5. data-testids (contrato para el audit in-vivo)
 
@@ -304,17 +315,21 @@ Esta lista es el contrato que `app/scripts/in-vivo-exhaustivo.mjs` validará en 
 | `mobile-acerca-sync` | span | "Sincronizado · HH:MM" |
 | `mobile-busqueda-vista` | section | VistaBusqueda fullscreen |
 | `mobile-busqueda-input` | input | input principal |
+| `mobile-busqueda-toggle-diagnostico` | label | toggle "Buscar también en diagnóstico" |
+| `mobile-busqueda-toggle-diagnostico-input` | input | checkbox real, `aria-checked` |
 | `mobile-busqueda-seccion-opds` | ul | resultados OPDs |
 | `mobile-busqueda-seccion-entidades` | ul | resultados entidades |
 | `mobile-busqueda-seccion-opl` | ul | resultados oraciones |
+| `mobile-busqueda-seccion-issues` | ul | resultados diagnóstico (sólo si toggle on) |
 | `mobile-busqueda-hit` | li | cada hit, `data-hit-clase` |
+| `mobile-busqueda-badge-issue` | span | badge ámbar visible sólo en hits `clase=issue` |
 | `bottom-sheet-entidad` | section | BottomSheetEntidad |
 | `bottom-sheet-entidad-header` | header | nombre + tipo |
 | `bottom-sheet-entidad-aparece-en` | ul | lista de OPDs |
 | `bottom-sheet-enlace` | section | BottomSheetEnlace |
 | `bottom-sheet-drag-handle` | div | handle de drag, `data-drag-handle="true"` |
 
-**Migración desde `ModoRevisionMobile`**: los `data-testid` legacy (`mobile-tab-canvas`, `mobile-tab-opds`, `mobile-tab-opl`, `mobile-tab-issues`) se conservan como alias sin render durante 2 sprints para no romper `e2e/22-responsive-review.spec.ts`. Alias sólo en DEV; en PROD se eliminan.
+**Migración desde `ModoRevisionMobile`**: los `data-testid` legacy (`mobile-tab-canvas`, `mobile-tab-opds`, `mobile-tab-opl`) se conservan como alias sin render durante 2 sprints para no romper `e2e/22-responsive-review.spec.ts`. `mobile-tab-issues` se **elimina** (decisión §14.1A: el panel de diagnóstico ya no vive en el bottom nav). Alias sólo en DEV; en PROD se eliminan.
 
 ## 6. Tokens nuevos en `app/src/ui/tokens.ts`
 
@@ -437,9 +452,26 @@ Búsqueda (modal fullscreen, no es vista):
 
 ### 10.1 Fase 0 — Shims (1 día)
 
-`app/src/ui/ModoRevisionMobile.tsx` se reemplaza por un componente que monta `<BottomNavMobileLectura />` con **los mismos 4 `data-testid` legacy** (`mobile-tab-canvas`, `mobile-tab-opds`, `mobile-tab-opl`, `mobile-tab-issues`). Esto evita romper `e2e/22-responsive-review.spec.ts` y el `app/scripts/in-vivo-exhaustivo.mjs` actual. Los IDs nuevos se introducen en paralelo como `mobile-tab-diagrama` etc.
+`app/src/ui/ModoRevisionMobile.tsx` se reemplaza por un componente que monta `<BottomNavMobileLectura />` con **los mismos 3 `data-testid` legacy** (`mobile-tab-canvas`, `mobile-tab-opds`, `mobile-tab-opl`). Esto evita romper `e2e/22-responsive-review.spec.ts` y el `app/scripts/in-vivo-exhaustivo.mjs` actual. El test E2E que esperaba `mobile-tab-issues` se ajusta en este mismo commit (decisión §14.1A: el panel de diagnóstico se elimina del bottom nav). Los IDs nuevos se introducen en paralelo como `mobile-tab-diagrama` etc.
 
-### 10.2 Fase 1 — Composición condicional (2 días)
+### 10.2 Fase 0.5 — Deploy config + router (0.5 día)
+
+**Deploy config**: agregar rewrite rule en el hosting para que cualquier path caiga en `index.html`:
+
+- **Vercel**: ya tiene fallback automático a `index.html` para SPAs. Verificar `vercel.json` o config del proyecto. Si no existe, agregar 1 línea: `"rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]`.
+- **Nginx** (si self-hosted): `try_files $uri /index.html;` en el bloque `location /`.
+- **Cloudflare Pages**: `_redirects` con `/* /index.html 200`.
+
+**Router mínimo en la app**: como deep-opm-pro no usa router, se agrega un módulo `app/src/ui/mobile/routerMovil.ts` (~80 LOC) que:
+- Lee `window.location.pathname` en mount.
+- Detecta patrón `/m/:modeloId/opd/:opdId/vista/:vista` (todos los segmentos opcionales).
+- Si no matchea, redirige a `/` (workspace normal).
+- Si matchea, setea estado inicial de `headerLecturaViewModel` con OPD y vista.
+- Expone un método `actualizarUrl(state)` que usa `history.pushState` (sin recargar) cuando el usuario navega dentro de la app, manteniendo la URL sincronizada.
+
+**Comportamiento en desktop**: si la URL es `/m/<id>` y el dispositivo NO es mobile, la app ignora el path y carga el workspace normal. El receptor del link no ve error; simplemente abre en desktop. (Decisión explícita: NO redirigir a `/` para evitar loop de redirect.)
+
+### 10.3 Fase 1 — Composición condicional (2 días)
 
 `app/src/ui/App.tsx`:
 
@@ -452,21 +484,27 @@ if (contextoWorkbench.device === "mobile") {
 
 `MobileReadonlyApp` se construye desde los archivos nuevos. El `ModoRevisionMobile.tsx` legacy se elimina (ya nadie lo importa).
 
-### 10.3 Fase 2 — Deep link (1 día)
+### 10.4 Fase 2 — Deep link (1 día)
 
 URL contract:
 
 ```
-https://opforja.sanixai.com/?m=<modeloId>&opd=<opdId>&vista=<diagrama|opl|opds|acerca>
+https://opforja.sanixai.com/m/<modeloId>/opd/<opdId>/vista/<diagrama|opl|opds|acerca>
 ```
 
-`app/src/app/viewmodels/headerLecturaViewModel.ts` parsea query string en mount, setea OPD activo y vista. `AcercaLectura` muestra esta URL como copy-paste.
+Todos los segmentos son **opcionales**. Formas válidas:
+- `/m/hodom-v1-6` → modelo HODOM, OPD raíz, vista diagrama.
+- `/m/hodom-v1-6/opd/admision` → OPD específico, vista diagrama.
+- `/m/hodom-v1-6/vista/opl` → OPL del OPD raíz.
+- `/m/hodom-v1-6/opd/admision/vista/acerca` → metadata del OPD.
 
-### 10.4 Fase 3 — Auditoría extendida (1 día)
+`app/src/ui/mobile/routerMovil.ts` parsea el path en mount, setea OPD activo y vista. `AcercaLectura` muestra esta URL como copy-paste. Cuando el usuario navega dentro de la app, `actualizarUrl(state)` mantiene la barra de dirección sincronizada vía `history.pushState`.
 
-Extender `app/scripts/in-vivo-exhaustivo.mjs` con bloque "11. Mobile Solo-Lectura" que valida los 30 data-testids nuevos, gesture, deep link, Acerca, búsqueda.
+### 10.5 Fase 3 — Auditoría extendida (1 día)
 
-### 10.5 Kill switch
+Extender `app/scripts/in-vivo-exhaustivo.mjs` con bloque "11. Mobile Solo-Lectura" que valida los 30 data-testids nuevos, gesture, deep link, Acerca, búsqueda (incluyendo toggle diagnóstico on/off).
+
+### 10.6 Kill switch
 
 `app/src/ui/App.tsx` envuelve la rama mobile en:
 
@@ -499,15 +537,15 @@ Si la métrica excede budget, el bloque se reporta como **WARN** en el audit, no
 - `app/src/ui/mobile/mobileReadonly.test.tsx` cubre composición, navegación entre vistas, deep link parse, búsqueda vacía, bottom sheet open/close/dismiss.
 - `app/src/app/viewmodels/diagramaLecturaViewModel.test.ts` cubre pan/zoom bounds, tap detection, fit-to-content.
 - `app/src/app/viewmodels/oplLecturaViewModel.test.ts` cubre filtrado, búsqueda interna, snippets.
-- `app/src/app/viewmodels/busquedaLecturaViewModel.test.ts` cubre fuzzy, secciones, deep link generation.
+- `app/src/app/viewmodels/busquedaLecturaViewModel.test.ts` cubre fuzzy, secciones (4 con toggle on, 3 con toggle off), deep link generation, persistencia del toggle.
 - `app/src/app/viewmodels/bottomSheetViewModel.test.ts` cubre drag threshold, dismiss, history.
 
 ### 12.2 E2E (extender)
 
 `app/e2e/22-responsive-review.spec.ts`:
 
-- Mantener tests legacy con los 4 `data-testid` legacy durante la fase 0.
-- Agregar suite "mobile-readonly" que valida los 30 `data-testid` nuevos, el deep link, el bottom sheet, la búsqueda, el CTA "Continuar en escritorio".
+- Mantener tests legacy con los 3 `data-testid` legacy (`mobile-tab-canvas`, `mobile-tab-opds`, `mobile-tab-opl`) durante la fase 0. **Eliminar** el test que esperaba `mobile-tab-issues` (decisión §14.1A).
+- Agregar suite "mobile-readonly" que valida los 30 `data-testid` nuevos, el deep link con path, el bottom sheet, la búsqueda (incluyendo toggle diagnóstico on/off), el CTA "Continuar en escritorio".
 
 ### 12.3 Audit in-vivo
 
@@ -520,8 +558,10 @@ Si la métrica excede budget, el bloque se reporta como **WARN** en el audit, no
 [OK] 11. Mobile readonly :: data-context-modo=lectura
 [OK] 11. Mobile readonly :: Tap entidad abre bottom sheet
 [OK] 11. Mobile readonly :: Drag-down dismisses bottom sheet
-[OK] 11. Mobile readonly :: Deep link ?m=X&opd=Y&vista=Z navega
-[OK] 11. Mobile readonly :: Búsqueda fuzzy devuelve hits en 3 secciones
+[OK] 11. Mobile readonly :: Deep link /m/X/opd/Y/vista/Z navega
+[OK] 11. Mobile readonly :: Búsqueda fuzzy devuelve hits en 4 secciones (con toggle on)
+[OK] 11. Mobile readonly :: Búsqueda fuzzy NO incluye issues con toggle off
+[OK] 11. Mobile readonly :: Toggle de diagnóstico persiste durante la sesión
 [OK] 11. Mobile readonly :: Acerca muestra CTA "Continuar en escritorio"
 [OK] 11. Mobile readonly :: No hay toolbar-actions-pesadas montado
 [OK] 11. Mobile readonly :: No hay chip-persistencia montado
@@ -543,12 +583,17 @@ Si la métrica excede budget, el bloque se reporta como **WARN** en el audit, no
 | Memoria: precargar todos los OPDs para el árbol | Árbol se lazy-loads; sólo OPDs visibles se hidratan. Treeitems máximo 36 en HODOM, pero el patrón aguanta cientos. |
 | Búsqueda fuzzy O(n) sobre 261 entidades es lenta | Índice de búsqueda se construye en mount; la query es O(k) sobre el índice. |
 | Migración de data-testids rompe audit en producción | Alias DEV-only durante 2 sprints; el audit corre contra los IDs canónicos. |
+| **Path `/m/<id>/...` no se parsea correctamente en deep link** | `routerMovil.ts` valida cada segmento contra regex estricta (`^[a-z0-9-]{1,64}$`); modeloId inválido → fallback a `/`. Unit test cubre 12 casos de paths malformados. |
+| **Deploy config (rewrite rule) no está aplicada en staging/prod** | Bloqueante para Fase 2: el PR de Fase 0.5 incluye el cambio de config y un smoke test que verifica el rewrite con un path de prueba. Si falla, no se mergea. |
+| **Receptor del deep link en desktop no entiende la URL** | Documentado en `AcercaLectura`: si el dispositivo no es mobile, la app ignora el path y carga el workspace normal. NO redirige para evitar loops. |
+| **Badge "issue" ámbar se confunde con badge de error en la búsqueda** | Diseño de badge con copy literal: "Diagnóstico" (no "Issue", no "Error"). Solo se renderiza cuando `incluirDiagnostico === true`; default off. Unit test verifica que el badge NO aparece en el render por default. |
+| **Estado del toggle `incluirDiagnostico` colisiona con otros features** | Estado namespaced en el store mobile; no usar storage navegador. |
 
-## 14. Decisiones explícitas que necesitan confirmación
+## 14. Decisiones explícitas confirmadas 2026-06-06
 
-1. **El tab "Acerca" reemplaza a "Sugerencias"** del chrome actual. Si el operador quiere mantener el panel de diagnóstico accesible desde mobile, hay que decidir si vive en Acerca (como lista) o como destino propio. **Mi recomendación**: el panel de diagnóstico en mobile es ruido (el lector no edita, no necesita saber qué arreglar). Confirmar.
-2. **Deep link**: ¿el operador quiere que el deep link use query string (`?m=`) o path (`/m/<id>`)? **Mi recomendación**: query string por compatibilidad con la URL actual; el operador lo decide.
-3. **¿La búsqueda en mobile debe incluir el panel "Issues"?** Si el operador confirma la decisión 1, no aplica. Si no, hay que decidir.
+1. **El tab "Acerca" reemplaza a "Sugerencias"** (decisión A del operador). El panel de diagnóstico se **elimina del bottom nav mobile**. El autor que quiera ver issues abre el modelo en escritorio. Blast radius: 0 código de diagnóstico, 1 test E2E legacy (`22-responsive-review.spec.ts` esperaba `mobile-tab-issues`) se ajusta en Fase 0.
+2. **Deep link con path** (decisión B del operador). URL contract: `/m/<modeloId>/opd/<opdId>/vista/<diagrama|opl|opds|acerca>`. Implica: rewrite rule en deploy config (Fase 0.5), router mínimo `routerMovil.ts` (~80 LOC), comportamiento explícito en desktop (ignora path, no redirige).
+3. **Búsqueda con toggle "Buscar también en diagnóstico"** (decisión C del operador). Toggle off por default, retenido sólo durante la sesión. Cuando está on, agrega sección colapsable con badge ámbar "Diagnóstico". El índice de búsqueda crece ~3x; presupuesto de búsqueda sigue < 50ms con índice precomputado.
 
 ## 15. Lo que esta spec NO hace
 
@@ -560,6 +605,6 @@ Si la métrica excede budget, el bloque se reporta como **WARN** en el audit, no
 
 ---
 
-**Total estimado de esfuerzo**: 6-7 días para 1 ingeniero full-time. **Blast radius**: 12 archivos nuevos, 8 modificados, 1 reemplazado. **Riesgo de regresión**: bajo (mobile no se usaba productivamente hoy; el cambio es net-positive).
+**Total estimado de esfuerzo**: 7-8 días para 1 ingeniero full-time (ajustado al alza por Fase 0.5 deploy+router y toggle de búsqueda). **Blast radius**: 13 archivos nuevos, 9 modificados, 1 reemplazado, +1 cambio de config de deploy (rewrite rule). **Riesgo de regresión**: bajo (mobile no se usaba productivamente hoy; el cambio es net-positive). El kill switch `VITE_MOBILE_READONLY` permite desactivar el chrome nuevo sin redeploy.
 
-**Próximo paso**: si esta spec se aprueba, abrir issues con los 4 hitos de §10 como milestones y empezar por Fase 0 (shims, 1 día) que es cero riesgo.
+**Próximo paso**: abrir 5 issues (uno por hito: Fase 0, 0.5, 1, 2, 3) y empezar por Fase 0 (shims, 1 día) que es cero riesgo.

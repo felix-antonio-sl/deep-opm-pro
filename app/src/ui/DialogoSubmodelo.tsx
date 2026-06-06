@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import type { Id } from "../modelo/tipos";
-import type { ResumenModeloPersistido } from "../persistencia/local";
+import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { useOpmStore } from "../store";

@@ -2,7 +2,7 @@
 import { useCallback, useState } from "preact/hooks";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import type { Id } from "../modelo/tipos";
-import type { ResumenModeloPersistido } from "../persistencia/local";
+import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import type { CarpetaIndice, PortapapelesWorkspace } from "../persistencia/workspace";
 import { Breadcrumb } from "./panelCarpetas/Breadcrumb";
 import { MenuContextual, type MenuContextualState } from "./panelCarpetas/MenuContextual";

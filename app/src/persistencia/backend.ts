@@ -3,7 +3,7 @@ import type { VersionResumen } from "../modelo/tipos";
 import {
   type ModeloPersistido,
   type ResumenModeloPersistido,
-} from "./local";
+} from "./modelos";
 import type { WorkspaceIndice } from "./workspace";
 import { indiceVacio } from "./workspace";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "./workspaceStorage";

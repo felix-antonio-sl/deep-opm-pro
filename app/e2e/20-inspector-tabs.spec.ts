@@ -14,7 +14,7 @@
  *  - la rama vacía no muestra los contadores `N objetos · N procesos · N OPDs`.
  */
 
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { esperarWorkbenchInicial, clickLinkPorTipo, ejecutarAccionCommandPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual, modeloSmokeTablaEnlaces } from "./_smoke-helpers";
 
 test("entidad muestra ficha continua con las 6 secciones apiladas y sin tabs", async ({ page }) => {
@@ -67,20 +67,12 @@ test("conectar submodelo selecciona un modelo existente desde catálogo y crea r
     actualizadoEn: "2026-06-01T00:05:00.000Z",
   };
   const payload = modeloSmokeTablaEnlaces();
-  await page.addInitScript(({ resumen, modelo }) => {
-    localStorage.setItem(
-      "deep-opm-pro:persistencia:index",
-      JSON.stringify({ formato: "deep-opm-pro.persistencia.local.v1", modelos: [resumen] }),
-    );
-    localStorage.setItem(
-      `deep-opm-pro:persistencia:modelo:${resumen.id}`,
-      JSON.stringify({ formato: "deep-opm-pro.persistencia.local.v1", modelo: { ...resumen, json: JSON.stringify(modelo) } }),
-    );
-    localStorage.setItem(
-      "deep-opm-pro:persistencia:workspace",
-      JSON.stringify({ modelos: [{ id: resumen.id, carpetaId: null }], carpetas: [], recientes: [] }),
-    );
-  }, { resumen: persistido, modelo: payload });
+  await instalarCatalogoBackendMock(page, [{
+    ...persistido,
+    carpetaId: null,
+    json: JSON.stringify(payload),
+    revision: 1,
+  }]);
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
@@ -116,6 +108,46 @@ test("conectar submodelo selecciona un modelo existente desde catálogo y crea r
 
   expect(pageErrors).toEqual([]);
 });
+
+async function instalarCatalogoBackendMock(page: Page, modelos: ModeloApi[]): Promise<void> {
+  let workspace = { modelos: modelos.map((modelo) => ({ id: modelo.id, carpetaId: modelo.carpetaId ?? null })), carpetas: [], recientes: modelos.map((modelo) => modelo.id) };
+  await page.route("**/__deep-opm/session", async (route) => {
+    await route.fulfill({ json: { session: { tenantId: "tenant-e2e", userId: "user-e2e" } } });
+  });
+  await page.route("**/__deep-opm/workspace", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { indice: workspace } });
+      return;
+    }
+    const body = JSON.parse(route.request().postData() ?? "{}") as { indice?: typeof workspace };
+    workspace = body.indice ?? workspace;
+    await route.fulfill({ json: { indice: workspace } });
+  });
+  await page.route("**/__deep-opm/modelos**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname !== "/__deep-opm/modelos") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({ json: { modelos } });
+  });
+  await page.route("**/__deep-opm/modelos/*", async (route) => {
+    const id = decodeURIComponent(new URL(route.request().url()).pathname.split("/").pop() ?? "");
+    const modelo = modelos.find((item) => item.id === id);
+    await route.fulfill(modelo ? { json: { modelo } } : { status: 404, json: { error: "Modelo no encontrado" } });
+  });
+}
+
+interface ModeloApi {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  creadoEn: string;
+  actualizadoEn: string;
+  carpetaId?: string | null;
+  json: string;
+  revision: number;
+}
 
 test("header del inspector rotula con identificador canónico de punto", async ({ page }) => {
   const pageErrors: string[] = [];

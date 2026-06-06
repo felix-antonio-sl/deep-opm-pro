@@ -10,13 +10,13 @@
 > estado de la DB en producción (12 tenants, 7 modelos, 9 MB, disco 43 GB libres — descartados
 > el 2026-06-06 al recrear el volumen).
 
-## Hallazgo central: techo localStorage — REMEDIADO EN CÓDIGO 2026-06-06
+## Hallazgo central: techo de storage navegador — REMEDIADO EN CÓDIGO 2026-06-06
 
 La migración a Postgres elevó la durabilidad pero inicialmente **NO el techo de capacidad**. El
 guardado era **local-primero**: `guardarModeloLocal(...)` y si fallaba, abortaba con mensaje **sin
 llegar al backend**. El corte 2 invirtió ese flujo: cuando el backend está disponible, guardar,
 guardar como y autosalvar construyen el documento persistible y escriben al servidor. Por decisión
-posterior del operador, **no hay recuperación legacy ni espejo/cache OPM en `localStorage`**:
+posterior del operador, **no hay recuperación legacy ni espejo/cache OPM en storage del navegador**:
 si el backend está disponible, las rutas de guardar, cargar, listar, versionar, restaurar,
 componer, submodelos, pestañas y workspace usan Postgres/API como única fuente de verdad.
 
@@ -25,12 +25,12 @@ Límites vigentes por capa tras el corte:
 | Capa | Límite | Evidencia |
 |---|---|---|
 | Por modelo (request) | **15 MB** efectivos | nginx 25 MB (`client_max_body_size 25m`) > API 15 MB (`DEFAULT_MAX_BODY_BYTES`, `modelPersistence.ts:57`) |
-| **Total del workspace** | Postgres/API; navegador no guarda payloads OPM | `localStorage` puede fallar sin afectar un `guardarModeloBackend(...)` exitoso |
+| **Total del workspace** | Postgres/API; navegador no guarda payloads OPM | La cuota del navegador no participa en `guardarModeloBackend(...)` |
 | Servidor | sin cuota por tenant ni tope de modelos; techo = disco | DB 9 MB / 43 GB libres hoy |
 | Versiones/autosaves | versiones podadas; autosave único por modelo | `MODEL_MAX_VERSIONS_PER_MODEL` default 30 + política log-scale; autosave PK `(tenant_id, modelo_id)` |
 
 Referencia de escala: el bundle HODOM v1.6 (36 OPDs) pesa ~5 MB → **un solo modelo de esa
-escala roza la cuota del navegador**. El retiro de `localStorage` del camino de datos OPM
+escala roza la cuota del navegador**. El retiro del storage navegador del camino de datos OPM
 (sin espejo ni recuperación legacy) es el ítem de mayor valor práctico.
 
 ## 🔴 Crítico — REMEDIADO 2026-06-06 (blindaje, corte 1; verificado por smoke post-deploy)
@@ -78,7 +78,7 @@ aislamiento `WHERE tenant_id` en todas las queries; índices en la ruta de lectu
 
 1. **Blindaje urgente — ejecutado en producción**: secrets reales por env (`OPFORJA_SESSION_SECRET`,
    `OPFORJA_DB_PASSWORD`), `pg_dump` automatizado por cron con retención, rate limiting básico.
-2. **Backend-only OPM — implementado en código**: backend manda; sin espejo/cache OPM en `localStorage`.
+2. **Backend-only OPM — implementado en código**: backend manda; sin espejo/cache OPM en storage del navegador.
 3. **Profesionalización — implementada en código**: migraciones versionadas + FKs,
    transacciones, poda de versiones y logging estructurado.
 4. **Conflicto multi-pestaña — ejecutado y desplegado**: optimistic locking por `revision` + 409.
@@ -87,10 +87,8 @@ aislamiento `WHERE tenant_id` en todas las queries; índices en la ruta de lectu
 ## Cobertura de tests del subsistema (referencia)
 
 `modelPersistence.test.ts` cubre ruta feliz, aislamiento y conflicto 409; aún omite rate-limit.
-`backend.test.ts` cubre que listar/guardar backend no escribe payloads OPM en `localStorage` y transporta `revision`.
-`persistencia.test.ts` cubre guardar/cargar backend ignorando copias locales obsoletas y con
-`localStorage` rechazando escrituras. `local.test.ts` y `versiones.test.ts` mantienen regresión
-del módulo legacy/offline, fuera del camino backend. `e2e/33-backend-only-persistencia.spec.ts`
-cubre navegador backend-only sin payloads OPM en `localStorage`. Verificación del corte 4:
-`cd app && bun run check` → **2274 pass / 0 fail**; e2e focal → **1 passed**; smoke productivo
-rev1/rev2/409/delete OK.
+`backend.test.ts` cubre transporte backend de modelos/workspace/versiones/autosave y `revision`.
+`persistencia.test.ts` cubre guardar/cargar backend-only y copia editable desde read-only.
+`versiones.test.ts` cubre metadata versionada sin storage navegador. `e2e/33-backend-only-persistencia.spec.ts`
+cubre guardado/carga desde API. Verificación C5 parcial: `rg` sobre `app/src app/e2e` no encuentra
+rutas de storage navegador ni helpers locales legacy; typecheck y tests dirigidos verdes.

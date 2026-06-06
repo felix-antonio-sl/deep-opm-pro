@@ -93,16 +93,11 @@ import {
   reanclarExtremoEnlace as reanclarExtremoEnlaceOp,
 } from "../modelo/enlaceVertices";
 import {
-  borrarModeloLocal,
-  cargarModeloLocal,
   construirModeloPersistido,
-  guardarModeloLocal,
-  listarModelosLocales,
   resumenDesdeModeloPersistido,
-  actualizarMetadataModeloLocal,
   type ModeloPersistido,
   type ResumenModeloPersistido,
-} from "../persistencia/local";
+} from "../persistencia/modelos";
 import {
   borrarModeloBackend,
   cargarModeloBackend,
@@ -145,7 +140,7 @@ import {
   pegarCarpeta,
   pegarModelo,
 } from "../persistencia/movimientoModelos";
-import { construirVersionPersistible, crearVersionResultado } from "../persistencia/versiones";
+import { construirVersionPersistible } from "../persistencia/versiones";
 import {
   crearAutosalvado,
   type AutosalvadoEstado,
@@ -269,24 +264,15 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       sincronizarListadoBackend(set, get);
       return;
     }
-    const listado = listarModelosLocales();
-    if (!listado.ok) {
-      set({ modelosGuardados: [], mensaje: listado.error });
-    } else {
-      set({ modelosGuardados: listado.value });
-    }
-    sincronizarListadoBackend(set, get);
+    set({ modelosGuardados: [], mensaje: "Backend de modelos no disponible" });
   },
 
   guardarLocal() {
     if (get().readOnly) {
       const estado = get();
-      const idPrevio = estado.modeloPersistidoId;
       const nombre = nombreCopiaReadOnly(estado.modelo.nombre, estado.modelosGuardados);
+      set({ readOnly: false, mensaje: "Modelo en solo lectura — guardando como copia nueva" });
       estado.guardarComoLocal({ nombre, descripcion: estado.descripcionModeloLocal });
-      if (get().modeloPersistidoId && get().modeloPersistidoId !== idPrevio) {
-        set({ readOnly: false, mensaje: "Modelo en solo lectura — guardando como copia nueva" });
-      }
       return;
     }
     const { modelo, modeloPersistidoId, descripcionModeloLocal, indice } = get();
@@ -310,23 +296,12 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       let versiones = guardado.versiones ?? [];
       let indiceActualizado = get().indice;
       if (guardado.crearVersionAlGuardar) {
-        if (persistenciaBackendHabilitada()) {
-          const version = construirVersionPersistible(modelo, { descripcion: "Guardado manual" });
-          versiones = [version.version, ...versiones];
-          guardado = { ...guardado, versiones };
-          void guardarVersionBackend(guardado.id, version.version, version.json).then((resultado) => {
-            if (!resultado.ok) set({ mensaje: `Modelo guardado; no se pudo guardar versión en servidor: ${resultado.error}` });
-          });
-        } else {
-          const version = crearVersionResultado(modelo, { descripcion: "Guardado manual" });
-          if (version.ok) {
-            versiones = [version.value, ...versiones];
-            guardado = { ...guardado, versiones };
-            actualizarMetadataModeloLocal(guardado.id, { versiones });
-          } else {
-            set({ mensaje: "Modelo guardado; no se pudo crear versión" });
-          }
-        }
+        const version = construirVersionPersistible(modelo, { descripcion: "Guardado manual" });
+        versiones = [version.version, ...versiones];
+        guardado = { ...guardado, versiones };
+        void guardarVersionBackend(guardado.id, version.version, version.json).then((resultado) => {
+          if (!resultado.ok) set({ mensaje: `Modelo guardado; no se pudo guardar versión en servidor: ${resultado.error}` });
+        });
         indiceActualizado = {
           ...indiceActualizado,
           modelos: indiceActualizado.modelos.map((item) =>
@@ -358,16 +333,11 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       });
       return;
     }
-    const guardado = guardarModeloLocal(inputGuardado);
-    if (!guardado.ok) {
-      set({ mensaje: guardado.error });
-      return;
-    }
-    finalizarGuardado(guardado.value);
+    set({ mensaje: "Backend de modelos no disponible" });
   },
 
   cargarLocal(id) {
-    const modeloId = id ?? get().modelosGuardados[0]?.id ?? (persistenciaBackendHabilitada() ? undefined : listarModelosGuardadosSeguro()[0]?.id);
+    const modeloId = id ?? get().modelosGuardados[0]?.id;
     if (!modeloId) {
       set({ mensaje: "No hay modelos guardados" });
       return;
@@ -419,58 +389,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       });
       return;
     }
-    const cargado = cargarModeloLocal(modeloId);
-    if (!cargado.ok) {
-      set({ mensaje: cargado.error, modelosGuardados: listarModelosGuardadosSeguro() });
-      return;
-    }
-    const resultado = hidratarModelo(cargado.value.json);
-    if (!resultado.ok) {
-      set({ mensaje: resultado.error });
-      return;
-    }
-    // Actualizar última apertura en el modelo
-    guardarModeloLocal({
-      id: cargado.value.id,
-      nombre: cargado.value.nombre,
-      descripcion: cargado.value.descripcion,
-      json: cargado.value.json,
-      ultimaApertura: new Date().toISOString(),
-      ...(cargado.value.carpetaId !== undefined ? { carpetaId: cargado.value.carpetaId } : {}),
-    });
-    // Actualizar índice de workspace
-    const indice = leerIndiceWorkspace();
-    const carpetaId = cargado.value.carpetaId ?? null;
-    const nuevoIndice: WorkspaceIndice = {
-      ...indice,
-      modelos: [
-        ...indice.modelos.filter((m) => m.id !== modeloId),
-        {
-          ...(indice.modelos.find((m) => m.id === modeloId) ?? { id: modeloId, carpetaId }),
-          id: modeloId,
-          carpetaId,
-        },
-      ],
-      recientes: [modeloId, ...indice.recientes.filter((r) => r !== modeloId)].slice(0, 10),
-    };
-    escribirIndiceWorkspace(nuevoIndice);
-    resetHistorial(resultado.value);
-    const updatedGuardados = listarModelosGuardadosSeguro();
-    set(estadoModelo(resultado.value, {
-      opdActivoId: resultado.value.opdRaizId,
-      seleccionId: null,
-      enlaceSeleccionId: null,
-      modoEnlace: null,
-      modeloPersistidoId: cargado.value.id,
-      descripcionModeloLocal: cargado.value.descripcion,
-      modelosGuardados: updatedGuardados,
-      modelosRecientes: modelosRecientesDeIndice(nuevoIndice, updatedGuardados),
-      indice: nuevoIndice,
-      dialogoCargarModeloAbierto: false,
-      carpetaActualId: null,
-      workspaceLocal: workspaceDesdeModelo(resultado.value, cargado.value.id, cargado.value.descripcion, carpetaId),
-      mensaje: `Modelo cargado: ${cargado.value.nombre}`,
-    }));
+    set({ mensaje: "Backend de modelos no disponible" });
   },
 
   borrarLocal(id) {
@@ -503,23 +422,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       });
       return;
     }
-    const borrado = borrarModeloLocal(id);
-    if (!borrado.ok) {
-      set({ mensaje: borrado.error });
-      return;
-    }
-    const extra: Partial<OpmStore> = {
-      modelosGuardados: listarModelosGuardadosSeguro(),
-      mensaje: "Modelo local borrado",
-    };
-    if (get().modeloPersistidoId === id) {
-      marcarSnapshotJson("");
-      extra.modeloPersistidoId = null;
-      extra.descripcionModeloLocal = "";
-      extra.dirty = true;
-      extra.workspaceLocal = workspaceDesdeModelo(get().modelo, null);
-    }
-    set(extra);
+    set({ mensaje: "Backend de modelos no disponible" });
   },
 
   iniciarAutosalvado() {
@@ -541,11 +444,10 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
         };
         const existente = state.modelosGuardados.find((item) => item.id === state.modeloPersistidoId);
         const modeloPersistido = construirModeloPersistido(inputGuardado, existente);
-        const guardado = persistenciaBackendHabilitada()
-          ? await guardarModeloBackend(modeloPersistido)
-          : guardarModeloLocal(inputGuardado);
+        if (!persistenciaBackendHabilitada()) return;
+        const guardado = await guardarModeloBackend(modeloPersistido);
         if (guardado.ok) {
-          if (persistenciaBackendHabilitada()) void guardarAutosalvadoBackend(guardado.value.id, guardado.value.json);
+          void guardarAutosalvadoBackend(guardado.value.id, guardado.value.json);
           marcarSnapshotModelo(state.modelo);
           setEstadoStore(estadoModelo(state.modelo, {
             dirty: false,

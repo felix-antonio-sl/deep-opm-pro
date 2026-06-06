@@ -1,6 +1,6 @@
 import type { Id, Modelo, PreferenciasUiUsuario, Resultado, VersionResumen } from "../modelo/tipos";
 import type { CriterioResaltado } from "../canvas/mapaSistema";
-import type { ResumenModeloPersistido } from "./local";
+import type { ResumenModeloPersistido } from "./modelos";
 
 // ── Tipos de jerarquía ──────────────────────────────────────────────
 

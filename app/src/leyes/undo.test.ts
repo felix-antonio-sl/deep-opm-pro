@@ -6,7 +6,6 @@ import { store } from "../store";
 
 describe("law-opl-apply-undo-atomicity", () => {
   beforeEach(() => {
-    instalarLocalStorage();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo("Leyes undo")));
   });
@@ -57,23 +56,6 @@ function undoStackLength(): number {
   const estado = store.getState();
   const pestana = estado.pestanasAbiertas.find((item) => item.id === estado.pestanaActivaId);
   return pestana?.historialUndo.length ?? 0;
-}
-
-function instalarLocalStorage(): void {
-  const datos = new Map<string, string>();
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: {
-      get length() {
-        return datos.size;
-      },
-      key: (index: number) => Array.from(datos.keys())[index] ?? null,
-      getItem: (key: string) => datos.get(key) ?? null,
-      setItem: (key: string, value: string) => datos.set(key, value),
-      removeItem: (key: string) => datos.delete(key),
-      clear: () => datos.clear(),
-    },
-  });
 }
 
 function instalarConfirmacion(): void {

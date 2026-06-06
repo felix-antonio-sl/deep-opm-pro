@@ -1,5 +1,5 @@
 import type { Id } from "../../modelo/tipos";
-import type { ResumenModeloPersistido } from "../../persistencia/local";
+import type { ResumenModeloPersistido } from "../../persistencia/modelos";
 import {
   listarHijosDeCarpeta,
   rutaDeCarpeta,

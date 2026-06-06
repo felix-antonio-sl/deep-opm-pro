@@ -4,7 +4,7 @@ import regFileIcon from "../../../../assets/svg/regFile.svg";
 import autosaveIcon from "../../../../assets/svg/autosave.svg";
 import verFileIcon from "../../../../assets/svg/verFile.svg";
 import type { Id } from "../../modelo/tipos";
-import type { ResumenModeloPersistido } from "../../persistencia/local";
+import type { ResumenModeloPersistido } from "../../persistencia/modelos";
 import type { CarpetaIndice } from "../../persistencia/workspace";
 import { tokens } from "../tokens";
 

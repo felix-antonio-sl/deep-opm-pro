@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { store } from "../store";
 import { exportarModelo } from "../serializacion/json";
 import {
@@ -11,6 +11,9 @@ import {
 } from "../modelo/operaciones";
 import { extremoEstado } from "../modelo/extremos";
 import type { Enlace, Modelo, Resultado } from "../modelo/tipos";
+import type { ModeloPersistido } from "../persistencia/modelos";
+
+let originalFetch: typeof fetch;
 
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
@@ -28,7 +31,13 @@ function importar(modelo: Modelo): void {
 }
 
 beforeEach(() => {
+  instalarBackendMock();
   store.getState().importarJson(exportarModelo(crearModelo()));
+});
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+  Reflect.deleteProperty(globalThis, "window");
 });
 
 describe("UX store para capacidades OPCloud aspiracionales", () => {
@@ -167,7 +176,7 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
     ]);
   });
 
-  test("conecta submodelo LF-04 desde la selección y conserva la edición en el OPD padre", () => {
+  test("conecta submodelo LF-04 desde la selección y conserva la edición en el OPD padre", async () => {
     store.getState().crearProcesoDemo();
     const anchorId = Object.keys(store.getState().modelo.entidades)[0]!;
     store.getState().seleccionarEntidad(anchorId);
@@ -176,6 +185,7 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
       modeloId: "modelo-hijo",
       nombre: "Proceso detalle",
     });
+    await esperar(() => store.getState().mensaje === "Submodelo conectado y cargado");
 
     const estado = store.getState();
     const submodelo = Object.values(estado.modelo.submodelos ?? {})[0]!;
@@ -183,7 +193,7 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
       modeloId: "modelo-hijo",
       nombre: "Proceso detalle",
       anchorEntidadId: anchorId,
-      estado: "descargado",
+      estado: "cargado-sincronizado",
     });
     expect(estado.modelo.opds[submodelo.opdVistaId!]?.vista).toMatchObject({
       kind: "submodel-view",
@@ -239,6 +249,43 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
     expect(enlacesDelOpd(store.getState().modelo, fixture.opdHijoId).some((enlace) => enlace.derivado?.enlacePadreId === fixture.enlacePadreId)).toBe(true);
   });
 });
+
+function instalarBackendMock(): void {
+  Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+  originalFetch = globalThis.fetch;
+  const modeloHijo = crearModelo("Proceso detalle");
+  const persistido: ModeloPersistido = {
+    id: "modelo-hijo",
+    nombre: "Proceso detalle",
+    descripcion: "",
+    creadoEn: "2026-06-06T00:00:00.000Z",
+    actualizadoEn: "2026-06-06T00:00:00.000Z",
+    json: exportarModelo(modeloHijo),
+    revision: 1,
+  };
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const method = init?.method ?? "GET";
+    if (url === "/__deep-opm/modelos/modelo-hijo" && method === "GET") {
+      return Promise.resolve(jsonResponse({ modelo: persistido }));
+    }
+    return Promise.resolve(jsonResponse({ error: "unexpected" }, 404));
+  }) as unknown as typeof fetch;
+}
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+async function esperar(condicion: () => boolean): Promise<void> {
+  for (let intento = 0; intento < 30; intento += 1) {
+    if (condicion()) return;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}
 
 function modeloConContorno(): { modelo: Modelo; opdHijoId: string; enlacePadreId: string; derivadoId: string } {
   let modelo = crearModelo("Contorno UX");

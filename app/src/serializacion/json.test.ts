@@ -231,7 +231,7 @@ describe("serializacion JSON", () => {
         creadoEn: "2026-05-05T00:00:01.000Z",
         nombre: "Manual",
         descripcion: "corte",
-        modeloPayloadKey: "deep-opm-pro:version:modelo:v1",
+        modeloPayloadKey: "modelo:v1",
         bytes: 42,
       }],
     };

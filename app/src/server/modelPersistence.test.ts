@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/local";
+import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/modelos";
 import { indiceVacio, type WorkspaceIndice } from "../persistencia/workspace";
 import type { VersionResumen } from "../modelo/tipos";
 import {
@@ -244,7 +244,7 @@ function versionPersistida(id: string): VersionResumen {
     id,
     creadoEn: "2026-06-03T00:00:00.000Z",
     nombre: "Snapshot",
-    modeloPayloadKey: `deep-opm-pro:version:modelo-3:${id}`,
+    modeloPayloadKey: `modelo-3:${id}`,
     bytes: 10,
   };
 }

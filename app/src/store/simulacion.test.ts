@@ -8,17 +8,6 @@ import { normalizarVelocidadSimulacion } from "./simulacion";
 
 describe("headless simulacion", () => {
   beforeEach(() => {
-    Object.defineProperty(globalThis, "localStorage", {
-      configurable: true,
-      value: {
-        length: 0,
-        key: () => null,
-        getItem: () => null,
-        setItem: () => undefined,
-        removeItem: () => undefined,
-        clear: () => undefined,
-      },
-    });
     store.getState().importarJson(exportarModelo(crearModelo()));
     // Reset UI-only sim flags between tests
     if (store.getState().headlessSimulacion) store.getState().alternarHeadlessSimulacion();

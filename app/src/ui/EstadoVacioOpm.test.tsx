@@ -68,7 +68,6 @@ describe("EstadoVacioOpm · sugerirEnlaceResultado", () => {
 
 describe("EstadoVacioOpm · accion canonica desde canvas vacio", () => {
   beforeEach(() => {
-    instalarLocalStorage();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
   });
@@ -124,23 +123,6 @@ function entidad(id: string, tipo: "proceso" | "objeto", nombre: string): Entida
     esencia: "informacional",
     afiliacion: "sistemica",
   };
-}
-
-function instalarLocalStorage(): void {
-  const datos = new Map<string, string>();
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: {
-      get length() {
-        return datos.size;
-      },
-      key: (index: number) => Array.from(datos.keys())[index] ?? null,
-      getItem: (key: string) => datos.get(key) ?? null,
-      setItem: (key: string, value: string) => datos.set(key, value),
-      removeItem: (key: string) => datos.delete(key),
-      clear: () => datos.clear(),
-    },
-  });
 }
 
 function instalarConfirmacion(): void {

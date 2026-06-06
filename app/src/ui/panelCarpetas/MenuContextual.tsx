@@ -1,6 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import type { Id } from "../../modelo/tipos";
-import type { ResumenModeloPersistido } from "../../persistencia/local";
+import type { ResumenModeloPersistido } from "../../persistencia/modelos";
 import type { CarpetaIndice } from "../../persistencia/workspace";
 import { tokens } from "../tokens";
 

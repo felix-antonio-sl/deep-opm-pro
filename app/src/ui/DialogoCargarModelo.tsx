@@ -5,7 +5,7 @@ import lockIcon from "../../../assets/svg/lock.svg";
 import regFileIcon from "../../../assets/svg/regFile.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
 import type { Id } from "../modelo/tipos";
-import type { ResumenModeloPersistido } from "../persistencia/local";
+import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { Dialogo, DialogoAccion } from "./Dialogo";
@@ -220,8 +220,8 @@ export function DialogoCargarModelo() {
 }
 
 type OrdenCargar = { columna: "nombre" | "descripcion" | "actualizadoEn" | "bytes"; direccion: "asc" | "desc" };
-const VISTA_CARGAR_KEY = "deep-opm-pro:ui:vista-cargar";
-const ORDEN_CARGAR_KEY = "deep-opm-pro:ui:orden-cargar";
+let vistaCargarMemoria: VistaModo = "tiles";
+let ordenCargarMemoria: OrdenCargar = { columna: "actualizadoEn", direccion: "desc" };
 
 interface AccionesModelo {
   onAbrir: (id: Id) => void;
@@ -429,31 +429,19 @@ function marcaOrden(orden: OrdenCargar, columna: OrdenCargar["columna"]): string
 }
 
 function leerVistaCargar(): VistaModo {
-  try {
-    const raw = globalThis.localStorage?.getItem(VISTA_CARGAR_KEY);
-    return raw === "lista" ? "lista" : "tiles";
-  } catch {
-    return "tiles";
-  }
+  return vistaCargarMemoria;
 }
 
 function escribirVistaCargar(modo: VistaModo): void {
-  try { globalThis.localStorage?.setItem(VISTA_CARGAR_KEY, modo); } catch { /* storage no disponible */ }
+  vistaCargarMemoria = modo;
 }
 
 function leerOrdenCargar(): OrdenCargar {
-  try {
-    const raw = globalThis.localStorage?.getItem(ORDEN_CARGAR_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (parsed && ["nombre", "descripcion", "actualizadoEn", "bytes"].includes(parsed.columna) && (parsed.direccion === "asc" || parsed.direccion === "desc")) {
-      return parsed;
-    }
-  } catch { /* storage no disponible */ }
-  return { columna: "actualizadoEn", direccion: "desc" };
+  return ordenCargarMemoria;
 }
 
 function escribirOrdenCargar(orden: OrdenCargar): void {
-  try { globalThis.localStorage?.setItem(ORDEN_CARGAR_KEY, JSON.stringify(orden)); } catch { /* storage no disponible */ }
+  ordenCargarMemoria = orden;
 }
 
 // Ronda 28 L5: Bauhaus monocromático — ink/paper, sin radius, Inter Tight,

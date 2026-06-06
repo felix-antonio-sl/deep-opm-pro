@@ -34,9 +34,8 @@ La persistencia de modelos nuevos vive en `opforja-postgres` y se expone a la
 SPA por `model-api`. El backend emite una cookie HTTP-only firmada
 `opforja_session` para crear un tenant anonimo por navegador; modelos,
 workspace/carpetas, versiones y autosave quedan aislados por `tenant_id`.
-`localStorage` queda como cache local transicional para preservar flujos
-existentes que aun esperan lectura sincrona; no es la fuente primaria de datos
-nuevos.
+No hay cache ni recuperacion legacy desde storage del navegador: si la API no
+esta disponible, la app falla de forma explicita en persistencia.
 
 ## Contrato Funcional De Apariciones
 
@@ -145,9 +144,9 @@ La persistencia primaria de modelos nuevos vive en Postgres, volumen Docker
 - `opforja_model_versions`: snapshots versionados por modelo.
 - `opforja_model_autosaves`: ultimo autosave por modelo.
 
-La API devuelve JSON como texto para hidratar la app. `localStorage` del
-navegador queda como cache/espejo transicional, no como SSOT. No hay migracion
-de modelos locales antiguos porque el corte parte sin datos productivos previos.
+La API devuelve JSON como texto para hidratar la app. El navegador no guarda
+payloads OPM ni snapshots de versiones. No hay migracion de modelos locales
+antiguos porque el corte parte sin datos productivos previos.
 
 Procedimiento detallado de respaldo manual por JSON:
 `docs/uso-productivo.md` §Respaldo Manual.
@@ -180,8 +179,8 @@ No usar `docker compose down -v` salvo que se quiera borrar la base de datos.
   operativo por tenant anonimo firmado en cookie HTTP-only; si se pierde la
   cookie del navegador, se pierde el acceso directo a ese tenant.
 - La instancia esta publica mientras `opforja-auth@docker` no este aplicado.
-- `localStorage` no es backup; el respaldo portable sigue siendo el JSON
-  descargado o el backup de Postgres.
+- El storage del navegador no es parte del plan de respaldo; el respaldo
+  portable sigue siendo el JSON descargado o el backup de Postgres.
 - El endpoint de modelos acepta hasta 15 MiB por request en `model-api`;
   Nginx permite hasta 25 MB en `/__deep-opm/modelos` y
   `/__deep-opm/workspace`.

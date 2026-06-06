@@ -23,17 +23,6 @@ import type { RuntimeEffects } from "./runtimeEffects";
 
 beforeEach(() => {
   resetRuntimeEffects();
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: {
-      length: 0,
-      key: () => null,
-      getItem: () => null,
-      setItem: () => undefined,
-      removeItem: () => undefined,
-      clear: () => undefined,
-    },
-  });
   store.getState().importarJson(exportarModelo(crearModelo()));
   store.getState().listarModelosGuardados();
 });
@@ -59,21 +48,7 @@ describe("runtime effects", () => {
     expect(confirmarEliminacionOpd("Vista hija")).toBe(true);
   });
 
-  test("storage inyectado aísla indice workspace de localStorage global", () => {
-    const storage = new Map<string, string>();
-    Object.defineProperty(globalThis, "localStorage", {
-      configurable: true,
-      get() {
-        throw new Error("runtime con storage fake no debe tocar localStorage global");
-      },
-    });
-    fijarRuntimeEffects(fakeRuntimeEffects({
-      readLocalStorage: (key) => storage.get(key) ?? null,
-      writeLocalStorage: (key, value) => {
-        storage.set(key, value);
-      },
-    }));
-
+  test("workspace sin backend no persiste en storage navegador", () => {
     const indice = {
       modelos: [{ id: "modelo-1", carpetaId: null }],
       carpetas: [],
@@ -82,8 +57,11 @@ describe("runtime effects", () => {
 
     escribirIndiceWorkspace(indice);
 
-    expect(storage.size).toBe(1);
-    expect(leerIndiceWorkspace()).toEqual(indice);
+    expect(leerIndiceWorkspace()).toEqual({
+      modelos: [],
+      carpetas: [],
+      recientes: [],
+    });
   });
 
   test("ids locales usan runtime effects para reloj, UUID y random", () => {
@@ -213,8 +191,6 @@ function fakeRuntimeEffects(overrides: Partial<RuntimeEffects> = {}): RuntimeEff
   return {
     now: () => new Date("2026-05-07T00:00:00.000Z"),
     confirm: () => true,
-    readLocalStorage: () => null,
-    writeLocalStorage: () => undefined,
     randomUUID: () => null,
     random: () => 0,
     ...overrides,

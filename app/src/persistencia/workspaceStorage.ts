@@ -1,60 +1,19 @@
-import type { PreferenciasUiUsuario, Resultado } from "../modelo/tipos";
+import type { PreferenciasUiUsuario } from "../modelo/tipos";
 import type { MapaWorkspace, WorkspaceIndice } from "./workspace";
 import { indiceVacio } from "./workspace";
 
-export const WORKSPACE_INDEX_KEY = "deep-opm-pro:persistencia:workspace";
-export const PREF_MOSTRAR_ARCHIVADOS_KEY = "deep-opm-pro:ui:mostrar-archivados";
-export const PREF_MOSTRAR_VERSIONES_KEY = "deep-opm-pro:ui:mostrar-versiones";
-
-export interface WorkspaceStoragePort {
-  readLocalStorage(key: string): string | null;
-  writeLocalStorage(key: string, value: string): void;
-}
-
-export function leerIndiceWorkspaceDesdeStorage(storage: WorkspaceStoragePort): WorkspaceIndice {
-  try {
-    const raw = storage.readLocalStorage(WORKSPACE_INDEX_KEY);
-    if (!raw) return indiceVacio();
-    const parsed = JSON.parse(raw);
-    if (!esRecord(parsed)) return indiceVacio();
-    return {
-      modelos: Array.isArray(parsed.modelos) ? parsed.modelos.map(normalizarModeloIndice).filter((m): m is WorkspaceIndice["modelos"][number] => m !== null) : [],
-      carpetas: Array.isArray(parsed.carpetas) ? parsed.carpetas.map(normalizarCarpetaIndice).filter((c): c is WorkspaceIndice["carpetas"][number] => c !== null) : [],
-      recientes: Array.isArray(parsed.recientes) ? parsed.recientes.filter((r: unknown) => typeof r === "string") : [],
-      ...(esPreferenciasUi(parsed.preferenciasUi) ? { preferenciasUi: parsed.preferenciasUi } : {}),
-    };
-  } catch {
-    return indiceVacio();
-  }
-}
-
-export function escribirIndiceWorkspaceEnStorage(storage: WorkspaceStoragePort, indice: WorkspaceIndice): Resultado<void> {
-  try {
-    storage.writeLocalStorage(WORKSPACE_INDEX_KEY, JSON.stringify(indice));
-    return { ok: true, value: undefined };
-  } catch {
-    return { ok: false, error: "No se pudo escribir índice de workspace" };
-  }
-}
-
-export function leerPreferenciaBooleanaDesdeStorage(storage: WorkspaceStoragePort, key: string, fallback: boolean): boolean {
-  try {
-    const raw = storage.readLocalStorage(key);
-    if (raw === "true") return true;
-    if (raw === "false") return false;
-  } catch {
-    // storage no disponible
-  }
-  return fallback;
-}
-
-export function escribirPreferenciaBooleanaEnStorage(storage: WorkspaceStoragePort, key: string, value: boolean): Resultado<void> {
-  try {
-    storage.writeLocalStorage(key, value ? "true" : "false");
-    return { ok: true, value: undefined };
-  } catch {
-    return { ok: false, error: "No se pudo escribir preferencia local" };
-  }
+export function normalizarWorkspaceIndice(value: unknown): WorkspaceIndice {
+  if (!esRecord(value)) return indiceVacio();
+  return {
+    modelos: Array.isArray(value.modelos)
+      ? value.modelos.map(normalizarModeloIndice).filter((m): m is WorkspaceIndice["modelos"][number] => m !== null)
+      : [],
+    carpetas: Array.isArray(value.carpetas)
+      ? value.carpetas.map(normalizarCarpetaIndice).filter((c): c is WorkspaceIndice["carpetas"][number] => c !== null)
+      : [],
+    recientes: Array.isArray(value.recientes) ? value.recientes.filter((r: unknown): r is string => typeof r === "string") : [],
+    ...(esPreferenciasUi(value.preferenciasUi) ? { preferenciasUi: value.preferenciasUi } : {}),
+  };
 }
 
 export function normalizarModeloIndice(value: unknown): WorkspaceIndice["modelos"][number] | null {

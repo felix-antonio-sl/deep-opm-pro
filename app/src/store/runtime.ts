@@ -8,18 +8,9 @@ import { aparienciaDeEntidadEnOpd, opdIdDeEntidadVisible } from "../modelo/polit
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import { sincronizarAbanicos } from "../modelo/abanicos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
-import { listarModelosLocales, type ResumenModeloPersistido } from "../persistencia/local";
+import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import { guardarWorkspaceBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
 import { indiceVacio, workspaceDesdeModelo, type MapaWorkspace, type WorkspaceIndice } from "../persistencia/workspace";
-import {
-  PREF_MOSTRAR_ARCHIVADOS_KEY as PREF_ARCHIVADOS_STORAGE_KEY,
-  PREF_MOSTRAR_VERSIONES_KEY as PREF_VERSIONES_STORAGE_KEY,
-  WORKSPACE_INDEX_KEY,
-  escribirIndiceWorkspaceEnStorage,
-  escribirPreferenciaBooleanaEnStorage,
-  leerIndiceWorkspaceDesdeStorage,
-  leerPreferenciaBooleanaDesdeStorage,
-} from "../persistencia/workspaceStorage";
 import {
   agregar as seleccionAgregar,
   quitar as seleccionQuitar,
@@ -47,9 +38,9 @@ import { RUNTIME_EFFECTS_DEFAULT, type RuntimeEffects } from "./runtimeEffects";
 import type { OpmStore } from "./tipos";
 
 export const UNDO_LIMIT = 100;
-export const WS_KEY = WORKSPACE_INDEX_KEY;
-export const PREF_MOSTRAR_ARCHIVADOS_KEY = PREF_ARCHIVADOS_STORAGE_KEY;
-export const PREF_MOSTRAR_VERSIONES_KEY = PREF_VERSIONES_STORAGE_KEY;
+export const WS_KEY = "workspace";
+export const PREF_MOSTRAR_ARCHIVADOS_KEY = "mostrarArchivados";
+export const PREF_MOSTRAR_VERSIONES_KEY = "mostrarVersiones";
 export const PORTAPAPELES_WORKSPACE_TTL_MS = 5 * 60 * 1000;
 export const ANCHO_PANEL_ARBOL_DEFAULT = 210;
 export const ANCHO_PANEL_ARBOL_MIN = 160;
@@ -350,9 +341,7 @@ export function resetHistorial(modelo: Modelo): void {
 }
 
 export function listarModelosGuardadosSeguro(): ResumenModeloPersistido[] {
-  if (persistenciaBackendHabilitada()) return [];
-  const listado = listarModelosLocales();
-  return listado.ok ? listado.value : [];
+  return [];
 }
 
 export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Partial<OpmStore> {
@@ -493,14 +482,11 @@ export function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id
 export function escribirIndiceWorkspace(indice: WorkspaceIndice): void {
   if (persistenciaBackendHabilitada()) {
     void guardarWorkspaceBackend(indice);
-    return;
   }
-  escribirIndiceWorkspaceEnStorage(runtimeEffects, indice);
 }
 
 export function leerIndiceWorkspace(): WorkspaceIndice {
-  if (persistenciaBackendHabilitada()) return indiceVacio();
-  return leerIndiceWorkspaceDesdeStorage(runtimeEffects);
+  return indiceVacio();
 }
 
 export function sincronizarIndiceConModelosGuardados(modelosGuardados: ResumenModeloPersistido[], indice: WorkspaceIndice): WorkspaceIndice {
@@ -535,11 +521,13 @@ export function modelosRecientesDeIndice(indice: WorkspaceIndice, guardados: Res
 }
 
 export function leerPreferenciaBooleana(key: string, fallback: boolean): boolean {
-  return leerPreferenciaBooleanaDesdeStorage(runtimeEffects, key, fallback);
+  void key;
+  return fallback;
 }
 
 export function escribirPreferenciaBooleana(key: string, value: boolean): void {
-  escribirPreferenciaBooleanaEnStorage(runtimeEffects, key, value);
+  void key;
+  void value;
 }
 
 export function crearIdModeloLocal(): Id {

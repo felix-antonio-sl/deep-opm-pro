@@ -88,17 +88,15 @@ el mouse.
 
 ## Respaldo Manual
 
-**Es la operación más importante.** `localStorage` no es respaldo: el
-navegador puede borrar los modelos si se limpian datos, se cambia de
-perfil o se cambia de navegador. El único respaldo portable es el JSON
-descargado.
+**Es la operación más importante.** El respaldo operativo vive en el
+backend/Postgres; el respaldo portable para llevar fuera de la instancia es el
+JSON descargado.
 
 ### Cuándo descargar JSON
 
 - Al terminar una sesión de trabajo.
 - Antes de cambios estructurales grandes.
-- Antes de limpiar datos del navegador, cambiar de navegador o cambiar
-  de origen/puerto.
+- Antes de cambiar de entorno, dominio, navegador o equipo.
 - Antes de depender del modelo para algo real.
 
 ### Cómo descargar

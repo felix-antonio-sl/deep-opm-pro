@@ -220,8 +220,9 @@ export function ToolbarCreacion() {
   );
 }
 
-const KEY_NUDGE_ANCHOR_CERRADO = "deep-opm-pro:ui:nudge-anchor-cerrado";
-const KEY_NUDGE_ANCHOR_MANUALES = "deep-opm-pro:ui:nudge-anchor-manuales";
+const KEY_NUDGE_ANCHOR_CERRADO = "nudge-anchor-cerrado";
+const KEY_NUDGE_ANCHOR_MANUALES = "nudge-anchor-manuales";
+const memoriaNudge = new Map<string, string>();
 
 export function debeMostrarNudgeConexionAnchor(input: EstadoNudgeConexionAnchor): boolean {
   if (!input.modoEnlace) return false;
@@ -231,36 +232,20 @@ export function debeMostrarNudgeConexionAnchor(input: EstadoNudgeConexionAnchor)
 }
 
 function leerFlagSesion(key: string): boolean {
-  try {
-    return globalThis.sessionStorage?.getItem(key) === "1";
-  } catch {
-    return false;
-  }
+  return memoriaNudge.get(key) === "1";
 }
 
 function escribirFlagSesion(key: string, value: boolean): void {
-  try {
-    if (value) globalThis.sessionStorage?.setItem(key, "1");
-    else globalThis.sessionStorage?.removeItem(key);
-  } catch {
-    // sessionStorage puede no estar disponible en pruebas/headless restrictivos.
-  }
+  if (value) memoriaNudge.set(key, "1");
+  else memoriaNudge.delete(key);
 }
 
 function leerNumeroSesion(key: string): number {
-  try {
-    const raw = globalThis.sessionStorage?.getItem(key);
-    const parsed = raw ? Number.parseInt(raw, 10) : 0;
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
-  } catch {
-    return 0;
-  }
+  const raw = memoriaNudge.get(key);
+  const parsed = raw ? Number.parseInt(raw, 10) : 0;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
 }
 
 function escribirNumeroSesion(key: string, value: number): void {
-  try {
-    globalThis.sessionStorage?.setItem(key, String(value));
-  } catch {
-    // sessionStorage puede no estar disponible en pruebas/headless restrictivos.
-  }
+  memoriaNudge.set(key, String(value));
 }

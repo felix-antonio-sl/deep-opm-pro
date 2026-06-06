@@ -1,18 +1,27 @@
-import { beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { formarAbanico } from "./modelo/abanicos";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "./modelo/extremos";
 import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto, estadosDeEntidad } from "./modelo/operaciones";
 import type { Modelo } from "./modelo/tipos";
+import type { ModeloPersistido } from "./persistencia/modelos";
 import { exportarModelo } from "./serializacion/json";
 import { store } from "./store";
 import { descriptorMapaFiltrado } from "./store/mapaSelectors";
 
+let originalFetch: typeof fetch;
+
 describe("store undo/redo y dirty state", () => {
-  beforeEach(() => {
-    instalarLocalStorage();
+  beforeEach(async () => {
+    instalarBackendMock();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
     store.getState().listarModelosGuardados();
+    await esperar(() => store.getState().modelosGuardados.length === 0);
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    Reflect.deleteProperty(globalThis, "window");
   });
 
   test("marca dirty con operaciones reversibles y deshacer hasta snapshot guardado lo limpia", () => {
@@ -77,18 +86,18 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().pestanasAbiertas.length).toBeGreaterThanOrEqual(1);
   });
 
-  test("guardar limpia dirty sin purgar undo", () => {
+  test("guardar limpia dirty sin purgar undo", async () => {
     store.getState().crearObjetoDemo();
     store.getState().guardarLocal();
     expect(store.getState().dialogoGuardarComoAbierto).toBe(true);
     expect(store.getState().modeloPersistidoId).toBeNull();
     expect(store.getState().dirty).toBe(true);
 
-    store.getState().guardarComoLocal({ nombre: "Modelo guardado", descripcion: "corte local" });
+    await guardarComoBackend("Modelo guardado", { descripcion: "corte backend" });
     expect(store.getState().dirty).toBe(false);
     expect(store.getState().puedeDeshacer).toBe(true);
     expect(store.getState().modelo.nombre).toBe("Modelo guardado");
-    expect(store.getState().descripcionModeloLocal).toBe("corte local");
+    expect(store.getState().descripcionModeloLocal).toBe("corte backend");
 
     store.getState().deshacer();
     expect(cantidadEntidades()).toBe(0);
@@ -100,9 +109,9 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().dirty).toBe(false);
   });
 
-  test("guardar local usa indice estructurado y cargar reinicia dirty e historial", () => {
+  test("guardar backend usa indice estructurado y cargar reinicia dirty e historial", async () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarComoLocal({ nombre: "Modelo local base" });
+    await guardarComoBackend("Modelo backend base");
     const primerId = store.getState().modeloPersistidoId;
     expect(primerId).toBeTruthy();
     expect(store.getState().modelosGuardados).toHaveLength(1);
@@ -111,12 +120,14 @@ describe("store undo/redo y dirty state", () => {
     store.getState().crearProcesoDemo();
     expect(store.getState().dirty).toBe(true);
     store.getState().guardarLocal();
+    await esperar(() => store.getState().dirty === false);
     expect(store.getState().modeloPersistidoId).toBe(primerId);
     expect(store.getState().modelosGuardados).toHaveLength(1);
 
     store.getState().crearObjetoDemo();
     expect(cantidadEntidades()).toBe(3);
     store.getState().cargarLocal(primerId ?? undefined);
+    await esperar(() => store.getState().mensaje?.startsWith("Modelo cargado:") === true);
 
     expect(cantidadEntidades()).toBe(2);
     expect(store.getState().dirty).toBe(false);
@@ -124,9 +135,9 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().puedeRehacer).toBe(false);
   });
 
-  test("cut paste de workspace mueve modelo entre carpetas y limpia portapapeles", () => {
+  test("cut paste de workspace mueve modelo entre carpetas y limpia portapapeles", async () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarComoLocal({ nombre: "Modelo movible" });
+    await guardarComoBackend("Modelo movible");
     const modeloId = store.getState().modeloPersistidoId;
     if (!modeloId) throw new Error("La prueba esperaba id persistido");
     store.getState().crearCarpetaEnActual("Destino");
@@ -139,12 +150,12 @@ describe("store undo/redo y dirty state", () => {
 
     expect(store.getState().portapapelesWorkspace).toBeNull();
     expect(store.getState().indice.modelos.find((modelo) => modelo.id === modeloId)?.carpetaId).toBe(destinoId);
-    expect(store.getState().modelosGuardados.find((modelo) => modelo.id === modeloId)?.carpetaId).toBe(destinoId);
+    expect(store.getState().modelosGuardados.find((modelo) => modelo.id === modeloId)?.nombre).toBe("Modelo movible");
   });
 
   test("archivado manual oculta modelos de busqueda global hasta restaurar", async () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarComoLocal({ nombre: "Modelo Archivado", descripcion: "flujo secreto" });
+    await guardarComoBackend("Modelo Archivado", { descripcion: "flujo secreto" });
     const modeloId = store.getState().modeloPersistidoId;
     if (!modeloId) throw new Error("La prueba esperaba id persistido");
 
@@ -160,7 +171,7 @@ describe("store undo/redo y dirty state", () => {
 
   test("version manual queda asociada al modelo guardado", async () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarComoLocal({ nombre: "Modelo con versiones", crearVersionAlGuardar: true });
+    await guardarComoBackend("Modelo con versiones", { crearVersionAlGuardar: true });
     const modeloId = store.getState().modeloPersistidoId;
     if (!modeloId) throw new Error("La prueba esperaba id persistido");
 
@@ -171,9 +182,9 @@ describe("store undo/redo y dirty state", () => {
     expect(resumen?.versiones?.some((version) => version.descripcion === "corte manual")).toBe(true);
   });
 
-  test("nuevo modelo descarta historial local activo sin borrar registros guardados", () => {
+  test("nuevo modelo descarta historial activo sin borrar registros guardados", async () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarComoLocal({ nombre: "Modelo antes de nuevo" });
+    await guardarComoBackend("Modelo antes de nuevo");
     const primerId = store.getState().modeloPersistidoId;
     if (!primerId) throw new Error("La prueba esperaba id persistido");
     store.getState().crearProcesoDemo();
@@ -207,13 +218,14 @@ describe("store undo/redo y dirty state", () => {
     });
   });
 
-  test("borrar modelo local actual lo deja sin respaldo persistido", () => {
+  test("borrar modelo backend actual lo deja sin respaldo persistido", async () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarComoLocal({ nombre: "Modelo a borrar" });
+    await guardarComoBackend("Modelo a borrar");
     const primerId = store.getState().modeloPersistidoId;
     if (!primerId) throw new Error("La prueba esperaba id persistido");
 
     store.getState().borrarLocal(primerId);
+    await esperar(() => store.getState().modelosGuardados.length === 0);
 
     expect(store.getState().modelosGuardados).toHaveLength(0);
     expect(store.getState().modeloPersistidoId).toBeNull();
@@ -231,9 +243,9 @@ describe("store undo/redo y dirty state", () => {
     expect(store.getState().puedeRehacer).toBe(false);
   });
 
-  test("seleccion y modo enlace no entran al historial ni activan dirty", () => {
+  test("seleccion y modo enlace no entran al historial ni activan dirty", async () => {
     store.getState().crearObjetoDemo();
-    store.getState().guardarComoLocal({ nombre: "Modelo seleccion" });
+    await guardarComoBackend("Modelo seleccion");
     const id = primeraEntidadId();
 
     store.getState().seleccionarEntidad(id);
@@ -1294,7 +1306,6 @@ describe("store undo/redo y dirty state", () => {
 
 describe("store mapa del sistema", () => {
   beforeEach(() => {
-    instalarLocalStorage();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(modeloConOpdHijo()));
   });
@@ -1416,7 +1427,6 @@ function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string 
 
 describe("mapa del sistema", () => {
   beforeEach(() => {
-    instalarLocalStorage();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
     store.getState().listarModelosGuardados();
@@ -1496,7 +1506,7 @@ describe("mapa del sistema", () => {
     expect(store.getState().opdActivoId).toBe("opd-b");
   });
 
-  test("preferencias UI de árbol persisten fuera del JSON OPM", () => {
+  test("preferencias UI de árbol viven fuera del JSON OPM", () => {
     store.getState().fijarAnchoPanelArbol(999);
     expect(store.getState().anchoPanelArbol).toBe(600);
 
@@ -1509,14 +1519,11 @@ describe("mapa del sistema", () => {
     store.getState().toggleNombresArbolVisibles();
     expect(store.getState().nombresArbolVisibles).toBe(false);
 
-    const indice = JSON.parse(localStorage.getItem("deep-opm-pro:persistencia:workspace") ?? "{}");
-    expect(indice.preferenciasUi).toEqual({
-      anchoPanelArbol: 600,
-      anchoPanelInspector: 240,
-      nombresArbolVisibles: false,
-    });
     expect(exportarModelo(store.getState().modelo)).not.toContain("preferenciasUi");
     expect(exportarModelo(store.getState().modelo)).not.toContain("nombresArbolVisibles");
+    expect(store.getState().anchoPanelArbol).toBe(600);
+    expect(store.getState().anchoPanelInspector).toBe(240);
+    expect(store.getState().nombresArbolVisibles).toBe(false);
   });
 
   test("readOnly bloquea commitModelo y emite mensaje (HU-SHARED-003)", () => {
@@ -1544,7 +1551,6 @@ describe("mapa del sistema", () => {
 // undoStack singleton del runtime — ver app/src/store/runtime.ts:273,316).
 describe("store HU-SHARED-002 undo granular comandos ronda 11", () => {
   beforeEach(() => {
-    instalarLocalStorage();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
   });
@@ -1692,7 +1698,6 @@ describe("store HU-SHARED-002 undo granular comandos ronda 11", () => {
 // despliegue canónico ya operativo.
 describe("store HU-10.021 descomposición objeto en mismo OPD", () => {
   beforeEach(() => {
-    instalarLocalStorage();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
   });
@@ -1745,7 +1750,6 @@ describe("store HU-10.021 descomposición objeto en mismo OPD", () => {
 // kernel "etiquetado" (HU-11.012 propuesta), inerte sobre estructurales canónicos.
 describe("store HU-11.012 etiqueta enlace estructural", () => {
   beforeEach(() => {
-    instalarLocalStorage();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
   });
@@ -1795,7 +1799,6 @@ describe("store HU-11.012 etiqueta enlace estructural", () => {
 
 describe("crearAtributoEnObjetoSeleccionado (affordance inspector + toolbar)", () => {
   beforeEach(() => {
-    instalarLocalStorage();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
     store.getState().listarModelosGuardados();
@@ -1897,26 +1900,81 @@ function modeloConTresOpds(): Modelo {
   };
 }
 
-function instalarLocalStorage(): void {
-  const datos = new Map<string, string>();
-  Object.defineProperty(globalThis, "localStorage", {
-    configurable: true,
-    value: {
-      get length() {
-        return datos.size;
-      },
-      key: (index: number) => Array.from(datos.keys())[index] ?? null,
-      getItem: (key: string) => datos.get(key) ?? null,
-      setItem: (key: string, value: string) => datos.set(key, value),
-      removeItem: (key: string) => datos.delete(key),
-      clear: () => datos.clear(),
-    },
-  });
-}
-
 function instalarConfirmacion(): void {
   Object.defineProperty(globalThis, "confirm", {
     configurable: true,
     value: () => true,
   });
+}
+
+async function guardarComoBackend(
+  nombre: string,
+  opts: { descripcion?: string; crearVersionAlGuardar?: boolean } = {},
+): Promise<void> {
+  store.getState().guardarComoLocal({ nombre, ...opts });
+  await esperar(() => store.getState().modeloPersistidoId !== null && store.getState().dirty === false);
+}
+
+function instalarBackendMock(): void {
+  Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+  originalFetch = globalThis.fetch;
+  const modelos = new Map<string, ModeloPersistido>();
+  let workspace = { modelos: [] as Array<{ id: string; carpetaId: string | null }>, carpetas: [], recientes: [] as string[] };
+
+  globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const method = init?.method ?? "GET";
+    const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+
+    if (url === "/__deep-opm/session") {
+      return Promise.resolve(jsonResponse({ session: { tenantId: "tenant-store-test", userId: "user-store-test" } }));
+    }
+    if (url === "/__deep-opm/workspace" && method === "GET") {
+      return Promise.resolve(jsonResponse({ indice: workspace }));
+    }
+    if (url === "/__deep-opm/workspace" && method === "PUT") {
+      workspace = body.indice;
+      return Promise.resolve(jsonResponse({ indice: workspace }));
+    }
+    if (url === "/__deep-opm/modelos?includePayload=1" && method === "GET") {
+      return Promise.resolve(jsonResponse({ modelos: [...modelos.values()] }));
+    }
+    if (url === "/__deep-opm/modelos" && method === "POST") {
+      const incoming = body.modelo as ModeloPersistido;
+      const actual = modelos.get(incoming.id);
+      const guardado = { ...incoming, revision: actual ? (actual.revision ?? 1) + 1 : 1 };
+      modelos.set(guardado.id, guardado);
+      return Promise.resolve(jsonResponse({ modelo: guardado }));
+    }
+    if (url.startsWith("/__deep-opm/modelos/") && url.endsWith("/versiones") && method === "POST") {
+      const modeloId = decodeURIComponent(url.split("/").at(-2) ?? "");
+      return Promise.resolve(jsonResponse({ modeloId, version: body.version, json: body.json }));
+    }
+    if (url.startsWith("/__deep-opm/modelos/") && method === "GET") {
+      const id = decodeURIComponent(url.split("/").pop() ?? "");
+      const modelo = modelos.get(id);
+      return Promise.resolve(modelo ? jsonResponse({ modelo }) : jsonResponse({ error: "Modelo no encontrado" }, 404));
+    }
+    if (url.startsWith("/__deep-opm/modelos/") && method === "DELETE") {
+      const id = decodeURIComponent(url.split("/").pop() ?? "");
+      modelos.delete(id);
+      return Promise.resolve(jsonResponse({ ok: true }));
+    }
+
+    return Promise.resolve(jsonResponse({ error: `unexpected ${method} ${url}` }, 404));
+  }) as unknown as typeof fetch;
+}
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+async function esperar(condicion: () => boolean): Promise<void> {
+  for (let intento = 0; intento < 40; intento += 1) {
+    if (condicion()) return;
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
 }

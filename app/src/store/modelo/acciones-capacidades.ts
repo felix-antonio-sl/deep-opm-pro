@@ -21,7 +21,6 @@ import { derivar } from "../../modelo/razonamiento";
 import { observarPreservacionFrontera } from "../../modelo/equivalencia";
 import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import type { Id, Modelo, Resultado, TargetSatisfaccionRequisito } from "../../modelo/tipos";
-import { cargarModeloLocal } from "../../persistencia/local";
 import { cargarModeloBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
 import { hidratarModelo } from "../../serializacion/json";
 import { commitModelo, estadoSeleccionDesdeIds, type GetStore, type SetStore } from "../runtime";
@@ -247,17 +246,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         });
         return;
       }
-      const cargado = cargarModeloLocal(input.modeloId);
-      if (!cargado.ok) {
-        set({ mensaje: cargado.error });
-        return;
-      }
-      const hidratado = hidratarModelo(cargado.value.json);
-      if (!hidratado.ok) {
-        set({ mensaje: `No se pudo cargar el modelo para composición: ${hidratado.error}` });
-        return;
-      }
-      aplicarComposicion(hidratado.value);
+      set({ mensaje: "Backend de modelos no disponible" });
     },
 
     conectarSubmodeloSeleccionado(input) {
@@ -299,7 +288,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         void cargarSnapshotSubmodelo(input.modeloId).then(conectar);
         return;
       }
-      conectar(cargarSnapshotSubmodeloLocal(input.modeloId));
+      set({ mensaje: "Backend de modelos no disponible" });
     },
 
     marcarEstadoSubmodeloSeleccionado(refId, estado) {
@@ -347,7 +336,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         void cargarSnapshotSubmodelo(ref.source?.modeloId ?? ref.modeloId).then(actualizar);
         return;
       }
-      actualizar(cargarSnapshotSubmodeloLocal(ref.source?.modeloId ?? ref.modeloId));
+      set({ mensaje: "Backend de modelos no disponible" });
     },
 
     descargarSubmodeloSeleccionado(refId) {
@@ -612,18 +601,6 @@ function enlaceDerivadoEnOpd(modelo: Modelo, opdId: Id, enlacePadreId: Id): Id |
 
 function opdVistaRequisito(modelo: Modelo, requisitoEntidadId: Id): Id | null {
   return Object.values(modelo.opds).find((opd) => opd.vista?.kind === "requirement-view" && opd.vista.requisitoEntidadId === requisitoEntidadId)?.id ?? null;
-}
-
-function cargarSnapshotSubmodeloLocal(modeloId: Id): Resultado<Modelo | undefined> {
-  const cargado = cargarModeloLocal(modeloId);
-  if (!cargado.ok) {
-    return cargado.error === "Modelo local no encontrado" || cargado.error === "Storage local no disponible"
-      ? { ok: true, value: undefined }
-      : cargado;
-  }
-  const hidratado = hidratarModelo(cargado.value.json);
-  if (!hidratado.ok) return { ok: false, error: `No se pudo cargar el submodelo: ${hidratado.error}` };
-  return { ok: true, value: hidratado.value };
 }
 
 async function cargarSnapshotSubmodelo(modeloId: Id): Promise<Resultado<Modelo | undefined>> {

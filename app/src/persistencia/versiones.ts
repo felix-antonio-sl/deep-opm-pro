@@ -1,16 +1,10 @@
 import type { Id, Modelo, Resultado, VersionResumen } from "../modelo/tipos";
-import { exportarModelo, hidratarModelo } from "../serializacion/json";
+import { exportarModelo } from "../serializacion/json";
 import { compactarJsonDocumento } from "./compactacion";
 import type { WorkspaceIndice } from "./workspace";
 export { aplicarPoliticaLogScaleVersiones, idsVersionesPodadas } from "./politicaVersiones";
 
-const VERSION_KEY_PREFIX = "deep-opm-pro:version:";
-
 export type CodigoErrorVersion =
-  | "storage_no_disponible"
-  | "storage_escritura_fallida"
-  | "storage_lectura_fallida"
-  | "storage_borrado_fallido"
   | "version_no_encontrada"
   | "snapshot_no_encontrado"
   | "snapshot_corrupto";
@@ -42,7 +36,7 @@ export function crearVersionResultado(
   opts: { nombre?: string; descripcion?: string; preservar?: boolean; ahora?: string } = {},
 ): ResultadoVersion<VersionResumen> {
   const persistible = construirVersionPersistible(modelo, opts);
-  return guardarSnapshotVersionLocal(persistible.version, persistible.json);
+  return okVersion(persistible.version);
 }
 
 export function construirVersionPersistible(
@@ -52,7 +46,6 @@ export function construirVersionPersistible(
   const versionId = generarId();
   const creadoEn = opts.ahora ?? new Date().toISOString();
   const payload = compactarJsonDocumento(exportarModelo(modelo));
-  const modeloPayloadKey = claveVersion(modelo.id, versionId);
   return {
     version: {
       id: versionId,
@@ -60,22 +53,11 @@ export function construirVersionPersistible(
       nombre: opts.nombre?.trim() || `Snapshot ${formatearFechaCorta(creadoEn)}`,
       ...(opts.descripcion?.trim() ? { descripcion: opts.descripcion.trim() } : {}),
       ...(opts.preservar ? { preservar: true } : {}),
-      modeloPayloadKey,
+      modeloPayloadKey: versionId,
       bytes: payload.length,
     },
     json: payload,
   };
-}
-
-function guardarSnapshotVersionLocal(version: VersionResumen, json: string): ResultadoVersion<VersionResumen> {
-  const storage = storageLocal();
-  if (!storage.ok) return storage;
-  try {
-    storage.value.setItem(version.modeloPayloadKey, compactarJsonDocumento(json));
-  } catch {
-    return falloVersion("storage_escritura_fallida", "No se pudo crear versión");
-  }
-  return okVersion(version);
 }
 
 export function listarVersiones(workspace: WorkspaceIndice, modeloId: Id): VersionResumen[] {
@@ -90,27 +72,8 @@ export async function restaurarVersion(versionIdOClave: Id): Promise<Modelo> {
 }
 
 export async function restaurarVersionResultado(versionIdOClave: Id): Promise<ResultadoVersion<Modelo>> {
-  const storage = storageLocal();
-  if (!storage.ok) return storage;
-  let key: string | null;
-  try {
-    key = versionIdOClave.startsWith(VERSION_KEY_PREFIX)
-      ? versionIdOClave
-      : buscarClaveVersion(storage.value, versionIdOClave);
-  } catch {
-    return falloVersion("storage_lectura_fallida", "No se pudo leer versión");
-  }
-  if (!key) return falloVersion("version_no_encontrada", "Versión no encontrada");
-  let payload: string | null;
-  try {
-    payload = storage.value.getItem(key);
-  } catch {
-    return falloVersion("storage_lectura_fallida", "No se pudo leer versión");
-  }
-  if (!payload) return falloVersion("snapshot_no_encontrado", "Snapshot de versión no encontrado");
-  const hidratado = hidratarModelo(payload);
-  if (!hidratado.ok) return falloVersion("snapshot_corrupto", hidratado.error, hidratado.error);
-  return okVersion(hidratado.value);
+  void versionIdOClave;
+  return falloVersion("version_no_encontrada", "Versión no disponible sin backend");
 }
 
 export function eliminarVersion(
@@ -129,16 +92,7 @@ export function eliminarVersionResultado(
   versionId: Id,
 ): ResultadoVersion<WorkspaceIndice> {
   const modelo = workspace.modelos.find((item) => item.id === modeloId);
-  const version = modelo?.versiones?.find((item) => item.id === versionId);
-  if (version) {
-    const storage = storageLocal();
-    if (!storage.ok) return storage;
-    try {
-      storage.value.removeItem(version.modeloPayloadKey);
-    } catch {
-      return falloVersion("storage_borrado_fallido", "No se pudo eliminar versión");
-    }
-  }
+  if (!modelo) return falloVersion("version_no_encontrada", "Versión no encontrada");
   return okVersion({
     ...workspace,
     modelos: workspace.modelos.map((item) =>
@@ -154,33 +108,9 @@ export function filtrarVersionesVisibles(versiones: VersionResumen[], mostrarVer
   return [...versiones].sort((a, b) => b.creadoEn.localeCompare(a.creadoEn));
 }
 
-export function claveVersion(modeloId: Id, versionId: Id): string {
-  return `${VERSION_KEY_PREFIX}${modeloId}:${versionId}`;
-}
-
-function storageLocal(): ResultadoVersion<Storage> {
-  try {
-    if (typeof globalThis.localStorage === "undefined") {
-      return falloVersion("storage_no_disponible", "Storage local no disponible");
-    }
-    return okVersion(globalThis.localStorage);
-  } catch {
-    return falloVersion("storage_no_disponible", "Storage local no disponible");
-  }
-}
-
 function generarId(): Id {
   if (typeof globalThis.crypto?.randomUUID === "function") return globalThis.crypto.randomUUID();
   return `version-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function buscarClaveVersion(storage: Storage, versionId: Id): string | null {
-  const suffix = `:${versionId}`;
-  for (let i = 0; i < storage.length; i += 1) {
-    const key = storage.key(i);
-    if (key?.startsWith(VERSION_KEY_PREFIX) && key.endsWith(suffix)) return key;
-  }
-  return null;
 }
 
 function formatearFechaCorta(iso: string): string {
