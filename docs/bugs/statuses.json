@@ -640,5 +640,11 @@
     "status": "Resuelto",
     "resolution": "El ghost de aproximacion de enlace se proyecta con z=60, por encima de entidades, enlaces a estado y halos runtime.",
     "note": "Cubierto por handlers/modoEnlace.test; alineado con el modelo de ordenamiento z de JointJS."
+  },
+  "BUG-20260606T041330Z-1f46fe": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Dos desajustes del header editorial Codex tras el corte backend-only: (1) el titulo 'OPDs' del panel derecho se recortaba porque layout.rightIndexPane fijaba la fila del header en 42px exactos y el contenido (kicker fs9 + title fs13 lh1.1 + rowGap + padding) necesitaba ~46-48px; la fila paso a 'auto' para que el CodexColHeader crezca con su contenido. (2) la barra superior se veia desproporcionadamente alta porque codexFrameRows() fijaba la primera fila en 60px; bajo a 48px (alineado con la economia mobile pageMobile 48px y con el contenido real mas alto, palabraTopBar 32px).",
+    "note": "Verificado in-vivo en dev server 1920x963: header.h=48, treePane colHeader.h=45.84px con gridRows '12px 14.8438px' (antes 12px+11px clipado), oplPane colHeader consistente. Tests: CodexFrame.test.ts cubre codexFrameRows=48px; CodexColHeader.test.tsx (nuevo) cubre gridTemplateRows 'auto auto' + minHeight suelo + no height fijo + lineHeight tight en title. Sin pageErrors ni consoleErrors. Otros desajustes visuales revisados: dimming de Relacion/Estado/editor-vacio es estado contextual intencional (ink50 vs ink), no desajuste. Quedan fuera de este corte: el WIP no-commiteado de persistencia backend-only (58 archivos, typecheck roto, 21 fails en tests de store/persistencia/dsl) que el operador arrastraba antes de este bug."
   }
 }

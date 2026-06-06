@@ -1,0 +1,30 @@
+{
+  "id": "BUG-20260606T041330Z-1f46fe",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-06T04:13:30.698Z",
+  "text": "ahora backend para forja y no más localstore. tras eso algunos desajustes visuales:\nscreenshot 1: texto cortado\nscreenshot 2: barra superior desproporcianadamente alta me parece\nRevisa eso y busca otros desajustes visuales/UI nevegando directamente en la app forja (opforja.sanixai.com)",
+  "context": {
+    "modeloId": "modelo-hodom-completo-v1-6",
+    "modeloNombre": "HODOM completo v1.6",
+    "opdActivoId": "opd-sd0-clinico",
+    "opdActivoNombre": "SD0-C - Hospitalizacion en domicilio",
+    "seleccionEntidadId": "o-plan",
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-2791fa7d-d725-43b4-92b2-afde488e008c",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1920,
+      "height": 963,
+      "devicePixelRatio": 1
+    },
+    "capturedAt": "2026-06-06T04:13:26.393Z"
+  },
+  "screenshots": [
+    "screenshots/01-google-chrome-2026-06-06-00.08.08.png",
+    "screenshots/02-google-chrome-2026-06-06-00.10.03.png"
+  ]
+}

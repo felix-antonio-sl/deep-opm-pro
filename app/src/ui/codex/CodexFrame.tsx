@@ -25,7 +25,13 @@ interface CodexFrameProps extends CodexFrameColumnsParams {
 }
 
 export function codexFrameRows(canvasOnly = false): string {
-  return canvasOnly ? "minmax(0, 1fr)" : "60px minmax(0, 1fr)";
+  // BUG-20260606T041330Z-1f46fe: la barra superior se veía "desproporcionadamente
+  // alta" porque la fila era 60px exactos. El contenido real más alto del header
+  // son los `palabraTopBar` de 32px (toolbar) y la pestaña (que estira a la
+  // fila). 48px deja ~8px de aire arriba/abajo — alineado con la economía
+  // mobile (48px en `pageMobile.gridTemplateRows`) y con la altura que el
+  // wordmark + tabs + acciones esperan de un header editorial Codex.
+  return canvasOnly ? "minmax(0, 1fr)" : "48px minmax(0, 1fr)";
 }
 
 export function codexFrameColumns({ leftWidth, rightWidth, isTablet, canvasOnly = false }: CodexFrameColumnsParams): string {

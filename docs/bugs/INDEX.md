@@ -17,19 +17,20 @@ cd app && bun run bug:index
 | Estado | Cantidad |
 |---|---:|
 | Nuevo | 2 |
-| Resuelto | 108 |
+| Resuelto | 109 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 105 |
+| Bug | 106 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Resuelto | [BUG-20260606T041330Z-1f46fe](BUG-20260606T041330Z-1f46fe/report.md) | 2026-06-06 04:13Z | HODOM completo v1.6 / SD0-C - Hospitalizacion en domicilio | ahora backend para forja y no más localstore. tras eso algunos desajustes visuales: screenshot 1: texto cortado screenshot 2: barra superior despropo… | Dos desajustes del header editorial Codex tras el corte backend-only: (1) el titulo 'OPDs' del panel derecho se recortaba porque … | 2 | Verificado in-vivo en dev server 1920x963: header.h=48, treePane colHeader.h=45.84px con gridRows '12px 14.8438px' (antes 12px+11px clipado), oplPane colHeader consistente. Tests: CodexFrame.test.ts cubre codexFrameRows=48px; CodexColHeader.test.tsx (nuevo) cubre gridTemplateRows 'auto auto' + minHeight suelo + no height fijo + lineHeight tight en title. Sin pageErrors ni consoleErrors. Otros desajustes visuales revisados: dimming de Relacion/Estado/editor-vacio es estado contextual intencional (ink50 vs ink), no desajuste. Quedan fuera de este corte: el WIP no-commiteado de persistencia backend-only (58 archivos, typecheck roto, 21 fails en tests de store/persistencia/dsl) que el operador arrastraba antes de este bug. |
 | Bug | Resuelto | [BUG-20260605T041627Z-b0416c](BUG-20260605T041627Z-b0416c/report.md) | 2026-06-05 04:16Z | Modelo copia / SD | la linea de aproximación cuando se está tratando de crear un enlace desde un estado queda por debajo del objeto | El ghost de aproximacion de enlace se proyecta con z=60, por encima de entidades, enlaces a estado y halos runtime. | 1 | Cubierto por handlers/modoEnlace.test; alineado con el modelo de ordenamiento z de JointJS. |
 | Bug | Resuelto | [BUG-20260605T041523Z-fcaeaf](BUG-20260605T041523Z-fcaeaf/report.md) | 2026-06-05 04:15Z | Modelo copia / SD | cuando se redimensiona un estado no lo hace siguiendo el cursor , sino que lo hace en todoas las direcciones | Los estados seleccionados ya no emiten handles resize-state; las capsulas mantienen anchors de conexion pero no resize libre. | 0 | Cubierto por proyeccion.test: el estado seleccionado no proyecta resize-state* y conserva stateCapsule/connect-anchor. |
 | Bug | Resuelto | [BUG-20260605T041451Z-1daba8](BUG-20260605T041451Z-1daba8/report.md) | 2026-06-05 04:14Z | Modelo copia / SD | ahora cuando hago click en un estado sale un estado volador hacia arriba , pero no del estado que se clickea, sino de otro de los estados | Click/pointerdown sobre una capsula de estado ya no instala drag custom ni persiste coordenadas manuales; solo conserva seleccion… | 0 | Cubierto por handlers/modoEnlace.test y composers/estados.test; se retiro la ruta de drag visual de estado que generaba capsulas voladoras. |
