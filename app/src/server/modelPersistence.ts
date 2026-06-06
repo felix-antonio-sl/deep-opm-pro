@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { Buffer } from "node:buffer";
-import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/local";
+import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/modelos";
 import type { WorkspaceIndice } from "../persistencia/workspace";
 import { indiceVacio } from "../persistencia/workspace";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../persistencia/workspaceStorage";
