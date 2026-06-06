@@ -11,7 +11,7 @@ import type { ModeloPersistido, ResumenModeloPersistido } from "../src/persisten
 import type { WorkspaceIndice } from "../src/persistencia/workspace";
 import { indiceVacio } from "../src/persistencia/workspace";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../src/persistencia/workspaceStorage";
-import { aplicarPoliticaLogScaleVersiones, idsVersionesPodadas } from "../src/persistencia/versiones";
+import { aplicarPoliticaLogScaleVersiones, idsVersionesPodadas } from "../src/persistencia/politicaVersiones";
 import type { VersionResumen } from "../src/modelo/tipos";
 
 const HOST = process.env.MODEL_API_HOST ?? "0.0.0.0";
