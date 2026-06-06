@@ -1,9 +1,9 @@
 # Auditoría de persistencia backend — diagnóstico priorizado
 
-> **Estado:** **cortes 1-3 EJECUTADOS en código al 2026-06-06**. Corte 1 fue ejecutado y
-> verificado en producción (blindaje urgente). Cortes 2-3 quedaron implementados y verificados
-> localmente: backend-only para datos OPM + profesionalización DB. Corte 4 sigue abierto
-> (optimistic locking).
+> **Estado:** **cortes 1-4 EJECUTADOS y DESPLEGADOS al 2026-06-06**. Corte 1 fue ejecutado y
+> verificado en producción (blindaje urgente). Cortes 2-3 quedaron implementados y desplegados:
+> backend-only para datos OPM + profesionalización DB. Corte 4 quedó implementado y verificado
+> en producción con optimistic locking por `revision` y respuesta 409 ante guardado obsoleto.
 > Auditado de primera mano: código (`app/src/server/modelPersistence.ts`,
 > `app/scripts/model-persistence-api.ts`, `app/src/persistencia/*`, `app/src/store/persistencia.ts`),
 > configuración viva (`docker-compose.yml`, `deploy/nginx.conf`, env real del contenedor) y
@@ -48,20 +48,20 @@ escala roza la cuota del navegador**. El retiro de `localStorage` del camino de 
    API 10r/s burst 25; `/session` (vector tenants infinitos) 2r/s burst 10; `/bug-reports`
    1r/s burst 5; 429. Verificado en vivo: ráfaga de 30 a /session → 11×200 + 19×429.
 
-## 🟡 Profesionalización — REMEDIADA PARCIALMENTE 2026-06-06
+## 🟡 Profesionalización — REMEDIADA 2026-06-06
 
 - ~~Sin migraciones versionadas~~ → `opforja_schema_migrations` + migraciones idempotentes
   `base_persistencia_modelos` e `integridad_referencial_y_operacion`.
 - ~~Sin FKs~~ → FKs idempotentes para tenants/users/modelos/workspaces/versiones/autosaves,
   con limpieza previa de versiones/autosaves huérfanos.
-- **Last-write-wins sin detección de conflicto**: `ON CONFLICT ... DO UPDATE` pisa sin aviso;
-  dos pestañas del mismo tenant → la segunda borra los cambios de la primera en silencio.
-  Sin version number/etag.
+- ~~Last-write-wins sin detección de conflicto~~ → `revision` por modelo, lectura en transacción
+  con `SELECT ... FOR UPDATE`, incremento en cada guardado exitoso y `409 Modelo desactualizado;
+  recarga antes de guardar` cuando una pestaña intenta pisar una revisión vieja.
 - ~~Sin transacciones en multi-write~~ → `sql.begin()` en sesión, borrado de modelo y versionado.
 - ~~Sin poda de versiones~~ → poda log-scale tras cada upsert de versión
   (`MODEL_MAX_VERSIONS_PER_MODEL`, default 30). Autosaves ya quedan acotados a uno por modelo.
 - ~~Cero logging operativo~~ → logs JSON de arranque, migraciones, requests y poda.
-- **Aún abierto:** tenants huérfanos por cookies expiradas y conflicto multi-pestaña sin etag.
+- **Aún abierto:** tenants huérfanos por cookies expiradas y auth/tenants real.
 
 ## 🟢 Menor
 
@@ -81,13 +81,16 @@ aislamiento `WHERE tenant_id` en todas las queries; índices en la ruta de lectu
 2. **Backend-only OPM — implementado en código**: backend manda; sin espejo/cache OPM en `localStorage`.
 3. **Profesionalización — implementada en código**: migraciones versionadas + FKs,
    transacciones, poda de versiones y logging estructurado.
-4. **Conflicto multi-pestaña — pendiente**: optimistic locking (version/etag) + UX de conflicto.
+4. **Conflicto multi-pestaña — ejecutado y desplegado**: optimistic locking por `revision` + 409.
+   UX específica de resolución de conflicto queda como refinamiento; la pérdida silenciosa ya está bloqueada.
 
 ## Cobertura de tests del subsistema (referencia)
 
-`modelPersistence.test.ts` cubre ruta feliz y aislamiento; aún omite conflictos/rate-limit.
-`backend.test.ts` cubre que listar/guardar backend no escribe payloads OPM en `localStorage`.
+`modelPersistence.test.ts` cubre ruta feliz, aislamiento y conflicto 409; aún omite rate-limit.
+`backend.test.ts` cubre que listar/guardar backend no escribe payloads OPM en `localStorage` y transporta `revision`.
 `persistencia.test.ts` cubre guardar/cargar backend ignorando copias locales obsoletas y con
 `localStorage` rechazando escrituras. `local.test.ts` y `versiones.test.ts` mantienen regresión
-del módulo legacy/offline, fuera del camino backend. Verificación del corte 2-3:
-`cd app && bun run check` → **2263 pass / 0 fail**.
+del módulo legacy/offline, fuera del camino backend. `e2e/33-backend-only-persistencia.spec.ts`
+cubre navegador backend-only sin payloads OPM en `localStorage`. Verificación del corte 4:
+`cd app && bun run check` → **2274 pass / 0 fail**; e2e focal → **1 passed**; smoke productivo
+rev1/rev2/409/delete OK.
