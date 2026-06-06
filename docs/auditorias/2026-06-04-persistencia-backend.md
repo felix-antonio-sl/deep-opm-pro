@@ -1,11 +1,13 @@
 # Auditoría de persistencia backend — diagnóstico priorizado
 
-> **Estado:** diagnóstico completo, **NO implementado** (decisión del operador 2026-06-04: en pausa).
-> Vive aquí por **valor prospectivo** (brechas abiertas que gobiernan el próximo corte de
-> persistencia). Auditado de primera mano: código (`app/src/server/modelPersistence.ts`,
+> **Estado:** **corte 1 (blindaje urgente) EJECUTADO el 2026-06-06** con autorización del
+> operador (tenants descartables confirmados; volumen recreado limpio). Los 4 críticos están
+> remediados — ver § Crítico abajo. Cortes 2-4 siguen abiertos (valor prospectivo).
+> Auditado de primera mano: código (`app/src/server/modelPersistence.ts`,
 > `app/scripts/model-persistence-api.ts`, `app/src/persistencia/*`, `app/src/store/persistencia.ts`),
 > configuración viva (`docker-compose.yml`, `deploy/nginx.conf`, env real del contenedor) y
-> estado de la DB en producción (12 tenants, 7 modelos, 9 MB, disco 43 GB libres).
+> estado de la DB en producción (12 tenants, 7 modelos, 9 MB, disco 43 GB libres — descartados
+> el 2026-06-06 al recrear el volumen).
 
 ## Hallazgo central: el techo de almacenamiento sigue siendo localStorage
 
@@ -25,18 +27,20 @@ Referencia de escala: el bundle HODOM v1.6 (36 OPDs) pesa ~5 MB → **un solo mo
 escala roza la cuota del navegador**. El retiro de localStorage del camino crítico de escritura
 (backend-primero, espejo best-effort) es el ítem de mayor valor práctico.
 
-## 🔴 Crítico — activo en producción (verificado en el contenedor vivo)
+## 🔴 Crítico — REMEDIADO 2026-06-06 (blindaje, corte 1; verificado por smoke post-deploy)
 
-1. **Secret de sesión = default hardcodeado.** `MODEL_SESSION_SECRET=opforja-dev-session`
-   (compose línea 66: `${OPFORJA_SESSION_SECRET:-opforja-dev-session}`, env var NO seteada).
-   El default está en el código público → cualquiera puede **forjar cookies de otro tenant**.
-   El aislamiento por tenant es de papel. Rotarlo invalida las cookies existentes.
-2. **Password de Postgres = default** (`opforja-dev`, compose línea 41/64). Mitigado solo
-   porque Postgres no está expuesto fuera de la red Docker interna.
-3. **Sin backup del volumen `opforja-postgres-data`.** El único cron de backup del servidor es
-   de hd-hsc-os (otro proyecto). Corrupción o `down -v` accidental = pérdida total.
-4. **Sin rate limiting** (instancia pública): creación infinita de tenants
-   (`tenant-${randomBytes}` por sesión nueva) + payloads de 15 MB sin freno → DoS/disco.
+1. ~~Secret de sesión default~~ → **rotado**: `OPFORJA_SESSION_SECRET` aleatorio de 64 hex en
+   `.env` del servidor (gitignored, modo 600); el compose ya NO tiene fallback (`:?` fail-fast)
+   y `model-persistence-api.ts` aborta si el secret falta, es el default histórico o mide <32.
+   Verificado en el contenedor vivo (len=64, ≠ default).
+2. ~~Password Postgres default~~ → **rotado** vía `.env` + volumen recreado limpio
+   (`down -v`, tenants descartables autorizados). Compose sin fallback.
+3. ~~Sin backup~~ → **`deploy/backup-opforja-db.sh`** (pg_dump --clean + gzip + retención 14d)
+   con timer systemd user `opforja-db-backup.timer` diario 03:30 (instalado y activo;
+   primera corrida real verificada, dump no-vacío en `~/backups/opforja/`).
+4. ~~Sin rate limiting~~ → **nginx `limit_req`** por IP real (X-Forwarded-For tras Traefik):
+   API 10r/s burst 25; `/session` (vector tenants infinitos) 2r/s burst 10; `/bug-reports`
+   1r/s burst 5; 429. Verificado en vivo: ráfaga de 30 a /session → 11×200 + 19×429.
 
 ## 🟡 Profesionalización (deuda estructural)
 

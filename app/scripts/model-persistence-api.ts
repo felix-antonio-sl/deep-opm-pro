@@ -16,10 +16,18 @@ import type { VersionResumen } from "../src/modelo/tipos";
 const HOST = process.env.MODEL_API_HOST ?? "0.0.0.0";
 const PORT = Number(process.env.MODEL_API_PORT ?? "3001");
 const DATABASE_URL = process.env.DATABASE_URL;
-const SESSION_SECRET = process.env.MODEL_SESSION_SECRET ?? "opforja-dev-session";
+const SESSION_SECRET = process.env.MODEL_SESSION_SECRET;
 
 if (!DATABASE_URL) {
   throw new Error("DATABASE_URL requerido para model-persistence-api");
+}
+// Blindaje 2026-06-06 (auditoría persistencia, crítico #1): el default
+// "opforja-dev-session" estaba en código público → cualquiera podía forjar
+// cookies de otro tenant. Fail-fast: sin secret real NO se levanta el servicio.
+if (!SESSION_SECRET || SESSION_SECRET === "opforja-dev-session" || SESSION_SECRET.length < 32) {
+  throw new Error(
+    "MODEL_SESSION_SECRET requerido (≥32 chars, distinto del default histórico). Genera uno: openssl rand -hex 32",
+  );
 }
 
 const sql = new Bun.SQL(DATABASE_URL);

@@ -38,7 +38,8 @@ services:
     environment:
       POSTGRES_DB: opforja
       POSTGRES_USER: opforja
-      POSTGRES_PASSWORD: ${OPFORJA_DB_PASSWORD:-opforja-dev}
+      # Blindaje 2026-06-06: sin default inseguro — compose FALLA si falta (.env del servidor, gitignored).
+      POSTGRES_PASSWORD: ${OPFORJA_DB_PASSWORD:?OPFORJA_DB_PASSWORD requerido (define .env junto al compose)}
     volumes:
       - opforja-postgres-data:/var/lib/postgresql/data
     networks:
@@ -61,9 +62,10 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgres://opforja:${OPFORJA_DB_PASSWORD:-opforja-dev}@postgres:5432/opforja
+      DATABASE_URL: postgres://opforja:${OPFORJA_DB_PASSWORD:?OPFORJA_DB_PASSWORD requerido}@postgres:5432/opforja
       MODEL_API_PORT: "3001"
-      MODEL_SESSION_SECRET: ${OPFORJA_SESSION_SECRET:-opforja-dev-session}
+      # Blindaje 2026-06-06: el default "opforja-dev-session" permitía FORJAR cookies de tenant.
+      MODEL_SESSION_SECRET: ${OPFORJA_SESSION_SECRET:?OPFORJA_SESSION_SECRET requerido (define .env junto al compose)}
     networks:
       - opforja-internal
     healthcheck:

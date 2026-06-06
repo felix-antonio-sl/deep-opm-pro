@@ -1,0 +1,7 @@
+[Unit]
+Description=Backup diario de la DB Postgres de opforja (pg_dump + retencion)
+# Blindaje 2026-06-06 — deep-opm-pro/deploy/backup-opforja-db.sh
+
+[Service]
+Type=oneshot
+ExecStart=/home/felix/projects/deep-opm-pro/deploy/backup-opforja-db.sh

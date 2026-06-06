@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer diario del backup de la DB de opforja (03:30 local)
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
