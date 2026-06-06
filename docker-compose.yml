@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_ENABLE_BUG_CAPTURE: "true"
+        VITE_MOBILE_READONLY: "false"
     image: deep-opm-pro-opforja:latest
     container_name: opforja
     restart: unless-stopped

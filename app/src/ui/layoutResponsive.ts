@@ -94,3 +94,11 @@ export function permiteDockBiblioteca(bp: BreakpointOpm): boolean {
 export function usaPanelesComoDrawers(bp: BreakpointOpm): boolean {
   return bp !== "desktop";
 }
+
+/**
+ * Mobile readonly v1: indica si el breakpoint es mobile y el flag de build
+ * está activo. Helper testeable; no esconder esta decisión dentro de App.tsx.
+ */
+export function esMobileLectura(bp: BreakpointOpm, flag: boolean): boolean {
+  return bp === "mobile" && flag;
+}

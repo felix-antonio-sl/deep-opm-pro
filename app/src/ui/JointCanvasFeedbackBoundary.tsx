@@ -6,14 +6,16 @@ import { RenombradoInline } from "./RenombradoInline";
 
 interface Props {
   onAdapterChange?: (adapter: JointCanvasAdapter | null) => void;
+  readonlyMode?: boolean;
 }
 
-export function JointCanvasFeedbackBoundary({ onAdapterChange }: Props) {
+export function JointCanvasFeedbackBoundary({ onAdapterChange, readonlyMode }: Props) {
   const feedbackOverlays = useZustandFeedbackOverlays();
   const adapterProps = onAdapterChange ? { onAdapterChange } : {};
   return (
     <JointCanvas
       {...adapterProps}
+      readonlyMode={readonlyMode}
       feedbackPort={zustandFeedbackPort}
       feedbackOverlays={feedbackOverlays}
       renderMenuTipoEnlace={(props) => <MenuTipoEnlace {...props} />}

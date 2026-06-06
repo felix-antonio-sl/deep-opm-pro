@@ -52,6 +52,7 @@ import {
 
 interface JointCanvasProps {
   onAdapterChange?: (adapter: JointCanvasAdapter | null) => void;
+  readonlyMode?: boolean | undefined;
   feedbackPort: Pick<FeedbackPort, "sincronizarBadgesDesdeAvisos">;
   feedbackOverlays: readonly FeedbackOverlay[];
   renderMenuTipoEnlace: (props: CanvasMenuTipoEnlaceSlotProps) => ComponentChildren;
@@ -83,6 +84,7 @@ export type DireccionTipoEnlaceCanvas = "saliente" | "entrante";
 
 export function JointCanvas({
   onAdapterChange,
+  readonlyMode,
   feedbackPort,
   feedbackOverlays,
   renderMenuTipoEnlace,
@@ -98,6 +100,10 @@ export function JointCanvas({
   const sincronizandoRef = useRef(false);
   const rubberBandRef = useRef(false);
   const suprimirBlankClickRef = useRef(false);
+  const readonlyModeRef = useRef(readonlyMode ?? false);
+  useEffect(() => {
+    readonlyModeRef.current = readonlyMode ?? false;
+  }, [readonlyMode]);
 
   const {
     modoEnlace,
@@ -313,10 +319,12 @@ export function JointCanvas({
       enlaceSeleccionIdRef,
       modoEnlaceRef,
       modoCreacionRef,
+      readonlyModeRef,
     });
     const { graph, paper } = adapter;
 
     const cleanups: Array<() => void> = [];
+    const esReadonly = readonlyModeRef.current;
 
     cleanups.push(cablearSeleccion({
       paper,
@@ -345,53 +353,55 @@ export function JointCanvas({
       toggleSeleccionEstadoRef,
     }));
 
-    cleanups.push(cablearRubberBand({
-      paper,
-      modeloRef,
-      opdActivoIdRef,
-      modoCreacionRef,
-      seleccionadosRef,
-      setSeleccion: (ids) => setSeleccionRef.current(ids),
-      onActivoChange: (activo) => { rubberBandRef.current = activo; },
-      onSuprimirBlankClick: () => {
-        suprimirBlankClickRef.current = true;
-        window.setTimeout(() => { suprimirBlankClickRef.current = false; }, 0);
-      },
-    }));
+    if (!esReadonly) {
+      cleanups.push(cablearRubberBand({
+        paper,
+        modeloRef,
+        opdActivoIdRef,
+        modoCreacionRef,
+        seleccionadosRef,
+        setSeleccion: (ids) => setSeleccionRef.current(ids),
+        onActivoChange: (activo) => { rubberBandRef.current = activo; },
+        onSuprimirBlankClick: () => {
+          suprimirBlankClickRef.current = true;
+          window.setTimeout(() => { suprimirBlankClickRef.current = false; }, 0);
+        },
+      }));
 
-    cleanups.push(cablearDrag({
-      paper,
-      graph,
-      sincronizandoRef,
-      modeloRef,
-      opdActivoIdRef,
-      moverAparienciaConPuertosRef,
-      actualizarPosicionSimboloEstructuralRef,
-      actualizarPosicionLabelEnlaceRef,
-      actualizarVerticesEnlaceRef,
-      moverEstadoEnCanvasRef,
-      reanclarExtremoAccionRef,
-      extraerParteDePlegadoRef,
-      abrirRenombradoInlineRef,
-    }));
+      cleanups.push(cablearDrag({
+        paper,
+        graph,
+        sincronizandoRef,
+        modeloRef,
+        opdActivoIdRef,
+        moverAparienciaConPuertosRef,
+        actualizarPosicionSimboloEstructuralRef,
+        actualizarPosicionLabelEnlaceRef,
+        actualizarVerticesEnlaceRef,
+        moverEstadoEnCanvasRef,
+        reanclarExtremoAccionRef,
+        extraerParteDePlegadoRef,
+        abrirRenombradoInlineRef,
+      }));
 
-    cleanups.push(cablearResize({
-      paper,
-      redimensionarAparienciaRef: redimensionarAparienciaEnCanvasRef,
-      redimensionarEstadoRef: redimensionarEstadoEnCanvasRef,
-    }));
+      cleanups.push(cablearResize({
+        paper,
+        redimensionarAparienciaRef: redimensionarAparienciaEnCanvasRef,
+        redimensionarEstadoRef: redimensionarEstadoEnCanvasRef,
+      }));
 
-    cleanups.push(cablearModoEnlace({
-      paper,
-      modeloRef,
-      opdActivoIdRef,
-      modoEnlaceRef,
-      iniciarConexionDesdeAparienciaRef,
-      elegirTipoEnlaceRef,
-      crearEnlaceEntreEntidadesRef,
-      cancelarEnlaceRef,
-      abrirMenuTipoEnlaceCanvasRef,
-    }));
+      cleanups.push(cablearModoEnlace({
+        paper,
+        modeloRef,
+        opdActivoIdRef,
+        modoEnlaceRef,
+        iniciarConexionDesdeAparienciaRef,
+        elegirTipoEnlaceRef,
+        crearEnlaceEntreEntidadesRef,
+        cancelarEnlaceRef,
+        abrirMenuTipoEnlaceCanvasRef,
+      }));
+    }
 
     cleanups.push(cablearHoverOpl({
       paper,
@@ -475,16 +485,18 @@ export function JointCanvas({
     } finally {
       sincronizandoRef.current = false;
     }
-    instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
-    instalarHerramientasSimboloEstructuralSeleccionado(
-      adapter,
-      enlaceSeleccionId,
-      (aparienciaEnlaceIds, _posicion, anclajes) => {
-        actualizarAnclajesSimboloEstructuralRef.current(aparienciaEnlaceIds, anclajes);
-      },
-    );
+    if (!readonlyModeRef.current) {
+      instalarHerramientasEnlaceSeleccionado(adapter, enlaceSeleccionId);
+      instalarHerramientasSimboloEstructuralSeleccionado(
+        adapter,
+        enlaceSeleccionId,
+        (aparienciaEnlaceIds, _posicion, anclajes) => {
+          actualizarAnclajesSimboloEstructuralRef.current(aparienciaEnlaceIds, anclajes);
+        },
+      );
+      aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
+    }
     aplicarHoverOpl(adapter.graph, modelo, hoverOplRef, enlaceSeleccionId);
-    aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
     const opdActual = modelo.opds[opdActivoId];
     const aparienciaCount = Object.keys(opdActual?.apariencias ?? {}).length;
     const ultimoConteo = ultimoConteoAparienciasRef.current;
@@ -655,7 +667,7 @@ export function JointCanvas({
     <div ref={viewportRef} role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
       <div ref={paperHostRef} style={style.paperHost}>
         <OverlayLayer paper={adapterState?.paper ?? null} overlays={feedbackOverlays} />
-        {renombrado?.entidad && renombrado.apariencia ? (
+        {!readonlyMode && renombrado?.entidad && renombrado.apariencia ? (
           renderRenombradoInline({
             nombre: renombrado.entidad.nombre,
             rect: renombrado.apariencia,
@@ -668,7 +680,7 @@ export function JointCanvas({
             onCancelar: () => setRenombradoInline(null),
           })
         ) : null}
-        {menuTipoEnlaceCanvas ? (
+        {!readonlyMode && menuTipoEnlaceCanvas ? (
           <div ref={menuTipoEnlaceCanvasRef}>
             {renderMenuTipoEnlace({
               modelo,

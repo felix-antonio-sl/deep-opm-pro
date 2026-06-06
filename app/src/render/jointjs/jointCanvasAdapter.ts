@@ -22,6 +22,7 @@ export interface CrearJointCanvasAdapterArgs {
   enlaceSeleccionIdRef: RefActual<string | null>;
   modoEnlaceRef: RefActual<ModoEnlace | null>;
   modoCreacionRef: RefActual<TipoEntidad | null>;
+  readonlyModeRef: RefActual<boolean>;
 }
 
 export function crearJointCellNamespace(): Record<string, unknown> {
@@ -37,7 +38,7 @@ export function opcionesPaperCodex(): { gridSize: number; drawGrid: boolean; bac
 }
 
 export function crearJointCanvasAdapter(args: CrearJointCanvasAdapterArgs): JointCanvasAdapter {
-  const { host, gridConfig, enlaceSeleccionIdRef, modoEnlaceRef, modoCreacionRef } = args;
+  const { host, gridConfig, enlaceSeleccionIdRef, modoEnlaceRef, modoCreacionRef, readonlyModeRef } = args;
   const cellNamespace = crearJointCellNamespace();
   const graph = new dia.Graph({}, { cellNamespace });
   const paper = new dia.Paper({
@@ -76,6 +77,19 @@ export function crearJointCanvasAdapter(args: CrearJointCanvasAdapterArgs): Join
       };
     },
     interactive(cellView) {
+      if (readonlyModeRef.current) {
+        return {
+          elementMove: false,
+          addLinkFromMagnet: false,
+          linkMove: false,
+          labelMove: false,
+          arrowheadMove: false,
+          vertexAdd: false,
+          vertexMove: false,
+          vertexRemove: false,
+          useLinkTools: false,
+        };
+      }
       const model = cellViewModel(cellView);
       if (model.isLink()) {
         const meta = metadata(model);

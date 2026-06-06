@@ -17,6 +17,8 @@ WORKDIR /workspace
 
 ARG VITE_ENABLE_BUG_CAPTURE=false
 ENV VITE_ENABLE_BUG_CAPTURE=${VITE_ENABLE_BUG_CAPTURE}
+ARG VITE_MOBILE_READONLY=false
+ENV VITE_MOBILE_READONLY=${VITE_MOBILE_READONLY}
 
 COPY --from=deps /workspace/app/node_modules ./app/node_modules
 COPY app ./app

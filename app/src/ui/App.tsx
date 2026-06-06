@@ -39,9 +39,10 @@ import { Inspector } from "./Inspector";
 import { JointCanvasFeedbackBoundary } from "./JointCanvasFeedbackBoundary";
 // L2 ronda 21: viewport-aware layout — el grid desktop coexiste con el modo
 // revisión mobile (tabs inferiores) y tablet (drawers). Ver `layoutResponsive`.
-import { useBreakpoint } from "./layoutResponsive";
+import { esMobileLectura, useBreakpoint } from "./layoutResponsive";
 import { MensajeFlashBridge } from "./MensajeFlashBridge";
 import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobile";
+import { MobileReadonlyApp } from "./mobile/MobileReadonlyApp";
 import { PanelDiagnostico } from "./PanelDiagnostico";
 import { PanelOplView } from "./PanelOpl";
 import { BarraSimulacion } from "./simulacion/BarraSimulacion";
@@ -119,6 +120,8 @@ export function App() {
   const breakpoint = useBreakpoint();
   const esMobile = breakpoint === "mobile";
   const esTablet = breakpoint === "tablet";
+  const mobileReadonlyEnabled = import.meta.env.VITE_MOBILE_READONLY === "true";
+  const modoSoloLectura = esMobileLectura(breakpoint, mobileReadonlyEnabled);
   // BUG-20260511T225343Z-696858: en tablet acotamos al default para que el
   // canvas conserve espacio útil. Desktop respeta el valor del store.
   const anchoInspectorLayout = anchoPanelInspectorLayout(anchoPanelInspector, esTablet);
@@ -143,6 +146,7 @@ export function App() {
     modoSimulacionActivo,
     modoEnlaceActivo,
     modoCreacionActivo,
+    modoSoloLectura,
   });
   // Ronda Codex v2 L2: meta editorial del header (N oraciones · ● sin guardar).
   // Derivado puro del modelo + store, leído por puertos read-only (no muta estado).
@@ -177,7 +181,9 @@ export function App() {
         <h1 data-testid="viewpoint-heading" style={layout.srOnly}>
           {tituloViewPointWorkbench(contextoWorkbench)}
         </h1>
-        {esMobile ? (
+        {modoSoloLectura ? (
+          <MobileReadonlyApp onAdapterChange={setCanvasAdapter} />
+        ) : esMobile ? (
           <>
             {contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
             <BarraPestanas />
@@ -186,7 +192,7 @@ export function App() {
               style={layout.mobileSection}
             >
               <div data-testid="canvas-pane" style={layout.canvasPaneMobile}>
-                <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
+                <JointCanvasFeedbackBoundary readonlyMode={modoSoloLectura} onAdapterChange={setCanvasAdapter} />
                 <BarraHerramientasElemento
                   inspectorAbierto={false}
                   onAbrirInspector={() => setInspectorAbierto(true)}
@@ -267,7 +273,7 @@ export function App() {
             )}
             canvas={(
               <CodexCanvasMount chromeVisible={!uiSoloCanvas}>
-                <JointCanvasFeedbackBoundary onAdapterChange={setCanvasAdapter} />
+                <JointCanvasFeedbackBoundary readonlyMode={modoSoloLectura} onAdapterChange={setCanvasAdapter} />
                 {/*
                   Ronda Codex v2 L2 (prep L4, auditoría rev2 §05 SEL-1/SEL-2): se
                   retira el montaje de `BarraHerramientasElemento` (caja de chips
@@ -568,8 +574,13 @@ const layout = {
     minWidth: 0,
     minHeight: 0,
     flex: "0 0 30%",
+    // BUG-20260606T041330Z-1f46fe: la primera fila era 42px exactos y el
+    // CodexColHeader (kicker fs9 + title fs13 lh1.1 + rowGap + padding)
+    // necesitaba ~46-48px, así que el `OPDs` se recortaba verticalmente.
+    // Fila `auto` deja que el header crezca a su contenido; el `auto` del
+    // wrapper en CodexColHeader ya actuaba como suelo, no como techo.
     display: "grid",
-    gridTemplateRows: "42px minmax(0, 1fr)",
+    gridTemplateRows: "auto minmax(0, 1fr)",
     overflow: "hidden",
     background: tokens.colors.paper,
   },

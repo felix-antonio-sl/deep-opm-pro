@@ -28,6 +28,14 @@ describe("resolverContextModoWorkbench — Context.Modo IFML", () => {
   test("simulacion prevalece ante flags incompatibles", () => {
     expect(resolverContextModoWorkbench({ vistaMapaActiva: true, modoSimulacionActivo: true })).toBe("simulacion");
   });
+
+  test("lectura prevalece ante todo", () => {
+    expect(resolverContextModoWorkbench({ vistaMapaActiva: false, modoSimulacionActivo: false, modoSoloLectura: true })).toBe("lectura");
+  });
+
+  test("lectura prevalece incluso ante simulacion y mapa", () => {
+    expect(resolverContextModoWorkbench({ vistaMapaActiva: true, modoSimulacionActivo: true, modoSoloLectura: true })).toBe("lectura");
+  });
 });
 
 describe("resolverContextSubModoWorkbench — Context.Modo.subModo IFML", () => {
@@ -69,6 +77,16 @@ describe("resolverContextSubModoWorkbench — Context.Modo.subModo IFML", () => 
       modoCreacionActivo: true,
     })).toBeNull();
   });
+
+  test("lectura anula submodo de edicion", () => {
+    expect(resolverContextSubModoWorkbench({
+      vistaMapaActiva: false,
+      modoSimulacionActivo: false,
+      modoEnlaceActivo: true,
+      modoCreacionActivo: true,
+      modoSoloLectura: true,
+    })).toBeNull();
+  });
 });
 
 describe("resolverViewPointWorkbench — ViewPoint efectivo", () => {
@@ -98,6 +116,16 @@ describe("resolverContextoWorkbench — contrato integrado", () => {
   test("declara Mapa y Simulacion como ViewPoint no default", () => {
     expect(resolverContextoWorkbench({ breakpoint: "desktop", vistaMapaActiva: true, modoSimulacionActivo: false }).viewPointDefault).toBe(false);
     expect(resolverContextoWorkbench({ breakpoint: "desktop", vistaMapaActiva: false, modoSimulacionActivo: true }).viewPointDefault).toBe(false);
+  });
+
+  test("declara Lectura como ViewPoint no default en mobile", () => {
+    expect(resolverContextoWorkbench({ breakpoint: "mobile", vistaMapaActiva: false, modoSimulacionActivo: false, modoSoloLectura: true })).toEqual({
+      device: "mobile",
+      modo: "lectura",
+      subModo: null,
+      viewPoint: "Mobile",
+      viewPointDefault: false,
+    });
   });
 
 });

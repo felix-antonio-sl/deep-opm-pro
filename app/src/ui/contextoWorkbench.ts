@@ -1,7 +1,7 @@
 import type { BreakpointOpm } from "./layoutResponsive";
 
 export type ContextDeviceWorkbench = BreakpointOpm;
-export type ContextModoWorkbench = "edicion" | "mapa" | "simulacion";
+export type ContextModoWorkbench = "edicion" | "mapa" | "simulacion" | "lectura";
 export type ContextSubModoEdicion = "conectando" | "insertando" | null;
 export type ViewPointWorkbench = "Mobile" | "Edicion" | "Mapa" | "Simulacion";
 
@@ -18,6 +18,7 @@ export interface ResolverModoWorkbenchInput {
   modoSimulacionActivo: boolean;
   modoEnlaceActivo?: boolean;
   modoCreacionActivo?: boolean;
+  modoSoloLectura?: boolean;
 }
 
 export interface ResolverContextoWorkbenchInput extends ResolverModoWorkbenchInput {
@@ -35,8 +36,11 @@ export function resolverContextDeviceWorkbench(breakpoint: BreakpointOpm): Conte
  * Context.Modo IFML: XOR top-level del workbench.
  *
  * Simulación prevalece si una transición deja flags incompatibles por un frame.
+ * Lectura prevalece ante todo: mobile lector no expone simulación/mapa como
+ * modos top-level heredados.
  */
 export function resolverContextModoWorkbench(input: ResolverModoWorkbenchInput): ContextModoWorkbench {
+  if (input.modoSoloLectura) return "lectura";
   if (input.modoSimulacionActivo) return "simulacion";
   if (input.vistaMapaActiva) return "mapa";
   return "edicion";
@@ -45,11 +49,12 @@ export function resolverContextModoWorkbench(input: ResolverModoWorkbenchInput):
 /**
  * Context.Modo.subModo IFML: ActivationExpression de edición.
  *
- * Solo se declara dentro de `edicion`; mapa y simulación son ViewPoints XOR
- * alternativos y no heredan submodo de insertar/conectar.
+ * Solo se declara dentro de `edicion`; mapa, simulación y lectura son
+ * ViewPoints XOR alternativos y no heredan submodo de insertar/conectar.
  */
 export function resolverContextSubModoWorkbench(input: ResolverModoWorkbenchInput): ContextSubModoEdicion {
-  if (resolverContextModoWorkbench(input) !== "edicion") return null;
+  const modo = resolverContextModoWorkbench(input);
+  if (modo !== "edicion") return null;
   if (input.modoEnlaceActivo) return "conectando";
   if (input.modoCreacionActivo) return "insertando";
   return null;
