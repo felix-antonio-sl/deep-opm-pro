@@ -20,6 +20,7 @@ export interface ResumenModeloPersistido {
   archivadoAuto?: boolean;
   versiones?: VersionResumen[];
   crearVersionAlGuardar?: boolean;
+  revision?: number;
 }
 
 export interface ModeloPersistido extends ResumenModeloPersistido {
@@ -39,11 +40,12 @@ export interface GuardarModeloLocalInput {
   archivadoAuto?: boolean;
   versiones?: VersionResumen[];
   crearVersionAlGuardar?: boolean;
+  revision?: number;
 }
 
 export type MetadataModeloLocalPatch = Partial<Pick<
   ResumenModeloPersistido,
-  "nombre" | "descripcion" | "carpetaId" | "ultimaApertura" | "autosalvado" | "archivado" | "archivadoEn" | "archivadoAuto" | "versiones" | "crearVersionAlGuardar"
+  "nombre" | "descripcion" | "carpetaId" | "ultimaApertura" | "autosalvado" | "archivado" | "archivadoEn" | "archivadoAuto" | "versiones" | "crearVersionAlGuardar" | "revision"
 >>;
 
 interface IndicePersistencia {
@@ -112,6 +114,8 @@ export function construirModeloPersistido(
   if (versiones !== undefined) resumen.versiones = versiones;
   const crearVersionAlGuardar = input.crearVersionAlGuardar ?? existente?.crearVersionAlGuardar;
   if (crearVersionAlGuardar !== undefined) resumen.crearVersionAlGuardar = crearVersionAlGuardar;
+  const revision = input.revision ?? existente?.revision;
+  if (revision !== undefined) resumen.revision = revision;
   return { ...resumen, json: compactarJsonDocumento(input.json) };
 }
 
@@ -130,6 +134,7 @@ export function resumenDesdeModeloPersistido(modelo: ModeloPersistido): ResumenM
     ...(modelo.archivadoAuto !== undefined ? { archivadoAuto: modelo.archivadoAuto } : {}),
     ...(modelo.versiones !== undefined ? { versiones: modelo.versiones } : {}),
     ...(modelo.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: modelo.crearVersionAlGuardar } : {}),
+    ...(modelo.revision !== undefined ? { revision: modelo.revision } : {}),
   };
 }
 
@@ -419,6 +424,9 @@ function normalizarResumenModeloPersistido(value: unknown): ResumenModeloPersist
   if (typeof value.crearVersionAlGuardar === "boolean") {
     base.crearVersionAlGuardar = value.crearVersionAlGuardar;
   }
+  if (typeof value.revision === "number" && Number.isInteger(value.revision) && value.revision >= 0) {
+    base.revision = value.revision;
+  }
   return base;
 }
 
@@ -434,6 +442,9 @@ function aplicarPatchResumen(resumen: ResumenModeloPersistido, patch: MetadataMo
   if ("archivadoAuto" in patch) actualizado.archivadoAuto = patch.archivadoAuto;
   if ("versiones" in patch) actualizado.versiones = patch.versiones;
   if ("crearVersionAlGuardar" in patch) actualizado.crearVersionAlGuardar = patch.crearVersionAlGuardar;
+  if (typeof patch.revision === "number" && Number.isInteger(patch.revision) && patch.revision >= 0) {
+    actualizado.revision = patch.revision;
+  }
   return actualizado;
 }
 

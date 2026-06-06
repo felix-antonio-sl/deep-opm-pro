@@ -267,6 +267,7 @@ function normalizarModeloPersistido(value: unknown): ModeloPersistido | null {
     ...(typeof value.archivadoAuto === "boolean" ? { archivadoAuto: value.archivadoAuto } : {}),
     ...(Array.isArray(value.versiones) ? { versiones: value.versiones.filter(esVersionResumen) } : {}),
     ...(typeof value.crearVersionAlGuardar === "boolean" ? { crearVersionAlGuardar: value.crearVersionAlGuardar } : {}),
+    ...(typeof value.revision === "number" && Number.isInteger(value.revision) && value.revision >= 0 ? { revision: value.revision } : {}),
   };
 }
 

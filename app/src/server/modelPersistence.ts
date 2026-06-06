@@ -45,6 +45,13 @@ export interface ModelPersistenceRepository {
   health?(): Promise<boolean>;
 }
 
+export class PersistenciaConflictError extends Error {
+  constructor(message = "Modelo desactualizado; recarga antes de guardar") {
+    super(message);
+    this.name = "PersistenciaConflictError";
+  }
+}
+
 export interface ModelPersistenceOptions {
   repo: ModelPersistenceRepository;
   sessionResolver?: PersistenciaSessionResolver;
@@ -163,6 +170,7 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
       return responderJson(405, { error: "Metodo no permitido" }, session);
     } catch (error) {
       const message = error instanceof Error ? error.message : "No se pudo procesar la persistencia";
+      if (error instanceof PersistenciaConflictError) return responderJson(409, { error: message }, session);
       return responderJson(esErrorPayload(message) ? 400 : 500, { error: message }, session);
     }
   };
@@ -248,6 +256,9 @@ function validarModeloPersistido(input: unknown): ModeloPersistido {
   if (typeof record.archivadoAuto === "boolean") base.archivadoAuto = record.archivadoAuto;
   if (Array.isArray(record.versiones)) base.versiones = record.versiones.filter(esVersionResumen);
   if (typeof record.crearVersionAlGuardar === "boolean") base.crearVersionAlGuardar = record.crearVersionAlGuardar;
+  if (typeof record.revision === "number" && Number.isInteger(record.revision) && record.revision >= 0) {
+    base.revision = record.revision;
+  }
   return base;
 }
 

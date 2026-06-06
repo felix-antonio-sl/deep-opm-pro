@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import {
   crearCookieSessionResolver,
   crearModelPersistenceFetchHandler,
+  PersistenciaConflictError,
   type BackendAutosalvadoPersistido,
   type BackendVersionPersistida,
   type ModelPersistenceRepository,
@@ -93,6 +94,7 @@ const MIGRACIONES_SCHEMA = [
           archivado_auto BOOLEAN,
           crear_version_al_guardar BOOLEAN,
           versiones JSONB,
+          revision INTEGER NOT NULL DEFAULT 1,
           payload JSONB NOT NULL
         )
       `;
@@ -292,6 +294,15 @@ const MIGRACIONES_SCHEMA = [
       await db`CREATE INDEX IF NOT EXISTS opforja_autosaves_creado_idx ON opforja_model_autosaves (tenant_id, creado_en DESC)`;
     },
   },
+  {
+    version: 3,
+    nombre: "optimistic_locking_modelos",
+    async run(db: typeof sql) {
+      await db`ALTER TABLE opforja_models ADD COLUMN IF NOT EXISTS revision INTEGER NOT NULL DEFAULT 1`;
+      await db`UPDATE opforja_models SET revision = 1 WHERE revision IS NULL OR revision < 1`;
+      await db`CREATE INDEX IF NOT EXISTS opforja_models_tenant_revision_idx ON opforja_models (tenant_id, id, revision)`;
+    },
+  },
 ] satisfies Array<{ version: number; nombre: string; run: (db: typeof sql) => Promise<void> }>;
 
 await inicializarSchema();
@@ -341,6 +352,7 @@ function repositorioPostgres(): ModelPersistenceRepository {
           m.archivado_en,
           m.archivado_auto,
           m.crear_version_al_guardar,
+          m.revision,
           COALESCE((
             SELECT jsonb_agg(jsonb_build_object(
               'id', v.id,
@@ -377,6 +389,7 @@ function repositorioPostgres(): ModelPersistenceRepository {
           m.archivado_en,
           m.archivado_auto,
           m.crear_version_al_guardar,
+          m.revision,
           COALESCE((
             SELECT jsonb_agg(jsonb_build_object(
               'id', v.id,
@@ -402,62 +415,80 @@ function repositorioPostgres(): ModelPersistenceRepository {
     async save(session, modelo) {
       const payloadBase64 = base64Utf8(modelo.json);
       const versionesBase64 = modelo.versiones ? base64Utf8(JSON.stringify(modelo.versiones)) : null;
-      await sql`
-        INSERT INTO opforja_models (
-          tenant_id,
-          owner_id,
-          id,
-          nombre,
-          descripcion,
-          carpeta_id,
-          creado_en,
-          actualizado_en,
-          ultima_apertura,
-          autosalvado,
-          archivado,
-          archivado_en,
-          archivado_auto,
-          crear_version_al_guardar,
-          versiones,
-          payload
-        )
-        VALUES (
-          ${session.tenantId},
-          ${session.userId},
-          ${modelo.id},
-          ${modelo.nombre},
-          ${modelo.descripcion},
-          ${modelo.carpetaId ?? null},
-          ${modelo.creadoEn},
-          ${modelo.actualizadoEn},
-          ${modelo.ultimaApertura ?? null},
-          ${modelo.autosalvado ?? null},
-          ${modelo.archivado ?? null},
-          ${modelo.archivadoEn ?? null},
-          ${modelo.archivadoAuto ?? null},
-          ${modelo.crearVersionAlGuardar ?? null},
-          CASE
-            WHEN ${versionesBase64}::text IS NULL THEN NULL
-            ELSE convert_from(decode(${versionesBase64}, 'base64'), 'UTF8')::jsonb
-          END,
-          convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
-        )
-        ON CONFLICT (tenant_id, id) DO UPDATE SET
-          owner_id = EXCLUDED.owner_id,
-          nombre = EXCLUDED.nombre,
-          descripcion = EXCLUDED.descripcion,
-          carpeta_id = EXCLUDED.carpeta_id,
-          actualizado_en = EXCLUDED.actualizado_en,
-          ultima_apertura = EXCLUDED.ultima_apertura,
-          autosalvado = EXCLUDED.autosalvado,
-          archivado = EXCLUDED.archivado,
-          archivado_en = EXCLUDED.archivado_en,
-          archivado_auto = EXCLUDED.archivado_auto,
-          crear_version_al_guardar = EXCLUDED.crear_version_al_guardar,
-          versiones = EXCLUDED.versiones,
-          payload = EXCLUDED.payload
-      `;
-      return modelo;
+      const revision = await sql.begin(async (tx) => {
+        const actualRows = await tx`
+          SELECT revision
+          FROM opforja_models
+          WHERE tenant_id = ${session.tenantId} AND id = ${modelo.id}
+          FOR UPDATE
+        `;
+        const actual = actualRows[0];
+        const revisionActual = typeof actual?.revision === "number" ? actual.revision : null;
+        if (revisionActual !== null && modelo.revision !== revisionActual) {
+          throw new PersistenciaConflictError();
+        }
+        const siguienteRevision = revisionActual === null ? 1 : revisionActual + 1;
+        await tx`
+          INSERT INTO opforja_models (
+            tenant_id,
+            owner_id,
+            id,
+            nombre,
+            descripcion,
+            carpeta_id,
+            creado_en,
+            actualizado_en,
+            ultima_apertura,
+            autosalvado,
+            archivado,
+            archivado_en,
+            archivado_auto,
+            crear_version_al_guardar,
+            versiones,
+            revision,
+            payload
+          )
+          VALUES (
+            ${session.tenantId},
+            ${session.userId},
+            ${modelo.id},
+            ${modelo.nombre},
+            ${modelo.descripcion},
+            ${modelo.carpetaId ?? null},
+            ${modelo.creadoEn},
+            ${modelo.actualizadoEn},
+            ${modelo.ultimaApertura ?? null},
+            ${modelo.autosalvado ?? null},
+            ${modelo.archivado ?? null},
+            ${modelo.archivadoEn ?? null},
+            ${modelo.archivadoAuto ?? null},
+            ${modelo.crearVersionAlGuardar ?? null},
+            CASE
+              WHEN ${versionesBase64}::text IS NULL THEN NULL
+              ELSE convert_from(decode(${versionesBase64}, 'base64'), 'UTF8')::jsonb
+            END,
+            ${siguienteRevision},
+            convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
+          )
+          ON CONFLICT (tenant_id, id) DO UPDATE SET
+            owner_id = EXCLUDED.owner_id,
+            nombre = EXCLUDED.nombre,
+            descripcion = EXCLUDED.descripcion,
+            carpeta_id = EXCLUDED.carpeta_id,
+            actualizado_en = EXCLUDED.actualizado_en,
+            ultima_apertura = EXCLUDED.ultima_apertura,
+            autosalvado = EXCLUDED.autosalvado,
+            archivado = EXCLUDED.archivado,
+            archivado_en = EXCLUDED.archivado_en,
+            archivado_auto = EXCLUDED.archivado_auto,
+            crear_version_al_guardar = EXCLUDED.crear_version_al_guardar,
+            versiones = EXCLUDED.versiones,
+            revision = EXCLUDED.revision,
+            payload = EXCLUDED.payload
+        `;
+        return siguienteRevision;
+      });
+      return { ...modelo, revision };
     },
 
     async delete(session, id) {
@@ -697,6 +728,7 @@ function modeloDesdeRow(row: Record<string, unknown>, includePayload: boolean): 
     ...(typeof row.archivado_en === "string" ? { archivadoEn: row.archivado_en } : {}),
     ...(typeof row.archivado_auto === "boolean" ? { archivadoAuto: row.archivado_auto } : {}),
     ...(typeof row.crear_version_al_guardar === "boolean" ? { crearVersionAlGuardar: row.crear_version_al_guardar } : {}),
+    ...(typeof row.revision === "number" ? { revision: row.revision } : {}),
   };
   const versiones = versionesDesdeRow(row.versiones);
   if (versiones.length > 0) base.versiones = versiones;

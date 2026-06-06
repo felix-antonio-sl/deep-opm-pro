@@ -384,9 +384,6 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
           set({ mensaje: resultado.error });
           return;
         }
-        const ahora = new Date().toISOString();
-        const modeloActualizado: ModeloPersistido = { ...cargado.value, ultimaApertura: ahora };
-        void guardarModeloBackend(modeloActualizado);
         const indice = get().indice;
         const carpetaId = cargado.value.carpetaId ?? null;
         const nuevoIndice: WorkspaceIndice = {
@@ -403,7 +400,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
         };
         escribirIndiceWorkspace(nuevoIndice);
         resetHistorial(resultado.value);
-        const modelosGuardados = upsertModeloGuardado(get().modelosGuardados, modeloActualizado);
+        const modelosGuardados = upsertModeloGuardado(get().modelosGuardados, cargado.value);
         set(estadoModelo(resultado.value, {
           opdActivoId: resultado.value.opdRaizId,
           seleccionId: null,

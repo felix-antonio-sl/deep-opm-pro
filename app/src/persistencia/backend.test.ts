@@ -27,6 +27,7 @@ describe("persistencia backend cliente", () => {
       creadoEn: "2026-06-02T00:00:00.000Z",
       actualizadoEn: "2026-06-02T00:00:01.000Z",
       carpetaId: null,
+      revision: 7,
       json: JSON.stringify({ formato: "deep-opm-pro.modelo.v0", modelo: { id: "m", nombre: "Backend 1" } }),
     };
     const originalFetch = globalThis.fetch;
@@ -37,7 +38,7 @@ describe("persistencia backend cliente", () => {
     try {
       expect(persistenciaBackendHabilitada()).toBe(true);
       const listado = await listarModelosBackend();
-      expect(listado).toEqual({ ok: true, value: [expect.objectContaining({ id: "backend-1", nombre: "Backend 1" })] });
+      expect(listado).toEqual({ ok: true, value: [expect.objectContaining({ id: "backend-1", nombre: "Backend 1", revision: 7 })] });
       const local = cargarModeloLocal("backend-1");
       expect(local.ok).toBe(false);
     } finally {

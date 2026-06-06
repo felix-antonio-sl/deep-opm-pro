@@ -4,6 +4,7 @@ import { indiceVacio, type WorkspaceIndice } from "../persistencia/workspace";
 import type { VersionResumen } from "../modelo/tipos";
 import {
   crearModelPersistenceFetchHandler,
+  PersistenciaConflictError,
   type BackendAutosalvadoPersistido,
   type BackendVersionPersistida,
   type ModelPersistenceRepository,
@@ -145,6 +146,24 @@ describe("modelPersistence API", () => {
 
     const listadoTenantB = await handler(new Request("http://opforja.test/__deep-opm/modelos?includePayload=1"));
     await expect(listadoTenantB.json()).resolves.toEqual({ modelos: [] });
+  });
+
+  test("devuelve 409 cuando el repositorio detecta conflicto de revision", async () => {
+    const repo = repoMemoria();
+    repo.save = async () => {
+      throw new PersistenciaConflictError();
+    };
+    const handler = crearModelPersistenceFetchHandler({ repo });
+
+    const respuesta = await handler(new Request("http://opforja.test/__deep-opm/modelos", {
+      method: "POST",
+      body: JSON.stringify({ modelo: modeloPersistido("modelo-conflicto", "Conflicto") }),
+    }));
+
+    expect(respuesta.status).toBe(409);
+    await expect(respuesta.json()).resolves.toEqual({
+      error: "Modelo desactualizado; recarga antes de guardar",
+    });
   });
 });
 
