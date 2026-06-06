@@ -132,6 +132,132 @@ describe("autoria/layout — cobertura directa del motor", () => {
     expect(solapesReales(a.modelo)).toBe(0);
   });
 
+  test("in-zoom con banda ancha: envuelve subprocesos preservando lectura izquierda→derecha arriba→abajo", () => {
+    const a = crearAutor({ id: "wrap", nombre: "Wrap" });
+    a.opd("sd0", "SD0", null);
+    a.opd("inz", "Proceso ancho (in-zoom)", "sd0", 10);
+    a.entidad("p", "proceso", "Proceso ancho", "fisica", "sistemica");
+    a.refDescomp("p", "inz");
+    a.ver("sd0", "p", 0, 0);
+    a.ver("inz", "p", 0, 0);
+    for (let i = 0; i < 9; i += 1) {
+      const key = `s${i}`;
+      a.entidad(key, "proceso", `Subproceso ${i + 1}`, "fisica", "sistemica");
+      a.ver("inz", key, 0, 0);
+      a.enlazar("inz", "p", key, "agregacion");
+    }
+
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+
+    expect(solapesReales(a.modelo)).toBe(0);
+    const opd = a.modelo.opds[a.idOpd("inz")]!;
+    const subs = Object.values(opd.apariencias)
+      .filter((ap) => ap.entidadId !== a.id("p"))
+      .sort((a1, b1) => a1.y - b1.y || a1.x - b1.x);
+    const filas = new Set(subs.map((ap) => ap.y));
+    expect(filas.size).toBeGreaterThan(1);
+    expect(subs.map((ap) => a.modelo.entidades[ap.entidadId]!.nombre)).toEqual(
+      Array.from({ length: 9 }, (_, index) => `Subproceso ${index + 1}`),
+    );
+  });
+
+  test("in-zoom con banda pequeña: no envuelve solo por nombres largos", () => {
+    const a = crearAutor({ id: "nowrap", nombre: "No Wrap" });
+    a.opd("sd0", "SD0", null);
+    a.opd("inz", "Proceso con banda legible (in-zoom)", "sd0", 10);
+    a.entidad("p", "proceso", "Proceso con banda legible", "fisica", "sistemica");
+    a.refDescomp("p", "inz");
+    a.ver("sd0", "p", 0, 0);
+    a.ver("inz", "p", 0, 0);
+    for (let i = 0; i < 5; i += 1) {
+      const key = `s${i}`;
+      a.entidad(key, "proceso", `Subproceso operacional con nombre largo ${i + 1}`, "fisica", "sistemica");
+      a.ver("inz", key, 0, 0);
+      a.enlazar("inz", "p", key, "agregacion");
+    }
+
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+
+    expect(solapesReales(a.modelo)).toBe(0);
+    const opd = a.modelo.opds[a.idOpd("inz")]!;
+    const filas = new Set(
+      Object.values(opd.apariencias)
+        .filter((ap) => ap.entidadId !== a.id("p"))
+        .map((ap) => ap.y),
+    );
+    expect(filas.size).toBe(1);
+  });
+
+  test("externos estructuralmente vinculados quedan próximos dentro de su zona de rol", () => {
+    const a = crearAutor({ id: "prox", nombre: "Proximidad" });
+    a.opd("sd0", "SD0", null);
+    a.opd("inz", "P (in-zoom)", "sd0", 10);
+    a.entidad("p", "proceso", "Procesar", "fisica", "sistemica");
+    a.entidad("reg", "objeto", "Registro clinico", "informacional", "sistemica");
+    a.entidad("asi", "objeto", "Asiento clinico", "informacional", "sistemica");
+    a.refDescomp("p", "inz");
+    a.ver("sd0", "p", 0, 0);
+    a.ver("sd0", "reg", 0, 0);
+    a.ver("sd0", "asi", 0, 0);
+    a.enlazar("sd0", "reg", "p", "consumo");
+    a.enlazar("sd0", "asi", "p", "consumo");
+    a.ver("inz", "p", 0, 0);
+    a.ver("inz", "reg", 0, 0);
+    a.ver("inz", "asi", 0, 0);
+    for (let i = 0; i < 4; i += 1) {
+      const key = `s${i}`;
+      a.entidad(key, "proceso", `Sub ${i + 1}`, "fisica", "sistemica");
+      a.ver("inz", key, 0, 0);
+      a.enlazar("inz", "p", key, "agregacion");
+      if (i > 0) a.enlazar("inz", `s${i - 1}`, key, "invocacion");
+    }
+    a.enlazar("inz", "reg", "s0", "consumo");
+    a.enlazar("inz", "asi", "s3", "consumo");
+    a.enlazar("inz", "reg", "asi", "agregacion");
+
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+
+    expect(solapesReales(a.modelo)).toBe(0);
+    const opd = a.modelo.opds[a.idOpd("inz")]!;
+    const reg = Object.values(opd.apariencias).find((ap) => ap.entidadId === a.id("reg"))!;
+    const asi = Object.values(opd.apariencias).find((ap) => ap.entidadId === a.id("asi"))!;
+    expect(Math.abs(reg.y - asi.y)).toBeLessThanOrEqual(150);
+  });
+
+  test("externos laterales densos se distribuyen en columnas sin inflar el contorno", () => {
+    const a = crearAutor({ id: "cols", nombre: "Columnas" });
+    a.opd("sd0", "SD0", null);
+    a.opd("inz", "P (in-zoom)", "sd0", 10);
+    a.entidad("p", "proceso", "Procesar", "fisica", "sistemica");
+    a.refDescomp("p", "inz");
+    a.ver("sd0", "p", 0, 0);
+    a.ver("inz", "p", 0, 0);
+    for (let i = 0; i < 9; i += 1) {
+      const key = `s${i}`;
+      a.entidad(key, "proceso", `Sub ${i + 1}`, "fisica", "sistemica");
+      a.ver("inz", key, 0, 0);
+      a.enlazar("inz", "p", key, "agregacion");
+    }
+    for (let i = 0; i < 16; i += 1) {
+      const key = `e${i}`;
+      a.entidad(key, "objeto", `Entrada externa ${i + 1}`, "informacional", "sistemica");
+      a.ver("sd0", key, 0, 0);
+      a.ver("inz", key, 0, 0);
+      a.enlazar("sd0", key, "p", "consumo");
+      a.enlazar("inz", key, `s${Math.min(i, 8)}`, "consumo");
+    }
+
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+
+    expect(solapesReales(a.modelo)).toBe(0);
+    const opd = a.modelo.opds[a.idOpd("inz")]!;
+    const contorno = Object.values(opd.apariencias).find((ap) => ap.entidadId === a.id("p"))!;
+    const externos = Object.values(opd.apariencias).filter((ap) => ap.entidadId !== a.id("p") && ap.x < contorno.x);
+    const columnas = new Set(externos.map((ap) => Math.round(ap.x + ap.width)));
+    expect(columnas.size).toBeGreaterThan(1);
+    expect(contorno.height).toBeLessThan(900);
+  });
+
   // V16-5 (validación visual HODOM v1.6, U4): en unfolds multi-fila, el drop vertical
   // del bus (x = centro de cada caja) atravesaba las cajas de la fila superior.
   test("unfold multi-fila: el centro de cada caja de filas 2+ cae en un hueco de la fila superior", () => {

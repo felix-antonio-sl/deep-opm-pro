@@ -49,6 +49,18 @@ describe("autoría DSL — métodos y validación (cobertura)", () => {
     expect(() => a.estados("o", ["solo"])).toThrow(/unico estado/);
   });
 
+  test("estados preserva designación dual inicial+final en el mismo estado", () => {
+    const a = crearAutor();
+    a.entidad("o", "objeto", "Reservorio", "fisica", "sistemica");
+    a.estados("o", ["vacío", "lleno"], "vacío", "vacío");
+
+    const estado = a.modelo.estados[a.idEstado("o", "vacío")]!;
+
+    expect(estado.esInicial).toBe(true);
+    expect(estado.esFinal).toBe(true);
+    expect(estado.designaciones).toEqual(["inicial", "final"]);
+  });
+
   test("idOpd e idEstado lanzan ante clave no registrada", () => {
     const a = crearAutor();
     a.entidad("o", "objeto", "Cosa", "fisica", "sistemica");
@@ -85,6 +97,70 @@ describe("autoría DSL — métodos y validación (cobertura)", () => {
     expect(modo("refDespliegue")).toBe("agregacion");
     expect(modo("refDespliegueExh")).toBe("exhibicion");
     expect(modo("refDespliegueGen")).toBe("generalizacion");
+  });
+
+  test("aparecerEnlace agrega una aparición sin duplicar el enlace lógico", () => {
+    const a = crearAutor();
+    a.entidad("herramienta", "objeto", "Herramienta", "fisica", "ambiental");
+    a.entidad("proceso", "proceso", "Procesar", "fisica", "sistemica");
+    a.opd("sd0", "SD0", null);
+    a.opd("vista", "Vista", "sd0");
+    for (const opd of ["sd0", "vista"]) {
+      a.ver(opd, "herramienta", 0, 0);
+      a.ver(opd, "proceso", 0, 0);
+    }
+
+    const enlaceId = a.enlazar("sd0", "herramienta", "proceso", "instrumento");
+    if (!enlaceId) throw new Error("La prueba esperaba un enlace instrumento");
+    const aparicionId = a.aparecerEnlace("vista", "herramienta", "proceso", "instrumento");
+    const repetidaId = a.aparecerEnlace("vista", "herramienta", "proceso", "instrumento");
+
+    expect(enlaceId).toBe("e-1");
+    expect(Object.keys(a.modelo.enlaces)).toHaveLength(1);
+    expect(aparicionId).toBe(repetidaId);
+    expect(a.modelo.opds["opd-vista"]!.enlaces[aparicionId]!.enlaceId).toBe(enlaceId);
+    expect(Object.values(a.modelo.opds["opd-vista"]!.enlaces).filter((ap) => ap.enlaceId === enlaceId)).toHaveLength(1);
+  });
+
+  test("aparecerEnlace y posicionarEtiqueta resuelven extremos de estado por firma", () => {
+    const a = crearAutor();
+    a.entidad("pedido", "objeto", "Pedido", "fisica", "sistemica");
+    a.entidad("aprobar", "proceso", "Aprobar", "fisica", "sistemica");
+    a.estados("pedido", ["pendiente", "aprobado"], "pendiente", "aprobado");
+    a.opd("sd0", "SD0", null);
+    a.opd("vista", "Vista", "sd0");
+    for (const opd of ["sd0", "vista"]) {
+      a.ver(opd, "pedido", 0, 0);
+      a.ver(opd, "aprobar", 0, 0);
+    }
+
+    const enlaceId = a.enlazar("sd0", { entidad: "pedido", estado: "pendiente" }, "aprobar", "consumo");
+    expect(() => a.posicionarEtiqueta("vista", { entidad: "pedido", estado: "pendiente" }, "aprobar", "consumo", 0.65)).toThrow(/no aparece/);
+
+    const aparicionId = a.aparecerEnlace("vista", { entidad: "pedido", estado: "pendiente" }, "aprobar", "consumo");
+    const etiquetaId = a.posicionarEtiqueta("vista", { entidad: "pedido", estado: "pendiente" }, "aprobar", "consumo", 0.6549, {
+      offset: { x: 4.444, y: -9.876 },
+      angle: 12.3456,
+    });
+
+    expect(a.modelo.enlaces[enlaceId!]!.origenId).toEqual({ kind: "estado", id: a.idEstado("pedido", "pendiente") });
+    expect(etiquetaId).toBe(aparicionId);
+    expect(a.modelo.opds["opd-vista"]!.enlaces[aparicionId]!.labelPositions?.etiqueta).toEqual({
+      distance: 0.655,
+      offset: { x: 4.444, y: -9.876 },
+      angle: 12.346,
+    });
+  });
+
+  test("aparecerEnlace lanza si la firma no identifica un enlace existente", () => {
+    const a = crearAutor();
+    a.entidad("herramienta", "objeto", "Herramienta", "fisica", "ambiental");
+    a.entidad("proceso", "proceso", "Procesar", "fisica", "sistemica");
+    a.opd("sd0", "SD0", null);
+    a.ver("sd0", "herramienta", 0, 0);
+    a.ver("sd0", "proceso", 0, 0);
+
+    expect(() => a.aparecerEnlace("sd0", "herramienta", "proceso", "instrumento")).toThrow(/no existe enlace/);
   });
 });
 

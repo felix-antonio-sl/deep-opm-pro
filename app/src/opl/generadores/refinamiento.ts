@@ -71,7 +71,7 @@ export function oracionesRefinamiento(modelo: Modelo, apariencia: Apariencia, en
 
 export function oracionDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd, internos: string[]): string {
   const modo = modoDespliegue(modelo, entidad, opdHijo);
-  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
+  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpdCanonico(modelo, opdHijo);
 
   if (modo === "agregacion") return `${nombreOpl(entidad)} se despliega en ${destino}.`;
   if (modo === "exhibicion") return `${nombreOpl(entidad)} exhibe ${destino}.`;
@@ -80,7 +80,7 @@ export function oracionDespliegue(modelo: Modelo, entidad: Entidad, opdHijo: Opd
 }
 
 export function oracionDescomposicion(modelo: Modelo, entidad: Entidad, opdHijo: Opd, aparienciasInternas: Apariencia[], internos: string[]): string {
-  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
+  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpdCanonico(modelo, opdHijo);
   const aparienciasProcesos = aparienciasInternas.filter((aparienciaInterna) => modelo.entidades[aparienciaInterna.entidadId]?.tipo === "proceso");
   const aparienciasObjetos = aparienciasInternas.filter((aparienciaInterna) => modelo.entidades[aparienciaInterna.entidadId]?.tipo === "objeto");
   const objetos = nombresDeApariencias(modelo, aparienciasObjetos);
@@ -287,7 +287,7 @@ export function emitirDespliegueOcurren(
       const interna = modelo.entidades[apariencia.entidadId];
       return interna ? [nombreOpl(interna)] : [];
     });
-  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpd(opdHijo.nombre);
+  const destino = internos.length > 0 ? listarOpl(internos) : codigoOpdCanonico(modelo, opdHijo);
   const texto = `${nombreOpl(entidad)} se despliega en ${destino}.`;
   const refs: OplReferencia[] = [refEntidad(entidad.id)];
   const hints: OplTokenHint[] = [hintEntidad(entidad)];
@@ -327,6 +327,25 @@ export function emitirDespliegueOcurren(
   }
 
   return crearLineaOplInteractiva(`opl-desp-${entidad.id}`, texto, ordinal, refs, hints);
+}
+
+function codigoOpdCanonico(modelo: Modelo, opd: Opd): string {
+  const desdeNombre = codigoOpd(opd.nombre);
+  if (/^SD(?:\d+(?:\.\d+)*)?$/.test(desdeNombre)) return desdeNombre;
+  const indices = indicesOpdEnArbol(modelo, opd.id);
+  return indices.length === 0 ? "SD" : `SD${indices.join(".")}`;
+}
+
+function indicesOpdEnArbol(modelo: Modelo, opdId: Id): number[] {
+  const opd = modelo.opds[opdId];
+  if (!opd || opd.id === modelo.opdRaizId || !opd.padreId) return [];
+  const padre = modelo.opds[opd.padreId];
+  if (!padre) return [];
+  const hermanos = Object.values(modelo.opds)
+    .filter((item) => item.padreId === padre.id)
+    .sort((a, b) => (a.ordenLocal ?? 0) - (b.ordenLocal ?? 0) || a.nombre.localeCompare(b.nombre, "es-CL") || a.id.localeCompare(b.id));
+  const indice = Math.max(1, hermanos.findIndex((item) => item.id === opd.id) + 1);
+  return [...indicesOpdEnArbol(modelo, padre.id), indice];
 }
 
 export function emitirEspecializacion(

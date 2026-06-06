@@ -3,7 +3,7 @@ import {
   INZOOM_CANON,
   contornoHeightCanonico,
   contornoWidthCanonico,
-} from "../../../canvas/constantesInzoom";
+} from "../../constantesInzoom";
 import { CENTRO_CANVAS_GEOMETRICO } from "../../layout";
 import {
   contextoContornoDescomposicion,

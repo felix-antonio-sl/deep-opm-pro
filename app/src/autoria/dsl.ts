@@ -48,6 +48,7 @@ import type {
   Id,
   Modelo,
   OperadorAbanico,
+  PosicionLabelEnlace,
   SubtipoModificador,
   TipoEnlace,
 } from "../modelo/tipos";
@@ -56,6 +57,7 @@ import { validarFirmaEnlace } from "../modelo/operaciones/helpers";
 import { formarAbanico } from "../modelo/abanicos";
 import { definirDemora } from "../modelo/modificadores";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
+import { normalizarPosicionLabelEnlace } from "../modelo/etiquetasEnlace";
 import type { AnclaNormativa } from "../modelo/tipos";
 import type {
   EntKey,
@@ -104,6 +106,24 @@ export interface Autor {
    */
   enlazar(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opts?: OpcionesEnlace): Id | null;
   /**
+   * Añade en `opdKey` una aparición visual de un enlace lógico ya existente.
+   * No declara un nuevo hecho: lanza si no hay exactamente un enlace global
+   * con esos extremos y tipo. Si ya aparece en ese OPD, devuelve su apariencia.
+   */
+  aparecerEnlace(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace): Id;
+  /**
+   * Posiciona la etiqueta semántica principal de una aparición de enlace.
+   * La posición es por OPD/aparición, no global al enlace lógico.
+   */
+  posicionarEtiqueta(
+    opdKey: OpdKey,
+    origen: ExtremoEntrada,
+    destino: ExtremoEntrada,
+    tipo: TipoEnlace,
+    distance: number,
+    opts?: Omit<PosicionLabelEnlace, "distance">,
+  ): Id;
+  /**
    * Agrupa ≥2 enlaces que comparten un puerto en un abanico O/XOR. W4.1 Tanda 1 (#30).
    * Delega en `formarAbanico` del kernel (mismo validador que el reverse). Replica el pin de
    * puerto compartido del aplicador antes de delegar. Lanza si el kernel rechaza (p.ej. <2 enlaces,
@@ -117,8 +137,9 @@ export interface Autor {
    */
   autoinvocacion(opdKey: OpdKey, procesoKey: EntKey, demora?: string): Id;
   /**
-   * Designa un estado como `default` o `current` (espejo de inicial/final de `estados()`).
-   * W4.1 Tanda 1 (#5). Escribe la designación en el estado ya declarado.
+   * Designa un estado ya declarado. Para `inicial`/`final`, sincroniza tambien
+   * los booleanos legacy `esInicial`/`esFinal`; para `default`/`current`, solo
+   * escribe la designacion avanzada.
    */
   designarEstado(entidadKey: EntKey, estado: string, designacion: DesignacionEstado): void;
   /**
@@ -233,6 +254,11 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     for (const [indice, nombre] of nombres.entries()) {
       const id = `s-${entidadKey}-${slug(nombre)}`;
       sid.set(`${entidadKey}:${nombre}`, id);
+      const esInicial = nombre === inicial;
+      const esFinal = nombre === final;
+      const designaciones: DesignacionEstado[] = [];
+      if (esInicial) designaciones.push("inicial");
+      if (esFinal) designaciones.push("final");
       const estado: Estado = {
         id,
         entidadId,
@@ -241,8 +267,9 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
         // temporal/logico). Sin esto, estadosDeEntidad desempata por id y los badges
         // salian alfabeticos (egresado|hospitalizado|requiere en vez del ciclo real).
         orden: indice,
-        ...(nombre === inicial ? { esInicial: true, designaciones: ["inicial"] } : {}),
-        ...(nombre === final ? { esFinal: true, designaciones: ["final"] } : {}),
+        ...(esInicial ? { esInicial: true } : {}),
+        ...(esFinal ? { esFinal: true } : {}),
+        ...(designaciones.length > 0 ? { designaciones } : {}),
       };
       modelo.estados[id] = estado;
     }
@@ -305,6 +332,39 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     return { kind: "estado", id: idEstado(input.entidad, input.estado) };
   }
 
+  function extremosCoinciden(a: ExtremoEnlace, b: ExtremoEnlace): boolean {
+    return a.kind === b.kind && a.id === b.id;
+  }
+
+  function buscarEnlaceExistente(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace): { enlaceId: Id; opdId: Id } {
+    const opdId = idOpd(opdKey);
+    const origenResuelto = extremo(origen);
+    const destinoResuelto = extremo(destino);
+    const candidatos = Object.values(modelo.enlaces).filter(
+      (enlace) =>
+        enlace.tipo === tipo &&
+        extremosCoinciden(enlace.origenId, origenResuelto) &&
+        extremosCoinciden(enlace.destinoId, destinoResuelto),
+    );
+    if (candidatos.length === 0) {
+      throw new Error(`aparecerEnlace/posicionarEtiqueta: no existe enlace ${tipo} en '${opdKey}'`);
+    }
+    if (candidatos.length > 1) {
+      throw new Error(`aparecerEnlace/posicionarEtiqueta: enlace ambiguo ${tipo} en '${opdKey}' (${candidatos.length} candidatos)`);
+    }
+    return { enlaceId: candidatos[0]!.id, opdId };
+  }
+
+  function aparienciaDeEnlace(opdId: Id, enlaceId: Id): AparienciaEnlace | undefined {
+    return Object.values(modelo.opds[opdId]?.enlaces ?? {}).find((apariencia) => apariencia.enlaceId === enlaceId);
+  }
+
+  function normalizarPosicionEtiqueta(distance: number, opts: Omit<PosicionLabelEnlace, "distance"> = {}): PosicionLabelEnlace {
+    const normalizada = normalizarPosicionLabelEnlace({ distance, ...opts });
+    if (!normalizada) throw new Error("posicionarEtiqueta: posición de label inválida");
+    return normalizada;
+  }
+
   function registrarInternoInzoom(opdId: Id, entidadId: Id): void {
     const internos = internosInzoom.get(opdId) ?? new Set<Id>();
     internos.add(entidadId);
@@ -318,9 +378,8 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     if (!previas.includes(designacion)) {
       estado.designaciones = [...previas, designacion];
     }
-    // Espejo de `estados(…, inicial, final)`: las designaciones default/current no setean
-    // `esInicial`/`esFinal` (eso es exclusivo de inicial/final). El forward emite la línea
-    // `X en \`s\` es Default|Current` desde `estado.designaciones`.
+    if (designacion === "inicial") estado.esInicial = true;
+    if (designacion === "final") estado.esFinal = true;
   }
 
   function abanico(opdKey: OpdKey, enlaceIds: Id[], operador: OperadorAbanico = "O"): Id {
@@ -509,6 +568,33 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     return id;
   }
 
+  function aparecerEnlace(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace): Id {
+    const { enlaceId, opdId } = buscarEnlaceExistente(opdKey, origen, destino, tipo);
+    const existente = aparienciaDeEnlace(opdId, enlaceId);
+    if (existente) return existente.id;
+    const apId = `ae-${aparienciaEnlaceSeq++}`;
+    modelo.opds[opdId]!.enlaces[apId] = { id: apId, enlaceId, opdId, vertices: [] };
+    return apId;
+  }
+
+  function posicionarEtiqueta(
+    opdKey: OpdKey,
+    origen: ExtremoEntrada,
+    destino: ExtremoEntrada,
+    tipo: TipoEnlace,
+    distance: number,
+    opts: Omit<PosicionLabelEnlace, "distance"> = {},
+  ): Id {
+    const { enlaceId, opdId } = buscarEnlaceExistente(opdKey, origen, destino, tipo);
+    const apariencia = aparienciaDeEnlace(opdId, enlaceId);
+    if (!apariencia) throw new Error(`posicionarEtiqueta: el enlace ${tipo} no aparece en '${opdKey}'`);
+    apariencia.labelPositions = {
+      ...(apariencia.labelPositions ?? {}),
+      etiqueta: normalizarPosicionEtiqueta(distance, opts),
+    };
+    return apariencia.id;
+  }
+
   return {
     modelo,
     internosInzoom,
@@ -526,6 +612,8 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     refDespliegueGen,
     ver,
     enlazar,
+    aparecerEnlace,
+    posicionarEtiqueta,
     abanico,
     autoinvocacion,
     designarEstado,

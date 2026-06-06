@@ -20,18 +20,18 @@ export function oracionesUnidadDescripcionEstados(entidad: Entidad, estados: Est
   if (unidad) {
     lineas.push(`${nombreOpl(entidad)} tiene unidad \`${entidad.unidad}\`.`);
   }
-  const descripcion = formatearDescripcionInline(entidad);
-  if (descripcion) {
-    lineas.push(`${nombreOpl(entidad)} se describe como "${entidad.descripcion}".`);
-  }
   for (const estado of estados.filter((item) => !item.suprimido)) {
     for (const designacion of designacionesEstado(estado)) {
-      lineas.push(`${nombreOpl(entidad)} en \`${nombreCanonicoEstado(estado)}\` es ${textoDesignacionEstado(designacion)}.`);
+      lineas.push(oracionDesignacionEstadoOpl(estado, entidad, designacion));
     }
     const duracion = formatearDuracion(estado);
     if (duracion) lineas.push(duracion);
   }
   return lineas;
+}
+
+export function oracionDesignacionEstadoOpl(estado: Estado, entidad: Entidad, designacion: string): string {
+  return `Estado \`${nombreCanonicoEstado(estado)}\` de ${nombreOpl(entidad)} es ${textoDesignacionEstado(designacion)}.`;
 }
 
 export function nombreEstadoOpl(estado: Estado): string {

@@ -1,15 +1,14 @@
-import { nombreCanonicoEstado } from "../../modelo/nombresCanonicos";
 import type { Entidad, Estado } from "../../modelo/tipos";
 import type { OplLineaPendiente } from "./refsHints";
 import {
   agregarLinea,
   hintEntidad,
   hintEstado,
-  nombreOpl,
   refEntidad,
   refEstado,
 } from "./refsHints";
 import {
+  oracionDesignacionEstadoOpl,
   oracionEstados,
   textoDesignacionEstado,
 } from "./duracionMetadata";
@@ -23,7 +22,7 @@ import {
 export { oracionEstados, textoDesignacionEstado };
 
 export function oracionDesignacionEstado(estado: Estado, entidad: Entidad, designacion: string): string {
-  return `${nombreOpl(entidad)} en \`${nombreCanonicoEstado(estado)}\` es ${textoDesignacionEstado(designacion)}.`;
+  return oracionDesignacionEstadoOpl(estado, entidad, designacion);
 }
 
 export function agregarOracionEstadosInteractiva(

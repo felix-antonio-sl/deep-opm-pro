@@ -44,6 +44,26 @@ describe("OPL reverse — designaciones D7-D10 (ronda26/L5)", () => {
     expect(result.ast[3]).toMatchObject({ designacion: "current" });
   });
 
+  test("parsea forma canonica con Estado como sujeto", () => {
+    const result = parsearParrafoOpl([
+      "Estado `abierto` de **Pedido** es inicial.",
+      "Estado `cerrado` de **Pedido** es final.",
+    ].join("\n"));
+
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "designacion-estado",
+      entidad: "Pedido",
+      estado: "abierto",
+      designacion: "inicial",
+    });
+    expect(result.ast[1]).toMatchObject({
+      entidad: "Pedido",
+      estado: "cerrado",
+      designacion: "final",
+    });
+  });
+
   test("acepta sinonimos 'por defecto' y 'actual' como default/current", () => {
     const result = parsearParrafoOpl([
       "**Pedido** en `abierto` es por defecto.",
@@ -75,7 +95,7 @@ describe("OPL reverse — designaciones D7-D10 (ronda26/L5)", () => {
     const aplicado = must(aplicarPatchesOpl(modelo, preview.patches));
     const abierto = aplicado.estados[estados[0]!.id]! as Estado;
     expect(designacionesEstado(abierto)).toContain("inicial");
-    expect(generarOpl(aplicado)).toContain("**Pedido** en `abierto` es inicial.");
+    expect(generarOpl(aplicado)).toContain("Estado `abierto` de **Pedido** es inicial.");
   });
 
   test("aplica final sin tocar otras designaciones (aditividad)", () => {
@@ -140,8 +160,8 @@ describe("OPL reverse — designaciones D7-D10 (ronda26/L5)", () => {
     expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toEqual([]);
     const aplicado = must(aplicarPatchesOpl(modelo, preview.patches));
     const regenerado = generarOpl(aplicado).join("\n");
-    expect(regenerado).toContain("**Pedido** en `abierto` es inicial.");
-    expect(regenerado).toContain("**Pedido** en `cerrado` es final.");
+    expect(regenerado).toContain("Estado `abierto` de **Pedido** es inicial.");
+    expect(regenerado).toContain("Estado `cerrado` de **Pedido** es final.");
   });
 });
 

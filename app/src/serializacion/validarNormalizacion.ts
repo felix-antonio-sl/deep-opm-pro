@@ -126,7 +126,7 @@ function textoOpcional(value: unknown): string | undefined {
 export function normalizarVersiones(value: unknown): VersionResumen[] {
   if (!Array.isArray(value)) return [];
   return value
-    .map((raw) => {
+    .map((raw): VersionResumen | null => {
       if (!esRecord(raw) ||
         typeof raw.id !== "string" ||
         typeof raw.creadoEn !== "string" ||
@@ -140,9 +140,10 @@ export function normalizarVersiones(value: unknown): VersionResumen[] {
         creadoEn: raw.creadoEn,
         nombre: raw.nombre,
         ...(typeof raw.descripcion === "string" ? { descripcion: raw.descripcion } : {}),
+        ...(raw.preservar === true ? { preservar: true } : {}),
         modeloPayloadKey: raw.modeloPayloadKey,
         bytes: raw.bytes,
-      } satisfies VersionResumen;
+      };
     })
     .filter((version): version is VersionResumen => version !== null);
 }

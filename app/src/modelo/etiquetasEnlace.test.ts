@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto } from "./operaciones";
-import { etiquetaEnlaceNormalizada, renombrarEtiquetaEnlace, validarEtiquetaEnlace } from "./etiquetasEnlace";
+import {
+  etiquetaEnlaceNormalizada,
+  normalizarPosicionLabelEnlace,
+  renombrarEtiquetaEnlace,
+  validarEtiquetaEnlace,
+} from "./etiquetasEnlace";
 import type { Modelo, Resultado } from "./tipos";
 
 describe("etiquetas de enlace", () => {
@@ -22,6 +27,21 @@ describe("etiquetas de enlace", () => {
 
     expect(etiquetaEnlaceNormalizada("   ")).toBe("");
     expect(validarEtiquetaEnlace(enlace, "")).toEqual({ ok: true, value: true });
+  });
+
+  test("normaliza posicion manual de label con la misma regla para modelo y autoria", () => {
+    expect(normalizarPosicionLabelEnlace({
+      distance: 0.72349,
+      offset: { x: 10.1234, y: -4.9876 },
+      angle: 12.3456,
+    })).toEqual({
+      distance: 0.723,
+      offset: { x: 10.123, y: -4.988 },
+      angle: 12.346,
+    });
+
+    expect(normalizarPosicionLabelEnlace({ distance: Number.NaN })).toBeNull();
+    expect(normalizarPosicionLabelEnlace({ distance: 0.5, offset: Number.POSITIVE_INFINITY })).toBeNull();
   });
 });
 

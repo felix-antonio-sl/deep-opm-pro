@@ -1033,18 +1033,23 @@ function parsearEstructural(texto: string, linea: LineaOplNormalizada) {
 // aceptamos tambien las formas espanolas `por defecto`/`actual` por amistad
 // con dictado humano.
 const DESIGNACION_ESTADO_RE = /^(.+?)\s+en\s+`?([^`]+?)`?\s+es\s+(inicial|final|default|current|por defecto|actual)\.?\s*$/iu;
+const DESIGNACION_ESTADO_CANONICA_RE = /^Estado\s+`?([^`]+?)`?\s+de\s+(.+?)\s+es\s+(inicial|final|default|current|por defecto|actual)\.?\s*$/iu;
 
 function parsearDesignacionEstado(texto: string, linea: LineaOplNormalizada) {
-  const match = DESIGNACION_ESTADO_RE.exec(texto);
+  const canonica = DESIGNACION_ESTADO_CANONICA_RE.exec(texto);
+  const legacy = canonica ? null : DESIGNACION_ESTADO_RE.exec(texto);
+  const match = canonica ?? legacy;
   if (!match) return null;
   const designacion = normalizarDesignacion(match[3] ?? "");
   if (!designacion) return null;
+  const estado = canonica ? match[1] : match[2];
+  const entidad = canonica ? match[2] : match[1];
   return {
     ast: {
       kind: "designacion-estado" as const,
       linea: linea.linea,
-      entidad: normalizarNombreOpl(match[1] ?? ""),
-      estado: limpiarEstado(match[2] ?? ""),
+      entidad: normalizarNombreOpl(entidad ?? ""),
+      estado: limpiarEstado(estado ?? ""),
       designacion,
       ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
     },

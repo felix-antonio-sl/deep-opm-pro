@@ -1,5 +1,4 @@
 import type { Id } from "./comunes";
-import type { GridConfig } from "../../canvas/grid";
 import type { EsenciaVisibilidad } from "../../opl/opciones";
 
 /**
@@ -10,6 +9,15 @@ import type { EsenciaVisibilidad } from "../../opl/opciones";
  *       docs/HANDOFF.md §Decisiones Vigentes (multi-selección, divisor árbol/canvas,
  *       toggle ocultar nombres del árbol).
  */
+
+export interface GridConfig {
+  activa: boolean;
+  paso: number;
+  color: string;
+  strokeWidth: number;
+  escala: number;
+  snapActivo: boolean;
+}
 
 // Estado UI transitorio para Ctrl+C/V visual. No pertenece al JSON OPM.
 export interface UiPortapapelesVisual {

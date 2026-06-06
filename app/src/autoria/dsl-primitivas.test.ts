@@ -261,7 +261,7 @@ describe("W4.1 — designaciones default/current (espejo de inicial/final)", () 
     a.designarEstado("obj", "pagado", "default");
     a.designarEstado("obj", "cerrado", "current");
     const opl = generarOpl(a.modelo);
-    expect(opl).toContain("**Pedido** en `pagado` es Default.");
-    expect(opl).toContain("**Pedido** en `cerrado` es Current.");
+    expect(opl).toContain("Estado `pagado` de **Pedido** es Default.");
+    expect(opl).toContain("Estado `cerrado` de **Pedido** es Current.");
   });
 });

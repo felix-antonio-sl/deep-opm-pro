@@ -58,6 +58,7 @@ const TITULO_POR_REGLA: Record<string, string> = {
   UNFOLD_CONTENIDO_INSUFICIENTE: "Despliegue con muy poco contenido",
   PROCESO_NO_TRANSFORMA: "Proceso no transforma ningún objeto",
   PROCESO_SISTEMICO_DESCONECTADO: "Proceso sistémico desconectado del principal",
+  DESCOMPOSICION_SIN_SUBPROCESOS: "Descomposición sin subprocesos",
 
   // ── diagnóstico visual (diagnosticoVisual.ts) ─────────────────────
   "visual-apariencia-entidad-inexistente": "Apariencia sin entidad lógica",

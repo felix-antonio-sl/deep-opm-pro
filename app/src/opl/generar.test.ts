@@ -445,8 +445,8 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
 
     const lineas = generarOpl(modelo);
     expect(lineas).toContain("**Orden** puede estar `abierta` (inicial y final) o `estado2`.");
-    expect(lineas).toContain("**Orden** en `abierta` es inicial.");
-    expect(lineas).toContain("**Orden** en `abierta` es final.");
+    expect(lineas).toContain("Estado `abierta` de **Orden** es inicial.");
+    expect(lineas).toContain("Estado `abierta` de **Orden** es final.");
   });
 
   test("tres estados usan coma y o final", () => {

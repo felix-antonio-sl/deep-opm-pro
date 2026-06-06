@@ -1,11 +1,7 @@
-export interface GridConfig {
-  activa: boolean;
-  paso: number;
-  color: string;
-  strokeWidth: number;
-  escala: number;
-  snapActivo: boolean;
-}
+import { clampValor, RESIZE_MIN } from "../modelo/geometria";
+import type { GridConfig } from "../modelo/tipos/ui";
+
+export type { GridConfig };
 
 export const GRID_DEFAULT: GridConfig = {
   activa: true,
@@ -16,7 +12,7 @@ export const GRID_DEFAULT: GridConfig = {
   snapActivo: true,
 };
 
-export const RESIZE_MIN = { width: 70, height: 40 } as const;
+export { clampValor, RESIZE_MIN };
 
 export function normalizarGridConfig(config: Partial<GridConfig> | undefined): GridConfig {
   return {
@@ -40,10 +36,6 @@ export function cuantizarPosicion(x: number, y: number, config: GridConfig): { x
     x: Math.round(x / step) * step,
     y: Math.round(y / step) * step,
   };
-}
-
-export function clampValor(min: number, max: number, valor: number): number {
-  return Math.max(min, Math.min(max, valor));
 }
 
 function numeroEnRango(value: unknown, min: number, max: number, fallback: number): number {

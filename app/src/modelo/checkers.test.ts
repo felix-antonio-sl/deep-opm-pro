@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  checkDescomposicionSinSubprocesos,
   checkInzoomContenido,
   checkInzoomNombresPlaceholderHijos,
   checkObjetoAmbientalSinContornoDiscontinuo,
@@ -156,14 +157,20 @@ describe("checkObjetoNombreSingular", () => {
 });
 
 describe("checkInzoomContenido", () => {
-  for (const cantidad of [0, 1]) {
-    test(`avisa descomposicion con ${cantidad} cosa(s)`, () => {
-      const base = modeloTransformador("Procesar Envio");
-      const descompuesto = must(descomponerProceso(base.modelo, base.modelo.opdRaizId, base.procesoId));
-      const modelo = dejarCosasEnRefinamiento(descompuesto.modelo, base.procesoId, cantidad);
-      expect(checkInzoomContenido(modelo)[0]?.codigo).toBe("INZOOM_CONTENIDO_INSUFICIENTE");
-    });
-  }
+  test("delega descomposicion sin subprocesos al checker especifico", () => {
+    const base = modeloTransformador("Procesar Envio");
+    const descompuesto = must(descomponerProceso(base.modelo, base.modelo.opdRaizId, base.procesoId));
+    const modelo = dejarCosasEnRefinamiento(descompuesto.modelo, base.procesoId, 0);
+    expect(checkInzoomContenido(modelo)).toHaveLength(0);
+    expect(checkDescomposicionSinSubprocesos(modelo)[0]?.codigo).toBe("DESCOMPOSICION_SIN_SUBPROCESOS");
+  });
+
+  test("avisa descomposicion con 1 cosa", () => {
+    const base = modeloTransformador("Procesar Envio");
+    const descompuesto = must(descomponerProceso(base.modelo, base.modelo.opdRaizId, base.procesoId));
+    const modelo = dejarCosasEnRefinamiento(descompuesto.modelo, base.procesoId, 1);
+    expect(checkInzoomContenido(modelo)[0]?.codigo).toBe("INZOOM_CONTENIDO_INSUFICIENTE");
+  });
 
   for (const cantidad of [2, 3, 4, 5, 6, 7, 8, 9]) {
     test(`acepta descomposicion con ${cantidad} cosas`, () => {

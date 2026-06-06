@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { checkDescomposicionPreservaFrontera } from "./checkers";
+import { checkDescomposicionPreservaFrontera, checkDescomposicionSinSubprocesos } from "./checkers";
 import type { Apariencia, AparienciaEnlace, Enlace, Entidad, Modelo, Opd, TipoEnlace } from "./tipos";
 
 function ent(id: string, tipo: "objeto" | "proceso", extra: Partial<Entidad> = {}): Entidad {
@@ -46,5 +46,42 @@ describe("checkDescomposicionPreservaFrontera", () => {
 
   test("descomposición coherente → sin aviso", () => {
     expect(checkDescomposicionPreservaFrontera(modelo(true))).toEqual([]);
+  });
+});
+
+describe("checkDescomposicionSinSubprocesos", () => {
+  test("descomposición formal sin subprocesos internos emite aviso específico", () => {
+    const P = ent("P", "proceso", { refinamientos: { descomposicion: { opdId: "z" } } });
+    const entidades: Record<string, Entidad> = {
+      P,
+      A: ent("A", "objeto"),
+      B: ent("B", "objeto"),
+    };
+    const opds: Record<string, Opd> = {
+      r: opd("r", null, [ap("rP", "P", "r")], []),
+      z: opd("z", "r", [ap("zP", "P", "z"), ap("zA", "A", "z"), ap("zB", "B", "z")], []),
+    };
+    const modeloHoja: Modelo = {
+      id: "m",
+      nombre: "m",
+      opdRaizId: "r",
+      opds,
+      entidades,
+      estados: {},
+      enlaces: {},
+      nextSeq: 100,
+    };
+
+    const avisos = checkDescomposicionSinSubprocesos(modeloHoja);
+
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]!.codigo).toBe("DESCOMPOSICION_SIN_SUBPROCESOS");
+    expect(avisos[0]!.entidadId).toBe("P");
+    expect(avisos[0]!.navegarA).toEqual({ tipo: "opd", id: "z" });
+    expect(avisos[0]!.mensaje).toContain("no agrega subprocesos");
+  });
+
+  test("descomposición con al menos un subproceso interno no emite aviso", () => {
+    expect(checkDescomposicionSinSubprocesos(modelo(true))).toEqual([]);
   });
 });

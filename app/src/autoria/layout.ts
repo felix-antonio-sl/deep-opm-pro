@@ -20,7 +20,20 @@
 import type { Apariencia, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../modelo/tipos";
 
 /** Constantes de layout (tuneables): gaps, alto de banda, origen, márgenes. */
-export const LAYOUT = { GAP_H: 90, GAP_SUB: 70, ROWH: 200, X0: 80, Y0: 150, GAP_OBJ: 50, MARGEN: 80 };
+export const LAYOUT = {
+  GAP_H: 90,
+  GAP_SUB: 70,
+  ROWH: 200,
+  X0: 80,
+  Y0: 150,
+  GAP_OBJ: 50,
+  MARGEN: 80,
+  BAND_MAX_WIDTH: 2100,
+  BAND_WRAP_MIN_ITEMS: 7,
+  BAND_WRAP_ROW_GAP: 120,
+  EXTERNAL_SIDE_MIN_COLUMN_HEIGHT: 520,
+  EXTERNAL_SIDE_COLUMN_GAP: 40,
+};
 
 /**
  * Versión declarada del motor de layout canónico (W5.3/L6, componente del
@@ -28,7 +41,7 @@ export const LAYOUT = { GAP_H: 90, GAP_SUB: 70, ROWH: 200, X0: 80, Y0: 150, GAP_
  * (protocolo re-pin del golden hd-opm); un bundle sellado con otra versión
  * reporta divergencia de procedencia sin tocar bytes.
  */
-export const LAYOUT_VERSION = "1";
+export const LAYOUT_VERSION = "2";
 const TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 const ESTRUCTURALES = new Set<TipoEnlace>(["agregacion", "exhibicion", "generalizacion", "clasificacion"]);
 
@@ -157,6 +170,8 @@ export function aplicarLayoutCompleto(modelo: Modelo, internosInzoom: Map<Id, Se
     const GV = 48;
     const cx0 = contorno.x, cy0 = contorno.y, W = contorno.width, H = contorno.height;
     const esSecuencial = new Set([...posSub.values()].map((p) => p.y)).size > 1;
+    const externosIds = new Set(externos.map((ap) => ap.entidadId));
+    const aparienciaPorEntidad = new Map(Object.values(opd.apariencias).map((ap) => [ap.entidadId, ap] as const));
     const items = externos.map((ap) => {
       const { zona, anchorEnt } = rolYAnchorExterno(opd, ap.entidadId, subIds);
       const a = anchorEnt ? posSub.get(anchorEnt) : undefined;
@@ -168,19 +183,97 @@ export function aplicarLayoutCompleto(modelo: Modelo, internosInzoom: Map<Id, Se
         vert: (zona === "top" || zona === "left" ? "top" : "bottom") as "top" | "bottom",
       };
     });
+    const itemPorEntidad = new Map(items.map((it) => [it.ap.entidadId, it] as const));
+    const adyacencias = new Map<Id, Set<Id>>();
+    const anclasEstructurales = new Map<Id, Array<{ x: number; y: number }>>();
+    for (const id of externosIds) adyacencias.set(id, new Set());
+    for (const ae of Object.values(opd.enlaces)) {
+      const e = modelo.enlaces[ae.enlaceId];
+      if (!e || !ESTRUCTURALES.has(e.tipo)) continue;
+      const o = entidadIdExtremo(e.origenId);
+      const d = entidadIdExtremo(e.destinoId);
+      if (!o || !d || o === d) continue;
+      const registrarAncla = (externoId: Id, contraparteId: Id) => {
+        const contraparte = aparienciaPorEntidad.get(contraparteId);
+        if (!contraparte || externosIds.has(contraparteId)) return;
+        const previas = anclasEstructurales.get(externoId) ?? [];
+        previas.push({ x: contraparte.x + contraparte.width / 2, y: contraparte.y + contraparte.height / 2 });
+        anclasEstructurales.set(externoId, previas);
+      };
+      if (externosIds.has(o)) registrarAncla(o, d);
+      if (externosIds.has(d)) registrarAncla(d, o);
+      if (!externosIds.has(o) || !externosIds.has(d)) continue;
+      adyacencias.get(o)!.add(d);
+      adyacencias.get(d)!.add(o);
+    }
+    for (const [entidadId, anclas] of anclasEstructurales.entries()) {
+      const item = itemPorEntidad.get(entidadId);
+      if (!item || anclas.length === 0) continue;
+      item.sx = anclas.reduce((acc, ancla) => acc + ancla.x, 0) / anclas.length;
+      item.sy = anclas.reduce((acc, ancla) => acc + ancla.y, 0) / anclas.length;
+    }
+    const visitados = new Set<Id>();
+    for (const id of externosIds) {
+      if (visitados.has(id)) continue;
+      const pila = [id];
+      const componente: Id[] = [];
+      visitados.add(id);
+      while (pila.length) {
+        const actual = pila.pop()!;
+        componente.push(actual);
+        for (const vecino of adyacencias.get(actual) ?? []) {
+          if (visitados.has(vecino)) continue;
+          visitados.add(vecino);
+          pila.push(vecino);
+        }
+      }
+      const agrupados = componente.map((entidadId) => itemPorEntidad.get(entidadId)).filter((it): it is NonNullable<typeof it> => Boolean(it));
+      if (agrupados.length <= 1) continue;
+      const sx = agrupados.reduce((acc, it) => acc + it.sx, 0) / agrupados.length;
+      const sy = agrupados.reduce((acc, it) => acc + it.sy, 0) / agrupados.length;
+      for (const it of agrupados) {
+        it.sx = sx;
+        it.sy = sy;
+      }
+    }
     if (esSecuencial) {
       for (const lado of ["left", "right"] as const) {
-        let cursor = cy0 - GV;
-        for (const it of items.filter((i) => i.lado === lado).sort((a, b) => a.sy - b.sy)) {
-          it.ap.y = Math.max(it.sy - it.ap.height / 2, cursor + GV);
-          it.ap.x = lado === "left" ? cx0 - M - it.ap.width : cx0 + W + M;
-          cursor = it.ap.y + it.ap.height;
+        const ordenados = items.filter((i) => i.lado === lado).sort((a, b) => a.sy - b.sy || a.sx - b.sx);
+        const columnas: typeof ordenados[] = [];
+        const altoDisponible = Math.max(1, H - 64);
+        let columna: typeof ordenados = [];
+        let altoColumna = 0;
+        for (const it of ordenados) {
+          const altoSiguiente = columna.length === 0 ? it.ap.height : altoColumna + GV + it.ap.height;
+          if (columna.length > 0 && altoSiguiente > altoDisponible) {
+            columnas.push(columna);
+            columna = [it];
+            altoColumna = it.ap.height;
+            continue;
+          }
+          columna.push(it);
+          altoColumna = altoSiguiente;
+        }
+        if (columna.length > 0) columnas.push(columna);
+        let offsetX = 0;
+        for (const col of columnas) {
+          const anchoColumna = Math.max(0, ...col.map((it) => it.ap.width));
+          const altoTotal = col.reduce((acc, it, indice) => acc + it.ap.height + (indice > 0 ? GV : 0), 0);
+          let y = cy0 + Math.max(32, (H - altoTotal) / 2);
+          for (const it of col) {
+            it.ap.y = y;
+            it.ap.x = lado === "left"
+              ? cx0 - M - offsetX - it.ap.width
+              : cx0 + W + M + offsetX;
+            y += it.ap.height + GV;
+          }
+          offsetX += anchoColumna + LAYOUT.EXTERNAL_SIDE_COLUMN_GAP;
         }
       }
     } else {
       for (const vert of ["top", "bottom"] as const) {
         let cursor = -Infinity;
-        for (const it of items.filter((i) => i.vert === vert).sort((a, b) => a.sx - b.sx)) {
+        for (const it of items.filter((i) => i.vert === vert).sort((a, b) => a.sx - b.sx || a.sy - b.sy)) {
           const x = Math.max(it.sx - it.ap.width / 2, cursor + LAYOUT.GAP_H);
           it.ap.x = x;
           it.ap.y = vert === "top" ? cy0 - M - it.ap.height : cy0 + H + M;
@@ -350,25 +443,41 @@ export function aplicarLayoutCompleto(modelo: Modelo, internosInzoom: Map<Id, Se
       const bandas: Apariencia[][] = Array.from({ length: Math.max(0, maxNivel + 1) }, () => []);
       for (const a of subs) bandas[nivelEf(a)]!.push(a);
       const posSub = new Map<Id, { x: number; y: number }>();
-      bandas.forEach((fila, b) => {
-        let x = LAYOUT.X0;
-        const y = LAYOUT.Y0 + b * LAYOUT.ROWH;
-        for (const a of fila) {
-          a.x = x;
-          a.y = y;
-          posSub.set(a.entidadId, { x, y });
-          x += a.width + LAYOUT.GAP_SUB;
+      const envolverBanda = (fila: Apariencia[]): Apariencia[][] => {
+        if (fila.length < LAYOUT.BAND_WRAP_MIN_ITEMS) return [fila];
+        const anchoTotal = fila.reduce((acc, a, indice) => acc + a.width + (indice > 0 ? LAYOUT.GAP_SUB : 0), 0);
+        if (anchoTotal <= LAYOUT.BAND_MAX_WIDTH) return [fila];
+        const cantidadFilas = Math.min(fila.length, Math.ceil(anchoTotal / LAYOUT.BAND_MAX_WIDTH));
+        const tamanoFila = Math.ceil(fila.length / cantidadFilas);
+        const filas: Apariencia[][] = [];
+        for (let inicio = 0; inicio < fila.length; inicio += tamanoFila) {
+          filas.push(fila.slice(inicio, inicio + tamanoFila));
         }
+        return filas;
+      };
+      const filasPorBanda = bandas.map(envolverBanda);
+      let yCursor = LAYOUT.Y0;
+      filasPorBanda.forEach((filas) => {
+        filas.forEach((fila, filaIndice) => {
+          let x = LAYOUT.X0;
+          const y = yCursor + filaIndice * LAYOUT.BAND_WRAP_ROW_GAP;
+          for (const a of fila) {
+            a.x = x;
+            a.y = y;
+            posSub.set(a.entidadId, { x, y });
+            x += a.width + LAYOUT.GAP_SUB;
+          }
+        });
+        yCursor += LAYOUT.ROWH + Math.max(0, filas.length - 1) * LAYOUT.BAND_WRAP_ROW_GAP;
       });
-
       const objsOrden = objs
         .map((o) => ({ o, subX: posSub.get(subConectadoDe(opd, o.entidadId, subIdSet))?.x ?? 1e9 }))
         .sort((p, q) => p.subX - q.subX)
         .map(({ o }) => o);
-      const maxBandLen = Math.max(0, ...bandas.map((f) => f.length));
+      const maxBandLen = Math.max(0, ...filasPorBanda.flat().map((f) => f.length));
       let spineRight = LAYOUT.X0;
       for (const a of subs) spineRight = Math.max(spineRight, a.x + a.width);
-      const spineBottom = LAYOUT.Y0 + (maxNivel + 1) * LAYOUT.ROWH;
+      const spineBottom = subs.length ? yCursor : LAYOUT.Y0;
       type Pos = { o: Apariencia; x: number; y: number };
       // (R26 fix F2 anti-aireado) dos estrategias; se elige por OPD la de contorno más chico.
       const filaAbajo = (): Pos[] => {
@@ -405,20 +514,37 @@ export function aplicarLayoutCompleto(modelo: Modelo, internosInzoom: Map<Id, Se
       for (const p of elegido) { p.o.x = p.x; p.o.y = p.y; }
 
       const externos = Object.values(opd.apariencias).filter((a) => a.id !== contorno.id && !internos.includes(a));
-      const esSecuencial = bandas.filter((f) => f.length).length > 1;
-      let hLadoMax = 0;
-      if (esSecuencial) {
-        const alt: Record<string, number> = { left: 0, right: 0 };
-        for (const e of externos) {
-          const z = rolYAnchorExterno(opd, e.entidadId, subIdSet).zona;
-          alt[z === "right" ? "right" : "left"]! += (e.height || 72) + 48;
-        }
-        hLadoMax = Math.max(alt.left!, alt.right!);
-      }
-
+      const esSecuencial = new Set([...posSub.values()].map((p) => p.y)).size > 1;
       const todos = [...subs, ...objs];
       const maxX = todos.length ? Math.max(...todos.map((a) => a.x + a.width)) : LAYOUT.X0 + 220;
       const maxY = todos.length ? Math.max(...todos.map((a) => a.y + a.height)) : LAYOUT.Y0 + 60;
+      let hLadoMax = 0;
+      if (esSecuencial) {
+        const altoBase = Math.max(maxY + LAYOUT.MARGEN - 30, 240);
+        const altoDisponible = Math.max(altoBase - 64, LAYOUT.EXTERNAL_SIDE_MIN_COLUMN_HEIGHT);
+        const porLado: Record<"left" | "right", Apariencia[]> = { left: [], right: [] };
+        for (const e of externos) {
+          const z = rolYAnchorExterno(opd, e.entidadId, subIdSet).zona;
+          porLado[z === "right" ? "right" : "left"]!.push(e);
+        }
+        const alturaColumnas = (apariencias: Apariencia[]): number => {
+          let maxColumna = 0;
+          let altoColumna = 0;
+          for (const ap of apariencias) {
+            const h = ap.height || 72;
+            const altoSiguiente = altoColumna === 0 ? h : altoColumna + 48 + h;
+            if (altoColumna > 0 && altoSiguiente > altoDisponible) {
+              maxColumna = Math.max(maxColumna, altoColumna);
+              altoColumna = h;
+              continue;
+            }
+            altoColumna = altoSiguiente;
+          }
+          return Math.max(maxColumna, altoColumna);
+        };
+        hLadoMax = Math.max(alturaColumnas(porLado.left), alturaColumnas(porLado.right));
+      }
+
       contorno.x = 40;
       contorno.y = 30;
       contorno.width = Math.max(maxX + LAYOUT.MARGEN - 40, 420);

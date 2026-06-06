@@ -26,6 +26,18 @@ describe("refinamiento OPL", () => {
     expect(oracionRefinamiento(modelo, apariencia, padre)).toBe("*Atender* se descompone en paralelo *A* y *B*.");
   });
 
+  test("fallback sin internos usa codigo canonico del OPD hijo, no titulo humano", () => {
+    const modelo = modeloRefinamiento("descomposicion");
+    modelo.opds.hijo!.nombre = "Detalle humano";
+    modelo.opds.hijo!.apariencias = {
+      contorno: { id: "contorno", entidadId: "padre", opdId: "hijo", x: 0, y: 0, width: 300, height: 200 },
+    };
+    const padre = modelo.entidades.padre!;
+    const apariencia = modelo.opds.opd!.apariencias.ap!;
+
+    expect(oracionRefinamiento(modelo, apariencia, padre)).toBe("*Atender* se descompone en SD1.");
+  });
+
   test("oracionParalelo emite ocurren en paralelo", () => {
     expect(oracionParalelo([modeloRefinamiento("descomposicion").entidades.a!, modeloRefinamiento("descomposicion").entidades.b!])).toBe("*A* y *B* ocurren en paralelo.");
   });

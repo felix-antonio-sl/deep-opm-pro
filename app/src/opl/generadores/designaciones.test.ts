@@ -20,6 +20,6 @@ describe("designaciones OPL", () => {
 
   test("oracionDesignacionEstado usa nombre OPL de entidad", () => {
     const estado: Estado = { id: "s1", entidadId: "e1", nombre: "pendiente" };
-    expect(oracionDesignacionEstado(estado, entidad, "inicial")).toBe("**Pedido** en `pendiente` es inicial.");
+    expect(oracionDesignacionEstado(estado, entidad, "inicial")).toBe("Estado `pendiente` de **Pedido** es inicial.");
   });
 });

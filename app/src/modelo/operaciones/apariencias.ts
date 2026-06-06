@@ -1,9 +1,10 @@
 import { contenedorRefinamiento, encajarAparienciaEnContorno, encajarCajaAparienciaEnContorno } from "../layout";
 import { CANON } from "../constantes";
+import { normalizarPosicionLabelEnlace } from "../etiquetasEnlace";
+import { RESIZE_MIN, clampValor } from "../geometria";
 import { formatearNombreCompuesto } from "../objetoMetadata";
 import { mismosAnclajesSimbolo, normalizarAnclajesSimbolo } from "../simboloEstructural";
 import type { AnclajesSimboloEstructural, Apariencia, Id, Modelo, Posicion, PosicionLabelEnlace, Resultado } from "../tipos";
-import { RESIZE_MIN, clampValor } from "../../canvas/grid";
 import { aparienciaEsInternaDeRefinamiento } from "../contextoRefinamiento";
 import { fallo, ok } from "./helpers";
 import { refrescarEnlacesExternosDerivados } from "./refinamiento";
@@ -233,7 +234,7 @@ export function actualizarPosicionLabelEnlace(
   if (!apariencia) return fallo(`Apariencia de enlace no existe: ${aparienciaEnlaceId}`);
   const key = labelKey.trim();
   if (!key) return fallo("Label de enlace inválido");
-  const normalizada = normalizarPosicionLabel(posicion);
+  const normalizada = normalizarPosicionLabelEnlace(posicion);
   if (!normalizada) return fallo("Posición de label inválida");
   const previas = apariencia.labelPositions ?? {};
   if (mismaPosicionLabel(previas[key], normalizada)) return ok(modelo);
@@ -381,28 +382,6 @@ function mismosVertices(a: Posicion[], b: Posicion[]): boolean {
   return a.length === b.length && a.every((vertice, index) => vertice.x === b[index]?.x && vertice.y === b[index]?.y);
 }
 
-function normalizarPosicionLabel(posicion: PosicionLabelEnlace): PosicionLabelEnlace | null {
-  if (!Number.isFinite(posicion.distance)) return null;
-  const normalizada: PosicionLabelEnlace = {
-    distance: redondearLabel(posicion.distance),
-  };
-  if (typeof posicion.offset === "number") {
-    if (!Number.isFinite(posicion.offset)) return null;
-    normalizada.offset = redondearLabel(posicion.offset);
-  } else if (posicion.offset) {
-    if (!Number.isFinite(posicion.offset.x) || !Number.isFinite(posicion.offset.y)) return null;
-    normalizada.offset = {
-      x: redondearLabel(posicion.offset.x),
-      y: redondearLabel(posicion.offset.y),
-    };
-  }
-  if (posicion.angle !== undefined) {
-    if (!Number.isFinite(posicion.angle)) return null;
-    normalizada.angle = redondearLabel(posicion.angle);
-  }
-  return normalizada;
-}
-
 function mismaPosicionLabel(a: PosicionLabelEnlace | undefined, b: PosicionLabelEnlace): boolean {
   if (!a) return false;
   return a.distance === b.distance && mismoOffsetLabel(a.offset, b.offset) && a.angle === b.angle;
@@ -412,10 +391,6 @@ function mismoOffsetLabel(a: PosicionLabelEnlace["offset"], b: PosicionLabelEnla
   if (a === undefined || b === undefined) return a === b;
   if (typeof a === "number" || typeof b === "number") return a === b;
   return a.x === b.x && a.y === b.y;
-}
-
-function redondearLabel(valor: number): number {
-  return Math.round(valor * 1000) / 1000;
 }
 
 function tamanoAjustadoAlTexto(texto: string): { width: number; height: number } {

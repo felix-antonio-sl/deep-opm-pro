@@ -65,6 +65,7 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkEstadoNombreCanonico(modelo),
     ...checkObjetoNombreSingular(modelo),
     ...checkObjetoAmbientalSinContornoDiscontinuo(modelo),
+    ...checkDescomposicionSinSubprocesos(modelo),
     ...checkInzoomContenido(modelo),
     ...checkInzoomNombresPlaceholderHijos(modelo),
     ...checkUnfoldContenido(modelo),
@@ -124,6 +125,28 @@ export function checkRecursoLinealMultiplesConsumidores(modelo: Modelo): AvisoMe
       ],
     } satisfies AvisoMetodologico;
   });
+}
+
+/**
+ * Refinamiento trivial: un proceso con descomposición formal cuyo OPD hijo no
+ * agrega ningun subproceso interno. Metodologicamente es distinto de "menos de
+ * dos cosas": puede haber objetos contextuales, pero si no aparece ningun
+ * proceso refinador el in-zoom no explica comportamiento.
+ */
+export function checkDescomposicionSinSubprocesos(modelo: Modelo): AvisoMetodologico[] {
+  return procesos(modelo)
+    .filter((proceso) => obtenerRefinamiento(proceso, "descomposicion") !== undefined)
+    .filter((proceso) => cantidadSubprocesosEnDescomposicion(modelo, proceso) === 0)
+    .map((proceso) => avisoConOpdRefinamiento(modelo, "DESCOMPOSICION_SIN_SUBPROCESOS", proceso, "descomposicion", {
+      severidad: "advertencia",
+      mensaje: `La descomposición de "${proceso.nombre}" no agrega subprocesos. Un in-zoom de proceso debe descomponer comportamiento; si este OPD solo navega contexto, conviértelo en vista navegacional sin refinamiento formal.`,
+      rationale: "Un refinamiento por descomposicion de proceso debe aportar subprocesos internos; un hijo sin subprocesos es refinamiento trivial.",
+      ssotRef: `${KB_METODO} §7.1 / ${KB_REGLAS} LF-19`,
+      accionesSugeridas: [
+        "Agrega al menos dos subprocesos internos que refinen el comportamiento del proceso.",
+        "Si el OPD solo agrupa contexto o evidencia, elimina el refDescomp formal y úsalo como OPD/vista navegacional.",
+      ],
+    }));
 }
 
 export function checkEstadoNombreCanonico(modelo: Modelo): AvisoMetodologico[] {
@@ -209,6 +232,7 @@ export function checkObjetoAmbientalSinContornoDiscontinuo(modelo: Modelo): Avis
 export function checkInzoomContenido(modelo: Modelo): AvisoMetodologico[] {
   return Object.values(modelo.entidades)
     .filter((entidad) => obtenerRefinamiento(entidad, "descomposicion") !== undefined)
+    .filter((entidad) => !(entidad.tipo === "proceso" && cantidadSubprocesosEnDescomposicion(modelo, entidad) === 0))
     .filter((entidad) => cantidadCosasEnOpdHijo(modelo, entidad, "descomposicion") < 2)
     .map((entidad) => avisoConOpdRefinamiento(modelo, "INZOOM_CONTENIDO_INSUFICIENTE", entidad, "descomposicion", {
       severidad: "advertencia",
@@ -437,6 +461,20 @@ function cantidadCosasEnOpdHijo(modelo: Modelo, entidad: Entidad, tipo: TipoRefi
     if (apariencia.entidadId !== entidad.id && modelo.entidades[apariencia.entidadId]) {
       ids.add(apariencia.entidadId);
     }
+  }
+  return ids.size;
+}
+
+function cantidadSubprocesosEnDescomposicion(modelo: Modelo, entidad: Entidad): number {
+  const opdId = obtenerRefinamiento(entidad, "descomposicion")?.opdId;
+  const opd = opdId ? modelo.opds[opdId] : undefined;
+  if (!opd) return 0;
+  const ids = new Set<Id>();
+  for (const apariencia of Object.values(opd.apariencias)) {
+    if (apariencia.entidadId === entidad.id) continue;
+    if (apariencia.contextoRefinamiento?.rol === "externo") continue;
+    const hijo = modelo.entidades[apariencia.entidadId];
+    if (hijo?.tipo === "proceso") ids.add(hijo.id);
   }
   return ids.size;
 }
