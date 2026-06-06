@@ -1,0 +1,2423 @@
+{
+  "formato": "deep-opm-pro.modelo.v0",
+  "modelo": {
+    "id": "modelo-simulacion-lab-complejo",
+    "nombre": "Laboratorio complejo de simulacion OPM",
+    "opdRaizId": "opd-sd",
+    "entidades": {
+      "o-orden": {
+        "id": "o-orden",
+        "tipo": "objeto",
+        "nombre": "Orden de despacho",
+        "esencia": "informacional",
+        "afiliacion": "sistemica",
+        "descripcion": "Solicitud operativa que cambia de estado hasta cierre."
+      },
+      "o-paquete": {
+        "id": "o-paquete",
+        "tipo": "objeto",
+        "nombre": "Paquete fisico",
+        "esencia": "fisica",
+        "afiliacion": "sistemica",
+        "descripcion": "Unidad material preparada, transportada y entregada."
+      },
+      "o-riesgo": {
+        "id": "o-riesgo",
+        "tipo": "objeto",
+        "nombre": "Riesgo operativo",
+        "esencia": "informacional",
+        "afiliacion": "sistemica",
+        "descripcion": "Estado de excepcion que puede activar escalamiento."
+      },
+      "o-coordinador": {
+        "id": "o-coordinador",
+        "tipo": "objeto",
+        "nombre": "Coordinador logistico",
+        "esencia": "fisica",
+        "afiliacion": "sistemica",
+        "descripcion": "Agente responsable de decisiones operativas."
+      },
+      "o-wms": {
+        "id": "o-wms",
+        "tipo": "objeto",
+        "nombre": "Plataforma WMS",
+        "esencia": "informacional",
+        "afiliacion": "sistemica",
+        "descripcion": "Instrumento informacional usado para validar, priorizar y registrar."
+      },
+      "o-vehiculo": {
+        "id": "o-vehiculo",
+        "tipo": "objeto",
+        "nombre": "Vehiculo asignado",
+        "esencia": "fisica",
+        "afiliacion": "sistemica",
+        "descripcion": "Instrumento fisico que ejecuta el transporte."
+      },
+      "o-cliente": {
+        "id": "o-cliente",
+        "tipo": "objeto",
+        "nombre": "Cliente receptor",
+        "esencia": "fisica",
+        "afiliacion": "ambiental",
+        "descripcion": "Actor ambiental que confirma la recepcion."
+      },
+      "p-orquestar": {
+        "id": "p-orquestar",
+        "tipo": "proceso",
+        "nombre": "Orquestar despacho critico",
+        "esencia": "informacional",
+        "afiliacion": "sistemica",
+        "refinamientos": {
+          "descomposicion": {
+            "opdId": "opd-orquestacion"
+          }
+        },
+        "descripcion": "Proceso raiz descompuesto en pasos simulables."
+      },
+      "o-prioridad-solicitada": {
+        "id": "o-prioridad-solicitada",
+        "tipo": "objeto",
+        "nombre": "Prioridad solicitada",
+        "esencia": "informacional",
+        "afiliacion": "sistemica",
+        "esAtributo": true,
+        "valorSlot": {
+          "tipo": "integer",
+          "placeholder": "value",
+          "valor": 4
+        },
+        "simulacion": {
+          "simulable": true,
+          "configuracion": {
+            "modo": "numerica",
+            "distribucion": "uniform",
+            "entero": true,
+            "uniformMin": 1,
+            "uniformMax": 5
+          }
+        },
+        "descripcion": "Valor inicial usado por el WMS para asignar prioridad."
+      },
+      "o-prioridad-asignada": {
+        "id": "o-prioridad-asignada",
+        "tipo": "objeto",
+        "nombre": "Prioridad asignada",
+        "esencia": "informacional",
+        "afiliacion": "sistemica",
+        "esAtributo": true,
+        "valorSlot": {
+          "tipo": "integer",
+          "placeholder": "value",
+          "valor": 0
+        },
+        "descripcion": "Valor runtime producido por el calculo de prioridad."
+      },
+      "p-validar": {
+        "id": "p-validar",
+        "tipo": "proceso",
+        "nombre": "Validar orden recibida",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "p-calcular": {
+        "id": "p-calcular",
+        "tipo": "proceso",
+        "nombre": "Calcular prioridad operativa",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "p-autorizar": {
+        "id": "p-autorizar",
+        "tipo": "proceso",
+        "nombre": "Autorizar cumplimiento por ruta",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "p-investigar-rechazo": {
+        "id": "p-investigar-rechazo",
+        "tipo": "proceso",
+        "nombre": "Investigar rechazo",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "p-preparar": {
+        "id": "p-preparar",
+        "tipo": "proceso",
+        "nombre": "Preparar paquete fisico",
+        "esencia": "fisica",
+        "afiliacion": "sistemica"
+      },
+      "p-elegir": {
+        "id": "p-elegir",
+        "tipo": "proceso",
+        "nombre": "Elegir modo de despacho",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "p-transportar": {
+        "id": "p-transportar",
+        "tipo": "proceso",
+        "nombre": "Transportar paquete",
+        "esencia": "fisica",
+        "afiliacion": "sistemica"
+      },
+      "p-gestionar-demora": {
+        "id": "p-gestionar-demora",
+        "tipo": "proceso",
+        "nombre": "Gestionar demora",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "p-escalar": {
+        "id": "p-escalar",
+        "tipo": "proceso",
+        "nombre": "Escalar riesgo operativo",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "p-confirmar": {
+        "id": "p-confirmar",
+        "tipo": "proceso",
+        "nombre": "Confirmar recepcion",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "p-cerrar": {
+        "id": "p-cerrar",
+        "tipo": "proceso",
+        "nombre": "Cerrar orden de despacho",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      }
+    },
+    "estados": {
+      "s-orden-recibida": {
+        "id": "s-orden-recibida",
+        "entidadId": "o-orden",
+        "nombre": "recibida",
+        "esInicial": true,
+        "designaciones": [
+          "inicial",
+          "current"
+        ],
+        "orden": 0
+      },
+      "s-orden-validada": {
+        "id": "s-orden-validada",
+        "entidadId": "o-orden",
+        "nombre": "validada",
+        "orden": 1
+      },
+      "s-orden-rechazada": {
+        "id": "s-orden-rechazada",
+        "entidadId": "o-orden",
+        "nombre": "rechazada",
+        "orden": 2
+      },
+      "s-orden-priorizada": {
+        "id": "s-orden-priorizada",
+        "entidadId": "o-orden",
+        "nombre": "priorizada",
+        "orden": 3
+      },
+      "s-orden-reservada": {
+        "id": "s-orden-reservada",
+        "entidadId": "o-orden",
+        "nombre": "reservada",
+        "duracion": {
+          "unidad": "min",
+          "min": 10,
+          "nominal": 15,
+          "max": 25
+        },
+        "orden": 4
+      },
+      "s-orden-preparada": {
+        "id": "s-orden-preparada",
+        "entidadId": "o-orden",
+        "nombre": "preparada",
+        "duracion": {
+          "unidad": "min",
+          "min": 20,
+          "nominal": 30,
+          "max": 45
+        },
+        "orden": 5
+      },
+      "s-orden-despachada-express": {
+        "id": "s-orden-despachada-express",
+        "entidadId": "o-orden",
+        "nombre": "despachada express",
+        "orden": 6
+      },
+      "s-orden-despachada-estandar": {
+        "id": "s-orden-despachada-estandar",
+        "entidadId": "o-orden",
+        "nombre": "despachada estandar",
+        "orden": 7
+      },
+      "s-orden-cerrada": {
+        "id": "s-orden-cerrada",
+        "entidadId": "o-orden",
+        "nombre": "cerrada",
+        "esFinal": true,
+        "designaciones": [
+          "final"
+        ],
+        "orden": 8
+      },
+      "s-paquete-pendiente-de-armado": {
+        "id": "s-paquete-pendiente-de-armado",
+        "entidadId": "o-paquete",
+        "nombre": "pendiente de armado",
+        "esInicial": true,
+        "designaciones": [
+          "inicial",
+          "current"
+        ],
+        "orden": 0
+      },
+      "s-paquete-armado": {
+        "id": "s-paquete-armado",
+        "entidadId": "o-paquete",
+        "nombre": "armado",
+        "orden": 1
+      },
+      "s-paquete-en-transito": {
+        "id": "s-paquete-en-transito",
+        "entidadId": "o-paquete",
+        "nombre": "en transito",
+        "duracion": {
+          "unidad": "h",
+          "min": 3,
+          "nominal": 4,
+          "max": 6
+        },
+        "orden": 2
+      },
+      "s-paquete-entregado": {
+        "id": "s-paquete-entregado",
+        "entidadId": "o-paquete",
+        "nombre": "entregado",
+        "esFinal": true,
+        "designaciones": [
+          "final"
+        ],
+        "orden": 3
+      },
+      "s-riesgo-normal": {
+        "id": "s-riesgo-normal",
+        "entidadId": "o-riesgo",
+        "nombre": "normal",
+        "esInicial": true,
+        "designaciones": [
+          "inicial",
+          "current"
+        ],
+        "orden": 0
+      },
+      "s-riesgo-demora-detectada": {
+        "id": "s-riesgo-demora-detectada",
+        "entidadId": "o-riesgo",
+        "nombre": "demora detectada",
+        "orden": 1
+      },
+      "s-riesgo-escalado": {
+        "id": "s-riesgo-escalado",
+        "entidadId": "o-riesgo",
+        "nombre": "escalado",
+        "esFinal": true,
+        "designaciones": [
+          "final"
+        ],
+        "orden": 2
+      }
+    },
+    "nextSeq": 10001,
+    "opds": {
+      "opd-sd": {
+        "id": "opd-sd",
+        "nombre": "SD - Laboratorio de despacho critico",
+        "padreId": null,
+        "apariencias": {
+          "a-1": {
+            "id": "a-1",
+            "entidadId": "o-orden",
+            "opdId": "opd-sd",
+            "x": 2697,
+            "y": 2455,
+            "width": 820,
+            "height": 120,
+            "modoPlegado": "completo",
+            "ports": {
+              "port-e-1-origen": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-2-origen": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-3-destino": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-10-origen": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-11-origen": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          },
+          "a-2": {
+            "id": "a-2",
+            "entidadId": "p-orquestar",
+            "opdId": "opd-sd",
+            "x": 3677,
+            "y": 2535,
+            "width": 260,
+            "height": 120,
+            "modoPlegado": "completo",
+            "ports": {
+              "port-e-1-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-2-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-3-origen": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-4-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-5-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-6-origen": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-7-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-8-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-9-destino": {
+                "x": 1,
+                "y": 0
+              }
+            }
+          },
+          "a-3": {
+            "id": "a-3",
+            "entidadId": "o-paquete",
+            "opdId": "opd-sd",
+            "x": 3069,
+            "y": 2625,
+            "width": 448,
+            "height": 110,
+            "modoPlegado": "completo",
+            "ports": {
+              "port-e-4-origen": {
+                "x": 1,
+                "y": 0
+              },
+              "port-e-5-origen": {
+                "x": 1,
+                "y": 0
+              },
+              "port-e-6-destino": {
+                "x": 1,
+                "y": 0
+              },
+              "port-e-12-origen": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          },
+          "a-4": {
+            "id": "a-4",
+            "entidadId": "o-riesgo",
+            "opdId": "opd-sd",
+            "x": 3111,
+            "y": 2815,
+            "width": 312,
+            "height": 100,
+            "modoPlegado": "completo"
+          },
+          "a-5": {
+            "id": "a-5",
+            "entidadId": "o-coordinador",
+            "opdId": "opd-sd",
+            "x": 3577,
+            "y": 2285,
+            "width": 190,
+            "height": 90,
+            "modoPlegado": "completo",
+            "ports": {
+              "port-e-7-origen": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          },
+          "a-6": {
+            "id": "a-6",
+            "entidadId": "o-wms",
+            "opdId": "opd-sd",
+            "x": 3503,
+            "y": 2815,
+            "width": 190,
+            "height": 90,
+            "modoPlegado": "completo",
+            "ports": {
+              "port-e-8-origen": {
+                "x": 1,
+                "y": 0
+              }
+            }
+          },
+          "a-7": {
+            "id": "a-7",
+            "entidadId": "o-vehiculo",
+            "opdId": "opd-sd",
+            "x": 3773,
+            "y": 2815,
+            "width": 190,
+            "height": 90,
+            "modoPlegado": "completo",
+            "ports": {
+              "port-e-12-destino": {
+                "x": 0,
+                "y": 0
+              }
+            }
+          },
+          "a-8": {
+            "id": "a-8",
+            "entidadId": "o-prioridad-solicitada",
+            "opdId": "opd-sd",
+            "x": 4043,
+            "y": 2815,
+            "width": 190,
+            "height": 80,
+            "modoPlegado": "completo",
+            "ports": {
+              "port-e-10-destino": {
+                "x": 0,
+                "y": 0
+              }
+            }
+          },
+          "a-9": {
+            "id": "a-9",
+            "entidadId": "o-prioridad-asignada",
+            "opdId": "opd-sd",
+            "x": 4313,
+            "y": 2815,
+            "width": 190,
+            "height": 80,
+            "modoPlegado": "completo",
+            "ports": {
+              "port-e-11-destino": {
+                "x": 0,
+                "y": 0
+              }
+            }
+          },
+          "a-10": {
+            "id": "a-10",
+            "entidadId": "o-cliente",
+            "opdId": "opd-sd",
+            "x": 3847,
+            "y": 2285,
+            "width": 190,
+            "height": 90,
+            "modoPlegado": "completo",
+            "ports": {
+              "port-e-9-origen": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          }
+        },
+        "enlaces": {
+          "ae-1": {
+            "id": "ae-1",
+            "enlaceId": "e-1",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-2": {
+            "id": "ae-2",
+            "enlaceId": "e-2",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-3": {
+            "id": "ae-3",
+            "enlaceId": "e-3",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-4": {
+            "id": "ae-4",
+            "enlaceId": "e-4",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-5": {
+            "id": "ae-5",
+            "enlaceId": "e-5",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-6": {
+            "id": "ae-6",
+            "enlaceId": "e-6",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-7": {
+            "id": "ae-7",
+            "enlaceId": "e-7",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-8": {
+            "id": "ae-8",
+            "enlaceId": "e-8",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-9": {
+            "id": "ae-9",
+            "enlaceId": "e-9",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-13": {
+            "id": "ae-13",
+            "enlaceId": "e-10",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-14": {
+            "id": "ae-14",
+            "enlaceId": "e-11",
+            "opdId": "opd-sd",
+            "vertices": []
+          },
+          "ae-15": {
+            "id": "ae-15",
+            "enlaceId": "e-12",
+            "opdId": "opd-sd",
+            "vertices": []
+          }
+        },
+        "ordenLocal": 0
+      },
+      "opd-orquestacion": {
+        "id": "opd-orquestacion",
+        "nombre": "SD1 - Orquestacion simulable del despacho critico",
+        "padreId": "opd-sd",
+        "apariencias": {
+          "a-11": {
+            "id": "a-11",
+            "entidadId": "p-orquestar",
+            "opdId": "opd-orquestacion",
+            "x": 3448.5,
+            "y": 2339,
+            "width": 1773,
+            "height": 522,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "contorno"
+            }
+          },
+          "a-12": {
+            "id": "a-12",
+            "entidadId": "o-orden",
+            "opdId": "opd-orquestacion",
+            "x": 2508.5,
+            "y": 2668,
+            "width": 820,
+            "height": 132,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-10-origen": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-11-origen": {
+                "x": 1,
+                "y": 0.1
+              }
+            }
+          },
+          "a-13": {
+            "id": "a-13",
+            "entidadId": "o-paquete",
+            "opdId": "opd-orquestacion",
+            "x": 2020.5,
+            "y": 2537,
+            "width": 448,
+            "height": 120,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-12-origen": {
+                "x": 0.7879464285714286,
+                "y": 1
+              }
+            }
+          },
+          "a-14": {
+            "id": "a-14",
+            "entidadId": "o-riesgo",
+            "opdId": "opd-orquestacion",
+            "x": 1668.5,
+            "y": 2479,
+            "width": 312,
+            "height": 108,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-11"
+            }
+          },
+          "a-15": {
+            "id": "a-15",
+            "entidadId": "o-prioridad-solicitada",
+            "opdId": "opd-orquestacion",
+            "x": 2278.5,
+            "y": 2409,
+            "width": 190,
+            "height": 80,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-10-destino": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-31-origen": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          },
+          "a-16": {
+            "id": "a-16",
+            "entidadId": "o-prioridad-asignada",
+            "opdId": "opd-orquestacion",
+            "x": 5341.5,
+            "y": 2560,
+            "width": 190,
+            "height": 80,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-11-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-32-destino": {
+                "x": 0,
+                "y": 0
+              }
+            }
+          },
+          "a-17": {
+            "id": "a-17",
+            "entidadId": "o-coordinador",
+            "opdId": "opd-orquestacion",
+            "x": 3138.5,
+            "y": 2400,
+            "width": 190,
+            "height": 86,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-13-origen": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-15-origen": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-17-origen": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-19-origen": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-21-origen": {
+                "x": 1,
+                "y": 1
+              },
+              "port-e-23-origen": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          },
+          "a-18": {
+            "id": "a-18",
+            "entidadId": "o-wms",
+            "opdId": "opd-orquestacion",
+            "x": 3138.5,
+            "y": 2534,
+            "width": 190,
+            "height": 86,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-14-origen": {
+                "x": 1,
+                "y": 0
+              },
+              "port-e-16-origen": {
+                "x": 1,
+                "y": 0
+              },
+              "port-e-18-origen": {
+                "x": 1,
+                "y": 0
+              },
+              "port-e-20-origen": {
+                "x": 1,
+                "y": 0
+              },
+              "port-e-22-origen": {
+                "x": 1,
+                "y": 0
+              },
+              "port-e-24-origen": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          },
+          "a-19": {
+            "id": "a-19",
+            "entidadId": "o-vehiculo",
+            "opdId": "opd-orquestacion",
+            "x": 2278.5,
+            "y": 2705,
+            "width": 190,
+            "height": 86,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-12-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-25-origen": {
+                "x": 1,
+                "y": 0
+              }
+            }
+          },
+          "a-20": {
+            "id": "a-20",
+            "entidadId": "o-cliente",
+            "opdId": "opd-orquestacion",
+            "x": 1790.5,
+            "y": 2635,
+            "width": 190,
+            "height": 86,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "externo",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-26-origen": {
+                "x": 1,
+                "y": 0
+              }
+            }
+          },
+          "a-21": {
+            "id": "a-21",
+            "entidadId": "p-validar",
+            "opdId": "opd-orquestacion",
+            "x": 460,
+            "y": 120,
+            "width": 197,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-13-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-14-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-27-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-28-origen": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          },
+          "a-22": {
+            "id": "a-22",
+            "entidadId": "p-calcular",
+            "opdId": "opd-orquestacion",
+            "x": 460,
+            "y": 300,
+            "width": 242,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-15-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-16-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-29-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-30-origen": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-31-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-32-origen": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          },
+          "a-23": {
+            "id": "a-23",
+            "entidadId": "p-autorizar",
+            "opdId": "opd-orquestacion",
+            "x": 460,
+            "y": 420,
+            "width": 264,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-17-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-18-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-35-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-36-origen": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-37-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-38-origen": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          },
+          "a-24": {
+            "id": "a-24",
+            "entidadId": "p-investigar-rechazo",
+            "opdId": "opd-orquestacion",
+            "x": 760,
+            "y": 210,
+            "width": 190,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-19-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-20-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-33-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-34-origen": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          },
+          "a-25": {
+            "id": "a-25",
+            "entidadId": "p-preparar",
+            "opdId": "opd-orquestacion",
+            "x": 460,
+            "y": 560,
+            "width": 205,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-39-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-40-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-41-origen": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          },
+          "a-26": {
+            "id": "a-26",
+            "entidadId": "p-elegir",
+            "opdId": "opd-orquestacion",
+            "x": 460,
+            "y": 680,
+            "width": 205,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-21-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-22-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-42-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-fan-p-elegir-origen-1": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          },
+          "a-27": {
+            "id": "a-27",
+            "entidadId": "p-transportar",
+            "opdId": "opd-orquestacion",
+            "x": 460,
+            "y": 800,
+            "width": 190,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-25-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-45-destino": {
+                "x": 0,
+                "y": 0.21951219512195122
+              },
+              "port-e-46-origen": {
+                "x": 0,
+                "y": 0.21951219512195122
+              },
+              "port-e-47-origen": {
+                "x": 1,
+                "y": 0.5
+              }
+            }
+          },
+          "a-28": {
+            "id": "a-28",
+            "entidadId": "p-gestionar-demora",
+            "opdId": "opd-orquestacion",
+            "x": 760,
+            "y": 900,
+            "width": 190,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-47-destino": {
+                "x": 0,
+                "y": 0.5
+              },
+              "port-e-48-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-49-origen": {
+                "x": 0,
+                "y": 0
+              }
+            }
+          },
+          "a-29": {
+            "id": "a-29",
+            "entidadId": "p-escalar",
+            "opdId": "opd-orquestacion",
+            "x": 760,
+            "y": 1020,
+            "width": 212,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-50-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-51-origen": {
+                "x": 0,
+                "y": 0
+              }
+            }
+          },
+          "a-30": {
+            "id": "a-30",
+            "entidadId": "p-confirmar",
+            "opdId": "opd-orquestacion",
+            "x": 460,
+            "y": 1140,
+            "width": 190,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-26-destino": {
+                "x": 0,
+                "y": 1
+              },
+              "port-e-52-destino": {
+                "x": 0,
+                "y": 0.21951219512195122
+              },
+              "port-e-53-origen": {
+                "x": 0,
+                "y": 0.21951219512195122
+              }
+            }
+          },
+          "a-31": {
+            "id": "a-31",
+            "entidadId": "p-cerrar",
+            "opdId": "opd-orquestacion",
+            "x": 760,
+            "y": 1260,
+            "width": 212,
+            "height": 82,
+            "modoPlegado": "completo",
+            "contextoRefinamiento": {
+              "tipo": "descomposicion",
+              "refinableEntidadId": "p-orquestar",
+              "rol": "interno",
+              "contenedorAparienciaId": "a-11"
+            },
+            "ports": {
+              "port-e-23-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-24-destino": {
+                "x": 0,
+                "y": 0
+              },
+              "port-e-54-destino": {
+                "x": 0,
+                "y": 0.21951219512195122
+              },
+              "port-e-55-origen": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          }
+        },
+        "enlaces": {
+          "ae-10": {
+            "id": "ae-10",
+            "enlaceId": "e-10",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-11": {
+            "id": "ae-11",
+            "enlaceId": "e-11",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-12": {
+            "id": "ae-12",
+            "enlaceId": "e-12",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-16": {
+            "id": "ae-16",
+            "enlaceId": "e-13",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-17": {
+            "id": "ae-17",
+            "enlaceId": "e-14",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-18": {
+            "id": "ae-18",
+            "enlaceId": "e-15",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-19": {
+            "id": "ae-19",
+            "enlaceId": "e-16",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-20": {
+            "id": "ae-20",
+            "enlaceId": "e-17",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-21": {
+            "id": "ae-21",
+            "enlaceId": "e-18",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-22": {
+            "id": "ae-22",
+            "enlaceId": "e-19",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-23": {
+            "id": "ae-23",
+            "enlaceId": "e-20",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-24": {
+            "id": "ae-24",
+            "enlaceId": "e-21",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-25": {
+            "id": "ae-25",
+            "enlaceId": "e-22",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-26": {
+            "id": "ae-26",
+            "enlaceId": "e-23",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-27": {
+            "id": "ae-27",
+            "enlaceId": "e-24",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-28": {
+            "id": "ae-28",
+            "enlaceId": "e-25",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-29": {
+            "id": "ae-29",
+            "enlaceId": "e-26",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-30": {
+            "id": "ae-30",
+            "enlaceId": "e-27",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-31": {
+            "id": "ae-31",
+            "enlaceId": "e-28",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-32": {
+            "id": "ae-32",
+            "enlaceId": "e-29",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-33": {
+            "id": "ae-33",
+            "enlaceId": "e-30",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-34": {
+            "id": "ae-34",
+            "enlaceId": "e-31",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-35": {
+            "id": "ae-35",
+            "enlaceId": "e-32",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-36": {
+            "id": "ae-36",
+            "enlaceId": "e-33",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-37": {
+            "id": "ae-37",
+            "enlaceId": "e-34",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-38": {
+            "id": "ae-38",
+            "enlaceId": "e-35",
+            "opdId": "opd-orquestacion",
+            "vertices": [],
+            "labelPositions": {
+              "etiqueta": {
+                "distance": 0.35,
+                "offset": {
+                  "x": -18,
+                  "y": -16
+                }
+              }
+            }
+          },
+          "ae-39": {
+            "id": "ae-39",
+            "enlaceId": "e-36",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-40": {
+            "id": "ae-40",
+            "enlaceId": "e-37",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-41": {
+            "id": "ae-41",
+            "enlaceId": "e-38",
+            "opdId": "opd-orquestacion",
+            "vertices": [],
+            "labelPositions": {
+              "etiqueta": {
+                "distance": 0.65,
+                "offset": {
+                  "x": 18,
+                  "y": 16
+                }
+              }
+            }
+          },
+          "ae-42": {
+            "id": "ae-42",
+            "enlaceId": "e-39",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-43": {
+            "id": "ae-43",
+            "enlaceId": "e-40",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-44": {
+            "id": "ae-44",
+            "enlaceId": "e-41",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-45": {
+            "id": "ae-45",
+            "enlaceId": "e-42",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-46": {
+            "id": "ae-46",
+            "enlaceId": "e-43",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-47": {
+            "id": "ae-47",
+            "enlaceId": "e-44",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-48": {
+            "id": "ae-48",
+            "enlaceId": "e-45",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-49": {
+            "id": "ae-49",
+            "enlaceId": "e-46",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-50": {
+            "id": "ae-50",
+            "enlaceId": "e-47",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-51": {
+            "id": "ae-51",
+            "enlaceId": "e-48",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-52": {
+            "id": "ae-52",
+            "enlaceId": "e-49",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-53": {
+            "id": "ae-53",
+            "enlaceId": "e-50",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-54": {
+            "id": "ae-54",
+            "enlaceId": "e-51",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-55": {
+            "id": "ae-55",
+            "enlaceId": "e-52",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-56": {
+            "id": "ae-56",
+            "enlaceId": "e-53",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-57": {
+            "id": "ae-57",
+            "enlaceId": "e-54",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          },
+          "ae-58": {
+            "id": "ae-58",
+            "enlaceId": "e-55",
+            "opdId": "opd-orquestacion",
+            "vertices": []
+          }
+        },
+        "ordenLocal": 1
+      }
+    },
+    "enlaces": {
+      "e-1": {
+        "id": "e-1",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-orden",
+          "portId": "port-e-1-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-orquestar",
+          "portId": "port-e-1-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-2": {
+        "id": "e-2",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-orden",
+          "portId": "port-e-2-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-orquestar",
+          "portId": "port-e-2-destino"
+        },
+        "etiqueta": "",
+        "modificador": "condicion",
+        "subtipoModificador": "C"
+      },
+      "e-3": {
+        "id": "e-3",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-orquestar",
+          "portId": "port-e-3-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "o-orden",
+          "portId": "port-e-3-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-4": {
+        "id": "e-4",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-paquete",
+          "portId": "port-e-4-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-orquestar",
+          "portId": "port-e-4-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-5": {
+        "id": "e-5",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-paquete",
+          "portId": "port-e-5-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-orquestar",
+          "portId": "port-e-5-destino"
+        },
+        "etiqueta": "",
+        "modificador": "condicion",
+        "subtipoModificador": "C"
+      },
+      "e-6": {
+        "id": "e-6",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-orquestar",
+          "portId": "port-e-6-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "o-paquete",
+          "portId": "port-e-6-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-7": {
+        "id": "e-7",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-coordinador",
+          "portId": "port-e-7-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-orquestar",
+          "portId": "port-e-7-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-8": {
+        "id": "e-8",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-wms",
+          "portId": "port-e-8-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-orquestar",
+          "portId": "port-e-8-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-9": {
+        "id": "e-9",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-cliente",
+          "portId": "port-e-9-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-orquestar",
+          "portId": "port-e-9-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-10": {
+        "id": "e-10",
+        "tipo": "exhibicion",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-orden",
+          "portId": "port-e-10-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "o-prioridad-solicitada",
+          "portId": "port-e-10-destino"
+        },
+        "etiqueta": "declara"
+      },
+      "e-11": {
+        "id": "e-11",
+        "tipo": "exhibicion",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-orden",
+          "portId": "port-e-11-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "o-prioridad-asignada",
+          "portId": "port-e-11-destino"
+        },
+        "etiqueta": "porta"
+      },
+      "e-12": {
+        "id": "e-12",
+        "tipo": "etiquetado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-paquete",
+          "portId": "port-e-12-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "o-vehiculo",
+          "portId": "port-e-12-destino"
+        },
+        "etiqueta": "es transportado por"
+      },
+      "e-13": {
+        "id": "e-13",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-coordinador",
+          "portId": "port-e-13-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-validar",
+          "portId": "port-e-13-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-14": {
+        "id": "e-14",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-wms",
+          "portId": "port-e-14-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-validar",
+          "portId": "port-e-14-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-15": {
+        "id": "e-15",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-coordinador",
+          "portId": "port-e-15-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-calcular",
+          "portId": "port-e-15-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-16": {
+        "id": "e-16",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-wms",
+          "portId": "port-e-16-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-calcular",
+          "portId": "port-e-16-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-17": {
+        "id": "e-17",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-coordinador",
+          "portId": "port-e-17-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-autorizar",
+          "portId": "port-e-17-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-18": {
+        "id": "e-18",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-wms",
+          "portId": "port-e-18-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-autorizar",
+          "portId": "port-e-18-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-19": {
+        "id": "e-19",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-coordinador",
+          "portId": "port-e-19-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-investigar-rechazo",
+          "portId": "port-e-19-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-20": {
+        "id": "e-20",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-wms",
+          "portId": "port-e-20-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-investigar-rechazo",
+          "portId": "port-e-20-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-21": {
+        "id": "e-21",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-coordinador",
+          "portId": "port-e-21-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-elegir",
+          "portId": "port-e-21-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-22": {
+        "id": "e-22",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-wms",
+          "portId": "port-e-22-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-elegir",
+          "portId": "port-e-22-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-23": {
+        "id": "e-23",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-coordinador",
+          "portId": "port-e-23-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-cerrar",
+          "portId": "port-e-23-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-24": {
+        "id": "e-24",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-wms",
+          "portId": "port-e-24-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-cerrar",
+          "portId": "port-e-24-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-25": {
+        "id": "e-25",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-vehiculo",
+          "portId": "port-e-25-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-transportar",
+          "portId": "port-e-25-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-26": {
+        "id": "e-26",
+        "tipo": "agente",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-cliente",
+          "portId": "port-e-26-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-confirmar",
+          "portId": "port-e-26-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-27": {
+        "id": "e-27",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-orden-recibida"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-validar",
+          "portId": "port-e-27-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-28": {
+        "id": "e-28",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-validar",
+          "portId": "port-e-28-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-orden-validada"
+        },
+        "etiqueta": ""
+      },
+      "e-29": {
+        "id": "e-29",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-orden-validada"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-calcular",
+          "portId": "port-e-29-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-30": {
+        "id": "e-30",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-calcular",
+          "portId": "port-e-30-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-orden-priorizada"
+        },
+        "etiqueta": ""
+      },
+      "e-31": {
+        "id": "e-31",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "entidad",
+          "id": "o-prioridad-solicitada",
+          "portId": "port-e-31-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-calcular",
+          "portId": "port-e-31-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-32": {
+        "id": "e-32",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-calcular",
+          "portId": "port-e-32-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "o-prioridad-asignada",
+          "portId": "port-e-32-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-33": {
+        "id": "e-33",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-orden-rechazada"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-investigar-rechazo",
+          "portId": "port-e-33-destino"
+        },
+        "etiqueta": "",
+        "modificador": "condicion",
+        "subtipoModificador": "C"
+      },
+      "e-34": {
+        "id": "e-34",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-investigar-rechazo",
+          "portId": "port-e-34-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-orden-cerrada"
+        },
+        "etiqueta": ""
+      },
+      "e-35": {
+        "id": "e-35",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-orden-priorizada"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-autorizar",
+          "portId": "port-e-35-destino"
+        },
+        "etiqueta": "",
+        "rutaEtiqueta": "priorizada-reservada"
+      },
+      "e-36": {
+        "id": "e-36",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-autorizar",
+          "portId": "port-e-36-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-orden-reservada"
+        },
+        "etiqueta": "",
+        "rutaEtiqueta": "priorizada-reservada"
+      },
+      "e-37": {
+        "id": "e-37",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-orden-reservada"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-autorizar",
+          "portId": "port-e-37-destino"
+        },
+        "etiqueta": "",
+        "rutaEtiqueta": "reservada-preparada"
+      },
+      "e-38": {
+        "id": "e-38",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-autorizar",
+          "portId": "port-e-38-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-orden-preparada"
+        },
+        "etiqueta": "",
+        "rutaEtiqueta": "reservada-preparada"
+      },
+      "e-39": {
+        "id": "e-39",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-orden-preparada"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-preparar",
+          "portId": "port-e-39-destino"
+        },
+        "etiqueta": "",
+        "modificador": "condicion",
+        "subtipoModificador": "C"
+      },
+      "e-40": {
+        "id": "e-40",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-paquete-pendiente-de-armado"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-preparar",
+          "portId": "port-e-40-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-41": {
+        "id": "e-41",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-preparar",
+          "portId": "port-e-41-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-paquete-armado"
+        },
+        "etiqueta": ""
+      },
+      "e-42": {
+        "id": "e-42",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-orden-preparada"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-elegir",
+          "portId": "port-e-42-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-43": {
+        "id": "e-43",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-elegir",
+          "portId": "port-fan-p-elegir-origen-1"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-orden-despachada-express"
+        },
+        "etiqueta": "express",
+        "modificador": "evento",
+        "subtipoModificador": "E",
+        "probabilidad": 0.35
+      },
+      "e-44": {
+        "id": "e-44",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-elegir",
+          "portId": "port-fan-p-elegir-origen-1"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-orden-despachada-estandar"
+        },
+        "etiqueta": "estandar",
+        "modificador": "evento",
+        "subtipoModificador": "E",
+        "probabilidad": 0.65
+      },
+      "e-45": {
+        "id": "e-45",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-paquete-armado"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-transportar",
+          "portId": "port-e-45-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-46": {
+        "id": "e-46",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-transportar",
+          "portId": "port-e-46-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-paquete-en-transito"
+        },
+        "etiqueta": ""
+      },
+      "e-47": {
+        "id": "e-47",
+        "tipo": "excepcionSobretiempo",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-transportar",
+          "portId": "port-e-47-origen"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-gestionar-demora",
+          "portId": "port-e-47-destino"
+        },
+        "etiqueta": "",
+        "tiempoMaximo": "2",
+        "unidadTiempoMaximo": "h"
+      },
+      "e-48": {
+        "id": "e-48",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-riesgo-normal"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-gestionar-demora",
+          "portId": "port-e-48-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-49": {
+        "id": "e-49",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-gestionar-demora",
+          "portId": "port-e-49-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-riesgo-demora-detectada"
+        },
+        "etiqueta": ""
+      },
+      "e-50": {
+        "id": "e-50",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-riesgo-demora-detectada"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-escalar",
+          "portId": "port-e-50-destino"
+        },
+        "etiqueta": "",
+        "modificador": "condicion",
+        "subtipoModificador": "C"
+      },
+      "e-51": {
+        "id": "e-51",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-escalar",
+          "portId": "port-e-51-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-riesgo-escalado"
+        },
+        "etiqueta": ""
+      },
+      "e-52": {
+        "id": "e-52",
+        "tipo": "consumo",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-paquete-en-transito"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-confirmar",
+          "portId": "port-e-52-destino"
+        },
+        "etiqueta": ""
+      },
+      "e-53": {
+        "id": "e-53",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-confirmar",
+          "portId": "port-e-53-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-paquete-entregado"
+        },
+        "etiqueta": ""
+      },
+      "e-54": {
+        "id": "e-54",
+        "tipo": "instrumento",
+        "origenId": {
+          "kind": "estado",
+          "id": "s-paquete-entregado"
+        },
+        "destinoId": {
+          "kind": "entidad",
+          "id": "p-cerrar",
+          "portId": "port-e-54-destino"
+        },
+        "etiqueta": "",
+        "modificador": "condicion",
+        "subtipoModificador": "C"
+      },
+      "e-55": {
+        "id": "e-55",
+        "tipo": "resultado",
+        "origenId": {
+          "kind": "entidad",
+          "id": "p-cerrar",
+          "portId": "port-e-55-origen"
+        },
+        "destinoId": {
+          "kind": "estado",
+          "id": "s-orden-cerrada"
+        },
+        "etiqueta": ""
+      }
+    },
+    "abanicos": {
+      "ab-10000": {
+        "id": "ab-10000",
+        "opdId": "opd-orquestacion",
+        "puertoComun": {
+          "entidadId": "p-elegir",
+          "lado": "origen",
+          "portId": "port-fan-p-elegir-origen-1"
+        },
+        "puertoEntidadId": "p-elegir",
+        "operador": "XOR",
+        "enlaceIds": [
+          "e-43",
+          "e-44"
+        ],
+        "decision": {
+          "modo": "probabilidades",
+          "pesos": {
+            "e-43": 0.35,
+            "e-44": 0.65
+          }
+        }
+      }
+    },
+    "descripcion": "Laboratorio no-HODOM para probar simulacion OPM de opforja. Cubre microfases, estados anclables, rutas consumo-resultado, XOR probabilistico, condiciones omitidas, duracion, excepciones temporales y copia atributo->atributo. Dominio deliberadamente acotado: despacho critico con orden informacional, paquete fisico, riesgo operativo, agentes e instrumentos."
+  }
+}
