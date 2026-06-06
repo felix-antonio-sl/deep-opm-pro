@@ -67,12 +67,28 @@ export function guardarModeloLocal(input: GuardarModeloLocalInput): Resultado<Mo
   const storage = storageLocal();
   if (!storage.ok) return storage;
   compactarPersistenciaLocal(storage.value);
+  const indice = leerIndice(storage.value);
+  const modelo = construirModeloPersistido(input, indice.find((item) => item.id === input.id?.trim()));
+  const resumen = resumenDesdeModeloPersistido(modelo);
+
+  try {
+    storage.value.setItem(modelKey(modelo.id), JSON.stringify({ formato: FORMATO_PERSISTENCIA, modelo } satisfies DocumentoPersistido));
+    escribirIndice(storage.value, [resumen, ...indice.filter((item) => item.id !== modelo.id)]);
+  } catch (error) {
+    return fallo(mensajeErrorEscrituraLocal(error));
+  }
+
+  return ok(modelo);
+}
+
+export function construirModeloPersistido(
+  input: GuardarModeloLocalInput,
+  existente?: ResumenModeloPersistido,
+  ahora = new Date().toISOString(),
+): ModeloPersistido {
   const nombre = input.nombre.trim() || "Modelo OPM";
   const descripcion = typeof input.descripcion === "string" ? input.descripcion.trim() : "";
   const id = input.id?.trim() || generarId();
-  const ahora = new Date().toISOString();
-  const indice = leerIndice(storage.value);
-  const existente = indice.find((item) => item.id === id);
   const resumen: ResumenModeloPersistido = {
     id,
     nombre,
@@ -81,80 +97,40 @@ export function guardarModeloLocal(input: GuardarModeloLocalInput): Resultado<Mo
     actualizadoEn: ahora,
   };
   const carpetaId = input.carpetaId ?? existente?.carpetaId;
-  if (carpetaId !== undefined) {
-    resumen.carpetaId = carpetaId;
-  }
+  if (carpetaId !== undefined) resumen.carpetaId = carpetaId;
   const ultimaApertura = input.ultimaApertura ?? existente?.ultimaApertura;
-  if (ultimaApertura !== undefined) {
-    resumen.ultimaApertura = ultimaApertura;
-  }
+  if (ultimaApertura !== undefined) resumen.ultimaApertura = ultimaApertura;
   const autosalvado = input.autosalvado ?? existente?.autosalvado;
-  if (autosalvado !== undefined) {
-    resumen.autosalvado = autosalvado;
-  }
+  if (autosalvado !== undefined) resumen.autosalvado = autosalvado;
   const archivado = input.archivado ?? existente?.archivado;
-  if (archivado !== undefined) {
-    resumen.archivado = archivado;
-  }
+  if (archivado !== undefined) resumen.archivado = archivado;
   const archivadoEn = input.archivadoEn ?? existente?.archivadoEn;
-  if (archivadoEn !== undefined) {
-    resumen.archivadoEn = archivadoEn;
-  }
+  if (archivadoEn !== undefined) resumen.archivadoEn = archivadoEn;
   const archivadoAuto = input.archivadoAuto ?? existente?.archivadoAuto;
-  if (archivadoAuto !== undefined) {
-    resumen.archivadoAuto = archivadoAuto;
-  }
+  if (archivadoAuto !== undefined) resumen.archivadoAuto = archivadoAuto;
   const versiones = input.versiones ?? existente?.versiones;
-  if (versiones !== undefined) {
-    resumen.versiones = versiones;
-  }
+  if (versiones !== undefined) resumen.versiones = versiones;
   const crearVersionAlGuardar = input.crearVersionAlGuardar ?? existente?.crearVersionAlGuardar;
-  if (crearVersionAlGuardar !== undefined) {
-    resumen.crearVersionAlGuardar = crearVersionAlGuardar;
-  }
-  const modelo: ModeloPersistido = { ...resumen, json: compactarJsonDocumento(input.json) };
-
-  try {
-    storage.value.setItem(modelKey(id), JSON.stringify({ formato: FORMATO_PERSISTENCIA, modelo } satisfies DocumentoPersistido));
-    escribirIndice(storage.value, [resumen, ...indice.filter((item) => item.id !== id)]);
-  } catch (error) {
-    return fallo(mensajeErrorEscrituraLocal(error));
-  }
-
-  return ok(modelo);
+  if (crearVersionAlGuardar !== undefined) resumen.crearVersionAlGuardar = crearVersionAlGuardar;
+  return { ...resumen, json: compactarJsonDocumento(input.json) };
 }
 
-export function espejarModeloLocal(modelo: ModeloPersistido): Resultado<ModeloPersistido> {
-  const storage = storageLocal();
-  if (!storage.ok) return storage;
-  const normalizado = normalizarModeloPersistido({
-    ...modelo,
-    json: compactarJsonDocumento(modelo.json),
-  });
-  if (!normalizado) return fallo("Modelo local inválido");
-  const indice = leerIndice(storage.value);
-  const resumen: ResumenModeloPersistido = {
-    id: normalizado.id,
-    nombre: normalizado.nombre,
-    descripcion: normalizado.descripcion,
-    creadoEn: normalizado.creadoEn,
-    actualizadoEn: normalizado.actualizadoEn,
-    ...(normalizado.carpetaId !== undefined ? { carpetaId: normalizado.carpetaId } : {}),
-    ...(normalizado.ultimaApertura !== undefined ? { ultimaApertura: normalizado.ultimaApertura } : {}),
-    ...(normalizado.autosalvado !== undefined ? { autosalvado: normalizado.autosalvado } : {}),
-    ...(normalizado.archivado !== undefined ? { archivado: normalizado.archivado } : {}),
-    ...(normalizado.archivadoEn !== undefined ? { archivadoEn: normalizado.archivadoEn } : {}),
-    ...(normalizado.archivadoAuto !== undefined ? { archivadoAuto: normalizado.archivadoAuto } : {}),
-    ...(normalizado.versiones !== undefined ? { versiones: normalizado.versiones } : {}),
-    ...(normalizado.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: normalizado.crearVersionAlGuardar } : {}),
+export function resumenDesdeModeloPersistido(modelo: ModeloPersistido): ResumenModeloPersistido {
+  return {
+    id: modelo.id,
+    nombre: modelo.nombre,
+    descripcion: modelo.descripcion,
+    creadoEn: modelo.creadoEn,
+    actualizadoEn: modelo.actualizadoEn,
+    ...(modelo.carpetaId !== undefined ? { carpetaId: modelo.carpetaId } : {}),
+    ...(modelo.ultimaApertura !== undefined ? { ultimaApertura: modelo.ultimaApertura } : {}),
+    ...(modelo.autosalvado !== undefined ? { autosalvado: modelo.autosalvado } : {}),
+    ...(modelo.archivado !== undefined ? { archivado: modelo.archivado } : {}),
+    ...(modelo.archivadoEn !== undefined ? { archivadoEn: modelo.archivadoEn } : {}),
+    ...(modelo.archivadoAuto !== undefined ? { archivadoAuto: modelo.archivadoAuto } : {}),
+    ...(modelo.versiones !== undefined ? { versiones: modelo.versiones } : {}),
+    ...(modelo.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: modelo.crearVersionAlGuardar } : {}),
   };
-  try {
-    storage.value.setItem(modelKey(normalizado.id), JSON.stringify({ formato: FORMATO_PERSISTENCIA, modelo: normalizado } satisfies DocumentoPersistido));
-    escribirIndice(storage.value, [resumen, ...indice.filter((item) => item.id !== normalizado.id)]);
-  } catch (error) {
-    return fallo(mensajeErrorEscrituraLocal(error));
-  }
-  return ok(normalizado);
 }
 
 export function cargarModeloLocal(id: string): Resultado<ModeloPersistido> {

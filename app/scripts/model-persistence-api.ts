@@ -11,12 +11,17 @@ import type { ModeloPersistido, ResumenModeloPersistido } from "../src/persisten
 import type { WorkspaceIndice } from "../src/persistencia/workspace";
 import { indiceVacio } from "../src/persistencia/workspace";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../src/persistencia/workspaceStorage";
+import { aplicarPoliticaLogScaleVersiones, idsVersionesPodadas } from "../src/persistencia/versiones";
 import type { VersionResumen } from "../src/modelo/tipos";
 
 const HOST = process.env.MODEL_API_HOST ?? "0.0.0.0";
 const PORT = Number(process.env.MODEL_API_PORT ?? "3001");
 const DATABASE_URL = process.env.DATABASE_URL;
 const SESSION_SECRET = process.env.MODEL_SESSION_SECRET;
+const MAX_VERSIONES_POR_MODELO = Math.max(
+  1,
+  Number.parseInt(process.env.MODEL_MAX_VERSIONS_PER_MODEL ?? "30", 10) || 30,
+);
 
 if (!DATABASE_URL) {
   throw new Error("DATABASE_URL requerido para model-persistence-api");
@@ -31,6 +36,264 @@ if (!SESSION_SECRET || SESSION_SECRET === "opforja-dev-session" || SESSION_SECRE
 }
 
 const sql = new Bun.SQL(DATABASE_URL);
+
+async function inicializarSchema(): Promise<void> {
+  await sql`
+    CREATE TABLE IF NOT EXISTS opforja_schema_migrations (
+      version INTEGER PRIMARY KEY,
+      nombre TEXT NOT NULL,
+      aplicado_en TEXT NOT NULL
+    )
+  `;
+  const aplicadasRows = await sql`SELECT version FROM opforja_schema_migrations`;
+  const aplicadas = new Set(aplicadasRows.map((row) => Number(row.version)));
+  for (const migracion of MIGRACIONES_SCHEMA) {
+    if (aplicadas.has(migracion.version)) continue;
+    await sql.begin(async (tx) => {
+      await migracion.run(tx);
+      await tx`
+        INSERT INTO opforja_schema_migrations (version, nombre, aplicado_en)
+        VALUES (${migracion.version}, ${migracion.nombre}, ${new Date().toISOString()})
+      `;
+    });
+    logEvento("model_api_migration_applied", { version: migracion.version, nombre: migracion.nombre });
+  }
+}
+
+const MIGRACIONES_SCHEMA = [
+  {
+    version: 1,
+    nombre: "base_persistencia_modelos",
+    async run(db: typeof sql) {
+      await db`
+        CREATE TABLE IF NOT EXISTS opforja_tenants (
+          id TEXT PRIMARY KEY,
+          creado_en TEXT NOT NULL
+        )
+      `;
+      await db`
+        CREATE TABLE IF NOT EXISTS opforja_users (
+          id TEXT PRIMARY KEY,
+          tenant_id TEXT NOT NULL,
+          creado_en TEXT NOT NULL
+        )
+      `;
+      await db`
+        CREATE TABLE IF NOT EXISTS opforja_models (
+          id TEXT PRIMARY KEY,
+          nombre TEXT NOT NULL,
+          descripcion TEXT NOT NULL DEFAULT '',
+          carpeta_id TEXT,
+          creado_en TEXT NOT NULL,
+          actualizado_en TEXT NOT NULL,
+          ultima_apertura TEXT,
+          autosalvado BOOLEAN,
+          archivado BOOLEAN,
+          archivado_en TEXT,
+          archivado_auto BOOLEAN,
+          crear_version_al_guardar BOOLEAN,
+          versiones JSONB,
+          payload JSONB NOT NULL
+        )
+      `;
+      await db`ALTER TABLE opforja_models ADD COLUMN IF NOT EXISTS tenant_id TEXT`;
+      await db`ALTER TABLE opforja_models ADD COLUMN IF NOT EXISTS owner_id TEXT`;
+      await db`UPDATE opforja_models SET tenant_id = 'tenant-legacy' WHERE tenant_id IS NULL`;
+      await db`UPDATE opforja_models SET owner_id = 'user-legacy' WHERE owner_id IS NULL`;
+      await db`ALTER TABLE opforja_models ALTER COLUMN tenant_id SET NOT NULL`;
+      await db`ALTER TABLE opforja_models ALTER COLUMN owner_id SET NOT NULL`;
+      await db`ALTER TABLE opforja_models DROP CONSTRAINT IF EXISTS opforja_models_pkey`;
+      await db`ALTER TABLE opforja_models ADD PRIMARY KEY (tenant_id, id)`;
+      await db`CREATE INDEX IF NOT EXISTS opforja_models_tenant_actualizado_idx ON opforja_models (tenant_id, actualizado_en DESC)`;
+      await db`
+        CREATE TABLE IF NOT EXISTS opforja_workspaces (
+          tenant_id TEXT PRIMARY KEY,
+          owner_id TEXT NOT NULL,
+          actualizado_en TEXT NOT NULL,
+          indice JSONB NOT NULL
+        )
+      `;
+      await db`
+        CREATE TABLE IF NOT EXISTS opforja_model_versions (
+          tenant_id TEXT NOT NULL,
+          modelo_id TEXT NOT NULL,
+          id TEXT NOT NULL,
+          owner_id TEXT NOT NULL,
+          creado_en TEXT NOT NULL,
+          nombre TEXT NOT NULL,
+          descripcion TEXT,
+          preservar BOOLEAN NOT NULL DEFAULT false,
+          modelo_payload_key TEXT NOT NULL,
+          bytes INTEGER NOT NULL,
+          payload JSONB NOT NULL,
+          PRIMARY KEY (tenant_id, modelo_id, id)
+        )
+      `;
+      await db`CREATE INDEX IF NOT EXISTS opforja_versions_model_idx ON opforja_model_versions (tenant_id, modelo_id, creado_en DESC)`;
+      await db`
+        CREATE TABLE IF NOT EXISTS opforja_model_autosaves (
+          tenant_id TEXT NOT NULL,
+          modelo_id TEXT NOT NULL,
+          owner_id TEXT NOT NULL,
+          creado_en TEXT NOT NULL,
+          payload JSONB NOT NULL,
+          PRIMARY KEY (tenant_id, modelo_id)
+        )
+      `;
+    },
+  },
+  {
+    version: 2,
+    nombre: "integridad_referencial_y_operacion",
+    async run(db: typeof sql) {
+      const ahora = new Date().toISOString();
+      await db`
+        INSERT INTO opforja_tenants (id, creado_en)
+        SELECT DISTINCT tenant_id, ${ahora}
+        FROM opforja_users
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await db`
+        INSERT INTO opforja_tenants (id, creado_en)
+        SELECT DISTINCT tenant_id, ${ahora}
+        FROM opforja_models
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await db`
+        INSERT INTO opforja_tenants (id, creado_en)
+        SELECT DISTINCT tenant_id, ${ahora}
+        FROM opforja_workspaces
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await db`
+        INSERT INTO opforja_tenants (id, creado_en)
+        SELECT DISTINCT tenant_id, ${ahora}
+        FROM opforja_model_versions
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await db`
+        INSERT INTO opforja_tenants (id, creado_en)
+        SELECT DISTINCT tenant_id, ${ahora}
+        FROM opforja_model_autosaves
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await db`
+        INSERT INTO opforja_users (id, tenant_id, creado_en)
+        SELECT DISTINCT owner_id, tenant_id, ${ahora}
+        FROM opforja_models
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await db`
+        INSERT INTO opforja_users (id, tenant_id, creado_en)
+        SELECT DISTINCT owner_id, tenant_id, ${ahora}
+        FROM opforja_workspaces
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await db`
+        INSERT INTO opforja_users (id, tenant_id, creado_en)
+        SELECT DISTINCT owner_id, tenant_id, ${ahora}
+        FROM opforja_model_versions
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await db`
+        INSERT INTO opforja_users (id, tenant_id, creado_en)
+        SELECT DISTINCT owner_id, tenant_id, ${ahora}
+        FROM opforja_model_autosaves
+        ON CONFLICT (id) DO NOTHING
+      `;
+      await db`
+        DELETE FROM opforja_model_versions v
+        WHERE NOT EXISTS (
+          SELECT 1 FROM opforja_models m
+          WHERE m.tenant_id = v.tenant_id AND m.id = v.modelo_id
+        )
+      `;
+      await db`
+        DELETE FROM opforja_model_autosaves a
+        WHERE NOT EXISTS (
+          SELECT 1 FROM opforja_models m
+          WHERE m.tenant_id = a.tenant_id AND m.id = a.modelo_id
+        )
+      `;
+      await db`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'opforja_users_tenant_fk') THEN
+            ALTER TABLE opforja_users
+              ADD CONSTRAINT opforja_users_tenant_fk
+              FOREIGN KEY (tenant_id) REFERENCES opforja_tenants(id) ON DELETE CASCADE;
+          END IF;
+        END $$;
+      `;
+      await db`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'opforja_models_tenant_fk') THEN
+            ALTER TABLE opforja_models
+              ADD CONSTRAINT opforja_models_tenant_fk
+              FOREIGN KEY (tenant_id) REFERENCES opforja_tenants(id) ON DELETE CASCADE;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'opforja_models_owner_fk') THEN
+            ALTER TABLE opforja_models
+              ADD CONSTRAINT opforja_models_owner_fk
+              FOREIGN KEY (owner_id) REFERENCES opforja_users(id);
+          END IF;
+        END $$;
+      `;
+      await db`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'opforja_workspaces_tenant_fk') THEN
+            ALTER TABLE opforja_workspaces
+              ADD CONSTRAINT opforja_workspaces_tenant_fk
+              FOREIGN KEY (tenant_id) REFERENCES opforja_tenants(id) ON DELETE CASCADE;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'opforja_workspaces_owner_fk') THEN
+            ALTER TABLE opforja_workspaces
+              ADD CONSTRAINT opforja_workspaces_owner_fk
+              FOREIGN KEY (owner_id) REFERENCES opforja_users(id);
+          END IF;
+        END $$;
+      `;
+      await db`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'opforja_versions_model_fk') THEN
+            ALTER TABLE opforja_model_versions
+              ADD CONSTRAINT opforja_versions_model_fk
+              FOREIGN KEY (tenant_id, modelo_id) REFERENCES opforja_models(tenant_id, id) ON DELETE CASCADE;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'opforja_versions_owner_fk') THEN
+            ALTER TABLE opforja_model_versions
+              ADD CONSTRAINT opforja_versions_owner_fk
+              FOREIGN KEY (owner_id) REFERENCES opforja_users(id);
+          END IF;
+        END $$;
+      `;
+      await db`
+        DO $$
+        BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'opforja_autosaves_model_fk') THEN
+            ALTER TABLE opforja_model_autosaves
+              ADD CONSTRAINT opforja_autosaves_model_fk
+              FOREIGN KEY (tenant_id, modelo_id) REFERENCES opforja_models(tenant_id, id) ON DELETE CASCADE;
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'opforja_autosaves_owner_fk') THEN
+            ALTER TABLE opforja_model_autosaves
+              ADD CONSTRAINT opforja_autosaves_owner_fk
+              FOREIGN KEY (owner_id) REFERENCES opforja_users(id);
+          END IF;
+        END $$;
+      `;
+      await db`CREATE INDEX IF NOT EXISTS opforja_users_tenant_idx ON opforja_users (tenant_id)`;
+      await db`CREATE INDEX IF NOT EXISTS opforja_workspaces_owner_idx ON opforja_workspaces (owner_id)`;
+      await db`CREATE INDEX IF NOT EXISTS opforja_versions_owner_idx ON opforja_model_versions (owner_id)`;
+      await db`CREATE INDEX IF NOT EXISTS opforja_autosaves_owner_idx ON opforja_model_autosaves (owner_id)`;
+      await db`CREATE INDEX IF NOT EXISTS opforja_autosaves_creado_idx ON opforja_model_autosaves (tenant_id, creado_en DESC)`;
+    },
+  },
+] satisfies Array<{ version: number; nombre: string; run: (db: typeof sql) => Promise<void> }>;
+
 await inicializarSchema();
 
 const handler = crearModelPersistenceFetchHandler({
@@ -41,89 +304,21 @@ const handler = crearModelPersistenceFetchHandler({
 Bun.serve({
   hostname: HOST,
   port: PORT,
-  fetch: handler,
+  fetch: async (request) => {
+    const inicio = performance.now();
+    const url = new URL(request.url);
+    const response = await handler(request);
+    logEvento("model_api_request", {
+      method: request.method,
+      path: url.pathname,
+      status: response.status,
+      durationMs: Math.round(performance.now() - inicio),
+    });
+    return response;
+  },
 });
 
-console.log(`model-persistence-api listening on http://${HOST}:${PORT}`);
-
-async function inicializarSchema(): Promise<void> {
-  await sql`
-    CREATE TABLE IF NOT EXISTS opforja_tenants (
-      id TEXT PRIMARY KEY,
-      creado_en TEXT NOT NULL
-    )
-  `;
-  await sql`
-    CREATE TABLE IF NOT EXISTS opforja_users (
-      id TEXT PRIMARY KEY,
-      tenant_id TEXT NOT NULL,
-      creado_en TEXT NOT NULL
-    )
-  `;
-  await sql`
-    CREATE TABLE IF NOT EXISTS opforja_models (
-      id TEXT PRIMARY KEY,
-      nombre TEXT NOT NULL,
-      descripcion TEXT NOT NULL DEFAULT '',
-      carpeta_id TEXT,
-      creado_en TEXT NOT NULL,
-      actualizado_en TEXT NOT NULL,
-      ultima_apertura TEXT,
-      autosalvado BOOLEAN,
-      archivado BOOLEAN,
-      archivado_en TEXT,
-      archivado_auto BOOLEAN,
-      crear_version_al_guardar BOOLEAN,
-      versiones JSONB,
-      payload JSONB NOT NULL
-    )
-  `;
-  await sql`ALTER TABLE opforja_models ADD COLUMN IF NOT EXISTS tenant_id TEXT`;
-  await sql`ALTER TABLE opforja_models ADD COLUMN IF NOT EXISTS owner_id TEXT`;
-  await sql`UPDATE opforja_models SET tenant_id = 'tenant-legacy' WHERE tenant_id IS NULL`;
-  await sql`UPDATE opforja_models SET owner_id = 'user-legacy' WHERE owner_id IS NULL`;
-  await sql`ALTER TABLE opforja_models ALTER COLUMN tenant_id SET NOT NULL`;
-  await sql`ALTER TABLE opforja_models ALTER COLUMN owner_id SET NOT NULL`;
-  await sql`ALTER TABLE opforja_models DROP CONSTRAINT IF EXISTS opforja_models_pkey`;
-  await sql`ALTER TABLE opforja_models ADD PRIMARY KEY (tenant_id, id)`;
-  await sql`CREATE INDEX IF NOT EXISTS opforja_models_tenant_actualizado_idx ON opforja_models (tenant_id, actualizado_en DESC)`;
-
-  await sql`
-    CREATE TABLE IF NOT EXISTS opforja_workspaces (
-      tenant_id TEXT PRIMARY KEY,
-      owner_id TEXT NOT NULL,
-      actualizado_en TEXT NOT NULL,
-      indice JSONB NOT NULL
-    )
-  `;
-  await sql`
-    CREATE TABLE IF NOT EXISTS opforja_model_versions (
-      tenant_id TEXT NOT NULL,
-      modelo_id TEXT NOT NULL,
-      id TEXT NOT NULL,
-      owner_id TEXT NOT NULL,
-      creado_en TEXT NOT NULL,
-      nombre TEXT NOT NULL,
-      descripcion TEXT,
-      preservar BOOLEAN NOT NULL DEFAULT false,
-      modelo_payload_key TEXT NOT NULL,
-      bytes INTEGER NOT NULL,
-      payload JSONB NOT NULL,
-      PRIMARY KEY (tenant_id, modelo_id, id)
-    )
-  `;
-  await sql`CREATE INDEX IF NOT EXISTS opforja_versions_model_idx ON opforja_model_versions (tenant_id, modelo_id, creado_en DESC)`;
-  await sql`
-    CREATE TABLE IF NOT EXISTS opforja_model_autosaves (
-      tenant_id TEXT NOT NULL,
-      modelo_id TEXT NOT NULL,
-      owner_id TEXT NOT NULL,
-      creado_en TEXT NOT NULL,
-      payload JSONB NOT NULL,
-      PRIMARY KEY (tenant_id, modelo_id)
-    )
-  `;
-}
+logEvento("model_api_started", { host: HOST, port: PORT, maxVersionesPorModelo: MAX_VERSIONES_POR_MODELO });
 
 function repositorioPostgres(): ModelPersistenceRepository {
   return {
@@ -266,10 +461,12 @@ function repositorioPostgres(): ModelPersistenceRepository {
     },
 
     async delete(session, id) {
-      await sql`DELETE FROM opforja_model_autosaves WHERE tenant_id = ${session.tenantId} AND modelo_id = ${id}`;
-      await sql`DELETE FROM opforja_model_versions WHERE tenant_id = ${session.tenantId} AND modelo_id = ${id}`;
-      const rows = await sql`DELETE FROM opforja_models WHERE tenant_id = ${session.tenantId} AND id = ${id} RETURNING id`;
-      return rows.length > 0;
+      return sql.begin(async (tx) => {
+        await tx`DELETE FROM opforja_model_autosaves WHERE tenant_id = ${session.tenantId} AND modelo_id = ${id}`;
+        await tx`DELETE FROM opforja_model_versions WHERE tenant_id = ${session.tenantId} AND modelo_id = ${id}`;
+        const rows = await tx`DELETE FROM opforja_models WHERE tenant_id = ${session.tenantId} AND id = ${id} RETURNING id`;
+        return rows.length > 0;
+      });
     },
 
     async getWorkspace(session) {
@@ -330,43 +527,46 @@ function repositorioPostgres(): ModelPersistenceRepository {
 
     async saveVersion(session, version) {
       const payloadBase64 = base64Utf8(version.json);
-      await sql`
-        INSERT INTO opforja_model_versions (
-          tenant_id,
-          modelo_id,
-          id,
-          owner_id,
-          creado_en,
-          nombre,
-          descripcion,
-          preservar,
-          modelo_payload_key,
-          bytes,
-          payload
-        )
-        VALUES (
-          ${session.tenantId},
-          ${version.modeloId},
-          ${version.version.id},
-          ${session.userId},
-          ${version.version.creadoEn},
-          ${version.version.nombre},
-          ${version.version.descripcion ?? null},
-          ${version.version.preservar ?? false},
-          ${version.version.modeloPayloadKey},
-          ${version.version.bytes},
-          convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
-        )
-        ON CONFLICT (tenant_id, modelo_id, id) DO UPDATE SET
-          owner_id = EXCLUDED.owner_id,
-          creado_en = EXCLUDED.creado_en,
-          nombre = EXCLUDED.nombre,
-          descripcion = EXCLUDED.descripcion,
-          preservar = EXCLUDED.preservar,
-          modelo_payload_key = EXCLUDED.modelo_payload_key,
-          bytes = EXCLUDED.bytes,
-          payload = EXCLUDED.payload
-      `;
+      await sql.begin(async (tx) => {
+        await tx`
+          INSERT INTO opforja_model_versions (
+            tenant_id,
+            modelo_id,
+            id,
+            owner_id,
+            creado_en,
+            nombre,
+            descripcion,
+            preservar,
+            modelo_payload_key,
+            bytes,
+            payload
+          )
+          VALUES (
+            ${session.tenantId},
+            ${version.modeloId},
+            ${version.version.id},
+            ${session.userId},
+            ${version.version.creadoEn},
+            ${version.version.nombre},
+            ${version.version.descripcion ?? null},
+            ${version.version.preservar ?? false},
+            ${version.version.modeloPayloadKey},
+            ${version.version.bytes},
+            convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
+          )
+          ON CONFLICT (tenant_id, modelo_id, id) DO UPDATE SET
+            owner_id = EXCLUDED.owner_id,
+            creado_en = EXCLUDED.creado_en,
+            nombre = EXCLUDED.nombre,
+            descripcion = EXCLUDED.descripcion,
+            preservar = EXCLUDED.preservar,
+            modelo_payload_key = EXCLUDED.modelo_payload_key,
+            bytes = EXCLUDED.bytes,
+            payload = EXCLUDED.payload
+        `;
+        await podarVersionesPostgres(tx, session, version.modeloId);
+      });
       return version;
     },
 
@@ -427,16 +627,56 @@ function repositorioPostgres(): ModelPersistenceRepository {
 
 async function asegurarSesion(session: PersistenciaSesion): Promise<void> {
   const ahora = new Date().toISOString();
-  await sql`
-    INSERT INTO opforja_tenants (id, creado_en)
-    VALUES (${session.tenantId}, ${ahora})
-    ON CONFLICT (id) DO NOTHING
+  await sql.begin(async (tx) => {
+    await tx`
+      INSERT INTO opforja_tenants (id, creado_en)
+      VALUES (${session.tenantId}, ${ahora})
+      ON CONFLICT (id) DO NOTHING
+    `;
+    await tx`
+      INSERT INTO opforja_users (id, tenant_id, creado_en)
+      VALUES (${session.userId}, ${session.tenantId}, ${ahora})
+      ON CONFLICT (id) DO NOTHING
+    `;
+  });
+}
+
+async function podarVersionesPostgres(
+  db: typeof sql,
+  session: PersistenciaSesion,
+  modeloId: string,
+): Promise<void> {
+  const rows = await db`
+    SELECT id, creado_en, nombre, descripcion, preservar, modelo_payload_key, bytes
+    FROM opforja_model_versions
+    WHERE tenant_id = ${session.tenantId} AND modelo_id = ${modeloId}
+    ORDER BY creado_en DESC
   `;
-  await sql`
-    INSERT INTO opforja_users (id, tenant_id, creado_en)
-    VALUES (${session.userId}, ${session.tenantId}, ${ahora})
-    ON CONFLICT (id) DO NOTHING
-  `;
+  const versiones = rows.map(versionDesdeRow).filter((version): version is VersionResumen => version !== null);
+  const retenidas = aplicarPoliticaLogScaleVersiones(versiones, new Date(), MAX_VERSIONES_POR_MODELO);
+  const podadas = idsVersionesPodadas(versiones, retenidas);
+  for (const versionId of podadas) {
+    await db`
+      DELETE FROM opforja_model_versions
+      WHERE tenant_id = ${session.tenantId} AND modelo_id = ${modeloId} AND id = ${versionId}
+    `;
+  }
+  if (podadas.length > 0) {
+    logEvento("model_api_versions_pruned", {
+      tenant: idLog(session.tenantId),
+      modeloId: idLog(modeloId),
+      count: podadas.length,
+      retained: retenidas.length,
+    });
+  }
+}
+
+function logEvento(evento: string, data: Record<string, unknown> = {}): void {
+  console.log(JSON.stringify({ ts: new Date().toISOString(), evento, ...data }));
+}
+
+function idLog(id: string): string {
+  return id.length <= 12 ? id : `${id.slice(0, 12)}…`;
 }
 
 function base64Utf8(value: string): string {

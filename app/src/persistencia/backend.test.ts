@@ -3,9 +3,10 @@ import { cargarModeloLocal } from "./local";
 import {
   cargarWorkspaceBackend,
   guardarAutosalvadoBackend,
+  guardarModeloBackend,
   guardarVersionBackend,
   guardarWorkspaceBackend,
-  listarModelosBackendConCache,
+  listarModelosBackend,
   obtenerSesionBackend,
   persistenciaBackendHabilitada,
 } from "./backend";
@@ -16,7 +17,7 @@ describe("persistencia backend cliente", () => {
     Reflect.deleteProperty(globalThis, "localStorage");
   });
 
-  test("lista modelos del backend y los espeja en cache local", async () => {
+  test("lista modelos del backend sin escribir payloads OPM en localStorage", async () => {
     instalarLocalStorage();
     Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
     const modelo = {
@@ -35,11 +36,32 @@ describe("persistencia backend cliente", () => {
     }))) as unknown as typeof fetch;
     try {
       expect(persistenciaBackendHabilitada()).toBe(true);
-      const listado = await listarModelosBackendConCache();
+      const listado = await listarModelosBackend();
       expect(listado).toEqual({ ok: true, value: [expect.objectContaining({ id: "backend-1", nombre: "Backend 1" })] });
       const local = cargarModeloLocal("backend-1");
-      expect(local.ok).toBe(true);
-      if (local.ok) expect(JSON.parse(local.value.json)).toEqual(JSON.parse(modelo.json));
+      expect(local.ok).toBe(false);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("guardar modelo backend no toca localStorage aunque localStorage rechace escrituras", async () => {
+    instalarLocalStorage({ rechazarEscrituras: true });
+    Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+    const modelo = {
+      id: "backend-storage-falla",
+      nombre: "Backend sin storage local",
+      descripcion: "",
+      creadoEn: "2026-06-06T00:00:00.000Z",
+      actualizadoEn: "2026-06-06T00:00:01.000Z",
+      carpetaId: null,
+      json: JSON.stringify({ formato: "deep-opm-pro.modelo.v0", modelo: { id: "m", nombre: "Backend sin storage local" } }),
+    };
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (() => Promise.resolve(jsonResponse({ modelo }))) as unknown as typeof fetch;
+    try {
+      const resultado = await guardarModeloBackend(modelo);
+      expect(resultado).toEqual({ ok: true, value: modelo });
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -115,7 +137,7 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function instalarLocalStorage(): void {
+function instalarLocalStorage(opts: { rechazarEscrituras?: boolean } = {}): void {
   const datos = new Map<string, string>();
   Object.defineProperty(globalThis, "localStorage", {
     configurable: true,
@@ -125,7 +147,10 @@ function instalarLocalStorage(): void {
       },
       key: (index: number) => Array.from(datos.keys())[index] ?? null,
       getItem: (key: string) => datos.get(key) ?? null,
-      setItem: (key: string, value: string) => datos.set(key, value),
+      setItem: (key: string, value: string) => {
+        if (opts.rechazarEscrituras) throw new Error("quota");
+        datos.set(key, value);
+      },
       removeItem: (key: string) => datos.delete(key),
       clear: () => datos.clear(),
     },

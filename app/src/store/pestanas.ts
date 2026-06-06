@@ -169,6 +169,7 @@ function fallo<T = never>(error: string): Resultado<T> {
 import type { CrearSlice, PestanasSlice } from "./tipos";
 import { activarEstadoPestanas, activarPestanaNueva, estadoModelo, listarModelosGuardadosSeguro, resetHistorial } from "./runtime";
 import { cargarModeloLocal } from "../persistencia/local";
+import { cargarModeloBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
 import { workspaceDesdeModelo } from "../persistencia/workspace";
 import { hidratarModelo } from "../serializacion/json";
 
@@ -206,6 +207,29 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
   },
 
   abrirPestanaConModelo(modeloId) {
+    if (persistenciaBackendHabilitada()) {
+      set({ mensaje: "Cargando modelo desde servidor..." });
+      void cargarModeloBackend(modeloId).then((cargado) => {
+        if (!cargado.ok) {
+          set({ mensaje: cargado.error });
+          return;
+        }
+        const resultado = hidratarModelo(cargado.value.json);
+        if (!resultado.ok) {
+          set({ mensaje: resultado.error });
+          return;
+        }
+        const pestana = crearPestanaDesdeModelo(resultado.value, {
+          modeloId: cargado.value.id,
+          nombre: cargado.value.nombre,
+          cargadoDesde: "persistido",
+          dirty: false,
+          descripcion: cargado.value.descripcion,
+        });
+        activarPestanaNueva(set, get, pestana, `Modelo abierto en pestana: ${cargado.value.nombre}`);
+      });
+      return;
+    }
     const cargado = cargarModeloLocal(modeloId);
     if (!cargado.ok) {
       set({ mensaje: cargado.error, modelosGuardados: listarModelosGuardadosSeguro() });

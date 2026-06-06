@@ -350,6 +350,7 @@ export function resetHistorial(modelo: Modelo): void {
 }
 
 export function listarModelosGuardadosSeguro(): ResumenModeloPersistido[] {
+  if (persistenciaBackendHabilitada()) return [];
   const listado = listarModelosLocales();
   return listado.ok ? listado.value : [];
 }
@@ -490,13 +491,15 @@ export function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id
 // ── Persistencia del WorkspaceIndice ────────────────────────────
 
 export function escribirIndiceWorkspace(indice: WorkspaceIndice): void {
-  escribirIndiceWorkspaceEnStorage(runtimeEffects, indice);
   if (persistenciaBackendHabilitada()) {
     void guardarWorkspaceBackend(indice);
+    return;
   }
+  escribirIndiceWorkspaceEnStorage(runtimeEffects, indice);
 }
 
 export function leerIndiceWorkspace(): WorkspaceIndice {
+  if (persistenciaBackendHabilitada()) return indiceVacio();
   return leerIndiceWorkspaceDesdeStorage(runtimeEffects);
 }
 

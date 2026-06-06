@@ -1,7 +1,6 @@
 import type { Resultado } from "../modelo/tipos";
 import type { VersionResumen } from "../modelo/tipos";
 import {
-  espejarModeloLocal,
   type ModeloPersistido,
   type ResumenModeloPersistido,
 } from "./local";
@@ -48,7 +47,7 @@ export async function obtenerSesionBackend(): Promise<Resultado<SesionBackend>> 
   }
 }
 
-export async function listarModelosBackendConCache(): Promise<Resultado<ResumenModeloPersistido[]>> {
+export async function listarModelosBackend(): Promise<Resultado<ResumenModeloPersistido[]>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
     const response = await fetch(`${ENDPOINT}?includePayload=1`, { method: "GET" });
@@ -56,9 +55,6 @@ export async function listarModelosBackendConCache(): Promise<Resultado<ResumenM
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo listar modelos del servidor");
     const modelos = modelosDesdeBody(body);
     if (!modelos) return fallo("Respuesta de modelos inválida");
-    for (const modelo of modelos) {
-      espejarModeloLocal(modelo);
-    }
     return ok(modelos.map(resumenDesdeModelo));
   } catch {
     return fallo("No se pudo conectar al backend de modelos");
@@ -77,14 +73,13 @@ export async function guardarModeloBackend(modelo: ModeloPersistido): Promise<Re
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo guardar en servidor");
     const guardado = modeloDesdeBody(body);
     if (!guardado) return fallo("Respuesta de guardado inválida");
-    espejarModeloLocal(guardado);
     return ok(guardado);
   } catch {
     return fallo("No se pudo conectar al backend de modelos");
   }
 }
 
-export async function cargarModeloBackendConCache(id: string): Promise<Resultado<ModeloPersistido>> {
+export async function cargarModeloBackend(id: string): Promise<Resultado<ModeloPersistido>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
     const response = await fetch(`${ENDPOINT}/${encodeURIComponent(id)}`, { method: "GET" });
@@ -92,7 +87,6 @@ export async function cargarModeloBackendConCache(id: string): Promise<Resultado
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "Modelo no encontrado en servidor");
     const modelo = modeloDesdeBody(body);
     if (!modelo) return fallo("Respuesta de modelo inválida");
-    espejarModeloLocal(modelo);
     return ok(modelo);
   } catch {
     return fallo("No se pudo conectar al backend de modelos");

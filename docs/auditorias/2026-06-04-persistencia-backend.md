@@ -1,31 +1,37 @@
 # Auditoría de persistencia backend — diagnóstico priorizado
 
-> **Estado:** **corte 1 (blindaje urgente) EJECUTADO el 2026-06-06** con autorización del
-> operador (tenants descartables confirmados; volumen recreado limpio). Los 4 críticos están
-> remediados — ver § Crítico abajo. Cortes 2-4 siguen abiertos (valor prospectivo).
+> **Estado:** **cortes 1-3 EJECUTADOS en código al 2026-06-06**. Corte 1 fue ejecutado y
+> verificado en producción (blindaje urgente). Cortes 2-3 quedaron implementados y verificados
+> localmente: backend-only para datos OPM + profesionalización DB. Corte 4 sigue abierto
+> (optimistic locking).
 > Auditado de primera mano: código (`app/src/server/modelPersistence.ts`,
 > `app/scripts/model-persistence-api.ts`, `app/src/persistencia/*`, `app/src/store/persistencia.ts`),
 > configuración viva (`docker-compose.yml`, `deploy/nginx.conf`, env real del contenedor) y
 > estado de la DB en producción (12 tenants, 7 modelos, 9 MB, disco 43 GB libres — descartados
 > el 2026-06-06 al recrear el volumen).
 
-## Hallazgo central: el techo de almacenamiento sigue siendo localStorage
+## Hallazgo central: techo localStorage — REMEDIADO EN CÓDIGO 2026-06-06
 
-La migración a Postgres elevó la durabilidad pero **NO el techo de capacidad**. El guardado es
-**local-primero**: `guardarModeloLocal(...)` y si falla, aborta con mensaje **sin llegar al
-backend** (`store/persistencia.ts:291-299`; `local.ts:152-156` captura `QuotaExceededError` y
-devuelve fallo). Límites vigentes por capa:
+La migración a Postgres elevó la durabilidad pero inicialmente **NO el techo de capacidad**. El
+guardado era **local-primero**: `guardarModeloLocal(...)` y si fallaba, abortaba con mensaje **sin
+llegar al backend**. El corte 2 invirtió ese flujo: cuando el backend está disponible, guardar,
+guardar como y autosalvar construyen el documento persistible y escriben al servidor. Por decisión
+posterior del operador, **no hay recuperación legacy ni espejo/cache OPM en `localStorage`**:
+si el backend está disponible, las rutas de guardar, cargar, listar, versionar, restaurar,
+componer, submodelos, pestañas y workspace usan Postgres/API como única fuente de verdad.
+
+Límites vigentes por capa tras el corte:
 
 | Capa | Límite | Evidencia |
 |---|---|---|
 | Por modelo (request) | **15 MB** efectivos | nginx 25 MB (`client_max_body_size 25m`) > API 15 MB (`DEFAULT_MAX_BODY_BYTES`, `modelPersistence.ts:57`) |
-| **Total del workspace** | **~5–10 MB por navegador** (cuota localStorage) | local-primero bloqueante; las versiones viven también dentro del JSON local y comen cuota |
+| **Total del workspace** | Postgres/API; navegador no guarda payloads OPM | `localStorage` puede fallar sin afectar un `guardarModeloBackend(...)` exitoso |
 | Servidor | sin cuota por tenant ni tope de modelos; techo = disco | DB 9 MB / 43 GB libres hoy |
-| Versiones/autosaves | sin tope de cantidad (sin poda) | `model-persistence-api.ts` no poda; `listVersions` sin paginación |
+| Versiones/autosaves | versiones podadas; autosave único por modelo | `MODEL_MAX_VERSIONS_PER_MODEL` default 30 + política log-scale; autosave PK `(tenant_id, modelo_id)` |
 
 Referencia de escala: el bundle HODOM v1.6 (36 OPDs) pesa ~5 MB → **un solo modelo de esa
-escala roza la cuota del navegador**. El retiro de localStorage del camino crítico de escritura
-(backend-primero, espejo best-effort) es el ítem de mayor valor práctico.
+escala roza la cuota del navegador**. El retiro de `localStorage` del camino de datos OPM
+(sin espejo ni recuperación legacy) es el ítem de mayor valor práctico.
 
 ## 🔴 Crítico — REMEDIADO 2026-06-06 (blindaje, corte 1; verificado por smoke post-deploy)
 
@@ -42,20 +48,20 @@ escala roza la cuota del navegador**. El retiro de localStorage del camino crít
    API 10r/s burst 25; `/session` (vector tenants infinitos) 2r/s burst 10; `/bug-reports`
    1r/s burst 5; 429. Verificado en vivo: ráfaga de 30 a /session → 11×200 + 19×429.
 
-## 🟡 Profesionalización (deuda estructural)
+## 🟡 Profesionalización — REMEDIADA PARCIALMENTE 2026-06-06
 
-- **Sin migraciones versionadas**: schema por `CREATE TABLE IF NOT EXISTS` + `ALTER ... IF NOT
-  EXISTS` acumulativos en el arranque (`model-persistence-api.ts:41-118`). Sin FKs ni UNIQUE
-  compuestos → huérfanos silenciosos posibles.
+- ~~Sin migraciones versionadas~~ → `opforja_schema_migrations` + migraciones idempotentes
+  `base_persistencia_modelos` e `integridad_referencial_y_operacion`.
+- ~~Sin FKs~~ → FKs idempotentes para tenants/users/modelos/workspaces/versiones/autosaves,
+  con limpieza previa de versiones/autosaves huérfanos.
 - **Last-write-wins sin detección de conflicto**: `ON CONFLICT ... DO UPDATE` pisa sin aviso;
   dos pestañas del mismo tenant → la segunda borra los cambios de la primera en silencio.
   Sin version number/etag.
-- **Sin transacciones en multi-write**: el delete de modelo borra autosaves → versiones →
-  modelo en 3 queries sueltas (`model-persistence-api.ts:260-265`); fallo a media = huérfanos.
-- **Sin poda**: versiones y autosaves crecen sin tope; tenants huérfanos (cookies perdidas a
-  los 180 días o antes) nunca se limpian.
-- **Cero logging operativo**: único log es el "listening"; errores de DB → 500 genérico sin
-  stack ni registro (`modelPersistence.ts:164-167`). Inauditables ante incidente.
+- ~~Sin transacciones en multi-write~~ → `sql.begin()` en sesión, borrado de modelo y versionado.
+- ~~Sin poda de versiones~~ → poda log-scale tras cada upsert de versión
+  (`MODEL_MAX_VERSIONS_PER_MODEL`, default 30). Autosaves ya quedan acotados a uno por modelo.
+- ~~Cero logging operativo~~ → logs JSON de arranque, migraciones, requests y poda.
+- **Aún abierto:** tenants huérfanos por cookies expiradas y conflicto multi-pestaña sin etag.
 
 ## 🟢 Menor
 
@@ -68,20 +74,20 @@ Queries 100% parametrizadas (Bun.SQL, sin inyección); firma HMAC-SHA256 con `ti
 aislamiento `WHERE tenant_id` en todas las queries; índices en la ruta de lectura
 (`(tenant_id, actualizado_en DESC)`); tests de ruta feliz + aislamiento de tenant.
 
-## Cortes propuestos (cuando se retome)
+## Cortes propuestos / estado
 
-1. **Blindaje urgente** (~1 corte): secrets reales por env (`OPFORJA_SESSION_SECRET`,
+1. **Blindaje urgente — ejecutado en producción**: secrets reales por env (`OPFORJA_SESSION_SECRET`,
    `OPFORJA_DB_PASSWORD`), `pg_dump` automatizado por cron con retención, rate limiting básico.
-   Decidir antes: ¿los 12 tenants/7 modelos actuales son descartables? (rotar secret los invalida).
-2. **Backend-primero**: invertir el orden de guardado (backend manda, localStorage best-effort)
-   → elimina el techo de ~5-10 MB. Es también el pendiente ya registrado en HANDOFF desde el
-   corte de persistencia ("retiro gradual de lecturas síncronas").
-3. **Profesionalización**: migraciones versionadas + FKs, transacciones, poda de
-   versiones/autosaves, logging estructurado.
-4. **Conflicto multi-pestaña**: optimistic locking (version/etag) + UX de conflicto.
+2. **Backend-only OPM — implementado en código**: backend manda; sin espejo/cache OPM en `localStorage`.
+3. **Profesionalización — implementada en código**: migraciones versionadas + FKs,
+   transacciones, poda de versiones y logging estructurado.
+4. **Conflicto multi-pestaña — pendiente**: optimistic locking (version/etag) + UX de conflicto.
 
 ## Cobertura de tests del subsistema (referencia)
 
-`modelPersistence.test.ts` ~60% (ruta feliz, aislamiento; omite conflictos/rollback/rate-limit);
-`backend.test.ts` ~40% (omite divergencia espejo, offline, timeouts); `persistencia.test.ts`
-(store) ~30% (omite sincronización real y multi-tab); `local.test.ts` no cubre quota llena.
+`modelPersistence.test.ts` cubre ruta feliz y aislamiento; aún omite conflictos/rate-limit.
+`backend.test.ts` cubre que listar/guardar backend no escribe payloads OPM en `localStorage`.
+`persistencia.test.ts` cubre guardar/cargar backend ignorando copias locales obsoletas y con
+`localStorage` rechazando escrituras. `local.test.ts` y `versiones.test.ts` mantienen regresión
+del módulo legacy/offline, fuera del camino backend. Verificación del corte 2-3:
+`cd app && bun run check` → **2263 pass / 0 fail**.

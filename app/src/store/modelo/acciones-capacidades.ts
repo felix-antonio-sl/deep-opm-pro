@@ -22,6 +22,7 @@ import { observarPreservacionFrontera } from "../../modelo/equivalencia";
 import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import type { Id, Modelo, Resultado, TargetSatisfaccionRequisito } from "../../modelo/tipos";
 import { cargarModeloLocal } from "../../persistencia/local";
+import { cargarModeloBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
 import { hidratarModelo } from "../../serializacion/json";
 import { commitModelo, estadoSeleccionDesdeIds, type GetStore, type SetStore } from "../runtime";
 import type { ModeloSlice } from "../tipos";
@@ -204,6 +205,48 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
 
     componerConModeloGuardado(input) {
       const { modelo } = get();
+      const aplicarComposicion = (modeloB: Modelo) => {
+        const resultado = componerModelos(modelo, modeloB, input.compartidas ?? {});
+        if (!resultado.ok) {
+          set({ mensaje: resultado.error });
+          return;
+        }
+        const totalCompartidas = Object.keys(input.compartidas ?? {}).length;
+        // Confianza calibrada: advertir si la fusión creó un conflicto de recurso
+        // lineal (objeto lineal con múltiples consumidores). No bloquea —es undoable—
+        // pero no se fusiona a un estado inválido en silencio.
+        const conflictosLineal = verificarLinealidad(resultado.value).filter((o) => o.severidad === "error-linealidad");
+        const avisoLineal = conflictosLineal.length > 0
+          ? ` · ⚠ ${conflictosLineal.length} conflicto${conflictosLineal.length === 1 ? "" : "s"} de linealidad`
+          : "";
+        commitModelo(set, modelo, resultado.value, {
+          opdActivoId: modelo.opdRaizId,
+          seleccionId: null,
+          seleccionados: [],
+          modoSeleccion: "simple",
+          enlaceSeleccionId: null,
+          estadoSeleccionId: null,
+          modoEnlace: null,
+          dialogoComposicionAbierto: false,
+          mensaje: `Modelo compuesto con "${modeloB.nombre}" (${totalCompartidas} compartida${totalCompartidas === 1 ? "" : "s"})${avisoLineal}`,
+        });
+      };
+      if (persistenciaBackendHabilitada()) {
+        set({ mensaje: "Cargando modelo para composición desde servidor..." });
+        void cargarModeloBackend(input.modeloId).then((cargado) => {
+          if (!cargado.ok) {
+            set({ mensaje: cargado.error });
+            return;
+          }
+          const hidratado = hidratarModelo(cargado.value.json);
+          if (!hidratado.ok) {
+            set({ mensaje: `No se pudo cargar el modelo para composición: ${hidratado.error}` });
+            return;
+          }
+          aplicarComposicion(hidratado.value);
+        });
+        return;
+      }
       const cargado = cargarModeloLocal(input.modeloId);
       if (!cargado.ok) {
         set({ mensaje: cargado.error });
@@ -214,30 +257,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         set({ mensaje: `No se pudo cargar el modelo para composición: ${hidratado.error}` });
         return;
       }
-      const resultado = componerModelos(modelo, hidratado.value, input.compartidas ?? {});
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      const totalCompartidas = Object.keys(input.compartidas ?? {}).length;
-      // Confianza calibrada: advertir si la fusión creó un conflicto de recurso
-      // lineal (objeto lineal con múltiples consumidores). No bloquea —es undoable—
-      // pero no se fusiona a un estado inválido en silencio.
-      const conflictosLineal = verificarLinealidad(resultado.value).filter((o) => o.severidad === "error-linealidad");
-      const avisoLineal = conflictosLineal.length > 0
-        ? ` · ⚠ ${conflictosLineal.length} conflicto${conflictosLineal.length === 1 ? "" : "s"} de linealidad`
-        : "";
-      commitModelo(set, modelo, resultado.value, {
-        opdActivoId: modelo.opdRaizId,
-        seleccionId: null,
-        seleccionados: [],
-        modoSeleccion: "simple",
-        enlaceSeleccionId: null,
-        estadoSeleccionId: null,
-        modoEnlace: null,
-        dialogoComposicionAbierto: false,
-        mensaje: `Modelo compuesto con "${hidratado.value.nombre}" (${totalCompartidas} compartida${totalCompartidas === 1 ? "" : "s"})${avisoLineal}`,
-      });
+      aplicarComposicion(hidratado.value);
     },
 
     conectarSubmodeloSeleccionado(input) {
@@ -246,33 +266,40 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         set({ mensaje: "Selecciona la cosa que ancla el submodelo" });
         return;
       }
-      const snapshot = cargarSnapshotSubmodeloLocal(input.modeloId);
-      if (!snapshot.ok) {
-        set({ mensaje: snapshot.error });
+      const conectar = (snapshot: Resultado<Modelo | undefined>) => {
+        if (!snapshot.ok) {
+          set({ mensaje: snapshot.error });
+          return;
+        }
+        const resultado = conectarSubmodelo(modelo, {
+          anchorEntidadId: seleccionId,
+          modeloId: input.modeloId,
+          nombre: input.nombre,
+          anchorOpdId: opdActivoId,
+          ...(input.compartidas ? { compartidas: input.compartidas } : {}),
+          ...(snapshot.value ? { snapshot: snapshot.value } : {}),
+        });
+        if (!resultado.ok) {
+          set({ mensaje: resultado.error });
+          return;
+        }
+        commitModelo(set, modelo, resultado.value.modelo, {
+          opdActivoId,
+          seleccionId,
+          seleccionados: [seleccionId],
+          modoSeleccion: "simple",
+          enlaceSeleccionId: null,
+          estadoSeleccionId: null,
+          dialogoSubmodeloAbierto: false,
+          mensaje: snapshot.value ? "Submodelo conectado y cargado" : "Submodelo conectado",
+        });
+      };
+      if (persistenciaBackendHabilitada()) {
+        set({ mensaje: "Cargando submodelo desde servidor..." });
+        void cargarSnapshotSubmodelo(input.modeloId).then(conectar);
         return;
       }
-      const resultado = conectarSubmodelo(modelo, {
-        anchorEntidadId: seleccionId,
-        modeloId: input.modeloId,
-        nombre: input.nombre,
-        anchorOpdId: opdActivoId,
-        ...(input.compartidas ? { compartidas: input.compartidas } : {}),
-        ...(snapshot.value ? { snapshot: snapshot.value } : {}),
-      });
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      commitModelo(set, modelo, resultado.value.modelo, {
-        opdActivoId,
-        seleccionId,
-        seleccionados: [seleccionId],
-        modoSeleccion: "simple",
-        enlaceSeleccionId: null,
-        estadoSeleccionId: null,
-        dialogoSubmodeloAbierto: false,
-        mensaje: snapshot.value ? "Submodelo conectado y cargado" : "Submodelo conectado",
-      });
+      conectar(cargarSnapshotSubmodeloLocal(input.modeloId));
     },
 
     marcarEstadoSubmodeloSeleccionado(refId, estado) {
@@ -297,23 +324,30 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         set({ mensaje: "Submodelo no encontrado" });
         return;
       }
-      const snapshot = cargarSnapshotSubmodeloLocal(ref.source?.modeloId ?? ref.modeloId);
-      if (!snapshot.ok) {
-        set({ mensaje: snapshot.error });
+      const actualizar = (snapshot: Resultado<Modelo | undefined>) => {
+        if (!snapshot.ok) {
+          set({ mensaje: snapshot.error });
+          return;
+        }
+        if (!snapshot.value) {
+          set({ mensaje: "No se encontró el modelo del submodelo" });
+          return;
+        }
+        const resultado = actualizarMaterializacionSubmodelo(modelo, id, snapshot.value);
+        if (!resultado.ok) {
+          set({ mensaje: resultado.error });
+          return;
+        }
+        commitModelo(set, modelo, resultado.value.modelo, {
+          mensaje: "Submodelo actualizado",
+        });
+      };
+      if (persistenciaBackendHabilitada()) {
+        set({ mensaje: "Cargando submodelo desde servidor..." });
+        void cargarSnapshotSubmodelo(ref.source?.modeloId ?? ref.modeloId).then(actualizar);
         return;
       }
-      if (!snapshot.value) {
-        set({ mensaje: "No se encontró el modelo local del submodelo" });
-        return;
-      }
-      const resultado = actualizarMaterializacionSubmodelo(modelo, id, snapshot.value);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      commitModelo(set, modelo, resultado.value.modelo, {
-        mensaje: "Submodelo actualizado",
-      });
+      actualizar(cargarSnapshotSubmodeloLocal(ref.source?.modeloId ?? ref.modeloId));
     },
 
     descargarSubmodeloSeleccionado(refId) {
@@ -587,6 +621,14 @@ function cargarSnapshotSubmodeloLocal(modeloId: Id): Resultado<Modelo | undefine
       ? { ok: true, value: undefined }
       : cargado;
   }
+  const hidratado = hidratarModelo(cargado.value.json);
+  if (!hidratado.ok) return { ok: false, error: `No se pudo cargar el submodelo: ${hidratado.error}` };
+  return { ok: true, value: hidratado.value };
+}
+
+async function cargarSnapshotSubmodelo(modeloId: Id): Promise<Resultado<Modelo | undefined>> {
+  const cargado = await cargarModeloBackend(modeloId);
+  if (!cargado.ok) return { ok: false, error: cargado.error };
   const hidratado = hidratarModelo(cargado.value.json);
   if (!hidratado.ok) return { ok: false, error: `No se pudo cargar el submodelo: ${hidratado.error}` };
   return { ok: true, value: hidratado.value };

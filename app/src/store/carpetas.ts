@@ -95,9 +95,12 @@ import {
 import {
   borrarModeloLocal,
   cargarModeloLocal,
+  construirModeloPersistido,
   guardarModeloLocal,
   listarModelosLocales,
+  resumenDesdeModeloPersistido,
   actualizarMetadataModeloLocal,
+  type ModeloPersistido,
   type ResumenModeloPersistido,
 } from "../persistencia/local";
 import {
@@ -131,7 +134,7 @@ import {
   pegarCarpeta,
   pegarModelo,
 } from "../persistencia/movimientoModelos";
-import { borrarVersionBackend, cargarVersionBackend, guardarModeloBackend } from "../persistencia/backend";
+import { borrarVersionBackend, cargarVersionBackend, guardarModeloBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
 import {
   eliminarVersionResultado,
   restaurarVersionResultado,
@@ -224,12 +227,11 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       set({ mensaje: "Versión no encontrada" });
       return;
     }
-    const restauradoResultado = await restaurarVersionResultado(version.modeloPayloadKey);
-    let restaurado: Modelo | null = restauradoResultado.ok ? restauradoResultado.value : null;
-    if (!restaurado) {
+    let restaurado: Modelo | null = null;
+    if (persistenciaBackendHabilitada()) {
       const backend = await cargarVersionBackend(modeloId, versionId);
       if (!backend.ok) {
-        set({ mensaje: restauradoResultado.ok ? backend.error : restauradoResultado.error.mensaje });
+        set({ mensaje: backend.error });
         return;
       }
       const hidratado = hidratarModelo(backend.value.json);
@@ -238,29 +240,45 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
         return;
       }
       restaurado = hidratado.value;
+    } else {
+      const restauradoResultado = await restaurarVersionResultado(version.modeloPayloadKey);
+      if (!restauradoResultado.ok) {
+        set({ mensaje: restauradoResultado.error.mensaje });
+        return;
+      }
+      restaurado = restauradoResultado.value;
     }
     const fecha = version.creadoEn.slice(0, 10);
     const nombre = `${restaurado.nombre} (restaurado ${fecha})`;
     const { archivado: _archivado, archivadoEn: _archivadoEn, versiones: _versiones, ...restauradoActivo } = restaurado;
     const modeloCopia: Modelo = { ...restauradoActivo, id: crearIdModeloLocal(), nombre };
     const carpetaId = get().indice.modelos.find((item) => item.id === modeloId)?.carpetaId ?? null;
-    const guardado = guardarModeloLocal({
+    const inputGuardado = {
       nombre,
       descripcion: `Restaurado desde ${version.nombre}`,
       json: exportarModelo(modeloCopia, carpetaId),
       carpetaId,
-    });
-    if (!guardado.ok) {
-      set({ mensaje: guardado.error });
-      return;
+    };
+    let guardado: ModeloPersistido;
+    if (persistenciaBackendHabilitada()) {
+      const resultado = await guardarModeloBackend(construirModeloPersistido(inputGuardado));
+      if (!resultado.ok) {
+        set({ mensaje: `No se pudo restaurar versión en servidor: ${resultado.error}` });
+        return;
+      }
+      guardado = resultado.value;
+    } else {
+      const resultado = guardarModeloLocal(inputGuardado);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      guardado = resultado.value;
     }
-    void guardarModeloBackend(guardado.value).then((resultado) => {
-      if (!resultado.ok) set({ mensaje: `Modelo restaurado localmente; ${resultado.error}` });
-    });
     const indice = {
       ...get().indice,
-      modelos: [...get().indice.modelos, { id: guardado.value.id, carpetaId }],
-      recientes: [guardado.value.id, ...get().indice.recientes.filter((id) => id !== guardado.value.id)].slice(0, 10),
+      modelos: [...get().indice.modelos, { id: guardado.id, carpetaId }],
+      recientes: [guardado.id, ...get().indice.recientes.filter((id) => id !== guardado.id)].slice(0, 10),
     };
     escribirIndiceWorkspace(indice);
     resetHistorial(modeloCopia);
@@ -269,12 +287,14 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       seleccionId: null,
       enlaceSeleccionId: null,
       modoEnlace: null,
-      modeloPersistidoId: guardado.value.id,
-      descripcionModeloLocal: guardado.value.descripcion,
-      modelosGuardados: listarModelosGuardadosSeguro(),
+      modeloPersistidoId: guardado.id,
+      descripcionModeloLocal: guardado.descripcion,
+      modelosGuardados: persistenciaBackendHabilitada()
+        ? [resumenDesdeModeloPersistido(guardado), ...get().modelosGuardados.filter((item) => item.id !== guardado.id)]
+        : listarModelosGuardadosSeguro(),
       indice,
       dialogoVersionesAbierto: null,
-      workspaceLocal: workspaceDesdeModelo(modeloCopia, guardado.value.id, guardado.value.descripcion, carpetaId),
+      workspaceLocal: workspaceDesdeModelo(modeloCopia, guardado.id, guardado.descripcion, carpetaId),
       mensaje: "Versión restaurada como copia",
     }));
   },
@@ -288,12 +308,14 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       return;
     }
     const indice = eliminado.value;
-    actualizarMetadataModeloLocal(modeloId, { versiones });
-    void borrarVersionBackend(modeloId, versionId);
+    if (!persistenciaBackendHabilitada()) actualizarMetadataModeloLocal(modeloId, { versiones });
+    else void borrarVersionBackend(modeloId, versionId);
     escribirIndiceWorkspace(indice);
     set({
       indice,
-      modelosGuardados: listarModelosGuardadosSeguro(),
+      modelosGuardados: persistenciaBackendHabilitada()
+        ? get().modelosGuardados.map((item) => item.id === modeloId ? { ...item, versiones } : item)
+        : listarModelosGuardadosSeguro(),
       mensaje: "Versión eliminada",
     });
   },

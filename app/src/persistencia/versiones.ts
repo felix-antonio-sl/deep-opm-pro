@@ -22,6 +22,11 @@ export interface ErrorVersion {
 
 export type ResultadoVersion<T> = Resultado<T, ErrorVersion>;
 
+export interface VersionPersistible {
+  version: VersionResumen;
+  json: string;
+}
+
 export function crearVersion(
   modelo: Modelo,
   opts: { nombre?: string; descripcion?: string; preservar?: boolean; ahora?: string } = {},
@@ -35,26 +40,41 @@ export function crearVersionResultado(
   modelo: Modelo,
   opts: { nombre?: string; descripcion?: string; preservar?: boolean; ahora?: string } = {},
 ): ResultadoVersion<VersionResumen> {
-  const storage = storageLocal();
-  if (!storage.ok) return storage;
+  const persistible = construirVersionPersistible(modelo, opts);
+  return guardarSnapshotVersionLocal(persistible.version, persistible.json);
+}
+
+export function construirVersionPersistible(
+  modelo: Modelo,
+  opts: { nombre?: string; descripcion?: string; preservar?: boolean; ahora?: string } = {},
+): VersionPersistible {
   const versionId = generarId();
   const creadoEn = opts.ahora ?? new Date().toISOString();
   const payload = compactarJsonDocumento(exportarModelo(modelo));
   const modeloPayloadKey = claveVersion(modelo.id, versionId);
+  return {
+    version: {
+      id: versionId,
+      creadoEn,
+      nombre: opts.nombre?.trim() || `Snapshot ${formatearFechaCorta(creadoEn)}`,
+      ...(opts.descripcion?.trim() ? { descripcion: opts.descripcion.trim() } : {}),
+      ...(opts.preservar ? { preservar: true } : {}),
+      modeloPayloadKey,
+      bytes: payload.length,
+    },
+    json: payload,
+  };
+}
+
+function guardarSnapshotVersionLocal(version: VersionResumen, json: string): ResultadoVersion<VersionResumen> {
+  const storage = storageLocal();
+  if (!storage.ok) return storage;
   try {
-    storage.value.setItem(modeloPayloadKey, payload);
+    storage.value.setItem(version.modeloPayloadKey, compactarJsonDocumento(json));
   } catch {
     return falloVersion("storage_escritura_fallida", "No se pudo crear versión");
   }
-  return okVersion({
-    id: versionId,
-    creadoEn,
-    nombre: opts.nombre?.trim() || `Snapshot ${formatearFechaCorta(creadoEn)}`,
-    ...(opts.descripcion?.trim() ? { descripcion: opts.descripcion.trim() } : {}),
-    ...(opts.preservar ? { preservar: true } : {}),
-    modeloPayloadKey,
-    bytes: payload.length,
-  });
+  return okVersion(version);
 }
 
 export function listarVersiones(workspace: WorkspaceIndice, modeloId: Id): VersionResumen[] {

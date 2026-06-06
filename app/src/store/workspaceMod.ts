@@ -131,8 +131,8 @@ import {
   pegarCarpeta,
   pegarModelo,
 } from "../persistencia/movimientoModelos";
-import { guardarVersionBackend } from "../persistencia/backend";
-import { crearVersionResultado } from "../persistencia/versiones";
+import { guardarVersionBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
+import { construirVersionPersistible, crearVersionResultado } from "../persistencia/versiones";
 import {
   crearAutosalvado,
   type AutosalvadoEstado,
@@ -191,6 +191,7 @@ import {
   pestanaReemplazable,
   deshacerRuntime,
   rehacerRuntime,
+  type GetStore,
 } from "./runtime";
 export const indiceInicial = leerIndiceWorkspace();
 
@@ -314,12 +315,12 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     }
     const indicePersistido = resultado.value;
     escribirIndiceWorkspace(indicePersistido);
-    if (portapapelesWorkspace.tipo === "modelo") {
+    if (portapapelesWorkspace.tipo === "modelo" && !persistenciaBackendHabilitada()) {
       actualizarMetadataModeloLocal(portapapelesWorkspace.itemId, { carpetaId: carpetaDestinoId });
     }
     set({
       indice: indicePersistido,
-      modelosGuardados: listarModelosGuardadosSeguro(),
+      modelosGuardados: modelosGuardadosWorkspace(get),
       portapapelesWorkspace: null,
       mensaje: portapapelesWorkspace.tipo === "modelo" ? "Modelo movido" : "Carpeta movida",
     });
@@ -332,8 +333,8 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       return;
     }
     escribirIndiceWorkspace(resultado.value);
-    actualizarMetadataModeloLocal(modeloId, { carpetaId: destino });
-    const modelosGuardados = listarModelosGuardadosSeguro();
+    if (!persistenciaBackendHabilitada()) actualizarMetadataModeloLocal(modeloId, { carpetaId: destino });
+    const modelosGuardados = modelosGuardadosWorkspace(get);
     set({
       indice: sincronizarIndiceConModelosGuardados(modelosGuardados, resultado.value),
       modelosGuardados,
@@ -364,8 +365,8 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     const ahora = new Date().toISOString();
     const indice = archivarModeloEnIndiceOp(get().indice, modeloId, ahora);
     escribirIndiceWorkspace(indice);
-    actualizarMetadataModeloLocal(modeloId, { archivado: true, archivadoEn: ahora });
-    const modelosGuardados = listarModelosGuardadosSeguro();
+    if (!persistenciaBackendHabilitada()) actualizarMetadataModeloLocal(modeloId, { archivado: true, archivadoEn: ahora });
+    const modelosGuardados = modelosGuardadosWorkspace(get);
     set({
       indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice),
       modelosGuardados,
@@ -376,8 +377,8 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
   restaurarModeloPorId(modeloId) {
     const indice = restaurarModeloEnIndiceOp(get().indice, modeloId);
     escribirIndiceWorkspace(indice);
-    actualizarMetadataModeloLocal(modeloId, { archivado: false });
-    const modelosGuardados = listarModelosGuardadosSeguro();
+    if (!persistenciaBackendHabilitada()) actualizarMetadataModeloLocal(modeloId, { archivado: false });
+    const modelosGuardados = modelosGuardadosWorkspace(get);
     set({
       indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice),
       modelosGuardados,
@@ -398,20 +399,24 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     const ahora = new Date().toISOString();
     const indice = archivarCarpetaEnIndiceOp(get().indice, carpetaId, ahora);
     escribirIndiceWorkspace(indice);
-    for (const modelo of indice.modelos.filter((item) => item.archivado)) {
-      actualizarMetadataModeloLocal(modelo.id, { archivado: true, archivadoEn: modelo.archivadoEn ?? ahora });
+    if (!persistenciaBackendHabilitada()) {
+      for (const modelo of indice.modelos.filter((item) => item.archivado)) {
+        actualizarMetadataModeloLocal(modelo.id, { archivado: true, archivadoEn: modelo.archivadoEn ?? ahora });
+      }
     }
-    const modelosGuardados = listarModelosGuardadosSeguro();
+    const modelosGuardados = modelosGuardadosWorkspace(get);
     set({ indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice), modelosGuardados, mensaje: "Carpeta archivada" });
   },
 
   restaurarCarpetaPorId(carpetaId) {
     const indice = restaurarCarpetaEnIndiceOp(get().indice, carpetaId);
     escribirIndiceWorkspace(indice);
-    for (const modelo of indice.modelos) {
-      if (!modelo.archivado) actualizarMetadataModeloLocal(modelo.id, { archivado: false });
+    if (!persistenciaBackendHabilitada()) {
+      for (const modelo of indice.modelos) {
+        if (!modelo.archivado) actualizarMetadataModeloLocal(modelo.id, { archivado: false });
+      }
     }
-    const modelosGuardados = listarModelosGuardadosSeguro();
+    const modelosGuardados = modelosGuardadosWorkspace(get);
     set({ indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice), modelosGuardados, mensaje: "Carpeta restaurada" });
   },
 
@@ -426,21 +431,32 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       set({ mensaje: "Guarda el modelo antes de versionarlo" });
       return;
     }
-    const version = crearVersionResultado(modelo, opts);
-    if (!version.ok) {
-      set({ mensaje: version.error.mensaje });
-      return;
-    }
-    void guardarVersionBackend(modeloPersistidoId, version.value, exportarModelo(modelo)).then((resultado) => {
-      if (!resultado.ok) set({ mensaje: `Versión creada localmente; ${resultado.error}` });
-    });
-    try {
-      const resumen = listarModelosGuardadosSeguro().find((item) => item.id === modeloPersistidoId);
-      const versiones = [version.value, ...(resumen?.versiones ?? [])];
-      const actualizado = actualizarMetadataModeloLocal(modeloPersistidoId, { versiones });
-      if (!actualizado.ok) {
-        set({ mensaje: actualizado.error });
+    let versionResumen;
+    if (persistenciaBackendHabilitada()) {
+      const persistible = construirVersionPersistible(modelo, opts);
+      const guardada = await guardarVersionBackend(modeloPersistidoId, persistible.version, persistible.json);
+      if (!guardada.ok) {
+        set({ mensaje: `No se pudo guardar versión en servidor: ${guardada.error}` });
         return;
+      }
+      versionResumen = guardada.value.version;
+    } else {
+      const version = crearVersionResultado(modelo, opts);
+      if (!version.ok) {
+        set({ mensaje: version.error.mensaje });
+        return;
+      }
+      versionResumen = version.value;
+    }
+    try {
+      const resumen = modelosGuardadosWorkspace(get).find((item) => item.id === modeloPersistidoId);
+      const versiones = [versionResumen, ...(resumen?.versiones ?? [])];
+      if (!persistenciaBackendHabilitada()) {
+        const actualizado = actualizarMetadataModeloLocal(modeloPersistidoId, { versiones });
+        if (!actualizado.ok) {
+          set({ mensaje: actualizado.error });
+          return;
+        }
       }
       const indice = {
         ...get().indice,
@@ -451,7 +467,9 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       escribirIndiceWorkspace(indice);
       set({
         indice,
-        modelosGuardados: listarModelosGuardadosSeguro(),
+        modelosGuardados: modelosGuardadosWorkspace(get).map((item) =>
+          item.id === modeloPersistidoId ? { ...item, versiones } : item,
+        ),
         mensaje: "Versión creada",
       });
     } catch (error) {
@@ -459,3 +477,7 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     }
   }
 });
+
+function modelosGuardadosWorkspace(get: GetStore) {
+  return persistenciaBackendHabilitada() ? get().modelosGuardados : listarModelosGuardadosSeguro();
+}
