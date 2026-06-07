@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mockup BUG-20260607T224342Z-a8e599 — DESPUÉS del fix</title>
+<style>
+:root {
+  --paper: #fafaf8;
+  --paper-warm: #eeece2;
+  --ink: #171511;
+  --ink-mid: #5a564c;
+  --ink-soft: #807b6e;
+  --ink-faint: #b5b0a4;
+  --rule: #d3cec1;
+  --rule-strong: #aea899;
+  --crimson: #8e2a2e;
+  --success: #27613f;
+  --font-serif: "Inria Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-serif);
+  background: #efece4;
+  color: var(--ink);
+  padding: 24px;
+}
+h1 { font-size: 18px; font-weight: 600; margin: 0 0 4px 0; }
+h2 { font-size: 13px; font-weight: 600; margin: 24px 0 6px 0; color: var(--ink-mid); }
+h2 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size: 11px; }
+.subtitle { color: var(--ink-soft); font-size: 12px; margin: 0 0 24px 0; }
+
+.frame {
+  width: 1840px;
+  height: 360px;
+  display: grid;
+  grid-template-columns: 240px 6px 1fr 6px 300px;
+  grid-template-rows: 48px 1fr;
+  grid-template-areas:
+    "header header header header header"
+    "left divisor canvas divisorInspector right";
+  background: var(--paper-warm);
+  border: 1px solid var(--rule);
+  font-size: 12px;
+  font-family: var(--font-serif);
+}
+.frame .h-cell { grid-area: header; background: var(--paper); border-bottom: 1px solid var(--rule-strong); display: flex; align-items: center; padding: 0 12px; font-size: 11px; color: var(--ink-soft); }
+.frame .left  { grid-area: left;  background: var(--paper); border-right: 1px solid var(--rule); padding: 8px 12px; font-size: 11px; }
+.frame .ldiv  { grid-area: divisor; background: var(--rule); }
+.frame .canvas{ grid-area: canvas; background: var(--paper-warm); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+.frame .rdiv  { grid-area: divisorInspector; background: var(--rule); }
+.frame .right { grid-area: right;  background: var(--paper); border-left: 1px solid var(--rule); padding: 8px 12px; font-size: 11px; }
+
+.hide-btn { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1px solid var(--rule); background: var(--paper); font-size: 10px; cursor: pointer; }
+.kicker { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+.title { font-weight: 700; font-size: 13px; color: var(--ink); }
+
+/* Barra de simulación - Versión DESPUÉS del fix (en canvas) */
+.barra {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 16px;
+  background: var(--paper-warm);
+  border-top: 2px solid var(--crimson);
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-serif);
+  font-size: 12px;
+  color: var(--ink);
+  flex-wrap: wrap;
+}
+.spine {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, var(--crimson) 0%, var(--crimson) 60%, rgba(142, 42, 46, 0.5) 100%);
+  pointer-events: none;
+}
+.fila { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; width: 100%; }
+.tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--crimson);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--crimson);
+  border-radius: 50%;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(1.35); } }
+
+.narrativa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  flex-basis: 100%;
+  max-height: 90px;
+  overflow: hidden;
+}
+.controles { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.btn { font-size: 11px; padding: 2px 6px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); }
+.btn.active { background: var(--paper-warm); border-color: var(--crimson); color: var(--crimson); font-weight: 600; }
+.chip { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border: 1px solid var(--rule); color: var(--ink-soft); background: var(--paper-warm); font-family: var(--font-mono); font-size: 9px; }
+.kbd { font-family: var(--font-mono); font-size: 9px; color: var(--ink-faint); border: 1px solid var(--rule); padding: 0 3px; }
+.sep { color: var(--ink-faint); }
+.acento { font-size: 12px; color: var(--ink-mid); font-style: italic; }
+.proceso { font-size: 12px; color: var(--crimson); font-style: italic; }
+.opd { font-size: 12px; color: var(--ink-soft); font-family: var(--font-mono); }
+
+.canvas-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 18px 8px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-warm);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.paper-host { flex: 1 1 auto; position: relative; background: white; background-image: radial-gradient(circle, var(--ink-faint) 1px, transparent 1px); background-size: 20px 20px; }
+
+.accessible { background: rgba(39, 97, 63, 0.1); border: 1px solid var(--success); border-radius: 2px; padding: 1px 4px; font-size: 10px; color: var(--success); font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+<h1>Mockup BUG-20260607T224342Z-a8e599 — DESPUÉS del fix</h1>
+<p class="subtitle">La barra vive dentro del canvas (no position fixed). Spines crimson + live dot + borde superior 2px. Botones ◀/▶ de los paneles laterales son clickeables.</p>
+
+<h2>Estado final <span class="meta">barra en canvas · spines crimson · live dot · botones accesibles</span></h2>
+<div class="frame">
+  <div class="h-cell">header (48px alto, sin toolbar cuando sim está activo)</div>
+  <div class="left">
+    <div class="kicker">MARGINALIA</div>
+    <div class="title">OPL</div>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
+      <span class="hide-btn">◀</span>
+      <span class="accessible">✓ accesible</span>
+    </div>
+  </div>
+  <div class="ldiv"></div>
+  <div class="canvas">
+    <!-- BARRA DE SIMULACIÓN — VIVE EN EL CANVAS -->
+    <div class="barra" data-testid="barra-simulacion">
+      <div class="spine" style="left:0;" data-testid="barra-simulacion-spine-left"></div>
+      <div class="spine" style="right:0;" data-testid="barra-simulacion-spine-right"></div>
+      <div class="fila">
+        <span class="tag">
+          <span class="dot"></span>
+          SIMULACIÓN
+        </span>
+        <span class="acento">Listo para simular · paso 1 de 13 · cierre</span>
+        <span class="proceso">Orquestar despacho critico</span>
+        <span class="opd">SD - Laboratorio de despacho critico ▸ SD1</span>
+      </div>
+      <div class="narrativa">
+        <span style="color:var(--crimson);font-weight:700;font-family:var(--font-mono);">▷</span>
+        <strong style="color:var(--ink);font-weight:700;">Cierre: Orquestar despacho critico</strong>
+        <span style="color:var(--ink-mid);">La traza se consolidará y la simulación avanzará al siguiente proceso.</span>
+        <span style="margin-left:auto;display:inline-flex;gap:4px;">
+          <span class="chip">paso 1 de 13</span><span class="chip">fase 5/5</span><span class="chip">SD - Lab</span><span class="chip">determinista</span>
+        </span>
+      </div>
+      <div class="controles">
+        <span class="btn">▶ reproducir <span class="kbd">P</span></span><span class="sep">·</span>
+        <span class="btn active">fase ▷</span><span class="sep">·</span>
+        <span class="btn">correr</span><span class="sep">·</span>
+        <span class="btn">reiniciar</span><span class="sep">·</span>
+        <span class="btn">headless</span><span class="sep">·</span>
+        <span class="btn">salir <span class="kbd">⎋</span></span>
+        <span style="margin-left:8px;display:inline-flex;border:1px solid var(--rule);">
+          <span class="btn active">determinista</span><span class="btn">muestreo</span><span class="btn">exhaustivo</span>
+        </span>
+        <span style="margin-left:8px;display:inline-flex;border:1px solid var(--rule);">
+          <span class="btn">½x</span><span class="btn active">1x</span><span class="btn">2x</span><span class="btn">4x</span>
+        </span>
+        <span style="margin-left:8px;font-family:var(--font-mono);font-size:9px;color:var(--ink-soft);">00 / 13</span>
+      </div>
+    </div>
+    <!-- CANVAS HEADER (kicker + zoom) -->
+    <div class="canvas-header">
+      <span>SD ▸ OPD raíz</span>
+      <span>zoom ▸ 100%</span>
+    </div>
+    <!-- PAPER HOST (canvas JointJS) -->
+    <div class="paper-host"></div>
+  </div>
+  <div class="rdiv"></div>
+  <div class="right">
+    <div class="kicker">INSPECTOR</div>
+    <div class="title">Selection</div>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
+      <span class="hide-btn">▶</span>
+      <span class="accessible">✓ accesible</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

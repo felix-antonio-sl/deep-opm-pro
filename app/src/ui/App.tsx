@@ -247,7 +247,11 @@ export function App() {
             rightWidth={panelInspectorAbierto ? anchoInspectorLayout : 0}
             isTablet={esTablet}
             canvasOnly={uiSoloCanvas}
-            toolbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
+            // BUG-20260607T224342Z-a8e599: en simulación, la barra pasa
+            // al `topbar` del canvas (ver `canvas` slot más abajo) y el
+            // slot `toolbar` del header queda libre (el header de sim
+            // muestra solo tabs/breadcrumb/meta).
+            toolbar={contextoWorkbench.modo === "simulacion" ? null : <Toolbar />}
             menu={null}
             tabs={<BarraPestanas />}
             breadcrumb={<Breadcrumb />}
@@ -311,7 +315,10 @@ export function App() {
               </button>
             )}
             canvas={(
-              <CodexCanvasMount chromeVisible={!uiSoloCanvas}>
+              <CodexCanvasMount
+                chromeVisible={!uiSoloCanvas}
+                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : null}
+              >
                 <JointCanvasFeedbackBoundary readonlyMode={modoSoloLectura} onAdapterChange={setCanvasAdapter} />
                 {/*
                   Ronda Codex v2 L2 (prep L4, auditoría rev2 §05 SEL-1/SEL-2): se

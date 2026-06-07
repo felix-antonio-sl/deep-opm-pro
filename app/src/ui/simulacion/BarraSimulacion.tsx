@@ -2,7 +2,6 @@ import type { JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { descriptorFaseSimulacion, fasesDelPasoSimulacion } from "../../modelo/simulacion/fases";
-import { CODEX_HEADER_HEIGHT } from "../codex/CodexFrame";
 import { useBreakpoint } from "../layoutResponsive";
 import { tokens } from "../tokens";
 import { proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion, type NarrativaSimulacion } from "./proyeccionBarra";
@@ -52,14 +51,36 @@ export function BarraSimulacion(): JSX.Element | null {
   const velocidades = [0.5, 1, 2, 4] as const;
 
   return (
-    <div
-      data-testid="barra-simulacion"
-      role="toolbar"
-      aria-label="Controles de simulacion"
-      style={esMobile ? { ...s.barra, ...s.barraMobile } : { ...s.barra, ...s.barraOverlayDesktop }}
-    >
+    // BUG-20260607T224342Z-a8e599: la barra ya no es un overlay `position:
+    // fixed` con `left: 0; right: 0`. Vive DENTRO de la región canvas (vía
+    // `CodexCanvasMount.topbar`), por lo que jamás toca los botones ◀/▶
+    // de los paneles laterales OPL/Inspector. El "encuadre" se construye
+    // con un borde superior 2px crimson y dos spines laterales (3px) con
+    // gradiente vertical crimson→50% — un marco editorial que señala
+    // "modo simulación" sin tapar al canvas.
+    <>
+      {/* Keyframe del "live dot" — el pulso crimson marca que la simulación
+          está activa. Inyectado una sola vez por render del componente;
+          como el nombre del keyframe es único (`sim-live-dot-pulse`) y la
+          regla es idempotente, re-renderizar no causa flickering. */}
+      <style>{`@keyframes sim-live-dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.35)}}.sim-live-dot{animation:sim-live-dot-pulse 1.4s ease-in-out infinite;transform-origin:center}`}</style>
+      <div
+        data-testid="barra-simulacion"
+        role="toolbar"
+        aria-label="Controles de simulacion"
+        style={esMobile ? { ...s.barra, ...s.barraMobile } : s.barra}
+      >
+      {!esMobile ? (
+        <>
+          <div data-testid="barra-simulacion-spine-left" aria-hidden="true" style={s.barraSpine} />
+          <div data-testid="barra-simulacion-spine-right" aria-hidden="true" style={{ ...s.barraSpine, left: "auto", right: 0 }} />
+        </>
+      ) : null}
       <div style={s.fila}>
-        <span style={s.tag}>Simulacion</span>
+        <span style={s.tag}>
+          {!esMobile ? <span className="sim-live-dot" style={s.tagDot} aria-hidden="true" /> : null}
+          Simulacion
+        </span>
         {esMobile ? (
           <span
             style={s.narrativaInlineMobile}
@@ -250,7 +271,8 @@ export function BarraSimulacion(): JSX.Element | null {
           })}
         </div>
       ) : null}
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -297,10 +319,11 @@ const T = tokens.typography;
 // `BarraSimulacion.styles.test.ts`).
 type EstilosBarra = {
   barra: JSX.CSSProperties;
-  barraOverlayDesktop: JSX.CSSProperties;
+  barraSpine: JSX.CSSProperties;
   barraMobile: JSX.CSSProperties;
   fila: JSX.CSSProperties;
   tag: JSX.CSSProperties;
+  tagDot: JSX.CSSProperties;
   contador: JSX.CSSProperties;
   estadoTexto: JSX.CSSProperties;
   procesoActivo: JSX.CSSProperties;
@@ -337,39 +360,42 @@ type EstilosBarra = {
   traceOmitido: JSX.CSSProperties;
 };
 export const s: EstilosBarra = {
-  // BUG-20260606T063734Z-52df54: el `alignItems: "center"` original centraba
-  // verticalmente la `fila` de status contra el panel `narrativa` cuando
-  // ambos compartían línea. Como la narrativa crece con `detalle` y `chips`,
-  // el status line "flotaba" descentrado y el desajuste aumentaba con el
-  // contenido. `alignItems: "flex-start"` alinea al tope y, sumado al
-  // `flexBasis: "100%"` de la narrativa (fuerza fila propia), garantiza que
-  // status, narrativa y controles vivan en 3 filas independientes.
+  // BUG-20260607T224342Z-a8e599: la barra se monta dentro de
+  // `CodexCanvasMount.topbar` (vive en la región canvas). Su superficie
+  // usa `paperWarm` para empastar con el fondo del canvas, y se diferencia
+  // visualmente con:
+  // - borde superior 2px crimson (línea de marca)
+  // - dos spines laterales 3px con gradiente vertical crimson→50% (encuadre)
+  // - el panel narrativa usa `paper` (más claro) para jerarquía visual
+  // - la tag usa un "live dot" crimson que pulsa
+  // El resultado: la barra se lee como "un modo especial framed" sin
+  // tapar el canvas ni los paneles laterales.
   barra: {
     display: "flex",
     alignItems: "flex-start",
     gap: tokens.spacing.sm,
     padding: `6px ${tokens.spacing.md}px`,
-    background: C.paper,
+    background: C.paperWarm,
+    borderTop: `2px solid ${C.crimson}`,
     borderBottom: `1px solid ${C.rule}`,
     minHeight: 44,
     flexWrap: "wrap",
     fontFamily: T.fontFamily,
     fontSize: T.sizes.sm,
     color: C.ink,
+    position: "relative",
   },
-  // BUG-20260607T220340Z-42c24c: el `top: 60` original matcheaba con la
-  // altura vieja del header Codex (60px en `codexFrameRows()`). Cuando
-  // BUG-20260606T041330Z-1f46fe bajó el header a 48px, este overlay se
-  // quedó flotando 12px más abajo, dejando una franja visible del body
-  // (background paperWarm) entre el header y la barra. Consumimos
-  // `CODEX_HEADER_HEIGHT` desde `CodexFrame` para que cualquier cambio
-  // futuro de altura del header propague al overlay sin riesgo de drift.
-  barraOverlayDesktop: {
-    position: "fixed",
-    top: CODEX_HEADER_HEIGHT,
+  // BUG-20260607T224342Z-a8e599: spine crimson 3px con gradiente vertical
+  // (crimson al 100% en el 60% superior, fade a 50% en el resto). Dos
+  // spines (izquierda + derecha) enmarcan la barra como una "ventana
+  // editorial" sobre el canvas.
+  barraSpine: {
+    position: "absolute",
+    top: 0,
     left: 0,
-    right: 0,
-    zIndex: 30,
+    bottom: 0,
+    width: 3,
+    background: `linear-gradient(to bottom, ${C.crimson} 0%, ${C.crimson} 60%, rgba(142, 42, 46, 0.5) 100%)`,
     pointerEvents: "none",
   },
   barraMobile: {
@@ -390,12 +416,28 @@ export const s: EstilosBarra = {
     flexWrap: "wrap" as const,
   },
   tag: {
-    fontWeight: 600,
+    fontWeight: 700,
     fontSize: T.sizes.xs,
     color: C.crimson,
-    letterSpacing: "0.06em",
+    letterSpacing: "0.12em",
     textTransform: "uppercase" as const,
     marginRight: 4,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    fontFamily: T.fontFamilyMono,
+  },
+  // BUG-20260607T224342Z-a8e599: "live dot" crimson 6px. La animación
+  // de pulso se define por clase CSS `.sim-live-dot` (ver el `<style>`
+  // inyectado al final del componente). La marca visual: el modo
+  // simulación está "vivo" en este momento.
+  tagDot: {
+    display: "inline-block",
+    width: 6,
+    height: 6,
+    background: C.crimson,
+    borderRadius: "50%",
+    flex: "0 0 6px",
   },
   contador: {
     fontSize: T.sizes.sm,

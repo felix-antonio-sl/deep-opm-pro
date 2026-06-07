@@ -28,16 +28,18 @@ interface CodexFrameProps extends CodexFrameColumnsParams {
  * Altura del header editorial Codex (primera fila del grid del CodexFrame).
  *
  * SSOT: este es el único lugar donde la altura del header vive como dato.
- * El layout `codexFrameRows()` la usa para construir el `gridTemplateRows`,
- * y los overlays `position: fixed` que se anclan al borde inferior del
- * header (p.ej. `BarraSimulacion.s.barraOverlayDesktop.top`) deben
- * consumir esta constante — nunca un literal.
+ * El layout `codexFrameRows()` la usa para construir el `gridTemplateRows`.
  *
- * BUG-20260607T220340Z-42c24c: el overlay de la barra de simulación tenía
- * `top: 60` hardcoded (match con la altura vieja de 60px). Cuando BUG-
- * 20260606T041330Z-1f46fe bajó el header a 48px, el overlay se quedó
- * flotando 12px más abajo, dejando una franja visible del body
- * (background paperWarm) entre el header y la barra.
+ * BUG-20260607T220340Z-42c24c: la barra de simulación solía ser un overlay
+ * `position: fixed` con `top: 60` hardcoded (match con la altura vieja
+ * de 60px). BUG-1f46fe bajó el header a 48px y el overlay se quedó
+ * flotando 12px más abajo, dejando una franja visible del body. El fix
+ * ancló `top` a esta constante.
+ *
+ * BUG-20260607T224342Z-a8e599: la barra ya no es un overlay `fixed` —
+ * vive DENTRO de `CodexCanvasMount.topbar`, en la región canvas. La
+ * constante sigue siendo útil para `codexFrameRows` y como invariante
+ * editorial del header.
  */
 export const CODEX_HEADER_HEIGHT = 48;
 

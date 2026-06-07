@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260607T224342Z-a8e599",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-07T22:43:42.932Z",
+  "text": "ahora cuadra bien, sin embargo tenemos que mejorar 2 cosas :\n1.- el contenedor de simulación debe diferenciarse visualmente del resto de la UI. Ahora queda como incrustado sin límites claros y sin diferenciación funcional desde el punto de vista visual. Quiero que esto lo resuelvas de manera creativa, respetando canon visual y funcionalidad. Sorpréndeme.\n2.- el contenedor de simulación queda sobre los paneles laterales en su parte más alta que es donde están los botones que permiten esconder los paneles, bloqueando de esa forma esa función. También aquí quiero una solución creativa y deslumbrante visualmente, pero con respeto al canón visual y la UX.",
+  "context": {
+    "modeloId": "modelo-simulacion-lab-complejo",
+    "modeloNombre": "Laboratorio complejo de simulacion OPM 2",
+    "opdActivoId": "opd-sd",
+    "opdActivoNombre": "SD - Laboratorio de despacho critico",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-740c8d81-f82f-409f-a597-e32bb55803b5",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1920,
+      "height": 963,
+      "devicePixelRatio": 1
+    },
+    "capturedAt": "2026-06-07T22:43:38.722Z"
+  },
+  "screenshots": [
+    "screenshots/01-cleanshot-2026-06-07-at-18.40.16.jpg"
+  ]
+}

@@ -10,10 +10,21 @@ import { GLIFO_SEP } from "./glifos";
 interface CodexCanvasMountProps {
   children: ComponentChildren;
   floating?: ComponentChildren;
+  /**
+   * Slot para una franja chrome del canvas que se monta ARRIBA del header
+   * (kicker + zoom) y ARRIBA del `paperHost` (JointJS).
+   *
+   * BUG-20260607T224342Z-a8e599: la barra de simulación solía ser un
+   * overlay `position: fixed` con `left: 0; right: 0` que cubría los
+   * botones de ocultar panel (◀/▶) que viven en la parte superior de
+   * los paneles laterales OPL/Inspector. Como `topbar` la barra vive
+   * DENTRO de la región canvas, jamás toca los paneles laterales.
+   */
+  topbar?: ComponentChildren;
   chromeVisible?: boolean;
 }
 
-export function CodexCanvasMount({ children, floating, chromeVisible = true }: CodexCanvasMountProps) {
+export function CodexCanvasMount({ children, floating, topbar, chromeVisible = true }: CodexCanvasMountProps) {
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
   const opdActivo = modelo.opds[opdActivoId];
   const code = opdActivo ? codigoOpd(opdActivo.nombre) : "SD";
@@ -25,6 +36,7 @@ export function CodexCanvasMount({ children, floating, chromeVisible = true }: C
 
   return (
     <div data-testid="canvas-pane" style={style.canvas}>
+      {topbar ? <div data-testid="canvas-topbar" style={style.topbar}>{topbar}</div> : null}
       {chromeVisible ? <div data-testid="canvas-header" style={style.header}>
         <span style={style.kicker}>{kicker}</span>
         <span data-testid="canvas-zoom" style={style.zoom}>{`zoom ${GLIFO_SEP} ${zoom}`}</span>
@@ -78,6 +90,13 @@ const style = {
     display: "flex",
     flexDirection: "column",
     background: tokens.colors.paperWarm,
+  },
+  topbar: {
+    flex: "0 0 auto",
+    minWidth: 0,
+    display: "flex",
+    flexDirection: "column",
+    position: "relative",
   },
   header: {
     flex: "0 0 auto",
