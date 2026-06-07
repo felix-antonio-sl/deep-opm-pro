@@ -122,6 +122,7 @@ export function App() {
   const esTablet = breakpoint === "tablet";
   const mobileReadonlyEnabled = import.meta.env.VITE_MOBILE_READONLY === "true";
   const modoSoloLectura = esMobileLectura(breakpoint, mobileReadonlyEnabled);
+  const usaLayoutMobile = esMobile && !modoSoloLectura;
   // BUG-20260511T225343Z-696858: en tablet acotamos al default para que el
   // canvas conserve espacio útil. Desktop respeta el valor del store.
   const anchoInspectorLayout = anchoPanelInspectorLayout(anchoPanelInspector, esTablet);
@@ -163,7 +164,7 @@ export function App() {
     <CanvasAdapterContext.Provider value={canvasAdapter}>
     <ConfirmacionProvider>
       <main
-        style={pageStyle(esMobile)}
+        style={pageStyle(usaLayoutMobile)}
         data-breakpoint={breakpoint}
         data-context-device={contextoWorkbench.device}
         data-context-modo={contextoWorkbench.modo}
