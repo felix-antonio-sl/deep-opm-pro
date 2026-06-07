@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260606T063734Z-52df54",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-06T06:37:34.653Z",
+  "text": "barra de simulación se va descuadrando en tanto requiere más espacio",
+  "context": {
+    "modeloId": "modelo-simulacion-lab-complejo",
+    "modeloNombre": "Laboratorio complejo de simulacion OPM 2",
+    "opdActivoId": "opd-orquestacion",
+    "opdActivoNombre": "SD1 - Orquestacion simulable del despacho critico",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-463f2d45-5c05-49ff-9c67-63886325e6ff",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1920,
+      "height": 963,
+      "devicePixelRatio": 1
+    },
+    "capturedAt": "2026-06-06T06:37:31.664Z"
+  },
+  "screenshots": [
+    "screenshots/01-cleanshot-2026-06-06-at-02.36.50.jpg"
+  ]
+}

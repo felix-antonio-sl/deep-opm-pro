@@ -290,10 +290,62 @@ function estiloNarrativa(tono: NarrativaSimulacion["tono"]): JSX.CSSProperties {
 const C = tokens.colors;
 const T = tokens.typography;
 
-const s: Record<string, JSX.CSSProperties> = {
+// Exportado para que tests anclen las invariantes de layout.
+// BUG-20260606T063734Z-52df54: estos estilos no se derivan de tokens dinámicos,
+// se verifican directamente en tests estructurales (ver
+// `BarraSimulacion.styles.test.ts`).
+type EstilosBarra = {
+  barra: JSX.CSSProperties;
+  barraOverlayDesktop: JSX.CSSProperties;
+  barraMobile: JSX.CSSProperties;
+  fila: JSX.CSSProperties;
+  tag: JSX.CSSProperties;
+  contador: JSX.CSSProperties;
+  estadoTexto: JSX.CSSProperties;
+  procesoActivo: JSX.CSSProperties;
+  opd: JSX.CSSProperties;
+  check: JSX.CSSProperties;
+  narrativa: JSX.CSSProperties;
+  narrativaInlineMobile: JSX.CSSProperties;
+  narrativaMarca: JSX.CSSProperties;
+  narrativaTexto: JSX.CSSProperties;
+  narrativaTitulo: JSX.CSSProperties;
+  narrativaDetalle: JSX.CSSProperties;
+  narrativaContexto: JSX.CSSProperties;
+  narrativaChip: JSX.CSSProperties;
+  control: JSX.CSSProperties;
+  controlActivo: JSX.CSSProperties;
+  sep: JSX.CSSProperties;
+  kbd: JSX.CSSProperties;
+  flecha: JSX.CSSProperties;
+  segmented: JSX.CSSProperties;
+  segmentBtn: JSX.CSSProperties;
+  segmentActivo: JSX.CSSProperties;
+  timeline: JSX.CSSProperties;
+  marco: JSX.CSSProperties;
+  marcoCompletado: JSX.CSSProperties;
+  marcoActual: JSX.CSSProperties;
+  timelineGrande: JSX.CSSProperties;
+  timer: JSX.CSSProperties;
+  trace: JSX.CSSProperties;
+  traceItem: JSX.CSSProperties;
+  traceItemOmitido: JSX.CSSProperties;
+  traceNumero: JSX.CSSProperties;
+  traceProceso: JSX.CSSProperties;
+  traceDiag: JSX.CSSProperties;
+  traceOmitido: JSX.CSSProperties;
+};
+export const s: EstilosBarra = {
+  // BUG-20260606T063734Z-52df54: el `alignItems: "center"` original centraba
+  // verticalmente la `fila` de status contra el panel `narrativa` cuando
+  // ambos compartían línea. Como la narrativa crece con `detalle` y `chips`,
+  // el status line "flotaba" descentrado y el desajuste aumentaba con el
+  // contenido. `alignItems: "flex-start"` alinea al tope y, sumado al
+  // `flexBasis: "100%"` de la narrativa (fuerza fila propia), garantiza que
+  // status, narrativa y controles vivan en 3 filas independientes.
   barra: {
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: tokens.spacing.sm,
     padding: `6px ${tokens.spacing.md}px`,
     background: C.paper,
@@ -363,13 +415,21 @@ const s: Record<string, JSX.CSSProperties> = {
     color: C.success,
     fontStyle: "italic",
   },
+  // BUG-20260606T063734Z-52df54: `flexBasis: 100%` fuerza a la narrativa a
+  // ocupar su propia fila (status line arriba, controles abajo). `maxHeight`
+  // + `overflow: hidden` acotan el crecimiento del panel cuando el detalle
+  // o los chips se vuelven muy largos — antes la altura libre del panel
+  // tiraba del `alignItems: center` del padre y desalineaba el status.
   narrativa: {
     display: "flex",
     alignItems: "center",
     gap: tokens.spacing.sm,
     flex: "1 1 520px",
+    flexBasis: "100%",
     minWidth: 280,
     maxWidth: "100%",
+    maxHeight: "90px",
+    overflow: "hidden",
     padding: "5px 8px",
     background: C.paper,
     borderLeft: `3px solid ${C.ruleStrong}`,
