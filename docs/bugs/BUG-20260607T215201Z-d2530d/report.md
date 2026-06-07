@@ -1,0 +1,37 @@
+# BUG-20260607T215201Z-d2530d
+
+**Creado**: 2026-06-07T21:52:01.683Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+panel izquerdo y derecho que se puedan esconder
+
+## Screenshots
+
+Sin screenshots adjuntos.
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-5d676f21-3f05-462e-87d7-f2df47e810d4",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1920,
+    "height": 963,
+    "devicePixelRatio": 1
+  },
+  "capturedAt": "2026-06-07T21:51:59.526Z"
+}
+```

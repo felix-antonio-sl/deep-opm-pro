@@ -16,20 +16,23 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
-| Nuevo | 2 |
+| Nuevo | 5 |
 | Resuelto | 110 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 107 |
+| Bug | 110 |
 | Feat | 5 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
+| Bug | Nuevo | [BUG-20260607T220340Z-42c24c](BUG-20260607T220340Z-42c24c/report.md) | 2026-06-07 22:03Z | Laboratorio complejo de simulacion OPM 2 / SD - Laboratorio de despacho critico | quedó mal puesto el encaje del contenedor de simulación con la barra superior, filtrandose visualmente el fondo | Pendiente. | 1 |  |
+| Bug | Nuevo | [BUG-20260607T215222Z-624056](BUG-20260607T215222Z-624056/report.md) | 2026-06-07 21:52Z | Modelo / SD | que panel izquierdo se. pueda redimensionar horizontalmente | Pendiente. | 0 |  |
+| Bug | Nuevo | [BUG-20260607T215201Z-d2530d](BUG-20260607T215201Z-d2530d/report.md) | 2026-06-07 21:52Z | Modelo / SD | panel izquerdo y derecho que se puedan esconder | Pendiente. | 0 |  |
 | Bug | Resuelto | [BUG-20260606T063734Z-52df54](BUG-20260606T063734Z-52df54/report.md) | 2026-06-06 06:37Z | Laboratorio complejo de simulacion OPM 2 / SD1 - Orquestacion simulable del despacho critico | barra de simulación se va descuadrando en tanto requiere más espacio | La barra de simulacion centraba verticalmente la fila de status contra el panel narrativa (alignItems: 'center' en el padre) y co… | 1 | Tests: 12/12 pass en src/ui/simulacion/ (6 originales de proyeccionBarra + 6 nuevos estructurales en BarraSimulacion.styles.test.ts que anclan alignItems flex-start, flexBasis 100%, maxHeight 90px, overflow hidden, y la invariantes de marca de la tag crimson uppercase). typecheck/build/lint limpios. Para hacer testeable el objeto de estilos s, se le agrego `export const s: EstilosBarra = {...}` con un tipo de 32 entradas declarado arriba (sin cambios semanticos). Mockup comparativo en docs/bugs/BUG-20260606T063734Z-52df54/mockup-comparativo.html con los 3 estados (BUG/Opcion A/Opcion B) usando los tokens reales del repo. |
 | Bug | Resuelto | [BUG-20260606T041330Z-1f46fe](BUG-20260606T041330Z-1f46fe/report.md) | 2026-06-06 04:13Z | HODOM completo v1.6 / SD0-C - Hospitalizacion en domicilio | ahora backend para forja y no más localstore. tras eso algunos desajustes visuales: screenshot 1: texto cortado screenshot 2: barra superior despropo… | Dos desajustes del header editorial Codex tras el corte backend-only: (1) el titulo 'OPDs' del panel derecho se recortaba porque … | 2 | Verificado in-vivo en dev server 1920x963: header.h=48, treePane colHeader.h=45.84px con gridRows '12px 14.8438px' (antes 12px+11px clipado), oplPane colHeader consistente. Tests: CodexFrame.test.ts cubre codexFrameRows=48px; CodexColHeader.test.tsx (nuevo) cubre gridTemplateRows 'auto auto' + minHeight suelo + no height fijo + lineHeight tight en title. Sin pageErrors ni consoleErrors. Otros desajustes visuales revisados: dimming de Relacion/Estado/editor-vacio es estado contextual intencional (ink50 vs ink), no desajuste. Quedan fuera de este corte: el WIP no-commiteado de persistencia backend-only (58 archivos, typecheck roto, 21 fails en tests de store/persistencia/dsl) que el operador arrastraba antes de este bug. |
 | Bug | Resuelto | [BUG-20260605T041627Z-b0416c](BUG-20260605T041627Z-b0416c/report.md) | 2026-06-05 04:16Z | Modelo copia / SD | la linea de aproximación cuando se está tratando de crear un enlace desde un estado queda por debajo del objeto | El ghost de aproximacion de enlace se proyecta con z=60, por encima de entidades, enlaces a estado y halos runtime. | 1 | Cubierto por handlers/modoEnlace.test; alineado con el modelo de ordenamiento z de JointJS. |

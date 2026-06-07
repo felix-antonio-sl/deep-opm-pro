@@ -759,6 +759,19 @@ export interface OpmStore {
    * Clamp en `limitarAnchoPanelInspector` [240, 560] con default 300.
    */
   anchoPanelInspector: number;
+  /**
+   * BUG-20260607T215222Z-624056: ancho del panel OPL izquierdo.
+   * Clamp en `limitarAnchoPanelOpleft` [160, 400] con default 240.
+   */
+  anchoPanelOpleft: number;
+  /**
+   * BUG-20260607T215201Z-d2530d: visibilidad del panel OPL izquierdo.
+   */
+  panelOpleftAbierto: boolean;
+  /**
+   * BUG-20260607T215201Z-d2530d: visibilidad del panel Inspector derecho.
+   */
+  panelInspectorAbierto: boolean;
   nombresArbolVisibles: boolean;
   cheatsheetAtajosAbierto: boolean;
   /**
@@ -770,6 +783,12 @@ export interface OpmStore {
   fijarAnchoPanelArbol: (px: number) => void;
   /** BUG-20260511T225343Z-696858: setea ancho Inspector con clamp + persistencia. */
   fijarAnchoPanelInspector: (px: number) => void;
+  /** BUG-20260607T215222Z-624056: setea ancho OPL izquierdo con clamp + persistencia. */
+  fijarAnchoPanelOpleft: (px: number) => void;
+  /** BUG-20260607T215201Z-d2530d: toggle visibilidad panel OPL izquierdo. */
+  togglePanelOpleft: () => void;
+  /** BUG-20260607T215201Z-d2530d: toggle visibilidad panel Inspector derecho. */
+  togglePanelInspector: () => void;
   toggleNombresArbolVisibles: () => void;
   toggleSoloCanvas: () => void;
   fijarSoloCanvas: (activo: boolean) => void;

@@ -6,12 +6,18 @@ export function useZustandAppShellWorkbenchPort(): AppShellWorkbenchPort {
   const vistaMapaActiva = useOpmStore((s) => s.vistaMapaActiva);
   const anchoPanelArbol = useOpmStore((s) => s.anchoPanelArbol);
   const anchoPanelInspector = useOpmStore((s) => s.anchoPanelInspector);
+  const anchoPanelOpleft = useOpmStore((s) => s.anchoPanelOpleft);
+  const panelOpleftAbierto = useOpmStore((s) => s.panelOpleftAbierto);
+  const panelInspectorAbierto = useOpmStore((s) => s.panelInspectorAbierto);
   const uiSoloCanvas = useOpmStore((s) => s.uiSoloCanvas);
   const preferenciasOpl = useOpmStore((s) => s.indice.preferenciasUi);
   const modelo = useOpmStore((s) => s.modelo);
   const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const fijarAnchoPanelArbol = useOpmStore((s) => s.fijarAnchoPanelArbol);
   const fijarAnchoPanelInspector = useOpmStore((s) => s.fijarAnchoPanelInspector);
+  const fijarAnchoPanelOpleft = useOpmStore((s) => s.fijarAnchoPanelOpleft);
+  const togglePanelOpleft = useOpmStore((s) => s.togglePanelOpleft);
+  const togglePanelInspector = useOpmStore((s) => s.togglePanelInspector);
   const toggleSoloCanvas = useOpmStore((s) => s.toggleSoloCanvas);
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
   const seleccionIdOpl = useOpmStore((s) => s.seleccionId);
@@ -26,12 +32,18 @@ export function useZustandAppShellWorkbenchPort(): AppShellWorkbenchPort {
     vistaMapaActiva: APP_FEATURES.mapaSistema ? vistaMapaActiva : false,
     anchoPanelArbol,
     anchoPanelInspector,
+    anchoPanelOpleft,
+    panelOpleftAbierto,
+    panelInspectorAbierto,
     uiSoloCanvas,
     preferenciasOpl,
     modelo,
     opdActivoId,
     fijarAnchoPanelArbol,
     fijarAnchoPanelInspector,
+    fijarAnchoPanelOpleft,
+    togglePanelOpleft,
+    togglePanelInspector,
     toggleSoloCanvas,
     modeloPersistidoId,
     seleccionIdOpl,

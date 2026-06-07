@@ -182,7 +182,7 @@ import {
 } from "../canvas/operacionesBatch";
 import type { CrearSlice, UiPanelSlice } from "./tipos";
 import {
-  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, limitarAnchoPanelInspector, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
+  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa,   limitar, limitarAnchoPanelArbol, limitarAnchoPanelInspector, limitarAnchoPanelOpleft, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
   deshacerRuntime,
   rehacerRuntime,
 } from "./runtime";
@@ -215,6 +215,9 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   busquedaOpdGestion: "",
   anchoPanelArbol: limitarAnchoPanelArbol(preferenciasUiIniciales.anchoPanelArbol),
   anchoPanelInspector: limitarAnchoPanelInspector(preferenciasUiIniciales.anchoPanelInspector),
+  anchoPanelOpleft: limitarAnchoPanelOpleft(preferenciasUiIniciales.anchoPanelOpleft),
+  panelOpleftAbierto: true,
+  panelInspectorAbierto: true,
   nombresArbolVisibles: preferenciasUiIniciales.nombresArbolVisibles ?? true,
   cheatsheetAtajosAbierto: false,
   // L2 ronda 21: vista activa del modo revisión mobile. Solo se consume cuando
@@ -340,16 +343,34 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 	    set({ indice, anchoPanelArbol });
 	  },
 
-	  // BUG-20260511T225343Z-696858: setter espejo a `fijarAnchoPanelArbol` que
-	  // clamp [240, 560] y persiste en `indice.preferenciasUi.anchoPanelInspector`.
-	  fijarAnchoPanelInspector(px) {
-	    const anchoPanelInspector = limitarAnchoPanelInspector(px);
-	    const indice = actualizarPreferenciasUi(get().indice, { anchoPanelInspector });
-	    escribirIndiceWorkspace(indice);
-	    set({ indice, anchoPanelInspector });
-	  },
+  // BUG-20260511T225343Z-696858: setter espejo a `fijarAnchoPanelArbol` que
+  // clamp [240, 560] y persiste en `indice.preferenciasUi.anchoPanelInspector`.
+  fijarAnchoPanelInspector(px) {
+    const anchoPanelInspector = limitarAnchoPanelInspector(px);
+    const indice = actualizarPreferenciasUi(get().indice, { anchoPanelInspector });
+    escribirIndiceWorkspace(indice);
+    set({ indice, anchoPanelInspector });
+  },
 
-	  toggleNombresArbolVisibles() {
+  // BUG-20260607T215222Z-624056: setter espejo para panel OPL izquierdo.
+  fijarAnchoPanelOpleft(px: number) {
+    const anchoPanelOpleft = limitarAnchoPanelOpleft(px);
+    const indice = actualizarPreferenciasUi(get().indice, { anchoPanelOpleft });
+    escribirIndiceWorkspace(indice);
+    set({ indice, anchoPanelOpleft });
+  },
+
+  // BUG-20260607T215201Z-d2530d: toggle visibilidad panel OPL izquierdo.
+  togglePanelOpleft() {
+    set({ panelOpleftAbierto: !get().panelOpleftAbierto });
+  },
+
+  // BUG-20260607T215201Z-d2530d: toggle visibilidad panel Inspector derecho.
+  togglePanelInspector() {
+    set({ panelInspectorAbierto: !get().panelInspectorAbierto });
+  },
+
+  toggleNombresArbolVisibles() {
 	    const nombresArbolVisibles = !get().nombresArbolVisibles;
 	    const indice = actualizarPreferenciasUi(get().indice, { nombresArbolVisibles });
 	    escribirIndiceWorkspace(indice);

@@ -1,0 +1,37 @@
+# BUG-20260607T220340Z-42c24c
+
+**Creado**: 2026-06-07T22:03:40.753Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+quedó mal puesto el encaje del contenedor de simulación con la barra superior, filtrandose visualmente el fondo
+
+## Screenshots
+
+- [screenshots/01-cleanshot-2026-06-07-at-18.02.47.jpg](screenshots/01-cleanshot-2026-06-07-at-18.02.47.jpg)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-simulacion-lab-complejo",
+  "modeloNombre": "Laboratorio complejo de simulacion OPM 2",
+  "opdActivoId": "opd-sd",
+  "opdActivoNombre": "SD - Laboratorio de despacho critico",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-54e678bc-df3b-475c-8b4f-2758c6949e08",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1920,
+    "height": 963,
+    "devicePixelRatio": 1
+  },
+  "capturedAt": "2026-06-07T22:03:37.444Z"
+}
+```

@@ -1,0 +1,27 @@
+{
+  "id": "BUG-20260607T215222Z-624056",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-06-07T21:52:22.861Z",
+  "text": "que panel izquierdo se. pueda redimensionar horizontalmente",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-1",
+    "opdActivoNombre": "SD",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-5d676f21-3f05-462e-87d7-f2df47e810d4",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1920,
+      "height": 963,
+      "devicePixelRatio": 1
+    },
+    "capturedAt": "2026-06-07T21:52:20.310Z"
+  },
+  "screenshots": []
+}

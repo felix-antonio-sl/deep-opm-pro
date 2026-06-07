@@ -56,6 +56,7 @@ export function esPreferenciasUi(value: unknown): value is PreferenciasUiUsuario
   if (!esRecord(value)) return false;
   if (value.anchoPanelArbol !== undefined && typeof value.anchoPanelArbol !== "number") return false;
   if (value.anchoPanelInspector !== undefined && typeof value.anchoPanelInspector !== "number") return false;
+  if (value.anchoPanelOpleft !== undefined && typeof value.anchoPanelOpleft !== "number") return false;
   if (value.nombresArbolVisibles !== undefined && typeof value.nombresArbolVisibles !== "boolean") return false;
   if (value.cheatsheetVisible !== undefined && typeof value.cheatsheetVisible !== "boolean") return false;
   if (value.gridConfig !== undefined && !esRecord(value.gridConfig)) return false;

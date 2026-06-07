@@ -41,6 +41,7 @@ export interface PreferenciasUiUsuario {
    * Espejo de `anchoPanelArbol` con su propio clamp [240, 560] y default 300.
    */
   anchoPanelInspector?: number;
+  anchoPanelOpleft?: number;
   nombresArbolVisibles?: boolean;
   arbolOrden?: "automatico" | "manual";
   arbolExpandidoPersistente?: Id[];

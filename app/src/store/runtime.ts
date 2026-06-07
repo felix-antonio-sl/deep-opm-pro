@@ -50,6 +50,10 @@ export const ANCHO_PANEL_ARBOL_MAX = 600;
 export const ANCHO_PANEL_INSPECTOR_DEFAULT = 360;
 export const ANCHO_PANEL_INSPECTOR_MIN = 240;
 export const ANCHO_PANEL_INSPECTOR_MAX = 560;
+// BUG-20260607T215222Z-624056: panel OPL izquierdo resizable horizontalmente.
+export const ANCHO_PANEL_OPL_LEFT_DEFAULT = 240;
+export const ANCHO_PANEL_OPL_LEFT_MIN = 160;
+export const ANCHO_PANEL_OPL_LEFT_MAX = 400;
 
 let snapshotGuardado = "";
 let undoStack: Modelo[] = [];
@@ -196,6 +200,11 @@ export function limitarAnchoPanelArbol(valor: number | undefined): number {
 export function limitarAnchoPanelInspector(valor: number | undefined): number {
   if (!Number.isFinite(valor)) return ANCHO_PANEL_INSPECTOR_DEFAULT;
   return limitar(Math.round(valor as number), ANCHO_PANEL_INSPECTOR_MIN, ANCHO_PANEL_INSPECTOR_MAX);
+}
+
+export function limitarAnchoPanelOpleft(valor: number | undefined): number {
+  if (!Number.isFinite(valor)) return ANCHO_PANEL_OPL_LEFT_DEFAULT;
+  return limitar(Math.round(valor as number), ANCHO_PANEL_OPL_LEFT_MIN, ANCHO_PANEL_OPL_LEFT_MAX);
 }
 
 export function actualizarPreferenciasUi(

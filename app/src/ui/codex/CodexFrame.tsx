@@ -24,6 +24,23 @@ interface CodexFrameProps extends CodexFrameColumnsParams {
   canvasOnly?: boolean;
 }
 
+/**
+ * Altura del header editorial Codex (primera fila del grid del CodexFrame).
+ *
+ * SSOT: este es el único lugar donde la altura del header vive como dato.
+ * El layout `codexFrameRows()` la usa para construir el `gridTemplateRows`,
+ * y los overlays `position: fixed` que se anclan al borde inferior del
+ * header (p.ej. `BarraSimulacion.s.barraOverlayDesktop.top`) deben
+ * consumir esta constante — nunca un literal.
+ *
+ * BUG-20260607T220340Z-42c24c: el overlay de la barra de simulación tenía
+ * `top: 60` hardcoded (match con la altura vieja de 60px). Cuando BUG-
+ * 20260606T041330Z-1f46fe bajó el header a 48px, el overlay se quedó
+ * flotando 12px más abajo, dejando una franja visible del body
+ * (background paperWarm) entre el header y la barra.
+ */
+export const CODEX_HEADER_HEIGHT = 48;
+
 export function codexFrameRows(canvasOnly = false): string {
   // BUG-20260606T041330Z-1f46fe: la barra superior se veía "desproporcionadamente
   // alta" porque la fila era 60px exactos. El contenido real más alto del header
@@ -31,7 +48,7 @@ export function codexFrameRows(canvasOnly = false): string {
   // fila). 48px deja ~8px de aire arriba/abajo — alineado con la economía
   // mobile (48px en `pageMobile.gridTemplateRows`) y con la altura que el
   // wordmark + tabs + acciones esperan de un header editorial Codex.
-  return canvasOnly ? "minmax(0, 1fr)" : "48px minmax(0, 1fr)";
+  return canvasOnly ? "minmax(0, 1fr)" : `${CODEX_HEADER_HEIGHT}px minmax(0, 1fr)`;
 }
 
 export function codexFrameColumns({ leftWidth, rightWidth, isTablet, canvasOnly = false }: CodexFrameColumnsParams): string {
@@ -91,11 +108,11 @@ export function CodexFrame({
           gridTemplateAreas: codexFrameAreas(canvasOnly),
         }}
       >
-        {canvasOnly ? null : <div style={style.leftSlot}>{leftPanel}</div>}
+        {canvasOnly || leftWidth === 0 ? null : <div style={style.leftSlot}>{leftPanel}</div>}
         {canvasOnly ? null : leftDivider}
         {canvas}
         {canvasOnly ? null : rightDivider}
-        {canvasOnly ? null : <aside style={style.rightSlot}>{rightPanel}</aside>}
+        {canvasOnly || rightWidth === 0 ? null : <aside style={style.rightSlot}>{rightPanel}</aside>}
       </section>
     </div>
   );

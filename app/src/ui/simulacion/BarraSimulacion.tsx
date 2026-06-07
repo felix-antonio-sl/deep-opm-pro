@@ -2,6 +2,7 @@ import type { JSX } from "preact";
 import { useEffect } from "preact/hooks";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { descriptorFaseSimulacion, fasesDelPasoSimulacion } from "../../modelo/simulacion/fases";
+import { CODEX_HEADER_HEIGHT } from "../codex/CodexFrame";
 import { useBreakpoint } from "../layoutResponsive";
 import { tokens } from "../tokens";
 import { proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion, type NarrativaSimulacion } from "./proyeccionBarra";
@@ -356,9 +357,16 @@ export const s: EstilosBarra = {
     fontSize: T.sizes.sm,
     color: C.ink,
   },
+  // BUG-20260607T220340Z-42c24c: el `top: 60` original matcheaba con la
+  // altura vieja del header Codex (60px en `codexFrameRows()`). Cuando
+  // BUG-20260606T041330Z-1f46fe bajó el header a 48px, este overlay se
+  // quedó flotando 12px más abajo, dejando una franja visible del body
+  // (background paperWarm) entre el header y la barra. Consumimos
+  // `CODEX_HEADER_HEIGHT` desde `CodexFrame` para que cualquier cambio
+  // futuro de altura del header propague al overlay sin riesgo de drift.
   barraOverlayDesktop: {
     position: "fixed",
-    top: 60,
+    top: CODEX_HEADER_HEIGHT,
     left: 0,
     right: 0,
     zIndex: 30,

@@ -18,7 +18,7 @@ import { listarAvisosDiagnostico } from "../modelo/diagnostico";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
 import type { Id, Modelo } from "../modelo/tipos";
 import type { JointCanvasAdapter } from "../render/jointjs/jointCanvasAdapter";
-import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_INSPECTOR_MIN } from "../store/runtime";
+import { ANCHO_PANEL_INSPECTOR_DEFAULT, ANCHO_PANEL_INSPECTOR_MAX, ANCHO_PANEL_INSPECTOR_MIN, ANCHO_PANEL_OPL_LEFT_DEFAULT, ANCHO_PANEL_OPL_LEFT_MAX, ANCHO_PANEL_OPL_LEFT_MIN } from "../store/runtime";
 import { ArbolOpd } from "./ArbolOpd";
 import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
 import { BarraPestanas } from "./BarraPestanas";
@@ -75,10 +75,16 @@ export function App() {
   const {
     vistaMapaActiva,
     anchoPanelInspector,
+    anchoPanelOpleft,
+    panelOpleftAbierto,
+    panelInspectorAbierto,
     uiSoloCanvas,
     modelo,
     opdActivoId,
     fijarAnchoPanelInspector,
+    fijarAnchoPanelOpleft,
+    togglePanelOpleft,
+    togglePanelInspector,
     dialogoGuardarComoAbierto,
     dialogoConfiguracionAbierto,
     dialogoOntologiaAbierto,
@@ -237,8 +243,8 @@ export function App() {
             marginalia operativa, sin duplicarse abajo ni en el inspector.
           */
           <CodexFrame
-            leftWidth={ANCHO_PANEL_INSPECTOR_DEFAULT}
-            rightWidth={anchoInspectorLayout}
+            leftWidth={panelOpleftAbierto ? anchoPanelOpleft : 0}
+            rightWidth={panelInspectorAbierto ? anchoInspectorLayout : 0}
             isTablet={esTablet}
             canvasOnly={uiSoloCanvas}
             toolbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
@@ -248,7 +254,24 @@ export function App() {
             meta={<ChromeMetaCodex oraciones={oracionesOpl} dirty={dirtyModelo} />}
             leftPanel={(
               <section data-testid="opl-pane" style={layout.oplLeftPane}>
-                <CodexColHeader kicker="MARGINALIA" title="OPL" meta={<OplHeaderMeta vm={panelOplVm} />} />
+                <CodexColHeader
+                  kicker="MARGINALIA"
+                  title="OPL"
+                  meta={(
+                    <div style={style.headerMetaConBoton}>
+                      <OplHeaderMeta vm={panelOplVm} />
+                      <button
+                        type="button"
+                        data-testid="btn-ocultar-opl"
+                        title="Ocultar panel OPL"
+                        style={style.btnOcultarPanel}
+                        onClick={togglePanelOpleft}
+                      >
+                        ◀
+                      </button>
+                    </div>
+                  )}
+                />
                 <div style={layout.oplLeftContent}>
                   <PanelOplView vm={panelOplVm} />
                 </div>
@@ -264,13 +287,28 @@ export function App() {
                 ) : null}
               </section>
             )}
-            leftDivider={(
-              <div
-                role="separator"
-                aria-orientation="vertical"
-                data-testid="divisor-panel-opl-canvas"
-                style={layout.codexLeftDivider}
+            leftDivider={panelOpleftAbierto ? (
+              <DivisorPanel
+                orientacion="vertical"
+                anchoInicial={anchoPanelOpleft}
+                anchoMin={ANCHO_PANEL_OPL_LEFT_MIN}
+                anchoMax={ANCHO_PANEL_OPL_LEFT_MAX}
+                onAnchoChange={fijarAnchoPanelOpleft}
+                resetValue={ANCHO_PANEL_OPL_LEFT_DEFAULT}
+                testId="divisor-panel-opl-canvas"
+                title="Ajustar ancho del panel OPL"
+                gridArea="divisor"
               />
+            ) : (
+              <button
+                type="button"
+                data-testid="btn-mostrar-opl"
+                title="Mostrar panel OPL"
+                style={style.btnMostrarPanel}
+                onClick={togglePanelOpleft}
+              >
+                ◀
+              </button>
             )}
             canvas={(
               <CodexCanvasMount chromeVisible={!uiSoloCanvas}>
@@ -287,7 +325,7 @@ export function App() {
                 <EstadoVacioOpm />
               </CodexCanvasMount>
             )}
-            rightDivider={(
+            rightDivider={panelInspectorAbierto ? (
               <DivisorPanel
                 orientacion="vertical"
                 anchoInicial={anchoInspectorLayout}
@@ -300,11 +338,38 @@ export function App() {
                 gridArea="divisorInspector"
                 onAnchoChange={fijarAnchoPanelInspector}
               />
+            ) : (
+              <button
+                type="button"
+                data-testid="btn-mostrar-inspector"
+                title="Mostrar panel Inspector"
+                style={{ ...style.btnMostrarPanel, gridArea: "divisorInspector" }}
+                onClick={togglePanelInspector}
+              >
+                ▶
+              </button>
             )}
             rightPanel={(
               <div data-testid="inspector-pane" style={layout.rightToolsPane}>
                 <section data-testid="tree-pane" style={{ ...layout.rightIndexPane, flex: `0 0 ${alturaIndicePct}%` }}>
-                  <CodexColHeader kicker="ÍNDICE" title="OPDs" meta={Object.keys(modelo.opds).length} />
+                  <CodexColHeader
+                    kicker="ÍNDICE"
+                    title="OPDs"
+                    meta={(
+                      <div style={style.headerMetaConBoton}>
+                        <span>{Object.keys(modelo.opds).length}</span>
+                        <button
+                          type="button"
+                          data-testid="btn-ocultar-inspector"
+                          title="Ocultar panel Inspector"
+                          style={style.btnOcultarPanel}
+                          onClick={togglePanelInspector}
+                        >
+                          ▶
+                        </button>
+                      </div>
+                    )}
+                  />
                   <div style={layout.treePaneArbol}>
                     <ArbolOpd />
                   </div>
@@ -760,6 +825,43 @@ const layout = {
     border: 0,
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
+
+const style = {
+  headerMetaConBoton: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+  } as preact.JSX.CSSProperties,
+  btnOcultarPanel: {
+    border: 0,
+    background: "transparent",
+    color: tokens.colors.inkSoft,
+    cursor: "pointer",
+    padding: "2px 4px",
+    fontSize: `${tokens.typography.fs.fs10}px`,
+    lineHeight: 1,
+    borderRadius: "2px",
+  } as preact.JSX.CSSProperties,
+  btnMostrarPanel: {
+    gridArea: "divisor",
+    width: "6px",
+    minWidth: "6px",
+    cursor: "pointer",
+    border: 0,
+    background: tokens.colors.fondoElevado,
+    color: tokens.colors.inkSoft,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    fontSize: `${tokens.typography.fs.fs10}px`,
+    zIndex: 2,
+    overflow: "hidden",
+    writingMode: "vertical-rl",
+    textOrientation: "mixed",
+    letterSpacing: "-2px",
+  } as preact.JSX.CSSProperties,
+};
 
 function pageStyle(esMobile: boolean): preact.JSX.CSSProperties {
   if (esMobile) return layout.pageMobile;
