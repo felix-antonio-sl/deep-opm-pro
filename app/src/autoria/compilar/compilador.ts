@@ -124,6 +124,9 @@ export function compilarProto(markdown: string, opciones: OpcionesCompilacion = 
   // Registro de enlaces procedurales por OPD (tensión 1: adjunción del evento sin
   // portador sobre un `requiere` coexistente, sin duplicar). Compartido entre OPDs.
   const enlacesProcedurales = new Map<string, string>();
+  // Secuencia de claveProto de colas (`cola-fina-N`) POR COMPILACIÓN: holder fresco
+  // compartido entre OPDs → reentrante/determinista (bug de-risking F4 corregido).
+  const secuenciaColaAncla = { n: 0 };
   // W5.2: estado de claves de ancla (desambiguación estable de colisiones) +
   // contabilidad L8 acumulada (detectadas == compiladas + candidatas + en-rechazadas).
   const clavesAncla = nuevoEstadoClaves();
@@ -147,7 +150,7 @@ export function compilarProto(markdown: string, opciones: OpcionesCompilacion = 
   // Procesa cada OPD en orden: el raíz puebla entidades; los hijos registran su
   // refinamiento, proyectan el contorno y emiten su detalle.
   for (const nodo of plan.opds) {
-    procesarOpd(nodo, autor, resolutor, entradas, estadosUnion, estadosDeclarados, enlacesProcedurales, clavesAncla, contabAnclas);
+    procesarOpd(nodo, autor, resolutor, entradas, estadosUnion, estadosDeclarados, enlacesProcedurales, clavesAncla, contabAnclas, secuenciaColaAncla);
   }
 
   const resumen = resumir(entradas, plan.opds.length, contabAnclas.total);
@@ -164,6 +167,7 @@ function procesarOpd(
   enlacesProcedurales: Map<string, string>,
   clavesAncla: EstadoClaves,
   contabAnclas: { total: ContabilidadAnclas },
+  secuenciaColaAncla: { n: number },
 ): void {
   // 1) Para un OPD de refinamiento: registra el refinamiento y proyecta el
   //    contorno. El refinable debe existir (creado en el OPD padre). Si no existe
@@ -188,7 +192,7 @@ function procesarOpd(
   }
 
   // 2) Emite los hechos del OPD.
-  const ctx = { autor, resolutor, opdClave: nodo.clave, opdKey: nodo.clave, estadosUnion, estadosDeclarados, enlacesProcedurales };
+  const ctx = { autor, resolutor, opdClave: nodo.clave, opdKey: nodo.clave, estadosUnion, estadosDeclarados, enlacesProcedurales, secuenciaColaAncla };
   for (const linea of nodo.hechos) {
     const contab = emitirLinea(linea, ctx, entradas, clavesAncla);
     contabAnclas.total = sumarContabilidad(contabAnclas.total, contab);
@@ -205,6 +209,7 @@ function emitirLinea(
     estadosUnion: Map<string, string[]>;
     estadosDeclarados: Set<string>;
     enlacesProcedurales: Map<string, string>;
+    secuenciaColaAncla: { n: number };
   },
   entradas: DestinoLedger[],
   clavesAncla: EstadoClaves,

@@ -71,6 +71,14 @@ export interface ContextoEmision {
    * compilador y compartido entre OPDs (la clave incluye el OPD).
    */
   enlacesProcedurales: Map<string, string>;
+  /**
+   * Secuencia de `claveProto` para anclas de cola (`cola-fina-N`), POR COMPILACIÓN.
+   * Holder mutable compartido entre OPDs de UNA misma compilación y creado fresco
+   * por `compilarProto` — para que la clave sea reentrante/determinista (la misma
+   * para el mismo proto), no dependiente del estado del proceso. Sin esto, el
+   * contador era módulo-global y dos compilaciones divergían (bug de-risking F4).
+   */
+  secuenciaColaAncla: { n: number };
 }
 
 /**
@@ -862,9 +870,6 @@ function ramaEnlace(
 
 // ── FAMILIA V — emisión de líneas compuestas y directivas ───────────────────
 
-/** Contador global de claveProto para anclas de cola (la unicidad la exige el DSL). */
-let claveAnclaSeq = 0;
-
 /**
  * Emite una línea `compuesta` (familia V): cada emisión (oración o directiva)
  * produce 0..N hechos; si la línea pide `agrupar`, forma un abanico XOR/OR sobre
@@ -1035,7 +1040,7 @@ function adjuntarAncla(ctx: ContextoEmision, enlaceId: string, nota: string): vo
     ctx.autor.ancla(
       { enlace: enlaceId },
       {
-        claveProto: `cola-fina-${++claveAnclaSeq}`,
+        claveProto: `cola-fina-${++ctx.secuenciaColaAncla.n}`,
         estado: "pendiente-ratificacion",
         nota,
         nivelAutoridad: "operador-modelado",
