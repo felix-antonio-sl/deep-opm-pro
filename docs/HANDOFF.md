@@ -45,7 +45,7 @@
 
 **Artefactos relevantes:** `app/src/store/runtime.ts` (constantes + `limitarAnchoPanelOpleft`), `app/src/store/uiPanel.ts` (estado + acciones), `app/src/store/tipos.ts` (tipos), `app/src/store/sliceTypes.ts` (slice keys), `app/src/app/ports/appShellWorkbenchPort.ts` (port), `app/src/app/ports/zustandAppShellWorkbenchPort.ts` (adapter), `app/src/ui/App.tsx` (DivisorPanel + botones), `app/src/ui/codex/CodexFrame.tsx` (no renderiza panel cuando width 0), `app/src/modelo/tipos/ui.ts` (preferencia), `app/src/persistencia/workspaceStorage.ts` (validación).
 
-**Verificación:** `cd app && bun run typecheck` → limpio. `bun run check` → **2316 pass / 0 fail**. Deploy ejecutado en servidor: bundle `assets/index-C8dIvPcf.js`.
+**Verificación:** `cd app && bun run typecheck` → limpio. `bun run check` → **2316 pass / 0 fail**. Deploy ejecutado en servidor: bundle `assets/index-C8dIvPcf.js`. **Validado por operador 2026-06-08: paneles se esconden y redimensionan correctamente.**
 
 ## Actualización 2026-06-06 — mobile solo-lectura v1 Fases 0-5 DESPLEGADAS
 
