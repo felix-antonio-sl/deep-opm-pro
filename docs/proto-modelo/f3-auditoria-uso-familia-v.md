@@ -62,8 +62,15 @@ Cableado (solo reporte, no bloqueante) en `scripts/piloto-compilador-hodom.ts`
 ## Estado de las fases
 
 - F0 contrato ✅ · F1 ledger ✅ · **F2 equivalencia ejecutable ✅** · **F3 auditoría ✅**.
+- **De-risking F4 de las 4 migrables — EJECUTADO 2026-06-07** (read-only,
+  `docs/proto-modelo/derisk-f4-migrables.md`): migrar V3/V4/V5/V7 a su forma E2 en
+  el proto HODOM es **BYTE-IDÉNTICO** → un F5 parcial de esas 4 reglas es **cambio
+  de cero costo** (no requiere re-pin del golden; solo bendecir la edición de 7
+  líneas del proto + el retiro de las 4 reglas del compilador). De yapa, el
+  de-risking destapó y corrigió un **bug de reentrancia** del `claveProto` de colas
+  (contador módulo-global → por-compilación).
 - **F4 (migrar pilotos a E2) y F5 (cambiar default) siguen GATEADOS** por la
-  decisión de transporte de las 12 requiere-decisión y por el re-pin del proto
-  HODOM (toca la SSOT de dominio en `hd-opm` → protocolo re-pin, awareness del
-  operador). El de-risking de F4 para las 4 migrables (byte-identidad de la
-  migración) puede correr read-only sobre una copia del proto, sin editar la SSOT.
+  decisión de transporte de las 12 requiere-decisión y, para las 12, por el re-pin
+  del proto HODOM (la edición de las líneas requiere-decisión SÍ puede cambiar el
+  bundle). Para las 4 migrables, F5 parcial está de-riskeado y listo (espera la
+  edición del proto en `hd-opm` + retiro, awareness del operador).
