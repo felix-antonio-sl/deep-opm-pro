@@ -16,8 +16,8 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
-| Nuevo | 5 |
-| Resuelto | 110 |
+| Nuevo | 4 |
+| Resuelto | 111 |
 
 ## Resumen Por Tipo
 
@@ -30,7 +30,7 @@ cd app && bun run bug:index
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
-| Bug | Nuevo | [BUG-20260607T220340Z-42c24c](BUG-20260607T220340Z-42c24c/report.md) | 2026-06-07 22:03Z | Laboratorio complejo de simulacion OPM 2 / SD - Laboratorio de despacho critico | quedó mal puesto el encaje del contenedor de simulación con la barra superior, filtrandose visualmente el fondo | Pendiente. | 1 |  |
+| Bug | Resuelto | [BUG-20260607T220340Z-42c24c](BUG-20260607T220340Z-42c24c/report.md) | 2026-06-07 22:03Z | Laboratorio complejo de simulacion OPM 2 / SD - Laboratorio de despacho critico | quedó mal puesto el encaje del contenedor de simulación con la barra superior, filtrandose visualmente el fondo | El overlay de la barra de simulacion (s.barraOverlayDesktop.top) tenia '60' hardcoded, match con la altura vieja del header Codex… | 1 | Refactor arquitectonico + 1 linea de cambio semantico. Tests: 15/15 pass en src/ui/simulacion/ (12 previos + 3 nuevos en describe 'BarraSimulacion overlay' que anclan top === CODEX_HEADER_HEIGHT, position === 'fixed', zIndex === 30, pointerEvents === 'none'). typecheck/build/lint/design:governance limpios. Sonda app/scripts/sonda-bug-42c24c.mjs mide el offset entre el bottom del header y el top de la barra (tolerancia 1px). La constante CODEX_HEADER_HEIGHT queda como SSOT de la altura del header: cualquier cambio futuro en la primera fila de codexFrameRows propaga al overlay sin riesgo de drift. |
 | Bug | Nuevo | [BUG-20260607T215222Z-624056](BUG-20260607T215222Z-624056/report.md) | 2026-06-07 21:52Z | Modelo / SD | que panel izquierdo se. pueda redimensionar horizontalmente | Pendiente. | 0 |  |
 | Bug | Nuevo | [BUG-20260607T215201Z-d2530d](BUG-20260607T215201Z-d2530d/report.md) | 2026-06-07 21:52Z | Modelo / SD | panel izquerdo y derecho que se puedan esconder | Pendiente. | 0 |  |
 | Bug | Resuelto | [BUG-20260606T063734Z-52df54](BUG-20260606T063734Z-52df54/report.md) | 2026-06-06 06:37Z | Laboratorio complejo de simulacion OPM 2 / SD1 - Orquestacion simulable del despacho critico | barra de simulación se va descuadrando en tanto requiere más espacio | La barra de simulacion centraba verticalmente la fila de status contra el panel narrativa (alignItems: 'center' en el padre) y co… | 1 | Tests: 12/12 pass en src/ui/simulacion/ (6 originales de proyeccionBarra + 6 nuevos estructurales en BarraSimulacion.styles.test.ts que anclan alignItems flex-start, flexBasis 100%, maxHeight 90px, overflow hidden, y la invariantes de marca de la tag crimson uppercase). typecheck/build/lint limpios. Para hacer testeable el objeto de estilos s, se le agrego `export const s: EstilosBarra = {...}` con un tipo de 32 entradas declarado arriba (sin cambios semanticos). Mockup comparativo en docs/bugs/BUG-20260606T063734Z-52df54/mockup-comparativo.html con los 3 estados (BUG/Opcion A/Opcion B) usando los tokens reales del repo. |

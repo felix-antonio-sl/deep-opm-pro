@@ -652,5 +652,11 @@
     "status": "Resuelto",
     "resolution": "La barra de simulacion centraba verticalmente la fila de status contra el panel narrativa (alignItems: 'center' en el padre) y como la narrativa crecia con detalle y chips, el status 'flotaba' y el desajuste aumentaba con el contenido. Fix: alignItems 'flex-start' en s.barra + flexBasis '100%' y maxHeight '90px' + overflow 'hidden' en s.narrativa, para que status, narrativa y controles vivan en 3 filas independientes.",
     "note": "Tests: 12/12 pass en src/ui/simulacion/ (6 originales de proyeccionBarra + 6 nuevos estructurales en BarraSimulacion.styles.test.ts que anclan alignItems flex-start, flexBasis 100%, maxHeight 90px, overflow hidden, y la invariantes de marca de la tag crimson uppercase). typecheck/build/lint limpios. Para hacer testeable el objeto de estilos s, se le agrego `export const s: EstilosBarra = {...}` con un tipo de 32 entradas declarado arriba (sin cambios semanticos). Mockup comparativo en docs/bugs/BUG-20260606T063734Z-52df54/mockup-comparativo.html con los 3 estados (BUG/Opcion A/Opcion B) usando los tokens reales del repo."
+  },
+  "BUG-20260607T220340Z-42c24c": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El overlay de la barra de simulacion (s.barraOverlayDesktop.top) tenia '60' hardcoded, match con la altura vieja del header Codex (60px). Cuando BUG-1f46fe bajo el header a 48px, el overlay se quedo flotando 12px mas abajo, dejando una franja visible del body (background paperWarm) entre el header y la barra. Fix: nueva constante exportada CODEX_HEADER_HEIGHT = 48 en CodexFrame.tsx, codexFrameRows() la usa, y s.barraOverlayDesktop.top consume CODEX_HEADER_HEIGHT en vez del literal 60.",
+    "note": "Refactor arquitectonico + 1 linea de cambio semantico. Tests: 15/15 pass en src/ui/simulacion/ (12 previos + 3 nuevos en describe 'BarraSimulacion overlay' que anclan top === CODEX_HEADER_HEIGHT, position === 'fixed', zIndex === 30, pointerEvents === 'none'). typecheck/build/lint/design:governance limpios. Sonda app/scripts/sonda-bug-42c24c.mjs mide el offset entre el bottom del header y el top de la barra (tolerancia 1px). La constante CODEX_HEADER_HEIGHT queda como SSOT de la altura del header: cualquier cambio futuro en la primera fila de codexFrameRows propaga al overlay sin riesgo de drift."
   }
 }

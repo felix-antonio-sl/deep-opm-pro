@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { s } from "./BarraSimulacion";
+import { CODEX_HEADER_HEIGHT } from "../codex/CodexFrame";
 import { tokens } from "../tokens";
 
 describe("BarraSimulacion layout (BUG-20260606T063734Z-52df54)", () => {
@@ -62,5 +63,36 @@ describe("BarraSimulacion layout (BUG-20260606T063734Z-52df54)", () => {
     expect(s.segmentBtn.height).toBe(28);
     expect(s.segmented.display).toBe("inline-flex");
     expect(s.segmented.border).toBe(`1px solid ${tokens.colors.rule}`);
+  });
+});
+
+describe("BarraSimulacion overlay (BUG-20260607T220340Z-42c24c)", () => {
+  test("overlay desktop se ancla al bottom del header Codex (sin gap de fondo)", () => {
+    // BUG-20260607T220340Z-42c24c: `top: 60` original matcheaba con la altura
+    // vieja del header (60px en `codexFrameRows()`). Cuando BUG-1f46fe bajó
+    // el header a 48px, el overlay se quedó flotando 12px más abajo, dejando
+    // una franja visible del body (background paperWarm) entre el header y
+    // la barra. `top` debe consumir `CODEX_HEADER_HEIGHT` para que cualquier
+    // cambio futuro de altura del header propague al overlay sin drift.
+    expect(s.barraOverlayDesktop.position).toBe("fixed");
+    expect(s.barraOverlayDesktop.top).toBe(CODEX_HEADER_HEIGHT);
+    expect(s.barraOverlayDesktop.top).toBe(48);
+    expect(s.barraOverlayDesktop.left).toBe(0);
+    expect(s.barraOverlayDesktop.right).toBe(0);
+  });
+
+  test("overlay desktop tiene zIndex suficiente para quedar sobre el header", () => {
+    // El header Codex usa `zIndex: 20` (ver CodexFrame.tsx style.header).
+    // El overlay de la simulación debe quedar por encima para que la barra
+    // se vea sobre el wordmark y los tabs, no detrás de ellos.
+    expect(s.barraOverlayDesktop.zIndex).toBeGreaterThanOrEqual(20);
+    expect(s.barraOverlayDesktop.zIndex).toBe(30);
+  });
+
+  test("overlay desktop deja pasar clicks al canvas (pointerEvents none)", () => {
+    // La barra no debe interceptar clicks del canvas JointJS por debajo
+    // (los controles individuales usan `pointerEvents: "auto"` para
+    // recuperar la interactividad).
+    expect(s.barraOverlayDesktop.pointerEvents).toBe("none");
   });
 });
