@@ -17,6 +17,7 @@ import { compilarProto } from "../src/autoria/compilar/compilador";
 import type { DestinoLedger } from "../src/autoria/compilar/compilador";
 import { emitirBundle } from "../src/autoria/bundle";
 import { compararProcedencia, construirSello } from "../src/autoria/procedencia";
+import { usoFamiliaV, usoFamiliaVPorOpd, particionarUso } from "../src/autoria/compilar/usoFamiliaV";
 import { hidratarModelo } from "../src/serializacion/json";
 import { generarOpl } from "../src/opl/generar";
 import { parsearParrafoOpl, claveNombre } from "../src/opl/parser/parsear";
@@ -253,6 +254,37 @@ function main(): void {
     ["Divergencia bundle↔archivos actuales", divergencia ? (divergencia.divergente ? `SÍ — ${divergencia.componentes.map((c) => c.componente).join(", ")}` : "NO (sin staleness)") : "n/a"],
   ]));
   lineas.push("");
+  // ── F3: auditoría de uso de la familia V (NO bloqueante) ──
+  // Mide cuánto del corpus HODOM real depende todavía del adaptador legacy
+  // `mapearFamiliaV`, partido por el veredicto F2 (migrable-estricto V3/V4/V5/V7
+  // vs requiere-decisión). Insumo directo de F4 (qué OPDs migrar) y de la
+  // decisión de transporte de las 12 reglas requiere-decisión.
+  const usoV = usoFamiliaV(ledger);
+  const particion = particionarUso(usoV);
+  const porOpdV = usoFamiliaVPorOpd(ledger);
+  const opdsConV = Object.keys(porOpdV).length;
+  const fmtPorRegla = (r: Record<string, number>) =>
+    Object.keys(r).length ? Object.entries(r).sort().map(([k, v]) => `${k}×${v}`).join(", ") : "—";
+  lineas.push("## 5d. Auditoría de uso de la familia V (F3 — no bloqueante)");
+  lineas.push("");
+  lineas.push("> Migrable-estricto = V3/V4/V5/V7 (equivalencia E2 verde, retirables con piloto+byte-identidad).");
+  lineas.push("> Requiere-decisión = las otras 12 (tagged/modificador/abanico/ancla; el reverse no las re-lee).");
+  lineas.push("> Detalle del veredicto: `docs/proto-modelo/f2-equivalencia-familia-v.md`.");
+  lineas.push("");
+  lineas.push(fmtTabla([
+    ["Líneas resueltas por familia V (total)", usoV.total],
+    ["  · migrable-estricto (V3/V4/V5/V7)", `${particion.migrable.total} [${fmtPorRegla(particion.migrable.porRegla)}]`],
+    ["  · requiere-decisión (12 reglas)", `${particion.requiereDecision.total} [${fmtPorRegla(particion.requiereDecision.porRegla)}]`],
+    ["OPDs que aún usan familia V", `${opdsConV} / ${resumen.opds}`],
+  ]));
+  if (opdsConV > 0) {
+    lineas.push("");
+    lineas.push("Uso por OPD (clave → reglas):");
+    for (const [opd, u] of Object.entries(porOpdV).sort()) {
+      lineas.push(`- \`${opd}\`: ${fmtPorRegla(u.porRegla)}`);
+    }
+  }
+  lineas.push("");
   lineas.push("## 6. Veredicto");
   lineas.push("");
   const l6Verde = procedenciaEnBundle && divergencia !== null && !divergencia.divergente;
@@ -269,6 +301,7 @@ function main(): void {
   console.log(`bundle válido: ${bundleOk} · avisos error: ${avisosError} · round-trip: ${roundtripPresentes}/${roundtripVerificables} (${pct}%)`);
   console.log(`L2 coherente: ${l2Coherente} (sin destino: ${sinDestino})`);
   console.log(`procedencia L6: sello en bundle: ${procedenciaEnBundle} · divergencia: ${divergencia ? divergencia.divergente : "n/a"}`);
+  console.log(`familia V (F3): total ${usoV.total} · migrable ${particion.migrable.total} · requiere-decisión ${particion.requiereDecision.total} · OPDs con V: ${opdsConV}/${resumen.opds}`);
   console.log(`Reporte: ${REPORTE_PATH}`);
   if (!verde) process.exitCode = 1;
 }

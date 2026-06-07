@@ -14,7 +14,7 @@
 - Enlaces (bundle)                  : 329
 - OPDs (bundle)                     : 11
 - Avisos de severidad error         : 0
-- Canon                             : FAIL (10 bloqueantes, 99 metodológicos, 46 info).
+- Canon                             : FAIL (10 bloqueantes, 108 metodológicos, 46 info).
 
 ## 2. Hechos aplicados por tipo de primitiva DSL
 
@@ -79,9 +79,28 @@ Ejemplos de fallo (oración :: razón):
 - protoHash (proto-modelo)                 : ca0831e8176a43a9
 - glosarioHash (glosario de dominio)       : 9b4180ce3c4d1c97
 - autoriaVersion                           : 1
-- layoutVersion                            : 1
+- layoutVersion                            : 2
 - Sello presente en el bundle (round-trip) : SÍ
 - Divergencia bundle↔archivos actuales     : NO (sin staleness)
+
+## 5d. Auditoría de uso de la familia V (F3 — no bloqueante)
+
+> Migrable-estricto = V3/V4/V5/V7 (equivalencia E2 verde, retirables con piloto+byte-identidad).
+> Requiere-decisión = las otras 12 (tagged/modificador/abanico/ancla; el reverse no las re-lee).
+> Detalle del veredicto: `docs/proto-modelo/f2-equivalencia-familia-v.md`.
+
+- Líneas resueltas por familia V (total) : 27
+-   · migrable-estricto (V3/V4/V5/V7)    : 7 [V3×2, V4×2, V5×1, V7×2]
+-   · requiere-decisión (12 reglas)      : 20 [V1×2, V10×1, V11×1, V12×6, V13×1, V14×1, V15×2, V17×1, V2×1, V6×2, V8×1, V9×1]
+- OPDs que aún usan familia V            : 6 / 11
+
+Uso por OPD (clave → reglas):
+- `ii-2-b`: V12×3, V13×1, V15×1, V17×1, V4×1, V6×2, V7×1, V9×1
+- `p5`: V3×1, V4×1, V7×1
+- `sd1`: V8×1
+- `sd1-m2`: V1×1
+- `sd1-m2-1`: V10×1, V12×1
+- `sd1-m3`: V1×1, V11×1, V12×2, V14×1, V15×1, V2×1, V3×1, V5×1
 
 ## 6. Veredicto
 

@@ -21,7 +21,13 @@
 
 import { describe, expect, test } from "bun:test";
 import { compilarProto } from "./compilador";
-import { usoFamiliaV, proyeccionObservable } from "./usoFamiliaV";
+import {
+  usoFamiliaV,
+  usoFamiliaVPorOpd,
+  particionarUso,
+  MIGRABLE_ESTRICTO_F2,
+  proyeccionObservable,
+} from "./usoFamiliaV";
 import { FIXTURES_FAMILIA_V, PREAMBULO_FIXTURES } from "./familia-v-e2.fixtures";
 
 function compilar(cuerpo: string) {
@@ -106,6 +112,42 @@ describe("F2 clasificación — reglas tagged/compuestas sin superficie reverse"
       }
     });
   }
+});
+
+// ── F3: auditoría usoFamiliaV por OPD + partición migrable/requiere-decisión ──
+
+describe("F3 — auditoría usoFamiliaV por OPD y partición del veredicto F2", () => {
+  test("MIGRABLE_ESTRICTO_F2 es exactamente {V3, V4, V5, V7}", () => {
+    expect([...MIGRABLE_ESTRICTO_F2].sort()).toEqual(["V3", "V4", "V5", "V7"]);
+  });
+
+  test("usoFamiliaVPorOpd agrupa por OPD y suma igual que el total global", () => {
+    const { ledger } = compilar("Monitorización detecta Evento de deterioro clínico.");
+    const porOpd = usoFamiliaVPorOpd(ledger);
+    expect(Object.keys(porOpd).length).toBeGreaterThanOrEqual(1);
+    const totalGlobal = Object.values(porOpd).reduce((acc, u) => acc + u.total, 0);
+    expect(totalGlobal).toBe(usoFamiliaV(ledger).total);
+    expect(totalGlobal).toBe(1);
+  });
+
+  test("una línea estricta no produce uso por OPD", () => {
+    const { ledger } = compilar("Monitorización genera Evento de deterioro clínico.");
+    expect(usoFamiliaVPorOpd(ledger)).toEqual({});
+  });
+
+  test("particionarUso separa migrable-estricto de requiere-decisión", () => {
+    const part = particionarUso({ total: 3, porRegla: { V5: 1, V8: 1, V1: 1 } });
+    expect(part.migrable).toEqual({ total: 1, porRegla: { V5: 1 } });
+    expect(part.requiereDecision).toEqual({ total: 2, porRegla: { V8: 1, V1: 1 } });
+  });
+
+  test("particionarUso preserva el total (suma de ambas particiones)", () => {
+    const uso = { total: 4, porRegla: { V3: 2, V4: 1, V11: 1 } };
+    const part = particionarUso(uso);
+    expect(part.migrable.total + part.requiereDecision.total).toBe(uso.total);
+    expect(part.migrable.total).toBe(3); // V3×2 + V4×1
+    expect(part.requiereDecision.total).toBe(1); // V11
+  });
 });
 
 // ── Negativos del ledger F1: la skill no absorbe barro ───────────────────────

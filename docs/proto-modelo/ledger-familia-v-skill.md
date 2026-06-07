@@ -1,7 +1,8 @@
 # Ledger F1 — familia-V → `modelamiento-opm normalizar-proto`
 
-**Fecha:** 2026-06-05 · **F2 ejecutado:** 2026-06-07
-**Estado:** F1 cerrado como ledger documental; **F2 cerrado como fixtures ejecutables + clasificación medida** (`docs/proto-modelo/f2-equivalencia-familia-v.md`). No cambia producto ni default del compilador.
+**Fecha:** 2026-06-05 · **F2+F3 ejecutados:** 2026-06-07
+**Estado:** F1 cerrado (ledger documental); **F2 cerrado** (fixtures ejecutables + clasificación medida, `docs/proto-modelo/f2-equivalencia-familia-v.md`); **F3 cerrado** (auditoría `usoFamiliaV` no bloqueante en piloto/experimento, `docs/proto-modelo/f3-auditoria-uso-familia-v.md`). No cambia producto ni default del compilador.
+**Mapa de dependencia real (F3):** HODOM usa familia-V 27× (7 migrable, 20 requiere-decisión, 6/11 OPDs); segundo dominio 7× (2 migrable, 5 requiere-decisión). V12 (colas) domina las requiere-decisión.
 **Contrato padre:** `docs/proto-modelo/contrato-migracion-familia-v-skill.md`.
 **Compatibilidad legacy:** `app/src/autoria/compilar/normalizador.ts` (`mapearFamiliaV`) sigue congelado hasta F5.
 **Veredicto F2:** migrable-estricto = **V3/V4/V5/V7** (equivalencia laxo↔E2 verde, cero familia-V); requiere-decisión de transporte = las otras 12 (tagged solo-forward / modificador / abanico / ancla, el reverse no las re-lee); deuda de skill = V5 negativo (`detecta` ciego al tipo). Detalle y opciones de transporte en el reporte F2.

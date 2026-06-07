@@ -24,6 +24,7 @@ import type { DestinoLedger } from "../src/autoria/compilar/compilador";
 import { detectarDuplicadosPorAbsorcion } from "../src/autoria/compilar/absorcion";
 import { emitirBundle } from "../src/autoria/bundle";
 import { compararProcedencia, construirSello } from "../src/autoria/procedencia";
+import { usoFamiliaV, particionarUso } from "../src/autoria/compilar/usoFamiliaV";
 import { hidratarModelo } from "../src/serializacion/json";
 
 const BASE = resolve(import.meta.dir, "../../docs/proto-modelo/segundo-dominio");
@@ -122,6 +123,19 @@ function main(): void {
   } else {
     lineas.push("- (ninguna regla T2/V usada: todo entró como OPL estricto)");
   }
+  lineas.push("");
+  // F3: auditoría de dependencia del adaptador legacy familia-V (no bloqueante).
+  const usoV = usoFamiliaV(ledger);
+  const particion = particionarUso(usoV);
+  const fmtPorRegla = (r: Record<string, number>) =>
+    Object.keys(r).length ? Object.entries(r).sort().map(([k, v]) => `${k}×${v}`).join(", ") : "—";
+  lineas.push("## 2b. Auditoría familia-V (F3 — migrable-estricto vs requiere-decisión)");
+  lineas.push("");
+  lineas.push(fmtTabla([
+    ["Líneas por familia V (total)", usoV.total],
+    ["  · migrable-estricto (V3/V4/V5/V7)", `${particion.migrable.total} [${fmtPorRegla(particion.migrable.porRegla)}]`],
+    ["  · requiere-decisión (12 reglas)", `${particion.requiereDecision.total} [${fmtPorRegla(particion.requiereDecision.porRegla)}]`],
+  ]));
   lineas.push("");
   lineas.push("## 3. Rechazos T3 — oración :: categoría :: diagnóstico");
   lineas.push("");

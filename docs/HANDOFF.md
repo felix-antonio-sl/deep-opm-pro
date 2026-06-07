@@ -7,6 +7,19 @@
 **Frente: mobile solo-lectura v1 — DESPLEGADO 2026-06-06 (Fases 0-5 completadas)** — spec técnica del operador en `docs/specs/mobile-readonly-v1-steipete-cat-jointjs.md`. Fases 0-5 implementadas, verificadas y desplegadas en producción: contexto `lectura`, flag `VITE_MOBILE_READONLY=true`, `paper.interactive` readonly, handlers mutantes gateados, tools/halos/renombrado/menu suprimidos en readonly, shell `MobileReadonlyApp` con 4 tabs (Diagrama/OPDs/OPL/Acerca), router móvil, búsqueda multi-sección, E2E suite, bundle `assets/index-BwvxkaDU.js` contiene `MobileReadonlyApp`. Detalle abajo (§ Mobile solo-lectura v1 Fases 0-5 DESPLEGADAS).
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2; rama `codex/ux-composicion-f1` fue squash-mergeada sobre `main` para cerrar la brecha de composición. Diseño/planes relevantes: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`, `docs/superpowers/plans/2026-06-02-ux-adhoc-fs.md`.
 
+## Actualización 2026-06-07 — migración familia-V→skill F3 (auditoría usoFamiliaV, mapa de dependencia real)
+
+**Estado:** F3 cerrado. Instrumentación de auditoría `usoFamiliaV` **no bloqueante** (no lanza, solo reporta) por compilación, cableada en el piloto HODOM (§5d) y el experimento del segundo dominio (§2b). No toca el default ni el comportamiento del compilador. Artefactos: `usoFamiliaV.ts` (+`usoFamiliaVPorOpd`, `MIGRABLE_ESTRICTO_F2`, `particionarUso`), reporte `docs/proto-modelo/f3-auditoria-uso-familia-v.md`, **30 tests verdes** en `migracion-familia-v.test.ts`.
+
+**Mapa de dependencia real (medido):**
+- **HODOM** (proto v1.10 completo): 27 usos de familia-V — **7 migrable-estricto** (`V3×2 V4×2 V5×1 V7×2`) + **20 requiere-decisión** (`V12×6` domina, luego `V1×2 V6×2 V15×2` …), en **6/11 OPDs**.
+- **Segundo dominio**: 7 usos — 2 migrable + 5 requiere-decisión (`V12×3`…).
+- **Lecturas**: (1) el migrable NO es moot — F5 parcial de V3/V4/V5/V7 exige migrar 7 líneas del proto HODOM + re-pin (toca SSOT de dominio en `hd-opm`, gateado por protocolo re-pin); (2) las 12 requiere-decisión concentran 74% del uso → la decisión de transporte es la palanca grande, y **V12** (colas→ancla) es la de mayor volumen; (3) `sd1` solo usa V8 (1 línea tagged) — OPD casi-migrable atado por una regla.
+
+**Verificación:** `cd app && bun run typecheck` limpio; `bun test src/autoria` → 249/0; piloto y experimento regenerados con §auditoría.
+
+**Prompt breve de continuación:** "Retomar desde `docs/HANDOFF.md`, sección `Actualización 2026-06-07 — F3`. El mapa de dependencia real está en `docs/proto-modelo/f3-auditoria-uso-familia-v.md`. Siguientes opciones (gateadas): (a) **decisión del operador sobre el transporte** de las 12 requiere-decisión —empezar por V12 (mayor volumen)— entre dar superficie reverse / emisión estructurada / legacy permanente; (b) **de-risking F4 read-only** de V3/V4/V5/V7 (probar byte-identidad de migrar esas 7 líneas del proto HODOM SIN editar la SSOT); (c) F4/F5 reales, que exigen editar el proto `hd-opm` + re-pin (awareness del operador). No tocar `mapearFamiliaV` ni el default."
+
 ## Actualización 2026-06-07 — migración familia-V→skill F2 (equivalencia ejecutable + clasificación medida)
 
 **Estado:** F2 cerrado. Convertido el ledger documental F1 en **fixtures ejecutables laxo↔E2** con clasificación **medida empíricamente** (sondas 2026-06-07), sin tocar el default ni el comportamiento del compilador (invariante F0). Artefactos: `app/src/autoria/compilar/usoFamiliaV.ts` (observación pura del ledger: cuenta reglas `V1..V17` + `proyeccionObservable` como vara de equivalencia), `familia-v-e2.fixtures.ts` (tabla medida), `migracion-familia-v.test.ts` (**25 tests verdes**), reporte `docs/proto-modelo/f2-equivalencia-familia-v.md`.

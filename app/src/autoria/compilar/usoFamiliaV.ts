@@ -38,6 +38,51 @@ export function usoFamiliaV(ledger: Ledger): UsoFamiliaV {
   return { total, porRegla };
 }
 
+/**
+ * Veredicto F2 (2026-06-07, `docs/proto-modelo/f2-equivalencia-familia-v.md`):
+ * las reglas con forma OPL-ES estricta REVERSE-parseable equivalente, migrables
+ * a la skill HOY. Las demás reglas V requieren una decisión de transporte antes
+ * de F4/F5. Esta constante es el único punto que codifica esa clasificación.
+ */
+export const MIGRABLE_ESTRICTO_F2: ReadonlySet<string> = new Set(["V3", "V4", "V5", "V7"]);
+
+/**
+ * Auditoría F3: uso de familia V desglosado por OPD (clave del ledger). Solo las
+ * entradas `aplicada` portan `opd` + `regla`; las fallidas/excluidas de una
+ * compuesta no cuentan (consistente con `usoFamiliaV`). No bloqueante: es lectura.
+ */
+export function usoFamiliaVPorOpd(ledger: Ledger): Record<string, UsoFamiliaV> {
+  const porOpd: Record<string, UsoFamiliaV> = {};
+  for (const entrada of ledger.entradas) {
+    if (entrada.tipo !== "aplicada") continue;
+    const regla = entrada.regla;
+    if (typeof regla !== "string" || !REGLAS_V.test(regla)) continue;
+    const u = porOpd[entrada.opd] ?? { total: 0, porRegla: {} };
+    u.porRegla[regla] = (u.porRegla[regla] ?? 0) + 1;
+    u.total += 1;
+    porOpd[entrada.opd] = u;
+  }
+  return porOpd;
+}
+
+/** Partición de un uso entre migrable-estricto (V3/V4/V5/V7) y requiere-decisión. */
+export interface ParticionUso {
+  migrable: UsoFamiliaV;
+  requiereDecision: UsoFamiliaV;
+}
+
+/** Separa un `UsoFamiliaV` según el veredicto F2. Preserva el total. */
+export function particionarUso(uso: UsoFamiliaV): ParticionUso {
+  const migrable: UsoFamiliaV = { total: 0, porRegla: {} };
+  const requiereDecision: UsoFamiliaV = { total: 0, porRegla: {} };
+  for (const [regla, n] of Object.entries(uso.porRegla)) {
+    const destino = MIGRABLE_ESTRICTO_F2.has(regla) ? migrable : requiereDecision;
+    destino.porRegla[regla] = n;
+    destino.total += n;
+  }
+  return { migrable, requiereDecision };
+}
+
 // ── Proyección observable (vara de equivalencia) ─────────────────────────────
 
 interface EntidadObs {

@@ -37,6 +37,12 @@
 - `V5`: 1
 - `V7`: 1
 
+## 2b. Auditoría familia-V (F3 — migrable-estricto vs requiere-decisión)
+
+- Líneas por familia V (total)        : 7
+-   · migrable-estricto (V3/V4/V5/V7) : 2 [V5×1, V7×1]
+-   · requiere-decisión (12 reglas)   : 5 [V12×3, V16×1, V17×1]
+
 ## 3. Rechazos T3 — oración :: categoría :: diagnóstico
 
 - `Planos de arquitectura son informacionales y ambientales.`
