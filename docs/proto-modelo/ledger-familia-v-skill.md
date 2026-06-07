@@ -1,9 +1,10 @@
 # Ledger F1 — familia-V → `modelamiento-opm normalizar-proto`
 
-**Fecha:** 2026-06-05
-**Estado:** F1 cerrado como ledger documental. No cambia producto ni default del compilador.
+**Fecha:** 2026-06-05 · **F2 ejecutado:** 2026-06-07
+**Estado:** F1 cerrado como ledger documental; **F2 cerrado como fixtures ejecutables + clasificación medida** (`docs/proto-modelo/f2-equivalencia-familia-v.md`). No cambia producto ni default del compilador.
 **Contrato padre:** `docs/proto-modelo/contrato-migracion-familia-v-skill.md`.
 **Compatibilidad legacy:** `app/src/autoria/compilar/normalizador.ts` (`mapearFamiliaV`) sigue congelado hasta F5.
+**Veredicto F2:** migrable-estricto = **V3/V4/V5/V7** (equivalencia laxo↔E2 verde, cero familia-V); requiere-decisión de transporte = las otras 12 (tagged solo-forward / modificador / abanico / ancla, el reverse no las re-lee); deuda de skill = V5 negativo (`detecta` ciego al tipo). Detalle y opciones de transporte en el reporte F2.
 
 ## Propósito
 
