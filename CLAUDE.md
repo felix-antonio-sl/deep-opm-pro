@@ -59,12 +59,16 @@ deep-opm-pro/
 ├── app/                        modelo OPM (src/, e2e/)
 ├── ui-forja/                   autoridad normativa de diseño Codex
 ├── docs/
+│   ├── README.md               entrada principal de documentación
 │   ├── HANDOFF.md              estado vigente, decisiones, pendientes, riesgos
+│   ├── uso-productivo.md       guía del usuario del modelador
 │   ├── canon-opm/              puentes locales a las SSOT OPM/opforja en KORA
-│   ├── JOYAS.md                hallazgos técnicos validados
 │   ├── deploy/opforja.md       operación de la instancia
-│   ├── historias-usuario-v2/   backlog documental (no gobierna progreso)
-│   └── roadmap/                cortes activos
+│   ├── roadmap/                cortes activos
+│   ├── auditorias/             auditorías técnicas vigentes
+│   ├── specs/                  especificaciones de frentes activos
+│   ├── bugs/                   reportes del capturador integrado
+│   └── JOYAS.md                hallazgos técnicos validados
 ├── opm-extracted/              derivado curado, versionado y trazable
 ├── assets/  fixtures/  config/  catalog/  webroot/   evidencia OPCloud
 ```
@@ -107,7 +111,7 @@ Ejecutar un solo test: `bun test src/modelo/abanicos.test.ts` (unit) o `bunx pla
 
 5. **Repo liviano**: no versionar artefactos regenerables o efímeros (listados en Estructura). `opm-extracted/` es la excepción: derivado curado y trazable.
 
-6. **Backlog documental, no gate**: `docs/historias-usuario-v2/` es backlog completo de referencia. `docs/roadmap/` define el corte operativo. El dashboard de avance HU fue retirado (2026-06-05): no regenerarlo, no usarlo como gate, no agregar reglas de progreso sobre HU.
+6. **Backlog documental retirado**: el inventario HU v2 (`docs/historias-usuario-v2/`) fue eliminado por no ofrecer valor actual. El dashboard de avance HU fue retirado previamente (2026-06-05). `docs/roadmap/` define el corte operativo.
 
 7. **Trabajo paralelo**: para particionar pendientes en líneas concurrentes usar la skill `lineas-paralelas` (genera README + briefs en `docs/instrucciones-lineas-dev/<ronda>/`). Patrón: worktrees aislados, olas con orden de merge, reconciliación e2e sobre `main` integrado. Cada línea mantiene su gate contra su base.
 
