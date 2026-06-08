@@ -45,11 +45,12 @@ describe("usoFamiliaV — cuenta entradas con regla V del ledger", () => {
     expect(uso.porRegla).toEqual({});
   });
 
-  test("una línea laxa V5 reporta uso de V5", () => {
-    const { ledger } = compilar("Monitorización detecta Evento de deterioro clínico.");
+  test("una línea laxa V6 reporta uso de V6", () => {
+    // V5 `detecta` fue RETIRADA (F5-parcial); se usa V6 `compromete`, regla viva.
+    const { ledger } = compilar("Ingreso HODOM compromete Capacidad de prestaciones.");
     const uso = usoFamiliaV(ledger);
     expect(uso.total).toBe(1);
-    expect(uso.porRegla.V5).toBe(1);
+    expect(uso.porRegla.V6).toBe(1);
   });
 
   test("control de no-tautología: una normalizada T2 (no-V) NO cuenta como familia-V", () => {
@@ -59,27 +60,32 @@ describe("usoFamiliaV — cuenta entradas con regla V del ledger", () => {
   });
 });
 
-// ── Primera ola: migrable-estricto (equivalencia verde dura) ─────────────────
+// ── Primera ola: migrable-estricto RETIRADA en F5-parcial (2026-06-08) ────────
+// El de-risking (`docs/proto-modelo/derisk-f4-migrables.md`) probó equivalencia
+// byte-idéntica laxo↔E2 para V3/V4/V5/V7 y autorizó retirar sus mappers. Ya NO
+// existe la ruta laxa contra la cual comparar: la equivalencia F2 cumplió su
+// función. Lo que queda es la GUARDA DE RETIRO — la laxa ya no se puentea
+// (rechaza/falla, sin usar familia-V) y la E2 compila estricto (usoFamiliaV==0).
 
-describe("F2 equivalencia laxo↔E2 — reglas migrables a OPL-ES estricto", () => {
-  const migrables = FIXTURES_FAMILIA_V.filter((f) => f.claseE2 === "estricto-reverse" && f.positivo);
+describe("F5-parcial: V3/V4/V5/V7 retiradas — laxo ya no se puentea, E2 compila estricto", () => {
+  const retiradas = FIXTURES_FAMILIA_V.filter((f) => f.claseE2 === "estricto-reverse" && f.positivo);
 
-  test("hay al menos V4/V5/V7 en la primera ola migrable", () => {
-    const reglas = new Set(migrables.map((f) => f.regla));
+  test("siguen registradas V3/V4/V5/V7 como las migrable-estricto (clasificación F2)", () => {
+    const reglas = new Set(retiradas.map((f) => f.regla));
+    expect(reglas.has("V3")).toBe(true);
     expect(reglas.has("V4")).toBe(true);
     expect(reglas.has("V5")).toBe(true);
     expect(reglas.has("V7")).toBe(true);
   });
 
-  for (const f of migrables) {
-    test(`${f.regla}: laxo usa familia-V, E2 no, y ambos producen el mismo modelo`, () => {
+  for (const f of retiradas) {
+    test(`${f.regla}: la laxa ya NO usa familia-V (retirada); la E2 compila estricto sin familia-V`, () => {
       const laxo = compilar(f.laxo);
+      // El mapper legacy se retiró: la laxa no puede aplicar su regla V.
+      expect(usoFamiliaV(laxo.ledger).porRegla[f.regla] ?? 0).toBe(0);
+      // La E2 estricta sigue compilando por la ruta canónica, sin familia-V.
       const e2 = compilar(f.e2!);
-      // La ruta laxa SÍ usa la regla V; la ruta E2 NO usa familia-V.
-      expect(usoFamiliaV(laxo.ledger).porRegla[f.regla]).toBeGreaterThanOrEqual(1);
       expect(usoFamiliaV(e2.ledger).total).toBe(0);
-      // Equivalencia observable: mismo modelo (entidades + enlaces + estados + anclas).
-      expect(proyeccionObservable(e2.modelo)).toEqual(proyeccionObservable(laxo.modelo));
     });
   }
 });
@@ -122,7 +128,8 @@ describe("F3 — auditoría usoFamiliaV por OPD y partición del veredicto F2", 
   });
 
   test("usoFamiliaVPorOpd agrupa por OPD y suma igual que el total global", () => {
-    const { ledger } = compilar("Monitorización detecta Evento de deterioro clínico.");
+    // V6 `compromete` (regla viva) — V5 `detecta` fue retirada en F5-parcial.
+    const { ledger } = compilar("Ingreso HODOM compromete Capacidad de prestaciones.");
     const porOpd = usoFamiliaVPorOpd(ledger);
     expect(Object.keys(porOpd).length).toBeGreaterThanOrEqual(1);
     const totalGlobal = Object.values(porOpd).reduce((acc, u) => acc + u.total, 0);

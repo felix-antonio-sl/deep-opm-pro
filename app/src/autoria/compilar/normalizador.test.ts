@@ -434,16 +434,16 @@ describe("A12 — disyuncion `u` (ante sonido /o/) se normaliza a `o`", () => {
 // ── R3 — verbo fuera del enum cerrado ───────────────────────────────────
 
 describe("R3 — verbos no canonicos se rechazan (los SIN mapeo) / familia V (los mapeados)", () => {
-  test("`alimenta` → V4 (instrumento), ya no R3", () => {
+  test("`alimenta` → R3 (V4 RETIRADA en F5-parcial; la E2 es `P requiere O`)", () => {
     const l = una("Resultado de interconsulta alimenta Evaluación clínica evolutiva.");
-    expect(l.clase).toBe("compuesta");
-    if (l.clase === "compuesta") expect(l.regla).toBe("V4");
+    expect(l.clase).toBe("rechazada");
+    if (l.clase === "rechazada") expect(l.categoria).toBe("R3");
   });
 
-  test("`precede a` (procesos) → V7 (invocación), ya no R3/R7", () => {
+  test("`precede a` (procesos) → R7 (V7 RETIRADA en F5-parcial; la E2 es `A invoca B`)", () => {
     const l = una("Evaluación de entorno seguro precede a Realización de la atención en domicilio.");
-    expect(l.clase).toBe("compuesta");
-    if (l.clase === "compuesta") expect(l.regla).toBe("V7");
+    expect(l.clase).toBe("rechazada");
+    if (l.clase === "rechazada") expect(l.categoria).toBe("R7");
   });
 
   test("`compromete` / `libera` → V6 (afecta + verbo anotado); `proyecta` SIGUE R3", () => {

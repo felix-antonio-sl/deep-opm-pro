@@ -81,6 +81,9 @@ Resolución del permiso es un proceso físico y sistémico.`;
 
 export const FIXTURES_FAMILIA_V: FixtureFamiliaV[] = [
   // ── Migrable-estricto (E2 reverse-parseable, equivalencia verde) ──
+  // RETIRADAS del compilador en F5-parcial (2026-06-08): su mapper legacy ya no
+  // existe; la laxa rechaza ruidoso, la E2 compila estricto. Estos fixtores ahora
+  // alimentan la guarda de retiro (ver `migracion-familia-v.test.ts`).
   {
     regla: "V3",
     laxo: "Discrepancia en 'detectada' puede iniciar Ajuste terapéutico.",

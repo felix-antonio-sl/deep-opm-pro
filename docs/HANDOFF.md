@@ -6,7 +6,29 @@
 **Frente: canvas infinito — DESPLEGADO 2026-06-03** (commit `849930e`, bundle `index-DaVSdw1e.js`). El OPD vacío parte a pantalla y el paper crece/desplaza sus límites en cualquier dirección con `paper.fitToContent({allowNewOrigin:'any'})`, reemplazando el piso fijo 7200×5200 + crecimiento solo derecha/abajo. Detalle del corte abajo (§ Canvas infinito); el spec de origen fue consolidado aquí y eliminado (historia git: `aec1bcd`).
 **Frente: mobile solo-lectura v1 — DESPLEGADO 2026-06-06 (Fases 0-5 completadas)** — spec técnica del operador en `docs/specs/mobile-readonly-v1-steipete-cat-jointjs.md`. Fases 0-5 implementadas, verificadas y desplegadas en producción: contexto `lectura`, flag `VITE_MOBILE_READONLY=true`, `paper.interactive` readonly, handlers mutantes gateados, tools/halos/renombrado/menu suprimidos en readonly, shell `MobileReadonlyApp` con 4 tabs (Diagrama/OPDs/OPL/Acerca), router móvil, búsqueda multi-sección, E2E suite, bundle `assets/index-BwvxkaDU.js` contiene `MobileReadonlyApp`. Detalle abajo (§ Mobile solo-lectura v1 Fases 0-5 DESPLEGADAS).
 **Frente: paneles OPL/Inspector hideables y resizable — DESPLEGADO 2026-06-08** — BUG-20260607T215222Z-624056 (panel OPL izquierdo resizable) y BUG-20260607T215201Z-d2530d (paneles hideables) resueltos, desplegados y validados por operador en producción. Detalle abajo (§ Actualización 2026-06-08 — BUGs paneles).
+**Frente: migración familia-V→skill F5-parcial — EJECUTADO 2026-06-08** — V3/V4/V5/V7 retiradas del compilador; proto HODOM migrado a E2 estricto byte-idéntico. Detalle abajo (§ Actualización 2026-06-08 — F5-parcial). **Frentes abiertos**: transporte de las 12 requiere-decisión (empezar por V12) y corte mayor auth/tenants.
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2; rama `codex/ux-composicion-f1` fue squash-mergeada sobre `main` para cerrar la brecha de composición. Diseño/planes relevantes: `docs/roadmap/capa-categorial-opforja.md`, `docs/roadmap/simulacion-categorial-opforja.md`, `docs/superpowers/plans/2026-06-01-capa-categorial-*.md`, `docs/superpowers/plans/2026-06-02-ux-adhoc-fs.md`.
+
+## Actualización 2026-06-08 — migración familia-V→skill F5-parcial (V3/V4/V5/V7 RETIRADAS del compilador)
+
+**Estado:** F5-parcial cerrado. Retiradas las 4 reglas migrable-estricto (V3/V4/V5/V7) de `mapearFamiliaV` (`src/autoria/compilar/normalizador.ts`), tras migrar las 7 líneas del proto HODOM a su forma E2 estricta. Es el primer retiro del puente legacy familia-V: materializa P3 «compilador = verificador» para esas formas (la skill las emite en E2 directo; el compilador ya no las puentea en silencio).
+
+**Cambio (dos pasos):**
+1. **Proto HODOM** (`/home/felix/projects/hd-opm/docs/modelo-opm-hodom-completo.md`, SSOT de dominio): 7 líneas laxo→E2 — `detecta`→`genera` (V5), `puede iniciar`→`inicia` (V3 ×2), `precede a`→`invoca` (V7 ×2), `O alimenta P`→`P requiere O` (V4 ×2). Aplicadas vía script auto-verificante `app/scripts/aplicar-f5-parcial-hodom.ts` (espejo del de-risking; **solo escribe si la guarda byte-idéntica pasa**; idempotente).
+2. **Compilador**: retiradas `mapearPuedeIniciar`/`mapearAlimenta`/`mapearDetecta`/`mapearPrecedeA` + sus regexes + las 4 líneas de despacho. `puede iniciar A o B` (disyunción) lo sigue cubriendo V15.
+
+**Contrato nuevo (verificado):** la forma laxa de las 4 ahora **rechaza ruidoso** — `puede iniciar`(unidestino)/`alimenta`/`detecta` → R3, `precede a` → R7 (sin corrupción silenciosa: V3 cae al R3 genérico porque `\binicia\b` no matchea «iniciar»). La E2 estricta (`inicia`/`requiere`/`genera`/`invoca`) compila por la ruta canónica produciendo el mismo modelo observable. **Consecuencia global**: esos 4 verbos laxos dejan de aceptarse en CUALQUIER proto (es el punto de P3); el experimento del 2º dominio (script manual, fuera del gate) mostrará sus 2 usos migrable como rechazo — «el dato del experimento».
+
+**Verificación (doble byte-identidad + gate):**
+- De-risking in-memory: `7/7 aplicadas, guardas OK, byte-idéntico=true`.
+- **Golden hd-opm v1.6 regenerado con el script del operador** (`hd-opm/scripts/generar-bundle-hodom.ts`): `git diff` **VACÍO** en `models/…v0.json` + `opl/…opl` + reporte → byte-idéntico contra el committed; el único cambio en hd-opm son las 7 líneas del proto. (El OPL forward también es idéntico porque deriva del modelo, no del texto.)
+- `cd app && bun run check` → **2325 pass / 0 fail**; `bun run lint` limpio.
+
+**Tests al nuevo contrato:** `familia-v.test.ts` (V3/V4/V5/V7 → guardas de retiro: laxo rechaza + E2 compila; idempotencia con fixtures E2), `migracion-familia-v.test.ts` (ola migrable → guarda de retiro F5; smoke V5→V6 viva), `normalizador.test.ts` (`alimenta`→R3, `precede a`→R7). `MIGRABLE_ESTRICTO_F2={V3,V4,V5,V7}` se conserva como registro de la clasificación que autorizó el retiro (doc actualizado en `usoFamiliaV.ts`).
+
+**OJO:** la evidencia byte-idéntica vive en `docs/proto-modelo/derisk-f4-migrables.md` (7→0). Re-correr `derisk-f4-migrables-hodom.ts` ahora la sobrescribiría con un resultado vacuo (0 migrables) — la historia git la preserva. El proto ya migrado: `aplicar-f5-parcial-hodom.ts` detecta 0 migrables y no escribe.
+
+**Prompt breve de continuación:** "F5-parcial cerrado (V3/V4/V5/V7 retiradas, proto HODOM en E2 byte-idéntico, gate 2325/0). Frentes abiertos gateados: (b) transporte de las 12 requiere-decisión, empezar por V12 (6 usos HODOM): superficie reverse / emisión estructurada / legacy permanente; (c) corte mayor auth/tenants. No tocar el resto de `mapearFamiliaV` sin (b)."
 
 ## Actualización 2026-06-07 — migración familia-V→skill F3 (auditoría usoFamiliaV, mapa de dependencia real)
 

@@ -489,20 +489,25 @@ function compuesta(
 const dir = (directiva: Directiva): Emision => ({ via: "directiva", directiva });
 const ora = (oracion: string): Emision => ({ via: "oracion", oracion: asegurarPunto(oracion) });
 
-/** Despacha una oración a su mapeo de familia V, o null si ninguno aplica. */
+/** Despacha una oración a su mapeo de familia V, o null si ninguno aplica.
+ *
+ *  F5-parcial (2026-06-08): V3/V4/V5/V7 RETIRADAS. El de-risking
+ *  (`docs/proto-modelo/derisk-f4-migrables.md`) probó que su forma E2 estricta
+ *  (`inicia` / `requiere` / `genera` / `invoca`) compila por la ruta canónica
+ *  produciendo el MISMO modelo observable y bundle byte-idéntico — la skill las
+ *  emite directo en E2, sin puente legacy. Las laxas ahora rechazan ruidoso
+ *  (`puede iniciar`/`alimenta`/`detecta` → R3, `precede a` → R7), que es el
+ *  contrato P3 «compilador = verificador». La disyunción `puede iniciar A o B`
+ *  la sigue cubriendo V15 (mapearInicioDisyuncion). */
 function mapearFamiliaV(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
   return (
     mapearGuardCompuesto(sinPunto, contexto) ?? // V13 (antes que R1/R2)
     mapearTsODisyuncion(sinPunto, contexto) ?? // V14
-    mapearInicioDisyuncion(sinPunto, contexto) ?? // V15
+    mapearInicioDisyuncion(sinPunto, contexto) ?? // V15 (incluye `puede iniciar A o B`)
     mapearColaCondicional(sinPunto, contexto) ?? // V12 (antes que R1)
-    mapearPuedeIniciar(sinPunto, contexto) ?? // V3
     mapearHabilita(sinPunto, contexto) ?? // V1 / V11
     mapearRestringe(sinPunto, contexto) ?? // V2
-    mapearAlimenta(sinPunto) ?? // V4
-    mapearDetecta(sinPunto) ?? // V5
     mapearCapacidad(sinPunto) ?? // V6
-    mapearPrecedeA(sinPunto, contexto) ?? // V7
     mapearSucedeA(sinPunto) ?? // V8
     mapearCorrespondeA(sinPunto) ?? // V9
     mapearCumple(sinPunto) ?? // V10
@@ -569,44 +574,11 @@ function mapearRestringe(sinPunto: string, contexto: ContextoProto): LineaNormal
   ]);
 }
 
-// ── V3: `puede iniciar` (forma de un solo destino) ──────────────────────────
-// `X [en 's'] puede iniciar P` → misma ruta evento que `inicia`. La disyunción
-// `puede iniciar A o B` la maneja V15 (mapearInicioDisyuncion), evaluada antes.
-const PUEDE_INICIAR_RE = /^(.+?)\s+puede\s+iniciar\s+(.+)$/iu;
-
-function mapearPuedeIniciar(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
-  const m = PUEDE_INICIAR_RE.exec(sinPunto);
-  if (!m) return null;
-  const destino = (m[2] ?? "").trim();
-  // Disyunción → V15 (no aquí). Si quedó algo con ` o ` fuera de comillas, ceder.
-  if (tieneDisyuncionDeProcesos(destino)) return null;
-  const { entidad: iniciador, estado } = separarEstadoEnComillas((m[1] ?? "").trim());
-  return compuesta(sinPunto, "V3", [
-    dir({ tipo: "evento", iniciador, proceso: destino, ...(estado ? { estado } : {}) }),
-  ]);
-}
-
-// ── V4: `alimenta` → instrumento (P requiere O) ─────────────────────────────
-const ALIMENTA_RE = /^(.+?)\s+alimenta\s+(.+)$/iu;
-
-function mapearAlimenta(sinPunto: string): LineaNormalizada | null {
-  const m = ALIMENTA_RE.exec(sinPunto);
-  if (!m) return null;
-  const objeto = (m[1] ?? "").trim();
-  const proceso = (m[2] ?? "").trim();
-  return compuesta(sinPunto, "V4", [ora(`${proceso} requiere ${objeto}`)]);
-}
-
-// ── V5: `detecta` → resultado (P genera O) ──────────────────────────────────
-const DETECTA_RE = /^(.+?)\s+detecta\s+(.+)$/iu;
-
-function mapearDetecta(sinPunto: string): LineaNormalizada | null {
-  const m = DETECTA_RE.exec(sinPunto);
-  if (!m) return null;
-  const proceso = (m[1] ?? "").trim();
-  const objeto = (m[2] ?? "").trim();
-  return compuesta(sinPunto, "V5", [ora(`${proceso} genera ${objeto}`)]);
-}
+// V3/V4/V5/V7 RETIRADAS en F5-parcial (2026-06-08) — ver cabecera de
+// `mapearFamiliaV`. Su forma E2 estricta (`inicia`/`requiere`/`genera`/`invoca`)
+// compila por la ruta canónica; la laxa rechaza ruidoso (R3/R7). La evidencia de
+// equivalencia byte-idéntica vive en `docs/proto-modelo/derisk-f4-migrables.md`.
+// `puede iniciar A o B` lo mantiene V15 (mapearInicioDisyuncion).
 
 // ── V6: `compromete`/`libera` → afecta + verbo original en etiqueta ─────────
 const CAPACIDAD_RE = /^(.+?)\s+(compromete|libera)\s+(.+)$/iu;
@@ -622,19 +594,8 @@ function mapearCapacidad(sinPunto: string): LineaNormalizada | null {
   ]);
 }
 
-// ── V7: `precede a` (procesos) → invocación A→B ─────────────────────────────
-const PRECEDE_RE = /^(.+?)\s+precede\s+a\s+(.+)$/iu;
-
-function mapearPrecedeA(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
-  const m = PRECEDE_RE.exec(sinPunto);
-  if (!m) return null;
-  const origen = (m[1] ?? "").trim();
-  const destino = (m[2] ?? "").trim();
-  // El operador decidió: ambos procesos → invocación. Si el contexto los conoce
-  // como objetos, igual se modela invocación (decisión del operador es el verbo).
-  void contexto;
-  return compuesta(sinPunto, "V7", [dir({ tipo: "invocacion", origen, destino })]);
-}
+// V7 RETIRADA en F5-parcial (2026-06-08): `precede a` rechaza R7; su E2 `invoca`
+// (proceso→proceso = invocación) compila estricto. Ver `derisk-f4-migrables.md`.
 
 // ── V8: `A puede suceder a un B [opcional]` → tagged «sucede a» (+0..1) ──────
 const SUCEDE_RE = /^(.+?)\s+puede\s+suceder\s+a\s+un[ao]?\s+(.+)$/iu;

@@ -40,9 +40,15 @@ export function usoFamiliaV(ledger: Ledger): UsoFamiliaV {
 
 /**
  * Veredicto F2 (2026-06-07, `docs/proto-modelo/f2-equivalencia-familia-v.md`):
- * las reglas con forma OPL-ES estricta REVERSE-parseable equivalente, migrables
- * a la skill HOY. Las demás reglas V requieren una decisión de transporte antes
- * de F4/F5. Esta constante es el único punto que codifica esa clasificación.
+ * las reglas con forma OPL-ES estricta REVERSE-parseable equivalente.
+ *
+ * F5-parcial (2026-06-08): estas 4 ya se RETIRARON del compilador
+ * (`mapearFamiliaV`) tras probar byte-identidad en HODOM
+ * (`docs/proto-modelo/derisk-f4-migrables.md`); la skill las emite en E2 estricto.
+ * La constante se conserva como registro de la clasificación que autorizó el
+ * retiro y como base de `particionarUso` (la auditoría F3 ya no las verá en un
+ * ledger real — el mapper no existe — pero la partición sigue siendo total). Las
+ * 12 restantes son las que requieren decisión de transporte (frente abierto).
  */
 export const MIGRABLE_ESTRICTO_F2: ReadonlySet<string> = new Set(["V3", "V4", "V5", "V7"]);
 

@@ -116,14 +116,23 @@ Semáforo en 'rojo' restringe Evaluar.`);
   });
 });
 
-// ── V3: `X [en 's'] puede iniciar P` → misma ruta que `inicia` (evento) ─────
+// ── V3 RETIRADA (F5-parcial): `puede iniciar` laxo rechaza; E2 `inicia` compila ─
+// El de-risking probó equivalencia byte-idéntica; la skill emite E2 directo.
 
-describe("V3 — `puede iniciar` → evento (ruta de `inicia`)", () => {
-  test("`X en 's' puede iniciar P` (X objeto) → instrumento-evento desde X en `s`", () => {
+describe("V3 retirada — `puede iniciar` (unidestino) rechaza; E2 `inicia` compila el evento", () => {
+  test("laxo `X en 's' puede iniciar P` ya NO se puentea (rechazo ruidoso)", () => {
     const r = compilar(`Ajuste terapéutico es un proceso físico y sistémico.
 Discrepancia de conciliación es un objeto físico y sistémico.
 Discrepancia de conciliación puede estar 'detectada' o 'resuelta'.
 Discrepancia de conciliación en 'detectada' puede iniciar Ajuste terapéutico.`);
+    expect(enlacesEntre(r.modelo, "Discrepancia de conciliación", "Ajuste terapéutico", "instrumento")).toHaveLength(0);
+    expect(ledgerRechazadas(r).some((o) => /puede iniciar Ajuste/.test(o))).toBe(true);
+  });
+  test("E2 `X en estado 's' inicia P` crea instrumento-evento desde X en `s` (ruta estricta)", () => {
+    const r = compilar(`Ajuste terapéutico es un proceso físico y sistémico.
+Discrepancia de conciliación es un objeto físico y sistémico.
+Discrepancia de conciliación puede estar 'detectada' o 'resuelta'.
+Discrepancia de conciliación en estado 'detectada' inicia Ajuste terapéutico.`);
     sinErrores(r);
     const instr = enlacesEntre(r.modelo, "Discrepancia de conciliación", "Ajuste terapéutico", "instrumento");
     expect(instr).toHaveLength(1);
@@ -132,13 +141,20 @@ Discrepancia de conciliación en 'detectada' puede iniciar Ajuste terapéutico.`
   });
 });
 
-// ── V4: `O alimenta P` → `P requiere O` (instrumento) ───────────────────────
+// ── V4 RETIRADA (F5-parcial): `alimenta` laxo rechaza; E2 `requiere` compila ───
 
-describe("V4 — `alimenta` → instrumento (P requiere O)", () => {
-  test("`O alimenta P` crea instrumento O→P", () => {
+describe("V4 retirada — `alimenta` rechaza R3; E2 `P requiere O` crea instrumento", () => {
+  test("laxo `O alimenta P` ya NO se puentea (rechazo ruidoso)", () => {
     const r = compilar(`Evaluación clínica evolutiva es un proceso físico y sistémico.
 Resultado de examen es un objeto informacional y sistémico.
 Resultado de examen alimenta Evaluación clínica evolutiva.`);
+    expect(enlacesEntre(r.modelo, "Resultado de examen", "Evaluación clínica evolutiva", "instrumento")).toHaveLength(0);
+    expect(ledgerRechazadas(r).some((o) => /alimenta/.test(o))).toBe(true);
+  });
+  test("E2 `P requiere O` crea instrumento O→P por ruta estricta", () => {
+    const r = compilar(`Evaluación clínica evolutiva es un proceso físico y sistémico.
+Resultado de examen es un objeto informacional y sistémico.
+Evaluación clínica evolutiva requiere Resultado de examen.`);
     sinErrores(r);
     expect(enlacesEntre(r.modelo, "Resultado de examen", "Evaluación clínica evolutiva", "instrumento")).toHaveLength(1);
     const opl = generarOpl(r.modelo, r.modelo.opdRaizId);
@@ -146,13 +162,20 @@ Resultado de examen alimenta Evaluación clínica evolutiva.`);
   });
 });
 
-// ── V5: `P detecta O` → `P genera O` (resultado) ────────────────────────────
+// ── V5 RETIRADA (F5-parcial): `detecta` laxo rechaza; E2 `genera` compila ──────
 
-describe("V5 — `detecta` → resultado (P genera O)", () => {
-  test("`P detecta O` crea resultado P→O", () => {
+describe("V5 retirada — `detecta` rechaza R3; E2 `P genera O` crea resultado", () => {
+  test("laxo `P detecta O` ya NO se puentea (rechazo ruidoso)", () => {
     const r = compilar(`Monitorización de signos vitales es un proceso físico y sistémico.
 Evento de deterioro clínico es un objeto físico y sistémico.
 Monitorización de signos vitales detecta Evento de deterioro clínico.`);
+    expect(enlacesEntre(r.modelo, "Monitorización de signos vitales", "Evento de deterioro clínico", "resultado")).toHaveLength(0);
+    expect(ledgerRechazadas(r).some((o) => /detecta/.test(o))).toBe(true);
+  });
+  test("E2 `P genera O` crea resultado P→O por ruta estricta", () => {
+    const r = compilar(`Monitorización de signos vitales es un proceso físico y sistémico.
+Evento de deterioro clínico es un objeto físico y sistémico.
+Monitorización de signos vitales genera Evento de deterioro clínico.`);
     sinErrores(r);
     expect(enlacesEntre(r.modelo, "Monitorización de signos vitales", "Evento de deterioro clínico", "resultado")).toHaveLength(1);
   });
@@ -184,13 +207,20 @@ Cierre del episodio HODOM libera Capacidad de prestaciones.`);
   });
 });
 
-// ── V7: `A precede a B` (procesos) → `A invoca B` ───────────────────────────
+// ── V7 RETIRADA (F5-parcial): `precede a` laxo rechaza R7; E2 `invoca` compila ─
 
-describe("V7 — `precede a` (procesos) → invocación A→B", () => {
-  test("`A precede a B` crea invocación A→B", () => {
+describe("V7 retirada — `precede a` rechaza R7; E2 `A invoca B` crea invocación", () => {
+  test("laxo `A precede a B` ya NO se puentea (rechazo ruidoso)", () => {
     const r = compilar(`Traslado del paciente al establecimiento es un proceso físico y sistémico.
 Cierre por reingreso hospitalario es un proceso físico y sistémico.
 Traslado del paciente al establecimiento precede a Cierre por reingreso hospitalario.`);
+    expect(enlacesEntre(r.modelo, "Traslado del paciente al establecimiento", "Cierre por reingreso hospitalario", "invocacion")).toHaveLength(0);
+    expect(ledgerRechazadas(r).some((o) => /precede a/.test(o))).toBe(true);
+  });
+  test("E2 `A invoca B` crea invocación A→B por ruta estricta", () => {
+    const r = compilar(`Traslado del paciente al establecimiento es un proceso físico y sistémico.
+Cierre por reingreso hospitalario es un proceso físico y sistémico.
+Traslado del paciente al establecimiento invoca Cierre por reingreso hospitalario.`);
     sinErrores(r);
     expect(enlacesEntre(r.modelo, "Traslado del paciente al establecimiento", "Cierre por reingreso hospitalario", "invocacion")).toHaveLength(1);
   });
@@ -391,10 +421,11 @@ Inspección pre-ruta habilita Vehículo de transporte para 'en ruta'.`);
 
 describe("idempotencia — normalizar(normalizar(x)) estable para la familia V", () => {
   const fixtures = [
-    "Resultado de examen alimenta Evaluación clínica evolutiva.",
-    "Monitorización de signos vitales detecta Evento de deterioro clínico.",
+    // V4/V5/V7 retiradas en F5-parcial: las formas vivas son sus E2 estrictas.
+    "Evaluación clínica evolutiva requiere Resultado de examen.",
+    "Monitorización de signos vitales genera Evento de deterioro clínico.",
     "Ingreso HODOM compromete Capacidad de prestaciones.",
-    "Traslado del paciente precede a Cierre por reingreso hospitalario.",
+    "Traslado del paciente invoca Cierre por reingreso hospitalario.",
     "Parada corresponde a un Domicilio.",
   ];
   for (const f of fixtures) {
