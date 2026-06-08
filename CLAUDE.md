@@ -1,117 +1,132 @@
+---
+_manifest:
+  provenance:
+    created_by: FS
+    created_at: "2026-06-08"
+    source: "CLAUDE.md previo (117 líneas, koraficado)"
+version: "2.0.0"
+status: publicado
+lang: es
+extensions:
+  kora:
+    family: note
+---
+
 # CLAUDE.md
 
-Documento **único** de orientación del repo `deep-opm-pro` para Claude Code y cualquier agente de desarrollo (Codex, etc.). Consolida lo que antes vivía en `README.md` y `AGENTS.md`. Para el **estado operativo vigente** (bloqueantes, pendientes, riesgos) lee siempre `docs/HANDOFF.md` antes de tocar producto.
+Documento único de orientación del repo `deep-opm-pro` para agentes de desarrollo (Claude Code, Codex).
 
-## Qué es esto
+## Identidad y límites
 
-Workspace de desarrollo de un modelador OPM/ISO 19450 nuevo (la app vive en `app/`), construido desde cero con arquitectura propia a partir de la SSOT OPM y de evidencia observacional de OPCloud. El repo **no** es una app heredada ni un fork de OPCloud: `assets/`, `opm-extracted/`, `fixtures/`, `config/`, `catalog/`, `docs/JOYAS.md` son **evidencia de ingeniería inversa verificada** que informa producto, semántica visual, OPL y fixtures — referencia para construir, no código a clonar. El código de aplicación vive separado, con arquitectura propia. Instancia en producción: `https://opforja.sanixai.com`.
+Modelador OPM/ISO 19450 nuevo (`app/`), con arquitectura propia. No es fork ni app heredada de OPCloud. Los directorios `assets/`, `opm-extracted/`, `fixtures/`, `config/`, `catalog/` y `docs/JOYAS.md` son **evidencia de ingeniería inversa verificada** que informa semántica visual, OPL y fixtures — referencia para construir, no código a clonar.
 
-## Comandos (todos desde `app/`)
+Instancia en producción: `https://opforja.sanixai.com`.
 
-```bash
-cd app
-bun run dev              # Vite + HMR en localhost:5173
-bun run check            # typecheck + unit tests (gate mínimo antes de commit)
-bun run typecheck        # tsc --noEmit estricto
-bun run test             # unit tests (Bun test runner sobre src/)
-bun run lint             # eslint src/
-bun run build            # build producción a app/dist/
-bun run design:governance # gate ui-forja-governance (tokens/docs/sombras offset)
-bun run browser:smoke    # smoke Playwright/Chromium (e2e/)
-bun run security:scan    # bun pm scan (Socket scanner sobre bun.lock)
-bun run visual:audit     # auditoría visual in-vivo → app/test-results/
-bun run visual:deep      # auditoría visual profunda → app/test-results/
-```
-
-**Un solo test:**
-- Unit: `bun test src/modelo/abanicos.test.ts` (o `bun test -t "nombre del test"` para filtrar por título)
-- E2E: `bunx playwright test e2e/03-opl-panel.spec.ts` (añade `--headed` para ver el navegador)
-
-**Gate pesado de refactor** (corre check + lint + build + governance + smoke + quality ledger, sin dashboard HU): `bun run gate:refactor`.
-
-**Importante**: vite en background + `browser:smoke` en paralelo produce flakes en specs sensibles al canvas (02, 05). Apaga el dev server antes de correr smoke.
-
-Stack: Bun 1.3+, TypeScript strict, JointJS 3.7 core (sin Rappid), Preact 10 + Signals, Zustand 5, Vite 6, Playwright. `app/bunfig.toml` configura supply-chain (scanner Socket + edad mínima de publicación 7 días); la instalación reproducible queda anclada en `app/bun.lock`.
+El **estado operativo vigente** (bloqueantes, pendientes, riesgos, cortes cerrados) vive exclusivamente en `docs/HANDOFF.md`. Leerlo antes de tocar producto.
 
 ## Arquitectura
 
-Dependencias en una sola dirección — **el renderer nunca es fuente de verdad**:
+Dependencias unidireccionales. El renderer **nunca** es fuente de verdad:
 
 ```
-src/modelo/   →  kernel de dominio OPM puro (sin JointJS, sin DOM, sin Zustand)
-   ↑              tipos en modelo/tipos/, operaciones, validadores, refinamientos,
-   │              plegado, abanicos, multiplicidad, diagnóstico, simulación
-src/store/    →  Zustand: fuente de verdad de runtime. Slices (modelo, seleccion,
-   ↑              pestanas, mapa, enlaces, carpetas, feedback, persistencia...)
-   │              compuestos en runtime.ts; runtimeEffects.ts conecta efectos.
-src/render/jointjs/  →  ADAPTADOR desechable. Proyecta el modelo a celdas JointJS
-                        (proyeccion.ts, customShapes.ts, composers/, linkAssets.ts,
-                        opcloudRouting.ts). JointCanvas.tsx es el componente Preact.
-src/ui/       →  componentes Preact (Inspector, PanelOpl, Toolbar, árbol OPD,
-                 diálogos, asistente, mobile). tokens.ts = design system (lenguaje Codex).
+src/modelo/        kernel OPM puro — tipos, operaciones, validadores,
+    ↑              refinamientos, plegado, abanicos, diagnóstico, simulación.
+    │              Sin JointJS, sin DOM, sin Zustand.
+src/store/         Zustand — fuente de verdad de runtime. Slices compuestos
+    ↑              en runtime.ts; runtimeEffects.ts conecta efectos.
+src/render/jointjs/  adaptador desechable. Proyecta modelo → celdas JointJS
+    ↑                 (proyeccion.ts, composers/, customShapes.ts, routing).
+src/ui/            componentes Preact — Inspector, PanelOpl, Toolbar, árbol
+                   OPD, diálogos, asistente, mobile. tokens.ts = design system.
 ```
 
-Otros subsistemas:
-- **`src/opl/` — OPL bisimétrico (bidireccional canvas↔texto).** Dos pipelines espejo: `generadores/` (modelo → frases OPL, "forward") y `parser/` (frases OPL → mutaciones, "reverse": `parsear.ts` → `planificar.ts` → `aplicar.ts`). **Un cambio semántico en un pipeline casi siempre obliga a revisar el otro**; `roundtrip.test.ts` y `fixtures-roundtrip.ts` defienden la simetría.
-- **`src/leyes/`** — invariantes/leyes verificadas por tests (undo, proyecciones, cascadas de refinamiento, opl-reverse). Red de seguridad conceptual.
-- **`src/serializacion/`** — JSON de modelo + validadores de integridad (`validar*.ts`) por dimensión.
-- **`src/persistencia/`** — contrato backend de modelos/workspace/versiones/autosalvado y normalizadores. La SSOT de persistencia vive en Postgres/API; no hay cache ni fallback OPM en storage del navegador.
-- **`src/canvas/`** — geometría/layout pura (grid, layout radial/sugerido, modo enlace, selección múltiple) independiente de JointJS.
-- **`src/server/`** — `bugCapture.ts`: endpoint de captura de bugs (gated por `VITE_ENABLE_BUG_CAPTURE`).
+Subsistemas:
 
-### Estructura del repo
+| Módulo | Responsabilidad | Nota |
+|---|---|---|
+| `src/opl/` | OPL bisimétrico (canvas↔texto) | Dos pipelines espejo: `generadores/` (forward) y `parser/` (reverse: `parsear.ts → planificar.ts → aplicar.ts`). Cambiar uno exige revisar el otro; `roundtrip.test.ts` defiende la simetría. |
+| `src/leyes/` | Invariantes verificadas por tests | Undo, proyecciones, cascadas de refinamiento, opl-reverse. |
+| `src/serializacion/` | JSON de modelo + validadores | `validar*.ts` por dimensión. |
+| `src/persistencia/` | Contrato backend (modelos, workspace, versiones) | SSOT en Postgres/API; sin cache ni fallback OPM en storage del navegador. |
+| `src/canvas/` | Geometría/layout pura | Grid, layout radial/sugerido, modo enlace, selección múltiple. Independiente de JointJS. |
+| `src/server/` | Captura de bugs | `bugCapture.ts`, gated por `VITE_ENABLE_BUG_CAPTURE`. |
+
+Estructura del repo:
 
 ```text
 deep-opm-pro/
-├── CLAUDE.md                 # este documento (orientación única)
-├── AGENTS.md                 # redirige a CLAUDE.md
-├── NOTICE.md                 # límites de uso, autoría, material derivado
-├── setup.sh                  # regeneración del material OPCloud grande
-├── app/                      # modelador OPM nuevo (src/, e2e/)
-├── ui-forja/                 # ui-forja-governance: autoridad normativa de diseño Codex
+├── CLAUDE.md · AGENTS.md · NOTICE.md
+├── app/                        modelo OPM (src/, e2e/)
+├── ui-forja/                   autoridad normativa de diseño Codex
 ├── docs/
-│   ├── HANDOFF.md            # estado vigente, decisiones, pendientes, riesgos
-│   ├── canon-opm/            # puentes locales a las SSOT OPM/opforja en KORA
-│   ├── JOYAS.md              # hallazgos técnicos validados
-│   ├── deploy/opforja.md     # operación de la instancia
-│   ├── instrucciones-lineas-dev/  # rondas de desarrollo paralelo
-│   ├── historias-usuario-v2/ # backlog local vivo
-│   └── roadmap/              # cortes activos
-├── opm-extracted/            # derivado curado, versionado y trazable
-├── assets/  fixtures/  config/  catalog/  webroot/   # evidencia OPCloud
+│   ├── HANDOFF.md              estado vigente, decisiones, pendientes, riesgos
+│   ├── canon-opm/              puentes locales a las SSOT OPM/opforja en KORA
+│   ├── JOYAS.md                hallazgos técnicos validados
+│   ├── deploy/opforja.md       operación de la instancia
+│   ├── historias-usuario-v2/   backlog documental (no gobierna progreso)
+│   └── roadmap/                cortes activos
+├── opm-extracted/              derivado curado, versionado y trazable
+├── assets/  fixtures/  config/  catalog/  webroot/   evidencia OPCloud
 ```
 
-`_local/`, `decompiled/`, `app/dist/`, `app/test-results/`, `.claude/` son gitignored y regenerables. `app/node_modules/` también es gitignored pero se mantiene localmente.
+`_local/`, `decompiled/`, `app/dist/`, `app/test-results/`, `.claude/` son gitignored y regenerables. `opm-extracted/` sí se versiona (regenerable con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`).
 
-## Reglas de oro del proyecto
+## Comandos
 
-1. **Autoridad semántica = SSOT OPM en KORA**, no OPCloud. Para **canon OPM/OPD/OPL** la SSOT suprema operativa es `urn:fxsl:kb:reglas-opm-estrictas-es` (p.ej. estados=`puede estar`, especialización=`puede ser`). Para OPL operativo de opforja usar `urn:fxsl:kb:spec-forja-opl-es`; para la **realización visual/OPD operativa** usar `urn:fxsl:kb:spec-forja-opd-es`; para método usar `urn:fxsl:kb:metodologia-forja-opm-es`. Los archivos en `docs/canon-opm/` son puentes locales a KORA. Las capas base viven en `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/` (`opm-iso-19450-es.md`, `opm-visual-es.md`, `opm-opl-es.md`, `metodologia-opm-es.md`). OPCloud operacionaliza OPM pero no lo redefine; ante conflicto, manda la SSOT.
-2. **Autoridad de diseño = `ui-forja/GOVERNANCE.md`** para estética, frame, chrome, tokens, tipografía y componentes **no portadores de semántica OPM**. En todo lo visualmente significativo OPM (formas, marcadores, estados, triángulos, arcos, refinamiento, layout semántico, simulación) manda `urn:fxsl:kb:spec-forja-opd-es`, que subordina a ui-forja en esa materia (los `GAP-OPD-UIFORJA-08*` de su §22 son correcciones pendientes a ui-forja/08). Precedencia: `reglas-opm-estrictas-es` > `spec-forja-opd-es` > ui-forja > implementación. Todo cambio visual debe respetar `ui-forja/01-design-spec.md` ... `08-jointjs-styling.md`, `tokens.json`/`tokens.css` y el gate `cd app && bun run design:governance`.
-3. **Antes de crear algo de novo** (marcador, shape, color, regla OPL), verifica que no exista en los insumos, en este orden: `assets/svg/` (+ `opm-extracted/assets/svg/`, markers en `links/procedural|structural/`) → `assets/png/` → `docs/JOYAS.md` → `opm-extracted/INDEX.md`+`MODULES.md`+`assets/INDEX.md` → `decompiled/` (solo si lo anterior no alcanza; regenerar con `bash setup.sh`) → `fixtures/` → `catalog/` → `config/`. **No copies bloques 1:1 de `opm-extracted/`/`decompiled/` a `app/`**: el stack diverge (Preact≠Angular, Zustand≠Firebase, JointJS core≠Rappid); úsalos para entender semántica, no para clonar.
-4. **Handoff único**: `docs/HANDOFF.md` es la única memoria de traspaso versionada. Reescríbela y consolídala — nunca crees handoffs paralelos/fechados.
-5. **Repo liviano**: no versiones artefactos regenerables/efímeros (ver Estructura). `opm-extracted/` **sí** se versiona (derivado curado; regenerable con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`).
-6. **Backlog vs corte activo**: `docs/historias-usuario-v2/` queda como backlog documental completo (no lo arrastres entero); `docs/roadmap/` define el corte operativo. El dashboard de avance HU fue retirado por decisión del operador el 2026-06-05: no lo regeneres, no lo uses como gate y no agregues reglas nuevas de progreso sobre HU.
-7. **Trabajo paralelo en rondas**: para particionar pendientes en líneas concurrentes usar la skill `lineas-paralelas` (genera README + briefs en `docs/instrucciones-lineas-dev/<ronda>/`). Patrón validado: worktrees aislados, olas con orden de merge, y un paso final de **reconciliación e2e** sobre el `main` integrado (cada línea solo mantiene su gate contra su base).
+Todos desde `app/`. Stack: Bun 1.3+, TypeScript strict, JointJS 3.7 core (sin Rappid), Preact 10 + Signals, Zustand 5, Vite 6, Playwright.
+
+```bash
+cd app
+bun run dev               # Vite + HMR en localhost:5173
+bun run check             # typecheck + unit tests (gate mínimo antes de commit)
+bun run typecheck         # tsc --noEmit estricto
+bun run test              # unit tests (Bun test runner sobre src/)
+bun run lint              # eslint src/
+bun run build             # build producción a app/dist/
+bun run gate:refactor     # check + lint + build + governance + smoke + quality ledger
+bun run design:governance # gate ui-forja (tokens, docs, sombras, offset)
+bun run browser:smoke     # smoke Playwright/Chromium (e2e/)
+bun run security:scan     # bun pm scan (Socket sobre bun.lock)
+bun run visual:audit      # auditoría visual in-vivo → test-results/
+bun run visual:deep       # auditoría visual profunda → test-results/
+```
+
+Ejecutar un solo test: `bun test src/modelo/abanicos.test.ts` (unit) o `bunx playwright test e2e/03-opl-panel.spec.ts` (E2E; añadir `--headed` para ver el navegador). Filtrar por título: `bun test -t "nombre del test"`.
+
+**Advertencia**: vite en background + `browser:smoke` en paralelo produce flakes en specs sensibles al canvas (02, 05). Apagar dev server antes de smoke.
+
+## Reglas de oro
+
+1. **SSOT semántica**: la autoridad suprema es `urn:fxsl:kb:reglas-opm-estrictas-es` (estados=`puede estar`, especialización=`puede ser`). OPL operativo: `urn:fxsl:kb:spec-forja-opl-es`. Realización visual/OPD: `urn:fxsl:kb:spec-forja-opd-es`. Método: `urn:fxsl:kb:metodologia-forja-opm-es`. Las capas base viven en `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`. `docs/canon-opm/` son puentes locales a KORA. OPCloud operacionaliza OPM pero no lo redefine; ante conflicto, manda la SSOT.
+
+2. **Cadena de precedencia visual**: `reglas-opm-estrictas-es` > `spec-forja-opd-es` > `ui-forja/GOVERNANCE.md` > implementación. `ui-forja` gobierna estética, frame, chrome, tokens, tipografía y componentes no portadores de semántica OPM. En formas, marcadores, estados, refinamiento, layout semántico y simulación manda `spec-forja-opd-es` (subordina a ui-forja; GAP-OPD-UIFORJA-08* en su §22). Todo cambio visual debe pasar `cd app && bun run design:governance`.
+
+3. **No crear de novo sin buscar en evidencia**: antes de introducir un marcador, shape, color o regla OPL, verificar este orden: `assets/svg/` (+ `opm-extracted/assets/svg/`, markers `links/procedural|structural/`) → `assets/png/` → `docs/JOYAS.md` → `opm-extracted/INDEX.md`+`MODULES.md`+`assets/INDEX.md` → `decompiled/` (solo si lo anterior no alcanza; `bash setup.sh`) → `fixtures/` → `catalog/` → `config/`. No copiar bloques 1:1 de `opm-extracted/` o `decompiled/` a `app/`: el stack diverge (Preact≠Angular, Zustand≠Firebase, JointJS core≠Rappid); usar la evidencia para entender semántica, no para clonar.
+
+4. **Handoff único**: `docs/HANDOFF.md` es la única memoria de traspaso versionada. Reescribir y consolidar; nunca crear handoffs paralelos o fechados. Las auditorías viven en `docs/auditorias/` solo mientras tengan referencia viva o valor prospectivo (brechas abiertas). Lo implementado o superado se elimina; la historia git es la red de recuperación. Política completa en `docs/auditorias/README.md`.
+
+5. **Repo liviano**: no versionar artefactos regenerables o efímeros (listados en Estructura). `opm-extracted/` es la excepción: derivado curado y trazable.
+
+6. **Backlog documental, no gate**: `docs/historias-usuario-v2/` es backlog completo de referencia. `docs/roadmap/` define el corte operativo. El dashboard de avance HU fue retirado (2026-06-05): no regenerarlo, no usarlo como gate, no agregar reglas de progreso sobre HU.
+
+7. **Trabajo paralelo**: para particionar pendientes en líneas concurrentes usar la skill `lineas-paralelas` (genera README + briefs en `docs/instrucciones-lineas-dev/<ronda>/`). Patrón: worktrees aislados, olas con orden de merge, reconciliación e2e sobre `main` integrado. Cada línea mantiene su gate contra su base.
 
 ## Deuda categorial activa
 
-- **Trigger hacia el coproducto tagged de selección (refactor A → B)**: el paquete "Estados ciudadanos de primera clase" usa tres campos paralelos `seleccionId / enlaceSeleccionId / estadoSeleccionId` en `OpmStore`, sellados por el invariante de exclusividad mutua en `setSeleccionPorTipo`. Cuando entre el siguiente paquete consumidor de selección (un cuarto tipo seleccionable), **migrar A → B antes** de construir ese funtor: reemplazar los tres campos por `seleccion: { tipo: KindSeleccion; id: Id } | null` discriminado, con adaptadores backwards-compat durante la transición. Fundamento (`urn:fxsl:kb:icas-universales`): el coproducto tagged es universal; un cuarto campo paralelo escalaría el invariante sellado a O(N²); el discriminado lo deja en O(1).
+**Trigger hacia el coproducto tagged de selección (refactor A → B)**: `OpmStore` usa tres campos paralelos `seleccionId / enlaceSeleccionId / estadoSeleccionId`, sellados por invariante de exclusividad mutua en `setSeleccionPorTipo`. Al introducir un cuarto tipo seleccionable, migrar antes: reemplazar los tres campos por `seleccion: { tipo: KindSeleccion; id: Id } | null` discriminado, con adaptadores backwards-compat. Fundamento (`urn:fxsl:kb:icas-universales`): el coproducto tagged es universal; N campos paralelos escalan el invariante a O(N²); el discriminado lo mantiene en O(1).
 
 ## Épicas descartadas
 
-EPICA-70 (Importación OPCAT 4.2) y EPICA-91 (Modo tutorial) — descartadas; no proponer en rondas ni briefs.
+EPICA-70 (Importación OPCAT 4.2) y EPICA-91 (Modo tutorial). No proponer en rondas ni briefs.
 
-## Deploy
+## Deploy y convenciones
 
-Instancia en `https://opforja.sanixai.com`. Procedimiento en `docs/deploy/opforja.md`. Patrón: `docker compose up -d --build` desde la raíz (build-arg `VITE_ENABLE_BUG_CAPTURE=true`); contenedores `opforja` + `opforja-bug-capture` (sidecar) sobre red Traefik `web`, TLS `certresolver=myresolver`. **Estado actual: instancia pública** (el Basic Auth de Traefik fue retirado por decisión del operador). Para re-protegerla, ver `docs/HANDOFF.md` § Riesgos.
+**Deploy**: `docker compose up -d --build` desde raíz (`VITE_ENABLE_BUG_CAPTURE=true`). Contenedores `opforja` + `opforja-bug-capture` sobre red Traefik `web`, TLS `certresolver=myresolver`. Procedimiento completo en `docs/deploy/opforja.md`. Instancia actualmente pública (Basic Auth retirado); para re-proteger, ver `docs/HANDOFF.md`.
 
-## Convenciones
+**Convenciones**:
+- Idioma: español (es-CL) para docs y comunicación; inglés para identificadores de código y comandos.
+- No hay cuenta, HAR autenticado, schema Firestore ni backend code de OPCloud. `setup.sh` hardcodea hashes de bundles; actualizar si OPCloud cambia deploy.
 
-- **Idioma**: español (es-CL) para docs y comunicación; inglés para identificadores de código y comandos.
-- **No-archivado de histórico sin valor**: no se conserva documentación histórica que ya no sirve (cortes implementados/desplegados, criterios superados). Las auditorías viven en `docs/auditorias/` (carpeta única; no crear `docs/audits/` ni variantes) solo mientras tengan **referencia viva** (citadas por código/tooling/normas) o **valor prospectivo** (brechas abiertas, decisiones vigentes). Lo implementado o superado se **elimina** — la historia git es la red de recuperación; la narrativa de cortes cerrados vive en `docs/HANDOFF.md`. Política e índice en `docs/auditorias/README.md`.
-- **Producción bloqueada por auth OPCloud**: no hay cuenta, HAR autenticado, schema Firestore ni backend code de OPCloud; `setup.sh` hardcodea hashes de bundles (actualizar si OPCloud cambia deploy).
-
-## Fuentes externas
-
-- OPCloud app pública: `https://opcloud.systems` · sandbox observado: `https://opcloud-sandbox.web.app`
+**Fuentes externas**:
+- OPCloud app pública: `https://opcloud.systems` · sandbox: `https://opcloud-sandbox.web.app`
 - Bun Security Scanner API: `https://bun.com/docs/pm/security-scanner-api`
