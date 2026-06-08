@@ -62,8 +62,17 @@ export function BarraSimulacion(): JSX.Element | null {
       {/* Keyframe del "live dot" — el pulso crimson marca que la simulación
           está activa. Inyectado una sola vez por render del componente;
           como el nombre del keyframe es único (`sim-live-dot-pulse`) y la
-          regla es idempotente, re-renderizar no causa flickering. */}
-      <style>{`@keyframes sim-live-dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.35)}}.sim-live-dot{animation:sim-live-dot-pulse 1.4s ease-in-out infinite;transform-origin:center}`}</style>
+          regla es idempotente, re-renderizar no causa flickering.
+          BUG-20260608T171552Z-17477a: además, pseudo-estados de los
+          controles (`:hover`, `:active`, `:focus-visible`) y segmentos
+          (`:hover`) se manejan aquí, no inline, porque CSS-in-JS inline
+          no soporta pseudo-clases. Se anclan a las clases `sim-control`,
+          `sim-segment` y al atributo `data-testid="barra-simulacion"` para
+          que el scope sea local al componente (no contamina otros
+          botones de la app). Los colores vienen de los tokens del design
+          system (`paper` / `paperWarm` / `crimson`), no son literales
+          nuevos. */}
+      <style>{`@keyframes sim-live-dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.35)}}.sim-live-dot{animation:sim-live-dot-pulse 1.4s ease-in-out infinite;transform-origin:center}.sim-control:hover:not(:disabled):not(.sim-control-activo){color:${C.ink};background:${C.paper};border-color:${C.ruleStrong}}.sim-control:active:not(:disabled){background:${C.paperWarm}}.sim-control:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}.sim-control:disabled{color:${C.inkFaint};border-color:${C.paperWarm};cursor:not-allowed}.sim-control.sim-control-activo{color:${C.ink};background:${C.paper};border-color:${C.ruleStrong};border-bottom-color:${C.crimson};border-bottom-width:2px}.sim-control.sim-control-activo:hover:not(:disabled){background:${C.paperWarm}}.sim-segment:hover:not(:disabled){color:${C.ink};background:${C.paper}}.sim-segment:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}`}</style>
       <div
         data-testid="barra-simulacion"
         role="toolbar"
@@ -140,10 +149,11 @@ export function BarraSimulacion(): JSX.Element | null {
         </div>
       ) : null}
 
-      <div style={s.fila}>
+      <div style={s.filaControles} data-testid="barra-simulacion-fila-controles">
         {/* Controles como palabras */}
         <button
           type="button"
+          className={autoAvance ? "sim-control sim-control-activo" : "sim-control"}
           style={{ ...s.control, ...(autoAvance ? s.controlActivo : {}), fontWeight: 600 }}
           onClick={autoAvance ? pausarAutoAvance : iniciarAutoAvance}
           disabled={controlesDeshabilitados}
@@ -158,29 +168,29 @@ export function BarraSimulacion(): JSX.Element | null {
 
         {!autoAvance ? (
           <>
-            <button type="button" style={s.control} onClick={ejecutarPaso} disabled={controlesDeshabilitados} data-testid="barra-simulacion-paso" title="Avanzar una fase">
+            <button type="button" className="sim-control" style={s.control} onClick={ejecutarPaso} disabled={controlesDeshabilitados} data-testid="barra-simulacion-paso" title="Avanzar una fase">
               fase <span style={s.flecha}>&#9656;</span>
             </button>
             <span style={s.sep}>&middot;</span>
           </>
         ) : null}
 
-        <button type="button" style={s.control} onClick={ejecutarCorrida} disabled={controlesDeshabilitados} data-testid="barra-simulacion-correr" title="Ejecutar todos los pasos restantes sin animacion">
+        <button type="button" className="sim-control" style={s.control} onClick={ejecutarCorrida} disabled={controlesDeshabilitados} data-testid="barra-simulacion-correr" title="Ejecutar todos los pasos restantes sin animacion">
           correr
         </button>
         <span style={s.sep}>&middot;</span>
 
-        <button type="button" style={s.control} onClick={reiniciar} disabled={sinProcesos} data-testid="barra-simulacion-reiniciar" title="Volver al paso 0">
+        <button type="button" className="sim-control" style={s.control} onClick={reiniciar} disabled={sinProcesos} data-testid="barra-simulacion-reiniciar" title="Volver al paso 0">
           reiniciar
         </button>
         <span style={s.sep}>&middot;</span>
 
-        <button type="button" style={s.control} onClick={alternarHeadless} aria-pressed={headless} title="Headless: corre sin animacion de tokens" data-testid="barra-simulacion-headless">
+        <button type="button" className="sim-control" style={s.control} onClick={alternarHeadless} aria-pressed={headless} title="Headless: corre sin animacion de tokens" data-testid="barra-simulacion-headless">
           {headless ? "headless activo" : "headless"}
         </button>
         <span style={s.sep}>&middot;</span>
 
-        <button type="button" style={{ ...s.control, marginLeft: 4 }} onClick={salir} data-testid="barra-simulacion-salir" title="Salir del modo simulacion (Escape)">
+        <button type="button" className="sim-control" style={{ ...s.control, marginLeft: 4 }} onClick={salir} data-testid="barra-simulacion-salir" title="Salir del modo simulacion (Escape)">
           salir
           <kbd style={s.kbd}>&#x238B;</kbd>
         </button>
@@ -188,11 +198,12 @@ export function BarraSimulacion(): JSX.Element | null {
         {/* Modo: segmented inline */}
         {!sinProcesos ? (
           <span style={s.segmented} data-testid="barra-simulacion-modo">
-            {(["determinista", "muestreo", "exhaustivo"] as const).map((m) => (
+            {(["determinista", "muestreo", "exhaustivo"] as const).map((m, idx, arr) => (
               <button
                 key={m}
                 type="button"
-                style={{ ...s.segmentBtn, ...((contexto.modo ?? "determinista") === m ? s.segmentActivo : {}) }}
+                className="sim-segment"
+                style={{ ...s.segmentBtn, ...(idx === arr.length - 1 ? s.segmentBtnUltimo : {}), ...((contexto.modo ?? "determinista") === m ? s.segmentActivo : {}) }}
                 onClick={() => fijarModo(m)}
                 title={`Modo ${m}`}
               >
@@ -205,11 +216,12 @@ export function BarraSimulacion(): JSX.Element | null {
         {/* Velocidad: segmented inline */}
         {!sinProcesos ? (
           <span style={s.segmented} data-testid="barra-simulacion-velocidad">
-            {velocidades.map((v) => (
+            {velocidades.map((v, idx, arr) => (
               <button
                 key={v}
                 type="button"
-                style={{ ...s.segmentBtn, ...(velocidadSimulacion === v ? s.segmentActivo : {}) }}
+                className="sim-segment"
+                style={{ ...s.segmentBtn, ...(idx === arr.length - 1 ? s.segmentBtnUltimo : {}), ...(velocidadSimulacion === v ? s.segmentActivo : {}) }}
                 onClick={() => fijarVelocidad(v)}
                 aria-label={`Velocidad ${v}x`}
                 title={`Velocidad ${v}x`}
@@ -223,7 +235,7 @@ export function BarraSimulacion(): JSX.Element | null {
 
       {/* Timeline de microfases del proceso actual. */}
       {!sinProcesos && fasesPasoActual.length > 0 ? (
-        <div style={s.timeline} data-testid="barra-simulacion-timeline" aria-label="Fases del proceso actual">
+        <div style={{ ...s.filaTimeline, ...s.timeline }} data-testid="barra-simulacion-timeline" aria-label="Fases del proceso actual">
           {fasesPasoActual.map((fase, i) => {
             const indice = i + 1;
             const activa = faseActual?.indice === indice;
@@ -238,19 +250,22 @@ export function BarraSimulacion(): JSX.Element | null {
               </span>
             );
           })}
+          {/* Timer mono desde reloj */}
+          <span style={s.timer}>
+            {String(ejecutados).padStart(2, "0")} / {String(totalPasos).padStart(2, "0")}
+            {contexto.reloj != null ? ` \u00b7 ${contexto.reloj}u` : ""}
+          </span>
         </div>
       ) : !sinProcesos ? (
-        <span style={s.timelineGrande}>
-          {ejecutados} de {totalPasos} procesos consolidados
-        </span>
-      ) : null}
-
-      {/* Timer mono desde reloj */}
-      {!sinProcesos ? (
-        <span style={s.timer}>
-          {String(ejecutados).padStart(2, "0")} / {String(totalPasos).padStart(2, "0")}
-          {contexto.reloj != null ? ` \u00b7 ${contexto.reloj}u` : ""}
-        </span>
+        <div style={s.filaTimeline} data-testid="barra-simulacion-timeline" aria-label="Procesos consolidados">
+          <span style={s.timelineGrande}>
+            {ejecutados} de {totalPasos} procesos consolidados
+          </span>
+          <span style={s.timer}>
+            {String(ejecutados).padStart(2, "0")} / {String(totalPasos).padStart(2, "0")}
+            {contexto.reloj != null ? ` \u00b7 ${contexto.reloj}u` : ""}
+          </span>
+        </div>
       ) : null}
 
       {contexto.trace.length > 0 ? (
@@ -322,6 +337,8 @@ type EstilosBarra = {
   barraSpine: JSX.CSSProperties;
   barraMobile: JSX.CSSProperties;
   fila: JSX.CSSProperties;
+  filaControles: JSX.CSSProperties;
+  filaTimeline: JSX.CSSProperties;
   tag: JSX.CSSProperties;
   tagDot: JSX.CSSProperties;
   contador: JSX.CSSProperties;
@@ -339,12 +356,18 @@ type EstilosBarra = {
   narrativaChip: JSX.CSSProperties;
   control: JSX.CSSProperties;
   controlActivo: JSX.CSSProperties;
+  controlHover: JSX.CSSProperties;
+  controlApretado: JSX.CSSProperties;
+  controlDeshabilitado: JSX.CSSProperties;
+  controlFocus: JSX.CSSProperties;
   sep: JSX.CSSProperties;
   kbd: JSX.CSSProperties;
   flecha: JSX.CSSProperties;
   segmented: JSX.CSSProperties;
   segmentBtn: JSX.CSSProperties;
+  segmentBtnUltimo: JSX.CSSProperties;
   segmentActivo: JSX.CSSProperties;
+  segmentHover: JSX.CSSProperties;
   timeline: JSX.CSSProperties;
   marco: JSX.CSSProperties;
   marcoCompletado: JSX.CSSProperties;
@@ -449,11 +472,19 @@ export const s: EstilosBarra = {
     color: C.inkMid,
     fontStyle: "italic",
   },
+  // BUG-20260608T171552Z-17477a: el "proceso activo" pasa de ser un span
+  // crimson italic a un chip con border-left 2px crimson + background
+  // `paper` para que se lea como **etiqueta de estado** (lo que es) y no
+  // compita visualmente con el botón `reproducir` activo (que también
+  // usa crimson como acento semántico). El wash `paper` lo separa del
+  // fondo `paperWarm` de la barra, haciéndolo "salir" del frame.
   procesoActivo: {
     fontStyle: "italic",
     fontSize: T.sizes.sm,
     color: C.crimson,
-    padding: `1px 6px`,
+    padding: "1px 6px 1px 8px",
+    borderLeft: `2px solid ${C.crimson}`,
+    background: C.paper,
   },
   opd: {
     fontSize: T.sizes.sm,
@@ -464,6 +495,34 @@ export const s: EstilosBarra = {
     fontSize: T.sizes.sm,
     color: C.success,
     fontStyle: "italic",
+  },
+  // BUG-20260608T171552Z-17477a: la fila de controles gana un separador
+  // editorial dotted arriba para que el ojo lea "fila de status → narrativa
+  // → controles → timeline" como bloques tipográficos, no como una sola
+  // línea plana de palabras. Sin este separador, los botones se mezclaban
+  // con los separadores `·`, los kbd y los chips de status, y el operador
+  // no podía distinguir qué era acción y qué era label.
+  filaControles: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    flexWrap: "wrap" as const,
+    flexBasis: "100%",
+    borderTop: `1px dotted ${C.rule}`,
+    paddingTop: 6,
+    marginTop: 2,
+  },
+  // BUG-20260608T171552Z-17477a: la fila de timeline/trace usa el mismo
+  // lenguaje dotted para señalar "esto ya no son controles, es info".
+  filaTimeline: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    flexWrap: "wrap" as const,
+    flexBasis: "100%",
+    borderTop: `1px dotted ${C.rule}`,
+    paddingTop: 4,
+    marginTop: 2,
   },
   // BUG-20260606T063734Z-52df54: `flexBasis: 100%` fuerza a la narrativa a
   // ocupar su propia fila (status line arriba, controles abajo). `maxHeight`
@@ -548,26 +607,64 @@ export const s: EstilosBarra = {
     fontSize: 10,
     fontVariantNumeric: "tabular-nums",
   },
+  // BUG-20260608T171552Z-17477a: el botón "control" gana una silueta de
+  // botón-fantasma discreta para que el ojo lo lea como acción y no como
+  // label. La invariante canon se mantiene: sin background permanente,
+  // sin radio, sin sombra. Sólo un hairline `rule` que se oscurece a
+  // `ruleStrong` en hover, con wash `paper` (no `paperWarm` — el wash más
+  // claro indica "elevación" sin acentuar cromáticamente). El color del
+  // texto baja a `inkMid` en reposo para que la acción se distinga del
+  // texto de status (que vive en `ink`/`inkSoft`/`inkFaint`).
   control: {
     display: "inline-flex",
     alignItems: "center",
     gap: 3,
-    height: 28,
-    padding: "0 6px",
+    height: 26,
+    padding: "0 8px",
     fontSize: T.sizes.sm,
     fontFamily: T.fontFamily,
-    color: C.ink,
+    color: C.inkMid,
     background: "transparent",
-    border: "none",
-    borderBottom: "1px solid transparent",
+    border: `1px solid ${C.rule}`,
     borderRadius: 0,
     cursor: "pointer",
     pointerEvents: "auto",
-    transition: "color 120ms ease, border-color 120ms ease",
+    transition: "color 120ms ease, background 120ms ease, border-color 120ms ease",
   },
+  // BUG-20260608T171552Z-17477a: el botón "activo" (autoAvance prendido)
+  // se diferencia del resto por (a) color ink en vez de inkMid, (b) fondo
+  // `paper` (wash más claro que el de hover, para señalar "presionado"
+  // sostenido), y (c) el border-bottom crimson se mantiene como acento
+  // semántico: la simulación está corriendo AHORA.
   controlActivo: {
-    borderBottom: `1px solid ${C.crimson}`,
     color: C.ink,
+    background: C.paper,
+    borderColor: C.ruleStrong,
+    borderBottomColor: C.crimson,
+    borderBottomWidth: 2,
+  },
+  // BUG-20260608T171552Z-17477a: hover/active/focus del control se
+  // manejan aquí, no en CSS externo, para que la unidad de estilo del
+  // componente siga siendo self-contained (paridad con `toolbar.css`,
+  // pero localizado). `:hover` → wash `paper`. `:active` → wash `paperWarm`
+  // (un punto más oscuro = "se está apretando"). `:focus-visible` →
+  // outline crimson canon (ui-forja §4.1 "focus states").
+  controlHover: {
+    color: C.ink,
+    background: C.paper,
+    borderColor: C.ruleStrong,
+  },
+  controlApretado: {
+    background: C.paperWarm,
+  },
+  controlDeshabilitado: {
+    color: C.inkFaint,
+    borderColor: C.paperWarm,
+    cursor: "not-allowed",
+  },
+  controlFocus: {
+    outline: `2px solid ${C.crimson}`,
+    outlineOffset: 2,
   },
   sep: {
     color: C.inkFaint,
@@ -587,16 +684,25 @@ export const s: EstilosBarra = {
   flecha: {
     fontSize: 9,
   },
+  // BUG-20260608T171552Z-17477a: el `segmented` (modo/velocidad) sube
+  // su silueta de `rule` a `ruleStrong` para que el grupo se lea como
+  // "un widget continuo" diferenciado de los botones sueltos. Sin este
+  // cambio, el grupo se confundía con el border de un `control` aislado.
   segmented: {
     display: "inline-flex",
     alignItems: "center",
     marginLeft: tokens.spacing.sm,
-    border: `1px solid ${C.rule}`,
+    border: `1px solid ${C.ruleStrong}`,
   },
+  // BUG-20260608T171552Z-17477a: el botón interno del segmented también
+  // gana hairline `rule` y un separador vertical entre segmentos (vía
+  // `borderRight` en cada botón menos el último) para que el ojo lea
+  // los límites entre opciones. Hover/activo del segmento se manejan
+  // con wash `paper` (paridad con `control`).
   segmentBtn: {
     display: "inline-flex",
     alignItems: "center",
-    height: 28,
+    height: 26,
     padding: "0 8px",
     fontSize: 11,
     fontFamily: T.fontFamilyMono,
@@ -604,15 +710,23 @@ export const s: EstilosBarra = {
     color: C.inkSoft,
     background: "transparent",
     border: "none",
+    borderRight: `1px solid ${C.rule}`,
     borderRadius: 0,
     cursor: "pointer",
     pointerEvents: "auto",
     transition: "color 120ms ease, background 120ms ease",
   },
+  segmentBtnUltimo: {
+    borderRight: "none",
+  },
   segmentActivo: {
     fontWeight: 600,
     color: C.ink,
     background: C.paperWarm,
+  },
+  segmentHover: {
+    color: C.ink,
+    background: C.paper,
   },
   timeline: {
     display: "flex",

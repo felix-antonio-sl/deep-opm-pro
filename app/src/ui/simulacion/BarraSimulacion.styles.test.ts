@@ -57,14 +57,125 @@ describe("BarraSimulacion layout (BUG-20260606T063734Z-52df54)", () => {
     expect(s.tag.fontWeight).toBe(700);
   });
 
-  test("controles conservan su altura compacta y segmentados inline", () => {
-    // Los botones (reproducir/correr/reiniciar/headless/salir) y los
-    // segmentados (modo, velocidad) no cambian con el fix; pero anclar sus
-    // invariantes previene que un refactor futuro los aplaste verticalmente.
-    expect(s.control.height).toBe(28);
-    expect(s.segmentBtn.height).toBe(28);
+  test("controles conservan su altura compacta (alineada con segmentados)", () => {
+    // BUG-20260608T171552Z-17477a: ambos `control` y `segmentBtn` se
+    // alinean a 26px (antes 28) para que cuando estan en la misma fila
+    // (p. ej. `salir` junto a `segmented velocidad`), sus bordes
+    // superior/inferior coincidan al pixel. Esto era la raiz de un
+    // drift visual sutil que BUG-17477a expuso.
+    expect(s.control.height).toBe(26);
+    expect(s.segmentBtn.height).toBe(26);
     expect(s.segmented.display).toBe("inline-flex");
-    expect(s.segmented.border).toBe(`1px solid ${tokens.colors.rule}`);
+  });
+});
+
+describe("BarraSimulacion control-jerarquia (BUG-20260608T171552Z-17477a)", () => {
+  test("el control tiene silueta de boton-fantasma discreta", () => {
+    // BUG-20260608T171552Z-17477a: el operador no distinguia "esto es un
+    // boton" de "esto es un label" en la fila de controles. La silueta
+    // base es: hairline `rule` + color de texto `inkMid` (vs `ink` de los
+    // labels de status) + height 26 + padding horizontal 8 + sin radius.
+    // La invariante canon se mantiene: sin background permanente, sin
+    // radio, sin sombra — el canon ui-forja §2 prohibe `Button` con
+    // background + radius + shadow ("las acciones son palabras separadas
+    // por `·`"). El hairline + color jerarquizado es la variacion
+    // minima que rompe la confusion sin romper el canon.
+    expect(s.control.border).toBe(`1px solid ${tokens.colors.rule}`);
+    expect(s.control.borderRadius).toBe(0);
+    expect(s.control.color).toBe(tokens.colors.inkMid);
+    expect(s.control.background).toBe("transparent");
+    expect(s.control.height).toBe(26);
+    expect(s.control.padding).toBe("0 8px");
+  });
+
+  test("el control activo (autoAvance prendido) se diferencia del reposo", () => {
+    // BUG-20260608T171552Z-17477a: el boton `reproducir`/`pausa` cuando
+    // la simulacion esta corriendo necesita leerse como "presionado
+    // sostenido". Mantenemos el border-bottom 2px crimson como acento
+    // semantico de "la simulacion esta corriendo AHORA" (no es un
+    // hover, es un estado), y agregamos fondo `paper` + color `ink`
+    // para que se lea como "mas oscuro que el hover efimero".
+    expect(s.controlActivo.color).toBe(tokens.colors.ink);
+    expect(s.controlActivo.background).toBe(tokens.colors.paper);
+    expect(s.controlActivo.borderColor).toBe(tokens.colors.ruleStrong);
+    expect(s.controlActivo.borderBottomColor).toBe(tokens.colors.crimson);
+    expect(s.controlActivo.borderBottomWidth).toBe(2);
+  });
+
+  test("los pseudo-estados (hover/active/focus/disabled) tienen invariantes", () => {
+    // BUG-20260608T171552Z-17477a: hover/active/focus/disabled se aplican
+    // via CSS de pseudo-clases (no inline) porque inline no soporta
+    // pseudo-clases. Anclamos aqui los valores de wash/border/outline
+    // para que un refactor del CSS no rompa silenciosamente la
+    // jerarquia visual.
+    // hover: wash `paper` (mas claro que el fondo `paperWarm` de la barra).
+    expect(s.controlHover.background).toBe(tokens.colors.paper);
+    expect(s.controlHover.color).toBe(tokens.colors.ink);
+    expect(s.controlHover.borderColor).toBe(tokens.colors.ruleStrong);
+    // active (mientras se aprieta): wash `paperWarm` (un punto mas oscuro
+    // que el hover = "estas apretando").
+    expect(s.controlApretado.background).toBe(tokens.colors.paperWarm);
+    // disabled: el boton debe ser casi invisible — sin affordance de
+    // click. `inkFaint` para el texto y `paperWarm` (mismo color que el
+    // fondo) para el border.
+    expect(s.controlDeshabilitado.color).toBe(tokens.colors.inkFaint);
+    expect(s.controlDeshabilitado.borderColor).toBe(tokens.colors.paperWarm);
+    expect(s.controlDeshabilitado.cursor).toBe("not-allowed");
+    // focus-visible: outline crimson canon (ui-forja §4.1).
+    expect(s.controlFocus.outline).toBe(`2px solid ${tokens.colors.crimson}`);
+    expect(s.controlFocus.outlineOffset).toBe(2);
+  });
+
+  test("la fila de controles tiene separador editorial dotted", () => {
+    // BUG-20260608T171552Z-17477a: la fila de controles (botones +
+    // segmentados) gana un border-top dotted `rule` para que el ojo lea
+    // "status line -> narrativa -> controles -> timeline" como bloques
+    // tipograficos, no como una sola linea plana de palabras.
+    expect(s.filaControles.borderTop).toBe(`1px dotted ${tokens.colors.rule}`);
+    expect(s.filaControles.flexBasis).toBe("100%");
+    expect(s.filaControles.display).toBe("flex");
+  });
+
+  test("la fila de timeline/trace tambien usa dotted como separador", () => {
+    // BUG-20260608T171552Z-17477a: la fila de timeline (microfases +
+    // timer) es informacion, no controles. Usa el mismo lenguaje dotted
+    // que `filaControles` para señalar "esto ya no son acciones, es info".
+    expect(s.filaTimeline.borderTop).toBe(`1px dotted ${tokens.colors.rule}`);
+    expect(s.filaTimeline.flexBasis).toBe("100%");
+  });
+
+  test("el proceso activo se lee como chip de estado, no como boton", () => {
+    // BUG-20260608T171552Z-17477a: el span "proceso activo" competia
+    // visualmente con el boton `reproducir` activo (ambos crimson).
+    // Ahora se diferencia con un border-left 2px crimson + fondo `paper`
+    // (sale del frame `paperWarm`) + padding asimétrico, leyendose como
+    // **etiqueta de estado** semantica.
+    expect(s.procesoActivo.borderLeft).toBe(`2px solid ${tokens.colors.crimson}`);
+    expect(s.procesoActivo.background).toBe(tokens.colors.paper);
+    expect(s.procesoActivo.color).toBe(tokens.colors.crimson);
+    expect(s.procesoActivo.padding).toBe("1px 6px 1px 8px");
+  });
+
+  test("el segmented widget sube su silueta para no confundirse con botones sueltos", () => {
+    // BUG-20260608T171552Z-17477a: el grupo `segmented` (modo/velocidad)
+    // subio su border de `rule` a `ruleStrong` para leerse como "un
+    // widget continuo" diferenciado de los `control` sueltos. Ademas,
+    // cada boton interno del grupo gana un `borderRight` para que se lean
+    // los limites entre opciones (un detalle obsesivo canon, III).
+    expect(s.segmented.border).toBe(`1px solid ${tokens.colors.ruleStrong}`);
+    expect(s.segmentBtn.borderRight).toBe(`1px solid ${tokens.colors.rule}`);
+    expect(s.segmentBtnUltimo.borderRight).toBe("none");
+    expect(s.segmentBtn.height).toBe(26);
+  });
+
+  test("el segmento activo mantiene su wash paperWarm como acento", () => {
+    // BUG-20260608T171552Z-17477a: invariante preservada — el segmento
+    // activo usa `paperWarm` (NO `paper`) para no competir con el boton
+    // `reproducir` activo. La diferencia wash ayuda a diferenciar
+    // visualmente "selector de opcion" vs "boton de accion".
+    expect(s.segmentActivo.background).toBe(tokens.colors.paperWarm);
+    expect(s.segmentActivo.color).toBe(tokens.colors.ink);
+    expect(s.segmentActivo.fontWeight).toBe(600);
   });
 });
 

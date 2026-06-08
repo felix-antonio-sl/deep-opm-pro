@@ -1,0 +1,29 @@
+{
+  "id": "BUG-20260608T171552Z-17477a",
+  "type": "Bug",
+  "status": "Resuelto",
+  "resolution": "La barra de simulacion ahora diferencia visualmente botones (hairline rule + inkMid + height 26 alineado con segmented) de labels/chips de status. Cambios: (1) s.control gana silueta de boton-fantasma con border 1px solid rule; (2) s.controlActivo gana background paper + border-bottom 2px crimson como acento semantico de reproduccion en curso; (3) s.filaControles y s.filaTimeline ganan border-top 1px dotted rule como separador editorial; (4) s.segmented sube de rule a ruleStrong + s.segmentBtn gana border-right hairline entre opciones; (5) s.procesoActivo pasa de span crimson italic a chip de estado con border-left 2px crimson + background paper (deja de competir con el boton activo); (6) pseudo-estados hover/active/focus/disabled via CSS inyectado por el componente (no inline, porque CSS-in-JS inline no soporta pseudo-clases). Canon ui-forja mantenido: cero background+shadow permanentes, cero radius, focus crimson 2px offset 2. Tests: 8 nuevos en BarraSimulacion.styles.test.ts anclando invariantes; bun run check 2333/0, lint limpio, build OK (bundle index-CWgF-40f.js), design:governance OK. Mockups: docs/bugs/BUG-20260608T171552Z-17477a/mockup-{antes,despues}.html + screenshots. Sonda runtime: docs/bugs/BUG-20260608T171552Z-17477a/sonda-bug-17477a.mjs con 11 checks contra prod.",
+  "createdAt": "2026-06-08T17:15:52.960Z",
+  "text": "diferenciar secciones y funciones (por ejemplo botones que parezcan más botones) sin perder canon visul ni ux",
+  "context": {
+    "modeloId": "modelo-simulacion-lab-complejo",
+    "modeloNombre": "Laboratorio complejo de simulacion OPM 2",
+    "opdActivoId": "opd-orquestacion",
+    "opdActivoNombre": "SD1 - Orquestacion simulable del despacho critico",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-c4d143ae-ef33-45e8-b4be-287eb7e86c58",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1920,
+      "height": 963,
+      "devicePixelRatio": 1
+    },
+    "capturedAt": "2026-06-08T17:15:48.882Z"
+  },
+  "screenshots": [
+    "screenshots/01-cleanshot-2026-06-08-at-13.15.14.jpg"
+  ]
+}

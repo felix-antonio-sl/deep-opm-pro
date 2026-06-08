@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mockup BUG-20260608T171552Z-17477a — ANTES (estado capturado por operador)</title>
+<style>
+:root {
+  --paper: #fafaf8;
+  --paper-warm: #eeece2;
+  --ink: #171511;
+  --ink-mid: #5a564c;
+  --ink-soft: #807b6e;
+  --ink-faint: #b5b0a4;
+  --rule: #d3cec1;
+  --rule-strong: #aea899;
+  --crimson: #8e2a2e;
+  --success: #27613f;
+  --font-serif: "Inria Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-serif); background: #efece4; color: var(--ink); padding: 24px; }
+h1 { font-size: 16px; font-weight: 600; margin: 0 0 4px 0; }
+h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size: 12px; font-style: italic; }
+.subtitle { color: var(--ink-soft); font-size: 12px; margin: 0 0 16px 0; max-width: 1200px; }
+.leyenda { background: var(--paper); border: 1px solid var(--rule); padding: 8px 12px; margin-bottom: 16px; font-size: 11px; color: var(--ink-mid); }
+.leyenda strong { color: var(--crimson); }
+.estado-capturado { color: var(--crimson); font-weight: 600; }
+.barra { position: relative; display: flex; align-items: flex-start; gap: 8px; padding: 6px 16px; background: var(--paper-warm); border-top: 2px solid var(--crimson); border-bottom: 1px solid var(--rule); font-family: var(--font-serif); font-size: 12px; color: var(--ink); flex-wrap: wrap; }
+.spine { position: absolute; top: 0; bottom: 0; width: 3px; background: linear-gradient(to bottom, var(--crimson) 0%, var(--crimson) 60%, rgba(142, 42, 46, 0.5) 100%); pointer-events: none; }
+.spine-left { left: 0; } .spine-right { right: 0; }
+.fila { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.fila-status { padding-right: 8px; }
+.tag { font-family: var(--font-mono); font-weight: 700; font-size: 10.5px; color: var(--crimson); letter-spacing: 0.12em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
+.tag .dot { display: inline-block; width: 6px; height: 6px; background: var(--crimson); border-radius: 50%; }
+.estado-texto { font-style: italic; color: var(--ink-mid); font-size: 12px; }
+.proceso-activo { color: var(--crimson); font-style: italic; font-size: 12px; padding: 1px 6px; }
+.opd { color: var(--ink-soft); font-family: var(--font-mono); font-size: 12px; }
+.narrativa { display: flex; align-items: center; gap: 8px; flex-basis: 100%; padding: 5px 8px; background: var(--paper); border-left: 3px solid var(--rule-strong); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); font-size: 12px; }
+.narrativa-marca { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; color: var(--crimson); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+.narrativa-texto { display: flex; align-items: baseline; gap: 8px; flex: 1 1 auto; flex-wrap: wrap; }
+.narrativa-titulo { color: var(--ink); font-weight: 700; }
+.narrativa-detalle { color: var(--ink-mid); }
+.narrativa-contexto { display: inline-flex; align-items: center; gap: 4px; }
+.chip { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border: 1px solid var(--rule); color: var(--ink-soft); background: var(--paper-warm); font-family: var(--font-mono); font-size: 10px; }
+.control { display: inline-flex; align-items: center; gap: 3px; height: 28px; padding: 0 6px; font-size: 12px; color: var(--ink); background: transparent; border: none; border-bottom: 1px solid transparent; font-family: var(--font-serif); }
+.control.activo { border-bottom: 1px solid var(--crimson); color: var(--ink); }
+.sep { color: var(--ink-faint); user-select: none; }
+.kbd { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); border: 1px solid var(--rule); padding: 0 3px; line-height: 16px; }
+.segmented { display: inline-flex; align-items: center; margin-left: 8px; border: 1px solid var(--rule); }
+.segment-btn { display: inline-flex; align-items: center; height: 28px; padding: 0 8px; font-size: 11px; font-family: var(--font-mono); color: var(--ink-soft); background: transparent; border: none; }
+.segment-btn.activo { font-weight: 600; color: var(--ink); background: var(--paper-warm); }
+.timeline { display: flex; align-items: center; gap: 0; margin-left: 8px; }
+.marco { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 22px; padding: 0 4px; font-size: 10px; font-family: var(--font-mono); color: var(--ink-faint); }
+.marco.completado { color: var(--ink-soft); }
+.marco.actual { font-weight: 600; color: var(--crimson); }
+.timer { font-size: 10px; font-family: var(--font-mono); color: var(--ink-soft); margin-left: 8px; }
+.nota { background: var(--paper); border-left: 3px solid var(--crimson); padding: 8px 12px; margin-top: 12px; font-size: 11px; color: var(--ink-mid); }
+.nota strong { color: var(--crimson); }
+</style>
+</head>
+<body>
+<h1>BUG-20260608T171552Z-17477a — ANTES <span class="meta">capturado 2026-06-08 17:15Z · viewport 1920×963 · SD1 Orquestacion simulable del despacho critico</span></h1>
+<p class="subtitle">El operador reporto: <em>"diferenciar secciones y funciones (por ejemplo botones que parezcan mas botones) sin perder canon visul ni ux"</em>. El estado capturado muestra que los botones (<code>reproducir</code>, <code>fase</code>, <code>correr</code>, <code>reiniciar</code>, <code>headless</code>, <code>salir</code>) y los segmentos (<code>determinista</code>/<code>muestreo</code>/<code>exhaustivo</code>, <code>velocidad</code>) viven a la misma altura visual, sin separador editorial entre status y controles, y los segmentos parecen mas "botones" que los propios botones.</p>
+<div class="leyenda">
+  <strong>Problemas detectados:</strong>
+  (a) los <span class="estado-capturado">botones sueltos</span> no tienen border hairline — son palabras planas indistinguibles de un label.
+  (b) los <span class="estado-capturado">segmented</span> (con border <code>rule</code>) parecen mas "boton" que los propios botones.
+  (c) la <span class="estado-capturado">fila de controles</span> no tiene separador del status/narrativa de arriba — todo vive como una sola linea plana.
+  (d) el <span class="estado-capturado">"proceso activo" crimson italic</span> compite con el boton <code>reproducir</code> activo (tambien crimson) — el ojo no sabe cual es la accion.
+  (e) las <span class="estado-capturado">alturas</span> de <code>control</code> (28px) y <code>segmentBtn</code> (28px) son iguales, pero el border <code>rule</code> del segmented lo hace parecer "mas alto" o "mas boton".
+</div>
+<div class="barra">
+  <div class="spine spine-left"></div>
+  <div class="spine spine-right"></div>
+  <div class="fila fila-status">
+    <span class="tag"><span class="dot"></span>Simulacion</span>
+    <span class="estado-texto">Listo para simular · paso 3 de 13 · resultado</span>
+    <span class="proceso-activo">Investigar rechazo</span>
+    <span class="opd">SD1 - Orquestacion simulable del despacho critico</span>
+  </div>
+  <div class="narrativa">
+    <span class="narrativa-marca">·</span>
+    <span class="narrativa-texto">
+      <span class="narrativa-titulo">Resultado: Investigar rechazo</span>
+      <span class="narrativa-detalle">Cierre del proceso: produce Orden de despacho:rechazada -&gt; cerrada.</span>
+    </span>
+    <span class="narrativa-contexto">
+      <span class="chip">paso 3 de 13</span>
+      <span class="chip">fase 4/5</span>
+      <span class="chip">SD1 - Orquestacion simulable del despacho critico</span>
+      <span class="chip">determinista</span>
+    </span>
+  </div>
+  <div class="fila">
+    <button class="control activo">reproducir <span class="kbd">P</span></button>
+    <span class="sep">·</span>
+    <button class="control">fase <span style="font-size:9px">▸</span></button>
+    <span class="sep">·</span>
+    <button class="control">correr</button>
+    <span class="sep">·</span>
+    <button class="control">reiniciar</button>
+    <span class="sep">·</span>
+    <button class="control">headless</button>
+    <span class="sep">·</span>
+    <button class="control" style="margin-left:4px">salir <span class="kbd">⎋</span></button>
+    <span class="segmented">
+      <button class="segment-btn activo">determinista</button>
+      <button class="segment-btn">muestreo</button>
+      <button class="segment-btn">exhaustivo</button>
+    </span>
+    <span class="segmented">
+      <button class="segment-btn">½x</button>
+      <button class="segment-btn activo">1x</button>
+      <button class="segment-btn">2x</button>
+      <button class="segment-btn">4x</button>
+    </span>
+  </div>
+  <div class="fila">
+    <span class="timeline">
+      <span class="marco">prep</span>
+      <span class="marco">cons</span>
+      <span class="marco">proc</span>
+      <span class="marco actual">res</span>
+      <span class="marco">cierre</span>
+    </span>
+    <span class="timer">02 / 13 · 0u</span>
+  </div>
+</div>
+<p class="nota">
+  <strong>Canon ui-forja que el bug tensiona:</strong> §2 prohibe <em>"Button con background + radius + shadow — las acciones son palabras separadas por ·"</em>. El bug NO pide romper ese canon: pide que las palabras que SON acciones se <strong>diferencien visualmente</strong> de las que son labels. El fix mantiene el canon (cero backgrounds permanentes, cero radius, cero sombra) y agrega solo: (1) hairline <code>rule</code> en cada boton para darle silueta de "boton-fantasma", (2) color <code>inkMid</code> en reposo vs <code>ink</code> de los labels, (3) border-top <code>dotted rule</code> en la fila de controles para seccionar editorialmente.
+</p>
+</body>
+</html>
