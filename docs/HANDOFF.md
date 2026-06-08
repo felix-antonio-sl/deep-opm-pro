@@ -24,6 +24,41 @@
 
 **Prompt breve de continuación:** "F5-parcial cerrado. Frentes abiertos gateados: (b) transporte de las 12 requiere-decisión, empezar por V12; (c) corte mayor auth/tenants. No tocar el resto de `mapearFamiliaV` sin (b)."
 
+## Actualización 2026-06-08 — migración familia-V→skill F5-V12 (cola `cuando` retirada de V12, 4 líneas HODOM migradas a E2+RATIFICAR)
+
+**Estado:** F5-V12 cerrado. Estrechada V12 en el compilador: retirada la cola `cuando` del regex de `mapearColaCondicional` (`normalizador.ts:720`). La cola `según` multi-destino y R4 (`dentro del`) sobreviven. Las 4 líneas `cuando` del proto HODOM migradas a forma E2 estricta + `[RATIFICAR: ...]` explícito.
+
+**Cambio (dos pasos):**
+1. **Compilador** (`normalizador.ts`): eliminado `COLA_CUANDO_RE` del dispatch V12. `cuando` ahora **rechaza ruidoso** (la skill debe emitir TS/efecto/requiere estricto + `[RATIFICAR]` explícito). Principio P3: compilador = verificador, no puenteador silencioso.
+2. **Proto HODOM** (SSOT `hd-opm`): 4 líneas migradas vía script auto-verificante `app/scripts/aplicar-f5-v12-hodom.ts` (idempotente, guarda: −4 rechazos / 0 nuevos / 4 anclas RATIFICAR presentes).
+
+**Las 4 líneas migradas:**
+| Línea | Forma laxa (`cuando`, rechazada) | Forma E2 estricta |
+|---|---|---|
+| `cambia Indicación médica a 'cumplida' cuando se completa la orden` | Cola tautológica | `cambia Indicación médica a 'cumplida'. [RATIFICAR: se completa la orden]` |
+| `requiere Voluntad anticipada vigente cuando la decisión puede escalar` | Estado pegado como adjetivo | `requiere Voluntad anticipada en estado 'vigente'. [RATIFICAR: la decisión puede escalar — Ley 20.584]` |
+| `cambia Indicación médica a 'suspendida' cuando supersede una indicación previa` | Regla de negocio | `cambia Indicación médica a 'suspendida'. [RATIFICAR: supersede una indicación previa]` |
+| `genera Evento adverso cuando detecta una IAAS` | Cola informativa | `genera Evento adverso. [RATIFICAR: detecta una IAAS]` |
+
+**Decisiones del operador (2026-06-08):**
+- Línea 2: condición de estado estricta `en estado 'vigente'` + ancla normativa Ley 20.584 (Q3).
+- Línea 7 (`se ejecuta solo cuando la atención incluye un medicamento de alto riesgo`): descartada del slice; es prosa comentario, no OPL compilable. El probe la reportó como match de regex pero no está en bloque ` ```opl `.
+- Línea 4 (`por una Causal de exclusión`): NO era V12 (clasificada `estricta` por el compilador; `por una` no matchea los regex de V12). El paso hermano propuesto (`requiere Causal`) queda **descartado**: supersedido por el re-modelado activo del operador (split `Causal de exclusión` XOR-4 + `Requisito de ingreso incumplido` XOR-3, D-drift-4).
+- **G-abanico** (línea 6, `según Disponibilidad de admisión`): diferido a mini-spike futuro. Sigue en V12 como única forma sobreviviente de `según` multi-destino.
+
+**Verificación:**
+- `cd app && bun run check` → **2333 pass / 0 fail**
+- `bun run lint` limpio.
+- Script `aplicar-f5-v12-hodom.ts` idempotente: guarda −4/0/4.
+- Tests volteados al contrato nuevo: `normalizador.test.ts` (`cuando` ya no mapea V12), `familia-v.test.ts` (`cuando` no produce ancla silenciosa), `anclas.test.ts` (reentrancia re-apuntada a `según` sobreviviente).
+- Golden DSL hd-opm byte-idéntico (el golden es independiente del proto; no se mueve).
+
+**Pendientes F5-V12:**
+- Línea 6 G-abanico (`según Disponibilidad de admisión`) — mini-spike aparte.
+- Línea 7 (`se ejecuta solo cuando`) — prosa, no OPL; fuera del pipeline del compilador.
+
+**Prompt breve de continuación:** "F5-V12 cerrado (cola `cuando` retirada de V12, 4 líneas HODOM migradas a E2+RATIFICAR). Frentes abiertos: G-abanico (línea 6 `según Disponibilidad`) como mini-spike, luego las 11 requiere-decisión restantes. No tocar `mapearFamiliaV` sin decisión del operador."
+
 ## Actualización 2026-06-08 — BUGs paneles OPL/Inspector hideables y resizable
 
 **Estado:** ambos bugs resueltos y desplegados en producción. Panel OPL izquierdo resizable horizontalmente (160–400px); ambos paneles se pueden ocultar/mostrar vía botones en headers. Bundle vigente `assets/index-C8dIvPcf.js`. **Validado por operador 2026-06-08.**

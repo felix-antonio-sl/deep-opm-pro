@@ -350,7 +350,7 @@ describe("estructura — `se descompone en` / `se despliega en`", () => {
 // compuesto (V13) hacia primitivas OPM. Estas oraciones ya NO se rechazan.
 
 describe("V12/V13 — colas condicionales y guard compuesto se mapean (antes R1)", () => {
-  test("`según` adosado a una TS → V12 (hecho principal + cola anotada)", () => {
+  test("multi-destino `según` SIGUE siendo V12 (G-abanico diferido tras F5-V12)", () => {
     const l = una(
       "Verificación cambia Solicitud a 'aceptada', 'en espera' o 'rechazada' según Disponibilidad de admisión.",
     );
@@ -358,10 +358,9 @@ describe("V12/V13 — colas condicionales y guard compuesto se mapean (antes R1)
     if (l.clase === "compuesta") expect(l.regla).toBe("V12");
   });
 
-  test("`cuando` adosado a un resultado → V12", () => {
+  test("`cuando` YA NO se mapea por V12 (F5-V12: skill emite E2 explícito, no puente silencioso)", () => {
     const l = una("Vigilancia y prevención de IAAS genera Evento adverso cuando detecta una IAAS.");
-    expect(l.clase).toBe("compuesta");
-    if (l.clase === "compuesta") expect(l.regla).toBe("V12");
+    expect(l.clase).not.toBe("compuesta");
   });
 
   test("guard compuesto con `con` en un evento → V13", () => {

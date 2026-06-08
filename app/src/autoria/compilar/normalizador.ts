@@ -712,12 +712,14 @@ function mapearAcotadoPor(sinPunto: string): LineaNormalizada | null {
   ]);
 }
 
-// ── V12: colas condicionales (`cuando`/`según`/`por una`) o R4 ──────────────
-// `<hecho principal> cuando/según/por una <cola>` → compila el hecho principal
-// (TS/efecto/requiere) y adjunta la cola como ancla pendiente sobre el enlace.
-// También R4: `requiere Domicilio dentro del Radio de cobertura` → requiere
-// Domicilio + cola anotada.
-const COLA_CUANDO_RE = /^(.+?)\s+(cuando\s+.+)$/iu;
+// ── V12 (estrechado por F5-V12): cola `según` multi-destino o R4 ─────────────
+// `<hecho principal> según <cola>` → compila el hecho principal y adjunta la
+// cola como ancla pendiente. También R4: `requiere Domicilio dentro del Radio`.
+//
+// F5-V12 (2026-06-08): RETIRADA la cola `cuando` — la skill emite ahora la TS/
+// efecto estricto + `[RATIFICAR: …]` explícito (P3: el compilador verifica, no
+// puentea en silencio). La cola `según` SOBREVIVE porque su única forma viva es
+// el abanico multi-destino (`a 'a','b' o 'c' según …`), diferido a G-abanico.
 const COLA_SEGUN_RE = /^(.+?)\s+(seg[uú]n\s+.+)$/iu;
 
 function mapearColaCondicional(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
@@ -741,12 +743,12 @@ function mapearColaCondicional(sinPunto: string, contexto: ContextoProto): Linea
   // condicional de un hecho procedural.
   if (/\b(consta\s+(?:tambi[eé]n\s+)?de|exhibe[n]?|se\s+(?:descompone|despliega))\b/iu.test(sinPunto)) return null;
 
-  const m = COLA_CUANDO_RE.exec(sinPunto) ?? COLA_SEGUN_RE.exec(sinPunto);
+  const m = COLA_SEGUN_RE.exec(sinPunto);
   if (!m) return null;
   let principal = (m[1] ?? "").trim();
   const cola = (m[2] ?? "").trim();
 
-  // El guard compuesto `con Y 'b'` lo maneja V13; aquí solo `cuando`/`según`.
+  // El guard compuesto `con Y 'b'` lo maneja V13; aquí solo `según`.
   // Si el principal trae `, o inicia` lo dejamos a V14.
   if (/,\s*o\s+inicia\b/iu.test(principal)) return null;
 

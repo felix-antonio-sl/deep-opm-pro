@@ -345,17 +345,19 @@ Proceso A requiere Objeto B (DS art. 12) [RATIFICAR #pend: dudoso].
     expect(a).toEqual(b);
   });
 
-  test("REENTRANCIA: la claveProto de cola condicional (V12) NO depende del estado del proceso", () => {
+  test("REENTRANCIA: la claveProto de cola condicional (V12 `según`) NO depende del estado del proceso", () => {
     // El contador de `cola-fina-N` debe vivir por-compilación, no módulo-global:
     // compilar el MISMO proto dos veces en el mismo proceso debe dar la MISMA clave.
     // (Bug detectado por el de-risking F4 2026-06-07: contador global no reentrante.)
+    // F5-V12: la cola `cuando` se retiró; el guard usa la cola `según` multi-destino
+    // sobreviviente (única forma viva que sigue produciendo `cola-fina-N` por V12).
     const PROTO_COLA = `# SD0 — cola fina
 
 \`\`\`opl
-Indicación es un objeto informacional y sistémico.
-Indicación puede estar 'vigente' o 'cumplida'.
-Registro de la orden es un proceso físico y sistémico.
-Registro de la orden cambia Indicación a 'cumplida' cuando se completa la orden.
+Solicitud es un objeto informacional y sistémico.
+Solicitud puede estar 'aceptada', 'en espera' o 'rechazada'.
+Verificación es un proceso físico y sistémico.
+Verificación cambia Solicitud a 'aceptada', 'en espera' o 'rechazada' según Disponibilidad de admisión.
 \`\`\`
 `;
     const a = enumerarAnclas(compilarProto(PROTO_COLA, { id: "c1" }).modelo).map((x) => x.claveProto).sort();

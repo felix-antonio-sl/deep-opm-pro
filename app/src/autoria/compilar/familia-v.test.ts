@@ -282,16 +282,15 @@ Autorización sanitaria habilita Establecimiento que otorga prestaciones de Hosp
 // ── V12: colas condicionales → hecho principal + cola anotada ───────────────
 
 describe("V12 — cola condicional (`cuando`/`según`/`por una`) → hecho + cola anotada", () => {
-  test("`P cambia X a 'e' cuando …` compila la TS y deja la cola como ancla pendiente", () => {
+  test("`P cambia X a 'e' cuando …` (laxo) YA NO se puentea: sin ancla silenciosa (F5-V12)", () => {
     const r = compilar(`Registro de la atención es un proceso físico y sistémico.
 Indicación médica es un objeto informacional y sistémico.
 Indicación médica puede estar 'pendiente' o 'cumplida'.
 Registro de la atención cambia Indicación médica a 'cumplida' cuando se completa la orden.`);
-    sinErrores(r);
-    // El hecho principal (la transición / efecto) se aplicó.
-    expect(enlacesEntre(r.modelo, "Registro de la atención", "Indicación médica", "efecto")).toHaveLength(1);
+    // Contrato F5-V12: la cola `cuando …` ya no se convierte en ancla en silencio.
+    // La skill debe emitir la TS estricta + `[RATIFICAR: …]` explícito.
     const anclas = Object.values(r.modelo.anclasNormativas ?? {});
-    expect(anclas.some((a) => /cuando se completa la orden/i.test(a.nota ?? ""))).toBe(true);
+    expect(anclas.some((a) => /cuando se completa la orden/i.test(a.nota ?? ""))).toBe(false);
   });
 
   test("R4: `P requiere Domicilio dentro del Radio …` → requiere Domicilio + cola anotada", () => {
