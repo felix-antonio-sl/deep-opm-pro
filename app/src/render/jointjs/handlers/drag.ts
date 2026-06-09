@@ -106,7 +106,23 @@ export function cablearDrag(args: CablearDragArgs): () => void {
   const onElementPointerup = (elementView: dia.ElementView) => {
     if (sincronizandoRef.current) return;
     if (dragAnchorActivo(paper)) return;
-    if (dragEstado) return;
+    if (dragEstado) {
+      // BUG halo-estado: en un click sobre la cápsula (sin arrastre) JointJS
+      // captura el puntero y el `mouseup` nativo no llega a `window`, por lo que
+      // `onMouseUpEstado` no se dispara y `data-opm-state-gesture` queda pegado
+      // en true — lo que oculta el HaloEstado de forma permanente. El
+      // `element:pointerup` de JointJS sí llega de forma fiable: finalizamos el
+      // gesto aquí cuando fue un click (sin movimiento). Los arrastres reales
+      // los sigue cerrando `onMouseUpEstado` (que persiste la posición).
+      if (!dragEstado.moved) {
+        marcarDragEstado(dragEstado.element, dragEstado.selectorCapsula, false);
+        dragEstado = null;
+        marcarGestoEstadoActivo(paper, false);
+        window.removeEventListener("mousemove", onMouseMoveEstado);
+        window.removeEventListener("mouseup", onMouseUpEstado);
+      }
+      return;
+    }
     const model = cellViewModel(elementView);
     const meta = metadata(model);
     if (meta?.kind === "grupo-enlaces" || (meta?.kind === "enlace" && meta.rolEstructural === "simbolo")) {
