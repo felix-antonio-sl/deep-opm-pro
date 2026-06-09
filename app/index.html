@@ -65,6 +65,15 @@
         letter-spacing: 0;
         background: var(--paper);
         color: var(--ink);
+        /*
+         * El swipe-back de macOS/Chrome se gobierna en el scroller raiz, no en
+         * scrollers anidados: el `overscroll-behavior: contain` del canvas
+         * (JointCanvas style.viewport) no lo previene. Desactivamos la affordance
+         * de navegacion por overscroll en el raiz. body es overflow:hidden, asi
+         * que esto solo bloquea el gesto historico; los scrolls internos (canvas,
+         * paneles) conservan el suyo.
+         */
+        overscroll-behavior-x: none;
       }
 
       body {
@@ -72,6 +81,7 @@
         background: var(--paper);
         color: var(--ink);
         overflow: hidden;
+        overscroll-behavior-x: none;
       }
 
       button, input, select, textarea {
