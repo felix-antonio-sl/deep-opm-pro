@@ -443,8 +443,12 @@ test("split de efecto TS3 convierte enlace en efectos entrada/salida sin objeto 
   await expect(page.locator(".joint-element")).toHaveCount(2);
   await expect(page.locator(".joint-link")).toHaveCount(1);
 
-  // Seleccionar el enlace de efecto desde su verbo OPL y escindirlo.
-  await page.getByLabel("Panel OPL-ES").locator('[data-opl-rol="verbo"]').filter({ hasText: "afecta" }).dblclick();
+  // Seleccionar el enlace de efecto desde su verbo OPL y escindirlo. El efecto
+  // TS3 con par de estados (estadoEntradaId/estadoSalidaId) verbaliza la
+  // transición (BUG-f314c4): el verbo es "cambia" (*Actualizar* cambia
+  // **Sistema** de `antes` a `despues`.), no el genérico "afecta".
+  await restaurarPanelOplSiMinimizado(page);
+  await page.getByLabel("Panel OPL-ES").locator('[data-opl-rol="verbo"]').filter({ hasText: "cambia" }).dblclick();
   await expect(page.getByText("Enlace Efecto")).toBeVisible();
   // Ronda 20 L1: Split en par vive en el tab `Extremos` del Inspector enlace.
   await irATabExtremos(page);

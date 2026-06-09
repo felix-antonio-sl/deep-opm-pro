@@ -160,7 +160,7 @@ const verbosPorTipo: Record<TipoEnlace, string[]> = {
   instrumento: ["requiere", "requieren", "es requerido"],
   consumo: ["consume", "consumen", "cambia"],
   resultado: ["genera", "generan", "cambia"],
-  efecto: ["afecta", "afectan"],
+  efecto: ["afecta", "afectan", "cambia"],
   invocacion: ["invoca", "invocan", "se invoca"],
   excepcionSobretiempo: ["ocurre si duración", "excede"],
   excepcionSubtiempo: ["ocurre si duración", "es menor"],
