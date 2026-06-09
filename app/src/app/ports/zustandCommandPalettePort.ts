@@ -24,6 +24,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const exportarJson = useOpmStore((s) => s.exportarJson);
   const copiarOplModeloMarkdownAlPortapapeles = useOpmStore((s) => s.copiarOplModeloMarkdownAlPortapapeles);
   const copiarContextoSkillAlPortapapeles = useOpmStore((s) => s.copiarContextoSkillAlPortapapeles);
+  const copiarLogDecisionesAlPortapapeles = useOpmStore((s) => s.copiarLogDecisionesAlPortapapeles);
   const frecuenciaUso = useOpmStore((s) => s.frecuenciaUsoCommandPalette);
   const registrarUsoCommandPalette = useOpmStore((s) => s.registrarUsoCommandPalette);
   // Ronda Codex v2 L5: acciones absorbidas desde el `MenuPrincipal` lateral
@@ -76,6 +77,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     exportarJson,
     copiarOplModeloMarkdownAlPortapapeles,
     copiarContextoSkillAlPortapapeles,
+    copiarLogDecisionesAlPortapapeles,
     frecuenciaUso,
     registrarUsoCommandPalette,
     abrirPestanaNueva,

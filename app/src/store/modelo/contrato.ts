@@ -179,6 +179,9 @@ export const MODELO_SLICE_CAPABILITIES = {
     "agregarNotaMesa",
     "editarNotaMesa",
     "eliminarNotaMesa",
+    "anotarAnclaEnMesa",
+    "ratificarAnclaConFuente",
+    "copiarLogDecisionesAlPortapapeles",
   ],
   canvasCommands: [
     "seleccionarEntidad",

@@ -54,6 +54,8 @@ export interface CommandPaletteWorkspacePort {
   copiarOplModeloMarkdownAlPortapapeles: () => Promise<void>;
   /** W6.0: copia el contexto de modelado para la skill y cuenta el cruce (g3). */
   copiarContextoSkillAlPortapapeles: () => Promise<void>;
+  /** W6.5-b: copia el LogDecisiones v0 (consumidor: `re-elicitar` de la skill). */
+  copiarLogDecisionesAlPortapapeles: () => Promise<void>;
 }
 
 export interface CommandPaletteViewPort {

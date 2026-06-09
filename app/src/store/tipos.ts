@@ -457,6 +457,11 @@ export interface OpmStore {
   agregarNotaMesa: (target: TargetAncla, texto: string) => void;
   editarNotaMesa: (notaId: Id, texto: string) => void;
   eliminarNotaMesa: (notaId: Id) => void;
+  /** W6.5-b (C1): registro [RATIFICAR] — la app registra, no decide; undoable. */
+  anotarAnclaEnMesa: (claveProto: string, responsable?: string) => void;
+  ratificarAnclaConFuente: (claveProto: string, fuente: string, responsable?: string) => void;
+  /** W6.5-b (C2): copia el LogDecisiones v0 para el estado `re-elicitar` de la skill. */
+  copiarLogDecisionesAlPortapapeles: () => Promise<void>;
   navegarAviso: (aviso: Aviso) => void;
   deshacer: () => void;
   rehacer: () => void;

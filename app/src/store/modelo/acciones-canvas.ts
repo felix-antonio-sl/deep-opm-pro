@@ -33,6 +33,11 @@ import {
   editarNotaMesa as editarNotaMesaKernel,
   eliminarNotaMesa as eliminarNotaMesaKernel,
 } from "../../modelo/notasMesa";
+import {
+  anotarAnclaEnMesa as anotarAnclaEnMesaKernel,
+  construirLogDecisiones,
+  ratificarAnclaConFuente as ratificarAnclaConFuenteKernel,
+} from "../../modelo/logDecisiones";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
 import {
   commitModelo,
@@ -414,6 +419,51 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       commitModelo(set, modelo, resultado.value, { mensaje: null });
+    },
+
+    // W6.5-b (C1): registro [RATIFICAR] — la app registra transiciones
+    // (pendiente → anotado-en-mesa → ratificado-con-fuente), no decide; el ancla
+    // OPM solo transiciona vía re-elicitación de la skill. commitModelo ⇒
+    // undoable y persistido con el modelo.
+    anotarAnclaEnMesa(claveProto, responsable) {
+      const { modelo } = get();
+      const fecha = new Date().toISOString().slice(0, 10);
+      const resultado = anotarAnclaEnMesaKernel(modelo, claveProto, fecha, responsable);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { mensaje: `Anotada en mesa: ${claveProto}` });
+    },
+
+    ratificarAnclaConFuente(claveProto, fuente, responsable) {
+      const { modelo } = get();
+      const fecha = new Date().toISOString().slice(0, 10);
+      const resultado = ratificarAnclaConFuenteKernel(modelo, claveProto, fuente, fecha, responsable);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { mensaje: `Ratificada con fuente: ${claveProto}` });
+    },
+
+    // W6.5-b (C2): export del LogDecisiones v0 — el consumidor comprometido es
+    // el estado `re-elicitar` de la skill (matchea por claveAncla + modeloHash).
+    async copiarLogDecisionesAlPortapapeles() {
+      const { modelo } = get();
+      const resultado = construirLogDecisiones(modelo, new Date().toISOString().slice(0, 10));
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      const texto = JSON.stringify(resultado.value, null, 2);
+      try {
+        await navigator.clipboard.writeText(texto);
+        const n = resultado.value.entradas.length;
+        set({ mensaje: `LogDecisiones v0 copiado (${n} ${n === 1 ? "entrada" : "entradas"})` });
+      } catch {
+        set({ mensaje: "No se pudo copiar al portapapeles" });
+      }
     },
 
     // W6.0: puente de contexto 1-click app→skill. Copia el contexto de modelado

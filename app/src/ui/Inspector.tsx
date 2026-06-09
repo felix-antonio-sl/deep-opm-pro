@@ -4,6 +4,7 @@ import { InspectorEnlace } from "./InspectorEnlace";
 import { InspectorEntidad } from "./InspectorEntidad";
 import { InspectorEstado } from "./inspector/InspectorEstado";
 import { SeccionNotasMesa } from "./inspector/SeccionNotasMesa";
+import { SeccionRegistroRatificar } from "./inspector/SeccionRegistroRatificar";
 
 /**
  * Inspector raiz: ViewContainer XOR (estado | entidad | enlace | vacio).
@@ -72,6 +73,8 @@ function InspectorVacio(props: { procedencia: InspectorViewModel["procedencia"] 
           ) : null}
         </div>
       ) : null}
+      {/* W6.5-b: registro [RATIFICAR] (C1) — solo visible si hay pendientes. */}
+      <SeccionRegistroRatificar />
       {/* W6.5-a: notas a nivel de modelo — la rama vacía es la vista modelo-nivel. */}
       <SeccionNotasMesa target={{ tipo: "modelo" }} />
     </div>

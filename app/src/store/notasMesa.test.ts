@@ -14,6 +14,8 @@ function must<T>(resultado: Resultado<T>): T {
 }
 
 function sembrarModelo(): string {
+  // Singleton compartido: resetear readOnly que otro archivo pudo dejar activo.
+  store.getState().activarReadOnly(false);
   let modelo: Modelo = crearModelo("MesaStore");
   modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 40, y: 40 }, "Paciente"));
   store.getState().importarJson(exportarModelo(modelo));

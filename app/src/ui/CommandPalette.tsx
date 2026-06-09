@@ -80,6 +80,7 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "exportar-diagnostico": "EXPORTAR",
   "exportar-opl-modelo": "EXPORTAR",
   "copiar-contexto-skill": "EXPORTAR",
+  "copiar-log-decisiones": "EXPORTAR",
   "exportar-opd-png": "EXPORTAR",
   "exportar-opds-png-zip": "EXPORTAR",
   "simulacion-conceptual": "VISTA",
@@ -130,6 +131,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     exportarDiagnosticoAlPortapapeles,
     exportarOplModeloMarkdownAlPortapapeles,
     copiarContextoSkill,
+    copiarLogDecisiones,
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,
@@ -185,6 +187,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     exportarDiagnostico: exportarDiagnosticoAlPortapapeles,
     exportarOplModeloMarkdown: exportarOplModeloMarkdownAlPortapapeles,
     copiarContextoSkill,
+    copiarLogDecisiones,
     exportarOpdPng: canvasPaper ? () => { void descargarOpdActualPng(canvasPaper, modelo, opdActivoId); } : null,
     exportarOpdsPngZip: () => { void descargarTodosLosOpdsPngZip(modelo); },
     abrirPestanaNueva,
@@ -484,6 +487,8 @@ interface AccionesMenuCommandPaletteDeps {
   exportarOplModeloMarkdown: () => void;
   /** W6.0: puente de contexto 1-click app→skill `modelamiento-opm`. */
   copiarContextoSkill: () => void;
+  /** W6.5-b: export del LogDecisiones v0 para `re-elicitar`. */
+  copiarLogDecisiones: () => void;
   exportarOpdPng: (() => void) | null;
   exportarOpdsPngZip: (() => void) | null;
   abrirPestanaNueva: () => void;
@@ -541,7 +546,8 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
     { id: "exportar-diagnostico", label: "Exportar diagnóstico (JSON)", descripcion: "Copiar todas las sugerencias del diagnóstico al portapapeles", categoria: "archivo", run: deps.exportarDiagnostico },
     { id: "exportar-opl-modelo", label: "Exportar OPL del modelo (Markdown)", descripcion: "Copiar el OPL completo de todos los OPDs al portapapeles como Markdown", categoria: "archivo", run: deps.exportarOplModeloMarkdown },
-    { id: "copiar-contexto-skill", label: "Copiar contexto para la skill", descripcion: "Copiar procedencia + pendientes [RATIFICAR] + diagnóstico + OPL para pegar en la sesión de modelamiento-opm", categoria: "archivo", run: deps.copiarContextoSkill },
+    { id: "copiar-contexto-skill", label: "Copiar contexto para la skill", descripcion: "Copiar procedencia + pendientes [RATIFICAR] + notas de mesa + diagnóstico + OPL para pegar en la sesión de modelamiento-opm", categoria: "archivo", run: deps.copiarContextoSkill },
+    { id: "copiar-log-decisiones", label: "Copiar LogDecisiones v0", descripcion: "Copiar el log de transiciones [RATIFICAR] (anotado-en-mesa / ratificado-con-fuente) para el estado re-elicitar de la skill", categoria: "archivo", run: deps.copiarLogDecisiones },
     ...(deps.exportarOpdPng ? [{ id: "exportar-opd-png", label: "Exportar OPD actual como PNG", descripcion: "Descargar el OPD activo como imagen PNG", categoria: "archivo", run: deps.exportarOpdPng }] : []),
     ...(deps.exportarOpdsPngZip ? [{ id: "exportar-opds-png-zip", label: "Exportar todos los OPDs como PNG", descripcion: "Descargar un ZIP con una imagen PNG por OPD", categoria: "archivo", run: deps.exportarOpdsPngZip }] : []),
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },

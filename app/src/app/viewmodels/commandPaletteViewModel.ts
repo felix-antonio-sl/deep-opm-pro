@@ -26,6 +26,7 @@ export function useCommandPaletteViewModel() {
     exportarJson,
     copiarOplModeloMarkdownAlPortapapeles,
     copiarContextoSkillAlPortapapeles,
+    copiarLogDecisionesAlPortapapeles,
     frecuenciaUso,
     registrarUsoCommandPalette,
     abrirPestanaNueva,
@@ -95,6 +96,8 @@ export function useCommandPaletteViewModel() {
     exportarOplModeloMarkdownAlPortapapeles: () => { void copiarOplModeloMarkdownAlPortapapeles(); },
     // W6.0: puente de contexto 1-click app→skill (cuenta el cruce, observable g3).
     copiarContextoSkill: () => { void copiarContextoSkillAlPortapapeles(); },
+    // W6.5-b: export del LogDecisiones v0 (consumidor: re-elicitar de la skill).
+    copiarLogDecisiones: () => { void copiarLogDecisionesAlPortapapeles(); },
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,
