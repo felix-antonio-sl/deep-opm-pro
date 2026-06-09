@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../../modelo/operaciones";
-import { descargarMapa, exportarMapa, exportarTodosLosOpdsPngZip, nombreArchivoMapa, nombreArchivoOpdPng, nombreArchivoOpdsPngZip } from "./mapaExport";
+import { descargarMapa, exportarMapa, exportarOpdOffscreenSvgPng, exportarTodosLosOpdsPngZip, nombreArchivoMapa, nombreArchivoOpdPng, nombreArchivoOpdsPngZip } from "./mapaExport";
 
 function paperFalso(
   svg = "<svg width=\"320\" height=\"180\"><rect width=\"10\" height=\"10\"/></svg>",
@@ -90,6 +90,13 @@ describe("mapaExport", () => {
   test("nombreArchivoOpdsPngZip deriva paquete portable", () => {
     expect(nombreArchivoOpdsPngZip(crearModelo("Mi Modelo"), new Date("2026-05-05T12:00:00.000Z")))
       .toBe("mi-modelo-opds-png-2026-05-05.zip");
+  });
+
+  test("exportarOpdOffscreenSvgPng devuelve null sin DOM (headless puro requiere navegador)", async () => {
+    const modelo = crearModelo("Mi Modelo");
+    const resultado = await exportarOpdOffscreenSvgPng(modelo, modelo.opdRaizId);
+
+    expect(resultado).toBeNull();
   });
 
   test("exportarTodosLosOpdsPngZip empaqueta una imagen PNG por OPD", async () => {

@@ -60,3 +60,11 @@ if (import.meta.hot) {
     if (beforeUnloadActivo) window.removeEventListener("beforeunload", bloquearSalidaConCambios);
   });
 }
+
+// Render headless (H1, consumidor agente): monta `window.__opmRenderHeadless__`
+// SOLO bajo el flag. En el build de prod el flag no se define → la condición es
+// estáticamente falsa → Vite elimina por DCE este `if` y el import dinámico:
+// la superficie no existe en el bundle desplegado (verificable con grep sobre dist/).
+if (import.meta.env.VITE_HEADLESS_RENDER === "true") {
+  void import("./render/jointjs/headlessRender").then((m) => m.montarHeadlessRender());
+}

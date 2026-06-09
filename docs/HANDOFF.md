@@ -10,6 +10,20 @@
 
 ---
 
+## Actualización 2026-06-09 — H1 render headless (loop dominio→opforja, primer corte)
+
+**Contexto:** reencuadre del operador del pedido upstream H1. En vez de "exportar imágenes muertas de un bundle", **opforja consume el proto del dominio** y se vuelve espejo **read-through** (el proto sigue siendo fuente única; no hay proto-reverse). Primer corte = **solo la herramienta en deep-opm-pro** (la skill `modelamiento-opm` que orquesta el loop es corte 2, gobernado en KORA).
+
+**Entregado (rama `feat/render-headless-h1`, TDD, modo ship-discipline):**
+- `scripts/render-headless.ts` (CLI `bun run render:headless --proto <md>|--modelo <json> --out <dir>`): compila el proto (Node puro: `compilarProto`+`emitirBundle` con `lanzarEnError:false`) y conduce un **Vite efímero + Chromium** para un render **fiel** a opforja. Escribe por OPD `NN-slug.png` (el agente lo VE vía Read) + `NN-slug.svg` (diff estable) + `00-indice.json` + `opl.md`/`reporte.md`/`avisos.json`/`ledger.json`/`procedencia.json`/`conteos.json`.
+- `src/render/jointjs/headlessRender.ts` (nuevo): hook `window.__opmRenderHeadless__` (montado en `main.tsx` **solo bajo `VITE_HEADLESS_RENDER`** → DCE lo elimina en prod, **verificado ausente en `dist/`**). Reusa la cadena de export del canvas.
+- `src/render/jointjs/mapaExport.ts` (refactor): extraído `conPaperOffscreen`; nueva `exportarOpdOffscreenSvgPng` (SVG+PNG de un solo montaje); `exportarOpdOffscreenPng` delega (regresión cero en la paleta).
+- Tests: `headlessRender.test.ts` (camino de error sin DOM) + caso en `mapaExport.test.ts`; smoke E2E `scripts/render-headless-smoke.ts` (`bun run render:headless:smoke`).
+
+**Por qué fiel:** layout de **autoría** (`aplicarLayoutCompleto`, no `layoutSugerido`) + `document.fonts.ready` antes de medir texto. PNG = ver; SVG = diff; byte-identidad se asegura sobre el JSON (eso es H2, próximo frente). Detalle en `docs/render-headless.md`.
+
+**Gate:** `check` 2381/0 · lint limpio · build OK · DCE OK · smoke E2E OK (render del proto-cafe verificado in-vivo, diagrama OPM correcto). **NO desplegado** (herramienta dev). **Pendiente:** corte 2 = enchufar la skill `modelamiento-opm` (KORA) al loop; merge de la rama a `main` (decisión del operador).
+
 ## Estado de la migración familia-V→skill (consolidado, actualizado 2026-06-09)
 
 `mapearFamiliaV` (`src/autoria/compilar/normalizador.ts`) es el adaptador legacy que puentea formas OPL laxas del proto-modelo al modelo. La migración retira reglas del puente conforme la skill `modelamiento-opm` emite la forma E2 estricta — principio **P3: «compilador = verificador, no puenteador silencioso»**. Los docs de trabajo `docs/proto-modelo/*` se retiraron (commit `2a83c1c5`); el SSOT del estado es **esta sección + la historia git + los fixtures/tests** (`familia-v-e2.fixtures.ts` = ledger ejecutable; `migracion-familia-v.test.ts` = guardas de retiro).
@@ -79,6 +93,10 @@ Gate **2388/0 · typecheck estricto · lint limpio**.
 **Decisiones / artefactos:** el triage halló que **gran parte ya estaba resuelta** (B-1, C-1, C-3 hechos; **toda el área D no-issue** — D-1 fue diagnóstico erróneo: el generador NO emite `se describe como`, solo el parser reverse lo acepta). C-2: `aparecerEnlace`/`posicionarEtiqueta` YA están en `dsl.ts` → acción de adopción es de hd-opm (borrar duplicado local).
 
 **Pendientes (orden del operador):** **residuos P1 de layout** A-1 (recalibrar contorno tras wrap de bandas; `envolverBanda` ya existe) y A-2 (anclaje proximidad externo↔externo; `anclasEstructurales` ya hace externo↔interno) — **gateados por byte-identidad del golden hd-opm → exigen re-pin gobernado, no tocar sin protocolo** (ver Riesgos); mayores **L** B-3 (estado-sin-escritor + exenciones LF-19 vía glosa) y B-5 (waiver por código+entidad + UI; subsume la whitelist local de B-2 y el residual `Cuidados de enfermería` de B-6); P3 A-3 (routing ortogonal).
+
+**Quinto hilo upstream — observabilidad del consumidor *agente* (H1-H5, `solicitud-upstream-observabilidad-agente-2026-06-09.md`):** el consumidor headless de la librería `src/autoria` (hd-opm) no sufre ergonomía sino **opacidad** — emite a ciegas, prueba reproducibilidad a mano, no distingue señal de ruido. **H1** (P1, "el bottleneck"): camino headless «bundle JSON → SVG/PNG por OPD, con el mismo layout que opforja produciría», sin UI ni humano (vía recipe Playwright contra el dev server reusando `test-vivo-iterativo-opmkv`, o render desacoplado del DOM); le da ojos al agente y **vuelve iterables A-1/A-2/A-3** (subsume parcialmente su verificación). **H2** (P1): `verificarReproducibilidad(autor, bundleEsperado)`/golden-harness invocable en CI, reemplaza el `md5sum` manual; compone con el sello de procedencia (3 comp tras G2). **H3=C-3** (resuelto) y **H4=B-5** (abierto) — deduplicados. **H5** (P3, menor): azúcar `aparecerEnlacePorTransicion(...)` que complementa F1. Ninguno bloquea a hd-opm hoy.
+
+**Índice único canónico del hilo upstream:** `hd-opm/docs/memorias-aprendizajes/registro-solicitudes-upstream-deep-opm-pro.md` (documento vivo: 24 peticiones, **15 resueltas / 9 abiertas**; supersede las solicitudes individuales). **Adoptado aguas abajo:** G1 → hd-opm `15aea74`; C-2 → hd-opm `e3c6029`. Prioridad recomendada desde hd-opm: `H1 ≫ A-1 ≈ A-2 ≈ H2 > B-5 ≈ B-3 > A-3 ≈ G3 ≈ H5`.
 
 **Supuestos:** B-4 emitido como `mejora`, NO bloqueo (escalable a `validarModelo` cuando el operador lo decida); `generic-view.readOnly` opcional; E-1 es suficiente para que hd-opm construya su vista causal de ingreso P1 (Causal+Requisito+Disponibilidad+Solicitud) sin refinamientos falsos — hd-opm la autora.
 
@@ -177,12 +195,16 @@ Gate **2388/0 · typecheck estricto · lint limpio**.
 
 ## Frentes abiertos (orden sugerido)
 
-1. **Transporte familia-V→skill** — las 12 requiere-decisión (empezar por V12): superficie reverse / emisión estructurada / legacy permanente.
-2. **Auth/tenants real** — identidad, login, administración de tenants, invitaciones/roles, ownership compuesto.
-3. **GAPs de alineación OPD** — backlog en `docs/roadmap/` §22 de spec-forja-opd-es.
-4. **F1.9 responsive canónico** — consolidar 3 anchos en `ui-forja/tokens.css` + refactor de la barra + 2-3 archivos relacionados. Estimado: 1 sesión.
-5. **F1.21 barra en mobile-no-readonly** — gatear render en `App.tsx:195`. Estimado: <30 min, blast radius 1 archivo.
-6. **F1.22 panel de ayuda con atajo `?`** — overlay de ayuda + atajos del producto. Estimado: 1 sesión, blast radius 1-2 archivos (modal + atajos).
+1. **H2 — aserción de reproducibilidad / golden-harness** (upstream hd-opm P1). `verificarReproducibilidad(autor, bundleEsperado)` invocable en CI; reemplaza el `md5sum` manual del dogfood byte-idéntico. (El `procedencia.json` que emite `render:headless` es su semilla.)
+2. **Transporte familia-V→skill** — las 12 requiere-decisión (empezar por V12): superficie reverse / emisión estructurada / legacy permanente.
+3. **Auth/tenants real** — identidad, login, administración de tenants, invitaciones/roles, ownership compuesto.
+4. **GAPs de alineación OPD** — backlog en `docs/roadmap/` §22 de spec-forja-opd-es.
+5. **F1.9 responsive canónico** — consolidar 3 anchos en `ui-forja/tokens.css` + refactor de la barra + 2-3 archivos relacionados. Estimado: 1 sesión.
+6. **F1.21 barra en mobile-no-readonly** — gatear render en `App.tsx:195`. Estimado: <30 min, blast radius 1 archivo.
+7. **F1.22 panel de ayuda con atajo `?`** — overlay de ayuda + atajos del producto. Estimado: 1 sesión, blast radius 1-2 archivos (modal + atajos).
+8. **H5 — azúcar `aparecerEnlacePorTransicion`** (upstream hd-opm P3, menor) — lookup de multi-edge por transición en la librería; complementa F1.
+
+> **H1 (render headless del proto/modelo → PNG+SVG por OPD) — HECHO 2026-06-09**, rama `feat/render-headless-h1`. Ver `docs/render-headless.md` y la § de actualización abajo. NO desplegado (herramienta dev/CLI; el hook se elimina por DCE en prod).
 
 ## Riesgos activos
 

@@ -21,7 +21,9 @@
     "visual:exhaustivo": "node scripts/in-vivo-exhaustivo.mjs",
     "ux:eval": "bun run scripts/evaluacion-ux-permanente.mjs",
     "bug:index": "bun run scripts/bug-index.ts",
-    "bug-capture:api": "bun run scripts/bug-capture-api.ts"
+    "bug-capture:api": "bun run scripts/bug-capture-api.ts",
+    "render:headless": "bun run scripts/render-headless.ts",
+    "render:headless:smoke": "bun run scripts/render-headless-smoke.ts"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.2.8",

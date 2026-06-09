@@ -99,9 +99,18 @@ export function nombreArchivoOpdsPngZip(modelo: Modelo, fecha = new Date()): str
   return `${modeloSlug}-opds-png-${fecha.toISOString().slice(0, 10)}.zip`;
 }
 
-async function exportarOpdOffscreenPng(modelo: Modelo, opdId: string, fondo: "blanco" | "transparente"): Promise<Blob> {
+/**
+ * Monta un paper JointJS offscreen para `opdId`, proyecta + embebe + rutea +
+ * ajusta al bbox real, ejecuta `fn(paper)` y limpia el host pase lo que pase.
+ * Sin DOM (Node/Bun) devuelve null: el render fiel requiere navegador.
+ */
+async function conPaperOffscreen<T>(
+  modelo: Modelo,
+  opdId: string,
+  fn: (paper: dia.Paper) => Promise<T>,
+): Promise<T | null> {
   if (typeof document === "undefined") {
-    return new Blob([], { type: "image/png" });
+    return null;
   }
   const host = document.createElement("div");
   host.style.position = "fixed";
@@ -136,11 +145,35 @@ async function exportarOpdOffscreenPng(modelo: Modelo, opdId: string, fondo: "bl
     ajustarPaperAContenido(paper, { padding: PADDING_EXPORT_PNG });
     (paper as unknown as { updateViews?: (opt?: { viewport?: () => boolean }) => void }).updateViews?.({ viewport: () => true });
     await esperarFrame();
-    return await exportarMapa(paper, modelo, { fondo });
+    return await fn(paper);
   } finally {
     (paper as unknown as { remove(): void }).remove();
     host.remove();
   }
+}
+
+async function exportarOpdOffscreenPng(modelo: Modelo, opdId: string, fondo: "blanco" | "transparente"): Promise<Blob> {
+  const blob = await conPaperOffscreen(modelo, opdId, (paper) => exportarMapa(paper, modelo, { fondo }));
+  return blob ?? new Blob([], { type: "image/png" });
+}
+
+/**
+ * Variante headless: devuelve SVG (string) + PNG (Blob) del MISMO paper offscreen
+ * en un solo montaje. Sin DOM (Node/Bun) devuelve null. Consumidor: el hook
+ * `window.__opmRenderHeadless__` (ver `headlessRender.ts`).
+ */
+export async function exportarOpdOffscreenSvgPng(
+  modelo: Modelo,
+  opdId: string,
+  opts: { fondo?: "blanco" | "transparente"; paddingPx?: number } = {},
+): Promise<{ svg: string; png: Blob } | null> {
+  const fondo = opts.fondo ?? "blanco";
+  const opcionesSvg: OpcionesExport = { fondo, ...(opts.paddingPx !== undefined ? { paddingPx: opts.paddingPx } : {}) };
+  return conPaperOffscreen(modelo, opdId, async (paper) => {
+    const svg = obtenerSvgPaper(paper, opcionesSvg);
+    const png = await svgAPng(svg, fondo);
+    return { svg, png };
+  });
 }
 
 function modeloParaExportar(modelo: Modelo): Modelo {
