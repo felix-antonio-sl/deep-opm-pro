@@ -3,7 +3,8 @@
 **Creado**: 2026-06-08T17:15:52.960Z
 **Tipo**: Bug
 **Estado**: Resuelto
-**Resolución**: Aplicada 2026-06-08. Verificación: `bun run check` 2333/0, `bun run lint` limpio, `bun run build` OK, `bun run design:governance` OK, mockup comparativo antes/después adjunto.
+**Resolución ronda 1**: Aplicada 2026-06-08. `bun run check` 2333/0, lint limpio, build OK (bundle `index-CfcGff48.js`), design:governance OK. Mockup antes/después + sonda runtime con 11 checks contra prod.
+**Resolución ronda 2 (minimalismo + WCAG)**: Aplicada 2026-06-09 tras auditoría ux-design. `bun run check` 2335/0, lint limpio, build OK (bundle `index-qoqKMWRA.js`), design:governance OK. Mockup v2 + sonda runtime con 10/11 verde en prod.
 
 ## Texto
 
@@ -128,3 +129,70 @@ El componente ya inyectaba un `<style>` para el `@keyframes` del live-dot. Se ex
 ## Prompt breve de continuación
 
 "Bug BUG-20260608T171552Z-17477a resuelto: la barra de simulación ahora diferencia visualmente botones (hairline `rule` + `inkMid`) de labels (`ink`/`inkSoft`), con separador editorial dotted entre filas, segmented con silueta `ruleStrong` + separadores verticales hairline, y "proceso activo" como chip de estado (no compite con el botón activo). Gate 2333/0, build OK, design:governance OK. Pendiente: deploy + sonda contra prod (`URL=https://opforja.sanixai.com node docs/bugs/BUG-20260608T171552Z-17477a/sonda-bug-17477a.mjs`). Si el operador pide más diferenciación, subir opacidad del hairline, no agregar radio/shadow."
+
+---
+
+## Ronda 2 — Minimalismo + WCAG (post-auditoría ux-design)
+
+Auditoría exigente reveló 22 hallazgos sobre la solución de la ronda 1: copy contradictorio, contraste AA fallando en disabled, narrativa con demasiado peso visual, fila de status con redundancia tipográfica, tag textual redundante con el frame crimson, chip redundante, terminología OPM imprecisa, accesibilidad del `<kbd>`, etc. Esta ronda implementa las 10 correcciones priorizadas (4 severidad alta + 6 severidad media). Los 12 hallazgos restantes de severidad baja quedan como follow-up consciente.
+
+### Cambios ronda 2
+
+| id | heurística | cambio | archivo |
+|---|---|---|---|
+| **F1.7** | H1 visibilidad | Copy honesto: `proyectarEstadoBarraSimulacion` retorna `"No hay procesos para simular"` + `puedeEjecutar: false` cuando `totalPasos === 0`. Antes: `"Listo para simular · paso 0 de 0"` (contradictorio con botón disabled). | `proyeccionBarra.ts` |
+| **F1.14** | WCAG 2.2 SC 1.4.3 | `controlDeshabilitado`: `inkFaint` (~2.4:1, FAIL AA) → `inkSoft` (#807b6e, ~3.5:1) + `opacity 0.6` + `border: rule` (no `paperWarm`, que desaparecía la silueta). CSS inyectado actualizado. | `BarraSimulacion.tsx` |
+| **F1.18** | H8 minimalismo | Narrativa: 3 bordes + fondo `paper` → 1 borde crimson 2px + fondo transparente. Mismo lenguaje que `procesoActivo`. Lee como **acotación tipográfica**, no como panel separado. | `BarraSimulacion.tsx` (`s.narrativa`) |
+| **F1.1** | H8 minimalismo | Fila de status: 4 elementos (tag + estado + proceso + opd) → 2 primarios (proceso + progreso) + atajos. La OPD se mueve al panel narrativa como breadcrumb. | `BarraSimulacion.tsx` (fila status) |
+| **F1.19** | H4 consistencia | Chip `sin plan` redundante eliminado del contexto narrativo. `modo` también se elimina del `contexto` (ya vive en el segmented de la barra — duplicación). | `proyeccionBarra.ts` (`baseContexto`) |
+| **F1.5** | H2 correspondencia | `fase` → `paso` (lenguaje OPM canónico). `title="Avanzar una fase"` → `title="Avanzar un paso"`. | `BarraSimulacion.tsx` (botón) |
+| **F1.16** | WCAG 2.2 SC 1.3.1 | `aria-hidden="true"` en `<kbd>` dentro de botones (los screen readers no duplican info). También en la flecha `▸` del botón paso. | `BarraSimulacion.tsx` |
+| **F1.12** | H8 minimalismo | Tag textual "Simulación" eliminada. La tag se reemplaza por `tagBadge` compacto (18×18 con live-dot crimson, sin texto) — ancla visual del modo sin redundancia con el frame crimson. | `BarraSimulacion.tsx` (`s.tag` → `s.tagBadge`) |
+| **F1.13** | H7 flexibilidad | Atajos visibles inline al final del status: `P reproducir · ⎋ salir`. Formato con `kbd-mini` (sin border, mono, inkMid) que no compite con los botones. `aria-label` global. | `BarraSimulacion.tsx` (fila status + `s.atajos`, `s.kbdMini`) |
+| **F1.20** | H4 consistencia | Limpieza de magic numbers en spacing (2, 6, 4 → tokens.spacing o eliminados). Eliminación de estilos huérfanos (`s.contador`, `s.opd`) que ya no se usan. | `BarraSimulacion.tsx` (estilos) |
+
+### Cambios adicionales de implementación
+
+- **CSS inyectado ampliado**: `.sim-control:focus` además de `:focus-visible` (fallback para WebViews legacy que no soportan `:focus-visible`). Cumple `F1.15` (focus visible).
+- **Type `EstilosBarra`**: removidos `contador`, `opd` (huérfanos). Agregados `tagBadge`, `atajos`, `kbdMini`.
+- **Pseudo-clases del CSS inyectado**: actualizado `sim-control:disabled` con `inkSoft` + `opacity 0.6` + `border rule` (antes `inkFaint` + `border paperWarm`).
+
+### Verificación ronda 2
+
+| Gate | Resultado |
+|---|---|
+| `cd app && bun run typecheck` | limpio |
+| `cd app && bun run check` | **2335 pass / 0 fail** (+2 nuevos tests: F1.7, F1.19) |
+| `cd app && bun run lint` | limpio |
+| `cd app && bun run build` | OK · bundle `index-qoqKMWRA.js` (448.59 kB) |
+| `cd app && bun run design:governance` | OK |
+| `URL=https://opforja.sanixai.com node app/scripts/sonda-bug-17477a.mjs` | **10/11 verde** en prod (1 fail esperado: sin segmented en sesión anónima) |
+
+### Tests agregados ronda 2
+
+`BarraSimulacion.styles.test.ts`:
+- `F1.12 la tagBadge reemplaza la tag textual` (anchors 18×18, inline-flex, alignItems/justifyContent center).
+- `F1.12 la tagBadge contiene el live-dot (no texto)` (anchors 6×6 crimson circular).
+- `F1.13 atajos visibles al final del status con kbdMini compacto` (anchors 10.5px inkFaint, kbdMini sin border, mono, inkMid 9.5px).
+- `narrativa es una acotación tipográfica (F1.18), no un panel con 3 bordes` (anchors background transparent, borderLeft crimson 2px, sin borderTop/Bottom).
+- `narrativa conserva su minWidth flexible y el padding compacto` (anchors flex 1 1 520px, padding 2px 8px).
+- `los pseudo-estados (hover/active/focus/disabled) tienen invariantes WCAG` actualizado con F1.14 (inkSoft, opacity 0.6, border rule).
+
+`proyeccionBarra.test.ts`:
+- `F1.7: cuando no hay procesos, el copy es honesto y bloquea ejecución`.
+- `F1.19: narrativa sin procesos no emite chip "sin plan"`.
+- `narra el próximo paso…` actualizado: contexto sin `modo` (chip redundante).
+- `narra la corrida completada…` actualizado: contexto solo `["1/1"]` (sin `modo`).
+- `narra diagnósticos bloqueantes…` actualizado: contexto solo `["1/1"]` (sin `modo`).
+
+### Verificación visual en prod
+
+Screenshot post-ronda 2: el status line muestra `tagBadge` con dot pulsante a la izquierda + `No hay procesos para simular` en gris italic + atajos `P reproducir · ⎋ salir` en inkFaint mono. Narrativa con borde crimson 2px y fondo transparente. Controles con hairline visible + opacidad reducida cuando están disabled. Tres cambios clave respecto a la ronda 1:
+
+1. La tag textual "SIMULACIÓN" desapareció — el frame crimson + el tagBadge compacto hacen el mismo trabajo con menos peso.
+2. La narrativa es una acotación al borde (no un panel con triple borde).
+3. El copy `No hay procesos para simular` coincide con el botón disabled (ya no hay contradicción).
+
+## Prompt breve de continuación (ronda 2)
+
+"Bug BUG-20260608T171552Z-17477a cerrado en 2 rondas. Ronda 1: jerarquía botón-vs-label (hairline `rule` + inkMid + segmented ruleStrong + chip proceso + separadores dotted). Ronda 2 (post-auditoría ux-design): copy honesto `No hay procesos para simular`, contraste AA en disabled (inkSoft + opacity 0.6), narrativa como acotación crimson 2px sin fondo, tagBadge compacto sin texto redundante, atajos visibles inline, chip `sin plan` y `modo` redundante eliminados. Gate 2335/0, lint limpio, build OK (bundle `index-qoqKMWRA.js`), design:governance OK, sonda 10/11 en prod. Siguen 12 hallazgos de severidad baja (kbd inline, mobile-readonly, target size, etc.) como follow-up consciente."

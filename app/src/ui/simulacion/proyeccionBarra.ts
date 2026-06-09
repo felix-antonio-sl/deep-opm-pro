@@ -30,6 +30,21 @@ export function proyectarEstadoBarraSimulacion(
   const ejecutados = contexto.trace.length;
   const completado = contexto.estado === "completado";
   const bloqueado = contexto.estado === "bloqueado";
+  const sinProcesos = totalPasos === 0;
+
+  // BUG-20260608T171552Z-17477a ronda 2 (F1.7): cuando el modelo no tiene
+  // procesos, el copy debe ser honesto — "No hay procesos para simular" —
+  // y no "Listo para simular" (que el botón reproducir está disabled y
+  // contradice el copy positivo). El estado `puedeEjecutar: false` se
+  // propaga al `disabled` del botón para coherencia.
+  if (sinProcesos) {
+    return {
+      bloqueado: false,
+      completado: false,
+      puedeEjecutar: false,
+      textoProgreso: "No hay procesos para simular",
+    };
+  }
 
   if (bloqueado) {
     return {
@@ -52,7 +67,7 @@ export function proyectarEstadoBarraSimulacion(
   return {
     bloqueado,
     completado,
-    puedeEjecutar: totalPasos > 0,
+    puedeEjecutar: true,
     textoProgreso: textoProgresoVivo(contexto, autoAvance),
   };
 }
@@ -83,14 +98,18 @@ export function proyectarNarrativaSimulacion(
   const totalPasos = contexto.plan.length;
   const ejecutados = contexto.trace.length;
   const modo = contexto.modo ?? "determinista";
-  const baseContexto = [`${ejecutados}/${totalPasos}`, modo];
+  // BUG-20260608T171552Z-17477a ronda 2 (F1.19): en el contexto narrativo,
+  // el modo ya se muestra en el segmented de la barra (es setting visible
+  // ahí). Duplicarlo aquí como chip es ruido. El progreso "ejecutados/total"
+  // se conserva porque no aparece en otro lugar.
+  const baseContexto = [`${ejecutados}/${totalPasos}`];
 
   if (totalPasos === 0) {
     return {
       tono: "neutro",
       titulo: "No hay procesos simulables",
       detalle: "Agrega procesos al OPD para generar una traza de simulación.",
-      contexto: ["sin plan"],
+      contexto: [],
     };
   }
 
@@ -128,11 +147,14 @@ export function proyectarNarrativaSimulacion(
     tono: autoAvance ? "activo" : "neutro",
     titulo: `${tituloFase(fase?.fase, autoAvance)}: ${paso.procesoNombre}`,
     detalle: describirFasePlanificada(modelo, paso, contexto.estadosCurrent, fase?.fase),
+    // BUG-20260608T171552Z-17477a ronda 2 (F1.19): el `modo` ya vive en
+    // el segmented de la barra; no se duplica como chip narrativo. La
+    // OPD sí se conserva porque es contexto que NO aparece en otra
+    // superficie de la barra.
     contexto: [
       `paso ${Math.min(contexto.pasoActual + 1, totalPasos)} de ${totalPasos}`,
       fase ? `fase ${fase.indice}/${fase.total}` : "sin fase",
       paso.opdNombre,
-      modo,
     ],
   };
 }

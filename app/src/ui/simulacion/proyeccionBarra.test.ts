@@ -17,6 +17,19 @@ describe("proyeccionBarraSimulacion", () => {
     expect(ui.textoProgreso).toBe("Bloqueada · 3 pasos");
   });
 
+  test("F1.7: cuando no hay procesos, el copy es honesto y bloquea ejecución", () => {
+    // BUG-20260608T171552Z-17477a ronda 2 (F1.7): antes el copy era
+    // "Listo para simular · paso 0 de 0" y el botón estaba disabled — el
+    // usuario veía un mensaje positivo y luego no podía actuar. Ahora
+    // el copy es explícito y `puedeEjecutar: false` se propaga.
+    const ctx = contexto({ plan: [], pasoActual: 0 });
+    const ui = proyectarEstadoBarraSimulacion(ctx, true);
+    expect(ui.textoProgreso).toBe("No hay procesos para simular");
+    expect(ui.puedeEjecutar).toBe(false);
+    expect(ui.bloqueado).toBe(false);
+    expect(ui.completado).toBe(false);
+  });
+
   test("rotula pasos omitidos por condicion sin perder diagnostico", () => {
     const rotulo = rotuloTraceSimulacion(entrada(1, {
       omitido: true,
@@ -54,12 +67,23 @@ describe("proyeccionBarraSimulacion", () => {
       }],
     }), false);
 
+    // BUG-20260608T171552Z-17477a ronda 2 (F1.19): el `modo` ya vive en
+    // el segmented de la barra; no se duplica como chip en la narrativa.
     expect(ui).toEqual({
       tono: "neutro",
       titulo: "Preparación: Calentar",
       detalle: "Se verifican condiciones y habilitadores; todavía no se consume ni produce estado.",
-      contexto: ["paso 1 de 1", "fase 1/5", "SD", "determinista"],
+      contexto: ["paso 1 de 1", "fase 1/5", "SD"],
     });
+  });
+
+  test("F1.19: narrativa sin procesos no emite chip 'sin plan'", () => {
+    // BUG-20260608T171552Z-17477a ronda 2 (F1.19): el chip "sin plan" era
+    // ruido — la marca `·` de la narrativa ya comunica estado de relleno.
+    const ui = proyectarNarrativaSimulacion(modeloAgua(), contexto({ plan: [] }), false);
+    expect(ui.tono).toBe("neutro");
+    expect(ui.titulo).toBe("No hay procesos simulables");
+    expect(ui.contexto).toEqual([]);
   });
 
   test("narra la corrida completada desde la última entrada de trace", () => {
@@ -77,6 +101,8 @@ describe("proyeccionBarraSimulacion", () => {
     expect(ui.tono).toBe("exito");
     expect(ui.titulo).toBe("Simulación completada");
     expect(ui.detalle).toBe("Aplicó Agua: líquida -> gaseosa por ruta liq-gas.");
+    // F1.19: contexto no incluye `modo` (duplicado con el segmented).
+    expect(ui.contexto).toEqual(["1/1"]);
   });
 
   test("narra diagnósticos bloqueantes como alerta visible", () => {
@@ -85,11 +111,12 @@ describe("proyeccionBarraSimulacion", () => {
       trace: [entrada(1, { diagnostico: "No simulable: Agua no está en estado solidificada" })],
     }), true);
 
+    // F1.19: contexto sin `modo` duplicado.
     expect(ui).toEqual({
       tono: "alerta",
       titulo: "Simulación bloqueada",
       detalle: "No simulable: Agua no está en estado solidificada",
-      contexto: ["1/1", "determinista"],
+      contexto: ["1/1"],
     });
   });
 });
@@ -153,3 +180,4 @@ function modeloAgua(): Modelo {
     nextSeq: 1,
   };
 }
+

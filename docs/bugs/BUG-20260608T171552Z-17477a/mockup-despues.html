@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Mockup BUG-20260608T171552Z-17477a — DESPUÉS (fix aplicado)</title>
+<title>Mockup BUG-20260608T171552Z-17477a — DESPUÉS ronda 2 (minimalismo + WCAG)</title>
 <style>
 :root {
   --paper: #fafaf8;
@@ -26,85 +26,126 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
 .leyenda { background: var(--paper); border: 1px solid var(--rule); padding: 8px 12px; margin-bottom: 16px; font-size: 11px; color: var(--ink-mid); }
 .leyenda strong { color: var(--success); }
 .fix { color: var(--success); font-weight: 600; }
-.barra { position: relative; display: flex; align-items: flex-start; gap: 8px; padding: 6px 16px; background: var(--paper-warm); border-top: 2px solid var(--crimson); border-bottom: 1px solid var(--rule); font-family: var(--font-serif); font-size: 12px; color: var(--ink); flex-wrap: wrap; }
+
+/* === BARRA DE SIMULACIÓN (ronda 2) === */
+.barra {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 16px;
+  background: var(--paper-warm);
+  border-top: 2px solid var(--crimson);
+  border-bottom: 1px solid var(--rule);
+  min-height: 44px;
+  flex-wrap: wrap;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  color: var(--ink);
+}
 .spine { position: absolute; top: 0; bottom: 0; width: 3px; background: linear-gradient(to bottom, var(--crimson) 0%, var(--crimson) 60%, rgba(142, 42, 46, 0.5) 100%); pointer-events: none; }
-.spine-left { left: 0; } .spine-right { right: 0; }
+.spine-left { left: 0; }
+.spine-right { right: 0; }
+
+/* FILA 1: STATUS — F1.12 tagBadge + F1.1 colapsada + F1.13 atajos */
 .fila { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-.fila-status { padding-right: 8px; }
-.fila-controles { flex-basis: 100%; border-top: 1px dotted var(--rule); padding-top: 6px; margin-top: 2px; }
-.fila-timeline  { flex-basis: 100%; border-top: 1px dotted var(--rule); padding-top: 4px; margin-top: 2px; }
-.tag { font-family: var(--font-mono); font-weight: 700; font-size: 10.5px; color: var(--crimson); letter-spacing: 0.12em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; }
-.tag .dot { display: inline-block; width: 6px; height: 6px; background: var(--crimson); border-radius: 50%; }
+.tagBadge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: var(--paper-warm); flex: 0 0 18px; margin-right: 2px; }
+.tagDot { display: inline-block; width: 6px; height: 6px; background: var(--crimson); border-radius: 50%; flex: 0 0 6px; }
 .estado-texto { font-style: italic; color: var(--ink-mid); font-size: 12px; }
-.proceso-activo { color: var(--crimson); font-style: italic; font-size: 12px; padding: 1px 6px 1px 8px; border-left: 2px solid var(--crimson); background: var(--paper); }
-.opd { color: var(--ink-soft); font-family: var(--font-mono); font-size: 12px; }
-.narrativa { display: flex; align-items: center; gap: 8px; flex-basis: 100%; padding: 5px 8px; background: var(--paper); border-left: 3px solid var(--rule-strong); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); font-size: 12px; }
-.narrativa-marca { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; color: var(--crimson); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
-.narrativa-texto { display: flex; align-items: baseline; gap: 8px; flex: 1 1 auto; flex-wrap: wrap; }
-.narrativa-titulo { color: var(--ink); font-weight: 700; }
-.narrativa-detalle { color: var(--ink-mid); }
-.narrativa-contexto { display: inline-flex; align-items: center; gap: 4px; }
+.proceso-activo { font-style: italic; color: var(--crimson); font-size: 12px; padding: 1px 6px 1px 8px; border-left: 2px solid var(--crimson); background: var(--paper); }
+.check { font-size: 12px; color: var(--success); font-style: italic; }
+.atajos { font-size: 10.5px; color: var(--ink-faint); font-family: var(--font-mono); margin-left: auto; display: inline-flex; align-items: center; gap: 4px; }
+.kbd-mini { font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-mid); background: transparent; padding: 0; border: none; line-height: 1; }
+
+/* FILA 2: NARRATIVA — F1.18: 1 borde crimson 2px, fondo transparente */
+.narrativa { display: flex; align-items: center; gap: 8px; flex-basis: 100%; min-width: 280px; max-width: 100%; max-height: 90px; overflow: hidden; padding: 2px 8px; background: transparent; border-left: 2px solid var(--crimson); border-top: none; border-bottom: none; border-radius: 0; }
+.narrativa-marca { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex: 0 0 18px; color: var(--crimson); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
+.narrativa-texto { display: flex; align-items: baseline; gap: 8px; min-width: 0; flex: 1 1 auto; flex-wrap: wrap; }
+.narrativa-titulo { color: var(--ink); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.narrativa-detalle { color: var(--ink-mid); font-size: 12px; line-height: 1.35; }
+.narrativa-contexto { display: inline-flex; align-items: center; gap: 4px; flex: 0 1 auto; flex-wrap: wrap; justify-content: flex-end; }
 .chip { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border: 1px solid var(--rule); color: var(--ink-soft); background: var(--paper-warm); font-family: var(--font-mono); font-size: 10px; }
-.control { display: inline-flex; align-items: center; gap: 3px; height: 26px; padding: 0 8px; font-size: 12px; color: var(--ink-mid); background: transparent; border: 1px solid var(--rule); border-radius: 0; font-family: var(--font-serif); }
-.control.activo { color: var(--ink); background: var(--paper); border-color: var(--rule-strong); border-bottom-color: var(--crimson); border-bottom-width: 2px; }
-.control:hover { color: var(--ink); background: var(--paper); border-color: var(--rule-strong); }
-.control:active { background: var(--paper-warm); }
-.control:focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
-.control:disabled { color: var(--ink-faint); border-color: var(--paper-warm); cursor: not-allowed; }
+
+/* FILA 3: CONTROLES — sin cambio mayor del ronda 1, pero con F1.5 `paso` */
+.fila-controles { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; flex-basis: 100%; border-top: 1px dotted var(--rule); padding-top: 6px; margin-top: 2px; }
+
+/* F1.14: control deshabilitado con `inkSoft` + opacity 0.6 + border `rule` */
+.control { display: inline-flex; align-items: center; gap: 3px; height: 26px; padding: 0 8px; font-size: 12px; color: var(--ink-mid); background: transparent; border: 1px solid var(--rule); border-radius: 0; cursor: pointer; font-family: var(--font-serif); }
+.control.activo { color: var(--ink); background: var(--paper); border: 1px solid var(--rule-strong); border-bottom: 2px solid var(--crimson); }
+.control:disabled { color: var(--ink-soft); background: transparent; border-color: var(--rule); cursor: not-allowed; opacity: 0.6; }
 .sep { color: var(--ink-faint); user-select: none; }
 .kbd { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); border: 1px solid var(--rule); padding: 0 3px; line-height: 16px; }
+.flecha { font-size: 9px; }
+
 .segmented { display: inline-flex; align-items: center; margin-left: 8px; border: 1px solid var(--rule-strong); }
-.segment-btn { display: inline-flex; align-items: center; height: 26px; padding: 0 8px; font-size: 11px; font-family: var(--font-mono); color: var(--ink-soft); background: transparent; border: none; border-right: 1px solid var(--rule); }
+.segment-btn { display: inline-flex; align-items: center; height: 26px; padding: 0 8px; font-size: 11px; font-family: var(--font-mono); color: var(--ink-soft); background: transparent; border: none; border-right: 1px solid var(--rule); border-radius: 0; cursor: pointer; }
 .segment-btn.ultimo { border-right: none; }
 .segment-btn.activo { font-weight: 600; color: var(--ink); background: var(--paper-warm); }
-.segment-btn:hover { color: var(--ink); background: var(--paper); }
-.timeline { display: flex; align-items: center; gap: 0; margin-left: 8px; }
+
+/* FILA 4: TIMELINE — sin cambio del ronda 1 */
+.fila-timeline { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; flex-basis: 100%; border-top: 1px dotted var(--rule); padding-top: 4px; margin-top: 2px; }
 .marco { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 22px; padding: 0 4px; font-size: 10px; font-family: var(--font-mono); color: var(--ink-faint); }
-.marco.completado { color: var(--ink-soft); }
 .marco.actual { font-weight: 600; color: var(--crimson); }
 .timer { font-size: 10px; font-family: var(--font-mono); color: var(--ink-soft); margin-left: 8px; }
+
 .nota { background: var(--paper); border-left: 3px solid var(--success); padding: 8px 12px; margin-top: 12px; font-size: 11px; color: var(--ink-mid); }
 .nota strong { color: var(--success); }
 </style>
 </head>
 <body>
-<h1>BUG-20260608T171552Z-17477a — DESPUÉS <span class="meta">fix aplicado · 2026-06-08 · canon ui-forja mantenido</span></h1>
-<p class="subtitle">El fix diferencia visualmente qué es botón y qué es label/estado, respetando el canon ui-forja §2 (sin background+shadow permanentes, sin radius, sin shadow). La silueta de "botón-fantasma" es solo un hairline <code>rule</code> que se eleva a <code>ruleStrong</code> en hover; el botón activo gana <code>paper</code> + border-bottom <code>crimson</code>; el segmented sube a <code>ruleStrong</code> con separador vertical hairline entre opciones.</p>
+<h1>BUG-20260608T171552Z-17477a — DESPUÉS ronda 2 <span class="meta">minimalismo + WCAG · 2026-06-09</span></h1>
+<p class="subtitle">Ronda 2 después de auditoría ux-design: copy honesto en "sin procesos", contraste AA en disabled, narrativa como acotación tipográfica (no panel), tagBadge compacto sin texto, atajos visibles, chip `sin plan` eliminado. El frame crimson se mantiene como ancla editorial del modo.</p>
+
 <div class="leyenda">
-  <strong>Cambios del fix (todos via tokens, sin literales nuevos):</strong>
-  (a) <span class="fix">control</span>: border <code>1px rule</code> + color <code>inkMid</code> + height 26px (alineado con segmentBtn) — el botón se lee como acción.
-  (b) <span class="fix">control.activo</span>: <code>paper</code> + border-bottom 2px <code>crimson</code> — se diferencia del hover efímero.
-  (c) <span class="fix">filaControles</span>: border-top <code>1px dotted rule</code> — separador editorial de la fila de status.
-  (d) <span class="fix">segmented</span>: border sube a <code>ruleStrong</code> + border-right <code>rule</code> entre botones — se lee como "widget continuo".
-  (e) <span class="fix">procesoActivo</span>: pasa de span crimson italic a chip con border-left <code>crimson</code> + <code>paper</code> — sale del frame y no compite con el botón activo.
-  (f) <span class="fix">control hover/active/focus</span>: wash <code>paper</code>/<code>paperWarm</code> + outline <code>crimson 2px offset 2</code> canon (ui-forja §4.1).
+  <strong>Cambios ronda 2 (todos via tokens, sin literales nuevos):</strong>
+  (a) <span class="fix">F1.7 copy honesto</span> en "sin procesos" — `No hay procesos para simular` + `puedeEjecutar: false` propagado al botón.
+  (b) <span class="fix">F1.14 contraste disabled</span> — `inkSoft` (#807b6e, ~3.5:1) + `opacity 0.6` + `border: rule` (no paperWarm que desaparecía la silueta). Pasa AA SC 1.4.3.
+  (c) <span class="fix">F1.18 narrativa acotada</span> — de 3 bordes + fondo paper a 1 borde crimson 2px sobre paperWarm. Mismo lenguaje que procesoActivo.
+  (d) <span class="fix">F1.1 status colapsado</span> — 4 elementos → 2 primarios (proceso + progreso) + atajos. La OPD vive ahora en la narrativa.
+  (e) <span class="fix">F1.5</span> `fase` → `paso` (lenguaje OPM canónico).
+  (f) <span class="fix">F1.16 WCAG 1.3.1</span> — `aria-hidden="true"` en `<kbd>` para que screen readers no dupliquen info.
+  (g) <span class="fix">F1.12 tag redundante</span> — la tag textual "Simulación" se elimina. Queda el badge compacto con el live-dot.
+  (h) <span class="fix">F1.13 atajos inline</span> — `[P] reproducir · [⎋] salir` en el status, kbd-mini sin border, mono, inkMid.
+  (i) <span class="fix">F1.19</span> chip `sin plan` redundante eliminado del contexto narrativo.
+  (j) <span class="fix">F1.20</span> tokens.spacing en lugar de magic numbers donde aplica.
 </div>
+
 <div class="barra">
   <div class="spine spine-left"></div>
   <div class="spine spine-right"></div>
-  <div class="fila fila-status">
-    <span class="tag"><span class="dot"></span>Simulacion</span>
-    <span class="estado-texto">Listo para simular · paso 3 de 13 · resultado</span>
+
+  <!-- FILA 1: STATUS — colapsada -->
+  <div class="fila">
+    <span class="tagBadge" aria-label="Modo simulación activo">
+      <span class="tagDot"></span>
+    </span>
+    <span class="estado-texto">paso 3 de 13 · resultado</span>
     <span class="proceso-activo">Investigar rechazo</span>
-    <span class="opd">SD1 - Orquestacion simulable del despacho critico</span>
+    <span class="atajos" aria-label="Atajos de teclado">
+      <span class="kbd-mini">P</span> reproducir ·
+      <span class="kbd-mini">⎋</span> salir
+    </span>
   </div>
+
+  <!-- FILA 2: NARRATIVA — acotación crimson -->
   <div class="narrativa">
-    <span class="narrativa-marca">·</span>
+    <span class="narrativa-marca" aria-hidden="true">·</span>
     <span class="narrativa-texto">
       <span class="narrativa-titulo">Resultado: Investigar rechazo</span>
       <span class="narrativa-detalle">Cierre del proceso: produce Orden de despacho:rechazada -&gt; cerrada.</span>
     </span>
-    <span class="narrativa-contexto">
+    <span class="narrativa-contexto" aria-label="Contexto">
       <span class="chip">paso 3 de 13</span>
       <span class="chip">fase 4/5</span>
       <span class="chip">SD1 - Orquestacion simulable del despacho critico</span>
-      <span class="chip">determinista</span>
     </span>
   </div>
-  <div class="fila fila-controles">
+
+  <!-- FILA 3: CONTROLES -->
+  <div class="fila-controles">
     <button class="control activo">reproducir <span class="kbd">P</span></button>
     <span class="sep">·</span>
-    <button class="control">fase <span style="font-size:9px">▸</span></button>
+    <button class="control">paso <span class="flecha">▸</span></button>
     <span class="sep">·</span>
     <button class="control">correr</button>
     <span class="sep">·</span>
@@ -113,11 +154,13 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
     <button class="control">headless</button>
     <span class="sep">·</span>
     <button class="control" style="margin-left:4px">salir <span class="kbd">⎋</span></button>
+
     <span class="segmented">
       <button class="segment-btn activo">determinista</button>
       <button class="segment-btn">muestreo</button>
       <button class="segment-btn ultimo">exhaustivo</button>
     </span>
+
     <span class="segmented">
       <button class="segment-btn">½x</button>
       <button class="segment-btn activo">1x</button>
@@ -125,24 +168,27 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
       <button class="segment-btn ultimo">4x</button>
     </span>
   </div>
-  <div class="fila fila-timeline">
-    <span class="timeline">
-      <span class="marco">prep</span>
-      <span class="marco">cons</span>
-      <span class="marco">proc</span>
-      <span class="marco actual">res</span>
-      <span class="marco">cierre</span>
-    </span>
+
+  <!-- FILA 4: TIMELINE -->
+  <div class="fila-timeline">
+    <span class="marco">prep</span>
+    <span class="marco">cons</span>
+    <span class="marco">proc</span>
+    <span class="marco actual">res</span>
+    <span class="marco">cierre</span>
     <span class="timer">02 / 13 · 0u</span>
   </div>
 </div>
+
 <p class="nota">
   <strong>Invariantes preservadas (canon ui-forja):</strong>
-  (1) §2 "Button con background + radius + shadow" sigue prohibido — los controles son fondo transparente + hairline, sin radio, sin sombra.
-  (2) §4.1 focus canon: outline crimson 2px offset 2.
-  (3) §5 "Tree rows / command palette items" — la jerarquía dotted sigue el lenguaje editorial ya usado en PanelCarpetas / ArbolOpd.
-  (4) Token usage 100%: todos los colores vienen de <code>tokens.colors</code>, no hay literales nuevos en el código.
-  (5) El "proceso activo" deja de competir con el botón activo (ambos crimson) gracias al chip con border-left + paper.
+  (1) §2 sin `Button` con `background + radius + shadow` permanentes — los controles son fondo transparente + hairline, sin radio, sin sombra.
+  (2) §4.1 focus canon crimson 2px offset 2 (con fallback `:focus` además de `:focus-visible` para WebViews legacy).
+  (3) §5 la jerarquía dotted sigue el lenguaje ya usado en PanelCarpetas / ArbolOpd.
+  (4) Token usage 100%: todos los colores vienen de `tokens.colors`, no hay literales nuevos.
+  (5) Live-dot crimson pulsante se mantiene como ancla visual del modo (sin texto redundante).
+  (6) `headless` se conserva como label (jerga aceptable porque el `title` lo explica en desktop; mobile-readonly usa MobileReadonlyApp, no esta barra).
 </p>
+
 </body>
 </html>

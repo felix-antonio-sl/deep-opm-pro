@@ -72,7 +72,7 @@ export function BarraSimulacion(): JSX.Element | null {
           botones de la app). Los colores vienen de los tokens del design
           system (`paper` / `paperWarm` / `crimson`), no son literales
           nuevos. */}
-      <style>{`@keyframes sim-live-dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.35)}}.sim-live-dot{animation:sim-live-dot-pulse 1.4s ease-in-out infinite;transform-origin:center}.sim-control:hover:not(:disabled):not(.sim-control-activo){color:${C.ink};background:${C.paper};border-color:${C.ruleStrong}}.sim-control:active:not(:disabled){background:${C.paperWarm}}.sim-control:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}.sim-control:disabled{color:${C.inkFaint};border-color:${C.paperWarm};cursor:not-allowed}.sim-control.sim-control-activo{color:${C.ink};background:${C.paper};border-color:${C.ruleStrong};border-bottom-color:${C.crimson};border-bottom-width:2px}.sim-control.sim-control-activo:hover:not(:disabled){background:${C.paperWarm}}.sim-segment:hover:not(:disabled){color:${C.ink};background:${C.paper}}.sim-segment:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}`}</style>
+      <style>{`@keyframes sim-live-dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.35)}}.sim-live-dot{animation:sim-live-dot-pulse 1.4s ease-in-out infinite;transform-origin:center}.sim-control:hover:not(:disabled):not(.sim-control-activo){color:${C.ink};background:${C.paper};border-color:${C.ruleStrong}}.sim-control:active:not(:disabled){background:${C.paperWarm}}.sim-control:focus,.sim-control:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}.sim-control:disabled{color:${C.inkSoft};background:transparent;border-color:${C.rule};cursor:not-allowed;opacity:0.6}.sim-control.sim-control-activo{color:${C.ink};background:${C.paper};border-color:${C.ruleStrong};border-bottom-color:${C.crimson};border-bottom-width:2px}.sim-control.sim-control-activo:hover:not(:disabled){background:${C.paperWarm}}.sim-segment:hover:not(:disabled){color:${C.ink};background:${C.paper}}.sim-segment:focus,.sim-segment:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}`}</style>
       <div
         data-testid="barra-simulacion"
         role="toolbar"
@@ -86,10 +86,19 @@ export function BarraSimulacion(): JSX.Element | null {
         </>
       ) : null}
       <div style={s.fila}>
-        <span style={s.tag}>
-          {!esMobile ? <span className="sim-live-dot" style={s.tagDot} aria-hidden="true" /> : null}
-          Simulacion
-        </span>
+        {/* BUG-20260608T171552Z-17477a ronda 2 (F1.12 + F1.1): la tag "Simulación"
+            textual es redundante con el frame crimson + spines + live-dot.
+            El live-dot se mantiene como badge compacto al inicio de la fila
+            (ancla visual de "modo simulación está vivo"), pero sin texto.
+            La fila de status pasa de 4 elementos (tag + estado + proceso + opd)
+            a 2 elementos primarios: el proceso en curso (chip crimson) y el
+            progreso (texto italic). La OPD se movió al panel narrativa como
+            breadcrumb. La pista de atajos al final es la ayuda inline. */}
+        {!esMobile ? (
+          <span style={s.tagBadge} aria-label="Modo simulación activo" data-testid="barra-simulacion-tag">
+            <span className="sim-live-dot" style={s.tagDot} aria-hidden="true" />
+          </span>
+        ) : null}
         {esMobile ? (
           <span
             style={s.narrativaInlineMobile}
@@ -100,9 +109,11 @@ export function BarraSimulacion(): JSX.Element | null {
             {narrativa.titulo}
           </span>
         ) : null}
-        {sinProcesos ? (
-          <span style={s.contador} data-testid="barra-simulacion-progreso">Este modelo no tiene procesos que simular</span>
-        ) : completado ? (
+        {/* BUG-20260608T171552Z-17477a ronda 2 (F1.7): el copy de "sin procesos"
+            ahora lo entrega `proyectarEstadoBarraSimulacion` como
+            `textoProgreso`. Una sola fuente de verdad, sin ramas
+            divergentes en el JSX. */}
+        {completado ? (
           <span style={{ ...s.estadoTexto, color: C.success }} data-testid="barra-simulacion-progreso">
             {estadoBarra.textoProgreso}
           </span>
@@ -120,13 +131,19 @@ export function BarraSimulacion(): JSX.Element | null {
             {pasoActual.procesoNombre}
           </span>
         ) : null}
-        {pasoActual ? (
-          <span style={s.opd} data-testid="barra-simulacion-opd">
-            {pasoActual.opdNombre}{pasoActual.opdHijoNombre ? ` \u25b8 ${pasoActual.opdHijoNombre}` : ""}
-          </span>
-        ) : null}
         {completado ? (
           <span style={s.check}>listo</span>
+        ) : null}
+        {/* BUG-20260608T171552Z-17477a ronda 2 (F1.13): atajos visibles
+            inline al final del status. No en title (no funciona en touch).
+            Formato compacto: `P reproducir · ⎋ salir`. El kbd textual
+            no se marca como hidden porque es la única forma en que el
+            usuario experto descubre los atajos sin abrir docs. */}
+        {!esMobile ? (
+          <span style={s.atajos} aria-label="Atajos de teclado">
+            <kbd style={s.kbdMini} aria-hidden="true">P</kbd>{" reproducir · "}
+            <kbd style={s.kbdMini} aria-hidden="true">⎋</kbd>{" salir"}
+          </span>
         ) : null}
       </div>
 
@@ -162,14 +179,14 @@ export function BarraSimulacion(): JSX.Element | null {
           title={autoAvance ? "Pausar (Espacio)" : "Reproducir (Ctrl+P)"}
         >
           {autoAvance ? "pausa" : "reproducir"}
-          <kbd style={s.kbd}>P</kbd>
+          <kbd style={s.kbd} aria-hidden="true">P</kbd>
         </button>
         <span style={s.sep}>&middot;</span>
 
         {!autoAvance ? (
           <>
-            <button type="button" className="sim-control" style={s.control} onClick={ejecutarPaso} disabled={controlesDeshabilitados} data-testid="barra-simulacion-paso" title="Avanzar una fase">
-              fase <span style={s.flecha}>&#9656;</span>
+            <button type="button" className="sim-control" style={s.control} onClick={ejecutarPaso} disabled={controlesDeshabilitados} data-testid="barra-simulacion-paso" title="Avanzar un paso">
+              paso <span style={s.flecha} aria-hidden="true">&#9656;</span>
             </button>
             <span style={s.sep}>&middot;</span>
           </>
@@ -192,7 +209,7 @@ export function BarraSimulacion(): JSX.Element | null {
 
         <button type="button" className="sim-control" style={{ ...s.control, marginLeft: 4 }} onClick={salir} data-testid="barra-simulacion-salir" title="Salir del modo simulacion (Escape)">
           salir
-          <kbd style={s.kbd}>&#x238B;</kbd>
+          <kbd style={s.kbd} aria-hidden="true">&#x238B;</kbd>
         </button>
 
         {/* Modo: segmented inline */}
@@ -339,13 +356,13 @@ type EstilosBarra = {
   fila: JSX.CSSProperties;
   filaControles: JSX.CSSProperties;
   filaTimeline: JSX.CSSProperties;
-  tag: JSX.CSSProperties;
+  tagBadge: JSX.CSSProperties;
   tagDot: JSX.CSSProperties;
-  contador: JSX.CSSProperties;
   estadoTexto: JSX.CSSProperties;
   procesoActivo: JSX.CSSProperties;
-  opd: JSX.CSSProperties;
   check: JSX.CSSProperties;
+  atajos: JSX.CSSProperties;
+  kbdMini: JSX.CSSProperties;
   narrativa: JSX.CSSProperties;
   narrativaInlineMobile: JSX.CSSProperties;
   narrativaMarca: JSX.CSSProperties;
@@ -438,17 +455,23 @@ export const s: EstilosBarra = {
     gap: 4,
     flexWrap: "wrap" as const,
   },
-  tag: {
-    fontWeight: 700,
-    fontSize: T.sizes.xs,
-    color: C.crimson,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase" as const,
-    marginRight: 4,
+  // BUG-20260608T171552Z-17477a ronda 2 (F1.12): la `tag` textual "Simulación"
+  // se elimina del status line. El live-dot crimson sigue presente, ahora
+  // dentro de `s.tagBadge` (badge compacto de 18×18, fondo paperWarm, border
+  // hairless) que vive como ancla visual al inicio de la fila. El frame
+  // crimson (borderTop 2px + spines) ya comunica "modo simulación" — la
+  // palabra "Simulación" era triple redundancia. `aria-label` se preserva
+  // para screen readers.
+  tagBadge: {
     display: "inline-flex",
     alignItems: "center",
-    gap: 6,
-    fontFamily: T.fontFamilyMono,
+    justifyContent: "center",
+    width: 18,
+    height: 18,
+    borderRadius: 0,
+    background: C.paperWarm,
+    flex: "0 0 18px",
+    marginRight: 2,
   },
   // BUG-20260607T224342Z-a8e599: "live dot" crimson 6px. La animación
   // de pulso se define por clase CSS `.sim-live-dot` (ver el `<style>`
@@ -461,11 +484,6 @@ export const s: EstilosBarra = {
     background: C.crimson,
     borderRadius: "50%",
     flex: "0 0 6px",
-  },
-  contador: {
-    fontSize: T.sizes.sm,
-    color: C.inkSoft,
-    fontStyle: "italic",
   },
   estadoTexto: {
     fontSize: T.sizes.sm,
@@ -486,15 +504,32 @@ export const s: EstilosBarra = {
     borderLeft: `2px solid ${C.crimson}`,
     background: C.paper,
   },
-  opd: {
-    fontSize: T.sizes.sm,
-    color: C.inkSoft,
-    fontFamily: T.fontFamilyMono,
-  },
   check: {
     fontSize: T.sizes.sm,
     color: C.success,
     fontStyle: "italic",
+  },
+  // BUG-20260608T171552Z-17477a ronda 2 (F1.13): atajos inline al final del
+  // status. Mono 10.5px inkFaint, separados por " · ". El kbdMini es un
+  // kbd más compacto (sin border) que el `s.kbd` del botón — su rol es
+  // pista, no decoración.
+  atajos: {
+    fontSize: 10.5,
+    color: C.inkFaint,
+    fontFamily: T.fontFamilyMono,
+    marginLeft: "auto",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+  },
+  kbdMini: {
+    fontFamily: T.fontFamilyMono,
+    fontSize: 9.5,
+    color: C.inkMid,
+    background: "transparent",
+    padding: 0,
+    border: "none",
+    lineHeight: 1,
   },
   // BUG-20260608T171552Z-17477a: la fila de controles gana un separador
   // editorial dotted arriba para que el ojo lea "fila de status → narrativa
@@ -529,6 +564,12 @@ export const s: EstilosBarra = {
   // + `overflow: hidden` acotan el crecimiento del panel cuando el detalle
   // o los chips se vuelven muy largos — antes la altura libre del panel
   // tiraba del `alignItems: center` del padre y desalineaba el status.
+  // BUG-20260608T171552Z-17477a ronda 2 (F1.18): la narrativa deja de ser
+  // un "panel" con 3 bordes y fondo paper. Ahora es una **acotación
+  // tipográfica** con borde crimson 2px (mismo lenguaje que el
+  // procesoActivo) y fondo transparente — vive DENTRO de la barra, no
+  // como bloque separado. El wash es el mismo paperWarm de la barra para
+  // no añadir una segunda superficie.
   narrativa: {
     display: "flex",
     alignItems: "center",
@@ -539,11 +580,12 @@ export const s: EstilosBarra = {
     maxWidth: "100%",
     maxHeight: "90px",
     overflow: "hidden",
-    padding: "5px 8px",
-    background: C.paper,
-    borderLeft: `3px solid ${C.ruleStrong}`,
-    borderTop: `1px solid ${C.rule}`,
-    borderBottom: `1px solid ${C.rule}`,
+    padding: "2px 8px",
+    background: "transparent",
+    borderLeft: `2px solid ${C.crimson}`,
+    borderTop: "none",
+    borderBottom: "none",
+    borderRadius: 0,
   },
   narrativaInlineMobile: {
     minWidth: 0,
@@ -649,6 +691,13 @@ export const s: EstilosBarra = {
   // pero localizado). `:hover` → wash `paper`. `:active` → wash `paperWarm`
   // (un punto más oscuro = "se está apretando"). `:focus-visible` →
   // outline crimson canon (ui-forja §4.1 "focus states").
+  // BUG-20260608T171552Z-17477a ronda 2 (F1.14): el `controlDeshabilitado`
+  // sube de `inkFaint` (#b5b0a4, ~2.4:1 sobre paperWarm — FAIL AA) a
+  // `inkSoft` (#807b6e, ~3.5:1) + `opacity 0.6` para transparenta el
+  // control sin invisibilizarlo. `borderColor` sube de paperWarm (mismo
+  // color que el fondo, invisible) a `rule` (hairline visible) para que
+  // la silueta de botón se conserve. El cursor `not-allowed` se mantiene
+  // como pista adicional.
   controlHover: {
     color: C.ink,
     background: C.paper,
@@ -658,9 +707,11 @@ export const s: EstilosBarra = {
     background: C.paperWarm,
   },
   controlDeshabilitado: {
-    color: C.inkFaint,
-    borderColor: C.paperWarm,
+    color: C.inkSoft,
+    background: "transparent",
+    borderColor: C.rule,
     cursor: "not-allowed",
+    opacity: 0.6,
   },
   controlFocus: {
     outline: `2px solid ${C.crimson}`,

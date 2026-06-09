@@ -23,16 +23,26 @@ describe("BarraSimulacion layout (BUG-20260606T063734Z-52df54)", () => {
     expect(s.narrativa.flexBasis).toBe("100%");
     expect(s.narrativa.maxHeight).toBe("90px");
     expect(s.narrativa.overflow).toBe("hidden");
-    expect(s.narrativa.borderLeft).toBe(`3px solid ${tokens.colors.ruleStrong}`);
   });
 
-  test("narrativa conserva su minWidth flexible y el padding del panel", () => {
+  test("narrativa es una acotación tipográfica (F1.18), no un panel con 3 bordes", () => {
+    // BUG-20260608T171552Z-17477a ronda 2 (F1.18): la narrativa pasa de
+    // ser un panel con `paper` + `borderLeft 3px ruleStrong` + `borderTop`
+    // + `borderBottom` (3 bordes) a una acotación crimson sobre el
+    // mismo `paperWarm` de la barra. Mismo lenguaje que `procesoActivo`.
+    expect(s.narrativa.background).toBe("transparent");
+    expect(s.narrativa.borderLeft).toBe(`2px solid ${tokens.colors.crimson}`);
+    expect(s.narrativa.borderTop).toBe("none");
+    expect(s.narrativa.borderBottom).toBe("none");
+  });
+
+  test("narrativa conserva su minWidth flexible y el padding compacto", () => {
     // `flex: "1 1 520px"` y `minWidth: 280` siguen dando el rango flexible
     // para cuando el padre aprieta (mobile-readonly shell, ventanas angostas).
     expect(s.narrativa.flex).toBe("1 1 520px");
     expect(s.narrativa.minWidth).toBe(280);
     expect(s.narrativa.maxWidth).toBe("100%");
-    expect(s.narrativa.padding).toBe("5px 8px");
+    expect(s.narrativa.padding).toBe("2px 8px");
   });
 
   test("fila de status mantiene su wrap interno pero ya no es el centro del desajuste", () => {
@@ -43,18 +53,6 @@ describe("BarraSimulacion layout (BUG-20260606T063734Z-52df54)", () => {
     expect(s.fila.alignItems).toBe("center");
     expect(s.fila.gap).toBe(4);
     expect(s.fila.flexWrap).toBe("wrap");
-  });
-
-  test("tag del status es mono uppercase con tracking ancho (invariante editorial)", () => {
-    // Sanity: la `tag` "Simulacion" es el ancla visual del status. La
-    // invariante de marca crimson+uppercase+tracking sigue aplicando.
-    // BUG-20260607T224342Z-a8e599: tracking subió de 0.06em a 0.12em
-    // para hacer eco de la "marca" del spine crimson; fontWeight subió
-    // de 600 a 700 por la misma razón.
-    expect(s.tag.color).toBe(tokens.colors.crimson);
-    expect(s.tag.textTransform).toBe("uppercase");
-    expect(s.tag.letterSpacing).toBe("0.12em");
-    expect(s.tag.fontWeight).toBe(700);
   });
 
   test("controles conservan su altura compacta (alineada con segmentados)", () => {
@@ -102,26 +100,27 @@ describe("BarraSimulacion control-jerarquia (BUG-20260608T171552Z-17477a)", () =
     expect(s.controlActivo.borderBottomWidth).toBe(2);
   });
 
-  test("los pseudo-estados (hover/active/focus/disabled) tienen invariantes", () => {
-    // BUG-20260608T171552Z-17477a: hover/active/focus/disabled se aplican
-    // via CSS de pseudo-clases (no inline) porque inline no soporta
-    // pseudo-clases. Anclamos aqui los valores de wash/border/outline
-    // para que un refactor del CSS no rompa silenciosamente la
-    // jerarquia visual.
-    // hover: wash `paper` (mas claro que el fondo `paperWarm` de la barra).
+  test("los pseudo-estados (hover/active/focus/disabled) tienen invariantes WCAG", () => {
+    // BUG-20260608T171552Z-17477a + ronda 2 (F1.14): hover/active/focus/disabled
+    // se aplican via CSS de pseudo-clases. Anclamos los valores de
+    // wash/border/outline para que un refactor del CSS no rompa
+    // silenciosamente la jerarquía visual ni la accesibilidad.
+    // hover: wash `paper`.
     expect(s.controlHover.background).toBe(tokens.colors.paper);
     expect(s.controlHover.color).toBe(tokens.colors.ink);
     expect(s.controlHover.borderColor).toBe(tokens.colors.ruleStrong);
-    // active (mientras se aprieta): wash `paperWarm` (un punto mas oscuro
-    // que el hover = "estas apretando").
+    // active (mientras se aprieta): wash `paperWarm`.
     expect(s.controlApretado.background).toBe(tokens.colors.paperWarm);
-    // disabled: el boton debe ser casi invisible — sin affordance de
-    // click. `inkFaint` para el texto y `paperWarm` (mismo color que el
-    // fondo) para el border.
-    expect(s.controlDeshabilitado.color).toBe(tokens.colors.inkFaint);
-    expect(s.controlDeshabilitado.borderColor).toBe(tokens.colors.paperWarm);
+    // disabled (F1.14): antes era `inkFaint` sobre paperWarm (~2.4:1, FAIL
+    // WCAG 2.2 SC 1.4.3). Ahora `inkSoft` + `opacity 0.6` para transparenta
+    // el control sin invisibilizarlo, y `rule` como border (no `paperWarm`,
+    // que era del mismo color que el fondo y desaparecía la silueta).
+    expect(s.controlDeshabilitado.color).toBe(tokens.colors.inkSoft);
+    expect(s.controlDeshabilitado.borderColor).toBe(tokens.colors.rule);
+    expect(s.controlDeshabilitado.opacity).toBe(0.6);
     expect(s.controlDeshabilitado.cursor).toBe("not-allowed");
-    // focus-visible: outline crimson canon (ui-forja §4.1).
+    // focus (F1.15): outline crimson canon (ui-forja §4.1) — 2px solid +
+    // offset 2.
     expect(s.controlFocus.outline).toBe(`2px solid ${tokens.colors.crimson}`);
     expect(s.controlFocus.outlineOffset).toBe(2);
   });
@@ -179,6 +178,44 @@ describe("BarraSimulacion control-jerarquia (BUG-20260608T171552Z-17477a)", () =
   });
 });
 
+describe("BarraSimulacion status minimalismo (BUG-20260608T171552Z-17477a ronda 2)", () => {
+  // F1.12: la tag textual "Simulación" se elimina. El frame crimson + el
+  // live-dot son suficientes para comunicar el modo. El badge compacto
+  // `tagBadge` queda como ancla visual sin texto.
+  test("F1.12: la tagBadge reemplaza la tag textual", () => {
+    expect(s.tagBadge.width).toBe(18);
+    expect(s.tagBadge.height).toBe(18);
+    expect(s.tagBadge.display).toBe("inline-flex");
+    expect(s.tagBadge.alignItems).toBe("center");
+    expect(s.tagBadge.justifyContent).toBe("center");
+  });
+
+  test("F1.12: la tagBadge contiene el live-dot (no texto)", () => {
+    // El live-dot crimson 6px sigue presente como ancla visual. Sin
+    // texto redundante.
+    expect(s.tagDot.width).toBe(6);
+    expect(s.tagDot.height).toBe(6);
+    expect(s.tagDot.background).toBe(tokens.colors.crimson);
+    expect(s.tagDot.borderRadius).toBe("50%");
+  });
+
+  // F1.13: atajos visibles inline al final del status. No en title (no
+  // funciona en touch). El kbdMini es más compacto que el `kbd` del botón
+  // — su rol es pista, no decoración.
+  test("F1.13: atajos visibles al final del status con kbdMini compacto", () => {
+    expect(s.atajos.fontSize).toBe(10.5);
+    expect(s.atajos.color).toBe(tokens.colors.inkFaint);
+    expect(s.atajos.fontFamily).toBe(tokens.typography.fontFamilyMono);
+    expect(s.atajos.display).toBe("inline-flex");
+    // kbdMini: sin border (no compite con los botones), mono, color inkMid.
+    expect(s.kbdMini.background).toBe("transparent");
+    expect(s.kbdMini.border).toBe("none");
+    expect(s.kbdMini.fontFamily).toBe(tokens.typography.fontFamilyMono);
+    expect(s.kbdMini.color).toBe(tokens.colors.inkMid);
+    expect(s.kbdMini.fontSize).toBe(9.5);
+  });
+});
+
 describe("BarraSimulacion canvas-frame (BUG-20260607T224342Z-a8e599)", () => {
   test("la barra vive en la region canvas (no position fixed full-width)", () => {
     // BUG-20260607T224342Z-a8e599: la barra dejó de ser un overlay
@@ -203,31 +240,5 @@ describe("BarraSimulacion canvas-frame (BUG-20260607T224342Z-a8e599)", () => {
     expect(s.barraSpine.width).toBe(3);
     expect(s.barraSpine.background).toContain(tokens.colors.crimson);
     expect(s.barraSpine.pointerEvents).toBe("none");
-  });
-
-  test("tag incluye un live dot crimson (modo en vivo)", () => {
-    // La tag "Simulacion" es el ancla visual del status. El "live dot"
-    // es un span crimson 6px con clase CSS `.sim-live-dot` que aplica
-    // la animación de pulso via @keyframes inyectado por el componente.
-    expect(s.tagDot.width).toBe(6);
-    expect(s.tagDot.height).toBe(6);
-    expect(s.tagDot.background).toBe(tokens.colors.crimson);
-    expect(s.tagDot.borderRadius).toBe("50%");
-  });
-
-  test("tag usa la marca mono uppercase con tracking amplio", () => {
-    // La tag sigue siendo el ancla visual "SIMULACIÓN" con marca crimson
-    // y tipografía mono. El cambio es la presencia del live dot.
-    expect(s.tag.color).toBe(tokens.colors.crimson);
-    expect(s.tag.textTransform).toBe("uppercase");
-    expect(s.tag.fontWeight).toBe(700);
-    expect(s.tag.fontFamily).toBe(tokens.typography.fontFamilyMono);
-  });
-
-  test("narrativa se destaca del fondo paperWarm con surface paper", () => {
-    // BUG-20260607T224342Z-a8e599: para jerarquía visual, la panel
-    // narrativa (el contenido destacado de la barra) usa `paper` (más
-    // claro) sobre el `paperWarm` del fondo de la barra.
-    expect(s.narrativa.background).toBe(tokens.colors.paper);
   });
 });
