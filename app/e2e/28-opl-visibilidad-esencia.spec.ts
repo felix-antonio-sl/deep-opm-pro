@@ -16,6 +16,11 @@ test("selector de esencia en Configuración filtra oraciones OPL de esencia", as
   // Arranque: modelo vacio sin onboarding.
   await page.goto("/");
   await esperarWorkbenchInicial(page);
+  // El bootstrap del workspace (sesión + cargarWorkspaceBackend) aplica
+  // preferenciasUi de forma asíncrona tras el arranque; esperar a que la red
+  // asiente evita que ese load pise el cambio de "Visibilidad de esencia" que
+  // hacemos enseguida (race de arranque, escenario real es post-load).
+  await page.waitForLoadState("networkidle");
 
   // Crear un objeto; por defecto tendrá esencia informacional y afiliación sistémica.
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
