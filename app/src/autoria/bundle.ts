@@ -152,7 +152,7 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
     // W5.3/L6: el reporte declara el sello solo si existe (byte-identidad sin procedencia).
     ...(hidratado.procedencia
       ? [
-          `- Procedencia (L6): proto \`${hidratado.procedencia.protoHash}\` · glosario \`${hidratado.procedencia.glosarioHash}\` · autoría v${hidratado.procedencia.autoriaVersion} · layout v${hidratado.procedencia.layoutVersion}.`,
+          `- Procedencia (L6): proto \`${hidratado.procedencia.protoHash}\` · autoría v${hidratado.procedencia.autoriaVersion} · layout v${hidratado.procedencia.layoutVersion}.`,
         ]
       : []),
     ...(opciones.reporteExtra && opciones.reporteExtra.length ? ["", ...opciones.reporteExtra] : []),

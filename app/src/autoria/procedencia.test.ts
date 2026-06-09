@@ -1,8 +1,9 @@
 // TDD del sello de procedencia del bundle (W5.3 / L6).
 //
-// Diseño consensuado (acta mesa flujo-canónico 2026-06-04, líneas 52-53):
-//   - El bundle emitido PORTA `{protoHash, glosarioHash, autoriaVersion, layoutVersion}`.
-//   - Staleness definida sobre ARTEFACTOS ESTABLES (hashes de contenido de archivos),
+// Diseño consensuado (acta mesa flujo-canónico 2026-06-04, líneas 52-53;
+// glosario ELIMINADO 2026-06-09 — el proto es la fuente única autoral):
+//   - El bundle emitido PORTA `{protoHash, autoriaVersion, layoutVersion}`.
+//   - Staleness definida sobre ARTEFACTOS ESTABLES (hash de contenido del proto),
 //     no sobre ids internos.
 //   - Honestidad temporal: la divergencia REPORTA, no degrada — hasta F5+, el proto
 //     sigue siendo el portador canónico de la trazabilidad legal aunque diverja.
@@ -50,17 +51,21 @@ describe("hashContenido", () => {
 // ── construirSello: las 4 componentes del acta ────────────────────────────────
 
 describe("construirSello", () => {
-  test("porta las 4 componentes {protoHash, glosarioHash, autoriaVersion, layoutVersion}", () => {
-    const sello = construirSello({ protoTexto: "proto", glosarioTexto: "glosario" });
+  test("porta las 3 componentes {protoHash, autoriaVersion, layoutVersion}", () => {
+    const sello = construirSello({ protoTexto: "proto" });
     expect(sello.protoHash).toBe(hashContenido("proto"));
-    expect(sello.glosarioHash).toBe(hashContenido("glosario"));
     expect(sello.autoriaVersion).toBe(AUTORIA_VERSION);
     expect(sello.layoutVersion).toBe(LAYOUT_VERSION);
   });
 
+  test("glosario eliminado: el sello NO porta glosarioHash", () => {
+    const sello = construirSello({ protoTexto: "proto" });
+    expect("glosarioHash" in sello).toBe(false);
+  });
+
   test("es función pura del contenido: mismos insumos → sello idéntico", () => {
-    const a = construirSello({ protoTexto: "p", glosarioTexto: "g" });
-    const b = construirSello({ protoTexto: "p", glosarioTexto: "g" });
+    const a = construirSello({ protoTexto: "p" });
+    const b = construirSello({ protoTexto: "p" });
     expect(a).toEqual(b);
   });
 });
@@ -70,7 +75,6 @@ describe("construirSello", () => {
 describe("compararProcedencia", () => {
   const base: SelloProcedencia = {
     protoHash: "aaaa",
-    glosarioHash: "bbbb",
     autoriaVersion: "1",
     layoutVersion: "1",
   };
@@ -87,12 +91,6 @@ describe("compararProcedencia", () => {
     expect(d.componentes).toEqual([{ componente: "protoHash", bundle: "aaaa", actual: "cccc" }]);
   });
 
-  test("glosario editado → divergencia SOLO en glosarioHash", () => {
-    const d = compararProcedencia(base, { ...base, glosarioHash: "dddd" });
-    expect(d.divergente).toBe(true);
-    expect(d.componentes.map((c) => c.componente)).toEqual(["glosarioHash"]);
-  });
-
   test("versión de layout cambiada (re-pin deliberado) → divergencia en layoutVersion", () => {
     const d = compararProcedencia(base, { ...base, layoutVersion: "2" });
     expect(d.divergente).toBe(true);
@@ -102,14 +100,12 @@ describe("compararProcedencia", () => {
   test("divergencia múltiple → todas las componentes, en orden estable del sello", () => {
     const d = compararProcedencia(base, {
       protoHash: "x",
-      glosarioHash: "y",
       autoriaVersion: "9",
       layoutVersion: "9",
     });
     expect(d.divergente).toBe(true);
     expect(d.componentes.map((c) => c.componente)).toEqual([
       "protoHash",
-      "glosarioHash",
       "autoriaVersion",
       "layoutVersion",
     ]);

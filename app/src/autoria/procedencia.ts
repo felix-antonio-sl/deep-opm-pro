@@ -1,9 +1,10 @@
 // Sello de procedencia del bundle (W5.3 / L6) — kernel PURO, sin IO.
 //
-// Diseño consensuado (acta mesa flujo-canónico 2026-06-04, líneas 52-53):
-// el bundle emitido porta `{protoHash, glosarioHash, autoriaVersion, layoutVersion}`;
-// la staleness se define sobre artefactos estables (hashes de CONTENIDO de
-// archivos), no sobre ids internos. La divergencia se REPORTA con ambos valores
+// Diseño consensuado (acta mesa flujo-canónico 2026-06-04, líneas 52-53;
+// glosario eliminado 2026-06-09 — el proto es la fuente única autoral):
+// el bundle emitido porta `{protoHash, autoriaVersion, layoutVersion}`;
+// la staleness se define sobre artefactos estables (hash de CONTENIDO del
+// proto), no sobre ids internos. La divergencia se REPORTA con ambos valores
 // (honestidad temporal: el proto sigue siendo el portador canónico de la
 // trazabilidad legal aunque diverja — no es stale-y-descartable).
 //
@@ -54,17 +55,15 @@ export function hashContenido(texto: string): string {
   return hash.toString(16).padStart(16, "0");
 }
 
-/** Insumos del sello: el CONTENIDO (ya leído) del proto y del glosario. */
+/** Insumos del sello: el CONTENIDO (ya leído) del proto. */
 export interface InsumosSello {
   protoTexto: string;
-  glosarioTexto: string;
 }
 
-/** Construye el sello de procedencia de una emisión (las 4 componentes del acta). */
+/** Construye el sello de procedencia de una emisión (las 3 componentes del acta). */
 export function construirSello(insumos: InsumosSello): SelloProcedencia {
   return {
     protoHash: hashContenido(insumos.protoTexto),
-    glosarioHash: hashContenido(insumos.glosarioTexto),
     autoriaVersion: AUTORIA_VERSION,
     layoutVersion: LAYOUT_VERSION,
   };
@@ -82,13 +81,12 @@ export interface ComponenteDivergente {
 /** Resultado de la detección de divergencia (L6). Reporta, no descarta. */
 export interface DivergenciaProcedencia {
   divergente: boolean;
-  /** En orden estable del sello: protoHash, glosarioHash, autoriaVersion, layoutVersion. */
+  /** En orden estable del sello: protoHash, autoriaVersion, layoutVersion. */
   componentes: ComponenteDivergente[];
 }
 
 const COMPONENTES_SELLO: ReadonlyArray<keyof SelloProcedencia> = [
   "protoHash",
-  "glosarioHash",
   "autoriaVersion",
   "layoutVersion",
 ];

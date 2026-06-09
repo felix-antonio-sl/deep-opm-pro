@@ -227,7 +227,6 @@ const CAMPOS_ANCLA = {
 
 const CAMPOS_PROCEDENCIA = {
   protoHash: true,
-  glosarioHash: true,
   autoriaVersion: true,
   layoutVersion: true,
 } satisfies Record<keyof SelloProcedencia, true>;
@@ -705,7 +704,6 @@ function modeloConCamposOpcionales(): Modelo {
     },
     procedencia: {
       protoHash: "sha256-proto",
-      glosarioHash: "sha256-glosario",
       autoriaVersion: "test",
       layoutVersion: "test",
     },

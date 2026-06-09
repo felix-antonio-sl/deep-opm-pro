@@ -18,7 +18,6 @@ import { construirSello } from "../src/autoria/procedencia";
 import { usoFamiliaV, particionarUso, proyeccionObservable } from "../src/autoria/compilar/usoFamiliaV";
 
 const PROTO_PATH = "/home/felix/projects/hd-opm/docs/modelo-opm-hodom-completo.md";
-const GLOSARIO_PATH = "/home/felix/projects/hd-opm/docs/glosario-opm-hodom.md";
 const MIGRABLES = new Set(["V3", "V4", "V5", "V7"]);
 
 /** Reescribe una línea laxa migrable a su forma OPL-ES estricta E2 (idéntica al de-risking). */
@@ -48,9 +47,8 @@ function reescribirE2(regla: string, laxo: string): string {
 
 function main(): void {
   const md = readFileSync(PROTO_PATH, "utf8");
-  const glosario = readFileSync(GLOSARIO_PATH, "utf8");
   const opciones = { id: "hodom-piloto", nombre: "HODOM (piloto compilador)" } as const;
-  const sello = construirSello({ protoTexto: md, glosarioTexto: glosario });
+  const sello = construirSello({ protoTexto: md });
 
   const orig = compilarProto(md, opciones);
   const usoOrig = particionarUso(usoFamiliaV(orig.ledger));

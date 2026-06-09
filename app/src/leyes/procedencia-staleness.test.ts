@@ -23,11 +23,10 @@ import { construirCafetera } from "../autoria/_fixtures/cafetera";
 import { hidratarModelo } from "../serializacion/json";
 
 const PROTO_V1 = "# Proto cafetera v1\n\nCafetera maneja Preparación de café.\n";
-const GLOSARIO_V1 = "# Glosario cafetera v1\n\n- Cafetera: máquina física.\n";
 
 describe("L6 — el sello viaja en el bundle y sobrevive al round-trip", () => {
   test("(a) bundle con procedencia: el JSON porta el sello y la hidratación lo conserva", () => {
-    const sello = construirSello({ protoTexto: PROTO_V1, glosarioTexto: GLOSARIO_V1 });
+    const sello = construirSello({ protoTexto: PROTO_V1 });
     const bundle = emitirBundle(construirCafetera(), { procedencia: sello });
     const parsed = JSON.parse(bundle.json) as { modelo: { procedencia?: unknown } };
     expect(parsed.modelo.procedencia).toEqual(sello);
@@ -39,17 +38,31 @@ describe("L6 — el sello viaja en el bundle y sobrevive al round-trip", () => {
   });
 
   test("(a') el reporte del bundle declara la procedencia cuando existe", () => {
-    const sello = construirSello({ protoTexto: PROTO_V1, glosarioTexto: GLOSARIO_V1 });
+    const sello = construirSello({ protoTexto: PROTO_V1 });
     const bundle = emitirBundle(construirCafetera(), { procedencia: sello });
     expect(bundle.reporte).toContain(sello.protoHash);
-    expect(bundle.reporte).toContain(sello.glosarioHash);
+  });
+
+  test("(a'') tolerancia: un bundle viejo con glosarioHash hidrata OK y se le descarta el campo", () => {
+    // Bundles persistidos antes de la eliminación del glosario portan
+    // `procedencia.glosarioHash`. El deserializador debe tolerarlos (no romper) y
+    // descartar el campo huérfano — el sello vigente tiene 3 componentes.
+    const sello = construirSello({ protoTexto: PROTO_V1 });
+    const bundle = emitirBundle(construirCafetera(), { procedencia: sello });
+    const doc = JSON.parse(bundle.json) as { modelo: { procedencia: Record<string, unknown> } };
+    doc.modelo.procedencia.glosarioHash = "hash-glosario-legacy";
+    const res = hidratarModelo(JSON.stringify(doc));
+    expect(res.ok).toBe(true);
+    if (!res.ok) throw new Error("nunca");
+    expect("glosarioHash" in (res.value.procedencia ?? {})).toBe(false);
+    expect(res.value.procedencia!.protoHash).toBe(sello.protoHash);
   });
 });
 
 describe("L6 — fixture negativo: la edición posterior del insumo SE DETECTA", () => {
   test("(b) proto editado tras la emisión → divergencia en protoHash (y solo ahí)", () => {
     // Emisión: el bundle queda sellado con el proto v1.
-    const selloEmision = construirSello({ protoTexto: PROTO_V1, glosarioTexto: GLOSARIO_V1 });
+    const selloEmision = construirSello({ protoTexto: PROTO_V1 });
     const bundle = emitirBundle(construirCafetera(), { procedencia: selloEmision });
     const hidratado = hidratarModelo(bundle.json);
     if (!hidratado.ok) throw new Error("bundle inválido");
@@ -57,7 +70,7 @@ describe("L6 — fixture negativo: la edición posterior del insumo SE DETECTA",
 
     // El dominio evoluciona: alguien edita el proto DESPUÉS de emitir.
     const PROTO_V2 = PROTO_V1 + "Cafetera exhibe Capacidad.\n";
-    const selloActual = construirSello({ protoTexto: PROTO_V2, glosarioTexto: GLOSARIO_V1 });
+    const selloActual = construirSello({ protoTexto: PROTO_V2 });
 
     const d = compararProcedencia(selloBundle, selloActual);
     expect(d.divergente).toBe(true);
@@ -68,12 +81,12 @@ describe("L6 — fixture negativo: la edición posterior del insumo SE DETECTA",
   });
 
   test("(b-positivo, control de no-tautología) mismos insumos → sin divergencia", () => {
-    const selloEmision = construirSello({ protoTexto: PROTO_V1, glosarioTexto: GLOSARIO_V1 });
+    const selloEmision = construirSello({ protoTexto: PROTO_V1 });
     const bundle = emitirBundle(construirCafetera(), { procedencia: selloEmision });
     const hidratado = hidratarModelo(bundle.json);
     if (!hidratado.ok) throw new Error("bundle inválido");
 
-    const selloActual = construirSello({ protoTexto: PROTO_V1, glosarioTexto: GLOSARIO_V1 });
+    const selloActual = construirSello({ protoTexto: PROTO_V1 });
     const d = compararProcedencia(hidratado.value.procedencia!, selloActual);
     expect(d.divergente).toBe(false);
     expect(d.componentes).toEqual([]);
@@ -88,7 +101,7 @@ describe("L6 — byte-identidad de los consumidores sin procedencia", () => {
   });
 
   test("(d') emitir con y sin procedencia: el JSON difiere SOLO en el sello", () => {
-    const sello = construirSello({ protoTexto: PROTO_V1, glosarioTexto: GLOSARIO_V1 });
+    const sello = construirSello({ protoTexto: PROTO_V1 });
     const sin = emitirBundle(construirCafetera());
     const con = emitirBundle(construirCafetera(), { procedencia: sello });
     const parsedSin = JSON.parse(sin.json) as { modelo: Record<string, unknown> };
@@ -100,7 +113,7 @@ describe("L6 — byte-identidad de los consumidores sin procedencia", () => {
 
 describe("L6 — la serialización valida el sello (extensión aditiva)", () => {
   test("sello malformado (componente faltante) → hidratación RECHAZA con diagnóstico", () => {
-    const sello = construirSello({ protoTexto: PROTO_V1, glosarioTexto: GLOSARIO_V1 });
+    const sello = construirSello({ protoTexto: PROTO_V1 });
     const bundle = emitirBundle(construirCafetera(), { procedencia: sello });
     const doc = JSON.parse(bundle.json) as { modelo: { procedencia: Record<string, unknown> } };
     delete doc.modelo.procedencia.protoHash;

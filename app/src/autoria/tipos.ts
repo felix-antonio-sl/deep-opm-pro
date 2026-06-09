@@ -85,9 +85,9 @@ export interface OpcionesBundle {
   /** Si true (default), lanza ante avisos de severidad `error` o round-trip inestable. */
   lanzarEnError?: boolean;
   /**
-   * Sello de procedencia (W5.3/L6): `{protoHash, glosarioHash, autoriaVersion, layoutVersion}`.
+   * Sello de procedencia (W5.3/L6): `{protoHash, autoriaVersion, layoutVersion}`.
    * El consumidor lo construye con `construirSello` (autoria/procedencia) desde el contenido
-   * del proto y del glosario. Ausente ⇒ el bundle no gana la clave ni el reporte líneas
+   * del proto. Ausente ⇒ el bundle no gana la clave ni el reporte líneas
    * (byte-identidad de los consumidores existentes).
    */
   procedencia?: SelloProcedencia;

@@ -304,14 +304,16 @@ function validarAnclasNormativas(
 function validarProcedencia(value: unknown): Resultado<SelloProcedencia | undefined> {
   if (value === undefined) return ok(undefined);
   if (!esRecord(value)) return fallo("Modelo inválido: procedencia");
-  const componentes = ["protoHash", "glosarioHash", "autoriaVersion", "layoutVersion"] as const;
+  // Glosario eliminado 2026-06-09: el sello vigente tiene 3 componentes. Un
+  // `glosarioHash` presente en bundles viejos se TOLERA (no se valida ni se
+  // copia → el campo huérfano se descarta sin romper la hidratación).
+  const componentes = ["protoHash", "autoriaVersion", "layoutVersion"] as const;
   for (const componente of componentes) {
     const v = value[componente];
     if (typeof v !== "string" || !v.trim()) return fallo(`Modelo inválido: procedencia.${componente}`);
   }
   return ok({
     protoHash: (value.protoHash as string).trim(),
-    glosarioHash: (value.glosarioHash as string).trim(),
     autoriaVersion: (value.autoriaVersion as string).trim(),
     layoutVersion: (value.layoutVersion as string).trim(),
   });

@@ -114,17 +114,18 @@ export interface AnclaNormativa {
 // --- SelloProcedencia (W5.3 / L6) -------------------------------------------
 // Extensión ADITIVA y OPCIONAL del formato `deep-opm-pro.modelo.v0`: sello de
 // origen del bundle emitido por `autoria/compilar` (acta mesa flujo-canónico
-// 2026-06-04, L6). Staleness definida sobre ARTEFACTOS ESTABLES (hashes del
-// contenido de proto/glosario), no sobre ids internos. Honestidad temporal:
+// 2026-06-04, L6). Staleness definida sobre ARTEFACTOS ESTABLES (hash del
+// contenido del proto), no sobre ids internos. Honestidad temporal:
 // la divergencia se REPORTA, no degrada — el proto-modelo sigue siendo el
 // portador canónico de la trazabilidad legal aunque diverja.
+// (Glosario eliminado 2026-06-09: el proto es la fuente única autoral; el sello
+// pasó de 4 a 3 componentes. Bundles viejos con `glosarioHash` se toleran al
+// deserializar — el campo huérfano se descarta.)
 
-/** Las 4 componentes consensuadas del sello: `{protoHash, glosarioHash, autoriaVersion, layoutVersion}`. */
+/** Las 3 componentes consensuadas del sello: `{protoHash, autoriaVersion, layoutVersion}`. */
 export interface SelloProcedencia {
   /** Hash del contenido del proto-modelo (markdown) del que se compiló el bundle. */
   protoHash: string;
-  /** Hash del contenido del glosario de dominio vigente en la emisión. */
-  glosarioHash: string;
   /** Versión declarada del módulo de autoría (DSL + compilador) que emitió. */
   autoriaVersion: string;
   /** Versión declarada del motor de layout canónico aplicado (re-pin la incrementa). */
