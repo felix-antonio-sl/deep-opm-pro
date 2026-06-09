@@ -8,7 +8,7 @@
 //   - las 5 oraciones EN REFLEXIÓN del operador siguen rechazadas;
 //   - idempotencia del normalizador intacta.
 //
-// SSOT de la decisión: `docs/proto-modelo/gramatica-subdialecto-v0.md` §«Familia V».
+// SSOT de la decisión: `gramatica-subdialecto-v0.md (retirado 2a83c1c5, en git)` §«Familia V».
 
 import { describe, expect, test } from "bun:test";
 import { compilarProto } from "./compilador";
@@ -389,7 +389,7 @@ Suspensión de la atención puede iniciar Cierre por alta disciplinaria o Cierre
 // (eran 5; «está acotado por» SALIÓ de la lista al ser ADJUDICADA — dov-dori
 // 2026-06-05 §1(d): V17 bifurcado por firma de extremos. Cobertura positiva en
 // `adjudicacion-dov-dori.test.ts` P2-d; acta en
-// `docs/proto-modelo/adjudicacion-dov-dori-2026-06-05.md`.)
+// `adjudicacion-dov-dori-2026-06-05.md (retirado 2a83c1c5, en git)`.)
 
 describe("EN REFLEXIÓN — las 4 oraciones del operador siguen rechazadas con diagnóstico", () => {
   const enReflexion: Array<[string, string]> = [

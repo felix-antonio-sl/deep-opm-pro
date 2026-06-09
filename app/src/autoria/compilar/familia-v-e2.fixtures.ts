@@ -1,12 +1,14 @@
 // Fixtures de equivalencia laxo↔E2 de la familia V (F2 de la migración a skill).
 //
-// Cada fixture nace del ledger F1 (`docs/proto-modelo/ledger-familia-v-skill.md`)
+// Cada fixture nace del ledger F1 (`ledger-familia-v-skill.md (retirado 2a83c1c5, en git)`)
 // y su `claseE2` está MEDIDA empíricamente (sonda 2026-06-07), no supuesta:
 //
 //   - `estricto-reverse`: existe una forma OPL-ES estricta REVERSE-parseable que
 //     compila SIN familia-V y produce el mismo modelo observable que la laxa.
 //     Son los verbos→verbo-del-enum (V4/V5/V7) y el evento de estado (V3).
-//     Estas reglas pueden migrar a la skill HOY (la skill emite la forma estricta).
+//     Estas 4 reglas YA SE RETIRARON del compilador (F5-parcial, 2026-06-08);
+//     la skill emite la forma estricta. Los fixtures se conservan como guarda
+//     de que el retiro fue limpio (laxo rechaza + E2 compila).
 //   - `requiere-decision`: el mapeo emite un tagged (solo-forward, el reverse no
 //     lo re-lee), un modificador condicion/evento sin superficie textual, o una
 //     ancla/abanico. Su "salida E2" NO es texto OPL-ES estricto → necesita una

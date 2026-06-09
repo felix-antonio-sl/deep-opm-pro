@@ -1,7 +1,7 @@
 // TDD de la compilación de anclas normativas del proto → `AnclaNormativa` (W5.2).
 //
 // Cubre los tres frentes del diseño adjudicado
-// (`docs/proto-modelo/diseno-ancla-normativa.md`):
+// (`diseno-ancla-normativa.md (retirado 2a83c1c5, en git)`):
 //
 //   (1) EXTRACCIÓN por forma inline en líneas de hecho (DS/NT/Ley, [RATIFICAR]),
 //       con strip que NO rompe el parseo de la oración limpia.
@@ -345,19 +345,20 @@ Proceso A requiere Objeto B (DS art. 12) [RATIFICAR #pend: dudoso].
     expect(a).toEqual(b);
   });
 
-  test("REENTRANCIA: la claveProto de cola condicional (V12 `según`) NO depende del estado del proceso", () => {
+  test("REENTRANCIA: la claveProto de cola condicional (V12 R4 `dentro del`) NO depende del estado del proceso", () => {
     // El contador de `cola-fina-N` debe vivir por-compilación, no módulo-global:
     // compilar el MISMO proto dos veces en el mismo proceso debe dar la MISMA clave.
     // (Bug detectado por el de-risking F4 2026-06-07: contador global no reentrante.)
-    // F5-V12: la cola `cuando` se retiró; el guard usa la cola `según` multi-destino
-    // sobreviviente (única forma viva que sigue produciendo `cola-fina-N` por V12).
+    // Auditoría 2026-06-09: las colas `cuando` (F5-V12) y `según` (pérdida silenciosa)
+    // se retiraron; R4 (`requiere X dentro del Y`) es la única forma viva que sigue
+    // produciendo `cola-fina-N` por V12.
     const PROTO_COLA = `# SD0 — cola fina
 
 \`\`\`opl
-Solicitud es un objeto informacional y sistémico.
-Solicitud puede estar 'aceptada', 'en espera' o 'rechazada'.
 Verificación es un proceso físico y sistémico.
-Verificación cambia Solicitud a 'aceptada', 'en espera' o 'rechazada' según Disponibilidad de admisión.
+Domicilio es un objeto físico y sistémico.
+Radio de cobertura es un objeto informacional y sistémico.
+Verificación requiere Domicilio dentro del Radio de cobertura.
 \`\`\`
 `;
     const a = enumerarAnclas(compilarProto(PROTO_COLA, { id: "c1" }).modelo).map((x) => x.claveProto).sort();

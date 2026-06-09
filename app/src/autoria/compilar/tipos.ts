@@ -1,6 +1,6 @@
 // Tipos del contrato del normalizador del sub-dialecto del proto-modelo (W1.2).
 //
-// SSOT de la gramatica: `docs/proto-modelo/gramatica-subdialecto-v0.md`.
+// SSOT de la gramatica: `gramatica-subdialecto-v0.md (retirado 2a83c1c5, en git)`.
 // El arbitro operativo de "estricto" es lo que `src/opl/parser/parsear.ts`
 // acepta sin diagnostico `unsupported-kernel` (ley L1). Este modulo es PURO:
 // sin IO, sin JointJS, sin Zustand. Solo transforma texto en una clasificacion.
@@ -26,7 +26,7 @@ export type CategoriaRechazo = "R1" | "R2" | "R3" | "R4" | "R5" | "R6" | "R7" | 
  *  operador (sesión W4.3-rechazos, 2026-06-04): mapeos de oraciones que el
  *  normalizador antes RECHAZABA (R1/R2/R3/R4/R6/R7) hacia primitivas OPM
  *  canónicas. Cada regla V se documenta en
- *  `docs/proto-modelo/gramatica-subdialecto-v0.md` §«Familia V». */
+ *  `gramatica-subdialecto-v0.md (retirado 2a83c1c5, en git)` §«Familia V». */
 export type ReglaT2 =
   | "A1" // distribuir esencia/afiliacion sobre lista de entidades
   | "A2" // estados: normalizar "en uno de los estados" (la realidad: STRIP)

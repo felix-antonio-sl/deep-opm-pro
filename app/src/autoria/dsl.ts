@@ -24,7 +24,7 @@
 // y (4) crean apariencia acoplada —el DSL separa `entidad()` de `ver()`. Pasar entidades por el
 // kernel sin re-pin del golden es imposible hoy; queda como deuda para cuando se versione el bundle.
 //
-// W4.1 (Tanda 1 del inventario `docs/proto-modelo/inventario-primitivas-dsl.md`) — primitivas
+// W4.1 (Tanda 1 del inventario `inventario-primitivas-dsl.md (retirado 2a83c1c5, en git)`) — primitivas
 // ADITIVAS que delegan 1:1 a operaciones del kernel ya existentes. Ninguna altera el comportamiento
 // de los métodos previos (verificado por byte-identidad del golden HODOM, que no las usa). Seis
 // primitivas: (1) `abanico()` → `formarAbanico` (cierra la exclusión rectora L2 #30); (2)

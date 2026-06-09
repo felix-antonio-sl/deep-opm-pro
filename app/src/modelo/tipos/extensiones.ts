@@ -42,7 +42,7 @@ export interface SatisfaccionRequisito {
 // de procedencia normativa del autor sobre el modelo. NO es una cuarta primitiva
 // ontológica (R-DOC-7: es *extensión declarada*; V-204: contenido meta del autor);
 // NO emite OPL nuclear (R-BR-4); NO cuenta como cosa; NO altera `validarModelo`
-// nuclear. Diseño adjudicado v0: docs/proto-modelo/diseno-ancla-normativa.md.
+// nuclear. Diseño adjudicado v0: diseno-ancla-normativa.md (retirado 2a83c1c5, en git).
 
 /**
  * Una referencia normativa atómica (una sola norma). Los rangos de artículos del

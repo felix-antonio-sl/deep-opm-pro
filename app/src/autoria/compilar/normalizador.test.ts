@@ -349,13 +349,16 @@ describe("estructura — `se descompone en` / `se despliega en`", () => {
 // El operador decidió mapear las colas `cuando`/`según` (V12) y el guard
 // compuesto (V13) hacia primitivas OPM. Estas oraciones ya NO se rechazan.
 
-describe("V12/V13 — colas condicionales y guard compuesto se mapean (antes R1)", () => {
-  test("multi-destino `según` SIGUE siendo V12 (G-abanico diferido tras F5-V12)", () => {
+describe("V13 — guard compuesto se mapea; colas condicionales (cuando/según) RETIRADAS", () => {
+  test("`según` YA NO se mapea por V12 (la forma producía pérdida silenciosa con el objeto declarado)", () => {
+    // Bug auditado 2026-06-09: el path `según` tiraba enlaces+ancla en silencio
+    // cuando el objeto de la cola estaba declarado (HODOM real l.1594). Retirado:
+    // el abanico multi-destino se modela estricto (sin `según`); la correspondencia
+    // estado→rama es decisión de dominio (condición estructural o [RATIFICAR]).
     const l = una(
       "Verificación cambia Solicitud a 'aceptada', 'en espera' o 'rechazada' según Disponibilidad de admisión.",
     );
-    expect(l.clase).toBe("compuesta");
-    if (l.clase === "compuesta") expect(l.regla).toBe("V12");
+    expect(l.clase).not.toBe("compuesta");
   });
 
   test("`cuando` YA NO se mapea por V12 (F5-V12: skill emite E2 explícito, no puente silencioso)", () => {

@@ -4,7 +4,7 @@
 //           por una pasada previa).
 // Salida:   una `LineaNormalizada[]` (puede expandir una linea a varias: A1, A6).
 //
-// SSOT:     `docs/proto-modelo/gramatica-subdialecto-v0.md`.
+// SSOT:     `gramatica-subdialecto-v0.md (retirado 2a83c1c5, en git)`.
 // Arbitro:  `src/opl/parser/parsear.ts` — una oracion es "estricta" si el parser
 //           la acepta sin `unsupported-kernel` (ni `syntax-error`). El
 //           normalizador apunta a las formas estrictas REALES verificadas contra
@@ -436,8 +436,8 @@ function detectarRechazoTemprano(sinPunto: string): { categoria: CategoriaRechaz
 // línea `normalizada` (1:1) o `compuesta` (1:N emisiones, opcionalmente con
 // abanico). Las que conservan superficie de parser emiten `{via:"oracion"}`; las
 // que el parser reverse no sabe re-leer (tagged, modificador con gatillo,
-// anotaciones) emiten `{via:"directiva"}`. Ver `docs/proto-modelo/
-// gramatica-subdialecto-v0.md` §«Familia V».
+// anotaciones) emiten `{via:"directiva"}`. Ver `gramatica-subdialecto-v0.md`
+// (retirado 2a83c1c5, en git) §«Familia V».
 
 // ── R8: nombre plural sin sufijo Conjunto/Grupo (adjudicación (a)) ───────────
 // Señal: verbo copular PLURAL `son` + esencia/afiliación, con sujeto que A1 no
@@ -492,7 +492,7 @@ const ora = (oracion: string): Emision => ({ via: "oracion", oracion: asegurarPu
 /** Despacha una oración a su mapeo de familia V, o null si ninguno aplica.
  *
  *  F5-parcial (2026-06-08): V3/V4/V5/V7 RETIRADAS. El de-risking
- *  (`docs/proto-modelo/derisk-f4-migrables.md`) probó que su forma E2 estricta
+ *  (`derisk-f4-migrables.md (retirado 2a83c1c5, en git)`) probó que su forma E2 estricta
  *  (`inicia` / `requiere` / `genera` / `invoca`) compila por la ruta canónica
  *  produciendo el MISMO modelo observable y bundle byte-idéntico — la skill las
  *  emite directo en E2, sin puente legacy. Las laxas ahora rechazan ruidoso
@@ -504,7 +504,7 @@ function mapearFamiliaV(sinPunto: string, contexto: ContextoProto): LineaNormali
     mapearGuardCompuesto(sinPunto, contexto) ?? // V13 (antes que R1/R2)
     mapearTsODisyuncion(sinPunto, contexto) ?? // V14
     mapearInicioDisyuncion(sinPunto, contexto) ?? // V15 (incluye `puede iniciar A o B`)
-    mapearColaCondicional(sinPunto, contexto) ?? // V12 (antes que R1)
+    mapearRequiereDentro(sinPunto) ?? // V12/R4 `requiere … dentro del …` (antes que R1)
     mapearHabilita(sinPunto, contexto) ?? // V1 / V11
     mapearRestringe(sinPunto, contexto) ?? // V2
     mapearCapacidad(sinPunto) ?? // V6
@@ -577,7 +577,7 @@ function mapearRestringe(sinPunto: string, contexto: ContextoProto): LineaNormal
 // V3/V4/V5/V7 RETIRADAS en F5-parcial (2026-06-08) — ver cabecera de
 // `mapearFamiliaV`. Su forma E2 estricta (`inicia`/`requiere`/`genera`/`invoca`)
 // compila por la ruta canónica; la laxa rechaza ruidoso (R3/R7). La evidencia de
-// equivalencia byte-idéntica vive en `docs/proto-modelo/derisk-f4-migrables.md`.
+// equivalencia byte-idéntica vive en `derisk-f4-migrables.md (retirado 2a83c1c5, en git)`.
 // `puede iniciar A o B` lo mantiene V15 (mapearInicioDisyuncion).
 
 // ── V6: `compromete`/`libera` → afecta + verbo original en etiqueta ─────────
@@ -712,73 +712,28 @@ function mapearAcotadoPor(sinPunto: string): LineaNormalizada | null {
   ]);
 }
 
-// ── V12 (estrechado por F5-V12): cola `según` multi-destino o R4 ─────────────
-// `<hecho principal> según <cola>` → compila el hecho principal y adjunta la
-// cola como ancla pendiente. También R4: `requiere Domicilio dentro del Radio`.
+// ── V12 R4: `<proceso> requiere <objeto> dentro del <ámbito>` ────────────────
+// Compila `requiere <objeto>` + la cola `dentro del <ámbito>` como ancla pendiente.
 //
-// F5-V12 (2026-06-08): RETIRADA la cola `cuando` — la skill emite ahora la TS/
-// efecto estricto + `[RATIFICAR: …]` explícito (P3: el compilador verifica, no
-// puentea en silencio). La cola `según` SOBREVIVE porque su única forma viva es
-// el abanico multi-destino (`a 'a','b' o 'c' según …`), diferido a G-abanico.
-const COLA_SEGUN_RE = /^(.+?)\s+(seg[uú]n\s+.+)$/iu;
-
-function mapearColaCondicional(sinPunto: string, contexto: ContextoProto): LineaNormalizada | null {
+// Colas condicionales RETIRADAS: `cuando` (F5-V12, 2026-06-08) y `según`
+// (auditoría 2026-06-09 — el path `según` producía PÉRDIDA SILENCIOSA de
+// enlaces+ancla cuando el objeto de la cola estaba declarado, p.ej. HODOM
+// `… a 'a','b' o 'c' según Disponibilidad de admisión`). La skill emite ahora la
+// forma estricta + `[RATIFICAR: …]` explícito (P3: el compilador verifica, no
+// puentea en silencio); el abanico multi-destino se modela estricto sin `según`.
+function mapearRequiereDentro(sinPunto: string): LineaNormalizada | null {
   // R4: `<proceso> requiere <objeto> dentro del <ámbito>` (estado no declarado
   // del corpus). Compila `requiere <objeto>` + cola `dentro del <ámbito>`.
   const r4 = /^(.+?)\s+requiere\s+(.+?)\s+(dentro\s+del?\s+.+)$/iu.exec(sinPunto);
-  if (r4) {
-    const proceso = (r4[1] ?? "").trim();
-    const objeto = (r4[2] ?? "").trim();
-    const cola = (r4[3] ?? "").trim();
-    // La directiva `hecho-anotado` emite la oración principal Y adjunta la cola
-    // sobre el enlace que crea (no duplicar con un `ora()` aparte).
-    return compuesta(sinPunto, "V12", [
-      dir({ tipo: "hecho-anotado", oracion: `${proceso} requiere ${objeto}`, colaAnotada: cola }),
-    ]);
-  }
-
-  // NO capturar oraciones ESTRUCTURALES (`consta de`/`exhibe`/`se descompone`):
-  // un `según prestaciones` tras una lista `consta de … y Otros profesionales` es
-  // una cola informal de lista (R6, en reflexión del operador), no una cola
-  // condicional de un hecho procedural.
-  if (/\b(consta\s+(?:tambi[eé]n\s+)?de|exhibe[n]?|se\s+(?:descompone|despliega))\b/iu.test(sinPunto)) return null;
-
-  const m = COLA_SEGUN_RE.exec(sinPunto);
-  if (!m) return null;
-  let principal = (m[1] ?? "").trim();
-  const cola = (m[2] ?? "").trim();
-
-  // El guard compuesto `con Y 'b'` lo maneja V13; aquí solo `según`.
-  // Si el principal trae `, o inicia` lo dejamos a V14.
-  if (/,\s*o\s+inicia\b/iu.test(principal)) return null;
-
-  principal = principal.replace(/,\s*$/u, "").trim();
-  void contexto;
-
-  // El principal puede ser una TS MULTI-DESTINO (`cambia X a 'a', 'b' o 'c'`),
-  // que el parser no acepta en una sola oración: la expandimos a una TS por
-  // destino (espejo de A6). Las primeras N-1 emiten como oración; la ÚLTIMA va por
-  // `hecho-anotado` (emite la oración Y adjunta la cola sobre su enlace — sin
-  // duplicar). Si el principal es 1:1, la única emisión es la `hecho-anotado`.
-  const oraciones = expandirTsMultidestino(principal);
-  const emisiones: Emision[] = oraciones.slice(0, -1).map((o) => ora(o));
-  emisiones.push(dir({ tipo: "hecho-anotado", oracion: asegurarPunto(oraciones[oraciones.length - 1]!), colaAnotada: cola }));
-  return compuesta(sinPunto, "V12", emisiones);
-}
-
-/** Expande `P cambia X a 'a', 'b' o 'c'` en N oraciones TS (una por destino).
- *  Si no es multi-destino, devuelve la oración tal cual (un único elemento). */
-function expandirTsMultidestino(principal: string): string[] {
-  const m = /^(.+?)\s+cambia\s+(.+?)\s+a\s+(.+)$/iu.exec(principal);
-  if (m && !/\bde\b/iu.test(m[2] ?? "")) {
-    const estados = dividirEstados(m[3] ?? "");
-    if (estados.length >= 2) {
-      const proceso = (m[1] ?? "").trim();
-      const objeto = (m[2] ?? "").trim();
-      return estados.map((e) => asegurarPunto(`${proceso} cambia ${objeto} a ${e}`));
-    }
-  }
-  return [asegurarPunto(principal)];
+  if (!r4) return null;
+  const proceso = (r4[1] ?? "").trim();
+  const objeto = (r4[2] ?? "").trim();
+  const cola = (r4[3] ?? "").trim();
+  // La directiva `hecho-anotado` emite la oración principal Y adjunta la cola
+  // sobre el enlace que crea (no duplicar con un `ora()` aparte).
+  return compuesta(sinPunto, "V12", [
+    dir({ tipo: "hecho-anotado", oracion: `${proceso} requiere ${objeto}`, colaAnotada: cola }),
+  ]);
 }
 
 // ── V13: guard compuesto `X en 'a' con Y 'b' inicia P` ──────────────────────

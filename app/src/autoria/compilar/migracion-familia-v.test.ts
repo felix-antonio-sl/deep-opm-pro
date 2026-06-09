@@ -1,9 +1,9 @@
 // F2 de la migración familia-V → skill `modelamiento-opm` (normalizar-proto).
 //
-// Contrato: `docs/proto-modelo/contrato-migracion-familia-v-skill.md` (F2 =
+// Contrato: `contrato-migracion-familia-v-skill.md (retirado 2a83c1c5, en git)` (F2 =
 // "pares proto laxo familia-V → proto E2 estricto y resultado equivalente, sin
 // cambiar comportamiento del compilador"). Ledger F1:
-// `docs/proto-modelo/ledger-familia-v-skill.md`.
+// `ledger-familia-v-skill.md (retirado 2a83c1c5, en git)`.
 //
 // IDEA CLAVE (determinismo sin LLM): F2 NO ejecuta la skill. Codifica la salida
 // E2 esperada como texto y verifica, por cada regla V, que la ruta E2 produce el
@@ -61,7 +61,7 @@ describe("usoFamiliaV — cuenta entradas con regla V del ledger", () => {
 });
 
 // ── Primera ola: migrable-estricto RETIRADA en F5-parcial (2026-06-08) ────────
-// El de-risking (`docs/proto-modelo/derisk-f4-migrables.md`) probó equivalencia
+// El de-risking (`derisk-f4-migrables.md (retirado 2a83c1c5, en git)`) probó equivalencia
 // byte-idéntica laxo↔E2 para V3/V4/V5/V7 y autorizó retirar sus mappers. Ya NO
 // existe la ruta laxa contra la cual comparar: la equivalencia F2 cumplió su
 // función. Lo que queda es la GUARDA DE RETIRO — la laxa ya no se puentea

@@ -3,7 +3,7 @@ import { crearAutor } from "./dsl";
 import { generarOpl } from "../opl/generar";
 
 /**
- * W4.1 (Tanda 1 del inventario `docs/proto-modelo/inventario-primitivas-dsl.md`) — primitivas
+ * W4.1 (Tanda 1 del inventario `inventario-primitivas-dsl.md (retirado 2a83c1c5, en git)`) — primitivas
  * ADITIVAS del DSL que delegan 1:1 a operaciones del kernel ya existentes. Por cada primitiva:
  *   (i)   caso feliz: el efecto queda en el modelo emitido,
  *   (ii)  caso de error: el kernel rechaza la construcción ilegal (no es un test siempre-verde),

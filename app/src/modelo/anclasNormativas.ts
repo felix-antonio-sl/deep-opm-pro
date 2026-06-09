@@ -1,7 +1,7 @@
 // Helpers de kernel para la extensión AnclaNormativa (W5.1). Puro: sin JointJS, sin DOM,
 // sin Zustand. La AnclaNormativa es *extensión declarada* (R-DOC-7), contenido meta del
 // autor (V-204): NO emite OPL nuclear, NO cuenta como cosa, NO altera validarModelo nuclear.
-// Diseño adjudicado v0: docs/proto-modelo/diseno-ancla-normativa.md.
+// Diseño adjudicado v0: diseno-ancla-normativa.md (retirado 2a83c1c5, en git).
 import type { AnclaNormativa, Id, Modelo, TargetAncla } from "./tipos";
 
 /**

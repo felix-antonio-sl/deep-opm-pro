@@ -1,77 +1,45 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-06-08 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
+**Fecha**: 2026-06-09 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
 **Corte de producto vigente (2026-06-06)**: persistencia OPM backend-only desplegada con optimistic locking y corte C5 de erradicación de storage navegador ya en producción. Modelos, versiones, workspace/carpetas, recientes, autosave, ownership y revisión viven en Postgres/API; no hay cache, fallback ni recuperación legacy desde storage del navegador.
 **Instancia**: `https://opforja.sanixai.com` — pública sin auth perimetral. **BLINDAJE EJECUTADO 2026-06-06**: secrets reales rotados, volumen Postgres recreado limpio, **backup diario** `pg_dump` con retención 14d, **rate-limit nginx** por IP real. **Persistencia C1-C5 desplegada 2026-06-06**: backend/API/Postgres son SSOT única. Auth/tenants real sigue pendiente como próximo corte mayor.
-**Frentes desplegados**: canvas infinito (2026-06-03), mobile solo-lectura v1 (2026-06-06), paneles OPL/Inspector hideables y resizable (2026-06-08), migración familia-V→skill F5-parcial (2026-06-08).
+**Frentes desplegados**: canvas infinito (2026-06-03), mobile solo-lectura v1 (2026-06-06), paneles OPL/Inspector hideables y resizable (2026-06-08). **Migración familia-V→skill**: fase activa de retiro cerrada (V3/V4/V5/V7 + colas `cuando`/`según`); ver § Estado de la migración familia-V→skill.
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2.
 
 > **Historia completa**: las actualizaciones anteriores a 2026-06-06 están en la historia git.
 
 ---
 
-## Actualización 2026-06-08 — migración familia-V→skill F5-parcial (V3/V4/V5/V7 RETIRADAS del compilador)
+## Estado de la migración familia-V→skill (consolidado, actualizado 2026-06-09)
 
-**Estado:** F5-parcial cerrado. Retiradas las 4 reglas migrable-estricto (V3/V4/V5/V7) de `mapearFamiliaV` (`src/autoria/compilar/normalizador.ts`), tras migrar las 7 líneas del proto HODOM a su forma E2 estricta.
+`mapearFamiliaV` (`src/autoria/compilar/normalizador.ts`) es el adaptador legacy que puentea formas OPL laxas del proto-modelo al modelo. La migración retira reglas del puente conforme la skill `modelamiento-opm` emite la forma E2 estricta — principio **P3: «compilador = verificador, no puenteador silencioso»**. Los docs de trabajo `docs/proto-modelo/*` se retiraron (commit `2a83c1c5`); el SSOT del estado es **esta sección + la historia git + los fixtures/tests** (`familia-v-e2.fixtures.ts` = ledger ejecutable; `migracion-familia-v.test.ts` = guardas de retiro).
 
-**Cambio (dos pasos):**
-1. **Proto HODOM** (`/home/felix/projects/hd-opm/docs/modelo-opm-hodom-completo.md`, SSOT de dominio): 7 líneas laxo→E2. Aplicadas vía script auto-verificante `app/scripts/aplicar-f5-parcial-hodom.ts`.
-2. **Compilador**: retiradas `mapearPuedeIniciar`/`mapearAlimenta`/`mapearDetecta`/`mapearPrecedeA` + sus regexes + las 4 líneas de despacho.
+**Fase activa de retiro — CERRADA (3 retiros):**
+- **V3/V4/V5/V7** (F5-parcial, 2026-06-08): tenían E2 estricta byte-idéntica; 7 líneas HODOM migradas (`aplicar-f5-parcial-hodom.ts`). Retiradas `mapearPuedeIniciar/Alimenta/Detecta/PrecedeA`.
+- **Cola `cuando`** (F5-V12, `f3421906`, 2026-06-09): era ancla meta (no OPM nuclear — el spike probó que vive fuera del plano bimodal; su canal reverse es `re-elicitar`, no el parser). 4 líneas HODOM → E2 + `[RATIFICAR]` (`aplicar-f5-v12-hodom.ts`, idempotente, guarda −4/0/4). Tabla abajo.
+- **Cola `según`** (auditoría 2026-06-09): **era un bug de pérdida silenciosa** — tiraba enlaces+ancla sin error cuando el objeto de la cola estaba declarado (HODOM real l.1594 `… a 'a','b' o 'c' según Disponibilidad de admisión` → 0 enlaces). Ahora **rechaza ruidoso**. `mapearColaCondicional` renombrada `mapearRequiereDentro` (solo R4 `dentro del` sobrevive ahí); `expandirTsMultidestino` eliminada (muerta).
 
-**Contrato nuevo (verificado):** la forma laxa de las 4 ahora **rechaza ruidoso**. La E2 estricta compila por la ruta canónica produciendo el mismo modelo observable.
+Contrato: las formas laxas retiradas **rechazan ruidoso**; la E2 estricta compila por la ruta canónica con el mismo modelo observable. Golden DSL hd-opm **byte-idéntico** (independiente del proto). Gate **2335/0**, lint limpio.
 
-**Verificación:** `cd app && bun run check` → **2325 pass / 0 fail**; `bun run lint` limpio. Golden hd-opm v1.6 regenerado byte-idéntico.
+**Las 4 líneas `cuando` migradas (F5-V12):**
+| Forma laxa (`cuando`, ahora rechazada) | Forma E2 estricta emitida por la skill |
+|---|---|
+| `cambia Indicación médica a 'cumplida' cuando se completa la orden` | `cambia Indicación médica a 'cumplida'. [RATIFICAR: se completa la orden]` |
+| `requiere Voluntad anticipada vigente cuando la decisión puede escalar` | `requiere Voluntad anticipada en estado 'vigente'. [RATIFICAR: la decisión puede escalar — Ley 20.584]` |
+| `cambia Indicación médica a 'suspendida' cuando supersede una indicación previa` | `cambia Indicación médica a 'suspendida'. [RATIFICAR: supersede una indicación previa]` |
+| `genera Evento adverso cuando detecta una IAAS` | `genera Evento adverso. [RATIFICAR: detecta una IAAS]` |
 
-**Prompt breve de continuación:** "F5-parcial cerrado. Frentes abiertos gateados: (b) transporte de las 12 requiere-decisión, empezar por V12; (c) corte mayor auth/tenants. No tocar el resto de `mapearFamiliaV` sin (b)."
+**Resto = legacy estable (NO en migración activa):** las 11 reglas requiere-decisión (`V1 V2 V6 V8 V9 V10 V11 V13 V14 V15 V16 V17`) siguen en `mapearFamiliaV` como legacy. El **método para migrar cualquiera está fijado por el spike**: ¿la forma es **OPM nuclear** (estructura con glifo+oración bimodal) → modelar estricto (Opción 1); o **meta/pendiente** (ancla, sin superficie bimodal) → `[RATIFICAR]`/legacy (Opción 2/3)? No hay corte agendado; **no tocar `mapearFamiliaV` sin decisión del operador**.
 
-## Actualización 2026-06-08 — migración familia-V→skill F5-V12 (cola `cuando` retirada de V12, 4 líneas HODOM migradas a E2+RATIFICAR)
-
-**Estado:** F5-V12 cerrado. Estrechada V12 en el compilador: retirada la cola `cuando` del regex de `mapearColaCondicional` (`normalizador.ts:720`). La cola `según` multi-destino y R4 (`dentro del`) sobreviven. Las 4 líneas `cuando` del proto HODOM migradas a forma E2 estricta + `[RATIFICAR: ...]` explícito.
-
-**Cambio (dos pasos):**
-1. **Compilador** (`normalizador.ts`): eliminado `COLA_CUANDO_RE` del dispatch V12. `cuando` ahora **rechaza ruidoso** (la skill debe emitir TS/efecto/requiere estricto + `[RATIFICAR]` explícito). Principio P3: compilador = verificador, no puenteador silencioso.
-2. **Proto HODOM** (SSOT `hd-opm`): 4 líneas migradas vía script auto-verificante `app/scripts/aplicar-f5-v12-hodom.ts` (idempotente, guarda: −4 rechazos / 0 nuevos / 4 anclas RATIFICAR presentes).
-
-**Las 4 líneas migradas:**
-| Línea | Forma laxa (`cuando`, rechazada) | Forma E2 estricta |
-|---|---|---|
-| `cambia Indicación médica a 'cumplida' cuando se completa la orden` | Cola tautológica | `cambia Indicación médica a 'cumplida'. [RATIFICAR: se completa la orden]` |
-| `requiere Voluntad anticipada vigente cuando la decisión puede escalar` | Estado pegado como adjetivo | `requiere Voluntad anticipada en estado 'vigente'. [RATIFICAR: la decisión puede escalar — Ley 20.584]` |
-| `cambia Indicación médica a 'suspendida' cuando supersede una indicación previa` | Regla de negocio | `cambia Indicación médica a 'suspendida'. [RATIFICAR: supersede una indicación previa]` |
-| `genera Evento adverso cuando detecta una IAAS` | Cola informativa | `genera Evento adverso. [RATIFICAR: detecta una IAAS]` |
-
-**Decisiones del operador (2026-06-08):**
-- Línea 2: condición de estado estricta `en estado 'vigente'` + ancla normativa Ley 20.584 (Q3).
-- Línea 7 (`se ejecuta solo cuando la atención incluye un medicamento de alto riesgo`): descartada del slice; es prosa comentario, no OPL compilable. El probe la reportó como match de regex pero no está en bloque ` ```opl `.
-- Línea 4 (`por una Causal de exclusión`): NO era V12 (clasificada `estricta` por el compilador; `por una` no matchea los regex de V12). El paso hermano propuesto (`requiere Causal`) queda **descartado**: supersedido por el re-modelado activo del operador (split `Causal de exclusión` XOR-4 + `Requisito de ingreso incumplido` XOR-3, D-drift-4).
-- **G-abanico** (línea 6, `según Disponibilidad de admisión`): diferido a mini-spike futuro. Sigue en V12 como única forma sobreviviente de `según` multi-destino.
-
-**Verificación:**
-- `cd app && bun run check` → **2333 pass / 0 fail**
-- `bun run lint` limpio.
-- Script `aplicar-f5-v12-hodom.ts` idempotente: guarda −4/0/4.
-- Tests volteados al contrato nuevo: `normalizador.test.ts` (`cuando` ya no mapea V12), `familia-v.test.ts` (`cuando` no produce ancla silenciosa), `anclas.test.ts` (reentrancia re-apuntada a `según` sobreviviente).
-- Golden DSL hd-opm byte-idéntico (el golden es independiente del proto; no se mueve).
-
-**Pendientes F5-V12:**
-- Línea 6 G-abanico (`según Disponibilidad de admisión`) — mini-spike aparte.
-- Línea 7 (`se ejecuta solo cuando`) — prosa, no OPL; fuera del pipeline del compilador.
-
-**Prompt breve de continuación:** "F5-V12 cerrado (cola `cuando` retirada de V12, 4 líneas HODOM migradas a E2+RATIFICAR). Frentes abiertos: G-abanico (línea 6 `según Disponibilidad`) como mini-spike, luego las 11 requiere-decisión restantes. No tocar `mapearFamiliaV` sin decisión del operador."
+**Pendientes de dominio (hd-opm, WIP del operador — NO tocar desde deep-opm-pro):**
+- Línea 1594 (`según Disponibilidad`) ahora rechaza ruidoso: necesita modelado estricto (abanico 3-vías + correspondencia estado→rama, p.ej. condición estructural o `[RATIFICAR]`) — cae en el re-modelado activo de admisión (Causal/Requisito de ingreso).
+- Línea `se ejecuta solo cuando … medicamento de alto riesgo`: prosa, no OPL compilable; sin acción.
 
 ## Actualización 2026-06-08 — BUGs paneles OPL/Inspector hideables y resizable
 
 **Estado:** ambos bugs resueltos y desplegados en producción. Panel OPL izquierdo resizable horizontalmente (160–400px); ambos paneles se pueden ocultar/mostrar vía botones en headers. Bundle vigente `assets/index-C8dIvPcf.js`. **Validado por operador 2026-06-08.**
 
 **Pendientes:** posible persistencia del estado de visibilidad; atajo de teclado para toggle; posible animación CSS.
-
-## Actualización 2026-06-08 — migración familia-V→skill F3 (auditoría usoFamiliaV)
-
-**Estado:** F3 cerrado. Instrumentación de auditoría `usoFamiliaV` no bloqueante. Mapa de dependencia real medido: HODOM 27 usos (7 migrable-estricto + 20 requiere-decisión).
-
-## Actualización 2026-06-07 — migración familia-V→skill F2 (equivalencia ejecutable)
-
-**Estado:** F2 cerrado. Clasificación medida empíricamente: V3/V4/V5/V7 migrable-estrictas, 12 requieren decisión de transporte. 25 tests verdes.
 
 ## Actualización 2026-06-06 — mobile solo-lectura v1 Fases 0-5 DESPLEGADAS
 

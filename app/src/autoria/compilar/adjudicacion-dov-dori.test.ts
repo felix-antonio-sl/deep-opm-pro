@@ -1,5 +1,5 @@
 // TDD de la adjudicación dov-dori 2026-06-05 sobre los 5 hallazgos del segundo
-// dominio (`docs/proto-modelo/adjudicacion-dov-dori-2026-06-05.md`).
+// dominio (`adjudicacion-dov-dori-2026-06-05.md (retirado 2a83c1c5, en git)`).
 //
 // Lección rectora (§1 síntesis): un compilador honesto RECONOCE FORMAS y RECHAZA
 // lo que no reconoce; no enumera instancias ni absorbe lo ambiguo.

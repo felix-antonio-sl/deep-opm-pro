@@ -1,5 +1,5 @@
 // W5.1 — round-trip, validación, byte-identidad y clave estable de AnclaNormativa.
-// Las cuatro leyes operacionalizadas por el diseño v0 (docs/proto-modelo/diseno-ancla-normativa.md §7):
+// Las cuatro leyes operacionalizadas por el diseño v0 (diseno-ancla-normativa.md (retirado 2a83c1c5, en git) §7):
 //   L8 — toda ancla del proto se compila a AnclaNormativa enumerable (round-trip nivel-ENLACE).
 //   L8 negativo — target irresoluble ⇒ rechazo con diagnóstico (no exclusión silenciosa).
 //   L9 — la clave estable sobrevive a la edición de la nota (id-explícito vs hash).
