@@ -197,16 +197,15 @@ Gate **2388/0 · typecheck estricto · lint limpio**.
 
 ## Frentes abiertos (orden sugerido)
 
-1. **H2 — aserción de reproducibilidad / golden-harness** (upstream hd-opm P1). `verificarReproducibilidad(autor, bundleEsperado)` invocable en CI; reemplaza el `md5sum` manual del dogfood byte-idéntico. (El `procedencia.json` que emite `render:headless` es su semilla.)
-2. **Transporte familia-V→skill** — las 12 requiere-decisión (empezar por V12): superficie reverse / emisión estructurada / legacy permanente.
-3. **Auth/tenants real** — identidad, login, administración de tenants, invitaciones/roles, ownership compuesto.
-4. **GAPs de alineación OPD** — backlog en `docs/roadmap/` §22 de spec-forja-opd-es.
-5. **F1.9 responsive canónico** — consolidar 3 anchos en `ui-forja/tokens.css` + refactor de la barra + 2-3 archivos relacionados. Estimado: 1 sesión.
-6. **F1.21 barra en mobile-no-readonly** — gatear render en `App.tsx:195`. Estimado: <30 min, blast radius 1 archivo.
-7. **F1.22 panel de ayuda con atajo `?`** — overlay de ayuda + atajos del producto. Estimado: 1 sesión, blast radius 1-2 archivos (modal + atajos).
-8. **H5 — azúcar `aparecerEnlacePorTransicion`** (upstream hd-opm P3, menor) — lookup de multi-edge por transición en la librería; complementa F1.
+1. **Transporte familia-V→skill** — las 12 requiere-decisión (empezar por V12): superficie reverse / emisión estructurada / legacy permanente.
+2. **Auth/tenants real** — identidad, login, administración de tenants, invitaciones/roles, ownership compuesto.
+3. **GAPs de alineación OPD** — backlog en `docs/roadmap/` §22 de spec-forja-opd-es.
+4. **F1.9 responsive canónico** — consolidar 3 anchos en `ui-forja/tokens.css` + refactor de la barra + 2-3 archivos relacionados. Estimado: 1 sesión.
+5. **F1.21 barra en mobile-no-readonly** — gatear render en `App.tsx:195`. Estimado: <30 min, blast radius 1 archivo.
+6. **F1.22 panel de ayuda con atajo `?`** — overlay de ayuda + atajos del producto. Estimado: 1 sesión, blast radius 1-2 archivos (modal + atajos).
+7. **H5 — azúcar `aparecerEnlacePorTransicion`** (upstream hd-opm P3, menor) — lookup de multi-edge por transición en la librería; complementa F1.
 
-> **H1 (render headless del proto/modelo → PNG+SVG por OPD) — HECHO 2026-06-09**, rama `feat/render-headless-h1`. Ver `docs/render-headless.md` y la § de actualización abajo. NO desplegado (herramienta dev/CLI; el hook se elimina por DCE en prod).
+> **Observabilidad del agente (upstream hd-opm) — H1 + H2 HECHOS 2026-06-09.** **H1** render headless del proto/modelo → PNG+SVG por OPD (`docs/render-headless.md`; corte 1 en `main` `9a88cc1f` + corte 2 skill `modelamiento-opm` v1.6.0 en KORA `f3163e5`). **H2** golden-harness de reproducibilidad: `src/autoria/reproducibilidad.ts` + CLI `bun run verify:reproducible` (`docs/verify-reproducible.md`, rama `feat/verify-reproducible-h2` `8c9465b4`), reemplaza el `md5sum` manual. Ninguno desplegado (herramientas dev/CLI). Queda **H5** (azúcar, P3).
 
 ## Riesgos activos
 
