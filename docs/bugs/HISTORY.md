@@ -11,19 +11,20 @@ cualquier ID, activo o archivado.
 | Alcance / Estado | Cantidad |
 |---|---:|
 | Activo / Nuevo | 4 |
-| Activo / Resuelto | 113 |
+| Activo / Resuelto | 114 |
 
 ## Resumen Por Tipo
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 112 |
+| Activo / Bug | 113 |
 | Activo / Feat | 5 |
 
 ## Ledger Completo
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Resuelto | [BUG-20260609T032249Z-2c59cf](BUG-20260609T032249Z-2c59cf/report.md) | 2026-06-09 03:22Z | Modelo / SD | al hacer el gesto para desplazar el canvas hacia la izquierda, al llegar al limite, si lo hago de nuevo retrocede el navegador. | El swipe horizontal del trackpad en macOS/Chrome disparaba el back del navegador al sobrepasar el limite de scroll del canvas. Ca… | 0 | Verificado in-vivo (dev server) que getComputedStyle de documentElement y body devuelve overscroll-behavior-x: none. La confirmacion final del gesto requiere trackpad macOS (operador). |
 | Activo | Bug | Resuelto | [BUG-20260608T171552Z-17477a](BUG-20260608T171552Z-17477a/report.md) | 2026-06-08 17:15Z | Laboratorio complejo de simulacion OPM 2 / SD1 - Orquestacion simulable del despacho critico | diferenciar secciones y funciones (por ejemplo botones que parezcan más botones) sin perder canon visul ni ux | La barra de simulacion ahora diferencia visualmente botones (hairline rule + inkMid + height 26 alineado con segmented) de labels… | 1 |  |
 | Activo | Bug | Resuelto | [BUG-20260607T224342Z-a8e599](BUG-20260607T224342Z-a8e599/report.md) | 2026-06-07 22:43Z | Laboratorio complejo de simulacion OPM 2 / SD - Laboratorio de despacho critico | ahora cuadra bien, sin embargo tenemos que mejorar 2 cosas : 1.- el contenedor de simulación debe diferenciarse visualmente del resto de la UI. Ahora… | La barra de simulacion (a) se confundia con el resto del chrome (fondo paper igual al header, sin limites claros) y (b) cubria lo… | 1 | Cambios: CodexCanvasMount.tsx nueva prop topbar; App.tsx pasa BarraSimulacion como topbar en sim mode; BarraSimulacion.tsx elimina s.barraOverlayDesktop y agrega s.barraSpine + s.tagDot + actualiza s.barra (paperWarm + borderTop crimson) y s.narrativa (paper). Tests: 17/17 pass (12 previos + 5 nuevos en describe 'BarraSimulacion canvas-frame' que anclan position relative, background paperWarm, borderTop 2px crimson, s.barraSpine position absolute + width 3 + linear-gradient crimson, s.tagDot 6x6 crimson circular, s.tag mono uppercase 0.12em font-weight 700, s.narrativa background paper). typecheck/build/lint/design:governance limpios. Sonda app/scripts/sonda-bug-a8e599.mjs valida en runtime: barra dentro del canvas (left/right coinciden con canvas ±1px), position no es fixed, spines izq+der presentes, borderTop con crimson, live-dot 6x6 presente, y elementFromPoint sobre btn-ocultar-opl/btn-ocultar-inspector retorna el boton (no estan cubiertos). Mockups: docs/bugs/BUG-20260607T224342Z-a8e599/mockup-3-estados.html (Actual/B/C) y mockup-despues.html (estado final). |
 | Activo | Bug | Resuelto | [BUG-20260607T220340Z-42c24c](BUG-20260607T220340Z-42c24c/report.md) | 2026-06-07 22:03Z | Laboratorio complejo de simulacion OPM 2 / SD - Laboratorio de despacho critico | quedó mal puesto el encaje del contenedor de simulación con la barra superior, filtrandose visualmente el fondo | El overlay de la barra de simulacion (s.barraOverlayDesktop.top) tenia '60' hardcoded, match con la altura vieja del header Codex… | 1 | Refactor arquitectonico + 1 linea de cambio semantico. Tests: 15/15 pass en src/ui/simulacion/ (12 previos + 3 nuevos en describe 'BarraSimulacion overlay' que anclan top === CODEX_HEADER_HEIGHT, position === 'fixed', zIndex === 30, pointerEvents === 'none'). typecheck/build/lint/design:governance limpios. Sonda app/scripts/sonda-bug-42c24c.mjs mide el offset entre el bottom del header y el top de la barra (tolerancia 1px). La constante CODEX_HEADER_HEIGHT queda como SSOT de la altura del header: cualquier cambio futuro en la primera fila de codexFrameRows propaga al overlay sin riesgo de drift. |

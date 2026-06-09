@@ -1,4 +1,10 @@
 {
+  "BUG-20260609T032249Z-2c59cf": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El swipe horizontal del trackpad en macOS/Chrome disparaba el back del navegador al sobrepasar el limite de scroll del canvas. Causa: el gesto historico se gobierna en el scroller raiz, no en scrollers anidados; el overscroll-behavior:contain del canvas (vigente desde 2026-05-04) nunca lo prevenia. Fix: overscroll-behavior-x: none en html y body (app/index.html). body es overflow:hidden, asi que solo desactiva la affordance de navegacion sin afectar scrolls internos.",
+    "note": "Verificado in-vivo (dev server) que getComputedStyle de documentElement y body devuelve overscroll-behavior-x: none. La confirmacion final del gesto requiere trackpad macOS (operador)."
+  },
   "BUG-20260526T022325Z-738f53": {
     "type": "Bug",
     "status": "Resuelto",

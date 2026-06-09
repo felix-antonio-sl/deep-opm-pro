@@ -1,0 +1,37 @@
+# BUG-20260609T032249Z-2c59cf
+
+**Creado**: 2026-06-09T03:22:49.609Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+al hacer el gesto para desplazar el canvas hacia la izquierda, al llegar al limite, si lo hago de nuevo retrocede el navegador.
+
+## Screenshots
+
+Sin screenshots adjuntos.
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-1",
+  "modeloNombre": "Modelo",
+  "opdActivoId": "opd-1",
+  "opdActivoNombre": "SD",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-e629eee3-b6fa-4fb0-b532-b364e03d31fd",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1920,
+    "height": 963,
+    "devicePixelRatio": 1
+  },
+  "capturedAt": "2026-06-09T03:22:47.174Z"
+}
+```
