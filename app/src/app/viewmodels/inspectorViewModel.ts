@@ -1,4 +1,5 @@
 import { formatearHoraGuardado } from "../../ui/ChipPersistencia";
+import { infoProcedencia } from "../../modelo/procedenciaPanel";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandPersistencePort } from "../ports/zustandPersistencePort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";
@@ -39,7 +40,7 @@ export function calcularConteosModelo(
 export function useInspectorViewModel() {
   const { modelo } = useZustandOpdNavigationPort();
   const { seleccionId, enlaceSeleccionId, estadoSeleccionId } = useZustandSelectionPort();
-  const { modeloNombre, ultimoAutosalvado } = useZustandPersistencePort();
+  const { modeloNombre, ultimoAutosalvado, dirty } = useZustandPersistencePort();
   const { abrirDialogoConfiguracion } = useZustandWorkbenchViewControlsPort();
   const entidad = seleccionId ? modelo.entidades[seleccionId] : undefined;
   const enlace = enlaceSeleccionId ? modelo.enlaces[enlaceSeleccionId] : undefined;
@@ -50,6 +51,9 @@ export function useInspectorViewModel() {
 
   const conteos = calcularConteosModelo(modelo.entidades, modelo.opds);
   const horaEditado = formatearHoraGuardado(ultimoAutosalvado);
+  // W6.6: panel de procedencia/staleness (rama vacía del Inspector). `dirty` =
+  // editado en la app tras la emisión → la advertencia reporta, no degrada.
+  const procedencia = infoProcedencia(modelo, { editadoEnApp: dirty });
 
   return {
     modo,
@@ -59,6 +63,7 @@ export function useInspectorViewModel() {
     modeloNombre,
     conteos,
     horaEditado,
+    procedencia,
     abrirDialogoConfiguracion,
   };
 }
