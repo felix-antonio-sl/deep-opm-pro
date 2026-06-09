@@ -89,6 +89,16 @@ export async function esperarWorkbenchInicial(page: import("@playwright/test").P
   await expect(page.getByTestId("canvas-pane")).toBeVisible();
 }
 
+/**
+ * Espera la carga inicial del shell mobile-readonly (`MobileReadonlyApp`). El
+ * shell NO monta `toolbar-root` ni `canvas-pane` (esos son del workbench
+ * productivo), así que los tests con viewport mobile deben esperar este root en
+ * vez de `esperarWorkbenchInicial`.
+ */
+export async function esperarMobileLectura(page: import("@playwright/test").Page): Promise<void> {
+  await expect(page.getByTestId("mobile-app-lectura")).toBeVisible();
+}
+
 export async function restaurarPanelOplSiMinimizado(page: import("@playwright/test").Page): Promise<void> {
   const restaurar = page.getByTestId("panel-opl-restaurar");
   if (await restaurar.count() > 0) {
