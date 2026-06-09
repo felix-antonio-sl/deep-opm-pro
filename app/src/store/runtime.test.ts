@@ -7,9 +7,11 @@ import {
   crearIdModeloLocal,
   escribirIndiceWorkspace,
   fijarRuntimeEffects,
+  fusionarPreferenciasBootstrap,
   leerIndiceWorkspace,
   resetRuntimeEffects,
 } from "./runtime";
+import { indiceVacio } from "../persistencia/workspace";
 import type { RuntimeEffects } from "./runtimeEffects";
 
 /**
@@ -196,3 +198,27 @@ function fakeRuntimeEffects(overrides: Partial<RuntimeEffects> = {}): RuntimeEff
     ...overrides,
   };
 }
+
+describe("fusionarPreferenciasBootstrap", () => {
+  test("load fresco (sin prefs locales): el backend gana", () => {
+    const backend = { ...indiceVacio(), preferenciasUi: { oplEsenciaVisibilidad: "oculta" as const } };
+    const local = indiceVacio();
+    expect(fusionarPreferenciasBootstrap(backend, local).preferenciasUi).toEqual({ oplEsenciaVisibilidad: "oculta" });
+  });
+
+  test("cambio en-sesión: la pref local pisa la del backend por clave (anti-race)", () => {
+    const backend = { ...indiceVacio(), preferenciasUi: { oplEsenciaVisibilidad: "siempre" as const, anchoPanelInspector: 360 } };
+    const local = { ...indiceVacio(), preferenciasUi: { oplEsenciaVisibilidad: "oculta" as const } };
+    const fusion = fusionarPreferenciasBootstrap(backend, local).preferenciasUi;
+    expect(fusion?.oplEsenciaVisibilidad).toBe("oculta"); // local gana
+    expect(fusion?.anchoPanelInspector).toBe(360); // backend conservado en claves no tocadas
+  });
+
+  test("preserva el resto del índice del backend (modelos/recientes)", () => {
+    const backend = { ...indiceVacio(), recientes: ["m-1"], preferenciasUi: { oplMinimizado: true } };
+    const local = { ...indiceVacio(), preferenciasUi: { oplEsenciaVisibilidad: "oculta" as const } };
+    const fusion = fusionarPreferenciasBootstrap(backend, local);
+    expect(fusion.recientes).toEqual(["m-1"]);
+    expect(fusion.preferenciasUi).toEqual({ oplMinimizado: true, oplEsenciaVisibilidad: "oculta" });
+  });
+});

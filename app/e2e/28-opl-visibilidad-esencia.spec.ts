@@ -16,10 +16,11 @@ test("selector de esencia en Configuración filtra oraciones OPL de esencia", as
   // Arranque: modelo vacio sin onboarding.
   await page.goto("/");
   await esperarWorkbenchInicial(page);
-  // El bootstrap del workspace (sesión + cargarWorkspaceBackend) aplica
-  // preferenciasUi de forma asíncrona tras el arranque; esperar a que la red
-  // asiente evita que ese load pise el cambio de "Visibilidad de esencia" que
-  // hacemos enseguida (race de arranque, escenario real es post-load).
+  // Deja asentar el bootstrap async (sesión + workspace + modelos) antes de tocar
+  // preferencias/OPL: evita timing de render del panel y cualquier residual del
+  // load del workspace. El clobber de preferenciasUi por el bootstrap ya está
+  // endurecido en el kernel (fusionarPreferenciasBootstrap), esto cubre el
+  // settling general de la UI.
   await page.waitForLoadState("networkidle");
 
   // Crear un objeto; por defecto tendrá esencia informacional y afiliación sistémica.

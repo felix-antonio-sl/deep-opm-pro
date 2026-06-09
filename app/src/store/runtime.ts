@@ -498,6 +498,30 @@ export function leerIndiceWorkspace(): WorkspaceIndice {
   return indiceVacio();
 }
 
+/**
+ * Anti-race del bootstrap del workspace: el load async del backend
+ * (`sincronizarListadoBackend`) puede resolver DESPUÉS de que el usuario haya
+ * cambiado una preferencia (p.ej. visibilidad de esencia OPL) en los primeros
+ * ms de sesión. Sin esto, el `set({ indice })` del bootstrap pisaría ese cambio
+ * con el `preferenciasUi` del backend (que aún no lo tenía).
+ *
+ * Fusiona dando precedencia POR CLAVE a las preferencias locales (cambios
+ * en-sesión) sobre las del backend. En un load fresco el índice local es
+ * `indiceVacio()` (sin `preferenciasUi`), así que el backend gana intacto; tras
+ * un cambio del usuario, esa clave gana y el resto del backend se conserva.
+ */
+export function fusionarPreferenciasBootstrap(
+  indiceBackend: WorkspaceIndice,
+  indiceLocal: WorkspaceIndice,
+): WorkspaceIndice {
+  const prefsLocales = indiceLocal.preferenciasUi;
+  if (!prefsLocales || Object.keys(prefsLocales).length === 0) return indiceBackend;
+  return {
+    ...indiceBackend,
+    preferenciasUi: { ...(indiceBackend.preferenciasUi ?? {}), ...prefsLocales },
+  };
+}
+
 export function sincronizarIndiceConModelosGuardados(modelosGuardados: ResumenModeloPersistido[], indice: WorkspaceIndice): WorkspaceIndice {
   const idsGuardados = new Set(modelosGuardados.map((m) => m.id));
   const modelos: WorkspaceIndice["modelos"] = modelosGuardados.map((m) => {
