@@ -109,11 +109,22 @@ describe("checkProcesoNombreFormaVerbal", () => {
     "Mantenimiento", "Normalizar", "Driver Rescuing", "Main System Doing",
     "First Processing", "Planificacion", "Operacion", "Gestión", "Sincronizacion",
     "Convertir", "Mover", "Abrir", "Cerrar", "Persistir", "Clasificacion", "Aterrizaje",
+    // B-6 (calibracion es-CL): nominalizaciones deverbales de dominio, con la
+    // cabeza deverbal en posicion inicial del compuesto.
+    "Ingreso HODOM", "Cierre del episodio HODOM", "Apertura del episodio HODOM",
+    "Transporte de medicamento al domicilio", "Vigilancia de eventos adversos",
+    "Retiro de residuos clínicos", "Toma de muestra", "Ajuste terapéutico",
+    "Monitoreo del censo", "Despacho de recursos", "Traslado del paciente a examen",
+    "Estudio diagnóstico", "Registro del formulario de ingreso",
+    "Interconsulta de especialidad", "Recarga de oxígeno", "Entrega en domicilio",
+    "Respuesta clínica al emergente", "Retorno de equipamiento médico", "Turnado",
   ];
   const invalidos = [
     "Proceso", "Sistema", "Cliente", "ABC", "Control", "Mesa", "Orden",
     "Producto Listo", "Cafe Hecho", "Estado", "Calidad", "Asesor", "Sistema Clinico",
     "Output", "Input", "Paquete", "Pedido", "Logistica", "Servicio", "Valor",
+    // B-6 guarda adversarial: cabeza no-deverbal + complemento no-verbal sigue acusada.
+    "Producto de calidad",
   ];
 
   for (const nombre of validos) {
@@ -136,11 +147,27 @@ describe("checkObjetoNombreSingular", () => {
     "OnStar System", "Cellular Network", "Sistema Clinico", "Producto",
     "Inspector", "Estandar de Calidad", "Agente IA", "Necesidad",
     "Servicio", "Aprendizaje", "System Tool Set", "Main Output", "Beneficiary Group",
+    // B-6 (calibracion es-CL): compuestos con cabeza singular + complemento
+    // preposicional plural (de/para/segun/y). La singularidad se juzga sobre la
+    // cabeza, no sobre el complemento.
+    "Agenda de visitas", "Cartera de prestaciones", "Carta de derechos y deberes",
+    "Plan terapéutico y de cuidados", "Programa de mantención de vehículos",
+    "Registro de administración de medicamentos", "Requerimiento de prestaciones",
+    "Competencia para las tareas delegadas", "Documento de indicaciones para emergencias",
+    "Otro profesional según prestaciones", "Capacidad de prestaciones",
+    // B-6: cláusula relativa ("que ...") es modificador post-cabeza; la cabeza
+    // singular gobierna.
+    "Establecimiento que otorga prestaciones",
   ];
   const invalidos = [
     "Clientes", "Procesos", "Objetos", "Datos", "Pedidos", "Productos", "Servicios",
     "Personas", "Partes", "Atributos", "Estados", "Sistemas", "Entradas", "Salidas",
     "Herramientas", "Usuarios", "Modelos", "Enlaces", "Cafeteras", "Diagnosticos",
+    // B-6 guarda adversarial: cabeza PLURAL en un compuesto sigue acusada.
+    "Pacientes de la red",
+    // B-6 frontera: plural fijo de dominio ("Cuidados ...") es cabeza plural real;
+    // el checker lo acusa honesto — la exención de dominio es territorio de B-5 (waiver).
+    "Cuidados de enfermería",
   ];
 
   for (const nombre of validos) {

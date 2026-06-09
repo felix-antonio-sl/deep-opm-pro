@@ -39,6 +39,30 @@ import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, TipoEnlace,
 
 const TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 const INVARIABLES_SINGULAR = new Set(["analisis", "sintesis", "crisis", "tesis", "hipotesis", "virus", "gas"]);
+/**
+ * B-6 (calibración es-CL): sufijos deverbales/verbales productivos aceptados
+ * como forma de proceso. `-ion -aje -miento` (nominalizaciones regulares),
+ * `-ura` (apertura, clausura), `-ncia` (vigilancia), más infinitivos `-ar/-er/-ir`.
+ */
+const VERBAL_SUFIJO_RE = /(?:ar|er|ir|izar|ion|aje|miento|ura|ncia|ing)$/;
+/**
+ * B-6: nominalizaciones deverbales irregulares de dominio es-CL cuya forma no
+ * se distingue por sufijo de un sustantivo no-verbal (terminan en -o/-a/-e como
+ * `Producto`/`Estado`, que NO son procesos). Se aceptan por léxico curado
+ * cuando ocupan la cabeza del nombre. Excluye deliberadamente `pedido`,
+ * `servicio`, `estado`, `producto` (sustantivos, no procesos).
+ */
+const NOMINALIZACIONES_DEVERBALES_ES = new Set([
+  "ingreso", "egreso", "cierre", "retiro", "retorno", "traslado", "transporte",
+  "despacho", "ajuste", "registro", "monitoreo", "estudio", "entrega", "recarga",
+  "respuesta", "toma", "carga", "turnado", "interconsulta",
+]);
+/**
+ * B-6: conectores preposicionales/coordinantes que separan la cabeza nominal de
+ * su complemento. En un compuesto «Cabeza + de/para/según/y + complemento», la
+ * singularidad del objeto se juzga sobre la cabeza, no sobre el complemento.
+ */
+const CONECTORES_ES = new Set(["de", "del", "para", "por", "segun", "con", "sin", "y", "e", "que"]);
 const KB_OPM = "urn:fxsl:kb:opm-es";
 const KB_OPD = "urn:fxsl:kb:opd-es";
 const KB_OPL = "urn:fxsl:kb:opl-es";
@@ -58,6 +82,14 @@ const KB_REGLAS = "urn:fxsl:kb:reglas-opm-estrictas-es";
 const PLACEHOLDER_NOMBRE_RE = /^(?:Objeto|Proceso)(?:_\d+)?$/;
 const PLACEHOLDER_SUFIJO_NUMERICO_RE = /\s\d+$/;
 
+/**
+ * B-2: marcador declarativo de exención para la desconexión transitoria
+ * intencional de una entidad (sin apariciones a propósito). Se lee en la glosa
+ * (`descripcion`) de la entidad. El mecanismo general de waiver por código es
+ * B-5; esta es la exención local mínima que pide el spec sin pre-construir B-5.
+ */
+const MARCA_SIN_APARICION_DELIBERADA = "[sin-aparicion-deliberada]";
+
 export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
   return [
     ...checkSdSinProcesoPrincipal(modelo),
@@ -71,6 +103,7 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkUnfoldContenido(modelo),
     ...checkProcesoTransforma(modelo),
     ...checkEfectoObjetoSinEstados(modelo),
+    ...checkEntidadSinApariciones(modelo),
     ...checkProcesoSistemicoConectado(modelo),
     ...checkRecursoLinealMultiplesConsumidores(modelo),
     ...checkDescomposicionPreservaFrontera(modelo),
@@ -343,6 +376,38 @@ export function checkEfectoObjetoSinEstados(modelo: Modelo): AvisoMetodologico[]
   }));
 }
 
+/**
+ * B-2: una entidad declarada sin apariciones en ningún OPD NO se emite al OPL
+ * (el OPL se genera barriendo las apariciones por OPD) — queda invisible en la
+ * capa textual. Acusa cada entidad huérfana (mejora). Exención declarativa por
+ * glosa `[sin-aparicion-deliberada]` para la desconexión transitoria intencional.
+ */
+export function checkEntidadSinApariciones(modelo: Modelo): AvisoMetodologico[] {
+  const aparecidos = new Set<Id>();
+  for (const opd of Object.values(modelo.opds)) {
+    for (const apariencia of Object.values(opd.apariencias)) {
+      aparecidos.add(apariencia.entidadId);
+    }
+  }
+  return Object.values(modelo.entidades)
+    .filter((entidad) => !aparecidos.has(entidad.id))
+    .filter((entidad) => !tieneMarcaSinAparicion(entidad))
+    .map((entidad) => aviso("ENTIDAD_SIN_APARICIONES", entidad, {
+      severidad: "advertencia",
+      mensaje: `La ${entidad.tipo} "${entidad.nombre}" no aparece en ningún OPD: no se emitirá al OPL (es invisible en la capa textual). Colócala en al menos un OPD, o si la desconexión es deliberada, decláralo en la glosa con "${MARCA_SIN_APARICION_DELIBERADA}".`,
+      rationale: "El OPL se genera barriendo las apariciones por OPD; una entidad sin apariciones no produce ninguna oración OPL y queda fuera de la integridad textual del modelo.",
+      ssotRef: `${KB_OPL} §1 / ${KB_OPD} §apariciones`,
+      accionesSugeridas: [
+        "Coloca la entidad en al menos un OPD (apariencia) para que se emita al OPL.",
+        `Si la desconexión es transitoria e intencional, márcala en la glosa: "${MARCA_SIN_APARICION_DELIBERADA}".`,
+      ],
+    }));
+}
+
+function tieneMarcaSinAparicion(entidad: Entidad): boolean {
+  return (entidad.descripcion ?? "").toLowerCase().includes(MARCA_SIN_APARICION_DELIBERADA);
+}
+
 export function checkProcesoSistemicoConectado(modelo: Modelo): AvisoMetodologico[] {
   const principal = procesoPrincipalSistemico(modelo);
   if (!principal) return [];
@@ -458,15 +523,24 @@ function objetoAmbientalEsTransformadoPorSistemico(modelo: Modelo, objeto: Entid
 function esFormaVerbalValida(nombre: string): boolean {
   const palabras = palabrasNormalizadas(nombre);
   if (palabras.length === 0) return false;
+  // B-6: cabeza deverbal irregular es-CL ("Cierre del episodio", "Ingreso HODOM").
+  if (NOMINALIZACIONES_DEVERBALES_ES.has(palabras[0] ?? "")) return true;
+  // Sufijo verbal/deverbal en cabeza o cola (la cola cubre el inglés `-ing`).
   return palabras.some((palabra, index) => index === 0 || index === palabras.length - 1
-    ? /(?:ar|er|ir|izar|ion|aje|miento|ing)$/.test(palabra)
+    ? VERBAL_SUFIJO_RE.test(palabra)
     : false);
 }
 
 function esNombreObjetoSingular(nombre: string): boolean {
   const palabras = palabrasNormalizadas(nombre);
-  const ultimaOriginal = nombre.trim().split(/\s+/).at(-1) ?? "";
-  const ultima = palabras.at(-1) ?? "";
+  const originales = nombre.trim().split(/\s+/);
+  // B-6: la singularidad se juzga sobre la cabeza nominal — las palabras hasta el
+  // primer conector preposicional/coordinante. El complemento ("...de prestaciones")
+  // puede ir en plural sin volver plural a la cabeza ("Cartera").
+  const conector = palabras.findIndex((palabra) => CONECTORES_ES.has(palabra));
+  const corte = conector > 0 ? conector : palabras.length;
+  const ultima = palabras[corte - 1] ?? "";
+  const ultimaOriginal = originales[corte - 1] ?? "";
   if (!ultima || INVARIABLES_SINGULAR.has(ultima)) return true;
   if (/^[A-Z0-9]{2,6}$/.test(ultimaOriginal)) return true;
   if (ultima === "datos") return false;

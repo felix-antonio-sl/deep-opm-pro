@@ -34,6 +34,8 @@ const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   // estructural del canon); se emite como mejora hasta que el operador decida
   // escalarlo a validarModelo.
   EFECTO_OBJETO_SIN_ESTADOS: "mejora",
+  // B-2: entidad sin apariciones (invisible al OPL). Mejora accionable.
+  ENTIDAD_SIN_APARICIONES: "mejora",
 };
 
 export function clasificarSeveridad(aviso: Pick<AvisoMetodologico, "codigo">): SeveridadIssue {
