@@ -30,6 +30,10 @@ const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   RECURSO_LINEAL_MULTIPLES_CONSUMIDORES: "mejora",
   DESCOMPOSICION_SIN_SUBPROCESOS: "mejora",
   DESCOMPOSICION_NO_PRESERVA_FRONTERA: "mejora",
+  // B-4 (§3.15): efecto sobre objeto sin estados. Candidato a bloqueo (violación
+  // estructural del canon); se emite como mejora hasta que el operador decida
+  // escalarlo a validarModelo.
+  EFECTO_OBJETO_SIN_ESTADOS: "mejora",
 };
 
 export function clasificarSeveridad(aviso: Pick<AvisoMetodologico, "codigo">): SeveridadIssue {

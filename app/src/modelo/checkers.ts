@@ -70,6 +70,7 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkInzoomNombresPlaceholderHijos(modelo),
     ...checkUnfoldContenido(modelo),
     ...checkProcesoTransforma(modelo),
+    ...checkEfectoObjetoSinEstados(modelo),
     ...checkProcesoSistemicoConectado(modelo),
     ...checkRecursoLinealMultiplesConsumidores(modelo),
     ...checkDescomposicionPreservaFrontera(modelo),
@@ -315,6 +316,33 @@ export function checkProcesoTransforma(modelo: Modelo): AvisoMetodologico[] {
     }));
 }
 
+/**
+ * B-4 (§3.15): un objeto sin estados NO puede ser afectado — solo crearse
+ * (resultado) o consumirse (consumo). Acusa cada objeto que recibe un enlace
+ * `efecto` teniendo cero estados declarados. Dedup por objeto (la acción de fix
+ * es sobre el objeto: declararle estados o re-firmar el enlace).
+ */
+export function checkEfectoObjetoSinEstados(modelo: Modelo): AvisoMetodologico[] {
+  const afectadosSinEstados = new Map<Id, Entidad>();
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (enlace.tipo !== "efecto") continue;
+    const destino = entidadDeExtremo(modelo, enlace.destinoId);
+    if (destino?.tipo === "objeto" && cantidadEstadosDe(modelo, destino.id) === 0) {
+      afectadosSinEstados.set(destino.id, destino);
+    }
+  }
+  return [...afectadosSinEstados.values()].map((objeto) => aviso("EFECTO_OBJETO_SIN_ESTADOS", objeto, {
+    severidad: "advertencia",
+    mensaje: `El objeto "${objeto.nombre}" recibe un efecto pero no tiene estados. Un objeto sin estados no puede ser afectado: solo puede crearse (resultado) o consumirse (consumo). Declara estados al objeto, o re-firma el enlace.`,
+    rationale: "Un efecto es un cambio de estado; el objeto afectado debe tener al menos un estado declarado (§3.15).",
+    ssotRef: `${KB_OPM} §3.15`,
+    accionesSugeridas: [
+      "Declara estados al objeto (p.ej. `puede estar 'a' o 'b'`).",
+      "O re-firma el enlace como resultado (creación) o consumo según corresponda.",
+    ],
+  }));
+}
+
 export function checkProcesoSistemicoConectado(modelo: Modelo): AvisoMetodologico[] {
   const principal = procesoPrincipalSistemico(modelo);
   if (!principal) return [];
@@ -370,6 +398,10 @@ function procesos(modelo: Modelo): Entidad[] {
 
 function objetos(modelo: Modelo): Entidad[] {
   return Object.values(modelo.entidades).filter((entidad) => entidad.tipo === "objeto");
+}
+
+function cantidadEstadosDe(modelo: Modelo, entidadId: Id): number {
+  return Object.values(modelo.estados).filter((estado) => estado.entidadId === entidadId).length;
 }
 
 function aviso(
