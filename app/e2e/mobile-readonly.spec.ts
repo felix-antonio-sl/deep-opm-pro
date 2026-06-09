@@ -78,16 +78,13 @@ test.describe("mobile-readonly invariantes", () => {
     expect(snapshotAntes).toEqual(snapshotDespues);
   });
 
-  // FIXME(mobile-contenido): doblemente bloqueado, diagnóstico verificado
-  // 2026-06-09. (1) El shell mobile-readonly muestra el modelo del store
-  // (default VACÍO en dev) y NO carga modelos del backend por id de URL — el
-  // efecto reescribe la URL a `modelo.id`, así que sembrar vía API + deep-link
-  // no aporta contenido (probado: /m/m-seed → redirige a /m/modelo-1).
-  // (2) `window.__opmStore` NO está expuesto, así que el chequeo de no-mutación
-  // es no-op (undefined===undefined). Reactivar exige exponer el store en dev +
-  // inyectar un modelo + reescribir las aserciones contra esa API (la actual
-  // `store.exportarModelo(store.modelo)` ni coincide con zustand). Desproporcio-
-  // nado para 2 tests de invariante; el resto del suite mobile corre verde.
+  // FIXME(mobile-contenido): el shell mobile-readonly proyecta el modelo ACTIVO
+  // de la sesión (carga directa del backend), que en dev/test arranca VACÍO — no
+  // hay forma de seleccionar un modelo con contenido hasta que exista la capa de
+  // tenants/auth (decisión 2026-06-09: se eliminó la carga por URL; la selección
+  // de modelo se delega a tenants/auth). Sin contenido, `[data-opm-kind=entidad]`
+  // no existe. Secundario: `window.__opmStore` no está expuesto → el chequeo de
+  // no-mutación es no-op. Reactivar cuando exista selección de modelo (tenants).
   test.fixme("bottom sheet no muta modelo", async ({ page }) => {
     await page.goto("/");
     await esperarMobileLectura(page);
@@ -131,31 +128,25 @@ test.describe("mobile-readonly invariantes", () => {
   });
 });
 
-test.describe("mobile-readonly deep links", () => {
-  test.use({ viewport: VIEWPORT_MOBILE });
-
-  test("path /m/:id/opd/:id/vista/:vista se parsea", async ({ page }) => {
-    await page.goto("/m/test-modelo/opd/test-opd/vista/opl");
+test.describe("mobile-readonly montaje por viewport", () => {
+  // El shell mobile-readonly ya NO usa routing por URL (deep-links /m/:id
+  // eliminados): proyecta el modelo activo de la sesión (carga directa desde el
+  // backend) y monta según viewport + flag. La selección de modelo se delega a
+  // la futura capa de tenants/auth.
+  test("la vista por defecto es el diagrama", async ({ page }) => {
+    await page.setViewportSize(VIEWPORT_MOBILE);
+    await page.goto("/");
     await esperarMobileLectura(page);
-
-    await expect(page.getByTestId("mobile-vista-opl")).toBeVisible();
+    await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
   });
 
   test("desktop no monta mobile-app-lectura", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto("/m/test-modelo/opd/test-opd/vista/opl");
+    await page.goto("/");
     await esperarWorkbenchInicial(page);
 
     await expect(page.getByTestId("mobile-app-lectura")).toHaveCount(0);
     await expect(page.getByTestId("canvas-pane")).toBeVisible();
-  });
-
-  test("path desconocido no redirige a /", async ({ page }) => {
-    await page.goto("/m/test-modelo/opd/test-opd/vista/inexistente");
-    await esperarMobileLectura(page);
-
-    // Debe mostrar diagrama por default (fallback)
-    await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
   });
 });
 
@@ -184,8 +175,9 @@ test.describe("mobile-readonly búsqueda", () => {
     await expect(page.getByTestId("mobile-busqueda-toggle-diagnostico-input")).toBeChecked();
   });
 
-  // FIXME(mobile-contenido): mismo bloqueo doble que "bottom sheet no muta
-  // modelo" — sin contenido cargado en el store mobile no hay `mobile-busqueda-hit`.
+  // FIXME(mobile-contenido): mismo bloqueo que "bottom sheet no muta modelo" —
+  // sin un modelo con contenido (pendiente de tenants/auth) no hay
+  // `mobile-busqueda-hit`.
   test.fixme("búsqueda no muta modelo al navegar", async ({ page }) => {
     await page.goto("/");
     await esperarMobileLectura(page);

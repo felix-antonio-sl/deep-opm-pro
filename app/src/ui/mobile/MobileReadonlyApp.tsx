@@ -8,7 +8,7 @@
  */
 
 import type { ComponentChildren } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 import { useAppShellViewModel } from "../../app/viewmodels/appShellViewModel";
 import { usePanelOplViewModel } from "../../app/viewmodels/panelOplViewModel";
 import type { JointCanvasAdapter } from "../../render/jointjs/jointCanvasAdapter";
@@ -17,19 +17,9 @@ import { ArbolOpd } from "../ArbolOpd";
 import { JointCanvasFeedbackBoundary } from "../JointCanvasFeedbackBoundary";
 import { PanelOplView } from "../PanelOpl";
 import { tokens } from "../tokens";
-import { parsearRutaMobile, empujarUrlMobile, type RutaMobileLectura } from "./routerMovil";
 import { VistaBusquedaLectura } from "./VistaBusquedaLectura";
 
 export type MobileVistaLectura = "diagrama" | "opds" | "opl" | "acerca";
-
-function vistaDesdeRuta(ruta: RutaMobileLectura | null): MobileVistaLectura {
-  if (ruta?.vista && VISTAS.has(ruta.vista as MobileVistaLectura)) {
-    return ruta.vista as MobileVistaLectura;
-  }
-  return "diagrama";
-}
-
-const VISTAS = new Set<MobileVistaLectura>(["diagrama", "opds", "opl", "acerca"]);
 
 interface Props {
   onAdapterChange: (adapter: JointCanvasAdapter | null) => void;
@@ -50,42 +40,12 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
   } = useAppShellViewModel();
   const panelOplVm = usePanelOplViewModel();
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
-  const rutaInicial = parsearRutaMobile();
-  const [vista, setVista] = useState<MobileVistaLectura>(vistaDesdeRuta(rutaInicial));
+  // Vista y OPD son estado interno efímero: el shell mobile-readonly proyecta el
+  // modelo ACTIVO de la sesión (carga directa desde el backend). No hay routing
+  // por URL ni deep-link — la selección de qué modelo se ve se delega a la futura
+  // capa de tenants/auth, no al path.
+  const [vista, setVista] = useState<MobileVistaLectura>("diagrama");
   const [busquedaActiva, setBusquedaActiva] = useState(false);
-
-  // Sincroniza OPD desde URL si aplica
-  useEffect(() => {
-    if (rutaInicial?.opdId && modelo.opds[rutaInicial.opdId]) {
-      cambiarOpdActivo(rutaInicial.opdId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Actualiza URL cuando cambia vista u OPD
-  useEffect(() => {
-    const ruta: RutaMobileLectura = {
-      modeloId: modelo.id ?? "modelo",
-      opdId: opdActivoId,
-      vista: vista === "diagrama" ? null : vista,
-    };
-    empujarUrlMobile(ruta);
-  }, [vista, opdActivoId, modelo.id]);
-
-  // Escucha popstate (botón atrás)
-  useEffect(() => {
-    const onPop = () => {
-      const ruta = parsearRutaMobile();
-      if (ruta?.vista && VISTAS.has(ruta.vista as MobileVistaLectura)) {
-        setVista(ruta.vista as MobileVistaLectura);
-      }
-      if (ruta?.opdId && modelo.opds[ruta.opdId]) {
-        cambiarOpdActivo(ruta.opdId);
-      }
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, [modelo.opds, cambiarOpdActivo]);
 
   const opd = modelo.opds[opdActivoId];
   const nombreOpd = opd?.nombre ?? "Sin OPD";
