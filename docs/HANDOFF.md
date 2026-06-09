@@ -35,6 +35,14 @@ Contrato: las formas laxas retiradas **rechazan ruidoso**; la E2 estricta compil
 - Línea 1594 (`según Disponibilidad`) ahora rechaza ruidoso: necesita modelado estricto (abanico 3-vías + correspondencia estado→rama, p.ej. condición estructural o `[RATIFICAR]`) — cae en el re-modelado activo de admisión (Causal/Requisito de ingreso).
 - Línea `se ejecuta solo cuando … medicamento de alto riesgo`: prosa, no OPL compilable; sin acción.
 
+## Actualización 2026-06-09 — solicitud upstream hd-opm: insumos vs. productos (G1 hecho)
+
+Tercera solicitud upstream de hd-opm (`solicitud-upstream-insumos-vs-productos-2026-06-09.md`): distinguir **insumo autoral** (glosario sellado por hash) vs. **producto generado** (OPL, modelo textual), y cerrar las dos affordances a medias. Diagnóstico verificado exacto contra el código (5 claims). Respuesta en `hd-opm/docs/memorias-aprendizajes/respuesta-deep-opm-pro-insumos-vs-productos-2026-06-09.md`.
+
+- **G1 (P1) — HECHO** (`1f4d61ee`): `OpcionesBundle.emitirModeloTextual?: boolean` (opt-in). Con true, `ResultadoBundle` gana `modeloTextual` — markdown derivado (`<!-- DERIVADO — no editar a mano -->` + `# {modelo}` + `## {OPD}`), reusando la función pura `exportarOplModeloMarkdown` (sin tocar store/UI). Opt-in + spread condicional (`exactOptionalPropertyTypes`) ⇒ salidas existentes intactas (**byte-identidad de consumidores preservada**). TDD 2 tests; gate 2377/0. Desbloquea a hd-opm: ya no mantiene el modelo textual a mano (drift imposible).
+- **G2 (P2) — frente de diseño por fases (pendiente)**: que el glosario **alimente** designaciones/anclas (hoy las anclas se compilan del **proto**, no del glosario). Toca decidir la fuente de verdad término+anclaje (glosario vs proto). Fase mínima: documentar el contrato; fase plena: consumo por el compilador (`anclas.ts`) — requiere decisión del operador, no improvisar.
+- **G3 (P3) — vía custodio-kora**: doctrina «insumos vs. productos» en `metodologia-forja-es`, que es **SSOT en KORA** (no editable de novo aquí; regla de oro #1). Camino: propuesta a custodio-kora + puente local `docs/canon-opm/` entretanto.
+
 ## Actualización 2026-06-09 — saneamiento browser:smoke + backend in-memory dev + 2 bugs de producto
 
 **Estado:** los ~31 fallos preexistentes del `browser:smoke` quedaron resueltos. La suite pasa salvo flakes ya conocidos. En el camino se encontraron y corrigieron **2 bugs reales de producto** (los tests los capturaban correctamente). También se cerró el BUG overscroll-back del canvas (`overscroll-behavior-x: none` en `html`/`body`; `ab0daa81`).
