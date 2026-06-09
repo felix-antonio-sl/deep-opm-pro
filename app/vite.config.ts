@@ -5,6 +5,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { crearBugCaptureRequestHandler } from "./src/server/bugCapture";
+import { instalarModelPersistenceDevMiddleware } from "./src/server/devModelPersistence";
 
 const APP_ROOT = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = path.resolve(APP_ROOT, "..");
@@ -62,9 +63,11 @@ function bugCapturePlugin(): Plugin {
     name: "deep-opm-bug-capture",
     configureServer(server) {
       instalarBugCaptureMiddleware(server.middlewares);
+      instalarModelPersistenceDevMiddleware(server.middlewares);
     },
     configurePreviewServer(server) {
       instalarBugCaptureMiddleware(server.middlewares);
+      instalarModelPersistenceDevMiddleware(server.middlewares);
     },
   };
 }

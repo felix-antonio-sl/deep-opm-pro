@@ -1,15 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/modelos";
-import { indiceVacio, type WorkspaceIndice } from "../persistencia/workspace";
+import type { ModeloPersistido } from "../persistencia/modelos";
+import type { WorkspaceIndice } from "../persistencia/workspace";
 import type { VersionResumen } from "../modelo/tipos";
 import {
   crearModelPersistenceFetchHandler,
   PersistenciaConflictError,
-  type BackendAutosalvadoPersistido,
-  type BackendVersionPersistida,
   type ModelPersistenceRepository,
   type PersistenciaSesion,
 } from "./modelPersistence";
+import { crearRepoMemoria } from "./repoMemoria";
 
 describe("modelPersistence API", () => {
   test("guarda, lista con payload y carga un modelo persistido", async () => {
@@ -182,61 +181,10 @@ function modeloPersistido(id: string, nombre: string): ModeloPersistido {
 }
 
 function repoMemoria(inicial: ModeloPersistido[] = []): ModelPersistenceRepository {
-  const datos = new Map(inicial.map((modelo) => [clave(sesionTest, modelo.id), modelo]));
-  const workspaces = new Map<string, WorkspaceIndice>();
-  const versiones = new Map<string, BackendVersionPersistida>();
-  const autosaves = new Map<string, BackendAutosalvadoPersistido>();
-  return {
-    async list(session, includePayload = false) {
-      const modelos = [...datos.entries()]
-        .filter(([key]) => key.startsWith(`${session.tenantId}:`))
-        .map(([, modelo]) => modelo)
-        .sort((a, b) => b.actualizadoEn.localeCompare(a.actualizadoEn));
-      return includePayload ? modelos : modelos.map(({ json: _json, ...resumen }) => resumen satisfies ResumenModeloPersistido);
-    },
-    async get(session, id) {
-      return datos.get(clave(session, id)) ?? null;
-    },
-    async save(session, modelo) {
-      datos.set(clave(session, modelo.id), modelo);
-      return modelo;
-    },
-    async delete(session, id) {
-      return datos.delete(clave(session, id));
-    },
-    async getWorkspace(session) {
-      return workspaces.get(session.tenantId) ?? indiceVacio();
-    },
-    async saveWorkspace(session, indice) {
-      workspaces.set(session.tenantId, indice);
-      return indice;
-    },
-    async listVersions(session, modeloId) {
-      return [...versiones.entries()]
-        .filter(([key]) => key.startsWith(`${session.tenantId}:${modeloId}:`))
-        .map(([, item]) => item.version);
-    },
-    async getVersion(session, modeloId, versionId) {
-      return versiones.get(claveVersion(session, modeloId, versionId)) ?? null;
-    },
-    async saveVersion(session, version) {
-      versiones.set(claveVersion(session, version.modeloId, version.version.id), version);
-      return version;
-    },
-    async deleteVersion(session, modeloId, versionId) {
-      return versiones.delete(claveVersion(session, modeloId, versionId));
-    },
-    async getAutosave(session, modeloId) {
-      return autosaves.get(clave(session, modeloId)) ?? null;
-    },
-    async saveAutosave(session, autosave) {
-      autosaves.set(clave(session, autosave.modeloId), autosave);
-      return autosave;
-    },
-    async health() {
-      return true;
-    },
-  };
+  // Delega en el repositorio en memoria compartido (src/server/repoMemoria.ts),
+  // que también consume el middleware dev de vite. Mantener una sola fuente
+  // evita drift entre lo que el smoke valida y lo que el dev server sirve.
+  return crearRepoMemoria(inicial, sesionTest);
 }
 
 function versionPersistida(id: string): VersionResumen {
@@ -249,10 +197,3 @@ function versionPersistida(id: string): VersionResumen {
   };
 }
 
-function clave(session: PersistenciaSesion, id: string): string {
-  return `${session.tenantId}:${id}`;
-}
-
-function claveVersion(session: PersistenciaSesion, modeloId: string, versionId: string): string {
-  return `${session.tenantId}:${modeloId}:${versionId}`;
-}
