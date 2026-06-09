@@ -69,14 +69,68 @@ Contrato: las formas laxas retiradas **rechazan ruidoso**; la E2 estricta compil
 
 ---
 
+## Actualización 2026-06-09 — pendientes concientes UX (ronda 3 del BUG-20260608T171552Z-17477a)
+
+**Estado:** de los 22 hallazgos de la auditoría ux-design (ronda 2), 16 se aplicaron en rondas 2 y 3. **6 quedan diferidos como frentes propios o verificaciones abiertas** porque su blast radius supera el scope del bug 17477a o son falsos positivos de la auditoría. Documentados aquí para que no se pierdan en la historia git.
+
+### F1.9 — Responsive canónico de la barra de simulación (frente propio, prioridad media)
+
+**Hallazgo:** la barra de simulación tiene 5 reglas defensivas (`flex: 1 1 520px` narrativa + `minWidth: 280` + `flexBasis: 100%` + `maxHeight: 90px` + `overflow: hidden`) que se complementan para que la barra se acomode en cualquier ancho. Esto es "responsive por accidente", no por diseño. `s.barraMobile` ya tiene branch dedicado pero entre 768px y el ancho "desktop" no hay un breakpoint intermedio explícito.
+
+**Por qué se difirió (dialéctica):**
+- Tesis: 5 reglas defensivas son frágiles. Mejor 3 anchos canónicos con breakpoints claros.
+- Antítesis: la barra YA tiene branch mobile (`s.barraMobile`, 48px touch). `useBreakpoint()` ya está cableado. Definir 3 anchos canónicos cruza con `ToolbarBase`, `ToolbarCreacion`, `ToolbarMas` (toolbar productiva) y `MobileReadonlyApp` (shell mobile-readonly) — scope de un frente aparte, no de este bug.
+- Síntesis: NO hacer. La barra funciona en todos los viewports actuales (verificado prod, mobile-readonly incluido). El "fragilidad" es teórica, no empírica.
+
+**Trabajo a hacer (cuando se aborde como frente):**
+1. Auditar `ui-forja/` y `app/src/ui/` para ver si existe un design token de breakpoints (`--breakpoint-sm/md/lg`) o un hook compartido (más allá de `useBreakpoint()` que ya está cableado).
+2. Si existe, usarlo. Si no, **proponer el sistema canónico** en `ui-forja/tokens.css` + `useBreakpoint()`.
+3. Definir 3 anchos canónicos: mobile (full, scroll horizontal, controles compactos), tablet (2 filas, controles visibles), desktop (layout actual).
+4. Refactorizar `s.barra` / `s.barraMobile` para usar `@media` o `useBreakpoint()` en el render (no en CSS).
+5. Validar contra `ToolbarBase` (toolbar productiva) y `MobileReadonlyApp` (shell mobile-readonly) que usan el mismo sistema.
+6. Smoke E2E con Playwright en 3 viewports (375px, 834px, 1440px).
+
+**Estimado:** 1 sesión dedicada, blast radius 3-4 archivos, 1 cambio de scope (consolidar breakpoints globales).
+
+### F1.21 — Barra de simulación en shell mobile-no-readonly (verificación abierta)
+
+**Hallazgo:** `app/src/ui/App.tsx` línea 195 renderiza `BarraSimulacion` cuando `contextoWorkbench.modo === "simulacion"` Y `esMobile === true` Y `modoSoloLectura === false`. Esto tensiona el canon: la barra productiva (diseñada para desktop/tablet) aparece dentro del shell mobile, contradiciendo el patrón "mobile-readonly = `MobileReadonlyApp`; resto = `Toolbar` o `BarraSimulacion`".
+
+**Trabajo a hacer (frente pequeño, 1 archivo):**
+1. Confirmar en prod con el dev server (mobile viewport, sin mobile-readonly) si la barra aparece.
+2. Si aparece, gatear el render con `useBreakpoint()` para que la barra sólo se monte en desktop/tablet. Alternativamente, agregar un guard `modoSoloLectura` al render de la línea 195 (paridad con el `MobileReadonlyApp` que NO la incluye).
+3. Validar E2E con `22-responsive-review.spec.ts` y `mobile-readonly.spec.ts`.
+
+**Blast radius:** 1 archivo (`App.tsx`). Riesgo: bajo.
+
+### F1.22 — Panel de ayuda con atajo `?` (frente propio, prioridad baja)
+
+**Hallazgo:** la ronda 2 agregó atajos inline al status `[P] reproducir · [⎋] salir`. Los demás atajos (`paso`, `correr`, `reiniciar`, `headless`/`rápido`, segmented) se descubren leyendo los labels. Un panel `?` con descripción de cada botón mejoraría descubribilidad para usuarios nuevos.
+
+**Por qué se difirió:**
+- Tesis: 80% de los usuarios descubren los labels leyéndolos. El 20% que busca atajos los ve en el status. Los atajos restantes están en los `title` de los botones.
+- Antítesis: la barra YA muestra los 6 controles con labels visibles. Un panel `?` implica UI nueva (overlay, estado global, focus trap).
+- Síntesis: NO hacer en este bug. Suficiente con los labels + atajos del status.
+
+**Trabajo a hacer (cuando se aborde como frente):**
+1. Agregar atajo `?` que abra un overlay de ayuda.
+2. Listar todos los atajos del producto (no sólo los de la barra) en una sola superficie.
+3. Pattern de marginalia al pie de la oración (canon §2: "Tooltip flotante con caret → usar marginalia al pie de la oración OPL").
+
+---
+
 ## Frentes abiertos (orden sugerido)
 
 1. **Transporte familia-V→skill** — las 12 requiere-decisión (empezar por V12): superficie reverse / emisión estructurada / legacy permanente.
 2. **Auth/tenants real** — identidad, login, administración de tenants, invitaciones/roles, ownership compuesto.
 3. **GAPs de alineación OPD** — backlog en `docs/roadmap/` §22 de spec-forja-opd-es.
+4. **F1.9 responsive canónico** — consolidar 3 anchos en `ui-forja/tokens.css` + refactor de la barra + 2-3 archivos relacionados. Estimado: 1 sesión.
+5. **F1.21 barra en mobile-no-readonly** — gatear render en `App.tsx:195`. Estimado: <30 min, blast radius 1 archivo.
+6. **F1.22 panel de ayuda con atajo `?`** — overlay de ayuda + atajos del producto. Estimado: 1 sesión, blast radius 1-2 archivos (modal + atajos).
 
 ## Riesgos activos
 
 - Instancia pública sin auth perimetral (decisión del operador, blindaje ejecutado).
 - Sesiones abiertas antes del deploy de persistencia pueden necesitar recarga.
 - `VITE_MOBILE_READONLY` como build flag requiere rebuild/redeploy para rollback.
+- F1.21: si el operador entra a un modelo en modo simulación desde un viewport mobile-no-readonly, la barra productiva aparece dentro del shell mobile (UX tensionada, no roto). Documentado arriba.
