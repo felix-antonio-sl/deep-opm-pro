@@ -22,7 +22,9 @@
 
 **Por qué fiel:** layout de **autoría** (`aplicarLayoutCompleto`, no `layoutSugerido`) + `document.fonts.ready` antes de medir texto. PNG = ver; SVG = diff; byte-identidad se asegura sobre el JSON (eso es H2, próximo frente). Detalle en `docs/render-headless.md`.
 
-**Gate:** `check` 2381/0 · lint limpio · build OK · DCE OK · smoke E2E OK (render del proto-cafe verificado in-vivo, diagrama OPM correcto). **NO desplegado** (herramienta dev). **Pendiente:** corte 2 = enchufar la skill `modelamiento-opm` (KORA) al loop; merge de la rama a `main` (decisión del operador).
+**Gate:** `check` 2381/0 · lint limpio · build OK · DCE OK · smoke E2E OK (render del proto-cafe verificado in-vivo, diagrama OPM correcto). **NO desplegado** (herramienta dev). Corte 1 **mergeado a `main`** (`9a88cc1f`, ff).
+
+**Corte 2 (KORA) HECHO 2026-06-09.** La skill `modelamiento-opm` v1.6.0 (KORA, commit `f3163e5`) enchufa el loop: nuevo estado `revisar-visual` (el agente corre `render:headless`, lee PNG+avisos y vuelve a refinar el **proto** read-through) y `serializar-opd` con H1 primario sobre jointjs. Gates KORA: index 745 + check --strict 37/37 + unittest 383 OK; transmutado a claude-code/codex/openclaw/opencode + deployado al runtime `~/.claude/skills/`. **Pendiente (operador):** push de `main` (deep-opm-pro, ahead) y del commit KORA (master local; soy primary).
 
 ## Estado de la migración familia-V→skill (consolidado, actualizado 2026-06-09)
 
