@@ -35,6 +35,24 @@ Contrato: las formas laxas retiradas **rechazan ruidoso**; la E2 estricta compil
 - Línea 1594 (`según Disponibilidad`) ahora rechaza ruidoso: necesita modelado estricto (abanico 3-vías + correspondencia estado→rama, p.ej. condición estructural o `[RATIFICAR]`) — cae en el re-modelado activo de admisión (Causal/Requisito de ingreso).
 - Línea `se ejecuta solo cuando … medicamento de alto riesgo`: prosa, no OPL compilable; sin acción.
 
+## Actualización 2026-06-09 — solicitud upstream hd-opm: triage + E-1 + B-4
+
+**Estado actual:** respondida la solicitud upstream consolidada de hd-opm (18 ítems, 5 áreas) verificando cada uno contra el código vivo. Triage en `hd-opm/docs/memorias-aprendizajes/respuesta-deep-opm-pro-2026-06-09.md` (responde a `solicitud-upstream-deep-opm-pro-2026-06-06.md`). Dos ítems ejecutados por TDD y commiteados:
+- **E-1** (`14abe8c9`): variante `generic-view` de `OpdVista` — vista ad-hoc sin refinamiento. Tipo en `modelo/tipos/extensiones.ts`; DSL `vistaGenerica(opdKey,{readOnly?})`; serialización `validarOpds.ts`; test `autoria/vista-generica.test.ts`. Excluida de checkers de frontera/descomposición (verificado).
+- **B-4** (`22614924`): checker `EFECTO_OBJETO_SIN_ESTADOS` (§3.15) — `modelo/checkers.ts::checkEfectoObjetoSinEstados`, severidad `mejora`. Aceptación: golden HODOM v1.6 → **0** avisos.
+
+Gate **2343/0 · lint limpio**.
+
+**Decisiones / artefactos:** el triage halló que **gran parte ya estaba resuelta** (B-1, C-1, C-3 hechos; **toda el área D no-issue** — D-1 fue diagnóstico erróneo: el generador NO emite `se describe como`, solo el parser reverse lo acepta). C-2: `aparecerEnlace`/`posicionarEtiqueta` YA están en `dsl.ts` → acción de adopción es de hd-opm (borrar duplicado local).
+
+**Pendientes (orden del operador):** B-2 (`ENTIDAD_SIN_APARICIONES`, M) y B-6 (calibración es-CL, S) = "cuando puedas"; **residuos P1 de layout** A-1 (recalibrar contorno tras wrap de bandas; `envolverBanda` ya existe) y A-2 (anclaje proximidad externo↔externo; `anclasEstructurales` ya hace externo↔interno); mayores **L** B-3 (estado-sin-escritor + exenciones LF-19 vía glosa) y B-5 (waivers + UI); P3 A-3 (routing ortogonal).
+
+**Supuestos:** B-4 emitido como `mejora`, NO bloqueo (escalable a `validarModelo` cuando el operador lo decida); `generic-view.readOnly` opcional; E-1 es suficiente para que hd-opm construya su vista causal de ingreso P1 (Causal+Requisito+Disponibilidad+Solicitud) sin refinamientos falsos — hd-opm la autora.
+
+**Riesgos:** (1) **concurrencia** — durante E-1 la sesión del operador revirtió `extensiones.ts` y se llevó la variante; se re-aplicó (lección: en cambios de tipo correr `tsc` explícito, no confiar en `bun test` verde que no typechequea). (2) **A-1/A-2 tocan byte-identidad del golden hd-opm** → requieren re-pin gobernado + auditoría visual; no abordarlos sin protocolo. (3) B-4 candidato a bloqueo: si hd-opm tuviera efectos legítimos a objetos que el canon §3.15 no contempla, sobre-acusaría — mitigado por ahora (0 en golden vigente).
+
+**Prompt breve de continuación:** "Retomar desde `docs/HANDOFF.md` § Actualización 2026-06-09 — solicitud upstream hd-opm. E-1 (`generic-view`) y B-4 (`EFECTO_OBJETO_SIN_ESTADOS`) hechos y pusheados. Siguientes del backlog upstream: B-2 + B-6 (quick wins, mismo patrón de checker que B-4), luego A-1/A-2 (P1 layout, gateados por byte-identidad/re-pin). Triage completo en `hd-opm/docs/memorias-aprendizajes/respuesta-deep-opm-pro-2026-06-09.md`. No tocar A-1/A-2 sin protocolo re-pin."
+
 ## Actualización 2026-06-08 — BUGs paneles OPL/Inspector hideables y resizable
 
 **Estado:** ambos bugs resueltos y desplegados en producción. Panel OPL izquierdo resizable horizontalmente (160–400px); ambos paneles se pueden ocultar/mostrar vía botones en headers. Bundle vigente `assets/index-C8dIvPcf.js`. **Validado por operador 2026-06-08.**
