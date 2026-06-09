@@ -125,6 +125,14 @@ export interface Autor {
    */
   aparecerEnlacePorId(opdKey: OpdKey, enlaceId: Id): Id;
   /**
+   * H5: co-aparece un multi-edge distinguido por TRANSICIÓN de estado sin que el
+   * consumidor reimplemente el lookup. Resuelve por (origen, destino, tipo) +
+   * (estadoEntrada, estadoSalida), donde `entrada`/`salida` son nombres de estado
+   * de la entidad DESTINO. Lanza si no hay match único (como `aparecerEnlace`).
+   * Idempotente; usa el contador global `ae-<n>`. Complementa F1.
+   */
+  aparecerEnlacePorTransicion(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, entrada: string, salida: string): Id;
+  /**
    * Posiciona la etiqueta semántica principal de una aparición de enlace.
    * La posición es por OPD/aparición, no global al enlace lógico.
    */
@@ -608,6 +616,44 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     return apId;
   }
 
+  function aparecerEnlacePorTransicion(
+    opdKey: OpdKey,
+    origen: ExtremoEntrada,
+    destino: ExtremoEntrada,
+    tipo: TipoEnlace,
+    entrada: string,
+    salida: string,
+  ): Id {
+    const opdId = idOpd(opdKey);
+    const origenResuelto = extremo(origen);
+    const destinoResuelto = extremo(destino);
+    // entrada/salida son estados de la entidad DESTINO (igual que `enlazar` al sellar
+    // estadoEntradaId/estadoSalidaId con `idEstado(destino, ...)`).
+    const claveDestino = typeof destino === "string" ? destino : destino.entidad;
+    const estadoEntradaId = idEstado(claveDestino, entrada);
+    const estadoSalidaId = idEstado(claveDestino, salida);
+    const candidatos = Object.values(modelo.enlaces).filter(
+      (enlace) =>
+        enlace.tipo === tipo &&
+        extremosCoinciden(enlace.origenId, origenResuelto) &&
+        extremosCoinciden(enlace.destinoId, destinoResuelto) &&
+        enlace.estadoEntradaId === estadoEntradaId &&
+        enlace.estadoSalidaId === estadoSalidaId,
+    );
+    if (candidatos.length === 0) {
+      throw new Error(`aparecerEnlacePorTransicion: no existe enlace ${tipo} ${entrada}→${salida} en '${opdKey}'`);
+    }
+    if (candidatos.length > 1) {
+      throw new Error(`aparecerEnlacePorTransicion: enlace ambiguo ${tipo} ${entrada}→${salida} en '${opdKey}' (${candidatos.length} candidatos)`);
+    }
+    const enlaceId = candidatos[0]!.id;
+    const existente = aparienciaDeEnlace(opdId, enlaceId);
+    if (existente) return existente.id;
+    const apId = `ae-${aparienciaEnlaceSeq++}`;
+    modelo.opds[opdId]!.enlaces[apId] = { id: apId, enlaceId, opdId, vertices: [] };
+    return apId;
+  }
+
   function posicionarEtiqueta(
     opdKey: OpdKey,
     origen: ExtremoEntrada,
@@ -646,6 +692,7 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     enlazar,
     aparecerEnlace,
     aparecerEnlacePorId,
+    aparecerEnlacePorTransicion,
     posicionarEtiqueta,
     abanico,
     autoinvocacion,
