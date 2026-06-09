@@ -68,6 +68,12 @@ export function generarOplInteractivo(modelo: Modelo, opdId: Id = modelo.opdRaiz
 }
 
 function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): OplLineaPendiente[] {
+  // F2: un OPD `generic-view` es una vista ad-hoc que NAVEGA/EXPLICA, no crea
+  // hechos (metodologia-forja §243, opm-visual V-114). Sus apariciones son
+  // re-apariciones de hechos que ya viven en sus OPDs de origen; re-emitirlas
+  // duplicaría oraciones e inflaría el conteo OPL. El conteo debe ser invariante
+  // a añadir una vista → la vista no emite ninguna oración.
+  if (opd.vista?.kind === "generic-view") return [];
   const lineas: OplLineaPendiente[] = [];
 
   for (const apariencia of Object.values(opd.apariencias)) {

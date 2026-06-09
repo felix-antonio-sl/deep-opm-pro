@@ -116,6 +116,15 @@ export interface Autor {
    */
   aparecerEnlace(opdKey: OpdKey, origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace): Id;
   /**
+   * F1: añade en `opdKey` una aparición de un enlace lógico identificado por su
+   * `enlaceId`. A diferencia de `aparecerEnlace` (que resuelve por extremos+tipo
+   * y lanza si hay >1 candidato), funciona con multi-edges legítimos (mismos
+   * extremos+tipo, distintos por transición de estado). Lanza si el enlace no
+   * existe; si ya aparece en ese OPD, devuelve su apariencia. Usa el mismo
+   * contador global `ae-<n>`.
+   */
+  aparecerEnlacePorId(opdKey: OpdKey, enlaceId: Id): Id;
+  /**
    * Posiciona la etiqueta semántica principal de una aparición de enlace.
    * La posición es por OPD/aparición, no global al enlace lógico.
    */
@@ -587,6 +596,18 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     return apId;
   }
 
+  function aparecerEnlacePorId(opdKey: OpdKey, enlaceId: Id): Id {
+    const opdId = idOpd(opdKey);
+    if (!modelo.enlaces[enlaceId]) {
+      throw new Error(`aparecerEnlacePorId: no existe el enlace '${enlaceId}'`);
+    }
+    const existente = aparienciaDeEnlace(opdId, enlaceId);
+    if (existente) return existente.id;
+    const apId = `ae-${aparienciaEnlaceSeq++}`;
+    modelo.opds[opdId]!.enlaces[apId] = { id: apId, enlaceId, opdId, vertices: [] };
+    return apId;
+  }
+
   function posicionarEtiqueta(
     opdKey: OpdKey,
     origen: ExtremoEntrada,
@@ -624,6 +645,7 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     ver,
     enlazar,
     aparecerEnlace,
+    aparecerEnlacePorId,
     posicionarEtiqueta,
     abanico,
     autoinvocacion,
