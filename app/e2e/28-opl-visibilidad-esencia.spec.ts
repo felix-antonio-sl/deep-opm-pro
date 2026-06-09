@@ -25,10 +25,10 @@ test("selector de esencia en Configuración filtra oraciones OPL de esencia", as
   const panel = page.getByLabel("Panel OPL-ES");
   await restaurarPanelOplSiMinimizado(page);
 
-  // Verificar estado inicial: ambas oraciones de clasificación visibles.
-  // Canon L1: objeto por defecto → "Sistema es informacional." + "Sistema es sistémico."
-  await expect(panel.getByText("Sistema es informacional.")).toBeVisible();
-  await expect(panel.getByText("Sistema es sistémico.")).toBeVisible();
+  // Verificar estado inicial: la oración de clasificación visible.
+  // Canon vigente (forma OPCloud): objeto por defecto → una sola oración
+  // "Sistema es un objeto informacional y sistémico."
+  await expect(panel.getByText("Sistema es un objeto informacional y sistémico.")).toBeVisible();
 
   // --- Paso 0: Cancelar descarta el cambio ---
   await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
@@ -37,9 +37,8 @@ test("selector de esencia en Configuración filtra oraciones OPL de esencia", as
   await dialogoCancel.getByLabel("Visibilidad de esencia en OPL").selectOption("oculta");
   await dialogoCancel.getByRole("button", { name: "Cancelar" }).click();
   await expect(dialogoCancel).toHaveCount(0);
-  // Al cancelar, la preferencia NO se aplica: las oraciones siguen visibles.
-  await expect(panel.getByText("Sistema es informacional.")).toBeVisible();
-  await expect(panel.getByText("Sistema es sistémico.")).toBeVisible();
+  // Al cancelar, la preferencia NO se aplica: la oración sigue visible.
+  await expect(panel.getByText("Sistema es un objeto informacional y sistémico.")).toBeVisible();
 
   // --- Paso 1: cambiar a "Oculta" y Guardar ---
   await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
@@ -49,9 +48,8 @@ test("selector de esencia en Configuración filtra oraciones OPL de esencia", as
   await dialogo.getByRole("button", { name: "Guardar" }).click();
   await expect(dialogo).toHaveCount(0);
 
-  // Con esencia oculta las oraciones de clasificación de esencia NO deben aparecer.
-  await expect(panel.getByText("Sistema es informacional.")).toHaveCount(0);
-  await expect(panel.getByText("Sistema es sistémico.")).toHaveCount(0);
+  // Con esencia oculta la oración de clasificación NO debe aparecer.
+  await expect(panel.getByText("Sistema es un objeto informacional y sistémico.")).toHaveCount(0);
 
   // --- Paso 2: restaurar a "Siempre" ---
   await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
@@ -65,9 +63,8 @@ test("selector de esencia en Configuración filtra oraciones OPL de esencia", as
   await dialogo2.getByRole("button", { name: "Guardar" }).click();
   await expect(dialogo2).toHaveCount(0);
 
-  // Con visibilidad "siempre" las oraciones reaparecen.
-  await expect(panel.getByText("Sistema es informacional.")).toBeVisible();
-  await expect(panel.getByText("Sistema es sistémico.")).toBeVisible();
+  // Con visibilidad "siempre" la oración reaparece.
+  await expect(panel.getByText("Sistema es un objeto informacional y sistémico.")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });

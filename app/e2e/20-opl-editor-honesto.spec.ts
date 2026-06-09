@@ -18,14 +18,14 @@ test("editor OPL honesto muestra 4 grupos con contadores estables", async ({ pag
   await page.getByLabel("Nombre").fill("Entrada");
 
   await page.getByTestId("panel-opl-editar-libre").click();
-  // Texto inicial: el textarea se prellena con el OPL actual. Canon L1 escinde
-  // la clasificación en dos oraciones ("Entrada es informacional." + "...es
-  // sistémico."), ambas reconocidas sin cambio. El editor honesto debe mostrar
-  // 4 grupos visibles con sus contadores estables.
+  // Texto inicial: el textarea se prellena con el OPL actual. Canon vigente
+  // (forma OPCloud): la clasificación es UNA oración ("Entrada es un objeto
+  // informacional y sistémico."), reconocida sin cambio. El editor honesto debe
+  // mostrar 4 grupos visibles con sus contadores estables.
   await expect(page.getByTestId("editor-opl-grupo-reconocidas")).toBeVisible();
   await expect(page.getByTestId("editor-opl-grupo-aplicables")).toBeVisible();
   await expect(page.getByTestId("editor-opl-grupo-no-aplicables")).toBeVisible();
-  await expect(page.getByTestId("editor-opl-contador-reconocidas")).toContainText("2");
+  await expect(page.getByTestId("editor-opl-contador-reconocidas")).toContainText("1");
   await expect(page.getByTestId("editor-opl-contador-aplicables")).toContainText("0");
 
   expect(pageErrors).toEqual([]);

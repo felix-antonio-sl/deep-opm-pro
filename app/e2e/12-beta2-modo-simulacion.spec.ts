@@ -97,7 +97,7 @@ test("modo simulacion: OPD sin procesos muestra mensaje y controles deshabilitad
 
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion")).toBeVisible();
-  await expect(page.getByTestId("barra-simulacion-progreso")).toContainText("no tiene procesos que simular");
+  await expect(page.getByTestId("barra-simulacion-progreso")).toContainText("No hay procesos para simular");
   await expect(page.getByTestId("barra-simulacion-paso")).toBeDisabled();
   await expect(page.getByTestId("barra-simulacion-correr")).toBeDisabled();
 
