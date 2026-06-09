@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Mockup BUG-20260608T171552Z-17477a — DESPUÉS ronda 2 (minimalismo + WCAG)</title>
+<title>Mockup BUG-20260608T171552Z-17477a — DESPUÉS ronda 3 (micro-pulido)</title>
 <style>
 :root {
   --paper: #fafaf8;
@@ -27,7 +27,7 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
 .leyenda strong { color: var(--success); }
 .fix { color: var(--success); font-weight: 600; }
 
-/* === BARRA DE SIMULACIÓN (ronda 2) === */
+/* === BARRA DE SIMULACIÓN (ronda 3) === */
 .barra {
   position: relative;
   display: flex;
@@ -44,20 +44,23 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
   color: var(--ink);
 }
 .spine { position: absolute; top: 0; bottom: 0; width: 3px; background: linear-gradient(to bottom, var(--crimson) 0%, var(--crimson) 60%, rgba(142, 42, 46, 0.5) 100%); pointer-events: none; }
-.spine-left { left: 0; }
-.spine-right { right: 0; }
+.spine-left { left: 0; } .spine-right { right: 0; }
 
-/* FILA 1: STATUS — F1.12 tagBadge + F1.1 colapsada + F1.13 atajos */
 .fila { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .tagBadge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: var(--paper-warm); flex: 0 0 18px; margin-right: 2px; }
+
+/* F1.10: dot estático cuando !autoAvance, pulsa cuando autoAvance. En este
+   mockup se ve el dot en estado "listo" (estático). */
+@keyframes sim-live-dot-pulse { 0%,100% { opacity:1; transform:scale(1) } 50% { opacity:0.45; transform:scale(1.35) } }
 .tagDot { display: inline-block; width: 6px; height: 6px; background: var(--crimson); border-radius: 50%; flex: 0 0 6px; }
+.tagDot.running { animation: sim-live-dot-pulse 1.4s ease-in-out infinite; transform-origin: center; }
+
 .estado-texto { font-style: italic; color: var(--ink-mid); font-size: 12px; }
 .proceso-activo { font-style: italic; color: var(--crimson); font-size: 12px; padding: 1px 6px 1px 8px; border-left: 2px solid var(--crimson); background: var(--paper); }
 .check { font-size: 12px; color: var(--success); font-style: italic; }
 .atajos { font-size: 10.5px; color: var(--ink-faint); font-family: var(--font-mono); margin-left: auto; display: inline-flex; align-items: center; gap: 4px; }
-.kbd-mini { font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-mid); background: transparent; padding: 0; border: none; line-height: 1; }
+.kbd-mini { font-family: var(--font-mono); font-size: 10px; color: var(--ink-mid); background: transparent; padding: 0; border: none; line-height: 1; }
 
-/* FILA 2: NARRATIVA — F1.18: 1 borde crimson 2px, fondo transparente */
 .narrativa { display: flex; align-items: center; gap: 8px; flex-basis: 100%; min-width: 280px; max-width: 100%; max-height: 90px; overflow: hidden; padding: 2px 8px; background: transparent; border-left: 2px solid var(--crimson); border-top: none; border-bottom: none; border-radius: 0; }
 .narrativa-marca { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; flex: 0 0 18px; color: var(--crimson); font-family: var(--font-mono); font-size: 11px; font-weight: 700; }
 .narrativa-texto { display: flex; align-items: baseline; gap: 8px; min-width: 0; flex: 1 1 auto; flex-wrap: wrap; }
@@ -66,15 +69,14 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
 .narrativa-contexto { display: inline-flex; align-items: center; gap: 4px; flex: 0 1 auto; flex-wrap: wrap; justify-content: flex-end; }
 .chip { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; border: 1px solid var(--rule); color: var(--ink-soft); background: var(--paper-warm); font-family: var(--font-mono); font-size: 10px; }
 
-/* FILA 3: CONTROLES — sin cambio mayor del ronda 1, pero con F1.5 `paso` */
 .fila-controles { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; flex-basis: 100%; border-top: 1px dotted var(--rule); padding-top: 6px; margin-top: 2px; }
 
-/* F1.14: control deshabilitado con `inkSoft` + opacity 0.6 + border `rule` */
 .control { display: inline-flex; align-items: center; gap: 3px; height: 26px; padding: 0 8px; font-size: 12px; color: var(--ink-mid); background: transparent; border: 1px solid var(--rule); border-radius: 0; cursor: pointer; font-family: var(--font-serif); }
 .control.activo { color: var(--ink); background: var(--paper); border: 1px solid var(--rule-strong); border-bottom: 2px solid var(--crimson); }
 .control:disabled { color: var(--ink-soft); background: transparent; border-color: var(--rule); cursor: not-allowed; opacity: 0.6; }
 .sep { color: var(--ink-faint); user-select: none; }
-.kbd { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); border: 1px solid var(--rule); padding: 0 3px; line-height: 16px; }
+/* F1.3: kbd del botón baja opacidad a 0.7 (convención "atajo visible" se mantiene, sin competir con el label) */
+.kbd { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); border: 1px solid var(--rule); padding: 0 3px; line-height: 16px; opacity: 0.7; }
 .flecha { font-size: 9px; }
 
 .segmented { display: inline-flex; align-items: center; margin-left: 8px; border: 1px solid var(--rule-strong); }
@@ -82,7 +84,6 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
 .segment-btn.ultimo { border-right: none; }
 .segment-btn.activo { font-weight: 600; color: var(--ink); background: var(--paper-warm); }
 
-/* FILA 4: TIMELINE — sin cambio del ronda 1 */
 .fila-timeline { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; flex-basis: 100%; border-top: 1px dotted var(--rule); padding-top: 4px; margin-top: 2px; }
 .marco { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 22px; padding: 0 4px; font-size: 10px; font-family: var(--font-mono); color: var(--ink-faint); }
 .marco.actual { font-weight: 600; color: var(--crimson); }
@@ -93,31 +94,27 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
 </style>
 </head>
 <body>
-<h1>BUG-20260608T171552Z-17477a — DESPUÉS ronda 2 <span class="meta">minimalismo + WCAG · 2026-06-09</span></h1>
-<p class="subtitle">Ronda 2 después de auditoría ux-design: copy honesto en "sin procesos", contraste AA en disabled, narrativa como acotación tipográfica (no panel), tagBadge compacto sin texto, atajos visibles, chip `sin plan` eliminado. El frame crimson se mantiene como ancla editorial del modo.</p>
+<h1>BUG-20260608T171552Z-17477a — DESPUÉS ronda 3 <span class="meta">micro-pulido · 2026-06-09</span></h1>
+<p class="subtitle">Ronda 3 cierra 5 de los 11 pendientes concientes (F1.3, F1.4, F1.6, F1.8, F1.10, F1.11) — todos con blast radius local y costo &lt;5 líneas. Los 5 restantes (F1.9, F1.15, F1.17, F1.21, F1.22) quedan documentados en el HANDOFF como frentes propios.</p>
 
 <div class="leyenda">
-  <strong>Cambios ronda 2 (todos via tokens, sin literales nuevos):</strong>
-  (a) <span class="fix">F1.7 copy honesto</span> en "sin procesos" — `No hay procesos para simular` + `puedeEjecutar: false` propagado al botón.
-  (b) <span class="fix">F1.14 contraste disabled</span> — `inkSoft` (#807b6e, ~3.5:1) + `opacity 0.6` + `border: rule` (no paperWarm que desaparecía la silueta). Pasa AA SC 1.4.3.
-  (c) <span class="fix">F1.18 narrativa acotada</span> — de 3 bordes + fondo paper a 1 borde crimson 2px sobre paperWarm. Mismo lenguaje que procesoActivo.
-  (d) <span class="fix">F1.1 status colapsado</span> — 4 elementos → 2 primarios (proceso + progreso) + atajos. La OPD vive ahora en la narrativa.
-  (e) <span class="fix">F1.5</span> `fase` → `paso` (lenguaje OPM canónico).
-  (f) <span class="fix">F1.16 WCAG 1.3.1</span> — `aria-hidden="true"` en `<kbd>` para que screen readers no dupliquen info.
-  (g) <span class="fix">F1.12 tag redundante</span> — la tag textual "Simulación" se elimina. Queda el badge compacto con el live-dot.
-  (h) <span class="fix">F1.13 atajos inline</span> — `[P] reproducir · [⎋] salir` en el status, kbd-mini sin border, mono, inkMid.
-  (i) <span class="fix">F1.19</span> chip `sin plan` redundante eliminado del contexto narrativo.
-  (j) <span class="fix">F1.20</span> tokens.spacing en lugar de magic numbers donde aplica.
+  <strong>Cambios ronda 3 (todos via tokens, sin literales nuevos):</strong>
+  (a) <span class="fix">F1.3 kbd del botón</span> baja a opacity 0.7 — la convención "atajo visible" se mantiene pero el kbd deja de competir con el label.
+  (b) <span class="fix">F1.4 aria-label del toolbar</span> incluye el modo: "Controles de simulacion, modo determinista" — screen reader anuncia contexto completo.
+  (c) <span class="fix">F1.6 reversibilidad de reiniciar</span>: title ahora dice "Volver al paso 0 — reversible con Ctrl+Z".
+  (d) <span class="fix">F1.8 jerga headless</span>: label visible "rápido" / "rápido activo" + `title` y `aria-label` mantienen "headless" técnico.
+  (e) <span class="fix">F1.10 live-dot condicional</span>: estático cuando !autoAvance (ancla del modo), pulsa cuando autoAvance (corriendo).
+  (f) <span class="fix">F1.11 kbdMini</span> sube de 9.5 a 10px para coincidir con el `kbd` del botón (ritmo visual consistente).
 </div>
 
-<div class="barra">
+<div class="barra" role="toolbar" aria-label="Controles de simulacion, modo determinista">
   <div class="spine spine-left"></div>
   <div class="spine spine-right"></div>
 
-  <!-- FILA 1: STATUS — colapsada -->
+  <!-- FILA 1: STATUS -->
   <div class="fila">
-    <span class="tagBadge" aria-label="Modo simulación activo">
-      <span class="tagDot"></span>
+    <span class="tagBadge" aria-label="Modo simulación listo" data-testid="barra-simulacion-tag">
+      <span class="tagDot" aria-hidden="true"></span>
     </span>
     <span class="estado-texto">paso 3 de 13 · resultado</span>
     <span class="proceso-activo">Investigar rechazo</span>
@@ -127,7 +124,7 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
     </span>
   </div>
 
-  <!-- FILA 2: NARRATIVA — acotación crimson -->
+  <!-- FILA 2: NARRATIVA -->
   <div class="narrativa">
     <span class="narrativa-marca" aria-hidden="true">·</span>
     <span class="narrativa-texto">
@@ -149,9 +146,11 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
     <span class="sep">·</span>
     <button class="control">correr</button>
     <span class="sep">·</span>
-    <button class="control">reiniciar</button>
+    <!-- F1.6: title con reversibilidad undo -->
+    <button class="control" title="Volver al paso 0 — reversible con Ctrl+Z">reiniciar</button>
     <span class="sep">·</span>
-    <button class="control">headless</button>
+    <!-- F1.8: label "rápido" en vez de "headless" -->
+    <button class="control" title="Headless: corre sin animacion de tokens" aria-label="Modo headless: corre sin animacion de tokens">rápido</button>
     <span class="sep">·</span>
     <button class="control" style="margin-left:4px">salir <span class="kbd">⎋</span></button>
 
@@ -182,12 +181,13 @@ h1 .meta { font-weight: 400; color: var(--ink-soft); margin-left: 8px; font-size
 
 <p class="nota">
   <strong>Invariantes preservadas (canon ui-forja):</strong>
-  (1) §2 sin `Button` con `background + radius + shadow` permanentes — los controles son fondo transparente + hairline, sin radio, sin sombra.
-  (2) §4.1 focus canon crimson 2px offset 2 (con fallback `:focus` además de `:focus-visible` para WebViews legacy).
+  (1) §2 sin `Button` con `background + radius + shadow` permanentes.
+  (2) §4.1 focus canon crimson 2px offset 2.
   (3) §5 la jerarquía dotted sigue el lenguaje ya usado en PanelCarpetas / ArbolOpd.
-  (4) Token usage 100%: todos los colores vienen de `tokens.colors`, no hay literales nuevos.
-  (5) Live-dot crimson pulsante se mantiene como ancla visual del modo (sin texto redundante).
-  (6) `headless` se conserva como label (jerga aceptable porque el `title` lo explica en desktop; mobile-readonly usa MobileReadonlyApp, no esta barra).
+  (4) Token usage 100%: todos los colores y tamaños vienen de `tokens.colors` / `tokens.typography`.
+  (5) Live-dot crimson pulsante vs estático, según estado de ejecución.
+  (6) Atajos `[P]` y `⎋` visibles inline al final del status.
+  (7) `headless` se conserva como jerga técnica en `title`/`aria-label`; label visible es semántico.
 </p>
 
 </body>

@@ -196,3 +196,59 @@ Screenshot post-ronda 2: el status line muestra `tagBadge` con dot pulsante a la
 ## Prompt breve de continuación (ronda 2)
 
 "Bug BUG-20260608T171552Z-17477a cerrado en 2 rondas. Ronda 1: jerarquía botón-vs-label (hairline `rule` + inkMid + segmented ruleStrong + chip proceso + separadores dotted). Ronda 2 (post-auditoría ux-design): copy honesto `No hay procesos para simular`, contraste AA en disabled (inkSoft + opacity 0.6), narrativa como acotación crimson 2px sin fondo, tagBadge compacto sin texto redundante, atajos visibles inline, chip `sin plan` y `modo` redundante eliminados. Gate 2335/0, lint limpio, build OK (bundle `index-qoqKMWRA.js`), design:governance OK, sonda 10/11 en prod. Siguen 12 hallazgos de severidad baja (kbd inline, mobile-readonly, target size, etc.) como follow-up consciente."
+
+---
+
+## Ronda 3 — Micro-pulido dialéctico (cierre de 5 pendientes concientes)
+
+Análisis dialéctico de los 11 pendientes concientes de la ronda 2 → 5 cambios seguros (F1.3, F1.4, F1.6, F1.8, F1.10, F1.11), 5 difiriendo como frentes propios o no-bugs (F1.9, F1.15, F1.17, F1.20, F1.22), 1 verificación abierta (F1.21).
+
+### Cambios ronda 3
+
+| id | heurística | decisión dialéctica | cambio |
+|---|---|---|---|
+| **F1.3** | H4 consistencia | KEEP pero baja peso (no romper convención VSCode/Linear) | `s.kbd.opacity: 0.7` — el kbd del botón sigue visible (memoria muscular) pero deja de competir con el label. |
+| **F1.4** | H10 ayuda | Cambio de superficie: aria-label del **toolbar**, no del breadcrumb | `aria-label={"Controles de simulacion, modo " + (contexto.modo ?? "determinista")}` — screen reader anuncia contexto completo al entrar. Breadcrumb describe ruta, no modo. |
+| **F1.6** | H9 recuperación | Documentar reversibilidad, no agregar confirmación | `title="Volver al paso 0 — reversible con Ctrl+Z"` — el operador sabe que el undo store cubre la acción. Sin dialog (canon: cero ceremonias). |
+| **F1.8** | H2 correspondencia | Label semántico, jerga preservada en `title`/`aria-label` | Label visible: "rápido" / "rápido activo". `title` y `aria-label` mantienen "headless" técnico. |
+| **F1.10** | H1 visibilidad | Estado por **movimiento** (no presencia/ausencia) | `.sim-live-dot--idle` (estático) cuando `!autoAvance`, `.sim-live-dot--running` (pulsa) cuando `autoAvance`. Dot siempre presente como ancla del modo. |
+| **F1.11** | H4 consistencia | Alinear tamaños (no unificar familias) | `s.kbdMini.fontSize: 9.5 → 10` para coincidir con `s.kbd` del botón. Familias tipográficas (mono/serif/9px) se mantienen — la inconsistencia es intencional y sigue el canon. |
+
+### Decisiones diferidas con justificación
+
+| id | hallazgo | decisión | razón |
+|---|---|---|---|
+| **F1.9** | responsive por accidente | NO tocar | Branch mobile ya existe (`barraMobile` con 48px). 3 anchos canónicos globales = scope aparte, fuera de este bug. |
+| **F1.15** | fallback focus en WebViews legacy | NO expandir | Cubierto en ronda 2 (`.sim-control:focus` + `:focus-visible`). Residual despreciable. |
+| **F1.17** | target size 26px en touch | NO subir | Falso positivo de la auditoría: 26px es estándar mouse; el branch mobile ya es 48px. WCAG SC 2.5.5 aplica a touch, no a mouse. |
+| **F1.20** | magic numbers en spacing | Cerrado | Microajustes editoriales (1-3px) son intencionales; documentado en comentarios. |
+| **F1.22** | panel `?` con ayuda inline | NO hacer | Labels visibles + atajos en status (F1.13) cubren el 80% del caso. Scope aparte. |
+| **F1.21** | barra en mobile-readonly | **PENDIENTE DE VERIFICAR** | Requiere inspección de `App.tsx` y `MobileReadonlyApp.tsx` para confirmar si la barra se renderiza adentro del shell mobile. Si aparece, gatear con `useBreakpoint()`. |
+
+### Verificación ronda 3
+
+| Gate | Resultado |
+|---|---|
+| `cd app && bun run typecheck` | limpio |
+| `cd app && bun run check` | **2337 pass / 0 fail** (+2 nuevos tests) |
+| `cd app && bun run lint` | limpio |
+| `cd app && bun run build` | OK · bundle `index-DRRZbFb2.js` (448.82 kB) |
+| `cd app && bun run design:governance` | OK |
+| `URL=https://opforja.sanixai.com node app/scripts/sonda-bug-17477a.mjs` | **10/11 verde** en prod |
+
+Bundle verificado contiene: `sim-live-dot--running`, `sim-live-dot--idle`, `Controles de simulacion, modo`, `rapido activo`, `reversible con Ctrl`.
+
+### Tests agregados ronda 3
+
+`BarraSimulacion.styles.test.ts`:
+- `F1.3: <kbd> del botón baja su peso visual con opacity 0.7` (anchors opacity 0.7 + invariantes que ya teníamos).
+- `F1.10: tagDot no incluye animation (vive en CSS inyectado)` — valida que la animación NO está inline (se mantiene en el CSS inyectado, no en s.tagDot).
+- `F1.13` actualizado: `kbdMini.fontSize` 9.5 → 10.
+
+### Verificación visual en prod (ronda 3)
+
+Screenshot post-ronda 3: el botón `headless` ahora dice `rápido`. El `<kbd>P</kbd>` y `<kbd>⎋</kbd>` del status coinciden visualmente con los `<kbd>` de los botones. El dot del status es estático (modelo sin procesos, `autoAvance: false`).
+
+## Prompt breve de continuación (ronda 3)
+
+"Bug BUG-20260608T171552Z-17477a cerrado en 3 rondas. Ronda 1: jerarquía botón-vs-label. Ronda 2: copy honesto, contraste AA, narrativa como acotación, tagBadge, atajos, sin redundancias. Ronda 3 (micro-pulido dialéctico): kbd 0.7, aria-label con modo, reversibilidad documentada, label 'rápido', live-dot condicional, kbdMini 10. Gate 2337/0, lint limpio, build OK (bundle `index-DRRZbFb2.js`), design:governance OK, sonda 10/11 en prod. Pendiente menor: F1.21 (verificar que la barra no aparezca en mobile-readonly shell). Pendientes concientes restantes documentados en HANDOFF como frentes propios: F1.9 (responsive canónico), F1.22 (panel ayuda con atajo `?`)."

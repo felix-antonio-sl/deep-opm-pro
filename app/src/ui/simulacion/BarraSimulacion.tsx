@@ -60,7 +60,7 @@ export function BarraSimulacion(): JSX.Element | null {
     // "modo simulación" sin tapar al canvas.
     <>
       {/* Keyframe del "live dot" — el pulso crimson marca que la simulación
-          está activa. Inyectado una sola vez por render del componente;
+          está corriendo. Inyectado una sola vez por render del componente;
           como el nombre del keyframe es único (`sim-live-dot-pulse`) y la
           regla es idempotente, re-renderizar no causa flickering.
           BUG-20260608T171552Z-17477a: además, pseudo-estados de los
@@ -71,12 +71,22 @@ export function BarraSimulacion(): JSX.Element | null {
           que el scope sea local al componente (no contamina otros
           botones de la app). Los colores vienen de los tokens del design
           system (`paper` / `paperWarm` / `crimson`), no son literales
-          nuevos. */}
-      <style>{`@keyframes sim-live-dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.35)}}.sim-live-dot{animation:sim-live-dot-pulse 1.4s ease-in-out infinite;transform-origin:center}.sim-control:hover:not(:disabled):not(.sim-control-activo){color:${C.ink};background:${C.paper};border-color:${C.ruleStrong}}.sim-control:active:not(:disabled){background:${C.paperWarm}}.sim-control:focus,.sim-control:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}.sim-control:disabled{color:${C.inkSoft};background:transparent;border-color:${C.rule};cursor:not-allowed;opacity:0.6}.sim-control.sim-control-activo{color:${C.ink};background:${C.paper};border-color:${C.ruleStrong};border-bottom-color:${C.crimson};border-bottom-width:2px}.sim-control.sim-control-activo:hover:not(:disabled){background:${C.paperWarm}}.sim-segment:hover:not(:disabled){color:${C.ink};background:${C.paper}}.sim-segment:focus,.sim-segment:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}`}</style>
+          nuevos.
+          BUG-20260608T171552Z-17477a ronda 3 (F1.10): la animación se
+          movió a `.sim-live-dot--running`. `.sim-live-dot--idle` es
+          estática — el dot sigue presente como ancla del modo pero sin
+          pulsar, comunicando "listo" vs "corriendo" por movimiento, no
+          por presencia/ausencia. */}
+      <style>{`@keyframes sim-live-dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.35)}}.sim-live-dot--idle{display:inline-block}.sim-live-dot--running{animation:sim-live-dot-pulse 1.4s ease-in-out infinite;transform-origin:center}.sim-control:hover:not(:disabled):not(.sim-control-activo){color:${C.ink};background:${C.paper};border-color:${C.ruleStrong}}.sim-control:active:not(:disabled){background:${C.paperWarm}}.sim-control:focus,.sim-control:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}.sim-control:disabled{color:${C.inkSoft};background:transparent;border-color:${C.rule};cursor:not-allowed;opacity:0.6}.sim-control.sim-control-activo{color:${C.ink};background:${C.paper};border-color:${C.ruleStrong};border-bottom-color:${C.crimson};border-bottom-width:2px}.sim-control.sim-control-activo:hover:not(:disabled){background:${C.paperWarm}}.sim-segment:hover:not(:disabled){color:${C.ink};background:${C.paper}}.sim-segment:focus,.sim-segment:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}`}</style>
       <div
         data-testid="barra-simulacion"
         role="toolbar"
-        aria-label="Controles de simulacion"
+        // BUG-20260608T171552Z-17477a ronda 3 (F1.4): el aria-label del
+        // toolbar incluye el modo para que screen readers anuncien el
+        // contexto completo al entrar. Antes solo decía "Controles de
+        // simulacion" — sin el modo, el usuario con SR no sabía si
+        // estaba en determinista, muestreo o exhaustivo.
+        aria-label={`Controles de simulacion, modo ${contexto.modo ?? "determinista"}`}
         style={esMobile ? { ...s.barra, ...s.barraMobile } : s.barra}
       >
       {!esMobile ? (
@@ -95,8 +105,21 @@ export function BarraSimulacion(): JSX.Element | null {
             progreso (texto italic). La OPD se movió al panel narrativa como
             breadcrumb. La pista de atajos al final es la ayuda inline. */}
         {!esMobile ? (
-          <span style={s.tagBadge} aria-label="Modo simulación activo" data-testid="barra-simulacion-tag">
-            <span className="sim-live-dot" style={s.tagDot} aria-hidden="true" />
+          <span
+            style={s.tagBadge}
+            aria-label={autoAvance ? "Modo simulación corriendo" : "Modo simulación listo"}
+            data-testid="barra-simulacion-tag"
+          >
+            {/* BUG-20260608T171552Z-17477a ronda 3 (F1.10): el dot pulsa sólo
+                cuando la simulación está corriendo. Cuando está listo/pausado
+                el dot sigue presente como ancla visual del modo, pero
+                estático — el ojo distingue "listo" vs "corriendo" sin agregar
+                elementos al DOM. */}
+            <span
+              className={autoAvance ? "sim-live-dot--running" : "sim-live-dot--idle"}
+              style={s.tagDot}
+              aria-hidden="true"
+            />
           </span>
         ) : null}
         {esMobile ? (
@@ -197,13 +220,27 @@ export function BarraSimulacion(): JSX.Element | null {
         </button>
         <span style={s.sep}>&middot;</span>
 
-        <button type="button" className="sim-control" style={s.control} onClick={reiniciar} disabled={sinProcesos} data-testid="barra-simulacion-reiniciar" title="Volver al paso 0">
+        <button type="button" className="sim-control" style={s.control} onClick={reiniciar} disabled={sinProcesos} data-testid="barra-simulacion-reiniciar" title="Volver al paso 0 — reversible con Ctrl+Z">
           reiniciar
         </button>
         <span style={s.sep}>&middot;</span>
 
-        <button type="button" className="sim-control" style={s.control} onClick={alternarHeadless} aria-pressed={headless} title="Headless: corre sin animacion de tokens" data-testid="barra-simulacion-headless">
-          {headless ? "headless activo" : "headless"}
+        {/* BUG-20260608T171552Z-17477a ronda 3 (F1.8): label visible "rápido"
+            en vez de la jerga "headless". El término técnico se preserva
+            en `title` y `aria-label` para quien lo busca. La invariante
+            canon: el label visible es semántico de lo que el usuario hace
+            (acelerar la corrida), no del mecanismo (sin UI de tokens). */}
+        <button
+          type="button"
+          className="sim-control"
+          style={s.control}
+          onClick={alternarHeadless}
+          aria-pressed={headless}
+          title="Headless: corre sin animacion de tokens"
+          aria-label="Modo headless: corre sin animacion de tokens"
+          data-testid="barra-simulacion-headless"
+        >
+          {headless ? "rápido activo" : "rápido"}
         </button>
         <span style={s.sep}>&middot;</span>
 
@@ -524,7 +561,11 @@ export const s: EstilosBarra = {
   },
   kbdMini: {
     fontFamily: T.fontFamilyMono,
-    fontSize: 9.5,
+    // BUG-20260608T171552Z-17477a ronda 3 (F1.11): kbdMini sube de 9.5
+    // a 10 para coincidir con el `s.kbd` del botón (ambos son kbd;
+    // deben compartir tamaño para ritmo visual consistente). El delta
+    // 0.5 era residuo histórico sin razón.
+    fontSize: 10,
     color: C.inkMid,
     background: "transparent",
     padding: 0,
@@ -722,6 +763,12 @@ export const s: EstilosBarra = {
     userSelect: "none" as const,
     fontSize: T.sizes.sm,
   },
+  // BUG-20260608T171552Z-17477a ronda 3 (F1.3): el `<kbd>` adentro de
+  // los botones (reproducir/salir) baja su peso visual con `opacity
+  // 0.7`. La convención "atajo visible dentro del botón" se mantiene
+  // (memoria muscular de VSCode/GitHub/Linear), pero el kbd deja de
+  // competir con el texto del label. El aria-hidden del kbd (F1.16)
+  // evita que screen readers dupliquen la info.
   kbd: {
     fontFamily: T.fontFamilyMono,
     fontSize: 10,
@@ -731,6 +778,7 @@ export const s: EstilosBarra = {
     padding: "0 3px",
     borderRadius: 0,
     lineHeight: "16px",
+    opacity: 0.7,
   },
   flecha: {
     fontSize: 9,

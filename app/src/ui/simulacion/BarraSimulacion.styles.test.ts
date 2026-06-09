@@ -212,7 +212,38 @@ describe("BarraSimulacion status minimalismo (BUG-20260608T171552Z-17477a ronda 
     expect(s.kbdMini.border).toBe("none");
     expect(s.kbdMini.fontFamily).toBe(tokens.typography.fontFamilyMono);
     expect(s.kbdMini.color).toBe(tokens.colors.inkMid);
-    expect(s.kbdMini.fontSize).toBe(9.5);
+    // BUG-20260608T171552Z-17477a ronda 3 (F1.11): kbdMini comparte
+    // tamaño con el `kbd` del botón (10px) para ritmo visual.
+    expect(s.kbdMini.fontSize).toBe(10);
+  });
+});
+
+describe("BarraSimulacion micro-pulido (BUG-20260608T171552Z-17477a ronda 3)", () => {
+  // F1.3: el `<kbd>` adentro de los botones (reproducir/salir) baja su
+  // peso visual con `opacity 0.7`. La convención "atajo visible en el
+  // botón" se mantiene (memoria muscular), pero el kbd deja de competir
+  // con el texto del label.
+  test("F1.3: <kbd> del botón baja su peso visual con opacity 0.7", () => {
+    expect(s.kbd.opacity).toBe(0.7);
+    // invariantes que ya teníamos
+    expect(s.kbd.fontSize).toBe(10);
+    expect(s.kbd.fontFamily).toBe(tokens.typography.fontFamilyMono);
+    expect(s.kbd.color).toBe(tokens.colors.inkFaint);
+    expect(s.kbd.border).toBe(`1px solid ${tokens.colors.rule}`);
+  });
+
+  // F1.10: la animación del live-dot se movió a la clase
+  // `sim-live-dot--running`. `sim-live-dot--idle` es estática. El
+  // componente alterna entre las dos según `autoAvance`. El dot sigue
+  // presente en ambos casos como ancla visual del modo; el pulso
+  // comunica "corriendo" sin agregar elementos.
+  //
+  // No testeamos directamente las clases CSS inyectadas (están en un
+  // string de `<style>`), pero validamos que `s.tagDot` no incluye
+  // `animation` (la animación vive en el CSS, no en inline styles).
+  test("F1.10: tagDot no incluye animation (vive en CSS inyectado)", () => {
+    expect(s.tagDot.animation).toBeUndefined();
+    expect(s.tagDot.display).toBe("inline-block");
   });
 });
 
