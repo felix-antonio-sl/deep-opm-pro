@@ -39,6 +39,7 @@ const CAMPOS_MODELO = {
   ontologia: true,
   satisfaccionesRequisito: true,
   anclasNormativas: true,
+  notasMesa: true,
   procedencia: true,
   submodelos: true,
   referenciaPadreSubmodelo: true,

@@ -3,6 +3,7 @@ import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorEnlace } from "./InspectorEnlace";
 import { InspectorEntidad } from "./InspectorEntidad";
 import { InspectorEstado } from "./inspector/InspectorEstado";
+import { SeccionNotasMesa } from "./inspector/SeccionNotasMesa";
 
 /**
  * Inspector raiz: ViewContainer XOR (estado | entidad | enlace | vacio).
@@ -71,6 +72,8 @@ function InspectorVacio(props: { procedencia: InspectorViewModel["procedencia"] 
           ) : null}
         </div>
       ) : null}
+      {/* W6.5-a: notas a nivel de modelo — la rama vacía es la vista modelo-nivel. */}
+      <SeccionNotasMesa target={{ tipo: "modelo" }} />
     </div>
   );
 }

@@ -28,6 +28,11 @@ import type { EsenciaVisibilidad } from "../../opl/opciones";
 import { generarOpl } from "../../opl/generar";
 import { exportarOplModeloMarkdown, exportarOplOpdMarkdown } from "../../opl/exportarMarkdown";
 import { exportarContextoSkill } from "../../opl/contextoSkill";
+import {
+  agregarNotaMesa as agregarNotaMesaKernel,
+  editarNotaMesa as editarNotaMesaKernel,
+  eliminarNotaMesa as eliminarNotaMesaKernel,
+} from "../../modelo/notasMesa";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
 import {
   commitModelo,
@@ -375,6 +380,40 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       } catch {
         set({ mensaje: "No se pudo copiar al portapapeles" });
       }
+    },
+
+    // W6.5-a: notas de mesa — comentarios de revisión anclados a componentes.
+    // commitModelo ⇒ undoables y persistidas con el modelo. La fecha la inyecta
+    // la acción (la mesa anota HOY); el kernel queda puro/determinista.
+    agregarNotaMesa(target, texto) {
+      const { modelo } = get();
+      const fecha = new Date().toISOString().slice(0, 10);
+      const resultado = agregarNotaMesaKernel(modelo, target, texto, fecha);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { mensaje: "Nota de mesa agregada" });
+    },
+
+    editarNotaMesa(notaId, texto) {
+      const { modelo } = get();
+      const resultado = editarNotaMesaKernel(modelo, notaId, texto);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { mensaje: null });
+    },
+
+    eliminarNotaMesa(notaId) {
+      const { modelo } = get();
+      const resultado = eliminarNotaMesaKernel(modelo, notaId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, { mensaje: null });
     },
 
     // W6.0: puente de contexto 1-click app→skill. Copia el contexto de modelado

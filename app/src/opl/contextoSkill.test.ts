@@ -92,4 +92,44 @@ describe("exportarContextoSkill — puente W6.0 app → skill", () => {
     const modelo = modeloConTodo();
     expect(exportarContextoSkill(modelo, NOW)).toBe(exportarContextoSkill(modelo, NOW));
   });
+
+  // W6.5-a: las notas de mesa viajan como insumo de re-elicitación, con el
+  // nombre del target resuelto (la skill no conoce los ids internos).
+  test("las notas de mesa viajan en su sección con target resuelto por nombre", async () => {
+    const { agregarNotaMesa } = await import("../modelo/notasMesa");
+    let modelo = modeloConTodo();
+    const objetoId = Object.values(modelo.entidades).find((e) => e.nombre === "Paciente")!.id;
+    modelo = must(agregarNotaMesa(modelo, { tipo: "entidad", id: objetoId }, "¿dividir en dos?", "2026-06-10"));
+    modelo = must(agregarNotaMesa(modelo, { tipo: "modelo" }, "revisar frontera", "2026-06-10"));
+
+    const md = exportarContextoSkill(modelo, NOW);
+    expect(md).toContain("## Notas de la mesa");
+    expect(md).toContain("Paciente");
+    expect(md).toContain("¿dividir en dos?");
+    expect(md).toContain("revisar frontera");
+    // Orden: las notas van junto a los pendientes (contexto accionable), antes del diagnóstico.
+    expect(md.indexOf("## Notas de la mesa")).toBeLessThan(md.indexOf("## Diagnóstico"));
+  });
+
+  test("sin notas de mesa lo declara explícitamente", () => {
+    const md = exportarContextoSkill(modeloConTodo(), NOW);
+    expect(md).toContain("## Notas de la mesa");
+    expect(md).toContain("Sin notas de mesa");
+  });
+
+  test("una nota sobre un enlace resuelve origen→destino por nombre (ExtremoEnlace es objeto)", async () => {
+    const { agregarNotaMesa } = await import("../modelo/notasMesa");
+    const { crearProceso, crearEnlace } = await import("../modelo/operaciones");
+    let modelo = modeloConTodo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 40 }, "Atender"));
+    const paciente = Object.values(modelo.entidades).find((e) => e.nombre === "Paciente")!.id;
+    const atender = Object.values(modelo.entidades).find((e) => e.nombre === "Atender")!.id;
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, paciente, atender, "consumo"));
+    const enlaceId = Object.keys(modelo.enlaces)[0]!;
+    modelo = must(agregarNotaMesa(modelo, { tipo: "enlace", id: enlaceId }, "¿es instrumento, no consumo?", "2026-06-10"));
+
+    const md = exportarContextoSkill(modelo, NOW);
+    expect(md).toContain("enlace consumo Paciente→Atender");
+    expect(md).not.toContain("[object Object]");
+  });
 });

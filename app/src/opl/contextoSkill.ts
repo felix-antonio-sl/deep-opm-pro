@@ -1,6 +1,8 @@
 import { anclasPendientes, enumerarAnclas } from "../modelo/anclasNormativas";
 import { exportarDiagnosticoJson } from "../modelo/exportarDiagnostico";
-import type { AnclaNormativa, Modelo } from "../modelo/tipos";
+import { nombreExtremo } from "../modelo/extremos";
+import { enumerarNotasMesa } from "../modelo/notasMesa";
+import type { AnclaNormativa, Modelo, NotaMesa, TargetAncla } from "../modelo/tipos";
 import { exportarOplModeloMarkdown } from "./exportarMarkdown";
 
 /**
@@ -30,6 +32,10 @@ export function exportarContextoSkill(modelo: Modelo, now: Date = new Date()): s
     "## Pendientes [RATIFICAR]",
     "",
     seccionPendientes(modelo),
+    "",
+    "## Notas de la mesa",
+    "",
+    seccionNotasMesa(modelo),
     "",
     "## Diagnóstico",
     "",
@@ -64,6 +70,39 @@ function seccionPendientes(modelo: Modelo): string {
   }
   const lineas = pendientes.map(lineaPendiente);
   return `${lineas.join("\n")}\n\n${resumen}`;
+}
+
+// W6.5-a: las notas de mesa son insumo de re-elicitación — cada una es una
+// conversación pendiente con el experto del dominio. Se resuelven el target por
+// NOMBRE (la skill no conoce los ids internos del bundle).
+function seccionNotasMesa(modelo: Modelo): string {
+  const notas = enumerarNotasMesa(modelo);
+  if (notas.length === 0) return "_Sin notas de mesa._";
+  return notas.map((nota) => lineaNota(modelo, nota)).join("\n");
+}
+
+function lineaNota(modelo: Modelo, nota: NotaMesa): string {
+  return `- [${nota.fecha}] sobre ${describirTarget(modelo, nota.target)}: ${nota.texto}`;
+}
+
+function describirTarget(modelo: Modelo, target: TargetAncla): string {
+  switch (target.tipo) {
+    case "modelo":
+      return "el modelo";
+    case "entidad": {
+      const entidad = modelo.entidades[target.id];
+      return entidad ? `${entidad.tipo} **${entidad.nombre}**` : `entidad ${target.id}`;
+    }
+    case "opd": {
+      const opd = modelo.opds[target.id];
+      return opd ? `OPD «${opd.nombre}»` : `OPD ${target.id}`;
+    }
+    case "enlace": {
+      const enlace = modelo.enlaces[target.id];
+      if (!enlace) return `enlace ${target.id}`;
+      return `enlace ${enlace.tipo} ${nombreExtremo(modelo, enlace.origenId)}→${nombreExtremo(modelo, enlace.destinoId)}`;
+    }
+  }
 }
 
 function lineaPendiente(ancla: AnclaNormativa): string {

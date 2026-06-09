@@ -111,6 +111,24 @@ export interface AnclaNormativa {
   ratificacion?: RatificacionAncla;
 }
 
+// --- NotaMesa (W6.5-a) -------------------------------------------------------
+// Extensión ADITIVA y OPCIONAL del formato `deep-opm-pro.modelo.v0`: comentario
+// de revisión del operador anclado a un componente. Es contenido META de la mesa
+// (mismo estatuto que AnclaNormativa, V-204): NO emite OPL, NO cuenta como cosa,
+// NO altera `validarModelo` nuclear. A diferencia de la `descripcion` de entidad
+// (que define QUÉ ES la cosa), la nota registra QUÉ SE PREGUNTA la mesa sobre
+// ella: viaja en el contexto W6.0 como insumo de re-elicitación y se resuelve
+// corrigiendo el proto — desechable una vez resuelta, no definición.
+
+/** Comentario de mesa anclado a un componente. Reusa `TargetAncla` (4 niveles). */
+export interface NotaMesa {
+  id: Id;
+  target: TargetAncla;
+  texto: string;
+  /** ISO date (YYYY-MM-DD) — cuándo se anotó en la mesa. */
+  fecha: string;
+}
+
 // --- SelloProcedencia (W5.3 / L6) -------------------------------------------
 // Extensión ADITIVA y OPCIONAL del formato `deep-opm-pro.modelo.v0`: sello de
 // origen del bundle emitido por `autoria/compilar` (acta mesa flujo-canónico

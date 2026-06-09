@@ -5,6 +5,7 @@ import type { Enlace } from "./enlace";
 import type { Estado } from "./estado";
 import type {
   AnclaNormativa,
+  NotaMesa,
   OntologiaOrganizacional,
   ReferenciaPadreSubmodelo,
   SatisfaccionRequisito,
@@ -45,6 +46,8 @@ export interface Modelo {
   satisfaccionesRequisito?: Record<Id, SatisfaccionRequisito>;
   /** W5.1: trazabilidad de procedencia normativa. Aditivo y opcional (extensión declarada). */
   anclasNormativas?: Record<Id, AnclaNormativa>;
+  /** W6.5-a: notas de mesa (comentarios de revisión por componente). Aditivo y opcional. */
+  notasMesa?: Record<Id, NotaMesa>;
   /** W5.3/L6: sello de origen del bundle emitido (proto+versiones). Aditivo y opcional. */
   procedencia?: SelloProcedencia;
   submodelos?: Record<Id, SubmodeloReferencia>;

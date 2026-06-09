@@ -1,5 +1,6 @@
 import type {
   AnclaNormativa,
+  NotaMesa,
   EstadoAncla,
   EstadoCargaSubmodelo,
   EstadoRatificacion,
@@ -153,6 +154,13 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     opdsValidados.value,
   );
   if (!anclasValidadas.ok) return anclasValidadas;
+  const notasMesaValidadas = validarNotasMesa(
+    value.notasMesa,
+    entidadesValidadas.value,
+    enlacesValidados.value,
+    opdsValidados.value,
+  );
+  if (!notasMesaValidadas.ok) return notasMesaValidadas;
   const procedenciaValidada = validarProcedencia(value.procedencia);
   if (!procedenciaValidada.ok) return procedenciaValidada;
   const submodelosValidados = validarSubmodelos(value.submodelos, entidadesValidadas.value, opdsValidados.value);
@@ -182,6 +190,7 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     ...(ontologiaValidada.value ? { ontologia: ontologiaValidada.value } : {}),
     ...(Object.keys(satisfaccionesValidadas.value).length > 0 ? { satisfaccionesRequisito: satisfaccionesValidadas.value } : {}),
     ...(Object.keys(anclasValidadas.value).length > 0 ? { anclasNormativas: anclasValidadas.value } : {}),
+    ...(Object.keys(notasMesaValidadas.value).length > 0 ? { notasMesa: notasMesaValidadas.value } : {}),
     ...(procedenciaValidada.value ? { procedencia: procedenciaValidada.value } : {}),
     ...(Object.keys(submodelosValidados.value).length > 0 ? { submodelos: submodelosValidados.value } : {}),
     ...(padreSubmodeloValidado.value ? { referenciaPadreSubmodelo: padreSubmodeloValidado.value } : {}),
@@ -294,6 +303,31 @@ function validarAnclasNormativas(
     };
   }
   return ok(anclas);
+}
+
+/**
+ * Valida `notasMesa` (W6.5-a). Extensión aditiva: ausente ⇒ `{}` (byte-identidad sobre
+ * opcional ausente). Cada nota exige `texto` y `fecha` presentes y `target` RESOLUBLE
+ * (mismo contrato que las anclas: irresoluble se RECHAZA con diagnóstico, no silencio).
+ */
+function validarNotasMesa(
+  value: unknown,
+  entidades: Modelo["entidades"],
+  enlaces: Modelo["enlaces"],
+  opds: Modelo["opds"],
+): Resultado<Record<Id, NotaMesa>> {
+  if (value === undefined) return ok({});
+  if (!esRecord(value)) return fallo("Modelo inválido: notasMesa");
+  const notas: Record<Id, NotaMesa> = {};
+  for (const [id, raw] of Object.entries(value)) {
+    if (!esRecord(raw) || raw.id !== id) return fallo(`Nota de mesa inválida: ${id}`);
+    if (typeof raw.texto !== "string" || !raw.texto.trim()) return fallo(`Nota de mesa inválida: ${id}.texto`);
+    if (typeof raw.fecha !== "string" || !raw.fecha.trim()) return fallo(`Nota de mesa inválida: ${id}.fecha`);
+    const target = validarTargetAncla(id, raw.target, entidades, enlaces, opds);
+    if (!target.ok) return target;
+    notas[id] = { id, target: target.value, texto: raw.texto.trim(), fecha: raw.fecha.trim() };
+  }
+  return ok(notas);
 }
 
 /**

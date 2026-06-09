@@ -176,6 +176,9 @@ export const MODELO_SLICE_CAPABILITIES = {
     "copiarOplActualAlPortapapeles",
     "copiarOplModeloMarkdownAlPortapapeles",
     "copiarContextoSkillAlPortapapeles",
+    "agregarNotaMesa",
+    "editarNotaMesa",
+    "eliminarNotaMesa",
   ],
   canvasCommands: [
     "seleccionarEntidad",
