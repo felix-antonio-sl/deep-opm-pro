@@ -82,6 +82,10 @@ export interface Autor {
   idEstado(entidadKey: EntKey, estado: string): Id;
   /** Declara un OPD. padreKey=null lo marca como raíz (el primero fija modelo.opdRaizId). */
   opd(key: OpdKey, nombre: string, padreKey?: OpdKey | null, ordenLocal?: number): Id;
+  /** Marca un OPD ya declarado como vista ad-hoc `generic-view` (E-1): reúne
+   *  apariciones arbitrarias SIN refinamiento; excluida de los checkers de
+   *  frontera/descomposición. */
+  vistaGenerica(key: OpdKey, opts?: { readOnly?: boolean }): void;
   /** Declara una entidad (objeto/proceso). */
   entidad(key: EntKey, tipo: "objeto" | "proceso", nombre: string, esencia: Esencia, afiliacion: Afiliacion, descripcion?: string): Id;
   /** Azúcar: declara un atributo (objeto informacional/sistémico con value slot). */
@@ -216,6 +220,12 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     };
     if (!padreKey && !modelo.opdRaizId) modelo.opdRaizId = id;
     return id;
+  }
+
+  function vistaGenerica(key: OpdKey, opts?: { readOnly?: boolean }): void {
+    const opd = modelo.opds[idOpd(key)];
+    if (!opd) throw new Error(`vistaGenerica: OPD inexistente '${String(key)}' (declara opd(...) primero).`);
+    opd.vista = { kind: "generic-view", ...(opts?.readOnly !== undefined ? { readOnly: opts.readOnly } : {}) };
   }
 
   function entidad(key: EntKey, tipo: "objeto" | "proceso", nombre: string, esencia: Esencia, afiliacion: Afiliacion, descripcion?: string): Id {
@@ -602,6 +612,7 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     idOpd,
     idEstado,
     opd,
+    vistaGenerica,
     entidad,
     atributo,
     atributoEstados,

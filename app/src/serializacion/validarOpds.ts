@@ -148,6 +148,13 @@ function validarVistaOpd(opdId: Id, value: unknown): Resultado<OpdVista | undefi
     }
     return ok({ kind: "submodel-view", submodeloRefId: value.submodeloRefId, readOnly: true, syncState: value.syncState });
   }
+  if (value.kind === "generic-view") {
+    // Vista ad-hoc (E-1): sin refs obligatorias. `readOnly` opcional (boolean).
+    if (value.readOnly !== undefined && typeof value.readOnly !== "boolean") {
+      return fallo(`OPD inválido: ${opdId}.vista`);
+    }
+    return ok({ kind: "generic-view", ...(value.readOnly !== undefined ? { readOnly: value.readOnly } : {}) });
+  }
   return fallo(`OPD inválido: ${opdId}.vista.kind`);
 }
 

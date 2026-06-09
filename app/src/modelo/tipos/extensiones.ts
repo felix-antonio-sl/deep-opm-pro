@@ -201,6 +201,14 @@ export type OpdVista =
       submodeloRefId: Id;
       readOnly: true;
       syncState: EstadoCargaSubmodelo;
+    }
+  // Vista ad-hoc libre (E-1, solicitud upstream hd-opm): reúne apariciones
+  // arbitrarias SIN semántica de refinamiento (no in-zoom, no unfold). Excluida
+  // de los checkers de frontera/descomposición. Para vistas como la causal de
+  // ingreso, donde el unfold mixto no es realizable (sin raíz todo-parte común).
+  | {
+      kind: "generic-view";
+      readOnly?: boolean;
     };
 
 export type DecisionPolicy =
