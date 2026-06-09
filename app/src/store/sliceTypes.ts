@@ -158,6 +158,7 @@ export type UiPanelSlice = Slice<
   | "fijarAnchoPanelArbol"
   | "fijarAnchoPanelInspector"
   | "fijarAnchoPanelOpleft"
+  | "registrarCrucePuenteSkill"
   | "togglePanelOpleft"
   | "togglePanelInspector"
   | "toggleNombresArbolVisibles"

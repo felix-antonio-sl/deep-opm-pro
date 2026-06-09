@@ -140,7 +140,7 @@ import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
 import type { Consulta } from "../modelo/razonamiento";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, DesignacionEstado, DuracionTemporal, Esencia, EstadoCargaSubmodelo, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Esencia, EstadoCargaSubmodelo, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
 import { generarOpl } from "../opl/generar";
@@ -451,6 +451,8 @@ export interface OpmStore {
   aplicarEdicionOplLibre: (texto: string) => void;
   copiarOplActualAlPortapapeles: () => Promise<void>;
   copiarOplModeloMarkdownAlPortapapeles: () => Promise<void>;
+  /** W6.0: copia el contexto de modelado para la skill y cuenta el cruce (g3). */
+  copiarContextoSkillAlPortapapeles: () => Promise<void>;
   navegarAviso: (aviso: Aviso) => void;
   deshacer: () => void;
   rehacer: () => void;
@@ -785,6 +787,12 @@ export interface OpmStore {
   fijarAnchoPanelInspector: (px: number) => void;
   /** BUG-20260607T215222Z-624056: setea ancho OPL izquierdo con clamp + persistencia. */
   fijarAnchoPanelOpleft: (px: number) => void;
+  /**
+   * W6.0: registra un cruce del puente app↔skill (observable g3) en
+   * `indice.preferenciasUi.crucesPuenteSkill` y lo persiste con el workspace.
+   * Devuelve el acumulado para el mensaje "cruce #N".
+   */
+  registrarCrucePuenteSkill: (direccion: "export" | "import") => CrucesPuenteSkill;
   /** BUG-20260607T215201Z-d2530d: toggle visibilidad panel OPL izquierdo. */
   togglePanelOpleft: () => void;
   /** BUG-20260607T215201Z-d2530d: toggle visibilidad panel Inspector derecho. */

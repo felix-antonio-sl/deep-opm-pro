@@ -52,6 +52,8 @@ export interface CommandPaletteWorkspacePort {
   abrirDialogoImportarExportarJson: () => void;
   exportarJson: () => string;
   copiarOplModeloMarkdownAlPortapapeles: () => Promise<void>;
+  /** W6.0: copia el contexto de modelado para la skill y cuenta el cruce (g3). */
+  copiarContextoSkillAlPortapapeles: () => Promise<void>;
 }
 
 export interface CommandPaletteViewPort {

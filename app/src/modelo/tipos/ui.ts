@@ -33,6 +33,17 @@ export interface UiPortapapelesVisual {
   pegados?: number;
 }
 
+/**
+ * W6.0: contador de cruces del puente app↔skill `modelamiento-opm` (observable
+ * de g3 — acta mesa equilibrio: "sin contador, g3 es infalsable"). `exportes` =
+ * copias del contexto de modelado; `importes` = importaciones de modelos CON
+ * sello de procedencia (solo el compilador de autoría los emite).
+ */
+export interface CrucesPuenteSkill {
+  exportes: number;
+  importes: number;
+}
+
 // Preferencias de UI del workspace. No pertenecen al JSON OPM canonico.
 export interface PreferenciasUiUsuario {
   anchoPanelArbol?: number;
@@ -47,6 +58,8 @@ export interface PreferenciasUiUsuario {
   arbolExpandidoPersistente?: Id[];
   cheatsheetVisible?: boolean;
   gridConfig?: GridConfig;
+  /** W6.0: cruces del puente app↔skill (ver {@link CrucesPuenteSkill}). */
+  crucesPuenteSkill?: CrucesPuenteSkill;
   oplNumeracionVisible?: boolean;
   /** Presentación: visibilidad de las oraciones de esencia/afiliación en el panel OPL. */
   oplEsenciaVisibilidad?: EsenciaVisibilidad;

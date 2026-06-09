@@ -60,7 +60,15 @@ export function esPreferenciasUi(value: unknown): value is PreferenciasUiUsuario
   if (value.nombresArbolVisibles !== undefined && typeof value.nombresArbolVisibles !== "boolean") return false;
   if (value.cheatsheetVisible !== undefined && typeof value.cheatsheetVisible !== "boolean") return false;
   if (value.gridConfig !== undefined && !esRecord(value.gridConfig)) return false;
+  if (value.crucesPuenteSkill !== undefined && !esCrucesPuenteSkill(value.crucesPuenteSkill)) return false;
   return true;
+}
+
+/** W6.0: shape del contador de cruces del puente app↔skill. */
+function esCrucesPuenteSkill(value: unknown): boolean {
+  return esRecord(value)
+    && typeof value.exportes === "number"
+    && typeof value.importes === "number";
 }
 
 function esCriterioResaltado(value: unknown): boolean {

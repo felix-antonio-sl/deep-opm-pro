@@ -25,6 +25,7 @@ export function useCommandPaletteViewModel() {
     abrirCheatsheetAtajos,
     exportarJson,
     copiarOplModeloMarkdownAlPortapapeles,
+    copiarContextoSkillAlPortapapeles,
     frecuenciaUso,
     registrarUsoCommandPalette,
     abrirPestanaNueva,
@@ -92,6 +93,8 @@ export function useCommandPaletteViewModel() {
     exportarJsonAlPortapapeles,
     exportarDiagnosticoAlPortapapeles,
     exportarOplModeloMarkdownAlPortapapeles: () => { void copiarOplModeloMarkdownAlPortapapeles(); },
+    // W6.0: puente de contexto 1-click app→skill (cuenta el cruce, observable g3).
+    copiarContextoSkill: () => { void copiarContextoSkillAlPortapapeles(); },
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,

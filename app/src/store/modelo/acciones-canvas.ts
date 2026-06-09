@@ -27,6 +27,7 @@ import { mismaReferencia } from "../../opl/interaccion";
 import type { EsenciaVisibilidad } from "../../opl/opciones";
 import { generarOpl } from "../../opl/generar";
 import { exportarOplModeloMarkdown, exportarOplOpdMarkdown } from "../../opl/exportarMarkdown";
+import { exportarContextoSkill } from "../../opl/contextoSkill";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../../opl/parser";
 import {
   commitModelo,
@@ -371,6 +372,21 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       try {
         await navigator.clipboard.writeText(texto);
         set({ mensaje: "OPL del modelo copiado al portapapeles (Markdown)" });
+      } catch {
+        set({ mensaje: "No se pudo copiar al portapapeles" });
+      }
+    },
+
+    // W6.0: puente de contexto 1-click app→skill. Copia el contexto de modelado
+    // (procedencia + pendientes [RATIFICAR] + diagnóstico + OPL) listo para pegar
+    // en la sesión de `modelamiento-opm`, y cuenta el cruce (observable g3).
+    async copiarContextoSkillAlPortapapeles() {
+      const { modelo } = get();
+      const texto = exportarContextoSkill(modelo);
+      try {
+        await navigator.clipboard.writeText(texto);
+        const cruces = get().registrarCrucePuenteSkill("export");
+        set({ mensaje: `Contexto copiado para la skill (cruce #${cruces.exportes})` });
       } catch {
         set({ mensaje: "No se pudo copiar al portapapeles" });
       }

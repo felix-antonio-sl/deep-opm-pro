@@ -175,6 +175,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "aplicarEdicionOplLibre",
     "copiarOplActualAlPortapapeles",
     "copiarOplModeloMarkdownAlPortapapeles",
+    "copiarContextoSkillAlPortapapeles",
   ],
   canvasCommands: [
     "seleccionarEntidad",

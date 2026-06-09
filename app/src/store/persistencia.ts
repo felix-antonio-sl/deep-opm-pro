@@ -256,6 +256,11 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       workspaceLocal: workspaceDesdeModelo(resultado.value, null),
       mensaje: "Modelo importado",
     }));
+    // W6.0: un modelo CON sello de procedencia solo puede venir del compilador
+    // de autoría → es un cruce skill→app del puente (observable g3).
+    if (resultado.value.procedencia) {
+      get().registrarCrucePuenteSkill("import");
+    }
   },
 
   listarModelosGuardados() {

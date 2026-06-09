@@ -275,6 +275,7 @@ function depsAccionesMenu(
     exportarJson: () => {},
     exportarDiagnostico: () => {},
     exportarOplModeloMarkdown: () => {},
+    copiarContextoSkill: () => {},
     exportarOpdPng: null,
     exportarOpdsPngZip: () => {},
     abrirPestanaNueva: () => {},

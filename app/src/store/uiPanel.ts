@@ -360,6 +360,20 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
     set({ indice, anchoPanelOpleft });
   },
 
+  // W6.0: registra un cruce del puente app↔skill (observable g3) y lo persiste
+  // con el workspace — mismo mecanismo que los anchos de panel.
+  registrarCrucePuenteSkill(direccion: "export" | "import") {
+    const actual = get().indice.preferenciasUi?.crucesPuenteSkill ?? { exportes: 0, importes: 0 };
+    const crucesPuenteSkill = {
+      exportes: actual.exportes + (direccion === "export" ? 1 : 0),
+      importes: actual.importes + (direccion === "import" ? 1 : 0),
+    };
+    const indice = actualizarPreferenciasUi(get().indice, { crucesPuenteSkill });
+    escribirIndiceWorkspace(indice);
+    set({ indice });
+    return crucesPuenteSkill;
+  },
+
   // BUG-20260607T215201Z-d2530d: toggle visibilidad panel OPL izquierdo.
   togglePanelOpleft() {
     set({ panelOpleftAbierto: !get().panelOpleftAbierto });
