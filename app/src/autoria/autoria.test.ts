@@ -209,3 +209,23 @@ describe("autoría — emitirBundle (cafetera, dominio NO-HODOM)", () => {
     expect(solapes).toBe(0);
   });
 });
+
+describe("autoría — emitirBundle: modelo textual derivado (G1, solicitud upstream hd-opm)", () => {
+  test("sin la opción: modeloTextual ausente (byte-identidad de consumidores existentes)", () => {
+    const bundle = emitirBundle(construirCafetera());
+    expect(bundle.modeloTextual).toBeUndefined();
+  });
+
+  test("con emitirModeloTextual: emite el modelo textual markdown derivado", () => {
+    const bundle = emitirBundle(construirCafetera(), { emitirModeloTextual: true });
+    const md = bundle.modeloTextual;
+    expect(typeof md).toBe("string");
+    // Header explícito: producto derivado, no se edita a mano.
+    expect(md).toContain("<!-- DERIVADO — no editar a mano -->");
+    // Estructura del modelo textual: encabezado de modelo + secciones por OPD.
+    expect(md).toContain("\n# ");
+    expect(md).toContain("\n## ");
+    // Contenido real: nombra el proceso raíz del dominio cafetera.
+    expect(md).toContain("Hacer café");
+  });
+});

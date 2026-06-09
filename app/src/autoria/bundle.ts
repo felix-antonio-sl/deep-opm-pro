@@ -8,6 +8,7 @@ import { moverAparienciaPorId } from "../modelo/operaciones/apariencias";
 import type { Modelo } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import { generarOpl } from "../opl/generar";
+import { exportarOplModeloMarkdown } from "../opl/exportarMarkdown";
 import { clasificarContencionOpd } from "./contencion";
 import type { Autor } from "./dsl";
 import { aplicarLayoutCompleto } from "./layout";
@@ -157,5 +158,15 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
     ...(opciones.reporteExtra && opciones.reporteExtra.length ? ["", ...opciones.reporteExtra] : []),
   ].join("\n");
 
-  return { json: jsonCanonico, opl, reporte, conteos, avisos };
+  // G1 (solicitud upstream hd-opm): el modelo textual es un PRODUCTO derivado.
+  // Se emite solo opt-in para no perturbar salidas existentes (byte-identidad).
+  // Reusa la función pura `exportarOplModeloMarkdown` — el consumidor agnóstico
+  // ya no necesita mantenerlo a mano ni tocar store/UI.
+  // exactOptionalPropertyTypes: la clave se incluye solo si se opta por ella
+  // (un opcional ausente ≠ presente-undefined; preserva byte-identidad del shape).
+  const modeloTextual = opciones.emitirModeloTextual
+    ? { modeloTextual: `<!-- DERIVADO — no editar a mano -->\n\n${exportarOplModeloMarkdown(hidratado)}` }
+    : {};
+
+  return { json: jsonCanonico, opl, reporte, conteos, avisos, ...modeloTextual };
 }

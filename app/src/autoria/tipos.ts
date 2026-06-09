@@ -91,6 +91,15 @@ export interface OpcionesBundle {
    * (byte-identidad de los consumidores existentes).
    */
   procedencia?: SelloProcedencia;
+  /**
+   * G1 (solicitud upstream hd-opm): si true, el resultado incluye `modeloTextual`
+   * — el modelo textual markdown DERIVADO (reusa `exportarOplModeloMarkdown`).
+   * Opt-in: ausente ⇒ `modeloTextual` queda `undefined` y no se perturba ninguna
+   * salida existente (byte-identidad de los consumidores actuales). Permite a un
+   * consumidor de la librería agnóstica obtener el producto textual sin tocar
+   * store/UI ni escribir su propio exportador → evita mantenerlo a mano (drift).
+   */
+  emitirModeloTextual?: boolean;
 }
 
 /** Resultado de emitir un bundle. */
@@ -104,4 +113,10 @@ export interface ResultadoBundle {
   conteos: { entidades: number; estados: number; enlaces: number; opds: number };
   /** Avisos del diagnóstico nativo (metodológicos/visuales no bloqueantes; los `error` lanzan si lanzarEnError). */
   avisos: AvisoDiagnostico[];
+  /**
+   * G1: modelo textual markdown DERIVADO (header `<!-- DERIVADO — no editar a
+   * mano -->` + `# {modelo}` + `## {OPD}` por OPD). Solo presente si
+   * `OpcionesBundle.emitirModeloTextual` fue true; `undefined` en otro caso.
+   */
+  modeloTextual?: string;
 }
