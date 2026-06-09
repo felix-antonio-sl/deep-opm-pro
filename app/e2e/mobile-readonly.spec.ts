@@ -78,11 +78,16 @@ test.describe("mobile-readonly invariantes", () => {
     expect(snapshotAntes).toEqual(snapshotDespues);
   });
 
-  // FIXME(mobile-seed): requiere un modelo con contenido sembrado en el backend
-  // readonly. El dev/preview backend arranca vacío y el shell mobile es de solo
-  // lectura (no importa), así que `[data-opm-kind=entidad]` no existe sobre un
-  // modelo vacío. Falta una fixture que siembre vía API (sesión por cookie) y
-  // recargue el shell. El resto del suite mobile ya corre en verde.
+  // FIXME(mobile-contenido): doblemente bloqueado, diagnóstico verificado
+  // 2026-06-09. (1) El shell mobile-readonly muestra el modelo del store
+  // (default VACÍO en dev) y NO carga modelos del backend por id de URL — el
+  // efecto reescribe la URL a `modelo.id`, así que sembrar vía API + deep-link
+  // no aporta contenido (probado: /m/m-seed → redirige a /m/modelo-1).
+  // (2) `window.__opmStore` NO está expuesto, así que el chequeo de no-mutación
+  // es no-op (undefined===undefined). Reactivar exige exponer el store en dev +
+  // inyectar un modelo + reescribir las aserciones contra esa API (la actual
+  // `store.exportarModelo(store.modelo)` ni coincide con zustand). Desproporcio-
+  // nado para 2 tests de invariante; el resto del suite mobile corre verde.
   test.fixme("bottom sheet no muta modelo", async ({ page }) => {
     await page.goto("/");
     await esperarMobileLectura(page);
@@ -179,8 +184,8 @@ test.describe("mobile-readonly búsqueda", () => {
     await expect(page.getByTestId("mobile-busqueda-toggle-diagnostico-input")).toBeChecked();
   });
 
-  // FIXME(mobile-seed): igual que "bottom sheet no muta modelo" — necesita un
-  // modelo con un proceso sembrado para que `mobile-busqueda-hit` exista.
+  // FIXME(mobile-contenido): mismo bloqueo doble que "bottom sheet no muta
+  // modelo" — sin contenido cargado en el store mobile no hay `mobile-busqueda-hit`.
   test.fixme("búsqueda no muta modelo al navegar", async ({ page }) => {
     await page.goto("/");
     await esperarMobileLectura(page);
