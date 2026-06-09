@@ -1,5 +1,5 @@
 import { refinaA } from "../../modelo/refinamientos";
-import type { Id, Modelo, TipoRefinamiento } from "../../modelo/tipos";
+import type { Id, Modelo, Opd, TipoRefinamiento } from "../../modelo/tipos";
 
 export type TipoBadgeOpd = "raiz" | "inzoom" | "unfold";
 
@@ -73,6 +73,20 @@ export function labelTipoBadge(tipo: TipoBadgeOpd): "SD" | "Inzoom" | "Unfold" {
   if (tipo === "inzoom") return "Inzoom";
   if (tipo === "unfold") return "Unfold";
   return "SD";
+}
+
+/**
+ * W6.3: chip de vista derivada para el árbol OPD. Solo `generic-view` (E-1):
+ * `submodel-view` ya tiene su tag "SM" y `requirement-view` su propio flujo.
+ * Devuelve `null` cuando el OPD no es vista genérica.
+ */
+export function tagVistaOpd(opd: Opd): { label: "Vista"; title: string } | null {
+  if (opd.vista?.kind !== "generic-view") return null;
+  const base = "Vista derivada (sin semántica de refinamiento)";
+  return {
+    label: "Vista",
+    title: opd.vista.readOnly === true ? `${base} — solo lectura` : base,
+  };
 }
 
 function tipoBadge(modelo: Modelo, opdId: Id, tipoRefinamiento?: TipoRefinamiento): TipoBadgeOpd {

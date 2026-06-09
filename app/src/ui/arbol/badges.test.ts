@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../../modelo/operaciones";
 import type { Id, Modelo, Resultado } from "../../modelo/tipos";
-import { calcularBadges, labelTipoBadge } from "./badges";
+import { calcularBadges, labelTipoBadge, tagVistaOpd } from "./badges";
 
 describe("badges del arbol OPD", () => {
   test("calcularBadges identifica SD raiz sin refinador", () => {
@@ -93,6 +93,37 @@ describe("badges del arbol OPD", () => {
     expect(labelTipoBadge("raiz")).toBe("SD");
     expect(labelTipoBadge("inzoom")).toBe("Inzoom");
     expect(labelTipoBadge("unfold")).toBe("Unfold");
+  });
+});
+
+// W6.3: distinción visual de la vista derivada (kernel E-1 generic-view) en el árbol.
+describe("tagVistaOpd — chip de vista derivada", () => {
+  test("OPD generic-view editable produce tag Vista sin nota de solo lectura", () => {
+    const modelo = crearModelo("Vistas");
+    const opd = { ...modelo.opds[modelo.opdRaizId]!, vista: { kind: "generic-view" as const } };
+
+    const tag = tagVistaOpd(opd);
+    expect(tag?.label).toBe("Vista");
+    expect(tag?.title).toContain("Vista derivada");
+    expect(tag?.title).not.toContain("solo lectura");
+  });
+
+  test("OPD generic-view readOnly anota solo lectura en el title", () => {
+    const modelo = crearModelo("Vistas");
+    const opd = { ...modelo.opds[modelo.opdRaizId]!, vista: { kind: "generic-view" as const, readOnly: true } };
+
+    const tag = tagVistaOpd(opd);
+    expect(tag?.label).toBe("Vista");
+    expect(tag?.title).toContain("solo lectura");
+  });
+
+  test("OPD sin vista o con vista de otro kind no produce tag (submodel ya tiene SM)", () => {
+    const modelo = crearModelo("Vistas");
+    const sinVista = modelo.opds[modelo.opdRaizId]!;
+    expect(tagVistaOpd(sinVista)).toBeNull();
+
+    const submodelo = { ...sinVista, vista: { kind: "submodel-view" as const, submodeloRefId: "sm-1", readOnly: true as const, syncState: "cargado-sincronizado" as const } };
+    expect(tagVistaOpd(submodelo)).toBeNull();
   });
 });
 

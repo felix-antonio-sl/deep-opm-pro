@@ -4,7 +4,7 @@ import { estadoSubmodelo } from "../../modelo/submodelos";
 import type { Entidad, Id, Modelo, Opd, TipoRefinamiento } from "../../modelo/tipos";
 import { tokens } from "../tokens";
 import { GLIFO_BORRAR, GLIFO_CARET, GLIFO_MARKER, GLIFO_REF, GLIFO_WARN } from "../codex/glifos";
-import { calcularBadges, labelTipoBadge, type AvisoOpdLike, type BadgesNodoOpd } from "./badges";
+import { calcularBadges, labelTipoBadge, tagVistaOpd, type AvisoOpdLike, type BadgesNodoOpd } from "./badges";
 
 function refinadorDeOpd(modelo: Modelo, opdId: Id): { entidad: Entidad; tipo: TipoRefinamiento } | undefined {
   for (const entidad of Object.values(modelo.entidades)) {
@@ -71,6 +71,8 @@ export function NodoOpd(props: NodoOpdProps) {
   const submodeloRef = props.nodo.opd.vista?.kind === "submodel-view"
     ? props.modelo.submodelos?.[props.nodo.opd.vista.submodeloRefId]
     : undefined;
+  // W6.3: chip de vista derivada (generic-view E-1) — espejo del tag SM.
+  const tagVista = tagVistaOpd(props.nodo.opd);
 
   return (
     <div
@@ -140,6 +142,11 @@ export function NodoOpd(props: NodoOpdProps) {
           {submodeloRef ? (
             <span style={style.viewTag} title={`Submodelo ${labelEstadoSubmodelo(estadoSubmodelo(submodeloRef))}`}>
               SM {labelEstadoSubmodelo(estadoSubmodelo(submodeloRef))}
+            </span>
+          ) : null}
+          {tagVista ? (
+            <span style={style.viewTag} title={tagVista.title} data-testid="arbol-tag-vista">
+              {tagVista.label}
             </span>
           ) : null}
         </span>
