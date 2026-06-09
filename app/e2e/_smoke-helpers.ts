@@ -326,7 +326,9 @@ export async function assertWorkbenchLayout(page: import("@playwright/test").Pag
   expect(canvas.x + canvas.width).toBeLessThanOrEqual(inspector.x + 1);
   expect(tree.x).toBeGreaterThanOrEqual(inspector.x - 1);
   expect(canvas.width).toBeGreaterThan(400);
-  expect(opl.width).toBeGreaterThan(250);
+  // ANCHO_PANEL_OPL_LEFT_DEFAULT pasó a 240 (min 160, max 400) al volverse el
+  // panel OPL resizable (2026-06-08); cota inferior holgada para "no colapsado".
+  expect(opl.width).toBeGreaterThan(200);
   expect(inspector.width).toBeGreaterThan(250);
   // L6: ANCHO_PANEL_INSPECTOR_DEFAULT pasó de 300 a 360; cota superior holgada.
   expect(inspector.width).toBeLessThan(380);

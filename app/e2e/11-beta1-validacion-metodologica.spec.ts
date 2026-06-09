@@ -42,13 +42,13 @@ test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async 
   await expect(aviso).toBeVisible();
   const cita = page.getByTestId("aviso-cita-PROCESO_NOMBRE_FORMA_VERBAL");
   await expect(cita).toBeVisible();
-  await expect(cita).toHaveAttribute("title", /metodologia-opm-es|Glos/);
+  await expect(cita).toHaveAttribute("title", /reglas-opm-estrictas-es|opl-es/);
 
   // Click en cita expande detalle con SSOT, rationale y acciones sugeridas.
   await cita.click();
   const detalle = page.getByTestId("aviso-detalle-PROCESO_NOMBRE_FORMA_VERBAL");
   await expect(detalle).toBeVisible();
-  await expect(detalle).toContainText("metodologia-opm-es.md");
+  await expect(detalle).toContainText("reglas-opm-estrictas-es");
   await expect(detalle).toContainText(/[Aa]ccion|[Rr]enombra/);
 
   // Boton Revalidar dispara recalculo.
