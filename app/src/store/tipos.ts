@@ -284,6 +284,10 @@ export interface OpmStore {
   puedeDeshacer: boolean;
   puedeRehacer: boolean;
   modelosGuardados: ResumenModeloPersistido[];
+  /** Auth v1 (spec §4): true ⇒ el backend exige login; la UI monta PantallaLogin. */
+  requiereLogin: boolean;
+  iniciarSesion: (email: string, password: string) => Promise<void>;
+  cerrarSesion: () => Promise<void>;
   modeloPersistidoId: Id | null;
   descripcionModeloLocal: string;
   menuPrincipalAbierto: boolean;

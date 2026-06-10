@@ -218,6 +218,9 @@ export type MapaSlice = Slice<
 
 export type PersistenciaSlice = Slice<
   | "modelosGuardados"
+  | "requiereLogin"
+  | "iniciarSesion"
+  | "cerrarSesion"
   | "modeloPersistidoId"
   | "descripcionModeloLocal"
   | "workspaceLocal"

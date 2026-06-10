@@ -102,11 +102,13 @@ import {
   borrarModeloBackend,
   cargarModeloBackend,
   cargarWorkspaceBackend,
+  cerrarSesionBackend,
   guardarAutosalvadoBackend,
   guardarModeloBackend,
   guardarVersionBackend,
+  iniciarSesionBackend,
   listarModelosBackend,
-  obtenerSesionBackend,
+  obtenerEstadoSesionBackend,
   persistenciaBackendHabilitada,
 } from "../persistencia/backend";
 import {
@@ -210,6 +212,23 @@ export type { PersistenciaSlice } from "./tipos";
 
 export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get) => ({
   modelosGuardados: [],
+  requiereLogin: false,
+
+  async iniciarSesion(email, password) {
+    const resultado = await iniciarSesionBackend(email.trim(), password);
+    if (!resultado.ok) {
+      set({ mensaje: resultado.error });
+      return;
+    }
+    set({ requiereLogin: false, mensaje: null });
+    sincronizarListadoBackend(set, get);
+  },
+
+  async cerrarSesion() {
+    await cerrarSesionBackend();
+    // Pase lo que pase con la red, la sesión local se considera cerrada (spec §4).
+    set({ requiereLogin: true, modelosGuardados: [], modelosRecientes: [] });
+  },
   modeloPersistidoId: null,
   descripcionModeloLocal: "",
   workspaceLocal: workspaceDesdeModelo(modeloInicial, null),
@@ -477,7 +496,20 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
 
 function sincronizarListadoBackend(set: SetStore, get: GetStore): void {
   if (!persistenciaBackendHabilitada()) return;
-  void obtenerSesionBackend().then(() => Promise.all([listarModelosBackend(), cargarWorkspaceBackend()])).then(([modelosResultado, workspaceResultado]) => {
+  void obtenerEstadoSesionBackend().then((estadoSesion) => {
+    if (estadoSesion.estado === "requiere-login") {
+      // Auth v1 (spec §4): el backend exige login — la UI monta PantallaLogin.
+      set({ requiereLogin: true, modelosGuardados: [] });
+      return null;
+    }
+    if (estadoSesion.estado === "error") {
+      set({ modelosGuardados: [], mensaje: estadoSesion.error });
+      return null;
+    }
+    return Promise.all([listarModelosBackend(), cargarWorkspaceBackend()]);
+  }).then((resultados) => {
+    if (!resultados) return;
+    const [modelosResultado, workspaceResultado] = resultados;
     if (!modelosResultado.ok) {
       set({ modelosGuardados: [], mensaje: modelosResultado.error });
       return;
