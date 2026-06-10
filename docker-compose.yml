@@ -67,6 +67,9 @@ services:
       MODEL_API_PORT: "3001"
       # Blindaje 2026-06-06: el default "opforja-dev-session" permitía FORJAR cookies de tenant.
       MODEL_SESSION_SECRET: ${OPFORJA_SESSION_SECRET:?OPFORJA_SESSION_SECRET requerido (define .env junto al compose)}
+      # Auth v1 (docs/specs/auth-identidad-v1.md): login obligatorio. Rollback
+      # de emergencia: "false" restaura tenants anónimos sin tocar datos.
+      MODEL_REQUIRE_AUTH: "true"
     networks:
       - opforja-internal
     healthcheck:

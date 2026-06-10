@@ -122,6 +122,41 @@ printf '' | openssl s_client -servername opforja.sanixai.com -connect opforja.sa
 
 Esperado: certificado emitido para `CN = opforja.sanixai.com` por Let's Encrypt.
 
+## Cuentas y login (auth v1)
+
+Desde el corte auth v1 (`docs/specs/auth-identidad-v1.md`) la instancia exige
+**login obligatorio**: sin sesión autenticada el backend responde 401 y la SPA
+monta `PantallaLogin`. Registro cerrado — las cuentas se administran SOLO por
+CLI dentro del contenedor `model-api`:
+
+```bash
+# Crear cuenta nueva (tenant nuevo). La password se pide por stdin.
+docker exec -it opforja-model-api bun run scripts/auth-cuenta.ts crear felix@example.com
+
+# ADOPCIÓN: crear cuenta ligada a un tenant anónimo EXISTENTE (rescatar datos).
+# Identificar primero el tenant valioso:
+docker exec -it opforja-postgres psql -U opforja -d opforja \
+  -c "SELECT tenant_id, COUNT(*) AS modelos FROM opforja_models GROUP BY 1 ORDER BY 2 DESC"
+docker exec -it opforja-model-api bun run scripts/auth-cuenta.ts crear felix@example.com --tenant <tenant-id>
+
+# Reset de password / listar cuentas
+docker exec -it opforja-model-api bun run scripts/auth-cuenta.ts reset felix@example.com
+docker exec -it opforja-model-api bun run scripts/auth-cuenta.ts listar
+```
+
+Notas operativas:
+
+- El gate vive en `model-api` (`MODEL_REQUIRE_AUTH: "true"` en compose).
+  **Rollback de emergencia**: cambiar a `"false"` + `docker compose up -d`
+  restaura el comportamiento anónimo previo sin tocar datos (la migración 4
+  es aditiva).
+- Las cookies anónimas previas quedan invalidadas al activar el gate
+  (los datos NO se pierden: se rescatan con adopción `--tenant`).
+- La cookie autenticada dura 30 días y rota en cada login. "Cerrar sesión"
+  vive en el command palette (Ctrl/Cmd+K).
+- Fuerza bruta: acotada por el rate-limit nginx existente + costo scrypt;
+  el login responde "Credenciales inválidas" uniforme (sin oráculo de email).
+
 ## Actualización
 
 1. Cerrar cambios de app con `bun run gate:refactor` cuando el cambio toque

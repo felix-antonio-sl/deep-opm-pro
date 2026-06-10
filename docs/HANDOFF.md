@@ -2,13 +2,29 @@
 
 **Fecha**: 2026-06-10 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
 **Corte de producto vigente (2026-06-06)**: persistencia OPM backend-only desplegada con optimistic locking y corte C5 de erradicación de storage navegador ya en producción. Modelos, versiones, workspace/carpetas, recientes, autosave, ownership y revisión viven en Postgres/API; no hay cache, fallback ni recuperación legacy desde storage del navegador.
-**Instancia**: `https://opforja.sanixai.com` — pública sin auth perimetral. **BLINDAJE EJECUTADO 2026-06-06**: secrets reales rotados, volumen Postgres recreado limpio, **backup diario** `pg_dump` con retención 14d, **rate-limit nginx** por IP real. **Persistencia C1-C5 desplegada 2026-06-06**: backend/API/Postgres son SSOT única. Auth/tenants real sigue pendiente como próximo corte mayor.
+**Instancia**: `https://opforja.sanixai.com` — pública sin auth perimetral (login obligatorio **IMPLEMENTADO en `main`, pendiente deploy coordinado** — ver corte auth/identidad v1). **BLINDAJE EJECUTADO 2026-06-06**: secrets reales rotados, volumen Postgres recreado limpio, **backup diario** `pg_dump` con retención 14d, **rate-limit nginx** por IP real. **Persistencia C1-C5 desplegada 2026-06-06**: backend/API/Postgres son SSOT única.
 **Frentes desplegados**: canvas infinito (2026-06-03), mobile solo-lectura v1 (2026-06-06), paneles OPL/Inspector hideables y resizable (2026-06-08). **Migración familia-V→skill**: fase activa de retiro cerrada (V3/V4/V5/V7 + colas `cuando`/`según`); ver § Estado de la migración familia-V→skill.
 **Programa integrado**: F0/F1/F2/F3 están en `main` con kernels y UX ad-hoc; simulación Ss queda verde en e2e beta2.
 
 > **Historia completa**: las actualizaciones anteriores a 2026-06-06 están en la historia git.
 
 ---
+
+## Actualización 2026-06-10 — corte auth/identidad v1: login obligatorio single-operator (IMPLEMENTADO, pendiente deploy coordinado)
+
+**Spec aprobado por el operador**: `docs/specs/auth-identidad-v1.md` (D1 single-operator · D2 email+password registro cerrado, scrypt `node:crypto` · D3 login obligatorio · D4 auth nativa sobre el handler existente). Plan ejecutado: `docs/superpowers/plans/2026-06-10-auth-identidad-v1.md` (11 tareas TDD inline).
+
+- **Handler compartido** (`src/server/modelPersistence.ts`): endpoints `POST /__deep-opm/auth/login|logout` + gate `requireAuth` (401 sin Set-Cookie en TODA ruta de persistencia — no acuña tenants anónimos); cookie HMAC ampliada `{tenantId,userId,auth:true}` con rotación por nonce y Max-Age 30d; 401 uniforme "Credenciales inválidas" con verificación señuelo (sin oráculo de email ni de timing). Sin `auth` en options el handler es idéntico al previo.
+- **Password hashing**: `src/server/passwordHash.ts` — scrypt `node:crypto` (uniforme Bun/Node; `Bun.password`/argon2id descartado porque el middleware Vite puede correr bajo Node). Cero deps nuevas.
+- **Postgres** (`scripts/model-persistence-api.ts`): migración **4** `auth_identidad` (tabla `opforja_accounts` + membresía `opforja_account_tenants`, aditiva) + auth repo + gate **fail-closed** (`MODEL_REQUIRE_AUTH !== "false"`).
+- **CLI** `bun run auth:cuenta` — `crear <email> [--tenant <id>]` (adopción de tenants anónimos existentes) / `reset` / `listar`; password por stdin. Operación documentada en `docs/deploy/opforja.md` § Cuentas y login.
+- **Frontend**: `verificarSesion` al montar App (HALLAZGO: la app no hacía NINGUNA request a `/__deep-opm` en el arranque — el chequeo de sesión ocurría recién en la primera acción de persistencia; verificado con sonda Playwright); estado `requiereLogin` + `PantallaLogin` bloqueante (tokens ui-forja) + comando paleta "Cerrar sesión".
+- **Dev/e2e**: dev middleware gana el gate por env `MODEL_REQUIRE_AUTH=true` con cuenta sembrada `dev@opforja.local` (`CUENTA_DEV_AUTH`); lane Playwright `auth` (3er webServer en PORT+2, project propio); chromium/mobile intactos.
+- **Rollback**: `MODEL_REQUIRE_AUTH=false` en compose restaura el comportamiento anónimo sin tocar datos.
+
+**Gate:** check **2481/0** · lint · governance · build · smoke **267/0/5** (259 base + 4 anclas W6.4 + 4 auth) · lane auth 4/4.
+
+**Deploy PENDIENTE (coordinado, spec §7 / plan Task 12):** requiere al operador (password por stdin): (1) `docker compose up -d --build` (migración 4 auto; gate activo ⇒ la instancia queda cerrada al instante), (2) crear su cuenta con adopción de su tenant valioso, (3) login in-vivo. **Cierra el riesgo "instancia pública sin auth" y desbloquea el gate C3 de W6.1.**
 
 ## Actualización 2026-06-10 — corte W6.4: anclas normativas en el Inspector + vistas
 
@@ -239,7 +255,7 @@ Gate **2388/0 · typecheck estricto · lint limpio**.
 
 0. **W6 restante (integración app↔skill)** — solo quedan los gateados por decisión: W6.1 paquete de dominio (gate C3 re-protección HITL), W6.2 re-decisión post-G2. **HECHOS:** W6.0/W6.3/W6.6 (corte W6-α 2026-06-09) + W6.5-a/b (2026-06-10) + **W6.4 anclas en Inspector + vistas (corte W6.4, 2026-06-10)** — la superficie W6 ejecutable sin HITL está completa.
 1. **Transporte familia-V→skill** — las 12 requiere-decisión (empezar por V12): superficie reverse / emisión estructurada / legacy permanente.
-2. **Auth/tenants real** — identidad, login, administración de tenants, invitaciones/roles, ownership compuesto. Desbloquea además el gate C3 de W6.1 y los 2 `test.fixme` mobile.
+2. **Auth/tenants** — **v1 IMPLEMENTADO 2026-06-10** (identidad durable single-operator, login obligatorio; ver corte auth/identidad v1; deploy coordinado pendiente). Restante para cortes posteriores: invitaciones, roles efectivos (la membresía `opforja_account_tenants` ya existe con `rol`), UI de administración, multiusuario por tenant. Los 2 `test.fixme` mobile ahora son iterables (cuenta sembrada + modelo sembrado en el lane auth).
 3. **GAPs de alineación OPD** — backlog en `docs/roadmap/` §22 de spec-forja-opd-es.
 4. **F1.9 responsive canónico** — consolidar 3 anchos en `ui-forja/tokens.css` + refactor de la barra + 2-3 archivos relacionados. Estimado: 1 sesión.
 5. **F1.21 barra en mobile-no-readonly** — gatear render en `App.tsx:195`. Estimado: <30 min, blast radius 1 archivo.
@@ -249,7 +265,7 @@ Gate **2388/0 · typecheck estricto · lint limpio**.
 
 ## Riesgos activos
 
-- Instancia pública sin auth perimetral (decisión del operador, blindaje ejecutado).
+- Instancia pública sin auth perimetral (blindaje ejecutado). **El cierre está listo en `main`** (corte auth/identidad v1, login obligatorio) — se cierra con el próximo deploy coordinado.
 - Sesiones abiertas antes del deploy de persistencia pueden necesitar recarga.
 - `VITE_MOBILE_READONLY` como build flag requiere rebuild/redeploy para rollback.
 - F1.21: si el operador entra a un modelo en modo simulación desde un viewport mobile-no-readonly, la barra productiva aparece dentro del shell mobile (UX tensionada, no roto). Documentado arriba.
