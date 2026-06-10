@@ -47,6 +47,59 @@ export async function obtenerSesionBackend(): Promise<Resultado<SesionBackend>> 
   }
 }
 
+const AUTH_LOGIN_ENDPOINT = "/__deep-opm/auth/login";
+const AUTH_LOGOUT_ENDPOINT = "/__deep-opm/auth/logout";
+
+export type EstadoSesionBackend =
+  | { estado: "autenticada"; session: SesionBackend }
+  | { estado: "requiere-login" }
+  | { estado: "error"; error: string };
+
+/** Bootstrap auth-aware (spec §4): distingue 401 (login obligatorio) de caída del backend. */
+export async function obtenerEstadoSesionBackend(): Promise<EstadoSesionBackend> {
+  if (!persistenciaBackendHabilitada()) return { estado: "error", error: "Persistencia backend no disponible" };
+  try {
+    const response = await fetch(SESSION_ENDPOINT, { method: "GET" });
+    if (response.status === 401) return { estado: "requiere-login" };
+    const body = await leerJson(response);
+    if (!response.ok) return { estado: "error", error: errorDesdeBody(body) ?? "No se pudo iniciar sesión de workspace" };
+    const session = sesionDesdeBody(body);
+    if (!session) return { estado: "error", error: "Respuesta de sesión inválida" };
+    return { estado: "autenticada", session };
+  } catch {
+    return { estado: "error", error: "No se pudo conectar al backend de modelos" };
+  }
+}
+
+export async function iniciarSesionBackend(email: string, password: string): Promise<Resultado<SesionBackend>> {
+  if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
+  try {
+    const response = await fetch(AUTH_LOGIN_ENDPOINT, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const body = await leerJson(response);
+    if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo iniciar sesión");
+    const session = sesionDesdeBody(body);
+    if (!session) return fallo("Respuesta de sesión inválida");
+    return ok(session);
+  } catch {
+    return fallo("No se pudo conectar al backend de modelos");
+  }
+}
+
+export async function cerrarSesionBackend(): Promise<Resultado<void>> {
+  if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
+  try {
+    const response = await fetch(AUTH_LOGOUT_ENDPOINT, { method: "POST" });
+    if (!response.ok) return fallo("No se pudo cerrar la sesión");
+    return ok(undefined);
+  } catch {
+    return fallo("No se pudo conectar al backend de modelos");
+  }
+}
+
 export async function listarModelosBackend(): Promise<Resultado<ResumenModeloPersistido[]>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {

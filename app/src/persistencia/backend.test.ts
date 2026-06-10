@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import {
   cargarWorkspaceBackend,
+  cerrarSesionBackend,
   guardarAutosalvadoBackend,
+  iniciarSesionBackend,
+  obtenerEstadoSesionBackend,
   guardarModeloBackend,
   guardarVersionBackend,
   guardarWorkspaceBackend,
@@ -121,6 +124,49 @@ describe("persistencia backend cliente", () => {
     } finally {
       globalThis.fetch = originalFetch;
     }
+  });
+});
+
+// Auth v1 (spec §4): el cliente distingue 401 (login obligatorio) de backend caído.
+describe("auth v1 — cliente de sesión", () => {
+  afterEach(() => {
+    Reflect.deleteProperty(globalThis, "window");
+  });
+
+  async function conFetch<T>(status: number, body: unknown, fn: () => Promise<T>): Promise<T> {
+    Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (() => Promise.resolve(jsonResponse(body, status))) as unknown as typeof fetch;
+    try {
+      return await fn();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  }
+
+  test("obtenerEstadoSesionBackend: 200 ⇒ autenticada", async () => {
+    const estado = await conFetch(200, { session: { tenantId: "t", userId: "u", auth: true } }, obtenerEstadoSesionBackend);
+    expect(estado).toEqual({ estado: "autenticada", session: { tenantId: "t", userId: "u" } });
+  });
+
+  test("obtenerEstadoSesionBackend: 401 ⇒ requiere-login", async () => {
+    const estado = await conFetch(401, { error: "No autenticado" }, obtenerEstadoSesionBackend);
+    expect(estado).toEqual({ estado: "requiere-login" });
+  });
+
+  test("iniciarSesionBackend: 401 ⇒ error con mensaje del backend", async () => {
+    const resultado = await conFetch(401, { error: "Credenciales inválidas" }, () => iniciarSesionBackend("a@b.c", "x"));
+    expect(resultado).toEqual({ ok: false, error: "Credenciales inválidas" });
+  });
+
+  test("iniciarSesionBackend: 200 ⇒ sesión", async () => {
+    const resultado = await conFetch(200, { session: { tenantId: "t", userId: "u", auth: true } }, () => iniciarSesionBackend("a@b.c", "x"));
+    expect(resultado).toEqual({ ok: true, value: { tenantId: "t", userId: "u" } });
+  });
+
+  test("cerrarSesionBackend: 200 ⇒ ok", async () => {
+    const resultado = await conFetch(200, { ok: true }, cerrarSesionBackend);
+    expect(resultado).toEqual({ ok: true, value: undefined });
   });
 });
 
