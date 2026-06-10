@@ -9,6 +9,8 @@
 import { lazy, Suspense } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
 import { registrarAtajosAplicacion } from "../app/ports/globalShortcutsPort";
+import { useOpmStore } from "../store";
+import { PantallaLogin } from "./PantallaLogin";
 import { crearZustandGlobalShortcutsPort } from "../app/ports/zustandGlobalShortcutsPort";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useAppShellViewModel } from "../app/viewmodels/appShellViewModel";
@@ -112,6 +114,9 @@ export function App() {
     modoEnlaceActivo,
     modoCreacionActivo,
   } = useAppShellViewModel();
+  // Auth v1 (spec §4): con login obligatorio el backend responde 401 y la app
+  // monta PantallaLogin en lugar del workbench (early-return tras los hooks).
+  const requiereLogin = useOpmStore((s) => s.requiereLogin);
   const [, setInspectorAbierto] = useState(true);
   const [canvasAdapter, setCanvasAdapter] = useState<JointCanvasAdapter | null>(null);
   // L2 ronda 28: altura del panel índice (árbol OPD) sobre el panel inspector.
@@ -165,6 +170,8 @@ export function App() {
   useEffect(() => {
     if (avisosDiagnostico.length === 0) setDiagnosticoExpandido(false);
   }, [avisosDiagnostico.length, opdActivoId]);
+
+  if (requiereLogin) return <PantallaLogin />;
 
   return (
     <CanvasAdapterContext.Provider value={canvasAdapter}>
