@@ -37,6 +37,15 @@ export function anclasDeModelo(modelo: Modelo): AnclaNormativa[] {
   return enumerarAnclas(modelo).filter((ancla) => ancla.target.tipo === "modelo");
 }
 
+/**
+ * Consulta unificada por `TargetAncla` (W6.4): resuelve los 4 niveles de target
+ * sin que el consumidor ramifique por tipo. Orden estable por `id`.
+ */
+export function anclasDe(modelo: Modelo, target: TargetAncla): AnclaNormativa[] {
+  if (target.tipo === "modelo") return anclasDeModelo(modelo);
+  return anclasDeTarget(modelo, target.tipo, target.id);
+}
+
 function targetId(target: TargetAncla): Id | undefined {
   return target.tipo === "modelo" ? undefined : target.id;
 }

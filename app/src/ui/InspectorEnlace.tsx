@@ -12,6 +12,7 @@ import type { AnclajeSimboloEstructural, AnclajesSimboloEstructural, AparienciaE
 import { identificadorEnlaceInspector } from "./inspector/identificador";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { FichaSeccionEnlace } from "./inspector/FichaSeccion";
+import { SeccionAnclas } from "./inspector/SeccionAnclas";
 import { SeccionNotasMesa } from "./inspector/SeccionNotasMesa";
 import { primerOpdConEntidad, satisfaccionesDeTarget, SeccionRequisitosVinculados } from "./inspector/SeccionRequisitos";
 import { SeccionAbanico } from "./inspectorEnlace/SeccionAbanico";
@@ -314,6 +315,8 @@ export function InspectorEnlace({ enlace }: Props) {
               onPlegar={plegarGrupoEstructural}
               onPlegarCompleto={plegarCompletoGrupoEstructural}
             />
+            {/* W6.4: procedencia normativa del enlace (read-only; nace en el proto). */}
+            <SeccionAnclas target={{ tipo: "enlace", id: enlace.id }} />
             <SeccionNotasMesa target={{ tipo: "enlace", id: enlace.id }} />
           </>
         </FichaSeccionEnlace>

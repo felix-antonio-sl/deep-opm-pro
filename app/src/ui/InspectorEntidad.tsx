@@ -15,6 +15,7 @@ import { SeccionApariciones } from "./inspector/SeccionApariciones";
 import { SeccionAtributo } from "./inspector/SeccionAtributo";
 import { SeccionDescripcion } from "./inspector/SeccionDescripcion";
 import { SeccionEsenciaAfiliacion } from "./inspector/SeccionEsenciaAfiliacion";
+import { SeccionAnclas } from "./inspector/SeccionAnclas";
 import { SeccionNotasMesa } from "./inspector/SeccionNotasMesa";
 import { SeccionEnlaces } from "./inspector/SeccionEnlaces";
 import { SeccionImagen } from "./inspector/SeccionImagen";
@@ -466,6 +467,8 @@ function PanelSemantica(props: PanelSemanticaProps) {
         </p>
       ) : null}
       <SeccionDescripcion descripcion={entidad.descripcion} onDescripcion={props.onDescripcion} />
+      {/* W6.4: procedencia normativa de la cosa (read-only; nace en el proto). */}
+      <SeccionAnclas target={{ tipo: "entidad", id: entidad.id }} />
       <SeccionNotasMesa target={{ tipo: "entidad", id: entidad.id }} />
       {entidad.tipo === "objeto" ? (
         <section style={advancedStyles.section} aria-label="Metadatos avanzados">

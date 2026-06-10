@@ -1,8 +1,10 @@
 import { useInspectorViewModel, type InspectorViewModel } from "../app/viewmodels/inspectorViewModel";
+import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
 import { InspectorEnlace } from "./InspectorEnlace";
 import { InspectorEntidad } from "./InspectorEntidad";
 import { InspectorEstado } from "./inspector/InspectorEstado";
+import { SeccionAnclas } from "./inspector/SeccionAnclas";
 import { SeccionNotasMesa } from "./inspector/SeccionNotasMesa";
 import { SeccionRegistroRatificar } from "./inspector/SeccionRegistroRatificar";
 
@@ -75,8 +77,17 @@ function InspectorVacio(props: { procedencia: InspectorViewModel["procedencia"] 
       ) : null}
       {/* W6.5-b: registro [RATIFICAR] (C1) — solo visible si hay pendientes. */}
       <SeccionRegistroRatificar />
+      {/* W6.4: anclas modelo-nivel y del OPD activo — solo visibles si existen. */}
+      <SeccionAnclas target={{ tipo: "modelo" }} titulo="Anclas del modelo" />
+      <SeccionAnclasOpdActivo />
       {/* W6.5-a: notas a nivel de modelo — la rama vacía es la vista modelo-nivel. */}
       <SeccionNotasMesa target={{ tipo: "modelo" }} />
     </div>
   );
+}
+
+/** W6.4: anclas del OPD activo en la rama vacía (los OPDs no se seleccionan en canvas). */
+function SeccionAnclasOpdActivo() {
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
+  return <SeccionAnclas target={{ tipo: "opd", id: opdActivoId }} titulo="Anclas del OPD" />;
 }

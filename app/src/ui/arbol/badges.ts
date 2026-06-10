@@ -1,3 +1,4 @@
+import { anclasDe } from "../../modelo/anclasNormativas";
 import { refinaA } from "../../modelo/refinamientos";
 import type { Id, Modelo, Opd, TipoRefinamiento } from "../../modelo/tipos";
 
@@ -86,6 +87,20 @@ export function tagVistaOpd(opd: Opd): { label: "Vista"; title: string } | null 
   return {
     label: "Vista",
     title: opd.vista.readOnly === true ? `${base} — solo lectura` : base,
+  };
+}
+
+/**
+ * W6.4: chip de anclas normativas adjuntas al OPD (target `opd`) — espejo del
+ * chip Vista (W6.3). Las anclas de entidades/enlaces viven en el Inspector;
+ * aquí solo se señaliza la procedencia normativa propia del diagrama.
+ */
+export function tagAnclasOpd(modelo: Modelo, opdId: Id): { label: string; title: string } | null {
+  const anclas = anclasDe(modelo, { tipo: "opd", id: opdId });
+  if (anclas.length === 0) return null;
+  return {
+    label: `Anclas ${anclas.length}`,
+    title: `Anclas normativas del OPD: ${anclas.map((ancla) => ancla.claveProto).join(", ")}`,
   };
 }
 

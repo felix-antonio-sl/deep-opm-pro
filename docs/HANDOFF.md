@@ -1,6 +1,6 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Fecha**: 2026-06-09 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
+**Fecha**: 2026-06-10 · **Repositorio**: `deep-opm-pro` · **Rama**: `main`
 **Corte de producto vigente (2026-06-06)**: persistencia OPM backend-only desplegada con optimistic locking y corte C5 de erradicación de storage navegador ya en producción. Modelos, versiones, workspace/carpetas, recientes, autosave, ownership y revisión viven en Postgres/API; no hay cache, fallback ni recuperación legacy desde storage del navegador.
 **Instancia**: `https://opforja.sanixai.com` — pública sin auth perimetral. **BLINDAJE EJECUTADO 2026-06-06**: secrets reales rotados, volumen Postgres recreado limpio, **backup diario** `pg_dump` con retención 14d, **rate-limit nginx** por IP real. **Persistencia C1-C5 desplegada 2026-06-06**: backend/API/Postgres son SSOT única. Auth/tenants real sigue pendiente como próximo corte mayor.
 **Frentes desplegados**: canvas infinito (2026-06-03), mobile solo-lectura v1 (2026-06-06), paneles OPL/Inspector hideables y resizable (2026-06-08). **Migración familia-V→skill**: fase activa de retiro cerrada (V3/V4/V5/V7 + colas `cuando`/`según`); ver § Estado de la migración familia-V→skill.
@@ -9,6 +9,17 @@
 > **Historia completa**: las actualizaciones anteriores a 2026-06-06 están en la historia git.
 
 ---
+
+## Actualización 2026-06-10 — corte W6.4: anclas normativas en el Inspector + vistas
+
+**Cierra la superficie W6 ejecutable sin decisiones HITL** (quedan W6.1 gateado por C3 y W6.2 en re-decisión). Las anclas (W5.1) ya viajaban en serialización, contexto W6.0 y registro [RATIFICAR]; faltaba su proyección por componente. TDD estricto, 4 ciclos:
+
+- **Kernel:** `anclasDe(modelo, target)` en `modelo/anclasNormativas.ts` — consulta unificada por `TargetAncla` (4 niveles: entidad/enlace/opd/modelo), orden estable por id; el consumidor no ramifica por tipo.
+- **Presentación:** `ui/inspector/anclasPresentacion.ts` — `formatearReferencia` compone `norma · artículos · sección` (artículos verbatim del proto: la expansión de rangos es presentación, no dato); `etiquetaEstadoAncla` conserva el vocabulario `[RATIFICAR]` del proto para pendientes.
+- **UI:** `SeccionAnclas` READ-ONLY (las anclas nacen en el proto y solo transicionan vía re-elicitación; las acciones C1 siguen en el registro modelo-nivel W6.5-b). Montada en: rama entidad, rama enlace, y rama vacía ×2 ("Anclas del modelo" + "Anclas del OPD" activo — los OPDs no se seleccionan en canvas). Ficha: claveProto, chip estado (`vigente` / `[RATIFICAR]` con autoridad·estadoRatificación en title), referencias, nota.
+- **Vistas (espejo W6.3):** chip `Anclas N` en el árbol OPD (`tagAnclasOpd` en `arbol/badges.ts`) para OPDs con anclas target `opd`; title enumera las claves.
+
+**Gate:** check **2454/0** (+14) · lint limpio · `design:governance` OK · build OK · `browser:smoke` **259/0/5** (paridad) · **e2e nuevo `33-anclas-inspector.spec.ts` 4/4** (siembra anclas por import JSON y verifica las 3 superficies en navegador real — primera cobertura e2e de anclas).
 
 ## Actualización 2026-06-10 — corte W6.5: notas de mesa + registro [RATIFICAR] (cierre del ciclo de re-elicitación)
 
@@ -136,7 +147,7 @@ Gate **2388/0 · typecheck estricto · lint limpio**.
 - **BUG overscroll-back del canvas — RESUELTO 2026-06-09** (`docs/bugs/BUG-20260609T032249Z-2c59cf`, operador, Mac/Chrome). Causa raíz: el swipe-back de macOS/Chrome se gobierna en el **scroller raíz** (`documentElement`), no en scrollers anidados; el `overscroll-behavior: contain` del canvas (`JointCanvas` `style.viewport`, vigente desde 2026-05-04, desplegado >1 mes) **nunca** lo previno — y `contain`↔`none` son idénticos para la navegación. Fix: `overscroll-behavior-x: none` en `html` y `body` (`app/index.html`); como `body` es `overflow:hidden`, solo desactiva la affordance de navegación sin afectar scrolls internos. Verificado in-vivo (computed style `none` en `documentElement`/`body`); **confirmación final del gesto requiere trackpad macOS (operador)**. Pendiente de deploy. (Se descartó un WIP previo `contain→none` en el div interno del canvas: a ciegas, no atacaba la causa.)
 - **`src/autoria/` es librería OPM agnóstica del dominio y reutilizable** (hd-opm es el 2º consumidor vía import path; opforja el 1º). Viaja con `modelo/`+`opl/`+`serializacion/`; no es paquete npm independiente. Para reutilización cross-machine falta empaquetado (extraer esos 4 con `exports`) — corte acotado, no reescritura.
 
-**Prompt de continuación (vigente, cierre 2026-06-10, corte W6.5):** "Retomar `deep-opm-pro`. **Cortes W6-α (W6.0/W6.3/W6.6, 2026-06-09) y W6.5 (W6.5-a notas de mesa `02d213bd` + W6.5-b registro [RATIFICAR]+LogDecisiones v0 `daa5cd5d`, 2026-06-10) HECHOS y DESPLEGADOS** — el ciclo de re-elicitación app↔skill está cerrado de punta a punta: la mesa anota (`SeccionNotasMesa`) y ratifica (`SeccionRegistroRatificar`, rama vacía del Inspector), exporta contexto W6.0 ('Copiar contexto para la skill', incluye '## Notas de la mesa') + 'Copiar LogDecisiones v0' (schema que `re-elicitar` de la skill v1.6.0 YA consume; `modeloHash`=protoHash; sin sello bloquea ruidoso); la skill re-elicita, re-emite y el registro se limpia (L9). Gate: check 2440/0, lint, governance, build (DCE OK), smoke 259/0/5. **Pendientes W6:** W6.4 anclas en Inspector (kernel listo), W6.1 paquete de dominio (gate C3 re-protección HITL), W6.2 re-decisión post-G2. **Backlog mayor (orden del operador):** auth/tenants (corte mayor; desbloquea W6.1 y fixtures mobile); A-1/A-2 layout P1 (iterables con H1 + `protocolo-re-pin.md`); B-5(=H4)/B-3 (L); A-3 (P3); adopción H1/H2/H5 en hd-opm; candidato `adoptar-modelo` en la skill (promoción app→proto; en memoria). **Notas:** loop agente↔dominio corre dev/local por diseño (compilador DCE-eliminado de prod); la UI importa el campo `.json` del bundle; tests de store que commitean deben resetear `activarReadOnly(false)` (singleton compartido)."
+**Prompt de continuación (vigente, cierre 2026-06-10, corte W6.4):** "Retomar `deep-opm-pro`. **Cortes W6-α (W6.0/W6.3/W6.6, 2026-06-09), W6.5 (`02d213bd`+`daa5cd5d`) y W6.4 (anclas en Inspector + vistas, 2026-06-10) HECHOS** — W6-α y W6.5 DESPLEGADOS; W6.4 pendiente de deploy. La superficie W6 ejecutable sin HITL está completa: el ciclo de re-elicitación app↔skill cerrado (mesa anota/ratifica → contexto W6.0 + LogDecisiones v0 → skill re-elicita → L9 limpia el registro) y las anclas normativas proyectadas por componente (`SeccionAnclas` read-only en entidad/enlace/rama vacía modelo+OPD; chip `Anclas N` en árbol; kernel `anclasDe`; e2e 33 4/4). Gate W6.4: check 2454/0, lint, governance, build, smoke 259/0/5. **Pendientes W6 (ambos gateados por decisión):** W6.1 paquete de dominio (gate C3 re-protección HITL), W6.2 re-decisión post-G2. **Backlog mayor (orden del operador):** auth/tenants (corte mayor; desbloquea W6.1 y fixtures mobile); A-1/A-2 layout P1 (iterables con H1 + `protocolo-re-pin.md`); B-5(=H4)/B-3 (L); A-3 (P3); adopción H1/H2/H5 en hd-opm; candidato `adoptar-modelo` en la skill (promoción app→proto; en memoria). **Notas:** loop agente↔dominio corre dev/local por diseño (compilador DCE-eliminado de prod); la UI importa el campo `.json` del bundle; tests de store que commitean deben resetear `activarReadOnly(false)` (singleton compartido)."
 
 ## Actualización 2026-06-08 — BUGs paneles OPL/Inspector hideables y resizable
 
@@ -224,7 +235,7 @@ Gate **2388/0 · typecheck estricto · lint limpio**.
 
 ## Frentes abiertos (orden sugerido)
 
-0. **W6 restante (integración app↔skill)** — W6.4 anclas en Inspector (kernel listo; el registro modelo-nivel ya está en la rama vacía), W6.1 paquete de dominio (gate C3 re-protección HITL), W6.2 re-decisión post-G2. **HECHOS:** W6.0/W6.3/W6.6 (corte W6-α 2026-06-09) + **W6.5-a/b (corte W6.5 2026-06-10: notas de mesa + registro [RATIFICAR] + LogDecisiones v0)** — el ciclo de re-elicitación está cerrado de punta a punta.
+0. **W6 restante (integración app↔skill)** — solo quedan los gateados por decisión: W6.1 paquete de dominio (gate C3 re-protección HITL), W6.2 re-decisión post-G2. **HECHOS:** W6.0/W6.3/W6.6 (corte W6-α 2026-06-09) + W6.5-a/b (2026-06-10) + **W6.4 anclas en Inspector + vistas (corte W6.4, 2026-06-10)** — la superficie W6 ejecutable sin HITL está completa.
 1. **Transporte familia-V→skill** — las 12 requiere-decisión (empezar por V12): superficie reverse / emisión estructurada / legacy permanente.
 2. **Auth/tenants real** — identidad, login, administración de tenants, invitaciones/roles, ownership compuesto. Desbloquea además el gate C3 de W6.1 y los 2 `test.fixme` mobile.
 3. **GAPs de alineación OPD** — backlog en `docs/roadmap/` §22 de spec-forja-opd-es.

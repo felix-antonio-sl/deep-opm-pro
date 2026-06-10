@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../../modelo/operaciones";
 import type { Id, Modelo, Resultado } from "../../modelo/tipos";
-import { calcularBadges, labelTipoBadge, tagVistaOpd } from "./badges";
+import { calcularBadges, labelTipoBadge, tagAnclasOpd, tagVistaOpd } from "./badges";
 
 describe("badges del arbol OPD", () => {
   test("calcularBadges identifica SD raiz sin refinador", () => {
@@ -124,6 +124,43 @@ describe("tagVistaOpd — chip de vista derivada", () => {
 
     const submodelo = { ...sinVista, vista: { kind: "submodel-view" as const, submodeloRefId: "sm-1", readOnly: true as const, syncState: "cargado-sincronizado" as const } };
     expect(tagVistaOpd(submodelo)).toBeNull();
+  });
+});
+
+// W6.4: chip de anclas normativas en el árbol — espejo del tag Vista (W6.3).
+describe("tagAnclasOpd — chip de anclas normativas del OPD", () => {
+  test("OPD con anclas target opd produce chip con cuenta y claves en el title", () => {
+    const modelo = crearModelo("Anclas");
+    const conAnclas: Modelo = {
+      ...modelo,
+      anclasNormativas: {
+        "an-1": { id: "an-1", claveProto: "ancla:frontera-art17", target: { tipo: "opd", id: modelo.opdRaizId }, estado: "vigente" },
+        "an-2": { id: "an-2", claveProto: "ratificar:convenio-ges", target: { tipo: "opd", id: modelo.opdRaizId }, estado: "pendiente-ratificacion" },
+      },
+    };
+
+    const tag = tagAnclasOpd(conAnclas, modelo.opdRaizId);
+    expect(tag?.label).toBe("Anclas 2");
+    expect(tag?.title).toContain("ancla:frontera-art17");
+    expect(tag?.title).toContain("ratificar:convenio-ges");
+  });
+
+  test("anclas de otros targets (modelo/entidad) no producen chip en el OPD", () => {
+    const modelo = crearModelo("Anclas otros");
+    const conAnclas: Modelo = {
+      ...modelo,
+      anclasNormativas: {
+        "an-1": { id: "an-1", claveProto: "ancla:global", target: { tipo: "modelo" }, estado: "vigente" },
+        "an-2": { id: "an-2", claveProto: "ancla:cosa", target: { tipo: "entidad", id: "ent-1" }, estado: "vigente" },
+      },
+    };
+
+    expect(tagAnclasOpd(conAnclas, modelo.opdRaizId)).toBeNull();
+  });
+
+  test("modelo sin extensión de anclas no produce chip", () => {
+    const modelo = crearModelo("Sin anclas");
+    expect(tagAnclasOpd(modelo, modelo.opdRaizId)).toBeNull();
   });
 });
 

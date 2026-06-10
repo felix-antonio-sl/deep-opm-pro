@@ -4,7 +4,7 @@ import { estadoSubmodelo } from "../../modelo/submodelos";
 import type { Entidad, Id, Modelo, Opd, TipoRefinamiento } from "../../modelo/tipos";
 import { tokens } from "../tokens";
 import { GLIFO_BORRAR, GLIFO_CARET, GLIFO_MARKER, GLIFO_REF, GLIFO_WARN } from "../codex/glifos";
-import { calcularBadges, labelTipoBadge, tagVistaOpd, type AvisoOpdLike, type BadgesNodoOpd } from "./badges";
+import { calcularBadges, labelTipoBadge, tagAnclasOpd, tagVistaOpd, type AvisoOpdLike, type BadgesNodoOpd } from "./badges";
 
 function refinadorDeOpd(modelo: Modelo, opdId: Id): { entidad: Entidad; tipo: TipoRefinamiento } | undefined {
   for (const entidad of Object.values(modelo.entidades)) {
@@ -73,6 +73,8 @@ export function NodoOpd(props: NodoOpdProps) {
     : undefined;
   // W6.3: chip de vista derivada (generic-view E-1) — espejo del tag SM.
   const tagVista = tagVistaOpd(props.nodo.opd);
+  // W6.4: chip de anclas normativas adjuntas al OPD — espejo del chip Vista.
+  const tagAnclas = tagAnclasOpd(props.modelo, props.nodo.opd.id);
 
   return (
     <div
@@ -147,6 +149,11 @@ export function NodoOpd(props: NodoOpdProps) {
           {tagVista ? (
             <span style={style.viewTag} title={tagVista.title} data-testid="arbol-tag-vista">
               {tagVista.label}
+            </span>
+          ) : null}
+          {tagAnclas ? (
+            <span style={style.viewTag} title={tagAnclas.title} data-testid="arbol-tag-anclas">
+              {tagAnclas.label}
             </span>
           ) : null}
         </span>
