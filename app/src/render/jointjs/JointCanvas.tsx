@@ -27,6 +27,7 @@ import { cablearSeleccion } from "./handlers/seleccion";
 import { instalarHerramientasEnlaceSeleccionado } from "./handlers/toolsEnlace";
 import { instalarHerramientasSimboloEstructuralSeleccionado } from "./handlers/toolsSimboloEstructural";
 import { cablearZoomFit, cablearZoomWheel, fitCanvasAPantalla } from "./handlers/zoom";
+import { cablearGestosTouchLectura } from "./handlers/gestosTouch";
 import { aplicarRuteoOpcloudEnlaces } from "./opcloudRouting";
 import { construirAvisosFeedbackCanvas } from "./overlayCanvas/avisos";
 import { OverlayLayer } from "./overlayCanvas/OverlayLayer";
@@ -611,6 +612,20 @@ export function JointCanvas({
       paperRef: { get current() { return adapterRef.current?.paper ?? null; } },
     });
   }, []);
+
+  // Gestos táctiles SOLO en modo lectura (mobile-readonly): un dedo = pan
+  // (scroll del viewport), dos dedos = pinch-zoom anclado. En edición un dedo
+  // arrastra elementos, así que no se cablea. Reporte: iPhone sin zoom/pan.
+  useEffect(() => {
+    if (!readonlyMode) return;
+    const host = paperHostRef.current;
+    if (!host) return;
+    return cablearGestosTouchLectura({
+      host,
+      viewport: viewportRef.current,
+      paperRef: { get current() { return adapterRef.current?.paper ?? null; } },
+    });
+  }, [readonlyMode]);
 
   // P0-5: cuando una accion del store solicita fit-to-view (auto-layout,
   // por ejemplo), el contador `solicitudFitToken` se incrementa. Este

@@ -68,3 +68,16 @@ if (import.meta.hot) {
 if (import.meta.env.VITE_HEADLESS_RENDER === "true") {
   void import("./render/jointjs/headlessRender").then((m) => m.montarHeadlessRender());
 }
+
+// Hook de test DEV-only: snapshot serializado del modelo activo para los
+// asserts de no-mutación del smoke mobile (e2e/mobile-readonly.spec.ts).
+// Antes esos asserts referían a `window.__opmStore`, que nunca existió, y
+// pasaban vacuamente. En build de prod `import.meta.env.DEV` es estáticamente
+// falso → DCE (mismo patrón que el headless; verificable con grep sobre dist/).
+if (import.meta.env.DEV) {
+  void import("./serializacion/json").then(({ exportarModelo }) => {
+    (window as unknown as { __opmTest?: unknown }).__opmTest = {
+      exportarModeloActual: () => exportarModelo(store.getState().modelo),
+    };
+  });
+}
