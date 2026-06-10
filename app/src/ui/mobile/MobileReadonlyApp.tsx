@@ -7,8 +7,7 @@
  * Vistas: diagrama | opds | opl | acerca.
  */
 
-import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { useAppShellViewModel } from "../../app/viewmodels/appShellViewModel";
 import { usePanelOplViewModel } from "../../app/viewmodels/panelOplViewModel";
 import type { JointCanvasAdapter } from "../../render/jointjs/jointCanvasAdapter";
@@ -17,15 +16,18 @@ import { ArbolOpd } from "../ArbolOpd";
 import { JointCanvasFeedbackBoundary } from "../JointCanvasFeedbackBoundary";
 import { PanelOplView } from "../PanelOpl";
 import { tokens } from "../tokens";
+import { debeAutoAbrirModelos, modeloSinContenido } from "./seleccionModelos";
 import { VistaBusquedaLectura } from "./VistaBusquedaLectura";
+import { VistaModelosLectura } from "./VistaModelosLectura";
 
-export type MobileVistaLectura = "diagrama" | "opds" | "opl" | "acerca";
+export type MobileVistaLectura = "modelos" | "diagrama" | "opds" | "opl" | "acerca";
 
 interface Props {
   onAdapterChange: (adapter: JointCanvasAdapter | null) => void;
 }
 
 const TABS: ReadonlyArray<{ id: MobileVistaLectura; etiqueta: string; testId: string }> = [
+  { id: "modelos", etiqueta: "Modelos", testId: "mobile-tab-modelos" },
   { id: "diagrama", etiqueta: "Diagrama", testId: "mobile-tab-diagrama" },
   { id: "opds", etiqueta: "OPDs", testId: "mobile-tab-opds" },
   { id: "opl", etiqueta: "OPL", testId: "mobile-tab-opl" },
@@ -40,12 +42,37 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
   } = useAppShellViewModel();
   const panelOplVm = usePanelOplViewModel();
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
-  // Vista y OPD son estado interno efímero: el shell mobile-readonly proyecta el
-  // modelo ACTIVO de la sesión (carga directa desde el backend). No hay routing
-  // por URL ni deep-link — la selección de qué modelo se ve se delega a la futura
-  // capa de tenants/auth, no al path.
+  // Vista y OPD son estado interno efímero, sin routing por URL ni deep-link.
+  // Auth v1 cerró la capa de identidad: la selección de qué modelo se ve vive
+  // en la vista Modelos (lista del tenant autenticado + carga read-only).
   const [vista, setVista] = useState<MobileVistaLectura>("diagrama");
   const [busquedaActiva, setBusquedaActiva] = useState(false);
+  const modelosGuardados = useOpmStore((s) => s.modelosGuardados);
+  const listarModelosGuardados = useOpmStore((s) => s.listarModelosGuardados);
+  const yaInteractuo = useRef(false);
+
+  // Carga el catálogo del tenant al montar (el shell desktop lo hace al abrir
+  // sus diálogos; aquí la lista ES la puerta de entrada al contenido).
+  useEffect(() => {
+    listarModelosGuardados();
+  }, [listarModelosGuardados]);
+
+  // Auto-switch inicial: sobre el SD vacío de sesión y con guardados, la vista
+  // útil es la lista — sin quitarle el control al usuario si ya navegó.
+  useEffect(() => {
+    if (debeAutoAbrirModelos({
+      modeloVacio: modeloSinContenido(modelo),
+      hayGuardados: modelosGuardados.length > 0,
+      yaInteractuo: yaInteractuo.current,
+    })) {
+      setVista("modelos");
+    }
+  }, [modelo, modelosGuardados]);
+
+  const navegar = (nueva: MobileVistaLectura) => {
+    yaInteractuo.current = true;
+    setVista(nueva);
+  };
 
   const opd = modelo.opds[opdActivoId];
   const nombreOpd = opd?.nombre ?? "Sin OPD";
@@ -88,6 +115,11 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
             <JointCanvasFeedbackBoundary readonlyMode={true} onAdapterChange={onAdapterChange} />
           </div>
         ) : null}
+        {vista === "modelos" && !busquedaActiva ? (
+          <div style={style.vistaFull}>
+            <VistaModelosLectura onAbierto={() => navegar("diagrama")} />
+          </div>
+        ) : null}
         {vista === "opds" ? (
           <div data-testid="mobile-vista-opds" style={style.vistaFull}>
             <ArbolOpd />
@@ -117,7 +149,7 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
               data-testid={tab.testId}
               data-activa={activa ? "true" : "false"}
               style={activa ? style.tabActiva : style.tabInactiva}
-              onClick={() => setVista(tab.id)}
+              onClick={() => navegar(tab.id)}
             >
               <span style={style.etiqueta}>{tab.etiqueta}</span>
             </button>

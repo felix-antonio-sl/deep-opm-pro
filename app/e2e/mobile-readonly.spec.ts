@@ -200,3 +200,85 @@ test.describe("mobile-readonly búsqueda", () => {
     expect(snapshotAntes).toEqual(snapshotDespues);
   });
 });
+
+// Selector de modelos (post-auth v1): el shell mobile lista los modelos
+// guardados del tenant y abre uno en lectura. Antes NO había forma de llegar
+// a un modelo guardado desde mobile (el shell proyectaba solo el SD vacío).
+test.describe("mobile-readonly selector de modelos", () => {
+  test.use({ viewport: VIEWPORT_MOBILE });
+
+  function modeloGuardadoFixture() {
+    const ahora = new Date().toISOString();
+    return {
+      id: "modelo-mobile-1",
+      nombre: "Laboratorio móvil",
+      descripcion: "",
+      creadoEn: ahora,
+      actualizadoEn: ahora,
+      json: JSON.stringify({
+        formato: "deep-opm-pro.modelo.v0",
+        modelo: {
+          id: "m-mobile",
+          nombre: "Laboratorio móvil",
+          opdRaizId: "opd-1",
+          nextSeq: 5,
+          entidades: { "o-1": { id: "o-1", tipo: "objeto", nombre: "Paciente", esencia: "fisica", afiliacion: "sistemica" } },
+          enlaces: {},
+          opds: {
+            "opd-1": {
+              id: "opd-1",
+              nombre: "SD",
+              padreId: null,
+              apariencias: { "a-1": { id: "a-1", entidadId: "o-1", opdId: "opd-1", x: 80, y: 90, width: 135, height: 60 } },
+              enlaces: {},
+            },
+          },
+        },
+      }),
+    };
+  }
+
+  test("con un modelo guardado, la lista auto-abre y el tap lo carga en lectura", async ({ page }) => {
+    await page.goto("/");
+    await esperarMobileLectura(page);
+
+    // Sembrar por API bajo la MISMA cookie de tenant del contexto.
+    const status = await page.evaluate(async (modelo) => {
+      const r = await fetch("/__deep-opm/modelos", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ modelo }),
+      });
+      return r.status;
+    }, modeloGuardadoFixture());
+    expect(status).toBe(200);
+
+    await page.reload();
+    await esperarMobileLectura(page);
+
+    // Auto-switch: SD vacío + hay guardados ⇒ vista Modelos.
+    await expect(page.getByTestId("mobile-vista-modelos")).toBeVisible();
+    const item = page.getByTestId("mobile-modelo-item").filter({ hasText: "Laboratorio móvil" });
+    await expect(item).toBeVisible();
+
+    await item.click();
+    // El tap salta al diagrama y el modelo cargado se proyecta.
+    await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
+    // Observables de carga real: Acerca declara el nombre del modelo cargado
+    // y el OPL proyecta su cosa ("Paciente").
+    await page.getByTestId("mobile-tab-acerca").click();
+    await expect(page.getByTestId("mobile-vista-acerca")).toContainText("Laboratorio móvil");
+    await page.getByTestId("mobile-tab-opl").click();
+    await expect(page.getByTestId("mobile-vista-opl")).toContainText("Paciente");
+  });
+
+  test("sin modelos guardados no hay auto-switch: el diagrama sigue siendo la vista inicial", async ({ page }) => {
+    await page.goto("/");
+    await esperarMobileLectura(page);
+    await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
+    await expect(page.getByTestId("mobile-vista-modelos")).toHaveCount(0);
+    // La tab existe y lleva a la lista vacía.
+    await page.getByTestId("mobile-tab-modelos").click();
+    await expect(page.getByTestId("mobile-modelos-vacio")).toBeVisible();
+  });
+});
