@@ -8,7 +8,7 @@
 | # | Decisión | Elección |
 |---|---|---|
 | D1 | Propósito del corte | **Identidad durable single-operator**: login para que el operador (y pocos usuarios de confianza) recuperen su tenant desde cualquier navegador. Invitaciones/roles/administración multiusuario quedan FUERA (corte posterior sobre esta base). |
-| D2 | Mecanismo | **Email + password, registro cerrado**: argon2id vía `Bun.password` (built-in, cero dependencias nuevas); solo el operador crea cuentas (CLI); sin signup público; recuperación = reset por operador. |
+| D2 | Mecanismo | **Email + password, registro cerrado**: hash **scrypt vía `node:crypto`** (built-in, cero dependencias nuevas, uniforme Bun/Node — `Bun.password`/argon2id se descartó porque el middleware dev de Vite puede correr bajo Node y no verificaría los hashes); solo el operador crea cuentas (CLI); sin signup público; recuperación = reset por operador. |
 | D3 | Política de acceso | **Login obligatorio**: sin sesión autenticada no hay persistencia ni workbench. Ya no se auto-crean tenants anónimos en prod. Los tenants anónimos existentes quedan en BD (adopción por comando). |
 | D4 | Arquitectura | **A. Auth nativa en el model-api existente**: extiende handler/cookie/Postgres actuales; gate `requireAuth` por env; dev/unit/e2e existentes intactos. |
 
@@ -25,7 +25,7 @@
 CREATE TABLE opforja_accounts (
   id TEXT PRIMARY KEY,
   email TEXT NOT NULL,            -- normalizado lowercase+trim; índice único sobre email
-  password_hash TEXT NOT NULL,    -- Bun.password argon2id
+  password_hash TEXT NOT NULL,    -- scrypt node:crypto
   user_id TEXT NOT NULL REFERENCES opforja_users(id),
   creado_en TEXT NOT NULL,
   ultimo_login_en TEXT
@@ -54,7 +54,7 @@ La membresía existe desde el día uno para que invitaciones/roles futuros sean 
 
 | Ruta | Método | Comportamiento |
 |---|---|---|
-| `/__deep-opm/auth/login` | POST | `{email, password}` → verifica argon2id → Set-Cookie autenticada + `{session}`. Fallo: 401 con mensaje uniforme "Credenciales inválidas" (no revela existencia del email). |
+| `/__deep-opm/auth/login` | POST | `{email, password}` → verifica scrypt → Set-Cookie autenticada + `{session}`. Fallo: 401 con mensaje uniforme "Credenciales inválidas" (no revela existencia del email). |
 | `/__deep-opm/auth/logout` | POST | Set-Cookie expirada + 200. |
 | `/__deep-opm/session` | GET | Con `requireAuth`: 200 sólo con sesión autenticada; si no, **401**. |
 | resto de persistencia | * | Con `requireAuth`: **401** sin sesión autenticada. |
@@ -62,7 +62,7 @@ La membresía existe desde el día uno para que invitaciones/roles futuros sean 
 
 Gate: `crearModelPersistenceFetchHandler({ repo, sessionResolver, requireAuth })`. Prod: `MODEL_REQUIRE_AUTH=true` (compose). Dev middleware/unit: sin el flag ⇒ comportamiento actual intacto (los ~263 smoke existentes no se tocan).
 
-Fuerza bruta: rate-limit nginx existente + costo argon2id. Sin lockout por cuenta en v1 (YAGNI; el riesgo lo acota nginx).
+Fuerza bruta: rate-limit nginx existente + costo scrypt. Sin lockout por cuenta en v1 (YAGNI; el riesgo lo acota nginx).
 
 ## §4 Frontend
 
