@@ -1,9 +1,12 @@
 import type {
+  AuthRepository,
   BackendAutosalvadoPersistido,
   BackendVersionPersistida,
+  CuentaAuth,
   ModelPersistenceRepository,
   PersistenciaSesion,
 } from "./modelPersistence";
+import { hashPassword } from "./passwordHash";
 import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/modelos";
 import { indiceVacio, type WorkspaceIndice } from "../persistencia/workspace";
 
@@ -87,6 +90,33 @@ export function crearRepoMemoria(
     },
     async health() {
       return true;
+    },
+  };
+}
+
+export interface CuentaSeedMemoria {
+  email: string;
+  password: string;
+  tenantId: string;
+  userId: string;
+}
+
+/**
+ * Auth repo en memoria (auth v1): para los tests del handler y para el dev
+ * server con MODEL_REQUIRE_AUTH=true (lane e2e auth). Espejo del contrato
+ * Postgres de model-persistence-api.
+ */
+export function crearAuthRepoMemoria(seeds: CuentaSeedMemoria[]): AuthRepository {
+  const cuentas: CuentaAuth[] = seeds.map((seed, indice) => ({
+    id: `acc-${indice}`,
+    email: seed.email.trim().toLowerCase(),
+    passwordHash: hashPassword(seed.password),
+    userId: seed.userId,
+    tenantId: seed.tenantId,
+  }));
+  return {
+    async getCuentaPorEmail(email) {
+      return cuentas.find((cuenta) => cuenta.email === email) ?? null;
     },
   };
 }

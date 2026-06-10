@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { Buffer } from "node:buffer";
+import { HASH_SENUELO, verifyPassword } from "./passwordHash";
 import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/modelos";
 import type { WorkspaceIndice } from "../persistencia/workspace";
 import { indiceVacio } from "../persistencia/workspace";
@@ -9,7 +10,32 @@ import type { VersionResumen } from "../modelo/tipos";
 export interface PersistenciaSesion {
   tenantId: string;
   userId: string;
+  /** true ⇔ la cookie nació de un login (auth v1). Las anónimas no lo portan. */
+  auth?: boolean;
   setCookie?: string;
+}
+
+export interface CuentaAuth {
+  id: string;
+  email: string;
+  passwordHash: string;
+  userId: string;
+  tenantId: string;
+}
+
+export interface AuthRepository {
+  /** email ya normalizado (lowercase+trim). null si no existe. */
+  getCuentaPorEmail(email: string): Promise<CuentaAuth | null>;
+  touchLogin?(accountId: string, fecha: string): Promise<void>;
+}
+
+export interface AuthOptions {
+  repo: AuthRepository;
+  /** Mismo MODEL_SESSION_SECRET con el que se firman las cookies. */
+  secret: string;
+  cookieName?: string;
+  /** true ⇒ 401 en toda ruta de persistencia sin sesión autenticada (spec D3). */
+  requireAuth?: boolean;
 }
 
 export interface PersistenciaSessionResolver {
@@ -56,6 +82,8 @@ export interface ModelPersistenceOptions {
   repo: ModelPersistenceRepository;
   sessionResolver?: PersistenciaSessionResolver;
   maxBodyBytes?: number;
+  /** Auth v1: presente ⇒ endpoints login/logout activos; requireAuth gobierna el gate. */
+  auth?: AuthOptions;
 }
 
 const ENDPOINT = "/__deep-opm/modelos";
@@ -64,6 +92,10 @@ const SESSION_ENDPOINT = "/__deep-opm/session";
 const DEFAULT_MAX_BODY_BYTES = 15 * 1024 * 1024;
 const COOKIE_NAME = "opforja_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
+const AUTH_LOGIN_ENDPOINT = "/__deep-opm/auth/login";
+const AUTH_LOGOUT_ENDPOINT = "/__deep-opm/auth/logout";
+// Cookie autenticada más corta que la anónima (spec §2): 30 días, rotada por login.
+const AUTH_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptions) {
   const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
@@ -75,6 +107,18 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
       return responderJson(ok ? 200 : 503, { ok });
     }
 
+    if (options.auth && request.method === "POST" && url.pathname === AUTH_LOGIN_ENDPOINT) {
+      return manejarLogin(request, options.auth, maxBodyBytes);
+    }
+    if (options.auth && request.method === "POST" && url.pathname === AUTH_LOGOUT_ENDPOINT) {
+      const cookieName = options.auth.cookieName ?? COOKIE_NAME;
+      return responderJson(200, { ok: true }, {
+        tenantId: "",
+        userId: "",
+        setCookie: `${cookieName}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax`,
+      });
+    }
+
     const esRutaPersistencia = url.pathname === SESSION_ENDPOINT ||
       url.pathname === WORKSPACE_ENDPOINT ||
       url.pathname === ENDPOINT ||
@@ -84,11 +128,16 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
     }
 
     const session = await sessionResolver.resolve(request);
+    if (options.auth?.requireAuth && session.auth !== true) {
+      // 401 sin session ⇒ sin Set-Cookie: bajo login obligatorio no se acuñan
+      // tenants anónimos (spec D3/§2). Las cookies anónimas viejas caen aquí.
+      return responderJson(401, { error: "No autenticado" });
+    }
     try {
       if (options.repo.touchSession) await options.repo.touchSession(session);
 
       if (request.method === "GET" && url.pathname === SESSION_ENDPOINT) {
-        return responderJson(200, { session: { tenantId: session.tenantId, userId: session.userId } }, session);
+        return responderJson(200, { session: { tenantId: session.tenantId, userId: session.userId, ...(session.auth === true ? { auth: true } : {}) } }, session);
       }
 
       if (request.method === "GET" && url.pathname === WORKSPACE_ENDPOINT) {
@@ -373,7 +422,43 @@ function esRequestSeguro(request: Request): boolean {
   }
 }
 
-function firmarTokenSesion(payload: { tenantId: string; userId: string }, secret: string): string {
+async function manejarLogin(request: Request, auth: AuthOptions, maxBodyBytes: number): Promise<Response> {
+  let body: unknown;
+  try {
+    body = await leerJsonRequest(request, maxBodyBytes);
+  } catch (error) {
+    return responderJson(400, { error: error instanceof Error ? error.message : "JSON invalido" });
+  }
+  if (!esRecord(body) || typeof body.email !== "string" || typeof body.password !== "string") {
+    return responderJson(400, { error: "Login invalido: email y password requeridos" });
+  }
+  const email = body.email.trim().toLowerCase();
+  const cuenta = await auth.repo.getCuentaPorEmail(email);
+  // Verificación SIEMPRE (señuelo si no hay cuenta): respuesta y costo uniformes,
+  // sin oráculo de existencia de email (spec §3).
+  const valida = verifyPassword(body.password, cuenta?.passwordHash ?? HASH_SENUELO);
+  if (!cuenta || !valida) return responderJson(401, { error: "Credenciales inválidas" });
+
+  if (auth.repo.touchLogin) await auth.repo.touchLogin(cuenta.id, new Date().toISOString());
+  const cookieName = auth.cookieName ?? COOKIE_NAME;
+  const token = firmarTokenSesion({
+    tenantId: cuenta.tenantId,
+    userId: cuenta.userId,
+    auth: true,
+    // Rotación por login (spec §2): el nonce hace único cada token emitido.
+    nonce: randomBytes(8).toString("hex"),
+  }, auth.secret);
+  const secure = esRequestSeguro(request) ? "; Secure" : "";
+  const session: PersistenciaSesion = {
+    tenantId: cuenta.tenantId,
+    userId: cuenta.userId,
+    auth: true,
+    setCookie: `${cookieName}=${token}; Path=/; Max-Age=${AUTH_SESSION_MAX_AGE_SECONDS}; HttpOnly; SameSite=Lax${secure}`,
+  };
+  return responderJson(200, { session: { tenantId: session.tenantId, userId: session.userId, auth: true } }, session);
+}
+
+function firmarTokenSesion(payload: { tenantId: string; userId: string; auth?: boolean; nonce?: string }, secret: string): string {
   const encoded = base64UrlEncode(JSON.stringify(payload));
   return `${encoded}.${firma(encoded, secret)}`;
 }
@@ -386,7 +471,11 @@ function verificarTokenSesion(token: string, secret: string): PersistenciaSesion
   try {
     const parsed = JSON.parse(base64UrlDecode(encoded));
     if (!esRecord(parsed) || typeof parsed.tenantId !== "string" || typeof parsed.userId !== "string") return null;
-    return { tenantId: parsed.tenantId, userId: parsed.userId };
+    return {
+      tenantId: parsed.tenantId,
+      userId: parsed.userId,
+      ...(parsed.auth === true ? { auth: true } : {}),
+    };
   } catch {
     return null;
   }
