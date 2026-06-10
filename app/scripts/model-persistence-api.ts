@@ -3,6 +3,7 @@ import {
   crearCookieSessionResolver,
   crearModelPersistenceFetchHandler,
   PersistenciaConflictError,
+  type AuthRepository,
   type BackendAutosalvadoPersistido,
   type BackendVersionPersistida,
   type ModelPersistenceRepository,
@@ -303,13 +304,46 @@ const MIGRACIONES_SCHEMA = [
       await db`CREATE INDEX IF NOT EXISTS opforja_models_tenant_revision_idx ON opforja_models (tenant_id, id, revision)`;
     },
   },
+  {
+    // Auth v1 (docs/specs/auth-identidad-v1.md §1): cuentas + membresía.
+    // Aditiva: no toca tablas existentes; rollback = MODEL_REQUIRE_AUTH=false.
+    version: 4,
+    nombre: "auth_identidad",
+    async run(db: typeof sql) {
+      await db`
+        CREATE TABLE IF NOT EXISTS opforja_accounts (
+          id TEXT PRIMARY KEY,
+          email TEXT NOT NULL,
+          password_hash TEXT NOT NULL,
+          user_id TEXT NOT NULL REFERENCES opforja_users(id),
+          creado_en TEXT NOT NULL,
+          ultimo_login_en TEXT
+        )
+      `;
+      await db`CREATE UNIQUE INDEX IF NOT EXISTS opforja_accounts_email_idx ON opforja_accounts (email)`;
+      await db`
+        CREATE TABLE IF NOT EXISTS opforja_account_tenants (
+          account_id TEXT NOT NULL REFERENCES opforja_accounts(id) ON DELETE CASCADE,
+          tenant_id TEXT NOT NULL REFERENCES opforja_tenants(id) ON DELETE CASCADE,
+          rol TEXT NOT NULL DEFAULT 'owner',
+          creado_en TEXT NOT NULL,
+          PRIMARY KEY (account_id, tenant_id)
+        )
+      `;
+    },
+  },
 ] satisfies Array<{ version: number; nombre: string; run: (db: typeof sql) => Promise<void> }>;
 
 await inicializarSchema();
 
+// Auth v1 (spec §3): fail-closed — el gate de login está activo salvo opt-out
+// explícito MODEL_REQUIRE_AUTH=false (rollback spec §7, no toca datos).
+const REQUIRE_AUTH = process.env.MODEL_REQUIRE_AUTH !== "false";
+
 const handler = crearModelPersistenceFetchHandler({
   repo: repositorioPostgres(),
   sessionResolver: crearCookieSessionResolver(SESSION_SECRET),
+  auth: { repo: authRepositorioPostgres(), secret: SESSION_SECRET, requireAuth: REQUIRE_AUTH },
 });
 
 Bun.serve({
@@ -330,6 +364,33 @@ Bun.serve({
 });
 
 logEvento("model_api_started", { host: HOST, port: PORT, maxVersionesPorModelo: MAX_VERSIONES_POR_MODELO });
+
+function authRepositorioPostgres(): AuthRepository {
+  return {
+    async getCuentaPorEmail(email) {
+      const rows = await sql`
+        SELECT a.id, a.email, a.password_hash, a.user_id, m.tenant_id
+        FROM opforja_accounts a
+        JOIN opforja_account_tenants m ON m.account_id = a.id
+        WHERE a.email = ${email}
+        ORDER BY m.creado_en ASC
+        LIMIT 1
+      `;
+      const row = rows[0];
+      if (!row) return null;
+      return {
+        id: String(row.id),
+        email: String(row.email),
+        passwordHash: String(row.password_hash),
+        userId: String(row.user_id),
+        tenantId: String(row.tenant_id),
+      };
+    },
+    async touchLogin(accountId, fecha) {
+      await sql`UPDATE opforja_accounts SET ultimo_login_en = ${fecha} WHERE id = ${accountId}`;
+    },
+  };
+}
 
 function repositorioPostgres(): ModelPersistenceRepository {
   return {
