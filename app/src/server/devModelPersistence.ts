@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { Buffer } from "node:buffer";
 import { crearCookieSessionResolver, crearModelPersistenceFetchHandler } from "./modelPersistence";
-import { crearRepoMemoria } from "./repoMemoria";
+import { crearAuthRepoMemoria, crearRepoMemoria } from "./repoMemoria";
 
 /**
  * Secreto de sesión SOLO para dev/preview. Nunca llega a producción: estos
@@ -38,15 +38,39 @@ const RUTAS_PERSISTENCIA = [
   "/__deep-opm/session",
   "/__deep-opm/workspace",
   "/__deep-opm/modelos",
+  "/__deep-opm/auth",
 ];
 
+/**
+ * Cuenta sembrada del lane e2e `auth` (dev server con MODEL_REQUIRE_AUTH=true).
+ * Credenciales SOLO de dev/test: el secret de sesión dev tampoco llega a prod.
+ */
+export const CUENTA_DEV_AUTH = {
+  email: "dev@opforja.local",
+  password: "opforja-dev-password",
+  tenantId: "tenant-auth-dev",
+  userId: "user-auth-dev",
+} as const;
+
 export function instalarModelPersistenceDevMiddleware(middlewares: ConnectMiddlewares): void {
-  // Un único repo en memoria compartido por las tres rutas (mismo proceso dev):
+  // Un único repo en memoria compartido por las rutas (mismo proceso dev):
   // la sesión anónima por defecto del handler mantiene un tenant estable, así
   // que los modelos persisten entre requests mientras viva el servidor.
+  // Con MODEL_REQUIRE_AUTH=true (lane e2e auth) el gate de login se activa con
+  // la cuenta sembrada CUENTA_DEV_AUTH — mismo handler que producción.
+  const requireAuth = process.env.MODEL_REQUIRE_AUTH === "true";
   const handler = crearModelPersistenceFetchHandler({
     repo: crearRepoMemoria(),
     sessionResolver: crearCookieSessionResolver(SECRETO_SESION_DEV),
+    ...(requireAuth
+      ? {
+        auth: {
+          repo: crearAuthRepoMemoria([CUENTA_DEV_AUTH]),
+          secret: SECRETO_SESION_DEV,
+          requireAuth: true,
+        },
+      }
+      : {}),
   });
 
   const nodeHandler = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
