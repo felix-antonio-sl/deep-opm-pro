@@ -10,6 +10,15 @@
 
 ---
 
+## Actualización 2026-06-10 — selector de modelos en el shell mobile (DESPLEGADO)
+
+**Reporte del operador post-auth: "en mobile no puedo acceder a laboratorio de simulación".** Causa raíz: NO era regresión de auth — el shell mobile-readonly **nunca tuvo selección de modelo** (su propio comentario delegaba a "la futura capa de tenants/auth"; proyectaba solo el SD vacío de sesión). Auth v1 cerró la identidad; este corte cierra la selección:
+
+- `ui/mobile/seleccionModelos.ts` (helpers puros: `modeloSinContenido`, `debeAutoAbrirModelos`) + `VistaModelosLectura` (lista del tenant, tap ⇒ `cargarLocal` read-only) + tab **Modelos** (primera) en `MobileReadonlyApp` con `listarModelosGuardados()` al montar y **auto-switch** a la lista cuando el modelo de sesión está vacío y hay guardados (sin quitar control si el usuario ya navegó).
+- E2E: lane mobile sube a **10/0/2** (+2: auto-abre-y-carga con siembra por API bajo la cookie del contexto; sin-guardados-no-auto-switch). Smoke total **269/0/5**.
+- **DESPLEGADO y verificado en prod con la cuenta real del operador** (viewport iPhone): login → lista → tap "Laboratorio complejo de simulacion OPM 2" → diagrama + OPL (36 oraciones), 0 errores.
+- **HALLAZGO colateral (deuda de test):** `window.__opmStore` NO existe en src — los asserts de no-mutación del spec mobile (`store?.exportarModelo?.(...)`) pasan **vacuamente** (`undefined === undefined`). Saneo pendiente: exponer hook de test o reescribir esos asserts con observables UI.
+
 ## Actualización 2026-06-10 — corte auth/identidad v1: login obligatorio single-operator (DESPLEGADO Y OPERATIVO)
 
 **Spec aprobado por el operador**: `docs/specs/auth-identidad-v1.md` (D1 single-operator · D2 email+password registro cerrado, scrypt `node:crypto` · D3 login obligatorio · D4 auth nativa sobre el handler existente). Plan ejecutado: `docs/superpowers/plans/2026-06-10-auth-identidad-v1.md` (11 tareas TDD inline).
