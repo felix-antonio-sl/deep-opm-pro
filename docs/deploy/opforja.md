@@ -5,8 +5,10 @@
 de bugs (`/__deep-opm/bug-reports`) y API interna Bun/Postgres para modelos
 nuevos (`/__deep-opm/session`, `/__deep-opm/workspace`,
 `/__deep-opm/modelos`), publicada por Traefik en la red Docker externa `web`.
-**Acceso actual:** publico (`HTTP 200`). El Basic Auth de Traefik fue retirado
-por decisión del operador. No guardar contrasenas en claro en este repo.
+**Acceso actual:** la SPA carga publica (`HTTP 200`) pero exige **login de
+aplicacion** (auth v1, 2026-06-10): sin sesion autenticada el backend responde
+401 y la UI monta `PantallaLogin`. Ver § Cuentas y login. El Basic Auth de
+Traefik fue retirado previamente; no guardar contrasenas en claro en este repo.
 
 > Doc del **administrador** de la instancia. Para uso operativo del
 > modelador (entrar, crear, guardar, respaldar, exportar PNG) ver
@@ -18,11 +20,11 @@ Este deploy replica el patron usado por `hdos-app`: `docker-compose.yml` local,
 servicio conectado a red `web`, labels Traefik, TLS con
 `certresolver=myresolver` y contenedor reiniciable.
 
-Diferencia critica: `hdos-app` tiene auth de aplicacion; `deep-opm-pro` todavia
-no. En el estado vigente, `opforja` esta publicado sin Basic Auth perimetral.
-Para volver a modo privado, re-agregar `opforja-auth@docker` al router de
-Traefik y aplicar `docker compose up -d --build`; ver `docs/HANDOFF.md`
-§ Riesgos para el hash APR1 vigente.
+Desde auth v1 (2026-06-10) `opforja` tiene **auth de aplicacion** (login
+obligatorio email+password, registro cerrado) — el Basic Auth perimetral dejo
+de ser necesario. Si igualmente se quisiera doble barrera, re-agregar
+`opforja-auth@docker` al router de Traefik y aplicar
+`docker compose up -d --build`.
 
 El capturador de bugs no forma parte del modelo OPM ni de la persistencia de
 usuario. En `opforja` se habilita por build arg `VITE_ENABLE_BUG_CAPTURE=true`
@@ -30,10 +32,11 @@ y Nginx reenvia `POST /__deep-opm/bug-reports` al sidecar privado
 `bug-capture`. El sidecar escribe reportes en `./docs/bugs` mediante bind mount
 local, con el mismo formato usado por Vite en desarrollo.
 
-La persistencia de modelos nuevos vive en `opforja-postgres` y se expone a la
-SPA por `model-api`. El backend emite una cookie HTTP-only firmada
-`opforja_session` para crear un tenant anonimo por navegador; modelos,
-workspace/carpetas, versiones y autosave quedan aislados por `tenant_id`.
+La persistencia de modelos vive en `opforja-postgres` y se expone a la SPA por
+`model-api`. Desde auth v1 la cookie HTTP-only firmada `opforja_session` se
+emite SOLO en el login (`POST /__deep-opm/auth/login`); ya no se acunan
+tenants anonimos. Modelos, workspace/carpetas, versiones y autosave quedan
+aislados por `tenant_id` de la cuenta.
 No hay cache ni recuperacion legacy desde storage del navegador: si la API no
 esta disponible, la app falla de forma explicita en persistencia.
 
@@ -95,12 +98,13 @@ Verificar dominio publico:
 ```bash
 curl -I https://opforja.sanixai.com
 # Esperado vigente: HTTP/2 200 con content-type: text/html
-curl -sS https://opforja.sanixai.com/__deep-opm/modelos
-# Esperado vigente para una sesion nueva: {"modelos":[]}
-curl -sS -c /tmp/opforja.cookies https://opforja.sanixai.com/__deep-opm/session
-# Esperado: {"session":{"tenantId":"tenant-...","userId":"user-..."}}
+curl -sS -o /dev/null -w '%{http_code}\n' https://opforja.sanixai.com/__deep-opm/session
+# Esperado vigente (auth v1): 401 sin sesion autenticada
+curl -sS -c /tmp/opforja.cookies -X POST https://opforja.sanixai.com/__deep-opm/auth/login \
+  -H 'content-type: application/json' -d '{"email":"<email>","password":"<password>"}'
+# Esperado: {"session":{"tenantId":"tenant-...","userId":"user-...","auth":true}}
 curl -sS -b /tmp/opforja.cookies https://opforja.sanixai.com/__deep-opm/workspace
-# Esperado: {"indice":{"modelos":[],"carpetas":[],"recientes":[]}} o workspace del tenant
+# Esperado: workspace del tenant de la cuenta
 ```
 
 Si se reactiva Basic Auth, verificar acceso autenticado sin escribir la
@@ -131,17 +135,17 @@ CLI dentro del contenedor `model-api`:
 
 ```bash
 # Crear cuenta nueva (tenant nuevo). La password se pide por stdin.
-docker exec -it opforja-model-api bun run scripts/auth-cuenta.ts crear felix@example.com
+docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts crear felix@example.com
 
 # ADOPCIÓN: crear cuenta ligada a un tenant anónimo EXISTENTE (rescatar datos).
 # Identificar primero el tenant valioso:
 docker exec -it opforja-postgres psql -U opforja -d opforja \
   -c "SELECT tenant_id, COUNT(*) AS modelos FROM opforja_models GROUP BY 1 ORDER BY 2 DESC"
-docker exec -it opforja-model-api bun run scripts/auth-cuenta.ts crear felix@example.com --tenant <tenant-id>
+docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts crear felix@example.com --tenant <tenant-id>
 
 # Reset de password / listar cuentas
-docker exec -it opforja-model-api bun run scripts/auth-cuenta.ts reset felix@example.com
-docker exec -it opforja-model-api bun run scripts/auth-cuenta.ts listar
+docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts reset felix@example.com
+docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts listar
 ```
 
 Notas operativas:

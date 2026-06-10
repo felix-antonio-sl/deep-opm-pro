@@ -50,6 +50,8 @@ COPY app/src/server ./app/src/server
 COPY app/src/persistencia ./app/src/persistencia
 COPY app/src/modelo/tipos ./app/src/modelo/tipos
 COPY app/scripts/model-persistence-api.ts ./app/scripts/model-persistence-api.ts
+# Auth v1: CLI de administracion de cuentas (docker exec; spec auth-identidad-v1 §5).
+COPY app/scripts/auth-cuenta.ts ./app/scripts/auth-cuenta.ts
 
 EXPOSE 3001
 
