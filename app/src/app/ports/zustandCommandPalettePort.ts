@@ -25,6 +25,8 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const copiarOplModeloMarkdownAlPortapapeles = useOpmStore((s) => s.copiarOplModeloMarkdownAlPortapapeles);
   const copiarContextoSkillAlPortapapeles = useOpmStore((s) => s.copiarContextoSkillAlPortapapeles);
   const copiarLogDecisionesAlPortapapeles = useOpmStore((s) => s.copiarLogDecisionesAlPortapapeles);
+  // Auth v1 (spec §4): logout desde la paleta.
+  const cerrarSesion = useOpmStore((s) => s.cerrarSesion);
   const frecuenciaUso = useOpmStore((s) => s.frecuenciaUsoCommandPalette);
   const registrarUsoCommandPalette = useOpmStore((s) => s.registrarUsoCommandPalette);
   // Ronda Codex v2 L5: acciones absorbidas desde el `MenuPrincipal` lateral
@@ -78,6 +80,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     copiarOplModeloMarkdownAlPortapapeles,
     copiarContextoSkillAlPortapapeles,
     copiarLogDecisionesAlPortapapeles,
+    cerrarSesion,
     frecuenciaUso,
     registrarUsoCommandPalette,
     abrirPestanaNueva,

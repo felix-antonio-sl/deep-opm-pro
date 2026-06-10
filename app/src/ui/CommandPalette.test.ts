@@ -277,6 +277,7 @@ function depsAccionesMenu(
     exportarOplModeloMarkdown: () => {},
     copiarContextoSkill: () => {},
     copiarLogDecisiones: () => {},
+    cerrarSesion: () => {},
     exportarOpdPng: null,
     exportarOpdsPngZip: () => {},
     abrirPestanaNueva: () => {},

@@ -132,6 +132,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     exportarOplModeloMarkdownAlPortapapeles,
     copiarContextoSkill,
     copiarLogDecisiones,
+    cerrarSesion,
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,
@@ -188,6 +189,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     exportarOplModeloMarkdown: exportarOplModeloMarkdownAlPortapapeles,
     copiarContextoSkill,
     copiarLogDecisiones,
+    cerrarSesion,
     exportarOpdPng: canvasPaper ? () => { void descargarOpdActualPng(canvasPaper, modelo, opdActivoId); } : null,
     exportarOpdsPngZip: () => { void descargarTodosLosOpdsPngZip(modelo); },
     abrirPestanaNueva,
@@ -489,6 +491,7 @@ interface AccionesMenuCommandPaletteDeps {
   copiarContextoSkill: () => void;
   /** W6.5-b: export del LogDecisiones v0 para `re-elicitar`. */
   copiarLogDecisiones: () => void;
+  cerrarSesion: () => void;
   exportarOpdPng: (() => void) | null;
   exportarOpdsPngZip: (() => void) | null;
   abrirPestanaNueva: () => void;
@@ -548,6 +551,7 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "exportar-opl-modelo", label: "Exportar OPL del modelo (Markdown)", descripcion: "Copiar el OPL completo de todos los OPDs al portapapeles como Markdown", categoria: "archivo", run: deps.exportarOplModeloMarkdown },
     { id: "copiar-contexto-skill", label: "Copiar contexto para la skill", descripcion: "Copiar procedencia + pendientes [RATIFICAR] + notas de mesa + diagnóstico + OPL para pegar en la sesión de modelamiento-opm", categoria: "archivo", run: deps.copiarContextoSkill },
     { id: "copiar-log-decisiones", label: "Copiar LogDecisiones v0", descripcion: "Copiar el log de transiciones [RATIFICAR] (anotado-en-mesa / ratificado-con-fuente) para el estado re-elicitar de la skill", categoria: "archivo", run: deps.copiarLogDecisiones },
+    { id: "auth-cerrar-sesion", label: "Cerrar sesión", descripcion: "Cerrar la sesión de esta cuenta y volver a la pantalla de login", categoria: "archivo", run: deps.cerrarSesion },
     ...(deps.exportarOpdPng ? [{ id: "exportar-opd-png", label: "Exportar OPD actual como PNG", descripcion: "Descargar el OPD activo como imagen PNG", categoria: "archivo", run: deps.exportarOpdPng }] : []),
     ...(deps.exportarOpdsPngZip ? [{ id: "exportar-opds-png-zip", label: "Exportar todos los OPDs como PNG", descripcion: "Descargar un ZIP con una imagen PNG por OPD", categoria: "archivo", run: deps.exportarOpdsPngZip }] : []),
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },

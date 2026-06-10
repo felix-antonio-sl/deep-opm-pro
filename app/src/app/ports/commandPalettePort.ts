@@ -56,6 +56,8 @@ export interface CommandPaletteWorkspacePort {
   copiarContextoSkillAlPortapapeles: () => Promise<void>;
   /** W6.5-b: copia el LogDecisiones v0 (consumidor: `re-elicitar` de la skill). */
   copiarLogDecisionesAlPortapapeles: () => Promise<void>;
+  /** Auth v1 (spec §4): cierra la sesión y vuelve a PantallaLogin. */
+  cerrarSesion: () => Promise<void>;
 }
 
 export interface CommandPaletteViewPort {

@@ -27,6 +27,7 @@ export function useCommandPaletteViewModel() {
     copiarOplModeloMarkdownAlPortapapeles,
     copiarContextoSkillAlPortapapeles,
     copiarLogDecisionesAlPortapapeles,
+    cerrarSesion,
     frecuenciaUso,
     registrarUsoCommandPalette,
     abrirPestanaNueva,
@@ -98,6 +99,8 @@ export function useCommandPaletteViewModel() {
     copiarContextoSkill: () => { void copiarContextoSkillAlPortapapeles(); },
     // W6.5-b: export del LogDecisiones v0 (consumidor: re-elicitar de la skill).
     copiarLogDecisiones: () => { void copiarLogDecisionesAlPortapapeles(); },
+    // Auth v1 (spec §4): cerrar sesión vuelve a PantallaLogin.
+    cerrarSesion: () => { void cerrarSesion(); },
     abrirPestanaNueva,
     abrirBusquedaCosas,
     abrirBusquedaGlobal,
