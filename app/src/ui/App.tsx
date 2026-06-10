@@ -117,6 +117,10 @@ export function App() {
   // Auth v1 (spec §4): con login obligatorio el backend responde 401 y la app
   // monta PantallaLogin en lugar del workbench (early-return tras los hooks).
   const requiereLogin = useOpmStore((s) => s.requiereLogin);
+  const verificarSesion = useOpmStore((s) => s.verificarSesion);
+  useEffect(() => {
+    void verificarSesion();
+  }, [verificarSesion]);
   const [, setInspectorAbierto] = useState(true);
   const [canvasAdapter, setCanvasAdapter] = useState<JointCanvasAdapter | null>(null);
   // L2 ronda 28: altura del panel índice (árbol OPD) sobre el panel inspector.

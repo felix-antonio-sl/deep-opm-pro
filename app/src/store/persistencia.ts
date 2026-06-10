@@ -229,6 +229,16 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     // Pase lo que pase con la red, la sesión local se considera cerrada (spec §4).
     set({ requiereLogin: true, modelosGuardados: [], modelosRecientes: [] });
   },
+
+  async verificarSesion() {
+    // Chequeo de montaje (spec §4): bajo login obligatorio el gate debe
+    // evaluarse al cargar la app, no recién en la primera acción de
+    // persistencia. SOLO consulta /session: un backend caído u otro error no
+    // bloquea el workbench (eso lo reporta el flujo de persistencia normal).
+    if (!persistenciaBackendHabilitada()) return;
+    const estadoSesion = await obtenerEstadoSesionBackend();
+    if (estadoSesion.estado === "requiere-login") set({ requiereLogin: true });
+  },
   modeloPersistidoId: null,
   descripcionModeloLocal: "",
   workspaceLocal: workspaceDesdeModelo(modeloInicial, null),

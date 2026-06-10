@@ -221,6 +221,7 @@ export type PersistenciaSlice = Slice<
   | "requiereLogin"
   | "iniciarSesion"
   | "cerrarSesion"
+  | "verificarSesion"
   | "modeloPersistidoId"
   | "descripcionModeloLocal"
   | "workspaceLocal"

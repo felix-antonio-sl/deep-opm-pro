@@ -49,4 +49,23 @@ describe("store auth v1", () => {
     await store.getState().cerrarSesion();
     expect(store.getState().requiereLogin).toBe(true);
   });
+
+  test("verificarSesion al montar: 401 activa requiereLogin", async () => {
+    mockFetch({ "/session": { status: 401, body: { error: "No autenticado" } } });
+    await store.getState().verificarSesion();
+    expect(store.getState().requiereLogin).toBe(true);
+  });
+
+  test("verificarSesion al montar: 200 no activa el gate", async () => {
+    mockFetch({ "/session": { status: 200, body: { session: { tenantId: "t", userId: "u" } } } });
+    await store.getState().verificarSesion();
+    expect(store.getState().requiereLogin).toBe(false);
+  });
+
+  test("verificarSesion con backend caído no bloquea (no es un 401)", async () => {
+    Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+    globalThis.fetch = (async () => { throw new Error("network down"); }) as unknown as typeof fetch;
+    await store.getState().verificarSesion();
+    expect(store.getState().requiereLogin).toBe(false);
+  });
 });

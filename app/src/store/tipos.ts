@@ -288,6 +288,8 @@ export interface OpmStore {
   requiereLogin: boolean;
   iniciarSesion: (email: string, password: string) => Promise<void>;
   cerrarSesion: () => Promise<void>;
+  /** Chequeo de sesión al montar la app: 401 ⇒ requiereLogin (otros errores no bloquean). */
+  verificarSesion: () => Promise<void>;
   modeloPersistidoId: Id | null;
   descripcionModeloLocal: string;
   menuPrincipalAbierto: boolean;
