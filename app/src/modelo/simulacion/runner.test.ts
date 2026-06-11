@@ -5,12 +5,16 @@ import { designarInicial } from "../estadosDesignaciones";
 import { aplicarModificador } from "../modificadores";
 import {
   agregarEstado,
+  cambiarAfiliacion,
   crearEnlace,
   crearEstadosIniciales,
   crearModelo,
   crearObjeto,
   crearProceso,
   definirTiempoExcepcionEnlace,
+  descomponerProceso,
+  moverApariencia,
+  renombrarEntidad,
   renombrarEstado,
 } from "../operaciones";
 import { fijarDuracion } from "../objetoDuracion";
@@ -288,6 +292,8 @@ describe("condiciones e invocaciones OPM", () => {
     const pedidoId = entidadId(modelo, "Pedido");
     const revisarId = entidadId(modelo, "Revisar");
     const manejarId = entidadId(modelo, "Manejar Excepcion");
+    // R-EXC-1A (guard nuevo): el manejador de excepción debe ser ambiental.
+    modelo = must(cambiarAfiliacion(modelo, manejarId, "ambiental"));
     const estados = must(crearEstadosIniciales(modelo, pedidoId));
     modelo = estados.modelo;
     const [pendienteId, revisadoId] = estados.estadoIds;
@@ -453,3 +459,59 @@ function modeloRutasAgua(): {
   }
   return { modelo, aguaId, solidificadaId, liquidaId, gaseosaId: gaseosa.estadoId };
 }
+
+describe("delegación de frontera al refinamiento (V-37, gap B.5)", () => {
+  /**
+   * Flujo canónico de la app: la frontera se declara en el SD (consumo Pedido
+   * en `pendiente` + resultado a `aprobado`) y AL DESCOMPONER el kernel la
+   * distribuye a los subprocesos (consumo al primero, resultado al último).
+   * Sin delegación, el padre aplicaba ADEMÁS la transición completa
+   * pendiente→aprobado antes de descender: doble aplicación.
+   */
+  function modeloPadreConFronteraDistribuida(): { modelo: Modelo; pedidoId: string; aprobadoId: string } {
+    let modelo = crearModelo("Frontera");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 60, y: 100 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 400, y: 100 }, "Tramitar"));
+    const pedidoId = entidadId(modelo, "Pedido");
+    const tramitarId = entidadId(modelo, "Tramitar");
+    const creados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = creados.modelo;
+    const [pendienteId, aprobadoId] = creados.estadoIds;
+    modelo = must(renombrarEstado(modelo, pendienteId!, "pendiente"));
+    modelo = must(renombrarEstado(modelo, aprobadoId!, "aprobado"));
+    modelo = must(designarInicial(modelo, pendienteId!));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendienteId!), extremoEntidad(tramitarId), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(tramitarId), extremoEstado(aprobadoId!), "resultado"));
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, tramitarId)).modelo;
+    return { modelo, pedidoId, aprobadoId: aprobadoId! };
+  }
+
+  test("el padre con opdHijo NO aplica sus transiciones de frontera: las realizan los subprocesos", () => {
+    const { modelo, pedidoId, aprobadoId } = modeloPadreConFronteraDistribuida();
+    const final = ejecutarCorrida(modelo, iniciarSimulacion(modelo, modelo.opdRaizId));
+
+    expect(final.estado).toBe("completado");
+    // Ninguna entrada diagnostica "no simulable" (antes el padre consumía
+    // pendiente→aprobado y el primer subproceso quedaba bloqueado).
+    expect(final.trace.filter((t) => t.diagnostico?.includes("No simulable"))).toEqual([]);
+    expect(final.estadosCurrent[pedidoId]).toBe(aprobadoId);
+
+    const padre = final.trace.find((t) => t.procesoNombre === "Tramitar");
+    expect(padre?.transicionesAplicadas).toEqual([]);
+    // Los subprocesos realizan la frontera distribuida (consumo al primero,
+    // resultado al último).
+    const aplicadasHijos = final.trace
+      .filter((t) => t.procesoNombre !== "Tramitar")
+      .flatMap((t) => t.transicionesAplicadas);
+    expect(aplicadasHijos.length).toBeGreaterThan(0);
+  });
+
+  test("las fases del padre que delega son preparación?/proceso (sin beats de consumo/resultado duplicados)", () => {
+    const { modelo } = modeloPadreConFronteraDistribuida();
+    const ctx = iniciarSimulacion(modelo, modelo.opdRaizId);
+    const pasoPadre = ctx.plan.find((p) => p.procesoNombre === "Tramitar")!;
+    expect(pasoPadre.opdHijoId).toBeDefined();
+    const { fasesDelPasoSimulacion } = require("./fases") as typeof import("./fases");
+    expect(fasesDelPasoSimulacion(modelo, pasoPadre)).toEqual(["proceso"]);
+  });
+});

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../operaciones";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../operaciones";
 import type { Modelo, Resultado, TipoEnlace } from "../tipos";
 import { debeAnimarTokensSim, tokensDeFaseSimulacion } from "./animacionTokens";
 import type { FocoPasoSimulacion } from "./foco";
@@ -71,6 +71,8 @@ describe("tokensDeFaseSimulacion", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 400, y: 100 }, "Afectado"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 100 }, "Procesar"));
     const proceso = entidadId(modelo, "Procesar");
+    // R-OPD-EST-3 (guard nuevo): el objeto afectado necesita estados declarados.
+    modelo = must(crearEstadosIniciales(modelo, entidadId(modelo, "Afectado"))).modelo;
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadId(modelo, "Insumo"), proceso, "consumo"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, proceso, entidadId(modelo, "Salida"), "resultado"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, proceso, entidadId(modelo, "Afectado"), "efecto"));

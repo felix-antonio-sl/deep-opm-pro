@@ -67,13 +67,20 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     rngMuestreo ??= rngSembrado(contexto.semilla ?? 0);
     return rngMuestreo();
   };
+  // Distribución canónica de la frontera (V-37, gap B.5): un paso con
+  // descomposición DELEGA sus transiciones a los subprocesos — la frontera del
+  // padre en el SD declara lo que el sistema consume/produce, pero quienes la
+  // REALIZAN son los hijos (consumo al primero, resultado al último). Aplicarla
+  // también en el padre la duplicaría: el padre consumiría el estado inicial
+  // antes de que el primer subproceso lo use.
+  const delegaAlRefinamiento = Boolean(paso.opdHijoId);
   const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
   const estadosRama = abanico ? estadosDestinoDeRamas(modelo, abanico) : new Set<Id>();
   const transicionesAplicadas: TransicionEstadoSim[] = [];
   const motivosBloqueo: string[] = [];
   const estadosCurrent: Record<Id, Id> = { ...contexto.estadosCurrent };
   const transicionesPorEntidad = agruparTransicionesPorEntidad(
-    paso.transicionesPlanificadas.filter((transicion) => (
+    delegaAlRefinamiento ? [] : paso.transicionesPlanificadas.filter((transicion) => (
       transicion.estadoDespuesId === null || !estadosRama.has(transicion.estadoDespuesId)
     )),
   );
@@ -106,11 +113,10 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     }
   }
 
-  const { valoresNuevos, cambios: cambiosValor, motivos: motivosValor } = aplicarCambiosValor(
-    modelo,
-    contexto.valoresRuntime,
-    paso,
-  );
+  // Las copias de valor de la frontera también se delegan a los hijos.
+  const { valoresNuevos, cambios: cambiosValor, motivos: motivosValor } = delegaAlRefinamiento
+    ? { valoresNuevos: contexto.valoresRuntime, cambios: [], motivos: [] }
+    : aplicarCambiosValor(modelo, contexto.valoresRuntime, paso);
   motivosBloqueo.push(...motivosValor);
 
   const entrada: EntradaTraceSim = {

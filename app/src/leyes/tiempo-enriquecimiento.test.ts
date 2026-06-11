@@ -3,6 +3,7 @@ import { extremoEntidad, extremoEstado } from "../modelo/extremos";
 import { designarInicial } from "../modelo/estadosDesignaciones";
 import { fijarDuracion } from "../modelo/objetoDuracion";
 import {
+  cambiarAfiliacion,
   crearEnlace,
   crearEstadosIniciales,
   crearModelo,
@@ -45,6 +46,8 @@ function modeloConTiempo(nominalMin: number, umbralSobretiempoMin = 8): {
   const pedidoId = entidadId(modelo, "Pedido");
   const procesarId = entidadId(modelo, "Procesar");
   const escalarId = entidadId(modelo, "Escalar");
+  // R-EXC-1A (guard nuevo): el proceso de manejo de excepción debe ser ambiental.
+  modelo = must(cambiarAfiliacion(modelo, escalarId, "ambiental"));
   const estados = must(crearEstadosIniciales(modelo, pedidoId));
   modelo = estados.modelo;
   const [pendienteId, listoId] = estados.estadoIds;

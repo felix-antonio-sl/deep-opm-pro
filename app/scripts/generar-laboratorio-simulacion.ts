@@ -55,7 +55,9 @@ import {
   crearModelo,
   crearObjeto,
   crearProceso,
+  eliminarEnlace,
   moverApariencia,
+  reanclarEnlaceExternoDerivado,
   redimensionarApariencia,
   renombrarEntidad,
   renombrarEstado,
@@ -128,7 +130,7 @@ export function construirLaboratorio(): Modelo {
 
   m = conEstados(m, "Analizador", ["disponible", "ocupado"]);
   m = conEstados(m, "Muestra", ["recibida", "preparada", "analizada", "validada"]);
-  m = conEstados(m, "Informe", ["borrador", "emitido"]);
+  m = conEstados(m, "Informe", ["borrador", "emitido", "archivado"]);
   m = conEstados(m, "Registro LIS", ["desactualizado", "actualizado"]);
   m = conEstados(m, "Bitácora", ["pendiente", "actualizada"]);
 
@@ -138,9 +140,15 @@ export function construirLaboratorio(): Modelo {
   m = must(designarCurrent(m, estadoId(m, "Muestra", "recibida")));
   m = must(designarFinal(m, estadoId(m, "Muestra", "validada")));
   m = must(designarInicial(m, estadoId(m, "Informe", "borrador")));
-  m = must(designarFinal(m, estadoId(m, "Informe", "emitido")));
+  m = must(designarFinal(m, estadoId(m, "Informe", "archivado")));
   m = must(designarInicial(m, estadoId(m, "Registro LIS", "desactualizado")));
   m = must(designarInicial(m, estadoId(m, "Bitácora", "pendiente")));
+
+  // La cápsula `ocupado` desbordaba el ancho default: fijar ancho suficiente.
+  const aparienciaAnalizador = Object.values(m.opds[SD]!.apariencias).find(
+    (a) => a.entidadId === entidadId(m, "Analizador"),
+  )!;
+  m = must(redimensionarApariencia(m, SD, aparienciaAnalizador.id, 240, 92));
 
   // Duración temporal: el motor infiere la duración del paso desde el estado
   // RESULTANTE de su transición — `analizada` dota de duración al paso
@@ -159,7 +167,7 @@ export function construirLaboratorio(): Modelo {
   m = must(moverApariencia(m, SD, temp.atributoId, { x: 320, y: 150 }));
   const vol = must(crearAtributoEnObjeto(m, SD, entidadId(m, "Muestra"), "Volumen", { tipoSlot: "float", unidad: "ml", valor: 5 }));
   m = vol.modelo;
-  m = must(moverApariencia(m, SD, vol.atributoId, { x: 320, y: 640 }));
+  m = must(moverApariencia(m, SD, vol.atributoId, { x: 430, y: 690 }));
   m = must(configurarSimulacionAtributo(m, vol.atributoId, {
     simulable: true,
     configuracion: { modo: "numerica", distribucion: "uniform", uniformMin: 2, uniformMax: 10 },
@@ -233,15 +241,49 @@ export function construirLaboratorio(): Modelo {
   m = conEstados(m, "Veredicto", ["aprobado", "rechazado"]);
   m = must(crearObjeto(m, HIJO, { x: cx + ANCHO + 120, y: cy + 1000 }, "Alerta de Demora"));
 
-  // Flujo del hijo: transiciones de Muestra por pares estado↔proceso.
-  m = must(crearEnlace(m, HIJO, extremoEstado(estadoId(m, "Muestra", "recibida")), extremoEntidad(preparar), "consumo"));
+  // ── Frontera funcional del SD (canon: el SD muestra qué consume y produce
+  // la función). Se declara en el PADRE; la proyección del refinamiento la
+  // DERIVA al hijo (primer/último interno) y abajo se reasigna cada externa a
+  // su subproceso semántico. El runner DELEGA (V-37, gap B.5 cerrado): el
+  // padre declara, los hijos realizan.
+  // OJO: la sync de proyección crea enlaces DERIVADOS dentro de la misma
+  // operación — `ultimoEnlaceId` podría devolver el derivado. El enlace de
+  // frontera se captura por extremos (y sin marca `derivado`).
+  const fronteraSd = (origen: { kind: string; id: Id }, destino: { kind: string; id: Id }, tipo: Parameters<typeof crearEnlace>[4]): Id => {
+    m = must(crearEnlace(m, SD, origen as Parameters<typeof crearEnlace>[2], destino as Parameters<typeof crearEnlace>[3], tipo));
+    const enlace = Object.values(m.enlaces).find((e) =>
+      e.tipo === tipo && !e.derivado &&
+      e.origenId.kind === origen.kind && e.origenId.id === origen.id &&
+      e.destinoId.kind === destino.kind && e.destinoId.id === destino.id);
+    if (!enlace) throw new Error(`No encontré el enlace de frontera ${tipo} recién creado`);
+    return enlace.id;
+  };
+  fronteraSd(extremoEstado(estadoId(m, "Muestra", "recibida")), extremoEntidad(procesar), "consumo");
+  const fValidada = fronteraSd(extremoEntidad(procesar), extremoEstado(estadoId(m, "Muestra", "validada")), "resultado");
+  const fReactivo = fronteraSd(extremoEntidad(entidadId(m, "Reactivo")), extremoEntidad(procesar), "consumo");
+  const fBorrador = fronteraSd(extremoEstado(estadoId(m, "Informe", "borrador")), extremoEntidad(procesar), "consumo");
+  const fArchivado = fronteraSd(extremoEntidad(procesar), extremoEstado(estadoId(m, "Informe", "archivado")), "resultado");
+  const fDesactualizado = fronteraSd(extremoEstado(estadoId(m, "Registro LIS", "desactualizado")), extremoEntidad(procesar), "consumo");
+  const fActualizado = fronteraSd(extremoEntidad(procesar), extremoEstado(estadoId(m, "Registro LIS", "actualizado")), "resultado");
+  const fEfectoBitacora = fronteraSd(extremoEntidad(procesar), extremoEntidad(entidadId(m, "Bitácora")), "efecto");
+  m = {
+    ...m,
+    enlaces: {
+      ...m.enlaces,
+      [fEfectoBitacora]: {
+        ...m.enlaces[fEfectoBitacora]!,
+        estadoEntradaId: estadoId(m, "Bitácora", "pendiente"),
+        estadoSalidaId: estadoId(m, "Bitácora", "actualizada"),
+      },
+    },
+  };
+
+  // ── Flujo interno del hijo (estados intermedios que la frontera no declara).
   m = must(crearEnlace(m, HIJO, extremoEntidad(preparar), extremoEstado(estadoId(m, "Muestra", "preparada")), "resultado"));
   m = must(crearEnlace(m, HIJO, extremoEstado(estadoId(m, "Muestra", "preparada")), extremoEntidad(analizar), "consumo"));
   m = must(crearEnlace(m, HIJO, extremoEntidad(analizar), extremoEstado(estadoId(m, "Muestra", "analizada")), "resultado"));
-  m = must(crearEnlace(m, HIJO, extremoEntidad(entidadId(m, "Reactivo")), extremoEntidad(analizar), "consumo"));
-  m = must(crearEnlace(m, HIJO, extremoEstado(estadoId(m, "Analizador", "disponible")), extremoEntidad(analizar), "instrumento"));
   m = must(crearEnlace(m, HIJO, extremoEstado(estadoId(m, "Muestra", "analizada")), extremoEntidad(validar), "consumo"));
-  m = must(crearEnlace(m, HIJO, extremoEntidad(validar), extremoEstado(estadoId(m, "Muestra", "validada")), "resultado"));
+  m = must(crearEnlace(m, HIJO, extremoEstado(estadoId(m, "Analizador", "disponible")), extremoEntidad(analizar), "instrumento"));
 
   // Excepción temporal: si Analizar excede 8 min, desvía a Manejar Demora.
   m = must(crearEnlace(m, HIJO, extremoEntidad(analizar), extremoEntidad(entidadId(m, "Manejar Demora")), "excepcionSobretiempo"));
@@ -266,33 +308,64 @@ export function construirLaboratorio(): Modelo {
   const abanicoId = Object.keys(m.abanicos ?? {}).at(-1)!;
   m = must(definirProbabilidadesAbanico(m, abanicoId, { [ramaAprobada]: 0.7, [ramaRechazada]: 0.3 }));
 
-  // Emitir Informe: condición sobre el Veredicto + transición de Informe y
-  // Registro LIS por pares anclados, y efecto COMPACTO sobre la Bitácora
-  // (par como metadato del enlace — verbaliza «cambia» en OPL).
+  // Emitir Informe: condición sobre el Veredicto + Informe a `emitido`
+  // (intermedio; el `archivado` final lo realiza Archivar vía frontera) y
+  // efecto COMPACTO sobre la Bitácora (par como metadato — «cambia» en OPL).
   m = must(crearEnlace(m, HIJO, extremoEstado(estadoId(m, "Veredicto", "aprobado")), extremoEntidad(emitir), "consumo"));
   m = must(aplicarModificador(m, ultimoEnlaceId(m), "condicion"));
-  m = must(crearEnlace(m, HIJO, extremoEstado(estadoId(m, "Informe", "borrador")), extremoEntidad(emitir), "consumo"));
   m = must(crearEnlace(m, HIJO, extremoEntidad(emitir), extremoEstado(estadoId(m, "Informe", "emitido")), "resultado"));
-  m = must(crearEnlace(m, HIJO, extremoEstado(estadoId(m, "Registro LIS", "desactualizado")), extremoEntidad(emitir), "consumo"));
-  m = must(crearEnlace(m, HIJO, extremoEntidad(emitir), extremoEstado(estadoId(m, "Registro LIS", "actualizado")), "resultado"));
-  m = must(crearEnlace(m, HIJO, extremoEntidad(emitir), extremoEntidad(entidadId(m, "Bitácora")), "efecto"));
-  const efectoBitacora = ultimoEnlaceId(m);
-  m = {
-    ...m,
-    enlaces: {
-      ...m.enlaces,
-      [efectoBitacora]: {
-        ...m.enlaces[efectoBitacora]!,
-        estadoEntradaId: estadoId(m, "Bitácora", "pendiente"),
-        estadoSalidaId: estadoId(m, "Bitácora", "actualizada"),
-      },
-    },
-  };
 
   // Invocación con demora + Archivar consume el Informe emitido.
   m = must(crearEnlace(m, HIJO, extremoEntidad(emitir), extremoEntidad(archivar), "invocacion"));
   m = must(definirDemora(m, ultimoEnlaceId(m), "2 min"));
   m = must(crearEnlace(m, HIJO, extremoEstado(estadoId(m, "Informe", "emitido")), extremoEntidad(archivar), "consumo"));
+
+  // ── Reasignación de las externas derivadas (AL FINAL: cada operación
+  // re-sincroniza la proyección del refinamiento; reanclar marca el derivado
+  // como MANUAL y la sync deja de recrear autos para ese enlace padre).
+  const derivadosDe = (enlacePadreId: Id) =>
+    Object.values(m.opds[HIJO]!.enlaces).filter(
+      (ap) => m.enlaces[ap.enlaceId]?.derivado?.enlacePadreId === enlacePadreId,
+    );
+  const reasignarDerivado = (enlacePadreId: Id, subprocesoId: Id): Id => {
+    const [aparicion] = derivadosDe(enlacePadreId);
+    if (!aparicion) {
+      const padres = [...new Set(Object.values(m.opds[HIJO]!.enlaces)
+        .map((ap) => m.enlaces[ap.enlaceId]?.derivado?.enlacePadreId)
+        .filter(Boolean))];
+      throw new Error(`Sin derivado en el hijo para ${enlacePadreId}; padres derivados presentes: ${padres.join(", ")}`);
+    }
+    m = must(reanclarEnlaceExternoDerivado(m, HIJO, aparicion.id, subprocesoId));
+    return aparicion.enlaceId;
+  };
+  reasignarDerivado(fValidada, validar);
+  reasignarDerivado(fReactivo, analizar);
+  reasignarDerivado(fBorrador, emitir);
+  reasignarDerivado(fArchivado, archivar);
+  reasignarDerivado(fDesactualizado, emitir);
+  reasignarDerivado(fActualizado, emitir);
+  // Efecto: la proyección lo deriva a TODOS los internos. El realizador real
+  // es Emitir: el primer derivado se reancla (manual) y hereda el par de
+  // estados; los autos restantes se eliminan (la sync ya no los recrea porque
+  // existe un manual para ese padre).
+  const efectoEnEmitir = reasignarDerivado(fEfectoBitacora, emitir);
+  m = {
+    ...m,
+    enlaces: {
+      ...m.enlaces,
+      [efectoEnEmitir]: {
+        ...m.enlaces[efectoEnEmitir]!,
+        estadoEntradaId: estadoId(m, "Bitácora", "pendiente"),
+        estadoSalidaId: estadoId(m, "Bitácora", "actualizada"),
+      },
+    },
+  };
+  for (const aparicion of derivadosDe(fEfectoBitacora)) {
+    const enlace = m.enlaces[aparicion.enlaceId];
+    if (enlace && enlace.id !== efectoEnEmitir && enlace.derivado?.origen !== "manual") {
+      m = must(eliminarEnlace(m, enlace.id));
+    }
+  }
 
   return m;
 }
@@ -324,6 +397,9 @@ function sanear(modelo: Modelo): void {
   if (det.estado !== "completado") throw new Error("La corrida determinista no completó");
   if (currentDe(det, "Muestra") !== "validada") throw new Error("Muestra no llegó a validada");
   if (currentDe(det, "Registro LIS") !== "actualizado") throw new Error("Registro LIS no llegó a actualizado");
+  if (currentDe(det, "Informe") !== "archivado") throw new Error("Informe no llegó a archivado");
+  const padreEntrada = det.trace.find((t) => t.procesoNombre === "Procesar Muestra");
+  if ((padreEntrada?.transicionesAplicadas.length ?? -1) !== 0) throw new Error("El padre debía DELEGAR su frontera (0 transiciones aplicadas)");
   const validarEntrada = det.trace.find((t) => t.procesoNombre.startsWith("Validar"));
   const eligioAprobado = validarEntrada?.transicionesAplicadas.some((t) => nombreEstado(t.estadoDespuesId ?? undefined) === "aprobado");
   if (!eligioAprobado) throw new Error("Determinista debía elegir la rama de mayor Pr (aprobado)");
@@ -394,6 +470,9 @@ async function subir(modelo: Modelo): Promise<void> {
   console.log(`modelos del tenant: ${cuerpo.modelos?.map((mm) => `${mm.nombre} (${mm.id})`).join(" · ")}`);
 }
 
+if (!import.meta.main) {
+  // Importable como módulo (sondas/tests) sin ejecutar el main.
+} else {
 const modelo = construirLaboratorio();
 console.log(`modelo: ${modelo.nombre}`);
 console.log(`  entidades=${Object.keys(modelo.entidades).length} estados=${Object.keys(modelo.estados).length} enlaces=${Object.keys(modelo.enlaces).length} opds=${Object.keys(modelo.opds).length} abanicos=${Object.keys(modelo.abanicos ?? {}).length}`);
@@ -402,4 +481,5 @@ writeFileSync("/tmp/laboratorio-simulacion-opm.json", exportarModelo(modelo));
 console.log("\nJSON escrito en /tmp/laboratorio-simulacion-opm.json");
 if (process.argv.includes("--subir")) {
   await subir(modelo);
+}
 }

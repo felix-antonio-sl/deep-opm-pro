@@ -31,6 +31,13 @@ export function fasesDelPasoSimulacion(modelo: Modelo, paso: PasoSimulacion): Fa
   if (enlacesPreparacion(modelo, paso).length > 0) {
     fases.push("preparacion");
   }
+  // Un paso con descomposición DELEGA su frontera a los subprocesos (V-37):
+  // sus beats de consumo/resultado ocurren dentro del refinamiento, así que el
+  // padre solo arranca (preparación si hay habilitadores + proceso).
+  if (paso.opdHijoId) {
+    fases.push("proceso");
+    return fases;
+  }
   if (enlacesConsumo(modelo, paso).length > 0 || paso.transicionesPlanificadas.some((t) => t.estadoAntesId !== null)) {
     fases.push("consumo");
   }
