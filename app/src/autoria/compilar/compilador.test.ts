@@ -13,6 +13,7 @@ import { describe, expect, test } from "bun:test";
 import { compilarProto } from "./compilador";
 import type { ResultadoCompilacion } from "./compilador";
 import { emitirBundle } from "../bundle";
+import type { Modelo } from "../../modelo/tipos";
 import { generarOpl } from "../../opl/generar";
 import { parsearParrafoOpl, claveNombre } from "../../opl/parser/parsear";
 
@@ -397,5 +398,74 @@ Autoridad maneja Fiscalizar.
     expect(autoridad?.tipo).toBe("objeto");
     // El enlace `agente` Autoridad→Fiscalizar es legal (origen objeto físico).
     expect(enlaceEntre(modelo, "Autoridad", "Fiscalizar", "agente")).toHaveLength(1);
+  });
+});
+
+// ── S1 (solicitud upstream skill modelamiento-opm, 2026-06-11) ──────────────
+// `X se descompone en A y B` debe registrar los miembros como INTERNOS del
+// OPD hijo: el layout los contiene dentro del contorno (semántica visual del
+// in-zoom, spec-forja-opd-es) y el checker LF-19 no acusa falso positivo.
+// Vía: el compilador emite las agregaciones contorno→miembro que el DSL ya
+// consume (dsl.ts registrarInternoInzoom) — sin tocar layout.ts ni el DSL.
+describe("S1 — `se descompone en` contiene a sus miembros en el in-zoom", () => {
+  const PROTO_TE = `# SD0 — Preparar té
+
+\`\`\`opl
+Preparar té es físico y sistémico.
+Agua es física y ambiental.
+Preparar té consume Agua.
+\`\`\`
+
+# SD1 — in-zoom de Preparar té
+
+\`\`\`opl
+Preparar té se descompone en Hervir agua y Servir.
+Hervir agua consume Agua.
+\`\`\`
+`;
+
+  function compilarTe() {
+    const { autor } = compilarProto(PROTO_TE, { id: "s1", nombre: "S1" });
+    const bundle = emitirBundle(autor, { lanzarEnError: false });
+    // La UI importa el campo `.json` del ResultadoBundle; el modelo viaja dentro.
+    const modelo = (JSON.parse(bundle.json) as { modelo: Modelo }).modelo;
+    return { bundle, modelo };
+  }
+
+  test("los miembros quedan geométricamente DENTRO del contorno en el OPD hijo", () => {
+    const { modelo } = compilarTe();
+    const opdHijo = Object.values(modelo.opds).find((opd) => opd.padreId)!;
+    expect(opdHijo).toBeDefined();
+    const contorno = Object.values(modelo.entidades).find((e) => e.nombre === "Preparar té")!;
+    const apContorno = Object.values(opdHijo.apariencias).find((a) => a.entidadId === contorno.id)!;
+    expect(apContorno).toBeDefined();
+
+    for (const nombre of ["Hervir agua", "Servir"]) {
+      const entidad = Object.values(modelo.entidades).find((e) => e.nombre === nombre);
+      expect(entidad).toBeDefined();
+      const aparicion = Object.values(opdHijo.apariencias).find((a) => a.entidadId === entidad!.id);
+      expect(aparicion).toBeDefined();
+      expect(aparicion!.x).toBeGreaterThan(apContorno.x);
+      expect(aparicion!.y).toBeGreaterThan(apContorno.y);
+      expect(aparicion!.x + aparicion!.width).toBeLessThan(apContorno.x + apContorno.width);
+      expect(aparicion!.y + aparicion!.height).toBeLessThan(apContorno.y + apContorno.height);
+    }
+  });
+
+  test("la membresía no inventa enlaces de agregación en el bundle (el DSL la consume)", () => {
+    const { modelo: modeloAgg } = compilarTe();
+    const agregaciones = Object.values(modeloAgg.enlaces).filter((e) => e.tipo === "agregacion");
+    expect(agregaciones).toHaveLength(0);
+  });
+
+  test("el checker DESCOMPOSICION_SIN_SUBPROCESOS no acusa falso positivo", () => {
+    const { bundle } = compilarTe();
+    expect(bundle.avisos.filter((a) => a.codigo === "DESCOMPOSICION_SIN_SUBPROCESOS")).toHaveLength(0);
+  });
+
+  test("un miembro declarado SOLO en la lista (sin hechos propios) existe como proceso interno", () => {
+    const { modelo: modeloServir } = compilarTe();
+    const servir = Object.values(modeloServir.entidades).find((e) => e.nombre === "Servir");
+    expect(servir?.tipo).toBe("proceso");
   });
 });

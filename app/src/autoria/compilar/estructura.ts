@@ -59,6 +59,8 @@ export interface NodoOpd {
   refinamiento: "raiz" | "descomposicion" | "despliegue";
   /** Si la descomposición se declaró `en esa secuencia` (orden temporal). */
   secuencial: boolean;
+  /** S1: miembros declarados en la lista de `se descompone en` (display names). Vacío en raíz/despliegue. */
+  miembros: string[];
   /** Las líneas de hecho normalizadas que pueblan este OPD (sin la oración estructural que lo abre). */
   hechos: LineaNormalizada[];
   /** Número de línea markdown (1-based) del encabezado o del primer fence, para trazas del ledger. */
@@ -125,6 +127,7 @@ export function leerEstructura(markdown: string): PlanEstructura {
         refinableNombre: null,
         refinamiento: "raiz",
         secuencial: false,
+        miembros: [],
         hechos,
         lineaMd: bloque.lineaMd,
       };
@@ -177,9 +180,28 @@ function abrirOpdRefinamiento(
     refinableNombre: refinable.nombre,
     refinamiento: esDespliegue ? "despliegue" : "descomposicion",
     secuencial: Boolean(estructura.secuencial),
+    miembros: esDespliegue ? [] : extraerMiembros(estructura.oracion),
     hechos: [],
     lineaMd: bloque.lineaMd,
   };
+}
+
+/**
+ * S1 (solicitud upstream skill, 2026-06-11): extrae los miembros de la lista de
+ * `X se descompone en A, B y C [en esa secuencia]`. Los miembros nombrados SON
+ * el interior del in-zoom: el compilador los registra como internos del OPD
+ * hijo (la misma membresía que el DSL declara vía agregaciones contorno→parte).
+ * Lista simple por coma/` y ` — la convención del proto estricto; un nombre con
+ * ` y ` interno no resolverá y simplemente no se registrará como interno extra.
+ */
+function extraerMiembros(oracion: string): string[] {
+  const m = /\bse\s+descompone(?:\s+tambi[eé]n)?\s+en\s+(.+)$/iu.exec(oracion.trim().replace(/\.\s*$/u, ""));
+  if (!m) return [];
+  const lista = (m[1] ?? "").replace(/,?\s+en\s+esa\s+secuencia$/iu, "");
+  return lista
+    .split(/\s*,\s*|\s+y\s+/iu)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /** Extrae la entidad refinada (sujeto) de una oración estructural. */

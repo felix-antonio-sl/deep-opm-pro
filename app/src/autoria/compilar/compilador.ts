@@ -169,6 +169,7 @@ function procesarOpd(
   contabAnclas: { total: ContabilidadAnclas },
   secuenciaColaAncla: { n: number },
 ): void {
+  let refinableKey: string | null = null;
   // 1) Para un OPD de refinamiento: registra el refinamiento y proyecta el
   //    contorno. El refinable debe existir (creado en el OPD padre). Si no existe
   //    aún (el proto lo nombra por primera vez aquí), lo creamos como proceso.
@@ -189,6 +190,8 @@ function procesarOpd(
       opd: nodo.clave,
       refinable: nodo.refinableNombre,
     });
+
+    refinableKey = r.key;
   }
 
   // 2) Emite los hechos del OPD.
@@ -196,6 +199,29 @@ function procesarOpd(
   for (const linea of nodo.hechos) {
     const contab = emitirLinea(linea, ctx, entradas, clavesAncla);
     contabAnclas.total = sumarContabilidad(contabAnclas.total, contab);
+  }
+
+  // 3) S1 (solicitud upstream skill, 2026-06-11): los miembros de `X se
+  //    descompone en A, B …` SON el interior del in-zoom. TRAS emitir los
+  //    hechos (para que cada miembro nazca con la esencia/afiliación que el
+  //    proto declara y el ledger no pierda hechos), se declara su membresía
+  //    emitiendo la agregación contorno→miembro que el DSL CONSUME como
+  //    contención (registrarInternoInzoom; no crea enlace en el bundle). Un
+  //    miembro declarado SOLO en la lista se crea aquí (es interior declarado).
+  //    Sin esto, el layout renderiza los subprocesos fuera del contorno y
+  //    LF-19 acusa falso positivo de modelado.
+  if (nodo.refinamiento === "descomposicion" && refinableKey) {
+    for (const miembro of nodo.miembros) {
+      const rm = resolutor.resolver(miembro, nodo.clave, "proceso");
+      if (rm.accion === "crear") {
+        autor.entidad(rm.key, rm.tipo, miembro.trim(), rm.rasgos.esencia, rm.rasgos.afiliacion);
+      }
+      if (rm.accion === "crear" || rm.accion === "proyectar") {
+        autor.ver(nodo.clave, rm.key, 60, 60);
+        resolutor.marcarAparicion(miembro, nodo.clave);
+      }
+      autor.enlazar(nodo.clave, refinableKey, rm.key, "agregacion");
+    }
   }
 }
 
