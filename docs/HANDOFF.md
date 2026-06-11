@@ -10,6 +10,25 @@
 
 ---
 
+## Actualización 2026-06-11 — auditoría SSOT del layout canónico: A-1/A-2 + 4 hallazgos propios (LAYOUT_VERSION 3, RE-PIN PENDIENTE)
+
+**Mandato del operador: revisar el layout en profundidad contra las SSOT y remediar/mejorar todo.** Auditoría de `src/autoria/layout.ts` contra `spec-forja-opd-es` §10/§11 (R-OPD-REF-1/2, R-OPD-LAY-1/9) con render H1 como evidencia antes/después (`8b6b7691`):
+
+| Fix | Hallazgo | SSOT |
+|---|---|---|
+| **A-1** (residuo P1 hd-opm) | objetos internos colgaban del cursor acumulado (ROWH+wrap fantasma, ~130-180px de aire) → ahora del fondo REAL de los subs; muere "contorno > contenido" (SD0-P) | R-OPD-REF-1 |
+| **A-2** (residuo P1 hd-opm) | externos enlazados estructuralmente (registro↔asiento) caían en lados opuestos cruzando la elipse → clusterizan mismo lado/estante, líder = miembro con ancla de rol | R-OPD-LAY-1 |
+| **N-1** | fila top × columnas laterales de raíz plana podían ocluirse → guard determinista a punto fijo | R-OPD-LAY-1 |
+| **N-2** | in-zoom de OBJETO caía a raíz plana sin contenedor → pasa por la rama contenedora (rectángulo, sin línea de tiempo) | R-OPD-REF-1/2 |
+| **N-3** | el render inscribe la ELIPSE en el bbox: esquinas del contenido quedaban FUERA de la curva → inflación mínima por factor k de la esquina peor | R-OPD-REF-1 |
+| **N-4** | objetos fila-abajo se empacaban desde X0 generando diagonales que cruzaban elipses → se alinean bajo su subproceso ancla | R-OPD-LAY-1 |
+
+**Gate:** suite **2517/0** (+7 tests del motor: contención elíptica, cluster, oclusión, contorno objeto, ancla) · lint · smoke H1 OK · goldens DSL del repo intactos. **`LAYOUT_VERSION 2→3`** (componente del sello).
+
+**RE-PIN DEL GOLDEN hd-opm PENDIENTE** (`docs/roadmap/protocolo-re-pin.md`): checks deterministas PASS; **falta (operador): (2) validación visual en opforja/H1 del HODOM regenerado, (3-4) regeneración y commit del golden en hd-opm** (`bun run scripts/generar-bundle-hodom.ts` — el diff NO será vacío: es el re-pin deliberado, citar este corte). Evidencia visual antes/después enviada al operador (4 PNG).
+
+**Diferidos documentados:** A-3 routing ortogonal para diagonales largas (P3, superficie render); "A-2 para vistas" generic-view banda ancha/baja (candidato hd-opm no formalizado); convergencia motor-bundle ↔ `canvas/layoutSugerido` (D5 del acta de consenso).
+
 ## Actualización 2026-06-11 — encargo skill modelamiento-opm: S1 contención in-zoom desde proto + S2 léxico deverbal (RESUELTOS)
 
 **Solicitud upstream de la skill** (`docs/solicitudes-upstream/2026-06-11-contencion-inzoom-proto-skill-modelamiento-opm.md`, hallazgos de su prueba end-to-end del loop M2/H1/H2): **S1 (P1)** `se descompone en` no llenaba `internosInzoom` — todo in-zoom compilado desde proto renderizaba los subprocesos FUERA del contorno (falso positivo LF-19); **S2 (P3)** léxico deverbal sin la familia en `-e` átona.
