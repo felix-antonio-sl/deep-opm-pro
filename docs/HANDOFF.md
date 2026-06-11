@@ -20,6 +20,8 @@
 
 **Gate:** check **2508/0** (+12: 4 S1 + 6+2 S2) · lint · `render:headless:smoke` OK. Sin cambio UI (sin governance/smoke browser). La skill no requiere cambio en KORA; resolución escrita en la solicitud.
 
+**Follow-up mismo día (feedback operador, `c59ae86c`): `en esa secuencia` → línea de tiempo del in-zoom.** El marcador A10 se parseaba y descartaba. Cable: `Autor.ordenInzoom` + `secuenciarInternos` → `aplicarLayoutCompleto` (3er param, default vacío) apila cada interno declarado en su propia banda (ISO 19450: eje vertical = tiempo); el compilador conecta `nodo.secuencial`. Bisimetría cerrada (el OPL del bundle reexpresa `en esa secuencia` vía `agruparSubprocesosParalelos`); sin marcador = paralelo vigente (test); goldens DSL byte-idénticos (no declaran orden; 2511/0). Límite conocido: grupos `paralelo A, B` dentro de secuencia (formato G1) sin superficie proto importable.
+
 ## Actualización 2026-06-10 — selector de modelos en el shell mobile (DESPLEGADO)
 
 **Reporte del operador post-auth: "en mobile no puedo acceder a laboratorio de simulación".** Causa raíz: NO era regresión de auth — el shell mobile-readonly **nunca tuvo selección de modelo** (su propio comentario delegaba a "la futura capa de tenants/auth"; proyectaba solo el SD vacío de sesión). Auth v1 cerró la identidad; este corte cierra la selección:
