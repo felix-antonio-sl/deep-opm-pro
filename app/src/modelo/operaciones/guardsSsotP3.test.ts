@@ -1,6 +1,7 @@
 // Cierres P3 del registro de conformidad R-CONF-7 (2026-06-11):
 // V-4 (R-EXC-1A) y V-5 (R-OPD-EST-3) como guards de kernel/editor.
 import { describe, expect, test } from "bun:test";
+import { checkParTransformadorDuplicado } from "../checkers";
 import {
   cambiarAfiliacion,
   crearEnlace,
@@ -71,5 +72,62 @@ describe("V-5 — R-OPD-EST-3: el editor restringe el efecto a objetos con estad
     const m = base();
     expect(crearEnlace(m, m.opdRaizId, idDe(m, "Cosa"), idDe(m, "Procesar"), "consumo").ok).toBe(true);
     expect(crearEnlace(m, m.opdRaizId, idDe(m, "Procesar"), idDe(m, "Cosa"), "resultado").ok).toBe(true);
+  });
+});
+
+describe("R-OPD-HAB-4 — unicidad de rol por par objeto-proceso", () => {
+  function base(): Modelo {
+    let m = crearModelo("Unicidad");
+    m = must(crearProceso(m, m.opdRaizId, { x: 360, y: 60 }, "Procesar"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 60, y: 60 }, "Cosa"));
+    m = must(crearEstadosIniciales(m, idDe(m, "Cosa"))).modelo;
+    return m;
+  }
+
+  test("rechaza habilitador cuando el par ya tiene un transformador (y viceversa)", () => {
+    let m = base();
+    m = must(crearEnlace(m, m.opdRaizId, idDe(m, "Cosa"), idDe(m, "Procesar"), "consumo"));
+    const r = crearEnlace(m, m.opdRaizId, idDe(m, "Cosa"), idDe(m, "Procesar"), "instrumento");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error).toContain("R-OPD-HAB-4");
+
+    let m2 = base();
+    m2 = must(crearEnlace(m2, m2.opdRaizId, idDe(m2, "Cosa"), idDe(m2, "Procesar"), "instrumento"));
+    expect(crearEnlace(m2, m2.opdRaizId, idDe(m2, "Cosa"), idDe(m2, "Procesar"), "consumo").ok).toBe(false);
+  });
+
+  test("rechaza el duplicado exacto del mismo enlace", () => {
+    let m = base();
+    m = must(crearEnlace(m, m.opdRaizId, idDe(m, "Cosa"), idDe(m, "Procesar"), "consumo"));
+    const dup = crearEnlace(m, m.opdRaizId, idDe(m, "Cosa"), idDe(m, "Procesar"), "consumo");
+    expect(dup.ok).toBe(false);
+    if (!dup.ok) expect(dup.error).toContain("R-OPD-HAB-4");
+  });
+
+  test("checker PAR_TRANSFORMADOR_DUPLICADO acusa consumo+resultado planos sin abanico (R-PREC-1/3)", () => {
+    // La creación permite el segundo transformador (ramas pre-abanico se crean
+    // antes de agruparse); el residual no abanicado lo acusa el checker.
+    let m = base();
+    m = must(crearEnlace(m, m.opdRaizId, idDe(m, "Cosa"), idDe(m, "Procesar"), "consumo"));
+    m = must(crearEnlace(m, m.opdRaizId, idDe(m, "Procesar"), idDe(m, "Cosa"), "resultado"));
+    const avisos = checkParTransformadorDuplicado(m);
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]?.codigo).toBe("PAR_TRANSFORMADOR_DUPLICADO");
+  });
+
+  test("PERMITE la escisión TS consumo↔resultado anclada a estados (patrón canónico)", () => {
+    let m = base();
+    const estados = Object.values(m.estados).filter((e) => e.entidadId === idDe(m, "Cosa"));
+    const [eA, eB] = estados;
+    if (!eA || !eB) throw new Error("Fixture requiere 2 estados");
+    m = must(crearEnlace(m, m.opdRaizId, { kind: "estado", id: eA.id }, idDe(m, "Procesar"), "consumo"));
+    expect(crearEnlace(m, m.opdRaizId, idDe(m, "Procesar"), { kind: "estado", id: eB.id }, "resultado").ok).toBe(true);
+  });
+
+  test("roles sobre procesos distintos no colisionan", () => {
+    let m = base();
+    m = must(crearProceso(m, m.opdRaizId, { x: 660, y: 60 }, "Otro"));
+    m = must(crearEnlace(m, m.opdRaizId, idDe(m, "Cosa"), idDe(m, "Procesar"), "consumo"));
+    expect(crearEnlace(m, m.opdRaizId, idDe(m, "Cosa"), idDe(m, "Otro"), "instrumento").ok).toBe(true);
   });
 });

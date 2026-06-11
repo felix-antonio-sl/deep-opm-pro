@@ -13,6 +13,8 @@ import type {
   Apariencia,
   AparienciaEnlace,
   Enlace,
+  Entidad,
+  ExtremoEnlace,
   Id,
   ModoPlegado,
   Modelo,
@@ -121,6 +123,8 @@ export function crearEnlace(
   ) {
     return fallo("R-OPD-EST-3: un objeto sin estados no puede ser afectado; declárale estados o usa resultado/consumo");
   }
+  const unicidad = validarUnicidadRolPar(modelo, tipo, origenExtremo, destinoExtremo, origen, destino);
+  if (!unicidad.ok) return unicidad;
   if (!extremoVisibleEnOpd(modelo, opd, origenExtremo) || !extremoVisibleEnOpd(modelo, opd, destinoExtremo)) {
     return fallo("El enlace requiere que origen y destino tengan apariencia en el OPD");
   }
@@ -1003,4 +1007,64 @@ function entidadesConectadasPorApariencias(modelo: Modelo, apariencias: Aparienc
     if (destino) ids.add(destino);
   }
   return ids;
+}
+
+const ROLES_TRANSFORMADORES: ReadonlySet<TipoEnlace> = new Set(["consumo", "resultado", "efecto"]);
+const ROLES_HABILITADORES: ReadonlySet<TipoEnlace> = new Set(["agente", "instrumento"]);
+
+/**
+ * R-OPD-HAB-4 / R-ROL-UNIC-1 (V-3 del registro R-CONF-7): unicidad de rol por
+ * par objeto-proceso — el editor impide el segundo enlace procedimental
+ * INEQUÍVOCAMENTE inválido: la convivencia con un habilitador (el rol es
+ * transformado O habilitador, nunca ambos) y el duplicado exacto.
+ *
+ * Quedan PERMITIDOS los patrones canónicos multi-enlace del mismo rol
+ * transformado: escisión TS consumo↔resultado por estados, transiciones
+ * múltiples y ramas de abanico (que se agrupan DESPUÉS de crearse). Los
+ * duplicados transformadores planos sin abanico los acusa el checker
+ * PAR_TRANSFORMADOR_DUPLICADO; la recomposición por fuerza semántica
+ * (§6.5/§6.6, R-OPD-REF-13) pertenece al corte de out-zoom/plegado. Los
+ * enlaces externos derivados del refinamiento no cuentan como rol declarado.
+ */
+function validarUnicidadRolPar(
+  modelo: Modelo,
+  tipo: TipoEnlace,
+  origenExtremo: ExtremoEnlace,
+  destinoExtremo: ExtremoEnlace,
+  origen: Entidad,
+  destino: Entidad,
+): Resultado<true> {
+  const nuevoEsTransformador = ROLES_TRANSFORMADORES.has(tipo);
+  const nuevoEsHabilitador = ROLES_HABILITADORES.has(tipo);
+  if (!nuevoEsTransformador && !nuevoEsHabilitador) return ok(true);
+
+  const objetoId = origen.tipo === "objeto" ? origen.id : destino.id;
+  const procesoId = origen.tipo === "proceso" ? origen.id : destino.id;
+
+  for (const enlace of Object.values(modelo.enlaces)) {
+    // Los enlaces externos DERIVADOS por la proyección de refinamiento son
+    // placeholders de contexto reanclables (no roles declarados por el editor);
+    // su colisión la gobierna la recomposición (R-OPD-REF-13), no este guard.
+    if (enlace.derivado) continue;
+    const existenteEsTransformador = ROLES_TRANSFORMADORES.has(enlace.tipo);
+    const existenteEsHabilitador = ROLES_HABILITADORES.has(enlace.tipo);
+    if (!existenteEsTransformador && !existenteEsHabilitador) continue;
+    const a = entidadIdDeExtremo(modelo, enlace.origenId);
+    const b = entidadIdDeExtremo(modelo, enlace.destinoId);
+    const mismoPar = (a === objetoId && b === procesoId) || (a === procesoId && b === objetoId);
+    if (!mismoPar) continue;
+
+    if (enlace.tipo === tipo && mismoExtremo(enlace.origenId, origenExtremo) && mismoExtremo(enlace.destinoId, destinoExtremo)) {
+      return fallo("R-OPD-HAB-4: el par objeto-proceso ya tiene este enlace");
+    }
+    if (nuevoEsHabilitador || existenteEsHabilitador) {
+      return fallo("R-OPD-HAB-4: el objeto ya tiene un rol respecto de este proceso (transformado O habilitador, nunca ambos)");
+    }
+    // Transformador + transformador NO se bloquea aquí: las ramas de abanico
+    // O/XOR sobre el mismo par se crean ANTES de agruparse (formarAbanico) y
+    // son un único hecho lógico; los duplicados planos sin abanico los acusa
+    // el checker PAR_TRANSFORMADOR_DUPLICADO (R-PREC-1/3 gobiernan la
+    // recomposición, no la edición).
+  }
+  return ok(true);
 }

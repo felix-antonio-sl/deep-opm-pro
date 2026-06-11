@@ -29,6 +29,7 @@
  * conflicto.
  */
 
+import { abanicoDeEnlace } from "./abanicos";
 import { naturalezaDeEnlace } from "./constantes";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoEsEstado } from "./extremos";
 import { verificarLinealidad } from "./composicion";
@@ -108,6 +109,7 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkUnfoldContenido(modelo),
     ...checkProcesoTransforma(modelo),
     ...checkEfectoObjetoSinEstados(modelo),
+    ...checkParTransformadorDuplicado(modelo),
     ...checkEfectoSinTransicion(modelo),
     ...checkEntidadSinApariciones(modelo),
     ...checkProcesoSistemicoConectado(modelo),
@@ -353,6 +355,53 @@ export function checkProcesoTransforma(modelo: Modelo): AvisoMetodologico[] {
         "Si el proceso es solo orquestador, descomponlo y deja el rol transformador en un subproceso.",
       ],
     }));
+}
+
+const TRANSFORMADORES_PAR: ReadonlySet<TipoEnlace> = new Set(["consumo", "resultado", "efecto"]);
+
+/**
+ * R-OPD-HAB-4 / R-PREC-1..3: transformadores PLANOS duplicados sobre el mismo
+ * par objeto-proceso, sin abanico que los agrupe. La edición no puede
+ * distinguir ramas pre-abanico (se agrupan después de crearse), así que el
+ * rol doble se bloquea en `crearEnlace` y este checker acusa el residual:
+ * pares con ≥2 transformadores a nivel entidad no abanicados ni derivados.
+ */
+export function checkParTransformadorDuplicado(modelo: Modelo): AvisoMetodologico[] {
+  const porPar = new Map<string, { objetoId: Id; enlaces: string[] }>();
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (!TRANSFORMADORES_PAR.has(enlace.tipo)) continue;
+    if (enlace.derivado || enlace.efectoEscindido) continue;
+    if (enlace.origenId.kind === "estado" || enlace.destinoId.kind === "estado") continue;
+    if (abanicoDeEnlace(modelo, enlace.id)) continue;
+    const origen = entidadDeExtremo(modelo, enlace.origenId);
+    const destino = entidadDeExtremo(modelo, enlace.destinoId);
+    if (!origen || !destino) continue;
+    const objeto = origen.tipo === "objeto" ? origen : destino;
+    const proceso = origen.tipo === "proceso" ? origen : destino;
+    if (objeto.tipo !== "objeto" || proceso.tipo !== "proceso") continue;
+    const clave = `${objeto.id}|${proceso.id}`;
+    const grupo = porPar.get(clave) ?? { objetoId: objeto.id, enlaces: [] };
+    grupo.enlaces.push(`${enlace.tipo} (${proceso.nombre})`);
+    porPar.set(clave, grupo);
+  }
+  const avisos: AvisoMetodologico[] = [];
+  for (const grupo of porPar.values()) {
+    if (grupo.enlaces.length < 2) continue;
+    const objeto = modelo.entidades[grupo.objetoId];
+    if (!objeto) continue;
+    avisos.push(aviso("PAR_TRANSFORMADOR_DUPLICADO", objeto, {
+      severidad: "advertencia",
+      mensaje: `El objeto "${objeto.nombre}" tiene ${grupo.enlaces.length} enlaces transformadores planos hacia el mismo proceso (${grupo.enlaces.join(" + ")}) sin abanico que los agrupe. La unicidad de rol exige un solo hecho por par.`,
+      rationale: "Consumo+consumo y resultado+resultado sobre el mismo objeto son inválidos (R-PREC-1); consumo+resultado sin continuidad trazable es conflicto (R-PREC-3). Las ramas legales se agrupan en abanico O/XOR o se anclan a estados.",
+      ssotRef: "spec-forja-opd-es R-OPD-HAB-4; reglas-opm-estrictas-es R-PREC-1..3",
+      accionesSugeridas: [
+        "Agrupa las ramas en un abanico O/XOR si representan alternativas.",
+        "O ancla consumo/resultado a estados (escisión TS) si es una transición.",
+        "O elimina el enlace redundante.",
+      ],
+    }));
+  }
+  return avisos;
 }
 
 /**

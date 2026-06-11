@@ -287,8 +287,27 @@ const fixtureBug62ee85AbanicoDeduplicado: FixtureRoundtrip = {
     const objetoId = entidadId(m, "Objeto_2");
     // Dos resultados Procesar→Objeto_2 (modelo del bug: el canvas creo dos
     // enlaces visualmente diferentes pero ambos terminan en la misma entidad).
+    // El editor HOY impide el duplicado exacto (R-OPD-HAB-4); el estado
+    // degenerado se inyecta directo al record, imitando un modelo importado
+    // legacy — que es justo lo que la deduplicacion del roundtrip protege.
     m = must(crearEnlace(m, m.opdRaizId, procesoId, objetoId, "resultado"));
-    m = must(crearEnlace(m, m.opdRaizId, procesoId, objetoId, "resultado"));
+    const primero = Object.values(m.enlaces)[0]!;
+    const duplicadoId = "e-bug-62ee85-dup";
+    const aparienciaDupId = "ae-bug-62ee85-dup";
+    m = {
+      ...m,
+      enlaces: { ...m.enlaces, [duplicadoId]: { ...primero, id: duplicadoId } },
+      opds: {
+        ...m.opds,
+        [m.opdRaizId]: {
+          ...m.opds[m.opdRaizId]!,
+          enlaces: {
+            ...m.opds[m.opdRaizId]!.enlaces,
+            [aparienciaDupId]: { id: aparienciaDupId, enlaceId: duplicadoId, opdId: m.opdRaizId, vertices: [] },
+          },
+        },
+      },
+    };
     const enlaceIds = Object.keys(m.enlaces);
     if (enlaceIds.length !== 2) throw new Error("fixture invalida: enlaces");
     // Forzamos el abanico compartiendo port en el origen.

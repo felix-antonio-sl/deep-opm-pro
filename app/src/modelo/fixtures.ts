@@ -16,11 +16,30 @@ import {
 } from "./operaciones";
 import { aparienciaDeEntidadEnOpd, entidadVisibleEnOpd } from "./politicaApariciones";
 import { tieneRefinamiento } from "./refinamientos";
-import type { Apariencia, Id, Modelo } from "./tipos";
+import type { Apariencia, Id, Modelo, TipoEnlace } from "./tipos";
 
 function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
   if (!resultado.ok) throw new Error(`Fixture error: ${resultado.error}`);
   return resultado.value;
+}
+
+// Un enlace es GLOBAL y aparece por OPD: el fixture de unfold no duplica el
+// enlace del SD raíz (R-OPD-HAB-4 lo impide) — co-aparece el existente.
+function coAparecerEnlace(modelo: Modelo, opdId: Id, origenId: Id, destinoId: Id, tipo: TipoEnlace): Modelo {
+  const enlace = Object.values(modelo.enlaces).find(
+    (e) => e.tipo === tipo && e.origenId.id === origenId && e.destinoId.id === destinoId,
+  );
+  if (!enlace) throw new Error(`co-aparición: enlace ${tipo} no encontrado`);
+  const apId = `ae-co-${enlace.id}-${opdId}`;
+  const opd = modelo.opds[opdId];
+  if (!opd) throw new Error(`co-aparición: OPD no existe ${opdId}`);
+  return {
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: { ...opd, enlaces: { ...opd.enlaces, [apId]: { id: apId, enlaceId: enlace.id, opdId, vertices: [] } } },
+    },
+  };
 }
 
 function entidadPorNombre(modelo: Modelo, nombre: string): Id {
@@ -289,10 +308,10 @@ export function crearSdAsyncInzoomed(): FixtureDemo {
   modelo = must(crearEnlace(modelo, sd1Id, mainDoing, forth, "agregacion"));
   modelo = must(crearEnlace(modelo, sd1Id, sysName, toolSet, "agregacion"));
   modelo = must(crearEnlace(modelo, sd1Id, sysName, mainDoing, "exhibicion"));
-  modelo = must(crearEnlace(modelo, sd1Id, handler, mainDoing, "agente"));
-  modelo = must(crearEnlace(modelo, sd1Id, mainInput, mainDoing, "consumo"));
-  modelo = must(crearEnlace(modelo, sd1Id, sysName, mainDoing, "instrumento"));
-  modelo = must(crearEnlace(modelo, sd1Id, toolSet, mainDoing, "instrumento"));
+  modelo = coAparecerEnlace(modelo, sd1Id, handler, mainDoing, "agente");
+  modelo = coAparecerEnlace(modelo, sd1Id, mainInput, mainDoing, "consumo");
+  modelo = coAparecerEnlace(modelo, sd1Id, sysName, mainDoing, "instrumento");
+  modelo = coAparecerEnlace(modelo, sd1Id, toolSet, mainDoing, "instrumento");
   modelo = must(crearEnlace(modelo, sd1Id, ioOutput, ioAttr, "exhibicion"));
   modelo = must(crearEnlace(modelo, sd1Id, first, ioAttr, "efecto"));
   modelo = must(crearEnlace(modelo, sd1Id, second, ioAttr, "efecto"));

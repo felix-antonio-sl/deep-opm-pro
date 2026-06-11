@@ -37,6 +37,10 @@ const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   // El efecto plano es abstracción transitoria: madura a transición TS3-TS5
   // o al par consumo+resultado. Mejora accionable, no bloqueo.
   EFECTO_SIN_TRANSICION: "mejora",
+  // R-OPD-HAB-4/R-PREC-1..3: transformadores planos duplicados sobre el mismo
+  // par sin abanico. La edición no puede distinguir ramas pre-abanico; el
+  // checker acusa el residual no agrupado. Mejora accionable.
+  PAR_TRANSFORMADOR_DUPLICADO: "mejora",
   // B-2: entidad sin apariciones (invisible al OPL). Mejora accionable.
   ENTIDAD_SIN_APARICIONES: "mejora",
 };
