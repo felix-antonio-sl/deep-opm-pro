@@ -38,7 +38,8 @@ export function iniciarSimulacion(modelo: Modelo, opdId: Id, opciones: OpcionesI
 
 /**
  * La coalgebra: dado el estado actual, produce el efecto con su(s) sucesor(es).
- * F = Identidad (un sucesor). S2 extendera esta funcion para Powerset/Dist.
+ * El runner mantiene el camino secuencial por defecto y expone sucesores
+ * alternativos para decisiones XOR resolubles por semilla, exhaustivo o UI.
  */
 export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto<ContextoSimulacion> {
   if (contexto.estado === "bloqueado") return efectoUnico(contexto);
@@ -139,8 +140,11 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     entrada.diagnostico = `No simulable: ${motivosBloqueo.join("; ")}`;
   }
 
-  const nuevoPaso = resolverSiguientePasoPorEventoTemporal(contexto, entrada.eventosTemporales)
-    ?? resolverSiguientePasoPorInvocacion(modelo, contexto, paso);
+  const pasoEjecutable = motivosBloqueo.length === 0;
+  const nuevoPaso = pasoEjecutable
+    ? (resolverSiguientePasoPorEventoTemporal(contexto, entrada.eventosTemporales)
+      ?? resolverSiguientePasoPorInvocacion(modelo, contexto, paso))
+    : contexto.pasoActual + 1;
   const relojNuevo = (contexto.reloj ?? 0) + (duracionPaso?.observada ?? 0);
   const siguiente: ContextoSimulacion = {
     ...contexto,
@@ -196,6 +200,21 @@ export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion, limit
     return bloquearPorLimite(contexto, limite);
   }
   return tomarUnico(pasoEfecto(modelo, contexto));
+}
+
+export function resolverRamaSimulacion(
+  modelo: Modelo,
+  contexto: ContextoSimulacion,
+  enlaceId: Id,
+): ContextoSimulacion {
+  const paso = contexto.plan[contexto.pasoActual];
+  if (!paso) return contexto;
+  const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
+  if (!abanico || !abanico.enlaceIds.includes(enlaceId)) return contexto;
+  const efecto = pasoEfecto(modelo, { ...contexto, modo: "exhaustivo" });
+  return efecto.sucesores.find((sucesor) => modelo.enlaces[enlaceId]?.etiqueta === sucesor.rama || enlaceId === sucesor.rama)?.estado
+    ?? efecto.sucesores[abanico.enlaceIds.indexOf(enlaceId)]?.estado
+    ?? contexto;
 }
 
 /**

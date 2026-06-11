@@ -369,17 +369,11 @@ export function etiquetasMultiplicidad(enlace: Enlace, labelPositions?: LayoutLa
 export function etiquetasModificador(enlace: Enlace, labelPositions?: LayoutLabelsEnlace, wrapWidth?: number): Array<Record<string, unknown>> {
   const labels: Array<Record<string, unknown>> = [];
   const subtipo = textoSubtipoModificador(enlace);
-  // BUG-63cc7f: antes el badge se colocaba en `distance: 0` (extremo origen
-  // del path) y caia sobre el cuerpo de la entidad origen, no sobre el
-  // enlace. SSOT §4.1/§4.2 prescribe "marca sobre el enlace cerca del
-  // proceso"; sin lograr resolver cual extremo es proceso sin inspeccionar
-  // tipo+direccion, usamos `0.5` (medio del enlace) que SIEMPRE queda sobre
-  // la linea, no sobre los cuerpos, y se mueve consistente con el enlace.
   if (subtipo) {
-    labels.push(aplicarLayoutLabel(etiquetaBadgeModificadorCanonico(subtipo, 0.5), LABEL_KEY_MODIFICADOR, labelPositions));
+    labels.push(aplicarLayoutLabel(etiquetaBadgeModificadorCanonico(subtipo, distanciaProcesoParaModificador(enlace), -20), LABEL_KEY_MODIFICADOR, labelPositions));
   }
   if (enlace.probabilidad !== undefined) {
-    labels.push(aplicarLayoutLabel(etiquetaTextoModificador(`${Math.round(enlace.probabilidad * 100)}%`, 0.5, 22, wrapWidth), LABEL_KEY_PROBABILIDAD, labelPositions));
+    labels.push(aplicarLayoutLabel(etiquetaTextoModificador(textoProbabilidad(enlace.probabilidad), 0.5, 22, wrapWidth), LABEL_KEY_PROBABILIDAD, labelPositions));
   }
   if (enlace.tipo === "invocacion" && enlace.demora) {
     labels.push(aplicarLayoutLabel(etiquetaTextoModificador(enlace.demora, 0.5, -28, wrapWidth), LABEL_KEY_DEMORA, labelPositions));
@@ -391,6 +385,15 @@ export function textoModificador(modificador: NonNullable<Enlace["modificador"]>
   if (modificador === "condicion") return "C";
   if (modificador === "evento") return "E";
   return "¬";
+}
+
+function distanciaProcesoParaModificador(enlace: Enlace): number {
+  if (enlace.tipo === "consumo" || enlace.tipo === "instrumento" || enlace.tipo === "agente") return 0.8;
+  return 0.2;
+}
+
+function textoProbabilidad(probabilidad: number): string {
+  return `Pr = ${Number(probabilidad.toFixed(4)).toString()}`;
 }
 
 export function etiquetaBadgeModificador(text: string, distance: number): Record<string, unknown> {

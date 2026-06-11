@@ -259,7 +259,7 @@ export function textoSubtipoModificador(enlace: Enlace): string | null {
   return subtipo;
 }
 
-export function etiquetaBadgeModificadorCanonico(text: string, distance: number): Record<string, unknown> {
+export function etiquetaBadgeModificadorCanonico(text: string, distance: number, offset = -20): Record<string, unknown> {
   // SSOT §4 + V-210/V-211: la marca textual `c`/`e`/`¬` es semantica; no
   // requiere canal cromatico propio. Unificamos a stroke/label = color de
   // enlace y fill blanco puro (separable del fondo del canvas sin canal
@@ -299,7 +299,7 @@ export function etiquetaBadgeModificadorCanonico(text: string, distance: number)
     },
     position: {
       distance,
-      offset: -20,
+      offset,
       angle: 0,
       args: {
         keepGradient: false,

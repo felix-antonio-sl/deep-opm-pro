@@ -20,6 +20,7 @@ import { aparienciaEsExternaDeRefinamiento } from "./contextoRefinamiento";
 import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoKey, nombreExtremo } from "./extremos";
 import { imagenIncluyeBitmap } from "./imagenObjeto";
 import { estadosDeEntidad } from "./operaciones";
+import { perfilCanonDiagrama } from "./perfilDiagrama";
 import { aparienciaDeEntidadEnOpd, opdIdDeEntidadVisible } from "./politicaApariciones";
 import { obtenerRefinamiento } from "./refinamientos";
 import type { Apariencia, Enlace, Entidad, Id, Modelo, Opd, TipoEnlace } from "./tipos";
@@ -73,8 +74,27 @@ export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
     ...advertirConsumoDuplicado(modelo, opdActivoId),
     ...validarExclusionImagenEstados(modelo, opdActivoId),
     ...validarAmbientalDentroContorno(modelo, opdActivoId),
+    ...validarDensidadCanonDiagrama(modelo),
   ];
   return priorizarOpdActivo(avisos, opdActivoId);
+}
+
+export function validarDensidadCanonDiagrama(modelo: Modelo): Aviso[] {
+  return Object.values(modelo.opds).flatMap((opd) => {
+    const perfil = perfilCanonDiagrama(modelo, opd.id);
+    if (perfil.estado === "ok") return [];
+    return [{
+      reglaId: "canon-diagrama-densidad",
+      severidad: perfil.estado === "bloqueado" ? "error" : "advertencia",
+      mensaje: perfil.estado === "bloqueado"
+        ? `El OPD ${opd.nombre} tiene ${perfil.apariencias} apariencias; supera el máximo canon-diagrama de ${perfil.maxApariencias}. Divide el diagrama antes de exportar.`
+        : `El OPD ${opd.nombre} tiene ${perfil.apariencias} apariencias; está cerca del máximo canon-diagrama de ${perfil.maxApariencias}. Considera dividir o refinar antes de exportar.`,
+      citaSSOT: "perfil canon-diagrama / EXPORT-GATE",
+      elementoTipo: "opd",
+      elementoId: opd.id,
+      opdId: opd.id,
+    } satisfies Aviso];
+  });
 }
 
 function reglaEfectoDireccionCanonica(modelo: Modelo, opdActivoId: Id): Aviso[] {

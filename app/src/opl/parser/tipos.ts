@@ -299,6 +299,7 @@ export type PatchOplPropuesto =
     }
   | { tipo: "fijar-etiqueta-enlace"; linea: number; enlaceId: Id; anterior: string; siguiente: string }
   | { tipo: "aplicar-designacion-estado"; linea: number; entidadId: Id; estadoNombre: string; designacion: DesignacionEstado }
+  | { tipo: "crear-refinamiento"; linea: number; entidadId: Id; familia: "descomposicion" | "despliegue" }
   | {
       /**
        * Patch que agrupa N enlaces ya planificados (mismo origen/destino logico,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useSyncExternalStore } from "preact/compat";
 import { createStore } from "zustand/vanilla";
 import { createAtajosSlice } from "./store/atajos";
 import { createCarpetasSlice } from "./store/carpetas";
@@ -11,34 +11,36 @@ import { createPestanasSlice } from "./store/pestanas";
 import { createSimulacionSlice } from "./store/simulacion";
 import { createUiPanelSlice } from "./store/uiPanel";
 import { createWorkspaceModSlice } from "./store/workspaceMod";
-import { conectarRuntimeStore, inicializarSnapshot } from "./store/runtime";
+import { inicializarRuntimeStore } from "./store/runtime";
 import type { OpmStore } from "./store/tipos";
 
 export type { ModoEnlace, OpmStore } from "./store/tipos";
 
-export const store = createStore<OpmStore>((set, get) => ({
-  ...createModeloSlice(set, get),
-  ...createSeleccionSlice(set, get),
-  ...createEnlacesSlice(set, get),
-  ...createWorkspaceModSlice(set, get),
-  ...createCarpetasSlice(set, get),
-  ...createUiPanelSlice(set, get),
-  ...createMapaSlice(set, get),
-  ...createPersistenciaSlice(set, get),
-  ...createPestanasSlice(set, get),
-  ...createSimulacionSlice(set, get),
-  ...createAtajosSlice(set, get),
-} as OpmStore));
+export function crearOpmStore(opciones: { conectarRuntimeGlobal?: boolean } = {}) {
+  const api = createStore<OpmStore>((set, get) => ({
+    ...createModeloSlice(set, get),
+    ...createSeleccionSlice(set, get),
+    ...createEnlacesSlice(set, get),
+    ...createWorkspaceModSlice(set, get),
+    ...createCarpetasSlice(set, get),
+    ...createUiPanelSlice(set, get),
+    ...createMapaSlice(set, get),
+    ...createPersistenciaSlice(set, get),
+    ...createPestanasSlice(set, get),
+    ...createSimulacionSlice(set, get),
+    ...createAtajosSlice(set, get),
+  } as OpmStore));
+  if (opciones.conectarRuntimeGlobal) inicializarRuntimeStore(api, modeloInicial);
+  return api;
+}
 
-conectarRuntimeStore(store);
-inicializarSnapshot(modeloInicial);
+export const store = crearOpmStore({ conectarRuntimeGlobal: true });
 
 
 export function useOpmStore<T>(selector: (state: OpmStore) => T): T {
-  const [selected, setSelected] = useState(() => selector(store.getState()));
-  useEffect(() => store.subscribe((state) => {
-    const next = selector(state);
-    setSelected((current) => (Object.is(current, next) ? current : next));
-  }), [selector]);
-  return selected;
+  const state = useSyncExternalStore(
+    store.subscribe,
+    store.getState,
+  );
+  return selector(state);
 }

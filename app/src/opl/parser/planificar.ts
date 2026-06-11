@@ -85,9 +85,34 @@ function planificarAst(
       });
       return;
     case "contexto":
+      return planificarContexto(modelo, ast, registry);
     case "unsupported":
       return;
   }
+}
+
+function planificarContexto(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "contexto" }>,
+  registry: PatchRegistry,
+): void {
+  if (ast.familia !== "descomposicion" && ast.familia !== "despliegue") return;
+  const entidad = resolverEntidad(modelo, ast.sujeto, undefined, ast.linea, registry, { silenciosoSiNoExiste: true });
+  if (!entidad) {
+    registry.diagnostico({
+      codigo: "unknown-symbol",
+      severidad: "error",
+      linea: ast.linea,
+      columna: 1,
+      mensaje: `No existe '${ast.sujeto}' para crear refinamiento ${ast.familia}.`,
+    });
+    return;
+  }
+  const yaExiste = ast.familia === "descomposicion"
+    ? entidad.refinamientos?.descomposicion
+    : entidad.refinamientos?.despliegue;
+  if (yaExiste) return;
+  registry.add({ tipo: "crear-refinamiento", linea: ast.linea, entidadId: entidad.id, familia: ast.familia });
 }
 
 function planificarDesignacionEstado(
@@ -918,6 +943,8 @@ function patchKey(patch: PatchOplPropuesto): string {
       const procesoKey = refKey(patch.procesoRef);
       return `${patch.tipo}:${patch.linea}:${patch.tipoEnlace}:${procesoKey}:${patch.procesoEsOrigen ? "o" : "d"}:${patch.modificador ?? ""}`;
     }
+    case "crear-refinamiento":
+      return `${patch.tipo}:${patch.entidadId}:${patch.familia}`;
   }
 }
 

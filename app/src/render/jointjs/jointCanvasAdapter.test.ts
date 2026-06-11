@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { dia } from "jointjs";
-import { opcionesPaperCodex, crearJointCellNamespace, sincronizarCellsJointCanvasAdapter } from "./jointCanvasAdapter";
+import { opcionesPaperCodex, crearJointCellNamespace, separarCanalesJointCells, sincronizarCanalesJointCanvasAdapter, sincronizarCellsJointCanvasAdapter } from "./jointCanvasAdapter";
+import type { JointCellJson } from "./proyeccionTipos";
 
 describe("jointCanvasAdapter", () => {
   test("registra shapes JointJS OSS y shapes OPM custom en el mismo namespace", () => {
@@ -46,4 +47,70 @@ describe("jointCanvasAdapter", () => {
     expect(cellsRecibidas[0]).toBe(cells);
     expect(setDimensionsLlamado).toBe(false);
   });
+
+  test("separa halos de seleccion del canal estructural", () => {
+    const entidad = cell("a", "entidad");
+    const halo = cell("seleccion-a", "selection-halo");
+
+    expect(separarCanalesJointCells([entidad, halo])).toEqual({
+      estructura: [entidad],
+      seleccion: [halo],
+    });
+  });
+
+  test("sincroniza cambios puros de seleccion sin resetCells", () => {
+    const llamadas = {
+      reset: 0,
+      remove: 0,
+      add: 0,
+    };
+    const cellsEnGraph = new Map<string, { id: string }>();
+    const adapter = {
+      graph: {
+        resetCells(cells: JointCellJson[]) {
+          llamadas.reset += 1;
+          cellsEnGraph.clear();
+          for (const item of cells) cellsEnGraph.set(item.id, { id: item.id });
+        },
+        getCell(id: string) {
+          return cellsEnGraph.get(id) ?? null;
+        },
+        removeCells(cells: Array<{ id: string }>) {
+          llamadas.remove += 1;
+          for (const item of cells) cellsEnGraph.delete(item.id);
+        },
+        addCells(cells: JointCellJson[]) {
+          llamadas.add += 1;
+          for (const item of cells) cellsEnGraph.set(item.id, { id: item.id });
+        },
+      },
+      paper: {},
+    } as unknown as { graph: dia.Graph; paper: dia.Paper };
+
+    sincronizarCanalesJointCanvasAdapter(adapter, [
+      cell("a", "entidad"),
+      cell("seleccion-a", "selection-halo"),
+    ]);
+    sincronizarCanalesJointCanvasAdapter(adapter, [
+      cell("a", "entidad"),
+      cell("seleccion-b", "selection-halo"),
+    ]);
+
+    expect(llamadas.reset).toBe(1);
+    expect(llamadas.remove).toBe(1);
+    expect(llamadas.add).toBe(1);
+    expect(cellsEnGraph.has("seleccion-a")).toBe(false);
+    expect(cellsEnGraph.has("seleccion-b")).toBe(true);
+  });
 });
+
+function cell(id: string, kind: JointCellJson["opm"]["kind"]): JointCellJson {
+  return {
+    id,
+    type: "standard.Rectangle",
+    opm: kind === "selection-halo"
+      ? { kind, opdId: "opd-1", targetId: id }
+      : { kind: "entidad", opdId: "opd-1", entidadId: id, aparienciaId: id, rol: "externo" },
+    z: 1,
+  };
+}

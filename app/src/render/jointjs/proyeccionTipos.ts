@@ -94,4 +94,5 @@ export interface OpcionesProyeccion {
   aliasVisibles?: boolean;
   descripcionesVisibles?: boolean;
   modoImagenGlobal?: ModoImagenEntidad | null;
+  canalSeleccion?: "embebido" | "halo";
 }

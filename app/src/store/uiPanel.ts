@@ -74,6 +74,7 @@ import {
   reordenarHermanos,
   validarMovimientoSinCiclo,
 } from "../modelo/opdReorden";
+import { resolverOutzoomAutor } from "./opdNavigation";
 import {
   aplicarModificador,
   definirDemora,
@@ -454,8 +455,21 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 
 	  navegarOpdIzquierda() {
 	    const { modelo, opdActivoId } = get();
-	    const padreId = modelo.opds[opdActivoId]?.padreId;
-	    if (padreId && modelo.opds[padreId]) get().cambiarOpdActivo(padreId);
+	    const destino = resolverOutzoomAutor(modelo, opdActivoId);
+	    if (!destino) return;
+	    set({
+	      opdActivoId: destino.opdPadreId,
+	      seleccionId: destino.refinadorId,
+	      seleccionados: destino.refinadorId ? [destino.refinadorId] : [],
+	      modoSeleccion: "simple",
+	      enlaceSeleccionId: null,
+	      estadoSeleccionId: null,
+	      modoEnlace: null,
+	      modoCreacion: null,
+	      nuevaCosaPendiente: null,
+	      hoverOplRef: null,
+	      mensaje: null,
+	    });
 	  },
 
 	  navegarOpdDerecha() {

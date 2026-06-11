@@ -3,6 +3,7 @@ import { rolAparienciaEnRefinamiento } from "../../../modelo/contextoRefinamient
 import { ANCLAS_RELOJ_ENLACE, puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../../../modelo/anclajesEnlace";
 import { designacionesEstado } from "../../../modelo/estadosDesignaciones";
 import { nombreCanonicoEntidad, nombreCanonicoEstado } from "../../../modelo/nombresCanonicos";
+import { notasDeTarget } from "../../../modelo/notasMesa";
 import { formatearNombreCompuesto } from "../../../modelo/objetoMetadata";
 import { estadosDeEntidad, relacionesEstructuralesOcultas } from "../../../modelo/operaciones";
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
@@ -61,6 +62,7 @@ export function proyectarEntidad(
   // badges. El badge senala supresion por CUALQUIER causa en esta vista.
   const estadosOcultosCount = estadosTotales.length - estadosVisibles.length;
   const tieneEstadosSuprimidos = estadosOcultosCount > 0;
+  const notasMesaCount = notasDeTarget(modelo, { tipo: "entidad", id: entidad.id }).length;
   const nombreRender = formatearNombreCompuesto(
     {
       nombre: nombreCanonicoEntidad(entidad),
@@ -143,6 +145,7 @@ export function proyectarEntidad(
       ? `${estructuralesOcultas} relación(es) estructural(es) plegadas`
       : "Plegado parcial",
     estadosOcultosCount,
+    notasMesaCount,
   );
   const renderBase = modoParcial
     ? { markup: markupPlegadoParcial(bodyTag, filasParciales), attrs: attrsPlegadoParcial(attrsBase, size, filasParciales) }
@@ -498,6 +501,8 @@ interface MetadatosEntidadRender {
   suppressedBadge: boolean;
   /** Cantidad de estados ocultos en esta vista (global O local). Alimenta el chip `⋯N`. */
   suppressedCount: number;
+  noteBadge: boolean;
+  noteCount: number;
   tieneMetadatos: boolean;
 }
 
@@ -509,6 +514,7 @@ export function metadatosEntidad(
   foldBadgeText = "▾",
   foldBadgeTitle = "Plegado parcial",
   estadosOcultosCount = 0,
+  notasMesaCount = 0,
 ): MetadatosEntidadRender {
   const descripcion = opciones.descripcionesVisibles !== false ? entidad.descripcion?.trim() : undefined;
   const url = entidad.urls?.[0]?.url;
@@ -520,7 +526,9 @@ export function metadatosEntidad(
     ...(url ? { url } : {}),
     suppressedBadge: tieneEstadosSuprimidos,
     suppressedCount: estadosOcultosCount,
-    tieneMetadatos: tienePartes || !!descripcion || !!url || tieneEstadosSuprimidos,
+    noteBadge: notasMesaCount > 0,
+    noteCount: notasMesaCount,
+    tieneMetadatos: tienePartes || !!descripcion || !!url || tieneEstadosSuprimidos || notasMesaCount > 0,
   };
 }
 
@@ -586,6 +594,7 @@ export function markupConBadge(bodyTag: "rect" | "ellipse", metadatos: Metadatos
       selector: "urlLink",
       children: [{ tagName: "text", selector: "urlBadge" }],
     }] : []),
+    ...(metadatos.noteBadge ? [{ tagName: "rect", selector: "noteBadgeChip" }, { tagName: "text", selector: "noteBadge" }] : []),
     ...(metadatos.suppressedBadge ? [{ tagName: "rect", selector: "suppressedBadgeChip" }, { tagName: "text", selector: "suppressedBadge" }] : []),
   ];
 }
@@ -620,6 +629,7 @@ export function markupConEstados(
       selector: "urlLink",
       children: [{ tagName: "text", selector: "urlBadge" }],
     }] : []),
+    ...(metadatos.noteBadge ? [{ tagName: "rect", selector: "noteBadgeChip" }, { tagName: "text", selector: "noteBadge" }] : []),
     ...(metadatos.suppressedBadge ? [{ tagName: "rect", selector: "suppressedBadgeChip" }, { tagName: "text", selector: "suppressedBadge" }] : []),
   ];
 }
@@ -844,6 +854,38 @@ export function aplicarMetadatosAttrs(
       textVerticalAnchor: "middle",
       cursor: "pointer",
       title: metadatos.url,
+    };
+    x += 16;
+  }
+  if (metadatos.noteBadge) {
+    const count = metadatos.noteCount;
+    const titulo = `${count} ${count === 1 ? "nota de mesa" : "notas de mesa"} en esta cosa`;
+    const chipAncho = 20 + String(count).length * 7;
+    attrs.noteBadgeChip = {
+      x: size.width - chipAncho - 4,
+      y: 4,
+      width: chipAncho,
+      height: 15,
+      rx: 0,
+      ry: 0,
+      fill: CODEX.colores.paper,
+      stroke: CODEX.colores.ink,
+      strokeWidth: 1,
+      pointerEvents: "none",
+      title: titulo,
+    };
+    attrs.noteBadge = {
+      text: `?${count}`,
+      x: size.width - chipAncho / 2 - 4,
+      y: 12,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
+      fontSize: 10,
+      fontWeight: 700,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      pointerEvents: "none",
+      title: titulo,
     };
   }
   if (metadatos.foldBadge && !attrs.foldBadge) {

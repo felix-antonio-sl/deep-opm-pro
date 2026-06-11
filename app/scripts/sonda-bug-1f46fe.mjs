@@ -28,7 +28,7 @@ await page.screenshot({ path: resolve(DIR_SHOTS, "01-bienvenida.png") });
 // Cerrar bienvenida con el botón de empezar
 const empezar = page.getByRole("button", { name: /Empezar vac[ií]o|Nuevo vac[ií]o|Modelo vac[ií]o|Manos a la obra|Trabajar en vac[ií]o|Trabajar en blanco|Continuar vac[ií]o|Abrir ejemplo|Continuar/i }).first();
 if (await empezar.count() > 0) {
-  try { await empezar.click({ timeout: 2000 }); } catch {}
+  try { await empezar.click({ timeout: 2000 }); } catch { /* guard-catch: boton opcional segun fixture */ }
 }
 await page.waitForTimeout(500);
 

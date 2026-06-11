@@ -2,6 +2,7 @@ import { dia, shapes } from "jointjs";
 import type { GridConfig } from "../../canvas/grid";
 import type { ModoEnlace } from "../../canvas/modoEnlace";
 import type { TipoEntidad } from "../../modelo/tipos";
+import type { JointCellJson } from "./proyeccionTipos";
 import { configurarGridPaper } from "./composers/grid";
 import { opmShapes } from "./customShapes";
 import { CANVAS_BASE, cellViewModel, metadata, paperView, setPaperDimensions } from "./handlers/helpers";
@@ -11,6 +12,13 @@ export interface JointCanvasAdapter {
   graph: dia.Graph;
   paper: dia.Paper;
 }
+
+interface EstadoCanalesRender {
+  estructuraKey: string;
+  seleccionIds: Set<string>;
+}
+
+const canalesRenderPorAdapter = new WeakMap<JointCanvasAdapter, EstadoCanalesRender>();
 
 interface RefActual<T> {
   current: T;
@@ -135,7 +143,48 @@ export function sincronizarCellsJointCanvasAdapter(adapter: JointCanvasAdapter, 
   adapter.graph.resetCells(cells);
 }
 
+export function separarCanalesJointCells(cells: readonly JointCellJson[]): {
+  estructura: JointCellJson[];
+  seleccion: JointCellJson[];
+} {
+  const estructura: JointCellJson[] = [];
+  const seleccion: JointCellJson[] = [];
+  for (const cell of cells) {
+    if (cell.opm.kind === "selection-halo") {
+      seleccion.push(cell);
+    } else {
+      estructura.push(cell);
+    }
+  }
+  return { estructura, seleccion };
+}
+
+export function sincronizarCanalesJointCanvasAdapter(adapter: JointCanvasAdapter, cells: readonly JointCellJson[]): void {
+  const { estructura, seleccion } = separarCanalesJointCells(cells);
+  const estructuraKey = JSON.stringify(estructura);
+  const previo = canalesRenderPorAdapter.get(adapter);
+  if (!previo || previo.estructuraKey !== estructuraKey) {
+    adapter.graph.resetCells([...estructura, ...seleccion] as dia.Cell.JSON[]);
+    canalesRenderPorAdapter.set(adapter, {
+      estructuraKey,
+      seleccionIds: new Set(seleccion.map((cell) => String(cell.id))),
+    });
+    return;
+  }
+
+  const previas = [...previo.seleccionIds]
+    .map((id) => adapter.graph.getCell(id))
+    .filter((cell): cell is dia.Cell => !!cell);
+  if (previas.length > 0) adapter.graph.removeCells(previas);
+  if (seleccion.length > 0) adapter.graph.addCells(seleccion as dia.Cell.JSON[]);
+  canalesRenderPorAdapter.set(adapter, {
+    estructuraKey,
+    seleccionIds: new Set(seleccion.map((cell) => String(cell.id))),
+  });
+}
+
 export function destruirJointCanvasAdapter(adapter: JointCanvasAdapter): void {
+  canalesRenderPorAdapter.delete(adapter);
   paperView(adapter.paper).remove();
   adapter.graph.clear();
 }

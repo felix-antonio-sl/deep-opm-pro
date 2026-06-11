@@ -58,22 +58,24 @@ describe("law-opl-safe-lens", () => {
     expect(Object.keys(aplicado.estados)).toEqual(Object.keys(modelo.estados));
   });
 
-  test("unsupported-kernel diagnostica OPL valido sin mutar", () => {
+  test("contexto jerarquico crea refinamiento idempotente sin sincronizar hijos destructivamente", () => {
     const modelo = modeloConObjetoProcesoEstadosYConsumo();
-    const snapshot = exportarModelo(modelo);
     const texto = "*Aprobar Pedido* se descompone en *Revisar* y *Cerrar*.";
 
     const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
 
-    expect(preview.diagnosticos).toContainEqual(expect.objectContaining({
-      codigo: "unsupported-kernel",
-      severidad: "warning",
-    }));
-    expect(preview.patches).toEqual([]);
+    expect(preview.diagnosticos.filter((diagnostico) => diagnostico.severidad === "error")).toEqual([]);
+    expect(preview.patches).toEqual([expect.objectContaining({
+      tipo: "crear-refinamiento",
+      familia: "descomposicion",
+    })]);
 
     const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
-    expect(exportarModelo(modelo)).toBe(snapshot);
-    expect(exportarModelo(aplicado)).toBe(snapshot);
+    const aprobar = entidadPorNombre(aplicado, "Aprobar Pedido");
+    expect(aplicado.entidades[aprobar]?.refinamientos?.descomposicion?.opdId).toBeDefined();
+
+    const segunda = planificarEdicionOplLibre(aplicado, texto, { opdActivoId: aplicado.opdRaizId });
+    expect(segunda.patches).toEqual([]);
   });
 });
 

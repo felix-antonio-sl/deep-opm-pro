@@ -16,5 +16,5 @@ export interface SimulationPort {
   alternarHeadless: OpmStore["alternarHeadlessSimulacion"];
   salir: OpmStore["salirModoSimulacion"];
   fijarModo: (modo: ModoSimulacion) => void;
-  fijarSemilla: (semilla: number) => void;
+  fijarSemilla: (semilla: number | undefined) => void;
 }

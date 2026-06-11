@@ -115,4 +115,18 @@ describe("generarDatosSimulados", () => {
     const filas = generarDatosSimulados({ ...modelo, entidades: { [entidad.id]: entidad } }, 2, () => 0.5);
     expect(filas).toEqual([{ Temperatura: 3 }, { Temperatura: 3 }]);
   });
+
+  test("misma semilla produce la misma serie de datos", () => {
+    const modelo = crearModelo("Datos sembrados");
+    const entidad = atributoBase({
+      simulacion: {
+        simulable: true,
+        configuracion: { modo: "numerica", distribucion: "uniform", uniformMin: 0, uniformMax: 100 },
+      },
+    });
+    const sembrado = { ...modelo, entidades: { [entidad.id]: entidad } };
+
+    expect(generarDatosSimulados(sembrado, 4, 1234)).toEqual(generarDatosSimulados(sembrado, 4, 1234));
+    expect(generarDatosSimulados(sembrado, 4, 1234)).not.toEqual(generarDatosSimulados(sembrado, 4, 4321));
+  });
 });

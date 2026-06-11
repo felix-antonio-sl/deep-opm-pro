@@ -1118,6 +1118,12 @@ function parsearContexto(texto: string, linea: LineaOplNormalizada) {
   const frase = (match[2] ?? "").toLocaleLowerCase("es");
   const familia: Extract<OracionOplAst, { kind: "contexto" }>["familia"] =
     frase.includes("descompone") ? "descomposicion" : frase.includes("despliega") ? "despliegue" : "plegado";
+  if (familia !== "plegado") {
+    return {
+      ast: { kind: "contexto" as const, linea: linea.linea, familia, sujeto: normalizarNombreOpl(match[1] ?? ""), ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}) },
+      diagnosticos: [],
+    };
+  }
   return {
     ast: { kind: "contexto" as const, linea: linea.linea, familia, sujeto: normalizarNombreOpl(match[1] ?? ""), ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}) },
     diagnosticos: [{

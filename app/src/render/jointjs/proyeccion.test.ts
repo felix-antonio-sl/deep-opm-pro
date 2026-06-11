@@ -574,7 +574,7 @@ describe("proyeccion JointJS", () => {
       .find((cell) => cell.type === "standard.Link");
     let labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
     expect(labels?.some((label) => label.attrs?.label?.text === "e")).toBe(true);
-    expect(labels?.some((label) => label.attrs?.label?.text === "70%")).toBe(true);
+    expect(labels?.some((label) => label.attrs?.label?.text === "Pr = 0.7")).toBe(true);
 
     modelo = modeloConEnlace("consumo");
     const condicionId = Object.values(modelo.enlaces)[0]?.id;

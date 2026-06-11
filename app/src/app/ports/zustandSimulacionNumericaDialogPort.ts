@@ -6,12 +6,13 @@ export function useZustandSimulacionNumericaDialogPort(): SimulacionNumericaDial
   const abierto = useOpmStore((s) => s.dialogoSimulacionNumericaAbierto);
   const cerrar = useOpmStore((s) => s.cerrarDialogoSimulacionNumerica);
   const modelo = useOpmStore((s) => s.modelo);
+  const semilla = useOpmStore((s) => s.contextoSimulacion?.semilla);
 
   const columnas = Object.values(modelo.entidades)
     .filter((e) => e.esAtributo && e.valorSlot && e.simulacion?.simulable)
     .map((e) => e.nombre);
 
-  const ejecutar = (n: number) => generarDatosSimulados(modelo, n);
+  const ejecutar = (n: number) => generarDatosSimulados(modelo, n, semilla ?? Math.random);
 
   return {
     abierto,

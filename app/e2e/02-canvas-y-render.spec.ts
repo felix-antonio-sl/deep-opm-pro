@@ -169,8 +169,8 @@ test("renderiza abanicos O/XOR con conectores canonicos sin texto de marcador", 
   await inputsProbabilidad.nth(1).fill("60");
   await page.getByTestId("abanico-probabilidades-aplicar").click();
   await expect(page.getByText("Probabilidades del abanico actualizadas")).toBeVisible();
-  await expect(svgText(page, "40%")).toHaveCount(1);
-  await expect(svgText(page, "60%")).toHaveCount(1);
+  await expect(svgText(page, "Pr = 0.4")).toHaveCount(1);
+  await expect(svgText(page, "Pr = 0.6")).toHaveCount(1);
   const exportado = JSON.parse(await jsonEditor(page).inputValue()) as ExportadoModelo;
   const abanico = Object.values(exportado.modelo.abanicos ?? {})[0];
   expect(abanico?.decision).toMatchObject({ modo: "probabilidades" });
@@ -192,7 +192,7 @@ test("renderiza modificadores evento/condicion y demora de invocacion", async ({
   await expect(page.locator(".joint-link")).toHaveCount(3);
   // SSOT §4.1/§4.2: marcas canonicas `c`/`e` MINUSCULAS para condicion/evento.
   await expect(svgText(page, "e")).toBeVisible();
-  await expect(svgText(page, "70%")).toBeVisible();
+  await expect(svgText(page, "Pr = 0.7")).toBeVisible();
   await expect(svgText(page, "c")).toBeVisible();
   await expect(svgText(page, "1s")).toBeVisible();
   await restaurarPanelOplSiMinimizado(page);

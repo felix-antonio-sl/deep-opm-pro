@@ -336,7 +336,7 @@ const DEMOS = ["System Diagram", "SD Sync", "SD Async", "OnStar System", "OPM St
   await page.waitForTimeout(800);
 
   async function abrirYevaluar(nombre, abrir, cerrar = async ()=>page.keyboard.press("Escape")) {
-    try { await abrir(); } catch {}
+    try { await abrir(); } catch { /* guard-catch: apertura opcional en sonda browser */ }
     await page.waitForTimeout(500);
     await shot(page, `06-dialogo-${nombre}`);
     const meta = await page.evaluate(() => {
@@ -354,7 +354,7 @@ const DEMOS = ["System Diagram", "SD Sync", "SD Async", "OnStar System", "OPM St
     });
     record("dialogos", `dialogo-${nombre}`, meta ? "OK" : "FAIL", meta);
     if (meta) await correrAxe(page, `dialogo-${nombre}`);
-    try { await cerrar(); } catch {}
+    try { await cerrar(); } catch { /* guard-catch: cierre opcional en sonda browser */ }
     await page.waitForTimeout(300);
   }
 

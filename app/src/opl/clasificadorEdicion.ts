@@ -246,5 +246,7 @@ function describirPatch(patch: PatchOplPropuesto): string {
       return `designar estado ${patch.estadoNombre} como ${patch.designacion}`;
     case "crear-abanico":
       return `crear abanico ${patch.operador} (${patch.ramas.length} ramas)`;
+    case "crear-refinamiento":
+      return `crear ${patch.familia} para ${patch.entidadId}`;
   }
 }

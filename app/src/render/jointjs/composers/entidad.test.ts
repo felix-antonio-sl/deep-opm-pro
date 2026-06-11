@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
+import { agregarNotaMesa } from "../../../modelo/notasMesa";
 import type { Entidad, Resultado } from "../../../modelo/tipos";
 import { ESTADOS, identificadorCanonicoApariencia, identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
 import { suprimirEstadoEnAparicion } from "../../../modelo/visibilidadEstados";
@@ -43,6 +44,26 @@ describe("composer entidad", () => {
     expect(attrs.suppressedBadge?.title).toBe("1 estado oculto en este OPD");
     // Pastilla hairline: fondo paper, borde tinta (crimson es UI-only, no va en el OPD).
     expect(attrs.suppressedBadgeChip).toMatchObject({
+      fill: "#fafaf8",
+      stroke: "#171511",
+      strokeWidth: 1,
+    });
+  });
+
+  test("marca visualmente notas de mesa ancladas a la entidad", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Orden"));
+    const entidad = Object.values(modelo.entidades)[0];
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0];
+    if (!entidad || !apariencia) throw new Error("Fixture invalido");
+    modelo = must(agregarNotaMesa(modelo, { tipo: "entidad", id: entidad.id }, "Revisar frontera", "2026-06-11"));
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+
+    expect(attrs.noteBadge?.text).toBe("?1");
+    expect(attrs.noteBadge?.title).toBe("1 nota de mesa en esta cosa");
+    expect(attrs.noteBadgeChip).toMatchObject({
       fill: "#fafaf8",
       stroke: "#171511",
       strokeWidth: 1,

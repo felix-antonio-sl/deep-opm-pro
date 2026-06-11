@@ -3,7 +3,7 @@ import { extremoEntidad, extremoEstado } from "./extremos";
 import { crearEstadosIniciales, crearModelo, crearObjeto } from "./operaciones";
 import type { Apariencia, AparienciaEnlace, Enlace, Entidad, Id, Modelo } from "./tipos";
 import type { Aviso } from "./validaciones";
-import { advertirConsumoDuplicado, validarModelo } from "./validaciones";
+import { advertirConsumoDuplicado, validarDensidadCanonDiagrama, validarModelo } from "./validaciones";
 
 describe("validaciones metodologicas pasivas", () => {
   test("modelo limpio retorna lista vacia", () => {
@@ -622,6 +622,24 @@ describe("validaciones metodologicas pasivas", () => {
     expect(avisos.every((aviso) => aviso.citaSSOT.trim().length > 0)).toBe(true);
   });
 
+  test("canon-diagrama advierte OPD denso y bloquea export sobre 25 apariencias", () => {
+    const advertencia = modeloConApariencias(21);
+    const bloqueado = modeloConApariencias(26);
+
+    expect(validarDensidadCanonDiagrama(advertencia)[0]).toMatchObject({
+      reglaId: "canon-diagrama-densidad",
+      severidad: "advertencia",
+      elementoTipo: "opd",
+      opdId: advertencia.opdRaizId,
+    });
+    expect(validarDensidadCanonDiagrama(bloqueado)[0]).toMatchObject({
+      reglaId: "canon-diagrama-densidad",
+      severidad: "error",
+      elementoTipo: "opd",
+      opdId: bloqueado.opdRaizId,
+    });
+  });
+
   test("combinacion de violaciones conserva todos los avisos", () => {
     const modelo = modeloCon({
       entidades: [
@@ -681,6 +699,13 @@ function modeloCon(params: { entidades: Entidad[]; enlaces?: Enlace[] }): Modelo
       },
     },
   };
+}
+
+function modeloConApariencias(cantidad: number): Modelo {
+  const entidades = Array.from({ length: cantidad }, (_, index) =>
+    entidad(`o-${index}`, "objeto", `Objeto ${index}`, "informacional")
+  );
+  return modeloCon({ entidades });
 }
 
 function modeloConDescomposicionConEnlaceAlPadre(): Modelo {

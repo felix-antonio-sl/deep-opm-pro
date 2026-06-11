@@ -12,6 +12,7 @@ import type {
   ValorConcreto,
 } from "../tipos";
 import { validarValorSlot } from "../validadores/valorSlot";
+import { rngSembrado } from "./rng";
 
 /**
  * Parametros y muestreo de simulacion computacional.
@@ -102,15 +103,16 @@ export function muestrearValorEntidad(
 export function generarDatosSimulados(
   modelo: Modelo,
   numeroEjecuciones: number,
-  rng: RngSimulacion = Math.random,
+  rng: RngSimulacion | number = Math.random,
 ): Array<Record<string, ValorConcreto | undefined>> {
+  const random = typeof rng === "number" ? rngSembrado(rng) : rng;
   const atributos = Object.values(modelo.entidades)
     .filter((entidad) => entidad.esAtributo && entidad.valorSlot && entidad.simulacion?.simulable);
   const total = Math.max(0, Math.floor(numeroEjecuciones));
   return Array.from({ length: total }, () => {
     const fila: Record<string, ValorConcreto | undefined> = {};
     for (const entidad of atributos) {
-      const valor = muestrearValorEntidad(entidad, rng);
+      const valor = muestrearValorEntidad(entidad, random);
       fila[entidad.nombre] = valor.ok ? valor.value : undefined;
     }
     return fila;

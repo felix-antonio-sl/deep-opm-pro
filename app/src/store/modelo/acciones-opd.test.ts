@@ -7,6 +7,7 @@ import {
   reordenarHermanosAutomaticamente,
   reordenarOpdsHermanos,
 } from "./acciones-opd";
+import { resolverOutzoomAutor } from "../opdNavigation";
 
 describe("acciones OPD de arbol", () => {
   test("renombrarOpdDesdeArbol preserva nombre si el input queda vacio", () => {
@@ -47,6 +48,15 @@ describe("acciones OPD de arbol", () => {
     const modelo = modeloConHermanos();
     const resultado = moverOpdGestion(modelo, "opd-a", "opd-a-1");
     expect(resultado.ok).toBe(false);
+  });
+
+  test("resolverOutzoomAutor sube al padre y selecciona el refinador", () => {
+    const modelo = modeloConHermanos();
+
+    expect(resolverOutzoomAutor(modelo, "opd-a")).toEqual({
+      opdPadreId: "opd-raiz",
+      refinadorId: "proc-a",
+    });
   });
 });
 

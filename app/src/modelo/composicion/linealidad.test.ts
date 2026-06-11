@@ -61,6 +61,28 @@ describe("composicion/linealidad", () => {
     expect(verificarLinealidad(modelo)).toEqual([]);
   });
 
+  test("objeto lineal consumido por alternativas XOR → sin falso positivo", () => {
+    let modelo = construirObjetoLinealConDosConsumidores();
+    const consumos = Object.values(modelo.enlaces)
+      .filter((enlace) => enlace.tipo === "consumo")
+      .map((enlace) => enlace.id);
+    modelo = {
+      ...modelo,
+      abanicos: {
+        "ab-xor": {
+          id: "ab-xor",
+          opdId: modelo.opdRaizId,
+          puertoComun: { entidadId: extremoEntidadDeEnlace(modelo, consumos[0]!), lado: "origen", portId: "p-lineal" },
+          puertoEntidadId: extremoEntidadDeEnlace(modelo, consumos[0]!),
+          operador: "XOR",
+          enlaceIds: consumos,
+        },
+      },
+    };
+
+    expect(verificarLinealidad(modelo)).toEqual([]);
+  });
+
   test("verificarLinealidad es puro: no muta el modelo", () => {
     const modelo = construirObjetoLinealConDosConsumidores();
     const antes = JSON.stringify(modelo);
@@ -68,3 +90,9 @@ describe("composicion/linealidad", () => {
     expect(JSON.stringify(modelo)).toBe(antes);
   });
 });
+
+function extremoEntidadDeEnlace(modelo: Modelo, enlaceId: string): string {
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace || enlace.origenId.kind !== "entidad") throw new Error("fixture esperado con origen entidad");
+  return enlace.origenId.id;
+}

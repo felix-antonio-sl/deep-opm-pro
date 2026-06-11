@@ -97,8 +97,8 @@ async function cerrarPantallaInicioSiVisible(page) {
 
 async function resetWorkbench(page) {
   await page.evaluate(() => {
-    try { localStorage.clear(); } catch {}
-    try { sessionStorage.clear(); } catch {}
+    try { localStorage.clear(); } catch { /* guard-catch: storage puede no estar disponible */ }
+    try { sessionStorage.clear(); } catch { /* guard-catch: storage puede no estar disponible */ }
   }).catch(() => undefined);
   await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 25000 });
   await cerrarPantallaInicioSiVisible(page);

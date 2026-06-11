@@ -55,6 +55,15 @@ No copiar contenido de la spec en este archivo. Si la spec cambia, editar la
 SSOT KORA, validar con la toolchain KORA, reindexar KORA y mantener este puente
 estable.
 
+## Nota De Reconciliación 2026-06-11
+
+La realización vigente del canvas usa canal de selección crimson desacoplado de
+la escena persistente, `Pr = p` en ramas probabilísticas, badges de modificador
+junto al proceso modificado, perfil `canon-diagrama` con gate de densidad y
+notas de mesa visibles sobre el canvas. Si `spec-forja-opd-es` §18.2 o
+`ui-forja/08-jointjs-styling.md` divergen, el re-apuntado debe hacerse en KORA:
+OPD manda semántica visual; `ui-forja/08` queda limitado a estética/chrome.
+
 ## Acceso Rápido
 
 ```bash

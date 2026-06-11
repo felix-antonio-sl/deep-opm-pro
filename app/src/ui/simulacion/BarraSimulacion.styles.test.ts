@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { s } from "./BarraSimulacion";
+import { normalizarSemillaInput, s } from "./BarraSimulacion";
 import { tokens } from "../tokens";
 
 describe("BarraSimulacion layout (BUG-20260606T063734Z-52df54)", () => {
@@ -64,6 +64,24 @@ describe("BarraSimulacion layout (BUG-20260606T063734Z-52df54)", () => {
     expect(s.control.height).toBe(26);
     expect(s.segmentBtn.height).toBe(26);
     expect(s.segmented.display).toBe("inline-flex");
+  });
+});
+
+describe("BarraSimulacion semilla reproducible", () => {
+  test("normaliza solo semillas enteras uint32 o vacío auto", () => {
+    expect(normalizarSemillaInput("123")).toBe(123);
+    expect(normalizarSemillaInput("")).toBeUndefined();
+    expect(normalizarSemillaInput("-1")).toBeNull();
+    expect(normalizarSemillaInput("1.5")).toBeNull();
+    expect(normalizarSemillaInput(String(0xffffffff + 1))).toBeNull();
+  });
+
+  test("control de semilla comparte silueta compacta con segmentados", () => {
+    expect(s.seedControl.display).toBe("inline-flex");
+    expect(s.seedControl.height).toBe(26);
+    expect(s.seedControl.border).toBe(`1px solid ${tokens.colors.ruleStrong}`);
+    expect(s.seedInput.width).toBe(82);
+    expect(s.seedInput.fontFamily).toBe(tokens.typography.fontFamilyMono);
   });
 });
 

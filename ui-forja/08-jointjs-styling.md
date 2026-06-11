@@ -8,6 +8,8 @@ Este documento es la **fuente de verdad estética** del canvas: define los atrib
 
 > **Cómo leer este documento:** cada sección describe una clase de objeto JointJS (Shape, Link, Highlighter, ElementTool) y enumera los atributos visuales que deben aplicarse. Los valores remiten a los tokens de [`tokens.css`](tokens.css). NO incluye markup completo — solo los attrs.
 
+> **Nota 2026-06-11:** `spec-forja-opd-es` manda sobre semántica visual OPM. Este archivo no prescribe dashes, pins, selección persistente ni notación de probabilidad cuando esas reglas estén fijadas por `spec-forja-opd-es`; `ui-forja/08` solo conserva estética/chrome/tokens.
+
 ---
 
 ## 0. Decisiones macro del Paper

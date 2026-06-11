@@ -237,11 +237,11 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     expect(estadosDeEntidad(aplicado, pedido).map((estado) => estado.nombre)).toEqual(["abierto", "en curso", "cerrado"]);
   });
 
-  test("diagnostica contexto parseado pero no aplica refinamientos desde texto libre", () => {
+  test("parsea contexto jerarquico soportado sin diagnostico unsupported", () => {
     const result = parsearParrafoOpl("*Proceso* se descompone en *Paso A* y *Paso B*.");
 
     expect(result.ast[0]).toMatchObject({ kind: "contexto", familia: "descomposicion" });
-    expect(result.diagnosticos[0]).toMatchObject({ codigo: "unsupported-kernel", severidad: "warning" });
+    expect(result.diagnosticos).toEqual([]);
   });
 
   test("evento ET-consumo aplica modificador 'evento' al enlace creado", () => {

@@ -301,6 +301,31 @@ describe("condiciones e invocaciones OPM", () => {
     expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["A", "C"]);
   });
 
+  test("invocación no salta cuando el proceso invocador no es ejecutable", () => {
+    let modelo = crearModelo("Invocacion no ejecutable");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 100 }, "A"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 220 }, "B"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 340 }, "C"));
+    const pedidoId = entidadId(modelo, "Pedido");
+    const aId = entidadId(modelo, "A");
+    const cId = entidadId(modelo, "C");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [pendienteId, cerradoId] = estados.estadoIds;
+    modelo = must(designarInicial(modelo, pendienteId));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendienteId), extremoEntidad(aId), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(aId), extremoEntidad(cId), "invocacion"));
+
+    const ctx0 = iniciarSimulacion(modelo, modelo.opdRaizId);
+    const ctx1 = { ...ctx0, estadosCurrent: { ...ctx0.estadosCurrent, [pedidoId]: cerradoId } };
+    const fin = ejecutarCorrida(modelo, ctx1);
+
+    expect(fin.estado).toBe("completado");
+    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["A", "B", "C"]);
+    expect(fin.trace[0]?.diagnostico).toContain("No simulable");
+  });
+
   test("efecto condicional solo salida evalúa existencia del objeto, no el estado destino", () => {
     let modelo = crearModelo("Efecto condicional");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Pedido"));

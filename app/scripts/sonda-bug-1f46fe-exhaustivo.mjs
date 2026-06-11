@@ -31,7 +31,7 @@ async function closeBienvenida(page) {
   ];
   for (const c of candidates) {
     if (await c.count() > 0) {
-      try { await c.click({ timeout: 2000 }); return true; } catch {}
+      try { await c.click({ timeout: 2000 }); return true; } catch { /* guard-catch: candidato alternativo puede fallar */ }
     }
   }
   return false;
@@ -152,7 +152,7 @@ function record(seccion, criterio, ok, detalle) {
     // Capturar panel inspector con selección (click en primer elemento del canvas)
     const firstEntity = page.locator('.joint-element').first();
     if (await firstEntity.count() > 0) {
-      try { await firstEntity.click({ timeout: 1500 }); await page.waitForTimeout(400); } catch {}
+      try { await firstEntity.click({ timeout: 1500 }); await page.waitForTimeout(400); } catch { /* guard-catch: entidad opcional para sonda */ }
     }
     await page.screenshot({ path: resolve(DIR_SHOTS, "08-1920-hodom-click.png") });
     if (await insp.count() > 0) await insp.first().screenshot({ path: resolve(DIR_SHOTS, "09-1920-inspector-con-contenido.png") });

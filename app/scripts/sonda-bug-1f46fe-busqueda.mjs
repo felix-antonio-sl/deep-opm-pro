@@ -24,7 +24,7 @@ for (const sel of [
   page.getByRole("button", { name: /Empezar vac[ií]o|Nuevo vac[ií]o|Trabajar en blanco|Continuar vac[ií]o/i }).first(),
   page.getByRole("link", { name: /Empezar vac[ií]o|Nuevo|Continuar/i }).first(),
 ]) {
-  if (await sel.count() > 0) { try { await sel.click({ timeout: 1500 }); break; } catch {} }
+  if (await sel.count() > 0) { try { await sel.click({ timeout: 1500 }); break; } catch { /* guard-catch: selector alternativo puede fallar */ } }
 }
 await page.waitForTimeout(500);
 
@@ -61,7 +61,7 @@ await page.screenshot({ path: resolve(DIR_SHOTS, "post-cargar-hodom.png") });
 // 2) Click en un elemento del canvas si existe
 const firstEntity = page.locator('.joint-element').first();
 if (await firstEntity.count() > 0) {
-  try { await firstEntity.click({ timeout: 1500 }); await page.waitForTimeout(400); } catch {}
+  try { await firstEntity.click({ timeout: 1500 }); await page.waitForTimeout(400); } catch { /* guard-catch: entidad opcional para sonda */ }
 }
 await page.screenshot({ path: resolve(DIR_SHOTS, "con-seleccion.png") });
 
@@ -74,7 +74,7 @@ await page.waitForTimeout(200);
 
 // 4) hover sobre una entidad para ver si hay affordances
 if (await firstEntity.count() > 0) {
-  try { await firstEntity.hover({ timeout: 1500 }); await page.waitForTimeout(400); } catch {}
+  try { await firstEntity.hover({ timeout: 1500 }); await page.waitForTimeout(400); } catch { /* guard-catch: hover opcional para sonda */ }
 }
 await page.screenshot({ path: resolve(DIR_SHOTS, "hover-entidad.png") });
 

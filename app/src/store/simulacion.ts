@@ -144,9 +144,14 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     set({ contextoSimulacion: { ...contextoSimulacion, modo } });
   },
 
-  fijarSemillaSimulacion(semilla: number) {
+  fijarSemillaSimulacion(semilla: number | undefined) {
     const { contextoSimulacion } = get();
     if (!contextoSimulacion) return;
+    if (semilla === undefined) {
+      const { semilla: _semillaActual, ...sinSemilla } = contextoSimulacion;
+      set({ contextoSimulacion: sinSemilla });
+      return;
+    }
     set({ contextoSimulacion: { ...contextoSimulacion, semilla } });
   },
 

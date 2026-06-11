@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { desplegar, desplegarArbol, pasoEfecto } from "../modelo/simulacion/runner";
+import { desplegar, desplegarArbol, pasoEfecto, resolverRamaSimulacion } from "../modelo/simulacion/runner";
 import type { ContextoSimulacion, ModoSimulacion } from "../modelo/simulacion/tipos";
 import type { Modelo } from "../modelo/tipos";
 
@@ -208,6 +208,14 @@ describe("LEY law-simulacion-ramas (S2)", () => {
     expect(truncado).toBe(false);
     expect(raiz.hijos.length).toBe(2);
     expect(new Set(raiz.hijos.map((h) => h.rama)).size).toBe(2);
+  });
+
+  test("resolución inline: elegir una rama concreta aplica su transición", () => {
+    const m = modeloAbanicoXorAEstados();
+    const resuelto = resolverRamaSimulacion(m, ctx(m, "determinista"), "e2");
+
+    expect(resuelto.estadosCurrent["O"]).toBe("s2");
+    expect(resuelto.trace.at(-1)?.diagnostico).toContain("r2");
   });
 
   test("muestreo: abanicos sucesivos son independientes — la semilla progresa entre pasos (BUG-2)", () => {

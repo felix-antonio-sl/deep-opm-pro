@@ -2,7 +2,7 @@ import type { dia } from "jointjs";
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort";
-import { useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
+import { opcionesProyeccionJointCanvas, useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { estadosInicialesDelModelo, focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import { debeAnimarTokensSim, tokensViajeDelPaso } from "../../modelo/simulacion/animacionTokens";
@@ -38,7 +38,7 @@ import {
   crearJointCanvasAdapter,
   destruirJointCanvasAdapter,
   exponerDebugJointCanvasAdapter,
-  sincronizarCellsJointCanvasAdapter,
+  sincronizarCanalesJointCanvasAdapter,
   type JointCanvasAdapter,
 } from "./jointCanvasAdapter";
 
@@ -449,11 +449,7 @@ export function JointCanvas({
       enlaceSeleccionId,
       null,
       seleccionadosRender,
-      {
-        aliasVisibles: uiAliasVisibles,
-        descripcionesVisibles: uiDescripcionesVisibles,
-        modoImagenGlobal: uiModoImagenGlobal,
-      },
+      opcionesProyeccionJointCanvas({ uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal }),
       contextoSimulacion
         ? {
             procesoActivoId: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.procesoActivoId : null,
@@ -467,7 +463,7 @@ export function JointCanvas({
     );
     sincronizandoRef.current = true;
     try {
-      sincronizarCellsJointCanvasAdapter(adapter, cells as dia.Cell.JSON[]);
+      sincronizarCanalesJointCanvasAdapter(adapter, cells);
       embedirContorno(adapter.graph);
       aplicarRuteoOpcloudEnlaces(adapter.graph);
       ordenarTodosLosEnlacesEstructurales(adapter.paper, adapter.graph);

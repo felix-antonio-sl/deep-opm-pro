@@ -112,7 +112,15 @@ describe("composer enlace", () => {
       .map((label) => label.attrs as Record<string, Record<string, unknown>> | undefined)
       .map((attrs) => attrs?.label?.text);
 
-    expect(textos).toContain("35%");
+    expect(textos).toContain("Pr = 0.35");
+  });
+
+  test("badge de modificador se posiciona cerca del extremo proceso", () => {
+    const consumo = etiquetasModificador({ ...enlaceBase, tipo: "consumo", modificador: "evento" });
+    const efecto = etiquetasModificador({ ...enlaceBase, tipo: "efecto", modificador: "condicion" });
+
+    expect(consumo[0]?.position).toMatchObject({ distance: 0.8, offset: -20 });
+    expect(efecto[0]?.position).toMatchObject({ distance: 0.2, offset: -20 });
   });
 
   test("modelo denso puede desactivar jumpover para evitar ruido visual", () => {

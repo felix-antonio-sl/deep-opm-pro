@@ -49,6 +49,17 @@ No copiar contenido de la spec en este archivo. Si la spec cambia, editar la
 SSOT KORA, validar con la toolchain KORA, reindexar KORA y mantener este puente
 estable.
 
+## Nota De Reconciliación 2026-06-11
+
+La implementación vigente acepta `puede estar` solo para estados y reserva
+`puede ser` para especialización XOR o rechazo explícito; además mantiene
+etiquetas estructurales con sufijo `[etiqueta: ...]`, modificadores reverse de
+multiplicidad/ruta/condición y refinamiento reverse `se descompone en` /
+`se despliega en`. Si la EBNF §18 no deriva estas superficies o deriva formas
+no soportadas (`donde ...`, recomposición/rangos textuales), debe actualizarse
+la SSOT KORA o marcar el gap explícito; este puente refleja la conducta validada
+en `app/src/opl/parser`.
+
 ## Acceso Rápido
 
 ```bash

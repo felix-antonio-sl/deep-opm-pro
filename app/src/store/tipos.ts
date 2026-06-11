@@ -857,7 +857,7 @@ export interface OpmStore {
   headlessSimulacion: boolean;
   alternarHeadlessSimulacion: () => void;
   fijarModoSimulacion: (modo: import("../modelo/simulacion/tipos").ModoSimulacion) => void;
-  fijarSemillaSimulacion: (semilla: number) => void;
+  fijarSemillaSimulacion: (semilla: number | undefined) => void;
 }
 
 

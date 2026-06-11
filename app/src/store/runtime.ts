@@ -63,6 +63,13 @@ let storeApi: StoreApi<OpmStore> | null = null;
 let runtimeEffects: RuntimeEffects = RUNTIME_EFFECTS_DEFAULT;
 
 export function conectarRuntimeStore(api: StoreApi<OpmStore>): void { storeApi = api; }
+export function inicializarRuntimeStore(api: StoreApi<OpmStore>, modelo: Modelo): void {
+  storeApi = api;
+  undoStack = [];
+  redoStack = [];
+  autosalvadoControl = null;
+  snapshotGuardado = exportarModelo(sincronizarPuertosTodosLosOpd(modelo));
+}
 export function obtenerRuntimeEffects(): RuntimeEffects { return runtimeEffects; }
 export function fijarRuntimeEffects(effects: RuntimeEffects): void { runtimeEffects = effects; }
 export function resetRuntimeEffects(): void { runtimeEffects = RUNTIME_EFFECTS_DEFAULT; }

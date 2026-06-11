@@ -267,6 +267,25 @@ export function BarraSimulacion(): JSX.Element | null {
           </span>
         ) : null}
 
+        {!sinProcesos ? (
+          <label style={s.seedControl} data-testid="barra-simulacion-semilla">
+            <span style={s.seedLabel}>seed</span>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              value={contexto.semilla ?? ""}
+              aria-label="Semilla de simulación"
+              placeholder="auto"
+              style={s.seedInput}
+              onInput={(event) => {
+                const semilla = normalizarSemillaInput(event.currentTarget.value);
+                if (semilla !== null) fijarSemilla(semilla);
+              }}
+            />
+          </label>
+        ) : null}
+
         {/* Velocidad: segmented inline */}
         {!sinProcesos ? (
           <span style={s.segmented} data-testid="barra-simulacion-velocidad">
@@ -349,6 +368,14 @@ function intervaloAutoAvanceMs(velocidad: number): number {
   return Math.round(900 / velocidad);
 }
 
+export function normalizarSemillaInput(valor: string): number | undefined | null {
+  const limpio = valor.trim();
+  if (!limpio) return undefined;
+  const numero = Number(limpio);
+  if (!Number.isInteger(numero) || numero < 0 || numero > 0xffffffff) return null;
+  return numero;
+}
+
 function rotuloCortoFase(fase: string): string {
   if (fase === "preparacion") return "prep";
   if (fase === "consumo") return "cons";
@@ -422,6 +449,9 @@ type EstilosBarra = {
   segmentBtnUltimo: JSX.CSSProperties;
   segmentActivo: JSX.CSSProperties;
   segmentHover: JSX.CSSProperties;
+  seedControl: JSX.CSSProperties;
+  seedLabel: JSX.CSSProperties;
+  seedInput: JSX.CSSProperties;
   timeline: JSX.CSSProperties;
   marco: JSX.CSSProperties;
   marcoCompletado: JSX.CSSProperties;
@@ -826,6 +856,34 @@ export const s: EstilosBarra = {
   segmentHover: {
     color: C.ink,
     background: C.paper,
+  },
+  seedControl: {
+    display: "inline-flex",
+    alignItems: "center",
+    height: 26,
+    marginLeft: tokens.spacing.sm,
+    border: `1px solid ${C.ruleStrong}`,
+    background: "transparent",
+  },
+  seedLabel: {
+    padding: "0 6px",
+    fontSize: 10,
+    fontFamily: T.fontFamilyMono,
+    color: C.inkSoft,
+    borderRight: `1px solid ${C.rule}`,
+    lineHeight: "24px",
+  },
+  seedInput: {
+    width: 82,
+    height: 24,
+    padding: "0 6px",
+    border: "none",
+    outline: "none",
+    background: C.paperWarm,
+    color: C.ink,
+    fontSize: 11,
+    fontFamily: T.fontFamilyMono,
+    fontVariantNumeric: "tabular-nums",
   },
   timeline: {
     display: "flex",

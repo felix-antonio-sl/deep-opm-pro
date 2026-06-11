@@ -20,9 +20,15 @@ function extremoEntidadId(extremo: ExtremoEnlace, modelo: Modelo): Id | null {
 }
 
 export function verificarLinealidad(modelo: Modelo): ObservacionLinealidad[] {
+  const consumosExentosPorXor = new Set(
+    Object.values(modelo.abanicos ?? {})
+      .filter((abanico) => abanico.operador === "XOR")
+      .flatMap((abanico) => abanico.enlaceIds),
+  );
   const consumidoresPorObjeto = new Map<Id, Set<Id>>();
   for (const enlace of Object.values(modelo.enlaces)) {
     if (enlace.tipo !== "consumo") continue;
+    if (consumosExentosPorXor.has(enlace.id)) continue;
     const objetoId = extremoEntidadId(enlace.origenId, modelo);
     const procesoId = extremoEntidadId(enlace.destinoId, modelo);
     if (!objetoId || !procesoId) continue;

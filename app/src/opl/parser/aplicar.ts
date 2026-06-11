@@ -15,6 +15,8 @@ import {
   crearEstadosIniciales,
   crearObjeto,
   crearProceso,
+  descomponerProceso,
+  desplegarObjeto,
   renombrarEntidad,
   renombrarEstado,
 } from "../../modelo/operaciones";
@@ -110,6 +112,12 @@ function aplicarPatchNoEnlace(
       return renombrarEstado(modelo, patch.estadoId, patch.siguiente);
     case "aplicar-designacion-estado":
       return aplicarDesignacionEstado(modelo, patch.entidadId, patch.estadoNombre, patch.designacion);
+    case "crear-refinamiento": {
+      const resultado = patch.familia === "descomposicion"
+        ? descomponerProceso(modelo, opdId, patch.entidadId)
+        : desplegarObjeto(modelo, opdId, patch.entidadId);
+      return resultado.ok ? ok(resultado.value.modelo) : resultado;
+    }
   }
 }
 
