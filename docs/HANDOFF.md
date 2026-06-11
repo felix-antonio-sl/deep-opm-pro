@@ -10,6 +10,12 @@
 
 ---
 
+## Actualización 2026-06-11 — delegación de frontera V-37 (gap B.5 CERRADO) + SD canónico del laboratorio (DESPLEGADO)
+
+**Opción 2 ejecutada (mandato operador)**: un paso con `opdHijoId` **DELEGA** sus transiciones y copias de valor a los subprocesos (`runner.ts`; fases del padre = preparación?/proceso). La frontera del SD declara, los hijos realizan — sin doble aplicación. El generador v3 ahora declara la **frontera funcional completa en el SD** (Muestra recibida→validada, Reactivo, Informe borrador→archivado [estado nuevo `archivado`], Registro LIS, efecto Bitácora) — la proyección viva la deriva al hijo y se **reasigna** cada externa a su subproceso semántico (`reanclarEnlaceExternoDerivado`, manual). **Lecciones**: la sync crea derivados DENTRO de la misma operación (capturar enlaces por extremos, NO `ultimoEnlaceId`); reasignar AL FINAL de la construcción; el efecto se deriva a TODOS los internos (consolidar en el realizador y borrar autos — la sync no los recrea si hay manual). `--subir` respeta optimistic locking (manda `revision`).
+
+**Concurrencia**: validado y DESPLEGADO desde **worktree limpio** en `2c4fb71c` (el árbol llevaba WIP activo del operador: guards SSOT P3 — R-OPD-EST-3 duro, R-EXC-1A; reconcilié sus guards en 3 fixtures de test mías). Gate worktree limpio: check **2568/0** · e2e 12 **8/8** · generador 0 avisos, corrida 7 pasos (padre 0 transiciones). Bundle `index-52wonVe5.js`; modelo `lab-sim-opm-v3` re-subido con frontera; sonda prod 0 errores.
+
 ## Actualización 2026-06-11 — Laboratorio de simulación OPM v3 (modelo canónico de prueba del motor, SUBIDO A PROD)
 
 **Mandato:** rehacer «Laboratorio complejo de simulacion OPM 2» como modelo canónico que ejercite todo el motor de simulación. Generador versionado: `app/scripts/generar-laboratorio-simulacion.ts` (kernel ops puros → validez por construcción; `--subir` lo guarda en prod vía login del operador). Modelo `lab-sim-opm-v3` **subido y verificado** (19 entidades, 16 estados, 31 enlaces, 2 OPDs, 1 abanico, **0 avisos metodológicos**).
