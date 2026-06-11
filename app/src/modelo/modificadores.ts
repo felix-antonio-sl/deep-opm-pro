@@ -136,7 +136,14 @@ export function validarMetadatosEnlace(enlace: Enlace): Resultado<true> {
     if (!subtipo.ok) return subtipo;
   }
   if (enlace.probabilidad !== undefined) {
-    if (enlace.modificador !== "evento") return fallo("La probabilidad solo aplica a enlaces evento [Glos 3.60]");
+    // Pr=p vive en ramas de abanico XOR (definirProbabilidadesAbanico la
+    // escribe en cada rama) o en eventos [Glos 3.60]. Ambos son procedurales;
+    // la membresía exacta al abanico se valida a nivel abanico, no aquí
+    // (este validador no ve el modelo). Antes se exigía modificador evento y
+    // un modelo con XOR probabilizado NO se podía reimportar.
+    if (naturalezaDeEnlace(enlace.tipo) !== "procedural") {
+      return fallo("La probabilidad solo aplica a enlaces procedurales (ramas de abanico XOR o eventos) [Glos 3.60]");
+    }
     if (!probabilidadValida(enlace.probabilidad)) return fallo("La probabilidad debe estar entre 0 y 1");
   }
   if (enlace.demora !== undefined) {

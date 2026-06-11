@@ -825,8 +825,13 @@ describe("serializacion JSON", () => {
     enlace.probabilidad = 2;
     expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
 
+    // Pr=p sin modificador es válida en procedurales (ramas de abanico XOR);
+    // el rechazo queda para probabilidad sobre enlaces no procedurales.
     enlace.probabilidad = 0.5;
     enlace.modificador = undefined;
+    expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(true);
+
+    enlace.tipo = "agregacion";
     expect(hidratarModelo(JSON.stringify(documento)).ok).toBe(false);
   });
 

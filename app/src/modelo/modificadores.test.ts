@@ -154,7 +154,9 @@ describe("modificadores de enlace", () => {
     expect(enlace).toBeDefined();
     if (!enlace) return;
 
-    expect(validarMetadatosEnlace({ ...enlace, probabilidad: 0.5 }).ok).toBe(false);
+    // Pr=p es válida en cualquier procedural (rama de abanico XOR o evento);
+    // antes se exigía evento y un XOR probabilizado no se podía reimportar.
+    expect(validarMetadatosEnlace({ ...enlace, probabilidad: 0.5 }).ok).toBe(true);
     expect(validarMetadatosEnlace({ ...enlace, modificador: "evento", probabilidad: 0.5 }).ok).toBe(true);
     expect(validarMetadatosEnlace({ ...enlace, modificador: "evento", probabilidad: 2 }).ok).toBe(false);
     expect(validarMetadatosEnlace({ ...enlace, modificador: "evento", subtipoModificador: "C" }).ok).toBe(false);
