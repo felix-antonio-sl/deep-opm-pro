@@ -25,6 +25,7 @@ export function useCommandPaletteViewModel() {
     abrirCheatsheetAtajos,
     exportarJson,
     copiarOplModeloMarkdownAlPortapapeles,
+    copiarCanonDocumentoAlPortapapeles,
     copiarContextoSkillAlPortapapeles,
     copiarLogDecisionesAlPortapapeles,
     cerrarSesion,
@@ -95,6 +96,8 @@ export function useCommandPaletteViewModel() {
     exportarJsonAlPortapapeles,
     exportarDiagnosticoAlPortapapeles,
     exportarOplModeloMarkdownAlPortapapeles: () => { void copiarOplModeloMarkdownAlPortapapeles(); },
+    // R-VIS-EXP-2: documento canónico (canon-documento) gateado por densidad.
+    exportarCanonDocumentoAlPortapapeles: () => { void copiarCanonDocumentoAlPortapapeles(); },
     // W6.0: puente de contexto 1-click app→skill (cuenta el cruce, observable g3).
     copiarContextoSkill: () => { void copiarContextoSkillAlPortapapeles(); },
     // W6.5-b: export del LogDecisiones v0 (consumidor: re-elicitar de la skill).

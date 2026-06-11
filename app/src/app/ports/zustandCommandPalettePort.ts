@@ -23,6 +23,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const abrirCheatsheetAtajos = useOpmStore((s) => s.abrirCheatsheetAtajos);
   const exportarJson = useOpmStore((s) => s.exportarJson);
   const copiarOplModeloMarkdownAlPortapapeles = useOpmStore((s) => s.copiarOplModeloMarkdownAlPortapapeles);
+  const copiarCanonDocumentoAlPortapapeles = useOpmStore((s) => s.copiarCanonDocumentoAlPortapapeles);
   const copiarContextoSkillAlPortapapeles = useOpmStore((s) => s.copiarContextoSkillAlPortapapeles);
   const copiarLogDecisionesAlPortapapeles = useOpmStore((s) => s.copiarLogDecisionesAlPortapapeles);
   // Auth v1 (spec §4): logout desde la paleta.
@@ -78,6 +79,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     abrirCheatsheetAtajos,
     exportarJson,
     copiarOplModeloMarkdownAlPortapapeles,
+    copiarCanonDocumentoAlPortapapeles,
     copiarContextoSkillAlPortapapeles,
     copiarLogDecisionesAlPortapapeles,
     cerrarSesion,

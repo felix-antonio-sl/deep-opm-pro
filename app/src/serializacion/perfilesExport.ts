@@ -1,0 +1,148 @@
+/**
+ * Perfiles de export canónicos (R-VIS-EXP-2 / R-OPD-CAN-1, SSOT
+ * `reglas-opm-estrictas-es` §0 V-0a; régimen R-CONF-7).
+ *
+ * Tres perfiles declarados:
+ *
+ * - `canon-diagrama` — gramática OPM persistible por OPD: excluye las
+ *   extensiones meta no diagramáticas (notas de mesa, ontología organizacional,
+ *   satisfacciones de requisito, sello de procedencia). Conserva anclas
+ *   normativas (W5.1, trazabilidad) y el par estereotipo+requisito (la
+ *   validación de entidades los acopla: la marca sin su metadata no hidrata).
+ * - `canon-documento` — por modelo, multi-OPD: todo `canon-diagrama` más
+ *   satisfacciones de requisito y procedencia. Excluye notas de mesa (meta de
+ *   revisión interna, V-204) y ontología organizacional.
+ * - `intercambio` — modelo completo, sin filtro (el export histórico).
+ *
+ * Los perfiles canónicos quedan subordinados al gate de densidad
+ * (`perfilCanonDiagrama`): un OPD bloqueado (> máx. apariencias) rechaza el
+ * export ruidosamente — ninguna ruta de export evade el gate (EXPORT-GATE).
+ */
+import { calcularMetricasComplejidad } from "../modelo/metricasComplejidad";
+import { CANON_DIAGRAMA_MAX_APARIENCIAS, perfilCanonDiagrama } from "../modelo/perfilDiagrama";
+import type { Id, Modelo, Resultado } from "../modelo/tipos";
+import { exportarOplModeloMarkdown, opdsEnOrden } from "../opl/exportarMarkdown";
+import { exportarModelo } from "./json";
+
+export const PERFILES_EXPORT = ["canon-diagrama", "canon-documento", "intercambio"] as const;
+export type PerfilExport = (typeof PERFILES_EXPORT)[number];
+
+/**
+ * Gate de densidad para perfiles canónicos: todo OPD del modelo debe estar
+ * bajo el máximo de apariencias. Bloqueado ⇒ fallo con OPDs nombrados y la
+ * acción correctiva (dividir el diagrama), nunca export degradado silencioso.
+ */
+export function gateDensidadCanonica(modelo: Modelo): Resultado<true> {
+  const bloqueados = Object.keys(modelo.opds)
+    .map((opdId) => perfilCanonDiagrama(modelo, opdId))
+    .filter((perfil) => perfil.estado === "bloqueado");
+  if (bloqueados.length === 0) return { ok: true, value: true };
+  const nombres = bloqueados
+    .map((p) => `'${modelo.opds[p.opdId]?.nombre ?? p.opdId}' (${p.apariencias} apariencias)`)
+    .join(", ");
+  return {
+    ok: false,
+    error:
+      `Export canónico bloqueado por densidad: ${nombres} supera el máximo de ` +
+      `${CANON_DIAGRAMA_MAX_APARIENCIAS} apariencias por OPD. Divide el diagrama antes de exportar.`,
+  };
+}
+
+/** Proyección del modelo según el perfil. `intercambio` es la identidad. */
+export function filtrarModeloPorPerfil(modelo: Modelo, perfil: PerfilExport): Modelo {
+  if (perfil === "intercambio") return modelo;
+  const {
+    notasMesa: _notasMesa,
+    ontologia: _ontologia,
+    satisfaccionesRequisito,
+    procedencia,
+    ...base
+  } = modelo;
+  if (perfil === "canon-documento") {
+    return {
+      ...base,
+      ...(satisfaccionesRequisito ? { satisfaccionesRequisito } : {}),
+      ...(procedencia ? { procedencia } : {}),
+    };
+  }
+  return base;
+}
+
+/**
+ * Export JSON con perfil declarado. Los perfiles canónicos pasan primero por
+ * el gate de densidad; `intercambio` conserva la conducta histórica sin gate.
+ */
+export function exportarModeloConPerfil(
+  modelo: Modelo,
+  perfil: PerfilExport,
+  carpetaId?: Id | null,
+): Resultado<string> {
+  if (perfil !== "intercambio") {
+    const gate = gateDensidadCanonica(modelo);
+    if (!gate.ok) return gate;
+  }
+  return { ok: true, value: exportarModelo(filtrarModeloPorPerfil(modelo, perfil), carpetaId) };
+}
+
+/**
+ * Documento canónico del modelo (`canon-documento` textual, R-OPD-CAN-1):
+ * portada + métricas + árbol de OPDs + OPL completa + procedencia. Markdown
+ * determinista (sin timestamps: la identidad la da el sello de procedencia).
+ */
+export function emitirDocumentoCanonico(modelo: Modelo): Resultado<string> {
+  const gate = gateDensidadCanonica(modelo);
+  if (!gate.ok) return gate;
+
+  const filtrado = filtrarModeloPorPerfil(modelo, "canon-documento");
+  const metricas = calcularMetricasComplejidad(filtrado);
+  const secciones: string[] = [];
+
+  secciones.push(`# ${filtrado.nombre}`);
+  secciones.push(`> Perfil de export: \`canon-documento\` (R-VIS-EXP-2).`);
+  if (typeof filtrado.descripcion === "string" && filtrado.descripcion.trim()) {
+    secciones.push(filtrado.descripcion.trim());
+  }
+
+  secciones.push(
+    [
+      "## Métricas del modelo",
+      "",
+      `- Entidades: ${metricas.entidades}`,
+      `- Enlaces: ${metricas.enlaces}`,
+      `- OPDs: ${metricas.opds}`,
+    ].join("\n"),
+  );
+
+  const arbol = opdsEnOrden(filtrado)
+    .map((opd) => `${"  ".repeat(profundidadOpd(filtrado, opd.id))}- ${opd.nombre}`)
+    .join("\n");
+  secciones.push(`## Árbol de OPDs\n\n${arbol || "_Sin OPDs._"}`);
+
+  // exportarOplModeloMarkdown ya emite `# {modelo}` + `## {OPD}`; aquí se
+  // degrada un nivel para anidar bajo la portada del documento.
+  const opl = exportarOplModeloMarkdown(filtrado)
+    .replace(/^# /, "### Modelo: ")
+    .replace(/^## /gm, "#### ");
+  secciones.push(`## OPL completa\n\n${opl.trimEnd()}`);
+
+  if (filtrado.procedencia) {
+    const sello = Object.entries(filtrado.procedencia)
+      .map(([clave, valor]) => `- ${clave}: \`${String(valor)}\``)
+      .join("\n");
+    secciones.push(`## Procedencia\n\n${sello}`);
+  }
+
+  return { ok: true, value: `${secciones.join("\n\n")}\n` };
+}
+
+function profundidadOpd(modelo: Modelo, opdId: Id): number {
+  let profundidad = 0;
+  let actual = modelo.opds[opdId];
+  const visitados = new Set<Id>([opdId]);
+  while (actual?.padreId && modelo.opds[actual.padreId] && !visitados.has(actual.padreId)) {
+    visitados.add(actual.padreId);
+    actual = modelo.opds[actual.padreId];
+    profundidad += 1;
+  }
+  return profundidad;
+}

@@ -457,6 +457,8 @@ export interface OpmStore {
   aplicarEdicionOplLibre: (texto: string) => void;
   copiarOplActualAlPortapapeles: () => Promise<void>;
   copiarOplModeloMarkdownAlPortapapeles: () => Promise<void>;
+  /** Documento canónico (perfil canon-documento, R-VIS-EXP-2), gateado por densidad. */
+  copiarCanonDocumentoAlPortapapeles: () => Promise<void>;
   /** W6.0: copia el contexto de modelado para la skill y cuenta el cruce (g3). */
   copiarContextoSkillAlPortapapeles: () => Promise<void>;
   /** W6.5-a: notas de mesa (comentario de revisión anclado; undoable; viaja en el contexto W6.0). */

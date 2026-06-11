@@ -27,6 +27,7 @@ import { mismaReferencia } from "../../opl/interaccion";
 import type { EsenciaVisibilidad } from "../../opl/opciones";
 import { generarOpl } from "../../opl/generar";
 import { exportarOplModeloMarkdown, exportarOplOpdMarkdown } from "../../opl/exportarMarkdown";
+import { emitirDocumentoCanonico } from "../../serializacion/perfilesExport";
 import { exportarContextoSkill } from "../../opl/contextoSkill";
 import {
   agregarNotaMesa as agregarNotaMesaKernel,
@@ -383,6 +384,24 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       try {
         await navigator.clipboard.writeText(texto);
         set({ mensaje: "OPL del modelo copiado al portapapeles (Markdown)" });
+      } catch {
+        set({ mensaje: "No se pudo copiar al portapapeles" });
+      }
+    },
+
+    // Documento canónico del modelo (perfil canon-documento, R-VIS-EXP-2) como
+    // Markdown. Subordinado al gate de densidad: OPD bloqueado ⇒ rechazo con el
+    // mensaje accionable del gate, nunca export degradado en silencio.
+    async copiarCanonDocumentoAlPortapapeles() {
+      const { modelo } = get();
+      const documento = emitirDocumentoCanonico(modelo);
+      if (!documento.ok) {
+        set({ mensaje: documento.error });
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(documento.value);
+        set({ mensaje: "Documento canónico copiado al portapapeles (Markdown)" });
       } catch {
         set({ mensaje: "No se pudo copiar al portapapeles" });
       }

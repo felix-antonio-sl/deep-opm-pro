@@ -38,7 +38,7 @@ export function exportarOplModeloMarkdown(modelo: Modelo): string {
 }
 
 /** Recorre los OPDs en preorden (padre antes que hijos), respetando ordenLocal. */
-function opdsEnOrden(modelo: Modelo): Opd[] {
+export function opdsEnOrden(modelo: Modelo): Opd[] {
   const porPadre = new Map<Id | null, Opd[]>();
   for (const opd of Object.values(modelo.opds)) {
     const lista = porPadre.get(opd.padreId) ?? [];

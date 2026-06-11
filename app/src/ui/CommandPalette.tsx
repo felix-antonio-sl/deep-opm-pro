@@ -4,6 +4,7 @@ import type { AccionContextual, AccionContextualId } from "../store/acciones-con
 import { accionesContextualesEntidad, accionesParaSuperficie } from "../store/acciones-contextuales";
 import { listarAtajos, type RegistroAtajo } from "./atajosTeclado";
 import { descargarOpdActualPng, descargarTodosLosOpdsPngZip } from "../render/jointjs/mapaExport";
+import { perfilCanonDiagrama } from "../modelo/perfilDiagrama";
 import { useCanvasPaper } from "./CanvasAdapterContext";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import {
@@ -79,6 +80,7 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "exportar-json": "EXPORTAR",
   "exportar-diagnostico": "EXPORTAR",
   "exportar-opl-modelo": "EXPORTAR",
+  "exportar-canon-documento": "EXPORTAR",
   "copiar-contexto-skill": "EXPORTAR",
   "copiar-log-decisiones": "EXPORTAR",
   "exportar-opd-png": "EXPORTAR",
@@ -130,6 +132,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     exportarJsonAlPortapapeles,
     exportarDiagnosticoAlPortapapeles,
     exportarOplModeloMarkdownAlPortapapeles,
+    exportarCanonDocumentoAlPortapapeles,
     copiarContextoSkill,
     copiarLogDecisiones,
     cerrarSesion,
@@ -187,9 +190,17 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     exportarJson: exportarJsonAlPortapapeles,
     exportarDiagnostico: exportarDiagnosticoAlPortapapeles,
     exportarOplModeloMarkdown: exportarOplModeloMarkdownAlPortapapeles,
+    exportarCanonDocumento: exportarCanonDocumentoAlPortapapeles,
     copiarContextoSkill,
     copiarLogDecisiones,
     cerrarSesion,
+    // EXPORT-GATE (R-VIS-EXP-2): el PNG es la realización de canon-diagrama;
+    // un OPD sobre el máximo de apariencias no se exporta (comando deshabilitado;
+    // el diagnóstico de densidad explica la acción correctiva).
+    opdActivoBloqueadoDensidad: perfilCanonDiagrama(modelo, opdActivoId).estado === "bloqueado",
+    modeloBloqueadoDensidad: Object.keys(modelo.opds).some(
+      (opdId) => perfilCanonDiagrama(modelo, opdId).estado === "bloqueado",
+    ),
     exportarOpdPng: canvasPaper ? () => { void descargarOpdActualPng(canvasPaper, modelo, opdActivoId); } : null,
     exportarOpdsPngZip: () => { void descargarTodosLosOpdsPngZip(modelo); },
     abrirPestanaNueva,
@@ -487,6 +498,11 @@ interface AccionesMenuCommandPaletteDeps {
   exportarJson: () => void;
   exportarDiagnostico: () => void;
   exportarOplModeloMarkdown: () => void;
+  /** Documento canónico (canon-documento, R-VIS-EXP-2); el gate de densidad rechaza con mensaje. */
+  exportarCanonDocumento: () => void;
+  /** EXPORT-GATE: true si el OPD activo / algún OPD supera el máximo de apariencias. */
+  opdActivoBloqueadoDensidad: boolean;
+  modeloBloqueadoDensidad: boolean;
   /** W6.0: puente de contexto 1-click app→skill `modelamiento-opm`. */
   copiarContextoSkill: () => void;
   /** W6.5-b: export del LogDecisiones v0 para `re-elicitar`. */
@@ -549,11 +565,12 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "exportar-json", label: "Exportar JSON al portapapeles", descripcion: "Copiar el JSON OPM actual al portapapeles", categoria: "archivo", run: deps.exportarJson },
     { id: "exportar-diagnostico", label: "Exportar diagnóstico (JSON)", descripcion: "Copiar todas las sugerencias del diagnóstico al portapapeles", categoria: "archivo", run: deps.exportarDiagnostico },
     { id: "exportar-opl-modelo", label: "Exportar OPL del modelo (Markdown)", descripcion: "Copiar el OPL completo de todos los OPDs al portapapeles como Markdown", categoria: "archivo", run: deps.exportarOplModeloMarkdown },
+    { id: "exportar-canon-documento", label: "Exportar documento canónico (Markdown)", descripcion: "Copiar el perfil canon-documento (portada, métricas, árbol de OPDs, OPL, procedencia) al portapapeles", categoria: "archivo", run: deps.exportarCanonDocumento },
     { id: "copiar-contexto-skill", label: "Copiar contexto para la skill", descripcion: "Copiar procedencia + pendientes [RATIFICAR] + notas de mesa + diagnóstico + OPL para pegar en la sesión de modelamiento-opm", categoria: "archivo", run: deps.copiarContextoSkill },
     { id: "copiar-log-decisiones", label: "Copiar LogDecisiones v0", descripcion: "Copiar el log de transiciones [RATIFICAR] (anotado-en-mesa / ratificado-con-fuente) para el estado re-elicitar de la skill", categoria: "archivo", run: deps.copiarLogDecisiones },
     { id: "auth-cerrar-sesion", label: "Cerrar sesión", descripcion: "Cerrar la sesión de esta cuenta y volver a la pantalla de login", categoria: "archivo", run: deps.cerrarSesion },
-    ...(deps.exportarOpdPng ? [{ id: "exportar-opd-png", label: "Exportar OPD actual como PNG", descripcion: "Descargar el OPD activo como imagen PNG", categoria: "archivo", run: deps.exportarOpdPng }] : []),
-    ...(deps.exportarOpdsPngZip ? [{ id: "exportar-opds-png-zip", label: "Exportar todos los OPDs como PNG", descripcion: "Descargar un ZIP con una imagen PNG por OPD", categoria: "archivo", run: deps.exportarOpdsPngZip }] : []),
+    ...(deps.exportarOpdPng ? [{ id: "exportar-opd-png", label: "Exportar OPD actual como PNG", descripcion: "Descargar el OPD activo como imagen PNG", categoria: "archivo", enabled: !deps.opdActivoBloqueadoDensidad, run: deps.exportarOpdPng }] : []),
+    ...(deps.exportarOpdsPngZip ? [{ id: "exportar-opds-png-zip", label: "Exportar todos los OPDs como PNG", descripcion: "Descargar un ZIP con una imagen PNG por OPD", categoria: "archivo", enabled: !deps.modeloBloqueadoDensidad, run: deps.exportarOpdsPngZip }] : []),
     { id: "simulacion-conceptual", label: "Simulación conceptual", descripcion: "Entrar al modo de simulación del modelo", categoria: "vista", run: deps.iniciarModoSimulacion },
     { id: "simulacion-numerica", label: "Simulación numérica", descripcion: "Generar datos simulados de atributos y descargar CSV", categoria: "vista", run: deps.abrirDialogoSimulacionNumerica },
     { id: "grid-canvas", label: deps.gridActiva ? "Ocultar cuadrícula del canvas" : "Mostrar cuadrícula del canvas", descripcion: "Alternar la cuadrícula visual del canvas", categoria: "vista", run: deps.toggleGrid },

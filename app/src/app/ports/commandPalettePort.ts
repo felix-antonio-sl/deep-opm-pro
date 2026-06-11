@@ -52,6 +52,8 @@ export interface CommandPaletteWorkspacePort {
   abrirDialogoImportarExportarJson: () => void;
   exportarJson: () => string;
   copiarOplModeloMarkdownAlPortapapeles: () => Promise<void>;
+  /** Documento canónico (perfil canon-documento, R-VIS-EXP-2), gateado por densidad. */
+  copiarCanonDocumentoAlPortapapeles: () => Promise<void>;
   /** W6.0: copia el contexto de modelado para la skill y cuenta el cruce (g3). */
   copiarContextoSkillAlPortapapeles: () => Promise<void>;
   /** W6.5-b: copia el LogDecisiones v0 (consumidor: `re-elicitar` de la skill). */
