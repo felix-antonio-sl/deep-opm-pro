@@ -83,7 +83,7 @@ function particionarCanon(avisos: AvisoDiagnostico[]): { bloqueantes: AvisoDiagn
  * y (si lanzarEnError, default true) ante avisos de severidad `error` o bloqueantes de canon.
  */
 export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): ResultadoBundle {
-  const { modelo, internosInzoom } = autor;
+  const { modelo, internosInzoom, ordenInzoom } = autor;
   const lanzar = opciones.lanzarEnError ?? true;
   if (opciones.descripcion && opciones.descripcion.length) {
     modelo.descripcion = opciones.descripcion.join(" ");
@@ -94,7 +94,7 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
     modelo.procedencia = opciones.procedencia;
   }
 
-  aplicarLayoutCompleto(modelo, internosInzoom);
+  aplicarLayoutCompleto(modelo, internosInzoom, ordenInzoom);
 
   const jsonCrudo = exportarModelo(modelo);
   const hidratadoPre = hidratarModelo(jsonCrudo);

@@ -211,6 +211,7 @@ function procesarOpd(
   //    Sin esto, el layout renderiza los subprocesos fuera del contorno y
   //    LF-19 acusa falso positivo de modelado.
   if (nodo.refinamiento === "descomposicion" && refinableKey) {
+    const clavesEnOrden: string[] = [];
     for (const miembro of nodo.miembros) {
       const rm = resolutor.resolver(miembro, nodo.clave, "proceso");
       if (rm.accion === "crear") {
@@ -221,6 +222,13 @@ function procesarOpd(
         resolutor.marcarAparicion(miembro, nodo.clave);
       }
       autor.enlazar(nodo.clave, refinableKey, rm.key, "agregacion");
+      clavesEnOrden.push(rm.key);
+    }
+    // `en esa secuencia` (A10): el orden de la lista ES la línea de tiempo del
+    // in-zoom — el layout apila cada miembro en su banda y el OPL generado
+    // vuelve a expresar la secuencia (bisimetría con el export textual G1).
+    if (nodo.secuencial && clavesEnOrden.length > 1) {
+      autor.secuenciarInternos(nodo.clave, clavesEnOrden);
     }
   }
 }

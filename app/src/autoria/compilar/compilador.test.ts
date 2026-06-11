@@ -469,3 +469,54 @@ Hervir agua consume Agua.
     expect(servir?.tipo).toBe("proceso");
   });
 });
+
+// ── Secuencia del in-zoom (feedback operador 2026-06-11) ────────────────────
+// `… en esa secuencia` (A10) debe traducirse a la LÍNEA DE TIEMPO del in-zoom:
+// los subprocesos se apilan verticalmente en el orden declarado (ISO 19450:
+// el eje vertical del contorno es temporal; misma altura = paralelo). La
+// bisimetría cierra: el OPL generado desde el bundle vuelve a decir
+// `en esa secuencia` (deriva de las y vía agruparSubprocesosParalelos).
+describe("secuencia — `en esa secuencia` apila los subprocesos en la línea de tiempo", () => {
+  function compilarCafeSecuencial(marcador: string) {
+    const proto = `# SD0 — Hacer café
+
+\`\`\`opl
+Hacer café es físico y sistémico.
+Agua es física y ambiental.
+Hacer café consume Agua.
+\`\`\`
+
+# SD1 — in-zoom de Hacer café
+
+\`\`\`opl
+Hacer café se descompone en Calentar agua y Verter${marcador}.
+Calentar agua consume Agua.
+\`\`\`
+`;
+    const { autor } = compilarProto(proto, { id: "seq", nombre: "Seq" });
+    const bundle = emitirBundle(autor, { lanzarEnError: false });
+    const modelo = (JSON.parse(bundle.json) as { modelo: Modelo }).modelo;
+    const opdHijo = Object.values(modelo.opds).find((opd) => opd.padreId)!;
+    const ap = (nombre: string) => {
+      const ent = Object.values(modelo.entidades).find((e) => e.nombre === nombre)!;
+      return Object.values(opdHijo.apariencias).find((a) => a.entidadId === ent.id)!;
+    };
+    return { bundle, ap };
+  }
+
+  test("con `en esa secuencia`: Calentar agua queda ARRIBA de Verter (orden declarado)", () => {
+    const { ap } = compilarCafeSecuencial(" en esa secuencia");
+    expect(ap("Calentar agua").y + ap("Calentar agua").height).toBeLessThanOrEqual(ap("Verter").y);
+  });
+
+  test("con `en esa secuencia`: el OPL generado del bundle reexpresa la secuencia (bisimetría)", () => {
+    const { bundle } = compilarCafeSecuencial(" en esa secuencia");
+    expect(bundle.opl).toContain("en esa secuencia");
+  });
+
+  test("sin marcador: misma banda (paralelo, comportamiento vigente)", () => {
+    const { ap, bundle } = compilarCafeSecuencial("");
+    expect(ap("Calentar agua").y).toBe(ap("Verter").y);
+    expect(bundle.opl).not.toContain("en esa secuencia");
+  });
+});

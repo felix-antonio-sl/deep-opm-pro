@@ -51,7 +51,14 @@ const ESTRUCTURALES = new Set<TipoEnlace>(["agregacion", "exhibicion", "generali
  * refinamiento (interno/externo) → centrado en el canvas. Requiere el mapa `internosInzoom` que el
  * autor pobló al consumir las agregaciones contorno→subproceso.
  */
-export function aplicarLayoutCompleto(modelo: Modelo, internosInzoom: Map<Id, Set<Id>>): void {
+export function aplicarLayoutCompleto(
+  modelo: Modelo,
+  internosInzoom: Map<Id, Set<Id>>,
+  // Orden temporal DECLARADO (`en esa secuencia`) por OPD: cada interno listado
+  // ocupa su propia banda en ese orden (eje vertical = línea de tiempo, ISO
+  // 19450). Default vacío ⇒ banding por topología de invocaciones (sin cambio).
+  ordenInzoom: Map<Id, Id[]> = new Map(),
+): void {
   const opdsLayoutExterno = new Set<Id>();
 
   function entidadIdExtremo(extremo: ExtremoEnlace): Id | null {
@@ -437,7 +444,18 @@ export function aplicarLayoutCompleto(modelo: Modelo, internosInzoom: Map<Id, Se
         });
       const reactivos = new Set(subs.filter(esReactivo).map((a) => a.entidadId));
       const maxNivelBase = Math.max(0, ...subs.filter((a) => !reactivos.has(a.entidadId)).map((a) => nivel.get(a.entidadId) ?? 0));
-      const nivelEf = (a: Apariencia) => (reactivos.has(a.entidadId) ? maxNivelBase + 1 : nivel.get(a.entidadId) ?? 0);
+      // Orden declarado (`en esa secuencia`): cada interno listado va a su propia
+      // banda según su índice; los no listados (y los reactivos) se apilan después
+      // conservando su criterio vigente. Sin orden declarado, nada cambia.
+      const ordenDeclarado = ordenInzoom.get(opd.id) ?? [];
+      const indiceDeclarado = new Map<Id, number>(ordenDeclarado.map((id, indice) => [id, indice]));
+      const baseNoListados = indiceDeclarado.size;
+      const nivelEf = (a: Apariencia) => {
+        const declarado = indiceDeclarado.get(a.entidadId);
+        if (declarado !== undefined) return declarado;
+        const topologico = reactivos.has(a.entidadId) ? maxNivelBase + 1 : nivel.get(a.entidadId) ?? 0;
+        return indiceDeclarado.size > 0 ? baseNoListados + topologico : topologico;
+      };
 
       const maxNivel = subs.length ? Math.max(0, ...subs.map(nivelEf)) : -1;
       const bandas: Apariencia[][] = Array.from({ length: Math.max(0, maxNivel + 1) }, () => []);

@@ -74,6 +74,15 @@ export interface Autor {
   readonly modelo: Modelo;
   /** Mapa OPD→entidades registradas como internas de su in-zoom (consumidas de las agregaciones al contorno). */
   readonly internosInzoom: Map<Id, Set<Id>>;
+  /**
+   * Mapa OPD→orden temporal DECLARADO de sus internos (`en esa secuencia`). El
+   * layout apila cada interno listado en su propia banda (ISO 19450: el eje
+   * vertical del in-zoom es la línea de tiempo). Vacío ⇒ orden por topología
+   * de invocaciones, como siempre (los goldens DSL no declaran orden).
+   */
+  readonly ordenInzoom: Map<Id, Id[]>;
+  /** Declara el orden temporal de los internos de un in-zoom (claves de entidad, en orden). */
+  secuenciarInternos(opdKey: OpdKey, entidadKeys: EntKey[]): void;
   /** Resuelve el Id de una entidad por su clave (lanza si no existe). */
   id(key: EntKey): Id;
   /** Resuelve el Id de un OPD por su clave (lanza si no existe). */
@@ -202,6 +211,7 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
   const oid = new Map<OpdKey, Id>();
   const sid = new Map<string, Id>();
   const internosInzoom = new Map<Id, Set<Id>>();
+  const ordenInzoom = new Map<Id, Id[]>();
   let aparienciaSeq = 1;
   let enlaceSeq = 1;
   let aparienciaEnlaceSeq = 1;
@@ -390,6 +400,11 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     const normalizada = normalizarPosicionLabelEnlace({ distance, ...opts });
     if (!normalizada) throw new Error("posicionarEtiqueta: posición de label inválida");
     return normalizada;
+  }
+
+  function secuenciarInternos(opdKey: OpdKey, entidadKeys: EntKey[]): void {
+    const opdId = idOpd(opdKey);
+    ordenInzoom.set(opdId, entidadKeys.map((key) => idEntidad(key)));
   }
 
   function registrarInternoInzoom(opdId: Id, entidadId: Id): void {
@@ -675,6 +690,8 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
   return {
     modelo,
     internosInzoom,
+    ordenInzoom,
+    secuenciarInternos,
     id: idEntidad,
     idOpd,
     idEstado,
