@@ -513,7 +513,7 @@ function parsearClasificacionRasgo(texto: string, linea: LineaOplNormalizada) {
 }
 
 function parsearEstados(texto: string, linea: LineaOplNormalizada) {
-  const match = /^(.+?) puede (?:ser|estar) (.+)$/iu.exec(texto);
+  const match = /^(.+?) puede estar (.+)$/iu.exec(texto);
   if (!match) return null;
   return {
     ast: {

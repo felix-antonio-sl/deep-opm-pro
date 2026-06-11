@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import { createHmac } from "node:crypto";
+import { Buffer } from "node:buffer";
 import {
   crearCookieSessionResolver,
   crearModelPersistenceFetchHandler,
@@ -89,6 +91,23 @@ describe("auth v1 — login/logout y gate requireAuth", () => {
     expect(response.status).toBe(401);
   });
 
+  test("gate: cookie auth expirada server-side queda invalidada aunque la firma sea valida", async () => {
+    const handler = crearHandlerAuth();
+    const tokenExpirado = firmarTokenTest({
+      tenantId: "tenant-felix",
+      userId: "user-felix",
+      auth: true,
+      iat: 1_700_000_000,
+      exp: 1_700_000_001,
+    });
+
+    const response = await handler(new Request(`${BASE}/__deep-opm/session`, {
+      headers: { cookie: `opforja_session=${tokenExpirado}` },
+    }));
+
+    expect(response.status).toBe(401);
+  });
+
   test("con cookie auth las rutas funcionan bajo el tenant de la cuenta", async () => {
     const handler = crearHandlerAuth();
     const cookie = cookieDe(await login(handler, "felix@opforja.local", "clave-correcta"));
@@ -140,3 +159,9 @@ describe("auth v1 — login/logout y gate requireAuth", () => {
     expect(response.status).toBe(400);
   });
 });
+
+function firmarTokenTest(payload: Record<string, unknown>): string {
+  const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  const signature = createHmac("sha256", SECRET).update(encoded).digest("base64url");
+  return `${encoded}.${signature}`;
+}

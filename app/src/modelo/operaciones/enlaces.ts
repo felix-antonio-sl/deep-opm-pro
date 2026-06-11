@@ -105,6 +105,10 @@ export function crearEnlace(
 
   const legal = validarFirmaEnlace(tipo, origen, destino, { origen: origenExtremo, destino: destinoExtremo });
   if (!legal.ok) return legal;
+  const estadoDestino = destinoExtremo.kind === "estado" ? modelo.estados[destinoExtremo.id] : undefined;
+  if (tipo === "resultado" && estadoDestino && (estadoDestino.esInicial || estadoDestino.designaciones?.includes("inicial"))) {
+    return fallo("AP-04: un enlace resultado no puede apuntar a un estado inicial");
+  }
   if (!extremoVisibleEnOpd(modelo, opd, origenExtremo) || !extremoVisibleEnOpd(modelo, opd, destinoExtremo)) {
     return fallo("El enlace requiere que origen y destino tengan apariencia en el OPD");
   }

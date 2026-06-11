@@ -1,5 +1,5 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
-import { useEffect, useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import { useDialogoConfiguracionViewModel } from "../app/viewmodels/dialogoConfiguracionViewModel";
 import { normalizarGridConfig, type GridConfig } from "../canvas/grid";
 import type { EsenciaVisibilidad } from "../opl/opciones";
@@ -16,8 +16,9 @@ export function DialogoConfiguracion() {
   const [nombre, setNombre] = useState(modeloNombre);
   const [gridLocal, setGridLocal] = useState<GridConfig>(() => normalizarGridConfig(gridConfig));
   const [oplEsenciaLocal, setOplEsenciaLocal] = useState<EsenciaVisibilidad>(oplEsenciaVisibilidad);
+  const oplEsenciaSelectRef = useRef<HTMLSelectElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!abierto) return;
     setNombre(modeloNombre);
     setGridLocal(normalizarGridConfig(gridConfig));
@@ -27,9 +28,14 @@ export function DialogoConfiguracion() {
   const actualizarGrid = (patch: Partial<GridConfig>) => {
     setGridLocal((actual) => normalizarGridConfig({ ...actual, ...patch }));
   };
+  const actualizarOplEsencia = (event: Event) => {
+    const select = (event.currentTarget ?? event.target) as HTMLSelectElement | null;
+    if (select) setOplEsenciaLocal(select.value as EsenciaVisibilidad);
+  };
   const guardar = () => {
+    const oplEsenciaActual = (oplEsenciaSelectRef.current?.value ?? oplEsenciaLocal) as EsenciaVisibilidad;
     fijarGridConfig(gridLocal);
-    fijarOplEsenciaVisibilidad(oplEsenciaLocal);
+    fijarOplEsenciaVisibilidad(oplEsenciaActual);
     const nombreLimpio = nombre.trim();
     if (nombreLimpio && nombreLimpio !== modeloNombre) {
       renombrarModeloActual(nombreLimpio);
@@ -101,10 +107,12 @@ export function DialogoConfiguracion() {
           <label style={style.field}>
             <span style={style.label}>Esencia</span>
             <select
+              ref={oplEsenciaSelectRef}
               aria-label="Visibilidad de esencia en OPL"
               style={style.input}
               value={oplEsenciaLocal}
-              onChange={(e) => setOplEsenciaLocal(e.currentTarget.value as EsenciaVisibilidad)}
+              onInput={actualizarOplEsencia}
+              onChange={actualizarOplEsencia}
             >
               <option value="siempre">Siempre</option>
               <option value="solo-difiere">Solo si difiere del default</option>

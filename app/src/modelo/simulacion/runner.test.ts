@@ -10,8 +10,10 @@ import {
   crearModelo,
   crearObjeto,
   crearProceso,
+  definirTiempoExcepcionEnlace,
   renombrarEstado,
 } from "../operaciones";
+import { fijarDuracion } from "../objetoDuracion";
 import { definirRutaEtiqueta } from "../rutas";
 import type { Modelo, Resultado } from "../tipos";
 import { desplegar, ejecutarCorrida, ejecutarFaseSimulacion, ejecutarPaso, iniciarSimulacion, reiniciarSimulacion } from "./runner";
@@ -229,6 +231,59 @@ describe("condiciones e invocaciones OPM", () => {
     expect(fin.trace[0]?.diagnostico).toContain("Omitido");
     expect(fin.trace[0]?.transicionesAplicadas).toEqual([]);
     expect(fin.estadosCurrent[pedidoId]).toBe(cerradoId);
+  });
+
+  test("evento incumplido omite el proceso en vez de ejecutar como condición simple", () => {
+    let modelo = crearModelo("Evento");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 100 }, "Revisar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 220 }, "Archivar"));
+    const pedidoId = entidadId(modelo, "Pedido");
+    const revisarId = entidadId(modelo, "Revisar");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [pendienteId, cerradoId] = estados.estadoIds;
+    modelo = must(designarInicial(modelo, pendienteId));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendienteId), extremoEntidad(revisarId), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(revisarId), extremoEstado(cerradoId), "resultado"));
+    modelo = must(aplicarModificador(modelo, enlaceId(modelo, "consumo", pendienteId, revisarId), "evento"));
+
+    const ctx0 = iniciarSimulacion(modelo, modelo.opdRaizId);
+    const ctx1 = { ...ctx0, estadosCurrent: { ...ctx0.estadosCurrent, [pedidoId]: cerradoId } };
+    const fin = ejecutarCorrida(modelo, ctx1);
+
+    expect(fin.estado).toBe("completado");
+    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["Revisar", "Archivar"]);
+    expect(fin.trace[0]?.diagnostico).toContain("evento no ocurrido");
+    expect(fin.trace[0]?.omitido).toBe(true);
+    expect(fin.trace[0]?.transicionesAplicadas).toEqual([]);
+    expect(fin.estadosCurrent[pedidoId]).toBe(cerradoId);
+  });
+
+  test("excepción temporal desvía la ejecución al proceso de manejo", () => {
+    let modelo = crearModelo("Excepcion temporal");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 100 }, "Revisar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 220 }, "Archivar"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 340 }, "Manejar Excepcion"));
+    const pedidoId = entidadId(modelo, "Pedido");
+    const revisarId = entidadId(modelo, "Revisar");
+    const manejarId = entidadId(modelo, "Manejar Excepcion");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [pendienteId, revisadoId] = estados.estadoIds;
+    modelo = must(designarInicial(modelo, pendienteId));
+    modelo = must(fijarDuracion(modelo, revisadoId, { min: 10, nominal: 10, max: 10, unidad: "s" }));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEstado(pendienteId), extremoEntidad(revisarId), "consumo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(revisarId), extremoEstado(revisadoId), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, extremoEntidad(revisarId), extremoEntidad(manejarId), "excepcionSobretiempo"));
+    const excepcionId = enlaceId(modelo, "excepcionSobretiempo", revisarId, manejarId);
+    modelo = must(definirTiempoExcepcionEnlace(modelo, excepcionId, { tiempoMaximo: "5", unidadTiempoMaximo: "s" }));
+
+    const fin = ejecutarCorrida(modelo, iniciarSimulacion(modelo, modelo.opdRaizId));
+
+    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["Revisar", "Manejar Excepcion"]);
+    expect(fin.trace[0]?.eventosTemporales?.[0]).toMatchObject({ tipo: "sobretiempo", procesoManejoId: manejarId });
   });
 
   test("invocación explícita proceso→proceso controla el siguiente paso", () => {

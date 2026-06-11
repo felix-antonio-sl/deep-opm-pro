@@ -440,7 +440,7 @@ describe("proyeccion JointJS", () => {
     }
   });
 
-  test("proyecta enlace etiquetado unidireccional con marker abierto OPCloud y tag no italico", () => {
+  test("proyecta enlace etiquetado unidireccional con marker abierto OPCloud y tag italico", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Sistema"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 130 }, "Requisito"));
@@ -458,7 +458,7 @@ describe("proyeccion JointJS", () => {
     expect(line?.sourceMarker).toBeNull();
     expect(cellEnlace?.router).toBeUndefined();
     expect(tag?.attrs?.label).toMatchObject({ text: "satisface", fontFamily: "Inria Serif, Georgia, serif", fontWeight: 400 });
-    expect(tag?.attrs?.label?.fontStyle).toBeUndefined();
+    expect(tag?.attrs?.label?.fontStyle).toBe("italic");
     expect(tag?.position).toMatchObject({ distance: 0.5, offset: -20 });
   });
 
@@ -576,16 +576,24 @@ describe("proyeccion JointJS", () => {
     expect(labels?.some((label) => label.attrs?.label?.text === "e")).toBe(true);
     expect(labels?.some((label) => label.attrs?.label?.text === "70%")).toBe(true);
 
-    modelo = modeloConEnlace("invocacion");
-    const invocacionId = Object.values(modelo.enlaces)[0]?.id;
-    expect(invocacionId).toBeDefined();
-    if (!invocacionId) return;
-    modelo = must(aplicarModificador(modelo, invocacionId, "condicion"));
-    modelo = must(definirDemora(modelo, invocacionId, "1s"));
+    modelo = modeloConEnlace("consumo");
+    const condicionId = Object.values(modelo.enlaces)[0]?.id;
+    expect(condicionId).toBeDefined();
+    if (!condicionId) return;
+    modelo = must(aplicarModificador(modelo, condicionId, "condicion"));
     cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
       .find((cell) => cell.type === "standard.Link");
     labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
     expect(labels?.some((label) => label.attrs?.label?.text === "c")).toBe(true);
+
+    modelo = modeloConEnlace("invocacion");
+    const invocacionId = Object.values(modelo.enlaces)[0]?.id;
+    expect(invocacionId).toBeDefined();
+    if (!invocacionId) return;
+    modelo = must(definirDemora(modelo, invocacionId, "1s"));
+    cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .find((cell) => cell.type === "standard.Link");
+    labels = cellEnlace?.labels as Array<{ attrs?: { label?: { text?: unknown } } }> | undefined;
     expect(labels?.some((label) => label.attrs?.label?.text === "1s")).toBe(true);
   });
 
@@ -597,7 +605,7 @@ describe("proyeccion JointJS", () => {
     modelo = must(crearEstadosIniciales(modelo, pedidoId)).modelo;
     const [, aprobado] = estadosDeEntidad(modelo, pedidoId);
     if (!aprobado) throw new Error("La prueba esperaba estado");
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Aprobar"), extremoEstado(aprobado.id), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Aprobar"), extremoEstado(aprobado.id), "efecto"));
     const enlaceId = Object.keys(modelo.enlaces)[0];
     if (!enlaceId) throw new Error("La prueba esperaba enlace");
     modelo = must(ajustarMultiplicidad(modelo, enlaceId, "destino", "1"));

@@ -32,7 +32,7 @@ describe("parser OPL reverse base", () => {
 
   test("parsea estados, enlace procedural con estado y enlace estructural multi-destino", () => {
     const result = parsearParrafoOpl([
-      "Pedido puede ser abierto o cerrado.",
+      "Pedido puede estar abierto o cerrado.",
       "Procesar Pedido consume Pedido en abierto.",
       "Sistema consta de Pedido y Operador.",
     ].join("\n"));
@@ -52,6 +52,13 @@ describe("parser OPL reverse base", () => {
       origen: "Sistema",
       destinos: ["Pedido", "Operador"],
     });
+  });
+
+  test("no parsea 'puede ser' como estados", () => {
+    const result = parsearParrafoOpl("Pedido puede ser abierto o cerrado.");
+
+    expect(result.ast[0]?.kind).toBe("unsupported");
+    expect(result.diagnosticos[0]?.codigo).toBe("syntax-error");
   });
 
   test("parsea invocacion con demora con o sin tilde", () => {

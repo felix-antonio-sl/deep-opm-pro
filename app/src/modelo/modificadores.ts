@@ -1,4 +1,4 @@
-import { enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, naturalezaDeEnlace } from "./constantes";
+import { enlaceAdmiteTasa, enlaceAdmiteTiempoMaximo, enlaceAdmiteTiempoMinimo, esEnlaceExcepcionTemporal, naturalezaDeEnlace } from "./constantes";
 import { crearEnlace } from "./operaciones";
 import type { Enlace, Id, Modelo, Modificador, Resultado, SubtipoModificador } from "./tipos";
 
@@ -192,8 +192,11 @@ function validarModificadorEnlace(enlace: Enlace, modificador: Modificador): Res
   if (naturalezaDeEnlace(enlace.tipo) !== "procedural") {
     return fallo("Los modificadores condicion/evento/NO aplican solo a enlaces procedurales [V-240]");
   }
-  if (modificador === "no" && enlace.tipo === "invocacion") {
-    return fallo("NO no se aplica a invocacion en el slice M0 [V-240]");
+  if (enlace.tipo === "resultado" || enlace.tipo === "invocacion" || esEnlaceExcepcionTemporal(enlace.tipo)) {
+    return fallo("Los modificadores condicion/evento/NO no aplican a resultado, invocacion ni excepciones temporales [AP-01][AP-02][AP-03][AP-10]");
+  }
+  if (enlace.efectoEscindido?.modo === "par") {
+    return fallo("Los modificadores condicion/evento/NO no aplican a enlaces TS4/TS5 escindidos [AP-08]");
   }
   return ok(true);
 }

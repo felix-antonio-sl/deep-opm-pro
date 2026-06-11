@@ -261,7 +261,7 @@ Paciente en \`crítico\` inicia Atender.
     expect(enlaceEntre(modelo, "Paciente", "Atender", "invocacion")).toHaveLength(0);
   });
 
-  test("iniciador PROCESO conserva la invocación proceso→proceso evento", () => {
+  test("iniciador PROCESO conserva la invocación proceso→proceso base", () => {
     const proto = `# SD0
 \`\`\`opl
 Ajustar es un proceso físico y sistémico.
@@ -273,7 +273,7 @@ Ajustar inicia Prescribir.
     emitirBundle(autor, { lanzarEnError: false });
     const inv = enlaceEntre(modelo, "Ajustar", "Prescribir", "invocacion");
     expect(inv).toHaveLength(1);
-    expect(inv[0]!.modificador).toBe("evento");
+    expect(inv[0]!.modificador).toBeUndefined();
   });
 
   test("ADJUNCIÓN: un `requiere` coexistente NO duplica — el evento adjunta evento al instrumento existente", () => {

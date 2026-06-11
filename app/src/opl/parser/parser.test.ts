@@ -266,7 +266,33 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     expect(enlaceEvento?.subtipoModificador).toBe("E");
   });
 
-  test("evento sin sub-clausula ('X inicia Y') aplica modificador evento sobre invocacion", () => {
+  test("aplica multiplicidad y rutaEtiqueta capturadas en OPL reverse", () => {
+    let modelo = crearModelo("reverse-l4");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const pedido = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedido)).modelo;
+    const [primero, segundo] = estadosDeEntidad(modelo, pedido);
+    if (!primero || !segundo) throw new Error("setup sin estados");
+    modelo = must(renombrarEstado(modelo, primero.id, "abierto"));
+    modelo = must(renombrarEstado(modelo, segundo.id, "cerrado"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+
+    const texto = [
+      ...generarOpl(modelo),
+      "Por ruta rapida, *Procesar* consume 2 **Pedido** en `abierto`.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    const consumo = Object.values(aplicado.enlaces).find((enlace) => enlace.tipo === "consumo");
+
+    expect(consumo?.multiplicidadOrigen).toBe("2");
+    expect(consumo?.rutaEtiqueta).toBe("rapida");
+  });
+
+  test("evento sin sub-clausula ('X inicia Y') degrada a invocacion base", () => {
     const modelo = crearModelo("reverse");
     const texto = [
       "*Disparador* es un proceso informacional y sistémico.",
@@ -280,11 +306,14 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     const patchEnlace = preview.patches.find((patch) => patch.tipo === "crear-enlace");
     if (!patchEnlace || patchEnlace.tipo !== "crear-enlace") throw new Error("esperaba patch crear-enlace");
     expect(patchEnlace.tipoEnlace).toBe("invocacion");
-    expect(patchEnlace.modificador).toBe("evento");
+    expect(patchEnlace.modificador).toBeUndefined();
 
-    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
-    const enlaceInvocacion = Object.values(aplicado.enlaces).find((enlace) => enlace.tipo === "invocacion");
-    expect(enlaceInvocacion?.modificador).toBe("evento");
+    const aplicado = aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId);
+    expect(aplicado.ok).toBe(true);
+    if (aplicado.ok) {
+      const invocacion = Object.values(aplicado.value.enlaces).find((enlace) => enlace.tipo === "invocacion");
+      expect(invocacion?.modificador).toBeUndefined();
+    }
   });
 
   test("evento ETS2 con transicion aplica modificador efecto (estado en endpoint via D1)", () => {

@@ -97,6 +97,15 @@ const AUTH_LOGOUT_ENDPOINT = "/__deep-opm/auth/logout";
 // Cookie autenticada más corta que la anónima (spec §2): 30 días, rotada por login.
 const AUTH_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
+interface TokenSesionFirmado {
+  tenantId: string;
+  userId: string;
+  iat: number;
+  exp: number;
+  auth?: boolean;
+  nonce?: string;
+}
+
 export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptions) {
   const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
   const sessionResolver = options.sessionResolver ?? resolverSesionAnonima();
@@ -233,7 +242,8 @@ export function crearCookieSessionResolver(secret: string, cookieName = COOKIE_N
       if (payload) return payload;
       const tenantId = `tenant-${randomBytes(16).toString("hex")}`;
       const userId = `user-${randomBytes(16).toString("hex")}`;
-      const firmado = firmarTokenSesion({ tenantId, userId }, secret);
+      const ahora = ahoraEpochSeconds();
+      const firmado = firmarTokenSesion({ tenantId, userId, iat: ahora, exp: ahora + SESSION_MAX_AGE_SECONDS }, secret);
       const secure = esRequestSeguro(request) ? "; Secure" : "";
       return {
         tenantId,
@@ -439,11 +449,14 @@ async function manejarLogin(request: Request, auth: AuthOptions, maxBodyBytes: n
   const valida = verifyPassword(body.password, cuenta?.passwordHash ?? HASH_SENUELO);
   if (!cuenta || !valida) return responderJson(401, { error: "Credenciales inválidas" });
 
-  if (auth.repo.touchLogin) await auth.repo.touchLogin(cuenta.id, new Date().toISOString());
+  const ahora = ahoraEpochSeconds();
+  if (auth.repo.touchLogin) await auth.repo.touchLogin(cuenta.id, new Date(ahora * 1000).toISOString());
   const cookieName = auth.cookieName ?? COOKIE_NAME;
   const token = firmarTokenSesion({
     tenantId: cuenta.tenantId,
     userId: cuenta.userId,
+    iat: ahora,
+    exp: ahora + AUTH_SESSION_MAX_AGE_SECONDS,
     auth: true,
     // Rotación por login (spec §2): el nonce hace único cada token emitido.
     nonce: randomBytes(8).toString("hex"),
@@ -458,7 +471,7 @@ async function manejarLogin(request: Request, auth: AuthOptions, maxBodyBytes: n
   return responderJson(200, { session: { tenantId: session.tenantId, userId: session.userId, auth: true } }, session);
 }
 
-function firmarTokenSesion(payload: { tenantId: string; userId: string; auth?: boolean; nonce?: string }, secret: string): string {
+function firmarTokenSesion(payload: TokenSesionFirmado, secret: string): string {
   const encoded = base64UrlEncode(JSON.stringify(payload));
   return `${encoded}.${firma(encoded, secret)}`;
 }
@@ -471,6 +484,9 @@ function verificarTokenSesion(token: string, secret: string): PersistenciaSesion
   try {
     const parsed = JSON.parse(base64UrlDecode(encoded));
     if (!esRecord(parsed) || typeof parsed.tenantId !== "string" || typeof parsed.userId !== "string") return null;
+    if (typeof parsed.exp !== "number" || !Number.isFinite(parsed.exp)) return null;
+    if (typeof parsed.iat !== "number" || !Number.isFinite(parsed.iat)) return null;
+    if (parsed.exp <= ahoraEpochSeconds()) return null;
     return {
       tenantId: parsed.tenantId,
       userId: parsed.userId,
@@ -479,6 +495,10 @@ function verificarTokenSesion(token: string, secret: string): PersistenciaSesion
   } catch {
     return null;
   }
+}
+
+function ahoraEpochSeconds(): number {
+  return Math.floor(Date.now() / 1000);
 }
 
 function firma(value: string, secret: string): string {

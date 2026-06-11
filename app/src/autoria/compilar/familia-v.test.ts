@@ -331,18 +331,19 @@ Evento adverso en 'detectado' con Notificabilidad 'notificable' inicia Notificac
 // tipo, así que el abanico no se forma; ambos enlaces se conservan y la decisión
 // XOR queda ANOTADA como ancla pendiente sobre cada rama (modelado fino).
 
-describe("V14 — `P cambia X a 'e', o inicia Q` → TS + evento (XOR heterogéneo anotado)", () => {
-  test("crea la transición y la invocación evento; la decisión XOR queda anotada", () => {
+describe("V14 — `P cambia X a 'e', o inicia Q` → TS + invocacion base (XOR heterogéneo anotado)", () => {
+  test("crea la transición y la invocación base; la decisión XOR queda anotada", () => {
     const r = compilar(`Atención de acciones emergentes es un proceso físico y sistémico.
 Condición de estabilidad clínica es un objeto físico y sistémico.
 Condición de estabilidad clínica puede estar 'inestable' o 'estable'.
 Cierre por reingreso hospitalario es un proceso físico y sistémico.
 Atención de acciones emergentes cambia Condición de estabilidad clínica a 'estable', o inicia Cierre por reingreso hospitalario.`);
     sinErrores(r);
-    // El efecto (TS) y la invocación-evento existen.
+    // El efecto (TS) y la invocación base existen.
     expect(enlacesEntre(r.modelo, "Atención de acciones emergentes", "Condición de estabilidad clínica", "efecto")).toHaveLength(1);
     const inv = enlacesEntre(r.modelo, "Atención de acciones emergentes", "Cierre por reingreso hospitalario", "invocacion");
     expect(inv).toHaveLength(1);
+    expect(inv[0]!.modificador).toBeUndefined();
     // El kernel NO forma un abanico heterogéneo (efecto + invocación). La decisión
     // XOR se preserva como ancla pendiente (no se pierde, no falla el hecho).
     const anclas = Object.values(r.modelo.anclasNormativas ?? {});
@@ -352,7 +353,7 @@ Atención de acciones emergentes cambia Condición de estabilidad clínica a 'es
 
 // ── V15: `X en 's' inicia A o B` / `S puede iniciar A o B` → ramas + XOR ────
 
-describe("V15 — disyunción de consecuencias → dos ramas evento + abanico XOR", () => {
+describe("V15 — disyunción de consecuencias → ramas evento o invocacion base + abanico XOR", () => {
   test("`X en 's' inicia A o B` (X objeto) crea dos instrumentos-evento; XOR sobre gatillo-estado anotado", () => {
     const r = compilar(`Cierre por alta médica por recuperación es un proceso físico y sistémico.
 Cierre por cumplimiento del plan terapéutico es un proceso físico y sistémico.
@@ -372,14 +373,18 @@ Decisión de conducta clínica en 'proceder a egreso' inicia Cierre por alta mé
     expect(anclas.some((x) => /XOR/.test(x.nota ?? ""))).toBe(true);
   });
 
-  test("`S puede iniciar A o B` (S proceso) crea dos invocaciones evento y un abanico XOR", () => {
+  test("`S puede iniciar A o B` (S proceso) crea dos invocaciones base y un abanico XOR", () => {
     const r = compilar(`Suspensión de la atención es un proceso físico y sistémico.
 Cierre por alta disciplinaria es un proceso físico y sistémico.
 Cierre por renuncia voluntaria es un proceso físico y sistémico.
 Suspensión de la atención puede iniciar Cierre por alta disciplinaria o Cierre por renuncia voluntaria.`);
     sinErrores(r);
-    expect(enlacesEntre(r.modelo, "Suspensión de la atención", "Cierre por alta disciplinaria", "invocacion")).toHaveLength(1);
-    expect(enlacesEntre(r.modelo, "Suspensión de la atención", "Cierre por renuncia voluntaria", "invocacion")).toHaveLength(1);
+    const a = enlacesEntre(r.modelo, "Suspensión de la atención", "Cierre por alta disciplinaria", "invocacion");
+    const b = enlacesEntre(r.modelo, "Suspensión de la atención", "Cierre por renuncia voluntaria", "invocacion");
+    expect(a).toHaveLength(1);
+    expect(b).toHaveLength(1);
+    expect(a[0]!.modificador).toBeUndefined();
+    expect(b[0]!.modificador).toBeUndefined();
     const abanicos = Object.values(r.modelo.abanicos ?? {});
     expect(abanicos.some((ab) => ab.operador === "XOR" && ab.enlaceIds.length === 2)).toBe(true);
   });

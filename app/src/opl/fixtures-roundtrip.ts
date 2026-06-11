@@ -586,7 +586,14 @@ const fixtureEventoInvocacionDegrada: FixtureRoundtrip = {
     m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Preparar"));
     m = must(crearProceso(m, m.opdRaizId, { x: 200, y: 0 }, "Servir"));
     m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Preparar"), entidadId(m, "Servir"), "invocacion"));
-    m = must(aplicarModificador(m, enlaceIdUnico(m), "evento"));
+    const enlaceId = enlaceIdUnico(m);
+    m = {
+      ...m,
+      enlaces: {
+        ...m.enlaces,
+        [enlaceId]: { ...m.enlaces[enlaceId]!, modificador: "evento" },
+      },
+    };
     return m;
   },
   oracionesEsperadas: [

@@ -566,8 +566,8 @@ function emitirEvento(
  * El parser no le adjunta un enlace BASE portador, así que aquí lo completamos a
  * la forma canónica SSOT §6 (tensión 1, decisión del operador):
  *
- *   - Si el INICIADOR es un PROCESO → `invocacion` proceso→proceso `modificador:
- *     evento` (comportamiento previo; `Ajuste terapéutico inicia Prescribir`).
+ *   - Si el INICIADOR es un PROCESO → `invocacion` proceso→proceso base.
+ *     El kernel no admite modificadores condicion/evento/no sobre invocacion.
  *   - Si el INICIADOR es un OBJETO con estado-gatillo `s` (`Paciente en
  *     \`hospitalizado…\` inicia Operación clínica`) → el proceso usa el estado
  *     como gatillo SIN consumirlo: instrumento `requiere` X→P con estado en el
@@ -595,7 +595,7 @@ function emitirEventoSinPortador(
 /**
  * Núcleo del evento sin portador (ruta W4.3), reusable por el AST `evento` y por
  * la directiva `evento` de la familia V (V3/V13/V14/V15). Un iniciador proceso (o
- * sin estado-gatillo) produce una invocación proceso→proceso evento; un iniciador
+ * sin estado-gatillo) produce una invocación proceso→proceso base; un iniciador
  * objeto-en-estado produce un instrumento-evento con el gatillo en el origen
  * (gatillo sin consumo, V-59) — sin gatillo si el objeto no porta ≥2 estados.
  */
@@ -608,11 +608,11 @@ function emitirEventoCore(
 ): ResultadoEmision {
   const iniciadorTipo = ctx.resolutor.buscar(iniciador)?.tipo ?? tipoSembrado(iniciador, ctx);
 
-  // Iniciador proceso (o sin estado-gatillo): invocacion proceso→proceso evento.
+  // Iniciador proceso (o sin estado-gatillo): invocacion proceso→proceso base.
   if (iniciadorTipo === "proceso" || !estado) {
     const origen = keyEntidad(iniciador, ctx, "proceso");
     const destino = keyEntidad(proceso, ctx, "proceso");
-    return enlazarConDedup(ctx, origen, destino, "invocacion", { modificador: "evento" });
+    return enlazarConDedup(ctx, origen, destino, "invocacion", {});
   }
 
   // Iniciador objeto-en-estado: instrumento-evento (gatillo sin consumo, V-59).

@@ -39,9 +39,12 @@ export function validarFirmaEnlace(
     return fallo("Los enlaces estructurales no aceptan extremos Estado [V-237][V-239]");
   }
   if (tipo === "etiquetado") {
-    return ok(true);
+    return origen.tipo === destino.tipo
+      ? ok(true)
+      : fallo("El etiquetado estructural requiere entidades de la misma clase OPM");
   }
   if (tipo === "etiquetadoBidireccional") {
+    if (origen.tipo !== destino.tipo) return fallo("El etiquetado bidireccional requiere entidades de la misma clase OPM");
     return destinoExtremo.kind === "estado" && origenExtremo.kind !== "estado"
       ? fallo("El etiquetado bidireccional no admite estado solo en destino [V-30]")
       : ok(true);

@@ -89,8 +89,6 @@ test("teclado conecta foco origen y destino mediante MenuTipoEnlace", async ({ p
 
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("ArrowDown");
-  await page.keyboard.press("ArrowDown");
-  await page.keyboard.press("ArrowDown");
   await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("data-testid") ?? "")).toBe("menu-tipo-enlace-consumo");
   await page.keyboard.press("Enter");
 

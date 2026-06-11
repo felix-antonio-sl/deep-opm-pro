@@ -1,7 +1,7 @@
 import type { Abanico, Enlace, Id, Modelo } from "../tipos";
 import { entidadIdDeExtremo, nombreExtremo } from "../extremos";
 import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
-import type { ContextoSimulacion, EntradaTraceSim, ModoSimulacion, TransicionEstadoSim } from "./tipos";
+import type { ContextoSimulacion, EntradaTraceSim, EventoTemporalSim, ModoSimulacion, TransicionEstadoSim } from "./tipos";
 import { aplicarCambiosValor, iniciarValoresRuntime } from "./valores";
 import { efectoUnico, tomarUnico, type Efecto, type Sucesor } from "./efecto";
 import { resolverDecisionAbanico } from "../decision";
@@ -11,12 +11,17 @@ import { primeraFaseSimulacion, siguienteFaseSimulacion } from "./fases";
 
 export const LIMITE_PASOS_SIMULACION = 200;
 
+export interface OpcionesInicioSimulacion {
+  semilla?: number;
+}
+
 /**
  * Inicia una simulación conceptual sobre un OPD. No muta el modelo.
  * Si no hay procesos en el OPD, el contexto nace `completado` con plan vacío.
  */
-export function iniciarSimulacion(modelo: Modelo, opdId: Id): ContextoSimulacion {
+export function iniciarSimulacion(modelo: Modelo, opdId: Id, opciones: OpcionesInicioSimulacion = {}): ContextoSimulacion {
   const plan = planificarSimulacion(modelo, opdId);
+  const rngInicial = opciones.semilla !== undefined ? rngSembrado(opciones.semilla) : undefined;
   return {
     modeloId: modelo.id,
     opdId,
@@ -25,8 +30,9 @@ export function iniciarSimulacion(modelo: Modelo, opdId: Id): ContextoSimulacion
     faseActual: primeraFaseSimulacion(modelo, plan[0]),
     estado: plan.length === 0 ? "completado" : "preparado",
     estadosCurrent: estadosCurrentIniciales(modelo),
-    valoresRuntime: iniciarValoresRuntime(modelo),
+    valoresRuntime: iniciarValoresRuntime(modelo, rngInicial),
     trace: [],
+    ...(opciones.semilla !== undefined ? { semilla: opciones.semilla } : {}),
   };
 }
 
@@ -42,27 +48,14 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   }
 
   const paso = contexto.plan[contexto.pasoActual]!;
+  const motivosOmitirPorEvento = motivosOmitirPorEventoNoOcurrido(modelo, paso, contexto.estadosCurrent);
+  if (motivosOmitirPorEvento.length > 0) {
+    return efectoUnico(omitirPaso(modelo, contexto, paso, `evento no ocurrido (${motivosOmitirPorEvento.join("; ")})`));
+  }
+
   const motivosOmitir = motivosOmitirPorCondicion(modelo, paso, contexto.estadosCurrent);
   if (motivosOmitir.length > 0) {
-    const nuevoPaso = contexto.pasoActual + 1;
-    const entrada: EntradaTraceSim = {
-      numero: contexto.trace.length + 1,
-      opdId: paso.opdId,
-      opdNombre: paso.opdNombre,
-      procesoId: paso.procesoId,
-      procesoNombre: paso.procesoNombre,
-      transicionesAplicadas: [],
-      cambiosValor: [],
-      omitido: true,
-      diagnostico: `Omitido: condición no satisfecha (${motivosOmitir.join("; ")})`,
-    };
-    return efectoUnico({
-      ...contexto,
-      pasoActual: nuevoPaso,
-      faseActual: primeraFaseSimulacion(modelo, contexto.plan[nuevoPaso]),
-      estado: nuevoPaso >= contexto.plan.length ? "completado" : "ejecutando",
-      trace: [...contexto.trace, entrada],
-    });
+    return efectoUnico(omitirPaso(modelo, contexto, paso, `condición no satisfecha (${motivosOmitir.join("; ")})`));
   }
 
   const modo = contexto.modo ?? "determinista";
@@ -146,7 +139,8 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     entrada.diagnostico = `No simulable: ${motivosBloqueo.join("; ")}`;
   }
 
-  const nuevoPaso = resolverSiguientePasoPorInvocacion(modelo, contexto, paso);
+  const nuevoPaso = resolverSiguientePasoPorEventoTemporal(contexto, entrada.eventosTemporales)
+    ?? resolverSiguientePasoPorInvocacion(modelo, contexto, paso);
   const relojNuevo = (contexto.reloj ?? 0) + (duracionPaso?.observada ?? 0);
   const siguiente: ContextoSimulacion = {
     ...contexto,
@@ -338,6 +332,52 @@ type PasoConEnlaces = ContextoSimulacion["plan"][number];
 
 const TIPOS_CONDICION_EJECUTABLES = new Set(["consumo", "efecto", "agente", "instrumento"]);
 
+function omitirPaso(
+  modelo: Modelo,
+  contexto: ContextoSimulacion,
+  paso: PasoConEnlaces,
+  motivo: string,
+): ContextoSimulacion {
+  const nuevoPaso = contexto.pasoActual + 1;
+  const entrada: EntradaTraceSim = {
+    numero: contexto.trace.length + 1,
+    opdId: paso.opdId,
+    opdNombre: paso.opdNombre,
+    procesoId: paso.procesoId,
+    procesoNombre: paso.procesoNombre,
+    transicionesAplicadas: [],
+    cambiosValor: [],
+    omitido: true,
+    diagnostico: `Omitido: ${motivo}`,
+  };
+  return {
+    ...contexto,
+    pasoActual: nuevoPaso,
+    faseActual: primeraFaseSimulacion(modelo, contexto.plan[nuevoPaso]),
+    estado: nuevoPaso >= contexto.plan.length ? "completado" : "ejecutando",
+    trace: [...contexto.trace, entrada],
+  };
+}
+
+function motivosOmitirPorEventoNoOcurrido(
+  modelo: Modelo,
+  paso: PasoConEnlaces,
+  estadosCurrent: Record<Id, Id>,
+): string[] {
+  const motivos: string[] = [];
+  const enlacesIds = new Set([...paso.enlacesEntradaIds, ...paso.enlacesSalidaIds]);
+  for (const enlaceId of enlacesIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace || enlace.modificador !== "evento") continue;
+    if (!TIPOS_CONDICION_EJECUTABLES.has(enlace.tipo)) continue;
+    const condicionante = extremoCondicionanteDeProceso(modelo, enlace, paso.procesoId);
+    if (!condicionante) continue;
+    const motivo = motivoCondicionIncumplida(modelo, condicionante, estadosCurrent);
+    if (motivo) motivos.push(motivo);
+  }
+  return motivos;
+}
+
 function motivosOmitirPorCondicion(
   modelo: Modelo,
   paso: PasoConEnlaces,
@@ -423,6 +463,17 @@ function resolverSiguientePasoPorInvocacion(
   return indice >= 0 ? indice : secuencial;
 }
 
+function resolverSiguientePasoPorEventoTemporal(
+  contexto: ContextoSimulacion,
+  eventos: EventoTemporalSim[] | undefined,
+): number | undefined {
+  const evento = eventos?.[0];
+  if (!evento) return undefined;
+  const indice = contexto.plan.findIndex((item) => item.procesoId === evento.procesoManejoId);
+  if (indice < 0 || indice === contexto.pasoActual) return undefined;
+  return indice;
+}
+
 /**
  * El unfold (anamorfismo): despliega la coalgebra desde un estado hasta
  * completar, tomando el sucesor canonico en cada paso. F = Identidad =>
@@ -460,7 +511,7 @@ function bloquearPorLimite(contexto: ContextoSimulacion, limite: number): Contex
  * Equivale a un nuevo `iniciarSimulacion` sobre el mismo OPD.
  */
 export function reiniciarSimulacion(modelo: Modelo, contexto: ContextoSimulacion): ContextoSimulacion {
-  return iniciarSimulacion(modelo, contexto.opdId);
+  return iniciarSimulacion(modelo, contexto.opdId, contexto.semilla !== undefined ? { semilla: contexto.semilla } : {});
 }
 
 /**

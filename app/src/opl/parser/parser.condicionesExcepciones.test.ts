@@ -7,10 +7,14 @@ import {
 import { generarOpl } from "../generar";
 import {
   crearEnlace,
+  crearEstadosIniciales,
   crearModelo,
   crearObjeto,
   crearProceso,
+  estadosDeEntidad,
+  renombrarEstado,
 } from "../../modelo/operaciones";
+import { extremoEstado } from "../../modelo/extremos";
 import { aplicarModificador } from "../../modelo/modificadores";
 import type { Modelo, Resultado } from "../../modelo/tipos";
 
@@ -219,6 +223,31 @@ describe("parser OPL — condiciones (§7) y excepciones (§8.1)", () => {
     const consumo = Object.values(aplicado.enlaces).find((enlace) => enlace.tipo === "consumo");
     expect(consumo).toBeDefined();
     expect(consumo!.modificador).toBe("condicion");
+  });
+
+  test("aplica condicion con estado como extremo de estado, sin descartar condicionanteEstado", () => {
+    let modelo = crearModelo("cs1");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const pedido = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedido)).modelo;
+    const [primero, segundo] = estadosDeEntidad(modelo, pedido);
+    if (!primero || !segundo) throw new Error("setup sin estados");
+    modelo = must(renombrarEstado(modelo, primero.id, "abierto"));
+    modelo = must(renombrarEstado(modelo, segundo.id, "cerrado"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+
+    const texto = [
+      ...generarOpl(modelo),
+      "*Procesar* ocurre si **Pedido** está en `abierto`, en cuyo caso **Pedido** se consume, de lo contrario *Procesar* se omite.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    const consumo = Object.values(aplicado.enlaces).find((enlace) => enlace.tipo === "consumo");
+    expect(consumo?.origenId).toEqual(extremoEstado(primero.id));
+    expect(consumo?.modificador).toBe("condicion");
   });
 
   test("D3: condicion sobre enlace con modificador distinto emite patch-conflict warning", () => {

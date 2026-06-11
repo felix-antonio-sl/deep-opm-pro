@@ -32,11 +32,11 @@ export interface LineaOplNormalizada {
  *
  * `multiplicidadOrigen` / `multiplicidadDestino`: cardinalidad de extremo capturada
  * como string literal (SSOT §12). El generador la emite como PREFIJO del nombre
- * (`2 **Pedidos**`, `1..N **Recursos**`, `* **Veces**`). El planificador la traduce
+ * (`2 **Pedidos**`, `1..N **Recursos**`, `* **Veces**`). El aplicador la traduce
  * a `ajustarMultiplicidad` post-creacion del enlace.
  *
  * `rutaEtiqueta`: etiqueta de ruta del enlace (SSOT §13). El generador la emite como
- * prefijo de oracion `Por ruta <etiqueta>, ...`. El planificador la traduce a
+ * prefijo de oracion `Por ruta <etiqueta>, ...`. El aplicador la traduce a
  * `definirRutaEtiqueta` post-creacion del enlace.
  */
 export interface AstProcedimentalBase {

@@ -7,6 +7,7 @@ import {
 import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { definirTiempoExcepcionEnlace, estadosDeEntidad } from "../../modelo/operaciones";
 import {
+  ajustarMultiplicidad,
   agregarEstado,
   cambiarAfiliacion,
   cambiarEsencia,
@@ -19,6 +20,7 @@ import {
 } from "../../modelo/operaciones";
 import { aplicarModificador, definirDemora } from "../../modelo/modificadores";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
+import { definirRutaEtiqueta } from "../../modelo/rutas";
 import { posicionLibre } from "../../modelo/layout";
 import { entidadIdDeExtremo, extremoEstado, mismoExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
 import { formarAbanico } from "../../modelo/abanicos";
@@ -170,6 +172,9 @@ function aplicarPatchEnlace(
     patch.tiempoMaximo === undefined &&
     patch.tiempoMinimo === undefined &&
     patch.demora === undefined &&
+    patch.multiplicidadOrigen === undefined &&
+    patch.multiplicidadDestino === undefined &&
+    patch.rutaEtiqueta === undefined &&
     extremos.value.estadoEntradaId === undefined &&
     extremos.value.estadoSalidaId === undefined
   ) {
@@ -224,6 +229,21 @@ function aplicarMetadatosCondicionExcepcion(
   }
   if (patch.demora !== undefined && enlace.demora !== patch.demora) {
     const aplicado = definirDemora(siguiente, enlace.id, patch.demora);
+    if (!aplicado.ok) return aplicado;
+    siguiente = aplicado.value;
+  }
+  if (patch.multiplicidadOrigen !== undefined && siguiente.enlaces[enlace.id]?.multiplicidadOrigen !== patch.multiplicidadOrigen) {
+    const aplicado = ajustarMultiplicidad(siguiente, enlace.id, "origen", patch.multiplicidadOrigen);
+    if (!aplicado.ok) return aplicado;
+    siguiente = aplicado.value;
+  }
+  if (patch.multiplicidadDestino !== undefined && siguiente.enlaces[enlace.id]?.multiplicidadDestino !== patch.multiplicidadDestino) {
+    const aplicado = ajustarMultiplicidad(siguiente, enlace.id, "destino", patch.multiplicidadDestino);
+    if (!aplicado.ok) return aplicado;
+    siguiente = aplicado.value;
+  }
+  if (patch.rutaEtiqueta !== undefined && siguiente.enlaces[enlace.id]?.rutaEtiqueta !== patch.rutaEtiqueta) {
+    const aplicado = definirRutaEtiqueta(siguiente, enlace.id, patch.rutaEtiqueta);
     if (!aplicado.ok) return aplicado;
     siguiente = aplicado.value;
   }

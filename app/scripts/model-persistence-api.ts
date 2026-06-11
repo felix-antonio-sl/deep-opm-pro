@@ -9,7 +9,7 @@ import {
   type ModelPersistenceRepository,
   type PersistenciaSesion,
 } from "../src/server/modelPersistence";
-import type { ModeloPersistido, ResumenModeloPersistido } from "../src/persistencia/local";
+import type { ModeloPersistido, ResumenModeloPersistido } from "../src/persistencia/modelos";
 import type { WorkspaceIndice } from "../src/persistencia/workspace";
 import { indiceVacio } from "../src/persistencia/workspace";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../src/persistencia/workspaceStorage";
@@ -47,7 +47,7 @@ async function inicializarSchema(): Promise<void> {
       aplicado_en TEXT NOT NULL
     )
   `;
-  const aplicadasRows = await sql`SELECT version FROM opforja_schema_migrations`;
+  const aplicadasRows = (await sql`SELECT version FROM opforja_schema_migrations`) as Array<Record<string, unknown>>;
   const aplicadas = new Set(aplicadasRows.map((row) => Number(row.version)));
   for (const migracion of MIGRACIONES_SCHEMA) {
     if (aplicadas.has(migracion.version)) continue;
@@ -399,7 +399,7 @@ function repositorioPostgres(): ModelPersistenceRepository {
     },
 
     async list(session, includePayload = false) {
-      const rows = await sql`
+      const rows = (await sql`
         SELECT
           m.id,
           m.nombre,
@@ -431,7 +431,7 @@ function repositorioPostgres(): ModelPersistenceRepository {
         FROM opforja_models m
         WHERE m.tenant_id = ${session.tenantId}
         ORDER BY m.actualizado_en DESC, m.nombre ASC
-      `;
+      `) as Array<Record<string, unknown>>;
       return rows.map((row) => modeloDesdeRow(row, includePayload));
     },
 
@@ -591,12 +591,12 @@ function repositorioPostgres(): ModelPersistenceRepository {
     },
 
     async listVersions(session, modeloId) {
-      const rows = await sql`
+      const rows = (await sql`
         SELECT id, creado_en, nombre, descripcion, preservar, modelo_payload_key, bytes
         FROM opforja_model_versions
         WHERE tenant_id = ${session.tenantId} AND modelo_id = ${modeloId}
         ORDER BY creado_en DESC
-      `;
+      `) as Array<Record<string, unknown>>;
       return rows.map(versionDesdeRow).filter((version): version is VersionResumen => version !== null);
     },
 
@@ -738,12 +738,12 @@ async function podarVersionesPostgres(
   session: PersistenciaSesion,
   modeloId: string,
 ): Promise<void> {
-  const rows = await db`
+  const rows = (await db`
     SELECT id, creado_en, nombre, descripcion, preservar, modelo_payload_key, bytes
     FROM opforja_model_versions
     WHERE tenant_id = ${session.tenantId} AND modelo_id = ${modeloId}
     ORDER BY creado_en DESC
-  `;
+  `) as Array<Record<string, unknown>>;
   const versiones = rows.map(versionDesdeRow).filter((version): version is VersionResumen => version !== null);
   const retenidas = aplicarPoliticaLogScaleVersiones(versiones, new Date(), MAX_VERSIONES_POR_MODELO);
   const podadas = idsVersionesPodadas(versiones, retenidas);

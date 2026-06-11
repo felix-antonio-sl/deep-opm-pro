@@ -50,7 +50,9 @@ test("selector de esencia en Configuración filtra oraciones OPL de esencia", as
   await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
   const dialogo = page.getByTestId("modal-config-grid");
   await expect(dialogo).toBeVisible();
-  await dialogo.getByLabel("Visibilidad de esencia en OPL").selectOption("oculta");
+  const selectEsencia = dialogo.getByLabel("Visibilidad de esencia en OPL");
+  await selectEsencia.selectOption("oculta");
+  await expect(selectEsencia).toHaveValue("oculta");
   await dialogo.getByRole("button", { name: "Guardar" }).click();
   await expect(dialogo).toHaveCount(0);
 
@@ -66,6 +68,7 @@ test("selector de esencia en Configuración filtra oraciones OPL de esencia", as
   // Verificar que el valor guardado persiste ("oculta").
   await expect(selectEsencia2).toHaveValue("oculta");
   await selectEsencia2.selectOption("siempre");
+  await expect(selectEsencia2).toHaveValue("siempre");
   await dialogo2.getByRole("button", { name: "Guardar" }).click();
   await expect(dialogo2).toHaveCount(0);
 

@@ -92,6 +92,30 @@ describe("iniciarValoresRuntime", () => {
     expect(valores[lecturaId]).toBe(15);
     expect(modelo.entidades[lecturaId]?.valorSlot?.valor).toBe(25);
   });
+
+  test("iniciarSimulacion usa semilla para inicializar valores runtime reproducibles", () => {
+    const { modelo: base, lecturaId } = modeloPropagacionAtributos();
+    const lectura = base.entidades[lecturaId]!;
+    const modelo: Modelo = {
+      ...base,
+      entidades: {
+        ...base.entidades,
+        [lecturaId]: {
+          ...lectura,
+          simulacion: {
+            simulable: true,
+            configuracion: { modo: "numerica", distribucion: "uniform", uniformMin: 10, uniformMax: 20 },
+          },
+        },
+      },
+    };
+
+    const a = iniciarSimulacion(modelo, modelo.opdRaizId, { semilla: 123 });
+    const b = iniciarSimulacion(modelo, modelo.opdRaizId, { semilla: 123 });
+
+    expect(a.semilla).toBe(123);
+    expect(a.valoresRuntime[lecturaId]).toBe(b.valoresRuntime[lecturaId]);
+  });
 });
 
 describe("aplicarCambiosValor — propagación atributo→atributo", () => {

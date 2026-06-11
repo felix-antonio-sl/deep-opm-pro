@@ -522,6 +522,7 @@ export function etiquetaTextoTagged(text: string, distance: number, offset: numb
         fontFamily: CODEX.fuentes.serif,
         fontSize: 12,
         fontWeight: 400,
+        fontStyle: "italic",
         textAnchor: "middle",
         textVerticalAnchor: "middle",
         pointerEvents: "none",

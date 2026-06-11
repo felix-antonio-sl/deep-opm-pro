@@ -215,6 +215,17 @@ describe("operaciones de modelo", () => {
     }).ok).toBe(false);
   });
 
+  test("enlaces estructurales etiquetados requieren homogeneidad objeto-objeto o proceso-proceso", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Objeto"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Proceso"));
+    const objeto = entidadPorNombre(modelo, "Objeto");
+    const proceso = entidadPorNombre(modelo, "Proceso");
+
+    expect(validarFirmaEnlace("etiquetado", objeto, proceso).ok).toBe(false);
+    expect(validarFirmaEnlace("etiquetadoBidireccional", proceso, objeto).ok).toBe(false);
+  });
+
   test("renombra entidad con nombre no vacio", () => {
     const creado = crearObjeto(crearModelo(), "opd-1", { x: 0, y: 0 });
     expect(creado.ok).toBe(true);
@@ -843,6 +854,23 @@ describe("operaciones de modelo", () => {
     expect(estructural.ok).toBe(false);
     if (estructural.ok) return;
     expect(estructural.error).toContain("[V-237][V-239]");
+  });
+
+  test("AP-04 bloquea resultado hacia estado inicial", () => {
+    let modelo = crearModelo();
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Aprobar"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Pedido"));
+    const aprobar = entidadPorNombre(modelo, "Aprobar");
+    const pedido = entidadPorNombre(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedido.id)).modelo;
+    const [inicial] = estadosDeEntidad(modelo, pedido.id);
+    if (!inicial) throw new Error("La prueba esperaba estado inicial");
+    modelo = must(designarEstadoInicial(modelo, inicial.id));
+
+    const resultado = crearEnlace(modelo, modelo.opdRaizId, aprobar.id, extremoEstado(inicial.id), "resultado");
+
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) expect(resultado.error).toContain("estado inicial");
   });
 
   test("quita despliegue y elimina partes/agregaciones locales", () => {

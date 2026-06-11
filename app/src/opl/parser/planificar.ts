@@ -116,7 +116,7 @@ function planificarDesignacionEstado(
       linea: ast.linea,
       columna: 1,
       mensaje: `El objeto '${entidad.nombre}' no tiene un estado llamado '${ast.estado}'.`,
-      sugerencia: "Declara primero los estados con 'X puede ser ...'.",
+      sugerencia: "Declara primero los estados con 'X puede estar ...'.",
     });
     return;
   }
@@ -251,12 +251,13 @@ function planificarEvento(
 ): void {
   // D1: el estado del iniciador (ETS/EHS) se pasa como parte del extremo del enlace
   // via `endpointsBase`, no como patch separado de estado.
-  // Caso "X inicia Y" sin sub-clausula → invocacion proceso→proceso con modificador evento.
+  // Caso "X inicia Y" sin sub-clausula → invocacion proceso→proceso base.
+  // El kernel no admite condicion/evento/no sobre invocacion [AP-01..03].
   if (!ast.base) {
     const origen = refEntidadPorNombre(modelo, ast.iniciador, "proceso", ast.linea, registry);
     const destino = refEntidadPorNombre(modelo, ast.proceso, "proceso", ast.linea, registry);
     if (!origen || !destino) return;
-    planificarEnlace(modelo, ast.linea, "invocacion", origen, destino, ast.etiqueta, registry, { modificador: "evento" });
+    planificarEnlace(modelo, ast.linea, "invocacion", origen, destino, ast.etiqueta, registry);
     return;
   }
   const endpoints = endpointsBase(modelo, ast.base, ast.linea, registry);
@@ -449,7 +450,11 @@ function planificarCondicion(
     endpoints.destino,
     ast.etiqueta,
     registry,
-    { modificador: "condicion" },
+    {
+      modificador: "condicion",
+      ...(ast.condicionanteEstado ? { estadoEntrada: ast.condicionanteEstado } : {}),
+      ...(ast.estadoSalida ? { estadoSalida: ast.estadoSalida } : {}),
+    },
   );
 }
 

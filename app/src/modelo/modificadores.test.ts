@@ -36,6 +36,27 @@ describe("modificadores de enlace", () => {
     expect(aplicarModificador(modelo, estructural.id, "evento").ok).toBe(false);
   });
 
+  test("rechaza modificadores en resultado, invocacion, excepciones temporales y efecto escindido par", () => {
+    let modelo = modeloBase();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 420, y: 80 }, "Salida"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 620, y: 80 }, "Validar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Salida"), "resultado"));
+    modelo = must(crearInvocacion(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Validar")));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Validar"), "excepcionSobretiempo"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Salida"), "efecto"));
+
+    expect(aplicarModificador(modelo, enlacePorTipo(modelo, "resultado"), "evento").ok).toBe(false);
+    expect(aplicarModificador(modelo, enlacePorTipo(modelo, "invocacion"), "evento").ok).toBe(false);
+    expect(aplicarModificador(modelo, enlacePorTipo(modelo, "excepcionSobretiempo"), "condicion").ok).toBe(false);
+
+    const efectoId = enlacePorTipo(modelo, "efecto");
+    const efectoEscindido = {
+      ...modelo.enlaces[efectoId]!,
+      efectoEscindido: { grupoId: "g1", enlacePadreId: "l-padre", rol: "entrada" as const, modo: "par" as const },
+    };
+    expect(validarMetadatosEnlace({ ...efectoEscindido, modificador: "evento" }).ok).toBe(false);
+  });
+
   test("probabilidad solo aplica a enlaces evento y se limpia al quitar modificador", () => {
     let modelo = modeloBase();
     const enlaceId = enlacePorTipo(modelo, "consumo");
