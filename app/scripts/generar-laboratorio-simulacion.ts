@@ -449,8 +449,14 @@ async function subir(modelo: Modelo): Promise<void> {
   const cookie = login.headers.get("set-cookie")?.split(";")[0];
   if (!cookie) throw new Error("login sin cookie");
 
+  // Optimistic locking: si el modelo ya existe, hay que mandar su revisión.
+  const listaPrevia = await fetch(`${base}/__deep-opm/modelos`, { headers: { cookie } });
+  const previo = ((await listaPrevia.json()) as { modelos?: Array<{ id: string; revision?: number }> })
+    .modelos?.find((mm) => mm.id === "lab-sim-opm-v3");
+
   const ahora = new Date().toISOString();
   const persistido = {
+    ...(previo?.revision !== undefined ? { revision: previo.revision } : {}),
     id: "lab-sim-opm-v3",
     nombre: modelo.nombre,
     descripcion: "Modelo canónico de prueba del motor de simulación (generado por scripts/generar-laboratorio-simulacion.ts)",
