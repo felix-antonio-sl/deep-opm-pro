@@ -56,6 +56,11 @@ const NOMINALIZACIONES_DEVERBALES_ES = new Set([
   "ingreso", "egreso", "cierre", "retiro", "retorno", "traslado", "transporte",
   "despacho", "ajuste", "registro", "monitoreo", "estudio", "entrega", "recarga",
   "respuesta", "toma", "carga", "turnado", "interconsulta",
+  // S2 (solicitud upstream skill 2026-06-11): familia deverbal en -e átona
+  // (despliegue←desplegar, repliegue←replegar, desagüe←desaguar — NFD la vuelve
+  // "desague" —, deslinde←deslindar, embarque/desembarque←(des)embarcar).
+  // Excluye deliberadamente sustantivos en -e no deverbales (parque, bosque, norte).
+  "despliegue", "repliegue", "desague", "deslinde", "embarque", "desembarque",
 ]);
 /**
  * B-6: conectores preposicionales/coordinantes que separan la cabeza nominal de

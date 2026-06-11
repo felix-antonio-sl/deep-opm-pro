@@ -118,6 +118,9 @@ describe("checkProcesoNombreFormaVerbal", () => {
     "Estudio diagnóstico", "Registro del formulario de ingreso",
     "Interconsulta de especialidad", "Recarga de oxígeno", "Entrega en domicilio",
     "Respuesta clínica al emergente", "Retorno de equipamiento médico", "Turnado",
+    // S2 (solicitud upstream skill 2026-06-11): familia deverbal en -e átona.
+    "Despliegue", "Despliegue a runtime", "Repliegue de equipos", "Desagüe del estanque",
+    "Deslinde de responsabilidades", "Embarque de insumos",
   ];
   const invalidos = [
     "Proceso", "Sistema", "Cliente", "ABC", "Control", "Mesa", "Orden",
@@ -125,6 +128,8 @@ describe("checkProcesoNombreFormaVerbal", () => {
     "Output", "Input", "Paquete", "Pedido", "Logistica", "Servicio", "Valor",
     // B-6 guarda adversarial: cabeza no-deverbal + complemento no-verbal sigue acusada.
     "Producto de calidad",
+    // S2 guarda adversarial: sustantivos en -e que NO son deverbales siguen acusados.
+    "Parque", "Bosque nativo",
   ];
 
   for (const nombre of validos) {
