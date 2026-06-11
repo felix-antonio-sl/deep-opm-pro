@@ -96,3 +96,41 @@ skill lo maneja hoy como decisión declarada.
 skill `modelamiento-opm` v1.8.0 (estado `revisar-visual`, 2 iteraciones
 read-through). El ancla `ratificar:frontera-deploy` del modelo de prueba queda
 como pendiente real para ejercitar W6.5 cuando se importe el bundle.
+
+---
+
+## RESOLUCIÓN (deep-opm-pro, 2026-06-11)
+
+**S1 — RESUELTO, sin re-pin.** Los 5 claims se verificaron exactos contra el
+código. Implementación (la primera alternativa pedida): el compilador, TRAS
+emitir los hechos del OPD hijo (para respetar la esencia/afiliación declarada
+y no perder hechos del ledger), registra cada miembro de la lista de
+`X se descompone en …` y emite la agregación contorno→miembro que el DSL ya
+consumía como contención (`registrarInternoInzoom`; no crea enlace en el
+bundle). Un miembro declarado SOLO en la lista se crea como proceso interno
+(es interior declarado). `NodoOpd` gana `miembros: string[]`
+(`compilar/estructura.ts::extraerMiembros`, lista simple coma/` y `).
+
+**Por qué NO aplicó el gate de re-pin**: el fix vive íntegro en `compilar/*`
+(vía proto); `layout.ts` y la vía DSL no se tocan. El golden de byte-identidad
+hd-opm es la emisión **DSL** (proto≠fuente golden, F5-V12) — la suite completa
+(2508/0, incluye los goldens familia-V) lo defiende. Solo cambia el layout de
+bundles compilados desde proto, que es el efecto pedido.
+
+Verificación: 4 tests nuevos en `compilador.test.ts` (contención geométrica
+miembro⊂contorno, cero agregaciones inventadas en el bundle, LF-19 sin falso
+positivo, miembro solo-lista existe como proceso) + render in-vivo del
+`PROTO_CAFE`: subprocesos DENTRO de la elipse del contorno.
+
+**S2 — RESUELTO.** La familia deverbal en `-e` átona entra al léxico curado
+B-6: `despliegue, repliegue, desague (NFD), deslinde, embarque, desembarque`;
+guarda adversarial conservada (parque/bosque siguen acusados).
+
+**Hallazgo colateral (deuda preexistente, fuera de alcance)**: el sufijo de
+cola `-ion` de `VERBAL_SUFIJO_RE` (pensado para el inglés `-ing`) produce un
+falso negativo — `Norte de la región` pasa como forma verbal porque la cola
+`región` matchea. Documentado aquí; no se tocó.
+
+**Para la skill**: ningún cambio requerido en KORA. El smoke H1 sigue verde y
+el render del in-zoom desde proto ya es canónico; `revisar-visual` dejará de
+ver el defecto. Commits: `feat(compilar): S1 …` + `feat(checkers): S2 …`.

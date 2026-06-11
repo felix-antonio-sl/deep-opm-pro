@@ -10,6 +10,16 @@
 
 ---
 
+## Actualización 2026-06-11 — encargo skill modelamiento-opm: S1 contención in-zoom desde proto + S2 léxico deverbal (RESUELTOS)
+
+**Solicitud upstream de la skill** (`docs/solicitudes-upstream/2026-06-11-contencion-inzoom-proto-skill-modelamiento-opm.md`, hallazgos de su prueba end-to-end del loop M2/H1/H2): **S1 (P1)** `se descompone en` no llenaba `internosInzoom` — todo in-zoom compilado desde proto renderizaba los subprocesos FUERA del contorno (falso positivo LF-19); **S2 (P3)** léxico deverbal sin la familia en `-e` átona.
+
+- **S1 RESUELTO sin re-pin**: el compilador, tras emitir los hechos del OPD hijo, registra los miembros de la lista y emite las agregaciones contorno→miembro que el DSL ya consume como contención (`registrarInternoInzoom`; cero enlaces nuevos en el bundle). El gate de re-pin NO aplicó: fix confinado a `compilar/*`; `layout.ts` y la vía DSL intactos — el golden byte-id hd-opm es la emisión DSL (proto≠fuente golden, F5-V12) y la suite lo defiende. Verificado visual: `PROTO_CAFE` renderiza el in-zoom canónico (subprocesos dentro de la elipse).
+- **S2 RESUELTO**: `despliegue/repliegue/desague/deslinde/embarque/desembarque` al léxico curado B-6; guarda adversarial conservada.
+- **Hallazgo colateral preexistente (deuda anotada en la solicitud)**: la cola `-ion` de `VERBAL_SUFIJO_RE` (para el inglés `-ing`) da falso negativo (`región` en cola valida el nombre).
+
+**Gate:** check **2508/0** (+12: 4 S1 + 6+2 S2) · lint · `render:headless:smoke` OK. Sin cambio UI (sin governance/smoke browser). La skill no requiere cambio en KORA; resolución escrita en la solicitud.
+
 ## Actualización 2026-06-10 — selector de modelos en el shell mobile (DESPLEGADO)
 
 **Reporte del operador post-auth: "en mobile no puedo acceder a laboratorio de simulación".** Causa raíz: NO era regresión de auth — el shell mobile-readonly **nunca tuvo selección de modelo** (su propio comentario delegaba a "la futura capa de tenants/auth"; proyectaba solo el SD vacío de sesión). Auth v1 cerró la identidad; este corte cierra la selección:
