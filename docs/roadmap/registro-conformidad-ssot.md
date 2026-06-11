@@ -31,7 +31,7 @@ red de recuperación, política de `docs/auditorias/README.md`).
 | V-5 — efecto a objeto sin estados: solo checker blando | DEBE (SSOT exige rechazo) | **PROGRAMADA** (P3) | Criterio del dictamen §10: migrar de aviso a kernel cuando la regla SSOT es DEBE. Checker `B-4`/`EFECTO_SIN_TRANSICION` ya avisa. |
 | V-6 — afiliación no heredada por cadena estructural en render | DEBE | **PROGRAMADA** (P3) | Render no hereda afiliación; sin impacto en persistencia ni OPL. |
 | V-8 — `normalizarColoresSvg` descarta alfa en export SVG | DEBE (fidelidad de export) | **PROGRAMADA** (P3) | Pérdida de canal alfa en SVG headless; afecta fidelidad visual, no semántica. |
-| V-7 — deriva documental §18.2 (dashes/pin current) | — | **ENMIENDA PROPUESTA** | El código es la realización vigente y correcta; la spec (`spec-forja-opd-es` §18.2) quedó atrás. Corresponde enmienda documental en KORA, no cambio de herramienta. |
+| V-7 — deriva documental §18.2 (dashes/pin current) | — | **CERRADA 2026-06-11** (enmienda) | Enmendada en KORA: `spec-forja-opd-es` v1.0.4 (commit `017dc1b9`) reconcilia §18.2 (dashes del canal runtime), §18.3 (current declarado `●` vs anillo de runtime) y R-OPD-SIM-2 (anillo crimson sobre cápsula; pin gota solo para inicial) con la realización vigente, verificada contra `composers/halos.ts`/`enlace.ts`/`entidad.ts`. |
 | Out-zoom (mecanismo de refinamiento OPM) | Canónico en SSOT | **PROGRAMADA** | Sin superficie de autoría (oportunidad anotada: reutilizar `equivalencia/`). Declarado como capacidad no implementada; no hay modelo productivo que lo demande aún. |
 | GAPs §22 `spec-forja-opd-es` (GAP-OPD-UIFORJA-08*) | varios | **PROGRAMADOS** | Backlog vivo en `docs/roadmap/` (frente #4 del HANDOFF). |
 
