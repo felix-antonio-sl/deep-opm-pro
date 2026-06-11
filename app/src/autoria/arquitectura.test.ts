@@ -8,6 +8,8 @@ const SRC_ROOT = path.resolve(AUTORIA_ROOT, "..");
 const APP_ROOT = path.resolve(SRC_ROOT, "..");
 const SCRIPTS_ROOT = path.join(APP_ROOT, "scripts");
 const MODELO_ROOT = path.join(SRC_ROOT, "modelo");
+const RENDER_ROOT = path.join(SRC_ROOT, "render");
+const CANVAS_ROOT = path.join(SRC_ROOT, "canvas");
 const OPL_ROOT = path.join(SRC_ROOT, "opl");
 const SERIALIZACION_ROOT = path.join(SRC_ROOT, "serializacion");
 const PERSISTENCIA_ROOT = path.join(SRC_ROOT, "persistencia");
@@ -16,6 +18,14 @@ const CAPAS_RUNTIME_PROHIBIDAS = new Set(["app", "canvas", "persistencia", "rend
 const CAPAS_INTERACTIVAS_PROHIBIDAS = new Set(["app", "render", "server", "store", "ui"]);
 const IMPORT_RE = /(?:import|export)\s+(?:type\s+)?(?:[^'"]*?\s+from\s+)?["']([^"']+)["']|import\s*\(\s*["']([^"']+)["']\s*\)/g;
 const CATCH_VACIO_RE = /catch\s*(?:\([^)]*\))?\s*\{\s*\}/g;
+
+// Waivers CONGELADOS de la frontera render↛ui (auditoría 2026-06-11): deuda
+// conocida que no debe crecer. Retirar entradas al resolverlas; no añadir.
+const WAIVERS_RENDER_A_UI = new Set([
+  "render/jointjs/handlers/zoom.ts -> ui/atajosTeclado",
+  "render/jointjs/overlayCanvas/FlashToast.tsx -> ui/tokens",
+  "render/jointjs/overlayCanvas/ErrorBadge.tsx -> ui/tokens",
+]);
 
 describe("arquitectura/autoria", () => {
   test("autoria productiva permanece headless y no depende del runtime interactivo", () => {
@@ -78,6 +88,29 @@ describe("arquitectura/autoria", () => {
     );
 
     expect(violaciones).toEqual([]);
+  });
+
+  test("render no depende de ui salvo waivers congelados; canvas no depende de jointjs", () => {
+    const renderAUi = archivosProductivos(RENDER_ROOT).flatMap((archivo) =>
+      importsRelativosSrc(archivo)
+        .filter((destino) => capaTop(destino) === "ui")
+        .map((destino) => `${rel(archivo)} -> ${destino}`),
+    );
+    const violacionesRender = renderAUi.filter((violacion) => !WAIVERS_RENDER_A_UI.has(violacion));
+    const waiversMuertos = [...WAIVERS_RENDER_A_UI].filter((waiver) => !renderAUi.includes(waiver));
+
+    const violacionesCanvas = archivosProductivos(CANVAS_ROOT).flatMap((archivo) => {
+      const contenido = readFileSync(archivo, "utf8");
+      return [...contenido.matchAll(IMPORT_RE)]
+        .map((match) => match[1] ?? match[2])
+        .filter((spec): spec is string => spec === "jointjs" || !!spec?.startsWith("jointjs/"))
+        .map((spec) => `${rel(archivo)} -> ${spec}`);
+    });
+
+    expect(violacionesRender).toEqual([]);
+    // Un waiver que ya no matchea es deuda saldada: retirarlo del set.
+    expect(waiversMuertos).toEqual([]);
+    expect(violacionesCanvas).toEqual([]);
   });
 
   test("no quedan catch vacíos sin clasificar en src ni scripts", () => {

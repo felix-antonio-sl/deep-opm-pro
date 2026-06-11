@@ -113,6 +113,16 @@ function planificarContexto(
     : entidad.refinamientos?.despliegue;
   if (yaExiste) return;
   registry.add({ tipo: "crear-refinamiento", linea: ast.linea, entidadId: entidad.id, familia: ast.familia });
+  // Sin pérdida silenciosa: la oración canónica enumera miembros, pero el
+  // reverse solo crea el refinamiento (OPD hijo vacío); los miembros se
+  // modelan en el canvas o con sus propias oraciones.
+  registry.diagnostico({
+    codigo: "unsupported-kernel",
+    severidad: "info",
+    linea: ast.linea,
+    columna: 1,
+    mensaje: `Se crea ${ast.familia === "descomposicion" ? "la descomposición" : "el despliegue"} de '${ast.sujeto}' con OPD hijo vacío; los miembros enumerados en la oración no se crean ni se mueven automáticamente.`,
+  });
 }
 
 function planificarDesignacionEstado(

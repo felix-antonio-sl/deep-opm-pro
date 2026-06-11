@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "preact/compat";
+import { useRef } from "preact/hooks";
 import { createStore } from "zustand/vanilla";
 import { createAtajosSlice } from "./store/atajos";
 import { createCarpetasSlice } from "./store/carpetas";
@@ -38,9 +39,33 @@ export const store = crearOpmStore({ conectarRuntimeGlobal: true });
 
 
 export function useOpmStore<T>(selector: (state: OpmStore) => T): T {
-  const state = useSyncExternalStore(
-    store.subscribe,
-    store.getState,
-  );
-  return selector(state);
+  // El snapshot es el VALOR seleccionado, no el estado completo: con el estado
+  // completo como snapshot toda mutación del store re-renderiza los ~600
+  // consumidores. El valor se recomputa en render (el selector puede cerrar
+  // sobre props frescas) y se cachea por identidad de estado, conservando la
+  // referencia previa cuando Object.is no cambia, para que el componente solo
+  // re-renderice cuando SU selección cambia.
+  const cache = useRef<{ state: OpmStore; selected: T } | null>(null);
+  const selectorRef = useRef(selector);
+  selectorRef.current = selector;
+
+  const estadoRender = store.getState();
+  const seleccionRender = selector(estadoRender);
+  const previo = cache.current;
+  cache.current = {
+    state: estadoRender,
+    selected: previo && Object.is(previo.selected, seleccionRender) ? previo.selected : seleccionRender,
+  };
+
+  const getSnapshot = (): T => {
+    const state = store.getState();
+    const cached = cache.current;
+    if (cached && cached.state === state) return cached.selected;
+    const selected = selectorRef.current(state);
+    const estable = cached && Object.is(cached.selected, selected) ? cached.selected : selected;
+    cache.current = { state, selected: estable };
+    return estable;
+  };
+
+  return useSyncExternalStore(store.subscribe, getSnapshot);
 }

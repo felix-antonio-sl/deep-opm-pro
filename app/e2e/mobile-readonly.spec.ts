@@ -294,6 +294,15 @@ test.describe("mobile-readonly gestos táctiles del canvas", () => {
     await esperarMobileLectura(page);
     await page.getByTestId("mobile-modelo-item").first().click();
     await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
+    // La vista diagrama se monta antes de que cargarLocal commitee el modelo
+    // sembrado: esperar el commit real evita snapshots del modelo vacío inicial.
+    await expect
+      .poll(async () =>
+        page.evaluate(() =>
+          (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.(),
+        ),
+      )
+      .toContain('"m-mobile"');
   }
 
   function dispatchTouch(
