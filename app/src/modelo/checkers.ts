@@ -30,7 +30,7 @@
  */
 
 import { naturalezaDeEnlace } from "./constantes";
-import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad } from "./extremos";
+import { entidadDeExtremo, entidadIdDeExtremo, extremoApuntaAEntidad, extremoEsEstado } from "./extremos";
 import { verificarLinealidad } from "./composicion";
 import { observarPreservacionFrontera } from "./equivalencia";
 import { estadoTieneNombreCanonico } from "./nombresCanonicos";
@@ -108,6 +108,7 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkUnfoldContenido(modelo),
     ...checkProcesoTransforma(modelo),
     ...checkEfectoObjetoSinEstados(modelo),
+    ...checkEfectoSinTransicion(modelo),
     ...checkEntidadSinApariciones(modelo),
     ...checkProcesoSistemicoConectado(modelo),
     ...checkRecursoLinealMultiplesConsumidores(modelo),
@@ -379,6 +380,41 @@ export function checkEfectoObjetoSinEstados(modelo: Modelo): AvisoMetodologico[]
       "O re-firma el enlace como resultado (creación) o consumo según corresponda.",
     ],
   }));
+}
+
+/**
+ * El efecto plano es una ABSTRACCIÓN transitoria: dice "lo cambia" sin decir
+ * de qué a qué. Madura declarando el par de estados (TS3 `cambia de 'a' a 'b'`,
+ * o TS4/TS5 parciales) o escindiéndose en consumo+resultado. Un modelo poblado
+ * de efectos planos sobre objetos CON estados nunca completó ese refinamiento:
+ * se acusa cada enlace (mejora) para que el exceso sea visible y accionable.
+ * Complementa a EFECTO_OBJETO_SIN_ESTADOS (que cubre el caso sin estados).
+ */
+export function checkEfectoSinTransicion(modelo: Modelo): AvisoMetodologico[] {
+  const avisos: AvisoMetodologico[] = [];
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (enlace.tipo !== "efecto") continue;
+    const tieneTransicion =
+      enlace.estadoEntradaId !== undefined ||
+      enlace.estadoSalidaId !== undefined ||
+      enlace.efectoEscindido !== undefined ||
+      extremoEsEstado(enlace.origenId) ||
+      extremoEsEstado(enlace.destinoId);
+    if (tieneTransicion) continue;
+    const objeto = entidadDeExtremo(modelo, enlace.destinoId);
+    if (objeto?.tipo !== "objeto" || cantidadEstadosDe(modelo, objeto.id) === 0) continue;
+    avisos.push(aviso("EFECTO_SIN_TRANSICION", objeto, {
+      severidad: "sugerencia",
+      mensaje: `El efecto sobre "${objeto.nombre}" no declara transición de estados, aunque el objeto sí los tiene. El efecto plano es una abstracción: refínalo declarando de qué estado a qué estado cambia, o escíndelo en el par consumo+resultado.`,
+      rationale: "El efecto abstrae un cambio de estado; cuando el objeto tiene estados declarados, dejar el efecto plano pierde la semántica de la transición (§3.15, fuerza semántica §6.5).",
+      ssotRef: `${KB_OPM} §3.15`,
+      accionesSugeridas: [
+        "Declara la transición en el Inspector del enlace (estado de entrada/salida — TS3/TS4/TS5).",
+        "O escinde el efecto en consumo (estado origen → proceso) + resultado (proceso → estado destino).",
+      ],
+    }));
+  }
+  return avisos;
 }
 
 /**

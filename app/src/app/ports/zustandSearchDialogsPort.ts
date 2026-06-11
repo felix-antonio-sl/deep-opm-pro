@@ -16,20 +16,24 @@ export function useZustandModelSearchDialogPort(): ModelSearchDialogPort {
   const query = useOpmStore((s) => s.busquedaCosasQuery);
   const filtro = useOpmStore((s) => s.busquedaCosasFiltro);
   const modelo = useOpmStore((s) => s.modelo);
+  const opdActivoId = useOpmStore((s) => s.opdActivoId);
   const cerrar = useOpmStore((s) => s.cerrarBusquedaCosas);
   const fijarQuery = useOpmStore((s) => s.fijarBusquedaCosasQuery);
   const fijarFiltro = useOpmStore((s) => s.fijarBusquedaCosasFiltro);
   const saltar = useOpmStore((s) => s.saltarAResultadoBusqueda);
+  const traerAlOpdActivo = useOpmStore((s) => s.traerCosaAlOpdActivo);
 
   return {
     abierto,
     query,
     filtro,
     modelo,
+    opdActivoId,
     cerrar,
     fijarQuery,
     fijarFiltro,
     saltar,
+    traerAlOpdActivo,
   };
 }
 

@@ -69,11 +69,13 @@ describe("proyeccionBarraSimulacion", () => {
 
     // BUG-20260608T171552Z-17477a ronda 2 (F1.19): el `modo` ya vive en
     // el segmented de la barra; no se duplica como chip en la narrativa.
+    // Sin habilitadores no hay fase preparación: el primer beat con valor
+    // semántico es el consumo (y con resultado, la lista omite el cierre).
     expect(ui).toEqual({
       tono: "neutro",
-      titulo: "Preparación: Calentar",
-      detalle: "Se verifican condiciones y habilitadores; todavía no se consume ni produce estado.",
-      contexto: ["paso 1 de 1", "fase 1/5", "SD"],
+      titulo: "Consumo: Calentar",
+      detalle: "Inicio del proceso: consume Agua: solidificada -> líquida por ruta sol-liq.",
+      contexto: ["paso 1 de 1", "fase 1/3", "SD"],
     });
   });
 

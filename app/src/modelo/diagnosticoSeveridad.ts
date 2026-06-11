@@ -34,6 +34,9 @@ const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   // estructural del canon); se emite como mejora hasta que el operador decida
   // escalarlo a validarModelo.
   EFECTO_OBJETO_SIN_ESTADOS: "mejora",
+  // El efecto plano es abstracción transitoria: madura a transición TS3-TS5
+  // o al par consumo+resultado. Mejora accionable, no bloqueo.
+  EFECTO_SIN_TRANSICION: "mejora",
   // B-2: entidad sin apariciones (invisible al OPL). Mejora accionable.
   ENTIDAD_SIN_APARICIONES: "mejora",
 };

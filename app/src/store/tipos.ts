@@ -583,6 +583,9 @@ export interface OpmStore {
   reordenarSubprocesoEnTimeline: (opdId: Id, aparienciaId: Id, nuevaY: number) => void;
   actualizarVerticesEnlace: (aparienciaEnlaceId: Id, vertices: Array<{ x: number; y: number }>) => void;
   actualizarPosicionLabelEnlace: (aparienciaEnlaceId: Id, labelKey: string, posicion: { distance: number; offset?: number | { x: number; y: number }; angle?: number }) => void;
+  /** Trae una entidad existente al OPD activo creando su apariencia (mecanismo
+   *  para reusar cosas nacidas en un refinamiento como externas en otro OPD). */
+  traerCosaAlOpdActivo: (entidadId: Id) => void;
   traerConectadosSeleccionado: (familias?: readonly FamiliaTraerConectados[]) => void;
   traerEnlacesEntreSeleccionadas: () => void;
   ocultarAparienciaSeleccionada: () => void;

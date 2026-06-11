@@ -12,10 +12,12 @@ export interface ModelSearchDialogPort {
   query: string;
   filtro: BusquedaCosasFiltro;
   modelo: Modelo;
+  opdActivoId: Id;
   cerrar: () => void;
   fijarQuery: (q: string) => void;
   fijarFiltro: (filtro: BusquedaCosasFiltro) => void;
   saltar: (resultado: ResultadoBusquedaSalto) => void;
+  traerAlOpdActivo: (entidadId: Id) => void;
 }
 
 export interface WorkspaceSearchDialogPort {

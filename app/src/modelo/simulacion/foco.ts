@@ -59,7 +59,11 @@ export function focoPasoActualSimulacion(modelo: Modelo, contexto: ContextoSimul
       paso,
       procesoActivoId: null,
       entidadesInvolucradasIds: entidadesInicioIds,
-      enlacesInvolucradosIds: enlacesDeFaseSimulacion(modelo, paso, faseActual, contexto.estadosCurrent),
+      // El frame de inicio es quieto: antes del primer avance solo se muestran
+      // habilitadores/condiciones (fase preparación), nunca el flujo de
+      // consumo — aunque la primera fase REAL del paso ya sea "consumo"
+      // porque la preparación vacía se omite de la lista de fases.
+      enlacesInvolucradosIds: enlacesDeFaseSimulacion(modelo, paso, "preparacion", contexto.estadosCurrent),
       estadosOrigenIds: unirIds(idsEstadosOrigen(transicionesActivas), estadosCurrentDeEntidades(contexto, entidadesInicioIds)),
       estadosResultadoIds: [],
       estadosCurrentVisual,

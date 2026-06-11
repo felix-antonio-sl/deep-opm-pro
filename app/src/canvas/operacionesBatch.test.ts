@@ -16,6 +16,7 @@ import {
   redimensionarBatch,
   traerConectadosBatch,
   traerEnlacesEntreBatch,
+  traerEntidadAlOpd,
 } from "./operacionesBatch";
 
 describe("operacionesBatch", () => {
@@ -129,6 +130,27 @@ describe("operacionesBatch", () => {
     expect(aparienciaDeEntidadEnOpd(traido, opdId, resultado)).toBeDefined();
     expect(aparienciaDeEntidadEnOpd(traido, opdId, externo)).toBeUndefined();
     expect(Object.values(traido.opds[opdId]!.enlaces)).toHaveLength(2);
+  });
+
+  test("traerEntidadAlOpd crea la apariencia de una cosa nacida en otro OPD y las apariciones de enlaces visibles", () => {
+    // El instrumento existe en el modelo (nació en el OPD raíz) pero no aparece
+    // en SD2, donde el proceso sí aparece: traerlo debe crear su apariencia y
+    // la aparición del enlace instrumento→proceso (ambos extremos visibles).
+    const { modelo, opdId, instrumento, proceso } = modeloBringConOpdParcial();
+    expect(aparienciaDeEntidadEnOpd(modelo, opdId, instrumento)).toBeUndefined();
+    const traido = must(traerEntidadAlOpd(modelo, opdId, instrumento));
+    expect(aparienciaDeEntidadEnOpd(traido, opdId, instrumento)).toBeDefined();
+    expect(aparienciaDeEntidadEnOpd(traido, opdId, proceso)).toBeDefined();
+    const enlacesOpd = Object.values(traido.opds[opdId]!.enlaces);
+    expect(enlacesOpd).toHaveLength(1);
+  });
+
+  test("traerEntidadAlOpd es idempotente y rechaza entidad inexistente", () => {
+    const { modelo, opdId, proceso } = modeloBringConOpdParcial();
+    const sinCambio = must(traerEntidadAlOpd(modelo, opdId, proceso));
+    expect(sinCambio).toBe(modelo);
+    const invalido = traerEntidadAlOpd(modelo, opdId, "no-existe");
+    expect(invalido.ok).toBe(false);
   });
 
   test("traerConectadosBatch no duplica apariencia visible y solo agrega enlace faltante", () => {

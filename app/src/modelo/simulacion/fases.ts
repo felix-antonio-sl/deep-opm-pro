@@ -14,7 +14,7 @@ const ROTULOS_FASE: Record<FaseSimulacion, string> = {
   consumo: "consumo",
   proceso: "proceso activo",
   resultado: "resultado",
-  cierre: "cierre",
+  cierre: "completado",
 };
 
 const TIPOS_CONSUMO = new Set<TipoEnlace>(["consumo", "efecto"]);
@@ -22,15 +22,24 @@ const TIPOS_RESULTADO = new Set<TipoEnlace>(["resultado", "efecto", "invocacion"
 const TIPOS_PREPARACION = new Set<TipoEnlace>(["agente", "instrumento"]);
 
 export function fasesDelPasoSimulacion(modelo: Modelo, paso: PasoSimulacion): FaseSimulacion[] {
-  const fases: FaseSimulacion[] = ["preparacion"];
+  // Solo las fases con contenido semántico detienen el avance: preparación sin
+  // habilitadores/condiciones es ruido, y "cierre" tras un resultado duplica el
+  // beat final (el resultado YA es el término observable del proceso). El
+  // efecto del paso se aplica al cerrar la ÚLTIMA fase de la lista, sea cual
+  // sea (ejecutarFaseSimulacion delega cuando no hay siguiente).
+  const fases: FaseSimulacion[] = [];
+  if (enlacesPreparacion(modelo, paso).length > 0) {
+    fases.push("preparacion");
+  }
   if (enlacesConsumo(modelo, paso).length > 0 || paso.transicionesPlanificadas.some((t) => t.estadoAntesId !== null)) {
     fases.push("consumo");
   }
   fases.push("proceso");
   if (enlacesResultado(modelo, paso).length > 0 || paso.transicionesPlanificadas.some((t) => t.estadoDespuesId !== null)) {
     fases.push("resultado");
+  } else {
+    fases.push("cierre");
   }
-  fases.push("cierre");
   return fases;
 }
 

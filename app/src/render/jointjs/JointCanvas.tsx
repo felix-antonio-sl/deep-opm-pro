@@ -5,7 +5,7 @@ import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort
 import { opcionesProyeccionJointCanvas, useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { estadosInicialesDelModelo, focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
-import { debeAnimarTokensSim, tokensViajeDelPaso } from "../../modelo/simulacion/animacionTokens";
+import { debeAnimarTokensSim, tokensDeFaseSimulacion } from "../../modelo/simulacion/animacionTokens";
 import { CODEX } from "./constantes.codex";
 import { entidadIdDeExtremo, nombreExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
 import type { Apariencia, Enlace, ExtremoEnlace, Id, Modelo, Opd, TipoEnlace } from "../../modelo/tipos";
@@ -549,7 +549,10 @@ export function JointCanvas({
     const duracion = Math.max(420, Math.round(980 / simVelocidad));
     const tokensVivos: SVGElement[] = [];
     const timeouts: number[] = [];
-    for (const enlaceId of tokensViajeDelPaso(foco)) {
+    const tokensFase = foco.paso
+      ? tokensDeFaseSimulacion(modelo, foco.paso, foco.faseConceptual, contextoSimulacion?.estadosCurrent ?? {})
+      : [];
+    for (const { enlaceId, direccion } of tokensFase) {
       const cell = celdaJointDeEnlaceSimulacion(adapter, enlaceId);
       if (!cell) continue;
       const linkView = adapter.paper.findViewByModel(cell);
@@ -563,10 +566,10 @@ export function JointCanvas({
           (linkView as unknown as {
             sendToken: (
               token: SVGElement,
-              opt: { duration: number; direction: "normal" },
+              opt: { duration: number; direction: "normal" | "reverse" },
               callback?: () => void,
             ) => void;
-          }).sendToken(token, { duration: duracion, direction: "normal" }, () => token.remove());
+          }).sendToken(token, { duration: duracion, direction: direccion }, () => token.remove());
         }, delay);
         timeouts.push(timeout);
       };

@@ -58,6 +58,7 @@ import {
   ocultarAparienciaBatch,
   traerConectadosBatch,
   traerEnlacesEntreBatch,
+  traerEntidadAlOpd,
 } from "../../canvas/operacionesBatch";
 import { FAMILIAS_TRAER_DEFAULT, normalizarFamiliasTraer } from "../../canvas/reglasTraer";
 import { cuantizarPosicion, normalizarGridConfig, type GridConfig } from "../../canvas/grid";
@@ -868,6 +869,33 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
       const resultado = resetearAnclajesSimboloEstructuralOp(modelo, opdActivoId, aparienciaEnlaceIds);
       if (resultado.ok) commitModelo(set, modelo, resultado.value, { dirtyModelo });
       else set({ mensaje: resultado.error });
+    },
+
+    traerCosaAlOpdActivo(entidadId) {
+      const estado = get();
+      const { modelo, opdActivoId } = estado;
+      const entidad = modelo.entidades[entidadId];
+      if (!entidad) {
+        set({ mensaje: "La cosa ya no existe en el modelo" });
+        return;
+      }
+      const resultado = traerEntidadAlOpd(modelo, opdActivoId, entidadId);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      if (resultado.value === modelo) {
+        set({ mensaje: `«${entidad.nombre}» ya aparece en este OPD` });
+        return;
+      }
+      commitModelo(set, modelo, resultado.value, {
+        seleccionId: entidadId,
+        seleccionados: [entidadId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        estadoSeleccionId: null,
+        mensaje: `«${entidad.nombre}» traída a este OPD`,
+      });
     },
 
     traerConectadosSeleccionado(familiasInput) {

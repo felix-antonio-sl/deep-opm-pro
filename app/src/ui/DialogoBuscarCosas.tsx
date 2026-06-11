@@ -32,7 +32,7 @@ const ETIQUETA_TIPO: Record<ResultadoTipo, string> = {
 };
 
 export function DialogoBuscarCosas() {
-  const { abierto, query, filtro, resultados, cerrar, fijarQuery, fijarFiltro, saltar } = useDialogoBuscarCosasViewModel();
+  const { abierto, query, filtro, resultados, traibles, cerrar, fijarQuery, fijarFiltro, saltar, traerAlOpdActivo } = useDialogoBuscarCosasViewModel();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Foco al abrir; el `Dialogo` base ya maneja Escape y trap de tab.
@@ -123,7 +123,24 @@ export function DialogoBuscarCosas() {
                       <span style={style.tdTipo}>{ETIQUETA_TIPO[r.tipo]}</span>
                       {r.contexto ? <span style={style.tdContexto}>· {r.contexto}</span> : null}
                     </td>
-                    <td style={style.tdUbicacion}>{r.opdNombre}</td>
+                    <td style={style.tdUbicacion}>
+                      {r.opdNombre}
+                      {r.salto.tipo === "entidad" && traibles.has(r.salto.entidadId) ? (
+                        <button
+                          type="button"
+                          data-testid="dialogo-buscar-cosas-traer"
+                          style={style.traerBtn}
+                          title="Crear una aparición de esta cosa en el OPD activo (la cosa es la misma; la aparición es contexto visual)"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            traerAlOpdActivo(r.salto.tipo === "entidad" ? r.salto.entidadId : "");
+                            cerrar();
+                          }}
+                        >
+                          Traer aquí
+                        </button>
+                      ) : null}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -231,6 +248,18 @@ const style = {
   tdUbicacion: {
     padding: "8px 10px",
     color: tokens.colors.ink70,
+  },
+  traerBtn: {
+    marginLeft: "8px",
+    padding: "2px 8px",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "11px",
+    fontWeight: 500,
+    color: tokens.colors.ink,
+    background: tokens.colors.paper,
+    border: `1px solid ${tokens.colors.ink30}`,
+    borderRadius: "3px",
+    cursor: "pointer",
   },
   tipoIndicador: {
     display: "inline-block",

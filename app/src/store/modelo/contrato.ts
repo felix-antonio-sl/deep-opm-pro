@@ -205,6 +205,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "reordenarSubprocesoEnTimeline",
     "actualizarVerticesEnlace",
     "actualizarPosicionLabelEnlace",
+    "traerCosaAlOpdActivo",
     "traerConectadosSeleccionado",
     "traerEnlacesEntreSeleccionadas",
     "ocultarAparienciaSeleccionada",

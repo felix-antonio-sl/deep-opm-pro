@@ -10,6 +10,18 @@
 
 ---
 
+## Actualización 2026-06-11 — tres preocupaciones del operador: efectos sin refinar, reuso de cosas entre OPDs, semántica del avance/animación de simulación
+
+**Mandato:** (1) exceso de efectos nunca refinados a par consumo-resultado es problema estructural de la herramienta; (2) falta mecanismo para que un objeto interno de un in-zoom aparezca como externo en otro diagrama; (3) el avance por fases para donde no debe, "cierre"→"se completa", y la animación debe tener dirección semántica (consumo opuesto a resultado).
+
+1. **Checker `EFECTO_SIN_TRANSICION`** (mejora, un aviso POR ENLACE): acusa cada efecto plano sobre objeto CON estados (sin `estadoEntrada/SalidaId`, sin extremos-estado, sin escisión) y sugiere refinar a TS3-TS5 o escindir en consumo+resultado. Complementa B-4 (objeto sin estados). Accionable: `SeccionExtremos` ya permite apuntar extremos a estados.
+2. **`traerEntidadAlOpd`** (`canvas/operacionesBatch.ts`): crea la apariencia de una entidad existente en el OPD destino + apariciones de enlaces con ambos extremos visibles; idempotente. Acción de store `traerCosaAlOpdActivo` (undoable, selecciona al traer) + botón **«Traer aquí»** en cada fila del diálogo Buscar Cosas cuando la entidad no aparece en el OPD activo (`entidadesTraiblesAlOpd` en el viewmodel).
+3. **Fases con valor semántico**: `fasesDelPasoSimulacion` omite la preparación VACÍA (solo entra con habilitadores/condición/evento) y el cierre REDUNDANTE (cuando hay fase resultado, ese es el beat final; el efecto del paso se aplica al cerrar la última fase de la lista, mecánica ya genérica). Proceso desnudo: `proceso → completado`. Copy: «Cierre del proceso» → «El proceso se completa», rótulo `cierre`→«completado». El frame "inicio" de foco conserva su quietud (muestra solo preparación aunque la primera fase real sea consumo). **Tokens por fase con dirección semántica**: `tokensDeFaseSimulacion` reemplaza el disparo de todos-los-enlaces-a-la-vez — en consumo viajan los de entrada (efecto en `reverse`: el enlace se dibuja proceso→objeto pero el flujo de consumo va objeto→proceso), en resultado los de salida en `normal`, preparación los habilitadores; proceso/cierre no transportan.
+
+**Detalle clave del avance**: el primer click desde `preparado` **ACTIVA** la fase inicial en vez de saltarla (el frame "inicio" es quieto; sin ese beat, la primera fase real del paso — consumo cuando la preparación vacía se omite — nunca se observaría en ejecución; lo capturó el e2e de tokens visuales).
+
+**Gate:** check **2561/0** (+10: 4 checker, 3 tokens, 2 traer, 1 fases) · lint · governance OK · e2e 12 **8/8** (incl. tokens visuales sin tocar) · `browser:smoke` **272/0/5** (paridad).
+
 ## Actualización 2026-06-11 — auditoría integral + remediación de los 5 cortes (evaluada y corregida)
 
 **Auditoría integral en 6 frentes** (capacidades, OPCloud, 5 SSOT, simulación, arquitectura): `docs/auditorias/2026-06-11-auditoria-integral-opforja.md` (síntesis P1/P2 + plan de remediación en 5 cortes). **Remediación implementada** en `58b752e5`+`2766eb74` (operador/Codex) y **evaluada+corregida** por Claude el mismo día:

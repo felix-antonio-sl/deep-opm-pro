@@ -135,12 +135,35 @@ function ordenarResultados(a: ResultadoBusqueda, b: ResultadoBusqueda): number {
   return a.opdNombre.localeCompare(b.opdNombre, "es-CL");
 }
 
+/** Entidades (objeto/proceso) del resultado que NO aparecen en el OPD activo:
+ *  candidatas a "Traer a este OPD" (una Thing puede aparecer en varios OPDs). */
+export function entidadesTraiblesAlOpd(
+  modelo: Modelo,
+  resultados: readonly ResultadoBusqueda[],
+  opdActivoId: Id,
+): Set<Id> {
+  const visibles = new Set(
+    Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}).map((apariencia) => apariencia.entidadId),
+  );
+  const traibles = new Set<Id>();
+  for (const resultado of resultados) {
+    if (resultado.salto.tipo !== "entidad") continue;
+    if (!visibles.has(resultado.salto.entidadId)) traibles.add(resultado.salto.entidadId);
+  }
+  return traibles;
+}
+
 export function useDialogoBuscarCosasViewModel() {
-  const { abierto, query, filtro, modelo, cerrar, fijarQuery, fijarFiltro, saltar } = useZustandModelSearchDialogPort();
+  const { abierto, query, filtro, modelo, opdActivoId, cerrar, fijarQuery, fijarFiltro, saltar, traerAlOpdActivo } =
+    useZustandModelSearchDialogPort();
 
   const resultados = useMemo(
     () => calcularResultadosBusquedaCosas(modelo, query, filtro),
     [modelo, query, filtro],
+  );
+  const traibles = useMemo(
+    () => entidadesTraiblesAlOpd(modelo, resultados, opdActivoId),
+    [modelo, resultados, opdActivoId],
   );
 
   return {
@@ -148,10 +171,12 @@ export function useDialogoBuscarCosasViewModel() {
     query,
     filtro,
     resultados,
+    traibles,
     cerrar,
     fijarQuery,
     fijarFiltro,
     saltar,
+    traerAlOpdActivo,
   };
 }
 

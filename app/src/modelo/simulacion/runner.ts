@@ -7,7 +7,7 @@ import { efectoUnico, tomarUnico, type Efecto, type Sucesor } from "./efecto";
 import { resolverDecisionAbanico } from "../decision";
 import { rngSembrado } from "./rng";
 import { detectarEventosTemporalesPaso, inferirDuracionPasoSim } from "./tiempo";
-import { primeraFaseSimulacion, siguienteFaseSimulacion } from "./fases";
+import { normalizarFaseSimulacion, primeraFaseSimulacion, siguienteFaseSimulacion } from "./fases";
 
 export const LIMITE_PASOS_SIMULACION = 200;
 
@@ -218,8 +218,8 @@ export function resolverRamaSimulacion(
 }
 
 /**
- * Avanza una microfase observable. Solo al cerrar la fase `cierre` delega en
- * `ejecutarPaso`, que aplica el efecto semántico completo del proceso.
+ * Avanza una microfase observable. Al cerrar la ÚLTIMA fase de la lista delega
+ * en `ejecutarPaso`, que aplica el efecto semántico completo del proceso.
  */
 export function ejecutarFaseSimulacion(
   modelo: Modelo,
@@ -229,6 +229,13 @@ export function ejecutarFaseSimulacion(
   if (contexto.estado === "bloqueado" || contexto.estado === "completado") return contexto;
   const paso = contexto.plan[contexto.pasoActual];
   if (!paso) return { ...contexto, estado: "completado", faseActual: undefined };
+  // El primer avance desde "preparado" ACTIVA la fase inicial en vez de
+  // saltarla: el frame de inicio es quieto, y sin este beat la primera fase
+  // real del paso (p.ej. consumo, cuando la preparación vacía se omitió de la
+  // lista) nunca se observaría en ejecución.
+  if (contexto.estado === "preparado") {
+    return { ...contexto, estado: "ejecutando", faseActual: normalizarFaseSimulacion(modelo, paso, contexto.faseActual) };
+  }
   const siguienteFase = siguienteFaseSimulacion(modelo, paso, contexto.faseActual);
   if (siguienteFase) {
     return { ...contexto, estado: "ejecutando", faseActual: siguienteFase };

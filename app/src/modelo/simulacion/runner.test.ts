@@ -75,18 +75,21 @@ describe("iniciarSimulacion", () => {
 });
 
 describe("ejecutarPaso — flujo determinista", () => {
-  test("ejecutarFaseSimulacion separa consumo, proceso, resultado y cierre sin mutar current antes del cierre", () => {
+  test("ejecutarFaseSimulacion separa consumo, proceso y resultado sin mutar current antes del término", () => {
+    // Sin habilitadores no hay fase preparación, y con resultado el beat final
+    // es "resultado" (no se añade un cierre redundante): el efecto del paso se
+    // aplica al cerrar la ÚLTIMA fase de la lista.
     const { modelo, pendienteId, aprobadoId, pedidoId } = modeloTransicionAprobar();
     let ctx = iniciarSimulacion(modelo, modelo.opdRaizId);
 
-    expect(ctx.faseActual).toBe("preparacion");
-    expect(ctx.trace).toHaveLength(0);
-    expect(ctx.estadosCurrent[pedidoId]).toBe(pendienteId);
-
-    ctx = ejecutarFaseSimulacion(modelo, ctx);
     expect(ctx.faseActual).toBe("consumo");
     expect(ctx.trace).toHaveLength(0);
     expect(ctx.estadosCurrent[pedidoId]).toBe(pendienteId);
+
+    // El primer avance ACTIVA la fase inicial (preparado → ejecutando) sin saltarla.
+    ctx = ejecutarFaseSimulacion(modelo, ctx);
+    expect(ctx.estado).toBe("ejecutando");
+    expect(ctx.faseActual).toBe("consumo");
 
     ctx = ejecutarFaseSimulacion(modelo, ctx);
     expect(ctx.faseActual).toBe("proceso");
@@ -99,15 +102,31 @@ describe("ejecutarPaso — flujo determinista", () => {
     expect(ctx.estadosCurrent[pedidoId]).toBe(pendienteId);
 
     ctx = ejecutarFaseSimulacion(modelo, ctx);
-    expect(ctx.faseActual).toBe("cierre");
-    expect(ctx.trace).toHaveLength(0);
-    expect(ctx.estadosCurrent[pedidoId]).toBe(pendienteId);
-
-    ctx = ejecutarFaseSimulacion(modelo, ctx);
     expect(ctx.estado).toBe("completado");
     expect(ctx.faseActual).toBeUndefined();
     expect(ctx.trace).toHaveLength(1);
     expect(ctx.estadosCurrent[pedidoId]).toBe(aprobadoId);
+  });
+
+  test("un proceso desnudo solo detiene en proceso y completado; con habilitador antepone preparación", () => {
+    let desnudo = crearModelo("Desnudo");
+    desnudo = must(crearProceso(desnudo, desnudo.opdRaizId, { x: 100, y: 100 }, "Operar"));
+    let ctx = iniciarSimulacion(desnudo, desnudo.opdRaizId);
+    expect(ctx.faseActual).toBe("proceso");
+    ctx = ejecutarFaseSimulacion(desnudo, ctx); // activa la fase inicial
+    expect(ctx.faseActual).toBe("proceso");
+    expect(ctx.estado).toBe("ejecutando");
+    ctx = ejecutarFaseSimulacion(desnudo, ctx);
+    expect(ctx.faseActual).toBe("cierre");
+
+    let conAgente = crearModelo("ConAgente");
+    conAgente = must(crearObjeto(conAgente, conAgente.opdRaizId, { x: 0, y: 0 }, "Operador"));
+    conAgente = must(crearProceso(conAgente, conAgente.opdRaizId, { x: 200, y: 100 }, "Operar"));
+    const operadorId = Object.values(conAgente.entidades).find((e) => e.nombre === "Operador")!.id;
+    const operarId = Object.values(conAgente.entidades).find((e) => e.nombre === "Operar")!.id;
+    conAgente = must(crearEnlace(conAgente, conAgente.opdRaizId, extremoEntidad(operadorId), extremoEntidad(operarId), "instrumento"));
+    const ctx2 = iniciarSimulacion(conAgente, conAgente.opdRaizId);
+    expect(ctx2.faseActual).toBe("preparacion");
   });
 
   test("aplica transición A→B y actualiza estadosCurrent", () => {

@@ -37,9 +37,10 @@ test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page })
   await expect(page.getByTestId("toolbar-root")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Objeto", exact: true })).toHaveCount(0);
 
+  // Un proceso desnudo no tiene preparación (nada que verificar): el primer
+  // beat semántico es "Proceso activo".
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/paso\s+1\s+de\s+2/);
-  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Preparación: (Recibir|Atender)/);
-  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("Se verifican condiciones y habilitadores");
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Proceso activo: (Recibir|Atender)/);
   await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("paso 1 de 2");
   const primeraVez = page.getByTestId("barra-simulacion-proceso-activo");
   await expect(primeraVez).toContainText(/Recibir|Atender/);
@@ -50,18 +51,15 @@ test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page })
   });
   expect(haloProcesoInicial).toBe(0);
 
-  // Avanzar fases de un proceso sin enlaces: preparación -> proceso -> cierre -> siguiente proceso.
+  // Avanzar fases de un proceso sin enlaces: activar proceso -> completado ->
+  // siguiente proceso (la preparación vacía ya no detiene el avance; el primer
+  // click activa la fase inicial del frame quieto).
   await avanzarFases(page, 3);
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/paso\s+2\s+de\s+2/);
-  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Preparación: (Recibir|Atender)/);
+  await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText(/Proceso activo: (Recibir|Atender)/);
   await expect(page.getByTestId("barra-simulacion-narrativa")).toContainText("paso 2 de 2");
   await expect(page.getByTestId("barra-simulacion-trace")).toBeVisible();
-  const haloPasoDosPreparacion = await page.evaluate(() => {
-    return document.querySelectorAll('[model-id^="sim-proceso-"]').length;
-  });
-  expect(haloPasoDosPreparacion).toBe(0);
-
-  await page.getByTestId("barra-simulacion-paso").click();
+  // Sin beat de preparación vacía, el paso 2 entra directo con su proceso activo.
   const haloProcesoPasoDos = await page.evaluate(() => {
     return document.querySelectorAll('[model-id^="sim-proceso-"]').length;
   });

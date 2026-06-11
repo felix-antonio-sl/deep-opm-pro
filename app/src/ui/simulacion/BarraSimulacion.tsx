@@ -381,7 +381,7 @@ function rotuloCortoFase(fase: string): string {
   if (fase === "consumo") return "cons";
   if (fase === "proceso") return "proc";
   if (fase === "resultado") return "res";
-  return "cierre";
+  return "completado";
 }
 
 function rotuloFase(fase: string): string {
@@ -389,7 +389,7 @@ function rotuloFase(fase: string): string {
   if (fase === "consumo") return "Consumo";
   if (fase === "proceso") return "Proceso activo";
   if (fase === "resultado") return "Resultado";
-  return "Cierre";
+  return "Completado";
 }
 
 function marcaNarrativa(tono: NarrativaSimulacion["tono"]): string {

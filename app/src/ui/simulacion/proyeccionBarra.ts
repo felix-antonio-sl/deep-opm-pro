@@ -189,11 +189,11 @@ function describirFasePlanificada(
       : "El proceso está activo y se registrará como avance de traza.";
   }
   if (fase === "resultado") {
-    if (transiciones.length === 0) return "Cierre del proceso: no hay resultado de estado inferido.";
-    return `Cierre del proceso: produce ${describirTransiciones(modelo, transiciones)}.`;
+    if (transiciones.length === 0) return "El proceso se completa: no hay resultado de estado inferido.";
+    return `El proceso se completa: produce ${describirTransiciones(modelo, transiciones)}.`;
   }
   if (fase === "cierre") {
-    return "La traza se consolidará y la simulación avanzará al siguiente proceso.";
+    return "El proceso se completa; la simulación avanzará al siguiente proceso.";
   }
   return "Este proceso no tiene cambios de estado inferidos; se registrará como avance de traza.";
 }
@@ -230,7 +230,7 @@ function tituloFase(fase: ContextoSimulacion["faseActual"], autoAvance: boolean)
   if (fase === "consumo") return "Consumo";
   if (fase === "proceso") return "Proceso activo";
   if (fase === "resultado") return "Resultado";
-  if (fase === "cierre") return "Cierre";
+  if (fase === "cierre") return "Completado";
   return "Próximo";
 }
 
@@ -239,7 +239,7 @@ function rotuloProgresoFase(fase: NonNullable<ContextoSimulacion["faseActual"]>)
   if (fase === "consumo") return "consumo";
   if (fase === "proceso") return "proceso";
   if (fase === "resultado") return "resultado";
-  return "cierre";
+  return "completado";
 }
 
 function describirTransicion(modelo: Modelo, transicion: TransicionEstadoSim): string {

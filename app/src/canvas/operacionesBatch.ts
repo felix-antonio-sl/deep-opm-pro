@@ -1,6 +1,7 @@
 import { entidadIdDeExtremo, extremoEntidad } from "../modelo/extremos";
 import { CANON } from "../modelo/constantes";
 import { crearEnlace, eliminarEnlace, eliminarEntidad, moverAparienciaPorId } from "../modelo/operaciones";
+import { posicionLibre } from "../modelo/layout";
 import { eliminarEnlacesBatch as eliminarEnlacesBatchModelo } from "../modelo/operaciones/enlaces";
 import type {
   Apariencia,
@@ -249,6 +250,54 @@ export function traerEnlacesEntreBatch(modelo: Modelo, opdId: Id, aparienciasIds
 
   if (nextSeq === modelo.nextSeq) return ok(modelo);
   return ok({ ...modelo, nextSeq, opds: { ...modelo.opds, [opdId]: { ...opd, enlaces } } });
+}
+
+/**
+ * Trae una entidad EXISTENTE del modelo al OPD destino creando su apariencia
+ * (y las apariciones de enlaces cuyos dos extremos quedan visibles). Es el
+ * mecanismo para que una cosa nacida dentro de un refinamiento (p.ej. objeto
+ * interno de un in-zoom) aparezca también en otro diagrama — una Thing puede
+ * aparecer en múltiples OPDs; la apariencia es contexto visual, no hecho nuevo.
+ * Idempotente: si ya aparece en el OPD, no cambia nada.
+ */
+export function traerEntidadAlOpd(modelo: Modelo, opdId: Id, entidadId: Id, posicion?: Posicion): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  const entidad = modelo.entidades[entidadId];
+  if (!entidad) return fallo(`La entidad no existe: ${entidadId}`);
+  const existente = Object.values(opd.apariencias).find((apariencia) => apariencia.entidadId === entidadId);
+  if (existente) return ok(modelo);
+
+  let nextSeq = modelo.nextSeq;
+  const id = siguienteId(nextSeq, "a");
+  nextSeq += 1;
+  const destino = posicion ?? posicionLibre(modelo, opdId, entidad.tipo);
+  const apariencia: Apariencia = {
+    id,
+    entidadId,
+    opdId,
+    x: destino.x,
+    y: destino.y,
+    width: CANON.dims.cosaWidth,
+    height: CANON.dims.cosaHeight,
+  };
+  const apariencias: Record<Id, Apariencia> = { ...opd.apariencias, [id]: apariencia };
+
+  // Apariciones de enlaces que quedan con ambos extremos visibles al traerla.
+  const visibles = new Set([...Object.values(apariencias).map((a) => a.entidadId)]);
+  const enlaces: Record<Id, AparienciaEnlace> = { ...opd.enlaces };
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (Object.values(enlaces).some((aparicion) => aparicion.enlaceId === enlace.id)) continue;
+    const origen = entidadIdDeExtremo(modelo, enlace.origenId);
+    const destinoEnlace = entidadIdDeExtremo(modelo, enlace.destinoId);
+    if (origen !== entidadId && destinoEnlace !== entidadId) continue;
+    if (!origen || !destinoEnlace || !visibles.has(origen) || !visibles.has(destinoEnlace)) continue;
+    const aeId = siguienteId(nextSeq, "ae");
+    nextSeq += 1;
+    enlaces[aeId] = { id: aeId, enlaceId: enlace.id, opdId, vertices: [] };
+  }
+
+  return ok({ ...modelo, nextSeq, opds: { ...modelo.opds, [opdId]: { ...opd, apariencias, enlaces } } });
 }
 
 export function ocultarAparienciaBatch(modelo: Modelo, opdId: Id, aparienciaId: Id): Resultado<Modelo> {
