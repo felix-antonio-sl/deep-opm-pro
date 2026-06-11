@@ -10,6 +10,17 @@
 
 ---
 
+## Actualización 2026-06-11 — dictamen sobre la propuesta §10 (estereotipos/templates) + 3 decisiones HITL del operador
+
+**Deliberación formal** (consenso-deliberativo, orquestación steipete↔allan-kelly, 3 rondas con verificación contra el árbol vivo) sobre `docs/auditorias/2026-06-11-auditoria-integral-opforja.md` §10. **Veredicto consensuado: la §10 vale como inventario de opciones, no como plan — no ejecutar la matriz §10.4 (~32 días).** La §10.5 (6 principios de diseño) se adopta como **contrato vinculante** para toda extensión futura, con veto por propiedad adicional: **ninguna expansión textual emite estructura de modelo fuera de `autoria/`** (cubre el retiro de `mapearFamiliaV` y cualquier sucesor).
+
+**Decisiones HITL del operador (2026-06-11):**
+1. **Estatuto SSOT constitucional-enmendable**: reglas DEBE con tráfico en el ciclo activo = deuda exigible; reglas DEBE sin tráfico se programan o se enmiendan con nota explícita; brecha silenciosa PROHIBIDA. Canonizado como **R-CONF-7** en `reglas-opm-estrictas-es` v1.3.0 (KORA).
+2. **Horizonte multi-lector confirmado**: en 1-3 meses terceros (DT/hospital/GOREOS) recibirán artefactos derivados del modelo HODOM ⇒ el perfil `canon-documento` tiene consumidor real con fecha y **sube al corte adoptado**. Multi-cuenta en app sigue diferido (auth v2 cuando exista demanda nombrada).
+3. **Clasificación de dominio vía ontología/tags, no estereotipos**: los 7 estereotipos de §10.1.1 quedan **descartados como lote**; explorar primero clasificación consultable barata (completar `OntologiaOrganizacional` parcial o tags livianos sobre el patrón aditivo). Si esa vía se queda corta en lo visual, esa fricción medida justificará (o no) el primer estereotipo real, con un artefacto derivado concreto como eval.
+
+**Dispositivo del catálogo §10**: ADOPTADO → filtro de export por perfil incl. `canon-documento` (subordinando toda ruta de export al gate de perfil — `exportarModeloPdf` no se cablea crudo), completar checkers metodológicos faltantes (sobre los 16+ nativos; no es "port"), resolver colas colgantes `pdf.ts` (eliminar | cablear-subordinado-al-gate) y `diff.ts` (eliminar | marcar no-producto). DIFERIDO → vistas de requisitos, calor de cobertura, panel de métricas como feature, diff como feature. RECHAZADO → `@template` en normalizador, templates W6.7 como catálogo in-app, templates OPD in-canvas, wizard, biblioteca de ejemplos como feature. **Regla de proceso validada empíricamente**: re-auditar el árbol vivo antes de ejecutar cualquier diferido (la §10 quedó parcialmente obsoleta el mismo día por `2766eb74`).
+
 ## Actualización 2026-06-11 — tres preocupaciones del operador: efectos sin refinar, reuso de cosas entre OPDs, semántica del avance/animación de simulación
 
 **Mandato:** (1) exceso de efectos nunca refinados a par consumo-resultado es problema estructural de la herramienta; (2) falta mecanismo para que un objeto interno de un in-zoom aparezca como externo en otro diagrama; (3) el avance por fases para donde no debe, "cierre"→"se completa", y la animación debe tener dirección semántica (consumo opuesto a resultado).
@@ -324,6 +335,7 @@ Gate **2388/0 · typecheck estricto · lint limpio**.
 5. **F1.9 responsive canónico** — consolidar 3 anchos en `ui-forja/tokens.css` + refactor de la barra + 2-3 archivos relacionados. Estimado: 1 sesión.
 6. **F1.21 barra en mobile-no-readonly** — gatear render en `App.tsx:195`. Estimado: <30 min, blast radius 1 archivo.
 7. **F1.22 panel de ayuda con atajo `?`** — overlay de ayuda + atajos del producto. Estimado: 1 sesión, blast radius 1-2 archivos (modal + atajos).
+8. **Corte export por perfil + saneo de colas (dictamen §10, 2026-06-11)** — con plazo blando por consumidor externo (lectura de artefactos por terceros en 1-3 meses): filtro de export por perfil incl. `canon-documento` (R-VIS-EXP-2; el perfil `canon-diagrama` + gate de densidad ya existen de la remediación), checkers metodológicos faltantes, decisión sobre `pdf.ts`/`diff.ts`. Detalle y exclusiones en § dictamen §10. Estimado: ~2-3 días reales.
 
 > **Observabilidad del agente (upstream hd-opm) — H1 + H2 + H5 HECHOS 2026-06-09. Frente CERRADO.** **H1** render headless del proto/modelo → PNG+SVG por OPD (`docs/render-headless.md`; corte 1 en `main` `9a88cc1f` + corte 2 skill `modelamiento-opm` v1.6.0 en KORA `f3163e5`). **H2** golden-harness de reproducibilidad: `src/autoria/reproducibilidad.ts` + CLI `bun run verify:reproducible` (`docs/verify-reproducible.md`), reemplaza el `md5sum` manual. **H5** azúcar `aparecerEnlacePorTransicion` en el DSL (`autoria/dsl.ts`): sube el lookup de multi-edge por transición que hd-opm reimplementaba a mano; complementa F1. Herramientas dev/CLI (no desplegadas). Del hilo upstream solo quedan abiertos los mayores con agenda propia (A-1/A-2 re-pin gobernado, B-3/B-5).
 
