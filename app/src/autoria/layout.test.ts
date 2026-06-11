@@ -310,3 +310,202 @@ describe("autoria/layout — cobertura directa del motor", () => {
     expect(posiciones(a1.modelo)).toEqual(posiciones(a2.modelo));
   });
 });
+
+// ── Auditoría SSOT 2026-06-11 (spec-forja-opd-es §10/§11) ────────────────────
+// A-1: objetos internos pegados al contenido real (no al cursor inflado).
+// N-3: contención ELÍPTICA (el render inscribe la elipse en el bbox).
+// A-2: externos enlazados estructuralmente clusterizan en el mismo lado.
+// N-1: raíz plana sin oclusión (R-OPD-LAY-1 "no debe haber oclusión").
+// N-2: in-zoom de OBJETO también es contenedor (R-OPD-REF-1 "rectángulo").
+describe("auditoría layout SSOT — remediaciones", () => {
+  function esquinasDentroDeElipse(contorno: Apariencia, a: Apariencia, epsilon = 0.02): boolean {
+    const cx = contorno.x + contorno.width / 2;
+    const cy = contorno.y + contorno.height / 2;
+    const rx = contorno.width / 2;
+    const ry = contorno.height / 2;
+    const esquinas = [
+      [a.x, a.y], [a.x + a.width, a.y], [a.x, a.y + a.height], [a.x + a.width, a.y + a.height],
+    ] as const;
+    return esquinas.every(([px, py]) => ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2 <= 1 + epsilon);
+  }
+
+  /** In-zoom con banda ancha que envuelve (8 subs) + objetos internos. */
+  function modeloWrap() {
+    const a = crearAutor({ id: "w", nombre: "Wrap" });
+    a.opd("sd0", "SD0", null);
+    a.opd("inz", "P (in-zoom)", "sd0", 10);
+    a.entidad("p", "proceso", "Operar planta", "fisica", "sistemica");
+    a.refDescomp("p", "inz");
+    a.ver("sd0", "p", 0, 0);
+    a.ver("inz", "p", 0, 0);
+    const subs = [
+      "Preparar la línea de producción", "Calibrar instrumentos de medición",
+      "Cargar materias primas certificadas", "Ejecutar el ciclo de transformación",
+      "Inspeccionar la calidad del lote", "Empacar unidades terminadas",
+      "Etiquetar para distribución", "Despachar al centro logístico",
+    ];
+    subs.forEach((nombre, i) => {
+      a.entidad(`s${i}`, "proceso", nombre, "fisica", "sistemica");
+      a.ver("inz", `s${i}`, 0, 0);
+      a.enlazar("inz", "p", `s${i}`, "agregacion");
+    });
+    const objetos = [["reg", "Registro de turno"], ["bit", "Bitácora"], ["par", "Parte diario"], ["act", "Acta de lote"]] as const;
+    objetos.forEach(([k, n], i) => {
+      a.entidad(k, "objeto", n, "informacional", "sistemica");
+      a.ver("inz", k, 0, 0);
+      a.enlazar("inz", `s${i + 2}`, k, "resultado");
+    });
+    return a;
+  }
+
+  test("A-1: los objetos internos quedan a GAP_OBJ del fondo REAL de los subprocesos", () => {
+    const a = modeloWrap();
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+    const opd = Object.values(a.modelo.opds).find((o) => o.padreId)!;
+    const apDe = (nombre: string) => {
+      const ent = Object.values(a.modelo.entidades).find((e) => e.nombre === nombre)!;
+      return Object.values(opd.apariencias).find((ap) => ap.entidadId === ent.id)!;
+    };
+    const subsBottom = Math.max(...["Preparar la línea de producción", "Despachar al centro logístico",
+      "Ejecutar el ciclo de transformación", "Empacar unidades terminadas"].map((n) => apDe(n).y + apDe(n).height));
+    const objsTop = Math.min(...["Registro de turno", "Bitácora", "Parte diario", "Acta de lote"].map((n) => apDe(n).y));
+    // Los objetos cuelgan del fondo real de los subs (antes: del cursor
+    // acumulado ROWH + wrap fantasma, ~180px de aire muerto — "contorno >
+    // contenido", caso SD0-P de hd-opm).
+    expect(objsTop).toBeGreaterThan(subsBottom);
+    expect(objsTop - subsBottom).toBeLessThanOrEqual(70);
+  });
+
+  test("N-4: fila-abajo alinea cada objeto bajo su subproceso ancla (mitiga diagonales largas)", () => {
+    const a = modeloWrap();
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+    const opd = Object.values(a.modelo.opds).find((o) => o.padreId)!;
+    const entPorNombre = (nombre: string) => Object.values(a.modelo.entidades).find((e) => e.nombre === nombre)!;
+    const apDe = (nombre: string) => Object.values(opd.apariencias).find((ap) => ap.entidadId === entPorNombre(nombre).id)!;
+    const pares: Array<[string, string]> = [
+      ["Registro de turno", "Cargar materias primas certificadas"],
+      ["Bitácora", "Ejecutar el ciclo de transformación"],
+      ["Parte diario", "Inspeccionar la calidad del lote"],
+      ["Acta de lote", "Empacar unidades terminadas"],
+    ];
+    for (const [obj, sub] of pares) {
+      // El objeto arranca al menos en la x de su ancla (el cursor solo empuja a la derecha).
+      expect(apDe(obj).x + 1).toBeGreaterThanOrEqual(apDe(sub).x);
+    }
+  });
+
+  test("N-3: TODAS las esquinas de los internos caen dentro de la CURVA de la elipse", () => {
+    const a = modeloWrap();
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+    const opd = Object.values(a.modelo.opds).find((o) => o.padreId)!;
+    const contornoEnt = Object.values(a.modelo.entidades).find((e) => e.nombre === "Operar planta")!;
+    const contorno = Object.values(opd.apariencias).find((ap) => ap.entidadId === contornoEnt.id)!;
+    for (const ap of Object.values(opd.apariencias)) {
+      if (ap.id === contorno.id) continue;
+      if (ap.contextoRefinamiento?.rol === "externo") continue;
+      expect(esquinasDentroDeElipse(contorno, ap)).toBe(true);
+    }
+  });
+
+  /** In-zoom secuencial con externos de roles opuestos enlazados estructuralmente. */
+  function modeloClusterExternos() {
+    const a = crearAutor({ id: "x", nombre: "Cluster" });
+    a.opd("sd0", "SD0", null);
+    a.opd("inz", "P (in-zoom)", "sd0", 10);
+    a.entidad("p", "proceso", "Atender", "fisica", "sistemica");
+    a.entidad("s1", "proceso", "Evaluar", "fisica", "sistemica");
+    a.entidad("s2", "proceso", "Resolver", "fisica", "sistemica");
+    a.entidad("reg", "objeto", "Registro clínico", "informacional", "ambiental");
+    a.entidad("asi", "objeto", "Asiento evolutivo", "informacional", "ambiental");
+    a.refDescomp("p", "inz");
+    a.ver("sd0", "p", 0, 0);
+    a.ver("inz", "p", 0, 0);
+    for (const k of ["s1", "s2", "reg", "asi"]) a.ver("inz", k, 0, 0);
+    a.enlazar("inz", "p", "s1", "agregacion");
+    a.enlazar("inz", "p", "s2", "agregacion");
+    a.enlazar("inz", "s1", "s2", "invocacion"); // secuencial
+    a.enlazar("inz", "reg", "s1", "consumo");   // entrada → left
+    a.enlazar("inz", "s2", "asi", "resultado"); // salida → right
+    a.enlazar("inz", "reg", "asi", "exhibicion"); // estructural externo↔externo
+    return a;
+  }
+
+  test("A-2: externos enlazados estructuralmente quedan en el MISMO lado y adyacentes", () => {
+    const a = modeloClusterExternos();
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+    const opd = Object.values(a.modelo.opds).find((o) => o.padreId)!;
+    const apDe = (nombre: string) => {
+      const ent = Object.values(a.modelo.entidades).find((e) => e.nombre === nombre)!;
+      return Object.values(opd.apariencias).find((ap) => ap.entidadId === ent.id)!;
+    };
+    const contornoEnt = Object.values(a.modelo.entidades).find((e) => e.nombre === "Atender")!;
+    const contorno = Object.values(opd.apariencias).find((ap) => ap.entidadId === contornoEnt.id)!;
+    const reg = apDe("Registro clínico");
+    const asi = apDe("Asiento evolutivo");
+    const lado = (ap: Apariencia) => (ap.x + ap.width / 2 < contorno.x + contorno.width / 2 ? "left" : "right");
+    expect(lado(reg)).toBe(lado(asi));
+    // Adyacentes verticalmente (misma columna, separación de estante normal).
+    expect(Math.abs(reg.y - asi.y)).toBeLessThanOrEqual(reg.height + asi.height + 96);
+  });
+
+  /** Raíz plana con fila top ancha + columna izquierda alta (riesgo de esquina). */
+  function modeloPlanoDenso() {
+    const a = crearAutor({ id: "d", nombre: "Denso" });
+    a.opd("sd0", "SD0", null);
+    a.entidad("p", "proceso", "Coordinar", "fisica", "sistemica");
+    a.ver("sd0", "p", 0, 0);
+    const agentes = [
+      "Equipo de coordinación territorial de la red asistencial",
+      "Departamento de gestión de operaciones intrahospitalarias",
+      "Unidad de monitoreo continuo de pacientes en domicilio",
+    ];
+    agentes.forEach((nombre, i) => {
+      a.entidad(`ag${i}`, "objeto", nombre, "fisica", "ambiental");
+      a.ver("sd0", `ag${i}`, 0, 0);
+      a.enlazar("sd0", `ag${i}`, "p", "agente");
+    });
+    for (let i = 0; i < 6; i++) {
+      a.entidad(`in${i}`, "objeto", `Insumo ${i}`, "fisica", "ambiental");
+      a.ver("sd0", `in${i}`, 0, 0);
+      a.enlazar("sd0", `in${i}`, "p", "consumo");
+    }
+    return a;
+  }
+
+  test("N-1: raíz plana densa NO produce oclusión entre cosas (R-OPD-LAY-1)", () => {
+    const a = modeloPlanoDenso();
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+    expect(solapesReales(a.modelo)).toBe(0);
+  });
+
+  /** In-zoom de OBJETO: el rectángulo contenedor también contiene (R-OPD-REF-1). */
+  function modeloObjetoInzoom() {
+    const a = crearAutor({ id: "o", nombre: "ObjInzoom" });
+    a.opd("sd0", "SD0", null);
+    a.opd("inz", "Equipo (in-zoom)", "sd0", 10);
+    a.entidad("eq", "objeto", "Equipo HODOM", "fisica", "sistemica");
+    a.entidad("c1", "objeto", "Médico tratante", "fisica", "sistemica");
+    a.entidad("c2", "objeto", "Enfermera de cabecera", "fisica", "sistemica");
+    a.refDescomp("eq", "inz");
+    a.ver("sd0", "eq", 0, 0);
+    a.ver("inz", "eq", 0, 0);
+    a.ver("inz", "c1", 0, 0);
+    a.ver("inz", "c2", 0, 0);
+    a.enlazar("inz", "eq", "c1", "agregacion");
+    a.enlazar("inz", "eq", "c2", "agregacion");
+    return a;
+  }
+
+  test("N-2: in-zoom de objeto contiene a sus componentes en el contenedor", () => {
+    const a = modeloObjetoInzoom();
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+    const opd = Object.values(a.modelo.opds).find((o) => o.padreId)!;
+    const contornoEnt = Object.values(a.modelo.entidades).find((e) => e.nombre === "Equipo HODOM")!;
+    const contorno = Object.values(opd.apariencias).find((ap) => ap.entidadId === contornoEnt.id)!;
+    for (const nombre of ["Médico tratante", "Enfermera de cabecera"]) {
+      const ent = Object.values(a.modelo.entidades).find((e) => e.nombre === nombre)!;
+      const ap = Object.values(opd.apariencias).find((x) => x.entidadId === ent.id)!;
+      expect(contiene(contorno, ap)).toBe(true);
+    }
+  });
+});

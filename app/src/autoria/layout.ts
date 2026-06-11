@@ -41,7 +41,10 @@ export const LAYOUT = {
  * (protocolo re-pin del golden hd-opm); un bundle sellado con otra versión
  * reporta divergencia de procedencia sin tocar bytes.
  */
-export const LAYOUT_VERSION = "2";
+// v3 (2026-06-11, auditoría SSOT): A-1 spine real, N-3 contención elíptica,
+// A-2 cluster externo↔externo, N-1 guard de solapes raíz plana, N-2 contorno
+// objeto. Re-pin del golden hd-opm pendiente de validación visual del operador.
+export const LAYOUT_VERSION = "3";
 const TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 const ESTRUCTURALES = new Set<TipoEnlace>(["agregacion", "exhibicion", "generalizacion", "clasificacion"]);
 
@@ -107,7 +110,8 @@ export function aplicarLayoutCompleto(
   function ajustarAnchosPorTexto(): void {
     for (const opd of Object.values(modelo.opds)) {
       const contorno = contornoLocal(opd.id);
-      if (!contorno || modelo.entidades[contorno.entidadId]?.tipo !== "proceso") continue;
+      // N-2 (R-OPD-REF-1): el in-zoom de OBJETO también es contenedor (rectángulo).
+      if (!contorno) continue;
       for (const ap of Object.values(opd.apariencias)) {
         if (ap.id === contorno.id) continue;
         dimensionarPorTexto(ap);
@@ -188,6 +192,8 @@ export function aplicarLayoutCompleto(
         sy: a ? a.y + 36 : cy0 + H / 2,
         lado: (zona === "right" ? "right" : "left") as "left" | "right",
         vert: (zona === "top" || zona === "left" ? "top" : "bottom") as "top" | "bottom",
+        // A-2: un item con enlace de ROL a un interno es ancla fuerte del cluster.
+        tieneAncla: Boolean(anchorEnt),
       };
     });
     const itemPorEntidad = new Map(items.map((it) => [it.ap.entidadId, it] as const));
@@ -238,9 +244,17 @@ export function aplicarLayoutCompleto(
       if (agrupados.length <= 1) continue;
       const sx = agrupados.reduce((acc, it) => acc + it.sx, 0) / agrupados.length;
       const sy = agrupados.reduce((acc, it) => acc + it.sy, 0) / agrupados.length;
+      // A-2 (residuo hd-opm, registro↔asiento): el cluster estructural vive
+      // JUNTO — mismo lado y mismo estante, liderado por el miembro con ancla
+      // de rol (determinista: ancla primero, luego id de entidad).
+      const lider = [...agrupados].sort((p, q) =>
+        Number(q.tieneAncla) - Number(p.tieneAncla) || p.ap.entidadId.localeCompare(q.ap.entidadId),
+      )[0]!;
       for (const it of agrupados) {
         it.sx = sx;
         it.sy = sy;
+        it.lado = lider.lado;
+        it.vert = lider.vert;
       }
     }
     if (esSecuencial) {
@@ -406,12 +420,36 @@ export function aplicarLayoutCompleto(
     fila(zonas.bottom!, () => CY + central.height + M);
     columna(zonas.left!, (a) => CX - M - a.width);
     columna(zonas.right!, () => CX + central.width + M);
+    // N-1 (R-OPD-LAY-1 "no debe haber oclusión"): la fila top ancha y las
+    // columnas laterales altas pueden chocar en las esquinas. Barrido
+    // determinista: el de abajo se empuja bajo el de arriba hasta punto fijo.
+    resolverSolapes(aps);
+  }
+
+  function resolverSolapes(aps: Apariencia[], gap = 24, maxPasadas = 50): void {
+    for (let pasada = 0; pasada < maxPasadas; pasada++) {
+      let movio = false;
+      const orden = [...aps].sort((a, b) => a.y - b.y || a.x - b.x || a.id.localeCompare(b.id));
+      for (let i = 0; i < orden.length; i++) {
+        for (let j = i + 1; j < orden.length; j++) {
+          const a = orden[i]!, b = orden[j]!;
+          const intersectan = a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+          if (!intersectan) continue;
+          b.y = a.y + a.height + gap;
+          movio = true;
+        }
+      }
+      if (!movio) return;
+    }
   }
 
   function aplicarLayoutOrdenCanonico(): void {
     for (const opd of Object.values(modelo.opds)) {
       const contorno = contornoLocal(opd.id);
-      if (!contorno || modelo.entidades[contorno.entidadId]?.tipo !== "proceso") {
+      // N-2 (R-OPD-REF-1): la descomposición de OBJETO también pasa por la rama
+      // contenedora (rectángulo de componentes; sin línea de tiempo, R-OPD-REF-2:
+      // su posición es disposición espacial — el banding degenera en una banda).
+      if (!contorno) {
         const refUnfold = refinableDespliegueLocal(opd);
         if (refUnfold) layoutUnfold(opd, refUnfold);
         else layoutRaizPlana(opd);
@@ -495,7 +533,11 @@ export function aplicarLayoutCompleto(
       const maxBandLen = Math.max(0, ...filasPorBanda.flat().map((f) => f.length));
       let spineRight = LAYOUT.X0;
       for (const a of subs) spineRight = Math.max(spineRight, a.x + a.width);
-      const spineBottom = subs.length ? yCursor : LAYOUT.Y0;
+      // A-1 (R-OPD-REF-1, residuo hd-opm): el fondo del spine es el contenido
+      // REAL de los subs, no el cursor acumulado (ROWH + wraps fantasma). Antes
+      // los objetos internos colgaban con ~130-300px de aire muerto y el
+      // contorno quedaba sobredimensionado ("contorno > contenido", SD0-P).
+      const spineBottom = subs.length ? Math.max(...subs.map((a) => a.y + a.height)) : LAYOUT.Y0;
       type Pos = { o: Apariencia; x: number; y: number };
       // (R26 fix F2 anti-aireado) dos estrategias; se elige por OPD la de contorno más chico.
       const filaAbajo = (): Pos[] => {
@@ -505,6 +547,11 @@ export function aplicarLayoutCompleto(
         let ox = LAYOUT.X0, oy = yObj, col = 0;
         for (const o of objsOrden) {
           if (col >= maxCols) { ox = LAYOUT.X0; oy += LAYOUT.ROWH; col = 0; }
+          // N-4 (mitiga R-OPD-LAY-1 "enlaces no atraviesan cosas"): el objeto se
+          // alinea bajo su subproceso ancla (el cursor solo empuja a la derecha),
+          // acortando la diagonal del enlace que antes cruzaba otras elipses.
+          const anclaX = posSub.get(subConectadoDe(opd, o.entidadId, subIdSet))?.x;
+          if (anclaX !== undefined) ox = Math.max(ox, anclaX);
           out.push({ o, x: ox, y: oy });
           ox += o.width + LAYOUT.GAP_H; col += 1;
         }
@@ -567,6 +614,12 @@ export function aplicarLayoutCompleto(
       contorno.y = 30;
       contorno.width = Math.max(maxX + LAYOUT.MARGEN - 40, 420);
       contorno.height = Math.max(maxY + LAYOUT.MARGEN - 30, 240, hLadoMax + 40);
+      // N-3 (R-OPD-REF-1): el render del proceso inscribe la ELIPSE en el bbox —
+      // un interno pegado a la esquina del bbox queda FUERA de la curva. Se infla
+      // el bbox lo mínimo (factor k de la esquina peor) para contención elíptica.
+      if (modelo.entidades[contorno.entidadId]?.tipo === "proceso") {
+        inflarContencionEliptica(contorno, todos);
+      }
 
       colocarExternosPorRol(opd, contorno, externos, subIdSet, posSub);
     }
@@ -621,6 +674,32 @@ export function aplicarLayoutCompleto(
         (destinoId === objetoId && origenId !== null && internosDeclarados.has(origenId))
       );
     });
+  }
+
+  // N-3: factor k mínimo tal que TODAS las esquinas del contenido satisfacen la
+  // ecuación de la elipse inscrita en el bbox inflado (centrado en el mismo punto).
+  function inflarContencionEliptica(contorno: Apariencia, internos: Apariencia[]): void {
+    if (internos.length === 0) return;
+    const cx = contorno.x + contorno.width / 2;
+    const cy = contorno.y + contorno.height / 2;
+    const rx = contorno.width / 2;
+    const ry = contorno.height / 2;
+    let k = 1;
+    for (const a of internos) {
+      for (const [px, py] of [
+        [a.x, a.y], [a.x + a.width, a.y], [a.x, a.y + a.height], [a.x + a.width, a.y + a.height],
+      ] as const) {
+        k = Math.max(k, Math.hypot((px - cx) / rx, (py - cy) / ry));
+      }
+    }
+    if (k <= 1) return;
+    const margen = 1.04; // holgura para que el stroke no roce la caja
+    const width = contorno.width * k * margen;
+    const height = contorno.height * k * margen;
+    contorno.x = cx - width / 2;
+    contorno.y = cy - height / 2;
+    contorno.width = width;
+    contorno.height = height;
   }
 
   function posicionExterna(contorno: Apariencia, apariencia: Apariencia, lado: "left" | "right", indice: number): { x: number; y: number } {
