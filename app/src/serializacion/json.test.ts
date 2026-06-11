@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/extremos";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
-import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
+import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, cambiarAfiliacion, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
@@ -664,6 +664,8 @@ describe("serializacion JSON", () => {
     if (!consumoId) throw new Error("La prueba esperaba enlace consumo");
     modelo = must(definirTasaEnlace(modelo, consumoId, " 2 ", " kg/h "));
 
+    // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+    modelo = must(cambiarAfiliacion(modelo, entidadPorNombre(modelo, "Manejar Excepcion"), "ambiental"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Procesar"), entidadPorNombre(modelo, "Manejar Excepcion"), "excepcionSubSobretiempo"));
     const excepcionId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSubSobretiempo")?.id;
     if (!excepcionId) throw new Error("La prueba esperaba enlace excepcion temporal");
@@ -704,6 +706,8 @@ describe("serializacion JSON", () => {
     const pedidoId = entidadPorNombre(modelo, "Pedido");
     const estados = must(crearEstadosIniciales(modelo, pedidoId));
     modelo = estados.modelo;
+    // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+    modelo = must(cambiarAfiliacion(modelo, entidadPorNombre(modelo, "Manejar Excepcion"), "ambiental"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Procesar"), entidadPorNombre(modelo, "Manejar Excepcion"), "excepcionSobretiempo"));
     const excepcionId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSobretiempo")?.id;
     const estadoId = estados.estadoIds[0];

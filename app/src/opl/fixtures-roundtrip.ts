@@ -360,12 +360,15 @@ const fixtureEfectoSimple: FixtureRoundtrip = {
     let m = crearModelo("M");
     m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Actualizar"));
     m = must(crearObjeto(m, m.opdRaizId, { x: 200, y: 0 }, "Sistema"));
+    // R-OPD-EST-3: el objeto afectado debe declarar estados.
+    m = estadosNombrados(m, entidadId(m, "Sistema"), "desactualizado", "actualizado");
     m = must(crearEnlace(m, m.opdRaizId, entidadId(m, "Actualizar"), entidadId(m, "Sistema"), "efecto"));
     return m;
   },
   oracionesEsperadas: [
     "*Actualizar* es un proceso informacional y sistémico.",
     "**Sistema** es un objeto informacional y sistémico.",
+    "**Sistema** puede estar `desactualizado` o `actualizado`.",
     "*Actualizar* afecta **Sistema**.",
   ],
   bisimetricaEstricta: true,

@@ -262,6 +262,12 @@ export function crearSdAsyncInzoomed(): FixtureDemo {
   const ioOutput = entidadPorNombre(modelo, "Main I/O Output");
   const ioAttr = entidadPorNombre(modelo, "I/O Object's Relevant Attribute");
 
+  // R-OPD-EST-3: el atributo I/O recibe efectos, debe declarar estados.
+  const ioAttrEstados = must(crearEstadosIniciales(modelo, ioAttr));
+  modelo = ioAttrEstados.modelo;
+  modelo = must(renombrarEstado(modelo, ioAttrEstados.estadoIds[0]!, "unprocessed"));
+  modelo = must(renombrarEstado(modelo, ioAttrEstados.estadoIds[1]!, "processed"));
+
   modelo = asegurarApariencia(modelo, sd1Id, sysName, 260, 35);
   modelo = asegurarApariencia(modelo, sd1Id, handler, 80, 95);
   modelo = asegurarApariencia(modelo, sd1Id, mainInput, 30, 185);
@@ -367,6 +373,16 @@ export function crearSdSyncInzoomed(): FixtureDemo {
   const ioOutput = entidadPorNombre(modelo, "Main I/O Output");
   const ioAttr = entidadPorNombre(modelo, "I/O Object Relevant Attribute");
   const temp = entidadPorNombre(modelo, "Temp Object");
+
+  // R-OPD-EST-3: ambos objetos reciben efectos, deben declarar estados.
+  const ioAttrEstados = must(crearEstadosIniciales(modelo, ioAttr));
+  modelo = ioAttrEstados.modelo;
+  modelo = must(renombrarEstado(modelo, ioAttrEstados.estadoIds[0]!, "unprocessed"));
+  modelo = must(renombrarEstado(modelo, ioAttrEstados.estadoIds[1]!, "processed"));
+  const tempEstados = must(crearEstadosIniciales(modelo, temp));
+  modelo = tempEstados.modelo;
+  modelo = must(renombrarEstado(modelo, tempEstados.estadoIds[0]!, "raw"));
+  modelo = must(renombrarEstado(modelo, tempEstados.estadoIds[1]!, "refined"));
 
   for (const id of [first, second, third, last]) modelo = must(cambiarEsencia(modelo, id, "fisica"));
   modelo = posicionarApariencia(modelo, sd1Id, mainDoing, 180, 110, { width: 340, height: 455 });

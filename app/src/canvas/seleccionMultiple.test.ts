@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import type { Modelo, Resultado } from "../modelo/tipos";
 import { agregar, enlacesInternosSeleccion, interseccionRectangulo, todasDelOpd, toggle, vacia } from "./seleccionMultiple";
 
@@ -45,6 +45,8 @@ function modeloBase(): Modelo {
   modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 50 }, "Hacer"));
   const [objeto, proceso] = Object.values(modelo.entidades);
   if (!objeto || !proceso) throw new Error("fixture inválido");
+  // R-OPD-EST-3: el objeto afectado debe declarar estados.
+  modelo = must(crearEstadosIniciales(modelo, objeto.id)).modelo;
   modelo = must(crearEnlace(modelo, modelo.opdRaizId, proceso.id, objeto.id, "efecto"));
   return modelo;
 }

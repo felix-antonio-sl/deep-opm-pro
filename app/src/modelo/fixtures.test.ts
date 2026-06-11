@@ -102,7 +102,11 @@ describe("fixture SD Async", () => {
     const nombres = Object.values(modelo.entidades).map((entidad) => entidad.nombre);
     expect(nombres).toContain("Beneficiary Group");
     expect(nombres).toContain("Beneficiary Relevant Attribute");
-    const estados = Object.values(modelo.estados ?? {}).map((estado) => estado.nombre).sort();
+    const attrId = entidadIdPorNombre(modelo, "Beneficiary Relevant Attribute");
+    const estados = Object.values(modelo.estados ?? {})
+      .filter((estado) => estado.entidadId === attrId)
+      .map((estado) => estado.nombre)
+      .sort();
     expect(estados).toEqual(["problematic", "satisfactory"]);
   });
 

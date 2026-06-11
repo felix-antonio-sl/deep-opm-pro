@@ -105,9 +105,15 @@ export function validarFirmaEnlace(
   }
   if (esEnlaceExcepcionTemporal(tipo)) {
     if (tieneEstado) return fallo("Los enlaces de excepción temporal conectan Proceso -> Proceso, sin extremos Estado [opm-visual-es §4.4]");
-    return origen.tipo === "proceso" && destino.tipo === "proceso"
+    if (origen.tipo !== "proceso" || destino.tipo !== "proceso") {
+      return fallo("Excepción temporal requiere Proceso fuente -> Proceso de manejo [opm-iso-19450-es §Enlaces de excepción]");
+    }
+    // V-4 / R-EXC-1A (R-OPD-CTL-6): el proceso de manejo de excepción DEBE ser
+    // ambiental (contorno discontinuo). Rechazo en la firma: cubre creación,
+    // DSL e import (precedente: régimen de modificadores c/e).
+    return destino.afiliacion === "ambiental"
       ? ok(true)
-      : fallo("Excepción temporal requiere Proceso fuente -> Proceso de manejo [opm-iso-19450-es §Enlaces de excepción]");
+      : fallo("R-EXC-1A: el proceso de manejo de excepción debe ser ambiental [spec-forja-opd-es R-OPD-CTL-6]");
   }
   return fallo(`Tipo de enlace no soportado: ${tipo satisfies never}`);
 }

@@ -109,6 +109,18 @@ export function crearEnlace(
   if (tipo === "resultado" && estadoDestino && (estadoDestino.esInicial || estadoDestino.designaciones?.includes("inicial"))) {
     return fallo("AP-04: un enlace resultado no puede apuntar a un estado inicial");
   }
+  // V-5 / R-OPD-EST-3: un objeto sin estados no puede ser afectado — el editor
+  // DEBE restringir el efecto a objetos con ≥1 estado. Guard de edición (no
+  // gatea import: los modelos legacy hidratan y el checker
+  // EFECTO_OBJETO_SIN_ESTADOS los acusa).
+  if (
+    tipo === "efecto" &&
+    destinoExtremo.kind === "entidad" &&
+    destino.tipo === "objeto" &&
+    !Object.values(modelo.estados).some((estado) => estado.entidadId === destino.id)
+  ) {
+    return fallo("R-OPD-EST-3: un objeto sin estados no puede ser afectado; declárale estados o usa resultado/consumo");
+  }
   if (!extremoVisibleEnOpd(modelo, opd, origenExtremo) || !extremoVisibleEnOpd(modelo, opd, destinoExtremo)) {
     return fallo("El enlace requiere que origen y destino tengan apariencia en el OPD");
   }

@@ -14,6 +14,7 @@
 
 import { describe, expect, test } from "bun:test";
 import {
+  cambiarAfiliacion,
   crearEstadosIniciales,
   crearEnlace,
   crearModelo,
@@ -29,6 +30,7 @@ import {
   validarFirmaEnlace,
 } from "./modelo/operaciones";
 import type {
+  Afiliacion,
   DesignacionEstado,
   DerivacionOrigen,
   Entidad,
@@ -306,6 +308,7 @@ interface EntidadDeTest {
   tipo: TipoEntidad;
   esencia: Esencia;
   nombre: string;
+  afiliacion?: Afiliacion;
 }
 
 function entidadesValidasPara(tipo: TipoEnlace): [Entidad, Entidad] {
@@ -341,13 +344,19 @@ function configuracionPara(tipo: TipoEnlace): [EntidadDeTest, EntidadDeTest] {
       { tipo: "objeto", esencia: "informacional", nombre: "Afectado" },
     ];
   }
-  if (tipo === "invocacion" ||
-    tipo === "excepcionSobretiempo" ||
-    tipo === "excepcionSubtiempo" ||
-    tipo === "excepcionSubSobretiempo") {
+  if (tipo === "invocacion") {
     return [
       { tipo: "proceso", esencia: "informacional", nombre: "Disparador" },
       { tipo: "proceso", esencia: "informacional", nombre: "Disparado" },
+    ];
+  }
+  if (tipo === "excepcionSobretiempo" ||
+    tipo === "excepcionSubtiempo" ||
+    tipo === "excepcionSubSobretiempo") {
+    // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+    return [
+      { tipo: "proceso", esencia: "informacional", nombre: "Disparador" },
+      { tipo: "proceso", esencia: "informacional", nombre: "Disparado", afiliacion: "ambiental" },
     ];
   }
   // estructurales: agregacion, exhibicion, generalizacion, clasificacion
@@ -364,7 +373,7 @@ function sinteticoEntidad(config: EntidadDeTest): Entidad {
     tipo: config.tipo,
     nombre: config.nombre,
     esencia: config.esencia,
-    afiliacion: "sistemica",
+    afiliacion: config.afiliacion ?? "sistemica",
   };
 }
 
@@ -380,6 +389,14 @@ function modeloConEnlaceDe(tipo: TipoEnlace): Modelo {
   }
   const origenId = entidadConNombre(modelo, config[0].nombre);
   const destinoId = entidadConNombre(modelo, config[1].nombre);
+  if (config[1].afiliacion === "ambiental") {
+    // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+    modelo = must(cambiarAfiliacion(modelo, destinoId, "ambiental"));
+  }
+  if (tipo === "efecto") {
+    // R-OPD-EST-3: el objeto afectado debe declarar estados.
+    modelo = must(crearEstadosIniciales(modelo, destinoId)).modelo;
+  }
   return must(crearEnlace(modelo, modelo.opdRaizId, origenId, destinoId, tipo));
 }
 

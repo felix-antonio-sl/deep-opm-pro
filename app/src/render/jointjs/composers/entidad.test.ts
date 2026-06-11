@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
+import { cambiarAfiliacion, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
 import { agregarNotaMesa } from "../../../modelo/notasMesa";
 import type { Entidad, Resultado } from "../../../modelo/tipos";
 import { ESTADOS, identificadorCanonicoApariencia, identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
@@ -302,3 +302,22 @@ function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
   return resultado.value;
 }
+
+  test("V-6 / R-OPD-STR-13: atributo sistémico de exhibitor ambiental se renderiza discontinuo", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Exhibitor"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 200 }, "Atributo"));
+    const exhibitor = Object.values(modelo.entidades).find((e) => e.nombre === "Exhibitor")!;
+    const atributo = Object.values(modelo.entidades).find((e) => e.nombre === "Atributo")!;
+    modelo = must(cambiarAfiliacion(modelo, exhibitor.id, "ambiental"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, exhibitor.id, atributo.id, "exhibicion"));
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {}).find(
+      (a) => a.entidadId === atributo.id,
+    )!;
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, modelo.entidades[atributo.id]!, false, false, {});
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+
+    expect(modelo.entidades[atributo.id]?.afiliacion).toBe("sistemica");
+    expect(attrs.body?.strokeDasharray).toBe("8 4");
+  });

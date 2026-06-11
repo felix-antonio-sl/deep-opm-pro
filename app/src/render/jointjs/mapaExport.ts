@@ -314,8 +314,16 @@ function fmtSvg(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.?0+$/, "");
 }
 
-function normalizarColoresSvg(svg: string): string {
-  return svg.replace(/="rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)"/g, (_, r: string, g: string, b: string) => `="rgb(${r}, ${g}, ${b})"`);
+// V-8: la normalización solo colapsa el caso OPACO (alfa=1) a `rgb(...)` para
+// estabilidad del export; un alfa real (<1) es canal semántico (p.ej. la sombra
+// de esencia física, rgba 0.68) y se PRESERVA — descartarlo era pérdida de
+// fidelidad silenciosa. Exportada para test directo.
+export function normalizarColoresSvg(svg: string): string {
+  return svg.replace(
+    /="rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)"/g,
+    (original: string, r: string, g: string, b: string, a: string) =>
+      Number(a) >= 1 ? `="rgb(${r}, ${g}, ${b})"` : original,
+  );
 }
 
 function inyectarFondoBlanco(svg: string): string {

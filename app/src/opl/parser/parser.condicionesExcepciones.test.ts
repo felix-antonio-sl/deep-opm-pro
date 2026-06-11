@@ -6,6 +6,7 @@ import {
 } from ".";
 import { generarOpl } from "../generar";
 import {
+  cambiarAfiliacion,
   crearEnlace,
   crearEstadosIniciales,
   crearModelo,
@@ -59,6 +60,10 @@ describe("parser OPL — condiciones (§7) y excepciones (§8.1)", () => {
     let modelo = crearModelo("excepciones");
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Procesar"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Manejar Excepcion"));
+    // R-EXC-1A: el proceso de manejo debe ser ambiental; el OPL forward emite
+    // "... es un proceso informacional y ambiental." y el reverse lo re-aplica
+    // antes de crear el enlace de excepción.
+    modelo = must(cambiarAfiliacion(modelo, entidad(modelo, "Manejar Excepcion"), "ambiental"));
 
     const texto = [
       ...generarOpl(modelo),
@@ -78,7 +83,8 @@ describe("parser OPL — condiciones (§7) y excepciones (§8.1)", () => {
     const modelo = crearModelo("ex2");
     const texto = [
       "*Procesar* es un proceso informacional y sistémico.",
-      "*Manejar Excepcion* es un proceso informacional y sistémico.",
+      // R-EXC-1A: el proceso de manejo de excepción debe declararse ambiental.
+      "*Manejar Excepcion* es un proceso informacional y ambiental.",
       "*Manejar Excepcion* ocurre si duración de *Procesar* es menor que 30 segundos.",
     ].join("\n");
     const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });

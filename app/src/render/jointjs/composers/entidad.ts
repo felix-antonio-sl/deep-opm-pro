@@ -1,6 +1,7 @@
 import { CANON } from "../../../modelo/constantes";
 import { rolAparienciaEnRefinamiento } from "../../../modelo/contextoRefinamiento";
 import { ANCLAS_RELOJ_ENLACE, puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../../../modelo/anclajesEnlace";
+import { esAfiliacionEfectivaAmbiental } from "../../../modelo/afiliacionEfectiva";
 import { designacionesEstado } from "../../../modelo/estadosDesignaciones";
 import { nombreCanonicoEntidad, nombreCanonicoEstado } from "../../../modelo/nombresCanonicos";
 import { notasDeTarget } from "../../../modelo/notasMesa";
@@ -85,7 +86,10 @@ export function proyectarEntidad(
   const strokeBase = refinada ? 4 : CODEX.strokes.entidad;
   const strokeWidth = strokeBase;
   const strokeColor = stroke;
-  const dasharrayBase = entidad.afiliacion === "ambiental" ? "8 4" : undefined;
+  // V-6 / R-OPD-STR-13: la afiliación se hereda por la cadena de exhibición —
+  // un atributo/operación de cosa ambiental se renderiza discontinuo aunque su
+  // campo `afiliacion` directo sea sistémico (hecho derivado; el kernel no muta).
+  const dasharrayBase = esAfiliacionEfectivaAmbiental(modelo, entidad.id) ? "8 4" : undefined;
   // BUG-a8c184 / R-CTRN-1 (V-71): el tipo de contorno (sólido vs discontinuo)
   // codifica EXCLUSIVAMENTE la afiliación (sistémica=sólido, ambiental=discontinuo)
   // y DEBE persistir a través de niveles. El refinamiento se marca con stroke

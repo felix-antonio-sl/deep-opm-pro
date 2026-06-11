@@ -394,7 +394,8 @@ function modeloConCamposOpcionales(): Modelo {
       "p-aprobar": { id: "p-aprobar", tipo: "proceso", nombre: "Aprobar", esencia: "fisica", afiliacion: "sistemica" },
       "p-revisar": { id: "p-revisar", tipo: "proceso", nombre: "Revisar", esencia: "fisica", afiliacion: "sistemica" },
       "p-escalar": { id: "p-escalar", tipo: "proceso", nombre: "Escalar", esencia: "fisica", afiliacion: "sistemica" },
-      "p-manejar": { id: "p-manejar", tipo: "proceso", nombre: "Manejar excepcion", esencia: "fisica", afiliacion: "sistemica" },
+      // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+      "p-manejar": { id: "p-manejar", tipo: "proceso", nombre: "Manejar excepcion", esencia: "fisica", afiliacion: "ambiental" },
     },
     estados: {
       "s-pend": {

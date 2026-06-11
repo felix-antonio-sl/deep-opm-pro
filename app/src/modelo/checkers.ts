@@ -373,8 +373,8 @@ export function checkEfectoObjetoSinEstados(modelo: Modelo): AvisoMetodologico[]
   return [...afectadosSinEstados.values()].map((objeto) => aviso("EFECTO_OBJETO_SIN_ESTADOS", objeto, {
     severidad: "advertencia",
     mensaje: `El objeto "${objeto.nombre}" recibe un efecto pero no tiene estados. Un objeto sin estados no puede ser afectado: solo puede crearse (resultado) o consumirse (consumo). Declara estados al objeto, o re-firma el enlace.`,
-    rationale: "Un efecto es un cambio de estado; el objeto afectado debe tener al menos un estado declarado (§3.15).",
-    ssotRef: `${KB_OPM} §3.15`,
+    rationale: "Un efecto es un cambio de estado; el objeto afectado debe tener al menos un estado declarado. El editor restringe la creación (R-OPD-EST-3); este checker acusa el residual legacy/importado.",
+    ssotRef: "spec-forja-opd-es R-OPD-EST-3",
     accionesSugeridas: [
       "Declara estados al objeto (p.ej. `puede estar 'a' o 'b'`).",
       "O re-firma el enlace como resultado (creación) o consumo según corresponda.",

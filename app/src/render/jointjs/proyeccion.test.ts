@@ -377,6 +377,8 @@ describe("proyeccion JointJS", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Objeto"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 220, y: 130 }, "Proceso"));
+    // R-OPD-EST-3: el objeto afectado debe declarar estados.
+    modelo = must(crearEstadosIniciales(modelo, entidadPorNombre(modelo, "Objeto"))).modelo;
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Proceso"), entidadPorNombre(modelo, "Objeto"), "efecto"));
 
     const cellEnlace = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null).find((cell) => cell.type === "standard.Link");
@@ -1649,10 +1651,18 @@ function modeloConEnlace(tipo: TipoEnlace): Modelo {
   const proceso = entidadPorNombre(modelo, "Proceso");
 
   if (tipo === "resultado" || tipo === "efecto") {
+    if (tipo === "efecto") {
+      // R-OPD-EST-3: el objeto afectado debe declarar estados.
+      modelo = must(crearEstadosIniciales(modelo, objeto)).modelo;
+    }
     return must(crearEnlace(modelo, modelo.opdRaizId, proceso, objeto, tipo));
   }
   if (tipo === "invocacion" || tipo === "excepcionSobretiempo" || tipo === "excepcionSubtiempo" || tipo === "excepcionSubSobretiempo") {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 420, y: 130 }, "Proceso 2"));
+    if (tipo !== "invocacion") {
+      // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+      modelo = must(cambiarAfiliacion(modelo, entidadPorNombre(modelo, "Proceso 2"), "ambiental"));
+    }
     return must(crearEnlace(modelo, modelo.opdRaizId, proceso, entidadPorNombre(modelo, "Proceso 2"), tipo));
   }
   return must(crearEnlace(modelo, modelo.opdRaizId, objeto, proceso, tipo));

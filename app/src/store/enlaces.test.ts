@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEntidad, extremoEstado } from "../modelo/extremos";
 import { crearOnStarSystem } from "../modelo/fixtures";
-import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { cambiarAfiliacion, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
 
@@ -61,6 +61,8 @@ describe("slice enlaces", () => {
     const procesarId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Procesar")?.id;
     const manejarId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Manejar Excepcion")?.id;
     if (!sistemaId || !requisitoId || !procesarId || !manejarId) throw new Error("La prueba esperaba entidades");
+    // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+    modelo = must(cambiarAfiliacion(modelo, manejarId, "ambiental"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistemaId, requisitoId, "etiquetadoBidireccional"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, sistemaId, procesarId, "consumo"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, manejarId, "excepcionSubSobretiempo"));
@@ -110,6 +112,8 @@ describe("slice enlaces", () => {
     if (!pedidoId || !procesarId || !manejarId) throw new Error("La prueba esperaba entidades");
     const estados = must(crearEstadosIniciales(modelo, pedidoId));
     modelo = estados.modelo;
+    // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+    modelo = must(cambiarAfiliacion(modelo, manejarId, "ambiental"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, procesarId, manejarId, "excepcionSubtiempo"));
     const excepcionId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSubtiempo")?.id;
     const estadoId = estados.estadoIds[0];

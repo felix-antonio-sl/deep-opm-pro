@@ -83,6 +83,8 @@ describe("abanicos lógicos O/XOR", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "A"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 120 }, "B"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "P"), entidad(modelo, "A"), "resultado"));
+    // R-OPD-EST-3: el objeto afectado debe declarar estados.
+    modelo = must(crearEstadosIniciales(modelo, entidad(modelo, "B"))).modelo;
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "P"), entidad(modelo, "B"), "efecto"));
 
     const resultado = formarAbanico(modelo, modelo.opdRaizId, Object.keys(modelo.enlaces));

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { crearEnlace, crearModelo, crearObjeto, crearProceso, desplegarObjeto } from "./operaciones";
+import { cambiarAfiliacion, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, desplegarObjeto } from "./operaciones";
 import { autoInvocacionDeProceso, crearAutoInvocacion, esAutoInvocacion } from "./autoinvocacion";
 import {
   aplicarModificador,
@@ -42,7 +42,11 @@ describe("modificadores de enlace", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 620, y: 80 }, "Validar"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Salida"), "resultado"));
     modelo = must(crearInvocacion(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Validar")));
+    // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+    modelo = must(cambiarAfiliacion(modelo, entidad(modelo, "Validar"), "ambiental"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Validar"), "excepcionSobretiempo"));
+    // R-OPD-EST-3: el objeto afectado debe declarar estados.
+    modelo = must(crearEstadosIniciales(modelo, entidad(modelo, "Salida"))).modelo;
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Salida"), "efecto"));
 
     expect(aplicarModificador(modelo, enlacePorTipo(modelo, "resultado"), "evento").ok).toBe(false);

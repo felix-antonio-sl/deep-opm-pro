@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { entidadIdDeExtremo, extremoEntidad, extremoEstado } from "../extremos";
-import { agregacionesInzoomFaltantes, apuntarExtremoEnlace, cambiarTipoGrupoEstructural, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, eliminarEnlace, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, splitEffectEnPar, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
+import { agregacionesInzoomFaltantes, apuntarExtremoEnlace, cambiarAfiliacion, cambiarTipoGrupoEstructural, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, desplegarObjeto, descomponerProceso, eliminarEnlace, fijarOrdenGrupoEstructural, moverPuertoEnlace, plegarCompletoGrupoEstructural, plegarGrupoEstructural, quitarPlegadoCompletoEstructural, quitarSemiplegadoEstructural, relacionesEstructuralesFaltantes, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales, splitEffectEnPar, traerAgregacionesInzoomFaltantes, traerRelacionesEstructuralesFaltantes } from "../operaciones";
 import { filasPlegadoParcial } from "../plegado";
 import type { Modelo, Resultado } from "../tipos";
 import { eliminarEnlacesBatch } from "./enlaces";
@@ -110,6 +110,8 @@ describe("operaciones/enlaces", () => {
     const pedidoId = entidad(modelo, "Pedido");
     const estados = must(crearEstadosIniciales(modelo, pedidoId));
     modelo = estados.modelo;
+    // R-EXC-1A: el proceso de manejo debe ser ambiental antes de crear la excepción.
+    modelo = must(cambiarAfiliacion(modelo, entidad(modelo, "Manejar Excepcion"), "ambiental"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Manejar Excepcion"), "excepcionSobretiempo"));
     const enlaceId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSobretiempo")?.id;
     const estadoId = estados.estadoIds[0];

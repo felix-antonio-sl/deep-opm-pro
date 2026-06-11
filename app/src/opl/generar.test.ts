@@ -3,7 +3,7 @@ import { extremoEstado } from "../modelo/extremos";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
-import { ajustarMultiplicidad, cambiarEsencia, conectarSubmodelo, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
+import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, conectarSubmodelo, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, agregarEstado, desplegarObjeto, estadosDeEntidad, moverApariencia, renombrarEstado } from "../modelo/operaciones";
 import { cambiarModoPlegado } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
@@ -222,6 +222,8 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Coche"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 160 }, "Volante"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 240, y: 80 }, "Manejar"));
+    // R-OPD-EST-3: el objeto afectado debe declarar estados.
+    modelo = must(crearEstadosIniciales(modelo, entidad(modelo, "Coche"))).modelo;
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Manejar"), entidad(modelo, "Coche"), "efecto"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Volante"), entidad(modelo, "Manejar"), "instrumento"));
 
@@ -253,6 +255,8 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Calentar"));
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Agua"));
+    // R-OPD-EST-3: el objeto afectado debe declarar estados.
+    modelo = must(crearEstadosIniciales(modelo, entidad(modelo, "Agua"))).modelo;
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Calentar"), entidad(modelo, "Agua"), "efecto"));
 
     expect(generarOpl(modelo)).toContain("*Calentar* afecta **Agua**.");
@@ -272,6 +276,9 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Preparar"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Manejar Demora"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 400, y: 0 }, "Manejar Omision"));
+    // R-EXC-1A: los procesos de manejo de excepción deben ser ambientales.
+    modelo = must(cambiarAfiliacion(modelo, entidad(modelo, "Manejar Demora"), "ambiental"));
+    modelo = must(cambiarAfiliacion(modelo, entidad(modelo, "Manejar Omision"), "ambiental"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Manejar Demora"), "excepcionSobretiempo"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Preparar"), entidad(modelo, "Manejar Omision"), "excepcionSubtiempo"));
     const sobre = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSobretiempo")?.id;
@@ -1063,6 +1070,8 @@ describe("generarOpl", () => {
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Whole"), entidad(modelo, "Part"), "agregacion"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Instrumento"), entidad(modelo, "Procesar"), "instrumento"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Part"), entidad(modelo, "Procesar"), "consumo"));
+    // R-OPD-EST-3: el objeto afectado debe declarar estados.
+    modelo = must(crearEstadosIniciales(modelo, entidad(modelo, "Part"))).modelo;
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Part"), "efecto"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Procesar"), entidad(modelo, "Subprocesar"), "invocacion"));
 

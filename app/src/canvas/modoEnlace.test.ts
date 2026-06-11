@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { cambiarEsencia, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { cambiarAfiliacion, cambiarEsencia, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import type { Id, Modelo, TipoEnlace } from "../modelo/tipos";
 import {
   anchorConexionDesdeSelector,
@@ -120,6 +120,8 @@ function modeloBase(): {
   const atributo = entidadPorNombre(modelo, "Atributo");
   const subproceso = entidadPorNombre(modelo, "Subproceso");
   modelo = must(cambiarEsencia(modelo, sistema, "fisica"));
+  // R-EXC-1A: el proceso de manejo de excepciones temporales debe ser ambiental.
+  modelo = must(cambiarAfiliacion(modelo, subproceso, "ambiental"));
   return { modelo, entrada, procesar, salida, sistema, parte, atributo, subproceso };
 }
 

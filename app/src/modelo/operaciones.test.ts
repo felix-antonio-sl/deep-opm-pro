@@ -97,6 +97,10 @@ describe("operaciones de modelo", () => {
     expect(fisico.ok).toBe(true);
     if (!fisico.ok) return;
     modelo = fisico.value;
+    // R-OPD-EST-3: "Part" recibe un efecto, debe declarar estados.
+    modelo = must(crearEstadosIniciales(modelo, entidadPorNombre(modelo, "Part").id)).modelo;
+    // R-EXC-1A: el proceso de manejo de excepciones temporales debe ser ambiental.
+    modelo = must(cambiarAfiliacion(modelo, entidadPorNombre(modelo, "Subproceso").id, "ambiental"));
 
     const casos: Array<[TipoEnlace, string, string]> = [
       ["agregacion", "Whole", "Part"],
@@ -126,6 +130,8 @@ describe("operaciones de modelo", () => {
 
   test("excepciones temporales solo admiten Proceso -> Proceso sin extremos Estado", () => {
     let modelo = modeloConEntidades();
+    // R-EXC-1A: el proceso de manejo debe ser ambiental para que la firma acepte.
+    modelo = must(cambiarAfiliacion(modelo, entidadPorNombre(modelo, "Subproceso").id, "ambiental"));
     const proceso = entidadPorNombre(modelo, "Proceso");
     const subproceso = entidadPorNombre(modelo, "Subproceso");
     const part = entidadPorNombre(modelo, "Part");
@@ -186,6 +192,8 @@ describe("operaciones de modelo", () => {
     expect(modelo.enlaces[consumoId]?.tasa).toBe("2");
     expect(modelo.enlaces[consumoId]?.unidadesTasa).toBe("kg/h");
 
+    // R-EXC-1A: el proceso de manejo de excepción debe ser ambiental.
+    modelo = must(cambiarAfiliacion(modelo, entidadPorNombre(modelo, "Manejar Excepcion").id, "ambiental"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Procesar").id, entidadPorNombre(modelo, "Manejar Excepcion").id, "excepcionSobretiempo"));
     const sobretiempoId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "excepcionSobretiempo")?.id;
     if (!sobretiempoId) throw new Error("La prueba esperaba enlace de excepcion temporal");
@@ -1067,10 +1075,34 @@ describe("operaciones de modelo", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 280, y: 120 }, "Actualizar"));
     const sistema = entidadPorNombre(modelo, "Sistema");
     const actualizar = entidadPorNombre(modelo, "Actualizar");
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, actualizar.id, sistema.id, "efecto"));
-    const effectId = Object.values(modelo.enlaces).find((enlace) => enlace.tipo === "efecto")?.id;
-    expect(effectId).toBeDefined();
-    if (!effectId) return;
+    // R-OPD-EST-3 impide crear este efecto vía crearEnlace (objeto sin estados);
+    // se inyecta directo en el record para imitar un modelo importado legacy.
+    const effectId = "e-legacy-ts3";
+    const aparienciaEffectId = "ae-legacy-ts3";
+    const opdRaiz = modelo.opds[modelo.opdRaizId]!;
+    modelo = {
+      ...modelo,
+      enlaces: {
+        ...modelo.enlaces,
+        [effectId]: {
+          id: effectId,
+          tipo: "efecto",
+          origenId: extremoEntidad(actualizar.id),
+          destinoId: extremoEntidad(sistema.id),
+          etiqueta: "",
+        },
+      },
+      opds: {
+        ...modelo.opds,
+        [modelo.opdRaizId]: {
+          ...opdRaiz,
+          enlaces: {
+            ...opdRaiz.enlaces,
+            [aparienciaEffectId]: { id: aparienciaEffectId, enlaceId: effectId, opdId: modelo.opdRaizId, vertices: [] },
+          },
+        },
+      },
+    };
 
     const split = splitEffectEnPar(modelo, modelo.opdRaizId, effectId);
 
@@ -1573,6 +1605,8 @@ describe("operaciones de modelo", () => {
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 120 }, "Driver Rescuing"));
     const sistema = entidadPorNombre(modelo, "OnStar System");
     const rescate = entidadPorNombre(modelo, "Driver Rescuing");
+    // R-OPD-EST-3: el objeto afectado debe declarar estados.
+    modelo = must(crearEstadosIniciales(modelo, sistema.id)).modelo;
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, rescate.id, sistema.id, "efecto"));
 
     const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, rescate.id));
