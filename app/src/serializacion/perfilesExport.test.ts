@@ -4,6 +4,10 @@ import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/o
 import type { Id, Modelo, Resultado } from "../modelo/tipos";
 import { hidratarModelo } from "./json";
 import {
+  ATRIBUTOS_DE_PERFIL,
+  PERFIL_DEFAULT_DIAGRAMA,
+  PERFIL_DEFAULT_DOCUMENTO,
+  PERFILES_EXPORT,
   emitirDocumentoCanonico,
   exportarModeloConPerfil,
   filtrarModeloPorPerfil,
@@ -88,5 +92,23 @@ describe("perfiles de export (R-VIS-EXP-2)", () => {
     expect(doc).toContain("## OPL completa");
     expect(doc).toContain("## Procedencia");
     expect(doc).not.toContain("nota interna de mesa");
+  });
+});
+
+describe("declaraciones de export (V-226 / R-VIS-EXP-5)", () => {
+  test("los defaults por familia están declarados y son perfiles válidos", () => {
+    expect(PERFILES_EXPORT).toContain(PERFIL_DEFAULT_DIAGRAMA);
+    expect(PERFILES_EXPORT).toContain(PERFIL_DEFAULT_DOCUMENTO);
+  });
+
+  test("cada atributo de perfil declarado persiste SOLO en canon-documento", () => {
+    const modelo = conExtensiones(modeloBase());
+    const diagrama = filtrarModeloPorPerfil(modelo, "canon-diagrama");
+    const documento = filtrarModeloPorPerfil(modelo, "canon-documento");
+    for (const clave of ATRIBUTOS_DE_PERFIL["canon-documento"]) {
+      if (modelo[clave] === undefined) continue;
+      expect(diagrama[clave]).toBeUndefined();
+      expect(documento[clave]).toBeDefined();
+    }
   });
 });

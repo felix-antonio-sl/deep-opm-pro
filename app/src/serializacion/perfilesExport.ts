@@ -27,6 +27,19 @@ import { exportarModelo } from "./json";
 export const PERFILES_EXPORT = ["canon-diagrama", "canon-documento", "intercambio"] as const;
 export type PerfilExport = (typeof PERFILES_EXPORT)[number];
 
+/** V-226 / R-VIS-EXPORT-1A: perfil por defecto declarado por familia de salida. */
+export const PERFIL_DEFAULT_DIAGRAMA = "canon-diagrama" satisfies PerfilExport;
+export const PERFIL_DEFAULT_DOCUMENTO = "canon-documento" satisfies PerfilExport;
+
+/**
+ * R-VIS-EXP-5 (V-0d): todo elemento persistente SOLO en un perfil canónico se
+ * declara como atributo de perfil. Esta declaración es ejecutable: el filtro
+ * de perfil la consume (única fuente de verdad).
+ */
+export const ATRIBUTOS_DE_PERFIL = {
+  "canon-documento": ["satisfaccionesRequisito", "procedencia"],
+} as const satisfies Partial<Record<PerfilExport, readonly (keyof Modelo)[]>>;
+
 /**
  * Gate de densidad para perfiles canónicos: todo OPD del modelo debe estar
  * bajo el máximo de apariencias. Bloqueado ⇒ fallo con OPDs nombrados y la
@@ -54,16 +67,19 @@ export function filtrarModeloPorPerfil(modelo: Modelo, perfil: PerfilExport): Mo
   const {
     notasMesa: _notasMesa,
     ontologia: _ontologia,
-    satisfaccionesRequisito,
-    procedencia,
+    satisfaccionesRequisito: _satisfacciones,
+    procedencia: _procedencia,
     ...base
   } = modelo;
   if (perfil === "canon-documento") {
-    return {
-      ...base,
-      ...(satisfaccionesRequisito ? { satisfaccionesRequisito } : {}),
-      ...(procedencia ? { procedencia } : {}),
-    };
+    // Los atributos de perfil declarados (R-VIS-EXP-5) se re-incorporan desde
+    // el modelo original: la declaración ES el filtro.
+    const atributos = Object.fromEntries(
+      ATRIBUTOS_DE_PERFIL["canon-documento"]
+        .filter((clave) => modelo[clave] !== undefined)
+        .map((clave) => [clave, modelo[clave]]),
+    );
+    return { ...base, ...atributos };
   }
   return base;
 }

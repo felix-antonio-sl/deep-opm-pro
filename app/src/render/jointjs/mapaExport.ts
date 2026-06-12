@@ -222,8 +222,47 @@ function normalizarSvg(svg: string, opts: OpcionesExport, encuadre?: EncuadreSvg
   const conXmlns = svg.includes("xmlns=\"http://www.w3.org/2000/svg\"")
     ? svg
     : svg.replace("<svg", "<svg xmlns=\"http://www.w3.org/2000/svg\"");
-  const normalizado = normalizarColoresSvg(encuadre ? fijarEncuadreSvg(conXmlns, encuadre) : conXmlns);
+  const sinChrome = removerChromeEdicionSvg(conXmlns);
+  const normalizado = normalizarColoresSvg(encuadre ? fijarEncuadreSvg(sinChrome, encuadre) : sinChrome);
   return fondo === "blanco" ? inyectarFondoBlanco(normalizado) : normalizado;
+}
+
+// V-227 / R-VIS-EXPORT-1A: el canon-diagrama no incluye chrome de edición.
+// Se remueven del SVG exportado los halos de SELECCIÓN (celdas `seleccion-*`)
+// y la capa de tools de JointJS. El canal de simulación (`sim-*`, data-opm-sim)
+// se CONSERVA deliberadamente: un export con simulación activa es un snapshot
+// de simulación declarado (R-OPD-SIM-6) y debe ser coherente completo.
+const PATRONES_CHROME_EXPORT = [
+  /<g\b[^>]*model-id="seleccion-[^"]*"[^>]*>/,
+  /<g\b[^>]*class="[^"]*joint-tools[^"]*"[^>]*>/,
+];
+
+export function removerChromeEdicionSvg(svg: string): string {
+  let resultado = svg;
+  for (const patron of PATRONES_CHROME_EXPORT) {
+    for (let match = patron.exec(resultado); match; match = patron.exec(resultado)) {
+      const fin = finDeGrupoBalanceado(resultado, match.index);
+      if (fin === -1) break;
+      resultado = resultado.slice(0, match.index) + resultado.slice(fin);
+    }
+  }
+  return resultado;
+}
+
+/** Índice tras el `</g>` que cierra el `<g>` abierto en `inicio` (balanceado). */
+function finDeGrupoBalanceado(svg: string, inicio: number): number {
+  const tag = /<\/?g\b[^>]*>/g;
+  tag.lastIndex = inicio;
+  let profundidad = 0;
+  for (let match = tag.exec(svg); match; match = tag.exec(svg)) {
+    if (match[0].startsWith("</")) {
+      profundidad -= 1;
+      if (profundidad === 0) return match.index + match[0].length;
+    } else if (!match[0].endsWith("/>")) {
+      profundidad += 1;
+    }
+  }
+  return -1;
 }
 
 interface EncuadreSvg {
