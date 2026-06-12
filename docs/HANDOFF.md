@@ -24,6 +24,8 @@
 
 **Gate**: check **2623/0** (+19: 9 ley, 3 barra, 5 paleta, 2 Escape) · lint · governance OK · build OK · e2e 12-sim **10/10** (+1 C-1 end-to-end: toast visible + barra sin acciones + Escape sale) · paleta 9/9 · `browser:smoke` **274/0/5**.
 
+**Deploy 2026-06-12** (`4eeeaf07`, pusheado): bundle `index-BhNvu9Hn.js` en `opforja.sanixai.com` — contenedores healthy, 200 público, 401 sin cookie, literal «Sal con ⎋» verificado en el chunk servido (`feature-dialogos-pesados-TO6H5_9j.js`; el mensaje vive en ese chunk, no en index — verificar por chunk referenciado, no solo por index).
+
 ## Actualización 2026-06-12 — resolución XOR inline en la barra de simulación (cierre del pendiente del backlog 2026-06-11, DESPLEGADO)
 
 **Mandato**: cerrar el pendiente «`resolverRamaSimulacion` (kernel listo) sin UI inline en BarraSimulacion». TDD en 4 capas, dependencias unidireccionales intactas:
