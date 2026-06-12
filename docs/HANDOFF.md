@@ -10,7 +10,7 @@
 
 ---
 
-## Actualización 2026-06-12 — resolución XOR inline en la barra de simulación (cierre del pendiente del backlog 2026-06-11)
+## Actualización 2026-06-12 — resolución XOR inline en la barra de simulación (cierre del pendiente del backlog 2026-06-11, DESPLEGADO)
 
 **Mandato**: cerrar el pendiente «`resolverRamaSimulacion` (kernel listo) sin UI inline en BarraSimulacion». TDD en 4 capas, dependencias unidireccionales intactas:
 
@@ -24,6 +24,8 @@
 **Lección de test**: el `describe` previo de `store/simulacion.test.ts` deja el store singleton DENTRO del modo simulación; sin `salirModoSimulacion()` en el `beforeEach`, `iniciarModoSimulacion` hace early-return sobre el modelo viejo (refuerza el pendiente "migrar tests de store al factory `crearOpmStore`").
 
 **Gate**: check **2604/0** (+13: 3 kernel, 4 proyección, 2 store, 4 styles) · lint limpio · design:governance OK · build OK · e2e 12 **9/9** (+1: decisión XOR inline end-to-end sobre `modeloAbanicoRutasEstados`).
+
+**Deploy 2026-06-12** (`f008f8d1`, pusheado): bundle `index-Bk_LRzsF.js` en `opforja.sanixai.com` — contenedores healthy, healthz internos ok (web/bug-capture/model-api), 200 público, 401 sin cookie en `/__deep-opm/modelos`, literal `barra-simulacion-xor` verificado en el bundle servido.
 
 ## Actualización 2026-06-12 — barrido R-CONF-7 COMPLETO: guards SSOT P3 + unicidad de rol + conformance de export (TODO DESPLEGADO)
 
