@@ -10,6 +10,20 @@
 
 ---
 
+## Actualización 2026-06-12 — corte UX «integridad de modo + silencio cero» (C-1 + M-1/M-2 de la auditoría Jobs)
+
+**Mandato**: ejecutar la recomendación única de `docs/auditorias/2026-06-12-auditoria-ux-jobs.md`. TDD completo:
+
+1. **Ley silencio-cero** (`src/leyes/silencio-readonly.test.ts`): ninguna acción de edición bloqueada por solo-lectura es muda ni miente. `commitModelo` ahora **devuelve boolean** y usa el helper `mensajeBloqueoEdicion` (sim > readOnly > vista derivada — la simulación va primero porque fuerza `readOnly`); mensaje de sim: «Modo simulación: el modelo es de solo lectura. Sal con ⎋ para editar.» La ley cazó **8 flashes mentirosos** (`✓ Enlace/Objeto/Proceso creado`, `✓ Plegado`, `✓ Layout`, `✓ Apariencia ×2`, `✓ Estado/Selección eliminada`) que corrían incondicionales tras un commit rechazado — todos condicionados a `commiteado`.
+2. **Modo enlace sellado en solo lectura**: `elegirTipoEnlace` e `iniciarConexionDesdeApariencia` guardan ANTES de encender `modoEnlace` (los targets verdes "conectables" mentían).
+3. **Barra contextual sin acciones de edición en solo lectura**: `accionesParaContextoBarra(..., readOnly)` devuelve `[]`. **OJO**: la superficie viva en desktop es `CodexSelectionAnnotation` (el pivot Codex absorbió `BarraHerramientasElemento`, que sigue montado SOLO en mobile editable) — el gate va en ambos.
+4. **Escape sale de simulación**: la barra prometía «⎋ salir» pero la cascada de Escape jamás llamó `salirModoSimulacion` (hallazgo en vivo durante la verificación). Añadido al final de la cascada (tras diálogos/modoEnlace, antes de vaciar selección) en `globalShortcutsPort`.
+5. **Paleta M-1/M-2**: una sola columna sin truncado de label; con query la lista es **plana** (orden visual = orden de ejecución de ↵); ranking **prefix-first sobre el label** (escribir «abrir» ya no ejecuta «Tabla de Enlaces»); el pseudo-comando Escape («Cerrar modal…») fuera de la paleta. E2e de paleta reconciliados (`command-palette-section-resultados` con query).
+
+**Lección de testing**: el testid real del toast es `flash-toast` — un grep con flag `-r` (replacement) pegado fabricó un `n-toast` fantasma que costó un ciclo de debug e2e. Verificar testids leyendo el componente, no el output de grep.
+
+**Gate**: check **2623/0** (+19: 9 ley, 3 barra, 5 paleta, 2 Escape) · lint · governance OK · build OK · e2e 12-sim **10/10** (+1 C-1 end-to-end: toast visible + barra sin acciones + Escape sale) · paleta 9/9 · `browser:smoke` **274/0/5**.
+
 ## Actualización 2026-06-12 — resolución XOR inline en la barra de simulación (cierre del pendiente del backlog 2026-06-11, DESPLEGADO)
 
 **Mandato**: cerrar el pendiente «`resolverRamaSimulacion` (kernel listo) sin UI inline en BarraSimulacion». TDD en 4 capas, dependencias unidireccionales intactas:

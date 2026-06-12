@@ -239,7 +239,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     construirItemsCommandPalette(registros, accionesContextuales, accionesMenu, frecuenciaUso),
     query,
   ).slice(0, query.trim() ? 12 : 60);
-  const grupos = agruparItemsCommandPalette(items, { incluirSeccionesVacias: !query.trim() });
+  const grupos = gruposCommandPaletteParaRender(items, query);
   const indicePorItemId = new Map(items.map((item, index) => [item.id, index]));
   const itemActivo = items[activo] ?? items[0] ?? null;
 
@@ -349,12 +349,12 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
             <div style={style.empty}>sin resultados - escribe otro comando</div>
           ) : grupos.map((grupo) => (
             <section
-              key={grupo.seccion}
-              aria-label={grupo.seccion}
-              data-testid={`command-palette-section-${grupo.seccion.toLowerCase()}`}
-              style={style.seccion}
+              key={grupo.seccion ?? "resultados"}
+              aria-label={grupo.seccion ?? "Resultados"}
+              data-testid={`command-palette-section-${(grupo.seccion ?? "resultados").toLowerCase()}`}
+              style={grupo.seccion === null ? style.seccionPlana : style.seccion}
             >
-              <div style={style.seccionTitulo}>{grupo.seccion}</div>
+              {grupo.seccion !== null ? <div style={style.seccionTitulo}>{grupo.seccion}</div> : null}
               <div style={style.seccionItems}>
                 {grupo.items.length === 0 ? (
                   <div style={style.seccionVacia}>{GLIFO_VACIO}</div>
@@ -418,6 +418,9 @@ export function construirItemsCommandPalette(
   // El handler real sigue arbitrado por `registroAplicable` segun foco.
   const atajosVistos = new Set<string>();
   const itemsAtajos = registros.flatMap((registro, index) => {
+    // M-1: Escape no es un comando — nadie lo busca en la paleta y su fila
+    // («Cerrar modal…») era ruido que competía con comandos reales.
+    if (registro.combo === "Escape") return [];
     const label = registro.etiqueta ?? registro.descripcion;
     const descripcion = registro.descripcionLarga ?? registro.descripcion;
     const clave = claveAtajoPalette(registro.combo, label);
@@ -595,12 +598,40 @@ function emitirEventoBugCapture(nombre: "opforja:bug-capture:open" | "opforja:bu
 }
 
 export function filtrarItemsCommandPalette(items: readonly CommandPaletteItem[], query: string): CommandPaletteItem[] {
-  const terminos = normalizarTextoBusqueda(query).split(" ").filter(Boolean);
+  const consulta = normalizarTextoBusqueda(query);
+  const terminos = consulta.split(" ").filter(Boolean);
   if (terminos.length === 0) return [...items];
-  return items.filter((item) => {
+  const coincidentes = items.filter((item) => {
     const texto = `${item.textoBusqueda} ${normalizarTextoBusqueda(seccionVisualCommandPalette(item))}`;
     return terminos.every((termino) => texto.includes(termino));
   });
+  // M-2 (auditoría UX 2026-06-12): el prefijo del LABEL manda sobre el fuzzy
+  // de descripción/categoría — quien escribe «abrir» quiere los comandos que
+  // EMPIEZAN con «Abrir», no el primero que mencione abrir en su descripción.
+  // El sort es estable: dentro de cada tier se conserva frecuencia/alfabético.
+  return coincidentes.sort((a, b) => tierPrefijoLabel(a, consulta) - tierPrefijoLabel(b, consulta));
+}
+
+function tierPrefijoLabel(item: CommandPaletteItem, consulta: string): number {
+  return normalizarTextoBusqueda(item.label).startsWith(consulta) ? 0 : 1;
+}
+
+/**
+ * M-1 (auditoría UX 2026-06-12): con query, la lista es PLANA — el orden
+ * visual ES el orden de ejecución (↵ ejecuta lo primero que se ve). Las
+ * secciones agrupadas quedan para la vista de exploración sin query.
+ */
+export interface CommandPaletteGrupoRender {
+  seccion: CommandPaletteSeccion | null;
+  items: CommandPaletteItem[];
+}
+
+export function gruposCommandPaletteParaRender(
+  items: readonly CommandPaletteItem[],
+  query: string,
+): CommandPaletteGrupoRender[] {
+  if (query.trim()) return [{ seccion: null, items: [...items] }];
+  return agruparItemsCommandPalette(items, { incluirSeccionesVacias: true });
 }
 
 export function agruparItemsCommandPalette(
@@ -732,23 +763,31 @@ const style = {
     letterSpacing: tokens.typography.ls.kbd,
     textTransform: "uppercase",
   },
+  // M-1 (auditoría UX 2026-06-12): una sola columna a lo ancho del modal —
+  // las 3 columnas de 220px truncaban los labels («Abrir como pe…») en el
+  // surface del power user. El verbo y el objeto no se truncan jamás.
   lista: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gridAutoRows: "minmax(0, 1fr)",
-    alignContent: "stretch",
+    gridTemplateColumns: "1fr",
+    alignContent: "start",
     gap: 0,
     padding: 0,
-    overflow: "hidden",
+    overflowY: "auto",
   },
   seccion: {
     minHeight: 0,
     display: "grid",
     gridTemplateRows: "auto minmax(0, 1fr)",
     alignContent: "start",
-    borderRight: `1px dotted ${tokens.colors.rule}`,
     borderBottom: `1px dotted ${tokens.colors.rule}`,
     padding: "12px 12px 10px",
+  },
+  // M-1: con query la lista es plana — sin header de sección ni borde.
+  seccionPlana: {
+    minHeight: 0,
+    display: "grid",
+    alignContent: "start",
+    padding: "8px 12px 10px",
   },
   seccionTitulo: {
     color: tokens.colors.inkMid,
@@ -803,7 +842,8 @@ const style = {
     transition: `background ${tokens.transitions.slow}, border-color ${tokens.transitions.slow}`,
   },
   itemTextos: { display: "grid", minWidth: 0, gap: "2px" },
-  itemLabel: { color: tokens.colors.ink, fontFamily: tokens.typography.serif, fontSize: `${tokens.typography.fs.fs13}px`, fontWeight: tokens.typography.weights.regular, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  // M-1: el label NUNCA se trunca — a una columna hay ancho de sobra.
+  itemLabel: { color: tokens.colors.ink, fontFamily: tokens.typography.serif, fontSize: `${tokens.typography.fs.fs13}px`, fontWeight: tokens.typography.weights.regular },
   itemDescripcion: { color: tokens.colors.inkMid, fontFamily: tokens.typography.sans, fontSize: `${tokens.typography.fs.fs11}px`, fontWeight: tokens.typography.weights.regular, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   itemMeta: { display: "inline-flex", alignItems: "center", gap: "8px", justifySelf: "end" },
   atajo: {

@@ -51,8 +51,8 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         // Inspector. Lo consume `InspectorEntidad` via efecto al confirmar la
         // selección. La señal lleva la `Id` para que el efecto matchee y no
         // dispare con seleccciones anteriores residuales.
-        commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, solicitarFocusNombre: nueva });
-        addFlash("✓ Objeto creado");
+        const commiteado = commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, solicitarFocusNombre: nueva });
+        if (commiteado) addFlash("✓ Objeto creado");
       }
     },
 
@@ -63,8 +63,8 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         const nueva = resultado.value.entidadId;
         // L4 ronda 23 (#15): default brutal — pedir focus al input Nombre. Ver
         // comentario en `crearObjetoDemo`.
-        commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, solicitarFocusNombre: nueva });
-        addFlash("✓ Proceso creado");
+        const commiteado = commitModelo(set, modelo, resultado.value.modelo, { seleccionId: nueva, seleccionados: [nueva], modoSeleccion: "simple", enlaceSeleccionId: null, mensaje: null, solicitarFocusNombre: nueva });
+        if (commiteado) addFlash("✓ Proceso creado");
       }
     },
 
@@ -81,7 +81,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
       // en ToolbarBase y NO el inspector con input Nombre; por eso aquí no se
       // emite la señal de focus del Inspector. El modal ya enfoca su propio
       // input al montar (responsabilidad de `ToolbarBase`).
-      commitModelo(set, modelo, resultado.value.modelo, {
+      const commiteado = commitModelo(set, modelo, resultado.value.modelo, {
         seleccionId: resultado.value.entidadId,
         seleccionados: [resultado.value.entidadId],
         modoSeleccion: "simple",
@@ -93,7 +93,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         // "modal nombre cosa". Reemplaza el SystemEvent global previo.
         nuevaCosaPendiente: { entidadId: resultado.value.entidadId, aparienciaId: resultado.value.aparienciaId, nombre },
       });
-      addFlash(`✓ ${tipo === "objeto" ? "Objeto" : "Proceso"} creado`);
+      if (commiteado) addFlash(`✓ ${tipo === "objeto" ? "Objeto" : "Proceso"} creado`);
     },
 
     confirmarNombreNuevaCosa(nombre) {
@@ -190,7 +190,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
           },
         },
       };
-      commitModelo(set, modelo, siguiente, {
+      const commiteado = commitModelo(set, modelo, siguiente, {
         seleccionId: entidadId,
         seleccionados: [entidadId],
         modoSeleccion: "simple",
@@ -198,7 +198,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         modoEnlace: null,
         mensaje: null,
       });
-      addFlash("✓ Apariencia creada");
+      if (commiteado) addFlash("✓ Apariencia creada");
     },
 
     fijarModoCreacion(tipo) {
@@ -587,7 +587,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
               },
             },
           };
-      commitModelo(set, modelo, siguiente, {
+      const commiteado = commitModelo(set, modelo, siguiente, {
         opdActivoId: opd.id,
         seleccionId: colision.entidadExistenteId,
         seleccionados: [colision.entidadExistenteId],
@@ -598,7 +598,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
         colisionPendiente: null,
         mensaje: existenteEnOpd ? "La cosa existente ya aparece en este OPD" : null,
       });
-      if (!existenteEnOpd) addFlash("✓ Apariencia creada");
+      if (commiteado && !existenteEnOpd) addFlash("✓ Apariencia creada");
     },
 
     resolverColisionRenombrar(nuevoNombre) {
@@ -614,7 +614,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
           set({ mensaje: resultado.error });
           return;
         }
-        commitModelo(set, modelo, resultado.value, {
+        const commiteado = commitModelo(set, modelo, resultado.value, {
           seleccionId: entidadProvId,
           seleccionados: [entidadProvId],
           modoSeleccion: "simple",
@@ -624,7 +624,7 @@ export function accionesEntidad(set: SetStore, get: GetStore): Partial<ModeloSli
           nuevaCosaPendiente: null,
           colisionPendiente: null,
         });
-        addFlash(`✓ ${colisionPendiente.tipo === "objeto" ? "Objeto" : "Proceso"} creado`);
+        if (commiteado) addFlash(`✓ ${colisionPendiente.tipo === "objeto" ? "Objeto" : "Proceso"} creado`);
         return;
       }
 

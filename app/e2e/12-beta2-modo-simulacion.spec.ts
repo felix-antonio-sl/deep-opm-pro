@@ -225,6 +225,38 @@ test("simulacion: navegar a otro OPD no aborta la corrida (B0.026)", async ({ pa
   expect(pageErrors).toEqual([]);
 });
 
+test("simulacion: la edicion queda sellada — R no enciende modo enlace y el bloqueo habla (C-1)", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+
+  await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstados(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await entrarSimulacionDesdeMas(page);
+  await expect(page.getByTestId("barra-simulacion")).toBeVisible();
+
+  // Seleccionar una cosa y presionar R: ANTES encendia el modo enlace con
+  // targets verdes "conectables" que morian en silencio al clickear (C-1).
+  await page.getByRole("button", { name: /Objeto Pedido/ }).click();
+  await page.keyboard.press("r");
+
+  // El bloqueo HABLA: el flash nombra el modo y la salida.
+  await expect(page.getByTestId("flash-toast").filter({ hasText: "Modo simulación" })).toBeVisible();
+
+  // Y la barra contextual no ofrece acciones de edicion en simulacion.
+  await expect(page.getByRole("button", { name: "Descomponer" })).toHaveCount(0);
+
+  // La promesa «⎋ salir» del copy ahora es verdadera: Escape sale del modo.
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("barra-simulacion")).toHaveCount(0);
+  await expect(page.getByTestId("toolbar-root")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
 test("simulacion: decision XOR inline — elegir una rama aplica su transicion", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

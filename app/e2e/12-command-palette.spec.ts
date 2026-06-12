@@ -139,7 +139,8 @@ test("Command Palette ofrece Exportar OPL del modelo (Markdown) y copia todo el 
   await palette.getByRole("combobox").fill("OPL del modelo");
   const item = page.getByTestId("command-palette-item-menu-exportar-opl-modelo");
   await expect(item).toBeVisible();
-  await expect(palette.getByTestId("command-palette-section-exportar")).toContainText("Exportar OPL del modelo (Markdown)");
+  // M-1 (auditoría UX 2026-06-12): con query la lista es plana — sin secciones.
+  await expect(palette.getByTestId("command-palette-section-resultados")).toContainText("Exportar OPL del modelo (Markdown)");
 
   await item.click();
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
@@ -176,7 +177,8 @@ test("Command Palette ofrece Exportar diagnóstico (JSON) en EXPORTAR y lo ejecu
   await expect(item).toBeVisible();
   await expect(item).toContainText("Exportar diagnóstico (JSON)");
   // Vive bajo la sección EXPORTAR (enrutado por seccionVisualCommandPalette).
-  await expect(palette.getByTestId("command-palette-section-exportar")).toContainText("Exportar diagnóstico (JSON)");
+  // M-1 (auditoría UX 2026-06-12): con query la lista es plana — sin secciones.
+  await expect(palette.getByTestId("command-palette-section-resultados")).toContainText("Exportar diagnóstico (JSON)");
 
   // Ejecutarlo copia al portapapeles (stub) y cierra el palette sin errores.
   await item.click();

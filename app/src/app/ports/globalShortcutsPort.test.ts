@@ -40,7 +40,7 @@ function setup(
   nav: { modelo?: Modelo; opdActivoId?: Id } = {},
   tabs: { abiertas?: Array<{ id: string }>; activa?: string | null } = {},
 ) {
-  const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0, eliminar: 0, soloCanvas: 0 };
+  const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0, eliminar: 0, soloCanvas: 0, salirSim: 0, vaciarSeleccion: 0 };
   const navegados: Id[] = [];
   const pestanasCambiadas: string[] = [];
   const modelo = nav.modelo ?? crearModelo();
@@ -98,7 +98,7 @@ function setup(
     cerrarBusquedaCosas: () => {},
     cerrarMenuPrincipal: () => {},
     cancelarEnlace: () => {},
-    vaciarSeleccion: () => {},
+    vaciarSeleccion: () => { calls.vaciarSeleccion++; },
     guardarLocal: () => {},
     abrirDialogoComandos: () => {},
     toggleSoloCanvas: () => { calls.soloCanvas++; },
@@ -125,6 +125,7 @@ function setup(
     // Simulation fields (B0.028)
     simulacionActiva: sim.activa,
     autoAvanceSimulacionActivo: sim.auto,
+    salirModoSimulacion: () => { calls.salirSim++; },
     iniciarAutoAvanceSimulacion: () => { calls.play++; },
     pausarAutoAvanceSimulacion: () => { calls.pausa++; },
     oplMarginaliaMinimizada: opl.minimizada,
@@ -402,6 +403,7 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
       toggleBibliotecaDock: () => {},
       simulacionActiva: false,
       autoAvanceSimulacionActivo: false,
+      salirModoSimulacion: () => {},
       iniciarAutoAvanceSimulacion: () => {},
       pausarAutoAvanceSimulacion: () => {},
       oplMarginaliaMinimizada: false,
@@ -460,5 +462,21 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
     const { enlaces, handler } = setupCreacion({ seleccionId: null });
     handler("R")!(makeFakeEvent());
     expect(enlaces).toHaveLength(0);
+  });
+});
+
+describe("Escape sale del modo simulación (auditoría UX 2026-06-12, C-1)", () => {
+  test("con simulación activa y nada más abierto, Escape SALE del modo (la barra promete «⎋ salir»)", () => {
+    const { registros, calls } = setup({ activa: true, auto: false });
+    registros.find((r) => r.combo === "Escape")!.handler(makeFakeEvent());
+    expect(calls.salirSim).toBe(1);
+    expect(calls.vaciarSeleccion).toBe(0);
+  });
+
+  test("sin simulación, Escape conserva su cascada (vaciar selección)", () => {
+    const { registros, calls } = setup({ activa: false, auto: false });
+    registros.find((r) => r.combo === "Escape")!.handler(makeFakeEvent());
+    expect(calls.salirSim).toBe(0);
+    expect(calls.vaciarSeleccion).toBe(1);
   });
 });

@@ -303,27 +303,46 @@ export function mensajeSoloLecturaOpdActivo(modelo: Modelo, opdActivoId: Id): st
     : null;
 }
 
+/**
+ * Ley silencio-cero (auditoría UX 2026-06-12, C-1): el bloqueo de edición
+ * siempre HABLA, y nombra su causa real. La simulación va primero porque
+ * fuerza `readOnly=true` — sin este orden el usuario recibiría el genérico
+ * de solo-lectura estando en un modo del que se sale con ⎋.
+ */
+export function mensajeBloqueoEdicion(
+  estado: Pick<OpmStore, "readOnly" | "contextoSimulacion" | "modelo" | "opdActivoId">,
+): string | null {
+  if (estado.contextoSimulacion) {
+    return "Modo simulación: el modelo es de solo lectura. Sal con ⎋ para editar.";
+  }
+  if (estado.readOnly) {
+    return "Modelo en solo lectura. Usa Guardar como para crear copia editable.";
+  }
+  return mensajeSoloLecturaOpdActivo(estado.modelo, estado.opdActivoId);
+}
+
+/**
+ * Devuelve `true` solo si el cambio quedó aplicado (o no había cambio
+ * semántico que aplicar). `false` = bloqueado por solo-lectura — los
+ * callsites NO deben emitir flashes de éxito en ese caso.
+ */
 export function commitModelo(
   set: (partial: Partial<OpmStore>) => void,
   previo: Modelo,
   siguiente: Modelo,
   extra: Partial<OpmStore> = {},
-): void {
+): boolean {
   const estado = storeApi?.getState();
-  if (estado?.readOnly) {
-    set({ mensaje: "Modelo en solo lectura. Usa Guardar como para crear copia editable." });
-    return;
-  }
-  const mensajeVistaReadOnly = estado ? mensajeSoloLecturaOpdActivo(estado.modelo, estado.opdActivoId) : null;
-  if (mensajeVistaReadOnly) {
-    set({ mensaje: mensajeVistaReadOnly });
-    return;
+  const bloqueo = estado ? mensajeBloqueoEdicion(estado) : null;
+  if (bloqueo) {
+    set({ mensaje: bloqueo });
+    return false;
   }
   const previoSincronizado = sincronizarPuertosTodosLosOpd(previo);
   const sincronizado = sincronizarPuertosTodosLosOpd(sincronizarAbanicos(siguiente));
   if (previoSincronizado === sincronizado || exportarModelo(previoSincronizado) === exportarModelo(sincronizado)) {
     set(extra);
-    return;
+    return true;
   }
   undoStack = [...undoStack, previoSincronizado].slice(-UNDO_LIMIT);
   redoStack = [];
@@ -343,6 +362,7 @@ export function commitModelo(
     extraFinal.descriptorMapaCache = construirDescriptorMapa(sincronizado);
   }
   set(estadoModelo(sincronizado, extraFinal));
+  return true;
 }
 
 export function cambiaronOpds(previo: Modelo, siguiente: Modelo): boolean {

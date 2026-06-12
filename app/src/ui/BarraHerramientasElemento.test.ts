@@ -3,6 +3,7 @@ import type { Entidad, Modelo } from "../modelo/tipos";
 import {
   accionesBarraEnlace,
   accionesBarraMulti,
+  accionesParaContextoBarra,
   accionesPilotoBarra,
   anchoEstimadoAccionesBarra,
   anchoEstimadoBarra,
@@ -415,5 +416,34 @@ describe("posicionamiento", () => {
     expect(limitar(-2, 0, 10)).toBe(0);
     expect(limitar(12, 0, 10)).toBe(10);
     expect(limitar(4, 0, 10)).toBe(4);
+  });
+});
+
+describe("barra contextual en solo lectura (ley silencio-cero C-1)", () => {
+  test("readOnly suprime TODAS las acciones de edición de la barra", () => {
+    const modelo = modeloBase();
+    const contexto = resolverContextoBarra(modelo, "opd-1", objeto.id, null, [objeto.id]);
+
+    const acciones = accionesParaContextoBarra(contexto, false, true);
+
+    expect(acciones).toEqual([]);
+  });
+
+  test("readOnly también vacía la barra de enlace y la de multiselección", () => {
+    const modelo = modeloBase();
+    const ctxEnlace = resolverContextoBarra(modelo, "opd-1", null, "enlace-1", []);
+    const ctxMulti = resolverContextoBarra(modelo, "opd-1", null, null, [objeto.id, proceso.id]);
+
+    expect(accionesParaContextoBarra(ctxEnlace, false, true)).toEqual([]);
+    expect(accionesParaContextoBarra(ctxMulti, false, true)).toEqual([]);
+  });
+
+  test("sin readOnly la barra conserva sus acciones (no regresión)", () => {
+    const modelo = modeloBase();
+    const contexto = resolverContextoBarra(modelo, "opd-1", objeto.id, null, [objeto.id]);
+
+    const acciones = accionesParaContextoBarra(contexto, false, false);
+
+    expect(acciones.length).toBeGreaterThan(0);
   });
 });

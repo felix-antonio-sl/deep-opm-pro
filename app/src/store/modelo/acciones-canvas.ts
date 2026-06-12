@@ -96,7 +96,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       const { modelo: modeloFinal } = resultado.value;
-      commitModelo(set, modelo, modeloFinal, {
+      const commiteado = commitModelo(set, modelo, modeloFinal, {
         seleccionId: id,
         seleccionados: [id],
         modoSeleccion: "simple",
@@ -107,7 +107,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         // P1-5: al crearse el enlace, salimos del editor inline.
         nuevaCosaPendiente: null,
       });
-      addFlash("✓ Enlace creado");
+      if (commiteado) addFlash("✓ Enlace creado");
     },
 
     seleccionarEstadoComoExtremo(estadoId) {
@@ -139,7 +139,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       const { modelo: modeloFinal } = resultado.value;
-      commitModelo(set, modelo, modeloFinal, {
+      const commiteado = commitModelo(set, modelo, modeloFinal, {
         seleccionId: estado.entidadId,
         seleccionados: [estado.entidadId],
         modoSeleccion: "simple",
@@ -149,7 +149,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         mensaje: null,
         nuevaCosaPendiente: null,
       });
-      addFlash("✓ Enlace creado");
+      if (commiteado) addFlash("✓ Enlace creado");
     },
 
     seleccionarEnlace(id) {
@@ -534,14 +534,14 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
-      commitModelo(set, modelo, resultado.value, {
+      const commiteado = commitModelo(set, modelo, resultado.value, {
         seleccionId: apariencia?.entidadId ?? null,
         enlaceSeleccionId: null,
         estadoSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
       });
-      addFlash("✓ Plegado actualizado");
+      if (commiteado) addFlash("✓ Plegado actualizado");
     },
 
     fijarModoPlegadoApariencia(aparienciaId, modo) {
@@ -815,13 +815,13 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         set({ mensaje: "Layout ya esta aplicado" });
         return;
       }
-      commitModelo(set, modelo, resultado.value, {
+      const commiteado = commitModelo(set, modelo, resultado.value, {
         seleccionados: [...seleccionados],
         mensaje: "Layout sugerido aplicado",
         solicitudFitToken: solicitudFitToken + 1,
         dirtyModelo,
       });
-      addFlash("✓ Layout aplicado");
+      if (commiteado) addFlash("✓ Layout aplicado");
     },
 
     reordenarSubprocesoEnTimeline(opdId, aparienciaId, nuevaY) {

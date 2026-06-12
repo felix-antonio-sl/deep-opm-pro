@@ -28,6 +28,7 @@ import { createPortal } from "preact/compat";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { dia } from "jointjs";
 import { useBarraHerramientasElementoViewModel } from "../../app/viewmodels/barraHerramientasElementoViewModel";
+import { useZustandEditabilityPort } from "../../app/ports/zustandEditabilityPort";
 import {
   accionesParaContextoBarra,
   ariaLabelBarra,
@@ -92,9 +93,13 @@ export function CodexSelectionAnnotation() {
   // El shell Codex monta la marginalia (Inspector) de forma persistente; estas
   // acciones la enfocan en vez de colapsar el chrome (App.tsx, fuera de L4).
   const abrirInspector = () => enfocarSeccionInspector("inspector-pane");
+  // Ley silencio-cero (C-1): en solo lectura (modo simulación, vista derivada)
+  // la anotación no ofrece acciones de edición — invitarían a gestos que el
+  // commit rechazaría.
+  const { readOnly } = useZustandEditabilityPort();
   const acciones = useMemo(
-    () => accionesParaContextoBarra(contexto, true).filter((a) => a.visible),
-    [contexto],
+    () => accionesParaContextoBarra(contexto, true, readOnly).filter((a) => a.visible),
+    [contexto, readOnly],
   );
 
   const entidad = contexto?.tipo === "entidad" ? contexto.entidad : null;

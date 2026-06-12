@@ -25,6 +25,9 @@ import type { RuntimeEffects } from "./runtimeEffects";
 
 beforeEach(() => {
   resetRuntimeEffects();
+  // Higiene del singleton: otros archivos de test pueden dejar el modo
+  // simulación activo (readOnly forzado) y commitModelo lo detecta.
+  store.getState().salirModoSimulacion();
   store.getState().importarJson(exportarModelo(crearModelo()));
   store.getState().listarModelosGuardados();
 });

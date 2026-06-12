@@ -35,7 +35,7 @@ import {
   volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
 } from "../../modelo/operaciones";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
-import { commitModelo, enlaceNuevo, type GetStore, type SetStore } from "../runtime";
+import { commitModelo, enlaceNuevo, mensajeBloqueoEdicion, type GetStore, type SetStore } from "../runtime";
 import { addFlash } from "../feedback";
 import type { Id, Modelo } from "../../modelo/tipos";
 import type { ModeloSlice } from "../tipos";
@@ -49,6 +49,13 @@ import type { ModeloSlice } from "../tipos";
 export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
     elegirTipoEnlace(tipo, origenExplicitoId) {
+      // Ley silencio-cero (C-1): en solo lectura el modo enlace ni se
+      // enciende — encenderlo pinta targets "conectables" que mienten.
+      const bloqueo = mensajeBloqueoEdicion(get());
+      if (bloqueo) {
+        set({ mensaje: bloqueo });
+        return;
+      }
       const { modelo, seleccionId, modoEnlace } = get();
       const origenId = origenExplicitoId ?? modoEnlace?.origenId ?? seleccionId;
       if (!origenId || !modelo.entidades[origenId]) {
@@ -61,6 +68,11 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
     },
 
     iniciarConexionDesdeApariencia(aparienciaId, anchor, estadoOrigenId) {
+      const bloqueo = mensajeBloqueoEdicion(get());
+      if (bloqueo) {
+        set({ mensaje: bloqueo });
+        return;
+      }
       const { modelo, opdActivoId } = get();
       const apariencia = modelo.opds[opdActivoId]?.apariencias[aparienciaId];
       if (!apariencia) {
@@ -101,7 +113,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       const { modelo: modeloFinal, enlaceId: enlaceCreadoId } = resultado.value;
-      commitModelo(set, modelo, modeloFinal, {
+      const commiteado = commitModelo(set, modelo, modeloFinal, {
         seleccionId: null,
         seleccionados: enlaceCreadoId ? [enlaceCreadoId] : [],
         modoSeleccion: "simple",
@@ -111,7 +123,9 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         // P1-5: crear enlace cambia contexto al enlace; cerramos editor inline.
         nuevaCosaPendiente: null,
       });
-      addFlash("✓ Enlace creado");
+      // Ley silencio-cero: el flash de éxito solo si el commit ocurrió —
+      // antes corría incondicional y MENTÍA tras un rechazo por solo-lectura.
+      if (commiteado) addFlash("✓ Enlace creado");
     },
 
     cancelarEnlace() {

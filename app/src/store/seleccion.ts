@@ -226,14 +226,14 @@ export const createSeleccionSlice: CrearSlice<SeleccionSlice> = (set, get) => ({
         }
         siguiente = resultado.value;
       }
-      commitModelo(set, modelo, siguiente, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
-      addFlash("✓ Estado eliminado");
+      const commiteado = commitModelo(set, modelo, siguiente, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
+      if (commiteado) addFlash("✓ Estado eliminado");
       return;
     }
     const resultado = eliminarBatch(modelo, ids, opdActivoId);
     if (resultado.ok) {
-      commitModelo(set, modelo, resultado.value, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
-      addFlash("✓ Selección eliminada");
+      const commiteado = commitModelo(set, modelo, resultado.value, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
+      if (commiteado) addFlash("✓ Selección eliminada");
     } else {
       set({ mensaje: resultado.error });
     }

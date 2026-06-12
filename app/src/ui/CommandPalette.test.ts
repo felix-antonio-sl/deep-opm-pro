@@ -7,6 +7,7 @@ import {
   construirAccionesMenuCommandPalette,
   construirItemsCommandPalette,
   filtrarItemsCommandPalette,
+  gruposCommandPaletteParaRender,
   normalizarTextoBusqueda,
   seccionVisualCommandPalette,
   type CommandPaletteMenuAction,
@@ -317,3 +318,65 @@ function depsAccionesMenu(
     ...overrides,
   };
 }
+
+describe("auditoría UX 2026-06-12 — M-1/M-2 paleta", () => {
+  const accionesMenuConAbrir: CommandPaletteMenuAction[] = [
+    ...accionesMenu,
+    {
+      id: "abrir-importar",
+      label: "Abrir / importar modelo",
+      descripcion: "Abrir modelos guardados, archivados o importar JSON",
+      categoria: "archivo",
+      run: () => {},
+    },
+  ];
+
+  test("M-2: el prefijo del label manda — «abrir» ejecuta Abrir/importar, no Tabla de enlaces", () => {
+    const items = construirItemsCommandPalette(atajos, acciones, accionesMenuConAbrir);
+    const filtrados = filtrarItemsCommandPalette(items, "abrir");
+
+    const labels = filtrados.map((item) => item.label);
+    expect(labels).toContain("Tabla de enlaces");
+    expect(filtrados[0]?.label).toBe("Abrir / importar modelo");
+  });
+
+  test("M-2: sin match de prefijo, el orden por frecuencia se conserva", () => {
+    const items = construirItemsCommandPalette(atajos, acciones, accionesMenuConAbrir, {
+      "menu-tabla-enlaces": 5,
+    });
+    const filtrados = filtrarItemsCommandPalette(items, "enlaces");
+    expect(filtrados[0]?.label).toBe("Tabla de enlaces");
+  });
+
+  test("M-1: Escape no es un comando — el pseudo-atajo no entra a la paleta", () => {
+    const atajoEscape: RegistroAtajo = {
+      combo: "Escape",
+      ctx: "global",
+      categoria: "seleccion",
+      descripcion: "Cerrar modal superior o vaciar selección",
+      handler: () => {},
+    };
+    const items = construirItemsCommandPalette([...atajos, atajoEscape], acciones, accionesMenu);
+
+    expect(items.some((item) => item.atajo === "Escape")).toBe(false);
+  });
+
+  test("M-1: con query la lista es PLANA (orden visual = orden de ejecución)", () => {
+    const items = construirItemsCommandPalette(atajos, acciones, accionesMenuConAbrir);
+    const filtrados = filtrarItemsCommandPalette(items, "abrir");
+
+    const grupos = gruposCommandPaletteParaRender(filtrados, "abrir");
+
+    expect(grupos).toHaveLength(1);
+    expect(grupos[0]?.seccion).toBeNull();
+    expect(grupos[0]?.items.map((i) => i.id)).toEqual(filtrados.map((i) => i.id));
+  });
+
+  test("M-1: sin query se conserva la vista agrupada por secciones", () => {
+    const items = construirItemsCommandPalette(atajos, acciones, accionesMenu);
+    const grupos = gruposCommandPaletteParaRender(items, "");
+
+    expect(grupos.length).toBeGreaterThan(1);
+    expect(grupos.every((grupo) => grupo.seccion !== null)).toBe(true);
+  });
+});

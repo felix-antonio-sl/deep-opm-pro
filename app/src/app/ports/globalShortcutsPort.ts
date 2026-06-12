@@ -111,6 +111,8 @@ export interface GlobalShortcutsSnapshot {
    */
   simulacionActiva: boolean;
   autoAvanceSimulacionActivo: boolean;
+  /** Auditoría UX 2026-06-12 (C-1): Escape debe poder SALIR del modo simulación. */
+  salirModoSimulacion: () => void;
   iniciarAutoAvanceSimulacion: () => void;
   pausarAutoAvanceSimulacion: () => void;
   /**
@@ -192,6 +194,10 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     if (state.busquedaCosasAbierta) return state.cerrarBusquedaCosas();
     if (state.menuPrincipalAbierto) return state.cerrarMenuPrincipal();
     if (state.modoEnlace) return state.cancelarEnlace();
+    // Auditoría UX 2026-06-12 (C-1): la barra de simulación promete «⎋ salir»
+    // — con nada más que cerrar, Escape SALE del modo. Antes solo vaciaba la
+    // selección y la promesa del copy era falsa.
+    if (state.simulacionActiva) return state.salirModoSimulacion();
     return state.vaciarSeleccion();
   };
 

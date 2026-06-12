@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { exportarModelo } from "../serializacion/json";
 import { definirProbabilidadesAbanico, formarAbanico } from "../modelo/abanicos";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
@@ -34,7 +34,12 @@ describe("headless simulacion", () => {
 
 describe("simulacion bloqueada", () => {
   beforeEach(() => {
+    store.getState().salirModoSimulacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
+  });
+
+  afterEach(() => {
+    store.getState().salirModoSimulacion();
   });
 
   test("autoavance se detiene si un loop alcanza el limite de seguridad", () => {
@@ -79,6 +84,10 @@ describe("resolución XOR inline", () => {
     // sin salir, iniciarModoSimulacion haría early-return sobre el modelo viejo.
     store.getState().salirModoSimulacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
+  });
+
+  afterEach(() => {
+    store.getState().salirModoSimulacion();
   });
 
   test("resolverRamaSimulacionActual aplica la transición de la rama elegida", () => {

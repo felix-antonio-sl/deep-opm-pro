@@ -112,3 +112,15 @@ El sistema invita a actuar y se traga la acción. Es la violación más grave de
 2. M-1 + M-2: paleta a una columna sin truncado + ranking prefix-first.
 
 Eso repara la confianza (el producto nunca más se traga una acción) y el poder (el surface experto se vuelve legible), que son las dos cosas que un tercero nota en los primeros cinco minutos. M-3..M-6 entran en el corte siguiente.
+
+---
+
+## EJECUTADO 2026-06-12 (mismo día): C-1 + M-1/M-2 + hallazgo extra
+
+El corte recomendado se implementó con TDD (ver HANDOFF § corte UX «integridad de modo + silencio cero»). Hallazgos adicionales durante la ejecución:
+
+- **El silencio era además MENTIRA**: 8 flashes de éxito («✓ Enlace creado», «✓ Objeto creado», …) corrían incondicionales tras un commit rechazado por solo-lectura. La ley `silencio-readonly.test.ts` los cazó todos.
+- **Escape no salía de la simulación** pese a que la barra promete «⎋ salir» — la cascada de Escape nunca incluyó `salirModoSimulacion`. Corregido (el copy ahora es verdad).
+- La superficie contextual viva en desktop es `CodexSelectionAnnotation`, no `BarraHerramientasElemento` (solo mobile) — el gate readOnly se aplicó en ambas.
+
+**Pendiente de esta auditoría (corte siguiente)**: M-3 (placeholders con rename encadenado + agrupación de sugerencias), M-4 (inspector con jerarquía de frecuencia), M-5 (jerga del chrome — microcopy literal en la tabla), M-6 (estados contradictorios de la barra sim), m-1..m-6.

@@ -1,6 +1,7 @@
 import type { dia } from "jointjs";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useBarraHerramientasElementoViewModel } from "../app/viewmodels/barraHerramientasElementoViewModel";
+import { useZustandEditabilityPort } from "../app/ports/zustandEditabilityPort";
 import type { Enlace, Entidad, Id, Modelo } from "../modelo/tipos";
 import { leerBBoxCell, useBboxTracker, type OverlayBBox } from "../render/jointjs/overlayCanvas/useBboxTracker";
 import {
@@ -196,9 +197,10 @@ export function BarraHerramientasElemento({ inspectorAbierto, onToggleInspector,
   );
   const entidad = contextoSeleccion?.tipo === "entidad" ? contextoSeleccion.entidad : null;
   const enlace = contextoSeleccion?.tipo === "enlace" ? contextoSeleccion.enlace : null;
+  const { readOnly } = useZustandEditabilityPort();
   const acciones = useMemo(
-    () => accionesParaContextoBarra(contextoSeleccion, inspectorAbierto),
-    [contextoSeleccion, inspectorAbierto],
+    () => accionesParaContextoBarra(contextoSeleccion, inspectorAbierto, readOnly),
+    [contextoSeleccion, inspectorAbierto, readOnly],
   );
   const accionesVisibles = useMemo(() => acciones.filter((accion) => accion.visible), [acciones]);
   const anchoBarraAcciones = useMemo(
@@ -494,8 +496,14 @@ export function accionesBarraEnlace(
 export function accionesParaContextoBarra(
   contexto: ContextoBarraSeleccion | null,
   inspectorAbierto: boolean,
+  readOnly = false,
 ): AccionBarra[] {
   if (!contexto) return [];
+  // Ley silencio-cero (C-1): en solo lectura (simulación, vista derivada,
+  // modelo bloqueado) la barra no ofrece NINGUNA acción de edición — toda
+  // affordance que invite a mutar mentiría. Queda el shell informativo
+  // (breadcrumb + toggle Inspector, que se renderizan aparte).
+  if (readOnly) return [];
   if (contexto.tipo === "enlace") return accionesBarraEnlace(contexto.enlace, inspectorAbierto);
   if (contexto.tipo === "multi") return accionesBarraMulti(contexto.cantidad, inspectorAbierto);
   return accionesPilotoBarra(contexto.entidad, inspectorAbierto);
