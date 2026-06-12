@@ -208,6 +208,25 @@ export function ejecutarPaso(modelo: Modelo, contexto: ContextoSimulacion, limit
   return tomarUnico(pasoEfecto(modelo, contexto));
 }
 
+/** Decisión XOR pendiente del paso actual, para que la UI ofrezca resolución inline. */
+export interface DecisionXorSimulacion {
+  abanicoId: Id;
+  procesoId: Id;
+  enlaceIds: readonly Id[];
+}
+
+export function decisionXorSimulacion(
+  modelo: Modelo,
+  contexto: ContextoSimulacion,
+): DecisionXorSimulacion | undefined {
+  if (contexto.estado === "completado" || contexto.estado === "bloqueado") return undefined;
+  const paso = contexto.plan[contexto.pasoActual];
+  if (!paso) return undefined;
+  const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
+  if (!abanico) return undefined;
+  return { abanicoId: abanico.id, procesoId: paso.procesoId, enlaceIds: abanico.enlaceIds };
+}
+
 export function resolverRamaSimulacion(
   modelo: Modelo,
   contexto: ContextoSimulacion,

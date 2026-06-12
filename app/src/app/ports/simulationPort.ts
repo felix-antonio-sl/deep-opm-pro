@@ -8,6 +8,7 @@ export interface SimulationPort {
   velocidad: OpmStore["velocidadSimulacion"];
   headless: OpmStore["headlessSimulacion"];
   ejecutarPaso: OpmStore["ejecutarPasoSimulacion"];
+  resolverRama: OpmStore["resolverRamaSimulacionActual"];
   ejecutarCorrida: OpmStore["ejecutarCorridaSimulacion"];
   reiniciar: OpmStore["reiniciarSimulacionActual"];
   iniciarAutoAvance: OpmStore["iniciarAutoAvanceSimulacion"];

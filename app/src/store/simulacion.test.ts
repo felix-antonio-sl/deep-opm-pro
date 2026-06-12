@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { exportarModelo } from "../serializacion/json";
+import { definirProbabilidadesAbanico, formarAbanico } from "../modelo/abanicos";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
-import { crearModelo, crearProceso } from "../modelo/operaciones";
-import type { Resultado } from "../modelo/tipos";
+import { extremoEntidad, extremoEstado } from "../modelo/extremos";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { compartirAnclaExtremosEnlaces } from "../modelo/operaciones/ports";
+import type { Modelo, Resultado } from "../modelo/tipos";
 import { store } from "../store";
 import { normalizarVelocidadSimulacion } from "./simulacion";
 
@@ -49,6 +52,58 @@ describe("simulacion bloqueada", () => {
     expect(store.getState().contextoSimulacion?.estado).toBe("bloqueado");
     expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
     expect(store.getState().mensaje).toContain("límite");
+  });
+});
+
+describe("resolución XOR inline", () => {
+  function modeloConXor(): { modelo: Modelo; veredictoId: string; ramas: string[]; estados: string[] } {
+    let m = crearModelo("XOR inline");
+    m = must(crearProceso(m, m.opdRaizId, { x: 0, y: 0 }, "Decidir"));
+    m = must(crearObjeto(m, m.opdRaizId, { x: 300, y: 0 }, "Veredicto"));
+    const decidir = Object.values(m.entidades).find((e) => e.nombre === "Decidir")!.id;
+    const veredicto = Object.values(m.entidades).find((e) => e.nombre === "Veredicto")!.id;
+    m = must(crearEstadosIniciales(m, veredicto)).modelo;
+    const [s1, s2] = Object.values(m.estados).filter((s) => s.entidadId === veredicto).map((s) => s.id);
+    m = must(crearEnlace(m, m.opdRaizId, extremoEntidad(decidir), extremoEstado(s1!), "resultado"));
+    m = must(crearEnlace(m, m.opdRaizId, extremoEntidad(decidir), extremoEstado(s2!), "resultado"));
+    const ramas = Object.keys(m.enlaces);
+    m = must(compartirAnclaExtremosEnlaces(m, m.opdRaizId, ramas, "origen", "E"));
+    m = must(formarAbanico(m, m.opdRaizId, ramas, "XOR"));
+    const abanicoId = Object.keys(m.abanicos ?? {})[0]!;
+    m = must(definirProbabilidadesAbanico(m, abanicoId, { [ramas[0]!]: 0.7, [ramas[1]!]: 0.3 }));
+    return { modelo: m, veredictoId: veredicto, ramas, estados: [s1!, s2!] };
+  }
+
+  beforeEach(() => {
+    // El describe anterior deja el store DENTRO del modo simulación (singleton):
+    // sin salir, iniciarModoSimulacion haría early-return sobre el modelo viejo.
+    store.getState().salirModoSimulacion();
+    store.getState().importarJson(exportarModelo(crearModelo()));
+  });
+
+  test("resolverRamaSimulacionActual aplica la transición de la rama elegida", () => {
+    const { modelo, veredictoId, ramas, estados } = modeloConXor();
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().iniciarModoSimulacion();
+
+    // La rama de menor probabilidad: el modo determinista NUNCA la elegiría solo.
+    store.getState().resolverRamaSimulacionActual(ramas[1]!);
+
+    const fin = store.getState().contextoSimulacion;
+    expect(fin?.estadosCurrent[veredictoId]).toBe(estados[1]!);
+    expect(fin?.trace).toHaveLength(1);
+    expect(fin?.estado).toBe("completado");
+  });
+
+  test("un enlace ajeno al abanico del paso actual es no-op", () => {
+    const { modelo } = modeloConXor();
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().iniciarModoSimulacion();
+    const antes = store.getState().contextoSimulacion;
+
+    store.getState().resolverRamaSimulacionActual("enlace-inexistente");
+
+    expect(store.getState().contextoSimulacion).toBe(antes);
   });
 });
 

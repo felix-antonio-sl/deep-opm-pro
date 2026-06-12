@@ -258,6 +258,7 @@ export type SimulacionSlice = Slice<
   | "iniciarModoSimulacion"
   | "salirModoSimulacion"
   | "ejecutarPasoSimulacion"
+  | "resolverRamaSimulacionActual"
   | "ejecutarCorridaSimulacion"
   | "reiniciarSimulacionActual"
   | "iniciarAutoAvanceSimulacion"

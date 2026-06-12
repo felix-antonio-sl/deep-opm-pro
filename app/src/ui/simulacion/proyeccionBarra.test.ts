@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { ContextoSimulacion, EntradaTraceSim } from "../../modelo/simulacion/tipos";
 import type { Modelo } from "../../modelo/tipos";
-import { proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion } from "./proyeccionBarra";
+import { proyectarDecisionXorSimulacion, proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion } from "./proyeccionBarra";
 
 describe("proyeccionBarraSimulacion", () => {
   test("proyecta bloqueo como estado no ejecutable con texto visible", () => {
@@ -121,6 +121,34 @@ describe("proyeccionBarraSimulacion", () => {
       contexto: ["1/1"],
     });
   });
+  test("decisión XOR: proyecta una opción por rama con rótulo y probabilidad", () => {
+    const ramas = proyectarDecisionXorSimulacion(modeloVeredictoXor(), contexto());
+
+    expect(ramas).toEqual([
+      { enlaceId: "e1", rotulo: "aprobar", probabilidad: 0.7 },
+      { enlaceId: "e2", rotulo: "Veredicto: rechazado", probabilidad: 0.3 },
+    ]);
+  });
+
+  test("decisión XOR: sin etiqueta ni probabilidad el rótulo cae al estado destino", () => {
+    const modelo = modeloVeredictoXor();
+    const { probabilidad: _pr, ...sinPr } = modelo.enlaces["e1"]!;
+    const enlaceSinMetadatos = { ...sinPr, etiqueta: "" };
+    const ramas = proyectarDecisionXorSimulacion(
+      { ...modelo, enlaces: { ...modelo.enlaces, e1: enlaceSinMetadatos } },
+      contexto(),
+    );
+
+    expect(ramas?.[0]).toEqual({ enlaceId: "e1", rotulo: "Veredicto: aprobado" });
+  });
+
+  test("decisión XOR: sin abanico en el paso actual no hay opciones", () => {
+    expect(proyectarDecisionXorSimulacion(modeloAgua(), contexto())).toBeNull();
+  });
+
+  test("decisión XOR: corrida completada no ofrece opciones", () => {
+    expect(proyectarDecisionXorSimulacion(modeloVeredictoXor(), contexto({ estado: "completado" }))).toBeNull();
+  });
 });
 
 function contexto(overrides: Partial<ContextoSimulacion> = {}): ContextoSimulacion {
@@ -161,6 +189,32 @@ function entrada(numero: number, overrides: Partial<EntradaTraceSim> = {}): Entr
     transicionesAplicadas: [],
     cambiosValor: [],
     ...overrides,
+  };
+}
+
+/** Proceso `p` (el de `pasoBase`) con abanico XOR de salida hacia dos estados de Veredicto. */
+function modeloVeredictoXor(): Modelo {
+  return {
+    id: "m",
+    nombre: "Modelo",
+    opdRaizId: "opd",
+    opds: {},
+    entidades: {
+      p: { id: "p", tipo: "proceso", nombre: "P", esencia: "informacional", afiliacion: "sistemica" },
+      veredicto: { id: "veredicto", tipo: "objeto", nombre: "Veredicto", esencia: "informacional", afiliacion: "sistemica" },
+    },
+    estados: {
+      ok: { id: "ok", entidadId: "veredicto", nombre: "aprobado" },
+      no: { id: "no", entidadId: "veredicto", nombre: "rechazado" },
+    },
+    enlaces: {
+      e1: { id: "e1", tipo: "resultado", origenId: { kind: "entidad", id: "p" }, destinoId: { kind: "estado", id: "ok" }, etiqueta: "aprobar", probabilidad: 0.7 },
+      e2: { id: "e2", tipo: "resultado", origenId: { kind: "entidad", id: "p" }, destinoId: { kind: "estado", id: "no" }, etiqueta: "", probabilidad: 0.3 },
+    },
+    abanicos: {
+      ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "p", lado: "origen", portId: "puerto" }, puertoEntidadId: "p", operador: "XOR", enlaceIds: ["e1", "e2"] },
+    },
+    nextSeq: 1,
   };
 }
 

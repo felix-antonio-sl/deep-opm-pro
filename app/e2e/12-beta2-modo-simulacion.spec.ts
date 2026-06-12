@@ -13,7 +13,7 @@
  * Actualizado S1 Codex: avance por microfases OPM runtime.
  */
 import { expect, test, type Page } from "@playwright/test";
-import { esperarWorkbenchInicial, clickToolbarMasItem, jsonEditor, modeloTransicionEstados } from "./_smoke-helpers";
+import { esperarWorkbenchInicial, clickToolbarMasItem, jsonEditor, modeloAbanicoRutasEstados, modeloTransicionEstados } from "./_smoke-helpers";
 
 test("modo simulacion: entrar, paso, correr, reiniciar, salir", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -221,6 +221,37 @@ test("simulacion: navegar a otro OPD no aborta la corrida (B0.026)", async ({ pa
   await page.locator('[role="treeitem"][data-opd-id="opd-1"]').click();
   await expect(page.getByTestId("barra-simulacion")).toBeVisible();
   await expect(page.getByTestId("barra-simulacion-progreso")).toContainText(/paso\s+1\s+de\s+1/);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("simulacion: decision XOR inline — elegir una rama aplica su transicion", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+
+  await jsonEditor(page).fill(JSON.stringify(modeloAbanicoRutasEstados(), null, 2));
+  await page.getByRole("button", { name: "Importar" }).click();
+
+  await entrarSimulacionDesdeMas(page);
+  await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Aprobar");
+
+  // El paso actual tiene un abanico XOR de salida: la barra ofrece la
+  // decision inline (una opcion por rama, rotulada por estado destino al
+  // no haber etiqueta de enlace).
+  const grupo = page.getByTestId("barra-simulacion-xor");
+  await expect(grupo).toBeVisible();
+  const ramas = page.getByTestId("barra-simulacion-xor-rama");
+  await expect(ramas).toHaveCount(2);
+
+  await ramas.filter({ hasText: "Pedido: rechazado" }).click();
+
+  // El paso quedo resuelto por la rama elegida (no por la politica del
+  // modo): corrida completada y la decision desaparece de la barra.
+  await expect(page.getByTestId("barra-simulacion-progreso")).toContainText("Completada");
+  await expect(grupo).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });

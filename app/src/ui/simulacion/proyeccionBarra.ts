@@ -1,6 +1,7 @@
-import type { Modelo } from "../../modelo/tipos";
+import type { Id, Modelo } from "../../modelo/tipos";
 import type { ContextoSimulacion, EntradaTraceSim, PasoSimulacion, TransicionEstadoSim } from "../../modelo/simulacion/tipos";
 import { descriptorFaseSimulacion, transicionesVigentesSimulacion } from "../../modelo/simulacion/fases";
+import { decisionXorSimulacion } from "../../modelo/simulacion/runner";
 
 export interface ProyeccionEstadoBarraSimulacion {
   bloqueado: boolean;
@@ -70,6 +71,51 @@ export function proyectarEstadoBarraSimulacion(
     puedeEjecutar: true,
     textoProgreso: textoProgresoVivo(contexto, autoAvance),
   };
+}
+
+export interface RamaXorBarraSimulacion {
+  enlaceId: Id;
+  rotulo: string;
+  probabilidad?: number;
+}
+
+/**
+ * Opciones de la decisión XOR pendiente del paso actual, una por rama del
+ * abanico. `null` cuando no hay decisión que resolver (sin abanico, corrida
+ * completada o bloqueada). El kernel decide CUÁNDO hay decisión
+ * (`decisionXorSimulacion`); aquí solo se rotula para la barra.
+ */
+export function proyectarDecisionXorSimulacion(
+  modelo: Modelo,
+  contexto: ContextoSimulacion,
+): RamaXorBarraSimulacion[] | null {
+  const decision = decisionXorSimulacion(modelo, contexto);
+  if (!decision) return null;
+  return decision.enlaceIds.map((enlaceId) => {
+    const probabilidad = modelo.enlaces[enlaceId]?.probabilidad;
+    return {
+      enlaceId,
+      rotulo: rotuloRamaXor(modelo, enlaceId),
+      ...(probabilidad !== undefined ? { probabilidad } : {}),
+    };
+  });
+}
+
+function rotuloRamaXor(modelo: Modelo, enlaceId: Id): string {
+  const enlace = modelo.enlaces[enlaceId];
+  if (!enlace) return enlaceId;
+  if (enlace.etiqueta) return enlace.etiqueta;
+  if (enlace.destinoId.kind === "estado") {
+    const estado = modelo.estados[enlace.destinoId.id];
+    if (estado) {
+      const entidad = modelo.entidades[estado.entidadId]?.nombre;
+      return entidad ? `${entidad}: ${estado.nombre}` : estado.nombre;
+    }
+  }
+  if (enlace.destinoId.kind === "entidad") {
+    return modelo.entidades[enlace.destinoId.id]?.nombre ?? enlaceId;
+  }
+  return enlaceId;
 }
 
 export function rotuloTraceSimulacion(entrada: EntradaTraceSim): RotuloTraceSimulacion | null {

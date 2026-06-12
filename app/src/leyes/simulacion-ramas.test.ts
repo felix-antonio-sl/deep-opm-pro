@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { desplegar, desplegarArbol, pasoEfecto, resolverRamaSimulacion } from "../modelo/simulacion/runner";
+import { decisionXorSimulacion, desplegar, desplegarArbol, pasoEfecto, resolverRamaSimulacion } from "../modelo/simulacion/runner";
 import type { ContextoSimulacion, ModoSimulacion } from "../modelo/simulacion/tipos";
 import type { Modelo } from "../modelo/tipos";
 
@@ -216,6 +216,31 @@ describe("LEY law-simulacion-ramas (S2)", () => {
 
     expect(resuelto.estadosCurrent["O"]).toBe("s2");
     expect(resuelto.trace.at(-1)?.diagnostico).toContain("r2");
+  });
+
+  test("decisión pendiente: el paso con abanico XOR de salida la expone", () => {
+    const m = modeloAbanicoXorAEstados();
+    const decision = decisionXorSimulacion(m, ctx(m, "determinista"));
+
+    expect(decision?.abanicoId).toBe("ab1");
+    expect(decision?.procesoId).toBe("P");
+    expect(decision?.enlaceIds).toEqual(["e1", "e2"]);
+  });
+
+  test("decisión pendiente: sin abanico en el paso actual no hay decisión", () => {
+    const m = modeloAbanicoXorAEstados();
+    const sinAbanico: Modelo = { ...m, abanicos: {} };
+
+    expect(decisionXorSimulacion(sinAbanico, ctx(sinAbanico, "determinista"))).toBeUndefined();
+  });
+
+  test("decisión pendiente: corrida completada o bloqueada no ofrece decisión", () => {
+    const m = modeloAbanicoXorAEstados();
+    const base = ctx(m, "determinista");
+
+    expect(decisionXorSimulacion(m, { ...base, estado: "completado" })).toBeUndefined();
+    expect(decisionXorSimulacion(m, { ...base, estado: "bloqueado" })).toBeUndefined();
+    expect(decisionXorSimulacion(m, { ...base, pasoActual: 99 })).toBeUndefined();
   });
 
   test("muestreo: abanicos sucesivos son independientes — la semilla progresa entre pasos (BUG-2)", () => {

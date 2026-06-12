@@ -8,6 +8,7 @@ export function useZustandSimulationPort(): SimulationPort {
   const velocidad = useOpmStore((s) => s.velocidadSimulacion);
   const headless = useOpmStore((s) => s.headlessSimulacion);
   const ejecutarPaso = useOpmStore((s) => s.ejecutarPasoSimulacion);
+  const resolverRama = useOpmStore((s) => s.resolverRamaSimulacionActual);
   const ejecutarCorrida = useOpmStore((s) => s.ejecutarCorridaSimulacion);
   const reiniciar = useOpmStore((s) => s.reiniciarSimulacionActual);
   const iniciarAutoAvance = useOpmStore((s) => s.iniciarAutoAvanceSimulacion);
@@ -25,6 +26,7 @@ export function useZustandSimulationPort(): SimulationPort {
     velocidad,
     headless,
     ejecutarPaso,
+    resolverRama,
     ejecutarCorrida,
     reiniciar,
     iniciarAutoAvance,

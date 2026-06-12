@@ -4,7 +4,7 @@ import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort"
 import { descriptorFaseSimulacion, fasesDelPasoSimulacion } from "../../modelo/simulacion/fases";
 import { useBreakpoint } from "../layoutResponsive";
 import { tokens } from "../tokens";
-import { proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion, type NarrativaSimulacion } from "./proyeccionBarra";
+import { proyectarDecisionXorSimulacion, proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion, type NarrativaSimulacion } from "./proyeccionBarra";
 
 export function BarraSimulacion(): JSX.Element | null {
   const {
@@ -14,6 +14,7 @@ export function BarraSimulacion(): JSX.Element | null {
     velocidad: velocidadSimulacion,
     headless,
     ejecutarPaso,
+    resolverRama,
     ejecutarCorrida,
     reiniciar,
     iniciarAutoAvance,
@@ -42,6 +43,9 @@ export function BarraSimulacion(): JSX.Element | null {
   const estadoBarra = proyectarEstadoBarraSimulacion(contexto, autoAvance);
   const narrativa = proyectarNarrativaSimulacion(modelo, contexto, autoAvance);
   const faseActual = pasoActual ? descriptorFaseSimulacion(modelo, pasoActual, contexto.faseActual) : null;
+  // Decisión XOR pendiente del paso actual: solo en avance manual (en
+  // autoavance el runner resuelve solo, según el modo activo).
+  const ramasXor = !autoAvance ? proyectarDecisionXorSimulacion(modelo, contexto) : null;
   const fasesPasoActual = pasoActual ? fasesDelPasoSimulacion(modelo, pasoActual) : [];
   const completado = estadoBarra.completado;
   const bloqueado = estadoBarra.bloqueado;
@@ -211,6 +215,38 @@ export function BarraSimulacion(): JSX.Element | null {
             <button type="button" className="sim-control" style={s.control} onClick={ejecutarPaso} disabled={controlesDeshabilitados} data-testid="barra-simulacion-paso" title="Avanzar un paso">
               paso <span style={s.flecha} aria-hidden="true">&#9656;</span>
             </button>
+            <span style={s.sep}>&middot;</span>
+          </>
+        ) : null}
+
+        {/* Resolución XOR inline: cuando el paso actual tiene un abanico XOR
+            de salida, el operador puede ELEGIR la rama en vez de delegar en
+            el modo (determinista = mayor Pr; muestreo = RNG). Elegir resuelve
+            el paso completo por esa rama (`resolverRamaSimulacion` kernel). */}
+        {ramasXor && ramasXor.length > 0 ? (
+          <>
+            <span style={s.xorGrupo} role="group" aria-label="Decisión XOR pendiente" data-testid="barra-simulacion-xor">
+              <span style={s.xorLabel}>decidir</span>
+              {ramasXor.map((rama, idx, arr) => (
+                <button
+                  key={rama.enlaceId}
+                  type="button"
+                  className="sim-segment"
+                  style={{ ...s.xorRama, ...(idx === arr.length - 1 ? s.segmentBtnUltimo : {}) }}
+                  onClick={() => resolverRama(rama.enlaceId)}
+                  disabled={controlesDeshabilitados}
+                  data-testid="barra-simulacion-xor-rama"
+                  title={`Resolver el paso por la rama ${rama.rotulo}`}
+                >
+                  {rama.rotulo}
+                  {rama.probabilidad !== undefined ? (
+                    <span style={s.xorPr} aria-label={`probabilidad ${Math.round(rama.probabilidad * 100)} por ciento`}>
+                      {Math.round(rama.probabilidad * 100)}%
+                    </span>
+                  ) : null}
+                </button>
+              ))}
+            </span>
             <span style={s.sep}>&middot;</span>
           </>
         ) : null}
@@ -449,6 +485,10 @@ type EstilosBarra = {
   segmentBtnUltimo: JSX.CSSProperties;
   segmentActivo: JSX.CSSProperties;
   segmentHover: JSX.CSSProperties;
+  xorGrupo: JSX.CSSProperties;
+  xorLabel: JSX.CSSProperties;
+  xorRama: JSX.CSSProperties;
+  xorPr: JSX.CSSProperties;
   seedControl: JSX.CSSProperties;
   seedLabel: JSX.CSSProperties;
   seedInput: JSX.CSSProperties;
@@ -856,6 +896,49 @@ export const s: EstilosBarra = {
   segmentHover: {
     color: C.ink,
     background: C.paper,
+  },
+  // Grupo de resolución XOR inline: mismo lenguaje de "widget continuo" que
+  // `segmented`/`seedControl` (border ruleStrong, sin radio, sin sombra). El
+  // label "decidir" replica `seedLabel`; cada rama es un botón accionable con
+  // separador interno `rule`, y la probabilidad —si la rama la declara— es un
+  // sufijo mono discreto en `inkFaint` que informa sin competir con el rótulo.
+  xorGrupo: {
+    display: "inline-flex",
+    alignItems: "center",
+    marginLeft: tokens.spacing.sm,
+    border: `1px solid ${C.ruleStrong}`,
+    background: "transparent",
+  },
+  xorLabel: {
+    padding: "0 6px",
+    fontSize: 10,
+    fontFamily: T.fontFamilyMono,
+    color: C.inkSoft,
+    borderRight: `1px solid ${C.rule}`,
+    lineHeight: "24px",
+  },
+  xorRama: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+    height: 26,
+    padding: "0 8px",
+    fontSize: T.sizes.sm,
+    fontFamily: T.fontFamily,
+    color: C.inkMid,
+    background: "transparent",
+    border: "none",
+    borderRight: `1px solid ${C.rule}`,
+    borderRadius: 0,
+    cursor: "pointer",
+    pointerEvents: "auto",
+    transition: "color 120ms ease, background 120ms ease",
+  },
+  xorPr: {
+    fontSize: 10,
+    fontFamily: T.fontFamilyMono,
+    fontVariantNumeric: "tabular-nums",
+    color: C.inkFaint,
   },
   seedControl: {
     display: "inline-flex",

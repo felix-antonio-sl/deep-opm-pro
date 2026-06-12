@@ -1,4 +1,4 @@
-import { ejecutarCorrida, ejecutarFaseSimulacion, iniciarSimulacion, reiniciarSimulacion } from "../modelo/simulacion/runner";
+import { ejecutarCorrida, ejecutarFaseSimulacion, iniciarSimulacion, reiniciarSimulacion, resolverRamaSimulacion } from "../modelo/simulacion/runner";
 import type { ContextoSimulacion, ModoSimulacion } from "../modelo/simulacion/tipos";
 import type { Id } from "../modelo/tipos";
 import type { CrearSlice, SimulacionSlice } from "./sliceTypes";
@@ -83,6 +83,29 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     const pasoSiguiente = siguiente.plan[siguiente.pasoActual];
     if (pasoPrevio && pasoSiguiente && pasoPrevio.opdId !== pasoSiguiente.opdId) {
       patch.mensaje = `Simulación: ${pasoSiguiente.opdNombre}`;
+    }
+    set(patch);
+  },
+
+  resolverRamaSimulacionActual(enlaceId) {
+    const { contextoSimulacion, modelo, opdActivoId } = get();
+    if (!contextoSimulacion) return;
+    if (contextoSimulacion.estado === "completado" || contextoSimulacion.estado === "bloqueado") return;
+    const siguiente = resolverRamaSimulacion(modelo, contextoSimulacion, enlaceId);
+    // El kernel devuelve el MISMO contexto cuando el enlace no es rama del
+    // abanico del paso actual: no hay nada que commitear.
+    if (siguiente === contextoSimulacion) return;
+    const destino = opdParaMostrar(siguiente, opdActivoId);
+    const rotulo = modelo.enlaces[enlaceId]?.etiqueta;
+    const patch: Partial<OpmStore> = {
+      contextoSimulacion: siguiente,
+      mensaje: rotulo ? `Simulación: rama «${rotulo}» aplicada.` : "Simulación: rama aplicada.",
+    };
+    if (siguiente.estado === "completado" || siguiente.estado === "bloqueado") {
+      patch.autoAvanceSimulacionActivo = false;
+    }
+    if (destino !== opdActivoId) {
+      Object.assign(patch, patchNavegacionSimulacion(destino));
     }
     set(patch);
   },

@@ -291,3 +291,30 @@ describe("BarraSimulacion canvas-frame (BUG-20260607T224342Z-a8e599)", () => {
     expect(s.barraSpine.pointerEvents).toBe("none");
   });
 });
+
+describe("BarraSimulacion decisión XOR inline", () => {
+  test("el grupo de decisión sigue el lenguaje de widget continuo (segmented/seed)", () => {
+    // El grupo XOR comparte silueta con `segmented` y `seedControl`:
+    // border `ruleStrong` continuo, sin radio, sin sombra. La decisión es
+    // parte de la fila de controles, no un panel aparte.
+    expect(s.xorGrupo.border).toBe(`1px solid ${tokens.colors.ruleStrong}`);
+    expect(s.xorGrupo.display).toBe("inline-flex");
+  });
+
+  test("el label del grupo usa el mismo lenguaje que seedLabel", () => {
+    expect(s.xorLabel.fontFamily).toBe(tokens.typography.fontFamilyMono);
+    expect(s.xorLabel.color).toBe(tokens.colors.inkSoft);
+    expect(s.xorLabel.borderRight).toBe(`1px solid ${tokens.colors.rule}`);
+  });
+
+  test("cada rama es un botón accionable canon: sin radio, cursor pointer, alto 26", () => {
+    expect(s.xorRama.borderRadius).toBe(0);
+    expect(s.xorRama.cursor).toBe("pointer");
+    expect(s.xorRama.height).toBe(26);
+  });
+
+  test("la probabilidad es sufijo tipográfico discreto, no compite con el rótulo", () => {
+    expect(s.xorPr.fontFamily).toBe(tokens.typography.fontFamilyMono);
+    expect(s.xorPr.color).toBe(tokens.colors.inkFaint);
+  });
+});

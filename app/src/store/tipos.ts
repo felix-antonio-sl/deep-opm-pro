@@ -852,6 +852,8 @@ export interface OpmStore {
   iniciarModoSimulacion: () => void;
   salirModoSimulacion: () => void;
   ejecutarPasoSimulacion: () => void;
+  /** Resuelve inline la decisión XOR pendiente: aplica la rama elegida del abanico. */
+  resolverRamaSimulacionActual: (enlaceId: Id) => void;
   ejecutarCorridaSimulacion: () => void;
   reiniciarSimulacionActual: () => void;
   iniciarAutoAvanceSimulacion: () => void;
