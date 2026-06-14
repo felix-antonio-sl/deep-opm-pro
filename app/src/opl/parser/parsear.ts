@@ -182,9 +182,9 @@ function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: Oraci
  * Aplica `rutaEtiqueta` al AST hijo si el kind admite ruta. Familias soportadas:
  * - `procedimental`: rutaEtiqueta directo (esta en AstProcedimentalBase).
  * - `evento`: rutaEtiqueta replicada al base si existe (es donde vive el enlace).
- * - `condicion`: el AST canonico no expone rutaEtiqueta como propio — el modelo
- *   actual solo persiste ruta en enlaces base, no en wrappers condicion. Se
- *   deja el AST tal cual; el wrapper la pierde silenciosamente.
+ * - `condicion`: la rutaEtiqueta viaja en el AST y `planificarCondicion` la
+ *   traslada al enlace base que materializa (§11.1 Roundtrip: la etiqueta DEBE
+ *   preservarse — A3-2).
  * - `abanico`: idem, el wrapper L3 no soporta ruta en este corte.
  *
  * Para AST de otras familias (descripcion-cosa, estados, ...) el prefijo
@@ -196,6 +196,7 @@ function aplicarRutaAlAst(ast: OracionOplAst, rutaEtiqueta: string): OracionOplA
     if (ast.base) return { ...ast, base: { ...ast.base, rutaEtiqueta } };
     return ast;
   }
+  if (ast.kind === "condicion") return { ...ast, rutaEtiqueta };
   return ast;
 }
 
@@ -535,8 +536,26 @@ const EXCEPCION_SOBRETIEMPO_RE =
   /^(.+?)\s+ocurre\s+si\s+duraci[oó]n\s+de\s+(.+?)\s+excede\s+(\d+(?:[.,]\d+)?)\s+(.+?)$/iu;
 const EXCEPCION_SUBTIEMPO_RE =
   /^(.+?)\s+ocurre\s+si\s+duraci[oó]n\s+de\s+(.+?)\s+es\s+menor\s+que\s+(\d+(?:[.,]\d+)?)\s+(.+?)$/iu;
+// SSOT §5.3 L889 variante combinada: "X ocurre si duracion de Y es menor que
+// <min> u<min> o excede <max> u<max>". Crea `excepcionSubSobretiempo`. DEBE
+// probarse ANTES de las simples: contiene ambas subfrases y las simples
+// matchearian con fuente corrupta.
+const EXCEPCION_COMBINADA_RE =
+  /^(.+?)\s+ocurre\s+si\s+duraci[oó]n\s+de\s+(.+?)\s+es\s+menor\s+que\s+(\d+(?:[.,]\d+)?)\s+(.+?)\s+o\s+excede\s+(\d+(?:[.,]\d+)?)\s+(.+?)$/iu;
 
 function parsearExcepcion(texto: string, linea: LineaOplNormalizada) {
+  const combinada = EXCEPCION_COMBINADA_RE.exec(texto);
+  if (combinada) {
+    return astExcepcion(linea, {
+      proceso: normalizarNombreOpl(combinada[1] ?? ""),
+      fuente: normalizarNombreOpl(combinada[2] ?? ""),
+      limite: {
+        tipo: "minmax",
+        min: { valor: (combinada[3] ?? "").trim(), unidad: (combinada[4] ?? "").trim() },
+        max: { valor: (combinada[5] ?? "").trim(), unidad: (combinada[6] ?? "").trim() },
+      },
+    });
+  }
   const sobretiempo = EXCEPCION_SOBRETIEMPO_RE.exec(texto);
   if (sobretiempo) {
     return astExcepcion(linea, {
@@ -558,7 +577,11 @@ function parsearExcepcion(texto: string, linea: LineaOplNormalizada) {
 
 function astExcepcion(
   linea: LineaOplNormalizada,
-  payload: { proceso: string; fuente: string; limite: { tipo: "max" | "min"; valor: string; unidad: string } },
+  payload: {
+    proceso: string;
+    fuente: string;
+    limite: Extract<OracionOplAst, { kind: "excepcion" }>["limite"];
+  },
 ) {
   return {
     ast: {

@@ -170,6 +170,8 @@ export type OracionOplAst =
       estadoSalida?: string;
       /** CH (sin sub-clausula "en cuyo caso"); el planificador mapea a instrumento/agente. */
       sinConsecuencia: boolean;
+      /** Etiqueta de ruta `Por ruta L,` cuando el enlace base la admite (§11.1). */
+      rutaEtiqueta?: string;
       etiqueta?: string;
     }
   | {
@@ -234,13 +236,23 @@ export type OracionOplAst =
       proceso: string;
       /** Proceso fuente cuya duracion dispara la excepcion. */
       fuente: string;
-      limite: {
-        tipo: "max" | "min";
-        /** Valor numerico tal cual aparece en la oracion (ej. "30", "5", "1.5"). */
-        valor: string;
-        /** Token original de unidad (ej. "segundos", "minutos", "h"). */
-        unidad: string;
-      };
+      limite:
+        | {
+            tipo: "max" | "min";
+            /** Valor numerico tal cual aparece en la oracion (ej. "30", "5", "1.5"). */
+            valor: string;
+            /** Token original de unidad (ej. "segundos", "minutos", "h"). */
+            unidad: string;
+          }
+        | {
+            /**
+             * Variante combinada (SSOT §5.3 L889): "es menor que <min> o excede
+             * <max>". Crea un enlace `excepcionSubSobretiempo` con ambas cotas.
+             */
+            tipo: "minmax";
+            min: { valor: string; unidad: string };
+            max: { valor: string; unidad: string };
+          };
       etiqueta?: string;
     }
   | {

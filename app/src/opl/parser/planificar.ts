@@ -489,6 +489,7 @@ function planificarCondicion(
       modificador: "condicion",
       ...(ast.condicionanteEstado ? { estadoEntrada: ast.condicionanteEstado } : {}),
       ...(ast.estadoSalida ? { estadoSalida: ast.estadoSalida } : {}),
+      ...(ast.rutaEtiqueta ? { rutaEtiqueta: ast.rutaEtiqueta } : {}),
     },
   );
 }
@@ -708,10 +709,22 @@ function planificarExcepcion(
   const proceso = refEntidadPorNombre(modelo, ast.proceso, "proceso", ast.linea, registry);
   if (!fuente || !proceso) return;
 
-  const tipoEnlace: TipoEnlace = ast.limite.tipo === "max" ? "excepcionSobretiempo" : "excepcionSubtiempo";
-  const camposTiempo = ast.limite.tipo === "max"
-    ? { tiempoMaximo: ast.limite.valor, unidadTiempoMaximo: ast.limite.unidad }
-    : { tiempoMinimo: ast.limite.valor, unidadTiempoMinimo: ast.limite.unidad };
+  const limite = ast.limite;
+  const tipoEnlace: TipoEnlace =
+    limite.tipo === "minmax" ? "excepcionSubSobretiempo"
+    : limite.tipo === "max" ? "excepcionSobretiempo"
+    : "excepcionSubtiempo";
+  const camposTiempo: { tiempoMaximo?: string; unidadTiempoMaximo?: string; tiempoMinimo?: string; unidadTiempoMinimo?: string } =
+    limite.tipo === "minmax"
+      ? {
+          tiempoMinimo: limite.min.valor,
+          unidadTiempoMinimo: limite.min.unidad,
+          tiempoMaximo: limite.max.valor,
+          unidadTiempoMaximo: limite.max.unidad,
+        }
+      : limite.tipo === "max"
+        ? { tiempoMaximo: limite.valor, unidadTiempoMaximo: limite.unidad }
+        : { tiempoMinimo: limite.valor, unidadTiempoMinimo: limite.unidad };
 
   const origenId = resolverRefId(modelo, fuente);
   const destinoId = resolverRefId(modelo, proceso);
@@ -730,9 +743,11 @@ function planificarExcepcion(
     return;
   }
 
-  const valorActual = ast.limite.tipo === "max" ? existente.tiempoMaximo : existente.tiempoMinimo;
-  const unidadActual = ast.limite.tipo === "max" ? existente.unidadTiempoMaximo : existente.unidadTiempoMinimo;
-  if (valorActual !== ast.limite.valor || unidadActual !== ast.limite.unidad) {
+  const difiereMaximo = camposTiempo.tiempoMaximo !== undefined
+    && (existente.tiempoMaximo !== camposTiempo.tiempoMaximo || existente.unidadTiempoMaximo !== camposTiempo.unidadTiempoMaximo);
+  const difiereMinimo = camposTiempo.tiempoMinimo !== undefined
+    && (existente.tiempoMinimo !== camposTiempo.tiempoMinimo || existente.unidadTiempoMinimo !== camposTiempo.unidadTiempoMinimo);
+  if (difiereMaximo || difiereMinimo) {
     registry.add({
       tipo: "crear-enlace",
       linea: ast.linea,

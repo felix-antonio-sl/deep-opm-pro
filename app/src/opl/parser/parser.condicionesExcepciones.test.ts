@@ -97,6 +97,45 @@ describe("parser OPL — condiciones (§7) y excepciones (§8.1)", () => {
     expect(subtiempo!.unidadTiempoMinimo).toBe("segundos");
   });
 
+  // A3-1 (spec-forja-opl-es §5.3 L889 variante combinada; reglas §5.1 familia 4):
+  // el tipo excepcionSubSobretiempo es de primera clase y el generador emite la
+  // forma combinada; el parser DEBE reconstruirla (bisimetría, §5.3 L914 Roundtrip).
+  test("EX combinada parsea excepción subtiempo+sobretiempo con ambas cotas", () => {
+    const result = parsearParrafoOpl(
+      "*Manejar Excepcion* ocurre si duración de *Procesar* es menor que 30 segundos o excede 5 minutos.",
+    );
+    expect(result.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    expect(result.ast[0]).toMatchObject({
+      kind: "excepcion",
+      proceso: "Manejar Excepcion",
+      fuente: "Procesar",
+      limite: {
+        tipo: "minmax",
+        min: { valor: "30", unidad: "segundos" },
+        max: { valor: "5", unidad: "minutos" },
+      },
+    });
+  });
+
+  test("EX combinada roundtripea a un enlace excepcionSubSobretiempo con ambas cotas", () => {
+    const modelo = crearModelo("exComb");
+    const texto = [
+      "*Procesar* es un proceso informacional y sistémico.",
+      // R-EXC-1A: el proceso de manejo de excepción debe declararse ambiental.
+      "*Manejar Excepcion* es un proceso informacional y ambiental.",
+      "*Manejar Excepcion* ocurre si duración de *Procesar* es menor que 30 segundos o excede 5 minutos.",
+    ].join("\n");
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    const combinada = Object.values(aplicado.enlaces).find((enlace) => enlace.tipo === "excepcionSubSobretiempo");
+    expect(combinada).toBeDefined();
+    expect(combinada!.tiempoMinimo).toBe("30");
+    expect(combinada!.unidadTiempoMinimo).toBe("segundos");
+    expect(combinada!.tiempoMaximo).toBe("5");
+    expect(combinada!.unidadTiempoMaximo).toBe("minutos");
+  });
+
   // ── CONDICIONES (CT/CH/CS) ───────────────────────────────────────────────
 
   test("CT1 parsea condicion transformadora por consumo sin estado", () => {
@@ -213,6 +252,32 @@ describe("parser OPL — condiciones (§7) y excepciones (§8.1)", () => {
     const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
     const enlace = Object.values(aplicado.enlaces).find((item) => item.tipo === "instrumento");
     expect(enlace?.modificador).toBe("condicion");
+  });
+
+  // A3-2 (spec-forja-opl-es §11.1 L1856 Roundtrip «la etiqueta DEBE preservarse»):
+  // el generador emite `Por ruta L,` sobre la forma condición con estado
+  // (procedural.ts:166), pero `aplicarRutaAlAst` la descartaba para `condicion`.
+  test("condición con estado y ruta preserva la etiqueta al reimportar (bisimetría)", () => {
+    let modelo = crearModelo("rutaCond");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    const pedido = entidad(modelo, "Pedido");
+    modelo = must(crearEstadosIniciales(modelo, pedido)).modelo;
+    const [primero] = estadosDeEntidad(modelo, pedido);
+    if (!primero) throw new Error("setup sin estados");
+    modelo = must(renombrarEstado(modelo, primero.id, "abierto"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+
+    const texto = [
+      ...generarOpl(modelo),
+      "Por ruta rapida, *Procesar* ocurre si **Pedido** está en `abierto`, en cuyo caso **Pedido** se consume, de lo contrario *Procesar* se omite.",
+    ].join("\n");
+
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    const consumo = Object.values(aplicado.enlaces).find((item) => item.tipo === "consumo");
+    expect(consumo?.modificador).toBe("condicion");
+    expect(consumo?.rutaEtiqueta).toBe("rapida");
   });
 
   test("aplica condicion CT1 creando enlace consumo con modificador en una sola pasada", () => {
