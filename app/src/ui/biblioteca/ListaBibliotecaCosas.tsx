@@ -131,5 +131,5 @@ const style = {
   badge: { flex: "0 0 auto", fontSize: "10px", color: tokens.colors.verdeObjetoOscuro, fontWeight: 700 },
   opdList: { display: "flex", flexWrap: "wrap", gap: "4px" },
   opdButton: { border: `1px solid ${tokens.colors.bordeIntermedio}`, borderRadius: tokens.radii.sm, background: tokens.colors.fondoChrome, color: tokens.colors.textoSecundario, fontSize: "11px", cursor: "pointer" },
-  opdButtonActive: { border: `1px solid ${tokens.colors.canvas.proceso}`, borderRadius: tokens.radii.sm, background: tokens.colors.acentoUiSuave, color: tokens.colors.azulAccion, fontSize: "11px", cursor: "pointer" },
+  opdButtonActive: { border: `1px solid ${tokens.colors.crimson}`, borderRadius: tokens.radii.sm, background: tokens.colors.acentoUiSuave, color: tokens.colors.azulAccion, fontSize: "11px", cursor: "pointer" },
 } satisfies Record<string, preact.JSX.CSSProperties>;

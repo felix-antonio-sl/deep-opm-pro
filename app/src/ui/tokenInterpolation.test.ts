@@ -6,6 +6,10 @@ const UI_ROOT = new URL("./", import.meta.url).pathname;
 const SOURCE_FILE = /\.(ts|tsx)$/;
 const TEST_FILE = /\.test\.(ts|tsx)$/;
 const BAD_TOKEN_LITERAL = /"[^"`\n]*\$\{tokens\.[^"`\n]*"/;
+// ui-forja/GOVERNANCE.md §4: tokens.colors.canvas.* son aliases legacy OPCloud
+// reservados al adaptador JointJS (src/render/jointjs). El chrome (src/ui) debe
+// usar la paleta editorial (colors.opm.*, ink*, paper, crimson). A5-1/2/3.
+const CANVAS_ALIAS = /tokens\.colors\.canvas\./;
 
 function listarFuentesUi(dir: string): string[] {
   const archivos: string[] = [];
@@ -29,6 +33,20 @@ describe("tokens UI — interpolacion CSS", () => {
       const lineas = readFileSync(archivo, "utf8").split(/\r?\n/);
       lineas.forEach((linea, index) => {
         if (BAD_TOKEN_LITERAL.test(linea)) {
+          errores.push(`${relative(UI_ROOT, archivo)}:${index + 1}: ${linea.trim()}`);
+        }
+      });
+    }
+
+    expect(errores).toEqual([]);
+  });
+
+  test("el chrome (src/ui) no consume aliases canvas.* (paleta editorial; canvas.* es del adaptador JointJS) [A5-1/2/3]", () => {
+    const errores: string[] = [];
+    for (const archivo of listarFuentesUi(UI_ROOT)) {
+      const lineas = readFileSync(archivo, "utf8").split(/\r?\n/);
+      lineas.forEach((linea, index) => {
+        if (CANVAS_ALIAS.test(linea)) {
           errores.push(`${relative(UI_ROOT, archivo)}:${index + 1}: ${linea.trim()}`);
         }
       });

@@ -153,14 +153,14 @@ export function DialogoBuscarCosas() {
 }
 
 function colorIndicador(tipo: ResultadoTipo): string {
-  if (tipo === "objeto" || tipo === "estado") return tokens.colors.canvas.objeto;
-  if (tipo === "proceso") return tokens.colors.canvas.proceso;
-  return tokens.colors.canvas.enlace;
+  if (tipo === "objeto" || tipo === "estado") return tokens.colors.opm.object;
+  if (tipo === "proceso") return tokens.colors.opm.process;
+  return tokens.colors.inkMid;
 }
 
-// Ronda 28 L5: Bauhaus monocromático. Los indicadores tipográficos
-// mantienen el contrato semántico de canvas (objeto verde / proceso azul /
-// enlace gris) — [JOYAS §3]: canvas invariante.
+// Ronda 28 L5: Bauhaus monocromático. Indicadores tipográficos de clase en
+// chrome → paleta editorial colors.opm.* (verde objeto / azul proceso) e inkMid
+// para enlace; no los aliases lime/cyan del canvas (ui-forja/GOVERNANCE §4). A5-2.
 const style = {
   body: {
     display: "flex",

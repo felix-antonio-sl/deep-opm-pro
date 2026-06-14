@@ -262,7 +262,7 @@ const style = {
     // Codex L6 (C-04): acento editorial del row = crimson UI, no cyan canvas.
     borderLeft: `3px solid ${tokens.colors.crimson}`,
     borderRadius: tokens.radii.none,
-    background: tokens.colors.canvas.fill,
+    background: tokens.colors.paper,
     color: tokens.colors.textoPrimario,
     cursor: "grab",
     userSelect: "none",
