@@ -10,6 +10,26 @@
 
 ---
 
+## Actualización 2026-06-14 — auditoría de la IMPLEMENTACIÓN vs SSOT consolidada v1.4.0 + remediación en 4 olas (NO DESPLEGADO)
+
+**Mandato**: medir el código vivo de `app/src` contra el corpus KORA consolidado a **v1.4.0** (la auditoría 06-12/06-14 consolidó la SSOT; ésta verifica que el producto la cumple) y remediar las brechas confirmadas por cortes gateados. Informe completo: `docs/auditorias/2026-06-14-auditoria-opforja-vs-ssot.md`.
+
+**Método**: fan-out de 6 auditores por subsistema (cada uno vs su spec gobernante) + un refutador adversarial de contexto fresco por hallazgo (Workflow ultracode). **9 hallazgos → 8 confirmados + 1 refutado.** Remediación TDD por olas; verificador de contexto fresco al cierre (independiente, sin el razonamiento previo) confirmó 8/8 remediadas + gates verdes.
+
+**Deltas v1.4.0 verificados YA CONFORMES** (la consolidación alineó la SSOT a lo que el código hacía, sin exigir cambio): **R-EXC-1B** (excepción ya es `TipoEnlace` autónomo; `validarModificadorEnlace` ya rechaza c/e sobre excepción) y **R-FAN-HAB-1** (abanicos convergentes de habilitadores ya permitidos: el guard de unicidad llavea por par objeto-proceso, dos agentes distintos al mismo proceso no colisionan). R-NOM-PROC-1 deverbal: ya implementado (checker B-6).
+
+**8 brechas remediadas** (commits TDD):
+- **Ola 1 — OPL parser, bisimetría** (`8a568702`): **A3-1 (mayor)** excepción combinada subtiempo+sobretiempo — el tipo `excepcionSubSobretiempo` es de primera clase y el generador emitía la forma combinada (spec-opl §5.3 L889), pero el parser solo tenía las dos plantillas simples → al reimportar perdía la cota mínima con fuente corrupta. Añadido `EXCEPCION_COMBINADA_RE` (probada antes de las simples), AST `limite` con variante `minmax`, `planificarExcepcion` crea el enlace con ambas cotas. **A3-2 (menor)** ruta perdida en transición condición — `aplicarRutaAlAst` descartaba la `rutaEtiqueta` para kind `condicion` (rompía §11.1 Roundtrip) → ahora la propaga y `planificarCondicion` la traslada al enlace base. Generador intacto (las brechas eran solo del parser).
+- **Ola 2 — UI tokens, no-semántico** (`69b87f22`): **A5-1 (mayor)** `ListaBibliotecaCosas` borde de OPD-activo `canvas.proceso` (#3BC3FF azul-proceso) → `crimson` (acento UI único). **A5-2/A5-3 (menores)** swatches de `DialogoBuscarCosas` → paleta editorial `opm.*`/`inkMid`; fila de `Timeline` `canvas.fill` → `paper`. Gate TDD nuevo en `tokenInterpolation.test.ts` que prohíbe consumir `tokens.colors.canvas.*` en `src/ui` (allowlist vacío; cierra el hueco que `design:governance` no cubría).
+- **Ola 3 — kernel checker** (`a5c49e54`): **A6-2 (menor)** `definirProbabilidad` (setter del inspector) permitía Pr=p sobre un evento suelto fuera de abanico XOR — V-18/§11.2 lo declara no canónico (zona no canonizada). Fix conforme a **R-ZNC** (silencio ≠ prohibición): checker `PROBABILIDAD_FUERA_DE_ABANICO` severidad `mejora` que lo hace VISIBLE sin bloquear (patrón de `EFECTO_SIN_TRANSICION`); `validarMetadatosEnlace`/reimport intacto. lab-sim-v3 sigue en 0 avisos (XOR Pr canónico no es falso positivo).
+- **Ola 4 — declaración R-CONF-7**: **A1-1/A6-1 (menor)** caso C «probabilístico sin pesos» de R-FAN-PROB-1 — capacidad ausente (`DecisionPolicy` no distingue caso B de caso C). **NO es divergencia silenciosa** (el uniforme se computa solo al simular, nunca se persiste como hecho). Declarado **PROGRAMADA** en `docs/roadmap/registro-conformidad-ssot.md` (estado conforme para una capacidad-ausente sin modelo productivo que la demande; implementarla añade variante de coproducto + serialización + UI + OPL/diagnóstico — feature especulativa).
+
+**Refutado (1)**: **A2-1** generador emite Pr=p sobre procedural suelto — spec-opl L1547 documenta el patrón emit-and-discard (el parser lo descarta al reconstruir el hecho base). NO se toca el generador. *Propuesta-ssot anotada (no-legislar en código)*: tensión interna de la SSOT entre R-FAN-6/C-23/§8.4 («fuera de fan no es canon») y §5.1 L812/R-COMB-4 («Pr=p hint de evento») — se eleva al custodio-kora, no se resuelve en código.
+
+**Gates**: typecheck estricto + unit **2630/0** (+9: 3 A3 + 1 disciplina tokens + 3 A6-2 + 2 ya contadas) · lint limpio · `design:governance` OK · build OK (`index-91h2VSPV.js`) · `roundtrip.test.ts` 24/0. **Verificación de contexto fresco**: 8/8 remediadas de primera mano, bisimetría A3-1 con round-trip real, generador intacto.
+
+**Pendiente del operador**: **deploy** (no desplegado — `bun run browser:smoke` antes de deploy, va en background ~20min, NUNCA con `pkill -f playwright`). Push de `main` (3 commits de remediación + report + registro/HANDOFF).
+
 ## Actualización 2026-06-14 — paquete-pausa de la auditoría SSOT RESUELTO (panel deliberado + arbitraje del operador → reglas-opm-estrictas-es v1.4.0)
 
 **Mandato**: resolver de forma dialéctica el paquete-pausa de 14 decisiones que la auditoría de coherencia del corpus (2026-06-12) dejó al operador. Skill `consenso-deliberativo`, modo encarnación, panel **dov-dori × polymath/cat-thinking × custodio-kora** (gate de diversidad: se sustituyó opm-specialist por custodio-kora para evitar clones epistémicos). Triaje: 6 hallazgos de tensión conceptual al panel, 6 mecánicos por OK directo, 1 decisión de producto (#24-2) al operador.
