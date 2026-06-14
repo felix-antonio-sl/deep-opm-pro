@@ -41,7 +41,7 @@
 
 **Gates**: `kora check --strict` subtree corpus **37/37**; `kora index` 745 artefactos sin error nuevo; `design:governance` OK. El único `HIGH` del check global de KORA (`urn:kora:kb:guia-rapida-pneuma` roto en `.remember/remember.md`) es ajeno: buffer runtime no versionado, fuera del corpus.
 
-**Cambios sin commitear** (KORA y deep-opm-pro): KORA 10 archivos del corpus (+343/−278, `reglas-opm-estrictas-es` excluida); deep-opm-pro 9 archivos (4 puentes + 3 ui-forja + registro-conformidad + nota SUPERADO en auditoría 06-11 + informe nuevo). KORA `master` ya estaba == `origin` antes de esta sesión; **push pendiente del operador** (KORA: soy primary; flujo custodio-kora). El re-forward completo de la tabla §20 (#71) y la realización en código de UIFORJA-08a/b/c quedan en backlog (frente #4).
+**Estado de esta ola: PUSHEADO Y DESPLEGADO 2026-06-14** (junto con el paquete deliberado — ver entrada 2026-06-14 arriba, que es el cierre autoritativo). Esta ola del 06-12 (corpus en capa subordinada) viajó en los mismos commits: KORA `master` `607b31d4`, deep-opm-pro `main` `b60ca177`. Backlog ajeno al paquete: re-forward completo de la tabla §20 (#71) y realización en código de UIFORJA-08a/b/c (frente #4).
 
 ## Actualización 2026-06-12 — corte UX «integridad de modo + silencio cero» (C-1 + M-1/M-2 de la auditoría Jobs)
 
