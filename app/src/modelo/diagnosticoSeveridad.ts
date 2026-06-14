@@ -41,6 +41,9 @@ const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   // par sin abanico. La edición no puede distinguir ramas pre-abanico; el
   // checker acusa el residual no agrupado. Mejora accionable.
   PAR_TRANSFORMADOR_DUPLICADO: "mejora",
+  // A6-2/V-18: Pr=p fuera de un abanico XOR no tiene canonicidad (reglas §11.2,
+  // zona no canonizada). Visible, no bloqueante (R-ZNC: silencio, no prohibición).
+  PROBABILIDAD_FUERA_DE_ABANICO: "mejora",
   // B-2: entidad sin apariciones (invisible al OPL). Mejora accionable.
   ENTIDAD_SIN_APARICIONES: "mejora",
 };

@@ -111,6 +111,7 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkEfectoObjetoSinEstados(modelo),
     ...checkParTransformadorDuplicado(modelo),
     ...checkEfectoSinTransicion(modelo),
+    ...checkProbabilidadFueraDeAbanico(modelo),
     ...checkEntidadSinApariciones(modelo),
     ...checkProcesoSistemicoConectado(modelo),
     ...checkRecursoLinealMultiplesConsumidores(modelo),
@@ -460,6 +461,37 @@ export function checkEfectoSinTransicion(modelo: Modelo): AvisoMetodologico[] {
       accionesSugeridas: [
         "Declara la transición en el Inspector del enlace (estado de entrada/salida — TS3/TS4/TS5).",
         "O escinde el efecto en consumo (estado origen → proceso) + resultado (proceso → estado destino).",
+      ],
+    }));
+  }
+  return avisos;
+}
+
+/**
+ * A6-2 / V-18 (reglas §11.2, zona no canonizada): `Pr=p` solo es canónico dentro
+ * de un abanico XOR; fuera no tiene canonicidad. El editor permite fijar
+ * probabilidad sobre un enlace evento suelto (`definirProbabilidad`), así que
+ * acusamos —sin bloquear (R-ZNC: silencio de la SSOT, no prohibición)— toda
+ * probabilidad que no sea rama de un abanico XOR, para hacer VISIBLE la
+ * no-canonicidad en vez de silenciarla. El reimport (`validarMetadatosEnlace`)
+ * queda intacto: la membresía a abanico se valida a nivel de abanico.
+ */
+export function checkProbabilidadFueraDeAbanico(modelo: Modelo): AvisoMetodologico[] {
+  const avisos: AvisoMetodologico[] = [];
+  for (const enlace of Object.values(modelo.enlaces)) {
+    if (enlace.probabilidad === undefined) continue;
+    const abanico = abanicoDeEnlace(modelo, enlace.id);
+    if (abanico?.operador === "XOR") continue;
+    const entidad = entidadDeExtremo(modelo, enlace.origenId) ?? entidadDeExtremo(modelo, enlace.destinoId);
+    if (!entidad) continue;
+    avisos.push(aviso("PROBABILIDAD_FUERA_DE_ABANICO", entidad, {
+      severidad: "sugerencia",
+      mensaje: `El enlace lleva una probabilidad (Pr=p) pero no es rama de un abanico XOR. Fuera de un abanico la probabilidad no tiene canonicidad OPM: agrúpalo con sus alternativas en un abanico XOR, o retira la probabilidad.`,
+      rationale: "Pr=p se define solo dentro de abanicos (V-18); fuera no tiene canonicidad (reglas §11.2, zona no canonizada). El abanico probabilístico DEBE ser siempre XOR (R-PROB-1).",
+      ssotRef: `${KB_OPM} V-18 (reglas §11.2)`,
+      accionesSugeridas: [
+        "Agrupa el enlace con sus alternativas en un abanico XOR (las probabilidades viven en el abanico).",
+        "O retira la probabilidad del enlace si no pertenece a un abanico.",
       ],
     }));
   }

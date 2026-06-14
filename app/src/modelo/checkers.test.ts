@@ -7,11 +7,14 @@ import {
   checkObjetoNombreSingular,
   checkProcesoNombreFormaVerbal,
   checkProcesoSistemicoConectado,
+  checkProbabilidadFueraDeAbanico,
   checkProcesoTransforma,
   checkSdSinProcesoPrincipal,
   checkUnfoldContenido,
   verificarMetodologia,
 } from "./checkers";
+import { definirProbabilidadesAbanico, formarAbanico } from "./abanicos";
+import { aplicarModificador, definirProbabilidad } from "./modificadores";
 import { crearSystemDiagramFixture, fixtureTodos } from "./fixtures";
 import {
   cambiarAfiliacion,
@@ -530,5 +533,59 @@ describe("ronda 16 L3: navegarA emitido por checkers", () => {
     // PROCESO_NOMBRE_FORMA_VERBAL no setea navegarA explicito; el panel
     // resuelve con entidadId. Ese es el contrato esperado.
     expect(avisos[0]?.navegarA).toBeUndefined();
+  });
+});
+
+describe("checkProbabilidadFueraDeAbanico (A6-2 / V-18, reglas §11.2)", () => {
+  test("acusa un enlace evento con Pr fuera de todo abanico XOR", () => {
+    let modelo = crearModelo("prob-suelta");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Pedido"), entidadPorNombre(modelo, "Procesar"), "consumo"));
+    const enlaceId = Object.values(modelo.enlaces).find((e) => e.tipo === "consumo")!.id;
+    modelo = must(aplicarModificador(modelo, enlaceId, "evento"));
+    modelo = must(definirProbabilidad(modelo, enlaceId, 0.7));
+
+    const avisos = checkProbabilidadFueraDeAbanico(modelo);
+    expect(avisos.map((a) => a.codigo)).toEqual(["PROBABILIDAD_FUERA_DE_ABANICO"]);
+    expect(avisos[0]?.severidad).toBe("sugerencia");
+  });
+
+  test("NO acusa una rama de abanico XOR con probabilidades (caso canónico A)", () => {
+    let modelo = crearModelo("prob-xor");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 80 }, "P"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 20 }, "A"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 260, y: 140 }, "B"));
+    const p = entidadPorNombre(modelo, "P");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, p, entidadPorNombre(modelo, "A"), "resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, p, entidadPorNombre(modelo, "B"), "resultado"));
+    const ramas = Object.values(modelo.enlaces).filter((e) => e.tipo === "resultado").map((e) => e.id);
+    // Las ramas de un abanico comparten puerto (la acción de UI lo fija al agrupar).
+    modelo = {
+      ...modelo,
+      enlaces: Object.fromEntries(
+        Object.entries(modelo.enlaces).map(([id, e]) =>
+          ramas.includes(id) && e.origenId.kind === "entidad"
+            ? [id, { ...e, origenId: { ...e.origenId, portId: "port-xor" } }]
+            : [id, e],
+        ),
+      ),
+    };
+    modelo = must(formarAbanico(modelo, modelo.opdRaizId, ramas, "XOR"));
+    const abanicoId = Object.keys(modelo.abanicos ?? {})[0]!;
+    modelo = must(definirProbabilidadesAbanico(modelo, abanicoId, { [ramas[0]!]: 0.6, [ramas[1]!]: 0.4 }));
+
+    expect(checkProbabilidadFueraDeAbanico(modelo)).toEqual([]);
+  });
+
+  test("NO acusa un enlace evento sin probabilidad", () => {
+    let modelo = crearModelo("evento-sin-prob");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidadPorNombre(modelo, "Pedido"), entidadPorNombre(modelo, "Procesar"), "consumo"));
+    const enlaceId = Object.values(modelo.enlaces).find((e) => e.tipo === "consumo")!.id;
+    modelo = must(aplicarModificador(modelo, enlaceId, "evento"));
+
+    expect(checkProbabilidadFueraDeAbanico(modelo)).toEqual([]);
   });
 });

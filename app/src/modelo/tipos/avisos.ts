@@ -47,6 +47,7 @@ export type CodigoChecker =
   | "EFECTO_OBJETO_SIN_ESTADOS"
   | "EFECTO_SIN_TRANSICION"
   | "PAR_TRANSFORMADOR_DUPLICADO"
+  | "PROBABILIDAD_FUERA_DE_ABANICO"
   | "ENTIDAD_SIN_APARICIONES";
 
 export interface NavegacionAviso {
