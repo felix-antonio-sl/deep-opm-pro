@@ -62,14 +62,22 @@ test("grid: toggle, configuración y snap al mover cosa", async ({ page }) => {
   // Ronda 27 III.A cierre: los toggles del antiguo `⋯ Más` viven ahora en
   // el command palette. El helper unificado abre el palette por atajo y clickea
   // el item; el estado se inspecciona reabriendo el palette porque el clic lo cierra.
-  await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
-  // Ronda Codex v2 L5: tras alternar la cuadrícula, el comando del palette
-  // refleja el nuevo estado en su label ("Mostrar"/"Ocultar cuadrícula").
+  // La cuadrícula arranca INACTIVA por defecto (GRID_DEFAULT.activa=false,
+  // alineado a ui-forja/08 `drawGrid:false`; decisión #24-2): el comando del
+  // palette ofrece "Mostrar". El item se filtra escribiendo el query.
   await page.keyboard.press("Control+k");
+  await page.getByTestId("command-palette").getByRole("combobox").fill("cuadricula");
   await expect(page.getByTestId("command-palette-item-menu-grid-canvas")).toContainText("Mostrar cuadrícula del canvas");
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
+  // Ronda Codex v2 L5: tras alternar la cuadrícula, el comando del palette
+  // refleja el nuevo estado en su label. Al activarla, ofrece "Ocultar".
   await clickToolbarMasItem(page, "toolbar-mas-toggle-grid");
+  await page.keyboard.press("Control+k");
+  await page.getByTestId("command-palette").getByRole("combobox").fill("cuadricula");
+  await expect(page.getByTestId("command-palette-item-menu-grid-canvas")).toContainText("Ocultar cuadrícula del canvas");
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("command-palette")).toHaveCount(0);
   // Ronda 25 L2 III.A: Configuración… ya no se duplica en ⋯ Más; vive
   // solamente en el command palette (sección Modelo).
   await abrirConfiguracionDesdeMenuPrincipal(page);
