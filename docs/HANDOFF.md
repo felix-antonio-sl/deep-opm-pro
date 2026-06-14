@@ -10,7 +10,7 @@
 
 ---
 
-## Actualización 2026-06-14 — auditoría de la IMPLEMENTACIÓN vs SSOT consolidada v1.4.0 + remediación en 4 olas (NO DESPLEGADO)
+## Actualización 2026-06-14 — auditoría de la IMPLEMENTACIÓN vs SSOT consolidada v1.4.0 + remediación en 4 olas (DESPLEGADO Y VERIFICADO)
 
 **Mandato**: medir el código vivo de `app/src` contra el corpus KORA consolidado a **v1.4.0** (la auditoría 06-12/06-14 consolidó la SSOT; ésta verifica que el producto la cumple) y remediar las brechas confirmadas por cortes gateados. Informe completo: `docs/auditorias/2026-06-14-auditoria-opforja-vs-ssot.md`.
 
@@ -26,9 +26,9 @@
 
 **Refutado (1)**: **A2-1** generador emite Pr=p sobre procedural suelto — spec-opl L1547 documenta el patrón emit-and-discard (el parser lo descarta al reconstruir el hecho base). NO se toca el generador. *Propuesta-ssot anotada (no-legislar en código)*: tensión interna de la SSOT entre R-FAN-6/C-23/§8.4 («fuera de fan no es canon») y §5.1 L812/R-COMB-4 («Pr=p hint de evento») — se eleva al custodio-kora, no se resuelve en código.
 
-**Gates**: typecheck estricto + unit **2630/0** (+9: 3 A3 + 1 disciplina tokens + 3 A6-2 + 2 ya contadas) · lint limpio · `design:governance` OK · build OK (`index-91h2VSPV.js`) · `roundtrip.test.ts` 24/0. **Verificación de contexto fresco**: 8/8 remediadas de primera mano, bisimetría A3-1 con round-trip real, generador intacto.
+**Gates**: typecheck estricto + unit **2630/0** (+9: 3 A3 + 1 disciplina tokens + 3 A6-2 + 2 ya contadas) · lint limpio · `design:governance` OK · build OK · `roundtrip.test.ts` 24/0. **Verificación de contexto fresco**: 8/8 remediadas de primera mano, bisimetría A3-1 con round-trip real, generador intacto. **`browser:smoke`**: el run paralelo completo reportó 14 fallos / 260 pass / 5 skip, pero los 14 **PASAN 14/14 en aislamiento** (`--workers=1`, puerto propio, 3.5m) → **contención**, no regresión (patrón conocido: full-suite 21.6m + MCP concurrente; los 14 son specs canvas-sensibles/no relacionados con el blast radius). LECCIÓN reforzada: `2>&1 | tail` enmascara el exit Y los errores — capturar a archivo con `> log 2>&1; echo $?`.
 
-**Pendiente del operador**: **deploy** (no desplegado — `bun run browser:smoke` antes de deploy, va en background ~20min, NUNCA con `pkill -f playwright`). Push de `main` (3 commits de remediación + report + registro/HANDOFF).
+**DESPLEGADO Y VERIFICADO 2026-06-14** (`docker compose up -d --build`, autorizado por el operador): bundle servido `index-DFLj7rtT.js` (+ `feature-dialogos-pesados-CNqpnmEq.js`; hash ≠ build local `91h2VSPV` porque el build de Docker pasa `VITE_ENABLE_BUG_CAPTURE=true`). Verificación in-vivo: contenedores healthy (opforja/model-api/postgres), root 200, healthz 200, `/__deep-opm/modelos` 401 sin cookie, y **literal de mi cambio A6-2 («rama de un abanico XOR») presente en el chunk servido** (confirma que es mi código, no rebuild del viejo). `main` pusheado a origin (`e1f11cfa..7df63764`).
 
 ## Actualización 2026-06-14 — paquete-pausa de la auditoría SSOT RESUELTO (panel deliberado + arbitraje del operador → reglas-opm-estrictas-es v1.4.0)
 
