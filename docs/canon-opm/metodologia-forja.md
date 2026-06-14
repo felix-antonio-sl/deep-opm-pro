@@ -5,7 +5,7 @@ _manifest:
     created_by: "hd-opm/codex"
     created_at: "2026-05-31"
     source: "urn:fxsl:kb:metodologia-forja-opm-es"
-version: "1.0.0"
+version: "1.1.0"
 status: publicado
 tags: [opm, opforja, metodologia, bridge, kora]
 lang: "es"
@@ -16,6 +16,7 @@ relations:
   depends:
     - "urn:fxsl:kb:metodologia-forja-opm-es"
     - "urn:fxsl:kb:reglas-opm-estrictas-es"
+    - "urn:fxsl:kb:spec-forja-opd-es"
     - "urn:fxsl:kb:spec-forja-opl-es"
     - "urn:fxsl:kb:opm-es"
     - "urn:fxsl:kb:opd-es"
@@ -29,18 +30,19 @@ Este archivo no es la SSOT. La autoridad primaria vive en KORA:
 - URN: `urn:fxsl:kb:metodologia-forja-opm-es`
 - Path: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/metodologia-forja-es.md`
 - Estado: `publicado`
-- Versión vigente observada: `1.5.0` (2026-06-05)
+- Versión vigente observada: `1.5.1` (2026-06-12)
 
 ## Rol En Opforja
 
 `metodologia-forja-opm-es` es la capa de método para modelar OPM con opforja:
 cómo construir, refinar, validar y serializar modelos sin redefinir la semántica
-OPM. Complementa a las otras dos piezas KORA enlazadas desde
+OPM. Complementa a las otras tres piezas KORA enlazadas desde
 `docs/canon-opm/`:
 
 | Documento | Rol |
 |---|---|
 | `urn:fxsl:kb:reglas-opm-estrictas-es` | Canon prescriptivo OPD/OPL: qué hechos son válidos o inválidos. |
+| `urn:fxsl:kb:spec-forja-opd-es` | SSOT de realización visual/OPD de opforja. |
 | `urn:fxsl:kb:spec-forja-opl-es` | SSOT operativa del lenguaje OPL de opforja. |
 | `metodologia-forja.md` | Puente a la SSOT de método OPM-en-opforja. |
 
@@ -49,6 +51,8 @@ OPM. Complementa a las otras dos piezas KORA enlazadas desde
 - Para decisiones de **validez** de un hecho OPM, usar
   `urn:fxsl:kb:reglas-opm-estrictas-es` y las capas `opm-es`, `opd-es`,
   `opl-es`.
+- Para decisiones de **realización visual/OPD**, usar
+  `urn:fxsl:kb:spec-forja-opd-es`.
 - Para decisiones de **texto OPL**, usar `urn:fxsl:kb:spec-forja-opl-es`.
 - Para decisiones de **cómo modelar bien** en opforja, usar
   `urn:fxsl:kb:metodologia-forja-opm-es`.
@@ -65,6 +69,12 @@ sobre el JSON canónico, y toda métrica de auditoría debe validarse contra la
 SSOT semántica antes de fundar conclusiones. En `deep-opm-pro`, cualquier
 checker futuro de estados debe distinguir al menos flujo, caracterización y
 ambiental-observado; no basta contar estados "sin escritor" desde OPL.
+
+La versión `1.5.1` (2026-06-12, auditoría de coherencia del corpus) no altera
+estas disciplinas: comprime la advertencia narrativa de `A8` a una referencia a
+`LF-19.3`, abstrae `LF-19.4` (la declaración auditable de caracterización deja de
+fijar un literal de glosa de herramienta) y corrige anclas SSOT misatribuidas
+(`LF-05.9`, `LF-06.9`).
 
 ## Acceso Rápido
 

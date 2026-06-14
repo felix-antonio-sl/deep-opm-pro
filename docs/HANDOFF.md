@@ -10,6 +10,37 @@
 
 ---
 
+## Actualización 2026-06-14 — paquete-pausa de la auditoría SSOT RESUELTO (panel deliberado + arbitraje del operador → reglas-opm-estrictas-es v1.4.0)
+
+**Mandato**: resolver de forma dialéctica el paquete-pausa de 14 decisiones que la auditoría de coherencia del corpus (2026-06-12) dejó al operador. Skill `consenso-deliberativo`, modo encarnación, panel **dov-dori × polymath/cat-thinking × custodio-kora** (gate de diversidad: se sustituyó opm-specialist por custodio-kora para evitar clones epistémicos). Triaje: 6 hallazgos de tensión conceptual al panel, 6 mecánicos por OK directo, 1 decisión de producto (#24-2) al operador.
+
+**Decisiones arbitradas y materializadas en KORA** (`reglas-opm-estrictas-es` **v1.3.1 → v1.4.0**; bases `opm-iso` 3.0.2 / `opm-visual` 3.0.2 / `opm-opl` 3.0.3; specs `spec-opd` 1.1.1 / `spec-opl` 1.2.1):
+- **#12 — Excepción = 6.ª familia de enlace** (`§5.1` familia 4, `R-EXC-1B`; paridad con la invocación V-240). Co-enmiendas base: `opm-iso §Control` (acota «modificador» a evento/condición), `opm-visual §4.4` (excepción = control autónomo). Specs: `spec-opl §5.3` y `spec-opd §4.1`+scope citan la 6.ª familia.
+- **#14 — Partición de plantillas OPL**: `§Mapa de familia` declara que reglas conserva las tablas §4/§7.3/§9.2 como gate de validez (R-BI-TAB-1) y spec-opl es dueña de la superficie operativa; desempate: ante divergencia manda reglas.
+- **#32 — Abanicos convergentes de habilitadores** (`R-FAN-HAB-1`, AND por defecto): `§7.2/§7.3` + `opm-visual §5.5` + `opm-opl §11.2` admiten N agentes/instrumentos → 1 proceso (derogada la celda «(no aplica)»).
+- **#33 — `Pr=p` DEBE + modo «probabilístico sin pesos»**: `§6.8`/`R-FAN-PROB-1` distinguen casos A (con pesos → DEBE) / B (alternativo sin anotar → sin exigencia) / C (declarado sin pesos → estado explícito); procedencia `metod-opm §10.14`; el default uniforme 1/n es regla de simulación, no de modelado. (Único disenso del panel — DEBE vs SHOULD — lo cerró el operador eligiendo DEBE+modo-sin-pesos.)
+- **#9/#35/#39 — Ruta sobre habilitadores**: retirada la fila de `§11.2`; `§4.12 R-OPL-RUTA-3` es el domicilio único (canónica-condicionada); `spec-opl` C-25/§8.4 alineados.
+- **R-NOM-PROC-1 ampliada** a criterio deverbal del español (no lista cerrada de sufijos; excluye no-verbales); el checker es-CL (B-6) deja de ser divergencia y pasa a realización.
+- **Mecánicos**: `§9.2` plantillas exactas (RF2/CX1 con «y»), `§6.5` acotada a recomposición + R-EDIT-8, `R-CONF-7` sin sello fechado, `R-ROT-4`→`SSOT-visual §20.1`, `R-INV-2C` (grupo paralelo), Anexo C agnóstico (sin literales de código ni ref muerta `capa-categorial.md`) con el mapeo regla→gate movido a `docs/roadmap/registro-conformidad-ssot.md`.
+
+**Gate**: `kora check --strict` subtree corpus **37/37** (un fallo transitorio por YAML — `:` en escalar multilínea del `source_base` — detectado y corregido); `kora index` 745 sin error nuevo. **Verificación de contexto fresco (subagente)**: 7/8 OK + 1 defecto MAYOR cazado (`spec-opd §4.1` seguía enumerando «Cinco familias») → corregido, re-verificado 37/37. `reglas-opm-estrictas-es` solo se editó CON arbitraje explícito del operador.
+
+**Única brecha viva del paquete (pendiente del operador)**: **#24-2** valor por defecto de la grid de edición (decisión de producto: código `GRID_DEFAULT.activa=true` vs `ui-forja/08` `drawGrid:false`). Sin commitear (KORA + deep-opm-pro); push pendiente del operador (KORA: soy primary; flujo custodio-kora).
+
+## Actualización 2026-06-12 — auditoría de coherencia del corpus SSOT OPM/Forja (64 conflictos remediados; paquete-pausa de 14 al operador)
+
+**Mandato**: auditoría total de coherencia del corpus normativo OPM/Forja (`reglas-opm-estrictas-es` + familia spec-forja + capas base + puentes `docs/canon-opm/` + `ui-forja`) y remediación por cadena de precedencia, editando siempre la capa subordinada. Informe completo: `docs/auditorias/2026-06-12-auditoria-ssot-corpus.md` (matriz de conflictos + paquete-pausa + veredicto).
+
+**Método**: 11 lectores paralelos cruzando el corpus dos a dos y contra `app/src`; un verificador adversarial de contexto fresco por hallazgo; 13 editores por archivo disjunto; verificación de la ola archivo por archivo; 4 lotes de reparación de menores (yo, en el hilo principal, tras tope de sesión de subagentes). **86 hallazgos → 77 confirmados + 1 dudoso + 8 refutados.**
+
+**Remediado (64, en capa subordinada)**: (a) **deriva de registro de GAPs (32)** — `spec-forja-opl-es §20` y `spec-forja-opd-es §22` declaraban abiertos huecos ya cerrados en código por la remediación 06-11/12 (perfiles export, gate densidad, `Pr = p`, badge modificador junto al proceso, TAGGED-ITALIC, reverse jerarquía, fixtures estrictas agregación/generalización); filas → alineado con traza, índices depurados; los GAPs genuinamente abiertos NO se tocaron; (b) **frontera estética/semántica (7)** — `ui-forja/GOVERNANCE.md` (v1.1→1.2) interpone `spec-forja-opd-es` en su cadena de precedencia y acota su alcance a lo no-portador de semántica OPM; `ui-forja/08` reconciliado **por remisión** (no copia) cumpliendo la mitad documental de `R-§25-MIG-2`; colores = canal informativo en GOVERNANCE §2 + `01-design-spec` v1.2; (c) **base↔Forja y método↔base (22)** — R-ENT-3 → extensión declarada, Apéndice A sin agente humano, glosas de ID a espejo del canon, §18 EBNF como delta del Apéndice A base, A2.1 lifteada a R-AG-3/4, manual alineado por cita en ambos shards; (d) **puentes + README (3)** — precedencia corregida, familia de 4 piezas, versiones a frontmatter. `reglas-opm-estrictas-es` **NO se tocó** (intacta, verificado).
+
+**Paquete-pausa (14, requiere operador → custodio-kora)**: enmiendas a la suprema, varias contradicciones internas suyas — cluster ruta-sobre-habilitadores (#9/#35/#39: §4.12 canónica vs §11.2 zona-no-canonizada; lado spec ya listo para alinearse), tabla bisimetría §9.2 (#1), alcance fuerza semántica §5.8↔§6.5 (#3), excepción como 6.ª familia (#12), propiedad de plantillas OPL (#14), Anexo C con identificadores de código (#2/#34), R-CONF-7 con sello fechado (#5), delegaciones sin destino (#6), abanicos convergentes (#32), abanico probabilístico (#33), invocación con grupo paralelo (#36), y **R-NOM-PROC-1 más estrecho que el checker es-CL desplegado** (B-6: acepta Despacho/Ingreso, la regla solo `-ción/-miento`). Decisión de producto: valor por defecto de la grid (#24 parte 2: código `activa=true` vs `08` `drawGrid:false`). Ninguno bloquea el uso del corpus hoy.
+
+**Gates**: `kora check --strict` subtree corpus **37/37**; `kora index` 745 artefactos sin error nuevo; `design:governance` OK. El único `HIGH` del check global de KORA (`urn:kora:kb:guia-rapida-pneuma` roto en `.remember/remember.md`) es ajeno: buffer runtime no versionado, fuera del corpus.
+
+**Cambios sin commitear** (KORA y deep-opm-pro): KORA 10 archivos del corpus (+343/−278, `reglas-opm-estrictas-es` excluida); deep-opm-pro 9 archivos (4 puentes + 3 ui-forja + registro-conformidad + nota SUPERADO en auditoría 06-11 + informe nuevo). KORA `master` ya estaba == `origin` antes de esta sesión; **push pendiente del operador** (KORA: soy primary; flujo custodio-kora). El re-forward completo de la tabla §20 (#71) y la realización en código de UIFORJA-08a/b/c quedan en backlog (frente #4).
+
 ## Actualización 2026-06-12 — corte UX «integridad de modo + silencio cero» (C-1 + M-1/M-2 de la auditoría Jobs)
 
 **Mandato**: ejecutar la recomendación única de `docs/auditorias/2026-06-12-auditoria-ux-jobs.md`. TDD completo:

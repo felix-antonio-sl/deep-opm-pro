@@ -11,7 +11,7 @@ describe("composers/grid", () => {
       clearGrid() { calls.push("clear"); },
     };
 
-    configurarGridPaper(paper as never, { ...GRID_DEFAULT, paso: 12, escala: 2, color: "#abcdef", strokeWidth: 2 });
+    configurarGridPaper(paper as never, { ...GRID_DEFAULT, activa: true, paso: 12, escala: 2, color: "#abcdef", strokeWidth: 2 });
 
     expect(paper.options.gridSize).toBe(24);
     expect(paper.options.drawGrid).toEqual({ name: "mesh", args: { color: "#abcdef", thickness: 2 } });

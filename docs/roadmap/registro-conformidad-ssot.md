@@ -33,7 +33,7 @@ red de recuperación, política de `docs/auditorias/README.md`).
 | V-8 — `normalizarColoresSvg` descarta alfa en export SVG | DEBE (fidelidad de export) | **CERRADA 2026-06-11** | La normalización solo colapsa el caso opaco (alfa=1) a `rgb`; el alfa semántico (<1, p.ej. sombra de esencia física 0.68) se preserva. |
 | V-7 — deriva documental §18.2 (dashes/pin current) | — | **CERRADA 2026-06-11** (enmienda) | Enmendada en KORA: `spec-forja-opd-es` v1.0.4 (commit `017dc1b9`) reconcilia §18.2 (dashes del canal runtime), §18.3 (current declarado `●` vs anillo de runtime) y R-OPD-SIM-2 (anillo crimson sobre cápsula; pin gota solo para inicial) con la realización vigente, verificada contra `composers/halos.ts`/`enlace.ts`/`entidad.ts`. |
 | Out-zoom (mecanismo de refinamiento OPM) | Canónico en SSOT | **PROGRAMADA** | Sin superficie de autoría (oportunidad anotada: reutilizar `equivalencia/`). Declarado como capacidad no implementada; no hay modelo productivo que lo demande aún. |
-| GAPs §22 `spec-forja-opd-es` (GAP-OPD-UIFORJA-08*) | varios | **PROGRAMADOS** | Backlog vivo en `docs/roadmap/` (frente #4 del HANDOFF). |
+| GAPs §22 `spec-forja-opd-es` (GAP-OPD-UIFORJA-08*) | varios | **PARCIAL** | Mitad documental CERRADA 2026-06-12 (auditoría de coherencia del corpus): `ui-forja/08-jointjs-styling.md` reconciliado por remisión y `GOVERNANCE.md` elevado a v1.2 con `spec-forja-opd-es` en su cadena de precedencia (R-§25-MIG-2 cumplida en lo documental). Residual: realización en código (estado-pill, marcadores exhibición/instancia, straight-only) — backlog frente #4. |
 
 ## Cerradas por la remediación 2026-06-11 (referencia)
 
@@ -41,3 +41,40 @@ V-1 (modificadores `c`/`e` en kernel+import), V-2 (AP-04), «puede ser» fuera d
 parseo de estados, pérdidas silenciosas del reverse con diagnóstico, gate de
 densidad cableado a `validarModelo`, linealidad con exención XOR, TAGGED-ITALIC,
 `Pr = p` (commits `58b752e5`, `2766eb74`, `1f88c69a`, `2cd26a3d`).
+
+## Mapeo de gates del Anexo C categorial (delegado por `reglas-opm-estrictas-es`)
+
+`reglas-opm-estrictas-es` Anexo C (R-CAT-*) declara las reglas en forma agnóstica
+y delega aquí la identificación concreta de cada gate ejecutable (R-ANEXO-CAT-0,
+conforme a R-APP-0/R-APP-1: el canon no incrusta nombres de archivos/funciones de
+la app). Mapeo regla → gate verificable:
+
+| Regla (Anexo C) | Gate ejecutable | Ubicación |
+|---|---|---|
+| R-CAT-LIN-2 (conflicto de linealidad) | `law-composicion-respeta-lineal` | `app/src/leyes/composicion.test.ts` · `app/src/modelo/composicion/linealidad.ts` |
+| R-CAT-EQ-2 (equivalencia por firma de frontera) | `verificarEquivalencia` | `app/src/modelo/equivalencia/{verificar,index}.ts` · `app/src/leyes/equivalencia.test.ts` |
+| R-CAT-EQ-3 (in-zoom ↔ out-zoom preserva frontera) | checker `DESCOMPOSICION_NO_PRESERVA_FRONTERA` | `app/src/modelo/diagnosticoSeveridad.ts` · `app/src/modelo/checkers-preservacion-frontera.test.ts` |
+| R-CAT-COMP-2 (composición: 4 propiedades) | `law-composicion-{no-duplica,sin-refs-colgantes,asociativa,bien-tipada}` | `app/src/leyes/composicion.test.ts` · `app/src/modelo/composicion/componer.test.ts` (2 de las 4 viven aquí) |
+
+## Enmienda del corpus 2026-06-14 — paquete deliberado de la auditoría de coherencia
+
+Auditoría de coherencia del corpus (`docs/auditorias/2026-06-12-auditoria-ssot-corpus.md`),
+paquete-pausa deliberado en panel (dov-dori × polymath/cat-thinking × custodio-kora) y
+arbitrado por el operador. Materializado en KORA — `reglas-opm-estrictas-es` **v1.4.0**,
+capas base y specs co-enmendadas. Decisiones implementadas (sin pendientes ejecutables):
+
+| Decisión | Materialización en SSOT |
+|---|---|
+| Excepción = 6.ª familia de enlace | `reglas §5.1` (familia 4), `R-EXC-1B`; co-enmiendas `opm-iso §Control`, `opm-visual §4.4`, `spec-opl §5.3`, `spec-opd §scope` |
+| Partición plantillas OPL (gate vs superficie) | `reglas §Mapa de familia` (reglas conserva tablas como gate R-BI-TAB-1; spec-opl dueña de superficie; desempate: manda reglas) |
+| Abanicos convergentes de habilitadores | `reglas §7.2/§7.3` (`R-FAN-HAB-1`, AND por defecto), co-enmiendas `opm-visual §5.5`, `opm-opl §11.2` |
+| `Pr=p` DEBE + modo «probabilístico sin pesos» | `reglas §6.8`, `R-FAN-PROB-1` (casos A/B/C; procedencia `metod-opm §10.14`) |
+| Ruta sobre habilitadores: doctrina única | `reglas §11.2` (fila retirada) + `§4.12 R-OPL-RUTA-3` (domicilio único); `spec-opl §8.3/§8.4` alineados |
+| R-NOM-PROC-1 ampliada a deverbal es-CL | `reglas §3` R-NOM-PROC-1 (criterio deverbal, no lista de sufijos; checker B-6 = realización) |
+| Mecánicos | `§9.2` plantillas exactas (R-BI-TAB-1), `§6.5` alcance recomposición, `R-CONF-7` sin sello fechado, `R-ROT-4`→`SSOT-visual §20.1`, Anexo C agnóstico + este mapeo, `R-INV-2C` (grupo paralelo) |
+
+**#24-2 — RESUELTO 2026-06-14 (decisión del operador)**: grid de edición **inactiva
+por defecto**. El código se alineó a lo que `ui-forja/08` ya prescribía (`drawGrid:false`):
+`app/src/canvas/grid.ts` `GRID_DEFAULT.activa` `true → false`. `spec-opd R-OPD-UI-6`
+ya delegaba el default a ui-forja (sin cambio); la grid sigue configurable por usuario
+y suprimida en export. El paquete-pausa queda **sin brechas vivas**.

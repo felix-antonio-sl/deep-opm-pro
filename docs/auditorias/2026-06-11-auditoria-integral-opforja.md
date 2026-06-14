@@ -100,7 +100,7 @@ Gramática visual nuclear **sustancialmente conforme** (formas, sombras, swallow
 
 **Violaciones**: V-1 = el mismo hueco de modificadores (P1, no está en §22); V-2 AP-04 (P2); V-3 R-OPD-HAB-4 unicidad de rol (P2); V-4 proceso de manejo de excepción sin validar ambiental (P3); V-5 efecto a objeto sin estados solo checker blando (P3); V-6 afiliación no heredada por cadena estructural en render (P3); V-7 deriva documental §18.2 (dashes/pin current — el código es la realización vigente); V-8 `normalizarColoresSvg` descarta alfa en export SVG (P3).
 
-**Backlog §22 real**: de 19 GAPs — 2 cerrados-verificados (current declarado, grid en export), 3 parciales (CATEGORIAS-OPD, SUBMODELO-REF, matriz distribución), **14 abiertos**, incluidos **TAGGED-ITALIC (literalmente 1 línea: `fontStyle: "italic"` en `etiquetaTextoTagged`, enlace.ts:514-540)**, PERFIL-EXPORT, EXPORT-GATE, POS-MODIFICADOR, PROB-NOTACION, FAN-M, DEFAULT-GLIFO, FEEDBACK-LEGACY, PROXY-TOKEN, y la deuda doc UIFORJA-08a/b/c (R-§25-MIG-2 incumplida — `ui-forja/08` prescribe lo derogado).
+**Backlog §22 real**: de 19 GAPs — 2 cerrados-verificados (current declarado, grid en export), 3 parciales (CATEGORIAS-OPD, SUBMODELO-REF, matriz distribución), **14 abiertos**, incluidos **TAGGED-ITALIC (literalmente 1 línea: `fontStyle: "italic"` en `etiquetaTextoTagged`, enlace.ts:514-540)**, PERFIL-EXPORT, EXPORT-GATE, POS-MODIFICADOR, PROB-NOTACION, FAN-M, DEFAULT-GLIFO, FEEDBACK-LEGACY, PROXY-TOKEN, y la deuda doc UIFORJA-08a/b/c (R-§25-MIG-2 incumplida — `ui-forja/08` prescribe lo derogado). *(Actualización: TAGGED-ITALIC, PERFIL-EXPORT, EXPORT-GATE, POS-MODIFICADOR, PROB-NOTACION cerrados en código y reflejados en spec v1.1.0; la deuda doc UIFORJA-08a/b/c quedó SUPERADA en su mitad documental el 2026-06-12 — `ui-forja/08` reconciliado por remisión y R-§25-MIG-2 cumplida en lo documental; residual sólo de código. Ver `docs/auditorias/2026-06-12-auditoria-ssot-corpus.md`.)*
 
 ---
 
@@ -291,7 +291,7 @@ Verificación DIRECTA de los 44 GAPs de `spec-forja-opl-es` §20.2 contra `app/s
 **Corte 5 — rendimiento y deuda**
 16. Canal de selección separado de `resetCells` (no reproyectar el OPD por click).
 17. `useSyncExternalStore`; wrapper tipado JointJS (baja los 105 `as unknown`); tests de viewmodels `src/app/`.
-18. Saneo documental: comentarios stale de simulación, exención XOR en `verificarLinealidad`, propuesta a custodio-kora del re-apuntado de `opm-categorial-es.md:136`, corrección `ui-forja/08` (UIFORJA-08a/b/c), reconciliación §18.2 de spec-OPD y EBNF §18 de spec-OPL con la realización vigente, y actualización de la tabla §20 de spec-OPL (GAP-FIXTURE-AGREGACION y GAP-FIXTURE-GENERALIZACION ya cerrados en código; nombre de export §6.5 `oracionEstructuralEtiquetada`→`oracionTagged`).
+18. Saneo documental: comentarios stale de simulación, exención XOR en `verificarLinealidad`, propuesta a custodio-kora del re-apuntado de `opm-categorial-es.md:136`, corrección `ui-forja/08` (UIFORJA-08a/b/c), reconciliación §18.2 de spec-OPD y EBNF §18 de spec-OPL con la realización vigente, y actualización de la tabla §20 de spec-OPL (GAP-FIXTURE-AGREGACION y GAP-FIXTURE-GENERALIZACION ya cerrados en código; nombre de export §6.5 `oracionEstructuralEtiquetada`→`oracionTagged`). *(SUPERADO 2026-06-12 por la auditoría de coherencia del corpus: `ui-forja/08` reconciliado por remisión, EBNF §18 de spec-OPL y notas §18.x de spec-OPD reconciliadas, tabla §20 actualizada con los cierres por fila. Ver `docs/auditorias/2026-06-12-auditoria-ssot-corpus.md`.)*
 
 ---
 

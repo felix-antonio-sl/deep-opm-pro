@@ -3,7 +3,7 @@ import { GRID_DEFAULT, clampValor, cuantizarPosicion, normalizarGridConfig, paso
 
 describe("canvas/grid", () => {
   test("cuantiza coordenadas al paso efectivo", () => {
-    expect(cuantizarPosicion(24, 26, { ...GRID_DEFAULT, paso: 10, escala: 2 })).toEqual({ x: 20, y: 20 });
+    expect(cuantizarPosicion(24, 26, { ...GRID_DEFAULT, activa: true, paso: 10, escala: 2 })).toEqual({ x: 20, y: 20 });
     expect(pasoGrid({ ...GRID_DEFAULT, paso: 12, escala: 1.5 })).toBe(18);
   });
 

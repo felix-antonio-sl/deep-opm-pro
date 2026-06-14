@@ -5,7 +5,7 @@ _manifest:
     created_by: "deep-opm-pro/codex"
     created_at: "2026-05-31"
     source: "urn:fxsl:kb:reglas-opm-estrictas-es"
-version: "1.0.0"
+version: "1.1.0"
 status: publicado
 tags: [opm, opforja, canon, bridge, kora]
 lang: "es"
@@ -15,6 +15,8 @@ extensions:
 relations:
   depends:
     - "urn:fxsl:kb:reglas-opm-estrictas-es"
+    - "urn:fxsl:kb:spec-forja-opd-es"
+    - "urn:fxsl:kb:spec-forja-opl-es"
     - "urn:fxsl:kb:opm-es"
     - "urn:fxsl:kb:opd-es"
     - "urn:fxsl:kb:opl-es"
@@ -32,23 +34,46 @@ Este archivo no es la SSOT. La autoridad primaria vive en KORA:
 
 `reglas-opm-estrictas-es` es el canon prescriptivo operativo OPD/OPL para
 opforja: qué hechos son válidos, inválidos, condicionados o extensión de
-herramienta. Está por debajo de las capas OPM-ES nucleares cuando se discute
-semántica, visual o OPL base, y por encima de la implementación de producto.
+herramienta. Es SSOT primaria y referencialmente autónoma: un agente conforme
+no necesita abrir las capas base ni este puente para decidir una regla
+operativa ordinaria. La cadena de precedencia vive una sola vez en la SSOT
+(§Precedencia); este puente solo resuelve URN→path. Las capas OPM-ES nucleares
+siguen siendo autoridad semántica general que la SSOT operacionaliza: se
+consultan como procedencia, y una contradicción no declarada se arbitra vía
+corrección documental en KORA, no saltándose la SSOT.
 
 ## Contrato De Uso
 
-- Para decisiones de **semántica OPM**, usar `urn:fxsl:kb:opm-es`.
-- Para decisiones de **gramática visual OPD**, usar `urn:fxsl:kb:opd-es`.
-- Para decisiones de **gramática textual OPL-ES**, usar `urn:fxsl:kb:opl-es`.
-- Para decisiones de **canon prescriptivo operativo de opforja**, usar
-  `urn:fxsl:kb:reglas-opm-estrictas-es`.
-- Para decisiones de **texto OPL operativo**, usar `urn:fxsl:kb:spec-forja-opl-es`.
-- Para decisiones de **método de modelamiento**, usar
+- Para decisiones de **validez de un hecho OPM** (canon prescriptivo operativo
+  de opforja), usar `urn:fxsl:kb:reglas-opm-estrictas-es`.
+- Para decisiones de **realización visual/OPD operativa**, usar
+  `urn:fxsl:kb:spec-forja-opd-es`.
+- Para decisiones de **superficie OPL operativa**, usar
+  `urn:fxsl:kb:spec-forja-opl-es`.
+- Para decisiones de **método de modelado**, usar
   `urn:fxsl:kb:metodologia-forja-opm-es`.
+- Las capas base `urn:fxsl:kb:opm-es`, `urn:fxsl:kb:opd-es` y
+  `urn:fxsl:kb:opl-es` se consultan como **procedencia** (autoridad semántica
+  general) cuando la familia Forja las delega; no son destino de decisión
+  operativa ordinaria.
 
 No copiar contenido del canon en este archivo. Si el canon cambia, editar la
 SSOT KORA, validar con la toolchain KORA, reindexar KORA y mantener este puente
 estable.
+
+## Nota De Reconciliación 2026-06-12
+
+Auditoría de coherencia del corpus 2026-06-12: el Rol y el Contrato De Uso se
+realinearon con `reglas-opm-estrictas-es` (autonomía referencial y
+§Precedencia). Las decisiones visuales operativas enrutan a
+`urn:fxsl:kb:spec-forja-opd-es` y las textuales a
+`urn:fxsl:kb:spec-forja-opl-es`; las capas base quedan como procedencia, no
+como destino de decisión ordinaria.
+
+El paquete deliberado de la auditoría se materializó el 2026-06-14 en
+`reglas-opm-estrictas-es` **v1.4.0** (sexta familia de enlace — excepción
+procedimental — y resoluciones del panel arbitrado por el operador). Este puente
+no copia el canon; consultar la SSOT por la URN.
 
 ## Acceso Rápido
 

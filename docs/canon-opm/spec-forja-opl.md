@@ -5,7 +5,7 @@ _manifest:
     created_by: "deep-opm-pro/codex"
     created_at: "2026-05-31"
     source: "urn:fxsl:kb:spec-forja-opl-es"
-version: "1.0.0"
+version: "1.1.0"
 status: publicado
 tags: [opl, opforja, spec, bridge, kora]
 lang: "es"
@@ -49,16 +49,19 @@ No copiar contenido de la spec en este archivo. Si la spec cambia, editar la
 SSOT KORA, validar con la toolchain KORA, reindexar KORA y mantener este puente
 estable.
 
-## Nota De Reconciliación 2026-06-11
+## Nota De Reconciliación 2026-06-12
 
-La implementación vigente acepta `puede estar` solo para estados y reserva
-`puede ser` para especialización XOR o rechazo explícito; además mantiene
-etiquetas estructurales con sufijo `[etiqueta: ...]`, modificadores reverse de
-multiplicidad/ruta/condición y refinamiento reverse `se descompone en` /
-`se despliega en`. Si la EBNF §18 no deriva estas superficies o deriva formas
-no soportadas (`donde ...`, recomposición/rangos textuales), debe actualizarse
-la SSOT KORA o marcar el gap explícito; este puente refleja la conducta validada
-en `app/src/opl/parser`.
+La condición flaggeada el 2026-06-11 quedó consumida por la enmienda de
+coherencia de la fuente (2026-06-12, versión observada `1.2.0`): cada
+superficie validada por `app/src/opl/parser` está ahora legislada en la SSOT
+como regla o extensión declarada, y cada derivación sin soporte de la EBNF §18
+lleva GAP nombrado en la propia SSOT. Este puente ya no porta condición
+correctiva sobre la fuente.
+
+Residuo abierto (único): la producción de efecto de §18 A.5 sigue sin slot de
+multiplicidad, pendiente de la decisión del editor de la capa base
+`urn:fxsl:kb:opl-es` (A.5); cuando esa capa resuelva, la fuente debe espejarla
+y esta entrada se elimina.
 
 ## Acceso Rápido
 

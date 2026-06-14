@@ -2,8 +2,10 @@
 
 **Producto:** OpForja (editor OPM)
 **Propuesta:** Codex
-**Versión:** 1.1 — autoridad normativa vigente
+**Versión:** 1.2 — autoridad normativa vigente
 **Fecha:** 25 mayo 2026
+
+> **Nota 2026-06-12** (auditoría de coherencia del corpus): §3.2 reformula los tres colores OPM como canal informativo asociado por convención a la clase del símbolo (la semántica la portan forma, contorno, sombra y topología), conforme a `reglas-opm-estrictas-es` R-COLOR-1/2 y `spec-forja-opd-es` R-OPD-COSA-5.
 
 ---
 
@@ -110,7 +112,7 @@ Todo el chrome vive en escala neutra fría. Nada de cream warm, nada de sienna �
 
 ### 3.2 Canon OPM (V-63) — usado por JointJS
 
-Tres colores **semánticos** que codifican la clase del símbolo. JointJS los aplica como `stroke` de los shapes que Codex define en [`08-jointjs-styling.md`](08-jointjs-styling.md).
+Tres colores **de referencia** asociados por convención a la clase del símbolo — canal informativo, no normativo: los colores no codifican semántica por sí mismos; la semántica la portan forma, contorno, sombreado y topología (V-63, R-COLOR-1/2). JointJS los aplica como `stroke` de los shapes que Codex define en [`08-jointjs-styling.md`](08-jointjs-styling.md).
 
 | Token | Hex | Clase OPM |
 |---|---|---|

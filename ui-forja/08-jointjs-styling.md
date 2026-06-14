@@ -9,6 +9,8 @@ Este documento es la **fuente de verdad estética** del canvas: define los atrib
 > **Cómo leer este documento:** cada sección describe una clase de objeto JointJS (Shape, Link, Highlighter, ElementTool) y enumera los atributos visuales que deben aplicarse. Los valores remiten a los tokens de [`tokens.css`](tokens.css). NO incluye markup completo — solo los attrs.
 
 > **Nota 2026-06-11:** `spec-forja-opd-es` manda sobre semántica visual OPM. Este archivo no prescribe dashes, pins, selección persistente ni notación de probabilidad cuando esas reglas estén fijadas por `spec-forja-opd-es`; `ui-forja/08` solo conserva estética/chrome/tokens.
+>
+> **Nota 2026-06-12** (enmienda por auditoría de coherencia del corpus 2026-06-12; ejecuta R-§25-MIG-2 de `spec-forja-opd-es`): la subordinación cubre explícitamente las tres derogaciones registradas en `spec-forja-opd-es` §22 — **GAP-OPD-UIFORJA-08a** (geometría del estado: rountangle de radio fijo, no pill; §3.1 de la spec), **GAP-OPD-UIFORJA-08b** (marcadores estructurales de exhibición/clasificación/instanciación: topología interna del triángulo, R-OPD-STR-1) y **GAP-OPD-UIFORJA-08c** (routing por familia: manhattan estructural y `jumpover` como excepción documentada, R-OPD-LAY-4/R-OPD-LAY-6). En esas materias las prescripciones de §0, §3, §4.2 y §10 de este archivo quedan sustituidas por remisión a `spec-forja-opd-es`. La grid de edición es materia repartida: su existencia como preferencia configurable y su supresión en export la fijan R-OPD-UI-6 y R-OPD-LAY-3 de la spec; este archivo solo aporta el valor por defecto estético de edición (§0, §14).
 
 ---
 
@@ -20,21 +22,23 @@ Las opciones del `dia.Paper` que afectan apariencia (no las que controlan compor
 new joint.dia.Paper({
   // ── apariencia ──
   background: { color: 'transparent' },     // hereda el paper del wrapper HTML
-  drawGrid: false,                          // sin grid visible
+  drawGrid: false,                          // valor por defecto estético de edición (ver Reglas duras)
   // (gridSize sigue siendo útil para snap en lógica — eso lo decides tú)
 
   // ── comportamiento (no afecta estética; aquí solo a modo de checklist) ──
   defaultAnchor: { name: 'center' },        // o lo que tu lógica requiera
   defaultConnector: { name: 'straight' },   // estética hairline, sin curvas
-  defaultRouter: { name: 'normal' },        // routes simples; sin manhattan ortogonal
+  defaultRouter: { name: 'normal' },        // solo el valor por defecto: el routing por familia
+                                            // (manhattan estructural, jumpover) lo fija
+                                            // spec-forja-opd-es R-OPD-LAY-4/R-OPD-LAY-6
   // ...
 });
 ```
 
 **Reglas duras:**
 
-- `drawGrid: false` — Codex es liso (textura tipo papel viene del fondo HTML).
-- Connector `'straight'` o `'normal'`, **nunca** `'smooth'` ni `'rounded'` — las curvas no encajan con el lenguaje editorial.
+- `drawGrid: false` — valor por defecto de edición que propone Codex (lienzo liso; la textura tipo papel viene del fondo HTML). La grid configurable de edición es preferencia de usuario admitida por `spec-forja-opd-es` R-OPD-UI-6 y se suprime siempre en la exportación canónica (R-OPD-LAY-3; verificación V-227).
+- Connector `'straight'` o `'normal'` como preferencia estética — las curvas `'smooth'`/`'rounded'` no encajan con el lenguaje editorial. El routing es materia de `spec-forja-opd-es`: procedimentales rectos, estructurales fundamentales con router manhattan (R-OPD-LAY-4) y salto en arco `jumpover` en cruces como excepción documentada (R-OPD-LAY-6; GAP-OPD-UIFORJA-08c).
 - `background.color: 'transparent'` — el paper hereda el `paper` del wrapper, no inventa un fondo propio.
 
 ---
@@ -158,7 +162,7 @@ attrs: {
 
 ## 3. Shape: Estado OPM
 
-Stadium / rountangle. No hay equivalente directo en `shapes.standard`; defínelo con `path` o `rect` con `rx: calc(h/2)`.
+Rountangle. La geometría (radio fijo de esquina, no pill) la fija `spec-forja-opd-es` §3.1 — GAP-OPD-UIFORJA-08a derogó la prescripción pill `rx: calc(h/2)` de este archivo a favor del canon. Aquí solo tokens y tipografía.
 
 ### Attrs canónicos
 
@@ -168,8 +172,7 @@ attrs: {
     stroke: 'var(--cx-opm-olive)',           // #68711f
     strokeWidth: 1.2,                         // ← más fino que objeto/proceso
     fill: 'var(--cx-state-fill)',             // #dedacb
-    rx: 'calc(h/2)',                          // stadium pill
-    ry: 'calc(h/2)',
+    // rx/ry: radio fijo de rountangle según spec-forja-opd-es §3.1 (no pill)
   },
   label: {
     fontFamily: 'Inria Serif, Georgia, serif',
@@ -214,7 +217,7 @@ attrs: {
 }
 ```
 
-Connector recomendado: `'straight'` con `cornerType: 'point'` (sin redondeo).
+Connector por defecto: `'straight'` con `cornerType: 'point'` (sin redondeo). El routing por familia lo fija `spec-forja-opd-es` (ver §0).
 
 ### 4.2 Markers por tipo de enlace
 
@@ -222,17 +225,14 @@ Connector recomendado: `'straight'` con `cornerType: 'point'` (sin redondeo).
 |---|---|---|---|
 | **Transformador** (consume, genera, afecta) | none | swallowtail cerrado `M 0 0 L 23 8 L 12 0 L 23 -8 Z` (fill paper, stroke ink) | OPCloud/JOYAS; efecto usa source+target |
 | **Invocación** (invoca) | none | swallowtail cerrado `M 0 0 L 23 8 L 12 0 L 23 -8 Z` (fill paper, stroke ink) | el tramo conserva rayo/zigzag |
-| **Cambio de estado** (cambia…de…a) | none | arrow doble (dos arrowheads consecutivos) | distintivo |
-| **Agregación** (consta de) | none | triángulo equilátero fill ink (12×12) | el triángulo apunta al refinable |
-| **Exhibición** (exhibe) | none | cuadrado outline ink 10×10 | sin fill |
-| **Generalización** (es un) | none | triángulo outline ink (sin fill) 12×12 | |
-| **Instanciación** (es una instancia de) | none | círculo outline ink 8×8 | |
-| **Agente** (maneja) | none | círculo ink fill negro 6×6 | "lollipop" lleno |
-| **Instrumento** (requiere) | none | círculo outline ink 8×8 | "lollipop" hueco |
+| **Cambio de estado** (cambia…de…a) | — | — | semántica y realización fijadas por `spec-forja-opd-es` §5 (par de enlaces anclados a estados; la prescripción «arrow doble» de este archivo quedó retirada por carecer de base canónica) |
+| **Estructurales fundamentales** (agregación, exhibición, generalización, instanciación) | — | — | topología interna del triángulo según `spec-forja-opd-es` §7 (R-OPD-STR-1); GAP-OPD-UIFORJA-08b derogó el cuadrado de exhibición y el círculo de instanciación de este archivo; ui-forja solo aporta stroke ink y trazo 1–1.2 px |
+| **Agente** (maneja) | none | círculo ink fill negro 6×6 | piruleta llena (negra) |
+| **Instrumento** (requiere) | none | círculo outline ink 8×8 | piruleta hueca (blanca); como targetMarker cuelga de la línea visible del enlace (R-OPD-HAB-2) |
 
 **Trazos:** todos `strokeWidth: 1`. Para enlaces destacados (raro), `1.2px`.
 
-**Dashing:** no usar. Codex prefiere distinguir por marker, no por línea punteada.
+**Dashing:** materia de `spec-forja-opd-es` — los patrones discontinuos portan semántica OPM (p. ej. afiliación ambiental); este archivo no los prescribe (ver nota de subordinación).
 
 ### 4.3 Vertices markers (durante edición)
 
@@ -412,20 +412,9 @@ joint.dia.Element.define('codex.StructuralTriangle', {
 
 ---
 
-## 10. Cuadrado de exhibición standalone
+## 10. Decoración interior de exhibición/clasificación
 
-Igual que §9 pero un cuadrado pequeño en el medio de un enlace de exhibición:
-
-```js
-attrs: {
-  body: {
-    width: 20, height: 20,
-    stroke: 'var(--cx-ink)',
-    strokeWidth: 1.2,
-    fill: 'transparent',
-  },
-}
-```
+La prescripción «cuadrado de exhibición standalone» de este archivo quedó derogada (GAP-OPD-UIFORJA-08b): la distinción entre exhibición, clasificación, agregación y generalización reside en la **topología interna del triángulo** y la fija `spec-forja-opd-es` §7 (R-OPD-STR-1). Este archivo solo aporta la estética del trazo — `stroke: 'var(--cx-ink)'`, `strokeWidth: 1.2`, fill según familia (cf. §9).
 
 ---
 
@@ -526,7 +515,7 @@ Recomendamos **opción B** para mantener la fuente de verdad en `tokens.css`. Re
 
 Recordatorios:
 
-- ❌ NO usar `drawGrid: true` — Codex es liso.
+- ❌ NO renderizar la grid en la exportación canónica (`spec-forja-opd-es` R-OPD-LAY-3; verificación V-227). En edición, `drawGrid: false` es solo el valor por defecto que propone Codex: la grid configurable es preferencia de usuario admitida (R-OPD-UI-6).
 - ❌ NO usar `defaultConnector: 'smooth'` o `'rounded'` con radio grande.
 - ❌ NO usar `filter: dropShadow` ni equivalentes para elevación UI; la sombra semántica de esencia física es la única excepción.
 - ❌ NO usar `rx`/`ry` en `codex.Object` (rectángulos cuadrados, sin redondeo).
@@ -540,7 +529,7 @@ Recordatorios:
 | Caso | Decisión visual pendiente |
 |---|---|
 | **Proceso activo / in-flight** (V-132, §17) | Posible: highlighter de halo crimson con `strokeWidth: 1.5` + `opacity: 0.5`. A confirmar. |
-| **Estado actual** (§17.2) | Posible: pin externo (círculo crimson outline 6px) anclado al borde superior del stadium del estado. A confirmar. |
+| **Estado actual** (§17.2) | Posible: pin externo (círculo crimson outline 6px) anclado al borde superior del rountangle del estado. A confirmar. |
 | **Símbolo refinado (in-zoomed)** | Marca tipográfica en el index: `o.06 ▾` con caret hacia abajo en mono. |
 | **Símbolo bloqueado** (`⌘L`) | Possible: opacity 0.7 del body + ningún cursor pointer al hover. |
 

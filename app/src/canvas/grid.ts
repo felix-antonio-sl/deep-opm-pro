@@ -4,7 +4,7 @@ import type { GridConfig } from "../modelo/tipos/ui";
 export type { GridConfig };
 
 export const GRID_DEFAULT: GridConfig = {
-  activa: true,
+  activa: false,
   paso: 10,
   color: "#d8e2ee",
   strokeWidth: 1,
