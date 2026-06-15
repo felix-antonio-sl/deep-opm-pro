@@ -427,8 +427,22 @@ function detectarRechazoTemprano(sinPunto: string): { categoria: CategoriaRechaz
         "Condición no modelable como cláusula (`cuando`/`según`/guard compuesto): modélala como estado-guard, evento, o declárala supuesto.",
     };
   }
+  // compilar-03: `puede iniciar` SINGLE (un solo destino, SIN disyunción ` o `
+  // fuera de comillas). La disyunción `puede iniciar A o B` ya la mapeó V15 antes
+  // de llegar aquí; lo que queda es el evento implícito retirado. Diagnóstico
+  // DIRIGIDO (nombra el patrón y sugiere `inicia`), no el R3 genérico que no orienta.
+  if (PUEDE_INICIAR_RE.test(sinPunto) && !tieneDisyuncionDeProcesos(sinPunto)) {
+    return {
+      categoria: "R3",
+      diagnostico:
+        "'puede iniciar' (evento implícito sin disyunción) está retirado: usa 'X en 'estado' inicia P' o 'X inicia P'.",
+    };
+  }
   return null;
 }
+
+/** `puede iniciar` en cualquier posición (el sujeto puede ser una frase larga). */
+const PUEDE_INICIAR_RE = /\bpuede\s+iniciar\b/iu;
 
 // ── FAMILIA V — verbos/patrones extendidos (decisiones del operador 2026-06-04) ──
 //
@@ -1053,8 +1067,47 @@ function resolverEstadoPegado(
 
 // ── R3: verbo fuera del enum ─────────────────────────────────────────────
 
+/** Palabra-clase meta-OPM que el parser usa como superclase en `X es un <clase>`.
+ *  Es vocabulario reservado, NO un nombre de dominio: una designación de esencia,
+ *  no una generalización. */
+const ESENCIA_INCOMPLETA_RE =
+  /^(.+?)\s+es\s+un[ao]?\s+(objeto|proceso)(?:\s+(f[íi]sic[oa]|informacional|sist[ée]mic[oa]|ambiental))?\s*$/iu;
+
+/**
+ * compilar-02 — designación de esencia INCOMPLETA (`X es un objeto físico`, sin
+ * afiliación; o la palabra-clase desnuda `X es un objeto`). El parser la lee como
+ * una generalización con superclase fantasma «objeto físico» (vocabulario
+ * meta-OPM, no un nombre propio de dominio). Se RECHAZA pidiendo completar la
+ * afiliación. La forma COMPLETA (`X es un objeto físico y sistémico`, con ` y `)
+ * NO entra aquí: lleva DOS adjetivos y el patrón exige a lo sumo uno + fin de
+ * línea. Una superclase de dominio (`X es un Vehículo`) tampoco: su predicado no
+ * es la palabra-clase reservada.
+ */
+function detectarEsenciaIncompleta(sinPunto: string): { categoria: CategoriaRechazo; diagnostico: string } | null {
+  const m = ESENCIA_INCOMPLETA_RE.exec(sinPunto);
+  if (!m) return null;
+  const sujeto = (m[1] ?? "").trim();
+  const clase = (m[2] ?? "").toLocaleLowerCase("es");
+  // Eco de la esencia que el autor escribió (si la puso); por defecto `físico`.
+  // Si lo que escribió fue una afiliación suelta (`sistémico`/`ambiental`), la
+  // esencia sigue faltando: el ejemplo arranca desde `físico` igual.
+  const adj = (m[3] ?? "").toLocaleLowerCase("es");
+  const esencia = /^(?:f[íi]sic|informacional)/u.test(adj) ? adj : "físico";
+  return {
+    categoria: "R8",
+    diagnostico:
+      `Designación de esencia incompleta: completa la afiliación: ` +
+      `"${sujeto} es un ${clase} ${esencia} y <sistémico|ambiental>".`,
+  };
+}
+
 function detectarVerboNoCanonico(sinPunto: string): { categoria: CategoriaRechazo; diagnostico: string } | null {
   const conEspacios = ` ${sinPunto} `;
+
+  // compilar-02: designación de esencia incompleta (palabra-clase reservada sin
+  // afiliación) ANTES de tratar `es un …` como generalización válida.
+  const esenciaIncompleta = detectarEsenciaIncompleta(sinPunto);
+  if (esenciaIncompleta) return esenciaIncompleta;
 
   // Formas validas que NO usan un verbo del enum procedural: si encaja alguna,
   // no es R3 (la oracion es estricta por otra via).
@@ -1152,10 +1205,14 @@ export function extraerAnclasDeLinea(texto: string): Ancla[] {
 
   // 1) Citas normativas entre paréntesis, por FORMA (señal-localizador primero,
   //    luego cuerpo-con-numeración para las que no tienen localizador). Un mismo
-  //    paréntesis no se extrae dos veces (dedup por span bruto).
+  //    paréntesis no se extrae dos veces (dedup por span bruto). Se registran los
+  //    rangos [inicio, fin) de cada match para descartar luego una cita inline que
+  //    ya quede DENTRO de un paréntesis (compilar-01).
   const brutosVistos = new Set<string>();
+  const rangosParen: Array<[number, number]> = [];
   for (const re of [ANCLA_PAREN_LOCALIZADOR_RE, ANCLA_PAREN_CUERPO_NUM_RE]) {
     for (const m of texto.matchAll(re)) {
+      if (m.index !== undefined) rangosParen.push([m.index, m.index + m[0].length]);
       if (brutosVistos.has(m[0])) continue;
       brutosVistos.add(m[0]);
       const cuerpo = (m[1] ?? "").trim();
@@ -1169,8 +1226,17 @@ export function extraerAnclasDeLinea(texto: string): Ancla[] {
     }
   }
 
-  // 2) Citas normativas inline con `#clave` (fuera de paréntesis).
+  // 2) Citas normativas inline con `#clave` (fuera de paréntesis). Si el span del
+  //    match queda TOTALMENTE contenido en un rango-paréntesis ya extraído (la
+  //    `#clave` vivía dentro de la cita `(… #clave)`), se descarta: esa ancla ya la
+  //    materializó el paso 1. La contención es ESTRICTA (s>=ps && e<=pe), no por
+  //    solape parcial — una inline legítima fuera del paréntesis no se ve afectada.
   for (const m of texto.matchAll(ANCLA_NORMA_INLINE_RE)) {
+    if (m.index !== undefined) {
+      const s = m.index;
+      const e = m.index + m[0].length;
+      if (rangosParen.some(([ps, pe]) => s >= ps && e <= pe)) continue;
+    }
     const cuerpo = (m[1] ?? "").trim();
     const claveExplicita = (m[2] ?? "").trim();
     anclas.push({

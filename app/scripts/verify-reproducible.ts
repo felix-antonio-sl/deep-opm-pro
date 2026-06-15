@@ -31,22 +31,49 @@ function morir(msg: string, code: number): never {
   process.exit(code);
 }
 
+/** Lectura tolerante: el fallo de IO/uso es exit 2 con mensaje legible (NO stacktrace);
+ *  el exit 1 queda reservado ESTRICTAMENTE a la divergencia byte (H1H2-03). */
+function leerArchivo(ruta: string): string {
+  try {
+    return readFileSync(ruta, "utf8");
+  } catch (e) {
+    morir(`no se pudo leer ${ruta}: ${e instanceof Error ? e.message : String(e)}`, 2);
+  }
+}
+
+/** El bundle porta sello cuando su JSON expone `modelo.procedencia`. */
+function bundlePortaSello(json: string): boolean {
+  try {
+    return Boolean((JSON.parse(json) as { modelo?: { procedencia?: unknown } }).modelo?.procedencia);
+  } catch {
+    return false;
+  }
+}
+
 const args = parseArgs(process.argv.slice(2));
 if (!args.golden) morir("falta --golden <bundle.json>", 2);
 if (!args.proto && !args.modelo) morir("falta --proto <md> o --modelo <json>", 2);
 if (args.proto && args.modelo) morir("--proto y --modelo son mutuamente excluyentes", 2);
 
-const golden = readFileSync(args.golden, "utf8");
+const golden = leerArchivo(args.golden);
 let generado: string;
 let protoHash: string | undefined;
 if (args.proto) {
-  const md = readFileSync(args.proto, "utf8");
-  // Mismas opciones que el dogfood del consumidor: sin sello inyectado (byte-identidad
-  // con goldens estandar) y sin abortar por advertencias de canon.
-  generado = emitirBundle(compilarProto(md, { nombre: basename(args.proto).replace(/\.[^.]+$/, "") }).autor, { lanzarEnError: false }).json;
-  protoHash = construirSello({ protoTexto: md }).protoHash;
+  const md = leerArchivo(args.proto);
+  // H1H2-02: si el golden PORTA sello, inyectamos el sello recién computado en la
+  // regeneración para que un FAIL pueda nombrar la componente divergente
+  // (protoHash/autoriaVersion/layoutVersion). Si el golden NO lleva sello, regeneramos
+  // sin enriquecer para preservar byte-identidad con goldens estándar.
+  const sello = construirSello({ protoTexto: md });
+  protoHash = sello.protoHash;
+  const opcionesProcedencia = bundlePortaSello(golden) ? { procedencia: sello } : {};
+  // Mismas opciones que el dogfood del consumidor: sin abortar por advertencias de canon.
+  generado = emitirBundle(compilarProto(md, { nombre: basename(args.proto).replace(/\.[^.]+$/, "") }).autor, {
+    lanzarEnError: false,
+    ...opcionesProcedencia,
+  }).json;
 } else {
-  generado = readFileSync(args.modelo!, "utf8");
+  generado = leerArchivo(args.modelo!);
 }
 
 const r = compararReproducibilidad(generado, golden, { maxDiferencias: Number(args["max-diff"]) || 5 });

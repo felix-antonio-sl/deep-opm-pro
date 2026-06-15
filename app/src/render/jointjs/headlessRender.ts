@@ -80,3 +80,35 @@ export async function renderModeloHeadless(
 export function montarHeadlessRender(): void {
   (globalThis as { __opmRenderHeadless__?: typeof renderModeloHeadless }).__opmRenderHeadless__ = renderModeloHeadless;
 }
+
+/** Forma mínima que necesita {@link seleccionarOpds} de cada OPD renderizado. */
+export interface OpdSeleccionable {
+  opdId: string;
+}
+
+/** Resultado de filtrar los OPDs renderizados por `--solo-opd`. */
+export interface SeleccionOpds<T extends OpdSeleccionable> {
+  /** OPDs que pasan el filtro (todos si no hubo `--solo-opd`). */
+  seleccion: T[];
+  /** Mensaje de error cuando `--solo-opd` no resuelve ningún OPD (H1H2-04). */
+  error?: string;
+}
+
+/**
+ * Filtra los OPDs renderizados por `--solo-opd`. Si se pidió un OPD inexistente,
+ * la selección queda vacía y se devuelve un `error` enumerando los OPDs
+ * disponibles, para que el CLI deje rastro en `error.txt` en vez de un no-op
+ * silencioso (exit 0 con índice vacío) — H1H2-04.
+ */
+export function seleccionarOpds<T extends OpdSeleccionable>(
+  opds: T[],
+  soloOpd?: string,
+): SeleccionOpds<T> {
+  if (!soloOpd) return { seleccion: opds };
+  const seleccion = opds.filter((o) => o.opdId === soloOpd);
+  if (seleccion.length === 0) {
+    const disponibles = opds.map((o) => o.opdId).join(", ") || "(ninguno)";
+    return { seleccion, error: `OPD ${soloOpd} no existe; disponibles: ${disponibles}` };
+  }
+  return { seleccion };
+}

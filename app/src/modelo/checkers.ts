@@ -595,8 +595,29 @@ export function checkOrdenInzoomReferenciaInvalida(modelo: Modelo): AvisoMetodol
   const avisos: AvisoMetodologico[] = [];
   for (const opd of Object.values(modelo.opds)) {
     if (!opd.ordenInzoom || opd.ordenInzoom.length === 0) continue;
-    const internos = subprocesosInternosDeOpd(modelo, opd);
     const ancla = contornoDeOpd(modelo, opd.id);
+    // anclas-02: si el OPD no es la descomposición de ningún proceso, `ordenInzoom`
+    // no aplica en absoluto (no hay subprocesos internos que ordenar): el mensaje
+    // NO debe hablar de "descomposición" como si existiera. Se emite un aviso
+    // específico por OPD (uno solo, no por id) para no inducir a buscar un
+    // contorno inexistente.
+    if (!ancla) {
+      avisos.push({
+        codigo: "ORDEN_INZOOM_REFERENCIA_INVALIDA",
+        severidad: "advertencia",
+        opdId: opd.id,
+        navegarA: { tipo: "opd", id: opd.id },
+        mensaje: `El OPD "${opd.nombre}" declara orden de subprocesos ("ordenInzoom") pero no es la descomposición de ningún proceso; "ordenInzoom" solo aplica al in-zoom de un proceso. Retira el orden declarado de este OPD o conviértelo en la descomposición de un proceso.`,
+        rationale: "`ordenInzoom` es la presentación del preorden temporal de los subprocesos INTERNOS de una descomposición de proceso (R-IDP-0A): un OPD sin contorno de descomposición no tiene subprocesos internos que ordenar.",
+        ssotRef: `${KB_REGLAS} R-IDP-0A / R-INV-2D`,
+        accionesSugeridas: [
+          "Retira el orden declarado ('ordenInzoom') de este OPD: no es la descomposición de ningún proceso.",
+          "O conviértelo en la descomposición (in-zoom) de un proceso para que tenga subprocesos internos que ordenar.",
+        ],
+      });
+      continue;
+    }
+    const internos = subprocesosInternosDeOpd(modelo, opd);
     for (const banda of opd.ordenInzoom) {
       for (const id of banda) {
         if (internos.has(id)) continue;
@@ -604,10 +625,10 @@ export function checkOrdenInzoomReferenciaInvalida(modelo: Modelo): AvisoMetodol
         avisos.push({
           codigo: "ORDEN_INZOOM_REFERENCIA_INVALIDA",
           severidad: "advertencia",
-          ...(ancla ? { entidadId: ancla.id } : {}),
+          entidadId: ancla.id,
           opdId: opd.id,
           navegarA: { tipo: "opd", id: opd.id },
-          mensaje: `El orden declarado de la descomposición${ancla ? ` de "${ancla.nombre}"` : ""} referencia "${referido?.nombre ?? id}", que no es un subproceso interno de este OPD. Retíralo de "ordenInzoom" o conviértelo en subproceso de la descomposición.`,
+          mensaje: `El orden declarado de la descomposición de "${ancla.nombre}" referencia "${referido?.nombre ?? id}", que no es un subproceso interno de este OPD. Retíralo de "ordenInzoom" o conviértelo en subproceso de la descomposición.`,
           rationale: "Cada id de `ordenInzoom` DEBE ser un subproceso interno de la descomposición del OPD: el orden declarado es la presentación del preorden de esos subprocesos (R-IDP-0A), no de entidades ajenas, externas u objetos.",
           ssotRef: `${KB_REGLAS} R-IDP-0A / R-INV-2D`,
           accionesSugeridas: [
@@ -621,8 +642,10 @@ export function checkOrdenInzoomReferenciaInvalida(modelo: Modelo): AvisoMetodol
   return avisos;
 }
 
-/** El proceso refinable cuya descomposición es este OPD (su contorno), si existe. */
-function contornoDeOpd(modelo: Modelo, opdId: Id): Entidad | undefined {
+/** El proceso refinable cuya descomposición es este OPD (su contorno), si existe.
+ * Exportado: la integridad referencial de `ordenInzoom` en la hidratación dura
+ * (`validarReferenciasOpd`) lo reusa para decidir si un OPD es un in-zoom real. */
+export function contornoDeOpd(modelo: Modelo, opdId: Id): Entidad | undefined {
   for (const entidad of Object.values(modelo.entidades)) {
     if (obtenerRefinamiento(entidad, "descomposicion")?.opdId === opdId) return entidad;
   }
@@ -630,8 +653,9 @@ function contornoDeOpd(modelo: Modelo, opdId: Id): Entidad | undefined {
 }
 
 /** Ids de los subprocesos INTERNOS de un OPD de descomposición: procesos que aparecen
- * en el OPD, excluido el contorno y excluidos los externos (contexto de refinamiento). */
-function subprocesosInternosDeOpd(modelo: Modelo, opd: Opd): Set<Id> {
+ * en el OPD, excluido el contorno y excluidos los externos (contexto de refinamiento).
+ * Exportado: lo reusa `validarReferenciasOpd` (integridad referencial de `ordenInzoom`). */
+export function subprocesosInternosDeOpd(modelo: Modelo, opd: Opd): Set<Id> {
   const contorno = contornoDeOpd(modelo, opd.id);
   const ids = new Set<Id>();
   for (const apariencia of Object.values(opd.apariencias)) {

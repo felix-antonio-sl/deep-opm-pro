@@ -81,6 +81,12 @@ function particionarCanon(avisos: AvisoDiagnostico[]): { bloqueantes: AvisoDiagn
  * canónico, valida round-trip + contención + canon, y devuelve { json, opl, reporte, conteos, avisos }.
  * No escribe archivos: el consumidor decide dónde persistir. Lanza ante fallo de round-trip/contención,
  * y (si lanzarEnError, default true) ante avisos de severidad `error` o bloqueantes de canon.
+ *
+ * CONSUME el autor: `autor.modelo` se MUTA in-place (se le aplica el layout canónico vía
+ * `aplicarLayoutCompleto` y, si se pasan, `descripcion`/`procedencia`). Es intencional —
+ * el contrato de byte-identidad (golden/round-trip) depende del layout in-place y el patrón
+ * es un-autor-una-emisión. No reusar el mismo autor esperando un modelo prístino: emitir un
+ * bundle es terminal para ese autor.
  */
 export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): ResultadoBundle {
   const { modelo, internosInzoom, ordenInzoom } = autor;

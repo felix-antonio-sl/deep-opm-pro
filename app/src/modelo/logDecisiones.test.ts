@@ -111,6 +111,55 @@ describe("logDecisiones — export v0 (C2)", () => {
     expect(log.entradas).toHaveLength(0);
   });
 
+  test("logdec-02: claveProto duplicada entre anclas que generan entrada rechaza ruidoso (el log sería ambiguo para re-elicitar)", () => {
+    // Dos anclas DISTINTAS (id diferente) con la misma claveProto, ambas anotadas
+    // en mesa. La skill matchea por claveAncla (no posicional): dos entradas con la
+    // misma claveAncla son indistinguibles al re-elicitar → fallo app-side.
+    let m: Modelo = {
+      ...crearModelo("Registro"),
+      procedencia: SELLO,
+      anclasNormativas: {
+        "an-1": anclaPendiente("ratificar:convenio-ges", "an-1"),
+        "an-2": anclaPendiente("ratificar:convenio-ges", "an-2"),
+      },
+    };
+    m = must(anotarAnclaEnMesa(m, "ratificar:convenio-ges", HOY));
+    // anotarAnclaEnMesa toca la PRIMERA por claveProto; anotamos la segunda por id directo.
+    m = {
+      ...m,
+      anclasNormativas: {
+        ...m.anclasNormativas!,
+        "an-2": {
+          ...m.anclasNormativas!["an-2"]!,
+          ratificacion: { nivelAutoridad: "mesa", estadoRatificacion: "anotado-en-mesa", anotadoEn: HOY },
+        },
+      },
+    };
+    const resultado = construirLogDecisiones(m, HOY);
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) {
+      expect(resultado.error).toContain("ratificar:convenio-ges");
+      expect(resultado.error.toLowerCase()).toContain("duplicada");
+    }
+  });
+
+  test("logdec-02: claveProto duplicada NO rechaza si solo una genera entrada (el otro registro sigue 'pendiente')", () => {
+    // Dos anclas con la misma clave, pero solo una anotada en mesa: el log tiene una
+    // sola entrada para esa clave → no hay ambigüedad → pasa.
+    let m: Modelo = {
+      ...crearModelo("Registro"),
+      procedencia: SELLO,
+      anclasNormativas: {
+        "an-1": anclaPendiente("ratificar:convenio-ges", "an-1"),
+        "an-2": anclaPendiente("ratificar:convenio-ges", "an-2"),
+      },
+    };
+    m = must(anotarAnclaEnMesa(m, "ratificar:convenio-ges", HOY));
+    const log = must(construirLogDecisiones(m, HOY));
+    expect(log.entradas).toHaveLength(1);
+    expect(log.entradas[0]!.claveAncla).toBe("ratificar:convenio-ges");
+  });
+
   test("L9 app-side: un ancla ya vigente (re-elicitada) no reaparece ni en pendientes ni en el log", async () => {
     const { anclasPendientes } = await import("./anclasNormativas");
     let m = must(ratificarAnclaConFuente(modeloConPendiente(), "ratificar:convenio-ges", "Acta", HOY));

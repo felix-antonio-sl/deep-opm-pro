@@ -1,3 +1,4 @@
+import { contornoDeOpd, subprocesosInternosDeOpd } from "../modelo/checkers";
 import { entidadIdDeExtremo, extremoVisibleEnOpd } from "../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import { refinamientosDe, tieneRefinamiento } from "./../modelo/refinamientos";
@@ -55,6 +56,8 @@ export function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
     }
     const extraidas = validarAparienciasExtraidas(modelo, opd);
     if (!extraidas.ok) return extraidas;
+    const ordenInzoom = validarOrdenInzoomReferencial(modelo, opd);
+    if (!ordenInzoom.ok) return ordenInzoom;
     for (const [aparienciaId, apariencia] of Object.entries(opd.enlaces)) {
       const enlace = modelo.enlaces[apariencia.enlaceId];
       if (!enlace) return fallo(`Apariencia de enlace inválida: ${aparienciaId}.enlaceId`);
@@ -91,6 +94,37 @@ export function validarAparienciasExtraidas(modelo: Modelo, opd: Opd): Resultado
     if (extraida.parteEntidadId !== apariencia.entidadId) return fallo(`Apariencia inválida: ${aparienciaId}.parteExtraidaDe.parteEntidadId`);
     if (!partesDePlegado(modelo, padre.entidadId).some((parte) => parte.entidadId === extraida.parteEntidadId)) {
       return fallo(`Apariencia inválida: ${aparienciaId}.parteExtraidaDe.parteEntidadId`);
+    }
+  }
+  return ok(true);
+}
+
+/**
+ * Integridad referencial de `Opd.ordenInzoom` en la hidratación dura (import-01 +
+ * anclas-01). `validarOpds` (forma + anticadena) NO conoce el modelo completo;
+ * aquí, con entidades + refinamiento + apariencias disponibles, se exige que el
+ * orden declarado refiera SOLO subprocesos internos reales de la descomposición
+ * del OPD. Un id fantasma, de contorno, externo, de objeto o de otro OPD es una
+ * referencia colgante: igual que anclas/notasMesa rechazan target irresoluble
+ * (json.ts), el import dura debe rechazarla y no dejarla sobrevivir.
+ *
+ * El checker de diagnóstico `checkOrdenInzoomReferenciaInvalida` (avisos blandos)
+ * cubre el mismo invariante en runtime; esta es la barrera DURA del import.
+ */
+function validarOrdenInzoomReferencial(modelo: Modelo, opd: Opd): Resultado<true> {
+  if (!opd.ordenInzoom || opd.ordenInzoom.length === 0) return ok(true);
+  // (a) El OPD debe ser un in-zoom real: la descomposición de algún proceso.
+  const contorno = contornoDeOpd(modelo, opd.id);
+  if (!contorno) {
+    return fallo(`OPD inválido: ${opd.id}.ordenInzoom declara orden de subprocesos pero el OPD no es la descomposición de ningún proceso`);
+  }
+  // (b) Cada id del orden debe ser un subproceso INTERNO del contorno de este OPD.
+  const internos = subprocesosInternosDeOpd(modelo, opd);
+  for (const banda of opd.ordenInzoom) {
+    for (const id of banda) {
+      if (!internos.has(id)) {
+        return fallo(`OPD inválido: ${opd.id}.ordenInzoom referencia "${id}", que no es un subproceso interno de su descomposición`);
+      }
     }
   }
   return ok(true);

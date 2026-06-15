@@ -88,9 +88,21 @@ describe("serializacion JSON", () => {
   });
 
   test("preserva ordenInzoom (bandas del orden de descomposicion) en round-trip", () => {
-    const modelo = crearModelo("Orden in-zoom");
-    const opdId = modelo.opdRaizId;
-    const bandas: string[][] = [["p-eval-med", "p-eval-enf"], ["p-consolidacion"]];
+    // ordenInzoom solo es válido en un in-zoom real cuyos ids sean subprocesos
+    // internos: la hidratación dura (validarReferenciasOpd) lo exige. Construimos
+    // un in-zoom de proceso y ordenamos sus subprocesos internos sembrados.
+    let modelo = crearModelo("Orden in-zoom");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Atender Paciente"));
+    const procesoId = entidadPorNombre(modelo, "Atender Paciente");
+    modelo = must(descomponerProceso(modelo, modelo.opdRaizId, procesoId)).modelo;
+    const opdId = modelo.entidades[procesoId]?.refinamientos?.descomposicion?.opdId;
+    expect(opdId).toBeDefined();
+    if (!opdId) return;
+    const internos = Object.values(modelo.opds[opdId]!.apariencias)
+      .filter((apariencia) => apariencia.entidadId !== procesoId)
+      .map((apariencia) => apariencia.entidadId);
+    expect(internos.length).toBeGreaterThanOrEqual(2);
+    const bandas: string[][] = [[internos[0]!, internos[1]!], ...(internos.slice(2).map((id) => [id]))];
     const conOrden: Modelo = {
       ...modelo,
       opds: { ...modelo.opds, [opdId]: { ...modelo.opds[opdId]!, ordenInzoom: bandas } },

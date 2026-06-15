@@ -140,9 +140,14 @@ export function validarOpds(value: Record<string, unknown>, entidades: Record<Id
  * Valida la presentacion del orden temporal de subprocesos (ordenInzoom):
  * secuencia de bandas, cada banda un arreglo de ids de subprocesos en paralelo.
  * Verifica la FORMA del preorden (arreglo de arreglos de strings) y la anticadena
- * global (ningun id en dos bandas: violaria la funcion rango r: P→ℕ). La integridad
- * referencial (que cada id sea un subproceso de la descomposicion de este OPD) se
- * verifica aguas arriba (checker de diagnostico / validarIntegridad), no aqui.
+ * global (ningun id en dos bandas: violaria la funcion rango r: P→ℕ). Aqui NO se
+ * resuelven referencias: este validador no conoce el modelo completo (entidades +
+ * refinamiento + apariencias). La integridad referencial dura (que el OPD sea un
+ * in-zoom real y que cada id sea un subproceso INTERNO de su descomposicion) la
+ * impone `validarOrdenInzoomReferencial` dentro de `validarReferenciasOpd`
+ * (validarIntegridad.ts), que corre al final de la hidratacion en json.ts; el
+ * checker de diagnostico `checkOrdenInzoomReferenciaInvalida` (checkers.ts) cubre
+ * el mismo invariante como aviso blando en runtime.
  */
 function validarOrdenInzoom(opdId: Id, value: unknown): Resultado<Id[][]> {
   if (!Array.isArray(value)) return fallo(`OPD inválido: ${opdId}.ordenInzoom`);

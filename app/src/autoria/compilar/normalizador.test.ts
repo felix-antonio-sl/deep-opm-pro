@@ -304,6 +304,55 @@ describe("AESS — esencia/afiliacion sin `un objeto/proceso` se completa", () =
   });
 });
 
+// ── compilar-02 — designación de esencia incompleta (`es un objeto físico`) ──
+// El parser lee `X es un objeto físico` como una GENERALIZACIÓN con superclase
+// fantasma «objeto físico» (el vocabulario meta-OPM no es un nombre de dominio).
+// El normalizador debe RECHAZAR la designación de esencia incompleta (sin
+// afiliación) con un diagnóstico que pida completarla — jamás dejarla degradar
+// en silencio. La forma COMPLETA sigue compilando como hoy (descripción-cosa).
+
+describe("compilar-02 — `es un objeto/proceso <esencia>` sin afiliación se rechaza", () => {
+  test("`X es un objeto físico` (sin afiliación) → rechazada, pide completar la afiliación", () => {
+    const l = una("Sistema es un objeto físico.");
+    expect(l.clase).toBe("rechazada");
+    if (l.clase === "rechazada") {
+      expect(l.diagnostico).toContain("afiliación");
+      expect(l.diagnostico).toContain("sistémico");
+      expect(l.diagnostico).toContain("ambiental");
+    }
+  });
+
+  test("`X es un objeto` (palabra-clase desnuda, sin esencia ni afiliación) → rechazada", () => {
+    const l = una("Sistema es un objeto.");
+    expect(l.clase).toBe("rechazada");
+  });
+
+  test("`X es un proceso informacional` (sin afiliación) → rechazada", () => {
+    const l = una("Despacho es un proceso informacional.");
+    expect(l.clase).toBe("rechazada");
+  });
+
+  test("forma COMPLETA `X es un objeto físico y sistémico` sigue siendo estricta (descripción-cosa)", () => {
+    const l = una("Sistema es un objeto físico y sistémico.");
+    expect(l.clase).toBe("estricta");
+    expect(parserAcepta(oracionDe(l))).toBe(true);
+  });
+
+  test("forma COMPLETA `X es un proceso informacional y ambiental` sigue estricta", () => {
+    const l = una("Despacho es un proceso informacional y ambiental.");
+    expect(l.clase).toBe("estricta");
+    expect(parserAcepta(oracionDe(l))).toBe(true);
+  });
+
+  test("superclase de DOMINIO (nombre propio) NO se rechaza: es una generalización legítima", () => {
+    // `objeto`/`proceso` es vocabulario meta-OPM reservado; `Vehículo` es un nombre
+    // de dominio → generalización real, no designación de esencia incompleta.
+    const l = una("Ambulancia es un Vehículo.");
+    expect(l.clase).toBe("estricta");
+    expect(parserAcepta(oracionDe(l))).toBe(true);
+  });
+});
+
 // ── Comentarios y anclas ────────────────────────────────────────────────
 
 describe("Comentarios `#` y anclas inline", () => {
@@ -399,6 +448,35 @@ describe("V15 — disyunción de consecuencias se mapea (antes R2)", () => {
     const l = una("Paciente en `hospitalizado en domicilio` inicia Operación clínica.");
     expect(l.clase).not.toBe("rechazada");
     expect(l.clase).not.toBe("compuesta");
+  });
+});
+
+// ── compilar-03 — `puede iniciar` single-target (sin disyunción) ──────────
+// La disyunción `puede iniciar A o B` la mapea V15 (evento implícito × ramas).
+// La forma SINGLE (`puede iniciar P`, un solo destino) está retirada y debe
+// rechazarse con un diagnóstico DIRIGIDO que nombre el patrón y sugiera la
+// forma canónica `inicia` — no el R3 genérico que no orienta.
+
+describe("compilar-03 — `puede iniciar` single-target rechaza con diagnóstico dirigido", () => {
+  test("`S puede iniciar P` (un solo destino) → rechazada, nombra el patrón y sugiere `inicia`", () => {
+    const l = una("Suspensión de la atención puede iniciar Cierre por alta disciplinaria.");
+    expect(l.clase).toBe("rechazada");
+    if (l.clase === "rechazada") {
+      expect(l.diagnostico).toContain("puede iniciar");
+      expect(l.diagnostico).toContain("inicia");
+    }
+  });
+
+  test("`X en 's' puede iniciar P` (single con estado) → mismo rechazo dirigido", () => {
+    const l = una("Paciente en 'hospitalizado en domicilio' puede iniciar Operación clínica.");
+    expect(l.clase).toBe("rechazada");
+    if (l.clase === "rechazada") expect(l.diagnostico).toContain("puede iniciar");
+  });
+
+  test("la DISYUNCIÓN `puede iniciar A o B` sigue siendo V15 (no la toca compilar-03)", () => {
+    const l = una("Suspensión de la atención puede iniciar Cierre por alta o Cierre por renuncia.");
+    expect(l.clase).toBe("compuesta");
+    if (l.clase === "compuesta") expect(l.regla).toBe("V15");
   });
 });
 

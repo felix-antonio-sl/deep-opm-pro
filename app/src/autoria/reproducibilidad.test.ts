@@ -1,6 +1,11 @@
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
 import { describe, expect, test } from "bun:test";
 import { emitirBundle } from "./bundle";
 import { compilarProto } from "./compilar/compilador";
+import { construirSello } from "./procedencia";
 import { compararReproducibilidad, verificarReproducibilidad } from "./reproducibilidad";
 
 // Proto mínimo canónicamente limpio (sin doble rol agente/instrumento).
@@ -78,5 +83,98 @@ describe("verificarReproducibilidad", () => {
     const r = verificarReproducibilidad(compilarProto(PROTO_CAFE, { nombre: "cafe" }).autor, golden);
 
     expect(r.byteIdentico).toBe(true);
+  });
+});
+
+// Integración del CLI `verify-reproducible.ts` (golden-harness H2): robustez del
+// camino --proto (H1H2-02: el sello recién computado debe inyectarse para que el
+// FAIL nombre la componente divergente) y de la semántica de exit codes (H1H2-03:
+// exit 2 = error de IO/uso, exit 1 ESTRICTAMENTE = divergencia byte).
+describe("CLI verify-reproducible.ts", () => {
+  const appDir = resolve(import.meta.dirname, "..", "..");
+  const script = "scripts/verify-reproducible.ts";
+
+  function correr(args: string[]) {
+    return spawnSync("bun", ["run", script, ...args], { cwd: appDir, encoding: "utf8" });
+  }
+
+  function conTmp<T>(fn: (dir: string) => T): T {
+    const dir = mkdtempSync(resolve(tmpdir(), "verify-reproducible-test-"));
+    try {
+      return fn(dir);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  // H1H2-02: golden CON sello + regeneración cuya autoriaVersion/layoutVersion difiere
+  // del golden → el FAIL nombra la componente divergente del sello.
+  test("golden con sello divergente → el FAIL nombra la componente del sello", () => {
+    conTmp((dir) => {
+      const proto = resolve(dir, "cafe.md");
+      const golden = resolve(dir, "golden.json");
+      writeFileSync(proto, PROTO_CAFE, "utf8");
+      // Golden CON sello, pero con autoriaVersion/layoutVersion antiguos (re-pin):
+      // así la regeneración (que inyecta el sello vigente) diverge en esas componentes.
+      const selloAntiguo = { ...construirSello({ protoTexto: PROTO_CAFE }), autoriaVersion: "0", layoutVersion: "0" };
+      const json = emitirBundle(compilarProto(PROTO_CAFE, { nombre: "cafe" }).autor, {
+        lanzarEnError: false,
+        procedencia: selloAntiguo,
+      }).json;
+      writeFileSync(golden, json, "utf8");
+
+      const r = correr(["--proto", proto, "--golden", golden]);
+
+      expect(r.status).toBe(1);
+      expect(r.stderr ?? "").toContain("sello divergente");
+      // Debe nombrar al menos una de las componentes del sello que cambiaron.
+      expect(/autoriaVersion|layoutVersion/.test(r.stderr ?? "")).toBe(true);
+    });
+  });
+
+  // H1H2-02: golden SIN sello → la regeneración tampoco gana sello (byte-identidad).
+  test("golden sin sello → regenerar el mismo proto da PASS (byte-idéntico)", () => {
+    conTmp((dir) => {
+      const proto = resolve(dir, "cafe.md");
+      const golden = resolve(dir, "golden.json");
+      writeFileSync(proto, PROTO_CAFE, "utf8");
+      const json = emitirBundle(compilarProto(PROTO_CAFE, { nombre: "cafe" }).autor, { lanzarEnError: false }).json;
+      writeFileSync(golden, json, "utf8");
+
+      const r = correr(["--proto", proto, "--golden", golden]);
+
+      expect(r.status).toBe(0);
+      expect(r.stdout ?? "").toContain("PASS");
+    });
+  });
+
+  // H1H2-03: golden inexistente → exit 2 (error de IO/uso) + mensaje legible, NO stacktrace.
+  test("golden inexistente → exit 2 + mensaje legible (no stacktrace)", () => {
+    conTmp((dir) => {
+      const proto = resolve(dir, "cafe.md");
+      writeFileSync(proto, PROTO_CAFE, "utf8");
+      const goldenInexistente = resolve(dir, "no-existe.json");
+
+      const r = correr(["--proto", proto, "--golden", goldenInexistente]);
+
+      expect(r.status).toBe(2);
+      expect(r.stderr ?? "").toContain("no se pudo leer");
+      expect(r.stderr ?? "").not.toContain("at ");
+    });
+  });
+
+  // H1H2-03: proto inexistente → exit 2 (no exit 1, que se reserva a divergencia byte).
+  test("proto inexistente → exit 2 + mensaje legible", () => {
+    conTmp((dir) => {
+      const golden = resolve(dir, "golden.json");
+      writeFileSync(golden, "{}", "utf8");
+      const protoInexistente = resolve(dir, "no-existe.md");
+
+      const r = correr(["--proto", protoInexistente, "--golden", golden]);
+
+      expect(r.status).toBe(2);
+      expect(r.stderr ?? "").toContain("no se pudo leer");
+      expect(r.stderr ?? "").not.toContain("at ");
+    });
   });
 });

@@ -795,4 +795,38 @@ describe("checkOrdenInzoomReferenciaInvalida (integridad referencial del orden d
     const modelo = modeloConOrden({ subprocesos: ["a", "b"] });
     expect(checkOrdenInzoomReferenciaInvalida(modelo)).toEqual([]);
   });
+
+  test("anclas-02: OPD que NO es descomposición de ningún proceso emite mensaje distinto (no habla de 'descomposición' como si existiera)", () => {
+    // OPD con ordenInzoom pero sin contorno: ningún proceso lo declara como su descomposición.
+    const opdHuerfanoId = "opd-huerfano";
+    const modelo: Modelo = {
+      id: "m",
+      nombre: "anclas-02",
+      opdRaizId: "opd-raiz",
+      opds: {
+        "opd-raiz": { id: "opd-raiz", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} },
+        [opdHuerfanoId]: {
+          id: opdHuerfanoId,
+          nombre: "Vista sin contorno",
+          padreId: "opd-raiz",
+          apariencias: {},
+          enlaces: {},
+          ordenInzoom: [["a"], ["b"]],
+        },
+      },
+      entidades: {},
+      estados: {},
+      enlaces: {},
+      nextSeq: 100,
+    };
+    const avisos = checkOrdenInzoomReferenciaInvalida(modelo);
+    // Un solo aviso por OPD (no uno por id colgante) cuando no hay contorno.
+    expect(avisos.map((aviso) => aviso.codigo)).toEqual(["ORDEN_INZOOM_REFERENCIA_INVALIDA"]);
+    expect(avisos[0]?.severidad).toBe("advertencia");
+    expect(avisos[0]?.opdId).toBe(opdHuerfanoId);
+    // No debe atribuir entidad (no hay contorno) ni hablar de la "descomposición de X".
+    expect(avisos[0]?.entidadId).toBeUndefined();
+    expect(avisos[0]?.mensaje).toContain("no es la descomposición de ningún proceso");
+    expect(avisos[0]?.mensaje).not.toContain("subproceso interno de este OPD");
+  });
 });

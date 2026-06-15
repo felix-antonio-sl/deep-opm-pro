@@ -31,6 +31,52 @@ function modeloConTodo(): Modelo {
   };
 }
 
+// Ancla pendiente con referencias normativas + fuente de ratificación: el caso
+// que w60-01 perdía silenciosamente en el export.
+function anclaPendienteConReferencias(): AnclaNormativa {
+  return {
+    id: "an-ref",
+    claveProto: "ratificar:frontera-art17",
+    target: { tipo: "modelo" },
+    estado: "pendiente-ratificacion",
+    nota: "frontera del sistema",
+    referencias: [
+      { norma: "DS 1/2022", articulos: ["15", "17"], seccion: "§Protocolos clínicos" },
+      { norma: "Ley 20.584" },
+    ],
+    ratificacion: {
+      nivelAutoridad: "dt-seremi-legal",
+      estadoRatificacion: "anotado-en-mesa",
+      fuente: "acta mesa 2026-06-10",
+    },
+  };
+}
+
+// Ancla VIGENTE (ya ratificada) con nota y referencias: w60-02 la dejaba invisible
+// en el cuerpo (solo contaba en el resumen).
+function anclaVigenteConReferencias(): AnclaNormativa {
+  return {
+    id: "an-vig",
+    claveProto: "ancla:convenio-ges-2024",
+    target: { tipo: "modelo" },
+    estado: "vigente",
+    nota: "convenio GES vigente ratificado",
+    referencias: [{ norma: "NT 2024", articulos: ["8"], seccion: "§emergencias" }],
+  };
+}
+
+// Ancla con claveProto vacío: w60-03 producía un span de inline-code vacío sin traza.
+function anclaSinClaveProto(): AnclaNormativa {
+  return {
+    id: "an-vacia",
+    claveProto: "   ",
+    target: { tipo: "modelo" },
+    estado: "pendiente-ratificacion",
+    nota: "pendiente sin clave",
+    ratificacion: { nivelAutoridad: "mesa", estadoRatificacion: "pendiente" },
+  };
+}
+
 describe("exportarContextoSkill — puente W6.0 app → skill", () => {
   test("compone las cuatro secciones: procedencia, pendientes, diagnóstico y OPL", () => {
     const md = exportarContextoSkill(modeloConTodo(), NOW);
@@ -131,5 +177,54 @@ describe("exportarContextoSkill — puente W6.0 app → skill", () => {
     const md = exportarContextoSkill(modelo, NOW);
     expect(md).toContain("enlace consumo Paciente→Atender");
     expect(md).not.toContain("[object Object]");
+  });
+
+  // w60-01: las referencias normativas (norma + artículos + sección) y la fuente
+  // de ratificación deben viajar en el export — antes se perdían silenciosamente.
+  test("un pendiente con referencias normativas anexa cada norma, artículos, sección y fuente", () => {
+    let modelo = modeloConTodo();
+    modelo = { ...modelo, anclasNormativas: { "an-ref": anclaPendienteConReferencias() } };
+    const md = exportarContextoSkill(modelo, NOW);
+
+    expect(md).toContain("`ratificar:frontera-art17`");
+    // Primera referencia: norma + artículos + sección.
+    expect(md).toContain("DS 1/2022");
+    expect(md).toContain("15, 17");
+    expect(md).toContain("§Protocolos clínicos");
+    // Segunda referencia: norma sin artículos ni sección.
+    expect(md).toContain("Ley 20.584");
+    // Fuente de ratificación.
+    expect(md).toContain("acta mesa 2026-06-10");
+  });
+
+  // w60-02: las anclas vigentes (ya ratificadas) deben ser visibles en el cuerpo,
+  // no solo contadas en el resumen — la mesa necesita saber qué normas ya viajan.
+  test("las anclas vigentes con referencias viajan en el cuerpo, no solo en el resumen", () => {
+    let modelo = modeloConTodo();
+    modelo = {
+      ...modelo,
+      anclasNormativas: { "an-vig": anclaVigenteConReferencias(), "an-1": anclaPendiente() },
+    };
+    const md = exportarContextoSkill(modelo, NOW);
+
+    expect(md).toContain("`ancla:convenio-ges-2024`");
+    expect(md).toContain("convenio GES vigente ratificado");
+    expect(md).toContain("NT 2024");
+    expect(md).toContain("§emergencias");
+    // El resumen sigue presente y refleja el total.
+    expect(md).toContain("Total anclas normativas: 2");
+  });
+
+  // w60-03: un claveProto vacío no debe colapsar a un span inline vacío sin traza;
+  // debe emitir un marcador explícito que conserve el id.
+  test("un claveProto vacío emite un marcador explícito en vez de un span vacío", () => {
+    let modelo = modeloConTodo();
+    modelo = { ...modelo, anclasNormativas: { "an-vacia": anclaSinClaveProto() } };
+    const md = exportarContextoSkill(modelo, NOW);
+
+    expect(md).toContain("sin claveProto");
+    expect(md).toContain("an-vacia");
+    // No debe quedar un inline-code vacío al inicio de la línea (- `` ...).
+    expect(md).not.toContain("- ``");
   });
 });

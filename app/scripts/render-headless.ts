@@ -12,13 +12,13 @@
 //           --url <u> (usar un dev server ya levantado CON el flag, en vez del efímero)
 //           --port <n> (puerto del Vite efímero; def. 5199)
 import { chromium } from "@playwright/test";
-import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
+import { createServer } from "vite";
 import { emitirBundle } from "../src/autoria/bundle";
 import { compilarProto } from "../src/autoria/compilar/compilador";
 import { construirSello } from "../src/autoria/procedencia";
+import { seleccionarOpds } from "../src/render/jointjs/headlessRender";
 
 type Fondo = "blanco" | "transparente";
 interface OpdRenderizado { opdId: string; nombre: string; orden: number; svg: string; pngBase64: string }
@@ -52,20 +52,31 @@ function morir(msg: string, code: number): never {
   process.exit(code);
 }
 
-async function levantarViteEfimero(puerto: number): Promise<{ url: string; parar: () => void }> {
-  const url = `http://127.0.0.1:${puerto}/`;
-  const proc = spawn("bun", ["run", "dev", "--host", "127.0.0.1", "--port", String(puerto), "--strictPort"], {
-    cwd: resolve(import.meta.dirname, ".."),
-    env: { ...process.env, VITE_HEADLESS_RENDER: "true" },
-    stdio: "ignore",
+// Vite efímero levantado por API EN EL MISMO PROCESO (H1H2-01). A diferencia del
+// spawn de un wrapper `bun run dev` (que no propagaba SIGTERM al `node vite` hijo
+// y dejaba un huérfano vivo en :puerto), aquí el server vive y muere con este
+// proceso. `strictPort:true` hace que, si el puerto ya está ocupado, `listen()`
+// LANCE en vez de reusar silenciosamente un server ajeno (que respondería 200 al
+// health-check y violaría el aislamiento del efímero). El flag `VITE_HEADLESS_RENDER`
+// se inyecta por env (lo que Vite expone en `import.meta.env`) para que el bundle
+// monte `window.__opmRenderHeadless__`.
+async function levantarViteEfimero(puerto: number): Promise<{ url: string; parar: () => Promise<void> }> {
+  process.env.VITE_HEADLESS_RENDER = "true";
+  const server = await createServer({
+    root: resolve(import.meta.dirname, ".."),
+    configFile: resolve(import.meta.dirname, "..", "vite.config.ts"),
+    server: { host: "127.0.0.1", port: puerto, strictPort: true },
+    logLevel: "silent",
   });
-  const parar = () => { try { proc.kill("SIGTERM"); } catch { /* ya muerto */ } };
-  for (let i = 0; i < 120; i += 1) {
-    try { if ((await fetch(url)).ok) return { url, parar }; } catch { /* aún no responde */ }
-    await delay(500);
+  try {
+    await server.listen();
+  } catch (e) {
+    // strictPort en uso → puerto ajeno. No reusamos: abortamos limpio.
+    await server.close().catch(() => { /* nunca escuchó */ });
+    throw new Error(`Vite no pudo escuchar en el puerto ${puerto} (¿ocupado por otro proceso?): ${String(e)}`);
   }
-  parar();
-  throw new Error(`Vite no respondió en ${url} tras 60s`);
+  const direccion = server.resolvedUrls?.local[0] ?? `http://127.0.0.1:${puerto}/`;
+  return { url: direccion, parar: () => server.close() };
 }
 
 async function main(): Promise<void> {
@@ -113,27 +124,53 @@ async function main(): Promise<void> {
     modeloJson = readFileSync(args.modelo!, "utf8");
   }
 
-  // 2) RENDER (navegador). Vite efímero con el flag, o un server externo (--url).
-  const server = args.url ? { url: args.url, parar: () => {} } : await levantarViteEfimero(Number(args.port) || 5199);
+  // 2) RENDER (navegador). Vite efímero EN PROCESO con el flag, o un server
+  // externo (--url) que NO administramos (parar = no-op). El externo debe haberse
+  // levantado con VITE_HEADLESS_RENDER=true por su cuenta.
+  const server: { url: string; parar: () => void | Promise<void> } = args.url
+    ? { url: args.url, parar: () => {} }
+    : await levantarViteEfimero(Number(args.port) || 5199);
   const browser = await chromium.launch();
+  // Diferimos toda salida con código de error hasta DESPUÉS de la limpieza (cierre
+  // del navegador + parada del server), para no dejar un Vite efímero colgado
+  // ni saltarnos la limpieza con process.exit (H1H2-01).
+  let salida: { msg: string; code: number } | null = null;
   try {
     const page = await browser.newPage();
     await page.goto(server.url, { waitUntil: "load" });
     await page.waitForFunction(() => "__opmRenderHeadless__" in window, { timeout: 30_000 });
-    const r = (await page.evaluate(
-      async ([json, f]) =>
-        (window as unknown as { __opmRenderHeadless__: (j: string, o: { fondo: string }) => Promise<unknown> })
-          .__opmRenderHeadless__(json as string, { fondo: f as string }),
-      [modeloJson, fondo] as const,
-    )) as ResultadoRender;
+
+    // El render vive en el navegador: una excepción dentro de page.evaluate (DOM,
+    // JointJS, fuentes) debe dejar rastro en error.txt igual que el camino
+    // {ok:false}, homogeneizando el contrato de fallo de fase-navegador (H1H2-05).
+    let r: ResultadoRender;
+    try {
+      r = (await page.evaluate(
+        async ([json, f]) =>
+          (window as unknown as { __opmRenderHeadless__: (j: string, o: { fondo: string }) => Promise<unknown> })
+            .__opmRenderHeadless__(json as string, { fondo: f as string }),
+        [modeloJson, fondo] as const,
+      )) as ResultadoRender;
+    } catch (e) {
+      writeFileSync(resolve(out, "error.txt"), `Excepción en el render del navegador:\n${String(e)}\n`, "utf8");
+      salida = { msg: `excepción en el render del navegador: ${String(e)}`, code: 1 };
+      return;
+    }
 
     if (!r.ok) {
       writeFileSync(resolve(out, "error.txt"), `Render falló: ${r.error}\n`, "utf8");
-      morir(`render falló: ${r.error}`, 1);
+      salida = { msg: `render falló: ${r.error}`, code: 1 };
+      return;
     }
 
-    // 3) ESCRIBIR <out>/
-    const seleccion = args["solo-opd"] ? r.opds.filter((o) => o.opdId === args["solo-opd"]) : r.opds;
+    // 3) ESCRIBIR <out>/. --solo-opd inexistente NO es un no-op silencioso: deja
+    // error.txt con los OPDs disponibles y sale con código 2 (H1H2-04).
+    const { seleccion, error: errorSeleccion } = seleccionarOpds(r.opds, args["solo-opd"] || undefined);
+    if (errorSeleccion) {
+      writeFileSync(resolve(out, "error.txt"), `${errorSeleccion}\n`, "utf8");
+      salida = { msg: errorSeleccion, code: 2 };
+      return;
+    }
     const indiceOpds = seleccion.map((o) => {
       const base = `${String(o.orden).padStart(2, "0")}-${slugArchivo(o.nombre)}`;
       writeFileSync(resolve(out, `${base}.png`), Buffer.from(o.pngBase64, "base64"));
@@ -154,7 +191,10 @@ async function main(): Promise<void> {
     console.log(`[render:headless] ${seleccion.length} OPD(s) → ${out}`);
   } finally {
     await browser.close();
-    server.parar();
+    await server.parar();
+    // La limpieza ya corrió (navegador cerrado + Vite efímero parado): recién aquí
+    // materializamos un eventual fallo, sin saltarnos esta limpieza con process.exit.
+    if (salida) morir(salida.msg, salida.code);
   }
 }
 

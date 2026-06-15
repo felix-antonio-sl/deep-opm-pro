@@ -95,6 +95,30 @@ describe("extracción de anclas inline por forma", () => {
     expect(norma.referencias[0]).toEqual({ norma: "DS", articulos: ["17"] });
   });
 
+  test("compilar-01: `#clave` DENTRO de paréntesis se extrae UNA sola vez (no se duplica con la inline)", () => {
+    // Bug: el mismo `(DS art. 17 #clave-mia)` lo capturaba ANCLA_PAREN_LOCALIZADOR_RE
+    // (con la `#clave`) Y ANCLA_NORMA_INLINE_RE (sin paréntesis), produciendo DOS
+    // anclas idénticas → claveProto duplicada (`ancla:clave-mia` + `…-2`) e infla los
+    // conteos. La inline contenida en un rango-paréntesis YA extraído debe descartarse.
+    const anclas = extraerAnclasDeLinea("Sistema genera Documento (DS art. 17 #clave-mia).");
+    const normas = anclas.filter((a) => a.clase === "norma");
+    expect(normas).toHaveLength(1);
+    const norma = normas[0];
+    if (!norma || norma.clase !== "norma") throw new Error("esperaba norma");
+    expect(norma.claveExplicita).toBe("clave-mia");
+    expect(norma.referencias[0]).toEqual({ norma: "DS", articulos: ["17"] });
+  });
+
+  test("compilar-01: una cita inline LEGÍTIMA fuera de paréntesis sigue extrayéndose junto a una entre paréntesis", () => {
+    // El descarte es por CONTENCIÓN ESTRICTA del span: una inline real fuera de todo
+    // paréntesis no se ve afectada por el rango de un paréntesis previo en la línea.
+    const anclas = extraerAnclasDeLinea("Algo requiere Cosa (DS art. 5) y se ancla en NT 2024 §x #frontera-libre.");
+    const normas = anclas.filter((a): a is Extract<(typeof anclas)[number], { clase: "norma" }> => a.clase === "norma");
+    expect(normas).toHaveLength(2);
+    expect(normas.some((n) => n.claveExplicita === "frontera-libre")).toBe(true);
+    expect(normas.some((n) => n.referencias[0]?.articulos?.includes("5"))).toBe(true);
+  });
+
   test("multi-norma `DS … arts. …; NT 2024 §…` → varias referencias, artículos verbatim", () => {
     const anclas = extraerAnclasDeLinea("Algo requiere Cosa (DS 1/2022 arts. 8, 15-17, 21; NT 2024 §emergencias).");
     const norma = anclas.find((a) => a.clase === "norma");

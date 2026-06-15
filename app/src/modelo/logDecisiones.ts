@@ -123,10 +123,18 @@ export function construirLogDecisiones(modelo: Modelo, generadoEl: string): Resu
     return fallo("LogDecisiones exige sello de procedencia (el log se ancla al protoHash; sin sello la skill no puede matchear)");
   }
   const entradas: EntradaLogDecision[] = [];
+  // logdec-02: la skill (`re-elicitar`) matchea por `claveAncla`, NO posicional. Dos
+  // entradas con la misma clave serían indistinguibles al re-elicitar → el log sería
+  // ambiguo. Rechazo ruidoso app-side antes de emitir entradas ambiguas.
+  const clavesEmitidas = new Set<string>();
   for (const ancla of enumerarAnclas(modelo)) {
     if (ancla.estado !== "pendiente-ratificacion" || !ancla.ratificacion) continue;
     const registro = ancla.ratificacion.estadoRatificacion;
     if (registro === "pendiente") continue;
+    if (clavesEmitidas.has(ancla.claveProto)) {
+      return fallo(`claveProto duplicada: ${ancla.claveProto} — el log sería ambiguo para re-elicitar (la skill matchea por claveAncla, no posicional)`);
+    }
+    clavesEmitidas.add(ancla.claveProto);
     // Fidelidad del registro: una ratificación que pasó por la mesa reporta su
     // `de` real (anotado-en-mesa); la directa, desde pendiente.
     const de: EstadoRatificacion = registro === "ratificado-con-fuente" && ancla.ratificacion.anotadoEn

@@ -22,6 +22,19 @@ import { esRecord } from "./validarGuards";
 export function normalizarModelo(modelo: Modelo): Modelo {
   const opds = Object.fromEntries(
     Object.entries(modelo.opds).map(([id, opd]) => {
+      // Política import-02: el árbol OPD se sana colgando de la raíz cualquier OPD
+      // con padreId inválido (BACKWARD-COMPAT: nunca rechaza — documentos legacy sin
+      // padreId hidratan). Pero el saneamiento de un padreId NO benigno (declarado y
+      // colgante: apunta a un OPD inexistente o a sí mismo) deja de ser SILENCIOSO:
+      // se avisa para que la corrupción del árbol sea visible. El caso benigno
+      // (padreId ausente/null en documentos previos al campo) se sana sin ruido.
+      const padreInvalidoVisible =
+        id !== modelo.opdRaizId &&
+        opd.padreId != null &&
+        (opd.padreId === id || !modelo.opds[opd.padreId]);
+      if (padreInvalidoVisible) {
+        console.warn(`[normalizar] OPD "${id}" declara padreId "${opd.padreId}" colgante (inexistente o auto-referencia); se sana colgándolo de la raíz "${modelo.opdRaizId}".`);
+      }
       const padreId = id === modelo.opdRaizId
         ? null
         : opd.padreId && opd.padreId !== id && modelo.opds[opd.padreId]
