@@ -143,6 +143,117 @@ export function agruparSubprocesosParalelos(
   return grupos;
 }
 
+/**
+ * Cara 4 de la bimodalidad de `Opd.ordenInzoom` (canvas→campo): proyecta la
+ * GEOMETRIA de los subprocesos internos de un in-zoom de proceso al campo de
+ * orden en FORMA NORMAL. Es el cociente del que `autoria/layout.ts` es la
+ * seccion (`derivar ∘ layout = id`, ley en `leyes/`); reusa el MISMO agrupador
+ * `agruparSubprocesosParalelos` que el forward OPL, lo que garantiza por
+ * construccion `OPL(geometria) = OPL(campo) ∘ derivar`.
+ *
+ * Conjunto de internos: procesos dentro del contorno de descomposicion (mismo
+ * criterio geometrico `dentroDe` que `aparienciasInternasDeRefinamiento` del
+ * forward), excluido el contorno y excluidos los externos (rol = externo).
+ *
+ * Forma normal del cociente (canonicidad — un solo representante por orden):
+ *   - particion TOTAL de los internos (siempre lo es: cada interno cae en una
+ *     banda por su Y);
+ *   - `< 2` bandas (todo paralelo o ≤1 subproceso) ⇒ `undefined`, NO `[[todos]]`:
+ *     `undefined` es el representante canonico del objeto inicial «sin orden
+ *     secuencial» (coincide con `podarOrdenInzoom` de eliminacion.ts).
+ * Cada banda viene ordenada intra-banda por X (luego id), igual que el forward.
+ *
+ * Puro: no muta el modelo. Spec: docs/specs/2026-06-15-orden-inzoom-canvas-sync-design.md
+ */
+export function derivarOrdenInzoomDeGeometria(modelo: Modelo, opdId: Id): Id[][] | undefined {
+  const opd = modelo.opds[opdId];
+  if (!opd) return undefined;
+  const contorno = contornoProcesoDeOpd(modelo, opd);
+  if (!contorno) return undefined;
+  const subprocesos = Object.values(opd.apariencias).filter((apariencia) => {
+    if (apariencia.id === contorno.id) return false;
+    if (apariencia.contextoRefinamiento?.rol === "externo") return false;
+    if (modelo.entidades[apariencia.entidadId]?.tipo !== "proceso") return false;
+    return dentroDe(apariencia, contorno);
+  });
+  const bandas = agruparSubprocesosParalelos(subprocesos);
+  if (bandas.length < 2) return undefined;
+  return bandas.map((banda) => banda.map((apariencia) => apariencia.entidadId));
+}
+
+/**
+ * Guard de idempotencia (ajuste D2): deriva el campo de la geometria (helper
+ * anterior) y lo escribe SOLO si difiere del actual (deep-equal de bandas).
+ *   - difiere y hay orden    → escribe el campo;
+ *   - difiere y es undefined → BORRA el campo (vuelve al fallback geometrico/OPL);
+ *   - identico               → devuelve el modelo SIN tocar (misma referencia).
+ * El no-op es load-bearing: un nudge cosmetico dentro de la tolerancia de
+ * `agruparSubprocesosParalelos` produce el mismo campo → no destruye un paralelo
+ * declarado por OPL con un arrastre de 5px ni genera churn en undo/reproducibilidad.
+ * Solo CRUZAR una banda reescribe. Puro: devuelve un modelo nuevo o el mismo.
+ */
+export function aplicarOrdenInzoomDerivado(modelo: Modelo, opdId: Id): Modelo {
+  const opd = modelo.opds[opdId];
+  if (!opd) return modelo;
+  const derivado = derivarOrdenInzoomDeGeometria(modelo, opdId);
+  // Compara en FORMA NORMAL: `≤1 banda` ≡ `undefined` (mismo representante del
+  // objeto inicial «sin orden secuencial»). Así un campo `[[a,b]]` de 1 banda
+  // declarado por OPL (paralelo) + un drag que no cruza banda → no-op, sin
+  // pérdida silenciosa ni churn (riesgo §6 / ajuste D2).
+  if (mismaSecuenciaBandas(formaNormalBandas(opd.ordenInzoom), derivado)) return modelo;
+  const { ordenInzoom: _previo, ...restoOpd } = opd;
+  return {
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opdId]: { ...restoOpd, ...(derivado ? { ordenInzoom: derivado } : {}) },
+    },
+  };
+}
+
+/**
+ * Predicado de disparo (U8.3): ¿la apariencia `aparienciaId` es un subproceso
+ * INTERNO del in-zoom de proceso del OPD `opdId`? Mismo criterio que
+ * `derivarOrdenInzoomDeGeometria` (proceso, dentro del contorno, no contorno, no
+ * externo). El store lo usa para derivar el orden SOLO al arrastrar un subproceso
+ * interno (no al mover objetos, externos, ni en OPDs que no son in-zoom).
+ */
+export function aparienciaEsSubprocesoInternoDeInzoom(modelo: Modelo, opdId: Id, aparienciaId: Id): boolean {
+  const opd = modelo.opds[opdId];
+  if (!opd) return false;
+  const apariencia = opd.apariencias[aparienciaId];
+  if (!apariencia) return false;
+  const contorno = contornoProcesoDeOpd(modelo, opd);
+  if (!contorno || apariencia.id === contorno.id) return false;
+  if (apariencia.contextoRefinamiento?.rol === "externo") return false;
+  if (modelo.entidades[apariencia.entidadId]?.tipo !== "proceso") return false;
+  return dentroDe(apariencia, contorno);
+}
+
+/** El contorno (apariencia del proceso refinable) cuya descomposicion es este OPD. */
+function contornoProcesoDeOpd(modelo: Modelo, opd: Opd): Apariencia | undefined {
+  return Object.values(opd.apariencias).find((apariencia) => {
+    const entidad = modelo.entidades[apariencia.entidadId];
+    return entidad?.tipo === "proceso" && obtenerRefinamiento(entidad, "descomposicion")?.opdId === opd.id;
+  });
+}
+
+/** Lleva un campo a la forma normal del cociente: `≤1 banda` ⇒ `undefined`. */
+function formaNormalBandas(orden: Id[][] | undefined): Id[][] | undefined {
+  return orden && orden.length >= 2 ? orden : undefined;
+}
+
+/** Igualdad estructural de dos presentaciones de orden (bandas con cardinalidad). */
+function mismaSecuenciaBandas(a: Id[][] | undefined, b: Id[][] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  if (a.length !== b.length) return false;
+  return a.every((banda, i) => {
+    const otra = b[i]!;
+    return banda.length === otra.length && banda.every((id, j) => id === otra[j]);
+  });
+}
+
 export function procesoDescompuestoEnOpd(modelo: Modelo, opd: Opd): { entidad: Entidad; apariencia: Apariencia } | null {
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];

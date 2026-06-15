@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { aplicarLayoutCompleto } from "../autoria/layout";
+import { derivarOrdenInzoomDeGeometria } from "../modelo/operaciones/refinamiento";
 import { generarOpl } from "../opl/generar";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../opl/parser";
 import { ejecutarCorrida, iniciarSimulacion } from "../modelo/simulacion/runner";
@@ -77,6 +78,36 @@ describe("U7 · leyes de invocación implícita bimodal", () => {
       expect(generarOpl(aplicado.value)).toEqual(opl1);
     });
   }
+
+  // ── Ley de sección (U8): derivar ∘ layout = id_O (canvas→campo recupera el campo) ──
+  // `layout : O → G` (campo→geometría, cara 3) es una SECCIÓN del cociente
+  // `derivar : G → O` (geometría→campo, cara 4). Partiendo de un campo en forma
+  // normal, realizarlo en geometría y volver a derivar recupera el MISMO campo.
+  for (const orden of [
+    [["evaluar"], ["registrar"], ["cerrar"]] as Id[][], // CX1 secuencia
+    [["evaluar", "registrar"], ["cerrar"]] as Id[][],     // CX-mixta paralelo dentro de secuencia
+  ]) {
+    test(`derivar ∘ layout = id_O para ${JSON.stringify(orden)} (la geometría inicial revuelta no importa)`, () => {
+      // Geometría inicial DELIBERADAMENTE revuelta: si la ley pasara con la
+      // geometría ya correcta sería tautológica. El layout debe REALIZAR el campo.
+      const modelo = modeloInzoom(orden, {
+        geometria: { cerrar: { x: 20, y: 20 }, evaluar: { x: 120, y: 240 }, registrar: { x: 20, y: 200 } },
+      });
+      aplicarLayoutCompleto(modelo, new Map([["hijo", new Set(["evaluar", "registrar", "cerrar"])]]));
+      // El cociente recupera exactamente el campo de partida (intra-banda por X).
+      expect(derivarOrdenInzoomDeGeometria(modelo, "hijo")).toEqual(orden);
+
+      // Refuerzo de conmutatividad OPL(geometría) = OPL(campo)∘derivar: el OPL de la
+      // geometría realizada (campo borrado, leído por Y) == OPL del campo declarado.
+      const soloGeometria = clonarSinOrden(modelo);
+      expect(lineaDescomposicion(generarOpl(soloGeometria))).toBe(lineaDescomposicion(generarOpl(modelo)));
+    });
+  }
+
+  // La INVERSA `layout ∘ derivar = id_G` es FALSA por diseño y NO se enuncia como
+  // ley: `derivar` colapsa toda geometría dentro de ±4px a un mismo campo (cociente),
+  // y `layout` re-centra/re-espacia con su propia métrica — el roundtrip por G NO
+  // recupera los píxeles del usuario. Es un retracto (split mono/epi), no un iso.
 
   // ── Ley de simulación: flujo desde el campo == flujo desde rayos equivalentes ──
   test("flujo de simulación desde el campo (sin rayos) == flujo desde enlaces de invocación equivalentes", () => {

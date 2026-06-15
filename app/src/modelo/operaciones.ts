@@ -16,6 +16,9 @@ export { crearModelo, crearObjeto, crearProceso } from "./operaciones/creacion";
 export { detectarColisionNombre, type ColisionNombre } from "./operaciones/colisionNombre";
 
 export {
+  aparienciaEsSubprocesoInternoDeInzoom,
+  aplicarOrdenInzoomDerivado,
+  derivarOrdenInzoomDeGeometria,
   descomponerProceso,
   distribuirEnlaceExternoEnRefinamiento,
   desplegarObjeto,

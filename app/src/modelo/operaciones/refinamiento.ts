@@ -35,6 +35,9 @@ export {
 
 export {
   agruparSubprocesosParalelos,
+  aparienciaEsSubprocesoInternoDeInzoom,
+  aplicarOrdenInzoomDerivado,
+  derivarOrdenInzoomDeGeometria,
   procesoDescompuestoEnOpd,
   quitarRefinamientoEntidad,
   subprocesosOrdenadosDeRefinamiento,

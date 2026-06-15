@@ -12,6 +12,8 @@ import {
   actualizarPosicionSimboloEstructural as actualizarPosicionSimboloEstructuralOp,
   actualizarVerticesEnlace as actualizarVerticesEnlaceOp,
   actualizarPuertosEnlacesDesdePuntos,
+  aparienciaEsSubprocesoInternoDeInzoom,
+  aplicarOrdenInzoomDerivado,
   moverApariencia as moverAparienciaEntidad,
   moverAparienciaPorId,
   quitarPlegadoCompletoEstructural,
@@ -754,7 +756,17 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
         set({ mensaje: embellecido.error });
         return;
       }
-      commitModelo(set, modelo, embellecido.value, { dirtyModelo });
+      // U8.3 — cara 4 de la bimodalidad de `ordenInzoom` (canvas→campo): el drag
+      // manual de un subproceso interno de un in-zoom DECLARA el orden. SOLO este
+      // gesto (no el move genérico del kernel, que corre en auto-layout/import/carga
+      // y cerraría el ciclo campo→layout→geometría→derivar→campo). Re-derive GLOBAL
+      // del OPD (no incremental, o se rompe la anticadena); el guard de idempotencia
+      // (D2) lo hace no-op si el orden no cambió (nudge cosmético dentro de ±4px). El
+      // resultado viaja en el MISMO modelo que entra a commitModelo ⇒ undo atómico.
+      const conOrden = aparienciaEsSubprocesoInternoDeInzoom(embellecido.value, opdActivoId, aparienciaId)
+        ? aplicarOrdenInzoomDerivado(embellecido.value, opdActivoId)
+        : embellecido.value;
+      commitModelo(set, modelo, conOrden, { dirtyModelo });
     },
 
     toggleGrid() {
