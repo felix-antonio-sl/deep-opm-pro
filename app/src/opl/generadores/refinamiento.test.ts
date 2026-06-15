@@ -26,6 +26,26 @@ describe("refinamiento OPL", () => {
     expect(oracionRefinamiento(modelo, apariencia, padre)).toBe("*Atender* se descompone en paralelo *A* y *B*.");
   });
 
+  test("ordenInzoom gobierna el orden sobre la geometria (invierte a, b)", () => {
+    const modelo = modeloRefinamiento("descomposicion");
+    // geometria: a(y20) sobre b(y80) => secuencia A,B. El campo declara B antes que A.
+    modelo.opds.hijo!.ordenInzoom = [["b"], ["a"]];
+    const padre = modelo.entidades.padre!;
+    const apariencia = modelo.opds.opd!.apariencias.ap!;
+
+    expect(oracionRefinamiento(modelo, apariencia, padre)).toBe("*Atender* se descompone en *B*, *A* en esa secuencia.");
+  });
+
+  test("ordenInzoom declara paralelo aunque la geometria los separe en Y", () => {
+    const modelo = modeloRefinamiento("descomposicion");
+    // geometria: a(y20), b(y80) => secuencia. El campo los pone en una sola banda.
+    modelo.opds.hijo!.ordenInzoom = [["a", "b"]];
+    const padre = modelo.entidades.padre!;
+    const apariencia = modelo.opds.opd!.apariencias.ap!;
+
+    expect(oracionRefinamiento(modelo, apariencia, padre)).toBe("*Atender* se descompone en paralelo *A* y *B*.");
+  });
+
   test("fallback sin internos usa codigo canonico del OPD hijo, no titulo humano", () => {
     const modelo = modeloRefinamiento("descomposicion");
     modelo.opds.hijo!.nombre = "Detalle humano";

@@ -93,7 +93,7 @@ export function oracionDescomposicion(modelo: Modelo, entidad: Entidad, opdHijo:
     return `${nombreOpl(entidad)} se descompone en ${componentes}${secuencia}${operaciones}.`;
   }
 
-  const temporal = aparienciasProcesos.length > 1 ? describirProcesosTemporales(modelo, aparienciasProcesos) : null;
+  const temporal = aparienciasProcesos.length > 1 ? describirProcesosTemporales(modelo, aparienciasProcesos, opdHijo) : null;
   const destinoProcesos = temporal?.texto ?? (procesos.length > 0 ? listarOpl(procesos) : destino);
   const secuencia = aparienciasProcesos.length > 1 && temporal?.tieneSecuencia
     ? temporal.tieneParalelos ? ", en esa secuencia" : " en esa secuencia"
@@ -246,8 +246,13 @@ export function verboDespliegue(modo: ModoDespliegueObjeto): string | null {
   }
 }
 
-function describirProcesosTemporales(modelo: Modelo, apariencias: Apariencia[]): { texto: string; tieneParalelos: boolean; tieneSecuencia: boolean } {
-  const grupos = agruparSubprocesosParalelos(apariencias)
+function describirProcesosTemporales(modelo: Modelo, apariencias: Apariencia[], opdHijo: Opd): { texto: string; tieneParalelos: boolean; tieneSecuencia: boolean } {
+  // Fuente de verdad del orden: el campo declarado (presentacion del preorden);
+  // la geometria Y es solo el fallback retrocompat (R-INV-2/2A, fase 1·U3).
+  const bandas = opdHijo.ordenInzoom
+    ? agruparPorOrdenInzoom(apariencias, opdHijo.ordenInzoom)
+    : agruparSubprocesosParalelos(apariencias);
+  const grupos = bandas
     .map((grupo) => grupo
       .flatMap((apariencia) => {
         const entidad = modelo.entidades[apariencia.entidadId];
@@ -260,6 +265,34 @@ function describirProcesosTemporales(modelo: Modelo, apariencias: Apariencia[]):
     tieneParalelos: grupos.some((grupo) => grupo.length > 1),
     tieneSecuencia: grupos.length > 1,
   };
+}
+
+/**
+ * Agrupa las apariencias en bandas segun el orden DECLARADO (opd.ordenInzoom),
+ * la presentacion del preorden. Cada banda del campo = un grupo (anticadena =
+ * paralelo); el orden de bandas y el orden intra-banda siguen el campo, no la
+ * geometria. Las apariencias no listadas caen al final, agrupadas por Y
+ * (fallback robusto: el campo puede cubrir solo un subconjunto).
+ */
+function agruparPorOrdenInzoom(apariencias: Apariencia[], ordenInzoom: readonly (readonly Id[])[]): Apariencia[][] {
+  const porEntidad = new Map<Id, Apariencia>();
+  for (const ap of apariencias) porEntidad.set(ap.entidadId, ap);
+  const grupos: Apariencia[][] = [];
+  const usados = new Set<Id>();
+  for (const banda of ordenInzoom) {
+    const grupo: Apariencia[] = [];
+    for (const id of banda) {
+      const ap = porEntidad.get(id);
+      if (ap) {
+        grupo.push(ap);
+        usados.add(id);
+      }
+    }
+    if (grupo.length > 0) grupos.push(grupo);
+  }
+  const restantes = apariencias.filter((ap) => !usados.has(ap.entidadId));
+  for (const grupo of agruparSubprocesosParalelos(restantes)) grupos.push(grupo);
+  return grupos;
 }
 
 function nombresDeApariencias(modelo: Modelo, apariencias: Apariencia[]): string[] {
