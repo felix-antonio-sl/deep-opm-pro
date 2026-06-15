@@ -10,7 +10,7 @@
 
 ---
 
-## Actualización 2026-06-16 — Auditoría adversarial + endurecimiento del loop modelar-OPM-con-OpForja (18 hallazgos remediados)
+## Actualización 2026-06-16 — Auditoría adversarial + endurecimiento del loop modelar-OPM-con-OpForja (18 hallazgos remediados) — DESPLEGADO Y VERIFICADO
 
 **Mandato**: «asegúrate de que el flujo [modelar OPM con OpForja] funciona 100%, identifica todo remediable y mejorable, remedia y mejora.» El flujo abarca método (skill `modelamiento-opm`), herramienta (opforja) y loop agente↔herramienta (proto→`compilarProto`→`emitirBundle`+`construirSello`→`verify:reproducible`/`render:headless`→import `hidratarModelo`→puente W6.0→`LogDecisiones`→re-elicitar).
 
@@ -32,7 +32,7 @@
 **Decisiones/desviaciones** (validadas): (1) `import-02` → **aviso** en vez de rechazo duro, porque `json.test.ts:392` depende de la reparación de `padreId` (rechazar rompía backward-compat). (2) `H1H2-01` → **Vite por API en-proceso** (no parche de `child_process`): elimina de raíz huérfano + reúso de stale + necesidad de signal-handlers. (3) `compilar-02` reusó la categoría de rechazo `R8` (el tipo `CategoriaRechazo` cae fuera del stream); si se quiere categoría dedicada, extender `compilar/tipos.ts`.
 
 **Supuestos / riesgos / pendientes**:
-- **NO desplegado**: commits en `main` pero opforja sigue sirviendo el bundle anterior. Parte de los cambios afecta prod (rechazo duro de `ordenInzoom` en import, export W6.0, export LogDecisiones, dedup de ancla); el resto es dev-only / DCE de prod (render:headless, verify:reproducible, compilador). Deploy = `docker compose up -d --build` (acción manual, no pedida en esta sesión). **Riesgo de deploy = bajo**: HODOM v2.0 tiene `ordenInzoom` válido (14 OPDs) ⇒ el rechazo duro no lo afecta; ningún test regresó.
+- **DESPLEGADO Y VERIFICADO 2026-06-16** (`docker compose up -d --build`): bundle servido `index-CFrlg9jw.js`, los 4 contenedores healthy (Postgres preservado), root 200 / session 401 (login activo). **Regresión de HODOM = CERO**: el modelo real de prod `d22c8fc1` («HODOM completo v2.0», rev 2) leído de Postgres e hidratado con la barrera nueva → `hidratarModelo` OK (no rechazado), 279 entidades · 480 enlaces · 44 OPDs · **14 con `ordenInzoom`**; `validarReferenciasOpd` OK; `checkOrdenInzoomReferenciaInvalida` 0 avisos. Los otros 3 modelos del tenant (HODOM v2_0/v2_1 sin orden, lab-sim) intactos. (Las credenciales del operador en `~/.opforja-operator-credentials` están **stale** — login API 401; la verificación se hizo leyendo Postgres directo, sin auth. Reset: `docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts reset felixsanhuezaluna@gmail.com`.)
 - **Cambio de contrato de import**: un bundle externo cuyo `ordenInzoom` referencie un id no-interno ahora **falla al importar** (antes pasaba con solo una advertencia metodológica). Es el comportamiento deseado (simetría con anclas/notasMesa) pero conviene tenerlo presente para imports legacy.
 - **`compilar-02` categoría R8** compartida (cosmético; anotado arriba).
 
