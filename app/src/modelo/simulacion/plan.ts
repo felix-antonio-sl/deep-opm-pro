@@ -68,7 +68,21 @@ function planificarOpd(
     pasos.push(...expandirPasoPorRutas(modelo, pasoBase));
   }
 
+  // U6: cuando el OPD declara `ordenInzoom` (fuente de verdad del orden temporal
+  // de la descomposición), el plan ordena por índice de banda, NO por geometría.
+  // Esto deja al runner derivar el flujo secuencial del campo (su default
+  // `pasoActual+1` sigue la banda adyacente), equivalente a seguir enlaces de
+  // invocación, garantía de que la Fase 3 puede retirar los rayos sin regresión.
+  // Sin el campo, el orden NO cambia (Y ascendente + nombre): golden byte-safe.
+  const banda = new Map<Id, number>();
+  opd.ordenInzoom?.forEach((b, i) => {
+    for (const id of b) banda.set(id, i);
+  });
   const ordenados = pasos.sort((a, b) => {
+    const ba = banda.get(a.procesoId);
+    const bb = banda.get(b.procesoId);
+    if (ba !== undefined && bb !== undefined && ba !== bb) return ba - bb;
+    if ((ba === undefined) !== (bb === undefined)) return ba === undefined ? 1 : -1;
     if (a.ordenY !== b.ordenY) return a.ordenY - b.ordenY;
     return a.procesoNombre.localeCompare(b.procesoNombre, "es-CL");
   });
