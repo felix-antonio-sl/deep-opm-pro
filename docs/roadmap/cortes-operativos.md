@@ -1,9 +1,10 @@
 # Cortes operativos de producto
 
-**Fecha:** 2026-05-07  
-**Estado:** capa operativa vigente sobre el backlog HU v2; alpha-lock OPL reverse resuelto.  
-**No sustituye:** `docs/historias-usuario-v2/05-ROADMAP.md` ni edita las HU
-canonicas.  
+**Fecha:** 2026-05-07 (origen) · escalera operativa vigente  
+**Estado:** capa operativa vigente; alpha-lock OPL reverse resuelto. El backlog
+HU v2 que originó esta capa fue **eliminado el 2026-06-05** (ver CLAUDE.md regla
+6 y `quality-ledger.md` § Retiro 2026-06-05); esta escalera operativa es ahora
+el plan canónico de cortes.  
 **Si gobierna:** planificacion de rondas desde la ronda 13 grande en adelante.
 
 ## 1. Decisión de producto

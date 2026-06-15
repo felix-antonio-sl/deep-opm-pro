@@ -14,17 +14,20 @@ Modelador OPM/ISO 19450 nuevo, con arquitectura propia. No es fork de OPCloud.
 | Desplegar o administrar la instancia | `deploy/opforja.md` |
 | Conocer las decisiones técnicas clave | `canon-opm/` (puentes a KORA) |
 | Consultar el plan de cortes activos | `roadmap/cortes-operativos.md` |
-| Revisar auditorías técnicas | `auditorias/` |
+| Revisar auditorías técnicas | `auditorias/README.md` |
+| Leer especificaciones de frentes activos | `specs/` |
 | Verificar el estado del sistema de bugs | `bugs/INDEX.md` |
 
 ## Estructura
 
 ```
 docs/
-├── README.md                    ← este archivo
+├── README.md                    ← este archivo (índice navegable)
 ├── HANDOFF.md                   ← estado operativo vigente (única memoria de traspaso)
 ├── uso-productivo.md            ← guía del usuario del modelador
 ├── JOYAS.md                     ← hallazgos técnicos validados de ingeniería inversa
+├── render-headless.md           ← herramienta dev: render headless del proto (H1)
+├── verify-reproducible.md       ← herramienta dev: verificación de reproducibilidad (H2)
 │
 ├── canon-opm/                   ← puentes locales a las SSOT OPM en KORA
 │   ├── reglas-opm-estrictas.md
@@ -40,17 +43,26 @@ docs/
 │   ├── cortes-operativos.md     ← escalera operativa (alpha → beta → gamma → delta)
 │   ├── backlog-contingencial.md ← mandato del operador
 │   ├── quality-ledger.md        ← gates ejecutables de calidad
-│   └── protocolo-re-pin.md     ← protocolo de re-pin para cambios en SSOT
+│   ├── registro-conformidad-ssot.md ← mapeo regla DEBE → gate/estado (R-CONF-7)
+│   └── protocolo-re-pin.md      ← protocolo de re-pin para cambios en SSOT
 │
 ├── auditorias/                  ← auditorías técnicas vigentes
-│   └── README.md                ← política y índice
+│   └── README.md                ← política y índice (qué vive y por qué)
 │
 ├── specs/                       ← especificaciones técnicas de frentes activos
-│   └── mobile-readonly-v1-steipete-cat-jointjs.md
+│   ├── auth-identidad-v1.md
+│   ├── mobile-readonly-v1-steipete-cat-jointjs.md
+│   └── 2026-06-14-invocacion-implicita-bimodal-design.md
+│
+├── solicitudes-upstream/        ← peticiones desde/hacia skills y KORA (resueltas; ver HANDOFF)
+│
+├── superpowers/                 ← planes de ejecución TDD archivados
+│   └── plans/
 │
 └── bugs/                        ← reportes del capturador integrado
     ├── README.md                ← formato y uso
     ├── INDEX.md                 ← ledger operativo de bugs activos
+    ├── HISTORY.md               ← histórico completo
     └── BUG-*/                   ← reportes individuales
 ```
 
