@@ -10,7 +10,24 @@
 
 ---
 
-## Actualización 2026-06-15 — frente invocación implícita bimodal (R-INV-2B vs M23): Fase 1 COMPLETA (U1–U7); pendiente Fases 2-3
+## Actualización 2026-06-15 (tarde) — Fases 2 (KORA) y 3 (hd-opm) del frente invocación implícita bimodal: COMPLETAS, verificadas, desplegadas
+
+**Mandato**: ejecutar Fase 2 (corpus KORA) y Fase 3 (migración HODOM + re-import a prod) sobre la Fase 1 ya en `main` (capacidad latente `Opd.ordenInzoom`). Independientes (repos distintos), ejecutadas en paralelo donde ayudó. Dos verificaciones adversariales de **contexto fresco** (Fase 2 vs spec; re-pin del golden) + una pre-prod: todas **PASS**.
+
+**Fase 2 — KORA corpus** (`fccd1f51` en `kora/master`, pusheado; `kora check --strict` 37/37 + health healthy): 4 deltas que materializan la doctrina ratificada (panel 06-14):
+- `reglas-opm-estrictas-es` v1.4.0→1.4.1: **R-INV-2D** §5.4 (frontera implícito/explícito, 8 casos) + aclaración **R-IDP-0A** (orden declarado; la coordenada lo realiza).
+- `spec-forja-opd-es` v1.1.1→1.1.2: **R-OPD-INV-9** §8.1 (espejo).
+- `spec-forja-opl-es` v1.2.1→1.2.2: **GAP-CX-PARSER** + **GAP-FIXTURE-DESCOMPOSICION** §7.1 «orden cerrado» (+ registro §7.8/§20 reconciliado). El verificador fresco cazó un miscount «seis→cinco clases», corregido.
+
+**Fase 3 — hd-opm, re-pin gobernado del golden HODOM v2.0** (`08cbec6` en `hd-opm/main`, pusheado):
+- El orden de 14 in-zoom secuenciales se DECLARA en `opd.ordenInzoom` y se retiran los rayos de invocación de banda adyacente (oráculo = checker U5 `checkInvocacionRedundanteConOrden`). Todo en el generador (`migrarInvocacionImplicita`), **sin tocar deep-opm-pro**: el campo se puebla vía `A.modelo`. **R22-3 DEROGADA** (su premisa «el rayo es la única realización textual» era falsa). Resolvió J-1 sin la solicitud-upstream.
+- **Dos desviaciones del plan original, ambas por byte-estabilidad + doctrina (validadas por verificación fresca)**: (i) m2-emerg NO se migra — el Traslado es rama XOR condicional ⇒ join disyuntivo fuera del campo (R-INV-2D); conserva e-177. (ii) M1.3 conserva `educacion` en banda (secuencial); lo conservado es la bi-invocación cross-OPD e-174, no el rayo intra-OPD. p5-custodia (que el plan no listó) sí se migra.
+- **Re-pin**: 279·205·**517→480**·44 (−37 enlaces invocación); OPL 1564→1526 (−38 `invoca`; 41 `en esa secuencia` intactas). Diff = SOLO {37 enlaces + sus puertos/apariciones + `ordenInzoom` en 14 OPDs}; **CERO cambio de coordenadas**; entidades/estados/abanicos/anclas byte-idénticos. Conservados e-21 (vista causal), e-174/e-199 (cross-OPD), e-177 (condicional). Sin demoras intra-secuencia en HODOM ⇒ sin reificación «Esperar». Oracle U5 = 0; determinismo doble-corrida byte-idéntico (md5 6d89cbad). Lecciones en `docs/memorias-aprendizajes/notas-invocacion-implicita.md` (`882e6677`, pusheado).
+- **Re-import a opforja prod COMPLETADO Y VERIFICADO**: el modelo `d22c8fc1` («HODOM completo v2.0») se actualizó vía API (login + POST `/__deep-opm/modelos`, optimistic locking rev **1→2**) al golden migrado. Verificación en vivo: el modelo en prod es **semánticamente byte-idéntico** al golden local (entidades/estados/enlaces/abanicos/anclas/nextSeq/apariencias/`ordenInzoom` iguales) — 480 enlaces, 4 invocaciones (e-21/e-174/e-177/e-199), 14 `ordenInzoom`, **U5 redundante = 0**, 0 errores; los otros 3 modelos del tenant intactos. (La persistencia re-serializa el `json` ⇒ no byte-idéntico literal, pero el contenido del modelo es exacto.) Verificación pre-prod de **contexto fresco: PASS**. Hay 3 entradas HODOM en el tenant; la canónica actualizada es `d22c8fc1` (la única con nombre exacto «HODOM completo v2.0»); las otras (`v2_1` rev3, `v2_0` rev16) son imports viejos del operador, no tocadas.
+
+**Técnica reutilizable**: el re-pin byte-estable se logra **crear-y-borrar** (todos los rayos creados ⇒ `nextSeq` e IDs supervivientes intactos, sin renumber; un post-pase borra la aparición del in-zoom + el enlace huérfano). Verificar por contenido SEMÁNTICO, no por `git diff --stat` (los puertos de los rayos inflan el diff de texto a ~1300 líneas siendo el cambio real {37 enlaces + 14 campos}).
+
+## Actualización 2026-06-15 — frente invocación implícita bimodal (R-INV-2B vs M23): Fase 1 COMPLETA (U1–U7)
 
 **Origen**: en los in-zoom secuenciales de HODOM los subprocesos mostraban rayos de invocación redundantes con la verticalidad. `R-INV-2B` prohíbe dibujar el enlace en invocación implícita; la decisión de Mesa **M23** (modelo HODOM) los plasmó porque «en opforja v0 son la única realización textual del orden» (R22-3) — premisa **falsa**: el OPL «en esa secuencia» ya deriva de la geometría. **Causa raíz: brecha de herramienta, no conflicto de doctrina.** Spec del frente: `docs/specs/2026-06-14-invocacion-implicita-bimodal-design.md`.
 
