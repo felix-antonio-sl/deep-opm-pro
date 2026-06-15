@@ -113,6 +113,7 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkEfectoSinTransicion(modelo),
     ...checkProbabilidadFueraDeAbanico(modelo),
     ...checkEntidadSinApariciones(modelo),
+    ...checkInvocacionRedundanteConOrden(modelo),
     ...checkProcesoSistemicoConectado(modelo),
     ...checkRecursoLinealMultiplesConsumidores(modelo),
     ...checkDescomposicionPreservaFrontera(modelo),
@@ -528,6 +529,55 @@ export function checkEntidadSinApariciones(modelo: Modelo): AvisoMetodologico[] 
 
 function tieneMarcaSinAparicion(entidad: Entidad): boolean {
   return (entidad.descripcion ?? "").toLowerCase().includes(MARCA_SIN_APARICION_DELIBERADA);
+}
+
+/**
+ * U5 / R-INV-2B (§5.4): en invocación IMPLÍCITA no debe dibujarse enlace de
+ * invocación explícito. Cuando el orden temporal de dos subprocesos ya está
+ * expresado por `Opd.ordenInzoom` como una transición de banda ADYACENTE hacia
+ * adelante (banda i → banda i+1), un enlace de invocación entre ellos es DOBLE
+ * VARA: repite con un enlace lo que la verticalidad/bandas ya declaran. Se acusa
+ * (mejora) para que el exceso sea visible mientras coexisten modelos legacy.
+ *
+ * NO son redundantes (se conservan): misma banda (paralelo), salto hacia adelante
+ * (banda i → banda i+k con k≥2, «salto fuera de orden» = caso explícito) y hacia
+ * atrás (bucle). El render no se parchea: la ley vive en el kernel.
+ */
+export function checkInvocacionRedundanteConOrden(modelo: Modelo): AvisoMetodologico[] {
+  const avisos: AvisoMetodologico[] = [];
+  for (const opd of Object.values(modelo.opds)) {
+    if (!opd.ordenInzoom || opd.ordenInzoom.length === 0) continue;
+    const bandaDe = new Map<Id, number>();
+    opd.ordenInzoom.forEach((banda, indice) => {
+      for (const id of banda) bandaDe.set(id, indice);
+    });
+    for (const aparienciaEnlace of Object.values(opd.enlaces)) {
+      const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
+      if (!enlace || enlace.tipo !== "invocacion") continue;
+      const o = entidadIdDeExtremo(modelo, enlace.origenId);
+      const d = entidadIdDeExtremo(modelo, enlace.destinoId);
+      if (!o || !d) continue;
+      const bo = bandaDe.get(o);
+      const bd = bandaDe.get(d);
+      if (bo === undefined || bd === undefined) continue;
+      if (bd !== bo + 1) continue;
+      const origen = modelo.entidades[o];
+      const destino = modelo.entidades[d];
+      if (!origen) continue;
+      avisos.push(aviso("INVOCACION_REDUNDANTE_CON_ORDEN", origen, {
+        severidad: "sugerencia",
+        opdId: opd.id,
+        mensaje: `El enlace de invocación de "${origen.nombre}" a "${destino?.nombre ?? d}" es redundante: el orden ya está declarado por la descomposición (banda ${bo + 1} → banda ${bd + 1}). En invocación implícita no debe dibujarse enlace explícito; retíralo.`,
+        rationale: "Un enlace de invocación entre subprocesos cuyo orden ya expresa `ordenInzoom` como transición de banda adyacente es doble vara: repite con un enlace lo que la verticalidad/bandas ya declaran.",
+        ssotRef: `${KB_REGLAS} R-INV-2B / §5.4`,
+        accionesSugeridas: [
+          "Retira el enlace de invocación: el orden ya está declarado por la verticalidad/bandas.",
+          "Si es un salto fuera de orden o un bucle, NO es redundante: consérvalo.",
+        ],
+      }));
+    }
+  }
+  return avisos;
 }
 
 export function checkProcesoSistemicoConectado(modelo: Modelo): AvisoMetodologico[] {

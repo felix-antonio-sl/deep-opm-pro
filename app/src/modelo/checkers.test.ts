@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   checkDescomposicionSinSubprocesos,
+  checkInvocacionRedundanteConOrden,
   checkInzoomContenido,
   checkInzoomNombresPlaceholderHijos,
   checkObjetoAmbientalSinContornoDiscontinuo,
@@ -587,5 +588,129 @@ describe("checkProbabilidadFueraDeAbanico (A6-2 / V-18, reglas §11.2)", () => {
     modelo = must(aplicarModificador(modelo, enlaceId, "evento"));
 
     expect(checkProbabilidadFueraDeAbanico(modelo)).toEqual([]);
+  });
+});
+
+describe("checkInvocacionRedundanteConOrden (U5 · R-INV-2B / §5.4)", () => {
+  /**
+   * Construye un modelo mínimo: un proceso padre con descomposición, un OPD hijo
+   * con subprocesos (a/b[/c]), una `ordenInzoom` y una apariencia de enlace de
+   * invocación entre dos subprocesos. Controla directamente las bandas para
+   * cubrir la frontera adyacente / salto / paralelo / sin-campo sin depender del
+   * sembrado de `descomponerProceso`.
+   */
+  function modeloConInvocacion(opciones: {
+    ordenInzoom?: Id[][];
+    invocacion: { de: Id; a: Id };
+    subprocesos: Id[];
+  }): Modelo {
+    const opdHijoId = "opd-hijo";
+    const padreId = "p-padre";
+    const enlaceId = "e-inv";
+    const aparienciaEnlaceId = "ae-inv";
+
+    const entidades: Modelo["entidades"] = {
+      [padreId]: {
+        id: padreId,
+        tipo: "proceso",
+        nombre: "Procesar Pedido",
+        esencia: "informacional",
+        afiliacion: "sistemica",
+        refinamientos: { descomposicion: { opdId: opdHijoId } },
+      },
+    };
+    const apariencias: Record<Id, import("./tipos").Apariencia> = {};
+    for (const id of opciones.subprocesos) {
+      entidades[id] = {
+        id,
+        tipo: "proceso",
+        nombre: `Sub ${id}`,
+        esencia: "informacional",
+        afiliacion: "sistemica",
+      };
+      apariencias[`a-${id}`] = {
+        id: `a-${id}`,
+        entidadId: id,
+        opdId: opdHijoId,
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 60,
+      };
+    }
+
+    const enlaces: Modelo["enlaces"] = {
+      [enlaceId]: {
+        id: enlaceId,
+        tipo: "invocacion",
+        origenId: { kind: "entidad", id: opciones.invocacion.de },
+        destinoId: { kind: "entidad", id: opciones.invocacion.a },
+        etiqueta: "",
+      },
+    };
+
+    const opdHijo: import("./tipos").Opd = {
+      id: opdHijoId,
+      nombre: "SD1",
+      padreId: "opd-raiz",
+      apariencias,
+      enlaces: {
+        [aparienciaEnlaceId]: { id: aparienciaEnlaceId, enlaceId, opdId: opdHijoId, vertices: [] },
+      },
+    };
+    if (opciones.ordenInzoom) opdHijo.ordenInzoom = opciones.ordenInzoom;
+
+    return {
+      id: "m",
+      nombre: "U5",
+      opdRaizId: "opd-raiz",
+      opds: {
+        "opd-raiz": { id: "opd-raiz", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} },
+        [opdHijoId]: opdHijo,
+      },
+      entidades,
+      estados: {},
+      enlaces,
+      nextSeq: 100,
+    };
+  }
+
+  test("adyacente: invocación a→b sobre bandas [[a],[b]] EMITE aviso", () => {
+    const modelo = modeloConInvocacion({
+      ordenInzoom: [["a"], ["b"]],
+      invocacion: { de: "a", a: "b" },
+      subprocesos: ["a", "b"],
+    });
+    const avisos = checkInvocacionRedundanteConOrden(modelo);
+    expect(avisos.map((aviso) => aviso.codigo)).toEqual(["INVOCACION_REDUNDANTE_CON_ORDEN"]);
+    expect(avisos[0]?.severidad).toBe("sugerencia");
+    expect(avisos[0]?.entidadId).toBe("a");
+    expect(avisos[0]?.opdId).toBe("opd-hijo");
+  });
+
+  test("salto: invocación a→c sobre bandas [[a],[b],[c]] NO emite (salto fuera de orden = explícito)", () => {
+    const modelo = modeloConInvocacion({
+      ordenInzoom: [["a"], ["b"], ["c"]],
+      invocacion: { de: "a", a: "c" },
+      subprocesos: ["a", "b", "c"],
+    });
+    expect(checkInvocacionRedundanteConOrden(modelo)).toEqual([]);
+  });
+
+  test("misma banda (paralelo): invocación a→b sobre bandas [[a,b]] NO emite", () => {
+    const modelo = modeloConInvocacion({
+      ordenInzoom: [["a", "b"]],
+      invocacion: { de: "a", a: "b" },
+      subprocesos: ["a", "b"],
+    });
+    expect(checkInvocacionRedundanteConOrden(modelo)).toEqual([]);
+  });
+
+  test("sin campo: invocación a→b sin ordenInzoom NO emite", () => {
+    const modelo = modeloConInvocacion({
+      invocacion: { de: "a", a: "b" },
+      subprocesos: ["a", "b"],
+    });
+    expect(checkInvocacionRedundanteConOrden(modelo)).toEqual([]);
   });
 });

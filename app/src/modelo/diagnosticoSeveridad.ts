@@ -46,6 +46,10 @@ const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   PROBABILIDAD_FUERA_DE_ABANICO: "mejora",
   // B-2: entidad sin apariciones (invisible al OPL). Mejora accionable.
   ENTIDAD_SIN_APARICIONES: "mejora",
+  // U5 (R-INV-2B / §5.4): enlace de invocación redundante con el orden de
+  // descomposición (doble vara). Mejora accionable, no bloqueo: coexisten modelos
+  // legacy mientras se migra al campo ordenInzoom.
+  INVOCACION_REDUNDANTE_CON_ORDEN: "mejora",
 };
 
 export function clasificarSeveridad(aviso: Pick<AvisoMetodologico, "codigo">): SeveridadIssue {
