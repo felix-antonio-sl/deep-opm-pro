@@ -25,6 +25,37 @@ describe("validarOpds", () => {
     expect(resultado.ok).toBe(false);
   });
 
+  test("preserva ordenInzoom valido (bandas de ids)", () => {
+    const resultado = validarOpds({
+      "opd-1": { id: "opd-1", nombre: "SD", padreId: null, apariencias: {}, enlaces: {}, ordenInzoom: [["p-a", "p-b"], ["p-c"]] },
+    }, entidades);
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value["opd-1"]?.ordenInzoom).toEqual([["p-a", "p-b"], ["p-c"]]);
+  });
+
+  test("rechaza ordenInzoom que no es arreglo de bandas", () => {
+    const resultado = validarOpds({
+      "opd-1": { id: "opd-1", nombre: "SD", padreId: null, apariencias: {}, enlaces: {}, ordenInzoom: ["p-a", "p-b"] },
+    }, entidades);
+    expect(resultado.ok).toBe(false);
+  });
+
+  test("rechaza ordenInzoom con elemento no-string en una banda", () => {
+    const resultado = validarOpds({
+      "opd-1": { id: "opd-1", nombre: "SD", padreId: null, apariencias: {}, enlaces: {}, ordenInzoom: [["p-a", 7]] },
+    }, entidades);
+    expect(resultado.ok).toBe(false);
+  });
+
+  test("rechaza ordenInzoom con id duplicado entre bandas (anticadena rota)", () => {
+    const resultado = validarOpds({
+      "opd-1": { id: "opd-1", nombre: "SD", padreId: null, apariencias: {}, enlaces: {}, ordenInzoom: [["p-a"], ["p-a"]] },
+    }, entidades);
+    expect(resultado.ok).toBe(false);
+  });
+
   test("acepta refinamiento por descomposicion", () => {
     const resultado = validarRefinamiento("p-1", { tipo: "descomposicion", opdId: "opd-2" });
 

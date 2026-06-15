@@ -152,6 +152,7 @@ const CAMPOS_OPD = {
   enlaces: true,
   vista: true,
   ordenLocal: true,
+  ordenInzoom: true,
 } satisfies Record<keyof Opd, true>;
 
 const CAMPOS_ABANICO = {

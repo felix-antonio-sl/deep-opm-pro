@@ -22,4 +22,12 @@ export interface Opd {
    *  Monotono entre hermanos de un mismo padre.
    *  Si no esta presente, se usa orden alfabetico por id. */
   ordenLocal?: number;
+  /** Orden temporal declarado de los subprocesos de la descomposicion que este
+   *  OPD realiza (R-INV-2/2A/2C): secuencia de bandas, cada banda un conjunto de
+   *  subprocesos en paralelo (anticadena). Es la presentacion del preorden por su
+   *  funcion rango y la fuente de verdad del orden, de la que derivan la banda Y
+   *  del layout y el OPL «en paralelo… en esa secuencia». Ausente ⇒ fallback a la
+   *  topologia de invocaciones (retrocompat). Solo aplica a in-zoom de proceso.
+   *  Ver docs/specs/2026-06-14-invocacion-implicita-bimodal-design.md */
+  ordenInzoom?: Id[][];
 }

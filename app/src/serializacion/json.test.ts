@@ -87,6 +87,33 @@ describe("serializacion JSON", () => {
     expect(hidratado.value.entidades[todoId]?.orderedFundamentalTypes).toEqual(["agregacion", "exhibicion"]);
   });
 
+  test("preserva ordenInzoom (bandas del orden de descomposicion) en round-trip", () => {
+    const modelo = crearModelo("Orden in-zoom");
+    const opdId = modelo.opdRaizId;
+    const bandas: string[][] = [["p-eval-med", "p-eval-enf"], ["p-consolidacion"]];
+    const conOrden: Modelo = {
+      ...modelo,
+      opds: { ...modelo.opds, [opdId]: { ...modelo.opds[opdId]!, ordenInzoom: bandas } },
+    };
+
+    const hidratado = hidratarModelo(exportarModelo(conOrden));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.opds[opdId]?.ordenInzoom).toEqual(bandas);
+  });
+
+  test("acepta modelo legacy sin ordenInzoom (retrocompat: ausente queda undefined)", () => {
+    const modelo = crearModelo("Sin orden");
+    const exportado = JSON.parse(exportarModelo(modelo));
+    expect(exportado.modelo.opds[modelo.opdRaizId].ordenInzoom).toBeUndefined();
+
+    const hidratado = hidratarModelo(JSON.stringify(exportado));
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.opds[modelo.opdRaizId]?.ordenInzoom).toBeUndefined();
+  });
+
   test("preserva estados y designaciones en round-trip", () => {
     let modelo = crearModelo("Estados");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 10, y: 20 }, "Semaforo"));

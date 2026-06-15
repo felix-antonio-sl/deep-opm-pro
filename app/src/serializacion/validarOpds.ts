@@ -116,6 +116,12 @@ export function validarOpds(value: Record<string, unknown>, entidades: Record<Id
       }
       ordenLocal = raw.ordenLocal;
     }
+    let ordenInzoom: Id[][] | undefined;
+    if (raw.ordenInzoom !== undefined) {
+      const validado = validarOrdenInzoom(id, raw.ordenInzoom);
+      if (!validado.ok) return validado;
+      ordenInzoom = validado.value;
+    }
     opds[id] = {
       id,
       nombre: raw.nombre,
@@ -124,9 +130,36 @@ export function validarOpds(value: Record<string, unknown>, entidades: Record<Id
       enlaces: enlaces.value,
       ...(vista.value ? { vista: vista.value } : {}),
       ...(ordenLocal !== undefined ? { ordenLocal } : {}),
+      ...(ordenInzoom !== undefined ? { ordenInzoom } : {}),
     };
   }
   return ok(opds);
+}
+
+/**
+ * Valida la presentacion del orden temporal de subprocesos (ordenInzoom):
+ * secuencia de bandas, cada banda un arreglo de ids de subprocesos en paralelo.
+ * Verifica la FORMA del preorden (arreglo de arreglos de strings) y la anticadena
+ * global (ningun id en dos bandas: violaria la funcion rango r: P→ℕ). La integridad
+ * referencial (que cada id sea un subproceso de la descomposicion de este OPD) se
+ * verifica aguas arriba (checker de diagnostico / validarIntegridad), no aqui.
+ */
+function validarOrdenInzoom(opdId: Id, value: unknown): Resultado<Id[][]> {
+  if (!Array.isArray(value)) return fallo(`OPD inválido: ${opdId}.ordenInzoom`);
+  const vistos = new Set<string>();
+  const bandas: Id[][] = [];
+  for (const banda of value) {
+    if (!Array.isArray(banda)) return fallo(`OPD inválido: ${opdId}.ordenInzoom (banda no es arreglo)`);
+    const fila: Id[] = [];
+    for (const sub of banda) {
+      if (typeof sub !== "string") return fallo(`OPD inválido: ${opdId}.ordenInzoom (id no es string)`);
+      if (vistos.has(sub)) return fallo(`OPD inválido: ${opdId}.ordenInzoom (id duplicado entre bandas: ${sub})`);
+      vistos.add(sub);
+      fila.push(sub);
+    }
+    bandas.push(fila);
+  }
+  return ok(bandas);
 }
 
 function validarVistaOpd(opdId: Id, value: unknown): Resultado<OpdVista | undefined> {
