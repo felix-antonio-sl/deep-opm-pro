@@ -1882,6 +1882,48 @@ function contornoDescompuesto(modelo: Modelo, opdId: string, entidadId: string):
   return { x: apariencia.x, y: apariencia.y };
 }
 
+describe("eliminarEntidad poda ordenInzoom (edit-sync)", () => {
+  function modeloConOrden(ordenInzoom: string[][]): Modelo {
+    const ap = (id: string, y: number) => ({ id: `a-${id}`, entidadId: id, opdId: "opd-hijo", x: 0, y, width: 100, height: 60 });
+    const ent = (id: string) => ({ id, tipo: "proceso" as const, nombre: id.toUpperCase(), esencia: "informacional" as const, afiliacion: "sistemica" as const });
+    return {
+      id: "m",
+      nombre: "edit-sync",
+      opdRaizId: "opd-raiz",
+      opds: {
+        "opd-raiz": { id: "opd-raiz", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} },
+        "opd-hijo": {
+          id: "opd-hijo",
+          nombre: "SD1",
+          padreId: "opd-raiz",
+          apariencias: { "a-a": ap("a", 0), "a-b": ap("b", 100), "a-c": ap("c", 200) },
+          enlaces: {},
+          ordenInzoom,
+        },
+      },
+      entidades: { a: ent("a"), b: ent("b"), c: ent("c") },
+      estados: {},
+      enlaces: {},
+      nextSeq: 100,
+    };
+  }
+
+  test("borrar un subproceso de su banda propia lo quita y elimina la banda vacía", () => {
+    const r = must(eliminarEntidad(modeloConOrden([["a"], ["b"], ["c"]]), "b"));
+    expect(r.opds["opd-hijo"]?.ordenInzoom).toEqual([["a"], ["c"]]);
+  });
+
+  test("borrar uno de una banda paralela conserva el resto de la banda", () => {
+    const r = must(eliminarEntidad(modeloConOrden([["a", "b"], ["c"]]), "a"));
+    expect(r.opds["opd-hijo"]?.ordenInzoom).toEqual([["b"], ["c"]]);
+  });
+
+  test("borrar el único subproceso del campo elimina ordenInzoom (sin dejar campo vacío)", () => {
+    const r = must(eliminarEntidad(modeloConOrden([["a"]]), "a"));
+    expect(r.opds["opd-hijo"]?.ordenInzoom).toBeUndefined();
+  });
+});
+
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(resultado.error);
   return resultado.value;

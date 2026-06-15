@@ -60,21 +60,41 @@ export function eliminarEntidad(modelo: Modelo, entidadId: Id): Resultado<Modelo
   );
 
   const opds = Object.fromEntries(
-    Object.entries(modelo.opds).map(([opdId, opd]) => [
-      opdId,
-      {
-        ...opd,
-        apariencias: Object.fromEntries(
-          Object.entries(opd.apariencias).filter(([, apariencia]) => apariencia.entidadId !== entidadId),
-        ),
-        enlaces: Object.fromEntries(
-          Object.entries(opd.enlaces).filter(([, apariencia]) => !enlacesEliminados.has(apariencia.enlaceId)),
-        ),
-      },
-    ]),
+    Object.entries(modelo.opds).map(([opdId, opd]) => {
+      // Edit-sync: el subproceso eliminado deja de ser interno del OPD, así que se poda de
+      // la presentación del orden (ordenInzoom). Se destructura para que un campo que queda
+      // vacío se OMITA (vuelve al fallback de geometría/topología), no quede present-undefined.
+      const { ordenInzoom: ordenPrevio, ...restoOpd } = opd;
+      const ordenPodado = ordenPrevio ? podarOrdenInzoom(ordenPrevio, entidadId) : undefined;
+      return [
+        opdId,
+        {
+          ...restoOpd,
+          apariencias: Object.fromEntries(
+            Object.entries(opd.apariencias).filter(([, apariencia]) => apariencia.entidadId !== entidadId),
+          ),
+          enlaces: Object.fromEntries(
+            Object.entries(opd.enlaces).filter(([, apariencia]) => !enlacesEliminados.has(apariencia.enlaceId)),
+          ),
+          ...(ordenPodado ? { ordenInzoom: ordenPodado } : {}),
+        },
+      ];
+    }),
   );
 
   return ok(limpiarMetadatosHuerfanos({ ...modelo, entidades, estados, enlaces, opds }));
+}
+
+/**
+ * Edit-sync de `ordenInzoom`: quita un id eliminado de la presentación del orden,
+ * descartando las bandas que queden vacías. Devuelve `undefined` si el campo entero se
+ * vacía (el OPD vuelve al fallback de geometría/topología) para no dejar un orden mentiroso.
+ */
+function podarOrdenInzoom(ordenInzoom: Id[][], idEliminado: Id): Id[][] | undefined {
+  const podado = ordenInzoom
+    .map((banda) => banda.filter((id) => id !== idEliminado))
+    .filter((banda) => banda.length > 0);
+  return podado.length > 0 ? podado : undefined;
 }
 
 export function eliminarEnlace(modelo: Modelo, enlaceId: Id): Resultado<Modelo> {
