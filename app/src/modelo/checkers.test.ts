@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   checkDescomposicionSinSubprocesos,
   checkInvocacionRedundanteConOrden,
+  checkOrdenInzoomReferenciaInvalida,
   checkInzoomContenido,
   checkInzoomNombresPlaceholderHijos,
   checkObjetoAmbientalSinContornoDiscontinuo,
@@ -712,5 +713,86 @@ describe("checkInvocacionRedundanteConOrden (U5 · R-INV-2B / §5.4)", () => {
       subprocesos: ["a", "b"],
     });
     expect(checkInvocacionRedundanteConOrden(modelo)).toEqual([]);
+  });
+});
+
+describe("checkOrdenInzoomReferenciaInvalida (integridad referencial del orden declarado)", () => {
+  function modeloConOrden(opciones: { subprocesos: Id[]; ordenInzoom?: Id[][]; externos?: Id[] }): Modelo {
+    const opdHijoId = "opd-hijo";
+    const padreId = "p-padre";
+    const entidades: Modelo["entidades"] = {
+      [padreId]: {
+        id: padreId,
+        tipo: "proceso",
+        nombre: "Procesar Pedido",
+        esencia: "informacional",
+        afiliacion: "sistemica",
+        refinamientos: { descomposicion: { opdId: opdHijoId } },
+      },
+    };
+    const apariencias: Record<Id, import("./tipos").Apariencia> = {};
+    for (const id of opciones.subprocesos) {
+      entidades[id] = { id, tipo: "proceso", nombre: `Sub ${id}`, esencia: "informacional", afiliacion: "sistemica" };
+      apariencias[`a-${id}`] = { id: `a-${id}`, entidadId: id, opdId: opdHijoId, x: 0, y: 0, width: 100, height: 60 };
+    }
+    for (const id of opciones.externos ?? []) {
+      entidades[id] = { id, tipo: "proceso", nombre: `Ext ${id}`, esencia: "informacional", afiliacion: "sistemica" };
+      apariencias[`a-${id}`] = {
+        id: `a-${id}`,
+        entidadId: id,
+        opdId: opdHijoId,
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 60,
+        contextoRefinamiento: { tipo: "descomposicion", refinableEntidadId: padreId, rol: "externo" },
+      };
+    }
+    const opdHijo: import("./tipos").Opd = {
+      id: opdHijoId,
+      nombre: "SD1",
+      padreId: "opd-raiz",
+      apariencias,
+      enlaces: {},
+      ...(opciones.ordenInzoom ? { ordenInzoom: opciones.ordenInzoom } : {}),
+    };
+    return {
+      id: "m",
+      nombre: "integridad",
+      opdRaizId: "opd-raiz",
+      opds: {
+        "opd-raiz": { id: "opd-raiz", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} },
+        [opdHijoId]: opdHijo,
+      },
+      entidades,
+      estados: {},
+      enlaces: {},
+      nextSeq: 100,
+    };
+  }
+
+  test("id de ordenInzoom que no es subproceso del OPD EMITE aviso", () => {
+    const modelo = modeloConOrden({ subprocesos: ["a", "b"], ordenInzoom: [["a"], ["z"]] });
+    const avisos = checkOrdenInzoomReferenciaInvalida(modelo);
+    expect(avisos.map((aviso) => aviso.codigo)).toEqual(["ORDEN_INZOOM_REFERENCIA_INVALIDA"]);
+    expect(avisos[0]?.severidad).toBe("advertencia");
+    expect(avisos[0]?.opdId).toBe("opd-hijo");
+  });
+
+  test("orden con solo subprocesos internos válidos NO emite", () => {
+    const modelo = modeloConOrden({ subprocesos: ["a", "b", "c"], ordenInzoom: [["a", "b"], ["c"]] });
+    expect(checkOrdenInzoomReferenciaInvalida(modelo)).toEqual([]);
+  });
+
+  test("id de un EXTERNO (no subproceso interno de la descomposición) EMITE aviso", () => {
+    const modelo = modeloConOrden({ subprocesos: ["a"], externos: ["x"], ordenInzoom: [["a"], ["x"]] });
+    expect(checkOrdenInzoomReferenciaInvalida(modelo).map((aviso) => aviso.codigo)).toEqual([
+      "ORDEN_INZOOM_REFERENCIA_INVALIDA",
+    ]);
+  });
+
+  test("sin ordenInzoom NO emite", () => {
+    const modelo = modeloConOrden({ subprocesos: ["a", "b"] });
+    expect(checkOrdenInzoomReferenciaInvalida(modelo)).toEqual([]);
   });
 });

@@ -49,7 +49,8 @@ export type CodigoChecker =
   | "PAR_TRANSFORMADOR_DUPLICADO"
   | "PROBABILIDAD_FUERA_DE_ABANICO"
   | "ENTIDAD_SIN_APARICIONES"
-  | "INVOCACION_REDUNDANTE_CON_ORDEN";
+  | "INVOCACION_REDUNDANTE_CON_ORDEN"
+  | "ORDEN_INZOOM_REFERENCIA_INVALIDA";
 
 export interface NavegacionAviso {
   tipo: "entidad" | "opd";

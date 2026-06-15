@@ -36,7 +36,7 @@ import { verificarLinealidad } from "./composicion";
 import { observarPreservacionFrontera } from "./equivalencia";
 import { estadoTieneNombreCanonico } from "./nombresCanonicos";
 import { obtenerRefinamiento, refinamientosDe, tieneRefinamiento } from "./refinamientos";
-import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, TipoEnlace, TipoRefinamiento } from "./tipos";
+import type { AvisoMetodologico, CodigoChecker, Entidad, Id, Modelo, Opd, TipoEnlace, TipoRefinamiento } from "./tipos";
 
 const TRANSFORMADORES = new Set<TipoEnlace>(["consumo", "resultado", "efecto"]);
 const INVARIABLES_SINGULAR = new Set(["analisis", "sintesis", "crisis", "tesis", "hipotesis", "virus", "gas"]);
@@ -114,6 +114,7 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkProbabilidadFueraDeAbanico(modelo),
     ...checkEntidadSinApariciones(modelo),
     ...checkInvocacionRedundanteConOrden(modelo),
+    ...checkOrdenInzoomReferenciaInvalida(modelo),
     ...checkProcesoSistemicoConectado(modelo),
     ...checkRecursoLinealMultiplesConsumidores(modelo),
     ...checkDescomposicionPreservaFrontera(modelo),
@@ -578,6 +579,67 @@ export function checkInvocacionRedundanteConOrden(modelo: Modelo): AvisoMetodolo
     }
   }
   return avisos;
+}
+
+/**
+ * Integridad referencial de `Opd.ordenInzoom` (R-IDP-0A / R-INV-2D): cada id del
+ * orden declarado DEBE ser un subproceso INTERNO de la descomposición de ese OPD.
+ * `validarOrdenInzoom` (serialización) solo valida forma + anticadena de la presentación
+ * del preorden; esta es la verificación CRUZADA que necesita el modelo completo
+ * (entidades + refinamiento + apariencias), por eso vive en el kernel de diagnóstico y
+ * no en el validador per-OPD. Un id que no es subproceso interno (objeto, externo,
+ * id inexistente o sub de otro OPD) es una referencia colgante: el layout/OPL lo ignoran
+ * (no corrompe), pero el orden declarado miente sobre el contenido de la descomposición.
+ */
+export function checkOrdenInzoomReferenciaInvalida(modelo: Modelo): AvisoMetodologico[] {
+  const avisos: AvisoMetodologico[] = [];
+  for (const opd of Object.values(modelo.opds)) {
+    if (!opd.ordenInzoom || opd.ordenInzoom.length === 0) continue;
+    const internos = subprocesosInternosDeOpd(modelo, opd);
+    const ancla = contornoDeOpd(modelo, opd.id);
+    for (const banda of opd.ordenInzoom) {
+      for (const id of banda) {
+        if (internos.has(id)) continue;
+        const referido = modelo.entidades[id];
+        avisos.push({
+          codigo: "ORDEN_INZOOM_REFERENCIA_INVALIDA",
+          severidad: "advertencia",
+          ...(ancla ? { entidadId: ancla.id } : {}),
+          opdId: opd.id,
+          navegarA: { tipo: "opd", id: opd.id },
+          mensaje: `El orden declarado de la descomposición${ancla ? ` de "${ancla.nombre}"` : ""} referencia "${referido?.nombre ?? id}", que no es un subproceso interno de este OPD. Retíralo de "ordenInzoom" o conviértelo en subproceso de la descomposición.`,
+          rationale: "Cada id de `ordenInzoom` DEBE ser un subproceso interno de la descomposición del OPD: el orden declarado es la presentación del preorden de esos subprocesos (R-IDP-0A), no de entidades ajenas, externas u objetos.",
+          ssotRef: `${KB_REGLAS} R-IDP-0A / R-INV-2D`,
+          accionesSugeridas: [
+            "Retira el id ajeno del orden declarado de la descomposición.",
+            "O, si debe ordenarse, conviértelo en subproceso interno del OPD (no externo, no objeto).",
+          ],
+        });
+      }
+    }
+  }
+  return avisos;
+}
+
+/** El proceso refinable cuya descomposición es este OPD (su contorno), si existe. */
+function contornoDeOpd(modelo: Modelo, opdId: Id): Entidad | undefined {
+  for (const entidad of Object.values(modelo.entidades)) {
+    if (obtenerRefinamiento(entidad, "descomposicion")?.opdId === opdId) return entidad;
+  }
+  return undefined;
+}
+
+/** Ids de los subprocesos INTERNOS de un OPD de descomposición: procesos que aparecen
+ * en el OPD, excluido el contorno y excluidos los externos (contexto de refinamiento). */
+function subprocesosInternosDeOpd(modelo: Modelo, opd: Opd): Set<Id> {
+  const contorno = contornoDeOpd(modelo, opd.id);
+  const ids = new Set<Id>();
+  for (const apariencia of Object.values(opd.apariencias)) {
+    if (apariencia.entidadId === contorno?.id) continue;
+    if (apariencia.contextoRefinamiento?.rol === "externo") continue;
+    if (modelo.entidades[apariencia.entidadId]?.tipo === "proceso") ids.add(apariencia.entidadId);
+  }
+  return ids;
 }
 
 export function checkProcesoSistemicoConectado(modelo: Modelo): AvisoMetodologico[] {

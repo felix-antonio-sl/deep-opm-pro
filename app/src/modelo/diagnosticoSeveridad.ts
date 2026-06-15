@@ -50,6 +50,11 @@ const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   // descomposición (doble vara). Mejora accionable, no bloqueo: coexisten modelos
   // legacy mientras se migra al campo ordenInzoom.
   INVOCACION_REDUNDANTE_CON_ORDEN: "mejora",
+  // Integridad referencial: un id de `ordenInzoom` que no es subproceso interno del OPD
+  // es una referencia colgante del orden declarado. Clasificación del panel `mejora`
+  // (como todo checker); el aviso es `advertencia` (referencia rota real) — el layout/OPL
+  // la ignoran, pero el orden declarado miente sobre el contenido de la descomposición.
+  ORDEN_INZOOM_REFERENCIA_INVALIDA: "mejora",
 };
 
 export function clasificarSeveridad(aviso: Pick<AvisoMetodologico, "codigo">): SeveridadIssue {
