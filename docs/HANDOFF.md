@@ -10,7 +10,7 @@
 
 ---
 
-## Actualización 2026-06-15 — frente invocación implícita bimodal (R-INV-2B vs M23): Fase 1 forward shipeada (U1·U2·U3); reverse/sim/checker pendientes
+## Actualización 2026-06-15 — frente invocación implícita bimodal (R-INV-2B vs M23): Fase 1 COMPLETA (U1–U7); pendiente Fases 2-3
 
 **Origen**: en los in-zoom secuenciales de HODOM los subprocesos mostraban rayos de invocación redundantes con la verticalidad. `R-INV-2B` prohíbe dibujar el enlace en invocación implícita; la decisión de Mesa **M23** (modelo HODOM) los plasmó porque «en opforja v0 son la única realización textual del orden» (R22-3) — premisa **falsa**: el OPL «en esa secuencia» ya deriva de la geometría. **Causa raíz: brecha de herramienta, no conflicto de doctrina.** Spec del frente: `docs/specs/2026-06-14-invocacion-implicita-bimodal-design.md`.
 
@@ -22,13 +22,21 @@
 - **U2** `db6c7ee2` — layout: banda Y deriva del campo (bandas con cardinalidad). Autoría 293/0.
 Todos con `typecheck` exit 0; sin campo ⇒ fallback a geometría/topología de invocaciones (idéntico).
 
-**Pendiente (Fase 1 reverse/runtime + Fases 2-3)**:
-- **U4 reverse** — cerrar `GAP-CX-PARSER` (parsear «paralelo A y B, C en esa secuencia» → bandas). El corte delicado: la superficie del forward usa «y» con doble rol (intra-banda y conector de secuencia) → exige gramática contextual + fixtures de los 4 patrones; rushearlo = falso verde.
-- **U5 checker** doble vara (invocación redundante con el orden, R-INV-2B en el kernel); **U6 simulación** (el runner lee el campo para el flujo secuencial, R-EJEC-9, o Fase 3 regresiona la sim); **U7** fixture roundtrip estricto.
-- **Fase 2 (KORA)**: nota de frontera en `reglas §5.4`, espejo en `spec-opd §8.1`, cerrar GAP en `spec-opl §7.1`, aclarar `R-IDP-0A`.
-- **Fase 3 (hd-opm)**: retirar rayos redundantes (guard banda adyacente), poblar el campo, reificar «Esperar», **derogar R22-3**, re-pin gobernado del golden.
+**Fase 1 reverse/runtime/leyes COMPLETA Y VERIFICADA** (rama `invocacion-implicita-bimodal`; TDD; gate `bun run check` **2668/0**, typecheck exit 0; árbol de trabajo sin commitear al cierre de esta tanda):
+- **U4 reverse** (`GAP-CX-PARSER` cerrado) — el AST `contexto` captura `bandasNombres` (parser dirigido por el marcador `paralelo`; el «y» de doble rol se desambigua porque el forward es determinista). Patch `set-orden-inzoom` sobre el refinamiento **existente** (no crea/borra). `planificarOrdenInzoom` resuelve nombres→ids contra los subprocesos del OPD hijo + **verificación por inversa** (re-emite el orden resuelto con la lógica forward y lo compara con el texto original; si difiere ⇒ `warning` + sin patch). Archivos: `opl/parser/{parsear,tipos,planificar,aplicar}.ts` + `opl/generadores/refinamiento.ts` (export `listarSecuenciaTemporal`) + `clasificadorEdicion.ts`. Test `opl/parser/orden-inzoom.test.ts` 14/0.
+- **U5 checker** — `checkInvocacionRedundanteConOrden` (kernel, NO render): acusa la doble vara SOLO en transición de banda **adyacente** (bd===bo+1); salto/bucle/paralelo/cross-OPD NO se tocan (explícitos legítimos). Severidad `sugerencia` (mejora). `CodigoChecker` + `diagnosticoSeveridad`. Test en `checkers.test.ts`.
+- **U6 simulación** — `plan.ts` ordena el plan por banda de `ordenInzoom` cuando el campo está; sin campo, orden por Y idéntico (golden-safe). El flujo por defecto del runner (`pasoActual+1`) sigue el campo ⇒ equivalente a seguir rayos de banda adyacente; AND-join = toda la banda i antes de i+1. Test `simulacion/plan-orden-inzoom.test.ts` 5/0.
+- **U7 leyes** — `leyes/invocacion-implicita-bimodal.test.ts` 6/0: OPL(campo)==OPL(geometría equivalente); layout(campo) overridea geometría; roundtrip estricto forward→reverse→forward idéntico CX1/CX2/CX-mixta **sin rayos**; flujo sim campo==rayos (geometría contradictoria para no ser tautológica).
 
-**Decisión de ritmo**: se bancó el incremento forward (verde, aditivo, golden-safe) y se difirió la mitad reverse/sim a tanda fresca (el parser merece cabeza despejada — no falso verde). El incremento forward es deployable pero **capacidad latente** (ningún modelo porta el campo aún; el valor visible llega con la Fase 3).
+**Verificación adversarial de contexto fresco** (Workflow 5 verificadores: 1 por unidad + crítico de frontera): U5/U6/U7 conformes; **U4 NO conforme → 1 BLOQUEANTE real cazado**: el split por «y»/«,» corrompía/perdía el orden en silencio si un subproceso lleva esos separadores en su nombre («Cargar y Validar») — riesgo §6. **REMEDIADO** con verificación por inversa + avisos `warning` (TDD; tests de seguridad en `orden-inzoom.test.ts`). **Re-verificado** por verificador fresco independiente: 16 casos adversariales (colisión con/sin duplicados, comas internas, prefijo «paralelo», acentos, reordenación) ⇒ cero corrupción, cero pérdida silenciosa, camino feliz byte-idéntico. (Artefacto: los verificadores dejaron scratch `_probe/` que enrojeció el gate transitoriamente — limpiado; el gate propio siempre dio EXIT=0.)
+
+**Pendiente**:
+- **Commit/push**: el árbol está verde sin commitear (esperando confirmación del operador para commitear U4–U7 como tanda TDD).
+- **Brecha menor diferida** (MEJORA, scope U1): integridad referencial de `ordenInzoom` (que cada id sea subproceso del OPD) no se valida en `validarOrdenInzoom` (deferida a propósito con comentario «aguas arriba»). El reverse U4 solo setea ids de subproceso válidos, pero un modelo hidratado con un id ajeno no se rechaza. Decisión del operador si se cierra.
+- **Fase 2 (KORA)**: nota de frontera (8 casos) en `reglas §5.4`, espejo en `spec-opd §8.1`, cerrar `GAP-CX-PARSER`/`GAP-FIXTURE-DESCOMPOSICION` en `spec-opl §7.1`, aclarar `R-IDP-0A`. Solo corpus, sin código. **OJO: KORA tiene LEY CONGELADA (HITL 2026-06-14); la doctrina futura se autora en `~/kora-pneuma`. Fase 2 es un frente gobernado con custodio-kora y su propio spec→plan — no hacer unilateralmente.**
+- **Fase 3 (hd-opm)**: retirar rayos redundantes (guard banda adyacente, preservar 4/5/7/8), poblar el campo, reificar «Esperar N», **derogar R22-3**, **re-pin gobernado del golden** (diff no vacío deliberado) y re-importar a opforja. **Toca el golden HODOM ⇒ requiere autorización del operador (acción no reversible).**
+
+**Capacidad latente hasta Fase 3**: ningún modelo porta el campo aún; toda la Fase 1 es aditiva con fallback (golden hd-opm byte-idéntico). El valor visible (retirar los rayos de HODOM sin romper su OPL) llega con la Fase 3.
 
 ## Actualización 2026-06-14 — auditoría de la IMPLEMENTACIÓN vs SSOT consolidada v1.4.0 + remediación en 4 olas (DESPLEGADO Y VERIFICADO)
 
