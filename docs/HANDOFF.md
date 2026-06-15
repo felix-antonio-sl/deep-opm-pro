@@ -10,6 +10,26 @@
 
 ---
 
+## Actualización 2026-06-15 — frente invocación implícita bimodal (R-INV-2B vs M23): Fase 1 forward shipeada (U1·U2·U3); reverse/sim/checker pendientes
+
+**Origen**: en los in-zoom secuenciales de HODOM los subprocesos mostraban rayos de invocación redundantes con la verticalidad. `R-INV-2B` prohíbe dibujar el enlace en invocación implícita; la decisión de Mesa **M23** (modelo HODOM) los plasmó porque «en opforja v0 son la única realización textual del orden» (R22-3) — premisa **falsa**: el OPL «en esa secuencia» ya deriva de la geometría. **Causa raíz: brecha de herramienta, no conflicto de doctrina.** Spec del frente: `docs/specs/2026-06-14-invocacion-implicita-bimodal-design.md`.
+
+**Dictamen del panel deliberativo** (orquestación `dov-dori × cat-thinking × custodio-kora`, ratificado por el operador): la fuente de verdad del orden se mueve de los enlaces de invocación a un **campo declarado de 1ª clase** `Opd.ordenInzoom: Id[][]` (bandas con cardinalidad = presentación del preorden por su función rango). Frontera: **IMPLÍCITO** {secuencial, paralelo, AND-join síncrono}; **EXPLÍCITO** {reactivo-por-evento = enlace de *evento* (no invocación), autoinvocación/bucle, salto fuera de orden, cross-OPD}; **caso-demora DISUELTO** (no existe «demora sobre invocación implícita»: la espera se reifica como subproceso «Esperar» — verificado en SSOT `metodologia §784` + OPCloud `getTimeDuration`); join parcial/OR queda fuera (es abanico explícito).
+
+**Fase 1 forward SHIPEADA** (rama `invocacion-implicita-bimodal`; 3 commits TDD; golden hd-opm **byte-safe** por ser aditivo con fallback):
+- **U1** `5703d4fd` — campo `ordenInzoom` 1ª clase + `validarOrdenInzoom` (forma + anticadena) + serialización roundtrip. 59/0.
+- **U3** `6ceb7bb4` — OPL forward deriva del campo, no de la geometría. OPL 295/0.
+- **U2** `db6c7ee2` — layout: banda Y deriva del campo (bandas con cardinalidad). Autoría 293/0.
+Todos con `typecheck` exit 0; sin campo ⇒ fallback a geometría/topología de invocaciones (idéntico).
+
+**Pendiente (Fase 1 reverse/runtime + Fases 2-3)**:
+- **U4 reverse** — cerrar `GAP-CX-PARSER` (parsear «paralelo A y B, C en esa secuencia» → bandas). El corte delicado: la superficie del forward usa «y» con doble rol (intra-banda y conector de secuencia) → exige gramática contextual + fixtures de los 4 patrones; rushearlo = falso verde.
+- **U5 checker** doble vara (invocación redundante con el orden, R-INV-2B en el kernel); **U6 simulación** (el runner lee el campo para el flujo secuencial, R-EJEC-9, o Fase 3 regresiona la sim); **U7** fixture roundtrip estricto.
+- **Fase 2 (KORA)**: nota de frontera en `reglas §5.4`, espejo en `spec-opd §8.1`, cerrar GAP en `spec-opl §7.1`, aclarar `R-IDP-0A`.
+- **Fase 3 (hd-opm)**: retirar rayos redundantes (guard banda adyacente), poblar el campo, reificar «Esperar», **derogar R22-3**, re-pin gobernado del golden.
+
+**Decisión de ritmo**: se bancó el incremento forward (verde, aditivo, golden-safe) y se difirió la mitad reverse/sim a tanda fresca (el parser merece cabeza despejada — no falso verde). El incremento forward es deployable pero **capacidad latente** (ningún modelo porta el campo aún; el valor visible llega con la Fase 3).
+
 ## Actualización 2026-06-14 — auditoría de la IMPLEMENTACIÓN vs SSOT consolidada v1.4.0 + remediación en 4 olas (DESPLEGADO Y VERIFICADO)
 
 **Mandato**: medir el código vivo de `app/src` contra el corpus KORA consolidado a **v1.4.0** (la auditoría 06-12/06-14 consolidó la SSOT; ésta verifica que el producto la cumple) y remediar las brechas confirmadas por cortes gateados. Informe completo: `docs/auditorias/2026-06-14-auditoria-opforja-vs-ssot.md`.
