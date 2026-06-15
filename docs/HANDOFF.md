@@ -10,6 +10,32 @@
 
 ---
 
+## Actualización 2026-06-16 — Auditoría adversarial + endurecimiento del loop modelar-OPM-con-OpForja (18 hallazgos remediados)
+
+**Mandato**: «asegúrate de que el flujo [modelar OPM con OpForja] funciona 100%, identifica todo remediable y mejorable, remedia y mejora.» El flujo abarca método (skill `modelamiento-opm`), herramienta (opforja) y loop agente↔herramienta (proto→`compilarProto`→`emitirBundle`+`construirSello`→`verify:reproducible`/`render:headless`→import `hidratarModelo`→puente W6.0→`LogDecisiones`→re-elicitar).
+
+**Método**: auditoría adversarial empírica orquestada por workflows (8 tramos en paralelo, cada uno con probes reales `bun` sobre la API del repo + contraste skill↔código; cada hallazgo accionable verificado por un agente refutador). Resultado: **0 tramos rotos de raíz**, **skill `modelamiento-opm` 100% consistente con el código** (9 garantías duras verificadas, 0 divergencias), **2 bugs confirmados + 16 mejoras, 0 falsos positivos**. Remediación TDD secuencial (6 subsistemas con archivos disjuntos; cada uno deja `bun run check` verde antes de ceder el turno).
+
+**Commits**: deep-opm-pro `26765273` (`fix(loop): …`, 21 archivos +1050/−69) + esta entrada de HANDOFF, ambos en `main` pusheados. KORA `aa2e2f14` en `master` pusheado (logdec-01).
+
+**Lo remediado (18)**:
+- **Serialización — integridad referencial DURA de `ordenInzoom`** (import-01/anclas-01): `validarReferenciasOpd` ahora **rechaza en hidratación** todo id del orden declarado que no sea subproceso interno de la descomposición del OPD. Esto **cierra el camino de IMPORT** que el checker blando `checkOrdenInzoomReferenciaInvalida` (`ef8b8197`, severidad advertencia) dejaba abierto — son **complementarios**: el blando cubre el generador (rechazo ruidoso por advertencia no-adjudicada), el duro cubre el import (un modelo hidratado con id ajeno antes se aceptaba; ahora se rechaza, en simetría con anclas/notasMesa). Mensaje del checker blando mejorado cuando el OPD no tiene contorno (anclas-02). `padreId` colgante: el saneamiento ahora **avisa** (no silencioso; reparación preservada por backward-compat — import-02).
+- **`render:headless` (H1)** — **BUG**: dejaba Vite **huérfano en :5199** y **reusaba servidores stale** (rompía el aislamiento del «Vite efímero» del que depende `revisar-visual`). Reescrito a `vite.createServer` en-proceso con `strictPort` (H1H2-01). `--solo-opd` inexistente → exit 2 + `error.txt` (H1H2-04); excepción de navegador deja `error.txt` (H1H2-05).
+- **`verify:reproducible` (H2)** — diagnóstico de componente del sello revivido en `--proto` (H1H2-02); golden/proto ilegible → exit 2 (no 1, reservado a divergencia byte — H1H2-03).
+- **Puente W6.0 (`contextoSkill`)** — el export ya no pierde referencias normativas + fuente; anclas vigentes viajan en el cuerpo (no solo en el conteo); `claveProto` vacío se marca explícito (w60-01/02/03). Doctrina read-through intacta.
+- **Compilador (`normalizador`)** — **BUG**: cita normativa con paréntesis + `#clave` se extraía 2× → ancla duplicada; dedup por contención estricta de span (compilar-01). Esencia sin afiliación rechaza pidiendo completar afiliación; diag dirigido de V3 `puede iniciar` single (compilar-02/03).
+- **`logDecisiones`** — `construirLogDecisiones` rechaza `claveProto` duplicada (log ambiguo para re-elicitar) (logdec-02). **`bundle.ts`**: JSDoc declara que `emitirBundle` consume/muta el autor in-place (bundle-05).
+- **logdec-01 (KORA `aa2e2f14`)** — el doc de la skill `referencias/bundle-deep-opm-pro.md` documentaba `emitidoEn`; el emisor real usa `generadoEl`. Alineado el doc al código (SSOT del shape = código del modelador), re-transmutado a claude-code y desplegado a `~/.claude/skills`; `kora check --strict` 37/37 + health sano.
+
+**Verificación**: `check` 2728/0 (+34 tests TDD), `lint` limpio, `design:governance` OK, `render:headless:smoke` (+5 asserts nuevos: sin huérfano, falla ante stale-reuse, `--solo-opd`) y `verify:reproducible:smoke` verdes, **probe fresco independiente** del rechazo duro de `ordenInzoom` vía `hidratarModelo` (3/3: orden válido acepta; id fantasma rechaza; id de contorno rechaza). 0 falsos positivos en la verificación adversarial.
+
+**Decisiones/desviaciones** (validadas): (1) `import-02` → **aviso** en vez de rechazo duro, porque `json.test.ts:392` depende de la reparación de `padreId` (rechazar rompía backward-compat). (2) `H1H2-01` → **Vite por API en-proceso** (no parche de `child_process`): elimina de raíz huérfano + reúso de stale + necesidad de signal-handlers. (3) `compilar-02` reusó la categoría de rechazo `R8` (el tipo `CategoriaRechazo` cae fuera del stream); si se quiere categoría dedicada, extender `compilar/tipos.ts`.
+
+**Supuestos / riesgos / pendientes**:
+- **NO desplegado**: commits en `main` pero opforja sigue sirviendo el bundle anterior. Parte de los cambios afecta prod (rechazo duro de `ordenInzoom` en import, export W6.0, export LogDecisiones, dedup de ancla); el resto es dev-only / DCE de prod (render:headless, verify:reproducible, compilador). Deploy = `docker compose up -d --build` (acción manual, no pedida en esta sesión). **Riesgo de deploy = bajo**: HODOM v2.0 tiene `ordenInzoom` válido (14 OPDs) ⇒ el rechazo duro no lo afecta; ningún test regresó.
+- **Cambio de contrato de import**: un bundle externo cuyo `ordenInzoom` referencie un id no-interno ahora **falla al importar** (antes pasaba con solo una advertencia metodológica). Es el comportamiento deseado (simetría con anclas/notasMesa) pero conviene tenerlo presente para imports legacy.
+- **`compilar-02` categoría R8** compartida (cosmético; anotado arriba).
+
 ## Actualización 2026-06-15 (tarde) — Fases 2 (KORA) y 3 (hd-opm) del frente invocación implícita bimodal: COMPLETAS, verificadas, desplegadas
 
 **Mandato**: ejecutar Fase 2 (corpus KORA) y Fase 3 (migración HODOM + re-import a prod) sobre la Fase 1 ya en `main` (capacidad latente `Opd.ordenInzoom`). Independientes (repos distintos), ejecutadas en paralelo donde ayudó. Dos verificaciones adversariales de **contexto fresco** (Fase 2 vs spec; re-pin del golden) + una pre-prod: todas **PASS**.
