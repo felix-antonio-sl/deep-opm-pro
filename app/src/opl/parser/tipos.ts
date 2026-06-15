@@ -116,6 +116,23 @@ export type OracionOplAst =
       linea: number;
       familia: "descomposicion" | "despliegue" | "plegado" | "otro";
       sujeto: string;
+      /**
+       * Orden temporal declarado de la descomposición (Fase 1·U4): secuencia de
+       * bandas de NOMBRES de subproceso (anticadena por banda = paralelo). Solo
+       * presente en `descomposicion` con marcadores de orden («paralelo» o «en
+       * esa secuencia»); ausente ⇒ enumeración sin orden (legacy, sin campo). El
+       * planificador resuelve los nombres a ids contra los subprocesos del OPD
+       * hijo existente y emite `set-orden-inzoom`.
+       */
+      bandasNombres?: string[][];
+      /**
+       * Texto temporal crudo (sin markdown, sin cola «en esa secuencia»/«así
+       * como»). El planificador re-emite el orden resuelto y lo compara con este
+       * texto (verificación por inversa): si no coincide, la gramática fue ambigua
+       * (nombre con « y »/«,» interno) y RECHAZA en vez de corromper. Presente
+       * junto a `bandasNombres`.
+       */
+      ordenTemporalTexto?: string;
       etiqueta?: string;
     }
   | {
@@ -312,6 +329,10 @@ export type PatchOplPropuesto =
   | { tipo: "fijar-etiqueta-enlace"; linea: number; enlaceId: Id; anterior: string; siguiente: string }
   | { tipo: "aplicar-designacion-estado"; linea: number; entidadId: Id; estadoNombre: string; designacion: DesignacionEstado }
   | { tipo: "crear-refinamiento"; linea: number; entidadId: Id; familia: "descomposicion" | "despliegue" }
+  // Fase 1·U4: setea `opd.ordenInzoom` (orden temporal declarado) del OPD hijo
+  // de una descomposición EXISTENTE. No crea ni borra refinamientos (eso sigue
+  // siendo gesto de canvas). `ordenInzoom` ya viene resuelto a ids de subproceso.
+  | { tipo: "set-orden-inzoom"; linea: number; opdId: Id; ordenInzoom: Id[][] }
   | {
       /**
        * Patch que agrupa N enlaces ya planificados (mismo origen/destino logico,

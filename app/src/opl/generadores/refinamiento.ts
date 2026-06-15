@@ -302,7 +302,7 @@ function nombresDeApariencias(modelo: Modelo, apariencias: Apariencia[]): string
   });
 }
 
-function listarSecuenciaTemporal(items: string[]): string {
+export function listarSecuenciaTemporal(items: string[]): string {
   if (items.length <= 2) return items.join(", ");
   return `${items.slice(0, -1).join(", ")} y ${items[items.length - 1]}`;
 }

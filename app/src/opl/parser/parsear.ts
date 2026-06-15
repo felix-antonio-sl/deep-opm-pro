@@ -1136,14 +1136,21 @@ function parsearMetadata(texto: string, linea: LineaOplNormalizada) {
 }
 
 function parsearContexto(texto: string, linea: LineaOplNormalizada) {
-  const match = /^(.+?) (se descompone en|se despliega en|se pliega en)(?: .+)?$/iu.exec(texto);
+  const match = /^(.+?) (se descompone en|se despliega en|se pliega en)(?: (.+))?$/iu.exec(texto);
   if (!match) return null;
   const frase = (match[2] ?? "").toLocaleLowerCase("es");
   const familia: Extract<OracionOplAst, { kind: "contexto" }>["familia"] =
     frase.includes("descompone") ? "descomposicion" : frase.includes("despliega") ? "despliegue" : "plegado";
   if (familia !== "plegado") {
+    // Fase 1·U4: en descomposición, parsear el orden temporal declarado de la
+    // cola («paralelo A, B y C, D, en esa secuencia») a bandas de nombres.
+    const orden = familia === "descomposicion" ? parsearOrdenDescomposicion(match[3] ?? "") : undefined;
     return {
-      ast: { kind: "contexto" as const, linea: linea.linea, familia, sujeto: normalizarNombreOpl(match[1] ?? ""), ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}) },
+      ast: {
+        kind: "contexto" as const, linea: linea.linea, familia, sujeto: normalizarNombreOpl(match[1] ?? ""),
+        ...(orden ? { bandasNombres: orden.bandas, ordenTemporalTexto: orden.texto } : {}),
+        ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
+      },
       diagnosticos: [],
     };
   }
@@ -1192,6 +1199,78 @@ function astMetadata(linea: LineaOplNormalizada, sujeto: string, campo: Extract<
 function dividirLista(texto: string, conjuncion: "y" | "o"): string[] {
   const re = conjuncion === "y" ? /\s+y\s+/iu : /\s+o\s+/iu;
   return texto.split(",").flatMap((parte) => parte.split(re)).map((item) => item.trim()).filter(Boolean);
+}
+
+/**
+ * Fase 1·U4 — parsea la cola de una oración de descomposición a bandas de orden
+ * (espejo del forward `describirProcesosTemporales`). Devuelve `undefined` cuando
+ * NO hay orden declarado (enumeración legacy sin «paralelo» ni «en esa secuencia»):
+ * en ese caso el reverse no toca `ordenInzoom`.
+ *
+ * Pasos: 1) retirar la cola «, así como <objetos>» (los objetos no son del
+ * orden); 2) detectar/retirar el marcador «en esa secuencia»; 3) si hay orden
+ * (secuencia o «paralelo»), tokenizar a bandas con `parsearBandasOrden`.
+ */
+function parsearOrdenDescomposicion(resto: string): { bandas: string[][]; texto: string } | undefined {
+  // La cola de objetos «, así como …» va SIEMPRE al final (tras la secuencia).
+  let temporal = resto.replace(/,?\s*as[ií]\s+como\s+.+$/iu, "").trim();
+  const tieneSecuencia = /,?\s*en\s+esa\s+secuencia$/iu.test(temporal);
+  temporal = temporal.replace(/,?\s*en\s+esa\s+secuencia$/iu, "").trim();
+  const tieneParalelo = /\bparalelo\b/iu.test(temporal);
+  if (!temporal || (!tieneSecuencia && !tieneParalelo)) return undefined;
+  return { bandas: parsearBandasOrden(temporal), texto: temporal };
+}
+
+/**
+ * Tokeniza el texto temporal en bandas. El token «y» tiene doble rol: dentro de
+ * un grupo `paralelo` marca el último nombre de la banda (listarOpl emite UN solo
+ * «y», antes del nombre final); fuera, «,»/«y» separan bandas de la secuencia.
+ * Desambiguación dirigida por el marcador `paralelo`: una banda paralela siempre
+ * lo lleva y termina en su primer nombre unido por «y»; un singleton consume un
+ * único token. La gramática es inequívoca porque el forward es determinista.
+ */
+function parsearBandasOrden(temporal: string): string[][] {
+  // Partir en tokens registrando el separador que PRECEDE a cada uno.
+  const tokens: Array<{ sep: "inicio" | "coma" | "y"; texto: string }> = [];
+  const sepRe = /\s*,\s*|\s+y\s+/iu;
+  let resto = temporal.trim();
+  let sep: "inicio" | "coma" | "y" = "inicio";
+  for (;;) {
+    const m = sepRe.exec(resto);
+    if (!m) {
+      if (resto.trim()) tokens.push({ sep, texto: resto.trim() });
+      break;
+    }
+    tokens.push({ sep, texto: resto.slice(0, m.index).trim() });
+    sep = m[0].includes(",") ? "coma" : "y";
+    resto = resto.slice(m.index + m[0].length);
+  }
+
+  const bandas: string[][] = [];
+  let i = 0;
+  while (i < tokens.length) {
+    const token = tokens[i]!;
+    const esParalelo = /^paralelo\s+/iu.test(token.texto);
+    if (esParalelo) {
+      const nombres = [normalizarNombreOpl(token.texto.replace(/^paralelo\s+/iu, ""))];
+      i += 1;
+      // listarOpl: nombres unidos por «, » y el último por « y ». Consumimos los
+      // unidos por coma; el primer token unido por «y» es el nombre final.
+      while (i < tokens.length && tokens[i]!.sep === "coma") {
+        nombres.push(normalizarNombreOpl(tokens[i]!.texto));
+        i += 1;
+      }
+      if (i < tokens.length && tokens[i]!.sep === "y") {
+        nombres.push(normalizarNombreOpl(tokens[i]!.texto));
+        i += 1;
+      }
+      bandas.push(nombres.filter(Boolean));
+    } else {
+      bandas.push([normalizarNombreOpl(token.texto)].filter(Boolean));
+      i += 1;
+    }
+  }
+  return bandas.filter((banda) => banda.length > 0);
 }
 
 function limpiarEstado(texto: string): string {

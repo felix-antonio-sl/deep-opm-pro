@@ -118,6 +118,12 @@ function aplicarPatchNoEnlace(
         : desplegarObjeto(modelo, opdId, patch.entidadId);
       return resultado.ok ? ok(resultado.value.modelo) : resultado;
     }
+    case "set-orden-inzoom": {
+      // Fase 1·U4: setea el orden temporal declarado en el OPD hijo existente.
+      const opd = modelo.opds[patch.opdId];
+      if (!opd) return ok(modelo);
+      return ok({ ...modelo, opds: { ...modelo.opds, [patch.opdId]: { ...opd, ordenInzoom: patch.ordenInzoom } } });
+    }
   }
 }
 

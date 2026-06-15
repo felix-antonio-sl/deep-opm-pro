@@ -248,5 +248,7 @@ function describirPatch(patch: PatchOplPropuesto): string {
       return `crear abanico ${patch.operador} (${patch.ramas.length} ramas)`;
     case "crear-refinamiento":
       return `crear ${patch.familia} para ${patch.entidadId}`;
+    case "set-orden-inzoom":
+      return `orden de descomposición (${patch.ordenInzoom.length} bandas)`;
   }
 }

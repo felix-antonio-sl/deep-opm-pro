@@ -1,6 +1,9 @@
 import { tieneDesignacion } from "../../modelo/estadosDesignaciones";
 import { entidadIdDeExtremo, extremoEntidad } from "../../modelo/extremos";
 import { estadosDeEntidad } from "../../modelo/operaciones";
+import { subprocesosOrdenadosDeRefinamiento } from "../../modelo/operaciones/refinamiento";
+import { listarSecuenciaTemporal } from "../generadores/refinamiento";
+import { listarOpl, nombreOpl } from "../generadores/refsHints";
 import type { Enlace, Entidad, Id, Modelo, Modificador, TipoEnlace, TipoEntidad } from "../../modelo/tipos";
 import { ordenarOpdsParaOpl } from "../bloquesJerarquicos";
 import { generarOplInteractivo } from "../generar";
@@ -111,7 +114,15 @@ function planificarContexto(
   const yaExiste = ast.familia === "descomposicion"
     ? entidad.refinamientos?.descomposicion
     : entidad.refinamientos?.despliegue;
-  if (yaExiste) return;
+  if (yaExiste) {
+    // Fase 1·U4: la descomposición ya existe — si la oración trae orden temporal
+    // declarado, lo seteamos sobre el OPD hijo (set-orden-inzoom). No se crea ni
+    // borra refinamiento.
+    if (ast.familia === "descomposicion" && ast.bandasNombres && entidad.tipo === "proceso") {
+      planificarOrdenInzoom(modelo, ast, entidad.id, yaExiste.opdId, ast.bandasNombres, registry);
+    }
+    return;
+  }
   registry.add({ tipo: "crear-refinamiento", linea: ast.linea, entidadId: entidad.id, familia: ast.familia });
   // Sin pérdida silenciosa: la oración canónica enumera miembros, pero el
   // reverse solo crea el refinamiento (OPD hijo vacío); los miembros se
@@ -123,6 +134,95 @@ function planificarContexto(
     columna: 1,
     mensaje: `Se crea ${ast.familia === "descomposicion" ? "la descomposición" : "el despliegue"} de '${ast.sujeto}' con OPD hijo vacío; los miembros enumerados en la oración no se crean ni se mueven automáticamente.`,
   });
+}
+
+/**
+ * Fase 1·U4: resuelve las bandas de NOMBRES (del AST contexto) a ids de
+ * subproceso del OPD hijo existente y emite `set-orden-inzoom`. Si algún nombre
+ * no resuelve a un subproceso del in-zoom, NO emite el patch (evita pérdida
+ * silenciosa: emite diagnóstico y deja el campo intacto). Idempotente.
+ */
+function planificarOrdenInzoom(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "contexto" }>,
+  procesoId: Id,
+  opdHijoId: Id,
+  bandasNombres: string[][],
+  registry: PatchRegistry,
+): void {
+  const opdHijo = modelo.opds[opdHijoId];
+  if (!opdHijo) return;
+  const porClave = new Map<string, Id>();
+  for (const ap of subprocesosOrdenadosDeRefinamiento(modelo, opdHijo, procesoId)) {
+    const entidad = modelo.entidades[ap.entidadId];
+    if (entidad) porClave.set(claveNombre(entidad.nombre), ap.entidadId);
+  }
+  const ordenInzoom: Id[][] = [];
+  for (const banda of bandasNombres) {
+    const ids: Id[] = [];
+    for (const nombre of banda) {
+      const id = porClave.get(claveNombre(nombre));
+      if (!id) {
+        // Nombre no resuelto: típicamente un subproceso con « y »/«,» interno que
+        // el split rompió. Aviso VISIBLE (no info silenciosa); el orden no se toca.
+        registry.diagnostico({
+          codigo: "unknown-symbol",
+          severidad: "warning",
+          linea: ast.linea,
+          columna: 1,
+          mensaje: `No se reconstruyó el orden de descomposición de '${ast.sujeto}': '${nombre}' no es un subproceso del in-zoom (la oración puede ser ambigua si un subproceso lleva « y » o «,» en su nombre).`,
+          sugerencia: "Declara el orden desde el canvas, o renombra los subprocesos para evitar separadores en el nombre.",
+        });
+        return;
+      }
+      ids.push(id);
+    }
+    ordenInzoom.push(ids);
+  }
+  // Verificación por inversa (riesgo §6, falso verde): re-emitir el orden resuelto
+  // y compararlo con el texto temporal original. Si difiere, la gramática fue
+  // ambigua (nombre con « y »/«,»/«paralelo» interno que el split malinterpretó):
+  // RECHAZA ruidosamente en vez de corromper el campo (ids duplicados/perdidos).
+  if (ast.ordenTemporalTexto !== undefined
+    && normalizarOrden(emitirOrdenTemporal(modelo, ordenInzoom)) !== normalizarOrden(ast.ordenTemporalTexto)) {
+    registry.diagnostico({
+      codigo: "unsupported-kernel",
+      severidad: "warning",
+      linea: ast.linea,
+      columna: 1,
+      mensaje: `No se reconstruyó el orden de descomposición de '${ast.sujeto}': la oración es ambigua (algún subproceso lleva « y », «,» o «paralelo» en su nombre). El orden quedó intacto; edítalo en el canvas.`,
+      sugerencia: "Declara el orden desde el canvas, o renombra los subprocesos para evitar separadores en el nombre.",
+    });
+    return;
+  }
+  if (JSON.stringify(opdHijo.ordenInzoom) === JSON.stringify(ordenInzoom)) return;
+  registry.add({ tipo: "set-orden-inzoom", linea: ast.linea, opdId: opdHijoId, ordenInzoom });
+}
+
+/**
+ * Re-emite el texto temporal del orden resuelto con LA MISMA lógica del forward
+ * (`paralelo` + listarOpl + listarSecuenciaTemporal sobre nombreOpl), para la
+ * verificación por inversa de `planificarOrdenInzoom`.
+ */
+function emitirOrdenTemporal(modelo: Modelo, ordenInzoom: Id[][]): string {
+  return listarSecuenciaTemporal(ordenInzoom.map((banda) => {
+    const nombres = banda.map((id) => {
+      const entidad = modelo.entidades[id];
+      return entidad ? nombreOpl(entidad) : id;
+    });
+    return nombres.length > 1 ? `paralelo ${listarOpl(nombres)}` : (nombres[0] ?? "");
+  }));
+}
+
+/** Normaliza para comparar orden temporal: sin markdown, sin acentos, minúsculas, espacios colapsados. */
+function normalizarOrden(texto: string): string {
+  return texto
+    .replace(/\*\*?|`/g, "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("es")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function planificarDesignacionEstado(
@@ -970,6 +1070,8 @@ function patchKey(patch: PatchOplPropuesto): string {
     }
     case "crear-refinamiento":
       return `${patch.tipo}:${patch.entidadId}:${patch.familia}`;
+    case "set-orden-inzoom":
+      return `${patch.tipo}:${patch.opdId}`;
   }
 }
 
