@@ -485,14 +485,21 @@ export function aplicarLayoutCompleto(
       // Orden declarado (`en esa secuencia`): cada interno listado va a su propia
       // banda según su índice; los no listados (y los reactivos) se apilan después
       // conservando su criterio vigente. Sin orden declarado, nada cambia.
-      const ordenDeclarado = ordenInzoom.get(opd.id) ?? [];
-      const indiceDeclarado = new Map<Id, number>(ordenDeclarado.map((id, indice) => [id, indice]));
-      const baseNoListados = indiceDeclarado.size;
+      // Orden declarado: el campo del modelo (opd.ordenInzoom, bandas con
+      // cardinalidad) es la fuente; el parametro Map (lista plana del DSL) es
+      // fallback retrocompat (cada id su propia banda). Sin ninguno, topologia
+      // de invocaciones (sin cambio, golden byte-safe). Fase 1·U2.
+      const ordenDeclarado: Id[][] = opd.ordenInzoom ?? (ordenInzoom.get(opd.id) ?? []).map((id) => [id]);
+      const indiceDeclarado = new Map<Id, number>();
+      ordenDeclarado.forEach((banda, indice) => {
+        for (const id of banda) indiceDeclarado.set(id, indice);
+      });
+      const baseNoListados = ordenDeclarado.length;
       const nivelEf = (a: Apariencia) => {
         const declarado = indiceDeclarado.get(a.entidadId);
         if (declarado !== undefined) return declarado;
         const topologico = reactivos.has(a.entidadId) ? maxNivelBase + 1 : nivel.get(a.entidadId) ?? 0;
-        return indiceDeclarado.size > 0 ? baseNoListados + topologico : topologico;
+        return ordenDeclarado.length > 0 ? baseNoListados + topologico : topologico;
       };
 
       const maxNivel = subs.length ? Math.max(0, ...subs.map(nivelEf)) : -1;

@@ -132,6 +132,31 @@ describe("autoria/layout — cobertura directa del motor", () => {
     expect(solapesReales(a.modelo)).toBe(0);
   });
 
+  test("ordenInzoom del modelo agrupa paralelos en banda y la secuencia debajo (Fase 1·U2)", () => {
+    const a = crearAutor({ id: "ord", nombre: "Orden" });
+    a.opd("sd0", "SD0", null);
+    a.opd("inz", "Evaluar (in-zoom)", "sd0", 10);
+    a.entidad("p", "proceso", "Evaluar", "fisica", "sistemica");
+    a.refDescomp("p", "inz");
+    a.ver("sd0", "p", 0, 0);
+    a.ver("inz", "p", 0, 0);
+    for (const k of ["sa", "sb", "sc"]) {
+      a.entidad(k, "proceso", `Sub ${k}`, "fisica", "sistemica");
+      a.ver("inz", k, 0, 0);
+      a.enlazar("inz", "p", k, "agregacion");
+    }
+    // Campo de orden en el modelo: [sa, sb] en paralelo (anticadena), luego sc.
+    a.modelo.opds[a.idOpd("inz")]!.ordenInzoom = [[a.id("sa"), a.id("sb")], [a.id("sc")]];
+
+    aplicarLayoutCompleto(a.modelo, a.internosInzoom);
+
+    const apOf = (key: string) =>
+      Object.values(a.modelo.opds[a.idOpd("inz")]!.apariencias).find((ap) => ap.entidadId === a.id(key))!;
+    expect(apOf("sa").y).toBe(apOf("sb").y); // misma banda (paralelo)
+    expect(apOf("sc").y).toBeGreaterThan(apOf("sa").y); // banda siguiente (secuencia)
+    expect(solapesReales(a.modelo)).toBe(0);
+  });
+
   test("in-zoom con banda ancha: envuelve subprocesos preservando lectura izquierda→derecha arriba→abajo", () => {
     const a = crearAutor({ id: "wrap", nombre: "Wrap" });
     a.opd("sd0", "SD0", null);
