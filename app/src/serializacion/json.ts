@@ -5,6 +5,7 @@ import type {
   EstadoCargaSubmodelo,
   EstadoRatificacion,
   EstadoSatisfaccionRequisito,
+  Estereotipo,
   Id,
   Modelo,
   NivelAutoridad,
@@ -18,6 +19,7 @@ import type {
   SubmodeloReferencia,
 } from "../modelo/tipos";
 import { COMPONENTES_SELLO } from "../modelo/tipos";
+import { esRequisito } from "../modelo/estereotipos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import { validarApariencias, validarAparienciasEnlace } from "./validarApariencias";
 import { validarEnlaces, validarAbanicos } from "./validarEnlaces";
@@ -162,6 +164,8 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     opdsValidados.value,
   );
   if (!notasMesaValidadas.ok) return notasMesaValidadas;
+  const estereotiposValidados = validarEstereotipos(value.estereotipos);
+  if (!estereotiposValidados.ok) return estereotiposValidados;
   const procedenciaValidada = validarProcedencia(value.procedencia);
   if (!procedenciaValidada.ok) return procedenciaValidada;
   const submodelosValidados = validarSubmodelos(value.submodelos, entidadesValidadas.value, opdsValidados.value);
@@ -192,6 +196,7 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     ...(Object.keys(satisfaccionesValidadas.value).length > 0 ? { satisfaccionesRequisito: satisfaccionesValidadas.value } : {}),
     ...(Object.keys(anclasValidadas.value).length > 0 ? { anclasNormativas: anclasValidadas.value } : {}),
     ...(Object.keys(notasMesaValidadas.value).length > 0 ? { notasMesa: notasMesaValidadas.value } : {}),
+    ...(Object.keys(estereotiposValidados.value).length > 0 ? { estereotipos: estereotiposValidados.value } : {}),
     ...(procedenciaValidada.value ? { procedencia: procedenciaValidada.value } : {}),
     ...(Object.keys(submodelosValidados.value).length > 0 ? { submodelos: submodelosValidados.value } : {}),
     ...(padreSubmodeloValidado.value ? { referenciaPadreSubmodelo: padreSubmodeloValidado.value } : {}),
@@ -246,7 +251,7 @@ function validarSatisfaccionesRequisito(
   const satisfacciones: Record<Id, SatisfaccionRequisito> = {};
   for (const [id, raw] of Object.entries(value)) {
     if (!esRecord(raw) || raw.id !== id) return fallo(`Satisfacción de requisito inválida: ${id}`);
-    if (typeof raw.requisitoEntidadId !== "string" || entidades[raw.requisitoEntidadId]?.estereotipo !== "requirement") {
+    if (typeof raw.requisitoEntidadId !== "string" || !esRequisito(entidades[raw.requisitoEntidadId])) {
       return fallo(`Satisfacción de requisito inválida: ${id}.requisitoEntidadId`);
     }
     if (!esRecord(raw.target) || (raw.target.tipo !== "entidad" && raw.target.tipo !== "enlace") || typeof raw.target.id !== "string") {
@@ -329,6 +334,32 @@ function validarNotasMesa(
     notas[id] = { id, target: target.value, texto: raw.texto.trim(), fecha: raw.fecha.trim() };
   }
   return ok(notas);
+}
+
+/**
+ * Valida `estereotipos` (D6, catálogo). Extensión aditiva: ausente ⇒ `{}` (byte-identidad
+ * sobre opcional ausente). Cada entrada exige `id` coincidente con la clave, `nombre` no
+ * vacío y `propositoDeModelado` opcional string-no-vacío. Mismo contrato de rechazo ruidoso
+ * que `validarAnclasNormativas` (no silencio). La RESOLUCIÓN de `Entidad.estereotipoId`
+ * contra este catálogo + la fábrica es el contrato de import en `validarReferenciasOpd`.
+ */
+function validarEstereotipos(value: unknown): Resultado<Record<Id, Estereotipo>> {
+  if (value === undefined) return ok({});
+  if (!esRecord(value)) return fallo("Modelo inválido: estereotipos");
+  const estereotipos: Record<Id, Estereotipo> = {};
+  for (const [id, raw] of Object.entries(value)) {
+    if (!esRecord(raw) || raw.id !== id) return fallo(`Estereotipo inválido: ${id}`);
+    if (typeof raw.nombre !== "string" || !raw.nombre.trim()) return fallo(`Estereotipo inválido: ${id}.nombre`);
+    if (raw.propositoDeModelado !== undefined && (typeof raw.propositoDeModelado !== "string" || !raw.propositoDeModelado.trim())) {
+      return fallo(`Estereotipo inválido: ${id}.propositoDeModelado`);
+    }
+    estereotipos[id] = {
+      id,
+      nombre: raw.nombre.trim(),
+      ...(typeof raw.propositoDeModelado === "string" && raw.propositoDeModelado.trim() ? { propositoDeModelado: raw.propositoDeModelado.trim() } : {}),
+    };
+  }
+  return ok(estereotipos);
 }
 
 /**

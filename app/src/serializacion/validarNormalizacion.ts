@@ -72,6 +72,8 @@ export function normalizarModelo(modelo: Modelo): Modelo {
     ...(modelo.anclasNormativas && Object.keys(modelo.anclasNormativas).length > 0 ? { anclasNormativas: modelo.anclasNormativas } : {}),
     // W6.5-a: notas de mesa; allowlist condicional (ausente/{} ⇒ no se emite = byte-identidad).
     ...(modelo.notasMesa && Object.keys(modelo.notasMesa).length > 0 ? { notasMesa: modelo.notasMesa } : {}),
+    // D6: catálogo de estereotipos; allowlist condicional (ausente/{} ⇒ no se emite = byte-identidad).
+    ...(modelo.estereotipos && Object.keys(modelo.estereotipos).length > 0 ? { estereotipos: modelo.estereotipos } : {}),
     // W5.3/L6: sello de procedencia; allowlist condicional (ausente ⇒ no se emite = byte-identidad).
     ...(modelo.procedencia ? { procedencia: modelo.procedencia } : {}),
     ...(modelo.submodelos ? { submodelos: modelo.submodelos } : {}),

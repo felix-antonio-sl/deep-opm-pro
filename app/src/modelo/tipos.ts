@@ -84,6 +84,7 @@ export type {
   RequisitoEntidadMetadata,
   TargetSatisfaccionRequisito,
   SatisfaccionRequisito,
+  Estereotipo,
   ReferenciaNorma,
   EstadoAncla,
   NivelAutoridad,

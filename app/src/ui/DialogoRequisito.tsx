@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
+import { esRequisito } from "../modelo/estereotipos";
 import type { EstadoSatisfaccionRequisito, Modelo, RequisitoEntidadMetadata } from "../modelo/tipos";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
@@ -20,7 +21,7 @@ export function DialogoRequisito() {
   const [actor, setActor] = useState("");
   const [satisfaction, setSatisfaction] = useState<EstadoSatisfaccionRequisito>("pendiente");
   const requisitos = useMemo(
-    () => Object.values(modelo.entidades).filter((entidad) => entidad.estereotipo === "requirement" && entidad.requisito),
+    () => Object.values(modelo.entidades).filter((entidad) => esRequisito(entidad) && entidad.requisito),
     [modelo.entidades],
   );
   const [requisitoSeleccionado, setRequisitoSeleccionado] = useState("");
@@ -158,7 +159,7 @@ function describirTarget(modelo: Modelo, seleccionId: string | null, enlaceSelec
   if (seleccionId) {
     const entidad = modelo.entidades[seleccionId];
     if (!entidad) return { label: seleccionId, vinculable: false };
-    if (entidad.estereotipo === "requirement") return { label: entidad.nombre, vinculable: false };
+    if (esRequisito(entidad)) return { label: entidad.nombre, vinculable: false };
     return { label: `${entidad.nombre} (${entidad.tipo})`, vinculable: true };
   }
   if (enlaceSeleccionId) {

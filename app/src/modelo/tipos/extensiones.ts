@@ -37,6 +37,22 @@ export interface SatisfaccionRequisito {
   descripcion?: string;
 }
 
+// --- Estereotipo (D6) -------------------------------------------------------
+// Extensión ADITIVA y OPCIONAL del formato `deep-opm-pro.modelo.v0`: catálogo de
+// estereotipos (built-in de fábrica + entradas de `Modelo.estereotipos`). Mismo
+// estatuto NO-semántico que AnclaNormativa/NotaMesa: el kernel lo IGNORA — un
+// estereotipo del catálogo NO entra a entidades/enlaces/estados, NO emite OPL
+// nuclear, NO cuenta como cosa, NO altera `validarModelo`/checkers/conteo OPL.
+// (La APLICACIÓN a una entidad vía `Entidad.estereotipoId` SÍ es dato del modelo:
+// es el estereotipo APLICADO, no el catálogo del que se toma.)
+
+export interface Estereotipo {
+  id: Id;
+  nombre: string;
+  /** Owner de valor del catálogo (D6, spec §3): por qué/cuándo usar este estereotipo. */
+  propositoDeModelado?: string;
+}
+
 // --- AnclaNormativa (W5.1) -------------------------------------------------
 // Extensión ADITIVA y OPCIONAL del formato `deep-opm-pro.modelo.v0`: trazabilidad
 // de procedencia normativa del autor sobre el modelo. NO es una cuarta primitiva

@@ -1,4 +1,5 @@
 import { abanicoDeEnlace } from "../../modelo/abanicos";
+import { esRequisito } from "../../modelo/estereotipos";
 import { componerModelos, verificarLinealidad } from "../../modelo/composicion";
 import { resolverDecisionAbanico, resolverDecisionEnlace } from "../../modelo/decision";
 import {
@@ -555,7 +556,7 @@ function targetSeleccionActual(state: ReturnType<GetStore>): TargetSatisfaccionR
 function targetInicialRequisito(state: ReturnType<GetStore>): TargetSatisfaccionRequisito | null {
   const target = targetSeleccionActual(state);
   if (!target) return null;
-  if (target.tipo === "entidad" && state.modelo.entidades[target.id]?.estereotipo === "requirement") return null;
+  if (target.tipo === "entidad" && esRequisito(state.modelo.entidades[target.id])) return null;
   return target;
 }
 

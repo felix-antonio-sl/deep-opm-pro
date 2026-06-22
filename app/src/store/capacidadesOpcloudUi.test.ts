@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { store } from "../store";
+import { ESTEREOTIPO_REQUIREMENT_ID } from "../modelo/estereotipos";
 import { exportarModelo } from "../serializacion/json";
 import {
   crearEnlace,
@@ -76,7 +77,7 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
     const viewId = estado.opdActivoId;
     store.getState().crearRequirementViewSeleccionado();
     estado = store.getState();
-    expect(estado.modelo.entidades[requisitoId]?.estereotipo).toBe("requirement");
+    expect(estado.modelo.entidades[requisitoId]?.estereotipoId).toBe(ESTEREOTIPO_REQUIREMENT_ID);
     expect(estado.modelo.entidades[requisitoId]?.requisito).toMatchObject({ idLogico: "REQ-UX-1" });
     expect(estado.opdActivoId).toBe(viewId);
     expect(Object.values(estado.modelo.opds).filter((opd) => opd.vista?.kind === "requirement-view" && opd.vista.requisitoEntidadId === requisitoId)).toHaveLength(1);
@@ -104,7 +105,7 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
 
     const estado = store.getState();
     const requisito = Object.values(estado.modelo.entidades).find((entidad) => entidad.requisito?.idLogico === "REQ-UX-AUTO");
-    expect(requisito?.estereotipo).toBe("requirement");
+    expect(requisito?.estereotipoId).toBe(ESTEREOTIPO_REQUIREMENT_ID);
     expect(Object.values(estado.modelo.satisfaccionesRequisito ?? {})).toContainEqual(expect.objectContaining({
       requisitoEntidadId: requisito?.id,
       target: { tipo: "entidad", id: targetId },
@@ -137,7 +138,7 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
 
     const estado = store.getState();
     const requisito = Object.values(estado.modelo.entidades).find((entidad) => entidad.requisito?.idLogico === "REQ-LINK-AUTO");
-    expect(requisito?.estereotipo).toBe("requirement");
+    expect(requisito?.estereotipoId).toBe(ESTEREOTIPO_REQUIREMENT_ID);
     expect(Object.values(estado.modelo.satisfaccionesRequisito ?? {})).toContainEqual(expect.objectContaining({
       requisitoEntidadId: requisito?.id,
       target: { tipo: "enlace", id: enlaceId },

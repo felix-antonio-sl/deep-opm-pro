@@ -125,7 +125,12 @@ export interface Entidad {
   valorSlot?: ValorSlot;
   simulacion?: ParametrosSimulacionEntidad;
   descripcion?: string;
-  estereotipo?: "requirement";
+  /**
+   * D6: id del estereotipo aplicado. Resuelve a un estereotipo de fábrica
+   * (ESTEREOTIPO_REQUIREMENT_ID) o a una entrada de `Modelo.estereotipos`.
+   * Reemplaza el legacy `estereotipo?: "requirement"` (adaptado al hidratar).
+   */
+  estereotipoId?: Id;
   requisito?: RequisitoEntidadMetadata;
   urls?: UrlObjetoTipada[];
   imagen?: ImagenEntidad;
