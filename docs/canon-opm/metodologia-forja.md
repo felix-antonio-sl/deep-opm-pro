@@ -28,7 +28,7 @@ relations:
 Este archivo no es la SSOT. La autoridad primaria vive en KORA:
 
 - URN: `urn:fxsl:kb:metodologia-forja-opm-es`
-- Path: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/metodologia-forja-es.md`
+- Resolución de path: por URN vía `docs/canon-opm/resolutor-urn.json` (re-ancla a la SSOT viva en PNEUMA bajo `KORA_RAIZ`, default `/home/felix/kora-pneuma`; la bestia congelada `/home/felix/kora` queda como último origen histórico). Lector: `app/src/canon/resolutorUrn.ts`.
 - Estado: `publicado`
 - Versión vigente observada: `1.5.1` (2026-06-12)
 
@@ -79,6 +79,6 @@ fijar un literal de glosa de herramienta) y corrige anclas SSOT misatribuidas
 ## Acceso Rápido
 
 ```bash
-cd /home/felix/kora
-python3 toolchain/kora resolve urn:fxsl:kb:metodologia-forja-opm-es
+KORA_RAIZ="${KORA_RAIZ:-/home/felix/kora-pneuma}"
+cat "$KORA_RAIZ/artefactos/conocimiento/fxsl/metodologia-forja-opm-es.md"   # path resuelto por docs/canon-opm/resolutor-urn.json (SSOT viva en pneuma)
 ```

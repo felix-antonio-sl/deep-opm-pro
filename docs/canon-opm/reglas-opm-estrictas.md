@@ -27,7 +27,7 @@ relations:
 Este archivo no es la SSOT. La autoridad primaria vive en KORA:
 
 - URN: `urn:fxsl:kb:reglas-opm-estrictas-es`
-- Path: `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/reglas-opm-estrictas-es.md`
+- Resolución de path: por URN vía `docs/canon-opm/resolutor-urn.json` (re-ancla a la SSOT viva en PNEUMA bajo `KORA_RAIZ`, default `/home/felix/kora-pneuma`; la bestia congelada `/home/felix/kora` queda como último origen histórico). Lector: `app/src/canon/resolutorUrn.ts`.
 - Estado: `publicado`
 
 ## Rol En Opforja
@@ -78,6 +78,6 @@ no copia el canon; consultar la SSOT por la URN.
 ## Acceso Rápido
 
 ```bash
-cd /home/felix/kora
-python3 toolchain/kora resolve urn:fxsl:kb:reglas-opm-estrictas-es
+KORA_RAIZ="${KORA_RAIZ:-/home/felix/kora-pneuma}"
+cat "$KORA_RAIZ/artefactos/conocimiento/fxsl/reglas-opm-estrictas-es.md"   # path resuelto por docs/canon-opm/resolutor-urn.json (SSOT viva en pneuma)
 ```
