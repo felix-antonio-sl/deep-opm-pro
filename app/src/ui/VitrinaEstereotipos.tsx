@@ -32,11 +32,13 @@ export function VitrinaEstereotipos() {
 
   // Estado LOCAL del componente (no toca el trío sellado del store).
   const [nombre, setNombre] = useState("");
+  const [proposito, setProposito] = useState("");
   const [resaltadoId, setResaltadoId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!abierta) {
       setNombre("");
+      setProposito("");
       setResaltadoId(null);
     }
   }, [abierta]);
@@ -51,8 +53,10 @@ export function VitrinaEstereotipos() {
 
   const guardar = () => {
     if (!nombreLimpio || !haySeleccion) return;
-    crearDesdeSeleccion(nombreLimpio);
+    const propLimpio = proposito.trim();
+    crearDesdeSeleccion(nombreLimpio, propLimpio ? { propositoDeModelado: propLimpio } : undefined);
     setNombre("");
+    setProposito("");
   };
 
   return (
@@ -115,6 +119,15 @@ export function VitrinaEstereotipos() {
               Guardar
             </DialogoAccion>
           </div>
+          <input
+            type="text"
+            value={proposito}
+            placeholder="Propósito de modelado (opcional): por qué/cuándo usarlo"
+            aria-label="Propósito de modelado del estereotipo (opcional)"
+            onInput={(event) => setProposito(event.currentTarget.value)}
+            style={style.input}
+            data-testid="vitrina-proposito"
+          />
           <p style={style.hint}>
             {haySeleccion
               ? `${seleccionados.length} cosa${seleccionados.length === 1 ? "" : "s"} seleccionada${seleccionados.length === 1 ? "" : "s"} se capturarán como plantilla injertable.`
