@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { cambiarAfiliacion, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, descomponerProceso, estadosDeEntidad, renombrarEstado } from "../../../modelo/operaciones";
 import { agregarNotaMesa } from "../../../modelo/notasMesa";
-import type { Entidad, Resultado } from "../../../modelo/tipos";
+import { ESTEREOTIPO_REQUIREMENT_ID } from "../../../modelo/estereotipos";
+import { oracionEntidad } from "../../../opl/generadores/estructural";
+import type { Entidad, Estereotipo, Modelo, Resultado } from "../../../modelo/tipos";
 import { ESTADOS, identificadorCanonicoApariencia, identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
 import { suprimirEstadoEnAparicion } from "../../../modelo/visibilidadEstados";
 
@@ -295,6 +297,82 @@ describe("composer entidad", () => {
     const attrs = cell.attrs as Record<string, unknown>;
 
     expect((attrs.label as Record<string, unknown>).text).toBe("Temperatura [°C] {T}");
+  });
+});
+
+// D6.3 / R-VIS-STEREO-1: una cosa estereotipada DEBE mostrar su estereotipo en el
+// canvas como `<<Nombre>>` (doble ángulo). Evidencia OpCloud/R-4604: el requisito
+// es un objeto OPM estereotipado, rotulado <<Requirement>>. El badge es META: NO
+// emite OPL nuclear (espejo doctrinal en el test 5), usa paleta CODEX en tinta
+// (crimson PROHIBIDO — es UI-only para foco/selección, ui-forja/06).
+describe("D6.3 badge de estereotipo en canvas", () => {
+  function reconstruir(
+    estereotipoId: string | undefined,
+    estereotipos?: Record<string, Estereotipo>,
+  ): { modelo: Modelo; entidad: Entidad; aparienciaId: string } {
+    let modelo = must(crearObjeto(crearModelo(), crearModelo().opdRaizId, { x: 20, y: 30 }, "Carga"));
+    const entidadBase = Object.values(modelo.entidades)[0]!;
+    const entidad: Entidad = estereotipoId ? { ...entidadBase, estereotipoId } : entidadBase;
+    modelo = {
+      ...modelo,
+      entidades: { ...modelo.entidades, [entidad.id]: entidad },
+      ...(estereotipos ? { estereotipos } : {}),
+    };
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0]!;
+    return { modelo, entidad, aparienciaId: apariencia.id };
+  }
+
+  test("1. cosa con estereotipoId requirement proyecta stereotypeBadge con texto literal <<Requirement>>", () => {
+    const { modelo, entidad, aparienciaId } = reconstruir(ESTEREOTIPO_REQUIREMENT_ID);
+    const apariencia = modelo.opds[modelo.opdRaizId]!.apariencias[aparienciaId]!;
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
+    const markup = cell.markup as Array<Record<string, unknown>>;
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+
+    expect(markup.some((m) => m.selector === "stereotypeBadge")).toBe(true);
+    expect(attrs.stereotypeBadge?.text).toBe("<<Requirement>>");
+  });
+
+  test("2. cosa con estereotipoId de catálogo proyecta <<Actor>>", () => {
+    const catalogo: Record<string, Estereotipo> = { "est-1": { id: "est-1", nombre: "Actor" } };
+    const { modelo, entidad, aparienciaId } = reconstruir("est-1", catalogo);
+    const apariencia = modelo.opds[modelo.opdRaizId]!.apariencias[aparienciaId]!;
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+
+    expect(attrs.stereotypeBadge?.text).toBe("<<Actor>>");
+  });
+
+  test("3. cosa SIN estereotipoId NO tiene stereotypeBadge (ni markup ni attrs)", () => {
+    const { modelo, entidad, aparienciaId } = reconstruir(undefined);
+    const apariencia = modelo.opds[modelo.opdRaizId]!.apariencias[aparienciaId]!;
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
+    const markup = cell.markup as Array<Record<string, unknown>> | undefined;
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+
+    expect((markup ?? []).some((m) => m.selector === "stereotypeBadge")).toBe(false);
+    expect(attrs.stereotypeBadge).toBeUndefined();
+  });
+
+  test("4. el badge usa color CODEX (tinta inkSoft), NO crimson", () => {
+    const { modelo, entidad, aparienciaId } = reconstruir(ESTEREOTIPO_REQUIREMENT_ID);
+    const apariencia = modelo.opds[modelo.opdRaizId]!.apariencias[aparienciaId]!;
+
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+
+    expect(attrs.stereotypeBadge?.fill).toBe("#807b6e"); // CODEX.colores.inkSoft
+    expect(attrs.stereotypeBadge?.fill).not.toBe("#8e2a2e"); // crimson PROHIBIDO
+  });
+
+  test("5. espejo doctrinal: estereotipo es META — NO altera el OPL núcleo de la entidad", () => {
+    const sinEstereotipo: Entidad = { id: "o-1", tipo: "objeto", nombre: "Carga", esencia: "informacional", afiliacion: "sistemica" };
+    const conEstereotipo: Entidad = { ...sinEstereotipo, estereotipoId: ESTEREOTIPO_REQUIREMENT_ID };
+
+    expect(oracionEntidad(conEstereotipo)).toEqual(oracionEntidad(sinEstereotipo));
   });
 });
 
