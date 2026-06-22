@@ -10,7 +10,7 @@
 
 ---
 
-## Actualización 2026-06-22 — Cristalización del compuesto OpForja (rama `compuesto-opforja`, EN CURSO, no desplegado)
+## Actualización 2026-06-22 — Cristalización del compuesto OpForja (consolidado en `main`, EN CURSO, no desplegado)
 
 **Mandato**: cristalizar opforja como compuesto-célula de 5 órganos (SSOT en kora-pneuma · app · docs · skill `modelamiento-opm` · metodología/manual) que co-evolucionan con **naturalidad verificable**; norte = el sueño del operador (UI guante-de-seda + UX telepatía; modelado fluido con estereotipos en vitrinas; skill facilitadora dominio→proto→headless→prod→iterar). **Reglas permanentes del operador**: kora-pneuma = solo SSOT inmutable de solo lectura / todo working-artifact en el repo; toda decisión de autoridad o duda → **consenso steipete×allan-kelly** (arbitraje steve-jobs+mente-omega), no al operador; trabajo autónomo, paralelizado, síntesis al final.
 
@@ -29,7 +29,7 @@
 
 **Tramo C núcleo COMPLETO**: los 3 testigos del cordón (resolutor URN + lista de sello única + `doctrinaVersion`) + ley render↛SSOT. **Tramo X**: D8 Ola A. **D4** (5º órgano al repo). **Tramo E iniciado**: D7.1 (capa de boceto + promoción).
 
-**PENDIENTE**: **Tramo E** — D7.2 (UI de la pizarra: dibujar bocetos en canvas + PizarraSlice) y **D6 (estereotipos + vitrinas)**, el epic más grande (modelo de entidad + contrato de import + 9 sitios + propagación a las 5 partes — abordar con decomposición propia) · C1 version-match + `skillVersion` (diferidos hasta que la propuesta del transmutador aterrice en pneuma) · D3 skill re-sync (propuesta a custodio-kora) · D8 Ola B (generador `spec:gen`, condicional). **Nada desplegado**: la rama acumula olas verificadas; merge a `main` + deploy pendientes de un hito desplegable.
+**PENDIENTE**: **Tramo E** — D7.2 (UI de la pizarra: dibujar bocetos en canvas + PizarraSlice) y **D6 (estereotipos + vitrinas)**, el epic más grande (modelo de entidad + contrato de import + 9 sitios + propagación a las 5 partes — abordar con decomposición propia) · C1 version-match + `skillVersion` (diferidos hasta que la propuesta del transmutador aterrice en pneuma) · D3 skill re-sync (propuesta a custodio-kora) · D8 Ola B (generador `spec:gen`, condicional). **Nada desplegado**: la cristalización se consolidó en `main` (merge `--no-ff`, no pusheado); **deploy pendiente** de un hito desplegable (probablemente con Tramo E visible). El epic D6 (estereotipos) continúa en rama nueva.
 
 ---
 
