@@ -44,6 +44,14 @@
 
 **PENDIENTE** (fuera de esta ola): C1 version-match + `skillVersion` (diferidos hasta que la propuesta del transmutador aterrice en pneuma) · D3 skill re-sync (propuesta a custodio-kora) · D8 Ola B (generador `spec:gen`, condicional) · promoción boceto→enlace en la BarraPizarra (kernel listo). **Estado de la rama `compuesto-d6-estereotipos`**: Tramo E (D6 + D7.2) completo y comiteado, **NO mergeado a `main`** y **NO desplegado** — el merge a `main` y el deploy (`docker compose up -d --build`; hito desplegable: estereotipos+vitrinas + pizarra visibles) son decisiones del operador. **Verificación visual en vivo pendiente** (la interacción de dibujo en canvas y el render del badge `<<Nombre>>`/vitrina no los cubre el gate — política repo: sin browser-automation).
 
+**Supuestos:** single-operator estable; HODOM no usa `requirement`/estereotipos/bocetos ⇒ golden byte-idéntico por construcción (capas aditivas con opcional ausente); el gate (`bun run check`/lint/governance) cubre kernel/serialización/store/render-proyección, NO la interacción de pointer en canvas.
+
+**Riesgos / cosas a tener presente:**
+- **UX de canvas no verificada en vivo**: el dibujo de pizarra (click-to-place, selección de boceto) y el render del badge `<<Nombre>>`/vitrina pasan typecheck+unit pero su comportamiento visual no está confirmado en navegador — primera tarea post-deploy: verificación visual del operador.
+- **Cambio de contrato de import (deseado)**: un bundle externo con `Entidad.estereotipoId` que no resuelva a fábrica/catálogo ahora **falla al importar** (simétrico a `ordenInzoom`/anclas). Es el comportamiento canónico, pero a tener presente para imports legacy fabricados a mano.
+- **Doctrina R-VIS-STEREO-1 en vuelo**: v1 omite «Nombre» del OPL núcleo (conforme con "PUEDE"); la ratificación/ampliación es del custodio-kora (`docs/solicitudes-upstream/2026-06-22-estereotipos-vitrinas-ssot-skill.md`). No legislado en código.
+- **Deploy**: si el password del operador quedó stale, verificar HODOM leyendo Postgres directo y resetear con `docker exec ... auth-cuenta.ts reset` (lección 2026-06-16). Postgres se preserva en `up -d --build`.
+
 ---
 
 ## Actualización 2026-06-16 — Auditoría adversarial + endurecimiento del loop modelar-OPM-con-OpForja (18 hallazgos remediados) — DESPLEGADO Y VERIFICADO
