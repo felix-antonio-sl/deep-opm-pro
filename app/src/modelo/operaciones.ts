@@ -14,6 +14,13 @@
 
 export { crearModelo, crearObjeto, crearProceso } from "./operaciones/creacion";
 export { detectarColisionNombre, type ColisionNombre } from "./operaciones/colisionNombre";
+export {
+  promoverBoceto,
+  type PromoverBocetoOpciones,
+  type PromoverBocetoEntidadOpciones,
+  type PromoverBocetoEnlaceOpciones,
+  type BocetoPromovido,
+} from "./operaciones/promocion";
 
 export {
   aparienciaEsSubprocesoInternoDeInzoom,

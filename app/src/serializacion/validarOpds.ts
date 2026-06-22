@@ -1,13 +1,16 @@
 import type {
+  Boceto,
   Entidad,
   EstadoCargaSubmodelo,
   Id,
   ModoDespliegueObjeto,
   Opd,
   OpdVista,
+  PuntoBoceto,
   RefinamientoEntidad,
   Resultado,
   SlotRefinamiento,
+  TipoBoceto,
   TipoRefinamiento,
 } from "../modelo/tipos";
 import { fallo, ok, esModoDespliegue, esNumeroFinito, esRecord } from "./validarHelpers";
@@ -122,6 +125,8 @@ export function validarOpds(value: Record<string, unknown>, entidades: Record<Id
       if (!validado.ok) return validado;
       ordenInzoom = validado.value;
     }
+    const bocetos = validarBocetos(id, raw.bocetos);
+    if (!bocetos.ok) return bocetos;
     opds[id] = {
       id,
       nombre: raw.nombre,
@@ -131,6 +136,7 @@ export function validarOpds(value: Record<string, unknown>, entidades: Record<Id
       ...(vista.value ? { vista: vista.value } : {}),
       ...(ordenLocal !== undefined ? { ordenLocal } : {}),
       ...(ordenInzoom !== undefined ? { ordenInzoom } : {}),
+      ...(bocetos.value ? { bocetos: bocetos.value } : {}),
     };
   }
   return ok(opds);
@@ -165,6 +171,76 @@ function validarOrdenInzoom(opdId: Id, value: unknown): Resultado<Id[][]> {
     bandas.push(fila);
   }
   return ok(bandas);
+}
+
+const TIPOS_BOCETO: ReadonlySet<TipoBoceto> = new Set<TipoBoceto>(["forma", "texto", "flecha", "nota"]);
+
+function esTipoBoceto(value: unknown): value is TipoBoceto {
+  return typeof value === "string" && TIPOS_BOCETO.has(value as TipoBoceto);
+}
+
+/**
+ * Valida `bocetos` (D7.1): capa de pizarra / bosquejo NO-SEMÁNTICA por OPD.
+ * Extensión ADITIVA y OPCIONAL: ausente ⇒ undefined (byte-identidad sobre
+ * opcional ausente; un OPD legacy hidrata sin la clave, rollback-free). El
+ * validador es LAXO — un boceto es presentación libre, NO modelo OPM: exige
+ * `id` posicional consistente y `tipo` legal; la geometría (x/y/w/h/puntos),
+ * `texto` y `estilo` son opcionales y se copian verbatim cuando son del tipo
+ * esperado. Un campo geométrico presente pero de tipo equivocado se RECHAZA con
+ * diagnóstico (no se descarta en silencio — mismo régimen que anclas/notas),
+ * pero su AUSENCIA nunca es error. Los bocetos NUNCA se referencian desde
+ * entidades/enlaces/estados/abanicos: no entran a `validarReferenciasOpd`.
+ */
+function validarBocetos(opdId: Id, value: unknown): Resultado<Record<Id, Boceto> | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`OPD inválido: ${opdId}.bocetos`);
+  const bocetos: Record<Id, Boceto> = {};
+  for (const [id, raw] of Object.entries(value)) {
+    if (!esRecord(raw) || raw.id !== id) return fallo(`Boceto inválido: ${opdId}.${id}`);
+    if (!esTipoBoceto(raw.tipo)) return fallo(`Boceto inválido: ${opdId}.${id}.tipo`);
+    const boceto: Boceto = { id, tipo: raw.tipo };
+    for (const eje of ["x", "y", "w", "h"] as const) {
+      if (raw[eje] !== undefined) {
+        if (!esNumeroFinito(raw[eje])) return fallo(`Boceto inválido: ${opdId}.${id}.${eje}`);
+        boceto[eje] = raw[eje];
+      }
+    }
+    if (raw.puntos !== undefined) {
+      const puntos = validarPuntosBoceto(opdId, id, raw.puntos);
+      if (!puntos.ok) return puntos;
+      boceto.puntos = puntos.value;
+    }
+    if (raw.texto !== undefined) {
+      if (typeof raw.texto !== "string") return fallo(`Boceto inválido: ${opdId}.${id}.texto`);
+      boceto.texto = raw.texto;
+    }
+    if (raw.estilo !== undefined) {
+      if (!esRecord(raw.estilo)) return fallo(`Boceto inválido: ${opdId}.${id}.estilo`);
+      const estilo: Record<string, string | number | boolean> = {};
+      for (const [clave, v] of Object.entries(raw.estilo)) {
+        if (typeof v !== "string" && typeof v !== "number" && typeof v !== "boolean") {
+          return fallo(`Boceto inválido: ${opdId}.${id}.estilo.${clave}`);
+        }
+        estilo[clave] = v;
+      }
+      boceto.estilo = estilo;
+    }
+    bocetos[id] = boceto;
+  }
+  if (Object.keys(bocetos).length === 0) return ok(undefined);
+  return ok(bocetos);
+}
+
+function validarPuntosBoceto(opdId: Id, bocetoId: Id, value: unknown): Resultado<PuntoBoceto[]> {
+  if (!Array.isArray(value)) return fallo(`Boceto inválido: ${opdId}.${bocetoId}.puntos`);
+  const puntos: PuntoBoceto[] = [];
+  for (const punto of value) {
+    if (!esRecord(punto) || !esNumeroFinito(punto.x) || !esNumeroFinito(punto.y)) {
+      return fallo(`Boceto inválido: ${opdId}.${bocetoId}.puntos`);
+    }
+    puntos.push({ x: punto.x, y: punto.y });
+  }
+  return ok(puntos);
 }
 
 function validarVistaOpd(opdId: Id, value: unknown): Resultado<OpdVista | undefined> {
