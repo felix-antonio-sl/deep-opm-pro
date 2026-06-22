@@ -10,6 +10,29 @@
 
 ---
 
+## Actualización 2026-06-22 — Cristalización del compuesto OpForja (rama `compuesto-opforja`, EN CURSO, no desplegado)
+
+**Mandato**: cristalizar opforja como compuesto-célula de 5 órganos (SSOT en kora-pneuma · app · docs · skill `modelamiento-opm` · metodología/manual) que co-evolucionan con **naturalidad verificable**; norte = el sueño del operador (UI guante-de-seda + UX telepatía; modelado fluido con estereotipos en vitrinas; skill facilitadora dominio→proto→headless→prod→iterar). **Reglas permanentes del operador**: kora-pneuma = solo SSOT inmutable de solo lectura / todo working-artifact en el repo; toda decisión de autoridad o duda → **consenso steipete×allan-kelly** (arbitraje steve-jobs+mente-omega), no al operador; trabajo autónomo, paralelizado, síntesis al final.
+
+**Diseño aprobado**: deliberación allan-kelly×steipete con gate de rigor **cat-thinking** (~5.5M tokens, cada decisión verificada en código + corregido el bicondicional del cierre a IMPLICACIÓN honesta). Spec gobernante: `docs/superpowers/specs/2026-06-22-compuesto-opforja-design.md` (8 entregables D1-D8). Roadmap reescrito desde 0: `docs/roadmap/cortes.md` (tramos **C-cordón / E-expresión / X-exoesqueleto**); jubilados `cortes-operativos.md` + `backlog-contingencial.md`. 5 decisiones de autoridad resueltas por consenso pleno (spec §5). Metáfora corregida: el super-robot = los **5 componentes** fusionándose (NO multi-usuario; la federación es track diferido).
+
+**Cortes ENTREGADOS en la rama** (todos gate-verde: `check` 2781/0 + typecheck + lint + design:governance):
+- `b393ffea` D2 — spec gobernante + roadmap desde 0.
+- `c095bf19` C2-prereq — `COMPONENTES_SELLO` a punto de verdad único.
+- `2fddb63a` D1 — ley **render↛SSOT** como test falsable (6 capas fuente, allowlist congelado, control de no-tautología).
+- `3d2249f8` D8 Ola A — versión única de diseño; `design:governance` lee la versión de la SSOT (no la hardcodea).
+- `f679c00d` C3 — resolutor URN como datos en el repo (`docs/canon-opm/resolutor-urn.json`); re-ancla los 4 puentes de la bestia congelada → **pneuma**.
+- `38914ed1` C2 — `doctrinaVersion` (5º componente opcional/rollback-free del sello = hash de contenido de las 4 SSOT vía el resolutor).
+- `ce6db26f` — propuesta a custodio-kora: el transmutador de pneuma debe preservar `version` en el deploy de la skill.
+- `9b6fb088` D4 — manual-opforja integrado al repo (`docs/manual-opforja.md`), delgado y citado por URN; check falsable `manual:limites`.
+- `ad05c94b` D7.1 — capa de pizarra/boceto ADITIVA (Opd.bocetos, kernel la ignora; ley `bocetos-no-contaminan`) + `promoverBoceto` (rechazo ruidoso, ley `promocion-reversible`). Tramo E iniciado. Sin UI (corte D7.2).
+
+**Tramo C núcleo COMPLETO**: los 3 testigos del cordón (resolutor URN + lista de sello única + `doctrinaVersion`) + ley render↛SSOT. **Tramo X**: D8 Ola A. **D4** (5º órgano al repo). **Tramo E iniciado**: D7.1 (capa de boceto + promoción).
+
+**PENDIENTE**: **Tramo E** — D7.2 (UI de la pizarra: dibujar bocetos en canvas + PizarraSlice) y **D6 (estereotipos + vitrinas)**, el epic más grande (modelo de entidad + contrato de import + 9 sitios + propagación a las 5 partes — abordar con decomposición propia) · C1 version-match + `skillVersion` (diferidos hasta que la propuesta del transmutador aterrice en pneuma) · D3 skill re-sync (propuesta a custodio-kora) · D8 Ola B (generador `spec:gen`, condicional). **Nada desplegado**: la rama acumula olas verificadas; merge a `main` + deploy pendientes de un hito desplegable.
+
+---
+
 ## Actualización 2026-06-16 — Auditoría adversarial + endurecimiento del loop modelar-OPM-con-OpForja (18 hallazgos remediados) — DESPLEGADO Y VERIFICADO
 
 **Mandato**: «asegúrate de que el flujo [modelar OPM con OpForja] funciona 100%, identifica todo remediable y mejorable, remedia y mejora.» El flujo abarca método (skill `modelamiento-opm`), herramienta (opforja) y loop agente↔herramienta (proto→`compilarProto`→`emitirBundle`+`construirSello`→`verify:reproducible`/`render:headless`→import `hidratarModelo`→puente W6.0→`LogDecisiones`→re-elicitar).
