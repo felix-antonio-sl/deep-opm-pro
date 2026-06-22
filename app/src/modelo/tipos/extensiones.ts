@@ -150,6 +150,15 @@ export interface SelloProcedencia {
   layoutVersion: string;
 }
 
+/**
+ * Componentes vigentes del sello, en orden estable. ÚNICO punto de verdad: lo
+ * consumen el constructor (`autoria/procedencia`) y el validador
+ * (`serializacion/json`). Añadir un testigo nuevo (p.ej. `doctrinaVersion`) se
+ * hace SOLO aquí + en `SelloProcedencia`; `satisfies` impide que la lista y el
+ * tipo diverjan.
+ */
+export const COMPONENTES_SELLO = ["protoHash", "autoriaVersion", "layoutVersion"] as const satisfies ReadonlyArray<keyof SelloProcedencia>;
+
 export type EstadoCargaSubmodelo =
   | "descargado"
   | "cargado-sincronizado"

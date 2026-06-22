@@ -12,6 +12,7 @@
 // contenido ya leído, se construye el sello y se comparan dos sellos.
 
 import type { SelloProcedencia } from "../modelo/tipos";
+import { COMPONENTES_SELLO } from "../modelo/tipos";
 import { LAYOUT_VERSION } from "./layout";
 
 /**
@@ -84,12 +85,6 @@ export interface DivergenciaProcedencia {
   /** En orden estable del sello: protoHash, autoriaVersion, layoutVersion. */
   componentes: ComponenteDivergente[];
 }
-
-const COMPONENTES_SELLO: ReadonlyArray<keyof SelloProcedencia> = [
-  "protoHash",
-  "autoriaVersion",
-  "layoutVersion",
-];
 
 /** Compara el sello del bundle contra el sello recomputado y nombra cada componente divergente. */
 export function compararProcedencia(

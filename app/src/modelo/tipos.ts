@@ -103,6 +103,7 @@ export type {
   OpdVista,
   DecisionPolicy,
 } from "./tipos/extensiones";
+export { COMPONENTES_SELLO } from "./tipos/extensiones";
 
 export type { SeveridadAviso, CodigoChecker, AvisoMetodologico, NavegacionAviso } from "./tipos/avisos";
 
