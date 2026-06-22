@@ -1,15 +1,18 @@
 import { abanicoDeEnlace } from "../../modelo/abanicos";
+import { esRequisito } from "../../modelo/estereotipos";
 import { componerModelos, verificarLinealidad } from "../../modelo/composicion";
 import { resolverDecisionAbanico, resolverDecisionEnlace } from "../../modelo/decision";
 import {
   actualizarMaterializacionSubmodelo,
   conectarSubmodelo,
+  crearEstereotipoDesdeSeleccion,
   crearRequirementView,
   crearRequisito,
   definirOntologiaOrganizacional,
   descargarVistaSubmodelo,
   desconectarSubmodelo,
   distribuirEnlaceExternoEnRefinamiento,
+  injertarEstereotipo,
   marcarEntidadComoRequisito,
   marcarEstadoSubmodelo,
   recolectarEnlaceExternoEnRefinamiento,
@@ -32,6 +35,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
     dialogoRequisitoAbierto: null,
     dialogoSubmodeloAbierto: false,
     dialogoComposicionAbierto: false,
+    vitrinaEstereotiposAbierta: false,
 
     abrirDialogoOntologia() {
       set({ dialogoOntologiaAbierto: true, mensaje: null });
@@ -247,6 +251,50 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         return;
       }
       set({ mensaje: "Backend de modelos no disponible" });
+    },
+
+    abrirVitrinaEstereotipos() {
+      set({ vitrinaEstereotiposAbierta: true, mensaje: null });
+    },
+
+    cerrarVitrinaEstereotipos() {
+      set({ vitrinaEstereotiposAbierta: false });
+    },
+
+    injertarEstereotipoEnOpd(estereotipoId) {
+      const { modelo, opdActivoId } = get();
+      const posicion = posicionLibre(modelo, opdActivoId, "objeto");
+      const resultado = injertarEstereotipo(modelo, estereotipoId, opdActivoId, posicion);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      const { modelo: modeloNuevo, entidadesCreadas, anclaId } = resultado.value;
+      commitModelo(set, modelo, modeloNuevo, {
+        seleccionId: anclaId ?? null,
+        seleccionados: entidadesCreadas,
+        modoSeleccion: entidadesCreadas.length > 1 ? "multi" : "simple",
+        enlaceSeleccionId: null,
+        estadoSeleccionId: null,
+        mensaje: "Estereotipo injertado",
+      });
+    },
+
+    crearEstereotipoDesdeSeleccionActual(nombre, opts) {
+      const { modelo, opdActivoId, seleccionados } = get();
+      if (seleccionados.length === 0) {
+        set({ mensaje: "Selecciona cosas para guardar como estereotipo" });
+        return;
+      }
+      const resultado = crearEstereotipoDesdeSeleccion(modelo, opdActivoId, seleccionados, nombre, opts);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      // No cambia la selección: el autor conserva el subgrafo que acaba de curar.
+      commitModelo(set, modelo, resultado.value.modelo, {
+        mensaje: `Estereotipo creado: ${nombre}`,
+      });
     },
 
     conectarSubmodeloSeleccionado(input) {
@@ -555,7 +603,7 @@ function targetSeleccionActual(state: ReturnType<GetStore>): TargetSatisfaccionR
 function targetInicialRequisito(state: ReturnType<GetStore>): TargetSatisfaccionRequisito | null {
   const target = targetSeleccionActual(state);
   if (!target) return null;
-  if (target.tipo === "entidad" && state.modelo.entidades[target.id]?.estereotipo === "requirement") return null;
+  if (target.tipo === "entidad" && esRequisito(state.modelo.entidades[target.id])) return null;
   return target;
 }
 

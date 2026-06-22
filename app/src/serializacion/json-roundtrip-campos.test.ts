@@ -6,7 +6,10 @@ import type {
   AparienciaEnlace,
   Entidad,
   Estado,
+  Estereotipo,
   Enlace,
+  AparienciaPlantilla,
+  PlantillaEstereotipo,
   Modelo,
   OntologiaOrganizacional,
   Opd,
@@ -24,6 +27,7 @@ import type {
   TerminoOntologia,
   VersionResumen,
 } from "../modelo/tipos";
+import { ESTEREOTIPO_REQUIREMENT_ID } from "../modelo/estereotipos";
 import { exportarModelo, hidratarModelo } from "./json";
 
 const CAMPOS_MODELO = {
@@ -40,6 +44,7 @@ const CAMPOS_MODELO = {
   satisfaccionesRequisito: true,
   anclasNormativas: true,
   notasMesa: true,
+  estereotipos: true,
   procedencia: true,
   submodelos: true,
   referenciaPadreSubmodelo: true,
@@ -63,7 +68,7 @@ const CAMPOS_ENTIDAD = {
   valorSlot: true,
   simulacion: true,
   descripcion: true,
-  estereotipo: true,
+  estereotipoId: true,
   requisito: true,
   urls: true,
   imagen: true,
@@ -195,6 +200,28 @@ const CAMPOS_REQUISITO = {
   satisfaction: true,
 } satisfies Record<keyof RequisitoEntidadMetadata, true>;
 
+const CAMPOS_ESTEREOTIPO = {
+  id: true,
+  nombre: true,
+  propositoDeModelado: true,
+  plantilla: true,
+} satisfies Record<keyof Estereotipo, true>;
+
+const CAMPOS_PLANTILLA = {
+  entidades: true,
+  estados: true,
+  enlaces: true,
+  apariencias: true,
+  anclaLocalId: true,
+} satisfies Record<keyof PlantillaEstereotipo, true>;
+
+const CAMPOS_APARIENCIA_PLANTILLA = {
+  x: true,
+  y: true,
+  width: true,
+  height: true,
+} satisfies Record<keyof AparienciaPlantilla, true>;
+
 const CAMPOS_SATISFACCION = {
   id: true,
   requisitoEntidadId: true,
@@ -296,6 +323,9 @@ void [
   CAMPOS_TERMINO_ONTOLOGIA,
   CAMPOS_ONTOLOGIA,
   CAMPOS_REQUISITO,
+  CAMPOS_ESTEREOTIPO,
+  CAMPOS_PLANTILLA,
+  CAMPOS_APARIENCIA_PLANTILLA,
   CAMPOS_SATISFACCION,
   CAMPOS_REFERENCIA_NORMA,
   CAMPOS_RATIFICACION,
@@ -322,6 +352,9 @@ describe("serializacion JSON - round-trip de campos persistibles", () => {
     expect(hidratado.value).toEqual(canonico);
     expect(JSON.parse(exportarModelo(hidratado.value)).modelo).toEqual(canonico);
     expect(hidratado.value.entidades["o-pedido"]?.requisito?.actor).toBe("Mesa clinica");
+    expect(hidratado.value.entidades["o-pedido"]?.estereotipoId).toBe(ESTEREOTIPO_REQUIREMENT_ID);
+    expect(hidratado.value.entidades["o-resultado"]?.estereotipoId).toBe("est-actor");
+    expect(hidratado.value.estereotipos?.["est-actor"]).toMatchObject({ nombre: "Actor", propositoDeModelado: "Marca un actor del sistema." });
     expect(hidratado.value.enlaces["e-effect"]?.efectoEscindido).toEqual({
       grupoId: "fx-1",
       enlacePadreId: "e-resultado",
@@ -377,7 +410,7 @@ function modeloConCamposOpcionales(): Modelo {
           },
         },
         descripcion: "Pedido trazable.",
-        estereotipo: "requirement",
+        estereotipoId: ESTEREOTIPO_REQUIREMENT_ID,
         requisito: {
           idLogico: "REQ-1",
           descripcion: "El pedido debe quedar trazado.",
@@ -393,7 +426,7 @@ function modeloConCamposOpcionales(): Modelo {
       },
       "o-insumo-a": { id: "o-insumo-a", tipo: "objeto", nombre: "Insumo A", esencia: "fisica", afiliacion: "ambiental" },
       "o-insumo-b": { id: "o-insumo-b", tipo: "objeto", nombre: "Insumo B", esencia: "fisica", afiliacion: "ambiental" },
-      "o-resultado": { id: "o-resultado", tipo: "objeto", nombre: "Resultado", esencia: "informacional", afiliacion: "sistemica" },
+      "o-resultado": { id: "o-resultado", tipo: "objeto", nombre: "Resultado", esencia: "informacional", afiliacion: "sistemica", estereotipoId: "est-actor" },
       "p-aprobar": { id: "p-aprobar", tipo: "proceso", nombre: "Aprobar", esencia: "fisica", afiliacion: "sistemica" },
       "p-revisar": { id: "p-revisar", tipo: "proceso", nombre: "Revisar", esencia: "fisica", afiliacion: "sistemica" },
       "p-escalar": { id: "p-escalar", tipo: "proceso", nombre: "Escalar", esencia: "fisica", afiliacion: "sistemica" },
@@ -704,6 +737,35 @@ function modeloConCamposOpcionales(): Modelo {
           responsable: "Equipo OPM",
           anotadoEn: "2026-06-06",
           ratificadoEn: "2026-06-06",
+        },
+      },
+    },
+    estereotipos: {
+      "est-actor": {
+        id: "est-actor",
+        nombre: "Actor",
+        propositoDeModelado: "Marca un actor del sistema.",
+        // D6.2: plantilla mínima (2 cosas + 1 enlace) para ejercitar round-trip anidado.
+        plantilla: {
+          entidades: {
+            "o-1": { id: "o-1", tipo: "objeto", nombre: "Sujeto", esencia: "informacional", afiliacion: "sistemica" },
+            "p-1": { id: "p-1", tipo: "proceso", nombre: "Actuar", esencia: "informacional", afiliacion: "sistemica" },
+          },
+          estados: {},
+          enlaces: {
+            "e-1": {
+              id: "e-1",
+              tipo: "instrumento",
+              origenId: { kind: "entidad", id: "o-1" },
+              destinoId: { kind: "entidad", id: "p-1" },
+              etiqueta: "",
+            },
+          },
+          apariencias: {
+            "o-1": { x: 0, y: 0, width: 120, height: 60 },
+            "p-1": { x: 200, y: 0, width: 120, height: 60 },
+          },
+          anclaLocalId: "o-1",
         },
       },
     },

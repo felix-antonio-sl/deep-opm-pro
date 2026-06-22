@@ -5,6 +5,9 @@ import type {
   EstadoCargaSubmodelo,
   EstadoRatificacion,
   EstadoSatisfaccionRequisito,
+  Estereotipo,
+  AparienciaPlantilla,
+  PlantillaEstereotipo,
   Id,
   Modelo,
   NivelAutoridad,
@@ -18,11 +21,12 @@ import type {
   SubmodeloReferencia,
 } from "../modelo/tipos";
 import { COMPONENTES_SELLO } from "../modelo/tipos";
+import { esRequisito } from "../modelo/estereotipos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import { validarApariencias, validarAparienciasEnlace } from "./validarApariencias";
 import { validarEnlaces, validarAbanicos } from "./validarEnlaces";
 import { validarEntidades } from "./validarEntidades";
-import { esEnteroSeguro, esRecord, fallo, ok } from "./validarHelpers";
+import { esEnteroSeguro, esNumeroFinito, esRecord, fallo, ok } from "./validarHelpers";
 import { validarReferenciasOpd } from "./validarIntegridad";
 import { normalizarModelo, normalizarVersiones } from "./validarNormalizacion";
 import { validarOpds } from "./validarOpds";
@@ -162,6 +166,8 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     opdsValidados.value,
   );
   if (!notasMesaValidadas.ok) return notasMesaValidadas;
+  const estereotiposValidados = validarEstereotipos(value.estereotipos);
+  if (!estereotiposValidados.ok) return estereotiposValidados;
   const procedenciaValidada = validarProcedencia(value.procedencia);
   if (!procedenciaValidada.ok) return procedenciaValidada;
   const submodelosValidados = validarSubmodelos(value.submodelos, entidadesValidadas.value, opdsValidados.value);
@@ -192,6 +198,7 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     ...(Object.keys(satisfaccionesValidadas.value).length > 0 ? { satisfaccionesRequisito: satisfaccionesValidadas.value } : {}),
     ...(Object.keys(anclasValidadas.value).length > 0 ? { anclasNormativas: anclasValidadas.value } : {}),
     ...(Object.keys(notasMesaValidadas.value).length > 0 ? { notasMesa: notasMesaValidadas.value } : {}),
+    ...(Object.keys(estereotiposValidados.value).length > 0 ? { estereotipos: estereotiposValidados.value } : {}),
     ...(procedenciaValidada.value ? { procedencia: procedenciaValidada.value } : {}),
     ...(Object.keys(submodelosValidados.value).length > 0 ? { submodelos: submodelosValidados.value } : {}),
     ...(padreSubmodeloValidado.value ? { referenciaPadreSubmodelo: padreSubmodeloValidado.value } : {}),
@@ -246,7 +253,7 @@ function validarSatisfaccionesRequisito(
   const satisfacciones: Record<Id, SatisfaccionRequisito> = {};
   for (const [id, raw] of Object.entries(value)) {
     if (!esRecord(raw) || raw.id !== id) return fallo(`Satisfacción de requisito inválida: ${id}`);
-    if (typeof raw.requisitoEntidadId !== "string" || entidades[raw.requisitoEntidadId]?.estereotipo !== "requirement") {
+    if (typeof raw.requisitoEntidadId !== "string" || !esRequisito(entidades[raw.requisitoEntidadId])) {
       return fallo(`Satisfacción de requisito inválida: ${id}.requisitoEntidadId`);
     }
     if (!esRecord(raw.target) || (raw.target.tipo !== "entidad" && raw.target.tipo !== "enlace") || typeof raw.target.id !== "string") {
@@ -329,6 +336,89 @@ function validarNotasMesa(
     notas[id] = { id, target: target.value, texto: raw.texto.trim(), fecha: raw.fecha.trim() };
   }
   return ok(notas);
+}
+
+/**
+ * Valida `estereotipos` (D6, catálogo). Extensión aditiva: ausente ⇒ `{}` (byte-identidad
+ * sobre opcional ausente). Cada entrada exige `id` coincidente con la clave, `nombre` no
+ * vacío y `propositoDeModelado` opcional string-no-vacío. Mismo contrato de rechazo ruidoso
+ * que `validarAnclasNormativas` (no silencio). La RESOLUCIÓN de `Entidad.estereotipoId`
+ * contra este catálogo + la fábrica es el contrato de import en `validarReferenciasOpd`.
+ */
+function validarEstereotipos(value: unknown): Resultado<Record<Id, Estereotipo>> {
+  if (value === undefined) return ok({});
+  if (!esRecord(value)) return fallo("Modelo inválido: estereotipos");
+  const estereotipos: Record<Id, Estereotipo> = {};
+  for (const [id, raw] of Object.entries(value)) {
+    if (!esRecord(raw) || raw.id !== id) return fallo(`Estereotipo inválido: ${id}`);
+    if (typeof raw.nombre !== "string" || !raw.nombre.trim()) return fallo(`Estereotipo inválido: ${id}.nombre`);
+    if (raw.propositoDeModelado !== undefined && (typeof raw.propositoDeModelado !== "string" || !raw.propositoDeModelado.trim())) {
+      return fallo(`Estereotipo inválido: ${id}.propositoDeModelado`);
+    }
+    const plantilla = validarPlantillaEstereotipo(id, raw.plantilla);
+    if (!plantilla.ok) return plantilla;
+    estereotipos[id] = {
+      id,
+      nombre: raw.nombre.trim(),
+      ...(typeof raw.propositoDeModelado === "string" && raw.propositoDeModelado.trim() ? { propositoDeModelado: raw.propositoDeModelado.trim() } : {}),
+      ...(plantilla.value ? { plantilla: plantilla.value } : {}),
+    };
+  }
+  return ok(estereotipos);
+}
+
+/**
+ * Valida `estereotipo.plantilla` (D6.2). Extensión aditiva: ausente ⇒ undefined
+ * (byte-identidad sobre opcional ausente). REUSA los validadores nucleares
+ * (`validarEntidades/validarEstados/validarEnlaces`) sobre el subgrafo de ids
+ * LOCALES — autocontenido, sin tocar `modelo.entidades`. `apariencias` exige
+ * números finitos y clave = entidad de la plantilla; `anclaLocalId` (si presente)
+ * debe ser una entidad de la plantilla. Subgrafo colgante (enlace con extremo
+ * inexistente, apariencia de entidad inexistente) se RECHAZA con diagnóstico.
+ */
+function validarPlantillaEstereotipo(estId: Id, value: unknown): Resultado<PlantillaEstereotipo | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo(`Estereotipo inválido: ${estId}.plantilla`);
+  if (!esRecord(value.entidades)) return fallo(`Estereotipo inválido: ${estId}.plantilla.entidades`);
+  if (!esRecord(value.estados)) return fallo(`Estereotipo inválido: ${estId}.plantilla.estados`);
+  if (!esRecord(value.enlaces)) return fallo(`Estereotipo inválido: ${estId}.plantilla.enlaces`);
+  if (!esRecord(value.apariencias)) return fallo(`Estereotipo inválido: ${estId}.plantilla.apariencias`);
+
+  const entidades = validarEntidades(value.entidades);
+  if (!entidades.ok) return fallo(`Estereotipo inválido: ${estId}.plantilla.entidades (${entidades.error})`);
+  const estados = validarEstados(value.estados, entidades.value);
+  if (!estados.ok) return fallo(`Estereotipo inválido: ${estId}.plantilla.estados (${estados.error})`);
+  const enlaces = validarEnlaces(value.enlaces, entidades.value, estados.value);
+  if (!enlaces.ok) return fallo(`Estereotipo inválido: ${estId}.plantilla.enlaces (${enlaces.error})`);
+
+  const apariencias: Record<Id, AparienciaPlantilla> = {};
+  for (const [entidadId, raw] of Object.entries(value.apariencias)) {
+    if (!entidades.value[entidadId]) return fallo(`Estereotipo inválido: ${estId}.plantilla.apariencias.${entidadId} (entidad inexistente)`);
+    if (
+      !esRecord(raw) ||
+      !esNumeroFinito(raw.x) ||
+      !esNumeroFinito(raw.y) ||
+      !esNumeroFinito(raw.width) ||
+      !esNumeroFinito(raw.height)
+    ) {
+      return fallo(`Estereotipo inválido: ${estId}.plantilla.apariencias.${entidadId}`);
+    }
+    apariencias[entidadId] = { x: raw.x, y: raw.y, width: raw.width, height: raw.height };
+  }
+
+  if (value.anclaLocalId !== undefined) {
+    if (typeof value.anclaLocalId !== "string" || !entidades.value[value.anclaLocalId]) {
+      return fallo(`Estereotipo inválido: ${estId}.plantilla.anclaLocalId`);
+    }
+  }
+
+  return ok({
+    entidades: entidades.value,
+    estados: estados.value,
+    enlaces: enlaces.value,
+    apariencias,
+    ...(typeof value.anclaLocalId === "string" ? { anclaLocalId: value.anclaLocalId } : {}),
+  });
 }
 
 /**

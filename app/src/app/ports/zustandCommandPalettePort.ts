@@ -52,6 +52,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const abrirDialogoOntologia = useOpmStore((s) => s.abrirDialogoOntologia);
   const abrirDialogoRequisito = useOpmStore((s) => s.abrirDialogoRequisito);
   const abrirDialogoSubmodelo = useOpmStore((s) => s.abrirDialogoSubmodelo);
+  const abrirVitrinaEstereotipos = useOpmStore((s) => s.abrirVitrinaEstereotipos);
   const splitEffectParcialSeleccionado = useOpmStore((s) => s.splitEffectParcialSeleccionado);
   const recolectarEnlaceContornoSeleccionado = useOpmStore((s) => s.recolectarEnlaceContornoSeleccionado);
   const distribuirEnlaceContornoSeleccionado = useOpmStore((s) => s.distribuirEnlaceContornoSeleccionado);
@@ -105,6 +106,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     abrirDialogoOntologia,
     abrirDialogoRequisito,
     abrirDialogoSubmodelo,
+    abrirVitrinaEstereotipos,
     splitEffectParcialSeleccionado,
     recolectarEnlaceContornoSeleccionado,
     distribuirEnlaceContornoSeleccionado,

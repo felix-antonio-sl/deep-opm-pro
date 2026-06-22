@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
+import { esRequisito } from "../modelo/estereotipos";
 import { agregacionesInzoomFaltantes, esAtributoDerivado, estadoSubmodelo, estadosDeEntidad, materializacionEfectivaSubmodelo, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
 import { filasPlegadoParcial, modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import type { Entidad, Id, Modelo, OrdenPartesPlegado, SatisfaccionRequisito, SubmodeloReferencia } from "../modelo/tipos";
@@ -121,7 +122,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const cobertura = coberturaApariencias(modelo, entidad.id);
   const submodelosEntidad = Object.values(modelo.submodelos ?? {}).filter((ref) => ref.anchorEntidadId === entidad.id);
   const satisfaccionesEntidad = satisfaccionesDeTarget(modelo, { tipo: "entidad", id: entidad.id });
-  const satisfaccionesCubiertas = entidad.estereotipo === "requirement" ? satisfaccionesDeRequisito(modelo, entidad.id) : [];
+  const satisfaccionesCubiertas = esRequisito(entidad) ? satisfaccionesDeRequisito(modelo, entidad.id) : [];
   const abrirEntidadReferenciada = (entidadId: Id) => {
     const destino = primerOpdConEntidad(modelo, entidadId, opdActivoId);
     if (destino && destino !== opdActivoId) cambiarOpdActivo(destino);
@@ -316,7 +317,7 @@ function PanelExtensiones(props: {
   const requisito = props.entidad.requisito;
   return (
     <div style={extensionesStyles.body}>
-      {props.entidad.estereotipo === "requirement" && requisito ? (
+      {esRequisito(props.entidad) && requisito ? (
         <div style={extensionesStyles.meta}>
           <span style={extensionesStyles.metaStrong}>{requisito.idLogico}</span>
           <span>{requisito.dureza}</span>
@@ -330,7 +331,7 @@ function PanelExtensiones(props: {
           onAbrirRequisito={props.onAbrirEntidad}
         />
       )}
-      {props.entidad.estereotipo === "requirement" && requisito ? (
+      {esRequisito(props.entidad) && requisito ? (
         <SeccionCoberturaRequisito
           modelo={props.modelo}
           satisfacciones={props.satisfaccionesCubiertas}
@@ -340,11 +341,11 @@ function PanelExtensiones(props: {
       ) : null}
       <div style={extensionesStyles.actions}>
         <button type="button" style={style.secondaryButton} onClick={props.onCrearRequisito}>
-          {props.entidad.estereotipo === "requirement" ? "Crear requisito" : "Crear requisito vinculado"}
+          {esRequisito(props.entidad) ? "Crear requisito" : "Crear requisito vinculado"}
         </button>
         <button type="button" style={style.secondaryButton} onClick={props.onMarcarRequisito} disabled={props.entidad.tipo !== "objeto"}>Marcar como requisito</button>
         <button type="button" style={style.secondaryButton} onClick={props.onSatisfacerRequisito}>Vincular requisito existente</button>
-        <button type="button" style={style.secondaryButton} onClick={props.onRequirementView} disabled={props.entidad.estereotipo !== "requirement"}>Vista de requisito</button>
+        <button type="button" style={style.secondaryButton} onClick={props.onRequirementView} disabled={!esRequisito(props.entidad)}>Vista de requisito</button>
         <button type="button" style={style.secondaryButton} onClick={props.onSubmodelo}>Conectar submodelo</button>
       </div>
       {props.submodelos.length > 0 ? (

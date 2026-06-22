@@ -309,6 +309,7 @@ function depsAccionesMenu(
     abrirMarcarRequisito: () => {},
     abrirSatisfacerRequisito: () => {},
     abrirDialogoSubmodelo: () => {},
+    abrirVitrinaEstereotipos: () => {},
     splitEffectParcial: () => {},
     recolectarContorno: () => {},
     distribuirContorno: () => {},

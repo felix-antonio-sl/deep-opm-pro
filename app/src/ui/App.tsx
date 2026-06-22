@@ -48,6 +48,7 @@ import { MobileReadonlyApp } from "./mobile/MobileReadonlyApp";
 import { PanelDiagnostico } from "./PanelDiagnostico";
 import { PanelOplView } from "./PanelOpl";
 import { BarraSimulacion } from "./simulacion/BarraSimulacion";
+import { BarraPizarra } from "./pizarra/BarraPizarra";
 import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
 
@@ -61,6 +62,7 @@ const DialogoOntologia = lazy(() => import("./DialogoOntologia").then((m) => ({ 
 const DialogoRequisito = lazy(() => import("./DialogoRequisito").then((m) => ({ default: m.DialogoRequisito })));
 const DialogoSubmodelo = lazy(() => import("./DialogoSubmodelo").then((m) => ({ default: m.DialogoSubmodelo })));
 const DialogoComposicion = lazy(() => import("./DialogoComposicion").then((m) => ({ default: m.DialogoComposicion })));
+const VitrinaEstereotipos = lazy(() => import("./VitrinaEstereotipos").then((m) => ({ default: m.VitrinaEstereotipos })));
 const DialogoSimulacionNumerica = lazy(() => import("./DialogoSimulacionNumerica").then((m) => ({ default: m.DialogoSimulacionNumerica })));
 const DialogoColisionNombre = lazy(() => import("./DialogoColisionNombre").then((m) => ({ default: m.DialogoColisionNombre })));
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
@@ -93,6 +95,7 @@ export function App() {
     dialogoRequisitoAbierto,
     dialogoSubmodeloAbierto,
     dialogoComposicionAbierto,
+    vitrinaEstereotiposAbierta,
     dialogoSimulacionNumericaAbierto,
     dialogoImportarExportarJsonAbierto,
     cerrarDialogoImportarExportarJson,
@@ -328,7 +331,7 @@ export function App() {
             canvas={(
               <CodexCanvasMount
                 chromeVisible={!uiSoloCanvas}
-                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : null}
+                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <BarraPizarra />}
               >
                 <JointCanvasFeedbackBoundary readonlyMode={modoSoloLectura} onAdapterChange={setCanvasAdapter} />
                 {/*
@@ -425,6 +428,7 @@ export function App() {
         {dialogoRequisitoAbierto ? <Suspense fallback={null}><DialogoRequisito /></Suspense> : null}
         {dialogoSubmodeloAbierto ? <Suspense fallback={null}><DialogoSubmodelo /></Suspense> : null}
         {dialogoComposicionAbierto ? <Suspense fallback={null}><DialogoComposicion /></Suspense> : null}
+        {vitrinaEstereotiposAbierta ? <Suspense fallback={null}><VitrinaEstereotipos /></Suspense> : null}
         {dialogoSimulacionNumericaAbierto ? <Suspense fallback={null}><DialogoSimulacionNumerica /></Suspense> : null}
         <Suspense fallback={null}><DialogoColisionNombre /></Suspense>
         {dialogoImportarExportarJsonAbierto ? (

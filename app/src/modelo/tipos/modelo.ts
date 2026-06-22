@@ -5,6 +5,7 @@ import type { Enlace } from "./enlace";
 import type { Estado } from "./estado";
 import type {
   AnclaNormativa,
+  Estereotipo,
   NotaMesa,
   OntologiaOrganizacional,
   ReferenciaPadreSubmodelo,
@@ -48,6 +49,9 @@ export interface Modelo {
   anclasNormativas?: Record<Id, AnclaNormativa>;
   /** W6.5-a: notas de mesa (comentarios de revisión por componente). Aditivo y opcional. */
   notasMesa?: Record<Id, NotaMesa>;
+  /** D6: catálogo de estereotipos (plantillas de subgrafo + de fábrica). Aditivo y opcional
+   *  (hermano de anclasNormativas): excluido de validarModelo nuclear / conteo OPL / checkers. */
+  estereotipos?: Record<Id, Estereotipo>;
   /** W5.3/L6: sello de origen del bundle emitido (proto+versiones). Aditivo y opcional. */
   procedencia?: SelloProcedencia;
   submodelos?: Record<Id, SubmodeloReferencia>;

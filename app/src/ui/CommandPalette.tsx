@@ -71,6 +71,7 @@ const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = 
   "marcar-requisito": "CREAR",
   "satisfacer-requisito": "CREAR",
   "conectar-submodelo": "CREAR",
+  "vitrina-estereotipos": "CREAR",
   "split-parcial": "CREAR",
   "recolectar-contorno": "CREAR",
   "distribuir-contorno": "CREAR",
@@ -156,6 +157,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirDialogoOntologia,
     abrirDialogoRequisito,
     abrirDialogoSubmodelo,
+    abrirVitrinaEstereotipos,
     splitEffectParcialSeleccionado,
     recolectarEnlaceContornoSeleccionado,
     distribuirEnlaceContornoSeleccionado,
@@ -227,6 +229,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     abrirMarcarRequisito: () => abrirDialogoRequisito("marcar"),
     abrirSatisfacerRequisito: () => abrirDialogoRequisito("satisfacer"),
     abrirDialogoSubmodelo,
+    abrirVitrinaEstereotipos,
     splitEffectParcial: splitEffectParcialSeleccionado,
     recolectarContorno: recolectarEnlaceContornoSeleccionado,
     distribuirContorno: distribuirEnlaceContornoSeleccionado,
@@ -537,6 +540,7 @@ interface AccionesMenuCommandPaletteDeps {
   abrirMarcarRequisito: () => void;
   abrirSatisfacerRequisito: () => void;
   abrirDialogoSubmodelo: () => void;
+  abrirVitrinaEstereotipos: () => void;
   splitEffectParcial: () => void;
   recolectarContorno: () => void;
   distribuirContorno: () => void;
@@ -559,6 +563,7 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "marcar-requisito", label: "Marcar como requisito", descripcion: "Convertir el objeto seleccionado en <<Requirement>>", categoria: "edicion", enabled: deps.hayEntidadSeleccionada, run: deps.abrirMarcarRequisito },
     { id: "satisfacer-requisito", label: "Vincular requisito existente", descripcion: "Relacionar un requisito con la selección actual", categoria: "edicion", enabled: deps.hayEntidadSeleccionada || deps.hayEnlaceSeleccionado, run: deps.abrirSatisfacerRequisito },
     { id: "conectar-submodelo", label: "Conectar submodelo", descripcion: "Crear referencia LF-04 con vista derivada de solo lectura", categoria: "refinamiento", enabled: deps.hayEntidadSeleccionada, run: deps.abrirDialogoSubmodelo },
+    { id: "vitrina-estereotipos", label: "Vitrina de estereotipos", descripcion: "Galería de estereotipos injertables (objetos, enlaces, patrones)", categoria: "edicion", run: deps.abrirVitrinaEstereotipos },
     { id: "split-parcial", label: "Split parcial TS4/TS5", descripcion: "Convertir un efecto con un estado no especificado en split parcial", categoria: "edicion", enabled: deps.hayEnlaceSeleccionado, run: deps.splitEffectParcial },
     { id: "recolectar-contorno", label: "Recolectar enlace de contorno", descripcion: "Materializar el enlace padre en el OPD de refinamiento", categoria: "refinamiento", enabled: deps.hayEnlaceSeleccionado, run: deps.recolectarContorno },
     { id: "distribuir-contorno", label: "Distribuir enlace de contorno", descripcion: "Restaurar la proyección automática del enlace externo", categoria: "refinamiento", enabled: deps.hayEnlaceSeleccionado, run: deps.distribuirContorno },

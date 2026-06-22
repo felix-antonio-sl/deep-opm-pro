@@ -36,6 +36,7 @@ export interface CommandPaletteMenuExtrasPort {
   abrirDialogoOntologia: () => void;
   abrirDialogoRequisito: (modo: "crear" | "marcar" | "satisfacer") => void;
   abrirDialogoSubmodelo: () => void;
+  abrirVitrinaEstereotipos: () => void;
   splitEffectParcialSeleccionado: () => void;
   recolectarEnlaceContornoSeleccionado: () => void;
   distribuirEnlaceContornoSeleccionado: () => void;

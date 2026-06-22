@@ -1,3 +1,4 @@
+import { ESTEREOTIPO_REQUIREMENT_ID, esRequisito } from "./estereotipos";
 import { entidadIdDeExtremo } from "./extremos";
 import { crearObjeto } from "./operaciones/creacion";
 import type {
@@ -53,7 +54,7 @@ export function marcarEntidadComoRequisito(
         ...modelo.entidades,
         [entidadId]: {
           ...entidad,
-          estereotipo: "requirement",
+          estereotipoId: ESTEREOTIPO_REQUIREMENT_ID,
           requisito: normalizada.value,
         },
       },
@@ -69,7 +70,7 @@ export function satisfacerRequisito(
   descripcion?: string,
 ): Resultado<Modelo> {
   const requisito = modelo.entidades[requisitoEntidadId];
-  if (requisito?.estereotipo !== "requirement" || !requisito.requisito) {
+  if (!esRequisito(requisito) || !requisito?.requisito) {
     return { ok: false, error: "Entidad requisito inválida" };
   }
   if (target.tipo === "entidad" && !modelo.entidades[target.id]) return { ok: false, error: `Entidad no existe: ${target.id}` };
@@ -114,7 +115,7 @@ export function satisfacerRequisito(
 
 export function crearRequirementView(modelo: Modelo, requisitoEntidadId: Id, nombre?: string): Resultado<{ modelo: Modelo; opdId: Id }> {
   const requisito = modelo.entidades[requisitoEntidadId];
-  if (requisito?.estereotipo !== "requirement" || !requisito.requisito) {
+  if (!esRequisito(requisito) || !requisito?.requisito) {
     return { ok: false, error: "Entidad requisito inválida" };
   }
 

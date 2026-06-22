@@ -2,6 +2,7 @@ import { CANON } from "../../../modelo/constantes";
 import { rolAparienciaEnRefinamiento } from "../../../modelo/contextoRefinamiento";
 import { ANCLAS_RELOJ_ENLACE, puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../../../modelo/anclajesEnlace";
 import { esAfiliacionEfectivaAmbiental } from "../../../modelo/afiliacionEfectiva";
+import { estereotipoDe } from "../../../modelo/estereotipos";
 import { designacionesEstado } from "../../../modelo/estadosDesignaciones";
 import { nombreCanonicoEntidad, nombreCanonicoEstado } from "../../../modelo/nombresCanonicos";
 import { notasDeTarget } from "../../../modelo/notasMesa";
@@ -40,6 +41,15 @@ export function proyectarEntidad(
   estadosSeleccionados: readonly Estado[] = [],
 ): JointCellJson {
   const stroke = colorEntidadCodex(entidad.tipo);
+  // D6.3 / R-VIS-STEREO-1: una cosa con `estereotipoId` aplicado DEBE rotularse en
+  // el canvas con su estereotipo en doble ángulo `<<Nombre>>` (evidencia OpCloud
+  // R-4604). META: NO emite OPL nuclear (el estereotipo se excluye del conteo
+  // desde D6.1). Defensivo: si el id no resuelve (catálogo ausente), no se
+  // renderiza badge.
+  const estereotipoNombre = entidad.estereotipoId
+    ? estereotipoDe(modelo, entidad.estereotipoId)?.nombre
+    : undefined;
+  const mostrarEstereotipo = estereotipoNombre !== undefined;
   const fillBase = "transparent";
   const fill = resaltada ? CODEX.colores.paperWarm : fillBase;
   const partes = partesDePlegado(modelo, entidad.id);
@@ -177,13 +187,24 @@ export function proyectarEntidad(
         attrs: attrsConResizeHandles(renderConAnchors.attrs, size),
       }
     : renderConAnchors;
-  const render = seleccionUnica
+  const renderConSeleccion = seleccionUnica
     ? {
         ...renderConResize,
         markup: markupConSelectionUnderline(renderConResize.markup),
         attrs: attrsConSelectionUnderline(renderConResize.attrs, size),
       }
     : renderConResize;
+  // D6.3: badge de estereotipo aplicado SOBRE el markup ya compuesto. Al ir al
+  // final del pipeline sobrevive a TODAS las variantes (base, badge, estados,
+  // plegado, selección). Espejo exacto de markupConSelectionUnderline /
+  // attrsConSelectionUnderline.
+  const render = mostrarEstereotipo
+    ? {
+        ...renderConSeleccion,
+        markup: markupConEstereotipo(renderConSeleccion.markup ?? markupBase(bodyTag), mostrarEstereotipo),
+        attrs: attrsConEstereotipo(renderConSeleccion.attrs, size, estereotipoNombre, mostrarEstereotipo, contornoRefinamiento || modoParcial),
+      }
+    : renderConSeleccion;
   const ports = portsEntidad(apariencia, entidad.tipo);
 
   return {
@@ -430,6 +451,48 @@ function attrsConSelectionUnderline(
       fill: "none",
       stroke: CODEX.colores.crimson,
       strokeWidth: CODEX.strokes.seleccion,
+      pointerEvents: "none",
+    },
+  };
+}
+
+// D6.3 / R-VIS-STEREO-1: badge de estereotipo `<<Nombre>>` embebido en la celda.
+// Espejo exacto de markupConSelectionUnderline / attrsConSelectionUnderline: opera
+// sobre el markup ya compuesto, por eso sobrevive a todas las variantes de render.
+// Tinta CODEX (inkSoft) — crimson PROHIBIDO (UI-only para foco/selección, ui-forja/06).
+function markupConEstereotipo(
+  markup: Array<Record<string, unknown>>,
+  mostrar: boolean,
+): Array<Record<string, unknown>> {
+  if (!mostrar) return markup;
+  return [...markup, { tagName: "text", selector: "stereotypeBadge" }];
+}
+
+function attrsConEstereotipo(
+  attrsBase: Record<string, unknown>,
+  size: { width: number; height: number },
+  nombre: string | undefined,
+  mostrar: boolean,
+  labelArriba = false,
+): Record<string, unknown> {
+  if (!mostrar || nombre === undefined) return attrsBase;
+  // Sin estados el label va centrado (refYEtiquetaEntidad="50%"): un badge a y=11
+  // en caja default de 60px (centro 30) no solapa. En variantes con label arriba
+  // (contorno/parcial, refY="8%"≈top), el nombre ya ocupa la franja superior:
+  // empuja el badge bajo el borde inferior para no pisarlo.
+  const y = labelArriba ? Math.max(11, size.height - 9) : 11;
+  return {
+    ...attrsBase,
+    stereotypeBadge: {
+      text: `<<${nombre}>>`,
+      x: size.width / 2,
+      y,
+      fill: CODEX.colores.inkSoft,
+      fontFamily: CODEX.fuentes.serif,
+      fontSize: 11,
+      fontWeight: 600,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
       pointerEvents: "none",
     },
   };

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { store } from "../store";
+import { ESTEREOTIPO_REQUIREMENT_ID } from "../modelo/estereotipos";
 import { exportarModelo } from "../serializacion/json";
 import {
   crearEnlace,
@@ -76,7 +77,7 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
     const viewId = estado.opdActivoId;
     store.getState().crearRequirementViewSeleccionado();
     estado = store.getState();
-    expect(estado.modelo.entidades[requisitoId]?.estereotipo).toBe("requirement");
+    expect(estado.modelo.entidades[requisitoId]?.estereotipoId).toBe(ESTEREOTIPO_REQUIREMENT_ID);
     expect(estado.modelo.entidades[requisitoId]?.requisito).toMatchObject({ idLogico: "REQ-UX-1" });
     expect(estado.opdActivoId).toBe(viewId);
     expect(Object.values(estado.modelo.opds).filter((opd) => opd.vista?.kind === "requirement-view" && opd.vista.requisitoEntidadId === requisitoId)).toHaveLength(1);
@@ -104,7 +105,7 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
 
     const estado = store.getState();
     const requisito = Object.values(estado.modelo.entidades).find((entidad) => entidad.requisito?.idLogico === "REQ-UX-AUTO");
-    expect(requisito?.estereotipo).toBe("requirement");
+    expect(requisito?.estereotipoId).toBe(ESTEREOTIPO_REQUIREMENT_ID);
     expect(Object.values(estado.modelo.satisfaccionesRequisito ?? {})).toContainEqual(expect.objectContaining({
       requisitoEntidadId: requisito?.id,
       target: { tipo: "entidad", id: targetId },
@@ -137,7 +138,7 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
 
     const estado = store.getState();
     const requisito = Object.values(estado.modelo.entidades).find((entidad) => entidad.requisito?.idLogico === "REQ-LINK-AUTO");
-    expect(requisito?.estereotipo).toBe("requirement");
+    expect(requisito?.estereotipoId).toBe(ESTEREOTIPO_REQUIREMENT_ID);
     expect(Object.values(estado.modelo.satisfaccionesRequisito ?? {})).toContainEqual(expect.objectContaining({
       requisitoEntidadId: requisito?.id,
       target: { tipo: "enlace", id: enlaceId },
@@ -248,6 +249,70 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
     expect(enlacesDelOpd(store.getState().modelo, fixture.opdHijoId).map((enlace) => enlace.id)).not.toContain(fixture.enlacePadreId);
     expect(enlacesDelOpd(store.getState().modelo, fixture.opdHijoId).some((enlace) => enlace.derivado?.enlacePadreId === fixture.enlacePadreId)).toBe(true);
   });
+
+  // ── D6.4 — Vitrina de estereotipos ──────────────────────────────────────
+  test("abre y cierra la vitrina de estereotipos (flag de UI)", () => {
+    expect(store.getState().vitrinaEstereotiposAbierta).toBe(false);
+    store.getState().abrirVitrinaEstereotipos();
+    expect(store.getState().vitrinaEstereotiposAbierta).toBe(true);
+    store.getState().cerrarVitrinaEstereotipos();
+    expect(store.getState().vitrinaEstereotiposAbierta).toBe(false);
+  });
+
+  test("crea un estereotipo desde la selección actual y lo agrega al catálogo con plantilla", () => {
+    importar(modeloDosCosasConEnlace());
+    const entradaId = entidadId(store.getState().modelo, "Entrada");
+    const procesarId = entidadId(store.getState().modelo, "Procesar");
+    store.getState().setSeleccion([entradaId, procesarId]);
+
+    store.getState().crearEstereotipoDesdeSeleccionActual("Flujo de admisión");
+
+    const estado = store.getState();
+    const catalogo = Object.values(estado.modelo.estereotipos ?? {});
+    expect(catalogo).toHaveLength(1);
+    const estereotipo = catalogo[0]!;
+    expect(estereotipo.nombre).toBe("Flujo de admisión");
+    expect(estereotipo.plantilla).toBeDefined();
+    expect(Object.keys(estereotipo.plantilla!.entidades)).toHaveLength(2);
+    expect(Object.keys(estereotipo.plantilla!.enlaces)).toHaveLength(1);
+    expect(estado.mensaje).toBe("Estereotipo creado: Flujo de admisión");
+    // No cambia la selección.
+    expect(estado.seleccionados.sort()).toEqual([entradaId, procesarId].sort());
+  });
+
+  test("crear estereotipo con selección vacía avisa y no muta el catálogo", () => {
+    importar(modeloDosCosasConEnlace());
+    store.getState().vaciarSeleccion();
+    const antes = JSON.stringify(store.getState().modelo.estereotipos ?? {});
+
+    store.getState().crearEstereotipoDesdeSeleccionActual("Inservible");
+
+    expect(store.getState().mensaje).toBe("Selecciona cosas para guardar como estereotipo");
+    expect(JSON.stringify(store.getState().modelo.estereotipos ?? {})).toBe(antes);
+  });
+
+  test("injerta un estereotipo en el OPD activo: crea cosas frescas y selecciona el ancla", () => {
+    importar(modeloDosCosasConEnlace());
+    const entradaId = entidadId(store.getState().modelo, "Entrada");
+    const procesarId = entidadId(store.getState().modelo, "Procesar");
+    store.getState().setSeleccion([entradaId, procesarId]);
+    store.getState().crearEstereotipoDesdeSeleccionActual("Flujo");
+    const estereotipoId = Object.keys(store.getState().modelo.estereotipos ?? {})[0]!;
+
+    const entidadesAntes = Object.keys(store.getState().modelo.entidades).length;
+    store.getState().injertarEstereotipoEnOpd(estereotipoId);
+
+    const estado = store.getState();
+    // Dos cosas nuevas (clones frescos), independientes de las originales.
+    expect(Object.keys(estado.modelo.entidades).length).toBe(entidadesAntes + 2);
+    expect(estado.seleccionId).not.toBeNull();
+    expect(estado.seleccionId).not.toBe(entradaId);
+    expect(estado.seleccionId).not.toBe(procesarId);
+    // El ancla seleccionada porta el estereotipo aplicado.
+    expect(estado.modelo.entidades[estado.seleccionId!]?.estereotipoId).toBe(estereotipoId);
+    expect(estado.seleccionados).toHaveLength(2);
+    expect(estado.mensaje).toBe("Estereotipo injertado");
+  });
 });
 
 function instalarBackendMock(): void {
@@ -305,4 +370,14 @@ function enlacesDelOpd(modelo: Modelo, opdId: string): Enlace[] {
   return Object.values(modelo.opds[opdId]?.enlaces ?? {})
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
     .filter((enlace): enlace is Enlace => !!enlace);
+}
+
+function modeloDosCosasConEnlace(): Modelo {
+  let modelo = crearModelo("Estereotipo UX");
+  modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 80 }, "Entrada"));
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 80 }, "Procesar"));
+  const entradaId = entidadId(modelo, "Entrada");
+  const procesarId = entidadId(modelo, "Procesar");
+  modelo = must(crearEnlace(modelo, modelo.opdRaizId, entradaId, procesarId, "consumo"));
+  return modelo;
 }

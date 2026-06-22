@@ -40,6 +40,11 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
       descriptorMapaCache: null,
       modoEnlace: null,
       modoCreacion: null,
+      // D7.2 (coherencia de modos): pizarra y simulación son mutuamente
+      // excluyentes. Al entrar a simulación, apagar el modo bosquejo.
+      modoPizarra: false,
+      herramientaPizarra: null,
+      bocetoSeleccionadoId: null,
       // P1-5 ronda 4: descartar editor inline al cambiar de modo.
       nuevaCosaPendiente: null,
       mensaje: contexto.plan.length === 0

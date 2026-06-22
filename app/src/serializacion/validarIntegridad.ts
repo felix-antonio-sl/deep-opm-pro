@@ -1,4 +1,5 @@
 import { contornoDeOpd, subprocesosInternosDeOpd } from "../modelo/checkers";
+import { esRequisito, estereotipoDe } from "../modelo/estereotipos";
 import { entidadIdDeExtremo, extremoVisibleEnOpd } from "../modelo/extremos";
 import { modoPlegadoApariencia, partesDePlegado } from "../modelo/plegado";
 import { refinamientosDe, tieneRefinamiento } from "./../modelo/refinamientos";
@@ -25,6 +26,16 @@ import { fallo, ok } from "./validarHelpers";
 
 export function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
   const enlacesConApariencia = new Set<Id>();
+  // Contrato de import DURO (D6): un `estereotipoId` aplicado que no resuelve contra la
+  // fábrica ni el catálogo `Modelo.estereotipos` es una referencia colgante. Simétrico
+  // EXACTO a `ordenInzoom` (subprocesos internos reales) y a las anclas/notasMesa
+  // (target resoluble en json.ts): el import dura rechaza con diagnóstico, no la deja
+  // sobrevivir en silencio.
+  for (const entidad of Object.values(modelo.entidades)) {
+    if (entidad.estereotipoId !== undefined && !estereotipoDe(modelo, entidad.estereotipoId)) {
+      return fallo(`Entidad inválida: ${entidad.id}.estereotipoId referencia un estereotipo inexistente (ni de fábrica ni en el catálogo)`);
+    }
+  }
   for (const entidad of Object.values(modelo.entidades)) {
     for (const ref of refinamientosDe(entidad)) {
       const opdRefinado = modelo.opds[ref.opdId];
@@ -47,7 +58,7 @@ export function validarReferenciasOpd(modelo: Modelo): Resultado<true> {
   for (const [opdId, opd] of Object.entries(modelo.opds)) {
     if (opd.vista?.kind === "requirement-view") {
       const requisito = modelo.entidades[opd.vista.requisitoEntidadId];
-      if (requisito?.estereotipo !== "requirement") return fallo(`OPD inválido: ${opdId}.vista.requisitoEntidadId`);
+      if (!esRequisito(requisito)) return fallo(`OPD inválido: ${opdId}.vista.requisitoEntidadId`);
     }
     if (opd.vista?.kind === "submodel-view") {
       const ref = modelo.submodelos?.[opd.vista.submodeloRefId];

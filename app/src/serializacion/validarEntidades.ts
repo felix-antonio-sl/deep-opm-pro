@@ -1,3 +1,4 @@
+import { ESTEREOTIPO_REQUIREMENT_ID } from "../modelo/estereotipos";
 import { validarModoImagen, validarUrlImagen } from "../modelo/imagenObjeto";
 import { validarAlias, validarImagenEntidad, validarTipoUrlObjeto, validarUnidad, validarUrl } from "../modelo/objetoMetadata";
 import { normalizarParametrosSimulacion } from "../modelo/simulacion/parametros";
@@ -38,8 +39,8 @@ export function validarEntidades(value: Record<string, unknown>): Resultado<Reco
     if (!refinamientos.ok) return refinamientos;
     const avanzados = camposEntidadAvanzada(id, raw);
     if (!avanzados.ok) return avanzados;
-    const requisito = validarRequisitoEntidad(id, raw);
-    if (!requisito.ok) return requisito;
+    const estereotipo = validarEstereotipoEntidad(id, raw);
+    if (!estereotipo.ok) return estereotipo;
     entidades[id] = {
       id,
       tipo: raw.tipo,
@@ -47,43 +48,87 @@ export function validarEntidades(value: Record<string, unknown>): Resultado<Reco
       esencia: raw.esencia,
       afiliacion: raw.afiliacion,
       ...(refinamientos.value ? { refinamientos: refinamientos.value } : {}),
-      ...(requisito.value ? { estereotipo: "requirement", requisito: requisito.value } : {}),
+      ...(estereotipo.value
+        ? {
+            estereotipoId: estereotipo.value.estereotipoId,
+            ...(estereotipo.value.requisito ? { requisito: estereotipo.value.requisito } : {}),
+          }
+        : {}),
       ...avanzados.value,
     };
   }
   return ok(entidades);
 }
 
-function validarRequisitoEntidad(entidadId: Id, raw: Record<string, unknown>): Resultado<RequisitoEntidadMetadata | undefined> {
-  if (raw.estereotipo === undefined && raw.requisito === undefined) return ok(undefined);
-  if (raw.estereotipo !== "requirement") return fallo(`Entidad inválida: ${entidadId}.estereotipo`);
-  if (!esRecord(raw.requisito)) return fallo(`Entidad inválida: ${entidadId}.requisito`);
-  if (typeof raw.requisito.idLogico !== "string" || !raw.requisito.idLogico.trim()) {
+interface EstereotipoAplicado {
+  estereotipoId: Id;
+  requisito?: RequisitoEntidadMetadata;
+}
+
+/**
+ * D6: validador de FORMA del estereotipo aplicado a la entidad. La RESOLUCIÓN
+ * referencial del `estereotipoId` contra fábrica/catálogo es aparte (contrato
+ * de import en `validarReferenciasOpd`). Adapta el legacy `estereotipo:"requirement"`
+ * a `ESTEREOTIPO_REQUIREMENT_ID` y conserva el acoplamiento histórico
+ * `requisito` ⟺ estereotipo requirement.
+ */
+function validarEstereotipoEntidad(entidadId: Id, raw: Record<string, unknown>): Resultado<EstereotipoAplicado | undefined> {
+  if (raw.estereotipo === undefined && raw.estereotipoId === undefined && raw.requisito === undefined) return ok(undefined);
+
+  // estereotipoId efectivo (preferir el campo nuevo; adaptar el legacy si falta).
+  let estereotipoId: Id;
+  if (typeof raw.estereotipoId === "string" && raw.estereotipoId.trim()) {
+    estereotipoId = raw.estereotipoId.trim();
+  } else if (raw.estereotipo === "requirement") {
+    estereotipoId = ESTEREOTIPO_REQUIREMENT_ID; // ADAPTADOR legacy.
+  } else if (raw.estereotipo !== undefined) {
+    return fallo(`Entidad inválida: ${entidadId}.estereotipo`);
+  } else {
+    // Solo `requisito` presente (sin estereotipo): requirement legacy ⇒ exige requisito válido.
+    estereotipoId = ESTEREOTIPO_REQUIREMENT_ID;
+  }
+
+  if (estereotipoId === ESTEREOTIPO_REQUIREMENT_ID) {
+    const requisito = validarRequisitoMetadata(entidadId, raw.requisito);
+    if (!requisito.ok) return requisito;
+    return ok({ estereotipoId, requisito: requisito.value });
+  }
+
+  // estereotipoId != requirement ⇒ `requisito` DEBE estar ausente.
+  if (raw.requisito !== undefined) {
+    return fallo(`Entidad inválida: ${entidadId}.requisito (solo válido con estereotipo requirement)`);
+  }
+  return ok({ estereotipoId });
+}
+
+function validarRequisitoMetadata(entidadId: Id, value: unknown): Resultado<RequisitoEntidadMetadata> {
+  if (!esRecord(value)) return fallo(`Entidad inválida: ${entidadId}.requisito`);
+  if (typeof value.idLogico !== "string" || !value.idLogico.trim()) {
     return fallo(`Entidad inválida: ${entidadId}.requisito.idLogico`);
   }
-  if (typeof raw.requisito.descripcion !== "string" || !raw.requisito.descripcion.trim()) {
+  if (typeof value.descripcion !== "string" || !value.descripcion.trim()) {
     return fallo(`Entidad inválida: ${entidadId}.requisito.descripcion`);
   }
-  if (raw.requisito.dureza !== "hard" && raw.requisito.dureza !== "soft") {
+  if (value.dureza !== "hard" && value.dureza !== "soft") {
     return fallo(`Entidad inválida: ${entidadId}.requisito.dureza`);
   }
   if (
-    raw.requisito.satisfaction !== undefined &&
-    raw.requisito.satisfaction !== "pendiente" &&
-    raw.requisito.satisfaction !== "satisface" &&
-    raw.requisito.satisfaction !== "parcial" &&
-    raw.requisito.satisfaction !== "no-satisface"
+    value.satisfaction !== undefined &&
+    value.satisfaction !== "pendiente" &&
+    value.satisfaction !== "satisface" &&
+    value.satisfaction !== "parcial" &&
+    value.satisfaction !== "no-satisface"
   ) {
     return fallo(`Entidad inválida: ${entidadId}.requisito.satisfaction`);
   }
-  const satisfaction = typeof raw.requisito.satisfaction === "string"
-    ? raw.requisito.satisfaction as EstadoSatisfaccionRequisito
+  const satisfaction = typeof value.satisfaction === "string"
+    ? value.satisfaction as EstadoSatisfaccionRequisito
     : undefined;
   return ok({
-    idLogico: raw.requisito.idLogico.trim(),
-    descripcion: raw.requisito.descripcion.trim(),
-    dureza: raw.requisito.dureza,
-    ...(typeof raw.requisito.actor === "string" && raw.requisito.actor.trim() ? { actor: raw.requisito.actor.trim() } : {}),
+    idLogico: value.idLogico.trim(),
+    descripcion: value.descripcion.trim(),
+    dureza: value.dureza,
+    ...(typeof value.actor === "string" && value.actor.trim() ? { actor: value.actor.trim() } : {}),
     ...(satisfaction ? { satisfaction } : {}),
   });
 }

@@ -1,4 +1,7 @@
 import type { Id } from "./comunes";
+import type { Entidad } from "./entidad";
+import type { Estado } from "./estado";
+import type { Enlace } from "./enlace";
 
 export type ModoReforzamientoOntologia = "none" | "suggest" | "enforce";
 
@@ -35,6 +38,52 @@ export interface SatisfaccionRequisito {
   target: TargetSatisfaccionRequisito;
   estado: EstadoSatisfaccionRequisito;
   descripcion?: string;
+}
+
+// --- Estereotipo (D6) -------------------------------------------------------
+// Extensión ADITIVA y OPCIONAL del formato `deep-opm-pro.modelo.v0`: catálogo de
+// estereotipos (built-in de fábrica + entradas de `Modelo.estereotipos`). Mismo
+// estatuto NO-semántico que AnclaNormativa/NotaMesa: el kernel lo IGNORA — un
+// estereotipo del catálogo NO entra a entidades/enlaces/estados, NO emite OPL
+// nuclear, NO cuenta como cosa, NO altera `validarModelo`/checkers/conteo OPL.
+// (La APLICACIÓN a una entidad vía `Entidad.estereotipoId` SÍ es dato del modelo:
+// es el estereotipo APLICADO, no el catálogo del que se toma.)
+
+/** Layout relativo de una cosa de la plantilla, normalizado a (0,0). */
+export interface AparienciaPlantilla {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Subgrafo OPM auto-contenido, clonable (D6.2). Ids LOCALES a la plantilla
+ * (se remapean a ids FRESCOS al injertar — `injertarEstereotipo`). Plano por
+ * diseño: SIN refinamientos, SIN abanicos, SIN enlaces derivado/efectoEscindido
+ * (paridad-OpCloud `cloneStereotypeToOpd` declarada-no-implementada para D6).
+ */
+export interface PlantillaEstereotipo {
+  entidades: Record<Id, Entidad>;
+  estados: Record<Id, Estado>;
+  enlaces: Record<Id, Enlace>;
+  /** Layout relativo por id LOCAL de entidad. */
+  apariencias: Record<Id, AparienciaPlantilla>;
+  /** Cosa ancla (main thing OpCloud): recibe el estereotipoId al injertar. Default = primera. */
+  anclaLocalId?: Id;
+}
+
+export interface Estereotipo {
+  id: Id;
+  nombre: string;
+  /** Owner de valor del catálogo (D6, spec §3): por qué/cuándo usar este estereotipo. */
+  propositoDeModelado?: string;
+  /**
+   * D6.2: plantilla de subgrafo injertable. Un estereotipo SIN plantilla es un
+   * marcador puro (p.ej. requirement); uno CON plantilla se clona-e-injerta vía
+   * `injertarEstereotipo` creando cosas FRESCAS e independientes en un OPD.
+   */
+  plantilla?: PlantillaEstereotipo;
 }
 
 // --- AnclaNormativa (W5.1) -------------------------------------------------
