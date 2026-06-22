@@ -171,6 +171,13 @@ importar/exportar JSON, exportar PNG, atajos, límites de sesión) vive en
 - **Exportación y persistencia**: el bundle JSON conserva hechos, identidad, OPDs,
   OPL y trazas para rehidratar/auditar. Una imagen sola comunica, pero no sustituye
   el bundle canónico.
+- **Vitrina de estereotipos**: galería de estereotipos injertables (objetos, enlaces,
+  patrones compuestos) más el guardado de una selección como estereotipo reusable. Un
+  estereotipo es una marca de modelado **meta** (no emite OPL nuclear; se rotula
+  `<<Nombre>>` en canvas) y/o una **plantilla de subgrafo OPM** que se clona-e-injerta
+  como cosas+enlaces reales. La realización visual la gobierna
+  `urn:fxsl:kb:spec-forja-opd-es` (R-VIS-STEREO-1, propuesta vigente en
+  `docs/solicitudes-upstream/`); ver §9.
 
 ### 4. Construir un modelo desde cero
 
@@ -346,6 +353,17 @@ crítica, control loop, estados ortogonales, composición por interfaz, configur
 y tradeoffs, digital twin. Cada patrón publicable cita sus reglas propietarias por
 URN, no las copia.
 
+**Estereotipos y vitrinas** son el vehículo para empaquetar y reusar estos patrones.
+Un estereotipo es: (a) una **marca meta** sobre una cosa (p.ej. `requirement` de
+fábrica) que se rotula `<<Nombre>>` en canvas (DEBE) y es opcional en OPL (PUEDE,
+R-VIS-STEREO-1); y/o (b) una **plantilla de subgrafo OPM** (cosas+estados+enlaces con
+un ancla) que se **clona-e-injerta** creando identidad fresca e independiente. La
+vitrina los ofrece agrupados (objetos / enlaces / patrones compuestos); guardar una
+selección como estereotipo es el gesto de curaduría del conocedor de dominio. NO hay
+estereotipos de enlace (sería una sexta familia encubierta). El estereotipo es
+contenido meta del autor (mismo estatuto que las anclas normativas): no cuenta como
+cosa ni altera la validación nuclear. Autoridad: `urn:fxsl:kb:spec-forja-opd-es`.
+
 ---
 
 ## 10. Ejemplo end-to-end
@@ -457,3 +475,4 @@ puentes: se resuelven por su ubicación canónica en KORA (`artefactos/conocimie
 | Fecha | Cambio |
 | --- | --- |
 | 2026-06-22 | Manual integrado al repo (corte D4 / decisión D-MANUAL): consolidación de los dos shards de la bestia en un solo documento delgado y derivado, con doble pista (humano §3-§5 + agente §A) sobre tronco común, citas por URN sin transcripción, §L derivada del registro de conformidad y testigo de cierre `manual:limites`. |
+| 2026-06-22 | Corte D6 (estereotipos + vitrinas): §3 suma la vitrina de estereotipos; §9 suma estereotipos/plantillas como vehículo de patrones reusables (marca meta `<<Nombre>>` + plantilla de subgrafo clonada-e-injertada; sin estereotipos de enlace). Cita R-VIS-STEREO-1 por URN; propuesta a custodio-kora en `docs/solicitudes-upstream/2026-06-22-estereotipos-vitrinas-ssot-skill.md`. |

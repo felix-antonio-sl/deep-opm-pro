@@ -314,6 +314,8 @@ export interface OpmStore {
   dialogoRequisitoAbierto: DialogoRequisitoModo | null;
   dialogoSubmodeloAbierto: boolean;
   dialogoComposicionAbierto: boolean;
+  /** D6.4: galería/vitrina de estereotipos injertables. */
+  vitrinaEstereotiposAbierta: boolean;
   /** [JOYAS §1] Halo temporal solicitado para inserción; amarillo canónico #FFFC7F. */
   idsResaltadosTemporales: Id[];
   workspaceLocal: WorkspaceModeloLocal;
@@ -400,6 +402,13 @@ export interface OpmStore {
   abrirDialogoComposicion: () => void;
   cerrarDialogoComposicion: () => void;
   componerConModeloGuardado: (input: { modeloId: Id; compartidas?: Record<Id, Id> }) => void;
+  /** D6.4: abre/cierra la vitrina de estereotipos. */
+  abrirVitrinaEstereotipos: () => void;
+  cerrarVitrinaEstereotipos: () => void;
+  /** D6.4: injerta un estereotipo del catálogo en el OPD activo (clones frescos). */
+  injertarEstereotipoEnOpd: (estereotipoId: Id) => void;
+  /** D6.4: captura la selección actual como estereotipo reusable del catálogo. */
+  crearEstereotipoDesdeSeleccionActual: (nombre: string, opts?: { propositoDeModelado?: string; anclaId?: Id }) => void;
   marcarEstadoSubmodeloSeleccionado: (refId: Id, estado: EstadoCargaSubmodelo) => void;
   actualizarSubmodeloSeleccionado: (refId?: Id) => void;
   descargarSubmodeloSeleccionado: (refId?: Id) => void;

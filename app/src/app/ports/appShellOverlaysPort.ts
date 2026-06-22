@@ -8,6 +8,7 @@ export interface AppShellOverlaysPort {
   dialogoRequisitoAbierto: boolean;
   dialogoSubmodeloAbierto: OpmStore["dialogoSubmodeloAbierto"];
   dialogoComposicionAbierto: OpmStore["dialogoComposicionAbierto"];
+  vitrinaEstereotiposAbierta: OpmStore["vitrinaEstereotiposAbierta"];
   dialogoImportarExportarJsonAbierto: OpmStore["dialogoImportarExportarJsonAbierto"];
   cerrarDialogoImportarExportarJson: OpmStore["cerrarDialogoImportarExportarJson"];
   dialogoCargarModeloAbierto: OpmStore["dialogoCargarModeloAbierto"];
