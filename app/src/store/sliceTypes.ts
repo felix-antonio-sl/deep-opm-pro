@@ -270,6 +270,21 @@ export type SimulacionSlice = Slice<
   | "fijarSemillaSimulacion"
 >;
 
+export type PizarraSlice = Slice<
+  | "modoPizarra"
+  | "herramientaPizarra"
+  | "bocetoSeleccionadoId"
+  | "activarModoPizarra"
+  | "salirModoPizarra"
+  | "elegirHerramientaPizarra"
+  | "agregarBocetoEnOpd"
+  | "moverBocetoActual"
+  | "editarBocetoActual"
+  | "eliminarBocetoActual"
+  | "seleccionarBoceto"
+  | "promoverBocetoActual"
+>;
+
 export type OpmStoreSlices =
   & ModeloSlice
   & SeleccionSlice
@@ -281,6 +296,7 @@ export type OpmStoreSlices =
   & PersistenciaSlice
   & PestanasSlice
   & SimulacionSlice
+  & PizarraSlice
   & AtajosSlice;
 
 type AssertNever<T extends never> = T;

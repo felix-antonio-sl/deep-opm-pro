@@ -7,6 +7,7 @@ import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
 import { centroApariencia, proyectarBusesEstructurales, separarCentroSimboloEstructural, type EnlaceConEndpointVisual, type ReservaSimboloEstructural } from "./agregacionBus";
 import { proyectarAutoInvocacion } from "./autoinvocacionLoop";
+import { proyectarBocetosDelOpd } from "./composers/boceto";
 import { proyectarEntidad } from "./composers/entidad";
 import { proyectarEnlace, proyectarProxyExtraccion, proyectarRefinamientoEstructural, resolverEndpointVisual } from "./composers/enlace";
 import {
@@ -55,6 +56,9 @@ export function proyectarModeloAJointCells(
   seleccionados: readonly Id[] = [],
   opciones: OpcionesProyeccion = OPCIONES_PROYECCION_DEFAULT,
   simulacion: OpcionesSimulacionRender | null = null,
+  // D7.2: id del boceto seleccionado en el PizarraSlice (estado de UI, NO el
+  // trío sellado). Se pasa como la selección, para realzar su celda de bosquejo.
+  bocetoSeleccionadoId: Id | null = null,
 ): JointCellJson[] {
   const modeloRender = modelo;
   const opd = modeloRender.opds[opdId];
@@ -262,7 +266,13 @@ export function proyectarModeloAJointCells(
       })
     : [];
 
-  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...imagenes, ...halos, ...halosSimulacion];
+  // D7.2: capa de bosquejo (pizarra). Va al final (sobre el modelo) para que el
+  // autor vea sus trazos crudos por encima. La ley `law-bocetos-no-contaminan`
+  // garantiza que estas celdas no entran a ningún checker/conteo OPL: son
+  // puramente de presentación. Sin bocetos en el OPD ⇒ arreglo vacío.
+  const bocetos = proyectarBocetosDelOpd(opdId, opd, bocetoSeleccionadoId);
+
+  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...imagenes, ...halos, ...halosSimulacion, ...bocetos];
 }
 
 function symbolPosEstructural(

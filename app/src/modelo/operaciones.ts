@@ -21,6 +21,15 @@ export {
   type PromoverBocetoEnlaceOpciones,
   type BocetoPromovido,
 } from "./operaciones/promocion";
+export {
+  agregarBoceto,
+  moverBoceto,
+  editarBoceto,
+  eliminarBoceto,
+  type BocetoAgregado,
+  type PosicionBoceto,
+  type ParcheBoceto,
+} from "./operaciones/bocetos";
 
 export {
   aparienciaEsSubprocesoInternoDeInzoom,
