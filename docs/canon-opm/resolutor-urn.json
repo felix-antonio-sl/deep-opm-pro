@@ -1,0 +1,37 @@
+{
+  "_comentario": [
+    "Resolutor URN como config de DATOS PUROS (corte C3, spec §5.3).",
+    "Mapa urn:fxsl:kb:* -> { path (relativo a KORA_RAIZ), version (semver observada del frontmatter de la SSOT) }.",
+    "KORA_RAIZ default = /home/felix/kora-pneuma (PNEUMA = SSOT viva; la bestia /home/felix/kora queda como último origen histórico).",
+    "El lector vive en app/src/canon/resolutorUrn.ts: función pura de datos, sin ejecutar kora.py ni subprocess.",
+    "La 'version' aquí es la observada en el frontmatter de PNEUMA al momento del corte; el delta contra la versión que cita cada puente se REPORTA, no rompe.",
+    "puente_inverso: mapa de working-artifacts del repo (urn -> { path, scope }), poblado desde el corte D4. El path es relativo a la raíz del repo (scope repo-local), NO a KORA_RAIZ: son artefactos del repo, no de KORA."
+  ],
+  "version_esquema": 1,
+  "kora_raiz_default": "/home/felix/kora-pneuma",
+  "urn": {
+    "urn:fxsl:kb:reglas-opm-estrictas-es": {
+      "path": "artefactos/conocimiento/fxsl/reglas-opm-estrictas-es.md",
+      "version": "1.4.1"
+    },
+    "urn:fxsl:kb:spec-forja-opd-es": {
+      "path": "artefactos/conocimiento/fxsl/spec-forja-opd-es.md",
+      "version": "1.1.2"
+    },
+    "urn:fxsl:kb:spec-forja-opl-es": {
+      "path": "artefactos/conocimiento/fxsl/spec-forja-opl-es.md",
+      "version": "1.2.2"
+    },
+    "urn:fxsl:kb:metodologia-forja-opm-es": {
+      "path": "artefactos/conocimiento/fxsl/metodologia-forja-opm-es.md",
+      "version": "1.5.1"
+    }
+  },
+  "puente_inverso": {
+    "urn:fxsl:kb:manual-opforja-es": {
+      "path": "docs/manual-opforja.md",
+      "scope": "repo-local",
+      "_nota": "Manual integrado de opforja (corte D4 / D-MANUAL). Working-artifact del repo, NO de KORA: el path es relativo a la raíz del repo deep-opm-pro, no a KORA_RAIZ. Reusa el URN canónico de los shards históricos congelados en la bestia."
+    }
+  }
+}

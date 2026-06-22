@@ -2,7 +2,7 @@
 
 **Producto:** OpForja (editor OPM, render del canvas con JointJS)
 **Propuesta:** Codex — editorial · marginalia · type-led
-**Versión:** 1.1
+**Versión:** 1.2
 **Fecha:** 25 mayo 2026
 **Audiencia:** equipo de desarrollo encargado de implementar el rediseño
 

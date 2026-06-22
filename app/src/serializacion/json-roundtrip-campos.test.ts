@@ -153,6 +153,7 @@ const CAMPOS_OPD = {
   vista: true,
   ordenLocal: true,
   ordenInzoom: true,
+  bocetos: true,
 } satisfies Record<keyof Opd, true>;
 
 const CAMPOS_ABANICO = {
@@ -231,6 +232,7 @@ const CAMPOS_PROCEDENCIA = {
   protoHash: true,
   autoriaVersion: true,
   layoutVersion: true,
+  doctrinaVersion: true,
 } satisfies Record<keyof SelloProcedencia, true>;
 
 const CAMPOS_SUBMODELO_SOURCE = {
@@ -709,6 +711,7 @@ function modeloConCamposOpcionales(): Modelo {
       protoHash: "sha256-proto",
       autoriaVersion: "test",
       layoutVersion: "test",
+      doctrinaVersion: "sha256-doctrina",
     },
     submodelos: {
       "sub-1": {

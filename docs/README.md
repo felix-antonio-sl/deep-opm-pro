@@ -13,7 +13,7 @@ Modelador OPM/ISO 19450 nuevo, con arquitectura propia. No es fork de OPCloud.
 | Usar el modelador como usuario | `uso-productivo.md` |
 | Desplegar o administrar la instancia | `deploy/opforja.md` |
 | Conocer las decisiones técnicas clave | `canon-opm/` (puentes a KORA) |
-| Consultar el plan de cortes activos | `roadmap/cortes-operativos.md` |
+| Consultar el plan de cortes activos | `roadmap/cortes.md` |
 | Revisar auditorías técnicas | `auditorias/README.md` |
 | Leer especificaciones de frentes activos | `specs/` |
 | Verificar el estado del sistema de bugs | `bugs/INDEX.md` |
@@ -40,8 +40,7 @@ docs/
 │
 ├── roadmap/                     ← planes y cortes de producto
 │   ├── README.md                ← índice del roadmap
-│   ├── cortes-operativos.md     ← escalera operativa (alpha → beta → gamma → delta)
-│   ├── backlog-contingencial.md ← mandato del operador
+│   ├── cortes.md                ← escalera del compuesto (C-cordón · E-expresión · X-exoesqueleto)
 │   ├── quality-ledger.md        ← gates ejecutables de calidad
 │   ├── registro-conformidad-ssot.md ← mapeo regla DEBE → gate/estado (R-CONF-7)
 │   └── protocolo-re-pin.md      ← protocolo de re-pin para cambios en SSOT

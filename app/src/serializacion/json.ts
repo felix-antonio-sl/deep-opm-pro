@@ -17,6 +17,7 @@ import type {
   SelloProcedencia,
   SubmodeloReferencia,
 } from "../modelo/tipos";
+import { COMPONENTES_SELLO } from "../modelo/tipos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import { validarApariencias, validarAparienciasEnlace } from "./validarApariencias";
 import { validarEnlaces, validarAbanicos } from "./validarEnlaces";
@@ -332,7 +333,7 @@ function validarNotasMesa(
 
 /**
  * Valida `procedencia` (W5.3/L6). Extensión aditiva: ausente ⇒ undefined (byte-identidad
- * sobre opcional ausente). Presente ⇒ las 4 componentes del sello deben ser strings no
+ * sobre opcional ausente). Presente ⇒ las 3 componentes del sello deben ser strings no
  * vacíos; un sello malformado se RECHAZA con diagnóstico (no se descarta en silencio).
  */
 function validarProcedencia(value: unknown): Resultado<SelloProcedencia | undefined> {
@@ -341,16 +342,24 @@ function validarProcedencia(value: unknown): Resultado<SelloProcedencia | undefi
   // Glosario eliminado 2026-06-09: el sello vigente tiene 3 componentes. Un
   // `glosarioHash` presente en bundles viejos se TOLERA (no se valida ni se
   // copia → el campo huérfano se descarta sin romper la hidratación).
-  const componentes = ["protoHash", "autoriaVersion", "layoutVersion"] as const;
-  for (const componente of componentes) {
+  for (const componente of COMPONENTES_SELLO) {
     const v = value[componente];
     if (typeof v !== "string" || !v.trim()) return fallo(`Modelo inválido: procedencia.${componente}`);
   }
-  return ok({
+  const sello: SelloProcedencia = {
     protoHash: (value.protoHash as string).trim(),
     autoriaVersion: (value.autoriaVersion as string).trim(),
     layoutVersion: (value.layoutVersion as string).trim(),
-  });
+  };
+  // doctrinaVersion (corte C2, D-DOCTRINA): testigo OPCIONAL y ROLLBACK-FREE. Se
+  // valida SOLO si está presente; un sello legacy de 3 componentes hidrata sin
+  // ella. Presente pero no string-no-vacío ⇒ RECHAZO (no se descarta en silencio).
+  if (value.doctrinaVersion !== undefined) {
+    const dv = value.doctrinaVersion;
+    if (typeof dv !== "string" || !dv.trim()) return fallo("Modelo inválido: procedencia.doctrinaVersion");
+    sello.doctrinaVersion = dv.trim();
+  }
+  return ok(sello);
 }
 
 function validarTargetAncla(
