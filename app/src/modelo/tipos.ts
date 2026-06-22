@@ -84,6 +84,8 @@ export type {
   RequisitoEntidadMetadata,
   TargetSatisfaccionRequisito,
   SatisfaccionRequisito,
+  AparienciaPlantilla,
+  PlantillaEstereotipo,
   Estereotipo,
   ReferenciaNorma,
   EstadoAncla,

@@ -8,6 +8,8 @@ import type {
   Estado,
   Estereotipo,
   Enlace,
+  AparienciaPlantilla,
+  PlantillaEstereotipo,
   Modelo,
   OntologiaOrganizacional,
   Opd,
@@ -202,7 +204,23 @@ const CAMPOS_ESTEREOTIPO = {
   id: true,
   nombre: true,
   propositoDeModelado: true,
+  plantilla: true,
 } satisfies Record<keyof Estereotipo, true>;
+
+const CAMPOS_PLANTILLA = {
+  entidades: true,
+  estados: true,
+  enlaces: true,
+  apariencias: true,
+  anclaLocalId: true,
+} satisfies Record<keyof PlantillaEstereotipo, true>;
+
+const CAMPOS_APARIENCIA_PLANTILLA = {
+  x: true,
+  y: true,
+  width: true,
+  height: true,
+} satisfies Record<keyof AparienciaPlantilla, true>;
 
 const CAMPOS_SATISFACCION = {
   id: true,
@@ -306,6 +324,8 @@ void [
   CAMPOS_ONTOLOGIA,
   CAMPOS_REQUISITO,
   CAMPOS_ESTEREOTIPO,
+  CAMPOS_PLANTILLA,
+  CAMPOS_APARIENCIA_PLANTILLA,
   CAMPOS_SATISFACCION,
   CAMPOS_REFERENCIA_NORMA,
   CAMPOS_RATIFICACION,
@@ -721,7 +741,33 @@ function modeloConCamposOpcionales(): Modelo {
       },
     },
     estereotipos: {
-      "est-actor": { id: "est-actor", nombre: "Actor", propositoDeModelado: "Marca un actor del sistema." },
+      "est-actor": {
+        id: "est-actor",
+        nombre: "Actor",
+        propositoDeModelado: "Marca un actor del sistema.",
+        // D6.2: plantilla mínima (2 cosas + 1 enlace) para ejercitar round-trip anidado.
+        plantilla: {
+          entidades: {
+            "o-1": { id: "o-1", tipo: "objeto", nombre: "Sujeto", esencia: "informacional", afiliacion: "sistemica" },
+            "p-1": { id: "p-1", tipo: "proceso", nombre: "Actuar", esencia: "informacional", afiliacion: "sistemica" },
+          },
+          estados: {},
+          enlaces: {
+            "e-1": {
+              id: "e-1",
+              tipo: "instrumento",
+              origenId: { kind: "entidad", id: "o-1" },
+              destinoId: { kind: "entidad", id: "p-1" },
+              etiqueta: "",
+            },
+          },
+          apariencias: {
+            "o-1": { x: 0, y: 0, width: 120, height: 60 },
+            "p-1": { x: 200, y: 0, width: 120, height: 60 },
+          },
+          anclaLocalId: "o-1",
+        },
+      },
     },
     procedencia: {
       protoHash: "sha256-proto",

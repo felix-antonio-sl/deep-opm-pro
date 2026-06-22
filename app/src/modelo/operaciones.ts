@@ -166,3 +166,10 @@ export {
   registrarPadreSubmodelo,
 } from "./submodelos";
 export type { SubmodeloConectado } from "./submodelos";
+
+export {
+  capturarPlantilla,
+  crearEstereotipoDesdeSeleccion,
+  injertarEstereotipo,
+} from "./operaciones/injertoEstereotipo";
+export type { InjertoResultado } from "./operaciones/injertoEstereotipo";

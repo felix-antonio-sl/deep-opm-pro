@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { ESTEREOTIPO_REQUIREMENT_ID } from "../modelo/estereotipos";
-import type { Modelo } from "../modelo/tipos";
+import type { Modelo, PlantillaEstereotipo } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
 
 const FORMATO = "deep-opm-pro.modelo.v0";
@@ -114,6 +114,70 @@ describe("serializacion - estereotipos (D6.1)", () => {
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect("estereotipos" in res.value).toBe(false);
+  });
+});
+
+describe("serializacion - plantilla de estereotipo (D6.2)", () => {
+  const PLANTILLA_VALIDA: PlantillaEstereotipo = {
+    entidades: {
+      "o-1": { id: "o-1", tipo: "objeto", nombre: "Documento", esencia: "informacional", afiliacion: "sistemica" },
+      "p-1": { id: "p-1", tipo: "proceso", nombre: "Tramitar", esencia: "informacional", afiliacion: "sistemica" },
+    },
+    estados: {},
+    enlaces: {
+      "e-1": { id: "e-1", tipo: "consumo", origenId: { kind: "entidad", id: "o-1" }, destinoId: { kind: "entidad", id: "p-1" }, etiqueta: "" },
+    },
+    apariencias: {
+      "o-1": { x: 0, y: 0, width: 120, height: 60 },
+      "p-1": { x: 200, y: 0, width: 120, height: 60 },
+    },
+    anclaLocalId: "o-1",
+  };
+
+  function conPlantilla(plantilla: unknown): ReturnType<typeof hidratarModelo> {
+    return hidratarModelo(documento({}, { estereotipos: { "est-1": { id: "est-1", nombre: "Trámite", plantilla } } }));
+  }
+
+  test("7a. catálogo con plantilla hidrata/exporta íntegro (round-trip estable)", () => {
+    const res = conPlantilla(PLANTILLA_VALIDA);
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.value.estereotipos?.["est-1"]?.plantilla).toEqual(PLANTILLA_VALIDA);
+    const reexport = hidratarModelo(exportarModelo(res.value));
+    expect(reexport.ok).toBe(true);
+    if (!reexport.ok) return;
+    expect(reexport.value.estereotipos?.["est-1"]?.plantilla).toEqual(PLANTILLA_VALIDA);
+  });
+
+  test("7b. plantilla con enlace de extremo colgante se RECHAZA con diagnóstico", () => {
+    const res = conPlantilla({
+      ...PLANTILLA_VALIDA,
+      enlaces: { "e-1": { id: "e-1", tipo: "consumo", origenId: { kind: "entidad", id: "o-fantasma" }, destinoId: { kind: "entidad", id: "p-1" }, etiqueta: "" } },
+    });
+    expect(res.ok).toBe(false);
+    if (res.ok) return;
+    expect(res.error).toContain("plantilla");
+  });
+
+  test("7c. plantilla con apariencia de entidad inexistente se RECHAZA con diagnóstico", () => {
+    const res = conPlantilla({ ...PLANTILLA_VALIDA, apariencias: { ...PLANTILLA_VALIDA.apariencias, "o-fantasma": { x: 0, y: 0, width: 10, height: 10 } } });
+    expect(res.ok).toBe(false);
+    if (res.ok) return;
+    expect(res.error).toContain("apariencias");
+  });
+
+  test("7d. anclaLocalId que no es entidad de la plantilla se RECHAZA", () => {
+    const res = conPlantilla({ ...PLANTILLA_VALIDA, anclaLocalId: "o-fantasma" });
+    expect(res.ok).toBe(false);
+    if (res.ok) return;
+    expect(res.error).toContain("anclaLocalId");
+  });
+
+  test("estereotipo sin plantilla no emite la clave (byte-identidad)", () => {
+    const res = hidratarModelo(documento({}, { estereotipos: { "est-1": { id: "est-1", nombre: "Marca" } } }));
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect("plantilla" in (res.value.estereotipos?.["est-1"] ?? {})).toBe(false);
   });
 });
 
