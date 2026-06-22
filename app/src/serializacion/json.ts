@@ -346,11 +346,20 @@ function validarProcedencia(value: unknown): Resultado<SelloProcedencia | undefi
     const v = value[componente];
     if (typeof v !== "string" || !v.trim()) return fallo(`Modelo inválido: procedencia.${componente}`);
   }
-  return ok({
+  const sello: SelloProcedencia = {
     protoHash: (value.protoHash as string).trim(),
     autoriaVersion: (value.autoriaVersion as string).trim(),
     layoutVersion: (value.layoutVersion as string).trim(),
-  });
+  };
+  // doctrinaVersion (corte C2, D-DOCTRINA): testigo OPCIONAL y ROLLBACK-FREE. Se
+  // valida SOLO si está presente; un sello legacy de 3 componentes hidrata sin
+  // ella. Presente pero no string-no-vacío ⇒ RECHAZO (no se descarta en silencio).
+  if (value.doctrinaVersion !== undefined) {
+    const dv = value.doctrinaVersion;
+    if (typeof dv !== "string" || !dv.trim()) return fallo("Modelo inválido: procedencia.doctrinaVersion");
+    sello.doctrinaVersion = dv.trim();
+  }
+  return ok(sello);
 }
 
 function validarTargetAncla(

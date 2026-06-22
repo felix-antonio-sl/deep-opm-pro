@@ -123,3 +123,38 @@ describe("L6 — la serialización valida el sello (extensión aditiva)", () => 
     expect(res.error).toContain("procedencia");
   });
 });
+
+describe("C2 — doctrinaVersion: 5º componente OPCIONAL y ROLLBACK-FREE del sello", () => {
+  test("sello CON doctrinaVersion: el JSON lo porta y la hidratación lo conserva", () => {
+    const sello = construirSello({ protoTexto: PROTO_V1, doctrinaTextos: ["reglas", "opd", "opl", "metodo"] });
+    expect(sello.doctrinaVersion).toBeDefined();
+    const bundle = emitirBundle(construirCafetera(), { procedencia: sello });
+    const hidratado = hidratarModelo(bundle.json);
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) throw new Error("nunca");
+    expect(hidratado.value.procedencia).toEqual(sello);
+    expect(hidratado.value.procedencia!.doctrinaVersion).toBe(sello.doctrinaVersion);
+  });
+
+  test("rollback-free: un sello LEGACY de 3 componentes hidrata sin doctrinaVersion", () => {
+    const sello = construirSello({ protoTexto: PROTO_V1 }); // sin doctrinaTextos
+    expect("doctrinaVersion" in sello).toBe(false);
+    const bundle = emitirBundle(construirCafetera(), { procedencia: sello });
+    const hidratado = hidratarModelo(bundle.json);
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) throw new Error("nunca");
+    expect(hidratado.value.procedencia).toEqual(sello);
+    expect("doctrinaVersion" in (hidratado.value.procedencia ?? {})).toBe(false);
+  });
+
+  test("doctrinaVersion presente pero vacío → hidratación RECHAZA (no se descarta en silencio)", () => {
+    const sello = construirSello({ protoTexto: PROTO_V1 });
+    const bundle = emitirBundle(construirCafetera(), { procedencia: sello });
+    const doc = JSON.parse(bundle.json) as { modelo: { procedencia: Record<string, unknown> } };
+    doc.modelo.procedencia.doctrinaVersion = "   ";
+    const res = hidratarModelo(JSON.stringify(doc));
+    expect(res.ok).toBe(false);
+    if (res.ok) throw new Error("nunca");
+    expect(res.error).toContain("doctrinaVersion");
+  });
+});

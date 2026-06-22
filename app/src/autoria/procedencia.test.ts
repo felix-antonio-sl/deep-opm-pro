@@ -17,6 +17,7 @@ import {
   compararProcedencia,
   construirSello,
   hashContenido,
+  hashDoctrina,
 } from "./procedencia";
 import { LAYOUT_VERSION } from "./layout";
 import type { SelloProcedencia } from "../modelo/tipos";
@@ -109,5 +110,111 @@ describe("compararProcedencia", () => {
       "autoriaVersion",
       "layoutVersion",
     ]);
+  });
+});
+
+// ── hashDoctrina: testigo de deriva doctrinal (corte C2, D-DOCTRINA) ──────────
+
+describe("hashDoctrina", () => {
+  const SSOT = ["reglas v1.4", "spec-opd v1.1", "spec-opl v1.2", "metodología v1.5"];
+
+  test("determinista: mismos textos en mismo orden → mismo hash", () => {
+    expect(hashDoctrina(SSOT)).toBe(hashDoctrina([...SSOT]));
+  });
+
+  test("INSENSIBLE a whitespace cosmético: trim + colapso de líneas en blanco → mismo hash", () => {
+    const cosmetico = [
+      "  reglas v1.4  ",
+      "spec-opd v1.1\n\n\n", // líneas en blanco extra al final (se colapsan + trim)
+      "spec-opl v1.2",
+      "metodología v1.5\n",
+    ];
+    expect(hashDoctrina(cosmetico)).toBe(hashDoctrina(SSOT));
+  });
+
+  test("INSENSIBLE a líneas en blanco internas duplicadas (colapso a una)", () => {
+    const conSaltos = ["a\n\n\n\nb", "x"];
+    const normal = ["a\n\nb", "x"];
+    expect(hashDoctrina(conSaltos)).toBe(hashDoctrina(normal));
+  });
+
+  test("SENSIBLE a cambio real de contenido (control de no-tautología)", () => {
+    const editado = ["reglas v1.5", "spec-opd v1.1", "spec-opl v1.2", "metodología v1.5"];
+    expect(hashDoctrina(editado)).not.toBe(hashDoctrina(SSOT));
+  });
+
+  test("SENSIBLE al ORDEN (el orden lo fija el consumidor, es load-bearing)", () => {
+    const reordenado = [SSOT[1]!, SSOT[0]!, SSOT[2]!, SSOT[3]!];
+    expect(hashDoctrina(reordenado)).not.toBe(hashDoctrina(SSOT));
+  });
+
+  test("formato estable: hex en minúsculas, no vacío", () => {
+    expect(hashDoctrina(SSOT)).toMatch(/^[0-9a-f]+$/);
+  });
+});
+
+// ── construirSello: doctrinaVersion solo cuando se pasan textos ───────────────
+
+describe("construirSello — doctrinaVersion (opcional, rollback-free)", () => {
+  test("sin doctrinaTextos: el sello NO porta doctrinaVersion (byte-identidad legacy)", () => {
+    const sello = construirSello({ protoTexto: "proto" });
+    expect("doctrinaVersion" in sello).toBe(false);
+  });
+
+  test("doctrinaTextos vacío []: tampoco porta doctrinaVersion (length 0)", () => {
+    const sello = construirSello({ protoTexto: "proto", doctrinaTextos: [] });
+    expect("doctrinaVersion" in sello).toBe(false);
+  });
+
+  test("con doctrinaTextos: porta doctrinaVersion = hashDoctrina(textos)", () => {
+    const textos = ["a", "b", "c", "d"];
+    const sello = construirSello({ protoTexto: "proto", doctrinaTextos: textos });
+    expect(sello.doctrinaVersion).toBe(hashDoctrina(textos));
+  });
+
+  test("los 3 requeridos no cambian al añadir doctrina (extensión aditiva)", () => {
+    const sin = construirSello({ protoTexto: "proto" });
+    const con = construirSello({ protoTexto: "proto", doctrinaTextos: ["x"] });
+    expect(con.protoHash).toBe(sin.protoHash);
+    expect(con.autoriaVersion).toBe(sin.autoriaVersion);
+    expect(con.layoutVersion).toBe(sin.layoutVersion);
+  });
+});
+
+// ── compararProcedencia: doctrinaVersion solo si presente en AMBOS ────────────
+
+describe("compararProcedencia — doctrinaVersion (opcional)", () => {
+  const base: SelloProcedencia = { protoHash: "aaaa", autoriaVersion: "1", layoutVersion: "1" };
+
+  test("presente en ambos y DIFIERE → divergencia nombrada en doctrinaVersion", () => {
+    const d = compararProcedencia(
+      { ...base, doctrinaVersion: "dddd" },
+      { ...base, doctrinaVersion: "eeee" },
+    );
+    expect(d.divergente).toBe(true);
+    expect(d.componentes).toEqual([{ componente: "doctrinaVersion", bundle: "dddd", actual: "eeee" }]);
+  });
+
+  test("presente en ambos e IGUAL → sin divergencia", () => {
+    const d = compararProcedencia(
+      { ...base, doctrinaVersion: "dddd" },
+      { ...base, doctrinaVersion: "dddd" },
+    );
+    expect(d.divergente).toBe(false);
+  });
+
+  test("ausente en uno (sello legacy de 3) → NO se compara, no diverge", () => {
+    const dBundleLegacy = compararProcedencia(base, { ...base, doctrinaVersion: "eeee" });
+    expect(dBundleLegacy.divergente).toBe(false);
+    const dActualLegacy = compararProcedencia({ ...base, doctrinaVersion: "dddd" }, base);
+    expect(dActualLegacy.divergente).toBe(false);
+  });
+
+  test("orden estable: requeridos primero, opcionales después", () => {
+    const d = compararProcedencia(
+      { protoHash: "a", autoriaVersion: "1", layoutVersion: "1", doctrinaVersion: "d1" },
+      { protoHash: "b", autoriaVersion: "1", layoutVersion: "1", doctrinaVersion: "d2" },
+    );
+    expect(d.componentes.map((c) => c.componente)).toEqual(["protoHash", "doctrinaVersion"]);
   });
 });

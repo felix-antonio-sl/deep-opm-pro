@@ -140,7 +140,7 @@ export interface NotaMesa {
 // pasó de 4 a 3 componentes. Bundles viejos con `glosarioHash` se toleran al
 // deserializar — el campo huérfano se descarta.)
 
-/** Las 3 componentes consensuadas del sello: `{protoHash, autoriaVersion, layoutVersion}`. */
+/** Las 3 componentes REQUERIDAS del sello: `{protoHash, autoriaVersion, layoutVersion}`. */
 export interface SelloProcedencia {
   /** Hash del contenido del proto-modelo (markdown) del que se compiló el bundle. */
   protoHash: string;
@@ -148,16 +148,32 @@ export interface SelloProcedencia {
   autoriaVersion: string;
   /** Versión declarada del motor de layout canónico aplicado (re-pin la incrementa). */
   layoutVersion: string;
+  /**
+   * Testigo de deriva doctrinal del cordón (corte C2, decisión D-DOCTRINA, spec
+   * §5.2): hash de contenido de las 4 SSOT forja en orden canónico. ADITIVO,
+   * OPCIONAL y ROLLBACK-FREE — un bundle sin esta clave hidrata byte-idéntico.
+   * NO entra en `COMPONENTES_SELLO` (que son los REQUERIDOS): vive en
+   * `COMPONENTES_SELLO_OPCIONALES` y solo se compara cuando está presente en
+   * ambos sellos.
+   */
+  doctrinaVersion?: string;
 }
 
 /**
- * Componentes vigentes del sello, en orden estable. ÚNICO punto de verdad: lo
+ * Componentes REQUERIDOS del sello, en orden estable. ÚNICO punto de verdad: lo
  * consumen el constructor (`autoria/procedencia`) y el validador
- * (`serializacion/json`). Añadir un testigo nuevo (p.ej. `doctrinaVersion`) se
- * hace SOLO aquí + en `SelloProcedencia`; `satisfies` impide que la lista y el
- * tipo diverjan.
+ * (`serializacion/json`). Añadir un testigo REQUERIDO nuevo se hace SOLO aquí +
+ * en `SelloProcedencia`; `satisfies` impide que la lista y el tipo diverjan.
  */
 export const COMPONENTES_SELLO = ["protoHash", "autoriaVersion", "layoutVersion"] as const satisfies ReadonlyArray<keyof SelloProcedencia>;
+
+/**
+ * Componentes OPCIONALES del sello, en orden estable. Se comparan SOLO cuando
+ * están presentes en ambos sellos (rollback-free: un sello legacy sin ellas
+ * hidrata y no diverge). Lista extensible: `skillVersion` se unirá en un corte
+ * futuro. `satisfies` mantiene la lista alineada con el tipo.
+ */
+export const COMPONENTES_SELLO_OPCIONALES = ["doctrinaVersion"] as const satisfies ReadonlyArray<keyof SelloProcedencia>;
 
 export type EstadoCargaSubmodelo =
   | "descargado"
