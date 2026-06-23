@@ -48,7 +48,6 @@ import { MobileReadonlyApp } from "./mobile/MobileReadonlyApp";
 import { PanelDiagnostico } from "./PanelDiagnostico";
 import { PanelOplView } from "./PanelOpl";
 import { BarraSimulacion } from "./simulacion/BarraSimulacion";
-import { BarraPizarra } from "./pizarra/BarraPizarra";
 import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
 
@@ -331,7 +330,7 @@ export function App() {
             canvas={(
               <CodexCanvasMount
                 chromeVisible={!uiSoloCanvas}
-                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <BarraPizarra />}
+                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : null}
               >
                 <JointCanvasFeedbackBoundary readonlyMode={modoSoloLectura} onAdapterChange={setCanvasAdapter} />
                 {/*

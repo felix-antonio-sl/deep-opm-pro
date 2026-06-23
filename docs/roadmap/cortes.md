@@ -43,7 +43,7 @@ Puede correr en paralelo a C (frontera dura, 100% local a deep-opm-pro, no toca 
 Cada corte pasa el gate de filtro de valor (principio 5) antes de abrir.
 
 - **E1 — estereotipos + vitrinas (D6).** Plantilla de subgrafo clonada-e-injertada; `Modelo.estereotipos?` aditiva; `Entidad.estereotipoId?:Id` + adaptador (migración del `requirement` = 9 sitios; `validarEntidades.ts:59` = cambio de contrato de import). OPL-invariante v1; canvas `<<Nombre>>`; **vitrinas** de objetos/enlaces/patrones compuestos. Propaga a las 5 partes (incl. skill + manual) **en el mismo corte**. Acota a mecanismo genérico + `requirement` reconstruido; catálogo multi-ámbito/permisos = paridad-OPCloud declarada-no-implementada.
-- **E2 — modo pizarra (D7).** Capa `Opd.bocetos?` aditiva, excluida del kernel (patrón `generic-view`); selección en `PizarraSlice` propio (fuera del trío sellado). Promoción boceto→modelo reusa el rechazo ruidoso de `validarNombreEntidad` (nunca auto-sufijo); ley `promocion-reversible` (3 verificaciones). Es el gesto de adecuación instrumentado (puerta de entrada de baja fricción al producto).
+- **E2 — modo pizarra (D7). REVERTIDO 2026-06-23.** Se construyó (D7.1 kernel `Opd.bocetos?` no-semántico + D7.2 UI pizarra + promoción boceto→modelo/enlace) y se desplegó, pero «no resultó como quería» el operador → revert quirúrgico de la totalidad del subsistema boceto (D6 intacto). Detalle en la historia git y en `HANDOFF.md` (entrada 2026-06-23).
 
 ---
 

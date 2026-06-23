@@ -1,5 +1,4 @@
 import type { Apariencia } from "./apariencia";
-import type { Boceto } from "./extensiones";
 import type { Id } from "./comunes";
 import type { AparienciaEnlace } from "./enlace";
 import type { OpdVista } from "./extensiones";
@@ -31,10 +30,4 @@ export interface Opd {
    *  topologia de invocaciones (retrocompat). Solo aplica a in-zoom de proceso.
    *  Ver docs/specs/2026-06-14-invocacion-implicita-bimodal-design.md */
   ordenInzoom?: Id[][];
-  /** Capa de pizarra / bosquejo (D7.1): trazos de dibujo libre pre-modelado,
-   *  NO-SEMÁNTICOS. Extensión ADITIVA y OPCIONAL: el kernel los IGNORA (no
-   *  emiten OPL, no cuentan como cosa, no entran a validarModelo/checkers). Su
-   *  segregación está defendida por `law-bocetos-no-contaminan`
-   *  (src/leyes/bocetos-no-contaminan.test.ts). Ver `Boceto` en extensiones.ts. */
-  bocetos?: Record<Id, Boceto>;
 }

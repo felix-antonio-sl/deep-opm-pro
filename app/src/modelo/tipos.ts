@@ -105,9 +105,6 @@ export type {
   ReferenciaPadreSubmodelo,
   OpdVista,
   DecisionPolicy,
-  TipoBoceto,
-  PuntoBoceto,
-  Boceto,
 } from "./tipos/extensiones";
 export { COMPONENTES_SELLO, COMPONENTES_SELLO_OPCIONALES } from "./tipos/extensiones";
 

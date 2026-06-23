@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort";
 import { opcionesProyeccionJointCanvas, useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
-import { useZustandPizarraPort } from "../../app/ports/zustandPizarraPort";
 import { estadosInicialesDelModelo, focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import { debeAnimarTokensSim, tokensDeFaseSimulacion } from "../../modelo/simulacion/animacionTokens";
 import { CODEX } from "./constantes.codex";
@@ -25,7 +24,6 @@ import {
 import { cablearRubberBand } from "./handlers/rubberBand";
 import { cablearResize } from "./handlers/resize";
 import { cablearSeleccion } from "./handlers/seleccion";
-import { cablearPizarra } from "./handlers/pizarra";
 import { instalarHerramientasEnlaceSeleccionado } from "./handlers/toolsEnlace";
 import { instalarHerramientasSimboloEstructuralSeleccionado } from "./handlers/toolsSimboloEstructural";
 import { cablearZoomFit, cablearZoomWheel, fitCanvasAPantalla } from "./handlers/zoom";
@@ -163,15 +161,6 @@ export function JointCanvas({
 
   const { headless: simHeadless, velocidad: simVelocidad } = useZustandSimulationPort();
 
-  // D7.2: modo pizarra / bosquejo. Estado de UI + acciones de la capa de boceto.
-  const {
-    modoPizarra,
-    herramientaPizarra,
-    bocetoSeleccionadoId,
-    agregarBoceto: agregarBocetoPizarra,
-    seleccionarBoceto: seleccionarBocetoPizarra,
-  } = useZustandPizarraPort();
-
   useEffect(() => {
     onAdapterChangeRef.current = onAdapterChange;
   }, [onAdapterChange]);
@@ -182,12 +171,6 @@ export function JointCanvas({
 
   const modoEnlaceRef = useRef(modoEnlace);
   const modoCreacionRef = useRef(modoCreacion);
-  // D7.2: refs de modo pizarra para el handler de lienzo (siguen el patrón ref
-  // de los demás handlers — leen el último valor sin re-cablear el paper).
-  const modoPizarraRef = useRef(modoPizarra);
-  const herramientaPizarraRef = useRef(herramientaPizarra);
-  const agregarBocetoPizarraRef = useRef(agregarBocetoPizarra);
-  const seleccionarBocetoPizarraRef = useRef(seleccionarBocetoPizarra);
   const modeloRef = useRef(modelo);
   const opdActivoIdRef = useRef(opdActivoId);
   const seleccionadosRef = useRef(seleccionados);
@@ -244,13 +227,6 @@ export function JointCanvas({
   useEffect(() => {
     modoCreacionRef.current = modoCreacion;
   }, [modoCreacion]);
-
-  useEffect(() => {
-    modoPizarraRef.current = modoPizarra;
-    herramientaPizarraRef.current = herramientaPizarra;
-    agregarBocetoPizarraRef.current = agregarBocetoPizarra;
-    seleccionarBocetoPizarraRef.current = seleccionarBocetoPizarra;
-  }, [modoPizarra, herramientaPizarra, agregarBocetoPizarra, seleccionarBocetoPizarra]);
 
   useEffect(() => {
     enlaceSeleccionIdRef.current = enlaceSeleccionId;
@@ -378,21 +354,6 @@ export function JointCanvas({
       toggleSeleccionEstadoRef,
     }));
 
-    // D7.2: handler de pizarra. Solo actúa cuando `modoPizarraRef` está activo
-    // (el modo se apaga en solo-lectura/simulación), por lo que es inocuo
-    // cuando el lienzo no está en modo bosquejo. Va tras `cablearSeleccion`
-    // para coordinar precedencia: en modo pizarra el pointerdown coloca/elige
-    // boceto; el rubber-band (Shift+drag) sigue intacto.
-    if (!esReadonly) {
-      cleanups.push(cablearPizarra({
-        paper,
-        modoPizarraRef,
-        herramientaPizarraRef,
-        agregarBocetoRef: agregarBocetoPizarraRef,
-        seleccionarBocetoRef: seleccionarBocetoPizarraRef,
-      }));
-    }
-
     if (!esReadonly) {
       cleanups.push(cablearRubberBand({
         paper,
@@ -499,7 +460,6 @@ export function JointCanvas({
             estadosResultadoIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.estadosResultadoIds : [],
           }
         : null,
-      bocetoSeleccionadoId,
     );
     sincronizandoRef.current = true;
     try {
@@ -572,7 +532,7 @@ export function JointCanvas({
         viewport.scrollTo({ left: siguiente.left, top: siguiente.top, behavior: "auto" });
       }
     }
-  }, [enlaceSeleccionId, estadoSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion, bocetoSeleccionadoId]);
+  }, [enlaceSeleccionId, estadoSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
 
   // B0.017 — token verde viajero sobre cada enlace en uso del paso activo.
   // Animacion solo-render (no es verdad del modelo). Se dispara en cada
