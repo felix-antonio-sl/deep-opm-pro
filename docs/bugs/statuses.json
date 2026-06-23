@@ -670,5 +670,17 @@
     "status": "Resuelto",
     "resolution": "La barra de simulacion (a) se confundia con el resto del chrome (fondo paper igual al header, sin limites claros) y (b) cubria los botones ◀/▶ de ocultar panel de los paneles laterales OPL/Inspector. Fix arquitectonico: la barra deja de ser overlay position:fixed full-width y pasa a vivir dentro de la region canvas como `topbar` de CodexCanvasMount, jamas toca los paneles laterales. Fix visual: borde superior 2px crimson, dos spines laterales 3px con gradiente vertical crimson→50%, fondo paperWarm (empasta con el canvas), panel narrativa destacado con surface paper, y un 'live dot' crimson pulsante junto a la tag SIMULACION (keyframe inyectado via <style> idempotente).",
     "note": "Cambios: CodexCanvasMount.tsx nueva prop topbar; App.tsx pasa BarraSimulacion como topbar en sim mode; BarraSimulacion.tsx elimina s.barraOverlayDesktop y agrega s.barraSpine + s.tagDot + actualiza s.barra (paperWarm + borderTop crimson) y s.narrativa (paper). Tests: 17/17 pass (12 previos + 5 nuevos en describe 'BarraSimulacion canvas-frame' que anclan position relative, background paperWarm, borderTop 2px crimson, s.barraSpine position absolute + width 3 + linear-gradient crimson, s.tagDot 6x6 crimson circular, s.tag mono uppercase 0.12em font-weight 700, s.narrativa background paper). typecheck/build/lint/design:governance limpios. Sonda app/scripts/sonda-bug-a8e599.mjs valida en runtime: barra dentro del canvas (left/right coinciden con canvas ±1px), position no es fixed, spines izq+der presentes, borderTop con crimson, live-dot 6x6 presente, y elementFromPoint sobre btn-ocultar-opl/btn-ocultar-inspector retorna el boton (no estan cubiertos). Mockups: docs/bugs/BUG-20260607T224342Z-a8e599/mockup-3-estados.html (Actual/B/C) y mockup-despues.html (estado final)."
+  },
+  "BUG-20260607T215201Z-d2530d": {
+    "type": "Feat",
+    "status": "Resuelto",
+    "resolution": "Paneles hideables (toggle visibilidad OPL/Inspector) — desplegado 2026-06-08.",
+    "note": "Feature cerrada por el corte paneles hideables y resizable (ver docs/HANDOFF.md)."
+  },
+  "BUG-20260607T215222Z-624056": {
+    "type": "Feat",
+    "status": "Resuelto",
+    "resolution": "Panel izquierdo resizable horizontalmente — desplegado 2026-06-08.",
+    "note": "Feature cerrada por el corte paneles hideables y resizable (ver docs/HANDOFF.md)."
   }
 }
