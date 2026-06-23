@@ -35,20 +35,21 @@ Consecuencias prácticas:
 ## Entrar
 
 1. Abrir `https://opforja.sanixai.com` en un navegador moderno.
-2. La app crea automáticamente una sesión anónima (cookie HTTP-only).
-3. La app abre el último modelo en uso. Si no hay modelos previos,
-   abre la pantalla de bienvenida con opciones para empezar.
+2. La app exige **login** (email+password, auth v1). Sin sesión válida
+   el backend responde 401 y la UI monta la pantalla de login.
+3. Tras autenticarse, la app abre el último modelo en uso. Si no hay
+   modelos previos, abre un modelo vacío listo para modelar.
 
-## Crear El Primer Modelo
+## Empezar Un Modelo
 
-Desde la pantalla de bienvenida, tres opciones:
+Cuando el workspace está vacío, la app abre un modelo en blanco. Crear
+la primera cosa con los botones `Objeto` o `Proceso` en la barra
+superior, o con los atajos `O` (objeto), `P` (proceso), `S` (estado)
+cuando el canvas tiene el foco.
 
-- **Asistente guiado** (recomendado la primera vez): conversación que
-  siembra un SD desde función y beneficiario.
-- **Empezar vacío**: abre un modelo en blanco. Crear la primera cosa
-  con los botones `Objeto` o `Proceso` en la barra superior.
-- **Abrir ejemplo**: carga un modelo demo para explorar la
-  herramienta antes de modelar uno propio.
+Para modelar con método desde cero (qué función transforma a quién y
+por qué antes de dibujar nada), seguir el flujo Forja descrito en
+`docs/manual-opforja.md` §2.
 
 ## Tres Operaciones Diarias
 
@@ -161,10 +162,10 @@ La hoja completa de atajos vive en `Menú principal > Ayuda > Atajos`.
 
 ## Límites Honestos
 
-- **Sesión por navegador:** la sesión se identifica por cookie HTTP-only.
-  Si cambias de navegador o borras cookies, pierdes acceso al workspace
-  anterior (pero los datos siguen en el backend). Para migrar: descargar
-  JSON e importar en la nueva sesión.
+- **Acceso por cuenta:** el acceso exige login con cuenta válida
+  (single-operator hoy; registro cerrado por CLI). Reset de password vía
+  `bun run auth:cuenta reset <email>` (ver `docs/deploy/opforja.md`
+  § Cuentas y login).
 - **Sin colaboración:** no hay edición simultánea, sin sharing remoto, sin
   permisos por usuario. La instancia tiene un solo usuario operativo.
 - **Sin SLA:** la instancia es privada y no garantiza disponibilidad.

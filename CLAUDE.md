@@ -61,14 +61,19 @@ deep-opm-pro/
 ├── docs/
 │   ├── README.md               entrada principal de documentación
 │   ├── HANDOFF.md              estado vigente, decisiones, pendientes, riesgos
-│   ├── uso-productivo.md       guía del usuario del modelador
+│   ├── uso-productivo.md       guía operativa del usuario (entrar, guardar, atajos)
+│   ├── manual-opforja.md       manual integrado: método Forja + pista humano + pista agente
+│   ├── JOYAS.md                hallazgos técnicos validados de ingeniería inversa
 │   ├── canon-opm/              puentes locales a las SSOT OPM/opforja en KORA
-│   ├── deploy/opforja.md       operación de la instancia
-│   ├── roadmap/                cortes activos
-│   ├── auditorias/             auditorías técnicas vigentes
-│   ├── specs/                  especificaciones de frentes activos
-│   ├── bugs/                   reportes del capturador integrado
-│   └── JOYAS.md                hallazgos técnicos validados
+│   ├── deploy/                 operación de la instancia (opforja.md)
+│   ├── roadmap/                escalera del compuesto + registro conformidad SSOT
+│   ├── auditorias/             auditorías con referencia viva o valor prospectivo
+│   ├── specs/                  especificaciones técnicas de frentes (vivo o canónico)
+│   ├── superpowers/            spec gobernante del compuesto + planes TDD archivados
+│   ├── reference/              referencia histórica del decommission (opmodel/opm-model-app, 2026-06-22)
+│   ├── memorias-aprendizajes/  lecciones del bucle modelar-OPM-con-OpForja
+│   ├── solicitudes-upstream/   peticiones desde/hacia skills y KORA
+│   └── bugs/                   capturador integrado: activos + bugs/archive/ (resueltos)
 ├── opm-extracted/              derivado curado, versionado y trazable
 ├── assets/  fixtures/  config/  catalog/  webroot/   evidencia OPCloud
 ```
@@ -128,7 +133,7 @@ EPICA-70 (Importación OPCAT 4.2) y EPICA-91 (Modo tutorial). No proponer en ron
 **Deploy**: `docker compose up -d --build` desde raíz (`VITE_ENABLE_BUG_CAPTURE=true`). Contenedores `opforja` + `opforja-bug-capture` sobre red Traefik `web`, TLS `certresolver=myresolver`. Procedimiento completo en `docs/deploy/opforja.md`. Instancia actualmente pública (Basic Auth retirado); para re-proteger, ver `docs/HANDOFF.md`.
 
 **Convenciones**:
-- Idioma: español (es-CL) para docs y comunicación; inglés para identificadores de código y comandos.
+- Idioma: español (es-CL) para documentación, comunicación y vocabulario del dominio OPM en el código (entidades, operaciones, tipos del modelo — ej. `formarAbanico`, `commitModelo`, `OpmStore`); inglés para identificadores de infraestructura (stack, dependencias, utilidades) y comandos de shell.
 - No hay cuenta, HAR autenticado, schema Firestore ni backend code de OPCloud. `setup.sh` hardcodea hashes de bundles; actualizar si OPCloud cambia deploy.
 
 **Fuentes externas**:
