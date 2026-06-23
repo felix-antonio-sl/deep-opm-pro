@@ -283,58 +283,6 @@ export interface ReferenciaPadreSubmodelo {
   estado: EstadoCargaSubmodelo;
 }
 
-// --- Boceto / Pizarra (D7.1) -------------------------------------------------
-// Capa de DIBUJO LIBRE pre-modelado ("modo pizarra"): fragmentos que el autor
-// "tira" en el lienzo durante la lluvia de ideas y que NO son (todavía) modelo
-// OPM. Extensión ADITIVA y OPCIONAL por OPD, con el MISMO estatuto no-semántico
-// que `generic-view` + `AnclaNormativa` + `NotaMesa`: el kernel la IGNORA por
-// completo — no entra a `entidades/enlaces/estados`, NO emite OPL, NO cuenta
-// como cosa, NO altera `validarModelo` ni los checkers ni los gates de export.
-//
-// Principio rector (load-bearing, decisión de consenso D7): si añadir bocetos
-// cambia UN SOLO gate formal (conteo OPL, un checker, validarModelo, un gate de
-// export), la segregación FALLÓ. La ley `law-bocetos-no-contaminan`
-// (src/leyes/bocetos-no-contaminan.test.ts) defiende el invariante de forma
-// falsable, replicando el de `generic-view` ("el conteo es invariante a añadir
-// una vista").
-//
-// La SELECCIÓN de un boceto NO entra al trío sellado del store
-// (`seleccionId/enlaceSeleccionId/estadoSeleccionId` + `setSeleccionPorTipo` +
-// `KindSeleccion`): meterla ahí dispararía la deuda O(N²) del coproducto-tagged
-// (CLAUDE.md §Deuda categorial). La selección de pizarra vive APARTE, en un
-// futuro `PizarraSlice` (corte D7.2). D7.1 NO toca el trío de selección.
-
-/** Clase de trazo de pizarra. Pura presentación: ninguna porta semántica OPM. */
-export type TipoBoceto = "forma" | "texto" | "flecha" | "nota";
-
-/** Punto en coordenadas de lienzo. Para trazos poligonales (flechas, lazos). */
-export interface PuntoBoceto {
-  x: number;
-  y: number;
-}
-
-/**
- * Un trazo de pizarra. Geometría laxa: caja (x/y/w/h) para `forma`/`texto`/`nota`,
- * y/o `puntos` para `flecha`. `texto`/`estilo` opcionales. NO es Entidad OPM; el
- * `id` es local al Record del OPD y NO comparte espacio con los ids del bundle
- * (`siguienteId`): un boceto jamás se referencia desde enlaces/estados/abanicos.
- */
-export interface Boceto {
-  id: Id;
-  tipo: TipoBoceto;
-  /** Caja del trazo (opcional para `flecha` pura por puntos). */
-  x?: number;
-  y?: number;
-  w?: number;
-  h?: number;
-  /** Polilínea (≥1 punto) para `flecha`/trazo libre. */
-  puntos?: PuntoBoceto[];
-  /** Glosa libre del autor (rótulo de forma, cuerpo de nota). */
-  texto?: string;
-  /** Estilo de presentación libre (color, grosor…); opaco al kernel. */
-  estilo?: Record<string, string | number | boolean>;
-}
-
 export type OpdVista =
   | {
       kind: "requirement-view";

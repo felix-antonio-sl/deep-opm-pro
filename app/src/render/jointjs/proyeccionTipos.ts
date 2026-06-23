@@ -1,4 +1,4 @@
-import type { Id, ModoImagenEntidad, TipoBoceto, TipoEnlace } from "../../modelo/tipos";
+import type { Id, ModoImagenEntidad, TipoEnlace } from "../../modelo/tipos";
 import type { EstadoTarget } from "./estadoTargets";
 
 export type RolApariencia = "contorno" | "interno" | "externo";
@@ -72,14 +72,6 @@ export type OpmJointMetadata =
       opdId: Id;
       targetId: Id;
       tipo: "proceso-activo" | "estado-current" | "estado-resultado" | "entidad-involucrada" | "estado-inicial";
-    }
-  // D7.2: capa de pizarra / bosquejo. NO-SEMÁNTICA: el handler la distingue por
-  // `kind === "boceto"` para enrutar a `seleccionarBoceto` en vez del trío OPM.
-  | {
-      kind: "boceto";
-      opdId: Id;
-      bocetoId: Id;
-      tipo: TipoBoceto;
     };
 
 export interface JointCellJson {

@@ -10,6 +10,23 @@
 
 ---
 
+## Actualización 2026-06-23 — Revert quirúrgico del subsistema boceto (modo pizarra D7.1+D7.2)
+
+**Decisión del operador**: el modo light/boceto «no resultó como quería». Revert quirúrgico de la **totalidad** del subsistema boceto, gestionando en paralelo cada efecto colateral. **D6 (estereotipos+vitrinas) se conserva intacto** — es independiente del boceto y cimiento del frente gist-anchor.
+
+**Alcance revertido** (rama `worktree-revert-subsistema-boceto`, gate-verde): toda la capa boceto/pizarra, kernel + UI:
+- **D7.1** (era `ad05c94b`, kernel no-semántico): tipos `Boceto`/`TipoBoceto`/`PuntoBoceto`, campo `Opd.bocetos?`, `operaciones/promocion.ts`, validación `validarBocetos`, leyes `bocetos-no-contaminan` + `promocion-reversible`.
+- **D7.2** (era `19d712a4`, modo pizarra interactivo): `PizarraSlice`, CRUD `operaciones/bocetos.ts`, render `composers/boceto.ts` + `handlers/pizarra.ts`, ports `pizarra*`, `ui/pizarra/BarraPizarra.tsx`, cableado en store/render/App.
+- **boceto→ENLACE** (era `b5c2f10d`): `barraPizarraEnlace.ts` + promoción a enlace en la barra.
+
+**Técnica**: excisión manual guiada por los diffs por-commit (16 archivos exclusivos borrados + ~16 compartidos editados quirúrgicamente, sin rozar D6/núcleo); el typechecker estricto como oráculo de efectos colaterales. El topbar del workbench vuelve a su estado pre-D7.2 (`null` cuando no es simulación).
+
+**Gate completo verde**: `bun run check` **2807/0** + typecheck limpio + lint + build + design:governance OK + **browser:smoke 274/0/5** (los lanes `mobile`/`auth`/`inspector-focus` confirman que la app monta sin el topbar pizarra). Grep de barrido = **0 referencias boceto/pizarra residuales**. Golden HODOM byte-idéntico por construcción (HODOM no usaba bocetos; capa aditiva con opcional ausente). **Mergeado `--no-ff` a `main`, pusheado y DESPLEGADO** (bundle + verificación HODOM al pie de esta entrada).
+
+**Supersede** las afirmaciones de la entrada 2026-06-22 sobre D7 «COMPLETO/DESPLEGADO»: el subsistema boceto ya NO existe en el código.
+
+---
+
 ## Actualización 2026-06-22 — Cristalización del compuesto OpForja (consolidado en `main`, EN CURSO, no desplegado)
 
 **Mandato**: cristalizar opforja como compuesto-célula de 5 órganos (SSOT en kora-pneuma · app · docs · skill `modelamiento-opm` · metodología/manual) que co-evolucionan con **naturalidad verificable**; norte = el sueño del operador (UI guante-de-seda + UX telepatía; modelado fluido con estereotipos en vitrinas; skill facilitadora dominio→proto→headless→prod→iterar). **Reglas permanentes del operador**: kora-pneuma = solo SSOT inmutable de solo lectura / todo working-artifact en el repo; toda decisión de autoridad o duda → **consenso steipete×allan-kelly** (arbitraje steve-jobs+mente-omega), no al operador; trabajo autónomo, paralelizado, síntesis al final.
@@ -25,9 +42,8 @@
 - `38914ed1` C2 — `doctrinaVersion` (5º componente opcional/rollback-free del sello = hash de contenido de las 4 SSOT vía el resolutor).
 - `ce6db26f` — propuesta a custodio-kora: el transmutador de pneuma debe preservar `version` en el deploy de la skill.
 - `9b6fb088` D4 — manual-opforja integrado al repo (`docs/manual-opforja.md`), delgado y citado por URN; check falsable `manual:limites`.
-- `ad05c94b` D7.1 — capa de pizarra/boceto ADITIVA (Opd.bocetos, kernel la ignora; ley `bocetos-no-contaminan`) + `promoverBoceto` (rechazo ruidoso, ley `promocion-reversible`). Tramo E iniciado. Sin UI (corte D7.2).
 
-**Tramo C núcleo COMPLETO**: los 3 testigos del cordón (resolutor URN + lista de sello única + `doctrinaVersion`) + ley render↛SSOT. **Tramo X**: D8 Ola A. **D4** (5º órgano al repo). **Tramo E COMPLETO**: D7.1 (kernel boceto + promoción) + **D6 COMPLETO** (estereotipos+vitrinas) + **D7.2 COMPLETO** (UI pizarra) — ver abajo.
+**Tramo C núcleo COMPLETO**: los 3 testigos del cordón (resolutor URN + lista de sello única + `doctrinaVersion`) + ley render↛SSOT. **Tramo X**: D8 Ola A. **D4** (5º órgano al repo). **Tramo E**: **D6 COMPLETO** (estereotipos+vitrinas) — vigente y desplegado. **D7.1+D7.2 (pizarra/boceto) REVERTIDOS 2026-06-23** (ver entrada superior).
 
 **D6 — sistema de estereotipos + vitrinas COMPLETO** (rama `compuesto-d6-estereotipos` desde `main` `e6ee9f38`; 4 sub-cortes, cada uno gate-verde + verificador adversarial fresh-context APROBADO + golden HODOM byte-idéntico verificado por regeneración):
 - `acd0249e` **D6.1** — `Entidad.estereotipo?:"requirement"` → `Entidad.estereotipoId?:Id` (adaptador backwards-compat) + catálogo aditivo `Modelo.estereotipos?` (hermano de `anclasNormativas`, excluido de validarModelo/OPL/checkers) + `requirement` reconstruido como **estereotipo de fábrica** (`modelo/estereotipos.ts`: `ESTEREOTIPO_REQUIREMENT_ID`, `esRequisito`/`estereotipoDe`/`enumerarEstereotipos`) + **contrato de import duro** en `validarReferenciasOpd` (estereotipoId colgante rechazado, simétrico a `ordenInzoom`). 11 sitios migrados; centinelas `satisfies Record<keyof X,true>` actualizados.
@@ -36,22 +52,18 @@
 - `b66dc743` **D6.4** — **vitrina** (`ui/VitrinaEstereotipos.tsx`): galería agrupada (marcadores/objetos/enlaces/patrones) con injerto 1-clic + guardar-selección-como-estereotipo + empty-state; acciones de store `injertarEstereotipoEnOpd`/`crearEstereotipoDesdeSeleccionActual` (patrón `commitModelo`); montada en App (lazy) + CommandPalette. **Propagación a las 5 partes en el mismo corte**: manual (`docs/manual-opforja.md` §3/§9, cita R-VIS-STEREO-1 por URN) + propuesta a custodio-kora (`docs/solicitudes-upstream/2026-06-22-estereotipos-vitrinas-ssot-skill.md`: R-VIS-STEREO-1 para spec-forja-opd-es + capacidad en la skill).
 - **Deuda O(N²) NO disparada**: el catálogo/vitrina NO añade 4º tipo seleccionable (selección de galería en `useState` local; cosas injertadas = entidades normales). **Bibliotecas semilla pre-curadas = paridad-OpCloud declarada-no-implementada** (contenido, no motor): catálogo arranca con requirement + lo que el autor cure. (Cierre extra `d79372f7`: la vitrina captura `propositoDeModelado` al guardar — gap output→outcome cazado por el verificador holístico E2E.)
 
-**D7.2 — UI del modo pizarra COMPLETO** (`19d712a4`, misma rama; sobre el kernel D7.1; gate-verde + verificador adversarial APROBADO + golden byte-idéntico + leyes D7.1 13/13):
-- Kernel `operaciones/bocetos.ts` (CRUD agregar/mover/editar/eliminar, ids `bo-N`) + Store `pizarra.ts` (**PizarraSlice**: modoPizarra/herramientaPizarra/`bocetoSeleccionadoId` **FUERA del trío sellado** — sin 4º tipo seleccionable; `KindSeleccion` sigue 4-way) + Render `composers/boceto.ts` (estilo bosquejo tenue/discontinuo, distinto del modelo) + Canvas `handlers/pizarra.ts` (click-to-place, cede Shift+drag al rubber-band; click-selecciona-boceto con stopPropagation) + UI `pizarra/BarraPizarra.tsx` (toggle modo + herramienta + "Promover a modelo" objeto/proceso con mini-prompt + indicador "● Pizarra"). Modo pizarra se apaga al entrar simulación/solo-lectura.
-- Alcance v1: promoción a ENLACE soportada por el kernel pero la barra ofrece solo entidad (el enlace exige dos extremos existentes; corte posterior). Flecha = caja default de 2 puntos.
+**D7.2 (UI del modo pizarra) — REVERTIDO 2026-06-23** (era `19d712a4`; ver entrada superior). El detalle de lo que se construyó vive en la historia git.
 
-**Gate final de la rama** (integrado, verificado de primera mano): `check` **2859/0** + typecheck + lint + design:governance OK + manual-limites 4/0 + leyes D7.1 13/13 + golden HODOM byte-idéntico (regen → git limpio).
+**Gate final de la rama D6** (integrado, verificado de primera mano): `check` + typecheck + lint + design:governance OK + manual-limites 4/0 + golden HODOM byte-idéntico (regen → git limpio).
 
-**Tramo E DESPLEGADO Y VERIFICADO (2026-06-22/23)**: D6 + D7.2 mergeados a `main` (`b6385de7`, merge `--no-ff`), **pusheados** (origin/main) y **DESPLEGADOS** a `opforja.sanixai.com` (bundle `index-DUvoiIxZ.js` + `feature-dialogos-pesados-DUb2TeyF.js`; 4 contenedores healthy; HODOM sin regresión, hidratado con el código desplegado: 279·480·44). **Verificación visual en vivo HECHA Y LIMPIA (2026-06-23)**: vitrina + badge `<<Requirement>>` (inkSoft, OPL limpio) + modo pizarra (boceto base inkSoft / selección crimson) auditados con navegador real (worktree aislado, dev `requireAuth=false`); **0 defectos**, 2 falsos positivos de sonda descartados contra código, 1 obs UX (discoverability de la vitrina en la paleta). Único error de consola = `favicon.ico 404` (benigno).
-
-**Increment boceto→ENLACE (D7.2) HECHO** (`b5c2f10d` en `main`): la BarraPizarra ahora promueve un boceto a enlace (segmented Objeto/Proceso/Enlace + mini-form origen/destino/tipo; `barraPizarraEnlace.ts` lógica pura; reusa `aparicionesVisiblesEnOpd` + `TIPOS_ENLACE_MENU`). Gate `check` 2867/0 + lint + governance + golden HODOM byte-idéntico; verificador APROBADO. **NO pusheado / NO desplegado aún**; el render del mini-form pendiente de eyeball visual (lógica cubierta por unit + smoke).
+**D6 DESPLEGADO Y VERIFICADO (2026-06-22/23)**: D6 mergeado a `main` (`b6385de7`, merge `--no-ff` que también traía el luego-revertido D7.2), **pusheado** (origin/main) y **DESPLEGADO** a `opforja.sanixai.com` (4 contenedores healthy; HODOM sin regresión: 279·480·44). **Verificación visual en vivo HECHA Y LIMPIA (2026-06-23)**: vitrina + badge `<<Requirement>>` (inkSoft, OPL limpio) auditados con navegador real; **0 defectos**, 1 obs UX (discoverability de la vitrina en la paleta). (La auditoría incluyó el entonces-presente modo pizarra, hoy revertido.)
 
 **PENDIENTE** (fuera de esta ola): C1 version-match + `skillVersion` (diferidos hasta que la propuesta del transmutador aterrice en pneuma) · D3 skill re-sync (propuesta a custodio-kora) · D8 Ola B (generador `spec:gen`, condicional) · **gist-anchor / Stereotype-real** (gran apuesta, BLOQUEADA: doctrina custodio-kora + consenso de alcance + greda-bundle de gist). Análisis categorial cerrado en 4 lentes convergentes (modelamiento-omp / mente-omega / cat-thinking ×2): **D6 es Plantilla (coproducto/`Σ`, desacoplado), no Stereotype**; el Stereotype real = **fibración de Grothendieck** sobre registro global gobernado; **composabilidad = pullback sobre base compartida** (gate N5 = chequeo estático de pullback, NO bisimulación); `Unlink` = forgetful entre ambos. Hilo: `gist-opm/docs/derivaciones/*-2026-06-23.md`.
 
-**Supuestos:** single-operator estable; HODOM no usa `requirement`/estereotipos/bocetos ⇒ golden byte-idéntico por construcción (capas aditivas con opcional ausente); el gate (`bun run check`/lint/governance) cubre kernel/serialización/store/render-proyección, NO la interacción de pointer en canvas.
+**Supuestos:** single-operator estable; HODOM no usa `requirement`/estereotipos ⇒ golden byte-idéntico por construcción (capas aditivas con opcional ausente); el gate (`bun run check`/lint/governance) cubre kernel/serialización/store/render-proyección.
 
 **Riesgos / cosas a tener presente:**
-- **UX de canvas no verificada en vivo**: el dibujo de pizarra (click-to-place, selección de boceto) y el render del badge `<<Nombre>>`/vitrina pasan typecheck+unit pero su comportamiento visual no está confirmado en navegador — primera tarea post-deploy: verificación visual del operador.
+- **D6 verificado en vivo**: vitrina + badge `<<Nombre>>` confirmados en navegador (0 defectos, 2026-06-23). El modo pizarra que compartía esta nota fue revertido.
 - **Cambio de contrato de import (deseado)**: un bundle externo con `Entidad.estereotipoId` que no resuelva a fábrica/catálogo ahora **falla al importar** (simétrico a `ordenInzoom`/anclas). Es el comportamiento canónico, pero a tener presente para imports legacy fabricados a mano.
 - **Doctrina R-VIS-STEREO-1 en vuelo**: v1 omite «Nombre» del OPL núcleo (conforme con "PUEDE"); la ratificación/ampliación es del custodio-kora (`docs/solicitudes-upstream/2026-06-22-estereotipos-vitrinas-ssot-skill.md`). No legislado en código.
 - **Deploy**: si el password del operador quedó stale, verificar HODOM leyendo Postgres directo y resetear con `docker exec ... auth-cuenta.ts reset` (lección 2026-06-16). Postgres se preserva en `up -d --build`.

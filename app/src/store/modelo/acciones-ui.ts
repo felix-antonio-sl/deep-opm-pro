@@ -443,13 +443,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
     },
 
     activarReadOnly(activo) {
-      // D7.2 (coherencia de modos): el modo pizarra es un modo de EDICIÓN; al
-      // entrar a solo-lectura se apaga (limpia herramienta + selección local).
-      set({
-        readOnly: activo,
-        mensaje: activo ? "Modelo en solo lectura" : null,
-        ...(activo ? { modoPizarra: false, herramientaPizarra: null, bocetoSeleccionadoId: null } : {}),
-      });
+      set({ readOnly: activo, mensaje: activo ? "Modelo en solo lectura" : null });
     },
   };
 }

@@ -874,33 +874,6 @@ export interface OpmStore {
   alternarHeadlessSimulacion: () => void;
   fijarModoSimulacion: (modo: import("../modelo/simulacion/tipos").ModoSimulacion) => void;
   fijarSemillaSimulacion: (semilla: number | undefined) => void;
-  // ── D7.2: Modo pizarra (capa de bosquejo de baja fricción) ─────────────
-  /** True ⇒ el lienzo está en modo bosquejo: el blank:pointerdown crea bocetos. */
-  modoPizarra: boolean;
-  /** Herramienta de pizarra activa; `null` = sin herramienta (solo seleccionar bocetos). */
-  herramientaPizarra: import("../modelo/tipos").TipoBoceto | null;
-  /**
-   * CRÍTICO (spec D7 / CLAUDE.md §Deuda categorial): la selección de boceto vive
-   * AQUÍ, NUNCA en el trío sellado `seleccionId/enlaceSeleccionId/estadoSeleccionId`.
-   * Meterla ahí dispararía la deuda O(N²) del coproducto-tagged. Es estado de UI:
-   * no se serializa al modelo.
-   */
-  bocetoSeleccionadoId: Id | null;
-  activarModoPizarra: () => void;
-  salirModoPizarra: () => void;
-  elegirHerramientaPizarra: (tipo: import("../modelo/tipos").TipoBoceto | null) => void;
-  /** Crea un boceto en el OPD activo (kernel `agregarBoceto` + commitModelo). Lo deja seleccionado. */
-  agregarBocetoEnOpd: (boceto: Omit<import("../modelo/tipos").Boceto, "id">) => void;
-  /** Mueve el boceto seleccionado (kernel `moverBoceto` + commitModelo). */
-  moverBocetoActual: (posicion: import("../modelo/operaciones").PosicionBoceto) => void;
-  /** Edita el boceto seleccionado (kernel `editarBoceto` + commitModelo). */
-  editarBocetoActual: (parche: import("../modelo/operaciones").ParcheBoceto) => void;
-  /** Elimina el boceto seleccionado (kernel `eliminarBoceto` + commitModelo). */
-  eliminarBocetoActual: () => void;
-  /** Selección local de pizarra (set, NO commitModelo, NO toca el trío). */
-  seleccionarBoceto: (id: Id | null) => void;
-  /** Promueve el boceto seleccionado a hecho OPM; enfoca el hecho en el trío si ok (rechazo ruidoso si no). */
-  promoverBocetoActual: (opciones?: import("../modelo/operaciones").PromoverBocetoOpciones) => void;
 }
 
 
@@ -917,7 +890,6 @@ export type {
   OpmStoreSlices,
   PersistenciaSlice,
   PestanasSlice,
-  PizarraSlice,
   SeleccionSlice,
   SimulacionSlice,
   UiPanelSlice,

@@ -7,7 +7,6 @@ import { createEnlacesSlice } from "./store/enlaces";
 import { createMapaSlice } from "./store/mapa";
 import { createModeloSlice, modeloInicial } from "./store/modelo";
 import { createPersistenciaSlice } from "./store/persistencia";
-import { createPizarraSlice } from "./store/pizarra";
 import { createSeleccionSlice } from "./store/seleccion";
 import { createPestanasSlice } from "./store/pestanas";
 import { createSimulacionSlice } from "./store/simulacion";
@@ -30,7 +29,6 @@ export function crearOpmStore(opciones: { conectarRuntimeGlobal?: boolean } = {}
     ...createPersistenciaSlice(set, get),
     ...createPestanasSlice(set, get),
     ...createSimulacionSlice(set, get),
-    ...createPizarraSlice(set, get),
     ...createAtajosSlice(set, get),
   } as OpmStore));
   if (opciones.conectarRuntimeGlobal) inicializarRuntimeStore(api, modeloInicial);
