@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { store } from "../store";
 import { exportarModelo } from "../serializacion/json";
-import { crearModelo, crearObjeto } from "../modelo/operaciones";
+import { crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { extremoEntidad } from "../modelo/extremos";
 import type { Modelo, Resultado } from "../modelo/tipos";
 
 function must<T>(resultado: Resultado<T>): T {
@@ -123,6 +124,68 @@ describe("PizarraSlice — modo bosquejo de baja fricción", () => {
     expect(store.getState().mensaje).toContain("Pedido");
     // No se creó un segundo "Pedido" (sin auto-sufijo).
     expect(Object.values(store.getState().modelo.entidades).filter((e) => e.nombre.startsWith("Pedido"))).toHaveLength(1);
+  });
+
+  test("promoverBocetoActual destino enlace ok: crea el enlace, lo enfoca y consume el boceto", () => {
+    // OPD con dos cosas legales para un consumo (objeto → proceso) + un boceto.
+    let m = crearModelo("Pizarra");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Insumo"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 240, y: 0 }, "Procesar"));
+    const insumoId = Object.values(m.entidades).find((e) => e.nombre === "Insumo")!.id;
+    const procesarId = Object.values(m.entidades).find((e) => e.nombre === "Procesar")!.id;
+    importar(m);
+    store.getState().activarReadOnly(false);
+    store.getState().activarModoPizarra();
+    store.getState().agregarBocetoEnOpd({ tipo: "flecha", x: 60, y: 0, texto: "" });
+    const bocetoId = store.getState().bocetoSeleccionadoId!;
+
+    store.getState().promoverBocetoActual({
+      destino: "enlace",
+      origenId: extremoEntidad(insumoId),
+      destinoId: extremoEntidad(procesarId),
+      tipo: "consumo",
+    });
+
+    const { modelo, enlaceSeleccionId, seleccionId, bocetoSeleccionadoId, opdActivoId } = store.getState();
+    // El boceto fue consumido (era el único ⇒ la clave desaparece).
+    expect(bocetoSeleccionadoId).toBeNull();
+    expect(modelo.opds[opdActivoId]?.bocetos?.[bocetoId]).toBeUndefined();
+    // Nació el enlace consumo y quedó enfocado en el trío (enlace ⇒ enlaceSeleccionId).
+    const enlace = Object.values(modelo.enlaces).find((e) => e.tipo === "consumo");
+    expect(enlace).toBeDefined();
+    expect(enlaceSeleccionId).toBe(enlace!.id);
+    expect(seleccionId).toBeNull();
+  });
+
+  test("promoverBocetoActual destino enlace con firma ilegal FALLA ruidoso: mensaje, boceto intacto, sin enlace", () => {
+    // consumo invertido (proceso → objeto) viola la firma ⇒ crearEnlace rechaza.
+    let m = crearModelo("Pizarra");
+    m = must(crearObjeto(m, m.opdRaizId, { x: 0, y: 0 }, "Insumo"));
+    m = must(crearProceso(m, m.opdRaizId, { x: 240, y: 0 }, "Procesar"));
+    const insumoId = Object.values(m.entidades).find((e) => e.nombre === "Insumo")!.id;
+    const procesarId = Object.values(m.entidades).find((e) => e.nombre === "Procesar")!.id;
+    importar(m);
+    store.getState().activarReadOnly(false);
+    store.getState().activarModoPizarra();
+    store.getState().agregarBocetoEnOpd({ tipo: "flecha", x: 60, y: 0, texto: "" });
+    const bocetoId = store.getState().bocetoSeleccionadoId!;
+    const enlacesAntes = Object.keys(store.getState().modelo.enlaces).length;
+
+    store.getState().promoverBocetoActual({
+      destino: "enlace",
+      origenId: extremoEntidad(procesarId),
+      destinoId: extremoEntidad(insumoId),
+      tipo: "consumo",
+    });
+
+    const estado = store.getState();
+    // La app habla (rechazo ruidoso) y el boceto sigue vivo (no consumido).
+    expect(estado.mensaje).not.toBeNull();
+    expect(estado.modelo.opds[estado.opdActivoId]?.bocetos?.[bocetoId]).toBeDefined();
+    expect(estado.bocetoSeleccionadoId).toBe(bocetoId);
+    // No se creó ningún enlace ni se enfocó nada en el trío.
+    expect(Object.keys(estado.modelo.enlaces).length).toBe(enlacesAntes);
+    expect(estado.enlaceSeleccionId).toBeNull();
   });
 
   test("entrar a modo simulación apaga el modo pizarra (coherencia de modos)", () => {
