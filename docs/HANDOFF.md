@@ -1,7 +1,7 @@
 # HANDOFF — Estado operativo del modelador OPM
 
-**Consolidación**: 2026-06-24 · **Repositorio**: `deep-opm-pro` · **Rama**: `main` (`2a22b489`, corte C1)
-**Deploy vigente**: `1d6e45ed` (bundle `index-CeJEaBAM.js`) — C1 es infraestructura de gate, **no se despliega**.
+**Consolidación**: 2026-06-24 · **Repositorio**: `deep-opm-pro` · **Rama**: `main` (`72ebc316` — Tramo C: C1 resuelto · D3 propuesto · D8 Ola B diferido · consenso de alcance gist-anchor (b) cerrado)
+**Deploy vigente**: `1d6e45ed` (bundle `index-CeJEaBAM.js`) — los avances de hoy son infra de gate + docs/deliberación; **nada nuevo se despliega**.
 **Instancia**: `https://opforja.sanixai.com` — login obligatorio (auth v1, 2026-06-10).
 **Doctrina**: este documento es la **única memoria de traspaso versionada** (CLAUDE.md §Reglas de oro 4). Se **reescribe y consolida**; no se acumulan actualizaciones fechadas ni se crean handoffs paralelos. El detalle commit-por-commit de cada corte (deploys, verificaciones in-vivo, remediaciones) vive en la **historia git** del repo. Lo que sigue es el **estado vigente**.
 
