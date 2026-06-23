@@ -25,6 +25,8 @@
 
 **Supersede** las afirmaciones de la entrada 2026-06-22 sobre D7 «COMPLETO/DESPLEGADO»: el subsistema boceto ya NO existe en el código.
 
+**DESPLEGADO Y VERIFICADO (2026-06-23)**: `main` == `origin/main` == `5c90d485` (merge `--no-ff` `5adcf4ca`). Deploy `docker compose up -d --build` → 4 contenedores healthy; bundle **`index-CeJEaBAM.js`** (≠ `index-DUvoiIxZ.js` de D7.2 — boceto extirpado en prod); HTTP 200. **Verificación de datos en Postgres**: 0 modelos con clave `bocetos` en TODA la data persistida (payload/versiones/autosaves de los 8 modelos) — el operador probó el modo pero nunca persistió trazos; el revert no toca dato alguno. **HODOM v2.0 intacto: 279·480·44** (entidades·enlaces·opds). Regresión HODOM = cero, confirmada por inspección directa.
+
 ---
 
 ## Actualización 2026-06-22 — Cristalización del compuesto OpForja (consolidado en `main`, EN CURSO, no desplegado)
