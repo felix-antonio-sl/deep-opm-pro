@@ -166,4 +166,12 @@ export {
   injertarEstereotipo,
 } from "./operaciones/injertoEstereotipo";
 export type { InjertoResultado } from "./operaciones/injertoEstereotipo";
-export { anclarAPieza } from "./operaciones/anclaje";
+export {
+  anclarAPieza,
+  evaluarDrift,
+  evaluarDriftEntidad,
+  evaluarDriftModelo,
+  firmaBiblioteca,
+  reSincronizarAnclaje,
+  soltarAnclaje,
+} from "./operaciones/anclaje";

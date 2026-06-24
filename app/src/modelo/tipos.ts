@@ -102,6 +102,7 @@ export type {
   SubmodeloContrato,
   BibliotecaRef,
   Anclaje,
+  EstadoDrift,
   SubmodeloMaterializacion,
   SubmodeloReferencia,
   ReferenciaPadreSubmodelo,

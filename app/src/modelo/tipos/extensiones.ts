@@ -267,6 +267,18 @@ export interface Anclaje {
   biblioteca: BibliotecaRef;
 }
 
+/**
+ * Estado de drift de una cosa anclada (Centinela de Drift, corte C-1). Valor DERIVADO
+ * —nunca se persiste, igual que `estadoSubmodelo`—: resulta de comparar el `frozenAtHash`
+ * congelado al anclar contra el hash VIVO de la biblioteca.
+ *   · `sincronizado` — la biblioteca no ha cambiado desde que se ancló.
+ *   · `divergente`   — la biblioteca cambió bajo los pies de la cosa anclada (el aviso).
+ *   · `no-resuelto`  — la biblioteca no se pudo leer; no se inventa divergencia ni sincronía
+ *                      (honestidad temporal, doctrina `SelloProcedencia`: se REPORTA, no degrada).
+ * Vocabulario de carpintero (acta de valor, condición 3): sin fibración ni pullback en la cara.
+ */
+export type EstadoDrift = "sincronizado" | "divergente" | "no-resuelto";
+
 export interface SubmodeloMaterializacion {
   opdVistaId: Id;
   scope: "sd-root";
