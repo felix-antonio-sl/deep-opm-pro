@@ -166,4 +166,4 @@ export {
   injertarEstereotipo,
 } from "./operaciones/injertoEstereotipo";
 export type { InjertoResultado } from "./operaciones/injertoEstereotipo";
-export { anclarAStereotype } from "./operaciones/anclajeStereotype";
+export { anclarAPieza } from "./operaciones/anclaje";

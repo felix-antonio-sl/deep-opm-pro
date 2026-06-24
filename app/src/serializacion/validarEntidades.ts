@@ -9,8 +9,8 @@ import type {
   ImagenEntidad,
   RequisitoEntidadMetadata,
   Resultado,
-  StereotypeAnchor,
-  StereotypeLibraryRef,
+  Anclaje,
+  BibliotecaRef,
   TipoEnlace,
   TipoValorSlot,
   UrlObjetoTipada,
@@ -200,36 +200,36 @@ export function camposEntidadAvanzada(entidadId: Id, raw: Record<string, unknown
     if (typeof raw.lineal !== "boolean") return fallo(`Entidad inválida: ${entidadId}.lineal`);
     if (raw.lineal) campos.lineal = true;
   }
-  if (raw.estereotipoAnclaje !== undefined) {
-    const anclaje = validarStereotypeAnchor(entidadId, raw.estereotipoAnclaje);
+  if (raw.anclaje !== undefined) {
+    const anclaje = validarAnclaje(entidadId, raw.anclaje);
     if (!anclaje.ok) return anclaje;
-    campos.estereotipoAnclaje = anclaje.value;
+    campos.anclaje = anclaje.value;
   }
   return ok(campos);
 }
 
 /**
- * Modo `anchor` (Stereotype real): valida la FORMA de la referencia viva a un tipo de
+ * Modo Anclaje (referencia viva): valida la FORMA de la referencia viva a un tipo de
  * biblioteca externa. La RESOLUCIÓN contra la biblioteca (drift por `frozenAtHash`,
  * advertencia diferida si la biblioteca no está cargada — C2/C5) es aparte y BLANDA,
  * en un corte futuro. Aquí solo se valida la estructura (dura, como los demás campos).
  */
-function validarStereotypeAnchor(entidadId: Id, value: unknown): Resultado<StereotypeAnchor> {
-  if (!esRecord(value)) return fallo(`Entidad inválida: ${entidadId}.estereotipoAnclaje`);
-  if (typeof value.stereotypeId !== "string" || !value.stereotypeId.trim()) {
-    return fallo(`Entidad inválida: ${entidadId}.estereotipoAnclaje.stereotypeId`);
+function validarAnclaje(entidadId: Id, value: unknown): Resultado<Anclaje> {
+  if (!esRecord(value)) return fallo(`Entidad inválida: ${entidadId}.anclaje`);
+  if (typeof value.piezaId !== "string" || !value.piezaId.trim()) {
+    return fallo(`Entidad inválida: ${entidadId}.anclaje.piezaId`);
   }
-  if (!esRecord(value.libraryRef)) return fallo(`Entidad inválida: ${entidadId}.estereotipoAnclaje.libraryRef`);
-  const ref = value.libraryRef;
+  if (!esRecord(value.biblioteca)) return fallo(`Entidad inválida: ${entidadId}.anclaje.biblioteca`);
+  const ref = value.biblioteca;
   if (typeof ref.modeloId !== "string" || !ref.modeloId.trim()) {
-    return fallo(`Entidad inválida: ${entidadId}.estereotipoAnclaje.libraryRef.modeloId`);
+    return fallo(`Entidad inválida: ${entidadId}.anclaje.biblioteca.modeloId`);
   }
   if (typeof ref.frozenAtHash !== "string" || !ref.frozenAtHash.trim()) {
-    return fallo(`Entidad inválida: ${entidadId}.estereotipoAnclaje.libraryRef.frozenAtHash`);
+    return fallo(`Entidad inválida: ${entidadId}.anclaje.biblioteca.frozenAtHash`);
   }
-  const libraryRef: StereotypeLibraryRef = { modeloId: ref.modeloId.trim(), frozenAtHash: ref.frozenAtHash.trim() };
-  if (typeof ref.nombre === "string" && ref.nombre.trim()) libraryRef.nombre = ref.nombre.trim();
-  return ok({ stereotypeId: value.stereotypeId.trim(), libraryRef });
+  const biblioteca: BibliotecaRef = { modeloId: ref.modeloId.trim(), frozenAtHash: ref.frozenAtHash.trim() };
+  if (typeof ref.nombre === "string" && ref.nombre.trim()) biblioteca.nombre = ref.nombre.trim();
+  return ok({ piezaId: value.piezaId.trim(), biblioteca });
 }
 
 function validarOrderedFundamentalTypes(entidadId: Id, value: unknown): Resultado<TipoEnlace[]> {

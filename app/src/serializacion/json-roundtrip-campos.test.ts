@@ -69,7 +69,7 @@ const CAMPOS_ENTIDAD = {
   simulacion: true,
   descripcion: true,
   estereotipoId: true,
-  estereotipoAnclaje: true,
+  anclaje: true,
   requisito: true,
   urls: true,
   imagen: true,
@@ -354,10 +354,10 @@ describe("serializacion JSON - round-trip de campos persistibles", () => {
     expect(hidratado.value.entidades["o-pedido"]?.requisito?.actor).toBe("Mesa clinica");
     expect(hidratado.value.entidades["o-pedido"]?.estereotipoId).toBe(ESTEREOTIPO_REQUIREMENT_ID);
     expect(hidratado.value.entidades["o-resultado"]?.estereotipoId).toBe("est-actor");
-    // C2 (anchor): la referencia viva sobrevive serializar → hidratar, sin la biblioteca cargada.
-    expect(hidratado.value.entidades["o-insumo-a"]?.estereotipoAnclaje).toEqual({
-      stereotypeId: "ent-Category",
-      libraryRef: { modeloId: "gist-opm-v0", nombre: "gist 14.1.0", frozenAtHash: "sha256:abc" },
+    // C2 (Anclaje): la referencia viva sobrevive serializar → hidratar, sin la biblioteca cargada.
+    expect(hidratado.value.entidades["o-insumo-a"]?.anclaje).toEqual({
+      piezaId: "ent-Category",
+      biblioteca: { modeloId: "gist-opm-v0", nombre: "gist 14.1.0", frozenAtHash: "sha256:abc" },
     });
     expect(hidratado.value.estereotipos?.["est-actor"]).toMatchObject({ nombre: "Actor", propositoDeModelado: "Marca un actor del sistema." });
     expect(hidratado.value.enlaces["e-effect"]?.efectoEscindido).toEqual({
@@ -429,7 +429,7 @@ function modeloConCamposOpcionales(): Modelo {
         lineal: true,
         orderedFundamentalTypes: ["agregacion", "exhibicion"],
       },
-      "o-insumo-a": { id: "o-insumo-a", tipo: "objeto", nombre: "Insumo A", esencia: "fisica", afiliacion: "ambiental", estereotipoAnclaje: { stereotypeId: "ent-Category", libraryRef: { modeloId: "gist-opm-v0", nombre: "gist 14.1.0", frozenAtHash: "sha256:abc" } } },
+      "o-insumo-a": { id: "o-insumo-a", tipo: "objeto", nombre: "Insumo A", esencia: "fisica", afiliacion: "ambiental", anclaje: { piezaId: "ent-Category", biblioteca: { modeloId: "gist-opm-v0", nombre: "gist 14.1.0", frozenAtHash: "sha256:abc" } } },
       "o-insumo-b": { id: "o-insumo-b", tipo: "objeto", nombre: "Insumo B", esencia: "fisica", afiliacion: "ambiental" },
       "o-resultado": { id: "o-resultado", tipo: "objeto", nombre: "Resultado", esencia: "informacional", afiliacion: "sistemica", estereotipoId: "est-actor" },
       "p-aprobar": { id: "p-aprobar", tipo: "proceso", nombre: "Aprobar", esencia: "fisica", afiliacion: "sistemica" },

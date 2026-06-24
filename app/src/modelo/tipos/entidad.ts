@@ -1,7 +1,7 @@
 import type { LayoutEstados } from "./apariencia";
 import type { Id } from "./comunes";
 import type { TipoEnlace } from "./enlace";
-import type { RequisitoEntidadMetadata, StereotypeAnchor } from "./extensiones";
+import type { RequisitoEntidadMetadata, Anclaje } from "./extensiones";
 
 /**
  * Tipos del dominio Entidad (Object/Process en SSOT OPM) y su metadata.
@@ -132,11 +132,11 @@ export interface Entidad {
    */
   estereotipoId?: Id;
   /**
-   * Modo `anchor` (Stereotype real): referencia VIVA a un tipo de biblioteca externa,
+   * Modo Anclaje (referencia viva): referencia VIVA a un tipo de biblioteca externa,
    * sin copiar (≠ `estereotipoId`, que es marker local del graft/Template D6). Campo
    * aditivo — no introduce un 4º tipo seleccionable, no dispara la deuda O(N²) del trío.
    */
-  estereotipoAnclaje?: StereotypeAnchor;
+  anclaje?: Anclaje;
   requisito?: RequisitoEntidadMetadata;
   urls?: UrlObjetoTipada[];
   imagen?: ImagenEntidad;
