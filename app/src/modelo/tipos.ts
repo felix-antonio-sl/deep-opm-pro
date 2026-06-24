@@ -100,6 +100,8 @@ export type {
   SubmodeloSource,
   SubmodeloAnchor,
   SubmodeloContrato,
+  StereotypeLibraryRef,
+  StereotypeAnchor,
   SubmodeloMaterializacion,
   SubmodeloReferencia,
   ReferenciaPadreSubmodelo,

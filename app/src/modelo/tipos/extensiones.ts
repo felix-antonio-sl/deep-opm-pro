@@ -246,6 +246,27 @@ export interface SubmodeloContrato {
   frozenAtHash?: string;
 }
 
+/**
+ * Anclaje referencial (modo `anchor` / Stereotype real): referencia VIVA a un tipo de
+ * una biblioteca de tipos externa (p.ej. la greda gist), SIN copiar. Clona la forma de
+ * `SubmodeloSource` + el `frozenAtHash` de `SubmodeloContrato`: la biblioteca es un
+ * `Modelo` persistido aparte, congelado a un hash. Distinto del graft/Template de D6
+ * (`Estereotipo.plantilla` + `injertarEstereotipo`), que clona-e-injerta una copia
+ * desacoplada. Alcance y criterio de cierre: `docs/auditorias/2026-06-24-acta-alcance-
+ * anchor-gist.md`. La forma OPL/visual del anchor espera doctrina custodio-kora (a).
+ */
+export interface StereotypeLibraryRef {
+  modeloId: Id;
+  nombre?: string;
+  frozenAtHash: string;
+}
+
+/** Aplicación del anchor en una cosa: a qué tipo (`stereotypeId`) de qué biblioteca queda anclada. */
+export interface StereotypeAnchor {
+  stereotypeId: Id;
+  libraryRef: StereotypeLibraryRef;
+}
+
 export interface SubmodeloMaterializacion {
   opdVistaId: Id;
   scope: "sd-root";
