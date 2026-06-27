@@ -1,0 +1,531 @@
+{
+  "formato": "gist-opm.fixture-anclaje.v0",
+  "proposito": "Eval-de-mecanismo del Anclaje: dos SD0 anclados a una Pieza común comparten el objeto del pullback; el Calco-adversarial (mismo estereotipoId, sin anclaje) DEBE fallar.",
+  "declaracion": "Cosas ancladas = PLACEHOLDERS DE FIXTURE declarados (no SD0 con función). Estructural, no función-como-semilla. Eval-de-mecanismo (CI), no eval-de-adopción.",
+  "biblioteca": {
+    "id": "gist-lib-fixture",
+    "nombre": "gist 14.1.0 — fixture de validación del Anclaje",
+    "opdRaizId": "opd-sd",
+    "opds": {
+      "opd-sd": {
+        "id": "opd-sd",
+        "nombre": "SD — raíces de validación",
+        "padreId": null,
+        "apariencias": {
+          "ap-cat": {
+            "id": "ap-cat",
+            "entidadId": "ent-Category",
+            "opdId": "opd-sd",
+            "x": 80,
+            "y": 80,
+            "width": 190,
+            "height": 72
+          },
+          "ap-com": {
+            "id": "ap-com",
+            "entidadId": "ent-Component",
+            "opdId": "opd-sd",
+            "x": 310,
+            "y": 80,
+            "width": 190,
+            "height": 72
+          },
+          "ap-cmp": {
+            "id": "ap-cmp",
+            "entidadId": "ent-Composite",
+            "opdId": "opd-sd",
+            "x": 540,
+            "y": 80,
+            "width": 190,
+            "height": 72
+          }
+        },
+        "enlaces": {}
+      }
+    },
+    "entidades": {
+      "ent-Category": {
+        "id": "ent-Category",
+        "nombre": "Categoría",
+        "alias": "Category",
+        "tipo": "objeto",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "ent-Component": {
+        "id": "ent-Component",
+        "nombre": "Componente",
+        "alias": "Component",
+        "tipo": "objeto",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "ent-Composite": {
+        "id": "ent-Composite",
+        "nombre": "Compuesto",
+        "alias": "Composite",
+        "tipo": "objeto",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      }
+    },
+    "estados": {},
+    "enlaces": {}
+  },
+  "frozenAtHashReferencia": "fnv1a-c6073070",
+  "notaHuella": "REFERENCIA. El eval debe re-computar frozenAtHash = firmaBiblioteca(biblioteca) en runtime (contrato §3.3), no hardcodear este valor.",
+  "ejeCategory": {
+    "raiz": "ent-Category",
+    "sd0A": {
+      "id": "sd0-A-categoria",
+      "nombre": "SD0-A (anclado a Categoría)",
+      "opdRaizId": "opd-sd",
+      "padreId": null,
+      "opds": {
+        "opd-sd": {
+          "id": "opd-sd",
+          "nombre": "SD",
+          "padreId": null,
+          "apariencias": {
+            "ap-1": {
+              "id": "ap-1",
+              "entidadId": "o-clasif-alfa",
+              "opdId": "opd-sd",
+              "x": 80,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            }
+          },
+          "enlaces": {}
+        }
+      },
+      "entidades": {
+        "o-clasif-alfa": {
+          "id": "o-clasif-alfa",
+          "nombre": "Clasificación Alfa",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "anclaje": {
+            "piezaId": "ent-Category",
+            "biblioteca": {
+              "modeloId": "gist-lib-fixture",
+              "frozenAtHash": "fnv1a-c6073070",
+              "nombre": "gist 14.1.0 — fixture de validación del Anclaje"
+            }
+          }
+        }
+      },
+      "estados": {},
+      "enlaces": {}
+    },
+    "sd0B": {
+      "id": "sd0-B-categoria",
+      "nombre": "SD0-B (anclado a Categoría)",
+      "opdRaizId": "opd-sd",
+      "padreId": null,
+      "opds": {
+        "opd-sd": {
+          "id": "opd-sd",
+          "nombre": "SD",
+          "padreId": null,
+          "apariencias": {
+            "ap-1": {
+              "id": "ap-1",
+              "entidadId": "o-clasif-beta",
+              "opdId": "opd-sd",
+              "x": 80,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            }
+          },
+          "enlaces": {}
+        }
+      },
+      "entidades": {
+        "o-clasif-beta": {
+          "id": "o-clasif-beta",
+          "nombre": "Clasificación Beta",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "anclaje": {
+            "piezaId": "ent-Category",
+            "biblioteca": {
+              "modeloId": "gist-lib-fixture",
+              "frozenAtHash": "fnv1a-c6073070",
+              "nombre": "gist 14.1.0 — fixture de validación del Anclaje"
+            }
+          }
+        }
+      },
+      "estados": {},
+      "enlaces": {}
+    },
+    "sd0A_calco": {
+      "id": "sd0-A-categoria-calco",
+      "nombre": "SD0-A (calcado de Categoría)",
+      "opdRaizId": "opd-sd",
+      "padreId": null,
+      "opds": {
+        "opd-sd": {
+          "id": "opd-sd",
+          "nombre": "SD",
+          "padreId": null,
+          "apariencias": {
+            "ap-1": {
+              "id": "ap-1",
+              "entidadId": "o-clasif-alfa",
+              "opdId": "opd-sd",
+              "x": 80,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            },
+            "ap-2": {
+              "id": "ap-2",
+              "entidadId": "ent-Category--calco-A",
+              "opdId": "opd-sd",
+              "x": 310,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            }
+          },
+          "enlaces": {}
+        }
+      },
+      "entidades": {
+        "ent-Category--calco-A": {
+          "id": "ent-Category--calco-A",
+          "nombre": "Categoría",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "estereotipoId": "ent-Category"
+        },
+        "o-clasif-alfa": {
+          "id": "o-clasif-alfa",
+          "nombre": "Clasificación Alfa",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "estereotipoId": "ent-Category"
+        }
+      },
+      "estados": {},
+      "enlaces": {
+        "l-gen": {
+          "id": "l-gen",
+          "tipo": "generalizacion",
+          "etiqueta": "",
+          "origenId": {
+            "kind": "entidad",
+            "id": "ent-Category--calco-A"
+          },
+          "destinoId": {
+            "kind": "entidad",
+            "id": "o-clasif-alfa"
+          }
+        }
+      }
+    },
+    "sd0B_calco": {
+      "id": "sd0-B-categoria-calco",
+      "nombre": "SD0-B (calcado de Categoría)",
+      "opdRaizId": "opd-sd",
+      "padreId": null,
+      "opds": {
+        "opd-sd": {
+          "id": "opd-sd",
+          "nombre": "SD",
+          "padreId": null,
+          "apariencias": {
+            "ap-1": {
+              "id": "ap-1",
+              "entidadId": "o-clasif-beta",
+              "opdId": "opd-sd",
+              "x": 80,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            },
+            "ap-2": {
+              "id": "ap-2",
+              "entidadId": "ent-Category--calco-B",
+              "opdId": "opd-sd",
+              "x": 310,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            }
+          },
+          "enlaces": {}
+        }
+      },
+      "entidades": {
+        "ent-Category--calco-B": {
+          "id": "ent-Category--calco-B",
+          "nombre": "Categoría",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "estereotipoId": "ent-Category"
+        },
+        "o-clasif-beta": {
+          "id": "o-clasif-beta",
+          "nombre": "Clasificación Beta",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "estereotipoId": "ent-Category"
+        }
+      },
+      "estados": {},
+      "enlaces": {
+        "l-gen": {
+          "id": "l-gen",
+          "tipo": "generalizacion",
+          "etiqueta": "",
+          "origenId": {
+            "kind": "entidad",
+            "id": "ent-Category--calco-B"
+          },
+          "destinoId": {
+            "kind": "entidad",
+            "id": "o-clasif-beta"
+          }
+        }
+      }
+    }
+  },
+  "ejeComponent": {
+    "raiz": "ent-Component",
+    "sd0A": {
+      "id": "sd0-A-componente",
+      "nombre": "SD0-A (anclado a Componente)",
+      "opdRaizId": "opd-sd",
+      "padreId": null,
+      "opds": {
+        "opd-sd": {
+          "id": "opd-sd",
+          "nombre": "SD",
+          "padreId": null,
+          "apariencias": {
+            "ap-1": {
+              "id": "ap-1",
+              "entidadId": "o-comp-alfa",
+              "opdId": "opd-sd",
+              "x": 80,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            }
+          },
+          "enlaces": {}
+        }
+      },
+      "entidades": {
+        "o-comp-alfa": {
+          "id": "o-comp-alfa",
+          "nombre": "Componente Alfa",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "anclaje": {
+            "piezaId": "ent-Component",
+            "biblioteca": {
+              "modeloId": "gist-lib-fixture",
+              "frozenAtHash": "fnv1a-c6073070",
+              "nombre": "gist 14.1.0 — fixture de validación del Anclaje"
+            }
+          }
+        }
+      },
+      "estados": {},
+      "enlaces": {}
+    },
+    "sd0B": {
+      "id": "sd0-B-componente",
+      "nombre": "SD0-B (anclado a Componente)",
+      "opdRaizId": "opd-sd",
+      "padreId": null,
+      "opds": {
+        "opd-sd": {
+          "id": "opd-sd",
+          "nombre": "SD",
+          "padreId": null,
+          "apariencias": {
+            "ap-1": {
+              "id": "ap-1",
+              "entidadId": "o-comp-beta",
+              "opdId": "opd-sd",
+              "x": 80,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            }
+          },
+          "enlaces": {}
+        }
+      },
+      "entidades": {
+        "o-comp-beta": {
+          "id": "o-comp-beta",
+          "nombre": "Componente Beta",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "anclaje": {
+            "piezaId": "ent-Component",
+            "biblioteca": {
+              "modeloId": "gist-lib-fixture",
+              "frozenAtHash": "fnv1a-c6073070",
+              "nombre": "gist 14.1.0 — fixture de validación del Anclaje"
+            }
+          }
+        }
+      },
+      "estados": {},
+      "enlaces": {}
+    },
+    "sd0A_calco": {
+      "id": "sd0-A-componente-calco",
+      "nombre": "SD0-A (calcado de Componente)",
+      "opdRaizId": "opd-sd",
+      "padreId": null,
+      "opds": {
+        "opd-sd": {
+          "id": "opd-sd",
+          "nombre": "SD",
+          "padreId": null,
+          "apariencias": {
+            "ap-1": {
+              "id": "ap-1",
+              "entidadId": "o-comp-alfa",
+              "opdId": "opd-sd",
+              "x": 80,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            },
+            "ap-2": {
+              "id": "ap-2",
+              "entidadId": "ent-Component--calco-A",
+              "opdId": "opd-sd",
+              "x": 310,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            }
+          },
+          "enlaces": {}
+        }
+      },
+      "entidades": {
+        "ent-Component--calco-A": {
+          "id": "ent-Component--calco-A",
+          "nombre": "Componente",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "estereotipoId": "ent-Component"
+        },
+        "o-comp-alfa": {
+          "id": "o-comp-alfa",
+          "nombre": "Componente Alfa",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "estereotipoId": "ent-Component"
+        }
+      },
+      "estados": {},
+      "enlaces": {
+        "l-gen": {
+          "id": "l-gen",
+          "tipo": "generalizacion",
+          "etiqueta": "",
+          "origenId": {
+            "kind": "entidad",
+            "id": "ent-Component--calco-A"
+          },
+          "destinoId": {
+            "kind": "entidad",
+            "id": "o-comp-alfa"
+          }
+        }
+      }
+    },
+    "sd0B_calco": {
+      "id": "sd0-B-componente-calco",
+      "nombre": "SD0-B (calcado de Componente)",
+      "opdRaizId": "opd-sd",
+      "padreId": null,
+      "opds": {
+        "opd-sd": {
+          "id": "opd-sd",
+          "nombre": "SD",
+          "padreId": null,
+          "apariencias": {
+            "ap-1": {
+              "id": "ap-1",
+              "entidadId": "o-comp-beta",
+              "opdId": "opd-sd",
+              "x": 80,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            },
+            "ap-2": {
+              "id": "ap-2",
+              "entidadId": "ent-Component--calco-B",
+              "opdId": "opd-sd",
+              "x": 310,
+              "y": 80,
+              "width": 190,
+              "height": 72
+            }
+          },
+          "enlaces": {}
+        }
+      },
+      "entidades": {
+        "ent-Component--calco-B": {
+          "id": "ent-Component--calco-B",
+          "nombre": "Componente",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "estereotipoId": "ent-Component"
+        },
+        "o-comp-beta": {
+          "id": "o-comp-beta",
+          "nombre": "Componente Beta",
+          "tipo": "objeto",
+          "esencia": "informacional",
+          "afiliacion": "sistemica",
+          "estereotipoId": "ent-Component"
+        }
+      },
+      "estados": {},
+      "enlaces": {
+        "l-gen": {
+          "id": "l-gen",
+          "tipo": "generalizacion",
+          "etiqueta": "",
+          "origenId": {
+            "kind": "entidad",
+            "id": "ent-Component--calco-B"
+          },
+          "destinoId": {
+            "kind": "entidad",
+            "id": "o-comp-beta"
+          }
+        }
+      }
+    }
+  }
+}
