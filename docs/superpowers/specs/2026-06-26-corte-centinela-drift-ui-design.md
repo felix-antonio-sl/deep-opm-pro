@@ -72,6 +72,8 @@ soltarAnclajeEntidad(id: Id): void;          // envuelve kernel + commit
 ```
 
 > **Nota de nombres:** las acciones del store se llaman `…Entidad` para **no** colisionar con las funciones puras del kernel (`reSincronizarAnclaje`, `soltarAnclaje`), que se importan y se invocan dentro. El store es el envoltorio con efecto (carga backend + `commitModelo`); el kernel es puro.
+>
+> **Nota de ensamblado (verificado en código):** el slice se compone por **capabilities declaradas** en `store/modelo/contrato.ts` (`MODELO_SLICE_CAPABILITIES` → `MODELO_SLICE_KEYS`). Las 4 keys nuevas (`driftMap`, `cargarYEvaluarDrift`, `reSincronizarAnclajeEntidad`, `soltarAnclajeEntidad`) **deben declararse ahí** (bucket nuevo `anclaje:` o uno existente), además de implementarse — si no, `contrato.test.ts` falla. `commitModelo` **no es método del slice**: es función exportada de `store/runtime.ts` con firma `commitModelo(set, previo, siguiente, extra?)`; el slice la importa y la invoca con `set` y el modelo actual.
 
 **`cargarYEvaluarDrift`** (resolutor de hash vivo):
 1. Recolecta los `modeloId` **únicos** de `entidad.anclaje.biblioteca.modeloId` sobre todas las entidades. Si no hay ninguno → `set({ driftMap: {} })` y termina.
@@ -84,7 +86,7 @@ soltarAnclajeEntidad(id: Id): void;          // envuelve kernel + commit
 
 ### 4.2 Render — marcador en el lienzo (`composers/entidad.ts` + `proyeccion.ts`)
 
-**Paso de datos:** `driftMap?: Record<Id, EstadoDrift>` se añade a `OpcionesProyeccion` (precedente: `simulacion` ya viaja así). `proyectarEntidad` lee `const estadoDrift = opciones.driftMap?.[entidad.id] ?? null`.
+**Paso de datos:** `driftMap` se enhebra como **parámetro posicional** (9º) de `proyectarModeloAJointCells`, con default `= null` — **espejo real de `simulacion`** (que es el 8º posicional, `proyeccion.ts:57`), **no** un campo de `OpcionesProyeccion` (que solo tiene `aliasVisibles/descripcionesVisibles/modoImagenGlobal/canalSeleccion`, `proyeccionTipos.ts:93-98`). `proyectarEntidad` recibe el `EstadoDrift` de la entidad como argumento. **Call sites:** solo el lienzo vivo (`JointCanvas.tsx:445`) pasa el `driftMap` real; `mapaExport.ts:138` y los ~70 call sites de `proyeccion.test.ts` toman el default `null` (export sin marcador, tests intactos). El default `= null` es lo que mantiene el blast radius en un solo call site.
 
 **Marcador (nuevo paso `renderConDrift`):** se inyecta al final del pipeline, **espejo de `markupConEstereotipo`/`attrsConEstereotipo`** (líneas 463-499), antes o después del estereotipo (ortogonales). Solo si `estadoDrift && estadoDrift !== "sincronizado"` (D2).
 
