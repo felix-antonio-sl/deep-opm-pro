@@ -1,4 +1,5 @@
 import type { EstadoCargaSubmodelo, Modelo, SubmodeloReferencia } from "../tipos";
+import { proyectarSemantico } from "./firmaSemantica";
 
 export function estadoSubmodelo(ref: SubmodeloReferencia): EstadoCargaSubmodelo {
   if (ref.estado === "desconectado") return "desconectado";
@@ -26,17 +27,22 @@ export function refConEstadoDerivado(ref: SubmodeloReferencia): SubmodeloReferen
   };
 }
 
+/**
+ * Firma de contenido de un `Modelo` (snapshot de submodelo / biblioteca de Piezas del Anclaje).
+ *
+ * Firma SEMÁNTICA: hashea solo el SIGNIFICADO (tipos, nombres, esencias, refinamientos, enlaces,
+ * estados, abanicos) y excluye la PRESENTACIÓN (coords, tamaño, `modoPlegado`, ports, supresión,
+ * vértices). La partición campo-a-campo —ratificada por el custodio (Félix)— y la proyección viven
+ * en `firmaSemantica.ts` como single source of truth. `ordenarJson` ordena las claves (ignora orden
+ * de representación); `proyectarSemantico` descarta lo que no es la cosa. Juntos hacen la firma
+ * invariante al round-trip de persistencia y al re-layout ⇒ cero falso-divergente del Centinela.
+ *
+ * Doctrina: `docs/auditorias/2026-06-26-acta-quietud-firma-centinela.md` (iteración 3 + ratificación
+ * HITL del custodio). Leyes que la sellan en pinza: `src/leyes/anclaje-quietud.test.ts` (quietud),
+ * `src/leyes/anclaje-sensibilidad.test.ts` (discriminación), `src/leyes/anclaje-particion.test.ts`.
+ */
 export function firmaSnapshotSubmodelo(modelo: Modelo): string {
-  return hashFNV1a(JSON.stringify(ordenarJson({
-    id: modelo.id,
-    nombre: modelo.nombre,
-    opdRaizId: modelo.opdRaizId,
-    opds: modelo.opds,
-    entidades: modelo.entidades,
-    estados: modelo.estados,
-    enlaces: modelo.enlaces,
-    abanicos: modelo.abanicos ?? {},
-  })));
+  return hashFNV1a(JSON.stringify(ordenarJson(proyectarSemantico(modelo))));
 }
 
 function ordenarJson(value: unknown): unknown {
