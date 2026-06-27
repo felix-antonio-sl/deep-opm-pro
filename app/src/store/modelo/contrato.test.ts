@@ -12,6 +12,7 @@ describe("contrato del slice modelo", () => {
     const claves = MODELO_SLICE_KEYS;
     expect(new Set(claves).size).toBe(claves.length);
     expect(Object.keys(MODELO_SLICE_CAPABILITIES).sort()).toEqual([
+      "anclaje",
       "appFlow",
       "canvasCommands",
       "entityCommands",

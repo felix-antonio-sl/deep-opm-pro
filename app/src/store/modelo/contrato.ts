@@ -161,6 +161,15 @@ export const MODELO_SLICE_CAPABILITIES = {
     "cambiarOpdActivo",
     "navegarAviso",
   ],
+  // Centinela de Drift (corte Anclaje α): estado derivado + acciones de re-sincronizar/soltar.
+  // Implementadas en `acciones-anclaje.ts`; declaradas aquí para que `contrato.test.ts` las
+  // exija en el composer runtime. Spec §4.1 (Nota de ensamblado).
+  anclaje: [
+    "driftMap",
+    "cargarYEvaluarDrift",
+    "reSincronizarAnclajeEntidad",
+    "soltarAnclajeEntidad",
+  ],
   oplCommands: [
     "seleccionarDesdeOpl",
     "renombrarEntidadDesdeOpl",

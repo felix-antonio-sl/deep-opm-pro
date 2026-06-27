@@ -140,7 +140,7 @@ import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
 import type { Consulta } from "../modelo/razonamiento";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Esencia, EstadoCargaSubmodelo, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Esencia, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
 import { generarOpl } from "../opl/generar";
@@ -410,6 +410,15 @@ export interface OpmStore {
   /** D6.4: captura la selección actual como estereotipo reusable del catálogo. */
   crearEstereotipoDesdeSeleccionActual: (nombre: string, opts?: { propositoDeModelado?: string; anclaId?: Id }) => void;
   marcarEstadoSubmodeloSeleccionado: (refId: Id, estado: EstadoCargaSubmodelo) => void;
+  // Centinela de Drift (corte Anclaje α): estado derivado de runtime, NO se serializa.
+  // El `driftMap` se computa con el kernel puro `evaluarDriftModelo` + el hash vivo
+  // resuelto contra el backend persistido. Acciones con sufijo `…Entidad` para no
+  // colisionar con las funciones puras del kernel (`reSincronizarAnclaje`, `soltarAnclaje`).
+  // Spec: docs/superpowers/specs/2026-06-26-corte-centinela-drift-ui-design.md §4.1.
+  driftMap: Record<Id, EstadoDrift>;
+  cargarYEvaluarDrift: () => Promise<void>;
+  reSincronizarAnclajeEntidad: (id: Id) => Promise<void>;
+  soltarAnclajeEntidad: (id: Id) => void;
   actualizarSubmodeloSeleccionado: (refId?: Id) => void;
   descargarSubmodeloSeleccionado: (refId?: Id) => void;
   desconectarSubmodeloSeleccionado: (refId?: Id) => void;

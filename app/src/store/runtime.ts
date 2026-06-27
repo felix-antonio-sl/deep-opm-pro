@@ -131,6 +131,12 @@ export function activarEstadoPestanas(set: SetStore, estado: { pestanas: Pestana
     menuPrincipalAbierto: false,
     mensaje,
   }));
+  // Centinela de Drift (corte Anclaje α): tras montar el estado de la pestaña, evalúa el
+  // drift de las cosas ancladas contra el backend persistido. Asíncrono y sin await: no
+  // bloquea el render inicial; el marcador aparece cuando resuelve. Si nada está anclado,
+  // `cargarYEvaluarDrift` termina barato con `driftMap: {}`.
+  // Spec §3 (Disparo de evaluación). No cambia la firma de `activarEstadoPestanas`.
+  void storeApi?.getState().cargarYEvaluarDrift();
 }
 
 export function sincronizarPestanaActivaEnLista(state: OpmStore): Pestana[] {
