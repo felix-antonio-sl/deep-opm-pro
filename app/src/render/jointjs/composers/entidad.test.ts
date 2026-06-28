@@ -6,6 +6,7 @@ import { oracionEntidad } from "../../../opl/generadores/estructural";
 import type { Entidad, Estereotipo, Modelo, Resultado } from "../../../modelo/tipos";
 import { ESTADOS, identificadorCanonicoApariencia, identificadorCanonicoEntidad, proyectarEntidad } from "./entidad";
 import { suprimirEstadoEnAparicion } from "../../../modelo/visibilidadEstados";
+import { CODEX } from "../constantes.codex";
 
 describe("composer entidad", () => {
   test("proyecta objeto simple con metadata OPM estable", () => {
@@ -399,3 +400,82 @@ function must<T>(resultado: Resultado<T>): T {
     expect(modelo.entidades[atributo.id]?.afiliacion).toBe("sistemica");
     expect(attrs.body?.strokeDasharray).toBe("8 4");
   });
+
+// Centinela de Drift (Fase 2) — marcador en el lienzo. Espejo del badge de
+// estereotipo: opera sobre el markup ya compuesto y sobrevive a todas las
+// variantes. D2: sincronizado NO se marca. D3: crimson PROHIBIDO (tinta).
+describe("composer entidad — marcador de drift (Centinela)", () => {
+  function fixtureObjeto(): { modelo: Modelo; entidad: Entidad; apariencia: import("../../../modelo/tipos").Apariencia } {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Orden"));
+    const entidad = Object.values(modelo.entidades)[0]!;
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0]!;
+    return { modelo, entidad, apariencia };
+  }
+
+  test("divergente: emite chip hairline en tinta con glifo ⟳, esquina superior-izquierda", () => {
+    const { modelo, entidad, apariencia } = fixtureObjeto();
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {}, false, [], "divergente");
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+    const markup = cell.markup as Array<{ selector?: string }>;
+
+    expect(attrs.driftBadge?.text).toBe("⟳");
+    expect(attrs.driftBadge?.fill).toBe(CODEX.colores.ink);
+    expect(attrs.driftBadgeChip?.stroke).toBe(CODEX.colores.ink);
+    expect(attrs.driftBadgeChip?.fill).toBe(CODEX.colores.paper);
+    // Esquina superior-izquierda: x cerca del borde izquierdo (no width-…).
+    expect(attrs.driftBadgeChip?.x).toBeLessThan(8);
+    expect(attrs.driftBadgeChip?.y).toBeLessThan(8);
+    // No captura punteros: la acción vive en el Inspector.
+    expect(attrs.driftBadge?.pointerEvents).toBe("none");
+    expect(markup.some((m) => m.selector === "driftBadge")).toBe(true);
+    expect(markup.some((m) => m.selector === "driftBadgeChip")).toBe(true);
+  });
+
+  test("no-resuelto: emite chip con glifo ?", () => {
+    const { modelo, entidad, apariencia } = fixtureObjeto();
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {}, false, [], "no-resuelto");
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+    expect(attrs.driftBadge?.text).toBe("?");
+    expect(attrs.driftBadge?.fill).toBe(CODEX.colores.ink);
+  });
+
+  test("D2: sincronizado NO se marca (la ausencia comunica «al día»)", () => {
+    const { modelo, entidad, apariencia } = fixtureObjeto();
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {}, false, [], "sincronizado");
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+    const markup = cell.markup as Array<{ selector?: string }>;
+    expect(attrs.driftBadge).toBeUndefined();
+    expect(attrs.driftBadgeChip).toBeUndefined();
+    expect(markup.some((m) => m.selector === "driftBadge")).toBe(false);
+  });
+
+  test("sin drift (null): sin marcador — default del pipeline export", () => {
+    const { modelo, entidad, apariencia } = fixtureObjeto();
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+    expect(attrs.driftBadge).toBeUndefined();
+  });
+
+  test("D3: cero crimson en los attrs del marcador (aserción dura)", () => {
+    const { modelo, entidad, apariencia } = fixtureObjeto();
+    for (const estado of ["divergente", "no-resuelto"] as const) {
+      const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {}, false, [], estado);
+      const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+      const serializado = JSON.stringify({ chip: attrs.driftBadgeChip, badge: attrs.driftBadge });
+      expect(serializado).not.toContain(CODEX.colores.crimson);
+      expect(serializado.toLowerCase()).not.toContain("crimson");
+    }
+  });
+
+  test("sobrevive a variantes: estados + selección única siguen mostrando el marcador", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Pedido"));
+    const entidad = Object.values(modelo.entidades)[0]!;
+    modelo = must(crearEstadosIniciales(modelo, entidad.id)).modelo;
+    const apariencia = Object.values(modelo.opds[modelo.opdRaizId]?.apariencias ?? {})[0]!;
+    const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, modelo.entidades[entidad.id]!, true, false, {}, true, [], "divergente");
+    const attrs = cell.attrs as Record<string, Record<string, unknown>>;
+    expect(attrs.driftBadge?.text).toBe("⟳");
+  });
+});

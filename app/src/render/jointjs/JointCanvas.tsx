@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type { FeedbackOverlay, FeedbackPort } from "../../app/ports/feedbackPort";
 import { opcionesProyeccionJointCanvas, useJointCanvasViewModel } from "../../app/viewmodels/jointCanvasViewModel";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
+import { useOpmStore } from "../../store";
 import { estadosInicialesDelModelo, focoPasoActualSimulacion } from "../../modelo/simulacion/foco";
 import { debeAnimarTokensSim, tokensDeFaseSimulacion } from "../../modelo/simulacion/animacionTokens";
 import { CODEX } from "./constantes.codex";
@@ -160,6 +161,11 @@ export function JointCanvas({
   } = useJointCanvasViewModel();
 
   const { headless: simHeadless, velocidad: simVelocidad } = useZustandSimulationPort();
+
+  // Centinela de Drift (Fase 2): el `driftMap` es estado derivado del store
+  // (`cargarYEvaluarDrift`); se lee directo aquí y se enhebra a la proyección
+  // como 9º posicional. Solo el lienzo vivo lo pasa; export toma el default null.
+  const driftMap = useOpmStore((s) => s.driftMap);
 
   useEffect(() => {
     onAdapterChangeRef.current = onAdapterChange;
@@ -460,6 +466,7 @@ export function JointCanvas({
             estadosResultadoIds: focoSimulacion.paso?.opdId === opdActivoId ? focoSimulacion.estadosResultadoIds : [],
           }
         : null,
+      driftMap,
     );
     sincronizandoRef.current = true;
     try {
@@ -532,7 +539,7 @@ export function JointCanvas({
         viewport.scrollTo({ left: siguiente.left, top: siguiente.top, behavior: "auto" });
       }
     }
-  }, [enlaceSeleccionId, estadoSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion]);
+  }, [enlaceSeleccionId, estadoSeleccionId, idsResaltadosTemporales, modelo, opdActivoId, seleccionId, seleccionados, uiAliasVisibles, uiDescripcionesVisibles, uiModoImagenGlobal, contextoSimulacion, driftMap]);
 
   // B0.017 — token verde viajero sobre cada enlace en uso del paso activo.
   // Animacion solo-render (no es verdad del modelo). Se dispara en cada

@@ -11,7 +11,7 @@ import { estadosDeEntidad, relacionesEstructuralesOcultas } from "../../../model
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
 import { obtenerRefinamiento, tieneRefinamiento } from "../../../modelo/refinamientos";
 import { estadoVisibleEnAparicion } from "../../../modelo/visibilidadEstados";
-import type { Apariencia, Entidad, Estado, Id, Modelo } from "../../../modelo/tipos";
+import type { Apariencia, Entidad, EstadoDrift, Estado, Id, Modelo } from "../../../modelo/tipos";
 import { selectorAnchorEstado, targetsEstado } from "../estadoTargets";
 import { filasPlegadoConNesting } from "../plegadoNesting";
 import type { FilaPlegadoParcialExtendida } from "../plegadoNesting";
@@ -39,6 +39,10 @@ export function proyectarEntidad(
   // no inflar el conteo de `.joint-element`.
   seleccionUnica = false,
   estadosSeleccionados: readonly Estado[] = [],
+  // Centinela de Drift (Fase 2): estado de drift de ESTA cosa anclada, derivado
+  // en el store (`driftMap`) y pasado por proyeccion.ts. `null` ⇒ sin marcador
+  // (no anclada, sincronizada, o pipeline export). D7: el render no lo calcula.
+  estadoDrift: EstadoDrift | null = null,
 ): JointCellJson {
   const stroke = colorEntidadCodex(entidad.tipo);
   // D6.3 / R-VIS-STEREO-1: una cosa con `estereotipoId` aplicado DEBE rotularse en
@@ -198,13 +202,24 @@ export function proyectarEntidad(
   // final del pipeline sobrevive a TODAS las variantes (base, badge, estados,
   // plegado, selección). Espejo exacto de markupConSelectionUnderline /
   // attrsConSelectionUnderline.
-  const render = mostrarEstereotipo
+  const renderConEstereotipo = mostrarEstereotipo
     ? {
         ...renderConSeleccion,
         markup: markupConEstereotipo(renderConSeleccion.markup ?? markupBase(bodyTag), mostrarEstereotipo),
         attrs: attrsConEstereotipo(renderConSeleccion.attrs, size, estereotipoNombre, mostrarEstereotipo, contornoRefinamiento || modoParcial),
       }
     : renderConSeleccion;
+  // Centinela de Drift (Fase 2): marcador en tinta sobre el markup ya compuesto.
+  // Ortogonal al estereotipo (sup-izq vs centro/sup-der); va al final, así
+  // sobrevive a TODAS las variantes. D2: sincronizado no se marca.
+  const mostrarDrift = estadoDrift != null && estadoDrift !== "sincronizado";
+  const render = mostrarDrift
+    ? {
+        ...renderConEstereotipo,
+        markup: markupConDrift(renderConEstereotipo.markup ?? markupBase(bodyTag)),
+        attrs: attrsConDrift(renderConEstereotipo.attrs, estadoDrift),
+      }
+    : renderConEstereotipo;
   const ports = portsEntidad(apariencia, entidad.tipo);
 
   return {
@@ -494,6 +509,71 @@ function attrsConEstereotipo(
       textAnchor: "middle",
       textVerticalAnchor: "middle",
       pointerEvents: "none",
+    },
+  };
+}
+
+// Centinela de Drift (Fase 2): chip-marcador de drift `<<glifo>>` embebido en la
+// celda. Espejo exacto de markupConEstereotipo / attrsConEstereotipo: opera sobre
+// el markup ya compuesto, por eso sobrevive a todas las variantes de render.
+// Tinta CODEX — crimson PROHIBIDO (UI-only para foco/selección, ui-forja/06 §100;
+// D3 del corte). Esquina superior-IZQUIERDA (libre: sup-der=notas/fold, inf-der=⋯N).
+// El marcador AVISA y orienta de un vistazo; no decide (pointerEvents:"none"). La
+// acción (Re-sincronizar/Soltar) vive en el Inspector (SeccionAnclaje).
+function glifoDrift(estado: EstadoDrift): string {
+  // divergente → ⟳ (necesita re-sincronizar); no-resuelto → ? (no se pudo verificar).
+  return estado === "divergente" ? "⟳" : "?";
+}
+
+function tituloDrift(estado: EstadoDrift): string {
+  return estado === "divergente"
+    ? "La biblioteca de esta pieza cambió — revísala"
+    : "No se pudo leer la biblioteca para verificar si cambió";
+}
+
+function markupConDrift(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+  return [
+    ...markup,
+    { tagName: "rect", selector: "driftBadgeChip" },
+    { tagName: "text", selector: "driftBadge" },
+  ];
+}
+
+function attrsConDrift(
+  attrsBase: Record<string, unknown>,
+  estado: EstadoDrift,
+): Record<string, unknown> {
+  const titulo = tituloDrift(estado);
+  const chipLado = 15;
+  const x = 4;
+  const y = 4;
+  return {
+    ...attrsBase,
+    driftBadgeChip: {
+      x,
+      y,
+      width: chipLado,
+      height: chipLado,
+      rx: chipLado / 2,
+      ry: chipLado / 2,
+      fill: CODEX.colores.paper,
+      stroke: CODEX.colores.ink,
+      strokeWidth: 1,
+      pointerEvents: "none",
+      title: titulo,
+    },
+    driftBadge: {
+      text: glifoDrift(estado),
+      x: x + chipLado / 2,
+      y: y + chipLado / 2 + 0.5,
+      fill: CODEX.colores.ink,
+      fontFamily: CODEX.fuentes.serif,
+      fontSize: 10,
+      fontWeight: 700,
+      textAnchor: "middle",
+      textVerticalAnchor: "middle",
+      pointerEvents: "none",
+      title: titulo,
     },
   };
 }

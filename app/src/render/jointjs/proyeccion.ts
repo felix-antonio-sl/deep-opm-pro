@@ -2,7 +2,7 @@ import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { aparicionesVisiblesEnOpd } from "../../modelo/politicaApariciones";
 import { puertoComunDeAbanico } from "../../modelo/abanicos";
-import type { Apariencia, Enlace, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
+import type { Apariencia, Enlace, EstadoDrift, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
 import { centroApariencia, proyectarBusesEstructurales, separarCentroSimboloEstructural, type EnlaceConEndpointVisual, type ReservaSimboloEstructural } from "./agregacionBus";
@@ -55,6 +55,11 @@ export function proyectarModeloAJointCells(
   seleccionados: readonly Id[] = [],
   opciones: OpcionesProyeccion = OPCIONES_PROYECCION_DEFAULT,
   simulacion: OpcionesSimulacionRender | null = null,
+  // Centinela de Drift (Fase 2): estado derivado de drift por entidad, computado
+  // en el store (`driftMap`). Posicional (espejo de `simulacion`), no campo de
+  // OpcionesProyeccion. Default `null` ⇒ sin marcador (export y tests intactos);
+  // solo el lienzo vivo (JointCanvas) pasa el mapa real. D7: el render no calcula.
+  driftMap: Record<Id, EstadoDrift> | null = null,
 ): JointCellJson[] {
   const modeloRender = modelo;
   const opd = modeloRender.opds[opdId];
@@ -101,6 +106,7 @@ export function proyectarModeloAJointCells(
       // lo aporta la celda-halo de `proyectarHaloSeleccion`.
       seleccionUnica,
       estadosSeleccionadosPorEntidad.get(entidad.id) ?? [],
+      driftMap?.[entidad.id] ?? null,
     )];
   });
   const imagenes = apariencias.flatMap((apariencia) => {
