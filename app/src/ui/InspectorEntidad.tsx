@@ -17,6 +17,7 @@ import { SeccionAtributo } from "./inspector/SeccionAtributo";
 import { SeccionDescripcion } from "./inspector/SeccionDescripcion";
 import { SeccionEsenciaAfiliacion } from "./inspector/SeccionEsenciaAfiliacion";
 import { SeccionAnclas } from "./inspector/SeccionAnclas";
+import { SeccionAnclaje, debeMostrarSeccionAnclaje } from "./inspector/SeccionAnclaje";
 import { SeccionNotasMesa } from "./inspector/SeccionNotasMesa";
 import { SeccionEnlaces } from "./inspector/SeccionEnlaces";
 import { SeccionImagen } from "./inspector/SeccionImagen";
@@ -270,6 +271,11 @@ export function InspectorEntidad({ entidad }: Props) {
             onAbrirEnlace={navegarAEnlace}
           />
         </FichaSeccion>
+        {debeMostrarSeccionAnclaje(entidad) ? (
+          <FichaSeccion kicker="Anclaje" testid="inspector-panel-anclaje">
+            <SeccionAnclaje entidad={entidad} />
+          </FichaSeccion>
+        ) : null}
         <FichaSeccion kicker="Apariciones" testid="inspector-panel-apariciones">
           <SeccionApariciones
             modelo={modelo}
