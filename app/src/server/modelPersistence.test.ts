@@ -50,6 +50,34 @@ describe("modelPersistence API", () => {
     expect(await repo.get(sesionTest, "modelo-2")).toBeNull();
   });
 
+  test("preserva esBiblioteca en el roundtrip POST -> GET (whitelist)", async () => {
+    const repo = repoMemoria();
+    const handler = crearModelPersistenceFetchHandler({ repo });
+    const modelo: ModeloPersistido = { ...modeloPersistido("modelo-lib", "Biblioteca gist"), esBiblioteca: true };
+
+    const guardado = await handler(new Request("http://opforja.test/__deep-opm/modelos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ modelo }),
+    }));
+    expect(guardado.status).toBe(200);
+
+    const cargado = await handler(new Request("http://opforja.test/__deep-opm/modelos/modelo-lib"));
+    expect(cargado.status).toBe(200);
+    const payload = await cargado.json() as { modelo: ModeloPersistido };
+    expect(payload.modelo.esBiblioteca).toBe(true);
+
+    // Un modelo sin el flag no lo gana en el roundtrip (omisión, no falso por defecto).
+    const sinFlag = modeloPersistido("modelo-normal", "Modelo normal");
+    await handler(new Request("http://opforja.test/__deep-opm/modelos", {
+      method: "POST",
+      body: JSON.stringify({ modelo: sinFlag }),
+    }));
+    const cargadoSinFlag = await handler(new Request("http://opforja.test/__deep-opm/modelos/modelo-normal"));
+    const payloadSinFlag = await cargadoSinFlag.json() as { modelo: ModeloPersistido };
+    expect(payloadSinFlag.modelo.esBiblioteca).toBeUndefined();
+  });
+
   test("rechaza payload invalido y expone health", async () => {
     const handler = crearModelPersistenceFetchHandler({ repo: repoMemoria() });
 

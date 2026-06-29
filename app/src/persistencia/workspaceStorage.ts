@@ -23,6 +23,7 @@ export function normalizarModeloIndice(value: unknown): WorkspaceIndice["modelos
     carpetaId: typeof value.carpetaId === "string" || value.carpetaId === null ? value.carpetaId : null,
     ...(typeof value.archivado === "boolean" ? { archivado: value.archivado } : {}),
     ...(typeof value.archivadoEn === "string" ? { archivadoEn: value.archivadoEn } : {}),
+    ...(typeof value.esBiblioteca === "boolean" ? { esBiblioteca: value.esBiblioteca } : {}),
     ...(Array.isArray(value.versiones) ? { versiones: value.versiones as NonNullable<WorkspaceIndice["modelos"][number]["versiones"]> } : {}),
     ...(esMapaWorkspace(value.mapa) ? { mapa: value.mapa } : {}),
   };

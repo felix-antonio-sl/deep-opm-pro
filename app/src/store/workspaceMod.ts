@@ -112,6 +112,7 @@ import {
   eliminarCarpeta as eliminarCarpetaEnIndiceOp,
   moverModeloACarpeta as moverModeloACarpetaEnIndiceOp,
   listarHijosDeCarpeta,
+  marcarBiblioteca as marcarBibliotecaEnIndiceOp,
   restaurarCarpeta as restaurarCarpetaEnIndiceOp,
   restaurarModelo as restaurarModeloEnIndiceOp,
   rutaDeCarpeta,
@@ -370,6 +371,19 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice),
       modelosGuardados,
       mensaje: "Modelo restaurado",
+    });
+  },
+
+  toggleBibliotecaModelo(modeloId) {
+    const actual = get().indice.modelos.find((modelo) => modelo.id === modeloId);
+    const valor = !(actual?.esBiblioteca ?? false);
+    const indice = marcarBibliotecaEnIndiceOp(get().indice, modeloId, valor);
+    escribirIndiceWorkspace(indice);
+    const modelosGuardados = modelosGuardadosWorkspace(get);
+    set({
+      indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice),
+      modelosGuardados,
+      mensaje: valor ? "Modelo marcado como biblioteca" : "Modelo quitado de bibliotecas",
     });
   },
 

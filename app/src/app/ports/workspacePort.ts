@@ -37,6 +37,7 @@ export interface WorkspacePort {
   moverCarpetaDirecto: (carpetaId: Id, destino: Id | null) => void;
   archivarModeloPorId: (modeloId: Id) => void;
   restaurarModeloPorId: (modeloId: Id) => void;
+  toggleBibliotecaModelo: (modeloId: Id) => void;
   archivarCarpetaPorId: (carpetaId: Id) => void;
   restaurarCarpetaPorId: (carpetaId: Id) => void;
   abrirDialogoVersiones: (modeloId: Id) => void;
@@ -61,6 +62,7 @@ export function resolverHijosWorkspace(
       if (!guardado) return undefined;
       const modelo: ResumenModeloPersistido = { ...guardado };
       if (modeloIndice.archivado) modelo.archivado = true;
+      if (modeloIndice.esBiblioteca) modelo.esBiblioteca = true;
       if (modelo.archivadoEn === undefined && modeloIndice.archivadoEn !== undefined) {
         modelo.archivadoEn = modeloIndice.archivadoEn;
       }

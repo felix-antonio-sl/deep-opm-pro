@@ -27,6 +27,7 @@ interface MenuContextualProps {
   onAbrirModeloEnPestana?: ((modeloId: Id) => void) | undefined;
   onArchivarModelo?: ((modeloId: Id) => void) | undefined;
   onRestaurarModelo?: ((modeloId: Id) => void) | undefined;
+  onToggleBiblioteca?: ((modeloId: Id) => void) | undefined;
   onArchivarCarpeta?: ((carpetaId: Id) => void) | undefined;
   onRestaurarCarpeta?: ((carpetaId: Id) => void) | undefined;
   onAbrirVersiones?: ((modeloId: Id) => void) | undefined;
@@ -68,6 +69,13 @@ export function MenuContextual(props: MenuContextualProps) {
           ) : (
             <Item onClick={() => { props.onArchivarModelo?.(props.menu.itemId!); props.onCerrar(); }}>Archivar modelo</Item>
           )}
+          {props.onToggleBiblioteca ? (
+            modelo?.esBiblioteca ? (
+              <Item onClick={() => { props.onToggleBiblioteca?.(props.menu.itemId!); props.onCerrar(); }}>Quitar de bibliotecas</Item>
+            ) : (
+              <Item onClick={() => { props.onToggleBiblioteca?.(props.menu.itemId!); props.onCerrar(); }}>Marcar como biblioteca</Item>
+            )
+          ) : null}
         </>
       ) : null}
     </div>

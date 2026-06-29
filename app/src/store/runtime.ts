@@ -565,6 +565,7 @@ export function sincronizarIndiceConModelosGuardados(modelosGuardados: ResumenMo
       carpetaId: existente?.carpetaId ?? m.carpetaId ?? null,
       ...(existente?.archivado !== undefined ? { archivado: existente.archivado } : m.archivado ? { archivado: true } : {}),
       ...(existente?.archivadoEn ? { archivadoEn: existente.archivadoEn } : m.archivadoEn ? { archivadoEn: m.archivadoEn } : {}),
+      ...(existente?.esBiblioteca !== undefined ? { esBiblioteca: existente.esBiblioteca } : m.esBiblioteca ? { esBiblioteca: true } : {}),
       ...(m.versiones ? { versiones: m.versiones } : {}),
       ...(existente?.mapa ? { mapa: existente.mapa } : {}),
     };

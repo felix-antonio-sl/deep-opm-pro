@@ -14,6 +14,26 @@ describe("workspaceStorage", () => {
     expect(normalizarWorkspaceIndice(indice)).toEqual(indice);
   });
 
+  test("preserva esBiblioteca en la normalizacion del indice y descarta valor no booleano", () => {
+    const indice: WorkspaceIndice = {
+      modelos: [
+        { id: "lib-1", carpetaId: null, esBiblioteca: true },
+        { id: "modelo-2", carpetaId: null },
+      ],
+      carpetas: [],
+      recientes: [],
+    };
+    expect(normalizarWorkspaceIndice(indice)).toEqual(indice);
+
+    // Un esBiblioteca no booleano se descarta (omitido), no se promueve a true.
+    const normalizado = normalizarWorkspaceIndice({
+      modelos: [{ id: "lib-2", carpetaId: null, esBiblioteca: "si" }],
+      carpetas: [],
+      recientes: [],
+    });
+    expect(normalizado.modelos[0]).toEqual({ id: "lib-2", carpetaId: null });
+  });
+
   test("normaliza indice corrupto a estructura vacia y filtra valores invalidos", () => {
     expect(normalizarWorkspaceIndice({
       modelos: [

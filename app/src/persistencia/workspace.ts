@@ -19,6 +19,7 @@ export interface ModeloIndice {
   archivado?: boolean;
   archivadoEn?: string;
   archivadoAuto?: boolean;
+  esBiblioteca?: boolean;
   ultimoUso?: string;
   descripcion?: string;
   autosalvado?: boolean;
@@ -362,6 +363,33 @@ export function archivarModelo(indice: WorkspaceIndice, modeloId: Id, ahora = ne
   };
 }
 
+/**
+ * B1 — Designación de biblioteca. Espeja `archivarModelo`: marca/desmarca el
+ * flag `esBiblioteca` de un modelo en el índice. `valor=true` lo designa como
+ * origen de Piezas; `valor=false` retira la designación (omite el flag para
+ * mantener el índice mínimo, igual que `restaurarModelo` con `archivado`).
+ */
+export function marcarBiblioteca(indice: WorkspaceIndice, modeloId: Id, valor: boolean): WorkspaceIndice {
+  return {
+    ...indice,
+    modelos: indice.modelos.map((modelo) =>
+      modelo.id === modeloId
+        ? (valor ? { ...modelo, esBiblioteca: true } : sinBiblioteca(modelo))
+        : modelo,
+    ),
+  };
+}
+
+/**
+ * B1 — Read-path del flag biblioteca. Lista las entradas del índice designadas
+ * como biblioteca (origen de Piezas). Lo consume la superficie «Piezas» (B2)
+ * para poblar el selector de fuente; se cruza por id con `modelosGuardados`
+ * para resolver el nombre.
+ */
+export function listarBibliotecas(indice: WorkspaceIndice): ModeloIndice[] {
+  return indice.modelos.filter((modelo) => modelo.esBiblioteca === true);
+}
+
 export function autoArchivarPorEdad(
   indice: WorkspaceIndice,
   modelosGuardados: ResumenModeloPersistido[] = [],
@@ -460,6 +488,11 @@ function idsCarpetasDescendientes(indice: WorkspaceIndice, carpetaId: Id): Set<I
 function sinArchivado<T extends { archivado?: boolean; archivadoEn?: string }>(value: T): T {
   const { archivado: _archivado, archivadoEn: _archivadoEn, archivadoAuto: _archivadoAuto, ...resto } = value as T & { archivadoAuto?: boolean };
   return resto as T;
+}
+
+function sinBiblioteca(modelo: ModeloIndice): ModeloIndice {
+  const { esBiblioteca: _esBiblioteca, ...resto } = modelo;
+  return resto;
 }
 
 function sinArchivadoCarpeta(carpeta: CarpetaIndice): CarpetaIndice {

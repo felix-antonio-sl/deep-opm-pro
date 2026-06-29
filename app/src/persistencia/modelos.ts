@@ -13,6 +13,7 @@ export interface ResumenModeloPersistido {
   archivado?: boolean;
   archivadoEn?: string;
   archivadoAuto?: boolean;
+  esBiblioteca?: boolean;
   versiones?: VersionResumen[];
   crearVersionAlGuardar?: boolean;
   revision?: number;
@@ -33,6 +34,7 @@ export interface GuardarModeloInput {
   archivado?: boolean;
   archivadoEn?: string;
   archivadoAuto?: boolean;
+  esBiblioteca?: boolean;
   versiones?: VersionResumen[];
   crearVersionAlGuardar?: boolean;
   revision?: number;
@@ -65,6 +67,8 @@ export function construirModeloPersistido(
   if (archivadoEn !== undefined) resumen.archivadoEn = archivadoEn;
   const archivadoAuto = input.archivadoAuto ?? existente?.archivadoAuto;
   if (archivadoAuto !== undefined) resumen.archivadoAuto = archivadoAuto;
+  const esBiblioteca = input.esBiblioteca ?? existente?.esBiblioteca;
+  if (esBiblioteca !== undefined) resumen.esBiblioteca = esBiblioteca;
   const versiones = input.versiones ?? existente?.versiones;
   if (versiones !== undefined) resumen.versiones = versiones;
   const crearVersionAlGuardar = input.crearVersionAlGuardar ?? existente?.crearVersionAlGuardar;
@@ -87,6 +91,7 @@ export function resumenDesdeModeloPersistido(modelo: ModeloPersistido): ResumenM
     ...(modelo.archivado !== undefined ? { archivado: modelo.archivado } : {}),
     ...(modelo.archivadoEn !== undefined ? { archivadoEn: modelo.archivadoEn } : {}),
     ...(modelo.archivadoAuto !== undefined ? { archivadoAuto: modelo.archivadoAuto } : {}),
+    ...(modelo.esBiblioteca !== undefined ? { esBiblioteca: modelo.esBiblioteca } : {}),
     ...(modelo.versiones !== undefined ? { versiones: modelo.versiones } : {}),
     ...(modelo.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: modelo.crearVersionAlGuardar } : {}),
     ...(modelo.revision !== undefined ? { revision: modelo.revision } : {}),

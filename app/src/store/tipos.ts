@@ -712,6 +712,7 @@ export interface OpmStore {
   archivarModeloActual: () => void;
   archivarModeloPorId: (modeloId: Id) => void;
   restaurarModeloPorId: (modeloId: Id) => void;
+  toggleBibliotecaModelo: (modeloId: Id) => void;
   archivarCarpetaPorId: (carpetaId: Id) => void;
   restaurarCarpetaPorId: (carpetaId: Id) => void;
   guardarConVersion: () => Promise<void>;

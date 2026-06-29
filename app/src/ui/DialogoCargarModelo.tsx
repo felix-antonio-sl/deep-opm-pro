@@ -200,6 +200,7 @@ export function DialogoCargarModelo() {
             onMoverCarpeta={workspace.moverCarpetaDirecto}
             onArchivarModelo={(mId) => { void workspace.archivarModeloPorId(mId); }}
             onRestaurarModelo={(mId) => { void workspace.restaurarModeloPorId(mId); }}
+            onToggleBiblioteca={(mId) => { void workspace.toggleBibliotecaModelo(mId); }}
             onArchivarCarpeta={workspace.archivarCarpetaPorId}
             onRestaurarCarpeta={workspace.restaurarCarpetaPorId}
             onAbrirVersiones={workspace.abrirDialogoVersiones}
