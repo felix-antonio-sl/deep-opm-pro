@@ -345,6 +345,14 @@ export interface OpmStore {
    * (HU-SHARED-003 ronda 11 L5).
    */
   readOnly: boolean;
+  /**
+   * B5 (gesto de anclar): `true` cuando el modelo abierto está designado como
+   * biblioteca (`esBiblioteca`). Gobierna SOLO la cinta de modo del topbar
+   * (solo-lectura vs editando); es disjunto de `readOnly`, que puede activarse
+   * por otras razones (simulación, HU-SHARED-003). Se fija al abrir un modelo
+   * persistido (`gobernarAperturaBiblioteca`).
+   */
+  esBibliotecaAbierta: boolean;
   modalUrlsAbierto: Id | null;
   modalImagenAbierto: Id | null;
   uiModoImagenGlobal: ModoImagenEntidad | null;
@@ -549,6 +557,15 @@ export interface OpmStore {
   alternarModoImagenEntidad: (entidadId: Id) => void;
   fijarModoImagenGlobal: (modo: ModoImagenEntidad | null) => void;
   activarReadOnly: (activo: boolean) => void;
+  /**
+   * B5 (gesto de anclar): aplica la gobernanza de apertura de un modelo
+   * persistido. Si `esBiblioteca` es `true`, lo abre en solo-lectura
+   * (`readOnly=true`) y marca `esBibliotecaAbierta=true` (la cinta de modo);
+   * si es `false`, limpia ambos (modelo editable normal). Lo invocan los
+   * puntos de apertura (`cargarLocal`, `abrirPestanaConModelo`) y los de
+   * reemplazo a modelo no-biblioteca (`nuevoModelo`, imports).
+   */
+  gobernarAperturaBiblioteca: (esBiblioteca: boolean) => void;
   designarEstadoComo: (estadoId: Id, designacion: DesignacionEstado) => void;
   quitarDesignacionEstado: (estadoId: Id, designacion: DesignacionEstado) => void;
   suprimirEstadoPorId: (estadoId: Id) => void;

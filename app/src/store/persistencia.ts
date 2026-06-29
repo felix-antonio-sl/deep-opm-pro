@@ -284,6 +284,9 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       descripcionModeloLocal: "",
       workspaceLocal: workspaceDesdeModelo(resultado.value, null),
       mensaje: "Modelo importado",
+      // B5: un JSON importado entra como modelo editable, nunca como biblioteca.
+      readOnly: false,
+      esBibliotecaAbierta: false,
     }));
     // W6.0: un modelo CON sello de procedencia solo puede venir del compilador
     // de autoría → es un cruce skill→app del puente (observable g3).
@@ -420,6 +423,9 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
           workspaceLocal: workspaceDesdeModelo(resultado.value, cargado.value.id, cargado.value.descripcion, carpetaId),
           mensaje: `Modelo cargado: ${cargado.value.nombre}`,
         }));
+        // B5: abrir una biblioteca → solo-lectura + cinta de modo; cualquier
+        // otro modelo limpia ambos (puede venir de tener una biblioteca abierta).
+        get().gobernarAperturaBiblioteca(cargado.value.esBiblioteca === true);
       });
       return;
     }

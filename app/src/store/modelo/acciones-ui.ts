@@ -411,11 +411,16 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
           dialogoCargarModeloAbierto: false,
           workspaceLocal: workspaceDesdeModelo(modelo, null),
           mensaje: "Nuevo modelo",
+          // B5: un modelo nuevo nunca es biblioteca — limpia la cinta de modo
+          // y el solo-lectura por si venía de tener una biblioteca abierta.
+          readOnly: false,
+          esBibliotecaAbierta: false,
         }));
         return;
       }
       const pestana = crearPestanaNueva({ modelo });
       activarPestanaNueva(set, get, pestana, "Nuevo modelo en pestana");
+      get().gobernarAperturaBiblioteca(false);
     },
 
     abrirModalUrls(entidadId) {
@@ -444,6 +449,18 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
 
     activarReadOnly(activo) {
       set({ readOnly: activo, mensaje: activo ? "Modelo en solo lectura" : null });
+    },
+
+    // B5 (gesto de anclar): gobernanza de apertura. Una biblioteca se abre en
+    // solo-lectura global (reusando `readOnly`) y enciende la cinta de modo
+    // (`esBibliotecaAbierta`); un modelo normal limpia ambos. Es la única
+    // fuente de verdad de esta transición — la invocan los puntos de apertura
+    // (`cargarLocal`, `abrirPestanaConModelo`) y de reemplazo a no-biblioteca
+    // (`nuevoModelo`, imports). El desbloqueo «Editar biblioteca» se hace con
+    // `activarReadOnly(false)` (la cinta sigue mostrándose porque
+    // `esBibliotecaAbierta` permanece `true`).
+    gobernarAperturaBiblioteca(esBiblioteca) {
+      set({ esBibliotecaAbierta: esBiblioteca, readOnly: esBiblioteca });
     },
   };
 }

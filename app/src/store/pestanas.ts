@@ -185,6 +185,7 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
   abrirPestanaNueva() {
     const pestana = crearPestanaNueva();
     activarPestanaNueva(set, get, pestana, "Nueva pestana");
+    get().gobernarAperturaBiblioteca(false);
   },
 
   abrirPestanaImportandoJson(json) {
@@ -203,6 +204,7 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
       dirty: false,
     });
     activarPestanaNueva(set, get, pestana, "Modelo importado en pestana");
+    get().gobernarAperturaBiblioteca(false);
   },
 
   abrirPestanaConModelo(modeloId) {
@@ -226,6 +228,8 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
           descripcion: cargado.value.descripcion,
         });
         activarPestanaNueva(set, get, pestana, `Modelo abierto en pestana: ${cargado.value.nombre}`);
+        // B5: abrir una biblioteca en pestaña la pone en solo-lectura + cinta.
+        get().gobernarAperturaBiblioteca(cargado.value.esBiblioteca === true);
       });
       return;
     }

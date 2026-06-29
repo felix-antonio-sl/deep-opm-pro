@@ -134,6 +134,7 @@ export type UiPanelSlice = Slice<
   | "uiSoloCanvas"
   | "solicitudFitToken"
   | "readOnly"
+  | "esBibliotecaAbierta"
   | "modalUrlsAbierto"
   | "modalImagenAbierto"
   | "uiModoImagenGlobal"

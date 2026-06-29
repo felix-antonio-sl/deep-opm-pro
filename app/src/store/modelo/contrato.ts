@@ -67,6 +67,7 @@ export const MODELO_SLICE_CAPABILITIES = {
     "resaltarTemporalmente",
     "nuevoModelo",
     "activarReadOnly",
+    "gobernarAperturaBiblioteca",
   ],
   entityCommands: [
     "crearObjetoDemo",

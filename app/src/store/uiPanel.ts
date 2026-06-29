@@ -207,6 +207,8 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   uiSoloCanvas: false,
   solicitudFitToken: 0,
   readOnly: false,
+  // B5 (gesto de anclar): por defecto el modelo abierto no es una biblioteca.
+  esBibliotecaAbierta: false,
   modalUrlsAbierto: null,
   modalImagenAbierto: null,
   uiModoImagenGlobal: null,

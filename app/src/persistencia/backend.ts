@@ -316,6 +316,10 @@ function normalizarModeloPersistido(value: unknown): ModeloPersistido | null {
     ...(typeof value.ultimaApertura === "string" ? { ultimaApertura: value.ultimaApertura } : {}),
     ...(typeof value.autosalvado === "boolean" ? { autosalvado: value.autosalvado } : {}),
     ...(typeof value.archivado === "boolean" ? { archivado: value.archivado } : {}),
+    // B5 (gesto de anclar): el flag de biblioteca debe sobrevivir la carga para
+    // que abrir una biblioteca encienda solo-lectura (B1 lo persiste y el
+    // servidor lo roundtripea; aquí se surface al cliente).
+    ...(typeof value.esBiblioteca === "boolean" ? { esBiblioteca: value.esBiblioteca } : {}),
     ...(typeof value.archivadoEn === "string" ? { archivadoEn: value.archivadoEn } : {}),
     ...(typeof value.archivadoAuto === "boolean" ? { archivadoAuto: value.archivadoAuto } : {}),
     ...(Array.isArray(value.versiones) ? { versiones: value.versiones.filter(esVersionResumen) } : {}),
