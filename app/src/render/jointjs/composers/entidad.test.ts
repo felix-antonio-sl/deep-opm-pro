@@ -401,9 +401,11 @@ function must<T>(resultado: Resultado<T>): T {
     expect(attrs.body?.strokeDasharray).toBe("8 4");
   });
 
-// Centinela de Drift (Fase 2) — marcador en el lienzo. Espejo del badge de
-// estereotipo: opera sobre el markup ya compuesto y sobrevive a todas las
-// variantes. D2: sincronizado NO se marca. D3: crimson PROHIBIDO (tinta).
+// Centinela de Drift — marcador en el lienzo. Espejo del badge de estereotipo:
+// opera sobre el markup ya compuesto y sobrevive a todas las variantes. B4 (§2(c)
+// del spec de la PUERTA): el chip tiene TRES estados, gradiente de atención
+// MONÓTONO faint → soft → solid; el al-día se DECLARA con marca de amarre en path.
+// D3: crimson PROHIBIDO (tinta).
 describe("composer entidad — marcador de drift (Centinela)", () => {
   function fixtureObjeto(): { modelo: Modelo; entidad: Entidad; apariencia: import("../../../modelo/tipos").Apariencia } {
     let modelo = crearModelo();
@@ -432,22 +434,35 @@ describe("composer entidad — marcador de drift (Centinela)", () => {
     expect(markup.some((m) => m.selector === "driftBadgeChip")).toBe(true);
   });
 
-  test("no-resuelto: emite chip con glifo ?", () => {
+  test("no-resuelto: emite chip con glifo ? al peso MEDIO (inkSoft)", () => {
     const { modelo, entidad, apariencia } = fixtureObjeto();
     const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {}, false, [], "no-resuelto");
     const attrs = cell.attrs as Record<string, Record<string, unknown>>;
     expect(attrs.driftBadge?.text).toBe("?");
-    expect(attrs.driftBadge?.fill).toBe(CODEX.colores.ink);
+    // Gradiente monótono: no-resuelto es el peso medio (inkSoft), menos que ⟳ (ink).
+    expect(attrs.driftBadge?.fill).toBe(CODEX.colores.inkSoft);
+    expect(attrs.driftBadgeChip?.stroke).toBe(CODEX.colores.inkSoft);
   });
 
-  test("D2: sincronizado NO se marca (la ausencia comunica «al día»)", () => {
+  test("B4: sincronizado SÍ se marca — marca de amarre al-día en PATH, peso MÍNIMO, sin glifo ⟳/?", () => {
     const { modelo, entidad, apariencia } = fixtureObjeto();
     const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {}, false, [], "sincronizado");
     const attrs = cell.attrs as Record<string, Record<string, unknown>>;
-    const markup = cell.markup as Array<{ selector?: string }>;
+    const markup = cell.markup as Array<{ tagName?: string; selector?: string }>;
+    // El al-día se DECLARA con una marca de amarre dibujada en PATH (selector propio
+    // `driftBadgeMark`), NO con el `text` `driftBadge` (reservado a ⟳/?). Sin carácter
+    // ⚓ de fuente: path SVG, fill none, stroke al peso mínimo.
+    expect(attrs.driftBadgeMark?.d).toBeDefined();
+    expect(attrs.driftBadgeMark?.fill).toBe("none");
     expect(attrs.driftBadge).toBeUndefined();
-    expect(attrs.driftBadgeChip).toBeUndefined();
+    expect(markup.some((m) => m.tagName === "path" && m.selector === "driftBadgeMark")).toBe(true);
     expect(markup.some((m) => m.selector === "driftBadge")).toBe(false);
+    // Gradiente de atención MONÓTONO: el peso del al-día (chip + marca, mismo color)
+    // es el MÍNIMO — estrictamente más tenue que inkSoft (medio) e ink (máximo).
+    const tintaAlDia = attrs.driftBadgeMark?.stroke;
+    expect(attrs.driftBadgeChip?.stroke).toBe(tintaAlDia);
+    expect(tintaAlDia).not.toBe(CODEX.colores.inkSoft);
+    expect(tintaAlDia).not.toBe(CODEX.colores.ink);
   });
 
   test("sin drift (null): sin marcador — default del pipeline export", () => {
@@ -457,12 +472,12 @@ describe("composer entidad — marcador de drift (Centinela)", () => {
     expect(attrs.driftBadge).toBeUndefined();
   });
 
-  test("D3: cero crimson en los attrs del marcador (aserción dura)", () => {
+  test("D3: cero crimson en los attrs del marcador, en los TRES estados (aserción dura)", () => {
     const { modelo, entidad, apariencia } = fixtureObjeto();
-    for (const estado of ["divergente", "no-resuelto"] as const) {
+    for (const estado of ["sincronizado", "divergente", "no-resuelto"] as const) {
       const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {}, false, [], estado);
       const attrs = cell.attrs as Record<string, Record<string, unknown>>;
-      const serializado = JSON.stringify({ chip: attrs.driftBadgeChip, badge: attrs.driftBadge });
+      const serializado = JSON.stringify({ chip: attrs.driftBadgeChip, badge: attrs.driftBadge, mark: attrs.driftBadgeMark });
       expect(serializado).not.toContain(CODEX.colores.crimson);
       expect(serializado.toLowerCase()).not.toContain("crimson");
     }

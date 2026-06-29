@@ -11,7 +11,7 @@ import { estadosDeEntidad, relacionesEstructuralesOcultas } from "../../../model
 import { modoPlegadoApariencia, partesDePlegado } from "../../../modelo/plegado";
 import { obtenerRefinamiento, tieneRefinamiento } from "../../../modelo/refinamientos";
 import { estadoVisibleEnAparicion } from "../../../modelo/visibilidadEstados";
-import type { Apariencia, Entidad, EstadoDrift, Estado, Id, Modelo } from "../../../modelo/tipos";
+import type { Anclaje, Apariencia, Entidad, EstadoDrift, Estado, Id, Modelo } from "../../../modelo/tipos";
 import { selectorAnchorEstado, targetsEstado } from "../estadoTargets";
 import { filasPlegadoConNesting } from "../plegadoNesting";
 import type { FilaPlegadoParcialExtendida } from "../plegadoNesting";
@@ -209,15 +209,16 @@ export function proyectarEntidad(
         attrs: attrsConEstereotipo(renderConSeleccion.attrs, size, estereotipoNombre, mostrarEstereotipo, contornoRefinamiento || modoParcial),
       }
     : renderConSeleccion;
-  // Centinela de Drift (Fase 2): marcador en tinta sobre el markup ya compuesto.
-  // Ortogonal al estereotipo (sup-izq vs centro/sup-der); va al final, así
-  // sobrevive a TODAS las variantes. D2: sincronizado no se marca.
-  const mostrarDrift = estadoDrift != null && estadoDrift !== "sincronizado";
+  // Centinela de Drift: marcador en tinta sobre el markup ya compuesto. Ortogonal
+  // al estereotipo (sup-izq vs centro/sup-der); va al final, así sobrevive a TODAS
+  // las variantes. B4 (§2(c) del spec de la PUERTA): los TRES estados se DECLARAN
+  // —el al-día también—; solo lo NO anclado (estadoDrift == null) queda sin chip.
+  const mostrarDrift = estadoDrift != null;
   const render = mostrarDrift
     ? {
         ...renderConEstereotipo,
-        markup: markupConDrift(renderConEstereotipo.markup ?? markupBase(bodyTag)),
-        attrs: attrsConDrift(renderConEstereotipo.attrs, estadoDrift),
+        markup: markupConDrift(renderConEstereotipo.markup ?? markupBase(bodyTag), estadoDrift),
+        attrs: attrsConDrift(renderConEstereotipo.attrs, estadoDrift, entidad.anclaje),
       }
     : renderConEstereotipo;
   const ports = portsEntidad(apariencia, entidad.tipo);
@@ -513,41 +514,81 @@ function attrsConEstereotipo(
   };
 }
 
-// Centinela de Drift (Fase 2): chip-marcador de drift `<<glifo>>` embebido en la
-// celda. Espejo exacto de markupConEstereotipo / attrsConEstereotipo: opera sobre
-// el markup ya compuesto, por eso sobrevive a todas las variantes de render.
-// Tinta CODEX — crimson PROHIBIDO (UI-only para foco/selección, ui-forja/06 §100;
-// D3 del corte). Esquina superior-IZQUIERDA (libre: sup-der=notas/fold, inf-der=⋯N).
-// El marcador AVISA y orienta de un vistazo; no decide (pointerEvents:"none"). La
-// acción (Re-sincronizar/Soltar) vive en el Inspector (SeccionAnclaje).
-function glifoDrift(estado: EstadoDrift): string {
+// Centinela de Drift: chip-marcador embebido en la celda, esquina superior-IZQUIERDA
+// (libre: sup-der=notas/fold, inf-der=⋯N). Espejo de markupConEstereotipo /
+// attrsConEstereotipo: opera sobre el markup ya compuesto, por eso sobrevive a todas
+// las variantes de render. El marcador AVISA y orienta de un vistazo; no decide
+// (pointerEvents:"none"). La acción (Re-sincronizar/Soltar) vive en el Inspector.
+//
+// B4 — §2(c) del spec de la PUERTA: el anclaje al-día se DECLARA. La MISMA forma
+// (chip circular 15px) en los TRES estados; cambia glifo y peso en un gradiente de
+// atención MONÓTONO faint → soft → solid, TODO tinta, crimson PROHIBIDO (UI-only
+// para foco/selección, ui-forja/06 §100):
+//   · sincronizado → marca de amarre dibujada EN PATH (no carácter de fuente: el ⚓
+//                    U+2693 dispara presentación emoji a color y rompe la disciplina
+//                    tinta-only), peso inkFaint (mínimo).
+//   · no-resuelto  → `?` serif, peso inkSoft (medio).
+//   · divergente   → `⟳` serif, peso ink (máximo).
+
+// Peso mínimo del al-día. Espejo de --cx-ink-faint (ui-forja/tokens.css) / `inkFaint`
+// (src/ui/tokens.ts); CODEX.colores aún no mirror-ea ese token en la capa render.
+const INK_DRIFT_FAINT = "#b5b0a4";
+
+// Marca de amarre (ancla) como path SVG dentro del chip de 15px (x=4,y=4) centrado
+// en (11.5,11.5): grillete + caña + cepo + uñas. Stroke-only para leer como tinta a
+// tamaño mínimo; el ⚓ de fuente queda EXCLUIDO a propósito (presentación emoji).
+const PATH_AMARRE =
+  "M10.2,7.5 a1.3,1.3 0 1,0 2.6,0 a1.3,1.3 0 1,0 -2.6,0 " + // grillete (anillo)
+  "M11.5,8.8 L11.5,15.7 " + // caña (vertical)
+  "M8.5,9.9 L14.5,9.9 " + // cepo (cruz)
+  "M7.7,12.1 Q7.7,15.9 11.5,15.9 Q15.3,15.9 15.3,12.1"; // uñas (arco inferior)
+
+function colorDrift(estado: EstadoDrift): string {
+  if (estado === "divergente") return CODEX.colores.ink; // máximo
+  if (estado === "no-resuelto") return CODEX.colores.inkSoft; // medio
+  return INK_DRIFT_FAINT; // sincronizado — mínimo
+}
+
+function glifoDrift(estado: "divergente" | "no-resuelto"): string {
   // divergente → ⟳ (necesita re-sincronizar); no-resuelto → ? (no se pudo verificar).
   return estado === "divergente" ? "⟳" : "?";
 }
 
-function tituloDrift(estado: EstadoDrift): string {
-  return estado === "divergente"
-    ? "La biblioteca de esta pieza cambió — revísala"
-    : "No se pudo leer la biblioteca para verificar si cambió";
+function tituloDrift(estado: EstadoDrift, anclaje?: Anclaje): string {
+  if (estado === "divergente") return "La biblioteca de esta pieza cambió — revísala";
+  if (estado === "no-resuelto") return "No se pudo leer la biblioteca para verificar si cambió";
+  const pieza = anclaje?.piezaId ?? "su Pieza";
+  const biblioteca = anclaje?.biblioteca.nombre ?? "su biblioteca";
+  return `Anclada a ${pieza} de ${biblioteca} · al día`;
 }
 
-function markupConDrift(markup: Array<Record<string, unknown>>): Array<Record<string, unknown>> {
+function markupConDrift(
+  markup: Array<Record<string, unknown>>,
+  estado: EstadoDrift,
+): Array<Record<string, unknown>> {
+  // sincronizado dibuja la marca de amarre en PATH (selector propio `driftBadgeMark`),
+  // NO el `text` `driftBadge` (reservado a los glifos de fuente ⟳ / ?).
+  const glifo: Record<string, unknown> = estado === "sincronizado"
+    ? { tagName: "path", selector: "driftBadgeMark" }
+    : { tagName: "text", selector: "driftBadge" };
   return [
     ...markup,
     { tagName: "rect", selector: "driftBadgeChip" },
-    { tagName: "text", selector: "driftBadge" },
+    glifo,
   ];
 }
 
 function attrsConDrift(
   attrsBase: Record<string, unknown>,
   estado: EstadoDrift,
+  anclaje?: Anclaje,
 ): Record<string, unknown> {
-  const titulo = tituloDrift(estado);
+  const titulo = tituloDrift(estado, anclaje);
+  const tinta = colorDrift(estado);
   const chipLado = 15;
   const x = 4;
   const y = 4;
-  return {
+  const conChip = {
     ...attrsBase,
     driftBadgeChip: {
       x,
@@ -557,16 +598,34 @@ function attrsConDrift(
       rx: chipLado / 2,
       ry: chipLado / 2,
       fill: CODEX.colores.paper,
-      stroke: CODEX.colores.ink,
+      stroke: tinta,
       strokeWidth: 1,
       pointerEvents: "none",
       title: titulo,
     },
+  };
+  if (estado === "sincronizado") {
+    return {
+      ...conChip,
+      driftBadgeMark: {
+        d: PATH_AMARRE,
+        fill: "none",
+        stroke: tinta,
+        strokeWidth: 1,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        pointerEvents: "none",
+        title: titulo,
+      },
+    };
+  }
+  return {
+    ...conChip,
     driftBadge: {
       text: glifoDrift(estado),
       x: x + chipLado / 2,
       y: y + chipLado / 2 + 0.5,
-      fill: CODEX.colores.ink,
+      fill: tinta,
       fontFamily: CODEX.fuentes.serif,
       fontSize: 10,
       fontWeight: 700,

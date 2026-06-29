@@ -3,7 +3,13 @@
 // La UI (marcador en el lienzo + sección «Anclaje» del Inspector) ya está
 // construida, verde y validada in-vivo; lo que faltaba era la malla e2e que
 // FALSE la mecánica completa: entidad anclada → biblioteca cambia bajo sus pies
-// → el marcador aparece SOLO; re-sincronizar lo apaga; soltar la desancla.
+// → el aviso aparece; re-sincronizar lo apaga; soltar la desancla.
+//
+// B4 (§2(c) del spec de la PUERTA): el chip tiene TRES estados, mismo slot. El
+// al-día se DECLARA con una marca de amarre dibujada en PATH (selector propio
+// `driftBadgeMark`, peso mínimo) — NO el `text` `driftBadge`, reservado a los
+// glifos de fuente ⟳ (divergente) / ? (no-resuelto). Por eso aquí distinguimos
+// `markaAmarre` (al-día) de `badgeDrift` (⟳/?), y son mutuamente excluyentes.
 //
 // Diseño adversarial (anti verde-tautológico): la divergencia NO se inyecta con
 // un hash hardcodeado. Se persiste una biblioteca v1 en un backend en-memory
@@ -16,9 +22,10 @@
 // el aviso lo enciende la mutación, no el test. Sin el paso de mutación, el caso
 // `divergente` se cae (verificado a mano omitiéndolo).
 //
-// El marcador del lienzo se verifica por el selector nativo de JointJS
-// `[joint-selector="driftBadge"]` (mismo mecanismo que 07/08 usan para
-// stateCapsule/imagen/wrapper), sin tocar producto ni agregar data-testids.
+// Los marcadores del lienzo se verifican por los selectores nativos de JointJS
+// `[joint-selector="driftBadge"]` (⟳/?) y `[joint-selector="driftBadgeMark"]`
+// (marca de amarre al-día) — mismo mecanismo que 07/08 usan para
+// stateCapsule/imagen/wrapper, sin tocar producto ni agregar data-testids.
 
 import { expect, test, type Page } from "@playwright/test";
 import { abrirDialogoCargarModelo, elementoPorTexto, esperarWorkbenchInicial, jsonEditor } from "./_smoke-helpers";
@@ -241,6 +248,11 @@ function badgeDrift(page: Page) {
   return page.locator('[joint-selector="driftBadge"]');
 }
 
+// Marca de amarre del al-día (B4): path propio, NO el `text` de los glifos ⟳/?.
+function markaAmarre(page: Page) {
+  return page.locator('[joint-selector="driftBadgeMark"]');
+}
+
 // Deja el cliente importado, la cosa anclada visible y seleccionada (Inspector
 // montado). `biblioteca: "sembrada"` persiste v1 y congela el hash real; `"ausente"`
 // ancla a un modeloId que el backend no tiene (⇒ irresoluble).
@@ -267,10 +279,12 @@ test.describe("Centinela de Drift — mecánica e2e", () => {
   test("divergente: la mutación SEMÁNTICA de la biblioteca enciende el marcador, sin tocar el hash congelado", async ({ page }) => {
     const backend = await montar(page, { biblioteca: "sembrada" });
 
-    // Estado base: frozen == live(v1) ⇒ sincronizado, sin marcador. Es el ancla
-    // de la falsificación: la MISMA cosa, con el MISMO hash congelado, está al día.
+    // Estado base: frozen == live(v1) ⇒ sincronizado. Es el ancla de la
+    // falsificación: la MISMA cosa, con el MISMO hash congelado, está al día. B4: el
+    // al-día se DECLARA con la marca de amarre (path), SIN el glifo de alarma ⟳/?.
     await evaluarDrift(page);
     await expect(page.getByTestId("inspector-anclaje-sincronizado")).toBeVisible();
+    await expect(markaAmarre(page)).toHaveCount(1);
     await expect(badgeDrift(page)).toHaveCount(0);
     expect(await driftDeLaAnclada(page)).toBe("sincronizado");
 
@@ -279,8 +293,10 @@ test.describe("Centinela de Drift — mecánica e2e", () => {
     backend.mutarBiblioteca(LIB_ID, JSON.stringify(documentoBiblioteca("v2")));
     await evaluarDrift(page);
 
-    // El aviso aparece SOLO: chip ⟳ en el lienzo + sección divergente con ambas acciones.
+    // El aviso aparece: chip ⟳ en el lienzo + sección divergente con ambas acciones.
+    // La marca de amarre del al-día se REEMPLAZA por el glifo ⟳ (excluyentes).
     await expect(page.getByTestId("inspector-anclaje-divergente")).toBeVisible();
+    await expect(markaAmarre(page)).toHaveCount(0);
     await expect(badgeDrift(page)).toHaveCount(1);
     // El atributo `title` de JointJS se serializa como <title> hijo del <text>,
     // así que textContent = tooltip + glifo; el glifo ⟳ no vive en ningún tooltip.
@@ -290,11 +306,13 @@ test.describe("Centinela de Drift — mecánica e2e", () => {
     expect(await driftDeLaAnclada(page)).toBe("divergente");
   });
 
-  test("sincronizado: biblioteca intacta ⇒ ningún marcador en el lienzo", async ({ page }) => {
+  test("sincronizado: biblioteca intacta ⇒ marca de amarre al-día, sin glifo ⟳/?", async ({ page }) => {
     await montar(page, { biblioteca: "sembrada" });
     await evaluarDrift(page);
 
     await expect(page.getByTestId("inspector-anclaje-sincronizado")).toBeVisible();
+    // B4: el al-día se DECLARA (marca de amarre), pero sin glifo de alarma ⟳/?.
+    await expect(markaAmarre(page)).toHaveCount(1);
     await expect(badgeDrift(page)).toHaveCount(0);
     // Sincronizado no ofrece Re-sincronizar (no hay nada que adoptar); sí Soltar.
     await expect(page.getByTestId("anclaje-resincronizar")).toHaveCount(0);
@@ -307,6 +325,8 @@ test.describe("Centinela de Drift — mecánica e2e", () => {
     await evaluarDrift(page);
 
     await expect(page.getByTestId("inspector-anclaje-no-resuelto")).toBeVisible();
+    // El glifo ? sustituye a la marca de amarre del al-día (excluyentes).
+    await expect(markaAmarre(page)).toHaveCount(0);
     await expect(badgeDrift(page)).toHaveCount(1);
     // textContent = tooltip + glifo (ver nota en el caso divergente); el glifo ? no
     // aparece en el tooltip de no-resuelto.
@@ -327,9 +347,11 @@ test.describe("Centinela de Drift — mecánica e2e", () => {
 
     await page.getByTestId("anclaje-resincronizar").click();
 
-    // Re-congelado al hash vivo (v2): vuelve a sincronizado, el chip desaparece.
+    // Re-congelado al hash vivo (v2): vuelve a sincronizado, el glifo ⟳ se va y
+    // reaparece la marca de amarre del al-día.
     await expect(page.getByTestId("inspector-anclaje-sincronizado")).toBeVisible();
     await expect(badgeDrift(page)).toHaveCount(0);
+    await expect(markaAmarre(page)).toHaveCount(1);
     expect(await driftDeLaAnclada(page)).toBe("sincronizado");
   });
 
@@ -342,10 +364,11 @@ test.describe("Centinela de Drift — mecánica e2e", () => {
 
     await page.getByTestId("anclaje-soltar").click();
 
-    // Desanclada: la sección Anclaje se desmonta, sale del driftMap, sin marcador.
-    // La cosa sigue existiendo (copia propia).
+    // Desanclada: la sección Anclaje se desmonta, sale del driftMap, sin marcador
+    // de ningún tipo (ni glifo ⟳/? ni marca de amarre). La cosa sigue existiendo.
     await expect(page.getByTestId("inspector-panel-anclaje")).toHaveCount(0);
     await expect(badgeDrift(page)).toHaveCount(0);
+    await expect(markaAmarre(page)).toHaveCount(0);
     expect(await driftDeLaAnclada(page)).toBeUndefined();
     await expect(elementoPorTexto(page, ANCLADA_NOMBRE)).toBeVisible();
   });
