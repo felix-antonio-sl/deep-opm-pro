@@ -67,7 +67,6 @@ describe("tokens.colors - contrato Codex [ronda-codex L1]", () => {
     expect(tokens.shadows).toBe(shadows);
     expect(tokens.transitions).toBe(transitions);
     expect(tokens.typography).toBe(typography);
-    expect(tokens.bibliotecaDock).toBeDefined();
     expect(tokens.inspectorTabs).toBeDefined();
     expect(tokens.editorOplHonesto).toBeDefined();
     expect(tokens.mobileNav).toBeDefined();

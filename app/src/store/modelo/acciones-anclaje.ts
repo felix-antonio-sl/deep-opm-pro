@@ -13,12 +13,15 @@
 // §4.1; acta `docs/auditorias/2026-06-26-acta-arranque-centinela-drift.md` (D-B, refuerzo #2:
 // el drift se mide contra el backend PERSISTIDO, no contra ediciones de otra pestaña).
 import {
+  anclarAPieza,
+  clonarEntidadConIdFresco,
   evaluarDriftModelo,
   firmaBiblioteca,
   reSincronizarAnclaje,
   soltarAnclaje,
 } from "../../modelo/operaciones";
-import type { Anclaje, EstadoDrift, Id, Modelo } from "../../modelo/tipos";
+import { posicionLibre } from "../../modelo/layout";
+import type { Anclaje, BibliotecaRef, Entidad, Estado, EstadoDrift, Id, Modelo } from "../../modelo/tipos";
 import { cargarModeloBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
 import { hidratarModelo } from "../../serializacion/json";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
@@ -129,6 +132,78 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
       if (aplicado) {
         const { [id]: _quitado, ...resto } = get().driftMap;
         set({ driftMap: resto });
+      }
+    },
+
+    // ── La PUERTA del Anclaje (corte "gesto de anclar", B2+B3) ──────────────────
+    // Calcar y Anclar son los dos verbos de fundación sobre una Pieza de biblioteca
+    // externa. Calcar clona-y-olvida; Anclar = Calcar + atar (invariante "Unlink = Σ").
+    // El Calco usa `clonarEntidadConIdFresco` (entidad cruda), NO `injertarEstereotipo`
+    // (plantilla del catálogo local). La Pieza aterriza SELECCIONADA reusando el
+    // `seleccionId` existente — sin 4º tipo seleccionable (no dispara la deuda O(N²)).
+    // Spec: docs/superpowers/specs/2026-06-29-gesto-anclar-puerta-design.md §1.
+
+    calcarPiezaBiblioteca(input: { entidad: Entidad; estados: Estado[] }): void {
+      const { modelo, opdActivoId } = get();
+      const posicion = posicionLibre(modelo, opdActivoId, input.entidad.tipo);
+      const resultado = clonarEntidadConIdFresco(modelo, input.entidad, input.estados, opdActivoId, posicion);
+      if (!resultado.ok) {
+        set({ mensaje: resultado.error });
+        return;
+      }
+      const { modelo: modeloNuevo, entidadId } = resultado.value;
+      commitModelo(set, modelo, modeloNuevo, {
+        seleccionId: entidadId,
+        seleccionados: [entidadId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        estadoSeleccionId: null,
+        mensaje: "Pieza calcada al OPD",
+      });
+    },
+
+    async anclarPiezaBiblioteca(input: {
+      entidad: Entidad;
+      estados: Estado[];
+      modeloId: Id;
+      nombre?: string;
+    }): Promise<void> {
+      // `frozenAtHash` = firma VIVA de la biblioteca leída del backend persistido
+      // (mismo cálculo del Centinela), no del modelo en runtime: garantiza que el
+      // anclaje arranque sincronizado contra lo que el Centinela comparará luego.
+      const frozenAtHash = await resolverHashVivoBackend(input.modeloId);
+      if (frozenAtHash === null) {
+        set({ mensaje: "No se pudo leer la biblioteca para anclar la Pieza" });
+        return;
+      }
+      const { modelo, opdActivoId } = get();
+      const posicion = posicionLibre(modelo, opdActivoId, input.entidad.tipo);
+      const clon = clonarEntidadConIdFresco(modelo, input.entidad, input.estados, opdActivoId, posicion);
+      if (!clon.ok) {
+        set({ mensaje: clon.error });
+        return;
+      }
+      const biblioteca: BibliotecaRef = {
+        modeloId: input.modeloId,
+        frozenAtHash,
+        ...(input.nombre ? { nombre: input.nombre } : {}),
+      };
+      const anclado = anclarAPieza(clon.value.modelo, clon.value.entidadId, biblioteca, input.entidad.id);
+      if (!anclado.ok) {
+        set({ mensaje: anclado.error });
+        return;
+      }
+      const aplicado = commitModelo(set, modelo, anclado.value, {
+        seleccionId: clon.value.entidadId,
+        seleccionados: [clon.value.entidadId],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        estadoSeleccionId: null,
+        mensaje: "Pieza anclada a la biblioteca",
+      });
+      if (aplicado) {
+        // Arranca sincronizado: el frozen recién congelado == la firma viva.
+        set({ driftMap: { ...get().driftMap, [clon.value.entidadId]: "sincronizado" satisfies EstadoDrift } });
       }
     },
   };

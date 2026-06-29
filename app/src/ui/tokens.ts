@@ -386,13 +386,6 @@ export const typography = {
 // Modulos derivados preservados: forma publica estable para consumidores vivos.
 // ---------------------------------------------------------------------------
 
-export const bibliotecaDock = {
-  altoInicial: 280,
-  altoMin: 160,
-  altoMax: 600,
-  /** Breakpoint minimo de viewport para mostrar el dock. */
-  desktopMinPx: 900,
-} as const;
 
 export const inspectorTabs = {
   gap: spacing.xs,
@@ -474,7 +467,6 @@ export const tokens = {
   shadows,
   transitions,
   typography,
-  bibliotecaDock,
   inspectorTabs,
   editorOplHonesto,
   mobileNav,

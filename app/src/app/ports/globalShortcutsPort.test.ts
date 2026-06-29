@@ -121,7 +121,6 @@ function setup(
     abrirPestanaNueva: () => {},
     cerrarPestana: () => {},
     cambiarPestanaActiva: (id: string) => { pestanasCambiadas.push(id); },
-    toggleBibliotecaDock: () => {},
     // Simulation fields (B0.028)
     simulacionActiva: sim.activa,
     autoAvanceSimulacionActivo: sim.auto,
@@ -400,7 +399,6 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
       abrirPestanaNueva: () => {},
       cerrarPestana: () => {},
       cambiarPestanaActiva: () => {},
-      toggleBibliotecaDock: () => {},
       simulacionActiva: false,
       autoAvanceSimulacionActivo: false,
       salirModoSimulacion: () => {},

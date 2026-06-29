@@ -169,6 +169,10 @@ export const MODELO_SLICE_CAPABILITIES = {
     "cargarYEvaluarDrift",
     "reSincronizarAnclajeEntidad",
     "soltarAnclajeEntidad",
+    // La PUERTA del Anclaje (corte "gesto de anclar", B2+B3): los dos verbos de
+    // fundación sobre una Pieza de biblioteca externa. Spec §1.
+    "calcarPiezaBiblioteca",
+    "anclarPiezaBiblioteca",
   ],
   oplCommands: [
     "seleccionarDesdeOpl",

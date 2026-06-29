@@ -174,11 +174,6 @@ export type UiPanelSlice = Slice<
   | "navegarOpdAbajo"
   | "navegarOpdIzquierda"
   | "navegarOpdDerecha"
-  // L3 ronda 20 / ronda 22 S.2: biblioteca dock acoplable
-  | "bibliotecaDockAbierto"
-  | "toggleBibliotecaDock"
-  | "abrirBibliotecaDock"
-  | "cerrarBibliotecaDock"
   // L4 ronda 23: default brutal — focus auto en input Nombre del Inspector
   // al crear objeto/proceso. El campo y el consumidor viven en el slice UI
   // porque el productor (acciones-entidad) es semánticamente del modelo pero

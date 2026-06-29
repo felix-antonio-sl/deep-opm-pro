@@ -140,7 +140,7 @@ import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
 import type { Consulta } from "../modelo/razonamiento";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Esencia, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
 import { generarOpl } from "../opl/generar";
@@ -419,6 +419,11 @@ export interface OpmStore {
   cargarYEvaluarDrift: () => Promise<void>;
   reSincronizarAnclajeEntidad: (id: Id) => Promise<void>;
   soltarAnclajeEntidad: (id: Id) => void;
+  // La PUERTA del Anclaje (corte "gesto de anclar", B2+B3): los dos verbos de
+  // fundación sobre una Pieza de biblioteca externa. Calcar clona-y-olvida; Anclar
+  // = Calcar + atar (frozenAtHash resuelto del backend). Spec §1.
+  calcarPiezaBiblioteca: (input: { entidad: Entidad; estados: Estado[] }) => void;
+  anclarPiezaBiblioteca: (input: { entidad: Entidad; estados: Estado[]; modeloId: Id; nombre?: string }) => Promise<void>;
   actualizarSubmodeloSeleccionado: (refId?: Id) => void;
   descargarSubmodeloSeleccionado: (refId?: Id) => void;
   desconectarSubmodeloSeleccionado: (refId?: Id) => void;
@@ -851,13 +856,6 @@ export interface OpmStore {
   navegarOpdIzquierda: () => void;
   navegarOpdDerecha: () => void;
   // ── /L5 ──────────────────────────────────────────────────────────
-  // ── L3 ronda 20 / ronda 22 S.2: Biblioteca dock ──────────────────
-  /** Dock acoplable junto al árbol OPD (panel persistente, desktop ≥900px). */
-  bibliotecaDockAbierto: boolean;
-  toggleBibliotecaDock: () => void;
-  abrirBibliotecaDock: () => void;
-  cerrarBibliotecaDock: () => void;
-  // ── /L3 ronda 20 ─────────────────────────────────────────────────
   // ── Beta2 / Ronda 17 L2: modo simulación conceptual ──────────────
   /** Contexto activo de simulación; `null` cuando no estamos en modo. */
   contextoSimulacion: import("../modelo/simulacion/tipos").ContextoSimulacion | null;

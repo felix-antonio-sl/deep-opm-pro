@@ -1,7 +1,6 @@
 import { tipoInicialConexionDesdeEntidad } from "../../canvas/modoEnlace";
 import type { Id, Modelo, TipoEnlace } from "../../modelo/tipos";
 import { construirArbol } from "../../ui/arbol/togglesArbol";
-import { APP_FEATURES } from "../features";
 
 export interface ShortcutRegistration {
   combo: string;
@@ -104,7 +103,6 @@ export interface GlobalShortcutsSnapshot {
   abrirPestanaNueva?: () => void;
   cerrarPestana?: (id: string) => void;
   cambiarPestanaActiva?: (id: string) => void;
-  toggleBibliotecaDock: () => void;
   /**
    * Paquete simulación B0.028: guard para atajo Espacio play/pausa.
    * `simulacionActiva` es true cuando `contextoSimulacion !== null`.
@@ -309,10 +307,6 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Ctrl+Shift+[", ctx: "global", categoria: "navegacion", descripcion: "Pestaña anterior", descripcionLarga: "Cambia el foco a la pestaña previa del workspace", handler: () => cambiarPestanaRelativa(s, -1) }),
     registrarAtajo({ combo: "Space", ctx: "global", categoria: "edicion", descripcion: "Reproducir/Pausar simulación", descripcionLarga: "En modo simulación, alterna entre reproducir y pausar", preventDefault: false, handler: togglePlaySimulacion }),
   ];
-
-  if (APP_FEATURES.bibliotecaDock) {
-    registrosBase.push(registrarAtajo({ combo: "Ctrl+B", ctx: "global", categoria: "vista", descripcion: "Abrir/cerrar biblioteca dock", descripcionLarga: "Muestra u oculta la biblioteca lateral de formas", handler: () => s().toggleBibliotecaDock() }));
-  }
 
   return registrosBase;
 }

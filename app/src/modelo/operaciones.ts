@@ -166,6 +166,8 @@ export {
   injertarEstereotipo,
 } from "./operaciones/injertoEstereotipo";
 export type { InjertoResultado } from "./operaciones/injertoEstereotipo";
+export { clonarEntidadConIdFresco } from "./operaciones/clonarEntidad";
+export type { ClonEntidadResultado } from "./operaciones/clonarEntidad";
 export {
   anclarAPieza,
   evaluarDrift,

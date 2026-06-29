@@ -6,5 +6,4 @@
  */
 export const APP_FEATURES = {
   mapaSistema: false,
-  bibliotecaDock: false,
 } as const;
