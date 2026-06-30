@@ -11,7 +11,9 @@ import { mkdirSync, rmSync, readFileSync, writeFileSync, existsSync } from "node
 import { resolve } from "node:path";
 
 const URL_OBJETIVO = process.argv[2] ?? "https://opforja.sanixai.com/";
-const RUTA_HODOM = process.argv[3] ?? "/home/felix/projects/hd-opm/models/hodom-completo-v1.6.deep-opm-pro.modelo.v0.json";
+// El modelo de dominio (p. ej. HODOM) vive en su propio repo (hd-opm), NO aquí:
+// pásalo por argumento. Sin él, el bloque que lo usa se omite con WARN (existsSync).
+const RUTA_HODOM = process.argv[3] ?? "";
 const RAIZ_REPO = resolve(import.meta.dirname, "..", "..");
 const DIR_SHOTS = resolve(RAIZ_REPO, "app/test-results/in-vivo-exhaustivo");
 const RUTA_RESUMEN = resolve(DIR_SHOTS, "_resumen.json");
