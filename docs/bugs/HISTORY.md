@@ -10,15 +10,15 @@ cualquier ID, activo o archivado.
 
 | Alcance / Estado | Cantidad |
 |---|---:|
-| Activo / Nuevo | 2 |
-| Histórico / Resuelto | 116 |
+| Activo / Nuevo | 1 |
+| Histórico / Resuelto | 117 |
 
 ## Resumen Por Tipo
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 2 |
-| Histórico / Bug | 109 |
+| Activo / Bug | 1 |
+| Histórico / Bug | 110 |
 | Histórico / Feat | 7 |
 
 ## Ledger Completo
@@ -58,7 +58,7 @@ cualquier ID, activo o archivado.
 | Histórico | Bug | Resuelto | [BUG-20260604T021520Z-c96ad9](archive/BUG-20260604T021520Z-c96ad9/report.md) | 2026-06-04 02:15Z | Modelo_simu / SD | no tiene lógica de rutas (paths) OPL sin sentido lógico | La logica de paths de estado ahora empareja consumo y resultado solo por rutaEtiqueta; las etiquetas libres no participan en el r… | 1 | Cubierto por generar.test y proyeccion.test: varios paths sobre el mismo proceso no reutilizan la misma salida y conservan ruta visible en cada enlace. |
 | Histórico | Bug | Resuelto | [BUG-20260604T003122Z-6a6a06](archive/BUG-20260604T003122Z-6a6a06/report.md) | 2026-06-04 00:31Z | Modelo_simu / SD | no funciona el sitema de ruteo. Adjunto nuestro opforja y el comportamiento opcloud (no considerar la captura de la simulación) | El ruteo de transiciones de estado deja de formar un bus/abanico O automatico. La union implicita de puertos para enlaces con est… | 2 | Reproducido con Agua/Calentar. Verificado in-vivo: cuatro enlaces directos estado-proceso, cero overlays de abanico y sin vertices artificiales. |
 | Histórico | Bug | Resuelto | [BUG-20260604T001937Z-82cc4f](archive/BUG-20260604T001937Z-82cc4f/report.md) | 2026-06-04 00:19Z | Modelo_simu / SD | que se pueda iniciar y terminar los enlances en los estado de los objetos | Los enlaces procedurales pueden iniciar o terminar en estados de objeto sin que el kernel los convierta en abanicos implicitos. | 0 | Cubierto por transaccionEnlace.test, ports.test y abanicos.test: Estado -> Proceso y Proceso -> Estado conservan puertos independientes salvo abanico explicito. |
-| Activo | Bug | Nuevo | [BUG-20260603T193134Z-f314c4](BUG-20260603T193134Z-f314c4/report.md) | 2026-06-03 19:31Z | HODOM completo v1.6 / SD0-C - Hospitalizacion en domicilio | El generador OPL no verbaliza la transición de estados de un efecto TS3 compacto: todo enlace efecto con estadoEntradaId/estadoSalidaId se emite como… | Pendiente. | 0 |  |
+| Histórico | Bug | Resuelto | [BUG-20260603T193134Z-f314c4](archive/BUG-20260603T193134Z-f314c4/report.md) | 2026-06-03 19:31Z | HODOM completo v1.6 / SD0-C - Hospitalizacion en domicilio | El generador OPL no verbaliza la transición de estados de un efecto TS3 compacto: todo enlace efecto con estadoEntradaId/estadoSalidaId se emite como… | 2026-06-03 — oracionEfecto (app/src/opl/generadores/procedural.ts) emite la transición para el efecto TS3 compacto: par completo … | 0 |  |
 | Histórico | Bug | Resuelto | [BUG-20260603T050454Z-276ea7](archive/BUG-20260603T050454Z-276ea7/report.md) | 2026-06-03 05:04Z | Modelo / SD | sigue estando muy mal el opl de esto | El OPL de abanicos XOR/O de efecto Objeto -> Procesos ya no invierte la semantica: sin evento emite O es afectado por P/Q/R; con … | 1 | Causa raiz final: se trato el objeto comun como sujeto afectante, pero en OPM el efecto lo ejerce el proceso sobre el objeto. Cubierto por generar.test y parser.test; legacy O afecta a... se acepta solo para normalizar a pasiva. |
 | Histórico | Bug | Resuelto | [BUG-20260603T022341Z-cc4801](archive/BUG-20260603T022341Z-cc4801/report.md) | 2026-06-03 02:23Z | Modelo / SD | No está en la UI/UX la asignación de probabilidades | El inspector de enlaces expone un editor de porcentajes para abanicos XOR; aplica una policy de probabilidades por rama, valida s… | 1 | Causa raiz: la semantica de probabilidades existia en kernel/render/decision, pero la UI solo exponia probabilidad para enlaces evento. Cubierto por abanicos.test, store.test, SeccionAbanico.test, enlace.test y e2e/02-canvas-y-render.spec.ts. |
 | Histórico | Bug | Resuelto | [BUG-20260603T020848Z-7b49ec](archive/BUG-20260603T020848Z-7b49ec/report.md) | 2026-06-03 02:08Z | Modelo / SD | quiero mostrar un nuevo patrón súper relevante que se comporta inadecuadamente en nuestro OPforja. pongo como se presenta en OPcloud que es referente… | op-forja soporta el patron OPCloud de abanico logico de efecto desde un objeto hacia procesos: B afecta exactamente/al menos uno … | 4 | Causa raiz: la firma y el reverse asumian efecto solo Proceso -> Objeto, por lo que el patron objeto -> procesos no era operable/canonico. Cubierto por operaciones/enlaces.test, validaciones.test, generar.test y parser.test. |

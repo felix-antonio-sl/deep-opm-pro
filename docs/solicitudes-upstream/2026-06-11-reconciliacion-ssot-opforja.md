@@ -36,3 +36,13 @@ vigente de `deep-opm-pro` y artefactos KORA/puentes locales:
 - `app/src/render/jointjs/jointCanvasAdapter.ts`
 - `docs/canon-opm/spec-forja-opd.md`
 - `docs/canon-opm/spec-forja-opl.md`
+
+## RESOLUCIÓN (deep-opm-pro, 2026-06-12)
+
+Los 3 puntos del Motivo quedaron remediados por `docs/auditorias/2026-06-12-auditoria-ssot-corpus.md`
+(64 conflictos remediados en capa subordinada): la referencia muerta a `docs/capa-categorial.md` fue
+reconciliada (el artefacto fue borrado en `2a83c1c5`); `ui-forja/08` quedó subordinado por remisión a
+`spec-forja-opd-es` (las tres derogaciones que reclamaba como reglas duras ya estaban registradas en
+`spec-forja-opd-es §22`); la EBNF de `spec-forja-opl-es §18` se reconcilió contra el parser/generador
+vivo. Cierre formal de la enmienda en `docs/roadmap/registro-conformidad-ssot.md` §«Enmienda del corpus
+2026-06-14».

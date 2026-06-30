@@ -60,6 +60,7 @@ deep-opm-pro/
 ├── CLAUDE.md · AGENTS.md · NOTICE.md
 ├── app/                        modelo OPM (src/, e2e/)
 ├── ui-forja/                   autoridad normativa de diseño Codex
+├── deploy/                     nginx.conf (copiado a la imagen) + backup-opforja-db.sh + systemd/
 ├── docs/
 │   ├── README.md               entrada principal de documentación
 │   ├── HANDOFF.md              estado vigente, decisiones, pendientes, riesgos
@@ -84,7 +85,7 @@ deep-opm-pro/
 
 ## Comandos
 
-Todos desde `app/`. Stack: Bun 1.3+, TypeScript strict, JointJS 3.7 core (sin Rappid), Preact 10 + Signals, Zustand 5, Vite 6, Playwright.
+Todos desde `app/`. Stack: Bun 1.3+, TypeScript strict, JointJS 3.7 core (sin Rappid), Preact 10, Zustand 5, Vite 6, Playwright.
 
 ```bash
 cd app
@@ -108,7 +109,7 @@ Ejecutar un solo test: `bun test src/modelo/abanicos.test.ts` (unit) o `bunx pla
 
 ## Reglas de oro
 
-1. **SSOT semántica**: la autoridad suprema es `urn:fxsl:kb:reglas-opm-estrictas-es` (estados=`puede estar`, especialización=`puede ser`). OPL operativo: `urn:fxsl:kb:spec-forja-opl-es`. Realización visual/OPD: `urn:fxsl:kb:spec-forja-opd-es`. Método: `urn:fxsl:kb:metodologia-forja-opm-es`. Las capas base viven en `/home/felix/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`. `docs/canon-opm/` son puentes locales a KORA. OPCloud operacionaliza OPM pero no lo redefine; ante conflicto, manda la SSOT.
+1. **SSOT semántica**: la autoridad suprema es `urn:fxsl:kb:reglas-opm-estrictas-es` (estados=`puede estar`, especialización=`puede ser`). OPL operativo: `urn:fxsl:kb:spec-forja-opl-es`. Realización visual/OPD: `urn:fxsl:kb:spec-forja-opd-es`. Método: `urn:fxsl:kb:metodologia-forja-opm-es`. Las capas base viven en `/home/felix/kora-pneuma/artefactos/conocimiento/fxsl/` (resueltas vía `docs/canon-opm/resolutor-urn.json`; `/home/felix/kora/` queda como origen histórico congelado, decisión HITL 2026-06-15 — pneuma es la SSOT viva). `docs/canon-opm/` son puentes locales a KORA. OPCloud operacionaliza OPM pero no lo redefine; ante conflicto, manda la SSOT.
 
 2. **Cadena de precedencia visual**: `reglas-opm-estrictas-es` > `spec-forja-opd-es` > `ui-forja/GOVERNANCE.md` > implementación. `ui-forja` gobierna estética, frame, chrome, tokens, tipografía y componentes no portadores de semántica OPM. En formas, marcadores, estados, refinamiento, layout semántico y simulación manda `spec-forja-opd-es` (subordina a ui-forja; GAP-OPD-UIFORJA-08* en su §22). Todo cambio visual debe pasar `cd app && bun run design:governance`.
 
@@ -126,13 +127,15 @@ Ejecutar un solo test: `bun test src/modelo/abanicos.test.ts` (unit) o `bunx pla
 
 **Trigger hacia el coproducto tagged de selección (refactor A → B)**: `OpmStore` usa tres campos paralelos `seleccionId / enlaceSeleccionId / estadoSeleccionId`, sellados por invariante de exclusividad mutua en `setSeleccionPorTipo`. Al introducir un cuarto tipo seleccionable, migrar antes: reemplazar los tres campos por `seleccion: { tipo: KindSeleccion; id: Id } | null` discriminado, con adaptadores backwards-compat. Fundamento (`urn:fxsl:kb:icas-universales`): el coproducto tagged es universal; N campos paralelos escalan el invariante a O(N²); el discriminado lo mantiene en O(1).
 
+**Trigger hacia especie discriminada (3er flag de especie)**: el record de persistencia lleva hoy **dos** booleanos de especie — `esBiblioteca` + `esApunte` (excluyentes, sellados en `workspace.ts::marcarBiblioteca`/`marcarApunte`). Dos booleanos son correctos (el flag aditivo es el patrón bueno); **al introducir un TERCER flag de especie**, migrar antes: reemplazar `esBiblioteca`+`esApunte` → `especie: 'modelo' | 'biblioteca' | 'apunte' | ...` discriminado, con adaptadores backwards-compat. Fundamento idéntico (coproducto tagged O(1) vs N booleanos paralelos O(N²)); el invariante de exclusión mutua ya escrito hace la migración trivial. NO refactorizar antes del trigger.
+
 ## Épicas descartadas
 
 EPICA-70 (Importación OPCAT 4.2) y EPICA-91 (Modo tutorial). No proponer en rondas ni briefs.
 
 ## Deploy y convenciones
 
-**Deploy**: `docker compose up -d --build` desde raíz (`VITE_ENABLE_BUG_CAPTURE=true`). Contenedores `opforja` + `opforja-bug-capture` sobre red Traefik `web`, TLS `certresolver=myresolver`. Procedimiento completo en `docs/deploy/opforja.md`. Instancia actualmente pública (Basic Auth retirado); para re-proteger, ver `docs/HANDOFF.md`.
+**Deploy**: `docker compose up -d --build` desde raíz (`VITE_ENABLE_BUG_CAPTURE=true`). 4 contenedores sobre red Traefik `web`: `opforja` (app) · `opforja-model-api` (backend) · `opforja-bug-capture` · `opforja-postgres` (persistencia), TLS `certresolver=myresolver`. Procedimiento completo en `docs/deploy/opforja.md`. Instancia actualmente pública (Basic Auth retirado); para re-proteger, ver `docs/HANDOFF.md`.
 
 **Convenciones**:
 - Idioma: español (es-CL) para documentación, comunicación y vocabulario del dominio OPM en el código (entidades, operaciones, tipos del modelo — ej. `formarAbanico`, `commitModelo`, `OpmStore`); inglés para identificadores de infraestructura (stack, dependencias, utilidades) y comandos de shell.

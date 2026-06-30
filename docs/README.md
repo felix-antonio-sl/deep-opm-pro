@@ -58,8 +58,8 @@ docs/
 │   ├── 2026-06-14-invocacion-implicita-bimodal-design.md
 │   └── 2026-06-15-orden-inzoom-canvas-sync-design.md
 │
-├── superpowers/                 ← spec gobernante del compuesto + planes TDD archivados
-│   ├── specs/2026-06-22-compuesto-opforja-design.md   ← diseño aprobado, vivo
+├── superpowers/                 ← diseños de frentes activos + planes TDD archivados
+│   ├── specs/                   ← un diseño por frente en curso/reciente (ver carpeta, crece por corte)
 │   └── plans/                   ← planes de ejecución TDD archivados
 │
 ├── reference/                   ← referencia histórica del decommission (opmodel/opm-model-app, 2026-06-22); ver PROCEDENCIA.md

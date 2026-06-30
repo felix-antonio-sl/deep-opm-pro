@@ -69,7 +69,7 @@ Roadmap canónico: `docs/roadmap/cortes.md` (tramos C-cordón · E-expresión ·
 2. **Tramo C restante del compuesto**: ~~C1 version-match~~ **✅ RESUELTO 2026-06-24** (lee el `version` del sello del cuerpo del deploy; `bun run cordon:skill` en `gate:refactor`). **D3 skill re-sync**: propuesta upstream **redactada** (`docs/solicitudes-upstream/2026-06-24-d3-resync-skill-modelamiento-opm.md`: re-sync a versiones vivas 1.4.1/1.1.2/1.2.2/1.5.1 + bump **v1.11.0** —re-secuenciado 2026-06-30: el modo apunte tomó v1.10.0— + bloque «Límites de la mesa» **parcialmente obsoleto** —el bullet gist-anchor «no implementado» ya no es cierto tras la PUERTA+C4—) — **pendiente HITL custodio-kora**. **D8 Ola B**: **DIFERIDA 2026-06-24** — spike de byte-identidad negativo (`tokens.ts` es artefacto de ingeniería, no derivado mecánico) y el «espejo verificado» ya existe en X-OlaA (`design-governance-audit.mjs:181-214` valida coherencia de valores). Detalle: `docs/roadmap/cortes.md` (X-OlaB).
 3. **Auth/tenants v2**: invitaciones, roles efectivos (la membresía `opforja_account_tenants` ya existe con `rol`), UI de administración, multiusuario por tenant. Diferido hasta demanda nombrada (horizonte 1-3 meses para artefactos derivados DT/hospital/GOREOS).
 4. **Transporte familia-V→skill**: 12 reglas requiere-decisión restantes (legacy estable, sin corte agendado). **No tocar `mapearFamiliaV` sin decisión del operador.** Las retiradas (V3/V4/V5/V7 + colas `cuando`/`según`) rechazan ruidoso; el método está fijado por el spike (¿OPM nuclear → modelar estricto; o meta/pendiente → `[RATIFICAR]`/legacy?).
-5. **Frentes UX diferidos**: F1.9 responsive canónico de la barra de simulación (1 sesión, blast 3-4 archivos) · F1.21 barra en mobile-no-readonly (1 archivo) · F1.22 panel ayuda `?` (1 sesión).
+5. **Frentes UX diferidos**: F1.9 responsive canónico de la barra de simulación (1 sesión, blast 3-4 archivos) · F1.21 barra en mobile-no-readonly (1 archivo) · F1.22 panel ayuda `?` (1 sesión) · M-3..M-6/m-1..m-6 de `docs/auditorias/2026-06-12-auditoria-ux-jobs.md` (solo C-1+M-1/M-2 se ejecutaron; el resto sigue pendiente, sin corte agendado).
 6. **GAPs §22** de `spec-forja-opd-es`: frente con agenda propia.
 7. **Deuda categorial O(N²)**: coproducto tagged de selección (ver abajo). Se paga **solo** si un corte introduce un 4º tipo seleccionable.
 
@@ -83,16 +83,11 @@ Roadmap canónico: `docs/roadmap/cortes.md` (tramos C-cordón · E-expresión ·
 - **Clasificación de dominio vía ontología/tags, no estereotipos de §10** (2026-06-11): los 7 estereotipos §10.1.1 descartados como lote; explorar clasificación consultable barata primero.
 - **Cristalización del compuesto OpForja** (2026-06-22, spec `docs/superpowers/specs/2026-06-22-compuesto-opforja-design.md`): 5 órganos (kora-pneuma SSOT · app · docs · skill · metodología/manual) que co-evolucionan. 5 decisiones de autoridad resueltas por consenso pleno (spec §5). Tramos C/E/X.
 - **`kora-pneuma` = SSOT inmutable de solo lectura**; todo working-artifact vive en este repo. Toda decisión de autoridad o duda → consenso deliberativo, no al operador.
+- **Onboarding sin asistente ni contenido precargado** (2026-05-26, auditoría Jobs+IFML, historia git): Opforja abre en un modelo vacío si no hay trabajo persistido; no existe asistente, ejemplos, fixtures demostrativos, modelos sandbox, banner de bienvenida ni `System Diagram` como primer estado; la app enseña por estructura, no por tutorial. P0 implementado y protegido por test de regresión (`app/src/ui/CommandPalette.test.ts`).
 
-## Deuda categorial activa
+## Deuda categorial activa y épicas descartadas
 
-**Trigger hacia coproducto tagged de selección (refactor A → B)**: `OpmStore` usa tres campos paralelos `seleccionId / enlaceSeleccionId / estadoSeleccionId`, sellados por invariante de exclusividad mutua en `setSeleccionPorTipo`. Al introducir un cuarto tipo seleccionable, migrar antes: reemplazar por `seleccion: { tipo: KindSeleccion; id: Id } | null` discriminado, con adaptadores backwards-compat. Fundamento (`urn:fxsl:kb:icas-universales`): el coproducto tagged es universal; N campos paralelos escalan el invariante a O(N²); el discriminado lo mantiene en O(1).
-
-**Trigger hacia especie discriminada (3er flag de especie)**: el record de persistencia lleva hoy **dos** booleanos de especie — `esBiblioteca` + `esApunte` (excluyentes, sellados en `workspace.ts::marcarBiblioteca`/`marcarApunte`). Dos booleanos son correctos (el flag aditivo es el patrón bueno); **al introducir un TERCER flag de especie**, migrar antes: reemplazar `esBiblioteca`+`esApunte` → `especie: 'modelo' | 'biblioteca' | 'apunte' | ...` discriminado, con adaptadores backwards-compat. Fundamento idéntico (coproducto tagged O(1) vs N booleanos paralelos O(N²)); el invariante de exclusión mutua ya escrito hace la migración trivial. NO refactorizar antes del trigger.
-
-## Épicas descartadas
-
-EPICA-70 (Importación OPCAT 4.2) y EPICA-91 (Modo tutorial). No proponer en rondas ni briefs.
+Contenido movido a `CLAUDE.md` §Deuda categorial activa / §Épicas descartadas (gobernanza permanente, no estado operativo del momento — vive en la SSOT única para evitar que dos copias diverjan).
 
 ## Riesgos activos
 

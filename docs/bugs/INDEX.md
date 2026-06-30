@@ -16,17 +16,16 @@ cd app && bun run bug:index
 
 | Estado | Cantidad |
 |---|---:|
-| Nuevo | 2 |
+| Nuevo | 1 |
 
 ## Resumen Por Tipo
 
 | Tipo | Cantidad |
 |---|---:|
-| Bug | 2 |
+| Bug | 1 |
 
 ## Activos
 
 | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---:|---|
 | Bug | Nuevo | [BUG-20260605T032425Z-422d7d](BUG-20260605T032425Z-422d7d/report.md) | 2026-06-05 03:24Z | Modelo copia / SD | que las pills/capsulas de los estados dentro de los objetos se puedan mover y relocalizar | Pendiente. | 0 |  |
-| Bug | Nuevo | [BUG-20260603T193134Z-f314c4](BUG-20260603T193134Z-f314c4/report.md) | 2026-06-03 19:31Z | HODOM completo v1.6 / SD0-C - Hospitalizacion en domicilio | El generador OPL no verbaliza la transición de estados de un efecto TS3 compacto: todo enlace efecto con estadoEntradaId/estadoSalidaId se emite como… | Pendiente. | 0 |  |

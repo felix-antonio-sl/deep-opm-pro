@@ -14,6 +14,21 @@ Traefik fue retirado previamente; no guardar contrasenas en claro en este repo.
 > modelador (entrar, crear, guardar, respaldar, exportar PNG) ver
 > `docs/uso-productivo.md`.
 
+## Carpeta `deploy/` (raíz del repo)
+
+Infraestructura versionada, distinta de este `docs/deploy/` (que es el runbook).
+Contenido:
+
+- `nginx.conf`: rate-limiting (blindaje 2026-06-06) — el `Dockerfile` la copia a
+  `/etc/nginx/conf.d/default.conf` de la imagen `opforja`. No se edita en el
+  contenedor; se edita aquí y se reconstruye con `docker compose up -d --build`.
+- `backup-opforja-db.sh` + `systemd/opforja-db-backup.{service,timer}`: backup
+  diario `pg_dump` de `opforja-postgres` (retención 14 días, 03:30
+  America/Santiago). Instalación e instrucciones de restauración documentadas
+  como comentario de cabecera en el propio script; en resumen:
+  `cp deploy/systemd/opforja-db-backup.{service,timer} ~/.config/systemd/user/ && systemctl --user daemon-reload && systemctl --user enable --now opforja-db-backup.timer`.
+  Si se reconstruye el host, reinstalar el timer con ese mismo comando.
+
 ## Patrón Operativo
 
 Este deploy replica el patron usado por `hdos-app`: `docker-compose.yml` local,
@@ -214,9 +229,11 @@ No usar `docker compose down -v` salvo que se quiera borrar la base de datos.
 
 ## Limites
 
-- No hay auth de aplicacion, roles ni login multiusuario. Hay ownership
-  operativo por tenant anonimo firmado en cookie HTTP-only; si se pierde la
-  cookie del navegador, se pierde el acceso directo a ese tenant.
+- Auth v1 es single-operator: login obligatorio, pero sin roles ni
+  multiusuario por tenant (ver § Cuentas y login). Ownership vía cookie
+  HTTP-only firmada (`opforja_session`, 30 días); si se pierde la sesión,
+  el acceso se recupera con la contraseña de la cuenta (no hay recuperación
+  por cookie anónima — ese esquema quedó retirado en auth v1, 2026-06-10).
 - La instancia esta publica mientras `opforja-auth@docker` no este aplicado.
 - El storage del navegador no es parte del plan de respaldo; el respaldo
   portable sigue siendo el JSON descargado o el backup de Postgres.

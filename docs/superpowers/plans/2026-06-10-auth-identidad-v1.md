@@ -1,5 +1,9 @@
 # Auth/identidad v1 — Implementation Plan
 
+> **DESPLEGADO 2026-06-10, en producción.** Plan TDD archivado (histórico de ejecución); las
+> casillas quedaron sin marcar en el archivo pero el corte está operativo — ver
+> `docs/HANDOFF.md` y `docs/specs/auth-identidad-v1.md` (estado vigente).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Identidad durable single-operator: login email+password obligatorio en prod sobre el handler de persistencia existente, con CLI de cuentas y adopción de tenants anónimos. Spec: `docs/specs/auth-identidad-v1.md`.

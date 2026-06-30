@@ -179,13 +179,15 @@ importar/exportar JSON, exportar PNG, atajos, límites de sesión) vive en
 - **Exportación y persistencia**: el bundle JSON conserva hechos, identidad, OPDs,
   OPL y trazas para rehidratar/auditar. Una imagen sola comunica, pero no sustituye
   el bundle canónico.
-- **Vitrina de estereotipos**: galería de estereotipos injertables (objetos, enlaces,
-  patrones compuestos) más el guardado de una selección como estereotipo reusable. Un
-  estereotipo es una marca de modelado **meta** (no emite OPL nuclear; se rotula
-  `<<Nombre>>` en canvas) y/o una **plantilla de subgrafo OPM** que se clona-e-injerta
-  como cosas+enlaces reales. La realización visual la gobierna
-  `urn:fxsl:kb:spec-forja-opd-es` (R-VIS-STEREO-1, propuesta vigente en
-  `docs/solicitudes-upstream/`); ver §9.
+- **Piezas**: superficie que trae al lienzo una entidad de una biblioteca designada
+  (`esBiblioteca`), decidiendo en el gesto **Calcar** (copia desacoplada, default) o
+  **Anclar** (referencia viva vigilada por el Centinela de Drift — chip de 3 estados
+  en el lienzo: al-día / `?` no-resuelto / `⟳` divergente). Internamente el campo de
+  modelo sigue llamándose `Entidad.estereotipoId` (marca **meta** que no emite OPL
+  nuclear, se rotula `<<Nombre>>` en canvas) — el renombre D6→Calco es interno,
+  pendiente; la superficie y el gesto visibles ya dicen "Piezas"/"Calcar"/"Anclar".
+  La realización visual la gobierna `urn:fxsl:kb:spec-forja-opd-es` (R-VIS-STEREO-1,
+  propuesta vigente en `docs/solicitudes-upstream/`); ver §9.
 
 ### 4. Construir un modelo desde cero
 
@@ -361,16 +363,22 @@ crítica, control loop, estados ortogonales, composición por interfaz, configur
 y tradeoffs, digital twin. Cada patrón publicable cita sus reglas propietarias por
 URN, no las copia.
 
-**Estereotipos y vitrinas** son el vehículo para empaquetar y reusar estos patrones.
-Un estereotipo es: (a) una **marca meta** sobre una cosa (p.ej. `requirement` de
-fábrica) que se rotula `<<Nombre>>` en canvas (DEBE) y es opcional en OPL (PUEDE,
-R-VIS-STEREO-1); y/o (b) una **plantilla de subgrafo OPM** (cosas+estados+enlaces con
-un ancla) que se **clona-e-injerta** creando identidad fresca e independiente. La
-vitrina los ofrece agrupados (objetos / enlaces / patrones compuestos); guardar una
-selección como estereotipo es el gesto de curaduría del conocedor de dominio. NO hay
-estereotipos de enlace (sería una sexta familia encubierta). El estereotipo es
-contenido meta del autor (mismo estatuto que las anclas normativas): no cuenta como
-cosa ni altera la validación nuclear. Autoridad: `urn:fxsl:kb:spec-forja-opd-es`.
+**Piezas** son el vehículo para empaquetar y reusar estos patrones. Una Pieza es: (a)
+una **marca meta** sobre una cosa (p.ej. `requirement` de fábrica) que se rotula
+`<<Nombre>>` en canvas (DEBE) y es opcional en OPL (PUEDE, R-VIS-STEREO-1); y/o (b)
+una **plantilla de subgrafo OPM** (cosas+estados+enlaces con un ancla) que se
+**Calca** (clona-e-injerta, creando identidad fresca e independiente) o se **Ancla**
+(referencia viva a la biblioteca, vigilada por el Centinela de Drift — vecindad
+RADIO-1: la entidad-pieza + sus estados + sus enlaces incidentes). La superficie
+«Piezas» las ofrece agrupadas por modelo-biblioteca fuente; guardar una selección
+como Pieza reusable es el gesto de curaduría del conocedor de dominio. NO hay
+Piezas de enlace (sería una sexta familia encubierta). La Pieza es contenido meta
+del autor (mismo estatuto que las anclas normativas): no cuenta como cosa ni altera
+la validación nuclear. Soltar (Δ→Σ, de Anclaje a Calco) es irreversible: pierde la
+vigilancia de drift. Autoridad: `urn:fxsl:kb:spec-forja-opd-es`. Nominación propia
+ratificada en `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`
+(OpForja no usa «Template/Stereotype»; internamente el campo sigue siendo
+`Entidad.estereotipoId`, renombre D6→Calco pendiente).
 
 ---
 
@@ -484,3 +492,4 @@ puentes: se resuelven por su ubicación canónica en KORA (`artefactos/conocimie
 | --- | --- |
 | 2026-06-22 | Manual integrado al repo (corte D4 / decisión D-MANUAL): consolidación de los dos shards de la bestia en un solo documento delgado y derivado, con doble pista (humano §3-§5 + agente §A) sobre tronco común, citas por URN sin transcripción, §L derivada del registro de conformidad y testigo de cierre `manual:limites`. |
 | 2026-06-22 | Corte D6 (estereotipos + vitrinas): §3 suma la vitrina de estereotipos; §9 suma estereotipos/plantillas como vehículo de patrones reusables (marca meta `<<Nombre>>` + plantilla de subgrafo clonada-e-injertada; sin estereotipos de enlace). Cita R-VIS-STEREO-1 por URN; propuesta a custodio-kora en `docs/solicitudes-upstream/2026-06-22-estereotipos-vitrinas-ssot-skill.md`. |
+| 2026-06-30 | Nominación propia + gesto de anclar — la PUERTA (desplegado): §3 y §9 actualizados de "Vitrina de estereotipos"/"plantilla" a **Piezas** (Calcar/Anclar/Soltar, Centinela de Drift con vecindad RADIO-1 desde C4); el campo interno sigue siendo `Entidad.estereotipoId` (renombre D6→Calco pendiente). Nominación ratificada en `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; detalle del corte en `docs/HANDOFF.md` §Frentes abiertos 1. |

@@ -60,4 +60,4 @@ El check **version-match** del cordón (C1) vive **en deep-opm-pro** (`app/scrip
 
 ## Verificación de cierre (cuando se aplique)
 
-Tras la re-emisión: el sello del deploy declara `version: 1.10.0`; el anclaje canónico cita las 4 versiones vivas; existe el bloque «Límites de la mesa». En deep-opm-pro, actualizar `CORDON_SKILL_ESPERADO` (`app/src/canon/selloSkill.ts`) a `v1.10.0` + nuevo `hash-fuente` — el gate `cordon:skill` rompe si el deploy queda en v1.9.0 (deploy stale), forzando la actualización consciente.
+Tras la re-emisión: el sello del deploy declara `version: 1.11.0` (re-secuenciado 2026-06-30, ver nota de Actualización arriba — el modo apunte tomó v1.10.0); el anclaje canónico cita las 4 versiones vivas; existe el bloque «Límites de la mesa». En deep-opm-pro, actualizar `CORDON_SKILL_ESPERADO` (`app/src/canon/selloSkill.ts`) a `v1.11.0` + nuevo `hash-fuente` — el gate `cordon:skill` rompe si el deploy queda en `v1.10.0` (deploy stale), forzando la actualización consciente.

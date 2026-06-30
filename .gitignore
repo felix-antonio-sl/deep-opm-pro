@@ -20,6 +20,7 @@ app/bun.lockb
 app/*.tsbuildinfo
 app/test-results/
 app/playwright-report/
+/test-results/
 
 # Reportes de auditoria generados; la memoria versionada vive en docs/HANDOFF.md
 docs/REPORTE-EJECUTIVO.md

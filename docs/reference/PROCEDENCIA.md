@@ -4,7 +4,7 @@ Material de **referencia histórica** absorbido durante el decommission de los
 repos legados `opmodel` y `opm-model-app` (2026-06-22). `deep-opm-pro` (opforja)
 es su sucesor operacional. Estos documentos se conservan **verbatim** como
 referencia arquitectónica; **no son canon**. El canon OPM vivo está en
-`docs/canon-opm/` (symlinks a `~/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/`).
+`docs/canon-opm/` (documentos puente con frontmatter propio, no symlinks; fuente real en `~/kora-pneuma/artefactos/conocimiento/fxsl/`, ver `docs/canon-opm/resolutor-urn.json`).
 
 > Naturaleza: copia de solo-lectura. Si un documento contradice el canon o el
 > código actual de opforja, **manda el canon y el código**, no esta referencia.
