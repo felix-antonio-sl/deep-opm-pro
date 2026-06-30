@@ -166,7 +166,9 @@ for (const [eje, datos] of Object.entries(ejes)) {
       // …y el resolutor de hash vivo construye un driftMap donde AMBOS aparecen, sincronizados
       // contra la biblioteca viva (su firma == frozenAtHash re-congelado al anclar).
       const modelo = fundir(`combinado-${eje}`, sd0A, sd0B);
-      const resolver = construirResolverHashVivo({ [biblioteca.id]: HASH_VIVO_OPFORJA });
+      // El resolutor recibe la biblioteca HIDRATADA (no su hash); como los SD0 anclan a grano
+      // biblioteca (sin frozenAtPieza), `firmaVivaAnclaje` computa `firmaBiblioteca(biblioteca)` == HASH_VIVO_OPFORJA.
+      const resolver = construirResolverHashVivo({ [biblioteca.id]: biblioteca });
       const drift = evaluarDriftModelo(modelo, resolver);
       expect(drift[idA]).toBe("sincronizado");
       expect(drift[idB]).toBe("sincronizado");
@@ -176,7 +178,7 @@ for (const [eje, datos] of Object.entries(ejes)) {
     test("2) GATE DURO Calco-adversarial — cosas CALCADAS no entran al driftMap (nunca producen marca)", () => {
       // Mismo estereotipoId, SIN anclaje: el Centinela NO vigila copias muertas.
       const modeloCalco = fundir(`calco-${eje}`, sd0Acalco, sd0Bcalco);
-      const resolver = construirResolverHashVivo({ [biblioteca.id]: firmaBiblioteca(biblioteca) });
+      const resolver = construirResolverHashVivo({ [biblioteca.id]: biblioteca });
       const drift = evaluarDriftModelo(modeloCalco, resolver);
       // Ninguna entidad calcada aparece: composabilidad-por-anclaje NO existe para el Calco.
       expect(Object.keys(drift)).toHaveLength(0);
@@ -204,8 +206,8 @@ for (const [eje, datos] of Object.entries(ejes)) {
       expect(h2).not.toBe(h1); // la mutación cambia la firma
 
       const modelo = fundir(`combinado-${eje}`, sd0A, sd0B);
-      // Resolutor que ve la biblioteca MUTADA (hash vivo = h2) frente al frozenAtHash = h1.
-      const resolver = construirResolverHashVivo({ [biblioteca.id]: h2 });
+      // Resolutor que ve la biblioteca MUTADA (su firma viva == h2) frente al frozenAtHash = h1.
+      const resolver = construirResolverHashVivo({ [biblioteca.id]: bibliotecaMutada });
       const drift = evaluarDriftModelo(modelo, resolver);
       expect(drift[idA]).toBe("divergente");
       expect(drift[idB]).toBe("divergente");
@@ -228,9 +230,9 @@ describe("LEY ANCLAJE — invariancia al EJE: el veredicto no depende de la form
       const modelo = fundir(`combinado-${eje}`, sd0A, sd0B);
 
       // Biblioteca viva == congelada ⇒ sincronizado en ambos ejes.
-      const sync = construirResolverHashVivo({ [biblioteca.id]: HASH_VIVO_OPFORJA });
+      const sync = construirResolverHashVivo({ [biblioteca.id]: biblioteca });
       const driftSync = evaluarDriftModelo(modelo, sync);
-      // Biblioteca irresoluble (null) ⇒ no-resuelto en ambos ejes (sin inventar divergencia).
+      // Biblioteca irresoluble (mapa vacío ⇒ null) ⇒ no-resuelto en ambos ejes (sin inventar divergencia).
       const noResuelto = construirResolverHashVivo({});
       const driftNR = evaluarDriftModelo(modelo, noResuelto);
 

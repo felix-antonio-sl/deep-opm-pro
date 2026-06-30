@@ -174,6 +174,10 @@ export {
   evaluarDriftEntidad,
   evaluarDriftModelo,
   firmaBiblioteca,
+  firmaPieza,
+  firmaVivaAnclaje,
+  granularidadAnclaje,
+  CENTINELA_PIEZA_AUSENTE,
   reSincronizarAnclaje,
   soltarAnclaje,
 } from "./operaciones/anclaje";

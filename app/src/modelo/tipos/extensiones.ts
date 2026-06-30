@@ -265,6 +265,16 @@ export interface BibliotecaRef {
 export interface Anclaje {
   piezaId: Id;
   biblioteca: BibliotecaRef;
+  /**
+   * Drift GRANULAR a nivel de PIEZA (C4). Campo ADITIVO y OPCIONAL: su sola PRESENCIA decide el
+   * grano del Centinela. Congela la firma de la VECINDAD RADIO-1 de la Pieza (la entidad-pieza +
+   * sus estados + sus enlaces incidentes + abanicos que intersecten), no de la biblioteca entera.
+   * Ausente ⇒ grano legacy de-biblioteca (`biblioteca.frozenAtHash`, REQUERIDO e intacto): una
+   * mutación en CUALQUIER pieza de la biblioteca dispara drift. Presente ⇒ solo la vecindad de la
+   * Pieza dispara drift; el ruido «toda la biblioteca cambió» se apaga. Rollback = dejar de
+   * poblarlo ⇒ todo cae a grano biblioteca. Ratificado: spec del frente Anclaje (C4).
+   */
+  frozenAtPieza?: string;
 }
 
 /**

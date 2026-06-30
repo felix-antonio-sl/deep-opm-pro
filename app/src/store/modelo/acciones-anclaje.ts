@@ -17,6 +17,8 @@ import {
   clonarEntidadConIdFresco,
   evaluarDriftModelo,
   firmaBiblioteca,
+  firmaPieza,
+  firmaVivaAnclaje,
   reSincronizarAnclaje,
   soltarAnclaje,
 } from "../../modelo/operaciones";
@@ -29,17 +31,20 @@ import type { ModeloSlice } from "../tipos";
 
 /**
  * Fábrica PURA del resolutor de hash vivo que consume el kernel (`evaluarDriftModelo`).
- * Dado un mapa `modeloId → hashVivo|null` (lo que el caller resolvió contra el backend),
- * devuelve la función que el kernel inyecta: `(anclaje) => hashVivo de su biblioteca`.
- * `null` si esa biblioteca no se pudo resolver ⇒ el kernel reporta `no-resuelto` (no inventa).
+ * Dado un mapa `modeloId → Modelo|null` (las bibliotecas HIDRATADAS que el caller leyó del backend),
+ * devuelve la función que el kernel inyecta: `(anclaje) => firma viva de su biblioteca AL GRANO del
+ * anclaje`. Delega en `firmaVivaAnclaje` (kernel): grano biblioteca ⇒ `firmaBiblioteca`; grano pieza
+ * ⇒ `firmaPieza` (vecindad RADIO-1) o el centinela de pieza-ausente; biblioteca `null` ⇒ `null`
+ * (no-resuelto). El mapa pasa de hash a Modelo porque DOS anclajes a la MISMA biblioteca con piezas
+ * distintas necesitan hashes vivos DISTINTOS (la firma se computa por-anclaje, no por-biblioteca).
  *
- * Es el corazón puro y testeable de `cargarYEvaluarDrift`: la ley falsable del fixture
- * (`src/leyes/anclaje-composabilidad.test.ts`) lo ejercita sin tocar la red.
+ * Es el corazón puro y testeable de `cargarYEvaluarDrift`: las leyes del fixture
+ * (`src/leyes/anclaje-composabilidad.test.ts`, `anclaje-pieza-grano.test.ts`) lo ejercitan sin red.
  */
 export function construirResolverHashVivo(
-  hashesVivos: Record<Id, string | null>,
+  bibliotecasVivas: Record<Id, Modelo | null>,
 ): (anclaje: Anclaje) => string | null {
-  return (anclaje) => hashesVivos[anclaje.biblioteca.modeloId] ?? null;
+  return (anclaje) => firmaVivaAnclaje(anclaje, bibliotecasVivas[anclaje.biblioteca.modeloId] ?? null);
 }
 
 /** modeloId únicos de las bibliotecas ancladas en el modelo (orden de aparición, sin repetir). */
@@ -57,18 +62,20 @@ function bibliotecasAncladas(modelo: Modelo): Id[] {
 }
 
 /**
- * Resuelve el hash VIVO de UNA biblioteca contra el backend PERSISTIDO. Cualquier fallo
- * (no habilitado, no encontrado, red, hidratación inválida) ⇒ `null` (no se inventa estado).
- * El drift se mide contra lo que el backend tiene guardado, NUNCA contra runtime de otra
- * pestaña (acta de arranque, refuerzo #2).
+ * Carga UNA biblioteca HIDRATADA contra el backend PERSISTIDO. Cualquier fallo (no habilitado, no
+ * encontrado, red, hidratación inválida) ⇒ `null` (no se inventa estado). El drift se mide contra lo
+ * que el backend tiene guardado, NUNCA contra runtime de otra pestaña (acta de arranque, refuerzo #2).
+ *
+ * Devuelve el `Modelo` completo (no solo su hash) porque el grano PIEZA (C4) exige computar
+ * `firmaPieza(biblioteca, piezaId)` por-anclaje: el hash agregado de biblioteca ya no basta.
  */
-async function resolverHashVivoBackend(modeloId: Id): Promise<string | null> {
+async function cargarBibliotecaViva(modeloId: Id): Promise<Modelo | null> {
   if (!persistenciaBackendHabilitada()) return null;
   const cargado = await cargarModeloBackend(modeloId);
   if (!cargado.ok) return null;
   const hidratado = hidratarModelo(cargado.value.json);
   if (!hidratado.ok) return null;
-  return firmaBiblioteca(hidratado.value);
+  return hidratado.value;
 }
 
 export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSlice> {
@@ -82,31 +89,36 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
         set({ driftMap: {} });
         return;
       }
-      const hashesVivos: Record<Id, string | null> = {};
+      const bibliotecasVivas: Record<Id, Modelo | null> = {};
       await Promise.all(
         modeloIds.map(async (modeloId) => {
-          hashesVivos[modeloId] = await resolverHashVivoBackend(modeloId);
+          bibliotecasVivas[modeloId] = await cargarBibliotecaViva(modeloId);
         }),
       );
       // El modelo pudo cambiar mientras resolvíamos; re-leemos para barrer el vigente.
-      const driftMap = evaluarDriftModelo(get().modelo, construirResolverHashVivo(hashesVivos));
+      const driftMap = evaluarDriftModelo(get().modelo, construirResolverHashVivo(bibliotecasVivas));
       set({ driftMap });
     },
 
     async reSincronizarAnclajeEntidad(id: Id): Promise<void> {
       const { modelo } = get();
       const entidad = modelo.entidades[id];
-      const modeloIdBiblioteca = entidad?.anclaje?.biblioteca.modeloId;
-      if (!modeloIdBiblioteca) {
+      const anclaje = entidad?.anclaje;
+      if (!anclaje) {
         set({ mensaje: "La cosa no está anclada a ninguna biblioteca" });
         return;
       }
-      const hashVivo = await resolverHashVivoBackend(modeloIdBiblioteca);
-      if (hashVivo === null) {
+      const biblioteca = await cargarBibliotecaViva(anclaje.biblioteca.modeloId);
+      if (biblioteca === null) {
         set({ mensaje: "No se pudo leer la biblioteca para re-sincronizar" });
         return;
       }
-      const resultado = reSincronizarAnclaje(get().modelo, id, hashVivo);
+      const hashVivo = firmaBiblioteca(biblioteca);
+      // Re-sync SUBE EL GRANO (C4): congela la firma viva de la Pieza ⇒ moderniza un anclaje legacy
+      // a grano pieza. `?? undefined` ⇒ si la Pieza ya no existe, no se escribe `frozenAtPieza` (no
+      // se modela una pieza fantasma); el frozen de biblioteca igual se refresca al hash vivo.
+      const frozenAtPiezaVivo = firmaPieza(biblioteca, anclaje.piezaId) ?? undefined;
+      const resultado = reSincronizarAnclaje(get().modelo, id, hashVivo, frozenAtPiezaVivo);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
         return;
@@ -168,14 +180,17 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
       modeloId: Id;
       nombre?: string;
     }): Promise<void> {
-      // `frozenAtHash` = firma VIVA de la biblioteca leída del backend persistido
-      // (mismo cálculo del Centinela), no del modelo en runtime: garantiza que el
-      // anclaje arranque sincronizado contra lo que el Centinela comparará luego.
-      const frozenAtHash = await resolverHashVivoBackend(input.modeloId);
-      if (frozenAtHash === null) {
+      // La firma VIVA se congela leyendo la biblioteca del backend PERSISTIDO (mismo cálculo del
+      // Centinela), no del modelo en runtime: garantiza que el anclaje arranque sincronizado contra
+      // lo que el Centinela comparará luego. `frozenAtHash` = firma de biblioteca (REQUERIDA, legacy);
+      // `frozenAtPieza` = firma de la vecindad RADIO-1 de la Pieza (C4): el gesto ya nace a grano pieza.
+      const bibliotecaViva = await cargarBibliotecaViva(input.modeloId);
+      if (bibliotecaViva === null) {
         set({ mensaje: "No se pudo leer la biblioteca para anclar la Pieza" });
         return;
       }
+      const frozenAtHash = firmaBiblioteca(bibliotecaViva);
+      const frozenAtPieza = firmaPieza(bibliotecaViva, input.entidad.id) ?? undefined;
       const { modelo, opdActivoId } = get();
       const posicion = posicionLibre(modelo, opdActivoId, input.entidad.tipo);
       const clon = clonarEntidadConIdFresco(modelo, input.entidad, input.estados, opdActivoId, posicion);
@@ -188,7 +203,7 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
         frozenAtHash,
         ...(input.nombre ? { nombre: input.nombre } : {}),
       };
-      const anclado = anclarAPieza(clon.value.modelo, clon.value.entidadId, biblioteca, input.entidad.id);
+      const anclado = anclarAPieza(clon.value.modelo, clon.value.entidadId, biblioteca, input.entidad.id, frozenAtPieza);
       if (!anclado.ok) {
         set({ mensaje: anclado.error });
         return;

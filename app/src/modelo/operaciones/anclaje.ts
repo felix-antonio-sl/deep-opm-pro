@@ -9,8 +9,10 @@
 // OPL/visual del anclaje (C6/C7) espera doctrina custodio-kora (a); este corte es solo
 // el kernel referencial + su eval-de-mecanismo.
 import type { Anclaje, EstadoDrift, Entidad, Id, Modelo, Resultado, BibliotecaRef } from "../tipos";
-import { firmaSnapshotSubmodelo } from "../submodelos/estado";
+import { firmaSnapshotSubmodelo, firmaPieza } from "../submodelos/estado";
 import { fallo, ok } from "./helpers";
+
+export { firmaPieza };
 
 /**
  * Ancla `entidadId` al tipo `piezaId` de la biblioteca `biblioteca`, como
@@ -24,14 +26,22 @@ export function anclarAPieza(
   entidadId: Id,
   biblioteca: BibliotecaRef,
   piezaId: Id,
+  frozenAtPieza?: string,
 ): Resultado<Modelo> {
   const entidad = modelo.entidades[entidadId];
   if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
+  const anclaje: Anclaje = {
+    piezaId,
+    biblioteca,
+    // ADITIVO (C4): si el caller congela la firma de la VECINDAD de la Pieza, el anclaje nace a grano
+    // pieza. Sin este 5º arg, nace a grano de-biblioteca legacy (`biblioteca.frozenAtHash`).
+    ...(frozenAtPieza !== undefined ? { frozenAtPieza } : {}),
+  };
   return ok({
     ...modelo,
     entidades: {
       ...modelo.entidades,
-      [entidadId]: { ...entidad, anclaje: { piezaId, biblioteca } },
+      [entidadId]: { ...entidad, anclaje },
     },
   });
 }
@@ -56,30 +66,70 @@ export function firmaBiblioteca(biblioteca: Modelo): string {
 }
 
 /**
- * Unidad pura de comparación: el `frozenAtHash` congelado vs el hash vivo. `null`
+ * Unidad pura de comparación: el frozen congelado vs el hash vivo. `null`
  * de hash vivo ⇒ `no-resuelto` (la biblioteca no se pudo leer; no se inventa
- * divergencia ni sincronía).
+ * divergencia ni sincronía). INTACTO: es hash-vs-hash, agnóstico al grano.
  */
 export function evaluarDrift(frozenAtHash: string, hashVivo: string | null): EstadoDrift {
   if (hashVivo === null) return "no-resuelto";
   return hashVivo === frozenAtHash ? "sincronizado" : "divergente";
 }
 
+// --- Granularidad del Centinela (C4) ---------------------------------------
+// La PRESENCIA de `frozenAtPieza` decide el grano. Un único predicado que comparten
+// el lado del FROZEN (qué se congeló) y el lado VIVO (qué se re-computa): si divergen,
+// el Centinela compararía peras con manzanas. SSOT del grano = `granularidadAnclaje`.
+
+/** `"pieza"` si el anclaje congeló `frozenAtPieza` (grano C4); `"biblioteca"` si solo tiene `frozenAtHash`. */
+export function granularidadAnclaje(anclaje: Anclaje): "pieza" | "biblioteca" {
+  return anclaje.frozenAtPieza !== undefined ? "pieza" : "biblioteca";
+}
+
+/** El frozen VIGENTE del anclaje según su grano: `frozenAtPieza` si lo tiene, si no `frozenAtHash`. */
+function frozenDelAnclaje(anclaje: Anclaje): string {
+  return anclaje.frozenAtPieza ?? anclaje.biblioteca.frozenAtHash;
+}
+
+/**
+ * Centinela de «pieza ausente»: hash vivo SENTINELA cuando el grano es pieza, la biblioteca SÍ se
+ * leyó, pero la Pieza ya no existe en ella. NUNCA colisiona con un `fnv1a-xxxxxxxx` ⇒ `evaluarDrift`
+ * da `divergente` (decisión ratificada: pieza borrada ⇒ `divergente`, NO `no-resuelto`; la
+ * biblioteca se leyó, la Pieza desapareció bajo los pies de la cosa anclada — eso es deriva, no
+ * irresolución). NO se inventa un 4º `EstadoDrift`.
+ */
+export const CENTINELA_PIEZA_AUSENTE = "pieza-ausente" as const;
+
+/**
+ * Firma VIVA de un anclaje contra su biblioteca resuelta (o `null` si no se pudo leer). Centraliza
+ * el GRANO + el mapeo de «pieza ausente». Es el corazón puro del resolutor del store:
+ *   · biblioteca `null`            ⇒ `null`                   (no-resuelto: honestidad temporal).
+ *   · grano biblioteca             ⇒ `firmaBiblioteca`        (hash de toda la biblioteca, legacy).
+ *   · grano pieza, pieza presente  ⇒ `firmaPieza`             (hash de la vecindad RADIO-1).
+ *   · grano pieza, pieza AUSENTE   ⇒ `CENTINELA_PIEZA_AUSENTE` (⇒ divergente, ver arriba).
+ */
+export function firmaVivaAnclaje(anclaje: Anclaje, biblioteca: Modelo | null): string | null {
+  if (biblioteca === null) return null;
+  if (granularidadAnclaje(anclaje) === "biblioteca") return firmaBiblioteca(biblioteca);
+  return firmaPieza(biblioteca, anclaje.piezaId) ?? CENTINELA_PIEZA_AUSENTE;
+}
+
 /**
  * Drift de UNA cosa según su anclaje. `null` si la cosa no está anclada (el
- * Centinela no vigila copias locales — solo referencias vivas).
+ * Centinela no vigila copias locales — solo referencias vivas). Grano-aware: compara el frozen
+ * VIGENTE (`frozenDelAnclaje`) contra el `hashVivo`, que el caller debe haber resuelto AL MISMO
+ * GRANO (firma de pieza vs firma de biblioteca) — `firmaVivaAnclaje` garantiza ese acuerdo.
  */
 export function evaluarDriftEntidad(entidad: Entidad, hashVivo: string | null): EstadoDrift | null {
   if (!entidad.anclaje) return null;
-  return evaluarDrift(entidad.anclaje.biblioteca.frozenAtHash, hashVivo);
+  return evaluarDrift(frozenDelAnclaje(entidad.anclaje), hashVivo);
 }
 
 /**
  * Barrido del modelo: estado de drift de cada cosa ANCLADA. Las no ancladas no
- * entran al reporte. `resolverHashVivo` inyecta la lectura de la biblioteca viva
- * (lo provee el caller con acceso a persistencia); recibe el `Anclaje` completo
- * para que un C4 futuro pueda subir la granularidad a pieza-nivel sin cambiar esta
- * firma. Hoy resuelve biblioteca-nivel por `anclaje.biblioteca.modeloId`.
+ * entran al reporte. `resolverHashVivo` inyecta la lectura VIVA de la biblioteca
+ * (lo provee el caller con acceso a persistencia) AL GRANO del anclaje: recibe el `Anclaje`
+ * completo y, vía `firmaVivaAnclaje`, devuelve `firmaPieza` o `firmaBiblioteca` según el grano.
+ * El frozen se elige con el MISMO predicado (`frozenDelAnclaje`) ⇒ pieza-vs-pieza, biblioteca-vs-biblioteca.
  */
 export function evaluarDriftModelo(
   modelo: Modelo,
@@ -88,18 +138,27 @@ export function evaluarDriftModelo(
   const drift: Record<Id, EstadoDrift> = {};
   for (const [id, entidad] of Object.entries(modelo.entidades)) {
     if (!entidad.anclaje) continue;
-    drift[id] = evaluarDrift(entidad.anclaje.biblioteca.frozenAtHash, resolverHashVivo(entidad.anclaje));
+    drift[id] = evaluarDrift(frozenDelAnclaje(entidad.anclaje), resolverHashVivo(entidad.anclaje));
   }
   return drift;
 }
 
 /**
- * Re-sincronizar: el curador acepta el cambio de la biblioteca y re-congela el
- * `frozenAtHash` al hash vivo. Falla ruidoso si la entidad no existe o no está
- * anclada (anti-silencio: no hay anclaje que re-congelar). Aditivo: solo toca
- * `anclaje.biblioteca.frozenAtHash`.
+ * Re-sincronizar: el curador acepta el cambio de la biblioteca y re-congela el frozen al hash vivo.
+ * Falla ruidoso si la entidad no existe o no está anclada (anti-silencio: no hay anclaje que
+ * re-congelar). SIEMPRE refresca `biblioteca.frozenAtHash` con `hashVivo`.
+ *
+ * Grano-aware (C4): si el caller pasa `frozenAtPiezaVivo` (la `firmaPieza` viva de la Pieza),
+ * re-sincronizar TAMBIÉN escribe `anclaje.frozenAtPieza` ⇒ SUBE EL GRANO: un anclaje legacy de
+ * biblioteca queda MODERNIZADO a grano pieza tras re-sincronizar (decisión ratificada). Sin ese arg
+ * (callers legacy de 3 args), el grano no cambia: solo se refresca el `frozenAtHash` de biblioteca.
  */
-export function reSincronizarAnclaje(modelo: Modelo, entidadId: Id, hashVivo: string): Resultado<Modelo> {
+export function reSincronizarAnclaje(
+  modelo: Modelo,
+  entidadId: Id,
+  hashVivo: string,
+  frozenAtPiezaVivo?: string,
+): Resultado<Modelo> {
   const entidad = modelo.entidades[entidadId];
   if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
   if (!entidad.anclaje) return fallo(`Entidad no está anclada: ${entidadId}`);
@@ -112,6 +171,7 @@ export function reSincronizarAnclaje(modelo: Modelo, entidadId: Id, hashVivo: st
         anclaje: {
           ...entidad.anclaje,
           biblioteca: { ...entidad.anclaje.biblioteca, frozenAtHash: hashVivo },
+          ...(frozenAtPiezaVivo !== undefined ? { frozenAtPieza: frozenAtPiezaVivo } : {}),
         },
       },
     },

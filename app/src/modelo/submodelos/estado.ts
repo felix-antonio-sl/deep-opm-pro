@@ -1,5 +1,5 @@
-import type { EstadoCargaSubmodelo, Modelo, SubmodeloReferencia } from "../tipos";
-import { proyectarSemantico } from "./firmaSemantica";
+import type { EstadoCargaSubmodelo, Id, Modelo, SubmodeloReferencia } from "../tipos";
+import { proyectarSemantico, proyectarSemanticoPieza } from "./firmaSemantica";
 
 export function estadoSubmodelo(ref: SubmodeloReferencia): EstadoCargaSubmodelo {
   if (ref.estado === "desconectado") return "desconectado";
@@ -43,6 +43,21 @@ export function refConEstadoDerivado(ref: SubmodeloReferencia): SubmodeloReferen
  */
 export function firmaSnapshotSubmodelo(modelo: Modelo): string {
   return hashFNV1a(JSON.stringify(ordenarJson(proyectarSemantico(modelo))));
+}
+
+/**
+ * Firma de contenido de UNA Pieza de una biblioteca (drift granular C4). Hashea la sub-proyección
+ * de la VECINDAD RADIO-1 (`proyectarSemanticoPieza`: la entidad-pieza + sus estados + sus enlaces
+ * incidentes + abanicos que intersecten), con el MISMO `ordenarJson` + FNV-1a que `firmaSnapshotSubmodelo`
+ * (≡ `firmaBiblioteca`): congelar y comparar usan la misma máquina, ese es el invariante que hace
+ * falsable el drift de pieza. `null` si la Pieza no existe en la biblioteca (el caller mapea «pieza
+ * ausente»). Reusa la partición SSOT (`PARTICION_*`) ⇒ la frontera firmado/excluido de la pieza es la
+ * misma que la de la biblioteca: cero falso-divergente por presentación, igual que el grano grueso.
+ */
+export function firmaPieza(biblioteca: Modelo, piezaId: Id): string | null {
+  const proyeccion = proyectarSemanticoPieza(biblioteca, piezaId);
+  if (proyeccion === null) return null;
+  return hashFNV1a(JSON.stringify(ordenarJson(proyeccion)));
 }
 
 function ordenarJson(value: unknown): unknown {

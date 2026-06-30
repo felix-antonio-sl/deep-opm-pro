@@ -28,6 +28,8 @@ import type {
   Entidad,
   Enlace,
   Estado,
+  ExtremoEnlace,
+  Id,
   Modelo,
   Opd,
 } from "../tipos";
@@ -251,5 +253,66 @@ export function proyectarSemantico(modelo: Modelo): Record<string, unknown> {
     estados: mapRecord(modelo.estados, (s) => proyectar(s, PARTICION_ESTADO)),
     enlaces: mapRecord(modelo.enlaces, (l) => proyectar(l, PARTICION_ENLACE)),
     abanicos: mapRecord(modelo.abanicos ?? {}, proyectarAbanico),
+  };
+}
+
+/** Indexa items con `id` en un `Record` keyado por id (identidad referencial; orden-libre tras `ordenarJson`). */
+function indexarPorId<T extends { id: Id }>(
+  items: T[],
+  f: (v: T) => Record<string, unknown>,
+): Record<string, Record<string, unknown>> {
+  const out: Record<string, Record<string, unknown>> = {};
+  for (const item of items) out[item.id] = f(item);
+  return out;
+}
+
+/** `true` si un extremo de enlace incide en la pieza: la entidad-pieza misma o uno de sus estados. */
+function incideEnPieza(extremo: ExtremoEnlace, piezaId: Id, estadoIds: ReadonlySet<Id>): boolean {
+  return (
+    (extremo.kind === "entidad" && extremo.id === piezaId) ||
+    (extremo.kind === "estado" && estadoIds.has(extremo.id))
+  );
+}
+
+/**
+ * Proyección semántica de la VECINDAD RADIO-1 de una Pieza (C4) — el subset que la firma de PIEZA
+ * hashea. Frontera RATIFICADA por el custodio:
+ *   (a) la entidad-pieza (`piezaId`);
+ *   (b) sus estados (`entidadId === piezaId`);
+ *   (c) sus enlaces incidentes (origen O destino resuelven a la pieza o a uno de sus estados);
+ *   (d) abanicos cuyos `enlaceIds` intersecten esos enlaces incidentes.
+ *
+ * Los VECINOS entran por ID, no por contenido: un enlace incidente trae el id del otro extremo
+ * (campo `firmado` del enlace), pero la entidad vecina NO se proyecta ⇒ renombrar un vecino NO mueve
+ * la firma de la pieza. Reusa `proyectar` + las `PARTICION_*` (misma SSOT que la firma de biblioteca):
+ * una mutación de un campo `firmado` de la pieza / sus estados / un enlace incidente mueve la firma;
+ * una mutación de una pieza AJENA no la toca. Eso es lo que mata el ruido «toda la biblioteca cambió».
+ *
+ * Devuelve `null` si `piezaId` no existe en la biblioteca (lo usa el caller para mapear «pieza
+ * ausente»: el caller decide el veredicto —`divergente`, no `no-resuelto`— porque la biblioteca SÍ
+ * se leyó).
+ */
+export function proyectarSemanticoPieza(biblioteca: Modelo, piezaId: Id): Record<string, unknown> | null {
+  const pieza = biblioteca.entidades[piezaId];
+  if (!pieza) return null;
+
+  const estados = Object.values(biblioteca.estados).filter((s) => s.entidadId === piezaId);
+  const estadoIds = new Set<Id>(estados.map((s) => s.id));
+
+  const enlacesIncidentes = Object.values(biblioteca.enlaces).filter(
+    (l) => incideEnPieza(l.origenId, piezaId, estadoIds) || incideEnPieza(l.destinoId, piezaId, estadoIds),
+  );
+  const enlaceIdsIncidentes = new Set<Id>(enlacesIncidentes.map((l) => l.id));
+
+  const abanicosIncidentes = Object.values(biblioteca.abanicos ?? {}).filter((a) =>
+    a.enlaceIds.some((id) => enlaceIdsIncidentes.has(id)),
+  );
+
+  return {
+    piezaId,
+    pieza: proyectar(pieza, PARTICION_ENTIDAD),
+    estados: indexarPorId(estados, (s) => proyectar(s, PARTICION_ESTADO)),
+    enlaces: indexarPorId(enlacesIncidentes, (l) => proyectar(l, PARTICION_ENLACE)),
+    abanicos: indexarPorId(abanicosIncidentes, proyectarAbanico),
   };
 }

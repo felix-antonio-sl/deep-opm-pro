@@ -229,7 +229,17 @@ function validarAnclaje(entidadId: Id, value: unknown): Resultado<Anclaje> {
   }
   const biblioteca: BibliotecaRef = { modeloId: ref.modeloId.trim(), frozenAtHash: ref.frozenAtHash.trim() };
   if (typeof ref.nombre === "string" && ref.nombre.trim()) biblioteca.nombre = ref.nombre.trim();
-  return ok({ piezaId: value.piezaId.trim(), biblioteca });
+  const anclaje: Anclaje = { piezaId: value.piezaId.trim(), biblioteca };
+  // Grano PIEZA (C4): campo aditivo y opcional; su PRESENCIA sube el grano a la vecindad RADIO-1.
+  // Ausente ⇒ grano de-biblioteca legacy. Si está presente debe ser string no vacío (validación DURA
+  // como el resto). Round-trip: un bundle con/sin `frozenAtPieza` hidrata idéntico.
+  if (value.frozenAtPieza !== undefined) {
+    if (typeof value.frozenAtPieza !== "string" || !value.frozenAtPieza.trim()) {
+      return fallo(`Entidad inválida: ${entidadId}.anclaje.frozenAtPieza`);
+    }
+    anclaje.frozenAtPieza = value.frozenAtPieza.trim();
+  }
+  return ok(anclaje);
 }
 
 function validarOrderedFundamentalTypes(entidadId: Id, value: unknown): Resultado<TipoEnlace[]> {
