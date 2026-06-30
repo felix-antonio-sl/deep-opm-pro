@@ -51,6 +51,28 @@ Para modelar con método desde cero (qué función transforma a quién y
 por qué antes de dibujar nada), seguir el flujo Forja descrito en
 `docs/manual-opforja.md` §2.
 
+## Apuntes — Borradores Sin Rigor
+
+Un **apunte** es un modelo en modo borrador: usa las mismas piezas OPM
+(objetos, procesos, estados, enlaces) y el mismo lienzo, pero **no se le
+exige cerrar** como modelo válido. Sirve para pensar y bocetar sin que la
+validación interrumpa. Relaja el *rigor*, no la *semántica*: sigue siendo
+OPM legítimo, no un dibujo libre.
+
+- **Marcar / graduar**: clic derecho sobre un modelo en la lista →
+  `Marcar como apunte` (o `Graduar a modelo` para volver). Es el mismo
+  gesto en los dos sentidos. Un apunte muestra el distintivo `Apunte`.
+- **Qué cambia**: en un apunte los avisos de **validez** (falta de
+  transformee, nombres pobres, firma de enlaces…) bajan de *bloqueo* a
+  *observación al margen* — no detienen el trabajo. La **integridad** del
+  documento (referencias rotas, enlaces sin extremo) **sigue bloqueando**:
+  un apunte roto no es un borrador legítimo, es un documento roto.
+- **Graduar no deja rastro**: al quitarle la marca, los avisos de validez
+  vuelven a bloquear y el modelo es un modelo más. Las observaciones que
+  quedaron pendientes son el checklist de lo que falta cerrar.
+- **No se mezcla con biblioteca**: un modelo es apunte o biblioteca, no
+  ambos a la vez.
+
 ## Tres Operaciones Diarias
 
 ### Guardar — `Ctrl+S`

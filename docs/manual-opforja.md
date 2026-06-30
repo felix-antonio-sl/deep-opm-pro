@@ -143,6 +143,14 @@ resume su forma:
   "validado" sin decir cuál de los tres niveles. Los barridos de integridad se hacen
   sobre el JSON canónico, no sobre el OPL emitido.
 
+**Apunte (atajo del flujo).** Cuando el propósito es **pensar o bocetar**, no cerrar,
+se puede marcar el modelo como **apunte** (ver `docs/uso-productivo.md` §Apuntes): el
+método sigue siendo OPM legítimo, pero los gates de **validez** de A8 bajan a
+observación al margen en vez de bloquear (la **integridad** estructural nunca se
+relaja). Graduar el apunte a modelo —el mismo gesto en inverso— re-engancha A8 completo
+sin dejar rastro. Es el régimen permisivo de la skill `modelamiento-opm` (§Regimen
+apunte) reflejado en la mesa.
+
 ---
 
 ## Pista-HUMANO

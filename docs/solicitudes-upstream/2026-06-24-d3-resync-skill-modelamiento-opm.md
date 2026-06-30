@@ -1,8 +1,18 @@
-# Solicitud a custodio-kora — D3: re-sync skill `modelamiento-opm` a versiones vivas + bump v1.10.0 + bloque «Límites de la mesa»
+# Solicitud a custodio-kora — D3: re-sync skill `modelamiento-opm` a versiones vivas + bump v1.11.0 + bloque «Límites de la mesa»
 
 **Fecha:** 2026-06-24 · **De:** compuesto opforja (deep-opm-pro) · **Para:** custodio-kora (kora-pneuma)
 **Origen:** corte **D3 / D-SKILL** del compuesto (spec `docs/superpowers/specs/2026-06-22-compuesto-opforja-design.md` §5.1; roadmap `docs/roadmap/cortes.md` «C-skill (D3)»).
 **Naturaleza:** propuesta. La skill es SSOT read-only desde el repo; el compuesto **propone**, la escritura es HITL custodio-kora.
+
+> **Actualización 2026-06-30 (re-secuencia de versión).** El `v1.10.0` originalmente
+> pedido aquí **lo tomó el corte «modo apunte»** (portado a pneuma + re-emitido el
+> 2026-06-30; sello v1.10.0 con `§Regimen apunte` + Regla Dura #28). Esta solicitud D3
+> se re-numera a **`v1.11.0`**. Además, el bloque «Límites de la mesa» (Petición 4)
+> quedó **parcialmente obsoleto**: el bullet de *anclaje referencial cross-modelo
+> (gist-anchor)* como «en diseño, no implementado / hoy hay Plantilla/Template, no
+> anchor vivo» ya **no es cierto** — el gesto de anclar (la PUERTA) y C4 (drift granular
+> a nivel de pieza) se desplegaron el 2026-06-30. Revisar ese bloque contra el estado
+> vigente (`docs/HANDOFF.md`) antes de aplicarlo.
 
 ## Contexto verificado (2026-06-24)
 
@@ -21,9 +31,9 @@ El cuerpo de la skill tiene una sección **«Qué NO hace la app por la skill»*
 
 Adjuntar a cada URN del anclaje canónico la versión viva que la skill consulta hoy: reglas **1.4.1** · opd **1.1.2** · opl **1.2.2** · metodología **1.5.1**. Formato a criterio del custodio (sufijo `(vX.Y.Z)` o columna «versión»). Esto hace legible, en el deploy, contra qué versión de la SSOT se modeló — el testigo que el corte C1 del cordón ya consume del sello.
 
-## Petición 2 — bump de la skill a `v1.10.0`
+## Petición 2 — bump de la skill a `v1.11.0`
 
-`version: 1.9.0 → 1.10.0` en el sello. Cambio menor aditivo (re-sync + bloque nuevo, sin reescritura del método). `hash-fuente` se recalcula en la re-emisión.
+`version: 1.10.0 → 1.11.0` en el sello (la base ya **no** es 1.9.0: el corte «modo apunte» llevó la fuente a v1.10.0 el 2026-06-30). Cambio menor aditivo (re-sync + bloque nuevo, sin reescritura del método). `hash-fuente` se recalcula en la re-emisión.
 
 ## Petición 3 — confirmar (NO reescribir) la alineación del cuerpo con la SSOT viva
 
