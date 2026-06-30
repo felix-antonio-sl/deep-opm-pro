@@ -75,6 +75,10 @@ El paquete deliberado de la auditoría se materializó el 2026-06-14 en
 procedimental — y resoluciones del panel arbitrado por el operador). Este puente
 no copia el canon; consultar la SSOT por la URN.
 
+Versión vigente observada: `1.4.1` (2026-06-16, añade R-INV-2D — frontera
+implícito/explícito de invocación entre subprocesos — y aclara R-IDP-0A). El
+dato vivo lo resuelve `docs/canon-opm/resolutor-urn.json`, no este número.
+
 ## Acceso Rápido
 
 ```bash
