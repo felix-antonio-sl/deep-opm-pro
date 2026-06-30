@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
+import { useOpmStore } from "../store";
 import { useZustandDiagnosticsPort } from "../app/ports/zustandDiagnosticsPort";
 import {
   agruparIssuesDiagnostico,
@@ -49,7 +50,14 @@ export function PanelDiagnostico(props: PanelDiagnosticoProps = {}) {
   const [citaActiva, setCitaActiva] = useState<{ codigo: string; cita: string } | null>(null);
   const [codigoResaltado, setCodigoResaltado] = useState<string | null>(codigoResaltadoGlobal);
 
-  const issues = useMemo(() => derivarIssuesDiagnostico(avisos, navegarAviso), [avisos, navegarAviso]);
+  // Modo apunte: el bit persistido del modelo activo es la única verdad (derivado
+  // del índice, no un estado paralelo — corrección 2). En un apunte la validez OPM
+  // se relaja a observación; la integridad sigue bloqueando (degradación por-clase).
+  const esApunte = useOpmStore((s) => s.indice.modelos.some((m) => m.id === s.modelo.id && m.esApunte === true));
+  const issues = useMemo(
+    () => derivarIssuesDiagnostico(avisos, navegarAviso, { esApunte }),
+    [avisos, navegarAviso, esApunte],
+  );
   const grupos = useMemo(() => agruparIssuesDiagnostico(issues), [issues]);
 
   useEffect(() => {

@@ -20,6 +20,7 @@ export interface ModeloIndice {
   archivadoEn?: string;
   archivadoAuto?: boolean;
   esBiblioteca?: boolean;
+  esApunte?: boolean;
   ultimoUso?: string;
   descripcion?: string;
   autosalvado?: boolean;
@@ -374,7 +375,28 @@ export function marcarBiblioteca(indice: WorkspaceIndice, modeloId: Id, valor: b
     ...indice,
     modelos: indice.modelos.map((modelo) =>
       modelo.id === modeloId
-        ? (valor ? { ...modelo, esBiblioteca: true } : sinBiblioteca(modelo))
+        // Invariante de exclusión (corrección 5): designar biblioteca retira la
+        // designación apunte. Un record no puede ser ambas especies a la vez.
+        ? (valor ? { ...sinApunte(modelo), esBiblioteca: true } : sinBiblioteca(modelo))
+        : modelo,
+    ),
+  };
+}
+
+/**
+ * Modo apunte — designación de especie hermana del modelo (gemelo de
+ * `marcarBiblioteca`). `valor=true` marca el record como apunte (borrador OPM sin
+ * rigor de cierre) y RETIRA la designación biblioteca (exclusión mutua sellada,
+ * corrección 5); `valor=false` retira la designación apunte (omite el flag para
+ * mantener el índice mínimo — promoción a modelo = ausencia, corrección 8). Spec:
+ * docs/superpowers/specs/2026-06-30-modo-apunte-design.md §3.5, §3.8.
+ */
+export function marcarApunte(indice: WorkspaceIndice, modeloId: Id, valor: boolean): WorkspaceIndice {
+  return {
+    ...indice,
+    modelos: indice.modelos.map((modelo) =>
+      modelo.id === modeloId
+        ? (valor ? { ...sinBiblioteca(modelo), esApunte: true } : sinApunte(modelo))
         : modelo,
     ),
   };
@@ -492,6 +514,11 @@ function sinArchivado<T extends { archivado?: boolean; archivadoEn?: string }>(v
 
 function sinBiblioteca(modelo: ModeloIndice): ModeloIndice {
   const { esBiblioteca: _esBiblioteca, ...resto } = modelo;
+  return resto;
+}
+
+function sinApunte(modelo: ModeloIndice): ModeloIndice {
+  const { esApunte: _esApunte, ...resto } = modelo;
   return resto;
 }
 

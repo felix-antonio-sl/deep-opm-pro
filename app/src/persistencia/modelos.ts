@@ -14,6 +14,13 @@ export interface ResumenModeloPersistido {
   archivadoEn?: string;
   archivadoAuto?: boolean;
   esBiblioteca?: boolean;
+  /**
+   * Modo apunte: el record es una **especie hermana del modelo** (borrador OPM
+   * legítimo sin rigor de cierre). Gemelo aditivo de `esBiblioteca`; excluyente
+   * con él (invariante sellado en `workspace.ts::marcarApunte`/`marcarBiblioteca`).
+   * Ausente = modelo normal. Spec: docs/superpowers/specs/2026-06-30-modo-apunte-design.md
+   */
+  esApunte?: boolean;
   versiones?: VersionResumen[];
   crearVersionAlGuardar?: boolean;
   revision?: number;
@@ -35,6 +42,7 @@ export interface GuardarModeloInput {
   archivadoEn?: string;
   archivadoAuto?: boolean;
   esBiblioteca?: boolean;
+  esApunte?: boolean;
   versiones?: VersionResumen[];
   crearVersionAlGuardar?: boolean;
   revision?: number;
@@ -69,6 +77,8 @@ export function construirModeloPersistido(
   if (archivadoAuto !== undefined) resumen.archivadoAuto = archivadoAuto;
   const esBiblioteca = input.esBiblioteca ?? existente?.esBiblioteca;
   if (esBiblioteca !== undefined) resumen.esBiblioteca = esBiblioteca;
+  const esApunte = input.esApunte ?? existente?.esApunte;
+  if (esApunte !== undefined) resumen.esApunte = esApunte;
   const versiones = input.versiones ?? existente?.versiones;
   if (versiones !== undefined) resumen.versiones = versiones;
   const crearVersionAlGuardar = input.crearVersionAlGuardar ?? existente?.crearVersionAlGuardar;
@@ -92,6 +102,7 @@ export function resumenDesdeModeloPersistido(modelo: ModeloPersistido): ResumenM
     ...(modelo.archivadoEn !== undefined ? { archivadoEn: modelo.archivadoEn } : {}),
     ...(modelo.archivadoAuto !== undefined ? { archivadoAuto: modelo.archivadoAuto } : {}),
     ...(modelo.esBiblioteca !== undefined ? { esBiblioteca: modelo.esBiblioteca } : {}),
+    ...(modelo.esApunte !== undefined ? { esApunte: modelo.esApunte } : {}),
     ...(modelo.versiones !== undefined ? { versiones: modelo.versiones } : {}),
     ...(modelo.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: modelo.crearVersionAlGuardar } : {}),
     ...(modelo.revision !== undefined ? { revision: modelo.revision } : {}),

@@ -113,6 +113,7 @@ import {
   moverModeloACarpeta as moverModeloACarpetaEnIndiceOp,
   listarHijosDeCarpeta,
   marcarBiblioteca as marcarBibliotecaEnIndiceOp,
+  marcarApunte as marcarApunteEnIndiceOp,
   restaurarCarpeta as restaurarCarpetaEnIndiceOp,
   restaurarModelo as restaurarModeloEnIndiceOp,
   rutaDeCarpeta,
@@ -384,6 +385,23 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice),
       modelosGuardados,
       mensaje: valor ? "Modelo marcado como biblioteca" : "Modelo quitado de bibliotecas",
+    });
+  },
+
+  // Modo apunte — gemelo de `toggleBibliotecaModelo`. Marca/desmarca la especie
+  // apunte (borrador OPM sin rigor de cierre). El MISMO gesto es la promoción:
+  // desmarcar gradúa el apunte a modelo (corrección 8). `marcarApunteEnIndiceOp`
+  // sella la exclusión mutua con biblioteca (corrección 5).
+  toggleApunteModelo(modeloId) {
+    const actual = get().indice.modelos.find((modelo) => modelo.id === modeloId);
+    const valor = !(actual?.esApunte ?? false);
+    const indice = marcarApunteEnIndiceOp(get().indice, modeloId, valor);
+    escribirIndiceWorkspace(indice);
+    const modelosGuardados = modelosGuardadosWorkspace(get);
+    set({
+      indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice),
+      modelosGuardados,
+      mensaje: valor ? "Modelo marcado como apunte" : "Apunte graduado a modelo",
     });
   },
 

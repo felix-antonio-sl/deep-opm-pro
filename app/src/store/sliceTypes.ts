@@ -85,6 +85,7 @@ export type WorkspaceModSlice = Slice<
   | "archivarModeloPorId"
   | "restaurarModeloPorId"
   | "toggleBibliotecaModelo"
+  | "toggleApunteModelo"
   | "archivarCarpetaPorId"
   | "restaurarCarpetaPorId"
   | "guardarConVersion"

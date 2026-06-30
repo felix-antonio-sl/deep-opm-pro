@@ -735,6 +735,12 @@ export interface OpmStore {
   archivarModeloPorId: (modeloId: Id) => void;
   restaurarModeloPorId: (modeloId: Id) => void;
   toggleBibliotecaModelo: (modeloId: Id) => void;
+  /**
+   * Modo apunte — marca/desmarca la especie apunte (borrador OPM sin rigor de
+   * cierre). Gemelo de `toggleBibliotecaModelo`; el mismo gesto promociona el
+   * apunte a modelo al desmarcarlo (corrección 8). Exclusión mutua con biblioteca
+   * sellada en el índice. */
+  toggleApunteModelo: (modeloId: Id) => void;
   archivarCarpetaPorId: (carpetaId: Id) => void;
   restaurarCarpetaPorId: (carpetaId: Id) => void;
   guardarConVersion: () => Promise<void>;

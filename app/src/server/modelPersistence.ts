@@ -314,6 +314,7 @@ function validarModeloPersistido(input: unknown): ModeloPersistido {
   if (typeof record.archivadoEn === "string") base.archivadoEn = record.archivadoEn;
   if (typeof record.archivadoAuto === "boolean") base.archivadoAuto = record.archivadoAuto;
   if (typeof record.esBiblioteca === "boolean") base.esBiblioteca = record.esBiblioteca;
+  if (typeof record.esApunte === "boolean") base.esApunte = record.esApunte;
   if (Array.isArray(record.versiones)) base.versiones = record.versiones.filter(esVersionResumen);
   if (typeof record.crearVersionAlGuardar === "boolean") base.crearVersionAlGuardar = record.crearVersionAlGuardar;
   if (typeof record.revision === "number" && Number.isInteger(record.revision) && record.revision >= 0) {

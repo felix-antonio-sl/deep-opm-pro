@@ -60,11 +60,12 @@ export interface GruposDiagnostico {
 export function derivarIssuesDiagnostico(
   avisos: AvisoDiagnostico[],
   navegarAviso: (aviso: Aviso) => void,
+  opciones: { esApunte?: boolean } = {},
 ): DiagnosticoIssue[] {
   return avisos.map((aviso) => ({
     id: aviso.id,
     testIdCodigo: aviso.testIdCodigo,
-    severidad: severidadDiagnostico(aviso),
+    severidad: severidadDiagnostico(aviso, opciones),
     codigo: aviso.codigoVisible,
     titulo: aviso.titulo,
     mensaje: aviso.mensaje,

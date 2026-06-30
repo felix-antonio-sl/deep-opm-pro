@@ -83,15 +83,93 @@ export function resumenSeveridadesTexto(resumen: ResumenSeveridades): string {
 }
 
 /**
+ * Modo apunte — corrección 4 (DEGRADAR POR CLASE, NO POR SEVERIDAD EN BRUTO).
+ *
+ * Códigos de **VALIDEZ OPM** que, cuando el modelo activo es un apunte, se relajan
+ * a observación (`estilo`) en vez de bloquear. Es una whitelist **fail-closed**: un
+ * código que NO esté aquí conserva su severidad, de modo que la **INTEGRIDAD
+ * estructural** (referencias colgantes, formato, geometría) y cualquier regla nueva
+ * **nunca degradan por accidente** — así «la ley falsable no se rompe».
+ *
+ * Validez = juicio sobre el *significado* (firma de enlaces, transformee, agente
+ * humano, refinamiento, nombres, densidad). Integridad = precondición *mecánica* del
+ * documento; su gate duro vive aparte en `serializacion/validarIntegridad.ts`
+ * (`validarReferenciasOpd`), ciego al flag `esApunte` por construcción.
+ *
+ * DELIBERADAMENTE EXCLUIDOS (integridad — nunca degradan): los `visual-*` de
+ * referencia colgante / inconsistencia / huérfano / geometría / puerto / vértices /
+ * símbolo / label / solape / extremo-no-visible, más `estructural-sin-duplicar`,
+ * `orden-estructural-huerfano` y `ORDEN_INZOOM_REFERENCIA_INVALIDA`.
+ *
+ * Spec: docs/superpowers/specs/2026-06-30-modo-apunte-design.md §1, §3.4.
+ */
+export const CODIGOS_VALIDEZ_DEGRADABLES_APUNTE: ReadonlySet<string> = new Set<string>([
+  // ── Validez semántica (validaciones.ts) ──
+  "agente-requiere-objeto-fisico", // agente = humano/físico (R-AG-1)
+  "agregacion-misma-esencia",
+  "ambiental-dentro-contorno",
+  "canon-diagrama-densidad",
+  "consumo-doble-mismo-objeto",
+  "efecto-direccion-canonica", // firma legal de enlaces
+  "estructural-no-acepta-extremo-estado", // firma legal de enlaces
+  "excepcion-temporal-proceso-proceso",
+  "generalizacion-mismo-tipo", // especialización
+  "imagen-estados-excluyentes",
+  "instrumento-y-agente-simultaneos",
+  "procedural-no-objeto-objeto", // firma legal de enlaces
+  "proceso-sin-entrada-ni-salida", // transformee
+  "solo-un-nivel-de-instanciacion",
+  "subproceso-no-conecta-al-padre", // preservación de refinamiento
+  // ── Validez de realización visual (diagnosticoVisual.ts) — NO geometría/formato ──
+  "visual-subproceso-sin-transformado", // transformee
+  "visual-transformador-contorno-no-distribuido",
+  "visual-externo-dentro-contorno",
+  // ── Mejoras/heurísticas metodológicas (checkers.ts) ──
+  "SD_SIN_PROCESO_PRINCIPAL",
+  "PROCESO_NOMBRE_FORMA_VERBAL", // nombres
+  "ESTADO_NOMBRE_CANONICO", // nombres
+  "OBJETO_NOMBRE_SINGULAR", // nombres
+  "OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO",
+  "INZOOM_CONTENIDO_INSUFICIENTE",
+  "INZOOM_NOMBRES_PLACEHOLDER_HIJOS", // nombres
+  "UNFOLD_CONTENIDO_INSUFICIENTE",
+  "PROCESO_NO_TRANSFORMA", // transformee
+  "PROCESO_SISTEMICO_DESCONECTADO",
+  "RECURSO_LINEAL_MULTIPLES_CONSUMIDORES",
+  "DESCOMPOSICION_SIN_SUBPROCESOS",
+  "DESCOMPOSICION_NO_PRESERVA_FRONTERA",
+  "EFECTO_OBJETO_SIN_ESTADOS",
+  "EFECTO_SIN_TRANSICION",
+  "PAR_TRANSFORMADOR_DUPLICADO",
+  "PROBABILIDAD_FUERA_DE_ABANICO",
+  "ENTIDAD_SIN_APARICIONES",
+  "INVOCACION_REDUNDANTE_CON_ORDEN",
+]);
+
+/**
  * Severidad visible (bloqueo/mejora/estilo) de un aviso unificado del
  * diagnóstico. Es la misma clasificación que ve el usuario en el panel:
  * la metodología se eleva a `mejora` aunque llegue como `info`; el resto
  * mapea desde `SeveridadAviso`. Kernel puro — sin dependencias de capas
  * superiores. El viewmodel del panel la re-exporta para presentación.
+ *
+ * `opciones.esApunte` (modo apunte): cuando el modelo activo es un apunte, los
+ * códigos de VALIDEZ whitelisted se relajan a observación (`estilo`); la integridad
+ * y todo lo no whitelisted conservan su severidad (corrección 4, fail-closed). El
+ * default (sin opciones / `esApunte:false`) es idéntico al comportamiento previo —
+ * cero migración para todos los consumidores existentes.
  */
-export function severidadDiagnostico(aviso: AvisoDiagnostico): SeveridadIssue {
-  if (aviso.origen === "metodologia") return clasificarSeveridad({ codigo: aviso.codigo as CodigoChecker });
-  return severidadDesdeAviso(aviso.severidad);
+export function severidadDiagnostico(
+  aviso: AvisoDiagnostico,
+  opciones: { esApunte?: boolean } = {},
+): SeveridadIssue {
+  const base = aviso.origen === "metodologia"
+    ? clasificarSeveridad({ codigo: aviso.codigo as CodigoChecker })
+    : severidadDesdeAviso(aviso.severidad);
+  if (opciones.esApunte && CODIGOS_VALIDEZ_DEGRADABLES_APUNTE.has(aviso.codigo)) {
+    return "estilo";
+  }
+  return base;
 }
 
 export function severidadDesdeAviso(severidad: SeveridadAviso): SeveridadIssue {

@@ -28,6 +28,7 @@ interface MenuContextualProps {
   onArchivarModelo?: ((modeloId: Id) => void) | undefined;
   onRestaurarModelo?: ((modeloId: Id) => void) | undefined;
   onToggleBiblioteca?: ((modeloId: Id) => void) | undefined;
+  onToggleApunte?: ((modeloId: Id) => void) | undefined;
   onArchivarCarpeta?: ((carpetaId: Id) => void) | undefined;
   onRestaurarCarpeta?: ((carpetaId: Id) => void) | undefined;
   onAbrirVersiones?: ((modeloId: Id) => void) | undefined;
@@ -74,6 +75,14 @@ export function MenuContextual(props: MenuContextualProps) {
               <Item onClick={() => { props.onToggleBiblioteca?.(props.menu.itemId!); props.onCerrar(); }}>Quitar de bibliotecas</Item>
             ) : (
               <Item onClick={() => { props.onToggleBiblioteca?.(props.menu.itemId!); props.onCerrar(); }}>Marcar como biblioteca</Item>
+            )
+          ) : null}
+          {props.onToggleApunte ? (
+            // El mismo gesto marca y promociona (corrección 8): graduar = desmarcar.
+            modelo?.esApunte ? (
+              <Item onClick={() => { props.onToggleApunte?.(props.menu.itemId!); props.onCerrar(); }}>Graduar a modelo</Item>
+            ) : (
+              <Item onClick={() => { props.onToggleApunte?.(props.menu.itemId!); props.onCerrar(); }}>Marcar como apunte</Item>
             )
           ) : null}
         </>

@@ -320,6 +320,9 @@ function normalizarModeloPersistido(value: unknown): ModeloPersistido | null {
     // que abrir una biblioteca encienda solo-lectura (B1 lo persiste y el
     // servidor lo roundtripea; aquí se surface al cliente).
     ...(typeof value.esBiblioteca === "boolean" ? { esBiblioteca: value.esBiblioteca } : {}),
+    // Modo apunte: gemelo de `esBiblioteca` — sobrevive la carga para que abrir un
+    // apunte encienda su badge y la degradación de diagnósticos en el cliente.
+    ...(typeof value.esApunte === "boolean" ? { esApunte: value.esApunte } : {}),
     ...(typeof value.archivadoEn === "string" ? { archivadoEn: value.archivadoEn } : {}),
     ...(typeof value.archivadoAuto === "boolean" ? { archivadoAuto: value.archivadoAuto } : {}),
     ...(Array.isArray(value.versiones) ? { versiones: value.versiones.filter(esVersionResumen) } : {}),

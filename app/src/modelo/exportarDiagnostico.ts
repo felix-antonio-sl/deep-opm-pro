@@ -48,9 +48,13 @@ export interface DiagnosticoExport {
  * `now` se inyecta para fechas deterministas en tests (mismo patrón que
  * `nombreArchivoBackupJson` en ui/PersistenciaJson).
  */
-export function construirDiagnosticoExport(modelo: Modelo, now: Date = new Date()): DiagnosticoExport {
+export function construirDiagnosticoExport(
+  modelo: Modelo,
+  now: Date = new Date(),
+  opciones: { esApunte?: boolean } = {},
+): DiagnosticoExport {
   const avisos = listarAvisosDiagnostico(modelo, { tipo: "modelo" });
-  const sugerencias = avisos.map(sugerenciaDesdeAviso);
+  const sugerencias = avisos.map((aviso) => sugerenciaDesdeAviso(aviso, opciones));
   return {
     modelo: modelo.nombre,
     fecha: now.toISOString().slice(0, 10),
@@ -64,15 +68,22 @@ export function construirDiagnosticoExport(modelo: Modelo, now: Date = new Date(
  * Serializa el diagnóstico completo del modelo a JSON (indentación de 2
  * espacios). Es lo que copia al portapapeles el comando de la paleta.
  */
-export function exportarDiagnosticoJson(modelo: Modelo, now: Date = new Date()): string {
-  return JSON.stringify(construirDiagnosticoExport(modelo, now), null, 2);
+export function exportarDiagnosticoJson(
+  modelo: Modelo,
+  now: Date = new Date(),
+  opciones: { esApunte?: boolean } = {},
+): string {
+  return JSON.stringify(construirDiagnosticoExport(modelo, now, opciones), null, 2);
 }
 
-function sugerenciaDesdeAviso(aviso: AvisoDiagnostico): SugerenciaDiagnosticoExport {
+function sugerenciaDesdeAviso(
+  aviso: AvisoDiagnostico,
+  opciones: { esApunte?: boolean } = {},
+): SugerenciaDiagnosticoExport {
   return {
     id: aviso.id,
     origen: aviso.origen,
-    severidad: severidadDiagnostico(aviso),
+    severidad: severidadDiagnostico(aviso, opciones),
     codigo: aviso.codigo,
     titulo: aviso.titulo,
     mensaje: aviso.mensaje,

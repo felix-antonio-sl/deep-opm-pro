@@ -26,6 +26,7 @@ import { BarraHerramientasElemento } from "./BarraHerramientasElemento";
 import { BarraPestanas } from "./BarraPestanas";
 import { Breadcrumb } from "./Breadcrumb";
 import { CapturadorBugs } from "./CapturadorBugs";
+import { CintaApunte } from "./CintaApunte";
 import { CintaBiblioteca } from "./CintaBiblioteca";
 import { HaloEstado } from "./HaloEstado";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
@@ -331,7 +332,7 @@ export function App() {
             canvas={(
               <CodexCanvasMount
                 chromeVisible={!uiSoloCanvas}
-                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <CintaBiblioteca />}
+                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <><CintaBiblioteca /><CintaApunte /></>}
               >
                 <JointCanvasFeedbackBoundary readonlyMode={modoSoloLectura} onAdapterChange={setCanvasAdapter} />
                 {/*

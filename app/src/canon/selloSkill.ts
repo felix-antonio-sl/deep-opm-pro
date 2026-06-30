@@ -103,8 +103,15 @@ export function evaluarCordonSkill(
  */
 export const CORDON_SKILL_NOMBRE = "modelamiento-opm";
 
+// v1.10.0 (modo apunte, 2026-06-30): el deploy de la skill suma el §Regimen apunte.
+// El `hash-fuente` testifica el ARTEFACTO FUENTE en pneuma (sha256 del archivo
+// `artefactos/skills/kora/modelamiento-opm/SKILL.md`), que este corte NO modifica —
+// la propagacion a pneuma + re-emision es fase posterior del operador. Por eso el
+// hash se conserva: cuando la fuente se actualice y se re-emita, el transmutador
+// estampara el nuevo sha256 y aqui se actualiza en el mismo gesto. El bump de version
+// declara el corte y mantiene el cordon VERDE (version match + hash match).
 export const CORDON_SKILL_ESPERADO: EsperadoCordon = {
-  version: "1.9.0",
+  version: "1.10.0",
   hashFuente: "sha256:3df08728195912bcc6692ea725fd5c7e3f94775307841a0c862c8111a6aa9312",
   target: "claude-code",
 };
