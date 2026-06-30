@@ -257,6 +257,13 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
   cambiarPestanaActiva(id) {
     const actual = cambiarPestanaActivaEstado({ pestanas: get().pestanasAbiertas, activa: get().pestanaActivaId }, id);
     activarEstadoPestanas(set, actual, null);
+    // Re-gobierna la solo-lectura POR PESTAÑA: si el modelo activado es una biblioteca
+    // (según el índice), entra en solo-lectura; si no, queda editable. Sin esto, cambiar
+    // entre una pestaña-biblioteca y un modelo normal arrastraría el `readOnly` de la
+    // pestaña previa (B5 lo dejó como deuda; aquí se resuelve sin tocar `PestanaAbierta`).
+    const modeloActivoId = get().modelo.id;
+    const esBiblioteca = get().indice.modelos.some((m) => m.id === modeloActivoId && m.esBiblioteca === true);
+    get().gobernarAperturaBiblioteca(esBiblioteca);
   },
 
   reordenarPestanas(idsOrdenados) {

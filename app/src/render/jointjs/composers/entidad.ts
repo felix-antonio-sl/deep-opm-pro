@@ -530,10 +530,6 @@ function attrsConEstereotipo(
 //   · no-resuelto  → `?` serif, peso inkSoft (medio).
 //   · divergente   → `⟳` serif, peso ink (máximo).
 
-// Peso mínimo del al-día. Espejo de --cx-ink-faint (ui-forja/tokens.css) / `inkFaint`
-// (src/ui/tokens.ts); CODEX.colores aún no mirror-ea ese token en la capa render.
-const INK_DRIFT_FAINT = "#b5b0a4";
-
 // Marca de amarre (ancla) como path SVG dentro del chip de 15px (x=4,y=4) centrado
 // en (11.5,11.5): grillete + caña + cepo + uñas. Stroke-only para leer como tinta a
 // tamaño mínimo; el ⚓ de fuente queda EXCLUIDO a propósito (presentación emoji).
@@ -546,7 +542,7 @@ const PATH_AMARRE =
 function colorDrift(estado: EstadoDrift): string {
   if (estado === "divergente") return CODEX.colores.ink; // máximo
   if (estado === "no-resuelto") return CODEX.colores.inkSoft; // medio
-  return INK_DRIFT_FAINT; // sincronizado — mínimo
+  return CODEX.colores.inkFaint; // sincronizado — mínimo
 }
 
 function glifoDrift(estado: "divergente" | "no-resuelto"): string {

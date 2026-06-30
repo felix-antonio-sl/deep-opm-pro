@@ -5,6 +5,7 @@ export const CODEX = {
     ink: "#171511", // espejo de ui-forja/tokens.css --cx-ink
     inkMid: "#5a564c", // espejo de ui-forja/tokens.css --cx-ink-mid
     inkSoft: "#807b6e", // espejo de ui-forja/tokens.css --cx-ink-soft
+    inkFaint: "#b5b0a4", // espejo de ui-forja/tokens.css --cx-ink-faint
     opmObjeto: "#27613f", // espejo de ui-forja/tokens.css --cx-opm-green
     opmProceso: "#1d3f78", // espejo de ui-forja/tokens.css --cx-opm-blue
     opmEstado: "#68711f", // espejo de ui-forja/tokens.css --cx-opm-olive
