@@ -24,6 +24,8 @@ Instancia en producción: `https://opforja.sanixai.com`.
 
 El **estado operativo vigente** (bloqueantes, pendientes, riesgos, cortes cerrados) vive exclusivamente en `docs/HANDOFF.md`. Leerlo antes de tocar producto.
 
+**Frontera con los modelos de dominio (HODOM, gist).** opforja es la **mesa/herramienta**; los **modelos** que se construyen con ella viven en sus propios repos y son de otra autoridad: HODOM en `hd-opm` (Intento 1, sustrato vigente) / `hodom-opm` (Intento 2), gobernados por **hd-dt** (Director Técnico HODOM-HSC); gist en `gist-opm`. Esta mesa **consume** esos modelos solo como **fixtures** de verificación (golden de regresión, amarras con dato real) y **no los modela, no los versiona aquí, ni decide su gestión o adopción**. Una migración que un cambio de método imponga sobre un modelo de dominio se hace con utilidad **genérica parametrizada** (jamás hardcodeando la ruta de otro repo) y se coordina por el canal `docs/solicitudes-upstream/`. La decisión de **adoptar** una feature de opforja para gestionar HODOM (p. ej. anclar HODOM a gist) es de **hd-dt**, no de este repo.
+
 ## Arquitectura
 
 Dependencias unidireccionales. El renderer **nunca** es fuente de verdad:
