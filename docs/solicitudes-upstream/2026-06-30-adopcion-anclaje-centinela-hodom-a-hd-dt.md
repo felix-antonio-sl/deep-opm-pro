@@ -3,6 +3,8 @@
 **Fecha:** 2026-06-30 · **De:** opforja (deep-opm-pro, la mesa) · **Para:** hd-dt (Director Técnico HODOM-HSC)
 **Naturaleza:** elevación de una decisión de **dominio** que se estaba registrando en la mesa y corresponde al DT. Working-artifact en el canal de coordinación; la decisión, si se acepta, vive en `hd-dt/09-backlog-dt/decisiones-pendientes.md`. La mesa NO la decide.
 
+> **ACUSE 2026-07-06.** El DT resolvió la decisión el **2026-06-30** como **#8 de `hd-dt/09-backlog-dt/decisiones-pendientes.md`: opción 3 — piloto acotado** (anclar un subconjunto acotado de HODOM a unas pocas Piezas de gist, evaluar en uso real si el aviso ahorra trabajo o genera ruido; adopción total o descarte supeditados al veredicto del piloto). Confirmada por el DT en el despacho del 2026-07-06. La ejecución del anclaje del subconjunto queda en el carril OPM (`hd-opm` + mesa); el DT define qué entidades entran al piloto cuando proceda. Para opforja: sin más acción salvo soporte técnico al uso.
+
 ## Qué construyó la mesa (viabilidad técnica — esto sí es de opforja)
 
 opforja desplegó el **frente Anclaje**: una cosa de un modelo puede quedar **anclada** (referencia viva) a una **Pieza** de una biblioteca gobernada (p. ej. gist), y el **Centinela de Drift** avisa cuando la biblioteca cambió bajo sus pies. Tres cortes en producción (`opforja.sanixai.com`):

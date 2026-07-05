@@ -103,14 +103,14 @@ export function evaluarCordonSkill(
  */
 export const CORDON_SKILL_NOMBRE = "modelamiento-opm";
 
-// v1.10.0 (modo apunte, 2026-06-30): el deploy de la skill suma el §Regimen apunte.
-// El `hash-fuente` testifica el ARTEFACTO FUENTE en pneuma (sha256 del archivo
-// `artefactos/skills/kora/modelamiento-opm/SKILL.md`). La fuente fue PORTADA a pneuma
-// (§Regimen apunte + Regla Dura #28 + bump v1.10.0) y re-emitida con el transmutador
-// (`kora.py transmutar`, targets claude-code/codex/opencode), que estampo el sha256
-// real de abajo. Cordon VERDE por version match + hash match contra la fuente viva.
+// v1.11.0 (D3 re-sync, 2026-07-06, HITL custodio): anclaje canonico de la skill con
+// versiones vivas adjuntas (reglas 1.4.1 / opd 1.2.0 / opl 1.2.2 / metodologia 1.5.1),
+// seccion «Limites de la mesa» y capacidades actualizadas (Piezas/Calcar/Anclar,
+// estereotipos D6, Centinela). El `hash-fuente` testifica el ARTEFACTO FUENTE en pneuma
+// (sha256 de `artefactos/skills/kora/modelamiento-opm/SKILL.md`), re-emitido con
+// `kora.py transmutar` a claude-code/codex/opencode (3 sellos identicos).
 export const CORDON_SKILL_ESPERADO: EsperadoCordon = {
-  version: "1.10.0",
-  hashFuente: "sha256:2ed96a79a308d22a58b97adc923714608d4e702dbcde2b33c3cf577df3e95976",
+  version: "1.11.0",
+  hashFuente: "sha256:1445de4a466335868140ca54ad14e778105695d2ff0c4fd821dd2f5e482a6987",
   target: "claude-code",
 };

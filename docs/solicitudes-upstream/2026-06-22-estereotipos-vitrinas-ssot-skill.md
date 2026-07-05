@@ -4,6 +4,8 @@
 **Origen:** entregable **D6** del compuesto (spec `docs/superpowers/specs/2026-06-22-compuesto-opforja-design.md` §3 D6 / roadmap E1).
 **Naturaleza:** propuesta — el compuesto **propone** sobre pneuma; la escritura es HITL custodio-kora. kora-pneuma es SSOT inmutable de solo lectura desde el repo; este documento es el working-artifact de la propuesta.
 
+> **RESUELTA 2026-07-06 (despacho HITL custodio-kora).** Hallazgo del despacho: `R-VIS-STEREO-1/2` y `R-VIS-REQ-1` **ya existían** en `reglas-opm-estrictas-es` (tabla de mapeo V-143..V-157, absorbidas en la consolidación del corpus), y `spec-forja-opd-es` ya las operacionalizaba en `R-OPD-ROT-6`. Por eso la Petición 1 se satisfizo por **enmienda** (no duplicación): `spec-forja-opd-es` **v1.2.0** amplía R-OPD-ROT-6 con los deltas de esta solicitud (mención OPL PUEDE con ausencia conforme del OPL nuclear, prohibición de estereotipos de enlace como sexta familia encubierta, realización opforja del catálogo/vitrinas/injerto como extensión declarada con traza a código). La Petición 2 se satisfizo en la skill `modelamiento-opm` **v1.11.0** (corte D3): filas de capacidad «Estereotipos en vitrinas + injerto de plantillas de subgrafo» en la tabla de la mesa. Verificación de cierre: `velar` 12/12, puente y resolutor en v1.2.0, manual citando las reglas canónicas.
+
 ## Contexto: lo implementado en la herramienta (D6.1–D6.4)
 
 opforja ganó un **sistema de estereotipos nativo, 100% propio** (no fork de OpCloud), con paridad-o-superior al `<<Requirement>>` de OpCloud. Cuatro sub-cortes, todos gate-verde y golden HODOM byte-idéntico:

@@ -4,6 +4,8 @@
 **Origen:** corte **D3 / D-SKILL** del compuesto (spec `docs/superpowers/specs/2026-06-22-compuesto-opforja-design.md` §5.1; roadmap `docs/roadmap/cortes.md` «C-skill (D3)»).
 **Naturaleza:** propuesta. La skill es SSOT read-only desde el repo; el compuesto **propone**, la escritura es HITL custodio-kora.
 
+> **RESUELTA 2026-07-06 (despacho HITL custodio-kora).** Skill `modelamiento-opm` **v1.11.0** (base real 1.10.1 — el 2026-07-05 una corrección absorbió el último delta bestia). Petición 1: anclaje canónico con versiones vivas adjuntas **post-doctrina** (reglas **1.4.1** · opd **1.2.0** —la enmienda R-OPD-ROT-6/ROT-9 del mismo despacho— · opl **1.2.2** · metodología **1.5.1**) + nota del resolutor vivo. Petición 2: bump y re-emisión (`kora.py transmutar`) a los 3 runtimes, sellos idénticos (`hash-fuente sha256:1445de4a…`). Petición 3 (lectura): el cuerpo no citaba versiones inline; **deuda real encontrada y corregida**: la tabla de capacidades citaba el «dock de biblioteca» retirado por la PUERTA — reemplazada por superficie «Piezas» + filas nuevas (estereotipos D6, Anclaje/Centinela). Petición 4: sección «Límites de la mesa» añadida con el bullet gist-anchor **corregido** contra el estado vigente (anclar/Calcar/Centinela desplegados; faltan `promover-a-Pieza`, C6/C7, resolución externa completa, C9/C10). Cierre en deep-opm-pro: `CORDON_SKILL_ESPERADO` → v1.11.0 + hash nuevo; `cordon:skill` **OK**; `velar` 12/12.
+
 > **Actualización 2026-06-30 (re-secuencia de versión).** El `v1.10.0` originalmente
 > pedido aquí **lo tomó el corte «modo apunte»** (portado a pneuma + re-emitido el
 > 2026-06-30; sello v1.10.0 con `§Regimen apunte` + Regla Dura #28). Esta solicitud D3
