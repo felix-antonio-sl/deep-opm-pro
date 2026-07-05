@@ -6,7 +6,7 @@
 
 ## Fuentes
 
-- **Eco OPCloud (observacional):** `docs/historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md` — §3 tabla de plantillas (D1/D5/T1/T2/T3/T5/T6/TS3) y §2 ejemplos (criterios de aceptación, agregación `consiste en`). El propio HU declara que las plantillas reales viven en `opm-opl-es.md` y que la tabla es "orientativa".
+- **Eco OPCloud (observacional):** `docs/historias-usuario-v2/shared/HU-SHARED-007-eco-opl.md` *(fuente eliminada con el retiro del inventario HU v2, 2026-06-05; recuperable en historia git)* — §3 tabla de plantillas (D1/D5/T1/T2/T3/T5/T6/TS3) y §2 ejemplos (criterios de aceptación, agregación `consiste en`). El propio HU declara que las plantillas reales viven en `opm-opl-es.md` y que la tabla es "orientativa".
 - **Canon supremo del repo (manda):** `docs/canon-opm/reglas-opm-estrictas.md` (§4.x plantillas: §403 agregación, §411 enumeración estados, §455 D5, §490–493 H1/H2/HS1/HS2, §547 RF1, §672 R-OPL-TRANS-4).
 - **Canon externo:** `~/kora/artifacts/knowledge/fxsl/opm/opm-ssot-es/opm-opl-es.md` (§3 designaciones, §5 habilitadores, §9 estructurales).
 - **Emisión real OPFORJA:** `app/src/opl/generadores/{procedural,estructural,abanico,refinamiento}.ts` y `duracionMetadata.ts`/`designaciones.ts`.

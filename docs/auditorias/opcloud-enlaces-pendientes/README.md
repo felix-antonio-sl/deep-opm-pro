@@ -12,7 +12,7 @@ En esta sesión cerramos la primera tanda de mejoras al manejo de enlaces alinea
 - `jumpover` aplicado **global** (no condicional al router).
 - Multiplicidades en **fracción del path** (0.1 origen, 0.9 destino) en vez de píxeles.
 
-Validado contra modelo HODOM real (`/home/felix/projects/hd-hsc-os/docs/models/opm-hodom-bundle-v1.1.json`, 28 apariencias, 59 enlaces). Loop verde 100% en cada paso (1182 unit / 172 smoke).
+Validado contra modelo HODOM real (`hd-hsc-os/docs/models/opm-hodom-bundle-v1.1.json` — ruta histórica, ya retirada de ese repo; el golden vivo es `~/projects/hd-opm/models/hodom-completo-v2.0.deep-opm-pro.modelo.v0.json`; 28 apariencias, 59 enlaces en su momento). Loop verde 100% en cada paso (1182 unit / 172 smoke).
 
 Reverse-engineering completo de `opm-extracted/` (código descompilado OPCloud) reveló **3 mecanismos canónicos faltantes** que producen maraña visual en modelos densos. Este documento los detalla para no re-investigar y registra qué parte ya fue llevada a nuestra arquitectura.
 
@@ -434,7 +434,7 @@ La siguiente ruta de alto impacto ya no es A/B/C/D/E, sino las brechas avanzadas
 ## Notas operativas
 
 - **Modelos guardados**: ningún cambio rompe modelos existentes. Los ports y anchors son aditivos; los modelos sin ports siguen funcionando con el comportamiento default JointJS.
-- **Tests del modelo HODOM real**: usar `/home/felix/projects/hd-hsc-os/docs/models/opm-hodom-bundle-v1.1.json` como benchmark de densidad (28 apariencias, 59 enlaces).
+- **Tests del modelo HODOM real**: usar el golden vivo `~/projects/hd-opm/models/hodom-completo-v2.0.deep-opm-pro.modelo.v0.json` como benchmark de densidad (279 entidades · 480 enlaces · 44 OPDs; el bundle v1.1 de hd-hsc-os citado originalmente ya no existe en esa ruta).
 - **Dev server**: matar Vite bg antes de smoke (`pgrep -af vite | grep -v eval | awk '{print $1}' | xargs -r kill`).
 - **Reverse-engineering**: snippets canónicos extraídos en sesión 2026-05-12. Archivos clave OPCloud:
   - `opm-extracted/src/app/models/DrawnPart/OpmEntity.ts` (ports, sort, beautify)

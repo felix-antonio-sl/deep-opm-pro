@@ -4,7 +4,7 @@
 
 ## Contrato por defecto: byte-identidad total
 
-El bundle golden de hd-opm (`hd-opm/models/hodom-completo-*.deep-opm-pro.modelo.v0.json`, hoy v1.6) se regenera **byte-idéntico** (`diff -q` vacío) con:
+El bundle golden de hd-opm (`hd-opm/models/hodom-completo-*.deep-opm-pro.modelo.v0.json`, hoy v2.0) se regenera **byte-idéntico** (`diff -q` vacío) con:
 
 ```bash
 cd ~/projects/hd-opm && bun run scripts/generar-bundle-hodom.ts   # regenera models/ y opl/

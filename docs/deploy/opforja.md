@@ -80,7 +80,7 @@ son candidatas a limpieza automática durante resincronización. Las apariciones
 manuales o contextuales creadas por el usuario deben conservarse salvo acción
 explícita del usuario.
 
-Referencia normativa interna: `docs/roadmap/politica-apariciones-categorial.md`.
+Referencia normativa interna: `app/src/modelo/politicaApariciones.ts` (+ su ley `politicaApariciones.test.ts`). El doc `docs/roadmap/politica-apariciones-categorial.md` fue eliminado en la auditoría documental (`2a83c1c5`); la política vive en el kernel.
 
 ## Acceso Operativo
 

@@ -36,7 +36,8 @@ interface Props {
  * data-binding y validators con este Inspector (validarEtiquetaEnlace,
  * validarMultiplicidad, ajustarMultiplicidadSeleccionada). El acuerdo
  * formal se documenta en `app/e2e/15-superficie-contextual.spec.ts`
- * bajo el describe.skip "Contrato TablaEnlaces Beta1".
+ * bajo el describe "Contrato TablaEnlaces Beta1" (activo desde que el
+ * contrato se implementó; fue describe.skip mientras era solo acuerdo).
  *
  * Ronda Codex v2 / L3 (C9): el contenido dejó de particionarse en tabs y pasó
  * a una **ficha continua** — dos secciones (Propiedades → Extremos)

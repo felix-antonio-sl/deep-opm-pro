@@ -253,7 +253,7 @@ export interface SubmodeloContrato {
  * `Modelo` persistido aparte, congelado a un hash. Distinto del graft/Template de D6
  * (`Estereotipo.plantilla` + `injertarEstereotipo`), que clona-e-injerta una copia
  * desacoplada. Alcance y criterio de cierre: `docs/auditorias/2026-06-24-acta-alcance-
- * anchor-gist.md`. La forma OPL/visual del Anclaje espera doctrina custodio-kora (a).
+ * anclaje-gist.md`. La forma OPL/visual del Anclaje espera doctrina custodio-kora (a).
  */
 export interface BibliotecaRef {
   modeloId: Id;
