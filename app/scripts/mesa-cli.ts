@@ -11,12 +11,14 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { especieDe, type Especie } from "../src/persistencia/especie";
+import type { Especie } from "../src/persistencia/especie";
 import { componerPull, elegirBase } from "../src/mesa/contextoPull";
 import { evaluarPush } from "../src/mesa/validarPush";
 import { esSinDelta } from "../src/mesa/esSinDelta";
 import { construirBodyActualizacion } from "../src/mesa/construirBodyActualizacion";
+import { mapaEspeciePorModelo } from "../src/mesa/especieWorkspace";
 import { generarId, type ResumenModeloPersistido } from "../src/persistencia/modelos";
+import { indiceVacio, marcarApunte, type WorkspaceIndice } from "../src/persistencia/workspace";
 
 const API = process.env.OPFORJA_API_URL ?? "https://opforja.sanixai.com";
 const TOKEN_PATH = process.env.OPFORJA_AGENT_TOKEN_FILE ?? join(homedir(), ".config/opforja/agent-token");
@@ -92,10 +94,29 @@ async function obtenerModelo(id: string, apiFn: ApiFn = api): Promise<RegistroRe
   return body.modelo ?? null;
 }
 
+/**
+ * `esApunte`/`esBiblioteca` NO viven en el record de Postgres (`GET
+ * /modelos/:id` no los trae) — hoy solo existen en el índice de workspace
+ * (`GET /__deep-opm/workspace` → `{ indice }`). Toda especie mostrada u
+ * honrada por el CLI (columna de `mesa modelos`, header de `mesa pull`, guard
+ * biblioteca de `mesa push`) debe cruzar contra este índice vía
+ * `mapaEspeciePorModelo` — nunca releer `especieDe` sobre el record remoto.
+ */
+async function obtenerWorkspaceIndice(apiFn: ApiFn = api): Promise<WorkspaceIndice> {
+  const r = await apiFn("/workspace");
+  if (!r.ok) {
+    console.error(`API ${r.status}`);
+    process.exit(1);
+  }
+  const body = (await r.json()) as { indice?: WorkspaceIndice };
+  return body.indice ?? indiceVacio();
+}
+
 async function cmdModelos(): Promise<void> {
   const lista = await listar();
+  const especiePorId = mapaEspeciePorModelo(await obtenerWorkspaceIndice());
   for (const m of lista) {
-    console.log(`${m.id}\t${especieDe(m)}\trev ${m.revision ?? 0}\t${m.nombre}`);
+    console.log(`${m.id}\t${especiePorId.get(m.id) ?? "modelo"}\trev ${m.revision ?? 0}\t${m.nombre}`);
   }
 }
 
@@ -126,7 +147,9 @@ async function cmdPull(ref: string): Promise<void> {
     guardadoRev: rec.revision ?? 0,
     ...(autosave ? { autosave } : {}),
   });
-  console.log(componerPull({ nombre: rec.nombre, especie: especieDe(rec), base }));
+  const especiePorId = mapaEspeciePorModelo(await obtenerWorkspaceIndice());
+  const especie = especiePorId.get(rec.id) ?? "modelo";
+  console.log(componerPull({ nombre: rec.nombre, especie, base }));
 }
 
 export async function cmdPush(
@@ -169,7 +192,14 @@ export async function cmdPush(
   let destinoInfo: { tieneSello: boolean; especie: Especie } | undefined;
   let baseFueAutosave = false;
   if (destinoRec) {
-    destinoInfo = { tieneSello: bundleTieneSelloRemoto(destinoRec.json ?? ""), especie: especieDe(destinoRec) };
+    // La especie real vive en el índice de workspace, NO en el record remoto
+    // (ver `obtenerWorkspaceIndice`) — sin este cruce el guard biblioteca de
+    // `evaluarPush` queda inerte porque `destinoRec` nunca trae `esBiblioteca`.
+    const especiePorId = mapaEspeciePorModelo(await obtenerWorkspaceIndice(apiFn));
+    destinoInfo = {
+      tieneSello: bundleTieneSelloRemoto(destinoRec.json ?? ""),
+      especie: especiePorId.get(destinoRec.id) ?? "modelo",
+    };
     baseFueAutosave = Boolean(destinoRec.autosalvado);
   }
 
@@ -212,11 +242,11 @@ export async function cmdPush(
         json: bundleJson,
         creadoEn: ahora,
         actualizadoEn: ahora,
-        // NO se manda `esApunte` aquí: el endpoint de creación no tiene
-        // columna para ese flag (vive hoy solo en el índice de workspace,
-        // que este CLI no escribe) — incluirlo en el body sería un no-op
-        // que engaña a quien lea el body pensando que algo se persistió.
-        // Ver el aviso post-creación más abajo (FIX 1, Task 8).
+        // NO se manda `esApunte` aquí: el endpoint de creación de modelos no
+        // tiene columna para ese flag (vive en el índice de workspace, un
+        // recurso SEPARADO) — incluirlo en este body sería un no-op silente.
+        // El marcado real ocurre DESPUÉS de crear, vía PUT al índice de
+        // workspace (ver más abajo).
       };
   const w = await apiFn("/modelos", { method: "POST", body: JSON.stringify(body) });
   if (w.status === 409) {
@@ -235,14 +265,14 @@ export async function cmdPush(
   }
   console.log(`push ok: ${guardado.id} rev ${guardado.revision ?? "?"}`);
 
-  // FIX 1 (Task 8, revisión whole-branch): al CREAR con `--especie apunte`,
-  // el flag no se persiste en ninguna parte hoy (ni columna Postgres ni
-  // índice de workspace, que este CLI no escribe) — `push ok` no puede ser
-  // la única señal, o el operador cree que quedó marcado como apunte.
+  // Al CREAR con `--especie apunte`: el flag no viaja en el body de creación
+  // (el endpoint de modelos no tiene columna para él), así que se marca
+  // AHORA en el índice de workspace — el único lugar donde `esApunte` vive
+  // hoy. `push ok` deja de ser la única señal de éxito de la especie: si el
+  // marcado falla, se avisa explícito (el modelo YA quedó creado, solo la
+  // marca de especie no se persistió).
   if (!destinoRec && veredicto.especieDestino === "apunte") {
-    console.error(
-      "nota: la especie «apunte» no se persiste en Ola 1 (los flags viven en el índice de workspace, aún no cableado por el CLI); el modelo se creó como modelo normal. Márcalo como apunte desde la app si lo necesitas.",
-    );
+    await marcarApunteEnWorkspace(guardado.id, apiFn);
   }
 
   const versionId = generarId();
@@ -278,6 +308,41 @@ function bundleTieneSelloRemoto(json: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Persiste `esApunte: true` para `modeloId` en el índice de workspace: GET
+ * del índice vigente → asegura una entrada para el id recién creado (el
+ * índice de workspace es poblado por la app; un modelo creado por el CLI no
+ * tiene entrada previa) → `marcarApunte` (la MISMA función pura que usa la
+ * app, `src/persistencia/workspace.ts` — sella la exclusión mutua con
+ * biblioteca; no se re-deriva esa lógica aquí) → PUT del índice completo.
+ * Si el GET o el PUT fallan, el modelo YA fue creado (ver caller) — se avisa
+ * explícito en vez de fingir éxito.
+ */
+async function marcarApunteEnWorkspace(modeloId: string, apiFn: ApiFn): Promise<void> {
+  const g = await apiFn("/workspace");
+  if (!g.ok) {
+    console.error(
+      `aviso: el modelo se creó, pero no se pudo leer el índice de workspace para marcarlo «apunte» (API ${g.status}). Márcalo desde la app si lo necesitas.`,
+    );
+    return;
+  }
+  const getBody = (await g.json()) as { indice?: WorkspaceIndice };
+  const indiceActual = getBody.indice ?? indiceVacio();
+  const conEntrada = indiceActual.modelos.some((m) => m.id === modeloId)
+    ? indiceActual
+    : { ...indiceActual, modelos: [...indiceActual.modelos, { id: modeloId, carpetaId: null }] };
+  const marcado = marcarApunte(conEntrada, modeloId, true);
+
+  const p = await apiFn("/workspace", { method: "PUT", body: JSON.stringify({ indice: marcado }) });
+  if (!p.ok) {
+    console.error(
+      `aviso: el modelo se creó, pero no se pudo persistir la marca «apunte» en el índice de workspace (API ${p.status}). Márcalo desde la app si lo necesitas.`,
+    );
+    return;
+  }
+  console.log("especie «apunte» marcada en el índice de workspace.");
 }
 
 // --- dispatch ---
