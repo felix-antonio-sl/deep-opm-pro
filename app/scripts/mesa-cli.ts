@@ -55,8 +55,19 @@ async function api(path: string, init?: RequestInit): Promise<Response> {
  */
 type RegistroRemoto = ResumenModeloPersistido & { json?: string };
 
-async function listar(): Promise<RegistroRemoto[]> {
-  const r = await api("/modelos");
+/**
+ * Firma de `api()` (fetch real contra `OPFORJA_API_URL` + token de disco).
+ * Seam de testeabilidad (Task 7, hallazgo IMPORTANT de revisión): `cmdPush`
+ * acepta un `apiFn` inyectable (default = `api`) para que un test pueda
+ * driblar la MISMA función contra un handler en memoria (`crearRepoMemoria`)
+ * sin red ni archivo de token — sin esto, la ley de CLAUSURA solo se podía
+ * probar reimplementando la decisión del guard inline, no invocando el
+ * `cmdPush` real.
+ */
+type ApiFn = (path: string, init?: RequestInit) => Promise<Response>;
+
+async function listar(apiFn: ApiFn = api): Promise<RegistroRemoto[]> {
+  const r = await apiFn("/modelos");
   if (!r.ok) {
     console.error(`API ${r.status}`);
     process.exit(1);
@@ -65,13 +76,13 @@ async function listar(): Promise<RegistroRemoto[]> {
   return body.modelos ?? [];
 }
 
-async function resolverRef(ref: string): Promise<RegistroRemoto | null> {
-  const lista = await listar();
+async function resolverRef(ref: string, apiFn: ApiFn = api): Promise<RegistroRemoto | null> {
+  const lista = await listar(apiFn);
   return lista.find((m) => m.id === ref) ?? lista.find((m) => m.nombre === ref) ?? null;
 }
 
-async function obtenerModelo(id: string): Promise<RegistroRemoto | null> {
-  const r = await api(`/modelos/${encodeURIComponent(id)}`);
+async function obtenerModelo(id: string, apiFn: ApiFn = api): Promise<RegistroRemoto | null> {
+  const r = await apiFn(`/modelos/${encodeURIComponent(id)}`);
   if (r.status === 404) return null;
   if (!r.ok) {
     console.error(`API ${r.status}`);
@@ -118,16 +129,18 @@ async function cmdPull(ref: string): Promise<void> {
   console.log(componerPull({ nombre: rec.nombre, especie: especieDe(rec), base }));
 }
 
-async function cmdPush(
+export async function cmdPush(
   ref: string,
   bundlePath: string,
   opts: { nota: string; confirmado: boolean; especie?: "apunte" | "modelo" },
+  deps: { api?: ApiFn } = {},
 ): Promise<void> {
+  const apiFn = deps.api ?? api;
   const bundleJson = readFileSync(bundlePath, "utf8");
-  const encontrado = await resolverRef(ref);
+  const encontrado = await resolverRef(ref, apiFn);
   let destinoRec: RegistroRemoto | null = null;
   if (encontrado) {
-    destinoRec = await obtenerModelo(encontrado.id);
+    destinoRec = await obtenerModelo(encontrado.id, apiFn);
     if (!destinoRec) {
       // El ref SÍ resolvió contra el listado, pero el fetch puntual dio 404:
       // el modelo se borró (o se movió) entre el `list` y el `get` — no es
@@ -201,7 +214,7 @@ async function cmdPush(
         actualizadoEn: ahora,
         ...(veredicto.especieDestino === "apunte" ? { esApunte: true } : {}),
       };
-  const w = await api("/modelos", { method: "POST", body: JSON.stringify(body) });
+  const w = await apiFn("/modelos", { method: "POST", body: JSON.stringify(body) });
   if (w.status === 409) {
     console.error("409: la mesa avanzó bajo tus pies. Re-pull y reintenta.");
     process.exit(3);
@@ -219,7 +232,7 @@ async function cmdPush(
   console.log(`push ok: ${guardado.id} rev ${guardado.revision ?? "?"}`);
 
   const versionId = generarId();
-  const v = await api(`/modelos/${encodeURIComponent(guardado.id)}/versiones`, {
+  const v = await apiFn(`/modelos/${encodeURIComponent(guardado.id)}/versiones`, {
     method: "POST",
     body: JSON.stringify({
       version: {
@@ -254,39 +267,46 @@ function bundleTieneSelloRemoto(json: string): boolean {
 }
 
 // --- dispatch ---
-const [, , verbo, ...rest] = process.argv;
-const flag = (n: string): string | undefined => {
-  const i = rest.indexOf(n);
-  return i >= 0 ? rest[i + 1] : undefined;
-};
-const has = (n: string): boolean => rest.includes(n);
+// Gated tras `import.meta.main` (Task 7, hallazgo IMPORTANT de revisión): sin
+// esto, IMPORTAR este módulo desde un test ejecuta el CLI real (argv del test
+// runner, `process.exit` en cuanto falta un verbo) — por eso `roundtrip.test.ts`
+// reimplementaba la decisión del guard inline en vez de invocar `cmdPush`.
+// Mismo idioma que `scripts/cordon-skill-audit.ts` (ya verificado en este repo).
+if (import.meta.main) {
+  const [, , verbo, ...rest] = process.argv;
+  const flag = (n: string): string | undefined => {
+    const i = rest.indexOf(n);
+    return i >= 0 ? rest[i + 1] : undefined;
+  };
+  const has = (n: string): boolean => rest.includes(n);
 
-const USO = "uso: mesa <modelos|pull <ref>|push <ref> <bundle.json> --nota … [--especie apunte|modelo] [--confirmado-por-operador]>";
+  const USO = "uso: mesa <modelos|pull <ref>|push <ref> <bundle.json> --nota … [--especie apunte|modelo] [--confirmado-por-operador]>";
 
-if (verbo === "modelos") {
-  await cmdModelos();
-} else if (verbo === "pull") {
-  const ref = rest[0];
-  if (!ref) {
+  if (verbo === "modelos") {
+    await cmdModelos();
+  } else if (verbo === "pull") {
+    const ref = rest[0];
+    if (!ref) {
+      console.error(USO);
+      process.exit(2);
+    }
+    await cmdPull(ref);
+  } else if (verbo === "push") {
+    const ref = rest[0];
+    const bundlePath = rest[1];
+    if (!ref || !bundlePath) {
+      console.error(USO);
+      process.exit(2);
+    }
+    const especieFlag = flag("--especie");
+    const especie = especieFlag === "apunte" || especieFlag === "modelo" ? especieFlag : undefined;
+    await cmdPush(ref, bundlePath, {
+      nota: flag("--nota") ?? "sin nota",
+      confirmado: has("--confirmado-por-operador"),
+      ...(especie ? { especie } : {}),
+    });
+  } else {
     console.error(USO);
     process.exit(2);
   }
-  await cmdPull(ref);
-} else if (verbo === "push") {
-  const ref = rest[0];
-  const bundlePath = rest[1];
-  if (!ref || !bundlePath) {
-    console.error(USO);
-    process.exit(2);
-  }
-  const especieFlag = flag("--especie");
-  const especie = especieFlag === "apunte" || especieFlag === "modelo" ? especieFlag : undefined;
-  await cmdPush(ref, bundlePath, {
-    nota: flag("--nota") ?? "sin nota",
-    confirmado: has("--confirmado-por-operador"),
-    ...(especie ? { especie } : {}),
-  });
-} else {
-  console.error(USO);
-  process.exit(2);
 }

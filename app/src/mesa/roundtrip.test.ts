@@ -1,11 +1,14 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, spyOn, test } from "bun:test";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { crearModelPersistenceFetchHandler, type ModelPersistenceRepository } from "../server/modelPersistence";
 import { crearTokenSessionResolver } from "../server/tokenSessionResolver";
 import { crearRepoMemoria } from "../server/repoMemoria";
 import { exportarContextoSkill } from "../opl/contextoSkill";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import { crearModelo, crearObjeto } from "../modelo/operaciones";
-import { esSinDelta } from "./esSinDelta";
+import { cmdPush } from "../../scripts/mesa-cli";
 import type { ModeloPersistido } from "../persistencia/modelos";
 
 /**
@@ -20,13 +23,12 @@ import type { ModeloPersistido } from "../persistencia/modelos";
  *  - CLAUSURA (push∘pull sin delta es no-op): pull de un modelo SIN ediciones
  *    + push del mismo contenido NO debe crear una revisión/versión nueva. El
  *    guard vive del lado CLIENTE (`esSinDelta`, puro y unit-testeado en
- *    `esSinDelta.test.ts`) porque el backend real (`scripts/model-persistence-api.ts`)
- *    avanza la revisión en CADA escritura sin comparar contenido — sin el
- *    guard, cada ciclo pull→push infla la historia aunque el operador no haya
- *    tocado nada. Esta prueba simula la MISMA decisión que toma
- *    `cmdPush` (scripts/mesa-cli.ts): si `esSinDelta` es `true`, el push NO se
- *    emite — se mide con un espía sobre `repo.save` (cero escrituras) y con
- *    la revisión remota (sin cambio).
+ *    `esSinDelta.test.ts`); esta ley invoca el `cmdPush` REAL
+ *    (`scripts/mesa-cli.ts`, exportado tras el corte `import.meta.main` —
+ *    Task 7, hallazgo IMPORTANT de revisión) inyectándole un `api` que habla
+ *    contra el handler en memoria — no una reimplementación inline de la
+ *    decisión del guard. Se mide con un espía sobre `repo.save` (cero
+ *    escrituras) y con la revisión/contenido remotos (sin cambio).
  */
 
 const TOKEN = "z".repeat(48);
@@ -60,6 +62,40 @@ function repoConEspiaDeEscrituras(): { repo: ModelPersistenceRepository; escritu
   return { repo, escrituras: () => escrituras };
 }
 
+/**
+ * `cmdPush` real corta sus caminos de decisión con `process.exit(código)`
+ * (clausura sin delta = 4, rechazo de `evaluarPush` = 1, 409 = 3, uso = 2).
+ * Dentro del test runner eso mataría el proceso completo — se sustituye
+ * `process.exit` por una excepción capturable con el MISMO código mientras
+ * dura la llamada, para poder invocar el `cmdPush` REAL (no una
+ * reimplementación inline del guard) sin abortar la suite.
+ */
+class SalidaProcesoSimulada extends Error {
+  constructor(public codigo: number | undefined) {
+    super(`process.exit(${codigo ?? ""})`);
+  }
+}
+
+async function invocarCmdPush(
+  ref: string,
+  bundlePath: string,
+  opts: { nota: string; confirmado: boolean; especie?: "apunte" | "modelo" },
+  deps: { api: (path: string, init?: RequestInit) => Promise<Response> },
+): Promise<{ codigoSalida?: number }> {
+  const spy = spyOn(process, "exit").mockImplementation(((codigo?: number) => {
+    throw new SalidaProcesoSimulada(codigo);
+  }) as never);
+  try {
+    await cmdPush(ref, bundlePath, opts, deps);
+    return {};
+  } catch (e) {
+    if (e instanceof SalidaProcesoSimulada) return e.codigo === undefined ? {} : { codigoSalida: e.codigo };
+    throw e;
+  } finally {
+    spy.mockRestore();
+  }
+}
+
 describe("leyes de round-trip del puente (repo en memoria, sin red)", () => {
   test("COUNIT: pull∘push preserva la proyección semántica", async () => {
     const h = nuevoHandler(crearRepoMemoria());
@@ -90,9 +126,11 @@ describe("leyes de round-trip del puente (repo en memoria, sin red)", () => {
     expect(exportarContextoSkill(mPull.value, FECHA_FIJA)).toBe(exportarContextoSkill(mB.value, FECHA_FIJA));
   });
 
-  test("CLAUSURA: push∘pull sin delta no escribe (cero escrituras, revisión intacta)", async () => {
+  test("CLAUSURA: cmdPush real no escribe ante push∘pull sin delta; sí escribe ante edición real", async () => {
     const { repo, escrituras } = repoConEspiaDeEscrituras();
     const h = nuevoHandler(repo);
+    const apiViaHandler = (path: string, init?: RequestInit) => h(req(path, init));
+
     const modelo = crearModelo("RT2");
     const bundle = exportarModelo(modelo);
     const ahora = new Date().toISOString();
@@ -115,45 +153,54 @@ describe("leyes de round-trip del puente (repo en memoria, sin red)", () => {
     const postBody = (await post.json()) as { modelo: ModeloPersistido };
     const revisionInicial = postBody.modelo.revision ?? 0;
 
-    // pull: GET sin ediciones.
-    const get = await h(req(`/modelos/${postBody.modelo.id}`));
-    const getBody = (await get.json()) as { modelo: ModeloPersistido };
+    const dir = mkdtempSync(join(tmpdir(), "mesa-cli-clausura-"));
+    try {
+      // pull: GET sin ediciones.
+      const get = await h(req(`/modelos/${postBody.modelo.id}`));
+      const getBody = (await get.json()) as { modelo: ModeloPersistido };
 
-    // El operador re-serializa localmente sin editar nada (re-export por su
-    // editor): mismos datos, bytes distintos (compactado) — exactamente el
-    // caso que `esSinDelta` debe absorber sin falso-negativo.
-    const candidatoSinEdicion = JSON.stringify(JSON.parse(getBody.modelo.json));
-    expect(candidatoSinEdicion).not.toBe(getBody.modelo.json);
+      // El operador re-serializa localmente sin editar nada (re-export por su
+      // editor): mismos datos, bytes distintos (compactado) — exactamente el
+      // no-op genuino que `esSinDelta` debe absorber sin falso-negativo.
+      const candidatoSinEdicion = JSON.stringify(JSON.parse(getBody.modelo.json));
+      expect(candidatoSinEdicion).not.toBe(getBody.modelo.json);
+      const bundleSinEdicionPath = join(dir, "sin-edicion.json");
+      writeFileSync(bundleSinEdicionPath, candidatoSinEdicion, "utf8");
 
-    // Réplica de la decisión de `cmdPush` (scripts/mesa-cli.ts::cmdPush): si
-    // `esSinDelta` es true, el push NO se emite — cero llamadas a `repo.save`.
-    if (!esSinDelta(candidatoSinEdicion, getBody.modelo.json)) {
-      await h(
-        req("/modelos", {
-          method: "POST",
-          body: JSON.stringify({ ...getBody.modelo, json: candidatoSinEdicion, revision: (getBody.modelo.revision ?? 0) + 1 }),
-        }),
+      // El `cmdPush` REAL decide — no una reimplementación inline del guard.
+      const salida = await invocarCmdPush(
+        "rt-2",
+        bundleSinEdicionPath,
+        { nota: "sin nota", confirmado: false },
+        { api: apiViaHandler },
       );
+      expect(salida.codigoSalida).toBe(4); // clausura: exit dedicado, ANTES de cualquier fetch/POST
+      expect(escrituras()).toBe(1); // sigue en 1: la clausura no escribió.
+
+      const getFinal = await h(req(`/modelos/${postBody.modelo.id}`));
+      const getFinalBody = (await getFinal.json()) as { modelo: ModeloPersistido };
+      expect(getFinalBody.modelo.revision ?? 0).toBe(revisionInicial);
+      expect(getFinalBody.modelo.json).toBe(getBody.modelo.json); // ni el contenido cambió.
+
+      // Contraste en el MISMO test: una edición REAL sí debe atravesar
+      // `cmdPush` y escribir.
+      const modeloEditado = crearObjeto(hidratarModeloOk(getBody.modelo.json), modelo.opdRaizId, { x: 10, y: 10 }, "Cosa");
+      if (!modeloEditado.ok) throw new Error(`setup falló: ${modeloEditado.error}`);
+      const bundleEditado = exportarModelo(modeloEditado.value);
+      const bundleEditadoPath = join(dir, "editado.json");
+      writeFileSync(bundleEditadoPath, bundleEditado, "utf8");
+
+      const salidaEdicion = await invocarCmdPush(
+        "rt-2",
+        bundleEditadoPath,
+        { nota: "edición real", confirmado: false },
+        { api: apiViaHandler },
+      );
+      expect(salidaEdicion.codigoSalida).toBeUndefined(); // completó sin abortar
+      expect(escrituras()).toBe(2); // la edición real sí escribió.
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
     }
-    expect(escrituras()).toBe(1); // sigue en 1: la clausura no escribió.
-
-    const getFinal = await h(req(`/modelos/${postBody.modelo.id}`));
-    const getFinalBody = (await getFinal.json()) as { modelo: ModeloPersistido };
-    expect(getFinalBody.modelo.revision ?? 0).toBe(revisionInicial);
-    expect(getFinalBody.modelo.json).toBe(getBody.modelo.json); // ni el contenido cambió.
-
-    // Contraste: una edición REAL sí debe atravesar la clausura y escribir.
-    const modeloEditado = crearObjeto(hidratarModeloOk(getBody.modelo.json), modelo.opdRaizId, { x: 10, y: 10 }, "Cosa");
-    if (!modeloEditado.ok) throw new Error(`setup falló: ${modeloEditado.error}`);
-    const bundleEditado = exportarModelo(modeloEditado.value);
-    expect(esSinDelta(bundleEditado, getBody.modelo.json)).toBe(false);
-    await h(
-      req("/modelos", {
-        method: "POST",
-        body: JSON.stringify({ ...getBody.modelo, json: bundleEditado, revision: (getBody.modelo.revision ?? 0) + 1 }),
-      }),
-    );
-    expect(escrituras()).toBe(2); // la edición real sí escribió.
   });
 });
 
