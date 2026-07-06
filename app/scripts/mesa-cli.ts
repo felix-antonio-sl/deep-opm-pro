@@ -328,7 +328,20 @@ async function marcarApunteEnWorkspace(modeloId: string, apiFn: ApiFn): Promise<
     );
     return;
   }
-  const getBody = (await g.json()) as { indice?: WorkspaceIndice };
+  let getBody: { indice?: WorkspaceIndice };
+  try {
+    getBody = (await g.json()) as { indice?: WorkspaceIndice };
+  } catch {
+    // Un 200 con body malformado (no-JSON, corte de red a mitad de lectura,
+    // etc.) haría throw AQUÍ, DESPUÉS de que el modelo ya fue creado — sin
+    // este catch, se propagaría sin capturar y saltaría el aviso honesto
+    // (el modelo quedaría creado pero el operador vería un stack trace en
+    // vez del mensaje claro de "márcalo desde la app").
+    console.error(
+      "aviso: el modelo se creó, pero la respuesta del índice de workspace vino malformada; no se pudo marcarlo «apunte». Márcalo desde la app si lo necesitas.",
+    );
+    return;
+  }
   const indiceActual = getBody.indice ?? indiceVacio();
   const conEntrada = indiceActual.modelos.some((m) => m.id === modeloId)
     ? indiceActual
