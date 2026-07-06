@@ -14,6 +14,7 @@ import { join } from "node:path";
 import { especieDe, type Especie } from "../src/persistencia/especie";
 import { componerPull, elegirBase } from "../src/mesa/contextoPull";
 import { evaluarPush } from "../src/mesa/validarPush";
+import { esSinDelta } from "../src/mesa/esSinDelta";
 import { construirBodyActualizacion } from "../src/mesa/construirBodyActualizacion";
 import { generarId, type ResumenModeloPersistido } from "../src/persistencia/modelos";
 
@@ -135,6 +136,21 @@ async function cmdPush(
       console.error(`push abortado: "${ref}" (id ${encontrado.id}) apareció en el listado pero desapareció antes del fetch (¿borrado concurrente?). Reintenta.`);
       process.exit(1);
     }
+  }
+
+  // CLAUSURA (Task 7, ley push∘pull sin delta = no-op): si el bundle
+  // candidato tiene el MISMO significado que el `json` remoto vigente,
+  // abortar ANTES de escribir — sin llamar a `evaluarPush` ni emitir el POST.
+  // Sin este guard, un ciclo pull→push sin ediciones igual crea revisión en
+  // el backend real (`model-persistence-api.ts::save` avanza la revisión en
+  // CADA escritura sin comparar contenido) — el guard debe vivir del lado
+  // cliente porque el backend no lo hace. Solo aplica al ACTUALIZAR (hay un
+  // `destinoRec.json` remoto contra el cual comparar); al crear no hay nada
+  // que comparar. Ver `esSinDelta.test.ts` (unit) + `roundtrip.test.ts`
+  // (ley end-to-end contra el handler en memoria).
+  if (destinoRec && typeof destinoRec.json === "string" && esSinDelta(bundleJson, destinoRec.json)) {
+    console.error("sin cambios: no se crea revisión");
+    process.exit(4);
   }
 
   let destinoInfo: { tieneSello: boolean; especie: Especie } | undefined;
