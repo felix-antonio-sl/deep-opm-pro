@@ -31,4 +31,4 @@ El operador pide poder modelar **bottom-up**: bosquejar OPDs sueltos (fragmentos
 
 ## Estado
 
-**ABIERTA** — pendiente HITL custodio-kora.
+**RESUELTA 2026-07-06 — opción (a), primera clase** (HITL: el operador-custodio, en sesión, mismo día de la elevación): *«el bottom-up debe ser de primera clase, sin negar la posibilidad de que un apunte ascienda a modelo; cuando quiera solo trabajar con bocetos o apuntes, tener la flexibilidad de hacerlo de forma desentendida y simple, sin requisitos de formar parte de un modelo»*. Consecuencias: (1) el mecanismo propuesto (OPD suelto + banda Taller + verbo «adoptar» + código de validez degradable) pasa a diseño de corte propio — spec `docs/superpowers/specs/2026-07-06-apuntes-taller-design.md`; (2) la **enmienda SSOT** (metodología: bottom-up como camino de elicitación de primera clase; spec-opd §10: realización del Taller) se redacta como entregable del corte y pasa por la firma del custodio en pneuma antes del deploy; (3) la graduación apunte→modelo se conserva.

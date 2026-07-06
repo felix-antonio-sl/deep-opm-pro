@@ -17,7 +17,7 @@ Que la skill `modelamiento-opm` y la mesa opforja **compartan estado sin que el 
 | Dolor #1 | plomería mesa↔skill | operador |
 | Iteración ideal | un gesto: la skill lee/escribe directo | operador |
 | Aterrizaje del push | nueva revisión del mismo modelo, snapshot previo, rollback=restaurar | operador |
-| Corte B (Taller bottom-up) | **fuera del corte** → pregunta doctrinal al custodio (solicitud upstream); bottom-up HOY = apuntes + composición | veredicto jobs, aceptado |
+| Corte B (Taller bottom-up) | **fuera de ESTE corte**; doctrina **resuelta por el operador-custodio 2026-07-06: primera clase** → corte propio B′ (spec `2026-07-06-apuntes-taller-design.md`); mientras B′ no exista, bottom-up = apuntes + composición | veredicto jobs + resolución custodio |
 | Corte C (agilidad diagramática) | **frente propio paralelo**; arranca con re-auditoría in-vivo (la lista M/m es de 2026-06-12 y el Inspector cambió) | veredicto jobs, aceptado |
 | Horizonte nombrado (no de este corte) | diálogo dialéctico anclado EN la mesa (canal inverso skill→mesa sobre notas W6.5-a) | veredicto jobs |
 
@@ -71,7 +71,7 @@ El cuerpo aprende el **camino primario directo**: `mesa pull` → trabajar → `
 
 ## 7. Fuera de alcance (con destino nombrado)
 
-- **Taller bottom-up / OPD suelto / verbo «adoptar»**: pregunta doctrinal elevada al custodio en `docs/solicitudes-upstream/2026-07-06-taller-bottom-up-doctrina.md` («¿admite Forja arranque bottom-up con reconciliación posterior al SD0 como camino de primera clase, o se canaliza por apunte?», con «adoptar» como mecanismo propuesto). La mesa no legisla método.
+- **Taller bottom-up / OPD suelto / verbo «adoptar»**: doctrina RESUELTA por el operador-custodio (2026-07-06, primera clase — ver la solicitud, ya cerrada) → corte propio **B′** con spec `2026-07-06-apuntes-taller-design.md`; su enmienda SSOT pasa por firma del custodio antes del deploy.
 - **Servidor MCP**: fase 2 natural encima del CLI.
 - **Diálogo anclado en la mesa** (skill→mesa): horizonte declarado del frente, no de este corte.
 - **Agilidad diagramática (C′)**: frente propio; re-auditoría in-vivo primero.
