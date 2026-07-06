@@ -14,6 +14,8 @@ import { join } from "node:path";
 import { especieDe, type Especie } from "../src/persistencia/especie";
 import { componerPull, elegirBase } from "../src/mesa/contextoPull";
 import { evaluarPush } from "../src/mesa/validarPush";
+import { construirBodyActualizacion } from "../src/mesa/construirBodyActualizacion";
+import { generarId, type ResumenModeloPersistido } from "../src/persistencia/modelos";
 
 const API = process.env.OPFORJA_API_URL ?? "https://opforja.sanixai.com";
 const TOKEN_PATH = process.env.OPFORJA_AGENT_TOKEN_FILE ?? join(homedir(), ".config/opforja/agent-token");
@@ -42,18 +44,15 @@ async function api(path: string, init?: RequestInit): Promise<Response> {
  * y scripts/model-persistence-api.ts (`modeloDesdeRow`). `esApunte`/`esBiblioteca`
  * son opcionales porque el repo Postgres actual NO los persiste como columna del
  * modelo (solo existen hoy en el índice de workspace) — ver nota en el reporte.
+ *
+ * Se tipa como `ResumenModeloPersistido` (+ `json` opcional, ausente en el
+ * listado sin payload) en vez de re-declarar los campos a mano: así el
+ * registro fetchado del servidor encaja estructuralmente como `existente` de
+ * `construirBodyActualizacion`/`construirModeloPersistido` sin adaptador —
+ * trae TODOS los campos preservables (descripcion, carpetaId, archivado*,
+ * versiones, crearVersionAlGuardar), no solo los que el CLI conocía antes.
  */
-type RegistroRemoto = {
-  id: string;
-  nombre: string;
-  json?: string;
-  creadoEn: string;
-  actualizadoEn: string;
-  revision?: number;
-  autosalvado?: boolean;
-  esApunte?: boolean;
-  esBiblioteca?: boolean;
-};
+type RegistroRemoto = ResumenModeloPersistido & { json?: string };
 
 async function listar(): Promise<RegistroRemoto[]> {
   const r = await api("/modelos");
@@ -125,7 +124,18 @@ async function cmdPush(
 ): Promise<void> {
   const bundleJson = readFileSync(bundlePath, "utf8");
   const encontrado = await resolverRef(ref);
-  const destinoRec = encontrado ? await obtenerModelo(encontrado.id) : null;
+  let destinoRec: RegistroRemoto | null = null;
+  if (encontrado) {
+    destinoRec = await obtenerModelo(encontrado.id);
+    if (!destinoRec) {
+      // El ref SÍ resolvió contra el listado, pero el fetch puntual dio 404:
+      // el modelo se borró (o se movió) entre el `list` y el `get` — no es
+      // "ref no encontrado" (eso crearía uno NUEVO por accidente encima de un
+      // borrado concurrente). Solo un ref jamás resuelto crea.
+      console.error(`push abortado: "${ref}" (id ${encontrado.id}) apareció en el listado pero desapareció antes del fetch (¿borrado concurrente?). Reintenta.`);
+      process.exit(1);
+    }
+  }
 
   let destinoInfo: { tieneSello: boolean; especie: Especie } | undefined;
   let baseFueAutosave = false;
@@ -150,18 +160,25 @@ async function cmdPush(
   // vigente para el optimistic lock; creadoEn preservado). El endpoint exige
   // creadoEn/actualizadoEn como strings no vacíos y, en actualización, la
   // revision exacta — si no coincide, 409 (PersistenciaConflictError).
+  //
+  // CRÍTICO (bug de integridad corregido): `save()` en model-persistence-api.ts
+  // hace `INSERT ... ON CONFLICT DO UPDATE SET <TODAS las columnas>` desde el
+  // body recibido — sin merge contra lo persistido. Enviar solo
+  // id/nombre/json/creadoEn/actualizadoEn/revision (como hacía este CLI antes)
+  // pisa silenciosamente descripcion (→ ""), carpetaId (→ null, saca de la
+  // carpeta), archivado*/versiones/crearVersionAlGuardar (→ ausentes). Se usa
+  // `construirBodyActualizacion` (envoltorio de la utilidad canónica
+  // `construirModeloPersistido`, la misma que usa el store del producto en
+  // src/store/persistencia.ts) para preservar esos campos desde `destinoRec`.
   const ahora = new Date().toISOString();
   const body = destinoRec
-    ? {
-        id: destinoRec.id,
-        nombre: destinoRec.nombre,
-        json: bundleJson,
-        creadoEn: destinoRec.creadoEn,
-        actualizadoEn: ahora,
-        revision: destinoRec.revision ?? 0,
-      }
+    ? construirBodyActualizacion(
+        { id: destinoRec.id, nombre: destinoRec.nombre, json: bundleJson, revision: destinoRec.revision ?? 0 },
+        destinoRec,
+        ahora,
+      )
     : {
-        id: crypto.randomUUID(),
+        id: generarId(),
         nombre: `Nuevo ${veredicto.especieDestino}`,
         json: bundleJson,
         creadoEn: ahora,
@@ -185,7 +202,7 @@ async function cmdPush(
   }
   console.log(`push ok: ${guardado.id} rev ${guardado.revision ?? "?"}`);
 
-  const versionId = crypto.randomUUID();
+  const versionId = generarId();
   const v = await api(`/modelos/${encodeURIComponent(guardado.id)}/versiones`, {
     method: "POST",
     body: JSON.stringify({
@@ -213,7 +230,8 @@ async function cmdPush(
  */
 function bundleTieneSelloRemoto(json: string): boolean {
   try {
-    return (JSON.parse(json) as { modelo?: { procedencia?: unknown } }).modelo?.procedencia != null;
+    const procedencia = (JSON.parse(json) as { modelo?: { procedencia?: unknown } }).modelo?.procedencia;
+    return procedencia != null && typeof procedencia === "object";
   } catch {
     return false;
   }
