@@ -54,7 +54,12 @@ export function construirModeloPersistido(
   ahora = new Date().toISOString(),
 ): ModeloPersistido {
   const nombre = input.nombre.trim() || "Modelo OPM";
-  const descripcion = typeof input.descripcion === "string" ? input.descripcion.trim() : "";
+  // Igual patrón `input.X ?? existente?.X` que el resto de los campos abajo:
+  // si el llamador omite `descripcion` (p. ej. `mesa push`, que no la conoce),
+  // se preserva la del registro existente en vez de vaciarla — un caller que
+  // SÍ quiere vaciarla debe enviar explícitamente `descripcion: ""`.
+  const descripcion =
+    typeof input.descripcion === "string" ? input.descripcion.trim() : (existente?.descripcion ?? "");
   const id = input.id?.trim() || generarId();
   const resumen: ResumenModeloPersistido = {
     id,
@@ -109,7 +114,7 @@ export function resumenDesdeModeloPersistido(modelo: ModeloPersistido): ResumenM
   };
 }
 
-function generarId(): string {
+export function generarId(): string {
   if (typeof globalThis.crypto?.randomUUID === "function") return globalThis.crypto.randomUUID();
   return `modelo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }

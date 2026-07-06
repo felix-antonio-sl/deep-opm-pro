@@ -27,7 +27,8 @@
     "render:headless:smoke": "bun run scripts/render-headless-smoke.ts",
     "verify:reproducible": "bun run scripts/verify-reproducible.ts",
     "verify:reproducible:smoke": "bun run scripts/verify-reproducible-smoke.ts",
-    "auth:cuenta": "bun run scripts/auth-cuenta.ts"
+    "auth:cuenta": "bun run scripts/auth-cuenta.ts",
+    "mesa": "bun scripts/mesa-cli.ts"
   },
   "dependencies": {
     "@fontsource-variable/jetbrains-mono": "^5.2.8",

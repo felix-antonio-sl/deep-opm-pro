@@ -15,6 +15,7 @@ import { indiceVacio } from "../src/persistencia/workspace";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../src/persistencia/workspaceStorage";
 import { aplicarPoliticaLogScaleVersiones, idsVersionesPodadas } from "../src/persistencia/politicaVersiones";
 import type { VersionResumen } from "../src/modelo/tipos";
+import { elegirSessionResolver } from "../src/server/sessionResolverSelector";
 
 const HOST = process.env.MODEL_API_HOST ?? "0.0.0.0";
 const PORT = Number(process.env.MODEL_API_PORT ?? "3001");
@@ -340,9 +341,23 @@ await inicializarSchema();
 // explícito MODEL_REQUIRE_AUTH=false (rollback spec §7, no toca datos).
 const REQUIRE_AUTH = process.env.MODEL_REQUIRE_AUTH !== "false";
 
+const cookieResolver = crearCookieSessionResolver(SESSION_SECRET);
+const AGENT_TOKEN = process.env.MODEL_AGENT_TOKEN;
+const AGENT_IDENTITY = process.env.MODEL_AGENT_IDENTITY; // "tenantId:userId"
+
+// Envoltorio delgado: lee `process.env` y delega la DECISIÓN al selector
+// puro (`src/server/sessionResolverSelector.ts`, Task 8 FIX 2+FIX 3) —
+// testeado ahí sin necesidad de arrancar este script (Bun.serve + Postgres
+// en el top-level).
+function construirSessionResolver() {
+  return elegirSessionResolver({ token: AGENT_TOKEN, identity: AGENT_IDENTITY }, cookieResolver, (habilitado) =>
+    logEvento("model_api_agent_token", { habilitado }),
+  );
+}
+
 const handler = crearModelPersistenceFetchHandler({
   repo: repositorioPostgres(),
-  sessionResolver: crearCookieSessionResolver(SESSION_SECRET),
+  sessionResolver: construirSessionResolver(),
   auth: { repo: authRepositorioPostgres(), secret: SESSION_SECRET, requireAuth: REQUIRE_AUTH },
 });
 
