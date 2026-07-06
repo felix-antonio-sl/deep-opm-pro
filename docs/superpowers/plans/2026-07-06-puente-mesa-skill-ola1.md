@@ -362,10 +362,10 @@ import { describe, expect, test } from "bun:test";
 import { componerPull, elegirBase } from "./contextoPull";
 import { exportarContextoSkill } from "../opl/contextoSkill";
 import { hidratarModelo, exportarModelo } from "../serializacion/json";
-import { crearModeloVacio } from "../modelo/operaciones"; // helper de modelo vacío
+import { crearModelo } from "../modelo/operaciones"; // helper de modelo vacío
 
 const NOW = new Date("2026-07-06T00:00:00.000Z");
-const modelo = crearModeloVacio("Demo");
+const modelo = crearModelo("Demo");
 const json = exportarModelo(modelo);
 
 describe("elegirBase", () => {
@@ -425,7 +425,7 @@ describe("componerPull", () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd app && bun test src/mesa/contextoPull.test.ts`
-Expected: FAIL — módulo inexistente. (Si `crearModeloVacio`/`exportarModelo` tienen otro nombre, ajústalo al helper real de creación de modelo vacío + serializador; `hidratarModelo` y `exportarModelo` sí existen en `json.ts`.)
+Expected: FAIL — módulo inexistente. (Si `crearModelo`/`exportarModelo` tienen otro nombre, ajústalo al helper real de creación de modelo vacío + serializador; `hidratarModelo` y `exportarModelo` sí existen en `json.ts`.)
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -507,9 +507,9 @@ git commit -m "feat(mesa): lógica pura del pull (base autosave-vs-guardado + de
 import { describe, expect, test } from "bun:test";
 import { evaluarPush } from "./validarPush";
 import { exportarModelo } from "../serializacion/json";
-import { crearModeloVacio } from "../modelo/operaciones";
+import { crearModelo } from "../modelo/operaciones";
 
-const bundleValido = exportarModelo(crearModeloVacio("X"));
+const bundleValido = exportarModelo(crearModelo("X"));
 const bundleInvalido = '{"esto":"no es un modelo"}';
 
 describe("evaluarPush", () => {
@@ -679,11 +679,21 @@ async function cmdPull(ref: string): Promise<void> {
   const r = await api(`/modelos/${encodeURIComponent(ref2.id)}`);
   if (!r.ok) { console.error(`API ${r.status}`); process.exit(1); }
   const rec = (await r.json()) as Record<string, unknown>;
+  // El autosave vive en un endpoint SEPARADO (GET /modelos/:id/autosave →
+  // { modeloId, creadoEn, json }); el record solo trae el flag `autosalvado`.
+  let autosave: { creadoEn: string; json: string } | undefined;
+  if (rec.autosalvado) {
+    const a = await api(`/modelos/${encodeURIComponent(ref2.id)}/autosave`);
+    if (a.ok) {
+      const av = (await a.json()) as { creadoEn?: string; json?: string };
+      if (av.creadoEn && av.json) autosave = { creadoEn: av.creadoEn, json: av.json };
+    }
+  }
   const base = elegirBase({
     guardadoActualizadoEn: String(rec.actualizadoEn),
     guardadoJson: String(rec.json),
     guardadoRev: Number(rec.revision ?? 0),
-    autosave: rec.autosalvado ? { creadoEn: String(rec.autosaveCreadoEn), json: String(rec.autosaveJson) } : undefined,
+    autosave,
   });
   console.log(componerPull({ nombre: String(rec.nombre), especie: especieDe(rec as { esApunte?: boolean; esBiblioteca?: boolean }), base }));
 }
@@ -767,7 +777,7 @@ import { crearTokenSessionResolver } from "../server/tokenSessionResolver";
 import { crearRepoMemoria } from "../server/repoMemoria";
 import { exportarContextoSkill } from "../opl/contextoSkill";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
-import { crearModeloVacio } from "../modelo/operaciones";
+import { crearModelo } from "../modelo/operaciones";
 
 const TOKEN = "z".repeat(48);
 function nuevoHandler() {
@@ -785,7 +795,7 @@ describe("leyes de round-trip del puente", () => {
   // COUNIT: tras push de B, un pull inmediato produce proyección semántica ≡ a la de B.
   test("pull∘push preserva la proyección semántica (counit)", async () => {
     const h = nuevoHandler();
-    const modelo = crearModeloVacio("RT");
+    const modelo = crearModelo("RT");
     const bundle = exportarModelo(modelo);
     const post = await h(req("/modelos", { method: "POST", body: JSON.stringify({ id: null, nombre: "RT", json: bundle }) }));
     expect(post.ok).toBe(true);
@@ -800,7 +810,7 @@ describe("leyes de round-trip del puente", () => {
   // CLAUSURA: pull de un modelo sin ediciones + push del mismo → no crea revisión nueva.
   test("push∘pull sin delta no avanza la revisión (clausura)", async () => {
     const h = nuevoHandler();
-    const bundle = exportarModelo(crearModeloVacio("RT2"));
+    const bundle = exportarModelo(crearModelo("RT2"));
     const post = await h(req("/modelos", { method: "POST", body: JSON.stringify({ id: null, nombre: "RT2", json: bundle }) }));
     const { id, revision } = (await post.json()) as { id: string; revision?: number };
     const get = await h(req(`/modelos/${id}`));
