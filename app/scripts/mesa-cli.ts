@@ -212,7 +212,11 @@ export async function cmdPush(
         json: bundleJson,
         creadoEn: ahora,
         actualizadoEn: ahora,
-        ...(veredicto.especieDestino === "apunte" ? { esApunte: true } : {}),
+        // NO se manda `esApunte` aquí: el endpoint de creación no tiene
+        // columna para ese flag (vive hoy solo en el índice de workspace,
+        // que este CLI no escribe) — incluirlo en el body sería un no-op
+        // que engaña a quien lea el body pensando que algo se persistió.
+        // Ver el aviso post-creación más abajo (FIX 1, Task 8).
       };
   const w = await apiFn("/modelos", { method: "POST", body: JSON.stringify(body) });
   if (w.status === 409) {
@@ -230,6 +234,16 @@ export async function cmdPush(
     process.exit(1);
   }
   console.log(`push ok: ${guardado.id} rev ${guardado.revision ?? "?"}`);
+
+  // FIX 1 (Task 8, revisión whole-branch): al CREAR con `--especie apunte`,
+  // el flag no se persiste en ninguna parte hoy (ni columna Postgres ni
+  // índice de workspace, que este CLI no escribe) — `push ok` no puede ser
+  // la única señal, o el operador cree que quedó marcado como apunte.
+  if (!destinoRec && veredicto.especieDestino === "apunte") {
+    console.error(
+      "nota: la especie «apunte» no se persiste en Ola 1 (los flags viven en el índice de workspace, aún no cableado por el CLI); el modelo se creó como modelo normal. Márcalo como apunte desde la app si lo necesitas.",
+    );
+  }
 
   const versionId = generarId();
   const v = await apiFn(`/modelos/${encodeURIComponent(guardado.id)}/versiones`, {

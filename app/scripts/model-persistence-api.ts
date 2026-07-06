@@ -15,7 +15,7 @@ import { indiceVacio } from "../src/persistencia/workspace";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../src/persistencia/workspaceStorage";
 import { aplicarPoliticaLogScaleVersiones, idsVersionesPodadas } from "../src/persistencia/politicaVersiones";
 import type { VersionResumen } from "../src/modelo/tipos";
-import { crearResolverEncadenado, crearTokenSessionResolver } from "../src/server/tokenSessionResolver";
+import { elegirSessionResolver } from "../src/server/sessionResolverSelector";
 
 const HOST = process.env.MODEL_API_HOST ?? "0.0.0.0";
 const PORT = Number(process.env.MODEL_API_PORT ?? "3001");
@@ -345,17 +345,14 @@ const cookieResolver = crearCookieSessionResolver(SESSION_SECRET);
 const AGENT_TOKEN = process.env.MODEL_AGENT_TOKEN;
 const AGENT_IDENTITY = process.env.MODEL_AGENT_IDENTITY; // "tenantId:userId"
 
+// Envoltorio delgado: lee `process.env` y delega la DECISIÓN al selector
+// puro (`src/server/sessionResolverSelector.ts`, Task 8 FIX 2+FIX 3) —
+// testeado ahí sin necesidad de arrancar este script (Bun.serve + Postgres
+// en el top-level).
 function construirSessionResolver() {
-  if (AGENT_TOKEN && AGENT_TOKEN.length >= 48 && AGENT_IDENTITY && AGENT_IDENTITY.includes(":")) {
-    // El guard includes(":") ya garantiza ≥2 elementos; noUncheckedIndexedAccess
-    // exige la aserción de tupla para que TS lo sepa.
-    const [tenantId, userId] = AGENT_IDENTITY.split(":", 2) as [string, string];
-    const tokenResolver = crearTokenSessionResolver({ token: AGENT_TOKEN, tenantId, userId });
-    logEvento("model_api_agent_token", { habilitado: true });
-    return crearResolverEncadenado([tokenResolver, cookieResolver]);
-  }
-  logEvento("model_api_agent_token", { habilitado: false });
-  return cookieResolver; // fail-closed: sin token válido, carril deshabilitado
+  return elegirSessionResolver({ token: AGENT_TOKEN, identity: AGENT_IDENTITY }, cookieResolver, (habilitado) =>
+    logEvento("model_api_agent_token", { habilitado }),
+  );
 }
 
 const handler = crearModelPersistenceFetchHandler({
