@@ -70,6 +70,12 @@ services:
       # Auth v1 (docs/specs/auth-identidad-v1.md): login obligatorio. Rollback
       # de emergencia: "false" restaura tenants anónimos sin tocar datos.
       MODEL_REQUIRE_AUTH: "true"
+      # Carril de token de agente (Ola 1 puente mesa↔skill, 2026-07-06).
+      # Fail-closed: sin OPFORJA_AGENT_TOKEN (≥48) en .env, el carril queda
+      # deshabilitado y la ruta de cookie del navegador es idéntica a hoy.
+      # Rollback: borrar estas 2 líneas de .env + rebuild.
+      MODEL_AGENT_TOKEN: ${OPFORJA_AGENT_TOKEN:-}
+      MODEL_AGENT_IDENTITY: ${OPFORJA_AGENT_IDENTITY:-}
     networks:
       - opforja-internal
     healthcheck:
