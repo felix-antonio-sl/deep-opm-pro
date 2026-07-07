@@ -49,58 +49,49 @@ export interface CommandPaletteMenuAction {
   run: () => void;
 }
 
-export const SECCIONES_COMMAND_PALETTE = ["MODELO", "CREAR", "NAVEGAR", "EXPORTAR", "VISTA"] as const;
+// Tres estratos, no seis grupos. La paleta liviana ordena por relación con el
+// foco: lo que aplica a la SELECCIÓN, los verbos de FUNDACIÓN, y el resto —
+// abrir/guardar/exportar/vista/navegación — por frecuencia de uso.
+export const SECCIONES_COMMAND_PALETTE = ["CONTEXTUAL", "CREAR", "RECIENTES"] as const;
 
 export type CommandPaletteSeccion = (typeof SECCIONES_COMMAND_PALETTE)[number];
+
+/**
+ * Rótulos visibles es-CL de cada estrato. El identificador queda como código
+ * estable (single-word, alimenta el testid `command-palette-section-<slug>`),
+ * el rótulo humano se resuelve aquí al renderizar.
+ */
+export const ROTULO_SECCION: Readonly<Record<CommandPaletteSeccion, string>> = {
+  CONTEXTUAL: "Para la selección",
+  CREAR: "Crear",
+  RECIENTES: "Recientes",
+};
 
 export interface CommandPaletteGrupo {
   seccion: CommandPaletteSeccion;
   items: CommandPaletteItem[];
 }
 
-const seccionesPorAccionMenu: Readonly<Record<string, CommandPaletteSeccion>> = {
-  "nuevo-modelo": "MODELO",
-  "abrir-importar": "MODELO",
-  "guardar-como": "MODELO",
-  "abrir-pestana": "MODELO",
-  configuracion: "MODELO",
-  "configurar-ontologia": "MODELO",
-  "renombrar-modelo": "MODELO",
-  "versiones-modelo": "MODELO",
-  "crear-requisito": "CREAR",
-  "marcar-requisito": "CREAR",
-  "satisfacer-requisito": "CREAR",
-  "conectar-submodelo": "CREAR",
+/**
+ * Estrato de cada acción de menú que NO cae por defecto en RECIENTES: los menús
+ * condicionados a la selección (CONTEXTUAL) y los verbos de fundación (CREAR).
+ * `crear-requisito` es dual y se resuelve por label en seccionVisualCommandPalette.
+ * Todo lo no listado (abrir/guardar/exportar/vista/navegación) es RECIENTES.
+ */
+const SECCION_POR_ACCION_MENU: Readonly<Record<string, CommandPaletteSeccion>> = {
+  // Menús que solo tienen sentido con algo seleccionado (aparecen gated).
+  "marcar-requisito": "CONTEXTUAL",
+  "satisfacer-requisito": "CONTEXTUAL",
+  "conectar-submodelo": "CONTEXTUAL",
+  "split-parcial": "CONTEXTUAL",
+  "recolectar-contorno": "CONTEXTUAL",
+  "distribuir-contorno": "CONTEXTUAL",
+  "resolver-decision": "CONTEXTUAL",
+  "urls-objeto": "CONTEXTUAL",
+  "editar-imagen-objeto": "CONTEXTUAL",
+  // Verbos de creación no contextuales.
+  "nuevo-modelo": "CREAR",
   "vitrina-estereotipos": "CREAR",
-  "split-parcial": "CREAR",
-  "recolectar-contorno": "CREAR",
-  "distribuir-contorno": "CREAR",
-  "resolver-decision": "VISTA",
-  "buscar-modelo": "NAVEGAR",
-  "buscar-workspace": "NAVEGAR",
-  "exportar-json": "EXPORTAR",
-  "exportar-diagnostico": "EXPORTAR",
-  "exportar-opl-modelo": "EXPORTAR",
-  "exportar-canon-documento": "EXPORTAR",
-  "copiar-contexto-skill": "EXPORTAR",
-  "copiar-log-decisiones": "EXPORTAR",
-  "exportar-opd-png": "EXPORTAR",
-  "exportar-opds-png-zip": "EXPORTAR",
-  "simulacion-conceptual": "VISTA",
-  "simulacion-numerica": "VISTA",
-  "grid-canvas": "VISTA",
-  "alias-visibles": "VISTA",
-  "descripciones-visibles": "VISTA",
-  "modo-imagen-global": "VISTA",
-  "editar-imagen-objeto": "VISTA",
-  "auto-layout": "VISTA",
-  "tabla-enlaces": "VISTA",
-  "urls-objeto": "VISTA",
-  "mostrar-archivados": "VISTA",
-  "mostrar-versiones": "VISTA",
-  "capturar-bug": "VISTA",
-  "bug-ledger": "VISTA",
-  "atajos-teclado": "VISTA",
 };
 
 export function CommandPalette({ abierto, onCerrar }: Props) {
@@ -349,15 +340,17 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
         </div>
         <div id="command-palette-list" role="listbox" style={style.lista}>
           {items.length === 0 ? (
-            <div style={style.empty}>sin resultados - escribe otro comando</div>
+            <div style={style.empty}>
+              Sin comandos para «{query}». ¿Buscas algo del modelo? Prueba Ctrl+F.
+            </div>
           ) : grupos.map((grupo) => (
             <section
               key={grupo.seccion ?? "resultados"}
-              aria-label={grupo.seccion ?? "Resultados"}
+              aria-label={grupo.seccion ? ROTULO_SECCION[grupo.seccion] : "Resultados"}
               data-testid={`command-palette-section-${(grupo.seccion ?? "resultados").toLowerCase()}`}
               style={grupo.seccion === null ? style.seccionPlana : style.seccion}
             >
-              {grupo.seccion !== null ? <div style={style.seccionTitulo}>{grupo.seccion}</div> : null}
+              {grupo.seccion !== null ? <div style={style.seccionTitulo}>{ROTULO_SECCION[grupo.seccion]}</div> : null}
               <div style={style.seccionItems}>
                 {grupo.items.length === 0 ? (
                   <div style={style.seccionVacia}>{GLIFO_VACIO}</div>
@@ -378,11 +371,12 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
                     >
                       <span style={style.itemTextos}>
                         <span style={style.itemLabel}>{item.label}</span>
-                        <span style={style.itemDescripcion}>{item.descripcion}</span>
+                        {item.descripcion && normalizarTextoBusqueda(item.descripcion) !== normalizarTextoBusqueda(item.label)
+                          ? <span style={style.itemDescripcion}>{item.descripcion}</span>
+                          : null}
                       </span>
                       <span style={style.itemMeta}>
                         {item.atajo ? <span style={style.atajo}>{formatearComboCodex(item.atajo)}</span> : null}
-                        <span style={style.categoria}>{item.categoria}</span>
                       </span>
                     </button>
                   );
@@ -559,8 +553,8 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "configurar-ontologia", label: "Configurar ontología", descripcion: "Editar términos canónicos, sinónimos y modo de control", categoria: "archivo", run: deps.abrirDialogoOntologia },
     { id: "renombrar-modelo", label: "Renombrar modelo", descripcion: "Cambiar el nombre del modelo activo", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
     { id: "versiones-modelo", label: "Versiones del modelo", descripcion: "Abrir el historial de versiones del modelo", categoria: "archivo", enabled: !!deps.abrirDialogoVersiones, run: deps.abrirDialogoVersiones ?? (() => {}) },
-    { id: "crear-requisito", label: deps.hayEntidadSeleccionada || deps.hayEnlaceSeleccionado ? "Crear requisito vinculado" : "Crear requisito", descripcion: "Crear un <<Requirement>> visible y navegable", categoria: "edicion", run: deps.abrirCrearRequisito },
-    { id: "marcar-requisito", label: "Marcar como requisito", descripcion: "Convertir el objeto seleccionado en <<Requirement>>", categoria: "edicion", enabled: deps.hayEntidadSeleccionada, run: deps.abrirMarcarRequisito },
+    { id: "crear-requisito", label: deps.hayEntidadSeleccionada || deps.hayEnlaceSeleccionado ? "Crear requisito vinculado" : "Crear requisito", descripcion: "Crea un requisito visible y navegable en el modelo", categoria: "edicion", run: deps.abrirCrearRequisito },
+    { id: "marcar-requisito", label: "Marcar como requisito", descripcion: "Convierte el objeto seleccionado en un requisito", categoria: "edicion", enabled: deps.hayEntidadSeleccionada, run: deps.abrirMarcarRequisito },
     { id: "satisfacer-requisito", label: "Vincular requisito existente", descripcion: "Relacionar un requisito con la selección actual", categoria: "edicion", enabled: deps.hayEntidadSeleccionada || deps.hayEnlaceSeleccionado, run: deps.abrirSatisfacerRequisito },
     { id: "conectar-submodelo", label: "Conectar submodelo", descripcion: "Crear referencia LF-04 con vista derivada de solo lectura", categoria: "refinamiento", enabled: deps.hayEntidadSeleccionada, run: deps.abrirDialogoSubmodelo },
     { id: "vitrina-estereotipos", label: "Piezas", descripcion: "Trae Piezas al lienzo: estereotipos de este modelo o entidades de una biblioteca (Calcar / Anclar)", categoria: "edicion", run: deps.abrirVitrinaEstereotipos },
@@ -636,7 +630,9 @@ export function gruposCommandPaletteParaRender(
   query: string,
 ): CommandPaletteGrupoRender[] {
   if (query.trim()) return [{ seccion: null, items: [...items] }];
-  return agruparItemsCommandPalette(items, { incluirSeccionesVacias: true });
+  // Vista de exploración por estratos: los vacíos se ocultan. En particular
+  // CONTEXTUAL solo se renderiza cuando hay algo seleccionado que lo pueble.
+  return agruparItemsCommandPalette(items, { incluirSeccionesVacias: false });
 }
 
 export function agruparItemsCommandPalette(
@@ -659,27 +655,27 @@ export function agruparItemsCommandPalette(
 }
 
 export function seccionVisualCommandPalette(item: CommandPaletteItem): CommandPaletteSeccion {
-  const seccionMenu = item.menuActionId ? seccionesPorAccionMenu[item.menuActionId] : undefined;
-  if (seccionMenu) return seccionMenu;
-  const texto = normalizarTextoBusqueda([item.label, item.descripcion, item.categoria, item.menuActionId ?? ""].join(" "));
-  if (texto.includes("export") || texto.includes("json") || texto.includes("png") || texto.includes("zip") || texto.includes("html")) return "EXPORTAR";
-  if (item.categoria === "archivo") return "MODELO";
-  if (item.categoria === "navegacion") return "NAVEGAR";
-  if (item.categoria === "vista") return "VISTA";
-  if (
-    texto.includes("crear")
-    || texto.includes("nuevo objeto")
-    || texto.includes("nuevo proceso")
-    || texto.includes("nuevo estado")
-    || texto.includes("nueva relacion")
-    || texto.includes("nuevo opd")
-    || texto.includes("descomponer")
-    || texto.includes("desplegar")
-    || texto.includes("refinamiento")
-    || item.categoria === "edicion"
-    || item.categoria === "seleccion"
-  ) return "CREAR";
-  return "VISTA";
+  // `componer-modelo` es una accion-contextual SIEMPRE visible (compone el
+  // modelo entero con otro, no la selección). Si cayera en CONTEXTUAL poblaría
+  // «Para la selección» sin selección (spec §4). Su casa es CREAR: verbo de
+  // fundación a nivel-modelo.
+  if (item.accionId === "componer-modelo") return "CREAR";
+  // CONTEXTUAL: las acciones contextuales (dependen de la cosa/enlace en foco)
+  // y las acciones de menú que solo tienen sentido con algo seleccionado.
+  if (item.tipo === "accion-contextual") return "CONTEXTUAL";
+  const menuId = item.menuActionId;
+  if (menuId) {
+    // `crear-requisito` es dual: vinculado a la selección (CONTEXTUAL) vs suelto
+    // como verbo de fundación (CREAR). El label codifica el estado de selección.
+    if (menuId === "crear-requisito") {
+      return normalizarTextoBusqueda(item.label).includes("vinculado") ? "CONTEXTUAL" : "CREAR";
+    }
+    const seccion = SECCION_POR_ACCION_MENU[menuId];
+    if (seccion) return seccion;
+  }
+  // RECIENTES: abrir/guardar/exportar/vista/navegación y los atajos globales —
+  // el grueso del catálogo, presentado por frecuencia de uso.
+  return "RECIENTES";
 }
 
 export function normalizarTextoBusqueda(texto: string): string {
@@ -707,7 +703,7 @@ function enfocarSeccionInspector(testId: string): void {
 /**
  * Estilos del CommandPalette — Codex L6.
  *
- * Backdrop paper+blur, grilla editorial de seis secciones y cursor con rail
+ * Backdrop paper+blur, grilla editorial de tres estratos y cursor con rail
  * crimson. Mantiene roles/testids existentes; solo cambia presentacion.
  */
 const style = {

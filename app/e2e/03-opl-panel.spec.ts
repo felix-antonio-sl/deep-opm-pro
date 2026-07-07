@@ -135,7 +135,7 @@ test("OPL agrupa oraciones por OPD y permite colapsar bloques", async ({ page })
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
   await restaurarPanelOplSiMinimizado(page);
 
   const bloqueRaiz = page.getByTestId("bloque-opl-opd-1");
@@ -318,7 +318,7 @@ test("panel OPL indenta y contrae bloques jerarquicos desde preferencias", async
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
   await restaurarPanelOplSiMinimizado(page);
 
   const bloqueRaiz = page.getByTestId("bloque-opl-opd-1");
@@ -343,7 +343,7 @@ test("panel OPL selecciona enlace especifico en oracion multi-enlace", async ({ 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloAbanicoLogico(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
   await restaurarPanelOplSiMinimizado(page);
 
   const lineaMultiEnlace = page.locator('[data-testid="opl-line"]').filter({ hasText: "al menos uno de" });

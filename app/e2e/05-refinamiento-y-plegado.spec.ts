@@ -597,7 +597,7 @@ test("BUG-20260520T060333Z-bddc4e traslada fan de resultados al diagrama refinad
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloFanResultadoRefinable(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
   await elementoPorTexto(page, "Procesar").click();
   await irATabRefinamiento(page);
   await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");

@@ -173,7 +173,7 @@ test("configuración se invoca desde el command palette y plantillas no aparece"
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   await palette.getByRole("combobox").fill("plantillas");
-  await expect(palette).toContainText("sin resultados - escribe otro comando");
+  await expect(palette).toContainText("¿Buscas algo del modelo? Prueba Ctrl+F");
   await page.keyboard.press("Escape");
 
   await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
@@ -223,7 +223,7 @@ test("el command palette es superset del antiguo menú: archivo, datos y herrami
   const dialogoAbrir = page.getByRole("dialog", { name: "Abrir modelo" });
   await expect(dialogoAbrir).toBeVisible();
   await expect(dialogoAbrir.getByLabel("Cargar modelo de ejemplo")).toHaveCount(0);
-  await expect(dialogoAbrir.getByTestId("panel-json-abrir-importar").locator("summary")).toHaveText("JSON");
+  await expect(dialogoAbrir.getByTestId("abrir-importar-json")).toHaveText("Importar JSON");
   await dialogoAbrir.getByRole("button", { name: "Cancelar" }).click();
 
   expect(pageErrors).toEqual([]);

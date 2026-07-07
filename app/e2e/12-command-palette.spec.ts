@@ -67,7 +67,7 @@ test("Command Palette abre Abrir / importar unificado", async ({ page }) => {
   const dialogo = page.getByRole("dialog", { name: "Abrir modelo" });
   await expect(dialogo).toBeVisible();
   await expect(dialogo.getByLabel("Cargar modelo de ejemplo")).toHaveCount(0);
-  await expect(dialogo.getByTestId("panel-json-abrir-importar").locator("summary")).toHaveText("JSON");
+  await expect(dialogo.getByTestId("abrir-importar-json")).toHaveText("Importar JSON");
 
   expect(pageErrors).toEqual([]);
 });
@@ -85,7 +85,7 @@ test("Command Palette no expone asistente, ejemplos ni plantillas", async ({ pag
 
   for (const query of ["asistente", "ejemplo", "plantilla"]) {
     await palette.getByRole("combobox").fill(query);
-    await expect(palette).toContainText("sin resultados - escribe otro comando");
+    await expect(palette).toContainText("¿Buscas algo del modelo? Prueba Ctrl+F");
     await expect(palette.getByRole("option")).toHaveCount(0);
   }
 

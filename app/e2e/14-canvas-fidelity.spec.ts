@@ -23,7 +23,7 @@ test("modelo markers canonicos se renderiza con todos los objetos/procesos visib
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   // 20 entidades + 6 markers estructurales (agregacion + 2 exhibicion + generalizacion + clasificacion + dot)
   await expect(page.locator(".joint-element")).toHaveCount(26);
@@ -50,7 +50,7 @@ test("enlaces procedurales con routerManhattan usan connector jumpover", async (
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(3);
   // jumpover marca cada link con vConnector que termina con 'jumpover' en JointJS;
@@ -75,7 +75,7 @@ test("aplicar layout sugerido reorganiza apariencias y es undoable atomicamente"
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   // Posiciones iniciales del fixture (definidas en _smoke-helpers).
   const exportadoInicial = await exportadoActual(page);

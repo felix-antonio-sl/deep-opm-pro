@@ -10,7 +10,8 @@
 - **«Importar JSON» = acción del encabezado**, no sección.
 - **Footer con primario visual** real.
 - **Copy es-CL llano** en todo el diálogo (M-5: cero jerga, cero bilingüismo).
-- Acciones por fila al hover: `Abrir` (primario; Enter/doble-click) · `En pestaña nueva` · `Duplicar` · `Archivar` · `Eliminar` (confirmación nombrando el costo). Lo destructivo vive AQUÍ, no en el CLI.
+- Acciones por fila al hover: `Abrir` (primario; Enter/doble-click) · `En pestaña nueva` · `Archivar` · `Eliminar` (confirmación nombrando el costo). Lo destructivo vive AQUÍ, no en el CLI.
+- **Diferido (implementado 2026-07-07):** «Duplicar» por fila se posterga. Requiere una acción de dominio `duplicar-modelo-por-id` que no existe en el workspace port; agregarla es *feature*, no higiene. Las cuatro acciones anteriores cubren la intención de m-2 (destructivo confirmado nombrando el costo). Decisión del implementador del corte D-higiene, ratificable por el operador: reponerla es un follow-up acotado (acción de store + ítem de menú).
 
 ## 2. Paleta Cmd+K — liviana, contextual primero
 

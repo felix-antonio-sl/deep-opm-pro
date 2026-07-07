@@ -29,10 +29,10 @@ test("backup JSON descarga archivo, reimporta y conserva el modelo", async ({ pa
   await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
   const dialogo = page.getByTestId("dialogo-abrir-importar");
   await expect(dialogo).toBeVisible();
-  const panelJson = dialogo.getByTestId("panel-json-abrir-importar");
-  if (!(await panelJson.evaluate((element) => (element as HTMLDetailsElement).open))) {
-    await panelJson.locator("summary").click();
+  if (!(await dialogo.getByTestId("panel-json-abrir-importar").isVisible().catch(() => false))) {
+    await dialogo.getByTestId("abrir-importar-json").click();
   }
+  await expect(dialogo.getByTestId("panel-json-abrir-importar")).toBeVisible();
   await dialogo.getByRole("button", { name: "Descargar JSON" }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^markers-canonicos-\d{4}-\d{2}-\d{2}\.json$/);

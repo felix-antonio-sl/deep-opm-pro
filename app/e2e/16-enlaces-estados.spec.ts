@@ -49,7 +49,7 @@ test("BUG-1fc4d2 enlace a estado: endpoint id+selector, z>=20 y reposiciona en d
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstados(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
   await expect(page.locator(".joint-link")).toHaveCount(2);

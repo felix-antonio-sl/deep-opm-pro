@@ -190,11 +190,25 @@ test("workspace L4 mueve modelos y busca global con guard", async ({ page }) => 
   await dialogoCargar.getByPlaceholder("Nombre de carpeta").fill("Destino L4");
   await page.keyboard.press("Enter");
   await expect(dialogoCargar.getByRole("button", { name: /Destino L4/ })).toBeVisible();
-  await dialogoCargar.locator('button[title="Workspace L4 Busqueda"]').last().click({ button: "right" });
-  await page.getByRole("button", { name: "Cortar" }).click();
-  await dialogoCargar.getByRole("button", { name: /Destino L4/ }).dblclick();
-  await dialogoCargar.getByRole("button", { name: "Pegar aqui" }).click();
-  await expect(dialogoCargar.locator('button[title="Workspace L4 Busqueda"]').last()).toBeVisible();
+  // Mover por arrastre del tile a la carpeta de la sidebar (moverModeloDirecto);
+  // el menú contextual Cortar/Pegar de PanelCarpetas se retiró del gestor
+  // (higiene 2026-07-06). Drag HTML5 con DataTransfer compartido dragstart/drop,
+  // el contrato que espera handlersDragDrop (el mouse-drag de PW no lo transporta).
+  await page.evaluate(() => {
+    const dt = new DataTransfer();
+    const tileEl = [...document.querySelectorAll('[data-testid="modelo-tile-cargar"]')]
+      .find((el) => el.textContent?.includes("Workspace L4 Busqueda"));
+    const folderEl = [...document.querySelectorAll('[data-testid="gestor-sidebar-carpeta"]')]
+      .find((el) => el.textContent?.includes("Destino L4"));
+    if (!tileEl || !folderEl) throw new Error("no se encontraron tile o carpeta destino");
+    tileEl.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+    folderEl.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt }));
+    folderEl.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
+  });
+  // Salió de «Todas» (raíz) y reaparece al abrir la carpeta destino.
+  await expect(dialogoCargar.getByTestId("modelo-tile-cargar").filter({ hasText: "Workspace L4 Busqueda" })).toHaveCount(0);
+  await dialogoCargar.getByRole("button", { name: /Destino L4/ }).click();
+  await expect(dialogoCargar.getByTestId("modelo-tile-cargar").filter({ hasText: "Workspace L4 Busqueda" })).toHaveCount(1);
   await dialogoCargar.getByRole("button", { name: "Cancelar" }).click();
 
   expect(pageErrors).toEqual([]);
@@ -217,14 +231,14 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   await expect(page.getByTestId("import-preview")).toHaveText('Modelo "Modelo multi OPD" — 2 entidades, 2 OPDs, 0 enlaces');
 
   const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Cancelar" }).click();
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);

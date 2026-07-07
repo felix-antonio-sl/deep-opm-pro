@@ -22,7 +22,7 @@ test("ronda 16 L2: Ctrl+F abre dialogo y filtra entidades", async ({ page }) => 
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   // Foco fuera de inputs antes de Ctrl+F (el atajo no debe robar focus
   // de un input activo; basta clicar el canvas para liberar foco).
@@ -66,7 +66,7 @@ test("ronda 16 L2: salto desde busqueda cambia OPD + selecciona + sincroniza OPL
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   // Estamos en el OPD raiz (opd-1). Buscamos el proceso del OPD hijo.
   await expect(page.locator('[role="treeitem"][data-opd-id="opd-1"]'))
@@ -121,7 +121,7 @@ test("ronda 16 L2: busqueda de estados y etiqueta de enlace", async ({ page }) =
   const modelo = modeloTransicionEstados();
   modelo.modelo.enlaces["e-resultado"].etiqueta = "transicion-aprobada";
   await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");
@@ -170,7 +170,7 @@ test("ronda 16 L2: salto a enlace selecciona enlace y dispara halo temporal", as
   const modelo = modeloTransicionEstados();
   modelo.modelo.enlaces["e-resultado"].etiqueta = "salida-OK";
   await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");

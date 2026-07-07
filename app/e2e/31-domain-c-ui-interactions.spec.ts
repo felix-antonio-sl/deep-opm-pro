@@ -4,7 +4,7 @@ import { clickCabeceraElemento, elementoPorTexto, exportadoActual, jsonEditor, m
 test("BUG-a41f5c: redimensiona una cosa desde handles de selección", async ({ page }) => {
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloEntidadSimple(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   await clickCabeceraElemento(page, "Pedido");
   const handle = page.locator('[joint-selector="resize-se"]').first();
@@ -27,7 +27,7 @@ test("BUG-a41f5c: redimensiona una cosa desde handles de selección", async ({ p
 test("BUG-20260605T041307Z/041523Z: estado se mueve, redimensiona y conserva anchors", async ({ page }) => {
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloEstadosInteractivos(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   const estado = page.locator('.joint-element [data-estado-id="s-pendiente"]');
   await estado.click();
@@ -64,7 +64,7 @@ test("BUG-20260605T041307Z/041523Z: estado se mueve, redimensiona y conserva anc
 test("BUG-20260605T041307Z: Backspace elimina estado sin extremos huérfanos", async ({ page }) => {
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloResizeEstados(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   const estado = page.locator('.joint-element [data-estado-id="s-pendiente"]');
   await estado.click();
@@ -82,7 +82,7 @@ test("BUG-20260605T041307Z: Backspace elimina estado sin extremos huérfanos", a
 test("BUG-20260605T041152Z: anchor de estado conecta estado a proceso", async ({ page }) => {
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstadosSinEnlaces(modeloEstadosInteractivos()), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   const estado = page.locator('.joint-element [data-estado-id="s-pendiente"]');
   const proceso = elementoPorTexto(page, "Aprobar").locator('[joint-selector="body"]');
@@ -111,7 +111,7 @@ test("BUG-f81da4: la anotación contextual no desborda ni superpone acciones", a
   await page.setViewportSize({ width: 900, height: 700 });
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloEntidadSimple(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   await clickCabeceraElemento(page, "Pedido");
   const barra = page.getByTestId("barra-herramientas-elemento");

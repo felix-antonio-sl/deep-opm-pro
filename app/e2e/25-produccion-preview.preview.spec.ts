@@ -8,7 +8,7 @@ test("preview productivo carga SPA, exporta PNG y no expone bug capture sin opt-
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
   await expect(svgText(page, "Agente")).toBeVisible();
 

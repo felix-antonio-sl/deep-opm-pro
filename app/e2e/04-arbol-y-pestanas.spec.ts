@@ -61,7 +61,7 @@ test("navega OPDs desde el arbol lateral", async ({ page }) => {
   await expect(nodoRaiz).toHaveAttribute("aria-current", "page");
 
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   await expect(nodoRaiz).toHaveAttribute("aria-current", "page");
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);
@@ -97,7 +97,7 @@ test("BUG-20260523T201251Z-afcfbe abrir SD hijo desde indice mantiene foco en ce
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
   await expect(page.locator(".joint-element")).toHaveCount(1);
 
   const nodoHijo = page.locator('[role="treeitem"][data-opd-id="opd-2"]');
@@ -132,7 +132,7 @@ test("arbol OPD atajos panel: F2 renombra y Ctrl+D abre gestion", async ({ page 
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
-  await page.getByRole("button", { name: "Importar" }).click();
+  await page.getByRole("button", { name: "Importar", exact: true }).click();
 
   const nodoRaiz = page.locator('[role="treeitem"][data-opd-id="opd-1"]');
   await expect(nodoRaiz).toBeVisible();

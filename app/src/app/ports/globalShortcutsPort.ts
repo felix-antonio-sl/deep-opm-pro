@@ -296,7 +296,7 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Ctrl+9", ctx: "global", categoria: "navegacion", descripcion: "Ir a pestaña 9", descripcionLarga: "Activa el noveno modelo abierto del workspace", handler: cambiarPestanaPorIndice(8) }),
     registrarAtajo({ combo: "Shift+I", ctx: "canvas", categoria: "edicion", descripcion: "Crear inzoom de la cosa seleccionada", handler: () => s().descomponerSeleccionada() }),
     registrarAtajo({ combo: "Shift+U", ctx: "canvas", categoria: "edicion", descripcion: "Desplegar selección", descripcionLarga: "Crea un OPD desplegado a partir de la cosa seleccionada", handler: () => s().desplegarSeleccionada() }),
-    registrarAtajo({ combo: "Ctrl+T", ctx: "global", categoria: "navegacion", descripcion: "Abrir pestaña nueva", descripcionLarga: "Duplica el modelo actual en una pestaña adicional para comparar", handler: () => s().abrirPestanaNueva?.() }),
+    registrarAtajo({ combo: "Ctrl+T", ctx: "global", categoria: "navegacion", etiqueta: "Abrir como pestaña", descripcion: "Abrir pestaña nueva", descripcionLarga: "Duplica el modelo actual en una pestaña adicional para comparar", handler: () => s().abrirPestanaNueva?.() }),
     registrarAtajo({ combo: "Ctrl+W", ctx: "global", categoria: "navegacion", descripcion: "Cerrar pestaña activa", descripcionLarga: "Cierra el modelo abierto en la pestaña en foco", handler: () => {
       const state = s();
       if (state.pestanaActivaId) state.cerrarPestana?.(state.pestanaActivaId);

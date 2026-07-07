@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { AccionContextual } from "../store/acciones-contextuales";
+import { accionesContextualesEntidad, accionesParaSuperficie, type AccionContextual } from "../store/acciones-contextuales";
 import type { RegistroAtajo } from "./atajosTeclado";
 import {
   SECCIONES_COMMAND_PALETTE,
@@ -63,9 +63,15 @@ const accionesMenu: CommandPaletteMenuAction[] = [
   },
 ];
 
-describe("CommandPalette", () => {
+// Estratos de la paleta: tres, no seis. CONTEXTUAL solo con selección; CREAR
+// verbos de fundación; RECIENTES el grueso del catálogo por frecuencia de uso.
+describe("CommandPalette — tres estratos deduplicados", () => {
   test("normaliza tildes y mayusculas para busqueda fuzzy simple", () => {
     expect(normalizarTextoBusqueda("Descomponer")).toBe("descomponer");
+  });
+
+  test("SECCIONES_COMMAND_PALETTE son exactamente los tres estratos", () => {
+    expect([...SECCIONES_COMMAND_PALETTE]).toEqual(["CONTEXTUAL", "CREAR", "RECIENTES"]);
   });
 
   test("ronda23/L1 #3: deduplica atajos con mismo combo y descripcion en contextos distintos", () => {
@@ -111,30 +117,29 @@ describe("CommandPalette", () => {
     ]);
   });
 
-  test("agrupa visualmente en las secciones Codex sin alterar categorias internas", () => {
+  test("agrupa en los tres estratos sin alterar categorias internas", () => {
     const items = construirItemsCommandPalette(atajos, acciones, accionesMenu);
     const grupos = agruparItemsCommandPalette(items);
 
     expect(grupos.map((grupo) => grupo.seccion)).toEqual([...SECCIONES_COMMAND_PALETTE]);
-    expect(seccionVisualCommandPalette(items.find((item) => item.label === "Guardar modelo")!)).toBe("MODELO");
-    expect(seccionVisualCommandPalette(items.find((item) => item.label === "Descomponer")!)).toBe("CREAR");
-    expect(seccionVisualCommandPalette(items.find((item) => item.label === "Tabla de enlaces")!)).toBe("VISTA");
+    expect(seccionVisualCommandPalette(items.find((item) => item.label === "Guardar modelo")!)).toBe("RECIENTES");
+    expect(seccionVisualCommandPalette(items.find((item) => item.label === "Descomponer")!)).toBe("CONTEXTUAL");
+    expect(seccionVisualCommandPalette(items.find((item) => item.label === "Tabla de enlaces")!)).toBe("RECIENTES");
     expect(items.find((item) => item.label === "Descomponer")?.categoria).toBe("refinamiento");
   });
 
-  test("filtra tambien por la seccion visual Codex", () => {
+  test("filtra tambien por el nombre del estrato visual", () => {
     const items = construirItemsCommandPalette(atajos, acciones, accionesMenu);
 
-    expect(filtrarItemsCommandPalette(items, "modelo").map((item) => item.label)).toContain("Guardar modelo");
-    expect(filtrarItemsCommandPalette(items, "crear").map((item) => item.label)).toContain("Descomponer");
-    expect(filtrarItemsCommandPalette(items, "vista").map((item) => item.label)).toContain("Tabla de enlaces");
+    expect(filtrarItemsCommandPalette(items, "recientes").map((item) => item.label)).toContain("Guardar modelo");
+    expect(filtrarItemsCommandPalette(items, "contextual").map((item) => item.label)).toContain("Descomponer");
   });
 
   test("P0 elimina comandos de asistente, ejemplos y plantillas", () => {
-    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu());
-    const ids = acciones.map((accion) => accion.id);
-    const abrirImportar = acciones.find((accion) => accion.id === "abrir-importar");
-    const items = construirItemsCommandPalette([], [], acciones);
+    const acc = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const ids = acc.map((accion) => accion.id);
+    const abrirImportar = acc.find((accion) => accion.id === "abrir-importar");
+    const items = construirItemsCommandPalette([], [], acc);
 
     expect(ids).not.toContain("asistente-guiado");
     expect(ids).not.toContain("guardar-plantilla");
@@ -145,41 +150,42 @@ describe("CommandPalette", () => {
     expect(filtrarItemsCommandPalette(items, "ejemplo")).toEqual([]);
   });
 
-  test("P1 con busqueda activa agrupa solo secciones con resultados", () => {
+  test("con busqueda activa agrupa solo estratos con resultados", () => {
     const items = filtrarItemsCommandPalette(
       construirItemsCommandPalette(atajos, acciones, accionesMenu),
       "tabla enlaces",
     );
     const grupos = agruparItemsCommandPalette(items, { incluirSeccionesVacias: false });
 
-    expect(grupos.map((grupo) => grupo.seccion)).toEqual(["VISTA"]);
+    expect(grupos.map((grupo) => grupo.seccion)).toEqual(["RECIENTES"]);
     expect(grupos[0]?.items.map((item) => item.label)).toEqual(["Tabla de enlaces"]);
   });
 
-  test("EXPORTAR incluye exportar diagnóstico (JSON) y enruta a EXPORTAR", () => {
+  test("exportar diagnóstico (JSON) existe, es buscable y cae en RECIENTES", () => {
     let copiado = false;
     const deps = { ...depsAccionesMenu(), exportarDiagnostico: () => { copiado = true; } };
-    const acciones = construirAccionesMenuCommandPalette(deps);
-    const accion = acciones.find((item) => item.id === "exportar-diagnostico");
+    const acc = construirAccionesMenuCommandPalette(deps);
+    const accion = acc.find((item) => item.id === "exportar-diagnostico");
 
     expect(accion?.label).toBe("Exportar diagnóstico (JSON)");
     expect(accion?.categoria).toBe("archivo");
     accion?.run();
     expect(copiado).toBe(true);
 
-    const items = construirItemsCommandPalette([], [], acciones);
+    const items = construirItemsCommandPalette([], [], acc);
     const item = items.find((i) => i.menuActionId === "exportar-diagnostico");
-    expect(item ? seccionVisualCommandPalette(item) : null).toBe("EXPORTAR");
-    // El comando es encontrable buscando "diagnostico" y "json".
+    // Taxonomía nueva: el export no es un estrato propio; el comando sigue siendo
+    // encontrable por comportamiento (lo que importa al power-user).
+    expect(item ? seccionVisualCommandPalette(item) : null).toBe("RECIENTES");
     expect(filtrarItemsCommandPalette(items, "diagnostico").map((i) => i.label)).toContain("Exportar diagnóstico (JSON)");
     expect(filtrarItemsCommandPalette(items, "json").map((i) => i.label)).toContain("Exportar diagnóstico (JSON)");
   });
 
-  test("EXPORTAR reemplaza SVG por PNG actual y ZIP de todos los OPDs", () => {
-    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu({
+  test("exportar PNG del OPD actual y ZIP de todos, sin SVG, en RECIENTES", () => {
+    const acc = construirAccionesMenuCommandPalette(depsAccionesMenu({
       exportarOpdPng: () => {},
     }));
-    const items = construirItemsCommandPalette([], [], acciones);
+    const items = construirItemsCommandPalette([], [], acc);
 
     expect(items.map((i) => i.menuActionId)).not.toContain("exportar-opd-svg");
     expect(filtrarItemsCommandPalette(items, "exportar opd png").map((i) => i.menuActionId))
@@ -189,26 +195,26 @@ describe("CommandPalette", () => {
     expect(filtrarItemsCommandPalette(items, "exportar svg")).toEqual([]);
     const opdPng = items.find((item) => item.menuActionId === "exportar-opd-png");
     const zip = items.find((item) => item.menuActionId === "exportar-opds-png-zip");
-    expect(opdPng ? seccionVisualCommandPalette(opdPng) : null).toBe("EXPORTAR");
-    expect(zip ? seccionVisualCommandPalette(zip) : null).toBe("EXPORTAR");
+    expect(opdPng ? seccionVisualCommandPalette(opdPng) : null).toBe("RECIENTES");
+    expect(zip ? seccionVisualCommandPalette(zip) : null).toBe("RECIENTES");
   });
 
-  test("MODELO incluye renombrar modelo como comando explícito", () => {
+  test("renombrar modelo existe como comando explícito en RECIENTES", () => {
     const deps = depsAccionesMenu();
-    const acciones = construirAccionesMenuCommandPalette(deps);
-    const items = construirItemsCommandPalette([], [], acciones);
+    const acc = construirAccionesMenuCommandPalette(deps);
+    const items = construirItemsCommandPalette([], [], acc);
     const renombrar = items.find((item) => item.menuActionId === "renombrar-modelo");
 
     expect(renombrar?.label).toBe("Renombrar modelo");
-    expect(renombrar ? seccionVisualCommandPalette(renombrar) : null).toBe("MODELO");
+    expect(renombrar ? seccionVisualCommandPalette(renombrar) : null).toBe("RECIENTES");
   });
 
   test("expone capacidades OPCloud isomorfas como comandos canónicos", () => {
-    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu({
+    const acc = construirAccionesMenuCommandPalette(depsAccionesMenu({
       hayEntidadSeleccionada: true,
       hayEnlaceSeleccionado: true,
     }));
-    const items = construirItemsCommandPalette([], [], acciones);
+    const items = construirItemsCommandPalette([], [], acc);
 
     expect(filtrarItemsCommandPalette(items, "ontologia canon sinonimo").map((i) => i.menuActionId)).toContain("configurar-ontologia");
     expect(filtrarItemsCommandPalette(items, "requisito").map((i) => i.menuActionId)).toEqual(expect.arrayContaining([
@@ -225,14 +231,14 @@ describe("CommandPalette", () => {
     expect(filtrarItemsCommandPalette(items, "decision").map((i) => i.menuActionId)).toContain("resolver-decision");
   });
 
-  test("expone modo solo canvas como comando de vista buscable por 100% canvas", () => {
-    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu());
-    const items = construirItemsCommandPalette([], [], acciones);
+  test("expone modo solo canvas buscable por 100% canvas en RECIENTES", () => {
+    const acc = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const items = construirItemsCommandPalette([], [], acc);
     const soloCanvas = filtrarItemsCommandPalette(items, "100 canvas").find((item) => item.menuActionId === "solo-canvas");
 
     expect(soloCanvas?.label).toBe("Modo solo canvas");
     expect(soloCanvas?.atajo).toBe("Ctrl+Shift+M");
-    expect(soloCanvas ? seccionVisualCommandPalette(soloCanvas) : null).toBe("VISTA");
+    expect(soloCanvas ? seccionVisualCommandPalette(soloCanvas) : null).toBe("RECIENTES");
   });
 
   test("BUG-20260601T214534Z-98f2fb: deduplica Modo solo canvas entre atajo y accion de menu", () => {
@@ -246,13 +252,159 @@ describe("CommandPalette", () => {
         handler: () => {},
       },
     ];
-    const acciones = construirAccionesMenuCommandPalette(depsAccionesMenu());
-    const items = construirItemsCommandPalette(registros, [], acciones);
+    const acc = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const items = construirItemsCommandPalette(registros, [], acc);
     const resultados = filtrarItemsCommandPalette(items, "modo solo canvas");
 
     expect(resultados).toHaveLength(1);
     expect(resultados[0]?.tipo).toBe("accion-menu");
     expect(resultados[0]?.menuActionId).toBe("solo-canvas");
+  });
+});
+
+// Registros representativos de los atajos globales. Ctrl+T lleva la nueva
+// `etiqueta` alineada al menú `abrir-pestana` (dedup m-5); Ctrl+Shift+M dedupea
+// de forma natural porque su descripción coincide con el label de `solo-canvas`.
+const registrosRepresentativos: RegistroAtajo[] = [
+  { combo: "Ctrl+S", ctx: "global", categoria: "archivo", descripcion: "Guardar modelo", handler: () => {} },
+  { combo: "Ctrl+T", ctx: "global", categoria: "navegacion", etiqueta: "Abrir como pestaña", descripcion: "Abrir pestaña nueva", handler: () => {} },
+  { combo: "Ctrl+Shift+M", ctx: "global", categoria: "vista", descripcion: "Modo solo canvas", handler: () => {} },
+];
+
+const IDS_MENU_CONTEXTUAL = new Set([
+  "marcar-requisito",
+  "satisfacer-requisito",
+  "conectar-submodelo",
+  "split-parcial",
+  "recolectar-contorno",
+  "distribuir-contorno",
+  "resolver-decision",
+  "urls-objeto",
+  "editar-imagen-objeto",
+  "crear-requisito",
+]);
+
+describe("CommandPalette — invariantes de inventario", () => {
+  test("cero combos duplicados y una sola fila Ctrl+T tras la dedup m-5", () => {
+    const menu = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const items = construirItemsCommandPalette(registrosRepresentativos, [], menu);
+
+    // Una sola fila para Ctrl+T: gana la acción de menú «Abrir como pestaña»,
+    // el atajo global queda subsumido por la `etiqueta` compartida.
+    const ctrlT = items.filter((item) => item.atajo === "Ctrl+T");
+    expect(ctrlT).toHaveLength(1);
+    expect(ctrlT[0]?.menuActionId).toBe("abrir-pestana");
+
+    // Ningún `combo` aparece en dos filas visibles distintas.
+    const combos = items.filter((item) => item.atajo).map((item) => item.atajo!);
+    const duplicados = combos.filter((combo, i) => combos.indexOf(combo) !== i);
+    expect(duplicados).toEqual([]);
+  });
+
+  test("partición total: cada item cae en exactamente uno de los tres estratos", () => {
+    const menu = construirAccionesMenuCommandPalette(depsAccionesMenu({
+      hayEntidadSeleccionada: true,
+      hayEnlaceSeleccionado: true,
+      exportarOpdPng: () => {},
+      abrirUrlsObjeto: () => {},
+      editarImagenObjeto: () => {},
+    }));
+    const items = construirItemsCommandPalette(registrosRepresentativos, acciones, menu);
+
+    // Cada item se clasifica en un estrato declarado.
+    for (const item of items) {
+      expect(SECCIONES_COMMAND_PALETTE).toContain(seccionVisualCommandPalette(item));
+    }
+
+    // agruparItemsCommandPalette reparte cada item una sola vez: la suma de los
+    // grupos iguala al total (partición sin solape ni pérdida).
+    const grupos = agruparItemsCommandPalette(items);
+    const totalEnGrupos = grupos.reduce((n, grupo) => n + grupo.items.length, 0);
+    expect(totalEnGrupos).toBe(items.length);
+    expect(grupos.map((grupo) => grupo.seccion)).toEqual([...SECCIONES_COMMAND_PALETTE]);
+
+    // Los tres estratos están poblados con esta selección de ejemplo.
+    for (const seccion of SECCIONES_COMMAND_PALETTE) {
+      const grupo = grupos.find((g) => g.seccion === seccion);
+      expect(grupo?.items.length ?? 0).toBeGreaterThan(0);
+    }
+  });
+
+  test("CONTEXTUAL solo contiene acciones contextuales o menús gated por selección", () => {
+    const menu = construirAccionesMenuCommandPalette(depsAccionesMenu({
+      hayEntidadSeleccionada: true,
+      hayEnlaceSeleccionado: true,
+      abrirUrlsObjeto: () => {},
+      editarImagenObjeto: () => {},
+    }));
+    const items = construirItemsCommandPalette(registrosRepresentativos, acciones, menu);
+    const contextuales = items.filter((item) => seccionVisualCommandPalette(item) === "CONTEXTUAL");
+
+    expect(contextuales.length).toBeGreaterThan(0);
+    for (const item of contextuales) {
+      const gated = item.tipo === "accion-contextual"
+        || (item.menuActionId ? IDS_MENU_CONTEXTUAL.has(item.menuActionId) : false);
+      expect(gated).toBe(true);
+    }
+
+    // Comandos claramente NO contextuales no invaden el estrato de la selección.
+    const guardar = items.find((item) => item.label === "Guardar modelo");
+    expect(guardar ? seccionVisualCommandPalette(guardar) : null).toBe("RECIENTES");
+    const tabla = items.find((item) => item.menuActionId === "tabla-enlaces");
+    expect(tabla ? seccionVisualCommandPalette(tabla) : null).toBe("RECIENTES");
+  });
+
+  test("spec §4: sin selección, el estrato CONTEXTUAL queda vacío (ningún verbo always-on lo puebla)", () => {
+    // Alimenta el conjunto contextual REAL sin selección (no el stub [inzoom]):
+    // así se caza cualquier accion-contextual always-on — p. ej. componer-modelo,
+    // que compone el modelo entero, no la selección — que colara «Para la
+    // selección» con cero selección. Es la RED que gatea reclasificar
+    // componer-modelo a CREAR (su casa semántica: verbo a nivel-modelo).
+    const contextualesSinSeleccion = accionesParaSuperficie(
+      accionesContextualesEntidad({ entidad: null, enlace: null, inspectorAbierto: true, multi: false }),
+      "command-palette",
+    ).filter((accion) => accion.enabled);
+    const menu = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const items = construirItemsCommandPalette([], contextualesSinSeleccion, menu);
+    const grupos = agruparItemsCommandPalette(items, { incluirSeccionesVacias: false });
+
+    expect(grupos.find((grupo) => grupo.seccion === "CONTEXTUAL")).toBeUndefined();
+  });
+
+  test("crear-requisito es dual: CREAR sin selección, CONTEXTUAL con selección", () => {
+    const sinSeleccion = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const itemsSin = construirItemsCommandPalette([], [], sinSeleccion);
+    const crearSin = itemsSin.find((item) => item.menuActionId === "crear-requisito");
+    expect(crearSin?.label).toBe("Crear requisito");
+    expect(crearSin ? seccionVisualCommandPalette(crearSin) : null).toBe("CREAR");
+
+    const conSeleccion = construirAccionesMenuCommandPalette(depsAccionesMenu({ hayEntidadSeleccionada: true }));
+    const itemsCon = construirItemsCommandPalette([], [], conSeleccion);
+    const crearCon = itemsCon.find((item) => item.menuActionId === "crear-requisito");
+    expect(crearCon?.label).toBe("Crear requisito vinculado");
+    expect(crearCon ? seccionVisualCommandPalette(crearCon) : null).toBe("CONTEXTUAL");
+  });
+
+  test("verbos de creación no contextuales viven en CREAR", () => {
+    const menu = construirAccionesMenuCommandPalette(depsAccionesMenu());
+    const items = construirItemsCommandPalette([], [], menu);
+    const nuevoModelo = items.find((item) => item.menuActionId === "nuevo-modelo");
+    const piezas = items.find((item) => item.menuActionId === "vitrina-estereotipos");
+
+    expect(nuevoModelo ? seccionVisualCommandPalette(nuevoModelo) : null).toBe("CREAR");
+    expect(piezas?.label).toBe("Piezas");
+    expect(piezas ? seccionVisualCommandPalette(piezas) : null).toBe("CREAR");
+  });
+
+  test("M-5: las descripciones de requisito son es-CL llano, sin «<<Requirement>>»", () => {
+    const menu = construirAccionesMenuCommandPalette(depsAccionesMenu({ hayEntidadSeleccionada: true }));
+    const requisito = menu.filter((accion) => accion.id === "crear-requisito" || accion.id === "marcar-requisito");
+    expect(requisito.length).toBe(2);
+    for (const accion of requisito) {
+      expect(accion.descripcion).not.toContain("Requirement");
+      expect(accion.descripcion).not.toContain("<<");
+      expect(accion.descripcion.toLocaleLowerCase("es")).toContain("requisito");
+    }
   });
 });
 
@@ -373,7 +525,7 @@ describe("auditoría UX 2026-06-12 — M-1/M-2 paleta", () => {
     expect(grupos[0]?.items.map((i) => i.id)).toEqual(filtrados.map((i) => i.id));
   });
 
-  test("M-1: sin query se conserva la vista agrupada por secciones", () => {
+  test("M-1: sin query se conserva la vista agrupada por estratos", () => {
     const items = construirItemsCommandPalette(atajos, acciones, accionesMenu);
     const grupos = gruposCommandPaletteParaRender(items, "");
 

@@ -431,9 +431,14 @@ async function abrirDialogoJson(page: Page) {
     await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
   }
   await expect(dialogo).toBeVisible();
+  // Higiene del gestor (2026-07-06): «Importar JSON» pasó de <details><summary>
+  // a un botón del encabezado que alterna la superficie de importación inline.
+  // Guard idempotente: solo se hace click si la superficie no está ya visible.
   const panelJson = dialogo.getByTestId("panel-json-abrir-importar");
-  const abierto = await panelJson.evaluate((element) => (element as HTMLDetailsElement).open);
-  if (!abierto) await panelJson.locator("summary").click();
+  if (!(await panelJson.isVisible().catch(() => false))) {
+    await dialogo.getByTestId("abrir-importar-json").click();
+  }
+  await expect(panelJson).toBeVisible();
   return dialogo;
 }
 
