@@ -9,7 +9,7 @@ import {
   contextoContornoDescomposicion,
   contextoInternoDescomposicion,
 } from "../../contextoRefinamiento";
-import { fijarRefinamiento, obtenerRefinamiento } from "../../refinamientos";
+import { obtenerRefinamiento } from "../../refinamientos";
 import type {
   Apariencia,
   Entidad,
@@ -20,6 +20,7 @@ import type {
   TipoEntidad,
 } from "../../tipos";
 import { entidadVisibleEnOpd, fallo, ok, siguienteId } from "../helpers";
+import { establecerRefinamiento } from "./establecer";
 import {
   quitarRefinamientoEntidad,
   siguienteNombreOpdHijo,
@@ -108,12 +109,12 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
     },
     enlaces: {},
   };
-  const base: Modelo = {
+  const conHijo: Modelo = {
     ...modelo,
     nextSeq,
     entidades: {
       ...modelo.entidades,
-      [procesoId]: fijarRefinamiento(proceso, "descomposicion", { opdId: opdHijoId }),
+      // NOTA: sin fijarRefinamiento aquí — lo hace establecerRefinamiento (convergencia).
       ...subprocesos.entidades,
     },
     opds: {
@@ -121,7 +122,14 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
       [opdHijoId]: opdHijo,
     },
   };
-  const siguiente = sincronizarRepresentacionRefinamiento(base, opdHijoId, {
+  const enlazado = establecerRefinamiento(conHijo, {
+    opdPadreId,
+    entidadId: procesoId,
+    opdHijoId,
+    tipo: "descomposicion",
+  });
+  if (!enlazado.ok) return fallo(enlazado.error);
+  const siguiente = sincronizarRepresentacionRefinamiento(enlazado.value, opdHijoId, {
     subprocesos: {
       primeroId: subprocesos.primeroId,
       ultimoId: subprocesos.ultimoId,
