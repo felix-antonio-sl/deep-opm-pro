@@ -1,5 +1,6 @@
 import { useMemo } from "preact/hooks";
 import { aplicarPoliticaLogScaleVersiones, filtrarVersionesVisibles } from "../../persistencia/versiones";
+import { agruparHistorialPorSesionAgente } from "../../mesa/historialAgente";
 import { useZustandVersionHistoryPort } from "../ports/zustandVersionHistoryPort";
 
 export function useDialogoVersionesViewModel() {
@@ -22,8 +23,12 @@ export function useDialogoVersionesViewModel() {
     () => filtrarVersionesVisibles(aplicarPoliticaLogScaleVersiones(modelo?.versiones ?? []), mostrarVersiones),
     [modelo?.versiones, mostrarVersiones],
   );
+  // A′-vitrina: colapsa las corridas consecutivas de versiones del agente en un
+  // hito, para que el historial no mienta sobre qué es un hito.
+  const filas = useMemo(() => agruparHistorialPorSesionAgente(versiones), [versiones]);
 
   return {
+    filas,
     abierto,
     cerrar,
     modelo,

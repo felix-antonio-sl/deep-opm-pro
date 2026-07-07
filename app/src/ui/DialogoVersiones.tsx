@@ -1,4 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
+import { useState } from "preact/hooks";
+import type { VersionResumen } from "../modelo/tipos";
 import { useDialogoVersionesViewModel } from "../app/viewmodels/dialogoVersionesViewModel";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
@@ -14,8 +16,36 @@ export function DialogoVersiones() {
     eliminar,
     mostrarVersiones,
     toggleMostrarVersiones,
-    versiones,
+    filas,
   } = useDialogoVersionesViewModel();
+  // A′-vitrina: expansión local de los hitos de sesión de agente (colapsados por
+  // defecto). Clave = id del push más nuevo de la corrida (único).
+  const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
+  const alternarHito = (clave: string) =>
+    setExpandidos((prev) => {
+      const siguiente = new Set(prev);
+      if (siguiente.has(clave)) siguiente.delete(clave); else siguiente.add(clave);
+      return siguiente;
+    });
+
+  const filaVersion = (version: VersionResumen, anidada: boolean) => (
+    <tr key={version.id} style={style.row}>
+      <td style={anidada ? style.tdAnidada : style.td}>{new Date(version.creadoEn).toLocaleString("es-CL")}</td>
+      <td style={style.td}>
+        <strong>{version.nombre}</strong>
+        {version.descripcion ? <div style={style.muted}>{version.descripcion}</div> : null}
+      </td>
+      <td style={style.td}>{version.bytes}</td>
+      <td style={style.actions}>
+        <button type="button" style={style.smallButton} onClick={() => { void restaurar(modelo!.id, version.id); }}>
+          Restaurar como copia
+        </button>
+        <button type="button" style={style.smallDanger} onClick={() => eliminar(modelo!.id, version.id)}>
+          Eliminar
+        </button>
+      </td>
+    </tr>
+  );
 
   return (
     <Dialogo
@@ -37,7 +67,7 @@ export function DialogoVersiones() {
           <input type="checkbox" checked={mostrarVersiones} onChange={toggleMostrarVersiones} />
           Mostrar versiones
         </label>
-        {(modelo?.versiones ?? []).length === 0 || versiones.length === 0 ? (
+        {(modelo?.versiones ?? []).length === 0 || filas.length === 0 ? (
           <div style={style.empty}>{mostrarVersiones ? "Este modelo no tiene versiones." : "Versiones ocultas."}</div>
         ) : (
           <table style={style.table}>
@@ -50,24 +80,23 @@ export function DialogoVersiones() {
               </tr>
             </thead>
             <tbody>
-              {versiones.map((version) => (
-                <tr key={version.id} style={style.row}>
-                  <td style={style.td}>{new Date(version.creadoEn).toLocaleString("es-CL")}</td>
-                  <td style={style.td}>
-                    <strong>{version.nombre}</strong>
-                    {version.descripcion ? <div style={style.muted}>{version.descripcion}</div> : null}
-                  </td>
-                  <td style={style.td}>{version.bytes}</td>
-                  <td style={style.actions}>
-                    <button type="button" style={style.smallButton} onClick={() => { void restaurar(modelo!.id, version.id); }}>
-                      Restaurar como copia
-                    </button>
-                    <button type="button" style={style.smallDanger} onClick={() => eliminar(modelo!.id, version.id)}>
-                      Eliminar
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {filas.map((fila) => {
+                if (fila.tipo === "individual") return filaVersion(fila.version, false);
+                const clave = fila.versiones[0]!.id;
+                const abierto = expandidos.has(clave);
+                const resumen = (
+                  <tr key={clave} style={style.row} data-testid="hito-sesion-agente">
+                    <td style={style.td}>{new Date(fila.hasta).toLocaleString("es-CL")}</td>
+                    <td style={style.td} colSpan={3}>
+                      <button type="button" style={style.hitoToggle} onClick={() => alternarHito(clave)} aria-expanded={abierto}>
+                        <span aria-hidden="true" style={style.hitoCaret}>{abierto ? "▾" : "▸"}</span>
+                        Sesión de agente · {fila.versiones.length} {fila.versiones.length === 1 ? "revisión" : "revisiones"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+                return abierto ? [resumen, ...fila.versiones.map((version) => filaVersion(version, true))] : resumen;
+              })}
             </tbody>
           </table>
         )}
@@ -91,4 +120,8 @@ const style = {
   disabledButton: { minHeight: "32px", justifySelf: "start", padding: "8px 18px", border: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.ink04, color: tokens.colors.ink50, cursor: "not-allowed", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500 },
   smallButton: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
   smallDanger: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.crimson}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.crimson, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
+  // A′-vitrina: fila de versión anidada bajo un hito expandido (sangría) + toggle del hito.
+  tdAnidada: { padding: "10px 10px 10px 26px", color: tokens.colors.ink, fontWeight: 400, verticalAlign: "top" },
+  hitoToggle: { display: "inline-flex", alignItems: "center", gap: "8px", border: "none", background: "transparent", color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 500, padding: 0, boxShadow: "none" },
+  hitoCaret: { color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "12px", lineHeight: 1 },
 } satisfies Record<string, preact.JSX.CSSProperties>;
