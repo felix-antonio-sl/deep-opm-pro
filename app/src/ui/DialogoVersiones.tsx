@@ -85,7 +85,7 @@ export function DialogoVersiones() {
                 const clave = fila.versiones[0]!.id;
                 const abierto = expandidos.has(clave);
                 const resumen = (
-                  <tr key={clave} style={style.row} data-testid="hito-sesion-agente">
+                  <tr key={`hito-${clave}`} style={style.row} data-testid="hito-sesion-agente">
                     <td style={style.td}>{new Date(fila.hasta).toLocaleString("es-CL")}</td>
                     <td style={style.td} colSpan={3}>
                       <button type="button" style={style.hitoToggle} onClick={() => alternarHito(clave)} aria-expanded={abierto}>

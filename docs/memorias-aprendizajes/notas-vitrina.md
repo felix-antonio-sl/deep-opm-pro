@@ -54,6 +54,16 @@ texto. TINTA = `ink` (#171511); crimson es acento UI-only y ya lo toma el «pend
 de persistencia. `design:governance` no impone tinta-only ni prohíbe hex — sólo exige paridad
 de tokens y cero sombras offset.
 
+## Key duplicada en el colapso: la fila-resumen del hito colisiona con su primer hijo
+
+**Resumen:** la key del resumen del hito DEBE prefijarse (`hito-<id>`); si no, colisiona con la key de la primera versión interna (mismo id) al expandir.
+
+`clave = fila.versiones[0].id` (el push más nuevo). La fila-resumen y la primera fila anidada
+comparten ese id → Preact: «two or more children with the same key attribute: a3». Los unit
+tests + typecheck + design:governance pasaron; el warning SÓLO apareció in-vivo al expandir el
+hito. Lección: el colapso es quisquilloso — validar la expansión en el navegador, no sólo el
+agrupador puro. Fix: `key={`hito-${clave}`}` en la fila-resumen.
+
 ## Gotcha operativo: la salida de `rg` en este shell enmascara palabras a `n`
 
 **Resumen:** usar la herramienta Read (no `rg -n`) para contenido autoritativo; `rg` mutila «drift»/«iniciarAutosalvado»/etc. a `n`.
