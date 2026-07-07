@@ -68,7 +68,41 @@ export function DialogoCargarModelo() {
     ),
     [hijos.modelos, orden, query, enArchivo],
   );
-  const seleccionado = modelosCatalogo.find((modelo) => modelo.id === seleccionadoId) ?? null;
+
+  // Zona «Trabajo» (rol): registros NO biblioteca del ámbito actual — apuntes +
+  // modelos JUNTOS, ordenados por la columna elegida (por defecto recencia). El
+  // chip de rigor (derivado de especieDe) distingue apunte/modelo en la fila.
+  const trabajoModelos = useMemo(
+    () => modelosCatalogo.filter((modelo) => especieDe(modelo) !== "biblioteca"),
+    [modelosCatalogo],
+  );
+
+  // Zona «Bibliotecas» (estante aparte, solo-lectura): las bibliotecas del índice
+  // completo (no scopeadas a carpeta — son tipos precargables globales), cruzadas
+  // con los resúmenes guardados para el nombre/fecha, filtradas por búsqueda y sin
+  // archivadas. Su rol es distinto (fuente de Piezas), por eso viven fuera de
+  // «Trabajo». Se ocultan bajo la lente «Archivo».
+  const bibliotecasModelos = useMemo(() => {
+    if (enArchivo) return [];
+    const guardados = new Map(workspace.modelosGuardados.map((modelo) => [modelo.id, modelo]));
+    const filas = listarBibliotecas(workspace.indice)
+      .map((entrada) => {
+        const guardado = guardados.get(entrada.id);
+        if (!guardado) return undefined;
+        return { ...guardado, esBiblioteca: true, ...(entrada.archivado ? { archivado: true } : {}) } as ResumenModeloPersistido;
+      })
+      .filter((fila): fila is ResumenModeloPersistido => fila !== undefined)
+      .filter((fila) => fila.archivado !== true && coincideBusqueda(fila, query));
+    return ordenarModelos(filas, orden);
+  }, [workspace.indice, workspace.modelosGuardados, query, orden, enArchivo]);
+
+  const hayTrabajo = trabajoModelos.length > 0;
+  const hayBibliotecas = bibliotecasModelos.length > 0;
+  const catalogoVacio = !hayTrabajo && !hayBibliotecas;
+  const seleccionado = useMemo(
+    () => [...trabajoModelos, ...bibliotecasModelos].find((modelo) => modelo.id === seleccionadoId) ?? null,
+    [trabajoModelos, bibliotecasModelos, seleccionadoId],
+  );
 
   const carpetasOrdenadas = useMemo(
     () => ordenarCarpetasJerarquia(workspace.indice.carpetas.filter((carpeta) => !carpeta.archivada)),
@@ -285,7 +319,7 @@ export function DialogoCargarModelo() {
               poder limpiarla en «Sin resultados») o en la lente «Archivo». En el
               vacío de primer uso, el estado vacío queda dueño del panel con su
               par de fundación centrado. */}
-          {(modelosCatalogo.length > 0 || query || enArchivo) ? (
+          {(!catalogoVacio || query || enArchivo) ? (
             <div style={style.toolbar}>
               <input
                 type="search"
@@ -314,18 +348,39 @@ export function DialogoCargarModelo() {
           ) : null}
 
           <div style={style.catalogo}>
-            <TablaModelos
-              modelos={modelosCatalogo}
-              seleccionadoId={seleccionadoId}
-              orden={orden}
-              mostrarVersiones={workspace.mostrarVersiones}
-              onOrden={alternarOrden}
-              onSeleccionar={setSeleccionadoId}
-              onAbrir={abrirSeleccionado}
-              onIniciarDrag={iniciarDragModelo}
-              menu={menuProps}
-            />
-            {modelosCatalogo.length === 0 ? (
+            {hayTrabajo ? (
+              <section style={style.zona} data-testid="gestor-zona-trabajo">
+                <div style={style.zonaTitulo}>Trabajo</div>
+                <TablaModelos
+                  modelos={trabajoModelos}
+                  seleccionadoId={seleccionadoId}
+                  orden={orden}
+                  mostrarVersiones={workspace.mostrarVersiones}
+                  onOrden={alternarOrden}
+                  onSeleccionar={setSeleccionadoId}
+                  onAbrir={abrirSeleccionado}
+                  onIniciarDrag={iniciarDragModelo}
+                  menu={menuProps}
+                />
+              </section>
+            ) : null}
+            {hayBibliotecas ? (
+              <section style={style.zona} data-testid="gestor-zona-bibliotecas">
+                <div style={style.zonaTitulo}>Bibliotecas <span style={style.zonaNota}>estante · solo-lectura</span></div>
+                <TablaModelos
+                  modelos={bibliotecasModelos}
+                  seleccionadoId={seleccionadoId}
+                  orden={orden}
+                  mostrarVersiones={workspace.mostrarVersiones}
+                  onOrden={alternarOrden}
+                  onSeleccionar={setSeleccionadoId}
+                  onAbrir={abrirSeleccionado}
+                  onIniciarDrag={iniciarDragModelo}
+                  menu={menuProps}
+                />
+              </section>
+            ) : null}
+            {catalogoVacio ? (
               <div style={style.empty} data-testid="gestor-vacio">
                 {query ? (
                   <>
@@ -733,6 +788,25 @@ const style = {
     padding: "12px",
     background: tokens.colors.paper,
     alignContent: "start",
+  },
+  zona: { display: "grid", gap: "6px" },
+  zonaTitulo: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: "8px",
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "11px",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+  },
+  zonaNota: {
+    color: tokens.colors.ink50,
+    fontSize: "10px",
+    fontWeight: 400,
+    letterSpacing: "0.04em",
+    textTransform: "none",
   },
   accionesCelda: { position: "relative", display: "inline-flex", alignItems: "center", gap: "6px" },
   accionesToggle: { minHeight: "28px", padding: "4px 10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink70, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, whiteSpace: "nowrap" },
