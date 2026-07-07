@@ -17,4 +17,6 @@ export interface OpdTreePort {
   navegarOpdDerecha: OpmStore["navegarOpdDerecha"];
   abrirVistaMapa: OpmStore["abrirVistaMapa"];
   abrirGestionArbol: OpmStore["abrirGestionArbol"];
+  nuevoOpdSuelto: OpmStore["nuevoOpdSuelto"];
+  adoptarOpdEnSeleccion: OpmStore["adoptarOpdEnSeleccion"];
 }
