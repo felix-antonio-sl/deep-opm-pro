@@ -66,6 +66,8 @@ export const MODELO_SLICE_CAPABILITIES = {
     "renombrarModeloActual",
     "resaltarTemporalmente",
     "nuevoModelo",
+    // «Todo nace apunte» (diseño §3): puerta humana del nacimiento desatendido.
+    "nacerApunte",
     "activarReadOnly",
     "gobernarAperturaBiblioteca",
   ],

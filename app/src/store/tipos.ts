@@ -387,7 +387,7 @@ export interface OpmStore {
   fijarToolbarMasAbierto: (abierto: boolean) => void;
   abrirGuardarComo: () => void;
   cerrarGuardarComo: () => void;
-  guardarComoLocal: (input: { nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean }) => void;
+  guardarComoLocal: (input: { id?: string; nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean; esApunte?: boolean }) => void;
   guardarComoLocalConDescripcion: (input: { nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean }) => void;
   abrirCargarModelo: (opciones?: { mostrarArchivados?: boolean }) => void;
   cerrarCargarModelo: () => void;
@@ -450,6 +450,10 @@ export interface OpmStore {
   renombrarModeloActual: (nombre: string) => void;
   resaltarTemporalmente: (ids: Id[], ms?: number) => void;
   nuevoModelo: () => void;
+  /** «Todo nace apunte» (diseño §3): abre al instante un apunte editable con
+   *  persistencia inmediata (autosave desde el primer trazo). Reemplaza la puerta
+   *  humana de `nuevoModelo` (que permanece como op interno para imports/reset). */
+  nacerApunte: () => void;
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
   crearEntidadEnCanvas: (tipo: TipoEntidad, posicion: Posicion) => void;
