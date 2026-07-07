@@ -67,6 +67,7 @@ const VitrinaEstereotipos = lazy(() => import("./VitrinaEstereotipos").then((m) 
 const DialogoSimulacionNumerica = lazy(() => import("./DialogoSimulacionNumerica").then((m) => ({ default: m.DialogoSimulacionNumerica })));
 const DialogoColisionNombre = lazy(() => import("./DialogoColisionNombre").then((m) => ({ default: m.DialogoColisionNombre })));
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
+const DialogoGraduar = lazy(() => import("./DialogoGraduar").then((m) => ({ default: m.DialogoGraduar })));
 const DialogoImportarExportarJson = lazy(() => import("./DialogoImportarExportarJson").then((m) => ({ default: m.DialogoImportarExportarJson })));
 const DialogoVersiones = lazy(() => import("./DialogoVersiones").then((m) => ({ default: m.DialogoVersiones })));
 const Timeline = lazy(() => import("./Timeline").then((m) => ({ default: m.Timeline })));
@@ -121,6 +122,9 @@ export function App() {
   // Auth v1 (spec §4): con login obligatorio el backend responde 401 y la app
   // monta PantallaLogin en lugar del workbench (early-return tras los hooks).
   const requiereLogin = useOpmStore((s) => s.requiereLogin);
+  // «Momento de graduación» (diseño §3): el diálogo se monta cuando hay un apunte
+  // designado para graduar (estado desacoplado del appShell, como CintaApunte).
+  const dialogoGraduarAbierto = useOpmStore((s) => s.dialogoGraduarModeloId !== null);
   const verificarSesion = useOpmStore((s) => s.verificarSesion);
   useEffect(() => {
     void verificarSesion();
@@ -424,6 +428,7 @@ export function App() {
           />
         )}
         {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
+        {dialogoGraduarAbierto ? <Suspense fallback={null}><DialogoGraduar /></Suspense> : null}
         {dialogoConfiguracionAbierto ? <Suspense fallback={null}><DialogoConfiguracion /></Suspense> : null}
         {dialogoOntologiaAbierto ? <Suspense fallback={null}><DialogoOntologia /></Suspense> : null}
         {dialogoRequisitoAbierto ? <Suspense fallback={null}><DialogoRequisito /></Suspense> : null}

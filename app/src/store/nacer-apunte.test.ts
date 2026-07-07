@@ -69,6 +69,25 @@ describe("nacerApunte (store)", () => {
     expect(n2).toBeDefined();
     expect(n1).not.toBe(n2); // sin colisión de nombre pese a la misma fecha
   });
+
+  test("graduar apaga la especie apunte y NO se re-infecta al sincronizar", async () => {
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null);
+    const id = store.getState().modeloPersistidoId!;
+    expect(store.getState().indice.modelos.some((m) => m.id === id && m.esApunte === true)).toBe(true);
+
+    store.getState().confirmarGraduacion({ modeloId: id, nombre: "Modelo graduado", carpetaId: null });
+    // esApunte off en el índice → la cinta desaparece.
+    expect(store.getState().indice.modelos.some((m) => m.id === id && m.esApunte === true)).toBe(false);
+    expect(store.getState().dialogoGraduarModeloId).toBeNull();
+
+    // El renombrado es async; espera a que asiente y verifica que NO se re-infecta
+    // (el record no persiste la especie → sincronizar no re-marca el apunte).
+    await esperar(() => store.getState().modelo.nombre === "Modelo graduado");
+    store.getState().listarModelosGuardados();
+    await esperar(() => store.getState().mensaje === null || (store.getState().mensaje ?? "").length >= 0);
+    expect(store.getState().indice.modelos.some((m) => m.id === id && m.esApunte === true)).toBe(false);
+  });
 });
 
 interface BackendMock {

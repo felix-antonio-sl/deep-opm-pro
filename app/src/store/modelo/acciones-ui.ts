@@ -127,9 +127,11 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         nombre: validacion.nombre,
         descripcion,
         json,
-        // Especie APUNTE atómica EN EL GUARDADO (no hay segunda escritura ni race):
-        // `construirModeloPersistido` ya consume `esApunte`; se propaga al record.
-        ...(input.esApunte ? { esApunte: true } : {}),
+        // NOTA: `esApunte` NO va al record. La especie es un flag SÓLO-ÍNDICE
+        // (invariante documentado en `mesa/especieWorkspace.ts`): el record de
+        // Postgres no es su SSOT. Marcarlo en el record re-infectaría el índice al
+        // sincronizar (runtime.ts::sincronizarIndiceConModelosGuardados) y
+        // des-graduaría un apunte. Se enhebra sólo a la entrada de índice (abajo).
         ...(carpetaParaGuardar !== undefined ? { carpetaId: carpetaParaGuardar } : {}),
         ...(input.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: input.crearVersionAlGuardar } : {}),
       };

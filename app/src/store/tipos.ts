@@ -761,6 +761,16 @@ export interface OpmStore {
    * apunte a modelo al desmarcarlo (corrección 8). Exclusión mutua con biblioteca
    * sellada en el índice. */
   toggleApunteModelo: (modeloId: Id) => void;
+  /** «Momento de graduación» (diseño §3): id del apunte cuyo diálogo de graduación
+   *  está abierto; null = cerrado. */
+  dialogoGraduarModeloId: Id | null;
+  /** Abre el diálogo de graduación de un apunte (nombre/carpeta + validez exigible). */
+  abrirGraduar: (modeloId: Id) => void;
+  cerrarGraduar: () => void;
+  /** Gradúa un apunte a modelo: renombra si cambió (modelo activo), mueve a la
+   *  carpeta elegida y desmarca la especie apunte (esApunte off en el índice). El
+   *  chip de rigor del gestor muta in-situ (deriva de `especieDe`). */
+  confirmarGraduacion: (input: { modeloId: Id; nombre: string; carpetaId: Id | null }) => void;
   archivarCarpetaPorId: (carpetaId: Id) => void;
   restaurarCarpetaPorId: (carpetaId: Id) => void;
   guardarConVersion: () => Promise<void>;
