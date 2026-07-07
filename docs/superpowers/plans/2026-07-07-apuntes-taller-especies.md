@@ -648,11 +648,12 @@ git commit -m "feat(taller): crearOpdSuelto + adoptarOpd (adopción convergente)
 - Create: `app/src/leyes/taller-convergencia.test.ts`
 
 **Interfaces:**
-- Consumes: `descomponerProceso`, `crearProceso`, `crearOpdSuelto`, `adoptarOpd` (de `../modelo/operaciones`/`.../creacion`); `firmaFronteraEntidad` (de `../modelo/equivalencia/verticalidad`, `:30`).
+- Consumes: `descomponerProceso`, `crearProceso`, `crearObjeto`, `crearEnlace`, `crearOpdSuelto`, `adoptarOpd` (de `../modelo/operaciones`/`.../creacion`); `extremoEntidad` (de `../modelo/extremos`). (Ya NO usa `firmaFronteraEntidad`: comparar firmas del hijo entre caminos es vacuo/falso — ver Objetivo §2.)
 
-Objetivo falsable en DOS caras, ambas exigidas por spec §7:
-1. **Estructural (identidad-por-construcción)**: top-down y adopción alcanzan el MISMO hecho de vínculo (slot de la entidad + padreId del hijo). Es la convergencia por construcción (ambos invocan `establecerRefinamiento`).
-2. **Firma semántica**: con contenido EQUIVALENTE, la firma de frontera del proceso refinado dentro de su OPD hijo coincide en ambos caminos (adoptar no distorsiona la semántica que produce el top-down; R-OPD-REF-10).
+Objetivo falsable (CORREGIDO por verificación adversarial de la Ola 1):
+1. **Estructural (identidad-por-construcción, el corazón)**: top-down y adopción alcanzan el MISMO hecho de vínculo (slot de la entidad + padreId del hijo) porque ambos invocan `establecerRefinamiento`. La convergencia es a nivel del **vínculo**, NO del contenido del OPD hijo.
+2. **Diferencia legítima de contenido (NO comparar firmas del hijo)**: ⚠️ el top-down auto-andamia (`sincronizarRepresentacionRefinamiento` sintetiza derivaciones de frontera cuando el proceso tiene enlaces de frontera); `adoptarOpd` NO lo hace (toma el suelto tal cual). Por eso comparar la firma de frontera del OPD hijo entre ambos caminos es **vacuo** (ambas `[]` sin enlaces de frontera) o **falso** (divergen con enlaces de frontera) — y esa divergencia es CORRECTA (adopt es bottom-up, no impone andamiaje). El test debe DOCUMENTAR esta diferencia, no exigir igualdad.
+3. La preservación de frontera (R-OPD-REF-10) de un refinamiento adoptado se cobra en el **gate de export** (Task 7, ya cubierto por «export honesto»), NO en la adopción.
 Más adversarial: ambos caminos rechazan igual un ciclo.
 
 - [ ] **Step 1: Escribe la ley (estructural + adversarial)**
@@ -710,34 +711,35 @@ describe("LEY: convergencia por construcción (R-OPD-REF-20)", () => {
 });
 ```
 
-- [ ] **Step 1b: Añade la regresión por firma semántica**
+- [ ] **Step 1b: Documenta la diferencia de contenido (NO igualdad de firmas)**
 
-Dentro del mismo `describe`, añade un test que construya contenido EQUIVALENTE en ambos caminos y compare la firma de frontera del proceso refinado en su OPD hijo:
+⚠️ **NO comparar firmas del OPD hijo entre caminos** (es vacuo o falso — ver Objetivo §2). En su lugar, un test que DOCUMENTE la semántica correcta: adoptar NO auto-andamia la frontera (a diferencia del top-down). Este test se rompería si alguien hiciera que `adoptarOpd` llamara `sincronizarRepresentacionRefinamiento`, cambiando la semántica bottom-up:
 ```ts
-  test("REGRESIÓN firma semántica: adoptar preserva la firma de frontera igual que top-down (R-OPD-REF-10)", () => {
-    // Camino A — top-down (genera 2 subprocesos "Cargar 1"/"Cargar 2").
-    const baseA = crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Cargar").value as Modelo;
-    const pA = procesoId(baseA);
-    const outA = (descomponerProceso(baseA, "opd-1", pA) as { value: { modelo: Modelo; opdId: string } }).value;
-    // Camino B — suelto poblado para MIRROR del top-down, luego adopción.
-    let baseB = crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Cargar").value as Modelo;
-    const pB = procesoId(baseB);
-    const creado = crearOpdSuelto(baseB); baseB = creado.modelo;
-    baseB = crearProceso(baseB, creado.opdId, { x: 0, y: 0 }, "Cargar 1").value as Modelo;
-    baseB = crearProceso(baseB, creado.opdId, { x: 0, y: 60 }, "Cargar 2").value as Modelo;
-    const outB = (adoptarOpd(baseB, { opdPadreId: "opd-1", entidadId: pB, opdSueltoId: creado.opdId, tipo: "descomposicion" }) as { value: Modelo }).value;
-    // La firma de frontera del proceso refinado en su OPD hijo coincide (misma semántica de frontera).
-    const firmaA = firmaFronteraEntidad(outA.modelo, outA.opdId, pA);
-    const firmaB = firmaFronteraEntidad(outB, creado.opdId, pB);
-    expect([...firmaA].sort()).toEqual([...firmaB].sort());
+  test("adoptar NO auto-andamia la frontera (bottom-up), a diferencia del top-down", () => {
+    // Proceso con un enlace de frontera (consumo) en el OPD padre.
+    let m = crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Cargar").value as Modelo;
+    const p = procesoId(m);
+    m = crearObjeto(m, "opd-1", { x: 200, y: 0 }, "Datos").value as Modelo;
+    const datos = Object.values(m.entidades).find((e) => e.nombre === "Datos")!.id;
+    m = crearEnlace(m, "opd-1", extremoEntidad(datos), extremoEntidad(p), "consumo").value as Modelo;
+    // Top-down: el OPD hijo recibe la derivación de frontera (externo + enlace distribuido).
+    const outTop = (descomponerProceso(m, "opd-1", p) as { value: { modelo: Modelo; opdId: string } }).value;
+    const enlacesHijoTop = Object.keys(outTop.modelo.opds[outTop.opdId].enlaces).length;
+    // Adopción de un suelto VACÍO: el hijo NO recibe andamiaje de frontera (toma el dibujo tal cual).
+    const creado = crearOpdSuelto(m);
+    const outAdop = (adoptarOpd(creado.modelo, { opdPadreId: "opd-1", entidadId: p, opdSueltoId: creado.opdId, tipo: "descomposicion" }) as { value: Modelo }).value;
+    const enlacesHijoAdop = Object.keys(outAdop.opds[creado.opdId].enlaces).length;
+    expect(enlacesHijoAdop).toBe(0);            // adopt no andamia
+    expect(enlacesHijoTop).toBeGreaterThan(0);  // top-down sí (contraste)
+    // La convergencia REAL (vínculo) ya la asegura el test estructural: ambos fijan slot + padreId.
   });
 ```
-> Verifica primero qué retorna `firmaFronteraEntidad` en este caso (`cd app && sed -n '25,60p' src/modelo/equivalencia/verticalidad.ts`). Si el contenido auto-generado del top-down difiere del manual en algo que la firma capte (p. ej. `contextoRefinamiento`), ajusta el mirror del camino B para igualar, o compara el subconjunto de frontera relevante. La firma DEBE abstraer ids; si no lo hace del todo, usa `firmaFronteraDeOpd` sobre el OPD hijo. El punto falsable: adoptar no introduce divergencia semántica frente al top-down.
+> Verifica los conteos reales primero (top-down puede sintetizar N enlaces según R-OPD-REF-11); ajusta las aserciones al conteo observado, manteniendo el CONTRASTE `adop===0` vs `top>0`. Importa `crearObjeto`, `crearEnlace`, `extremoEntidad`. El punto falsable: la adopción es bottom-up (no impone andamiaje); la preservación de frontera se cobra en el gate de export (Task 7), no aquí.
 
 - [ ] **Step 2: Corre la ley**
 
 Run: `cd app && bun test src/leyes/taller-convergencia.test.ts`
-Expected: PASS (3 tests).
+Expected: PASS (3 tests: vínculo estructural, contraste andamiaje, ciclo adversarial).
 
 - [ ] **Step 3: Commit**
 

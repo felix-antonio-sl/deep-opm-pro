@@ -1,10 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { crearModelo, crearProceso } from "../modelo/operaciones/creacion";
+import { crearModelo, crearProceso, crearObjeto } from "../modelo/operaciones/creacion";
 import { descomponerProceso } from "../modelo/operaciones";
+import { crearEnlace } from "../modelo/operaciones/enlaces";
 import { crearOpdSuelto } from "../modelo/operaciones/opdSuelto";
 import { adoptarOpd } from "../modelo/operaciones/refinamiento/establecer";
 import { obtenerRefinamiento } from "../modelo/refinamientos";
-import { firmaFronteraEntidad } from "../modelo/equivalencia/verticalidad";
+import { extremoEntidad } from "../modelo/extremos";
 import type { Modelo, Resultado } from "../modelo/tipos";
 
 /** Desempaqueta un Resultado en tests (idioma del repo: lanza ante fallo). */
@@ -49,21 +50,26 @@ describe("LEY: convergencia por construcción (R-OPD-REF-20)", () => {
     expect(adop.ok).toBe(false);
   });
 
-  test("REGRESIÓN firma semántica: adoptar preserva la firma de frontera igual que top-down (R-OPD-REF-10)", () => {
-    // Camino A — top-down (genera 2 subprocesos "Cargar 1"/"Cargar 2").
-    const baseA = must(crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Cargar"));
-    const pA = procesoId(baseA);
-    const outA = must(descomponerProceso(baseA, "opd-1", pA));
-    // Camino B — suelto poblado para MIRROR del top-down, luego adopción.
-    let baseB = must(crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Cargar"));
-    const pB = procesoId(baseB);
-    const creado = crearOpdSuelto(baseB); baseB = creado.modelo;
-    baseB = must(crearProceso(baseB, creado.opdId, { x: 0, y: 0 }, "Cargar 1"));
-    baseB = must(crearProceso(baseB, creado.opdId, { x: 0, y: 60 }, "Cargar 2"));
-    const outB = must(adoptarOpd(baseB, { opdPadreId: "opd-1", entidadId: pB, opdSueltoId: creado.opdId, tipo: "descomposicion" }));
-    // La firma de frontera del proceso refinado en su OPD hijo coincide (misma semántica de frontera).
-    const firmaA = firmaFronteraEntidad(outA.modelo, outA.opdId, pA);
-    const firmaB = firmaFronteraEntidad(outB, creado.opdId, pB);
-    expect([...firmaA].sort()).toEqual([...firmaB].sort());
+  // CORREGIDO (verificación adversarial Ola 1): la convergencia es a nivel del VÍNCULO
+  // (test 1), NO del contenido del hijo. Comparar firmas del hijo entre caminos es vacuo
+  // (ambas [] sin frontera) o falso (divergen con frontera) — y esa divergencia es CORRECTA:
+  // el top-down auto-andamia (R-OPD-REF-4/11), adoptar toma el suelto tal cual (bottom-up).
+  // Este test DOCUMENTA ese contraste; se rompería si adoptar empezara a andamiar.
+  test("adoptar NO auto-andamia la frontera (bottom-up), a diferencia del top-down", () => {
+    // Proceso con un enlace de frontera (consumo) en el OPD padre.
+    let m = must(crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Cargar"));
+    const p = procesoId(m);
+    m = must(crearObjeto(m, "opd-1", { x: 200, y: 0 }, "Datos"));
+    const datos = Object.values(m.entidades).find((e) => e.nombre === "Datos")!.id;
+    m = must(crearEnlace(m, "opd-1", extremoEntidad(datos), extremoEntidad(p), "consumo"));
+    // Top-down: el OPD hijo recibe derivación de frontera (externo + enlace distribuido).
+    const outTop = must(descomponerProceso(m, "opd-1", p));
+    const enlacesHijoTop = Object.keys(outTop.modelo.opds[outTop.opdId]!.enlaces).length;
+    // Adopción de un suelto VACÍO: el hijo NO recibe andamiaje (toma el dibujo tal cual).
+    const creado = crearOpdSuelto(m);
+    const outAdop = must(adoptarOpd(creado.modelo, { opdPadreId: "opd-1", entidadId: p, opdSueltoId: creado.opdId, tipo: "descomposicion" }));
+    const enlacesHijoAdop = Object.keys(outAdop.opds[creado.opdId]!.enlaces).length;
+    expect(enlacesHijoAdop).toBe(0);            // adopt no andamia (bottom-up)
+    expect(enlacesHijoTop).toBeGreaterThan(0);  // top-down sí (contraste); frontera se cobra en export
   });
 });

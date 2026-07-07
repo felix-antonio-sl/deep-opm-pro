@@ -97,10 +97,17 @@ sistémico» se **exige al graduar** el bosquejo a modelo, no durante el bosquej
     **emiten OPL** como cualquier OPD (la bisimetría es ciega a la condición de suelto).
   - **Adoptar** (verbo de autoría): declara un OPD suelto como refinamiento (in-zoom/unfold) de una cosa
     existente — **fija el padre** (el OPD donde la cosa aparece) **y declara el refinamiento** (slot de la
-    entidad) en **UN gesto**. Adoptar **NO inventa semántica**: alcanza el mismo estado final legislado
-    que el refinamiento top-down (R-OPD-REF-1..10); ambos caminos son **el mismo constructor** de
-    refinamiento (**convergencia por construcción**, verificable por firma semántica). Adoptar respeta la
-    **prohibición de ciclos** (R-OPD-REF-8) y la **preservación de firma de frontera** (R-OPD-REF-10).
+    entidad) en **UN gesto**. **Convergencia (precisa)**: adoptar y el refinamiento top-down convergen en
+    el **mismo constructor de vínculo** (`establecerRefinamiento`) y alcanzan el **mismo estado de
+    refinamiento** — slot de la entidad + padre del OPD hijo (convergencia por construcción, a nivel del
+    **vínculo**). **NO** producen idéntico **contenido** del OPD hijo, y así debe ser: el top-down
+    **auto-andamia** (infla el contorno, trae externos conectados y distribuye/escinde enlaces de
+    frontera, R-OPD-REF-4/R-OPD-REF-11); **adoptar toma el suelto tal como el modelador lo dibujó**
+    (acto bottom-up, sin imponer andamiaje). Adoptar respeta la **prohibición de ciclos** (R-OPD-REF-8).
+    La **preservación de la firma de frontera** del proceso abstracto (R-OPD-REF-10) de un refinamiento
+    adoptado **NO se impone en la adopción** —sería imponer rigor top-down a un acto bottom-up—: se
+    **cobra en el gate de export canónico** (condición «OPD sin adoptar» + checker
+    `DESCOMPOSICION_NO_PRESERVA_FRONTERA`), coherente con «el rigor se cobra al graduar».
   - **«OPD sin adoptar» NO es una clase de severidad nueva**: es una **condición del gate de export
     canónico existente** (R-OPD-CAN-1 / gate de densidad, §10.2/§11). En un **modelo**, el export
     canónico (`canon-diagrama`/`canon-documento`) **bloquea** con causa nombrada («OPDs sin adoptar: …»)
