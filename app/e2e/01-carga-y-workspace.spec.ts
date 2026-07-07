@@ -83,7 +83,7 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   // palette (vía única de comandos), superset del menú: comprobamos que
   // el comando "Nuevo modelo" está disponible y cerramos el palette.
   const palette = await abrirMenuPrincipal(page);
-  await palette.getByRole("combobox").fill("nuevo modelo");
+  await palette.getByRole("combobox").fill("nuevo");
   await expect(palette.getByTestId("command-palette-item-menu-nuevo-modelo")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);

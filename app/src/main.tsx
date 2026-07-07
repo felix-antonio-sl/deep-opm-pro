@@ -78,6 +78,11 @@ if (import.meta.env.DEV) {
   void import("./serializacion/json").then(({ exportarModelo }) => {
     (window as unknown as { __opmTest?: unknown }).__opmTest = {
       exportarModeloActual: () => exportarModelo(store.getState().modelo),
+      // Fixture DEV-only: crea un MODELO plano sin persistir (op interno `nuevoModelo`).
+      // La puerta humana «Nuevo» pasó a nacer APUNTES (diseño §3); los e2e que sólo
+      // necesitan un lienzo fresco de setup usan esta vía para no acoplarse a la
+      // especie apunte. El comportamiento apunte de «Nuevo» se cubre en e2e/41.
+      nuevoModeloPlano: () => store.getState().nuevoModelo(),
     };
   });
 }

@@ -16,6 +16,7 @@ import {
   guardarComoActual,
   cargarPrimerModelo,
   crearModeloNuevoDesdeMenu,
+  ejecutarComandoPalette,
   restaurarPanelOplSiMinimizado,
   assertWorkbenchLayout,
   assertCanvasScrollable,
@@ -151,8 +152,10 @@ test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ pag
   }
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
+  // La puerta humana «Nuevo» (real, vía paleta) conserva el gate confirmarSiDirty
+  // aunque ahora NACE APUNTES (diseño §3). El gate es lo que este test cubre.
   const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
-  await crearModeloNuevoDesdeMenu(page);
+  await ejecutarComandoPalette(page, "nuevo", "menu-nuevo-modelo");
   await expect(dialogo).toBeVisible();
   await expect(dialogo.getByRole("button", { name: "Guardar" })).toBeFocused();
 
@@ -160,18 +163,20 @@ test("confirma cambios sin guardar antes de crear un modelo nuevo", async ({ pag
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
-  await crearModeloNuevoDesdeMenu(page);
+  await ejecutarComandoPalette(page, "nuevo", "menu-nuevo-modelo");
   await expect(dialogo).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 
-  await crearModeloNuevoDesdeMenu(page);
+  await ejecutarComandoPalette(page, "nuevo", "menu-nuevo-modelo");
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(dialogo).toHaveCount(0);
   await expect(page.locator(".joint-element")).toHaveCount(0);
-  await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "nuevo");
+  // Descartar → nacerApunte: el lienzo nuevo es un APUNTE (persistido al nacer),
+  // señalado por su cinta — ya no el chip «nuevo» del modelo plano sin guardar.
+  await expect(page.getByTestId("cinta-apunte")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
