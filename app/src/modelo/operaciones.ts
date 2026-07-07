@@ -13,20 +13,23 @@
  */
 
 export { crearModelo, crearObjeto, crearProceso } from "./operaciones/creacion";
+export { crearOpdSuelto } from "./operaciones/opdSuelto";
 export { detectarColisionNombre, type ColisionNombre } from "./operaciones/colisionNombre";
 
 export {
+  adoptarOpd,
   aparienciaEsSubprocesoInternoDeInzoom,
   aplicarOrdenInzoomDerivado,
   derivarOrdenInzoomDeGeometria,
   descomponerProceso,
   distribuirEnlaceExternoEnRefinamiento,
   desplegarObjeto,
+  establecerRefinamiento,
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
   recolectarEnlaceExternoEnRefinamiento,
 } from "./operaciones/refinamiento";
-export type { DescomposicionProceso, DespliegueObjeto } from "./operaciones/refinamiento";
+export type { AdopcionOpd, DescomposicionProceso, DespliegueObjeto, EnlaceRefinamiento } from "./operaciones/refinamiento";
 
 export {
   renombrarEntidad,

@@ -1,3 +1,4 @@
+import { esOpdSuelto } from "../../opdSueltos";
 import { fijarRefinamiento, obtenerRefinamiento } from "../../refinamientos";
 import type { Id, Modelo, ModoDespliegueObjeto, Resultado, TipoRefinamiento } from "../../tipos";
 import { entidadVisibleEnOpd, fallo, ok } from "../helpers";
@@ -59,4 +60,32 @@ function esAncestroOpd(modelo: Modelo, posibleAncestroId: Id, opdId: Id): boolea
     actual = modelo.opds[actual]?.padreId ?? null;
   }
   return false;
+}
+
+export interface AdopcionOpd {
+  opdPadreId: Id;
+  entidadId: Id;
+  opdSueltoId: Id;
+  tipo: TipoRefinamiento;
+  modo?: ModoDespliegueObjeto;
+}
+
+/**
+ * Verbo «adoptar» (R-OPD-REF-20): declara un OPD SUELTO existente como el
+ * refinamiento (in-zoom/unfold) de una cosa existente. Valida que el OPD sea
+ * suelto y delega el vínculo al MISMO constructor `establecerRefinamiento` que
+ * usa el camino top-down → convergencia por construcción.
+ */
+export function adoptarOpd(modelo: Modelo, args: AdopcionOpd): Resultado<Modelo> {
+  if (!esOpdSuelto(modelo, args.opdSueltoId)) {
+    return fallo(`El OPD ${args.opdSueltoId} no es un suelto adoptable (o es la raíz)`);
+  }
+  return establecerRefinamiento(modelo, {
+    opdPadreId: args.opdPadreId,
+    entidadId: args.entidadId,
+    opdHijoId: args.opdSueltoId,
+    tipo: args.tipo,
+    // exactOptionalPropertyTypes: omitir `modo` en vez de pasar `undefined`.
+    ...(args.modo ? { modo: args.modo } : {}),
+  });
 }
