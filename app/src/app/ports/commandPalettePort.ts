@@ -45,6 +45,8 @@ export interface CommandPaletteMenuExtrasPort {
 
 export interface CommandPaletteWorkspacePort {
   nuevoModelo: () => void;
+  /** «Todo nace apunte» (diseño §3): la puerta humana «Nuevo» abre un apunte. */
+  nacerApunte: () => void;
   abrirCargarModelo: (opciones?: { mostrarArchivados?: boolean }) => void;
   abrirGuardarComo: () => void;
   abrirDialogoConfiguracion: () => void;

@@ -27,7 +27,7 @@ export function DialogoCargarModelo() {
   const persistencia = useZustandPersistencePort();
   const workspace = useZustandWorkspacePort();
   const confirmarSiDirty = useConfirmarSiDirty();
-  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
+  const nacerApunte = useOpmStore((s) => s.nacerApunte);
   const [seleccionadoId, setSeleccionadoId] = useState<Id | null>(null);
   const [orden, setOrden] = useState<OrdenCargar>(() => leerOrdenCargar());
   const [query, setQuery] = useState("");
@@ -138,13 +138,13 @@ export function DialogoCargarModelo() {
     setRenombrandoCarpetaId(null);
   }, [renombrandoCarpetaId, nombreCarpetaRenombrar, workspace.renombrarCarpetaEnIndice]);
 
-  // «Nuevo modelo» del estado vacío: el puerto de persistencia no expone la
-  // acción; se toma del store y se envuelve en confirmarSiDirty (mismo patrón
-  // que «Abrir en pestaña nueva»).
+  // «Nuevo» del estado vacío: «todo nace apunte» (diseño §3) — abre un apunte
+  // editable al instante en vez de un modelo vacío. Se envuelve en confirmarSiDirty
+  // (mismo patrón que «Abrir en pestaña nueva»).
   const crearNuevoModelo = useCallback(() => {
-    confirmarSiDirty(() => nuevoModelo());
+    confirmarSiDirty(() => nacerApunte());
     persistencia.cerrarCargarModelo();
-  }, [confirmarSiDirty, nuevoModelo, persistencia.cerrarCargarModelo]);
+  }, [confirmarSiDirty, nacerApunte, persistencia.cerrarCargarModelo]);
 
   // Acciones por modelo: solo se exponen operaciones que el dominio ya soporta
   // (cargar, abrir en pestaña, versiones, archivar/restaurar, eliminar). No se
@@ -336,7 +336,7 @@ export function DialogoCargarModelo() {
                   <>
                     <span style={style.emptyText}>Aún no hay modelos. Crea uno nuevo o importa un JSON.</span>
                     <div style={style.emptyCtas}>
-                      <button type="button" style={style.emptyCta} onClick={crearNuevoModelo}>Nuevo modelo</button>
+                      <button type="button" style={style.emptyCta} onClick={crearNuevoModelo}>Nuevo</button>
                       <button type="button" data-testid="abrir-importar-json" style={style.emptyCta} onClick={() => setImportarAbierto(true)}>Importar JSON</button>
                     </div>
                   </>

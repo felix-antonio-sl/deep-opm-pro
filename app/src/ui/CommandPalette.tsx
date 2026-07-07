@@ -112,7 +112,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     seleccionId,
     enlaceSeleccionId,
     seleccionados,
-    nuevoModelo,
+    nacerApunte,
     abrirCargarModelo,
     abrirGuardarComo,
     abrirDialogoConfiguracion,
@@ -172,7 +172,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     "command-palette",
   ).filter((accion) => accion.enabled);
   const accionesMenu = construirAccionesMenuCommandPalette({
-    nuevoModelo: () => confirmarSiDirty(nuevoModelo),
+    nacerApunte: () => confirmarSiDirty(nacerApunte),
     abrirCargarModelo,
     abrirGuardarComo,
     abrirDialogoConfiguracion,
@@ -492,7 +492,7 @@ function claveAtajoPalette(combo: string, label: string): string {
 }
 
 interface AccionesMenuCommandPaletteDeps {
-  nuevoModelo: () => void;
+  nacerApunte: () => void;
   abrirCargarModelo: () => void;
   abrirGuardarComo: () => void;
   abrirDialogoConfiguracion: () => void;
@@ -560,7 +560,7 @@ interface AccionesMenuCommandPaletteDeps {
 
 export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPaletteDeps): CommandPaletteMenuAction[] {
   return [
-    { id: "nuevo-modelo", label: "Nuevo modelo", descripcion: "Crear un modelo vacío", categoria: "archivo", run: deps.nuevoModelo },
+    { id: "nuevo-modelo", label: "Nuevo", descripcion: "Abrir un apunte y explorar", categoria: "archivo", run: deps.nacerApunte },
     { id: "abrir-importar", label: "Abrir / importar modelo", descripcion: "Abrir modelos guardados, archivados o JSON", categoria: "archivo", run: deps.abrirCargarModelo },
     { id: "guardar-como", label: "Guardar como", descripcion: "Guardar una copia editable del modelo", categoria: "archivo", run: deps.abrirGuardarComo },
     { id: "abrir-pestana", label: "Abrir como pestaña", descripcion: "Duplicar el modelo actual en una pestaña adicional", categoria: "archivo", atajo: "Ctrl+T", run: deps.abrirPestanaNueva },
