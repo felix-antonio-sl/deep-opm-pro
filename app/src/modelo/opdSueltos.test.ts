@@ -10,7 +10,7 @@ function conOpd(modelo: Modelo, id: string, padreId: string | null): Modelo {
 describe("opdsSueltos", () => {
   test("la raíz nunca es suelto aunque tenga padreId null", () => {
     const m = crearModelo("M");
-    expect(m.opds[m.opdRaizId].padreId).toBeNull();
+    expect(m.opds[m.opdRaizId]!.padreId).toBeNull();
     expect(opdsSueltos(m)).toEqual([]);
     expect(esOpdSuelto(m, m.opdRaizId)).toBe(false);
   });
