@@ -43,6 +43,7 @@ export function ArbolOpd() {
     abrirGestionArbol,
     avisosArbol,
     sueltos,
+    esApunte,
     nuevoOpdSuelto,
     adoptarOpdEnSeleccion,
   } = useArbolOpdViewModel();
@@ -154,6 +155,7 @@ export function ArbolOpd() {
       modelo={modelo}
       avisos={avisosArbol}
       activo={nodo.opd.id === opdActivoId}
+      esApunte={esApunte}
       nombresArbolVisibles={nombresArbolVisibles}
       estaExpandido={estaExpandidoNodo(nodo.opd.id)}
       renombrando={renombrando}

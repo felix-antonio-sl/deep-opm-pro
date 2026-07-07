@@ -1,7 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "../../modelo/operaciones";
 import type { Id, Modelo, Resultado } from "../../modelo/tipos";
-import { calcularBadges, labelTipoBadge, tagAnclasOpd, tagVistaOpd } from "./badges";
+import { calcularBadges, labelNodoRaiz, labelTipoBadge, tagAnclasOpd, tagVistaOpd } from "./badges";
+
+describe("labelNodoRaiz (proyección Hoja, R-OPD-REF-15)", () => {
+  test("en un apunte la raíz proyecta «Hoja»", () => {
+    expect(labelNodoRaiz(true, "SD")).toBe("Hoja");
+  });
+  test("fuera de un apunte conserva el nombre real", () => {
+    expect(labelNodoRaiz(false, "SD")).toBe("SD");
+    expect(labelNodoRaiz(false, "SD: Cargar descompuesto")).toBe("SD: Cargar descompuesto");
+  });
+});
 
 describe("badges del arbol OPD", () => {
   test("calcularBadges identifica SD raiz sin refinador", () => {
