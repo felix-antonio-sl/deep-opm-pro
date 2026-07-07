@@ -15,6 +15,7 @@ import {
   desplegarComoAgregacion,
   ejecutarAccionCommandPalette,
   ejecutarComandoPalette,
+  abrirSeccionInspector,
   irATabExtremos,
   irATabRefinamiento,
   guardarComoActual,
@@ -644,6 +645,8 @@ test("HU-17.012 renderiza sintaxis compuesta Nombre [Unidad] {alias}", async ({ 
 
   await page.goto("/");
   await crearAtributoNumericoSmoke(page);
+  // C′·A (M-4): el input alias vive en el disclosure «Avanzado» (plegado).
+  await abrirSeccionInspector(page, "inspector-avanzado");
   // Ronda23 L1 #14: placeholder del input alias cambió de "{alias}" a
   // "ej: cliente" (sin slugs visibles que parezcan variables sin sustituir).
   await page.getByPlaceholder("ej: cliente").fill("T");

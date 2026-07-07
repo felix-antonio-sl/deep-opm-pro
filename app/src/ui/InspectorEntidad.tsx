@@ -18,6 +18,7 @@ import { SeccionDescripcion } from "./inspector/SeccionDescripcion";
 import { SeccionEsenciaAfiliacion } from "./inspector/SeccionEsenciaAfiliacion";
 import { SeccionAnclas } from "./inspector/SeccionAnclas";
 import { SeccionAnclaje, debeMostrarSeccionAnclaje } from "./inspector/SeccionAnclaje";
+import { SeccionDisclosure } from "./inspector/SeccionDisclosure";
 import { SeccionNotasMesa } from "./inspector/SeccionNotasMesa";
 import { SeccionEnlaces } from "./inspector/SeccionEnlaces";
 import { SeccionImagen } from "./inspector/SeccionImagen";
@@ -103,6 +104,7 @@ export function InspectorEntidad({ entidad }: Props) {
   const descargarSubmodeloSeleccionado = useOpmStore((s) => s.descargarSubmodeloSeleccionado);
   const desconectarSubmodeloSeleccionado = useOpmStore((s) => s.desconectarSubmodeloSeleccionado);
   const seleccionarEntidad = useOpmStore((s) => s.seleccionarEntidad);
+  const driftMap = useOpmStore((s) => s.driftMap);
   const inputNombreRef = useRef<HTMLInputElement | null>(null);
   const aparienciaActiva = Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}).find((apariencia) => apariencia.entidadId === entidad.id);
   const partesPlegables = partesDePlegado(modelo, entidad.id);
@@ -124,6 +126,9 @@ export function InspectorEntidad({ entidad }: Props) {
   const submodelosEntidad = Object.values(modelo.submodelos ?? {}).filter((ref) => ref.anchorEntidadId === entidad.id);
   const satisfaccionesEntidad = satisfaccionesDeTarget(modelo, { tipo: "entidad", id: entidad.id });
   const satisfaccionesCubiertas = esRequisito(entidad) ? satisfaccionesDeRequisito(modelo, entidad.id) : [];
+  // C′·A (M-4): «Anclaje» nace abierta si la biblioteca divergió (pide atención),
+  // plegada si está al día — la sección se auto-muestra cuando importa.
+  const anclajeAbierto = entidad.anclaje != null && (driftMap[entidad.id] ?? "no-resuelto") !== "sincronizado";
   const abrirEntidadReferenciada = (entidadId: Id) => {
     const destino = primerOpdConEntidad(modelo, entidadId, opdActivoId);
     if (destino && destino !== opdActivoId) cambiarOpdActivo(destino);
@@ -185,7 +190,7 @@ export function InspectorEntidad({ entidad }: Props) {
         smoke ubique su contenido sin tabs; ya no hay `role="tabpanel"`.
       */}
       <div data-testid="inspector-ficha" style={style.ficha}>
-        <FichaSeccion kicker="Semántica" testid="inspector-panel-semantica" primera>
+        <FichaSeccion kicker="Semántica" testid="inspector-panel-semantica" primera colapsable defaultAbierta>
           <PanelSemantica
             entidad={entidad}
             cobertura={cobertura}
@@ -222,10 +227,10 @@ export function InspectorEntidad({ entidad }: Props) {
               sostiene dentro de la sección Semántica. */}
           {entidad.tipo !== "objeto" ? <div data-testid="inspector-entidad-acciones" /> : null}
         </FichaSeccion>
-        <FichaSeccion kicker="Enlaces" testid="inspector-panel-enlaces">
+        <FichaSeccion kicker="Enlaces" testid="inspector-panel-enlaces" colapsable defaultAbierta>
           <SeccionEnlaces modelo={modelo} entidad={entidad} onNavegarEnlace={navegarAEnlace} />
         </FichaSeccion>
-        <FichaSeccion kicker="Refinamiento" testid="inspector-panel-refinamiento">
+        <FichaSeccion kicker="Refinamiento" testid="inspector-panel-refinamiento" colapsable defaultAbierta={false}>
           <PanelRefinamiento
             entidad={entidad}
             modelo={modelo}
@@ -251,7 +256,7 @@ export function InspectorEntidad({ entidad }: Props) {
             onTraerAgregacionesInzoomFaltantes={traerAgregacionesInzoom}
           />
         </FichaSeccion>
-        <FichaSeccion kicker="Extensiones" testid="inspector-panel-extensiones">
+        <FichaSeccion kicker="Extensiones" testid="inspector-panel-extensiones" colapsable defaultAbierta={false}>
           <PanelExtensiones
             entidad={entidad}
             modelo={modelo}
@@ -272,11 +277,11 @@ export function InspectorEntidad({ entidad }: Props) {
           />
         </FichaSeccion>
         {debeMostrarSeccionAnclaje(entidad) ? (
-          <FichaSeccion kicker="Anclaje" testid="inspector-panel-anclaje">
+          <FichaSeccion kicker="Anclaje" testid="inspector-panel-anclaje" colapsable defaultAbierta={anclajeAbierto}>
             <SeccionAnclaje entidad={entidad} />
           </FichaSeccion>
         ) : null}
-        <FichaSeccion kicker="Apariciones" testid="inspector-panel-apariciones">
+        <FichaSeccion kicker="Apariciones" testid="inspector-panel-apariciones" colapsable defaultAbierta={false}>
           <SeccionApariciones
             modelo={modelo}
             entidad={entidad}
@@ -284,7 +289,7 @@ export function InspectorEntidad({ entidad }: Props) {
             onNavegar={cambiarOpdActivo}
           />
         </FichaSeccion>
-        <FichaSeccion kicker="Tamaño" testid="inspector-panel-tamano">
+        <FichaSeccion kicker="Tamaño" testid="inspector-panel-tamano" colapsable defaultAbierta={false}>
           {aparienciaActiva ? (
             <SeccionTamano
               apariencia={aparienciaActiva}
@@ -476,23 +481,30 @@ function PanelSemantica(props: PanelSemanticaProps) {
       <SeccionDescripcion descripcion={entidad.descripcion} onDescripcion={props.onDescripcion} />
       {/* W6.4: procedencia normativa de la cosa (read-only; nace en el proto). */}
       <SeccionAnclas target={{ tipo: "entidad", id: entidad.id }} />
-      <SeccionNotasMesa target={{ tipo: "entidad", id: entidad.id }} />
+      {/* C′·A (M-4): Notas de mesa (método) y metadatos «Avanzado» (Alias/URLs/
+          Imagen) bajan a disclosures cerrados — el núcleo semántico (Descripción,
+          Estados, Esencia) queda arriba, a la vista. */}
+      <SeccionDisclosure titulo="Notas de mesa" colapsoId="sem.notas">
+        <SeccionNotasMesa target={{ tipo: "entidad", id: entidad.id }} />
+      </SeccionDisclosure>
       {entidad.tipo === "objeto" ? (
-        <section style={advancedStyles.section} aria-label="Metadatos avanzados">
-          <SeccionAlias
-            alias={entidad.alias}
-            unidad={entidad.unidad}
-            onAlias={props.onAlias}
-            onUnidad={props.onUnidad}
-          />
-          <SeccionUrls entidadId={entidad.id} urls={entidad.urls} onAbrirUrls={props.onAbrirUrls} />
-          <SeccionImagen
-            entidadId={entidad.id}
-            {...(entidad.imagen ? { imagen: entidad.imagen } : {})}
-            onAbrirImagen={props.onAbrirImagen}
-            onQuitarImagen={props.onQuitarImagen}
-          />
-        </section>
+        <SeccionDisclosure titulo="Avanzado" colapsoId="sem.avanzado" testid="inspector-avanzado">
+          <section style={advancedStyles.section} aria-label="Metadatos avanzados">
+            <SeccionAlias
+              alias={entidad.alias}
+              unidad={entidad.unidad}
+              onAlias={props.onAlias}
+              onUnidad={props.onUnidad}
+            />
+            <SeccionUrls entidadId={entidad.id} urls={entidad.urls} onAbrirUrls={props.onAbrirUrls} />
+            <SeccionImagen
+              entidadId={entidad.id}
+              {...(entidad.imagen ? { imagen: entidad.imagen } : {})}
+              onAbrirImagen={props.onAbrirImagen}
+              onQuitarImagen={props.onQuitarImagen}
+            />
+          </section>
+        </SeccionDisclosure>
       ) : null}
       {atributoDerivado ? (
         <SeccionAtributo

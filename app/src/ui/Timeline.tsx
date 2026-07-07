@@ -21,6 +21,9 @@ export function Timeline() {
 
   if (!contexto) return null;
 
+  // C′·A (M-5): posición ordinal por Y — la coordenada cruda nunca se muestra.
+  const ordenY = [...new Set(contexto.rows.map((fila) => fila.apariencia.y))].sort((a, b) => a - b);
+
   const soltarSobre = (targetId: Id, mode: DropMode) => {
     if (!draggedId || draggedId === targetId) return;
     const nuevaY = calcularNuevaY(contexto.rows, draggedId, targetId, mode);
@@ -45,6 +48,7 @@ export function Timeline() {
         ) : (
           contexto.rows.map((row) => {
             const active = row.entidad.id === seleccionId;
+            const ordinal = ordenY.indexOf(row.apariencia.y) + 1;
             const hint = dropHint?.targetId === row.apariencia.id ? dropHint.mode : null;
             const parallel = row.parallelSize > 1;
             return (
@@ -54,7 +58,7 @@ export function Timeline() {
                 tabIndex={0}
                 draggable
                 data-timeline-row={row.apariencia.id}
-                aria-label={`${row.entidad.nombre}, Y ${row.apariencia.y}`}
+                aria-label={`${ordinal}.º ${row.entidad.nombre}`}
                 style={estiloFila(active, parallel, draggedId === row.apariencia.id, hint)}
                 onClick={() => seleccionarEntidad(row.entidad.id)}
                 onKeyDown={(event) => {
@@ -94,7 +98,7 @@ export function Timeline() {
                 </span>
                 <span style={style.main}>
                   <span style={style.name}>{row.entidad.nombre}</span>
-                  <span style={style.meta}>Y {row.apariencia.y}</span>
+                  <span style={style.meta}>{ordinal}.º</span>
                 </span>
                 {parallel ? <span style={style.parallel}>Paralelo</span> : null}
                 {parallel ? (

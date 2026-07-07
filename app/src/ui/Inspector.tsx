@@ -5,6 +5,7 @@ import { InspectorEnlace } from "./InspectorEnlace";
 import { InspectorEntidad } from "./InspectorEntidad";
 import { InspectorEstado } from "./inspector/InspectorEstado";
 import { SeccionAnclas } from "./inspector/SeccionAnclas";
+import { SeccionDisclosure } from "./inspector/SeccionDisclosure";
 import { SeccionNotasMesa } from "./inspector/SeccionNotasMesa";
 import { SeccionRegistroRatificar } from "./inspector/SeccionRegistroRatificar";
 
@@ -80,8 +81,12 @@ function InspectorVacio(props: { procedencia: InspectorViewModel["procedencia"] 
       {/* W6.4: anclas modelo-nivel y del OPD activo — solo visibles si existen. */}
       <SeccionAnclas target={{ tipo: "modelo" }} titulo="Anclas del modelo" />
       <SeccionAnclasOpdActivo />
-      {/* W6.5-a: notas a nivel de modelo — la rama vacía es la vista modelo-nivel. */}
-      <SeccionNotasMesa target={{ tipo: "modelo" }} />
+      {/* C′·A (m-6): la rama vacía era «Selecciona un elemento.» + editor de Notas
+          incondicional (método sin contexto). La nota de modelo baja a un disclosure
+          cerrado: se puede crear, pero no grita. Ratificar y anclas ya se auto-gatean. */}
+      <SeccionDisclosure titulo="Nota del modelo" colapsoId="modelo.notas">
+        <SeccionNotasMesa target={{ tipo: "modelo" }} />
+      </SeccionDisclosure>
     </div>
   );
 }

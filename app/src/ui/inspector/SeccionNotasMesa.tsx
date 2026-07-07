@@ -52,7 +52,7 @@ export function SeccionNotasMesa(props: Props) {
         <textarea
           data-testid="nota-mesa-input"
           style={notasStyles.textarea}
-          placeholder="Anotar para la re-elicitación…"
+          placeholder="Anotar duda o pendiente…"
           value={borrador}
           onInput={(event) => setBorrador(event.currentTarget.value)}
         />

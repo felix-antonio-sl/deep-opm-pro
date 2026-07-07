@@ -10,7 +10,7 @@ interface CodexColHeaderProps {
 export function CodexColHeader({ kicker, title, meta }: CodexColHeaderProps) {
   return (
     <header style={style.header}>
-      <span style={style.kicker}>{kicker}</span>
+      {kicker ? <span style={style.kicker}>{kicker}</span> : null}
       <strong style={style.title}>{title}</strong>
       {meta ? <span style={style.meta}>{meta}</span> : null}
     </header>

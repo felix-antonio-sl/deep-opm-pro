@@ -334,6 +334,64 @@ export const inspectorStyles = {
     display: "grid",
     gap: `${tokens.spacing.md}px`,
   },
+  // C′·A (M-4): header-botón del kicker cuando la sección es colapsable. Bare
+  // button (sin borde/fondo/sombra) — el kicker sigue leyéndose como kicker,
+  // ahora clicable; el chevron a la derecha marca abierto/cerrado.
+  fichaKickerBoton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    margin: 0,
+    padding: 0,
+    border: 0,
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left" as const,
+  },
+  // Chevron de plegado: glifo texto ink-50 mono; sin color ni sombra nuevos.
+  fichaChevron: {
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.xxs}px`,
+    lineHeight: 1,
+  },
+  // Sub-bloque plegable interno (Avanzado / Notas de mesa dentro de Semántica;
+  // Nota del modelo en el vacío). Mismo lenguaje que el kicker-botón, un grado
+  // más liviano (usa el estilo `label`, no el kicker mono).
+  disclosure: {
+    display: "grid",
+    gap: `${tokens.spacing.sm}px`,
+  },
+  disclosureBoton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    margin: 0,
+    padding: 0,
+    border: 0,
+    background: "transparent",
+    cursor: "pointer",
+    textAlign: "left" as const,
+  },
+  disclosureChevron: {
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: `${tokens.typography.sizes.xxs}px`,
+    lineHeight: 1,
+  },
+  disclosureContenido: {
+    display: "grid",
+    gap: `${tokens.spacing.md}px`,
+  },
+  // Contenido plegado: fuera del layout, pero en el DOM (queryable, no-tabbable).
+  fichaContenidoOculto: {
+    display: "none",
+  },
+  disclosureContenidoOculto: {
+    display: "none",
+  },
   // Callout de cobertura ("Aparece en N OPDs"). Codex v2 / L3: ya no es un
   // botón que salta a un tab — la sección Apariciones vive en la misma ficha
   // más abajo. Nota informativa calmada.

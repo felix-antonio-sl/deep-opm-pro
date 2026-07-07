@@ -15,7 +15,7 @@
  */
 
 import { expect, test, type Page } from "@playwright/test";
-import { esperarWorkbenchInicial, clickLinkPorTipo, ejecutarAccionCommandPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual, modeloSmokeTablaEnlaces } from "./_smoke-helpers";
+import { abrirSeccionInspector, esperarWorkbenchInicial, clickLinkPorTipo, ejecutarAccionCommandPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual, modeloSmokeTablaEnlaces } from "./_smoke-helpers";
 
 test("entidad muestra ficha continua con las 6 secciones apiladas y sin tabs", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -77,6 +77,7 @@ test("conectar submodelo selecciona un modelo existente desde catálogo y crea r
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await abrirSeccionInspector(page, "inspector-panel-extensiones");
   await page.getByRole("button", { name: "Conectar submodelo", exact: true }).click();
 
   const dialogo = page.getByTestId("dialogo-submodelo");
@@ -181,7 +182,8 @@ test("sección Apariciones lista OPDs y navega cross-OPD con un click", async ({
   // Re-seleccionar el proceso en la raíz para que el inspector lo muestre.
   await elementoPorTexto(page, "Proceso").click();
 
-  // La sección Apariciones (en la ficha, sin tab) lista los dos OPDs.
+  // La sección Apariciones (en la ficha) lista los dos OPDs.
+  await abrirSeccionInspector(page, "inspector-panel-apariciones");
   await expect(page.getByTestId("seccion-apariciones")).toBeVisible();
 
   // El OPD raíz aparece como activo (no clickeable).

@@ -184,16 +184,26 @@ export async function elegirTipoEnlaceDesdeMenu(page: import("@playwright/test")
  * buscado por el spec ya está en el DOM dentro de su sección.
  */
 export async function irATabRefinamiento(page: import("@playwright/test").Page): Promise<void> {
-  const tab = page.getByTestId("inspector-tab-refinamiento");
-  if ((await tab.count()) === 0) return;
-  await tab.click();
+  // C′·A (M-4): la sección Refinamiento nace plegada; abrir su contenido si está
+  // cerrado (idempotente) para que el spec alcance sus controles.
+  const cont = page.getByTestId("inspector-panel-refinamiento").locator("[data-abierta]").first();
+  if ((await cont.getAttribute("data-abierta").catch(() => null)) === "false") {
+    await page.getByTestId("inspector-panel-refinamiento-toggle").first().click();
+    await cont.waitFor({ state: "visible" }).catch(() => undefined);
+  }
 }
 
 export async function irATabApariciones(page: import("@playwright/test").Page): Promise<void> {
-  const tab = page.getByTestId("inspector-tab-apariciones");
-  if ((await tab.count()) === 0) return;
-  await tab.click();
+  const cont = page.getByTestId("inspector-panel-apariciones").locator("[data-abierta]").first();
+  if ((await cont.getAttribute("data-abierta").catch(() => null)) === "false") {
+    await page.getByTestId("inspector-panel-apariciones-toggle").first().click();
+    await cont.waitFor({ state: "visible" }).catch(() => undefined);
+  }
 }
+
+// C′·A: re-export del helper de apertura de secciones plegadas del Inspector,
+// para los specs que ya importan desde `_smoke-helpers`.
+export { abrirSeccionInspector } from "./_colapso-helpers";
 
 export async function irATabExtremos(page: import("@playwright/test").Page): Promise<void> {
   const tab = page.getByTestId("inspector-enlace-tab-extremos");

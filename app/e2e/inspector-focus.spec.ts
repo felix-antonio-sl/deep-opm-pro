@@ -10,7 +10,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { esperarWorkbenchInicial } from "./_smoke-helpers";
+import { abrirSeccionInspector, esperarWorkbenchInicial } from "./_smoke-helpers";
 
 test("crear objeto desde toolbar enfoca el input Nombre y selecciona el texto", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -110,6 +110,8 @@ test("sección Tamaño vive como panel propio fuera de Refinamiento", async ({ p
   // La sección Tamaño queda como panel propio con controles Ancho/Alto/Ajustar
   // texto/Volver auto.
   await expect(page.getByTestId("inspector-panel-tamano")).toBeVisible();
+  // C′·A (M-4): la sección Tamaño nace plegada; abrir su contenido.
+  await abrirSeccionInspector(page, "inspector-panel-tamano");
   const seccionTamano = page
     .getByTestId("inspector-panel-tamano")
     .locator('section[aria-label="Tamaño"]');

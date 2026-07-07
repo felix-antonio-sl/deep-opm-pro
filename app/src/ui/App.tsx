@@ -274,7 +274,7 @@ export function App() {
             leftPanel={(
               <section data-testid="opl-pane" style={layout.oplLeftPane}>
                 <CodexColHeader
-                  kicker="MARGINALIA"
+                  kicker=""
                   title="OPL"
                   meta={(
                     <div style={style.headerMetaConBoton}>
@@ -407,7 +407,7 @@ export function App() {
                   onAnchoChange={fijarAlturaIndicePx}
                 />
                 <section style={{ ...layout.rightInspectorPane, flex: `1 1 ${100 - alturaIndicePct}%` }}>
-                  <CodexColHeader kicker="INSPECTOR" title="Selection" />
+                  <CodexColHeader kicker="INSPECTOR" title="Selección" />
                   <div style={layout.inspectorContent}>
                     <Inspector />
                     {timelineDisponible ? (

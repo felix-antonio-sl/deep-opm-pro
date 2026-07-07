@@ -42,6 +42,7 @@ import {
 } from "../BarraHerramientasElemento";
 import type { Id } from "../../modelo/tipos";
 import { useCanvasPaper } from "../CanvasAdapterContext";
+import { abrirSeccionesDe } from "../inspector/seccionColapso";
 import { tokens } from "../tokens";
 import { GLIFO_REF, GLIFO_SEP } from "./glifos";
 
@@ -345,12 +346,23 @@ function rectClienteDeCeldas(paper: dia.Paper, cellIds: readonly Id[]): RectClie
 }
 
 function enfocarSeccionInspector(testId: string): void {
-  window.setTimeout(() => {
+  // C′·A (M-4): la sección puede estar plegada (display:none). Expandir sus
+  // ancestros con `data-colapso-key` ANTES de enfocar; el objetivo sigue en el
+  // DOM (queryable) aunque esté oculto. rAF doble deja a Preact re-renderizar el
+  // disclosure abierto antes de mover el foco.
+  const objetivo = document.querySelector<HTMLElement>(`[data-testid="${testId}"]`);
+  abrirSeccionesDe(objetivo);
+  const enfocar = () => {
     const seccion = document.querySelector<HTMLElement>(`[data-testid="${testId}"]`);
     const foco = seccion?.querySelector<HTMLElement>("input, textarea, button, select");
     foco?.focus();
     seccion?.scrollIntoView({ block: "nearest" });
-  }, 0);
+  };
+  if (typeof requestAnimationFrame === "function") {
+    requestAnimationFrame(() => requestAnimationFrame(enfocar));
+  } else {
+    window.setTimeout(enfocar, 0);
+  }
 }
 
 // ---------------------------------------------------------------------------
