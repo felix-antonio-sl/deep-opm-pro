@@ -18,7 +18,9 @@
  * (`perfilCanonDiagrama`): un OPD bloqueado (> máx. apariencias) rechaza el
  * export ruidosamente — ninguna ruta de export evade el gate (EXPORT-GATE).
  */
+import { CODIGO_OPD_SIN_ADOPTAR, CODIGOS_VALIDEZ_DEGRADABLES_APUNTE } from "../modelo/diagnosticoSeveridad";
 import { calcularMetricasComplejidad } from "../modelo/metricasComplejidad";
+import { opdsSueltos } from "../modelo/opdSueltos";
 import { CANON_DIAGRAMA_MAX_APARIENCIAS, perfilCanonDiagrama } from "../modelo/perfilDiagrama";
 import type { Id, Modelo, Resultado } from "../modelo/tipos";
 import { exportarOplModeloMarkdown, opdsEnOrden } from "../opl/exportarMarkdown";
@@ -61,6 +63,26 @@ export function gateDensidadCanonica(modelo: Modelo): Resultado<true> {
   };
 }
 
+/**
+ * Condición de export canónico «OPD sin adoptar» (R-OPD-REF-20): un modelo con
+ * OPDs sueltos no cierra como documento canónico. En un MODELO bloquea con causa;
+ * en un APUNTE (rigor relajado) degrada a observación vía la whitelist
+ * CODIGOS_VALIDEZ_DEGRADABLES_APUNTE — NO es una clase de severidad nueva.
+ * La edición nunca se bloquea (esto solo rige el export canónico).
+ */
+export function gateOpdsSinAdoptar(modelo: Modelo, opciones: { esApunte?: boolean } = {}): Resultado<true> {
+  const sueltos = opdsSueltos(modelo);
+  if (sueltos.length === 0) return { ok: true, value: true };
+  if (opciones.esApunte && CODIGOS_VALIDEZ_DEGRADABLES_APUNTE.has(CODIGO_OPD_SIN_ADOPTAR)) {
+    return { ok: true, value: true }; // observación: el bosquejo exporta con marca
+  }
+  const nombres = sueltos.map((o) => `'${o.nombre}'`).join(", ");
+  return {
+    ok: false,
+    error: `Export canónico bloqueado: OPD sin adoptar: ${nombres}. Adopta cada OPD suelto (in-zoom/unfold de una cosa) o reconcílialo antes de exportar.`,
+  };
+}
+
 /** Proyección del modelo según el perfil. `intercambio` es la identidad. */
 export function filtrarModeloPorPerfil(modelo: Modelo, perfil: PerfilExport): Modelo {
   if (perfil === "intercambio") return modelo;
@@ -92,10 +114,13 @@ export function exportarModeloConPerfil(
   modelo: Modelo,
   perfil: PerfilExport,
   carpetaId?: Id | null,
+  opciones: { esApunte?: boolean } = {},
 ): Resultado<string> {
   if (perfil !== "intercambio") {
-    const gate = gateDensidadCanonica(modelo);
-    if (!gate.ok) return gate;
+    const gd = gateDensidadCanonica(modelo);
+    if (!gd.ok) return gd;
+    const gs = gateOpdsSinAdoptar(modelo, opciones);
+    if (!gs.ok) return gs;
   }
   return { ok: true, value: exportarModelo(filtrarModeloPorPerfil(modelo, perfil), carpetaId) };
 }
@@ -105,15 +130,21 @@ export function exportarModeloConPerfil(
  * portada + métricas + árbol de OPDs + OPL completa + procedencia. Markdown
  * determinista (sin timestamps: la identidad la da el sello de procedencia).
  */
-export function emitirDocumentoCanonico(modelo: Modelo): Resultado<string> {
-  const gate = gateDensidadCanonica(modelo);
-  if (!gate.ok) return gate;
+export function emitirDocumentoCanonico(modelo: Modelo, opciones: { esApunte?: boolean } = {}): Resultado<string> {
+  const gd = gateDensidadCanonica(modelo);
+  if (!gd.ok) return gd;
+  const gs = gateOpdsSinAdoptar(modelo, opciones);
+  if (!gs.ok) return gs;
 
   const filtrado = filtrarModeloPorPerfil(modelo, "canon-documento");
   const metricas = calcularMetricasComplejidad(filtrado);
   const secciones: string[] = [];
 
   secciones.push(`# ${filtrado.nombre}`);
+  const sueltosMarca = opdsSueltos(modelo);
+  if (opciones.esApunte && sueltosMarca.length > 0) {
+    secciones.push(`> **Bosquejo**: contiene ${sueltosMarca.length} OPD(s) sin adoptar (observación, no bloqueo).`);
+  }
   secciones.push(`> Perfil de export: \`canon-documento\` (R-VIS-EXP-2).`);
   if (typeof filtrado.descripcion === "string" && filtrado.descripcion.trim()) {
     secciones.push(filtrado.descripcion.trim());

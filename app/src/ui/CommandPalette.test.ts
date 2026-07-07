@@ -431,6 +431,8 @@ function depsAccionesMenu(
     exportarCanonDocumento: () => {},
     opdActivoBloqueadoDensidad: false,
     modeloBloqueadoDensidad: false,
+    opdActivoBloqueadoSuelto: false,
+    modeloBloqueadoSueltos: false,
     copiarContextoSkill: () => {},
     copiarLogDecisiones: () => {},
     cerrarSesion: () => {},

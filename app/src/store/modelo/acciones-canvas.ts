@@ -395,8 +395,11 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
     // Markdown. Subordinado al gate de densidad: OPD bloqueado ⇒ rechazo con el
     // mensaje accionable del gate, nunca export degradado en silencio.
     async copiarCanonDocumentoAlPortapapeles() {
-      const { modelo } = get();
-      const documento = emitirDocumentoCanonico(modelo);
+      const { modelo, indice } = get();
+      // R-OPD-REF-20: en un apunte, «OPD sin adoptar» degrada a observación (no
+      // bloquea); en un modelo bloquea. La especie es el bit persistido del índice.
+      const esApunte = indice.modelos.some((m) => m.id === modelo.id && m.esApunte === true);
+      const documento = emitirDocumentoCanonico(modelo, { esApunte });
       if (!documento.ok) {
         set({ mensaje: documento.error });
         return;

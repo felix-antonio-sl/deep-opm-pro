@@ -103,6 +103,13 @@ export function resumenSeveridadesTexto(resumen: ResumenSeveridades): string {
  *
  * Spec: docs/superpowers/specs/2026-06-30-modo-apunte-design.md §1, §3.4.
  */
+
+/** Código de la condición de export «OPD sin adoptar» (R-OPD-REF-20). NO es una
+ *  clase de severidad del panel (no está en SEVERIDAD_POR_CODIGO); es condición
+ *  del gate de export canónico. Se lista en CODIGOS_VALIDEZ_DEGRADABLES_APUNTE para
+ *  que en APUNTE degrade a observación (no bloquea el export del bosquejo). */
+export const CODIGO_OPD_SIN_ADOPTAR = "opd-sin-adoptar";
+
 export const CODIGOS_VALIDEZ_DEGRADABLES_APUNTE: ReadonlySet<string> = new Set<string>([
   // ── Validez semántica (validaciones.ts) ──
   "agente-requiere-objeto-fisico", // agente = humano/físico (R-AG-1)
@@ -144,6 +151,7 @@ export const CODIGOS_VALIDEZ_DEGRADABLES_APUNTE: ReadonlySet<string> = new Set<s
   "PROBABILIDAD_FUERA_DE_ABANICO",
   "ENTIDAD_SIN_APARICIONES",
   "INVOCACION_REDUNDANTE_CON_ORDEN",
+  CODIGO_OPD_SIN_ADOPTAR, // condición de gate de export canónico, degradable en apunte
 ]);
 
 /**
