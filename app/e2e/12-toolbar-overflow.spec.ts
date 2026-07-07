@@ -220,7 +220,7 @@ test("el command palette es superset del antiguo menú: archivo, datos y herrami
 
   // "Abrir / importar" desde el palette abre el diálogo unificado.
   await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
-  const dialogoAbrir = page.getByRole("dialog", { name: "Abrir modelo" });
+  const dialogoAbrir = page.getByRole("dialog", { name: "Modelos" });
   await expect(dialogoAbrir).toBeVisible();
   await expect(dialogoAbrir.getByLabel("Cargar modelo de ejemplo")).toHaveCount(0);
   await expect(dialogoAbrir.getByTestId("abrir-importar-json")).toHaveText("Importar JSON");

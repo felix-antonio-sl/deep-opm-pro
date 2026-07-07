@@ -311,16 +311,16 @@ export async function importarModeloJson(page: import("@playwright/test").Page, 
 
 export async function abrirDialogoCargarModelo(page: import("@playwright/test").Page): Promise<import("@playwright/test").Locator> {
   await ejecutarMenuPrincipal(page, "Abrir / importar...");
-  const dialogo = page.getByRole("dialog", { name: "Abrir modelo" });
+  const dialogo = page.getByRole("dialog", { name: "Modelos" });
   await expect(dialogo).toBeVisible();
   return dialogo;
 }
 
 export async function cargarPrimerModelo(page: import("@playwright/test").Page): Promise<void> {
   const dialogo = await abrirDialogoCargarModelo(page);
-  // El panel "Recientes" expone botones con data-testid="reciente-modelo";
-  // un solo click sobre el primer item abre el modelo en modo carga.
-  await dialogo.getByTestId("reciente-modelo").first().click();
+  // Sin botón «Abrir» por fila (puerta steve-jobs): la fila se abre por
+  // doble-click (el click simple solo selecciona).
+  await dialogo.getByTestId("modelo-fila-cargar").first().dblclick();
   await expect(dialogo).toHaveCount(0);
 }
 

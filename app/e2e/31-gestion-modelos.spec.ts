@@ -44,12 +44,12 @@ test("BUG-679f28: eliminar desde el menú quita el modelo del catálogo", async 
   await crearModeloNuevoDesdeMenu(page);
 
   const dialogo = await abrirDialogoCargarModelo(page);
-  const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Modelo desechable" });
+  const tile = dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo desechable" });
   await expect(tile).toHaveCount(1);
   await tile.getByTestId("modelo-acciones-toggle").click();
   await dialogo.getByRole("menuitem", { name: "Eliminar…" }).click();
 
-  await expect(dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Modelo desechable" })).toHaveCount(0);
+  await expect(dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo desechable" })).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
 
@@ -105,12 +105,12 @@ test("higiene: eliminar desde el menú de fila confirma nombrando el modelo", as
   await crearModeloNuevoDesdeMenu(page);
 
   const dialogo = await abrirDialogoCargarModelo(page);
-  const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Modelo con nombre único" });
+  const tile = dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo con nombre único" });
   await expect(tile).toHaveCount(1);
   await tile.getByTestId("modelo-acciones-toggle").click();
   await dialogo.getByRole("menuitem", { name: "Eliminar…" }).click();
 
-  await expect(dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Modelo con nombre único" })).toHaveCount(0);
+  await expect(dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo con nombre único" })).toHaveCount(0);
   expect(mensajeConfirm).toContain("Modelo con nombre único");
   expect(pageErrors).toEqual([]);
 });
@@ -132,7 +132,7 @@ test("higiene: arrastrar un tile a una carpeta de la sidebar persiste el movimie
   await inputCarpeta.press("Enter");
   await expect(dialogo.getByTestId("gestor-sidebar-carpeta")).toHaveText("Destino");
 
-  const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Modelo movible" });
+  const tile = dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo movible" });
   await expect(tile).toHaveCount(1);
 
   // Drag HTML5 con un DataTransfer compartido entre dragstart y drop: es el
@@ -140,7 +140,7 @@ test("higiene: arrastrar un tile a una carpeta de la sidebar persiste el movimie
   // transporta el dataTransfer).
   await page.evaluate(() => {
     const dt = new DataTransfer();
-    const tileEl = [...document.querySelectorAll('[data-testid="modelo-tile-cargar"]')]
+    const tileEl = [...document.querySelectorAll('[data-testid="modelo-fila-cargar"]')]
       .find((el) => el.textContent?.includes("Modelo movible"));
     const folderEl = document.querySelector('[data-testid="gestor-sidebar-carpeta"]');
     if (!tileEl || !folderEl) throw new Error("no se encontraron tile o carpeta");
@@ -150,10 +150,10 @@ test("higiene: arrastrar un tile a una carpeta de la sidebar persiste el movimie
   });
 
   // Salió de «Todas» (raíz) …
-  await expect(dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Modelo movible" })).toHaveCount(0);
+  await expect(dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo movible" })).toHaveCount(0);
   // … y aparece al abrir la carpeta destino.
   await dialogo.getByTestId("gestor-sidebar-carpeta").click();
-  await expect(dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Modelo movible" })).toHaveCount(1);
+  await expect(dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo movible" })).toHaveCount(1);
 
   expect(pageErrors).toEqual([]);
 });
@@ -204,6 +204,6 @@ test("BUG-20260602T014326Z-6ce450: Guardar como no bloquea el nombre del modelo 
   await expect(page.getByTestId("chip-persistencia")).toHaveAttribute("data-variante", "local-clean");
 
   const abrir = await abrirDialogoCargarModelo(page);
-  await expect(abrir.getByTestId("modelo-tile-cargar").filter({ hasText: "HODOM completo v14" })).toHaveCount(1);
+  await expect(abrir.getByTestId("modelo-fila-cargar").filter({ hasText: "HODOM completo v14" })).toHaveCount(1);
   expect(pageErrors).toEqual([]);
 });

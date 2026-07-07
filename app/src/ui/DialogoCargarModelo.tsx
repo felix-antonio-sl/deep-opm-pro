@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import autosaveIcon from "../../../assets/svg/autosave.svg";
 import lockIcon from "../../../assets/svg/lock.svg";
-import regFileIcon from "../../../assets/svg/regFile.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
 import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/modelos";
@@ -12,23 +11,23 @@ import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { useOpmStore } from "../store";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
-import type { VistaModo } from "./PanelCarpetas";
 import { iniciarDragWorkspace, leerDragWorkspace } from "./panelCarpetas/handlersDragDrop";
 import { PersistenciaJson } from "./PersistenciaJson";
 import { tokens } from "./tokens";
 
 /**
- * Diálogo «Abrir modelo». Higiene del gestor (spec 2026-07-06
- * chrome-gestion-design §1): un solo buscador, sidebar mínima de carpetas,
- * «Importar JSON» como acción del encabezado (no sección), estado vacío con
- * CTA y footer con primario visual. Persistencia/carga: [Met §6].
+ * Diálogo «Modelos». Higiene del gestor (spec 2026-07-06 chrome-gestion-design
+ * §1 + puerta steve-jobs): un solo buscador, sidebar mínima de carpetas, «Importar
+ * JSON» como acción del encabezado (no sección), estado vacío con CTA, footer con
+ * primario visual, catálogo como lista única (sin vista tarjetas ni botón «Abrir»
+ * por fila — se abre por doble-click de fila o por el primario del footer).
+ * Persistencia/carga: [Met §6].
  */
 export function DialogoCargarModelo() {
   const persistencia = useZustandPersistencePort();
   const workspace = useZustandWorkspacePort();
   const confirmarSiDirty = useConfirmarSiDirty();
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
-  const [modo, setModo] = useState<VistaModo>(() => leerVistaCargar());
   const [seleccionadoId, setSeleccionadoId] = useState<Id | null>(null);
   const [orden, setOrden] = useState<OrdenCargar>(() => leerOrdenCargar());
   const [query, setQuery] = useState("");
@@ -80,10 +79,6 @@ export function DialogoCargarModelo() {
     [enArchivo, workspace.carpetaActualId],
   );
 
-  const cambiarModo = useCallback((siguiente: VistaModo) => {
-    setModo(siguiente);
-    escribirVistaCargar(siguiente);
-  }, []);
   const alternarOrden = useCallback((columna: OrdenCargar["columna"]) => {
     setOrden((actual) => {
       const siguiente: OrdenCargar = actual.columna === columna
@@ -192,7 +187,7 @@ export function DialogoCargarModelo() {
   return (
     <Dialogo
       open={persistencia.dialogoCargarModeloAbierto}
-      title="Abrir modelo"
+      title="Modelos"
       onCancel={persistencia.cerrarCargarModelo}
       size="xl"
       testId="dialogo-abrir-importar"
@@ -298,8 +293,6 @@ export function DialogoCargarModelo() {
                 value={query}
                 onInput={(event) => setQuery(event.currentTarget.value)}
               />
-              <button type="button" style={modo === "tiles" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("tiles")} title="Vista de tarjetas" aria-label="Vista de tarjetas" aria-pressed={modo === "tiles"}><span aria-hidden="true">▦</span></button>
-              <button type="button" style={modo === "lista" ? style.activeToggle : style.toggle} onClick={() => cambiarModo("lista")} title="Vista de lista" aria-label="Vista de lista" aria-pressed={modo === "lista"}><span aria-hidden="true">☰</span></button>
               <button
                 type="button"
                 data-testid="abrir-importar-json"
@@ -319,34 +312,17 @@ export function DialogoCargarModelo() {
           ) : null}
 
           <div style={style.catalogo}>
-            {modo === "lista" ? (
-              <TablaModelos
-                modelos={modelosCatalogo}
-                seleccionadoId={seleccionadoId}
-                orden={orden}
-                mostrarVersiones={workspace.mostrarVersiones}
-                onOrden={alternarOrden}
-                onSeleccionar={setSeleccionadoId}
-                onAbrir={abrirSeleccionado}
-                onIniciarDrag={iniciarDragModelo}
-                menu={menuProps}
-              />
-            ) : (
-              <div style={style.gridModelos}>
-                {modelosCatalogo.map((modelo) => (
-                  <TileModelo
-                    key={modelo.id}
-                    modelo={modelo}
-                    seleccionado={modelo.id === seleccionadoId}
-                    mostrarVersiones={workspace.mostrarVersiones}
-                    onSeleccionar={setSeleccionadoId}
-                    onAbrir={abrirSeleccionado}
-                    onIniciarDrag={iniciarDragModelo}
-                    menu={menuProps}
-                  />
-                ))}
-              </div>
-            )}
+            <TablaModelos
+              modelos={modelosCatalogo}
+              seleccionadoId={seleccionadoId}
+              orden={orden}
+              mostrarVersiones={workspace.mostrarVersiones}
+              onOrden={alternarOrden}
+              onSeleccionar={setSeleccionadoId}
+              onAbrir={abrirSeleccionado}
+              onIniciarDrag={iniciarDragModelo}
+              menu={menuProps}
+            />
             {modelosCatalogo.length === 0 ? (
               <div style={style.empty} data-testid="gestor-vacio">
                 {query ? (
@@ -375,7 +351,6 @@ export function DialogoCargarModelo() {
 }
 
 type OrdenCargar = { columna: "nombre" | "descripcion" | "actualizadoEn" | "bytes"; direccion: "asc" | "desc" };
-let vistaCargarMemoria: VistaModo = "tiles";
 let ordenCargarMemoria: OrdenCargar = { columna: "actualizadoEn", direccion: "desc" };
 
 interface AccionesModelo {
@@ -465,50 +440,6 @@ function AccionItem(props: { onClick: () => void; tono?: "danger"; children: pre
   );
 }
 
-function TileModelo(props: {
-  modelo: ResumenModeloPersistido;
-  seleccionado: boolean;
-  mostrarVersiones: boolean;
-  onSeleccionar: (id: Id) => void;
-  onAbrir: (id: Id) => void;
-  onIniciarDrag: (event: DragEvent, id: Id) => void;
-  menu: MenuAccionesContexto;
-}) {
-  return (
-    <div
-      data-testid="modelo-tile-cargar"
-      style={props.seleccionado ? style.tileSeleccionado : style.tileModelo}
-      draggable
-      onDragStart={(event) => props.onIniciarDrag(event as unknown as DragEvent, props.modelo.id)}
-      onClick={() => props.onSeleccionar(props.modelo.id)}
-      onDblClick={() => props.onAbrir(props.modelo.id)}
-      title={props.modelo.nombre}
-    >
-      <img src={regFileIcon} alt="" style={style.tileIcon} />
-      <strong style={style.tileTitle}>{props.modelo.nombre}</strong>
-      <span style={style.tileDesc}>{props.modelo.descripcion || "Sin descripción"}</span>
-      <span style={style.tileDate}>{new Date(props.modelo.actualizadoEn).toLocaleString("es-CL")}</span>
-      <Glifos modelo={props.modelo} mostrarVersiones={props.mostrarVersiones} />
-      {props.modelo.archivado ? <span style={style.archiveBadge}>Archivado</span> : null}
-      <div style={style.tileFooter}>
-        <button
-          type="button"
-          data-testid="reciente-modelo"
-          style={style.tileLoadButton}
-          onClick={(event) => {
-            event.stopPropagation();
-            props.onAbrir(props.modelo.id);
-          }}
-          onDblClick={(event) => event.stopPropagation()}
-        >
-          Abrir {props.modelo.nombre}
-        </button>
-        <MenuAccionesModelo modelo={props.modelo} menu={props.menu} />
-      </div>
-    </div>
-  );
-}
-
 function TablaModelos(props: {
   modelos: ResumenModeloPersistido[];
   seleccionadoId: Id | null;
@@ -550,17 +481,6 @@ function TablaModelos(props: {
             <td style={style.td}><Glifos modelo={modelo} mostrarVersiones={props.mostrarVersiones} /></td>
             <td style={style.td}>
               <span style={style.accionesCelda}>
-                <button
-                  type="button"
-                  data-testid="reciente-modelo"
-                  style={style.inlineLoadButton}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    props.onAbrir(modelo.id);
-                  }}
-                >
-                  Cargar {modelo.nombre}
-                </button>
                 <MenuAccionesModelo modelo={modelo} menu={props.menu} />
               </span>
             </td>
@@ -613,14 +533,6 @@ function tamanoModelo(modelo: ResumenModeloPersistido): string {
 function marcaOrden(orden: OrdenCargar, columna: OrdenCargar["columna"]): string {
   if (orden.columna !== columna) return "";
   return orden.direccion === "asc" ? "↑" : "↓";
-}
-
-function leerVistaCargar(): VistaModo {
-  return vistaCargarMemoria;
-}
-
-function escribirVistaCargar(modo: VistaModo): void {
-  vistaCargarMemoria = modo;
 }
 
 function leerOrdenCargar(): OrdenCargar {
@@ -747,8 +659,6 @@ const style = {
     fontSize: "13px",
     caretColor: tokens.colors.crimson,
   },
-  toggle: botonToggle(tokens.colors.ink15, tokens.colors.paper, tokens.colors.ink70, 400),
-  activeToggle: botonToggle(tokens.colors.ink, tokens.colors.ink, tokens.colors.paper, 500),
   headerAction: {
     minHeight: "32px",
     padding: "0 12px",
@@ -792,49 +702,6 @@ const style = {
     background: tokens.colors.paper,
     alignContent: "start",
   },
-  gridModelos: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-    gap: "8px",
-    maxHeight: "320px",
-    overflow: "auto",
-  },
-  tileModelo: {
-    position: "relative",
-    display: "grid",
-    gridTemplateRows: "24px auto auto 18px 30px",
-    gap: "4px",
-    minHeight: "140px",
-    padding: "12px",
-    border: `1px solid ${tokens.colors.ink15}`,
-    borderRadius: 0,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
-    textAlign: "left",
-    cursor: "pointer",
-    transition: tokens.transitions.fast,
-  },
-  tileSeleccionado: {
-    position: "relative",
-    display: "grid",
-    gridTemplateRows: "24px auto auto 18px 30px",
-    gap: "4px",
-    minHeight: "140px",
-    padding: "12px",
-    border: `${tokens.stroke.bold}px solid ${tokens.colors.ink}`,
-    borderRadius: 0,
-    background: tokens.colors.paper,
-    color: tokens.colors.ink,
-    textAlign: "left",
-    cursor: "pointer",
-  },
-  tileIcon: { width: "24px", height: "24px" },
-  tileTitle: { color: tokens.colors.ink, fontFamily: tokens.typography.familyChrome, fontSize: "13px", fontWeight: 600, overflowWrap: "anywhere" },
-  tileDesc: { color: tokens.colors.ink70, fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 400, lineHeight: 1.4, overflowWrap: "anywhere" },
-  tileDate: { color: tokens.colors.ink50, fontFamily: tokens.typography.familyChrome, fontSize: "11px", fontWeight: 500 },
-  tileLoadButton: { alignSelf: "end", minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  inlineLoadButton: { minHeight: "28px", padding: "4px 12px", border: `1px solid ${tokens.colors.ink}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500 },
-  tileFooter: { display: "flex", alignItems: "center", gap: "6px", minWidth: 0 },
   accionesCelda: { position: "relative", display: "inline-flex", alignItems: "center", gap: "6px" },
   accionesToggle: { minHeight: "28px", padding: "4px 10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink70, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, whiteSpace: "nowrap" },
   accionesMenu: { position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 30, minWidth: "180px", display: "grid", gap: "2px", padding: "4px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, boxShadow: tokens.shadows.flat },
@@ -895,19 +762,3 @@ const style = {
     textDecoration: "underline",
   },
 } satisfies Record<string, preact.JSX.CSSProperties>;
-
-function botonToggle(border: string, background: string, color: string, fontWeight: number): preact.JSX.CSSProperties {
-  return {
-    width: "30px",
-    height: "30px",
-    border: `1px solid ${border}`,
-    borderRadius: 0,
-    background,
-    color,
-    cursor: "pointer",
-    fontSize: "15px",
-    lineHeight: 1,
-    padding: 0,
-    fontWeight,
-  };
-}

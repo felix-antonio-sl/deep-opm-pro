@@ -64,7 +64,7 @@ test("Command Palette abre Abrir / importar unificado", async ({ page }) => {
   await expect(page.getByTestId("command-palette-item-menu-abrir-importar")).toBeVisible();
 
   await page.keyboard.press("Enter");
-  const dialogo = page.getByRole("dialog", { name: "Abrir modelo" });
+  const dialogo = page.getByRole("dialog", { name: "Modelos" });
   await expect(dialogo).toBeVisible();
   await expect(dialogo.getByLabel("Cargar modelo de ejemplo")).toHaveCount(0);
   await expect(dialogo.getByTestId("abrir-importar-json")).toHaveText("Importar JSON");

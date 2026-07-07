@@ -522,7 +522,7 @@ test("HU-30.019: doble clic sobre tile en DialogoCargarModelo carga modelo y cie
   await expect(elementoPorTexto(page, "Cargable doble clic")).toHaveCount(0);
 
   const dialogo = await abrirDialogoCargarModelo(page);
-  const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Doble clic" }).first();
+  const tile = dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Doble clic" }).first();
   await expect(tile).toBeVisible();
   await tile.dblclick();
 
@@ -552,7 +552,7 @@ test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga m
   await expect(elementoPorTexto(page, "Cargable boton")).toHaveCount(0);
 
   const dialogo = await abrirDialogoCargarModelo(page);
-  const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: "Click boton" }).first();
+  const tile = dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Click boton" }).first();
   await tile.click();
   await dialogo.getByRole("button", { name: "Abrir", exact: true }).click();
 
@@ -575,7 +575,7 @@ test("HU-30.037: Esc cancela Abrir / importar sin persistir cambios", async ({ p
   // Ronda Codex v2 L5: "Abrir / importar" se invoca desde el palette.
   await ejecutarComandoPalette(page, "abrir importar", "menu-abrir-importar");
 
-  const dialogo = page.getByRole("dialog", { name: "Abrir modelo" });
+  const dialogo = page.getByRole("dialog", { name: "Modelos" });
   await expect(dialogo).toBeVisible();
   await expect(dialogo.getByTestId("gestor-sidebar-archivo")).toBeVisible();
 

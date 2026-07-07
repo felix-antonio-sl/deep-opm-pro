@@ -25,8 +25,8 @@ test("persistencia backend-only guarda y carga desde API", async ({ page }) => {
 
   await crearModeloNuevoDesdeMenu(page);
   const dialogo = await abrirDialogoCargarModelo(page);
-  await expect(dialogo.getByTestId("reciente-modelo").filter({ hasText: /Backend Only E2E/ })).toBeVisible();
-  await dialogo.getByTestId("reciente-modelo").filter({ hasText: /Backend Only E2E/ }).dblclick();
+  await expect(dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: /Backend Only E2E/ })).toBeVisible();
+  await dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: /Backend Only E2E/ }).dblclick();
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
 });

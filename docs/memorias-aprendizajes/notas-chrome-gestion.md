@@ -91,3 +91,10 @@ Una lección por concern; el detalle vive en git y en `docs/HANDOFF.md`.
   vista tarjetas (rompe `modelo-tile-cargar`), quitar el botón «Abrir {nombre}» por fila (rompe
   `reciente-modelo`), renombrar «Abrir modelo»→«Modelos» (rompe el `getByRole(dialog, name)` de
   decenas de specs). El gusto no autoriza saltarse el análisis de blast-radius.
+- **El operador autorizó los 3 → ejecutados.** Catálogo como **lista única** (la lista domina a
+  las tarjetas: columnas ordenables + tamaño; el ícono de tarjeta era el mismo genérico para
+  todas), sin botón «Abrir {nombre}» por fila (se abre por doble-click de fila o por el footer),
+  diálogo renombrado «Modelos». **LECCIÓN de migración**: al retirar un testid consumido por un
+  helper compartido (`cargarPrimerModelo`, `abrirDialogoCargarModelo`), migrar el helper + TODOS
+  sus consumidores de una (sed del testid + arreglo de la lógica donde cambia: el `.click()` de la
+  fila ahora SELECCIONA, no abre → `.dblclick()`), no spec por spec. Re-gate: check 3078/0 + smoke 294/0.

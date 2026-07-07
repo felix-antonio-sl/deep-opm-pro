@@ -117,8 +117,8 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   await crearModeloNuevoDesdeMenu(page);
   await expect(page.locator(".joint-element")).toHaveCount(0);
   const dialogoCargar = await abrirDialogoCargarModelo(page);
-  // Post L4 ronda6: cada modelo en "Recientes" es un boton con data-testid="reciente-modelo".
-  const tileWorkspaceL2 = dialogoCargar.getByTestId("reciente-modelo").filter({ hasText: /Workspace L2/ });
+  // Post L4 ronda6: cada modelo en "Recientes" es un boton con data-testid="modelo-fila-cargar".
+  const tileWorkspaceL2 = dialogoCargar.getByTestId("modelo-fila-cargar").filter({ hasText: /Workspace L2/ });
   await expect(tileWorkspaceL2).toBeVisible();
   await tileWorkspaceL2.dblclick();
   await expect(dialogoCargar).toHaveCount(0);
@@ -150,7 +150,7 @@ test("L2 dialogo cargar busca descripcion, selecciona tile y carga", async ({ pa
   const dialogo = await abrirDialogoCargarModelo(page);
   await dialogo.getByLabel("Buscar modelos por nombre").fill("persistencia");
 
-  const tile = dialogo.getByTestId("modelo-tile-cargar").filter({ hasText: /Busqueda L2/ });
+  const tile = dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: /Busqueda L2/ });
   await expect(tile).toBeVisible();
   await tile.click();
   await dialogo.getByRole("button", { name: "Abrir", exact: true }).click();
@@ -196,7 +196,7 @@ test("workspace L4 mueve modelos y busca global con guard", async ({ page }) => 
   // el contrato que espera handlersDragDrop (el mouse-drag de PW no lo transporta).
   await page.evaluate(() => {
     const dt = new DataTransfer();
-    const tileEl = [...document.querySelectorAll('[data-testid="modelo-tile-cargar"]')]
+    const tileEl = [...document.querySelectorAll('[data-testid="modelo-fila-cargar"]')]
       .find((el) => el.textContent?.includes("Workspace L4 Busqueda"));
     const folderEl = [...document.querySelectorAll('[data-testid="gestor-sidebar-carpeta"]')]
       .find((el) => el.textContent?.includes("Destino L4"));
@@ -206,9 +206,9 @@ test("workspace L4 mueve modelos y busca global con guard", async ({ page }) => 
     folderEl.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
   });
   // Salió de «Todas» (raíz) y reaparece al abrir la carpeta destino.
-  await expect(dialogoCargar.getByTestId("modelo-tile-cargar").filter({ hasText: "Workspace L4 Busqueda" })).toHaveCount(0);
+  await expect(dialogoCargar.getByTestId("modelo-fila-cargar").filter({ hasText: "Workspace L4 Busqueda" })).toHaveCount(0);
   await dialogoCargar.getByRole("button", { name: /Destino L4/ }).click();
-  await expect(dialogoCargar.getByTestId("modelo-tile-cargar").filter({ hasText: "Workspace L4 Busqueda" })).toHaveCount(1);
+  await expect(dialogoCargar.getByTestId("modelo-fila-cargar").filter({ hasText: "Workspace L4 Busqueda" })).toHaveCount(1);
   await dialogoCargar.getByRole("button", { name: "Cancelar" }).click();
 
   expect(pageErrors).toEqual([]);
