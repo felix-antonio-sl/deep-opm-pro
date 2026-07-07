@@ -161,6 +161,9 @@ export const MODELO_SLICE_CAPABILITIES = {
     "eliminarOpdDesdeArbol",
     "cambiarOpdActivo",
     "navegarAviso",
+    // Taller bottom-up (R-OPD-REF-20): crear OPD suelto + adoptarlo como refinamiento.
+    "nuevoOpdSuelto",
+    "adoptarOpdEnSeleccion",
   ],
   // Centinela de Drift (corte Anclaje α): estado derivado + acciones de re-sincronizar/soltar.
   // Implementadas en `acciones-anclaje.ts`; declaradas aquí para que `contrato.test.ts` las

@@ -140,7 +140,7 @@ import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
 import type { Consulta } from "../modelo/razonamiento";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoRefinamiento, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
 import { generarOpl } from "../opl/generar";
@@ -469,6 +469,10 @@ export interface OpmStore {
   fijarModoCreacion: (tipo: TipoEntidad | null) => void;
   descomponerSeleccionada: () => void;
   desplegarSeleccionada: (modo?: ModoDespliegueObjeto) => void;
+  /** Taller (R-OPD-REF-20): crea un OPD suelto vacío y lo activa. */
+  nuevoOpdSuelto: () => void;
+  /** Taller: adopta un OPD suelto como refinamiento de la cosa seleccionada. */
+  adoptarOpdEnSeleccion: (opdSueltoId: Id, tipo: TipoRefinamiento, modo?: ModoDespliegueObjeto) => void;
   quitarDescomposicionSeleccionada: () => void;
   quitarDespliegueSeleccionado: () => void;
   reasignarEnlaceExternoManual: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;

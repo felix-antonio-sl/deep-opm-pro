@@ -24,7 +24,7 @@ describe("banda Taller en el árbol", () => {
   test("un suelto NO cuelga de la raíz; aparece en la banda Taller", () => {
     const { modelo, opdId } = crearOpdSuelto(crearModelo("M"));
     const arbol = construirArbol(modelo);
-    const raiz = arbol[0];
+    const raiz = arbol[0]!;
     expect(raiz.hijos.some((h) => h.opd.id === opdId)).toBe(false);
     const taller = nodosSueltosTaller(modelo);
     expect(taller.map((n) => n.opd.id)).toContain(opdId);
@@ -33,7 +33,7 @@ describe("banda Taller en el árbol", () => {
   test("un huérfano CORRUPTO (padre inexistente) sigue colgando de la raíz (defensivo)", () => {
     const m = crearModelo("M");
     const corrupto = { ...m, opds: { ...m.opds, "opd-x": { id: "opd-x", nombre: "x", padreId: "opd-fantasma", apariencias: {}, enlaces: {} } } };
-    const raiz = construirArbol(corrupto)[0];
+    const raiz = construirArbol(corrupto)[0]!;
     expect(raiz.hijos.some((h) => h.opd.id === "opd-x")).toBe(true);
     expect(nodosSueltosTaller(corrupto).some((n) => n.opd.id === "opd-x")).toBe(false);
   });
