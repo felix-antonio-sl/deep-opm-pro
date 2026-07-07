@@ -30,6 +30,7 @@ import {
   resetHistorial,
   PREF_MOSTRAR_ARCHIVADOS_KEY,
   sincronizarIndiceConModelosGuardados,
+  conBaseRevision,
   type GetStore,
   type SetStore,
 } from "../runtime";
@@ -161,6 +162,8 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
           modeloPersistidoId: guardado.id,
           descripcionModeloLocal: guardado.descripcion,
           modelosGuardados: upsertModeloGuardadoComo(get().modelosGuardados, guardado),
+          // A′-vitrina: la base = revisión con que nace/actualiza este modelo.
+          revisionBasePorModelo: conBaseRevision(get().revisionBasePorModelo, guardado.id, guardado.revision),
           dialogoGuardarComoAbierto: false,
           indice: nuevoIndice,
           workspaceLocal: workspaceDesdeModelo(modeloNombrado, guardado.id, guardado.descripcion, carpetaParaGuardar ?? null),
@@ -243,6 +246,8 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
           modeloPersistidoId: guardado.id,
           descripcionModeloLocal: guardado.descripcion,
           modelosGuardados: upsertModeloGuardadoComo(get().modelosGuardados, guardado),
+          // A′-vitrina: la base = revisión con que nace/actualiza este modelo.
+          revisionBasePorModelo: conBaseRevision(get().revisionBasePorModelo, guardado.id, guardado.revision),
           dialogoGuardarComoAbierto: false,
           indice: nuevoIndice,
           workspaceLocal: workspaceDesdeModelo(modeloNombrado, guardado.id, guardado.descripcion, carpetaParaGuardar ?? null),
@@ -378,6 +383,8 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
           set(estadoModelo(modeloRenombrado, {
             dialogoConfiguracionAbierto: false,
             modelosGuardados: upsertModeloGuardadoComo(get().modelosGuardados, resultado.value),
+            // A′-vitrina: renombrar es un guardado del modelo activo → avanza la base.
+            revisionBasePorModelo: conBaseRevision(get().revisionBasePorModelo, resultado.value.id, resultado.value.revision),
             indice,
             workspaceLocal: workspaceDesdeModelo(modeloRenombrado, modeloPersistidoId, descripcionModeloLocal, carpetaActualId),
             mensaje: "Modelo renombrado",

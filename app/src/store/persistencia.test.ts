@@ -97,6 +97,43 @@ describe("slice persistencia backend-only", () => {
     expect(store.getState().modelo.nombre).toBe("Copia backend vigente");
     expect(store.getState().descripcionModeloLocal).toBe("server");
   });
+
+  test("A′-vitrina: guardado propio NO gatilla el chip; push del agente SÍ", async () => {
+    store.getState().crearObjetoDemo();
+    store.getState().guardarComoLocal({ nombre: "Modelo vitrina" });
+    await esperar(() => store.getState().mensaje === "Modelo guardado exitosamente");
+    const id = store.getState().modeloPersistidoId!;
+    // La base se fija al nacer el modelo.
+    expect(typeof store.getState().revisionBasePorModelo[id]).toBe("number");
+    // Guardado propio adicional: la base debe avanzar con la revisión.
+    store.getState().crearProcesoDemo();
+    store.getState().guardarLocal();
+    await esperar(() => store.getState().dirty === false && store.getState().mensaje === "Modelo guardado exitosamente");
+    const base1 = store.getState().revisionBasePorModelo[id]!;
+    await store.getState().verificarRevisionRemota();
+    // remota == base ⇒ el selector oculta el chip (mi propio guardado).
+    expect(store.getState().revisionRemota).toEqual({ modeloId: id, revision: base1 });
+    // Simular push del agente: el backend avanza una revisión por fuera.
+    backend.modelos.set(id, { ...backend.modelos.get(id)!, revision: base1 + 1 });
+    await store.getState().verificarRevisionRemota();
+    expect(store.getState().revisionRemota).toEqual({ modeloId: id, revision: base1 + 1 });
+    // Base intacta ⇒ remota > base ⇒ el selector mostrará el chip.
+    expect(store.getState().revisionBasePorModelo[id]).toBe(base1);
+  });
+
+  test("A′-vitrina: traerRevisionDelAgente recarga y limpia revisionRemota", async () => {
+    store.getState().crearObjetoDemo();
+    store.getState().guardarComoLocal({ nombre: "Modelo traer" });
+    await esperar(() => store.getState().mensaje === "Modelo guardado exitosamente");
+    const id = store.getState().modeloPersistidoId!;
+    const base = store.getState().revisionBasePorModelo[id]!;
+    backend.modelos.set(id, { ...backend.modelos.get(id)!, revision: base + 1 });
+    await store.getState().verificarRevisionRemota();
+    expect(store.getState().revisionRemota).not.toBeNull();
+    store.getState().traerRevisionDelAgente();
+    await esperar(() => store.getState().revisionRemota === null && store.getState().revisionBasePorModelo[id] === base + 1);
+    expect(store.getState().revisionBasePorModelo[id]).toBe(base + 1); // base avanzó al recargar la revisión del agente
+  });
 });
 
 interface BackendMock {

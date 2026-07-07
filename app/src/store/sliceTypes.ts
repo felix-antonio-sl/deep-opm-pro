@@ -232,6 +232,13 @@ export type PersistenciaSlice = Slice<
   | "borrarLocal"
   | "iniciarAutosalvado"
   | "detenerAutosalvado"
+  | "revisionRemota"
+  | "revisionBasePorModelo"
+  | "verificarRevisionRemota"
+  | "iniciarPollRevision"
+  | "detenerPollRevision"
+  | "traerRevisionDelAgente"
+  | "verVersionDelAgente"
 >;
 
 export type PestanasSlice = Slice<

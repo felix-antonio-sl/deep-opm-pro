@@ -198,7 +198,7 @@ import {
 } from "../canvas/operacionesBatch";
 import type { CrearSlice, OpmStore, PersistenciaSlice } from "./tipos";
 import {
-  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, fusionarPreferenciasBootstrap, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
+  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, obtenerPollRevisionTimer, fijarPollRevisionTimer, conBaseRevision, fusionarPreferenciasBootstrap, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
   pestanaReemplazable,
   deshacerRuntime,
   rehacerRuntime,
@@ -210,9 +210,14 @@ import { modeloInicial } from "./modelo";
 
 export type { PersistenciaSlice } from "./tipos";
 
+/** A′-vitrina: intervalo del poll ligero de revisión (patrón autosalvado). */
+const POLL_REVISION_MS = 15_000;
+
 export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get) => ({
   modelosGuardados: [],
   requiereLogin: false,
+  revisionRemota: null,
+  revisionBasePorModelo: {},
 
   async iniciarSesion(email, password) {
     const resultado = await iniciarSesionBackend(email.trim(), password);
@@ -357,6 +362,8 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
         modelosGuardados: upsertModeloGuardado(get().modelosGuardados, guardado),
         indice: indiceActualizado,
         workspaceLocal: workspaceDesdeModelo(modelo, guardado.id, guardado.descripcion, carpetaId),
+        // A′-vitrina: la base avanza con mi propio guardado (evita cry-wolf).
+        revisionBasePorModelo: conBaseRevision(get().revisionBasePorModelo, guardado.id, guardado.revision),
       }));
     };
     if (persistenciaBackendHabilitada()) {
@@ -422,6 +429,8 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
           carpetaActualId: null,
           workspaceLocal: workspaceDesdeModelo(resultado.value, cargado.value.id, cargado.value.descripcion, carpetaId),
           mensaje: `Modelo cargado: ${cargado.value.nombre}`,
+          // A′-vitrina: la base = revisión que acabo de cargar.
+          revisionBasePorModelo: conBaseRevision(get().revisionBasePorModelo, cargado.value.id, cargado.value.revision),
         }));
         // B5: abrir una biblioteca → solo-lectura + cinta de modo; cualquier
         // otro modelo limpia ambos (puede venir de tener una biblioteca abierta).
@@ -493,6 +502,8 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
             dirty: false,
             modelosGuardados: upsertModeloGuardado(obtenerEstadoStore().modelosGuardados, guardado.value),
             autosalvado: obtenerAutosalvadoControl()?.estado() ?? { activo: false, ultimo: null, salvando: false },
+            // A′-vitrina: la base avanza con mi propio autosalvado (evita cry-wolf).
+            revisionBasePorModelo: conBaseRevision(obtenerEstadoStore().revisionBasePorModelo, guardado.value.id, guardado.value.revision),
           }));
           return;
         }
@@ -507,6 +518,49 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     obtenerAutosalvadoControl()?.detener();
     fijarAutosalvadoControl(null);
     set({ autosalvado: { activo: false, ultimo: null, salvando: false } });
+  },
+
+  // ── A′-vitrina: poll de revisión + traer la del agente ──
+
+  async verificarRevisionRemota() {
+    const modeloId = get().modeloPersistidoId;
+    if (!modeloId || !persistenciaBackendHabilitada()) return;
+    const cargado = await cargarModeloBackend(modeloId);
+    if (!cargado.ok || typeof cargado.value.revision !== "number") return;
+    // Anti-race: sólo fija si el modelo activo sigue siendo el mismo.
+    if (get().modeloPersistidoId !== modeloId) return;
+    set({ revisionRemota: { modeloId, revision: cargado.value.revision } });
+  },
+
+  iniciarPollRevision() {
+    if (obtenerPollRevisionTimer()) return;
+    void get().verificarRevisionRemota();
+    const timer = setInterval(() => { void obtenerEstadoStore().verificarRevisionRemota(); }, POLL_REVISION_MS);
+    fijarPollRevisionTimer(timer);
+  },
+
+  detenerPollRevision() {
+    const timer = obtenerPollRevisionTimer();
+    if (timer) clearInterval(timer);
+    fijarPollRevisionTimer(null);
+  },
+
+  traerRevisionDelAgente() {
+    const modeloId = get().modeloPersistidoId;
+    if (!modeloId) return;
+    // Recarga la revisión del agente (misma acción para «Recargar» y
+    // «Descartar los míos…»); cargarLocal avanza la base y limpia dirty.
+    set({ revisionRemota: null });
+    get().cargarLocal(modeloId);
+  },
+
+  verVersionDelAgente() {
+    const modeloId = get().modeloPersistidoId;
+    if (!modeloId) return;
+    // Refresca versiones (para que aparezca el push del agente) y reusa el
+    // visor de versiones existente — no se construye visor nuevo.
+    get().listarModelosGuardados();
+    get().abrirDialogoVersiones(modeloId);
   }
 });
 

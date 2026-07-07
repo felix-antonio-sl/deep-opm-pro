@@ -367,6 +367,18 @@ export interface OpmStore {
   busquedaCosasFiltro: BusquedaCosasFiltro;
   // ── Autosalvado (L4) ──
   autosalvado: AutosalvadoEstado;
+  /**
+   * A′-vitrina: última revisión remota vista por el poll para el modelo activo,
+   * etiquetada por `modeloId` (evita mostrar chip rancio al cambiar de pestaña).
+   * Spec: docs/superpowers/specs/2026-07-06-puente-directo-mesa-skill-design.md §6.
+   */
+  revisionRemota: { modeloId: Id; revision: number } | null;
+  /**
+   * A′-vitrina: «base» = revisión que el operador cargó/guardó, por-modelo. El
+   * chip se muestra sólo si la remota la supera. DEBE avanzar en los guardados
+   * propios (guardar/autosalvar/cargar) o el chip gatilla con el propio trabajo.
+   */
+  revisionBasePorModelo: Record<Id, number>;
   limpiarMensaje: () => void;
   abrirMenuPrincipal: () => void;
   cerrarMenuPrincipal: () => void;
@@ -765,6 +777,15 @@ export interface OpmStore {
   // ── Autosalvado (L4) ──
   iniciarAutosalvado: () => void;
   detenerAutosalvado: () => void;
+  // ── A′-vitrina: poll de revisión + traer la del agente ──
+  /** Un tick del poll: si hay modelo persistido activo + backend, lee su revisión y fija `revisionRemota`. */
+  verificarRevisionRemota: () => Promise<void>;
+  iniciarPollRevision: () => void;
+  detenerPollRevision: () => void;
+  /** Recarga la revisión del agente (misma acción para «Recargar» y «Descartar los míos…»). */
+  traerRevisionDelAgente: () => void;
+  /** Refresca versiones y abre el visor de versiones existente sobre el modelo activo. */
+  verVersionDelAgente: () => void;
   // ── L6: enlaces y tabla ──
   fijarMultiplicidadEnlace: (enlaceId: Id, lado: "origen" | "destino", valor: string) => void;
   quitarMultiplicidadEnlace: (enlaceId: Id, lado: "origen" | "destino") => void;

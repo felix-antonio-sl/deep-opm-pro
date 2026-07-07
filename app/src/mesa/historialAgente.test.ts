@@ -36,7 +36,7 @@ describe("agruparHistorialPorSesionAgente", () => {
     const out = agruparHistorialPorSesionAgente(versiones);
     expect(out.map((f) => f.tipo)).toEqual(["sesion-agente", "individual"]);
     const grupo = out[0];
-    if (grupo.tipo !== "sesion-agente") throw new Error("esperaba grupo");
+    if (!grupo || grupo.tipo !== "sesion-agente") throw new Error("esperaba grupo");
     expect(grupo.versiones).toHaveLength(3);
     expect(grupo.desde).toBe("2026-07-07T12:01:00Z"); // más antigua de la corrida
     expect(grupo.hasta).toBe("2026-07-07T12:03:00Z"); // más nueva de la corrida
@@ -55,6 +55,6 @@ describe("agruparHistorialPorSesionAgente", () => {
   test("una sola versión de agente → sesion-agente de 1 (sigue siendo hito honesto)", () => {
     const out = agruparHistorialPorSesionAgente([v("a", "agente·x", "2026-07-07T12:00:00Z")]);
     expect(out).toHaveLength(1);
-    expect(out[0].tipo).toBe("sesion-agente");
+    expect(out[0]?.tipo).toBe("sesion-agente");
   });
 });

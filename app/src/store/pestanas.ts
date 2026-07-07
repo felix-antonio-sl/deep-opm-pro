@@ -167,7 +167,7 @@ function fallo<T = never>(error: string): Resultado<T> {
 
 
 import type { CrearSlice, PestanasSlice } from "./tipos";
-import { activarEstadoPestanas, activarPestanaNueva, estadoModelo, resetHistorial } from "./runtime";
+import { activarEstadoPestanas, activarPestanaNueva, conBaseRevision, estadoModelo, resetHistorial } from "./runtime";
 import { cargarModeloBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
 import { workspaceDesdeModelo } from "../persistencia/workspace";
 import { hidratarModelo } from "../serializacion/json";
@@ -228,6 +228,8 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
           descripcion: cargado.value.descripcion,
         });
         activarPestanaNueva(set, get, pestana, `Modelo abierto en pestana: ${cargado.value.nombre}`);
+        // A′-vitrina: la base = revisión con que abro este modelo en pestaña.
+        set({ revisionBasePorModelo: conBaseRevision(get().revisionBasePorModelo, cargado.value.id, cargado.value.revision) });
         // B5: abrir una biblioteca en pestaña la pone en solo-lectura + cinta.
         get().gobernarAperturaBiblioteca(cargado.value.esBiblioteca === true);
       });

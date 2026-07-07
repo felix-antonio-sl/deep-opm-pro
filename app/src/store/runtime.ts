@@ -59,6 +59,7 @@ let snapshotGuardado = "";
 let undoStack: Modelo[] = [];
 let redoStack: Modelo[] = [];
 let autosalvadoControl: AutosalvadoControl | null = null;
+let pollRevisionTimer: ReturnType<typeof setInterval> | null = null;
 let storeApi: StoreApi<OpmStore> | null = null;
 let runtimeEffects: RuntimeEffects = RUNTIME_EFFECTS_DEFAULT;
 
@@ -81,6 +82,18 @@ export function marcarSnapshotModelo(modelo: Modelo): void { snapshotGuardado = 
 export function marcarSnapshotJson(snapshotJson: string): void { snapshotGuardado = snapshotJson; }
 export function obtenerAutosalvadoControl(): AutosalvadoControl | null { return autosalvadoControl; }
 export function fijarAutosalvadoControl(control: AutosalvadoControl | null): void { autosalvadoControl = control; }
+// A′-vitrina: singleton del poll de revisión (patrón autosalvadoControl).
+export function obtenerPollRevisionTimer(): ReturnType<typeof setInterval> | null { return pollRevisionTimer; }
+export function fijarPollRevisionTimer(timer: ReturnType<typeof setInterval> | null): void { pollRevisionTimer = timer; }
+/**
+ * A′-vitrina: fija la «base» de revisión de un modelo. Compartido por los
+ * puntos donde el store aprende una revisión fresca del backend (guardar,
+ * cargar, autosalvar). No-op si la revisión es indefinida.
+ */
+export function conBaseRevision(mapa: Record<string, number>, id: string, revision: number | undefined): Record<string, number> {
+  if (typeof revision !== "number") return mapa;
+  return { ...mapa, [id]: revision };
+}
 function clonarModeloRuntime(modelo: Modelo): Modelo { if (typeof structuredClone === "function") return structuredClone(modelo); return JSON.parse(JSON.stringify(modelo)) as Modelo; }
 
 export function entidadNueva(previo: Modelo, siguiente: Modelo): Id | null {
