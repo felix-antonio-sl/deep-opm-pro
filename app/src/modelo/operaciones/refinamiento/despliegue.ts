@@ -1,7 +1,7 @@
 import { CANON } from "../../constantes";
 import { CENTRO_CANVAS_GEOMETRICO } from "../../layout";
 import { extremoEntidad } from "../../extremos";
-import { fijarRefinamiento, obtenerRefinamiento } from "../../refinamientos";
+import { obtenerRefinamiento } from "../../refinamientos";
 import type {
   Apariencia,
   AparienciaEnlace,
@@ -16,6 +16,7 @@ import type {
   TipoEntidad,
 } from "../../tipos";
 import { entidadVisibleEnOpd, fallo, ok, siguienteId } from "../helpers";
+import { establecerRefinamiento } from "./establecer";
 import { quitarRefinamientoEntidad, siguienteNombreOpdHijo } from "./helpers";
 
 /**
@@ -117,28 +118,32 @@ export function desplegarObjeto(
     enlaces: enlacesDespliegue.aparienciasEnlace,
   };
 
-  return ok({
-    modelo: {
-      ...modelo,
-      nextSeq,
-      entidades: {
-        ...modelo.entidades,
-        [objetoId]: fijarRefinamiento(objeto, "despliegue", { opdId: opdHijoId, modo }),
-        ...partes.entidades,
-      },
-      enlaces: {
-        ...modelo.enlaces,
-        ...enlacesDespliegue.enlaces,
-      },
-      opds: {
-        ...modelo.opds,
-        [opdHijoId]: opdHijo,
-      },
+  const conHijo: Modelo = {
+    ...modelo,
+    nextSeq,
+    entidades: {
+      ...modelo.entidades,
+      // sin fijarRefinamiento aquí — establecerRefinamiento lo hace (convergencia).
+      ...partes.entidades,
     },
-    opdId: opdHijoId,
-    creado: true,
+    enlaces: {
+      ...modelo.enlaces,
+      ...enlacesDespliegue.enlaces,
+    },
+    opds: {
+      ...modelo.opds,
+      [opdHijoId]: opdHijo,
+    },
+  };
+  const enlazado = establecerRefinamiento(conHijo, {
+    opdPadreId,
+    entidadId: objetoId,
+    opdHijoId,
+    tipo: "despliegue",
     modo,
   });
+  if (!enlazado.ok) return fallo(enlazado.error);
+  return ok({ modelo: enlazado.value, opdId: opdHijoId, creado: true, modo });
 }
 
 export function quitarDespliegueObjeto(modelo: Modelo, objetoId: Id): Resultado<Modelo> {
