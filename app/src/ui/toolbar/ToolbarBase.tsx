@@ -19,6 +19,7 @@ import {
   formatearHoraGuardado,
   labelChip,
 } from "../ChipPersistencia";
+import { ChipRevisionNueva } from "./ChipRevisionNueva";
 import { ejecutarAccionContextualEntidad } from "../ejecutarAccionContextual";
 // L2 ronda 21: la toolbar primaria de modelado pesado se oculta en mobile
 // y se compacta en tablet. Decisión por viewport delegada a `layoutResponsive`.
@@ -293,6 +294,8 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
             CodexFrame; aquí ya no se repite. */}
         {/* Ronda Codex v1.1: estado de persistencia inline, sin chip/caja. */}
         <ToolbarPersistenceStatus persistencia={persistencia} />
+        {/* A′-vitrina: chip de revisión del agente (monta siempre; arranca el poll). */}
+        <ChipRevisionNueva />
         {statusSlot ?? null}
         {readOnly ? <span style={style.readOnlyBadge} data-testid="toolbar-readonly">solo lectura</span> : null}
       </div>

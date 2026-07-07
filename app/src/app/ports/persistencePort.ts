@@ -35,4 +35,12 @@ export interface PersistencePort {
   importarJson: (json: string) => void;
   hayDirty: () => boolean;
   hayDirtyModelo: () => boolean;
+  // ── A′-vitrina ──
+  revisionRemota: { modeloId: Id; revision: number } | null;
+  /** Base de revisión del modelo activo (resuelta desde `revisionBasePorModelo`). */
+  revisionBase: number | null;
+  iniciarPollRevision: () => void;
+  detenerPollRevision: () => void;
+  traerRevisionDelAgente: () => void;
+  verVersionDelAgente: () => void;
 }

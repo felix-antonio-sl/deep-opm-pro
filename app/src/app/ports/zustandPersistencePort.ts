@@ -30,8 +30,22 @@ export function useZustandPersistencePort(): PersistencePort {
   const versiones = modeloPersistidoId
     ? indice.modelos.find((m) => m.id === modeloPersistidoId)?.versiones?.length ?? 0
     : 0;
+  // A′-vitrina: campos/acciones del chip de revisión.
+  const revisionRemota = useOpmStore((s) => s.revisionRemota);
+  const revisionBasePorModelo = useOpmStore((s) => s.revisionBasePorModelo);
+  const iniciarPollRevision = useOpmStore((s) => s.iniciarPollRevision);
+  const detenerPollRevision = useOpmStore((s) => s.detenerPollRevision);
+  const traerRevisionDelAgente = useOpmStore((s) => s.traerRevisionDelAgente);
+  const verVersionDelAgente = useOpmStore((s) => s.verVersionDelAgente);
+  const revisionBase = modeloPersistidoId ? (revisionBasePorModelo[modeloPersistidoId] ?? null) : null;
 
   return {
+    revisionRemota,
+    revisionBase,
+    iniciarPollRevision,
+    detenerPollRevision,
+    traerRevisionDelAgente,
+    verVersionDelAgente,
     modeloPersistidoId,
     dirty,
     dirtyModelo,
