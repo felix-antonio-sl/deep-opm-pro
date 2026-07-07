@@ -6,6 +6,8 @@ import verFileIcon from "../../../assets/svg/verFile.svg";
 import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import type { CarpetaIndice } from "../persistencia/workspace";
+import { listarBibliotecas } from "../persistencia/workspace";
+import { especieDe } from "../persistencia/especie";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { useOpmStore } from "../store";
@@ -474,7 +476,12 @@ function TablaModelos(props: {
             onDblClick={() => props.onAbrir(modelo.id)}
             data-testid="modelo-fila-cargar"
           >
-            <td style={style.tdStrong}>{modelo.nombre}</td>
+            <td style={style.tdStrong}>
+              <span style={style.nombreCelda}>
+                <span>{modelo.nombre}</span>
+                <ChipRigor modelo={modelo} />
+              </span>
+            </td>
             <td style={style.td}>{modelo.descripcion || "Sin descripción"}</td>
             <td style={style.td}>{new Date(modelo.actualizadoEn).toLocaleString("es-CL")}</td>
             <td style={style.td}>{tamanoModelo(modelo)}</td>
@@ -488,6 +495,31 @@ function TablaModelos(props: {
         ))}
       </tbody>
     </table>
+  );
+}
+
+/**
+ * Chip de rigor por fila (Ola 4, spec §6). Deriva la especie del record con
+ * `especieDe` — chip PURAMENTE observacional, sin flag ni estado nuevo. Muestra
+ * «Apunte» (borrador sin rigor de cierre) o «Modelo» (rigor exigible); una
+ * biblioteca NO lleva chip aquí (vive en su zona, self-suppress). Al graduar un
+ * apunte, `especieDe` cambia y el chip muta in-situ de «Apunte» a «Modelo» sin
+ * que la fila salte de zona (maduró, no cambió de rol). Estética ui-forja neutra
+ * (ink/paper), sin color semántico OPM (R-OPD-UI-1).
+ */
+function ChipRigor(props: { modelo: ResumenModeloPersistido }) {
+  const especie = especieDe(props.modelo);
+  if (especie === "biblioteca") return null;
+  const esApunte = especie === "apunte";
+  return (
+    <span
+      data-testid={`chip-rigor-${props.modelo.id}`}
+      data-especie={especie}
+      style={esApunte ? style.chipApunte : style.chipModelo}
+      title={esApunte ? "Apunte — borrador sin rigor de cierre" : "Modelo — rigor de cierre exigible"}
+    >
+      {esApunte ? "Apunte" : "Modelo"}
+    </span>
   );
 }
 
@@ -707,6 +739,37 @@ const style = {
   accionesMenu: { position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 30, minWidth: "180px", display: "grid", gap: "2px", padding: "4px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, boxShadow: tokens.shadows.flat },
   accionItem: { minHeight: "30px", padding: "0 10px", border: 0, borderRadius: 0, background: "transparent", color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, textAlign: "left" },
   accionItemDanger: { minHeight: "30px", padding: "0 10px", border: 0, borderRadius: 0, background: "transparent", color: tokens.colors.crimson, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, textAlign: "left" },
+  nombreCelda: { display: "inline-flex", alignItems: "center", gap: "8px", flexWrap: "wrap" },
+  chipModelo: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "1px 7px",
+    border: `1px solid ${tokens.colors.ink15}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "10px",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    whiteSpace: "nowrap",
+  },
+  chipApunte: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "1px 7px",
+    border: `1px dashed ${tokens.colors.ink15}`,
+    borderRadius: 0,
+    background: tokens.colors.ink04,
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "10px",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    whiteSpace: "nowrap",
+  },
   glyphs: { display: "inline-flex", gap: "6px", alignItems: "center", justifySelf: "end" },
   glyphIcon: { width: "14px", height: "14px" },
   glyphText: { color: tokens.colors.ink50, fontSize: "14px", fontWeight: 600, lineHeight: 1 },
