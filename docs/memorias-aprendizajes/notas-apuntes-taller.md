@@ -28,8 +28,26 @@ una sola. R-OPD-REF-20.
 andamiaje de test que no cierra la ley «export honesto». Verificar SIEMPRE qué ruta está viva antes de
 gatear (la invariante EXPORT-GATE se cumple sobre las rutas reales, no las declaradas).
 
-## Autosave gatea por `modeloPersistidoId !== null` y `guardarComoLocal` es asíncrono
+## Nacimiento apunte: id pre-generado + especie INDEX-ONLY (no en el record)
 «Todo nace apunte con autosave desde el primer trazo» exige que el recién nacido persista de inmediato
-para adquirir id. Pero `guardarComoLocal` persiste vía backend con `.then`: leer `modeloPersistidoId`
-en el mismo tick da null → marcaría modelo plano. Solución: enhebrar `esApunte` DENTRO del guardado
-(un solo guardado atómico), no marcar la especie después. (Diseño de `nacerApunte`, Ola 3.)
+para adquirir id. `guardarComoLocal` persiste vía backend con `.then`: leer `modeloPersistidoId` en el
+mismo tick da null → marcaría modelo plano. La implementación (mejor que el plan original): **pre-generar
+el id** con `crearIdModeloLocal()` y enhebrarlo, y marcar `esApunte` **solo en la entrada de índice**,
+NO en el record persistido. Sutileza load-bearing: meter `esApunte` al record (vía
+`construirModeloPersistido`) lo **re-infectaría al sincronizar el índice** y des-graduaría el apunte —
+la especie es propiedad del ÍNDICE, no del payload del modelo. Un solo write atómico, sin race.
+Verificado por test (`await` de tick) y e2e 41. (`nacerApunte`, `acciones-ui.ts`.)
+
+## Acoplamiento latente: `DialogoGraduar` lee el modelo ACTIVO
+`confirmarGraduacion` solo renombra si `esActivo` y el diálogo muestra la validez del modelo activo.
+Seguro HOY porque `abrirGraduar` se invoca solo desde `CintaApunte` (apunte activo). Si se cableara
+«Graduar» por-fila en el gestor para un apunte NO activo, mostraría la validez/nombre equivocados y
+descartaría el nombre elegido en silencio. La spec §6 NO pide graduación por-fila (el chip muta solo
+porque deriva de `especieDe`); no exponerla. Blindaje preventivo: guardar contra
+`modeloId !== modeloPersistidoId` en `abrirGraduar`, o parametrizar el diálogo por `modeloId`.
+
+## La verificación de plan por lectura mejora el diseño, pero el TDD/ejecución lo cierra
+Dos veces un constructor/verificador mejoró mi plan sobre el terreno: (1) `crearOpdSuelto` vs colisión
+con la raíz; (2) especie index-only vs por-record. Y la verificación adversarial refinó la DOCTRINA
+(convergencia = vínculo, no contenido). Regla: el brief fija el QUÉ y las trampas conocidas; deja el
+CÓMO fino al ejecutor, que ve la realidad del código.
