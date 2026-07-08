@@ -27,10 +27,11 @@ Este archivo no es la SSOT. La autoridad primaria vive en KORA:
 - URN: `urn:fxsl:kb:spec-forja-opd-es`
 - Resolución de path: por URN vía `docs/canon-opm/resolutor-urn.json` (re-ancla a la SSOT viva en PNEUMA bajo `KORA_RAIZ`, default `/home/felix/kora-pneuma`; la bestia congelada `/home/felix/kora` queda como último origen histórico). Lector: `app/src/canon/resolutorUrn.ts`.
 - Estado: `publicado`
-- Versión vigente observada: `1.2.0` (2026-07-06, enmienda HITL custodio: R-OPD-ROT-6
-  ampliada —estereotipos opforja— + R-OPD-ROT-9 nueva —Anclaje a Pieza/Centinela de
-  Drift, esencia laxa legislada—). El dato vivo lo resuelve
-  `docs/canon-opm/resolutor-urn.json`, no este número.
+- Versión vigente observada: `1.3.0` (2026-07-07, enmienda HITL custodio: §10.4
+  R-OPD-REF-20 nueva —Taller bottom-up: OPD suelto, verbo «adoptar» convergente en el
+  vínculo, «OPD sin adoptar» como condición del gate de export— + R-OPD-REF-14 acotada
+  + R-OPD-ROT-2; sobre v1.2.0 —estereotipos R-OPD-ROT-6 + Anclaje R-OPD-ROT-9—). El
+  dato vivo lo resuelve `docs/canon-opm/resolutor-urn.json`, no este número.
 
 ## Rol En Opforja
 
