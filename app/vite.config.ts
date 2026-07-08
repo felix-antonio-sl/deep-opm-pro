@@ -12,6 +12,12 @@ const REPO_ROOT = path.resolve(APP_ROOT, "..");
 const BUGS_ROOT = path.join(REPO_ROOT, "docs", "bugs");
 export default defineConfig({
   plugins: [preact(), bugCapturePlugin()],
+  // Versión de opforja para la UI: la fecha se computa al construir; el short
+  // SHA llega por el arg `VITE_OPFORJA_BUILD` (el build Docker excluye .git).
+  define: {
+    __OPFORJA_FECHA__: JSON.stringify(new Date().toISOString().slice(0, 10)),
+    __OPFORJA_BUILD__: JSON.stringify(process.env.VITE_OPFORJA_BUILD ?? "local"),
+  },
   build: {
     chunkSizeWarningLimit: 700,
     rollupOptions: {

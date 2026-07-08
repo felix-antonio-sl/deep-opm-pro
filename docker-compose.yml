@@ -6,6 +6,7 @@ services:
       args:
         VITE_ENABLE_BUG_CAPTURE: "true"
         VITE_MOBILE_READONLY: "true"
+        VITE_OPFORJA_BUILD: ${OPFORJA_BUILD:-local}
     image: deep-opm-pro-opforja:latest
     container_name: opforja
     restart: unless-stopped

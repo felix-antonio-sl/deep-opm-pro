@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { formatearCombo, listarAtajos, type CategoriaAtajo } from "./atajosTeclado";
+import { OPFORJA_BUILD, OPFORJA_VERSION } from "../version";
 import { tokens } from "./tokens";
 
 interface CheatsheetAtajosProps {
@@ -59,6 +60,7 @@ export function CheatsheetAtajos({ abierto, onCerrar }: CheatsheetAtajosProps) {
           })}
         </div>
         <footer style={style.footer}>
+          <span style={style.version} title={`build ${OPFORJA_BUILD}`}>opforja · {OPFORJA_VERSION}</span>
           <button type="button" style={style.primary} onClick={onCerrar}>Cerrar</button>
         </footer>
       </section>
@@ -182,9 +184,17 @@ const style = {
   footer: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     borderTop: `${tokens.stroke.base}px solid ${tokens.colors.ink15}`,
     padding: "16px 24px",
+  },
+  version: {
+    fontFamily: tokens.typography.fontFamilyMono,
+    fontSize: "11px",
+    fontWeight: 400,
+    color: tokens.colors.ink50,
+    letterSpacing: "0.04em",
+    fontVariantNumeric: "tabular-nums",
   },
   primary: {
     minHeight: "32px",
