@@ -122,6 +122,16 @@ resume su forma:
 - **A1 — clasificación del sistema**: artificial, natural, social o sociotécnico.
   La clase cambia cómo se pregunta por propósito, beneficiario, agencia humana y
   ocurrencia del problema.
+- **A1.5 — dos arranques hermanos** (bottom-up de primera clase, `metodologia-forja`
+  §A1.5 · realización `spec-forja-opd-es` §10.4 R-OPD-REF-20): Forja reconoce dos
+  formas de empezar, ambas de primera clase y subordinadas a la función-semilla y a
+  la equivalencia OPD↔OPL. **SD-primero** (default del asistente A2): fija la función
+  en el SD y refina hacia abajo. **Bottom-up (bosquejo)**: traza **fragmentos sueltos**
+  —OPDs sin padre— sin comprometer aún un SD, y reconcílialos después hacia el SD0 por
+  **adopción** (verbo «adoptar» del Taller — fija padre + declara refinamiento en un
+  gesto, el mismo constructor que el refinamiento top-down, convergente en el vínculo).
+  La **reconciliación hacia el SD0 es el acto que cobra el rigor**. El asistente de 11
+  etapas (A2) realiza el arranque SD-primero; el bottom-up entra a él en la reconciliación.
 - **A2 — construcción del SD**: 11 etapas (clasificación → proceso principal →
   interesado → valor a transformar → función → agencia → frontera → instrumentos →
   resultados → entorno → ocurrencia del problema → compuerta PASA/FALLA §A8). El SD
@@ -143,13 +153,16 @@ resume su forma:
   "validado" sin decir cuál de los tres niveles. Los barridos de integridad se hacen
   sobre el JSON canónico, no sobre el OPL emitido.
 
-**Apunte (atajo del flujo).** Cuando el propósito es **pensar o bocetar**, no cerrar,
-se puede marcar el modelo como **apunte** (ver `docs/uso-productivo.md` §Apuntes): el
-método sigue siendo OPM legítimo, pero los gates de **validez** de A8 bajan a
-observación al margen en vez de bloquear (la **integridad** estructural nunca se
-relaja). Graduar el apunte a modelo —el mismo gesto en inverso— re-engancha A8 completo
-sin dejar rastro. Es el régimen permisivo de la skill `modelamiento-opm` (§Regimen
-apunte) reflejado en la mesa.
+**Apunte y bosquejo (dos ejes de exploración).** Son hermanos por ejes distintos y
+conviven — un apunte es el hogar natural del bosquejo bottom-up:
+- **Apunte** relaja el **cierre**. Cuando el propósito es **pensar**, no cerrar, se
+  marca el modelo como **apunte** (`docs/uso-productivo.md` §Apuntes): sigue siendo OPM
+  legítimo, pero los gates de **validez** de A8 bajan a observación al margen en vez de
+  bloquear. Régimen permisivo de la skill (§Regimen apunte).
+- **Bosquejo** relaja el **orden de arranque** (A1.5): permite trazar OPDs sueltos sin
+  fijar el SD primero, y reconciliar después. Régimen §Regimen bosquejo de la skill.
+En ambos la **integridad estructural nunca se relaja** (un suelto colgante rechaza
+igual). **Graduar** —el mismo gesto en inverso— re-engancha A8 completo sin dejar rastro.
 
 ---
 

@@ -72,6 +72,17 @@
   .rector p { margin: 0; font-size: 14.5px; color: var(--ink); }
   .rector strong { font-weight: 700; }
 
+  /* Dos arranques hermanos */
+  .arranques { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0 2px; }
+  .arr { border: 1px solid var(--rule); border-radius: 4px; padding: 13px 15px; background: var(--card);
+    box-shadow: var(--shadow); border-left: 3px solid var(--a, var(--process)); }
+  .arr.top { --a: var(--process); } .arr.bot { --a: var(--object); }
+  .arr .who { font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--a, var(--process)); margin-bottom: 4px; }
+  .arr .what { font-size: 13px; color: var(--ink-soft); }
+  .arr .what strong { color: var(--ink); font-weight: 650; }
+  .arr-note { font-size: 12px; color: var(--ink-faint); margin: 6px 0 0; font-style: italic; }
+
   .grid { column-gap: 22px; margin-top: 24px; columns: 340px 3; }
   .card { break-inside: avoid; background: var(--card); border: 1px solid var(--rule);
     border-radius: 4px; padding: 16px 18px 15px; margin: 0 0 22px; box-shadow: var(--shadow);
@@ -120,7 +131,7 @@
         <span class="logo">opforja<span class="dot">.</span></span>
         <span class="sheet-name">Runbook · de cero a modelo completo</span>
       </div>
-      <p class="tagline">El método Forja de punta a punta: de un propósito en una frase a un modelo OPM validado en sus tres niveles. Sigue las fases en orden; cada una cierra con un hecho explícito.</p>
+      <p class="tagline">El método Forja de punta a punta: de un propósito en una frase a un modelo OPM validado en sus tres niveles. Dos arranques hermanos —SD-primero y bottom-up— convergen en las mismas fases; cada una cierra con un hecho explícito.</p>
     </div>
   </header>
 
@@ -128,6 +139,18 @@
     <span class="tag">Regla rectora</span>
     <p>OPM empieza por la <strong>función</strong>, la semilla — no por las cosas. Un proceso transforma un objeto: qué entra distinto y sale distinto. <strong>Sin transformee, no dibujes.</strong></p>
   </div>
+
+  <div class="arranques">
+    <div class="arr top">
+      <div class="who">Arranque A · SD-primero</div>
+      <div class="what">Fija la función en el <strong>SD raíz</strong> y refina hacia abajo — las fases 1→6. El camino disciplinado del diseño forward; el que conduce el asistente de 11 etapas.</div>
+    </div>
+    <div class="arr bot">
+      <div class="who">Arranque B · Bottom-up (bosquejo)</div>
+      <div class="what">Traza <strong>fragmentos sueltos</strong> —OPDs sin padre— sin comprometer aún un SD, y reconcílialos después hacia el SD0. <strong>Hermano legítimo</strong> del SD-primero, no un atajo de segunda.</div>
+    </div>
+  </div>
+  <p class="arr-note">Ambos arranques (A1.5) se subordinan a la misma función-semilla y a la equivalencia OPD↔OPL. Elige el que sirva a cómo estás pensando; convergen en el mismo modelo.</p>
 
   <main class="grid">
 
@@ -225,11 +248,16 @@
 
     <section class="card obj">
       <div class="chead">
-        <span class="phase" style="border-style:dashed">▚</span>
-        <div class="t"><span class="eyebrow">Atajo del flujo</span><h2>Bocetar sin cerrar</h2></div>
+        <span class="phase" style="border-style:dashed">B</span>
+        <div class="t"><span class="eyebrow">Arranque B · A1.5</span><h2>Bottom-up: del boceto al SD0</h2></div>
       </div>
-      <p>Cuando el propósito es <strong>pensar</strong>, no cerrar: marca el modelo como <strong>apunte</strong>. Sigue siendo OPM legítimo, pero los gates de <strong>validez</strong> de la Fase 5 bajan a observación al margen — la <strong>integridad estructural nunca</strong> se relaja.</p>
-      <p>Graduar el apunte (el mismo gesto en inverso) re-engancha A8 completo sin dejar rastro.</p>
+      <ul class="tight">
+        <li>Traza <strong>OPDs sueltos</strong> —fragmentos OPM fuera del árbol de refinamiento. Sus hechos <strong>sí emiten OPL</strong>.</li>
+        <li>La validez de método queda en <strong>observación</strong>; la <strong>integridad nunca se relaja</strong> (un suelto colgante rechaza igual).</li>
+        <li>Incorpora un suelto con el verbo <strong>«adoptar»</strong> del Taller: fija padre + declara refinamiento en un gesto — el mismo constructor que el top-down (convergen en el <em>vínculo</em>).</li>
+        <li><strong>Reconciliar hacia el SD0 = graduar</strong>: ahí se cobra el rigor — la validez vuelve exigible y re-entran las 11 etapas de la Fase 1.</li>
+      </ul>
+      <p><strong>Apunte ≠ bosquejo</strong>: el apunte relaja el <em>cierre</em>; el bosquejo relaja el <em>orden de arranque</em>. Conviven — un apunte es el hogar natural del bosquejo.</p>
     </section>
 
     <section class="card key">
