@@ -93,11 +93,19 @@ Referencia normativa interna: `app/src/modelo/politicaApariciones.ts` (+ su ley 
 
 ## Comandos
 
-Desde la raiz del repo:
+Desde la raiz del repo, comando canonico (estampa la version visible en la UI):
 
 ```bash
-docker compose up -d --build
+./deploy/deploy.sh
 ```
+
+Envuelve `docker compose up -d --build` y pasa `OPFORJA_BUILD=$(git rev-parse
+--short HEAD)`, de modo que el footer de «Ayuda › Atajos» muestra la fecha de
+build (automatica via vite) + el short SHA del commit desplegado (tooltip); si
+el arbol tiene cambios sin commitear, marca el build `-dirty`. **No usar
+`docker compose up -d --build` a secas: el SHA quedaria en `local`** (la fecha
+si se estampa igual). El script tambien espera salud y confirma que el SHA
+viaja en el bundle servido.
 
 Verificar contenedor:
 
@@ -216,7 +224,7 @@ Rollback simple:
 
 ```bash
 git checkout <commit-estable>
-docker compose up -d --build
+./deploy/deploy.sh
 ```
 
 Apagar el servicio:

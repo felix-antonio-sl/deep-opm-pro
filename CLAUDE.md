@@ -135,7 +135,7 @@ EPICA-70 (Importación OPCAT 4.2) y EPICA-91 (Modo tutorial). No proponer en ron
 
 ## Deploy y convenciones
 
-**Deploy**: `docker compose up -d --build` desde raíz (`VITE_ENABLE_BUG_CAPTURE=true`). 4 contenedores sobre red Traefik `web`: `opforja` (app) · `opforja-model-api` (backend) · `opforja-bug-capture` · `opforja-postgres` (persistencia), TLS `certresolver=myresolver`. Procedimiento completo en `docs/deploy/opforja.md`. Instancia actualmente pública (Basic Auth retirado); para re-proteger, ver `docs/HANDOFF.md`.
+**Deploy**: `./deploy/deploy.sh` desde raíz (comando canónico). Envuelve `docker compose up -d --build` (`VITE_ENABLE_BUG_CAPTURE=true`) y **estampa la versión visible en la UI**: pasa `OPFORJA_BUILD=$(git rev-parse --short HEAD)` para que el footer de «Ayuda › Atajos» muestre la fecha de build (automática) + el short SHA del commit desplegado (tooltip). **No desplegar con `docker compose up -d --build` a secas: el SHA quedaría en `local`.** 4 contenedores sobre red Traefik `web`: `opforja` (app) · `opforja-model-api` (backend) · `opforja-bug-capture` · `opforja-postgres` (persistencia), TLS `certresolver=myresolver`. Procedimiento completo en `docs/deploy/opforja.md`. Instancia actualmente pública (Basic Auth retirado); para re-proteger, ver `docs/HANDOFF.md`.
 
 **Convenciones**:
 - Idioma: español (es-CL) para documentación, comunicación y vocabulario del dominio OPM en el código (entidades, operaciones, tipos del modelo — ej. `formarAbanico`, `commitModelo`, `OpmStore`); inglés para identificadores de infraestructura (stack, dependencias, utilidades) y comandos de shell.
