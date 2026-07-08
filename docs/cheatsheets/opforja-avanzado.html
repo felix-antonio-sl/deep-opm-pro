@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>opforja — Uso avanzado</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%9A%92</text></svg>">
+<style>*{margin:0}html{color-scheme:light dark}</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b; --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: ui-sans-serif, system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+      --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+      --rule: #34382f; --rule-soft: #2a2d25;
+      --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+      --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+    --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+    --rule: #34382f; --rule-soft: #2a2d25;
+    --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6);
+  }
+  :root[data-theme="light"] {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b; --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(var(--rule-soft) 0.5px, transparent 0.5px);
+    background-size: 22px 22px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 28px 64px; }
+
+  .mast { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 18px;
+    border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+  .mark { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .logo { font-family: var(--serif); font-weight: 700; font-size: clamp(34px, 6vw, 52px);
+    letter-spacing: -.02em; line-height: .9; }
+  .logo .dot { color: var(--key); }
+  .sheet-name { font-family: var(--mono); font-size: 12px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--ink-faint); padding-bottom: 6px; }
+  .tagline { font-family: var(--serif); font-style: italic; font-size: clamp(15px, 2.4vw, 19px);
+    color: var(--ink-soft); max-width: 52ch; text-wrap: balance; margin-top: 8px; }
+  .mast-glyphs { display: flex; gap: 14px; align-items: center; }
+
+  .g { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-soft);
+    font-family: var(--mono); letter-spacing: .02em; white-space: nowrap; }
+  .g-obj::before { content: ""; width: 26px; height: 16px; border: 2px solid var(--object);
+    border-radius: 2px; display: inline-block; }
+  .g-proc::before { content: ""; width: 26px; height: 16px; border: 2px solid var(--process);
+    border-radius: 999px; display: inline-block; }
+
+  .grid { column-gap: 22px; margin-top: 30px; columns: 320px 3; }
+  .card { break-inside: avoid; background: var(--card); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 18px 18px 16px; margin: 0 0 22px; box-shadow: var(--shadow);
+    position: relative; }
+  .card::before { content: ""; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px;
+    background: var(--edge, var(--ink-faint)); border-radius: 3px; }
+  .card.obj { --edge: var(--object); }
+  .card.proc { --edge: var(--process); }
+  .card.key { --edge: var(--key); }
+  .eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 6px; }
+  .card h2 { font-family: var(--serif); font-size: 20px; font-weight: 700; letter-spacing: -.01em;
+    margin: 0 0 10px; line-height: 1.15; text-wrap: balance; }
+  .card p { margin: 0 0 9px; font-size: 14px; color: var(--ink-soft); }
+  .card p strong { color: var(--ink); font-weight: 650; }
+  ul.tight { margin: 4px 0 2px; padding: 0; list-style: none; }
+  ul.tight li { position: relative; padding: 3px 0 3px 16px; font-size: 13.5px; color: var(--ink-soft); }
+  ul.tight li::before { content: "›"; position: absolute; left: 0; color: var(--edge, var(--ink-faint)); font-weight: 700; }
+  ul.tight li strong { color: var(--ink); font-weight: 650; }
+
+  kbd { font-family: var(--mono); font-size: 12px; color: var(--key); background: var(--key-bg);
+    border: 1px solid color-mix(in srgb, var(--key) 30%, transparent); border-radius: 4px;
+    padding: 1px 6px; white-space: nowrap; box-shadow: 0 1px 0 color-mix(in srgb, var(--key) 22%, transparent); }
+  code { font-family: var(--mono); font-size: 12.5px; background: var(--paper-2); border-radius: 3px;
+    padding: 1px 5px; color: var(--ink); }
+  pre { font-family: var(--mono); font-size: 12px; background: var(--paper-2); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 10px 12px; margin: 8px 0 4px; overflow-x: auto; color: var(--ink);
+    line-height: 1.6; }
+  pre .c { color: var(--ink-faint); }
+  pre .k { color: var(--process); }
+
+  .states { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 2px; }
+  .st { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-soft); }
+  .glyph { font-family: var(--mono); width: 22px; text-align: center; font-weight: 700; }
+  .st.div .glyph { color: var(--key); }
+  .st.unk .glyph { color: var(--ink-faint); }
+  .st.ok .glyph { color: var(--object); }
+
+  footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
+  footer a { color: var(--process); text-decoration: none; }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .wrap { max-width: none; padding: 0; }
+    .card { box-shadow: none; break-inside: avoid; border-color: #bbb; }
+    .grid { columns: 260px 2; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <div class="mark">
+        <span class="logo">opforja<span class="dot">.</span></span>
+        <span class="sheet-name">Uso avanzado</span>
+      </div>
+      <p class="tagline">El método Forja de punta a punta: refinar sin romper, bosquejar bottom-up, reusar piezas vivas, y cerrar el bucle con la skill de modelado.</p>
+    </div>
+    <div class="mast-glyphs">
+      <span class="g g-obj">objeto</span>
+      <span class="g g-proc">proceso</span>
+    </div>
+  </header>
+
+  <main class="grid">
+
+    <section class="card">
+      <p class="eyebrow">El hecho, dos caras</p>
+      <h2>Bimodalidad OPD ↔ OPL</h2>
+      <p>El diagrama (OPD) y el texto (OPL) son <strong>el mismo hecho</strong>. Edita cualquiera de los dos: el otro se sincroniza.</p>
+      <p>El panel OPL lee y escribe el modelo en lenguaje semi-natural. No es documentación aparte — es la otra modalidad del modelo.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Bajar de nivel</p>
+      <h2>Refinar sin romper</h2>
+      <ul class="tight">
+        <li><strong>In-zoom</strong> — un <em>proceso</em> se abre y muestra sus subprocesos en orden temporal, dentro de su propio OPD.</li>
+        <li><strong>Unfold</strong> — un <em>objeto</em> despliega su estructura (partes, especializaciones).</li>
+      </ul>
+      <p>El detalle vive en el OPD hijo; el padre queda limpio. El árbol de OPDs es tu navegación.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">De abajo hacia arriba</p>
+      <h2>Taller bottom-up</h2>
+      <p>No siempre se parte del SD raíz. Crea un <strong>OPD suelto</strong> (sin padre) en el <strong>Taller</strong> y bosqueja fragmentos.</p>
+      <p>Cuando encajan, usa <strong>«adoptar»</strong>: declara el OPD suelto como in-zoom o unfold de una cosa existente. Fija padre y refinamiento en un gesto — el mismo resultado que el camino top-down.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Rigor × Rol</p>
+      <h2>Apuntes y modelos</h2>
+      <p>Dos ejes ortogonales, no tres especies:</p>
+      <ul class="tight">
+        <li><strong>Rigor</strong> — <em>explora</em> (apunte) → <em>cierra</em> (modelo). <strong>Graduar</strong> impone el rigor; <strong>degradar</strong> lo relaja.</li>
+        <li><strong>Rol</strong> — <em>trabajo</em> vs <em>fuente</em> (biblioteca, solo-lectura).</li>
+      </ul>
+      <p>El rigor se cobra al graduar, no al explorar. Un apunte usa OPM legítimo, sin exigirte cerrarlo.</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">El banco de trabajo</p>
+      <h2>Gestor de dos zonas</h2>
+      <ul class="tight">
+        <li><strong>Trabajo</strong> — apuntes y modelos juntos, por recencia, con un chip de rigor que muta in-situ al graduar.</li>
+        <li><strong>Bibliotecas</strong> — las fuentes solo-lectura, aparte.</li>
+      </ul>
+      <p>Abre con <kbd>Ctrl</kbd>+<kbd>O</kbd>. Un buscador, carpetas en la barra lateral, «Importar JSON» en el encabezado.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Reuso de tipos</p>
+      <h2>Piezas: Calcar vs Anclar</h2>
+      <p>Trae una <strong>Pieza</strong> desde una biblioteca gobernada al lienzo, decidiendo en el gesto:</p>
+      <ul class="tight">
+        <li><strong>Calcar</strong> — copia desacoplada. Vive por su cuenta (default).</li>
+        <li><strong>Anclar</strong> — referencia viva, vigilada. Sabe de dónde vino.</li>
+      </ul>
+      <p>Anclar no muta la esencia: es ver + validar contra la fuente.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Coherencia viva</p>
+      <h2>Centinela de Drift</h2>
+      <p>Una cosa <strong>anclada</strong> a una Pieza avisa cuando esa Pieza cambió bajo sus pies. Chip en la esquina, tres estados:</p>
+      <div class="states">
+        <div class="st div"><span class="glyph">⟳</span> <span><strong>divergente</strong> — la Pieza cambió; revisa.</span></div>
+        <div class="st unk"><span class="glyph">?</span> <span><strong>no-resuelto</strong> — la biblioteca no se pudo leer.</span></div>
+        <div class="st ok"><span class="glyph">⚓</span> <span><strong>al día</strong> — sincronizado con la fuente.</span></div>
+      </div>
+      <p><strong>Re-sincronizar</strong> adopta la versión viva; <strong>Soltar</strong> desancla (irreversible).</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Bucle con la skill</p>
+      <h2>La mesa ↔ el agente</h2>
+      <p>La skill de modelado lee y escribe la mesa directo, sin copiar y pegar. Desde la terminal del host:</p>
+      <pre><span class="c"># traer el contexto del modelo para la skill</span>
+mesa <span class="k">pull</span> &lt;modelo&gt;
+
+<span class="c"># empujar cambios como nueva revisión</span>
+mesa <span class="k">push</span> &lt;modelo&gt; bundle.json --nota "…"
+
+<span class="c"># listar tus modelos</span>
+mesa <span class="k">modelos</span></pre>
+      <p>En la mesa, el chip <strong>«Revisión nueva»</strong> avisa cuando un agente empujó, y te deja traerla sin pisar tu trabajo local.</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Precisión del objeto</p>
+      <h2>Estados y designaciones</h2>
+      <ul class="tight">
+        <li>Designa un estado <strong>inicial</strong>, <strong>final</strong> o <strong>current</strong>.</li>
+        <li><strong>Supresión</strong> — oculta estados irrelevantes por OPD; el chip <code>⋯N</code> indica cuántos hay ocultos.</li>
+        <li>Un enlace con estado especificado ancla su extremo a la cápsula, no al objeto entero.</li>
+      </ul>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Ver el comportamiento</p>
+      <h2>Simulación por microfases</h2>
+      <p>El modo simulación anima el modelo por fases observables:</p>
+      <pre>preparación › consumo › proceso › resultado › cierre</pre>
+      <p>Sirve para validar la lógica con quien conoce el dominio, sin salir del modelo.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Antes de cerrar</p>
+      <h2>Validación tripartita</h2>
+      <ul class="tight">
+        <li><strong>Bloqueos estructurales</strong> — integridad; siempre exigibles.</li>
+        <li><strong>Mejoras metodológicas</strong> — el método Forja.</li>
+        <li><strong>Estilo y legibilidad</strong> — sugerencias.</li>
+      </ul>
+      <p>En un <strong>apunte</strong> la validez baja a observación; la <strong>integridad estructural nunca</strong> se relaja.</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Salida canónica</p>
+      <h2>Export por perfil</h2>
+      <ul class="tight">
+        <li><strong>canon-diagrama</strong> — el OPD limpio, listo para presentar.</li>
+        <li><strong>canon-documento</strong> — con densidad y contexto.</li>
+        <li><strong>intercambio</strong> — el bundle JSON del modelo.</li>
+      </ul>
+      <p>La exportación textual canónica es Markdown determinista. Todo desde <kbd>Ctrl</kbd>+<kbd>K</kbd>.</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Marcas del autor</p>
+      <h2>Estereotipos, notas y ratificación</h2>
+      <ul class="tight">
+        <li><strong>Estereotipo / Calco</strong> — marca meta <code>&lt;&lt;Nombre&gt;&gt;</code> sobre una cosa; <code>&lt;&lt;requisito&gt;&gt;</code> de fábrica.</li>
+        <li><strong>Notas de mesa</strong> — preguntas ancladas a un componente, para el diálogo con la skill.</li>
+        <li><strong>Ratificar</strong> — las anclas <code>[RATIFICAR]</code> se resuelven contra el proto por el puente W6.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>opforja · modelador OPM / ISO 19450 · cheat sheet uso avanzado</span>
+    <span>método Forja · <a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+  </footer>
+</div>
+
+</body>
+</html>

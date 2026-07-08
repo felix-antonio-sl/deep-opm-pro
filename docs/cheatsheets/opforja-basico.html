@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>opforja — Uso básico</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%9A%92</text></svg>">
+<style>*{margin:0}html{color-scheme:light dark}</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f2f1ea;
+    --paper-2: #ebe9e0;
+    --card: #f7f6f0;
+    --ink: #1c1e1b;
+    --ink-soft: #4a4d47;
+    --ink-faint: #74776f;
+    --rule: #d7d5c9;
+    --rule-soft: #e2e0d5;
+    --object: #39644e;   /* OPM: objeto (rectángulo) */
+    --process: #284b77;  /* OPM: proceso (elipse) */
+    --key: #a83b2b;      /* cinabrio — solo teclas */
+    --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: ui-sans-serif, system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+      --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+      --rule: #34382f; --rule-soft: #2a2d25;
+      --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+      --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+    --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+    --rule: #34382f; --rule-soft: #2a2d25;
+    --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6);
+  }
+  :root[data-theme="light"] {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b; --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(var(--rule-soft) 0.5px, transparent 0.5px);
+    background-size: 22px 22px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 28px 64px; }
+
+  /* Masthead */
+  .mast { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 18px;
+    border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+  .mark { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .logo { font-family: var(--serif); font-weight: 700; font-size: clamp(34px, 6vw, 52px);
+    letter-spacing: -.02em; line-height: .9; }
+  .logo .dot { color: var(--key); }
+  .sheet-name { font-family: var(--mono); font-size: 12px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--ink-faint); padding-bottom: 6px; }
+  .tagline { font-family: var(--serif); font-style: italic; font-size: clamp(15px, 2.4vw, 19px);
+    color: var(--ink-soft); max-width: 46ch; text-wrap: balance; margin-top: 8px; }
+  .mast-glyphs { display: flex; gap: 14px; align-items: center; }
+
+  /* OPM glyphs */
+  .g { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-soft);
+    font-family: var(--mono); letter-spacing: .02em; white-space: nowrap; }
+  .g-obj::before { content: ""; width: 26px; height: 16px; border: 2px solid var(--object);
+    border-radius: 2px; display: inline-block; }
+  .g-proc::before { content: ""; width: 26px; height: 16px; border: 2px solid var(--process);
+    border-radius: 999px; display: inline-block; }
+  .g-state::before { content: ""; width: 22px; height: 13px; border: 1.5px solid #7d7a2f;
+    border-radius: 999px; display: inline-block; background: rgba(125,122,47,.10); }
+
+  /* Grid */
+  .grid { column-gap: 22px; margin-top: 30px;
+    columns: 320px 3; }
+  .card { break-inside: avoid; background: var(--card); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 18px 18px 16px; margin: 0 0 22px; box-shadow: var(--shadow);
+    position: relative; }
+  .card::before { content: ""; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px;
+    background: var(--edge, var(--ink-faint)); border-radius: 3px; }
+  .card.obj { --edge: var(--object); }
+  .card.proc { --edge: var(--process); }
+  .card.key { --edge: var(--key); }
+  .eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 6px; }
+  .card h2 { font-family: var(--serif); font-size: 20px; font-weight: 700; letter-spacing: -.01em;
+    margin: 0 0 10px; line-height: 1.15; text-wrap: balance; }
+  .card p { margin: 0 0 9px; font-size: 14px; color: var(--ink-soft); }
+  .card p strong { color: var(--ink); font-weight: 650; }
+  ul.tight { margin: 4px 0 2px; padding: 0; list-style: none; }
+  ul.tight li { position: relative; padding: 3px 0 3px 16px; font-size: 13.5px; color: var(--ink-soft); }
+  ul.tight li::before { content: "›"; position: absolute; left: 0; color: var(--edge, var(--ink-faint));
+    font-weight: 700; }
+  ul.tight li strong { color: var(--ink); font-weight: 650; }
+
+  kbd { font-family: var(--mono); font-size: 12px; color: var(--key); background: var(--key-bg);
+    border: 1px solid color-mix(in srgb, var(--key) 30%, transparent); border-radius: 4px;
+    padding: 1px 6px; white-space: nowrap; box-shadow: 0 1px 0 color-mix(in srgb, var(--key) 22%, transparent); }
+  code { font-family: var(--mono); font-size: 12.5px; background: var(--paper-2); border-radius: 3px;
+    padding: 1px 5px; color: var(--ink); }
+
+  table.keys { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 2px; }
+  table.keys td { padding: 4px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  table.keys td:last-child { text-align: right; color: var(--ink-soft); }
+  table.keys tr:last-child td { border-bottom: none; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+  .chip { font-family: var(--mono); font-size: 11px; letter-spacing: .03em; padding: 3px 8px;
+    border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-soft); background: var(--paper); }
+
+  footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
+  footer a { color: var(--process); text-decoration: none; }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .wrap { max-width: none; padding: 0; }
+    .card { box-shadow: none; break-inside: avoid; border-color: #bbb; }
+    .grid { columns: 260px 2; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <div class="mark">
+        <span class="logo">opforja<span class="dot">.</span></span>
+        <span class="sheet-name">Uso básico</span>
+      </div>
+      <p class="tagline">Modelar OPM en la mesa: entrar, dibujar las dos primitivas, guardar. Lo esencial cabe en una hoja.</p>
+    </div>
+    <div class="mast-glyphs">
+      <span class="g g-obj">objeto</span>
+      <span class="g g-proc">proceso</span>
+      <span class="g g-state">estado</span>
+    </div>
+  </header>
+
+  <main class="grid">
+
+    <section class="card">
+      <p class="eyebrow">Empezar</p>
+      <h2>Entrar</h2>
+      <p>opforja pide <strong>iniciar sesión</strong> (un solo operador). Abre en un modelo vacío, o retoma tu último trabajo persistido.</p>
+      <p>Todo se guarda en el servidor: no hay «archivo local» que perder. La dirección es <code>opforja.sanixai.com</code>.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Vocabulario</p>
+      <h2>Las dos primitivas</h2>
+      <p>OPM modela el mundo con dos cosas, y nada más:</p>
+      <ul class="tight">
+        <li><span class="g g-obj"></span> <strong>Objeto</strong> — una cosa que existe (rectángulo).</li>
+        <li><span class="g g-proc"></span> <strong>Proceso</strong> — algo que ocurre y transforma (elipse).</li>
+        <li><span class="g g-state"></span> <strong>Estado</strong> — una situación de un objeto (cápsula dentro de él).</li>
+      </ul>
+      <p>Un proceso <em>consume</em>, <em>produce</em> o <em>afecta</em> objetos. Ese es todo el idioma.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Dibujar</p>
+      <h2>Crear en el canvas</h2>
+      <ul class="tight">
+        <li><kbd>O</kbd> objeto · <kbd>P</kbd> proceso · <kbd>S</kbd> estado — o desde la barra superior.</li>
+        <li>Click para colocar, arrastra para mover.</li>
+        <li><kbd>R</kbd> <strong>conectar</strong> dos cosas. El enlace nace como <em>consumo</em>; cambia su tipo en el Inspector.</li>
+      </ul>
+      <p>El Inspector (panel lateral) edita lo que tengas seleccionado: nombre, tipo, estados, enlaces.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">A diario</p>
+      <h2>Guardar</h2>
+      <p>Pulsa <kbd>Ctrl</kbd>+<kbd>S</kbd>. El chip de estado te dice dónde estás:</p>
+      <ul class="tight">
+        <li><strong>Guardado</strong> — todo persistido.</li>
+        <li><strong>Sin guardar · Ctrl+S</strong> (ámbar) — hay cambios pendientes. Pulsa el chip o el atajo.</li>
+      </ul>
+      <p>Guardar es explícito: es tu acto de decir «esto es una base», no borrador en movimiento.</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Tres gestos diarios</p>
+      <h2>Guardar · Buscar · Comandos</h2>
+      <table class="keys">
+        <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Guardar</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td><td>Buscar dentro del modelo</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Paleta de comandos</td></tr>
+      </table>
+      <p>La paleta <kbd>Ctrl</kbd>+<kbd>K</kbd> es el atajo a todo: exportar, cambiar de vista, crear, navegar.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Sin ceremonia</p>
+      <h2>Bosquejar: los apuntes</h2>
+      <p><strong>Nuevo</strong> abre un <strong>apunte</strong>: una hoja para trazar sin nombre, sin carpeta, sin exigencia de «cerrar» el modelo.</p>
+      <p>Todo nace apunte. Cuando el bosquejo madura, lo <strong>gradúas</strong> a modelo — recién ahí se pide nombre y se exige rigor.</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Sin miedo</p>
+      <h2>Deshacer y rehacer</h2>
+      <table class="keys">
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Deshacer</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Rehacer</td></tr>
+      </table>
+      <p>Funcionan en el canvas y en la edición. Explora tranquilo: casi todo es reversible.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Salir con el trabajo</p>
+      <h2>Exportar para compartir</h2>
+      <ul class="tight">
+        <li><kbd>Ctrl</kbd>+<kbd>K</kbd> › <strong>Exportar OPD actual como PNG</strong>.</li>
+        <li><kbd>Ctrl</kbd>+<kbd>K</kbd> › <strong>Exportar todos los OPDs</strong> — descarga un <code>.zip</code>.</li>
+        <li>OPL a <strong>Markdown</strong> desde la paleta o el panel OPL.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Respaldo</p>
+      <h2>Descargar y restaurar</h2>
+      <p>Aunque todo vive en el servidor, puedes bajar una copia <strong>JSON</strong> del modelo desde la paleta, y restaurarla por <strong>Importar JSON</strong> en el gestor de modelos.</p>
+      <p>Útil antes de un cambio grande o para mover trabajo entre entornos.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Si algo se atasca</p>
+      <h2>Rescate rápido</h2>
+      <ul class="tight">
+        <li>Chip «Sin guardar» — pulsa <kbd>Ctrl</kbd>+<kbd>S</kbd> antes de cerrar.</li>
+        <li>Vista rara o error — recarga con <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>.</li>
+        <li>Cambio no deseado — <kbd>Ctrl</kbd>+<kbd>Z</kbd>.</li>
+      </ul>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Hoja de atajos</p>
+      <h2>Teclado esencial</h2>
+      <table class="keys">
+        <tr><td><kbd>O</kbd> · <kbd>P</kbd> · <kbd>S</kbd></td><td>Objeto · Proceso · Estado</td></tr>
+        <tr><td><kbd>R</kbd></td><td>Conectar</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td><td>Nuevo (apunte)</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Abrir modelo</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></td><td>Buscar en el workspace</td></tr>
+      </table>
+      <p style="margin-top:8px">La hoja completa: <strong>Menú › Ayuda › Atajos</strong>.</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>opforja · modelador OPM / ISO 19450 · cheat sheet uso básico</span>
+    <span>método Forja · <a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+  </footer>
+</div>
+
+</body>
+</html>
