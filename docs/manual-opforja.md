@@ -180,7 +180,11 @@ brecha silenciosa está prohibida.
 
 La guía de usuario operativa de la app (entrar, guardar, buscar, command palette,
 importar/exportar JSON, exportar PNG, atajos, límites de sesión) vive en
-**`docs/uso-productivo.md`**. Este manual no la duplica. En resumen:
+**`docs/uso-productivo.md`**. Este manual no la duplica. Superficies desplegadas en el
+ciclo 2026-07: **gestor de dos zonas** (Trabajo / Bibliotecas), la puerta **«Nuevo»→apunte**
+(«todo nace apunte», ver §2 para el método), la banda **«Taller»** de OPDs sueltos, y el
+chip **«Revisión nueva»** del puente directo (§A.6) — su walkthrough paso-a-paso es deuda
+viva de `docs/uso-productivo.md`. En resumen:
 
 - **Canvas OPD**: compone hechos visuales; cada forma/enlace/marcador es portador de
   semántica OPM o UI transitoria claramente separada.
@@ -199,14 +203,17 @@ importar/exportar JSON, exportar PNG, atajos, límites de sesión) vive en
   modelo sigue llamándose `Entidad.estereotipoId` (marca **meta** que no emite OPL
   nuclear, se rotula `<<Nombre>>` en canvas) — el renombre D6→Calco es interno,
   pendiente; la superficie y el gesto visibles ya dicen "Piezas"/"Calcar"/"Anclar".
-  La realización visual la gobierna `urn:fxsl:kb:spec-forja-opd-es` v1.2.0
-  (R-OPD-ROT-6 estereotipos + R-OPD-ROT-9 Anclaje, canonizadas 2026-07-06 por
-  HITL custodio; las propuestas upstream quedaron RESUELTAS); ver §9.
+  La realización visual la gobierna `urn:fxsl:kb:spec-forja-opd-es` v1.3.0
+  (R-OPD-ROT-6 estereotipos + R-OPD-ROT-9 Anclaje, canonizadas 2026-07-06;
+  R-OPD-REF-20 Taller bottom-up §10.4, 2026-07-07 — todas por HITL custodio); ver §9.
 
 ### 4. Construir un modelo desde cero
 
 Walkthrough subordinado al orden normativo §A2 (al conducir una sesión A2 manda la
-secuencia de 11 etapas). Es recorrido didáctico, no botones concretos.
+secuencia de 11 etapas). Es recorrido didáctico, no botones concretos. Describe el
+arranque **SD-primero**; para el arranque **bottom-up** (bosquejar fragmentos sueltos y
+reconciliarlos hacia el SD0 por «adoptar») ver §2/A1.5 — converge en estas mismas etapas
+al graduar.
 
 1. **Declarar el propósito**: oración verbo-objeto que diga el cambio sin fijar la
    forma ("mejorar disponibilidad de camas", no "crear plataforma"). Prueba útil: si
@@ -252,6 +259,11 @@ confirma la equivalencia.
   no eliminación del modelo; no suprimir un estado que participa en un enlace visible.
 - **Realizaciones hermanas**: alternativas internas comparables si preservan la firma
   de frontera.
+- **Adoptar un OPD suelto** (arranque bottom-up, §2/A1.5): declarar un fragmento del
+  Taller como in-zoom/unfold de una cosa existente es un acto de refinamiento legítimo —
+  fija padre + refinamiento en un gesto, el **mismo constructor** que el refinamiento
+  top-down (convergen en el vínculo; el contenido del hijo difiere: el top-down
+  auto-andamia, adoptar toma el suelto tal cual).
 - **Cuándo no refinar**: SD con barro, refinamiento que repite el padre, detalle por
   curiosidad, vista padre que ya sirve, supuesto de dominio no confirmado, o cuando la
   capacidad de UI requerida no está estabilizada (documentar como brecha).
@@ -270,9 +282,9 @@ Este manual no transcribe la skill; la cita por URN.
 
 #### A.1 El loop de modelado del agente
 
-1. **Triaje**: leer el intent y el contexto del operador (en su caso, el markdown
-   "Contexto de modelado" del puente W6.0: procedencia, pendientes `[RATIFICAR]`,
-   notas de la mesa, diagnóstico JSON y OPL).
+1. **Triaje**: leer el intent y el contexto del operador — sea vía el **puente directo**
+   `mesa pull` (§A.6), sea vía el markdown "Contexto de modelado" del **puente W6.0 por
+   portapapeles**: procedencia, pendientes `[RATIFICAR]`, notas de la mesa, diagnóstico JSON y OPL.
 2. **Elicitar / construir**: aplicar el flujo Forja (§2). Ante barro, detenerse y
    preguntar; no construir sobre supuesto.
 3. **Serializar**: el camino primario es **proto OPL-ES estricto → compilador de
@@ -324,6 +336,27 @@ estricto; el compilador **no** aprende léxico de dominio ni emite anclas sin
 confirmación humana. Las anclas `[RATIFICAR]` solo pasan a vigentes vía
 re-elicitación de la skill (LogDecisiones v0 exporta con `modeloHash=protoHash` del
 sello; bloqueado sin sello).
+
+#### A.6 Puente directo mesa↔skill (CLI)
+
+Además del puente W6.0 por portapapeles, un agente con acceso al host opera opforja
+**directo contra el backend desplegado**, sin transportar bytes a mano. CLI
+`app/scripts/mesa-cli.ts`, autenticado por token de agente (`MODEL_AGENT_TOKEN`, Bearer,
+fail-closed):
+
+- `mesa modelos` — lista los modelos del tenant (id · especie · revisión).
+- `mesa pull <modelo>` — compone el mismo contexto de modelado que W6.0 (procedencia,
+  `[RATIFICAR]`, notas, diagnóstico, OPL) leyendo el estado vivo (autosave si es más nuevo);
+  declara la especie y si la base es guardado o autosave no ratificado.
+- `mesa push <modelo> <bundle.json> --nota "…"` — valida con el contrato de import y crea
+  una **nueva revisión** versionada; respeta el optimistic locking (409 → re-pull, jamás
+  forzar); a un modelo con **sello** exige el bundle del compilador (carril por procedencia);
+  un push **sin delta** no crea revisión.
+
+Reglas del puente (skill v1.12.0): pull antes de push · nunca push sin validación local
+verde · respetar el 409 · sobre base no ratificada, confirmar antes de cerrar el loop ·
+nota con procedencia. En la mesa, el chip **«Revisión nueva»** avisa cuando el agente
+empujó. El puente W6.0 por portapapeles queda como **fallback** cuando no hay acceso al host.
 
 ---
 
@@ -509,3 +542,5 @@ puentes: se resuelven por su ubicación canónica en KORA (`artefactos/conocimie
 | 2026-06-22 | Corte D6 (estereotipos + vitrinas): §3 suma la vitrina de estereotipos; §9 suma estereotipos/plantillas como vehículo de patrones reusables (marca meta `<<Nombre>>` + plantilla de subgrafo clonada-e-injertada; sin estereotipos de enlace). Cita R-VIS-STEREO-1 por URN; propuesta a custodio-kora en `docs/solicitudes-upstream/2026-06-22-estereotipos-vitrinas-ssot-skill.md`. |
 | 2026-06-30 | Nominación propia + gesto de anclar — la PUERTA (desplegado): §3 y §9 actualizados de "Vitrina de estereotipos"/"plantilla" a **Piezas** (Calcar/Anclar/Soltar, Centinela de Drift con vecindad RADIO-1 desde C4); el campo interno sigue siendo `Entidad.estereotipoId` (renombre D6→Calco pendiente). Nominación ratificada en `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; detalle del corte en `docs/HANDOFF.md` §Frentes abiertos 1. |
 | 2026-07-06 | Doctrina canonizada (despacho HITL custodio): `spec-forja-opd-es` v1.2.0 amplía R-OPD-ROT-6 (estereotipos opforja) y agrega R-OPD-ROT-9 (Anclaje a Pieza / Centinela; edición local de esencia legislada laxa). El manual pasa de citar «propuesta vigente» a citar las reglas canónicas. Skill `modelamiento-opm` v1.11.0 (D3): versiones vivas adjuntas + «Límites de la mesa». |
+| 2026-07-07 | Bottom-up de primera clase canonizado: `metodologia-forja-opm-es` v1.6.0 (A1.5 dos arranques hermanos) + `spec-forja-opd-es` v1.3.0 (§10.4 R-OPD-REF-20 Taller: OPD suelto, verbo «adoptar») + skill v1.12.0 (§Régimen bosquejo). §2 absorbe A1.5 y distingue los dos ejes apunte(cierre)/bosquejo(arranque); §4 cruza-referencia el arranque bottom-up. |
+| 2026-07-08 | Sincronía manual↔SSOT (auditoría de deriva). §A.6 nueva: **puente directo mesa↔skill** (`mesa pull`/`push`/`modelos` + token de agente), desplegado con la Ola 1 A′-motor — W6.0 por portapapeles deja de ser el único puente. Cita de versión §3 corregida v1.2.0→v1.3.0. Cortes desplegados 2026-07-08 (bundle `index-DUsuUohB.js`): apuntes «todo nace apunte» + Taller + gestor de dos zonas, A′-vitrina (chip «Revisión nueva»), atajo R híbrido (enlace libre). |
