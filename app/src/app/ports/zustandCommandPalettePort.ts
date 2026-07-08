@@ -8,6 +8,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
   const enlaceSeleccionId = useOpmStore((s) => s.enlaceSeleccionId);
   const seleccionados = useOpmStore((s) => s.seleccionados);
   const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
+  const nacerApunte = useOpmStore((s) => s.nacerApunte);
   const abrirCargarModelo = useOpmStore((s) => s.abrirCargarModelo);
   const abrirGuardarComo = useOpmStore((s) => s.abrirGuardarComo);
   const abrirDialogoConfiguracion = useOpmStore((s) => s.abrirDialogoConfiguracion);
@@ -65,6 +66,7 @@ export function useZustandCommandPalettePort(): CommandPalettePort {
     enlaceSeleccionId,
     seleccionados,
     nuevoModelo,
+    nacerApunte,
     abrirCargarModelo,
     abrirGuardarComo,
     abrirDialogoConfiguracion,

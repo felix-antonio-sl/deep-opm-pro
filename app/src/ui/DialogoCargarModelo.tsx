@@ -6,6 +6,8 @@ import verFileIcon from "../../../assets/svg/verFile.svg";
 import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import type { CarpetaIndice } from "../persistencia/workspace";
+import { listarBibliotecas } from "../persistencia/workspace";
+import { especieDe } from "../persistencia/especie";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { useOpmStore } from "../store";
@@ -27,7 +29,7 @@ export function DialogoCargarModelo() {
   const persistencia = useZustandPersistencePort();
   const workspace = useZustandWorkspacePort();
   const confirmarSiDirty = useConfirmarSiDirty();
-  const nuevoModelo = useOpmStore((s) => s.nuevoModelo);
+  const nacerApunte = useOpmStore((s) => s.nacerApunte);
   const [seleccionadoId, setSeleccionadoId] = useState<Id | null>(null);
   const [orden, setOrden] = useState<OrdenCargar>(() => leerOrdenCargar());
   const [query, setQuery] = useState("");
@@ -66,7 +68,41 @@ export function DialogoCargarModelo() {
     ),
     [hijos.modelos, orden, query, enArchivo],
   );
-  const seleccionado = modelosCatalogo.find((modelo) => modelo.id === seleccionadoId) ?? null;
+
+  // Zona «Trabajo» (rol): registros NO biblioteca del ámbito actual — apuntes +
+  // modelos JUNTOS, ordenados por la columna elegida (por defecto recencia). El
+  // chip de rigor (derivado de especieDe) distingue apunte/modelo en la fila.
+  const trabajoModelos = useMemo(
+    () => modelosCatalogo.filter((modelo) => especieDe(modelo) !== "biblioteca"),
+    [modelosCatalogo],
+  );
+
+  // Zona «Bibliotecas» (estante aparte, solo-lectura): las bibliotecas del índice
+  // completo (no scopeadas a carpeta — son tipos precargables globales), cruzadas
+  // con los resúmenes guardados para el nombre/fecha, filtradas por búsqueda y sin
+  // archivadas. Su rol es distinto (fuente de Piezas), por eso viven fuera de
+  // «Trabajo». Se ocultan bajo la lente «Archivo».
+  const bibliotecasModelos = useMemo(() => {
+    if (enArchivo) return [];
+    const guardados = new Map(workspace.modelosGuardados.map((modelo) => [modelo.id, modelo]));
+    const filas = listarBibliotecas(workspace.indice)
+      .map((entrada) => {
+        const guardado = guardados.get(entrada.id);
+        if (!guardado) return undefined;
+        return { ...guardado, esBiblioteca: true, ...(entrada.archivado ? { archivado: true } : {}) } as ResumenModeloPersistido;
+      })
+      .filter((fila): fila is ResumenModeloPersistido => fila !== undefined)
+      .filter((fila) => fila.archivado !== true && coincideBusqueda(fila, query));
+    return ordenarModelos(filas, orden);
+  }, [workspace.indice, workspace.modelosGuardados, query, orden, enArchivo]);
+
+  const hayTrabajo = trabajoModelos.length > 0;
+  const hayBibliotecas = bibliotecasModelos.length > 0;
+  const catalogoVacio = !hayTrabajo && !hayBibliotecas;
+  const seleccionado = useMemo(
+    () => [...trabajoModelos, ...bibliotecasModelos].find((modelo) => modelo.id === seleccionadoId) ?? null,
+    [trabajoModelos, bibliotecasModelos, seleccionadoId],
+  );
 
   const carpetasOrdenadas = useMemo(
     () => ordenarCarpetasJerarquia(workspace.indice.carpetas.filter((carpeta) => !carpeta.archivada)),
@@ -138,13 +174,13 @@ export function DialogoCargarModelo() {
     setRenombrandoCarpetaId(null);
   }, [renombrandoCarpetaId, nombreCarpetaRenombrar, workspace.renombrarCarpetaEnIndice]);
 
-  // «Nuevo modelo» del estado vacío: el puerto de persistencia no expone la
-  // acción; se toma del store y se envuelve en confirmarSiDirty (mismo patrón
-  // que «Abrir en pestaña nueva»).
+  // «Nuevo» del estado vacío: «todo nace apunte» (diseño §3) — abre un apunte
+  // editable al instante en vez de un modelo vacío. Se envuelve en confirmarSiDirty
+  // (mismo patrón que «Abrir en pestaña nueva»).
   const crearNuevoModelo = useCallback(() => {
-    confirmarSiDirty(() => nuevoModelo());
+    confirmarSiDirty(() => nacerApunte());
     persistencia.cerrarCargarModelo();
-  }, [confirmarSiDirty, nuevoModelo, persistencia.cerrarCargarModelo]);
+  }, [confirmarSiDirty, nacerApunte, persistencia.cerrarCargarModelo]);
 
   // Acciones por modelo: solo se exponen operaciones que el dominio ya soporta
   // (cargar, abrir en pestaña, versiones, archivar/restaurar, eliminar). No se
@@ -283,7 +319,7 @@ export function DialogoCargarModelo() {
               poder limpiarla en «Sin resultados») o en la lente «Archivo». En el
               vacío de primer uso, el estado vacío queda dueño del panel con su
               par de fundación centrado. */}
-          {(modelosCatalogo.length > 0 || query || enArchivo) ? (
+          {(!catalogoVacio || query || enArchivo) ? (
             <div style={style.toolbar}>
               <input
                 type="search"
@@ -312,18 +348,39 @@ export function DialogoCargarModelo() {
           ) : null}
 
           <div style={style.catalogo}>
-            <TablaModelos
-              modelos={modelosCatalogo}
-              seleccionadoId={seleccionadoId}
-              orden={orden}
-              mostrarVersiones={workspace.mostrarVersiones}
-              onOrden={alternarOrden}
-              onSeleccionar={setSeleccionadoId}
-              onAbrir={abrirSeleccionado}
-              onIniciarDrag={iniciarDragModelo}
-              menu={menuProps}
-            />
-            {modelosCatalogo.length === 0 ? (
+            {hayTrabajo ? (
+              <section style={style.zona} data-testid="gestor-zona-trabajo">
+                <div style={style.zonaTitulo}>Trabajo</div>
+                <TablaModelos
+                  modelos={trabajoModelos}
+                  seleccionadoId={seleccionadoId}
+                  orden={orden}
+                  mostrarVersiones={workspace.mostrarVersiones}
+                  onOrden={alternarOrden}
+                  onSeleccionar={setSeleccionadoId}
+                  onAbrir={abrirSeleccionado}
+                  onIniciarDrag={iniciarDragModelo}
+                  menu={menuProps}
+                />
+              </section>
+            ) : null}
+            {hayBibliotecas ? (
+              <section style={style.zona} data-testid="gestor-zona-bibliotecas">
+                <div style={style.zonaTitulo}>Bibliotecas <span style={style.zonaNota}>estante · solo-lectura</span></div>
+                <TablaModelos
+                  modelos={bibliotecasModelos}
+                  seleccionadoId={seleccionadoId}
+                  orden={orden}
+                  mostrarVersiones={workspace.mostrarVersiones}
+                  onOrden={alternarOrden}
+                  onSeleccionar={setSeleccionadoId}
+                  onAbrir={abrirSeleccionado}
+                  onIniciarDrag={iniciarDragModelo}
+                  menu={menuProps}
+                />
+              </section>
+            ) : null}
+            {catalogoVacio ? (
               <div style={style.empty} data-testid="gestor-vacio">
                 {query ? (
                   <>
@@ -336,7 +393,7 @@ export function DialogoCargarModelo() {
                   <>
                     <span style={style.emptyText}>Aún no hay modelos. Crea uno nuevo o importa un JSON.</span>
                     <div style={style.emptyCtas}>
-                      <button type="button" style={style.emptyCta} onClick={crearNuevoModelo}>Nuevo modelo</button>
+                      <button type="button" style={style.emptyCta} onClick={crearNuevoModelo}>Nuevo</button>
                       <button type="button" data-testid="abrir-importar-json" style={style.emptyCta} onClick={() => setImportarAbierto(true)}>Importar JSON</button>
                     </div>
                   </>
@@ -474,7 +531,12 @@ function TablaModelos(props: {
             onDblClick={() => props.onAbrir(modelo.id)}
             data-testid="modelo-fila-cargar"
           >
-            <td style={style.tdStrong}>{modelo.nombre}</td>
+            <td style={style.tdStrong}>
+              <span style={style.nombreCelda}>
+                <span>{modelo.nombre}</span>
+                <ChipRigor modelo={modelo} />
+              </span>
+            </td>
             <td style={style.td}>{modelo.descripcion || "Sin descripción"}</td>
             <td style={style.td}>{new Date(modelo.actualizadoEn).toLocaleString("es-CL")}</td>
             <td style={style.td}>{tamanoModelo(modelo)}</td>
@@ -488,6 +550,31 @@ function TablaModelos(props: {
         ))}
       </tbody>
     </table>
+  );
+}
+
+/**
+ * Chip de rigor por fila (Ola 4, spec §6). Deriva la especie del record con
+ * `especieDe` — chip PURAMENTE observacional, sin flag ni estado nuevo. Muestra
+ * «Apunte» (borrador sin rigor de cierre) o «Modelo» (rigor exigible); una
+ * biblioteca NO lleva chip aquí (vive en su zona, self-suppress). Al graduar un
+ * apunte, `especieDe` cambia y el chip muta in-situ de «Apunte» a «Modelo» sin
+ * que la fila salte de zona (maduró, no cambió de rol). Estética ui-forja neutra
+ * (ink/paper), sin color semántico OPM (R-OPD-UI-1).
+ */
+function ChipRigor(props: { modelo: ResumenModeloPersistido }) {
+  const especie = especieDe(props.modelo);
+  if (especie === "biblioteca") return null;
+  const esApunte = especie === "apunte";
+  return (
+    <span
+      data-testid={`chip-rigor-${props.modelo.id}`}
+      data-especie={especie}
+      style={esApunte ? style.chipApunte : style.chipModelo}
+      title={esApunte ? "Apunte — borrador sin rigor de cierre" : "Modelo — rigor de cierre exigible"}
+    >
+      {esApunte ? "Apunte" : "Modelo"}
+    </span>
   );
 }
 
@@ -702,11 +789,61 @@ const style = {
     background: tokens.colors.paper,
     alignContent: "start",
   },
+  zona: { display: "grid", gap: "6px" },
+  zonaTitulo: {
+    display: "flex",
+    alignItems: "baseline",
+    gap: "8px",
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "11px",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+  },
+  zonaNota: {
+    color: tokens.colors.ink50,
+    fontSize: "10px",
+    fontWeight: 400,
+    letterSpacing: "0.04em",
+    textTransform: "none",
+  },
   accionesCelda: { position: "relative", display: "inline-flex", alignItems: "center", gap: "6px" },
   accionesToggle: { minHeight: "28px", padding: "4px 10px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, color: tokens.colors.ink70, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, whiteSpace: "nowrap" },
   accionesMenu: { position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 30, minWidth: "180px", display: "grid", gap: "2px", padding: "4px", border: `1px solid ${tokens.colors.ink15}`, borderRadius: 0, background: tokens.colors.paper, boxShadow: tokens.shadows.flat },
   accionItem: { minHeight: "30px", padding: "0 10px", border: 0, borderRadius: 0, background: "transparent", color: tokens.colors.ink, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, textAlign: "left" },
   accionItemDanger: { minHeight: "30px", padding: "0 10px", border: 0, borderRadius: 0, background: "transparent", color: tokens.colors.crimson, cursor: "pointer", fontFamily: tokens.typography.familyChrome, fontSize: "12px", fontWeight: 500, textAlign: "left" },
+  nombreCelda: { display: "inline-flex", alignItems: "center", gap: "8px", flexWrap: "wrap" },
+  chipModelo: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "1px 7px",
+    border: `1px solid ${tokens.colors.ink15}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink70,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "10px",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    whiteSpace: "nowrap",
+  },
+  chipApunte: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "1px 7px",
+    border: `1px dashed ${tokens.colors.ink15}`,
+    borderRadius: 0,
+    background: tokens.colors.ink04,
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "10px",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    whiteSpace: "nowrap",
+  },
   glyphs: { display: "inline-flex", gap: "6px", alignItems: "center", justifySelf: "end" },
   glyphIcon: { width: "14px", height: "14px" },
   glyphText: { color: tokens.colors.ink50, fontSize: "14px", fontWeight: 600, lineHeight: 1 },

@@ -1,3 +1,4 @@
+import { esOpdSuelto } from "../../modelo/opdSueltos";
 import type { Id, Modelo, Opd } from "../../modelo/tipos";
 import type { NodoOpdData } from "./NodoOpd";
 
@@ -24,9 +25,10 @@ export function expandirTodoArbol(): Set<Id> {
 export function construirArbol(modelo: Modelo): NodoOpdData[] {
   const raiz = modelo.opds[modelo.opdRaizId];
   if (!raiz) return [];
+  const esSuelto = (id: Id) => esOpdSuelto(modelo, id);
   const hijosPorPadre = new Map<Id, Opd[]>();
   for (const opd of Object.values(modelo.opds)) {
-    if (opd.id === raiz.id) continue;
+    if (opd.id === raiz.id || esSuelto(opd.id)) continue; // sueltos → banda Taller, no árbol
     const padreId = padreValido(modelo, opd, raiz.id);
     const hijos = hijosPorPadre.get(padreId) ?? [];
     hijos.push(opd);
@@ -47,10 +49,41 @@ export function construirArbol(modelo: Modelo): NodoOpdData[] {
     return { opd, nivel, hijos };
   };
   const nodoRaiz = crearNodo(raiz, 0);
+  // Huérfanos CORRUPTOS (padre inexistente, no sueltos intencionales) → defensivo bajo raíz.
   const huerfanos = Object.values(modelo.opds)
-    .filter((opd) => !visitados.has(opd.id))
+    .filter((opd) => !visitados.has(opd.id) && !esSuelto(opd.id) && opd.id !== raiz.id)
     .map((opd) => crearNodo(opd, 1));
   return [{ ...nodoRaiz, hijos: [...nodoRaiz.hijos, ...huerfanos] }];
+}
+
+/**
+ * Subárboles de la banda «Taller» (R-OPD-REF-20): un nodo nivel-0 por cada OPD
+ * suelto, con sus descendientes adoptados internamente (un suelto puede tener
+ * refinamiento propio). Proyección de navegación derivada, no identidad
+ * persistida.
+ */
+export function nodosSueltosTaller(modelo: Modelo): NodoOpdData[] {
+  const sueltos = Object.values(modelo.opds).filter((opd) => esOpdSuelto(modelo, opd.id));
+  const hijosPorPadre = new Map<Id, Opd[]>();
+  for (const opd of Object.values(modelo.opds)) {
+    if (opd.padreId) {
+      const arr = hijosPorPadre.get(opd.padreId) ?? [];
+      arr.push(opd);
+      hijosPorPadre.set(opd.padreId, arr);
+    }
+  }
+  const visitados = new Set<Id>();
+  const crearNodo = (opd: Opd, nivel: number): NodoOpdData => {
+    visitados.add(opd.id);
+    const hijos = (hijosPorPadre.get(opd.id) ?? [])
+      .filter((h) => !visitados.has(h.id))
+      .sort((a, b) => a.id.localeCompare(b.id, "es"))
+      .map((h) => crearNodo(h, nivel + 1));
+    return { opd, nivel, hijos };
+  };
+  return sueltos
+    .sort((a, b) => a.id.localeCompare(b.id, "es"))
+    .map((opd) => crearNodo(opd, 0));
 }
 
 export function cantidadHijos(modelo: Modelo, padreId: Id): number {

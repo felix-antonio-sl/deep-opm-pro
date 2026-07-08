@@ -27,6 +27,10 @@ export interface MenuContextualArbolProps {
   onBuscar: () => void;
   onIrPadre: (opdId: Id) => void;
   onIrPrimerHijo: (opdId: Id) => void;
+  /** Taller (R-OPD-REF-20): el OPD es un suelto adoptable (`esOpdSuelto`). */
+  esSuelto?: boolean;
+  onAdoptarComoDescomposicion?: (opdId: Id) => void;
+  onAdoptarComoDespliegue?: (opdId: Id) => void;
 }
 
 export function MenuContextualArbol(props: MenuContextualArbolProps) {
@@ -52,6 +56,21 @@ export function MenuContextualArbol(props: MenuContextualArbolProps) {
       }}
       tabIndex={-1}
     >
+      {props.esSuelto ? (
+        <>
+          <Item
+            label="Adoptar como descomposición"
+            testId="menu-adoptar-descomposicion"
+            onClick={() => props.onAdoptarComoDescomposicion?.(props.opdId)}
+          />
+          <Item
+            label="Adoptar como despliegue"
+            testId="menu-adoptar-despliegue"
+            onClick={() => props.onAdoptarComoDespliegue?.(props.opdId)}
+          />
+          <div aria-hidden="true" style={style.divider} />
+        </>
+      ) : null}
       <Item label="Renombrar" onClick={() => props.onRenombrar(props.opdId)} />
       <Item label="Eliminar OPD" iconUrl={deleteIcon} disabled={esRaiz || tieneHijos} onClick={() => props.onEliminar(props.opdId)} />
       <div aria-hidden="true" style={style.divider} />
@@ -73,12 +92,13 @@ export function MenuContextualArbol(props: MenuContextualArbolProps) {
   );
 }
 
-function Item({ label, disabled, onClick, iconUrl }: { label: string; disabled?: boolean; onClick: () => void; iconUrl?: string }) {
+function Item({ label, disabled, onClick, iconUrl, testId }: { label: string; disabled?: boolean; onClick: () => void; iconUrl?: string; testId?: string }) {
   return (
     <button
       type="button"
       role="menuitem"
       disabled={disabled}
+      data-testid={testId}
       style={disabled ? style.itemDisabled : iconUrl ? style.itemIcon : style.item}
       onClick={() => {
         if (!disabled) onClick();

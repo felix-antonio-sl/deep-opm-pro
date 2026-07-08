@@ -84,7 +84,8 @@ test("higiene: con cero modelos el estado vacío ofrece «Nuevo modelo» e «Imp
 
   const vacio = dialogo.getByTestId("gestor-vacio");
   await expect(vacio).toBeVisible();
-  await expect(vacio.getByRole("button", { name: "Nuevo modelo" })).toBeVisible();
+  // «Todo nace apunte» (diseño §3): el CTA del vacío pasó de «Nuevo modelo» a «Nuevo».
+  await expect(vacio.getByRole("button", { name: "Nuevo", exact: true })).toBeVisible();
   await expect(vacio.getByRole("button", { name: "Importar JSON" })).toBeVisible();
 
   expect(pageErrors).toEqual([]);

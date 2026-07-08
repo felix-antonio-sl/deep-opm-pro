@@ -140,7 +140,7 @@ import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
 import type { Consulta } from "../modelo/razonamiento";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoRefinamiento, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
 import { generarOpl } from "../opl/generar";
@@ -387,7 +387,7 @@ export interface OpmStore {
   fijarToolbarMasAbierto: (abierto: boolean) => void;
   abrirGuardarComo: () => void;
   cerrarGuardarComo: () => void;
-  guardarComoLocal: (input: { nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean }) => void;
+  guardarComoLocal: (input: { id?: string; nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean; esApunte?: boolean }) => void;
   guardarComoLocalConDescripcion: (input: { nombre: string; descripcion?: string; crearVersionAlGuardar?: boolean }) => void;
   abrirCargarModelo: (opciones?: { mostrarArchivados?: boolean }) => void;
   cerrarCargarModelo: () => void;
@@ -450,6 +450,10 @@ export interface OpmStore {
   renombrarModeloActual: (nombre: string) => void;
   resaltarTemporalmente: (ids: Id[], ms?: number) => void;
   nuevoModelo: () => void;
+  /** «Todo nace apunte» (diseño §3): abre al instante un apunte editable con
+   *  persistencia inmediata (autosave desde el primer trazo). Reemplaza la puerta
+   *  humana de `nuevoModelo` (que permanece como op interno para imports/reset). */
+  nacerApunte: () => void;
   crearObjetoDemo: () => void;
   crearProcesoDemo: () => void;
   crearEntidadEnCanvas: (tipo: TipoEntidad, posicion: Posicion) => void;
@@ -469,6 +473,10 @@ export interface OpmStore {
   fijarModoCreacion: (tipo: TipoEntidad | null) => void;
   descomponerSeleccionada: () => void;
   desplegarSeleccionada: (modo?: ModoDespliegueObjeto) => void;
+  /** Taller (R-OPD-REF-20): crea un OPD suelto vacío y lo activa. */
+  nuevoOpdSuelto: () => void;
+  /** Taller: adopta un OPD suelto como refinamiento de la cosa seleccionada. */
+  adoptarOpdEnSeleccion: (opdSueltoId: Id, tipo: TipoRefinamiento, modo?: ModoDespliegueObjeto) => void;
   quitarDescomposicionSeleccionada: () => void;
   quitarDespliegueSeleccionado: () => void;
   reasignarEnlaceExternoManual: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;
@@ -753,6 +761,16 @@ export interface OpmStore {
    * apunte a modelo al desmarcarlo (corrección 8). Exclusión mutua con biblioteca
    * sellada en el índice. */
   toggleApunteModelo: (modeloId: Id) => void;
+  /** «Momento de graduación» (diseño §3): id del apunte cuyo diálogo de graduación
+   *  está abierto; null = cerrado. */
+  dialogoGraduarModeloId: Id | null;
+  /** Abre el diálogo de graduación de un apunte (nombre/carpeta + validez exigible). */
+  abrirGraduar: (modeloId: Id) => void;
+  cerrarGraduar: () => void;
+  /** Gradúa un apunte a modelo: renombra si cambió (modelo activo), mueve a la
+   *  carpeta elegida y desmarca la especie apunte (esApunte off en el índice). El
+   *  chip de rigor del gestor muta in-situ (deriva de `especieDe`). */
+  confirmarGraduacion: (input: { modeloId: Id; nombre: string; carpetaId: Id | null }) => void;
   archivarCarpetaPorId: (carpetaId: Id) => void;
   restaurarCarpetaPorId: (carpetaId: Id) => void;
   guardarConVersion: () => Promise<void>;

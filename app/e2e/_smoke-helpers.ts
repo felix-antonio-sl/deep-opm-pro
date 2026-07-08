@@ -297,7 +297,7 @@ export async function ejecutarComandoPalette(page: import("@playwright/test").Pa
  * Ahora se resuelven a comandos del palette por label conocido.
  */
 const LABEL_MENU_A_COMANDO: Readonly<Record<string, { itemId: string; query: string }>> = {
-  "Nuevo": { itemId: "menu-nuevo-modelo", query: "nuevo modelo" },
+  "Nuevo": { itemId: "menu-nuevo-modelo", query: "nuevo" },
   "Abrir / importar...": { itemId: "menu-abrir-importar", query: "abrir importar" },
 };
 
@@ -307,8 +307,21 @@ export async function ejecutarMenuPrincipal(page: import("@playwright/test").Pag
   await ejecutarComandoPalette(page, comando.query, comando.itemId);
 }
 
+/**
+ * Fixture de setup: deja el lienzo en un MODELO plano fresco (sin persistir).
+ * OJO: la puerta humana «Nuevo» pasó a NACER APUNTES (diseño §3, e2e/41). Los
+ * specs que sólo necesitan un lienzo limpio de setup usan el op interno
+ * `nuevoModelo` vía hook DEV para no acoplarse a la especie apunte (persistencia
+ * inmediata, cinta, esApunte). El comportamiento apunte de «Nuevo» se prueba en
+ * `e2e/41-nacimiento-apunte.spec.ts`.
+ */
 export async function crearModeloNuevoDesdeMenu(page: import("@playwright/test").Page): Promise<void> {
-  await ejecutarMenuPrincipal(page, "Nuevo");
+  await page.evaluate(() => {
+    const hook = (window as unknown as { __opmTest?: { nuevoModeloPlano?: () => void } }).__opmTest;
+    if (!hook?.nuevoModeloPlano) throw new Error("__opmTest.nuevoModeloPlano no disponible (¿build no-DEV?)");
+    hook.nuevoModeloPlano();
+  });
+  await esperarWorkbenchInicial(page);
 }
 
 export async function importarModeloJson(page: import("@playwright/test").Page, contenido: ExportadoModelo): Promise<void> {

@@ -202,7 +202,7 @@ test("el command palette es superset del antiguo menú: archivo, datos y herrami
     await combobox.fill(query);
     await expect(palette.getByTestId(`command-palette-item-${itemId}`)).toBeVisible();
   };
-  await visiblePorQuery("nuevo modelo", "menu-nuevo-modelo");
+  await visiblePorQuery("nuevo", "menu-nuevo-modelo");
   await visiblePorQuery("abrir importar", "menu-abrir-importar");
   await visiblePorQuery("abrir pestana", "menu-abrir-pestana");
   await visiblePorQuery("configuracion", "menu-configuracion");

@@ -26,6 +26,17 @@ export interface BadgesNodoOpd {
   refinadorId: Id | null;
 }
 
+/**
+ * Proyección «Hoja» de la raíz en un apunte (R-OPD-REF-15). En un apunte el OPD
+ * raíz («SD») se ROTULA «Hoja» en el árbol de navegación — es proyección de
+ * navegación PURA, display-only: NO renombra `opd.nombre` en el modelo (evita
+ * tocar la graduación y respeta que las etiquetas son proyección, no identidad).
+ * Solo aplica al nodo raíz; fuera de un apunte devuelve el nombre tal cual.
+ */
+export function labelNodoRaiz(esApunte: boolean, nombre: string): string {
+  return esApunte ? "Hoja" : nombre;
+}
+
 export function calcularBadges(modelo: Modelo, opdId: Id, avisos: readonly AvisoOpdLike[] = []): BadgesNodoOpd {
   const opd = modelo.opds[opdId];
   const refinador = refinadorDeOpd(modelo, opdId);

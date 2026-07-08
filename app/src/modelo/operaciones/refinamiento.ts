@@ -24,6 +24,9 @@ export type { DescomposicionProceso } from "./refinamiento/descomposicion";
 export { desplegarObjeto, quitarDespliegueObjeto } from "./refinamiento/despliegue";
 export type { DespliegueObjeto } from "./refinamiento/despliegue";
 
+export { establecerRefinamiento, adoptarOpd } from "./refinamiento/establecer";
+export type { EnlaceRefinamiento, AdopcionOpd } from "./refinamiento/establecer";
+
 export {
   distribuirEnlaceExternoEnRefinamiento,
   refrescarEnlacesExternosDerivados,

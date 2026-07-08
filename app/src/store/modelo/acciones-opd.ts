@@ -1,12 +1,14 @@
 import { eliminarOpdHoja } from "../../modelo/opdEliminacion";
 import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import {
+  adoptarOpd,
   descomponerProceso,
   desplegarObjeto,
   quitarDescomposicionProceso,
   quitarDespliegueObjeto,
   reanclarEnlaceExternoDerivado,
 } from "../../modelo/operaciones";
+import { crearOpdSuelto } from "../../modelo/operaciones/opdSuelto";
 import {
   moverNodo,
   ordenSegunCanvasPadre,
@@ -21,7 +23,7 @@ import {
   type SetStore,
 } from "../runtime";
 import type { ModeloSlice } from "../tipos";
-import type { Id, Modelo, Resultado } from "../../modelo/tipos";
+import type { Id, ModoDespliegueObjeto, Modelo, Resultado, TipoRefinamiento } from "../../modelo/tipos";
 
 export function renombrarOpdDesdeArbol(modelo: Modelo, opdId: Id, nombre: string): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
@@ -125,6 +127,44 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: resultado.value.creado ? "OPD de despliegue creado" : null,
+      });
+    },
+
+    nuevoOpdSuelto() {
+      const { modelo } = get();
+      const { modelo: siguiente, opdId } = crearOpdSuelto(modelo);
+      commitModelo(set, modelo, siguiente, {
+        opdActivoId: opdId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: "OPD suelto creado (Taller)",
+      });
+    },
+
+    adoptarOpdEnSeleccion(opdSueltoId: Id, tipo: TipoRefinamiento, modo?: ModoDespliegueObjeto) {
+      const { modelo, opdActivoId, seleccionId } = get();
+      if (!seleccionId || !modelo.entidades[seleccionId]) {
+        set({ mensaje: "Selecciona la cosa que adoptará el OPD suelto" });
+        return;
+      }
+      const r = adoptarOpd(modelo, {
+        opdPadreId: opdActivoId,
+        entidadId: seleccionId,
+        opdSueltoId,
+        tipo,
+        ...(modo ? { modo } : {}),
+      });
+      if (!r.ok) {
+        set({ mensaje: r.error });
+        return;
+      }
+      commitModelo(set, modelo, r.value, {
+        opdActivoId: opdSueltoId,
+        seleccionId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: "OPD suelto adoptado",
       });
     },
 

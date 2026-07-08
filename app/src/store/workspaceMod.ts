@@ -196,6 +196,7 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
   indice: indiceInicial,
   carpetaActualId: null,
   modelosRecientes: [],
+  dialogoGraduarModeloId: null,
 
   crearCarpetaEnActual(nombre) {
     const { indice, carpetaActualId } = get();
@@ -403,6 +404,39 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       modelosGuardados,
       mensaje: valor ? "Modelo marcado como apunte" : "Apunte graduado a modelo",
     });
+  },
+
+  // «Momento de graduación» (diseño §3). Abre/cierra el diálogo que pide el
+  // nombre definitivo + carpeta y muestra la validez ahora EXIGIBLE (los avisos
+  // que en apunte estaban en observación). El id es el del apunte a graduar.
+  abrirGraduar(modeloId) {
+    set({ dialogoGraduarModeloId: modeloId, mensaje: null });
+  },
+
+  cerrarGraduar() {
+    set({ dialogoGraduarModeloId: null });
+  },
+
+  // Gradúa el apunte: (1) mueve a la carpeta elegida; (2) desmarca la especie
+  // apunte (esApunte off en el índice — la cinta desaparece); (3) renombra si
+  // cambió (sólo el modelo activo tiene renombrado por id). Orden: los ops SÍNCRONOS
+  // de índice primero, el renombrado ASÍNCRONO al final para que su `.then` lea el
+  // índice ya graduado. `esApunte` vive sólo en el índice, así que el toggle basta.
+  confirmarGraduacion(input) {
+    const estado = get();
+    const { modeloId, carpetaId } = input;
+    const nombreLimpio = input.nombre.trim();
+    const carpetaActual = estado.indice.modelos.find((m) => m.id === modeloId)?.carpetaId ?? null;
+    if (carpetaId !== carpetaActual) {
+      get().moverModeloACarpetaEnIndice(modeloId, carpetaId);
+    }
+    const entrada = get().indice.modelos.find((m) => m.id === modeloId);
+    if (entrada?.esApunte) get().toggleApunteModelo(modeloId);
+    const esActivo = estado.modeloPersistidoId === modeloId;
+    if (esActivo && nombreLimpio && nombreLimpio !== estado.modelo.nombre) {
+      get().renombrarModeloActual(nombreLimpio);
+    }
+    set({ dialogoGraduarModeloId: null });
   },
 
   archivarCarpetaPorId(carpetaId) {

@@ -412,7 +412,7 @@ function depsAccionesMenu(
   overrides: Partial<Parameters<typeof construirAccionesMenuCommandPalette>[0]> = {},
 ): Parameters<typeof construirAccionesMenuCommandPalette>[0] {
   return {
-    nuevoModelo: () => {},
+    nacerApunte: () => {},
     abrirCargarModelo: () => {},
     abrirGuardarComo: () => {},
     abrirDialogoConfiguracion: () => {},
@@ -431,6 +431,8 @@ function depsAccionesMenu(
     exportarCanonDocumento: () => {},
     opdActivoBloqueadoDensidad: false,
     modeloBloqueadoDensidad: false,
+    opdActivoBloqueadoSuelto: false,
+    modeloBloqueadoSueltos: false,
     copiarContextoSkill: () => {},
     copiarLogDecisiones: () => {},
     cerrarSesion: () => {},

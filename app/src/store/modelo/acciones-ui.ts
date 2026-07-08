@@ -14,8 +14,10 @@ import {
 } from "../../persistencia/workspace";
 import { construirVersionPersistible } from "../../persistencia/versiones";
 import { exportarModelo, hidratarModelo } from "../../serializacion/json";
+import { nombreApunteDeFecha } from "../../persistencia/nombreApunte";
 import {
   activarPestanaNueva,
+  crearIdModeloLocal,
   escribirIndiceWorkspace,
   escribirPreferenciaBooleana,
   estadoModelo,
@@ -117,10 +119,19 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       const carpetaParaGuardar = carpetaActualId;
       const json = exportarModelo(modeloNombrado, carpetaParaGuardar);
       const inputGuardado = {
-        id: null,
+        // Nacimiento (R-OPD-REF-15): `nacerApunte` pre-genera el id y lo enhebra
+        // aquí para que `modelo.id === record.id` (la especie se deriva del índice
+        // por ese id; sin esta reconciliación la cinta «Apunte» no encendería).
+        // Los demás llamadores omiten `id` → null → id nuevo (comportamiento previo).
+        id: input.id ?? null,
         nombre: validacion.nombre,
         descripcion,
         json,
+        // NOTA: `esApunte` NO va al record. La especie es un flag SÓLO-ÍNDICE
+        // (invariante documentado en `mesa/especieWorkspace.ts`): el record de
+        // Postgres no es su SSOT. Marcarlo en el record re-infectaría el índice al
+        // sincronizar (runtime.ts::sincronizarIndiceConModelosGuardados) y
+        // des-graduaría un apunte. Se enhebra sólo a la entrada de índice (abajo).
         ...(carpetaParaGuardar !== undefined ? { carpetaId: carpetaParaGuardar } : {}),
         ...(input.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: input.crearVersionAlGuardar } : {}),
       };
@@ -145,6 +156,9 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
               id: guardado.id,
               carpetaId: carpetaParaGuardar ?? null,
               mapa: mapaWorkspaceDesdeEstado(get()),
+              // La especie vive en el índice (la cinta/panel la leen de aquí, no del
+              // record). Enhebrar `esApunte` a la entrada del índice cierra el lazo.
+              ...(input.esApunte ? { esApunte: true } : {}),
               ...(versiones.length > 0 ? { versiones } : {}),
             },
           ],
@@ -430,6 +444,50 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       get().gobernarAperturaBiblioteca(false);
     },
 
+    // «Todo nace apunte» (diseño §3, R-OPD-REF-15): la puerta humana «Nuevo» abre
+    // AL INSTANTE un apunte editable con persistencia inmediata para habilitar el
+    // autosalvado desde el primer trazo. Sin diálogo, sin ceremonia.
+    //
+    // Correcciones de verificación adversarial (dos trampas):
+    //  (1) `guardarComoLocal` es ASÍNCRONO — `modeloPersistidoId` se fija en el
+    //      `.then`. Por eso NO se lee el id aquí; el `esApunte` viaja DENTRO del
+    //      guardado (un solo backend write, atómico, sin race).
+    //  (2) `modelo.id` NO se reconcilia con el id del record en el save normal
+    //      (queda «modelo-1»); pero la especie se deriva del índice por
+    //      `m.id === modelo.id`. Se pre-genera el id y se enhebra por
+    //      `guardarComoLocal({ id })` para que `modelo.id === record.id` y la cinta
+    //      «Apunte» encienda. Nace apunte, no modelo plano.
+    nacerApunte() {
+      const id = crearIdModeloLocal();
+      const nombre = nombreApunteUnico(nombreApunteDeFecha(new Date()), get().modelosGuardados);
+      const modelo: Modelo = { ...crearModelo(nombre), id };
+      resetHistorial(modelo);
+      set(estadoModelo(modelo, {
+        opdActivoId: modelo.opdRaizId,
+        seleccionId: null,
+        seleccionados: [],
+        modoSeleccion: "simple",
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        modoCreacion: null,
+        hoverOplRef: null,
+        modeloPersistidoId: null,
+        descripcionModeloLocal: "",
+        menuPrincipalAbierto: false,
+        dialogoGuardarComoAbierto: false,
+        dialogoCargarModeloAbierto: false,
+        workspaceLocal: workspaceDesdeModelo(modelo, null),
+        mensaje: "Nuevo apunte",
+        // Un apunte se edita: nunca solo-lectura ni biblioteca.
+        readOnly: false,
+        esBibliotecaAbierta: false,
+      }));
+      // Persiste de inmediato con especie APUNTE en UN solo guardado backend
+      // (atómico): el id enhebrado hace `record.id === modelo.id`; el `.then` fija
+      // `modeloPersistidoId` y el autosalvado toma el relevo desde el primer trazo.
+      get().guardarComoLocal({ id, nombre, descripcion: "", esApunte: true });
+    },
+
     abrirModalUrls(entidadId) {
       if (!get().modelo.entidades[entidadId]) return;
       set({ modalUrlsAbierto: entidadId, menuPrincipalAbierto: false, mensaje: null });
@@ -479,4 +537,20 @@ function upsertModeloGuardadoComo(modelos: ResumenModeloPersistido[], modelo: Mo
 
 function nombresModeloIguales(a: string, b: string): boolean {
   return a.trim().toLocaleLowerCase("es-CL") === b.trim().toLocaleLowerCase("es-CL");
+}
+
+/**
+ * Nombre de apunte por defecto («Apunte AAAA-MM-DD»), desambiguado con un sufijo
+ * « (N)» SOLO si ya existe un local con ese nombre. El gestor local exige unicidad
+ * (`validarNombreModeloLocal`), así que nacer dos apuntes el mismo día requiere
+ * distinguirlos; el caso común (uno por día) conserva el nombre limpio del diseño.
+ */
+function nombreApunteUnico(base: string, existentes: ResumenModeloPersistido[]): string {
+  const usados = new Set(existentes.map((m) => m.nombre.trim().toLocaleLowerCase("es-CL")));
+  if (!usados.has(base.toLocaleLowerCase("es-CL"))) return base;
+  for (let i = 2; i < 10_000; i += 1) {
+    const candidato = `${base} (${i})`;
+    if (!usados.has(candidato.toLocaleLowerCase("es-CL"))) return candidato;
+  }
+  return `${base} (${Date.now()})`;
 }

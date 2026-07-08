@@ -446,7 +446,7 @@ test("L3 UX: toolbar CN-CIM&B conserva tooltips primarios y mueve archivo al men
   // palette. Sus comandos "Nuevo modelo" y "Abrir modelo" siguen
   // disponibles (el palette es superset del antiguo menú).
   const palette = await abrirMenuPrincipal(page);
-  await palette.getByRole("combobox").fill("nuevo modelo");
+  await palette.getByRole("combobox").fill("nuevo");
   await expect(palette.getByTestId("command-palette-item-menu-nuevo-modelo")).toBeVisible();
   await palette.getByRole("combobox").fill("abrir importar");
   await expect(palette.getByTestId("command-palette-item-menu-abrir-importar")).toBeVisible();

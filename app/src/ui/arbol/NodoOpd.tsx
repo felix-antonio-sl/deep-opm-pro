@@ -4,7 +4,7 @@ import { estadoSubmodelo } from "../../modelo/submodelos";
 import type { Entidad, Id, Modelo, Opd, TipoRefinamiento } from "../../modelo/tipos";
 import { tokens } from "../tokens";
 import { GLIFO_BORRAR, GLIFO_CARET, GLIFO_MARKER, GLIFO_REF, GLIFO_WARN } from "../codex/glifos";
-import { calcularBadges, labelTipoBadge, tagAnclasOpd, tagVistaOpd, type AvisoOpdLike, type BadgesNodoOpd } from "./badges";
+import { calcularBadges, labelNodoRaiz, labelTipoBadge, tagAnclasOpd, tagVistaOpd, type AvisoOpdLike, type BadgesNodoOpd } from "./badges";
 
 function refinadorDeOpd(modelo: Modelo, opdId: Id): { entidad: Entidad; tipo: TipoRefinamiento } | undefined {
   for (const entidad of Object.values(modelo.entidades)) {
@@ -25,6 +25,8 @@ interface NodoOpdProps {
   modelo: Modelo;
   avisos: readonly AvisoOpdLike[];
   activo: boolean;
+  /** R-OPD-REF-15: el modelo activo es un apunte → la raíz proyecta «Hoja». */
+  esApunte: boolean;
   nombresArbolVisibles: boolean;
   estaExpandido: boolean;
   renombrando: { id: Id; valor: string } | null;
@@ -55,10 +57,12 @@ interface NodoOpdProps {
  */
 export function NodoOpd(props: NodoOpdProps) {
   const badges = calcularBadges(props.modelo, props.nodo.opd.id, props.avisos);
-  const nombre = nombreNodo(props.modelo, props.nodo.opd);
-  const code = codigoOpd(props.nodo.opd.nombre);
-  const descriptivo = descripcionNodo(nombre, code);
   const esRaiz = props.nodo.opd.id === props.modelo.opdRaizId;
+  // Proyección «Hoja» de la raíz en apuntes (R-OPD-REF-15): display-only, NO muta
+  // `opd.nombre`. Solo el label/código del nodo raíz cambia cuando el modelo es apunte.
+  const nombre = esRaiz ? labelNodoRaiz(props.esApunte, nombreNodo(props.modelo, props.nodo.opd)) : nombreNodo(props.modelo, props.nodo.opd);
+  const code = esRaiz && props.esApunte ? nombre : codigoOpd(props.nodo.opd.nombre);
+  const descriptivo = descripcionNodo(nombre, code);
   const tieneHijos = props.nodo.hijos.length > 0;
   const tituloEliminar = esRaiz
     ? "SD no se puede eliminar"

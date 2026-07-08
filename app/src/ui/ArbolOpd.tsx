@@ -5,7 +5,8 @@ import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../app/ports/feedbackPort";
 import { registrarAtajo } from "./atajosTeclado";
 import { MenuContextualArbol } from "./MenuContextualArbol";
 import { aplanarNodosVisibles, atajoPanelArbolDesdeEvento, manejarTeclaNodoArbol, siguienteFocoArbol } from "./arbol/handlersTeclado";
-import { NodoOpd } from "./arbol/NodoOpd";
+import { NodoOpd, type NodoOpdData } from "./arbol/NodoOpd";
+import { esOpdSuelto } from "../modelo/opdSueltos";
 import {
   cantidadHijos,
   construirArbol,
@@ -41,6 +42,10 @@ export function ArbolOpd() {
     navegarOpdDerecha,
     abrirGestionArbol,
     avisosArbol,
+    sueltos,
+    esApunte,
+    nuevoOpdSuelto,
+    adoptarOpdEnSeleccion,
   } = useArbolOpdViewModel();
   const [colapsado, setColapsado] = useState<Set<Id>>(new Set());
   const [renombrando, setRenombrando] = useState<{ id: Id; valor: string } | null>(null);
@@ -50,6 +55,7 @@ export function ArbolOpd() {
   const arboles = useMemo(() => construirArbol(modelo), [modelo]);
   const estaExpandidoNodo = (id: Id) => !colapsado.has(id);
   const nodosVisibles = aplanarNodosVisibles(arboles, estaExpandidoNodo).filter((n) => n.visible);
+  const nodosSueltosVisibles = aplanarNodosVisibles(sueltos, estaExpandidoNodo).filter((n) => n.visible);
   const nodosFoco = nodosVisibles.map(({ nodo }) => nodo);
   const idsNodosFoco = nodosFoco.map((nodo) => nodo.opd.id).join("|");
 
@@ -142,47 +148,73 @@ export function ArbolOpd() {
     });
   };
 
+  const renderNodo = (nodo: NodoOpdData) => (
+    <NodoOpd
+      key={nodo.opd.id}
+      nodo={nodo}
+      modelo={modelo}
+      avisos={avisosArbol}
+      activo={nodo.opd.id === opdActivoId}
+      esApunte={esApunte}
+      nombresArbolVisibles={nombresArbolVisibles}
+      estaExpandido={estaExpandidoNodo(nodo.opd.id)}
+      renombrando={renombrando}
+      dragOver={dragOverId === nodo.opd.id}
+      modoOrdenManual={modoOrdenArbol === "manual"}
+      onCambiarActivo={cambiarOpdActivo}
+      onToggleExpandido={(id) => setColapsado((prev) => toggleId(prev, id))}
+      onRenombrandoChange={setRenombrando}
+      onRenombrarSubmit={renombrarSubmit}
+      onEliminar={eliminarOpdDesdeArbol}
+      onNavegarRefinador={navegarARefinador}
+      onIssueBadgeClick={abrirAvisoDesdeArbol}
+      onKeyDown={(event, opdId) => manejarTeclaNodoArbol(event, opdId, { cambiarOpdActivo, navegarOpdArriba, navegarOpdAbajo, navegarOpdIzquierda, navegarOpdDerecha })}
+      onContextMenu={(event, opdId) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setMenuContextual({ opdId, x: event.clientX, y: event.clientY });
+      }}
+      onDragStart={handleDragStart}
+      onDragOver={(event, opdId) => {
+        event.preventDefault();
+        setDragOverId(opdId);
+      }}
+      onDragLeave={() => setDragOverId(null)}
+      onDrop={handleDrop}
+    />
+  );
+
   return (
     <aside style={style.panel} aria-label="Árbol OPD" data-atajos-contexto="panel-arbol" tabIndex={-1}>
       <div role="tree" aria-label="Árbol OPD" style={style.tree} data-atajos-contexto="panel-arbol">
         {nodosVisibles.length === 0 ? (
           <div style={style.empty}>Sin OPD</div>
         ) : (
-          nodosVisibles.map(({ nodo }) => (
-            <NodoOpd
-              key={nodo.opd.id}
-              nodo={nodo}
-              modelo={modelo}
-              avisos={avisosArbol}
-              activo={nodo.opd.id === opdActivoId}
-              nombresArbolVisibles={nombresArbolVisibles}
-              estaExpandido={estaExpandidoNodo(nodo.opd.id)}
-              renombrando={renombrando}
-              dragOver={dragOverId === nodo.opd.id}
-              modoOrdenManual={modoOrdenArbol === "manual"}
-              onCambiarActivo={cambiarOpdActivo}
-              onToggleExpandido={(id) => setColapsado((prev) => toggleId(prev, id))}
-              onRenombrandoChange={setRenombrando}
-              onRenombrarSubmit={renombrarSubmit}
-              onEliminar={eliminarOpdDesdeArbol}
-              onNavegarRefinador={navegarARefinador}
-              onIssueBadgeClick={abrirAvisoDesdeArbol}
-              onKeyDown={(event, opdId) => manejarTeclaNodoArbol(event, opdId, { cambiarOpdActivo, navegarOpdArriba, navegarOpdAbajo, navegarOpdIzquierda, navegarOpdDerecha })}
-              onContextMenu={(event, opdId) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setMenuContextual({ opdId, x: event.clientX, y: event.clientY });
-              }}
-              onDragStart={handleDragStart}
-              onDragOver={(event, opdId) => {
-                event.preventDefault();
-                setDragOverId(opdId);
-              }}
-              onDragLeave={() => setDragOverId(null)}
-              onDrop={handleDrop}
-            />
-          ))
+          nodosVisibles.map(({ nodo }) => renderNodo(nodo))
         )}
+      </div>
+      <div style={style.taller}>
+        {sueltos.length > 0 ? (
+          <div
+            role="tree"
+            aria-label="Taller — OPD sueltos"
+            data-testid="arbol-banda-taller"
+            style={style.tallerTree}
+            data-atajos-contexto="panel-arbol"
+          >
+            <div style={style.tallerHeader}>Taller</div>
+            {nodosSueltosVisibles.map(({ nodo }) => renderNodo(nodo))}
+          </div>
+        ) : null}
+        <button
+          type="button"
+          data-testid="arbol-nuevo-suelto"
+          style={style.tallerNuevo}
+          title="Traza un OPD suelto bottom-up y adóptalo después"
+          onClick={nuevoOpdSuelto}
+        >
+          + OPD suelto
+        </button>
       </div>
       {menuContextual ? (
         <MenuContextualArbol
@@ -245,6 +277,15 @@ export function ArbolOpd() {
             if (primero) cambiarOpdActivo(primero.id);
             setMenuContextual(null);
           }}
+          esSuelto={esOpdSuelto(modelo, menuContextual.opdId)}
+          onAdoptarComoDescomposicion={(opdId) => {
+            adoptarOpdEnSeleccion(opdId, "descomposicion");
+            setMenuContextual(null);
+          }}
+          onAdoptarComoDespliegue={(opdId) => {
+            adoptarOpdEnSeleccion(opdId, "despliegue");
+            setMenuContextual(null);
+          }}
         />
       ) : null}
     </aside>
@@ -286,8 +327,41 @@ const style = {
     background: tokens.colors.paper,
     borderRight: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
     display: "grid",
-    gridTemplateRows: "minmax(0, 1fr)",
+    gridTemplateRows: "minmax(0, 1fr) auto",
   },
   tree: { overflow: "auto" as const, padding: "10px 8px", background: tokens.colors.paper },
   empty: { padding: "8px 4px", color: tokens.colors.inkSoft, fontSize: tokens.typography.sizes.sm, fontStyle: "italic" as const },
+  // Banda «Taller» (R-OPD-REF-20): región derivada al pie del árbol. Chrome
+  // neutro (tinta/regla/papel); sin crimson — no porta semántica OPM (R-OPD-UI-1).
+  taller: {
+    borderTop: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    background: tokens.colors.paper,
+    padding: "8px",
+    display: "grid",
+    gap: "6px",
+  },
+  tallerTree: { display: "block" as const },
+  tallerHeader: {
+    padding: "2px 4px 4px",
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.mono,
+    fontSize: tokens.typography.sizes.xxs,
+    fontWeight: tokens.typography.weights.semibold,
+    letterSpacing: tokens.typography.ls.meta,
+    textTransform: "uppercase" as const,
+  },
+  tallerNuevo: {
+    width: "100%",
+    padding: "6px 8px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.inkMid,
+    cursor: "pointer",
+    fontFamily: tokens.typography.mono,
+    fontSize: tokens.typography.sizes.xs,
+    letterSpacing: tokens.typography.ls.mono,
+    textAlign: "left" as const,
+    transition: tokens.transitions.fast,
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;

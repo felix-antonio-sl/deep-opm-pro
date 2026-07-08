@@ -15,6 +15,8 @@ export function CintaApunte(): JSX.Element | null {
   // El bit persistido del modelo activo es la única verdad. Un modelo nuevo o
   // importado (id ausente del índice) no es apunte hasta marcarse.
   const esApunte = useOpmStore((s) => s.indice.modelos.some((m) => m.id === s.modelo.id && m.esApunte === true));
+  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
+  const abrirGraduar = useOpmStore((s) => s.abrirGraduar);
 
   if (!esApunte) return null;
 
@@ -24,6 +26,18 @@ export function CintaApunte(): JSX.Element | null {
       <span style={s.texto} data-testid="cinta-apunte-estado">
         <span style={s.rotulo}>Apunte</span> {"·"} borrador OPM, el rigor de cierre se relaja
       </span>
+      {/* «Momento de graduación» (diseño §3): la acción vive donde vive la identidad
+          del apunte. Palabra-acción (sin fondo/borde/sombra, ui-forja), no un botón. */}
+      {modeloPersistidoId ? (
+        <button
+          type="button"
+          data-testid="cinta-apunte-graduar"
+          style={s.graduar}
+          onClick={() => abrirGraduar(modeloPersistidoId)}
+        >
+          Graduar
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -63,5 +77,20 @@ const s = {
     color: C.inkSoft,
     fontWeight: T.weights.bold,
     letterSpacing: tokens.typography.ls.body,
+  },
+  // Palabra-acción a la derecha (ui-forja: sin fondo, borde, radius ni sombra).
+  graduar: {
+    marginLeft: "auto",
+    flex: "0 0 auto",
+    border: 0,
+    background: "transparent",
+    padding: "2px 2px",
+    color: C.inkSoft,
+    fontFamily: T.serif,
+    fontSize: T.fs.fs13,
+    fontWeight: T.weights.bold,
+    borderBottom: `1px solid ${C.inkSoft}`,
+    cursor: "pointer",
+    transition: tokens.transitions.fast,
   },
 } satisfies Record<string, JSX.CSSProperties>;
