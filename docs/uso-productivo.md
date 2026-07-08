@@ -42,14 +42,21 @@ Consecuencias prácticas:
 
 ## Empezar Un Modelo
 
-Cuando el workspace está vacío, la app abre un modelo en blanco. Crear
-la primera cosa con los botones `Objeto` o `Proceso` en la barra
-superior, o con los atajos `O` (objeto), `P` (proceso), `S` (estado)
-cuando el canvas tiene el foco.
+**Todo nace apunte**: el comando **`Nuevo`** (paleta `Ctrl+K` › `Nuevo`) abre
+al instante un **apunte** —un borrador sin rigor de cierre (ver §Apuntes)—, sin
+pedir nombre. La app también abre en un lienzo en blanco cuando el workspace
+está vacío.
 
-Para modelar con método desde cero (qué función transforma a quién y
-por qué antes de dibujar nada), seguir el flujo Forja descrito en
-`docs/manual-opforja.md` §2.
+Crear la primera cosa: botones `Objeto`/`Proceso` de la barra, o los atajos
+`O` (objeto) y `P` (proceso) con el canvas enfocado. `S` agrega un estado **al
+objeto seleccionado**. Para **conectar**, pulsa `R`: con una cosa seleccionada
+la relación parte de ella; sin selección entras en **enlace libre** (click en el
+origen, luego en el destino; `Esc` cancela).
+
+Para modelar con método desde cero (qué función transforma a quién antes de
+dibujar), seguir el flujo Forja de `docs/manual-opforja.md` §2 — que admite **dos
+arranques**: **SD-primero** (top-down) y **bottom-up** (bosquejar OPDs sueltos en
+el Taller y adoptarlos después, ver §Taller).
 
 ## Apuntes — Borradores Sin Rigor
 
@@ -59,9 +66,12 @@ exige cerrar** como modelo válido. Sirve para pensar y bocetar sin que la
 validación interrumpa. Relaja el *rigor*, no la *semántica*: sigue siendo
 OPM legítimo, no un dibujo libre.
 
-- **Marcar / graduar**: clic derecho sobre un modelo en la lista →
-  `Marcar como apunte` (o `Graduar a modelo` para volver). Es el mismo
-  gesto en los dos sentidos. Un apunte muestra el distintivo `Apunte`.
+- **Nacer y graduar**: todo modelo **nace apunte** (comando `Nuevo`). Un apunte
+  muestra la cinta **`Apunte`** en la parte superior; **clic en esa cinta abre
+  «Graduar apunte a modelo»**, que muestra el reporte de validez (lo que en el
+  apunte estaba en observación) y te deja decidir cerrar. Graduar **no bloquea**
+  por validez: informa y deja decidir. Las señales que queden son el checklist
+  de lo que falta cerrar.
 - **Qué cambia**: en un apunte los avisos de **validez** (falta de
   transformee, nombres pobres, firma de enlaces…) bajan de *bloqueo* a
   *observación al margen* — no detienen el trabajo. La **integridad** del
@@ -72,6 +82,35 @@ OPM legítimo, no un dibujo libre.
   quedaron pendientes son el checklist de lo que falta cerrar.
 - **No se mezcla con biblioteca**: un modelo es apunte o biblioteca, no
   ambos a la vez.
+
+## Taller — Bosquejar Bottom-up
+
+No hace falta partir del SD raíz. En el árbol de OPDs, la banda **`Taller`** aloja
+**OPDs sueltos** —fragmentos sin padre—: traza hechos OPM locales sin comprometer
+aún un SD. Créalos con el botón de OPD suelto del árbol.
+
+Cuando un fragmento encaja, **adóptalo**: clic derecho sobre el OPD suelto →
+`Adoptar como descomposición` (in-zoom de un proceso) o `Adoptar como despliegue`
+(unfold de un objeto). Adoptar fija el padre y declara el refinamiento en un gesto
+—el mismo resultado que el camino top-down—. Un OPD que sigue suelto no bloquea la
+edición, pero sí el **export canónico** hasta adoptarlo. (Método: `docs/manual-opforja.md`
+§2/A1.5.)
+
+## Gestionar Modelos
+
+Abrir el gestor desde `Ctrl+K` › `Abrir / importar modelo` (o el menú ☰). Un solo
+buscador filtra todo; a la izquierda, las carpetas y `Archivo`. Los modelos se
+agrupan en **dos zonas por su rol**:
+
+- **`Trabajo`**: tus apuntes y modelos juntos, por recencia. El chip de cada fila
+  dice si es apunte o modelo, y **muta in-situ al graduar** (la fila no salta de
+  zona: el modelo maduró, no cambió de naturaleza).
+- **`Bibliotecas`**: los modelos designados como fuente, en un estante aparte, que
+  se abren en **solo-lectura** (editarlos exige confirmación). De ellas se traen
+  Piezas al lienzo (ver `docs/manual-opforja.md` §9).
+
+Acciones por fila (al pasar el cursor): abrir, abrir en pestaña nueva, duplicar,
+archivar, eliminar (con confirmación). `Importar JSON` es una acción del encabezado.
 
 ## Tres Operaciones Diarias
 
@@ -152,9 +191,9 @@ usar `Guardar como` desde el menú.
 ### Cerré el navegador sin guardar
 
 Al reabrir, la app intenta restaurar el último modelo activo desde el
-backend. Si no aparece, abrir `Menú principal > Cargar otro...` y
-elegirlo de la lista. Si tampoco está ahí, importar el último JSON
-descargado.
+backend. Si no aparece, abrir el gestor (`Ctrl+K` › `Abrir / importar
+modelo`) y elegirlo de la lista. Si tampoco está ahí, importar el último
+JSON descargado.
 
 ### La app no carga o muestra error
 
@@ -170,17 +209,19 @@ y en operaciones del modelo.
 
 | Atajo | Acción |
 |---|---|
+| `O` · `P` | Crear objeto · proceso (canvas enfocado) |
+| `S` | Estado (al objeto seleccionado) |
+| `R` | Conectar (desde selección o enlace libre) |
 | `Ctrl+S` | Guardar |
-| `Ctrl+O` | Cargar otro modelo |
-| `Ctrl+N` | Modelo nuevo |
-| `Ctrl+F` | Buscar dentro del modelo |
-| `Ctrl+Shift+F` | Buscar en todo el workspace |
-| `Ctrl+K` | Command palette |
-| `Ctrl+Z` | Deshacer |
-| `Ctrl+Shift+Z` | Rehacer |
+| `Ctrl+F` | Buscar cosas en el modelo |
+| `Ctrl+Shift+F` | Buscar en el workspace |
+| `Ctrl+K` | Comandos (paleta) |
+| `Ctrl+Z` · `Ctrl+Shift+Z` | Deshacer · rehacer |
 | `Delete` | Eliminar selección |
 
-La hoja completa de atajos vive en `Menú principal > Ayuda > Atajos`.
+`Nuevo` y `Abrir / importar modelo` **no tienen atajo de teclado**: van por la
+paleta `Ctrl+K` o el menú ☰. La hoja completa vive en `Menú principal > Ayuda >
+Atajos` — su footer muestra la **versión de opforja** (fecha de build + commit).
 
 ## Límites Honestos
 

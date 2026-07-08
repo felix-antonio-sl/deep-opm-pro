@@ -183,8 +183,8 @@ importar/exportar JSON, exportar PNG, atajos, límites de sesión) vive en
 **`docs/uso-productivo.md`**. Este manual no la duplica. Superficies desplegadas en el
 ciclo 2026-07: **gestor de dos zonas** (Trabajo / Bibliotecas), la puerta **«Nuevo»→apunte**
 («todo nace apunte», ver §2 para el método), la banda **«Taller»** de OPDs sueltos, y el
-chip **«Revisión nueva»** del puente directo (§A.6) — su walkthrough paso-a-paso es deuda
-viva de `docs/uso-productivo.md`. En resumen:
+chip **«Revisión nueva»** del puente directo (§A.6) — su walkthrough paso-a-paso vive en
+`docs/uso-productivo.md` (§Empezar, §Taller, §Gestionar Modelos). En resumen:
 
 - **Canvas OPD**: compone hechos visuales; cada forma/enlace/marcador es portador de
   semántica OPM o UI transitoria claramente separada.
