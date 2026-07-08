@@ -249,6 +249,13 @@ export interface OpmStore {
    */
   estadoSeleccionId: Id | null;
   modoEnlace: ModoEnlace | null;
+  /**
+   * Modo previo ligero del enlace libre (R sin selección): el usuario elige la
+   * cosa origen con un click y, al hacerlo, `elegirTipoEnlace` transiciona al
+   * `modoEnlace` normal (fase destino). Separado de `modoEnlace` para preservar
+   * su invariante `origenId` obligatorio, del que depende todo el feedback.
+   */
+  eligiendoOrigenEnlace: boolean;
   modoCreacion: TipoEntidad | null;
   /**
    * IFML H-3 / Ronda 15 L3: NavigationFlow tipado del flujo
@@ -525,6 +532,8 @@ export interface OpmStore {
   deshacer: () => void;
   rehacer: () => void;
   elegirTipoEnlace: (tipo: TipoEnlace, origenId?: Id) => void;
+  iniciarEnlaceLibre: () => void;
+  iniciarRelacionDesdeEntidad: (entidadId: Id) => void;
   iniciarConexionDesdeApariencia: (aparienciaId: Id, anchor: AnchorConexion, estadoOrigenId?: Id) => void;
   crearEnlaceEntreEntidades: (origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opciones?: { anclaOrigen?: AnchorConexion; anclaDestino?: AnchorConexion }) => void;
   cancelarEnlace: () => void;

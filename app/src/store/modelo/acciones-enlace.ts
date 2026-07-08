@@ -63,8 +63,32 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         return;
       }
       // P1-5 ronda 4: activar modoEnlace cambia el contexto a "conectar";
-      // cualquier editor inline previo se descarta.
-      set({ modoEnlace: { tipo, origenId, fase: "boton" }, modoCreacion: null, nuevaCosaPendiente: null, mensaje: "Selecciona la entidad destino" });
+      // cualquier editor inline previo se descarta. Resolver el origen también
+      // cierra la fase previa `eligiendoOrigenEnlace` (enlace libre 1→2).
+      set({ modoEnlace: { tipo, origenId, fase: "boton" }, eligiendoOrigenEnlace: false, modoCreacion: null, nuevaCosaPendiente: null, mensaje: "Selecciona la entidad destino" });
+    },
+
+    iniciarRelacionDesdeEntidad(entidadId) {
+      // Fija una entidad como origen del enlace (usado por el click de la fase
+      // «elige origen» del enlace libre): calcula el tipo sugerido y delega en
+      // `elegirTipoEnlace`, que transiciona a la fase destino.
+      const { modelo, opdActivoId } = get();
+      if (!modelo.entidades[entidadId]) return;
+      const tipo = tipoInicialConexionDesdeEntidad(modelo, opdActivoId, entidadId);
+      get().elegirTipoEnlace(tipo, entidadId);
+    },
+
+    iniciarEnlaceLibre() {
+      // Enlace libre (R sin selección): abre la fase «elige origen» sin exigir
+      // una cosa preseleccionada. Al primer click sobre una entidad, el render
+      // llama a `elegirTipoEnlace`, que transiciona a la fase destino. Respeta
+      // la Ley silencio-cero (C-1): en solo lectura ni se enciende.
+      const bloqueo = mensajeBloqueoEdicion(get());
+      if (bloqueo) {
+        set({ mensaje: bloqueo });
+        return;
+      }
+      set({ eligiendoOrigenEnlace: true, modoEnlace: null, modoCreacion: null, nuevaCosaPendiente: null, mensaje: "Selecciona la cosa origen del enlace · Esc cancela" });
     },
 
     iniciarConexionDesdeApariencia(aparienciaId, anchor, estadoOrigenId) {
@@ -119,6 +143,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
         modoSeleccion: "simple",
         enlaceSeleccionId: enlaceCreadoId,
         modoEnlace: null,
+        eligiendoOrigenEnlace: false,
         mensaje: null,
         // P1-5: crear enlace cambia contexto al enlace; cerramos editor inline.
         nuevaCosaPendiente: null,
@@ -129,7 +154,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
     },
 
     cancelarEnlace() {
-      set({ modoEnlace: null, mensaje: null });
+      set({ modoEnlace: null, eligiendoOrigenEnlace: false, mensaje: null });
     },
 
     ajustarMultiplicidadSeleccionada(lado, texto) {

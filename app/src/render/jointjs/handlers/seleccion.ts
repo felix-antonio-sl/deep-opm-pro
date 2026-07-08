@@ -31,6 +31,8 @@ export interface CablearSeleccionArgs {
   paper: dia.Paper;
   modeloRef: { current: Modelo };
   modoEnlaceRef: { current: unknown };
+  eligiendoOrigenEnlaceRef: { current: boolean };
+  iniciarRelacionDesdeEntidadRef: { current: (entidadId: string) => void };
   modoCreacionRef: { current: TipoEntidad | null };
   rubberBandRef: { current: boolean };
   suprimirBlankClickRef: { current: boolean };
@@ -70,6 +72,8 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     paper,
     modeloRef,
     modoEnlaceRef,
+    eligiendoOrigenEnlaceRef,
+    iniciarRelacionDesdeEntidadRef,
     modoCreacionRef,
     rubberBandRef,
     suprimirBlankClickRef,
@@ -112,6 +116,14 @@ export function cablearSeleccion(args: CablearSeleccionArgs): () => void {
     if (meta?.kind === "entidad") {
       const selector = jointSelector(evt.target);
       if (selectorEsAnchorConexion(selector)) return;
+      // Enlace libre, fase «elige origen»: el primer click sobre una cosa la
+      // fija como origen (calcula tipo sugerido y pasa a fase destino). El
+      // segundo click cae en el flujo normal de abajo, que ya conecta cuando
+      // `modoEnlace` está activo (seleccionarEntidad/seleccionarEstadoComoExtremo).
+      if (eligiendoOrigenEnlaceRef.current) {
+        iniciarRelacionDesdeEntidadRef.current(meta.entidadId);
+        return;
+      }
       // Paquete "Estados ciudadanos de primera clase" (2026-05-23):
       // el check de cápsula precede al check de multi-evento sobre entidad.
       // Si el click impacta en una cápsula de estado, el flujo es del

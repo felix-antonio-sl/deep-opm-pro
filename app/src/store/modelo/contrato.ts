@@ -249,6 +249,8 @@ export const MODELO_SLICE_CAPABILITIES = {
   ],
   linkCommands: [
     "elegirTipoEnlace",
+    "iniciarEnlaceLibre",
+    "iniciarRelacionDesdeEntidad",
     "iniciarConexionDesdeApariencia",
     "crearEnlaceEntreEntidades",
     "cancelarEnlace",

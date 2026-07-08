@@ -167,6 +167,11 @@ export function JointCanvas({
   // como 9º posicional. Solo el lienzo vivo lo pasa; export toma el default null.
   const driftMap = useOpmStore((s) => s.driftMap);
 
+  // Enlace libre (R sin selección): fase «elige origen». Se lee directo del
+  // store como driftMap y se enhebra a los handlers de canvas vía ref.
+  const eligiendoOrigenEnlace = useOpmStore((s) => s.eligiendoOrigenEnlace);
+  const iniciarRelacionDesdeEntidad = useOpmStore((s) => s.iniciarRelacionDesdeEntidad);
+
   useEffect(() => {
     onAdapterChangeRef.current = onAdapterChange;
   }, [onAdapterChange]);
@@ -176,6 +181,8 @@ export function JointCanvas({
   }, [feedbackPort]);
 
   const modoEnlaceRef = useRef(modoEnlace);
+  const eligiendoOrigenEnlaceRef = useRef(eligiendoOrigenEnlace);
+  const iniciarRelacionDesdeEntidadRef = useRef(iniciarRelacionDesdeEntidad);
   const modoCreacionRef = useRef(modoCreacion);
   const modeloRef = useRef(modelo);
   const opdActivoIdRef = useRef(opdActivoId);
@@ -229,6 +236,12 @@ export function JointCanvas({
   useEffect(() => {
     modoEnlaceRef.current = modoEnlace;
   }, [modoEnlace]);
+  useEffect(() => {
+    eligiendoOrigenEnlaceRef.current = eligiendoOrigenEnlace;
+  }, [eligiendoOrigenEnlace]);
+  useEffect(() => {
+    iniciarRelacionDesdeEntidadRef.current = iniciarRelacionDesdeEntidad;
+  }, [iniciarRelacionDesdeEntidad]);
 
   useEffect(() => {
     modoCreacionRef.current = modoCreacion;
@@ -337,6 +350,8 @@ export function JointCanvas({
       paper,
       modeloRef,
       modoEnlaceRef,
+      eligiendoOrigenEnlaceRef,
+      iniciarRelacionDesdeEntidadRef,
       modoCreacionRef,
       rubberBandRef,
       suprimirBlankClickRef,
@@ -402,6 +417,7 @@ export function JointCanvas({
         modeloRef,
         opdActivoIdRef,
         modoEnlaceRef,
+        eligiendoOrigenEnlaceRef,
         iniciarConexionDesdeAparienciaRef,
         elegirTipoEnlaceRef,
         crearEnlaceEntreEntidadesRef,
@@ -593,8 +609,8 @@ export function JointCanvas({
   useEffect(() => {
     const adapter = adapterRef.current;
     if (!adapter) return;
-    aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace);
-  }, [modelo, modoEnlace, opdActivoId]);
+    aplicarFeedbackModoEnlace(adapter.paper, modelo, opdActivoId, modoEnlace, eligiendoOrigenEnlace);
+  }, [modelo, modoEnlace, opdActivoId, eligiendoOrigenEnlace]);
 
   useEffect(() => {
     const adapter = adapterRef.current;

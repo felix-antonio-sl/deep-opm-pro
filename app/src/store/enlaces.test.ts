@@ -33,6 +33,43 @@ describe("slice enlaces", () => {
     expect(store.getState().modoEnlace).toEqual({ tipo: "instrumento", origenId: origenExplicitoId, fase: "boton" });
   });
 
+  test("iniciarEnlaceLibre enciende el modo elige-origen sin selección y cancelarEnlace lo apaga", () => {
+    cargarModeloReferencia();
+    store.getState().vaciarSeleccion();
+
+    store.getState().iniciarEnlaceLibre();
+    expect(store.getState().eligiendoOrigenEnlace).toBe(true);
+    expect(store.getState().modoEnlace).toBeNull();
+    expect(store.getState().mensaje).toContain("origen");
+
+    store.getState().cancelarEnlace();
+    expect(store.getState().eligiendoOrigenEnlace).toBe(false);
+    expect(store.getState().modoEnlace).toBeNull();
+  });
+
+  test("elegirTipoEnlace con origen resuelve la fase elige-origen (transición 1→2)", () => {
+    cargarModeloReferencia();
+    const id = Object.keys(store.getState().modelo.entidades)[0]!;
+
+    store.getState().iniciarEnlaceLibre();
+    expect(store.getState().eligiendoOrigenEnlace).toBe(true);
+
+    store.getState().elegirTipoEnlace("instrumento", id);
+    expect(store.getState().eligiendoOrigenEnlace).toBe(false);
+    expect(store.getState().modoEnlace).toMatchObject({ origenId: id });
+  });
+
+  test("iniciarRelacionDesdeEntidad fija la entidad como origen con el tipo sugerido", () => {
+    cargarModeloReferencia();
+    const id = Object.keys(store.getState().modelo.entidades)[0]!;
+
+    store.getState().iniciarEnlaceLibre();
+    store.getState().iniciarRelacionDesdeEntidad(id);
+
+    expect(store.getState().eligiendoOrigenEnlace).toBe(false);
+    expect(store.getState().modoEnlace).toMatchObject({ origenId: id, fase: "boton" });
+  });
+
   test("iniciarConexionDesdeApariencia registra fase drag-from-anchor", () => {
     cargarModeloReferencia();
     const opdId = store.getState().opdActivoId;

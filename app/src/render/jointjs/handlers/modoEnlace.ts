@@ -20,6 +20,7 @@ interface CablearModoEnlaceArgs {
   modeloRef: { current: Modelo };
   opdActivoIdRef: { current: Id };
   modoEnlaceRef: { current: ModoEnlace | null };
+  eligiendoOrigenEnlaceRef: { current: boolean };
   iniciarConexionDesdeAparienciaRef: { current: (aparienciaId: Id, anchor: AnchorConexion, estadoOrigenId?: Id) => void };
   elegirTipoEnlaceRef: { current: (tipo: TipoEnlace, origenId?: Id) => void };
   crearEnlaceEntreEntidadesRef: { current: (origen: ExtremoEntrada, destino: ExtremoEntrada, tipo: TipoEnlace, opciones?: { anclaOrigen?: AnchorConexion; anclaDestino?: AnchorConexion }) => void };
@@ -43,9 +44,16 @@ export function aplicarFeedbackModoEnlace(
   modelo: Modelo,
   opdId: Id,
   modoEnlace: ModoEnlace | null,
+  eligiendoOrigen = false,
 ): void {
   limpiarFeedbackModoEnlace(paper);
-  if (!modoEnlace) return;
+  if (!modoEnlace) {
+    // Fase «elige origen» del enlace libre: sin origen aún, todas las cosas del
+    // OPD son candidatas. Un halo tenue punteado da la affordance de «elígeme»
+    // sin mentir sobre validez de destino (esa evaluación llega en la fase 2).
+    if (eligiendoOrigen) pintarCandidatosOrigenEnlace(paper);
+    return;
+  }
 
   const color = colorHaloPorTipo(modoEnlace.tipo);
   const evaluados = evaluarDestinos(modelo, opdId, modoEnlace.origenExtremo ?? modoEnlace.origenId, modoEnlace.tipo);
@@ -72,6 +80,7 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
     modeloRef,
     opdActivoIdRef,
     modoEnlaceRef,
+    eligiendoOrigenEnlaceRef,
     iniciarConexionDesdeAparienciaRef,
     elegirTipoEnlaceRef,
     crearEnlaceEntreEntidadesRef,
@@ -153,7 +162,9 @@ export function cablearModoEnlace(args: CablearModoEnlaceArgs): () => void {
   };
 
   const onBlankPointerup = (evt: dia.Event) => {
-    finalizarDragDesdeAnchor(evt);
+    if (finalizarDragDesdeAnchor(evt)) return;
+    // En fase «elige origen», un click en vacío cancela el enlace libre.
+    if (eligiendoOrigenEnlaceRef.current) cancelarEnlaceRef.current();
   };
   const onKeyDown = (evt: KeyboardEvent) => {
     if (evt.key === "Tab") {
@@ -463,6 +474,22 @@ function limpiarFeedbackModoEnlace(paper: dia.Paper): void {
     node.style.opacity = "";
     node.style.outline = "";
     node.style.outlineOffset = "";
+  }
+}
+
+function pintarCandidatosOrigenEnlace(paper: dia.Paper): void {
+  const graph = (paper as unknown as { model: dia.Graph }).model;
+  const cells = (graph as unknown as { getCells(): dia.Cell[] }).getCells();
+  for (const cell of cells) {
+    const meta = metadata(cell);
+    if (meta?.kind !== "entidad") continue;
+    const view = (paper as unknown as { findViewByModel(cell: dia.Cell): dia.CellView | undefined }).findViewByModel(cell);
+    const el = (view as unknown as { el?: SVGElement | HTMLElement } | undefined)?.el;
+    if (!el) continue;
+    el.setAttribute("data-opm-modo-enlace", "origen-candidato");
+    el.style.outline = `1px dashed ${CODEX.colores.ink}`;
+    el.style.outlineOffset = "3px";
+    el.style.opacity = "1";
   }
 }
 

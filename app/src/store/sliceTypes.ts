@@ -39,6 +39,7 @@ export type SeleccionSlice = Slice<
 
 export type EnlacesSlice = Slice<
   | "modoEnlace"
+  | "eligiendoOrigenEnlace"
   | "modoCreacion"
   | "tablaEnlacesAbierta"
   | "tablaEnlacesFiltroTipo"

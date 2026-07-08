@@ -36,6 +36,7 @@ export interface GlobalShortcutsSnapshot {
   crearProcesoDemo: () => void;
   agregarEstadoSmart: () => void;
   elegirTipoEnlace: (tipo: TipoEnlace, origenId?: Id) => void;
+  iniciarEnlaceLibre: () => void;
   /**
    * Paquete "Estados ciudadanos de primera clase" (2026-05-23): tercer
    * ciudadano del coproducto. Guard para atajos F2/D/T del estado.
@@ -59,6 +60,7 @@ export interface GlobalShortcutsSnapshot {
   busquedaCosasAbierta: boolean;
   menuPrincipalAbierto: boolean;
   modoEnlace: unknown | null;
+  eligiendoOrigenEnlace: boolean;
   pestanasAbiertas?: Array<{ id: string }>;
   pestanaActivaId?: string | null;
   abrirDialogoTraerConectados: () => void;
@@ -151,9 +153,15 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
   const iniciarRelacionAtajo = () => {
     const state = s();
     const origenId = state.seleccionId;
-    if (!origenId || !state.modelo.entidades[origenId]) return;
-    const tipo = tipoInicialConexionDesdeEntidad(state.modelo, state.opdActivoId, origenId);
-    state.elegirTipoEnlace(tipo, origenId);
+    // Híbrido: con una cosa seleccionada, R la usa como origen y salta directo
+    // a «elige destino» (camino rápido). Sin selección, R entra en el enlace
+    // libre («elige origen» → «elige destino»); nunca retorna en silencio.
+    if (origenId && state.modelo.entidades[origenId]) {
+      const tipo = tipoInicialConexionDesdeEntidad(state.modelo, state.opdActivoId, origenId);
+      state.elegirTipoEnlace(tipo, origenId);
+      return;
+    }
+    state.iniciarEnlaceLibre();
   };
   const toggleMarginaliaOpl = () => {
     const state = s();
@@ -192,6 +200,7 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     if (state.busquedaCosasAbierta) return state.cerrarBusquedaCosas();
     if (state.menuPrincipalAbierto) return state.cerrarMenuPrincipal();
     if (state.modoEnlace) return state.cancelarEnlace();
+    if (state.eligiendoOrigenEnlace) return state.cancelarEnlace();
     // Auditoría UX 2026-06-12 (C-1): la barra de simulación promete «⎋ salir»
     // — con nada más que cerrar, Escape SALE del modo. Antes solo vaciaba la
     // selección y la promesa del copy era falsa.

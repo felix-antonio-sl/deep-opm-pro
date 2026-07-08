@@ -201,6 +201,7 @@ export type { EnlacesSlice } from "./tipos";
 
 export const createEnlacesSlice: CrearSlice<EnlacesSlice> = (set, get) => ({
   modoEnlace: null,
+  eligiendoOrigenEnlace: false,
   modoCreacion: null,
   tablaEnlacesAbierta: false,
   tablaEnlacesFiltroTipo: "todos",

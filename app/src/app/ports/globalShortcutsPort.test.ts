@@ -39,8 +39,9 @@ function setup(
   opl: { minimizada: boolean } = { minimizada: false },
   nav: { modelo?: Modelo; opdActivoId?: Id } = {},
   tabs: { abiertas?: Array<{ id: string }>; activa?: string | null } = {},
+  enlace: { eligiendoOrigen?: boolean } = {},
 ) {
-  const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0, eliminar: 0, soloCanvas: 0, salirSim: 0, vaciarSeleccion: 0 };
+  const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0, eliminar: 0, soloCanvas: 0, salirSim: 0, vaciarSeleccion: 0, cancelarEnlace: 0 };
   const navegados: Id[] = [];
   const pestanasCambiadas: string[] = [];
   const modelo = nav.modelo ?? crearModelo();
@@ -58,6 +59,8 @@ function setup(
     crearProcesoDemo: () => {},
     agregarEstadoSmart: () => {},
     elegirTipoEnlace: () => {},
+    iniciarEnlaceLibre: () => {},
+    eligiendoOrigenEnlace: enlace.eligiendoOrigen ?? false,
     estadoSeleccionId: null,
     abrirModalDuracionEstadoSeleccionado: () => {},
     seleccionados: [],
@@ -97,7 +100,7 @@ function setup(
     cerrarModalDuracion: () => {},
     cerrarBusquedaCosas: () => {},
     cerrarMenuPrincipal: () => {},
-    cancelarEnlace: () => {},
+    cancelarEnlace: () => { calls.cancelarEnlace++; },
     vaciarSeleccion: () => { calls.vaciarSeleccion++; },
     guardarLocal: () => {},
     abrirDialogoComandos: () => {},
@@ -322,7 +325,7 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
         entidadSeleccionadaId = Object.keys(modelo.entidades)[0] ?? null;
       }
     }
-    const calls = { objeto: 0, proceso: 0, estado: 0 };
+    const calls = { objeto: 0, proceso: 0, estado: 0, enlaceLibre: 0 };
     const enlaces: Array<{ tipo: string; origenId?: Id }> = [];
     const seleccionId = opts.seleccionId !== undefined ? opts.seleccionId : entidadSeleccionadaId;
 
@@ -336,6 +339,7 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
       crearProcesoDemo: () => { calls.proceso++; },
       agregarEstadoSmart: () => { calls.estado++; },
       elegirTipoEnlace: (tipo, origenId) => { enlaces.push({ tipo, ...(origenId ? { origenId } : {}) }); },
+      iniciarEnlaceLibre: () => { calls.enlaceLibre++; },
       estadoSeleccionId: null,
       abrirModalDuracionEstadoSeleccionado: () => {},
       seleccionados: [],
@@ -355,6 +359,7 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
       busquedaCosasAbierta: false,
       menuPrincipalAbierto: false,
       modoEnlace: null,
+      eligiendoOrigenEnlace: false,
       pestanasAbiertas: [],
       pestanaActivaId: null,
       abrirDialogoTraerConectados: () => {},
@@ -456,10 +461,11 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
     expect(enlaces[0]!.origenId).toBe(entidadSeleccionadaId!);
   });
 
-  test("R no inicia enlace sin cosa seleccionada", () => {
-    const { enlaces, handler } = setupCreacion({ seleccionId: null });
+  test("R sin cosa seleccionada entra en enlace libre (elige origen), sin silencio", () => {
+    const { enlaces, calls, handler } = setupCreacion({ seleccionId: null });
     handler("R")!(makeFakeEvent());
     expect(enlaces).toHaveLength(0);
+    expect(calls.enlaceLibre).toBe(1);
   });
 });
 
@@ -476,5 +482,12 @@ describe("Escape sale del modo simulación (auditoría UX 2026-06-12, C-1)", () 
     registros.find((r) => r.combo === "Escape")!.handler(makeFakeEvent());
     expect(calls.salirSim).toBe(0);
     expect(calls.vaciarSeleccion).toBe(1);
+  });
+
+  test("en enlace libre (elige origen), Escape cancela el enlace en vez de vaciar selección", () => {
+    const { registros, calls } = setup({ activa: false, auto: false }, undefined, {}, {}, { eligiendoOrigen: true });
+    registros.find((r) => r.combo === "Escape")!.handler(makeFakeEvent());
+    expect(calls.cancelarEnlace).toBe(1);
+    expect(calls.vaciarSeleccion).toBe(0);
   });
 });
