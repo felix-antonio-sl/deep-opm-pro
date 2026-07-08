@@ -11,14 +11,14 @@ cualquier ID, activo o archivado.
 | Alcance / Estado | Cantidad |
 |---|---:|
 | Activo / Nuevo | 1 |
-| Activo / Resuelto | 1 |
+| Activo / Resuelto | 2 |
 | Histórico / Resuelto | 117 |
 
 ## Resumen Por Tipo
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 2 |
+| Activo / Bug | 3 |
 | Histórico / Bug | 110 |
 | Histórico / Feat | 7 |
 
@@ -26,6 +26,7 @@ cualquier ID, activo o archivado.
 
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
+| Activo | Bug | Resuelto | [BUG-20260708T205824Z-7f09f9](BUG-20260708T205824Z-7f09f9/report.md) | 2026-07-08 20:58Z | HODOM completo v2.0 / SD1.M2.1.R - Realizacion de la atencion (prestaciones) | se solapan y sobreescrien los breadcumbs | Los segmentos del breadcrumb (ruta OPD del header) se solapaban y sobreescribían con OPDs de nombre largo (HODOM: «SD1.M2.1.R - R… | 1 | TDD/verificación visual: e2e/44-breadcrumb-overlap.spec.ts mide desbordamiento de texto (scrollWidth vs clientWidth) en viewport real 1920 + barra angosta 900, con screenshot before/after. Unit: src/ui/Breadcrumb.test.ts (codigoBreadcrumb, rutaBreadcrumbCodex con titulo, doctrina de recorte). La doctrina previa «sin ellipsis CSS silencioso» se actualizó conscientemente: el COLAPSO de niveles sigue usando el segmento « … » explícito, pero el recorte de un segmento individual largo ahora usa ellipsis (solución al exceso pedida por el operador). toolbar-overflow 8/8 intacto. gate:refactor PASS: check 3128/0 + lint + design:governance + build + smoke 301/0 + quality ledger 6/6. Desplegado en opforja.sanixai.com. |
 | Activo | Bug | Resuelto | [BUG-20260708T193209Z-f688a1](BUG-20260708T193209Z-f688a1/report.md) | 2026-07-08 19:32Z | Modelo / SD | El atajo "R" no está activo. no permite enlazar cosas | El atajo R para enlazar retornaba en silencio-cero cuando no habia cosa seleccionada (contexto del reporte: seleccionEntidadId nu… | 0 | TDD por olas (store → atajo → Escape → render → feedback → e2e). Cubierto por src/store/enlaces.test.ts (iniciarEnlaceLibre, transicion 1→2, iniciarRelacionDesdeEntidad), src/app/ports/globalShortcutsPort.test.ts (R hibrido con/sin seleccion, Escape cancela) y e2e/43-enlace-libre.spec.ts (gesto completo dos clicks + Escape). Un intento inicial de resolver el click-destino en modoEnlace.ts rompio la conexion hacia estados (07-enlaces-avanzados:382) por doble-handler; se corrigio centralizando en seleccion.ts. Gate:refactor PASS (check + lint + build + design:governance + smoke 299/0 + quality ledger 6/6). Desplegado en opforja.sanixai.com. |
 | Histórico | Bug | Resuelto | [BUG-20260609T032249Z-2c59cf](archive/BUG-20260609T032249Z-2c59cf/report.md) | 2026-06-09 03:22Z | Modelo / SD | al hacer el gesto para desplazar el canvas hacia la izquierda, al llegar al limite, si lo hago de nuevo retrocede el navegador. | El swipe horizontal del trackpad en macOS/Chrome disparaba el back del navegador al sobrepasar el limite de scroll del canvas. Ca… | 0 | Verificado in-vivo (dev server) que getComputedStyle de documentElement y body devuelve overscroll-behavior-x: none. La confirmacion final del gesto requiere trackpad macOS (operador). |
 | Histórico | Bug | Resuelto | [BUG-20260608T171552Z-17477a](archive/BUG-20260608T171552Z-17477a/report.md) | 2026-06-08 17:15Z | Laboratorio complejo de simulacion OPM 2 / SD1 - Orquestacion simulable del despacho critico | diferenciar secciones y funciones (por ejemplo botones que parezcan más botones) sin perder canon visul ni ux | La barra de simulacion ahora diferencia visualmente botones (hairline rule + inkMid + height 26 alineado con segmented) de labels… | 1 |  |

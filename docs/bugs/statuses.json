@@ -1,4 +1,11 @@
 {
+  "BUG-20260708T205824Z-7f09f9": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "Los segmentos del breadcrumb (ruta OPD del header) se solapaban y sobreescribían con OPDs de nombre largo (HODOM: «SD1.M2.1.R - Realizacion de la atencion (prestaciones)»). Causa raíz: los segmentos-botón (flex, minWidth:0, whiteSpace:nowrap) NO tenían overflow:hidden → el texto desbordaba su caja encogida y se pintaba ENCIMA del vecino (defecto de desbordamiento de TEXTO, no de caja: getBoundingClientRect de los botones no lo detectaba, hay que medir scrollWidth>clientWidth). Fix en 3 frentes (dirección del operador): (1) CÓDIGO COMPACTO — el breadcrumb muestra el código canónico del OPD (sd1.m2.1.r) en vez del nombre descriptivo completo, consistente con el árbol OPD y el kicker del canvas (codigoBreadcrumb toma el prefijo antes de « - »/« : », preservando códigos con letras donde codigoOpd cortaría en el primer no-dígito); nombre completo conservado en el title/tooltip. (2) RECORTE — cada segmento con overflow:hidden + textOverflow:ellipsis + maxWidth:18ch: cuando el conjunto excede la barra contenedora, recorta con « … » sin solaparse. (3) SLOT MÁS ANCHO — la columna del breadcrumb en el grid del header pasó de minmax(130px,220px) a minmax(130px,320px) para que la ruta compacta quepa legible en anchos normales; el toolbar (1fr) conserva su prioridad de flex.",
+    "note": "TDD/verificación visual: e2e/44-breadcrumb-overlap.spec.ts mide desbordamiento de texto (scrollWidth vs clientWidth) en viewport real 1920 + barra angosta 900, con screenshot before/after. Unit: src/ui/Breadcrumb.test.ts (codigoBreadcrumb, rutaBreadcrumbCodex con titulo, doctrina de recorte). La doctrina previa «sin ellipsis CSS silencioso» se actualizó conscientemente: el COLAPSO de niveles sigue usando el segmento « … » explícito, pero el recorte de un segmento individual largo ahora usa ellipsis (solución al exceso pedida por el operador). toolbar-overflow 8/8 intacto. gate:refactor PASS: check 3128/0 + lint + design:governance + build + smoke 301/0 + quality ledger 6/6. Desplegado en opforja.sanixai.com.",
+    "screenshots": []
+  },
   "BUG-20260708T193209Z-f688a1": {
     "type": "Bug",
     "status": "Resuelto",

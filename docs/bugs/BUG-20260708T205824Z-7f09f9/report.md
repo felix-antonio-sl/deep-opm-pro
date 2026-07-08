@@ -1,0 +1,37 @@
+# BUG-20260708T205824Z-7f09f9
+
+**Creado**: 2026-07-08T20:58:24.585Z
+**Tipo**: Bug
+**Estado**: Nuevo
+**Resolución**: Pendiente.
+
+## Texto
+
+se solapan y sobreescrien los breadcumbs
+
+## Screenshots
+
+- [screenshots/01-image.png](screenshots/01-image.png)
+
+## Contexto
+
+```json
+{
+  "modeloId": "modelo-hodom-completo-v2-0",
+  "modeloNombre": "HODOM completo v2.0",
+  "opdActivoId": "opd-m2-1-r",
+  "opdActivoNombre": "SD1.M2.1.R - Realizacion de la atencion (prestaciones)",
+  "seleccionEntidadId": null,
+  "seleccionEnlaceId": null,
+  "pestanaActivaId": "pestana-bc26e7a3-a44a-4c93-a25f-390a2d897967",
+  "vistaMapaActiva": false,
+  "url": "https://opforja.sanixai.com/",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  "viewport": {
+    "width": 1920,
+    "height": 963,
+    "devicePixelRatio": 1
+  },
+  "capturedAt": "2026-07-08T20:58:20.761Z"
+}
+```

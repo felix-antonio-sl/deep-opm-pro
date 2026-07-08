@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../modelo/operaciones";
 import type { Modelo } from "../modelo/tipos";
-import { BreadcrumbView, colapsarSegmentosBreadcrumb, rutaBreadcrumbCodex, rutaBreadcrumbOpd } from "./Breadcrumb";
+import { BreadcrumbView, codigoBreadcrumb, colapsarSegmentosBreadcrumb, rutaBreadcrumbCodex, rutaBreadcrumbOpd } from "./Breadcrumb";
 import { tokens } from "./tokens";
 
 type Vnode = { type: unknown; props: Record<string, any> };
@@ -43,15 +43,22 @@ describe("Breadcrumb OPD", () => {
     ]);
   });
 
-  test("agrega el OPD hijo despues de modelo y sd", () => {
+  test("agrega el OPD hijo despues de modelo y sd, con codigo compacto y titulo completo", () => {
     const modelo = modeloConRuta();
 
     expect(rutaBreadcrumbCodex(modelo, "opd-3")).toEqual([
       { id: "modelo", nombre: "modelo" },
       { id: "sd", nombre: "sd" },
-      { id: "opd-2", nombre: "atencion hodom" },
-      { id: "opd-3", nombre: "visita" },
+      { id: "opd-2", nombre: "atencion hodom", titulo: "Atencion HODOM" },
+      { id: "opd-3", nombre: "visita", titulo: "Visita" },
     ]);
+  });
+
+  test("codigoBreadcrumb toma el prefijo canonico antes del separador descriptivo", () => {
+    expect(codigoBreadcrumb("SD1.M2.1.R - Realizacion de la atencion (prestaciones)")).toBe("sd1.m2.1.r");
+    expect(codigoBreadcrumb("SD1.M2 : Modulo de atencion")).toBe("sd1.m2");
+    expect(codigoBreadcrumb("SD")).toBe("sd");
+    expect(codigoBreadcrumb("Visita")).toBe("visita");
   });
 
   test("corta ciclos defensivamente", () => {
@@ -115,7 +122,7 @@ describe("Breadcrumb OPD", () => {
     expect(visitados).toEqual(["modelo"]);
   });
 
-  test("colapsa breadcrumb largo con marca explicita y sin ellipsis CSS silencioso", () => {
+  test("colapsa NIVELES con marca … explicita y recorta segmentos largos con ellipsis (excede la barra)", () => {
     const segmentos = colapsarSegmentosBreadcrumb([
       { id: "modelo", nombre: "modelo" },
       { id: "sd", nombre: "sd" },
@@ -145,7 +152,11 @@ describe("Breadcrumb OPD", () => {
       "sd1.1",
       "sd1.1.1",
     ]);
-    expect(botones[0]!.props.style.textOverflow).toBeUndefined();
+    // Colapso de NIVELES = marca «…» explícita (segmento overflow, arriba). El
+    // recorte de un segmento largo individual sí usa ellipsis + overflow hidden
+    // (solución al exceso de la barra contenedora, BUG-7f09f9).
+    expect(botones[0]!.props.style.textOverflow).toBe("ellipsis");
+    expect(botones[0]!.props.style.overflow).toBe("hidden");
   });
 });
 

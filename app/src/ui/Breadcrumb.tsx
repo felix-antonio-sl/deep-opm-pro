@@ -5,6 +5,8 @@ import { tokens } from "./tokens";
 export interface SegmentoBreadcrumbOpd {
   id: Id;
   nombre: string;
+  /** Nombre completo del OPD para el tooltip; `nombre` lleva el código compacto. */
+  titulo?: string;
 }
 
 export function Breadcrumb() {
@@ -48,7 +50,7 @@ export function BreadcrumbView({ segmentos, opdActivoId, cambiarOpdActivo }: Bre
                   type="button"
                   aria-current={esActivo ? "page" : undefined}
                   data-testid={`breadcrumb-opd-${segmento.id}`}
-                  title={segmento.nombre}
+                  title={segmento.titulo ?? segmento.nombre}
                   style={esActivo ? { ...style.segmento, ...style.segmentoActivo } : style.segmento}
                   onClick={() => {
                     if (!esActivo) cambiarOpdActivo(segmento.id);
@@ -94,7 +96,8 @@ export function rutaBreadcrumbCodex(modelo: Modelo, opdActivoId: Id): SegmentoBr
   const ruta = rutaBreadcrumbOpd(modelo, opdActivoId);
   const hijos = ruta.slice(1).map((segmento) => ({
     id: segmento.id,
-    nombre: nombreBreadcrumbCodex(segmento.nombre),
+    nombre: codigoBreadcrumb(segmento.nombre),
+    titulo: segmento.nombre,
   }));
 
   return [
@@ -104,8 +107,17 @@ export function rutaBreadcrumbCodex(modelo: Modelo, opdActivoId: Id): SegmentoBr
   ];
 }
 
-function nombreBreadcrumbCodex(nombre: string): string {
-  return nombre.trim().toLocaleLowerCase("es-CL");
+/**
+ * Código compacto del OPD para el breadcrumb (consistente con el árbol OPD y el
+ * kicker del canvas, que muestran el prefijo canónico, no el nombre descriptivo
+ * completo). Toma el prefijo antes del separador descriptivo (` - `/` : `) para
+ * conservar códigos con letras (`SD1.M2.1.R`), donde `codigoOpd` cortaría en el
+ * primer no-dígito. El nombre completo se preserva en el tooltip del segmento.
+ */
+export function codigoBreadcrumb(nombre: string): string {
+  const limpio = nombre.trim();
+  const [codigo] = limpio.split(/\s(?:[-–—]|:)\s/);
+  return (codigo?.trim() || limpio).toLocaleLowerCase("es-CL");
 }
 
 /**
@@ -153,6 +165,10 @@ const style = {
   },
   segmento: {
     minWidth: 0,
+    // Techo por segmento + recorte: cuando el conjunto excede la barra
+    // contenedora, cada segmento se recorta a su caja (elimina el
+    // desbordamiento que sobreescribía al vecino) y marca el corte con «…».
+    maxWidth: "18ch",
     height: "24px",
     border: "1px solid transparent",
     background: "transparent",
@@ -160,6 +176,8 @@ const style = {
     cursor: "pointer",
     padding: "0 4px",
     whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
     fontFamily: tokens.typography.fontFamily,
     fontSize: `${tokens.typography.sizes.sm}px`,
     fontWeight: tokens.typography.weights.normal,

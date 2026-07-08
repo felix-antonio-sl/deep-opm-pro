@@ -140,7 +140,7 @@ const style = {
     // Codex v1.1: wordmark · tabs de modelos │ breadcrumb │ acciones │ meta.
     // La toolbar es la región que flexa; breadcrumb mantiene un ancho táctil
     // mínimo para que no quede debajo de las acciones.
-    gridTemplateColumns: "auto minmax(140px, 340px) minmax(130px, 220px) minmax(0, 1fr) auto auto",
+    gridTemplateColumns: "auto minmax(140px, 340px) minmax(130px, 320px) minmax(0, 1fr) auto auto",
     alignItems: "stretch",
     borderBottom: `1px solid ${tokens.colors.ruleStrong}`,
     background: tokens.colors.paper,
