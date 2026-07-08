@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>opforja — Runbook: de cero a modelo completo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%9A%92</text></svg>">
+<style>*{margin:0}html{color-scheme:light dark}</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b; --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: ui-sans-serif, system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+      --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+      --rule: #34382f; --rule-soft: #2a2d25;
+      --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+      --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+    --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+    --rule: #34382f; --rule-soft: #2a2d25;
+    --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6);
+  }
+  :root[data-theme="light"] {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b; --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); line-height: 1.5; -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(var(--rule-soft) 0.5px, transparent 0.5px);
+    background-size: 22px 22px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 28px 64px; }
+
+  .mast { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 18px;
+    border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+  .mark { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .logo { font-family: var(--serif); font-weight: 700; font-size: clamp(30px, 5.2vw, 46px);
+    letter-spacing: -.02em; line-height: .9; }
+  .logo .dot { color: var(--key); }
+  .sheet-name { font-family: var(--mono); font-size: 12px; letter-spacing: .26em;
+    text-transform: uppercase; color: var(--ink-faint); padding-bottom: 6px; }
+  .tagline { font-family: var(--serif); font-style: italic; font-size: clamp(15px, 2.4vw, 19px);
+    color: var(--ink-soft); max-width: 56ch; text-wrap: balance; margin-top: 8px; }
+
+  /* Regla rectora */
+  .rector { display: flex; align-items: flex-start; gap: 14px; margin: 24px 0 6px;
+    border: 1.5px solid var(--object); border-radius: 4px; padding: 14px 18px; background: var(--card);
+    box-shadow: var(--shadow); }
+  .rector .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--object); white-space: nowrap; padding-top: 3px; }
+  .rector p { margin: 0; font-size: 14.5px; color: var(--ink); }
+  .rector strong { font-weight: 700; }
+
+  .grid { column-gap: 22px; margin-top: 24px; columns: 340px 3; }
+  .card { break-inside: avoid; background: var(--card); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 16px 18px 15px; margin: 0 0 22px; box-shadow: var(--shadow);
+    position: relative; }
+  .card::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px;
+    background: var(--edge, var(--process)); border-radius: 3px; }
+  .card.obj { --edge: var(--object); } .card.key { --edge: var(--key); } .card.gate { --edge: var(--ink); }
+
+  .chead { display: flex; align-items: center; gap: 11px; margin-bottom: 9px; }
+  .phase { flex: none; width: 30px; height: 30px; border: 1.5px solid var(--edge, var(--process));
+    border-radius: 999px; color: var(--edge, var(--process)); font-family: var(--mono); font-size: 14px;
+    font-weight: 700; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+  .chead .t { display: flex; flex-direction: column; gap: 1px; }
+  .chead .eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink-faint); }
+  .chead h2 { font-family: var(--serif); font-size: 18.5px; font-weight: 700; letter-spacing: -.01em;
+    margin: 0; line-height: 1.1; text-wrap: balance; }
+
+  ul.tight { margin: 2px 0 2px; padding: 0; list-style: none; }
+  ul.tight li { position: relative; padding: 3px 0 3px 16px; font-size: 13px; color: var(--ink-soft); }
+  ul.tight li::before { content: "›"; position: absolute; left: 0; color: var(--edge, var(--process)); font-weight: 700; }
+  ul.tight li strong { color: var(--ink); font-weight: 650; }
+  .card p { margin: 6px 0 4px; font-size: 13px; color: var(--ink-soft); }
+  .card p strong { color: var(--ink); font-weight: 650; }
+  code { font-family: var(--mono); font-size: 12px; background: var(--paper-2); border-radius: 3px;
+    padding: 1px 5px; color: var(--ink); }
+  em { color: var(--ink); font-style: italic; }
+
+  footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--rule);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
+  footer a { color: var(--process); text-decoration: none; }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .wrap { max-width: none; padding: 0; }
+    .card, .rector { box-shadow: none; break-inside: avoid; border-color: #bbb; }
+    .grid { columns: 250px 2; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <div class="mark">
+        <span class="logo">opforja<span class="dot">.</span></span>
+        <span class="sheet-name">Runbook · de cero a modelo completo</span>
+      </div>
+      <p class="tagline">El método Forja de punta a punta: de un propósito en una frase a un modelo OPM validado en sus tres niveles. Sigue las fases en orden; cada una cierra con un hecho explícito.</p>
+    </div>
+  </header>
+
+  <div class="rector">
+    <span class="tag">Regla rectora</span>
+    <p>OPM empieza por la <strong>función</strong>, la semilla — no por las cosas. Un proceso transforma un objeto: qué entra distinto y sale distinto. <strong>Sin transformee, no dibujes.</strong></p>
+  </div>
+
+  <main class="grid">
+
+    <section class="card">
+      <div class="chead">
+        <span class="phase">0</span>
+        <div class="t"><span class="eyebrow">Fase 0 · A0–A1</span><h2>Antes de la semilla</h2></div>
+      </div>
+      <ul class="tight">
+        <li>Si la arquitectura no está decidida, genera <strong>≥3 conceptos</strong>. Equivalencia funcional = misma firma de frontera.</li>
+        <li><strong>Clasifica el sistema</strong>: artificial · natural · social · sociotécnico.</li>
+      </ul>
+      <p>La clase cambia cómo preguntas por propósito, beneficiario, agencia humana y ocurrencia del problema.</p>
+    </section>
+
+    <section class="card">
+      <div class="chead">
+        <span class="phase">1</span>
+        <div class="t"><span class="eyebrow">Fase 1 · A2 · la semilla</span><h2>Construir el SD raíz</h2></div>
+      </div>
+      <ul class="tight">
+        <li><strong>Declara el propósito</strong>: oración verbo-objeto del cambio, no de la forma («mejorar disponibilidad de camas», no «crear plataforma»).</li>
+        <li><strong>Verifica la función</strong>: qué objeto entra distinto, sale distinto, se crea o cambia de estado.</li>
+        <li><strong>Nombra el proceso central</strong> como transformación, no como área.</li>
+        <li><strong>Beneficiario</strong>: quién recibe valor (no siempre el transformee).</li>
+        <li><strong>Atributo de valor + estados</strong>: inicial → buscado.</li>
+        <li><strong>Transformees</strong>: consumo / resultado / efecto.</li>
+        <li><strong>Agentes e instrumentos</strong> — solo tras saber qué cambia (agente = humano/organización; software/sensor = instrumento).</li>
+        <li><strong>Sistema y frontera</strong>: qué es sistémico vs ambiental (decisión explícita, no del layout).</li>
+        <li><strong>Esencia y afiliación</strong>: física/informacional, sistémica/ambiental.</li>
+        <li><strong>Lee el primer OPL</strong>: si dice algo raro, revisa el hecho, no la frase.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <div class="chead">
+        <span class="phase">2</span>
+        <div class="t"><span class="eyebrow">Fase 2 · A3–A4</span><h2>Refinar por niveles</h2></div>
+      </div>
+      <ul class="tight">
+        <li><strong>In-zoom</strong> (un proceso: cómo se realiza) o <strong>unfold</strong> (un objeto: su estructura). Preserva la firma de frontera — un input/output neto nuevo significa que el padre estaba incompleto o es otra función.</li>
+        <li>Cada refinamiento responde <strong>una pregunta real</strong>, no decora. ≥5 subprocesos al abrir = revisa la altitud.</li>
+        <li>Complejidad por <strong>OPDs conectados</strong>, cada uno con foco claro.</li>
+        <li>Enlace estructural <strong>correcto</strong> (agregación / exhibición / generalización / clasificación). La agregación no es cajón universal.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <div class="chead">
+        <span class="phase">3</span>
+        <div class="t"><span class="eyebrow">Fase 3 · A5–A6</span><h2>Precisión y control</h2></div>
+      </div>
+      <ul class="tight">
+        <li>Modela primero el <strong>cambio de valor</strong>. Nombres que digan qué transforma o qué es. No estados sin atributo. Registra supuestos.</li>
+        <li><strong>Control de flujo</strong> (eventos, condiciones, excepciones, invocación) solo cuando responde una pregunta de <em>ejecución</em>: cuándo un proceso ocurre, se omite o llama a otro.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <div class="chead">
+        <span class="phase">4</span>
+        <div class="t"><span class="eyebrow">Fase 4 · A7</span><h2>Requisitos y cuantitativo</h2></div>
+      </div>
+      <ul class="tight">
+        <li>Un requisito <strong>inferido no es norma</strong>: márcalo como inferencia.</li>
+        <li>Lo cuantitativo conserva <strong>polaridad, unidad, fórmula y procedencia</strong>.</li>
+        <li><strong>Simula</strong> (por microfases) para validar el comportamiento con quien conoce el dominio.</li>
+      </ul>
+    </section>
+
+    <section class="card gate">
+      <div class="chead">
+        <span class="phase">5</span>
+        <div class="t"><span class="eyebrow">Fase 5 · A8</span><h2>Validación tripartita</h2></div>
+      </div>
+      <ul class="tight">
+        <li><strong>Bien formado</strong> — cumple las reglas.</li>
+        <li><strong>Representa</strong> — el operador confirma que dice lo que ocurre.</li>
+        <li><strong>Sirve</strong> — responde al propósito.</li>
+      </ul>
+      <p>No digas «validado» sin decir <strong>cuál</strong> de los tres niveles. Los barridos de integridad se hacen sobre el <strong>JSON canónico</strong>, no sobre el OPL emitido.</p>
+    </section>
+
+    <section class="card gate">
+      <div class="chead">
+        <span class="phase">6</span>
+        <div class="t"><span class="eyebrow">Fase 6 · compuerta PASA/FALLA</span><h2>Cerrar el modelo</h2></div>
+      </div>
+      <p>El SD cierra cuando: proceso central transformador · frontera explícita · ≥1 transformee funcional · agentes ≠ instrumentos · esencia/afiliación donde importa · sin barro bloqueante · legible en OPL · supuestos y brechas registrados.</p>
+      <ul class="tight">
+        <li>Si venías bosquejando, <strong>gradúa el apunte a modelo</strong> — re-engancha A8 completo.</li>
+        <li><strong>Exporta</strong>: canon-diagrama (presentar) · canon-documento · bundle de intercambio.</li>
+      </ul>
+    </section>
+
+    <section class="card obj">
+      <div class="chead">
+        <span class="phase" style="border-style:dashed">▚</span>
+        <div class="t"><span class="eyebrow">Atajo del flujo</span><h2>Bocetar sin cerrar</h2></div>
+      </div>
+      <p>Cuando el propósito es <strong>pensar</strong>, no cerrar: marca el modelo como <strong>apunte</strong>. Sigue siendo OPM legítimo, pero los gates de <strong>validez</strong> de la Fase 5 bajan a observación al margen — la <strong>integridad estructural nunca</strong> se relaja.</p>
+      <p>Graduar el apunte (el mismo gesto en inverso) re-engancha A8 completo sin dejar rastro.</p>
+    </section>
+
+    <section class="card key">
+      <div class="chead">
+        <span class="phase" style="border-style:dashed">✕</span>
+        <div class="t"><span class="eyebrow">Anti-patrones</span><h2>Cuándo NO refinar</h2></div>
+      </div>
+      <ul class="tight">
+        <li>El SD todavía tiene <strong>barro</strong> — ciérralo primero.</li>
+        <li>El refinamiento <strong>repite al padre</strong> o es detalle por curiosidad.</li>
+        <li>La <strong>vista padre ya sirve</strong> a la decisión.</li>
+        <li>Un supuesto de dominio <strong>sin confirmar</strong> — regístralo como brecha.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>opforja · runbook de cero a modelo completo · método Forja (metodologia-forja-opm-es §A2)</span>
+    <span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+  </footer>
+</div>
+
+</body>
+</html>
