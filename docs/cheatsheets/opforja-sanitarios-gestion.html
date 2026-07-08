@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>opforja — Sanitario · gestión · asistencial</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%9A%92</text></svg>">
+<style>*{margin:0}html{color-scheme:light dark}</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b; --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: ui-sans-serif, system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root {
+    --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+    --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+    --rule: #34382f; --rule-soft: #2a2d25;
+    --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6); } }
+  :root[data-theme="dark"] {
+    --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+    --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+    --rule: #34382f; --rule-soft: #2a2d25;
+    --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6); }
+  :root[data-theme="light"] {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b; --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans);
+    line-height: 1.5; -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(var(--rule-soft) 0.5px, transparent 0.5px); background-size: 22px 22px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 28px 64px; }
+  .mast { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 18px;
+    border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+  .mark { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .logo { font-family: var(--serif); font-weight: 700; font-size: clamp(30px, 5.2vw, 46px); letter-spacing: -.02em; line-height: .9; }
+  .logo .dot { color: var(--key); }
+  .sheet-name { font-family: var(--mono); font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-faint); padding-bottom: 6px; }
+  .tagline { font-family: var(--serif); font-style: italic; font-size: clamp(15px, 2.4vw, 19px); color: var(--ink-soft); max-width: 56ch; text-wrap: balance; margin-top: 8px; }
+  .grid { column-gap: 22px; margin-top: 28px; columns: 330px 3; }
+  .card { break-inside: avoid; background: var(--card); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 16px 18px 15px; margin: 0 0 22px; box-shadow: var(--shadow); position: relative; }
+  .card::before { content: ""; position: absolute; left: 0; top: 15px; bottom: 15px; width: 3px; background: var(--edge, var(--process)); border-radius: 3px; }
+  .card.obj { --edge: var(--object); } .card.proc { --edge: var(--process); } .card.key { --edge: var(--key); } .card.ink { --edge: var(--ink); }
+  .eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 6px; }
+  .card h2 { font-family: var(--serif); font-size: 19px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 9px; line-height: 1.15; text-wrap: balance; }
+  .card p { margin: 0 0 8px; font-size: 13.5px; color: var(--ink-soft); }
+  .card p strong, li strong { color: var(--ink); font-weight: 650; }
+  em { color: var(--ink); font-style: italic; }
+  ul.tight { margin: 3px 0 2px; padding: 0; list-style: none; }
+  ul.tight li { position: relative; padding: 3px 0 3px 16px; font-size: 13px; color: var(--ink-soft); }
+  ul.tight li::before { content: "›"; position: absolute; left: 0; color: var(--edge, var(--process)); font-weight: 700; }
+  .bad li::before { content: "✕"; color: var(--key); font-size: 11px; }
+  .good li::before { content: "✓"; color: var(--object); font-size: 11px; }
+  kbd { font-family: var(--mono); font-size: 12px; color: var(--key); background: var(--key-bg); border: 1px solid color-mix(in srgb, var(--key) 30%, transparent); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+  code { font-family: var(--mono); font-size: 12px; background: var(--paper-2); border-radius: 3px; padding: 1px 5px; color: var(--ink); }
+  .ap { font-family: var(--mono); font-size: 10.5px; color: var(--key); font-weight: 700; letter-spacing: .04em; }
+  pre { font-family: var(--mono); font-size: 12px; background: var(--paper-2); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px; margin: 7px 0 4px; overflow-x: auto; color: var(--ink); line-height: 1.6; }
+  pre .c { color: var(--ink-faint); }
+  footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
+  footer a { color: var(--process); text-decoration: none; }
+  @media print { body { background: #fff; color: #000; } .wrap { max-width: none; padding: 0; } .card { box-shadow: none; break-inside: avoid; border-color: #bbb; } .grid { columns: 250px 2; } }
+</style>
+<div class="wrap">
+  <header class="mast">
+    <div><div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Sanitario · gestión · asistencial</span></div>
+    <p class="tagline">Tres lentes que no se mezclan — el paciente, el recurso, la red. Un OPD por foco, un idioma común entre modelos.</p></div>
+  </header>
+  <main class="grid">
+    <section class="card ink"><p class="eyebrow">La regla que ordena todo</p><h2>Tres lentes, un foco por OPD</h2>
+      <ul class="tight">
+        <li><strong>Asistencial</strong> — el paciente.</li>
+        <li><strong>Gestión</strong> — el recurso y el flujo.</li>
+        <li><strong>Sistémico</strong> — la red.</li>
+      </ul>
+      <p>No los mezcles en un diagrama: cada uno responde otra pregunta.</p></section>
+
+    <section class="card obj"><p class="eyebrow">Lente asistencial</p><h2>Transformar el estado clínico</h2>
+      <p>El proceso central transforma el <strong>estado clínico del paciente</strong> (inicial → buscado). El paciente suele ser <em>transformee</em> y <em>beneficiario</em> a la vez — nómbralo así, no lo dupliques.</p></section>
+
+    <section class="card proc"><p class="eyebrow">Lente de gestión</p><h2>Capacidad, flujo, colas</h2>
+      <p>Modela capacidad y flujo como <strong>objetos con estados</strong>: cama <code>libre/ocupada</code>, paciente <code>en espera/ingresado/egresado</code>. El proceso transforma esos estados; ahí viven los indicadores de gestión.</p></section>
+
+    <section class="card proc"><p class="eyebrow">Lente de red</p><h2>Continuidad por interfaz</h2>
+      <p>La continuidad (hospital ↔ domicilio, niveles de atención) se modela por <strong>composición por interfaz</strong> entre subsistemas — no un solo modelo gigante que nadie mantiene.</p></section>
+
+    <section class="card"><p class="eyebrow">Los números</p><h2>Indicadores (A7)</h2>
+      <p>Un indicador conserva <strong>polaridad, unidad, fórmula y procedencia</strong>. Un indicador <strong>no es una norma</strong>: mide, no manda. Si sale de una simulación, arrastra su procedencia.</p></section>
+
+    <section class="card key"><p class="eyebrow">El recorrido del paciente</p><h2>Control de flujo con propósito</h2>
+      <p>Eventos, condiciones y excepciones explican <strong>cuándo</strong> ocurre o se omite un paso: ingreso, derivación, alta. Úsalos solo cuando responden una pregunta de <em>ejecución</em>, no para decorar el recorrido.</p></section>
+
+    <section class="card key"><p class="eyebrow">Quién y con qué</p><h2>Roles y autoridad</h2>
+      <p><strong>Agente</strong> = quién responde (el médico, el equipo, la dirección). <strong>Instrumento</strong> = con qué (el HIS/EMR, el equipamiento). El sistema de información es instrumento, nunca agente.</p></section>
+
+    <section class="card obj"><p class="eyebrow">Que la red hable un idioma</p><h2>Anclar a bibliotecas gobernadas</h2>
+      <p>Reusa Piezas de bibliotecas gobernadas (gist, el modelo HODOM) por <strong>Anclaje</strong>, para que los modelos de la red compartan los mismos tipos y el Centinela avise cuando divergen.</p></section>
+  </main>
+  <footer><span>opforja · sistemas sanitarios · gestión · asistencial · método Forja + Piezas</span><span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span></footer>
+</div>
+
+</body>
+</html>
