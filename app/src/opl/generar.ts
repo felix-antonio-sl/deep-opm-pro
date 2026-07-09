@@ -75,11 +75,13 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
   // a añadir una vista → la vista no emite ninguna oración.
   if (opd.vista?.kind === "generic-view") return [];
   const lineas: OplLineaPendiente[] = [];
+  // Modo apunte: relaja R-NOM-PROC-1 (procesos placeholder emiten OPL).
+  const esApunte = opciones?.esApunte ?? false;
 
   for (const apariencia of Object.values(opd.apariencias)) {
     const entidad = modelo.entidades[apariencia.entidadId];
     if (!entidad) continue;
-    if (entidadOplEsEmitible(entidad)) {
+    if (entidadOplEsEmitible(entidad, esApunte)) {
       for (const oracion of oracionEntidad(entidad, opciones)) {
         agregarLinea(lineas, oracion, [refEntidad(entidad.id)], [hintEntidad(entidad)]);
       }
@@ -92,13 +94,13 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
     // y mapea posición→id por refs, así que el roundtrip se preserva.
     const estadosVisibles = estados.filter((estado) => estadoVisibleEnAparicion(estado, apariencia));
     const estadosCanonicos = estadosVisibles.filter(estadoOplEsEmitible);
-    if (entidadOplEsEmitible(entidad) && estadosVisibles.length > 0 && estadosCanonicos.length === estadosVisibles.length) {
+    if (entidadOplEsEmitible(entidad, esApunte) && estadosVisibles.length > 0 && estadosCanonicos.length === estadosVisibles.length) {
       agregarOracionEstadosInteractiva(lineas, entidad, estadosCanonicos);
     }
-    for (const linea of entidadOplEsEmitible(entidad) ? oracionesUnidadDescripcionEstados(entidad, estadosCanonicos) : []) {
+    for (const linea of entidadOplEsEmitible(entidad, esApunte) ? oracionesUnidadDescripcionEstados(entidad, estadosCanonicos) : []) {
       agregarLinea(lineas, linea, [refEntidad(entidad.id), ...estadosCanonicos.map((estado) => refEstado(estado.id))], [hintEntidad(entidad), ...estadosCanonicos.map(hintEstado)]);
     }
-    if (entidadOplEsEmitible(entidad)) {
+    if (entidadOplEsEmitible(entidad, esApunte)) {
       // Si la apariencia está plegada parcialmente, una sola oración cubre la
       // semántica de plegado; en caso contrario se emite una oración por slot
       // de refinamiento presente.
@@ -127,10 +129,10 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
 
   const enlacesEnAbanico = new Set<Id>();
   for (const abanico of Object.values(modelo.abanicos ?? {}).filter((item) => item.opdId === opd.id)) {
-    lineas.push(...oracionesAbanicoInteractivo(modelo, abanico));
+    lineas.push(...oracionesAbanicoInteractivo(modelo, abanico, esApunte));
     for (const id of abanico.enlaceIds) enlacesEnAbanico.add(id);
   }
-  const transiciones = transicionesEstadoInteractivo(modelo, opd, enlacesEnAbanico);
+  const transiciones = transicionesEstadoInteractivo(modelo, opd, enlacesEnAbanico, esApunte);
   const enlacesAgrupados = new Set<Id>();
 
   for (const grupo of gruposExhibicionOpcional(modelo, opd, enlacesEnAbanico)) {
@@ -143,7 +145,7 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
     for (const enlace of grupo) enlacesAgrupados.add(enlace.id);
   }
 
-  for (const grupo of gruposAndProcedural(modelo, opd, enlacesEnAbanico)) {
+  for (const grupo of gruposAndProcedural(modelo, opd, enlacesEnAbanico, esApunte)) {
     agregarLinea(
       lineas,
       oracionGrupoAndProcedural(grupo),
@@ -167,7 +169,7 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
       agregarLinea(lineas, instrumento.texto, instrumento.refs, instrumento.hints);
       continue;
     }
-    const texto = oracionEnlaceConRuta(modelo, enlace);
+    const texto = oracionEnlaceConRuta(modelo, enlace, esApunte);
     if (texto) agregarLinea(lineas, texto, refsEnlace(modelo, enlace), hintsEnlace(modelo, enlace, texto));
   }
 
@@ -182,12 +184,12 @@ interface GrupoAndProcedural {
   complementosTexto: string[];
 }
 
-function gruposAndProcedural(modelo: Modelo, opd: Opd, enlacesExcluidos: ReadonlySet<Id>): GrupoAndProcedural[] {
+function gruposAndProcedural(modelo: Modelo, opd: Opd, enlacesExcluidos: ReadonlySet<Id>, esApunte: boolean): GrupoAndProcedural[] {
   const grupos = new Map<string, GrupoAndProcedural>();
   for (const apariencia of Object.values(opd.enlaces)) {
     const enlace = modelo.enlaces[apariencia.enlaceId];
     if (!enlace || enlacesExcluidos.has(enlace.id)) continue;
-    const candidato = candidatoAndProcedural(modelo, opd, enlace);
+    const candidato = candidatoAndProcedural(modelo, opd, enlace, esApunte);
     if (!candidato) continue;
     const grupo = grupos.get(candidato.clave) ?? {
       sujeto: candidato.sujeto,
@@ -208,11 +210,12 @@ function candidatoAndProcedural(
   modelo: Modelo,
   opd: Opd,
   enlace: Enlace,
+  esApunte: boolean,
 ): { clave: string; sujeto: Entidad; verbo: string; complemento: Entidad; complementoTexto: string } | null {
   if (!enlaceProceduralSimpleAgrupable(enlace)) return null;
   const origen = enlace.origenId.kind === "entidad" ? modelo.entidades[enlace.origenId.id] : undefined;
   const destino = enlace.destinoId.kind === "entidad" ? modelo.entidades[enlace.destinoId.id] : undefined;
-  if (!origen || !destino || !entidadOplEsEmitible(origen) || !entidadOplEsEmitible(destino)) return null;
+  if (!origen || !destino || !entidadOplEsEmitible(origen, esApunte) || !entidadOplEsEmitible(destino, esApunte)) return null;
 
   if (enlace.tipo === "instrumento") {
     if (oracionInstrumentoNatural(modelo, opd, enlace)) return null;
