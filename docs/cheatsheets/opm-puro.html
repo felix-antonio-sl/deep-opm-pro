@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OPM puro — cheat sheet agnóstico</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%97%8E</text></svg>">
+<style>*{margin:0}html{color-scheme:light dark}</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f2f1ea;
+    --paper-2: #ebe9e0;
+    --card: #f7f6f0;
+    --ink: #1c1e1b;
+    --ink-soft: #4a4d47;
+    --ink-faint: #74776f;
+    --rule: #d7d5c9;
+    --rule-soft: #e2e0d5;
+    --object: #39644e;   /* OPM: objeto (rectángulo) */
+    --process: #284b77;  /* OPM: proceso (elipse) */
+    --key: #a83b2b;      /* cinabrio — reglas duras */
+    --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: ui-sans-serif, system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+      --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+      --rule: #34382f; --rule-soft: #2a2d25;
+      --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+      --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+    --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+    --rule: #34382f; --rule-soft: #2a2d25;
+    --object: #85b79f; --process: #93b4e2; --key: #e28a76; --key-bg: #3a241d;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6);
+  }
+  :root[data-theme="light"] {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b; --key-bg: #f5e7e2;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(var(--rule-soft) 0.5px, transparent 0.5px);
+    background-size: 22px 22px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 28px 64px; }
+
+  .mast { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 18px;
+    border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+  .mark { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .logo { font-family: var(--serif); font-weight: 700; font-size: clamp(34px, 6vw, 52px);
+    letter-spacing: -.02em; line-height: .9; }
+  .logo .dot { color: var(--key); }
+  .sheet-name { font-family: var(--mono); font-size: 12px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--ink-faint); padding-bottom: 6px; }
+  .tagline { font-family: var(--serif); font-style: italic; font-size: clamp(15px, 2.4vw, 19px);
+    color: var(--ink-soft); max-width: 52ch; text-wrap: balance; margin-top: 8px; }
+  .mast-glyphs { display: flex; gap: 14px; align-items: center; }
+
+  .g { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-soft);
+    font-family: var(--mono); letter-spacing: .02em; white-space: nowrap; }
+  .g-obj::before { content: ""; width: 26px; height: 16px; border: 2px solid var(--object);
+    border-radius: 2px; display: inline-block; }
+  .g-proc::before { content: ""; width: 26px; height: 16px; border: 2px solid var(--process);
+    border-radius: 999px; display: inline-block; }
+  .g-state::before { content: ""; width: 22px; height: 13px; border: 1.5px solid #7d7a2f;
+    border-radius: 999px; display: inline-block; background: rgba(125,122,47,.10); }
+
+  .grid { column-gap: 22px; margin-top: 30px; columns: 320px 3; }
+  .card { break-inside: avoid; background: var(--card); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 18px 18px 16px; margin: 0 0 22px; box-shadow: var(--shadow);
+    position: relative; }
+  .card::before { content: ""; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px;
+    background: var(--edge, var(--ink-faint)); border-radius: 3px; }
+  .card.obj { --edge: var(--object); }
+  .card.proc { --edge: var(--process); }
+  .card.key { --edge: var(--key); }
+  .eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ink-faint); margin: 0 0 6px; }
+  .card h2 { font-family: var(--serif); font-size: 20px; font-weight: 700; letter-spacing: -.01em;
+    margin: 0 0 10px; line-height: 1.15; text-wrap: balance; }
+  .card p { margin: 0 0 9px; font-size: 14px; color: var(--ink-soft); }
+  .card p strong { color: var(--ink); font-weight: 650; }
+  ul.tight { margin: 4px 0 2px; padding: 0; list-style: none; }
+  ul.tight li { position: relative; padding: 3px 0 3px 16px; font-size: 13.5px; color: var(--ink-soft); }
+  ul.tight li::before { content: "›"; position: absolute; left: 0; color: var(--edge, var(--ink-faint));
+    font-weight: 700; }
+  ul.tight li strong { color: var(--ink); font-weight: 650; }
+  ul.tight li em { color: var(--process); font-style: italic; }
+  ul.tight li b.o { color: var(--object); font-weight: 650; }
+
+  code { font-family: var(--mono); font-size: 12.5px; background: var(--paper-2); border-radius: 3px;
+    padding: 1px 5px; color: var(--ink); }
+  .opl { font-family: var(--mono); font-size: 12px; background: var(--paper-2); border-radius: 4px;
+    padding: 8px 10px; margin: 6px 0 9px; color: var(--ink); line-height: 1.55; overflow-x: auto; }
+  .opl b { color: var(--object); font-weight: 650; }
+  .opl i { color: var(--process); }
+  .opl u { text-decoration: none; color: #7d7a2f; }
+
+  table.keys { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 2px; }
+  table.keys td { padding: 4px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  table.keys td:first-child { font-family: var(--mono); font-size: 12px; white-space: nowrap; padding-right: 10px; }
+  table.keys td:last-child { text-align: right; color: var(--ink-soft); }
+  table.keys tr:last-child td { border-bottom: none; }
+
+  footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .wrap { max-width: none; padding: 0; }
+    .card { box-shadow: none; break-inside: avoid; border-color: #bbb; }
+    .grid { columns: 260px 2; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <div class="mark">
+        <span class="logo">OPM<span class="dot">.</span></span>
+        <span class="sheet-name">puro · agnóstico</span>
+      </div>
+      <p class="tagline">Object-Process Methodology (ISO 19450) sin herramienta de por medio: dos cosas, seis familias de enlace, un método. El manual completo: <code>docs/manual-opm-puro.md</code>.</p>
+    </div>
+    <div class="mast-glyphs">
+      <span class="g g-obj">objeto</span>
+      <span class="g g-proc">proceso</span>
+      <span class="g g-state">estado</span>
+    </div>
+  </header>
+
+  <main class="grid">
+
+    <section class="card obj">
+      <p class="eyebrow">Ontología mínima</p>
+      <h2>Dos cosas, y nada más</h2>
+      <ul class="tight">
+        <li><span class="g g-obj"></span> <strong>Objeto</strong> — persiste; existe física o informacionalmente.</li>
+        <li><span class="g g-proc"></span> <strong>Proceso</strong> — ocurre; transforma ≥ 1 objeto; duración positiva.</li>
+        <li><span class="g g-state"></span> <strong>Estado</strong> — situación de un objeto; vive <strong>dentro</strong> de él; atómico.</li>
+      </ul>
+      <p><strong>Prueba objeto-proceso:</strong> ¿ocurre en el tiempo? ¿su nombre denota acción? ¿transforma algún objeto? Sin transformación, no hay proceso.</p>
+      <p>No existen «actores», «entidades» ni «componentes»: todo es objeto, proceso, estado o enlace.</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Propiedades genéricas</p>
+      <h2>Las 8 combinaciones visuales</h2>
+      <table class="keys">
+        <tr><td>forma</td><td>rectángulo=objeto · elipse=proceso</td></tr>
+        <tr><td>contorno</td><td>sólido=sistémico · punteado=ambiental</td></tr>
+        <tr><td>sombra</td><td>con sombra=físico · plano=informacional</td></tr>
+      </table>
+      <p style="margin-top:8px"><strong>Defaults:</strong> informacional + sistémico. El <strong>color es informativo, no normativo</strong>: la semántica viaja en forma, contorno, sombra y topología.</p>
+      <p>Cosa mixta físico-informacional → se clasifica <strong>física</strong>.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Estados</p>
+      <h2>«Puede estar» y designaciones</h2>
+      <div class="opl"><b>Lavavajillas</b> puede estar <u>vacío</u> o <u>cargado</u>.<br>Estado <u>vacío</u> de <b>Lavavajillas</b> es inicial y final.</div>
+      <ul class="tight">
+        <li><strong>inicial</strong> (borde grueso, 0..*) · <strong>final</strong> (doble borde, 0..*)</li>
+        <li><strong>por defecto</strong> (flecha diagonal, 0..1) · <strong>Current declarado</strong> (pin, 0..1)</li>
+        <li>Inicial+final a la vez = patrón <strong>correcto</strong> para ciclos. No duplicar el estado.</li>
+        <li>Sin estados no hay <em>efecto</em>: solo crearse o consumirse.</li>
+        <li><strong>No hay estados de proceso</strong> → descomponer en <em>Iniciar · Procesar · Finalizar</em>.</li>
+      </ul>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Enlaces · transformadores</p>
+      <h2>Consumo · resultado · efecto</h2>
+      <div class="opl"><i>Procesar</i> consume <b>Insumo</b>.<br><i>Procesar</i> genera <b>Producto</b>.<br><i>Procesar</i> cambia <b>Pieza</b> de <u>cruda</u> a <u>lista</u>.</div>
+      <ul class="tight">
+        <li>Punta cerrada. Consumo/resultado cambian <strong>existencia</strong>; efecto, solo estado.</li>
+        <li>El consumido desaparece <strong>al inicio</strong>; el resultante nace <strong>al final</strong>.</li>
+        <li>Afectado en transición = estado indeterminado, indisponible.</li>
+        <li>Resultado <strong>jamás</strong> al estado inicial (al rectángulo o a otro estado).</li>
+      </ul>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Enlaces · habilitadores</p>
+      <h2>Agente y instrumento</h2>
+      <div class="opl"><b>Cocinero</b> maneja <i>Preparar Empanadas</i>.<br><i>Preparar Empanadas</i> requiere <b>Horno</b>.</div>
+      <ul class="tight">
+        <li>Piruleta <strong>negra</strong> = agente · piruleta <strong>blanca</strong> = instrumento.</li>
+        <li><strong>Regla dura:</strong> agente = solo humanos. Robots, software e IA = <strong>instrumento</strong>.</li>
+        <li>Habilita sin ser transformado; si desaparece, el proceso se detiene.</li>
+        <li>Si el desgaste importa → reclasificar como afectado + proceso de mantenimiento.</li>
+      </ul>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Control</p>
+      <h2>Evento, condición, espera</h2>
+      <table class="keys">
+        <tr><td>(nada)</td><td>falta el objeto → el proceso <strong>espera</strong></td></tr>
+        <tr><td>c</td><td>falta → <strong>se omite</strong> (bypass) y el control sigue</td></tr>
+        <tr><td>e</td><td>el objeto <strong>dispara</strong>; el evento se pierde al evaluar</td></tr>
+      </table>
+      <p style="margin-top:8px"><strong>Asimetría clave:</strong> el <em>resultado</em> no admite <code>e</code> ni <code>c</code> — lo que aún no existe no puede disparar ni condicionar.</p>
+      <p>Varios eventos = OR · varias condiciones = AND para ejecutar, OR para omitir. La omisión precede a la espera.</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Control temporal</p>
+      <h2>Excepción e invocación</h2>
+      <div class="opl"><i>Manejo</i> ocurre si duración de <i>Fuente</i> excede 60 min.<br><i>Detectar Objeto</i> invoca <i>Evaluar Amenaza</i>.</div>
+      <ul class="tight">
+        <li><code>/</code> sobretiempo · <code>//</code> subtiempo (= detector de omisión).</li>
+        <li>Duración: (mín, esperada, máx) + distribución opcional.</li>
+        <li><strong>Rayo</strong> proceso→proceso: solo para bucles, saltos y cruces de OPD.</li>
+        <li>Entre subprocesos adyacentes el orden vertical ya invoca: rayo = doble vara.</li>
+        <li>Objeto creado y consumido sin observarse → suprimirlo, usar invocación.</li>
+      </ul>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Enlaces · estructurales</p>
+      <h2>Los cuatro triángulos</h2>
+      <table class="keys">
+        <tr><td>▲ relleno</td><td><strong>consta de</strong> (todo→partes)</td></tr>
+        <tr><td>▲ c/triángulo</td><td><strong>exhibe</strong> (exhibidor→rasgos)</td></tr>
+        <tr><td>△ vacío</td><td><strong>son / es un</strong> (general→especializ.)</td></tr>
+        <tr><td>▲ c/círculo</td><td><strong>es una instancia de</strong> (clase→instancias)</td></tr>
+      </table>
+      <p style="margin-top:8px">Vértice al refinable. Herencia <strong>total</strong> (partes, rasgos, enlaces); lo heredado no se redibuja. Solo exhibición mezcla objeto↔proceso.</p>
+      <p>Colección incompleta: barra bajo el triángulo — «…y al menos otra parte».</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Estructurales · etiquetados</p>
+      <h2>Relaciones del modelador</h2>
+      <div class="opl"><b>Perfil</b> representa <b>Usuario</b>.<br><b>Origen</b> se relaciona con <b>Destino</b>.</div>
+      <ul class="tight">
+        <li>Etiqueta breve en minúscula, hace de verbo. Punta abierta; arpones si bi/recíproco.</li>
+        <li>Solo objeto↔objeto o proceso↔proceso.</li>
+        <li><strong>puede estar</strong> = estados · <strong>puede ser</strong> = especialización XOR. Dos verbos, dos ontologías.</li>
+      </ul>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Lógica</p>
+      <h2>AND · XOR · OR · Pr</h2>
+      <table class="keys">
+        <tr><td>AND</td><td>enlaces separados, sin arco (default)</td></tr>
+        <tr><td>XOR</td><td>arco simple — «exactamente uno de»</td></tr>
+        <tr><td>OR</td><td>arco doble — «al menos uno de»</td></tr>
+        <tr><td>Pr=p</td><td>abanico probabilístico: XOR, suma = 1</td></tr>
+      </table>
+      <p style="margin-top:8px">Sin pesos conocidos → declarar «probabilístico sin pesos», no inventar números. NOT no existe: estados <code>existente/no-existente</code>. «2 de 3 llaves» = m-de-f junto al arco.</p>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Complejidad</p>
+      <h2>Refinar y abstraer</h2>
+      <table class="keys">
+        <tr><td>estados</td><td>expresión ↔ supresión</td></tr>
+        <tr><td>estructura</td><td>despliegue ↔ plegado (asíncrono)</td></tr>
+        <tr><td>comportamiento</td><td>descomposición ↔ recomposición (síncrono)</td></tr>
+        <tr><td>inter-modelo</td><td>referencia a sub-modelo ↔ desconexión</td></tr>
+      </table>
+      <ul class="tight" style="margin-top:8px">
+        <li>Tiempo <strong>vertical</strong>: arriba primero; misma altura = paralelo.</li>
+        <li>Siempre ≥ 2 hijos. Contorno grueso = «refinado en otro OPD».</li>
+        <li>Al descomponer: consumo → subproceso que consume (jamás al contorno); efecto de-a → <strong>escindir</strong> (de `s1` temprano, a `s2` tardío).</li>
+        <li><code>SDx.y</code> = navegación; la identidad es el id persistente.</li>
+        <li>20–25 cosas máx por OPD; más = refinar o crear vista.</li>
+      </ul>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Método</p>
+      <h2>La función es la semilla</h2>
+      <ul class="tight">
+        <li><strong>0.</strong> Clasificar: artificial · natural (sin propósito ni agentes) · social · socio-técnico.</li>
+        <li><strong>1.</strong> Proceso principal (deverbal) → <strong>2.</strong> beneficiario → <strong>3.</strong> atributo de valor con estados entrada/salida.</li>
+        <li><strong>4–9.</strong> Objeto proveedor de beneficio · agentes · sistema+exhibición · instrumentos · transformados · entorno.</li>
+        <li><strong>10.</strong> Ocurrencia del problema (espejo del propósito) → <strong>11.</strong> compuerta PASA/FALLA.</li>
+      </ul>
+      <div class="opl"><i>Preparar Empanadas</i> cambia <b>Nivel de Satisfacción</b> de <u>insatisfecho</u> a <u>satisfecho</u>.</div>
+      <p>Cada etapa cierra con un <strong>hecho decidido</strong>, no con «entendimiento».</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Nombres</p>
+      <h2>Léxico canónico</h2>
+      <table class="keys">
+        <tr><td>objeto</td><td>sustantivo singular, Capitalizado</td></tr>
+        <tr><td>plural</td><td><strong>Conjunto de</strong> X · <strong>Grupo de</strong> X (humanos)</td></tr>
+        <tr><td>proceso</td><td>deverbal: <em>Preparar Torta</em> · <em>Verificación de Datos</em></td></tr>
+        <tr><td>estado</td><td>minúsculas: <code>vacío</code>, <code>pre-cortada</code></td></tr>
+      </table>
+      <p style="margin-top:8px">Tipografía OPL: <strong>objeto</strong> negrita · <em>proceso</em> cursiva · <code>estado</code> mono. Un nombre canónico por cosa: sinónimos se resuelven, homónimos se separan.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">OPL-ES</p>
+      <h2>Verbos fijos</h2>
+      <table class="keys">
+        <tr><td>consume · genera · afecta</td><td>transformadores</td></tr>
+        <tr><td>cambia … de … a</td><td>efecto con estados</td></tr>
+        <tr><td>maneja · requiere</td><td>agente · instrumento</td></tr>
+        <tr><td>inicia · invoca · ocurre</td><td>evento · invocación · condición</td></tr>
+        <tr><td>consta de · exhibe</td><td>agregación · caracterización</td></tr>
+        <tr><td>son / es un · es una instancia de</td><td>especialización · instanciación</td></tr>
+        <tr><td>puede estar · puede ser</td><td>estados · especialización XOR</td></tr>
+        <tr><td>se descompone en · se despliega en</td><td>refinamiento</td></tr>
+      </table>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Anti-patrones</p>
+      <h2>Errores con nombre</h2>
+      <ul class="tight">
+        <li>Estados de proceso → descomponer en subprocesos.</li>
+        <li>Agente a software/robot/IA → instrumento.</li>
+        <li><code>e</code>/<code>c</code> sobre resultado → mover el control a la entrada.</li>
+        <li>Consumo/resultado al contorno del descompuesto → al subproceso específico.</li>
+        <li>Efecto de-a sin escindir al descomponer → par entrada/salida.</li>
+        <li>Duplicar estados para el ciclo → un estado inicial+final.</li>
+        <li>Refinamiento de 1 hijo → ≥ 2, o eliminar.</li>
+        <li>Proceso «Sostener» sin esfuerzo → estructural etiquetado.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Lente</p>
+      <h2>52 tensiones, 3 capas</h2>
+      <p>Un formalismo es un sistema de <strong>resoluciones congeladas</strong> de las 24 tensiones sustantivas: OPM ya decidió Entidad↔Evento (objeto/proceso), Todo↔Partes (agregación), AND↔OR↔XOR (abanicos), Visual↔Textual (bimodal: ambos).</p>
+      <p>Las 16 de <strong>praxis</strong> (¿incluir?, ¿cuándo parar?) y las 12 de <strong>contexto</strong> las navegas tú, nombrándolas. El contexto modula profundidad, <strong>jamás la corrección</strong>.</p>
+      <p>Mapa completo: manual, Apéndice D · kb <code>tensiones-modelamiento</code>.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Bimodalidad</p>
+      <h2>Un hecho, dos proyecciones</h2>
+      <p>OPD (diagrama) y OPL (texto) <strong>no son dos modelos</strong>: cada edición gráfica regenera el texto y viceversa. Toda forma visual persistente emite su oración; toda oración reconstruye su constructo.</p>
+      <div class="opl"><b>Receta</b> es ambiental.<br><b>Receta</b> se relaciona con <i>Preparar Empanadas</i>.</div>
+      <p>El OPL se lee en lenguaje natural — y tiene gramática formal (EBNF). Expertos de dominio auditan el modelo sin saber «leer diagramas».</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>OPM puro · ISO 19450 · cheat sheet agnóstico de herramienta</span>
+    <span>paquete educativo — manual: docs/manual-opm-puro.md</span>
+  </footer>
+</div>
+
+</body>
+</html>
