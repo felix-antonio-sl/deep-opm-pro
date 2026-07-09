@@ -353,10 +353,12 @@ fail-closed):
   forzar); a un modelo con **sello** exige el bundle del compilador (carril por procedencia);
   un push **sin delta** no crea revisión.
 
-Reglas del puente (skill v1.12.0): pull antes de push · nunca push sin validación local
-verde · respetar el 409 · sobre base no ratificada, confirmar antes de cerrar el loop ·
-nota con procedencia. En la mesa, el chip **«Revisión nueva»** avisa cuando el agente
-empujó. El puente W6.0 por portapapeles queda como **fallback** cuando no hay acceso al host.
+Reglas del puente (skill v1.13.0, Regla Dura #29): pull antes de push · nunca push sin
+validación local verde · respetar el 409 (re-pull, jamás forzar) · sobre base no
+ratificada, confirmar antes de cerrar el loop · nota con procedencia (`agente·<nota>`) ·
+crear nuevo declara `--especie` (los bosquejos nacen apunte). En la mesa, el chip
+**«Revisión nueva»** avisa cuando el agente empujó. El puente W6.0 por portapapeles
+queda como **fallback** cuando no hay acceso al host.
 
 ---
 
@@ -544,3 +546,4 @@ puentes: se resuelven por su ubicación canónica en KORA (`artefactos/conocimie
 | 2026-07-06 | Doctrina canonizada (despacho HITL custodio): `spec-forja-opd-es` v1.2.0 amplía R-OPD-ROT-6 (estereotipos opforja) y agrega R-OPD-ROT-9 (Anclaje a Pieza / Centinela; edición local de esencia legislada laxa). El manual pasa de citar «propuesta vigente» a citar las reglas canónicas. Skill `modelamiento-opm` v1.11.0 (D3): versiones vivas adjuntas + «Límites de la mesa». |
 | 2026-07-07 | Bottom-up de primera clase canonizado: `metodologia-forja-opm-es` v1.6.0 (A1.5 dos arranques hermanos) + `spec-forja-opd-es` v1.3.0 (§10.4 R-OPD-REF-20 Taller: OPD suelto, verbo «adoptar») + skill v1.12.0 (§Régimen bosquejo). §2 absorbe A1.5 y distingue los dos ejes apunte(cierre)/bosquejo(arranque); §4 cruza-referencia el arranque bottom-up. |
 | 2026-07-08 | Sincronía manual↔SSOT (auditoría de deriva). §A.6 nueva: **puente directo mesa↔skill** (`mesa pull`/`push`/`modelos` + token de agente), desplegado con la Ola 1 A′-motor — W6.0 por portapapeles deja de ser el único puente. Cita de versión §3 corregida v1.2.0→v1.3.0. Cortes desplegados 2026-07-08 (bundle `index-DUsuUohB.js`): apuntes «todo nace apunte» + Taller + gestor de dos zonas, A′-vitrina (chip «Revisión nueva»), atajo R híbrido (enlace libre). |
+| 2026-07-09 | Skill `modelamiento-opm` **v1.13.0** — la skill porta el puente directo (Petición 1 de la solicitud 2026-07-06 RESUELTA): §Puente directo (pull=contexto W6.0, push con disciplina) + Regla Dura #29 (no-clobber) + capacidades al día + W6.0 fallback; §A.6 de este manual cita ahora la versión correcta. Cordón re-pineado v1.13.0. Acta: `docs/solicitudes-upstream/2026-07-09-auditoria-integral-skill-modelamiento-opm.md`. |
