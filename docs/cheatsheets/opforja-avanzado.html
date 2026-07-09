@@ -105,9 +105,10 @@
   .states { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 2px; }
   .st { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--ink-soft); }
   .glyph { font-family: var(--mono); width: 22px; text-align: center; font-weight: 700; }
-  .st.div .glyph { color: var(--key); }
-  .st.unk .glyph { color: var(--ink-faint); }
-  .st.ok .glyph { color: var(--object); }
+  .st.div .glyph { color: var(--ink); }
+  .st.unk .glyph { color: var(--ink-soft); }
+  .st.ok .glyph { color: var(--ink-faint); }
+  .st .glyph svg { display: block; margin: 0 auto; }
 
   footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule);
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
@@ -202,9 +203,9 @@
       <div class="states">
         <div class="st div"><span class="glyph">⟳</span> <span><strong>divergente</strong> — la Pieza cambió; revisa.</span></div>
         <div class="st unk"><span class="glyph">?</span> <span><strong>no-resuelto</strong> — la biblioteca no se pudo leer.</span></div>
-        <div class="st ok"><span class="glyph">⚓</span> <span><strong>al día</strong> — sincronizado con la fuente.</span></div>
+        <div class="st ok"><span class="glyph"><svg width="14" height="14" viewBox="0 0 23 23" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="11.5" cy="6.5" r="1.3"/><path d="M11.5 8v7.7M8.5 9.9h6M7.7 12.1Q7.7 15.9 11.5 15.9Q15.3 15.9 15.3 12.1"/></svg></span> <span><strong>al día</strong> — marca de amarre (peso mínimo).</span></div>
       </div>
-      <p><strong>Re-sincronizar</strong> adopta la versión viva; <strong>Soltar</strong> desancla (irreversible).</p>
+      <p>Los tres van en <strong>tinta</strong>, distinguidos por peso; crimson prohibido. <strong>Re-sincronizar</strong> adopta la versión viva; <strong>Soltar</strong> desancla (irreversible).</p>
     </section>
 
     <section class="card proc">
