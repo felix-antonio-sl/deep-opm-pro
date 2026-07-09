@@ -395,9 +395,9 @@ triaje sino la salida. Hacerlo visible es la decisión. Y la espera se **descomp
 ocupa la cama esperando salir) — dos estados, dos dueños, dos intervenciones.
 
 **Realización mínima.** **Paciente** puede estar `en atención de urgencia`,
-`admitido sin cama`, `hospitalizado`, `en espera de egreso`. *Asignación de cama*
-cambia **Paciente** de `admitido sin cama` a `hospitalizado`. *Egreso hospitalario*
-cambia **Paciente** de `en espera de egreso` a `egresado`.
+`admitido sin cama`, `hospitalizado`, `en espera de egreso`, `egresado`.
+*Asignación de cama* cambia **Paciente** de `admitido sin cama` a `hospitalizado`.
+*Egreso hospitalario* cambia **Paciente** de `en espera de egreso` a `egresado`.
 
 **Cómo se rompe.** El modelo declara instantáneo lo que dura horas: el gestor
 optimiza el triaje (donde no está el problema), la señal centinela no existe en el
