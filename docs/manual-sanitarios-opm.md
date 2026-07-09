@@ -118,9 +118,10 @@ responde dos preguntas de lentes distintas son dos OPDs.
 
 ## 2. La ficha del modelo
 
-Se llena **antes del primer trazo** (o al graduar un apunte) y **vive con el
-modelo** — en la descripción del modelo en la mesa o en la cabecera del proto —
-para que el cierre se juzgue contra ella y no contra el recuerdo.
+En la mesa vigente todo modelo **nace apunte**; la ficha se llena **a más tardar
+al graduar** — antes del primer trazo cuando la pregunta ya está clara — y **vive
+con el modelo** (en la descripción del modelo en la mesa o en la cabecera del
+proto) para que el cierre se juzgue contra ella y no contra el recuerdo.
 
 ```markdown
 ### Ficha del modelo
@@ -219,8 +220,10 @@ confundirse con ella.
 
 **Realización mínima.** **Paciente** exhibe **Condición clínica** y **Situación
 asistencial**. *Compensación* cambia **Condición clínica** de `descompensada` a
-`compensada`; *Egreso hospitalario* cambia **Situación asistencial** de `ingresado`
-a `egresado`, condicionado a **Condición clínica** en `compensada`.
+`compensada`. *Egreso hospitalario* cambia **Situación asistencial** de `ingresado`
+a `egresado`. *Egreso hospitalario* ocurre si **Condición clínica** está en
+`compensada`, de lo contrario *Egreso hospitalario* se omite (toda condición
+declara sus dos ramas — R-COND-RAMA-1).
 
 **Cómo se rompe.** El eje mezclado legaliza transiciones absurdas (alta de un
 paciente `grave`), la simulación conceptual recorre trayectorias sin sentido y los
@@ -243,10 +246,10 @@ imposibilitando contar atenciones.
 estructuralmente a su paciente. La multimorbilidad vive en la persona; el motivo de
 consulta, en el episodio.
 
-**Realización mínima.** *Admisión de urgencia* genera **Episodio de urgencia**;
-el **Episodio de urgencia** se enlaza estructuralmente a su **Paciente**; *Alta del
-episodio* cambia **Episodio de urgencia** de `abierto` a `cerrado` — el **Paciente**
-sigue existiendo.
+**Realización mínima.** *Admisión de urgencia* genera **Episodio de urgencia**.
+**Episodio de urgencia** pertenece a **Paciente** (enlace estructural etiquetado;
+la etiqueta es decisión declarada). *Alta del episodio* cambia **Episodio de
+urgencia** de `abierto` a `cerrado` — el **Paciente** sigue existiendo.
 
 **Cómo se rompe.** Personas duplicadas rompen la trayectoria (nadie puede seguir la
 multimorbilidad); o los conteos mienten — el indicador cuenta personas cuando la
@@ -266,8 +269,8 @@ responsabilidad, no afiliación — §A2.2); y el **cuidador es agente**: en la
 hospitalización domiciliaria y en salud mental su acción es constitutiva del
 cuidado (coproducción), no un recurso del equipo.
 
-**Realización mínima.** **Equipo de UHD** maneja *Visita domiciliaria*;
-**Cuidador** maneja *Cuidado entre visitas*; *Cuidado entre visitas* requiere
+**Realización mínima.** **Equipo de UHD** maneja *Visita domiciliaria*.
+**Cuidador** maneja *Cuidado entre visitas*. *Cuidado entre visitas* requiere
 **Pauta de cuidados** (eso sí es instrumento).
 
 **Cómo se rompe.** Responsabilidad invisible: nadie puede leer del modelo quién
@@ -292,10 +295,11 @@ cuyo estado **condiciona o dispara** los procesos siguientes. La contención es
 memoria. Si dudas de qué exige la norma: **no lo decides tú** — ancla
 `[RATIFICAR]` y sigue (P22).
 
-**Realización mínima.** **Paciente** maneja *Decisión informada*; *Decisión
-informada* genera **Consentimiento** (`otorgado`, `rechazado`); **Consentimiento**
-en `otorgado` inicia *Tratamiento*; el rechazo dispara *Reformulación del plan*, no
-un callejón sin salida.
+**Realización mínima.** **Paciente** maneja *Decisión informada*. *Decisión
+informada* genera **Consentimiento**. **Consentimiento** puede estar `otorgado` o
+`rechazado`. **Consentimiento** en `otorgado` inicia *Tratamiento*.
+**Consentimiento** en `rechazado` inicia *Reformulación del plan* — no un callejón
+sin salida.
 
 **Cómo se rompe.** Un modelo que «funciona» pisoteando la autoridad del paciente es
 falso en el mundo aunque valide en la mesa (Verificar↔Validar); en salud mental, una
@@ -320,7 +324,7 @@ bloquear, preparar) **transforman esos estados** — sin transformee no hay proc
 indicador **derivado** (P10), no la cosa.
 
 **Realización mínima.** *Asignación de cama* cambia **Cama** de `libre` a
-`ocupada`; **Gestor de camas** maneja *Asignación de cama*; *Preparación de cama*
+`ocupada`. **Gestor de camas** maneja *Asignación de cama*. *Preparación de cama*
 cambia **Cama** de `en aseo` a `libre`.
 
 **Cómo se rompe.** Sin estados no hay dónde vivan ocupación ni estada (el indicador
@@ -342,9 +346,9 @@ insumo **se consumen** (enlace de consumo); un recurso consumible no clonable pu
 designarse lineal (`urn:fxsl:kb:reglas-opm-estrictas-es` R-CAT-LIN-1), y sus
 conflictos de uso se advierten (R-CAT-LIN-2).
 
-**Realización mínima.** *Transfusión* consume **Unidad de glóbulos rojos**;
-*Preparación de cama* cambia **Cama** de `en aseo` a `libre` — dos física distintas,
-dos firmas distintas.
+**Realización mínima.** *Transfusión* consume **Unidad de glóbulos rojos**.
+*Preparación de cama* cambia **Cama** de `en aseo` a `libre`. Dos físicas
+distintas, dos firmas distintas.
 
 **Cómo se rompe.** Capacidad fantasma: camas que «reaparecen» sin proceso de aseo
 esconden el cuello real (que era el aseo, no la dotación); o abastecimiento
@@ -364,9 +368,10 @@ sanitaria es priorizada, no FIFO (garantías primero, severidad primero, tiempo 
 espera como criterio) — entonces la lista es un objeto informacional propio, y
 *Priorización* es un proceso que la transforma. Ahí viven la equidad y la garantía.
 
-**Realización mínima.** **Lista de espera de especialidad** (objeto informacional)
-con estado `sin priorizar` / `priorizada`; *Priorización* cambia **Lista de espera
-de especialidad** de `sin priorizar` a `priorizada`; **Paciente** puede estar
+**Realización mínima.** **Lista de espera de especialidad** es un objeto
+informacional y sistémico. **Lista de espera de especialidad** puede estar
+`sin priorizar` o `priorizada`. *Priorización* cambia **Lista de espera de
+especialidad** de `sin priorizar` a `priorizada`. **Paciente** puede estar
 `en espera`, `citado`, `atendido`.
 
 **Cómo se rompe.** La caja mágica esconde la priorización: imposible mostrar al
@@ -390,8 +395,8 @@ triaje sino la salida. Hacerlo visible es la decisión. Y la espera se **descomp
 ocupa la cama esperando salir) — dos estados, dos dueños, dos intervenciones.
 
 **Realización mínima.** **Paciente** puede estar `en atención de urgencia`,
-`admitido sin cama`, `hospitalizado`, `en espera de egreso`; *Asignación de cama*
-cambia **Paciente** de `admitido sin cama` a `hospitalizado`; *Egreso hospitalario*
+`admitido sin cama`, `hospitalizado`, `en espera de egreso`. *Asignación de cama*
+cambia **Paciente** de `admitido sin cama` a `hospitalizado`. *Egreso hospitalario*
 cambia **Paciente** de `en espera de egreso` a `egresado`.
 
 **Cómo se rompe.** El modelo declara instantáneo lo que dura horas: el gestor
@@ -412,8 +417,9 @@ un umbral obliga, eso es una **norma anclada** (P20, P22), no el indicador. Y la
 mesa captura la **estructura** del indicador (de qué estados y conteos se deriva);
 el número se mide fuera (§9).
 
-**Realización mínima.** **Índice ocupacional** (objeto informacional): fórmula =
-camas `ocupada` / camas totales; polaridad = óptimo interior; procedencia = registro
+**Realización mínima.** **Índice ocupacional** es un objeto informacional. Su
+ficha A7: fórmula = camas en `ocupada` / camas totales; polaridad = óptimo
+interior; procedencia = registro
 de gestión de camas. Valor ilustrativo de Ranquil: `0,92` — utilería, no benchmark;
 los umbrales reales del sector viven en
 `urn:salud:kb:management-engineering-ext-capacidad` y se citan, no se copian.
@@ -440,7 +446,8 @@ y habilita cruza el borde (§A0.4). Mover la frontera es re-decidir, no arrastra
 cajas.
 
 **Realización mínima.** En el modelo de la UHD de Ranquil: **Equipo de UHD** y
-**Cupo de UHD** son sistémicos; **CESFAM El Espino** es ambiental; la
+**Cupo de UHD** son sistémicos; **CESFAM El Espino** es un objeto físico y
+ambiental (la afiliación se declara con la forma AESS, R-ENT-3); la
 **Contrarreferencia** cruza la frontera — existe precisamente para eso (P12).
 
 **Cómo se rompe.** Todo-adentro → mega-diagrama inmantenible (la falla c de §1);
@@ -463,9 +470,10 @@ composición no duplica entidades ni deja referencias colgantes
 
 **Realización mínima.** En el CESFAM: *Derivación a especialidad* genera
 **Interconsulta**. En el hospital: *Atención de especialidad* requiere
-**Interconsulta** y genera **Contrarreferencia**. De vuelta en el CESFAM:
-*Continuidad en APS* requiere **Contrarreferencia**. Tres procesos, dos modelos,
-una interfaz.
+**Interconsulta**. *Atención de especialidad* genera **Contrarreferencia** (una
+oración por hecho: el and-fan solo agrupa enlaces del mismo tipo). De vuelta en el
+CESFAM: *Continuidad en APS* requiere **Contrarreferencia**. Tres procesos, dos
+modelos, una interfaz.
 
 **Cómo se rompe.** La vuelta no existe: una **Contrarreferencia** que nadie consume
 es el hueco estructural de la **fragmentación** — el paciente se pierde justo donde
@@ -487,9 +495,12 @@ retiradas del ecosistema precisamente porque perdían enlaces en silencio (skill
 riesgo, `urn:salud:kb:health-systems-science-operativa`) es el mismo corte a otra
 escala: especializar la población en estratos (P18).
 
-**Realización mínima.** *Triaje* cambia **Paciente** de `sin clasificar` a `C1` |
-`C2` | `C3` | `C4` | `C5` (abanico declarado); **Enfermera de triaje** maneja
-*Triaje*; **Paciente** en `C1` inicia *Reanimación inmediata*.
+**Realización mínima.** **Paciente** exhibe **Categoría de triaje**. **Categoría
+de triaje** puede estar `sin clasificar`, `C1`, `C2`, `C3`, `C4`, `C5`. *Triaje*
+cambia **Categoría de triaje** de `sin clasificar` a `C1` (una oración por rama
+del abanico multi-destino; la correspondencia estado→rama es explícita, jamás un
+«según» implícito). **Enfermera de triaje** maneja *Triaje*. **Categoría de
+triaje** en `C1` inicia *Reanimación inmediata*.
 
 **Cómo se rompe.** La cadena de IFs esconde el eje (nadie ve la distribución de la
 demanda); la correspondencia implícita pierde ramas sin ruido; y el recurso deja de
@@ -537,9 +548,10 @@ domiciliario es capacidad con estados (P6 aplicada); el ingreso exige condicione
 habilitantes (domicilio apto, cuidador — que es agente, P4); y el **escalamiento**
 (retorno al hospital) es un proceso con evento disparador, no una esperanza.
 
-**Realización mínima.** **Cupo de UHD** puede estar `libre`, `ocupado`; *Ingreso a
-UHD* cambia **Paciente** de `hospitalizado` a `hospitalizado en domicilio`,
-condicionado a **Evaluación de domicilio** en `apta`; **Paciente** en
+**Realización mínima.** **Cupo de UHD** puede estar `libre`, `ocupado`. *Ingreso a
+UHD* cambia **Paciente** de `hospitalizado` a `hospitalizado en domicilio`.
+*Ingreso a UHD* ocurre si **Evaluación de domicilio** está en `apta`, de lo
+contrario *Ingreso a UHD* se omite. **Paciente** en
 `descompensación en domicilio` inicia *Retorno al hospital*.
 
 **Cómo se rompe.** Sin ruta de retorno modelada, la válvula es una trampa: el
@@ -604,9 +616,10 @@ rediseña en la escala correcta o queda como `[RATIFICAR]` — el agente modelad
 eleva siempre (P23).
 
 **Realización mínima.** **Población inscrita de El Espino** exhibe **Cobertura de
-control cardiovascular** (`bajo meta`, `en meta`); *Rescate de inasistentes* cambia
-**Cobertura de control cardiovascular** de `bajo meta` a `en meta`; **Equipo de
-sector** maneja *Rescate de inasistentes*.
+control cardiovascular**. **Cobertura de control cardiovascular** puede estar
+`bajo meta` o `en meta`. *Rescate de inasistentes* cambia **Cobertura de control
+cardiovascular** de `bajo meta` a `en meta`. **Equipo de sector** maneja *Rescate
+de inasistentes*.
 
 **Cómo se rompe.** El modelo poblacional hereda estados clínicos individuales que
 no significan nada en el agregado; o el gestor lee el indicador de red como
@@ -627,10 +640,13 @@ objeto informacional propio (P10 aplicada dos veces más una resta), con su
 polaridad (`menos brecha es mejor`). El promedio esconde la brecha por
 construcción; el estrato la exhibe.
 
-**Realización mínima.** **Población inscrita** puede ser **Población urbana** y
-**Población rural**; **Brecha de cobertura** (objeto informacional): fórmula =
-cobertura urbana − cobertura rural; polaridad = menos es mejor; procedencia =
-registros de sector. Valores de Ranquil: utilería rotulada.
+**Realización mínima.** **Población inscrita** puede ser **Población urbana** o
+**Población rural** («puede ser» es especialización XOR y va con «o»; si los
+estratos no fueran excluyentes, la forma es «**Población urbana** y **Población
+rural** son **Población inscrita**»). **Brecha de cobertura** es un objeto
+informacional. Su ficha A7: fórmula = cobertura urbana − cobertura rural;
+polaridad = menos es mejor; procedencia = registros de sector. Valores de Ranquil:
+utilería rotulada.
 
 **Cómo se rompe.** La inequidad es invisible por construcción — no hay dónde
 mirarla; la meta promedio se cumple mientras el estrato rural cae, y el modelo
@@ -653,10 +669,12 @@ cerrarse el brote); el **sistema de vigilancia** que lo detecta es instrumento (
 si es de preparación, su revisión pregunta por fidelidad y obligación, no por
 consumo).
 
-**Realización mínima.** *Circulación viral invernal* (proceso ambiental) cambia
-**Población** de `endemia basal` a `sobre umbral`; **Población** en `sobre umbral`
-inicia *Activación del plan de invierno*; *Activación del plan de invierno* afecta
-**Dotación de camas** (`basal` → `reforzada`).
+**Realización mínima.** *Circulación viral invernal* es un proceso físico y
+ambiental. *Circulación viral invernal* cambia **Población** de `endemia basal` a
+`sobre umbral`. **Población** en `sobre umbral` inicia *Activación del plan de
+invierno*. *Activación del plan de invierno* cambia **Dotación de camas** de
+`basal` a `reforzada` (con estados explícitos el verbo es «cambia … de … a», no
+«afecta» — R-OPD-EST-3).
 
 **Cómo se rompe.** El hospital «sorprendido» cada invierno: la capacidad se modeló
 ciega a la señal — el anti-patrón registrado del rol salubrista (vigilancia
@@ -677,9 +695,11 @@ incumplimiento es un proceso, no un bochorno. El plazo que recuerdas no es el pl
 que rige: `[RATIFICAR]` hasta tener la fuente (P22).
 
 **Realización mínima.** *Atención de especialidad garantizada* porta ancla
-normativa (estado `pendiente-ratificación` hasta la fuente); su excepción por
-sobretiempo inicia *Gestión de incumplimiento de garantía*, que cambia **Caso
-garantizado** de `en plazo` a `incumplido gestionado`.
+normativa (estado `pendiente-ratificación` hasta la fuente). *Gestión de
+incumplimiento de garantía* ocurre si duración de *Atención de especialidad
+garantizada* excede el plazo garantizado — la cota de sobretiempo (EX1); el valor
+y la unidad los fija el ancla ratificada. *Gestión de incumplimiento de garantía*
+cambia **Caso garantizado** de `en plazo` a `incumplido gestionado`.
 
 **Cómo se rompe.** Garantías «cumplidas» contra plazos inventados; o el modelo sin
 manejador de sobretiempo — incompleto para simular justo el escenario que le
@@ -702,7 +722,7 @@ coloquialmente «decidan» (`urn:fxsl:kb:reglas-opm-estrictas-es` R-AG-1 y R-AG-
 anti-patrón AP-05). El criterio no es la sofisticación del software: es quién
 responde.
 
-**Realización mínima.** *Registro clínico* requiere **Ficha clínica electrónica**;
+**Realización mínima.** *Registro clínico* requiere **Ficha clínica electrónica**.
 **Profesional de urgencia** maneja *Registro clínico*. La ficha electrónica es
 interoperable (`urn:salud:kb:estandares-it-core-cl`) — y sigue siendo instrumento.
 
@@ -723,7 +743,9 @@ fuente** → ancla normativa vigente; (2) **inferencia** → hipótesis: ancla
 borrado silencioso; (3) **norma ratificada que caducó** → las garantías, aranceles
 y normas técnicas tienen vigencia: re-ratificar es **mantenimiento del modelo**, no
 ceremonia. El ancla lleva su fecha; el modelo normativo se revisa como el
-instrumento de la ficha (§2).
+instrumento de la ficha (§2). El carril es directo: el `mesa pull` de la skill trae
+los pendientes `[RATIFICAR]` sin transporte humano — y la ratificación sigue
+exigiendo fuente y humano.
 
 **Realización mínima.** Oración estricta + ancla: «*Notificación de brote* genera
 **Notificación ENO** `[RATIFICAR #plazo-eno: plazo normativo de notificación
@@ -753,8 +775,14 @@ La reversión es parte del sobre: la mesa versiona cada push del agente, el
 conflicto de revisión obliga a re-sincronizar (jamás forzar), y el chip de revisión
 en la mesa hace visible lo que el agente trajo; qué afirmó quién queda auditable en
 las anclas, el registro [RATIFICAR] (exportable como LogDecisiones) y el panel de
-procedencia. Confianza rota una vez = célula muerta; el sobre existe para que no se
-rompa.
+procedencia. La disciplina de escritura está codificada en la skill
+`modelamiento-opm` (Regla Dura #29, no-clobber): todo push parte de un pull fresco
+de la misma sesión; un push sin delta semántico es no-op deliberado (no fabrica
+revisiones); crear un modelo nuevo declara su especie y **los bosquejos nacen
+apunte**; la nota de cada push es el rótulo del hito que verá el humano; y una base
+autosave no consolidada exige confirmación explícita del operador — decisión que el
+agente eleva, nunca asume. Confianza rota una vez = célula muerta; el sobre existe
+para que no se rompa.
 
 **Realización mínima.** (Sin OPL: es un contrato de trabajo.) El agente encuentra
 que «Egreso» necesita saber si el paciente tiene cuidador: **no inventa** el
@@ -776,7 +804,8 @@ se modela en modo reverso (metodología §A1.3), empezando por el fragmento mejo
 entendido, y el arranque bottom-up es de primera clase (§A1.5). La mecánica —
 apunte, OPDs sueltos en el Taller, adoptar, graduar — la enseña `manual-opforja.md`;
 lo que este manual fija es la disciplina: el rigor **se cobra al graduar**, y la
-ficha (§2) se llena a más tardar ahí.
+ficha (§2) se llena a más tardar ahí. Un bosquejo que el agente empuja a la mesa
+nace `apunte` por regla (skill, Regla Dura #29), no por gusto.
 
 **Realización mínima.** (Flujo, sin OPL.) Bosqueja el flujo de urgencia como
 apunte; cuando la pregunta de gestión esté clara, llena la ficha y gradúa: los
@@ -810,10 +839,12 @@ no acumulan estado entre sí.
 **OPD 1 — el flujo con la espera descompuesta** `[gestión · establecimiento]`.
 **Paciente** puede estar `en atención de urgencia`, `admitido sin cama`,
 `hospitalizado`, `en espera de egreso`, `egresado`. *Asignación de cama* cambia
-**Paciente** de `admitido sin cama` a `hospitalizado` y cambia **Cama** de `libre`
-a `ocupada` (P6). La descomposición clave (P9): el que espera **entrar** no es el
-que espera **salir** — y `en espera de egreso` se despliega: `esperando trámite`,
-`esperando cuidador`, `esperando contrarreferencia`. Cada estado tiene un dueño
+**Paciente** de `admitido sin cama` a `hospitalizado`. *Asignación de cama* cambia
+**Cama** de `libre` a `ocupada` (P6). La descomposición clave (P9): el que espera
+**entrar** no es el que espera **salir** — y la espera de egreso se dimensionaliza
+(LF-01, como en P2): **Paciente** exhibe **Motivo de espera de egreso**, que puede
+estar `esperando trámite`, `esperando cuidador`, `esperando contrarreferencia`.
+Cada estado tiene un dueño
 distinto (gestión de camas, trabajo social, APS): la espera dejó de ser una niebla.
 
 **OPD 2 — la interfaz que no vuelve** `[sistémica · red]`. *Egreso a UHD* genera
@@ -850,7 +881,7 @@ Deriva sanitaria de `manual-opforja.md §L` — se nombra con honestidad, no se 
 | Lo que el dominio pide | Lo que la mesa da — y lo que no |
 |---|---|
 | Calcular colas, ocupación, tiempos de espera (teoría de colas, simulación de eventos discretos) | La mesa captura la **estructura** del flujo (estados, procesos, abanicos) y la simulación **conceptual** recorre orden, precondiciones y ramas. Los **números** se calculan fuera (planilla, R, un simulador DES) sobre los indicadores que el modelo estructura (P10). Prometer cálculo de colas es la falsa promesa capital de este dominio. |
-| Varios modeladores simultáneos sobre el modelo de la red | Un modelador por modelo (sin multiusuario concurrente). La célula se turna; el agente entra por su carril con versiones y revisión visible (P23). |
+| Varios modeladores simultáneos sobre el modelo de la red | Un modelador por modelo (sin multiusuario concurrente): agente y operador **se serializan** — optimistic locking (409) + vitrina de revisión —, no co-editan en vivo (P23). |
 | Federar los modelos de todos los establecimientos | No hay federación de modelos. El sustituto honesto: composición por interfaz (P12) + bibliotecas gobernadas con Anclaje (P16). |
 | Que la herramienta infiera (razonamiento automático, epidemiología computacional) | La mesa modela y valida; **no infiere**. La inferencia sanitaria la ponen el humano y sus herramientas de análisis — y las inferencias cross-escala se elevan siempre (P17). |
 | Deshacer una descomposición automáticamente (out-zoom) | El in-zoom se declara; el out-zoom es manual. |
@@ -871,13 +902,13 @@ catálogo de lecciones de `urn:fxsl:kb:metodologia-forja-opm-es`.)
 | P3 | objeto generado vs objeto transformado; identidad longitudinal | reglas R-PROC/consumo-resultado |
 | P4, P21 | agente humano vs instrumento | reglas R-AG-1, R-AG-1A · AP-05 |
 | P5 | resultado informacional que condiciona ejecución | opl-es §control (c, evento) |
-| P6, P7 | recurso con estados; recurso lineal consumible | reglas R-CAT-LIN-1/2 · LF-19 |
+| P6, P7 | recurso con estados; recurso lineal consumible | reglas R-CAT-LIN-1/2 (LF-19 como lectura de integridad de estados) |
 | P8 | cola como objeto vs estado; tensión Incluir↔Omitir | `urn:fxsl:kb:tensiones-modelamiento` B1 |
-| P9 | estado intermedio visible entre subsistemas | LF-03 (altitud por expresión de estados) |
+| P9 | estado intermedio visible entre subsistemas; espera dimensionalizada | LF-03 · LF-01 |
 | P10 | atributo cuantitativo con polaridad/unidad/fórmula/procedencia | metodología §A7 |
 | P11 | frontera declarada y firma de frontera | metodología §A0.4 · reglas R-CAT-EQ-2/3 |
 | P12 | objeto-frontera congelado; composición por interfaz | LF-04 · reglas R-CAT-COMP |
-| P13 | abanico multi-destino declarado | spec-forja-opl §abanicos |
+| P13 | abanico multi-destino declarado, correspondencia estado→rama explícita | spec-forja-opl-es (oraciones de abanico XOR/OR) · tabla de retiros `según` (skill) |
 | P14 | evento de estado + condición/omisión | opl-es §7 · metodología §A6 |
 | P15 | capacidad con estados + proceso de escalamiento por evento | P6 + opl-es §control |
 | P16 | reuso gobernado: Calco/Anclaje/Centinela | spec-forja-opd R-OPD-ROT-9 |
@@ -898,3 +929,12 @@ catálogo de lecciones de `urn:fxsl:kb:metodologia-forja-opm-es`.)
   0.85 / 0.85). Acta: `docs/auditorias/2026-07-09-acta-manual-sanitarios-opm.md`.
   Amplía y profundiza las hojas `opforja-sanitarios-gestion.html` y
   `opforja-sociosanitarios.html`, que quedan como capa rápida.
+- **2026-07-09 (revisión OPL)** — Auditoría línea-por-línea contra la skill
+  `modelamiento-opm` v1.13.0 y sus plantillas OPL-ES: 6 formas ilegales corregidas
+  en las oraciones testigo (condición con rama negativa obligatoria R-COND-RAMA-1;
+  «puede ser» XOR con «o»; la espera se dimensionaliza, no «se despliega»;
+  transición explícita en vez de «afecta» con estados; excepción de sobretiempo
+  EX1; abanico por rama en vez de pipes), una-sentencia-por-hecho aplicada a las
+  realizaciones, y sincronía con la v1.13.0 (Regla Dura #29 no-clobber en P23,
+  todo-nace-apunte en §2/P24, serialización agente/operador en §9, pull directo de
+  pendientes en P22).
