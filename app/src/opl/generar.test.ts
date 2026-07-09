@@ -49,22 +49,6 @@ describe("OPL-ES — tipos de enlace canonicos", () => {
     expect(texto).toContain("**Resultado Clínico** es un objeto informacional y sistémico.");
   });
 
-  test("modo apunte relaja R-NOM-PROC-1: los procesos placeholder emiten OPL (existencia y enlaces)", () => {
-    let modelo = crearModelo();
-    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Proceso"));
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Resultado_clínico"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Proceso"), entidad(modelo, "Resultado_clínico"), "resultado"));
-
-    // Riguroso (default): R-NOM-PROC-1 suprime el proceso placeholder.
-    expect(generarOpl(modelo).join("\n")).not.toContain("es un proceso");
-
-    // Apunte: bisimetría del bosquejo — el proceso placeholder SÍ aparece,
-    // con su existencia y sus enlaces (excepción a R-NOM-PROC-1 en apuntes).
-    const apunte = generarOpl(modelo, modelo.opdRaizId, { esencia: "siempre", esApunte: true }).join("\n");
-    expect(apunte).toContain("*Proceso* es un proceso informacional y sistémico.");
-    expect(apunte).toContain("*Proceso* genera **Resultado Clínico**.");
-  });
-
   test("R-NOM-EST-1 advierte por diagnostico pero no suprime estados no canonicos", () => {
     let modelo = crearModelo();
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Pedido"));

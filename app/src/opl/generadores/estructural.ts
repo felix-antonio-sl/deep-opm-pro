@@ -55,9 +55,9 @@ export function oracionValorAtributo(entidad: Entidad): string | null {
   return `${nombreOplAtributoValor(entidad)} es ${valor}${unidad}.`;
 }
 
-export function oracionEnlaceEstructural(modelo: Modelo, enlace: Enlace, esApunte = false): string | null {
+export function oracionEnlaceEstructural(modelo: Modelo, enlace: Enlace): string | null {
   if (!["agregacion", "exhibicion", "generalizacion", "clasificacion"].includes(enlace.tipo)) return null;
-  if (!enlaceOplEsEmitible(modelo, enlace, esApunte)) return null;
+  if (!enlaceOplEsEmitible(modelo, enlace)) return null;
   const origen = nombreOplExtremo(modelo, enlace.origenId, enlace.multiplicidadOrigen);
   const destino = nombreOplExtremo(modelo, enlace.destinoId, enlace.multiplicidadDestino);
   const destinoSinMultiplicidad = nombreOplExtremo(modelo, enlace.destinoId, undefined);

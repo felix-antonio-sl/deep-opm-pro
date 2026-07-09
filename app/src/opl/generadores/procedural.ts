@@ -28,15 +28,15 @@ import { oracionEnlaceEstructural } from "./estructural";
  * Cubre SSOT OPL-ES §4-§8, §13 y TS1-TS5; consumidores: `opl/generar.ts`.
  */
 
-export function oracionEnlaceConRuta(modelo: Modelo, enlace: Enlace, esApunte = false): string | null {
+export function oracionEnlaceConRuta(modelo: Modelo, enlace: Enlace): string | null {
   const ruta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
-  if (!ruta) return oracionEnlace(modelo, enlace, esApunte);
-  const base = oracionProcedimentalParaRuta(modelo, enlace, esApunte) ?? oracionEnlaceSinEtiqueta(modelo, enlace, esApunte);
+  if (!ruta) return oracionEnlace(modelo, enlace);
+  const base = oracionProcedimentalParaRuta(modelo, enlace) ?? oracionEnlaceSinEtiqueta(modelo, enlace);
   return conEtiquetaEnlace(enlace, base ? `Por ruta ${ruta}, ${base}` : null);
 }
 
-export function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace, esApunte = false): string | null {
-  if (!enlaceOplEsEmitible(modelo, enlace, esApunte)) return null;
+export function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace): string | null {
+  if (!enlaceOplEsEmitible(modelo, enlace)) return null;
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
   if (!origen || !destino) return null;
@@ -48,16 +48,15 @@ export function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace, esA
     const estado = estadoDeExtremo(modelo, enlace.origenId);
     return estado ? `${nombreOplConMultiplicidad(destino, enlace.multiplicidadDestino)} consume ${nombreOplConMultiplicidad(origen, enlace.multiplicidadOrigen)} en \`${nombreCanonicoEstado(estado)}\`.` : null;
   }
-  return oracionEnlace(modelo, enlace, esApunte);
+  return oracionEnlace(modelo, enlace);
 }
 
 export function transicionesEstado(
   modelo: Modelo,
   opd: Opd,
   enlacesExcluidos: ReadonlySet<Id> = new Set(),
-  esApunte = false,
 ): { lineaPorEnlaceConsumo: Map<Id, string>; enlacesCubiertos: Set<Id> } {
-  const base = transicionesEstadoBase(modelo, opd, enlacesExcluidos, esApunte);
+  const base = transicionesEstadoBase(modelo, opd, enlacesExcluidos);
   return {
     lineaPorEnlaceConsumo: new Map([...base.lineaPorEnlaceConsumo].map(([id, linea]) => [id, linea.texto])),
     enlacesCubiertos: base.enlacesCubiertos,
@@ -68,18 +67,17 @@ export function transicionesEstadoInteractivo(
   modelo: Modelo,
   opd: Opd,
   enlacesExcluidos: ReadonlySet<Id> = new Set(),
-  esApunte = false,
 ): { lineaPorEnlaceConsumo: Map<Id, { texto: string; refs: ReturnType<typeof refsEnlace>; hints: ReturnType<typeof hintsEnlace> }>; enlacesCubiertos: Set<Id> } {
-  return transicionesEstadoBase(modelo, opd, enlacesExcluidos, esApunte);
+  return transicionesEstadoBase(modelo, opd, enlacesExcluidos);
 }
 
-function transicionesEstadoBase(modelo: Modelo, opd: Opd, enlacesExcluidos: ReadonlySet<Id>, esApunte = false) {
+function transicionesEstadoBase(modelo: Modelo, opd: Opd, enlacesExcluidos: ReadonlySet<Id>) {
   const consumos = Object.values(opd.enlaces)
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "consumo" && enlace.origenId.kind === "estado" && enlaceOplEsEmitible(modelo, enlace, esApunte));
+    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "consumo" && enlace.origenId.kind === "estado" && enlaceOplEsEmitible(modelo, enlace));
   const resultados = Object.values(opd.enlaces)
     .map((apariencia) => modelo.enlaces[apariencia.enlaceId])
-    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "resultado" && enlace.destinoId.kind === "estado" && enlaceOplEsEmitible(modelo, enlace, esApunte));
+    .filter((enlace): enlace is Enlace => !!enlace && !enlacesExcluidos.has(enlace.id) && enlace.tipo === "resultado" && enlace.destinoId.kind === "estado" && enlaceOplEsEmitible(modelo, enlace));
   const lineaPorEnlaceConsumo = new Map<Id, { texto: string; refs: ReturnType<typeof refsEnlace>; hints: ReturnType<typeof hintsEnlace> }>();
   const enlacesCubiertos = new Set<Id>();
   const resultadosUsados = new Set<Id>();
@@ -173,21 +171,21 @@ function oracionTransicionEstados(
   }
 }
 
-export function oracionEnlace(modelo: Modelo, enlace: Enlace, esApunte = false): string | null {
+export function oracionEnlace(modelo: Modelo, enlace: Enlace): string | null {
   if (enlace.tipo === "etiquetado" || enlace.tipo === "etiquetadoBidireccional") {
     return oracionTagged(modelo, enlace);
   }
-  return conEtiquetaEnlace(enlace, oracionEnlaceSinEtiqueta(modelo, enlace, esApunte));
+  return conEtiquetaEnlace(enlace, oracionEnlaceSinEtiqueta(modelo, enlace));
 }
 
-export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace, esApunte = false): string | null {
-  if (!enlaceOplEsEmitible(modelo, enlace, esApunte)) return null;
+export function oracionEnlaceSinEtiqueta(modelo: Modelo, enlace: Enlace): string | null {
+  if (!enlaceOplEsEmitible(modelo, enlace)) return null;
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
   if (!origen || !destino) return null;
 
   if (["agregacion", "exhibicion", "generalizacion", "clasificacion"].includes(enlace.tipo)) {
-    return oracionEnlaceEstructural(modelo, enlace, esApunte);
+    return oracionEnlaceEstructural(modelo, enlace);
   }
 
   if (enlace.tipo === "etiquetado" || enlace.tipo === "etiquetadoBidireccional") {

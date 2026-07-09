@@ -12,15 +12,15 @@ import { oracionEnlaceConRuta } from "./procedural";
  * Consumidores: `opl/generar.ts`.
  */
 
-export function oracionesAbanicoInteractivo(modelo: Modelo, abanico: Abanico, esApunte = false): OplLineaPendiente[] {
+export function oracionesAbanicoInteractivo(modelo: Modelo, abanico: Abanico): OplLineaPendiente[] {
   const enlaces = enlacesDeAbanico(modelo, abanico);
   if (enlaces.some((enlace) => rutaEtiquetaNormalizada(enlace.rutaEtiqueta))) {
     return enlaces.flatMap((enlace) => {
-      const texto = oracionEnlaceConRuta(modelo, enlace, esApunte);
+      const texto = oracionEnlaceConRuta(modelo, enlace);
       return texto ? [{ texto, refs: refsEnlace(modelo, enlace), hints: hintsEnlace(modelo, enlace, texto) }] : [];
     });
   }
-  const texto = oracionAbanico(modelo, abanico, esApunte);
+  const texto = oracionAbanico(modelo, abanico);
   if (!texto) return [];
   return [{
     texto,
@@ -41,10 +41,10 @@ export function oracionesAbanico(modelo: Modelo, abanico: Abanico): string[] {
   return linea ? [linea] : [];
 }
 
-export function oracionAbanico(modelo: Modelo, abanico: Abanico, esApunte = false): string | null {
+export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null {
   const enlaces = enlacesDeAbanico(modelo, abanico);
   if (enlaces.length < 2) return null;
-  if (enlaces.some((enlace) => !enlaceOplEsEmitible(modelo, enlace, esApunte))) return null;
+  if (enlaces.some((enlace) => !enlaceOplEsEmitible(modelo, enlace))) return null;
   const primer = enlaces[0];
   const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
   const puerto = puertoComun ? modelo.entidades[puertoComun.entidadId] : undefined;

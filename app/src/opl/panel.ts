@@ -48,13 +48,9 @@ export function derivarPanelOpl(input: DerivarPanelOplInput): PanelOplDerivado {
   const textoOplActual = lineasCanonicas.map((linea) => linea.texto).join("\n");
 
   // Pase display: aplica la preferencia de visibilidad solo a las líneas renderizadas.
-  // Se reutiliza el canónico solo si el display coincide EXACTAMENTE con el
-  // default (misma esencia Y sin relajación de apunte); si `esApunte` está activo
-  // el display diverge del canónico (procesos placeholder visibles) → segundo pase.
   const visibilidad = input.visibilidad ?? VISIBILIDAD_OPL_DEFAULT;
-  const displayIgualAlCanonico = visibilidad.esencia === VISIBILIDAD_OPL_DEFAULT.esencia && !visibilidad.esApunte;
   const lineas =
-    displayIgualAlCanonico
+    visibilidad.esencia === VISIBILIDAD_OPL_DEFAULT.esencia
       ? lineasCanonicas // mismo resultado que el canónico → reusar sin segundo pase
       : opds.flatMap((id) => generarOplInteractivo(input.modelo, id, visibilidad));
 

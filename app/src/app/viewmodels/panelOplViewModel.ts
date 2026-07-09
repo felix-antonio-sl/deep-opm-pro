@@ -1,5 +1,4 @@
 import { useMemo, useState } from "preact/hooks";
-import { useOpmStore } from "../../store";
 import { useZustandOplPort } from "../ports/zustandOplPort";
 import type { Id } from "../../modelo/tipos/comunes";
 import type { Modelo } from "../../modelo/tipos/modelo";
@@ -93,16 +92,11 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     [preferenciasOpl?.oplBloquesContraidos],
   );
 
-  // ¿El modelo activo es un apunte? El flag vive en el índice del workspace
-  // (no en el kernel), como en arbolOpdViewModel/acciones-canvas.
-  const esApunte = useOpmStore((s) => s.indice.modelos.some((m) => m.id === s.modelo.id && m.esApunte === true));
-
   // Preferencia de visibilidad para el display del panel.
   // NOTA: `textoOplActual` (canónico) se genera siempre con VISIBILIDAD_OPL_DEFAULT
   // dentro de `derivarPanelOpl`, por lo que el editor libre y el parser quedan
-  // protegidos del roundtrip independientemente de esta pref. `esApunte` relaja
-  // R-NOM-PROC-1 SOLO en el display (bisimetría del bosquejo), no en el canónico.
-  const visibilidad = { esencia: preferenciasOpl?.oplEsenciaVisibilidad ?? "siempre", esApunte } as const;
+  // protegidos del roundtrip independientemente de esta pref.
+  const visibilidad = { esencia: preferenciasOpl?.oplEsenciaVisibilidad ?? "siempre" } as const;
 
   const derivado = useMemo(
     () => derivarPanelOpl({
@@ -117,7 +111,7 @@ export function usePanelOplViewModel(): PanelOplViewModel {
       visibilidad,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [modelo, opdActivoId, seleccionId, enlaceSeleccionId, filtroActivo, busquedaOpl, editorLibre, textoLibre, visibilidad.esencia, visibilidad.esApunte],
+    [modelo, opdActivoId, seleccionId, enlaceSeleccionId, filtroActivo, busquedaOpl, editorLibre, textoLibre, visibilidad.esencia],
   );
 
   // B0.025: id del proceso activo durante la simulacion, para que el panel OPL

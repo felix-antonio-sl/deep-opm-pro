@@ -209,10 +209,8 @@ export function nombreOplBase(entidad: Entidad, nombre: string): string {
   return entidad.tipo === "objeto" ? `**${conUnidad}**` : `*${conUnidad}*`;
 }
 
-export function entidadOplEsEmitible(entidad: Entidad, esApunte = false): boolean {
-  // En modo apunte se relaja R-NOM-PROC-1: los procesos placeholder emiten OPL
-  // (bisimetría del bosquejo). En modo riguroso siguen suprimidos.
-  if (entidad.tipo === "proceso") return esApunte || !esNombreProcesoPlaceholder(entidad.nombre);
+export function entidadOplEsEmitible(entidad: Entidad): boolean {
+  if (entidad.tipo === "proceso") return !esNombreProcesoPlaceholder(entidad.nombre);
   return true;
 }
 
@@ -220,15 +218,15 @@ export function estadoOplEsEmitible(estado: Estado | undefined): estado is Estad
   return !!estado;
 }
 
-export function extremoOplEsEmitible(modelo: Modelo, extremo: Enlace["origenId"], esApunte = false): boolean {
+export function extremoOplEsEmitible(modelo: Modelo, extremo: Enlace["origenId"]): boolean {
   const entidad = entidadDeExtremo(modelo, extremo);
-  if (!entidad || !entidadOplEsEmitible(entidad, esApunte)) return false;
+  if (!entidad || !entidadOplEsEmitible(entidad)) return false;
   const estado = estadoDeExtremo(modelo, extremo);
   return estado ? estadoOplEsEmitible(estado) : true;
 }
 
-export function enlaceOplEsEmitible(modelo: Modelo, enlace: Enlace, esApunte = false): boolean {
-  return extremoOplEsEmitible(modelo, enlace.origenId, esApunte) && extremoOplEsEmitible(modelo, enlace.destinoId, esApunte);
+export function enlaceOplEsEmitible(modelo: Modelo, enlace: Enlace): boolean {
+  return extremoOplEsEmitible(modelo, enlace.origenId) && extremoOplEsEmitible(modelo, enlace.destinoId);
 }
 
 export function pluralizarCanonico(texto: string): string {
