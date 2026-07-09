@@ -32,4 +32,7 @@ El operador-custodio resolvió (2026-07-06, `docs/solicitudes-upstream/2026-07-0
 
 ## Estado
 
-**ABIERTA** — pendiente HITL custodio-kora. No bloquea el build headless de la Ola 1 (el código del puente no necesita la skill para funcionar); sí bloquea el **deploy** del corte B′⊕D (el código de validez nuevo espera la firma).
+**RESUELTA** — en dos entregas:
+
+- **Petición 2** (enmienda SSOT bottom-up + régimen bosquejo en la skill): resuelta 2026-07-07 — `metodologia-forja-opm-es` v1.6.0 (A1.5) + `spec-forja-opd-es` v1.3.0 (R-OPD-REF-20) + skill **v1.12.0** (§Regimen bosquejo), HITL custodio, pneuma `23c1502`/`1d1e3f4`.
+- **Petición 1** (puente directo como camino primario en la skill): resuelta 2026-07-09 — skill **v1.13.0**: §Puente directo mesa↔skill (CLI `mesa`, pull=contexto W6.0, push con disciplina) + Regla Dura #29 portando las 5 reglas de método pedidas (validación verde antes de push · 409 re-pull jamás forzar · base autosave exige `--confirmado-por-operador` · carril por procedencia · `agente·<nota>`) + W6.0 declarado fallback. La «receta bottom-up interina» del punto final quedó obsoleta al desplegarse B′⊕D (2026-07-08): la skill enseña el Taller real. Acta: `2026-07-09-auditoria-integral-skill-modelamiento-opm.md`. Cordón re-pineado a v1.13.0, paridad 3/3, velar 12/12.
