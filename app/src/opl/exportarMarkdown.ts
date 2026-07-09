@@ -2,6 +2,12 @@ import type { Id, Modelo, Opd } from "../modelo/tipos";
 import { generarOpl } from "./generar";
 
 /**
+ * Régimen del export: `esApunte` activa la excepción de apunte a R-ENT-2
+ * (los placeholders del boceto emiten OPL). El default es riguroso.
+ */
+export interface OpcionesExportOpl { esApunte?: boolean; }
+
+/**
  * Exportación de OPL a Markdown listo para pegar (sin HTML).
  *
  * Las frases OPL ya vienen en sintaxis Markdown inline (`**objeto**`,
@@ -17,10 +23,10 @@ function listaFrases(lineas: string[]): string {
 }
 
 /** OPL del OPD indicado como bloque Markdown con título `# {modelo} — {OPD}`. */
-export function exportarOplOpdMarkdown(modelo: Modelo, opdId: Id): string {
+export function exportarOplOpdMarkdown(modelo: Modelo, opdId: Id, opciones?: OpcionesExportOpl): string {
   const opd = modelo.opds[opdId];
   const titulo = opd ? `${modelo.nombre} — ${opd.nombre}` : modelo.nombre;
-  const lineas = generarOpl(modelo, opdId);
+  const lineas = generarOpl(modelo, opdId, { esencia: "siempre", esApunte: opciones?.esApunte ?? false });
   return `# ${titulo}\n\n${listaFrases(lineas)}\n`;
 }
 
@@ -28,9 +34,9 @@ export function exportarOplOpdMarkdown(modelo: Modelo, opdId: Id): string {
  * OPL completo de TODO el modelo: un encabezado `# {modelo}` y una sección
  * `## {OPD}` por cada OPD, recorridos en orden jerárquico (raíz → hijos).
  */
-export function exportarOplModeloMarkdown(modelo: Modelo): string {
+export function exportarOplModeloMarkdown(modelo: Modelo, opciones?: OpcionesExportOpl): string {
   const secciones = opdsEnOrden(modelo).map((opd) => {
-    const lineas = generarOpl(modelo, opd.id);
+    const lineas = generarOpl(modelo, opd.id, { esencia: "siempre", esApunte: opciones?.esApunte ?? false });
     return `## ${opd.nombre}\n\n${listaFrases(lineas)}`;
   });
   const cuerpo = secciones.length > 0 ? secciones.join("\n\n") : "_Sin OPDs._";

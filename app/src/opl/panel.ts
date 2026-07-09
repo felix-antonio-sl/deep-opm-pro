@@ -20,9 +20,12 @@ export interface DerivarPanelOplInput {
   editorLibre: boolean;
   textoLibre: string;
   /**
-   * Preferencia de visibilidad para las líneas de display (read-only).
-   * NUNCA afecta `textoOplActual` — ese se genera siempre con `VISIBILIDAD_OPL_DEFAULT`
-   * para proteger el roundtrip (editor libre + parser).
+   * Opciones de generación OPL. `esencia` es preferencia de display (read-only):
+   * NUNCA afecta `textoOplActual`, que se genera con esencia default para
+   * proteger el roundtrip (editor libre + parser). `esApunte` es RÉGIMEN
+   * (excepción de apunte a R-ENT-2) y aplica a AMBOS pases: el boceto cuenta
+   * lo mismo en display, editor libre y export — bisimetría sin superficies
+   * divergentes.
    */
   visibilidad?: VisibilidadOpl;
 }
@@ -43,12 +46,15 @@ export function derivarPanelOpl(input: DerivarPanelOplInput): PanelOplDerivado {
   const seleccionRef = referenciaSeleccionada(input.seleccionId, input.enlaceSeleccionId);
   const opds = ordenarOpdsParaOpl(input.modelo);
 
-  // Pase canónico: siempre con visibilidad default → protege textoOplActual y el roundtrip.
-  const lineasCanonicas = opds.flatMap((id) => generarOplInteractivo(input.modelo, id));
+  const visibilidad = input.visibilidad ?? VISIBILIDAD_OPL_DEFAULT;
+
+  // Pase canónico: esencia default (protege textoOplActual y el roundtrip) +
+  // el régimen (`esApunte`), que sí es parte del texto que edita el usuario.
+  const visibilidadCanonica: VisibilidadOpl = { ...VISIBILIDAD_OPL_DEFAULT, esApunte: visibilidad.esApunte ?? false };
+  const lineasCanonicas = opds.flatMap((id) => generarOplInteractivo(input.modelo, id, visibilidadCanonica));
   const textoOplActual = lineasCanonicas.map((linea) => linea.texto).join("\n");
 
-  // Pase display: aplica la preferencia de visibilidad solo a las líneas renderizadas.
-  const visibilidad = input.visibilidad ?? VISIBILIDAD_OPL_DEFAULT;
+  // Pase display: aplica la preferencia de esencia solo a las líneas renderizadas.
   const lineas =
     visibilidad.esencia === VISIBILIDAD_OPL_DEFAULT.esencia
       ? lineasCanonicas // mismo resultado que el canónico → reusar sin segundo pase

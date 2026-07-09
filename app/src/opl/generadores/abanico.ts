@@ -12,15 +12,15 @@ import { oracionEnlaceConRuta } from "./procedural";
  * Consumidores: `opl/generar.ts`.
  */
 
-export function oracionesAbanicoInteractivo(modelo: Modelo, abanico: Abanico): OplLineaPendiente[] {
+export function oracionesAbanicoInteractivo(modelo: Modelo, abanico: Abanico, esApunte = false): OplLineaPendiente[] {
   const enlaces = enlacesDeAbanico(modelo, abanico);
   if (enlaces.some((enlace) => rutaEtiquetaNormalizada(enlace.rutaEtiqueta))) {
     return enlaces.flatMap((enlace) => {
-      const texto = oracionEnlaceConRuta(modelo, enlace);
+      const texto = oracionEnlaceConRuta(modelo, enlace, esApunte);
       return texto ? [{ texto, refs: refsEnlace(modelo, enlace), hints: hintsEnlace(modelo, enlace, texto) }] : [];
     });
   }
-  const texto = oracionAbanico(modelo, abanico);
+  const texto = oracionAbanico(modelo, abanico, esApunte);
   if (!texto) return [];
   return [{
     texto,
@@ -41,10 +41,10 @@ export function oracionesAbanico(modelo: Modelo, abanico: Abanico): string[] {
   return linea ? [linea] : [];
 }
 
-export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null {
+export function oracionAbanico(modelo: Modelo, abanico: Abanico, esApunte = false): string | null {
   const enlaces = enlacesDeAbanico(modelo, abanico);
   if (enlaces.length < 2) return null;
-  if (enlaces.some((enlace) => !enlaceOplEsEmitible(modelo, enlace))) return null;
+  if (enlaces.some((enlace) => !enlaceOplEsEmitible(modelo, enlace, esApunte))) return null;
   const primer = enlaces[0];
   const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
   const puerto = puertoComun ? modelo.entidades[puertoComun.entidadId] : undefined;
@@ -73,7 +73,7 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico): string | null 
     otrosNombres.push(nombreRamaAbanico(modelo, abanico, enlace, otro));
   }
   if (otrosNombres.length === 1) {
-    return oracionEnlaceConRuta(modelo, primer);
+    return oracionEnlaceConRuta(modelo, primer, esApunte);
   }
   if (otrosNombres.length < 2) return null;
 

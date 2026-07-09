@@ -166,8 +166,10 @@ export function emitirDocumentoCanonico(modelo: Modelo, opciones: { esApunte?: b
   secciones.push(`## Árbol de OPDs\n\n${arbol || "_Sin OPDs._"}`);
 
   // exportarOplModeloMarkdown ya emite `# {modelo}` + `## {OPD}`; aquí se
-  // degrada un nivel para anidar bajo la portada del documento.
-  const opl = exportarOplModeloMarkdown(filtrado)
+  // degrada un nivel para anidar bajo la portada del documento. En un apunte
+  // el OPL del documento emite también los placeholders (excepción a R-ENT-2):
+  // el documento cuenta lo mismo que la mesa.
+  const opl = exportarOplModeloMarkdown(filtrado, { esApunte: opciones.esApunte ?? false })
     .replace(/^# /, "### Modelo: ")
     .replace(/^## /gm, "#### ");
   secciones.push(`## OPL completa\n\n${opl.trimEnd()}`);

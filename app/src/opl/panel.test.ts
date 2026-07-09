@@ -26,6 +26,44 @@ describe("panel OPL como capacidad", () => {
     expect(derivado.previewLibre).toBeNull();
   });
 
+  test("régimen apunte: el canónico y el display emiten el proceso placeholder (excepción a R-ENT-2) y el roundtrip queda estable", () => {
+    let modelo = crearModelo("Boceto");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Proceso"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 220, y: 0 }, "Resultado"));
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, entidad(modelo, "Proceso"), entidad(modelo, "Resultado"), "resultado"));
+
+    const base = {
+      modelo,
+      opdActivoId: modelo.opdRaizId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      filtroActivo: false,
+      busquedaOpl: "",
+      editorLibre: false,
+      textoLibre: "",
+    };
+    const apunte = derivarPanelOpl({ ...base, visibilidad: { esencia: "siempre", esApunte: true } });
+
+    // El canónico (editor libre / export) y el display cuentan lo MISMO: el
+    // boceto emite su proceso placeholder — bisimetría en todas las superficies.
+    expect(apunte.textoOplActual).toContain("*Proceso* es un proceso informacional y sistémico.");
+    expect(apunte.textoOplActual).toContain("*Proceso* genera **Resultado**.");
+    expect(apunte.textoOplActual).toBe(apunte.lineas.map((linea) => linea.texto).join("\n"));
+
+    // Roundtrip estable: re-parsear el canónico del apunte no propone cambios.
+    const roundtrip = derivarPanelOpl({
+      ...base,
+      visibilidad: { esencia: "siempre", esApunte: true },
+      editorLibre: true,
+      textoLibre: apunte.textoOplActual,
+    });
+    expect(roundtrip.previewLibre?.patches ?? []).toHaveLength(0);
+
+    // Régimen riguroso intacto: sin el flag, R-ENT-2 sigue suprimiendo.
+    const riguroso = derivarPanelOpl(base);
+    expect(riguroso.textoOplActual).not.toContain("es un proceso");
+  });
+
   test("aplica filtro por seleccion y busqueda como derivacion pura", () => {
     const { modelo, procesarId } = modeloBasico();
 

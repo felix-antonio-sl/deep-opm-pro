@@ -43,5 +43,7 @@ export function componerPull(input: {
   const encabezado = [`<!-- mesa pull · ${input.nombre} -->`, `Especie: ${input.especie}`, lineaFuente(input.base.fuente), ""].join(
     "\n",
   );
-  return encabezado + exportarContextoSkill(m.value, input.now);
+  // Excepción de apunte a R-ENT-2: el pull de un boceto entrega a la skill el
+  // MISMO OPL que el humano ve en la mesa (placeholders incluidos).
+  return encabezado + exportarContextoSkill(m.value, input.now, { esApunte: input.especie === "apunte" });
 }

@@ -8,6 +8,7 @@
 
 import { useMemo, useState } from "preact/hooks";
 import type { Modelo, Id } from "../../modelo/tipos";
+import { useOpmStore } from "../../store";
 import { generarOpl } from "../../opl/generar";
 import { listarAvisosDiagnostico } from "../../modelo/diagnostico";
 import { leerIncluirDiagnostico, guardarIncluirDiagnostico } from "./preferenciasMovil";
@@ -41,6 +42,9 @@ function normalizar(texto: string): string {
 export function VistaBusquedaLectura({ modelo, opdActivoId, onSeleccionarEntidad, onSeleccionarOpd, onCerrar }: Props) {
   const [query, setQuery] = useState("");
   const [incluirDiagnostico, setIncluirDiagnostico] = useState(leerIncluirDiagnostico());
+  // Especie del modelo en lectura: en un apunte el OPL emite placeholders
+  // (excepción de apunte a R-ENT-2), igual que el panel de escritorio.
+  const esApunte = useOpmStore((s) => s.indice.modelos.some((m) => m.id === modelo.id && m.esApunte === true));
   const q = normalizar(query.trim());
 
   const hits = useMemo(() => {
@@ -72,9 +76,10 @@ export function VistaBusquedaLectura({ modelo, opdActivoId, onSeleccionarEntidad
       }
     }
 
-    // OPL (oraciones)
+    // OPL (oraciones) — en un apunte emite también los placeholders (excepción
+    // de apunte a R-ENT-2): la lectura móvil cuenta lo mismo que el panel.
     try {
-      const lineas = generarOpl(modelo, opdActivoId);
+      const lineas = generarOpl(modelo, opdActivoId, { esencia: "siempre", esApunte });
       for (let i = 0; i < lineas.length; i++) {
         const linea = lineas[i];
         if (!linea || !normalizar(linea).includes(q)) continue;
@@ -106,7 +111,7 @@ export function VistaBusquedaLectura({ modelo, opdActivoId, onSeleccionarEntidad
     }
 
     return resultados;
-  }, [q, modelo, opdActivoId, incluirDiagnostico, onSeleccionarEntidad, onSeleccionarOpd]);
+  }, [q, modelo, opdActivoId, incluirDiagnostico, esApunte, onSeleccionarEntidad, onSeleccionarOpd]);
 
   const toggleDiagnostico = () => {
     const nuevo = !incluirDiagnostico;

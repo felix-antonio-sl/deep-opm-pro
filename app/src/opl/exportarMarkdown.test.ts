@@ -14,6 +14,17 @@ function entidadId(modelo: Modelo, nombre: string): string {
   return entidad.id;
 }
 
+describe("régimen apunte en el export (excepción a R-ENT-2)", () => {
+  test("el export Markdown del boceto emite el proceso placeholder; el riguroso lo suprime", () => {
+    let modelo = crearModelo("Boceto");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Proceso"));
+
+    expect(exportarOplModeloMarkdown(modelo)).not.toContain("es un proceso");
+    expect(exportarOplModeloMarkdown(modelo, { esApunte: true })).toContain("*Proceso* es un proceso informacional y sistémico.");
+    expect(exportarOplOpdMarkdown(modelo, modelo.opdRaizId, { esApunte: true })).toContain("*Proceso* es un proceso informacional y sistémico.");
+  });
+});
+
 describe("exportarOplOpdMarkdown — OPD en vista", () => {
   test("antepone título # {modelo} — {OPD} y lista las frases como viñetas Markdown", () => {
     let modelo = crearModelo("Demo");

@@ -3,7 +3,7 @@ import { exportarDiagnosticoJson } from "../modelo/exportarDiagnostico";
 import { nombreExtremo } from "../modelo/extremos";
 import { enumerarNotasMesa } from "../modelo/notasMesa";
 import type { AnclaNormativa, Modelo, NotaMesa, ReferenciaNorma, TargetAncla } from "../modelo/tipos";
-import { exportarOplModeloMarkdown } from "./exportarMarkdown";
+import { exportarOplModeloMarkdown, type OpcionesExportOpl } from "./exportarMarkdown";
 
 /**
  * Puente de contexto W6.0 (acta mesa equilibrio, delib. 2): compone en UN solo
@@ -17,7 +17,7 @@ import { exportarOplModeloMarkdown } from "./exportarMarkdown";
  * Orden de secciones: contexto accionable primero (procedencia → pendientes →
  * diagnóstico), el OPL completo al final por ser la sección más larga.
  */
-export function exportarContextoSkill(modelo: Modelo, now: Date = new Date()): string {
+export function exportarContextoSkill(modelo: Modelo, now: Date = new Date(), opciones?: OpcionesExportOpl): string {
   const fecha = now.toISOString().slice(0, 10);
   return [
     `# Contexto de modelado — ${modelo.nombre}`,
@@ -45,7 +45,7 @@ export function exportarContextoSkill(modelo: Modelo, now: Date = new Date()): s
     "",
     "## OPL",
     "",
-    exportarOplModeloMarkdown(modelo),
+    exportarOplModeloMarkdown(modelo, opciones),
   ].join("\n");
 }
 

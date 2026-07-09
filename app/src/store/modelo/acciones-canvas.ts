@@ -368,8 +368,9 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
     // Copia el OPL del OPD en vista como Markdown listo para pegar (título +
     // viñetas). Reemplaza la antigua exportación a archivo HTML.
     async copiarOplActualAlPortapapeles() {
-      const { modelo, opdActivoId } = get();
-      const texto = exportarOplOpdMarkdown(modelo, opdActivoId);
+      const { modelo, opdActivoId, indice } = get();
+      const esApunte = indice.modelos.some((m) => m.id === modelo.id && m.esApunte === true);
+      const texto = exportarOplOpdMarkdown(modelo, opdActivoId, { esApunte });
       try {
         await navigator.clipboard.writeText(texto);
         set({ mensaje: "OPL copiado al portapapeles" });
@@ -381,8 +382,9 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
     // Copia el OPL completo de TODO el modelo (todos los OPDs) como Markdown.
     // Lo dispara la paleta de comandos (sección EXPORTAR).
     async copiarOplModeloMarkdownAlPortapapeles() {
-      const { modelo } = get();
-      const texto = exportarOplModeloMarkdown(modelo);
+      const { modelo, indice } = get();
+      const esApunte = indice.modelos.some((m) => m.id === modelo.id && m.esApunte === true);
+      const texto = exportarOplModeloMarkdown(modelo, { esApunte });
       try {
         await navigator.clipboard.writeText(texto);
         set({ mensaje: "OPL del modelo copiado al portapapeles (Markdown)" });
@@ -495,8 +497,9 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
     // (procedencia + pendientes [RATIFICAR] + diagnóstico + OPL) listo para pegar
     // en la sesión de `modelamiento-opm`, y cuenta el cruce (observable g3).
     async copiarContextoSkillAlPortapapeles() {
-      const { modelo } = get();
-      const texto = exportarContextoSkill(modelo);
+      const { modelo, indice } = get();
+      const esApunte = indice.modelos.some((m) => m.id === modelo.id && m.esApunte === true);
+      const texto = exportarContextoSkill(modelo, new Date(), { esApunte });
       try {
         await navigator.clipboard.writeText(texto);
         const cruces = get().registrarCrucePuenteSkill("export");

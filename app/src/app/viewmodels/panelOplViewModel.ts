@@ -1,4 +1,5 @@
 import { useMemo, useState } from "preact/hooks";
+import { useOpmStore } from "../../store";
 import { useZustandOplPort } from "../ports/zustandOplPort";
 import type { Id } from "../../modelo/tipos/comunes";
 import type { Modelo } from "../../modelo/tipos/modelo";
@@ -92,11 +93,16 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     [preferenciasOpl?.oplBloquesContraidos],
   );
 
-  // Preferencia de visibilidad para el display del panel.
-  // NOTA: `textoOplActual` (canónico) se genera siempre con VISIBILIDAD_OPL_DEFAULT
-  // dentro de `derivarPanelOpl`, por lo que el editor libre y el parser quedan
-  // protegidos del roundtrip independientemente de esta pref.
-  const visibilidad = { esencia: preferenciasOpl?.oplEsenciaVisibilidad ?? "siempre" } as const;
+  // ¿El modelo activo es un apunte? La especie vive en el índice del workspace
+  // (no en el kernel), como en CommandPalette/CintaApunte/PanelDiagnostico.
+  const esApunte = useOpmStore((s) => s.indice.modelos.some((m) => m.id === s.modelo.id && m.esApunte === true));
+
+  // Opciones de generación del panel. `esencia` es preferencia de display:
+  // `textoOplActual` (canónico) se genera con esencia default dentro de
+  // `derivarPanelOpl`, protegiendo el roundtrip. `esApunte` es RÉGIMEN
+  // (excepción de apunte a R-ENT-2) y aplica a ambos pases: display y canónico
+  // cuentan lo mismo en un boceto.
+  const visibilidad = { esencia: preferenciasOpl?.oplEsenciaVisibilidad ?? "siempre", esApunte } as const;
 
   const derivado = useMemo(
     () => derivarPanelOpl({
@@ -111,7 +117,7 @@ export function usePanelOplViewModel(): PanelOplViewModel {
       visibilidad,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [modelo, opdActivoId, seleccionId, enlaceSeleccionId, filtroActivo, busquedaOpl, editorLibre, textoLibre, visibilidad.esencia],
+    [modelo, opdActivoId, seleccionId, enlaceSeleccionId, filtroActivo, busquedaOpl, editorLibre, textoLibre, visibilidad.esencia, visibilidad.esApunte],
   );
 
   // B0.025: id del proceso activo durante la simulacion, para que el panel OPL
