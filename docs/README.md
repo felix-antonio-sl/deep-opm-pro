@@ -12,6 +12,7 @@ Modelador OPM/ISO 19450 nuevo, con arquitectura propia. No es fork de OPCloud.
 | Saber qué está desplegado y qué falta | `HANDOFF.md` |
 | Usar el modelador como usuario | `uso-productivo.md` |
 | Aprender a modelar con método (humano o agente) | `manual-opforja.md` |
+| Modelar sistemas sanitarios complejos (manual avanzado de dominio) | `manual-sanitarios-opm.md` |
 | Desplegar o administrar la instancia | `deploy/opforja.md` |
 | Conocer las decisiones técnicas clave | `canon-opm/` (puentes a KORA) |
 | Consultar el plan de cortes activos | `roadmap/cortes.md` |
@@ -28,6 +29,7 @@ docs/
 ├── HANDOFF.md                   ← estado operativo vigente (única memoria de traspaso, consolidada)
 ├── uso-productivo.md            ← guía operativa del usuario (entrar, guardar, atajos)
 ├── manual-opforja.md            ← manual integrado: método Forja + pista humano + pista agente
+├── manual-sanitarios-opm.md     ← manual avanzado de dominio: sistemas sanitarios complejos (3 lentes × 5 escalas)
 ├── JOYAS.md                     ← hallazgos técnicos validados de ingeniería inversa
 ├── render-headless.md           ← herramienta dev: render headless del proto (H1)
 ├── verify-reproducible.md       ← herramienta dev: verificación de reproducibilidad (H2)
