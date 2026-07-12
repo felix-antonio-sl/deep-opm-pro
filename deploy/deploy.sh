@@ -6,13 +6,16 @@
 # viaja por el arg `OPFORJA_BUILD` — y un `docker compose up -d --build` a secas
 # lo dejaría en "local". Este script lo deriva de git en cada deploy, así que la
 # versión de la UI siempre refleja el commit realmente desplegado, sin recordar
-# nada. Si el árbol tiene cambios sin commitear, marca el build como `-dirty`
-# (honestidad: la UI declara que salió de un estado no versionado).
+# nada. Si los insumos versionables del build tienen cambios sin commitear,
+# marca el build como `-dirty` (honestidad: la UI declara que salió de un
+# estado no versionado). Las capturas nuevas de `docs/bugs/` se excluyen: son
+# salida runtime del sidecar y `.dockerignore` garantiza que no entran al build.
 set -euo pipefail
 cd "$(dirname "$0")/.."   # raíz del repo
 
 SHA="$(git rev-parse --short HEAD)"
-if [ -n "$(git status --porcelain)" ]; then
+CAMBIOS_BUILD="$(git status --porcelain --untracked-files=all | grep -vE '^\?\? docs/bugs/' || true)"
+if [ -n "${CAMBIOS_BUILD}" ]; then
   SHA="${SHA}-dirty"
   echo "⚠  árbol con cambios sin commitear → build marcado ${SHA}"
 fi
