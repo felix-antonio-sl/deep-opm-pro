@@ -13,7 +13,7 @@ export function construirArbol(modelo: Modelo): NodoOpdData[] {
   const esSuelto = (id: Id) => esOpdSuelto(modelo, id);
   const hijosPorPadre = new Map<Id, Opd[]>();
   for (const opd of Object.values(modelo.opds)) {
-    if (opd.id === raiz.id || esSuelto(opd.id)) continue;
+    if (opd.id === raiz.id || esSuelto(opd.id)) continue; // sueltos → banda Taller, no árbol
     const padreId = padreValido(modelo, opd, raiz.id);
     const hijos = hijosPorPadre.get(padreId) ?? [];
     hijos.push(opd);
@@ -34,12 +34,19 @@ export function construirArbol(modelo: Modelo): NodoOpdData[] {
     return { opd, nivel, hijos };
   };
   const nodoRaiz = crearNodo(raiz, 0);
+  // Huérfanos CORRUPTOS (padre inexistente, no sueltos intencionales) → defensivo bajo raíz.
   const huerfanos = Object.values(modelo.opds)
     .filter((opd) => !visitados.has(opd.id) && !esSuelto(opd.id) && opd.id !== raiz.id)
     .map((opd) => crearNodo(opd, 1));
   return [{ ...nodoRaiz, hijos: [...nodoRaiz.hijos, ...huerfanos] }];
 }
 
+/**
+ * Subárboles de la banda «Taller» (R-OPD-REF-20): un nodo nivel-0 por cada OPD
+ * suelto, con sus descendientes adoptados internamente (un suelto puede tener
+ * refinamiento propio). Proyección de navegación derivada, no identidad
+ * persistida.
+ */
 export function nodosSueltosTaller(modelo: Modelo): NodoOpdData[] {
   const sueltos = Object.values(modelo.opds).filter((opd) => esOpdSuelto(modelo, opd.id));
   const hijosPorPadre = new Map<Id, Opd[]>();

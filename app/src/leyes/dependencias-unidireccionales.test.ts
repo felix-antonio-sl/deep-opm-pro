@@ -6,7 +6,10 @@
 // de canvas (src/canvas) y persistencia (src/persistencia)— NO deben importar nada
 // desde src/render. El flujo de dependencia es estrictamente
 //
-//     modelo → store → render → ui          (render proyecta el modelo, no al revés)
+//     modelo/store (SSOT) → app (contratos) → ui y render (adaptadores)
+//     modelo/store (SSOT) ────────────────→ ui y render
+//
+// render proyecta el modelo; ninguna flecha vuelve desde ui/render hacia la SSOT.
 //
 // y un import inverso (capa-fuente ← render) corrompería la SSOT: el modelo
 // quedaría amarrado a un detalle de presentación reemplazable.
@@ -32,7 +35,7 @@
 
 import { afterAll, describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const LEYES_ROOT = dirname(fileURLToPath(import.meta.url));
@@ -193,5 +196,5 @@ function resuelveDentroDeCapa(archivo: string, spec: string, capaDestino: string
   const destino = resolve(dirname(archivo), spec);
   const rel = relative(capaDestino, destino);
   // Dentro de la capa si la ruta relativa no sube (`..`) ni es absoluta.
-  return rel === "" || (!rel.startsWith("..") && !resolve(rel).startsWith(".."));
+  return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
 }

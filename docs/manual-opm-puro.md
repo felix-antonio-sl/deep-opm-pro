@@ -550,9 +550,13 @@ uno de` (XOR), `al menos uno de` (OR), `así como` (adición heterogénea),
 
 ### 7.4 El párrafo OPL de un sistema completo
 
-El ejemplo canónico del corpus — el SD del sistema de *Preparación de
-Empanadas* (`urn:fxsl:kb:opl-es` §16) — muestra cómo suena un párrafo OPL-ES;
-extracto:
+El SD del sistema de *Preparación de Empanadas* (`urn:fxsl:kb:opl-es` §16)
+muestra cómo suena un párrafo OPL-ES. Se presenta aquí en su **versión saneada
+provisional**: conserva el ejemplo canónico, pero corrige localmente la firma
+estructural Receta→Sistema solicitada al custodio en
+`docs/solicitudes-upstream/2026-07-11-tensiones-internas-corpus-base-opl.md`
+(Tensión 3). Hasta que esa corrección sea ratificada upstream, no debe citarse
+este párrafo como transcripción literal del corpus:
 
 ```text
 *Preparar Empanadas* afecta **Grupo de Comensales**.
@@ -2018,10 +2022,12 @@ protocolo, la skill `pensamiento-modelador` sobre el kb
 | Tensiones del modelamiento | `urn:fxsl:kb:tensiones-modelamiento` (v1.0.0) | marco de las 52 tensiones (Partes 0, VII, Apéndice D) |
 | ISO/PAS 19450 | — | estándar de referencia de OPM (operacionalizado por el corpus) |
 
-**Nota de alcance.** Este manual es deliberadamente **agnóstico de
-herramienta**: nada de lo dicho depende de un modelador concreto. Quien, ya
-formado en la teoría, quiera operarla en la mesa de trabajo opforja, continúa
-en `docs/manual-opforja.md` (método Forja) y `docs/uso-productivo.md`
-(operación) — donde encontrará estas mismas reglas encarnadas en software.
+**Nota de alcance.** El núcleo didáctico de este manual es deliberadamente
+**agnóstico de herramienta**: ninguna operación depende de una interfaz o de
+un modelador concreto. Las extensiones propias de Forja se declaran y etiquetan
+como tales; pueden omitirse sin perder el aprendizaje ni la práctica de OPM
+base. Quien, ya formado en la teoría, quiera usar esas extensiones y operar OPM
+en la mesa opforja, continúa en `docs/manual-opforja.md` (método Forja) y
+`docs/uso-productivo.md` (operación).
 
 *Fin del manual.*
