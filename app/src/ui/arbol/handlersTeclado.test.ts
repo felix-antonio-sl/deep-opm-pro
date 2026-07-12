@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { NodoOpdData } from "./NodoOpd";
+import type { NodoOpdData } from "../../app/viewmodels/arbolOpdEstructura";
 import { atajoPanelArbolDesdeEvento, siguienteFocoArbol } from "./handlersTeclado";
 
 describe("handlers teclado del arbol OPD", () => {

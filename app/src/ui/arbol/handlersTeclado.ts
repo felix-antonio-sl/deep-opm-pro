@@ -1,5 +1,5 @@
 import type { Id } from "../../modelo/tipos";
-import type { NodoOpdData } from "./NodoOpd";
+import type { NodoOpdData } from "../../app/viewmodels/arbolOpdEstructura";
 
 export type DireccionArbol = "up" | "down" | "left" | "right";
 export type AtajoPanelArbol =

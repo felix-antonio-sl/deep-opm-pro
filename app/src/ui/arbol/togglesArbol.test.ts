@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../../modelo/operaciones";
 import { crearOpdSuelto } from "../../modelo/operaciones/opdSuelto";
 import type { Modelo } from "../../modelo/tipos";
-import { construirArbol, expandirTodoArbol, idsColapsables, nodosSueltosTaller } from "./togglesArbol";
+import { construirArbol, nodosSueltosTaller } from "../../app/viewmodels/arbolOpdEstructura";
+import { expandirTodoArbol, idsColapsables } from "./togglesArbol";
 
 describe("toggles del arbol OPD", () => {
   test("expandirTodo deja set colapsados vacio", () => {

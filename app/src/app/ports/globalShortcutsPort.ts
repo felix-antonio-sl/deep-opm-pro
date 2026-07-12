@@ -1,6 +1,6 @@
 import { tipoInicialConexionDesdeEntidad } from "../../canvas/modoEnlace";
 import type { Id, Modelo, TipoEnlace } from "../../modelo/tipos";
-import { construirArbol } from "../../ui/arbol/togglesArbol";
+import { construirArbol } from "../viewmodels/arbolOpdEstructura";
 import {
   BUG_CAPTURE_OPEN_EVENT,
   BUG_CAPTURE_SHORTCUT,

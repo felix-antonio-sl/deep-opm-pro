@@ -1,15 +1,15 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useArbolOpdViewModel } from "../app/viewmodels/arbolOpdViewModel";
+import { construirArbol, type NodoOpdData } from "../app/viewmodels/arbolOpdEstructura";
 import { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../app/ports/feedbackPort";
 import { registrarAtajo } from "./atajosTeclado";
 import { MenuContextualArbol } from "./MenuContextualArbol";
 import { aplanarNodosVisibles, atajoPanelArbolDesdeEvento, manejarTeclaNodoArbol, siguienteFocoArbol } from "./arbol/handlersTeclado";
-import { NodoOpd, type NodoOpdData } from "./arbol/NodoOpd";
+import { NodoOpd } from "./arbol/NodoOpd";
 import { esOpdSuelto } from "../modelo/opdSueltos";
 import {
   cantidadHijos,
-  construirArbol,
   expandirTodoArbol,
   hijosOrdenados,
   idsColapsables,

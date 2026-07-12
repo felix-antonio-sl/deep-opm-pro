@@ -1,6 +1,6 @@
 import { useMemo } from "preact/hooks";
-import { nodosSueltosTaller } from "../../ui/arbol/togglesArbol";
 import { useOpmStore } from "../../store";
+import { nodosSueltosTaller } from "./arbolOpdEstructura";
 import { useZustandDiagnosticsQueryPort } from "../ports/zustandDiagnosticsPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandOpdTreePort } from "../ports/zustandOpdTreePort";

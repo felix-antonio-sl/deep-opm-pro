@@ -2,6 +2,7 @@
 import { refinaA } from "../../modelo/refinamientos";
 import { estadoSubmodelo } from "../../modelo/submodelos";
 import type { Entidad, Id, Modelo, Opd, TipoRefinamiento } from "../../modelo/tipos";
+import type { NodoOpdData } from "../../app/viewmodels/arbolOpdEstructura";
 import { tokens } from "../tokens";
 import { GLIFO_BORRAR, GLIFO_CARET, GLIFO_MARKER, GLIFO_REF, GLIFO_WARN } from "../codex/glifos";
 import { calcularBadges, labelNodoRaiz, labelTipoBadge, tagAnclasOpd, tagVistaOpd, type AvisoOpdLike, type BadgesNodoOpd } from "./badges";
@@ -12,12 +13,6 @@ function refinadorDeOpd(modelo: Modelo, opdId: Id): { entidad: Entidad; tipo: Ti
     if (ref) return { entidad, tipo: ref.tipo };
   }
   return undefined;
-}
-
-export interface NodoOpdData {
-  opd: Opd;
-  nivel: number;
-  hijos: NodoOpdData[];
 }
 
 interface NodoOpdProps {
