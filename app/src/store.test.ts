@@ -6,12 +6,14 @@ import type { Modelo } from "./modelo/tipos";
 import type { ModeloPersistido } from "./persistencia/modelos";
 import { exportarModelo } from "./serializacion/json";
 import { store } from "./store";
+import { feedbackStore } from "./store/feedback";
 import { descriptorMapaFiltrado } from "./store/mapaSelectors";
 
 let originalFetch: typeof fetch;
 
 describe("store undo/redo y dirty state", () => {
   beforeEach(async () => {
+    feedbackStore.getState().clearAll();
     instalarBackendMock();
     instalarConfirmacion();
     store.getState().importarJson(exportarModelo(crearModelo()));
@@ -20,6 +22,7 @@ describe("store undo/redo y dirty state", () => {
   });
 
   afterEach(() => {
+    feedbackStore.getState().clearAll();
     globalThis.fetch = originalFetch;
     Reflect.deleteProperty(globalThis, "window");
   });
@@ -305,6 +308,24 @@ describe("store undo/redo y dirty state", () => {
     expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(0);
     store.getState().deshacer();
     expect(Object.keys(store.getState().modelo.enlaces)).toHaveLength(2);
+  });
+
+  test("eliminar informa el elemento, los enlaces afectados y cómo deshacer", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Todo"));
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 240, y: 80 }, "Parte"));
+    const [todo, parte] = Object.values(modelo.entidades);
+    if (!todo || !parte) throw new Error("La prueba esperaba dos entidades");
+    modelo = must(crearEnlace(modelo, modelo.opdRaizId, todo.id, parte.id, "agregacion"));
+    store.getState().importarJson(exportarModelo(modelo));
+
+    store.getState().setSeleccion([parte.id]);
+    store.getState().eliminarSeleccion();
+
+    const mensajes = feedbackStore.getState().overlays
+      .filter((overlay) => overlay.tipo === "flash")
+      .map((overlay) => overlay.mensaje);
+    expect(mensajes).toContain("✓ Eliminado “Parte” — 1 enlace eliminado · Ctrl+Z deshace");
   });
 
   test("conectarSeleccionAlTodo crea lote en un solo undo", () => {

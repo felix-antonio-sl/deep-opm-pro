@@ -22,6 +22,8 @@ export function useZustandModelSearchDialogPort(): ModelSearchDialogPort {
   const fijarFiltro = useOpmStore((s) => s.fijarBusquedaCosasFiltro);
   const saltar = useOpmStore((s) => s.saltarAResultadoBusqueda);
   const traerAlOpdActivo = useOpmStore((s) => s.traerCosaAlOpdActivo);
+  const abrirBusquedaGlobal = useOpmStore((s) => s.abrirDialogoBuscarGlobal);
+  const fijarBusquedaGlobalQuery = useOpmStore((s) => s.fijarBusquedaGlobalQuery);
 
   return {
     abierto,
@@ -34,6 +36,11 @@ export function useZustandModelSearchDialogPort(): ModelSearchDialogPort {
     fijarFiltro,
     saltar,
     traerAlOpdActivo,
+    buscarEnWorkspace: (queryActual) => {
+      cerrar();
+      fijarBusquedaGlobalQuery(queryActual);
+      abrirBusquedaGlobal();
+    },
   };
 }
 

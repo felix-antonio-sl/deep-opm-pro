@@ -45,6 +45,7 @@ function setup(
   const calls = { play: 0, pausa: 0, oplMinimizar: 0, oplRestaurar: 0, eliminar: 0, soloCanvas: 0, salirSim: 0, vaciarSeleccion: 0, cancelarEnlace: 0 };
   const navegados: Id[] = [];
   const pestanasCambiadas: string[] = [];
+  const mensajes: string[] = [];
   const modelo = nav.modelo ?? crearModelo();
   const opdActivoId = nav.opdActivoId ?? modelo.opdRaizId;
   const pestanasAbiertas = tabs.abiertas ?? [];
@@ -139,6 +140,7 @@ function setup(
   const port: GlobalShortcutsPort = {
     vistaMapaActiva: () => false,
     snapshot: baseSnapshot,
+    notificar: (mensaje) => { mensajes.push(mensaje); },
   };
 
   const registros: ShortcutRegistration[] = [];
@@ -147,7 +149,7 @@ function setup(
     return () => {};
   });
 
-  return { registros, calls, navegados, pestanasCambiadas };
+  return { registros, calls, navegados, pestanasCambiadas, mensajes };
 }
 
 describe("atajo Espacio en simulación", () => {
@@ -182,6 +184,22 @@ describe("atajo Espacio en simulación", () => {
     registros.find((r) => r.combo === "Space")!.handler(makeFakeEvent());
     expect(calls.pausa).toBe(1);
     expect(calls.play).toBe(0);
+  });
+});
+
+describe("guardas explicables de atajos de estado", () => {
+  test("F2, D y T indican que requieren un estado seleccionado", () => {
+    const { registros, mensajes } = setup({ activa: false, auto: false });
+
+    for (const combo of ["F2", "D", "T"]) {
+      registros.find((r) => r.combo === combo && r.ctx === "canvas")!.handler(makeFakeEvent());
+    }
+
+    expect(mensajes).toEqual([
+      "F2 renombra el estado seleccionado — primero selecciona un estado.",
+      "D abre la designación — primero selecciona un estado.",
+      "T edita la duración — primero selecciona un estado.",
+    ]);
   });
 });
 
@@ -334,6 +352,7 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
     }
     const calls = { objeto: 0, proceso: 0, estado: 0, enlaceLibre: 0 };
     const enlaces: Array<{ tipo: string; origenId?: Id }> = [];
+    const mensajes: string[] = [];
     const seleccionId = opts.seleccionId !== undefined ? opts.seleccionId : entidadSeleccionadaId;
 
     const baseSnapshot = (): GlobalShortcutsSnapshot => ({
@@ -421,11 +440,15 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
       restaurarOpl: () => {},
     });
 
-    const port: GlobalShortcutsPort = { vistaMapaActiva: () => false, snapshot: baseSnapshot };
+    const port: GlobalShortcutsPort = {
+      vistaMapaActiva: () => false,
+      snapshot: baseSnapshot,
+      notificar: (mensaje) => { mensajes.push(mensaje); },
+    };
     const registros: ShortcutRegistration[] = [];
     registrarAtajosAplicacion(port, (r) => { registros.push(r); return () => {}; });
     const handler = (combo: string) => registros.find((r) => r.combo === combo && r.ctx === "canvas")?.handler;
-    return { registros, calls, enlaces, handler, entidadSeleccionadaId };
+    return { registros, calls, enlaces, handler, entidadSeleccionadaId, mensajes };
   }
 
   test("O, P, S y R se registran en contexto canvas", () => {
@@ -455,10 +478,11 @@ describe("atajos de creación O/P/S/R en canvas (BUG-445a97)", () => {
     expect(calls.estado).toBe(1);
   });
 
-  test("S no actúa sin objeto seleccionado", () => {
-    const { calls, handler } = setupCreacion({ seleccionId: null });
+  test("S explica por qué no actúa sin objeto seleccionado", () => {
+    const { calls, handler, mensajes } = setupCreacion({ seleccionId: null });
     handler("S")!(makeFakeEvent());
     expect(calls.estado).toBe(0);
+    expect(mensajes).toEqual(["S agrega un estado — primero selecciona un objeto."]);
   });
 
   test("R inicia modo enlace desde el origen seleccionado", () => {

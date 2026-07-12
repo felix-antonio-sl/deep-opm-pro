@@ -32,7 +32,7 @@ const ETIQUETA_TIPO: Record<ResultadoTipo, string> = {
 };
 
 export function DialogoBuscarCosas() {
-  const { abierto, query, filtro, resultados, traibles, cerrar, fijarQuery, fijarFiltro, saltar, traerAlOpdActivo } = useDialogoBuscarCosasViewModel();
+  const { abierto, query, filtro, resultados, traibles, cerrar, fijarQuery, fijarFiltro, saltar, traerAlOpdActivo, buscarEnWorkspace } = useDialogoBuscarCosasViewModel();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Foco al abrir; el `Dialogo` base ya maneja Escape y trap de tab.
@@ -86,7 +86,15 @@ export function DialogoBuscarCosas() {
         <div style={style.resultados}>
           {resultados.length === 0 && query.trim() ? (
             <div style={style.empty} data-testid="dialogo-buscar-cosas-vacio">
-              Sin resultados
+              <span>Sin resultados en este modelo.</span>
+              <button
+                type="button"
+                data-testid="buscar-en-workspace"
+                style={style.buscarWorkspaceBtn}
+                onClick={() => buscarEnWorkspace(query.trim())}
+              >
+                Buscar “{query.trim()}” en el workspace (Ctrl+Shift+F)
+              </button>
             </div>
           ) : resultados.length === 0 ? (
             <div style={style.empty}>
@@ -211,10 +219,25 @@ const style = {
   },
   empty: {
     padding: "16px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: "10px",
     color: tokens.colors.ink50,
     fontFamily: tokens.typography.familyChrome,
     fontSize: "13px",
     fontWeight: 400,
+  },
+  buscarWorkspaceBtn: {
+    padding: "6px 9px",
+    color: tokens.colors.ink,
+    background: tokens.colors.paper,
+    border: `1px solid ${tokens.colors.ink30}`,
+    borderRadius: 0,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "12px",
+    fontWeight: 500,
+    cursor: "pointer",
   },
   tabla: {
     width: "100%",

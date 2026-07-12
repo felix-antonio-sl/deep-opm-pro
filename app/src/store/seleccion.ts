@@ -193,6 +193,19 @@ import {
 
 export type { SeleccionSlice } from "./tipos";
 
+function etiquetaElementoSeleccionado(modelo: Modelo, opdActivoId: Id, id: Id): string {
+  const entidadDirecta = modelo.entidades[id];
+  if (entidadDirecta) return `“${entidadDirecta.nombre}”`;
+  const apariencia = modelo.opds[opdActivoId]?.apariencias[id];
+  const entidadDeApariencia = apariencia ? modelo.entidades[apariencia.entidadId] : undefined;
+  if (entidadDeApariencia) return `“${entidadDeApariencia.nombre}”`;
+  const estado = modelo.estados?.[id];
+  if (estado) return `estado “${estado.nombre}”`;
+  const enlace = modelo.enlaces[id];
+  if (enlace) return enlace.etiqueta?.trim() ? `enlace “${enlace.etiqueta.trim()}”` : `enlace ${enlace.tipo}`;
+  return "elemento";
+}
+
 export const createSeleccionSlice: CrearSlice<SeleccionSlice> = (set, get) => ({
   seleccionId: null,
   seleccionados: [],
@@ -227,13 +240,21 @@ export const createSeleccionSlice: CrearSlice<SeleccionSlice> = (set, get) => ({
         siguiente = resultado.value;
       }
       const commiteado = commitModelo(set, modelo, siguiente, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
-      if (commiteado) addFlash("✓ Estado eliminado");
+      if (commiteado) addFlash("✓ Estado eliminado · Ctrl+Z deshace");
       return;
     }
+    const enlacesAntes = Object.keys(modelo.enlaces).length;
     const resultado = eliminarBatch(modelo, ids, opdActivoId);
     if (resultado.ok) {
       const commiteado = commitModelo(set, modelo, resultado.value, { seleccionId: null, seleccionados: [], modoSeleccion: "simple", enlaceSeleccionId: null, estadoSeleccionId: null, modoEnlace: null, mensaje: null });
-      if (commiteado) addFlash("✓ Selección eliminada");
+      if (commiteado) {
+        const enlacesEliminados = enlacesAntes - Object.keys(resultado.value.enlaces).length;
+        const impacto = `${enlacesEliminados} ${enlacesEliminados === 1 ? "enlace eliminado" : "enlaces eliminados"}`;
+        const sujeto = ids.length === 1
+          ? `Eliminado ${etiquetaElementoSeleccionado(modelo, opdActivoId, ids[0]!)}`
+          : `Eliminados ${ids.length} elementos`;
+        addFlash(`✓ ${sujeto} — ${impacto} · Ctrl+Z deshace`);
+      }
     } else {
       set({ mensaje: resultado.error });
     }

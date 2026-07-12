@@ -18,6 +18,7 @@ export interface ModelSearchDialogPort {
   fijarFiltro: (filtro: BusquedaCosasFiltro) => void;
   saltar: (resultado: ResultadoBusquedaSalto) => void;
   traerAlOpdActivo: (entidadId: Id) => void;
+  buscarEnWorkspace: (query: string) => void;
 }
 
 export interface WorkspaceSearchDialogPort {

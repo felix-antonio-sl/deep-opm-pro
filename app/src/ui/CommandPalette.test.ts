@@ -199,14 +199,14 @@ describe("CommandPalette — tres estratos deduplicados", () => {
     expect(zip ? seccionVisualCommandPalette(zip) : null).toBe("RECIENTES");
   });
 
-  test("renombrar modelo existe como comando explícito en RECIENTES", () => {
+  test("renombrar modelo conduce a Configuración sin comando duplicado", () => {
     const deps = depsAccionesMenu();
     const acc = construirAccionesMenuCommandPalette(deps);
     const items = construirItemsCommandPalette([], [], acc);
-    const renombrar = items.find((item) => item.menuActionId === "renombrar-modelo");
+    const resultados = filtrarItemsCommandPalette(items, "renombrar modelo");
 
-    expect(renombrar?.label).toBe("Renombrar modelo");
-    expect(renombrar ? seccionVisualCommandPalette(renombrar) : null).toBe("RECIENTES");
+    expect(resultados.map((item) => item.menuActionId)).toContain("configuracion");
+    expect(items.map((item) => item.menuActionId)).not.toContain("renombrar-modelo");
   });
 
   test("expone capacidades OPCloud isomorfas como comandos canónicos", () => {
@@ -227,7 +227,7 @@ describe("CommandPalette — tres estratos deduplicados", () => {
       "recolectar-contorno",
       "distribuir-contorno",
     ]));
-    expect(filtrarItemsCommandPalette(items, "split parcial").map((i) => i.menuActionId)).toContain("split-parcial");
+    expect(filtrarItemsCommandPalette(items, "consumo resultado").map((i) => i.menuActionId)).toContain("split-parcial");
     expect(filtrarItemsCommandPalette(items, "decision").map((i) => i.menuActionId)).toContain("resolver-decision");
   });
 

@@ -60,6 +60,22 @@ test("ronda 16 L2: Ctrl+F abre dialogo y filtra entidades", async ({ page }) => 
   expect(pageErrors).toEqual([]);
 });
 
+test("una búsqueda local vacía continúa en el workspace conservando la consulta", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Control+f");
+
+  const query = "inexistente-en-modelo";
+  const input = page.getByTestId("dialogo-buscar-cosas-input");
+  await expect(input).toBeFocused();
+  await input.fill(query);
+  await page.getByTestId("buscar-en-workspace").click();
+
+  await expect(page.getByTestId("dialogo-buscar-cosas")).toHaveCount(0);
+  await expect(page.getByTestId("dialogo-buscar-global")).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Buscar global" })).toHaveValue(query);
+});
+
 test("ronda 16 L2: salto desde busqueda cambia OPD + selecciona + sincroniza OPL", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

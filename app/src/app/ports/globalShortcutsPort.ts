@@ -133,6 +133,7 @@ export interface GlobalShortcutsSnapshot {
 export interface GlobalShortcutsPort {
   vistaMapaActiva: () => boolean;
   snapshot: () => GlobalShortcutsSnapshot;
+  notificar: (mensaje: string) => void;
 }
 
 export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAtajo: ShortcutRegistrar): Array<() => void> {
@@ -152,8 +153,10 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
   const crearProcesoAtajo = () => s().crearProcesoDemo();
   const agregarEstadoAtajo = () => {
     const state = s();
-    if (!state.seleccionId) return;
-    if (!state.modelo.entidades[state.seleccionId]) return;
+    if (!state.seleccionId || !state.modelo.entidades[state.seleccionId]) {
+      port.notificar("S agrega un estado — primero selecciona un objeto.");
+      return;
+    }
     state.agregarEstadoSmart();
   };
   const iniciarRelacionAtajo = () => {
@@ -251,7 +254,10 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
       categoria: "edicion",
       descripcion: "Renombrar estado seleccionado",
       handler: () => {
-        if (!s().estadoSeleccionId) return;
+        if (!s().estadoSeleccionId) {
+          port.notificar("F2 renombra el estado seleccionado — primero selecciona un estado.");
+          return;
+        }
         window.dispatchEvent(new CustomEvent("opm:halo-estado-rename"));
       },
     }),
@@ -261,7 +267,10 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
       categoria: "edicion",
       descripcion: "Abrir popover de designación del estado seleccionado",
       handler: () => {
-        if (!s().estadoSeleccionId) return;
+        if (!s().estadoSeleccionId) {
+          port.notificar("D abre la designación — primero selecciona un estado.");
+          return;
+        }
         window.dispatchEvent(new CustomEvent("opm:halo-estado-popover-designar"));
       },
     }),
@@ -272,7 +281,11 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
       descripcion: "Editar duración del estado seleccionado",
       handler: () => {
         const state = s();
-        if (state.estadoSeleccionId) state.abrirModalDuracionEstadoSeleccionado();
+        if (!state.estadoSeleccionId) {
+          port.notificar("T edita la duración — primero selecciona un estado.");
+          return;
+        }
+        state.abrirModalDuracionEstadoSeleccionado();
       },
     }),
     registrarAtajo({ combo: "Ctrl+Shift+T", ctx: "canvas", categoria: "edicion", descripcion: "Traer conectados de la cosa seleccionada", handler: abrirTraerConectados }),

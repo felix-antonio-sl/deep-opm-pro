@@ -47,7 +47,7 @@ test("command palette contiene comandos de modelo, vista y soporte", async ({ pa
   await expect(palette).toBeVisible();
 
   await palette.getByRole("combobox").fill("renombrar modelo");
-  await expect(palette.getByTestId("command-palette-item-menu-renombrar-modelo")).toBeVisible();
+  await expect(palette.getByTestId("command-palette-item-menu-configuracion")).toBeVisible();
 
   await palette.getByRole("combobox").fill("capturar bug");
   await expect(palette.getByTestId("command-palette-item-menu-capturar-bug")).toBeVisible();

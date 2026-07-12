@@ -40,7 +40,6 @@ interface PanelCarpetasProps {
   onArchivarModelo?: (modeloId: Id) => void;
   onRestaurarModelo?: (modeloId: Id) => void;
   onToggleBiblioteca?: (modeloId: Id) => void;
-  onToggleApunte?: (modeloId: Id) => void;
   onArchivarCarpeta?: (carpetaId: Id) => void;
   onRestaurarCarpeta?: (carpetaId: Id) => void;
   onAbrirVersiones?: (modeloId: Id) => void;
@@ -151,7 +150,6 @@ export function PanelCarpetas(props: PanelCarpetasProps) {
         onArchivarModelo={props.onArchivarModelo}
         onRestaurarModelo={props.onRestaurarModelo}
         onToggleBiblioteca={props.onToggleBiblioteca}
-        onToggleApunte={props.onToggleApunte}
         onArchivarCarpeta={props.onArchivarCarpeta}
         onRestaurarCarpeta={props.onRestaurarCarpeta}
         onAbrirVersiones={props.onAbrirVersiones}

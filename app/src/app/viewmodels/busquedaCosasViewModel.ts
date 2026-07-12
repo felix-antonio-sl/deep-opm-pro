@@ -154,7 +154,7 @@ export function entidadesTraiblesAlOpd(
 }
 
 export function useDialogoBuscarCosasViewModel() {
-  const { abierto, query, filtro, modelo, opdActivoId, cerrar, fijarQuery, fijarFiltro, saltar, traerAlOpdActivo } =
+  const { abierto, query, filtro, modelo, opdActivoId, cerrar, fijarQuery, fijarFiltro, saltar, traerAlOpdActivo, buscarEnWorkspace } =
     useZustandModelSearchDialogPort();
 
   const resultados = useMemo(
@@ -177,6 +177,7 @@ export function useDialogoBuscarCosasViewModel() {
     fijarFiltro,
     saltar,
     traerAlOpdActivo,
+    buscarEnWorkspace,
   };
 }
 
