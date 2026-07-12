@@ -9,6 +9,8 @@ Compañero de bolsillo: `docs/cheatsheets/opm-puro.html`
 > `urn:fxsl:kb:opd-es` (gráfica), `urn:fxsl:kb:manual-metodologico-opm-es` (método)
 > y `urn:fxsl:kb:reglas-opm-estrictas-es` (canon prescriptivo). La lente de lectura
 > es el marco de las 52 tensiones del modelado (`urn:fxsl:kb:tensiones-modelamiento`).
+> La trazabilidad declarada es al corpus local OPM-ES; este paquete no sustituye
+> una auditoría independiente, cláusula por cláusula, del texto de ISO/PAS 19450.
 
 ---
 
@@ -17,7 +19,7 @@ Compañero de bolsillo: `docs/cheatsheets/opm-puro.html`
 - **Parte 0 — Orientación**: por qué modelar, qué congela un formalismo, dónde se sitúa OPM.
 - **Parte I — Fundamentos ontológicos**: cosas, estados, propiedades genéricas, función.
 - **Parte II — Bimodalidad**: el hecho único y sus dos proyecciones, OPD y OPL.
-- **Parte III — Enlaces**: las seis familias, control, operadores lógicos.
+- **Parte III — Enlaces**: las cinco familias base, la extensión de excepción, control y operadores lógicos.
 - **Parte IV — Complejidad**: refinamiento, abstracción, distribución, composición.
 - **Parte V — Método**: clasificación del sistema, construcción del SD, niveles, heurísticas, anti-patrones.
 - **Parte VI — Dinámica**: ejecución, simulación, tiempo y excepciones.
@@ -564,7 +566,7 @@ Estado `satisfecho` de **Nivel de Satisfacción** es final.
 *Preparar Empanadas* consume **Masa Cruda**.
 *Preparar Empanadas* genera **Empanada**.
 **Receta** es ambiental.
-**Receta** se relaciona con *Preparar Empanadas*.
+**Receta** se relaciona con **Sistema de Preparación de Empanadas**.
 ```
 
 Doce oraciones y el sistema entero de nivel 0 queda dicho: función, valor,
@@ -588,28 +590,33 @@ la masa de cruda a horneada» (asuma **Masa** con estados `cruda` y
 
 # Parte III — Enlaces: el sistema circulatorio del modelo
 
-## §8 Panorama: seis familias y dos leyes transversales
+## §8 Panorama: cinco familias base, una extensión y dos leyes transversales
 
 Un **enlace** es la expresión gráfica de una relación estructural o
-procedimental (glosario 3.36). Toda relación expresable en un OPD conforme
-pertenece a **exactamente una** de seis familias (§5.1 del canon prescriptivo):
+procedimental (glosario 3.36). La capa base OPM-ES (`urn:fxsl:kb:opm-es`)
+distingue **cinco familias canónicas**. El canon prescriptivo de OpForja
+promueve la excepción temporal a sexta familia autónoma por paridad con la
+invocación; es una **extensión declarada**, no una propiedad de OPM base:
 
 | # | Familia | Firma | Naturaleza |
 |---|---|---|---|
 | 1 | **Transformadora** | Objeto ↔ Proceso | procedimental: el proceso cambia al objeto |
 | 2 | **Habilitadora** | Objeto → Proceso | procedimental: el objeto permite sin cambiar |
 | 3 | **Invocación** | Proceso → Proceso | procedimental: un proceso inicia a otro |
-| 4 | **Excepción** | Proceso → Proceso | control temporal: desvío por duración anómala |
-| 5 | **Estructural fundamental** | Cosa ↔ Cosa | estática: semántica fija (4 relaciones) |
-| 6 | **Estructural etiquetada** | Obj↔Obj o Proc↔Proc | estática: semántica definida por el modelador |
+| — | **Excepción** · extensión Forja | Proceso → Proceso | control temporal autónomo: desvío por duración anómala |
+| 4 | **Estructural fundamental** | Cosa ↔ Cosa | estática: semántica fija (4 relaciones) |
+| 5 | **Estructural etiquetada** | Obj↔Obj o Proc↔Proc | estática: semántica definida por el modelador |
 
 Nótese la gran partición que resuelve la tensión Estático↔Dinámico: los
-enlaces **procedimentales** (familias 1–4) expresan relaciones dependientes
-del tiempo; los **estructurales** (5–6) expresan relaciones operacionalmente
+enlaces **procedimentales** (familias 1–3 y la extensión de excepción) expresan
+relaciones dependientes del tiempo; los **estructurales** (4–5) expresan relaciones operacionalmente
 invariantes — lo que sigue siendo verdad mientras el sistema opera (glosario
-3.73). **Homogeneidad** (heurística §9.6): los estructurales conectan
-objeto↔objeto o proceso↔proceso; los procedimentales conectan objeto↔proceso.
-La única excepción es exhibición-caracterización (§13.2).
+3.73). **Firmas:** transformadores y habilitadores conectan objeto↔proceso;
+invocación y excepción conectan proceso↔proceso; los estructurales son
+homogéneos (objeto↔objeto o proceso↔proceso), salvo las combinaciones canónicas
+de exhibición-caracterización (§13.2). La generalización anterior «todo
+procedimental es no homogéneo» está elevada para corrección en la solicitud
+upstream del 2026-07-11.
 
 Dos leyes transversales gobiernan las familias procedimentales:
 
@@ -1532,7 +1539,8 @@ aquí, la lectura de conjunto en tres estratos:
 
 **Lo congelado (capa A).** OPM tomó 24 decisiones sustantivas por ti, y las
 tomó con un sesgo reconocible: *minimalismo con cierre*. Dos cosas y no
-veinte; seis familias de enlace y no un vocabulario abierto; bimodalidad
+veinte; cinco familias base de enlace —más la extensión Forja explícita de
+excepción— y no un vocabulario abierto; bimodalidad
 obligatoria y no diagramas con leyenda opcional; herencia total y no herencia
 à la carte. Cada cierre sacrifica flexibilidad superficial a cambio de algo
 más valioso para sistemas complejos: **consistencia inter-modelador** — dos

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OPM puro — cheat sheet agnóstico</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%97%8E</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%97%8E%3C/text%3E%3C/svg%3E">
 <style>*{margin:0}html{color-scheme:light dark}</style>
 </head>
 <body>
@@ -124,6 +124,7 @@
     font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
 
   @media print {
+    @page { size: A4; margin: 12mm; }
     body { background: #fff; color: #000; }
     .wrap { max-width: none; padding: 0; }
     .card { box-shadow: none; break-inside: avoid; border-color: #bbb; }
@@ -136,9 +137,9 @@
     <div>
       <div class="mark">
         <span class="logo">OPM<span class="dot">.</span></span>
-        <span class="sheet-name">puro · agnóstico</span>
+        <span class="sheet-name">referencia multipágina · 17 tarjetas</span>
       </div>
-      <p class="tagline">Object-Process Methodology (ISO 19450) sin herramienta de por medio: dos cosas, seis familias de enlace, un método. El manual completo: <code>docs/manual-opm-puro.md</code>.</p>
+      <p class="tagline">Object-Process Methodology (ISO 19450) sin herramienta de por medio: dos cosas, cinco familias base de enlace y una extensión declarada. El manual completo: <code>docs/manual-opm-puro.md</code>.</p>
     </div>
     <div class="mast-glyphs">
       <span class="g g-obj">objeto</span>
@@ -228,6 +229,7 @@
       <div class="opl"><i>Manejo</i> ocurre si duración de <i>Fuente</i> excede 60 min.<br><i>Detectar Objeto</i> invoca <i>Evaluar Amenaza</i>.</div>
       <ul class="tight">
         <li><code>/</code> sobretiempo · <code>//</code> subtiempo (= detector de omisión).</li>
+        <li><strong>Invocación</strong> pertenece a la taxonomía base; <strong>excepción</strong> es sexta familia solo en la extensión Forja.</li>
         <li>Duración: (mín, esperada, máx) + distribución opcional.</li>
         <li><strong>Rayo</strong> proceso→proceso: solo para bucles, saltos y cruces de OPD.</li>
         <li>Entre subprocesos adyacentes el orden vertical ya invoca: rayo = doble vara.</li>
@@ -356,14 +358,14 @@
       <p class="eyebrow">Bimodalidad</p>
       <h2>Un hecho, dos proyecciones</h2>
       <p>OPD (diagrama) y OPL (texto) <strong>no son dos modelos</strong>: cada edición gráfica regenera el texto y viceversa. Toda forma visual persistente emite su oración; toda oración reconstruye su constructo.</p>
-      <div class="opl"><b>Receta</b> es ambiental.<br><b>Receta</b> se relaciona con <i>Preparar Empanadas</i>.</div>
+      <div class="opl"><b>Receta</b> es ambiental.<br><b>Receta</b> se relaciona con <b>Sistema de Preparación de Empanadas</b>.</div>
       <p>El OPL se lee en lenguaje natural — y tiene gramática formal (EBNF). Expertos de dominio auditan el modelo sin saber «leer diagramas».</p>
     </section>
 
   </main>
 
   <footer>
-    <span>OPM puro · ISO 19450 · cheat sheet agnóstico de herramienta</span>
+    <span>OPM puro · ISO 19450 · referencia multipágina agnóstica</span>
     <span>paquete educativo — manual: docs/manual-opm-puro.md</span>
   </footer>
 </div>

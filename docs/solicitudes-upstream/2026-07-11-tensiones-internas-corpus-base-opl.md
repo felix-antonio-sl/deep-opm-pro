@@ -1,11 +1,11 @@
-# Corrección documental — 3 tensiones internas entre capas base del corpus OPM-ES (`opm-es` ↔ `opl-es`) — PENDIENTE
+# Corrección documental — 4 tensiones internas del corpus OPM-ES — PENDIENTE
 
 **Fecha:** 2026-07-11 · **De:** compuesto opforja (deep-opm-pro) · **Para:** custodio-kora (kora-pneuma)
 **Naturaleza:** bug documental de las **capas base** (no de la familia Forja), detectado por la
 verificación adversarial doble del paquete educativo OPM puro (`docs/manual-opm-puro.md` +
 `docs/cheatsheets/opm-puro.html`, commit deep-opm-pro `4a32e2e5`, 2026-07-09). Cada hallazgo fue
 refutado de primera mano contra los archivos antes de elevarse. **No bloquea nada**: severidad
-baja, pero las tres divergencias viven en superficie que los artefactos derivados citan textualmente
+baja, pero las cuatro divergencias viven en superficie que los artefactos derivados citan textualmente
 (manuales, cheat sheets, ejemplos de enseñanza), por lo que conviene sanearlas en la fuente.
 
 **Criterio de arbitraje usado por la mesa mientras tanto:** ante divergencia de superficie textual,
@@ -62,16 +62,36 @@ sigue esa regla. Esta solicitud pide que la fuente deje de divergir.
   semánticamente defendible pero cambia el *contenido* del ejemplo (la tabla la lista deliberadamente
   como ambiental con etiquetado nulo), tocando más de lo que el saneamiento exige.
 
+## Tensión 4 — «Todo procedimental es no homogéneo» excluye invocación y excepción
+
+- **Evidencia:** `manual-metodologico-opm-es §9.6` (`:611`) prescribe que todos los enlaces
+  procedimentales son no homogéneos (objeto↔proceso), pero el mismo corpus declara dos familias
+  procedimentales con firma proceso→proceso:
+  - invocación, en `opm-es` (glosario 3.31 y §Enlaces procedimentales) y `opl-es §8.2`;
+  - excepción autónoma, en `opm-es §Enlaces procedimentales` y
+    `reglas-opm-estrictas-es §5.1` (extensión Forja declarada).
+  La definición 3.57 de `opm-es` también restringe «relación procedimental» a objeto/estado↔proceso,
+  por lo que el mismo desajuste aparece en glosario y método.
+- **Recomendación (única):** acotar la regla de homogeneidad: transformadores y habilitadores
+  DEBEN ser no homogéneos; invocación y excepción DEBEN conectar proceso→proceso; los
+  estructurales DEBEN ser homogéneos salvo exhibición-caracterización. Ajustar en la misma
+  enmienda la definición 3.57 para que «procedimental» abarque ambas firmas.
+  **Porqué:** conserva todas las realizaciones ya legisladas y corrige la generalización, sin
+  reclasificar enlaces ni crear excepciones ad hoc en los derivados.
+
 ---
 
 ## Cómo aplicar (custodio)
 
-1. Editar `~/kora-pneuma/artefactos/conocimiento/fxsl/opm-es.md` (tensiones 1-2: líneas 763 y
-   769-778) y `~/kora-pneuma/artefactos/conocimiento/fxsl/opl-es.md` (tensión 3: §16, tabla de
-   enlaces + párrafos OPL-ES/OPL-EN), con bump de versión + changelog en frontmatter de ambos.
+1. Editar `~/kora-pneuma/artefactos/conocimiento/fxsl/opm-es.md` (tensiones 1-2 y definición 3.57
+   de la tensión 4), `~/kora-pneuma/artefactos/conocimiento/fxsl/opl-es.md` (tensión 3: §16,
+   tabla de enlaces + párrafos OPL-ES/OPL-EN) y
+   `~/kora-pneuma/artefactos/conocimiento/fxsl/manual-metodologico-opm-es.md` (§9.6, tensión 4),
+   con bump de versión + changelog en frontmatter de cada pieza modificada.
 2. `python3 ~/kora-pneuma/kora.py velar`.
-3. Avisar a la mesa (deep-opm-pro) para propagar a los derivados que hoy **heredan declaradamente**
-   la tensión 3: `docs/manual-opm-puro.md` §7.4 y Apéndice E (reproduce el extracto §16 con la
-   oración **Receta**↔proceso) y `docs/cheatsheets/opm-puro.html` (tarjeta «Bimodalidad»). Las
-   tensiones 1-2 ya están resueltas en los derivados a favor de `opl-es`, así que no requieren
-   propagación.
+3. Avisar a la mesa (deep-opm-pro) para retirar las notas transitorias. Desde el saneamiento de
+   convergencia del 2026-07-12, `docs/manual-opm-puro.md` y
+   `docs/cheatsheets/opm-puro.html` ya siguen preventivamente R-OPL-SE-2 y declaran la firma
+   procedimental por subtipo; las tensiones 1-2 también estaban resueltas en los derivados a
+   favor de `opl-es`. La propagación pendiente es, por tanto, retirar la advertencia cuando el
+   corpus quede firmado, no cambiar nuevamente la semántica enseñada.
