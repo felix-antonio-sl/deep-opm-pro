@@ -1,8 +1,32 @@
 import { createStore } from "zustand/vanilla";
-import type { FeedbackAviso, FeedbackOverlay } from "../app/ports/feedbackPort";
 
-export { EVENTO_ABRIR_AVISO_DIAGNOSTICO } from "../app/ports/feedbackPort";
-export type { FeedbackAviso, FeedbackOverlay } from "../app/ports/feedbackPort";
+export type FeedbackOverlay =
+  | {
+      id: string;
+      tipo: "flash";
+      mensaje: string;
+      ttl: number;
+      creadoEn: number;
+    }
+  | {
+      id: string;
+      tipo: "inline-error";
+      anchorCellId: string;
+      reglaId: string;
+      severidad: "error" | "advertencia" | "info";
+      mensaje: string;
+      citaSSOT: string;
+    };
+
+export interface FeedbackAviso {
+  anchorCellId: string;
+  reglaId: string;
+  severidad: "error" | "advertencia" | "info";
+  mensaje: string;
+  citaSSOT: string;
+}
+
+export const EVENTO_ABRIR_AVISO_DIAGNOSTICO = "opm:diagnostico:abrir-aviso";
 
 export interface FeedbackState {
   overlays: FeedbackOverlay[];
