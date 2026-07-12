@@ -5,6 +5,7 @@ import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
 
 let originalFetch: typeof fetch;
+const cargarYEvaluarDriftOriginal = store.getState().cargarYEvaluarDrift;
 
 describe("slice persistencia backend-only", () => {
   let backend: BackendMock;
@@ -16,6 +17,7 @@ describe("slice persistencia backend-only", () => {
   });
 
   afterEach(() => {
+    store.setState({ cargarYEvaluarDrift: cargarYEvaluarDriftOriginal });
     globalThis.fetch = originalFetch;
     Reflect.deleteProperty(globalThis, "window");
   });
@@ -96,6 +98,32 @@ describe("slice persistencia backend-only", () => {
 
     expect(store.getState().modelo.nombre).toBe("Copia backend vigente");
     expect(store.getState().descripcionModeloLocal).toBe("server");
+  });
+
+  test("cargar modelo reevalua drift despues de montar la revision hidratada", async () => {
+    const modeloServidor = crearModelo("Revision del agente");
+    const ahora = "2026-07-12T00:00:00.000Z";
+    backend.modelos.set("modelo-agente", {
+      id: "modelo-agente",
+      nombre: "Revision del agente",
+      descripcion: "server",
+      creadoEn: ahora,
+      actualizadoEn: ahora,
+      carpetaId: null,
+      json: exportarModelo(modeloServidor),
+      revision: 2,
+    });
+    const modelosEvaluados: string[] = [];
+    store.setState({
+      cargarYEvaluarDrift: async () => {
+        modelosEvaluados.push(store.getState().modelo.nombre);
+      },
+    });
+
+    store.getState().cargarLocal("modelo-agente");
+    await esperar(() => modelosEvaluados.length > 0);
+
+    expect(modelosEvaluados).toEqual(["Revision del agente"]);
   });
 
   test("A′-vitrina: guardado propio NO gatilla el chip; push del agente SÍ", async () => {

@@ -435,6 +435,9 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
         // B5: abrir una biblioteca → solo-lectura + cinta de modo; cualquier
         // otro modelo limpia ambos (puede venir de tener una biblioteca abierta).
         get().gobernarAperturaBiblioteca(cargado.value.esBiblioteca === true);
+        // Centinela de Drift: toda recarga efectiva —incluida «Traer la del
+        // agente»— debe reevaluar las piezas sobre el modelo ya hidratado.
+        void get().cargarYEvaluarDrift();
       });
       return;
     }
