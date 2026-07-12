@@ -1,5 +1,5 @@
-import { formatearHoraGuardado } from "../../ui/ChipPersistencia";
 import { infoProcedencia } from "../../modelo/procedenciaPanel";
+import { formatearHoraGuardado } from "./formatoPersistencia";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useZustandPersistencePort } from "../ports/zustandPersistencePort";
 import { useZustandSelectionPort } from "../ports/zustandSelectionPort";

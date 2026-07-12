@@ -9,6 +9,7 @@ import { lazy, Suspense } from "preact/compat";
 import { useEffect, useState } from "preact/hooks";
 import objectDragIcon from "../../../../assets/svg/objectDrag.svg";
 import { useToolbarBaseViewModel } from "../../app/viewmodels/toolbarBaseViewModel";
+import { formatearHoraGuardado } from "../../app/viewmodels/formatoPersistencia";
 import type { Entidad, Id, TipoEnlace } from "../../modelo/tipos";
 import type { JointCanvasAdapter } from "../../render/jointjs/jointCanvasAdapter";
 import type { AccionContextualId } from "../../store/acciones-contextuales";
@@ -16,7 +17,6 @@ import { useCanvasAdapter } from "../CanvasAdapterContext";
 import {
   clasificarVariante,
   detallarChip,
-  formatearHoraGuardado,
   labelChip,
 } from "../ChipPersistencia";
 import { ChipRevisionNueva } from "./ChipRevisionNueva";

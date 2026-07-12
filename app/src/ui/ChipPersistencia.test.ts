@@ -2,10 +2,10 @@ import { describe, expect, test } from "bun:test";
 import {
   clasificarVariante,
   detallarChip,
-  formatearHoraGuardado,
   formatearTiempoRelativo,
   labelChip,
 } from "./ChipPersistencia";
+import { formatearHoraGuardado } from "../app/viewmodels/formatoPersistencia";
 
 describe("ChipPersistencia · clasificarVariante", () => {
   test("persistido sin dirty → local-clean", () => {

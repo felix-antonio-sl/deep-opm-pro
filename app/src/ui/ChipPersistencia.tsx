@@ -16,6 +16,7 @@
  *   - Tiempo relativo en es-CL: `hace X min`, `hace X s`, etc.
  */
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
+import { formatearHoraGuardado } from "../app/viewmodels/formatoPersistencia";
 import type { OrigenPestana } from "../modelo/tipos";
 import { tokens } from "./tokens";
 
@@ -103,19 +104,6 @@ export function labelChip(variante: VarianteChip, opts: { salvando?: boolean; ho
     return "Cambios sin guardar";
   }
   return "Sin guardar · Ctrl+S";
-}
-
-/**
- * Formato HH:mm 24h para el sufijo del label `Guardado · HH:mm`.
- * Devuelve `null` si el timestamp no es un número finito.
- */
-export function formatearHoraGuardado(timestamp: number | null | undefined): string | null {
-  if (!timestamp || !Number.isFinite(timestamp)) return null;
-  return new Date(timestamp).toLocaleTimeString("es-CL", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
 }
 
 export function detallarChip(
