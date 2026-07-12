@@ -159,8 +159,10 @@ test("L3 ciclo de feedback completo cubre barra, badge y toast", async ({ page }
 
   await elementoPorTexto(page, "Proceso").click();
   await page.keyboard.press("Delete");
-  const toastEliminar = page.getByTestId("flash-toast").filter({ hasText: "Selección eliminada" });
+  const toastEliminar = page.getByTestId("flash-toast").filter({ hasText: "Eliminado “Proceso”" });
   await expect(toastEliminar).toBeVisible();
+  await expect(toastEliminar).toContainText("0 enlaces eliminados");
+  await expect(toastEliminar).toContainText("Ctrl+Z deshace");
   await expect(toastEliminar).toHaveAttribute("role", "status");
   await expect(toastEliminar).toHaveAttribute("aria-live", "polite");
 
