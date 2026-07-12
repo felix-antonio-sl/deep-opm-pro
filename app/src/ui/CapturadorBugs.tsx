@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import {
+  BUG_CAPTURE_OPEN_EVENT,
+  BUG_LEDGER_OPEN_EVENT,
+  bugCaptureHabilitado,
+} from "../app/bugCapture";
 import { useBugCaptureContext } from "../app/viewmodels/capturadorBugsViewModel";
 import { Dialogo } from "./Dialogo";
 import { tokens } from "./tokens";
@@ -75,25 +80,13 @@ function CapturadorBugsInteractivo() {
   };
 
   useEffect(() => {
-    const abrirConAtajo = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== "b") return;
-      if (!event.shiftKey || (!event.ctrlKey && !event.metaKey)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      abrir();
-    };
-    window.addEventListener("keydown", abrirConAtajo, { capture: true });
-    return () => window.removeEventListener("keydown", abrirConAtajo, { capture: true });
-  }, []);
-
-  useEffect(() => {
     const abrirCaptura = () => abrir();
     const abrirLedger = () => abrirLista();
-    window.addEventListener("opforja:bug-capture:open", abrirCaptura);
-    window.addEventListener("opforja:bug-ledger:open", abrirLedger);
+    window.addEventListener(BUG_CAPTURE_OPEN_EVENT, abrirCaptura);
+    window.addEventListener(BUG_LEDGER_OPEN_EVENT, abrirLedger);
     return () => {
-      window.removeEventListener("opforja:bug-capture:open", abrirCaptura);
-      window.removeEventListener("opforja:bug-ledger:open", abrirLedger);
+      window.removeEventListener(BUG_CAPTURE_OPEN_EVENT, abrirCaptura);
+      window.removeEventListener(BUG_LEDGER_OPEN_EVENT, abrirLedger);
     };
   }, []);
 
@@ -334,10 +327,6 @@ function BugLedgerTable({ entries, includeScope }: { entries: BugLedgerEntry[]; 
       </table>
     </div>
   );
-}
-
-function bugCaptureHabilitado(): boolean {
-  return import.meta.env.DEV || import.meta.env.VITE_ENABLE_BUG_CAPTURE === "true";
 }
 
 function leerScreenshot(file: File): Promise<ScreenshotAdjunto> {

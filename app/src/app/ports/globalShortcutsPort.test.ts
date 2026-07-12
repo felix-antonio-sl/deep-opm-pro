@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { crearModelo, crearObjeto } from "../../modelo/operaciones";
 import type { Id, Modelo } from "../../modelo/tipos";
 import {
+  crearRegistroAtajoCapturaBug,
   opdsEnOrdenDeArbol,
   registrarAtajosAplicacion,
   type GlobalShortcutsPort,
@@ -150,6 +151,12 @@ function setup(
 }
 
 describe("atajo Espacio en simulación", () => {
+  test("captura de bugs declara el mismo combo que ejecuta el registro global", () => {
+    const registro = crearRegistroAtajoCapturaBug();
+    expect(registro.combo).toBe("Ctrl+Shift+B");
+    expect(registro.ctx).toBe("global");
+  });
+
   test("no registra Ctrl+B cuando biblioteca dock está pausada como superficie de producto", () => {
     const { registros } = setup({ activa: false, auto: false });
     expect(registros.some((r) => r.combo === "Ctrl+B")).toBe(false);

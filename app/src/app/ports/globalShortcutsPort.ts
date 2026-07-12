@@ -1,6 +1,12 @@
 import { tipoInicialConexionDesdeEntidad } from "../../canvas/modoEnlace";
 import type { Id, Modelo, TipoEnlace } from "../../modelo/tipos";
 import { construirArbol } from "../../ui/arbol/togglesArbol";
+import {
+  BUG_CAPTURE_OPEN_EVENT,
+  BUG_CAPTURE_SHORTCUT,
+  bugCaptureHabilitado,
+  emitirEventoBugCapture,
+} from "../bugCapture";
 
 export interface ShortcutRegistration {
   combo: string;
@@ -317,7 +323,22 @@ export function registrarAtajosAplicacion(port: GlobalShortcutsPort, registrarAt
     registrarAtajo({ combo: "Space", ctx: "global", categoria: "edicion", descripcion: "Reproducir/Pausar simulación", descripcionLarga: "En modo simulación, alterna entre reproducir y pausar", preventDefault: false, handler: togglePlaySimulacion }),
   ];
 
+  if (bugCaptureHabilitado()) {
+    registrosBase.push(registrarAtajo(crearRegistroAtajoCapturaBug()));
+  }
+
   return registrosBase;
+}
+
+export function crearRegistroAtajoCapturaBug(): ShortcutRegistration {
+  return {
+    combo: BUG_CAPTURE_SHORTCUT,
+    ctx: "global",
+    categoria: "vista",
+    descripcion: "Capturar bug",
+    descripcionLarga: "Abre el capturador de bugs del workspace",
+    handler: () => emitirEventoBugCapture(BUG_CAPTURE_OPEN_EVENT),
+  };
 }
 
 /**

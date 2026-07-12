@@ -1,4 +1,11 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import {
+  BUG_CAPTURE_OPEN_EVENT,
+  BUG_CAPTURE_SHORTCUT,
+  BUG_LEDGER_OPEN_EVENT,
+  bugCaptureHabilitado,
+  emitirEventoBugCapture,
+} from "../app/bugCapture";
 import { useCommandPaletteViewModel } from "../app/viewmodels/commandPaletteViewModel";
 import type { AccionContextual, AccionContextualId } from "../store/acciones-contextuales";
 import { accionesContextualesEntidad, accionesParaSuperficie } from "../store/acciones-contextuales";
@@ -225,8 +232,8 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     mostrarArchivados,
     toggleMostrarVersiones,
     mostrarVersiones,
-    abrirCapturadorBug: () => emitirEventoBugCapture("opforja:bug-capture:open"),
-    abrirBugLedger: () => emitirEventoBugCapture("opforja:bug-ledger:open"),
+    abrirCapturadorBug: () => emitirEventoBugCapture(BUG_CAPTURE_OPEN_EVENT),
+    abrirBugLedger: () => emitirEventoBugCapture(BUG_LEDGER_OPEN_EVENT),
     abrirCrearRequisito: () => abrirDialogoRequisito("crear"),
     abrirMarcarRequisito: () => abrirDialogoRequisito("marcar"),
     abrirSatisfacerRequisito: () => abrirDialogoRequisito("satisfacer"),
@@ -601,14 +608,12 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     ...(deps.abrirUrlsObjeto ? [{ id: "urls-objeto", label: "URLs del objeto", descripcion: "Editar las URLs del objeto seleccionado", categoria: "vista", run: deps.abrirUrlsObjeto }] : []),
     { id: "mostrar-archivados", label: deps.mostrarArchivados ? "Ocultar archivados" : "Mostrar archivados", descripcion: "Alternar la visibilidad de los modelos archivados", categoria: "vista", run: deps.toggleMostrarArchivados },
     { id: "mostrar-versiones", label: deps.mostrarVersiones ? "Ocultar glifos de versiones" : "Mostrar glifos de versiones", descripcion: "Alternar los glifos de versiones en el workspace", categoria: "vista", run: deps.toggleMostrarVersiones },
-    { id: "capturar-bug", label: "Capturar bug", descripcion: "Abrir el capturador de bugs del workspace", categoria: "vista", atajo: "Ctrl+Alt+B", run: deps.abrirCapturadorBug },
-    { id: "bug-ledger", label: "Bugs y features", descripcion: "Abrir el ledger local de bugs y features", categoria: "vista", run: deps.abrirBugLedger },
+    ...(bugCaptureHabilitado() ? [
+      { id: "capturar-bug", label: "Capturar bug", descripcion: "Abrir el capturador de bugs del workspace", categoria: "vista", atajo: BUG_CAPTURE_SHORTCUT, run: deps.abrirCapturadorBug },
+      { id: "bug-ledger", label: "Bugs y features", descripcion: "Abrir el ledger local de bugs y features", categoria: "vista", run: deps.abrirBugLedger },
+    ] : []),
     { id: "atajos-teclado", label: "Atajos de teclado", descripcion: "Mostrar la referencia de atajos registrados", categoria: "navegacion", run: deps.abrirCheatsheetAtajos },
   ];
-}
-
-function emitirEventoBugCapture(nombre: "opforja:bug-capture:open" | "opforja:bug-ledger:open"): void {
-  globalThis.dispatchEvent?.(new CustomEvent(nombre));
 }
 
 export function filtrarItemsCommandPalette(items: readonly CommandPaletteItem[], query: string): CommandPaletteItem[] {
