@@ -37,7 +37,10 @@ import { fileURLToPath } from "node:url";
 
 const LEYES_ROOT = dirname(fileURLToPath(import.meta.url));
 const SRC_ROOT = resolve(LEYES_ROOT, "..");
+const APP_ROOT = join(SRC_ROOT, "app");
 const RENDER_ROOT = join(SRC_ROOT, "render");
+const STORE_ROOT = join(SRC_ROOT, "store");
+const UI_ROOT = join(SRC_ROOT, "ui");
 
 // Las capas fuente que NUNCA pueden depender de render: kernel, runtime,
 // serialización, OPL, geometría de canvas (independiente de JointJS) y el
@@ -55,7 +58,10 @@ const ALLOWLIST_PRODUCCION: ReadonlyArray<string> = [
 
 describe("L7 — render ↛ SSOT: las capas fuente no importan de src/render", () => {
   test("(a) ningún archivo de producción de las capas fuente importa desde src/render", () => {
-    const violaciones = detectarImportsARender(CAPAS_FUENTE.map((capa) => join(SRC_ROOT, capa)))
+    const violaciones = detectarImportsACapa(
+      CAPAS_FUENTE.map((capa) => join(SRC_ROOT, capa)),
+      RENDER_ROOT,
+    )
       .filter((v) => !ALLOWLIST_PRODUCCION.includes(v.archivoRelativo));
 
     expect(violaciones).toEqual([]);
@@ -88,7 +94,7 @@ describe("L7 — render ↛ SSOT: las capas fuente no importan de src/render", (
         "utf8",
       );
 
-      const violaciones = detectarImportsARender([fixtureDir]);
+      const violaciones = detectarImportsACapa([fixtureDir], RENDER_ROOT);
       const relativa = relative(SRC_ROOT, fixtureFile).replaceAll("\\", "/");
 
       // El detector debe nombrar exactamente el archivo ofensor y su specifier.
@@ -96,6 +102,21 @@ describe("L7 — render ↛ SSOT: las capas fuente no importan de src/render", (
       expect(ofensora).toBeDefined();
       expect(ofensora?.specifier).toBe("../render/jointjs/proyeccion");
     });
+  });
+});
+
+describe("L8 — frontera de aplicación: app y store no dependen de capas superiores", () => {
+  test("src/app no importa producción desde src/ui ni src/render", () => {
+    const violaciones = [
+      ...detectarImportsACapa([APP_ROOT], UI_ROOT),
+      ...detectarImportsACapa([APP_ROOT], RENDER_ROOT),
+    ];
+
+    expect(violaciones).toEqual([]);
+  });
+
+  test("src/store no importa producción desde src/app", () => {
+    expect(detectarImportsACapa([STORE_ROOT], APP_ROOT)).toEqual([]);
   });
 });
 
@@ -111,15 +132,15 @@ interface ViolacionImport {
 /**
  * Escanea (recursivamente, sólo producción) las raíces dadas y devuelve los
  * imports/reexports/import()-dinámicos cuyo specifier RELATIVO resuelve dentro
- * de src/render/. Los specifiers no-relativos (paquetes npm) se ignoran: no hay
- * paquete `render`, y el repo no usa alias de paths (tsconfig sin `paths`).
+ * de `capaDestino`. Los specifiers no-relativos (paquetes npm) se ignoran: el
+ * repo no usa alias de paths (tsconfig sin `paths`).
  */
-function detectarImportsARender(raices: string[]): ViolacionImport[] {
+function detectarImportsACapa(raices: string[], capaDestino: string): ViolacionImport[] {
   return raices.flatMap((raiz) =>
     sourceFiles(raiz).flatMap((archivo) => {
       const texto = readFileSync(archivo, "utf8");
       return extraerSpecifiers(texto)
-        .filter((spec) => esRelativo(spec) && resuelveDentroDeRender(archivo, spec))
+        .filter((spec) => esRelativo(spec) && resuelveDentroDeCapa(archivo, spec, capaDestino))
         .map<ViolacionImport>((spec) => ({
           archivoRelativo: relative(SRC_ROOT, archivo).replaceAll("\\", "/"),
           specifier: spec,
@@ -167,10 +188,10 @@ function esRelativo(spec: string): boolean {
   return spec.startsWith("./") || spec.startsWith("../");
 }
 
-/** ¿El specifier relativo de `archivo` resuelve a una ruta bajo src/render/? */
-function resuelveDentroDeRender(archivo: string, spec: string): boolean {
+/** ¿El specifier relativo de `archivo` resuelve a una ruta bajo `capaDestino`? */
+function resuelveDentroDeCapa(archivo: string, spec: string, capaDestino: string): boolean {
   const destino = resolve(dirname(archivo), spec);
-  const rel = relative(RENDER_ROOT, destino);
-  // Dentro de RENDER_ROOT si la relativa no sube (`..`) ni es absoluta.
+  const rel = relative(capaDestino, destino);
+  // Dentro de la capa si la ruta relativa no sube (`..`) ni es absoluta.
   return rel === "" || (!rel.startsWith("..") && !resolve(rel).startsWith(".."));
 }

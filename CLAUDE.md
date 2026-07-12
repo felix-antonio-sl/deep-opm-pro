@@ -20,15 +20,16 @@ Dependencias unidireccionales. El renderer **nunca** es fuente de verdad:
 
 ```
 src/modelo/        kernel OPM puro — tipos, operaciones, validadores,
-    ↑              refinamientos, plegado, abanicos, diagnóstico, simulación.
-    │              Sin JointJS, sin DOM, sin Zustand.
+    ↓              refinamientos, plegado, abanicos, diagnóstico, simulación.
 src/store/         Zustand — fuente de verdad de runtime. Slices compuestos
-    ↑              en runtime.ts; runtimeEffects.ts conecta efectos.
-src/render/jointjs/  adaptador desechable. Proyecta modelo → celdas JointJS
-    ↑                 (proyeccion.ts, composers/, customShapes.ts, routing).
-src/ui/            componentes Preact — Inspector, PanelOpl, Toolbar, árbol
-                   OPD, diálogos y mobile. tokens.ts = design system.
+    ↓              en runtime.ts; runtimeEffects.ts conecta efectos.
+src/app/           frontera de aplicación — ports, adaptadores Zustand y
+    ↓              viewmodels compartidos. Nunca importa de ui ni render.
+    ├── src/render/jointjs/  adaptador desechable modelo → celdas JointJS.
+    └── src/ui/              componentes Preact, diálogos y design system.
 ```
+
+`src/ui/` y `src/render/` pueden consumir contratos de `src/app/`; el flujo inverso está prohibido. `src/store/` tampoco consume `src/app/`: los tipos compartidos de runtime pertenecen a store/modelo y los ports pueden reexportarlos. Las leyes L7–L8 en `src/leyes/dependencias-unidireccionales.test.ts` sellan estas fronteras.
 
 Subsistemas:
 
