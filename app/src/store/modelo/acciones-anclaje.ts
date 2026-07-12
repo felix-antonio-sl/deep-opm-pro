@@ -79,14 +79,17 @@ async function cargarBibliotecaViva(modeloId: Id): Promise<Modelo | null> {
 }
 
 export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSlice> {
+  let evaluacionDriftVigente = 0;
+
   return {
     driftMap: {},
 
     async cargarYEvaluarDrift(): Promise<void> {
+      const evaluacionId = ++evaluacionDriftVigente;
       const { modelo } = get();
       const modeloIds = bibliotecasAncladas(modelo);
       if (modeloIds.length === 0) {
-        set({ driftMap: {} });
+        if (evaluacionId === evaluacionDriftVigente) set({ driftMap: {} });
         return;
       }
       const bibliotecasVivas: Record<Id, Modelo | null> = {};
@@ -95,8 +98,17 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
           bibliotecasVivas[modeloId] = await cargarBibliotecaViva(modeloId);
         }),
       );
-      // El modelo pudo cambiar mientras resolvíamos; re-leemos para barrer el vigente.
-      const driftMap = evaluarDriftModelo(get().modelo, construirResolverHashVivo(bibliotecasVivas));
+      // Una evaluación anterior nunca puede sobrescribir una más reciente. Esto
+      // importa al cambiar rápido de pestaña/modelo: cada corrida resuelve un
+      // conjunto distinto de bibliotecas y las respuestas pueden llegar invertidas.
+      if (evaluacionId !== evaluacionDriftVigente) return;
+      const modeloVigente = get().modelo;
+      const bibliotecasVigentes = bibliotecasAncladas(modeloVigente);
+      if (!mismosIds(modeloIds, bibliotecasVigentes)) {
+        void get().cargarYEvaluarDrift();
+        return;
+      }
+      const driftMap = evaluarDriftModelo(modeloVigente, construirResolverHashVivo(bibliotecasVivas));
       set({ driftMap });
     },
 
@@ -222,4 +234,8 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
       }
     },
   };
+}
+
+function mismosIds(a: readonly Id[], b: readonly Id[]): boolean {
+  return a.length === b.length && a.every((id) => b.includes(id));
 }

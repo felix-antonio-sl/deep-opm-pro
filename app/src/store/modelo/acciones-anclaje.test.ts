@@ -158,6 +158,37 @@ describe("cargarYEvaluarDrift — el resolutor de hash vivo contra el backend pe
     await store.getState().cargarYEvaluarDrift();
     expect(store.getState().driftMap[id]).toBe("divergente"); // mide contra el backend (v2)
   });
+
+  test("una evaluación antigua no sobrescribe el drift del modelo vigente", async () => {
+    const bibliotecaA = gredaV1("lib-a");
+    const bibliotecaB = gredaV1("lib-b");
+    guardarModeloEnBackendMock({ id: bibliotecaA.id, nombre: bibliotecaA.nombre, json: exportarModelo(bibliotecaA) });
+    guardarModeloEnBackendMock({ id: bibliotecaB.id, nombre: bibliotecaB.nombre, json: exportarModelo(bibliotecaB) });
+    const pendientes = new Map<string, Diferido<Response>>();
+    globalThis.fetch = ((input: RequestInfo | URL) => {
+      const id = decodeURIComponent(String(input).split("/").pop() ?? "");
+      const diferido = crearDiferido<Response>();
+      pendientes.set(id, diferido);
+      return diferido.promise;
+    }) as typeof fetch;
+
+    const modeloA = modeloConAnclada("Pieza A", bibliotecaA);
+    store.setState({ modelo: modeloA, driftMap: {} });
+    const evaluacionA = store.getState().cargarYEvaluarDrift();
+
+    const modeloB = modeloConAnclada("Pieza B", bibliotecaB);
+    const piezaBId = entidadId(modeloB, "Pieza B");
+    store.setState({ modelo: modeloB, driftMap: {} });
+    const evaluacionB = store.getState().cargarYEvaluarDrift();
+
+    pendientes.get(bibliotecaB.id)?.resolve(jsonResponse({ modelo: backend.modelos.get(bibliotecaB.id) }));
+    await evaluacionB;
+    expect(store.getState().driftMap[piezaBId]).toBe("sincronizado");
+
+    pendientes.get(bibliotecaA.id)?.resolve(jsonResponse({ modelo: backend.modelos.get(bibliotecaA.id) }));
+    await evaluacionA;
+    expect(store.getState().driftMap[piezaBId]).toBe("sincronizado");
+  });
 });
 
 describe("reSincronizarAnclajeEntidad — re-congela al hash vivo y entra al undo", () => {
@@ -228,6 +259,17 @@ describe("soltarAnclajeEntidad — desancla, sale del driftMap, commit deshacibl
 interface BackendMock {
   modelos: Map<string, ModeloPersistido>;
   getCount: Map<string, number>;
+}
+
+interface Diferido<T> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+}
+
+function crearDiferido<T>(): Diferido<T> {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolver) => { resolve = resolver; });
+  return { promise, resolve };
 }
 
 function guardarModeloEnBackendMock(input: Pick<ModeloPersistido, "id" | "nombre" | "json"> & Partial<ModeloPersistido>): void {
