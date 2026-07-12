@@ -18,7 +18,7 @@ export function RenombradoInline(props: Props) {
   }, [props.nombre]);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    inputRef.current?.focus({ preventScroll: true });
     inputRef.current?.select();
   }, [props.rect.x, props.rect.y]);
 

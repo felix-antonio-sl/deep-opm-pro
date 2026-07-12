@@ -703,17 +703,24 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
 
   const proceso2ParaRename = elementoPorTexto(page, "Procesar 2");
   await expect(proceso2ParaRename).toBeVisible();
+  const viewport = page.getByRole("img", { name: "OPD activo" });
+  const scrollAntesDeRenombrar = await viewport.evaluate((elemento) => ({
+    left: elemento.scrollLeft,
+    top: elemento.scrollTop,
+  }));
   await abrirRenombradoInline(page, proceso2ParaRename);
   await expect(page.getByTestId("renombrado-inline")).toBeVisible();
+  await expect.poll(() => viewport.evaluate((elemento) => ({
+    left: elemento.scrollLeft,
+    top: elemento.scrollTop,
+  }))).toEqual(scrollAntesDeRenombrar);
   await page.getByTestId("renombrado-inline").fill("Validar Entrada");
   await page.keyboard.press("Enter");
   await expect(elementoPorTexto(page, "Validar Entrada")).toHaveCount(1);
   await expect(page.getByText(/Validar Entrada\s+consume\s+Entrada/)).toBeVisible();
 
-  // Tras reasignar/renombrar el viewport puede quedar lejos del contenido
-  // (scroll preservado); el drag por mouse solo agarra elementos visibles.
-  // Como haría un humano: scrollear al subproceso antes de arrastrarlo y
-  // releer las coordenadas ya con la vista puesta.
+  // El drag por mouse requiere ambos subprocesos visibles; releemos sus
+  // coordenadas después de llevar el primero al viewport.
   await elementoPorTexto(page, "Procesar 1").scrollIntoViewIfNeeded();
   const p1 = await elementoPorTexto(page, "Procesar 1").boundingBox();
   const p2 = await elementoPorTexto(page, "Validar Entrada").boundingBox();
