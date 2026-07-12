@@ -1,6 +1,6 @@
 # Chrome de gestión: higiene del gestor + paleta Cmd+K — diseño (Corte D, re-empaquetado)
 
-**Fecha:** 2026-07-06 · **Estado:** aprobado; re-empaquetado por el comité doble (jobs×steipete con `cat-thinking`) y ratificado. **La parte de ESPECIES del gestor se fusionó con B′** (`2026-07-06-apuntes-taller-design.md` §6: dos zonas por rol, chip de rigor in-situ, CTA de una puerta). Lo que queda aquí: la **higiene pura** (adelantada a Ola 1, no depende de doctrina) y la **paleta** (Ola 2 o C′).
+**Fecha:** 2026-07-06 · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato. **La parte de ESPECIES del gestor se fusionó con B′** (`2026-07-06-apuntes-taller-design.md` §6: dos zonas por rol, chip de rigor in-situ, CTA de una puerta).
 
 ## 1. Higiene pura del gestor (Ola 1 — sin especies, ejecuta m-2/m-5/M-5)
 

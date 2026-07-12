@@ -1,7 +1,8 @@
 # Diseño — Corte UI del Centinela de Drift (Anclaje α)
 
 **Fecha:** 2026-06-26 · **Repo:** `deep-opm-pro` · **Frente:** gist-anchor / Anclaje · **Alcance:** Opción **α** (solo vigilancia) + «marcador-que-responde».
-**Funda en:** `docs/HANDOFF.md` (frente gist-anchor), `docs/auditorias/2026-06-24-acta-{nominacion-reuso-tipos-opforja,valor-anclaje-centinela-drift}.md`, veredicto Steve Jobs+mente-omega (2026-06-26).
+**Estado:** REALIZADO Y DESPLEGADO; conservar como contrato de diseño histórico, no como instrucción pendiente.
+**Funda en:** `docs/auditorias/2026-06-24-acta-{nominacion-reuso-tipos-opforja,valor-anclaje-centinela-drift}.md`, veredicto Steve Jobs+mente-omega (2026-06-26). Estado actual: `docs/handoff-2026-07-12.md`.
 **Kernel pre-existente (verde, sin UI):** `app/src/modelo/operaciones/anclaje.ts`.
 
 ---
@@ -134,7 +135,7 @@ Condiciones de validación, **parte del corte**, no opcionales:
 
 1. **Bundle real, no de juguete.** La validación se hace con **HODOM real anclado a raíces reales de gist** (`ent-Category` y/o `ent-Component`/`ent-Composite`, designadas por gist), no con un fixture de tres cajas. El bundle de import se construye desde HODOM.
 2. **Mutación real persistida.** Anclar HODOM, persistir, **cambiar un tipo raíz de gist de verdad** en la biblioteca persistida, reabrir HODOM, y exigir que el marcador divergente aparezca **solo**, sin forzar el hash a mano. (Forzar el hash prueba `evaluarDrift`, que ya está verde — no el Centinela.)
-3. **Criterio de muerte escrito ANTES del deploy.** Una línea en `docs/HANDOFF.md`, en palabras de Félix-curador, sin matemática: «Si tras cambiar la raíz de gist abro HODOM y NO veo de un vistazo qué entidades quedaron divergentes, el Centinela no me ahorró el rastreo a mano → se mata el frente.»
+3. **Criterio de muerte escrito ANTES del deploy.** En palabras de Félix-curador, sin matemática: «Si tras cambiar la raíz de gist abro HODOM y NO veo de un vistazo qué entidades quedaron divergentes, el Centinela no me ahorró el rastreo a mano → se mata el frente.»
 
 ## 7. Plan de pruebas (TDD)
 

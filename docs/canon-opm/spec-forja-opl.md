@@ -58,9 +58,9 @@ como regla o extensión declarada, y cada derivación sin soporte de la EBNF §1
 lleva GAP nombrado en la propia SSOT. Este puente ya no porta condición
 correctiva sobre la fuente.
 
-Versión vigente observada: `1.2.2` (2026-06-16, cierra GAP-CX-PARSER y
-GAP-FIXTURE-DESCOMPOSICION vía `opd.ordenInzoom`). El dato vivo lo resuelve
-`docs/canon-opm/resolutor-urn.json`, no este número.
+La versión `1.2.2` (2026-06-16) cerró GAP-CX-PARSER y
+GAP-FIXTURE-DESCOMPOSICION vía `opd.ordenInzoom`. La versión vigente se resuelve
+exclusivamente desde `docs/canon-opm/resolutor-urn.json`.
 
 Residuo abierto (único): la producción de efecto de §18 A.5 sigue sin slot de
 multiplicidad, pendiente de la decisión del editor de la capa base

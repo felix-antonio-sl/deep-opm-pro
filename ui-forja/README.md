@@ -1,10 +1,10 @@
-# OpForja · Codex — Handoff de Diseño
+# OpForja · Codex — sistema de diseño
 
 **Producto:** OpForja (editor OPM, render del canvas con JointJS)
 **Propuesta:** Codex — editorial · marginalia · type-led
 **Versión:** 1.2
-**Fecha:** 25 mayo 2026
-**Audiencia:** equipo de desarrollo encargado de implementar el rediseño
+**Fecha:** 2026-05-25
+**Audiencia:** equipo de desarrollo que mantiene la implementación Preact
 
 ---
 
@@ -51,10 +51,10 @@ OpForja se trata como un manuscrito anotado: el OPD vive como figura central, la
 
 ---
 
-## 3. Estructura del handoff
+## 3. Estructura del sistema
 
 ```
-handoff/
+ui-forja/
 ├── GOVERNANCE.md                ← autoridad normativa de diseño
 ├── README.md                    ← este archivo
 ├── 01-design-spec.md            ← lenguaje visual: tokens, type, layout, hairlines
@@ -108,7 +108,7 @@ Las cuatro son **el mismo editor** — comparten el frame, cambian lo que llena 
 
 ```bash
 # Abrir cualquier escena standalone en un browser
-open handoff/scenes/01-editor.html
+open ui-forja/scenes/01-editor.html
 ```
 
 Cada HTML standalone:
@@ -131,10 +131,10 @@ El mock SVG inline está **solo para que las screenshots se vean completas**. En
 
 ### 6.1 Stack sugerido
 
-- React / Vue / Svelte / Solid — cualquiera (el chrome es stateless)
+- Preact 10 — stack productivo del repositorio
 - CSS variables del `tokens.css` al theme provider
 - Una librería de fuzzy search para el command palette (ej. `fuse.js`, `cmdk`)
-- **JointJS v4.0+** para el canvas
+- **JointJS 3.7 core** para el canvas, sin Rappid
 - Un linter de OPL para autocorregir verbos (ver [`04-opl-rendering.md`](04-opl-rendering.md))
 
 ### 6.2 Orden de implementación recomendado
@@ -182,7 +182,7 @@ Documentado por capa en [`06-ssot-compliance.md`](06-ssot-compliance.md) §5. Re
 
 ## 8. Versionado
 
-Codex v1.1. Cualquier cambio de:
+Codex v1.2. Cualquier cambio de:
 
 - **token** → minor bump (v1.1)
 - **frame layout** → major bump (v2.0)

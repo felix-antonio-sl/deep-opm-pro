@@ -688,13 +688,13 @@
     "type": "Feat",
     "status": "Resuelto",
     "resolution": "Paneles hideables (toggle visibilidad OPL/Inspector) — desplegado 2026-06-08.",
-    "note": "Feature cerrada por el corte paneles hideables y resizable (ver docs/HANDOFF.md)."
+    "note": "Feature cerrada por el corte de paneles ocultables y redimensionables, desplegado el 2026-06-08; trazabilidad en Git."
   },
   "BUG-20260607T215222Z-624056": {
     "type": "Feat",
     "status": "Resuelto",
     "resolution": "Panel izquierdo resizable horizontalmente — desplegado 2026-06-08.",
-    "note": "Feature cerrada por el corte paneles hideables y resizable (ver docs/HANDOFF.md)."
+    "note": "Feature cerrada por el corte de paneles ocultables y redimensionables, desplegado el 2026-06-08; trazabilidad en Git."
   },
   "BUG-20260709T174709Z-76af16": {
     "type": "Bug",

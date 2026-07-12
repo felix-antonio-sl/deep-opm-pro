@@ -1,93 +1,79 @@
 # Documentación — deep-opm-pro
 
-Modelador OPM/ISO 19450 nuevo, con arquitectura propia. No es fork de OPCloud.
+Índice navegable del repositorio de desarrollo de opforja, modelador OPM/ISO 19450 con arquitectura propia.
 
-**Instancia en producción:** `https://opforja.sanixai.com`
+**Instancia en producción:** [opforja.sanixai.com](https://opforja.sanixai.com)
 
 ## Entrada rápida
 
-| Si quieres... | Lee |
+| Necesidad | Fuente |
 |---|---|
-| Entender el proyecto y su arquitectura | `../CLAUDE.md` |
-| Saber qué está desplegado y qué falta | `HANDOFF.md` |
-| Usar el modelador como usuario | `uso-productivo.md` |
-| Aprender **OPM puro** — teoría agnóstica de herramienta, de las bases a lo avanzado | `manual-opm-puro.md` (+ `cheatsheets/opm-puro.html`) |
-| Aprender a modelar con método (humano o agente) | `manual-opforja.md` |
-| Modelar sistemas sanitarios complejos (manual avanzado de dominio) | `manual-sanitarios-opm.md` |
-| Repasar con hojas de referencia (familia visual papel/tinta) | `cheatsheets/` |
-| Desplegar o administrar la instancia | `deploy/opforja.md` |
-| Conocer las decisiones técnicas clave | `canon-opm/` (puentes a KORA) |
-| Consultar el plan de cortes activos | `roadmap/cortes.md` |
-| Revisar auditorías técnicas | `auditorias/README.md` |
-| Leer especificaciones de frentes activos | `specs/` |
-| Consultar la referencia histórica del decommission | `reference/PROCEDENCIA.md` |
-| Verificar el estado del sistema de bugs | `bugs/INDEX.md` |
+| Entender el proyecto, arquitectura y reglas | `../CLAUDE.md` |
+| Conocer el estado operativo | `handoff-2026-07-12.md` |
+| Elegir el próximo corte | `roadmap/roadmap-2026-07-12.md` |
+| Revisar defectos activos | `bugs/INDEX.md` |
+| Usar el modelador | `uso-productivo.md` |
+| Aprender OPM sin depender de una herramienta | `manual-opm-puro.md` y `cheatsheets/opm-puro.html` |
+| Modelar con el método Forja | `manual-opforja.md` |
+| Modelar sistemas sanitarios complejos | `manual-sanitarios-opm.md` |
+| Desplegar y operar producción | `deploy/opforja.md` |
+| Consultar la autoridad OPM | `canon-opm/` como puente a `kora-pneuma` |
+| Consultar decisiones y auditorías vivas | `auditorias/README.md` |
+| Revisar evidencia histórica | `reference/PROCEDENCIA.md` |
 
-## Estructura
+## Jerarquía de autoridad
 
-```
+1. `../CLAUDE.md` gobierna el repositorio.
+2. Las SSOT OPM viven en `/home/felix/kora-pneuma/artefactos/conocimiento/fxsl/`; `canon-opm/` resuelve sus URN y versiones observadas.
+3. `ui-forja/GOVERNANCE.md` gobierna estética y chrome bajo la precedencia OPM.
+4. El handoff fecha el estado, el roadmap fecha la dirección y `bugs/INDEX.md` registra defectos.
+5. Specs, actas y auditorías conservan contratos o evidencia; no sustituyen el estado actual.
+6. Git conserva la historia versionada. `_archivo/` es desplazamiento local reversible y queda fuera del árbol vivo.
+
+## Estructura viva
+
+```text
 docs/
-├── README.md                    ← este archivo (índice navegable)
-├── HANDOFF.md                   ← estado operativo vigente (única memoria de traspaso, consolidada)
-├── uso-productivo.md            ← guía operativa del usuario (entrar, guardar, atajos)
-├── manual-opm-puro.md           ← manual educativo de OPM puro (ISO 19450), agnóstico de herramienta
-├── manual-opforja.md            ← manual integrado: método Forja + pista humano + pista agente
-├── manual-sanitarios-opm.md     ← manual avanzado de dominio: sistemas sanitarios complejos (3 lentes × 5 escalas)
-│
-├── cheatsheets/                 ← hojas de referencia (familia visual papel/tinta)
-│   ├── opm-puro.html            ← OPM puro agnóstico (compañero del manual-opm-puro)
-│   └── opforja-*.html           ← familia opforja: básico, avanzado, ontología, patrones, …
-├── JOYAS.md                     ← hallazgos técnicos validados de ingeniería inversa
-├── render-headless.md           ← herramienta dev: render headless del proto (H1)
-├── verify-reproducible.md       ← herramienta dev: verificación de reproducibilidad (H2)
-│
-├── canon-opm/                   ← puentes locales a las SSOT OPM en KORA
-│   ├── reglas-opm-estrictas.md
-│   ├── spec-forja-opl.md
-│   ├── spec-forja-opd.md
-│   ├── metodologia-forja.md
-│   └── resolutor-urn.json       ← mapa URN→path (re-ancla a pneuma)
-│
+├── README.md
+├── handoff-2026-07-12.md
+├── uso-productivo.md
+├── manual-opm-puro.md
+├── manual-opforja.md
+├── manual-sanitarios-opm.md
+├── cheatsheets/
+├── JOYAS.md
+├── render-headless.md
+├── verify-reproducible.md
+├── canon-opm/
 ├── deploy/
-│   └── opforja.md               ← operación de la instancia Docker
-│
-├── roadmap/                     ← planes y cortes de producto
-│   ├── README.md                ← índice del roadmap
-│   ├── cortes.md                ← escalera del compuesto (C-cordón · E-expresión · X-exoesqueleto)
-│   ├── quality-ledger.md        ← gates ejecutables de calidad
-│   ├── registro-conformidad-ssot.md ← mapeo regla DEBE → gate/estado (R-CONF-7)
-│   └── protocolo-re-pin.md      ← protocolo de re-pin para cambios en SSOT
-│
-├── auditorias/                  ← auditorías con referencia viva o valor prospectivo
-│   └── README.md                ← política y índice (qué vive y por qué)
-│
-├── specs/                       ← especificaciones técnicas de frentes (vivo o canónico)
-│   ├── auth-identidad-v1.md
-│   ├── mobile-readonly-v1-steipete-cat-jointjs.md
-│   ├── 2026-06-14-invocacion-implicita-bimodal-design.md
-│   └── 2026-06-15-orden-inzoom-canvas-sync-design.md
-│
-├── superpowers/                 ← diseños de frentes activos + planes TDD archivados
-│   ├── specs/                   ← un diseño por frente en curso/reciente (ver carpeta, crece por corte)
-│   └── plans/                   ← planes de ejecución TDD archivados
-│
-├── reference/                   ← referencia histórica del decommission (opmodel/opm-model-app, 2026-06-22); ver PROCEDENCIA.md
-│
-├── memorias-aprendizajes/       ← lecciones del bucle modelar-OPM-con-OpForja
-│
-├── solicitudes-upstream/        ← peticiones desde/hacia skills y KORA
-│
-└── bugs/                        ← capturador integrado
-    ├── README.md                ← formato y uso
-    ├── INDEX.md                 ← ledger operativo de bugs activos
-    ├── HISTORY.md               ← histórico completo (activos + archivados)
-    ├── BUG-*/                   ← reportes activos
-    └── archive/BUG-*/           ← reportes resueltos (regenerable con `bun run bug:index`)
+├── roadmap/
+│   ├── README.md
+│   ├── roadmap-2026-07-12.md
+│   ├── quality-ledger.md
+│   ├── registro-conformidad-ssot.md
+│   └── protocolo-re-pin.md
+├── auditorias/
+├── specs/
+├── superpowers/specs/
+├── memorias-aprendizajes/
+├── solicitudes-upstream/
+├── reference/
+└── bugs/
 ```
 
-## Convenciones documentales
+Los planes TDD, prompts de arranque y solicitudes cerradas fueron retirados del árbol vivo el 2026-07-12. Las especificaciones que todavía fijan decisiones o tienen referencias vivas permanecen visibles.
 
-- **Idioma:** español (es-CL) para documentación y vocabulario del dominio OPM en el código; inglés para infraestructura (stack, dependencias, utilidades) y comandos de shell.
-- **Handoff único:** `HANDOFF.md` es la única memoria de traspaso. Nunca crear handoffs paralelos o fechados.
-- **SSOT OPM:** las fuentes de verdad viven en KORA (`urn:fxsl:kb:*`). Los archivos en `canon-opm/` son puentes locales, no copias.
-- **Repo liviano:** no versionar artefactos regenerables o efímeros. Lo que no ofrece valor actual se elimina; la historia git es la red de recuperación.
+## Política de vigencia
+
+- Un solo documento visible por especie operativa; nombre `<especie>-AAAA-MM-DD.md` y fecha ISO máxima como vigente.
+- Los operativos son inmutables. Para actualizarlos, crear una versión nueva y desplazar la anterior a `_archivo/` antes de publicar.
+- No usar expresiones relativas como “hoy” o “la semana pasada” para fijar estado histórico.
+- Auditorías y actas viven mientras tengan una brecha abierta o sean autoridad citada por código, tests o normas.
+- Los artefactos resueltos no permanecen como instrucciones ejecutables.
+
+## Convenciones
+
+- Documentación y comunicación en español de Chile; código nuevo, comandos e identificadores en inglés.
+- El vocabulario OPM histórico en español dentro del código es una excepción heredada, no una pauta para código nuevo.
+- Fechas siempre en formato `AAAA-MM-DD`.
+- No versionar artefactos regenerables o efímeros. `opm-extracted/` es la excepción curada y trazable.

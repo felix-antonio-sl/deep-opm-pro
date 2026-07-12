@@ -3,7 +3,7 @@
 **Producto:** OpForja (editor OPM)
 **Propuesta:** Codex
 **Versión:** 1.2 — autoridad normativa vigente
-**Fecha:** 25 mayo 2026
+**Fecha:** 2026-05-25
 
 > **Nota 2026-06-12** (auditoría de coherencia del corpus): §3.2 reformula los tres colores OPM como canal informativo asociado por convención a la clase del símbolo (la semántica la portan forma, contorno, sombra y topología), conforme a `reglas-opm-estrictas-es` R-COLOR-1/2 y `spec-forja-opd-es` R-OPD-COSA-5.
 
@@ -292,11 +292,11 @@ Transición: `100ms ease` en color únicamente.
 
 ## 12. Versionado
 
-Esta especificación v1.0 corresponde a los archivos del folder `handoff/` con hash de los documentos. Cualquier cambio de:
+Esta especificación v1.2 corresponde a los archivos de `ui-forja/`. Cualquier cambio de:
 
 - **token** (color, fuente, tamaño) → minor bump (v1.1)
 - **frame layout** → major bump (v2.0)
 - **componente nuevo** → minor bump
 - **fix de bug visual** → patch (v1.0.1)
 
-Última actualización: 23 mayo 2026 — refactor a scope JointJS (solo apariencia, sin lógica de render).
+Última actualización: 2026-06-12 — precedencia OPM reconciliada; JointJS sigue limitado a apariencia, sin lógica de render.

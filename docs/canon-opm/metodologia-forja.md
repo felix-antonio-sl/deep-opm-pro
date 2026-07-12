@@ -30,7 +30,7 @@ Este archivo no es la SSOT. La autoridad primaria vive en KORA:
 - URN: `urn:fxsl:kb:metodologia-forja-opm-es`
 - Resolución de path: por URN vía `docs/canon-opm/resolutor-urn.json` (re-ancla a la SSOT viva en PNEUMA bajo `KORA_RAIZ`, default `/home/felix/kora-pneuma`; la bestia congelada `/home/felix/kora` queda como último origen histórico). Lector: `app/src/canon/resolutorUrn.ts`.
 - Estado: `publicado`
-- Versión vigente observada: `1.5.1` (2026-06-12)
+- Versión observada: resolver siempre desde `docs/canon-opm/resolutor-urn.json`; no duplicar aquí el dato vigente.
 
 ## Rol En Opforja
 
@@ -61,7 +61,7 @@ No copiar contenido de la metodología en este archivo. Si la metodología cambi
 editar la SSOT KORA, validar con `python3 toolchain/kora lint-md`, reindexar KORA
 y mantener este puente estable.
 
-## Cascada Vigente 2026-06-05
+## Cambios de método relevantes
 
 La versión `1.5.0` añadió `LF-19` sobre integridad de estados y reforzó `A8`
 con dos advertencias operativas: los barridos de integridad deben ejecutarse
@@ -75,6 +75,11 @@ estas disciplinas: comprime la advertencia narrativa de `A8` a una referencia a
 `LF-19.3`, abstrae `LF-19.4` (la declaración auditable de caracterización deja de
 fijar un literal de glosa de herramienta) y corrige anclas SSOT misatribuidas
 (`LF-05.9`, `LF-06.9`).
+
+La versión `1.6.0` (2026-07-07) incorporó el arranque bottom-up de primera clase:
+los fragmentos pueden nacer como OPDs sueltos en Taller y reconciliarse por
+adopción, mientras la integridad permanece exigible y el rigor de cierre se
+cobra al graduar o exportar canónico.
 
 ## Acceso Rápido
 

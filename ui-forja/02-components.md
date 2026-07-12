@@ -7,7 +7,7 @@
 
 Cada componente listado aquí es **HTML/CSS puro** (renderizado por React, Vue, Svelte o lo que el equipo prefiera). Ninguno requiere SVG ni interacción con JointJS más allá de leer la selección actual (para filtrar OPL, mostrar el inspector, posicionar la barra emergente).
 
-La implementación de referencia vive en `handoff/src/variant-codex.jsx`. Mantén o renombra los componentes al adaptar a tu stack.
+La implementación de referencia vive en `ui-forja/src/variant-codex.jsx`. Mantén o renombra los componentes al adaptar a Preact.
 
 ---
 
@@ -491,4 +491,4 @@ interface CodexFooterKeyProps {
 
 ## Apéndice — Tests visuales
 
-Comparar contra `handoff/screenshots/` (909×540, JointJS renderiza vacío — es la responsabilidad del dev verificar el canvas con sus shapes contra [`08-jointjs-styling.md`](08-jointjs-styling.md)).
+Comparar contra `ui-forja/screenshots/` (909×540, JointJS renderiza vacío — es responsabilidad de desarrollo verificar el canvas con sus shapes contra [`08-jointjs-styling.md`](08-jointjs-styling.md)).

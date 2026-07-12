@@ -2,7 +2,7 @@
 
 **Producto:** OpForja (editor OPM)
 **Propuesta:** Codex · v1.0
-**Versión de JointJS asumida:** v4.0+
+**Versión de JointJS asumida:** 3.7 core, sin Rappid
 
 Este documento es la **fuente de verdad estética** del canvas: define los atributos visuales que JointJS aplica al renderizar el OPD. **Solo apariencia.** La lógica (anchors, connectors, routers, validación de conexiones, etc.) es decisión del equipo de desarrollo dentro de las opciones de JointJS — Codex no opina sobre eso.
 

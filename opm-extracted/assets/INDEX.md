@@ -14,115 +14,115 @@ Estado:
 
 | Asset | Referenciado en |
 |-------|------------------|
-| [`agent.svg`](assets/svg/links/procedural/agent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`agentCondition.svg`](assets/svg/links/procedural/agentCondition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`agentConditionNegation.svg`](assets/svg/links/procedural/agentConditionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`agentEvent.svg`](assets/svg/links/procedural/agentEvent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`agentNegation.svg`](assets/svg/links/procedural/agentNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`bidirectionalRelation.svg`](assets/svg/links/procedural/bidirectionalRelation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`consumption.svg`](assets/svg/links/procedural/consumption.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`consumptionCondition.svg`](assets/svg/links/procedural/consumptionCondition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`consumptionConditionNegation.svg`](assets/svg/links/procedural/consumptionConditionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`consumptionEvent.svg`](assets/svg/links/procedural/consumptionEvent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`consumptionNegation.svg`](assets/svg/links/procedural/consumptionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`effect.svg`](assets/svg/links/procedural/effect.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`effectCondition.svg`](assets/svg/links/procedural/effectCondition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`effectConditionNegation.svg`](assets/svg/links/procedural/effectConditionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`effectEvent.svg`](assets/svg/links/procedural/effectEvent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`effectNegation.svg`](assets/svg/links/procedural/effectNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`instrument.svg`](assets/svg/links/procedural/instrument.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`instrumentCondition.svg`](assets/svg/links/procedural/instrumentCondition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`instrumentConditionNegation.svg`](assets/svg/links/procedural/instrumentConditionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`instrumentEvent.svg`](assets/svg/links/procedural/instrumentEvent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`instrumentNegation.svg`](assets/svg/links/procedural/instrumentNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`invocation.svg`](assets/svg/links/procedural/invocation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`overtimeexception.svg`](assets/svg/links/procedural/overtimeexception.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`result.svg`](assets/svg/links/procedural/result.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`underOver.svg`](assets/svg/links/procedural/underOver.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`underTime.svg`](assets/svg/links/procedural/underTime.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
-| [`unidirectionalRelation.svg`](assets/svg/links/procedural/unidirectionalRelation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`agent.svg`](svg/links/procedural/agent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`agentCondition.svg`](svg/links/procedural/agentCondition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`agentConditionNegation.svg`](svg/links/procedural/agentConditionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`agentEvent.svg`](svg/links/procedural/agentEvent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`agentNegation.svg`](svg/links/procedural/agentNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`bidirectionalRelation.svg`](svg/links/procedural/bidirectionalRelation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`consumption.svg`](svg/links/procedural/consumption.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`consumptionCondition.svg`](svg/links/procedural/consumptionCondition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`consumptionConditionNegation.svg`](svg/links/procedural/consumptionConditionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`consumptionEvent.svg`](svg/links/procedural/consumptionEvent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`consumptionNegation.svg`](svg/links/procedural/consumptionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`effect.svg`](svg/links/procedural/effect.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`effectCondition.svg`](svg/links/procedural/effectCondition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`effectConditionNegation.svg`](svg/links/procedural/effectConditionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`effectEvent.svg`](svg/links/procedural/effectEvent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`effectNegation.svg`](svg/links/procedural/effectNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`instrument.svg`](svg/links/procedural/instrument.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`instrumentCondition.svg`](svg/links/procedural/instrumentCondition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`instrumentConditionNegation.svg`](svg/links/procedural/instrumentConditionNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`instrumentEvent.svg`](svg/links/procedural/instrumentEvent.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`instrumentNegation.svg`](svg/links/procedural/instrumentNegation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`invocation.svg`](svg/links/procedural/invocation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`overtimeexception.svg`](svg/links/procedural/overtimeexception.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`result.svg`](svg/links/procedural/result.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`underOver.svg`](svg/links/procedural/underOver.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`underTime.svg`](svg/links/procedural/underTime.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
+| [`unidirectionalRelation.svg`](svg/links/procedural/unidirectionalRelation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts` |
 
 ### svg/links/structural
 
 | Asset | Referenciado en |
 |-------|------------------|
-| [`aggregation.svg`](assets/svg/links/structural/aggregation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts`, `app/models/DrawnPart/OpmObject.ts` |
-| [`classification.svg`](assets/svg/links/structural/classification.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts`, `app/models/DrawnPart/OpmObject.ts` |
-| [`exhibition.svg`](assets/svg/links/structural/exhibition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts`, `app/models/DrawnPart/OpmObject.ts` |
-| [`generalization.svg`](assets/svg/links/structural/generalization.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts`, `app/models/DrawnPart/OpmObject.ts` |
+| [`aggregation.svg`](svg/links/structural/aggregation.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts`, `app/models/DrawnPart/OpmObject.ts` |
+| [`classification.svg`](svg/links/structural/classification.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts`, `app/models/DrawnPart/OpmObject.ts` |
+| [`exhibition.svg`](svg/links/structural/exhibition.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts`, `app/models/DrawnPart/OpmObject.ts` |
+| [`generalization.svg`](svg/links/structural/generalization.svg) | `app/dialogs/choose-link-dialog/Dialog.component.ts`, `app/models/DrawnPart/OpmObject.ts` |
 
 ### svg/list-logical
 
 | Asset | Referenciado en |
 |-------|------------------|
-| [`object.svg`](assets/svg/list-logical/object.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
-| [`objectDashed.svg`](assets/svg/list-logical/objectDashed.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
-| [`process.svg`](assets/svg/list-logical/process.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
-| [`processDashed.svg`](assets/svg/list-logical/processDashed.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
+| [`object.svg`](svg/list-logical/object.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
+| [`objectDashed.svg`](svg/list-logical/objectDashed.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
+| [`process.svg`](svg/list-logical/process.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
+| [`processDashed.svg`](svg/list-logical/processDashed.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
 
 ### svg/svg
 
 | Asset | Referenciado en |
 |-------|------------------|
-| [`ExpressHalo.svg`](assets/svg/ExpressHalo.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`addConnected.svg`](assets/svg/addConnected.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`addStates.svg`](assets/svg/addStates.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`autosave.svg`](assets/svg/autosave.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
-| [`computation.svg`](assets/svg/computation.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`currentState.svg`](assets/svg/currentState.svg) | `app/models/DrawnPart/OpmObject.ts`, `app/modules/layout/element-tool-bar/element-tool-bar.component.ts` |
-| [`defaultState.svg`](assets/svg/defaultState.svg) | `app/models/DrawnPart/OpmObject.ts`, `app/modules/layout/element-tool-bar/element-tool-bar.component.ts` |
-| [`delete.svg`](assets/svg/delete.svg) | `app/models/DrawnPart/Note.ts`, `app/models/DrawnPart/OpmEntity.ts` |
-| [`deleteFunction.svg`](assets/svg/deleteFunction.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`editAlias.svg`](assets/svg/editAlias.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`editUnits.svg`](assets/svg/editUnits.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`example.svg`](assets/svg/example.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
-| [`folder.svg`](assets/svg/folder.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
-| [`greenIndicator.svg`](assets/svg/greenIndicator.svg) | `app/dialogs/collaboration-dialog/collaboration-dialog.component.ts` |
-| [`inzoom.svg`](assets/svg/inzoom.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`lock.svg`](assets/svg/lock.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
-| [`logoPic.svg`](assets/svg/logoPic.svg) | `app/dialogs/find-user-admin/find-user-admin.component.ts`, `app/dialogs/set-admin-user-list/set-admin-user-list.component.ts`, `app/modules/Settings/group-mgmt/group-administration/group-administration.component.ts` (+1) |
-| [`newLogo.svg`](assets/svg/newLogo.svg) | `app/modules/MainLogin.component.ts`, `app/modules/Settings/settings.component.ts`, `app/modules/layout/header/header.component.ts` |
-| [`object-dashed.svg`](assets/svg/object-dashed.svg) | — |
-| [`object.svg`](assets/svg/object.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
-| [`objectDrag.svg`](assets/svg/objectDrag.svg) | `app/modules/layout/header/header.component.ts` |
-| [`process-dashed.svg`](assets/svg/process-dashed.svg) | — |
-| [`process.svg`](assets/svg/process.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
-| [`processDrag.svg`](assets/svg/processDrag.svg) | `app/modules/layout/header/header.component.ts` |
-| [`rangeState.svg`](assets/svg/rangeState.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`regFile.svg`](assets/svg/regFile.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
-| [`regFileStereotypeG.svg`](assets/svg/regFileStereotypeG.svg) | `app/dialogs/stereotypes-dialog/stereotypes-dialog.component.ts` |
-| [`regFileStereotypeNonG.svg`](assets/svg/regFileStereotypeNonG.svg) | `app/dialogs/stereotypes-dialog/stereotypes-dialog.component.ts` |
-| [`sharedFolder.svg`](assets/svg/sharedFolder.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
-| [`sim.svg`](assets/svg/sim.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`styleElement.svg`](assets/svg/styleElement.svg) | `app/models/DrawnPart/OpmObject.ts`, `app/models/DrawnPart/OpmProcess.ts` |
-| [`supressHalo.svg`](assets/svg/supressHalo.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`template.svg`](assets/svg/template.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
-| [`timeDuration.svg`](assets/svg/timeDuration.svg) | `app/models/DrawnPart/OpmObject.ts`, `app/models/DrawnPart/OpmProcess.ts` |
-| [`unfold.svg`](assets/svg/unfold.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`updateComputationalProcess.svg`](assets/svg/updateComputationalProcess.svg) | `app/models/DrawnPart/OpmObject.ts` |
-| [`verFile.svg`](assets/svg/verFile.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
+| [`ExpressHalo.svg`](svg/ExpressHalo.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`addConnected.svg`](svg/addConnected.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`addStates.svg`](svg/addStates.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`autosave.svg`](svg/autosave.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
+| [`computation.svg`](svg/computation.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`currentState.svg`](svg/currentState.svg) | `app/models/DrawnPart/OpmObject.ts`, `app/modules/layout/element-tool-bar/element-tool-bar.component.ts` |
+| [`defaultState.svg`](svg/defaultState.svg) | `app/models/DrawnPart/OpmObject.ts`, `app/modules/layout/element-tool-bar/element-tool-bar.component.ts` |
+| [`delete.svg`](svg/delete.svg) | `app/models/DrawnPart/Note.ts`, `app/models/DrawnPart/OpmEntity.ts` |
+| [`deleteFunction.svg`](svg/deleteFunction.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`editAlias.svg`](svg/editAlias.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`editUnits.svg`](svg/editUnits.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`example.svg`](svg/example.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
+| [`folder.svg`](svg/folder.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
+| [`greenIndicator.svg`](svg/greenIndicator.svg) | `app/dialogs/collaboration-dialog/collaboration-dialog.component.ts` |
+| [`inzoom.svg`](svg/inzoom.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`lock.svg`](svg/lock.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
+| [`logoPic.svg`](svg/logoPic.svg) | `app/dialogs/find-user-admin/find-user-admin.component.ts`, `app/dialogs/set-admin-user-list/set-admin-user-list.component.ts`, `app/modules/Settings/group-mgmt/group-administration/group-administration.component.ts` (+1) |
+| [`newLogo.svg`](svg/newLogo.svg) | `app/modules/MainLogin.component.ts`, `app/modules/Settings/settings.component.ts`, `app/modules/layout/header/header.component.ts` |
+| [`object-dashed.svg`](svg/object-dashed.svg) | — |
+| [`object.svg`](svg/object.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
+| [`objectDrag.svg`](svg/objectDrag.svg) | `app/modules/layout/header/header.component.ts` |
+| [`process-dashed.svg`](svg/process-dashed.svg) | — |
+| [`process.svg`](svg/process.svg) | `app/modules/layout/main/list-logical/list-logical.component.ts` |
+| [`processDrag.svg`](svg/processDrag.svg) | `app/modules/layout/header/header.component.ts` |
+| [`rangeState.svg`](svg/rangeState.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`regFile.svg`](svg/regFile.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
+| [`regFileStereotypeG.svg`](svg/regFileStereotypeG.svg) | `app/dialogs/stereotypes-dialog/stereotypes-dialog.component.ts` |
+| [`regFileStereotypeNonG.svg`](svg/regFileStereotypeNonG.svg) | `app/dialogs/stereotypes-dialog/stereotypes-dialog.component.ts` |
+| [`sharedFolder.svg`](svg/sharedFolder.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
+| [`sim.svg`](svg/sim.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`styleElement.svg`](svg/styleElement.svg) | `app/models/DrawnPart/OpmObject.ts`, `app/models/DrawnPart/OpmProcess.ts` |
+| [`supressHalo.svg`](svg/supressHalo.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`template.svg`](svg/template.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
+| [`timeDuration.svg`](svg/timeDuration.svg) | `app/models/DrawnPart/OpmObject.ts`, `app/models/DrawnPart/OpmProcess.ts` |
+| [`unfold.svg`](svg/unfold.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`updateComputationalProcess.svg`](svg/updateComputationalProcess.svg) | `app/models/DrawnPart/OpmObject.ts` |
+| [`verFile.svg`](svg/verFile.svg) | `app/dialogs/load-model-dialog/load-model-dialog.component.ts` |
 
 ### svg/toolbar
 
 | Asset | Referenciado en |
 |-------|------------------|
-| [`modelWizard.svg`](assets/svg/toolbar/modelWizard.svg) | — |
+| [`modelWizard.svg`](svg/toolbar/modelWizard.svg) | — |
 
 ## PNG
 
 | Asset | Referenciado en |
 |-------|------------------|
-| [`key-icon.png`](assets/png/icons/key-icon.png) | `app/dialogs/collaboration-dialog/collaboration-dialog.component.ts` |
-| [`pin.png`](assets/png/icons/pin.png) | `app/models/DrawnPart/Note.ts` |
-| [`token-icon.png`](assets/png/icons/token-icon.png) | `app/dialogs/collaboration-dialog/collaboration-dialog.component.ts` |
-| [`page10.1.png`](assets/png/modelWizard/page10.1.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
-| [`page10.2.png`](assets/png/modelWizard/page10.2.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
-| [`page10.3.png`](assets/png/modelWizard/page10.3.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
-| [`page11.png`](assets/png/modelWizard/page11.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
-| [`page2.png`](assets/png/modelWizard/page2.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
-| [`page3.png`](assets/png/modelWizard/page3.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
-| [`page5.png`](assets/png/modelWizard/page5.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
-| [`page7.png`](assets/png/modelWizard/page7.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
+| [`key-icon.png`](png/icons/key-icon.png) | `app/dialogs/collaboration-dialog/collaboration-dialog.component.ts` |
+| [`pin.png`](png/icons/pin.png) | `app/models/DrawnPart/Note.ts` |
+| [`token-icon.png`](png/icons/token-icon.png) | `app/dialogs/collaboration-dialog/collaboration-dialog.component.ts` |
+| [`page10.1.png`](png/modelWizard/page10.1.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
+| [`page10.2.png`](png/modelWizard/page10.2.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
+| [`page10.3.png`](png/modelWizard/page10.3.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
+| [`page11.png`](png/modelWizard/page11.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
+| [`page2.png`](png/modelWizard/page2.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
+| [`page3.png`](png/modelWizard/page3.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
+| [`page5.png`](png/modelWizard/page5.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
+| [`page7.png`](png/modelWizard/page7.png) | `app/dialogs/new-model-by-wizard-component/new-model-by-wizard-component.component.ts` |
 
 ## Wishlist — assets referenciados pero NO descargados
 

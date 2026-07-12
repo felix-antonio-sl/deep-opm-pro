@@ -40,4 +40,7 @@ Sugerido en `ley/3` (o donde el custodio juzgue). No bloquea C1: el corte ya est
 
 ## Verificación de cierre
 
-`bun run cordon:skill` en `deep-opm-pro/app/` imprime `[CORDON] OK: skill v1.9.0 coincide con el repo` (exit 0) contra el deploy vigente. Al bumpear la skill (p. ej. D3 → v1.10.0) sin actualizar `CORDON_SKILL_ESPERADO`, el gate rompe con `[CORDON] FALLO: deploy stale`.
+`bun run cordon:skill` en `deep-opm-pro/app/` debe imprimir `[CORDON] OK` y la
+versión esperada por el repo. Al subir la skill sin actualizar
+`CORDON_SKILL_ESPERADO`, el gate rompe con `[CORDON] FALLO: deploy stale`. La
+versión concreta es un dato vivo del sello y no se duplica en esta solicitud.

@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-06-24 · **Tipo:** consenso deliberativo (skill `consenso-deliberativo` v1.0.1) · **Modo:** orquestación (subagentes reales, independencia epistémica)
 **Panel:** steipete (director de ejecución cognitiva) × allan-kelly (arquitecto organizacional humano-agente) · árbitros de desempate reservados (no requeridos): steve-jobs + mente-omega
-**Destraba:** condición **(b)** del frente gist-anchor (`HANDOFF.md` §Frentes abiertos 1). Quedan **(a)** doctrina custodio-kora R-VIS-STEREO-1 [HITL externo] y **(c)** puente de ingeniería.
+**Contexto histórico:** destrabó la condición **(b)** del frente gist-anchor. El estado actual vive en `../handoff-2026-07-12.md`.
 **Resultado:** **CONSENSO** (1 ciclo de corrección; 1 objeción crítica resuelta).
 
 ## Problema

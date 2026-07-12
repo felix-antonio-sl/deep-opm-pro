@@ -1,6 +1,6 @@
 # Corte C′·A — «Inspector legible» — diseño
 
-**Fecha:** 2026-07-07 · **Estado:** aprobado (agresivo) por el operador · Deriva de
+**Fecha:** 2026-07-07 · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato · Deriva de
 `docs/auditorias/2026-07-07-reauditoria-ux-diagramatica.md` (M-4 + m-6 + residuos M-5).
 Radio disjunto del corte D-paleta en curso (CommandPalette/DialogoCargarModelo).
 

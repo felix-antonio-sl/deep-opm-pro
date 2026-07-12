@@ -1,6 +1,6 @@
 # Puente directo mesa↔skill — diseño (Corte A′: motor + vitrina)
 
-**Fecha:** 2026-07-06 · **Estado:** aprobado por el operador; mejorado por comité adversarial doble (`steve-jobs` + `steipete`, ambos con lente `cat-thinking`) y re-ratificado. **Spec gobernante del corte.**
+**Fecha:** 2026-07-06 · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato.
 
 ## 1. Función esencial
 

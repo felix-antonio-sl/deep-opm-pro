@@ -9,8 +9,7 @@ import { ctrlEvento, paperOff, posicionCanvasDesdeEvento, shiftEvento } from "./
  * y al soltar selecciona apariencias dentro del rectángulo en el OPD activo.
  * Acumular con Ctrl+Shift+drag.
  *
- * Refs: docs/HANDOFF.md §Decisiones Vigentes (multi-selección canónica HU-SHARED-008),
- *       canvas/seleccionMultiple.ts (interseccionRectangulo).
+ * Ref: canvas/seleccionMultiple.ts (interseccionRectangulo).
  */
 
 export interface CablearRubberBandArgs {

@@ -22,7 +22,7 @@ app/test-results/
 app/playwright-report/
 /test-results/
 
-# Reportes de auditoria generados; la memoria versionada vive en docs/HANDOFF.md
+# Reportes de auditoría generados; el estado versionado vive en docs/handoff-AAAA-MM-DD.md
 docs/REPORTE-EJECUTIVO.md
 
 # Secrets de despliegue (docker compose los lee; JAMÁS versionar)
@@ -34,6 +34,7 @@ docs/REPORTE-EJECUTIVO.md
 .opencode/
 .config/
 .playwright-mcp/
+_archivo/
 *.tar.gz
 .DS_Store
 tmp/

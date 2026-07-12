@@ -5,9 +5,7 @@ import type { EsenciaVisibilidad } from "../../opl/opciones";
  * Tipos UI del workspace que NO pertenecen al JSON OPM canónico.
  * Cubre portapapeles visual transitorio (Ctrl+C/V) y preferencias UI por usuario.
  *
- * Refs: [Met §multi-OPD], [Glos 3.6],
- *       docs/HANDOFF.md §Decisiones Vigentes (multi-selección, divisor árbol/canvas,
- *       toggle ocultar nombres del árbol).
+ * Refs: [Met §multi-OPD], [Glos 3.6].
  */
 
 export interface GridConfig {

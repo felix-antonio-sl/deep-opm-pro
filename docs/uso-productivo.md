@@ -6,13 +6,13 @@ Guía del usuario para trabajar con modelos OPM en la instancia
 Para administración de la instancia: `docs/deploy/opforja.md`.
 Para orientación técnica del repo: `../CLAUDE.md`.
 
-## Qué Es
+## Qué es
 
 Una herramienta para dibujar modelos OPM/ISO 19450: objetos, procesos,
 estados y enlaces. Los modelos se guardan en el backend (Postgres/API)
 asociados a una sesión de navegador. No dependen de localStorage.
 
-## Regla De Apariciones En Diagramas
+## Regla de apariciones en diagramas
 
 Una cosa OPM y su dibujo local no son lo mismo:
 
@@ -40,7 +40,7 @@ Consecuencias prácticas:
 3. Tras autenticarse, la app abre el último modelo en uso. Si no hay
    modelos previos, abre un modelo vacío listo para modelar.
 
-## Empezar Un Modelo
+## Empezar un modelo
 
 **Todo nace apunte**: el comando **`Nuevo`** (paleta `Ctrl+K` › `Nuevo`) abre
 al instante un **apunte** —un borrador sin rigor de cierre (ver §Apuntes)—, sin
@@ -50,7 +50,7 @@ está vacío.
 Crear la primera cosa: botones `Objeto`/`Proceso` de la barra, o los atajos
 `O` (objeto) y `P` (proceso) con el canvas enfocado. `S` agrega un estado **al
 objeto seleccionado**. Para **conectar**, pulsa `R`: con una cosa seleccionada
-la relación parte de ella; sin selección entras en **enlace libre** (click en el
+la relación parte de ella; sin selección entras en **enlace libre** (clic en el
 origen, luego en el destino; `Esc` cancela).
 
 Para modelar con método desde cero (qué función transforma a quién antes de
@@ -58,7 +58,7 @@ dibujar), seguir el flujo Forja de `docs/manual-opforja.md` §2 — que admite *
 arranques**: **SD-primero** (top-down) y **bottom-up** (bosquejar OPDs sueltos en
 el Taller y adoptarlos después, ver §Taller).
 
-## Apuntes — Borradores Sin Rigor
+## Apuntes — borradores sin rigor
 
 Un **apunte** es un modelo en modo borrador: usa las mismas piezas OPM
 (objetos, procesos, estados, enlaces) y el mismo lienzo, pero **no se le
@@ -83,7 +83,7 @@ OPM legítimo, no un dibujo libre.
 - **No se mezcla con biblioteca**: un modelo es apunte o biblioteca, no
   ambos a la vez.
 
-## Taller — Bosquejar Bottom-up
+## Taller — bosquejar bottom-up
 
 No hace falta partir del SD raíz. En el árbol de OPDs, la banda **`Taller`** aloja
 **OPDs sueltos** —fragmentos sin padre—: traza hechos OPM locales sin comprometer
@@ -96,7 +96,7 @@ Cuando un fragmento encaja, **adóptalo**: clic derecho sobre el OPD suelto →
 edición, pero sí el **export canónico** hasta adoptarlo. (Método: `docs/manual-opforja.md`
 §2/A1.5.)
 
-## Gestionar Modelos
+## Gestionar modelos
 
 Abrir el gestor desde `Ctrl+K` › `Abrir / importar modelo` (o el menú ☰). Un solo
 buscador filtra todo; a la izquierda, las carpetas y `Archivo`. Los modelos se
@@ -112,7 +112,7 @@ agrupan en **dos zonas por su rol**:
 Acciones por fila (al pasar el cursor): abrir, abrir en pestaña nueva, duplicar,
 archivar, eliminar (con confirmación). `Importar JSON` es una acción del encabezado.
 
-## Tres Operaciones Diarias
+## Tres operaciones diarias
 
 ### Guardar — `Ctrl+S`
 
@@ -124,7 +124,7 @@ tres etiquetas:
 - `Guardado · HH:mm` (fondo verde): persistido a esa hora.
 
 Mientras el chip diga `Sin guardar`, el trabajo no está respaldado
-todavía. Pulsar `Ctrl+S` o hacer click en el chip para guardar.
+todavía. Pulsar `Ctrl+S` o hacer clic en el chip para guardar.
 
 Los modelos se persisten en el backend (Postgres). Si el backend no
 está disponible, la app lo indica explícitamente; no hay fallback
@@ -133,7 +133,7 @@ silencioso a localStorage.
 ### Buscar dentro del modelo — `Ctrl+F`
 
 Abre un diálogo que busca cosas (objetos, procesos, estados) y
-etiquetas de enlace por nombre. Click en una fila salta al OPD donde
+etiquetas de enlace por nombre. Un clic en una fila salta al OPD donde
 aparece y la selecciona.
 
 ### Comandos rápidos — `Ctrl+K`
@@ -141,7 +141,7 @@ aparece y la selecciona.
 Abre el command palette: ejecutar cualquier acción del menú sin tocar
 el mouse.
 
-## Respaldo Manual
+## Respaldo manual
 
 El respaldo operativo vive en el backend/Postgres. El respaldo
 portátil para llevar fuera de la instancia es el JSON descargado.
@@ -170,7 +170,7 @@ portátil para llevar fuera de la instancia es el JSON descargado.
 5. Pulsar `Importar`.
 6. Pulsar `Ctrl+S` para persistirlo en el backend.
 
-## Exportar Para Compartir
+## Exportar para compartir
 
 Para entregar el diagrama del OPD activo como imagen raster:
 
@@ -181,7 +181,7 @@ toolbar, sin inspector, sin OPL. Para documentación de un modelo completo,
 usar `Cmd/Ctrl+K > Exportar todos los OPDs como PNG`; descarga un `.zip`
 con una imagen por OPD.
 
-## Si Algo Se Rompe
+## Si algo se rompe
 
 ### El chip dice `Sin guardar` y no quiero perder el trabajo
 
@@ -205,7 +205,7 @@ administrador de la instancia (ver `docs/deploy/opforja.md`).
 `Ctrl+Z` (deshacer) y `Ctrl+Shift+Z` (rehacer). Funcionan en el canvas
 y en operaciones del modelo.
 
-## Atajos Útiles
+## Atajos útiles
 
 | Atajo | Acción |
 |---|---|
@@ -223,7 +223,7 @@ y en operaciones del modelo.
 paleta `Ctrl+K` o el menú ☰. La hoja completa vive en `Menú principal > Ayuda >
 Atajos` — su footer muestra la **versión de opforja** (fecha de build + commit).
 
-## Límites Honestos
+## Límites honestos
 
 - **Acceso por cuenta:** el acceso exige login con cuenta válida
   (single-operator hoy; registro cerrado por CLI). Reset de password vía

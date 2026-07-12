@@ -9,8 +9,7 @@ import type { Entidad, SlotRefinamiento, TipoRefinamiento } from "./tipos";
  * y escritura del slot indexado por tipo, manteniendo inmutabilidad de la
  * entidad y preservando el slot complementario al fijar/quitar.
  *
- * Refs: docs/HANDOFF.md (deuda 14.1, slots refineeInzooming/refineeUnfolding
- *       ortogonales en OPCloud), opm-iso-19450-es.md §3 refinamiento.
+ * Ref: urn:fxsl:kb:opm-es §refinamiento.
  */
 
 export function obtenerRefinamiento(entidad: Entidad, tipo: TipoRefinamiento): SlotRefinamiento | undefined {

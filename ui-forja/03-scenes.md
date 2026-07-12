@@ -9,15 +9,15 @@ Cuatro pantallas canónicas. Cada una usa el mismo [`CodexFrame`](02-components.
 > - **Chrome** (OPL, índice, inspector, header, footer, barra emergente, command palette) → HTML/CSS — responsabilidad del equipo de UI.
 > - **Canvas** (símbolos OPM, enlaces, marquee de selección, pan/zoom, drag) → **JointJS**. Codex solo especifica los **atributos visuales** vía [`08-jointjs-styling.md`](08-jointjs-styling.md).
 
-Las capturas en `handoff/screenshots/` muestran ambas capas integradas; el HTML standalone en `handoff/scenes/` muestra la composición a alta fidelidad pero **sin JointJS conectado** — el canvas se ve vacío en el standalone porque solo el dev tiene los shapes de JointJS.
+Las capturas en `ui-forja/screenshots/` muestran ambas capas integradas; el HTML autónomo en `ui-forja/scenes/` muestra la composición a alta fidelidad pero **sin JointJS conectado** — el canvas se ve vacío porque los shapes productivos viven en `app/`.
 
 ---
 
 ## 01 · Editor principal
 
-**Archivo:** `handoff/scenes/01-editor.html`
+**Archivo:** `ui-forja/scenes/01-editor.html`
 **Componente raíz:** `<CodexEditor/>`
-**Screenshot:** `handoff/screenshots/01-editor.png`
+**Captura:** `ui-forja/screenshots/01-editor.png`
 
 ![Editor principal](screenshots/01-editor.png)
 
@@ -85,8 +85,8 @@ copiar · html · exportar
 
 ## 02 · Command palette (`⌘K`)
 
-**Archivo:** `handoff/scenes/02-command.html`
-**Screenshot:** `handoff/screenshots/02-command.png`
+**Archivo:** `ui-forja/scenes/02-command.html`
+**Captura:** `ui-forja/screenshots/02-command.png`
 
 ![Command palette](screenshots/02-command.png)
 
@@ -119,8 +119,8 @@ El palette es overlay HTML 100%. JointJS solo recibe la orden de pausar interact
 
 ## 03 · Selección múltiple en SD1 (in-zoom)
 
-**Archivo:** `handoff/scenes/03-multi-select.html`
-**Screenshot:** `handoff/screenshots/03-multi-select.png`
+**Archivo:** `ui-forja/scenes/03-multi-select.html`
+**Captura:** `ui-forja/screenshots/03-multi-select.png`
 
 ![Multi-select](screenshots/03-multi-select.png)
 
@@ -158,8 +158,8 @@ Top: árbol con SD1 marcado como current. Bottom: inspector/empty state según s
 
 ## 04 · Inspector de objeto
 
-**Archivo:** `handoff/scenes/04-inspector.html`
-**Screenshot:** `handoff/screenshots/04-inspector.png`
+**Archivo:** `ui-forja/scenes/04-inspector.html`
+**Captura:** `ui-forja/screenshots/04-inspector.png`
 
 ![Inspector](screenshots/04-inspector.png)
 

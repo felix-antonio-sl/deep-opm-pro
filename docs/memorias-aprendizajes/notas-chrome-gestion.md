@@ -2,7 +2,7 @@
 
 Lecciones del corte **D-higiene + paleta** (2026-07-07), que ejecutó m-2/m-5/M-5 de la
 auditoría UX Jobs sobre `DialogoCargarModelo.tsx` (gestor) y `CommandPalette.tsx` (paleta).
-Una lección por concern; el detalle vive en git y en `docs/HANDOFF.md`.
+Una lección por asunto; el detalle vive en Git y el estado en `docs/handoff-2026-07-12.md`.
 
 ## Radio disjunto ≠ blast-radius disjunto (el caso «Importar»)
 

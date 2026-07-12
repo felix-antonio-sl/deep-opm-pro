@@ -7,7 +7,6 @@ import { metadata } from "./helpers";
  * seleccionado: Boundary (handles), Vertices (drag/add), Segments (split).
  * Se llama en el useEffect de proyección cuando cambia enlaceSeleccionId.
  *
- * Refs: docs/HANDOFF.md §Decisiones Vigentes (vertices manuales y reanclaje ronda 6).
  */
 
 export interface AdapterMin {

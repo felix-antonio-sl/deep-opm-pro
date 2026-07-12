@@ -6,8 +6,7 @@ import type { Modelo } from "./modelo";
  * Cada pestaña tiene modelo independiente, historial undo y metadata de
  * persistencia local. NO se serializa en JSON OPM.
  *
- * Refs: docs/HANDOFF.md §Decisiones Vigentes (multi-pestaña sesión-only),
- *       opm-extracted/src/app/modules/app/tabsService.ts:5-130.
+ * Ref: opm-extracted/src/app/modules/app/tabsService.ts:5-130.
  */
 
 export type OrigenPestana = "nuevo" | "importado" | "persistido";

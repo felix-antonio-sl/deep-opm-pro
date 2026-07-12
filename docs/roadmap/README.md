@@ -1,23 +1,19 @@
 # Roadmap — índice
 
-Planes, cortes y decisiones de producto del modelador OPM.
+## Vigente
 
-## Escalera vigente
+`roadmap-2026-07-12.md` contiene únicamente la dirección futura y sus gates de apertura. El estado desplegado vive en `../handoff-2026-07-12.md`.
 
-La escalera operativa es la **cristalización del compuesto OpForja** (8 entregables, tramos C-cordón · E-expresión · X-exoesqueleto). Vive en `cortes.md`, derivada del diseño aprobado en `../superpowers/specs/2026-06-22-compuesto-opforja-design.md`.
-
-## Archivos
+## Documentos permanentes
 
 | Archivo | Propósito |
 |---|---|
-| `cortes.md` | Escalera del compuesto (tramos C/E/X) — **vigente** |
-| `quality-ledger.md` | Gates ejecutables de calidad (law-first) |
-| `protocolo-re-pin.md` | Protocolo de re-pin para cambios en SSOT de dominio (golden hd-opm) |
-| `registro-conformidad-ssot.md` | Mapeo regla DEBE → gate/estado (R-CONF-7) + control plane de versiones de los 5 órganos |
+| `quality-ledger.md` | Gates ejecutables de calidad. |
+| `registro-conformidad-ssot.md` | Brechas DEBE declaradas y mapeo de gates R-CONF-7. |
+| `protocolo-re-pin.md` | Protocolo actual de re-pin para cambios de SSOT y goldens; requiere futura generalización para retirar rutas de dominio. |
 
-**Jubilados 2026-06-22** (reescritos desde 0 por el corte D2; recuperables en git): `cortes-operativos.md` (pisos alpha→beta cerrados) y `backlog-contingencial.md` (W1–W4 cerrados, punto de re-reconciliación ya gatillado).
+El roadmap anterior mezclaba cortes cerrados con pendientes y fue desplazado a `_archivo/` el 2026-07-12. La historia versionada permanece en Git.
 
-## Relación con otros documentos
+## Actualización
 
-- **`HANDOFF.md`** dice qué está desplegado y el estado vivo. El roadmap planifica.
-- **`../superpowers/specs/2026-06-22-compuesto-opforja-design.md`** es el diseño gobernante del que `cortes.md` deriva.
+No editar el roadmap vigente en sitio. Crear `roadmap-AAAA-MM-DD.md`, desplazar la versión anterior a `_archivo/` y actualizar este índice.

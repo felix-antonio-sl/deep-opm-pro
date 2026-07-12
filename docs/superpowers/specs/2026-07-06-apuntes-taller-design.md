@@ -1,6 +1,6 @@
 # Apuntes desatendidos + Taller bottom-up + realización en el gestor — diseño (Corte B′⊕D-especies)
 
-**Fecha:** 2026-07-06 · **Estado:** aprobado; mejorado por comité doble (`steve-jobs` + `steipete` con `cat-thinking`) y re-ratificado por el operador («todo nace apunte»). · **Doctrina:** bottom-up de primera clase, resuelta por el operador-custodio (`docs/solicitudes-upstream/2026-07-06-taller-bottom-up-doctrina.md`). **La solicitud de enmienda SSOT se eleva el DÍA 0** (en paralelo con la Ola 1), para que la firma esté lista cuando este corte compile.
+**Fecha:** 2026-07-06 · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato. · **Doctrina:** bottom-up de primera clase, firmada y aplicada en `kora-pneuma`.
 
 **Fusión (arbitraje sobre el comité):** B′ y la parte de especies del gestor comparten la misma superficie (la representación de especies) — se construyen como UN corte para pagar la integración una sola vez (pushout sobre lo compartido). La higiene pura del gestor (sin especies) se adelantó a la Ola 1.
 

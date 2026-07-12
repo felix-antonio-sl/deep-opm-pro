@@ -7,7 +7,7 @@ la herramienta sobre un tronco de método común.
 - URN repo-local: `urn:fxsl:kb:manual-opforja-es` (working-artifact del repo;
   ver `docs/canon-opm/resolutor-urn.json` → `puente_inverso`).
 - Instancia en producción: `https://opforja.sanixai.com`.
-- Estado operativo vigente (bloqueantes, pendientes, riesgos): `docs/HANDOFF.md`.
+- Estado operativo vigente (bloqueantes, pendientes, riesgos): `docs/handoff-2026-07-12.md`.
 
 ## Contrato del manual
 
@@ -180,8 +180,8 @@ brecha silenciosa está prohibida.
 
 La guía de usuario operativa de la app (entrar, guardar, buscar, command palette,
 importar/exportar JSON, exportar PNG, atajos, límites de sesión) vive en
-**`docs/uso-productivo.md`**. Este manual no la duplica. Superficies desplegadas en el
-ciclo 2026-07: **gestor de dos zonas** (Trabajo / Bibliotecas), la puerta **«Nuevo»→apunte**
+**`docs/uso-productivo.md`**. Este manual no la duplica. Superficies desplegadas el
+2026-07-08: **gestor de dos zonas** (Trabajo / Bibliotecas), la puerta **«Nuevo»→apunte**
 («todo nace apunte», ver §2 para el método), la banda **«Taller»** de OPDs sueltos, y el
 chip **«Revisión nueva»** del puente directo (§A.6) — su walkthrough paso-a-paso vive en
 `docs/uso-productivo.md` (§Empezar, §Taller, §Gestionar Modelos). En resumen:
@@ -541,9 +541,9 @@ puentes: se resuelven por su ubicación canónica en KORA (`artefactos/conocimie
 | Fecha | Cambio |
 | --- | --- |
 | 2026-06-22 | Manual integrado al repo (corte D4 / decisión D-MANUAL): consolidación de los dos shards de la bestia en un solo documento delgado y derivado, con doble pista (humano §3-§5 + agente §A) sobre tronco común, citas por URN sin transcripción, §L derivada del registro de conformidad y testigo de cierre `manual:limites`. |
-| 2026-06-22 | Corte D6 (estereotipos + vitrinas): §3 suma la vitrina de estereotipos; §9 suma estereotipos/plantillas como vehículo de patrones reusables (marca meta `<<Nombre>>` + plantilla de subgrafo clonada-e-injertada; sin estereotipos de enlace). Cita R-VIS-STEREO-1 por URN; propuesta a custodio-kora en `docs/solicitudes-upstream/2026-06-22-estereotipos-vitrinas-ssot-skill.md`. |
-| 2026-06-30 | Nominación propia + gesto de anclar — la PUERTA (desplegado): §3 y §9 actualizados de "Vitrina de estereotipos"/"plantilla" a **Piezas** (Calcar/Anclar/Soltar, Centinela de Drift con vecindad RADIO-1 desde C4); el campo interno sigue siendo `Entidad.estereotipoId` (renombre D6→Calco pendiente). Nominación ratificada en `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; detalle del corte en `docs/HANDOFF.md` §Frentes abiertos 1. |
+| 2026-06-22 | Corte D6 (estereotipos + vitrinas): §3 suma la vitrina de estereotipos; §9 suma estereotipos/plantillas como vehículo de patrones reusables (marca meta `<<Nombre>>` + plantilla de subgrafo clonada-e-injertada; sin estereotipos de enlace). Cita R-VIS-STEREO-1 por URN; resolución canónica en `spec-forja-opd-es`. |
+| 2026-06-30 | Nominación propia + gesto de anclar — la PUERTA (desplegado): §3 y §9 actualizados de "Vitrina de estereotipos"/"plantilla" a **Piezas** (Calcar/Anclar/Soltar, Centinela de Drift con vecindad RADIO-1 desde C4); el campo interno sigue siendo `Entidad.estereotipoId` (renombre D6→Calco pendiente). Nominación ratificada en `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; estado actual en `docs/handoff-2026-07-12.md`. |
 | 2026-07-06 | Doctrina canonizada (despacho HITL custodio): `spec-forja-opd-es` v1.2.0 amplía R-OPD-ROT-6 (estereotipos opforja) y agrega R-OPD-ROT-9 (Anclaje a Pieza / Centinela; edición local de esencia legislada laxa). El manual pasa de citar «propuesta vigente» a citar las reglas canónicas. Skill `modelamiento-opm` v1.11.0 (D3): versiones vivas adjuntas + «Límites de la mesa». |
 | 2026-07-07 | Bottom-up de primera clase canonizado: `metodologia-forja-opm-es` v1.6.0 (A1.5 dos arranques hermanos) + `spec-forja-opd-es` v1.3.0 (§10.4 R-OPD-REF-20 Taller: OPD suelto, verbo «adoptar») + skill v1.12.0 (§Régimen bosquejo). §2 absorbe A1.5 y distingue los dos ejes apunte(cierre)/bosquejo(arranque); §4 cruza-referencia el arranque bottom-up. |
 | 2026-07-08 | Sincronía manual↔SSOT (auditoría de deriva). §A.6 nueva: **puente directo mesa↔skill** (`mesa pull`/`push`/`modelos` + token de agente), desplegado con la Ola 1 A′-motor — W6.0 por portapapeles deja de ser el único puente. Cita de versión §3 corregida v1.2.0→v1.3.0. Cortes desplegados 2026-07-08 (bundle `index-DUsuUohB.js`): apuntes «todo nace apunte» + Taller + gestor de dos zonas, A′-vitrina (chip «Revisión nueva»), atajo R híbrido (enlace libre). |
-| 2026-07-09 | Skill `modelamiento-opm` **v1.13.0** — la skill porta el puente directo (Petición 1 de la solicitud 2026-07-06 RESUELTA): §Puente directo (pull=contexto W6.0, push con disciplina) + Regla Dura #29 (no-clobber) + capacidades al día + W6.0 fallback; §A.6 de este manual cita ahora la versión correcta. Cordón re-pineado v1.13.0. Acta: `docs/solicitudes-upstream/2026-07-09-auditoria-integral-skill-modelamiento-opm.md`. |
+| 2026-07-09 | Skill `modelamiento-opm` **v1.13.0** — la skill porta el puente directo: §Puente directo (pull=contexto W6.0, push con disciplina) + Regla Dura #29 (no-clobber) + capacidades al día + W6.0 fallback; §A.6 de este manual cita ahora la versión correcta. Cordón re-pineado v1.13.0. |

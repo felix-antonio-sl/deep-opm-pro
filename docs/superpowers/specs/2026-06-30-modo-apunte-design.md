@@ -1,8 +1,8 @@
 # Spec de diseño — Modo apunte (especie hermana del modelo, sin rigor de cierre)
 
-**Fecha:** 2026-06-30 · **Frente:** modo apunte · **Estado:** contrato cerrado por el operador (Félix, custodio), ejecución delegada a `steipete`.
+**Fecha:** 2026-06-30 · **Frente:** modo apunte · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato.
 **Gobernanza:** concepto y nombre por `steve-jobs` (8 correcciones, abajo); contrato de las 3 decisiones de cimiento por el operador (no reabrir); implementación por `steipete`.
-**SSOT relacionada:** `CLAUDE.md §Identidad y límites` (frontera de dominio: opforja es la mesa, no modela dominio); `app/src/persistencia/modelos.ts` (gemelo `esBiblioteca`); `app/src/modelo/diagnosticoSeveridad.ts` (corrección 4); estado vivo `docs/HANDOFF.md`.
+**SSOT relacionada:** `CLAUDE.md §Identidad y límites` (frontera de dominio: opforja es la mesa, no modela dominio); `app/src/persistencia/modelos.ts` (gemelo `esBiblioteca`); `app/src/modelo/diagnosticoSeveridad.ts` (corrección 4); estado vivo `docs/handoff-2026-07-12.md`.
 
 ---
 
@@ -101,7 +101,7 @@ promoción con pipeline. «1ª clase» NO.
 
 6. **DEUDA CATEGORIAL anotada ahora, pagada después.** `esBiblioteca`+`esApunte` =
    dos booleanos de especie = patrón O(N²). **NO refactorizar en este corte** (el
-   flag aditivo es correcto). Trigger anotado en `docs/HANDOFF.md §Deuda categorial`:
+   flag aditivo es correcto). Trigger anotado en `CLAUDE.md §Deuda categorial activa`:
    «al introducir un TERCER flag de especie, migrar `esBiblioteca`+`esApunte` →
    `especie: 'modelo'|'biblioteca'|'apunte'` discriminado antes de agregar el
    tercero». El invariante de la corrección 5 lo hace trivial.

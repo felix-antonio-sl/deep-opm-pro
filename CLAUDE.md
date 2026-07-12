@@ -1,20 +1,8 @@
----
-_manifest:
-  provenance:
-    created_by: FS
-    created_at: "2026-06-08"
-    source: "CLAUDE.md previo (117 líneas, koraficado)"
-version: "2.0.0"
-status: publicado
-lang: es
-extensions:
-  kora:
-    family: note
----
+Hereda de ~/CLAUDE.md
 
 # CLAUDE.md
 
-Documento único de orientación del repo `deep-opm-pro` para agentes de desarrollo (Claude Code, Codex).
+Fuente única de orientación y gobernanza permanente del repo `deep-opm-pro` para personas y agentes de desarrollo. El estado volátil se referencia; no se duplica aquí.
 
 ## Identidad y límites
 
@@ -22,7 +10,7 @@ Modelador OPM/ISO 19450 nuevo (`app/`), con arquitectura propia. No es fork ni a
 
 Instancia en producción: `https://opforja.sanixai.com`.
 
-El **estado operativo vigente** (bloqueantes, pendientes, riesgos, cortes cerrados) vive exclusivamente en `docs/HANDOFF.md`. Leerlo antes de tocar producto.
+El **estado operativo vigente** vive en `docs/handoff-2026-07-12.md`. El plan futuro vive en `docs/roadmap/roadmap-2026-07-12.md`; la cola de defectos, en `docs/bugs/INDEX.md`; la historia, en Git. Leer esas fuentes antes de tocar producto.
 
 **Frontera con los modelos de dominio (HODOM, gist).** opforja es la **mesa/herramienta**; los **modelos** que se construyen con ella viven en sus propios repos y son de otra autoridad: HODOM en `hd-opm` (Intento 1, sustrato vigente) / `hodom-opm` (Intento 2), gobernados por **hd-dt** (Director Técnico HODOM-HSC); gist en `gist-opm`. Esta mesa **consume** esos modelos solo como **fixtures** de verificación (golden de regresión, amarras con dato real) y **no los modela, no los versiona aquí, ni decide su gestión o adopción**. Una migración que un cambio de método imponga sobre un modelo de dominio se hace con utilidad **genérica parametrizada** (jamás hardcodeando la ruta de otro repo) y se coordina por el canal `docs/solicitudes-upstream/`. La decisión de **adoptar** una feature de opforja para gestionar HODOM (p. ej. anclar HODOM a gist) es de **hd-dt**, no de este repo.
 
@@ -39,7 +27,7 @@ src/store/         Zustand — fuente de verdad de runtime. Slices compuestos
 src/render/jointjs/  adaptador desechable. Proyecta modelo → celdas JointJS
     ↑                 (proyeccion.ts, composers/, customShapes.ts, routing).
 src/ui/            componentes Preact — Inspector, PanelOpl, Toolbar, árbol
-                   OPD, diálogos, asistente, mobile. tokens.ts = design system.
+                   OPD, diálogos y mobile. tokens.ts = design system.
 ```
 
 Subsistemas:
@@ -63,16 +51,19 @@ deep-opm-pro/
 ├── deploy/                     nginx.conf (copiado a la imagen) + backup-opforja-db.sh + systemd/
 ├── docs/
 │   ├── README.md               entrada principal de documentación
-│   ├── HANDOFF.md              estado vigente, decisiones, pendientes, riesgos
+│   ├── handoff-2026-07-12.md   fotografía operativa vigente
 │   ├── uso-productivo.md       guía operativa del usuario (entrar, guardar, atajos)
+│   ├── manual-opm-puro.md      manual educativo agnóstico de herramienta
 │   ├── manual-opforja.md       manual integrado: método Forja + pista humano + pista agente
+│   ├── manual-sanitarios-opm.md manual avanzado de modelamiento sanitario
+│   ├── cheatsheets/            hojas de referencia visuales
 │   ├── JOYAS.md                hallazgos técnicos validados de ingeniería inversa
 │   ├── canon-opm/              puentes locales a las SSOT OPM/opforja en KORA
 │   ├── deploy/                 operación de la instancia (opforja.md)
-│   ├── roadmap/                escalera del compuesto + registro conformidad SSOT
+│   ├── roadmap/                dirección vigente + registro de conformidad SSOT
 │   ├── auditorias/             auditorías con referencia viva o valor prospectivo
 │   ├── specs/                  especificaciones técnicas de frentes (vivo o canónico)
-│   ├── superpowers/            spec gobernante del compuesto + planes TDD archivados
+│   ├── superpowers/            especificaciones con autoridad o referencia viva
 │   ├── reference/              referencia histórica del decommission (opmodel/opm-model-app, 2026-06-22)
 │   ├── memorias-aprendizajes/  lecciones del bucle modelar-OPM-con-OpForja
 │   ├── solicitudes-upstream/   peticiones desde/hacia skills y KORA
@@ -81,7 +72,7 @@ deep-opm-pro/
 ├── assets/  fixtures/  config/  catalog/  webroot/   evidencia OPCloud
 ```
 
-`_local/`, `decompiled/`, `app/dist/`, `app/test-results/`, `.claude/` son gitignored y regenerables. `opm-extracted/` sí se versiona (regenerable con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`).
+`_local/`, `decompiled/`, `app/dist/`, `app/test-results/`, `.claude/` y cualquier `_archivo/` son ignorados o regenerables. `opm-extracted/` sí se versiona (regenerable con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`).
 
 ## Comandos
 
@@ -115,11 +106,11 @@ Ejecutar un solo test: `bun test src/modelo/abanicos.test.ts` (unit) o `bunx pla
 
 3. **No crear de novo sin buscar en evidencia**: antes de introducir un marcador, shape, color o regla OPL, verificar este orden: `assets/svg/` (+ `opm-extracted/assets/svg/`, markers `links/procedural|structural/`) → `assets/png/` → `docs/JOYAS.md` → `opm-extracted/INDEX.md`+`MODULES.md`+`assets/INDEX.md` → `decompiled/` (solo si lo anterior no alcanza; `bash setup.sh`) → `fixtures/` → `catalog/` → `config/`. No copiar bloques 1:1 de `opm-extracted/` o `decompiled/` a `app/`: el stack diverge (Preact≠Angular, Zustand≠Firebase, JointJS core≠Rappid); usar la evidencia para entender semántica, no para clonar.
 
-4. **Handoff único**: `docs/HANDOFF.md` es la única memoria de traspaso versionada. Reescribir y consolidar; nunca crear handoffs paralelos o fechados. Las auditorías viven en `docs/auditorias/` solo mientras tengan referencia viva o valor prospectivo (brechas abiertas). Lo implementado o superado se elimina; la historia git es la red de recuperación. Política completa en `docs/auditorias/README.md`.
+4. **Vigencia documental**: un solo archivo visible por especie operativa, fechado como `<especie>-AAAA-MM-DD.md`; la fecha ISO máxima es la vigente. No se sobrescribe un operativo: antes de publicar su sucesor, el anterior se desplaza al `_archivo/` local e ignorado. Las auditorías viven en `docs/auditorias/` solo mientras tengan referencia de autoridad o brechas abiertas. La historia Git es la red de recuperación versionada.
 
 5. **Repo liviano**: no versionar artefactos regenerables o efímeros (listados en Estructura). `opm-extracted/` es la excepción: derivado curado y trazable.
 
-6. **Backlog documental retirado**: el inventario HU v2 (`docs/historias-usuario-v2/`) fue eliminado por no ofrecer valor actual. El dashboard de avance HU fue retirado previamente (2026-06-05). `docs/roadmap/` define el corte operativo.
+6. **Jerarquía documental**: `CLAUDE.md` gobierna; el handoff fecha el estado; el roadmap fecha la dirección; `docs/bugs/INDEX.md` registra defectos; especificaciones y decisiones conservan contratos; Git conserva la historia. No convertir ninguna de estas capas en una segunda SSoT.
 
 7. **Trabajo paralelo**: para particionar pendientes en líneas concurrentes usar la skill `lineas-paralelas` (genera README + briefs en `docs/instrucciones-lineas-dev/<ronda>/`). Patrón: worktrees aislados, olas con orden de merge, reconciliación e2e sobre `main` integrado. Cada línea mantiene su gate contra su base.
 
@@ -127,7 +118,7 @@ Ejecutar un solo test: `bun test src/modelo/abanicos.test.ts` (unit) o `bunx pla
 
 **Trigger hacia el coproducto tagged de selección (refactor A → B)**: `OpmStore` usa tres campos paralelos `seleccionId / enlaceSeleccionId / estadoSeleccionId`, sellados por invariante de exclusividad mutua en `setSeleccionPorTipo`. Al introducir un cuarto tipo seleccionable, migrar antes: reemplazar los tres campos por `seleccion: { tipo: KindSeleccion; id: Id } | null` discriminado, con adaptadores backwards-compat. Fundamento (`urn:fxsl:kb:icas-universales`): el coproducto tagged es universal; N campos paralelos escalan el invariante a O(N²); el discriminado lo mantiene en O(1).
 
-**Trigger hacia especie discriminada (3er flag de especie)**: el record de persistencia lleva hoy **dos** booleanos de especie — `esBiblioteca` + `esApunte` (excluyentes, sellados en `workspace.ts::marcarBiblioteca`/`marcarApunte`). Dos booleanos son correctos (el flag aditivo es el patrón bueno); **al introducir un TERCER flag de especie**, migrar antes: reemplazar `esBiblioteca`+`esApunte` → `especie: 'modelo' | 'biblioteca' | 'apunte' | ...` discriminado, con adaptadores backwards-compat. Fundamento idéntico (coproducto tagged O(1) vs N booleanos paralelos O(N²)); el invariante de exclusión mutua ya escrito hace la migración trivial. NO refactorizar antes del trigger.
+**Trigger hacia especie discriminada (3er flag de especie)**: al 2026-07-12 el record de persistencia lleva **dos** booleanos de especie — `esBiblioteca` + `esApunte` (excluyentes, sellados en `workspace.ts::marcarBiblioteca`/`marcarApunte`). Dos booleanos son correctos (el flag aditivo es el patrón bueno); **al introducir un TERCER flag de especie**, migrar antes: reemplazar `esBiblioteca`+`esApunte` → `especie: 'modelo' | 'biblioteca' | 'apunte' | ...` discriminado, con adaptadores backwards-compat. Fundamento idéntico (coproducto tagged O(1) vs N booleanos paralelos O(N²)); el invariante de exclusión mutua ya escrito hace la migración trivial. NO refactorizar antes del trigger.
 
 ## Épicas descartadas
 
@@ -135,10 +126,11 @@ EPICA-70 (Importación OPCAT 4.2) y EPICA-91 (Modo tutorial). No proponer en ron
 
 ## Deploy y convenciones
 
-**Deploy**: `./deploy/deploy.sh` desde raíz (comando canónico). Envuelve `docker compose up -d --build` (`VITE_ENABLE_BUG_CAPTURE=true`) y **estampa la versión visible en la UI**: pasa `OPFORJA_BUILD=$(git rev-parse --short HEAD)` para que el footer de «Ayuda › Atajos» muestre la fecha de build (automática) + el short SHA del commit desplegado (tooltip). **No desplegar con `docker compose up -d --build` a secas: el SHA quedaría en `local`.** 4 contenedores sobre red Traefik `web`: `opforja` (app) · `opforja-model-api` (backend) · `opforja-bug-capture` · `opforja-postgres` (persistencia), TLS `certresolver=myresolver`. Procedimiento completo en `docs/deploy/opforja.md`. Instancia actualmente pública (Basic Auth retirado); para re-proteger, ver `docs/HANDOFF.md`.
+**Deploy**: `./deploy/deploy.sh` desde raíz (comando canónico). Envuelve `docker compose up -d --build` (`VITE_ENABLE_BUG_CAPTURE=true`) y **estampa la versión visible en la UI**: pasa `OPFORJA_BUILD=$(git rev-parse --short HEAD)` para que el footer de «Ayuda › Atajos» muestre la fecha de build (automática) + el short SHA del commit desplegado (tooltip). **No desplegar con `docker compose up -d --build` a secas: el SHA quedaría en `local`.** 4 contenedores sobre red Traefik `web`: `opforja` (app) · `opforja-model-api` (backend) · `opforja-bug-capture` · `opforja-postgres` (persistencia), TLS `certresolver=myresolver`. Procedimiento completo, incluida la protección de acceso, en `docs/deploy/opforja.md`.
 
 **Convenciones**:
-- Idioma: español (es-CL) para documentación, comunicación y vocabulario del dominio OPM en el código (entidades, operaciones, tipos del modelo — ej. `formarAbanico`, `commitModelo`, `OpmStore`); inglés para identificadores de infraestructura (stack, dependencias, utilidades) y comandos de shell.
+- Idioma: español de Chile (es-CL) para documentación y comunicación; inglés para código nuevo, comandos e identificadores. El vocabulario OPM ya existente en español (`formarAbanico`, `commitModelo`) es una excepción heredada que no se amplía ni se migra dentro de mantenimientos documentales.
+- Fechas: siempre ISO absolutas (`AAAA-MM-DD`); evitar expresiones relativas para estados históricos.
 - No hay cuenta, HAR autenticado, schema Firestore ni backend code de OPCloud. `setup.sh` hardcodea hashes de bundles; actualizar si OPCloud cambia deploy.
 
 **Fuentes externas**:

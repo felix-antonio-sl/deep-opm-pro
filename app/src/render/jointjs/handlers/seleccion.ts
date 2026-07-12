@@ -21,9 +21,7 @@ import {
  * apariencia plegada para seleccionar parte, blank deselect (con guards de
  * rubber band y modo creación), creación de entidad por click en modo barra.
  *
- * Refs: docs/HANDOFF.md §Decisiones Vigentes (multi-selección, modo barra
- *       creación sticky HU-11.001),
- *       opm-extracted/src/app/configuration/rappidEnviromentFunctionality/
+ * Ref: opm-extracted/src/app/configuration/rappidEnviromentFunctionality/
  *       selectionConfiguration.ts:5-65.
  */
 

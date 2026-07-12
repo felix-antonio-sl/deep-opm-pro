@@ -1,8 +1,8 @@
 # Spec de diseño — La PUERTA del Anclaje (gesto de fundación del modelador)
 
-**Fecha:** 2026-06-29 · **Frente:** gist-anchor / Anclaje · **Estado:** diseño aprobado por el curador (Félix), pendiente de plan de implementación.
+**Fecha:** 2026-06-29 · **Frente:** gist-anchor / Anclaje · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato.
 **Gobernanza:** diseño de UI por `steve-jobs` (a cargo, delegado por el operador); plan de implementación por panel `steipete × allan-kelly`; ejecución orquestada por `steipete` vía paralelización (skill `lineas-paralelas`).
-**SSOT relacionada:** acta de nominación `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; acta de valor/criterio de muerte `docs/auditorias/2026-06-24-acta-valor-anclaje-centinela-drift.md`; estado vivo `docs/HANDOFF.md` §Frentes abiertos 1.
+**SSOT relacionada:** acta de nominación `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; acta de valor/criterio de muerte `docs/auditorias/2026-06-24-acta-valor-anclaje-centinela-drift.md`; estado vivo `docs/handoff-2026-07-12.md`.
 
 ---
 
@@ -84,15 +84,14 @@ Diálogo:       "Editar esta biblioteca puede hacer divergir los modelos anclado
 
 ---
 
-## 3. Doctrina (a) a elevar al custodio-kora (NO bloquea el código)
+## 3. Doctrina (a) — canonizada
 
-La realización visual del Anclaje (chip de tres estados, incluido el al-día declarado) **roza doctrina de dominio aún no escrita**. Siguiendo el precedente **R-VIS-STEREO-1** (`docs/solicitudes-upstream/2026-06-22-estereotipos-vitrinas-ssot-skill.md`): se construye como **realización declarada** en un working-artifact + el manual, sin inventar regla de validez, respetando la precedencia `reglas-opm-estrictas > spec-forja-opd > ui-forja > impl`.
-
-Entregable paralelo (no bloqueante): redactar `docs/solicitudes-upstream/2026-06-29-anclaje-forma-doctrina.md` con:
-- la **forma del Anclaje** (realización visual del chip de 3 estados; el Anclaje NO emite OPL nuclear, igual que el estereotipo es meta; `frozenAtHash` = referencia-a-snapshot evolutivo);
-- que **Anclar no muta esencia** (invariante iii — argumento para que el custodio lo bendiga);
-- la pregunta abierta: ¿una entidad anclada **puede editar su esencia localmente**? (hoy el kernel no lo impide; la edición produciría drift detectable — se realiza como "vista que avisa"; la regla dura la decide el custodio);
-- nota de que el **verbo de fundación formal** (`promover-a-Pieza`, registro global gobernado) queda **DIFERIDO**: este corte usa bibliotecas pragmáticas (modelo designado), suficientes para el caso real.
+La realización visual del Anclaje quedó canonizada como `R-OPD-ROT-9` en
+`urn:fxsl:kb:spec-forja-opd-es` v1.2.0. El Anclaje no emite OPL nuclear; el
+chip declara sus tres estados y usa TINTA, nunca crimson. El custodio legisló
+la vista laxa: una cosa anclada puede editar su esencia localmente y el
+Centinela hace visible la divergencia. El verbo formal `promover-a-Pieza`
+permanece diferido; las bibliotecas pragmáticas satisfacen el flujo desplegado.
 
 ---
 
@@ -107,7 +106,7 @@ Componentes del corte, con dependencias para particionar en líneas paralelas. *
 | **B3 — Verbo Anclar** | Acción store `anclarPiezaBiblioteca` (Calcar + `anclarAPieza` + `frozenAtHash` del backend); botón `Anclar` por ítem solo en fuente externa | `store/modelo/acciones-anclaje.ts` (o capacidades), `ui/VitrinaEstereotipos.tsx` | B2 |
 | **B4 — Chip 3 estados** | Revertir `D2: sincronizado no se marca`; marca de amarre en path (`inkFaint`/`inkSoft`/`ink`) | `render/jointjs/composers/entidad.ts:214-215,523-578` | — (independiente) |
 | **B5 — Banner solo-lectura** | Cinta topbar 2 estados + `Dialogo` de confirmación "Editar biblioteca"; activar `readOnly` al abrir biblioteca | `ui/App.tsx` (`CodexCanvasMount.topbar`), editability port, store | B1 (lee el flag) |
-| **B6 — Doctrina (a)** | Working-artifact `solicitudes-upstream/2026-06-29-anclaje-forma-doctrina.md` | docs/ | — (paralelo, no bloquea) |
+| **B6 — Doctrina (a)** | `R-OPD-ROT-9` canonizada en `spec-forja-opd-es` | `docs/canon-opm/spec-forja-opd.md` | — |
 
 **Realización visual del anclaje al-día (B4):** ver §2(c). **Cero crimson** en todos los bloques (CrowdSec/CODEX).
 

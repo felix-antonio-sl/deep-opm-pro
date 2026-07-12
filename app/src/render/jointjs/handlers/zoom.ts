@@ -6,7 +6,6 @@ import { ZOOM_MAX, ZOOM_MIN } from "./helpers";
  * Handlers de zoom JointCanvas: Ctrl+rueda zoom-in-cursor y Ctrl+0 fit a pantalla.
  * El registry global atajosTeclado.ts maneja Ctrl+0; el wheel se cablea en el host.
  *
- * Refs: docs/HANDOFF.md §Decisiones Vigentes (atajos centralizados ronda 7).
  */
 
 export function cablearZoomWheel(args: {

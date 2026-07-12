@@ -3,7 +3,7 @@
 **Producto:** Opforja
 **Estado:** normativa vigente para decisiones visuales y estructurales de la aplicación
 **Versión:** 1.2
-**Fecha:** 12 junio 2026
+**Fecha:** 2026-06-12
 
 > **Nota 2026-06-12:** enmienda por auditoría de coherencia del corpus 2026-06-12 — `spec-forja-opd-es` interpuesta en la cadena de precedencia (§1, §3, §7) e invariantes de §2 actualizados por remisión. Ejecuta R-§25-MIG-2 de `spec-forja-opd-es`.
 
