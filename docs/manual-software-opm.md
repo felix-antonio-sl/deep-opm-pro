@@ -59,8 +59,8 @@ Este manual usa tres marcas para evitar promesas ambiguas:
 | «Necesito comparar alternativas de arquitectura» | S8 |
 | «Tengo servicios, APIs, eventos y bases de datos» | S9 · S10 · S11 |
 | «La confiabilidad, seguridad o rendimiento quedaron como adjetivos» | S7 · S12 |
-| «Quiero delegar implementación a un agente» | §5 · S13 · S14 |
-| «¿OpForja genera código o mantiene sincronía con el repo?» | S15 · §9 |
+| «Quiero delegar implementación a un agente» | §5.1 · S14 · S15 |
+| «¿opforja genera código o mantiene sincronía con el repo?» | S15 · §9 |
 | «Necesito modelar CI/CD y despliegue» | §6 · S16 |
 | «Hubo un incidente y el modelo quedó viejo» | §7 · S17 · S18 |
 | «Quiero saber qué se puede implementar pronto» | §8 |
@@ -187,14 +187,15 @@ modelo o en la cabecera del proto:
 - Sistema y frontera: <dentro / fuera>
 - Base documental: <rutas/URLs + revisión o commit>
 - Modelo: dominio | sistema software | entrega-operación
-- Especie: respuesta | instrumento
+- Vida útil documental: decisión puntual | consulta recurrente
 - Criterio de suficiencia: <qué debe mostrar para bastar>
 - Criterio de muerte: <qué lo vuelve residuo>
 ```
 
-**Respuesta** es un modelo que muere al decidir algo — por ejemplo, elegir una
-arquitectura. **Instrumento** vive mientras sostenga una tarea recurrente — por
-ejemplo, un mapa de interfaces críticas — y por eso necesita fecha de revisión.
+**Decisión puntual** responde una pregunta y puede archivarse una vez tomada la
+decisión —por ejemplo, elegir una arquitectura—. **Consulta recurrente** vive
+mientras sostenga una tarea repetida —por ejemplo, un mapa de interfaces críticas—
+y por eso necesita dueño y fecha de revisión.
 
 ### 2.4 Secuencia ágil de arranque
 
@@ -203,7 +204,8 @@ ejemplo, un mapa de interfaces críticas — y por eso necesita fecha de revisi�
 3. Normalizar nombres; no inventar definiciones para llenar huecos.
 4. Abrir un **apunte** y trazar el fragmento mejor entendido en el Taller.
 5. Leer el OPL con el dueño de dominio; una oración extraña revela un hecho extraño.
-6. Reconciliar los fragmentos con un SD o adoptar los OPDs sueltos.
+6. Hacer emerger y reconciliar el SD; adoptar cada OPD suelto como in-zoom o
+   unfold de una cosa existente. Un modelo no cierra con OPDs sueltos.
 7. Graduar cuando la función, frontera y deuda estén suficientemente claras.
 8. Conservar el ledger y la base documental; el modelo no los sustituye.
 
@@ -222,10 +224,15 @@ diagnóstico y graduación. No requiere una futura IA de ingestión para aportar
 tablas, porque son fáciles de imaginar.
 
 **El corte.** El primer SD describe el cambio de valor sin comprometer interfaz ni
-stack. «Permitir reservar salas» todavía es débil; «*Confirmación de reserva*
-cambia **Solicitud de reserva** de `pendiente` a `confirmada` y genera **Reserva**»
-declara transformee, estados y resultado. La UI aparecerá después como instrumento
-o interfaz de la realización elegida.
+stack. «Permitir reservar salas» todavía es débil. Dos hechos OPL atómicos declaran
+el transformee, sus estados y el resultado sin mezclar predicados:
+
+```opl
+*Confirmación de reserva* cambia **Solicitud** de `pendiente` a `confirmada`.
+*Confirmación de reserva* genera **Reserva**.
+```
+
+La UI aparecerá después como instrumento o interfaz de la realización elegida.
 
 **Cómo se rompe.** La solución queda optimizada para el primer mockup, pero nadie
 puede comparar otra arquitectura ni verificar qué resultado importaba.
@@ -267,15 +274,18 @@ compararse contra una solución más simple.
 dominio, o esconder toda responsabilidad técnica detrás de «Sistema».
 
 **El corte.** En el modelo de dominio, las cosas son **Solicitud**, **Reserva**,
-**Sala**, **Persona solicitante** y sus procesos. En el modelo de sistema software,
+**Sala**, **Persona solicitante** y sus procesos. En el modelo del sistema software,
 **API de reservas**, **Almacén de reservas** y **Procesador de notificaciones** son
-objetos/instrumentos que realizan esa función. Se conectan por los objetos-frontera
-que ambos entienden.
+objetos no humanos que realizan esa función. Cuando habilitan un proceso sin
+transformarse, se conectan mediante un enlace de **instrumento**; si un proceso los
+crea, consume o cambia, ocupan el rol transformador correspondiente. Ambos modelos
+se conectan mediante objetos-frontera que entienden.
 
-Software, robots e IA son **instrumentos**, nunca agentes OPM
+Software, robots e IA nunca son agentes OPM
 (`urn:fxsl:kb:reglas-opm-estrictas-es` R-AG-1/R-AG-1A). «Agente de desarrollo» es
-un rol operativo de la ingeniería agéntica; dentro del modelo OPM, su runtime sigue
-siendo software. El humano que autoriza, revisa o responde sí puede ser agente.
+un rol operativo de la ingeniería agéntica; dentro del modelo, su runtime sigue
+siendo un objeto software. La persona que autoriza, revisa o responde sí puede ser
+agente OPM.
 
 ### S5 · Requisitos visibles y navegables **HOY**
 
@@ -290,10 +300,14 @@ opforja ya ofrece requisitos estructurados:
    lectura el requisito y sus coberturas.
 
 El requisito es un objeto OPM con metadata de autor; la relación de satisfacción es
-meta (`pendiente | satisface | parcial | no-satisface`). Puede apuntar **HOY** a una
-entidad o enlace del mismo modelo. La vista no crea hechos nuevos y el metacontrato
-de satisfacción aparece en el perfil `canon-documento`; no debe confundirse con un
-enlace OPM nuclear ni con una ejecución de test.
+meta (`pendiente | satisface | parcial | no-satisface`) y puede apuntar **HOY** a
+una entidad o enlace del mismo modelo. La vista no crea hechos nuevos y la
+satisfacción no es un enlace OPM nuclear ni el resultado de ejecutar un test.
+
+La satisfacción se conserva en el modelo y en el JSON de intercambio. La proyección
+JSON interna `canon-documento` también la retiene, pero el comando visible
+**Exportar documento canónico (Markdown)** **HOY no la renderiza**. No uses ese
+Markdown como matriz de cobertura; conserva la traza externa descrita en S6.
 
 ### S6 · Cobertura de modelo no es evidencia de test
 
@@ -309,7 +323,7 @@ consulta su resultado.
 Usar una tabla externa mínima hasta contar con trazas externas estructuradas:
 
 ```markdown
-| Requisito | Cobertura OPM | Evidencia ejecutable | Veredicto |
+| Requisito | Metacobertura de diseño en opforja | Evidencia ejecutable | Veredicto |
 |---|---|---|---|
 | REQ-7 | Validación de disponibilidad | tests/reservas/concurrencia.test.ts | CI verde |
 ```
@@ -324,11 +338,12 @@ Extender `TargetSatisfaccionRequisito` con targets externos tipados
 **La tentación.** Colgar adjetivos del sistema o convertir cada calidad en estado
 sin atributo.
 
-**El corte.** Declarar un requisito, su actor, escenario, medida, unidad, umbral y
-fuente. La estructura OPM muestra dónde se satisface y qué proceso/objeto afecta; la
-medición vive fuera. Ejemplo: `REQ-PERF-3`, hard, «p95 de confirmación < 500 ms con
-100 solicitudes/s», cubierto por *Confirmación de reserva* y verificado por un test
-de carga externo.
+**El corte.** Declarar un requisito y su actor en los campos estructurados **HOY**.
+El escenario, medida, unidad, umbral y fuente viven por ahora en su descripción y en
+el ledger externo. La metacobertura muestra qué entidad o enlace del diseño lo
+realiza; no puede apuntar a un estado aislado. Ejemplo: `REQ-PERF-3`, hard, «p95 de
+confirmación < 500 ms con 100 solicitudes/s», cubierto por *Confirmación de reserva*
+o por su enlace de condición y verificado por un test de carga externo.
 
 Para seguridad, modelar además activos, estados de autorización, procesos de
 control, excepciones y responsabilidad humana. Una etiqueta «seguro» no es modelo
@@ -428,16 +443,24 @@ La simulación **HOY** es conceptual: recorre microfases, precondiciones y ramas
 calcula confiabilidad, throughput ni colas. Es útil para falsar el comportamiento
 con expertos antes de implementar; los números se verifican fuera.
 
-### S13 · Vistas y Piezas no agregan hechos
+### S13 · Las Vistas navegan; las Piezas reutilizan
 
 Una **Vista genérica** reúne apariciones existentes para responder una pregunta de
 lectura; su OPL es delta-cero. Úsala para «interfaces de Reserva» o «superficie de
 fallos», no para afirmar relaciones que el modelo nuclear no contiene.
 
-Una **Pieza** empaqueta un tipo o subgrafo reusable. **Calcar** crea una copia
-independiente; **Anclar** mantiene una referencia viva a una biblioteca y el
-Centinela de Drift avisa si esa Pieza cambió. El drift vigilado es entre modelo y
-biblioteca de opforja: no detecta cambios de código, schema o API externa.
+La superficie **Piezas** reúne hoy dos mecanismos distintos:
+
+- Desde **Este modelo**, un estereotipo con plantilla puede **Calcar** e injertar
+  un subgrafo independiente con identidades frescas.
+- Desde una **biblioteca externa**, el MVP expone una entidad —objeto o proceso—
+  y sus estados. **Calcar** copia esa entidad; **Anclar** hace la copia y conserva
+  una referencia viva a la Pieza, vigilada por el Centinela de Drift.
+
+El Anclaje es metadata y no emite OPL nuclear, pero las cosas, estados y enlaces
+calcados sí forman parte del modelo. Patrones-subgrafo y enlaces como Pieza externa
+todavía no están implementados. El Centinela vigila la relación modelo↔biblioteca,
+no código, schema ni API externa.
 
 ---
 
@@ -458,13 +481,16 @@ Antes de delegar, emitir un contrato breve en el issue, task o documento de trab
 - Archivos o módulos probables: <alcance inicial, no mandato ciego>
 - Pruebas de aceptación: <casos y comando de gate>
 - Fuera de alcance: <no hacer>
-- Gate humano: <qué decisión no puede tomar el agente>
+- Gate humano: <qué decisión no puede tomar el agente y quién confirma el OPL/delta>
 ```
 
-**HOY**, `mesa pull <modelo>` entrega contexto W6.0 — procedencia, pendientes
-`[RATIFICAR]`, notas, diagnóstico y OPL — y el agente debe combinarlo con el
-contrato del repositorio (`AGENTS.md`/`CLAUDE.md`), el código y los tests. El
-contexto W6.0 es del **modelo**, no un brief de implementación completo.
+**HOY**, desde el directorio `app/`, `bun run mesa pull <modelo>` entrega el
+contexto W6.0 —procedencia, pendientes `[RATIFICAR]`, notas, diagnóstico y OPL—.
+En este manual, `mesa pull` y `mesa push` se usan después como abreviaturas de
+`bun run mesa …`; el proyecto no instala un ejecutable global llamado `mesa`. El
+agente debe combinar el contexto con el contrato del repositorio
+(`AGENTS.md`/`CLAUDE.md`), el código y los tests. W6.0 describe el **modelo**, no es
+un brief de implementación completo.
 
 Un export determinista «Contexto de desarrollo» que agregue requisitos, selección
 de OPDs, revisión del modelo y placeholders para rutas/tests es **CORTO** (§8).
@@ -485,6 +511,13 @@ El modelo ayuda a delimitar el sobre, pero el control real vive en las instrucci
 del repo, permisos, revisión, CI y proceso de entrega. La mesa serializa operador y
 agente mediante revisión y optimistic locking; no coeditan en vivo.
 
+Una revisión empujada por un agente sigue siendo **propuesta**: llegar al servidor
+no ratifica su significado. El dueño humano debe revisar el delta, leer el OPL
+relevante y declarar si esa revisión pasa a ser la base acordada. La vitrina y el
+optimistic locking evitan pisadas; no reemplazan esa decisión. Del mismo modo,
+`--confirmado-por-operador` solo autoriza trabajar sobre una base autosave: no
+aprueba semánticamente la salida del agente.
+
 ### S15 · Del modelo al código, sin generación mágica
 
 opforja **HOY no genera aplicación, esquemas, APIs ni tests**, ni mantiene sincronía
@@ -502,8 +535,9 @@ estados/fallos relevantes; deuda `[RATIFICAR]` no portante; criterio de aceptaci
 dueño humano.
 
 **Definition of Done:** código y tests verdes; evidencia enlazada externamente;
-documentación/ADR si cambió arquitectura; modelo y OPL actualizados si cambió
-comportamiento; revisión o snapshot de opforja en el hito.
+documentación/ADR si cambió arquitectura; modelo y OPL actualizados **y confirmados
+por su dueño humano** si cambió comportamiento; versión de opforja correlacionada
+con el hito cuando corresponda.
 
 El modelo no se actualiza por renombrar una función interna que no altera el dominio.
 Sí se actualiza si cambia ownership, interfaz, estado observable, condición, fallo o
@@ -513,11 +547,12 @@ resultado.
 
 Para cambios del propio modelo, la pista agente de `manual-opforja.md` sigue vigente:
 
-`mesa pull → re-elicitar/editar proto → compilar → validar → render headless → mesa push`
+`bun run mesa pull → re-elicitar/editar proto → compilar → validar →`
+`render headless → bun run mesa push`
 
 Reglas duras: pull fresco; proto como fuente para modelos sellados; validación local
 verde; 409 implica re-pull, jamás forzar; push sin delta es no-op; nota significativa.
-El chip de revisión deja la llegada visible al operador.
+El chip de revisión deja la llegada visible al operador; no ratifica su significado.
 
 ---
 
@@ -527,14 +562,24 @@ El chip de revisión deja la llegada visible al operador.
 
 OPM puede hacer legible el sistema de entrega:
 
-- **Código fuente** y **Configuración** habilitan *Construcción de artefacto*;
-- *Construcción de artefacto* genera **Artefacto desplegable**;
-- *Verificación de artefacto* cambia su estado de `candidato` a `verificado` o
-  `rechazado`;
-- *Despliegue* cambia **Release** de `aprobada` a `desplegada` en un **Ambiente**;
-- una señal de salud condiciona *Promoción* o inicia *Rollback*;
-- **Responsable de release** es agente humano cuando existe aprobación humana;
-  CI/CD, registry y orquestador son instrumentos.
+```opl
+*Construcción de artefacto* requiere **Código fuente**.
+*Construcción de artefacto* requiere **Configuración**.
+*Construcción de artefacto* genera **Artefacto desplegable** en `candidato`.
+*Verificación de artefacto* cambia **Artefacto desplegable** de `candidato` a `verificado`.
+*Rechazo de artefacto* cambia **Artefacto desplegable** de `candidato` a `rechazado`.
+*Despliegue* requiere **Ambiente**.
+*Despliegue* cambia **Release** de `aprobada` a `desplegada`.
+**Señal de salud** puede estar `saludable` o `degradada`.
+**Señal de salud** en `degradada` inicia *Rollback*.
+*Rollback* cambia **Release** de `desplegada` a `retirada`.
+```
+
+Cada oración expresa un hecho. **Código fuente**, **Configuración** y **Ambiente**
+ocupan el rol de instrumento porque habilitan sin transformarse. **Responsable de
+release** es agente humano cuando existe aprobación humana; CI/CD, registry y
+orquestador son objetos software y se conectan como instrumentos solo en los
+procesos que efectivamente habilitan.
 
 Este modelo sirve para exponer compuertas, artefactos, responsabilidades y caminos de
 recuperación. opforja **no ejecuta el pipeline, no firma imágenes, no consulta CI y
@@ -550,12 +595,16 @@ Antes de un release cuya semántica cambió:
 3. tests asociados verdes;
 4. ADR o interfaz actualizada si corresponde;
 5. fallos/rollback modelados cuando son parte de la decisión;
-6. snapshot manual de opforja con nombre de hito;
+6. versión manual de opforja creada y correlacionada por fecha/ID con el nombre
+   semántico del hito en el documento de release;
 7. commit/tag/artefacto registrados en sus sistemas propietarios.
 
 La asociación automática `modelo revision ↔ commit ↔ build ↔ deploy` es **CORTO**
-mediante un manifiesto de evidencia (§8). **HOY** se registra en la descripción del
-snapshot o en el documento de release.
+mediante un manifiesto de evidencia (§8). **HOY**, el botón **Crear version ahora**
+crea `Snapshot <fecha>` con la descripción fija `Versión manual`; la UI no permite
+ponerle un nombre de hito ni marcarla para preservación. Registra el rótulo semántico,
+commit, build y deploy en el documento de release o en la descripción del modelo.
+Las versiones creadas por `mesa push` sí reciben `agente·<nota>`.
 
 ---
 
@@ -581,11 +630,17 @@ nacer como apunte con:
 El agente puede comparar esa evidencia con OPL y localizar contradicciones, pero la
 app **HOY no ingiere telemetría ni ejecuta inferencia causal**.
 
+El apunte del incidente conserva una instantánea operativa declarada y la
+investigación, pero no modifica por sí solo el contrato base. Solo un patrón causal
+ratificado después de resolver el incidente entra al modelo conceptual, mediante una
+decisión humana explícita.
+
 ### S18 · Drift, versiones y mantenimiento del contrato
 
-opforja **HOY** guarda versiones manuales, restaura una versión como copia y agrupa
-las revisiones de una sesión de agente. Úsalas en hitos semánticos, no como sustituto
-de Git:
+opforja **HOY** crea versiones manuales con nombre automático, restaura una versión
+como copia y agrupa las revisiones de una sesión de agente. Úsalas en hitos
+semánticos, no como sustituto de Git. Para versiones manuales, usa la fecha/ID como
+clave de correlación y conserva fuera de la UI rótulos como:
 
 - `dominio-validado`;
 - `arquitectura-seleccionada`;
@@ -608,8 +663,8 @@ No presentar su chip como prueba de que la implementación sigue al modelo.
 | Cambio de estado, regla, interfaz, ownership o fallo observable | actualizar modelo y OPL |
 | Alternativa todavía en evaluación | bifurcar modelo/realización; no sobrescribir la base acordada |
 | Migración AS-IS → TO-BE | modelos separados con interfaz y estados de transición explícitos |
-| Pregunta respondida y sin uso recurrente | archivar el modelo-respuesta |
-| Instrumento sin dueño, revisión ni consumo | candidato a retiro |
+| Pregunta respondida y sin uso recurrente | archivar el modelo de decisión puntual |
+| Modelo de consulta recurrente sin dueño, revisión ni consumo | candidato a retiro |
 
 Mantención no es mantener cada rectángulo alineado con una clase. Es conservar la
 verdad del contrato que aún se usa para decidir.
@@ -623,14 +678,14 @@ verdad del contrato que aún se usa para decidir.
 | Etapa | opforja **HOY** | **CORTO** propuesto | **FUERA** / sistema propietario |
 |---|---|---|---|
 | Base documental | descripción/proto, anclas normativas, `[RATIFICAR]`, notas | ancla de fuente genérica con URI/localizador/hash | ingestión, OCR, búsqueda y gestión documental |
-| Descubrimiento | apunte, Taller, OPL, validación, vistas | import de ledger normalizado como contexto, no como hechos automáticos | entrevistas y decisión de dominio |
+| Descubrimiento | apunte, Taller, OPL, validación, vistas | `AnclaFuente` + Contexto de desarrollo que referencia el ledger, sin importar hechos automáticamente | entrevistas y decisión de dominio |
 | Requisitos | objeto requisito, hard/soft, actor, satisfacción, cobertura a cosa/enlace, vista | targets externos tipados + export de cobertura | backlog, aceptación y evidencia CI |
-| Arquitectura | refinamiento, composición, submodelos, Piezas, interfaces, simulación conceptual | vínculo repo/modelo y manifiesto de hito | diseño especializado, benchmarks, threat modeling completo |
-| Desarrollo | mesa pull/push, proto, bundle, render, golden | export determinista de Contexto de desarrollo | edición/generación de código, PRs, code review |
-| Verificación | reglas OPM, roundtrip, firma de frontera, reproducibilidad | gate CI que valide bundle/manifiesto versionado | tests funcionales, carga, seguridad, CI |
+| Arquitectura | refinamiento, composición, submodelos, Piezas, interfaces, simulación conceptual | `AnclaFuente` a repo/ADR + manifiesto de hito | diseño especializado, benchmarks, threat modeling completo |
+| Desarrollo | `bun run mesa pull/push` desde `app/`, proto, bundle, render, golden | export determinista de Contexto de desarrollo | edición/generación de código, PRs, code review |
+| Verificación | reglas OPM, roundtrip, firma de frontera, reproducibilidad | targets externos de requisito + validación CI del manifiesto | tests funcionales, carga, seguridad, CI |
 | Despliegue | modelar pipeline y fallos | manifiesto modelo↔commit↔build↔deploy | ejecución CI/CD, secretos, infra |
-| Operación | modelar señales, incidentes e hipótesis | import explícito de evidencia resumida y firmada | logs, métricas, trazas, alertas |
-| Evolución | snapshots, restaurar copia, drift de Piezas | reporte de impacto basado en requisitos e interfaces | diff código↔modelo y sincronía automática |
+| Operación | modelar señales, incidentes e hipótesis | `AnclaFuente` a incidente/dashboard + target externo `métrica`, sin importar ni firmar telemetría | logs, métricas, trazas, alertas |
+| Evolución | versiones manuales, restaurar copia, drift de Piezas | targets externos + manifiesto de hito | diff código↔modelo y sincronía automática |
 
 ### 8.2 Cuatro incrementos pequeños y coherentes
 
@@ -716,23 +771,42 @@ arquitectónica todavía candidata y el umbral no ratificado.
 **Pregunta:** ¿qué debe ocurrir para que una persona obtenga una reserva válida sin
 doble asignación?
 
-- **Solicitud de reserva** puede estar `pendiente`, `confirmada`, `rechazada`.
-- *Confirmación de reserva* cambia **Solicitud de reserva** de `pendiente` a
-  `confirmada` y genera **Reserva**.
-- *Confirmación de reserva* requiere **Disponibilidad de sala**.
-- **Persona aprobadora** maneja *Aprobación de reserva* cuando la sala lo exige.
+La fuente reproducible es
+[`docs/ejemplos/lumbre-reservas.opl`](ejemplos/lumbre-reservas.opl). Sus 32
+oraciones se parsean y reimportan sin pérdida mediante una ley automatizada. El
+núcleo del modelo declara:
+
+- **Solicitud** en `pendiente | confirmada | rechazada`, asociada a una **Ventana
+  solicitada** que exhibe **Sala** e **Intervalo**;
+- *Validación de disponibilidad* requiere la ventana y afecta **Disponibilidad**;
+- *Aprobación de reserva* y *Exención de aprobación* cambian **Permiso** de
+  `pendiente` a `habilitado` bajo condiciones mutuamente excluyentes de **Sala**;
+- *Confirmación de reserva* cambia **Solicitud** de `pendiente` a `confirmada` y
+  genera **Reserva** solo con disponibilidad y permiso habilitado;
+- *Rechazo por conflicto* cambia **Solicitud** a `rechazada` cuando la
+  disponibilidad es `no disponible`.
 
 El dominio todavía no dice REST, SQL ni colas.
 
 ### 9.3 Requisitos
 
 - `REQ-1` hard: no confirmar dos reservas solapadas para la misma sala e intervalo.
-  Cobertura OPM: proceso *Validación de disponibilidad* y enlace que condiciona la
-  confirmación. Evidencia externa: test de concurrencia.
-- `REQ-2` hard: una sala restringida requiere aprobación humana. Cobertura: estado
-  de **Aprobación** y condición de ejecución.
-- `REQ-3` soft mientras no se ratifique: p95 < 500 ms. Cobertura: *Confirmación de
-  reserva*; evidencia futura: test de carga.
+  Metacobertura: *Validación de disponibilidad*, su enlace de instrumento desde
+  **Ventana solicitada**, el enlace condicional de **Disponibilidad** a
+  *Confirmación de reserva* y *Rechazo por conflicto*. Evidencia externa: test de
+  concurrencia.
+- `REQ-2` hard: una sala restringida requiere aprobación humana. Metacobertura:
+  *Aprobación de reserva*, enlace agente de **Persona aprobadora**, condición de
+  **Sala** `restringida` y condición de **Permiso** `habilitado` sobre la
+  confirmación.
+- `REQ-3` soft: p95 < 500 ms. La dureza expresa su obligatoriedad relativa; la
+  fuente y el umbral siguen `[RATIFICAR]`. Cobertura: *Confirmación de reserva*;
+  evidencia futura: test de carga.
+
+`hard|soft`, el estado de satisfacción y `[RATIFICAR]` son ejes independientes:
+obligatoriedad, cobertura y autoridad/evidencia, respectivamente. Ratificar una
+fuente no convierte automáticamente un requisito soft en hard. Antes de la
+validación humana, las coberturas permanecen `pendiente` o `parcial`.
 
 La Vista de requisito muestra diseño cubierto; CI dirá si la implementación pasa.
 
@@ -773,7 +847,8 @@ Si aparece una doble reserva, se abre un apunte del incidente: estado observado,
 hipótesis de carrera, proceso afectado, señal y recuperación. Si la causa exige nueva
 regla de idempotencia, se actualizan dominio/arquitectura, REQ-1, test y modelo. Si fue
 solo un bug local que ya violaba el contrato, se corrige código/tests sin reescribir
-el dominio.
+el dominio. El apunte es una instantánea operacional declarada; una hipótesis no
+entra al canon conceptual hasta que la evidencia y el dueño la ratifican.
 
 ---
 
@@ -796,15 +871,18 @@ el dominio.
 3. Emitir contrato de implementación con no-objetivos y gate humano.
 4. Implementar cambio acotado y tests.
 5. Ejecutar gates; revisar diff.
-6. Actualizar modelo solo si cambió el contrato.
-7. Commit/push/PR según el flujo del repo; snapshot de modelo si es hito semántico.
+6. Si cambió el contrato, empujar la revisión del modelo como propuesta.
+7. El dueño humano revisa el delta/OPL y declara la base acordada.
+8. Commit/push/PR según el flujo del repo; correlacionar una versión del modelo si
+   es un hito semántico.
 
 ### C. Preparar un release
 
 1. Identificar requisitos y cambios semánticos.
 2. Confirmar OPL, ADRs e interfaces.
 3. Verificar tests y compuertas de despliegue/rollback.
-4. Crear snapshot del modelo y registrar commit/build/deploy externamente.
+4. Crear una versión manual y registrar su fecha/ID, commit, build y deploy
+   externamente.
 5. Ejecutar pipeline fuera de opforja.
 
 ### D. Responder a incidente o evolución
@@ -853,6 +931,9 @@ el dominio.
 
 ## Bitácora
 
+- **2026-07-14** — Corrección factual y semántica. OPL atómico, autoridad humana
+  tras `mesa push`, límites reales de Piezas/export/versiones y matriz `CORTO`
+  alineada exclusivamente con C1–C4.
 - **2026-07-14** — Creación. Manual de dominio de software desde base documental
   hasta mantención, con cadena de autoridad por artefacto, piezas de decisión,
   workflow humano–agente, ejemplo Lumbre, matriz `HOY/CORTO/FUERA` y cuatro

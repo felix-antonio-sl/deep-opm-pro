@@ -82,7 +82,7 @@
   <main class="grid">
     <section class="card ink">
       <p class="eyebrow">Regla rectora</p><h2>Una autoridad por artefacto</h2>
-      <p>El modelo OPM decide <strong>función, estados, frontera e interfaces</strong>. El repo decide código; CI decide tests; el pipeline decide deploy; observabilidad registra runtime.</p>
+      <p>El dueño humano decide <strong>función, estados, frontera e interfaces</strong>; el modelo OPM expresa y conserva esas decisiones. El repo conserva código; tests y CI producen evidencia; el pipeline ejecuta el deploy; observabilidad registra runtime.</p>
     </section>
 
     <section class="card obj">
@@ -96,7 +96,7 @@
 
     <section class="card obj">
       <p class="eyebrow">Primer trazo</p><h2>Apunte → Taller → modelo</h2>
-      <p><span class="cap">HOY</span>Todo nace apunte. Bosqueja el fragmento mejor entendido, lee su OPL con el dueño de dominio, adopta los OPDs sueltos y gradúa cuando función y frontera cierren.</p>
+      <p><span class="cap">HOY</span>Todo nace apunte. Bosqueja el fragmento mejor entendido, lee su OPL con el dueño de dominio, haz emerger el SD y adopta cada OPD suelto. Gradúa cuando función, frontera y deuda cierren.</p>
     </section>
 
     <section class="card proc">
@@ -106,7 +106,7 @@
 
     <section class="card key">
       <p class="eyebrow">Ontología OPM</p><h2>IA y software no son agentes</h2>
-      <p><strong>Agente OPM = humano o grupo humano.</strong> Software, CI, robots e IA son instrumentos. «Agente de desarrollo» es un rol operativo; su runtime sigue siendo software en el modelo.</p>
+      <p><strong>Agente OPM = persona o grupo de personas.</strong> Software, CI, robots e IA son objetos no humanos: pueden habilitar mediante un enlace de instrumento o ser transformados por otro proceso. «Agente de desarrollo» es un rol operativo; su runtime no es agente OPM.</p>
     </section>
 
     <section class="card proc">
@@ -137,17 +137,18 @@
         <li>decisiones, alcance y no-objetivos;</li>
         <li>tests, gate y decisiones que debe elevar.</li>
       </ul>
-      <p><code>mesa pull</code> aporta contexto del modelo; <code>AGENTS.md</code>/<code>CLAUDE.md</code> gobiernan el repo.</p>
+      <p><code>cd app &amp;&amp; bun run mesa pull &lt;modelo&gt;</code> aporta contexto del modelo; <code>AGENTS.md</code>/<code>CLAUDE.md</code> gobiernan el repo.</p>
+      <p>Cada <code>mesa push</code> sigue siendo propuesta hasta que el dueño humano confirma el delta y su OPL.</p>
     </section>
 
     <section class="card obj">
       <p class="eyebrow">Implementación</p><h2>Sin generación mágica</h2>
-      <p><span class="cap">HOY</span>Opforja no genera ni sincroniza código. Implementa una rebanada, prueba, y actualiza el modelo solo si cambió estado, regla, frontera, interfaz, ownership, fallo o resultado.</p>
+      <p><span class="cap">HOY</span>opforja no genera ni sincroniza código. Implementa una rebanada, prueba, y actualiza el modelo solo si cambió estado, regla, frontera, interfaz, ownership, fallo o resultado.</p>
     </section>
 
     <section class="card proc">
       <p class="eyebrow">Entrega</p><h2>Modela CI/CD; ejecútalo fuera</h2>
-      <p>Haz visibles artefacto, verificación, aprobación, ambiente, healthcheck y rollback. CI/CD y orquestador son instrumentos. El pipeline real conserva el veredicto y despliega.</p>
+      <p>Haz visibles artefacto, verificación, aprobación, ambiente, healthcheck y rollback. CI/CD y orquestador son objetos software; se conectan como instrumentos solo donde habilitan. El pipeline real conserva el veredicto y despliega.</p>
     </section>
 
     <section class="card obj">
@@ -157,7 +158,7 @@
 
     <section class="card key">
       <p class="eyebrow">Drift honesto</p><h2>Qué vigila y qué no</h2>
-      <p>Versiones conservan hitos; el golden prueba reproducibilidad. El Centinela vigila <strong>Piezas ancladas a bibliotecas</strong>, no código, esquemas, APIs ni runtime. No existe diff estructural de modelos.</p>
+      <p>Versiones manuales por fecha/ID se correlacionan con hitos externos; el golden prueba reproducibilidad. El Centinela vigila <strong>Piezas ancladas a bibliotecas</strong>, no código, esquemas, APIs ni runtime. No existe diff estructural de modelos.</p>
     </section>
 
     <section class="card ink">
@@ -178,7 +179,7 @@
   </main>
 
   <footer>
-    <span>opforja · ingeniería de software · manual: manual-software-opm.md</span>
+    <span>opforja · ingeniería de software · <a href="../manual-software-opm.md">manual completo</a></span>
     <span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
   </footer>
 </div>

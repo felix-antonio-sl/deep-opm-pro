@@ -1,0 +1,32 @@
+**Solicitud** es un objeto informacional y sistémico.
+**Sala** es un objeto físico y ambiental.
+**Intervalo** es un objeto informacional y sistémico.
+**Ventana solicitada** es un objeto informacional y sistémico.
+**Disponibilidad** es un objeto informacional y sistémico.
+**Permiso** es un objeto informacional y sistémico.
+**Reserva** es un objeto informacional y sistémico.
+**Persona aprobadora** es un objeto físico y ambiental.
+*Validación de disponibilidad* es un proceso informacional y sistémico.
+*Aprobación de reserva* es un proceso informacional y sistémico.
+*Exención de aprobación* es un proceso informacional y sistémico.
+*Confirmación de reserva* es un proceso informacional y sistémico.
+*Rechazo por conflicto* es un proceso informacional y sistémico.
+**Solicitud** puede estar `pendiente`, `confirmada` o `rechazada`.
+**Sala** puede estar `estándar` o `restringida`.
+**Disponibilidad** puede estar `desconocida`, `disponible` o `no disponible`.
+**Permiso** puede estar `pendiente` o `habilitado`.
+**Solicitud** exhibe **Ventana solicitada**.
+**Ventana solicitada** exhibe **Sala** y **Intervalo**.
+*Validación de disponibilidad* requiere **Ventana solicitada**.
+*Validación de disponibilidad* afecta **Disponibilidad**.
+*Aprobación de reserva* cambia **Permiso** de `pendiente` a `habilitado`.
+**Persona aprobadora** maneja *Aprobación de reserva*.
+*Aprobación de reserva* ocurre si **Sala** está en `restringida`, de lo contrario *Aprobación de reserva* se omite.
+*Exención de aprobación* cambia **Permiso** de `pendiente` a `habilitado`.
+*Exención de aprobación* ocurre si **Sala** está en `estándar`, de lo contrario *Exención de aprobación* se omite.
+*Confirmación de reserva* cambia **Solicitud** de `pendiente` a `confirmada`.
+*Confirmación de reserva* genera **Reserva**.
+*Confirmación de reserva* ocurre si **Disponibilidad** está en `disponible`, de lo contrario *Confirmación de reserva* se omite.
+*Confirmación de reserva* ocurre si **Permiso** está en `habilitado`, de lo contrario *Confirmación de reserva* se omite.
+*Rechazo por conflicto* cambia **Solicitud** de `pendiente` a `rechazada`.
+*Rechazo por conflicto* ocurre si **Disponibilidad** está en `no disponible`, de lo contrario *Rechazo por conflicto* se omite.
