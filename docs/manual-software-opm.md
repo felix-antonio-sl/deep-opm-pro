@@ -53,16 +53,18 @@ Este manual usa tres marcas para evitar promesas ambiguas:
 | Si tu problema es… | Ve a |
 |---|---|
 | «Tengo documentos, entrevistas y notas, pero no un modelo» | §2 · S1 · S2 |
+| «El sistema ya existe y debo entenderlo o modernizarlo» | §2.5 · §7.2 |
 | «La idea ya viene disfrazada de solución» | S3 |
 | «No sé si modelar el dominio o la arquitectura» | §1 · S4 |
 | «Quiero capturar requisitos y cobertura» | S5 · S6 · S7 |
 | «Necesito comparar alternativas de arquitectura» | S8 |
 | «Tengo servicios, APIs, eventos y bases de datos» | S9 · S10 · S11 |
 | «La confiabilidad, seguridad o rendimiento quedaron como adjetivos» | S7 · S12 |
-| «Quiero delegar implementación a un agente» | §5.1 · S14 · S15 |
+| «Quiero delegar implementación a uno o varios agentes» | §5.1 · S14 · §5.2 · S15 |
 | «¿opforja genera código o mantiene sincronía con el repo?» | S15 · §9 |
 | «Necesito modelar CI/CD y despliegue» | §6 · S16 |
 | «Hubo un incidente y el modelo quedó viejo» | §7 · S17 · S18 |
+| «Necesito modernizar o retirar un sistema» | §7.1 · §7.2 · Runbook E |
 | «Quiero saber qué se puede implementar pronto» | §8 |
 | «Necesito una receta operativa corta» | §10 |
 
@@ -100,7 +102,7 @@ declara «fuente de verdad», nada lo es.
 | Plano | Fuente operativa | Papel de opforja |
 |---|---|---|
 | Evidencia del dominio | documentos, entrevistas registradas, normativa, datos | estructura hechos, términos, transformaciones, supuestos y preguntas |
-| Intención y comportamiento | modelo OPM + OPL confirmado por el dueño de dominio | **mesa principal** para función, frontera, estados, enlaces y refinamiento |
+| Intención y comportamiento | modelo OPM + OPL confirmado por su dueño semántico autorizado | **mesa principal** para función, frontera, estados, enlaces y refinamiento |
 | Requisitos | tracker/especificación + tests de aceptación | representa requisitos y qué cosas/enlaces los satisfacen; no reemplaza el tracker |
 | Arquitectura | ADRs, contratos de interfaz, modelo OPM | compara alternativas y hace visibles dependencias, ownership y fallos |
 | Implementación | repositorio Git | entrega contexto; no es fuente del código ni lo genera **HOY** |
@@ -211,6 +213,42 @@ y por eso necesita dueño y fecha de revisión.
 
 Esta secuencia aprovecha capacidades **HOY**: apuntes, Taller, adopción, OPL,
 diagnóstico y graduación. No requiere una futura IA de ingestión para aportar valor.
+
+### 2.5 Entrar por un sistema existente: ingeniería inversa / MBRSE
+
+MBRSE es ingeniería inversa de sistemas basada en modelos. Cuando el sistema ya
+existe, no se reconstruye primero un diseño ideal. Se itera:
+
+`observaciones → requisitos inferidos → modelo AS-IS → brechas →`
+`predicciones/pruebas → nuevas observaciones`
+
+1. Congelar una revisión de código, contratos, configuración y evidencia operativa.
+2. Observar función, contexto, estados, interfaces, ownership, fallos, restricciones
+   y desempeño bajo variación; marcar qué es observado, documentado o inferido.
+3. Registrar cada requisito inferido como hipótesis `[RATIFICAR]`; su dureza
+   `hard|soft` depende de la obligación, no de que ya esté ratificado.
+4. Modelar *middle-out*: empezar en el nivel mejor entendido y abstraer o refinar
+   solo lo necesario para explicar o cambiar el sistema.
+5. Dejar por vuelta al menos un saldo verificable: hecho OPM mejor situado, brecha
+   explícita o predicción comprobable.
+6. Conservar AS-IS —sistema observado— y TO-BE —diseño objetivo— como modelos
+   separados, con estados de transición, compatibilidad y criterio de salida
+   explícitos.
+7. Pedir al dueño semántico autorizado que acepte la línea base AS-IS y declare qué
+   pendientes `[RATIFICAR]` no pueden portar una decisión o implementación.
+
+Cerrar cada vuelta preguntando: ¿qué requisito explica esta estructura?, ¿qué
+estructura realiza este requisito?, ¿qué observación quedó sin explicación? y ¿qué
+prueba puede falsar la hipótesis? Si todas las respuestas están vacías, el modelo
+probablemente documenta formas sin aumentar comprensión.
+
+**HOY**, opforja aporta apuntes, requisitos, OPDs/OPL, vistas y modelos separados.
+El ledger, código, tests, configuración y telemetría siguen siendo evidencia externa.
+La app no inspecciona repositorios, bases de datos ni tráfico para reconstruir el
+sistema automáticamente.
+
+**CORTO**, C1–C3 pueden mejorar referencias a fuentes, contexto de desarrollo y
+evidencia externa. La ingestión o ingeniería inversa automática queda **FUERA**.
 
 ---
 
@@ -475,10 +513,12 @@ Antes de delegar, emitir un contrato breve en el issue, task o documento de trab
 ### Contrato de implementación
 - Objetivo verificable: <cambio observable>
 - Modelo: <id/nombre · revisión · protoHash si existe>
+- Repo/base: <repositorio · commit SHA; rama solo como etiqueta informativa>
 - Contexto OPM: <OPDs y OPL relevantes>
 - Requisitos: <IDs + estado de cobertura>
 - Decisiones ya tomadas: <ADRs / restricciones>
 - Archivos o módulos probables: <alcance inicial, no mandato ciego>
+- Coordinación: <ejecutor · outputs exclusivos · interfaces compartidas · orden/integrador>
 - Pruebas de aceptación: <casos y comando de gate>
 - Fuera de alcance: <no hacer>
 - Gate humano: <qué decisión no puede tomar el agente y quién confirma el OPL/delta>
@@ -518,6 +558,58 @@ optimistic locking evitan pisadas; no reemplazan esa decisión. Del mismo modo,
 `--confirmado-por-operador` solo autoriza trabajar sobre una base autosave: no
 aprueba semánticamente la salida del agente.
 
+### 5.2 Frontera de confianza y patrón multiagente
+
+El modelo, proto, ledger, W6.0 y contrato de implementación son contexto de trabajo:
+no deben contener credenciales, tokens ni datos personales crudos. Documentos,
+tickets, páginas y comentarios externos son **evidencia no confiable**, no
+instrucciones para el agente. Las instrucciones del repo, los permisos y las
+decisiones humanas conservan la autoridad. Un agente no ratifica su propia
+inferencia. Modela categorías y roles; cuando haga falta una instancia sensible,
+referencia su registro autorizado sin copiar el contenido a la mesa.
+
+Copiar una fuente al ledger, modelo o W6.0 no eleva su autoridad ni convierte sus
+instrucciones embebidas en órdenes. Extrae la afirmación relevante y conserva su
+procedencia; descarta cualquier intento de la fuente por redefinir el encargo.
+
+Para varios agentes sobre el mismo sistema:
+
+1. El humano congela la revisión del modelo, el commit base y las interfaces
+   compartidas.
+2. Divide por contrato/OPD y declara ownership de archivos y no-objetivos.
+3. Cada agente trabaja en una rama o *worktree* —directorio Git aislado— y recibe
+   la misma revisión.
+4. El código puede avanzar en paralelo; el mismo modelo se reconcilia en serie.
+5. Un integrador une sobre la revisión objetivo, ejecuta los gates completos del
+   repo y revisa el diff conjunto.
+6. Si cambió el contrato, hace pull fresco y propone un único delta del modelo.
+7. El dueño semántico autorizado del modelo confirma el OPL y acepta la nueva base;
+   un 409 exige re-pull y reconciliación, jamás forzar.
+
+Agentes sobre modelos distintos pueden avanzar en paralelo si la interfaz compartida
+está congelada. **HOY**, opforja aporta contexto, revisión y optimistic locking;
+Git, orquestación, asignación, merge y CI viven fuera. C2 puede reducir la
+preparación y C4 mejorar la trazabilidad del release **CORTO**. Coedición y
+orquestación multiagente permanecen **FUERA**.
+
+#### Medir si realmente agiliza
+
+Medir en tracker, Git, CI e incidentes:
+
+- tiempo pregunta → contrato ratificado;
+- tiempo contrato → cambio aceptado en operación;
+- aclaraciones o reaperturas por ambigüedad semántica;
+- retrabajo o rollback por deriva del contrato;
+- tasa de fallos de cambio (*change-failure rate*) y efecto sobre el resultado de
+  dominio o SLO;
+- porcentaje de releases semánticos con revisión OPM aceptada;
+- antigüedad de una divergencia modelo↔sistema conocida.
+
+opforja **HOY no captura ni calcula** estas métricas. La cantidad de entidades,
+OPDs o actividad de agentes mide volumen de modelado, no productividad. Antes de
+usarlas, fijar dueño, línea base, ventana, objetivo y una regla para mantener,
+recalibrar o abandonar el flujo.
+
 ### S15 · Del modelo al código, sin generación mágica
 
 opforja **HOY no genera aplicación, esquemas, APIs ni tests**, ni mantiene sincronía
@@ -543,7 +635,7 @@ El modelo no se actualiza por renombrar una función interna que no altera el do
 Sí se actualiza si cambia ownership, interfaz, estado observable, condición, fallo o
 resultado.
 
-### 5.2 Loop técnico del agente modelador
+### 5.3 Loop técnico del agente modelador
 
 Para cambios del propio modelo, la pista agente de `manual-opforja.md` sigue vigente:
 
@@ -577,34 +669,54 @@ OPM puede hacer legible el sistema de entrega:
 
 Cada oración expresa un hecho. **Código fuente**, **Configuración** y **Ambiente**
 ocupan el rol de instrumento porque habilitan sin transformarse. **Responsable de
-release** es agente humano cuando existe aprobación humana; CI/CD, registry y
-orquestador son objetos software y se conectan como instrumentos solo en los
-procesos que efectivamente habilitan.
+release** es agente humano cuando existe aprobación humana; CI/CD, registro de
+artefactos y orquestador son objetos software y se conectan como instrumentos solo
+en los procesos que efectivamente habilitan.
 
 Este modelo sirve para exponer compuertas, artefactos, responsabilidades y caminos de
 recuperación. opforja **no ejecuta el pipeline, no firma imágenes, no consulta CI y
-no despliega**. Los manifests y el historial del pipeline conservan la verdad
+no despliega**. Los manifiestos y el historial del pipeline conservan la verdad
 operativa.
 
 ### 6.1 Gate de release sugerido
 
-Antes de un release cuya semántica cambió:
+Según el riesgo del cambio, el responsable de release debe poder responder:
 
-1. requisitos afectados identificados;
-2. OPL relevante confirmado;
-3. tests asociados verdes;
-4. ADR o interfaz actualizada si corresponde;
-5. fallos/rollback modelados cuando son parte de la decisión;
-6. versión manual de opforja creada y correlacionada por fecha/ID con el nombre
-   semántico del hito en el documento de release;
-7. commit/tag/artefacto registrados en sus sistemas propietarios.
+| Gate | Decisión mínima | Evidencia propietaria |
+|---|---|---|
+| Semántica | requisitos afectados y OPL aceptado por su dueño | modelo + tracker |
+| Compatibilidad y datos | consumidores, migración y ventana de compatibilidad resueltos | ADR, contratos y plan de migración |
+| Calidad y seguridad | pruebas y controles aplicables aprobados | CI, escáneres y revisión |
+| Integridad y procedencia | versión del modelo, commit, build y artefacto identificables e inmutables | documento de release, Git, registro de artefactos, procedencia y SBOM —inventario de componentes— |
+| Rollout | estrategia, ambiente y umbrales de promoción/aborto definidos | pipeline |
+| Recuperación | rollback o roll-forward probado y con responsable | pipeline + runbook |
+| Operación | SLO/señales, alertas y dueño operacional preparados | observabilidad |
+| Privacidad y secretos | datos y credenciales tratados por sistemas autorizados | gestor de secretos + políticas |
 
-La asociación automática `modelo revision ↔ commit ↔ build ↔ deploy` es **CORTO**
-mediante un manifiesto de evidencia (§8). **HOY**, el botón **Crear version ahora**
-crea `Snapshot <fecha>` con la descripción fija `Versión manual`; la UI no permite
-ponerle un nombre de hito ni marcarla para preservación. Registra el rótulo semántico,
-commit, build y deploy en el documento de release o en la descripción del modelo.
-Las versiones creadas por `mesa push` sí reciben `agente·<nota>`.
+No todas las filas aplican a cada entrega: el responsable declara aplicabilidad y
+evidencia según el riesgo. Para cada fila registra fuera de opforja
+`PASS | N/A | WAIVER` —excepción aprobada—, aprobador, evidencia y riesgo residual.
+Cualquier otro estado bloquea el release.
+
+La autoridad corresponde al gate: dueño semántico del modelo, arquitectura/datos,
+seguridad, release u operaciones según el caso; no a un «dueño de dominio» genérico.
+opforja **HOY** modela estados, compuertas, responsables y caminos de recuperación,
+pero no certifica que un gate haya pasado.
+
+**HOY**, el botón **Crear version ahora** crea `Snapshot <fecha>` con la descripción
+fija `Versión manual`; la UI no permite ponerle un nombre de hito ni marcarla para
+preservación. Registra de forma autoritativa fecha/ID, rótulo semántico, commit,
+build y deploy en el documento de release, Git o registro de artefactos. La
+descripción mutable del modelo puede repetir el rótulo como ayuda, no como evidencia
+de integridad. Las versiones creadas por `mesa push` sí reciben `agente·<nota>`.
+
+C3 puede tipar evidencias y C4 correlacionar modelo, commit, build y deploy
+**CORTO**. Tests, firma, escaneo, secretos, despliegue y rollback son **FUERA**.
+
+Después del deploy, observar señales y SLO durante la ventana acordada y decidir
+**promover, abortar o recuperar**. El release no cierra solo porque el pipeline
+terminó: cierra cuando el responsable acepta el resultado en operación o ejecuta la
+recuperación.
 
 ---
 
@@ -669,6 +781,39 @@ No presentar su chip como prueba de que la implementación sigue al modelo.
 Mantención no es mantener cada rectángulo alineado con una clase. Es conservar la
 verdad del contrato que aún se usa para decidir.
 
+### 7.2 Mantener, modernizar y retirar un sistema existente
+
+Una actualización de dependencia o refactor que no cambia conducta observable no
+obliga a editar el modelo. Sí lo hacen cambios de interfaz, ownership, estado,
+compatibilidad, seguridad, disponibilidad, fallo o recuperación **cuando alteran el
+contrato o una decisión representada**. Parchear una vulnerabilidad CVE sin ese
+cambio exige evidencia de seguridad, no dibujar una diferencia inexistente.
+
+Para modernizar, mantener AS-IS y TO-BE separados y modelar explícitamente:
+consumidores, estados de transición, migración de datos, convivencia de versiones,
+rollback y criterio de término. No sobrescribir el AS-IS con el diseño deseado:
+borra precisamente la brecha que la modernización debe cerrar.
+
+Retirar el modelo no retira el sistema, y retirar el sistema no implica borrar el
+modelo: este puede quedar como evidencia histórica. Antes del retiro definitivo
+(*decommission*) verificar:
+
+- autorización humana `go/no-go`, responsable y fecha efectiva;
+- corte gradual, umbral de aborto y recuperación/restauración probada;
+- consumidores migrados o terminados;
+- datos migrados, retenidos o eliminados bajo su política;
+- APIs, eventos, jobs y dependencias cerrados;
+- credenciales revocadas e infraestructura retirada;
+- alertas, runbooks y soporte actualizados;
+- ventana de recuperación cerrada y evidencia archivada.
+
+**HOY**, opforja puede expresar el proceso, los estados y responsables, mantener
+AS-IS/TO-BE y conservar el modelo histórico. Inventario automático, análisis de
+dependencias o vulnerabilidades, migración, revocación y desmantelamiento son
+**FUERA**.
+C1 puede anclar el registro externo de retiro y C3 enlazar evidencia de sus
+requisitos **CORTO**. C4 permanece acotado al release; no certifica el retiro.
+
 ---
 
 ## 8. Frontera de capacidad y extensiones de corto plazo
@@ -680,12 +825,12 @@ verdad del contrato que aún se usa para decidir.
 | Base documental | descripción/proto, anclas normativas, `[RATIFICAR]`, notas | ancla de fuente genérica con URI/localizador/hash | ingestión, OCR, búsqueda y gestión documental |
 | Descubrimiento | apunte, Taller, OPL, validación, vistas | `AnclaFuente` + Contexto de desarrollo que referencia el ledger, sin importar hechos automáticamente | entrevistas y decisión de dominio |
 | Requisitos | objeto requisito, hard/soft, actor, satisfacción, cobertura a cosa/enlace, vista | targets externos tipados + export de cobertura | backlog, aceptación y evidencia CI |
-| Arquitectura | refinamiento, composición, submodelos, Piezas, interfaces, simulación conceptual | `AnclaFuente` a repo/ADR + manifiesto de hito | diseño especializado, benchmarks, threat modeling completo |
-| Desarrollo | `bun run mesa pull/push` desde `app/`, proto, bundle, render, golden | export determinista de Contexto de desarrollo | edición/generación de código, PRs, code review |
+| Arquitectura | refinamiento, composición, submodelos, Piezas, interfaces, simulación conceptual | `AnclaFuente` a repo/ADR | diseño especializado, benchmarks, threat modeling completo |
+| Desarrollo | `bun run mesa pull/push` desde `app/`, proto, bundle, render, golden; revisión del mismo modelo serializada | export determinista de Contexto de desarrollo | edición/generación de código, ramas/worktrees, PRs, merge y code review |
 | Verificación | reglas OPM, roundtrip, firma de frontera, reproducibilidad | targets externos de requisito + validación CI del manifiesto | tests funcionales, carga, seguridad, CI |
-| Despliegue | modelar pipeline y fallos | manifiesto modelo↔commit↔build↔deploy | ejecución CI/CD, secretos, infra |
+| Despliegue | modelar pipeline y fallos | manifiesto modelo↔commit↔build↔deploy | ejecución CI/CD, SBOM/procedencia, firma, escáneres, secretos e infraestructura |
 | Operación | modelar señales, incidentes e hipótesis | `AnclaFuente` a incidente/dashboard + target externo `métrica`, sin importar ni firmar telemetría | logs, métricas, trazas, alertas |
-| Evolución | versiones manuales, restaurar copia, drift de Piezas | targets externos + manifiesto de hito | diff código↔modelo y sincronía automática |
+| Evolución | versiones manuales, restaurar copia, drift de Piezas, AS-IS/TO-BE y estados de transición | `AnclaFuente` + targets externos | diff código↔modelo, inventario, migraciones, desmantelamiento y sincronía automática |
 
 ### 8.2 Cuatro incrementos pequeños y coherentes
 
@@ -714,12 +859,13 @@ Ampliar la cobertura de requisito con referencia tipada a `test`, `código`, `AD
 ejecuta ni declara verde el target. Criterio: referencia íntegra, no colgante dentro
 del documento exportado, y UI que distingue cobertura de diseño de evidencia.
 
-#### C4 · Manifiesto de hito
+#### C4 · Manifiesto de release
 
-Documento pequeño y verificable:
+Documento pequeño y verificable para correlacionar un release:
 
 ```json
 {
+  "schemaVersion": 1,
   "modeloId": "…",
   "modeloRevision": 12,
   "protoHash": "…",
@@ -850,6 +996,19 @@ solo un bug local que ya violaba el contrato, se corrige código/tests sin reesc
 el dominio. El apunte es una instantánea operacional declarada; una hipótesis no
 entra al canon conceptual hasta que la evidencia y el dueño la ratifican.
 
+### 9.7 Modernización y retiro
+
+Si Lumbre migra de la alternativa A a B, A queda como AS-IS y B como TO-BE. Un
+modelo de transición hace visibles consumidores, coexistencia, migración de datos,
+compatibilidad, rollback y el criterio que permite apagar A. Código, tráfico y
+migración siguen en sus sistemas propietarios.
+
+Si el producto se retira, una persona autorizada decide el `go/no-go`; el equipo
+cierra consumidores y datos bajo su política, revoca accesos, desmonta operación y
+prueba recuperación antes del corte final. El modelo de Lumbre puede archivarse
+después como evidencia histórica: opforja documenta el significado y la transición,
+no ejecuta el retiro.
+
 ---
 
 ## 10. Runbooks mínimos
@@ -866,33 +1025,54 @@ entra al canon conceptual hasta que la evidencia y el dueño la ratifican.
 
 ### B. Delegar un cambio a un agente
 
-1. Pull del modelo/contexto y lectura del contrato del repo.
-2. Seleccionar OPDs y requisitos relevantes.
-3. Emitir contrato de implementación con no-objetivos y gate humano.
-4. Implementar cambio acotado y tests.
-5. Ejecutar gates; revisar diff.
-6. Si cambió el contrato, empujar la revisión del modelo como propuesta.
-7. El dueño humano revisa el delta/OPL y declara la base acordada.
+1. Hacer pull fresco del modelo/contexto, leer el contrato del repo y fijar el
+   commit base.
+2. Congelar revisión del modelo e interfaces; seleccionar OPDs y requisitos.
+3. Emitir uno o más contratos con ownership, no-objetivos y gate humano.
+4. Implementar en ramas/worktrees separados y ejecutar tests.
+5. El integrador une sobre la base acordada, ejecuta los gates completos del repo y
+   revisa el diff conjunto.
+6. Si cambió el contrato, hacer pull fresco y empujar un único delta del modelo como
+   propuesta.
+7. El dueño semántico autorizado revisa el delta/OPL y declara la base acordada.
 8. Commit/push/PR según el flujo del repo; correlacionar una versión del modelo si
    es un hito semántico.
 
 ### C. Preparar un release
 
-1. Identificar requisitos y cambios semánticos.
-2. Confirmar OPL, ADRs e interfaces.
-3. Verificar tests y compuertas de despliegue/rollback.
-4. Crear una versión manual y registrar su fecha/ID, commit, build y deploy
-   externamente.
-5. Ejecutar pipeline fuera de opforja.
+1. Clasificar el riesgo y declarar qué filas del gate §6.1 aplican.
+2. Confirmar requisitos, OPL, ADRs, interfaces y compatibilidad de datos.
+3. Verificar calidad, seguridad, integridad y tratamiento de secretos en sus
+   sistemas propietarios.
+4. Preparar rollout, señales operativas y recuperación con responsables.
+5. Registrar el commit; si es un hito semántico, crear la versión manual y anotar
+   su fecha/ID.
+6. Ejecutar el pipeline fuera de opforja.
+7. Registrar build, artefacto, deploy y evidencias; observar la ventana acordada y
+   decidir: promover, abortar o recuperar.
 
 ### D. Responder a incidente o evolución
 
-1. Capturar evidencia externa; no escribir causa antes de investigarla.
-2. Crear apunte con observado, esperado e hipótesis `[RATIFICAR]`.
-3. Comparar contra modelo y tests.
+1. Activar el mando operacional, contener o recuperar y preservar evidencia; la
+   seguridad del sistema precede a documentar.
+2. Ya estabilizado, crear apunte con observado, esperado e hipótesis `[RATIFICAR]`.
+3. Comparar contra evidencia, modelo y tests sin declarar causa prematura.
 4. Decidir si falló implementación o cambió el contrato.
 5. Corregir el artefacto propietario y cerrar el loop.
 6. Versionar o archivar el modelo según su criterio de muerte.
+
+### E. Modernizar o retirar un sistema
+
+1. Congelar evidencia y modelos AS-IS; definir dueño y resultado TO-BE.
+2. Inventariar consumidores, datos, interfaces, jobs, credenciales y operación en
+   sus sistemas propietarios.
+3. Modelar transición, convivencia, migración, rollback y criterio de término.
+4. Obtener `go/no-go` humano con retención de datos, corte gradual, umbral de aborto
+   y restauración probada.
+5. Ejecutar fuera de opforja por etapas y correlacionar evidencia externa.
+6. Verificar consumidores, datos, accesos, infraestructura, alertas y soporte.
+7. Obtener aceptación final, cerrar la ventana de recuperación y archivar o retirar
+   el modelo según la política de retención y su criterio de muerte.
 
 ---
 
@@ -931,9 +1111,12 @@ entra al canon conceptual hasta que la evidencia y el dueño la ratifican.
 
 ## Bitácora
 
-- **2026-07-14** — Corrección factual y semántica. OPL atómico, autoridad humana
-  tras `mesa push`, límites reales de Piezas/export/versiones y matriz `CORTO`
-  alineada exclusivamente con C1–C4.
+- **2026-07-14** — Ciclo productivo completado con ingeniería inversa/MBRSE,
+  frontera de confianza y patrón multiagente, métricas de agilidad, gate de release
+  por riesgo y modernización/retiro, sin ampliar la frontera de C1–C4.
+- **2026-07-14** — Corrección factual y semántica. Oraciones OPL atómicas,
+  autoridad humana tras `mesa push`, límites reales de Piezas/export/versiones y
+  matriz `CORTO` alineada exclusivamente con C1–C4.
 - **2026-07-14** — Creación. Manual de dominio de software desde base documental
   hasta mantención, con cadena de autoridad por artefacto, piezas de decisión,
   workflow humano–agente, ejemplo Lumbre, matriz `HOY/CORTO/FUERA` y cuatro

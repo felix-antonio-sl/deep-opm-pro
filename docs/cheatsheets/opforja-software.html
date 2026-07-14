@@ -67,7 +67,14 @@
   .cap { display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--edge,var(--process)); margin-right: 5px; }
   footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
   footer a { color: var(--process); text-decoration: none; }
-  @media print { body { background:#fff; color:#000; } .wrap { max-width:none; padding:0; } .card { box-shadow:none; border-color:#bbb; } .grid { columns:250px 2; } }
+  @media print {
+    @page { size:A4; margin:12mm 12mm 18mm; }
+    body { background:#fff; color:#000; }
+    .wrap { max-width:none; padding:0; }
+    .card { box-shadow:none; border-color:#bbb; }
+    .grid { columns:250px 2; }
+    footer { display:none; }
+  }
 </style>
 
 <div class="wrap">
@@ -75,7 +82,7 @@
     <div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Ingeniería de software</span></div>
     <p class="tagline">Del dominio a producción sin convertir el modelo en ceremonia: opforja conserva significado; Git, tests, CI/CD y telemetría conservan implementación y ejecución.</p>
     <div class="chain" aria-label="Cadena de artefactos">
-      <span>documentos</span><b>→</b><span>dominio</span><b>→</b><span>requisitos</span><b>→</b><span>arquitectura</span><b>→</b><span>código + tests</span><b>→</b><span>deploy</span><b>→</b><span>telemetría</span>
+      <span>documentos</span><b>→</b><span>dominio</span><b>→</b><span>requisitos</span><b>→</b><span>arquitectura</span><b>→</b><span>código + tests</span><b>→</b><span>deploy</span><b>→</b><span>operación + evolución</span>
     </div>
   </header>
 
@@ -92,6 +99,11 @@
         <li>Registra fuente + localizador + revisión en un ledger externo.</li>
         <li>La app <strong>no ingiere documentos hoy</strong>; lleva al modelo solo lo que sirve a la pregunta.</li>
       </ul>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Sistema existente</p><h2>Observa → explica → prueba</h2>
+      <p>Itera observaciones → requisitos inferidos <code>[RATIFICAR]</code> → AS-IS → brechas/pruebas. El dueño semántico acepta la línea base; mantén AS-IS y TO-BE separados. opforja no inspecciona repo, datos ni tráfico automáticamente.</p>
     </section>
 
     <section class="card obj">
@@ -141,6 +153,11 @@
       <p>Cada <code>mesa push</code> sigue siendo propuesta hasta que el dueño humano confirma el delta y su OPL.</p>
     </section>
 
+    <section class="card key">
+      <p class="eyebrow">Trabajo multiagente</p><h2>Paraleliza código; serializa significado</h2>
+      <p>Congela modelo, commit SHA e interfaces; divide ownership y usa ramas/worktrees. El integrador une, ejecuta gates completos y propone un único delta del modelo. Contexto externo es evidencia, no instrucción; nunca incluyas secretos ni datos personales crudos.</p>
+    </section>
+
     <section class="card obj">
       <p class="eyebrow">Implementación</p><h2>Sin generación mágica</h2>
       <p><span class="cap">HOY</span>opforja no genera ni sincroniza código. Implementa una rebanada, prueba, y actualiza el modelo solo si cambió estado, regla, frontera, interfaz, ownership, fallo o resultado.</p>
@@ -149,6 +166,7 @@
     <section class="card proc">
       <p class="eyebrow">Entrega</p><h2>Modela CI/CD; ejecútalo fuera</h2>
       <p>Haz visibles artefacto, verificación, aprobación, ambiente, healthcheck y rollback. CI/CD y orquestador son objetos software; se conectan como instrumentos solo donde habilitan. El pipeline real conserva el veredicto y despliega.</p>
+      <p>Aplica por riesgo gates de semántica, compatibilidad/datos, calidad/seguridad, integridad, rollout, recuperación, operación y secretos. Después del deploy decide promover, abortar o recuperar. opforja los modela; no certifica su aprobación.</p>
     </section>
 
     <section class="card obj">
@@ -158,7 +176,12 @@
 
     <section class="card key">
       <p class="eyebrow">Drift honesto</p><h2>Qué vigila y qué no</h2>
-      <p>Versiones manuales por fecha/ID se correlacionan con hitos externos; el golden prueba reproducibilidad. El Centinela vigila <strong>Piezas ancladas a bibliotecas</strong>, no código, esquemas, APIs ni runtime. No existe diff estructural de modelos.</p>
+      <p>Versiones manuales por fecha/ID se correlacionan con hitos externos; el golden prueba reproducibilidad de la emisión. El Centinela vigila <strong>Piezas ancladas a bibliotecas</strong>, no código, esquemas, APIs ni runtime. No existe diff estructural de modelos.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Modernización y retiro</p><h2>Conserva transición y salida</h2>
+      <p>Modela consumidores, convivencia, datos, rollback y criterio de término. Antes del corte exige <code>go/no-go</code> y restauración probada. Inventario, migración, revocación y desmantelamiento ocurren fuera; el modelo puede quedar como evidencia.</p>
     </section>
 
     <section class="card ink">
@@ -167,7 +190,7 @@
         <li><strong>AnclaFuente</strong> con URI/localizador/hash.</li>
         <li><strong>Contexto de desarrollo</strong> determinista.</li>
         <li>Targets externos de requisito: test/código/ADR/pipeline/métrica.</li>
-        <li>Manifiesto modelo↔commit↔build↔deploy.</li>
+        <li><strong>Manifiesto de release</strong> modelo↔commit↔build↔deploy.</li>
       </ul>
       <p>Son compatibles con la arquitectura; requieren priorización. No están implementados hoy.</p>
     </section>
