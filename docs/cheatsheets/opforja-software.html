@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>opforja — Ingeniería de software</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>%E2%9A%92</text></svg>">
+<style>*{margin:0}html{color-scheme:light dark}</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22);
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans: ui-sans-serif, system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root {
+    --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+    --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+    --rule: #34382f; --rule-soft: #2a2d25;
+    --object: #85b79f; --process: #93b4e2; --key: #e28a76;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6); } }
+  :root[data-theme="dark"] {
+    --paper: #161814; --paper-2: #1d201b; --card: #1e211c;
+    --ink: #eceadf; --ink-soft: #b3b3a8; --ink-faint: #83857b;
+    --rule: #34382f; --rule-soft: #2a2d25;
+    --object: #85b79f; --process: #93b4e2; --key: #e28a76;
+    --shadow: 0 1px 0 rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6); }
+  :root[data-theme="light"] {
+    --paper: #f2f1ea; --paper-2: #ebe9e0; --card: #f7f6f0;
+    --ink: #1c1e1b; --ink-soft: #4a4d47; --ink-faint: #74776f;
+    --rule: #d7d5c9; --rule-soft: #e2e0d5;
+    --object: #39644e; --process: #284b77; --key: #a83b2b;
+    --shadow: 0 1px 0 rgba(28,30,27,.04), 0 6px 20px -12px rgba(28,30,27,.22); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans);
+    line-height: 1.5; -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(var(--rule-soft) .5px, transparent .5px); background-size: 22px 22px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 40px 28px 64px; }
+  .mast { border-bottom: 2px solid var(--ink); padding-bottom: 18px; }
+  .mark { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .logo { font-family: var(--serif); font-weight: 700; font-size: clamp(30px,5.2vw,46px); letter-spacing: -.02em; line-height: .9; }
+  .logo .dot { color: var(--key); }
+  .sheet-name { font-family: var(--mono); font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-faint); padding-bottom: 6px; }
+  .tagline { font-family: var(--serif); font-style: italic; font-size: clamp(15px,2.4vw,19px); color: var(--ink-soft); max-width: 68ch; text-wrap: balance; margin-top: 8px; }
+  .chain { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 22px 0 0; }
+  .chain span { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); background: var(--card); border: 1px solid var(--rule); padding: 5px 8px; }
+  .chain b { color: var(--key); font-weight: 700; }
+  .grid { column-gap: 22px; margin-top: 26px; columns: 330px 3; }
+  .card { break-inside: avoid; background: var(--card); border: 1px solid var(--rule); border-radius: 4px;
+    padding: 16px 18px 15px; margin: 0 0 22px; box-shadow: var(--shadow); position: relative; }
+  .card::before { content: ""; position: absolute; left: 0; top: 15px; bottom: 15px; width: 3px; background: var(--edge,var(--process)); border-radius: 3px; }
+  .card.obj { --edge: var(--object); } .card.proc { --edge: var(--process); } .card.key { --edge: var(--key); } .card.ink { --edge: var(--ink); }
+  .eyebrow { font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 6px; }
+  .card h2 { font-family: var(--serif); font-size: 19px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 9px; line-height: 1.15; text-wrap: balance; }
+  .card p { margin: 0 0 8px; font-size: 13.5px; color: var(--ink-soft); }
+  .card p strong, li strong { color: var(--ink); font-weight: 650; }
+  ul.tight { margin: 3px 0 2px; padding: 0; list-style: none; }
+  ul.tight li { position: relative; padding: 3px 0 3px 16px; font-size: 13px; color: var(--ink-soft); }
+  ul.tight li::before { content: "›"; position: absolute; left: 0; color: var(--edge,var(--process)); font-weight: 700; }
+  code { font-family: var(--mono); font-size: 12px; background: var(--paper-2); border-radius: 3px; padding: 1px 5px; color: var(--ink); }
+  .cap { display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--edge,var(--process)); margin-right: 5px; }
+  footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+  footer a { color: var(--process); text-decoration: none; }
+  @media print { body { background:#fff; color:#000; } .wrap { max-width:none; padding:0; } .card { box-shadow:none; border-color:#bbb; } .grid { columns:250px 2; } }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Ingeniería de software</span></div>
+    <p class="tagline">Del dominio a producción sin convertir el modelo en ceremonia: opforja conserva significado; Git, tests, CI/CD y telemetría conservan implementación y ejecución.</p>
+    <div class="chain" aria-label="Cadena de artefactos">
+      <span>documentos</span><b>→</b><span>dominio</span><b>→</b><span>requisitos</span><b>→</b><span>arquitectura</span><b>→</b><span>código + tests</span><b>→</b><span>deploy</span><b>→</b><span>telemetría</span>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card ink">
+      <p class="eyebrow">Regla rectora</p><h2>Una autoridad por artefacto</h2>
+      <p>El modelo OPM decide <strong>función, estados, frontera e interfaces</strong>. El repo decide código; CI decide tests; el pipeline decide deploy; observabilidad registra runtime.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Base documental</p><h2>Extrae evidencia, no copies páginas</h2>
+      <ul class="tight">
+        <li>Separa <strong>hecho · decisión · restricción · hipótesis · pregunta · término</strong>.</li>
+        <li>Registra fuente + localizador + revisión en un ledger externo.</li>
+        <li>La app <strong>no ingiere documentos hoy</strong>; lleva al modelo solo lo que sirve a la pregunta.</li>
+      </ul>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Primer trazo</p><h2>Apunte → Taller → modelo</h2>
+      <p><span class="cap">HOY</span>Todo nace apunte. Bosqueja el fragmento mejor entendido, lee su OPL con el dueño de dominio, adopta los OPDs sueltos y gradúa cuando función y frontera cierren.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Problema antes que solución</p><h2>Dominio ≠ arquitectura</h2>
+      <p>Primero modela qué cambia para el usuario. Después crea un modelo hermano con API, datos y componentes. Conéctalos por objetos-frontera; no mezcles todo en un mega-OPD.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Ontología OPM</p><h2>IA y software no son agentes</h2>
+      <p><strong>Agente OPM = humano o grupo humano.</strong> Software, CI, robots e IA son instrumentos. «Agente de desarrollo» es un rol operativo; su runtime sigue siendo software en el modelo.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Requisitos</p><h2>Cobertura visible</h2>
+      <p><span class="cap">HOY</span><code>Ctrl+K</code> → Crear requisito · hard/soft · actor · estado. Vincúlalo a una cosa o enlace y abre su Vista de requisito.</p>
+      <p><strong>Cobertura de diseño no es test verde</strong>: la evidencia ejecutable vive en CI.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Arquitectura</p><h2>Contextos e interfaces</h2>
+      <ul class="tight">
+        <li>Un modelo por responsabilidad y ritmo de cambio.</li>
+        <li>Comando, respuesta y evento como objetos informacionales cuando importan.</li>
+        <li><span class="cap">HOY</span>Composición explícita y submodelos de solo lectura; no federación viva.</li>
+      </ul>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Comportamiento real</p><h2>Modela también el fallo</h2>
+      <p>Estados pendientes/fallidos, timeout, reintento, compensación, idempotencia y escalamiento son parte del contrato. La simulación de opforja es <strong>conceptual</strong>, no de rendimiento.</p>
+    </section>
+
+    <section class="card ink">
+      <p class="eyebrow">Relevo al agente</p><h2>Contrato de implementación</h2>
+      <ul class="tight">
+        <li>objetivo verificable + modelo/revisión;</li>
+        <li>OPDs/OPL + requisitos relevantes;</li>
+        <li>decisiones, alcance y no-objetivos;</li>
+        <li>tests, gate y decisiones que debe elevar.</li>
+      </ul>
+      <p><code>mesa pull</code> aporta contexto del modelo; <code>AGENTS.md</code>/<code>CLAUDE.md</code> gobiernan el repo.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Implementación</p><h2>Sin generación mágica</h2>
+      <p><span class="cap">HOY</span>Opforja no genera ni sincroniza código. Implementa una rebanada, prueba, y actualiza el modelo solo si cambió estado, regla, frontera, interfaz, ownership, fallo o resultado.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Entrega</p><h2>Modela CI/CD; ejecútalo fuera</h2>
+      <p>Haz visibles artefacto, verificación, aprobación, ambiente, healthcheck y rollback. CI/CD y orquestador son instrumentos. El pipeline real conserva el veredicto y despliega.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Mantención</p><h2>Telemetría → apunte → decisión</h2>
+      <p>Un incidente entra como observado vs esperado + hipótesis <code>[RATIFICAR]</code> + recuperación. La app no ingiere logs ni infiere causas. Corrige código si violó el contrato; corrige modelo si el contrato cambió.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Drift honesto</p><h2>Qué vigila y qué no</h2>
+      <p>Versiones conservan hitos; el golden prueba reproducibilidad. El Centinela vigila <strong>Piezas ancladas a bibliotecas</strong>, no código, esquemas, APIs ni runtime. No existe diff estructural de modelos.</p>
+    </section>
+
+    <section class="card ink">
+      <p class="eyebrow">Corto plazo propuesto</p><h2>Cuatro incrementos</h2>
+      <ul class="tight">
+        <li><strong>AnclaFuente</strong> con URI/localizador/hash.</li>
+        <li><strong>Contexto de desarrollo</strong> determinista.</li>
+        <li>Targets externos de requisito: test/código/ADR/pipeline/métrica.</li>
+        <li>Manifiesto modelo↔commit↔build↔deploy.</li>
+      </ul>
+      <p>Son compatibles con la arquitectura; requieren priorización. No están implementados hoy.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Límites</p><h2>No prometas lo que no existe</h2>
+      <p>Sin codegen completo · roundtrip código↔modelo · diff semántico · coedición concurrente · federación · deploy desde la mesa · observabilidad integrada · cálculo de rendimiento/seguridad.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>opforja · ingeniería de software · manual: manual-software-opm.md</span>
+    <span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+  </footer>
+</div>
+
+</body>
+</html>

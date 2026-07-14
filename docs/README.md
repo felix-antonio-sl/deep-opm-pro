@@ -16,6 +16,7 @@
 | Aprender OPM sin depender de una herramienta | `manual-opm-puro.md` y `cheatsheets/opm-puro.html` |
 | Modelar con el método Forja | `manual-opforja.md` |
 | Modelar sistemas sanitarios complejos | `manual-sanitarios-opm.md` |
+| Llevar dominio, requisitos y arquitectura al ciclo de vida del software | `manual-software-opm.md` y `cheatsheets/opforja-software.html` |
 | Desplegar y operar producción | `deploy/opforja.md` |
 | Consultar la autoridad OPM | `canon-opm/` como puente a `kora-pneuma` |
 | Consultar decisiones y auditorías vivas | `auditorias/README.md` |
@@ -40,6 +41,7 @@ docs/
 ├── manual-opm-puro.md
 ├── manual-opforja.md
 ├── manual-sanitarios-opm.md
+├── manual-software-opm.md
 ├── cheatsheets/
 ├── JOYAS.md
 ├── render-headless.md
