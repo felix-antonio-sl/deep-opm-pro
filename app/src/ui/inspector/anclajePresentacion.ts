@@ -5,8 +5,8 @@
 // Separado del componente para poder probarlo sin DOM (patrón anclasPresentacion).
 import type { Anclaje, EstadoDrift } from "../../modelo/tipos";
 
-/** Frase de irreversibilidad de Soltar — D4: dicha en el gesto, antes del click. */
-const AVISO_SOLTAR = "Soltar la convierte en copia propia y deja de avisarte. Soltar no se deshace.";
+/** Frase de reversibilidad inmediata y límite posterior de Soltar, antes del click. */
+const AVISO_SOLTAR = "Soltar la convierte en copia propia y deja de avisarte. Puedes deshacerlo de inmediato con Ctrl+Z; si lo conservas, no existe una reconversión directa a Anclaje.";
 
 export interface CopyAnclaje {
   estado: EstadoDrift;
@@ -18,7 +18,7 @@ export interface CopyAnclaje {
   mostrarReSincronizar: boolean;
   /** Soltar siempre disponible (convierte en copia propia). */
   mostrarSoltar: boolean;
-  /** Aviso bajo los botones; incluye la irreversibilidad de Soltar (D4). */
+  /** Aviso bajo los botones; explica el undo inmediato y el límite posterior de Soltar. */
   avisoAcciones: string;
 }
 
@@ -63,7 +63,7 @@ export function copyAnclaje(
       cuerpo: `La anclaste a «${pieza}» de ${biblio}. Desde entonces, la biblioteca cambió.`,
       mostrarReSincronizar: true,
       mostrarSoltar: true,
-      avisoAcciones: `Re-sincronizar adopta la versión nueva. ${AVISO_SOLTAR}`,
+      avisoAcciones: `Re-sincronizar acepta la firma actual como nueva referencia; no cambia tu contenido. ${AVISO_SOLTAR}`,
     };
   }
 

@@ -96,8 +96,8 @@ export const anclajeStyles = {
     fontSize: `${tokens.typography.sizes.xs}px`,
     fontWeight: tokens.typography.weights.semibold,
   },
-  // Soltar (irreversible) — outline sobrio en tinta, NO crimson (D3). La
-  // gravedad se comunica por copy («Soltar no se deshace»), no por color.
+  // Soltar — outline sobrio en tinta, NO crimson (D3). El copy explica que el
+  // gesto admite undo inmediato, pero no una reconversión directa posterior.
   botonSoltar: {
     flex: 1,
     height: "28px",

@@ -240,8 +240,8 @@ describe("soltarAnclajeEntidad — desancla, sale del driftMap, commit deshacibl
     expect(store.getState().puedeDeshacer).toBe(true);
 
     store.getState().deshacer();
-    // El undo restaura el anclaje (aunque Soltar de cara al usuario sea irreversible — el
-    // undo del editor es la red técnica, no el "rehacer el anclaje" semántico).
+    // El undo inmediato restaura el anclaje; conservar el cambio sí deja la cosa
+    // como Calco, sin una reconversión directa posterior a Anclaje.
     expect(store.getState().modelo.entidades[id]!.anclaje).toBeDefined();
   });
 

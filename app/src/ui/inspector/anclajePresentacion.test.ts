@@ -38,10 +38,13 @@ describe("anclajePresentacion — copy honesto biblioteca-nivel (Centinela Fase 
     expect(c.mostrarSoltar).toBe(true);
   });
 
-  test("divergente: «Soltar no se deshace» presente en el aviso (D4, antes del click)", () => {
+  test("divergente: explica resync sin importación y undo inmediato de Soltar", () => {
     const c = copyAnclaje("divergente", anclaje);
-    expect(c.avisoAcciones).toContain("Soltar no se deshace");
-    expect(c.avisoAcciones).toContain("Re-sincronizar adopta la versión nueva");
+    expect(c.avisoAcciones).toContain("Re-sincronizar acepta la firma actual como nueva referencia");
+    expect(c.avisoAcciones).toContain("no cambia tu contenido");
+    expect(c.avisoAcciones).toContain("Puedes deshacerlo de inmediato con Ctrl+Z");
+    expect(c.avisoAcciones).toContain("no existe una reconversión directa a Anclaje");
+    expect(c.avisoAcciones).not.toContain("Soltar no se deshace");
   });
 
   test("no-resuelto: honestidad temporal — no se pudo leer; sin re-sincronizar, soltar disponible", () => {
