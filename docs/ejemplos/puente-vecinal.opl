@@ -1,0 +1,30 @@
+**Solicitud** es un objeto informacional y sistémico.
+**Herramienta** es un objeto físico y ambiental.
+**Disponibilidad** es un objeto informacional y sistémico.
+**Préstamo** es un objeto informacional y sistémico.
+**Equipo de préstamo** es un objeto físico y ambiental.
+**Registro de inventario** es un objeto informacional y sistémico.
+*Validación de disponibilidad* es un proceso informacional y sistémico.
+*Aprobación de préstamo* es un proceso informacional y sistémico.
+*Rechazo de solicitud* es un proceso informacional y sistémico.
+*Entrega de herramienta* es un proceso físico y sistémico.
+*Devolución de herramienta* es un proceso físico y sistémico.
+**Solicitud** puede estar `pendiente`, `aprobada` o `rechazada`.
+**Herramienta** puede estar `disponible` o `prestada`.
+**Disponibilidad** puede estar `desconocida`, `disponible` o `no disponible`.
+**Préstamo** puede estar `activo` o `cerrado`.
+**Herramienta** exhibe **Disponibilidad**.
+*Validación de disponibilidad* requiere **Registro de inventario**.
+*Validación de disponibilidad* afecta **Disponibilidad**.
+**Equipo de préstamo** maneja *Aprobación de préstamo*.
+*Aprobación de préstamo* cambia **Solicitud** de `pendiente` a `aprobada`.
+*Aprobación de préstamo* ocurre si **Disponibilidad** está en `disponible`, de lo contrario *Aprobación de préstamo* se omite.
+*Rechazo de solicitud* cambia **Solicitud** de `pendiente` a `rechazada`.
+*Rechazo de solicitud* ocurre si **Disponibilidad** está en `no disponible`, de lo contrario *Rechazo de solicitud* se omite.
+**Equipo de préstamo** maneja *Entrega de herramienta*.
+*Entrega de herramienta* cambia **Herramienta** de `disponible` a `prestada`.
+*Entrega de herramienta* genera **Préstamo**.
+*Entrega de herramienta* ocurre si **Solicitud** está en `aprobada`, de lo contrario *Entrega de herramienta* se omite.
+**Equipo de préstamo** maneja *Devolución de herramienta*.
+*Devolución de herramienta* cambia **Herramienta** de `prestada` a `disponible`.
+*Devolución de herramienta* cambia **Préstamo** de `activo` a `cerrado`.

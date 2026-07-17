@@ -56,6 +56,7 @@ deep-opm-pro/
 │   ├── uso-productivo.md       guía operativa del usuario (entrar, guardar, atajos)
 │   ├── manual-opm-puro.md      manual educativo agnóstico de herramienta
 │   ├── manual-opforja.md       manual integrado: método Forja + pista humano + pista agente
+│   ├── manual-sistemas-opm.md  ciclo transversal: evidencia, cambio, adopción y retiro
 │   ├── manual-sanitarios-opm.md manual avanzado de modelamiento sanitario
 │   ├── manual-software-opm.md  manual del dominio a operación de software con agentes
 │   ├── cheatsheets/            hojas de referencia visuales

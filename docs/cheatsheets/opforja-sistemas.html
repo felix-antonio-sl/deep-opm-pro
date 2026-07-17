@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>opforja — Transformar sistemas</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>%E2%9A%92</text></svg>">
+<style>
+  :root {
+    --paper:#f2f1ea; --paper-2:#ebe9e0; --card:#f7f6f0;
+    --ink:#1c1e1b; --soft:#4a4d47; --faint:#74776f;
+    --rule:#d7d5c9; --rule-soft:#e2e0d5;
+    --object:#39644e; --process:#284b77; --key:#a83b2b;
+    --shadow:0 1px 0 rgba(28,30,27,.04),0 6px 20px -12px rgba(28,30,27,.22);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --sans:ui-sans-serif,system-ui,"Segoe UI",-apple-system,"Helvetica Neue",Arial,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark) { :root {
+    --paper:#161814; --paper-2:#1d201b; --card:#1e211c;
+    --ink:#eceadf; --soft:#b3b3a8; --faint:#83857b;
+    --rule:#34382f; --rule-soft:#2a2d25;
+    --object:#85b79f; --process:#93b4e2; --key:#e28a76;
+    --shadow:0 1px 0 rgba(0,0,0,.3),0 8px 24px -14px rgba(0,0,0,.6); } }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(var(--rule-soft) .5px,transparent .5px);
+    background-size:22px 22px;
+  }
+  .wrap { max-width:1180px; margin:0 auto; padding:40px 28px 64px; }
+  .mast { border-bottom:2px solid var(--ink); padding-bottom:18px; }
+  .mark { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+  h1 { font-family:var(--serif); font-size:clamp(30px,5.2vw,46px); letter-spacing:-.02em; line-height:.9; margin:0; }
+  h1 .dot { color:var(--key); }
+  .sheet-name { font-family:var(--mono); font-size:12px; letter-spacing:.24em; text-transform:uppercase; color:var(--faint); padding-bottom:6px; }
+  .tagline { font-family:var(--serif); font-style:italic; font-size:clamp(15px,2.4vw,19px); color:var(--soft); max-width:70ch; margin:8px 0 0; }
+  .chain { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:22px 0 0; }
+  .chain span { font-family:var(--mono); font-size:11px; color:var(--soft); background:var(--card); border:1px solid var(--rule); padding:5px 8px; }
+  .chain b { color:var(--key); }
+  .grid { column-gap:22px; margin-top:26px; columns:330px 3; }
+  .card {
+    break-inside:avoid; background:var(--card); border:1px solid var(--rule);
+    border-radius:4px; padding:16px 18px 15px; margin:0 0 22px;
+    box-shadow:var(--shadow); position:relative;
+  }
+  .card::before { content:""; position:absolute; left:0; top:15px; bottom:15px; width:3px; background:var(--edge,var(--process)); border-radius:3px; }
+  .obj { --edge:var(--object); } .proc { --edge:var(--process); }
+  .key { --edge:var(--key); } .ink { --edge:var(--ink); }
+  .eyebrow { font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); margin:0 0 6px; }
+  h2 { font-family:var(--serif); font-size:19px; line-height:1.15; margin:0 0 9px; }
+  .card p { margin:0 0 8px; font-size:13.5px; color:var(--soft); }
+  .card strong { color:var(--ink); }
+  ul { margin:3px 0 2px; padding:0; list-style:none; }
+  li { position:relative; padding:3px 0 3px 16px; font-size:13px; color:var(--soft); }
+  li::before { content:"›"; position:absolute; left:0; color:var(--edge,var(--process)); font-weight:700; }
+  code { font-family:var(--mono); font-size:12px; background:var(--paper-2); border-radius:3px; padding:1px 5px; color:var(--ink); }
+  .cap { display:inline-block; font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.07em; color:var(--edge,var(--process)); margin-right:5px; }
+  footer { margin-top:30px; padding-top:16px; border-top:1px solid var(--rule); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-family:var(--mono); font-size:11px; color:var(--faint); }
+  a { color:var(--process); }
+  @media print {
+    @page { size:A4; margin:12mm 12mm 18mm; }
+    body { background:#fff; color:#000; }
+    .wrap { max-width:none; padding:0; }
+    .card { box-shadow:none; border-color:#bbb; }
+    .grid { columns:250px 2; }
+    footer { display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="mark">
+      <h1>opforja<span class="dot">.</span></h1>
+      <span class="sheet-name">Transformar sistemas</span>
+    </div>
+    <p class="tagline">Del documento y la necesidad a una intervención verificable: la mesa conserva significado; el dominio ejecuta y mide.</p>
+    <div class="chain" aria-label="Ciclo transversal">
+      <span>evidencia</span><b>→</b><span>AS-IS</span><b>→</b><span>necesidad</span><b>→</b><span>TO-BE</span><b>→</b><span>intervención</span><b>→</b><span>adopción</span><b>→</b><span>aprendizaje</span>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card ink">
+      <p class="eyebrow">Posición</p>
+      <h2>Mesa semántica, no ejecutor</h2>
+      <p>opforja explicita función, frontera, estados, decisiones y evidencia esperada. La organización, planta, servicio, establecimiento o repositorio realiza el cambio.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Base documental</p>
+      <h2>Extrae, no copies</h2>
+      <p>Separa <strong>hecho, testimonio, decisión, restricción, hipótesis, término y pregunta</strong>. Conserva fuente, localizador y fuerza en un ledger externo.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Ficha</p>
+      <h2>Pregunta antes que modelo</h2>
+      <ul>
+        <li>dueño de significado y responsable de decisión;</li>
+        <li>beneficiario, sistema y frontera;</li>
+        <li>base documental y revisión;</li>
+        <li>suficiencia, revisión y muerte.</li>
+      </ul>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Sistema existente</p>
+      <h2>Observa → explica → prueba</h2>
+      <p>Modela middle-out el AS-IS real. Distingue observado, documentado e inferido. Formula una predicción falsable y consigue aceptación humana antes del TO-BE.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Brújula</p>
+      <h2>Cinco preguntas</h2>
+      <p><strong>Propósito · beneficiario · función · transformee · frontera.</strong> Si el equipo responde distinto, todavía no existe un problema compartido.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Primer trazo</p>
+      <h2>SD-primero o middle-out</h2>
+      <p>Usa SD-primero si la función está clara. Si no, parte del fragmento conocido en un apunte, haz emerger el propósito y adopta los OPDs sueltos. <strong>Adoptar no es graduar.</strong></p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Separación</p>
+      <h2>AS-IS ≠ TO-BE ≠ transición</h2>
+      <p>Conserva lo observado, lo elegido y el sistema temporal que los conecta. Declara coexistencia, reversa y criterio de salida.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Diseño</p>
+      <h2>Compara la misma función</h2>
+      <p>Las alternativas comparten entrada, resultado, beneficiario y restricciones. Compara coordinación, recursos, riesgo, reversibilidad, adopción, evidencia y mantenimiento.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Ontología</p>
+      <h2>Agente OPM = personas</h2>
+      <p>Solo una persona o grupo de personas es agente OPM. Software, IA, máquinas y registros son objetos no humanos; pueden habilitar un proceso como instrumentos o ser transformados.</p>
+    </section>
+
+    <section class="card ink">
+      <p class="eyebrow">Ingeniería agéntica</p>
+      <h2>Paraleliza trabajo; serializa significado</h2>
+      <p>Paraleliza fuentes, propuestas, implementación y pruebas independientes. Serializa propósito, frontera, vocabulario, ratificación y edición del mismo modelo.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Sobre de autonomía</p>
+      <h2>Decide · propone · eleva · no hace</h2>
+      <p>El agente puede resolver forma y trabajo mecánico; propone alternativas; eleva semántica, riesgo e irreversibilidad; nunca inventa hechos ni declara aceptación humana.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Intervención</p>
+      <h2>Contrato pequeño y reversible</h2>
+      <p>Objetivo, revisión base, alcance, responsable, restricciones, resultado, gates, evidencia, gatillo de pausa y entregables.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Adopción</p>
+      <h2>El sistema incluye a quienes cambian</h2>
+      <p>Modela competencias, incentivos, carga desplazada, soporte, excepciones y feedback. Capacitar no repara un diseño que solo agrega trabajo.</p>
+    </section>
+
+    <section class="card obj">
+      <p class="eyebrow">Evidencia</p>
+      <h2>Pre-registra el veredicto</h2>
+      <p>Indicador, fuente, línea base, umbral, ventana, responsable y decisión. <strong>Verificar</strong> pregunta si se ejecutó el diseño; <strong>validar</strong>, si resolvió la necesidad.</p>
+    </section>
+
+    <section class="card proc">
+      <p class="eyebrow">Cierre</p>
+      <h2>Mantén, bifurca, archiva o retira</h2>
+      <p>Actualiza si persiste la pregunta; bifurca alternativas incompatibles; archiva una respuesta agotada; retira solo tras probar que no quedan dependencias vivas.</p>
+    </section>
+
+    <section class="card ink">
+      <p class="eyebrow">Capacidad honesta</p>
+      <h2>Tres etiquetas</h2>
+      <p><span class="cap">IMPLEMENTADO</span>existe y está respaldado.</p>
+      <p><span class="cap">PROPUESTO</span>es viable, pero no existe ni está priorizado.</p>
+      <p><span class="cap">EXTERNO</span>lo realiza otro sistema.</p>
+    </section>
+
+    <section class="card key">
+      <p class="eyebrow">Límite</p>
+      <h2>No prometas automatización mágica</h2>
+      <p>Sin ingestión documental, verdad automática, coedición, ejecución de intervenciones, telemetría integrada ni analítica especializada. opforja puede modelarlas; no las realiza.</p>
+    </section>
+  </main>
+
+  <footer>
+    <span>Derivada del <a href="../manual-sistemas-opm.md">manual para transformar sistemas</a> · <a href="README.md">todas las hojas</a></span>
+    <span><a href="../README.md">corpus</a> · <a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+  </footer>
+</div>
+</body>
+</html>
