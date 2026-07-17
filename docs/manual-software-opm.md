@@ -531,7 +531,9 @@ Para software son especialmente útiles:
 - apuntes para incidentes e hipótesis;
 - OPL, diagnóstico, bundles y export canónico;
 - Piezas y Anclaje para vocabulario gobernado;
-- contexto humano-agente con revisión y optimistic locking.
+- contexto humano-agente con revisiones; el bloqueo actual cubre la carrera
+  interna del `push`, pero no liga el bundle a la revisión de un `pull` anterior
+  (ver el [límite del puente](manual-opforja.md#a6-puente-directo-mesaskill-cli)).
 
 La lista transversal completa vive en el
 [manual de sistemas](manual-sistemas-opm.md#91-implementado).

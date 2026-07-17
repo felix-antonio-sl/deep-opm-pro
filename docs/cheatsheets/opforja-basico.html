@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>opforja — Uso básico</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%9A%92</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%92%3C/text%3E%3C/svg%3E">
 <style>*{margin:0}html{color-scheme:light dark}</style>
 </head>
 <body>
@@ -114,9 +114,10 @@
     padding: 1px 5px; color: var(--ink); }
 
   table.keys { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 2px; }
-  table.keys td { padding: 4px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  table.keys th, table.keys td { padding: 4px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  table.keys th { text-align: left; font-weight: 400; padding-right: 10px; }
   table.keys td:last-child { text-align: right; color: var(--ink-soft); }
-  table.keys tr:last-child td { border-bottom: none; }
+  table.keys tr:last-child th, table.keys tr:last-child td { border-bottom: none; }
 
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
   .chip { font-family: var(--mono); font-size: 11px; letter-spacing: .03em; padding: 3px 8px;
@@ -125,9 +126,15 @@
   footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule);
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
     font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
-  footer a { color: var(--process); text-decoration: none; }
+  footer a { color: var(--process); text-decoration: underline; text-underline-offset: .16em; }
+
+  @media (max-width: 600px) {
+    .mast { grid-template-columns: 1fr; }
+    .mast-glyphs { justify-content: flex-start; flex-wrap: wrap; }
+  }
 
   @media print {
+    :root { color-scheme: light; --paper: #fff; --paper-2: #fff; --card: #fff; --ink: #000; --ink-soft: #222; --ink-faint: #444; --soft: #222; --faint: #444; --rule: #bbb; --rule-soft: #ddd; --object: #28533f; --process: #1f456f; --key: #7f2c20; --key-bg: #fff; --shadow: none; }
     body { background: #fff; color: #000; }
     .wrap { max-width: none; padding: 0; }
     .card { box-shadow: none; break-inside: avoid; border-color: #bbb; }
@@ -178,7 +185,7 @@
       <ul class="tight">
         <li><kbd>O</kbd> crea un objeto · <kbd>P</kbd> un proceso — o desde la barra. Haz clic para colocar y arrastra para mover.</li>
         <li><kbd>S</kbd> agrega un estado <strong>al objeto seleccionado</strong> — selecciónalo primero.</li>
-        <li><strong>Conectar</strong> con <kbd>R</kbd>: con una cosa seleccionada, la relación parte de ella; sin selección, entra en <strong>enlace libre</strong> — haz clic en el <em>origen</em> y luego en el <em>destino</em>. <kbd>Esc</kbd> cancela. Nace como <em>consumo</em>; cambia el tipo en el Inspector.</li>
+        <li><strong>Conectar</strong> con <kbd>R</kbd>: con una cosa seleccionada, la relación parte de ella; sin selección, entra en <strong>enlace libre</strong> — haz clic en el <em>origen</em> y luego en el <em>destino</em>. <kbd>Esc</kbd> cancela. La mesa sugiere un tipo válido según el origen y los destinos visibles —por ejemplo, consumo desde objeto y resultado desde proceso—; revísalo en el Inspector.</li>
       </ul>
       <p>Ojo: <kbd>S</kbd> sí parte de un objeto seleccionado. El Inspector edita lo seleccionado: nombre, tipo, estados, enlaces.</p>
     </section>
@@ -186,20 +193,22 @@
     <section class="card key">
       <p class="eyebrow">A diario</p>
       <h2>Guardar</h2>
-      <p>El apunte nuevo se persiste de inmediato y la mesa guarda periódicamente los cambios. <kbd>Ctrl</kbd>+<kbd>S</kbd> fuerza un guardado en el momento. El chip de estado te dice dónde estás:</p>
+      <p>El apunte nuevo se persiste de inmediato y la mesa guarda periódicamente los cambios. <kbd>Ctrl</kbd>+<kbd>S</kbd> fuerza un guardado en el momento. El estado en línea te dice dónde estás:</p>
       <ul class="tight">
         <li><strong>Guardado</strong> — todo persistido.</li>
-        <li><strong>Sin guardar · Ctrl+S</strong> (ámbar) — hay cambios pendientes del siguiente guardado. Pulsa el chip o usa el atajo para persistirlos ahora.</li>
+        <li><strong>Guardando…</strong> — el guardado está en curso.</li>
+        <li><strong>Sin guardar ⌃S</strong> — hay cambios pendientes. Usa el atajo para persistirlos ahora.</li>
       </ul>
+      <p>Hacer clic en el estado abre <strong>Guardar como o nueva versión</strong>; no fuerza el guardado.</p>
     </section>
 
     <section class="card">
       <p class="eyebrow">Tres gestos diarios</p>
       <h2>Guardar · Buscar · Comandos</h2>
-      <table class="keys">
-        <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Forzar guardado ahora</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td><td>Buscar dentro del modelo</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Paleta de comandos</td></tr>
+      <table class="keys" aria-label="Tres gestos diarios">
+        <tr><th scope="row"><kbd>Ctrl</kbd>+<kbd>S</kbd></th><td>Forzar guardado ahora</td></tr>
+        <tr><th scope="row"><kbd>Ctrl</kbd>+<kbd>F</kbd></th><td>Buscar dentro del modelo</td></tr>
+        <tr><th scope="row"><kbd>Ctrl</kbd>+<kbd>K</kbd></th><td>Paleta de comandos</td></tr>
       </table>
       <p>La paleta <kbd>Ctrl</kbd>+<kbd>K</kbd> es el atajo a todo: exportar, cambiar de vista, crear, navegar.</p>
     </section>
@@ -214,9 +223,9 @@
     <section class="card">
       <p class="eyebrow">Sin miedo</p>
       <h2>Deshacer y rehacer</h2>
-      <table class="keys">
-        <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Deshacer</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Rehacer</td></tr>
+      <table class="keys" aria-label="Deshacer y rehacer">
+        <tr><th scope="row"><kbd>Ctrl</kbd>+<kbd>Z</kbd></th><td>Deshacer</td></tr>
+        <tr><th scope="row"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></th><td>Rehacer</td></tr>
       </table>
       <p>Funcionan en el canvas y en la edición. Explora tranquilo: casi todo es reversible.</p>
     </section>
@@ -251,13 +260,13 @@
     <section class="card proc">
       <p class="eyebrow">Hoja de atajos</p>
       <h2>Teclado esencial</h2>
-      <table class="keys">
-        <tr><td><kbd>O</kbd> · <kbd>P</kbd></td><td>Crear objeto · proceso</td></tr>
-        <tr><td><kbd>S</kbd></td><td>Estado (al objeto seleccionado)</td></tr>
-        <tr><td><kbd>R</kbd></td><td>Conectar (desde selección o enlace libre)</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd> › Nuevo</td><td>Crear un apunte</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd> › Abrir</td><td>Abrir el gestor de modelos</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></td><td>Buscar en el workspace</td></tr>
+      <table class="keys" aria-label="Teclado esencial">
+        <tr><th scope="row"><kbd>O</kbd> · <kbd>P</kbd></th><td>Crear objeto · proceso</td></tr>
+        <tr><th scope="row"><kbd>S</kbd></th><td>Estado (al objeto seleccionado)</td></tr>
+        <tr><th scope="row"><kbd>R</kbd></th><td>Conectar (desde selección o enlace libre)</td></tr>
+        <tr><th scope="row"><kbd>Ctrl</kbd>+<kbd>K</kbd> › Nuevo</th><td>Crear un apunte</td></tr>
+        <tr><th scope="row"><kbd>Ctrl</kbd>+<kbd>K</kbd> › Abrir</th><td>Abrir el gestor de modelos</td></tr>
+        <tr><th scope="row"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></th><td>Buscar en el workspace</td></tr>
       </table>
       <p style="margin-top:8px">La hoja completa: <kbd>Ctrl</kbd>+<kbd>K</kbd> › <strong>Atajos de teclado</strong>.</p>
     </section>

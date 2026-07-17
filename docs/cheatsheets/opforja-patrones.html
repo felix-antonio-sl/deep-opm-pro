@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>opforja — Patrones y antipatrones</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%9A%92</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%92%3C/text%3E%3C/svg%3E">
 <style>*{margin:0}html{color-scheme:light dark}</style>
 </head>
 <body>
@@ -70,8 +70,14 @@
   pre { font-family: var(--mono); font-size: 12px; background: var(--paper-2); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px; margin: 7px 0 4px; overflow-x: auto; color: var(--ink); line-height: 1.6; }
   pre .c { color: var(--ink-faint); }
   footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
-  footer a { color: var(--process); text-decoration: none; }
-  @media print { body { background: #fff; color: #000; } .wrap { max-width: none; padding: 0; } .card { box-shadow: none; break-inside: avoid; border-color: #bbb; } .grid { columns: 250px 2; } }
+  footer a { color: var(--process); text-decoration: underline; text-underline-offset: .16em; }
+  @media print {
+    :root { color-scheme: light; --paper: #fff; --paper-2: #fff; --card: #fff; --ink: #000; --ink-soft: #222; --ink-faint: #444; --soft: #222; --faint: #444; --rule: #bbb; --rule-soft: #ddd; --object: #28533f; --process: #1f456f; --key: #7f2c20; --key-bg: #fff; --shadow: none; }
+    body { background: #fff; color: #000; }
+    .wrap { max-width: none; padding: 0; }
+    .card { box-shadow: none; break-inside: avoid; border-color: #bbb; }
+    .grid { columns: 250px 2; }
+  }
 </style>
 <div class="wrap">
   <header class="mast">

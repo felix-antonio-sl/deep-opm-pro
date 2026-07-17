@@ -55,7 +55,7 @@ Las etiquetas forman un vocabulario cerrado:
 | Etiqueta | Significado |
 |---|---|
 | **IMPLEMENTADO** | Existe en la aplicación o su toolchain y cuenta con respaldo en código, tests o documentación operativa vigente. |
-| **PROPUESTO** | Es una extensión acotada y compatible con la arquitectura actual, pero todavía no existe ni está comprometida. |
+| **PROPUESTO** | Es una hipótesis de incremento acotado y preliminarmente compatible; todavía no existe ni implica factibilidad validada, prioridad o compromiso. |
 | **EXTERNO** | Lo ejecuta o conserva otro sistema; opforja puede modelarlo, pero no lo realiza. |
 
 El [handoff vigente](handoff-2026-07-12.md) fecha el estado operativo y el
@@ -172,6 +172,14 @@ planillas, contratos, fotografías, tickets, planos o bases de datos. No se copi
 opforja **no ingiere ni interpreta automáticamente** una carpeta documental. Esa
 capacidad es **EXTERNA**. Una persona o agente puede leer las fuentes, pero el dueño
 del dominio debe ratificar cualquier significado que sostenga una decisión.
+
+Aplica minimización antes de entregar una fuente a opforja, a un agente o a otra
+herramienta: referencia el original mediante un localizador con acceso controlado en
+vez de copiarlo; seudonimiza identificadores; excluye contraseñas, tokens, secretos y
+datos personales o sensibles que no sean necesarios. Las fuentes crudas, sus
+permisos y su retención permanecen en el sistema autorizado, no en el modelo. Si una
+tarea exige datos sensibles identificables, una persona responsable debe autorizar
+antes el propósito, el acceso, el tratamiento y la retención.
 
 ### 2.2 Ledger mínimo de evidencia
 
@@ -749,6 +757,12 @@ una dependencia tardía y qué activa la reversa.
 
 ## 9. Frontera de capacidad de opforja
 
+Esta sección es un resumen navegable, no otra fuente de estado. El
+[handoff vigente](handoff-2026-07-12.md) tiene precedencia sobre lo implementado y el
+[registro de conformidad](roadmap/registro-conformidad-ssot.md), sobre las brechas
+respecto del canon. Si divergen de este inventario, se corrige el resumen; no se
+reinterpreta el estado desde el manual.
+
 ### 9.1 IMPLEMENTADO
 
 La aplicación y su toolchain permiten:
@@ -764,7 +778,8 @@ La aplicación y su toolchain permiten:
 - guardar, versionar, importar y exportar bundles;
 - exportar documento canónico Markdown y activos gráficos;
 - componer modelos por interfaz y consultar submodelos como vistas;
-- operar un puente de revisión humano-agente con control de revisión;
+- operar un puente de revisiones humano-agente, con los
+  [límites de concurrencia vigentes](manual-opforja.md#a6-puente-directo-mesaskill-cli);
 - ejecutar tests de parser, roundtrip y render reproducible en el repositorio.
 
 La fuente exacta de atajos y operaciones es
@@ -772,8 +787,9 @@ La fuente exacta de atajos y operaciones es
 
 ### 9.2 PROPUESTO a corto plazo
 
-Estas extensiones son coherentes con la arquitectura existente, pero no están
-implementadas ni priorizadas por el solo hecho de estar documentadas:
+“A corto plazo” significa aquí **alcance conceptual acotado**, no una estimación de
+ingeniería. Estas candidatas no tienen factibilidad validada, prioridad, compromiso
+ni fecha por el solo hecho de estar documentadas:
 
 1. **Ancla de fuente genérica:** `uri + localizador + revisión/hash` para
    modelo, OPD, entidad o enlace, sin abusar del ancla normativa.
@@ -783,7 +799,8 @@ implementadas ni priorizadas por el solo hecho de estar documentadas:
    informe, métrica o artefacto con su veredicto.
 
 El perfil software puede añadir un manifiesto de release como propuesta propia.
-Una propuesta solo entra al producto mediante priorización, diseño y tests.
+Una propuesta solo entra al producto mediante análisis de impacto, priorización,
+diseño y tests.
 
 ### 9.3 EXTERNO
 
@@ -1017,7 +1034,7 @@ Autoridades:
 - `urn:fxsl:kb:metodologia-forja-opm-es`;
 - `urn:fxsl:kb:reglas-opm-estrictas-es`;
 - `urn:fxsl:kb:spec-forja-opl-es`;
-- `urn:fxsl:kb:spec-forja-opd`;
+- `urn:fxsl:kb:spec-forja-opd-es`;
 - `urn:fxsl:kb:tensiones-modelamiento`.
 
 Continúa según tu contexto:

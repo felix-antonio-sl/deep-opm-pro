@@ -5,16 +5,19 @@ en opforja/deep-opm-pro. Consolida en un solo documento las dos pistas de uso de
 la herramienta sobre un tronco de método común.
 
 - URN repo-local: `urn:fxsl:kb:manual-opforja-es` (working-artifact del repo;
-  ver `docs/canon-opm/resolutor-urn.json` → `puente_inverso`).
-- Instancia en producción: `https://opforja.sanixai.com`.
-- Estado operativo vigente (bloqueantes, pendientes, riesgos): `docs/handoff-2026-07-12.md`.
+  ver [resolutor repo-local](canon-opm/resolutor-urn.json) → `puente_inverso`).
+- Instancia en producción:
+  [opforja.sanixai.com](https://opforja.sanixai.com).
+- Estado operativo vigente (bloqueantes, pendientes, riesgos):
+  [handoff vigente](handoff-2026-07-12.md).
 
 ## Contrato del manual
 
 Este manual **enseña a usar la herramienta y el método**. No es la SSOT del
 método ni copia su contenido. Cuando una decisión es normativa, se cita su
 artefacto propietario **por URN** y se resuelve su ruta vía
-`docs/canon-opm/resolutor-urn.json` (lector: `app/src/canon/resolutorUrn.ts`).
+[resolutor repo-local](canon-opm/resolutor-urn.json) (lector:
+[resolutorUrn.ts](../app/src/canon/resolutorUrn.ts)).
 La SSOT viva reside en pneuma bajo `KORA_RAIZ`.
 
 | Plano | Artefacto propietario (URN) | Qué decide |
@@ -29,8 +32,9 @@ La SSOT viva reside en pneuma bajo `KORA_RAIZ`.
 **Regla editorial dura**: el manual resume criterio y enlaza por URN/ruta.
 **Nunca** transcribe matrices de reglas, glifos completos, EBNF, plantillas OPL
 ni catálogos exhaustivos de la SSOT — eso envejecería como copia paralela. El
-shape JSON del modelo lo define el código (`app/src/serializacion/json.ts` +
-`app/src/modelo/tipos/`), no la prosa de este manual.
+shape JSON del modelo lo definen el
+[serializador JSON](../app/src/serializacion/json.ts) y los
+[tipos del modelo](../app/src/modelo/tipos/), no la prosa de este manual.
 
 ## Tabla de contenidos
 
@@ -160,9 +164,10 @@ resume su forma:
 **Apunte y bosquejo (dos ejes de exploración).** Son hermanos por ejes distintos y
 conviven — un apunte es el hogar natural del bosquejo bottom-up:
 - **Apunte** relaja el **cierre**. Cuando el propósito es **pensar**, no cerrar, se
-  marca el modelo como **apunte** (`docs/uso-productivo.md` §Apuntes): sigue siendo OPM
-  legítimo, pero los gates de **validez** de A8 bajan a observación al margen en vez de
-  bloquear. Régimen permisivo de la skill (§Regimen apunte).
+  marca el modelo como **apunte** ([Uso productivo](uso-productivo.md#apuntes-borradores-sin-rigor)):
+  sigue siendo OPM legítimo, pero los gates de **validez** de A8 bajan a
+  observación al margen en vez de bloquear. Régimen permisivo de la skill
+  (§Regimen apunte).
 - **Bosquejo** relaja el **orden de arranque** (A1.5): permite trazar OPDs sueltos sin
   fijar el SD primero, y reconciliar después. Régimen §Regimen bosquejo de la skill.
 En ambos la **integridad referencial nunca se relaja**: no se permiten enlaces rotos
@@ -181,7 +186,8 @@ diálogo informa esa severidad, pero deja la decisión final a la persona.
 La interfaz es mesa de trabajo, no autoridad semántica. Si la UI permite una
 operación que contradice el corpus, manda el corpus. Si la UI no implementa una
 capacidad canonizada, se registra como brecha (§L y
-`docs/roadmap/registro-conformidad-ssot.md`), nunca como atajo falso: toda brecha
+[registro de conformidad](roadmap/registro-conformidad-ssot.md)), nunca como
+atajo falso: toda brecha
 de una regla `DEBE` se trata conforme a R-CONF-7 de
 `urn:fxsl:kb:reglas-opm-estrictas-es` — deuda exigible o programación declarada; la
 brecha silenciosa está prohibida.
@@ -291,11 +297,12 @@ Pull, diagnóstico, render y validación son **read-through**: no mutan el domin
 Compilar produce un bundle y `push` crea una revisión; por eso requieren base
 fresca, delta explícito y revisión humana.
 
-#### A.2 El DSL de autoría (`app/src/autoria/`)
+#### A.2 El DSL de autoría ([código](../app/src/autoria/))
 
 Librería headless dominio-agnóstica para construir un Modelo OPM programáticamente y
-emitir un bundle validado. API pública (firmas en `app/src/autoria/index.ts`; el
-contrato exacto es el código, no esta prosa):
+emitir un bundle validado. API pública (firmas en
+[index.ts](../app/src/autoria/index.ts); el contrato exacto es el código, no esta
+prosa):
 
 - `crearAutor(opts)` → `Autor` (DSL imperativo re-entrante: `entidad`, `opd`,
   `estados`, `ver`, `enlazar`, `refDescomp`, …).
@@ -309,21 +316,32 @@ contrato exacto es el código, no esta prosa):
 
 El bundle es **citable**: lleva procedencia y permite rehidratar/auditar el modelo
 fuera de una imagen. El JSON sigue el formato `deep-opm-pro.modelo.v0`
-(`app/src/serializacion/json.ts`).
+([serializador](../app/src/serializacion/json.ts)).
 
 #### A.3 Render headless (H1)
 
-`cd app && bun run render:headless --proto <md>|--modelo <json> --out <dir>` produce
-PNG (ver) y SVG (diff) por OPD. Es browser-bound (usa document/canvas/getBBox vía
-Vite efímero + Chromium); el hook está gated por `VITE_HEADLESS_RENDER` y eliminado
-por DCE en producción. Sirve como pasada visual read-through del agente.
+Desde la raíz del repositorio, usa una de estas dos formas:
+
+- `cd app && bun run render:headless --proto <ruta.md> --out <dir>`
+- `cd app && bun run render:headless --modelo <ruta.json> --out <dir>`
+
+Ambas producen PNG (ver) y SVG (diff) por OPD. El render es browser-bound (usa
+document/canvas/getBBox vía Vite efímero + Chromium); el hook está gated por
+`VITE_HEADLESS_RENDER` y eliminado por DCE en producción. Sirve como pasada visual
+read-through del agente.
 
 #### A.4 Reproducibilidad / golden-harness (H2)
 
-`cd app && bun run verify:reproducible` verifica que la emisión sea reproducible
-(exit 0/1/2). Reemplaza el `md5sum` artesanal. Un re-pin byte-estable se logra
-crear-y-borrar (nextSeq/IDs intactos) y se verifica por contenido semántico, no por
-git-diff (los puertos inflan el texto).
+Desde la raíz del repositorio, compara la emisión con un golden usando una de estas
+formas:
+
+- `cd app && bun run verify:reproducible --proto <ruta.md> --golden <bundle.json>`
+- `cd app && bun run verify:reproducible --modelo <ruta.json> --golden <bundle.json>`
+
+El comando compara byte a byte y devuelve `0` si son idénticos, `1` si divergen y
+`2` ante uso o entrada inválidos. Reemplaza el `md5sum` artesanal. Antes de fijar
+un golden nuevo, la revisión humana debe comprobar que el cambio semántico es
+intencional; el harness detecta después cualquier deriva de bytes.
 
 #### A.5 Citas, normas y anclas
 
@@ -341,28 +359,44 @@ sello; bloqueado sin sello).
 Además del puente W6.0 por portapapeles, un agente con acceso al host opera opforja
 **directo contra el backend desplegado**, sin transportar bytes a mano. No existe
 un ejecutable global `mesa`: desde la raíz del repo se usa
-`cd app && bun run mesa …`. El script `app/scripts/mesa-cli.ts` lee el token Bearer
-desde `~/.config/opforja/agent-token` o desde la ruta indicada por
+`cd app && bun run mesa …`. El script
+[mesa-cli.ts](../app/scripts/mesa-cli.ts) lee el token Bearer desde
+`~/.config/opforja/agent-token` o desde la ruta indicada por
 `OPFORJA_AGENT_TOKEN_FILE`; `MODEL_AGENT_TOKEN` pertenece al servidor, no al CLI.
+Ese token es un secreto: el archivo debe tener modo `600` y nunca debe entrar a
+Git, prompts, notas de versión ni bundles.
 
 - `cd app && bun run mesa modelos` — lista los modelos del tenant (id · especie · revisión).
 - `cd app && bun run mesa pull <modelo>` — compone el mismo contexto de modelado que W6.0 (procedencia,
   `[RATIFICAR]`, notas, diagnóstico, OPL) leyendo el estado vivo (autosave si es más nuevo);
   declara la especie y si la base es guardado o autosave no ratificado.
-- `cd app && bun run mesa push <modelo> <bundle.json> --nota "…"` — valida con el contrato de import y crea
-  una **nueva revisión** versionada; respeta el optimistic locking (409 → re-pull, jamás
-  forzar); a un modelo con **sello** exige el bundle del compilador (carril por procedencia);
-  un push **sin delta** no crea revisión. Si la base efectiva es autosave exige
-  `--confirmado-por-operador`; al crear exige `--especie apunte|modelo`. Si la
-  referencia no resuelve por ID o nombre, `push` entra al camino de creación: revisa
-  errores tipográficos antes de confirmar.
+- `cd app && bun run mesa push <modelo> <bundle.json> --nota "…"` — valida con el
+  contrato de import y guarda una **nueva revisión**; a un modelo con **sello**
+  exige el bundle del compilador (carril por procedencia), y un push **sin delta**
+  no crea revisión. Al crear exige `--especie apunte|modelo`. Si la referencia no
+  resuelve por ID o nombre, `push` entra al camino de creación: revisa errores
+  tipográficos antes de confirmar.
 
-Reglas del puente (skill vigente, Regla Dura #29): pull antes de push · nunca push sin
-validación local verde · respetar el 409 (re-pull, jamás forzar) · sobre base no
-ratificada, confirmar antes de cerrar el loop · nota con procedencia (`agente·<nota>`) ·
-crear nuevo declara `--especie` (los bosquejos nacen apunte). En la mesa, el chip
-**«Revisión nueva»** avisa cuando el agente empujó. El puente W6.0 por portapapeles
-queda como **fallback** cuando no hay acceso al host.
+**Límite de concurrencia y trazabilidad vigente.** El `409` solo detecta una
+carrera entre la lectura interna que hace `push` y su escritura; el bundle no
+queda ligado a la revisión observada por un `pull` anterior. Por eso un bundle
+obsoleto puede sobrescribir una revisión posterior sin conflicto: haz `pull`
+inmediatamente antes de `push`, compara el delta y obtén confirmación humana. La
+señal remota de autosave activa de forma conservadora
+`--confirmado-por-operador` y puede pedirlo aunque el `pull` haya elegido el
+guardado. Además, la revisión se guarda antes de intentar etiquetar su versión;
+si esa segunda operación falla, el CLI avisa, pero la revisión ya quedó aplicada.
+
+Reglas del puente (skill vigente, Regla Dura #29): pull inmediatamente antes de
+push · revisar el delta con una persona · nunca push sin validación local verde ·
+ante `409`, re-pull y jamás forzar · confirmar antes de suministrar
+`--confirmado-por-operador` · verificar cualquier aviso de etiquetado parcial ·
+nota con procedencia (`agente·<nota>`) · crear nuevo declara `--especie` (los
+bosquejos nacen apunte). En la mesa, el chip **«Revisión del agente»** avisa
+cuando el agente empujó. Sin cambios locales ofrece **Recargar**; con cambios,
+**Ver la del agente** conserva el trabajo local para comparar y **Descartar los
+míos y traer la del agente** declara la acción destructiva. El puente W6.0 por
+portapapeles queda como **fallback** cuando no hay acceso al host.
 
 ---
 
@@ -484,7 +518,7 @@ cercanía visual (la afiliación no depende del layout).
 ### Brechas de conformidad OPM/Forja
 
 Capacidades **declaradas pero NO implementadas** en la versión vigente, derivadas del
-**registro de conformidad de la herramienta** (`docs/roadmap/registro-conformidad-ssot.md`).
+**[registro de conformidad de la herramienta](roadmap/registro-conformidad-ssot.md)**.
 Esta sección no inventa su propia lista: refleja las filas que ese registro marca como
 **PROGRAMADA**. Toda brecha se trata conforme a R-CONF-7 de
 `urn:fxsl:kb:reglas-opm-estrictas-es` (deuda exigible o programación declarada; la
@@ -542,10 +576,11 @@ en el handoff y el registro de conformidad.
 
 Las cuatro SSOT de la familia Forja (`reglas-opm-estrictas-es`, `spec-forja-opd-es`,
 `spec-forja-opl-es`, `metodologia-forja-opm-es`) se resuelven por URN vía
-`docs/canon-opm/resolutor-urn.json` (lector puro de datos `app/src/canon/resolutorUrn.ts`),
+[resolutor repo-local](canon-opm/resolutor-urn.json) (lector puro de datos
+[resolutorUrn.ts](../app/src/canon/resolutorUrn.ts)),
 que re-ancla a la SSOT viva en pneuma bajo `KORA_RAIZ` (ruta predeterminada
 `/home/felix/kora-pneuma`).
-Los puentes locales de `docs/canon-opm/` no copian el canon: solo resuelven URN → path.
+Los [puentes locales](canon-opm/) no copian el canon: solo resuelven URN → path.
 
 `urn:fxsl:kb:opm-categorial-es` (lectura formal) y `urn:kora:artefacto:modelamiento-opm`
 (la skill) se citan por URN y residen también en pneuma, pero fuera del mapa de los cuatro

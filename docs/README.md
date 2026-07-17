@@ -40,9 +40,9 @@ en una frase y enlazarlo.
 | Materia | Propietario |
 |---|---|
 | Ontología, enlaces, refinamientos, OPD y OPL | [Manual de OPM puro](manual-opm-puro.md) y canon OPM |
-| Método Forja, validación tripartita, apunte, Taller, adopción y graduación | [Manual de opforja](manual-opforja.md) |
+| Método Forja, validación tripartita, apunte, Taller, adopción de OPDs sueltos y graduación | [Manual de opforja](manual-opforja.md) |
 | Operaciones, menús, atajos, persistencia y exportación | [Uso productivo](uso-productivo.md) |
-| Evidencia, ficha, AS-IS/TO-BE, alternativas, autonomía, gates, adopción y retiro | [Manual de sistemas](manual-sistemas-opm.md) |
+| Evidencia, ficha, AS-IS/TO-BE, alternativas, autonomía, gates, adopción del cambio y retiro | [Manual de sistemas](manual-sistemas-opm.md) |
 | Semántica sanitaria | [Manual sanitario](manual-sanitarios-opm.md) |
 | Semántica de ingeniería de software | [Manual de software](manual-software-opm.md) |
 | Estado implementado y brechas de conformidad | [handoff](handoff-2026-07-12.md) y [registro de conformidad](roadmap/registro-conformidad-ssot.md) |
@@ -76,11 +76,15 @@ en una frase y enlazarlo.
    taxonomías documentales.
 6. Las capacidades usan solo `IMPLEMENTADO`, `PROPUESTO` o `EXTERNO`, definidos en
    el [manual de sistemas](manual-sistemas-opm.md#vocabulario-de-capacidad).
+   `PROGRAMADA` y `CERRADA` aparecen únicamente al citar el estado exacto del
+   [registro de conformidad](roadmap/registro-conformidad-ssot.md); no son etiquetas
+   generales de capacidad.
 7. Una hoja rápida resume a su manual propietario; nunca crea otro contrato.
 8. Los manuales conservan principios durables. Handoff y roadmap conservan estado
    mutable y fechas.
-9. Una referencia de sección nombra también el documento; no se escribe “ver §8”
-   sin contexto.
+9. Cuando una referencia de sección salta a otro documento, nombra también ese
+   documento; dentro del mismo documento puede usarse `§` si el contexto es
+   inequívoco.
 10. Git conserva la bitácora. El texto vivo conserva solo procedencia necesaria
     para interpretar una decisión.
 11. La [ley ejecutable del corpus](../app/src/leyes/corpus-documental.test.ts)

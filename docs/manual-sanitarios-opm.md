@@ -36,6 +36,14 @@ su esqueleto agnóstico (cola, recurso, interfaz) se apunta a la autoridad gener
 Prosa que valdría igual para un sistema de despacho de pedidos pertenece al
 [manual transversal](manual-sistemas-opm.md), no aquí.
 
+**Protección de datos.** Este perfil hereda la
+[regla transversal de minimización](manual-sistemas-opm.md#21-la-base-documental-es-evidencia-no-opm-crudo):
+usa ejemplos ficticios o datos desidentificados y referencia las fuentes clínicas
+mediante localizadores con acceso controlado. No copies al modelo, a prompts ni a
+exportaciones nombres, identificadores, fichas clínicas crudas, secretos o datos
+sensibles innecesarios. Si el propósito exige datos identificables, una persona
+responsable debe autorizar antes el acceso, el tratamiento y la retención.
+
 **Veto declarado.** Los repos de modelado `hd-opm` y `hodom-opm` **no se citan como
 ejemplares ni como buenas prácticas** (orden del operador, 2026-07-09). Todos los
 ejemplos son ficticios y frescos: la **Red de Ranquil** (provincia inventada:
@@ -574,7 +582,9 @@ declara: §9.)
 **Realización mínima.** El **Paciente** del modelo de urgencia de Ranquil se ancla
 a la Pieza **Paciente** de la biblioteca de la red; cuando la biblioteca evoluciona,
 el marcador de drift lo señala en el lienzo y el Inspector ofrece re-sincronizar o
-soltar (irreversible).
+soltar. **Soltar** desancla y puede deshacerse de inmediato con `Ctrl+Z`; si se
+conserva el cambio, se pierde la vigilancia y no existe una conversión directa
+posterior de Calco a Anclaje.
 
 **Cómo se rompe.** La red «comparte» tipos solo de palabra: dos hospitales miden
 «ocupación» sobre Camas distintas y comparan peras con manzanas; o el Calco

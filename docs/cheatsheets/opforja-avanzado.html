@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>opforja — Uso avanzado</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%9A%92</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%92%3C/text%3E%3C/svg%3E">
 <style>*{margin:0}html{color-scheme:light dark}</style>
 </head>
 <body>
@@ -113,9 +113,15 @@
   footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule);
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
     font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
-  footer a { color: var(--process); text-decoration: none; }
+  footer a { color: var(--process); text-decoration: underline; text-underline-offset: .16em; }
+
+  @media (max-width: 600px) {
+    .mast { grid-template-columns: 1fr; }
+    .mast-glyphs { justify-content: flex-start; flex-wrap: wrap; }
+  }
 
   @media print {
+    :root { color-scheme: light; --paper: #fff; --paper-2: #fff; --card: #fff; --ink: #000; --ink-soft: #222; --ink-faint: #444; --soft: #222; --faint: #444; --rule: #bbb; --rule-soft: #ddd; --object: #28533f; --process: #1f456f; --key: #7f2c20; --key-bg: #fff; --shadow: none; }
     body { background: #fff; color: #000; }
     .wrap { max-width: none; padding: 0; }
     .card { box-shadow: none; break-inside: avoid; border-color: #bbb; }
@@ -221,7 +227,7 @@ cd app &amp;&amp; bun run mesa <span class="k">push</span> &lt;modelo&gt; bundle
 
 <span class="c"># listar tus modelos</span>
 cd app &amp;&amp; bun run mesa <span class="k">modelos</span></pre>
-      <p>En la mesa, el chip <strong>«Revisión nueva»</strong> avisa cuando un agente empujó, y te deja traerla sin pisar tu trabajo local.</p>
+      <p>En la mesa, el chip <strong>«Revisión del agente»</strong> avisa cuando un agente empujó. Sin cambios locales ofrece <strong>Recargar</strong>; con cambios, permite <strong>Ver la del agente</strong> sin perderlos o ejecutar la acción explícita <strong>Descartar los míos y traer la del agente</strong>.</p>
     </section>
 
     <section class="card">

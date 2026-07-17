@@ -114,17 +114,26 @@
   .opl u { text-decoration: none; color: #7d7a2f; }
 
   table.keys { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 2px; }
-  table.keys td { padding: 4px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
-  table.keys td:first-child { font-family: var(--mono); font-size: 12px; white-space: nowrap; padding-right: 10px; }
+  table.keys th, table.keys td { padding: 4px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  table.keys th { font-family: var(--mono); font-size: 12px; font-weight: 400; text-align: left; white-space: nowrap; padding-right: 10px; }
   table.keys td:last-child { text-align: right; color: var(--ink-soft); }
-  table.keys tr:last-child td { border-bottom: none; }
+  table.keys tr:last-child th, table.keys tr:last-child td { border-bottom: none; }
 
   footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule);
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
     font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
-  footer a, .tagline a, .card a { color: var(--process); text-decoration: none; }
+  footer a, .tagline a, .card a {
+    color: var(--process); text-decoration: underline; text-underline-offset: .16em;
+  }
+
+  @media (max-width: 600px) {
+    .mast { grid-template-columns: 1fr; }
+    .mast-glyphs { justify-content: flex-start; flex-wrap: wrap; }
+    table.keys { display: block; max-width: 100%; overflow-x: auto; }
+  }
 
   @media print {
+    :root { color-scheme: light; --paper: #fff; --paper-2: #fff; --card: #fff; --ink: #000; --ink-soft: #222; --ink-faint: #444; --soft: #222; --faint: #444; --rule: #bbb; --rule-soft: #ddd; --object: #28533f; --process: #1f456f; --key: #7f2c20; --key-bg: #fff; --shadow: none; }
     @page { size: A4; margin: 12mm; }
     body { background: #fff; color: #000; }
     .wrap { max-width: none; padding: 0; }
@@ -166,10 +175,10 @@
     <section class="card">
       <p class="eyebrow">Propiedades genéricas</p>
       <h2>Las 8 combinaciones visuales</h2>
-      <table class="keys">
-        <tr><td>forma</td><td>rectángulo=objeto · elipse=proceso</td></tr>
-        <tr><td>contorno</td><td>sólido=sistémico · punteado=ambiental</td></tr>
-        <tr><td>sombra</td><td>con sombra=físico · plano=informacional</td></tr>
+      <table class="keys" aria-label="Combinaciones visuales">
+        <tr><th scope="row">forma</th><td>rectángulo=objeto · elipse=proceso</td></tr>
+        <tr><th scope="row">contorno</th><td>sólido=sistémico · punteado=ambiental</td></tr>
+        <tr><th scope="row">sombra</th><td>con sombra=físico · plano=informacional</td></tr>
       </table>
       <p style="margin-top:8px"><strong>Defaults:</strong> informacional + sistémico. El <strong>color es informativo, no normativo</strong>: la semántica viaja en forma, contorno, sombra y topología.</p>
       <p>Cosa mixta físico-informacional → se clasifica <strong>física</strong>.</p>
@@ -215,10 +224,10 @@
     <section class="card proc">
       <p class="eyebrow">Control</p>
       <h2>Evento, condición, espera</h2>
-      <table class="keys">
-        <tr><td>(nada)</td><td>falta el objeto → el proceso <strong>espera</strong></td></tr>
-        <tr><td>c</td><td>falta → <strong>se omite</strong> (bypass) y el control sigue</td></tr>
-        <tr><td>e</td><td>el objeto <strong>dispara</strong>; el evento se pierde al evaluar</td></tr>
+      <table class="keys" aria-label="Evento, condición y espera">
+        <tr><th scope="row">(nada)</th><td>falta el objeto → el proceso <strong>espera</strong></td></tr>
+        <tr><th scope="row">c</th><td>falta → <strong>se omite</strong> (bypass) y el control sigue</td></tr>
+        <tr><th scope="row">e</th><td>el objeto <strong>dispara</strong>; el evento se pierde al evaluar</td></tr>
       </table>
       <p style="margin-top:8px"><strong>Asimetría clave:</strong> el <em>resultado</em> no admite <code>e</code> ni <code>c</code> — lo que aún no existe no puede disparar ni condicionar.</p>
       <p>Varios eventos = OR · varias condiciones = AND para ejecutar, OR para omitir. La omisión precede a la espera.</p>
@@ -241,11 +250,11 @@
     <section class="card obj">
       <p class="eyebrow">Enlaces · estructurales</p>
       <h2>Los cuatro triángulos</h2>
-      <table class="keys">
-        <tr><td>▲ relleno</td><td><strong>consta de</strong> (todo→partes)</td></tr>
-        <tr><td>▲ c/triángulo</td><td><strong>exhibe</strong> (exhibidor→rasgos)</td></tr>
-        <tr><td>△ vacío</td><td><strong>son / es un</strong> (general→especializ.)</td></tr>
-        <tr><td>▲ c/círculo</td><td><strong>es una instancia de</strong> (clase→instancias)</td></tr>
+      <table class="keys" aria-label="Enlaces estructurales">
+        <tr><th scope="row">▲ relleno</th><td><strong>consta de</strong> (todo→partes)</td></tr>
+        <tr><th scope="row">▲ c/triángulo</th><td><strong>exhibe</strong> (exhibidor→rasgos)</td></tr>
+        <tr><th scope="row">△ vacío</th><td><strong>son / es un</strong> (general→especializ.)</td></tr>
+        <tr><th scope="row">▲ c/círculo</th><td><strong>es una instancia de</strong> (clase→instancias)</td></tr>
       </table>
       <p style="margin-top:8px">Vértice al refinable. Herencia <strong>total</strong> (partes, rasgos, enlaces); lo heredado no se redibuja. Solo exhibición mezcla objeto↔proceso.</p>
       <p>Colección incompleta: barra bajo el triángulo — «…y al menos otra parte».</p>
@@ -265,11 +274,11 @@
     <section class="card proc">
       <p class="eyebrow">Lógica</p>
       <h2>AND · XOR · OR · Pr</h2>
-      <table class="keys">
-        <tr><td>AND</td><td>enlaces separados, sin arco (opción predeterminada)</td></tr>
-        <tr><td>XOR</td><td>arco simple — «exactamente uno de»</td></tr>
-        <tr><td>OR</td><td>arco doble — «al menos uno de»</td></tr>
-        <tr><td>Pr=p</td><td>abanico probabilístico: XOR, suma = 1</td></tr>
+      <table class="keys" aria-label="Operadores lógicos">
+        <tr><th scope="row">AND</th><td>enlaces separados, sin arco (opción predeterminada)</td></tr>
+        <tr><th scope="row">XOR</th><td>arco simple — «exactamente uno de»</td></tr>
+        <tr><th scope="row">OR</th><td>arco doble — «al menos uno de»</td></tr>
+        <tr><th scope="row">Pr=p</th><td>abanico probabilístico: XOR, suma = 1</td></tr>
       </table>
       <p style="margin-top:8px">Sin pesos conocidos → declarar «probabilístico sin pesos», no inventar números. NOT no existe: estados <code>existente/no-existente</code>. «2 de 3 llaves» = m-de-f junto al arco.</p>
     </section>
@@ -277,11 +286,11 @@
     <section class="card">
       <p class="eyebrow">Complejidad</p>
       <h2>Refinar y abstraer</h2>
-      <table class="keys">
-        <tr><td>estados</td><td>expresión ↔ supresión</td></tr>
-        <tr><td>estructura</td><td>despliegue ↔ plegado (asíncrono)</td></tr>
-        <tr><td>comportamiento</td><td>descomposición ↔ recomposición (síncrono)</td></tr>
-        <tr><td>inter-modelo</td><td>referencia a sub-modelo ↔ desconexión</td></tr>
+      <table class="keys" aria-label="Refinamiento y abstracción">
+        <tr><th scope="row">estados</th><td>expresión ↔ supresión</td></tr>
+        <tr><th scope="row">estructura</th><td>despliegue ↔ plegado (asíncrono)</td></tr>
+        <tr><th scope="row">comportamiento</th><td>descomposición ↔ recomposición (síncrono)</td></tr>
+        <tr><th scope="row">inter-modelo</th><td>referencia a sub-modelo ↔ desconexión</td></tr>
       </table>
       <ul class="tight" style="margin-top:8px">
         <li>Tiempo <strong>vertical</strong>: arriba primero; misma altura = paralelo.</li>
@@ -308,11 +317,11 @@
     <section class="card obj">
       <p class="eyebrow">Nombres</p>
       <h2>Léxico canónico</h2>
-      <table class="keys">
-        <tr><td>objeto</td><td>sustantivo singular, Capitalizado</td></tr>
-        <tr><td>plural</td><td><strong>Conjunto de</strong> X · <strong>Grupo de</strong> X (humanos)</td></tr>
-        <tr><td>proceso</td><td>deverbal: <em>Preparar Torta</em> · <em>Verificación de Datos</em></td></tr>
-        <tr><td>estado</td><td>minúsculas: <code>vacío</code>, <code>pre-cortada</code></td></tr>
+      <table class="keys" aria-label="Léxico canónico">
+        <tr><th scope="row">objeto</th><td>sustantivo singular, Capitalizado</td></tr>
+        <tr><th scope="row">plural</th><td><strong>Conjunto de</strong> X · <strong>Grupo de</strong> X (humanos)</td></tr>
+        <tr><th scope="row">proceso</th><td>deverbal: <em>Preparar Torta</em> · <em>Verificación de Datos</em></td></tr>
+        <tr><th scope="row">estado</th><td>minúsculas: <code>vacío</code>, <code>pre-cortada</code></td></tr>
       </table>
       <p style="margin-top:8px">Tipografía OPL: <strong>objeto</strong> negrita · <em>proceso</em> cursiva · <code>estado</code> mono. Un nombre canónico por cosa: sinónimos se resuelven, homónimos se separan.</p>
     </section>
@@ -320,15 +329,15 @@
     <section class="card proc">
       <p class="eyebrow">OPL-ES</p>
       <h2>Verbos fijos</h2>
-      <table class="keys">
-        <tr><td>consume · genera · afecta</td><td>transformadores</td></tr>
-        <tr><td>cambia … de … a</td><td>efecto con estados</td></tr>
-        <tr><td>maneja · requiere</td><td>agente · instrumento</td></tr>
-        <tr><td>inicia · invoca · ocurre</td><td>evento · invocación · condición</td></tr>
-        <tr><td>consta de · exhibe</td><td>agregación · caracterización</td></tr>
-        <tr><td>son / es un · es una instancia de</td><td>especialización · instanciación</td></tr>
-        <tr><td>puede estar · puede ser</td><td>estados · especialización XOR</td></tr>
-        <tr><td>se descompone en · se despliega en</td><td>refinamiento</td></tr>
+      <table class="keys" aria-label="Verbos OPL-ES">
+        <tr><th scope="row">consume · genera · afecta</th><td>transformadores</td></tr>
+        <tr><th scope="row">cambia … de … a</th><td>efecto con estados</td></tr>
+        <tr><th scope="row">maneja · requiere</th><td>agente · instrumento</td></tr>
+        <tr><th scope="row">inicia · invoca · ocurre</th><td>evento · invocación · condición</td></tr>
+        <tr><th scope="row">consta de · exhibe</th><td>agregación · caracterización</td></tr>
+        <tr><th scope="row">son / es un · es una instancia de</th><td>especialización · instanciación</td></tr>
+        <tr><th scope="row">puede estar · puede ser</th><td>estados · especialización XOR</td></tr>
+        <tr><th scope="row">se descompone en · se despliega en</th><td>refinamiento</td></tr>
       </table>
     </section>
 

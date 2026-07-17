@@ -7,7 +7,7 @@
 // - hojas rápidas huérfanas, sin procedencia ni navegación de regreso;
 // - atajos, registro o etiquetas retiradas que vuelven por una proyección.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { describe, expect, test } from "bun:test";
 
 const RAIZ_REPO = resolve(import.meta.dir, "../../..");
@@ -120,6 +120,7 @@ describe("corpus documental · una fuente por concepto y proyecciones navegables
 
   test("cada hoja rápida declara idioma, un H1, procedencia e índices", () => {
     expect(HOJAS_RAPIDAS.length).toBeGreaterThan(0);
+    const indice = readFileSync(resolve(CHEATSHEETS, "README.md"), "utf8");
     for (const archivo of HOJAS_RAPIDAS) {
       const html = readFileSync(archivo, "utf8");
       expect(
@@ -130,6 +131,16 @@ describe("corpus documental · una fuente por concepto y proyecciones navegables
         html.match(/<h1\b/gi) ?? [],
         `${archivo} debe tener exactamente un H1`,
       ).toHaveLength(1);
+      expect(
+        /<link rel="icon" href="data:image\/svg\+xml,%3Csvg[^"]+%3C\/svg%3E">/.test(
+          html,
+        ),
+        `${archivo} debe usar un favicon SVG autocontenido y correctamente codificado`,
+      ).toBe(true);
+      expect(
+        indice.includes(`(${basename(archivo)})`),
+        `${archivo} debe estar visible en el índice de hojas rápidas`,
+      ).toBe(true);
       expect(
         html.includes('href="README.md"'),
         `${archivo} debe volver al índice de hojas`,
@@ -144,6 +155,37 @@ describe("corpus documental · una fuente por concepto y proyecciones navegables
         ),
         `${archivo} debe declarar su manual propietario`,
       ).toBe(true);
+      expect(
+        html.includes("text-decoration:underline") ||
+          html.includes("text-decoration: underline"),
+        `${archivo} debe distinguir enlaces sin depender solo del color`,
+      ).toBe(true);
+      expect(
+        html.includes("color-scheme: light; --paper: #fff"),
+        `${archivo} debe forzar variables claras al imprimir`,
+      ).toBe(true);
+
+      const tablas = [...html.matchAll(/<table\b[\s\S]*?<\/table>/gi)].map(
+        (match) => match[0],
+      );
+      for (const tabla of tablas) {
+        expect(
+          /<table\b[^>]*(?:aria-label|aria-labelledby)="[^"]+"/i.test(tabla),
+          `${archivo} debe dar un nombre accesible a cada tabla`,
+        ).toBe(true);
+        expect(
+          !/<tr>\s*<td\b/i.test(tabla),
+          `${archivo} debe identificar el encabezado de cada fila con th`,
+        ).toBe(true);
+      }
+
+      if (basename(archivo) === "opforja-avanzado.html") {
+        expect(
+          html.includes("@media (max-width: 600px)") &&
+            html.includes(".mast { grid-template-columns: 1fr; }"),
+          `${archivo} debe evitar desborde del encabezado en pantallas estrechas`,
+        ).toBe(true);
+      }
     }
   });
 
@@ -185,6 +227,26 @@ describe("corpus documental · una fuente por concepto y proyecciones navegables
         !/<span class="cap">\s*(?:HOY|CORTO|FUERA)\s*<\/span>/.test(html),
         `${archivo} usa etiquetas de capacidad fuera del vocabulario vigente`,
       ).toBe(true);
+      expect(
+        !html.includes("«Revisión nueva»"),
+        `${archivo} usa el nombre retirado del chip de revisión`,
+      ).toBe(true);
     }
+  });
+
+  test("las afirmaciones operativas críticas reflejan el comportamiento vigente", () => {
+    const uso = readFileSync(resolve(DOCS, "uso-productivo.md"), "utf8");
+    const manualOpforja = readFileSync(resolve(DOCS, "manual-opforja.md"), "utf8");
+    const manualPuro = readFileSync(resolve(DOCS, "manual-opm-puro.md"), "utf8");
+    const manualSanitario = readFileSync(resolve(DOCS, "manual-sanitarios-opm.md"), "utf8");
+
+    expect(uso).toContain("el clic no fuerza por sí mismo el guardado");
+    expect(uso).not.toContain("fondo ámbar");
+    expect(manualOpforja).toContain("el bundle no");
+    expect(manualOpforja).toContain("ligado a la revisión observada por un `pull` anterior");
+    expect(manualOpforja).not.toContain("respeta el optimistic locking");
+    expect(manualPuro).toContain("ISO 19450:2024");
+    expect(manualPuro).not.toContain("ISO/PAS 19450");
+    expect(manualSanitario).not.toContain("soltar (irreversible)");
   });
 });

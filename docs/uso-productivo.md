@@ -128,16 +128,15 @@ archivar, eliminar (con confirmación). `Importar JSON` es una acción del encab
 
 ### Guardar — `Ctrl+S`
 
-Arriba a la izquierda hay un chip de estado que muestra una de estas
-tres etiquetas:
+Arriba a la izquierda, el estado de almacenamiento aparece en línea y su texto
+comunica el estado sin depender solo del color. Según el momento muestra
+`Guardado`, `Guardando…` o `Sin guardar ⌃S`; el tooltip entrega el detalle
+completo.
 
-- `Sin guardar · Ctrl+S` (fondo ámbar): hay cambios sin persistir.
-- `Guardando…` (fondo azul claro): autosalvado en curso.
-- `Guardado · HH:mm` (fondo verde): persistido a esa hora.
-
-El autosalvado persiste cambios de forma periódica. Mientras el chip diga
+El autosalvado persiste cambios de forma periódica. Mientras el estado diga
 `Sin guardar`, los cambios más recientes todavía no están respaldados. Pulsa
-`Ctrl+S` o haz clic en el chip para forzar el guardado antes de un hito o cierre.
+`Ctrl+S` para guardar antes de un hito o cierre. Al hacer clic en el estado se
+abre **Guardar como o nueva versión**; el clic no fuerza por sí mismo el guardado.
 
 Los modelos se persisten en el backend (Postgres). Si el backend no
 está disponible, la app lo indica explícitamente; no hay fallback
@@ -277,7 +276,8 @@ JSON descargado.
 ### La app no carga o muestra error
 
 Recargar la página con `Ctrl+Shift+R`. Si persiste, contactar al
-administrador de la instancia (ver `docs/deploy/opforja.md`).
+administrador de la instancia (ver
+[runbook de despliegue](deploy/opforja.md)).
 
 ### Quiero deshacer un cambio reciente
 

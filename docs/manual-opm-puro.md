@@ -1,7 +1,7 @@
 # Manual de OPM puro — de las bases al uso avanzado
 
-**Paquete educativo agnóstico de herramienta** · Object-Process Methodology (ISO/PAS 19450)
-Compañero de bolsillo: `docs/cheatsheets/opm-puro.html`
+**Paquete educativo agnóstico de herramienta** · Object-Process Methodology (ISO 19450:2024)
+Compañero de bolsillo: [hoja rápida de OPM puro](cheatsheets/opm-puro.html).
 
 > Este manual enseña **OPM como teoría**, con rigor académico y vocación didáctica,
 > sin depender de ningún modelador concreto. Todo lo afirmado se ancla al corpus
@@ -10,7 +10,7 @@ Compañero de bolsillo: `docs/cheatsheets/opm-puro.html`
 > y `urn:fxsl:kb:reglas-opm-estrictas-es` (canon prescriptivo). La lente de lectura
 > es el marco de las 52 tensiones del modelado (`urn:fxsl:kb:tensiones-modelamiento`).
 > La trazabilidad declarada es al corpus local OPM-ES; este paquete no sustituye
-> una auditoría independiente, cláusula por cláusula, del texto de ISO/PAS 19450.
+> una auditoría independiente, cláusula por cláusula, del texto de ISO 19450:2024.
 
 ---
 
@@ -125,7 +125,7 @@ modelador las navega con nombre y criterio.
 **OPM (Object-Process Methodology)** es un lenguaje formal **bimodal** — gráfico
 y textual — más una metodología, para especificar sistemas complejos y
 multidisciplinarios (glosario 3.43 de `urn:fxsl:kb:opm-es`). Fue concebido por
-Dov Dori (Technion) y estandarizado como **ISO/PAS 19450**. Sus dos compromisos
+Dov Dori (Technion) y estandarizado como **ISO 19450:2024**. Sus dos compromisos
 distintivos frente a otros lenguajes de modelado:
 
 1. **Minimalismo ontológico.** Todo se dice con dos clases de cosa (objetos y
@@ -553,8 +553,8 @@ uno de` (XOR), `al menos uno de` (OR), `así como` (adición heterogénea),
 El SD del sistema de *Preparación de Empanadas* (`urn:fxsl:kb:opl-es` §16)
 muestra cómo suena un párrafo OPL-ES. Se presenta aquí en su **versión saneada
 provisional**: conserva el ejemplo canónico, pero corrige localmente la firma
-estructural Receta→Sistema solicitada al custodio en
-`docs/solicitudes-upstream/2026-07-11-tensiones-internas-corpus-base-opl.md`
+estructural Receta→Sistema solicitada al custodio en la
+[solicitud de arbitraje del 2026-07-11](solicitudes-upstream/2026-07-11-tensiones-internas-corpus-base-opl.md)
 (Tensión 3). Hasta que esa corrección sea ratificada upstream, no debe citarse
 este párrafo como transcripción literal del corpus:
 
@@ -2028,14 +2028,14 @@ protocolo, la skill `pensamiento-modelador` sobre el kb
 | Manual metodológico | `urn:fxsl:kb:manual-metodologico-opm-es` (v3.0.x) | método del SD, refinamiento, heurísticas, verificación, control de flujo |
 | Reglas OPM estrictas | `urn:fxsl:kb:reglas-opm-estrictas-es` (v1.4.x) | reglas `R-*`, anti-patrones `AP-*`, tablas-gate de bisimetría |
 | Tensiones del modelamiento | `urn:fxsl:kb:tensiones-modelamiento` (v1.0.0) | marco de las 52 tensiones (Partes 0, VII, Apéndice D) |
-| ISO/PAS 19450 | — | estándar de referencia de OPM (operacionalizado por el corpus) |
+| [ISO 19450:2024](https://www.iso.org/standard/84612.html) | — | estándar vigente de referencia de OPM (operacionalizado por el corpus) |
 
 **Nota de alcance.** El núcleo didáctico de este manual es deliberadamente
 **agnóstico de herramienta**: ninguna operación depende de una interfaz o de
 un modelador concreto. Las extensiones propias de Forja se declaran y etiquetan
 como tales; pueden omitirse sin perder el aprendizaje ni la práctica de OPM
 base. Quien, ya formado en la teoría, quiera usar esas extensiones y operar OPM
-en la mesa opforja, continúa en `docs/manual-opforja.md` (método Forja) y
-`docs/uso-productivo.md` (operación).
+en la mesa opforja, continúa en el [manual de opforja](manual-opforja.md) para el
+método Forja y en [Uso productivo](uso-productivo.md) para la operación.
 
 *Fin del manual.*

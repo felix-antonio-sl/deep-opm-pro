@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>opforja ↔ skill — Flujo de trabajo</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">%E2%9A%92</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%92%3C/text%3E%3C/svg%3E">
 <style>*{margin:0}html{color-scheme:light dark}</style>
 </head>
 <body>
@@ -115,9 +115,14 @@
   footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--rule);
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
     font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
-  footer a { color: var(--process); text-decoration: none; }
+  footer a { color: var(--process); text-decoration: underline; text-underline-offset: .16em; }
+
+  @media (max-width: 600px) {
+    .roles { grid-template-columns: 1fr; }
+  }
 
   @media print {
+    :root { color-scheme: light; --paper: #fff; --paper-2: #fff; --card: #fff; --ink: #000; --ink-soft: #222; --ink-faint: #444; --soft: #222; --faint: #444; --rule: #bbb; --rule-soft: #ddd; --object: #28533f; --process: #1f456f; --key: #7f2c20; --key-bg: #fff; --shadow: none; }
     body { background: #fff; color: #000; }
     .wrap { max-width: none; padding: 0; }
     .card, .role { box-shadow: none; break-inside: avoid; border-color: #bbb; }
@@ -174,21 +179,22 @@
   <span class="c"># contexto del modelo para la skill</span>
 
 cd app &amp;&amp; bun run mesa <span class="k">push</span> &lt;modelo&gt; bundle.json --nota "…"
-  <span class="c"># nueva revisión versionada</span>
+  <span class="c"># guarda una revisión; intenta etiquetarla después</span>
 
 cd app &amp;&amp; bun run mesa <span class="k">modelos</span>
   <span class="c"># listar los del tenant</span></pre>
-      <p>En la mesa, el chip <strong>«Revisión nueva»</strong> avisa cuando el agente empujó — se trae sin pisar tu trabajo local.</p>
+      <p>En la mesa, el chip <strong>«Revisión del agente»</strong> avisa cuando el agente empujó. Si tienes cambios, <strong>Ver la del agente</strong> conserva los tuyos; traerla exige la acción explícita <strong>Descartar los míos y traer la del agente</strong>.</p>
     </section>
 
     <section class="card">
       <p class="eyebrow">Disciplina del puente</p>
       <h2>Reglas del push</h2>
       <ul class="tight">
-        <li><strong>Pull antes de push</strong> — trabaja siempre sobre base fresca.</li>
+        <li><strong>Pull inmediatamente antes de push</strong> — el bundle no queda ligado a la revisión de un pull anterior.</li>
         <li>Nunca push <strong>sin validación local verde</strong> (contrato de import).</li>
-        <li>Respeta el <strong>409</strong>: la mesa avanzó — re-pull, jamás forzar.</li>
-        <li>Base no ratificada (autosave) → pide confirmación antes de cerrar el loop.</li>
+        <li>El <strong>409</strong> cubre solo la carrera interna del push: ante él, re-pull y jamás fuerces; su ausencia no prueba que un bundle antiguo sea fresco.</li>
+        <li>Si pide <code>--confirmado-por-operador</code>, obtén confirmación real; la señal de autosave puede ser conservadora.</li>
+        <li>Si falla la etiqueta de versión, la revisión ya quedó aplicada: verifica y registra el éxito parcial.</li>
         <li>Nota de versión <strong>con procedencia</strong>.</li>
       </ul>
     </section>
