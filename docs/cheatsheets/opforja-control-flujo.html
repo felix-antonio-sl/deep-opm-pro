@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -75,13 +75,13 @@
 </style>
 <div class="wrap">
   <header class="mast">
-    <div><div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Control de flujo · OR/XOR</span></div>
+    <div><div class="mark"><h1 class="logo">opforja<span class="dot">.</span></h1><span class="sheet-name">Control de flujo · OR/XOR</span></div>
     <p class="tagline">Cuándo un proceso ocurre, se omite o elige entre ramas. El control existe para explicar la ejecución — no para decorar.</p></div>
   </header>
   <main class="grid">
     <section class="card proc"><p class="eyebrow">§6.3 · operadores lógicos</p><h2>AND · XOR · OR</h2>
       <ul class="tight">
-        <li><strong>AND</strong> — sin arco: enlaces separados que no se tocan → <em>todos</em> a la vez (default).</li>
+        <li><strong>AND</strong> — sin arco: todas las ramas son requeridas y pueden concurrir; no exige simultaneidad instantánea.</li>
         <li><strong>XOR</strong> — <strong>un</strong> arco discontinuo sobre el abanico → <em>exactamente uno</em>.</li>
         <li><strong>OR</strong> — <strong>dos</strong> arcos concéntricos → <em>al menos uno</em>.</li>
       </ul></section>
@@ -90,16 +90,16 @@
       <ul class="tight">
         <li><code>c</code> — <strong>condición</strong> (el enlace es precondición).</li>
         <li><code>e</code> — <strong>evento</strong> (dispara el proceso).</li>
-        <li><code>¬</code> — <strong>negación</strong>.</li>
+        <li><code>¬</code> — <strong>negación</strong>, extensión de Forja/opforja fuera del núcleo ISO 19450.</li>
       </ul>
-      <p>Badge junto al extremo del proceso. Anotan <strong>transformadores/habilitadores</strong>, no estructural ni invocación.</p></section>
+      <p>Badge junto al extremo del proceso. Anotan <strong>transformadores/habilitadores</strong>, no estructural ni invocación. Emite <code>¬</code> solo si está presente en el modelo y el consumidor declara soporte.</p></section>
 
     <section class="card"><p class="eyebrow">§6.2 · excepciones temporales</p><h2>Sobretiempo y subtiempo</h2>
       <ul class="tight">
         <li><strong><code>/</code> sobretiempo</strong> — duración real &gt; máxima declarada.</li>
         <li><strong><code>//</code> subtiempo</strong> — duración real &lt; mínima declarada.</li>
       </ul>
-      <p>Y la <strong>probabilidad</strong> de rama se anota <code>Pr = p</code> en el abanico.</p></section>
+      <p>La <strong>probabilidad</strong> se anota <code>Pr = p</code> solo en un abanico <strong>XOR explícito</strong>: cada rama queda entre 0 y 1 y la suma del abanico debe ser 1.</p></section>
 
     <section class="card proc"><p class="eyebrow">§8 · familia aparte</p><h2>Invocación</h2>
       <p>Un proceso <strong>llama</strong> a otro (rayo en zigzag). Es familia autónoma: <strong>no lleva c/e</strong> (<span class="ap">AP-10</span>). Para omisión condicional, usa un nodo de decisión o un fan de invocación.</p></section>
@@ -115,7 +115,10 @@
     <section class="card ink"><p class="eyebrow">La regla de oro</p><h2>Control = pregunta de ejecución</h2>
       <p>Usa control <strong>solo cuando responde</strong>: ¿cuándo este proceso ocurre, se omite, o llama a otro? Si no responde una pregunta de ejecución, no lo pongas — es ruido.</p></section>
   </main>
-  <footer><span>opforja · control de flujo · spec-forja-opd §6 + §8 · AP de control</span><span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span></footer>
+  <footer>
+    <span>opforja · control de flujo · <a href="../manual-opm-puro.md">manual propietario</a> · <a href="README.md">índice de hojas</a> · <a href="../README.md">corpus documental</a></span>
+    <span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+  </footer>
 </div>
 
 </body>

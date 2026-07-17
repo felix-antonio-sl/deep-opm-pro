@@ -83,6 +83,9 @@ en una frase y enlazarlo.
    sin contexto.
 10. Git conserva la bitácora. El texto vivo conserva solo procedencia necesaria
     para interpretar una decisión.
+11. La [ley ejecutable del corpus](../app/src/leyes/corpus-documental.test.ts)
+    verifica jerarquía, enlaces, procedencia de hojas rápidas, idioma y vocabulario
+    editorial antes de publicar.
 
 ## Estructura viva
 

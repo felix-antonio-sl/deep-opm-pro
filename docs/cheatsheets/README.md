@@ -49,5 +49,7 @@ Estas dos hojas tienen propósitos distintos: **interacción** explica quién de
 - Conserva `lang="es-CL"`, un H1 y enlaces al propietario y a este índice.
 - Valida impresión y pantalla sin depender de recursos remotos.
 - Si dos hojas explican la misma tarea, fusiónalas o redefine su propósito aquí.
+- Ejecuta la
+  [ley editorial del corpus](../../app/src/leyes/corpus-documental.test.ts).
 
 [Volver al índice documental](../README.md).

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -75,12 +75,12 @@
 </style>
 <div class="wrap">
   <header class="mast">
-    <div><div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Uso de ontología</span></div>
-    <p class="tagline">Un vocabulario controlado para que la misma cosa no termine con tres nombres — la cura de raíz de los sinónimos.</p></div>
+    <div><div class="mark"><h1 class="logo">opforja<span class="dot">.</span></h1><span class="sheet-name">Uso de ontología</span></div>
+    <p class="tagline">Un vocabulario controlado del dominio para que la misma cosa no termine con tres nombres — sin confundirlo con la ontología formal de OPM.</p></div>
   </header>
   <main class="grid">
     <section class="card proc"><p class="eyebrow">Qué es</p><h2>Vocabulario controlado</h2>
-      <p>Una lista de <strong>términos canónicos</strong> con sus <strong>sinónimos</strong>. Sostiene la <em>unicidad nominal</em> del modelo — ataca de raíz el anti-patrón <span class="ap">AP-22</span> (sinónimos múltiples para la misma cosa).</p></section>
+      <p>Una lista de <strong>términos canónicos del dominio organizacional</strong> con sus <strong>sinónimos</strong>. Sostiene la <em>unicidad nominal</em> del modelo y ataca el anti-patrón <span class="ap">AP-22</span>; no agrega tipos ni relaciones al núcleo formal de OPM.</p></section>
 
     <section class="card"><p class="eyebrow">Cómo se define</p><h2>Una línea por término</h2>
       <p>Paleta <kbd>Ctrl</kbd>+<kbd>K</kbd> › <strong>Configurar ontología</strong>. Formato:</p>
@@ -91,20 +91,23 @@ Cama = plaza, lecho</pre></section>
     <section class="card key"><p class="eyebrow">Tres modos</p><h2>Del aviso al refuerzo</h2>
       <ul class="tight">
         <li><strong>Sin control</strong> — la ontología no interviene.</li>
-        <li><strong>Sugerir canónico</strong> — conserva lo que escribes y sugiere el canónico.</li>
-        <li><strong>Reforzar canónico</strong> — <em>reemplaza</em> el sinónimo por el canónico al escribirlo.</li>
+        <li><strong>Sugerir canónico</strong> — queda configurado, pero la UI actual no muestra un consumidor visible de esas sugerencias.</li>
+        <li><strong>Reforzar canónico</strong> — sustituye el sinónimo al crear o renombrar, desde ese momento hacia adelante.</li>
       </ul></section>
 
     <section class="card obj"><p class="eyebrow">Decisión rectora</p><h2>Ontología, no estereotipos</h2>
-      <p>La clasificación de dominio se hace por <strong>ontología / tags</strong>, no por estereotipos de §10. Es la vía barata y consultable: pruébala primero antes de inventar una casta de tipos.</p></section>
+      <p>La clasificación organizacional puede apoyarse en este <strong>vocabulario controlado</strong>, no en estereotipos improvisados. Es una capa léxica del producto, no una ampliación de las categorías formales objeto/proceso de OPM.</p></section>
 
     <section class="card"><p class="eyebrow">Recomendación de adopción</p><h2>Sugerir → Reforzar</h2>
-      <p>Empieza en <strong>Sugerir</strong> mientras el vocabulario se asienta. Pasa a <strong>Reforzar</strong> cuando esté estable — reforzar es reescritura léxica, hazlo con el vocabulario ya acordado.</p></section>
+      <p>Configura <strong>Sugerir</strong> mientras el vocabulario se asienta, pero revisa los nombres manualmente mientras no exista una superficie visible de sugerencias. Pasa a <strong>Reforzar</strong> solo cuando el vocabulario esté acordado.</p></section>
 
     <section class="card"><p class="eyebrow">Qué NO es</p><h2>Normalización, no taxonomía</h2>
-      <p>No es una jerarquía de tipos ni un estereotipo: es <strong>normalización léxica trazable y reversible</strong>. No reescribe silenciosamente — la ontología deja el mapeo explícito.</p></section>
+      <p>No es una jerarquía de tipos ni un estereotipo: es <strong>normalización léxica hacia adelante</strong>. El mapeo queda configurado, pero no hay trazabilidad por entidad; desactivar <strong>Reforzar</strong> no revierte nombres ya sustituidos.</p></section>
   </main>
-  <footer><span>opforja · uso de ontología · vocabulario canónico + sinónimos · 3 modos · Modelo.ontologia</span><span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span></footer>
+  <footer>
+    <span>opforja · vocabulario de dominio · <a href="../uso-productivo.md">manual propietario</a> · <a href="README.md">índice de hojas</a> · <a href="../README.md">corpus documental</a></span>
+    <span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+  </footer>
 </div>
 
 </body>

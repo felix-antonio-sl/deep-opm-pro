@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -75,7 +75,7 @@
 </style>
 <div class="wrap">
   <header class="mast">
-    <div><div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Anclar y calcar · fácil</span></div>
+    <div><div class="mark"><h1 class="logo">opforja<span class="dot">.</span></h1><span class="sheet-name">Anclar y calcar · fácil</span></div>
     <p class="tagline">Reusar piezas de una biblioteca: una copia que vive sola, o un espejo vigilado. Sin una gota de matemática.</p></div>
   </header>
   <main class="grid">
@@ -89,10 +89,10 @@
       <p>Quieres el patrón como <strong>semilla</strong> y llevártelo por tu camino. No te importa si la biblioteca cambia después: tu copia es independiente.</p></section>
 
     <section class="card proc"><p class="eyebrow">Cuándo Anclar</p><h2>Mantenerse al día</h2>
-      <p>Quieres que tu modelo siga <strong>coherente con la fuente</strong> (p. ej. gist) cuando esta evolucione. El Anclaje te avisa si la Pieza cambió bajo tus pies.</p></section>
+      <p>Quieres <strong>vigilar la coherencia con la fuente</strong> (p. ej. gist) cuando esta evolucione. El Anclaje te avisa si la Pieza cambió bajo tus pies; no actualiza tu contenido automáticamente.</p></section>
 
     <section class="card"><p class="eyebrow">El gesto</p><h2>La superficie «Piezas»</h2>
-      <p>Elige la <strong>biblioteca fuente</strong> → trae la Pieza al lienzo decidiendo <strong>Calcar</strong> o <strong>Anclar</strong> en el momento (default Calcar). Guardar una selección como Pieza es el gesto de curaduría.</p></section>
+      <p>Elige la <strong>biblioteca fuente</strong> → trae la Pieza externa gobernada al lienzo decidiendo <strong>Calcar</strong> o <strong>Anclar</strong> en el momento (Calcar es la opción predeterminada). <strong>Guardar selección como plantilla</strong> crea reuso local; esa plantilla no es una Pieza externa gobernada.</p></section>
 
     <section class="card key"><p class="eyebrow">El vigilante</p><h2>Centinela de Drift</h2>
       <p>Una cosa anclada lleva un chip en la esquina — tres estados, todo en <strong>tinta</strong>, distinguidos por <strong>peso</strong> (no por color):</p>
@@ -101,18 +101,18 @@
         <li><strong><code>?</code> no-resuelto</strong> — la biblioteca no se pudo leer (peso medio).</li>
         <li><strong>al día</strong> — una <em>marca de amarre</em> (ancla hairline); peso mínimo.</li>
       </ul>
-      <p><strong>Re-sincronizar</strong> adopta la versión viva; <strong>Soltar</strong> desancla.</p></section>
+      <p><strong>Re-sincronizar</strong> acepta la firma actual de la Pieza como nueva línea base; no importa ni sobrescribe contenido. <strong>Soltar</strong> desancla.</p></section>
 
     <section class="card proc"><p class="eyebrow">No te grita de más</p><h2>Grano fino</h2>
       <p>El drift se mira a nivel de <strong>la Pieza</strong> (su vecindad inmediata: la entidad + sus estados + sus enlaces), no de la biblioteca entera. Un cambio ajeno en la fuente <strong>no</strong> hace divergir lo tuyo.</p></section>
 
-    <section class="card key"><p class="eyebrow">La regla irreversible</p><h2>Soltar no se deshace</h2>
-      <p><strong>Soltar</strong> (Anclaje → Calco) pierde la vigilancia de drift y <strong>no tiene vuelta</strong>. No existe el camino inverso (Calco → Anclaje): decide con eso en mente.</p></section>
+    <section class="card key"><p class="eyebrow">La regla operativa</p><h2>Soltar pierde la vigilancia</h2>
+      <p><strong>Soltar</strong> (Anclaje → Calco) puede deshacerse de inmediato con <kbd>Ctrl</kbd>+<kbd>Z</kbd>. Si conservas el cambio, pierdes la vigilancia de drift: no existe una conversión directa posterior de Calco a Anclaje.</p></section>
 
     <section class="card obj"><p class="eyebrow">Hecho fácil</p><h2>La pregunta única</h2>
-      <p>No necesitas la teoría detrás. Solo pregúntate: <strong>«¿quiero una copia independiente, o un espejo que se mantenga al día?»</strong> — copia = Calcar, espejo = Anclar.</p></section>
+      <p>No necesitas la teoría detrás. Solo pregúntate: <strong>«¿quiero una copia independiente, o una referencia que me avise si la fuente cambia?»</strong> — copia = Calcar, referencia vigilada = Anclar.</p></section>
   </main>
-  <footer><span>opforja · anclar y calcar · Piezas · Centinela de Drift · R-OPD-ROT-9</span><span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span></footer>
+  <footer><span>opforja · anclar y calcar · <a href="../manual-opforja.md">manual</a> · <a href="README.md">hojas rápidas</a> · <a href="../README.md">corpus</a></span><span><a href="https://opforja.sanixai.com">producción</a></span></footer>
 </div>
 
 </body>

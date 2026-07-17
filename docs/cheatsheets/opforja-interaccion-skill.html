@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -75,7 +75,7 @@
 </style>
 <div class="wrap">
   <header class="mast">
-    <div><div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Hablar con la skill</span></div>
+    <div><div class="mark"><h1 class="logo">opforja<span class="dot">.</span></h1><span class="sheet-name">Hablar con la skill</span></div>
     <p class="tagline">Cómo darle buen input a la skill de modelado <code>modelamiento-opm</code>, y por qué cuando te bloquea está haciendo su trabajo.</p></div>
   </header>
   <main class="grid">
@@ -83,13 +83,13 @@
       <p>La skill <strong>bloquea ante barro</strong> y <strong>exige aclarar antes de plasmar</strong>. No es fricción: es que no construye sobre supuesto. Cuando te para con una pregunta, <strong>respóndela</strong> — no la rodees.</p></section>
 
     <section class="card ink"><p class="eyebrow">Quién hace qué</p><h2>El reparto</h2>
-      <p>Tú traes el <strong>dominio</strong> y el <strong>gusto</strong>; la skill trae el <strong>método</strong>. No esperes que invente el contenido de dominio (cuáles son los procesos, agentes o valores correctos): eso lo pones tú.</p></section>
+      <p>Tú traes el <strong>dominio</strong> y el <strong>gusto</strong>; la skill trae el <strong>método</strong>. La autoridad sobre el significado del dominio sigue siendo humana: la skill no inventa cuáles son los procesos, agentes o valores correctos.</p></section>
 
     <section class="card obj"><p class="eyebrow">Buen input</p><h2>Dale un propósito claro</h2>
       <p>Una oración <strong>verbo-objeto</strong> del cambio, no de la forma («mejorar disponibilidad de camas», no «crear una plataforma»). Responde sus preguntas de aclaración <strong>una a una</strong>.</p></section>
 
-    <section class="card proc"><p class="eyebrow">La regla de oro</p><h2>El proto es la fuente</h2>
-      <p><strong>Read-through</strong>: el proto (OPL-ES) es la fuente; el modelo en la mesa es el derivado. Las correcciones se <strong>re-elicitan al proto</strong> y se recompilan — no edites el derivado esperando que persista.</p></section>
+    <section class="card proc"><p class="eyebrow">La procedencia decide</p><h2>Cuándo manda el proto</h2>
+      <p>Si el modelo tiene <strong>sello de procedencia</strong> porque nació de un proto OPL-ES, el proto es la fuente y la mesa es su proyección: las correcciones se re-elicitan y recompilan. Si el modelo nació en la mesa (<em>table-origin</em>), el <strong>push libre</strong> es legítimo. En ambos carriles, la autoridad del dominio sigue siendo humana.</p></section>
 
     <section class="card obj"><p class="eyebrow">Declara tu régimen</p><h2>Dile en qué estás</h2>
       <ul class="tight">
@@ -100,16 +100,23 @@
     <section class="card proc"><p class="eyebrow">Diálogo asíncrono</p><h2>Notas y ratificación</h2>
       <ul class="tight">
         <li><strong>Notas de mesa</strong> — preguntas ancladas a un componente; la skill las consume al re-elicitar.</li>
-        <li><strong><code>[RATIFICAR]</code></strong> — lo que espera tu confirmación con fuente; pasa a vigente solo por la skill.</li>
+        <li><strong><code>[RATIFICAR]</code> norma</strong> — exige una fuente verificable antes de pasar a vigente.</li>
+        <li><strong><code>[RATIFICAR]</code> hipótesis</strong> — exige evidencia o decisión explícita, más alcance declarado.</li>
       </ul></section>
 
     <section class="card key"><p class="eyebrow">El transporte</p><h2>El puente</h2>
-      <p>Con acceso al host, la skill usa el <strong>puente directo</strong> (<code>mesa pull</code>/<code>push</code>). Sin él, el <strong>portapapeles</strong>: <kbd>Ctrl</kbd>+<kbd>K</kbd> › «Copiar contexto para la skill» (W6.0). Mismo bucle, transporte manual.</p></section>
+      <p>Con acceso al host, la skill usa el <strong>puente directo</strong>:</p>
+      <pre>cd app &amp;&amp; bun run mesa pull &lt;modelo&gt;
+cd app &amp;&amp; bun run mesa push &lt;modelo&gt; bundle.json --nota "…"</pre>
+      <p>Sin él, usa el <strong>portapapeles</strong>: <kbd>Ctrl</kbd>+<kbd>K</kbd> › «Copiar contexto para la skill» (W6.0). Mismo bucle, transporte manual.</p></section>
 
     <section class="card"><p class="eyebrow">Expectativas honestas</p><h2>No pidas lo imposible</h2>
       <p>La mesa <strong>no</strong> hace: out-zoom automático, diff de modelos, PDF real, cosimulación federada, multiusuario, ni <strong>inferencia</strong> automática. Modela y valida; no infiere ni razona por ti.</p></section>
   </main>
-  <footer><span>opforja · interacción con la skill modelamiento-opm · postura dialéctica · puente W6.0/directo</span><span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span></footer>
+  <footer>
+    <span><a href="../manual-opforja.md">Manual opforja</a> · <a href="README.md">índice de hojas</a> · <a href="../README.md">corpus documental</a></span>
+    <span><a href="https://opforja.sanixai.com">opforja en producción</a></span>
+  </footer>
 </div>
 
 </body>

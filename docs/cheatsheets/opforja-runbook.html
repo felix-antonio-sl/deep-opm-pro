@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -128,10 +128,10 @@
   <header class="mast">
     <div>
       <div class="mark">
-        <span class="logo">opforja<span class="dot">.</span></span>
+        <h1 class="logo">opforja<span class="dot">.</span></h1>
         <span class="sheet-name">Runbook · de cero a modelo completo</span>
       </div>
-      <p class="tagline">El método Forja de punta a punta: de un propósito en una frase a un modelo OPM validado en sus tres niveles. Dos arranques hermanos —SD-primero y bottom-up— convergen en las mismas fases; cada una cierra con un hecho explícito.</p>
+      <p class="tagline">El método Forja de punta a punta: de un propósito en una frase a un modelo OPM diagnosticado en tres severidades y aceptado por quien conoce el dominio. Dos arranques hermanos —SD-primero y bottom-up— convergen en las mismas fases; cada una cierra con un hecho explícito.</p>
     </div>
   </header>
 
@@ -178,7 +178,7 @@
         <li><strong>Beneficiario</strong>: quién recibe valor (no siempre el transformee).</li>
         <li><strong>Atributo de valor + estados</strong>: inicial → buscado.</li>
         <li><strong>Transformees</strong>: consumo / resultado / efecto.</li>
-        <li><strong>Agentes e instrumentos</strong> — solo tras saber qué cambia (agente = humano/organización; software/sensor = instrumento).</li>
+        <li><strong>Agentes e instrumentos</strong> — solo tras saber qué cambia (agente = persona o grupo de personas; software/sensor = instrumento). Una organización abstracta no es agente por sí sola.</li>
         <li><strong>Sistema y frontera</strong>: qué es sistémico vs ambiental (decisión explícita, no del layout).</li>
         <li><strong>Esencia y afiliación</strong>: física/informacional, sistémica/ambiental.</li>
         <li><strong>Lee el primer OPL</strong>: si dice algo raro, revisa el hecho, no la frase.</li>
@@ -224,14 +224,14 @@
     <section class="card gate">
       <div class="chead">
         <span class="phase">5</span>
-        <div class="t"><span class="eyebrow">Fase 5 · A8</span><h2>Validación tripartita</h2></div>
+        <div class="t"><span class="eyebrow">Fase 5 · A8</span><h2>Diagnóstico en tres severidades</h2></div>
       </div>
       <ul class="tight">
-        <li><strong>Bien formado</strong> — cumple las reglas.</li>
-        <li><strong>Representa</strong> — el operador confirma que dice lo que ocurre.</li>
-        <li><strong>Sirve</strong> — responde al propósito.</li>
+        <li><strong>Bloqueos estructurales</strong> — integridad del modelo; siempre exigibles.</li>
+        <li><strong>Mejoras metodológicas</strong> — brechas respecto del método Forja.</li>
+        <li><strong>Estilo y legibilidad</strong> — recomendaciones para comunicar mejor.</li>
       </ul>
-      <p>No digas «validado» sin decir <strong>cuál</strong> de los tres niveles. Los barridos de integridad se hacen sobre el <strong>JSON canónico</strong>, no sobre el OPL emitido.</p>
+      <p>La <strong>aceptación del dominio</strong> es una decisión humana separada: confirma que el modelo representa la realidad pertinente y sirve al propósito. Los barridos automáticos se hacen sobre el <strong>JSON canónico</strong>, no sobre el OPL emitido.</p>
     </section>
 
     <section class="card gate">
@@ -241,7 +241,7 @@
       </div>
       <p>El SD cierra cuando: proceso central transformador · frontera explícita · ≥1 transformee funcional · agentes ≠ instrumentos · esencia/afiliación donde importa · sin barro bloqueante · legible en OPL · supuestos y brechas registrados.</p>
       <ul class="tight">
-        <li>Si venías bosquejando, <strong>gradúa el apunte a modelo</strong> — re-engancha A8 completo.</li>
+        <li>Si venías bosquejando, <strong>gradúa el apunte a modelo</strong>. La interfaz muestra las severidades de A8, pero no bloquea mecánicamente: la persona responsable decide si corresponde cerrar.</li>
         <li><strong>Exporta</strong>: canon-diagrama (presentar) · canon-documento · bundle de intercambio.</li>
       </ul>
     </section>
@@ -255,7 +255,7 @@
         <li>Traza <strong>OPDs sueltos</strong> —fragmentos OPM fuera del árbol de refinamiento. Sus hechos <strong>sí emiten OPL</strong>.</li>
         <li>La validez de método queda en <strong>observación</strong>; la <strong>integridad nunca se relaja</strong> (un suelto colgante rechaza igual).</li>
         <li>Incorpora un suelto con el verbo <strong>«adoptar»</strong> del Taller: fija padre + declara refinamiento en un gesto — el mismo constructor que el top-down (convergen en el <em>vínculo</em>).</li>
-        <li><strong>Reconciliar hacia el SD0 = graduar</strong>: ahí se cobra el rigor — la validez vuelve exigible y re-entran las 11 etapas de la Fase 1.</li>
+        <li><strong>Reconciliar no es graduar</strong>: adoptar conecta el OPD al árbol del SD0; graduar cambia la especie completa de apunte a modelo. Puedes hacer ambos actos, pero resuelven problemas distintos.</li>
       </ul>
       <p><strong>Apunte ≠ bosquejo</strong>: el apunte relaja el <em>cierre</em>; el bosquejo relaja el <em>orden de arranque</em>. Conviven — un apunte es el hogar natural del bosquejo.</p>
     </section>
@@ -276,8 +276,8 @@
   </main>
 
   <footer>
-    <span>opforja · runbook de cero a modelo completo · método Forja (metodologia-forja-opm-es §A2)</span>
-    <span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+    <span>opforja · runbook · <a href="../manual-opforja.md">manual</a> · <a href="README.md">hojas rápidas</a> · <a href="../README.md">corpus</a></span>
+    <span><a href="https://opforja.sanixai.com">producción</a></span>
   </footer>
 </div>
 

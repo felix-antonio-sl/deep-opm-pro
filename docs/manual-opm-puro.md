@@ -977,7 +977,8 @@ estado *solo en destino* (AP-11).
 | **XOR** | arco discontinuo simple sobre el abanico | **exactamente uno** | `exactamente uno de` |
 | **OR** | dos arcos discontinuos concéntricos | **al menos uno** | `al menos uno de` |
 
-AND no tiene símbolo: es el default de los enlaces múltiples que no se tocan.
+AND no tiene símbolo: es la opción predeterminada de los enlaces múltiples que no
+se tocan.
 Del ejemplo de la caja fuerte: dos llaves requeridas juntas son dos enlaces de
 instrumento planos (`*Abrir Caja Fuerte* requiere **Llave A**.` y
 `… requiere **Llave B**.`); dos dueños alternativos exigen el arco —
@@ -1003,7 +1004,8 @@ disciplina epistémica — es la tensión Hecho↔Supuesto aplicada a los númer
   alternativas sin peso;
 - **(C)** abanico declarado probabilístico **sin pesos conocidos** → se
   declara explícitamente «probabilístico sin pesos»: ni inventar números ni
-  dejar que un default uniforme silencioso se haga pasar por conocimiento.
+  dejar que un valor uniforme predeterminado y silencioso se haga pasar por
+  conocimiento.
 
 #### 14.3 m-de-f, NOT, rutas y escenarios
 
@@ -1636,7 +1638,7 @@ aprendió OPM y no solo su iconografía.
 
 Esta escala describe conformidad formal; no constituye el inventario de funciones
 de un producto. Para opforja, consulta las
-[brechas de conformidad](manual-opforja.md#l-brechas-de-conformidad-y-frontera-del-producto)
+[brechas de conformidad](manual-opforja.md#brechas-de-conformidad-opmforja)
 y el [registro trazable](roadmap/registro-conformidad-ssot.md).
 
 #### Preguntas de autoevaluación — Parte VII
@@ -1997,7 +1999,7 @@ OPM da instrumentos sin decidir; «delegada» = queda a la praxis.
 | A2.3 | Secuencial ↔ Paralelo | resuelta | línea de tiempo vertical; paralelismo por altura; CX1/CX2 |
 | A2.4 | Causa ↔ Efecto | resuelta | transformadores; invocación; ECA |
 | A2.5 | Agente ↔ Paciente | resuelta | habilitador vs transformado; unicidad de rol |
-| A2.6 | Determinista ↔ Probabilista | resuelta | abanicos `Pr=p`; distribución de duración; default 1/n |
+| A2.6 | Determinista ↔ Probabilista | resuelta | abanicos `Pr=p`; distribución de duración; valor predeterminado 1/n |
 | A3.1 | Conocido ↔ Desconocido | apoyada | colecciones incompletas; supresión de estados |
 | A3.2 | Cierto ↔ Incierto | apoyada | «probabilístico sin pesos» declarado (R-FAN-PROB-1 C) |
 | A3.3 | Hecho ↔ Supuesto | delegada | disciplina del modelador; OPM exige declarar, no verifica |

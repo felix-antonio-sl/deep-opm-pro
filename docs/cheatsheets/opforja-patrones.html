@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -75,13 +75,13 @@
 </style>
 <div class="wrap">
   <header class="mast">
-    <div><div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Patrones y antipatrones</span></div>
-    <p class="tagline">Los moldes de modelado que se repiten, y los errores canónicos que la validación bloquea. Cada anti-patrón trae su corrección.</p></div>
+    <div><div class="mark"><h1 class="logo">opforja<span class="dot">.</span></h1><span class="sheet-name">Patrones y antipatrones</span></div>
+    <p class="tagline">Moldes de modelado que se repiten y errores canónicos que la validación diagnostica; solo las invariantes declaradas bloquean.</p></div>
   </header>
   <main class="grid">
     <section class="card proc"><p class="eyebrow">La forma</p><h2>Estructura de un patrón</h2>
       <p>Un patrón publicable declara: <strong>intención · cuándo usar · cuándo NO usar · OPD mínimo · OPL esperado · reglas propietarias · brechas · ejemplo</strong>.</p>
-      <p>Cita sus reglas por URN, no las copia. Las <strong>Piezas</strong> son el vehículo para empaquetarlos y reusarlos (ver hoja «Anclar y calcar»).</p></section>
+      <p>Cita sus reglas por URN, no las copia. Una <strong>plantilla de selección</strong> reutiliza contenido local del modelo; una <strong>Pieza</strong> es una entidad externa gobernada y puede anclarse a una biblioteca (ver hoja «Anclar y calcar»).</p></section>
 
     <section class="card proc"><p class="eyebrow">Catálogo (§9)</p><h2>Patrones candidatos</h2>
       <ul class="tight">
@@ -103,7 +103,7 @@
       <ul class="tight bad">
         <li><span class="ap">AP-05</span> <strong>agente</strong> conectado a software / robot / IA / máquina → usa enlace de <em>instrumento</em>.</li>
       </ul>
-      <p><strong>Agente</strong> = humano u organización responsable. <strong>Instrumento</strong> = con qué se hace. El sistema de información es instrumento, no agente.</p></section>
+      <p><strong>Agente</strong> = persona o grupo de personas; una organización solo califica cuando el nombre denota explícitamente ese colectivo humano. Las abstracciones organizacionales y los sistemas de información son objetos, no agentes.</p></section>
 
     <section class="card key"><p class="eyebrow">Anti-patrón · refinamiento</p><h2>Refinar mal</h2>
       <ul class="tight bad">
@@ -133,10 +133,14 @@
         <li>Modela primero el <strong>cambio de valor</strong>.</li>
         <li>Nombres que digan <strong>qué transforma o qué es</strong>.</li>
         <li>Registra supuestos y brechas; no plasmes barro.</li>
-        <li>Valida los <strong>tres niveles</strong>: bien formado · representa · sirve.</li>
+        <li>A8 separa <strong>bloqueadores estructurales · mejoras metodológicas · estilo/legibilidad</strong>.</li>
+        <li>Quien conoce el dominio confirma, aparte, si el modelo representa y sirve.</li>
       </ul></section>
   </main>
-  <footer><span>opforja · patrones y antipatrones · reglas-opm-estrictas AP-01..AP-30 + manual §9</span><span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span></footer>
+  <footer>
+    <span>opforja · patrones y antipatrones · <a href="../manual-opforja.md">manual propietario</a> · <a href="README.md">índice de hojas</a> · <a href="../README.md">corpus documental</a></span>
+    <span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+  </footer>
 </div>
 
 </body>

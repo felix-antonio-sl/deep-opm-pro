@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -75,8 +75,8 @@
 </style>
 <div class="wrap">
   <header class="mast">
-    <div><div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Simulación conceptual</span></div>
-    <p class="tagline">Ver el comportamiento del modelo por fases, para validar la lógica con quien conoce el dominio — sin salir del modelo.</p></div>
+    <div><div class="mark"><h1 class="logo">opforja<span class="dot">.</span></h1><span class="sheet-name">Simulación conceptual</span></div>
+    <p class="tagline">Dos ayudas distintas: una traza conceptual del comportamiento y un muestreo numérico de atributos exportable a CSV.</p></div>
   </header>
   <main class="grid">
     <section class="card proc"><p class="eyebrow">El paso, por dentro</p><h2>Las microfases</h2>
@@ -89,19 +89,22 @@
     <section class="card proc"><p class="eyebrow">Refinamiento vivo</p><h2>Delega a los subprocesos</h2>
       <p>Si el proceso activo tiene <strong>descomposición</strong>, el nivel hijo se ejecuta sincrónicamente tras marcar el padre — el SD canónico con su frontera se respeta durante la corrida.</p></section>
 
-    <section class="card obj"><p class="eyebrow">Con números</p><h2>Simulación numérica</h2>
-      <p>Sobre atributos, la sim registra <strong>cambios de valor runtime</strong> (antes → después). Útil para <strong>tradeoffs</strong> y matrices de casos. Conserva polaridad, unidad y procedencia (A7).</p></section>
+    <section class="card obj"><p class="eyebrow">Muestreo separado</p><h2>Simulación numérica</h2>
+      <p>Muestrea distribuciones configuradas en <strong>atributos</strong>, genera casos y los exporta a <strong>CSV</strong>. No ejecuta la traza de procesos ni calcula por sí sola tradeoffs, capacidad o rendimiento.</p></section>
 
     <section class="card"><p class="eyebrow">El tiempo</p><h2>Eventos temporales</h2>
-      <p><strong>Sobretiempo</strong> / <strong>subtiempo</strong> se disparan si la duración real cruza la declarada (máxima/mínima). Así la corrida revela cuellos y holguras.</p></section>
+      <p>La traza conceptual puede mostrar <strong>sobretiempo</strong> / <strong>subtiempo</strong> cuando una duración evaluada cruza la máxima/mínima declarada. Esa marca no equivale a analizar cuellos, colas o desempeño operacional.</p></section>
 
     <section class="card ink"><p class="eyebrow">Sácale provecho</p><h2>Falsar, no «validar»</h2>
-      <p>Simular es para <strong>probar la lógica</strong> con el conocedor de dominio y <strong>falsar</strong> supuestos — no para declarar el modelo «validado» (eso es la tripartita A8). Si dice algo que no esperabas, revisa el hecho.</p></section>
+      <p>La traza sirve para <strong>probar la lógica</strong> con quien conoce el dominio y <strong>falsar</strong> supuestos; no declara verdadero el modelo. A8 reporta bloqueadores estructurales, mejoras metodológicas y estilo/legibilidad; la aceptación del dominio sigue siendo humana.</p></section>
 
-    <section class="card"><p class="eyebrow">Cuándo simular (A7)</p><h2>Cuando lo dinámico decide</h2>
-      <p>Simula cuando el <strong>comportamiento en el tiempo</strong> importa a la decisión (colas, omisiones, cuellos). Un número que sale de la sim arrastra su procedencia; no lo conviertas en norma sin confirmarlo.</p></section>
+    <section class="card"><p class="eyebrow">Límite operativo</p><h2>No es un motor DES</h2>
+      <p>Usa la traza para revisar transformaciones, elecciones y omisiones; usa el muestreo para explorar valores de atributos. Colas, capacidad, rendimiento, tradeoffs calculados y simulación de eventos discretos requieren herramientas externas.</p></section>
   </main>
-  <footer><span>opforja · simulación conceptual · microfases + numérica · A7 · FaseSimulacion</span><span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span></footer>
+  <footer>
+    <span>opforja · simulación · <a href="../uso-productivo.md">manual propietario</a> · <a href="README.md">índice de hojas</a> · <a href="../README.md">corpus documental</a></span>
+    <span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+  </footer>
 </div>
 
 </body>

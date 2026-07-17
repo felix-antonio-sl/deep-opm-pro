@@ -127,7 +127,7 @@ resume su forma:
 - **A1.5 — dos arranques hermanos** (bottom-up de primera clase, `metodologia-forja`
   §A1.5 · realización `spec-forja-opd-es` §10.4 R-OPD-REF-20): Forja reconoce dos
   formas de empezar, ambas de primera clase y subordinadas a la función-semilla y a
-  la equivalencia OPD↔OPL. **SD-primero** (default del asistente A2): fija la función
+  la equivalencia OPD↔OPL. **SD-primero** (opción predeterminada del asistente A2): fija la función
   en el SD y refina hacia abajo. **Bottom-up (bosquejo)**: traza **fragmentos sueltos**
   —OPDs sin padre— sin comprometer aún un SD, y reconcílialos después hacia el SD0 por
   **adopción** (verbo «adoptar» del Taller — fija padre + declara refinamiento en un
@@ -493,7 +493,7 @@ brecha silenciosa está prohibida).
 | Capacidad | Estado en el registro | Nota |
 | --- | --- | --- |
 | **Out-zoom** (recomposición de una descomposición hacia el proceso abstracto) | PROGRAMADA | Sin superficie de autoría; ningún modelo productivo lo demanda aún. Oportunidad anotada: reutilizar `equivalencia/`. |
-| **R-FAN-PROB-1 caso C** (abanico probabilístico declarado, pesos pendientes) | PROGRAMADA | El modelo no distingue el caso B (alternativas ordinarias) del caso C; no es divergencia silenciosa (el default uniforme solo se aplica al simular, nunca se persiste). Destino: corte de simulación con demanda nombrada. |
+| **R-FAN-PROB-1 caso C** (abanico probabilístico declarado, pesos pendientes) | PROGRAMADA | El modelo no distingue el caso B (alternativas ordinarias) del caso C; no es divergencia silenciosa (el valor uniforme predeterminado solo se aplica al simular, nunca se persiste). Destino: corte de simulación con demanda nombrada. |
 
 Para el estado canónico y la traza de cada fila, leer el registro. Las capacidades ya
 **CERRADAS** (perfiles de export, unicidad de rol, herencia de afiliación, etc.) no
@@ -543,7 +543,8 @@ en el handoff y el registro de conformidad.
 Las cuatro SSOT de la familia Forja (`reglas-opm-estrictas-es`, `spec-forja-opd-es`,
 `spec-forja-opl-es`, `metodologia-forja-opm-es`) se resuelven por URN vía
 `docs/canon-opm/resolutor-urn.json` (lector puro de datos `app/src/canon/resolutorUrn.ts`),
-que re-ancla a la SSOT viva en pneuma bajo `KORA_RAIZ` (default `/home/felix/kora-pneuma`).
+que re-ancla a la SSOT viva en pneuma bajo `KORA_RAIZ` (ruta predeterminada
+`/home/felix/kora-pneuma`).
 Los puentes locales de `docs/canon-opm/` no copian el canon: solo resuelven URN → path.
 
 `urn:fxsl:kb:opm-categorial-es` (lectura formal) y `urn:kora:artefacto:modelamiento-opm`

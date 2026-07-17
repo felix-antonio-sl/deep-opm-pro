@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -122,6 +122,7 @@
   footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--rule);
     display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;
     font-family: var(--mono); font-size: 11px; letter-spacing: .04em; color: var(--ink-faint); }
+  footer a, .tagline a, .card a { color: var(--process); text-decoration: none; }
 
   @media print {
     @page { size: A4; margin: 12mm; }
@@ -136,10 +137,10 @@
   <header class="mast">
     <div>
       <div class="mark">
-        <span class="logo">OPM<span class="dot">.</span></span>
+        <h1 class="logo">OPM<span class="dot">.</span></h1>
         <span class="sheet-name">referencia multipágina · 17 tarjetas</span>
       </div>
-      <p class="tagline">Object-Process Methodology (ISO 19450) sin herramienta de por medio: dos cosas, cinco familias base de enlace y una extensión declarada. El manual completo: <code>docs/manual-opm-puro.md</code>.</p>
+      <p class="tagline">Object-Process Methodology (ISO 19450) sin herramienta de por medio: dos cosas, cinco familias base de enlace y una extensión declarada. Las tarjetas marcadas «Forja» son método o heurística, no primitivas OPM. Consulta el <a href="../manual-opm-puro.md">manual completo</a>.</p>
     </div>
     <div class="mast-glyphs">
       <span class="g g-obj">objeto</span>
@@ -159,7 +160,7 @@
         <li><span class="g g-state"></span> <strong>Estado</strong> — situación de un objeto; vive <strong>dentro</strong> de él; atómico.</li>
       </ul>
       <p><strong>Prueba objeto-proceso:</strong> ¿ocurre en el tiempo? ¿su nombre denota acción? ¿transforma algún objeto? Sin transformación, no hay proceso.</p>
-      <p>No existen «actores», «entidades» ni «componentes»: todo es objeto, proceso, estado o enlace.</p>
+      <p>«Actor», «entidad» y «componente» no son primitivas adicionales: cada referente se representa, según su naturaleza, como <strong>objeto</strong> o <strong>proceso</strong>, con sus estados y enlaces.</p>
     </section>
 
     <section class="card">
@@ -265,7 +266,7 @@
       <p class="eyebrow">Lógica</p>
       <h2>AND · XOR · OR · Pr</h2>
       <table class="keys">
-        <tr><td>AND</td><td>enlaces separados, sin arco (default)</td></tr>
+        <tr><td>AND</td><td>enlaces separados, sin arco (opción predeterminada)</td></tr>
         <tr><td>XOR</td><td>arco simple — «exactamente uno de»</td></tr>
         <tr><td>OR</td><td>arco doble — «al menos uno de»</td></tr>
         <tr><td>Pr=p</td><td>abanico probabilístico: XOR, suma = 1</td></tr>
@@ -287,12 +288,12 @@
         <li>Siempre ≥ 2 hijos. Contorno grueso = «refinado en otro OPD».</li>
         <li>Al descomponer: consumo → subproceso que consume (jamás al contorno); efecto de-a → <strong>escindir</strong> (de `s1` temprano, a `s2` tardío).</li>
         <li><code>SDx.y</code> = navegación; la identidad es el id persistente.</li>
-        <li>20–25 cosas máx por OPD; más = refinar o crear vista.</li>
+        <li><strong>[Forja · heurística]</strong> 20–25 cosas máx por OPD; más = refinar o crear vista.</li>
       </ul>
     </section>
 
     <section class="card proc">
-      <p class="eyebrow">Método</p>
+      <p class="eyebrow">Overlay Forja · Método</p>
       <h2>La función es la semilla</h2>
       <ul class="tight">
         <li><strong>0.</strong> Clasificar: artificial · natural (sin propósito ni agentes) · social · socio-técnico.</li>
@@ -347,11 +348,11 @@
     </section>
 
     <section class="card">
-      <p class="eyebrow">Lente</p>
+      <p class="eyebrow">Overlay Forja · Lente</p>
       <h2>52 tensiones, 3 capas</h2>
       <p>Un formalismo es un sistema de <strong>resoluciones congeladas</strong> de las 24 tensiones sustantivas: OPM ya decidió Entidad↔Evento (objeto/proceso), Todo↔Partes (agregación), AND↔OR↔XOR (abanicos), Visual↔Textual (bimodal: ambos).</p>
       <p>Las 16 de <strong>praxis</strong> (¿incluir?, ¿cuándo parar?) y las 12 de <strong>contexto</strong> las navegas tú, nombrándolas. El contexto modula profundidad, <strong>jamás la corrección</strong>.</p>
-      <p>Mapa completo: manual, Apéndice D · kb <code>tensiones-modelamiento</code>.</p>
+      <p>Mapa completo: <a href="../manual-opm-puro.md">manual, Apéndice D</a> · kb <code>tensiones-modelamiento</code>.</p>
     </section>
 
     <section class="card obj">
@@ -365,8 +366,8 @@
   </main>
 
   <footer>
-    <span>OPM puro · ISO 19450 · referencia multipágina agnóstica</span>
-    <span>paquete educativo — manual: docs/manual-opm-puro.md</span>
+    <span><a href="../manual-opm-puro.md">Manual OPM puro</a> · <a href="README.md">índice de hojas</a> · <a href="../README.md">corpus documental</a></span>
+    <span><a href="https://opforja.sanixai.com">opforja en producción</a></span>
   </footer>
 </div>
 

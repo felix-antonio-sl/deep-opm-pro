@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -79,7 +79,7 @@
 
 <div class="wrap">
   <header class="mast">
-    <div class="mark"><span class="logo">opforja<span class="dot">.</span></span><span class="sheet-name">Ingeniería de software</span></div>
+    <div class="mark"><h1 class="logo">opforja<span class="dot">.</span></h1><span class="sheet-name">Ingeniería de software</span></div>
     <p class="tagline">Del dominio a producción sin convertir el modelo en ceremonia: opforja conserva significado; Git, tests, CI/CD y telemetría conservan implementación y ejecución.</p>
     <div class="chain" aria-label="Cadena de artefactos">
       <span>documentos</span><b>→</b><span>dominio</span><b>→</b><span>requisitos</span><b>→</b><span>arquitectura</span><b>→</b><span>código + tests</span><b>→</b><span>deploy</span><b>→</b><span>operación + evolución</span>
@@ -97,7 +97,7 @@
       <ul class="tight">
         <li>Separa <strong>hecho · decisión · restricción · hipótesis · pregunta · término</strong>.</li>
         <li>Registra fuente + localizador + revisión en un ledger externo.</li>
-        <li>La app <strong>no ingiere documentos hoy</strong>; lleva al modelo solo lo que sirve a la pregunta.</li>
+        <li>La app <strong>no ingiere documentos</strong>; lleva al modelo solo lo que sirve a la pregunta.</li>
       </ul>
     </section>
 
@@ -108,7 +108,7 @@
 
     <section class="card obj">
       <p class="eyebrow">Primer trazo</p><h2>Apunte → Taller → modelo</h2>
-      <p><span class="cap">HOY</span>Todo nace apunte. Bosqueja el fragmento mejor entendido, lee su OPL con el dueño de dominio, haz emerger el SD y adopta cada OPD suelto. Gradúa cuando función, frontera y deuda cierren.</p>
+      <p><span class="cap">IMPLEMENTADO</span>Todo nace apunte. Bosqueja el fragmento mejor entendido, lee su OPL con el dueño de dominio, haz emerger el SD y adopta cada OPD suelto. Gradúa cuando función, frontera y deuda cierren.</p>
     </section>
 
     <section class="card proc">
@@ -123,7 +123,7 @@
 
     <section class="card proc">
       <p class="eyebrow">Requisitos</p><h2>Cobertura visible</h2>
-      <p><span class="cap">HOY</span><code>Ctrl+K</code> → Crear requisito · hard/soft · actor · estado. Vincúlalo a una cosa o enlace y abre su Vista de requisito.</p>
+      <p><span class="cap">IMPLEMENTADO</span><code>Ctrl+K</code> → Crear requisito · hard/soft · actor · estado. Vincúlalo a una cosa o enlace y abre su Vista de requisito.</p>
       <p><strong>Cobertura de diseño no es test verde</strong>: la evidencia ejecutable vive en CI.</p>
     </section>
 
@@ -132,7 +132,7 @@
       <ul class="tight">
         <li>Un modelo por responsabilidad y ritmo de cambio.</li>
         <li>Comando, respuesta y evento como objetos informacionales cuando importan.</li>
-        <li><span class="cap">HOY</span>Composición explícita y submodelos de solo lectura; no federación viva.</li>
+        <li><span class="cap">IMPLEMENTADO</span>Composición explícita y submodelos de solo lectura; no federación viva.</li>
       </ul>
     </section>
 
@@ -160,7 +160,7 @@
 
     <section class="card obj">
       <p class="eyebrow">Implementación</p><h2>Sin generación mágica</h2>
-      <p><span class="cap">HOY</span>opforja no genera ni sincroniza código. Implementa una rebanada, prueba, y actualiza el modelo solo si cambió estado, regla, frontera, interfaz, ownership, fallo o resultado.</p>
+      <p><span class="cap">IMPLEMENTADO</span>opforja conserva el contrato conceptual y sus revisiones; no genera ni sincroniza código. Implementa una rebanada, prueba y actualiza el modelo solo si cambió estado, regla, frontera, interfaz, ownership, fallo o resultado.</p>
     </section>
 
     <section class="card proc">
@@ -185,24 +185,24 @@
     </section>
 
     <section class="card ink">
-      <p class="eyebrow">Corto plazo propuesto</p><h2>Cuatro incrementos</h2>
+      <p class="eyebrow">PROPUESTO</p><h2>Cuatro incrementos de corto plazo</h2>
       <ul class="tight">
         <li><strong>AnclaFuente</strong> con URI/localizador/hash.</li>
         <li><strong>Contexto de desarrollo</strong> determinista.</li>
         <li>Targets externos de requisito: test/código/ADR/pipeline/métrica.</li>
         <li><strong>Manifiesto de release</strong> modelo↔commit↔build↔deploy.</li>
       </ul>
-      <p>Son compatibles con la arquitectura; requieren priorización. No están implementados hoy.</p>
+      <p>Son compatibles con la arquitectura, pero no están implementados ni priorizados.</p>
     </section>
 
     <section class="card key">
       <p class="eyebrow">Límites</p><h2>No prometas lo que no existe</h2>
-      <p>Sin codegen completo · roundtrip código↔modelo · diff semántico · coedición concurrente · federación · deploy desde la mesa · observabilidad integrada · cálculo de rendimiento/seguridad.</p>
+      <p><span class="cap">EXTERNO</span>Codegen completo · roundtrip código↔modelo · diff semántico · coedición concurrente · federación · deploy desde la mesa · observabilidad integrada · cálculo de rendimiento/seguridad.</p>
     </section>
   </main>
 
   <footer>
-    <span>opforja · ingeniería de software · <a href="../manual-software-opm.md">manual completo</a></span>
+    <span>opforja · ingeniería de software · <a href="../manual-software-opm.md">manual propietario</a> · <a href="../manual-sistemas-opm.md">ciclo transversal</a> · <a href="README.md">índice de hojas</a> · <a href="../README.md">corpus documental</a></span>
     <span><a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
   </footer>
 </div>

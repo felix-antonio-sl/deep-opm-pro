@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -129,10 +129,10 @@
   <header class="mast">
     <div>
       <div class="mark">
-        <span class="logo">opforja <span class="arrow">↔</span> <span class="skill">skill</span></span>
+        <h1 class="logo">opforja <span class="arrow">↔</span> <span class="skill">skill</span></h1>
         <span class="sheet-name">Flujo de trabajo</span>
       </div>
-      <p class="tagline">Cómo el humano, la skill de modelado y la mesa colaboran en un solo bucle: quién decide qué, cómo viaja el modelo, y las reglas que lo mantienen honesto.</p>
+      <p class="tagline">Flujo interno skill–agente–mesa: cómo se serializa, valida y transporta el modelo. Para el diálogo entre operador y skill, usa la hoja <a href="opforja-interaccion-skill.html">«Hablar con la skill»</a>.</p>
     </div>
   </header>
 
@@ -170,13 +170,13 @@
       <p class="eyebrow">El puente directo</p>
       <h2>mesa pull · push</h2>
       <p>La skill lee y escribe la mesa directo, sin copiar y pegar. Desde la terminal del host:</p>
-      <pre>mesa <span class="k">pull</span> &lt;modelo&gt;
+      <pre>cd app &amp;&amp; bun run mesa <span class="k">pull</span> &lt;modelo&gt;
   <span class="c"># contexto del modelo para la skill</span>
 
-mesa <span class="k">push</span> &lt;modelo&gt; bundle.json --nota "…"
+cd app &amp;&amp; bun run mesa <span class="k">push</span> &lt;modelo&gt; bundle.json --nota "…"
   <span class="c"># nueva revisión versionada</span>
 
-mesa <span class="k">modelos</span>
+cd app &amp;&amp; bun run mesa <span class="k">modelos</span>
   <span class="c"># listar los del tenant</span></pre>
       <p>En la mesa, el chip <strong>«Revisión nueva»</strong> avisa cuando el agente empujó — se trae sin pisar tu trabajo local.</p>
     </section>
@@ -195,9 +195,9 @@ mesa <span class="k">modelos</span>
 
     <section class="card obj">
       <p class="eyebrow">La fuente de verdad</p>
-      <h2>El proto manda</h2>
-      <p>Doctrina <strong>read-through</strong>: el <strong>proto</strong> (OPL-ES estricto) es la fuente; el modelo en la mesa es el derivado. Las correcciones se <strong>re-elicitan al proto</strong>, no se editan en la mesa.</p>
-      <p>El <strong>carril por procedencia</strong> lo hace mecánico: a un modelo con <em>sello</em> (nació de un proto) se empuja el bundle del compilador; a uno nacido en la mesa, el push libre es legítimo.</p>
+      <h2>La procedencia decide</h2>
+      <p>La doctrina <strong>read-through</strong> se aplica al modelo con <em>sello</em>, nacido de un proto OPL-ES: el proto es la fuente y las correcciones se re-elicitan allí.</p>
+      <p>En un modelo nacido en la mesa (<em>table-origin</em>), el <strong>push libre</strong> es legítimo. Este carril técnico no sustituye la autoridad humana sobre el significado del dominio.</p>
     </section>
 
     <section class="card">
@@ -245,7 +245,7 @@ mesa <span class="k">modelos</span>
     <section class="card">
       <p class="eyebrow">Honestidad</p>
       <h2>Límites de la mesa</h2>
-      <p>La skill conduciendo opforja <strong>no</strong> hace hoy:</p>
+      <p>La skill conduciendo opforja <strong>no</strong> hace:</p>
       <ul class="tight">
         <li>out-zoom automático (el in-zoom se declara, el out-zoom es manual).</li>
         <li>diff de modelos · export a PDF real (la salida canónica es Markdown).</li>
@@ -257,8 +257,8 @@ mesa <span class="k">modelos</span>
   </main>
 
   <footer>
-    <span>opforja ↔ skill modelamiento-opm · cheat sheet flujo de trabajo</span>
-    <span>método Forja · <a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+    <span><a href="../manual-opforja.md">Manual opforja</a> · <a href="README.md">índice de hojas</a> · <a href="../README.md">corpus documental</a></span>
+    <span><a href="https://opforja.sanixai.com">opforja en producción</a></span>
   </footer>
 </div>
 

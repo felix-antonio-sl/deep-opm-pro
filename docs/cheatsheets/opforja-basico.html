@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -139,7 +139,7 @@
   <header class="mast">
     <div>
       <div class="mark">
-        <span class="logo">opforja<span class="dot">.</span></span>
+        <h1 class="logo">opforja<span class="dot">.</span></h1>
         <span class="sheet-name">Uso básico</span>
       </div>
       <p class="tagline">Modelar OPM en la mesa: entrar, dibujar las dos primitivas, guardar. Lo esencial cabe en una hoja.</p>
@@ -156,7 +156,7 @@
     <section class="card">
       <p class="eyebrow">Empezar</p>
       <h2>Entrar</h2>
-      <p>opforja pide <strong>iniciar sesión</strong> (un solo operador). Abre en un modelo vacío, o retoma tu último trabajo persistido.</p>
+      <p>opforja pide <strong>iniciar sesión</strong>. La mesa no ofrece coedición concurrente de un mismo modelo: coordina los turnos si trabajan varias personas.</p>
       <p>Todo se guarda en el servidor: no hay «archivo local» que perder. La dirección es <code>opforja.sanixai.com</code>.</p>
     </section>
 
@@ -176,9 +176,9 @@
       <p class="eyebrow">Dibujar</p>
       <h2>Crear en el canvas</h2>
       <ul class="tight">
-        <li><kbd>O</kbd> crea un objeto · <kbd>P</kbd> un proceso — o desde la barra. Click para colocar, arrastra para mover.</li>
+        <li><kbd>O</kbd> crea un objeto · <kbd>P</kbd> un proceso — o desde la barra. Haz clic para colocar y arrastra para mover.</li>
         <li><kbd>S</kbd> agrega un estado <strong>al objeto seleccionado</strong> — selecciónalo primero.</li>
-        <li><strong>Conectar</strong> con <kbd>R</kbd>: con una cosa seleccionada, la relación parte de ella; sin selección, entra en <strong>enlace libre</strong> — click en el <em>origen</em>, luego en el <em>destino</em>. <kbd>Esc</kbd> cancela. Nace como <em>consumo</em>; cambia el tipo en el Inspector.</li>
+        <li><strong>Conectar</strong> con <kbd>R</kbd>: con una cosa seleccionada, la relación parte de ella; sin selección, entra en <strong>enlace libre</strong> — haz clic en el <em>origen</em> y luego en el <em>destino</em>. <kbd>Esc</kbd> cancela. Nace como <em>consumo</em>; cambia el tipo en el Inspector.</li>
       </ul>
       <p>Ojo: <kbd>S</kbd> sí parte de un objeto seleccionado. El Inspector edita lo seleccionado: nombre, tipo, estados, enlaces.</p>
     </section>
@@ -186,19 +186,18 @@
     <section class="card key">
       <p class="eyebrow">A diario</p>
       <h2>Guardar</h2>
-      <p>Pulsa <kbd>Ctrl</kbd>+<kbd>S</kbd>. El chip de estado te dice dónde estás:</p>
+      <p>El apunte nuevo se persiste de inmediato y la mesa guarda periódicamente los cambios. <kbd>Ctrl</kbd>+<kbd>S</kbd> fuerza un guardado en el momento. El chip de estado te dice dónde estás:</p>
       <ul class="tight">
         <li><strong>Guardado</strong> — todo persistido.</li>
-        <li><strong>Sin guardar · Ctrl+S</strong> (ámbar) — hay cambios pendientes. Pulsa el chip o el atajo.</li>
+        <li><strong>Sin guardar · Ctrl+S</strong> (ámbar) — hay cambios pendientes del siguiente guardado. Pulsa el chip o usa el atajo para persistirlos ahora.</li>
       </ul>
-      <p>Guardar es explícito: es tu acto de decir «esto es una base», no borrador en movimiento.</p>
     </section>
 
     <section class="card">
       <p class="eyebrow">Tres gestos diarios</p>
       <h2>Guardar · Buscar · Comandos</h2>
       <table class="keys">
-        <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Guardar</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Forzar guardado ahora</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td><td>Buscar dentro del modelo</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Paleta de comandos</td></tr>
       </table>
@@ -208,8 +207,8 @@
     <section class="card obj">
       <p class="eyebrow">Sin ceremonia</p>
       <h2>Bosquejar: los apuntes</h2>
-      <p><strong>Nuevo</strong> abre un <strong>apunte</strong>: una hoja para trazar sin nombre, sin carpeta, sin exigencia de «cerrar» el modelo.</p>
-      <p>Todo nace apunte. Cuando el bosquejo madura, lo <strong>gradúas</strong> a modelo — recién ahí se pide nombre y se exige rigor.</p>
+      <p><kbd>Ctrl</kbd>+<kbd>K</kbd> › <strong>Nuevo</strong> abre un <strong>apunte</strong>: una hoja para trazar sin pedir nombre, sin carpeta y sin exigencia de «cerrar» el modelo.</p>
+      <p>Todo nace apunte. Cuando el bosquejo madura, lo <strong>gradúas</strong> a modelo: declaras intención de cierre, asignas nombre y revisas los diagnósticos antes de decidir que está listo.</p>
     </section>
 
     <section class="card">
@@ -256,18 +255,18 @@
         <tr><td><kbd>O</kbd> · <kbd>P</kbd></td><td>Crear objeto · proceso</td></tr>
         <tr><td><kbd>S</kbd></td><td>Estado (al objeto seleccionado)</td></tr>
         <tr><td><kbd>R</kbd></td><td>Conectar (desde selección o enlace libre)</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>N</kbd></td><td>Nuevo (apunte)</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Abrir modelo</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd> › Nuevo</td><td>Crear un apunte</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd> › Abrir</td><td>Abrir el gestor de modelos</td></tr>
         <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></td><td>Buscar en el workspace</td></tr>
       </table>
-      <p style="margin-top:8px">La hoja completa: <strong>Menú › Ayuda › Atajos</strong>.</p>
+      <p style="margin-top:8px">La hoja completa: <kbd>Ctrl</kbd>+<kbd>K</kbd> › <strong>Atajos de teclado</strong>.</p>
     </section>
 
   </main>
 
   <footer>
-    <span>opforja · modelador OPM / ISO 19450 · cheat sheet uso básico</span>
-    <span>método Forja · <a href="https://opforja.sanixai.com">opforja.sanixai.com</a></span>
+    <span>opforja · uso básico · <a href="../uso-productivo.md">manual</a> · <a href="README.md">hojas rápidas</a> · <a href="../README.md">corpus</a></span>
+    <span><a href="https://opforja.sanixai.com">producción</a></span>
   </footer>
 </div>
 
