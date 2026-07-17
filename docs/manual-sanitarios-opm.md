@@ -1,33 +1,40 @@
 # Manual sanitario de opforja — modelar sistemas sanitarios complejos con OPM
 
-Manual **avanzado de dominio**: las decisiones de modelado donde el sistema sanitario
-tienta un giro OPM equivocado, y el corte correcto en cada una. Hermano de
-`manual-opforja.md` (que enseña la mesa y el método); este enseña el **dominio
-sanitario sobre esa base**, del microscopio al satélite: tres lentes × cinco escalas.
+Perfil **avanzado de dominio**: conserva las decisiones que cambian porque el
+sistema es sanitario. Hereda el ciclo productivo del
+[manual para transformar sistemas](manual-sistemas-opm.md) y el método del
+[manual de opforja](manual-opforja.md). Su estructura propia es:
+**tres lentes × cinco escalas**.
 
 ---
 
 ## 0. Contrato, frontera y ruteo
 
-**Qué es.** Un catálogo de **piezas-decisión** — bifurcaciones reales del modelado
-sanitario — organizado por las tres lentes del dominio, más una ficha de intención
-por modelo, un hilo trabajado de continuidad y los límites honestos de la mesa.
+**Qué es.** Un catálogo de **piezas-decisión** —bifurcaciones reales del modelado
+sanitario— organizado por las tres lentes del dominio, más un hilo trabajado y los
+límites propios de salud.
 
-**Qué asume.** Todo lo que enseña `manual-opforja.md` (primitivas, método Forja
-A0–A8, OPL, bundle, pistas humano/agente) se asume y se cita, jamás se repite. La
+**Qué asume.** El ciclo evidencia→AS-IS→TO-BE→intervención→aprendizaje, la ficha,
+el sobre de autonomía y el retiro se asumen desde el
+[manual transversal](manual-sistemas-opm.md). Primitivas, método Forja A0–A8, OPL,
+bundle y mesa humano-agente se asumen desde el
+[manual de opforja](manual-opforja.md). La
 autoridad semántica es el corpus OPM/Forja SSOT ES (`urn:fxsl:kb:reglas-opm-estrictas-es`,
 `urn:fxsl:kb:spec-forja-opd-es`, `urn:fxsl:kb:spec-forja-opl-es`,
-`urn:fxsl:kb:metodologia-forja-opm-es`, resueltas por `docs/canon-opm/resolutor-urn.json`).
+`urn:fxsl:kb:metodologia-forja-opm-es`, resueltas por
+[canon-opm](canon-opm/resolutor-urn.json)).
 El conocimiento sanitario de respaldo vive en el corpus salubrista de KORA
 (`urn:salud:kb:*`) y se cita por URN. Las oraciones OPL de este manual son
 didácticas; la forma exacta la fija `urn:fxsl:kb:spec-forja-opl-es`. La capa de
-referencia rápida son las hojas `docs/cheatsheets/opforja-sanitarios-gestion.html` y
-`opforja-sociosanitarios.html`; este manual las profundiza, no las reemplaza.
+referencia rápida son las hojas
+[gestión sanitaria](cheatsheets/opforja-sanitarios-gestion.html) y
+[sistemas sociosanitarios](cheatsheets/opforja-sociosanitarios.html); este manual
+es su propietario.
 
 **Regla editorial.** Cada pieza enseña lo **distintivo sanitario** de una decisión;
-su esqueleto agnóstico (cola, recurso, interfaz) se nombra una sola vez en el
-Apéndice A y se apunta a la autoridad general. Prosa que valdría igual para un
-sistema de despacho de pedidos pertenece a `manual-opforja.md`, no aquí.
+su esqueleto agnóstico (cola, recurso, interfaz) se apunta a la autoridad general.
+Prosa que valdría igual para un sistema de despacho de pedidos pertenece al
+[manual transversal](manual-sistemas-opm.md), no aquí.
 
 **Veto declarado.** Los repos de modelado `hd-opm` y `hodom-opm` **no se citan como
 ejemplares ni como buenas prácticas** (orden del operador, 2026-07-09). Todos los
@@ -76,7 +83,7 @@ tuercen el método general:
 
 **a) Es sociotécnico.** La clasificación (metodología §A1.2) no es trámite: activa
 propósito, ocurrencia del problema y **agencia humana**. En salud casi todo proceso
-central tiene agentes humanos con responsabilidad jurídica y ética, beneficiario
+central es manejado por personas o grupos con responsabilidad jurídica y ética, beneficiario
 humano, y condiciones ambientales que habilitan o niegan. Las preguntas del SD
 cambian de tono: no «¿qué hace el software?» sino «¿quién responde y qué cambia en
 quién?».
@@ -116,62 +123,44 @@ responde dos preguntas de lentes distintas son dos OPDs.
 
 ---
 
-## 2. La ficha del modelo
+## 2. Ficha sanitaria y vida útil
 
-En la mesa vigente todo modelo **nace apunte**; la ficha se llena **a más tardar
-al graduar** — antes del primer trazo cuando la pregunta ya está clara — y **vive
-con el modelo** (en la descripción del modelo en la mesa o en la cabecera del
-proto) para que el cierre se juzgue contra ella y no contra el recuerdo.
+Extiende la [ficha de trabajo transversal](manual-sistemas-opm.md#23-ficha-de-trabajo);
+no crea una ficha paralela:
 
 ```markdown
-### Ficha del modelo
-- Pregunta de gestión: <la decisión sanitaria que este modelo habilita>
-- Dueño de la pregunta (humano): <quien decide con esto y decide su muerte>
-- Beneficiario: <quién recibe el valor>
-- Lente: asistencial | gestión | sistémica   ·   Escala: unidad | establecimiento | red | territorio | nacional
-- Especie: respuesta (muere al responderse) | instrumento (próxima revisión: AAAA-MM-DD)
-- Criterio de suficiencia (pre-registrado, con fecha): <qué debe mostrar el modelo para bastar>
-- Criterio de muerte: <qué lo vuelve residuo>
+### Extensión sanitaria de la ficha
+- Lente: asistencial | gestión | sistémica
+- Escala: unidad | establecimiento | red | territorio | nacional
+- Autoridad clínica, gestora o normativa:
+- Daño no tolerable:
+- Fuente normativa y vigencia, si aplica:
+- Cadencia o gatillo de revisión:
 ```
 
-**Letra chica (la doctrina, breve):**
+La vida útil usa el vocabulario común:
 
-- **Mecanismo vs disciplina.** La mesa y la skill imponen *mecanismos*: integridad
-  estructural siempre, validez exigible al graduar un apunte, `re-elicitar` exige
-  fuente para ratificar, export de LogDecisiones bloqueado sin sello. La ficha es
-  *disciplina*: el método la exige, el humano la ejecuta, y su traza es auditable
-  (la ficha fechada + el registro de la mesa). Este manual no finge gates que la
-  mesa no tiene.
-- **Bien hecho ≠ sirve.** La validación tripartita (manual-opforja §8, metodología
-  §A8) juzga el modelo **bien hecho**; la ficha juzga que **sirve** — es la tensión
-  Verificar ↔ Validar (`urn:fxsl:kb:tensiones-modelamiento`). Un OPD puede ser
-  OPM-válido y no habilitar ninguna decisión.
-- **Pre-registro y juez.** El criterio de suficiencia se escribe **antes** de
-  modelar; el veredicto se emite contra ese texto fechado. Si la célula tiene más de
-  un humano, juzga alguien distinto del autor; si no, la separación es temporal
-  (criterio escrito ayer contra veredicto de hoy — nunca la sensación del momento).
-  El agente modelador **jamás** es el juez.
-- **Cierre limpio.** Un modelo no se declara cerrado con anclas `[RATIFICAR]`
-  pendientes sobre hechos portantes. La mesa no lo impide; el método sí — y la
-  traza se lee en superficies concretas: las anclas del Inspector, el registro
-  [RATIFICAR] de la mesa y su export como LogDecisiones.
-- **Especie y muerte.** ¿Muere cuando su pregunta se responde o su evento cesa? →
-  **respuesta** (el modelo de un brote muere al cerrarse el brote). ¿Existe para
-  sostener una observación — detectar lo que aún no ocurre o registrar lo que sigue
-  ocurriendo (vigilancia, registros, listas)? → **instrumento**, que no es
-  inmortal: en cada `próxima revisión` el dueño responde ¿la obligación sigue viva?
-  ¿alguien lo consumió? Dos revisiones sin consumo = candidato a muerte — salvo
-  instrumentos de **preparación**, donde la revisión pregunta por vigencia y
-  fidelidad, no por consumo. Re-basar o re-propositar es **continuidad con
-  cambio**: nueva versión (la mesa versiona), ni muerte ni exención.
-- **Auditoría del portafolio (recomendación).** Con cadencia, un juez distinto del
-  autor — el custodio del corpus o un panel convocado al efecto — muestrea los
-  modelos cerrados contra su ficha pre-registrada; disciplina que nadie audita se
-  apaga.
-- **Rampa de entrada.** Primer modelo de un equipo nuevo: **una unidad, una
-  pregunta de flujo, ≤12 entidades, lente de gestión** (p. ej. el ciclo de una cama,
-  P6). No porque lo micro sea primero — porque lo acotado es primero. La escala del
-  modelo siguiente es la escala de tu pregunta, no la de tu ambición.
+- **respuesta puntual:** muere cuando se responde la pregunta o cesa el evento; el
+  modelo de un brote suele pertenecer aquí;
+- **referencia viva:** sostiene una observación, preparación o tarea recurrente; el
+  sistema de vigilancia suele pertenecer aquí y necesita revisión.
+
+“Instrumento” no es un tipo documental: en OPM significa objeto no humano que
+habilita un proceso.
+
+A8 clasifica bloqueos estructurales, mejoras metodológicas y
+estilo/legibilidad. La aceptación sanitaria es separada: un dueño competente debe
+confirmar plausibilidad clínica, autoridad normativa, escala, seguridad y utilidad.
+El criterio de suficiencia se pre-registra; el agente modelador no juzga su propio
+trabajo.
+
+La interfaz de graduación muestra severidades reales, pero deja decidir a la
+persona. El método no declara cerrado un modelo con problemas portantes, anclas
+normativas pendientes o falta de aceptación sanitaria.
+
+Rampa recomendada para un equipo nuevo: una unidad, una pregunta de flujo, hasta
+12 entidades y lente de gestión —por ejemplo, el ciclo de una cama (P6). Lo acotado
+va primero; la escala siguiente la decide la pregunta.
 
 ---
 
@@ -262,12 +251,13 @@ pregunta pedía atenciones, y viceversa (P10 hereda el defecto).
 **La tentación.** «El hospital atiende», «el sistema decide» — la organización o el
 software como actor difuso; o degradar al **cuidador** a instrumento del equipo.
 
-**El corte.** Agente = humano o grupo humano, exclusivamente
-(`urn:fxsl:kb:reglas-opm-estrictas-es` R-AG-1). El equipo clínico es agente (grupo);
-la organización puede serlo cuando la responsabilidad es suya (la agencia expresa
-responsabilidad, no afiliación — §A2.2); y el **cuidador es agente**: en la
-hospitalización domiciliaria y en salud mental su acción es constitutiva del
-cuidado (coproducción), no un recurso del equipo.
+**El corte.** Agente = persona o grupo de personas, exclusivamente
+(`urn:fxsl:kb:reglas-opm-estrictas-es` R-AG-1). Un equipo, comité, turno o
+dirección explícitamente modelado como colectivo humano puede manejar un proceso.
+El hospital o la organización abstracta no adquiere enlace de agente por tener
+responsabilidad institucional. El **cuidador es agente** cuando su acción constituye
+el cuidado —por ejemplo, en hospitalización domiciliaria o salud mental—, no un
+recurso del equipo.
 
 **Realización mínima.** **Equipo de UHD** maneja *Visita domiciliaria*.
 **Cuidador** maneja *Cuidado entre visitas*. *Cuidado entre visitas* requiere
@@ -496,11 +486,12 @@ riesgo, `urn:salud:kb:health-systems-science-operativa`) es el mismo corte a otr
 escala: especializar la población en estratos (P18).
 
 **Realización mínima.** **Paciente** exhibe **Categoría de triaje**. **Categoría
-de triaje** puede estar `sin clasificar`, `C1`, `C2`, `C3`, `C4`, `C5`. *Triaje*
-cambia **Categoría de triaje** de `sin clasificar` a `C1` (una oración por rama
-del abanico multi-destino; la correspondencia estado→rama es explícita, jamás un
-«según» implícito). **Enfermera de triaje** maneja *Triaje*. **Categoría de
-triaje** en `C1` inicia *Reanimación inmediata*.
+de triaje** puede estar `sin clasificar`, `C1`, `C2`, `C3`, `C4` o `C5`.
+El abanico XOR se declara en una oración agrupada:
+“*Triaje* cambia **Categoría de triaje** a exactamente uno de `C1`, `C2`, `C3`,
+`C4` o `C5`.” No se escriben cinco transiciones independientes: afirmarían
+enlaces separados y podrían sugerir que todas ocurren. **Enfermera de triaje**
+maneja *Triaje*. **Categoría de triaje** en `C1` inicia *Reanimación inmediata*.
 
 **Cómo se rompe.** La cadena de IFs esconde el eje (nadie ve la distribución de la
 demanda); la correspondencia implícita pierde ramas sin ruido; y el recurso deja de
@@ -548,10 +539,11 @@ domiciliario es capacidad con estados (P6 aplicada); el ingreso exige condicione
 habilitantes (domicilio apto, cuidador — que es agente, P4); y el **escalamiento**
 (retorno al hospital) es un proceso con evento disparador, no una esperanza.
 
-**Realización mínima.** **Cupo de UHD** puede estar `libre`, `ocupado`. *Ingreso a
-UHD* cambia **Paciente** de `hospitalizado` a `hospitalizado en domicilio`.
-*Ingreso a UHD* ocurre si **Evaluación de domicilio** está en `apta`, de lo
-contrario *Ingreso a UHD* se omite. **Paciente** en
+**Realización mínima.** **Cupo de UHD** puede estar `libre` u `ocupado`.
+**Resultado de evaluación domiciliaria** puede estar `apto` o `no apto`. *Ingreso
+a UHD* cambia **Paciente** de `hospitalizado` a `hospitalizado en domicilio`.
+*Ingreso a UHD* ocurre si **Resultado de evaluación domiciliaria** está en `apto`,
+de lo contrario *Ingreso a UHD* se omite. **Paciente** en
 `descompensación en domicilio` inicia *Retorno al hospital*.
 
 **Cómo se rompe.** Sin ruta de retorno modelada, la válvula es una trampa: el
@@ -664,10 +656,10 @@ brote «dentro» del sistema asistencial, como si el sistema lo produjera.
 umbral** es el evento que inicia la respuesta. Regla dura del dominio: **capacidad
 y epidemiología se leen juntas** — un modelo de camas ciego a la señal invernal
 modela un hospital que no existe (`urn:salud:kb:gestion-redes-urgencias`). Y en la
-ficha (§2), distingue las especies: el modelo **del brote** es respuesta (muere al
-cerrarse el brote); el **sistema de vigilancia** que lo detecta es instrumento (y
-si es de preparación, su revisión pregunta por fidelidad y obligación, no por
-consumo).
+ficha (§2), distingue la vida útil: el modelo **del brote** es una respuesta
+puntual (muere al cerrarse el brote); el **sistema de vigilancia** que lo detecta
+es una referencia viva. Si existe para preparación, su revisión pregunta por
+fidelidad y obligación, no por consumo reciente.
 
 **Realización mínima.** *Circulación viral invernal* es un proceso físico y
 ambiental. *Circulación viral invernal* cambia **Población** de `endemia basal` a
@@ -707,7 +699,7 @@ importa al gestor (¿qué pasa cuando el plazo vence?).
 
 ---
 
-## 7. Piezas transversales
+## 7. Reglas sanitarias transversales
 
 ### P21 · El sistema de información jamás atiende `[transversal · todas las escalas]`
 
@@ -719,8 +711,8 @@ el software como quien hace. Es el error número uno del dominio, en ambas hojas
 **El corte.** Agente = humano o grupo humano, **exclusivamente**; software, IA,
 dispositivos y sistemas externos entran por enlace de **instrumento** aunque
 coloquialmente «decidan» (`urn:fxsl:kb:reglas-opm-estrictas-es` R-AG-1 y R-AG-1A;
-anti-patrón AP-05). El criterio no es la sofisticación del software: es quién
-responde.
+anti-patrón AP-05). La responsabilidad ayuda a identificar a la persona o grupo que
+debe representarse; no convierte al software ni a una entidad abstracta en agente.
 
 **Realización mínima.** *Registro clínico* requiere **Ficha clínica electrónica**.
 **Profesional de urgencia** maneja *Registro clínico*. La ficha electrónica es
@@ -738,14 +730,14 @@ acusando el enlace de agente ilegal en cada import.
 ratificar una vez y creer que es para siempre.
 
 **El corte.** Tres caras (metodología §A7, fuerza epistémica): (1) **norma con
-fuente** → ancla normativa vigente; (2) **inferencia** → hipótesis: ancla
-`[RATIFICAR]` pendiente, que se resuelve por re-elicitación con fuente — jamás por
-borrado silencioso; (3) **norma ratificada que caducó** → las garantías, aranceles
-y normas técnicas tienen vigencia: re-ratificar es **mantenimiento del modelo**, no
-ceremonia. El ancla lleva su fecha; el modelo normativo se revisa como el
-instrumento de la ficha (§2). El carril es directo: el `mesa pull` de la skill trae
-los pendientes `[RATIFICAR]` sin transporte humano — y la ratificación sigue
-exigiendo fuente y humano.
+fuente** → ancla normativa vigente; (2) **afirmación normativa recordada** → ancla
+`[RATIFICAR]`, que se resuelve contra la fuente — jamás por borrado silencioso; (3)
+**norma ratificada que caducó** → las garantías, aranceles y normas técnicas tienen
+vigencia: re-ratificar es mantenimiento, no ceremonia. Una hipótesis clínica o de
+modelado no es ancla normativa: se resuelve con evidencia, decisión humana,
+supuesto explícito o declaración fuera de alcance. El puente descrito en la
+[pista agente](manual-opforja.md#pista-agente) transporta pendientes; nunca los
+ratifica por sí solo.
 
 **Realización mínima.** Oración estricta + ancla: «*Notificación de brote* genera
 **Notificación ENO** `[RATIFICAR #plazo-eno: plazo normativo de notificación
@@ -755,34 +747,23 @@ vigente]`» — el hecho compila; el pendiente queda auditable.
 inverso (inferencias plasmadas como ley); y el modelo normativo-zombi: una norma
 derogada operando en el modelo años después de morir en el diario oficial.
 
-### P23 · El sobre de autonomía del agente modelador `[transversal]`
+### P23 · Elevaciones sanitarias del agente modelador `[gobernanza sanitaria]`
 
-**Pregunta.** ¿Qué decide solo el agente que modela contigo — y qué jamás?
+El sobre general pertenece al
+[manual para transformar sistemas](manual-sistemas-opm.md#52-sobre-de-autonomía)
+y el protocolo técnico, a la
+[pista agente](manual-opforja.md#pista-agente). El delta sanitario es qué debe
+elevar siempre:
 
-**La tentación.** Dejarlo al criterio del turno: hoy el agente «ayuda», mañana
-afirma semántica clínica que nadie declaró.
+- significado clínico y estado buscado;
+- consentimiento, seguridad y daño no tolerable;
+- umbrales, plazos y autoridad normativa;
+- inferencias entre individuo, establecimiento, red y población;
+- frontera entre niveles de atención;
+- suficiencia de evidencia clínica, gestora o poblacional.
 
-**El corte.** Matriz explícita, apoyada en mecanismos reales de la skill
-`modelamiento-opm` y la mesa:
-
-| El agente… | Qué |
-|---|---|
-| **Decide solo** | sintaxis y validez OPM, layout, serialización, roundtrip, diagnóstico |
-| **Eleva (HITL)** | semántica clínica (qué transforma un encuentro, qué estado es el buscado), umbrales y plazos normativos, **inferencias cross-escala** (P17), la frontera del sistema (P11), graduar un apunte |
-| **Tiene prohibido** | afirmar hechos clínicos o normativos sin ratificación; rellenar huecos que el humano no declaró (la skill jamás rellena — es su regla dura); ratificar anclas (la ratificación exige fuente y humano); juzgar la ficha (§2) |
-
-La reversión es parte del sobre: la mesa versiona cada push del agente, el
-conflicto de revisión obliga a re-sincronizar (jamás forzar), y el chip de revisión
-en la mesa hace visible lo que el agente trajo; qué afirmó quién queda auditable en
-las anclas, el registro [RATIFICAR] (exportable como LogDecisiones) y el panel de
-procedencia. La disciplina de escritura está codificada en la skill
-`modelamiento-opm` (Regla Dura #29, no-clobber): todo push parte de un pull fresco
-de la misma sesión; un push sin delta semántico es no-op deliberado (no fabrica
-revisiones); crear un modelo nuevo declara su especie y **los bosquejos nacen
-apunte**; la nota de cada push es el rótulo del hito que verá el humano; y una base
-autosave no consolidada exige confirmación explícita del operador — decisión que el
-agente eleva, nunca asume. Confianza rota una vez = célula muerta; el sobre existe
-para que no se rompa.
+El agente puede corregir sintaxis, layout, serialización y roundtrip; no puede
+afirmar hechos clínicos, ratificar sus propias hipótesis ni juzgar la ficha.
 
 **Realización mínima.** (Sin OPL: es un contrato de trabajo.) El agente encuentra
 que «Egreso» necesita saber si el paciente tiene cuidador: **no inventa** el
@@ -792,24 +773,26 @@ estado — deja el hueco, anota la pregunta, y el dueño de la pregunta lo decla
 hechos clínicos que ningún clínico afirmó — indistinguibles de los verdaderos hasta
 que uno muerde.
 
-### P24 · Pensar antes de cerrar: apunte, Taller, middle-out `[transversal]`
+### P24 · El sistema observado antes que el prescrito `[entrada sanitaria]`
 
 **Pregunta.** ¿Cuánto rigor le debes al primer trazo?
 
 **La tentación.** Exigir el SD perfecto antes de empezar (parálisis por método); o
 lo inverso: bautizar «modelo» lo que es exploración sin cobrarle nunca el rigor.
 
-**El corte.** Lo distintivo sanitario: el sistema **ya existe y nadie lo diseñó** —
-se modela en modo reverso (metodología §A1.3), empezando por el fragmento mejor
-entendido, y el arranque bottom-up es de primera clase (§A1.5). La mecánica —
-apunte, OPDs sueltos en el Taller, adoptar, graduar — la enseña `manual-opforja.md`;
-lo que este manual fija es la disciplina: el rigor **se cobra al graduar**, y la
-ficha (§2) se llena a más tardar ahí. Un bosquejo que el agente empuja a la mesa
-nace `apunte` por regla (skill, Regla Dura #29), no por gusto.
+**El corte.** Lo distintivo sanitario es que el sistema suele existir antes de ser
+diseñado como un todo. Se modela en modo reverso (metodología §A1.3), desde la
+práctica observada, no solo desde el procedimiento prescrito. El dueño sanitario
+acepta el AS-IS antes de diseñar el TO-BE.
+
+La mecánica de apunte, Taller, adopción y graduación pertenece al
+[manual de opforja](manual-opforja.md#2-flujo-de-modelamiento-forja). Graduar cambia
+el régimen de rigor; no resuelve una ambigüedad clínica, un OPD huérfano ni la falta
+de aceptación sanitaria.
 
 **Realización mínima.** (Flujo, sin OPL.) Bosqueja el flujo de urgencia como
-apunte; cuando la pregunta de gestión esté clara, llena la ficha y gradúa: los
-juicios de validez re-enganchan solos y son tu checklist de cierre.
+apunte; cuando la pregunta esté clara, completa la extensión sanitaria, reconcilia
+los OPDs y revisa las severidades antes de decidir la graduación.
 
 **Cómo se rompe.** El mega-SD prematuro decide arquitectura antes de entender la
 función (metodología §A0.2); o el portafolio de «modelos» que son apuntes con
@@ -828,9 +811,9 @@ no acumulan estado entre sí.
 
 > - **Pregunta de gestión**: ¿la saturación de la urgencia de Ranquil responde a
 >   falta de camas o a fallas del proceso de egreso — y dónde exactamente?
-> - **Dueño**: subdirección médica del hospital (humano, nombrado).
+> - **Dueño**: equipo de subdirección médica del hospital (grupo humano nombrado).
 > - **Lente**: gestión (con una excursión sistémica declarada) · **Escala**: establecimiento→red.
-> - **Especie**: respuesta — muere cuando la intervención se decida.
+> - **Vida útil**: respuesta puntual — muere cuando la intervención se decida.
 > - **Criterio de suficiencia (fechado)**: el modelo descompone la espera en estados
 >   con dueño identificable, localiza estructuralmente dónde se corta la ruta de
 >   retorno, y entrega los indicadores que discriminan las hipótesis. **No** exige
@@ -870,30 +853,29 @@ estructural de la contrarreferencia, localizado y registrado como brecha con
 predicción; (3) los dos indicadores discriminantes listos para medirse. La
 subdirección decide con esto rediseñar el trámite de egreso y nombrar un dueño de
 la contrarreferencia en APS. **Cumplido el criterio, el modelo muere**: se archiva
-con su ficha; si en seis meses la pregunta renace, renace con ficha nueva.
+con su ficha; si la pregunta renace, nace una ficha nueva.
 
 ---
 
 ## 9. Cuando la mesa no llega
 
-Deriva sanitaria de `manual-opforja.md §L` — se nombra con honestidad, no se finge:
+La frontera general vive en el
+[manual para transformar sistemas](manual-sistemas-opm.md#9-frontera-de-capacidad-de-opforja).
+Estas son sus consecuencias propias en salud:
 
 | Lo que el dominio pide | Lo que la mesa da — y lo que no |
 |---|---|
 | Calcular colas, ocupación, tiempos de espera (teoría de colas, simulación de eventos discretos) | La mesa captura la **estructura** del flujo (estados, procesos, abanicos) y la simulación **conceptual** recorre orden, precondiciones y ramas. Los **números** se calculan fuera (planilla, R, un simulador DES) sobre los indicadores que el modelo estructura (P10). Prometer cálculo de colas es la falsa promesa capital de este dominio. |
-| Varios modeladores simultáneos sobre el modelo de la red | Un modelador por modelo (sin multiusuario concurrente): agente y operador **se serializan** — optimistic locking (409) + vitrina de revisión —, no co-editan en vivo (P23). |
-| Federar los modelos de todos los establecimientos | No hay federación de modelos. El sustituto honesto: composición por interfaz (P12) + bibliotecas gobernadas con Anclaje (P16). |
-| Que la herramienta infiera (razonamiento automático, epidemiología computacional) | La mesa modela y valida; **no infiere**. La inferencia sanitaria la ponen el humano y sus herramientas de análisis — y las inferencias cross-escala se elevan siempre (P17). |
-| Deshacer una descomposición automáticamente (out-zoom) | El in-zoom se declara; el out-zoom es manual. |
-| Exportar el informe final en PDF | Export canónico: Markdown determinista + PNG/SVG por OPD. El documento final se compone fuera. |
+| Inferir un diagnóstico, riesgo individual, causalidad o señal epidemiológica | La mesa modela hipótesis, estados y respuesta; no realiza juicio clínico ni inferencia epidemiológica. Personas competentes y herramientas especializadas producen el veredicto. |
+| Certificar cumplimiento normativo, seguridad clínica o equidad | El modelo conserva anclas, responsabilidades, estratos y evidencia esperada; no certifica conformidad ni reemplaza auditoría especializada. |
+| Integrar el portafolio de toda una red | No hay federación automática. La alternativa operable es composición por objetos-frontera (P12) y vocabulario gobernado mediante bibliotecas/Piezas (P16). |
 
 ---
 
-## Apéndice A — Esqueletos
+## Apéndice A — Mapa de herencia y autoridad
 
-Cada pieza sanitaria es instancia de un patrón agnóstico; el esqueleto se aprende
-en su autoridad, la instancia se aprende aquí. (Una fila por familia; LF-* =
-catálogo de lecciones de `urn:fxsl:kb:metodologia-forja-opm-es`.)
+Cada pieza sanitaria aplica un patrón general sin volver a explicarlo. LF-* refiere
+al catálogo de lecciones de `urn:fxsl:kb:metodologia-forja-opm-es`.
 
 | Pieza(s) | Esqueleto agnóstico | Autoridad |
 |---|---|---|
@@ -908,33 +890,30 @@ catálogo de lecciones de `urn:fxsl:kb:metodologia-forja-opm-es`.)
 | P10 | atributo cuantitativo con polaridad/unidad/fórmula/procedencia | metodología §A7 |
 | P11 | frontera declarada y firma de frontera | metodología §A0.4 · reglas R-CAT-EQ-2/3 |
 | P12 | objeto-frontera congelado; composición por interfaz | LF-04 · reglas R-CAT-COMP |
-| P13 | abanico multi-destino declarado, correspondencia estado→rama explícita | spec-forja-opl-es (oraciones de abanico XOR/OR) · tabla de retiros `según` (skill) |
+| P13 | abanico multi-destino declarado, correspondencia estado→rama explícita | spec-forja-opl-es R-FAN-5/R-FAN-7 |
 | P14 | evento de estado + condición/omisión | opl-es §7 · metodología §A6 |
 | P15 | capacidad con estados + proceso de escalamiento por evento | P6 + opl-es §control |
 | P16 | reuso gobernado: Calco/Anclaje/Centinela | spec-forja-opd R-OPD-ROT-9 |
 | P17, P18 | objeto-agregado propio; especialización en estratos | metodología §A2 · «puede ser» |
 | P19 | ocurrencia del problema como proceso ambiental; evento por umbral | metodología §A2.5 |
 | P20, P22 | ancla normativa; fuerza epistémica del requisito; error temporal | metodología §A7 · skill `modelamiento-opm` §anclas |
-| P23 | sobre de autonomía; el flag y el registro como mecanismo | skill `modelamiento-opm` (reglas duras, régimen apunte) |
-| P24 | bosquejo bottom-up de primera clase; adopción | metodología §A1.5 · spec-forja-opd R-OPD-REF-20 |
+| P23 | elevaciones sanitarias del sobre de autonomía | [manual de sistemas §5](manual-sistemas-opm.md#5-ingeniería-agéntica-del-trabajo) |
+| P24 | entrada reversa sanitaria sobre bosquejo bottom-up | metodología §A1.3/A1.5 · spec-forja-opd R-OPD-REF-20 |
 
 ---
 
-## Bitácora
+## Fuentes y siguiente paso
 
-- **2026-07-09** — Creación. Diseñado por deliberación de panel (`salubrista` ×
-  `allan-kelly` × `steve-jobs`, protocolo `consenso-deliberativo` en modo
-  orquestación: propuestas independientes → crítica cruzada → síntesis → 2 ciclos
-  de refutación adversarial → consenso con triple aceptación; confianzas 0.88 /
-  0.85 / 0.85). Acta: `docs/auditorias/2026-07-09-acta-manual-sanitarios-opm.md`.
-  Amplía y profundiza las hojas `opforja-sanitarios-gestion.html` y
-  `opforja-sociosanitarios.html`, que quedan como capa rápida.
-- **2026-07-09 (revisión OPL)** — Auditoría línea-por-línea contra la skill
-  `modelamiento-opm` v1.13.0 y sus plantillas OPL-ES: 6 formas ilegales corregidas
-  en las oraciones testigo (condición con rama negativa obligatoria R-COND-RAMA-1;
-  «puede ser» XOR con «o»; la espera se dimensionaliza, no «se despliega»;
-  transición explícita en vez de «afecta» con estados; excepción de sobretiempo
-  EX1; abanico por rama en vez de pipes), una-sentencia-por-hecho aplicada a las
-  realizaciones, y sincronía con la v1.13.0 (Regla Dura #29 no-clobber en P23,
-  todo-nace-apunte en §2/P24, serialización agente/operador en §9, pull directo de
-  pendientes en P22).
+Procedencia de creación:
+[acta de deliberación sanitaria](auditorias/2026-07-09-acta-manual-sanitarios-opm.md).
+Git conserva la historia editorial.
+
+Autoridades de uso:
+
+- [manual para transformar sistemas](manual-sistemas-opm.md);
+- [manual de opforja](manual-opforja.md);
+- [resolutor OPM/Forja](canon-opm/resolutor-urn.json);
+- corpus sanitario `urn:salud:kb:*`.
+
+Vuelve al [índice documental](README.md) o usa las
+[hojas rápidas](cheatsheets/README.md).

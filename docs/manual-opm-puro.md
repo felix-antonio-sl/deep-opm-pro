@@ -30,9 +30,9 @@ Cada parte cierra con **preguntas de autoevaluación**; las respuestas razonadas
 
 ---
 
-# Parte 0 — Orientación
+## Parte 0 — Orientación
 
-## 0.1 Propósito, audiencia y cómo leer este manual
+### 0.1 Propósito, audiencia y cómo leer este manual
 
 Este manual existe para una sola cosa: que quien lo estudie **aprenda OPM bien
 aprendido** — sus fundamentos ontológicos, su lenguaje bimodal, su método y su
@@ -57,7 +57,7 @@ núcleo conceptual, no se saltan); la Parte V puede leerse antes que la IV si el
 lector prefiere «hacer» antes que «componer»; las Partes VI y VII son
 profundización. El cheat sheet acompañante condensa las tablas para el repaso.
 
-## 0.2 El acto de modelar como navegación de tensiones
+### 0.2 El acto de modelar como navegación de tensiones
 
 Antes de OPM, una tesis general sobre *todo* modelado, tomada del marco de las
 52 tensiones (`urn:fxsl:kb:tensiones-modelamiento`):
@@ -88,7 +88,7 @@ sintaxis. El contexto (capa C) modula profundidad, alcance y ritmo — jamás la
 corrección: un modelo pequeño tiene derecho a ser menos profundo, no a estar
 mal formado.
 
-## 0.3 Qué congela OPM: el mapa de resoluciones
+### 0.3 Qué congela OPM: el mapa de resoluciones
 
 Esta tabla es el mapa del manual. Cada fila es una tensión sustantiva de la
 capa A y la primitiva con que OPM la resuelve; la última columna indica dónde
@@ -120,7 +120,7 @@ Completar↔Entregar, Fidelidad↔Utilidad y todas las de praxis y contexto —
 reaparecen en la Parte V (método) y la Parte VII, porque ahí es donde el
 modelador las navega con nombre y criterio.
 
-## 0.4 Qué es OPM y dónde se sitúa
+### 0.4 Qué es OPM y dónde se sitúa
 
 **OPM (Object-Process Methodology)** es un lenguaje formal **bimodal** — gráfico
 y textual — más una metodología, para especificar sistemas complejos y
@@ -151,7 +151,7 @@ dueño documental:
 Cuando este manual cita una regla `R-*` o una plantilla con ID (`T1`, `RF3`,
 `CX1`…), la traza apunta a esas capas.
 
-### Preguntas de autoevaluación — Parte 0
+#### Preguntas de autoevaluación — Parte 0
 
 **P0.1** ¿Por qué «un formalismo es un sistema de resoluciones congeladas» y
 qué implica eso para distinguir a un experto en sintaxis de un experto en
@@ -163,11 +163,11 @@ UML/SysML?
 
 ---
 
-# Parte I — Fundamentos ontológicos
+## Parte I — Fundamentos ontológicos
 
-## §1 La ontología mínima: cosas, objetos, procesos
+### §1 La ontología mínima: cosas, objetos, procesos
 
-### 1.1 Dos clases de cosa, y nada más
+#### 1.1 Dos clases de cosa, y nada más
 
 OPM parte de una decisión ontológica radical, que resuelve la tensión
 Entidad↔Evento («¿es algo, o sucede?»):
@@ -188,7 +188,7 @@ lenguajes recibe una caja especial, en OPM es un objeto, un proceso, un estado
 o un enlace. Este cierre es deliberado: menos clases primitivas significa menos
 decisiones arbitrarias de clasificación y más consistencia entre modeladores.
 
-### 1.2 La prueba objeto-proceso
+#### 1.2 La prueba objeto-proceso
 
 ¿Cómo decidir si algo del dominio es objeto o proceso? El corpus da tres
 criterios conjuntos (la **prueba objeto-proceso**):
@@ -206,7 +206,7 @@ mal clasificado, una relación estructural disfrazada, o ruido. Esta exigencia
 de «cierre transformador» es la vacuna de OPM contra los diagramas de cajas
 que fluyen sin que nada cambie.
 
-### 1.3 El estado no es una cosa
+#### 1.3 El estado no es una cosa
 
 Un **estado** es una situación o posición posible de un objeto (glosario 3.68).
 Vive **exclusivamente dentro de su objeto propietario** — se dibuja como un
@@ -220,7 +220,7 @@ fases de un proceso, se **descompone** el proceso en subprocesos (*Iniciar*,
 *Procesar*, *Finalizar*). La razón ontológica: un proceso *es* devenir; sus
 «fases» son sub-devenires, no situaciones estables de algo que persiste.
 
-### 1.4 Procesos persistentes: el caso límite
+#### 1.4 Procesos persistentes: el caso límite
 
 La adaptación canónica reconoce procesos cuyo aporte no es un cambio neto sino
 una **condición mantenida en el tiempo**: *Existir*, *Sostener*, *Mantener*,
@@ -234,7 +234,7 @@ invariancia neta: su OPL canónico reutiliza la plantilla de cambio con estado
 de entrada igual al de salida — `*Mantener Presión* cambia **Tanque** de
 `presurizado` a `presurizado`.` (R-OPL-PERSIST-2).
 
-## §2 Propiedades genéricas y frontera del sistema
+### §2 Propiedades genéricas y frontera del sistema
 
 Toda cosa OPM porta tres **propiedades genéricas**, cada una resolviendo una
 tensión sustantiva:
@@ -265,9 +265,9 @@ afiliación ambigua.
 física e informacional, se clasifica como **física** — la esencia dominante del
 componente tangible prevalece (heurística metodológica §9.11).
 
-## §3 Estados, designaciones, atributos y valores
+### §3 Estados, designaciones, atributos y valores
 
-### 3.1 Objetos con y sin estados
+#### 3.1 Objetos con y sin estados
 
 Un **objeto con estados** declara un conjunto de estados permitidos (`s ≥ 1`);
 en cada instante, una instancia del objeto está en un estado o **en transición**
@@ -283,7 +283,7 @@ Obsérvese el verbo: **«puede estar»** — estados son situaciones temporales 
 en español se dicen con *estar*. Contrástese con la especialización («puede
 ser», §13.4): confundir ambos verbos es confundir ontología con taxonomía.
 
-### 3.2 Las cuatro designaciones de estado
+#### 3.2 Las cuatro designaciones de estado
 
 Una **designación** califica el rol persistente de un estado dentro de su
 conjunto (glosario 3.71a; R-EST-2):
@@ -306,7 +306,7 @@ distingue del **estado actual de runtime** (efímero, durante una simulación):
 son canales distintos y las herramientas deben distinguirlos visualmente
 (R-EST-4). La distinción reaparece en §24.
 
-### 3.3 Atributos y valores
+#### 3.3 Atributos y valores
 
 Un **atributo** es un **objeto** que caracteriza una cosa distinta de sí mismo
 (glosario 3.4), conectado a su exhibidor por la relación
@@ -331,7 +331,7 @@ del objeto — `**Feto** puede estar `embrión` o `bebé`.` — en vez del par
 atributo+valores. Criterio: legibilidad; la forma completa se prefiere cuando
 hay varios atributos o el nombre del atributo aporta semántica.
 
-### 3.4 Objetos específicos de estado (avanzado)
+#### 3.4 Objetos específicos de estado (avanzado)
 
 Un objeto con `s` estados genera conceptualmente `s` **objetos específicos de
 estado**: especializaciones sin estados que «refieren a» un estado concreto
@@ -341,7 +341,7 @@ cada uno enlazado al original con un estructural etiquetado `refiere al estado
 de`. El mecanismo permite tratar «el objeto en tal estado» como cosa
 referenciable — útil en composición inter-modelo (§18).
 
-## §4 Función, estructura, comportamiento: los seis principios
+### §4 Función, estructura, comportamiento: los seis principios
 
 Los seis principios de modelado del núcleo conceptual gobiernan todo lo demás:
 
@@ -370,7 +370,7 @@ recibe valor de la operación del sistema (3.6); la **función** es el proceso
 que entrega ese valor (3.23); el **valor funcional** es el beneficio derivado
 (3.82).
 
-### Preguntas de autoevaluación — Parte I
+#### Preguntas de autoevaluación — Parte I
 
 **P1.1** Aplique la prueba objeto-proceso a «Contrato», «Firma del Contrato» y
 «Vigencia del Contrato». Clasifique cada uno y justifique.
@@ -385,9 +385,9 @@ distinción al simular?
 
 ---
 
-# Parte II — Bimodalidad: OPD y OPL
+## Parte II — Bimodalidad: OPD y OPL
 
-## §5 El principio bimodal: un hecho, dos proyecciones
+### §5 El principio bimodal: un hecho, dos proyecciones
 
 La tensión Visual↔Textual pregunta: ¿diagrama o lenguaje? OPM la **disuelve**
 eligiendo ambos polos con una disciplina estricta:
@@ -413,9 +413,9 @@ constructo gráfico (R-BI-DUAL-1). A esta ida-y-vuelta la llamamos
 **bisimetría**, y su tabla de correspondencias (Apéndice B) funciona como
 contrato de equivalencia.
 
-## §6 OPD: el vocabulario visual
+### §6 OPD: el vocabulario visual
 
-### 6.1 Formas y las ocho combinaciones
+#### 6.1 Formas y las ocho combinaciones
 
 | Forma cerrada | Representa |
 |---|---|
@@ -433,7 +433,7 @@ Regla que ahorra discusiones: **el color es informativo, no normativo**
 y topología — nunca en el color. Dos herramientas con paletas distintas pueden
 producir OPDs canónicamente idénticos.
 
-### 6.2 Decoraciones de extremo de enlace
+#### 6.2 Decoraciones de extremo de enlace
 
 El tipo de un enlace se reconoce por la decoración de su extremo:
 
@@ -446,7 +446,7 @@ El tipo de un enlace se reconoce por la decoración de su extremo:
 | Punta abierta | *open arrowhead* | Estructural etiquetado unidireccional |
 | Arpón (media punta) | *harpoon* | Estructural bidireccional / recíproco |
 
-### 6.3 Los cuatro triángulos estructurales
+#### 6.3 Los cuatro triángulos estructurales
 
 Las cuatro relaciones estructurales fundamentales comparten geometría — un
 triángulo cuyo **vértice apunta al refinable** y cuya base conecta con los
@@ -460,7 +460,7 @@ triángulo, que es canal normativo (R-TRI-2):
 | Vacío | Generalización-especialización (general → especializaciones) |
 | Círculo interior | Clasificación-instanciación (clase → instancias) |
 
-### 6.4 Marcas textuales sobre enlaces
+#### 6.4 Marcas textuales sobre enlaces
 
 | Marca | Significado |
 |---|---|
@@ -472,7 +472,7 @@ triángulo, que es canal normativo (R-TRI-2):
 | Texto en itálica sobre el eje | Etiqueta de enlace estructural |
 | Texto sobre enlace procedimental | Etiqueta de ruta |
 
-### 6.5 Indicadores auxiliares y anidamiento
+#### 6.5 Indicadores auxiliares y anidamiento
 
 - **Colección incompleta**: barra horizontal corta bajo el triángulo («hay más
   refinadores que no se muestran»).
@@ -485,7 +485,7 @@ Anidamiento permitido: un objeto puede contener estados, y partes si está
 descompuesto; una elipse **inflada** contiene subprocesos y objetos internos;
 un estado no contiene **nada** (es atómico).
 
-### 6.6 Legibilidad como regla, no como gusto
+#### 6.6 Legibilidad como regla, no como gusto
 
 El canon fija el límite de legibilidad en **20–25 cosas por OPD** (V-50):
 más allá, el diagrama debe refinarse, simplificarse o convertirse en vista.
@@ -493,9 +493,9 @@ No-oclusión y minimización de cruces de enlaces son igualmente normativas
 (V-51). La claridad no es cosmética: un OPD ilegible es un OPD que ya no
 comunica, y comunicar es la mitad del contrato bimodal.
 
-## §7 OPL-ES: el lenguaje textual
+### §7 OPL-ES: el lenguaje textual
 
-### 7.1 Decisiones de diseño del español canónico
+#### 7.1 Decisiones de diseño del español canónico
 
 OPL-ES traduce el OPL inglés de referencia preservando el orden
 sujeto-verbo-complemento de cada plantilla (R-OPL-6). Sus decisiones de diseño
@@ -514,7 +514,7 @@ son lecciones de precisión lingüística aplicada:
   cursiva, `estado` en monoespaciado. Este manual la usa en todos sus
   ejemplos.
 
-### 7.2 Nombres válidos
+#### 7.2 Nombres válidos
 
 | Clase | Regla | Ejemplos válidos | Inválidos |
 |---|---|---|---|
@@ -527,7 +527,7 @@ La exigencia deverbal para procesos no es purismo: garantiza que el nombre
 *denote acción o resultado de acción*, es decir, que la cosa nombrada pase la
 prueba objeto-proceso ya desde el léxico.
 
-### 7.3 El vocabulario de verbos fijos
+#### 7.3 El vocabulario de verbos fijos
 
 Cada familia de enlace tiene su verbo, en tercera persona del presente:
 
@@ -548,7 +548,7 @@ Palabras clave fijas: `si`, `en cuyo caso`, `de lo contrario`, `exactamente
 uno de` (XOR), `al menos uno de` (OR), `así como` (adición heterogénea),
 `por ruta`, `en esa secuencia`, `duración de`, `excede`, `es menor que`.
 
-### 7.4 El párrafo OPL de un sistema completo
+#### 7.4 El párrafo OPL de un sistema completo
 
 El SD del sistema de *Preparación de Empanadas* (`urn:fxsl:kb:opl-es` §16)
 muestra cómo suena un párrafo OPL-ES. Se presenta aquí en su **versión saneada
@@ -579,7 +579,7 @@ dominio puede auditar ese párrafo; cualquier herramienta conforme puede
 reconstruir el diagrama desde él. Esa doble legibilidad — humana y mecánica —
 es la promesa cumplida de la bimodalidad.
 
-### Preguntas de autoevaluación — Parte II
+#### Preguntas de autoevaluación — Parte II
 
 **P2.1** ¿Qué prohíbe exactamente el principio del hecho único, y qué error de
 herramienta lo violaría?
@@ -592,13 +592,13 @@ la masa de cruda a horneada» (asuma **Masa** con estados `cruda` y
 
 ---
 
-# Parte III — Enlaces: el sistema circulatorio del modelo
+## Parte III — Enlaces: el sistema circulatorio del modelo
 
-## §8 Panorama: cinco familias base, una extensión y dos leyes transversales
+### §8 Panorama: cinco familias base, una extensión y dos leyes transversales
 
 Un **enlace** es la expresión gráfica de una relación estructural o
 procedimental (glosario 3.36). La capa base OPM-ES (`urn:fxsl:kb:opm-es`)
-distingue **cinco familias canónicas**. El canon prescriptivo de OpForja
+distingue **cinco familias canónicas**. El perfil prescriptivo Forja
 promueve la excepción temporal a sexta familia autónoma por paridad con la
 invocación; es una **extensión declarada**, no una propiedad de OPM base:
 
@@ -640,9 +640,9 @@ comienza cuando (1) ocurre su evento iniciador, si existe, y (2) se satisface
 su precondición. Los eventos **se pierden** tras la evaluación, se satisfaga o
 no la precondición (R-ECA-1; §11.1).
 
-## §9 Enlaces transformadores: consumo, resultado, efecto
+### §9 Enlaces transformadores: consumo, resultado, efecto
 
-### 9.1 Los tres tipos básicos
+#### 9.1 Los tres tipos básicos
 
 | Enlace | Semántica | Dirección | OPL (plantilla) |
 |---|---|---|---|
@@ -655,7 +655,7 @@ cambian la *existencia*, no solo el estado. El **transformado** es el objeto
 sobre el que el proceso actúa (consumido, resultante o afectado); junto con
 los habilitadores forma el **conjunto de objetos involucrados** del proceso.
 
-### 9.2 Variantes con estado especificado
+#### 9.2 Variantes con estado especificado
 
 Los transformadores pueden anclarse a estados concretos, no al objeto entero:
 
@@ -676,7 +676,7 @@ salida especificada resuelve el destino al estado *por defecto* del objeto, o
 a la distribución de probabilidad si no lo hay — R-EFE-3), y como mitades del
 **enlace escindido** que aparece al descomponer un TS3 (§16.2).
 
-### 9.3 Semántica temporal fina
+#### 9.3 Semántica temporal fina
 
 Tres reglas de tiempo con consecuencias directas en la simulación (§24) y en
 la disponibilidad de objetos entre subprocesos:
@@ -692,7 +692,7 @@ la disponibilidad de objetos entre subprocesos:
    para otros procesos. Si el proceso aborta, queda indeterminado salvo que
    exista manejo de excepción (R-EFE-2B; §11.4).
 
-### 9.4 Restricciones no obvias
+#### 9.4 Restricciones no obvias
 
 - **Resultado hacia estado inicial, prohibido** (R-RES-1, AP-04): el enlace de
   resultado se conecta al rectángulo del objeto o a un estado *no inicial* —
@@ -703,22 +703,23 @@ la disponibilidad de objetos entre subprocesos:
   activarse el proceso; modelar consumo gradual exige declarar *tasa* en el
   enlace y *cantidad* como atributo del consumido, simultáneamente (R-CONS-2/3).
 
-## §10 Enlaces habilitadores: agentes e instrumentos
+### §10 Enlaces habilitadores: agentes e instrumentos
 
 Un **habilitador** es un objeto necesario para que el proceso ocurra, pero que
 **no es transformado** por él (glosario 3.17). Dos clases:
 
 | Enlace | Habilitador | Decoración | OPL |
 |---|---|---|---|
-| **Agente** | persona o grupo humano con decisión | piruleta **negra** | `**Agente** maneja *Proceso*.` (H1) |
+| **Agente** | persona o grupo de personas | piruleta **negra** | `**Agente** maneja *Proceso*.` (H1) |
 | **Instrumento** | objeto no humano | piruleta **blanca** | `*Proceso* requiere **Instrumento**.` (H2) |
 
 **La regla dura de humanidad** (R-AG-1, AP-05): el enlace de agente se reserva
-**exclusivamente** a humanos o grupos humanos. Robots, software, sistemas de
+**exclusivamente** a personas o grupos de personas. Robots, software, sistemas de
 IA — por autónomos que sean — usan enlace de **instrumento** en el modelo
 nuclear. La prosa externa puede llamarlos «agentes»; el OPD/OPL canónico, no.
-El criterio no es capacidad sino **responsabilidad**: OPM reserva la piruleta
-negra para quien responde por sus decisiones.
+La responsabilidad ayuda a decidir **qué persona o grupo** conviene representar,
+pero no es el criterio ontológico: no convierte una organización abstracta, una
+máquina ni un software en agente OPM.
 
 Reglas y matices de uso:
 
@@ -743,9 +744,9 @@ Reglas y matices de uso:
   rol transformador y la humanidad del beneficiario queda dicha en el nombre y
   la posición, no en un segundo enlace.
 
-## §11 Control: eventos, condiciones, excepciones
+### §11 Control: eventos, condiciones, excepciones
 
-### 11.1 La tabla de las tres conductas
+#### 11.1 La tabla de las tres conductas
 
 Los modificadores `e` (evento) y `c` (condición) **no son enlaces nuevos**:
 son anotaciones sobre un enlace base transformador o habilitador (R-ECA-4).
@@ -768,7 +769,7 @@ metodológico): múltiples **eventos** = OR (cualquiera dispara); múltiples
 condición falla, el proceso se salta aunque sus enlaces sin modificador estén
 satisfechos.
 
-### 11.2 Plantillas de evento y condición
+#### 11.2 Plantillas de evento y condición
 
 Evento — el objeto que dispara aparece dos veces, como disparador y en su rol
 base:
@@ -784,7 +785,7 @@ contrario se omite`:
 > `**Agente** maneja *Proceso* si **Agente** existe, de lo contrario *Proceso* se omite.` (CH1)
 > `*Proceso* ocurre si **Objeto** está en `estado`, en cuyo caso **Objeto** se consume, de lo contrario *Proceso* se omite.` (CS1)
 
-### 11.3 La asimetría del resultado: por qué no hay `e` ni `c` de resultado
+#### 11.3 La asimetría del resultado: por qué no hay `e` ni `c` de resultado
 
 Regla absoluta (R-MOD-1..4; AP-01/02): **el enlace de resultado no admite
 modificadores de control**. El fundamento es ontológico, no convencional: el
@@ -799,7 +800,7 @@ canon (zona no canonizada, AP-28); modificadores sobre enlaces estructurales o
 sobre invocación son **errores de categoría** (AP-09/10) — lo estructural es
 atemporal y la invocación ya es control.
 
-### 11.4 Excepciones temporales: sobretiempo y subtiempo
+#### 11.4 Excepciones temporales: sobretiempo y subtiempo
 
 La **duración** de un proceso puede especializarse en mínima, esperada y
 máxima (con distribución opcional). Los enlaces de **excepción** conectan el
@@ -820,7 +821,7 @@ excepción es además el único mecanismo que **resuelve el estado indeterminado
 de un afectado cuyo proceso abortó (§9.3): sin manejadores, el modelo queda
 incompleto para simulación.
 
-## §12 Invocación: procesos que inician procesos
+### §12 Invocación: procesos que inician procesos
 
 La **invocación** modela que un proceso inicia otro (firma proceso→proceso,
 decoración de rayo). Semánticamente equivale a un objeto intermedio transitorio
@@ -832,7 +833,7 @@ transitorio que OPM lo suprime y deja el rayo.
 | Invocación | `*Invocador* invoca *Invocado*.` (IV1) |
 | Auto-invocación (bucle) | `*Invocador* se invoca a sí mismo.` (IV2) |
 
-### 12.1 Invocación implícita: la línea de tiempo
+#### 12.1 Invocación implícita: la línea de tiempo
 
 Dentro de un proceso descompuesto rige el **principio de línea de tiempo**: el
 tiempo fluye de arriba hacia abajo, y la terminación de un subproceso **invoca
@@ -849,7 +850,7 @@ prohibido. El rayo explícito queda reservado para lo que el orden vertical no
 puede decir: **bucles** (auto-invocación o retorno al padre), **saltos fuera
 de orden** y **invocaciones entre OPDs distintos**.
 
-### 12.2 El objeto transiente y su supresión
+#### 12.2 El objeto transiente y su supresión
 
 Heurística dual de la §22.1 (proceso persistente → estructural etiquetado):
 cuando un proceso crea un objeto que el siguiente consume de inmediato **sin
@@ -859,9 +860,9 @@ Objeto* invoca *Evaluar Amenaza* — la «Señal de Detección» intermedia solo
 existía para el diagrama, no para el dominio. Ambas heurísticas son el mismo
 principio: **no reificar lo que no se observa**.
 
-## §13 Enlaces estructurales: la anatomía de lo estable
+### §13 Enlaces estructurales: la anatomía de lo estable
 
-### 13.1 Agregación-participación (todo → partes)
+#### 13.1 Agregación-participación (todo → partes)
 
 > `**Lavavajillas** consta de **Compartimento de Jabón** y al menos otra parte.`
 > `**Todo** consta de **Parte1**, **Parte2** y **Parte3**.` (RF1)
@@ -872,7 +873,7 @@ afectadas o producidas **independientemente** sin que el todo lo sea
 dibuja con la barra bajo el triángulo — así el modelo declara honestamente la
 tensión Conocido↔Desconocido en vez de fingir completitud.
 
-### 13.2 Exhibición-caracterización (exhibidor → rasgos)
+#### 13.2 Exhibición-caracterización (exhibidor → rasgos)
 
 > `**Exhibidor** exhibe **Atributo1** y **Atributo2**.` (RF2)
 > `**Exhibidor** exhibe **Atributo1** así como *Operación1*.` (RF2b)
@@ -885,7 +886,7 @@ operación, proceso-exhibe-atributo, proceso-exhibe-operación. Nótese «así
 como»: la adición heterogénea que separa atributos de operaciones en la misma
 oración.
 
-### 13.3 Generalización-especialización (general → especializaciones)
+#### 13.3 Generalización-especialización (general → especializaciones)
 
 > `**Especialización1** y **Especialización2** son **General**.` (RF3)
 > `**Especialización** es un **General**.` (RF3b)
@@ -910,7 +911,7 @@ El **atributo discriminante** organiza las especializaciones por valores:
 Con varios discriminantes, el máximo de especializaciones válidas es el
 producto cartesiano de sus valores (R-HER-4).
 
-### 13.4 «Puede ser»: la especialización disyuntiva
+#### 13.4 «Puede ser»: la especialización disyuntiva
 
 Cuando lo que se afirma no es la taxonomía completa sino que una cosa
 pertenece a **exactamente una** de varias clases, OPL-ES usa el verbo
@@ -924,7 +925,7 @@ se enumeran con **«puede estar»** (situación temporal, verbo *estar*); las
 alternativas de **especialización** con **«puede ser»** (identidad taxonómica,
 verbo *ser*). Dos verbos, dos ontologías.
 
-### 13.5 Clasificación-instanciación (clase → instancias)
+#### 13.5 Clasificación-instanciación (clase → instancias)
 
 > `**Instancia** es una instancia de **Clase**.` (RF4)
 > `**Instancia1** e **Instancia2** son instancias de **Clase**.` (RF4b)
@@ -941,14 +942,14 @@ varía durante la operación. Dos matices que evitan confusiones clásicas:
   de modelos, y clase (con autos individuales por número de chasis) en el
   sistema de un concesionario.
 
-### 13.6 Restricción de perseverancia
+#### 13.6 Restricción de perseverancia
 
 Salvo exhibición-caracterización, refinable y refinadores deben compartir
 perseverancia (R-STRF-1): un todo-objeto tiene partes-objeto; un
 general-proceso tiene especializaciones-proceso. La partición
 estático/dinámico se respeta también dentro de las taxonomías.
 
-### 13.7 Enlaces estructurales etiquetados
+#### 13.7 Enlaces estructurales etiquetados
 
 Para las relaciones estables cuya semántica **define el modelador**:
 
@@ -966,9 +967,9 @@ recíproco (R-STRE-1). Existen además variantes **con estado especificado**
 — con una restricción de geometría: bidireccional y recíproco no existen para
 estado *solo en destino* (AP-11).
 
-## §14 Operadores lógicos: AND, XOR, OR y probabilidad
+### §14 Operadores lógicos: AND, XOR, OR y probabilidad
 
-### 14.1 Las tres semánticas y su geometría
+#### 14.1 Las tres semánticas y su geometría
 
 | Operador | Geometría | Semántica | OPL |
 |---|---|---|---|
@@ -989,7 +990,7 @@ convergente (R-FAN-GEO-1/2). XOR y OR aplican a todas las familias
 procedimentales — consumo, resultado, efecto, agente, instrumento, invocación
 — cada una con su plantilla (Apéndice B).
 
-### 14.2 Probabilidad
+#### 14.2 Probabilidad
 
 Un abanico XOR puede declararse **probabilístico**: cada enlace se anota
 `Pr=p` y las probabilidades suman exactamente 1 (R-PROB-1; la suma unitaria,
@@ -1004,7 +1005,7 @@ disciplina epistémica — es la tensión Hecho↔Supuesto aplicada a los númer
   declara explícitamente «probabilístico sin pesos»: ni inventar números ni
   dejar que un default uniforme silencioso se haga pasar por conocimiento.
 
-### 14.3 m-de-f, NOT, rutas y escenarios
+#### 14.3 m-de-f, NOT, rutas y escenarios
 
 - **m-de-f combinatorial**: para abanicos de tamaño f > 2, «exactamente m de
   f» o «al menos m de f» (m < f), con m anotado junto al arco — el patrón «2
@@ -1025,7 +1026,7 @@ disciplina epistémica — es la tensión Hecho↔Supuesto aplicada a los númer
   procesos alternativos — el si-entonces-sino de OPM, generalizable a n
   estados como selección de casos.
 
-### Preguntas de autoevaluación — Parte III
+#### Preguntas de autoevaluación — Parte III
 
 **P3.1** Explique desde Pre(P)/Post(P) por qué el resultado no admite `e` ni
 `c`, y por qué el consumo sí.
@@ -1041,9 +1042,9 @@ modificador y uno con `c`, cuando el instrumento falta?
 
 ---
 
-# Parte IV — Complejidad: refinamiento, abstracción, composición
+## Parte IV — Complejidad: refinamiento, abstracción, composición
 
-## §15 Los cuatro pares de refinamiento-abstracción
+### §15 Los cuatro pares de refinamiento-abstracción
 
 La tensión Detalle↔Abstracción no se resuelve eligiendo un nivel: se resuelve
 con **mecanismos de ida y vuelta** entre niveles. OPM ofrece cuatro pares
@@ -1056,7 +1057,7 @@ canónicos, cada uno con su ámbito:
 | Comportamiento | **Descomposición** (*in-zooming*) | **Recomposición** (*out-zooming*) |
 | Inter-modelo | **Referencia a sub-modelo** | Desconexión de la referencia |
 
-### 15.1 Descomposición vs despliegue: la distinción síncrono/asíncrono
+#### 15.1 Descomposición vs despliegue: la distinción síncrono/asíncrono
 
 La decisión más importante al refinar un proceso:
 
@@ -1080,7 +1081,7 @@ independientes que ocurren en cualquier orden (sistemas reactivos, servicios)
 en qué orden llegarán). Y si los subprocesos son **variantes** de un mismo
 patrón, no partes: generalización-especialización, no agregación.
 
-### 15.2 Reglas duras de todo refinamiento
+#### 15.2 Reglas duras de todo refinamiento
 
 - **No trivialidad** (R-REF-NTRIV-1..3, AP-13): una descomposición exige ≥ 2
   subprocesos; un despliegue, ≥ 2 refinadores. Un refinamiento de un solo
@@ -1096,7 +1097,7 @@ patrón, no partes: generalización-especialización, no agregación.
   transformados, estados ni enlaces nuevos respecto de su padre, esa
   refinación probablemente sobra.
 
-### 15.3 El árbol de OPDs y la identidad persistente
+#### 15.3 El árbol de OPDs y la identidad persistente
 
 El **SD** (System Diagram) es el OPD raíz; cada descomposición engendra un
 hijo: `SD` → `SD1` → `SD1.1`… El **árbol de procesos OPD** es el mecanismo
@@ -1113,7 +1114,7 @@ debe usar el identificador, no la etiqueta (AP-17). Tres canales separados que
 no deben confundirse: orden temporal (declarado en la descomposición), orden
 de navegación (derivado del árbol), identidad (persistente).
 
-### 15.4 Expresión y supresión de estados
+#### 15.4 Expresión y supresión de estados
 
 El mismo objeto puede mostrar estados distintos en OPDs distintos: se
 **suprimen** los estados irrelevantes al contexto (marca `...` en el objeto) y
@@ -1123,9 +1124,9 @@ estados de un objeto es la **unión** sobre todos los OPDs (R-OPL-TOTAL-4/5).
 Metodológicamente: estados suprimidos en el SD, expresados en SD1 donde los
 subprocesos los transforman.
 
-## §16 Descomponer sin romper: distribución, escisión, roles
+### §16 Descomponer sin romper: distribución, escisión, roles
 
-### 16.1 Distribución de enlaces al descomponer
+#### 16.1 Distribución de enlaces al descomponer
 
 Cuando el proceso *P* enlazado a medio mundo se descompone, ¿qué pasa con sus
 enlaces? La tabla normativa:
@@ -1150,7 +1151,7 @@ obligando a modelar la contingencia). Conectar un evento a un subproceso no
 inicial exige verificar que los previos pueden omitirse sin dejar
 precondiciones insatisfechas (AP-27).
 
-### 16.2 Escisión del efecto entrada-salida
+#### 16.2 Escisión del efecto entrada-salida
 
 Si `*P* cambia **A** de `s1` a `s2`` y *P* se descompone en *P1*…*Pn*, el
 modelo queda **subespecificado**: ¿qué subproceso saca a **A** de `s1` y cuál
@@ -1163,7 +1164,7 @@ acoplado:
 Las dos mitades solo tienen sentido juntas y **no admiten modificadores de
 control** (AP-08): saltarse una mitad del efecto distorsionaría su semántica.
 
-### 16.3 Cambio de rol entre niveles
+#### 16.3 Cambio de rol entre niveles
 
 Un hallazgo elegante del ejemplo del lavavajillas: **Lavavajillas** es
 *instrumento* de *Lavar Platos* en el SD, pero *afectado* en SD1 (*Cargar
@@ -1174,7 +1175,7 @@ estado final). El nivel abstracto no miente al llamarlo instrumento: visto
 desde fuera, nada le cambió. Si el neto no es cero, debe ser afectado en ambos
 niveles (R-ROL-3). Aplica solo a descomposición, no a despliegue.
 
-### 16.4 Recomposición y fuerza semántica
+#### 16.4 Recomposición y fuerza semántica
 
 Al abstraer (recomponer), los enlaces de los subprocesos migran al padre — y
 pueden **colisionar**: dos subprocesos con enlaces distintos hacia el mismo
@@ -1189,14 +1190,14 @@ corregir el nivel hijo antes de abstraer. La fuerza semántica resuelve
 colisiones de recomposición; no autoriza fusionar hechos distintos ni borrar
 evidencia legítima.
 
-### 16.5 Consistencia de hechos
+#### 16.5 Consistencia de hechos
 
 Principio global (R-CONSIST-1/2): un hecho afirmado en un OPD **no debe
 contradecir** un hecho de otro OPD del mismo modelo — pero refinamiento o
 abstracción de un hecho **no es** contradicción. El cambio de rol de §16.3 es
 exactamente eso: la versión abstracta y la detallada del mismo hecho.
 
-## §17 Vistas, simplificación y el modelo como todo
+### §17 Vistas, simplificación y el modelo como todo
 
 - **Tipología de vistas**: el **OPD jerárquico** es el único nodo real del
   árbol de refinamiento; la **vista anclada** (mapa del sistema, árboles de
@@ -1216,7 +1217,7 @@ exactamente eso: la versión abstracta y la detallada del mismo hecho.
   más que lo que solo vive en SD1.2.3. El árbol es también un mapa de
   relevancia.
 
-## §18 Composición inter-modelo (avanzado)
+### §18 Composición inter-modelo (avanzado)
 
 Cuando el sistema crece más allá de un modelo — equipos concurrentes,
 subsistemas con dueño propio — OPM ofrece el cuarto par: **composición por
@@ -1243,7 +1244,7 @@ Es la resolución OPM de la tensión Modular↔Monolítico, y su lección
 transferible: la modularidad no es partir el dibujo — es **gobernar la
 frontera** (identidad persistente, propiedad, contrato congelado).
 
-### Preguntas de autoevaluación — Parte IV
+#### Preguntas de autoevaluación — Parte IV
 
 **P4.1** ¿Qué par de refinamiento usa para (a) las fases ordenadas de
 *Facturar*; (b) las partes del **Motor**; (c) los tipos de **Alerta**?
@@ -1259,23 +1260,23 @@ externa?
 
 ---
 
-# Parte V — Método: del propósito al modelo verificado
+## Parte V — Método: del propósito al modelo verificado
 
-## §19 El principio rector y la clasificación del sistema
+### §19 El principio rector y la clasificación del sistema
 
-Todo el método cuelga de una regla rectora única (§4 del manual metodológico):
+La construcción debe terminar reconciliada con una función explícita. El
+asistente SD-primero del método Forja expresa esa preferencia:
 
 > El modelado DEBE comenzar por la **función** del sistema, continuar con la
 > delimitación de su **valor, agentes, entorno y transformados**, y solo
 > después profundizar en estructura, control, simulación y gobernanza.
 
-La función es la **semilla** del modelo; el SD precede a cualquier
-refinamiento. Aquí OPM toma partido en una tensión de praxis — Top-down ↔
-Bottom-up — y su criterio es explícito: partir de la visión (función/valor)
-evita el vicio de catalogar componentes sin saber para qué existen. (La praxis
-matizada: la heurística «desde el nivel medio» de §21 reconoce que a veces se
-entra por donde mejor se entiende y se refina en ambas direcciones — el método
-es top-down, la exploración puede no serlo.)
+OPM como formalismo **no decide** la tensión de praxis Top-down ↔ Bottom-up. Forja
+ofrece dos arranques legítimos: **SD-primero** cuando función y frontera ya están
+claras, y **bottom-up/middle-out** cuando el conocimiento comienza en un fragmento
+del sistema. En el segundo caso, el fragmento se reconcilia después con el SD y su
+función; no queda como catálogo huérfano. El criterio no es obedecer una dirección
+universal, sino hacer explícita y gobernable la función del sistema.
 
 **Pre-etapa obligatoria — clasificar el sistema**, porque la clase determina
 qué componentes del SD aplican:
@@ -1290,7 +1291,7 @@ qué componentes del SD aplican:
 Un sistema con partes informacionales sigue siendo físico si la transformación
 dominante es física (*Transportar Equipaje* con software de tracking: físico).
 
-## §20 Construcción del SD: el protocolo de doce etapas
+### §20 Construcción del SD: el protocolo de etapas 0–11
 
 El **asistente agnóstico de construcción del SD** es un protocolo de
 interacción — válido como entrevista, formulario, checklist o flujo humano —
@@ -1339,9 +1340,9 @@ identificado (MEDIA), ocurrencia del problema si aplica (MEDIA), OPL legible
 (ALTA), nombres conformes (ALTA), exhibición presente (ALTA), ningún
 instrumento con enlace de agente (ALTA).
 
-## §21 Los niveles siguientes: SD1 y más allá
+### §21 Los niveles siguientes: SD1 y más allá
 
-### 21.1 Elaboración progresiva de SD1
+#### 21.1 Elaboración progresiva de SD1
 
 1. Inflar el proceso principal (contorno grueso en padre e hijo).
 2. Agregar subprocesos (mínimo 2) en vertical según la línea de tiempo.
@@ -1358,7 +1359,7 @@ contorno (CRÍTICA); escisiones resueltas (ALTA); estados relevantes expresados
 (ALTA); refinamiento del tipo correcto — síncrono→descomposición,
 asíncrono→despliegue (ALTA).
 
-### 21.2 Alcance interior vs exterior
+#### 21.2 Alcance interior vs exterior
 
 Un **objeto interior** (creado dentro de un proceso descompuesto, sin
 apariencia en el padre) existe solo en ese alcance y se elimina en cascada con
@@ -1366,7 +1367,7 @@ el padre. Un **objeto exterior** (nivel SD) existe con independencia. Mover
 visualmente un objeto exterior dentro de la elipse inflada **no** lo vuelve
 interior: el alcance es semántico, no posicional.
 
-### 21.3 Estrategias de recorrido
+#### 21.3 Estrategias de recorrido
 
 - **Desde el nivel medio**: entrar por el nivel que mejor se entiende y
   refinar/abstraer en ambas direcciones.
@@ -1379,7 +1380,7 @@ interior: el alcance es semántico, no posicional.
   este proceso?» — la pregunta revela los **objetos implícitos** que el texto
   omite (heurística §9.14).
 
-## §22 Heurísticas que separan al modelador del dibujante
+### §22 Heurísticas que separan al modelador del dibujante
 
 1. **Proceso persistente → estructural etiquetado** (§9.1): si mantener el
    estado no requiere esfuerzo relevante, la relación es estructural
@@ -1407,7 +1408,7 @@ interior: el alcance es semántico, no posicional.
    enlaces al mismo proceso; agentes en momentos distintos → descomponer y
    asignar cada uno a su subproceso.
 
-## §23 Anti-patrones: el catálogo de los errores con nombre
+### §23 Anti-patrones: el catálogo de los errores con nombre
 
 Curado del canon (AP-*) a los errores más instructivos para quien aprende —
 cada uno con su porqué:
@@ -1428,7 +1429,7 @@ cada uno con su porqué:
 | Objeto transiente sin observación | reificación innecesaria | invocación (AP-26) |
 | `SDx.y` como identificador externo | la etiqueta muta con el árbol | identificador persistente (AP-17) |
 
-### Preguntas de autoevaluación — Parte V
+#### Preguntas de autoevaluación — Parte V
 
 **P5.1** ¿Por qué el método prohíbe modelar «propósito» en sistemas naturales
 y qué se modela en su lugar?
@@ -1445,11 +1446,11 @@ arquitectural?
 
 ---
 
-# Parte VI — Dinámica: ejecución y simulación
+## Parte VI — Dinámica: ejecución y simulación
 
-## §24 Del modelo conceptual a la ejecución
+### §24 Del modelo conceptual a la ejecución
 
-### 24.1 Conceptual vs operacional
+#### 24.1 Conceptual vs operacional
 
 Distinción cardinal (R-EJEC-1): el **modelo conceptual** describe *patrones*
 de estructura y comportamiento; una **instancia operacional** es una
@@ -1462,7 +1463,7 @@ patrones. Un modelo con nivel de detalle consistente es **realizable**:
 implementable como simulación capaz de activar recursos, transformar objetos y
 producir el valor funcional — ese es el criterio formal de completitud.
 
-### 24.2 El ciclo de ejecución de un proceso
+#### 24.2 El ciclo de ejecución de un proceso
 
 La semántica ECA completa, en orden:
 
@@ -1491,7 +1492,7 @@ de resultantes, entrada a estados de salida y notificación en paralelo). Vale
 la pena estudiarlo: es a la vez lección de semántica y demostración de que OPM
 alcanza para especificarse a sí mismo.
 
-### 24.3 Tiempo, duración y estocasticidad
+#### 24.3 Tiempo, duración y estocasticidad
 
 - La **duración** `(mín, esperada, máx)` se muestra dentro de la elipse con su
   unidad: `Procesar [min] (30.0, 45.6, 60.0)`.
@@ -1505,7 +1506,7 @@ alcanza para especificarse a sí mismo.
   *simulación*, no licencia de modelado: para determinismo se conecta el
   resultado a un estado específico; para pesos reales, abanico probabilístico.
 
-### 24.4 Herramientas conceptuales de análisis dinámico
+#### 24.4 Herramientas conceptuales de análisis dinámico
 
 - **Diagrama de vida útil**: para cualquier instante, qué objetos existen, en
   qué estado está cada uno y qué procesos están activos.
@@ -1521,7 +1522,7 @@ alcanza para especificarse a sí mismo.
   último; en modelos compuestos, el cruce a un sub-modelo es una **transición
   explícita de frontera**, no la continuación de un árbol global imaginario.
 
-### Preguntas de autoevaluación — Parte VI
+#### Preguntas de autoevaluación — Parte VI
 
 **P6.1** ¿En qué momento exacto desaparece un consumido y aparece un
 resultante, y qué implica para la disponibilidad entre subprocesos?
@@ -1534,9 +1535,9 @@ cambia al declararlas?
 
 ---
 
-# Parte VII — OPM entre los formalismos
+## Parte VII — OPM entre los formalismos
 
-## §25 Lo que OPM congela, lo que deja en tus manos
+### §25 Lo que OPM congela, lo que deja en tus manos
 
 Cerramos el arco abierto en la Parte 0. El Apéndice D da la tabla completa;
 aquí, la lectura de conjunto en tres estratos:
@@ -1578,7 +1579,7 @@ en la misma primitiva de diagrama, con la coherencia garantizada por
 construcción (hecho único) y no por disciplina del equipo. Elegir formalismo
 es elegir qué quieres que esté garantizado y qué estás dispuesto a vigilar tú.
 
-## §26 OPM en la ingeniería de sistemas basada en modelos (MBSE)
+### §26 OPM en la ingeniería de sistemas basada en modelos (MBSE)
 
 MBSE reemplaza las especificaciones textuales — sin lenguaje estandarizado ni
 verificación formal — por modelos conceptuales. El repertorio OPM para esa
@@ -1600,9 +1601,9 @@ práctica:
 - **Integración virtual**: modelos conceptuales de hardware controlados por
   software ejecutable real, para validar antes del prototipo físico.
 
-## §27 El metamodelo y la conformidad (avanzado)
+### §27 El metamodelo y la conformidad (avanzado)
 
-### 27.1 Tres capas y el constructo básico
+#### 27.1 Tres capas y el constructo básico
 
 El **metamodelo** de OPM (el modelo del lenguaje mismo) organiza todo modelo
 individual en tres capas:
@@ -1619,7 +1620,7 @@ constructos; los abanicos y refinamientos múltiples son constructos
 compuestos. Un enlace, a su vez, consta de origen, destino, conector, línea,
 símbolo, etiqueta opcional y ruta opcional (R-META-13).
 
-### 27.2 Niveles de conformidad
+#### 27.2 Niveles de conformidad
 
 | Nivel | Exige |
 |---|---|
@@ -1633,7 +1634,12 @@ dualidad, el refinamiento sano y la consistencia de hechos en un modelo de
 varios niveles es conformidad *completa* — y es ahí donde se demuestra que se
 aprendió OPM y no solo su iconografía.
 
-### Preguntas de autoevaluación — Parte VII
+Esta escala describe conformidad formal; no constituye el inventario de funciones
+de un producto. Para opforja, consulta las
+[brechas de conformidad](manual-opforja.md#l-brechas-de-conformidad-y-frontera-del-producto)
+y el [registro trazable](roadmap/registro-conformidad-ssot.md).
+
+#### Preguntas de autoevaluación — Parte VII
 
 **P7.1** Formule con la lente de tensiones la diferencia esencial entre
 modelar un dominio con BPMN y con OPM.
@@ -1645,7 +1651,7 @@ completamente conforme?
 
 ---
 
-# Apéndice A — Glosario esencial
+## Apéndice A — Glosario esencial
 
 Selección curada del glosario canónico (`urn:fxsl:kb:opm-es` §Glosario); el
 número es la entrada canónica. Algunas definiciones se glosan levemente para
@@ -1690,7 +1696,7 @@ cualquier duda, manda la letra del corpus.
 | Instancia operacional | Cosa identificable de forma única durante operación o simulación | 3.29 |
 | Metamodelo | Modelo de un lenguaje de modelado | 3.37 |
 
-# Apéndice B — Resumen de plantillas OPL-ES
+## Apéndice B — Resumen de plantillas OPL-ES
 
 Referencia rápida por familia; la fuente canónica es `urn:fxsl:kb:opl-es` y
 las tablas-gate del canon prescriptivo. Tipografía: **objeto**, *proceso*,
@@ -1786,7 +1792,7 @@ las tablas-gate del canon prescriptivo. Tipografía: **objeto**, *proceso*,
 | Atributo (rango) | **Atributo** de **Objeto** varía de X a Y. |
 | Tipo | **Objeto** es de tipo tipo-id. |
 
-# Apéndice C — Autoevaluación resuelta
+## Apéndice C — Autoevaluación resuelta
 
 **P0.1** Porque el formalismo trae decididas de antemano las tensiones
 sustantivas (qué es cosa, cómo se compone, cómo se hereda), encarnadas en sus
@@ -1972,7 +1978,7 @@ sistema), la gestión de contexto y refinamiento sanos, la dualidad OPD↔OPL
 mantenida y la consistencia de hechos entre OPDs — es decir, todo lo que no se
 ve en un diagrama aislado.
 
-# Apéndice D — Mapa completo tensión → resolución OPM
+## Apéndice D — Mapa completo tensión → resolución OPM
 
 Las 24 tensiones sustantivas (`urn:fxsl:kb:tensiones-modelamiento`, capa A) y
 la postura de OPM ante cada una. «Resuelta» = primitiva dedicada; «apoyada» =
@@ -2010,7 +2016,7 @@ Las 16 tensiones de praxis (B) y 12 de contexto (C) no aparecen aquí porque
 protocolo, la skill `pensamiento-modelador` sobre el kb
 `urn:fxsl:kb:tensiones-modelamiento`.
 
-# Apéndice E — Fuentes y trazabilidad
+## Apéndice E — Fuentes y trazabilidad
 
 | Fuente | URN | Aporta a este manual |
 |---|---|---|

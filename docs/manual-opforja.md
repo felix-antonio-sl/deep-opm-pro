@@ -52,9 +52,9 @@ OPM aporta la ontología mínima — objetos, procesos, estados, enlaces. Forja 
 la disciplina operativa: reglas estrictas, método, realización visual, realización
 textual, roundtrip y validación. opforja no es un dibujador genérico: una figura
 en el canvas vale solo si porta un hecho OPM válido y ese hecho puede expresarse
-en OPL. Tampoco descubre la verdad del dominio: el operador aporta qué hace el
-sistema en el mundo; opforja y sus agentes custodian que esa verdad se exprese con
-primitivas OPM correctas.
+en OPL. Tampoco descubre la verdad del dominio: las fuentes aportan evidencia e
+hipótesis, el dueño humano las ratifica y opforja custodia que el significado
+aceptado se exprese con primitivas OPM correctas.
 
 **Audiencia**: modeladores que construyen un sistema desde cero; agentes que
 guían, validan o serializan; mantenedores de deep-opm-pro; revisores que necesitan
@@ -67,17 +67,18 @@ este manual para arbitrar una disputa normativa.
 
 **Resultado esperado de una sesión**: no "un diagrama bonito" sino un paquete
 auditable — propósito y alcance declarados, System Diagram legible, OPL que el
-operador confirma, supuestos y brechas explícitos, validación tripartita y el
-siguiente refinamiento o el criterio de suficiencia. Si falta algo, es borrador,
-no modelo cerrado.
+operador confirma, supuestos y brechas explícitos, validación tripartita,
+aceptación del dueño de dominio y el siguiente refinamiento o criterio de
+suficiencia. Si falta algo, es borrador, no modelo cerrado.
 
 ---
 
 ## 1. Modelo mental mínimo
 
-**Función antes que forma.** Todo modelo empieza por: qué transformación entrega
-valor y para quién. Una función debe ser neutral respecto de la solución ("cruzar
-el río" admite puente, ferry o túnel; "construir puente" ya escogió forma).
+**Función antes que forma.** Todo modelo debe converger en qué transformación
+entrega valor y para quién; esa función es la semilla conceptual, aunque el primer
+hecho se bosqueje bottom-up. Debe ser neutral respecto de la solución ("cruzar el
+río" admite puente, ferry o túnel; "construir puente" ya escogió forma).
 
 **Objeto, proceso, estado.** Un objeto existe; un proceso transforma; un estado es
 una situación posible de un objeto. La pregunta fundacional es siempre: esto que
@@ -85,10 +86,11 @@ nombré, ¿existe o sucede? Palabras como "gestión", "módulo", "sistema",
 "procesar" o "manejar" suelen esconder barro si no dicen qué cambia.
 
 **Transformee, agente, instrumento.** El transformee es la cosa que el proceso
-consume, produce, crea, destruye o cambia. El agente es persona u organización de
-humanos responsable (R-AG-1; software/IA/sensor son siempre instrumentos —
-R-AG-1A/R-AG-1B). El instrumento habilita pero no se transforma. Confundir
-transformee con habilitador es error ontológico, no detalle visual.
+consume, produce, crea, destruye o cambia. El agente es exclusivamente una persona
+o grupo de personas (R-AG-1; software, IA, sensores y organizaciones abstractas no
+lo son — R-AG-1A/R-AG-1B). La responsabilidad ayuda a escoger qué personas
+representar; no cambia la ontología. El instrumento habilita pero no se transforma.
+Confundir transformee con habilitador es error ontológico, no detalle visual.
 
 **OPD y OPL son dos caras del mismo hecho.** Cada hecho debe poder verse en OPD y
 leerse en OPL. Si el OPL no se lee como lenguaje natural controlado, el OPD está
@@ -114,7 +116,7 @@ alguna no tiene respuesta, no es hecho terminado.
 ## 2. Flujo de modelamiento Forja
 
 El orden de elicitación del SD es propiedad de `urn:fxsl:kb:metodologia-forja-opm-es`
-§A2 (11 etapas; cada una cierra con un hecho explícito). Este manual no lo copia;
+§A2 (etapas 0–11; cada una cierra con un hecho explícito). Este manual no lo copia;
 resume su forma:
 
 - **A0 — antes de la semilla**: generar alternativas (al menos tres conceptos si la
@@ -130,9 +132,10 @@ resume su forma:
   —OPDs sin padre— sin comprometer aún un SD, y reconcílialos después hacia el SD0 por
   **adopción** (verbo «adoptar» del Taller — fija padre + declara refinamiento en un
   gesto, el mismo constructor que el refinamiento top-down, convergente en el vínculo).
-  La **reconciliación hacia el SD0 es el acto que cobra el rigor**. El asistente de 11
-  etapas (A2) realiza el arranque SD-primero; el bottom-up entra a él en la reconciliación.
-- **A2 — construcción del SD**: 11 etapas (clasificación → proceso principal →
+  La reconciliación resuelve **dónde pertenece** el fragmento; no cambia su especie.
+  El asistente de etapas 0–11 (A2) realiza el arranque SD-primero; el bottom-up entra
+  a él durante la reconciliación.
+- **A2 — construcción del SD**: etapas 0–11 (clasificación → proceso principal →
   interesado → valor a transformar → función → agencia → frontera → instrumentos →
   resultados → entorno → ocurrencia del problema → compuerta PASA/FALLA §A8). El SD
   no busca completitud total sino una semilla honesta y trazable.
@@ -148,10 +151,11 @@ resume su forma:
 - **A7 — requisitos/errores/simulación/cuantitativo**: un requisito inferido no es
   norma; marcarlo como inferencia. Lo cuantitativo conserva polaridad, unidad,
   fórmula y procedencia.
-- **A8 — validación tripartita**: bien formado (cumple reglas), representa (el
-  operador confirma que dice lo que ocurre), sirve (responde al propósito). No decir
-  "validado" sin decir cuál de los tres niveles. Los barridos de integridad se hacen
-  sobre el JSON canónico, no sobre el OPL emitido.
+- **A8 — validación tripartita**: (1) bloqueos estructurales — no avanzar; (2)
+  mejoras metodológicas — avanzar solo con deuda declarada; (3) estilo/legibilidad.
+  La validación stakeholder es una marca separada: el dueño humano decide si el
+  modelo representa el dominio y sirve a la pregunta. Los barridos de integridad se
+  hacen sobre el JSON canónico, no sobre el OPL emitido.
 
 **Apunte y bosquejo (dos ejes de exploración).** Son hermanos por ejes distintos y
 conviven — un apunte es el hogar natural del bosquejo bottom-up:
@@ -161,8 +165,12 @@ conviven — un apunte es el hogar natural del bosquejo bottom-up:
   bloquear. Régimen permisivo de la skill (§Regimen apunte).
 - **Bosquejo** relaja el **orden de arranque** (A1.5): permite trazar OPDs sueltos sin
   fijar el SD primero, y reconciliar después. Régimen §Regimen bosquejo de la skill.
-En ambos la **integridad estructural nunca se relaja** (un suelto colgante rechaza
-igual). **Graduar** —el mismo gesto en inverso— re-engancha A8 completo sin dejar rastro.
+En ambos la **integridad referencial nunca se relaja**: no se permiten enlaces rotos
+ni referencias inexistentes. Un OPD suelto es una deuda de portabilidad distinta:
+en un apunte se informa y el export puede conservar la marca de bosquejo; en un
+modelo bloquea el export canónico hasta adoptar o reconciliar. **Graduar** cambia el
+régimen apunte→modelo y reengancha la severidad de A8; no adopta OPDs sueltos. El
+diálogo informa esa severidad, pero deja la decisión final a la persona.
 
 ---
 
@@ -178,42 +186,24 @@ de una regla `DEBE` se trata conforme a R-CONF-7 de
 `urn:fxsl:kb:reglas-opm-estrictas-es` — deuda exigible o programación declarada; la
 brecha silenciosa está prohibida.
 
-La guía de usuario operativa de la app (entrar, guardar, buscar, command palette,
-importar/exportar JSON, exportar PNG, atajos, límites de sesión) vive en
-**`docs/uso-productivo.md`**. Este manual no la duplica. Superficies desplegadas el
-2026-07-08: **gestor de dos zonas** (Trabajo / Bibliotecas), la puerta **«Nuevo»→apunte**
-(«todo nace apunte», ver §2 para el método), la banda **«Taller»** de OPDs sueltos, y el
-chip **«Revisión nueva»** del puente directo (§A.6) — su walkthrough paso-a-paso vive en
-`docs/uso-productivo.md` (§Empezar, §Taller, §Gestionar Modelos). En resumen:
+La mecánica exacta de entrar, guardar, buscar, gestionar modelos, requisitos,
+ontología organizacional, simulación, versiones y exportación vive en
+[Uso productivo](uso-productivo.md). Este manual conserva la consecuencia
+metodológica: canvas OPD y panel OPL proyectan el mismo hecho; el JSON permite
+rehidratarlo; una imagen solo lo comunica; y la identidad de una cosa no cambia por
+navegar entre sus apariciones.
 
-- **Canvas OPD**: compone hechos visuales; cada forma/enlace/marcador es portador de
-  semántica OPM o UI transitoria claramente separada.
-- **Panel OPL**: lee el modelo como lenguaje natural controlado; editar OPL es
-  seguro solo dentro del vocabulario y plantillas que el parser reconoce.
-- **Selección y navegación**: preservan identidad — seleccionar una cosa o su
-  aparición en otro OPD no crea cosas nuevas (ver "Regla de apariciones" en
-  `docs/uso-productivo.md`).
-- **Exportación y persistencia**: el bundle JSON conserva hechos, identidad, OPDs,
-  OPL y trazas para rehidratar/auditar. Una imagen sola comunica, pero no sustituye
-  el bundle canónico.
-- **Piezas**: superficie que trae al lienzo una entidad de una biblioteca designada
-  (`esBiblioteca`), decidiendo en el gesto **Calcar** (copia desacoplada, default) o
-  **Anclar** (referencia viva vigilada por el Centinela de Drift — chip de 3 estados
-  en el lienzo: al-día / `?` no-resuelto / `⟳` divergente). Internamente el campo de
-  modelo sigue llamándose `Entidad.estereotipoId` (marca **meta** que no emite OPL
-  nuclear, se rotula `<<Nombre>>` en canvas) — el renombre D6→Calco es interno,
-  pendiente; la superficie y el gesto visibles ya dicen "Piezas"/"Calcar"/"Anclar".
-  La realización visual la gobierna `urn:fxsl:kb:spec-forja-opd-es` v1.3.0
-  (R-OPD-ROT-6 estereotipos + R-OPD-ROT-9 Anclaje, canonizadas 2026-07-06;
-  R-OPD-REF-20 Taller bottom-up §10.4, 2026-07-07 — todas por HITL custodio); ver §9.
+El Taller y el régimen apunte se explican en §2; el puente humano-agente, en §A; y
+Piezas, Calco y Anclaje, en §9. Los nombres, chips o fechas de una superficie no se
+duplican aquí.
 
 ### 4. Construir un modelo desde cero
 
 Walkthrough subordinado al orden normativo §A2 (al conducir una sesión A2 manda la
-secuencia de 11 etapas). Es recorrido didáctico, no botones concretos. Describe el
+secuencia 0–11). Es recorrido didáctico, no botones concretos. Describe el
 arranque **SD-primero**; para el arranque **bottom-up** (bosquejar fragmentos sueltos y
-reconciliarlos hacia el SD0 por «adoptar») ver §2/A1.5 — converge en estas mismas etapas
-al graduar.
+reconciliarlos hacia el SD0 por «adoptar») ver §2/A1.5. Ambos arranques convergen en
+un SD coherente; la graduación es una decisión de cierre separada.
 
 1. **Declarar el propósito**: oración verbo-objeto que diga el cambio sin fijar la
    forma ("mejorar disponibilidad de camas", no "crear plataforma"). Prueba útil: si
@@ -229,7 +219,7 @@ al graduar.
    (estado inicial → estado buscado).
 6. **Identificar transformees**: consumo / resultado / efecto.
 7. **Añadir agentes e instrumentos** solo después de saber qué cambia (agente =
-   humano/organización responsable; software/sensor = instrumento).
+   persona o grupo de personas; software/sensor = instrumento).
 8. **Declarar sistema y frontera**: decide qué es sistémico y qué ambiental; cambiar
    de lado es decisión explícita, no efecto del layout.
 9. **Declarar esencia y afiliación**: física/informacional, sistémica/ambiental.
@@ -274,8 +264,11 @@ confirma la equivalencia.
 
 ### A. Operar opforja como agente
 
-**Estado:** vivo. Esta pista describe cómo un agente conduce opforja sin un humano
-moviendo el mouse, manteniendo la misma disciplina del tronco común. La autoridad de
+Esta pista describe cómo un agente conduce opforja sin un humano moviendo el mouse,
+manteniendo la misma disciplina del tronco común. Aquí “agente” significa ejecutor
+software de ingeniería agéntica; dentro de OPD/OPL sigue siendo objeto no humano,
+normalmente instrumento. La persona o grupo que autoriza o responde es el agente
+OPM. La autoridad de
 método y postura dialéctica es la skill `urn:kora:artefacto:modelamiento-opm`
 (anti-complaciente: bloquea avance ante barro, fuerza aclaración antes de plasmar).
 Este manual no transcribe la skill; la cita por URN.
@@ -283,7 +276,7 @@ Este manual no transcribe la skill; la cita por URN.
 #### A.1 El loop de modelado del agente
 
 1. **Triaje**: leer el intent y el contexto del operador — sea vía el **puente directo**
-   `mesa pull` (§A.6), sea vía el markdown "Contexto de modelado" del **puente W6.0 por
+   `cd app && bun run mesa pull …` (§A.6), sea vía el markdown "Contexto de modelado" del **puente W6.0 por
    portapapeles**: procedencia, pendientes `[RATIFICAR]`, notas de la mesa, diagnóstico JSON y OPL.
 2. **Elicitar / construir**: aplicar el flujo Forja (§2). Ante barro, detenerse y
    preguntar; no construir sobre supuesto.
@@ -294,7 +287,9 @@ Este manual no transcribe la skill; la cita por URN.
 5. **Revisar visual**: pasada read-through con render headless (§A.3) cuando el OPD
    importa para la decisión.
 
-Las herramientas del agente son **read-through**: no mutan el proto ni el dominio.
+Pull, diagnóstico, render y validación son **read-through**: no mutan el dominio.
+Compilar produce un bundle y `push` crea una revisión; por eso requieren base
+fresca, delta explícito y revisión humana.
 
 #### A.2 El DSL de autoría (`app/src/autoria/`)
 
@@ -308,8 +303,9 @@ contrato exacto es el código, no esta prosa):
   política de canon (bloquean solo avisos estructurales).
 - `compilarProto(...)` → compilador proto-modelo → Modelo (camino primario;
   determinista, verificador total).
-- `construirSello / compararProcedencia` → sello de procedencia de 3 componentes
-  `{ protoHash, autoriaVersion, layoutVersion }` y detección de divergencia.
+- `construirSello / compararProcedencia` → sello de procedencia con
+  `{ protoHash, autoriaVersion, layoutVersion }` y `doctrinaVersion` opcional cuando
+  se fijan las cuatro SSOT; permite detectar divergencia.
 
 El bundle es **citable**: lleva procedencia y permite rehidratar/auditar el modelo
 fuera de una imagen. El JSON sigue el formato `deep-opm-pro.modelo.v0`
@@ -333,27 +329,35 @@ git-diff (los puertos inflan el texto).
 
 El agente identifica citas/normas del proto y propone su estandarización en OPL-ES
 estricto; el compilador **no** aprende léxico de dominio ni emite anclas sin
-confirmación humana. Las anclas `[RATIFICAR]` solo pasan a vigentes vía
+confirmación humana. Hay dos deudas distintas: una afirmación normativa se ratifica
+contra su **fuente**; una hipótesis de modelado se resuelve con evidencia, decisión
+humana, supuesto explícito o declaración fuera de alcance. No toda duda necesita
+una fuente legal. Las anclas normativas `[RATIFICAR]` solo pasan a vigentes vía
 re-elicitación de la skill (LogDecisiones v0 exporta con `modeloHash=protoHash` del
 sello; bloqueado sin sello).
 
 #### A.6 Puente directo mesa↔skill (CLI)
 
 Además del puente W6.0 por portapapeles, un agente con acceso al host opera opforja
-**directo contra el backend desplegado**, sin transportar bytes a mano. CLI
-`app/scripts/mesa-cli.ts`, autenticado por token de agente (`MODEL_AGENT_TOKEN`, Bearer,
-fail-closed):
+**directo contra el backend desplegado**, sin transportar bytes a mano. No existe
+un ejecutable global `mesa`: desde la raíz del repo se usa
+`cd app && bun run mesa …`. El script `app/scripts/mesa-cli.ts` lee el token Bearer
+desde `~/.config/opforja/agent-token` o desde la ruta indicada por
+`OPFORJA_AGENT_TOKEN_FILE`; `MODEL_AGENT_TOKEN` pertenece al servidor, no al CLI.
 
-- `mesa modelos` — lista los modelos del tenant (id · especie · revisión).
-- `mesa pull <modelo>` — compone el mismo contexto de modelado que W6.0 (procedencia,
+- `cd app && bun run mesa modelos` — lista los modelos del tenant (id · especie · revisión).
+- `cd app && bun run mesa pull <modelo>` — compone el mismo contexto de modelado que W6.0 (procedencia,
   `[RATIFICAR]`, notas, diagnóstico, OPL) leyendo el estado vivo (autosave si es más nuevo);
   declara la especie y si la base es guardado o autosave no ratificado.
-- `mesa push <modelo> <bundle.json> --nota "…"` — valida con el contrato de import y crea
+- `cd app && bun run mesa push <modelo> <bundle.json> --nota "…"` — valida con el contrato de import y crea
   una **nueva revisión** versionada; respeta el optimistic locking (409 → re-pull, jamás
   forzar); a un modelo con **sello** exige el bundle del compilador (carril por procedencia);
-  un push **sin delta** no crea revisión.
+  un push **sin delta** no crea revisión. Si la base efectiva es autosave exige
+  `--confirmado-por-operador`; al crear exige `--especie apunte|modelo`. Si la
+  referencia no resuelve por ID o nombre, `push` entra al camino de creación: revisa
+  errores tipográficos antes de confirmar.
 
-Reglas del puente (skill v1.13.0, Regla Dura #29): pull antes de push · nunca push sin
+Reglas del puente (skill vigente, Regla Dura #29): pull antes de push · nunca push sin
 validación local verde · respetar el 409 (re-pull, jamás forzar) · sobre base no
 ratificada, confirmar antes de cerrar el loop · nota con procedencia (`agente·<nota>`) ·
 crear nuevo declara `--especie` (los bosquejos nacen apunte). En la mesa, el chip
@@ -389,6 +393,11 @@ El parser no es corrector literario: ante frase ambigua, rechaza, suspende o pid
 aclaración; no inventa el hecho. Una oración no parseable puede vivir como nota
 humana separada del canon, nunca importarse como hecho.
 
+El vocabulario canónico es más amplio que la cobertura de edición inversa de la
+aplicación. La bimodalidad garantiza sincronía solo para las plantillas que el
+parser declara soportadas; algunas formas canónicas siguen siendo de emisión o
+lectura. Verifica el preview y el roundtrip antes de presentar OPL como editable.
+
 ### 8. Validación y diagnóstico
 
 Validar combina reglas, método y lectura humana. Un diagnóstico honesto dice qué se
@@ -412,23 +421,21 @@ crítica, control loop, estados ortogonales, composición por interfaz, configur
 y tradeoffs, digital twin. Cada patrón publicable cita sus reglas propietarias por
 URN, no las copia.
 
-**Piezas** son el vehículo para empaquetar y reusar estos patrones. Una Pieza es: (a)
-una **marca meta** sobre una cosa (p.ej. `requirement` de fábrica) que se rotula
-`<<Nombre>>` en canvas (DEBE) y es opcional en OPL (PUEDE, R-VIS-STEREO-1 /
-R-OPD-ROT-6); y/o (b)
-una **plantilla de subgrafo OPM** (cosas+estados+enlaces con un ancla) que se
-**Calca** (clona-e-injerta, creando identidad fresca e independiente) o se **Ancla**
-(referencia viva a la biblioteca, vigilada por el Centinela de Drift, R-OPD-ROT-9 —
-vecindad RADIO-1: la entidad-pieza + sus estados + sus enlaces incidentes). La superficie
-«Piezas» las ofrece agrupadas por modelo-biblioteca fuente; guardar una selección
-como Pieza reusable es el gesto de curaduría del conocedor de dominio. NO hay
-Piezas de enlace (sería una sexta familia encubierta). La Pieza es contenido meta
-del autor (mismo estatuto que las anclas normativas): no cuenta como cosa ni altera
-la validación nuclear. Soltar (Δ→Σ, de Anclaje a Calco) es irreversible: pierde la
-vigilancia de drift. Autoridad: `urn:fxsl:kb:spec-forja-opd-es`. Nominación propia
-ratificada en `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`
-(OpForja no usa «Template/Stereotype»; internamente el campo sigue siendo
-`Entidad.estereotipoId`, renombre D6→Calco pendiente).
+**Piezas** son el vehículo gobernado para reusar entidades y estados desde modelos
+biblioteca. Una Pieza externa se **Calca** —identidad fresca e independiente— o se
+**Ancla** —referencia viva vigilada por el Centinela de Drift, R-OPD-ROT-9—. El
+Anclaje vigila la firma gobernada de la entidad-pieza y sus estados; no importa
+automáticamente cada cambio de contenido. **Re-sincronizar** acepta una nueva firma
+como línea base. **Soltar** pierde la vigilancia y convierte el uso en Calco, pero
+el gesto inmediato participa en deshacer (`Ctrl+Z`).
+
+La acción de guardar una selección crea una **plantilla local de subgrafo**; no la
+promueve por sí sola a Pieza global gobernada. No existe una promoción formal
+global/admin en la superficie actual. La marca meta `<<Nombre>>` sigue siendo
+opcional en OPL (R-VIS-STEREO-1/R-OPD-ROT-6), no cuenta como cosa ni altera la
+validación nuclear. No hay Piezas de enlace. Autoridad:
+`urn:fxsl:kb:spec-forja-opd-es`; el campo interno heredado sigue siendo
+`Entidad.estereotipoId`.
 
 ---
 
@@ -461,9 +468,9 @@ mismos enablers netos y generando el **Pedido despachado**. Si aparece **Pago
 autorizado** como nuevo input neto, se declara fuera de alcance o se corrige la frontera
 del padre.
 
-**Validación tripartita**: bien formado (sin agentes no humanos, sin estados flotantes,
-sin enlace ambiguo); representa (el operador confirma que el pago queda fuera y bodega
-ejecuta); sirve (enseña SD, OPL y primer in-zoom).
+**Validación**: A8 no encuentra bloqueos estructurales; las mejoras metodológicas y
+de estilo quedan declaradas. Aparte, el operador confirma que el pago queda fuera y
+bodega ejecuta, y acepta que el modelo sirve para enseñar SD, OPL y primer in-zoom.
 
 **Errores intencionales que el ejemplo descarta**: modelar el **Sistema de bodega**
 como agente (es instrumento); crear un proceso sin transformee; agregar **Pago
@@ -473,6 +480,8 @@ cercanía visual (la afiliación no depende del layout).
 ---
 
 ## L. Límites de la mesa
+
+### Brechas de conformidad OPM/Forja
 
 Capacidades **declaradas pero NO implementadas** en la versión vigente, derivadas del
 **registro de conformidad de la herramienta** (`docs/roadmap/registro-conformidad-ssot.md`).
@@ -489,6 +498,14 @@ brecha silenciosa está prohibida).
 Para el estado canónico y la traza de cada fila, leer el registro. Las capacidades ya
 **CERRADAS** (perfiles de export, unicidad de rol, herencia de afiliación, etc.) no
 son límites: ver el registro.
+
+### Frontera del producto
+
+Las dos filas anteriores son brechas respecto del canon, no un catálogo completo de
+producto. La matriz transversal `IMPLEMENTADO | PROPUESTO | EXTERNO` vive en el
+[manual para transformar sistemas](manual-sistemas-opm.md#9-frontera-de-capacidad-de-opforja).
+Los manuales de dominio agregan solo consecuencias propias. El estado exacto sigue
+en el handoff y el registro de conformidad.
 
 ---
 
@@ -518,8 +535,8 @@ son límites: ver el registro.
 | ¿Cómo se dice/parsea en OPL? | `urn:fxsl:kb:spec-forja-opl-es` |
 | ¿Qué ley explica equivalencia/composición? | `urn:fxsl:kb:opm-categorial-es` |
 | ¿Cómo opera un agente la mesa? | `urn:kora:artefacto:modelamiento-opm` |
-| ¿La app no lo soporta? | §L de este manual + `docs/roadmap/registro-conformidad-ssot.md` (R-CONF-7) |
-| ¿Cómo lo uso en la UI? | `docs/uso-productivo.md` |
+| ¿La app no lo soporta? | §L de este manual + [registro de conformidad](roadmap/registro-conformidad-ssot.md) (R-CONF-7) |
+| ¿Cómo lo uso en la UI? | [Uso productivo](uso-productivo.md) |
 
 ### Apéndice C — Resolución de URN
 
@@ -530,20 +547,17 @@ que re-ancla a la SSOT viva en pneuma bajo `KORA_RAIZ` (default `/home/felix/kor
 Los puentes locales de `docs/canon-opm/` no copian el canon: solo resuelven URN → path.
 
 `urn:fxsl:kb:opm-categorial-es` (lectura formal) y `urn:kora:artefacto:modelamiento-opm`
-(la skill) se citan por URN y residen también en pneuma, pero FUERA del mapa de los cuatro
+(la skill) se citan por URN y residen también en pneuma, pero fuera del mapa de los cuatro
 puentes: se resuelven por su ubicación canónica en KORA (`artefactos/conocimiento/fxsl/` y
 `artefactos/skills/kora/`, respectivamente), no por `resolutor-urn.json`.
 
 ---
 
-## Bitácora
+## Fuentes y siguiente paso
 
-| Fecha | Cambio |
-| --- | --- |
-| 2026-06-22 | Manual integrado al repo (corte D4 / decisión D-MANUAL): consolidación de los dos shards de la bestia en un solo documento delgado y derivado, con doble pista (humano §3-§5 + agente §A) sobre tronco común, citas por URN sin transcripción, §L derivada del registro de conformidad y testigo de cierre `manual:limites`. |
-| 2026-06-22 | Corte D6 (estereotipos + vitrinas): §3 suma la vitrina de estereotipos; §9 suma estereotipos/plantillas como vehículo de patrones reusables (marca meta `<<Nombre>>` + plantilla de subgrafo clonada-e-injertada; sin estereotipos de enlace). Cita R-VIS-STEREO-1 por URN; resolución canónica en `spec-forja-opd-es`. |
-| 2026-06-30 | Nominación propia + gesto de anclar — la PUERTA (desplegado): §3 y §9 actualizados de "Vitrina de estereotipos"/"plantilla" a **Piezas** (Calcar/Anclar/Soltar, Centinela de Drift con vecindad RADIO-1 desde C4); el campo interno sigue siendo `Entidad.estereotipoId` (renombre D6→Calco pendiente). Nominación ratificada en `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; estado actual en `docs/handoff-2026-07-12.md`. |
-| 2026-07-06 | Doctrina canonizada (despacho HITL custodio): `spec-forja-opd-es` v1.2.0 amplía R-OPD-ROT-6 (estereotipos opforja) y agrega R-OPD-ROT-9 (Anclaje a Pieza / Centinela; edición local de esencia legislada laxa). El manual pasa de citar «propuesta vigente» a citar las reglas canónicas. Skill `modelamiento-opm` v1.11.0 (D3): versiones vivas adjuntas + «Límites de la mesa». |
-| 2026-07-07 | Bottom-up de primera clase canonizado: `metodologia-forja-opm-es` v1.6.0 (A1.5 dos arranques hermanos) + `spec-forja-opd-es` v1.3.0 (§10.4 R-OPD-REF-20 Taller: OPD suelto, verbo «adoptar») + skill v1.12.0 (§Régimen bosquejo). §2 absorbe A1.5 y distingue los dos ejes apunte(cierre)/bosquejo(arranque); §4 cruza-referencia el arranque bottom-up. |
-| 2026-07-08 | Sincronía manual↔SSOT (auditoría de deriva). §A.6 nueva: **puente directo mesa↔skill** (`mesa pull`/`push`/`modelos` + token de agente), desplegado con la Ola 1 A′-motor — W6.0 por portapapeles deja de ser el único puente. Cita de versión §3 corregida v1.2.0→v1.3.0. Cortes desplegados 2026-07-08 (bundle `index-DUsuUohB.js`): apuntes «todo nace apunte» + Taller + gestor de dos zonas, A′-vitrina (chip «Revisión nueva»), atajo R híbrido (enlace libre). |
-| 2026-07-09 | Skill `modelamiento-opm` **v1.13.0** — la skill porta el puente directo: §Puente directo (pull=contexto W6.0, push con disciplina) + Regla Dura #29 (no-clobber) + capacidades al día + W6.0 fallback; §A.6 de este manual cita ahora la versión correcta. Cordón re-pineado v1.13.0. |
+Este manual se revisa contra las versiones resueltas por
+[canon-opm](canon-opm/resolutor-urn.json) y contra el código de la aplicación. Git
+conserva su historia editorial.
+
+Continúa con el [manual para transformar sistemas](manual-sistemas-opm.md), un
+perfil de dominio o el [índice documental](README.md).

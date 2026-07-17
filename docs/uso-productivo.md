@@ -1,16 +1,18 @@
-# Uso Productivo — Modelador OPM
+# Uso productivo de opforja
 
 Guía del usuario para trabajar con modelos OPM en la instancia
 `https://opforja.sanixai.com`.
 
-Para administración de la instancia: `docs/deploy/opforja.md`.
-Para orientación técnica del repo: `../CLAUDE.md`.
+Para administrar la instancia, consulta el
+[runbook de despliegue](deploy/opforja.md). Para mantener el repositorio, consulta
+[CLAUDE.md](../CLAUDE.md).
 
 ## Qué es
 
-Una herramienta para dibujar modelos OPM/ISO 19450: objetos, procesos,
-estados y enlaces. Los modelos se guardan en el backend (Postgres/API)
-asociados a una sesión de navegador. No dependen de localStorage.
+opforja es un **modelador bimodal OPM/ISO 19450**: cada hecho se trabaja como
+diagrama OPD y lenguaje OPL. No es un dibujador genérico. Los modelos se guardan en
+el backend (Postgres/API) del tenant autenticado; no dependen de `localStorage` ni
+de una sesión particular del navegador.
 
 ## Regla de apariciones en diagramas
 
@@ -54,7 +56,8 @@ la relación parte de ella; sin selección entras en **enlace libre** (clic en e
 origen, luego en el destino; `Esc` cancela).
 
 Para modelar con método desde cero (qué función transforma a quién antes de
-dibujar), seguir el flujo Forja de `docs/manual-opforja.md` §2 — que admite **dos
+dibujar), sigue el flujo del [manual de opforja](manual-opforja.md#2-flujo-de-modelamiento-forja),
+que admite **dos
 arranques**: **SD-primero** (top-down) y **bottom-up** (bosquejar OPDs sueltos en
 el Taller y adoptarlos después, ver §Taller).
 
@@ -69,9 +72,9 @@ OPM legítimo, no un dibujo libre.
 - **Nacer y graduar**: todo modelo **nace apunte** (comando `Nuevo`). Un apunte
   muestra la cinta **`Apunte`** en la parte superior; **clic en esa cinta abre
   «Graduar apunte a modelo»**, que muestra el reporte de validez (lo que en el
-  apunte estaba en observación) y te deja decidir cerrar. Graduar **no bloquea**
-  por validez: informa y deja decidir. Las señales que queden son el checklist
-  de lo que falta cerrar.
+  apunte estaba en observación) y te deja decidir. Graduar **no bloquea**
+  por validez: informa y deja decidir. Después de graduar, esas señales recuperan
+  severidad de modelo y pueden bloquear operaciones como el export canónico.
 - **Qué cambia**: en un apunte los avisos de **validez** (falta de
   transformee, nombres pobres, firma de enlaces…) bajan de *bloqueo* a
   *observación al margen* — no detienen el trabajo. La **integridad** del
@@ -92,9 +95,17 @@ aún un SD. Créalos con el botón de OPD suelto del árbol.
 Cuando un fragmento encaja, **adóptalo**: clic derecho sobre el OPD suelto →
 `Adoptar como descomposición` (in-zoom de un proceso) o `Adoptar como despliegue`
 (unfold de un objeto). Adoptar fija el padre y declara el refinamiento en un gesto
-—el mismo resultado que el camino top-down—. Un OPD que sigue suelto no bloquea la
-edición, pero sí el **export canónico** hasta adoptarlo. (Método: `docs/manual-opforja.md`
-§2/A1.5.)
+—el mismo resultado que el camino top-down—. Adoptar y graduar son operaciones
+distintas: adoptar fija padre y refinamiento; graduar cambia el régimen
+apunte→modelo. Un OPD suelto:
+
+- en un **apunte**, el gate baja a observación y permite exportar; el documento
+  canónico Markdown declara que contiene bosquejos;
+- en un **modelo**, bloquea el export canónico hasta adoptarlo o reconciliarlo;
+- nunca se corrige por el solo hecho de graduar.
+
+La base metodológica está en
+[A1.5 del manual de opforja](manual-opforja.md#2-flujo-de-modelamiento-forja).
 
 ## Gestionar modelos
 
@@ -107,7 +118,8 @@ agrupan en **dos zonas por su rol**:
   zona: el modelo maduró, no cambió de naturaleza).
 - **`Bibliotecas`**: los modelos designados como fuente, en un estante aparte, que
   se abren en **solo-lectura** (editarlos exige confirmación). De ellas se traen
-  Piezas al lienzo (ver `docs/manual-opforja.md` §9).
+  Piezas al lienzo (ver
+  [Patrones y Piezas](manual-opforja.md#9-patrones-de-modelado)).
 
 Acciones por fila (al pasar el cursor): abrir, abrir en pestaña nueva, duplicar,
 archivar, eliminar (con confirmación). `Importar JSON` es una acción del encabezado.
@@ -123,8 +135,9 @@ tres etiquetas:
 - `Guardando…` (fondo azul claro): autosalvado en curso.
 - `Guardado · HH:mm` (fondo verde): persistido a esa hora.
 
-Mientras el chip diga `Sin guardar`, el trabajo no está respaldado
-todavía. Pulsar `Ctrl+S` o hacer clic en el chip para guardar.
+El autosalvado persiste cambios de forma periódica. Mientras el chip diga
+`Sin guardar`, los cambios más recientes todavía no están respaldados. Pulsa
+`Ctrl+S` o haz clic en el chip para forzar el guardado antes de un hito o cierre.
 
 Los modelos se persisten en el backend (Postgres). Si el backend no
 está disponible, la app lo indica explícitamente; no hay fallback
@@ -140,6 +153,57 @@ aparece y la selecciona.
 
 Abre el command palette: ejecutar cualquier acción del menú sin tocar
 el mouse.
+
+## Requisitos y cobertura
+
+1. `Ctrl+K` → `Crear requisito`, con o sin una selección.
+2. Completa ID lógico, descripción, dureza `hard|soft`, actor y estado.
+3. Para reutilizar un objeto existente, selecciónalo y ejecuta
+   `Marcar como requisito`.
+4. Selecciona una cosa o enlace y ejecuta `Vincular requisito existente`.
+5. Sobre el requisito, usa `Vista de requisito` para reunir sus coberturas en una
+   vista de solo lectura.
+
+La cobertura expresa qué entidad o enlace realiza una intención. No prueba que una
+medición, auditoría o test externo haya pasado. Esa separación pertenece al
+[manual para transformar sistemas](manual-sistemas-opm.md#36-requisitos-y-evidencia).
+
+## Ontología organizacional
+
+`Ctrl+K` → `Configurar ontología` permite guardar en el modelo términos canónicos,
+sinónimos y un modo de control:
+
+- `Sin control`: conserva los nombres escritos.
+- `Sugerir canónico`: conserva el alias; la UI todavía no muestra una sugerencia
+  visible de reemplazo.
+- `Reforzar canónico`: al crear o renombrar, sustituye un sinónimo por el término
+  canónico.
+
+La configuración persiste en el modelo y actúa hacia adelante. No conserva una
+traza por entidad ni revierte automáticamente nombres previos al desactivarla.
+Es una tabla de vocabulario del dominio; no modifica la ontología formal OPM.
+
+## Simulación
+
+`Ctrl+K` ofrece dos herramientas distintas:
+
+- **Simulación conceptual**: recorre procesos, condiciones, estados y duraciones
+  declaradas para leer comportamiento del modelo.
+- **Simulación numérica**: toma atributos numéricos marcados como simulables,
+  genera entre 1 y 10.000 muestras según sus parámetros y permite descargar CSV.
+
+La simulación numérica **no** ejecuta la dinámica del proceso, no calcula colas,
+capacidad o rendimiento y no compara alternativas por sí sola.
+
+## Versiones
+
+`Ctrl+K` → `Versiones del modelo` permite crear una versión manual, consultar el
+historial y **restaurar una versión como copia**. La restauración no pisa el modelo
+vigente. Las revisiones empujadas por una sesión de agente pueden aparecer
+agrupadas como un hito expandible.
+
+En el gestor también puedes mostrar glifos de versiones y abrir el historial desde
+el menú contextual de cada modelo.
 
 ## Respaldo manual
 
@@ -170,7 +234,22 @@ portátil para llevar fuera de la instancia es el JSON descargado.
 5. Pulsar `Importar`.
 6. Pulsar `Ctrl+S` para persistirlo en el backend.
 
-## Exportar para compartir
+## Exportar y compartir
+
+La paleta `Ctrl+K` ofrece salidas con propósitos distintos:
+
+| Salida | Perfil o función | Uso |
+|---|---|---|
+| `Exportar JSON al portapapeles` | `intercambio` | respaldo y rehidratación; no certifica conformidad canónica |
+| `Exportar OPL del modelo (Markdown)` | auxiliar | lectura textual de todos los OPDs |
+| `Exportar documento canónico (Markdown)` | `canon-documento` | portada, métricas, árbol, OPL y procedencia |
+| `Exportar diagnóstico (JSON)` | auxiliar | revisión de avisos por otra herramienta |
+| `Exportar OPD actual como PNG` | `canon-diagrama` | una imagen del OPD activo |
+| `Exportar todos los OPDs como PNG` | `canon-diagrama` | ZIP con una imagen por OPD |
+
+El documento canónico no es una matriz completa de cobertura de requisitos y las
+imágenes no contienen inspector, toolbar ni panel OPL. Conserva JSON cuando
+necesites reconstruir o auditar el modelo.
 
 Para entregar el diagrama del OPD activo como imagen raster:
 
@@ -220,17 +299,27 @@ y en operaciones del modelo.
 | `Delete` | Eliminar selección |
 
 `Nuevo` y `Abrir / importar modelo` **no tienen atajo de teclado**: van por la
-paleta `Ctrl+K` o el menú ☰. La hoja completa vive en `Menú principal > Ayuda >
-Atajos` — su footer muestra la **versión de opforja** (fecha de build + commit).
+paleta `Ctrl+K` o el menú ☰. Para el inventario completo, usa
+`Ctrl+K` → `Atajos de teclado`; esa vista deriva del registro real de la
+aplicación.
 
 ## Límites honestos
 
-- **Acceso por cuenta:** el acceso exige login con cuenta válida
-  (single-operator hoy; registro cerrado por CLI). Reset de password vía
-  `bun run auth:cuenta reset <email>` (ver `docs/deploy/opforja.md`
-  § Cuentas y login).
-- **Sin colaboración:** no hay edición simultánea, sin sharing remoto, sin
-  permisos por usuario. La instancia tiene un solo usuario operativo.
+- **Acceso por cuenta:** el acceso exige una cuenta válida; el alta y reset se
+  administran fuera de la UI (ver
+  [Cuentas y login](deploy/opforja.md)).
+- **Sin coedición:** no hay edición simultánea del mismo modelo ni sharing remoto
+  con permisos por modelo.
 - **Sin SLA:** la instancia es privada y no garantiza disponibilidad.
 - **Mobile es solo lectura:** en dispositivos móviles, la app muestra los
   modelos en modo lectura sin affordances de edición.
+
+La frontera completa `IMPLEMENTADO | PROPUESTO | EXTERNO` vive en el
+[manual para transformar sistemas](manual-sistemas-opm.md#9-frontera-de-capacidad-de-opforja).
+
+## Siguiente paso
+
+- Aprende el método en el [manual de opforja](manual-opforja.md).
+- Lleva el modelo a una intervención en el
+  [manual para transformar sistemas](manual-sistemas-opm.md).
+- Vuelve al [índice documental](README.md).
