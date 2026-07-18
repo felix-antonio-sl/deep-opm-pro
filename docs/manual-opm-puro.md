@@ -551,12 +551,8 @@ uno de` (XOR), `al menos uno de` (OR), `así como` (adición heterogénea),
 #### 7.4 El párrafo OPL de un sistema completo
 
 El SD del sistema de *Preparación de Empanadas* (`urn:fxsl:kb:opl-es` §16)
-muestra cómo suena un párrafo OPL-ES. Se presenta aquí en su **versión saneada
-provisional**: conserva el ejemplo canónico, pero corrige localmente la firma
-estructural Receta→Sistema solicitada al custodio en la
-[solicitud de arbitraje del 2026-07-11](solicitudes-upstream/2026-07-11-tensiones-internas-corpus-base-opl.md)
-(Tensión 3). Hasta que esa corrección sea ratificada upstream, no debe citarse
-este párrafo como transcripción literal del corpus:
+muestra cómo suena un párrafo OPL-ES. La firma estructural
+Receta→Sistema es la realización canónica ratificada en `opl-es` v3.0.4:
 
 ```text
 *Preparar Empanadas* afecta **Grupo de Comensales**.
@@ -618,9 +614,7 @@ invariantes — lo que sigue siendo verdad mientras el sistema opera (glosario
 3.73). **Firmas:** transformadores y habilitadores conectan objeto↔proceso;
 invocación y excepción conectan proceso↔proceso; los estructurales son
 homogéneos (objeto↔objeto o proceso↔proceso), salvo las combinaciones canónicas
-de exhibición-caracterización (§13.2). La generalización anterior «todo
-procedimental es no homogéneo» está elevada para corrección en la solicitud
-upstream del 2026-07-11.
+de exhibición-caracterización (§13.2).
 
 Dos leyes transversales gobiernan las familias procedimentales:
 

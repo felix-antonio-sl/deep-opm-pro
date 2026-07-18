@@ -1,4 +1,4 @@
-# Corrección documental — 4 tensiones internas del corpus OPM-ES — PENDIENTE
+# Corrección documental — 4 tensiones internas del corpus OPM-ES — RESUELTA
 
 **Fecha:** 2026-07-11 · **De:** compuesto opforja (deep-opm-pro) · **Para:** custodio-kora (kora-pneuma)
 **Naturaleza:** bug documental de las **capas base** (no de la familia Forja), detectado por la
@@ -8,9 +8,10 @@ refutado de primera mano contra los archivos antes de elevarse. **No bloquea nad
 baja, pero las cuatro divergencias viven en superficie que los artefactos derivados citan textualmente
 (manuales, cheat sheets, ejemplos de enseñanza), por lo que conviene sanearlas en la fuente.
 
-**Criterio de arbitraje usado por la mesa mientras tanto:** ante divergencia de superficie textual,
-manda `opl-es` (capa textual propietaria por contrato editorial del corpus); el manual educativo ya
-sigue esa regla. Esta solicitud pide que la fuente deje de divergir.
+**Resolución:** aplicada en KORA el 2026-07-18, commit `4e83b97`. Quedaron
+publicados `opm-es` v3.0.3, `opl-es` v3.0.4 y
+`manual-metodologico-opm-es` v3.0.2. La mesa retiró sus advertencias
+transitorias porque la fuente ya no diverge.
 
 ---
 
@@ -81,17 +82,13 @@ sigue esa regla. Esta solicitud pide que la fuente deje de divergir.
 
 ---
 
-## Cómo aplicar (custodio)
+## Cierre comprobado
 
-1. Editar `~/kora-pneuma/artefactos/conocimiento/fxsl/opm-es.md` (tensiones 1-2 y definición 3.57
-   de la tensión 4), `~/kora-pneuma/artefactos/conocimiento/fxsl/opl-es.md` (tensión 3: §16,
-   tabla de enlaces + párrafos OPL-ES/OPL-EN) y
-   `~/kora-pneuma/artefactos/conocimiento/fxsl/manual-metodologico-opm-es.md` (§9.6, tensión 4),
-   con bump de versión + changelog en frontmatter de cada pieza modificada.
-2. `python3 ~/kora-pneuma/kora.py velar`.
-3. Avisar a la mesa (deep-opm-pro) para retirar las notas transitorias. Desde el saneamiento de
-   convergencia del 2026-07-12, `docs/manual-opm-puro.md` y
-   `docs/cheatsheets/opm-puro.html` ya siguen preventivamente R-OPL-SE-2 y declaran la firma
-   procedimental por subtipo; las tensiones 1-2 también estaban resueltas en los derivados a
-   favor de `opl-es`. La propagación pendiente es, por tanto, retirar la advertencia cuando el
-   corpus quede firmado, no cambiar nuevamente la semántica enseñada.
+1. KORA corrigió las tres piezas propietarias con bump patch y trazabilidad en
+   el campo canónico `fuente`; no añadió una clave `changelog`, porque el
+   frontmatter de KORA es un sobre cerrado.
+2. `python3 kora.py velar --estricto`: 13/13 checks.
+3. `python3 -m unittest discover -s tests`: 185 pruebas, 0 fallos.
+4. `docs/manual-opm-puro.md` y `docs/cheatsheets/opm-puro.html` ya enseñaban
+   preventivamente la semántica arbitrada; solo fue necesario retirar las
+   advertencias transitorias del manual.
