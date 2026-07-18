@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { verificarEquivalencia } from "../modelo/equivalencia";
+import { compareBoundarySignature } from "../modelo/equivalencia";
 import type { Apariencia, AparienciaEnlace, Enlace, Entidad, Modelo, Opd, TipoEnlace } from "../modelo/tipos";
 
-// Leyes de equivalencia funcional, sobre realizaciones de interior REALMENTE
-// distinto (no OPDs idénticos): reflexiva, simétrica, pura.
+// Propiedades de la comparación de firma sobre realizaciones de interior
+// realmente distinto (no OPDs idénticos): reflexiva, simétrica, pura.
 
 function ent(id: string, tipo: "objeto" | "proceso"): Entidad {
   return { id, tipo, nombre: id, esencia: "informacional", afiliacion: "sistemica" };
@@ -28,7 +28,8 @@ function opd(id: string, padreId: string | null, aps: Apariencia[], aes: Aparien
 }
 
 // P consume A produce B; opd 'a' usa subproceso P1, opd 'b' usa subproceso Q1
-// (interior distinto, mismo rol neto de frontera → equivalentes).
+// (interior distinto, mismo rol neto de frontera → indistinguibles respecto
+// de la firma declarada).
 function modelo(): { modelo: Modelo; padreId: string; opdA: string; opdB: string } {
   const entidades: Record<string, Entidad> = {
     P: ent("P", "proceso"), A: ent("A", "objeto"), B: ent("B", "objeto"),
@@ -47,31 +48,32 @@ function modelo(): { modelo: Modelo; padreId: string; opdA: string; opdB: string
   return { modelo: { id: "m", nombre: "m", opdRaizId: "r", opds, entidades, estados: {}, enlaces, nextSeq: 100 }, padreId: "P", opdA: "a", opdB: "b" };
 }
 
-describe("LEY law-equivalencia-frontera (funcional)", () => {
-  test("reflexiva: una realización es equivalente a sí misma", () => {
+describe("LEY R-CAT-EQ-2 — igualdad de firma de frontera", () => {
+  test("reflexiva: una realización tiene la misma firma que sí misma", () => {
     const { modelo: m, padreId, opdA } = modelo();
-    const r = verificarEquivalencia(m, { padreId, opdA, opdB: opdA });
-    expect(r.ok && r.value.equivalente).toBe(true);
+    const r = compareBoundarySignature(m, { padreId, opdA, opdB: opdA });
+    expect(r.ok && r.value.sameSignature).toBe(true);
   });
 
-  test("equivalencia funcional real: a≡b con interior distinto", () => {
+  test("igualdad observable: a y b comparten firma con interior distinto", () => {
     const { modelo: m, padreId, opdA, opdB } = modelo();
-    const r = verificarEquivalencia(m, { padreId, opdA, opdB });
-    expect(r.ok && r.value.equivalente).toBe(true);
+    const r = compareBoundarySignature(m, { padreId, opdA, opdB });
+    expect(r.ok && r.value.sameSignature).toBe(true);
+    expect(r.ok && r.value.scope).toBe("boundary-signature");
   });
 
   test("simétrica: (a,b) y (b,a) dan el mismo veredicto", () => {
     const { modelo: m, padreId, opdA, opdB } = modelo();
-    const r1 = verificarEquivalencia(m, { padreId, opdA, opdB });
-    const r2 = verificarEquivalencia(m, { padreId, opdA: opdB, opdB: opdA });
+    const r1 = compareBoundarySignature(m, { padreId, opdA, opdB });
+    const r2 = compareBoundarySignature(m, { padreId, opdA: opdB, opdB: opdA });
     expect(r1.ok && r2.ok).toBe(true);
-    if (r1.ok && r2.ok) expect(r1.value.equivalente).toBe(r2.value.equivalente);
+    if (r1.ok && r2.ok) expect(r1.value.sameSignature).toBe(r2.value.sameSignature);
   });
 
   test("pura: no muta el modelo", () => {
     const { modelo: m, padreId, opdA, opdB } = modelo();
     const antes = JSON.stringify(m);
-    verificarEquivalencia(m, { padreId, opdA, opdB });
+    compareBoundarySignature(m, { padreId, opdA, opdB });
     expect(JSON.stringify(m)).toBe(antes);
   });
 });

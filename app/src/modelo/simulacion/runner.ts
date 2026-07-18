@@ -526,9 +526,8 @@ function resolverSiguientePasoPorEventoTemporal(
 }
 
 /**
- * El unfold (anamorfismo): despliega la coalgebra desde un estado hasta
- * completar, tomando el sucesor canonico en cada paso. F = Identidad =>
- * traza determinista identica a iterar `ejecutarPaso`.
+ * Despliega la simulación hasta completar, tomando el sucesor canónico en cada
+ * paso. En el modo determinista equivale a iterar `ejecutarPaso`.
  */
 export function desplegar(modelo: Modelo, estadoInicial: ContextoSimulacion, limite = LIMITE_PASOS_SIMULACION): ContextoSimulacion {
   let actual = estadoInicial;

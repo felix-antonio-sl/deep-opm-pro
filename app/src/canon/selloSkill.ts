@@ -103,15 +103,14 @@ export function evaluarCordonSkill(
  */
 export const CORDON_SKILL_NOMBRE = "modelamiento-opm";
 
-// v2.0.1 (guardas estructurales y graduación, 2026-07-18): conserva el puente directo
-// mesa↔skill de v1.13.0 y precisa que la integridad OPM no se relaja en apunte/bosquejo,
-// que graduar no exige cerrar observaciones y que el nombre/folder/sello siguen sus
-// contratos canónicos. W6.0 copy/paste queda como fallback. El
+// v2.0.2 (corrección epistémica, 2026-07-18): conserva el puente directo y las
+// guardas de v2.0.1, y acota la igualdad de firma a equivalencia observacional
+// relativa: no implica identidad, bisimulación ni sustituibilidad total. El
 // `hash-fuente` testifica el ARTEFACTO FUENTE en pneuma (sha256 de
 // `artefactos/skills/kora/modelamiento-opm/SKILL.md`), re-emitido con
 // `kora.py transmutar` a claude-code/codex/opencode (3 sellos identicos, paridad fiel).
 export const CORDON_SKILL_ESPERADO: EsperadoCordon = {
-  version: "2.0.1",
-  hashFuente: "sha256:fac6fb1bac239c323682eb3d2dff9d4f69d04391cc71781617294fd8bb73fc88",
+  version: "2.0.2",
+  hashFuente: "sha256:733f6943d8643b69f36395c8ed859f8d5847c1f2ec53e0c74f368123aa11fd80",
   target: "claude-code",
 };

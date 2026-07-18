@@ -9,16 +9,16 @@ import type { Id, Modelo } from "../tipos";
 import type { ContextoSimulacion } from "./tipos";
 
 /**
- * INTEGRACIÓN Ss↔Fs — la simulación (anamorfismo) leída sobre el cimiento de
- * hechos F0 y reconciliada con el razonamiento F3 (catamorfismo).
+ * INTEGRACIÓN Ss↔Fs — simulación y razonamiento sobre el mismo cimiento de
+ * hechos F0.
  *
- * Tesis (`urn:fxsl:kb:icas-efectos`): el unfold de S y el fold de F3 son DUALES
- * sobre el mismo carrier. El carrier compartido es el haz de hechos de F0
- * (`hechosDe`). Una corrida no produce estructura nueva: RECORRE el modelo y
- * ejerce una SECCIÓN del haz — las entidades, estados y enlaces que tocó.
+ * Lectura heurística (`urn:fxsl:kb:icas-efectos`): la simulación despliega una
+ * traza y el razonamiento vuelve a consultar hechos estáticos del mismo modelo.
+ * Lo verificable aquí es más débil: una corrida no produce estructura nueva;
+ * recorre entidades, estados y enlaces ya denotados por `hechosDe`.
  *
  * Este módulo es la frontera entre ambas capas: importa F0/F3 sin mutarlos.
- * No introduce primitiva OPM ni functor nuevo; sólo hace explícito —y
+ * No introduce primitiva OPM ni estructura categorial; sólo hace explícito —y
  * verificable por las leyes de `src/leyes/integracion-ss-fs.test.ts`— que las
  * dos capas hablan del mismo sustrato.
  */
@@ -86,11 +86,12 @@ function firmaOrdenada(firma: ReadonlySet<string>): string[] {
   return [...firma].sort();
 }
 
-export interface BisimulacionFrontera {
-  equivalente: boolean;
-  firmaAbstracta: string[];
-  firmaEjercida: string[];
-  diferencias?: string[];
+export interface ExercisedBoundaryComparison {
+  sameSignature: boolean;
+  scope: "exercised-boundary-signature";
+  abstractSignature: string[];
+  exercisedSignature: string[];
+  differences?: string[];
 }
 
 /**
@@ -98,10 +99,8 @@ export interface BisimulacionFrontera {
  * abstracto fueron realmente ejercidos por la traza del OPD refinado.
  *
  * Es la lectura operacional de F2↔S: no basta con que el hijo contenga enlaces
- * derivados; la simulación debe ejercerlos. Fundamento formal: bisimulación
- * observacional (`urn:fxsl:kb:icas-efectos`) sobre la frontera que el eje
- * vertical preserva (`urn:fxsl:kb:icas-adjunciones`, como hipótesis de
- * round-trip in-zoom/out-zoom).
+ * derivados; la simulación debe ejercerlos. La igualdad resultante está acotada
+ * a la firma declarada y no demuestra bisimulación de los sistemas.
  */
 export function firmaFronteraEjercidaPorTraza(
   modelo: Modelo,
@@ -115,19 +114,20 @@ export function firmaFronteraEjercidaPorTraza(
   );
 }
 
-export function verificarBisimulacionFrontera(
+export function compareExercisedBoundary(
   modelo: Modelo,
   contexto: ContextoSimulacion,
   refinamientoId: Id,
-): BisimulacionFrontera {
+): ExercisedBoundaryComparison {
   const firmaAbstracta = firmaFronteraAbstracta(modelo, refinamientoId);
   const firmaEjercida = firmaFronteraEjercidaPorTraza(modelo, contexto, refinamientoId);
   const diferencias = diferenciaFirma(firmaAbstracta, firmaEjercida);
   return {
-    equivalente: diferencias.length === 0,
-    firmaAbstracta: firmaOrdenada(firmaAbstracta),
-    firmaEjercida: firmaOrdenada(firmaEjercida),
-    ...(diferencias.length > 0 ? { diferencias } : {}),
+    sameSignature: diferencias.length === 0,
+    scope: "exercised-boundary-signature",
+    abstractSignature: firmaOrdenada(firmaAbstracta),
+    exercisedSignature: firmaOrdenada(firmaEjercida),
+    ...(diferencias.length > 0 ? { differences: diferencias } : {}),
   };
 }
 
@@ -151,11 +151,9 @@ export function hechosEjercidosPorTraza(modelo: Modelo, contexto: ContextoSimula
 }
 
 /**
- * El CICLO unfold→fold hecho ejecutable: el razonamiento F3 (catamorfismo) opera
- * sobre lo que la simulación S (anamorfismo) ejerció. Por cada objeto que la
- * corrida transicionó, deriva los procesos que lo afectan — la estática (F3)
- * debe reconocer la dinámica (S). Es el dual del despliegue: donde S abrió la
- * traza, F3 la colapsa de vuelta a hechos derivados.
+ * Conecta la corrida con el razonamiento F3: por cada objeto que la simulación
+ * transicionó, deriva los procesos que lo afectan. Demuestra que ambas capas
+ * consultan el mismo sustrato; no afirma por sí sola una dualidad fold/unfold.
  */
 export function razonarSobreCorrida(modelo: Modelo, contexto: ContextoSimulacion): HechoDerivado[] {
   const objetos = new Set<Id>();

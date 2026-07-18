@@ -74,10 +74,9 @@ KORA_RAIZ="${KORA_RAIZ:-/home/felix/kora-pneuma}"
 cat "$KORA_RAIZ/artefactos/conocimiento/fxsl/spec-forja-opl-es.md"   # path resuelto por docs/canon-opm/resolutor-urn.json (SSOT viva en pneuma)
 ```
 
-## Nota De Enmienda 2026-07-09
+## Nota De Enmienda 2026-07-18
 
-Versión observada de la fuente: `1.3.0` (pneuma `4ae6428`). Delta: **excepción
-de apunte a R-ENT-2 (R-ENT-2-APUNTE, §2.0)** — en especie apunte los
-placeholders emiten OPL en toda la generación, incluida la canónica; neutraliza
-GAP-PLACEHOLDER-OBJETO para apuntes. Realización en `app/src/opl/`
-(`VisibilidadOpl.esApunte`), origen BUG-76af16.
+Versión observada de la fuente: `1.3.1` (pneuma `fd284cf`). Conserva la
+excepción de apunte de v1.3.0 y acota la composición de §24 a unión por interfaz.
+Los invariantes operativos no prueban dualidad categorial ni la propiedad
+universal de un pushout.

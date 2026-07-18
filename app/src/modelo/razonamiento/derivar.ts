@@ -6,8 +6,8 @@ import type { ExtremoEnlace, Id, Modelo } from "../tipos";
  *
  * Hace computables las inferencias que OPM ya implica estructuralmente
  * (qué afecta a algo, qué requiere un proceso, qué impacta una eliminación,
- * qué estados son alcanzables). Es el catamorfismo dual de la simulación
- * (anamorfismo): mismo espacio, sentido opuesto.
+ * qué estados son alcanzables). Comparte con la simulación el modelo subyacente,
+ * pero eso no demuestra que ambas operaciones sean duales categoriales.
  *
  * COHERENCIA CON F0 (decisión declarada): deriva del `Modelo` directamente, NO de
  * `hechosDe`, porque `impacto-de-eliminar` necesita los refinamientos y F0 no los

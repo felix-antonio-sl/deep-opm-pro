@@ -1,6 +1,6 @@
 import type { Id, Modelo } from "../tipos";
 import { obtenerRefinamiento } from "../refinamientos";
-import { verificarEquivalencia } from "./verificar";
+import { compareBoundarySignature } from "./verificar";
 
 export interface DescomposicionIncoherente {
   /** Proceso cuya descomposición no preserva su frontera. */
@@ -15,11 +15,12 @@ export interface DescomposicionIncoherente {
 
 /**
  * Ley in-zoom ↔ out-zoom (F2): la descomposición de un proceso debe ser
- * FRONTERA-EQUIVALENTE al proceso abstracto. La vista abstracta (el proceso en
- * su OPD padre) y la vista detallada (su OPD hijo) son dos realizaciones del
- * mismo hecho; deben ejercer los mismos roles netos sobre el contorno.
+ * preservar la firma de frontera del proceso abstracto. La vista abstracta (el
+ * proceso en su OPD padre) y la vista detallada (su OPD hijo) deben ejercer los
+ * mismos roles netos sobre el contorno. Es una condición necesaria, no
+ * suficiente, de equivalencia conductual.
  *
- * Reusa `verificarEquivalencia` (firma de frontera) tomando opdA = OPD padre,
+ * Reusa `compareBoundarySignature` tomando opdA = OPD padre,
  * opdB = OPD de descomposición. Devuelve solo las descomposiciones incoherentes.
  * Puro: no muta el modelo.
  */
@@ -31,17 +32,17 @@ export function observarPreservacionFrontera(modelo: Modelo): DescomposicionInco
     if (!slot) continue;
     const opdHijo = modelo.opds[slot.opdId];
     if (!opdHijo?.padreId) continue;
-    const resultado = verificarEquivalencia(modelo, {
+    const resultado = compareBoundarySignature(modelo, {
       padreId: entidad.id,
       opdA: opdHijo.padreId,
       opdB: slot.opdId,
     });
-    if (resultado.ok && !resultado.value.equivalente) {
+    if (resultado.ok && !resultado.value.sameSignature) {
       out.push({
         procesoId: entidad.id,
         opdAbstractoId: opdHijo.padreId,
         opdDescomposicionId: slot.opdId,
-        diferencias: resultado.value.diferencias ?? [],
+        diferencias: resultado.value.differences ?? [],
       });
     }
   }

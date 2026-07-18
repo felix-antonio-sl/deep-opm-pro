@@ -596,8 +596,8 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         set({ mensaje: "Selecciona un proceso descompuesto para verificar la coherencia de su frontera" });
         return;
       }
-      // Equivalencia funcional (F2): la descomposición debe ser frontera-equivalente
-      // al proceso abstracto. observarPreservacionFrontera solo lista las incoherentes.
+      // Preservación de firma (F2): condición necesaria, no suficiente, de
+      // equivalencia conductual. observarPreservacionFrontera lista las incoherentes.
       const incoherencia = observarPreservacionFrontera(modelo).find((obs) => obs.procesoId === entidad.id);
       if (!incoherencia) {
         set({ mensaje: `✓ La descomposición de "${entidad.nombre}" preserva su frontera` });

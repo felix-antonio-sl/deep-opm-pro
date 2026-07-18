@@ -124,7 +124,9 @@ El orden de elicitación del SD es propiedad de `urn:fxsl:kb:metodologia-forja-o
 resume su forma:
 
 - **A0 — antes de la semilla**: generar alternativas (al menos tres conceptos si la
-  arquitectura no está decidida). Equivalencia funcional = misma firma de frontera.
+  arquitectura no está decidida). Una misma firma de frontera las hace
+  indistinguibles respecto de esos observables; no demuestra que sean
+  sustituibles en estados, errores, tiempos u otros efectos no modelados.
 - **A1 — clasificación del sistema**: artificial, natural, social o sociotécnico.
   La clase cambia cómo se pregunta por propósito, beneficiario, agencia humana y
   ocurrencia del problema.

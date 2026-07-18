@@ -259,6 +259,9 @@ describe("corpus documental · una fuente por concepto y proyecciones navegables
     expect(manualOpforja).toContain("mesa en editor colaborativo");
     expect(manualOpforja).toContain("ligadas a la identidad de sesión");
     expect(manualOpforja).toContain("no una firma criptográfica");
+    expect(manualOpforja).toContain("indistinguibles respecto de esos observables");
+    expect(manualOpforja).toContain("no demuestra que sean");
+    expect(manualOpforja).not.toContain("Equivalencia funcional = misma firma");
     expect(manualOpforja).not.toContain("lo emite solo el compilador");
     expect(manualOpforja).not.toContain("el bundle no queda ligado");
     expect(manualOpforja).not.toContain("etiquetado parcial");
@@ -281,6 +284,8 @@ describe("corpus documental · una fuente por concepto y proyecciones navegables
     expect(hojasPuente[1]).not.toContain("detectar si la mesa lo editó tras la emisión");
     expect(readFileSync(resolve(CHEATSHEETS, "opforja-sistemas.html"), "utf8"))
       .toContain("ni implica factibilidad validada o prioridad");
+    expect(readFileSync(resolve(CHEATSHEETS, "opforja-runbook.html"), "utf8"))
+      .toContain("no sustituibilidad total");
     const specPuenteHistorica = readFileSync(
       resolve(DOCS, "superpowers/specs/2026-07-06-puente-directo-mesa-skill-design.md"),
       "utf8",

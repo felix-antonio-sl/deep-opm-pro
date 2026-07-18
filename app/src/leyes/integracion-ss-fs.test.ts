@@ -4,7 +4,7 @@ import {
   entidadesVisitadas,
   hechosEjercidosPorTraza,
   razonarSobreCorrida,
-  verificarBisimulacionFrontera,
+  compareExercisedBoundary,
 } from "../modelo/simulacion/integracionHechos";
 import { hechosDe } from "../modelo/hechos";
 import { derivar } from "../modelo/razonamiento";
@@ -19,15 +19,16 @@ function must<T>(r: Resultado<T>): T {
 }
 
 /**
- * LEYES DE INTEGRACIÓN Ss↔Fs — la simulación (anamorfismo) y el cimiento de
- * hechos F0 / razonamiento F3 (catamorfismo) sobre el MISMO sustrato.
+ * LEYES DE INTEGRACIÓN Ss↔Fs — simulación y razonamiento sobre el mismo
+ * sustrato F0.
  *
  * Antes de esto las dos capas estaban totalmente desconectadas: `simulacion/`
  * no importaba ninguna F y las Fs no conocían `simulacion/`. Estas leyes
- * verifican que el unfold de S y el fold de F3 son duales sobre los hechos de
- * F0 — no dos teorías que casualmente viven en el mismo repo.
+ * verifican que la traza de S no inventa hechos y que F3 reconoce objetos que S
+ * ejerció. Es una lectura operacional; no prueba una dualidad categorial.
  *
- * Fundamento: `urn:fxsl:kb:icas-efectos` (unfold/fold duales sobre el carrier).
+ * Lectura heurística: `urn:fxsl:kb:icas-efectos`; los asserts siguientes
+ * prueban solo relaciones sobre el sustrato compartido.
  *
  * Fixture: proceso «Cocinar» transforma «Huevo» de `crudo`→`cocido` (consumo
  * de estado + resultado a estado, el patrón de `inferirTransiciones`). «Sal»
@@ -79,7 +80,7 @@ function corrida(): { modelo: Modelo; fin: ReturnType<typeof desplegar> } {
   return { modelo, fin };
 }
 
-describe("integración Ss↔Fs (anamorfismo/catamorfismo sobre F0)", () => {
+describe("integración Ss↔Fs sobre el sustrato F0", () => {
   test("la corrida sí ejerció la transición crudo→cocido (precondición del fixture)", () => {
     const { fin } = corrida();
     expect(fin.trace.length).toBe(1);
@@ -119,7 +120,7 @@ describe("integración Ss↔Fs (anamorfismo/catamorfismo sobre F0)", () => {
     expect(vals.filter((h) => h.tipo === "enlace").length).toBe(2); // consumo + resultado
   });
 
-  test("LEY dualidad S→F3: todo objeto que S transicionó, F3 lo reconoce (afectan-a)", () => {
+  test("LEY S→F3: todo objeto que S transicionó, F3 lo reconoce (afectan-a)", () => {
     const { modelo, fin } = corrida();
     const transicionadas = new Set<string>();
     for (const e of fin.trace) for (const t of e.transicionesAplicadas) transicionadas.add(t.entidadId);
@@ -130,7 +131,7 @@ describe("integración Ss↔Fs (anamorfismo/catamorfismo sobre F0)", () => {
     }
   });
 
-  test("razonarSobreCorrida cierra el ciclo unfold→fold (F3 razona sobre lo que S ejerció)", () => {
+  test("razonarSobreCorrida consulta en F3 lo que S ejerció", () => {
     const { modelo, fin } = corrida();
     const derivados = razonarSobreCorrida(modelo, fin);
     expect(derivados.length).toBeGreaterThan(0);
@@ -227,7 +228,7 @@ describe("integración F2↔S (la descomposición es simulable y coherente con F
     expect(observarPreservacionFrontera(modelo).some((o) => o.procesoId === procesarId)).toBe(false);
 
     // Ley S⊑F0 sobre la descomposición: simular el in-zoom NO inventa estructura fuera de F0.
-    // (la bisimulación de frontera plena —que S ejerza las entidades de frontera— queda como
+    // (la comparación de frontera plena —que S ejerza las entidades de frontera— queda como
     //  diseño-mayor: exige confirmar que los subprocesos del in-zoom ejercen los enlaces heredados.)
     const fin = desplegar(modelo, iniciarSimulacion(modelo, opdHijoId!));
     const todos = hechosDe(modelo);
@@ -240,23 +241,24 @@ describe("integración F2↔S (la descomposición es simulable y coherente con F
     const { modelo, procesarId, pedidoId, despachoId, opdHijoId } = modeloPedidoProcesarDespachoDescompuesto();
 
     const fin = desplegar(modelo, iniciarSimulacion(modelo, opdHijoId));
-    const bisimulacion = verificarBisimulacionFrontera(modelo, fin, procesarId);
+    const comparison = compareExercisedBoundary(modelo, fin, procesarId);
 
-    expect(bisimulacion.equivalente).toBe(true);
-    expect(bisimulacion.firmaAbstracta).toContain(`${pedidoId}|consumo|origen`);
-    expect(bisimulacion.firmaAbstracta).toContain(`${despachoId}|resultado|destino`);
-    expect(bisimulacion.firmaEjercida).toEqual(bisimulacion.firmaAbstracta);
+    expect(comparison.sameSignature).toBe(true);
+    expect(comparison.scope).toBe("exercised-boundary-signature");
+    expect(comparison.abstractSignature).toContain(`${pedidoId}|consumo|origen`);
+    expect(comparison.abstractSignature).toContain(`${despachoId}|resultado|destino`);
+    expect(comparison.exercisedSignature).toEqual(comparison.abstractSignature);
   });
 
-  test("control de no-tautología F2↔S: si el hijo no ejerce un derivado de frontera, la bisimulación falla", () => {
+  test("control de no-tautología F2↔S: un derivado no ejercido cambia la firma", () => {
     const fixture = modeloPedidoProcesarDespachoDescompuesto();
     const modeloRoto = quitarDerivadoDeFrontera(fixture.modelo, fixture.opdHijoId, "consumo");
 
     const fin = desplegar(modeloRoto, iniciarSimulacion(modeloRoto, fixture.opdHijoId));
-    const bisimulacion = verificarBisimulacionFrontera(modeloRoto, fin, fixture.procesarId);
+    const comparison = compareExercisedBoundary(modeloRoto, fin, fixture.procesarId);
 
-    expect(bisimulacion.equivalente).toBe(false);
-    expect(bisimulacion.diferencias).toContain(`${fixture.pedidoId}|consumo|origen`);
+    expect(comparison.sameSignature).toBe(false);
+    expect(comparison.differences).toContain(`${fixture.pedidoId}|consumo|origen`);
   });
 });
 

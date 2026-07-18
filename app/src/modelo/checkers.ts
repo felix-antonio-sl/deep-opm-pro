@@ -122,8 +122,8 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
 }
 
 /**
- * Preservación de frontera (capa categorial F2): la descomposición de un proceso
- * debe ser FRONTERA-EQUIVALENTE al proceso abstracto (ley in-zoom ↔ out-zoom).
+ * Preservación de frontera (F2): la descomposición de un proceso debe preservar
+ * la firma de frontera del proceso abstracto (ley in-zoom ↔ out-zoom).
  * Si el OPD hijo deja de ejercer un rol de contorno que el proceso sí ejerce
  * (o lo introduce de más), el inzoom no realiza fielmente el proceso. Reusa
  * `observarPreservacionFrontera` del kernel de equivalencia.
@@ -137,7 +137,7 @@ export function checkDescomposicionPreservaFrontera(modelo: Modelo): AvisoMetodo
       entidadId: obs.procesoId,
       navegarA: { tipo: "entidad", id: obs.procesoId },
       mensaje: `La descomposición de "${entidad?.nombre ?? obs.procesoId}" no preserva su frontera: difiere en ${obs.diferencias.join(", ")}. El OPD hijo debe ejercer sobre el contorno los mismos roles (consumo/resultado/efecto…) que el proceso abstracto.`,
-      rationale: "La realización in-zoom de un proceso debe ser frontera-equivalente a su vista abstracta (out-zoom).",
+      rationale: "Preservar la firma visible del proceso abstracto es necesario, pero no suficiente, para equivalencia conductual.",
       ssotRef: `${KB_METODO} §7.1 / urn:fxsl:kb:opm-categorial-es F2`,
       accionesSugeridas: [
         "Recolecta o distribuye los enlaces de contorno faltantes en el OPD hijo (clic derecho sobre el enlace externo).",

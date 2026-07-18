@@ -81,6 +81,11 @@ los fragmentos pueden nacer como OPDs sueltos en Taller y reconciliarse por
 adopción, mientras la integridad permanece exigible y el rigor de cierre se
 cobra al graduar o exportar canónico.
 
+La versión `1.6.1` (2026-07-18) acotó la igualdad de firma de frontera a
+equivalencia observacional relativa. Es una condición necesaria de sustitución,
+no identidad, bisimulación ni equivalencia categorial; una lectura de fibración
+permanece hipotética hasta construir y probar sus datos formales.
+
 ## Acceso Rápido
 
 ```bash

@@ -137,7 +137,7 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
     accion("componer-modelo", "Componer con modelo...", "accion-componer-modelo", "refinamiento", true, {
       visible: true,
       superficies: ["menu-contextual", "command-palette"],
-      aliasBusqueda: ["composicion", "interfaz", "pushout", "modelo"],
+      aliasBusqueda: ["composicion", "interfaz", "union", "modelo"],
     }),
     accion("editar-imagen", "Editar imagen", "barra-editar-imagen", "apariencia", !!esObjeto, {
       texto: "Img",
@@ -213,8 +213,8 @@ export function accionesContextualesEntidad(ctx: ContextoAccionesEntidad): Accio
       superficies: ["menu-contextual", "command-palette"],
       aliasBusqueda: ["razonar", "impacto", "aguas", "abajo", "cascada", "downstream", "dependencias", "derivar"],
     }),
-    // Piso 2 (Equivalencia): la descomposición debe ser frontera-equivalente al
-    // proceso abstracto (ley in-zoom ↔ out-zoom). Solo para procesos con inzoom.
+    // Piso 2: la descomposición debe preservar la firma de frontera del proceso
+    // abstracto. Es una condición necesaria; solo aplica a procesos con inzoom.
     accion("verificar-coherencia-descomposicion", "Verificar coherencia de la descomposición", "accion-verificar-coherencia-descomposicion", "navegacion", ctx.entidad?.tipo === "proceso" && tieneDescomposicion, {
       visible: ctx.entidad?.tipo === "proceso" && tieneDescomposicion,
       superficies: ["menu-contextual", "command-palette"],

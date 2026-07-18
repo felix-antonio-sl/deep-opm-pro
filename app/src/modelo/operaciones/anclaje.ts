@@ -180,8 +180,8 @@ export function reSincronizarAnclaje(
 
 /**
  * Soltar (Δ→Σ): la cosa deja de estar anclada y se vuelve copia local desacoplada
- * — pierde comparabilidad (irreversible por diseño: Calco→Anclaje está prohibido,
- * ley de la adjunción). Quita solo `anclaje`; preserva el resto de la cosa. Falla
+ * — pierde comparabilidad. Es irreversible por contrato de producto: ningún
+ * gesto reconstruye automáticamente el origen. Quita solo `anclaje`; preserva el resto de la cosa. Falla
  * ruidoso si la entidad no existe o ya es local (no hay anclaje que soltar).
  */
 export function soltarAnclaje(modelo: Modelo, entidadId: Id): Resultado<Modelo> {

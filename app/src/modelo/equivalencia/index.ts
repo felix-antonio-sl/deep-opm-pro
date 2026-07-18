@@ -3,10 +3,14 @@ export {
   firmaFronteraDeOpd,
   fronteraDe,
 } from "./frontera";
-export { verificarEquivalencia, type RealizacionAlternativa } from "./verificar";
+export {
+  compareBoundarySignature,
+  type BoundarySignatureComparison,
+  type RealizacionAlternativa,
+} from "./verificar";
 export { observarPreservacionFrontera, type DescomposicionIncoherente } from "./preservacion";
 export {
   firmaFronteraEntidad,
-  verificarLiftCartesianoFrontera,
-  type LiftCartesianoFrontera,
+  verifyBoundaryCorrespondence,
+  type BoundaryCorrespondence,
 } from "./verticalidad";

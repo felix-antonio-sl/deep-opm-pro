@@ -1,10 +1,8 @@
 /**
- * Functor de efecto de la simulacion. La simulacion es el unfold (anamorfismo)
- * de una coalgebra `paso : EstadoSistema -> F(EstadoSistema)`; `Efecto<T>` ES ese
- * F. En el modo determinista hay exactamente un sucesor con peso 1; los
- * abanicos XOR ya se representan como sucesores alternativos ponderados para
- * exploracion exhaustiva o muestreo probabilistico. Ver
- * docs/roadmap/simulacion-categorial-opforja.md S3.
+ * Contenedor de sucesores de un paso de simulación. Admite una lectura
+ * coalgebraica bajo hipótesis adicionales, pero este tipo solo implementa la
+ * estructura operativa: un sucesor de peso 1 en modo determinista o sucesores
+ * alternativos ponderados para exploración y muestreo.
  */
 export interface Sucesor<T> {
   estado: T;

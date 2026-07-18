@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import type { Apariencia, AparienciaEnlace, Enlace, Entidad, Modelo, Opd, TipoEnlace } from "../tipos";
-import { verificarEquivalencia, type RealizacionAlternativa } from "./verificar";
+import { compareBoundarySignature, type RealizacionAlternativa } from "./verificar";
 
-// Tests REALES de equivalencia funcional (no tautológicos): un proceso P
+// Tests de igualdad de firma (no tautológicos): un proceso P
 // (consume A, produce B) con DOS descomposiciones de interior DISTINTO pero
-// mismo rol neto de frontera. La equivalencia correcta (método A0) las ve
-// equivalentes; distinto rol neto → no equivalentes.
+// mismo rol neto de frontera. La comparación las ve indistinguibles respecto
+// de ese observable; distinto rol neto → firmas distintas.
 
 function ent(id: string, tipo: "objeto" | "proceso", nombre: string): Entidad {
   return { id, tipo, nombre, esencia: "informacional", afiliacion: "sistemica" };
@@ -65,15 +65,18 @@ function modeloDosRealizaciones(): { modelo: Modelo; eq: RealizacionAlternativa 
   return { modelo, eq: { padreId: "P", opdA: "a", opdB: "b" } };
 }
 
-describe("equivalencia/verificar — funcional (realizaciones alternativas, A0)", () => {
-  test("interior distinto, mismo rol neto de frontera (A consumida, B producida) → equivalentes", () => {
+describe("equivalencia/verificar — firma de frontera (realizaciones alternativas, A0)", () => {
+  test("interior distinto, mismo rol neto de frontera → misma firma con alcance explícito", () => {
     const { modelo, eq } = modeloDosRealizaciones();
-    const r = verificarEquivalencia(modelo, eq);
+    const r = compareBoundarySignature(modelo, eq);
     expect(r.ok).toBe(true);
-    if (r.ok) expect(r.value.equivalente).toBe(true);
+    if (r.ok) {
+      expect(r.value.sameSignature).toBe(true);
+      expect(r.value.scope).toBe("boundary-signature");
+    }
   });
 
-  test("rol neto distinto (una descomposición no consume A) → no equivalentes, reporta diferencia", () => {
+  test("rol neto distinto (una descomposición no consume A) → firmas distintas", () => {
     const { modelo, eq } = modeloDosRealizaciones();
     const sinConsumo: Modelo = {
       ...modelo,
@@ -82,18 +85,18 @@ describe("equivalencia/verificar — funcional (realizaciones alternativas, A0)"
         b: { ...modelo.opds.b!, enlaces: { aebRB: modelo.opds.b!.enlaces.aebRB! } },
       },
     };
-    const r = verificarEquivalencia(sinConsumo, eq);
+    const r = compareBoundarySignature(sinConsumo, eq);
     expect(r.ok).toBe(true);
     if (r.ok) {
-      expect(r.value.equivalente).toBe(false);
-      expect(r.value.diferencias && r.value.diferencias.length > 0).toBe(true);
+      expect(r.value.sameSignature).toBe(false);
+      expect(r.value.differences && r.value.differences.length > 0).toBe(true);
     }
   });
 
-  test("verificarEquivalencia es pura: no muta el modelo", () => {
+  test("compareBoundarySignature es pura: no muta el modelo", () => {
     const { modelo, eq } = modeloDosRealizaciones();
     const antes = JSON.stringify(modelo);
-    verificarEquivalencia(modelo, eq);
+    compareBoundarySignature(modelo, eq);
     expect(JSON.stringify(modelo)).toBe(antes);
   });
 });

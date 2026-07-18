@@ -1,16 +1,12 @@
-// LEY ADJUNCIÓN — Calco (Σ) y Anclaje (Δ) son las dos caras del mismo contrato.
+// CONTRATO OPERATIVO — Calco y Anclaje son dos modos distintos de reutilización.
 //
-// "Fertilizante para Calco": reconoce FORMALMENTE el graft de D6 (`injertarEstereotipo`)
-// como el modo Σ —la copia desacoplada que el consenso nomina **Calco**— y lo verifica
-// junto al modo Δ —el `anclaje` referencial que el consenso nomina **Anclaje**—. Es el
-// ship-able del acta `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`
-// (§«Ejecución»): la adjunción como LEYES falsables que ambos subsistemas satisfacen,
-// NO una fusión de kernel. Cierra el sello «leyes-adjunción: enunciadas, no verdes» y
-// deja la semántica de Calco ley-verificada antes del renombre D6→Calco (que toca UI).
+// Verifica que el graft de D6 (`injertarEstereotipo`) materializa una copia
+// desacoplada y que `anclaje` mantiene una referencia viva sin materializar
+// entidades. Estas propiedades falsables no constituyen por sí solas una
+// adjunción ni otra estructura categorial.
 //
-// Falsable: si el graft dejara de copiar (degradara a Δ), o si una cosa calcada naciera
-// con `anclaje` (Calco degradara a referencia viva), o si anclar materializara entidades
-// (Δ degradara a Σ), estas leyes se ponen rojas.
+// Falsable: si el graft dejara de copiar, una cosa calcada naciera con `anclaje`
+// o anclar materializara entidades, estas pruebas fallarían.
 import { describe, expect, test } from "bun:test";
 import {
   anclarAPieza,
@@ -39,23 +35,23 @@ function modeloConEstereotipo(): { modelo: Modelo; estereotipoId: Id } {
   return must(crearEstereotipoDesdeSeleccion(m, m.opdRaizId, ids, "Trámite"));
 }
 
-describe("LEY ADJUNCIÓN — Calco (Σ) y Anclaje (Δ): dos caras, dos topologías de identidad", () => {
-  test("Σ vs Δ: Calcar CREA entidades (copia desacoplada); Anclar NO crea ninguna (referencia viva)", () => {
+describe("CONTRATO — Calco y Anclaje tienen semánticas de identidad distintas", () => {
+  test("Calcar CREA entidades; Anclar NO crea ninguna", () => {
     const { modelo, estereotipoId } = modeloConEstereotipo();
     const n = Object.keys(modelo.entidades).length;
 
-    // Σ — Calco (graft): clona el subgrafo → entidades NUEVAS con ids frescos.
+    // Calco: clona el subgrafo → entidades NUEVAS con ids frescos.
     const calco = must(injertarEstereotipo(modelo, estereotipoId, modelo.opdRaizId, { x: 400, y: 0 }));
     expect(calco.entidadesCreadas.length).toBeGreaterThan(0);
     expect(Object.keys(calco.modelo.entidades).length).toBe(n + calco.entidadesCreadas.length);
 
-    // Δ — Anclaje: referencia viva → 0 entidades nuevas.
+    // Anclaje: referencia viva → 0 entidades nuevas.
     const algunaId = Object.keys(modelo.entidades)[0] as Id;
     const anclado = must(anclarAPieza(modelo, algunaId, GREDA, ENT_CATEGORY));
     expect(Object.keys(anclado.entidades).length).toBe(n);
   });
 
-  test("(iv) Calco terminal-en-procedencia: las cosas calcadas NO llevan `anclaje` (copia local, no referencia viva externa)", () => {
+  test("las cosas calcadas NO llevan `anclaje`", () => {
     const { modelo, estereotipoId } = modeloConEstereotipo();
     const calco = must(injertarEstereotipo(modelo, estereotipoId, modelo.opdRaizId, { x: 400, y: 0 }));
     for (const id of calco.entidadesCreadas) {
@@ -63,7 +59,7 @@ describe("LEY ADJUNCIÓN — Calco (Σ) y Anclaje (Δ): dos caras, dos topologí
     }
   });
 
-  test("Σ olvida la base, Δ la preserva: solo el Anclaje referencia FUERA del modelo (biblioteca con modeloId distinto)", () => {
+  test("solo el Anclaje conserva una referencia externa", () => {
     const { modelo } = modeloConEstereotipo();
     const algunaId = Object.keys(modelo.entidades)[0] as Id;
     const anclado = must(anclarAPieza(modelo, algunaId, GREDA, ENT_CATEGORY));
@@ -71,7 +67,7 @@ describe("LEY ADJUNCIÓN — Calco (Σ) y Anclaje (Δ): dos caras, dos topologí
     expect(anclado.entidades[algunaId]?.anclaje?.biblioteca.modeloId).not.toBe(modelo.id);
   });
 
-  test("(v) Σ-sin-sección / Calco→Anclaje prohibido: una cosa calcada no nace con vínculo vivo; obtener `anclaje` exige anclar a una Pieza EXTERNA (operación nueva, no recuperar el origen)", () => {
+  test("Calco no reconstruye el vínculo vivo de procedencia", () => {
     const { modelo, estereotipoId } = modeloConEstereotipo();
     const calco = must(injertarEstereotipo(modelo, estereotipoId, modelo.opdRaizId, { x: 400, y: 0 }));
     // Las cosas calcadas son objetos libres: ningún gesto reconstruye un `anclaje` a su estereotipo-origen.

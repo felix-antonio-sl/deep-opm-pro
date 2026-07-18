@@ -68,7 +68,7 @@ la app). Mapeo regla → gate verificable:
 | Regla (Anexo C) | Gate ejecutable | Ubicación |
 |---|---|---|
 | R-CAT-LIN-2 (conflicto de linealidad) | `law-composicion-respeta-lineal` | `app/src/leyes/composicion.test.ts` · `app/src/modelo/composicion/linealidad.ts` |
-| R-CAT-EQ-2 (equivalencia por firma de frontera) | `verificarEquivalencia` | `app/src/modelo/equivalencia/{verificar,index}.ts` · `app/src/leyes/equivalencia.test.ts` |
+| R-CAT-EQ-2 (igualdad observable por firma de frontera) | `compareBoundarySignature` (resultado rotulado `boundary-signature`) | `app/src/modelo/equivalencia/{verificar,index}.ts` · `app/src/leyes/equivalencia.test.ts` |
 | R-CAT-EQ-3 (in-zoom ↔ out-zoom preserva frontera) | checker `DESCOMPOSICION_NO_PRESERVA_FRONTERA` | `app/src/modelo/diagnosticoSeveridad.ts` · `app/src/modelo/checkers-preservacion-frontera.test.ts` |
 | R-CAT-COMP-2 (composición: 4 propiedades) | `law-composicion-{no-duplica,sin-refs-colgantes,asociativa,bien-tipada}` | `app/src/leyes/composicion.test.ts` · `app/src/modelo/composicion/componer.test.ts` (2 de las 4 viven aquí) |
 
