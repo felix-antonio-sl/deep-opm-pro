@@ -17,8 +17,8 @@ OPM/ISO 19450 con método Forja.
 | desarrollar y operar software | [Manual de sistemas](manual-sistemas-opm.md) | [Manual de software](manual-software-opm.md) |
 | trabajar como agente modelador | [Pista agente del manual de opforja](manual-opforja.md#pista-agente) | [Ingeniería agéntica transversal](manual-sistemas-opm.md#5-ingeniería-agéntica-del-trabajo) |
 | consultar una referencia visual | [Índice de hojas rápidas](cheatsheets/README.md) | manual propietario de cada hoja |
-| mantener el producto | [CLAUDE.md](../CLAUDE.md) | [handoff](handoff-2026-07-12.md) y [roadmap](roadmap/roadmap-2026-07-12.md) |
-| desplegar u operar producción | [Runbook de despliegue](deploy/opforja.md) | [handoff](handoff-2026-07-12.md) |
+| mantener el producto | [CLAUDE.md](../CLAUDE.md) | [handoff](handoff-2026-07-18.md) y [roadmap](roadmap/roadmap-2026-07-18.md) |
+| desplegar u operar producción | [Runbook de despliegue](deploy/opforja.md) | [handoff](handoff-2026-07-18.md) |
 
 ## Corpus de aprendizaje y uso
 
@@ -45,8 +45,8 @@ en una frase y enlazarlo.
 | Evidencia, ficha, AS-IS/TO-BE, alternativas, autonomía, gates, adopción del cambio y retiro | [Manual de sistemas](manual-sistemas-opm.md) |
 | Semántica sanitaria | [Manual sanitario](manual-sanitarios-opm.md) |
 | Semántica de ingeniería de software | [Manual de software](manual-software-opm.md) |
-| Estado implementado y brechas de conformidad | [handoff](handoff-2026-07-12.md) y [registro de conformidad](roadmap/registro-conformidad-ssot.md) |
-| Dirección futura priorizada | [roadmap](roadmap/roadmap-2026-07-12.md) |
+| Estado implementado y brechas de conformidad | [handoff](handoff-2026-07-18.md) y [registro de conformidad](roadmap/registro-conformidad-ssot.md) |
+| Dirección futura priorizada | [roadmap](roadmap/roadmap-2026-07-18.md) |
 | Historia editorial | Git y actas citadas con valor vigente |
 
 ## Jerarquía de autoridad
@@ -58,8 +58,8 @@ en una frase y enlazarlo.
    observadas.
 3. [GOVERNANCE de UI Forja](../ui-forja/GOVERNANCE.md) gobierna estética y chrome
    bajo la precedencia OPM.
-4. El [handoff](handoff-2026-07-12.md) fecha el estado, el
-   [roadmap](roadmap/roadmap-2026-07-12.md) fecha la dirección y el
+4. El [handoff](handoff-2026-07-18.md) fecha el estado, el
+   [roadmap](roadmap/roadmap-2026-07-18.md) fecha la dirección y el
    [índice de bugs](bugs/INDEX.md) registra defectos.
 5. Specs, actas y auditorías conservan contratos o evidencia; no sustituyen el
    estado actual.
@@ -96,7 +96,7 @@ en una frase y enlazarlo.
 ```text
 docs/
 ├── README.md
-├── handoff-2026-07-12.md
+├── handoff-2026-07-18.md
 ├── uso-productivo.md
 ├── manual-opm-puro.md
 ├── manual-opforja.md

@@ -2,7 +2,7 @@
 
 ## Vigente
 
-`roadmap-2026-07-12.md` contiene únicamente la dirección futura y sus gates de apertura. El estado desplegado vive en `../handoff-2026-07-12.md`.
+`roadmap-2026-07-18.md` contiene únicamente la dirección futura y sus gates de apertura. El estado desplegado vive en `../handoff-2026-07-18.md`.
 
 ## Documentos permanentes
 

@@ -181,7 +181,7 @@ referencia técnica para construir un modelador OPM ISO 19450 propio (`app/`).
 - Backend (Express + GAE) — no es público.
 - Source maps TypeScript — `--source-map=false` en el build de OPCloud.
 - Tests — no aparecen en el bundle de producción.
-- Schema Firestore — bloqueado por auth (ver `docs/handoff-2026-07-12.md`).
+- Schema Firestore — bloqueado por auth (ver `docs/handoff-2026-07-18.md`).
 - Archivos `.gif` y assets bajo `gifs/`, `icons/essenceAffil/`,
   `codeEditorThemes/`, `monaco/` — aparecen referenciados en código pero no
   se descargaron desde el CDN. Ver `assets/INDEX.md` § Wishlist.

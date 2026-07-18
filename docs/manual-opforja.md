@@ -9,7 +9,7 @@ la herramienta sobre un tronco de método común.
 - Instancia en producción:
   [opforja.sanixai.com](https://opforja.sanixai.com).
 - Estado operativo vigente (bloqueantes, pendientes, riesgos):
-  [handoff vigente](handoff-2026-07-12.md).
+  [handoff vigente](handoff-2026-07-18.md).
 
 ## Contrato del manual
 

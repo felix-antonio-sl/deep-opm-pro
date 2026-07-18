@@ -2,7 +2,7 @@
 
 ## Política
 
-Una auditoría permanece visible solo si sostiene una brecha abierta o si código, tests, normas o decisiones vigentes la citan como autoridad. No describe por sí sola el estado actual: para eso se usan `../handoff-2026-07-12.md` y `../roadmap/roadmap-2026-07-12.md`.
+Una auditoría permanece visible solo si sostiene una brecha abierta o si código, tests, normas o decisiones vigentes la citan como autoridad. No describe por sí sola el estado actual: para eso se usan `../handoff-2026-07-18.md` y `../roadmap/roadmap-2026-07-18.md`.
 
 ## Brechas abiertas
 

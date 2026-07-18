@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-06-29 · **Frente:** gist-anchor / Anclaje · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato.
 **Gobernanza:** diseño de UI por `steve-jobs` (a cargo, delegado por el operador); plan de implementación por panel `steipete × allan-kelly`; ejecución orquestada por `steipete` vía paralelización (skill `lineas-paralelas`).
-**SSOT relacionada:** acta de nominación `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; acta de valor/criterio de muerte `docs/auditorias/2026-06-24-acta-valor-anclaje-centinela-drift.md`; estado vivo `docs/handoff-2026-07-12.md`.
+**SSOT relacionada:** acta de nominación `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; acta de valor/criterio de muerte `docs/auditorias/2026-06-24-acta-valor-anclaje-centinela-drift.md`; estado vivo `docs/handoff-2026-07-18.md`.
 
 ---
 
