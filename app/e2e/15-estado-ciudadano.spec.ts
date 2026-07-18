@@ -211,4 +211,25 @@ test.describe("15 — Estado como ciudadano de primera clase", () => {
     // El inspector vuelve a vacío.
     await expect(page.getByTestId("inspector")).toHaveAttribute("data-modo-inspector", "vacio");
   });
+
+  test("BUG-422d7d: una cápsula se arrastra, relocaliza y persiste dentro del objeto", async ({ page }) => {
+    await importarJson(page, modeloConTresEstados());
+    const estado = capsula(page, "s-pendiente");
+    const antes = await estado.boundingBox();
+    if (!antes) throw new Error("No se pudo ubicar la cápsula inicial");
+
+    await page.mouse.move(antes.x + antes.width / 2, antes.y + antes.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(antes.x + antes.width / 2 + 24, antes.y + antes.height / 2 - 12, { steps: 6 });
+    await page.mouse.up();
+
+    const exportado = JSON.parse(await jsonEditor(page).inputValue()) as {
+      modelo: { estados: Record<string, { x?: number; y?: number }> };
+    };
+    expect(exportado.modelo.estados["s-pendiente"]).toEqual(expect.objectContaining({
+      x: expect.any(Number),
+      y: expect.any(Number),
+    }));
+    await expect.poll(async () => (await estado.boundingBox())?.x ?? null).not.toBe(antes.x);
+  });
 });
