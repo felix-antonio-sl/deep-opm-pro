@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
@@ -9,6 +9,7 @@ import { CORDON_SKILL_ESPERADO, parsearSelloKora, type SelloKora } from "../src/
 const APP_ROOT = resolve(import.meta.dir, "..");
 const REPO_ROOT = resolve(APP_ROOT, "..");
 const PRODUCCION = process.env.OPFORJA_URL ?? "https://opforja.sanixai.com";
+const RUTAS_DESPLEGABLES = ["app", "assets", "deploy", "Dockerfile", "docker-compose.yml"];
 
 export function versionFrontmatter(texto: string): string | null {
   return texto.match(/^version:\s*"?([0-9]+\.[0-9]+\.[0-9]+)"?/m)?.[1] ?? null;
@@ -24,8 +25,30 @@ export function extraerBuildProduccion(bundle: string): string | null {
   return bundle.match(/="[0-9]{4}-[0-9]{2}-[0-9]{2}",[A-Za-z_$][\w$]*="([0-9a-f]{7,40})"/)?.[1] ?? null;
 }
 
+export function clasificarDerivaFuente(input: {
+  head: string;
+  build: string | null;
+  cambiaProducto: boolean | null;
+}): string {
+  if (!input.build) return "SKIP · no comparable";
+  if (input.build === input.head) return "OK · SHA exacto";
+  if (input.cambiaProducto === false) return `OK · HEAD ${input.head} solo difiere en artefactos no desplegables`;
+  if (input.cambiaProducto === true) return `ADVERTENCIA · HEAD ${input.head}, deploy ${input.build}, hay cambios desplegables`;
+  return `SKIP · no se pudo comparar HEAD ${input.head} con deploy ${input.build}`;
+}
+
 function git(args: string[], cwd = REPO_ROOT): string {
   return execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
+}
+
+function cambiaProductoDesde(build: string | null): boolean | null {
+  if (!build) return null;
+  const resultado = spawnSync("git", ["diff", "--quiet", `${build}..HEAD`, "--", ...RUTAS_DESPLEGABLES], {
+    cwd: REPO_ROOT,
+  });
+  if (resultado.status === 0) return false;
+  if (resultado.status === 1) return true;
+  return null;
 }
 
 function selloSkill(ruta: string): SelloKora | null {
@@ -78,6 +101,11 @@ export async function ejecutarCordonEstado(): Promise<number> {
   const claude = selloSkill(join(homedir(), ".claude", "skills", "modelamiento-opm", "SKILL.md"));
   const codex = selloSkill(join(homedir(), ".agents", "skills", "modelamiento-opm", "SKILL.md"));
   const produccion = await leerProduccion();
+  const derivaFuente = clasificarDerivaFuente({
+    head: sha,
+    build: produccion.build,
+    cambiaProducto: cambiaProductoDesde(produccion.build),
+  });
   const skillFalla = !claude || !codex ||
     claude.version !== CORDON_SKILL_ESPERADO.version || claude.hashFuente !== CORDON_SKILL_ESPERADO.hashFuente || claude.target !== "claude-code" ||
     codex.version !== CORDON_SKILL_ESPERADO.version || codex.hashFuente !== CORDON_SKILL_ESPERADO.hashFuente || codex.target !== "codex";
@@ -92,7 +120,7 @@ export async function ejecutarCordonEstado(): Promise<number> {
   console.log("");
   console.log("Operación");
   console.log(`- Producción: build ${produccion.build ?? "NO DETERMINADO"} · /healthz ${produccion.health} · /session anónima ${produccion.session ?? "SKIP"}`);
-  console.log(`- Fuente ↔ deploy: ${produccion.build === sha ? "OK · coinciden" : produccion.build ? `ADVERTENCIA · fuente ${sha}, deploy ${produccion.build}` : "SKIP · no comparable"}`);
+  console.log(`- Fuente ↔ deploy: ${derivaFuente}`);
   console.log("");
   console.log("Fronteras sin testigo completo");
   console.log("- SSOT ↔ skill desplegada: el sello prueba identidad, versión y procedencia; la equivalencia semántica aún requiere revisión humana.");

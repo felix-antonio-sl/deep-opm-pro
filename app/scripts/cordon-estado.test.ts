@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { extraerBuildProduccion, versionFrontmatter } from "./cordon-estado";
+import { clasificarDerivaFuente, extraerBuildProduccion, versionFrontmatter } from "./cordon-estado";
 
 describe("cordon:estado", () => {
   test("lee semver del frontmatter vivo", () => {
@@ -14,5 +14,18 @@ describe("cordon:estado", () => {
 
   test("no inventa una revisión si el bundle no porta el testigo", () => {
     expect(extraerBuildProduccion('const hash="deadbeef";')).toBeNull();
+  });
+
+  test("distingue un commit documental posterior de una deriva desplegable", () => {
+    expect(clasificarDerivaFuente({
+      head: "bbbbbbbb",
+      build: "aaaaaaaa",
+      cambiaProducto: false,
+    })).toContain("solo difiere en artefactos no desplegables");
+    expect(clasificarDerivaFuente({
+      head: "bbbbbbbb",
+      build: "aaaaaaaa",
+      cambiaProducto: true,
+    })).toContain("hay cambios desplegables");
   });
 });
