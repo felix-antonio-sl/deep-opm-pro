@@ -33,7 +33,8 @@ export function HaloEstado() {
   // `useOpmStore` no lo re-evalúa cuando cambia la dependencia externa).
   const estado = useOpmStore((s) => (estadoActivoId ? s.modelo.estados?.[estadoActivoId] : undefined));
   const designaciones = estado?.designaciones ?? [];
-  const renombrar = useOpmStore((s) => s.renombrarEstadoDesdeOpl);
+  const renombrarSeleccionado = useOpmStore((s) => s.renombrarEstadoSeleccionadoSmart);
+  const renombrarEncadenado = useOpmStore((s) => s.renombrarEstadoDesdeOpl);
   const designar = useOpmStore((s) => s.designarEstadoSeleccionado);
   const quitarDesignacion = useOpmStore((s) => s.quitarDesignacionEstadoSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarEstadoSeleccionado);
@@ -143,7 +144,10 @@ export function HaloEstado() {
     if (cerrandoRenombradoRef.current || renombradoInline === null) return;
     cerrandoRenombradoRef.current = true;
     const limpio = renombradoInline.trim();
-    if (limpio && limpio !== estado.nombre) renombrar(estadoActivoId, limpio);
+    if (limpio && limpio !== estado.nombre) {
+      if (esRenombradoEncadenado) renombrarEncadenado(estadoActivoId, limpio);
+      else renombrarSeleccionado(limpio);
+    }
     setRenombradoInline(null);
     if (esRenombradoEncadenado) {
       if (limpio) avanzarRenombradoPendiente();
