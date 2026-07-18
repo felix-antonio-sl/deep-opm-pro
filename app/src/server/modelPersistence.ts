@@ -92,6 +92,7 @@ export interface ModelRevisionCommit {
 export interface CommittedModelRevision {
   model: ModeloPersistido;
   version: VersionResumen;
+  workspace: WorkspacePersistido;
 }
 
 export function evaluarPoliticaCommit(

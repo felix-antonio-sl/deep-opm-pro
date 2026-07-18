@@ -292,7 +292,10 @@ describe("especie vía workspace — guard biblioteca + creación atómica (repo
       // entrada del modelo viejo, la carpeta, recientes y preferenciasUi.
       expect(entradaExistente).toEqual(indiceSemilla.modelos[0]);
       expect(indiceFinal.carpetas).toEqual(indiceSemilla.carpetas);
-      expect(indiceFinal.recientes).toEqual(indiceSemilla.recientes);
+      expect(indiceFinal.recientes).toEqual([
+        entradasNuevas[0]!.id,
+        ...indiceSemilla.recientes,
+      ]);
       expect(indiceFinal.preferenciasUi).toEqual(indiceSemilla.preferenciasUi);
     } finally {
       rmSync(dir, { recursive: true, force: true });

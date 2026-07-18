@@ -14,7 +14,10 @@ import {
   type WorkspacePersistido,
 } from "../persistencia/workspace";
 import { autosaveTimestampAfter, baseWitnessMatches } from "../mesa/baseWitness";
-import { establecerEspecieCreada } from "../mesa/especieWorkspace";
+import {
+  establecerEspecieCreada,
+  registrarVersionEnWorkspace,
+} from "../mesa/especieWorkspace";
 import { especieDe } from "../persistencia/especie";
 import { isTimestampAfter } from "../mesa/timestampOrder";
 
@@ -188,20 +191,27 @@ export function crearRepoMemoria(
         version: commit.version,
         json: saved.json,
       });
-      if (!current && commit.speciesOnCreate) {
-        workspaces.set(
-          session.tenantId,
-          {
-            indice: establecerEspecieCreada(
-              workspace.indice,
-              saved.id,
-              commit.speciesOnCreate,
-            ),
-            revision: workspace.revision + 1,
-          },
-        );
-      }
-      return { model: saved, version: commit.version };
+      const indiceConEspecie = !current && commit.speciesOnCreate
+        ? establecerEspecieCreada(
+            workspace.indice,
+            saved.id,
+            commit.speciesOnCreate,
+          )
+        : workspace.indice;
+      const workspaceGuardado = {
+        indice: registrarVersionEnWorkspace(
+          indiceConEspecie,
+          saved.id,
+          commit.version,
+        ),
+        revision: workspace.revision + 1,
+      };
+      workspaces.set(session.tenantId, workspaceGuardado);
+      return {
+        model: saved,
+        version: commit.version,
+        workspace: workspaceGuardado,
+      };
     },
     async getAutosave(session, modeloId) {
       return autosaves.get(clave(session, modeloId)) ?? null;

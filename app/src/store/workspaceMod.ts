@@ -466,13 +466,11 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
   },
 
   async guardarConVersion() {
-    const sessionEpoch = captureSessionEpoch();
-    const pestanaOrigenId = get().pestanaActivaId;
-    const modeloPersistidoId = get().modeloPersistidoId;
-    const versionCreated = await get().crearVersionAhora({ descripcion: "Versión manual" });
-    if (!versionOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, modeloPersistidoId)) return;
-    if (!versionCreated) return;
-    get().guardarLocal();
+    if (!get().modeloPersistidoId) {
+      set({ mensaje: "Guarda el modelo antes de versionarlo" });
+      return;
+    }
+    await get().guardarLocal({ conVersion: true });
   },
 
   async crearVersionAhora(opts) {

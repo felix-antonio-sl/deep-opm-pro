@@ -17,7 +17,10 @@ import type {
   WorkspacePersistido,
 } from "../src/persistencia/workspace";
 import { indiceVacio } from "../src/persistencia/workspace";
-import { establecerEspecieCreada } from "../src/mesa/especieWorkspace";
+import {
+  establecerEspecieCreada,
+  registrarVersionEnWorkspace,
+} from "../src/mesa/especieWorkspace";
 import { especieDe } from "../src/persistencia/especie";
 import { isTimestampAfter } from "../src/mesa/timestampOrder";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../src/persistencia/workspaceStorage";
@@ -649,17 +652,25 @@ function repositorioPostgres(): ModelPersistenceRepository {
             version: commit.version,
             json: saved.json,
           });
-          await persistWorkspaceInTransaction(
+          const workspaceGuardado = await persistWorkspaceInTransaction(
             tx,
             session,
-            establecerEspecieCreada(
-              workspace.indice,
+            registrarVersionEnWorkspace(
+              establecerEspecieCreada(
+                workspace.indice,
+                saved.id,
+                commit.speciesOnCreate,
+              ),
               saved.id,
-              commit.speciesOnCreate,
+              commit.version,
             ),
             workspace.revision,
           );
-          return { model: saved, version: commit.version };
+          return {
+            model: saved,
+            version: commit.version,
+            workspace: workspaceGuardado,
+          };
         }
 
         if (commit.base.kind !== "existing") {
@@ -719,7 +730,21 @@ function repositorioPostgres(): ModelPersistenceRepository {
           version: commit.version,
           json: saved.json,
         });
-        return { model: saved, version: commit.version };
+        const workspaceGuardado = await persistWorkspaceInTransaction(
+          tx,
+          session,
+          registrarVersionEnWorkspace(
+            workspace.indice,
+            saved.id,
+            commit.version,
+          ),
+          workspace.revision,
+        );
+        return {
+          model: saved,
+          version: commit.version,
+          workspace: workspaceGuardado,
+        };
       });
     },
 

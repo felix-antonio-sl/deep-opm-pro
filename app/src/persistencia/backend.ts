@@ -1,9 +1,11 @@
 import type { Resultado } from "../modelo/tipos";
 import type { VersionResumen } from "../modelo/tipos";
+import type { MesaBaseWitnessV1 } from "../mesa/baseWitness";
 import {
   type ModeloPersistido,
   type ResumenModeloPersistido,
 } from "./modelos";
+import { crearTestigoBaseBrowser } from "./baseWitnessBrowser";
 import type { WorkspaceIndice, WorkspacePersistido } from "./workspace";
 import { indiceVacio } from "./workspace";
 import {
@@ -43,6 +45,22 @@ export interface AutosalvadoBackend {
   creadoEn: string;
   json: string;
 }
+
+export interface BaseRevisionBackend {
+  model: ModeloPersistido;
+  autosave: AutosalvadoBackend | null;
+  witness: MesaBaseWitnessV1;
+}
+
+export interface RevisionConfirmadaBackend {
+  model: ModeloPersistido;
+  version: VersionResumen;
+  workspace: WorkspacePersistido;
+}
+
+export type BaseRevisionCommitBackend =
+  | { kind: "new" }
+  | { kind: "existing"; witness: MesaBaseWitnessV1 };
 
 export function persistenciaBackendHabilitada(): boolean {
   return typeof window !== "undefined" && typeof fetch === "function";
@@ -182,6 +200,74 @@ export async function cargarModeloBackend(id: string): Promise<Resultado<ModeloP
   }
 }
 
+export async function observarBaseRevisionBackend(
+  id: string,
+  revisionEsperada: number,
+): Promise<Resultado<BaseRevisionBackend>> {
+  const [modelResult, autosaveResult] = await Promise.all([
+    cargarModeloBackend(id),
+    cargarAutosalvadoBackend(id),
+  ]);
+  if (!modelResult.ok) return modelResult;
+  if (!autosaveResult.ok) return autosaveResult;
+  if (modelResult.value.revision !== revisionEsperada) {
+    return fallo("Conflicto de persistencia");
+  }
+  try {
+    const witness = await crearTestigoBaseBrowser({
+      modelId: id,
+      saved: {
+        revision: revisionEsperada,
+        updatedAt: modelResult.value.actualizadoEn,
+        json: modelResult.value.json,
+      },
+      autosave: autosaveResult.value
+        ? {
+            createdAt: autosaveResult.value.creadoEn,
+            json: autosaveResult.value.json,
+          }
+        : null,
+    });
+    return ok({
+      model: modelResult.value,
+      autosave: autosaveResult.value,
+      witness,
+    });
+  } catch {
+    return fallo("No se pudo atestiguar la revisión base");
+  }
+}
+
+export async function confirmarRevisionBackend(input: {
+  model: ModeloPersistido;
+  version: VersionResumen;
+  base: BaseRevisionCommitBackend;
+  speciesOnCreate?: "apunte" | "modelo";
+  confirmedByOperator?: boolean;
+}): Promise<Resultado<RevisionConfirmadaBackend>> {
+  if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
+  try {
+    const response = await fetchBackend(
+      `${ENDPOINT}/${encodeURIComponent(input.model.id)}/revisiones`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(input),
+      },
+    );
+    const body = await leerJson(response);
+    if (!response.ok) {
+      return fallo(errorDesdeBody(body) ?? "No se pudo confirmar la revisión");
+    }
+    const revision = revisionConfirmadaDesdeBody(body);
+    return revision
+      ? ok(revision)
+      : fallo("Respuesta de revisión inválida");
+  } catch {
+    return fallo("No se pudo conectar al backend de modelos");
+  }
+}
+
 export async function borrarModeloBackend(id: string): Promise<Resultado<void>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
@@ -242,6 +328,29 @@ export async function guardarVersionBackend(modeloId: string, version: VersionRe
     const guardada = versionDesdeBody(body);
     if (!guardada) return fallo("Respuesta de versión inválida");
     return ok(guardada);
+  } catch {
+    return fallo("No se pudo conectar al backend de modelos");
+  }
+}
+
+export async function cargarAutosalvadoBackend(
+  modeloId: string,
+): Promise<Resultado<AutosalvadoBackend | null>> {
+  if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
+  try {
+    const response = await fetchBackend(
+      `${ENDPOINT}/${encodeURIComponent(modeloId)}/autosave`,
+      { method: "GET" },
+    );
+    const body = await leerJson(response);
+    if (response.status === 404) return ok(null);
+    if (!response.ok) {
+      return fallo(errorDesdeBody(body) ?? "No se pudo cargar el autosalvado");
+    }
+    const autosave = autosalvadoDesdeBody(body);
+    return autosave
+      ? ok(autosave)
+      : fallo("Respuesta de autosalvado inválida");
   } catch {
     return fallo("No se pudo conectar al backend de modelos");
   }
@@ -346,6 +455,16 @@ function autosalvadoDesdeBody(body: unknown): AutosalvadoBackend | null {
     return null;
   }
   return { modeloId: body.modeloId, creadoEn: body.creadoEn, json: body.json };
+}
+
+function revisionConfirmadaDesdeBody(body: unknown): RevisionConfirmadaBackend | null {
+  if (!esRecord(body)) return null;
+  const model = normalizarModeloPersistido(body.model);
+  const version = normalizarVersionResumen(body.version);
+  const workspace = workspaceDesdeBody(body.workspace);
+  return model && version && workspace
+    ? { model, version, workspace }
+    : null;
 }
 
 function normalizarModeloPersistido(value: unknown): ModeloPersistido | null {

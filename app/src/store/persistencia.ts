@@ -103,15 +103,18 @@ import {
   cargarModeloBackend,
   cargarWorkspaceBackend,
   cerrarSesionBackend,
+  confirmarRevisionBackend,
   guardarAutosalvadoBackend,
   guardarModeloBackend,
   guardarVersionBackend,
   iniciarSesionBackend,
   listarModelosBackend,
+  observarBaseRevisionBackend,
   onBackendUnauthorized,
   obtenerEstadoSesionBackend,
   persistenciaBackendHabilitada,
 } from "../persistencia/backend";
+import { registrarVersionEnWorkspace } from "../mesa/especieWorkspace";
 import {
   archivarCarpeta as archivarCarpetaEnIndiceOp,
   archivarModelo as archivarModeloEnIndiceOp,
@@ -124,6 +127,7 @@ import {
   type PortapapelesWorkspace,
   type ResultadoBusquedaGlobal,
   type WorkspaceIndice,
+  type WorkspacePersistido,
   type MapaWorkspace,
   indiceVacio,
   crearCarpeta as crearCarpetaEnIndice,
@@ -151,7 +155,7 @@ import {
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
-import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, Esencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual } from "../modelo/tipos";
+import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, Esencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import { generarOpl } from "../opl/generar";
 import {
@@ -338,7 +342,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     set({ modelosGuardados: [], mensaje: "Backend de modelos no disponible" });
   },
 
-  guardarLocal() {
+  guardarLocal(opciones) {
     const sessionEpoch = captureSessionEpoch();
     if (get().readOnly) {
       const estado = get();
@@ -377,7 +381,14 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     };
     const existente = get().modelosGuardados.find((item) => item.id === modeloPersistidoId);
     const modeloPersistido = construirModeloPersistido(inputGuardado, existente);
-    const finalizarGuardado = (guardadoBase: ModeloPersistido, mensaje = "Modelo guardado exitosamente") => {
+    const finalizarGuardado = (
+      guardadoBase: ModeloPersistido,
+      mensaje = "Modelo guardado exitosamente",
+      revisionConfirmada?: {
+        version: VersionResumen;
+        workspace: WorkspacePersistido;
+      },
+    ) => {
       if (!isSessionEpochCurrent(sessionEpoch) ||
         get().requiereLogin ||
         isStoredRevisionObsolete(get, guardadoBase.id, guardadoBase.revision)) {
@@ -386,7 +397,28 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       let guardado = guardadoBase;
       let versiones = guardado.versiones ?? [];
       let indiceActualizado = get().indice;
-      if (guardado.crearVersionAlGuardar) {
+      if (revisionConfirmada) {
+        versiones = [
+          revisionConfirmada.version,
+          ...(get().modelosGuardados.find((item) => item.id === guardado.id)?.versiones ?? [])
+            .filter((item) => item.id !== revisionConfirmada.version.id),
+        ];
+        guardado = { ...guardado, versiones };
+        const workspaceObservado = observePersistedWorkspace(
+          revisionConfirmada.workspace,
+        );
+        indiceActualizado = workspaceObservado
+          ? mergeWorkspaceBootstrap(
+              revisionConfirmada.workspace.indice,
+              indice,
+              get().indice,
+            )
+          : registrarVersionEnWorkspace(
+              get().indice,
+              guardado.id,
+              revisionConfirmada.version,
+            );
+      } else if (guardado.crearVersionAlGuardar) {
         const version = construirVersionPersistible(modelo, { descripcion: "Guardado manual" });
         versiones = [version.version, ...versiones];
         guardado = { ...guardado, versiones };
@@ -488,6 +520,46 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       set({ ...parcial, pestanasAbiertas });
     };
     if (persistenciaBackendHabilitada()) {
+      if (opciones?.conVersion) {
+        set({ mensaje: "Guardando modelo y versión en servidor..." });
+        return (async () => {
+          const base = await observarBaseRevisionBackend(
+            modeloPersistidoId,
+            baseRevision,
+          );
+          if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
+          if (!base.ok) {
+            set({ mensaje: `No se pudo guardar modelo y versión: ${base.error}` });
+            return;
+          }
+          const version = construirVersionPersistible(modelo, {
+            descripcion: "Versión manual",
+          });
+          const revision = await confirmarRevisionBackend({
+            model: modeloPersistido,
+            version: version.version,
+            base: { kind: "existing", witness: base.value.witness },
+            confirmedByOperator: true,
+          });
+          if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
+          if (!revision.ok) {
+            set({
+              mensaje: revision.error === "sin cambios: no se crea revisión"
+                ? "Sin cambios: no se creó una versión"
+                : `No se pudo guardar modelo y versión: ${revision.error}`,
+            });
+            return;
+          }
+          finalizarGuardado(
+            revision.value.model,
+            "Modelo y versión guardados",
+            {
+              version: revision.value.version,
+              workspace: revision.value.workspace,
+            },
+          );
+        })();
+      }
       set({ mensaje: "Guardando modelo en servidor..." });
       void guardarModeloBackend(modeloPersistido).then((resultado) => {
         if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
@@ -500,6 +572,7 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
       return;
     }
     set({ mensaje: "Backend de modelos no disponible" });
+    return;
   },
 
   cargarLocal(id) {

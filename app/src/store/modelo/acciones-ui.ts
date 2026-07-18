@@ -6,11 +6,17 @@ import {
   type ModeloPersistido,
   type ResumenModeloPersistido,
 } from "../../persistencia/modelos";
-import { guardarModeloBackend, guardarVersionBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
+import {
+  confirmarRevisionBackend,
+  guardarModeloBackend,
+  guardarVersionBackend,
+  persistenciaBackendHabilitada,
+} from "../../persistencia/backend";
 import {
   validarNombreModeloLocal,
   workspaceDesdeModelo,
   type WorkspaceIndice,
+  type WorkspacePersistido,
 } from "../../persistencia/workspace";
 import { construirVersionPersistible } from "../../persistencia/versiones";
 import { exportarModelo, hidratarModelo } from "../../serializacion/json";
@@ -25,7 +31,9 @@ import {
   listarModelosGuardadosSeguro,
   mapaWorkspaceDesdeEstado,
   marcarSnapshotModelo,
+  mergeWorkspaceBootstrap,
   modelosRecientesDeIndice,
+  observePersistedWorkspace,
   obtenerEstadoStore,
   pestanaReemplazable,
   resetHistorial,
@@ -133,6 +141,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       const descripcion = input.descripcion?.trim() ?? "";
       const modeloNombrado: Modelo = { ...modelo, nombre: validacion.nombre };
       const carpetaParaGuardar = carpetaActualId;
+      const indiceInicial = get().indice;
       const json = exportarModelo(modeloNombrado, carpetaParaGuardar);
       const mapaParaGuardar = mapaWorkspaceDesdeEstado(get());
       const inputGuardado = {
@@ -154,10 +163,20 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
         ...(input.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: input.crearVersionAlGuardar } : {}),
       };
       const modeloPersistido = construirModeloPersistido(inputGuardado);
-      const finalizarGuardadoComo = (guardadoBase: ModeloPersistido, mensaje = "Modelo guardado exitosamente") => {
+      const finalizarGuardadoComo = (
+        guardadoBase: ModeloPersistido,
+        mensaje = "Modelo guardado exitosamente",
+        confirmado?: {
+          versiones: VersionResumen[];
+          workspace: WorkspacePersistido;
+        },
+      ) => {
         let guardado = guardadoBase;
-        let versiones: VersionResumen[] = [];
-        if (input.crearVersionAlGuardar) {
+        let versiones: VersionResumen[] = confirmado?.versiones ?? [];
+        if (confirmado) {
+          guardado = { ...guardado, versiones };
+          observePersistedWorkspace(confirmado.workspace);
+        } else if (input.crearVersionAlGuardar) {
           const version = construirVersionPersistible(modeloNombrado, { descripcion: "Versión inicial" });
           versiones = [version.version];
           guardado = { ...guardado, versiones, crearVersionAlGuardar: true };
@@ -179,12 +198,46 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
           descripcionEnviada: descripcion,
           carpetaEnviada: carpetaParaGuardar,
           mapaEnviado: mapaParaGuardar,
+          indiceInicial,
           esApunte: input.esApunte === true,
           versiones,
           mensaje,
+          ...(confirmado
+            ? { workspaceConfirmado: confirmado.workspace }
+            : {}),
         });
       };
       if (persistenciaBackendHabilitada()) {
+        if (input.esApunte === true) {
+          const version = construirVersionPersistible(modeloNombrado, {
+            descripcion: "Versión inicial",
+          });
+          set({ mensaje: "Creando apunte en servidor..." });
+          void confirmarRevisionBackend({
+            model: modeloPersistido,
+            version: version.version,
+            base: { kind: "new" },
+            speciesOnCreate: "apunte",
+          }).then((resultado) => {
+            if (!isSessionEpochCurrent(sessionEpoch)) return;
+            if (resultado.ok) {
+              if (get().requiereLogin) return;
+              finalizarGuardadoComo(
+                resultado.value.model,
+                "Apunte creado",
+                {
+                  versiones: [resultado.value.version],
+                  workspace: resultado.value.workspace,
+                },
+              );
+              return;
+            }
+            if (!get().requiereLogin) {
+              set({ mensaje: `No se pudo crear el apunte: ${resultado.error}` });
+            }
+          });
+          return;
+        }
         set({ mensaje: "Guardando modelo en servidor..." });
         void guardarModeloBackend(modeloPersistido).then((resultado) => {
           if (!isSessionEpochCurrent(sessionEpoch)) return;
@@ -222,6 +275,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
       const descripcion = input.descripcion?.trim() ?? "";
       const modeloNombrado: Modelo = { ...modelo, nombre: validacion.nombre, ...(descripcion ? { descripcion } : {}) };
       const carpetaParaGuardar = carpetaActualId;
+      const indiceInicial = get().indice;
       const json = exportarModelo(modeloNombrado, carpetaParaGuardar);
       const mapaParaGuardar = mapaWorkspaceDesdeEstado(get());
       const modeloActualPersistido = modeloPersistidoId
@@ -274,6 +328,7 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
           descripcionEnviada: descripcion,
           carpetaEnviada: carpetaParaGuardar,
           mapaEnviado: mapaParaGuardar,
+          indiceInicial,
           esApunte: false,
           versiones,
           mensaje,
@@ -579,8 +634,8 @@ export function accionesUI(set: SetStore, get: GetStore): Partial<ModeloSlice> {
     // Correcciones de verificación adversarial:
     //  (1) `guardarComoLocal` es ASÍNCRONO — su respuesta se reconcilia contra
     //      la pestaña/intención de origen para no borrar los primeros trazos.
-    //      Modelo e índice de especie todavía son dos escrituras backend: no se
-    //      declara atomicidad UI mientras no exista un endpoint que las agrupe.
+    //      Modelo, versión inicial, especie y workspace se confirman mediante
+    //      el mismo commit atómico antes de reconciliar la interfaz.
     //  (2) `modelo.id` NO se reconcilia con el id del record en el save normal
     //      (queda «modelo-1»); pero la especie se deriva del índice por
     //      `m.id === modelo.id`. Se pre-genera el id y se enhebra por
@@ -671,9 +726,11 @@ function reconciliarGuardadoComo(opts: {
   descripcionEnviada: string;
   carpetaEnviada: string | null | undefined;
   mapaEnviado: ReturnType<typeof mapaWorkspaceDesdeEstado>;
+  indiceInicial: WorkspaceIndice;
   esApunte: boolean;
   versiones: VersionResumen[];
   mensaje: string;
+  workspaceConfirmado?: WorkspacePersistido;
   descripcionIndice?: string;
   limiteRecientes?: number;
 }): void {
@@ -705,9 +762,16 @@ function reconciliarGuardadoComo(opts: {
     ? opts.descripcionEnviada
     : descripcionVivaBase;
 
+  const indiceBase = opts.workspaceConfirmado
+    ? mergeWorkspaceBootstrap(
+        opts.workspaceConfirmado.indice,
+        opts.indiceInicial,
+        estadoActual.indice,
+      )
+    : estadoActual.indice;
   const entradaViva = estadoActual.indice.modelos.find(
     (modelo) => modelo.id === opts.guardado.id,
-  );
+  ) ?? indiceBase.modelos.find((modelo) => modelo.id === opts.guardado.id);
   const carpetaViva = entradaViva?.carpetaId ?? opts.carpetaEnviada ?? null;
   const huboCambiosPosteriores = puedeReconciliarOrigen && (
     exportarModelo(modeloVivo) !== exportarModelo(opts.modeloEnviado) ||
@@ -733,17 +797,19 @@ function reconciliarGuardadoComo(opts: {
     entradaActualizada = { ...sinBiblioteca, esApunte: true };
   }
   const indiceActualizado: WorkspaceIndice = {
-    ...estadoActual.indice,
+    ...indiceBase,
     modelos: [
-      ...estadoActual.indice.modelos.filter((modelo) => modelo.id !== opts.guardado.id),
+      ...indiceBase.modelos.filter((modelo) => modelo.id !== opts.guardado.id),
       entradaActualizada,
     ],
     recientes: [
       opts.guardado.id,
-      ...estadoActual.indice.recientes.filter((id) => id !== opts.guardado.id),
+      ...indiceBase.recientes.filter((id) => id !== opts.guardado.id),
     ].slice(0, opts.limiteRecientes ?? 10),
   };
-  escribirIndiceWorkspace(indiceActualizado);
+  if (!opts.workspaceConfirmado) {
+    escribirIndiceWorkspace(indiceActualizado);
+  }
 
   const modelosGuardados = upsertModeloGuardadoComo(
     estadoActual.modelosGuardados,

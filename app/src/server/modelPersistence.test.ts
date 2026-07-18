@@ -85,9 +85,13 @@ describe("modelPersistence API", () => {
     expect(await repo.get(sesionTest, domainModel.id)).not.toBeNull();
     await expect(repo.getWorkspace?.(sesionTest)).resolves.toEqual({
       indice: {
-        modelos: [{ id: domainModel.id, carpetaId: null }],
+        modelos: [{
+          id: domainModel.id,
+          carpetaId: null,
+          versiones: [expect.objectContaining({ id: "v-atomica" })],
+        }],
         carpetas: [],
-        recientes: [],
+        recientes: [domainModel.id],
       },
       revision: 1,
     });

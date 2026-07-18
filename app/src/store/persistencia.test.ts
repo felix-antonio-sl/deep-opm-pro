@@ -301,18 +301,39 @@ describe("slice persistencia backend-only", () => {
     expect(store.getState().revisionBasePorModelo[id]).toBe(base);
   });
 
-  test("guardarConVersion no guarda el modelo si la versión falla", async () => {
+  test("guardarConVersion no deja modelo ni versión si el commit atómico falla", async () => {
     store.getState().guardarComoLocal({ nombre: "Modelo versionable" });
     await esperar(() => store.getState().mensaje === "Modelo guardado exitosamente");
     const postsAntes = backend.modelPostCount;
     const jsonServidor = backend.modelos.get(store.getState().modeloPersistidoId!)!.json;
     store.getState().crearObjetoDemo();
+    backend.fallarSiguienteRevisionAtomica();
 
     await store.getState().guardarConVersion();
 
-    expect(store.getState().mensaje).toBe("No se pudo guardar versión en servidor: unexpected");
+    expect(store.getState().mensaje).toBe(
+      "No se pudo guardar modelo y versión: Fallo atómico",
+    );
     expect(backend.modelPostCount).toBe(postsAntes);
     expect(backend.modelos.get(store.getState().modeloPersistidoId!)!.json).toBe(jsonServidor);
+    expect(backend.workspace.modelos[0]?.versiones).toBeUndefined();
+  });
+
+  test("guardarConVersion confirma modelo, versión y workspace en una mutación", async () => {
+    store.getState().guardarComoLocal({ nombre: "Modelo atómico" });
+    await esperar(() => store.getState().mensaje === "Modelo guardado exitosamente");
+    const id = store.getState().modeloPersistidoId!;
+    const workspacePutsAntes = backend.workspacePutCount;
+    store.getState().crearObjetoDemo();
+
+    await store.getState().guardarConVersion();
+
+    expect(store.getState().mensaje).toBe("Modelo y versión guardados");
+    expect(backend.revisionPostCount).toBe(1);
+    expect(backend.workspacePutCount).toBe(workspacePutsAntes);
+    expect(backend.workspace.modelos.find((item) => item.id === id)?.versiones)
+      .toHaveLength(1);
+    expect(store.getState().dirty).toBe(false);
   });
 
   test("eliminarVersionPorId conserva el estado local si el backend falla", async () => {
@@ -736,7 +757,17 @@ interface BackendMock {
   modelPostCount: number;
   autosavePutCount: number;
   workspace: {
-    modelos: Array<{ id: string; carpetaId: string | null }>;
+    modelos: Array<{
+      id: string;
+      carpetaId: string | null;
+      versiones?: Array<{
+        id: string;
+        creadoEn: string;
+        nombre: string;
+        modeloPayloadKey: string;
+        bytes: number;
+      }>;
+    }>;
     carpetas: [];
     recientes: string[];
     preferenciasUi?: {
@@ -747,6 +778,8 @@ interface BackendMock {
   workspaceRevision: number;
   workspacePutCount: number;
   workspaceRevisionBases: number[];
+  revisionPostCount: number;
+  fallarSiguienteRevisionAtomica(): void;
   bloquearSiguienteGuardado(): { iniciado: Promise<void>; liberar(): void };
   bloquearSiguienteWorkspacePut(): { iniciado: Promise<void>; liberar(): void };
   bloquearRespuestaSiguienteGuardado(): { iniciado: Promise<void>; liberar(): void };
@@ -772,6 +805,7 @@ function instalarBackendMock(): BackendMock {
   let siguienteWorkspacePut:
     | { iniciado: ReturnType<typeof diferido>; liberado: ReturnType<typeof diferido> }
     | null = null;
+  let fallaRevisionAtomica = false;
   const backend: BackendMock = {
     modelos: new Map(),
     autosaves: new Map(),
@@ -781,6 +815,10 @@ function instalarBackendMock(): BackendMock {
     workspaceRevision: 0,
     workspacePutCount: 0,
     workspaceRevisionBases: [],
+    revisionPostCount: 0,
+    fallarSiguienteRevisionAtomica() {
+      fallaRevisionAtomica = true;
+    },
     bloquearSiguienteGuardado() {
       const iniciado = diferido();
       const liberado = diferido();
@@ -914,6 +952,68 @@ function instalarBackendMock(): BackendMock {
         return bloqueo.liberado.promise.then(persistir);
       }
       return Promise.resolve(persistir());
+    }
+    if (url.endsWith("/autosave") && method === "GET") {
+      const partes = url.split("/");
+      const id = decodeURIComponent(partes[partes.length - 2] ?? "");
+      const autosave = backend.autosaves.get(id);
+      return Promise.resolve(autosave
+        ? jsonResponse(autosave)
+        : jsonResponse({ error: "Autosalvado no encontrado" }, 404));
+    }
+    if (url.endsWith("/revisiones") && method === "POST") {
+      backend.revisionPostCount += 1;
+      if (fallaRevisionAtomica) {
+        fallaRevisionAtomica = false;
+        return Promise.resolve(jsonResponse({ error: "Fallo atómico" }, 503));
+      }
+      const incoming = body.model as ModeloPersistido;
+      const actual = backend.modelos.get(incoming.id);
+      if (!actual || actual.revision !== incoming.revision) {
+        return Promise.resolve(jsonResponse({ error: "Conflicto de persistencia" }, 409));
+      }
+      const version = {
+        ...body.version,
+        modeloPayloadKey: body.version.id,
+        bytes: incoming.json.length,
+      };
+      const guardado = {
+        ...incoming,
+        autosalvado: false,
+        revision: (actual.revision ?? 0) + 1,
+      };
+      backend.modelos.set(guardado.id, guardado);
+      backend.autosaves.delete(guardado.id);
+      const entrada = backend.workspace.modelos.find((item) => item.id === guardado.id) ?? {
+        id: guardado.id,
+        carpetaId: guardado.carpetaId ?? null,
+      };
+      backend.workspace = {
+        ...backend.workspace,
+        modelos: [
+          ...backend.workspace.modelos.filter((item) => item.id !== guardado.id),
+          {
+            ...entrada,
+            versiones: [
+              version,
+              ...(entrada.versiones ?? []).filter((item) => item.id !== version.id),
+            ],
+          },
+        ],
+        recientes: [
+          guardado.id,
+          ...backend.workspace.recientes.filter((id) => id !== guardado.id),
+        ],
+      };
+      backend.workspaceRevision += 1;
+      return Promise.resolve(jsonResponse({
+        model: guardado,
+        version,
+        workspace: {
+          indice: backend.workspace,
+          revision: backend.workspaceRevision,
+        },
+      }));
     }
     if (url.includes("/versiones/") && method === "DELETE") {
       return Promise.resolve(jsonResponse({ error: "Fallo backend" }, 503));

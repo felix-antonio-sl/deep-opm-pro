@@ -4,6 +4,7 @@ import {
   marcarBiblioteca,
   type WorkspaceIndice,
 } from "../persistencia/workspace";
+import type { VersionResumen } from "../modelo/tipos";
 
 /**
  * Cruza el índice de workspace (`GET /__deep-opm/workspace` →
@@ -42,4 +43,31 @@ export function establecerEspecieCreada(
       };
   if (especie === "apunte") return marcarApunte(conEntrada, modeloId, true);
   return marcarBiblioteca(marcarApunte(conEntrada, modeloId, false), modeloId, false);
+}
+
+/** Refleja en el índice la revisión confirmada por la misma transacción. */
+export function registrarVersionEnWorkspace(
+  indice: WorkspaceIndice,
+  modeloId: string,
+  version: VersionResumen,
+): WorkspaceIndice {
+  const entrada = indice.modelos.find((modelo) => modelo.id === modeloId) ?? {
+    id: modeloId,
+    carpetaId: null,
+  };
+  const versiones = [
+    version,
+    ...(entrada.versiones ?? []).filter((item) => item.id !== version.id),
+  ];
+  return {
+    ...indice,
+    modelos: [
+      ...indice.modelos.filter((modelo) => modelo.id !== modeloId),
+      { ...entrada, versiones },
+    ],
+    recientes: [
+      modeloId,
+      ...indice.recientes.filter((id) => id !== modeloId),
+    ].slice(0, 10),
+  };
 }

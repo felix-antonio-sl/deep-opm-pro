@@ -741,7 +741,7 @@ export interface OpmStore {
   reordenarPestanas: (idsOrdenados: PestanaId[]) => void;
   renombrarPestana: (id: PestanaId, etiqueta: string) => void;
   listarModelosGuardados: () => void;
-  guardarLocal: () => void;
+  guardarLocal: (opciones?: { conVersion?: boolean }) => void | Promise<void>;
   cargarLocal: (id?: Id) => void;
   borrarLocal: (id: Id) => void;
   // ── Carpetas (L4) ──

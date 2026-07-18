@@ -158,7 +158,18 @@ describe("nacerApunte (store)", () => {
 interface BackendMock {
   modelos: Map<string, ModeloPersistido>;
   workspace: {
-    modelos: Array<{ id: string; carpetaId: string | null; esApunte?: boolean }>;
+    modelos: Array<{
+      id: string;
+      carpetaId: string | null;
+      esApunte?: boolean;
+      versiones?: Array<{
+        id: string;
+        creadoEn: string;
+        nombre: string;
+        modeloPayloadKey: string;
+        bytes: number;
+      }>;
+    }>;
     carpetas: [];
     recientes: string[];
   };
@@ -207,6 +218,55 @@ function instalarBackendMock(): BackendMock {
         indice: backend.workspace,
         revision: backend.workspaceRevision,
       }));
+    }
+    if (url.endsWith("/revisiones") && method === "POST") {
+      const incoming = body.model as ModeloPersistido;
+      const persistir = () => {
+        if (backend.modelos.has(incoming.id)) {
+          return jsonResponse({ error: "El modelo ya existe" }, 409);
+        }
+        const version = {
+          ...body.version,
+          modeloPayloadKey: body.version.id,
+          bytes: incoming.json.length,
+        };
+        const guardado = { ...incoming, autosalvado: false, revision: 1 };
+        backend.modelos.set(guardado.id, guardado);
+        backend.workspace = {
+          ...backend.workspace,
+          modelos: [
+            ...backend.workspace.modelos.filter((item) => item.id !== guardado.id),
+            {
+              id: guardado.id,
+              carpetaId: null,
+              ...(body.speciesOnCreate === "apunte"
+                ? { esApunte: true }
+                : {}),
+              versiones: [version],
+            },
+          ],
+          recientes: [
+            guardado.id,
+            ...backend.workspace.recientes.filter((id) => id !== guardado.id),
+          ],
+        };
+        backend.workspaceRevision += 1;
+        return jsonResponse({
+          model: guardado,
+          version,
+          workspace: {
+            indice: backend.workspace,
+            revision: backend.workspaceRevision,
+          },
+        });
+      };
+      const bloqueo = siguienteGuardado;
+      siguienteGuardado = null;
+      if (bloqueo) {
+        bloqueo.iniciado.resolver();
+        return bloqueo.liberado.promise.then(persistir);
+      }
+      return Promise.resolve(persistir());
     }
     if (url === "/__deep-opm/modelos" && method === "POST") {
       const incoming = body.modelo as ModeloPersistido;
