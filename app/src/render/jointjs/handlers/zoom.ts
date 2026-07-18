@@ -57,16 +57,23 @@ export function fitCanvasAPantalla(paper: dia.Paper | undefined, viewport?: HTML
       maxScale: number;
       preserveAspectRatio: boolean;
     }) => void;
+    translate?: () => { tx?: number; ty?: number };
   } | undefined;
   if (!paperConFit) return;
-  const fittingBBox = viewport && viewport.clientWidth > 0 && viewport.clientHeight > 0
-    ? {
-        x: viewport.scrollLeft,
-        y: viewport.scrollTop,
-        width: viewport.clientWidth,
-        height: viewport.clientHeight,
-      }
-    : undefined;
+  const fittingBBox = (() => {
+    if (!viewport || viewport.clientWidth <= 0 || viewport.clientHeight <= 0) return undefined;
+    const translate = paperConFit.translate?.() ?? {};
+    return {
+      // JointJS resta el origen actual al calcular la nueva traslación.
+      // El viewport, en cambio, expresa scroll en coordenadas del paper.
+      // Sumar ambos conserva el área visible en vez de enviar el contenido
+      // al origen del paper (fuera de vista en el canvas con padding).
+      x: viewport.scrollLeft + (translate.tx ?? 0),
+      y: viewport.scrollTop + (translate.ty ?? 0),
+      width: viewport.clientWidth,
+      height: viewport.clientHeight,
+    };
+  })();
   if (typeof paperConFit.transformToFitContent === "function") {
     paperConFit.transformToFitContent({
       padding: 40,

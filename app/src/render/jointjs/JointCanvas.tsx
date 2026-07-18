@@ -629,6 +629,22 @@ export function JointCanvas({
   }, []);
 
   useEffect(() => {
+    let frame: number | null = null;
+    const reencuadrar = () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        frame = null;
+        fitCanvasAPantalla(adapterRef.current?.paper ?? undefined, viewportRef.current);
+      });
+    };
+    window.addEventListener("resize", reencuadrar);
+    return () => {
+      window.removeEventListener("resize", reencuadrar);
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
     const host = paperHostRef.current;
     if (!host) return;
     return cablearZoomWheel({

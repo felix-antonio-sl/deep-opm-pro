@@ -127,6 +127,7 @@ describe("handlers/zoom", () => {
     let viewportChecks = 0;
     const paper = {
       transformToFitContent: (options: unknown) => llamadas.push(options),
+      translate: () => ({ tx: 1700, ty: 1800 }),
       wakeUp: () => { wakeUps += 1; },
       checkViewport: () => { viewportChecks += 1; },
     } as unknown as dia.Paper;
@@ -148,7 +149,7 @@ describe("handlers/zoom", () => {
       useModelGeometry: true,
       horizontalAlign: "middle",
       verticalAlign: "middle",
-      fittingBBox: { x: 120, y: 80, width: 900, height: 600 },
+      fittingBBox: { x: 1820, y: 1880, width: 900, height: 600 },
     });
     expect(wakeUps).toBe(1);
     expect(viewportChecks).toBe(1);

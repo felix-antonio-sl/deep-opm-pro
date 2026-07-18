@@ -212,7 +212,10 @@ function textoProgresoVivo(
   const totalPasos = contexto.plan.length;
   const pasoTexto = `paso ${Math.min(contexto.pasoActual + 1, totalPasos)} de ${totalPasos}`;
   const faseReal = contexto.faseActual;
-  return `${autoAvance ? "Reproduciendo" : "Listo para simular"} · ${pasoTexto}${faseReal ? ` · ${rotuloProgresoFase(faseReal)}` : ""}`;
+  if (contexto.estado === "preparado" && !autoAvance) {
+    return `Listo para simular · ${pasoTexto}`;
+  }
+  return `Simulando · ${pasoTexto}${faseReal ? ` · fase: ${rotuloProgresoFase(faseReal)}` : ""}`;
 }
 
 function describirFasePlanificada(
@@ -285,7 +288,7 @@ function rotuloProgresoFase(fase: NonNullable<ContextoSimulacion["faseActual"]>)
   if (fase === "consumo") return "consumo";
   if (fase === "proceso") return "proceso";
   if (fase === "resultado") return "resultado";
-  return "completado";
+  return "cierre";
 }
 
 function describirTransicion(modelo: Modelo, transicion: TransicionEstadoSim): string {

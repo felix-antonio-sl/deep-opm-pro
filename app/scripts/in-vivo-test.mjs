@@ -377,9 +377,11 @@ ${artifacts}
 ## Hallazgos UX accionables
 
 - El scaffolding de descomposicion entra directamente en renombrado inline encadenado: Enter avanza por los tres subprocesos y el diagnostico los agrupa en un solo aviso.
+- La barra de simulacion reserva "Listo para simular" para el estado previo; durante una ejecucion informa "Simulando" y explicita la microfase activa.
+- El canvas reencuadra el OPD activo al cambiar el viewport y conserva todas sus cosas dentro del area visible.
 - El flujo principal UX/IFML queda operativo: bienvenida, chrome IFML, command palette, menu contextual, feedback anclado al canvas, conexion por \`MenuTipoEnlace\` y modo mobile review.
 - La edicion mobile sigue tratada como fuera de alcance productivo; el modo revision expone tabs y aviso de edicion en escritorio/tablet.
-- El siguiente corte UX vigente es C′·C: barra de simulacion honesta y re-encuadre al cambiar el viewport.
+- El siguiente corte vigente es operacional: unificar diagnostico de fuente, despliegue y salud en \`cordon:estado\`.
 
 ## Riesgos detectados
 
@@ -625,6 +627,67 @@ try {
   await screenshot(page, "11-estados-renombrado-encadenado.png");
 
   await resetWorkbench(page);
+  await importarModelo(page, modeloSystemDiagramSonda());
+  await ejecutarComando(page, "simulacion", "menu-simulacion-conceptual");
+  const progresoSimulacion = page.getByTestId("barra-simulacion-progreso");
+  const progresoInicial = (await progresoSimulacion.textContent())?.trim() ?? "";
+  recordBool(
+    "8. Simulacion y reencuadre",
+    "La barra reserva 'Listo' para el estado previo sin fase",
+    progresoInicial === "Listo para simular · paso 1 de 1",
+    progresoInicial,
+  );
+  await page.getByTestId("barra-simulacion-paso").click();
+  await page.waitForTimeout(120);
+  const progresoActivo = (await progresoSimulacion.textContent())?.trim() ?? "";
+  recordBool(
+    "8. Simulacion y reencuadre",
+    "Un paso activo se presenta como simulacion con fase explicita",
+    /^Simulando · paso 1 de 1 · fase: \S+/.test(progresoActivo)
+      && !progresoActivo.includes("Listo para simular")
+      && !progresoActivo.includes("completado"),
+    progresoActivo,
+  );
+  await screenshot(page, "12-simulacion-honesta.png");
+  await page.getByTestId("barra-simulacion-salir").click();
+
+  await resetWorkbench(page);
+  await importarModelo(page, modeloSystemDiagramSonda());
+  const medirEncuadre = () => page.evaluate(() => {
+    const pane = document.querySelector('[data-testid="canvas-pane"]');
+    const cuerpos = Array.from(document.querySelectorAll(".joint-element [joint-selector='body']"));
+    const paneRect = pane?.getBoundingClientRect();
+    const rects = cuerpos.map((cuerpo) => {
+      const rect = cuerpo.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+    });
+    return {
+      pane: paneRect
+        ? { left: paneRect.left, right: paneRect.right, top: paneRect.top, bottom: paneRect.bottom }
+        : null,
+      rects,
+      dentro: Boolean(paneRect) && rects.length > 0 && rects.every((rect) => (
+        rect.left >= paneRect.left - 3
+        && rect.right <= paneRect.right + 3
+        && rect.top >= paneRect.top - 3
+        && rect.bottom <= paneRect.bottom + 3
+      )),
+    };
+  });
+  const encuadreAmplio = await medirEncuadre();
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.waitForTimeout(300);
+  const encuadreReducido = await medirEncuadre();
+  recordBool(
+    "8. Simulacion y reencuadre",
+    "Resize 1440→1024 conserva todas las cosas dentro del canvas",
+    encuadreAmplio.dentro && encuadreReducido.dentro,
+    JSON.stringify({ amplio: encuadreAmplio, reducido: encuadreReducido }),
+  );
+  await screenshot(page, "13-reencuadre-responsive.png");
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await resetWorkbench(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 20000 });
   await cerrarPantallaInicioSiVisible(page);
@@ -632,19 +695,19 @@ try {
     doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     body: document.body.scrollWidth - document.body.clientWidth,
   }));
-  recordBool("8. Mobile review", "Viewport 390x844 no tiene overflow horizontal >8px", overflow.doc <= 8 && overflow.body <= 8, JSON.stringify(overflow));
-  await recordVisible("8. Mobile review", "Tabs mobile review visibles", page.getByTestId("modo-revision-mobile"));
-  recordBool("8. Mobile review", "Toolbar pesada no se monta en mobile", (await locatorCount(page.getByTestId("toolbar-actions-pesadas"))) === 0);
+  recordBool("9. Mobile review", "Viewport 390x844 no tiene overflow horizontal >8px", overflow.doc <= 8 && overflow.body <= 8, JSON.stringify(overflow));
+  await recordVisible("9. Mobile review", "Tabs mobile review visibles", page.getByTestId("modo-revision-mobile"));
+  recordBool("9. Mobile review", "Toolbar pesada no se monta en mobile", (await locatorCount(page.getByTestId("toolbar-actions-pesadas"))) === 0);
   for (const tab of ["canvas", "opds", "opl", "issues"]) {
-    await recordVisible("8. Mobile review", `Tab ${tab} visible`, page.getByTestId(`mobile-tab-${tab}`));
+    await recordVisible("9. Mobile review", `Tab ${tab} visible`, page.getByTestId(`mobile-tab-${tab}`));
   }
   await page.getByTestId("mobile-tab-opds").click();
-  await recordVisible("8. Mobile review", "Tab OPDs abre panel de arbol", page.getByTestId("mobile-pane-opds"));
+  await recordVisible("9. Mobile review", "Tab OPDs abre panel de arbol", page.getByTestId("mobile-pane-opds"));
   await page.getByTestId("mobile-tab-opl").click();
-  await recordVisible("8. Mobile review", "Tab OPL abre panel OPL", page.getByTestId("mobile-pane-opl"));
+  await recordVisible("9. Mobile review", "Tab OPL abre panel OPL", page.getByTestId("mobile-pane-opl"));
   await page.getByTestId("mobile-tab-issues").click();
-  await recordVisible("8. Mobile review", "Tab Issues muestra aviso de edicion escritorio/tablet", page.getByTestId("mobile-aviso-edicion"));
-  await screenshot(page, "12-mobile-review.png");
+  await recordVisible("9. Mobile review", "Tab Issues muestra aviso de edicion escritorio/tablet", page.getByTestId("mobile-aviso-edicion"));
+  await screenshot(page, "14-mobile-review.png");
 } catch (error) {
   record("0. Runtime", "Excepcion no controlada de la sonda", "FAIL", error?.stack ?? String(error));
 } finally {

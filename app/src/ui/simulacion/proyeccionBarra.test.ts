@@ -30,6 +30,38 @@ describe("proyeccionBarraSimulacion", () => {
     expect(ui.completado).toBe(false);
   });
 
+  test("presenta 'Listo' antes de iniciar aunque el motor ya preseleccione la primera fase", () => {
+    const ui = proyectarEstadoBarraSimulacion(contexto({ faseActual: "consumo" }), false);
+
+    expect(ui.textoProgreso).toBe("Listo para simular · paso 1 de 1");
+  });
+
+  test("presenta una transición manual activa como simulación y explicita su fase", () => {
+    const ui = proyectarEstadoBarraSimulacion(contexto({
+      estado: "ejecutando",
+      faseActual: "proceso",
+    }), false);
+
+    expect(ui.textoProgreso).toBe("Simulando · paso 1 de 1 · fase: proceso");
+    expect(ui.textoProgreso).not.toContain("Listo para simular");
+  });
+
+  test("presenta el autoavance como simulación incluso antes de activar su primera fase", () => {
+    const ui = proyectarEstadoBarraSimulacion(contexto(), true);
+
+    expect(ui.textoProgreso).toBe("Simulando · paso 1 de 1");
+  });
+
+  test("no confunde la fase de cierre con el estado completado de la corrida", () => {
+    const ui = proyectarEstadoBarraSimulacion(contexto({
+      estado: "ejecutando",
+      faseActual: "cierre",
+    }), false);
+
+    expect(ui.textoProgreso).toBe("Simulando · paso 1 de 1 · fase: cierre");
+    expect(ui.textoProgreso).not.toContain("completado");
+  });
+
   test("rotula pasos omitidos por condicion sin perder diagnostico", () => {
     const rotulo = rotuloTraceSimulacion(entrada(1, {
       omitido: true,
@@ -236,4 +268,3 @@ function modeloAgua(): Modelo {
     nextSeq: 1,
   };
 }
-
