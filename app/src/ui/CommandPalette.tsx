@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import {
   BUG_CAPTURE_OPEN_EVENT,
   BUG_CAPTURE_SHORTCUT,
@@ -255,7 +255,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const indicePorItemId = new Map(items.map((item, index) => [item.id, index]));
   const itemActivo = items[activo] ?? items[0] ?? null;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!abierto) return;
     setQuery("");
     setActivo(0);
