@@ -68,7 +68,15 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
     page.getByTestId("refinamiento-estado-descomposicion").getByRole("button", { name: "Descomponer" }),
   ).toHaveCount(0);
 
-  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom");
+  await ejecutarAccionCommandPalette(page, "inzoom", "accion-inzoom", {
+    preservarRenombradoEncadenado: true,
+  });
+  const renombradoEncadenado = page.getByTestId("renombrado-inline");
+  await expect(renombradoEncadenado).toHaveValue("Proceso 1");
+  await renombradoEncadenado.press("Control+k");
+  await expect(page.getByTestId("command-palette")).toBeVisible();
+  await expect(renombradoEncadenado).toHaveCount(0);
+  await page.keyboard.press("Escape");
 
   const nodoHijo = page.locator('[role="treeitem"]').filter({ hasText: "SD1: Proceso descompuesto" });
   await expect(nodoHijo).toHaveAttribute("aria-current", "page");

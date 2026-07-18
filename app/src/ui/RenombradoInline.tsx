@@ -1,5 +1,6 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useEffect, useRef, useState } from "preact/hooks";
+import { reenviarCommandPaletteDesdeEditable } from "./atajosTeclado";
 import { tokens } from "./tokens";
 
 interface Props {
@@ -43,11 +44,13 @@ export function RenombradoInline(props: Props) {
       ref={inputRef}
       aria-label="Renombrar subproceso inline"
       data-testid="renombrado-inline"
+      data-atajos-local="true"
       value={valor}
       onInput={(event) => setValor(event.currentTarget.value)}
       onBlur={confirmar}
       onMouseDown={(event) => event.stopPropagation()}
       onKeyDown={(event) => {
+        if (reenviarCommandPaletteDesdeEditable(event, cancelar)) return;
         if (event.key === "Enter") {
           event.preventDefault();
           confirmar();

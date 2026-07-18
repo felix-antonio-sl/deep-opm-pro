@@ -211,7 +211,12 @@ export async function irATabExtremos(page: import("@playwright/test").Page): Pro
   await tab.click();
 }
 
-export async function ejecutarAccionCommandPalette(page: import("@playwright/test").Page, query: string, itemId: string): Promise<void> {
+export async function ejecutarAccionCommandPalette(
+  page: import("@playwright/test").Page,
+  query: string,
+  itemId: string,
+  opciones: { preservarRenombradoEncadenado?: boolean } = {},
+): Promise<void> {
   await page.evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
   });
@@ -222,6 +227,10 @@ export async function ejecutarAccionCommandPalette(page: import("@playwright/tes
   await expect(page.getByTestId(`command-palette-item-${itemId}`)).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
+  if (itemId === "accion-inzoom" && !opciones.preservarRenombradoEncadenado) {
+    const renombrado = page.getByTestId("renombrado-inline");
+    if (await renombrado.isVisible().catch(() => false)) await renombrado.press("Escape");
+  }
 }
 
 export async function desplegarComoAgregacion(page: import("@playwright/test").Page): Promise<void> {

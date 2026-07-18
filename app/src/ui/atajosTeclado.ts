@@ -93,6 +93,28 @@ export function formatearCombo(combo: Combo): string {
     .replace("ArrowRight", "→");
 }
 
+export function reenviarCommandPaletteDesdeEditable(
+  event: KeyboardEvent,
+  antesDeAbrir: () => void,
+): boolean {
+  const ctrl = event.ctrlKey || event.metaKey;
+  if (!ctrl || event.altKey || event.shiftKey || event.key.toLowerCase() !== "k") return false;
+  event.preventDefault();
+  event.stopPropagation();
+  antesDeAbrir();
+  window.setTimeout(() => {
+    window.dispatchEvent(new KeyboardEvent("keydown", {
+      key: event.key,
+      code: event.code,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+      bubbles: true,
+      cancelable: true,
+    }));
+  }, 0);
+  return true;
+}
+
 function manejarKeydown(e: KeyboardEvent): void {
   // Cualquier diálogo modal abierto consume sus propios atajos (Escape,
   // Enter, Tab focus trap). El registry global se hace a un lado para no

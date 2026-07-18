@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { DesignacionEstado } from "../modelo/tipos";
 import { useOpmStore } from "../store";
+import { reenviarCommandPaletteDesdeEditable } from "./atajosTeclado";
 import { tokens } from "./tokens";
 
 /**
@@ -175,10 +176,12 @@ export function HaloEstado() {
         <input
           ref={inputRef}
           data-testid="halo-estado-rename-input"
+          data-atajos-local="true"
           type="text"
           value={renombradoInline}
           onInput={(e) => setRenombradoInline((e.target as HTMLInputElement).value)}
           onKeyDown={(e) => {
+            if (reenviarCommandPaletteDesdeEditable(e, cancelarRenombrado)) return;
             if (e.key === "Enter") {
               e.preventDefault();
               confirmarRenombrado();
