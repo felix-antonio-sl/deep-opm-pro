@@ -35,6 +35,21 @@ red de recuperación, política de `docs/auditorias/README.md`).
 | Out-zoom (mecanismo de refinamiento OPM) | Canónico en SSOT | **PROGRAMADA** | Sin superficie de autoría (oportunidad anotada: reutilizar `equivalencia/`). Declarado como capacidad no implementada; no hay modelo productivo que lo demande aún. |
 | R-FAN-PROB-1 caso C («probabilístico sin pesos») — reglas §6.8/§7.4 | DEBE (condicionado a la intención del modelador) | **PROGRAMADA** | Capacidad ausente (auditoría 2026-06-14 A1-1/A6-1): `DecisionPolicy` (`tipos/extensiones.ts`) no ofrece un modo «probabilístico declarado, pesos pendientes»; el caso B (alternativas ordinarias) y el caso C (probabilístico declarado sin pesos) son indistinguibles en el modelo. **NO es divergencia silenciosa**: el default uniforme `1/n` se aplica SÓLO al simular (`runner.ts`, `modo:"muestreo"`) y nunca se persiste como hecho (ningún validador/checker escribe pesos — verificado). Implementarlo añade una variante de coproducto + serialización + UI + reflejo en OPL/diagnóstico; sin modelo productivo que lo demande aún. Destino: corte de simulación cuando exista demanda nombrada. |
 | GAPs §22 `spec-forja-opd-es` (GAP-OPD-UIFORJA-08*) | varios | **PARCIAL** | Mitad documental CERRADA 2026-06-12 (auditoría de coherencia del corpus): `ui-forja/08-jointjs-styling.md` reconciliado por remisión y `GOVERNANCE.md` elevado a v1.2 con `spec-forja-opd-es` en su cadena de precedencia (R-§25-MIG-2 cumplida en lo documental). Residual: realización en código (estado-pill, marcadores exhibición/instancia, straight-only) — backlog frente #4. |
+| Control plane del compuesto | Visibilidad operativa | **CERRADA 2026-07-18** (`530ea7b5`) | `bun run cordon:estado` deriva en lectura los cinco órganos, ambos despliegues de `modelamiento-opm`, la salud pública y la revisión servida. Distingue un commit solo documental de una deriva en insumos desplegables. No instala daemon ni segunda fuente de estado. |
+
+## Fronteras sin testigo completo
+
+El control plane debe mantener visibles estas dos fronteras; ninguna se presenta
+como verde pleno:
+
+1. **SSOT ↔ skill desplegada, equivalencia semántica.** El sello prueba
+   identidad, versión, target y hash de procedencia; no demuestra por sí solo
+   que cada instrucción de la skill siga siendo semánticamente equivalente a las
+   cuatro SSOT. La revisión humana del corte conserva esa responsabilidad.
+2. **`docs/uso-productivo.md` ↔ app.** Las leyes del corpus prueban estructura,
+   enlaces, vocabulario y jerarquía; los E2E cubren comportamientos concretos.
+   Todavía no existe un comparador de todas las afirmaciones operativas de la
+   guía contra la interfaz.
 
 ## Cerradas por la remediación 2026-06-11 (referencia)
 

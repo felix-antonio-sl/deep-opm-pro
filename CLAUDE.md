@@ -91,6 +91,7 @@ bun run lint              # eslint src/
 bun run build             # build producción a app/dist/
 bun run gate:refactor     # check + lint + build + governance + smoke + quality ledger
 bun run design:governance # gate ui-forja (tokens, docs, sombras, offset)
+bun run cordon:estado     # 5 órganos + deploy/salud + fronteras sin testigo
 bun run browser:smoke     # smoke Playwright/Chromium (e2e/)
 bun run security:scan     # bun pm scan (Socket sobre bun.lock)
 bun run visual:audit      # auditoría visual in-vivo → test-results/

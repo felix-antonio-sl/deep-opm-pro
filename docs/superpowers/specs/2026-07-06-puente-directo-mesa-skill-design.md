@@ -9,9 +9,9 @@ y desplegada en su corte.
 > sustituidos por el `Testigo-Base`, el commit atómico y el Bearer de mínimo
 > privilegio de
 > [Manual de opforja · A.6](../../manual-opforja.md#a6-puente-directo-mesaskill-cli).
-> La fuente actual implementa ese protocolo 2.0, todavía no desplegado al
-> publicar este aviso; producción conserva el puente anterior y W6.0 es el
-> camino seguro hasta verificar un backend compatible.
+> El protocolo 2.0 fue desplegado el 2026-07-18 en `92dbbaa7`, tras backup,
+> migración PostgreSQL v5 y smokes autenticados de lectura, creación,
+> actualización, no-op, conflicto, revisión atómica y CAS.
 
 ## 1. Función esencial
 

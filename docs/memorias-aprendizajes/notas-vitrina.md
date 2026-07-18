@@ -46,18 +46,19 @@ workspace con merge de tres vías. Pruebas:
 
 **[DECISIÓN]:** mantener ambos CAS separados y monotónicos.
 
-**[PENDIENTE]:** la migración v5 sigue sin ejecutarse en producción; no atribuir
-esta garantía al despliegue `88bfd2dd`.
+**[CIERRE COMPROBADO]:** la migración v5 se ejecutó en producción el
+2026-07-18 tras backup. La integración PostgreSQL y los smokes autenticados de
+CAS/conflicto aprobaron; esta garantía sí pertenece al despliegue `92dbbaa7`.
 
 ## Un cambio de sesión cancela el trabajo asíncrono anterior
 
 **[HECHO COMPROBADO · 2026-07-18]:** una respuesta iniciada antes de login,
 logout o cambio de tenant puede llegar después y debe descartarse.
 
-La solución verificada combina época local, identidad de sesión observada,
-purga al recibir `401` y coalescing de `/session` solo dentro de la misma
-frontera. Confiar únicamente en la cookie vigente no basta porque una promesa
-antigua ya lleva sus efectos en vuelo. Fuentes:
+La solución verificada y desplegada en `92dbbaa7` combina época local, identidad
+de sesión observada, purga al recibir `401` y coalescing de `/session` solo
+dentro de la misma frontera. Confiar únicamente en la cookie vigente no basta
+porque una promesa antigua ya lleva sus efectos en vuelo. Fuentes:
 `../../app/src/store/sessionEpoch.ts`,
 `../../app/src/persistencia/sessionIdentity.ts` y
 `../../app/src/store/auth.test.ts`.

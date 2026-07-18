@@ -286,7 +286,9 @@ describe("corpus documental · una fuente por concepto y proyecciones navegables
       "utf8",
     );
     expect(specPuenteHistorica).toContain("HISTÓRICO PARCIAL");
-    expect(specPuenteHistorica).toContain("protocolo 2.0, todavía no desplegado");
+    expect(specPuenteHistorica).toContain("protocolo 2.0 fue desplegado");
+    expect(specPuenteHistorica).toContain("`92dbbaa7`");
+    expect(specPuenteHistorica).toContain("migración PostgreSQL v5");
     expect(specPuenteHistorica).toContain("../../manual-opforja.md#a6-puente-directo-mesaskill-cli");
     const hojasConRecetaMesa = HOJAS_RAPIDAS
       .filter((ruta) => readFileSync(ruta, "utf8").includes("bun run mesa"))

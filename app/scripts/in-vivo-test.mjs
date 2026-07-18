@@ -381,7 +381,7 @@ ${artifacts}
 - El canvas reencuadra el OPD activo al cambiar el viewport y conserva todas sus cosas dentro del area visible.
 - El flujo principal UX/IFML queda operativo: bienvenida, chrome IFML, command palette, menu contextual, feedback anclado al canvas, conexion por \`MenuTipoEnlace\` y modo mobile review.
 - La edicion mobile sigue tratada como fuera de alcance productivo; el modo revision expone tabs y aviso de edicion en escritorio/tablet.
-- El siguiente corte vigente es operacional: unificar diagnostico de fuente, despliegue y salud en \`cordon:estado\`.
+- No hay un corte activo priorizado: \`cordon:estado\` ya unifica fuente, despliegue, salud, cinco órganos y fronteras sin testigo. La próxima apertura requiere demanda o fallo reproducible.
 
 ## Riesgos detectados
 

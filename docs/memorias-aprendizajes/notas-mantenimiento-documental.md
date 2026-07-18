@@ -80,3 +80,31 @@ se vuelve recurrente, el asunto pendiente es aislar la infraestructura de CI,
 no flexibilizar las aserciones.
 
 Fuente de cierre: `../handoff-2026-07-18.md`.
+
+## 9. Un SHA distinto no implica por sí solo deriva de producto
+
+**[HECHO COMPROBADO · 2026-07-18]:** después de un despliegue correcto puede
+existir un commit documental posterior. Comparar solo `HEAD !== build` lo marca
+falsamente como producto desactualizado.
+
+**[DECISIÓN]:** `cordon:estado` compara primero los SHA y, si difieren, inspecciona
+el diff limitado a insumos desplegables (`app`, `assets`, `deploy`, Dockerfile y
+compose). Solo esos cambios constituyen deriva de producto; documentación sola
+se informa como alineación operativa con historia posterior.
+
+**[FUENTE]:** `../../app/scripts/cordon-estado.ts` y su prueba
+`cordon-estado.test.ts`.
+
+## 10. «Resuelto» no pertenece al ledger activo
+
+**[HECHO COMPROBADO · 2026-07-18]:** el índice llegó a mostrar cero defectos
+abiertos y, a la vez, varias carpetas resueltas bajo `docs/bugs/BUG-*`; el estado
+del campo era correcto, pero su ubicación las mantenía operativamente activas.
+
+**[DECISIÓN]:** una entrada cerrada se mueve a `docs/bugs/archive/`, se conserva
+en `HISTORY.md` y desaparece de `INDEX.md`. Antes de archivar se exige evidencia
+de implementación y una prueba proporcional; una petición de capacidad se
+reclasifica como `Feat` en vez de fingir que fue un bug.
+
+**[FUENTE]:** `../bugs/INDEX.md`, `../bugs/HISTORY.md` y
+`../../app/e2e/15-estado-ciudadano.spec.ts`.

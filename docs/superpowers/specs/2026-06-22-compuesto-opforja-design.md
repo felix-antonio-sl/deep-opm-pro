@@ -116,11 +116,15 @@ Resueltas por consenso **pleno** steipete × allan-kelly (sin necesidad de arbit
 
 ## 6. Huecos abiertos (deuda de diseño declarada)
 
-1. Frontera-6 (deploy-de-skill ↔ SSOT): falta el **artefacto** del eval de sincronización.
+1. Frontera-6 (deploy-de-skill ↔ SSOT): el sello ya testifica identidad,
+   versión, target y hash; la equivalencia semántica del cuerpo sigue bajo
+   revisión humana y se declara en `registro-conformidad-ssot.md`.
 2. *Seam* de dos escritores en `tokens.ts`: sin testigo que verifique que la capa compat no derivó del bloque canónico.
 3. Morfismo de comparación de `uso-productivo.md` (órgano-5): falta definir su formato — mantiene el cierre en implicación.
 4. Denominador de la métrica de naturalidad (6 vs 7 fronteras): ambiguo hasta fijar cuál KORA testifica.
-5. *Control plane* de visibilidad (versiones de los 5 órganos por corte): sin hogar especificado.
+5. **RESUELTO 2026-07-18:** `app/scripts/cordon-estado.ts` es el hogar pasivo
+   on-demand del control plane; `bun run cordon:estado` muestra los cinco
+   órganos, operación y fronteras sin testigo.
 6. Determinismo Bun↔Node del generador `spec:gen` (D8).
 
 ---
