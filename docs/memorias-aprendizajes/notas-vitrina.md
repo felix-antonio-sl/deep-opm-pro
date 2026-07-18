@@ -31,6 +31,55 @@ esa revisión como precondición, persiste su propio snapshot y no incrementa la
 revisión guardada; por eso el poll no puede confundirlo con una revisión nueva
 del agente.
 
+## Modelo y workspace necesitan revisiones distintas
+
+**[HECHO COMPROBADO · 2026-07-18]:** modelo y workspace son agregados
+independientes; ambos usan CAS, pero no comparten contador.
+
+El modelo protege su contenido y versiones. El workspace protege carpetas,
+orden, preferencias y pertenencia. Un único contador aumentaría conflictos
+falsos; dejar el workspace en última escritura gana perdería movimientos
+concurrentes. La fuente aplica `revisionBase` por agregado y reconcilia el
+workspace con merge de tres vías. Pruebas:
+`../../app/src/store/persistencia.test.ts` y
+`../../app/src/server/modelPersistence.test.ts`.
+
+**[DECISIÓN]:** mantener ambos CAS separados y monotónicos.
+
+**[PENDIENTE]:** la migración v5 sigue sin ejecutarse en producción; no atribuir
+esta garantía al despliegue `88bfd2dd`.
+
+## Un cambio de sesión cancela el trabajo asíncrono anterior
+
+**[HECHO COMPROBADO · 2026-07-18]:** una respuesta iniciada antes de login,
+logout o cambio de tenant puede llegar después y debe descartarse.
+
+La solución verificada combina época local, identidad de sesión observada,
+purga al recibir `401` y coalescing de `/session` solo dentro de la misma
+frontera. Confiar únicamente en la cookie vigente no basta porque una promesa
+antigua ya lleva sus efectos en vuelo. Fuentes:
+`../../app/src/store/sessionEpoch.ts`,
+`../../app/src/persistencia/sessionIdentity.ts` y
+`../../app/src/store/auth.test.ts`.
+
+**[DECISIÓN]:** tratar cada cambio de identidad como frontera de cancelación,
+no como simple actualización de credenciales.
+
+**[HIPÓTESIS DESCARTADA]:** «reintentar el request tras `401` recupera la
+consistencia». Puede ejecutar la misma intención bajo otra identidad.
+
+## Un contrato atómico no degrada silenciosamente
+
+**[DECISIÓN · 2026-07-18]:** si el endpoint de revisión atómica no existe, el
+cliente falla de forma explícita; no recompone la intención con endpoints
+heredados.
+
+Un fallback ante `404`, `405` o `501` convertiría una incompatibilidad de
+versión en escrituras parciales. La compatibilidad segura es negociar o
+desplegar el contrato, no fingir atomicidad. Fuentes:
+`../../app/src/mesa/roundtrip.test.ts` y
+`../../app/src/server/modelPersistenceAuth.test.ts`.
+
 ## `revisionRemota` se etiqueta por `modeloId` para no mostrar chip rancio al cambiar de pestaña
 
 **Resumen:** `{ modeloId, revision }` en vez de un número suelto evita el flash cross-modelo.
@@ -65,9 +114,3 @@ comparten ese id → Preact: «two or more children with the same key attribute:
 tests + typecheck + design:governance pasaron; el warning SÓLO apareció in-vivo al expandir el
 hito. Lección: el colapso es quisquilloso — validar la expansión en el navegador, no sólo el
 agrupador puro. Fix: `key={`hito-${clave}`}` en la fila-resumen.
-
-## Gotcha operativo: la salida de `rg` en este shell enmascara palabras a `n`
-
-**Resumen:** usar la herramienta Read (no `rg -n`) para contenido autoritativo; `rg` mutila «drift»/«iniciarAutosalvado»/etc. a `n`.
-
-Los listados de archivos (`rg -l`, `ls`, `wc`) están bien; el contenido con `-n` no.

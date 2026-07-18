@@ -8,7 +8,10 @@ Lecciones de la auditoría documental integral del 2026-06-23. Una por hallazgo 
 
 La práctica se deslizó al patrón fácil de añadir `## Actualización <fecha>` en cada corte. El verificador de contexto fresco confirmó que ese formato impide orientarse. La historia Git conserva el detalle commit a commit, por lo que retirarlo del estado vivo no pierde trazabilidad.
 
-**Antídoto**: desde 2026-07-12, no editar el handoff vigente. Crear `handoff-AAAA-MM-DD.md` como fotografía nueva y desplazar la anterior a `_archivo/`. No usar número de líneas como proxy de legibilidad.
+**Antídoto**: desde 2026-07-12, no acumular actualizaciones cronológicas. Mientras
+un mismo corte todavía se está cerrando, completar su única fotografía vigente;
+un cambio operativo posterior crea `handoff-AAAA-MM-DD.md` nuevo y desplaza el
+anterior a `_archivo/`. No usar número de líneas como proxy de legibilidad.
 
 ## 2. Sidecar `opforja-bug-capture` escribe como root
 
@@ -55,3 +58,25 @@ La jerarquía estable es: `CLAUDE.md` gobierna; el handoff fecha el estado; el r
 **Resumen**: planes, prompts y solicitudes cerradas conservaron casillas pendientes e instrucciones imperativas después del despliegue, induciendo a repetir trabajo.
 
 **Antídoto**: al cerrar un corte, desplazar su scaffolding a `_archivo/` y conservar en el árbol vivo solo contratos con autoridad, brechas abiertas y el resultado actual.
+
+## 8. Un fallo del runner no demuestra una regresión del producto
+
+**[HECHO COMPROBADO · 2026-07-18]:** 38 trazas Playwright fallaron con
+`ERR_NETWORK_CHANGED` mientras otro repositorio creaba, destruía o reemplazaba
+interfaces Docker `veth`. El HTML respondió, pero Chromium canceló módulos y
+dejó la aplicación en blanco. Las cuatro pruebas afectadas en la repetición
+amplia aprobaron después, en serie, con puertos propios y Docker estable.
+
+**[DECISIÓN]:** no corregir código de producto sin una falla reproducible en un
+entorno estable. Conservar la traza, correlacionar tiempo con infraestructura y
+repetir solo los casos afectados antes de clasificar.
+
+**[ALTERNATIVA DESCARTADA]:** aumentar timeouts o modificar selectores. Habría
+ocultado la causa sin evitar que el navegador abortara recursos.
+
+**[RESTRICCIÓN]:** ejecutar E2E sin Testcontainers o despliegues Docker
+concurrentes y asignar un `PW_PORT` distinto a cada runner. Si la contaminación
+se vuelve recurrente, el asunto pendiente es aislar la infraestructura de CI,
+no flexibilizar las aserciones.
+
+Fuente de cierre: `../handoff-2026-07-18.md`.
