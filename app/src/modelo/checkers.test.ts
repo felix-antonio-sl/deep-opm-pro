@@ -434,10 +434,11 @@ describe("checkInzoomNombresPlaceholderHijos", () => {
   test("avisa cuando hijos del refinamiento mantienen nombres placeholder", () => {
     const base = modeloTransformador("Procesar Pedido");
     const descompuesto = must(descomponerProceso(base.modelo, base.modelo.opdRaizId, base.procesoId));
-    // descomponer crea placeholders Proceso/Proceso_2; los dejamos sin renombrar.
+    // descomponer crea tres placeholders; el diagnóstico los agrupa por OPD.
     const avisos = checkInzoomNombresPlaceholderHijos(descompuesto.modelo);
-    expect(avisos.length).toBeGreaterThan(0);
-    expect(avisos.every((aviso) => aviso.codigo === "INZOOM_NOMBRES_PLACEHOLDER_HIJOS")).toBe(true);
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0]?.codigo).toBe("INZOOM_NOMBRES_PLACEHOLDER_HIJOS");
+    expect(avisos[0]?.mensaje).toContain('3 subprocesos del OPD "SD1" esperan un nombre');
     expect(avisos[0]?.opdId).toBeDefined();
     expect(avisos[0]?.severidad).toBe("sugerencia");
   });

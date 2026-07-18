@@ -156,6 +156,7 @@ export function activarEstadoPestanas(set: SetStore, estado: { pestanas: Pestana
     eligiendoOrigenEnlace: false,
     modoCreacion: null,
     nuevaCosaPendiente: null,
+    colaRenombradoPendiente: [],
     hoverOplRef: null,
     modeloPersistidoId: pestana.modeloId,
     descripcionModeloLocal: pestana.descripcionModeloLocal ?? "",

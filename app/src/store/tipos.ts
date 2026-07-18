@@ -279,6 +279,11 @@ export interface OpmStore {
    * hay focus pendiente. No se serializa al modelo.
    */
   solicitarFocusNombre: Id | null;
+  /**
+   * Secuencia UI efímera para nombrar inmediatamente las cosas que una
+   * operación acaba de sembrar. Enter confirma el elemento actual y avanza.
+   */
+  colaRenombradoPendiente: Array<{ tipo: "entidad" | "estado"; id: Id }>;
   mensaje: string | null;
   dirty: boolean;
   /**
@@ -505,6 +510,8 @@ export interface OpmStore {
    * Inspector. Idempotente: no-op si ya es `null`.
    */
   consumirFocusNombre: () => void;
+  avanzarRenombradoPendiente: () => void;
+  cancelarRenombradoPendiente: () => void;
   buscarEnPanelOpl: (texto: string) => void;
   alternarNumeracionOpl: () => void;
   minimizarOpl: () => void;

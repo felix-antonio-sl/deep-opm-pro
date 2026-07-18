@@ -22,24 +22,33 @@ import { tokens } from "./tokens";
  */
 export function HaloEstado() {
   const estadoSeleccionId = useOpmStore((s) => s.estadoSeleccionId);
+  const colaRenombradoPendiente = useOpmStore((s) => s.colaRenombradoPendiente);
+  const pendienteEstado = colaRenombradoPendiente[0]?.tipo === "estado"
+    ? colaRenombradoPendiente[0]
+    : null;
+  const estadoActivoId = pendienteEstado?.id ?? estadoSeleccionId;
   // Selector resolved siempre desde el id actual del store (no cerramos
   // sobre `estadoSeleccionId` de la clausura externa porque el hook
   // `useOpmStore` no lo re-evalúa cuando cambia la dependencia externa).
-  const estado = useOpmStore((s) => (s.estadoSeleccionId ? s.modelo.estados?.[s.estadoSeleccionId] : undefined));
+  const estado = useOpmStore((s) => (estadoActivoId ? s.modelo.estados?.[estadoActivoId] : undefined));
   const designaciones = estado?.designaciones ?? [];
-  const renombrar = useOpmStore((s) => s.renombrarEstadoSeleccionadoSmart);
+  const renombrar = useOpmStore((s) => s.renombrarEstadoDesdeOpl);
   const designar = useOpmStore((s) => s.designarEstadoSeleccionado);
   const quitarDesignacion = useOpmStore((s) => s.quitarDesignacionEstadoSeleccionado);
   const eliminar = useOpmStore((s) => s.eliminarEstadoSeleccionado);
+  const avanzarRenombradoPendiente = useOpmStore((s) => s.avanzarRenombradoPendiente);
+  const cancelarRenombradoPendiente = useOpmStore((s) => s.cancelarRenombradoPendiente);
 
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const [popoverAbierto, setPopoverAbierto] = useState(false);
   const [renombradoInline, setRenombradoInline] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const cerrandoRenombradoRef = useRef(false);
+  const esRenombradoEncadenado = pendienteEstado?.id === estadoActivoId;
 
   // Reposiciona via ResizeObserver/scroll/animation frame.
   useEffect(() => {
-    if (!estadoSeleccionId) {
+    if (!estadoActivoId) {
       setPos(null);
       setPopoverAbierto(false);
       setRenombradoInline(null);
@@ -52,7 +61,7 @@ export function HaloEstado() {
         return;
       }
       const node = document.querySelector(
-        `.joint-paper [joint-selector^="stateCapsule"][data-estado-id="${escapeSelectorAttr(estadoSeleccionId)}"]`,
+        `.joint-paper [joint-selector^="stateCapsule"][data-estado-id="${escapeSelectorAttr(estadoActivoId)}"]`,
       );
       if (!node) {
         setPos(null);
@@ -67,30 +76,51 @@ export function HaloEstado() {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [estadoSeleccionId]);
+  }, [estadoActivoId]);
 
   // Foco al input cuando entra en modo rename.
   useEffect(() => {
     if (renombradoInline !== null) inputRef.current?.focus();
   }, [renombradoInline]);
 
+  useEffect(() => {
+    if (!pendienteEstado) return;
+    if (pendienteEstado.id !== estadoActivoId || !estado) {
+      cancelarRenombradoPendiente();
+      return;
+    }
+    cerrandoRenombradoRef.current = false;
+    setRenombradoInline(estado.nombre);
+  }, [
+    pendienteEstado?.id,
+    estadoActivoId,
+    estado?.nombre,
+    cancelarRenombradoPendiente,
+  ]);
+
   // Esc cierra rename/popover (no la selección — eso lo maneja atajos.ts).
   useEffect(() => {
     if (!renombradoInline && !popoverAbierto) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        if (esRenombradoEncadenado) cancelarRenombradoPendiente();
         setRenombradoInline(null);
         setPopoverAbierto(false);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [renombradoInline, popoverAbierto]);
+  }, [
+    renombradoInline,
+    popoverAbierto,
+    esRenombradoEncadenado,
+    cancelarRenombradoPendiente,
+  ]);
 
   // Eventos disparados por atajos globales (F2/D) — sólo aplican cuando el
   // halo está activo (estadoSeleccionId !== null garantizado por el sello).
   useEffect(() => {
-    if (!estadoSeleccionId || !estado) return;
+    if (!estadoActivoId || !estado) return;
     const onRename = () => setRenombradoInline(estado.nombre);
     const onPopover = () => setPopoverAbierto((v) => !v);
     window.addEventListener("opm:halo-estado-rename", onRename);
@@ -99,13 +129,32 @@ export function HaloEstado() {
       window.removeEventListener("opm:halo-estado-rename", onRename);
       window.removeEventListener("opm:halo-estado-popover-designar", onPopover);
     };
-  }, [estadoSeleccionId, estado]);
+  }, [estadoActivoId, estado]);
 
-  if (!estadoSeleccionId || !estado || !pos) return null;
+  if (!estadoActivoId || !estado || !pos) return null;
 
   const toggleDesignacion = (designacion: DesignacionEstado) => {
     if (designaciones.includes(designacion)) quitarDesignacion(designacion);
     else designar(designacion);
+  };
+
+  const confirmarRenombrado = () => {
+    if (cerrandoRenombradoRef.current || renombradoInline === null) return;
+    cerrandoRenombradoRef.current = true;
+    const limpio = renombradoInline.trim();
+    if (limpio && limpio !== estado.nombre) renombrar(estadoActivoId, limpio);
+    setRenombradoInline(null);
+    if (esRenombradoEncadenado) {
+      if (limpio) avanzarRenombradoPendiente();
+      else cancelarRenombradoPendiente();
+    }
+  };
+
+  const cancelarRenombrado = () => {
+    if (cerrandoRenombradoRef.current) return;
+    cerrandoRenombradoRef.current = true;
+    setRenombradoInline(null);
+    if (esRenombradoEncadenado) cancelarRenombradoPendiente();
   };
 
   return (
@@ -119,7 +168,7 @@ export function HaloEstado() {
       role="toolbar"
       aria-label="Acciones de estado"
       data-testid="halo-estado"
-      data-halo-estado-id={estadoSeleccionId}
+      data-halo-estado-id={estadoActivoId}
       onClick={(e) => e.stopPropagation()}
     >
       {renombradoInline !== null ? (
@@ -132,18 +181,13 @@ export function HaloEstado() {
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              const limpio = renombradoInline.trim();
-              if (limpio && limpio !== estado.nombre) renombrar(limpio);
-              setRenombradoInline(null);
+              confirmarRenombrado();
             } else if (e.key === "Escape") {
-              setRenombradoInline(null);
+              e.preventDefault();
+              cancelarRenombrado();
             }
           }}
-          onBlur={() => {
-            const limpio = renombradoInline.trim();
-            if (limpio && limpio !== estado.nombre) renombrar(limpio);
-            setRenombradoInline(null);
-          }}
+          onBlur={confirmarRenombrado}
           style={style.input}
         />
       ) : (

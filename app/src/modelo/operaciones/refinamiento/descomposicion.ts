@@ -39,6 +39,7 @@ export interface DescomposicionProceso {
   modelo: Modelo;
   opdId: Id;
   creado: boolean;
+  refinadorIds: Id[];
 }
 
 // W3.1: las constantes de dimensionado canónico (paddingSuperior/separacionVertical/
@@ -77,7 +78,7 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
   if (slotExistente) {
     const opdExistente = modelo.opds[slotExistente.opdId];
     if (!opdExistente) return fallo(`OPD de descomposición no existe: ${slotExistente.opdId}`);
-    return ok({ modelo, opdId: opdExistente.id, creado: false });
+    return ok({ modelo, opdId: opdExistente.id, creado: false, refinadorIds: [] });
   }
   // Nota ronda 15.2: descomposicion y despliegue son ortogonales (Comportamiento
   // vs Estructura, SSOT §refinamiento). No se rechaza por presencia del slot
@@ -138,7 +139,12 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
   });
   if (!siguiente.ok) return fallo(siguiente.error);
 
-  return ok({ modelo: siguiente.value, opdId: opdHijoId, creado: true });
+  return ok({
+    modelo: siguiente.value,
+    opdId: opdHijoId,
+    creado: true,
+    refinadorIds: subprocesos.entidadIds,
+  });
 }
 
 export function quitarDescomposicionProceso(modelo: Modelo, procesoId: Id): Resultado<Modelo> {

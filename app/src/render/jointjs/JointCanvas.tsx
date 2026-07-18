@@ -171,6 +171,9 @@ export function JointCanvas({
   // store como driftMap y se enhebra a los handlers de canvas vía ref.
   const eligiendoOrigenEnlace = useOpmStore((s) => s.eligiendoOrigenEnlace);
   const iniciarRelacionDesdeEntidad = useOpmStore((s) => s.iniciarRelacionDesdeEntidad);
+  const colaRenombradoPendiente = useOpmStore((s) => s.colaRenombradoPendiente);
+  const avanzarRenombradoPendiente = useOpmStore((s) => s.avanzarRenombradoPendiente);
+  const cancelarRenombradoPendiente = useOpmStore((s) => s.cancelarRenombradoPendiente);
 
   useEffect(() => {
     onAdapterChangeRef.current = onAdapterChange;
@@ -693,12 +696,37 @@ export function JointCanvas({
     centrarSiFueraDeViewport(viewport, target);
   }, [seleccionId, enlaceSeleccionId, opdActivoId, modelo]);
 
-  const renombrado = renombradoInline
+  const pendienteEntidad = colaRenombradoPendiente[0]?.tipo === "entidad"
+    ? colaRenombradoPendiente[0]
+    : null;
+  const aparienciaPendiente = pendienteEntidad
+    ? Object.values(modelo.opds[opdActivoId]?.apariencias ?? {})
+      .find((apariencia) => apariencia.entidadId === pendienteEntidad.id)
+    : undefined;
+  const renombradoEncadenado = pendienteEntidad && aparienciaPendiente
+    ? { aparienciaId: aparienciaPendiente.id, entidadId: pendienteEntidad.id }
+    : null;
+
+  useEffect(() => {
+    if (!pendienteEntidad) return;
+    if (!aparienciaPendiente) {
+      cancelarRenombradoPendiente();
+    }
+  }, [
+    pendienteEntidad?.id,
+    aparienciaPendiente?.id,
+    cancelarRenombradoPendiente,
+  ]);
+
+  const renombradoActivo = renombradoInline ?? renombradoEncadenado;
+  const renombrado = renombradoActivo
     ? {
-        entidad: modelo.entidades[renombradoInline.entidadId],
-        apariencia: modelo.opds[opdActivoId]?.apariencias[renombradoInline.aparienciaId],
+        entidad: modelo.entidades[renombradoActivo.entidadId],
+        apariencia: modelo.opds[opdActivoId]?.apariencias[renombradoActivo.aparienciaId],
       }
     : null;
+  const esRenombradoEncadenado = renombradoActivo !== null
+    && renombradoEncadenado?.entidadId === renombradoActivo.entidadId;
 
   return (
     <div ref={viewportRef} role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
@@ -713,8 +741,12 @@ export function JointCanvas({
               if (!entidad) return;
               renombrarEntidadDesdeOplRef.current(entidad.id, nombre);
               setRenombradoInline(null);
+              if (esRenombradoEncadenado) avanzarRenombradoPendiente();
             },
-            onCancelar: () => setRenombradoInline(null),
+            onCancelar: () => {
+              setRenombradoInline(null);
+              if (esRenombradoEncadenado) cancelarRenombradoPendiente();
+            },
           })
         ) : null}
         {!readonlyMode && menuTipoEnlaceCanvas ? (

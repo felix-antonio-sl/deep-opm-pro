@@ -54,7 +54,7 @@ const TITULO_POR_REGLA: Record<string, string> = {
   OBJETO_NOMBRE_SINGULAR: "Nombre de objeto no está en singular",
   OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO: "Objeto ambiental contradice su rol",
   INZOOM_CONTENIDO_INSUFICIENTE: "Descomposición con muy poco contenido",
-  INZOOM_NOMBRES_PLACEHOLDER_HIJOS: "Subproceso conserva nombre placeholder",
+  INZOOM_NOMBRES_PLACEHOLDER_HIJOS: "Refinadores esperan nombre",
   UNFOLD_CONTENIDO_INSUFICIENTE: "Despliegue con muy poco contenido",
   PROCESO_NO_TRANSFORMA: "Proceso no transforma ningún objeto",
   PROCESO_SISTEMICO_DESCONECTADO: "Proceso sistémico desconectado del principal",

@@ -231,6 +231,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   // creación pendiente. Lo escribe `crearObjetoDemo`/`crearProcesoDemo`/
   // `crearEntidadEnCanvas`; lo consume `InspectorEntidad` via `useEffect`.
   solicitarFocusNombre: null,
+  colaRenombradoPendiente: [],
 
   fijarModoOrdenArbol(modo) {
     const { modelo } = get();
@@ -477,5 +478,15 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
   consumirFocusNombre() {
     if (get().solicitarFocusNombre === null) return;
     set({ solicitarFocusNombre: null });
+  },
+
+  avanzarRenombradoPendiente() {
+    const restantes = get().colaRenombradoPendiente.slice(1);
+    set({ colaRenombradoPendiente: restantes });
+  },
+
+  cancelarRenombradoPendiente() {
+    if (get().colaRenombradoPendiente.length === 0) return;
+    set({ colaRenombradoPendiente: [] });
   },
 });

@@ -305,20 +305,23 @@ export function checkInzoomNombresPlaceholderHijos(modelo: Modelo): AvisoMetodol
         if (hijo && esNombrePlaceholderHijoInzoom(hijo.nombre, entidad.nombre)) placeholders.add(hijo.id);
       }
       if (placeholders.size === 0) return [];
-      return [...placeholders].map((hijoId) => {
-        const hijo = modelo.entidades[hijoId];
-        if (!hijo) return null;
-        return aviso("INZOOM_NOMBRES_PLACEHOLDER_HIJOS", hijo, {
-          severidad: "sugerencia",
-          mensaje: `El refinador "${hijo.nombre}" del OPD "${opd?.nombre ?? opdId}" todavía tiene el nombre por defecto que se sembró al descomponer. Renómbralo con vocabulario del dominio antes de seguir profundizando.`,
-          rationale: "La elaboracion progresiva de SD1 indica renombrar los subprocesos/partes con nombres significativos antes de avanzar.",
-          ssotRef: `${KB_METODO} §7.1`,
-          opdId: opd?.id,
-          accionesSugeridas: [
-            `Abre el OPD "${opd?.nombre ?? "hijo"}" y renombra "${hijo.nombre}" con vocabulario de dominio.`,
-          ],
-        });
-      }).filter((item): item is AvisoMetodologico => item !== null);
+      const primerHijoId = placeholders.values().next().value;
+      const primerHijo = primerHijoId ? modelo.entidades[primerHijoId] : undefined;
+      if (!primerHijo) return [];
+      const plural = placeholders.size !== 1;
+      const sustantivo = primerHijo.tipo === "proceso"
+        ? (plural ? "subprocesos" : "subproceso")
+        : (plural ? "partes" : "parte");
+      return [aviso("INZOOM_NOMBRES_PLACEHOLDER_HIJOS", primerHijo, {
+        severidad: "sugerencia",
+        mensaje: `${placeholders.size} ${sustantivo} del OPD "${opd.nombre}" ${plural ? "esperan" : "espera"} un nombre de dominio.`,
+        rationale: "La elaboracion progresiva de SD1 indica renombrar los subprocesos/partes con nombres significativos antes de avanzar.",
+        ssotRef: `${KB_METODO} §7.1`,
+        opdId: opd.id,
+        accionesSugeridas: [
+          `Abre el OPD "${opd.nombre}" y renombra los ${sustantivo} pendientes con vocabulario de dominio.`,
+        ],
+      })];
     });
 }
 

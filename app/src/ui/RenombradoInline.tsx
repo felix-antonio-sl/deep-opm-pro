@@ -12,8 +12,10 @@ interface Props {
 export function RenombradoInline(props: Props) {
   const [valor, setValor] = useState(props.nombre);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cerrandoRef = useRef(false);
 
   useEffect(() => {
+    cerrandoRef.current = false;
     setValor(props.nombre);
   }, [props.nombre]);
 
@@ -23,9 +25,17 @@ export function RenombradoInline(props: Props) {
   }, [props.rect.x, props.rect.y]);
 
   const confirmar = () => {
+    if (cerrandoRef.current) return;
+    cerrandoRef.current = true;
     const limpio = valor.trim();
-    if (limpio.length > 0 && limpio !== props.nombre) props.onConfirmar(limpio);
+    if (limpio.length > 0) props.onConfirmar(limpio);
     else props.onCancelar();
+  };
+
+  const cancelar = () => {
+    if (cerrandoRef.current) return;
+    cerrandoRef.current = true;
+    props.onCancelar();
   };
 
   return (
@@ -38,8 +48,14 @@ export function RenombradoInline(props: Props) {
       onBlur={confirmar}
       onMouseDown={(event) => event.stopPropagation()}
       onKeyDown={(event) => {
-        if (event.key === "Enter") confirmar();
-        if (event.key === "Escape") props.onCancelar();
+        if (event.key === "Enter") {
+          event.preventDefault();
+          confirmar();
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          cancelar();
+        }
       }}
       style={{
         position: "absolute",

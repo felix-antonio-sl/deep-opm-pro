@@ -188,6 +188,9 @@ export type UiPanelSlice = Slice<
   // la señal es estrictamente UI (no se serializa).
   | "solicitarFocusNombre"
   | "consumirFocusNombre"
+  | "colaRenombradoPendiente"
+  | "avanzarRenombradoPendiente"
+  | "cancelarRenombradoPendiente"
 >;
 
 export type MapaSlice = Slice<

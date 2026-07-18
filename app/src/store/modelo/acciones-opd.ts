@@ -95,9 +95,14 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         set({ mensaje: resultado.error });
         return;
       }
+      const colaRenombradoPendiente = resultado.value.refinadorIds.map((id) => ({
+        tipo: "entidad" as const,
+        id,
+      }));
       commitModelo(set, modelo, resultado.value.modelo, {
         opdActivoId: resultado.value.opdId,
         seleccionId,
+        colaRenombradoPendiente,
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: resultado.value.creado ? "OPD hijo creado" : null,

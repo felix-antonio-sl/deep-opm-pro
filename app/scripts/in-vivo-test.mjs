@@ -99,6 +99,7 @@ async function resetWorkbench(page) {
   }).catch(() => undefined);
   await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 20000 });
   await cerrarPantallaInicioSiVisible(page);
+  await page.waitForTimeout(250);
 }
 
 async function crearCosa(page, tipo, nombre) {
@@ -116,22 +117,15 @@ async function crearCosa(page, tipo, nombre) {
   return elementoPorTexto(page, nombre);
 }
 
-async function abrirMenuPrincipal(page) {
-  await page.getByLabel("Menú principal").click();
-  const menu = page.getByRole("menu", { name: "Menú principal" });
-  await menu.waitFor({ state: "visible", timeout: 1500 });
-  return menu;
-}
-
-async function cargarEjemplo(page, nombre) {
-  const menu = await abrirMenuPrincipal(page);
-  await menu.getByRole("menuitem", { name: /Abrir \/ importar|Cargar otro/ }).click();
-  const dialogo = page.getByTestId("dialogo-abrir-importar")
-    .or(page.getByRole("dialog", { name: /Abrir \/ importar modelo|Cargar modelo/ }));
-  await dialogo.waitFor({ state: "visible", timeout: 2500 });
-  await dialogo.getByLabel("Cargar modelo de ejemplo").selectOption(nombre);
-  await dialogo.waitFor({ state: "detached", timeout: 2500 }).catch(() => undefined);
-  await page.waitForTimeout(250);
+async function ejecutarComando(page, query, itemId) {
+  await page.locator("main").click({ position: { x: 500, y: 80 } });
+  await page.keyboard.press("Control+KeyK");
+  const palette = page.getByTestId("command-palette");
+  await palette.waitFor({ state: "visible", timeout: 1500 });
+  await palette.getByRole("combobox").fill(query);
+  const item = page.getByTestId(`command-palette-item-${itemId}`);
+  await item.waitFor({ state: "visible", timeout: 1500 });
+  await item.click();
 }
 
 async function restaurarPanelOplSiMinimizado(page) {
@@ -150,8 +144,7 @@ async function abrirDialogoJson(page) {
   }
   const dialogoLegacy = page.getByTestId("dialogo-importar-exportar-json");
   if (await waitVisible(dialogoLegacy, 250)) return dialogoLegacy;
-  const menu = await abrirMenuPrincipal(page);
-  await menu.getByRole("menuitem", { name: /Abrir \/ importar|Importar\/Exportar JSON/ }).click();
+  await ejecutarComando(page, "abrir importar", "menu-abrir-importar");
   const dialogo = page.getByTestId("dialogo-abrir-importar")
     .or(page.getByTestId("dialogo-importar-exportar-json"));
   await dialogo.waitFor({ state: "visible", timeout: 2500 });
@@ -161,9 +154,18 @@ async function abrirDialogoJson(page) {
 
 async function abrirPanelJsonSiExiste(dialogo) {
   const panelJson = dialogo.getByTestId("panel-json-abrir-importar");
+  if ((await locatorCount(panelJson)) === 0) {
+    const trigger = dialogo.getByTestId("abrir-importar-json");
+    if (await waitVisible(trigger, 500)) {
+      await trigger.click();
+      await panelJson.waitFor({ state: "visible", timeout: 1500 });
+    }
+  }
   if ((await locatorCount(panelJson)) === 0) return;
-  const abierto = await panelJson.evaluate((el) => el.open).catch(() => true);
-  if (!abierto) await panelJson.locator("summary").click();
+  const detailsCerrado = await panelJson.evaluate(
+    (el) => el.tagName === "DETAILS" && !(el).open,
+  ).catch(() => false);
+  if (detailsCerrado) await panelJson.locator("summary").click();
 }
 
 async function exportarJson(page) {
@@ -226,6 +228,57 @@ function modeloMultiOpd() {
             "a-hijo": { id: "a-hijo", entidadId: "p-hijo", opdId: "opd-2", x: 220, y: 130, width: 135, height: 60 },
           },
           enlaces: {},
+        },
+      },
+    },
+  };
+}
+
+function modeloSystemDiagramSonda() {
+  return {
+    formato: "deep-opm-pro.modelo.v0",
+    modelo: {
+      id: "modelo-in-vivo-system-diagram",
+      nombre: "System Diagram",
+      opdRaizId: "opd-1",
+      nextSeq: 12,
+      entidades: {
+        "o-input": { id: "o-input", tipo: "objeto", nombre: "Main Input", esencia: "informacional", afiliacion: "sistemica" },
+        "p-doing": { id: "p-doing", tipo: "proceso", nombre: "Main System Doing", esencia: "fisica", afiliacion: "sistemica" },
+        "o-output": { id: "o-output", tipo: "objeto", nombre: "Main Output", esencia: "informacional", afiliacion: "sistemica" },
+      },
+      estados: {},
+      enlaces: {
+        "e-consumo": {
+          id: "e-consumo",
+          tipo: "consumo",
+          origenId: { kind: "entidad", id: "o-input" },
+          destinoId: { kind: "entidad", id: "p-doing" },
+          etiqueta: "",
+        },
+        "e-resultado": {
+          id: "e-resultado",
+          tipo: "resultado",
+          origenId: { kind: "entidad", id: "p-doing" },
+          destinoId: { kind: "entidad", id: "o-output" },
+          etiqueta: "",
+        },
+      },
+      abanicos: {},
+      opds: {
+        "opd-1": {
+          id: "opd-1",
+          nombre: "SD",
+          padreId: null,
+          apariencias: {
+            "a-input": { id: "a-input", entidadId: "o-input", opdId: "opd-1", x: 100, y: 180, width: 135, height: 60 },
+            "a-doing": { id: "a-doing", entidadId: "p-doing", opdId: "opd-1", x: 340, y: 180, width: 135, height: 60 },
+            "a-output": { id: "a-output", entidadId: "o-output", opdId: "opd-1", x: 580, y: 180, width: 135, height: 60 },
+          },
+          enlaces: {
+            "ae-consumo": { id: "ae-consumo", enlaceId: "e-consumo", opdId: "opd-1", vertices: [] },
+            "ae-resultado": { id: "ae-resultado", enlaceId: "e-resultado", opdId: "opd-1", vertices: [] },
+          },
         },
       },
     },
@@ -323,9 +376,10 @@ ${artifacts}
 
 ## Hallazgos UX accionables
 
-- El flujo principal del corte UX/IFML queda operativo: bienvenida, chrome IFML, command palette, menu contextual, feedback anclado al canvas, conexion por \`MenuTipoEnlace\` y modo mobile review.
+- El scaffolding de descomposicion entra directamente en renombrado inline encadenado: Enter avanza por los tres subprocesos y el diagnostico los agrupa en un solo aviso.
+- El flujo principal UX/IFML queda operativo: bienvenida, chrome IFML, command palette, menu contextual, feedback anclado al canvas, conexion por \`MenuTipoEnlace\` y modo mobile review.
 - La edicion mobile sigue tratada como fuera de alcance productivo; el modo revision expone tabs y aviso de edicion en escritorio/tablet.
-- El siguiente backlog debe elegirse desde funciones post-brief, no desde deuda del script: mini-mapa, etiquetas/enlaces avanzados, import/export OPX real o modelos densos tipo HODOM.
+- El siguiente corte UX vigente es C′·C: barra de simulacion honesta y re-encuadre al cambiar el viewport.
 
 ## Riesgos detectados
 
@@ -383,7 +437,11 @@ try {
   await recordVisible("1. Carga y bienvenida", "Arbol OPD visible", page.getByTestId("tree-pane"));
   await recordVisible("1. Carga y bienvenida", "Inspector visible", page.getByTestId("inspector-pane"));
   await recordVisible("1. Carga y bienvenida", "Panel OPL visible o minimizado", page.getByTestId("opl-pane").or(page.getByTestId("panel-opl-minimizado")));
-  await recordVisible("1. Carga y bienvenida", "Panel diagnostico visible", page.getByTestId("panel-diagnostico"));
+  recordBool(
+    "1. Carga y bienvenida",
+    "Diagnostico se omite cuando el modelo vacio no tiene avisos",
+    (await locatorCount(page.getByTestId("panel-diagnostico"))) === 0,
+  );
   await recordVisible("1. Carga y bienvenida", "Hint compacto Iniciar SD visible", page.getByTestId("estado-vacio-hint").or(page.getByTestId("estado-vacio-opm")));
   await screenshot(page, "02-workbench-vacio.png");
 
@@ -395,8 +453,13 @@ try {
   }));
   recordBool("2. Chrome IFML", "Workbench declara ViewPoint default de edicion", mainAttrs.viewpoint === "Edicion" && mainAttrs.def === "true", JSON.stringify(mainAttrs));
   await recordVisible("2. Chrome IFML", "Cluster Modelar montado en desktop", page.getByRole("group", { name: "Modelar" }));
-  recordBool("2. Chrome IFML", "Cluster Conectar se oculta sin origen", (await locatorCount(page.getByRole("group", { name: "Conectar" }))) === 0);
-  await recordVisible("2. Chrome IFML", "Cluster Ayuda montado en desktop", page.getByRole("group", { name: "Ayuda" }));
+  await recordVisible("2. Chrome IFML", "Cluster Conectar montado en desktop", page.getByRole("group", { name: "Conectar" }));
+  recordBool(
+    "2. Chrome IFML",
+    "Relacion permanece deshabilitada sin origen",
+    await page.getByTestId("abrir-menu-tipo-enlace").isDisabled(),
+  );
+  await recordVisible("2. Chrome IFML", "Meta editorial anuncia acceso a comandos", page.getByText("editor vacío").first());
 
   await page.keyboard.press("Control+k");
   const palette = page.getByTestId("command-palette");
@@ -407,17 +470,17 @@ try {
   await palette.getByRole("combobox").fill("tabla enlaces");
   await recordVisible("2. Chrome IFML", "Busqueda fuzzy encuentra Tabla de enlaces", page.getByTestId("command-palette-item-menu-tabla-enlaces"));
   await screenshot(page, "03-command-palette.png");
+  await palette.getByRole("combobox").fill("abrir importar");
+  recordBool(
+    "2. Chrome IFML",
+    "CommandPalette expone la puerta unificada de modelos y JSON",
+    (await locatorCount(page.getByTestId("command-palette-item-menu-abrir-importar"))) === 1,
+  );
   await page.keyboard.press("Escape");
   recordBool("2. Chrome IFML", "Escape cierra CommandPalette", (await locatorCount(page.getByTestId("command-palette"))) === 0);
 
-  const menuPrincipal = await abrirMenuPrincipal(page);
-  const menuTexto = await menuPrincipal.textContent();
-  const menuOk = ["Guardar", "Abrir / importar", "Nuevo", "Exportar OPD actual como SVG", "Exportar JSON", "Tabla de enlaces"].every((item) => menuTexto?.includes(item));
-  recordBool("2. Chrome IFML", "Menu principal concentra acciones de modelo y vista", menuOk, menuTexto?.slice(0, 220) ?? "");
-  await page.keyboard.press("Escape");
-
   await resetWorkbench(page);
-  await cargarEjemplo(page, "System Diagram");
+  await importarModelo(page, modeloSystemDiagramSonda());
   await restaurarPanelOplSiMinimizado(page);
   const elementosDemo = await locatorCount(page.locator(".joint-element"));
   const enlacesDemo = await locatorCount(page.locator(".joint-link"));
@@ -439,15 +502,17 @@ try {
   const cuerposCosa = visual.filter((c) => c.tag === "rect" || c.tag === "ellipse");
   const objetos = cuerposCosa.filter((c) => c.tag === "rect");
   const procesos = cuerposCosa.filter((c) => c.tag === "ellipse");
-  const objetosFillOk = objetos.length > 0 && objetos.every((c) => c.fill === "#eff7eb");
-  const procesosFillOk = procesos.length > 0 && procesos.every((c) => c.fill === "#e8f0f8");
-  const strokeInkOk = cuerposCosa.length > 0 && cuerposCosa.every((c) => c.stroke === "#0a0a0a");
-  const cuerposEstandar = cuerposCosa.filter((c) => Math.abs(c.width - 135) <= 2 && Math.abs(c.height - 60) <= 2);
-  const dimsOk = cuerposEstandar.length >= 2 && procesos.some((c) => Math.abs(c.width - 135) <= 2 && Math.abs(c.height - 60) <= 2);
+  const fillTransparenteOk = cuerposCosa.length > 0 && cuerposCosa.every((c) => c.fill === "transparent");
+  const strokeSemanticoOk = objetos.length > 0
+    && procesos.length > 0
+    && objetos.every((c) => c.stroke === "#27613f")
+    && procesos.every((c) => c.stroke === "#1d3f78");
+  const cuerposEstandar = cuerposCosa.filter((c) => c.width >= 135 && Math.abs(c.height - 60) <= 2);
+  const dimsOk = cuerposEstandar.length === cuerposCosa.length;
   record("3. Ejemplo y SSOT visual", "Cosas detectadas por shape", "INFO", JSON.stringify({ objetos: objetos.length, procesos: procesos.length, cuerposEstandar: cuerposEstandar.length, visual }));
-  recordBool("3. Ejemplo y SSOT visual", "Fill CANON-V2 objeto/proceso lavado", objetosFillOk && procesosFillOk);
-  recordBool("3. Ejemplo y SSOT visual", "Stroke CANON-V2 ink en cuerpos cosa", strokeInkOk);
-  recordBool("3. Ejemplo y SSOT visual", "Dimensiones estándar 135x60 presentes con tolerancia 2px", dimsOk);
+  recordBool("3. Ejemplo y SSOT visual", "CANON-V3 conserva cuerpos transparentes", fillTransparenteOk);
+  recordBool("3. Ejemplo y SSOT visual", "CANON-V3 distingue objeto y proceso por stroke semantico", strokeSemanticoOk);
+  recordBool("3. Ejemplo y SSOT visual", "Dimensiones respetan minimo 135x60 y expanden texto largo", dimsOk);
   await screenshot(page, "04-ejemplo-cafetera.png");
 
   await resetWorkbench(page);
@@ -479,7 +544,7 @@ try {
 
   await elementoPorTexto(page, "Procesar").click();
   await page.keyboard.press("Delete");
-  const toast = page.getByTestId("flash-toast").filter({ hasText: "Selección eliminada" });
+  const toast = page.getByTestId("flash-toast").filter({ hasText: /Eliminado.*Procesar/ });
   await recordVisible("4. Feedback overlay", "FlashToast anuncia eliminacion", toast);
   recordBool("4. Feedback overlay", "FlashToast usa role status", await attr(toast, "role") === "status");
   recordBool("4. Feedback overlay", "FlashToast usa aria-live polite", await attr(toast, "aria-live") === "polite");
@@ -494,6 +559,72 @@ try {
   await screenshot(page, "09-multi-opd-import.png");
 
   await resetWorkbench(page);
+  await crearCosa(page, "Proceso", "Procesar Pedido");
+  await page.getByTestId("barra-inzoom").click();
+  const renameEncadenado = page.getByTestId("renombrado-inline");
+  await recordVisible("7. Scaffolding sin ruido", "Descomponer abre el primer placeholder en edicion inline", renameEncadenado);
+  const panelDiagnosticoScaffolding = page.getByTestId("panel-diagnostico");
+  if (await waitVisible(panelDiagnosticoScaffolding, 500)) {
+    if (await attr(panelDiagnosticoScaffolding, "data-expandido") !== "true") {
+      // `HTMLElement.click()` inspecciona sin robar foco al input inline. Un
+      // click físico confirmaría por blur el placeholder actual y alteraría
+      // precisamente el flujo que esta sonda quiere observar.
+      await panelDiagnosticoScaffolding.evaluate((panel) => {
+        panel.querySelector('[data-testid="panel-diagnostico-toggle"]')?.click();
+      });
+    }
+  }
+  const avisoAgrupado = page.getByText(/3 subprocesos del OPD "SD1" esperan un nombre de dominio/);
+  recordBool(
+    "7. Scaffolding sin ruido",
+    "El diagnostico agrupa los tres placeholders en un aviso",
+    (await locatorCount(avisoAgrupado)) === 1,
+    `avisos=${await locatorCount(avisoAgrupado)}`,
+  );
+  const nombresIniciales = [];
+  for (const nombre of ["Recibir Pedido", "Validar Pedido", "Despachar Pedido"]) {
+    nombresIniciales.push(await renameEncadenado.inputValue());
+    await renameEncadenado.fill(nombre);
+    await renameEncadenado.press("Enter");
+    await page.waitForTimeout(120);
+  }
+  recordBool(
+    "7. Scaffolding sin ruido",
+    "Enter avanza por los tres placeholders sembrados",
+    nombresIniciales.join("|") === "Procesar Pedido 1|Procesar Pedido 2|Procesar Pedido 3"
+      && (await locatorCount(renameEncadenado)) === 0,
+    JSON.stringify(nombresIniciales),
+  );
+  recordBool(
+    "7. Scaffolding sin ruido",
+    "El aviso desaparece al completar los nombres de dominio",
+    (await locatorCount(avisoAgrupado)) === 0,
+  );
+  await screenshot(page, "10-scaffolding-renombrado-encadenado.png");
+
+  await resetWorkbench(page);
+  await crearCosa(page, "Objeto", "Pedido");
+  await page.getByTestId("toolbar-crear-estado").click();
+  const renameEstados = page.getByTestId("halo-estado-rename-input");
+  await recordVisible("7. Scaffolding sin ruido", "Sembrar estados abre el primer nombre en edicion inline", renameEstados);
+  const nombresEstadoIniciales = [];
+  for (const nombre of ["pendiente", "aprobado"]) {
+    nombresEstadoIniciales.push(await renameEstados.inputValue());
+    await renameEstados.fill(nombre);
+    await renameEstados.press("Enter");
+    await page.waitForTimeout(120);
+  }
+  recordBool(
+    "7. Scaffolding sin ruido",
+    "Enter avanza por los dos estados sembrados",
+    nombresEstadoIniciales.join("|") === "estado1|estado2"
+      && (await locatorCount(renameEstados)) === 0,
+    JSON.stringify(nombresEstadoIniciales),
+  );
+  await recordVisible("7. Scaffolding sin ruido", "Los nombres de estado quedan visibles en el objeto", page.getByText("pendiente").or(page.getByText("aprobado")).first());
+  await screenshot(page, "11-estados-renombrado-encadenado.png");
+
+  await resetWorkbench(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 20000 });
   await cerrarPantallaInicioSiVisible(page);
@@ -501,19 +632,19 @@ try {
     doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     body: document.body.scrollWidth - document.body.clientWidth,
   }));
-  recordBool("7. Mobile review", "Viewport 390x844 no tiene overflow horizontal >8px", overflow.doc <= 8 && overflow.body <= 8, JSON.stringify(overflow));
-  await recordVisible("7. Mobile review", "Tabs mobile review visibles", page.getByTestId("modo-revision-mobile"));
-  recordBool("7. Mobile review", "Toolbar pesada no se monta en mobile", (await locatorCount(page.getByTestId("toolbar-actions-pesadas"))) === 0);
+  recordBool("8. Mobile review", "Viewport 390x844 no tiene overflow horizontal >8px", overflow.doc <= 8 && overflow.body <= 8, JSON.stringify(overflow));
+  await recordVisible("8. Mobile review", "Tabs mobile review visibles", page.getByTestId("modo-revision-mobile"));
+  recordBool("8. Mobile review", "Toolbar pesada no se monta en mobile", (await locatorCount(page.getByTestId("toolbar-actions-pesadas"))) === 0);
   for (const tab of ["canvas", "opds", "opl", "issues"]) {
-    await recordVisible("7. Mobile review", `Tab ${tab} visible`, page.getByTestId(`mobile-tab-${tab}`));
+    await recordVisible("8. Mobile review", `Tab ${tab} visible`, page.getByTestId(`mobile-tab-${tab}`));
   }
   await page.getByTestId("mobile-tab-opds").click();
-  await recordVisible("7. Mobile review", "Tab OPDs abre panel de arbol", page.getByTestId("mobile-pane-opds"));
+  await recordVisible("8. Mobile review", "Tab OPDs abre panel de arbol", page.getByTestId("mobile-pane-opds"));
   await page.getByTestId("mobile-tab-opl").click();
-  await recordVisible("7. Mobile review", "Tab OPL abre panel OPL", page.getByTestId("mobile-pane-opl"));
+  await recordVisible("8. Mobile review", "Tab OPL abre panel OPL", page.getByTestId("mobile-pane-opl"));
   await page.getByTestId("mobile-tab-issues").click();
-  await recordVisible("7. Mobile review", "Tab Issues muestra aviso de edicion escritorio/tablet", page.getByTestId("mobile-aviso-edicion"));
-  await screenshot(page, "10-mobile-review.png");
+  await recordVisible("8. Mobile review", "Tab Issues muestra aviso de edicion escritorio/tablet", page.getByTestId("mobile-aviso-edicion"));
+  await screenshot(page, "12-mobile-review.png");
 } catch (error) {
   record("0. Runtime", "Excepcion no controlada de la sonda", "FAIL", error?.stack ?? String(error));
 } finally {

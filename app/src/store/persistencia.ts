@@ -897,6 +897,7 @@ function purgeLocalSession(set: SetStore, get: GetStore): void {
     hoverOplRef: null,
     busquedaOpl: "",
     solicitarFocusNombre: null,
+    colaRenombradoPendiente: [],
     idsResaltadosTemporales: [],
     portapapelesVisual: null,
     portapapelesWorkspace: null,

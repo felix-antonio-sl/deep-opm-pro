@@ -48,8 +48,12 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
         set({ mensaje: resultado.error });
         return;
       }
+      const colaRenombradoPendiente = resultado.value.creado
+        ? resultado.value.estadoIds.map((id) => ({ tipo: "estado" as const, id }))
+        : [];
       commitModelo(set, modelo, resultado.value.modelo, {
         seleccionId,
+        colaRenombradoPendiente,
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: resultado.value.creado ? "Estados iniciales agregados" : null,
@@ -67,8 +71,10 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
         set({ mensaje: resultado.error });
         return;
       }
+      const colaRenombradoPendiente = [{ tipo: "estado" as const, id: resultado.value.estadoId }];
       commitModelo(set, modelo, resultado.value.modelo, {
         seleccionId,
+        colaRenombradoPendiente,
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: null,
@@ -88,8 +94,13 @@ export function accionesEstados(set: SetStore, get: GetStore): Partial<ModeloSli
         set({ mensaje: resultado.error });
         return;
       }
+      const estadoIds = "estadoIds" in resultado.value
+        ? (resultado.value.creado ? resultado.value.estadoIds : [])
+        : [resultado.value.estadoId];
+      const colaRenombradoPendiente = estadoIds.map((id) => ({ tipo: "estado" as const, id }));
       commitModelo(set, modelo, resultado.value.modelo, {
         seleccionId,
+        colaRenombradoPendiente,
         enlaceSeleccionId: null,
         modoEnlace: null,
         mensaje: "creado" in resultado.value && resultado.value.creado ? "Estados iniciales agregados" : null,

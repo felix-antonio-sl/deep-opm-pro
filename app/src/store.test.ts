@@ -835,7 +835,17 @@ describe("store undo/redo y dirty state", () => {
     store.getState().seleccionarEntidad(objetoId);
 
     store.getState().agregarEstadoSmart();
-    expect(estadosObjeto(objetoId).map((estado) => estado.nombre)).toEqual(["estado1", "estado2"]);
+    const iniciales = estadosObjeto(objetoId);
+    expect(iniciales.map((estado) => estado.nombre)).toEqual(["estado1", "estado2"]);
+    expect(store.getState().colaRenombradoPendiente).toEqual(
+      iniciales.map((estado) => ({ tipo: "estado", id: estado.id })),
+    );
+    expect(store.getState().seleccionId).toBe(objetoId);
+
+    store.getState().avanzarRenombradoPendiente();
+    expect(store.getState().colaRenombradoPendiente).toEqual([
+      { tipo: "estado", id: iniciales[1]!.id },
+    ]);
 
     store.getState().agregarEstadoSmart();
     expect(estadosObjeto(objetoId)).toHaveLength(3);
@@ -855,6 +865,13 @@ describe("store undo/redo y dirty state", () => {
     if (!opdHijo) return;
     expect(opdHijo.nombre).toBe("SD1");
     expect(estado.opdActivoId).toBe(opdHijo.id);
+    const refinadores = Object.values(opdHijo.apariencias)
+      .map((apariencia) => apariencia.entidadId)
+      .filter((id) => id !== procesoId);
+    expect(estado.colaRenombradoPendiente).toEqual(
+      refinadores.map((id) => ({ tipo: "entidad", id })),
+    );
+    expect(estado.seleccionId).toBe(procesoId);
     expect(estado.modelo.entidades[procesoId]?.refinamientos?.descomposicion).toEqual({
       opdId: opdHijo.id,
     });
