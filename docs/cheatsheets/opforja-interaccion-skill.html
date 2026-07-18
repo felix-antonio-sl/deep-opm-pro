@@ -111,11 +111,9 @@
       </ul></section>
 
     <section class="card key"><p class="eyebrow">El transporte</p><h2>El puente</h2>
-      <p>Con acceso al host, la skill usa el <strong>puente directo</strong>:</p>
-      <pre>cd app &amp;&amp; bun run mesa pull &lt;modelo&gt;
-cd app &amp;&amp; bun run mesa push &lt;modelo&gt; bundle.json --nota "…"</pre>
-      <p>Repite el pull inmediatamente antes del push, revisa el delta con una persona y no confíes en el 409 para detectar un bundle nacido de un pull antiguo.</p>
-      <p>Sin él, usa el <strong>portapapeles</strong>: <kbd>Ctrl</kbd>+<kbd>K</kbd> › «Copiar contexto para la skill» (W6.0). Mismo bucle, transporte manual.</p></section>
+      <p>Con acceso al host y un backend compatible, la skill usa el <strong>puente directo</strong> y conserva el <code>Testigo-Base</code> del pull que originó el bundle. La receta exacta vive en <a href="opforja-skill-flujo.html">flujo skill↔mesa</a>.</p>
+      <p>Revisa el delta con una persona. El servidor revalida guardado y autosave dentro del commit: si algo cambió desde el pull, responde 409 y no escribe.</p>
+      <p>Hasta comprobar un backend productivo compatible, <code>404/405/501</code> aborta sin escribir. Sin ese backend o sin acceso al host, usa el <strong>portapapeles</strong>: <kbd>Ctrl</kbd>+<kbd>K</kbd> › «Copiar contexto para la skill» (W6.0). Mismo bucle, transporte manual.</p></section>
 
     <section class="card"><p class="eyebrow">Expectativas honestas</p><h2>No pidas lo imposible</h2>
       <p>La mesa <strong>no</strong> hace: out-zoom automático, diff de modelos, PDF real, cosimulación federada, multiusuario, ni <strong>inferencia</strong> automática. Modela y valida; no infiere ni razona por ti.</p></section>

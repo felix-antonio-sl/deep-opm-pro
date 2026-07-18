@@ -356,8 +356,9 @@ sello; bloqueado sin sello).
 
 #### A.6 Puente directo mesa↔skill (CLI)
 
-Además del puente W6.0 por portapapeles, un agente con acceso al host opera opforja
-**directo contra el backend desplegado**, sin transportar bytes a mano. No existe
+Además del puente W6.0 por portapapeles, un agente con acceso al host puede operar
+opforja **directo contra un backend configurado y compatible**, sin transportar
+bytes a mano. No existe
 un ejecutable global `mesa`: desde la raíz del repo se usa
 `cd app && bun run mesa …`. El script
 [mesa-cli.ts](../app/scripts/mesa-cli.ts) lee el token Bearer desde
@@ -366,33 +367,75 @@ un ejecutable global `mesa`: desde la raíz del repo se usa
 Ese token es un secreto: el archivo debe tener modo `600` y nunca debe entrar a
 Git, prompts, notas de versión ni bundles.
 
+En un backend compatible, ese Bearer está confinado por mínimo privilegio:
+puede leer la mesa y crear commits por el endpoint atómico de revisiones; las
+escrituras heredadas de modelo, workspace, versión, autosave y borrado responden
+`403`. La cookie del operador conserva las acciones propias de la interfaz.
+
 - `cd app && bun run mesa modelos` — lista los modelos del tenant (id · especie · revisión).
 - `cd app && bun run mesa pull <modelo>` — compone el mismo contexto de modelado que W6.0 (procedencia,
-  `[RATIFICAR]`, notas, diagnóstico, OPL) leyendo el estado vivo (autosave si es más nuevo);
-  declara la especie y si la base es guardado o autosave no ratificado.
-- `cd app && bun run mesa push <modelo> <bundle.json> --nota "…"` — valida con el
-  contrato de import y guarda una **nueva revisión**; a un modelo con **sello**
-  exige el bundle del compilador (carril por procedencia), y un push **sin delta**
-  no crea revisión. Al crear exige `--especie apunte|modelo`. Si la referencia no
-  resuelve por ID o nombre, `push` entra al camino de creación: revisa errores
-  tipográficos antes de confirmar.
+  `[RATIFICAR]`, notas, diagnóstico, OPL) leyendo el estado vivo; observa tanto
+  el guardado como la presencia o ausencia de autosave y emite un
+  `Testigo-Base` opaco junto a la fuente elegida.
+- `cd app && bun run mesa push <modelo> <bundle.json> --base <Testigo-Base> --nota "…"` —
+  valida con el contrato de import y guarda una **nueva revisión** sobre la base
+  exacta del `pull`; a un modelo con **sello** exige un bundle con procedencia
+  estructural válida —el carril esperado es recompilar el proto—, y un push
+  **sin delta** no crea revisión. Al crear un modelo nuevo se omite `--base` y
+  se exige `--especie apunte|modelo`. Si la referencia no resuelve por ID o
+  nombre, `push` entra al camino de creación: revisa errores tipográficos antes
+  de confirmar.
 
-**Límite de concurrencia y trazabilidad vigente.** El `409` solo detecta una
-carrera entre la lectura interna que hace `push` y su escritura; el bundle no
-queda ligado a la revisión observada por un `pull` anterior. Por eso un bundle
-obsoleto puede sobrescribir una revisión posterior sin conflicto: haz `pull`
-inmediatamente antes de `push`, compara el delta y obtén confirmación humana. La
-señal remota de autosave activa de forma conservadora
-`--confirmado-por-operador` y puede pedirlo aunque el `pull` haya elegido el
-guardado. Además, la revisión se guarda antes de intentar etiquetar su versión;
-si esa segunda operación falla, el CLI avisa, pero la revisión ya quedó aplicada.
+**Garantía del backend compatible.** El `Testigo-Base` identifica el modelo y
+las dos ramas observadas por `pull`: revisión y contenido guardados, y contenido
+del autosave o su ausencia. El CLI comprueba ese testigo antes de enviar y el
+servidor vuelve a comprobarlo dentro de la misma transacción que guarda la
+revisión, crea su versión y consolida el autosave. Si cualquiera de esas ramas
+cambió, responde `409` y no escribe nada. En una creación, modelo, versión y
+especie —incluida la marca de apunte en el workspace— se registran en esa misma
+transacción. Solo cuando la fuente elegida por aquel `pull` fue un autosave se
+exige confirmación humana mediante `--confirmado-por-operador`. El testigo no es
+un secreto ni concede permisos: debe conservarse sin modificar junto al bundle
+que originó.
 
-Reglas del puente (skill vigente, Regla Dura #29): pull inmediatamente antes de
-push · revisar el delta con una persona · nunca push sin validación local verde ·
-ante `409`, re-pull y jamás forzar · confirmar antes de suministrar
-`--confirmado-por-operador` · verificar cualquier aviso de etiquetado parcial ·
-nota con procedencia (`agente·<nota>`) · crear nuevo declara `--especie` (los
-bosquejos nacen apunte). En la mesa, el chip **«Revisión del agente»** avisa
+El workspace también porta una revisión monotónica. Cada reemplazo completo
+declara la revisión observada y el servidor responde `409` si otra escritura o
+una creación atómica avanzó primero. Dentro de una pestaña, las escrituras se
+serializan; si el usuario actuó antes de terminar la carga inicial, la mesa
+aplica solo ese delta local sobre el índice remoto observado. El bootstrap no
+vuelve a guardar el índice que acaba de derivar. Esto evita que una respuesta
+vieja borre carpetas o la especie recién creada por el agente. No convierte la
+mesa en editor colaborativo: ante conflicto se conserva el estado local, se
+informa el rechazo y corresponde recargar/reconciliar, nunca forzar.
+
+Las operaciones del navegador quedan además ligadas a la identidad de sesión
+que observaron. Si otra pestaña cambia la cookie de tenant o cualquier operación
+recibe `401`, la mesa invalida las respuestas pendientes, purga el contenido
+sensible local y vuelve al acceso; no reutiliza datos de un tenant bajo otro.
+
+**Límite de atestación.** El servidor comprueba la presencia y forma del sello,
+no una firma criptográfica ni el `protoHash` contra un registro externo; y la
+bandera de confirmación es una declaración del caller, no una prueba del gesto
+humano. Son defensas contra accidentes. La disciplina operativa sigue siendo:
+no copiar ni fabricar procedencia y no suministrar
+`--confirmado-por-operador` sin una decisión real del operador.
+
+Esta garantía está implementada en el código fuente actual, pero requiere
+desplegar un backend que exponga el commit atómico de revisiones. Ante
+`404/405/501`, el CLI aborta sin recurrir al endpoint antiguo y sin escribir.
+Hasta comprobar un despliegue compatible en la instancia productiva, se usa el
+puente W6.0 manual.
+
+Si la red se corta después de enviar el commit, el resultado puede ser
+desconocido aunque la transacción sea atómica. El CLI lo declara: ejecuta
+`pull` para comprobar el estado y no reintentes a ciegas.
+
+Reglas del puente (skill vigente, Regla Dura #29): conservar el `Testigo-Base`
+del pull que originó el bundle · revisar el delta con una persona · nunca push
+sin validación local verde · ante `409`, re-pull y jamás forzar · confirmar
+antes de suministrar `--confirmado-por-operador` · nota con procedencia
+(`agente·<nota>`) · crear nuevo declara `--especie` (los bosquejos nacen
+apunte). En la mesa, el chip **«Revisión del agente»** avisa
 cuando el agente empujó. Sin cambios locales ofrece **Recargar**; con cambios,
 **Ver la del agente** conserva el trabajo local para comparar y **Descartar los
 míos y traer la del agente** declara la acción destructiva. El puente W6.0 por
@@ -555,7 +598,7 @@ en el handoff y el registro de conformidad.
 | Aparición | Presencia visual local de una cosa en un OPD; no es nueva identidad. |
 | Bundle | Paquete serializado (`deep-opm-pro.modelo.v0`) que permite rehidratar/auditar más allá de una imagen. |
 | Roundtrip | Ir de OPD a OPL y volver al mismo hecho sin pérdida relevante. |
-| Sello de procedencia | `{ protoHash, autoriaVersion, layoutVersion }` que ata el bundle a su proto; lo emite solo el compilador de autoría. |
+| Sello de procedencia | `{ protoHash, autoriaVersion, layoutVersion }` que vincula el bundle con su proto; en el flujo legítimo lo emite el compilador, pero el servidor solo comprueba su forma. |
 | Gate | Chequeo, regla o revisión que decide si se puede avanzar. |
 | GAP / brecha | Carencia explícita de canon, implementación o evidencia; nunca se oculta como comportamiento normal (R-CONF-7). |
 

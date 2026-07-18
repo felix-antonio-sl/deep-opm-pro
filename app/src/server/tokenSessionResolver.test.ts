@@ -10,10 +10,15 @@ function req(headers: Record<string, string> = {}): Request {
 }
 
 describe("crearTokenSessionResolver", () => {
-  test("Bearer correcto → sesión autenticada del operador", async () => {
+  test("Bearer correcto → sesión autenticada y confinada al carril agente", async () => {
     const r = crearTokenSessionResolver(IDENT);
     const s = await r.resolve(req({ authorization: `Bearer ${TOKEN}` }));
-    expect(s).toMatchObject({ tenantId: "t-op", userId: "u-op", auth: true });
+    expect(s).toMatchObject({
+      tenantId: "t-op",
+      userId: "u-op",
+      auth: true,
+      authKind: "agent",
+    });
   });
   test("nunca emite setCookie", async () => {
     const r = crearTokenSessionResolver(IDENT);

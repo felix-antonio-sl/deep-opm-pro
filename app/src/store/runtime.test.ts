@@ -4,6 +4,7 @@ import { crearModelo } from "../modelo/operaciones";
 import { store } from "../store";
 import {
   confirmarEliminacionOpd,
+  conBaseRevision,
   crearIdModeloLocal,
   escribirIndiceWorkspace,
   fijarRuntimeEffects,
@@ -34,6 +35,11 @@ beforeEach(() => {
 
 afterEach(() => {
   resetRuntimeEffects();
+});
+
+test("la base de revisión nunca retrocede por una respuesta tardía", () => {
+  expect(conBaseRevision({ modelo: 7 }, "modelo", 6)).toEqual({ modelo: 7 });
+  expect(conBaseRevision({ modelo: 7 }, "modelo", 8)).toEqual({ modelo: 8 });
 });
 
 describe("runtime effects", () => {

@@ -5,7 +5,7 @@
 // Uso:
 //   bun run mesa modelos
 //   bun run mesa pull <ref>
-//   bun run mesa push <ref> <bundle.json> --nota "…" [--especie apunte|modelo] [--confirmado-por-operador]
+//   bun run mesa push <ref> <bundle.json> [--base <testigo>] --nota "…" [--especie apunte|modelo] [--confirmado-por-operador]
 // Config: env OPFORJA_API_URL (default instancia prod) + archivo
 // ~/.config/opforja/agent-token (o OPFORJA_AGENT_TOKEN_FILE).
 import { readFileSync } from "node:fs";
@@ -18,7 +18,15 @@ import { esSinDelta } from "../src/mesa/esSinDelta";
 import { construirBodyActualizacion } from "../src/mesa/construirBodyActualizacion";
 import { mapaEspeciePorModelo } from "../src/mesa/especieWorkspace";
 import { generarId, type ResumenModeloPersistido } from "../src/persistencia/modelos";
-import { indiceVacio, marcarApunte, type WorkspaceIndice } from "../src/persistencia/workspace";
+import { indiceVacio, type WorkspaceIndice } from "../src/persistencia/workspace";
+import {
+  baseWitnessMatches,
+  createBaseWitness,
+  decodeBaseWitness,
+  encodeBaseWitness,
+  selectedBaseJson,
+  type ObservedBaseState,
+} from "../src/mesa/baseWitness";
 
 const API = process.env.OPFORJA_API_URL ?? "https://opforja.sanixai.com";
 const TOKEN_PATH = process.env.OPFORJA_AGENT_TOKEN_FILE ?? join(homedir(), ".config/opforja/agent-token");
@@ -120,45 +128,54 @@ async function cmdModelos(): Promise<void> {
   }
 }
 
-async function cmdPull(ref: string): Promise<void> {
-  const encontrado = await resolverRef(ref);
+export async function cmdPull(ref: string, deps: { api?: ApiFn } = {}): Promise<void> {
+  const apiFn = deps.api ?? api;
+  const encontrado = await resolverRef(ref, apiFn);
   if (!encontrado) {
     console.error("modelo no encontrado");
     process.exit(1);
   }
-  const rec = await obtenerModelo(encontrado.id);
+  const rec = await obtenerModelo(encontrado.id, apiFn);
   if (!rec || typeof rec.json !== "string") {
     console.error("modelo no encontrado");
     process.exit(1);
   }
-  // El autosave vive en un endpoint SEPARADO (GET /modelos/:id/autosave →
-  // { modeloId, creadoEn, json }); el record solo trae el flag `autosalvado`.
-  let autosave: { creadoEn: string; json: string } | undefined;
-  if (rec.autosalvado) {
-    const a = await api(`/modelos/${encodeURIComponent(rec.id)}/autosave`);
-    if (a.ok) {
-      const av = (await a.json()) as { creadoEn?: string; json?: string };
-      if (av.creadoEn && av.json) autosave = { creadoEn: av.creadoEn, json: av.json };
-    }
-  }
+  // La ausencia del autosave también es parte del testigo. Por eso se consulta
+  // siempre y solo 404 significa ausencia; cualquier otro fallo aborta el pull.
+  const autosave = await obtenerAutosave(rec.id, apiFn);
   const base = elegirBase({
     guardadoActualizadoEn: rec.actualizadoEn,
     guardadoJson: rec.json,
     guardadoRev: rec.revision ?? 0,
-    ...(autosave ? { autosave } : {}),
+    ...(autosave ? { autosave: { creadoEn: autosave.createdAt, json: autosave.json } } : {}),
   });
-  const especiePorId = mapaEspeciePorModelo(await obtenerWorkspaceIndice());
+  const observed: ObservedBaseState = {
+    modelId: rec.id,
+    saved: {
+      revision: rec.revision ?? 0,
+      updatedAt: rec.actualizadoEn,
+      json: rec.json,
+    },
+    autosave,
+  };
+  const baseWitness = encodeBaseWitness(createBaseWitness(observed));
+  const especiePorId = mapaEspeciePorModelo(await obtenerWorkspaceIndice(apiFn));
   const especie = especiePorId.get(rec.id) ?? "modelo";
-  console.log(componerPull({ nombre: rec.nombre, especie, base }));
+  console.log(componerPull({ nombre: rec.nombre, especie, base, baseWitness }));
 }
 
 export async function cmdPush(
   ref: string,
   bundlePath: string,
-  opts: { nota: string; confirmado: boolean; especie?: "apunte" | "modelo" },
+  opts: { nota: string; confirmado: boolean; base?: string; especie?: "apunte" | "modelo" },
   deps: { api?: ApiFn } = {},
 ): Promise<void> {
   const apiFn = deps.api ?? api;
+  const nota = opts.nota.trim();
+  if (!nota) {
+    console.error("push rechazado: --nota exige un rótulo significativo");
+    process.exit(2);
+  }
   const bundleJson = readFileSync(bundlePath, "utf8");
   const encontrado = await resolverRef(ref, apiFn);
   let destinoRec: RegistroRemoto | null = null;
@@ -174,33 +191,67 @@ export async function cmdPush(
     }
   }
 
-  // CLAUSURA (Task 7, ley push∘pull sin delta = no-op): si el bundle
-  // candidato tiene el MISMO significado que el `json` remoto vigente,
-  // abortar ANTES de escribir — sin llamar a `evaluarPush` ni emitir el POST.
-  // Sin este guard, un ciclo pull→push sin ediciones igual crea revisión en
-  // el backend real (`model-persistence-api.ts::save` avanza la revisión en
-  // CADA escritura sin comparar contenido) — el guard debe vivir del lado
-  // cliente porque el backend no lo hace. Solo aplica al ACTUALIZAR (hay un
-  // `destinoRec.json` remoto contra el cual comparar); al crear no hay nada
-  // que comparar. Ver `esSinDelta.test.ts` (unit) + `roundtrip.test.ts`
-  // (ley end-to-end contra el handler en memoria).
-  if (destinoRec && typeof destinoRec.json === "string" && esSinDelta(bundleJson, destinoRec.json)) {
-    console.error("sin cambios: no se crea revisión");
-    process.exit(4);
-  }
-
   let destinoInfo: { tieneSello: boolean; especie: Especie } | undefined;
   let baseFueAutosave = false;
+  let base:
+    | { kind: "new" }
+    | { kind: "existing"; witness: NonNullable<ReturnType<typeof decodeBaseWitness>> };
   if (destinoRec) {
+    const destinationJson = destinoRec.json;
+    if (typeof destinationJson !== "string") {
+      console.error("push abortado: la respuesta del modelo no incluye un bundle legible");
+      process.exit(1);
+    }
+    if (!opts.base) {
+      console.error("push rechazado: falta --base <Testigo-Base> del pull que originó este bundle");
+      process.exit(2);
+    }
+    const witness = decodeBaseWitness(opts.base);
+    if (!witness || witness.modelId !== destinoRec.id) {
+      console.error("push rechazado: Testigo-Base inválido o perteneciente a otro modelo");
+      process.exit(2);
+    }
+    const autosave = await obtenerAutosave(destinoRec.id, apiFn);
+    const observed: ObservedBaseState = {
+      modelId: destinoRec.id,
+      saved: {
+        revision: destinoRec.revision ?? 0,
+        updatedAt: destinoRec.actualizadoEn,
+        json: destinationJson,
+      },
+      autosave,
+    };
+    if (!baseWitnessMatches(witness, observed)) {
+      console.error("409: la base cambió desde el pull. Re-pull y reintenta.");
+      process.exit(3);
+    }
+
+    // CLAUSURA: el no-op se compara contra la fuente elegida por ESE pull,
+    // no siempre contra el guardado principal.
+    if (esSinDelta(bundleJson, selectedBaseJson(observed))) {
+      console.error("sin cambios: no se crea revisión");
+      process.exit(4);
+    }
+
     // La especie real vive en el índice de workspace, NO en el record remoto
     // (ver `obtenerWorkspaceIndice`) — sin este cruce el guard biblioteca de
     // `evaluarPush` queda inerte porque `destinoRec` nunca trae `esBiblioteca`.
     const especiePorId = mapaEspeciePorModelo(await obtenerWorkspaceIndice(apiFn));
     destinoInfo = {
-      tieneSello: bundleTieneSelloRemoto(destinoRec.json ?? ""),
+      // El linaje del destino no desaparece porque un autosave artesanal sea
+      // la fuente más nueva: basta un sello en cualquiera de las dos ramas.
+      tieneSello: bundleTieneSelloRemoto(destinationJson) ||
+        Boolean(autosave && bundleTieneSelloRemoto(autosave.json)),
       especie: especiePorId.get(destinoRec.id) ?? "modelo",
     };
-    baseFueAutosave = Boolean(destinoRec.autosalvado);
+    baseFueAutosave = witness.source === "autosave";
+    base = { kind: "existing", witness };
+  } else {
+    if (opts.base) {
+      console.error("409: el modelo del Testigo-Base ya no existe; no se creará otro por accidente");
+      process.exit(3);
+    }
+    base = { kind: "new" };
   }
 
   const veredicto = evaluarPush({
@@ -215,14 +266,13 @@ export async function cmdPush(
     process.exit(1);
   }
 
-  // Escritura: crea (POST /modelos, id fresco) o actualiza (mismo id, revision
-  // vigente para el optimistic lock; creadoEn preservado). El endpoint exige
-  // creadoEn/actualizadoEn como strings no vacíos y, en actualización, la
-  // revision exacta — si no coincide, 409 (PersistenciaConflictError).
+  // Snapshot del commit: crea con id fresco o actualiza el mismo id, preserva
+  // creadoEn y porta la revisión observada. El endpoint atómico exige los
+  // metadatos completos y vuelve a comprobar base + revisión bajo lock.
   //
-  // CRÍTICO (bug de integridad corregido): `save()` en model-persistence-api.ts
-  // hace `INSERT ... ON CONFLICT DO UPDATE SET <TODAS las columnas>` desde el
-  // body recibido — sin merge contra lo persistido. Enviar solo
+  // CRÍTICO (bug de integridad corregido): la persistencia SQL reemplaza todas
+  // las columnas del modelo desde el body recibido, sin merge contra lo
+  // persistido. Enviar solo
   // id/nombre/json/creadoEn/actualizadoEn/revision (como hacía este CLI antes)
   // pisa silenciosamente descripcion (→ ""), carpetaId (→ null, saca de la
   // carpeta), archivado*/versiones/crearVersionAlGuardar (→ ausentes). Se usa
@@ -232,7 +282,12 @@ export async function cmdPush(
   const ahora = new Date().toISOString();
   const body = destinoRec
     ? construirBodyActualizacion(
-        { id: destinoRec.id, nombre: destinoRec.nombre, json: bundleJson, revision: destinoRec.revision ?? 0 },
+        {
+          id: destinoRec.id,
+          nombre: destinoRec.nombre,
+          json: bundleJson,
+          revision: base.kind === "existing" ? base.witness.saved.revision : 0,
+        },
         destinoRec,
         ahora,
       )
@@ -242,54 +297,99 @@ export async function cmdPush(
         json: bundleJson,
         creadoEn: ahora,
         actualizadoEn: ahora,
-        // NO se manda `esApunte` aquí: el endpoint de creación de modelos no
-        // tiene columna para ese flag (vive en el índice de workspace, un
-        // recurso SEPARADO) — incluirlo en este body sería un no-op silente.
-        // El marcado real ocurre DESPUÉS de crear, vía PUT al índice de
-        // workspace (ver más abajo).
+        // La especie no es columna del modelo: viaja como `speciesOnCreate`
+        // del commit y el servidor actualiza el índice de workspace dentro
+        // de la misma transacción.
       };
-  const w = await apiFn("/modelos", { method: "POST", body: JSON.stringify(body) });
+  const consolidatedBody = { ...body, autosalvado: false };
+  const versionId = generarId();
+  const version = {
+    id: versionId,
+    creadoEn: new Date().toISOString(),
+    nombre: `agente·${nota}`,
+    modeloPayloadKey: versionId,
+    bytes: new TextEncoder().encode(consolidatedBody.json).byteLength,
+  };
+  let w: Response;
+  try {
+    w = await apiFn(`/modelos/${encodeURIComponent(consolidatedBody.id)}/revisiones`, {
+      method: "POST",
+      body: JSON.stringify({
+        model: consolidatedBody,
+        version,
+        base,
+        ...(opts.confirmado ? { confirmedByOperator: true } : {}),
+        ...(!destinoRec ? { speciesOnCreate: veredicto.especieDestino } : {}),
+      }),
+    });
+  } catch {
+    console.error(
+      "push interrumpido: el resultado es desconocido. Ejecuta pull para comprobar antes de reintentar.",
+    );
+    process.exit(1);
+  }
   if (w.status === 409) {
-    console.error("409: la mesa avanzó bajo tus pies. Re-pull y reintenta.");
+    console.error("409: la base cambió desde el pull. Re-pull y reintenta.");
     process.exit(3);
+  }
+  if (w.status === 405 || w.status === 404 || w.status === 501) {
+    console.error("push abortado: el backend aún no soporta revisiones atómicas; no se escribió nada");
+    process.exit(1);
+  }
+  if (w.status >= 500) {
+    console.error(
+      `API ${w.status}: el resultado del commit es desconocido. Ejecuta pull para comprobar antes de reintentar.`,
+    );
+    process.exit(1);
   }
   if (!w.ok) {
     console.error(`API ${w.status}`);
     process.exit(1);
   }
-  const guardadoBody = (await w.json()) as { modelo?: { id: string; revision?: number } };
-  const guardado = guardadoBody.modelo;
-  if (!guardado) {
-    console.error("respuesta de guardado inválida");
+  let guardadoBody: {
+    model?: { id: string; revision?: number };
+    version?: { id?: string };
+  };
+  try {
+    guardadoBody = await w.json() as typeof guardadoBody;
+  } catch {
+    console.error(
+      "respuesta de commit inválida; el cambio puede haberse aplicado. Ejecuta pull antes de reintentar.",
+    );
+    process.exit(1);
+  }
+  const guardado = guardadoBody.model;
+  if (!guardado || guardadoBody.version?.id !== versionId) {
+    console.error(
+      "respuesta de commit inválida; el cambio puede haberse aplicado. Ejecuta pull antes de reintentar.",
+    );
     process.exit(1);
   }
   console.log(`push ok: ${guardado.id} rev ${guardado.revision ?? "?"}`);
+}
 
-  // Al CREAR con `--especie apunte`: el flag no viaja en el body de creación
-  // (el endpoint de modelos no tiene columna para él), así que se marca
-  // AHORA en el índice de workspace — el único lugar donde `esApunte` vive
-  // hoy. `push ok` deja de ser la única señal de éxito de la especie: si el
-  // marcado falla, se avisa explícito (el modelo YA quedó creado, solo la
-  // marca de especie no se persistió).
-  if (!destinoRec && veredicto.especieDestino === "apunte") {
-    await marcarApunteEnWorkspace(guardado.id, apiFn);
+async function obtenerAutosave(
+  modelId: string,
+  apiFn: ApiFn,
+): Promise<ObservedBaseState["autosave"]> {
+  const response = await apiFn(`/modelos/${encodeURIComponent(modelId)}/autosave`);
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    console.error(`API ${response.status}: no se pudo observar el autosave`);
+    process.exit(1);
   }
-
-  const versionId = generarId();
-  const v = await apiFn(`/modelos/${encodeURIComponent(guardado.id)}/versiones`, {
-    method: "POST",
-    body: JSON.stringify({
-      version: {
-        id: versionId,
-        creadoEn: new Date().toISOString(),
-        nombre: `agente·${opts.nota}`,
-        modeloPayloadKey: versionId,
-        bytes: bundleJson.length,
-      },
-      json: bundleJson,
-    }),
-  });
-  if (!v.ok) console.error(`aviso: no se pudo etiquetar la versión (API ${v.status})`);
+  try {
+    const value = (await response.json()) as { creadoEn?: unknown; json?: unknown };
+    if (typeof value.creadoEn !== "string" || !value.creadoEn ||
+      typeof value.json !== "string" || !value.json) {
+      console.error("respuesta de autosave inválida");
+      process.exit(1);
+    }
+    return { createdAt: value.creadoEn, json: value.json };
+  } catch {
+    console.error("respuesta de autosave inválida");
+    process.exit(1);
+  }
 }
 
 /**
@@ -310,54 +410,6 @@ function bundleTieneSelloRemoto(json: string): boolean {
   }
 }
 
-/**
- * Persiste `esApunte: true` para `modeloId` en el índice de workspace: GET
- * del índice vigente → asegura una entrada para el id recién creado (el
- * índice de workspace es poblado por la app; un modelo creado por el CLI no
- * tiene entrada previa) → `marcarApunte` (la MISMA función pura que usa la
- * app, `src/persistencia/workspace.ts` — sella la exclusión mutua con
- * biblioteca; no se re-deriva esa lógica aquí) → PUT del índice completo.
- * Si el GET o el PUT fallan, el modelo YA fue creado (ver caller) — se avisa
- * explícito en vez de fingir éxito.
- */
-async function marcarApunteEnWorkspace(modeloId: string, apiFn: ApiFn): Promise<void> {
-  const g = await apiFn("/workspace");
-  if (!g.ok) {
-    console.error(
-      `aviso: el modelo se creó, pero no se pudo leer el índice de workspace para marcarlo «apunte» (API ${g.status}). Márcalo desde la app si lo necesitas.`,
-    );
-    return;
-  }
-  let getBody: { indice?: WorkspaceIndice };
-  try {
-    getBody = (await g.json()) as { indice?: WorkspaceIndice };
-  } catch {
-    // Un 200 con body malformado (no-JSON, corte de red a mitad de lectura,
-    // etc.) haría throw AQUÍ, DESPUÉS de que el modelo ya fue creado — sin
-    // este catch, se propagaría sin capturar y saltaría el aviso honesto
-    // (el modelo quedaría creado pero el operador vería un stack trace en
-    // vez del mensaje claro de "márcalo desde la app").
-    console.error(
-      "aviso: el modelo se creó, pero la respuesta del índice de workspace vino malformada; no se pudo marcarlo «apunte». Márcalo desde la app si lo necesitas.",
-    );
-    return;
-  }
-  const indiceActual = getBody.indice ?? indiceVacio();
-  const conEntrada = indiceActual.modelos.some((m) => m.id === modeloId)
-    ? indiceActual
-    : { ...indiceActual, modelos: [...indiceActual.modelos, { id: modeloId, carpetaId: null }] };
-  const marcado = marcarApunte(conEntrada, modeloId, true);
-
-  const p = await apiFn("/workspace", { method: "PUT", body: JSON.stringify({ indice: marcado }) });
-  if (!p.ok) {
-    console.error(
-      `aviso: el modelo se creó, pero no se pudo persistir la marca «apunte» en el índice de workspace (API ${p.status}). Márcalo desde la app si lo necesitas.`,
-    );
-    return;
-  }
-  console.log("especie «apunte» marcada en el índice de workspace.");
-}
-
 // --- dispatch ---
 // Gated tras `import.meta.main` (Task 7, hallazgo IMPORTANT de revisión): sin
 // esto, IMPORTAR este módulo desde un test ejecuta el CLI real (argv del test
@@ -372,7 +424,7 @@ if (import.meta.main) {
   };
   const has = (n: string): boolean => rest.includes(n);
 
-  const USO = "uso: mesa <modelos|pull <ref>|push <ref> <bundle.json> --nota … [--especie apunte|modelo] [--confirmado-por-operador]>";
+  const USO = "uso: mesa <modelos|pull <ref>|push <ref> <bundle.json> [--base <Testigo-Base>] --nota … [--especie apunte|modelo] [--confirmado-por-operador]>";
 
   if (verbo === "modelos") {
     await cmdModelos();
@@ -392,9 +444,11 @@ if (import.meta.main) {
     }
     const especieFlag = flag("--especie");
     const especie = especieFlag === "apunte" || especieFlag === "modelo" ? especieFlag : undefined;
+    const baseFlag = flag("--base");
     await cmdPush(ref, bundlePath, {
-      nota: flag("--nota") ?? "sin nota",
+      nota: flag("--nota") ?? "",
       confirmado: has("--confirmado-por-operador"),
+      ...(baseFlag ? { base: baseFlag } : {}),
       ...(especie ? { especie } : {}),
     });
   } else {

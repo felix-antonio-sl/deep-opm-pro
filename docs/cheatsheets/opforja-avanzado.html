@@ -218,15 +218,7 @@
     <section class="card proc">
       <p class="eyebrow">Bucle con la skill</p>
       <h2>La mesa ↔ el agente</h2>
-      <p>La skill de modelado lee y escribe la mesa directo, sin copiar y pegar. Desde la terminal del host:</p>
-      <pre><span class="c"># traer el contexto del modelo para la skill</span>
-cd app &amp;&amp; bun run mesa <span class="k">pull</span> &lt;modelo&gt;
-
-<span class="c"># empujar cambios como nueva revisión</span>
-cd app &amp;&amp; bun run mesa <span class="k">push</span> &lt;modelo&gt; bundle.json --nota "…"
-
-<span class="c"># listar tus modelos</span>
-cd app &amp;&amp; bun run mesa <span class="k">modelos</span></pre>
+      <p>La skill de modelado puede leer y escribir la mesa mediante un puente directo compatible o, como fallback, mediante W6.0 por portapapeles. La secuencia técnica y sus límites viven únicamente en <a href="opforja-skill-flujo.html">flujo skill↔mesa</a>.</p>
       <p>En la mesa, el chip <strong>«Revisión del agente»</strong> avisa cuando un agente empujó. Sin cambios locales ofrece <strong>Recargar</strong>; con cambios, permite <strong>Ver la del agente</strong> sin perderlos o ejecutar la acción explícita <strong>Descartar los míos y traer la del agente</strong>.</p>
     </section>
 

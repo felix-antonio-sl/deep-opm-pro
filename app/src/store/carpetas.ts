@@ -185,11 +185,13 @@ import {
 } from "../canvas/operacionesBatch";
 import type { CrearSlice, CarpetasSlice } from "./tipos";
 import {
-  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
+  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, conBaseRevision, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
   pestanaReemplazable,
   deshacerRuntime,
   rehacerRuntime,
+  type GetStore,
 } from "./runtime";
+import { captureSessionEpoch, isSessionEpochCurrent } from "./sessionEpoch";
 
 export type { CarpetasSlice } from "./tipos";
 
@@ -213,6 +215,9 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
   },
 
   async restaurarVersionComoCopia(modeloId, versionId) {
+    const sessionEpoch = captureSessionEpoch();
+    const pestanaOrigenId = get().pestanaActivaId;
+    const snapshotOrigen = exportarModelo(get().modelo);
     const resumen = get().modelosGuardados.find((item) => item.id === modeloId);
     const version = resumen?.versiones?.find((item) => item.id === versionId);
     if (!version) {
@@ -224,6 +229,7 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       return;
     }
     const backend = await cargarVersionBackend(modeloId, versionId);
+    if (!restorationOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) return;
     if (!backend.ok) {
       set({ mensaje: backend.error });
       return;
@@ -247,6 +253,7 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     };
     let guardado: ModeloPersistido;
     const resultado = await guardarModeloBackend(construirModeloPersistido(inputGuardado));
+    if (!restorationOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) return;
     if (!resultado.ok) {
       set({ mensaje: `No se pudo restaurar versión en servidor: ${resultado.error}` });
       return;
@@ -270,29 +277,44 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       indice,
       dialogoVersionesAbierto: null,
       workspaceLocal: workspaceDesdeModelo(modeloCopia, guardado.id, guardado.descripcion, carpetaId),
+      revisionBasePorModelo: conBaseRevision(
+        get().revisionBasePorModelo,
+        guardado.id,
+        guardado.revision,
+      ),
       mensaje: "Versión restaurada como copia",
     }));
   },
 
   eliminarVersionPorId(modeloId, versionId) {
-    const resumen = get().modelosGuardados.find((item) => item.id === modeloId);
-    const versiones = (resumen?.versiones ?? []).filter((version) => version.id !== versionId);
-    const eliminado = eliminarVersionResultado(get().indice, modeloId, versionId);
-    if (!eliminado.ok) {
-      set({ mensaje: eliminado.error.mensaje });
-      return;
-    }
-    const indice = eliminado.value;
     if (!persistenciaBackendHabilitada()) {
       set({ mensaje: "Backend de modelos no disponible" });
       return;
     }
-    void borrarVersionBackend(modeloId, versionId);
-    escribirIndiceWorkspace(indice);
-    set({
-      indice,
-      modelosGuardados: get().modelosGuardados.map((item) => item.id === modeloId ? { ...item, versiones } : item),
-      mensaje: "Versión eliminada",
+    const sessionEpoch = captureSessionEpoch();
+    set({ mensaje: "Eliminando versión en servidor..." });
+    void borrarVersionBackend(modeloId, versionId).then((resultado) => {
+      if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
+      if (!resultado.ok && resultado.error !== "Versión no encontrada") {
+        set({ mensaje: `No se pudo eliminar versión en servidor: ${resultado.error}` });
+        return;
+      }
+      const resumen = get().modelosGuardados.find((item) => item.id === modeloId);
+      const versiones = (resumen?.versiones ?? []).filter((version) => version.id !== versionId);
+      const eliminado = eliminarVersionResultado(get().indice, modeloId, versionId);
+      if (!eliminado.ok) {
+        set({ mensaje: eliminado.error.mensaje });
+        return;
+      }
+      const indice = eliminado.value;
+      escribirIndiceWorkspace(indice);
+      set({
+        indice,
+        modelosGuardados: get().modelosGuardados.map((item) =>
+          item.id === modeloId ? { ...item, versiones } : item
+        ),
+        mensaje: "Versión eliminada",
+      });
     });
   },
 
@@ -400,3 +422,16 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     if (idsHalo.length > 0) get().resaltarTemporalmente(idsHalo, 3000);
   }
 });
+
+function restorationOriginIsCurrent(
+  get: GetStore,
+  sessionEpoch: number,
+  pestanaOrigenId: PestanaId,
+  snapshotOrigen: string,
+): boolean {
+  const estado = get();
+  return isSessionEpochCurrent(sessionEpoch) &&
+    !estado.requiereLogin &&
+    estado.pestanaActivaId === pestanaOrigenId &&
+    exportarModelo(estado.modelo) === snapshotOrigen;
+}

@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { mapaEspeciePorModelo } from "./especieWorkspace";
+import { establecerEspecieCreada, mapaEspeciePorModelo } from "./especieWorkspace";
+import { indiceVacio } from "../persistencia/workspace";
 
 /**
  * `mapaEspeciePorModelo` cruza el índice de workspace (única fuente que hoy
@@ -41,5 +42,29 @@ describe("mapaEspeciePorModelo", () => {
     expect(mapa.get("a")).toBe("apunte");
     expect(mapa.get("b")).toBe("biblioteca");
     expect(mapa.get("c")).toBe("modelo");
+  });
+});
+
+describe("establecerEspecieCreada", () => {
+  test("crea la entrada de un modelo y limpia flags de especie fantasma", () => {
+    const fantasma = {
+      ...indiceVacio(),
+      modelos: [{
+        id: "m1",
+        carpetaId: null,
+        esApunte: true,
+        esBiblioteca: true,
+      }],
+    };
+
+    expect(establecerEspecieCreada(fantasma, "m1", "modelo").modelos).toEqual([{
+      id: "m1",
+      carpetaId: null,
+    }]);
+    expect(establecerEspecieCreada(indiceVacio(), "m2", "apunte").modelos).toEqual([{
+      id: "m2",
+      carpetaId: null,
+      esApunte: true,
+    }]);
   });
 });

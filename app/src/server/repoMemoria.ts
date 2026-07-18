@@ -6,9 +6,17 @@ import type {
   ModelPersistenceRepository,
   PersistenciaSesion,
 } from "./modelPersistence";
+import { evaluarPoliticaCommit, PersistenciaConflictError } from "./modelPersistence";
 import { hashPassword } from "./passwordHash";
 import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/modelos";
-import { indiceVacio, type WorkspaceIndice } from "../persistencia/workspace";
+import {
+  indiceVacio,
+  type WorkspacePersistido,
+} from "../persistencia/workspace";
+import { autosaveTimestampAfter, baseWitnessMatches } from "../mesa/baseWitness";
+import { establecerEspecieCreada } from "../mesa/especieWorkspace";
+import { especieDe } from "../persistencia/especie";
+import { isTimestampAfter } from "../mesa/timestampOrder";
 
 /**
  * Sesión por defecto del repositorio en memoria. Coincide con la que devuelve
@@ -38,7 +46,7 @@ export function crearRepoMemoria(
   sesionInicial: PersistenciaSesion = SESION_MEMORIA_POR_DEFECTO,
 ): ModelPersistenceRepository {
   const datos = new Map(inicial.map((modelo) => [clave(sesionInicial, modelo.id), modelo]));
-  const workspaces = new Map<string, WorkspaceIndice>();
+  const workspaces = new Map<string, WorkspacePersistido>();
   const versiones = new Map<string, BackendVersionPersistida>();
   const autosaves = new Map<string, BackendAutosalvadoPersistido>();
   return {
@@ -53,18 +61,52 @@ export function crearRepoMemoria(
       return datos.get(clave(session, id)) ?? null;
     },
     async save(session, modelo) {
-      datos.set(clave(session, modelo.id), modelo);
-      return modelo;
+      const modelKey = clave(session, modelo.id);
+      const current = datos.get(modelKey);
+      const currentRevision = current?.revision ?? 0;
+      if (current && modelo.revision !== currentRevision) {
+        throw new PersistenciaConflictError();
+      }
+      if (!current && modelo.revision !== undefined) {
+        throw new PersistenciaConflictError("El modelo ya no existe");
+      }
+      const saved = { ...modelo, revision: current ? currentRevision + 1 : 1 };
+      datos.set(modelKey, saved);
+      if (saved.autosalvado === true) {
+        autosaves.set(modelKey, {
+          modeloId: saved.id,
+          creadoEn: autosaveTimestampAfter(saved.actualizadoEn),
+          json: saved.json,
+        });
+      } else if (saved.autosalvado === false) {
+        autosaves.delete(modelKey);
+      }
+      return saved;
     },
     async delete(session, id) {
-      return datos.delete(clave(session, id));
+      const modelKey = clave(session, id);
+      const deleted = datos.delete(modelKey);
+      autosaves.delete(modelKey);
+      for (const key of versiones.keys()) {
+        if (key.startsWith(`${session.tenantId}:${id}:`)) versiones.delete(key);
+      }
+      return deleted;
     },
     async getWorkspace(session) {
-      return workspaces.get(session.tenantId) ?? indiceVacio();
+      return workspaces.get(session.tenantId) ?? null;
     },
-    async saveWorkspace(session, indice) {
-      workspaces.set(session.tenantId, indice);
-      return indice;
+    async saveWorkspace(session, write) {
+      const current = workspaces.get(session.tenantId);
+      const currentRevision = current?.revision ?? 0;
+      if (write.revisionBase !== currentRevision) {
+        throw new PersistenciaConflictError("Workspace desactualizado; recarga antes de guardar");
+      }
+      const saved = {
+        indice: write.indice,
+        revision: currentRevision + 1,
+      };
+      workspaces.set(session.tenantId, saved);
+      return saved;
     },
     async listVersions(session, modeloId) {
       return [...versiones.entries()]
@@ -75,18 +117,116 @@ export function crearRepoMemoria(
       return versiones.get(claveVersion(session, modeloId, versionId)) ?? null;
     },
     async saveVersion(session, version) {
-      versiones.set(claveVersion(session, version.modeloId, version.version.id), version);
+      const versionKey = claveVersion(session, version.modeloId, version.version.id);
+      if (versiones.has(versionKey)) {
+        throw new PersistenciaConflictError("La versión ya existe");
+      }
+      versiones.set(versionKey, version);
       return version;
     },
     async deleteVersion(session, modeloId, versionId) {
       return versiones.delete(claveVersion(session, modeloId, versionId));
     },
+    async commitRevision(session, commit) {
+      const modelKey = clave(session, commit.model.id);
+      const current = datos.get(modelKey) ?? null;
+      const workspace = workspaces.get(session.tenantId) ?? {
+        indice: indiceVacio(),
+        revision: 0,
+      };
+      if (current && workspace.indice.modelos.some((item) =>
+        item.id === current.id && item.esBiblioteca === true
+      )) {
+        throw new PersistenciaConflictError("Destino biblioteca es solo-lectura");
+      }
+      if (commit.base.kind === "new") {
+        if (current) throw new PersistenciaConflictError("El modelo ya existe; ejecuta pull antes de actualizar");
+        if (!commit.speciesOnCreate) throw new PersistenciaConflictError("La creación exige especie");
+        const veredicto = evaluarPoliticaCommit(commit);
+        if (!veredicto.ok) throw new PersistenciaConflictError(veredicto.motivo);
+      } else {
+        const currentRevision = current?.revision ?? 0;
+        const autosave = autosaves.get(modelKey) ?? null;
+        if (!current ||
+          commit.base.witness.modelId !== commit.model.id ||
+          commit.model.revision !== currentRevision ||
+          !baseWitnessMatches(commit.base.witness, {
+            modelId: current.id,
+            saved: {
+              revision: currentRevision,
+              updatedAt: current.actualizadoEn,
+              json: current.json,
+            },
+            autosave: autosave
+              ? { createdAt: autosave.creadoEn, json: autosave.json }
+              : null,
+          })) {
+          throw new PersistenciaConflictError();
+        }
+        const entry = workspace.indice.modelos.find((item) => item.id === current.id);
+        const veredicto = evaluarPoliticaCommit(commit, {
+          savedJson: current.json,
+          autosaveJson: autosave?.json ?? null,
+          species: entry ? especieDe(entry) : "modelo",
+        });
+        if (!veredicto.ok) throw new PersistenciaConflictError(veredicto.motivo);
+      }
+
+      const versionKey = claveVersion(session, commit.model.id, commit.version.id);
+      if (versiones.has(versionKey)) {
+        throw new PersistenciaConflictError("La versión ya existe");
+      }
+      const saved: ModeloPersistido = {
+        ...commit.model,
+        autosalvado: false,
+        revision: current ? (current.revision ?? 0) + 1 : 1,
+      };
+      datos.set(modelKey, saved);
+      autosaves.delete(modelKey);
+      versiones.set(versionKey, {
+        modeloId: saved.id,
+        version: commit.version,
+        json: saved.json,
+      });
+      if (!current && commit.speciesOnCreate) {
+        workspaces.set(
+          session.tenantId,
+          {
+            indice: establecerEspecieCreada(
+              workspace.indice,
+              saved.id,
+              commit.speciesOnCreate,
+            ),
+            revision: workspace.revision + 1,
+          },
+        );
+      }
+      return { model: saved, version: commit.version };
+    },
     async getAutosave(session, modeloId) {
       return autosaves.get(clave(session, modeloId)) ?? null;
     },
     async saveAutosave(session, autosave) {
-      autosaves.set(clave(session, autosave.modeloId), autosave);
-      return autosave;
+      const modelKey = clave(session, autosave.modeloId);
+      const current = datos.get(modelKey);
+      if (!current || current.revision !== autosave.revisionBase) {
+        throw new PersistenciaConflictError();
+      }
+      const { revisionBase: _revisionBase, ...input } = autosave;
+      const existingAutosave = autosaves.get(modelKey);
+      if (existingAutosave &&
+        !isTimestampAfter(input.creadoEn, existingAutosave.creadoEn)) {
+        throw new PersistenciaConflictError("El autosalvado es anterior al ya persistido");
+      }
+      const persisted = {
+        ...input,
+        creadoEn: isTimestampAfter(input.creadoEn, current.actualizadoEn)
+          ? input.creadoEn
+          : autosaveTimestampAfter(current.actualizadoEn),
+      };
+      autosaves.set(clave(session, autosave.modeloId), persisted);
+      datos.set(modelKey, { ...current, autosalvado: true });
+      return persisted;
     },
     async health() {
       return true;

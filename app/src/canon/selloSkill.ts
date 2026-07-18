@@ -103,18 +103,15 @@ export function evaluarCordonSkill(
  */
 export const CORDON_SKILL_NOMBRE = "modelamiento-opm";
 
-// v1.13.0 (auditoria integral skill↔mesa↔SSOT, 2026-07-09): la skill aprende el puente
-// directo mesa↔skill — §Puente directo (CLI `mesa modelos|pull|push`, token Bearer,
-// pull = contexto W6.0 por ley de determinismo, push con veredicto de disciplina:
-// import duro / biblioteca solo-lectura / carril por procedencia / base ratificada /
-// clausura sin-delta / 409 re-pull) + Regla Dura #29 (no-clobber) + capacidades
-// (todo-nace-apunte, Taller en UI, gestor «Modelos» dos zonas, vitrina de revision)
-// + handoff con push directo primario. W6.0 copy/paste queda como fallback. El
+// v2.0.1 (guardas estructurales y graduación, 2026-07-18): conserva el puente directo
+// mesa↔skill de v1.13.0 y precisa que la integridad OPM no se relaja en apunte/bosquejo,
+// que graduar no exige cerrar observaciones y que el nombre/folder/sello siguen sus
+// contratos canónicos. W6.0 copy/paste queda como fallback. El
 // `hash-fuente` testifica el ARTEFACTO FUENTE en pneuma (sha256 de
 // `artefactos/skills/kora/modelamiento-opm/SKILL.md`), re-emitido con
 // `kora.py transmutar` a claude-code/codex/opencode (3 sellos identicos, paridad fiel).
 export const CORDON_SKILL_ESPERADO: EsperadoCordon = {
-  version: "1.13.0",
-  hashFuente: "sha256:78b34228619eb13be9feea08637d0d57abc4760d45b50a65ab608b135aca7637",
+  version: "2.0.1",
+  hashFuente: "sha256:fac6fb1bac239c323682eb3d2dff9d4f69d04391cc71781617294fd8bb73fc88",
   target: "claude-code",
 };

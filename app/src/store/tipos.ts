@@ -366,6 +366,8 @@ export interface OpmStore {
   modalDuracionAbierto: Id | null;
   // ── Carpetas (L4) ──
   indice: WorkspaceIndice;
+  /** Revisión CAS del snapshot de workspace observado en esta sesión. */
+  workspaceRevision: number | null;
   carpetaActualId: Id | null;
   modelosRecientes: ResumenModeloPersistido[];
   // ── Búsqueda intra-modelo (L4) ──
@@ -783,7 +785,7 @@ export interface OpmStore {
   archivarCarpetaPorId: (carpetaId: Id) => void;
   restaurarCarpetaPorId: (carpetaId: Id) => void;
   guardarConVersion: () => Promise<void>;
-  crearVersionAhora: (opts?: { nombre?: string; descripcion?: string }) => Promise<void>;
+  crearVersionAhora: (opts?: { nombre?: string; descripcion?: string }) => Promise<boolean>;
   abrirDialogoVersiones: (modeloId: Id) => void;
   cerrarDialogoVersiones: () => void;
   restaurarVersionComoCopia: (modeloId: Id, versionId: Id) => Promise<void>;

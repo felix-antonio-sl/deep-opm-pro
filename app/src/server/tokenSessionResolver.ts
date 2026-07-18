@@ -5,8 +5,9 @@ import type { PersistenciaSesion, PersistenciaSessionResolver } from "./modelPer
 /**
  * Resolver de sesión por token de agente (Bearer). Producto del corte
  * «puente directo mesa↔skill» (A′-motor). Encadenado ANTES del resolver de
- * cookies: si el token autentica, la skill actúa como el operador; si no,
- * la cadena cae al comportamiento de navegador intacto.
+ * cookies: si el token autentica, la skill recibe una sesión `agent` que el
+ * handler confina a lectura + commit atómico; si no, la cadena cae al
+ * comportamiento de navegador intacto.
  */
 export function crearTokenSessionResolver(opts: {
   token: string;
@@ -23,7 +24,12 @@ export function crearTokenSessionResolver(opts: {
         // timingSafeEqual exige longitudes iguales; el guard evita su throw
         // y a la vez no filtra la longitud por tiempo (rechazo inmediato).
         if (presentado.length === esperado.length && timingSafeEqual(presentado, esperado)) {
-          return { tenantId: opts.tenantId, userId: opts.userId, auth: true };
+          return {
+            tenantId: opts.tenantId,
+            userId: opts.userId,
+            auth: true,
+            authKind: "agent",
+          };
         }
       }
       // Sin auth: la cadena decide (el siguiente resolver o el 401 del gate).

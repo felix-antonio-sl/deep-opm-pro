@@ -7,20 +7,26 @@ import { exportarModelo, hidratarModelo } from "../serializacion/json";
  * seguido de un push no debe crear revisión ni versión, o cada ciclo
  * pull→push infla la historia sin motivo.
  *
- * QUÉ COMPARA (oráculo CONSERVADOR, todo lo persistido): se hidrata ambos
+ * QUÉ COMPARA (oráculo CONSERVADOR, todo el contenido de `Modelo`): se hidrata ambos
  * lados (`hidratarModelo`) y se compara su forma CANÓNICA re-exportada
  * (`exportarModelo`) — string a string. `exportarModelo` es determinista
  * (mismo `Modelo` ⇒ mismo string, sin importar formato/espaciado de bytes de
- * la entrada) e incluye TODO lo persistido: el grafo OPM
+ * la entrada) e incluye todo lo persistido dentro del modelo: el grafo OPM
  * (entidades/estados/enlaces/opds/abanicos), el layout/apariencias, Y el
  * contenido "meta" de mesa — `notasMesa`, `anclasNormativas`, `procedencia`,
  * `descripcion`, `estereotipos`, `ontologia`, `satisfaccionesRequisito`,
  * `archivado*`, `versiones`. Por eso un round-trip de persistencia (mismo
  * contenido, bytes distintos: reindentado/recompactado) sigue dando `true`,
- * pero CUALQUIER campo persistido que difiera da `false` — incluido un
+ * pero cualquier campo del `Modelo` que difiera da `false` — incluido un
  * re-layout puro (mover una apariencia SÍ cuenta como delta ahora: es el
  * precio correcto de nunca tragarse silenciosamente una edición real; no
  * intentar ser astuto ignorando layout).
+ *
+ * EXCLUSIÓN DELIBERADA: `DocumentoModelo.carpetaId` no pertenece a `Modelo`.
+ * Su autoridad viva es el índice/record del workspace y el Bearer del agente
+ * no puede mutarlo. Una diferencia solo de carpeta no es un delta de este
+ * puente; tratarla como tal crearía una revisión sin efectuar el movimiento y
+ * podría dejar JSON y workspace en desacuerdo.
  *
  * POR QUÉ NO `firmaSnapshotSubmodelo` (el hash semántico del Centinela) — BUG
  * REAL hallado en revisión y corregido aquí: esa firma

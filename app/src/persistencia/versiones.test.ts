@@ -68,7 +68,7 @@ describe("versiones manuales backend-only", () => {
     expect(actualizado.value.modelos[0]?.versiones).toEqual([]);
   });
 
-  test("aplica política log-scale y máximo absoluto 10", () => {
+  test("aplica política log-scale y máximo 10 cuando no hay versiones preservadas", () => {
     const base = new Date("2026-05-06T12:00:00.000Z");
     const versiones = Array.from({ length: 100 }, (_, index) => ({
       id: `v-${index}`,
@@ -83,6 +83,85 @@ describe("versiones manuales backend-only", () => {
     expect(retenidas.length).toBeLessThanOrEqual(10);
     expect(retenidas[0]?.id).toBe("v-0");
     expect(idsVersionesPodadas(versiones, retenidas).length).toBe(90);
+  });
+
+  test("protege el hito recién insertado aunque su timestamp caiga fuera del bucket", () => {
+    const ahora = new Date("2026-07-17T12:00:00.000Z");
+    const futuras = Array.from({ length: 10 }, (_, index) => ({
+      id: `future-${index}`,
+      creadoEn: `2027-01-01T00:00:${String(index).padStart(2, "0")}.000Z`,
+      nombre: `future-${index}`,
+      modeloPayloadKey: `future-${index}`,
+      bytes: 1,
+    }));
+    const hito = {
+      id: "hito-commit",
+      creadoEn: ahora.toISOString(),
+      nombre: "hito",
+      modeloPayloadKey: "hito-commit",
+      bytes: 1,
+    };
+
+    const retenidas = aplicarPoliticaLogScaleVersiones(
+      [...futuras, hito],
+      ahora,
+      10,
+      hito.id,
+    );
+
+    expect(retenidas).toHaveLength(10);
+    expect(retenidas.some((version) => version.id === hito.id)).toBe(true);
+  });
+
+  test("maxTotal=1 conserva toda versión preservar=true y también el hito protegido", () => {
+    const ahora = new Date("2026-07-18T12:00:00.000Z");
+    const preservadaA = {
+      id: "preservada-a",
+      creadoEn: "2026-07-18T11:00:00.000Z",
+      nombre: "preservada A",
+      preservar: true,
+      modeloPayloadKey: "preservada-a",
+      bytes: 1,
+    };
+    const preservadaB = {
+      id: "preservada-b",
+      creadoEn: "2026-07-18T11:30:00.000Z",
+      nombre: "preservada B",
+      preservar: true,
+      modeloPayloadKey: "preservada-b",
+      bytes: 1,
+    };
+    const protegida = {
+      id: "hito-commit",
+      creadoEn: "2026-07-18T09:00:00.000Z",
+      nombre: "hito",
+      modeloPayloadKey: "hito-commit",
+      bytes: 1,
+    };
+    const descartable = {
+      id: "descartable",
+      creadoEn: "2026-07-18T10:00:00.000Z",
+      nombre: "descartable",
+      modeloPayloadKey: "descartable",
+      bytes: 1,
+    };
+
+    const retenidas = aplicarPoliticaLogScaleVersiones(
+      [preservadaA, preservadaB, protegida, descartable],
+      ahora,
+      1,
+      protegida.id,
+    );
+
+    expect(retenidas.map((version) => version.id).sort()).toEqual([
+      "hito-commit",
+      "preservada-a",
+      "preservada-b",
+    ]);
+    expect(idsVersionesPodadas(
+      [preservadaA, preservadaB, protegida, descartable],
+      retenidas,
+    )).toEqual(["descartable"]);
   });
 
   test("filtrarVersionesVisibles respeta toggle", () => {

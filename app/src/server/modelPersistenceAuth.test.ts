@@ -6,6 +6,10 @@ import {
   crearModelPersistenceFetchHandler,
 } from "./modelPersistence";
 import { crearAuthRepoMemoria, crearRepoMemoria } from "./repoMemoria";
+import {
+  encodeSessionIdentity,
+  SESSION_IDENTITY_HEADER,
+} from "../persistencia/sessionIdentity";
 
 // Auth v1 (spec §2-§3): login/logout + gate requireAuth sobre el handler
 // compartido. Sin `auth` en options el handler es BYTE-equivalente al actual
@@ -117,10 +121,60 @@ describe("auth v1 — login/logout y gate requireAuth", () => {
 
     const guardar = await handler(new Request(`${BASE}/__deep-opm/modelos`, {
       method: "POST",
-      headers: { "content-type": "application/json", cookie },
+      headers: {
+        "content-type": "application/json",
+        cookie,
+        [SESSION_IDENTITY_HEADER]: encodeSessionIdentity({
+          tenantId: "tenant-felix",
+          userId: "user-felix",
+        }),
+      },
       body: JSON.stringify({ modelo: { id: "m-1", nombre: "M", creadoEn: "2026-06-10", actualizadoEn: "2026-06-10", json: "{}" } }),
     }));
     expect(guardar.status).toBe(200);
+  });
+
+  test("rechaza antes de leer o escribir cuando la cookie no coincide con la sesión observada", async () => {
+    const repo = crearRepoMemoria();
+    const handler = crearModelPersistenceFetchHandler({
+      repo,
+      sessionResolver: crearCookieSessionResolver(SECRET),
+      auth: {
+        repo: crearAuthRepoMemoria([
+          { email: "felix@opforja.local", password: "clave-correcta", tenantId: "tenant-felix", userId: "user-felix" },
+        ]),
+        secret: SECRET,
+        requireAuth: true,
+      },
+    });
+    const cookie = cookieDe(await login(handler, "felix@opforja.local", "clave-correcta"));
+    const response = await handler(new Request(`${BASE}/__deep-opm/modelos`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie,
+        [SESSION_IDENTITY_HEADER]: encodeSessionIdentity({
+          tenantId: "otro-tenant",
+          userId: "otro-user",
+        }),
+      },
+      body: JSON.stringify({
+        modelo: {
+          id: "m-no-debe-guardarse",
+          nombre: "M",
+          creadoEn: "2026-07-18T00:00:00.000Z",
+          actualizadoEn: "2026-07-18T00:00:00.000Z",
+          json: "{}",
+        },
+      }),
+    }));
+
+    expect(response.status).toBe(401);
+    expect((await response.json()).error).toContain("identidad de sesión cambió");
+    expect(await repo.get(
+      { tenantId: "tenant-felix", userId: "user-felix" },
+      "m-no-debe-guardarse",
+    )).toBeNull();
   });
 
   test("logout expira la cookie y el gate vuelve a 401", async () => {

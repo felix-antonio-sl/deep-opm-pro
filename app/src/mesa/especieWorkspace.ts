@@ -1,4 +1,9 @@
 import { especieDe, type Especie } from "../persistencia/especie";
+import {
+  marcarApunte,
+  marcarBiblioteca,
+  type WorkspaceIndice,
+} from "../persistencia/workspace";
 
 /**
  * Cruza el índice de workspace (`GET /__deep-opm/workspace` →
@@ -21,4 +26,20 @@ export function mapaEspeciePorModelo(
     mapa.set(modelo.id, especieDe(modelo));
   }
   return mapa;
+}
+
+/** Registra una especie mutable y limpia flags fantasma incompatibles. */
+export function establecerEspecieCreada(
+  indice: WorkspaceIndice,
+  modeloId: string,
+  especie: Exclude<Especie, "biblioteca">,
+): WorkspaceIndice {
+  const conEntrada = indice.modelos.some((modelo) => modelo.id === modeloId)
+    ? indice
+    : {
+        ...indice,
+        modelos: [...indice.modelos, { id: modeloId, carpetaId: null }],
+      };
+  if (especie === "apunte") return marcarApunte(conEntrada, modeloId, true);
+  return marcarBiblioteca(marcarApunte(conEntrada, modeloId, false), modeloId, false);
 }

@@ -83,6 +83,21 @@ describe("componerConModeloGuardado — UX del Piso 1", () => {
     expect(store.getState().mensaje).toBe("Modelo no encontrado en servidor");
   });
 
+  test("un error tardío no sobrescribe otra pestaña activa", async () => {
+    const respuesta = respuestaDiferida();
+    globalThis.fetch = (() => respuesta.promise) as unknown as typeof fetch;
+
+    store.getState().componerConModeloGuardado({ modeloId: "tardio", compartidas: {} });
+    store.getState().abrirPestanaNueva();
+    store.setState({ mensaje: "Estado de la pestaña vigente" });
+    respuesta.resolve(jsonResponse({ error: "Modelo no encontrado en servidor" }, 404));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(store.getState().mensaje).toBe("Estado de la pestaña vigente");
+    expect(store.getState().modelo.nombre).toBe("Modelo");
+  });
+
   test("advierte cuando la composición crea un conflicto de recurso lineal", async () => {
     // Objeto lineal "Bateria" consumido en A y en B; al fusionarlo quedan DOS
     // consumidores del mismo recurso lineal -> estado inválido. La capacidad
@@ -152,9 +167,21 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+function respuestaDiferida(): {
+  promise: Promise<Response>;
+  resolve(response: Response): void;
+} {
+  let resolver = (_response: Response) => {};
+  const promise = new Promise<Response>((resolve) => {
+    resolver = resolve;
+  });
+  return { promise, resolve: resolver };
+}
+
 async function esperar(condicion: () => boolean): Promise<void> {
   for (let intento = 0; intento < 30; intento += 1) {
     if (condicion()) return;
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
+  throw new Error("La condición esperada no se cumplió");
 }

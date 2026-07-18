@@ -188,12 +188,14 @@ import {
   rehacerRuntime,
   type GetStore,
 } from "./runtime";
+import { captureSessionEpoch, isSessionEpochCurrent } from "./sessionEpoch";
 export const indiceInicial = leerIndiceWorkspace();
 
 export type { WorkspaceModSlice } from "./tipos";
 
 export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get) => ({
   indice: indiceInicial,
+  workspaceRevision: null,
   carpetaActualId: null,
   modelosRecientes: [],
   dialogoGraduarModeloId: null,
@@ -464,25 +466,33 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
   },
 
   async guardarConVersion() {
-    await get().crearVersionAhora({ descripcion: "Versión manual" });
+    const sessionEpoch = captureSessionEpoch();
+    const pestanaOrigenId = get().pestanaActivaId;
+    const modeloPersistidoId = get().modeloPersistidoId;
+    const versionCreated = await get().crearVersionAhora({ descripcion: "Versión manual" });
+    if (!versionOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, modeloPersistidoId)) return;
+    if (!versionCreated) return;
     get().guardarLocal();
   },
 
   async crearVersionAhora(opts) {
     const { modelo, modeloPersistidoId } = get();
+    const sessionEpoch = captureSessionEpoch();
+    const pestanaOrigenId = get().pestanaActivaId;
     if (!modeloPersistidoId) {
       set({ mensaje: "Guarda el modelo antes de versionarlo" });
-      return;
+      return false;
     }
     if (!persistenciaBackendHabilitada()) {
       set({ mensaje: "Backend de modelos no disponible" });
-      return;
+      return false;
     }
     const persistible = construirVersionPersistible(modelo, opts);
     const guardada = await guardarVersionBackend(modeloPersistidoId, persistible.version, persistible.json);
+    if (!versionOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, modeloPersistidoId)) return false;
     if (!guardada.ok) {
       set({ mensaje: `No se pudo guardar versión en servidor: ${guardada.error}` });
-      return;
+      return false;
     }
     const versionResumen = guardada.value.version;
     try {
@@ -502,12 +512,27 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
         ),
         mensaje: "Versión creada",
       });
+      return true;
     } catch (error) {
       set({ mensaje: error instanceof Error ? error.message : "No se pudo crear versión" });
+      return false;
     }
   }
 });
 
 function modelosGuardadosWorkspace(get: GetStore) {
   return persistenciaBackendHabilitada() ? get().modelosGuardados : listarModelosGuardadosSeguro();
+}
+
+function versionOriginIsCurrent(
+  get: GetStore,
+  sessionEpoch: number,
+  pestanaOrigenId: string,
+  modeloPersistidoId: string | null,
+): boolean {
+  const estado = get();
+  return isSessionEpochCurrent(sessionEpoch) &&
+    !estado.requiereLogin &&
+    estado.pestanaActivaId === pestanaOrigenId &&
+    estado.modeloPersistidoId === modeloPersistidoId;
 }

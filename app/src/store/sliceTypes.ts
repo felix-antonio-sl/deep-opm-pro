@@ -69,6 +69,7 @@ export type EnlacesSlice = Slice<
 
 export type WorkspaceModSlice = Slice<
   | "indice"
+  | "workspaceRevision"
   | "carpetaActualId"
   | "modelosRecientes"
   | "crearCarpetaEnActual"

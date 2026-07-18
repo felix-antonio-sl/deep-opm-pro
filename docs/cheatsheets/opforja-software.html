@@ -150,8 +150,9 @@
         <li>decisiones, alcance y no-objetivos;</li>
         <li>tests, gate y decisiones que debe elevar.</li>
       </ul>
-      <p><code>cd app &amp;&amp; bun run mesa pull &lt;modelo&gt;</code> aporta contexto del modelo; <code>AGENTS.md</code>/<code>CLAUDE.md</code> gobiernan el repo.</p>
-      <p>Haz pull inmediatamente antes del push. Cada <code>mesa push</code> sigue siendo propuesta hasta que el dueño humano confirma el delta y su OPL; el 409 no liga el bundle a un pull anterior.</p>
+      <p>El puente aporta contexto y un <code>Testigo-Base</code>; <code>AGENTS.md</code>/<code>CLAUDE.md</code> gobiernan el repo. Conserva ese testigo con el bundle. El servidor compatible comprueba guardado y autosave, aplica modelo + versión + consolidación en una transacción y rechaza índices de workspace con revisión obsoleta.</p>
+      <p>Cada push sigue siendo propuesta hasta que el dueño humano confirma el delta y su OPL. La receta de actualización, creación y fallback vive únicamente en la hoja <a href="opforja-skill-flujo.html">flujo skill↔mesa</a>.</p>
+      <p><strong>Estado de despliegue:</strong> hasta comprobar un backend productivo compatible, una respuesta <code>404/405/501</code> aborta sin escribir y el relevo usa W6.0 por portapapeles.</p>
     </section>
 
     <section class="card key">

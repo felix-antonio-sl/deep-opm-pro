@@ -28,6 +28,7 @@ function gistMutado(): string {
 }
 
 interface ModeloApi { id: string; nombre: string; descripcion: string; creadoEn: string; actualizadoEn: string; json: string; revision: number }
+type ModeloWrite = Omit<ModeloApi, "revision"> & { revision?: number };
 interface Backend { mutarBiblioteca(json: string): void }
 
 function instalarBackend(page: Page): Backend {
@@ -37,24 +38,51 @@ function instalarBackend(page: Page): Backend {
   let workspace: { modelos: unknown[]; carpetas: unknown[]; recientes: unknown[] } = {
     modelos: [{ id: LIB_ID, carpetaId: null, esBiblioteca: true }], carpetas: [], recientes: [],
   };
+  let workspaceRevision = 1;
   const session = { tenantId: "tenant-amarra-puerta", userId: "user-amarra-puerta" };
 
   void page.route("**/__deep-opm/session", (route) => route.fulfill({ json: { session } }));
   void page.route("**/__deep-opm/workspace", async (route) => {
-    if (route.request().method() === "GET") { await route.fulfill({ json: { indice: workspace } }); return; }
-    const body = JSON.parse(route.request().postData() ?? "{}") as { indice?: typeof workspace };
+    if (route.request().method() === "GET") {
+      await route.fulfill({ json: { indice: workspace, revision: workspaceRevision } });
+      return;
+    }
+    const body = JSON.parse(route.request().postData() ?? "{}") as {
+      indice?: typeof workspace;
+      revisionBase?: number;
+    };
+    if (body.revisionBase !== workspaceRevision) {
+      await route.fulfill({
+        status: 409,
+        json: { error: "Workspace desactualizado; recarga antes de guardar" },
+      });
+      return;
+    }
     workspace = body.indice ?? workspace;
-    await route.fulfill({ json: { indice: workspace } });
+    workspaceRevision += 1;
+    await route.fulfill({ json: { indice: workspace, revision: workspaceRevision } });
   });
   void page.route("**/__deep-opm/modelos**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname !== "/__deep-opm/modelos") { await route.fallback(); return; }
     if (route.request().method() === "GET") { await route.fulfill({ json: { modelos: [...modelos.values()] } }); return; }
-    const body = JSON.parse(route.request().postData() ?? "{}") as { modelo?: ModeloApi };
+    const body = JSON.parse(route.request().postData() ?? "{}") as { modelo?: ModeloWrite };
     const incoming = body.modelo;
     if (!incoming) { await route.fulfill({ status: 400, json: { error: "Modelo persistido inválido" } }); return; }
     const actual = modelos.get(incoming.id);
-    modelos.set(incoming.id, { ...incoming, revision: actual ? actual.revision + 1 : 1, actualizadoEn: ahora() });
+    if ((actual && incoming.revision !== actual.revision) ||
+      (!actual && incoming.revision !== undefined)) {
+      await route.fulfill({
+        status: 409,
+        json: { error: "Modelo desactualizado; recarga antes de guardar" },
+      });
+      return;
+    }
+    modelos.set(incoming.id, {
+      ...incoming,
+      revision: actual ? actual.revision + 1 : 1,
+      actualizadoEn: ahora(),
+    });
     await route.fulfill({ json: { modelo: modelos.get(incoming.id) } });
   });
   void page.route("**/__deep-opm/modelos/*", async (route) => {
@@ -113,8 +141,17 @@ test.describe("AMARRA — la PUERTA con gist REAL, anclando por el gesto", () =>
       m.store.getState().listarModelosGuardados();
     }, RUTA_STORE);
     await expect.poll(async () => page.evaluate(async ({ ruta, libId }) => {
-      const m = await import(ruta) as { store: { getState: () => { indice: { modelos: { id: string; esBiblioteca?: boolean }[] } } } };
-      return m.store.getState().indice.modelos.some((x) => x.id === libId && x.esBiblioteca === true);
+      const m = await import(ruta) as {
+        store: {
+          getState: () => {
+            indice: { modelos: { id: string; esBiblioteca?: boolean }[] };
+            workspaceRevision: number | null;
+          };
+        };
+      };
+      const state = m.store.getState();
+      return state.workspaceRevision === 1 &&
+        state.indice.modelos.some((x) => x.id === libId && x.esBiblioteca === true);
     }, { ruta: RUTA_STORE, libId: LIB_ID })).toBe(true);
 
     // Anclar «Asignación» (pieza real de gist) POR EL GESTO.

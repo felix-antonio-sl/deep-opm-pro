@@ -2,16 +2,35 @@ import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { HASH_SENUELO, verifyPassword } from "./passwordHash";
 import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/modelos";
-import type { WorkspaceIndice } from "../persistencia/workspace";
+import type { Especie } from "../persistencia/especie";
+import type {
+  WorkspaceIndice,
+  WorkspacePersistido,
+  WorkspaceWrite,
+} from "../persistencia/workspace";
 import { indiceVacio } from "../persistencia/workspace";
+import {
+  encodeSessionIdentity,
+  SESSION_IDENTITY_HEADER,
+} from "../persistencia/sessionIdentity";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../persistencia/workspaceStorage";
 import type { VersionResumen } from "../modelo/tipos";
+import { normalizeBaseWitness, type MesaBaseWitnessV1 } from "../mesa/baseWitness";
+import { isValidTimestamp } from "../mesa/timestampOrder";
+import {
+  bundleTieneSello,
+  evaluarPush,
+  type VeredictoPush,
+} from "../mesa/validarPush";
+import { esSinDelta } from "../mesa/esSinDelta";
 
 export interface PersistenciaSesion {
   tenantId: string;
   userId: string;
-  /** true ⇔ la cookie nació de un login (auth v1). Las anónimas no lo portan. */
+  /** Identidad autenticada por cookie de login o Bearer; las anónimas no lo portan. */
   auth?: boolean;
+  /** Distingue el navegador del carril Bearer para aplicar mínimo privilegio. */
+  authKind?: "operator" | "agent";
   setCookie?: string;
 }
 
@@ -54,20 +73,80 @@ export interface BackendAutosalvadoPersistido {
   json: string;
 }
 
+export interface BackendAutosaveWrite extends BackendAutosalvadoPersistido {
+  revisionBase: number;
+}
+
+export type ModelRevisionBase =
+  | { kind: "new" }
+  | { kind: "existing"; witness: MesaBaseWitnessV1 };
+
+export interface ModelRevisionCommit {
+  model: ModeloPersistido;
+  version: VersionResumen;
+  base: ModelRevisionBase;
+  speciesOnCreate?: Exclude<Especie, "biblioteca">;
+  confirmedByOperator?: boolean;
+}
+
+export interface CommittedModelRevision {
+  model: ModeloPersistido;
+  version: VersionResumen;
+}
+
+export function evaluarPoliticaCommit(
+  commit: ModelRevisionCommit,
+  destination?: {
+    savedJson: string;
+    autosaveJson: string | null;
+    species: Especie;
+  },
+): VeredictoPush {
+  const veredicto = evaluarPush({
+    bundleJson: commit.model.json,
+    ...(destination
+      ? {
+          destino: {
+            tieneSello: bundleTieneSello(destination.savedJson) ||
+              Boolean(destination.autosaveJson && bundleTieneSello(destination.autosaveJson)),
+            especie: destination.species,
+          },
+        }
+      : {}),
+    baseFueAutosave: commit.base.kind === "existing" &&
+      commit.base.witness.source === "autosave",
+    confirmadoPorOperador: commit.confirmedByOperator === true,
+    ...(!destination && commit.speciesOnCreate
+      ? { especieAlCrear: commit.speciesOnCreate }
+      : {}),
+  });
+  if (!veredicto.ok || !destination || commit.base.kind !== "existing") {
+    return veredicto;
+  }
+  const selectedJson = commit.base.witness.source === "autosave"
+    ? destination.autosaveJson
+    : destination.savedJson;
+  if (selectedJson !== null && esSinDelta(commit.model.json, selectedJson)) {
+    return { ok: false, motivo: "sin cambios: no se crea revisión" };
+  }
+  return veredicto;
+}
+
 export interface ModelPersistenceRepository {
   touchSession?(session: PersistenciaSesion): Promise<void>;
   list(session: PersistenciaSesion, includePayload?: boolean): Promise<Array<ModeloPersistido | ResumenModeloPersistido>>;
   get(session: PersistenciaSesion, id: string): Promise<ModeloPersistido | null>;
   save(session: PersistenciaSesion, modelo: ModeloPersistido): Promise<ModeloPersistido>;
   delete(session: PersistenciaSesion, id: string): Promise<boolean>;
-  getWorkspace?(session: PersistenciaSesion): Promise<WorkspaceIndice | null>;
-  saveWorkspace?(session: PersistenciaSesion, indice: WorkspaceIndice): Promise<WorkspaceIndice>;
+  getWorkspace?(session: PersistenciaSesion): Promise<WorkspacePersistido | null>;
+  saveWorkspace?(session: PersistenciaSesion, write: WorkspaceWrite): Promise<WorkspacePersistido>;
   listVersions?(session: PersistenciaSesion, modeloId: string): Promise<VersionResumen[]>;
   getVersion?(session: PersistenciaSesion, modeloId: string, versionId: string): Promise<BackendVersionPersistida | null>;
   saveVersion?(session: PersistenciaSesion, version: BackendVersionPersistida): Promise<BackendVersionPersistida>;
   deleteVersion?(session: PersistenciaSesion, modeloId: string, versionId: string): Promise<boolean>;
+  commitRevision?(session: PersistenciaSesion, commit: ModelRevisionCommit): Promise<CommittedModelRevision>;
   getAutosave?(session: PersistenciaSesion, modeloId: string): Promise<BackendAutosalvadoPersistido | null>;
-  saveAutosave?(session: PersistenciaSesion, autosave: BackendAutosalvadoPersistido): Promise<BackendAutosalvadoPersistido>;
+  saveAutosave?(session: PersistenciaSesion, autosave: BackendAutosaveWrite): Promise<BackendAutosalvadoPersistido>;
   health?(): Promise<boolean>;
 }
 
@@ -142,6 +221,18 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
       // tenants anónimos (spec D3/§2). Las cookies anónimas viejas caen aquí.
       return responderJson(401, { error: "No autenticado" });
     }
+    if (session.authKind === "agent" && !rutaPermitidaParaAgente(request, url)) {
+      return responderJson(403, {
+        error: "El token de agente solo permite lectura y commit atómico de revisiones",
+      }, session);
+    }
+    if (session.authKind === "operator" &&
+      url.pathname !== SESSION_ENDPOINT &&
+      request.headers.get(SESSION_IDENTITY_HEADER) !== encodeSessionIdentity(session)) {
+      return responderJson(401, {
+        error: "La identidad de sesión cambió; vuelva a iniciar sesión",
+      });
+    }
     try {
       if (options.repo.touchSession) await options.repo.touchSession(session);
 
@@ -150,16 +241,16 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
       }
 
       if (request.method === "GET" && url.pathname === WORKSPACE_ENDPOINT) {
-        const indice = options.repo.getWorkspace ? await options.repo.getWorkspace(session) : null;
-        return responderJson(200, { indice: indice ?? indiceVacio() }, session);
+        const workspace = options.repo.getWorkspace ? await options.repo.getWorkspace(session) : null;
+        return responderJson(200, workspace ?? { indice: indiceVacio(), revision: 0 }, session);
       }
 
       if ((request.method === "POST" || request.method === "PUT") && url.pathname === WORKSPACE_ENDPOINT) {
         if (!options.repo.saveWorkspace) return responderJson(501, { error: "Workspace backend no disponible" }, session);
         const payload = await leerJsonRequest(request, maxBodyBytes);
-        const indice = validarWorkspaceIndice(payload);
-        const guardado = await options.repo.saveWorkspace(session, indice);
-        return responderJson(200, { indice: guardado }, session);
+        const write = validateWorkspaceWrite(payload);
+        const guardado = await options.repo.saveWorkspace(session, write);
+        return responderJson(200, guardado, session);
       }
 
       if (request.method === "GET" && url.pathname === ENDPOINT) {
@@ -170,6 +261,16 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
 
       const partes = partesRutaModelo(url.pathname);
       const id = partes[0] ?? "";
+
+      if (id && partes[1] === "revisiones" && partes.length === 2 && request.method === "POST") {
+        if (!options.repo.commitRevision) {
+          return responderJson(501, { error: "Commit de revisión no disponible" }, session);
+        }
+        const payload = await leerJsonRequest(request, maxBodyBytes);
+        const commit = validateModelRevisionCommit(id, payload);
+        const committed = await options.repo.commitRevision(session, commit);
+        return responderJson(200, committed, session);
+      }
 
       if (id && partes[1] === "versiones") {
         const versionId = partes[2] ?? "";
@@ -285,14 +386,21 @@ function partesRutaModelo(pathname: string): string[] {
     .map((parte) => decodeURIComponent(parte).trim());
 }
 
+function rutaPermitidaParaAgente(request: Request, url: URL): boolean {
+  if (request.method === "GET") return true;
+  if (request.method !== "POST") return false;
+  const partes = partesRutaModelo(url.pathname);
+  return Boolean(partes[0] && partes.length === 2 && partes[1] === "revisiones");
+}
+
 function validarModeloPersistido(input: unknown): ModeloPersistido {
   if (!esRecord(input)) throw new Error("Modelo persistido invalido");
   const record = esRecord(input.modelo) ? input.modelo : input;
   if (!esRecord(record)) throw new Error("Modelo persistido invalido");
   if (typeof record.id !== "string" || !record.id.trim()) throw new Error("Modelo persistido invalido: id");
   if (typeof record.nombre !== "string" || !record.nombre.trim()) throw new Error("Modelo persistido invalido: nombre");
-  if (typeof record.creadoEn !== "string") throw new Error("Modelo persistido invalido: creadoEn");
-  if (typeof record.actualizadoEn !== "string") throw new Error("Modelo persistido invalido: actualizadoEn");
+  if (!isValidTimestamp(record.creadoEn)) throw new Error("Modelo persistido invalido: creadoEn");
+  if (!isValidTimestamp(record.actualizadoEn)) throw new Error("Modelo persistido invalido: actualizadoEn");
   if (typeof record.json !== "string" || !record.json.trim()) throw new Error("Modelo persistido invalido: json");
   try {
     JSON.parse(record.json);
@@ -340,6 +448,19 @@ function validarWorkspaceIndice(input: unknown): WorkspaceIndice {
   };
 }
 
+function validateWorkspaceWrite(input: unknown): WorkspaceWrite {
+  if (!esRecord(input) ||
+    typeof input.revisionBase !== "number" ||
+    !Number.isInteger(input.revisionBase) ||
+    input.revisionBase < 0) {
+    throw new Error("Workspace persistido invalido: revisionBase");
+  }
+  return {
+    indice: validarWorkspaceIndice(input),
+    revisionBase: input.revisionBase,
+  };
+}
+
 function validarVersionPersistida(modeloId: string, input: unknown): BackendVersionPersistida {
   if (!esRecord(input)) throw new Error("Version persistida invalida");
   const version = esRecord(input.version) ? input.version : null;
@@ -361,14 +482,68 @@ function validarVersionPersistida(modeloId: string, input: unknown): BackendVers
   };
 }
 
-function validarAutosalvadoPersistido(modeloId: string, input: unknown): BackendAutosalvadoPersistido {
+function validateModelRevisionCommit(modelId: string, input: unknown): ModelRevisionCommit {
+  if (!esRecord(input)) throw new Error("Revision de modelo invalida");
+  const model = validarModeloPersistido(input.model);
+  if (model.id !== modelId) throw new Error("Revision de modelo invalida: id");
+  if (!esRecord(input.version) ||
+    typeof input.version.id !== "string" ||
+    !input.version.id.trim() ||
+    !isValidTimestamp(input.version.creadoEn) ||
+    typeof input.version.nombre !== "string" ||
+    !input.version.nombre.trim()) {
+    throw new Error("Revision de modelo invalida: version");
+  }
+
+  let base: ModelRevisionBase;
+  let speciesOnCreate: ModelRevisionCommit["speciesOnCreate"];
+  if (esRecord(input.base) && input.base.kind === "new") {
+    base = { kind: "new" };
+    if (input.speciesOnCreate !== "apunte" && input.speciesOnCreate !== "modelo") {
+      throw new Error("Revision de modelo invalida: especie");
+    }
+    speciesOnCreate = input.speciesOnCreate;
+  } else if (esRecord(input.base) && input.base.kind === "existing") {
+    const witness = normalizeBaseWitness(input.base.witness);
+    if (!witness) throw new Error("Revision de modelo invalida: base");
+    if (input.speciesOnCreate !== undefined) throw new Error("Revision de modelo invalida: especie");
+    base = { kind: "existing", witness };
+  } else {
+    throw new Error("Revision de modelo invalida: base");
+  }
+
+  return {
+    model,
+    version: {
+      id: input.version.id,
+      creadoEn: input.version.creadoEn,
+      nombre: input.version.nombre,
+      ...(typeof input.version.descripcion === "string" ? { descripcion: input.version.descripcion } : {}),
+      ...(input.version.preservar === true ? { preservar: true } : {}),
+      modeloPayloadKey: input.version.id,
+      bytes: new TextEncoder().encode(model.json).byteLength,
+    },
+    base,
+    ...(speciesOnCreate ? { speciesOnCreate } : {}),
+    ...(input.confirmedByOperator === true ? { confirmedByOperator: true } : {}),
+  };
+}
+
+function validarAutosalvadoPersistido(modeloId: string, input: unknown): BackendAutosaveWrite {
   if (!esRecord(input)) throw new Error("Autosalvado persistido invalido");
   const json = typeof input.json === "string" ? input.json : "";
   validarJsonString(json, "Autosalvado persistido invalido: json");
+  if (typeof input.revisionBase !== "number" || !Number.isInteger(input.revisionBase) || input.revisionBase < 0) {
+    throw new Error("Autosalvado persistido invalido: revisionBase");
+  }
+  if (input.creadoEn !== undefined && !isValidTimestamp(input.creadoEn)) {
+    throw new Error("Autosalvado persistido invalido: creadoEn");
+  }
   return {
     modeloId,
     creadoEn: typeof input.creadoEn === "string" ? input.creadoEn : new Date().toISOString(),
     json,
+    revisionBase: input.revisionBase,
   };
 }
 
@@ -383,11 +558,11 @@ function validarJsonString(json: string, error: string): void {
 
 function esVersionResumen(value: unknown): value is VersionResumen {
   if (!esRecord(value) ||
-    typeof value.id !== "string" ||
-    typeof value.creadoEn !== "string" ||
-    typeof value.nombre !== "string" ||
-    typeof value.modeloPayloadKey !== "string" ||
-    typeof value.bytes !== "number") {
+    typeof value.id !== "string" || !value.id.trim() ||
+    !isValidTimestamp(value.creadoEn) ||
+    typeof value.nombre !== "string" || !value.nombre.trim() ||
+    typeof value.modeloPayloadKey !== "string" || !value.modeloPayloadKey.trim() ||
+    typeof value.bytes !== "number" || !Number.isSafeInteger(value.bytes) || value.bytes < 0) {
     return false;
   }
   return true;
@@ -410,6 +585,7 @@ function esErrorPayload(message: string): boolean {
   return message.startsWith("Payload") ||
     message.startsWith("JSON") ||
     message.startsWith("Modelo persistido") ||
+    message.startsWith("Revision de modelo") ||
     message.startsWith("Workspace persistido") ||
     message.startsWith("Version persistida") ||
     message.startsWith("Autosalvado persistido");
@@ -468,6 +644,7 @@ async function manejarLogin(request: Request, auth: AuthOptions, maxBodyBytes: n
     tenantId: cuenta.tenantId,
     userId: cuenta.userId,
     auth: true,
+    authKind: "operator",
     setCookie: `${cookieName}=${token}; Path=/; Max-Age=${AUTH_SESSION_MAX_AGE_SECONDS}; HttpOnly; SameSite=Lax${secure}`,
   };
   return responderJson(200, { session: { tenantId: session.tenantId, userId: session.userId, auth: true } }, session);
@@ -492,7 +669,7 @@ function verificarTokenSesion(token: string, secret: string): PersistenciaSesion
     return {
       tenantId: parsed.tenantId,
       userId: parsed.userId,
-      ...(parsed.auth === true ? { auth: true } : {}),
+      ...(parsed.auth === true ? { auth: true, authKind: "operator" as const } : {}),
     };
   } catch {
     return null;

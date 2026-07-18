@@ -2,8 +2,10 @@ import { afterEach, describe, expect, test } from "bun:test";
 import {
   cargarWorkspaceBackend,
   cerrarSesionBackend,
+  forgetObservedBackendSession,
   guardarAutosalvadoBackend,
   iniciarSesionBackend,
+  onBackendUnauthorized,
   obtenerEstadoSesionBackend,
   guardarModeloBackend,
   guardarVersionBackend,
@@ -12,10 +14,15 @@ import {
   obtenerSesionBackend,
   persistenciaBackendHabilitada,
 } from "./backend";
+import {
+  encodeSessionIdentity,
+  SESSION_IDENTITY_HEADER,
+} from "./sessionIdentity";
 
 describe("persistencia backend cliente", () => {
   afterEach(() => {
     Reflect.deleteProperty(globalThis, "window");
+    forgetObservedBackendSession();
   });
 
   test("lista modelos del backend sin requerir storage navegador", async () => {
@@ -80,19 +87,25 @@ describe("persistencia backend cliente", () => {
       bytes: 100,
     };
     const originalFetch = globalThis.fetch;
-    const calls: Array<{ url: string; method: string }> = [];
+    const calls: Array<{ url: string; method: string; sessionIdentity: string | null }> = [];
     globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       const method = init?.method ?? "GET";
-      calls.push({ url, method });
+      calls.push({
+        url,
+        method,
+        sessionIdentity: new Headers(init?.headers).get(SESSION_IDENTITY_HEADER),
+      });
       if (url === "/__deep-opm/session") {
         return Promise.resolve(jsonResponse({ session: { tenantId: "tenant", userId: "user" } }));
       }
       if (url === "/__deep-opm/workspace" && method === "GET") {
-        return Promise.resolve(jsonResponse({ indice }));
+        return Promise.resolve(jsonResponse({ indice, revision: 4 }));
       }
       if (url === "/__deep-opm/workspace" && method === "PUT") {
-        return Promise.resolve(jsonResponse({ indice: JSON.parse(String(init?.body)).indice }));
+        const body = JSON.parse(String(init?.body));
+        expect(body.revisionBase).toBe(4);
+        return Promise.resolve(jsonResponse({ indice: body.indice, revision: 5 }));
       }
       if (url === "/__deep-opm/modelos/m1/versiones" && method === "POST") {
         const body = JSON.parse(String(init?.body));
@@ -106,11 +119,17 @@ describe("persistencia backend cliente", () => {
     }) as unknown as typeof fetch;
     try {
       expect(await obtenerSesionBackend()).toEqual({ ok: true, value: { tenantId: "tenant", userId: "user" } });
-      expect(await cargarWorkspaceBackend()).toEqual({ ok: true, value: indice });
-      expect(await guardarWorkspaceBackend(indice)).toEqual({ ok: true, value: indice });
+      expect(await cargarWorkspaceBackend()).toEqual({
+        ok: true,
+        value: { indice, revision: 4 },
+      });
+      expect(await guardarWorkspaceBackend(indice, 4)).toEqual({
+        ok: true,
+        value: { indice, revision: 5 },
+      });
       const json = JSON.stringify({ formato: "deep-opm-pro.modelo.v0", modelo: { id: "m1" } });
       expect(await guardarVersionBackend("m1", version, json)).toEqual({ ok: true, value: { modeloId: "m1", version, json } });
-      expect(await guardarAutosalvadoBackend("m1", json, "2026-06-03T00:00:01.000Z")).toEqual({
+      expect(await guardarAutosalvadoBackend("m1", json, 7, "2026-06-03T00:00:01.000Z")).toEqual({
         ok: true,
         value: { modeloId: "m1", creadoEn: "2026-06-03T00:00:01.000Z", json },
       });
@@ -121,7 +140,130 @@ describe("persistencia backend cliente", () => {
         "POST /__deep-opm/modelos/m1/versiones",
         "PUT /__deep-opm/modelos/m1/autosave",
       ]);
+      expect(calls[0]?.sessionIdentity).toBeNull();
+      expect(calls.slice(1).map((call) => call.sessionIdentity)).toEqual(
+        Array(4).fill(encodeSessionIdentity({ tenantId: "tenant", userId: "user" })),
+      );
     } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("coalesce el bootstrap concurrente de sesión sin reutilizar respuestas resueltas", async () => {
+    Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+    const originalFetch = globalThis.fetch;
+    let fetchCalls = 0;
+    globalThis.fetch = (() => {
+      fetchCalls += 1;
+      return Promise.resolve(jsonResponse({
+        session: { tenantId: "tenant-bootstrap", userId: "user-bootstrap" },
+      }));
+    }) as unknown as typeof fetch;
+    try {
+      const [estado, sesion] = await Promise.all([
+        obtenerEstadoSesionBackend(),
+        obtenerSesionBackend(),
+      ]);
+
+      expect(fetchCalls).toBe(1);
+      expect(estado).toEqual({
+        estado: "autenticada",
+        session: { tenantId: "tenant-bootstrap", userId: "user-bootstrap" },
+      });
+      expect(sesion).toEqual({
+        ok: true,
+        value: { tenantId: "tenant-bootstrap", userId: "user-bootstrap" },
+      });
+
+      await obtenerEstadoSesionBackend();
+      expect(fetchCalls).toBe(2);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("no coalesce una sesión pendiente a través de un login nuevo", async () => {
+    Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+    const originalFetch = globalThis.fetch;
+    const oldSession = deferredResponse();
+    let sessionCalls = 0;
+    globalThis.fetch = ((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/auth/login")) {
+        return Promise.resolve(jsonResponse({
+          session: { tenantId: "tenant-b", userId: "user-b" },
+        }));
+      }
+      if (url.endsWith("/session")) {
+        sessionCalls += 1;
+        if (sessionCalls === 1) {
+          return Promise.resolve(jsonResponse({
+            session: { tenantId: "tenant-a", userId: "user-a" },
+          }));
+        }
+        if (sessionCalls === 2) return oldSession.promise;
+        return Promise.resolve(jsonResponse({
+          session: { tenantId: "tenant-b", userId: "user-b" },
+        }));
+      }
+      return Promise.resolve(jsonResponse({ error: "unexpected" }, 404));
+    }) as unknown as typeof fetch;
+    try {
+      expect((await obtenerEstadoSesionBackend()).estado).toBe("autenticada");
+      const staleRequest = obtenerEstadoSesionBackend();
+      expect(await iniciarSesionBackend("b@example.com", "secreto")).toEqual({
+        ok: true,
+        value: { tenantId: "tenant-b", userId: "user-b" },
+      });
+      expect(await obtenerEstadoSesionBackend()).toEqual({
+        estado: "autenticada",
+        session: { tenantId: "tenant-b", userId: "user-b" },
+      });
+      oldSession.resolve(jsonResponse({
+        session: { tenantId: "tenant-a", userId: "user-a" },
+      }));
+      expect(await staleRequest).toEqual({ estado: "requiere-login" });
+      expect(sessionCalls).toBe(3);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("un 401 en cualquier operación invalida la sesión observada y notifica", async () => {
+    Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+    const originalFetch = globalThis.fetch;
+    let unauthorizedCount = 0;
+    const unsubscribe = onBackendUnauthorized(() => {
+      unauthorizedCount += 1;
+    });
+    globalThis.fetch = (() => Promise.resolve(jsonResponse({ error: "No autenticado" }, 401))) as unknown as typeof fetch;
+    try {
+      expect(await listarModelosBackend()).toEqual({ ok: false, error: "No autenticado" });
+      expect(unauthorizedCount).toBe(1);
+    } finally {
+      unsubscribe();
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("una sesión distinta a la ya observada se trata como transición no autorizada", async () => {
+    Object.defineProperty(globalThis, "window", { configurable: true, value: {} });
+    const originalFetch = globalThis.fetch;
+    let tenant = "tenant-a";
+    let unauthorizedCount = 0;
+    const unsubscribe = onBackendUnauthorized(() => {
+      unauthorizedCount += 1;
+    });
+    globalThis.fetch = (() => Promise.resolve(jsonResponse({
+      session: { tenantId: tenant, userId: `user-${tenant}` },
+    }))) as unknown as typeof fetch;
+    try {
+      expect((await obtenerEstadoSesionBackend()).estado).toBe("autenticada");
+      tenant = "tenant-b";
+      expect(await obtenerEstadoSesionBackend()).toEqual({ estado: "requiere-login" });
+      expect(unauthorizedCount).toBe(1);
+    } finally {
+      unsubscribe();
       globalThis.fetch = originalFetch;
     }
   });
@@ -131,6 +273,7 @@ describe("persistencia backend cliente", () => {
 describe("auth v1 — cliente de sesión", () => {
   afterEach(() => {
     Reflect.deleteProperty(globalThis, "window");
+    forgetObservedBackendSession();
   });
 
   async function conFetch<T>(status: number, body: unknown, fn: () => Promise<T>): Promise<T> {
@@ -175,4 +318,15 @@ function jsonResponse(body: unknown, status = 200): Response {
     status,
     headers: { "content-type": "application/json" },
   });
+}
+
+function deferredResponse(): {
+  promise: Promise<Response>;
+  resolve(response: Response): void;
+} {
+  let resolve = (_response: Response) => {};
+  const promise = new Promise<Response>((resolver) => {
+    resolve = resolver;
+  });
+  return { promise, resolve };
 }

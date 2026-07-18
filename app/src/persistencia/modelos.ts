@@ -88,7 +88,12 @@ export function construirModeloPersistido(
   if (versiones !== undefined) resumen.versiones = versiones;
   const crearVersionAlGuardar = input.crearVersionAlGuardar ?? existente?.crearVersionAlGuardar;
   if (crearVersionAlGuardar !== undefined) resumen.crearVersionAlGuardar = crearVersionAlGuardar;
-  const revision = input.revision ?? existente?.revision;
+  // Una revisión explícitamente presente —incluso `undefined`— pertenece al
+  // testigo de base del llamador. No debe rellenarse desde un resumen que pudo
+  // refrescarse sin que el documento abierto haya sido recargado.
+  const revision = Object.prototype.hasOwnProperty.call(input, "revision")
+    ? input.revision
+    : existente?.revision;
   if (revision !== undefined) resumen.revision = revision;
   return { ...resumen, json: compactarJsonDocumento(input.json) };
 }

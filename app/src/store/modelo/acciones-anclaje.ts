@@ -27,6 +27,7 @@ import type { Anclaje, BibliotecaRef, Entidad, Estado, EstadoDrift, Id, Modelo }
 import { cargarModeloBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
 import { hidratarModelo } from "../../serializacion/json";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
+import { captureSessionEpoch, isSessionEpochCurrent } from "../sessionEpoch";
 import type { ModeloSlice } from "../tipos";
 
 /**
@@ -86,10 +87,15 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
 
     async cargarYEvaluarDrift(): Promise<void> {
       const evaluacionId = ++evaluacionDriftVigente;
+      const sessionEpoch = captureSessionEpoch();
       const { modelo } = get();
       const modeloIds = bibliotecasAncladas(modelo);
       if (modeloIds.length === 0) {
-        if (evaluacionId === evaluacionDriftVigente) set({ driftMap: {} });
+        if (evaluacionId === evaluacionDriftVigente &&
+          isSessionEpochCurrent(sessionEpoch) &&
+          !get().requiereLogin) {
+          set({ driftMap: {} });
+        }
         return;
       }
       const bibliotecasVivas: Record<Id, Modelo | null> = {};
@@ -101,7 +107,11 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
       // Una evaluación anterior nunca puede sobrescribir una más reciente. Esto
       // importa al cambiar rápido de pestaña/modelo: cada corrida resuelve un
       // conjunto distinto de bibliotecas y las respuestas pueden llegar invertidas.
-      if (evaluacionId !== evaluacionDriftVigente) return;
+      if (evaluacionId !== evaluacionDriftVigente ||
+        !isSessionEpochCurrent(sessionEpoch) ||
+        get().requiereLogin) {
+        return;
+      }
       const modeloVigente = get().modelo;
       const bibliotecasVigentes = bibliotecasAncladas(modeloVigente);
       if (!mismosIds(modeloIds, bibliotecasVigentes)) {
@@ -113,6 +123,8 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
     },
 
     async reSincronizarAnclajeEntidad(id: Id): Promise<void> {
+      const sessionEpoch = captureSessionEpoch();
+      const pestanaOrigenId = get().pestanaActivaId;
       const { modelo } = get();
       const entidad = modelo.entidades[id];
       const anclaje = entidad?.anclaje;
@@ -121,6 +133,7 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
         return;
       }
       const biblioteca = await cargarBibliotecaViva(anclaje.biblioteca.modeloId);
+      if (!asyncAnchorOriginIsCurrent(get, sessionEpoch, pestanaOrigenId)) return;
       if (biblioteca === null) {
         set({ mensaje: "No se pudo leer la biblioteca para re-sincronizar" });
         return;
@@ -192,11 +205,14 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
       modeloId: Id;
       nombre?: string;
     }): Promise<void> {
+      const sessionEpoch = captureSessionEpoch();
+      const pestanaOrigenId = get().pestanaActivaId;
       // La firma VIVA se congela leyendo la biblioteca del backend PERSISTIDO (mismo cálculo del
       // Centinela), no del modelo en runtime: garantiza que el anclaje arranque sincronizado contra
       // lo que el Centinela comparará luego. `frozenAtHash` = firma de biblioteca (REQUERIDA, legacy);
       // `frozenAtPieza` = firma de la vecindad RADIO-1 de la Pieza (C4): el gesto ya nace a grano pieza.
       const bibliotecaViva = await cargarBibliotecaViva(input.modeloId);
+      if (!asyncAnchorOriginIsCurrent(get, sessionEpoch, pestanaOrigenId)) return;
       if (bibliotecaViva === null) {
         set({ mensaje: "No se pudo leer la biblioteca para anclar la Pieza" });
         return;
@@ -234,6 +250,17 @@ export function accionesAnclaje(set: SetStore, get: GetStore): Partial<ModeloSli
       }
     },
   };
+}
+
+function asyncAnchorOriginIsCurrent(
+  get: GetStore,
+  sessionEpoch: number,
+  pestanaOrigenId: string,
+): boolean {
+  const estado = get();
+  return isSessionEpochCurrent(sessionEpoch) &&
+    !estado.requiereLogin &&
+    estado.pestanaActivaId === pestanaOrigenId;
 }
 
 function mismosIds(a: readonly Id[], b: readonly Id[]): boolean {

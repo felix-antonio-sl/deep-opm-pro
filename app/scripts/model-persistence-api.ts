@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import {
   crearCookieSessionResolver,
   crearModelPersistenceFetchHandler,
+  evaluarPoliticaCommit,
   PersistenciaConflictError,
   type AuthRepository,
   type BackendAutosalvadoPersistido,
@@ -9,9 +10,16 @@ import {
   type ModelPersistenceRepository,
   type PersistenciaSesion,
 } from "../src/server/modelPersistence";
+import { autosaveTimestampAfter, baseWitnessMatches } from "../src/mesa/baseWitness";
 import type { ModeloPersistido, ResumenModeloPersistido } from "../src/persistencia/modelos";
-import type { WorkspaceIndice } from "../src/persistencia/workspace";
+import type {
+  WorkspaceIndice,
+  WorkspacePersistido,
+} from "../src/persistencia/workspace";
 import { indiceVacio } from "../src/persistencia/workspace";
+import { establecerEspecieCreada } from "../src/mesa/especieWorkspace";
+import { especieDe } from "../src/persistencia/especie";
+import { isTimestampAfter } from "../src/mesa/timestampOrder";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../src/persistencia/workspaceStorage";
 import { aplicarPoliticaLogScaleVersiones, idsVersionesPodadas } from "../src/persistencia/politicaVersiones";
 import type { VersionResumen } from "../src/modelo/tipos";
@@ -333,6 +341,21 @@ const MIGRACIONES_SCHEMA = [
       `;
     },
   },
+  {
+    version: 5,
+    nombre: "optimistic_locking_workspace",
+    async run(db: typeof sql) {
+      await db`
+        ALTER TABLE opforja_workspaces
+        ADD COLUMN IF NOT EXISTS revision INTEGER NOT NULL DEFAULT 1
+      `;
+      await db`
+        UPDATE opforja_workspaces
+        SET revision = 1
+        WHERE revision IS NULL OR revision < 1
+      `;
+    },
+  },
 ] satisfies Array<{ version: number; nombre: string; run: (db: typeof sql) => Promise<void> }>;
 
 await inicializarSchema();
@@ -489,9 +512,7 @@ function repositorioPostgres(): ModelPersistenceRepository {
     },
 
     async save(session, modelo) {
-      const payloadBase64 = base64Utf8(modelo.json);
-      const versionesBase64 = modelo.versiones ? base64Utf8(JSON.stringify(modelo.versiones)) : null;
-      const revision = await sql.begin(async (tx) => {
+      return sql.begin(async (tx) => {
         const actualRows = await tx`
           SELECT revision
           FROM opforja_models
@@ -503,106 +524,59 @@ function repositorioPostgres(): ModelPersistenceRepository {
         if (revisionActual !== null && modelo.revision !== revisionActual) {
           throw new PersistenciaConflictError();
         }
-        const siguienteRevision = revisionActual === null ? 1 : revisionActual + 1;
-        await tx`
-          INSERT INTO opforja_models (
-            tenant_id,
-            owner_id,
-            id,
-            nombre,
-            descripcion,
-            carpeta_id,
-            creado_en,
-            actualizado_en,
-            ultima_apertura,
-            autosalvado,
-            archivado,
-            archivado_en,
-            archivado_auto,
-            crear_version_al_guardar,
-            versiones,
-            revision,
-            payload
-          )
-          VALUES (
-            ${session.tenantId},
-            ${session.userId},
-            ${modelo.id},
-            ${modelo.nombre},
-            ${modelo.descripcion},
-            ${modelo.carpetaId ?? null},
-            ${modelo.creadoEn},
-            ${modelo.actualizadoEn},
-            ${modelo.ultimaApertura ?? null},
-            ${modelo.autosalvado ?? null},
-            ${modelo.archivado ?? null},
-            ${modelo.archivadoEn ?? null},
-            ${modelo.archivadoAuto ?? null},
-            ${modelo.crearVersionAlGuardar ?? null},
-            CASE
-              WHEN ${versionesBase64}::text IS NULL THEN NULL
-              ELSE convert_from(decode(${versionesBase64}, 'base64'), 'UTF8')::jsonb
-            END,
-            ${siguienteRevision},
-            convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
-          )
-          ON CONFLICT (tenant_id, id) DO UPDATE SET
-            owner_id = EXCLUDED.owner_id,
-            nombre = EXCLUDED.nombre,
-            descripcion = EXCLUDED.descripcion,
-            carpeta_id = EXCLUDED.carpeta_id,
-            actualizado_en = EXCLUDED.actualizado_en,
-            ultima_apertura = EXCLUDED.ultima_apertura,
-            autosalvado = EXCLUDED.autosalvado,
-            archivado = EXCLUDED.archivado,
-            archivado_en = EXCLUDED.archivado_en,
-            archivado_auto = EXCLUDED.archivado_auto,
-            crear_version_al_guardar = EXCLUDED.crear_version_al_guardar,
-            versiones = EXCLUDED.versiones,
-            revision = EXCLUDED.revision,
-            payload = EXCLUDED.payload
-        `;
-        return siguienteRevision;
+        if (revisionActual === null && modelo.revision !== undefined) {
+          throw new PersistenciaConflictError("El modelo ya no existe");
+        }
+        return persistModelInTransaction(tx, session, modelo, revisionActual);
       });
-      return { ...modelo, revision };
     },
 
     async delete(session, id) {
       return sql.begin(async (tx) => {
+        const locked = await tx`
+          SELECT id
+          FROM opforja_models
+          WHERE tenant_id = ${session.tenantId} AND id = ${id}
+          FOR UPDATE
+        `;
+        if (locked.length === 0) return false;
         await tx`DELETE FROM opforja_model_autosaves WHERE tenant_id = ${session.tenantId} AND modelo_id = ${id}`;
         await tx`DELETE FROM opforja_model_versions WHERE tenant_id = ${session.tenantId} AND modelo_id = ${id}`;
-        const rows = await tx`DELETE FROM opforja_models WHERE tenant_id = ${session.tenantId} AND id = ${id} RETURNING id`;
-        return rows.length > 0;
+        await tx`DELETE FROM opforja_models WHERE tenant_id = ${session.tenantId} AND id = ${id}`;
+        return true;
       });
     },
 
     async getWorkspace(session) {
       const rows = await sql`
-        SELECT indice
+        SELECT indice, revision
         FROM opforja_workspaces
         WHERE tenant_id = ${session.tenantId}
         LIMIT 1
       `;
-      return rows[0] ? normalizarWorkspace(rows[0].indice) : null;
+      return rows[0]
+        ? {
+            indice: normalizarWorkspace(rows[0].indice),
+            revision: Number(rows[0].revision),
+          }
+        : null;
     },
 
-    async saveWorkspace(session, indice) {
-      const indiceBase64 = base64Utf8(JSON.stringify(indice));
-      const actualizadoEn = new Date().toISOString();
-      await sql`
-        INSERT INTO opforja_workspaces (tenant_id, owner_id, actualizado_en, indice)
-        VALUES (
-          ${session.tenantId},
-          ${session.userId},
-          ${actualizadoEn},
-          convert_from(decode(${indiceBase64}, 'base64'), 'UTF8')::jsonb
-        )
-        ON CONFLICT (tenant_id) DO UPDATE SET
-          owner_id = EXCLUDED.owner_id,
-          actualizado_en = EXCLUDED.actualizado_en,
-          indice = EXCLUDED.indice
-      `;
-      return indice;
+    async saveWorkspace(session, write) {
+      return sql.begin(async (tx) => {
+        const workspace = await lockWorkspaceInTransaction(tx, session);
+        if (workspace.revision !== write.revisionBase) {
+          throw new PersistenciaConflictError(
+            "Workspace desactualizado; recarga antes de guardar",
+          );
+        }
+        return persistWorkspaceInTransaction(
+          tx,
+          session,
+          write.indice,
+          workspace.revision,
+        );
+      });
     },
 
     async listVersions(session, modeloId) {
@@ -633,46 +607,8 @@ function repositorioPostgres(): ModelPersistenceRepository {
     },
 
     async saveVersion(session, version) {
-      const payloadBase64 = base64Utf8(version.json);
       await sql.begin(async (tx) => {
-        await tx`
-          INSERT INTO opforja_model_versions (
-            tenant_id,
-            modelo_id,
-            id,
-            owner_id,
-            creado_en,
-            nombre,
-            descripcion,
-            preservar,
-            modelo_payload_key,
-            bytes,
-            payload
-          )
-          VALUES (
-            ${session.tenantId},
-            ${version.modeloId},
-            ${version.version.id},
-            ${session.userId},
-            ${version.version.creadoEn},
-            ${version.version.nombre},
-            ${version.version.descripcion ?? null},
-            ${version.version.preservar ?? false},
-            ${version.version.modeloPayloadKey},
-            ${version.version.bytes},
-            convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
-          )
-          ON CONFLICT (tenant_id, modelo_id, id) DO UPDATE SET
-            owner_id = EXCLUDED.owner_id,
-            creado_en = EXCLUDED.creado_en,
-            nombre = EXCLUDED.nombre,
-            descripcion = EXCLUDED.descripcion,
-            preservar = EXCLUDED.preservar,
-            modelo_payload_key = EXCLUDED.modelo_payload_key,
-            bytes = EXCLUDED.bytes,
-            payload = EXCLUDED.payload
-        `;
-        await podarVersionesPostgres(tx, session, version.modeloId);
+        await persistFreshVersionInTransaction(tx, session, version);
       });
       return version;
     },
@@ -684,6 +620,107 @@ function repositorioPostgres(): ModelPersistenceRepository {
         RETURNING id
       `;
       return rows.length > 0;
+    },
+
+    async commitRevision(session, commit) {
+      return sql.begin(async (tx) => {
+        const currentRows = await tx`
+          SELECT revision, actualizado_en, payload::text AS json
+          FROM opforja_models
+          WHERE tenant_id = ${session.tenantId} AND id = ${commit.model.id}
+          FOR UPDATE
+        `;
+        const current = currentRows[0];
+
+        if (!current) {
+          if (commit.base.kind !== "new") throw new PersistenciaConflictError();
+          if (!commit.speciesOnCreate) throw new PersistenciaConflictError("La creación exige especie");
+          const workspace = await lockWorkspaceInTransaction(tx, session);
+          const veredicto = evaluarPoliticaCommit(commit);
+          if (!veredicto.ok) throw new PersistenciaConflictError(veredicto.motivo);
+          const saved = await persistModelInTransaction(
+            tx,
+            session,
+            { ...commit.model, autosalvado: false },
+            null,
+          );
+          await persistFreshVersionInTransaction(tx, session, {
+            modeloId: saved.id,
+            version: commit.version,
+            json: saved.json,
+          });
+          await persistWorkspaceInTransaction(
+            tx,
+            session,
+            establecerEspecieCreada(
+              workspace.indice,
+              saved.id,
+              commit.speciesOnCreate,
+            ),
+            workspace.revision,
+          );
+          return { model: saved, version: commit.version };
+        }
+
+        if (commit.base.kind !== "existing") {
+          throw new PersistenciaConflictError("El modelo ya existe; ejecuta pull antes de actualizar");
+        }
+        const workspace = await lockWorkspaceInTransaction(tx, session);
+        if (workspace.indice.modelos.some((item) =>
+          item.id === commit.model.id && item.esBiblioteca === true
+        )) {
+          throw new PersistenciaConflictError("Destino biblioteca es solo-lectura");
+        }
+        const revision = typeof current.revision === "number" ? current.revision : 0;
+        const autosaveRows = await tx`
+          SELECT creado_en, payload::text AS json
+          FROM opforja_model_autosaves
+          WHERE tenant_id = ${session.tenantId} AND modelo_id = ${commit.model.id}
+          FOR UPDATE
+        `;
+        const autosave = autosaveRows[0];
+        const matches = commit.model.revision === revision && baseWitnessMatches(commit.base.witness, {
+          modelId: commit.model.id,
+          saved: {
+            revision,
+            updatedAt: String(current.actualizado_en),
+            json: typeof current.json === "string" ? current.json : JSON.stringify(current.json ?? {}),
+          },
+          autosave: autosave
+            ? {
+                createdAt: String(autosave.creado_en),
+                json: typeof autosave.json === "string" ? autosave.json : JSON.stringify(autosave.json ?? {}),
+              }
+            : null,
+        });
+        if (!matches) throw new PersistenciaConflictError();
+        const entry = workspace.indice.modelos.find((item) => item.id === commit.model.id);
+        const veredicto = evaluarPoliticaCommit(commit, {
+          savedJson: typeof current.json === "string"
+            ? current.json
+            : JSON.stringify(current.json ?? {}),
+          autosaveJson: autosave
+            ? (typeof autosave.json === "string"
+                ? autosave.json
+                : JSON.stringify(autosave.json ?? {}))
+            : null,
+          species: entry ? especieDe(entry) : "modelo",
+        });
+        if (!veredicto.ok) throw new PersistenciaConflictError(veredicto.motivo);
+
+        const saved = await persistModelInTransaction(
+          tx,
+          session,
+          { ...commit.model, autosalvado: false },
+          revision,
+        );
+        await persistFreshVersionInTransaction(tx, session, {
+          modeloId: saved.id,
+          version: commit.version,
+          json: saved.json,
+        });
+        return { model: saved, version: commit.version };
+      });
     },
 
     async getAutosave(session, modeloId) {
@@ -703,22 +740,45 @@ function repositorioPostgres(): ModelPersistenceRepository {
     },
 
     async saveAutosave(session, autosave) {
-      const payloadBase64 = base64Utf8(autosave.json);
-      await sql`
-        INSERT INTO opforja_model_autosaves (tenant_id, modelo_id, owner_id, creado_en, payload)
-        VALUES (
-          ${session.tenantId},
-          ${autosave.modeloId},
-          ${session.userId},
-          ${autosave.creadoEn},
-          convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
-        )
-        ON CONFLICT (tenant_id, modelo_id) DO UPDATE SET
-          owner_id = EXCLUDED.owner_id,
-          creado_en = EXCLUDED.creado_en,
-          payload = EXCLUDED.payload
-      `;
-      return autosave;
+      return sql.begin(async (tx) => {
+        const currentRows = await tx`
+          SELECT revision, actualizado_en
+          FROM opforja_models
+          WHERE tenant_id = ${session.tenantId} AND id = ${autosave.modeloId}
+          FOR UPDATE
+        `;
+        const currentRevision = currentRows[0]?.revision;
+        if (currentRevision !== autosave.revisionBase) throw new PersistenciaConflictError();
+
+        const autosaveRows = await tx`
+          SELECT creado_en
+          FROM opforja_model_autosaves
+          WHERE tenant_id = ${session.tenantId} AND modelo_id = ${autosave.modeloId}
+        `;
+        const existingAutosaveAt = autosaveRows[0]?.creado_en;
+        if (existingAutosaveAt !== undefined &&
+          !isTimestampAfter(autosave.creadoEn, String(existingAutosaveAt))) {
+          throw new PersistenciaConflictError("El autosalvado es anterior al ya persistido");
+        }
+        const currentUpdatedAt = String(currentRows[0]?.actualizado_en ?? "");
+        const normalized = {
+          ...autosave,
+          creadoEn: isTimestampAfter(autosave.creadoEn, currentUpdatedAt)
+            ? autosave.creadoEn
+            : autosaveTimestampAfter(currentUpdatedAt),
+        };
+        await upsertAutosaveInTransaction(tx, session, normalized);
+        await tx`
+          UPDATE opforja_models
+          SET autosalvado = true
+          WHERE tenant_id = ${session.tenantId} AND id = ${autosave.modeloId}
+        `;
+        return {
+          modeloId: autosave.modeloId,
+          creadoEn: normalized.creadoEn,
+          json: autosave.json,
+        };
+      });
     },
 
     async health() {
@@ -730,6 +790,220 @@ function repositorioPostgres(): ModelPersistenceRepository {
       }
     },
   };
+}
+
+async function persistModelInTransaction(
+  db: typeof sql,
+  session: PersistenciaSesion,
+  model: ModeloPersistido,
+  currentRevision: number | null,
+): Promise<ModeloPersistido> {
+  const payloadBase64 = base64Utf8(model.json);
+  const versionsBase64 = model.versiones ? base64Utf8(JSON.stringify(model.versiones)) : null;
+  const nextRevision = currentRevision === null ? 1 : currentRevision + 1;
+  const savedRows = await db`
+    INSERT INTO opforja_models (
+      tenant_id,
+      owner_id,
+      id,
+      nombre,
+      descripcion,
+      carpeta_id,
+      creado_en,
+      actualizado_en,
+      ultima_apertura,
+      autosalvado,
+      archivado,
+      archivado_en,
+      archivado_auto,
+      crear_version_al_guardar,
+      versiones,
+      revision,
+      payload
+    )
+    VALUES (
+      ${session.tenantId},
+      ${session.userId},
+      ${model.id},
+      ${model.nombre},
+      ${model.descripcion},
+      ${model.carpetaId ?? null},
+      ${model.creadoEn},
+      ${model.actualizadoEn},
+      ${model.ultimaApertura ?? null},
+      ${model.autosalvado ?? null},
+      ${model.archivado ?? null},
+      ${model.archivadoEn ?? null},
+      ${model.archivadoAuto ?? null},
+      ${model.crearVersionAlGuardar ?? null},
+      CASE
+        WHEN ${versionsBase64}::text IS NULL THEN NULL
+        ELSE convert_from(decode(${versionsBase64}, 'base64'), 'UTF8')::jsonb
+      END,
+      ${nextRevision},
+      convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
+    )
+    ON CONFLICT (tenant_id, id) DO UPDATE SET
+      owner_id = EXCLUDED.owner_id,
+      nombre = EXCLUDED.nombre,
+      descripcion = EXCLUDED.descripcion,
+      carpeta_id = EXCLUDED.carpeta_id,
+      actualizado_en = EXCLUDED.actualizado_en,
+      ultima_apertura = EXCLUDED.ultima_apertura,
+      autosalvado = EXCLUDED.autosalvado,
+      archivado = EXCLUDED.archivado,
+      archivado_en = EXCLUDED.archivado_en,
+      archivado_auto = EXCLUDED.archivado_auto,
+      crear_version_al_guardar = EXCLUDED.crear_version_al_guardar,
+      versiones = EXCLUDED.versiones,
+      revision = EXCLUDED.revision,
+      payload = EXCLUDED.payload
+    WHERE opforja_models.revision = ${currentRevision ?? -1}
+    RETURNING id
+  `;
+  if (savedRows.length === 0) throw new PersistenciaConflictError();
+
+  if (model.autosalvado === true) {
+    await upsertAutosaveInTransaction(db, session, {
+      modeloId: model.id,
+      creadoEn: autosaveTimestampAfter(model.actualizadoEn),
+      json: model.json,
+    });
+  } else if (model.autosalvado === false) {
+    await db`
+      DELETE FROM opforja_model_autosaves
+      WHERE tenant_id = ${session.tenantId} AND modelo_id = ${model.id}
+    `;
+  }
+
+  return { ...model, revision: nextRevision };
+}
+
+async function persistFreshVersionInTransaction(
+  db: typeof sql,
+  session: PersistenciaSesion,
+  version: BackendVersionPersistida,
+): Promise<void> {
+  if (!await insertVersionInTransaction(db, session, version)) {
+    throw new PersistenciaConflictError("La versión ya existe");
+  }
+  await podarVersionesPostgres(db, session, version.modeloId, version.version.id);
+}
+
+async function insertVersionInTransaction(
+  db: typeof sql,
+  session: PersistenciaSesion,
+  version: BackendVersionPersistida,
+): Promise<boolean> {
+  const payloadBase64 = base64Utf8(version.json);
+  const rows = await db`
+    INSERT INTO opforja_model_versions (
+      tenant_id,
+      modelo_id,
+      id,
+      owner_id,
+      creado_en,
+      nombre,
+      descripcion,
+      preservar,
+      modelo_payload_key,
+      bytes,
+      payload
+    )
+    VALUES (
+      ${session.tenantId},
+      ${version.modeloId},
+      ${version.version.id},
+      ${session.userId},
+      ${version.version.creadoEn},
+      ${version.version.nombre},
+      ${version.version.descripcion ?? null},
+      ${version.version.preservar ?? false},
+      ${version.version.modeloPayloadKey},
+      ${version.version.bytes},
+      convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
+    )
+    ON CONFLICT (tenant_id, modelo_id, id) DO NOTHING
+    RETURNING id
+  `;
+  return rows.length > 0;
+}
+
+async function upsertAutosaveInTransaction(
+  db: typeof sql,
+  session: PersistenciaSesion,
+  autosave: BackendAutosalvadoPersistido,
+): Promise<void> {
+  const payloadBase64 = base64Utf8(autosave.json);
+  await db`
+    INSERT INTO opforja_model_autosaves (tenant_id, modelo_id, owner_id, creado_en, payload)
+    VALUES (
+      ${session.tenantId},
+      ${autosave.modeloId},
+      ${session.userId},
+      ${autosave.creadoEn},
+      convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
+    )
+    ON CONFLICT (tenant_id, modelo_id) DO UPDATE SET
+      owner_id = EXCLUDED.owner_id,
+      creado_en = EXCLUDED.creado_en,
+      payload = EXCLUDED.payload
+  `;
+}
+
+async function lockWorkspaceInTransaction(
+  db: typeof sql,
+  session: PersistenciaSesion,
+): Promise<WorkspacePersistido> {
+  const now = new Date().toISOString();
+  const emptyBase64 = base64Utf8(JSON.stringify(indiceVacio()));
+  await db`
+    INSERT INTO opforja_workspaces (
+      tenant_id,
+      owner_id,
+      actualizado_en,
+      indice,
+      revision
+    )
+    VALUES (
+      ${session.tenantId},
+      ${session.userId},
+      ${now},
+      convert_from(decode(${emptyBase64}, 'base64'), 'UTF8')::jsonb,
+      0
+    )
+    ON CONFLICT (tenant_id) DO NOTHING
+  `;
+  const rows = await db`
+    SELECT indice, revision
+    FROM opforja_workspaces
+    WHERE tenant_id = ${session.tenantId}
+    FOR UPDATE
+  `;
+  return {
+    indice: normalizarWorkspace(rows[0]?.indice),
+    revision: Number(rows[0]?.revision ?? 0),
+  };
+}
+
+async function persistWorkspaceInTransaction(
+  db: typeof sql,
+  session: PersistenciaSesion,
+  index: WorkspaceIndice,
+  currentRevision: number,
+): Promise<WorkspacePersistido> {
+  const indexBase64 = base64Utf8(JSON.stringify(index));
+  const revision = currentRevision + 1;
+  await db`
+    UPDATE opforja_workspaces
+    SET
+      owner_id = ${session.userId},
+      actualizado_en = ${new Date().toISOString()},
+      indice = convert_from(decode(${indexBase64}, 'base64'), 'UTF8')::jsonb,
+      revision = ${revision}
+    WHERE tenant_id = ${session.tenantId} AND revision = ${currentRevision}
+  `;
+  return { indice: index, revision };
 }
 
 async function asegurarSesion(session: PersistenciaSesion): Promise<void> {
@@ -752,6 +1026,7 @@ async function podarVersionesPostgres(
   db: typeof sql,
   session: PersistenciaSesion,
   modeloId: string,
+  protectedVersionId?: string,
 ): Promise<void> {
   const rows = (await db`
     SELECT id, creado_en, nombre, descripcion, preservar, modelo_payload_key, bytes
@@ -760,7 +1035,12 @@ async function podarVersionesPostgres(
     ORDER BY creado_en DESC
   `) as Array<Record<string, unknown>>;
   const versiones = rows.map(versionDesdeRow).filter((version): version is VersionResumen => version !== null);
-  const retenidas = aplicarPoliticaLogScaleVersiones(versiones, new Date(), MAX_VERSIONES_POR_MODELO);
+  const retenidas = aplicarPoliticaLogScaleVersiones(
+    versiones,
+    new Date(),
+    MAX_VERSIONES_POR_MODELO,
+    protectedVersionId,
+  );
   const podadas = idsVersionesPodadas(versiones, retenidas);
   for (const versionId of podadas) {
     await db`

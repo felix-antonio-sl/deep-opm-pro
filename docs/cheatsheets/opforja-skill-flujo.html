@@ -168,7 +168,7 @@
         <li><strong>Validar el loop</strong> — round-trip, contención, canon, golden-harness.</li>
         <li><strong>Revisar visual</strong> — render read-through cuando el OPD importa.</li>
       </ol>
-      <p>Las herramientas del agente son <strong>read-through</strong>: no mutan el proto ni el dominio.</p>
+      <p>Pull, diagnóstico, render y validación son <strong>read-through</strong>: no mutan el proto ni el dominio. Push sí crea una revisión en la mesa bajo las reglas siguientes.</p>
     </section>
 
     <section class="card key">
@@ -176,25 +176,30 @@
       <h2>mesa pull · push</h2>
       <p>La skill lee y escribe la mesa directo, sin copiar y pegar. Desde la terminal del host:</p>
       <pre>cd app &amp;&amp; bun run mesa <span class="k">pull</span> &lt;modelo&gt;
-  <span class="c"># contexto del modelo para la skill</span>
+  <span class="c"># contexto + Testigo-Base; consérvalo con el bundle</span>
 
-cd app &amp;&amp; bun run mesa <span class="k">push</span> &lt;modelo&gt; bundle.json --nota "…"
-  <span class="c"># guarda una revisión; intenta etiquetarla después</span>
+cd app &amp;&amp; bun run mesa <span class="k">push</span> &lt;modelo&gt; bundle.json --base &lt;Testigo-Base&gt; --nota "…"
+  <span class="c"># modelo + versión + autosave se consolidan atómicamente</span>
+
+cd app &amp;&amp; bun run mesa <span class="k">push</span> &lt;referencia-nueva&gt; bundle.json --especie apunte --nota "…"
+  <span class="c"># la creación omite --base; usa --especie apunte|modelo</span>
 
 cd app &amp;&amp; bun run mesa <span class="k">modelos</span>
   <span class="c"># listar los del tenant</span></pre>
       <p>En la mesa, el chip <strong>«Revisión del agente»</strong> avisa cuando el agente empujó. Si tienes cambios, <strong>Ver la del agente</strong> conserva los tuyos; traerla exige la acción explícita <strong>Descartar los míos y traer la del agente</strong>.</p>
+      <p>El índice del workspace también usa revisión CAS: una pestaña obsoleta recibe conflicto en vez de borrar carpetas o la especie publicada. Eso evita pérdida silenciosa; no habilita coedición simultánea.</p>
+      <p><strong>Estado de despliegue:</strong> hasta comprobar un backend productivo compatible, <code>404/405/501</code> aborta sin escribir y se usa el puente W6.0.</p>
     </section>
 
     <section class="card">
       <p class="eyebrow">Disciplina del puente</p>
       <h2>Reglas del push</h2>
       <ul class="tight">
-        <li><strong>Pull inmediatamente antes de push</strong> — el bundle no queda ligado a la revisión de un pull anterior.</li>
+        <li><strong>Conserva el Testigo-Base</strong> del pull que originó el bundle y pásalo sin modificar.</li>
         <li>Nunca push <strong>sin validación local verde</strong> (contrato de import).</li>
-        <li>El <strong>409</strong> cubre solo la carrera interna del push: ante él, re-pull y jamás fuerces; su ausencia no prueba que un bundle antiguo sea fresco.</li>
-        <li>Si pide <code>--confirmado-por-operador</code>, obtén confirmación real; la señal de autosave puede ser conservadora.</li>
-        <li>Si falla la etiqueta de versión, la revisión ya quedó aplicada: verifica y registra el éxito parcial.</li>
+        <li>El servidor vuelve a comprobar guardado y autosave: ante <strong>409</strong>, re-pull y jamás fuerces.</li>
+        <li>Si la fuente del pull fue autosave y pide <code>--confirmado-por-operador</code>, obtén confirmación real.</li>
+        <li>En actualización, modelo, versión y limpieza del autosave se aplican juntos; en creación, también la especie.</li>
         <li>Nota de versión <strong>con procedencia</strong>.</li>
       </ul>
     </section>
@@ -211,7 +216,7 @@ cd app &amp;&amp; bun run mesa <span class="k">modelos</span>
       <h2>Sello de procedencia</h2>
       <p>El bundle es <strong>citable</strong>: lleva un sello de tres componentes</p>
       <pre>{ protoHash, autoriaVersion, layoutVersion }</pre>
-      <p>que permite rehidratar y auditar el modelo, y detectar si la mesa lo editó tras la emisión. Formato <code>deep-opm-pro.modelo.v0</code>.</p>
+      <p>que identifica la emisión y permite rehidratar y auditar el modelo. La comparación con el golden detecta divergencia durable; <em>dirty</em> solo advierte ediciones locales aún no guardadas. El sello no la demuestra por sí solo. Formato <code>deep-opm-pro.modelo.v0</code>.</p>
     </section>
 
     <section class="card key">

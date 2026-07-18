@@ -23,7 +23,11 @@ describe("elegirBase", () => {
       guardadoRev: 3,
       autosave: { creadoEn: "2026-07-06T10:00:05.000Z", json },
     });
-    expect(b.fuente).toEqual({ clase: "autosave", creadoEn: "2026-07-06T10:00:05.000Z" });
+    expect(b.fuente).toEqual({
+      clase: "autosave",
+      creadoEn: "2026-07-06T10:00:05.000Z",
+      guardadoRev: 3,
+    });
   });
   test("autosave más viejo → guardado", () => {
     const b = elegirBase({
@@ -47,6 +51,27 @@ describe("elegirBase", () => {
     });
     expect(b.fuente).toEqual({ clase: "guardado", rev: 3 });
   });
+  test("ordena offsets por instante y no por representación textual", () => {
+    const autosavePosterior = elegirBase({
+      guardadoActualizadoEn: "2026-07-06T12:00:00.000+02:00",
+      guardadoJson: json,
+      guardadoRev: 3,
+      autosave: { creadoEn: "2026-07-06T10:00:00.001Z", json },
+    });
+    expect(autosavePosterior.fuente).toEqual({
+      clase: "autosave",
+      creadoEn: "2026-07-06T10:00:00.001Z",
+      guardadoRev: 3,
+    });
+
+    const autosaveAnterior = elegirBase({
+      guardadoActualizadoEn: "2026-07-06T09:30:00.000-02:00",
+      guardadoJson: json,
+      guardadoRev: 3,
+      autosave: { creadoEn: "2026-07-06T11:00:00.000Z", json },
+    });
+    expect(autosaveAnterior.fuente).toEqual({ clase: "guardado", rev: 3 });
+  });
 });
 
 describe("componerPull", () => {
@@ -54,11 +79,21 @@ describe("componerPull", () => {
     const out = componerPull({
       nombre: "Demo",
       especie: "apunte",
-      base: { json, fuente: { clase: "autosave", creadoEn: "2026-07-06T10:00:05.000Z" } },
+      base: {
+        json,
+        fuente: {
+          clase: "autosave",
+          creadoEn: "2026-07-06T10:00:05.000Z",
+          guardadoRev: 3,
+        },
+      },
+      baseWitness: "mesa-v1.testigo",
       now: NOW,
     });
     expect(out).toContain("Especie: apunte");
     expect(out).toContain("autosave no consolidado");
+    expect(out).toContain("guardado rev 3");
+    expect(out).toContain("Testigo-Base: mesa-v1.testigo");
   });
   test("especie apunte relaja R-ENT-2: el OPL del pull incluye el proceso placeholder", () => {
     const conProceso = crearProcesoPlaceholder();

@@ -9,8 +9,18 @@ import { obtenerRefinamiento } from "../modelo/refinamientos";
 import { sincronizarAbanicos } from "../modelo/abanicos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import type { ResumenModeloPersistido } from "../persistencia/modelos";
-import { guardarWorkspaceBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
-import { indiceVacio, workspaceDesdeModelo, type MapaWorkspace, type WorkspaceIndice } from "../persistencia/workspace";
+import {
+  cargarWorkspaceBackend,
+  guardarWorkspaceBackend,
+  persistenciaBackendHabilitada,
+} from "../persistencia/backend";
+import {
+  indiceVacio,
+  workspaceDesdeModelo,
+  type MapaWorkspace,
+  type WorkspaceIndice,
+  type WorkspacePersistido,
+} from "../persistencia/workspace";
 import {
   agregar as seleccionAgregar,
   quitar as seleccionQuitar,
@@ -36,6 +46,10 @@ import type { StoreApi } from "zustand/vanilla";
 import { etiquetaPestana } from "./pestanas";
 import { RUNTIME_EFFECTS_DEFAULT, type RuntimeEffects } from "./runtimeEffects";
 import type { OpmStore } from "./tipos";
+import {
+  captureSessionEpoch,
+  isSessionEpochCurrent,
+} from "./sessionEpoch";
 
 export const UNDO_LIMIT = 100;
 export const WS_KEY = "workspace";
@@ -62,6 +76,8 @@ let autosalvadoControl: AutosalvadoControl | null = null;
 let pollRevisionTimer: ReturnType<typeof setInterval> | null = null;
 let storeApi: StoreApi<OpmStore> | null = null;
 let runtimeEffects: RuntimeEffects = RUNTIME_EFFECTS_DEFAULT;
+let workspaceWriteQueue: Promise<void> = Promise.resolve();
+let persistedWorkspaceIndex: WorkspaceIndice | null = null;
 
 export function conectarRuntimeStore(api: StoreApi<OpmStore>): void { storeApi = api; }
 export function inicializarRuntimeStore(api: StoreApi<OpmStore>, modelo: Modelo): void {
@@ -69,7 +85,12 @@ export function inicializarRuntimeStore(api: StoreApi<OpmStore>, modelo: Modelo)
   undoStack = [];
   redoStack = [];
   autosalvadoControl = null;
+  resetWorkspacePersistenceRuntime();
   snapshotGuardado = exportarModelo(sincronizarPuertosTodosLosOpd(modelo));
+}
+export function resetWorkspacePersistenceRuntime(): void {
+  workspaceWriteQueue = Promise.resolve();
+  persistedWorkspaceIndex = null;
 }
 export function obtenerRuntimeEffects(): RuntimeEffects { return runtimeEffects; }
 export function fijarRuntimeEffects(effects: RuntimeEffects): void { runtimeEffects = effects; }
@@ -92,6 +113,7 @@ export function fijarPollRevisionTimer(timer: ReturnType<typeof setInterval> | n
  */
 export function conBaseRevision(mapa: Record<string, number>, id: string, revision: number | undefined): Record<string, number> {
   if (typeof revision !== "number") return mapa;
+  if ((mapa[id] ?? -1) > revision) return mapa;
   return { ...mapa, [id]: revision };
 }
 function clonarModeloRuntime(modelo: Modelo): Modelo { if (typeof structuredClone === "function") return structuredClone(modelo); return JSON.parse(JSON.stringify(modelo)) as Modelo; }
@@ -536,9 +558,49 @@ export function opdIdDeEntidad(modelo: Modelo, entidadId: Id, opdPreferidoId: Id
 // ── Persistencia del WorkspaceIndice ────────────────────────────
 
 export function escribirIndiceWorkspace(indice: WorkspaceIndice): void {
-  if (persistenciaBackendHabilitada()) {
-    void guardarWorkspaceBackend(indice);
-  }
+  if (!persistenciaBackendHabilitada()) return;
+  const sessionEpoch = captureSessionEpoch();
+  const baseIndex = estadoActual()?.indice ?? indiceVacio();
+  workspaceWriteQueue = workspaceWriteQueue.then(async () => {
+    if (!isSessionEpochCurrent(sessionEpoch)) return;
+    const state = estadoActual();
+    if (!state || state.requiereLogin) return;
+
+    let baseRevision = state.workspaceRevision;
+    if (baseRevision === null || persistedWorkspaceIndex === null) {
+      const loaded = await cargarWorkspaceBackend();
+      if (!isSessionEpochCurrent(sessionEpoch) || estadoActual()?.requiereLogin) return;
+      if (!loaded.ok) {
+        setEstadoStore({ mensaje: loaded.error });
+        return;
+      }
+      if (observePersistedWorkspace(loaded.value)) {
+        baseRevision = loaded.value.revision;
+      } else {
+        baseRevision = estadoActual()?.workspaceRevision ?? loaded.value.revision;
+      }
+    }
+
+    const indexToSend = mergeWorkspaceBootstrap(
+      persistedWorkspaceIndex ?? indiceVacio(),
+      baseIndex,
+      indice,
+    );
+    const saved = await guardarWorkspaceBackend(indexToSend, baseRevision);
+    if (!isSessionEpochCurrent(sessionEpoch) || estadoActual()?.requiereLogin) return;
+    if (!saved.ok) {
+      setEstadoStore({ mensaje: saved.error });
+      return;
+    }
+    persistedWorkspaceIndex = saved.value.indice;
+    const stateAtResolution = estadoActual();
+    setEstadoStore({
+      workspaceRevision: saved.value.revision,
+      ...(stateAtResolution?.indice === indice
+        ? { indice: saved.value.indice }
+        : {}),
+    });
+  });
 }
 
 export function leerIndiceWorkspace(): WorkspaceIndice {
@@ -567,6 +629,127 @@ export function fusionarPreferenciasBootstrap(
     ...indiceBackend,
     preferenciasUi: { ...(indiceBackend.preferenciasUi ?? {}), ...prefsLocales },
   };
+}
+
+/**
+ * Aplica al snapshot remoto únicamente el delta ocurrido localmente desde la
+ * base observada. Así el bootstrap conserva cambios tempranos sin borrar
+ * carpetas/modelos remotos que el estado inicial todavía no conocía.
+ */
+export function mergeWorkspaceBootstrap(
+  backendIndex: WorkspaceIndice,
+  baseIndex: WorkspaceIndice,
+  localIndex: WorkspaceIndice,
+): WorkspaceIndice {
+  return {
+    modelos: mergeCollectionById(
+      backendIndex.modelos,
+      baseIndex.modelos,
+      localIndex.modelos,
+    ),
+    carpetas: mergeCollectionById(
+      backendIndex.carpetas,
+      baseIndex.carpetas,
+      localIndex.carpetas,
+    ),
+    recientes: areEqual(baseIndex.recientes, localIndex.recientes)
+      ? backendIndex.recientes
+      : localIndex.recientes,
+    ...mergeOptionalField(
+      "busquedaGlobalUltima",
+      backendIndex.busquedaGlobalUltima,
+      baseIndex.busquedaGlobalUltima,
+      localIndex.busquedaGlobalUltima,
+    ),
+    ...mergeOptionalField(
+      "preferenciasUi",
+      backendIndex.preferenciasUi,
+      baseIndex.preferenciasUi,
+      localIndex.preferenciasUi,
+    ),
+  };
+}
+
+/** Registra una lectura sin permitir que una respuesta vieja retroceda la base. */
+export function observePersistedWorkspace(workspace: WorkspacePersistido): boolean {
+  const state = estadoActual();
+  if (!state) return false;
+  if (state.workspaceRevision !== null &&
+    state.workspaceRevision > workspace.revision) {
+    return false;
+  }
+  persistedWorkspaceIndex = workspace.indice;
+  setEstadoStore({ workspaceRevision: workspace.revision });
+  return true;
+}
+
+function mergeCollectionById<T extends { id: Id }>(
+  remoteItems: T[],
+  base: T[],
+  localItems: T[],
+): T[] {
+  const result = new Map(remoteItems.map((item) => [item.id, item]));
+  const baseById = new Map(base.map((item) => [item.id, item]));
+  const localById = new Map(localItems.map((item) => [item.id, item]));
+  for (const id of new Set([...baseById.keys(), ...localById.keys()])) {
+    const baseItem = baseById.get(id);
+    const localItem = localById.get(id);
+    if (areEqual(baseItem, localItem)) continue;
+    if (!localItem) {
+      result.delete(id);
+      continue;
+    }
+    const remoteItem = result.get(id);
+    result.set(
+      id,
+      baseItem && remoteItem
+        ? mergeRecord(remoteItem, baseItem, localItem)
+        : localItem,
+    );
+  }
+  return [...result.values()];
+}
+
+function mergeRecord<T extends object>(remote: T, base: T, local: T): T {
+  const result = { ...remote } as Record<string, unknown>;
+  const baseRecord = base as Record<string, unknown>;
+  const localRecord = local as Record<string, unknown>;
+  for (const key of new Set([...Object.keys(baseRecord), ...Object.keys(localRecord)])) {
+    if (areEqual(baseRecord[key], localRecord[key])) continue;
+    if (localRecord[key] === undefined) delete result[key];
+    else result[key] = localRecord[key];
+  }
+  return result as T;
+}
+
+function mergeOptionalField<K extends string, T>(
+  key: K,
+  remote: T | undefined,
+  base: T | undefined,
+  local: T | undefined,
+): Partial<Record<K, T>> {
+  if (areEqual(base, local)) {
+    return remote === undefined ? {} : { [key]: remote } as Record<K, T>;
+  }
+  if (local === undefined) return {};
+  if (isPlainObject(remote) && isPlainObject(local)) {
+    return {
+      [key]: mergeRecord(
+        remote,
+        isPlainObject(base) ? base : {},
+        local,
+      ) as T,
+    } as Record<K, T>;
+  }
+  return { [key]: local } as Record<K, T>;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function areEqual(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 export function sincronizarIndiceConModelosGuardados(modelosGuardados: ResumenModeloPersistido[], indice: WorkspaceIndice): WorkspaceIndice {

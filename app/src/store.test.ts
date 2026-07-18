@@ -16,6 +16,10 @@ describe("store undo/redo y dirty state", () => {
     feedbackStore.getState().clearAll();
     instalarBackendMock();
     instalarConfirmacion();
+    store.setState({
+      indice: { modelos: [], carpetas: [], recientes: [] },
+      workspaceRevision: null,
+    });
     store.getState().importarJson(exportarModelo(crearModelo()));
     store.getState().listarModelosGuardados();
     await esperar(() => store.getState().modelosGuardados.length === 0);
@@ -1943,6 +1947,7 @@ function instalarBackendMock(): void {
   originalFetch = globalThis.fetch;
   const modelos = new Map<string, ModeloPersistido>();
   let workspace = { modelos: [] as Array<{ id: string; carpetaId: string | null }>, carpetas: [], recientes: [] as string[] };
+  let workspaceRevision = 0;
 
   globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
@@ -1953,11 +1958,17 @@ function instalarBackendMock(): void {
       return Promise.resolve(jsonResponse({ session: { tenantId: "tenant-store-test", userId: "user-store-test" } }));
     }
     if (url === "/__deep-opm/workspace" && method === "GET") {
-      return Promise.resolve(jsonResponse({ indice: workspace }));
+      return Promise.resolve(jsonResponse({ indice: workspace, revision: workspaceRevision }));
     }
     if (url === "/__deep-opm/workspace" && method === "PUT") {
+      if (body.revisionBase !== workspaceRevision) {
+        return Promise.resolve(jsonResponse({
+          error: "Workspace desactualizado; recarga antes de guardar",
+        }, 409));
+      }
       workspace = body.indice;
-      return Promise.resolve(jsonResponse({ indice: workspace }));
+      workspaceRevision += 1;
+      return Promise.resolve(jsonResponse({ indice: workspace, revision: workspaceRevision }));
     }
     if (url === "/__deep-opm/modelos?includePayload=1" && method === "GET") {
       return Promise.resolve(jsonResponse({ modelos: [...modelos.values()] }));
@@ -2000,4 +2011,5 @@ async function esperar(condicion: () => boolean): Promise<void> {
     if (condicion()) return;
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
+  throw new Error("La condición esperada no se cumplió");
 }

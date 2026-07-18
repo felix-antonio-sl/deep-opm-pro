@@ -9,6 +9,11 @@ import { exportarModelo } from "../serializacion/json";
 import { crearModelo, crearObjeto } from "../modelo/operaciones";
 import { cmdPush } from "../../scripts/mesa-cli";
 import type { WorkspaceIndice } from "../persistencia/workspace";
+import { createBaseWitness, encodeBaseWitness } from "./baseWitness";
+import {
+  encodeSessionIdentity,
+  SESSION_IDENTITY_HEADER,
+} from "../persistencia/sessionIdentity";
 
 /**
  * Regresión de las dos mecánicas de más riesgo del corte «especie vía
@@ -18,12 +23,10 @@ import type { WorkspaceIndice } from "../persistencia/workspace";
  *    un destino marcado `esBiblioteca:true` en el índice de workspace — antes
  *    de este corte `destinoRec` nunca traía ese flag, así que `evaluarPush`
  *    jamás veía la especie "biblioteca" del destino real.
- *  - ANTI-CLOBBER del PUT en CREATE `--especie apunte`: `marcarApunteEnWorkspace`
- *    hace GET→merge→PUT del índice ENTERO (el backend reemplaza el índice
- *    completo en cada PUT, ver `saveWorkspace`/`repoMemoria.ts`) — un PUT
- *    parcial (p. ej. `{modelos:[nuevo]}`) borraría silenciosamente el resto
- *    del workspace del operador (otros modelos, carpetas, recientes,
- *    preferenciasUi).
+ *  - ATOMICIDAD en CREATE `--especie apunte`: el commit crea modelo+versión
+ *    y marca la especie dentro de la misma operación del repositorio. El CLI
+ *    no debe emitir un PUT posterior del workspace que abra una ventana de
+ *    clobber sobre modelos, carpetas, recientes o preferencias.
  *
  * Mismo harness que `roundtrip.test.ts`: handler real en memoria
  * (`crearRepoMemoria` + `crearModelPersistenceFetchHandler`), `cmdPush` REAL
@@ -34,9 +37,22 @@ import type { WorkspaceIndice } from "../persistencia/workspace";
 const TOKEN = "z".repeat(48);
 
 function nuevoHandler(repo: ModelPersistenceRepository) {
+  const agentResolver = crearTokenSessionResolver({ token: TOKEN, tenantId: "t", userId: "u" });
   return crearModelPersistenceFetchHandler({
     repo,
-    sessionResolver: crearTokenSessionResolver({ token: TOKEN, tenantId: "t", userId: "u" }),
+    sessionResolver: {
+      async resolve(request) {
+        if (request.headers.get("x-test-operator") === "1") {
+          return {
+            tenantId: "t",
+            userId: "u",
+            auth: true,
+            authKind: "operator",
+          };
+        }
+        return agentResolver.resolve(request);
+      },
+    },
   });
 }
 
@@ -44,6 +60,21 @@ function req(path: string, init?: RequestInit): Request {
   return new Request(`https://x/__deep-opm${path}`, {
     ...init,
     headers: { authorization: `Bearer ${TOKEN}`, "content-type": "application/json", ...(init?.headers ?? {}) },
+  });
+}
+
+function reqOperador(path: string, init?: RequestInit): Request {
+  return new Request(`https://x/__deep-opm${path}`, {
+    ...init,
+    headers: {
+      "x-test-operator": "1",
+      "content-type": "application/json",
+      [SESSION_IDENTITY_HEADER]: encodeSessionIdentity({
+        tenantId: "t",
+        userId: "u",
+      }),
+      ...(init?.headers ?? {}),
+    },
   });
 }
 
@@ -56,6 +87,10 @@ function repoConEspiaDeEscrituras(): { repo: ModelPersistenceRepository; escritu
     async save(session, modelo) {
       escrituras += 1;
       return base.save(session, modelo);
+    },
+    async commitRevision(session, commit) {
+      escrituras += 1;
+      return base.commitRevision!(session, commit);
     },
   };
   return { repo, escrituras: () => escrituras };
@@ -70,7 +105,7 @@ class SalidaProcesoSimulada extends Error {
 async function invocarCmdPush(
   ref: string,
   bundlePath: string,
-  opts: { nota: string; confirmado: boolean; especie?: "apunte" | "modelo" },
+  opts: { nota: string; confirmado: boolean; base?: string; especie?: "apunte" | "modelo" },
   deps: { api: (path: string, init?: RequestInit) => Promise<Response> },
 ): Promise<{ codigoSalida?: number }> {
   const spy = spyOn(process, "exit").mockImplementation(((codigo?: number) => {
@@ -87,7 +122,7 @@ async function invocarCmdPush(
   }
 }
 
-describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (repo en memoria, sin red)", () => {
+describe("especie vía workspace — guard biblioteca + creación atómica (repo en memoria, sin red)", () => {
   test("guard biblioteca: cmdPush UPDATE rechaza destino esBiblioteca:true; control no-biblioteca sí escribe", async () => {
     const { repo, escrituras } = repoConEspiaDeEscrituras();
     const h = nuevoHandler(repo);
@@ -97,32 +132,32 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
     // Sembrar dos modelos: "bib-1" quedará marcado esBiblioteca en el índice;
     // "ctrl-1" queda ausente del índice (especie por defecto "modelo").
     const modeloBib = crearModelo("Biblioteca");
+    const jsonBib = exportarModelo(modeloBib);
     const postBib = await h(
-      req("/modelos", {
+      reqOperador("/modelos", {
         method: "POST",
         body: JSON.stringify({
           id: "bib-1",
           nombre: "Biblioteca",
-          json: exportarModelo(modeloBib),
+          json: jsonBib,
           creadoEn: ahora,
           actualizadoEn: ahora,
-          revision: 1,
         }),
       }),
     );
     expect(postBib.ok).toBe(true);
 
     const modeloCtrl = crearModelo("Control");
+    const jsonCtrl = exportarModelo(modeloCtrl);
     const postCtrl = await h(
-      req("/modelos", {
+      reqOperador("/modelos", {
         method: "POST",
         body: JSON.stringify({
           id: "ctrl-1",
           nombre: "Control",
-          json: exportarModelo(modeloCtrl),
+          json: jsonCtrl,
           creadoEn: ahora,
           actualizadoEn: ahora,
-          revision: 1,
         }),
       }),
     );
@@ -135,7 +170,10 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
       carpetas: [],
       recientes: [],
     };
-    const putIndice = await h(req("/workspace", { method: "PUT", body: JSON.stringify({ indice: indiceConBiblioteca }) }));
+    const putIndice = await h(reqOperador("/workspace", {
+      method: "PUT",
+      body: JSON.stringify({ indice: indiceConBiblioteca, revisionBase: 0 }),
+    }));
     expect(putIndice.ok).toBe(true);
 
     const dir = mkdtempSync(join(tmpdir(), "mesa-cli-biblioteca-guard-"));
@@ -150,7 +188,11 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
       const salidaBib = await invocarCmdPush(
         "bib-1",
         bundleBibPath,
-        { nota: "edición sobre biblioteca", confirmado: false },
+        {
+          nota: "edición sobre biblioteca",
+          confirmado: false,
+          base: baseWitness("bib-1", ahora, jsonBib, 1),
+        },
         { api: apiViaHandler },
       );
       // evaluarPush rechaza especie "biblioteca" → cmdPush hace process.exit(1)
@@ -167,7 +209,11 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
       const salidaCtrl = await invocarCmdPush(
         "ctrl-1",
         bundleCtrlPath,
-        { nota: "edición sobre control", confirmado: false },
+        {
+          nota: "edición sobre control",
+          confirmado: false,
+          base: baseWitness("ctrl-1", ahora, jsonCtrl, 1),
+        },
         { api: apiViaHandler },
       );
       expect(salidaCtrl.codigoSalida).toBeUndefined(); // completó sin abortar
@@ -177,18 +223,22 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
     }
   });
 
-  test("CREATE --especie apunte: el PUT del índice preserva modelos/carpetas/recientes/preferenciasUi preexistentes", async () => {
+  test("CREATE --especie apunte: el commit marca la especie sin PUT posterior y preserva el workspace", async () => {
     const repo = crearRepoMemoria();
     const h = nuevoHandler(repo);
-    const apiViaHandler = (path: string, init?: RequestInit) => h(req(path, init));
+    const paths: string[] = [];
+    const apiViaHandler = (path: string, init?: RequestInit) => {
+      paths.push(`${init?.method ?? "GET"} ${path}`);
+      return h(req(path, init));
+    };
     const ahora = new Date().toISOString();
 
     // Modelo preexistente + entrada de índice + carpeta + preferencias — todo
-    // debe sobrevivir intacto al PUT disparado por el marcado de especie del
-    // modelo NUEVO creado en este push.
+    // debe sobrevivir intacto al commit que incorpora la especie del modelo
+    // NUEVO creado en este push.
     const modeloExistente = crearModelo("Existente");
     const postExistente = await h(
-      req("/modelos", {
+      reqOperador("/modelos", {
         method: "POST",
         body: JSON.stringify({
           id: "existing-1",
@@ -196,7 +246,6 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
           json: exportarModelo(modeloExistente),
           creadoEn: ahora,
           actualizadoEn: ahora,
-          revision: 1,
         }),
       }),
     );
@@ -208,7 +257,10 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
       recientes: ["existing-1"],
       preferenciasUi: { anchoPanelArbol: 240 },
     };
-    const putSemilla = await h(req("/workspace", { method: "PUT", body: JSON.stringify({ indice: indiceSemilla }) }));
+    const putSemilla = await h(reqOperador("/workspace", {
+      method: "PUT",
+      body: JSON.stringify({ indice: indiceSemilla, revisionBase: 0 }),
+    }));
     expect(putSemilla.ok).toBe(true);
 
     const dir = mkdtempSync(join(tmpdir(), "mesa-cli-anti-clobber-"));
@@ -224,6 +276,8 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
         { api: apiViaHandler },
       );
       expect(salida.codigoSalida).toBeUndefined(); // creó sin abortar
+      expect(paths.some((path) => path.startsWith("POST /modelos/") && path.endsWith("/revisiones"))).toBe(true);
+      expect(paths).not.toContain("PUT /workspace");
 
       const getIndiceFinal = await h(req("/workspace"));
       const { indice: indiceFinal } = (await getIndiceFinal.json()) as { indice: WorkspaceIndice };
@@ -234,11 +288,8 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
       expect(entradasNuevas.length).toBe(1);
       expect(entradasNuevas[0]?.esApunte).toBe(true);
 
-      // (b) ANTI-CLOBBER: todo lo preexistente sigue intacto — la entrada del
-      // modelo viejo, la carpeta, recientes y preferenciasUi — sin mutación
-      // por el PUT del marcado de especie. Un PUT parcial (`{modelos:[nuevo]}`)
-      // haría desaparecer carpetas/recientes/preferenciasUi (ver bite-proof
-      // en el reporte de la tarea).
+      // (b) Todo lo preexistente sigue intacto dentro del mismo commit: la
+      // entrada del modelo viejo, la carpeta, recientes y preferenciasUi.
       expect(entradaExistente).toEqual(indiceSemilla.modelos[0]);
       expect(indiceFinal.carpetas).toEqual(indiceSemilla.carpetas);
       expect(indiceFinal.recientes).toEqual(indiceSemilla.recientes);
@@ -248,3 +299,16 @@ describe("especie vía workspace — guard biblioteca + anti-clobber del PUT (re
     }
   });
 });
+
+function baseWitness(
+  modelId: string,
+  updatedAt: string,
+  json: string,
+  revision: number,
+): string {
+  return encodeBaseWitness(createBaseWitness({
+    modelId,
+    saved: { revision, updatedAt, json },
+    autosave: null,
+  }));
+}

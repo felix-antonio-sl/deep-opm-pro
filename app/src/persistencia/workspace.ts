@@ -46,6 +46,18 @@ export interface WorkspaceIndice {
   preferenciasUi?: PreferenciasUiUsuario;
 }
 
+/** Snapshot persistido del índice y testigo monotónico para optimistic locking. */
+export interface WorkspacePersistido {
+  indice: WorkspaceIndice;
+  revision: number;
+}
+
+/** Reemplazo completo condicionado al snapshot que el cliente observó. */
+export interface WorkspaceWrite {
+  indice: WorkspaceIndice;
+  revisionBase: number;
+}
+
 export interface PortapapelesWorkspace {
   tipo: "modelo" | "carpeta";
   itemId: Id;

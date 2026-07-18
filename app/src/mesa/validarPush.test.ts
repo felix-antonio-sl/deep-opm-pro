@@ -15,7 +15,7 @@ function modeloSellado(): Modelo {
 }
 // El sello vive en `Modelo.procedencia` (anidado bajo `.modelo` en el
 // documento serializado por `exportarModelo`, NO en la raíz del documento) —
-// solo el compilador de autoría lo emite.
+// el flujo legítimo lo emite desde el compilador; no hay atestación criptográfica.
 const bundleSellado = exportarModelo(modeloSellado());
 
 describe("evaluarPush", () => {
@@ -40,7 +40,7 @@ describe("evaluarPush", () => {
     if (!v.ok) expect(v.motivo).toContain("proto");
   });
 
-  test("modelo con sello + bundle SELLADO (del compilador) → pasa (el carril respeta el compilador)", () => {
+  test("modelo con sello + bundle estructuralmente sellado → pasa", () => {
     const v = evaluarPush({
       bundleJson: bundleSellado,
       destino: { tieneSello: true, especie: "modelo" },

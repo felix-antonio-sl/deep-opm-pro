@@ -4,7 +4,9 @@ export function aplicarPoliticaLogScaleVersiones(
   versiones: VersionResumen[],
   ahora = new Date(),
   maxTotal = 10,
+  versionProtegidaId?: Id,
 ): VersionResumen[] {
+  const limite = Math.max(1, maxTotal);
   const preservadas = versiones.filter((version) => version.preservar);
   const candidatas = versiones
     .filter((version) => !version.preservar && Number.isFinite(Date.parse(version.creadoEn)))
@@ -22,15 +24,35 @@ export function aplicarPoliticaLogScaleVersiones(
     else if (edadDias <= 30) buckets.mes.versiones.push(version);
     else buckets.historico.versiones.push(version);
   }
-  return [
-    ...preservadas,
+  const candidatasPorBucket = [
     ...buckets.dia.versiones.slice(0, buckets.dia.max),
     ...buckets.semana.versiones.slice(0, buckets.semana.max),
     ...buckets.mes.versiones.slice(0, buckets.mes.max),
     ...buckets.historico.versiones.slice(0, buckets.historico.max),
   ]
-    .sort((a, b) => b.creadoEn.localeCompare(a.creadoEn))
-    .slice(0, Math.max(1, maxTotal));
+    .sort((a, b) => b.creadoEn.localeCompare(a.creadoEn));
+  // La cuota regula solo versiones podables. Las preservadas son adicionales:
+  // mantenerlas nunca reduce el cupo de la historia ordinaria.
+  const cupoOrdinario = limite;
+  const retenidasOrdinarias = candidatasPorBucket.slice(0, cupoOrdinario);
+  const protegida = versionProtegidaId
+    ? versiones.find((version) => version.id === versionProtegidaId)
+    : undefined;
+  if (protegida &&
+    protegida.preservar !== true &&
+    !retenidasOrdinarias.some((version) => version.id === protegida.id)) {
+    if (cupoOrdinario > 0 && retenidasOrdinarias.length >= cupoOrdinario) {
+      retenidasOrdinarias.pop();
+    }
+    // El hito que acaba de confirmar un commit no puede desaparecer dentro de
+    // ese mismo commit: ocupa una plaza ordinaria desplazando la candidata
+    // podable más antigua. Las preservadas se agregan fuera de esta cuota.
+    retenidasOrdinarias.push(protegida);
+  }
+  // `preservar` es una promesa fuerte: esas versiones no consumen una plaza
+  // podable y pueden hacer que el total supere `maxTotal`.
+  return [...preservadas, ...retenidasOrdinarias]
+    .sort((a, b) => b.creadoEn.localeCompare(a.creadoEn));
 }
 
 export function idsVersionesPodadas(versionesAntes: VersionResumen[], versionesDespues: VersionResumen[]): Id[] {

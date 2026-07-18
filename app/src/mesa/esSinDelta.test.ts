@@ -80,6 +80,16 @@ describe("esSinDelta", () => {
     expect(esSinDelta(bundleAntes, exportarModelo(modeloB))).toBe(false);
   });
 
+  test("carpetaId no es delta del puente: su autoridad es el workspace", () => {
+    const base = crearModelo("RT");
+    expect(
+      esSinDelta(
+        exportarModelo(base, "carpeta-a"),
+        exportarModelo(base, "carpeta-b"),
+      ),
+    ).toBe(true);
+  });
+
   test("re-layout puro (mover una apariencia) → HAY delta (dirección segura: ya no se ignora la presentación)", () => {
     const base = crearModelo("RT");
     const r = crearObjeto(base, base.opdRaizId, { x: 0, y: 0 }, "Cosa");

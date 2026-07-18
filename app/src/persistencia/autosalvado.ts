@@ -21,13 +21,14 @@ export interface AutosalvadoControl {
  */
 export function crearAutosalvado(opts: {
   esDirty: () => boolean;
-  ejecutarSalvado: () => Promise<void>;
+  ejecutarSalvado: () => Promise<boolean | void>;
   intervaloMs?: number;
 }): AutosalvadoControl {
   const INTERVALO = opts.intervaloMs ?? 5 * 60 * 1000; // 5 min default
   let timer: ReturnType<typeof setInterval> | null = null;
   let salvando = false;
   let ultimo: number | null = null;
+  let ciclo = 0;
   const listeners = new Set<(estado: AutosalvadoEstado) => void>();
 
   const notificar = () => {
@@ -40,11 +41,12 @@ export function crearAutosalvado(opts: {
     if (!opts.esDirty()) return; // no dirty, no acción
 
     salvando = true;
+    const cicloDelTick = ciclo;
     notificar();
 
     try {
-      await opts.ejecutarSalvado();
-      ultimo = Date.now();
+      const completed = await opts.ejecutarSalvado();
+      if (completed !== false && cicloDelTick === ciclo) ultimo = Date.now();
     } finally {
       salvando = false;
       notificar();
@@ -54,6 +56,7 @@ export function crearAutosalvado(opts: {
   return {
     iniciar(intervaloMs) {
       if (timer !== null) return; // ya iniciado
+      ciclo += 1;
       timer = setInterval(tick, intervaloMs ?? INTERVALO);
       notificar();
     },
@@ -62,6 +65,7 @@ export function crearAutosalvado(opts: {
       if (timer === null) return;
       clearInterval(timer);
       timer = null;
+      ciclo += 1;
       salvando = false;
       notificar();
     },

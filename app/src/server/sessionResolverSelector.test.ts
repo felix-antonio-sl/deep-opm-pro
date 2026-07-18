@@ -45,7 +45,12 @@ describe("elegirSessionResolver", () => {
     const resolver = elegirSessionResolver({ token: TOKEN_OK, identity: "a:b" }, cookie, (h) => habilitados.push(h));
     expect(resolver).not.toBe(cookie);
     const sesion = await resolver.resolve(reqConToken(TOKEN_OK));
-    expect(sesion).toMatchObject({ tenantId: "a", userId: "b", auth: true });
+    expect(sesion).toMatchObject({
+      tenantId: "a",
+      userId: "b",
+      auth: true,
+      authKind: "agent",
+    });
     expect(habilitados).toEqual([true]);
   });
 

@@ -6,7 +6,10 @@ import { createCarpetasSlice } from "./store/carpetas";
 import { createEnlacesSlice } from "./store/enlaces";
 import { createMapaSlice } from "./store/mapa";
 import { createModeloSlice, modeloInicial } from "./store/modelo";
-import { createPersistenciaSlice } from "./store/persistencia";
+import {
+  connectBackendSessionBoundary,
+  createPersistenciaSlice,
+} from "./store/persistencia";
 import { createSeleccionSlice } from "./store/seleccion";
 import { createPestanasSlice } from "./store/pestanas";
 import { createSimulacionSlice } from "./store/simulacion";
@@ -31,7 +34,13 @@ export function crearOpmStore(opciones: { conectarRuntimeGlobal?: boolean } = {}
     ...createSimulacionSlice(set, get),
     ...createAtajosSlice(set, get),
   } as OpmStore));
-  if (opciones.conectarRuntimeGlobal) inicializarRuntimeStore(api, modeloInicial);
+  if (opciones.conectarRuntimeGlobal) {
+    inicializarRuntimeStore(api, modeloInicial);
+    connectBackendSessionBoundary(
+      (partial) => api.setState(partial),
+      () => api.getState(),
+    );
+  }
   return api;
 }
 

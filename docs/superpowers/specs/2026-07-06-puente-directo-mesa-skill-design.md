@@ -1,6 +1,17 @@
 # Puente directo mesa↔skill — diseño (Corte A′: motor + vitrina)
 
-**Fecha:** 2026-07-06 · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato.
+**Fecha:** 2026-07-06 · **Estado:** HISTÓRICO PARCIAL; la versión 1 fue realizada
+y desplegada en su corte.
+
+> **Aviso de vigencia (2026-07-18).** Este documento conserva el diseño y la
+> procedencia de la vitrina (§6), pero ya no gobierna la autenticación ni el
+> protocolo de escritura descritos en §§4, 5, 7 y 8. Esos contratos fueron
+> sustituidos por el `Testigo-Base`, el commit atómico y el Bearer de mínimo
+> privilegio de
+> [Manual de opforja · A.6](../../manual-opforja.md#a6-puente-directo-mesaskill-cli).
+> La fuente actual implementa ese protocolo 2.0, todavía no desplegado al
+> publicar este aviso; producción conserva el puente anterior y W6.0 es el
+> camino seguro hasta verificar un backend compatible.
 
 ## 1. Función esencial
 

@@ -25,8 +25,9 @@ import { observarPreservacionFrontera } from "../../modelo/equivalencia";
 import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import type { Id, Modelo, Resultado, TargetSatisfaccionRequisito } from "../../modelo/tipos";
 import { cargarModeloBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
-import { hidratarModelo } from "../../serializacion/json";
+import { exportarModelo, hidratarModelo } from "../../serializacion/json";
 import { commitModelo, estadoSeleccionDesdeIds, type GetStore, type SetStore } from "../runtime";
+import { captureSessionEpoch, isSessionEpochCurrent } from "../sessionEpoch";
 import type { ModeloSlice } from "../tipos";
 
 export function accionesCapacidades(set: SetStore, get: GetStore): Partial<ModeloSlice> {
@@ -208,7 +209,11 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
 
     componerConModeloGuardado(input) {
       const { modelo } = get();
+      const sessionEpoch = captureSessionEpoch();
+      const pestanaOrigenId = get().pestanaActivaId;
+      const snapshotOrigen = exportarModelo(modelo);
       const aplicarComposicion = (modeloB: Modelo) => {
+        if (!asyncOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) return;
         const resultado = componerModelos(modelo, modeloB, input.compartidas ?? {});
         if (!resultado.ok) {
           set({ mensaje: resultado.error });
@@ -237,6 +242,7 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
       if (persistenciaBackendHabilitada()) {
         set({ mensaje: "Cargando modelo para composición desde servidor..." });
         void cargarModeloBackend(input.modeloId).then((cargado) => {
+          if (!asyncOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) return;
           if (!cargado.ok) {
             set({ mensaje: cargado.error });
             return;
@@ -303,7 +309,11 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         set({ mensaje: "Selecciona la cosa que ancla el submodelo" });
         return;
       }
+      const sessionEpoch = captureSessionEpoch();
+      const pestanaOrigenId = get().pestanaActivaId;
+      const snapshotOrigen = exportarModelo(modelo);
       const conectar = (snapshot: Resultado<Modelo | undefined>) => {
+        if (!asyncOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) return;
         if (!snapshot.ok) {
           set({ mensaje: snapshot.error });
           return;
@@ -361,7 +371,11 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
         set({ mensaje: "Submodelo no encontrado" });
         return;
       }
+      const sessionEpoch = captureSessionEpoch();
+      const pestanaOrigenId = get().pestanaActivaId;
+      const snapshotOrigen = exportarModelo(modelo);
       const actualizar = (snapshot: Resultado<Modelo | undefined>) => {
+        if (!asyncOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) return;
         if (!snapshot.ok) {
           set({ mensaje: snapshot.error });
           return;
@@ -649,6 +663,19 @@ function enlaceDerivadoEnOpd(modelo: Modelo, opdId: Id, enlacePadreId: Id): Id |
 
 function opdVistaRequisito(modelo: Modelo, requisitoEntidadId: Id): Id | null {
   return Object.values(modelo.opds).find((opd) => opd.vista?.kind === "requirement-view" && opd.vista.requisitoEntidadId === requisitoEntidadId)?.id ?? null;
+}
+
+function asyncOriginIsCurrent(
+  get: GetStore,
+  sessionEpoch: number,
+  pestanaOrigenId: string,
+  snapshotOrigen: string,
+): boolean {
+  const estado = get();
+  return isSessionEpochCurrent(sessionEpoch) &&
+    !estado.requiereLogin &&
+    estado.pestanaActivaId === pestanaOrigenId &&
+    exportarModelo(estado.modelo) === snapshotOrigen;
 }
 
 async function cargarSnapshotSubmodelo(modeloId: Id): Promise<Resultado<Modelo | undefined>> {

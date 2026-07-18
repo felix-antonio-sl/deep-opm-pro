@@ -171,6 +171,7 @@ import { activarEstadoPestanas, activarPestanaNueva, conBaseRevision, estadoMode
 import { cargarModeloBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
 import { workspaceDesdeModelo } from "../persistencia/workspace";
 import { hidratarModelo } from "../serializacion/json";
+import { captureSessionEpoch, isSessionEpochCurrent } from "./sessionEpoch";
 
 const pestanaInicial = crearPestanaNueva();
 const cerrarPestanaEstado = cerrarPestana;
@@ -208,11 +209,39 @@ export const createPestanasSlice: CrearSlice<PestanasSlice> = (set, get) => ({
   },
 
   abrirPestanaConModelo(modeloId) {
+    const yaAbierta = get().pestanasAbiertas.find((pestana) => pestana.modeloId === modeloId);
+    if (yaAbierta) {
+      get().cambiarPestanaActiva(yaAbierta.id);
+      set({ mensaje: "El modelo ya estaba abierto; se activó su pestaña" });
+      return;
+    }
     if (persistenciaBackendHabilitada()) {
+      const sessionEpoch = captureSessionEpoch();
       set({ mensaje: "Cargando modelo desde servidor..." });
       void cargarModeloBackend(modeloId).then((cargado) => {
+        if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
         if (!cargado.ok) {
           set({ mensaje: cargado.error });
+          return;
+        }
+        const estadoActual = get();
+        const knownRevision = Math.max(
+          estadoActual.revisionBasePorModelo[modeloId] ?? -1,
+          estadoActual.modelosGuardados.find((modelo) => modelo.id === modeloId)?.revision ?? -1,
+          estadoActual.revisionRemota?.modeloId === modeloId
+            ? estadoActual.revisionRemota.revision
+            : -1,
+        );
+        if (typeof cargado.value.revision === "number" &&
+          cargado.value.revision < knownRevision) {
+          return;
+        }
+        const abiertaDuranteLaCarga = get().pestanasAbiertas.find(
+          (pestana) => pestana.modeloId === modeloId,
+        );
+        if (abiertaDuranteLaCarga) {
+          get().cambiarPestanaActiva(abiertaDuranteLaCarga.id);
+          set({ mensaje: "El modelo ya estaba abierto; se activó su pestaña" });
           return;
         }
         const resultado = hidratarModelo(cargado.value.json);

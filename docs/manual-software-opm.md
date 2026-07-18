@@ -531,9 +531,12 @@ Para software son especialmente útiles:
 - apuntes para incidentes e hipótesis;
 - OPL, diagnóstico, bundles y export canónico;
 - Piezas y Anclaje para vocabulario gobernado;
-- contexto humano-agente con revisiones; el bloqueo actual cubre la carrera
-  interna del `push`, pero no liga el bundle a la revisión de un `pull` anterior
-  (ver el [límite del puente](manual-opforja.md#a6-puente-directo-mesaskill-cli)).
+- contexto humano-agente con revisiones y `Testigo-Base`: un backend compatible
+  vuelve a comprobar guardado y autosave, y aplica revisión, versión y
+  consolidación en una transacción; el workspace usa su propia revisión CAS
+  para que un índice obsoleto no borre esa publicación. El estado de despliegue
+  y el fallback W6.0 viven en el
+  [contrato del puente](manual-opforja.md#a6-puente-directo-mesaskill-cli).
 
 La lista transversal completa vive en el
 [manual de sistemas](manual-sistemas-opm.md#91-implementado).

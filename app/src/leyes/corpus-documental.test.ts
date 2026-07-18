@@ -239,12 +239,59 @@ describe("corpus documental · una fuente por concepto y proyecciones navegables
     const manualOpforja = readFileSync(resolve(DOCS, "manual-opforja.md"), "utf8");
     const manualPuro = readFileSync(resolve(DOCS, "manual-opm-puro.md"), "utf8");
     const manualSanitario = readFileSync(resolve(DOCS, "manual-sanitarios-opm.md"), "utf8");
+    const hojasPuente = [
+      "opforja-software.html",
+      "opforja-skill-flujo.html",
+      "opforja-interaccion-skill.html",
+    ].map((archivo) => readFileSync(resolve(CHEATSHEETS, archivo), "utf8"));
 
     expect(uso).toContain("el clic no fuerza por sí mismo el guardado");
     expect(uso).not.toContain("fondo ámbar");
-    expect(manualOpforja).toContain("el bundle no");
-    expect(manualOpforja).toContain("ligado a la revisión observada por un `pull` anterior");
-    expect(manualOpforja).not.toContain("respeta el optimistic locking");
+    expect(manualOpforja).toContain("`Testigo-Base`");
+    expect(manualOpforja).toContain("--base <Testigo-Base>");
+    expect(manualOpforja).toContain("dentro de la misma transacción");
+    expect(manualOpforja).toContain("responde `409` y no escribe nada");
+    expect(manualOpforja).toContain("`404/405/501`");
+    expect(manualOpforja).toContain("modelo, versión y");
+    expect(manualOpforja).toContain("especie —incluida la marca de apunte");
+    expect(manualOpforja).toContain("workspace también porta una revisión monotónica");
+    expect(manualOpforja).toContain("No convierte la");
+    expect(manualOpforja).toContain("mesa en editor colaborativo");
+    expect(manualOpforja).toContain("ligadas a la identidad de sesión");
+    expect(manualOpforja).toContain("no una firma criptográfica");
+    expect(manualOpforja).not.toContain("lo emite solo el compilador");
+    expect(manualOpforja).not.toContain("el bundle no queda ligado");
+    expect(manualOpforja).not.toContain("etiquetado parcial");
+    expect(manualOpforja).not.toContain("segundo gesto");
+    expect(manualOpforja).not.toContain("directo contra el backend desplegado");
+    expect(manualOpforja).not.toContain("Soltar desancla irreversible");
+    expect(readFileSync(resolve(DOCS, "manual-software-opm.md"), "utf8"))
+      .not.toContain("no liga el bundle a la revisión de un `pull` anterior");
+    for (const hoja of hojasPuente) {
+      expect(hoja).toContain("404/405/501");
+      expect(hoja).toContain("W6.0");
+      expect(hoja).not.toContain("directo contra el backend desplegado");
+    }
+    expect(hojasPuente[1]).toContain("--especie apunte|modelo");
+    expect(hojasPuente[1]).toContain("la creación omite");
+    expect(hojasPuente[1]).toContain("Push sí crea una revisión");
+    expect(hojasPuente[1]).toContain("dirty</em> solo advierte ediciones locales aún no guardadas");
+    expect(hojasPuente[1]).toContain("El sello no la demuestra por sí solo");
+    expect(hojasPuente[1]).not.toContain("Las herramientas del agente son <strong>read-through</strong>");
+    expect(hojasPuente[1]).not.toContain("detectar si la mesa lo editó tras la emisión");
+    expect(readFileSync(resolve(CHEATSHEETS, "opforja-sistemas.html"), "utf8"))
+      .toContain("ni implica factibilidad validada o prioridad");
+    const specPuenteHistorica = readFileSync(
+      resolve(DOCS, "superpowers/specs/2026-07-06-puente-directo-mesa-skill-design.md"),
+      "utf8",
+    );
+    expect(specPuenteHistorica).toContain("HISTÓRICO PARCIAL");
+    expect(specPuenteHistorica).toContain("protocolo 2.0, todavía no desplegado");
+    expect(specPuenteHistorica).toContain("../../manual-opforja.md#a6-puente-directo-mesaskill-cli");
+    const hojasConRecetaMesa = HOJAS_RAPIDAS
+      .filter((ruta) => readFileSync(ruta, "utf8").includes("bun run mesa"))
+      .map((ruta) => basename(ruta));
+    expect(hojasConRecetaMesa).toEqual(["opforja-skill-flujo.html"]);
     expect(manualPuro).toContain("ISO 19450:2024");
     expect(manualPuro).not.toContain("ISO/PAS 19450");
     expect(manualSanitario).not.toContain("soltar (irreversible)");

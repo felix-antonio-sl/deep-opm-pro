@@ -42,6 +42,20 @@ describe("autosalvado (L4)", () => {
     expect(salvados).toBe(0);
   });
 
+  test("un intento fallido no actualiza la marca de último autosave", async () => {
+    const ctrl = crearAutosalvado({
+      esDirty: () => true,
+      ejecutarSalvado: async () => false,
+      intervaloMs: 30,
+    });
+    ctrl.iniciar(30);
+
+    await new Promise((r) => setTimeout(r, 70));
+    ctrl.detener();
+
+    expect(ctrl.estado().ultimo).toBeNull();
+  });
+
   test("marca salvandoAhora durante la ejecución", async () => {
     let capturadoSalvando = false;
     const ctrl = crearAutosalvado({
@@ -76,6 +90,29 @@ describe("autosalvado (L4)", () => {
     const antes = salvados;
     await new Promise((r) => setTimeout(r, 120));
     expect(salvados).toBe(antes);
+  });
+
+  test("detener invalida un tick que todavía espera respuesta", async () => {
+    let resolverInicio = () => {};
+    let resolverSalvado = () => {};
+    const iniciado = new Promise<void>((resolve) => { resolverInicio = resolve; });
+    const liberar = new Promise<void>((resolve) => { resolverSalvado = resolve; });
+    const ctrl = crearAutosalvado({
+      esDirty: () => true,
+      ejecutarSalvado: async () => {
+        resolverInicio();
+        await liberar;
+      },
+      intervaloMs: 10,
+    });
+    ctrl.iniciar(10);
+    await iniciado;
+
+    ctrl.detener();
+    resolverSalvado();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(ctrl.estado()).toEqual({ activo: false, ultimo: null, salvando: false });
   });
 
   test("iniciar es idempotente", () => {

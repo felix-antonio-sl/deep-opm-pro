@@ -4,18 +4,33 @@ import {
   type ModeloPersistido,
   type ResumenModeloPersistido,
 } from "./modelos";
-import type { WorkspaceIndice } from "./workspace";
+import type { WorkspaceIndice, WorkspacePersistido } from "./workspace";
 import { indiceVacio } from "./workspace";
+import {
+  encodeSessionIdentity,
+  SESSION_IDENTITY_HEADER,
+  type SessionIdentity,
+} from "./sessionIdentity";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "./workspaceStorage";
 
 const ENDPOINT = "/__deep-opm/modelos";
 const WORKSPACE_ENDPOINT = "/__deep-opm/workspace";
 const SESSION_ENDPOINT = "/__deep-opm/session";
+const backendUnauthorizedListeners = new Set<() => void>();
+let observedSessionIdentity: string | null = null;
+let sessionBoundaryVersion = 0;
+let pendingSessionRequest: {
+  boundaryVersion: number;
+  promise: Promise<BackendSessionResponse>;
+} | null = null;
 
-export interface SesionBackend {
-  tenantId: string;
-  userId: string;
+interface BackendSessionResponse {
+  status: number;
+  ok: boolean;
+  body: unknown;
 }
+
+export interface SesionBackend extends SessionIdentity {}
 
 export interface VersionBackend {
   modeloId: string;
@@ -33,14 +48,27 @@ export function persistenciaBackendHabilitada(): boolean {
   return typeof window !== "undefined" && typeof fetch === "function";
 }
 
+export function onBackendUnauthorized(listener: () => void): () => void {
+  backendUnauthorizedListeners.add(listener);
+  return () => backendUnauthorizedListeners.delete(listener);
+}
+
+export function forgetObservedBackendSession(): void {
+  observedSessionIdentity = null;
+  sessionBoundaryVersion += 1;
+}
+
 export async function obtenerSesionBackend(): Promise<Resultado<SesionBackend>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
+  const requestBoundaryVersion = sessionBoundaryVersion;
   try {
-    const response = await fetch(SESSION_ENDPOINT, { method: "GET" });
-    const body = await leerJson(response);
-    if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo iniciar sesión de workspace");
-    const session = sesionDesdeBody(body);
+    const response = await fetchBackendSession(requestBoundaryVersion);
+    if (!response.ok) return fallo(errorDesdeBody(response.body) ?? "No se pudo iniciar sesión de workspace");
+    const session = sesionDesdeBody(response.body);
     if (!session) return fallo("Respuesta de sesión inválida");
+    if (!acceptSessionResponse(session, requestBoundaryVersion)) {
+      return fallo("La identidad de sesión cambió");
+    }
     return ok(session);
   } catch {
     return fallo("No se pudo conectar al backend de modelos");
@@ -58,13 +86,16 @@ export type EstadoSesionBackend =
 /** Bootstrap auth-aware (spec §4): distingue 401 (login obligatorio) de caída del backend. */
 export async function obtenerEstadoSesionBackend(): Promise<EstadoSesionBackend> {
   if (!persistenciaBackendHabilitada()) return { estado: "error", error: "Persistencia backend no disponible" };
+  const requestBoundaryVersion = sessionBoundaryVersion;
   try {
-    const response = await fetch(SESSION_ENDPOINT, { method: "GET" });
+    const response = await fetchBackendSession(requestBoundaryVersion);
     if (response.status === 401) return { estado: "requiere-login" };
-    const body = await leerJson(response);
-    if (!response.ok) return { estado: "error", error: errorDesdeBody(body) ?? "No se pudo iniciar sesión de workspace" };
-    const session = sesionDesdeBody(body);
+    if (!response.ok) return { estado: "error", error: errorDesdeBody(response.body) ?? "No se pudo iniciar sesión de workspace" };
+    const session = sesionDesdeBody(response.body);
     if (!session) return { estado: "error", error: "Respuesta de sesión inválida" };
+    if (!acceptSessionResponse(session, requestBoundaryVersion)) {
+      return { estado: "requiere-login" };
+    }
     return { estado: "autenticada", session };
   } catch {
     return { estado: "error", error: "No se pudo conectar al backend de modelos" };
@@ -73,6 +104,7 @@ export async function obtenerEstadoSesionBackend(): Promise<EstadoSesionBackend>
 
 export async function iniciarSesionBackend(email: string, password: string): Promise<Resultado<SesionBackend>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
+  const requestBoundaryVersion = sessionBoundaryVersion;
   try {
     const response = await fetch(AUTH_LOGIN_ENDPOINT, {
       method: "POST",
@@ -83,6 +115,9 @@ export async function iniciarSesionBackend(email: string, password: string): Pro
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo iniciar sesión");
     const session = sesionDesdeBody(body);
     if (!session) return fallo("Respuesta de sesión inválida");
+    if (!acceptSessionResponse(session, requestBoundaryVersion, true)) {
+      return fallo("La operación de inicio de sesión quedó obsoleta");
+    }
     return ok(session);
   } catch {
     return fallo("No se pudo conectar al backend de modelos");
@@ -91,6 +126,7 @@ export async function iniciarSesionBackend(email: string, password: string): Pro
 
 export async function cerrarSesionBackend(): Promise<Resultado<void>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
+  forgetObservedBackendSession();
   try {
     const response = await fetch(AUTH_LOGOUT_ENDPOINT, { method: "POST" });
     if (!response.ok) return fallo("No se pudo cerrar la sesión");
@@ -103,7 +139,7 @@ export async function cerrarSesionBackend(): Promise<Resultado<void>> {
 export async function listarModelosBackend(): Promise<Resultado<ResumenModeloPersistido[]>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(`${ENDPOINT}?includePayload=1`, { method: "GET" });
+    const response = await fetchBackend(`${ENDPOINT}?includePayload=1`, { method: "GET" });
     const body = await leerJson(response);
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo listar modelos del servidor");
     const modelos = modelosDesdeBody(body);
@@ -117,7 +153,7 @@ export async function listarModelosBackend(): Promise<Resultado<ResumenModeloPer
 export async function guardarModeloBackend(modelo: ModeloPersistido): Promise<Resultado<ModeloPersistido>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(ENDPOINT, {
+    const response = await fetchBackend(ENDPOINT, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ modelo }),
@@ -135,7 +171,7 @@ export async function guardarModeloBackend(modelo: ModeloPersistido): Promise<Re
 export async function cargarModeloBackend(id: string): Promise<Resultado<ModeloPersistido>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(`${ENDPOINT}/${encodeURIComponent(id)}`, { method: "GET" });
+    const response = await fetchBackend(`${ENDPOINT}/${encodeURIComponent(id)}`, { method: "GET" });
     const body = await leerJson(response);
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "Modelo no encontrado en servidor");
     const modelo = modeloDesdeBody(body);
@@ -149,7 +185,7 @@ export async function cargarModeloBackend(id: string): Promise<Resultado<ModeloP
 export async function borrarModeloBackend(id: string): Promise<Resultado<void>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(`${ENDPOINT}/${encodeURIComponent(id)}`, { method: "DELETE" });
+    const response = await fetchBackend(`${ENDPOINT}/${encodeURIComponent(id)}`, { method: "DELETE" });
     const body = await leerJson(response);
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo borrar en servidor");
     return ok(undefined);
@@ -158,33 +194,36 @@ export async function borrarModeloBackend(id: string): Promise<Resultado<void>> 
   }
 }
 
-export async function cargarWorkspaceBackend(): Promise<Resultado<WorkspaceIndice>> {
+export async function cargarWorkspaceBackend(): Promise<Resultado<WorkspacePersistido>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(WORKSPACE_ENDPOINT, { method: "GET" });
+    const response = await fetchBackend(WORKSPACE_ENDPOINT, { method: "GET" });
     const body = await leerJson(response);
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo cargar workspace del servidor");
-    const indice = workspaceDesdeBody(body);
-    if (!indice) return fallo("Respuesta de workspace inválida");
-    return ok(indice);
+    const workspace = workspaceDesdeBody(body);
+    if (!workspace) return fallo("Respuesta de workspace inválida");
+    return ok(workspace);
   } catch {
     return fallo("No se pudo conectar al backend de modelos");
   }
 }
 
-export async function guardarWorkspaceBackend(indice: WorkspaceIndice): Promise<Resultado<WorkspaceIndice>> {
+export async function guardarWorkspaceBackend(
+  indice: WorkspaceIndice,
+  revisionBase: number,
+): Promise<Resultado<WorkspacePersistido>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(WORKSPACE_ENDPOINT, {
+    const response = await fetchBackend(WORKSPACE_ENDPOINT, {
       method: "PUT",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ indice }),
+      body: JSON.stringify({ indice, revisionBase }),
     });
     const body = await leerJson(response);
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo guardar workspace en servidor");
-    const guardado = workspaceDesdeBody(body);
-    if (!guardado) return fallo("Respuesta de workspace inválida");
-    return ok(guardado);
+    const workspace = workspaceDesdeBody(body);
+    if (!workspace) return fallo("Respuesta de workspace inválida");
+    return ok(workspace);
   } catch {
     return fallo("No se pudo conectar al backend de modelos");
   }
@@ -193,7 +232,7 @@ export async function guardarWorkspaceBackend(indice: WorkspaceIndice): Promise<
 export async function guardarVersionBackend(modeloId: string, version: VersionResumen, json: string): Promise<Resultado<VersionBackend>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(`${ENDPOINT}/${encodeURIComponent(modeloId)}/versiones`, {
+    const response = await fetchBackend(`${ENDPOINT}/${encodeURIComponent(modeloId)}/versiones`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ version, json }),
@@ -211,7 +250,7 @@ export async function guardarVersionBackend(modeloId: string, version: VersionRe
 export async function cargarVersionBackend(modeloId: string, versionId: string): Promise<Resultado<VersionBackend>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(`${ENDPOINT}/${encodeURIComponent(modeloId)}/versiones/${encodeURIComponent(versionId)}`);
+    const response = await fetchBackend(`${ENDPOINT}/${encodeURIComponent(modeloId)}/versiones/${encodeURIComponent(versionId)}`);
     const body = await leerJson(response);
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "Versión no encontrada en servidor");
     const version = versionDesdeBody(body);
@@ -225,7 +264,7 @@ export async function cargarVersionBackend(modeloId: string, versionId: string):
 export async function borrarVersionBackend(modeloId: string, versionId: string): Promise<Resultado<void>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(`${ENDPOINT}/${encodeURIComponent(modeloId)}/versiones/${encodeURIComponent(versionId)}`, { method: "DELETE" });
+    const response = await fetchBackend(`${ENDPOINT}/${encodeURIComponent(modeloId)}/versiones/${encodeURIComponent(versionId)}`, { method: "DELETE" });
     const body = await leerJson(response);
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo borrar versión en servidor");
     return ok(undefined);
@@ -234,13 +273,18 @@ export async function borrarVersionBackend(modeloId: string, versionId: string):
   }
 }
 
-export async function guardarAutosalvadoBackend(modeloId: string, json: string, creadoEn = new Date().toISOString()): Promise<Resultado<AutosalvadoBackend>> {
+export async function guardarAutosalvadoBackend(
+  modeloId: string,
+  json: string,
+  revisionBase: number,
+  creadoEn = new Date().toISOString(),
+): Promise<Resultado<AutosalvadoBackend>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
   try {
-    const response = await fetch(`${ENDPOINT}/${encodeURIComponent(modeloId)}/autosave`, {
+    const response = await fetchBackend(`${ENDPOINT}/${encodeURIComponent(modeloId)}/autosave`, {
       method: "PUT",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ creadoEn, json }),
+      body: JSON.stringify({ creadoEn, json, revisionBase }),
     });
     const body = await leerJson(response);
     if (!response.ok) return fallo(errorDesdeBody(body) ?? "No se pudo guardar autosalvado en servidor");
@@ -269,10 +313,18 @@ function sesionDesdeBody(body: unknown): SesionBackend | null {
   return typeof tenantId === "string" && typeof userId === "string" ? { tenantId, userId } : null;
 }
 
-function workspaceDesdeBody(body: unknown): WorkspaceIndice | null {
-  if (!esRecord(body)) return null;
-  const value = esRecord(body.indice) ? body.indice : body;
-  return normalizarWorkspace(value);
+function workspaceDesdeBody(body: unknown): WorkspacePersistido | null {
+  if (!esRecord(body) ||
+    !esRecord(body.indice) ||
+    typeof body.revision !== "number" ||
+    !Number.isInteger(body.revision) ||
+    body.revision < 0) {
+    return null;
+  }
+  return {
+    indice: normalizarWorkspace(body.indice),
+    revision: body.revision,
+  };
 }
 
 function versionDesdeBody(body: unknown): VersionBackend | null {
@@ -349,6 +401,71 @@ function normalizarWorkspace(value: unknown): WorkspaceIndice {
     ...(typeof value.busquedaGlobalUltima === "string" ? { busquedaGlobalUltima: value.busquedaGlobalUltima } : {}),
     ...(esPreferenciasUi(value.preferenciasUi) ? { preferenciasUi: value.preferenciasUi } : {}),
   };
+}
+
+async function fetchBackend(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const requestIdentity = observedSessionIdentity;
+  const headers = new Headers(init?.headers);
+  if (String(input).split("?")[0] !== SESSION_ENDPOINT && requestIdentity) {
+    headers.set(SESSION_IDENTITY_HEADER, requestIdentity);
+  }
+  const response = await fetch(input, { ...init, headers });
+  if (response.status === 401 && requestIdentity === observedSessionIdentity) {
+    notifyBackendUnauthorized();
+  }
+  return response;
+}
+
+function fetchBackendSession(boundaryVersion: number): Promise<BackendSessionResponse> {
+  if (pendingSessionRequest?.boundaryVersion === boundaryVersion) {
+    return pendingSessionRequest.promise;
+  }
+  const promise = fetchBackend(SESSION_ENDPOINT, { method: "GET" }).then(async (response) => ({
+    status: response.status,
+    ok: response.ok,
+    body: await leerJson(response),
+  }));
+  const request = { boundaryVersion, promise };
+  pendingSessionRequest = request;
+  const clear = () => {
+    if (pendingSessionRequest === request) pendingSessionRequest = null;
+  };
+  void promise.then(clear, clear);
+  return promise;
+}
+
+function acceptSessionResponse(
+  session: SesionBackend,
+  requestBoundaryVersion: number,
+  allowChange = false,
+): boolean {
+  const identity = encodeSessionIdentity(session);
+  if (requestBoundaryVersion !== sessionBoundaryVersion) {
+    return observedSessionIdentity === identity;
+  }
+  return observeBackendSession(session, allowChange);
+}
+
+function observeBackendSession(session: SesionBackend, allowChange = false): boolean {
+  const identity = encodeSessionIdentity(session);
+  if (observedSessionIdentity && observedSessionIdentity !== identity && !allowChange) {
+    notifyBackendUnauthorized();
+    return false;
+  }
+  if (observedSessionIdentity !== identity) sessionBoundaryVersion += 1;
+  observedSessionIdentity = identity;
+  return true;
+}
+
+function notifyBackendUnauthorized(): void {
+  forgetObservedBackendSession();
+  for (const listener of backendUnauthorizedListeners) {
+    try {
+      listener();
+    } catch {
+      // One consumer must not prevent the remaining session-boundary handlers.
+    }
+  }
 }
 
 async function leerJson(response: Response): Promise<unknown> {

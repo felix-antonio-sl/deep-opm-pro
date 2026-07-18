@@ -7,8 +7,8 @@ import type { Especie } from "../persistencia/especie";
  *   1. Contrato de import: el bundle debe hidratar a un modelo legítimo.
  *   2. Especie del destino: biblioteca es de solo-lectura.
  *   3. Carril por procedencia: un modelo con sello (nacido de un proto) sólo
- *      acepta bundles también sellados (emitidos por el compilador de
- *      autoría) — rechaza bundles artesanales.
+ *      acepta bundles también sellados — rechaza omisiones accidentales. No
+ *      es una atestación criptográfica del compilador.
  *   4. Base ratificada: si la base del pull fue autosave (no consolidado),
  *      el push exige confirmación explícita del operador.
  * Al crear (sin destino) se exige declarar la especie explícitamente.
@@ -18,10 +18,10 @@ export type VeredictoPush = { ok: true; especieDestino: "apunte" | "modelo" } | 
 /**
  * El sello de procedencia vive en `Modelo.procedencia` — que en el documento
  * serializado por `exportarModelo` queda anidado bajo `.modelo`, NO en la raíz
- * del documento (`{ formato, modelo, carpetaId? }`). Solo el compilador de
- * autoría lo emite; un bundle artesanal (mesa) nunca lo trae.
+ * del documento (`{ formato, modelo, carpetaId? }`). El flujo legítimo lo
+ * emite desde el compilador de autoría; este guard solo comprueba presencia.
  */
-function bundleTieneSello(json: string): boolean {
+export function bundleTieneSello(json: string): boolean {
   try {
     const doc = JSON.parse(json) as { modelo?: { procedencia?: unknown } };
     const procedencia = doc.modelo?.procedencia;
@@ -51,7 +51,7 @@ export function evaluarPush(input: {
   // 3. Biblioteca = solo-lectura.
   if (input.destino.especie === "biblioteca") return { ok: false, motivo: "destino biblioteca es solo-lectura" };
 
-  // 4. Carril por procedencia: modelo con sello exige bundle del compilador.
+  // 4. Carril por procedencia: exige sello estructural; no prueba su autoría.
   if (input.destino.tieneSello && !bundleTieneSello(input.bundleJson)) {
     return { ok: false, motivo: "el modelo tiene proto: edita el proto y recompila (bundle sin sello rechazado)" };
   }

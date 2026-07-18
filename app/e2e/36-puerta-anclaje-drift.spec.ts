@@ -34,6 +34,7 @@ interface ModeloApi {
   json: string;
   revision: number;
 }
+type ModeloWrite = Omit<ModeloApi, "revision"> & { revision?: number };
 
 // Biblioteca de Piezas. v2 = mutación SEMÁNTICA de v1: renombra la Pieza anclada.
 // La firma del Centinela es semántica (excluye layout), así que el cambio de
@@ -83,17 +84,29 @@ function instalarBackend(page: Page): Backend {
     carpetas: [],
     recientes: [],
   };
+  let workspaceRevision = 1;
   const session = { tenantId: "tenant-integral-e2e", userId: "user-integral-e2e" };
 
   void page.route("**/__deep-opm/session", (route) => route.fulfill({ json: { session } }));
   void page.route("**/__deep-opm/workspace", async (route) => {
     if (route.request().method() === "GET") {
-      await route.fulfill({ json: { indice: workspace } });
+      await route.fulfill({ json: { indice: workspace, revision: workspaceRevision } });
       return;
     }
-    const body = JSON.parse(route.request().postData() ?? "{}") as { indice?: typeof workspace };
+    const body = JSON.parse(route.request().postData() ?? "{}") as {
+      indice?: typeof workspace;
+      revisionBase?: number;
+    };
+    if (body.revisionBase !== workspaceRevision) {
+      await route.fulfill({
+        status: 409,
+        json: { error: "Workspace desactualizado; recarga antes de guardar" },
+      });
+      return;
+    }
     workspace = body.indice ?? workspace;
-    await route.fulfill({ json: { indice: workspace } });
+    workspaceRevision += 1;
+    await route.fulfill({ json: { indice: workspace, revision: workspaceRevision } });
   });
   void page.route("**/__deep-opm/modelos**", async (route) => {
     const url = new URL(route.request().url());
@@ -105,13 +118,21 @@ function instalarBackend(page: Page): Backend {
       await route.fulfill({ json: { modelos: [...modelos.values()] } });
       return;
     }
-    const body = JSON.parse(route.request().postData() ?? "{}") as { modelo?: ModeloApi };
+    const body = JSON.parse(route.request().postData() ?? "{}") as { modelo?: ModeloWrite };
     const incoming = body.modelo;
     if (!incoming) {
       await route.fulfill({ status: 400, json: { error: "Modelo persistido inválido" } });
       return;
     }
     const actual = modelos.get(incoming.id);
+    if ((actual && incoming.revision !== actual.revision) ||
+      (!actual && incoming.revision !== undefined)) {
+      await route.fulfill({
+        status: 409,
+        json: { error: "Modelo desactualizado; recarga antes de guardar" },
+      });
+      return;
+    }
     const guardado: ModeloApi = { ...incoming, revision: actual ? actual.revision + 1 : 1, actualizadoEn: ahora() };
     modelos.set(guardado.id, guardado);
     await route.fulfill({ json: { modelo: guardado } });
@@ -184,8 +205,17 @@ test.describe("La PUERTA × el Centinela — anclar por el gesto y ver el aviso"
       m.store.getState().listarModelosGuardados();
     }, RUTA_STORE);
     await expect.poll(async () => page.evaluate(async ({ ruta, libId }) => {
-      const m = await import(ruta) as { store: { getState: () => { indice: { modelos: { id: string; esBiblioteca?: boolean }[] } } } };
-      return m.store.getState().indice.modelos.some((x) => x.id === libId && x.esBiblioteca === true);
+      const m = await import(ruta) as {
+        store: {
+          getState: () => {
+            indice: { modelos: { id: string; esBiblioteca?: boolean }[] };
+            workspaceRevision: number | null;
+          };
+        };
+      };
+      const state = m.store.getState();
+      return state.workspaceRevision === 1 &&
+        state.indice.modelos.some((x) => x.id === libId && x.esBiblioteca === true);
     }, { ruta: RUTA_STORE, libId: LIB_ID })).toBe(true);
 
     // Anclar la Pieza POR EL GESTO del producto: abrir Piezas → fuente externa →

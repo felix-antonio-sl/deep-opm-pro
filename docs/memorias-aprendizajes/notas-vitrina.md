@@ -3,31 +3,33 @@
 Lecciones del bucle de construcción de la vitrina del puente mesa↔skill (Ola 2).
 Una lección por bloque, resumen de una línea al inicio.
 
-## El 409 fast-forward colapsa el dirty-bit a `dirty` a secas
+## El `dirty` local solo es confiable si el push está ligado a su base
 
-**Resumen:** «cambios locales en riesgo» = `dirty` (edición en memoria sin persistir); nada más.
+**Resumen corregido (2026-07-18):** el optimistic locking interno no bastaba;
+la seguridad exige ligar el bundle a la base exacta observada por `pull`.
 
 El riesgo top-2 del comité era que no existe un dirty-bit limpio y que `dirty` sub-reporta
-(el autosalvado lo apaga). El análisis del optimistic locking lo resuelve: en producción el
-repo Postgres incrementa `revision` en transacción y lanza `PersistenciaConflictError` (409)
-si la revisión enviada no coincide con la actual. Consecuencia: **cualquier revisión remota
-más nueva que la base fue necesariamente construida sobre el último estado consolidado
-(guardado/autosalvado) del operador** — nunca sobre una bifurcación vieja (esa da 409 y el
-agente no escribe). Por lo tanto, cuando `dirty === false`, recargar a la revisión del agente
-es demostrablemente sin pérdida. Cuando `dirty === true`, hay edición en memoria que una
-recarga descartaría → rama cautelosa. Plegar la pila de undo o la frescura del autosalvado
-(los hedges de la spec) sólo agregaría falsos positivos (marcaría trabajo ya guardado como
-«en riesgo» = cry-wolf). El autosalvado consolida el `json` principal y avanza la base, así
-que post-autosalvado `dirty=false` refleja correctamente «nada en memoria en riesgo».
+(el autosalvado lo apaga). La inferencia original de este bloque fue refutada:
+el `409` antiguo solo protegía la revisión leída dentro de `push`; un bundle
+nacido de un `pull` anterior podía sobrescribir una revisión posterior. El
+protocolo 2.0 corrige la ley con un
+[`Testigo-Base`](../manual-opforja.md#a6-puente-directo-mesaskill-cli) que
+identifica guardado y autosave, y el servidor lo revalida dentro del commit
+atómico. Bajo ese protocolo, `dirty === false` significa que no quedan cambios
+en memoria posteriores a la rama persistida que el agente observó;
+`dirty === true` mantiene la rama cautelosa. La fuente actual implementa esa
+garantía, pero producción no debe atribuírsela hasta desplegarla y comprobarla.
 
 ## La base de revisión debe avanzar con los guardados PROPIOS del operador
 
-**Resumen:** sin actualizar la base al guardar/autosalvar, el chip gatilla con tu propio guardado.
+**Resumen corregido (2026-07-18):** la revisión base avanza al cargar o guardar;
+el autosave conserva una rama separada bajo CAS y no finge un guardado principal.
 
-`revisionBasePorModelo[id]` se fija en los 3 puntos donde el store aprende una revisión fresca
-del modelo activo: cargar (`persistencia.ts:410`), guardar (`:357`), autosalvar (`:494`), más
-`abrirPestanaConModelo`. Si se omite el autosalvado, la base queda atrás, el poll ve la revisión
-propia avanzada y el chip miente «revisión nueva» sobre trabajo del propio operador.
+`revisionBasePorModelo[id]` se actualiza cuando el store aprende una revisión
+guardada fresca: carga, guardado manual o apertura de pestaña. El autosave usa
+esa revisión como precondición, persiste su propio snapshot y no incrementa la
+revisión guardada; por eso el poll no puede confundirlo con una revisión nueva
+del agente.
 
 ## `revisionRemota` se etiqueta por `modeloId` para no mostrar chip rancio al cambiar de pestaña
 

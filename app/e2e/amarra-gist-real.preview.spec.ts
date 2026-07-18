@@ -99,10 +99,28 @@ function gistConPiezaRenombrada(piezaId: string, nuevoNombre: string): string {
 async function persistirEnBackend(page: Page, id: string, nombre: string, json: string): Promise<void> {
   const res = await page.evaluate(async ({ ruta, id, nombre, json }) => {
     const mod = await import(ruta) as {
-      guardarModeloBackend: (m: unknown) => Promise<{ ok: boolean; error?: string }>;
+      cargarModeloBackend: (id: string) => Promise<{
+        ok: boolean;
+        value?: { creadoEn: string; revision?: number };
+      }>;
+      guardarModeloBackend: (m: unknown) => Promise<{
+        ok: boolean;
+        error?: string;
+      }>;
     };
     const ahora = new Date().toISOString();
-    return mod.guardarModeloBackend({ id, nombre, descripcion: "amarra gist real (backend dev)", creadoEn: ahora, actualizadoEn: ahora, json });
+    const existente = await mod.cargarModeloBackend(id);
+    return mod.guardarModeloBackend({
+      id,
+      nombre,
+      descripcion: "amarra gist real (backend dev)",
+      creadoEn: existente.ok ? existente.value?.creadoEn ?? ahora : ahora,
+      actualizadoEn: ahora,
+      json,
+      ...(existente.ok && typeof existente.value?.revision === "number"
+        ? { revision: existente.value.revision }
+        : {}),
+    });
   }, { ruta: RUTA_BACKEND, id, nombre, json });
   if (!res.ok) throw new Error(`No se pudo persistir "${id}" en el backend dev: ${res.error ?? "?"}`);
 }
