@@ -1,0 +1,27 @@
+{
+  "id": "BUG-20260709T173551Z-9de6df",
+  "type": "Bug",
+  "status": "Nuevo",
+  "resolution": "Pendiente.",
+  "createdAt": "2026-07-09T17:35:51.519Z",
+  "text": "cuando se cambia el nombre de un proceso con doble click en el canvas, desenfoca del centro del canvas. Cada vez hay que recentrar manualmente",
+  "context": {
+    "modeloId": "modelo-1",
+    "modeloNombre": "Modelo",
+    "opdActivoId": "opd-2",
+    "opdActivoNombre": "Boceto 1",
+    "seleccionEntidadId": null,
+    "seleccionEnlaceId": null,
+    "pestanaActivaId": "pestana-748f3f5b-0ce3-4491-b5d5-e86e66223027",
+    "vistaMapaActiva": false,
+    "url": "https://opforja.sanixai.com/",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "viewport": {
+      "width": 1920,
+      "height": 1080,
+      "devicePixelRatio": 1
+    },
+    "capturedAt": "2026-07-09T17:35:48.956Z"
+  },
+  "screenshots": []
+}

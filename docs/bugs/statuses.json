@@ -702,5 +702,11 @@
     "resolution": "«No se genera OPL de proceso; en modo taller no se forma ningún OPL». Causa raíz única: R-ENT-2 (spec-forja-opl-es §2.0) suprime la OPL canónica de toda cosa con nombre placeholder — existencia y enlaces —; en un apunte los procesos nacen placeholder (Proceso1…) y todos desaparecían del OPL, rompiendo la bisimetría canvas↔OPL justo en el modo de bosquejo. Fix: excepción de apunte a R-ENT-2 (R-ENT-2-APUNTE) como RÉGIMEN de generación — en especie apunte los placeholders emiten su OPL en TODA la generación, incluida la canónica: panel (canónico+display), editor libre, export Markdown OPD/modelo, documento canónico, contexto skill/mesa pull (flag = especie apunte) y lectura móvil. Régimen riguroso (modelos/bibliotecas) y autoría headless intactos; el diagnóstico de nominación (R-NOM-PROC-1 deverbal) sigue avisando.",
     "note": "Un primer intento (cf27104d) fue REVERTIDO (f0faf77f): citaba R-NOM-PROC-1 (política de nominación, no suprime nada) y relajaba solo el display del panel, dejando divergentes editor libre, exports, móvil y puente skill. SSOT firmada y aplicada: spec-forja-opl-es v1.3.0 (pneuma 4ae6428, velar 12/12). Roundtrip verificado por ley (canónico de apunte re-parsea con cero patches, panel.test.ts); e2e/45-opl-proceso-apunte.spec.ts end-to-end. gate:refactor PASS: check 3132/0 + smoke 302/0 + ledger 6/6. Desplegado en opforja.sanixai.com (6ae55b52).",
     "screenshots": []
+  },
+  "BUG-20260709T173551Z-9de6df": {
+    "type": "Bug",
+    "status": "Resuelto",
+    "resolution": "El foco automático del editor inline movía el scroll del viewport del canvas al renombrar un subproceso. El input ahora obtiene foco con preventScroll y conserva el encuadre.",
+    "note": "Corregido en c7ea347f. La regresión L3 de app/e2e/05-refinamiento-y-plegado.spec.ts compara scrollLeft/scrollTop antes y después de abrir el renombrado inline; la suite completa de ese archivo aprobó 16/16 en el cierre 2026-07-18."
   }
 }

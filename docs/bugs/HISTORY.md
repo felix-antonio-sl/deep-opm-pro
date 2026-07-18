@@ -10,16 +10,16 @@ cualquier ID, activo o archivado.
 
 | Alcance / Estado | Cantidad |
 |---|---:|
-| Activo / Nuevo | 2 |
+| Activo / Nuevo | 1 |
 | Activo / Resuelto | 3 |
-| Histórico / Resuelto | 117 |
+| Histórico / Resuelto | 118 |
 
 ## Resumen Por Tipo
 
 | Alcance / Tipo | Cantidad |
 |---|---:|
-| Activo / Bug | 5 |
-| Histórico / Bug | 110 |
+| Activo / Bug | 4 |
+| Histórico / Bug | 111 |
 | Histórico / Feat | 7 |
 
 ## Ledger Completo
@@ -27,7 +27,7 @@ cualquier ID, activo o archivado.
 | Alcance | Tipo | Estado | Bug/Feat | Creado | Contexto | Resumen | Resolución | Capturas | Nota |
 |---|---|---|---|---|---|---|---|---:|---|
 | Activo | Bug | Resuelto | [BUG-20260709T174709Z-76af16](BUG-20260709T174709Z-76af16/report.md) | 2026-07-09 17:47Z | apuntes HD / SD | no se genera OPL de proceso y cuando estoy en modo taller no se forma ningún OPL | «No se genera OPL de proceso; en modo taller no se forma ningún OPL». Causa raíz única: R-ENT-2 (spec-forja-opl-es §2.0) suprime … | 1 | Un primer intento (cf27104d) fue REVERTIDO (f0faf77f): citaba R-NOM-PROC-1 (política de nominación, no suprime nada) y relajaba solo el display del panel, dejando divergentes editor libre, exports, móvil y puente skill. SSOT firmada y aplicada: spec-forja-opl-es v1.3.0 (pneuma 4ae6428, velar 12/12). Roundtrip verificado por ley (canónico de apunte re-parsea con cero patches, panel.test.ts); e2e/45-opl-proceso-apunte.spec.ts end-to-end. gate:refactor PASS: check 3132/0 + smoke 302/0 + ledger 6/6. Desplegado en opforja.sanixai.com (6ae55b52). |
-| Activo | Bug | Nuevo | [BUG-20260709T173551Z-9de6df](BUG-20260709T173551Z-9de6df/report.md) | 2026-07-09 17:35Z | Modelo / Boceto 1 | cuando se cambia el nombre de un proceso con doble click en el canvas, desenfoca del centro del canvas. Cada vez hay que recentrar manualmente | Pendiente. | 0 |  |
+| Histórico | Bug | Resuelto | [BUG-20260709T173551Z-9de6df](archive/BUG-20260709T173551Z-9de6df/report.md) | 2026-07-09 17:35Z | Modelo / Boceto 1 | cuando se cambia el nombre de un proceso con doble click en el canvas, desenfoca del centro del canvas. Cada vez hay que recentrar manualmente | El foco automático del editor inline movía el scroll del viewport del canvas al renombrar un subproceso. El input ahora obtiene f… | 0 | Corregido en c7ea347f. La regresión L3 de app/e2e/05-refinamiento-y-plegado.spec.ts compara scrollLeft/scrollTop antes y después de abrir el renombrado inline; la suite completa de ese archivo aprobó 16/16 en el cierre 2026-07-18. |
 | Activo | Bug | Resuelto | [BUG-20260708T205824Z-7f09f9](BUG-20260708T205824Z-7f09f9/report.md) | 2026-07-08 20:58Z | HODOM completo v2.0 / SD1.M2.1.R - Realizacion de la atencion (prestaciones) | se solapan y sobreescrien los breadcumbs | Los segmentos del breadcrumb (ruta OPD del header) se solapaban y sobreescribían con OPDs de nombre largo (HODOM: «SD1.M2.1.R - R… | 1 | TDD/verificación visual: e2e/44-breadcrumb-overlap.spec.ts mide desbordamiento de texto (scrollWidth vs clientWidth) en viewport real 1920 + barra angosta 900, con screenshot before/after. Unit: src/ui/Breadcrumb.test.ts (codigoBreadcrumb, rutaBreadcrumbCodex con titulo, doctrina de recorte). La doctrina previa «sin ellipsis CSS silencioso» se actualizó conscientemente: el COLAPSO de niveles sigue usando el segmento « … » explícito, pero el recorte de un segmento individual largo ahora usa ellipsis (solución al exceso pedida por el operador). toolbar-overflow 8/8 intacto. gate:refactor PASS: check 3128/0 + lint + design:governance + build + smoke 301/0 + quality ledger 6/6. Desplegado en opforja.sanixai.com. |
 | Activo | Bug | Resuelto | [BUG-20260708T193209Z-f688a1](BUG-20260708T193209Z-f688a1/report.md) | 2026-07-08 19:32Z | Modelo / SD | El atajo "R" no está activo. no permite enlazar cosas | El atajo R para enlazar retornaba en silencio-cero cuando no habia cosa seleccionada (contexto del reporte: seleccionEntidadId nu… | 0 | TDD por olas (store → atajo → Escape → render → feedback → e2e). Cubierto por src/store/enlaces.test.ts (iniciarEnlaceLibre, transicion 1→2, iniciarRelacionDesdeEntidad), src/app/ports/globalShortcutsPort.test.ts (R hibrido con/sin seleccion, Escape cancela) y e2e/43-enlace-libre.spec.ts (gesto completo dos clicks + Escape). Un intento inicial de resolver el click-destino en modoEnlace.ts rompio la conexion hacia estados (07-enlaces-avanzados:382) por doble-handler; se corrigio centralizando en seleccion.ts. Gate:refactor PASS (check + lint + build + design:governance + smoke 299/0 + quality ledger 6/6). Desplegado en opforja.sanixai.com. |
 | Histórico | Bug | Resuelto | [BUG-20260609T032249Z-2c59cf](archive/BUG-20260609T032249Z-2c59cf/report.md) | 2026-06-09 03:22Z | Modelo / SD | al hacer el gesto para desplazar el canvas hacia la izquierda, al llegar al limite, si lo hago de nuevo retrocede el navegador. | El swipe horizontal del trackpad en macOS/Chrome disparaba el back del navegador al sobrepasar el limite de scroll del canvas. Ca… | 0 | Verificado in-vivo (dev server) que getComputedStyle de documentElement y body devuelve overscroll-behavior-x: none. La confirmacion final del gesto requiere trackpad macOS (operador). |
