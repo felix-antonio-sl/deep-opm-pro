@@ -708,5 +708,11 @@
     "status": "Resuelto",
     "resolution": "El foco automático del editor inline movía el scroll del viewport del canvas al renombrar un subproceso. El input ahora obtiene foco con preventScroll y conserva el encuadre.",
     "note": "Corregido en c7ea347f. La regresión L3 de app/e2e/05-refinamiento-y-plegado.spec.ts compara scrollLeft/scrollTop antes y después de abrir el renombrado inline; la suite completa de ese archivo aprobó 16/16 en el cierre 2026-07-18."
+  },
+  "BUG-20260605T032425Z-422d7d": {
+    "type": "Feat",
+    "status": "Resuelto",
+    "resolution": "Las cápsulas de estado pueden arrastrarse y relocalizarse dentro de su objeto; la posición x/y se persiste y el renderer la limita a los bordes del contenedor.",
+    "note": "Capacidad implementada en ff96d700 y ya incluida en producción 92dbbaa7. Validación directa de navegador en 0acdc334: arrastra la cápsula, comprueba cambio visible y persistencia x/y; 1/1 aprobada el 2026-07-18."
   }
 }
