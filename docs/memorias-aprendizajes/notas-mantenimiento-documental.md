@@ -108,3 +108,30 @@ reclasifica como `Feat` en vez de fingir que fue un bug.
 
 **[FUENTE]:** `../bugs/INDEX.md`, `../bugs/HISTORY.md` y
 `../../app/e2e/15-estado-ciudadano.spec.ts`.
+
+## 11. Un observable útil no prueba una estructura categorial completa
+
+**[HECHO COMPROBADO · 2026-07-18]:** opforja comparaba correctamente firmas de
+frontera y correspondencias de enlaces derivados, pero nombres y pruebas las
+presentaban como equivalencia total, bisimulación, adjunción, fibración o lift
+cartesiano. Los asserts solo demostraban igualdad de conjuntos, preservación de
+firma, biyección de derivados y repetibilidad.
+
+**[DECISIÓN]:** usar el estatus epistémico más débil que baste. La igualdad de
+firma se rotula `boundary-signature` y significa equivalencia observacional
+relativa; la correspondencia padre↔hijo es un chequeo de integridad. Una
+estructura categorial más fuerte exige construir sus datos y verificar sus
+leyes o propiedad universal.
+
+**[ALTERNATIVA DESCARTADA]:** actualizar solo las versiones del canon y conservar
+los nombres fuertes. Habría dejado un cordón numéricamente verde pero
+semánticamente falso.
+
+**[RESTRICCIÓN]:** una URN aporta trazabilidad, no prueba. Un pushout,
+bisimulación, adjunción, fibración o equivalencia categorial permanece como
+hipótesis hasta contar con definición precisa, datos construidos y evidencia
+proporcional.
+
+**[FUENTES]:** `../../app/src/modelo/equivalencia/`,
+`../../app/src/modelo/simulacion/integracionHechos.ts`,
+`../canon-opm/resolutor-urn.json` y KORA `fd284cf`.
