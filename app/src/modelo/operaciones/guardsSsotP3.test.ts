@@ -122,6 +122,40 @@ describe("R-OPD-HAB-4 — unicidad de rol por par objeto-proceso", () => {
     if (!duplicada.ok) expect(duplicada.error).toContain("R-OPD-HAB-4");
   });
 
+  test("rechaza metadatos TS3 parciales o pertenecientes a otro objeto", () => {
+    let m = base();
+    const cosaId = idDe(m, "Cosa");
+    const [entrada, salida] = Object.values(m.estados).filter((estado) => estado.entidadId === cosaId);
+    if (!entrada || !salida) throw new Error("Fixture requiere estados iniciales");
+
+    const parcial = crearEnlace(
+      m,
+      m.opdRaizId,
+      idDe(m, "Procesar"),
+      cosaId,
+      "efecto",
+      "",
+      { estadoEntradaId: entrada.id },
+    );
+    expect(parcial.ok).toBe(false);
+    if (!parcial.ok) expect(parcial.error).toContain("requiere estado de entrada y salida");
+
+    m = must(crearObjeto(m, m.opdRaizId, { x: 60, y: 260 }, "Otra Cosa"));
+    const otros = must(crearEstadosIniciales(m, idDe(m, "Otra Cosa")));
+    m = otros.modelo;
+    const ajena = crearEnlace(
+      m,
+      m.opdRaizId,
+      idDe(m, "Procesar"),
+      cosaId,
+      "efecto",
+      "",
+      { estadoEntradaId: entrada.id, estadoSalidaId: otros.estadoIds[0]! },
+    );
+    expect(ajena.ok).toBe(false);
+    if (!ajena.ok) expect(ajena.error).toContain("estados del objeto destino");
+  });
+
   test("checker PAR_TRANSFORMADOR_DUPLICADO acusa consumo+resultado planos sin abanico (R-PREC-1/3)", () => {
     // La creación permite el segundo transformador (ramas pre-abanico se crean
     // antes de agruparse); el residual no abanicado lo acusa el checker.

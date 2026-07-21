@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { extremoEstado } from "../../modelo/extremos";
-import { crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../../modelo/operaciones";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../../modelo/operaciones";
 import type { Modelo, Resultado } from "../../modelo/tipos";
 import { aplicarPatchesOpl } from "./aplicar";
 import { planificarEdicionOplLibre } from "./planificar";
@@ -70,6 +70,32 @@ describe("OPL reverse TS4/TS5 parcial standalone", () => {
     expect(efecto).toMatchObject({
       estadoEntradaId,
       estadoSalidaId,
+    });
+  });
+
+  test("actualiza un único efecto plano existente a TS3 sin duplicarlo", () => {
+    const base = modeloBase();
+    const pedidoId = entidadId(base.modelo, "Pedido");
+    const resolverId = entidadId(base.modelo, "Resolver");
+    const modelo = must(crearEnlace(
+      base.modelo,
+      base.modelo.opdRaizId,
+      resolverId,
+      pedidoId,
+      "efecto",
+    ));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    if (!enlaceId) throw new Error("La prueba esperaba un efecto plano");
+
+    const preview = planificarEdicionOplLibre(modelo, "*Resolver* cambia **Pedido** de `estado1` a `estado2`.");
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toEqual([]);
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches));
+
+    expect(Object.values(aplicado.enlaces)).toHaveLength(1);
+    expect(aplicado.enlaces[enlaceId]).toMatchObject({
+      estadoEntradaId: base.estadoEntradaId,
+      estadoSalidaId: base.estadoSalidaId,
     });
   });
 });

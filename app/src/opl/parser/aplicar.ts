@@ -290,16 +290,34 @@ function buscarEnlaceCon(
 ): Enlace | null {
   const origenNormalizado = normalizarExtremo(origen);
   const destinoNormalizado = normalizarExtremo(destino);
-  return Object.values(modelo.enlaces).find((enlace) => {
+  const candidatos = Object.values(modelo.enlaces).filter((enlace) => {
     if (enlace.tipo !== tipo) return false;
     if (!mismoExtremo(enlace.origenId, origenNormalizado)) return false;
     if (!mismoExtremo(enlace.destinoId, destinoNormalizado)) return false;
-    if (tipo === "efecto") {
-      return enlace.estadoEntradaId === estados?.estadoEntradaId
-        && enlace.estadoSalidaId === estados?.estadoSalidaId;
-    }
     return true;
-  }) ?? null;
+  });
+  if (tipo !== "efecto") return candidatos[0] ?? null;
+
+  const exacto = candidatos.find((enlace) =>
+    enlace.estadoEntradaId === estados?.estadoEntradaId
+    && enlace.estadoSalidaId === estados?.estadoSalidaId
+  );
+  if (exacto) return exacto;
+
+  // Una edición TS3/TS4/TS5 puede enriquecer el único efecto plano del par.
+  // Si hay más de un candidato —o el único ya porta estado— no inferimos cuál
+  // sustituir: las ramas compactas distintas deben permanecer independientes.
+  const solicitaEstado = estados?.estadoEntradaId !== undefined || estados?.estadoSalidaId !== undefined;
+  const unico = candidatos.length === 1 ? candidatos[0] : undefined;
+  if (
+    solicitaEstado
+    && unico
+    && unico.estadoEntradaId === undefined
+    && unico.estadoSalidaId === undefined
+  ) {
+    return unico;
+  }
+  return null;
 }
 
 function enlaceMasRecientePorExtremos(

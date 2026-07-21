@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { Modelo } from "../../modelo/tipos";
-import { oracionAbanico } from "./abanico";
+import { oracionAbanico, oracionesAbanico, oracionesAbanicoInteractivo } from "./abanico";
 
 describe("abanico OPL", () => {
   test("OR emite al menos uno de", () => {
@@ -39,10 +39,26 @@ describe("abanico OPL", () => {
     );
   });
 
+  test("OR de efectos TS3 compactos preserva la entrada común y todas las salidas", () => {
+    const modelo = modeloEfectosTs3Compactos("O");
+
+    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe(
+      "*Procesar* cambia **Grado de Cobertura** de `suficiente` a al menos uno de `insuficiente` y `nulo`.",
+    );
+  });
+
   test("efectos TS3 que varían entrada y salida fallan cerrado", () => {
     const modelo = modeloEfectosTs3Compactos("XOR", false);
 
     expect(() => oracionAbanico(modelo, modelo.abanicos!.ab1!)).toThrow("R-FAN-5A");
+  });
+
+  test("ruta en un abanico TS3 compacto bloquea las salidas pública e interactiva", () => {
+    const modelo = modeloEfectosTs3Compactos("XOR");
+    modelo.enlaces.l1 = { ...modelo.enlaces.l1!, rutaEtiqueta: "rama-a" };
+
+    expect(() => oracionesAbanico(modelo, modelo.abanicos!.ab1!)).toThrow("R-FAN-5A");
+    expect(() => oracionesAbanicoInteractivo(modelo, modelo.abanicos!.ab1!)).toThrow("R-FAN-5A");
   });
 
   // SSOT OPL-ES §11.4: abanicos combinados con modificador `condicion`.

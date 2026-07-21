@@ -14,7 +14,10 @@ import { oracionEnlaceConRuta } from "./procedural";
 
 export function oracionesAbanicoInteractivo(modelo: Modelo, abanico: Abanico, esApunte = false): OplLineaPendiente[] {
   const enlaces = enlacesDeAbanico(modelo, abanico);
-  if (enlaces.some((enlace) => rutaEtiquetaNormalizada(enlace.rutaEtiqueta))) {
+  const contieneTransicionCompacta = enlaces.some((enlace) =>
+    enlace.estadoEntradaId !== undefined || enlace.estadoSalidaId !== undefined
+  );
+  if (!contieneTransicionCompacta && enlaces.some((enlace) => rutaEtiquetaNormalizada(enlace.rutaEtiqueta))) {
     return enlaces.flatMap((enlace) => {
       const texto = oracionEnlaceConRuta(modelo, enlace, esApunte);
       return texto ? [{ texto, refs: refsEnlace(modelo, enlace), hints: hintsEnlace(modelo, enlace, texto) }] : [];
@@ -31,7 +34,10 @@ export function oracionesAbanicoInteractivo(modelo: Modelo, abanico: Abanico, es
 
 export function oracionesAbanico(modelo: Modelo, abanico: Abanico): string[] {
   const enlaces = enlacesDeAbanico(modelo, abanico);
-  if (enlaces.some((enlace) => rutaEtiquetaNormalizada(enlace.rutaEtiqueta))) {
+  const contieneTransicionCompacta = enlaces.some((enlace) =>
+    enlace.estadoEntradaId !== undefined || enlace.estadoSalidaId !== undefined
+  );
+  if (!contieneTransicionCompacta && enlaces.some((enlace) => rutaEtiquetaNormalizada(enlace.rutaEtiqueta))) {
     return enlaces.flatMap((enlace) => {
       const linea = oracionEnlaceConRuta(modelo, enlace);
       return linea ? [linea] : [];
