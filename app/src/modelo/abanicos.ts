@@ -20,6 +20,21 @@ export interface CandidatoAbanicoExacto {
   enlaceIds: Id[];
 }
 
+/**
+ * Lectura efímera de un abanico lógico desde un OPD. No tiene identidad ni se
+ * serializa: sólo reúne el hecho global con las apariencias locales capaces de
+ * representarlo.
+ */
+export interface ProyeccionAbanicoOpd {
+  abanico: Abanico;
+  abanicoId: Id;
+  opdPropietarioId: Id;
+  opdVisualId: Id;
+  enlaceIdsVisibles: Id[];
+  completa: boolean;
+  heredada: boolean;
+}
+
 export function formarAbanico(
   modelo: Modelo,
   opdId: Id,
@@ -161,6 +176,7 @@ export function abanicoDeEnlace(modelo: Modelo, enlaceId: Id): Abanico | undefin
 }
 
 export function candidatosAbanicoExacto(modelo: Modelo, opdId: Id, enlaceId: Id): CandidatoAbanicoExacto[] {
+  if (modelo.opds[opdId]?.vista?.kind === "generic-view") return [];
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace || naturalezaDeEnlace(enlace.tipo) !== "procedural" || abanicoDeEnlace(modelo, enlaceId)) return [];
   return (["origen", "destino"] as const).flatMap((lado) => {
@@ -190,6 +206,46 @@ export function puertoExactoCompartidoDeAbanico(modelo: Modelo, abanico: Abanico
 
 export function puertoComunDeAbanico(abanico: Abanico): PuertoAbanicoExacto {
   return abanico.puertoComun;
+}
+
+export function puedeEditarAbanicoEnOpd(abanico: Abanico, opdId: Id): boolean {
+  return abanico.opdId === opdId;
+}
+
+export function proyeccionesAbanicoEnOpd(modelo: Modelo, opdId: Id): ProyeccionAbanicoOpd[] {
+  const opd = modelo.opds[opdId];
+  if (!opd) return [];
+  const enlacesConApariencia = new Set(Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId));
+  const entidadesConApariencia = new Set(Object.values(opd.apariencias).map((apariencia) => apariencia.entidadId));
+
+  return Object.values(modelo.abanicos ?? {}).flatMap((abanico) => {
+    const enlaceIdsVisibles = abanico.enlaceIds.filter((enlaceId) => {
+      if (!enlacesConApariencia.has(enlaceId)) return false;
+      const enlace = modelo.enlaces[enlaceId];
+      if (!enlace) return false;
+      const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
+      const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
+      return origenId !== null && destinoId !== null &&
+        entidadesConApariencia.has(origenId) && entidadesConApariencia.has(destinoId);
+    });
+    if (enlaceIdsVisibles.length === 0) return [];
+
+    const heredada = abanico.opdId !== opdId;
+    const admiteProyeccionCompleta = !heredada || opd.vista?.kind === "generic-view";
+    const completa = admiteProyeccionCompleta &&
+      enlaceIdsVisibles.length === abanico.enlaceIds.length &&
+      puertoExactoCompartidoDeAbanico(modelo, abanico) !== undefined;
+
+    return [{
+      abanico,
+      abanicoId: abanico.id,
+      opdPropietarioId: abanico.opdId,
+      opdVisualId: opdId,
+      enlaceIdsVisibles,
+      completa,
+      heredada,
+    }];
+  });
 }
 
 export function formarAbanicoAutomatico(
@@ -287,7 +343,11 @@ function validarCandidatoAbanico(
   abanicoActualId?: Id,
 ): Resultado<{ enlaces: Enlace[]; puertoComun: PuertoComunExacto; tipo: TipoEnlace }> {
   if (!esOperadorAbanico(operador)) return fallo(`Operador de abanico inválido: ${operador}`);
-  if (!modelo.opds[opdId]) return fallo(`OPD no existe: ${opdId}`);
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  if (opd.vista?.kind === "generic-view") {
+    return fallo("Una vista genérica sólo proyecta abanicos existentes; edita el OPD propietario");
+  }
   const idsUnicos = Array.from(new Set(enlaceIds));
   if (idsUnicos.length < 2) return fallo("Un abanico requiere al menos dos enlaces");
 
@@ -321,7 +381,7 @@ function validarCandidatoAbanico(
   }
 
   const duenios = Object.values(modelo.abanicos ?? {}).filter((abanico) =>
-    abanico.opdId === opdId && abanico.id !== abanicoActualId && abanico.enlaceIds.some((id) => idsUnicos.includes(id))
+    abanico.id !== abanicoActualId && abanico.enlaceIds.some((id) => idsUnicos.includes(id))
   );
   if (duenios.length > 0) return fallo("Un enlace ya pertenece a otro abanico");
 

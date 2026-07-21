@@ -12,6 +12,7 @@ interface Props {
   modelo: Modelo;
   opdId: Id;
   enlace: Enlace;
+  puedeEditar: boolean;
   onApuntarExtremo: (lado: "origen" | "destino", extremo: ExtremoEnlace) => void;
   onCrearFan: (lado: "origen" | "destino") => void;
   onAbrirMoverPuerto: () => void;
@@ -65,6 +66,7 @@ export function SeccionExtremos(props: Props) {
                   type="button"
                   data-testid={`crear-fan-${fan.lado}`}
                   style={fanCrearButtonStyle}
+                  disabled={!props.puedeEditar}
                   title="Alinea las ramas compatibles en un puerto comun y crea el fan"
                   onClick={() => props.onCrearFan(fan.lado)}
                 >
@@ -84,6 +86,7 @@ export function SeccionExtremos(props: Props) {
             data-testid={`extremo-${lado}-estado-select`}
             style={style.input}
             value={actual.kind === "estado" ? actual.id : entidad.id}
+            disabled={!props.puedeEditar}
             onChange={(event) => {
               const value = event.currentTarget.value;
               props.onApuntarExtremo(lado, value === entidad.id ? extremoEntidad(entidad.id) : extremoEstado(value));
@@ -94,7 +97,7 @@ export function SeccionExtremos(props: Props) {
           </select>
         </label>
       ))}
-      <button type="button" data-testid="reanclar-extremo-btn" style={style.secondaryButton} onClick={props.onAbrirMoverPuerto} title="Reancla origen o destino preservando el puerto exacto">
+      <button type="button" data-testid="reanclar-extremo-btn" style={style.secondaryButton} disabled={!props.puedeEditar} onClick={props.onAbrirMoverPuerto} title="Reancla origen o destino preservando el puerto exacto">
         Reanclar extremo
       </button>
     </section>

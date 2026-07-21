@@ -1,4 +1,4 @@
-import { puertoComunDeAbanico } from "../abanicos";
+import { proyeccionesAbanicoEnOpd, puertoComunDeAbanico } from "../abanicos";
 import { naturalezaDeEnlace } from "../constantes";
 import { entidadIdDeExtremo } from "../extremos";
 import { puertoRelativoAnclaEnlace, type AnclaRelojEnlace } from "../anclajesEnlace";
@@ -39,11 +39,8 @@ export function sincronizarPuertosEnlaces(modelo: Modelo, opdId: Id): Modelo {
   for (const apariencia of Object.values(opd.apariencias)) {
     aparienciasPorEntidad.set(apariencia.entidadId, apariencia);
   }
-  const enlacesEnAbanico = new Set(
-    Object.values(modelo.abanicos ?? {})
-      .filter((abanico) => abanico.opdId === opdId)
-      .flatMap((abanico) => abanico.enlaceIds),
-  );
+  const proyeccionesAbanico = proyeccionesAbanicoEnOpd(modelo, opdId);
+  const enlacesEnAbanico = new Set(proyeccionesAbanico.flatMap((proyeccion) => proyeccion.enlaceIdsVisibles));
 
   let enlaces = modelo.enlaces;
   let apariencias = opd.apariencias;
@@ -358,15 +355,15 @@ function asignarPuertosCompartidosAbanico(
   aparienciasPorEntidad: Map<Id, Apariencia>,
 ): Map<string, PuertoCompartidoEstado> {
   const resultado = new Map<string, PuertoCompartidoEstado>();
-  for (const abanico of Object.values(modelo.abanicos ?? {})) {
-    if (abanico.opdId !== opdId) continue;
+  for (const proyeccion of proyeccionesAbanicoEnOpd(modelo, opdId)) {
+    const abanico = proyeccion.abanico;
     const puertoComun = puertoComunDeAbanico(abanico);
     const aparienciaPuerto = aparienciasPorEntidad.get(puertoComun.entidadId);
     if (!aparienciaPuerto) continue;
 
     const keys: string[] = [];
     const otros: Posicion[] = [];
-    for (const enlaceId of abanico.enlaceIds) {
+    for (const enlaceId of proyeccion.enlaceIdsVisibles) {
       const enlace = modelo.enlaces[enlaceId];
       if (!enlace) continue;
       const extremoComun = puertoComun.lado === "origen" ? enlace.origenId : enlace.destinoId;
@@ -382,7 +379,7 @@ function asignarPuertosCompartidosAbanico(
       if (apariencia) otros.push(centro(apariencia));
     }
 
-    if (keys.length < 2 || otros.length === 0) continue;
+    if (keys.length === 0 || otros.length === 0) continue;
     const puntoOpuesto = centroide(otros);
     for (const key of keys) {
       resultado.set(key, { portId: puertoComun.portId, puntoOpuesto });

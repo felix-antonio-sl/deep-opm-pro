@@ -14,6 +14,7 @@ interface Props {
   modelo: Modelo;
   opdActivoId: Id;
   enlace: Enlace;
+  puedeEditar: boolean;
   endpointSeleccionado: Id;
   onEndpointSeleccionado: (id: Id) => void;
   onAplicar: (aparienciaEnlaceId: Id, endpointId: Id) => void;
@@ -29,16 +30,16 @@ export function SeccionReanclaje(props: Props) {
       <div style={derivedBadgeStyle}>Derivado ({(props.enlace.derivado?.origen ?? "automatico") === "manual" ? "manual" : "automático"})</div>
       <label style={style.field}>
         <span class="opm-label-uppercase" style={style.label}>Subproceso</span>
-        <select data-testid="reanclar-subproceso-select" style={style.input} value={props.endpointSeleccionado} onChange={(event) => props.onEndpointSeleccionado(event.currentTarget.value)} disabled={reanclaje.subprocesos.length <= 1}>
+        <select data-testid="reanclar-subproceso-select" style={style.input} value={props.endpointSeleccionado} onChange={(event) => props.onEndpointSeleccionado(event.currentTarget.value)} disabled={!props.puedeEditar || reanclaje.subprocesos.length <= 1}>
           {reanclaje.subprocesos.map((subproceso, index) => <option key={subproceso.id} value={subproceso.id}>{subproceso.nombre} ({index + 1})</option>)}
         </select>
       </label>
       {reanclaje.subprocesos.length <= 1 ? <div style={helpStyle}>No hay otro subproceso disponible.</div> : null}
       <div style={buttonRowStyle}>
-        <button type="button" style={style.secondaryButton} disabled={!props.endpointSeleccionado || (props.endpointSeleccionado === reanclaje.endpointActualId && props.enlace.derivado?.origen === "manual")} onClick={() => props.onAplicar(reanclaje.aparienciaEnlaceId, props.endpointSeleccionado)}>
+        <button type="button" style={style.secondaryButton} disabled={!props.puedeEditar || !props.endpointSeleccionado || (props.endpointSeleccionado === reanclaje.endpointActualId && props.enlace.derivado?.origen === "manual")} onClick={() => props.onAplicar(reanclaje.aparienciaEnlaceId, props.endpointSeleccionado)}>
           Aplicar
         </button>
-        <button type="button" style={style.secondaryButton} disabled={(props.enlace.derivado?.origen ?? "automatico") !== "manual"} onClick={() => props.onAutomatico(reanclaje.aparienciaEnlaceId)}>
+        <button type="button" style={style.secondaryButton} disabled={!props.puedeEditar || (props.enlace.derivado?.origen ?? "automatico") !== "manual"} onClick={() => props.onAutomatico(reanclaje.aparienciaEnlaceId)}>
           Volver a automático
         </button>
       </div>

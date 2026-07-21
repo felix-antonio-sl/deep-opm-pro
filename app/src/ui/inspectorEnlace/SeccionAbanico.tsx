@@ -11,6 +11,8 @@ import { tokens } from "../tokens";
 interface Props {
   abanico: Abanico | undefined;
   modelo: Modelo;
+  puedeEditar: boolean;
+  propietarioNombre?: string;
   onAlternarOperador: (operador: OperadorAbanico) => void;
   onProbabilidades: (probabilidades: Record<Id, number> | undefined) => void;
   onQuitarRama: () => void;
@@ -78,6 +80,11 @@ function SeccionAbanicoActiva(props: PropsActiva) {
         {props.abanico.enlaceIds.length} ramas comparten puerto.{" "}
         {props.abanico.operador === "XOR" ? "Exactamente una se cumple." : "Al menos una se cumple."}
       </div>
+      {!props.puedeEditar ? (
+        <div data-testid="abanico-heredado" style={helpStyle}>
+          Se reutiliza desde {props.propietarioNombre ?? props.abanico.opdId}; edítalo en ese OPD.
+        </div>
+      ) : null}
       <div data-testid="abanico-puerto-exacto" style={puertoPanelStyle}>
         <span style={puertoLabelStyle}>Puerto común</span>
         {puerto && entidadPuerto ? (
@@ -120,6 +127,7 @@ function SeccionAbanicoActiva(props: PropsActiva) {
                     data-testid={`abanico-probabilidad-${fila.enlaceId}`}
                     style={editorProbabilidades.error ? inputProbabilidadErrorStyle : inputProbabilidadStyle}
                     value={fila.valor}
+                    disabled={!props.puedeEditar}
                     onInput={(event) => setProbabilidades((actual) => ({ ...actual, [fila.enlaceId]: event.currentTarget.value }))}
                   />
                   <span style={porcentajeSuffixStyle}>%</span>
@@ -132,22 +140,22 @@ function SeccionAbanicoActiva(props: PropsActiva) {
           </span>
           {editorProbabilidades.error ? <span role="alert" style={probabilidadErrorStyle}>{editorProbabilidades.error}</span> : null}
           <div style={buttonRowStyle}>
-            <button type="button" data-testid="abanico-probabilidades-aplicar" style={style.secondaryButton} disabled={!editorProbabilidades.pesos} onClick={aplicarProbabilidades}>
+            <button type="button" data-testid="abanico-probabilidades-aplicar" style={style.secondaryButton} disabled={!props.puedeEditar || !editorProbabilidades.pesos} onClick={aplicarProbabilidades}>
               Aplicar probabilidades
             </button>
-            <button type="button" data-testid="abanico-probabilidades-limpiar" style={style.secondaryButton} onClick={limpiarProbabilidades}>
+            <button type="button" data-testid="abanico-probabilidades-limpiar" style={style.secondaryButton} disabled={!props.puedeEditar} onClick={limpiarProbabilidades}>
               Limpiar probabilidades
             </button>
           </div>
         </div>
       ) : null}
       <div style={buttonRowStyle}>
-        <button type="button" data-testid="abanico-toggle-O" style={style.secondaryButton} disabled={props.abanico.operador === "O"} onClick={() => props.onAlternarOperador("O" satisfies OperadorAbanico)}>O</button>
-        <button type="button" data-testid="abanico-toggle-XOR" style={style.secondaryButton} disabled={props.abanico.operador === "XOR"} onClick={() => props.onAlternarOperador("XOR" satisfies OperadorAbanico)}>XOR</button>
+        <button type="button" data-testid="abanico-toggle-O" style={style.secondaryButton} disabled={!props.puedeEditar || props.abanico.operador === "O"} onClick={() => props.onAlternarOperador("O" satisfies OperadorAbanico)}>O</button>
+        <button type="button" data-testid="abanico-toggle-XOR" style={style.secondaryButton} disabled={!props.puedeEditar || props.abanico.operador === "XOR"} onClick={() => props.onAlternarOperador("XOR" satisfies OperadorAbanico)}>XOR</button>
       </div>
       <div style={buttonRowStyle}>
-        <button type="button" style={style.secondaryButton} onClick={props.onQuitarRama}>Quitar rama</button>
-        <button type="button" style={style.secondaryButton} onClick={props.onDisolver}>Disolver abanico</button>
+        <button type="button" style={style.secondaryButton} disabled={!props.puedeEditar} onClick={props.onQuitarRama}>Quitar rama</button>
+        <button type="button" style={style.secondaryButton} disabled={!props.puedeEditar} onClick={props.onDisolver}>Disolver abanico</button>
       </div>
     </section>
   );

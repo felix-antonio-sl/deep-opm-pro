@@ -29,6 +29,8 @@ export type { EnlaceRefinamiento, AdopcionOpd } from "./refinamiento/establecer"
 
 export {
   distribuirEnlaceExternoEnRefinamiento,
+  idPuertoAbanicoDerivado,
+  proyeccionesCanonicasEnlaceExternoRefinado,
   refrescarEnlacesExternosDerivados,
   recolectarEnlaceExternoEnRefinamiento,
   redistribuirEnlacesExternosSiPrimerSubproceso,

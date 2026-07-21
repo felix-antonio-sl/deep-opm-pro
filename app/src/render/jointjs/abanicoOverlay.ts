@@ -70,6 +70,7 @@ export function calcularGeometriaAbanico(args: {
 export function proyectarOverlayAbanicoCanonico(args: {
   modelo: Modelo;
   opd: Opd;
+  opdId: Id;
   abanico: Abanico;
   aparienciaPuerto: Apariencia;
   aparienciaPorEntidad: Map<Id, Apariencia>;
@@ -104,7 +105,7 @@ export function proyectarOverlayAbanicoCanonico(args: {
     },
     opm: {
       kind: "overlay-abanico",
-      opdId: args.abanico.opdId,
+      opdId: args.opdId,
       abanicoId: args.abanico.id,
       operador: args.abanico.operador,
     },

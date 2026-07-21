@@ -1,5 +1,5 @@
 import type { dia } from "jointjs";
-import { puertoComunDeAbanico } from "../../modelo/abanicos";
+import { proyeccionesAbanicoEnOpd, puertoComunDeAbanico } from "../../modelo/abanicos";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import type { Abanico, Id, Modelo, Posicion } from "../../modelo/tipos";
 import { calcularGeometriaAbanicoDesdePuntos } from "./abanicoOverlay";
@@ -14,8 +14,7 @@ const RADIO_PROBE = 30;
 // limitar el recompute al subset afectado durante el drag visual.
 export function abanicosAfectadosPorEntidad(modelo: Modelo, opdId: Id, entidadId: Id): Abanico[] {
   const result: Abanico[] = [];
-  for (const abanico of Object.values(modelo.abanicos ?? {})) {
-    if (abanico.opdId !== opdId) continue;
+  for (const { abanico } of proyeccionesAbanicoEnOpd(modelo, opdId).filter((proyeccion) => proyeccion.completa)) {
     const puertoComun = puertoComunDeAbanico(abanico);
     if (puertoComun.entidadId === entidadId) {
       result.push(abanico);
@@ -43,9 +42,8 @@ export function recalcularOverlaysAbanicoDesdeLinkViews(args: {
   modelo: Modelo;
   opdId: Id;
 }): void {
-  for (const abanico of Object.values(args.modelo.abanicos ?? {})) {
-    if (abanico.opdId !== args.opdId) continue;
-    recalcularOverlayDesdeLinkView(args.paper, args.graph, args.modelo, abanico);
+  for (const { abanico } of proyeccionesAbanicoEnOpd(args.modelo, args.opdId).filter((proyeccion) => proyeccion.completa)) {
+    recalcularOverlayDesdeLinkView(args.paper, args.graph, args.modelo, abanico, args.opdId);
   }
 }
 
@@ -56,10 +54,11 @@ export function recalcularOverlayDesdeLinkView(
   graph: dia.Graph,
   modelo: Modelo,
   abanico: Abanico,
+  opdId: Id = abanico.opdId,
 ): void {
   const overlayCell = graph.getCell(`overlay-abanico-${abanico.id}`);
   if (!overlayCell) return;
-  const opd = modelo.opds[abanico.opdId];
+  const opd = modelo.opds[opdId];
   if (!opd) return;
 
   // Mapa enlaceId -> aparienciaEnlaceId (el cell id en el graph)
