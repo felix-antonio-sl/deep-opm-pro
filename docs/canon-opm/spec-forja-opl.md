@@ -83,8 +83,10 @@ universal de un pushout.
 
 ## Nota De Enmienda 2026-07-21
 
-Versión observada de la fuente: `1.4.0` (pneuma `976ac05`). R-FAN-5A/5B y
-C-21b canonizan la superficie reversible de abanicos TS3 con estado de entrada
-común y salidas alternativas. El fact-set exige conservar proceso, objeto,
-entrada, todas las salidas, enlaces TS3, operador y membresía del fan; una
-combinación que varía simultáneamente entrada y salida falla cerrada.
+Versión observada de la fuente: `1.4.1` (pneuma `d550b32`; reglas incorporadas
+en `976ac05`). R-FAN-5A/5B y C-21b canonizan la superficie reversible de
+abanicos TS3 con estado de entrada común y salidas alternativas. El fact-set
+exige conservar proceso, objeto, entrada, todas las salidas, enlaces TS3,
+operador y membresía del fan; una combinación que varía simultáneamente entrada
+y salida falla cerrada. El patch 1.4.1 corrige el puntero de procedencia hacia
+la solicitud archivada, sin cambiar la regla normativa.
