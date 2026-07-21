@@ -175,7 +175,7 @@ function parsearOracion(
     // individuales cuando se ignora el cuantificador ("exactamente uno de" /
     // "al menos uno de"). Si NO esta el cuantificador, parsearAbanico devuelve
     // null y la cadena continua → aditividad estricta.
-    ?? parsearAbanico(texto, linea)
+    ?? parsearAbanico(texto, linea, textoMarcado)
     ?? parsearCondicion(texto, linea, textoMarcado)
     ?? parsearProcedimental(texto, linea, textoMarcado)
     ?? parsearEstructural(texto, linea)
@@ -255,11 +255,11 @@ function tokenizarListaAbanico(texto: string): string[] {
     .filter(Boolean);
 }
 
-function parsearAbanico(texto: string, linea: LineaOplNormalizada) {
+function parsearAbanico(texto: string, linea: LineaOplNormalizada, textoMarcado = texto) {
   return parsearAbanicoResultadoCondicional(texto, linea)
     ?? parsearAbanicoInvocacionCondicional(texto, linea)
     ?? parsearAbanicoCondicional(texto, linea)
-    ?? parsearAbanicoDirecto(texto, linea);
+    ?? parsearAbanicoDirecto(texto, linea, textoMarcado);
 }
 
 const ABANICO_EFECTO_EVENTO_OBJETO_PROCESOS_RE =
@@ -337,12 +337,33 @@ const ABANICO_VERBO_RE_LIST = [
 
 const ABANICO_CAMBIA_RE =
   /^(.+?)\s+cambia\s+(.+?)\s+(a|de)\s+(exactamente uno de|al menos uno de)\s+(.+)$/iu;
+const ABANICO_CAMBIA_ENTRADA_COMUN_RE =
+  /^(.+?)\s+cambia\s+(.+?)\s+de\s+`([^`]+)`\s+a\s+(exactamente uno de|al menos uno de)\s+(.+)$/iu;
 const ABANICO_EFECTO_OBJETO_AFECTADO_PROCESOS_RE =
   /^(.+?)\s+es\s+afectado\s+por\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+)$/iu;
 const ABANICO_EFECTO_OBJETO_PROCESOS_RE =
   /^(.+?)\s+afecta\s+a\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+)$/iu;
 
-function parsearAbanicoDirecto(texto: string, linea: LineaOplNormalizada) {
+function parsearAbanicoDirecto(texto: string, linea: LineaOplNormalizada, textoMarcado = texto) {
+  const entradaComun = ABANICO_CAMBIA_ENTRADA_COMUN_RE.exec(textoMarcado);
+  if (entradaComun) {
+    const proceso = normalizarNombreOpl(entradaComun[1] ?? "");
+    const objeto = normalizarNombreOpl(entradaComun[2] ?? "");
+    const estadoEntradaComun = limpiarEstado(entradaComun[3] ?? "");
+    const operador = operadorDeCuantificador(entradaComun[4] ?? "");
+    const estados = tokenizarListaAbanico(entradaComun[5] ?? "").map(limpiarEstadoMarcado).filter(Boolean);
+    if (!proceso || !objeto || !estadoEntradaComun || estados.length < 2) return null;
+    return astAbanico(linea, {
+      proceso,
+      operador,
+      tipoEnlace: "efecto",
+      otros: estados.map(() => objeto),
+      otrosEstados: estados,
+      estadoEntradaComun,
+      puertoEsOrigen: true,
+    });
+  }
+
   const cambia = ABANICO_CAMBIA_RE.exec(texto);
   if (cambia) {
     const proceso = normalizarNombreOpl(cambia[1] ?? "");
@@ -460,6 +481,7 @@ function astAbanico(
     tipoEnlace: Extract<TipoEnlace, "agente" | "instrumento" | "consumo" | "resultado" | "efecto" | "invocacion">;
     otros: string[];
     otrosEstados?: string[];
+    estadoEntradaComun?: string;
     puertoEsOrigen: boolean;
     modificador?: "condicion" | "evento";
   },
@@ -473,6 +495,7 @@ function astAbanico(
       tipoEnlace: payload.tipoEnlace,
       otros: payload.otros,
       ...(payload.otrosEstados ? { otrosEstados: payload.otrosEstados } : {}),
+      ...(payload.estadoEntradaComun ? { estadoEntradaComun: payload.estadoEntradaComun } : {}),
       puertoEsOrigen: payload.puertoEsOrigen,
       ...(payload.modificador ? { modificador: payload.modificador } : {}),
       ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
@@ -1317,6 +1340,10 @@ function parsearBandasOrden(temporal: string): string[][] {
 
 function limpiarEstado(texto: string): string {
   return texto.replace(/\([^)]*\)/g, "").replace(/\.$/, "").trim();
+}
+
+function limpiarEstadoMarcado(texto: string): string {
+  return limpiarEstado(texto).replace(/^`|`$/gu, "").trim();
 }
 
 const CAMBIO_ESTADO_MARCADO_RE = /^(?:(.+?)\s+)?cambia\s+(.+?)\s+de\s+`([^`]+)`\s+a\s+`([^`]+)`$/iu;

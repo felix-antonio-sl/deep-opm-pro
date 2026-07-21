@@ -4,6 +4,7 @@ import { describe, expect, test } from "bun:test";
 import { checkParTransformadorDuplicado } from "../checkers";
 import {
   cambiarAfiliacion,
+  agregarEstado,
   crearEnlace,
   crearEstadosIniciales,
   crearModelo,
@@ -102,6 +103,23 @@ describe("R-OPD-HAB-4 — unicidad de rol por par objeto-proceso", () => {
     const dup = crearEnlace(m, m.opdRaizId, idDe(m, "Cosa"), idDe(m, "Procesar"), "consumo");
     expect(dup.ok).toBe(false);
     if (!dup.ok) expect(dup.error).toContain("R-OPD-HAB-4");
+  });
+
+  test("permite efectos TS3 compactos distintos y rechaza repetir la misma transición", () => {
+    let m = base();
+    const cosaId = idDe(m, "Cosa");
+    const [entrada, salidaA] = Object.values(m.estados).filter((estado) => estado.entidadId === cosaId);
+    if (!entrada || !salidaA) throw new Error("Fixture requiere estados iniciales");
+    const agregado = must(agregarEstado(m, cosaId, "salida-b"));
+    m = agregado.modelo;
+    const transicionA = { estadoEntradaId: entrada.id, estadoSalidaId: salidaA.id };
+    const transicionB = { estadoEntradaId: entrada.id, estadoSalidaId: agregado.estadoId };
+
+    m = must(crearEnlace(m, m.opdRaizId, idDe(m, "Procesar"), cosaId, "efecto", "", transicionA));
+    expect(crearEnlace(m, m.opdRaizId, idDe(m, "Procesar"), cosaId, "efecto", "", transicionB).ok).toBe(true);
+    const duplicada = crearEnlace(m, m.opdRaizId, idDe(m, "Procesar"), cosaId, "efecto", "", transicionA);
+    expect(duplicada.ok).toBe(false);
+    if (!duplicada.ok) expect(duplicada.error).toContain("R-OPD-HAB-4");
   });
 
   test("checker PAR_TRANSFORMADOR_DUPLICADO acusa consumo+resultado planos sin abanico (R-PREC-1/3)", () => {

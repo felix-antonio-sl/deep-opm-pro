@@ -185,7 +185,18 @@ function aplicarPatchEnlace(
       : crearAutoInvocacion(modelo, opdId, origenId);
   }
 
-  const creado = crearEnlace(modelo, opdId, extremos.value.origen, extremos.value.destino, patch.tipoEnlace, patch.etiqueta ?? "");
+  const transicion = patch.tipoEnlace === "efecto" && extremos.value.estadoEntradaId && extremos.value.estadoSalidaId
+    ? { estadoEntradaId: extremos.value.estadoEntradaId, estadoSalidaId: extremos.value.estadoSalidaId }
+    : undefined;
+  const creado = crearEnlace(
+    modelo,
+    opdId,
+    extremos.value.origen,
+    extremos.value.destino,
+    patch.tipoEnlace,
+    patch.etiqueta ?? "",
+    transicion,
+  );
   if (!creado.ok) return creado;
   if (
     patch.modificador === undefined &&

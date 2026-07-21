@@ -49,6 +49,22 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico, esApunte = fals
   const puertoComun = puertoExactoCompartidoDeAbanico(modelo, abanico);
   const puerto = puertoComun ? modelo.entidades[puertoComun.entidadId] : undefined;
   if (!puertoComun || !puerto || !primer) return null;
+  const cuantificador = abanico.operador === "XOR" ? "exactamente uno de" : "al menos uno de";
+  const puertoEsOrigen = puertoComun.lado === "origen";
+
+  const efectosTs3Compactos = oracionAbanicoEfectosTs3Compactos(
+    modelo,
+    enlaces,
+    puerto.id,
+    cuantificador,
+    puertoEsOrigen,
+  );
+  if (efectosTs3Compactos.detectado) {
+    if (efectosTs3Compactos.texto) return efectosTs3Compactos.texto;
+    throw new Error(
+      "R-FAN-5A: abanico de efectos TS3 compactos no representable sin pérdida; la generación OPL queda bloqueada.",
+    );
+  }
 
   // BUG-20260519T200211Z-62ee85: los nombres del abanico deben deduplicarse,
   // porque dos enlaces que apuntan al mismo extremo (misma entidad sin estado
@@ -77,8 +93,6 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico, esApunte = fals
   }
   if (otrosNombres.length < 2) return null;
 
-  const cuantificador = abanico.operador === "XOR" ? "exactamente uno de" : "al menos uno de";
-  const puertoEsOrigen = puertoComun.lado === "origen";
   const estadosAgrupados = oracionAbanicoEstados(modelo, abanico, enlaces, primer, cuantificador, puertoEsOrigen);
   if (estadosAgrupados) return estadosAgrupados;
   const lista = listarOpl(otrosNombres);
@@ -139,6 +153,63 @@ export function oracionAbanico(modelo: Modelo, abanico: Abanico, esApunte = fals
     default:
       return null;
   }
+}
+
+function oracionAbanicoEfectosTs3Compactos(
+  modelo: Modelo,
+  enlaces: readonly Enlace[],
+  puertoComunId: string,
+  cuantificador: string,
+  puertoEsOrigen: boolean,
+): { detectado: boolean; texto: string | null } {
+  const detectado = enlaces.some((enlace) => enlace.estadoEntradaId !== undefined || enlace.estadoSalidaId !== undefined);
+  if (!detectado) return { detectado: false, texto: null };
+
+  if (!puertoEsOrigen || enlaces.some((enlace) => enlace.tipo !== "efecto")) {
+    return { detectado: true, texto: null };
+  }
+  if (enlaces.some((enlace) =>
+    enlace.modificador !== undefined
+    || rutaEtiquetaNormalizada(enlace.rutaEtiqueta)
+    || enlace.probabilidad !== undefined
+  )) {
+    return { detectado: true, texto: null };
+  }
+
+  const proceso = modelo.entidades[puertoComunId];
+  let objetoId: string | null = null;
+  const entradas = [];
+  const salidas = [];
+  for (const enlace of enlaces) {
+    const origen = entidadDeExtremo(modelo, enlace.origenId);
+    const destino = entidadDeExtremo(modelo, enlace.destinoId);
+    const entrada = enlace.estadoEntradaId ? modelo.estados[enlace.estadoEntradaId] : undefined;
+    const salida = enlace.estadoSalidaId ? modelo.estados[enlace.estadoSalidaId] : undefined;
+    if (!origen || origen.id !== puertoComunId || !destino || destino.tipo !== "objeto" || !entrada || !salida) {
+      return { detectado: true, texto: null };
+    }
+    if ((objetoId && destino.id !== objetoId) || entrada.entidadId !== destino.id || salida.entidadId !== destino.id) {
+      return { detectado: true, texto: null };
+    }
+    objetoId = destino.id;
+    entradas.push(entrada);
+    salidas.push(salida);
+  }
+
+  const entradaIds = new Set(entradas.map((estado) => estado.id));
+  const salidaIds = new Set(salidas.map((estado) => estado.id));
+  const objeto = objetoId ? modelo.entidades[objetoId] : undefined;
+  if (!proceso || proceso.tipo !== "proceso" || !objeto || entradaIds.size !== 1 || salidaIds.size !== enlaces.length) {
+    return { detectado: true, texto: null };
+  }
+
+  const entrada = entradas[0];
+  if (!entrada) return { detectado: true, texto: null };
+  const listaSalidas = listarOpl(salidas.map((estado) => `\`${nombreCanonicoEstado(estado)}\``));
+  return {
+    detectado: true,
+    texto: `${nombreOpl(proceso)} cambia ${nombreOpl(objeto)} de \`${nombreCanonicoEstado(entrada)}\` a ${cuantificador} ${listaSalidas}.`,
+  };
 }
 
 function capitalizarInicial(texto: string): string {

@@ -94,6 +94,7 @@ export function crearEnlace(
   destinoId: ExtremoEntrada,
   tipo: TipoEnlace,
   etiqueta = "",
+  transicion?: { estadoEntradaId?: Id; estadoSalidaId?: Id },
 ): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
@@ -123,7 +124,18 @@ export function crearEnlace(
   ) {
     return fallo("R-OPD-EST-3: un objeto sin estados no puede ser afectado; declárale estados o usa resultado/consumo");
   }
-  const unicidad = validarUnicidadRolPar(modelo, tipo, origenExtremo, destinoExtremo, origen, destino);
+  if (transicion && tipo !== "efecto") return fallo("Los estados de transición compacta solo aplican a enlaces efecto");
+  if (transicion && (!transicion.estadoEntradaId || !transicion.estadoSalidaId)) {
+    return fallo("La transición compacta requiere estado de entrada y salida");
+  }
+  for (const estadoId of [transicion?.estadoEntradaId, transicion?.estadoSalidaId]) {
+    if (!estadoId) continue;
+    const estado = modelo.estados[estadoId];
+    if (!estado || destino.tipo !== "objeto" || estado.entidadId !== destino.id) {
+      return fallo("La transición compacta debe referir estados del objeto destino");
+    }
+  }
+  const unicidad = validarUnicidadRolPar(modelo, tipo, origenExtremo, destinoExtremo, origen, destino, transicion);
   if (!unicidad.ok) return unicidad;
   if (!extremoVisibleEnOpd(modelo, opd, origenExtremo) || !extremoVisibleEnOpd(modelo, opd, destinoExtremo)) {
     return fallo("El enlace requiere que origen y destino tengan apariencia en el OPD");
@@ -131,7 +143,15 @@ export function crearEnlace(
 
   const enlaceId = siguienteId(modelo, "e");
   const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "ae");
-  const enlace: Enlace = { id: enlaceId, tipo, origenId: origenExtremo, destinoId: destinoExtremo, etiqueta };
+  const enlace: Enlace = {
+    id: enlaceId,
+    tipo,
+    origenId: origenExtremo,
+    destinoId: destinoExtremo,
+    etiqueta,
+    ...(transicion?.estadoEntradaId ? { estadoEntradaId: transicion.estadoEntradaId } : {}),
+    ...(transicion?.estadoSalidaId ? { estadoSalidaId: transicion.estadoSalidaId } : {}),
+  };
   const apariencia: AparienciaEnlace = { id: aparienciaId, enlaceId, opdId, vertices: [] };
 
   const base: Modelo = {
@@ -1033,6 +1053,7 @@ function validarUnicidadRolPar(
   destinoExtremo: ExtremoEnlace,
   origen: Entidad,
   destino: Entidad,
+  transicion?: { estadoEntradaId?: Id; estadoSalidaId?: Id },
 ): Resultado<true> {
   const nuevoEsTransformador = ROLES_TRANSFORMADORES.has(tipo);
   const nuevoEsHabilitador = ROLES_HABILITADORES.has(tipo);
@@ -1055,6 +1076,16 @@ function validarUnicidadRolPar(
     if (!mismoPar) continue;
 
     if (enlace.tipo === tipo && mismoExtremo(enlace.origenId, origenExtremo) && mismoExtremo(enlace.destinoId, destinoExtremo)) {
+      if (
+        tipo === "efecto"
+        && transicion?.estadoEntradaId
+        && transicion.estadoSalidaId
+        && enlace.estadoEntradaId
+        && enlace.estadoSalidaId
+        && (enlace.estadoEntradaId !== transicion.estadoEntradaId || enlace.estadoSalidaId !== transicion.estadoSalidaId)
+      ) {
+        continue;
+      }
       return fallo("R-OPD-HAB-4: el par objeto-proceso ya tiene este enlace");
     }
     if (nuevoEsHabilitador || existenteEsHabilitador) {

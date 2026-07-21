@@ -6,6 +6,7 @@ import {
   planificarEdicionOplLibre,
 } from ".";
 import {
+  agregarEstado,
   crearEstadosIniciales,
   crearModelo,
   crearObjeto,
@@ -271,6 +272,39 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     expect(Object.values(aplicado.abanicos ?? {})).toHaveLength(1);
     expect(generarOpl(aplicado)).toContain(
       "*Procesar* cambia **Grado** a exactamente uno de `insuficiente` y `nulo`.",
+    );
+  });
+
+  test("reconstruye un abanico TS3 con entrada común sin delta de fact-set", () => {
+    let modelo = crearModelo("reverse-fan-ts3");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Grado de Cobertura"));
+    const grado = entidad(modelo, "Grado de Cobertura");
+    const iniciales = must(crearEstadosIniciales(modelo, grado));
+    modelo = iniciales.modelo;
+    modelo = must(renombrarEstado(modelo, iniciales.estadoIds[0], "suficiente"));
+    modelo = must(renombrarEstado(modelo, iniciales.estadoIds[1], "insuficiente"));
+    const agregado = must(agregarEstado(modelo, grado, "nulo"));
+    modelo = agregado.modelo;
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+
+    const oracion = "*Procesar* cambia **Grado de Cobertura** de `suficiente` a exactamente uno de `insuficiente` o `nulo`.";
+    const preview = planificarEdicionOplLibre(modelo, [...generarOpl(modelo), oracion].join("\n"), {
+      opdActivoId: modelo.opdRaizId,
+    });
+
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    expect(preview.patches.filter((patch) => patch.tipo === "crear-enlace")).toHaveLength(2);
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    const enlaces = Object.values(aplicado.enlaces);
+    expect(enlaces).toHaveLength(2);
+    expect(enlaces.every((enlace) => enlace.tipo === "efecto")).toBe(true);
+    expect([...new Set(enlaces.map((enlace) => aplicado.estados[enlace.estadoEntradaId!]?.nombre))]).toEqual(["suficiente"]);
+    expect(enlaces.map((enlace) => aplicado.estados[enlace.estadoSalidaId!]?.nombre).sort()).toEqual(["insuficiente", "nulo"]);
+    const abanico = Object.values(aplicado.abanicos ?? {})[0];
+    expect(abanico?.operador).toBe("XOR");
+    expect([...(abanico?.enlaceIds ?? [])].sort()).toEqual(enlaces.map((enlace) => enlace.id).sort());
+    expect(generarOpl(aplicado)).toContain(
+      "*Procesar* cambia **Grado de Cobertura** de `suficiente` a exactamente uno de `insuficiente` y `nulo`.",
     );
   });
 

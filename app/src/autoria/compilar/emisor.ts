@@ -119,6 +119,7 @@ export function recolectarEstadosUnion(oraciones: string[]): Map<string, string[
         if (a.base?.estadoSalida) agregar(a.base.objeto ?? "", [a.base.estadoSalida]);
       } else if (a.kind === "abanico" && a.otrosEstados?.length) {
         agregar(a.otros[0] ?? "", a.otrosEstados);
+        if (a.estadoEntradaComun) agregar(a.otros[0] ?? "", [a.estadoEntradaComun]);
       }
     }
   }
@@ -663,6 +664,8 @@ function emitirAbanico(
     for (const estado of ast.otrosEstados) {
       const base = ast.tipoEnlace === "resultado"
         ? { proceso: ast.proceso, objeto, estadoSalida: estado }
+        : ast.tipoEnlace === "efecto" && ast.estadoEntradaComun
+          ? { proceso: ast.proceso, objeto, estadoEntrada: ast.estadoEntradaComun, estadoSalida: estado }
         : { proceso: ast.proceso, objeto, estadoEntrada: estado };
       const resultado = emitirBase(ast.tipoEnlace, base, ctx, ast.modificador ? { modificador: ast.modificador } : {});
       if (resultado.estado !== "aplicada") return resultado;

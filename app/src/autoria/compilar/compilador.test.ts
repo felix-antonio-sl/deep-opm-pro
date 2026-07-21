@@ -540,4 +540,24 @@ Procesar cambia Grado a exactamente uno de \`insuficiente\` o \`nulo\`.
     expect(Object.values(modelo.enlaces)).toHaveLength(2);
     expect(Object.values(modelo.abanicos ?? {})).toHaveLength(1);
   });
+
+  test("compila un abanico TS3 con entrada común como dos efectos", () => {
+    const proto = `# SD0
+
+\`\`\`opl
+Grado de Cobertura es informacional y ambiental.
+Procesar es físico y sistémico.
+Procesar cambia Grado de Cobertura de \`suficiente\` a exactamente uno de \`insuficiente\` o \`nulo\`.
+\`\`\`
+`;
+    const { modelo, resumen } = compilarProto(proto, { id: "fan-ts3", nombre: "Fan TS3" });
+    const enlaces = Object.values(modelo.enlaces);
+
+    expect(resumen.excluidas).toBe(0);
+    expect(resumen.fallos).toBe(0);
+    expect(Object.values(modelo.estados).map((estado) => estado.nombre).sort()).toEqual(["insuficiente", "nulo", "suficiente"]);
+    expect(enlaces).toHaveLength(2);
+    expect(enlaces.every((enlace) => enlace.tipo === "efecto" && enlace.estadoEntradaId && enlace.estadoSalidaId)).toBe(true);
+    expect(Object.values(modelo.abanicos ?? {})).toHaveLength(1);
+  });
 });

@@ -31,6 +31,20 @@ describe("abanico OPL", () => {
     expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe("*Procesar* cambia **Pedido** de al menos uno de `pendiente` y `observado`.");
   });
 
+  test("XOR de efectos TS3 compactos preserva la entrada común y todas las salidas", () => {
+    const modelo = modeloEfectosTs3Compactos("XOR");
+
+    expect(oracionAbanico(modelo, modelo.abanicos!.ab1!)).toBe(
+      "*Procesar* cambia **Grado de Cobertura** de `suficiente` a exactamente uno de `insuficiente` y `nulo`.",
+    );
+  });
+
+  test("efectos TS3 que varían entrada y salida fallan cerrado", () => {
+    const modelo = modeloEfectosTs3Compactos("XOR", false);
+
+    expect(() => oracionAbanico(modelo, modelo.abanicos!.ab1!)).toThrow("R-FAN-5A");
+  });
+
   // SSOT OPL-ES §11.4: abanicos combinados con modificador `condicion`.
   // Caso reportado en BUG-20260521T224939Z-7d8b75: instrumento OR convergente
   // con todos los enlaces condicionales debe emitir la forma "ocurre si … existe, … se omite".
@@ -196,6 +210,40 @@ function modeloConsumosDesdeEstados(operador: "O" | "XOR"): Modelo {
       l2: { id: "l2", tipo: "consumo", origenId: { kind: "estado", id: "observado" }, destinoId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-destino" }, etiqueta: "" },
     },
     abanicos: { ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "proceso", lado: "destino", portId: "port-fan-proceso-destino" }, puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
+    nextSeq: 1,
+  };
+}
+
+function modeloEfectosTs3Compactos(operador: "O" | "XOR", entradaComun = true): Modelo {
+  return {
+    id: "m1",
+    nombre: "M",
+    opdRaizId: "opd",
+    opds: { opd: { id: "opd", nombre: "SD", padreId: null, apariencias: {}, enlaces: {} } },
+    entidades: {
+      proceso: { id: "proceso", tipo: "proceso", nombre: "Procesar", esencia: "informacional", afiliacion: "sistemica" },
+      grado: { id: "grado", tipo: "objeto", nombre: "Grado de Cobertura", esencia: "informacional", afiliacion: "sistemica" },
+    },
+    estados: {
+      suficiente: { id: "suficiente", entidadId: "grado", nombre: "suficiente" },
+      insuficiente: { id: "insuficiente", entidadId: "grado", nombre: "insuficiente" },
+      nulo: { id: "nulo", entidadId: "grado", nombre: "nulo" },
+    },
+    enlaces: {
+      l1: {
+        id: "l1", tipo: "efecto",
+        origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" },
+        destinoId: { kind: "entidad", id: "grado" }, etiqueta: "",
+        estadoEntradaId: "suficiente", estadoSalidaId: "insuficiente",
+      },
+      l2: {
+        id: "l2", tipo: "efecto",
+        origenId: { kind: "entidad", id: "proceso", portId: "port-fan-proceso-origen" },
+        destinoId: { kind: "entidad", id: "grado" }, etiqueta: "",
+        estadoEntradaId: entradaComun ? "suficiente" : "insuficiente", estadoSalidaId: "nulo",
+      },
+    },
+    abanicos: { ab1: { id: "ab1", opdId: "opd", puertoComun: { entidadId: "proceso", lado: "origen", portId: "port-fan-proceso-origen" }, puertoEntidadId: "proceso", operador, enlaceIds: ["l1", "l2"] } },
     nextSeq: 1,
   };
 }

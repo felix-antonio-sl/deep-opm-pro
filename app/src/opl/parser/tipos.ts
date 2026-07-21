@@ -223,6 +223,8 @@ export type OracionOplAst =
        * - `otrosEstados` se llena solo en la forma §11.3 "cambia X a/de
        *   cuant `s1` y `s2`": cada entrada es el estado y `otros[i]` es la
        *   entidad portadora (siempre la misma para todas las ramas).
+       * - `estadoEntradaComun` identifica la forma R-FAN-5A "cambia X de
+       *   `s0` a cuant `s1` y `s2`"; cada rama conserva `s0` como entrada.
        */
       kind: "abanico";
       linea: number;
@@ -237,6 +239,8 @@ export type OracionOplAst =
        * `otrosEstados`). Largo de `otrosEstados` >= 2.
        */
       otrosEstados?: string[];
+      /** Estado de entrada repetido en cada efecto TS3 de R-FAN-5A. */
+      estadoEntradaComun?: string;
       puertoEsOrigen: boolean;
       /** Modificador comun a todas las ramas (hoy solo "condicion" §11.4). */
       modificador?: Modificador;

@@ -655,6 +655,8 @@ function planificarAbanico(
     for (const estado of ast.otrosEstados) {
       const estadoPatch = ast.tipoEnlace === "resultado"
         ? { estadoSalida: estado }
+        : ast.tipoEnlace === "efecto" && ast.estadoEntradaComun
+          ? { estadoEntrada: ast.estadoEntradaComun, estadoSalida: estado }
         : { estadoEntrada: estado };
       planificarEnlace(
         modelo,
