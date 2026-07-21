@@ -1,14 +1,17 @@
-// CLI de mesa (3 verbos): capa delgada de I/O sobre la lógica ya testeada de
+// CLI de mesa: capa delgada de I/O sobre la lógica ya testeada de
 // `mesa pull`/`mesa push` (src/mesa/contextoPull.ts, src/mesa/validarPush.ts).
 // Este script NO decide nada — arma el contexto (fetch + token) y delega toda
 // decisión (base a usar, permiso de escritura) a las funciones puras.
 // Uso:
 //   bun run mesa modelos
 //   bun run mesa pull <ref>
+//   bun run mesa recuperar <modeloId>
+//   bun run mesa preflight-retiro <modeloId>
 //   bun run mesa push <ref> <bundle.json> [--base <testigo>] --nota "…" [--especie apunte|modelo] [--confirmado-por-operador]
 // Config: env OPFORJA_API_URL (default instancia prod) + archivo
 // ~/.config/opforja/agent-token (o OPFORJA_AGENT_TOKEN_FILE).
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { Especie } from "../src/persistencia/especie";
@@ -27,6 +30,8 @@ import {
   selectedBaseJson,
   type ObservedBaseState,
 } from "../src/mesa/baseWitness";
+import { hidratarModelo } from "../src/serializacion/json";
+import type { VersionResumen } from "../src/modelo/tipos";
 
 const API = process.env.OPFORJA_API_URL ?? "https://opforja.sanixai.com";
 const TOKEN_PATH = process.env.OPFORJA_AGENT_TOKEN_FILE ?? join(homedir(), ".config/opforja/agent-token");
@@ -164,6 +169,106 @@ export async function cmdPull(ref: string, deps: { api?: ApiFn } = {}): Promise<
   console.log(componerPull({ nombre: rec.nombre, especie, base, baseWitness }));
 }
 
+/** Recupera el bundle completo exacto por ID. No lista, no resuelve por nombre y no reserializa. */
+export async function cmdRecuperar(
+  modeloId: string,
+  deps: { api?: ApiFn; write?: (contenido: string) => void } = {},
+): Promise<void> {
+  const apiFn = deps.api ?? api;
+  const rec = await obtenerModelo(modeloId, apiFn);
+  if (!rec || typeof rec.json !== "string") {
+    console.error("modelo no encontrado");
+    process.exit(1);
+  }
+  const hidratado = hidratarModelo(rec.json);
+  if (!hidratado.ok) {
+    console.error(`recuperación abortada: bundle remoto inválido: ${hidratado.error}`);
+    process.exit(1);
+  }
+  (deps.write ?? ((contenido) => { process.stdout.write(contenido); }))(rec.json);
+}
+
+interface VersionRemota {
+  modeloId?: string;
+  version?: VersionResumen;
+  json?: string;
+}
+
+async function obtenerVersiones(modeloId: string, apiFn: ApiFn): Promise<VersionResumen[]> {
+  const response = await apiFn(`/modelos/${encodeURIComponent(modeloId)}/versiones`);
+  if (!response.ok) {
+    console.error(`API ${response.status}: no se pudo observar el historial`);
+    process.exit(1);
+  }
+  const body = await response.json() as { versiones?: VersionResumen[] };
+  return Array.isArray(body.versiones) ? body.versiones : [];
+}
+
+async function obtenerVersion(modeloId: string, versionId: string, apiFn: ApiFn): Promise<VersionRemota | null> {
+  const response = await apiFn(
+    `/modelos/${encodeURIComponent(modeloId)}/versiones/${encodeURIComponent(versionId)}`,
+  );
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    console.error(`API ${response.status}: no se pudo recuperar la versión`);
+    process.exit(1);
+  }
+  return await response.json() as VersionRemota;
+}
+
+/**
+ * Preflight estrictamente GET. Acredita recuperación e historial observable,
+ * pero declara honestamente que archivar/restaurar exige sesión de operador UI.
+ */
+export async function cmdPreflightRetiro(modeloId: string, deps: { api?: ApiFn } = {}): Promise<void> {
+  const apiFn = deps.api ?? api;
+  const rec = await obtenerModelo(modeloId, apiFn);
+  if (!rec || typeof rec.json !== "string") {
+    console.error("preflight bloqueado: modelo no encontrado");
+    process.exit(1);
+  }
+  const actual = hidratarModelo(rec.json);
+  if (!actual.ok) {
+    console.error(`preflight bloqueado: bundle actual inválido: ${actual.error}`);
+    process.exit(1);
+  }
+  const indice = await obtenerWorkspaceIndice(apiFn);
+  const entrada = indice.modelos.find((item) => item.id === modeloId);
+  if (!entrada) {
+    console.error("preflight bloqueado: el modelo no figura en el workspace");
+    process.exit(1);
+  }
+  const versiones = (await obtenerVersiones(modeloId, apiFn))
+    .sort((a, b) => b.creadoEn.localeCompare(a.creadoEn) || a.id.localeCompare(b.id));
+  const versionResumen = versiones[0];
+  const version = versionResumen ? await obtenerVersion(modeloId, versionResumen.id, apiFn) : null;
+  const versionHidratada = typeof version?.json === "string" ? hidratarModelo(version.json) : null;
+  const hash = (json: string) => createHash("sha256").update(json).digest("hex");
+  const recibo = {
+    version: 1,
+    modeloId,
+    estado: entrada.archivado ? "ya-archivado" : "requiere-operador",
+    comprobaciones: {
+      bundleActualRecuperable: true,
+      bundleActualBytes: new TextEncoder().encode(rec.json).byteLength,
+      bundleActualSha256: hash(rec.json),
+      workspaceVisible: true,
+      historialVersiones: versiones.length,
+      versionRecuperable: versionHidratada?.ok === true,
+      ...(versionResumen ? { versionId: versionResumen.id } : {}),
+    },
+    viaRetiro: {
+      superficie: "UI workspace · archivar/restaurar modelo",
+      actorRequerido: "operador",
+      ejecutablePorTokenAgente: false,
+      permisoOperadorConfirmadoEnDestino: false,
+    },
+    recuperacionSoportada: { comando: "mesa recuperar", argumentos: [modeloId] },
+    mutacionesEjecutadas: 0,
+  } as const;
+  console.log(JSON.stringify(recibo, null, 2));
+}
+
 export async function cmdPush(
   ref: string,
   bundlePath: string,
@@ -293,7 +398,7 @@ export async function cmdPush(
       )
     : {
         id: generarId(),
-        nombre: `Nuevo ${veredicto.especieDestino}`,
+        nombre: veredicto.nombreModelo,
         json: bundleJson,
         creadoEn: ahora,
         actualizadoEn: ahora,
@@ -424,7 +529,7 @@ if (import.meta.main) {
   };
   const has = (n: string): boolean => rest.includes(n);
 
-  const USO = "uso: mesa <modelos|pull <ref>|push <ref> <bundle.json> [--base <Testigo-Base>] --nota … [--especie apunte|modelo] [--confirmado-por-operador]>";
+  const USO = "uso: mesa <modelos|pull <ref>|recuperar <modeloId>|preflight-retiro <modeloId>|push <ref> <bundle.json> [--base <Testigo-Base>] --nota … [--especie apunte|modelo] [--confirmado-por-operador]>";
 
   if (verbo === "modelos") {
     await cmdModelos();
@@ -435,6 +540,20 @@ if (import.meta.main) {
       process.exit(2);
     }
     await cmdPull(ref);
+  } else if (verbo === "recuperar") {
+    const modeloId = rest[0];
+    if (!modeloId) {
+      console.error(USO);
+      process.exit(2);
+    }
+    await cmdRecuperar(modeloId);
+  } else if (verbo === "preflight-retiro") {
+    const modeloId = rest[0];
+    if (!modeloId) {
+      console.error(USO);
+      process.exit(2);
+    }
+    await cmdPreflightRetiro(modeloId);
   } else if (verbo === "push") {
     const ref = rest[0];
     const bundlePath = rest[1];

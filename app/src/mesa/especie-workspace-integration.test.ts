@@ -287,6 +287,10 @@ describe("especie vía workspace — guard biblioteca + creación atómica (repo
       const entradasNuevas = indiceFinal.modelos.filter((m) => m.id !== "existing-1");
       expect(entradasNuevas.length).toBe(1);
       expect(entradasNuevas[0]?.esApunte).toBe(true);
+      const getNuevo = await h(req(`/modelos/${entradasNuevas[0]!.id}`));
+      const bodyNuevo = await getNuevo.json() as { modelo: { nombre: string; json: string } };
+      expect(bodyNuevo.modelo.nombre).toBe("Apunte nuevo");
+      expect(JSON.parse(bodyNuevo.modelo.json).modelo.nombre).toBe("Apunte nuevo");
 
       // (b) Todo lo preexistente sigue intacto dentro del mismo commit: la
       // entrada del modelo viejo, la carpeta, recientes y preferenciasUi.

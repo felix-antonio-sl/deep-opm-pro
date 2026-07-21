@@ -13,7 +13,12 @@ import type { Especie } from "../persistencia/especie";
  *      el push exige confirmación explícita del operador.
  * Al crear (sin destino) se exige declarar la especie explícitamente.
  */
-export type VeredictoPush = { ok: true; especieDestino: "apunte" | "modelo" } | { ok: false; motivo: string };
+export type VeredictoPush = {
+  ok: true;
+  especieDestino: "apunte" | "modelo";
+  /** Identidad canónica interna que debe rotular atómicamente una creación remota. */
+  nombreModelo: string;
+} | { ok: false; motivo: string };
 
 /**
  * El sello de procedencia vive en `Modelo.procedencia` — que en el documento
@@ -45,7 +50,7 @@ export function evaluarPush(input: {
   // 2. Crear vs actualizar.
   if (!input.destino) {
     if (!input.especieAlCrear) return { ok: false, motivo: "al crear se debe declarar --especie apunte|modelo" };
-    return { ok: true, especieDestino: input.especieAlCrear };
+    return { ok: true, especieDestino: input.especieAlCrear, nombreModelo: hidratado.value.nombre };
   }
 
   // 3. Biblioteca = solo-lectura.
@@ -61,5 +66,5 @@ export function evaluarPush(input: {
     return { ok: false, motivo: "base no ratificada (autosave): el operador debe confirmar (--confirmado-por-operador)" };
   }
 
-  return { ok: true, especieDestino: input.destino.especie };
+  return { ok: true, especieDestino: input.destino.especie, nombreModelo: hidratado.value.nombre };
 }

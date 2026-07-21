@@ -100,7 +100,7 @@ describe("evaluarPush", () => {
       confirmadoPorOperador: false,
       especieAlCrear: "apunte",
     });
-    expect(con).toMatchObject({ ok: true, especieDestino: "apunte" });
+    expect(con).toMatchObject({ ok: true, especieDestino: "apunte", nombreModelo: "X" });
   });
 
   test("bundleTieneSello no lanza con JSON malformado (defensivo)", () => {
