@@ -319,7 +319,7 @@ Antes de proponer, se inventaría el punto de partida:
 | DSL composable (`crearAutor`, 28 métodos) | **Existe** — reentrante, testado | `autoria/dsl.ts:72-187` |
 | Familia V (verbos extendidos → OPM canónico) | **Existe** — V1–V17 en compilador | `autoria/compilar/normalizador.ts`, `compilar/tipos.ts:52-62` |
 | Sistema de templates de modelo (legacy) | **Eliminado** — decisión UX 2026-05-26 | `DialogoPlantillas.tsx`, `persistencia/plantillas.ts` (removidos) |
-| W6.7 Templates in-app | **Registro histórico; superado por Piezas/Calco/Anclaje** | Estado actual en `../handoff-2026-07-18.md`. |
+| W6.7 Templates in-app | **Registro histórico; superado por Piezas/Calco/Anclaje** | Estado actual en `../handoff-2026-07-21.md`. |
 | A0 Estereotipos generales OPM | **Delta** — diferido (costoso, sin eval inmediato) | `cortes-operativos.md:285` |
 
 **Principio de diseño heredado**: las extensiones en opforja son aditivas y opcionales sobre `Modelo` (no baked-in en entidades), usan targets `{tipo, id}` para anclaje flexible, y tienen sus propios ciclos de vida (formato versionado `v0`, state machines). Este patrón — inaugurado por `AnclaNormativa` — es el molde para cualquier extensión nueva.

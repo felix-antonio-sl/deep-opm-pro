@@ -79,7 +79,7 @@ concurrentes y asignar un `PW_PORT` distinto a cada runner. Si la contaminación
 se vuelve recurrente, el asunto pendiente es aislar la infraestructura de CI,
 no flexibilizar las aserciones.
 
-Fuente de cierre: `../handoff-2026-07-18.md`.
+Fuente de cierre: `../handoff-2026-07-21.md`.
 
 ## 9. Un SHA distinto no implica por sí solo deriva de producto
 

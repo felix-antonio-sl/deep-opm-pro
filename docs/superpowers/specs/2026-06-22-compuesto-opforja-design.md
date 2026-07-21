@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-06-22 · **Estado:** REALIZADO; conserva el contrato arquitectónico del compuesto, no el estado de ejecución.
 **Fuente:** deliberación allan-kelly × steipete con gate de rigor cat-thinking (runs `wf_9adcc678` + correcciones `wf_6bf94e6b`); 52 agentes, ~5.5M tokens; cada decisión verificada en código y pasada por el gate categorial.
-**Alcance:** este documento conserva el diseño del compuesto. La dirección viva está en `docs/roadmap/roadmap-2026-07-18.md`; el estado, en `docs/handoff-2026-07-18.md`.
+**Alcance:** este documento conserva el diseño del compuesto. La dirección viva está en `docs/roadmap/roadmap-2026-07-18.md`; el estado, en `docs/handoff-2026-07-21.md`.
 
 ---
 

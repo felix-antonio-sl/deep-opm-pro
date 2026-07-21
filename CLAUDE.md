@@ -10,7 +10,7 @@ Modelador OPM/ISO 19450 nuevo (`app/`), con arquitectura propia. No es fork ni a
 
 Instancia en producción: `https://opforja.sanixai.com`.
 
-El **estado operativo vigente** vive en `docs/handoff-2026-07-18.md`. El plan futuro vive en `docs/roadmap/roadmap-2026-07-18.md`; la cola de defectos, en `docs/bugs/INDEX.md`; la historia, en Git. Leer esas fuentes antes de tocar producto.
+El **estado operativo vigente** vive en `docs/handoff-2026-07-21.md`. El plan futuro vive en `docs/roadmap/roadmap-2026-07-18.md`; la cola de defectos, en `docs/bugs/INDEX.md`; la historia, en Git. Leer esas fuentes antes de tocar producto.
 
 **Frontera con los modelos de dominio (HODOM, gist).** opforja es la **mesa/herramienta**; los **modelos** que se construyen con ella viven en sus propios repos y son de otra autoridad: HODOM en `hd-opm` (Intento 1, sustrato vigente) / `hodom-opm` (Intento 2), gobernados por **hd-dt** (Director Técnico HODOM-HSC); gist en `gist-opm`. Esta mesa **consume** esos modelos solo como **fixtures** de verificación (golden de regresión, amarras con dato real) y **no los modela, no los versiona aquí, ni decide su gestión o adopción**. Una migración que un cambio de método imponga sobre un modelo de dominio se hace con utilidad **genérica parametrizada** (jamás hardcodeando la ruta de otro repo) y se coordina por el canal `docs/solicitudes-upstream/`. La decisión de **adoptar** una feature de opforja para gestionar HODOM (p. ej. anclar HODOM a gist) es de **hd-dt**, no de este repo.
 
@@ -52,7 +52,7 @@ deep-opm-pro/
 ├── deploy/                     nginx.conf (copiado a la imagen) + backup-opforja-db.sh + systemd/
 ├── docs/
 │   ├── README.md               entrada principal de documentación
-│   ├── handoff-2026-07-18.md   fotografía operativa vigente
+│   ├── handoff-2026-07-21.md   fotografía operativa vigente
 │   ├── uso-productivo.md       guía operativa del usuario (entrar, guardar, atajos)
 │   ├── manual-opm-puro.md      manual educativo agnóstico de herramienta
 │   ├── manual-opforja.md       manual integrado: método Forja + pista humano + pista agente

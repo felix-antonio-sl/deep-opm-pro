@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-06-30 · **Frente:** modo apunte · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato.
 **Gobernanza:** concepto y nombre por `steve-jobs` (8 correcciones, abajo); contrato de las 3 decisiones de cimiento por el operador (no reabrir); implementación por `steipete`.
-**SSOT relacionada:** `CLAUDE.md §Identidad y límites` (frontera de dominio: opforja es la mesa, no modela dominio); `app/src/persistencia/modelos.ts` (gemelo `esBiblioteca`); `app/src/modelo/diagnosticoSeveridad.ts` (corrección 4); estado vivo `docs/handoff-2026-07-18.md`.
+**SSOT relacionada:** `CLAUDE.md §Identidad y límites` (frontera de dominio: opforja es la mesa, no modela dominio); `app/src/persistencia/modelos.ts` (gemelo `esBiblioteca`); `app/src/modelo/diagnosticoSeveridad.ts` (corrección 4); estado vivo `docs/handoff-2026-07-21.md`.
 
 ---
 

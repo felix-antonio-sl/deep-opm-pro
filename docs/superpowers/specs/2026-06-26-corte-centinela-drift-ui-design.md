@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-06-26 · **Repo:** `deep-opm-pro` · **Frente:** gist-anchor / Anclaje · **Alcance:** Opción **α** (solo vigilancia) + «marcador-que-responde».
 **Estado:** REALIZADO Y DESPLEGADO; conservar como contrato de diseño histórico, no como instrucción pendiente.
-**Funda en:** `docs/auditorias/2026-06-24-acta-{nominacion-reuso-tipos-opforja,valor-anclaje-centinela-drift}.md`, veredicto Steve Jobs+mente-omega (2026-06-26). Estado actual: `docs/handoff-2026-07-18.md`.
+**Funda en:** `docs/auditorias/2026-06-24-acta-{nominacion-reuso-tipos-opforja,valor-anclaje-centinela-drift}.md`, veredicto Steve Jobs+mente-omega (2026-06-26). Estado actual: `docs/handoff-2026-07-21.md`.
 **Kernel pre-existente (verde, sin UI):** `app/src/modelo/operaciones/anclaje.ts`.
 
 ---
