@@ -15,6 +15,7 @@
 // "Equipo HODOM" y "equipo hodom" colisionan, igual que en el reverse.
 
 import { claveNombre } from "../../opl/parser/parsear";
+import { hashContenido } from "../procedencia";
 import type { EntKey } from "../tipos";
 import type { Afiliacion, Esencia, TipoEntidad } from "../../modelo/tipos";
 
@@ -82,7 +83,6 @@ export class Resolutor {
    *  sin depender del orden de creación (`Resumen clínico en domicilio` se
    *  declara en una lista `consta de` posterior a su primer uso). */
   private readonly nombresConocidos = new Set<string>();
-  private contador = 0;
 
   /**
    * Pre-siembra los tipos inferidos por el ContextoProto (`tipoPorEntidad`). El
@@ -206,13 +206,14 @@ export class Resolutor {
   }
 
   private nuevaKey(nombre: string): EntKey {
-    const slug = nombre
+    const clave = claveNombre(nombre);
+    const slug = clave
       .normalize("NFD")
       .replace(/\p{Diacritic}/gu, "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/gu, "-")
       .replace(/^-|-$/gu, "")
       .slice(0, 48);
-    return `${slug || "ent"}-${++this.contador}`;
+    return `${slug || "ent"}-${hashContenido(clave)}`;
   }
 }
