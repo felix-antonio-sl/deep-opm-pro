@@ -4,6 +4,7 @@
 import { contenedorRefinamiento } from "../modelo/layout";
 import type { AvisoDiagnostico } from "../modelo/diagnostico";
 import { listarAvisosDiagnostico } from "../modelo/diagnostico";
+import { severidadDiagnostico } from "../modelo/diagnosticoSeveridad";
 import { moverAparienciaPorId } from "../modelo/operaciones/apariencias";
 import type { Modelo } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
@@ -65,14 +66,18 @@ function verificarContencion(modeloHidratado: Modelo): ResumenContencion {
   return resumen;
 }
 
-/** Política de canon: bloquean los avisos ESTRUCTURALES (no `info`, no `metodologia`). Los
- * metodológicos (mejora/estilo) son sugerencias y no bloquean. Devuelve la partición. */
-function particionarCanon(avisos: AvisoDiagnostico[]): { bloqueantes: AvisoDiagnostico[]; metodologicos: number; info: number } {
-  const esMetodologico = (a: AvisoDiagnostico) => a.origen === "metodologia";
+/** Política de canon compartida con el panel: la severidad depende de la regla,
+ * no del productor que la detectó. */
+function particionarCanon(avisos: AvisoDiagnostico[]): {
+  bloqueantes: AvisoDiagnostico[];
+  mejoras: number;
+  observaciones: number;
+} {
+  const clasificados = avisos.map((aviso) => ({ aviso, severidad: severidadDiagnostico(aviso) }));
   return {
-    bloqueantes: avisos.filter((a) => a.severidad !== "info" && !esMetodologico(a)),
-    metodologicos: avisos.filter(esMetodologico).length,
-    info: avisos.filter((a) => a.severidad === "info").length,
+    bloqueantes: clasificados.filter((item) => item.severidad === "bloqueo").map((item) => item.aviso),
+    mejoras: clasificados.filter((item) => item.severidad === "mejora").length,
+    observaciones: clasificados.filter((item) => item.severidad === "estilo").length,
   };
 }
 
@@ -80,7 +85,7 @@ function particionarCanon(avisos: AvisoDiagnostico[]): { bloqueantes: AvisoDiagn
  * Emite un bundle validado a partir de un autor (con su modelo + internosInzoom). Aplica el layout
  * canónico, valida round-trip + contención + canon, y devuelve { json, opl, reporte, conteos, avisos }.
  * No escribe archivos: el consumidor decide dónde persistir. Lanza ante fallo de round-trip/contención,
- * y (si lanzarEnError, default true) ante avisos de severidad `error` o bloqueantes de canon.
+ * y (si lanzarEnError, default true) ante cualquier bloqueo canónico del diagnóstico.
  *
  * CONSUME el autor: `autor.modelo` se MUTA in-place (se le aplica el layout canónico vía
  * `aplicarLayoutCompleto` y, si se pasan, `descripcion`/`procedencia`). Es intencional —
@@ -115,11 +120,9 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
   const hidratado = roundtrip.value;
 
   const avisos = listarAvisosDiagnostico(hidratado, { tipo: "modelo" });
-  const errores = avisos.filter((a) => a.severidad === "error").length;
-  if (lanzar && errores > 0) throw new Error(`Diagnóstico contiene ${errores} errores.`);
   const canon = particionarCanon(avisos);
   if (lanzar && canon.bloqueantes.length > 0) {
-    throw new Error(["Canon inválido:", ...canon.bloqueantes.map((a) => `- ${a.severidad} ${a.codigo}: ${a.destino} :: ${a.mensaje}`)].join("\n"));
+    throw new Error(["Canon inválido:", ...canon.bloqueantes.map((a) => `- bloqueo ${a.codigo}: ${a.destino} :: ${a.mensaje}`)].join("\n"));
   }
   const contencion = verificarContencion(hidratado);
   if (contencion.fallos.length > 0) throw new Error(`Contención de refinamientos inválida:\n${contencion.fallos.join("\n")}`);
@@ -152,7 +155,7 @@ export function emitirBundle(autor: Autor, opciones: OpcionesBundle = {}): Resul
     `- Entidades: ${conteos.entidades} · Estados: ${conteos.estados} · Enlaces: ${conteos.enlaces} · OPDs: ${conteos.opds}.`,
     "- Validación estructural de import: PASS vía `hidratarModelo`.",
     "- Round-trip JSON: PASS estable tras hidratar y reexportar.",
-    `- Canon: ${canon.bloqueantes.length === 0 ? "PASS" : "FAIL"} (${canon.bloqueantes.length} bloqueantes, ${canon.metodologicos} metodológicos, ${canon.info} info).`,
+    `- Canon: ${canon.bloqueantes.length === 0 ? "PASS" : "FAIL"} (${canon.bloqueantes.length} bloqueos, ${canon.mejoras} mejoras, ${canon.observaciones} observaciones).`,
     `- Contención de in-zoom: PASS (${contencion.opds} OPDs, ${contencion.internas} internas, ${contencion.externas} externas, ${contencion.externosDentro} externas dentro de contorno).`,
     ...(numAnclas > 0 ? [`- Anclas normativas (extensión meta, no-OPL): ${numAnclas} (${numAnclasPendientes} pendiente(s) de ratificación).`] : []),
     // W5.3/L6: el reporte declara el sello solo si existe (byte-identidad sin procedencia).

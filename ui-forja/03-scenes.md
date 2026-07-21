@@ -231,6 +231,6 @@ Las 4 vistas son **un solo editor**, no rutas distintas. El frame nunca cambia.
 - **Asistente guiado** — flujo wizard por etapas (§6 metodología); columna derecha como formulario.
 - **Empezar vacío** — canvas con placeholder serif italic.
 - **Renombrar modelo** — modal pequeño tipo command palette.
-- **Diagnóstico expandido** — al hacer click en `△ N sugerencias` del footer.
+- **Diagnóstico expandido** — al activar el encabezado `Diagnóstico` bajo OPL. El resumen compacto nombra la severidad dominante (`! N bloqueos`, `△ N mejoras` o `· N observaciones`) y cada hallazgo revela su `Criterio` en contexto.
 - **Proceso activo / Estado actual** (§17) — pendiente de definir canal visual sobre JointJS.
 - **Sub-modelos / referencias inter-modelo** (§10).

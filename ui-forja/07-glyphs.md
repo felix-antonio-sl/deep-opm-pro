@@ -44,12 +44,13 @@ Codex **no usa iconos vectoriales**. Toda señal gráfica está hecha con caract
 
 ### `△` (warning triangle)
 
-- **Solo en kickers de severidad** dentro de marginalia:
-  - `△ CRÍTICA` (color crimson)
+- **En kickers de severidad** dentro de marginalia y para mejoras del diagnóstico:
   - `△ ALTA` (color olive)
-  - `△ N sugerencias` en footer (color inkMid, italic)
+  - `△ N mejoras` en el encabezado del panel (color olive)
 - En JetBrains Mono 9px tracked 0.12em uppercase.
 - No usar como ícono "warning" genérico.
+
+Los bloqueos del diagnóstico usan `!` en crimson; las observaciones de estilo y legibilidad usan `·` en inkMid. No reutilizar `△` para ambas clases: la forma debe conservar la severidad.
 
 ### `▸` (current marker)
 

@@ -13,6 +13,11 @@ describe("avisos feedback canvas", () => {
       reglaId: "ambiental-dentro-contorno",
       severidad: "advertencia",
     }));
+    expect(construirAvisosFeedbackCanvas(modelo, "opd-hijo", { esApunte: true })).toContainEqual(expect.objectContaining({
+      anchorCellId: "a-ambiente",
+      reglaId: "ambiental-dentro-contorno",
+      severidad: "info",
+    }));
   });
 
   test("mapea aviso de enlace al cell de apariencia de enlace del OPD activo", () => {
@@ -40,7 +45,8 @@ describe("avisos feedback canvas", () => {
 
     expect(avisos).toContainEqual(expect.objectContaining({
       anchorCellId: "a-p-proceso",
-      reglaId: "proceso-sin-entrada-ni-salida",
+      reglaId: "PROCESO_NO_TRANSFORMA",
+      severidad: "error",
     }));
     expect(avisos.some((aviso) => aviso.reglaId === "PROCESO_NOMBRE_FORMA_VERBAL")).toBe(false);
   });

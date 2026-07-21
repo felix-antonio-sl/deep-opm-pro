@@ -2,7 +2,7 @@
  * Mapa de títulos humanos para reglas de diagnóstico (UI-facing).
  *
  * Ronda23 L2 #2: el panel y los badges hoy muestran el slug interno
- * (`agregacion-misma-esencia`, `PROCESO_NOMBRE_FORMA_VERBAL`, ...). Eso es
+ * (`generalizacion-mismo-tipo`, `PROCESO_NOMBRE_FORMA_VERBAL`, ...). Eso es
  * vocabulario de implementación. El usuario debe ver un título humano que
  * describa el problema con sujeto + verbo + complemento.
  *
@@ -23,6 +23,31 @@
  * registrarla.
  */
 
+import type { CodigoChecker } from "./tipos";
+
+/** Catálogo exhaustivo: añadir un checker exige nombrarlo para el modelador. */
+const TITULOS_CHECKER: Record<CodigoChecker, string> = {
+  SD_SIN_PROCESO_PRINCIPAL: "SD sin proceso principal",
+  PROCESO_NOMBRE_FORMA_VERBAL: "Nombre de proceso no es canónico",
+  ESTADO_NOMBRE_CANONICO: "Estado tiene nombre no canónico",
+  OBJETO_NOMBRE_SINGULAR: "Nombre de objeto no está en singular",
+  INZOOM_CONTENIDO_INSUFICIENTE: "Descomposición con muy poco contenido",
+  INZOOM_NOMBRES_PLACEHOLDER_HIJOS: "Refinadores esperan nombre",
+  UNFOLD_CONTENIDO_INSUFICIENTE: "Despliegue con muy poco contenido",
+  PROCESO_NO_TRANSFORMA: "Proceso no transforma ningún objeto",
+  PROCESO_SISTEMICO_DESCONECTADO: "Proceso sistémico desconectado del principal",
+  RECURSO_LINEAL_MULTIPLES_CONSUMIDORES: "Recurso lineal tiene varios consumidores",
+  DESCOMPOSICION_SIN_SUBPROCESOS: "Descomposición sin subprocesos",
+  DESCOMPOSICION_NO_PRESERVA_FRONTERA: "Descomposición no preserva su frontera",
+  EFECTO_OBJETO_SIN_ESTADOS: "Efecto aplicado a un objeto sin estados",
+  EFECTO_SIN_TRANSICION: "Efecto no declara una transición de estado",
+  PAR_TRANSFORMADOR_DUPLICADO: "Par objeto–proceso tiene roles incompatibles",
+  PROBABILIDAD_FUERA_DE_ABANICO: "Probabilidad fuera de un abanico lógico",
+  ENTIDAD_SIN_APARICIONES: "Cosa lógica no aparece en ningún OPD",
+  INVOCACION_REDUNDANTE_CON_ORDEN: "Invocación repite un orden ya declarado",
+  ORDEN_INZOOM_REFERENCIA_INVALIDA: "Orden de subprocesos contiene referencias inválidas",
+};
+
 /**
  * Mapa reglaId -> título humano. Las claves cubren tres familias:
  *   - validaciones estructurales (`validaciones.ts`, kebab-case).
@@ -31,7 +56,6 @@
  */
 const TITULO_POR_REGLA: Record<string, string> = {
   // ── validaciones estructurales (validaciones.ts) ──────────────────
-  "agregacion-misma-esencia": "Agregación mezcla esencia",
   "generalizacion-mismo-tipo": "Generalización entre tipos distintos",
   "estructural-no-acepta-extremo-estado": "Enlace estructural apunta a un estado",
   "excepcion-temporal-proceso-proceso": "Excepción temporal mal conectada",
@@ -42,23 +66,12 @@ const TITULO_POR_REGLA: Record<string, string> = {
   "agente-requiere-objeto-fisico": "Agente no es objeto físico",
   "proceso-sin-entrada-ni-salida": "Proceso sin entradas ni salidas",
   "instrumento-y-agente-simultaneos": "Mismo objeto es agente e instrumento",
-  "solo-un-nivel-de-instanciacion": "Cadena de instanciación de más de un nivel",
   "consumo-doble-mismo-objeto": "El mismo objeto se consume dos veces",
   "imagen-estados-excluyentes": "Imagen interior y estados visibles a la vez",
   "ambiental-dentro-contorno": "Cosa ambiental fuera del contorno",
 
   // ── checkers metodológicos (checkers.ts) ──────────────────────────
-  SD_SIN_PROCESO_PRINCIPAL: "SD sin proceso principal",
-  PROCESO_NOMBRE_FORMA_VERBAL: "Nombre de proceso no es canónico",
-  ESTADO_NOMBRE_CANONICO: "Estado tiene nombre no canónico",
-  OBJETO_NOMBRE_SINGULAR: "Nombre de objeto no está en singular",
-  OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO: "Objeto ambiental contradice su rol",
-  INZOOM_CONTENIDO_INSUFICIENTE: "Descomposición con muy poco contenido",
-  INZOOM_NOMBRES_PLACEHOLDER_HIJOS: "Refinadores esperan nombre",
-  UNFOLD_CONTENIDO_INSUFICIENTE: "Despliegue con muy poco contenido",
-  PROCESO_NO_TRANSFORMA: "Proceso no transforma ningún objeto",
-  PROCESO_SISTEMICO_DESCONECTADO: "Proceso sistémico desconectado del principal",
-  DESCOMPOSICION_SIN_SUBPROCESOS: "Descomposición sin subprocesos",
+  ...TITULOS_CHECKER,
 
   // ── diagnóstico visual (diagnosticoVisual.ts) ─────────────────────
   "visual-apariencia-entidad-inexistente": "Apariencia sin entidad lógica",

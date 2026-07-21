@@ -159,6 +159,7 @@ export function JointCanvas({
     gridConfig,
     solicitudFitToken,
   } = useJointCanvasViewModel();
+  const esApunte = useOpmStore((s) => s.indice.modelos.some((item) => item.id === s.modelo.id && item.esApunte === true));
 
   const { headless: simHeadless, velocidad: simVelocidad } = useZustandSimulationPort();
 
@@ -261,8 +262,8 @@ export function JointCanvas({
   }, [modelo, opdActivoId]);
 
   useEffect(() => {
-    feedbackPort.sincronizarBadgesDesdeAvisos(construirAvisosFeedbackCanvas(modelo, opdActivoId));
-  }, [feedbackPort, modelo, opdActivoId]);
+    feedbackPort.sincronizarBadgesDesdeAvisos(construirAvisosFeedbackCanvas(modelo, opdActivoId, { esApunte }));
+  }, [esApunte, feedbackPort, modelo, opdActivoId]);
 
   useEffect(() => () => feedbackPortRef.current.sincronizarBadgesDesdeAvisos([]), []);
 

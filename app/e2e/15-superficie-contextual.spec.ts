@@ -139,9 +139,8 @@ test("PanelDiagnostico se expande y colapsa sin perder informacion critica", asy
   const diagnostico = page.getByTestId("panel-diagnostico");
   await expect(diagnostico).toBeVisible();
 
-  // El contador se mantiene visible incluso cuando el panel esta colapsado.
-  // Ronda23 L1 #9: contador "N sugerencia/s" con concordancia plural.
-  await expect(diagnostico).toContainText(/sugerencia/);
+  // El contador se mantiene visible y nombra la severidad real.
+  await expect(diagnostico).toContainText(/mejora|bloqueo|observación/);
 
   // Toggle expande Diagnostico: el cuerpo aparece con agrupacion unica.
   await page.getByTestId("panel-diagnostico-toggle").click();

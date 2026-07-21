@@ -9,15 +9,15 @@ import type { Entidad, Modelo } from "./tipos";
 const FECHA_FIJA = new Date("2026-02-15T10:30:00Z");
 
 describe("exportarDiagnostico · envoltorio", () => {
-  test("emite metadatos, totales por severidad y array de sugerencias", () => {
+  test("emite metadatos, totales por severidad y array de hallazgos", () => {
     const exportado = construirDiagnosticoExport(modeloConProcesoPlaceholder(), FECHA_FIJA);
 
     expect(exportado.modelo).toBe("Modelo de prueba");
     expect(exportado.alcance).toBe("modelo");
     expect(exportado.fecha).toBe("2026-02-15");
-    // El proceso placeholder dispara tres avisos, todos de severidad visible "mejora".
-    expect(exportado.totales).toEqual({ bloqueo: 0, mejora: 3, estilo: 0, total: 3 });
-    expect(exportado.sugerencias).toHaveLength(3);
+    // El proceso placeholder dispara un bloqueo ontológico y una mejora de nombre.
+    expect(exportado.totales).toEqual({ bloqueo: 1, mejora: 1, estilo: 0, total: 2 });
+    expect(exportado.sugerencias).toHaveLength(2);
   });
 
   test("la fecha se inyecta de forma determinista", () => {
@@ -28,17 +28,16 @@ describe("exportarDiagnostico · envoltorio", () => {
     expect(b.fecha).toBe("2030-12-31");
   });
 
-  test("cada sugerencia lleva los campos serializables y excluye navegar/avisoNavegable", () => {
+  test("cada hallazgo lleva los campos serializables y excluye navegar/avisoNavegable", () => {
     const exportado = construirDiagnosticoExport(modeloConProcesoPlaceholder(), FECHA_FIJA);
-    const sugerencia = exportado.sugerencias.find((s) => s.codigo === "proceso-sin-entrada-ni-salida");
+    const sugerencia = exportado.sugerencias.find((s) => s.codigo === "PROCESO_NO_TRANSFORMA");
 
     expect(sugerencia).toBeDefined();
     expect(sugerencia).toMatchObject({
-      origen: "validacion",
-      severidad: "mejora",
-      codigo: "proceso-sin-entrada-ni-salida",
-      destino: "Proceso · p-proceso",
-      opdId: "opd-1",
+      origen: "metodologia",
+      severidad: "bloqueo",
+      codigo: "PROCESO_NO_TRANSFORMA",
+      destino: "Proceso",
       elementoId: "p-proceso",
       elementoTipo: "entidad",
     });
@@ -56,9 +55,8 @@ describe("exportarDiagnostico · envoltorio", () => {
 
   test("usa la severidad visible (clasificada), no el SeveridadAviso crudo", () => {
     const exportado = construirDiagnosticoExport(modeloConProcesoPlaceholder(), FECHA_FIJA);
-    // PROCESO_NOMBRE_FORMA_VERBAL es un aviso metodológico que llega como
-    // SeveridadAviso="info" crudo pero el panel lo eleva a "mejora". El export
-    // debe reflejar la severidad visible, no "estilo".
+    // PROCESO_NOMBRE_FORMA_VERBAL es una mejora metodológica. El export debe
+    // reflejar la misma severidad visible que el panel.
     const metodologico = exportado.sugerencias.find((s) => s.codigo === "PROCESO_NOMBRE_FORMA_VERBAL");
 
     expect(metodologico).toBeDefined();

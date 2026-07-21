@@ -21,40 +21,40 @@ const SEVERIDAD_POR_CODIGO: Record<CodigoChecker, SeveridadIssue> = {
   PROCESO_NOMBRE_FORMA_VERBAL: "mejora",
   ESTADO_NOMBRE_CANONICO: "mejora",
   OBJETO_NOMBRE_SINGULAR: "mejora",
-  OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO: "mejora",
   INZOOM_CONTENIDO_INSUFICIENTE: "mejora",
   INZOOM_NOMBRES_PLACEHOLDER_HIJOS: "mejora",
   UNFOLD_CONTENIDO_INSUFICIENTE: "mejora",
-  PROCESO_NO_TRANSFORMA: "mejora",
+  // R-PROC-2: un proceso no persistente que no transforma ningún objeto no
+  // satisface la ontología de proceso. Puede persistir mientras se edita, pero
+  // bloquea el cierre normal; en Apunte se relaja por clase de validez.
+  PROCESO_NO_TRANSFORMA: "bloqueo",
   PROCESO_SISTEMICO_DESCONECTADO: "mejora",
   RECURSO_LINEAL_MULTIPLES_CONSUMIDORES: "mejora",
   DESCOMPOSICION_SIN_SUBPROCESOS: "mejora",
   DESCOMPOSICION_NO_PRESERVA_FRONTERA: "mejora",
-  // B-4 (§3.15): efecto sobre objeto sin estados. Candidato a bloqueo (violación
-  // estructural del canon); se emite como mejora hasta que el operador decida
-  // escalarlo a validarModelo.
-  EFECTO_OBJETO_SIN_ESTADOS: "mejora",
+  // R-EFE-1 / R-OPD-EST-3: combinación prohibida; el checker cubre residuos
+  // legacy/importados que no pueden crearse desde el editor actual.
+  EFECTO_OBJETO_SIN_ESTADOS: "bloqueo",
   // El efecto plano es abstracción transitoria: madura a transición TS3-TS5
   // o al par consumo+resultado. Mejora accionable, no bloqueo.
   EFECTO_SIN_TRANSICION: "mejora",
   // R-OPD-HAB-4/R-PREC-1..3: transformadores planos duplicados sobre el mismo
   // par sin abanico. La edición no puede distinguir ramas pre-abanico; el
-  // checker acusa el residual no agrupado. Mejora accionable.
-  PAR_TRANSFORMADOR_DUPLICADO: "mejora",
+  // checker acusa el residual no agrupado. Es error estructural recuperable.
+  PAR_TRANSFORMADOR_DUPLICADO: "bloqueo",
   // A6-2/V-18: Pr=p fuera de un abanico XOR no tiene canonicidad (reglas §11.2,
   // zona no canonizada). Visible, no bloqueante (R-ZNC: silencio, no prohibición).
   PROBABILIDAD_FUERA_DE_ABANICO: "mejora",
   // B-2: entidad sin apariciones (invisible al OPL). Mejora accionable.
   ENTIDAD_SIN_APARICIONES: "mejora",
   // U5 (R-INV-2B / §5.4): enlace de invocación redundante con el orden de
-  // descomposición (doble vara). Mejora accionable, no bloqueo: coexisten modelos
-  // legacy mientras se migra al campo ordenInzoom.
-  INVOCACION_REDUNDANTE_CON_ORDEN: "mejora",
+  // descomposición (doble vara). Es una combinación prohibida por la SSOT;
+  // los modelos legacy pueden abrirse para repararla, pero no cerrar como canon.
+  INVOCACION_REDUNDANTE_CON_ORDEN: "bloqueo",
   // Integridad referencial: un id de `ordenInzoom` que no es subproceso interno del OPD
-  // es una referencia colgante del orden declarado. Clasificación del panel `mejora`
-  // (como todo checker); el aviso es `advertencia` (referencia rota real) — el layout/OPL
-  // la ignoran, pero el orden declarado miente sobre el contenido de la descomposición.
-  ORDEN_INZOOM_REFERENCIA_INVALIDA: "mejora",
+  // es una referencia colgante del orden declarado. Integridad mecánica: nunca
+  // degrada en Apunte y se presenta como bloqueo.
+  ORDEN_INZOOM_REFERENCIA_INVALIDA: "bloqueo",
 };
 
 export function clasificarSeveridad(aviso: Pick<AvisoMetodologico, "codigo">): SeveridadIssue {
@@ -79,7 +79,7 @@ export function resumenSeveridades(avisos: AvisoMetodologico[]): ResumenSeverida
 }
 
 export function resumenSeveridadesTexto(resumen: ResumenSeveridades): string {
-  return `${resumen.bloqueos} bloqueos estructurales / ${resumen.mejoras} mejoras metodologicas / ${resumen.estilo} sugerencias de estilo`;
+  return `${resumen.bloqueos} bloqueos estructurales / ${resumen.mejoras} mejoras metodologicas / ${resumen.estilo} observaciones de estilo`;
 }
 
 /**
@@ -113,7 +113,6 @@ export const CODIGO_OPD_SIN_ADOPTAR = "opd-sin-adoptar";
 export const CODIGOS_VALIDEZ_DEGRADABLES_APUNTE: ReadonlySet<string> = new Set<string>([
   // ── Validez semántica (validaciones.ts) ──
   "agente-requiere-objeto-fisico", // agente = humano/físico (R-AG-1)
-  "agregacion-misma-esencia",
   "ambiental-dentro-contorno",
   "canon-diagrama-densidad",
   "consumo-doble-mismo-objeto",
@@ -125,7 +124,6 @@ export const CODIGOS_VALIDEZ_DEGRADABLES_APUNTE: ReadonlySet<string> = new Set<s
   "instrumento-y-agente-simultaneos",
   "procedural-no-objeto-objeto", // firma legal de enlaces
   "proceso-sin-entrada-ni-salida", // transformee
-  "solo-un-nivel-de-instanciacion",
   "subproceso-no-conecta-al-padre", // preservación de refinamiento
   // ── Validez de realización visual (diagnosticoVisual.ts) — NO geometría/formato ──
   "visual-subproceso-sin-transformado", // transformee
@@ -136,7 +134,6 @@ export const CODIGOS_VALIDEZ_DEGRADABLES_APUNTE: ReadonlySet<string> = new Set<s
   "PROCESO_NOMBRE_FORMA_VERBAL", // nombres
   "ESTADO_NOMBRE_CANONICO", // nombres
   "OBJETO_NOMBRE_SINGULAR", // nombres
-  "OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO",
   "INZOOM_CONTENIDO_INSUFICIENTE",
   "INZOOM_NOMBRES_PLACEHOLDER_HIJOS", // nombres
   "UNFOLD_CONTENIDO_INSUFICIENTE",
@@ -157,8 +154,8 @@ export const CODIGOS_VALIDEZ_DEGRADABLES_APUNTE: ReadonlySet<string> = new Set<s
 /**
  * Severidad visible (bloqueo/mejora/estilo) de un aviso unificado del
  * diagnóstico. Es la misma clasificación que ve el usuario en el panel:
- * la metodología se eleva a `mejora` aunque llegue como `info`; el resto
- * mapea desde `SeveridadAviso`. Kernel puro — sin dependencias de capas
+ * la metodología se decide por regla (bloqueo o mejora); el resto mapea desde
+ * `SeveridadAviso`. Kernel puro — sin dependencias de capas
  * superiores. El viewmodel del panel la re-exporta para presentación.
  *
  * `opciones.esApunte` (modo apunte): cuando el modelo activo es un apunte, los
@@ -168,7 +165,7 @@ export const CODIGOS_VALIDEZ_DEGRADABLES_APUNTE: ReadonlySet<string> = new Set<s
  * cero migración para todos los consumidores existentes.
  */
 export function severidadDiagnostico(
-  aviso: AvisoDiagnostico,
+  aviso: Pick<AvisoDiagnostico, "origen" | "codigo" | "severidad">,
   opciones: { esApunte?: boolean } = {},
 ): SeveridadIssue {
   const base = aviso.origen === "metodologia"

@@ -58,7 +58,6 @@ const EXCEPCIONES_TEMPORALES = new Set<TipoEnlace>([
 
 export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
   const avisos = [
-    ...reglaAgregacionMismaEsencia(modelo, opdActivoId),
     ...reglaGeneralizacionMismoTipo(modelo, opdActivoId),
     ...reglaEstructuralNoAceptaExtremoEstado(modelo, opdActivoId),
     ...reglaExcepcionTemporalProcesoProceso(modelo, opdActivoId),
@@ -70,7 +69,6 @@ export function validarModelo(modelo: Modelo, opdActivoId: Id): Aviso[] {
     ...reglaAgenteRequiereObjetoFisico(modelo, opdActivoId),
     ...reglaProcesoSinEntradaNiSalida(modelo, opdActivoId),
     ...reglaInstrumentoYAgenteSimultaneos(modelo, opdActivoId),
-    ...reglaSoloUnNivelDeInstanciacion(modelo, opdActivoId),
     ...advertirConsumoDuplicado(modelo, opdActivoId),
     ...validarExclusionImagenEstados(modelo, opdActivoId),
     ...validarAmbientalDentroContorno(modelo, opdActivoId),
@@ -184,7 +182,7 @@ export function validarExclusionImagenEstados(modelo: Modelo, opdActivoId: Id = 
     const opdId = opdIdDeEntidad(modelo, entidad.id, opdActivoId);
     return [{
       reglaId: "imagen-estados-excluyentes",
-      severidad: "advertencia",
+      severidad: "info",
       mensaje: `El objeto ${entidad.nombre} muestra imagen interior y estados al mismo tiempo. La imagen tapa los estados y dificulta la lectura: pasa el modo a Solo texto o suprime los estados visibles.`,
       citaSSOT: "[Glos 3.39] [Glos 3.68]",
       elementoTipo: "entidad",
@@ -224,19 +222,6 @@ function reglaEstructuralNoAceptaExtremoEstado(modelo: Modelo, opdActivoId: Id):
       severidad: "error",
       mensaje: `El enlace estructural ${etiquetaTipo(enlace.tipo)} debe unir objetos o procesos completos, no estados específicos. Hoy va de ${nombreExtremo(modelo, enlace.origenId)} a ${nombreExtremo(modelo, enlace.destinoId)}: conecta a la cosa contenedora del estado.`,
       citaSSOT: "[V-237] [V-239]",
-    }));
-}
-
-function reglaAgregacionMismaEsencia(modelo: Modelo, opdActivoId: Id): Aviso[] {
-  return enlacesConExtremos(modelo)
-    .filter(({ enlace, origen, destino }) => (
-      enlace.tipo === "agregacion" && origen.esencia !== destino.esencia
-    ))
-    .map(({ enlace, origen, destino }) => avisoEnlace(modelo, opdActivoId, enlace, {
-      reglaId: "agregacion-misma-esencia",
-      severidad: "advertencia",
-      mensaje: `La agregación entre ${origen.nombre} (${origen.esencia}) y ${destino.nombre} (${destino.esencia}) cruza esencias distintas. Una parte debe compartir la naturaleza del todo: revisa si alguna esencia está mal puesta o si el enlace correcto es exhibición.`,
-      citaSSOT: "[V-1]",
     }));
 }
 
@@ -298,7 +283,7 @@ function reglaOrdenEstructuralHuerfano(modelo: Modelo, opdActivoId: Id): Aviso[]
       const opdId = opdIdDeEntidad(modelo, entidad.id, opdActivoId);
       avisos.push({
         reglaId: "orden-estructural-huerfano",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `${entidad.nombre} guarda un orden estructural ${etiquetaTipo(tipo)} de cuando tenía ese enlace, pero ya no existe ningún ${etiquetaTipo(tipo)} vigente. Recrea el enlace o pídele al modelo que limpie el metadato.`,
         citaSSOT: "[V-239] [OPCloud orderedFundamentalTypes]",
         elementoTipo: "entidad",
@@ -389,35 +374,36 @@ function reglaAgenteRequiereObjetoFisico(modelo: Modelo, opdActivoId: Id): Aviso
 }
 
 function reglaProcesoSinEntradaNiSalida(modelo: Modelo, opdActivoId: Id): Aviso[] {
-  // OPCloud no expone esta clase en behavioral.rules.ts; SSOT exige proceso transformador [Glos 3.58] y V-115.
+  // R-PROC-2: habilitadores e invocaciones NO satisfacen la obligación de
+  // transformar. Este productor alimenta el badge inline; el diagnóstico
+  // unificado lo colapsa con PROCESO_NO_TRANSFORMA, que aporta el criterio rico.
   const avisos: Aviso[] = [];
-  const enlacesRelevantes = new Set<TipoEnlace>([
+  const enlacesTransformadores = new Set<TipoEnlace>([
     "consumo",
     "resultado",
     "efecto",
-    "agente",
-    "instrumento",
-    "invocacion",
-    "excepcionSobretiempo",
-    "excepcionSubtiempo",
-    "excepcionSubSobretiempo",
   ]);
 
   for (const proceso of Object.values(modelo.entidades)) {
     if (proceso.tipo !== "proceso") continue;
     if (obtenerRefinamiento(proceso, "descomposicion")) continue;
-    const tieneEnlaceOperativo = Object.values(modelo.enlaces).some((enlace) => (
-      enlacesRelevantes.has(enlace.tipo) &&
-      (extremoApuntaAEntidad(enlace.origenId, proceso.id) || extremoApuntaAEntidad(enlace.destinoId, proceso.id))
-    ));
-    if (tieneEnlaceOperativo) continue;
+    const transformaObjeto = Object.values(modelo.enlaces).some((enlace) => {
+      if (!enlacesTransformadores.has(enlace.tipo)) return false;
+      const origen = entidadDeExtremo(modelo, enlace.origenId);
+      const destino = entidadDeExtremo(modelo, enlace.destinoId);
+      return (
+        (extremoApuntaAEntidad(enlace.origenId, proceso.id) && destino?.tipo === "objeto") ||
+        (extremoApuntaAEntidad(enlace.destinoId, proceso.id) && origen?.tipo === "objeto")
+      );
+    });
+    if (transformaObjeto) continue;
 
     const opdId = opdIdDeEntidad(modelo, proceso.id, opdActivoId);
     avisos.push({
       reglaId: "proceso-sin-entrada-ni-salida",
-      severidad: "advertencia",
-      mensaje: `${proceso.nombre} no participa en ningún enlace de transformación, habilitación o invocación. Sin entradas ni salidas no expresa qué hace en el sistema: conéctalo con un objeto como entrada o salida, o decide si conviene abstraerlo.`,
-      citaSSOT: "[Glos 3.58] [V-115] [V-239]",
+      severidad: "error",
+      mensaje: `${proceso.nombre} no transforma ningún objeto. Conéctalo mediante consumo, resultado o efecto, o deja la transformación en un subproceso de su descomposición.`,
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-PROC-2 / [V-115]",
       elementoTipo: "entidad",
       elementoId: proceso.id,
       ...(opdId ? { opdId } : {}),
@@ -446,44 +432,10 @@ function reglaInstrumentoYAgenteSimultaneos(modelo: Modelo, opdActivoId: Id): Av
     const destino = entidadDeExtremo(modelo, enlaceInstrumento.destinoId);
     avisos.push(avisoEnlace(modelo, opdActivoId, enlaceInstrumento, {
       reglaId: "instrumento-y-agente-simultaneos",
-      severidad: "advertencia",
+      severidad: "error",
       mensaje: `${origen?.nombre ?? enlaceInstrumento.origenId} habilita a ${destino?.nombre ?? enlaceInstrumento.destinoId} como agente y como instrumento a la vez. Solo uno de los dos roles aplica al mismo tiempo: elige cuál corresponde y elimina el otro enlace.`,
-      citaSSOT: "[Glos 3.3] [Glos 3.30] [V-239]",
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-ROL-UNIC-1 / R-AG-1",
     }));
-  }
-
-  return avisos;
-}
-
-function reglaSoloUnNivelDeInstanciacion(modelo: Modelo, opdActivoId: Id): Aviso[] {
-  // Inspirado en OPCloud OnlyOneLevelOfInstantiation; en esta app aplica al enlace clasificación-instanciación.
-  const avisos: Aviso[] = [];
-  const clasesPorInstancia = new Map<Id, Enlace[]>();
-
-  for (const enlace of Object.values(modelo.enlaces)) {
-    if (enlace.tipo !== "clasificacion") continue;
-    const origenId = entidadIdDeExtremo(modelo, enlace.origenId);
-    if (!origenId) continue;
-    const existentes = clasesPorInstancia.get(origenId) ?? [];
-    clasesPorInstancia.set(origenId, [...existentes, enlace]);
-  }
-
-  for (const enlace of Object.values(modelo.enlaces)) {
-    if (enlace.tipo !== "clasificacion") continue;
-    const destinoId = entidadIdDeExtremo(modelo, enlace.destinoId);
-    if (!destinoId) continue;
-    const enlacesSiguientes = clasesPorInstancia.get(destinoId) ?? [];
-    for (const enlaceSiguiente of enlacesSiguientes) {
-      const instanciaIntermedia = modelo.entidades[destinoId];
-      const siguienteDestinoId = entidadIdDeExtremo(modelo, enlaceSiguiente.destinoId);
-      const instanciaFinal = siguienteDestinoId ? modelo.entidades[siguienteDestinoId] : undefined;
-      avisos.push(avisoEnlace(modelo, opdActivoId, enlaceSiguiente, {
-        reglaId: "solo-un-nivel-de-instanciacion",
-        severidad: "advertencia",
-        mensaje: `${instanciaIntermedia?.nombre ?? enlace.destinoId} ya es instancia de otra cosa y a la vez clasifica a ${instanciaFinal?.nombre ?? enlaceSiguiente.destinoId}. La clasificación se modela en un solo nivel: si querías encadenarlas, usa generalización para uno de los tramos.`,
-        citaSSOT: "[Glos 3.28] [V-239]",
-      }));
-    }
   }
 
   return avisos;
@@ -501,12 +453,16 @@ function reglaConsumoDobleMismoObjeto(modelo: Modelo, opdActivoId: Id): Aviso[] 
       primerConsumoPorPar.add(clave);
       continue;
     }
-    avisos.push(avisoEnlace(modelo, opdActivoId, enlace, {
+    const avisoDuplicado = avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "consumo-doble-mismo-objeto",
-      severidad: "advertencia",
+      severidad: "error",
       mensaje: `${destino.nombre} consume ${origen.nombre} más de una vez. Un consumo describe una sola transformación; si son alternativos, agrúpalos con un abanico XOR/OR; si son cantidades, anota la multiplicidad en un único consumo.`,
-      citaSSOT: "[V-43] [V-239]",
-    }));
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-PREC-1",
+    });
+    // El hecho a reparar pertenece al par objeto-proceso, no al segundo trazo.
+    // Anclar al objeto converge con PAR_TRANSFORMADOR_DUPLICADO y evita contar
+    // dos veces la misma violación en el diagnóstico unificado.
+    avisos.push({ ...avisoDuplicado, elementoTipo: "entidad", elementoId: origen.id });
   }
 
   return avisos;

@@ -51,7 +51,7 @@ interface NodoOpdProps {
  * estado y callbacks por props.
  */
 export function NodoOpd(props: NodoOpdProps) {
-  const badges = calcularBadges(props.modelo, props.nodo.opd.id, props.avisos);
+  const badges = calcularBadges(props.modelo, props.nodo.opd.id, props.avisos, { esApunte: props.esApunte });
   const esRaiz = props.nodo.opd.id === props.modelo.opdRaizId;
   // Proyección «Hoja» de la raíz en apuntes (R-OPD-REF-15): display-only, NO muta
   // `opd.nombre`. Solo el label/código del nodo raíz cambia cuando el modelo es apunte.

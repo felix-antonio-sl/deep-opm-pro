@@ -4,6 +4,7 @@ import type { Aviso, SeveridadAviso } from "../../modelo/validaciones";
 import {
   agruparIssuesDiagnostico,
   derivarIssuesDiagnostico,
+  resumirPanelDiagnostico,
   severidadDiagnostico,
   severidadDesdeAviso,
 } from "./panelDiagnosticoViewModel";
@@ -24,6 +25,9 @@ function avisoDiagnostico(parcial: Partial<AvisoDiagnostico> = {}): AvisoDiagnos
     destino: parcial.destino ?? "Modelo",
     cita: parcial.cita ?? "[V-1]",
     citaSSOT: parcial.citaSSOT ?? "[V-1]",
+    ...(parcial.fuente ? { fuente: parcial.fuente } : {}),
+    ...(parcial.fundamento ? { fundamento: parcial.fundamento } : {}),
+    ...(parcial.acciones ? { acciones: parcial.acciones } : {}),
     avisoNavegable: parcial.avisoNavegable ?? null,
     ...(parcial.elementoTipo ? { elementoTipo: parcial.elementoTipo } : {}),
     ...(parcial.elementoId ? { elementoId: parcial.elementoId } : {}),
@@ -60,32 +64,38 @@ describe("panelDiagnosticoViewModel · severidad", () => {
 });
 
 describe("panelDiagnosticoViewModel · issues", () => {
-  test("deriva issues conservando textos, codigos, destinos y citas", () => {
+  test("deriva issues conservando textos, destinos y criterio estructurado", () => {
     const issues = derivarIssuesDiagnostico([
       avisoDiagnostico({
         id: "val-1",
-        reglaId: "agregacion-misma-esencia",
-        codigo: "agregacion-misma-esencia",
-        codigoVisible: "agregacion-misma-esencia",
-        testIdCodigo: "agregacion-misma-esencia",
-        titulo: "Agregación mezcla esencia",
+        reglaId: "regla-demo",
+        codigo: "regla-demo",
+        codigoVisible: "regla-demo",
+        testIdCodigo: "regla-demo",
+        titulo: "Regla de demostración",
         severidad: "advertencia",
         mensaje: "Mezcla esencia",
         destino: "Objeto - o1",
         cita: "[V-1]",
+        fuente: "urn:fxsl:kb:reglas-opm-estrictas-es R-X",
+        fundamento: "La relación contradice R-X.",
+        acciones: ["Corrige la relación."],
       }),
     ], () => undefined);
 
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({
       id: "val-1",
-      testIdCodigo: "agregacion-misma-esencia",
+      testIdCodigo: "regla-demo",
       severidad: "mejora",
-      codigo: "agregacion-misma-esencia",
-      titulo: "Agregación mezcla esencia",
+      codigo: "regla-demo",
+      titulo: "Regla de demostración",
       mensaje: "Mezcla esencia",
       destino: "Objeto - o1",
       cita: "[V-1]",
+      fuente: "urn:fxsl:kb:reglas-opm-estrictas-es R-X",
+      fundamento: "La relación contradice R-X.",
+      acciones: ["Corrige la relación."],
     });
   });
 
@@ -187,5 +197,35 @@ describe("panelDiagnosticoViewModel · issues", () => {
 
     expect(navegarAviso).toHaveBeenCalledTimes(1);
     expect(navegarAviso).toHaveBeenCalledWith(navegable);
+  });
+});
+
+describe("panelDiagnosticoViewModel · resumen visible", () => {
+  test("prioriza bloqueos y conserva el resto sin llamar sugerencia a todo", () => {
+    const issues = derivarIssuesDiagnostico([
+      avisoDiagnostico({ id: "b1", codigo: "b1", severidad: "error" }),
+      avisoDiagnostico({ id: "m1", codigo: "m1", severidad: "advertencia" }),
+      avisoDiagnostico({ id: "e1", codigo: "e1", severidad: "info" }),
+    ], () => undefined);
+
+    expect(resumirPanelDiagnostico(issues)).toEqual({
+      texto: "! 1 bloqueo · 2 más",
+      ariaLabel: "1 bloqueo, 1 mejora, 1 observación",
+      dominante: "bloqueo",
+    });
+  });
+
+  test("nombra mejoras, observaciones y estado limpio con precisión", () => {
+    const mejoras = derivarIssuesDiagnostico([
+      avisoDiagnostico({ id: "m1", codigo: "m1", severidad: "advertencia" }),
+      avisoDiagnostico({ id: "m2", codigo: "m2", severidad: "advertencia" }),
+      avisoDiagnostico({ id: "e1", codigo: "e1", severidad: "info" }),
+    ], () => undefined);
+    expect(resumirPanelDiagnostico(mejoras).texto).toBe("△ 2 mejoras · 1 más");
+    expect(resumirPanelDiagnostico([])).toEqual({
+      texto: "sin hallazgos",
+      ariaLabel: "Sin hallazgos en el OPD activo",
+      dominante: "sin-hallazgos",
+    });
   });
 });

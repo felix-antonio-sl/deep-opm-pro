@@ -21,7 +21,7 @@ describe("diagnostico visual", () => {
 
     expect(avisos).toContainEqual(expect.objectContaining({
       reglaId: "visual-solape-apariencias",
-      severidad: "advertencia",
+      severidad: "info",
       elementoTipo: "entidad",
       opdId: modelo.opdRaizId,
     }));
@@ -63,6 +63,7 @@ describe("diagnostico visual", () => {
 
     expect(avisos).toContainEqual(expect.objectContaining({
       reglaId: "visual-enlace-extremo-no-visible",
+      severidad: "error",
       elementoTipo: "enlace",
       elementoId: Object.keys(modelo.enlaces)[0],
     }));
@@ -108,6 +109,7 @@ describe("diagnostico visual", () => {
 
     expect(avisos).toContainEqual(expect.objectContaining({
       reglaId: "visual-externo-dentro-contorno",
+      severidad: "error",
       elementoTipo: "entidad",
       elementoId: externoId,
     }));

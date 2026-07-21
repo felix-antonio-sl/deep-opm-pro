@@ -82,7 +82,29 @@ describe("badges del arbol OPD", () => {
       tieneIssues: true,
       errores: 1,
       advertencias: 1,
-      primerAvisoCodigo: "proceso-sin-entrada-ni-salida",
+      primerAvisoCodigo: "PROCESO_NO_TRANSFORMA",
+    });
+  });
+
+  test("proyecta la misma severidad canonica del panel y respeta modo apunte", () => {
+    const modelo = crearModelo("Severidad compartida");
+    const aviso = {
+      origen: "metodologia" as const,
+      codigo: "PROCESO_NO_TRANSFORMA",
+      testIdCodigo: "PROCESO_NO_TRANSFORMA",
+      opdId: modelo.opdRaizId,
+      severidad: "advertencia" as const,
+    };
+
+    expect(calcularBadges(modelo, modelo.opdRaizId, [aviso], { esApunte: false })).toMatchObject({
+      errores: 1,
+      advertencias: 0,
+      primerAvisoCodigo: "PROCESO_NO_TRANSFORMA",
+    });
+    expect(calcularBadges(modelo, modelo.opdRaizId, [aviso], { esApunte: true })).toMatchObject({
+      errores: 0,
+      advertencias: 1,
+      primerAvisoCodigo: "PROCESO_NO_TRANSFORMA",
     });
   });
 

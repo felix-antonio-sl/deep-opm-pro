@@ -20,7 +20,7 @@ describe("validaciones metodologicas pasivas", () => {
     expect(validarModelo(modelo, modelo.opdRaizId)).toEqual([]);
   });
 
-  test("agregacion entre objeto fisico e informacional reporta advertencia con cita", () => {
+  test("agregacion entre objeto fisico e informacional no inventa una restriccion ausente de la SSOT", () => {
     const modelo = modeloCon({
       entidades: [
         entidad("o-whole", "objeto", "Motor", "fisica"),
@@ -31,16 +31,7 @@ describe("validaciones metodologicas pasivas", () => {
       ],
     });
 
-    const avisos = avisosDeRegla(modelo, "agregacion-misma-esencia");
-
-    expect(avisos).toHaveLength(1);
-    expect(avisos[0]).toMatchObject({
-      reglaId: "agregacion-misma-esencia",
-      severidad: "advertencia",
-      citaSSOT: "[V-1]",
-      elementoTipo: "enlace",
-      elementoId: "e-agregacion",
-    });
+    expect(avisosDeRegla(modelo, "agregacion-misma-esencia")).toHaveLength(0);
   });
 
   test("generalizacion objeto a proceso reporta error", () => {
@@ -122,7 +113,7 @@ describe("validaciones metodologicas pasivas", () => {
 
     expect(avisos).toHaveLength(1);
     expect(avisos[0]).toMatchObject({
-      severidad: "advertencia",
+      severidad: "error",
       elementoTipo: "entidad",
       elementoId: todo.id,
     });
@@ -363,7 +354,7 @@ describe("validaciones metodologicas pasivas", () => {
     expect(avisosDeRegla(modelo, "agente-requiere-objeto-fisico")).toHaveLength(0);
   });
 
-  test("proceso aislado reporta advertencia sin entrada ni salida", () => {
+  test("proceso aislado reporta bloqueo por no transformar", () => {
     const modelo = modeloCon({
       entidades: [
         entidad("p-aislado", "proceso", "Procesar", "informacional"),
@@ -374,8 +365,8 @@ describe("validaciones metodologicas pasivas", () => {
 
     expect(avisos).toHaveLength(1);
     expect(avisos[0]).toMatchObject({
-      severidad: "advertencia",
-      citaSSOT: "[Glos 3.58] [V-115] [V-239]",
+      severidad: "error",
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-PROC-2 / [V-115]",
       elementoTipo: "entidad",
       elementoId: "p-aislado",
     });
@@ -395,6 +386,40 @@ describe("validaciones metodologicas pasivas", () => {
     expect(avisosDeRegla(modelo, "proceso-sin-entrada-ni-salida")).toHaveLength(0);
   });
 
+  test("un enlace transformador malformado entre procesos no satisface R-PROC-2", () => {
+    const modelo = modeloCon({
+      entidades: [
+        entidad("p-origen", "proceso", "Originar", "informacional"),
+        entidad("p-destino", "proceso", "Destinar", "informacional"),
+      ],
+      enlaces: [
+        enlace("e-efecto", "efecto", "p-origen", "p-destino"),
+      ],
+    });
+
+    expect(avisosDeRegla(modelo, "proceso-sin-entrada-ni-salida").map((aviso) => aviso.elementoId)).toEqual([
+      "p-origen",
+      "p-destino",
+    ]);
+  });
+
+  test("un habilitador no satisface la obligación de transformar de R-PROC-2", () => {
+    const modelo = modeloCon({
+      entidades: [
+        entidad("o-instrumento", "objeto", "Instrumento", "informacional"),
+        entidad("p-procesar", "proceso", "Procesar", "informacional"),
+      ],
+      enlaces: [
+        enlace("e-instrumento", "instrumento", "o-instrumento", "p-procesar"),
+      ],
+    });
+
+    expect(avisosDeRegla(modelo, "proceso-sin-entrada-ni-salida")).toContainEqual(expect.objectContaining({
+      severidad: "error",
+      elementoId: "p-procesar",
+    }));
+  });
+
   test("proceso refinable descompuesto sin enlaces queda fuera de proceso-sin-entrada-ni-salida", () => {
     const modelo = modeloCon({
       entidades: [
@@ -408,7 +433,7 @@ describe("validaciones metodologicas pasivas", () => {
     expect(avisosDeRegla(modelo, "proceso-sin-entrada-ni-salida")).toHaveLength(0);
   });
 
-  test("misma entidad como agente e instrumento del mismo proceso reporta advertencia", () => {
+  test("misma entidad como agente e instrumento del mismo proceso reporta bloqueo", () => {
     const modelo = modeloCon({
       entidades: [
         entidad("o-operador", "objeto", "Operador", "fisica"),
@@ -424,8 +449,8 @@ describe("validaciones metodologicas pasivas", () => {
 
     expect(avisos).toHaveLength(1);
     expect(avisos[0]).toMatchObject({
-      severidad: "advertencia",
-      citaSSOT: "[Glos 3.3] [Glos 3.30] [V-239]",
+      severidad: "error",
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-ROL-UNIC-1 / R-AG-1",
       elementoId: "e-instrumento",
     });
   });
@@ -462,7 +487,7 @@ describe("validaciones metodologicas pasivas", () => {
     expect(avisosDeRegla(modelo, "instrumento-y-agente-simultaneos")).toHaveLength(0);
   });
 
-  test("cadena de clasificacion A a B a C reporta solo-un-nivel-de-instanciacion", () => {
+  test("cadena de clasificacion no aplica una restriccion OPCloud ausente de la SSOT", () => {
     const modelo = modeloCon({
       entidades: [
         entidad("o-clase", "objeto", "Clase", "informacional"),
@@ -475,14 +500,7 @@ describe("validaciones metodologicas pasivas", () => {
       ],
     });
 
-    const avisos = avisosDeRegla(modelo, "solo-un-nivel-de-instanciacion");
-
-    expect(avisos).toHaveLength(1);
-    expect(avisos[0]).toMatchObject({
-      severidad: "advertencia",
-      citaSSOT: "[Glos 3.28] [V-239]",
-      elementoId: "e-clasificacion-2",
-    });
+    expect(avisosDeRegla(modelo, "solo-un-nivel-de-instanciacion")).toHaveLength(0);
   });
 
   test("una clase con dos instancias directas no reporta cadena de instanciacion", () => {
@@ -517,7 +535,7 @@ describe("validaciones metodologicas pasivas", () => {
     expect(avisosDeRegla(modelo, "solo-un-nivel-de-instanciacion")).toHaveLength(0);
   });
 
-  test("mismo proceso consume dos veces el mismo objeto y reporta advertencia", () => {
+  test("mismo proceso consume dos veces el mismo objeto y reporta bloqueo", () => {
     const modelo = modeloCon({
       entidades: [
         entidad("o-entrada", "objeto", "Entrada", "informacional"),
@@ -533,9 +551,9 @@ describe("validaciones metodologicas pasivas", () => {
 
     expect(avisos).toHaveLength(1);
     expect(avisos[0]).toMatchObject({
-      severidad: "advertencia",
-      citaSSOT: "[V-43] [V-239]",
-      elementoId: "e-consumo-2",
+      severidad: "error",
+      citaSSOT: "urn:fxsl:kb:reglas-opm-estrictas-es R-PREC-1",
+      elementoId: "o-entrada",
     });
     expect(advertirConsumoDuplicado(modelo)).toHaveLength(1);
   });
@@ -572,7 +590,7 @@ describe("validaciones metodologicas pasivas", () => {
     expect(avisosDeRegla(modelo, "consumo-doble-mismo-objeto")).toHaveLength(0);
   });
 
-  test("imagen interior y estados visibles reportan advertencia", () => {
+  test("imagen interior y estados visibles reportan observación de estilo", () => {
     let modelo = crearModelo();
     const creado = crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Documento");
     if (!creado.ok) throw new Error(creado.error);
@@ -595,7 +613,7 @@ describe("validaciones metodologicas pasivas", () => {
 
     expect(avisos).toHaveLength(1);
     expect(avisos[0]).toMatchObject({
-      severidad: "advertencia",
+      severidad: "info",
       citaSSOT: "[Glos 3.39] [Glos 3.68]",
       elementoTipo: "entidad",
       elementoId: entidadId,
@@ -662,10 +680,10 @@ describe("validaciones metodologicas pasivas", () => {
     const avisos = validarModelo(modelo, modelo.opdRaizId);
 
     expect(avisos.map((aviso) => aviso.reglaId)).toEqual([
-      "agregacion-misma-esencia",
       "generalizacion-mismo-tipo",
       "procedural-no-objeto-objeto",
       "estructural-sin-duplicar",
+      "proceso-sin-entrada-ni-salida",
     ]);
   });
 });

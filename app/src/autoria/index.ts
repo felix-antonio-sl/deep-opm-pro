@@ -1,7 +1,7 @@
 // Módulo de autoría headless dominio-agnóstico: construir un Modelo OPM programáticamente (DSL
 // imperativo re-entrante) y emitir un bundle validado (deep-opm-pro.modelo.v0) + OPL + reporte,
 // con layout canónico (orden de ejecución → bandas, fishbone/peine, contorno-al-contenido,
-// colocación adaptiva anti-aireado) y política de canon (bloquean solo avisos estructurales).
+// colocación adaptiva anti-aireado) y política de canon compartida con el diagnóstico.
 //
 // Uso:
 //   import { crearAutor, emitirBundle } from ".../autoria";

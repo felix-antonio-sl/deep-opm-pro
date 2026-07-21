@@ -326,7 +326,7 @@ function modeloFanManualDesdeRamas() {
   };
 }
 
-test("dos consumos al mismo objeto emiten advertencia", async ({ page }) => {
+test("par transformador duplicado emite un bloqueo canónico", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -336,11 +336,11 @@ test("dos consumos al mismo objeto emiten advertencia", async ({ page }) => {
 
   const diagnostico = page.getByTestId("panel-diagnostico");
   await page.getByTestId("panel-diagnostico-toggle").click();
-  // ronda23 L2 #2: el panel muestra el título humano de la regla, no el slug.
-  // El testid `aviso-consumo-doble-mismo-objeto` sigue siendo el contrato estable.
-  await expect(diagnostico.getByTestId("aviso-consumo-doble-mismo-objeto")).toBeVisible();
-  await expect(diagnostico).toContainText("El mismo objeto se consume dos veces");
-  await expect(diagnostico).toContainText("Procesar consume Entrada más de una vez");
+  // Los productores estructural y metodológico convergen en una sola regla
+  // canónica; el panel muestra el criterio metodológico más rico.
+  await expect(diagnostico.getByTestId("aviso-PAR_TRANSFORMADOR_DUPLICADO")).toBeVisible();
+  await expect(diagnostico).toContainText("Par objeto–proceso tiene roles incompatibles");
+  await expect(diagnostico).toContainText("La unicidad de rol exige un solo hecho por par");
   expect(pageErrors).toEqual([]);
 });
 

@@ -52,7 +52,7 @@ function detectarIntegridadApariencias(modelo: Modelo, opd: Opd): Aviso[] {
     if (!entidad) {
       avisos.push({
         reglaId: "visual-apariencia-entidad-inexistente",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `La apariencia ${apariencia.id} referencia la entidad lógica inexistente ${apariencia.entidadId}.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "entidad",
@@ -63,7 +63,7 @@ function detectarIntegridadApariencias(modelo: Modelo, opd: Opd): Aviso[] {
     if (apariencia.opdId !== opd.id) {
       avisos.push({
         reglaId: "visual-apariencia-opd-inconsistente",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `La apariencia ${entidad?.nombre ?? apariencia.entidadId} declara opdId ${apariencia.opdId}, pero vive en ${opd.id}.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "entidad",
@@ -74,7 +74,7 @@ function detectarIntegridadApariencias(modelo: Modelo, opd: Opd): Aviso[] {
     if (!geometriaAparienciaValida(apariencia)) {
       avisos.push({
         reglaId: "visual-geometria-apariencia-invalida",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `La apariencia ${entidad?.nombre ?? apariencia.entidadId} tiene geometría no renderizable en ${opd.nombre}.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "entidad",
@@ -86,7 +86,7 @@ function detectarIntegridadApariencias(modelo: Modelo, opd: Opd): Aviso[] {
       if (puertoRelativoValido(puerto)) continue;
       avisos.push({
         reglaId: "visual-puerto-coordenadas-invalidas",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `El puerto ${portId} de ${entidad?.nombre ?? apariencia.entidadId} no está en coordenadas relativas 0..1.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "entidad",
@@ -97,7 +97,7 @@ function detectarIntegridadApariencias(modelo: Modelo, opd: Opd): Aviso[] {
     if (contextoRefinamientoHuerfano(modelo, opd, apariencia)) {
       avisos.push({
         reglaId: "visual-contexto-refinamiento-huerfano",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `La apariencia ${entidad?.nombre ?? apariencia.entidadId} conserva contexto de refinamiento con referencias ausentes.`,
         citaSSOT: CITA_REFINAMIENTO,
         elementoTipo: "entidad",
@@ -108,7 +108,7 @@ function detectarIntegridadApariencias(modelo: Modelo, opd: Opd): Aviso[] {
     if (parteExtraidaHuerfana(modelo, opd, apariencia)) {
       avisos.push({
         reglaId: "visual-parte-extraida-huerfana",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `La apariencia ${entidad?.nombre ?? apariencia.entidadId} conserva metadata de parte extraída hacia un padre o parte ausente.`,
         citaSSOT: CITA_REFINAMIENTO,
         elementoTipo: "entidad",
@@ -127,7 +127,7 @@ function detectarIntegridadEnlacesVisuales(modelo: Modelo, opd: Opd): Aviso[] {
     if (aparienciaEnlace.opdId !== opd.id) {
       avisos.push({
         reglaId: "visual-enlace-opd-inconsistente",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `La apariencia de enlace ${aparienciaEnlace.id} declara opdId ${aparienciaEnlace.opdId}, pero vive en ${opd.id}.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "enlace",
@@ -141,7 +141,7 @@ function detectarIntegridadEnlacesVisuales(modelo: Modelo, opd: Opd): Aviso[] {
         if (entidadIdDeExtremo(modelo, extremo)) continue;
         avisos.push({
           reglaId: "visual-enlace-extremo-logico-inexistente",
-          severidad: "advertencia",
+          severidad: "error",
           mensaje: `El ${lado} ${nombreExtremo(modelo, extremo)} del enlace ${enlace.id} no existe en el modelo lógico.`,
           citaSSOT: CITA_VISUAL,
           elementoTipo: "enlace",
@@ -153,7 +153,7 @@ function detectarIntegridadEnlacesVisuales(modelo: Modelo, opd: Opd): Aviso[] {
     if (simboloEstructuralInvalido(aparienciaEnlace)) {
       avisos.push({
         reglaId: "visual-simbolo-estructural-invalido",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `La apariencia de enlace ${enlace ? etiquetaEnlace(modelo, enlace) : aparienciaEnlace.enlaceId} tiene posición o anclajes estructurales no finitos.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "enlace",
@@ -164,7 +164,7 @@ function detectarIntegridadEnlacesVisuales(modelo: Modelo, opd: Opd): Aviso[] {
     if (labelsEnlaceInvalidas(aparienciaEnlace)) {
       avisos.push({
         reglaId: "visual-label-enlace-invalida",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `La apariencia de enlace ${enlace ? etiquetaEnlace(modelo, enlace) : aparienciaEnlace.enlaceId} tiene posiciones de etiqueta no finitas.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "enlace",
@@ -192,7 +192,7 @@ function detectarSolapes(modelo: Modelo, opd: Opd): Aviso[] {
       const entidadB = modelo.entidades[b.entidadId];
       avisos.push({
         reglaId: "visual-solape-apariencias",
-        severidad: "advertencia",
+        severidad: "info",
         mensaje: `${entidadA?.nombre ?? a.entidadId} y ${entidadB?.nombre ?? b.entidadId} ocupan el mismo lugar en ${opd.nombre}. Las cosas solapadas son difíciles de leer y pueden tapar enlaces: sepáralas o deja una dentro de la otra solo si describes contención.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "entidad",
@@ -211,7 +211,7 @@ function detectarEnlacesConExtremosNoVisibles(modelo: Modelo, opd: Opd): Aviso[]
     if (!enlace) {
       avisos.push({
         reglaId: "visual-enlace-modelo-inexistente",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `La apariencia de enlace ${aparienciaEnlace.id} no tiene enlace lógico asociado.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "enlace",
@@ -226,7 +226,7 @@ function detectarEnlacesConExtremosNoVisibles(modelo: Modelo, opd: Opd): Aviso[]
       if (!entidadId || aparienciaDeEntidadEnOpd(opd, entidadId)) continue;
       avisos.push({
         reglaId: "visual-enlace-extremo-no-visible",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `El enlace ${etiquetaEnlace(modelo, enlace)} se renderiza en ${opd.nombre}, pero su ${lado} ${nombreExtremo(modelo, extremo)} no tiene apariencia local.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "enlace",
@@ -248,7 +248,7 @@ function detectarExternosDentroContorno(modelo: Modelo, opd: Opd): Aviso[] {
     const entidad = modelo.entidades[apariencia.entidadId];
     return [{
       reglaId: "visual-externo-dentro-contorno",
-      severidad: "advertencia",
+      severidad: "error",
       mensaje: `La cosa externa ${entidad?.nombre ?? apariencia.entidadId} quedó dentro del contorno refinado ${modelo.entidades[contorno.entidadId]?.nombre ?? contorno.entidadId}.`,
       citaSSOT: CITA_REFINAMIENTO,
       elementoTipo: "entidad",
@@ -281,7 +281,7 @@ function detectarTransformadoresContornoNoDistribuidos(modelo: Modelo, opd: Opd)
     const externo = externoId ? modelo.entidades[externoId] : undefined;
     return [{
       reglaId: "visual-transformador-contorno-no-distribuido",
-      severidad: "advertencia",
+      severidad: "error",
       mensaje: `El enlace transformador ${etiquetaEnlace(modelo, enlace)} permanece en el contorno de ${refinable.nombre}; en una descomposición debe proyectarse hacia subprocesos concretos${externo ? ` conectados con ${externo.nombre}` : ""}.`,
       citaSSOT: CITA_REFINAMIENTO,
       elementoTipo: "enlace",
@@ -306,7 +306,7 @@ function detectarSubprocesosSinTransformado(modelo: Modelo, opd: Opd): Aviso[] {
     const subproceso = modelo.entidades[subprocesoId];
     return [{
       reglaId: "visual-subproceso-sin-transformado",
-      severidad: "advertencia",
+      severidad: "error",
       mensaje: `El subproceso interno ${subproceso?.nombre ?? subprocesoId} no transforma ningún objeto visible en ${opd.nombre}.`,
       citaSSOT: CITA_REFINAMIENTO,
       elementoTipo: "entidad",
@@ -384,7 +384,7 @@ function detectarVerticesInvalidos(modelo: Modelo, opd: Opd): Aviso[] {
     const enlace = modelo.enlaces[aparienciaEnlace.enlaceId];
     return [{
       reglaId: "visual-vertices-enlace-invalidos",
-      severidad: "advertencia",
+      severidad: "error",
       mensaje: `El enlace ${enlace ? etiquetaEnlace(modelo, enlace) : aparienciaEnlace.enlaceId} tiene vértices no finitos y puede romper el routing visual.`,
       citaSSOT: CITA_VISUAL,
       elementoTipo: "enlace",
@@ -406,7 +406,7 @@ function detectarPuertosInteriores(modelo: Modelo, opd: Opd): Aviso[] {
       if (!referencia.puerto) {
         avisos.push({
           reglaId: "visual-puerto-enlace-inexistente",
-          severidad: "advertencia",
+          severidad: "error",
           mensaje: `El ${lado} del enlace ${etiquetaEnlace(modelo, enlace)} referencia el puerto ausente ${referencia.portId}.`,
           citaSSOT: CITA_VISUAL,
           elementoTipo: "enlace",
@@ -418,7 +418,7 @@ function detectarPuertosInteriores(modelo: Modelo, opd: Opd): Aviso[] {
       if (!puertoRelativoValido(referencia.puerto) || puertoEnBorde(referencia.puerto)) continue;
       avisos.push({
         reglaId: "visual-puerto-enlace-interior",
-        severidad: "advertencia",
+        severidad: "error",
         mensaje: `El ${lado} del enlace ${etiquetaEnlace(modelo, enlace)} usa un puerto interior; el extremo puede quedar detrás de la cosa.`,
         citaSSOT: CITA_VISUAL,
         elementoTipo: "enlace",

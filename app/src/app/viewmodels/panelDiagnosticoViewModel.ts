@@ -23,6 +23,10 @@ export interface DiagnosticoIssue {
   mensaje: string;
   destino: string;
   cita: string;
+  fuente: string;
+  fundamento?: string;
+  acciones: string[];
+  navegable: boolean;
   navegar: () => void;
 }
 
@@ -42,6 +46,10 @@ export interface DiagnosticoIssueAgrupado {
   mensaje: string;
   destino: string;
   cita: string;
+  fuente: string;
+  fundamento?: string;
+  acciones: string[];
+  navegable: boolean;
   navegar: () => void;
   /**
    * Issues que comparten {@link DiagnosticoIssue.testIdCodigo} con el
@@ -71,6 +79,10 @@ export function derivarIssuesDiagnostico(
     mensaje: aviso.mensaje,
     destino: aviso.destino,
     cita: aviso.cita,
+    fuente: (aviso.fuente ?? aviso.citaSSOT) || "SSOT OPM",
+    ...(aviso.fundamento ? { fundamento: aviso.fundamento } : {}),
+    acciones: [...(aviso.acciones ?? [])],
+    navegable: aviso.avisoNavegable !== null,
     navegar: () => {
       if (aviso.avisoNavegable) navegarAviso(aviso.avisoNavegable);
     },
@@ -114,6 +126,10 @@ function agruparPorRegla(issues: DiagnosticoIssue[]): DiagnosticoIssueAgrupado[]
       mensaje: issue.mensaje,
       destino: issue.destino,
       cita: issue.cita,
+      fuente: issue.fuente,
+      ...(issue.fundamento ? { fundamento: issue.fundamento } : {}),
+      acciones: issue.acciones,
+      navegable: issue.navegable,
       navegar: issue.navegar,
       instancias: [issue],
     };
@@ -122,4 +138,43 @@ function agruparPorRegla(issues: DiagnosticoIssue[]): DiagnosticoIssueAgrupado[]
   }
 
   return orden;
+}
+
+export interface ResumenPanelDiagnostico {
+  texto: string;
+  ariaLabel: string;
+  dominante: SeveridadDiagnostico | "sin-hallazgos";
+}
+
+/** Resumen compacto para una columna estrecha. Nombra la severidad dominante
+ * y conserva la existencia de las restantes sin degradarlas a "sugerencias". */
+export function resumirPanelDiagnostico(issues: readonly DiagnosticoIssue[]): ResumenPanelDiagnostico {
+  const conteos = {
+    bloqueo: issues.filter((issue) => issue.severidad === "bloqueo").length,
+    mejora: issues.filter((issue) => issue.severidad === "mejora").length,
+    estilo: issues.filter((issue) => issue.severidad === "estilo").length,
+  };
+  const categorias = [
+    { severidad: "bloqueo" as const, icono: "!", cantidad: conteos.bloqueo, singular: "bloqueo", plural: "bloqueos" },
+    { severidad: "mejora" as const, icono: "△", cantidad: conteos.mejora, singular: "mejora", plural: "mejoras" },
+    { severidad: "estilo" as const, icono: "·", cantidad: conteos.estilo, singular: "observación", plural: "observaciones" },
+  ].filter((categoria) => categoria.cantidad > 0);
+  if (categorias.length === 0) {
+    return {
+      texto: "sin hallazgos",
+      ariaLabel: "Sin hallazgos en el OPD activo",
+      dominante: "sin-hallazgos",
+    };
+  }
+  const principal = categorias[0]!;
+  const restantes = issues.length - principal.cantidad;
+  const nombrePrincipal = principal.cantidad === 1 ? principal.singular : principal.plural;
+  const ariaLabel = categorias
+    .map((categoria) => `${categoria.cantidad} ${categoria.cantidad === 1 ? categoria.singular : categoria.plural}`)
+    .join(", ");
+  return {
+    texto: `${principal.icono} ${principal.cantidad} ${nombrePrincipal}${restantes > 0 ? ` · ${restantes} más` : ""}`,
+    ariaLabel,
+    dominante: principal.severidad,
+  };
 }

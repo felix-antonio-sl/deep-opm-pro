@@ -15,8 +15,8 @@ describe("paridad behavioral OPCloud", () => {
     expect(clases).toEqual([...OPCLOUD_BEHAVIORAL_RULES]);
     expect(resumenParidadBehavioralOpcloud()).toEqual({
       totalOpcloud: 39,
-      implementadas: 11,
-      pendientes: 28,
+      implementadas: 7,
+      pendientes: 32,
     });
   });
 });

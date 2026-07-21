@@ -5,7 +5,7 @@
  *   1. Aparece aviso al crear elementos que violan metodologia (severidad).
  *   2. Cita SSOT visible en el panel y en detalle expandible.
  *   3. Click en aviso navega al elemento (entidad o OPD) implicado.
- *   4. Boton Revalidar recomputa avisos sin recargar pagina.
+ *   4. El diagnóstico se actualiza reactivamente, sin botón de revalidación.
  *   5. Aviso se resuelve tras corregir el modelo.
  *
  * Citas SSOT:
@@ -16,7 +16,7 @@
 import { expect, test } from "@playwright/test";
 import { esperarWorkbenchInicial, elementoPorTexto } from "./_smoke-helpers";
 
-test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async ({ page }) => {
+test("L3 panel muestra severidad precisa y criterio SSOT en contexto", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -33,8 +33,9 @@ test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async 
   await expect(panel).toBeVisible();
   await page.getByTestId("panel-diagnostico-toggle").click();
 
-  // Hay al menos un aviso — el contador NO debe ser cero.
-  await expect(panel.locator("header").getByText(/^△\s+(1 sugerencia|[2-9]\d* sugerencias|[1-9]\d{2,} sugerencias)$/)).toBeVisible();
+  // El proceso sin transformación es bloqueo; el panel no lo rebaja a sugerencia.
+  await expect(panel).toHaveAttribute("data-severidad-dominante", "bloqueo");
+  await expect(panel.locator("header").getByLabel(/bloqueo/)).toBeVisible();
 
   // El aviso de PROCESO_NOMBRE_FORMA_VERBAL aparece y trae cita SSOT
   // visible en el boton de cita.
@@ -42,22 +43,15 @@ test("L3 panel metodologia muestra aviso, cita SSOT y permite revalidar", async 
   await expect(aviso).toBeVisible();
   const cita = page.getByTestId("aviso-cita-PROCESO_NOMBRE_FORMA_VERBAL");
   await expect(cita).toBeVisible();
-  await expect(cita).toHaveAttribute("title", /reglas-opm-estrictas-es|opl-es/);
+  await expect(cita).toHaveAttribute("title", /Criterio:.*(reglas-opm-estrictas-es|opl-es)/);
 
   // Click en cita expande detalle con SSOT, rationale y acciones sugeridas.
   await cita.click();
   const detalle = page.getByTestId("aviso-detalle-PROCESO_NOMBRE_FORMA_VERBAL");
   await expect(detalle).toBeVisible();
   await expect(detalle).toContainText("reglas-opm-estrictas-es");
-  await expect(detalle).toContainText(/[Aa]ccion|[Rr]enombra/);
-
-  // Boton Revalidar dispara recalculo.
-  const revalidar = page.getByTestId("panel-diagnostico-revalidar");
-  await expect(revalidar).toBeVisible();
-  const revisionAntes = await panel.getAttribute("data-revision");
-  await revalidar.click();
-  const revisionDespues = await panel.getAttribute("data-revision");
-  expect(revisionDespues).not.toBe(revisionAntes);
+  await expect(detalle).toContainText(/Qué puedes hacer|[Rr]enombra/);
+  await expect(page.getByTestId("panel-diagnostico-revalidar")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });
@@ -100,15 +94,15 @@ test("L3 ErrorBadge inline abre y resalta el aviso compartido", async ({ page })
 
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
 
-  const badge = page.locator('[data-testid="error-badge"][data-regla-id="proceso-sin-entrada-ni-salida"]');
+  const badge = page.locator('[data-testid="error-badge"][data-regla-id="PROCESO_NO_TRANSFORMA"]');
   await expect(badge).toHaveCount(1);
-  await expect(badge.first()).toHaveAttribute("aria-label", /proceso-sin-entrada-ni-salida/);
+  await expect(badge.first()).toHaveAttribute("aria-label", /PROCESO_NO_TRANSFORMA/);
 
   await badge.first().click();
   const panel = page.getByTestId("panel-diagnostico");
   await expect(panel).toHaveAttribute("data-expandido", "true");
-  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toBeVisible();
-  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toHaveAttribute("data-resaltado", "true");
+  await expect(page.getByTestId("aviso-PROCESO_NO_TRANSFORMA")).toBeVisible();
+  await expect(page.getByTestId("aviso-PROCESO_NO_TRANSFORMA")).toHaveAttribute("data-resaltado", "true");
 
   expect(pageErrors).toEqual([]);
 });
@@ -129,8 +123,8 @@ test("L3 badge del arbol abre el mismo aviso diagnostico", async ({ page }) => {
 
   const panel = page.getByTestId("panel-diagnostico");
   await expect(panel).toHaveAttribute("data-expandido", "true");
-  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toBeVisible();
-  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toHaveAttribute("data-resaltado", "true");
+  await expect(page.getByTestId("aviso-PROCESO_NO_TRANSFORMA")).toBeVisible();
+  await expect(page.getByTestId("aviso-PROCESO_NO_TRANSFORMA")).toHaveAttribute("data-resaltado", "true");
 
   expect(pageErrors).toEqual([]);
 });
@@ -149,13 +143,13 @@ test("L3 ciclo de feedback completo cubre barra, badge y toast", async ({ page }
   await expect(barra).toHaveAttribute("role", "toolbar");
   await expect(barra).toHaveAttribute("aria-label", /Acciones sobre Proceso/);
 
-  const badge = page.locator('[data-testid="error-badge"][data-regla-id="proceso-sin-entrada-ni-salida"]');
+  const badge = page.locator('[data-testid="error-badge"][data-regla-id="PROCESO_NO_TRANSFORMA"]');
   await expect(badge).toHaveCount(1);
   await badge.first().click();
 
   const panel = page.getByTestId("panel-diagnostico");
   await expect(panel).toHaveAttribute("data-expandido", "true");
-  await expect(page.getByTestId("aviso-proceso-sin-entrada-ni-salida")).toHaveAttribute("data-resaltado", "true");
+  await expect(page.getByTestId("aviso-PROCESO_NO_TRANSFORMA")).toHaveAttribute("data-resaltado", "true");
 
   await elementoPorTexto(page, "Proceso").click();
   await page.keyboard.press("Delete");

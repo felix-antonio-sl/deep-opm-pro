@@ -11,6 +11,7 @@ import type { Modelo, Id } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
 import { generarOpl } from "../../opl/generar";
 import { listarAvisosDiagnostico } from "../../modelo/diagnostico";
+import { severidadDiagnostico } from "../../modelo/diagnosticoSeveridad";
 import { leerIncluirDiagnostico, guardarIncluirDiagnostico } from "./preferenciasMovil";
 import { tokens } from "../tokens";
 
@@ -103,7 +104,7 @@ export function VistaBusquedaLectura({ modelo, opdActivoId, onSeleccionarEntidad
             id: `issue-${aviso.codigo}`,
             clase: "issue",
             titulo: aviso.mensaje,
-            subtitulo: aviso.severidad,
+            subtitulo: severidadDiagnostico(aviso, { esApunte }),
             onClick: () => {},
           });
         }

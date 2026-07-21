@@ -43,10 +43,6 @@ export const OPCLOUD_BEHAVIORAL_RULES = [
 export const PARIDAD_BEHAVIORAL_DEEP_OPM = {
   AlreadyConnectedWithStructural: "estructural-sin-duplicar",
   ObjectCantConnectToObjectWithProceduralLinks: "procedural-no-objeto-objeto",
-  PreventAggregationBetweenInformaticalToPhysical: "agregacion-misma-esencia",
-  AggregationBetweenPhysicaltoInformatical: "agregacion-misma-esencia",
-  OnlyOneLevelOfInstantiation: "solo-un-nivel-de-instanciacion",
-  OnlyOneLevelOfInstantiation2: "solo-un-nivel-de-instanciacion",
   InstrumentWithAgentConsistency1: "instrumento-y-agente-simultaneos",
   InstrumentWithAgentConsistency2: "instrumento-y-agente-simultaneos",
   ProcessToProcessExceptionsUndertimeOvertime: "excepcion-temporal-proceso-proceso",

@@ -210,6 +210,20 @@ describe("autoría — emitirBundle (cafetera, dominio NO-HODOM)", () => {
   });
 });
 
+describe("autoría — emitirBundle respeta la severidad canónica del diagnóstico", () => {
+  test("un bloqueo metodológico también bloquea la emisión", () => {
+    const autor = crearAutor({ id: "efecto-sin-estados", nombre: "Efecto sin estados" });
+    autor.entidad("proceso", "proceso", "Transformar", "fisica", "sistemica");
+    autor.entidad("objeto", "objeto", "Resultado", "fisica", "sistemica");
+    autor.opd("sd", "SD", null);
+    autor.ver("sd", "proceso", 0, 0);
+    autor.ver("sd", "objeto", 0, 0);
+    autor.enlazar("sd", "proceso", "objeto", "efecto");
+
+    expect(() => emitirBundle(autor)).toThrow(/EFECTO_OBJETO_SIN_ESTADOS/);
+  });
+});
+
 describe("autoría — emitirBundle: modelo textual derivado (G1, solicitud upstream hd-opm)", () => {
   test("sin la opción: modeloTextual ausente (byte-identidad de consumidores existentes)", () => {
     const bundle = emitirBundle(construirCafetera());

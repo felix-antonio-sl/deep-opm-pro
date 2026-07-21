@@ -848,7 +848,7 @@ function CodexMulti() {
     <CodexFrame
       breadcrumb={['sistema', 'system diagram', 'sd1']}
       meta="34 oraciones · sin guardar"
-      footerRight="△ 3 sugerencias"
+      footerRight="! 1 bloqueo · 2 más"
       leftTree={(
         <>
           <CodexColHeader kicker="Índice" title="OPDs"/>

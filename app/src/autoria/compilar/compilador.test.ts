@@ -29,7 +29,6 @@ Hacer café es físico y sistémico.
 Persona es física y ambiental.
 Persona maneja Hacer café.
 Cafetera es física y sistémica.
-Cafetera maneja Hacer café.
 Hacer café requiere Cafetera.
 Agua es física y ambiental.
 Hacer café consume Agua.
@@ -196,7 +195,6 @@ describe("(iii) round-trip — el OPL del modelo compilado contiene los hechos a
     // Hechos esperados del SD0 (forma canónica por clave; el orden/forma no importa).
     const esperados = [
       "agente:hacer cafe:persona",
-      "agente:hacer cafe:cafetera",
       "instrumento:hacer cafe:cafetera",
       "consumo:hacer cafe:agua",
       "resultado:hacer cafe:cafe",

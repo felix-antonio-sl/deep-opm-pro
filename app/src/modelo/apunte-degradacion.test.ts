@@ -59,8 +59,18 @@ describe("modo apunte · degradación de severidad por-clase (corrección 4)", (
 
   test("validez metodológica (EFECTO_OBJETO_SIN_ESTADOS) también se relaja en apunte", () => {
     const aviso = avisoDiagnostico({ origen: "metodologia", codigo: "EFECTO_OBJETO_SIN_ESTADOS", severidad: "info" });
-    expect(severidadDiagnostico(aviso)).toBe("mejora");
+    expect(severidadDiagnostico(aviso)).toBe("bloqueo");
     expect(severidadDiagnostico(aviso, { esApunte: true })).toBe("estilo");
+  });
+
+  test("una referencia inválida de orden bloquea incluso en apunte", () => {
+    const aviso = avisoDiagnostico({
+      origen: "metodologia",
+      codigo: "ORDEN_INZOOM_REFERENCIA_INVALIDA",
+      severidad: "advertencia",
+    });
+    expect(severidadDiagnostico(aviso)).toBe("bloqueo");
+    expect(severidadDiagnostico(aviso, { esApunte: true })).toBe("bloqueo");
   });
 
   test("esApunte=false es idéntico a no pasar opciones (cero migración)", () => {

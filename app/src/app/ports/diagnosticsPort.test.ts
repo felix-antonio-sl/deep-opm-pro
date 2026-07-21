@@ -11,7 +11,8 @@ describe("DiagnosticsPort", () => {
 
     const avisos = query.listarAvisos({ tipo: "modelo" });
 
-    expect(avisos.map((aviso) => aviso.reglaId)).toContain("proceso-sin-entrada-ni-salida");
+    expect(avisos.map((aviso) => aviso.testIdCodigo)).toContain("PROCESO_NO_TRANSFORMA");
+    expect(avisos.map((aviso) => aviso.reglaId)).not.toContain("proceso-sin-entrada-ni-salida");
     expect(avisos.map((aviso) => aviso.reglaId)).toContain("PROCESO_NOMBRE_FORMA_VERBAL");
   });
 

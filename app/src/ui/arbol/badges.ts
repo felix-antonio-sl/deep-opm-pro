@@ -1,12 +1,16 @@
 import { anclasDe } from "../../modelo/anclasNormativas";
+import { codigoDiagnosticoCanonico, type OrigenAvisoDiagnostico } from "../../modelo/diagnostico";
+import { severidadDesdeAviso, severidadDiagnostico } from "../../modelo/diagnosticoSeveridad";
 import { refinaA } from "../../modelo/refinamientos";
 import type { Id, Modelo, Opd, TipoRefinamiento } from "../../modelo/tipos";
 
 export type TipoBadgeOpd = "raiz" | "inzoom" | "unfold";
 
 export interface AvisoOpdLike {
+  origen?: OrigenAvisoDiagnostico;
   reglaId?: string;
   codigo?: string;
+  testIdCodigo?: string;
   severidad?: "error" | "advertencia" | "info" | "sugerencia";
   opdId?: Id;
   elementoTipo?: "entidad" | "enlace" | "opd";
@@ -37,7 +41,12 @@ export function labelNodoRaiz(esApunte: boolean, nombre: string): string {
   return esApunte ? "Hoja" : nombre;
 }
 
-export function calcularBadges(modelo: Modelo, opdId: Id, avisos: readonly AvisoOpdLike[] = []): BadgesNodoOpd {
+export function calcularBadges(
+  modelo: Modelo,
+  opdId: Id,
+  avisos: readonly AvisoOpdLike[] = [],
+  opciones: { esApunte?: boolean } = {},
+): BadgesNodoOpd {
   const opd = modelo.opds[opdId];
   const refinador = refinadorDeOpd(modelo, opdId);
   const tipo = tipoBadge(modelo, opdId, refinador?.tipo);
@@ -49,7 +58,7 @@ export function calcularBadges(modelo: Modelo, opdId: Id, avisos: readonly Aviso
       cuentaObjetos: 0,
       cuentaProcesos: 0,
       cuentaEnlaces: 0,
-      ...resumenAvisos(avisosNodo),
+      ...resumenAvisos(avisosNodo, opciones),
       refinadorId: refinador?.entidadId ?? null,
     };
   }
@@ -68,7 +77,7 @@ export function calcularBadges(modelo: Modelo, opdId: Id, avisos: readonly Aviso
     cuentaObjetos,
     cuentaProcesos,
     cuentaEnlaces: Object.keys(opd.enlaces).length,
-    ...resumenAvisos(avisosNodo),
+    ...resumenAvisos(avisosNodo, opciones),
     refinadorId: refinador?.entidadId ?? null,
   };
 }
@@ -132,17 +141,33 @@ function avisosEnOpd(modelo: Modelo, opdId: Id, avisos: readonly AvisoOpdLike[])
   return avisos.filter((aviso) => avisoAfectaOpd(modelo, opdId, aviso));
 }
 
-function resumenAvisos(avisos: readonly AvisoOpdLike[]): Pick<BadgesNodoOpd, "tieneIssues" | "errores" | "advertencias" | "primerAvisoCodigo"> {
+function resumenAvisos(
+  avisos: readonly AvisoOpdLike[],
+  opciones: { esApunte?: boolean },
+): Pick<BadgesNodoOpd, "tieneIssues" | "errores" | "advertencias" | "primerAvisoCodigo"> {
+  const severidades = avisos.map((aviso) => severidadVisible(aviso, opciones));
   return {
     tieneIssues: avisos.length > 0,
-    errores: avisos.filter((aviso) => aviso.severidad === "error").length,
-    advertencias: avisos.filter((aviso) => aviso.severidad !== "error").length,
+    errores: severidades.filter((severidad) => severidad === "bloqueo").length,
+    advertencias: severidades.filter((severidad) => severidad !== "bloqueo").length,
     primerAvisoCodigo: codigoAviso(avisos[0]),
   };
 }
 
 function codigoAviso(aviso: AvisoOpdLike | undefined): string | null {
-  return aviso?.reglaId ?? aviso?.codigo ?? null;
+  if (!aviso) return null;
+  return (aviso.testIdCodigo ?? codigoDiagnosticoCanonico(aviso.reglaId ?? aviso.codigo ?? "")) || null;
+}
+
+function severidadVisible(aviso: AvisoOpdLike, opciones: { esApunte?: boolean }) {
+  if (aviso.origen && aviso.codigo) {
+    return severidadDiagnostico({
+      origen: aviso.origen,
+      codigo: aviso.codigo,
+      severidad: aviso.severidad === "sugerencia" ? "info" : aviso.severidad ?? "info",
+    }, opciones);
+  }
+  return severidadDesdeAviso(aviso.severidad === "sugerencia" ? "info" : aviso.severidad ?? "info");
 }
 
 function avisoAfectaOpd(modelo: Modelo, opdId: Id, aviso: AvisoOpdLike): boolean {

@@ -376,12 +376,12 @@ ${artifacts}
 
 ## Hallazgos UX accionables
 
+- El diagnóstico presenta la severidad canónica dominante, agrupa observadores equivalentes y mantiene fuente, fundamento y acciones dentro del hallazgo.
 - El scaffolding de descomposicion entra directamente en renombrado inline encadenado: Enter avanza por los tres subprocesos y el diagnostico los agrupa en un solo aviso.
 - La barra de simulacion reserva "Listo para simular" para el estado previo; durante una ejecucion informa "Simulando" y explicita la microfase activa.
 - El canvas reencuadra el OPD activo al cambiar el viewport y conserva todas sus cosas dentro del area visible.
 - El flujo principal UX/IFML queda operativo: bienvenida, chrome IFML, command palette, menu contextual, feedback anclado al canvas, conexion por \`MenuTipoEnlace\` y modo mobile review.
 - La edicion mobile sigue tratada como fuera de alcance productivo; el modo revision expone tabs y aviso de edicion en escritorio/tablet.
-- No hay un corte activo priorizado: \`cordon:estado\` ya unifica fuente, despliegue, salud, cinco órganos y fronteras sin testigo. La próxima apertura requiere demanda o fallo reproducible.
 
 ## Riesgos detectados
 
@@ -524,13 +524,34 @@ try {
   recordBool("4. Feedback overlay", "Barra contextual usa role toolbar", await attr(barra, "role") === "toolbar");
   const labelBarraProceso = await attr(barra, "aria-label") ?? "";
   recordBool("4. Feedback overlay", "Barra contextual nombra la seleccion", /Acciones sobre (Proceso|Procesar)/.test(labelBarraProceso), labelBarraProceso);
-  const badge = page.locator('[data-testid="error-badge"][data-regla-id="proceso-sin-entrada-ni-salida"]');
+  const badge = page.locator('[data-testid="error-badge"][data-regla-id="PROCESO_NO_TRANSFORMA"]');
   await recordVisible("4. Feedback overlay", "ErrorBadge inline para proceso sin entrada/salida", badge);
-  recordBool("4. Feedback overlay", "ErrorBadge expone aria-label metodologico", /proceso-sin-entrada-ni-salida/.test(await attr(badge, "aria-label") ?? ""));
+  recordBool("4. Feedback overlay", "ErrorBadge expone la regla canónica", /PROCESO_NO_TRANSFORMA/.test(await attr(badge, "aria-label") ?? ""));
   await badge.first().click();
   const diagnostico = page.getByTestId("panel-diagnostico");
   recordBool("4. Feedback overlay", "Click en ErrorBadge expande diagnostico", await attr(diagnostico, "data-expandido") === "true");
-  recordBool("4. Feedback overlay", "Aviso compartido queda resaltado", await attr(page.getByTestId("aviso-proceso-sin-entrada-ni-salida"), "data-resaltado") === "true");
+  recordBool("4. Feedback overlay", "Panel conserva la severidad bloqueo", await attr(diagnostico, "data-severidad-dominante") === "bloqueo");
+  recordBool("4. Feedback overlay", "Aviso compartido queda resaltado", await attr(page.getByTestId("aviso-PROCESO_NO_TRANSFORMA"), "data-resaltado") === "true");
+  recordBool(
+    "4. Feedback overlay",
+    "Resumen accesible declara el bloqueo",
+    /bloqueo/.test(await attr(diagnostico.locator("header").getByLabel(/bloqueo/), "aria-label") ?? ""),
+  );
+  recordBool(
+    "4. Feedback overlay",
+    "Diagnostico reactivo no presenta revalidación manual",
+    (await locatorCount(page.getByTestId("panel-diagnostico-revalidar"))) === 0,
+  );
+  const criterio = page.getByTestId("aviso-cita-PROCESO_NO_TRANSFORMA");
+  await recordVisible("4. Feedback overlay", "Hallazgo expone Criterio inline", criterio);
+  await criterio.click();
+  const detalleCriterio = page.getByTestId("aviso-detalle-PROCESO_NO_TRANSFORMA");
+  const textoCriterio = await detalleCriterio.textContent() ?? "";
+  recordBool(
+    "4. Feedback overlay",
+    "Criterio integra fuente, fundamento y acción",
+    ["Fuente", "Por qué importa", "Qué puedes hacer"].every((texto) => textoCriterio.includes(texto)),
+  );
   await screenshot(page, "05-feedback-errorbadge.png");
 
   await crearCosa(page, "Objeto", "Entrada");

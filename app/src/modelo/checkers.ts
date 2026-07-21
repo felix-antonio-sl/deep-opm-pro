@@ -102,7 +102,6 @@ export function verificarMetodologia(modelo: Modelo): AvisoMetodologico[] {
     ...checkProcesoNombreFormaVerbal(modelo),
     ...checkEstadoNombreCanonico(modelo),
     ...checkObjetoNombreSingular(modelo),
-    ...checkObjetoAmbientalSinContornoDiscontinuo(modelo),
     ...checkDescomposicionSinSubprocesos(modelo),
     ...checkInzoomContenido(modelo),
     ...checkInzoomNombresPlaceholderHijos(modelo),
@@ -239,37 +238,6 @@ export function checkObjetoNombreSingular(modelo: Modelo): AvisoMetodologico[] {
       accionesSugeridas: [
         "Renombra al singular ('Cliente').",
         "Si necesitas multiplicidad, usa 'Conjunto', 'Grupo' o anota la multiplicidad en el enlace.",
-      ],
-    }));
-}
-
-export function checkObjetoAmbientalSinContornoDiscontinuo(modelo: Modelo): AvisoMetodologico[] {
-  /**
-   * SSOT §6.9: "Los objetos ambientales DEBEN representarse con contorno
-   * discontinuo." En el modelo deep-opm-pro la convencion canonica es:
-   * objeto ambiental + esencia "fisica" (contorno solido en render). Si la
-   * esencia es informacional, el render usa contorno discontinuo (rasgo
-   * informacional), pero el modelador puede haber dejado un objeto ambiental
-   * marcado como esencia fisica + contorno solido por descuido.
-   *
-   * Aviso emitido cuando: afiliacion=ambiental && (no hay enlace que justifique
-   * pertenencia al sistema). Aqui usamos un proxy operacional simple: el
-   * objeto ambiental no debe estar consumido/resultado por procesos sistemicos
-   * (eso lo convierte de facto en sistemico). El render se encarga del
-   * contorno discontinuo; este aviso solo dispara cuando hay incoherencia
-   * semantica entre afiliacion y rol procedural.
-   */
-  return objetos(modelo)
-    .filter((objeto) => objeto.afiliacion === "ambiental")
-    .filter((objeto) => objetoAmbientalEsTransformadoPorSistemico(modelo, objeto))
-    .map((objeto) => aviso("OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO", objeto, {
-      severidad: "advertencia",
-      mensaje: `Marcaste "${objeto.nombre}" como ambiental, pero un proceso del sistema lo está consumiendo o produciendo. Si participa de la función del sistema, pásalo a sistémico; si pertenece al entorno, reemplaza el enlace por exhibición, efecto o agente según corresponda.`,
-      rationale: "Un objeto ambiental no deberia ser consumido, producido ni afectado por la funcion del sistema; revisa la afiliacion o reclasificalo como sistemico.",
-      ssotRef: `${KB_METODO} §6.9 / ${KB_OPD} §1.1`,
-      accionesSugeridas: [
-        "Cambia la afiliacion a sistemica si es parte del sistema modelado.",
-        "Si pertenece al entorno, reemplaza el enlace transformador por exhibicion/efecto/agente segun corresponda.",
       ],
     }));
 }
@@ -541,7 +509,8 @@ function tieneMarcaSinAparicion(entidad: Entidad): boolean {
  * expresado por `Opd.ordenInzoom` como una transición de banda ADYACENTE hacia
  * adelante (banda i → banda i+1), un enlace de invocación entre ellos es DOBLE
  * VARA: repite con un enlace lo que la verticalidad/bandas ya declaran. Se acusa
- * (mejora) para que el exceso sea visible mientras coexisten modelos legacy.
+ * como bloqueo para que los modelos legacy puedan repararse, pero no cerrar
+ * como canon mientras conserven la doble declaración.
  *
  * NO son redundantes (se conservan): misma banda (paralelo), salto hacia adelante
  * (banda i → banda i+k con k≥2, «salto fuera de orden» = caso explícito) y hacia
@@ -767,18 +736,6 @@ function avisoConOpdRefinamiento(
   };
   if (opdHijoExiste && opdHijoId) item.opdId = opdHijoId;
   return item;
-}
-
-function objetoAmbientalEsTransformadoPorSistemico(modelo: Modelo, objeto: Entidad): boolean {
-  return Object.values(modelo.enlaces).some((enlace) => {
-    if (!TRANSFORMADORES.has(enlace.tipo)) return false;
-    const tocaObjeto = extremoApuntaAEntidad(enlace.origenId, objeto.id) || extremoApuntaAEntidad(enlace.destinoId, objeto.id);
-    if (!tocaObjeto) return false;
-    const otra = entidadDeExtremo(modelo, enlace.origenId)?.id === objeto.id
-      ? entidadDeExtremo(modelo, enlace.destinoId)
-      : entidadDeExtremo(modelo, enlace.origenId);
-    return otra?.tipo === "proceso" && otra.afiliacion === "sistemica";
-  });
 }
 
 function esFormaVerbalValida(nombre: string): boolean {

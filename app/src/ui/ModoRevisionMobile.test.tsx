@@ -14,8 +14,8 @@ describe("ModoRevisionMobile · contrato de TABS_MOBILE", () => {
   });
 
   test("cada tab tiene etiqueta corta (cabe a 390px en 4 columnas)", () => {
-    // Ronda23 cierre: el límite sube de 8 a 12 chars para permitir
-    // "Sugerencias" (11 chars) sin recurrir a abreviaturas. A 390px / 4 tabs
+    // El límite permite "Diagnóstico" (11 chars) sin recurrir a abreviaturas.
+    // A 390px / 4 tabs
     // (~97px ancho - padding xs:4*2) la etiqueta entra holgada en typography
     // size xs (11px) con whiteSpace:nowrap + textOverflow:ellipsis como
     // salvavidas para viewports más angostos.

@@ -66,7 +66,7 @@ export function useCommandPaletteViewModel() {
   };
 
   // Copia al portapapeles el diagnóstico completo del modelo (todas las
-  // sugerencias) serializado como JSON. Mismo patrón liviano que
+  // hallazgos) serializado como JSON. Mismo patrón liviano que
   // exportarJsonAlPortapapeles: la serialización es pura (kernel) y aquí solo
   // se escribe al portapapeles.
   const exportarDiagnosticoAlPortapapeles = () => {

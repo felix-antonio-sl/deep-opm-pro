@@ -147,15 +147,16 @@ El meta del header del frame refleja estos estados:
 | Guardando (in-flight) | `· guardando…` |
 | Guardado limpio | `· guardado · hace Ns` |
 
-El footer-right refleja el diagnóstico:
+El encabezado del panel `Diagnóstico`, bajo OPL, refleja el estado del OPD activo:
 
-| Diagnóstico | Footer-right |
+| Diagnóstico | Resumen compacto |
 |---|---|
-| Limpio | `✓ ningún diagnóstico` (italic serif inkMid) |
-| Solo sugerencias | `△ N sugerencias` (italic olive) |
-| Con CRÍTICAs | `△ N críticas` (italic crimson) |
+| Limpio | `sin hallazgos` |
+| Con bloqueos | `! N bloqueo(s) · M más` (crimson) |
+| Sin bloqueos, con mejoras | `△ N mejora(s) · M más` (olive) |
+| Solo estilo/legibilidad | `· N observación(es)` (inkMid) |
 
-Click en el footer-right → expande el Inspector derecho en modo Diagnóstico (lista de validaciones por severidad — v1.1).
+Click en el encabezado → expande o colapsa el panel. Solo se muestran secciones no vacías. Cada hallazgo mantiene juntos el mensaje, la navegación a su instancia y un detalle progresivo `Criterio` con fuente, fundamento y acciones. El diagnóstico es reactivo: no requiere un botón de revalidación.
 
 ---
 

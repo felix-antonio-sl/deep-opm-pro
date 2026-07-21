@@ -5,7 +5,6 @@ import {
   checkOrdenInzoomReferenciaInvalida,
   checkInzoomContenido,
   checkInzoomNombresPlaceholderHijos,
-  checkObjetoAmbientalSinContornoDiscontinuo,
   checkObjetoNombreSingular,
   checkProcesoNombreFormaVerbal,
   checkProcesoSistemicoConectado,
@@ -466,47 +465,17 @@ describe("checkInzoomNombresPlaceholderHijos", () => {
   });
 });
 
-describe("checkObjetoAmbientalSinContornoDiscontinuo", () => {
-  test("avisa objeto ambiental consumido por proceso sistemico", () => {
-    let modelo = crearModelo("Ambiental incongruente");
+describe("objeto ambiental transformado por el sistema", () => {
+  test("no inventa una prohibición: el entorno puede ser transformado por la función sistémica", () => {
+    let modelo = crearModelo("Ambiental transformado");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Externo"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Procesar"));
     const externo = entidadPorNombre(modelo, "Externo");
     const procesar = entidadPorNombre(modelo, "Procesar");
     modelo = must(cambiarAfiliacion(modelo, externo, "ambiental"));
     modelo = must(crearEnlace(modelo, modelo.opdRaizId, externo, procesar, "consumo"));
-    const avisos = checkObjetoAmbientalSinContornoDiscontinuo(modelo);
-    expect(avisos.map((aviso) => aviso.codigo)).toContain("OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO");
-    expect(avisos[0]?.entidadId).toBe(externo);
-  });
-
-  test("acepta objeto ambiental conectado solo via agente", () => {
-    let modelo = crearModelo("Ambiental coherente");
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Cliente"));
-    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Procesar"));
-    const cliente = entidadPorNombre(modelo, "Cliente");
-    const procesar = entidadPorNombre(modelo, "Procesar");
-    modelo = must(cambiarAfiliacion(modelo, cliente, "ambiental"));
-    modelo = must(cambiarEsencia(modelo, cliente, "fisica"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, cliente, procesar, "agente"));
-    expect(checkObjetoAmbientalSinContornoDiscontinuo(modelo)).toHaveLength(0);
-  });
-
-  test("acepta objeto sistemico transformado por proceso sistemico", () => {
-    const modelo = modeloTransformador("Procesar").modelo;
-    expect(checkObjetoAmbientalSinContornoDiscontinuo(modelo)).toHaveLength(0);
-  });
-
-  test("acepta objeto ambiental transformado solo por proceso ambiental", () => {
-    let modelo = crearModelo("Ambiental por ambiental");
-    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 80, y: 80 }, "Lluvia"));
-    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 260, y: 160 }, "Llover"));
-    const lluvia = entidadPorNombre(modelo, "Lluvia");
-    const llover = entidadPorNombre(modelo, "Llover");
-    modelo = must(cambiarAfiliacion(modelo, lluvia, "ambiental"));
-    modelo = must(cambiarAfiliacion(modelo, llover, "ambiental"));
-    modelo = must(crearEnlace(modelo, modelo.opdRaizId, llover, lluvia, "resultado"));
-    expect(checkObjetoAmbientalSinContornoDiscontinuo(modelo)).toHaveLength(0);
+    expect(verificarMetodologia(modelo).map((aviso) => aviso.codigo))
+      .not.toContain("OBJETO_AMBIENTAL_SIN_CONTORNO_DISCONTINUO");
   });
 });
 
