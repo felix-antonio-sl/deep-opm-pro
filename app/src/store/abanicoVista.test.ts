@@ -551,6 +551,8 @@ describe("custodia de abanicos desde vistas", () => {
     store.getState().seleccionarEntidad(refinada.id);
 
     store.getState().quitarDescomposicionSeleccionada();
+    expect(store.getState().confirmacionEliminarRefinamiento?.opdRaizId).toBe(fixture.hijoId);
+    store.getState().confirmarEliminarRefinamiento();
     expect(store.getState().modelo.opds[fixture.hijoId]).toBeUndefined();
     expect(store.getState().modelo.abanicos?.[abanicoHijo.id]).toBeUndefined();
 
