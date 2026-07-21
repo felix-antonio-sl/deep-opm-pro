@@ -43,7 +43,6 @@ export function BarraSimulacion(): JSX.Element | null {
   const ramasXorTutor = contexto && !autoAvance
     ? proyectarDecisionXorSimulacion(modelo, contexto)
     : null;
-  const ultimaTraza = contexto?.trace.at(-1);
   const faseTutor = contexto
     ? faseTutorSimulacion(
         contexto.estado,
@@ -56,16 +55,23 @@ export function BarraSimulacion(): JSX.Element | null {
     ? {
         kind: "simulation",
         intentId: `simulation:${contexto.modeloId}:${contexto.opdId}:${contexto.pasoActual}:${contexto.faseActual ?? "preflight"}`,
-        ...(ultimaTraza ? { resultId: `simulation-result:${ultimaTraza.numero}` } : {}),
         surface: "simulation-bar",
         interactionMode: "simulation",
         firstUse: contexto.trace.length === 0,
       } as const
     : null;
   const intervencionTutor = (() => {
-    if (!baseTutor || !faseTutor) return null;
+    if (!baseTutor || !faseTutor || !contexto) return null;
     if (faseTutor === "decision") {
       return runTutorPolicy({ ...baseTutor, actionId: "simulation:decision", phase: "decision" });
+    }
+    if (faseTutor === "step" || faseTutor === "complete") {
+      return runTutorPolicy({
+        ...baseTutor,
+        actionId: "simulation:step",
+        phase: faseTutor,
+        resultId: `simulation-result:${contexto.modeloId}:${contexto.trace.length}:${faseTutor}`,
+      });
     }
     return runTutorPolicy({ ...baseTutor, actionId: "simulation:step", phase: faseTutor });
   })();

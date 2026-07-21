@@ -58,7 +58,13 @@ describe("politica pura del tutor", () => {
   test("distingue ask, orient, confirm y block por consecuencia real", () => {
     expect(runTutorPolicy(refineIntent).kind).toBe("ask");
     expect(runTutorPolicy({ ...refineIntent, questionComplete: true }).kind).toBe("orient");
-    expect(runTutorPolicy({ ...refineIntent, stage: "confirmed", resultId: "refinement-1" }).kind).toBe("confirm");
+    expect(runTutorPolicy({
+      ...refineIntent,
+      stage: "confirmed",
+      questionComplete: true,
+      integrityBlocked: false,
+      resultId: "refinement-1",
+    }).kind).toBe("confirm");
     expect(runTutorPolicy({ ...refineIntent, integrityBlocked: true }).kind).toBe("block");
   });
 

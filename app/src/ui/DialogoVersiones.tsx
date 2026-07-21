@@ -42,6 +42,11 @@ export function DialogoVersiones() {
     setEstadoTutor(siguiente);
     return siguiente;
   };
+  const cerrarDialogo = () => {
+    setVersionAEliminar(null);
+    setEstadoTutor(null);
+    cerrar();
+  };
   const ejecutarCrear = async () => {
     const base = iniciarTutor("version-create", modelo?.id ?? "none");
     const receipt = await crearVersionAhora({ descripcion: "Versión manual" });
@@ -61,7 +66,7 @@ export function DialogoVersiones() {
     });
 
   const filaVersion = (version: VersionResumen, anidada: boolean) => (
-    <tr key={version.id} style={style.row}>
+    <tr key={version.id} style={style.row} data-version-id={version.id}>
       <td style={anidada ? style.tdAnidada : style.td}>{new Date(version.creadoEn).toLocaleString("es-CL")}</td>
       <td style={style.td}>
         <strong>{version.nombre}</strong>
@@ -98,8 +103,8 @@ export function DialogoVersiones() {
       <Dialogo
       open={abierto !== null}
       title={`Versiones de "${modelo?.nombre ?? "modelo"}"`}
-      onCancel={cerrar}
-      actions={<DialogoAccion onClick={cerrar}>Cerrar</DialogoAccion>}
+      onCancel={cerrarDialogo}
+      actions={<DialogoAccion onClick={cerrarDialogo}>Cerrar</DialogoAccion>}
     >
       <div style={style.body}>
         <button
@@ -248,7 +253,7 @@ function construirSnapshotVersion(
 function ReciboVersion({ receipt }: { receipt: VersionMutationReceipt }) {
   if (!receipt.ok) {
     return (
-      <p data-testid="version-operation-error" style={style.receiptError}>
+      <p data-testid="version-operation-error" data-operation={receipt.operation} style={style.receiptError}>
         No se aplicó la operación. El modelo y el historial local se conservaron. {receipt.error}
       </p>
     );
@@ -258,7 +263,7 @@ function ReciboVersion({ receipt }: { receipt: VersionMutationReceipt }) {
     : receipt.operation === "version-restore-copy"
       ? `Copia restaurada · ${receipt.resultId}`
       : `Versión eliminada · ${receipt.versionId} · sin undo`;
-  return <p data-testid="version-operation-receipt" data-result-id={receipt.resultId} style={style.receipt}>{texto}</p>;
+  return <p data-testid="version-operation-receipt" data-operation={receipt.operation} data-result-id={receipt.resultId} style={style.receipt}>{texto}</p>;
 }
 
 // Ronda 28 L5: Bauhaus monocromático. Danger = accent (cinabrio).

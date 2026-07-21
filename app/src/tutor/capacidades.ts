@@ -468,7 +468,10 @@ export const TUTOR_CAPABILITIES = [
     status: "live",
     behavior: "guide",
     owners: ["inspector"],
-    effects: [effect("model", ["anchor:detach", "anchor:resync", "inspector:anchor-drift"], "Actualiza firma base o suelta el vínculo.", "Undo inmediato restaura firma o vigilancia anterior.")],
+    effects: [
+      effect("read", ["inspector:anchor-drift"], "Expone el estado de drift calculado sin alterar contenido ni firma base.", "Cerrar o cambiar de selección conserva modelo e historial."),
+      effect("model", ["anchor:detach", "anchor:resync"], "Actualiza firma base o suelta el vínculo.", "Undo inmediato restaura firma o vigilancia anterior."),
+    ],
     limits: ["Re-sincronizar no cambia contenido local; no existe diff visual."],
     silentWhen: ["El anclaje permanece sincronizado."],
   }),
@@ -545,14 +548,15 @@ export const TUTOR_CAPABILITIES = [
     family: "Revisión remota e historia de versiones",
     status: "live",
     behavior: "guide",
-    owners: ["persistence-chip", "workspace-manager", "command-palette"],
+    owners: ["persistence-chip", "workspace-manager", "command-palette", "modal"],
     effects: [
       effect("transient-ui", ["palette:versiones-modelo"], "Abre el historial propietario sin crear ni eliminar versiones.", "Cerrar conserva historia, modelo y workspace."),
       effect("read", ["palette:mostrar-archivados", "palette:mostrar-versiones", "workspace:incoming-review"], "Consulta y filtra historia persistida sin mutarla.", "Cerrar o restablecer el filtro recupera la vista anterior."),
       effect("external", ["workspace:create-version"], "Crea una versión histórica persistida del modelo actual.", "Un fallo conserva la historia previa; eliminarla después exige otra confirmación explícita."),
       effectSequence(["workspace:restore-version-copy"], [
         effectStep("external", "Lee y valida el snapshot histórico elegido.", "Un fallo conserva versión, modelo y workspace actuales."),
-        effectStep("workspace", "Abre el snapshot como copia editable con identidad nueva.", "Cancelar antes de abrir no crea la copia; cerrarla recupera el workspace anterior."),
+        effectStep("external", "Persiste el snapshot validado como un modelo nuevo con identidad propia.", "Un fallo de persistencia conserva la identidad activa, la versión y el original."),
+        effectStep("workspace", "Activa la copia editable en la pestaña actual y actualiza el índice.", "El original y su versión permanecen persistidos; reabrir el original desde el gestor recupera su identidad previa."),
       ]),
       effectSequence(["workspace:delete-version"], [
         effectStep("transient-ui", "Exige confirmación irreversible sobre la versión exacta.", "Cancelar conserva la versión y devuelve el foco a su acción."),
@@ -712,7 +716,7 @@ export const TUTOR_CUT_COVERAGE = [
   cutCoverage("6A", ["cap.reuse.pieces", "cap.reuse.anchor-drift"], ["pieces:copy", "pieces:anchor", "anchor:resync", "anchor:detach"], ["scenario.reuse.pieces-choice", "scenario.reuse.anchor-drift-choice"], "Calcar, Anclar, resincronizar y soltar declaran independencia, vigilancia y recuperación."),
   cutCoverage("6B", ["cap.submodel.reference", "cap.composition.interface"], ["submodel:open-reference", "composition:apply"], ["scenario.reuse.submodel-readonly", "scenario.composition.preflight-oriented", "scenario.composition.mapping-blocked"], "Referencia e integración se separan; composición valida interfaz, procedencia y reversibilidad."),
   cutCoverage("7A", ["cap.evidence.notes-anchors", "cap.handoff.skill", "cap.ficha.upstream"], ["inspector:note-add", "inspector:anchor-ratify-source", "inspector:copy-decision-log", "palette:copiar-contexto-skill"], ["scenario.knowledge.evidence-local-note", "scenario.knowledge.evidence-route", "scenario.knowledge.handoff-ready", "scenario.nonlive.ficha-upstream"], "Nota, ancla, ratificación, relevo y ficha upstream conservan destinos distintos."),
-  cutCoverage("7B", ["cap.history.review-version", "cap.persistence.import-save", "cap.export.interchange"], ["workspace:create-version", "workspace:restore-version-copy", "workspace:delete-version", "workspace:import-active", "workspace:import-new-tab", "palette:exportar-json"], ["scenario.persistence.version-create-confirmed", "scenario.persistence.version-delete-confirm", "scenario.persistence.import-active-dirty", "scenario.persistence.export-confirmed"], "Historia, importación e intercambio declaran destino, reemplazo y recuperación."),
+  cutCoverage("7B", ["cap.history.review-version", "cap.persistence.import-save", "cap.export.interchange"], ["workspace:create-version", "workspace:restore-version-copy", "workspace:delete-version", "workspace:import-active", "workspace:import-new-tab", "palette:exportar-json"], ["scenario.persistence.version-create-confirmed", "scenario.persistence.version-restore-confirmed", "scenario.persistence.version-delete-confirmed", "scenario.persistence.import-active-dirty", "scenario.persistence.export-confirmed"], "Historia, importación e intercambio declaran destino, reemplazo y recuperación."),
   cutCoverage("7C", ["cap.discovery.corpus", "cap.interaction.readonly", "cap.export.pdf-diff-merge", "cap.inference.ai"], ["tutor:search", "mobile:read-context"], ["scenario.view.discovery-source-and-content", "scenario.view.mobile-readonly", "scenario.nonlive.export-pdf", "scenario.nonlive.inference"], "Corpus local, descubrimiento, solo lectura y silencios no vivos quedan auditados."),
 ] as const satisfies readonly TutorCutCoverage[];
 

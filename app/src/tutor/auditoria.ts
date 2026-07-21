@@ -7,7 +7,7 @@ import {
   buildTutorSourceDocumentPath,
 } from "./fuentes";
 import { normalizeKnowledgeLenses, runTutorPolicy } from "./politica";
-import type { CapabilityDescriptor, TutorCut, TutorCutCoverage, TutorSource, TutorSourceRef } from "./tipos";
+import type { CapabilityDescriptor, TutorCut, TutorCutCoverage, TutorScenario, TutorSource, TutorSourceRef } from "./tipos";
 
 export interface TutorRegistryIssue {
   code: string;
@@ -162,6 +162,28 @@ export function auditTutorSourceReferences(
   return issues.sort(compareIssues);
 }
 
+export function auditScenarioOwners(
+  capabilities: readonly CapabilityDescriptor[],
+  scenarios: readonly TutorScenario[],
+): TutorRegistryIssue[] {
+  const issues: TutorRegistryIssue[] = [];
+  const capabilitiesById = new Map(capabilities.map((capability) => [capability.capabilityId, capability]));
+
+  for (const scenario of scenarios) {
+    if (scenario.expected.kind === "silent") continue;
+    const capability = capabilitiesById.get(scenario.capabilityId);
+    if (capability && !capability.owners.includes(scenario.expected.owner)) {
+      issue(
+        issues,
+        "SCENARIO_OWNER_NOT_OWNED",
+        `${scenario.scenarioId} usa ${scenario.expected.owner} fuera de ${scenario.capabilityId}.`,
+      );
+    }
+  }
+
+  return issues.sort(compareIssues);
+}
+
 export function auditTutorRegistry(): TutorRegistryIssue[] {
   const issues: TutorRegistryIssue[] = [];
 
@@ -177,6 +199,7 @@ export function auditTutorRegistry(): TutorRegistryIssue[] {
       .map((entrypoint) => entrypoint.entrypointId)),
   ));
   issues.push(...auditTutorCutCoverage(TUTOR_CUT_COVERAGE));
+  issues.push(...auditScenarioOwners(TUTOR_CAPABILITIES, TUTOR_SCENARIOS));
 
   const registryRefs = TUTOR_CONTENT.flatMap((content) => [
     ...content.sourceRefs,

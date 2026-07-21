@@ -766,12 +766,12 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     const pestanaOrigenId = get().pestanaActivaId;
     if (!modeloPersistidoId) {
       const error = "Guarda el modelo antes de versionarlo";
-      set({ mensaje: error });
+      set({ mensaje: opts?.feedback === "receipt" ? null : error });
       return { ok: false, operation, error };
     }
     if (!persistenciaBackendHabilitada()) {
       const error = "Backend de modelos no disponible";
-      set({ mensaje: error });
+      set({ mensaje: opts?.feedback === "receipt" ? null : error });
       return { ok: false, operation, error };
     }
     const persistible = construirVersionPersistible(modelo, opts);
@@ -781,7 +781,7 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     }
     if (!guardada.ok) {
       const error = `No se pudo guardar versión en servidor: ${guardada.error}`;
-      set({ mensaje: error });
+      set({ mensaje: opts?.feedback === "receipt" ? null : error });
       return { ok: false, operation, error };
     }
     const versionResumen = guardada.value.version;
@@ -811,7 +811,7 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       };
     } catch (error) {
       const detail = error instanceof Error ? error.message : "No se pudo crear versión";
-      set({ mensaje: detail });
+      set({ mensaje: opts?.feedback === "receipt" ? null : detail });
       return { ok: false, operation, error: detail };
     }
   }

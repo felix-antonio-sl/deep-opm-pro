@@ -1044,15 +1044,19 @@ function sincronizarListadoBackend(set: SetStore, get: GetStore): void {
             );
       }
     }
-    const indice = sincronizarIndiceConModelosGuardados(modelosResultado.value, baseIndex);
+    const modelosGuardados = modelosResultado.value.map((modelo) => {
+      const versiones = baseIndex.modelos.find((item) => item.id === modelo.id)?.versiones;
+      return versiones ? { ...modelo, versiones } : modelo;
+    });
+    const indice = sincronizarIndiceConModelosGuardados(modelosGuardados, baseIndex);
     const currentMessage = get().mensaje;
     const mensaje = workspaceResultado.ok
       ? (currentMessage === messageAtStart ? null : currentMessage)
       : workspaceResultado.error;
     set({
-      modelosGuardados: modelosResultado.value,
+      modelosGuardados,
       indice,
-      modelosRecientes: modelosRecientesDeIndice(indice, modelosResultado.value),
+      modelosRecientes: modelosRecientesDeIndice(indice, modelosGuardados),
       mensaje,
     });
   }).catch(() => {
@@ -1070,7 +1074,9 @@ function upsertModeloGuardado(modelos: ResumenModeloPersistido[], modelo: Modelo
   ) {
     return modelos;
   }
-  return [resumenDesdeModeloPersistido(modelo), ...modelos.filter((item) => item.id !== modelo.id)]
+  const resumen = resumenDesdeModeloPersistido(modelo);
+  const versiones = resumen.versiones ?? actual?.versiones;
+  return [{ ...resumen, ...(versiones ? { versiones } : {}) }, ...modelos.filter((item) => item.id !== modelo.id)]
     .sort((a, b) => b.actualizadoEn.localeCompare(a.actualizadoEn));
 }
 

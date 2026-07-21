@@ -156,24 +156,54 @@ type RefineOperation =
   | { actionId: "contextual:unfold"; mode: "unfold" }
   | { actionId: "tree:adopt-refinement"; mode: "adoption" };
 
-export type RefineIntentSnapshot = Omit<TutorIntentBase, "actionId"> & TutorLensContext & RefineOperation & {
+type RefineBase = Omit<TutorIntentBase, "actionId"> & TutorLensContext & RefineOperation & {
   kind: "refine";
-  stage: "question" | "confirmed";
-  questionComplete: boolean;
-  integrityBlocked: boolean;
-  resultId?: string;
 };
 
-type SimulationOperation =
-  | { actionId: "simulation:decision"; phase: "decision" }
-  | { actionId: "simulation:step"; phase: "preflight" | "blocked" | "step" | "running" | "complete" };
+type RefineQuestionSnapshot = RefineBase & {
+  stage: "question";
+  questionComplete: boolean;
+  integrityBlocked: boolean;
+  resultId?: never;
+};
 
-export type SimulationIntentSnapshot = Omit<TutorIntentBase, "actionId"> & SimulationOperation & {
+type RefineConfirmedSnapshot = RefineBase & {
+  stage: "confirmed";
+  questionComplete: true;
+  integrityBlocked: false;
+  resultId: string;
+};
+
+export type RefineIntentSnapshot = RefineQuestionSnapshot | RefineConfirmedSnapshot;
+
+type SimulationBase = Omit<TutorIntentBase, "actionId" | "surface"> & {
   kind: "simulation";
   surface: "simulation-bar";
   firstUse: boolean;
-  resultId?: string;
 };
+
+type SimulationDecisionSnapshot = SimulationBase & {
+  actionId: "simulation:decision";
+  phase: "decision";
+  resultId?: never;
+};
+
+type SimulationPendingSnapshot = SimulationBase & {
+  actionId: "simulation:step";
+  phase: "preflight" | "blocked" | "running";
+  resultId?: never;
+};
+
+type SimulationResultSnapshot = SimulationBase & {
+  actionId: "simulation:step";
+  phase: "step" | "complete";
+  resultId: string;
+};
+
+export type SimulationIntentSnapshot =
+  | SimulationDecisionSnapshot
+  | SimulationPendingSnapshot
+  | SimulationResultSnapshot;
 
 type CompositionBase = Omit<TutorIntentBase, "actionId" | "surface"> & {
   kind: "composition";

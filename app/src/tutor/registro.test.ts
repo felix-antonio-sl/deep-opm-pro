@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { join } from "node:path";
 import {
   auditCapabilityEffects,
+  auditScenarioOwners,
   auditTutorCutCoverage,
   auditTutorRegistry,
   auditTutorSourceReferences,
@@ -23,7 +24,7 @@ import {
   searchTutorSources,
 } from "./fuentes";
 import { runTutorPolicy } from "./politica";
-import type { CapabilityDescriptor, TutorEntrypointId, TutorSource } from "./tipos";
+import type { CapabilityDescriptor, TutorEntrypointId, TutorScenario, TutorSource } from "./tipos";
 import { construirAccionesMenuCommandPalette } from "../ui/CommandPalette";
 
 const repoRoot = join(import.meta.dir, "../../..");
@@ -99,6 +100,19 @@ describe("registro verificable del tutor", () => {
       .toContain("EFFECT_ENTRYPOINT_DUPLICATE");
   });
 
+  test("cada escenario no silencioso usa una superficie propietaria de su capacidad", () => {
+    expect(auditScenarioOwners(TUTOR_CAPABILITIES, TUTOR_SCENARIOS)).toEqual([]);
+    const scenario = TUTOR_SCENARIOS.find((item) => item.expected.kind !== "silent");
+    expect(scenario).toBeDefined();
+    if (!scenario || scenario.expected.kind === "silent") throw new Error("Falta escenario no silencioso.");
+    const invalid = {
+      ...scenario,
+      expected: { ...scenario.expected, owner: "mobile-read" as const },
+    } satisfies TutorScenario;
+    expect(issueCodes(auditScenarioOwners(TUTOR_CAPABILITIES, [invalid])))
+      .toContain("SCENARIO_OWNER_NOT_OWNED");
+  });
+
   test("apertura y commit conservan secuencias de efecto honestas", () => {
     const start = effectByEntrypoint("cap.start.workspace");
     expect(effectKinds(start, "palette:nuevo-modelo")).toEqual(["workspace"]);
@@ -163,7 +177,8 @@ describe("registro verificable del tutor", () => {
       effect.entrypointIds.map((entrypointId) => [entrypointId, effect] as const)
     ));
     expect(effectKinds(effectByEntrypoint, "workspace:create-version")).toEqual(["external"]);
-    expect(effectKinds(effectByEntrypoint, "workspace:restore-version-copy")).toEqual(["external", "workspace"]);
+    expect(effectKinds(effectByEntrypoint, "workspace:restore-version-copy")).toEqual(["external", "external", "workspace"]);
+    expect(lastRecovery(effectByEntrypoint, "workspace:restore-version-copy")).toContain("reabrir el original");
     expect(lastRecovery(effectByEntrypoint, "workspace:delete-version")).toContain("no existe undo");
     expect(effectByEntrypoint.has("palette:versiones-modelo")).toBeTrue();
   });
