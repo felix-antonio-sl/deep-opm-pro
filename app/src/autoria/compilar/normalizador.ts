@@ -872,7 +872,7 @@ function expandir(sinPunto: string, contexto: ContextoProto): LineaNormalizada[]
   // A6: `P cambia X a 'a', 'b' o 'c'` (multi-destino, sin estado de origen) ->
   // una TS por destino. Solo cuando hay >=2 estados destino.
   const a6 = /^(.+?)\s+cambia\s+(.+?)\s+a\s+(.+)$/iu.exec(sinPunto);
-  if (a6 && !/\bde\b/iu.test(`${a6[2] ?? ""}`)) {
+  if (a6 && !/\bde\b/iu.test(`${a6[2] ?? ""}`) && !esCuantificadorAbanico(a6[3] ?? "")) {
     const estados = dividirEstados(a6[3] ?? "");
     if (estados.length >= 2) {
       const proceso = (a6[1] ?? "").trim();
@@ -888,7 +888,7 @@ function expandir(sinPunto: string, contexto: ContextoProto): LineaNormalizada[]
 
   // A6b: `P cambia X de 'o' a 'a', 'b' o 'c'` (multi-destino con origen).
   const a6b = /^(.+?)\s+cambia\s+(.+?)\s+de\s+(.+?)\s+a\s+(.+)$/iu.exec(sinPunto);
-  if (a6b) {
+  if (a6b && !esCuantificadorAbanico(a6b[4] ?? "")) {
     const estados = dividirEstados(a6b[4] ?? "");
     if (estados.length >= 2) {
       const proceso = (a6b[1] ?? "").trim();
@@ -904,6 +904,10 @@ function expandir(sinPunto: string, contexto: ContextoProto): LineaNormalizada[]
   }
 
   return null;
+}
+
+function esCuantificadorAbanico(texto: string): boolean {
+  return /^(?:exactamente uno de|al menos uno de)\b/iu.test(texto.trim());
 }
 
 // ── Reescrituras 1:1 (A2, A3, A4, A8, A9, AESS) ──────────────────────────

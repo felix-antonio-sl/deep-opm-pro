@@ -237,6 +237,43 @@ describe("OPL reverse libre — parser SSOT alpha-lock", () => {
     expect(estadosDeEntidad(aplicado, pedido).map((estado) => estado.nombre)).toEqual(["abierto", "en curso", "cerrado"]);
   });
 
+  test("aplica abanico XOR de estados como dos ramas y conserva el agrupamiento", () => {
+    let modelo = crearModelo("reverse-fan-estados");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Grado"));
+    const grado = entidad(modelo, "Grado");
+    modelo = must(crearEstadosIniciales(modelo, grado)).modelo;
+    const [primero, segundo] = estadosDeEntidad(modelo, grado);
+    if (!primero || !segundo) throw new Error("setup sin estados");
+    modelo = must(renombrarEstado(modelo, primero.id, "insuficiente"));
+    modelo = must(renombrarEstado(modelo, segundo.id, "nulo"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+
+    const texto = [
+      ...generarOpl(modelo),
+      "*Procesar* cambia **Grado** a exactamente uno de `insuficiente` o `nulo`.",
+    ].join("\n");
+    const preview = planificarEdicionOplLibre(modelo, texto, { opdActivoId: modelo.opdRaizId });
+
+    expect(preview.diagnosticos.filter((d) => d.severidad === "error")).toHaveLength(0);
+    expect(preview.patches.filter((patch) => patch.tipo === "crear-enlace")).toHaveLength(2);
+    expect(preview.patches).toContainEqual(expect.objectContaining({
+      tipo: "crear-abanico",
+      operador: "XOR",
+      tipoEnlace: "resultado",
+      ramas: [
+        expect.objectContaining({ estadoSalida: "insuficiente" }),
+        expect.objectContaining({ estadoSalida: "nulo" }),
+      ],
+    }));
+
+    const aplicado = must(aplicarPatchesOpl(modelo, preview.patches, modelo.opdRaizId));
+    expect(Object.values(aplicado.enlaces)).toHaveLength(2);
+    expect(Object.values(aplicado.abanicos ?? {})).toHaveLength(1);
+    expect(generarOpl(aplicado)).toContain(
+      "*Procesar* cambia **Grado** a exactamente uno de `insuficiente` y `nulo`.",
+    );
+  });
+
   test("parsea contexto jerarquico soportado sin diagnostico unsupported", () => {
     const result = parsearParrafoOpl("*Proceso* se descompone en *Paso A* y *Paso B*.");
 

@@ -628,10 +628,8 @@ function endpointsCondicion(
  *      `condicion` cuando el AST lo trae.
  *   2. Un patch `crear-abanico` que los agrupa con el operador (`O` / `XOR`).
  *
- * Limitacion: la forma §11.3 con estados ("cambia X a/de cuant `s1` y `s2`")
- * se planifica como un solo enlace a la entidad portadora, porque el
- * aplicador no inversa extremos de estado desde OPL libre (analogo a
- * `planificarCondicion` con `condicionanteEstado`).
+ * La forma §11.3 con estados ("cambia X a/de cuant `s1` y `s2`") conserva una
+ * rama por estado y adjunta el nombre de estado al patch de agrupamiento.
  */
 function planificarAbanico(
   modelo: Modelo,
@@ -651,15 +649,35 @@ function planificarAbanico(
     const objetoNombre = ast.otros[0] ?? "";
     const objetoRef = refEntidadPorNombre(modelo, objetoNombre, otrosTipo, ast.linea, registry);
     if (!objetoRef) return;
-    registry.diagnostico({
-      codigo: "unsupported-kernel",
-      severidad: "info",
+    const ramaRefs = ramaEnlaceAbanico(ast, procesoRef, objetoRef);
+    if (!ramaRefs) return;
+    const ramas: Extract<PatchOplPropuesto, { tipo: "crear-abanico" }>["ramas"] = [];
+    for (const estado of ast.otrosEstados) {
+      const estadoPatch = ast.tipoEnlace === "resultado"
+        ? { estadoSalida: estado }
+        : { estadoEntrada: estado };
+      planificarEnlace(
+        modelo,
+        ast.linea,
+        ast.tipoEnlace,
+        ramaRefs.origen,
+        ramaRefs.destino,
+        ast.etiqueta,
+        registry,
+        { ...estadoPatch, ...(ast.modificador ? { modificador: ast.modificador } : {}) },
+      );
+      ramas.push({ ...ramaRefs, ...estadoPatch });
+    }
+    registry.add({
+      tipo: "crear-abanico",
       linea: ast.linea,
-      columna: 1,
-      mensaje: "El abanico con estados se aplica al objeto portador; los extremos por estado no se inversean desde OPL libre en este corte.",
-      sugerencia: "Define los estados desde canvas y vuelve a generar el OPL.",
+      operador: ast.operador,
+      tipoEnlace: ast.tipoEnlace,
+      procesoRef,
+      procesoEsOrigen: ast.puertoEsOrigen,
+      ramas,
+      ...(ast.modificador ? { modificador: ast.modificador } : {}),
     });
-    planificarRamaAbanico(modelo, ast, procesoRef, objetoRef, ast.linea, registry);
     return;
   }
 
@@ -738,28 +756,6 @@ function planificarAbanicoEfectoObjetoAProcesos(
     ...(ast.modificador ? { modificador: ast.modificador } : {}),
   });
   return true;
-}
-
-function planificarRamaAbanico(
-  modelo: Modelo,
-  ast: Extract<OracionOplAst, { kind: "abanico" }>,
-  procesoRef: ReferenciaEntidadPatch,
-  otroRef: ReferenciaEntidadPatch,
-  linea: number,
-  registry: PatchRegistry,
-): void {
-  const ramaRefs = ramaEnlaceAbanico(ast, procesoRef, otroRef);
-  if (!ramaRefs) return;
-  planificarEnlace(
-    modelo,
-    linea,
-    ast.tipoEnlace,
-    ramaRefs.origen,
-    ramaRefs.destino,
-    ast.etiqueta,
-    registry,
-    ast.modificador ? { modificador: ast.modificador } : {},
-  );
 }
 
 /**
@@ -1056,7 +1052,7 @@ function patchKey(patch: PatchOplPropuesto): string {
     case "renombrar-estado":
       return `${patch.tipo}:${patch.estadoId}`;
     case "crear-enlace":
-      return `${patch.tipo}:${patch.tipoEnlace}:${refKey(patch.origen)}:${refKey(patch.destino)}:${patch.modificador ?? ""}`;
+      return `${patch.tipo}:${patch.tipoEnlace}:${refKey(patch.origen)}:${refKey(patch.destino)}:${patch.estadoEntrada ?? ""}:${patch.estadoSalida ?? ""}:${patch.modificador ?? ""}`;
     case "fijar-etiqueta-enlace":
       return `${patch.tipo}:${patch.enlaceId}`;
     case "aplicar-designacion-estado":

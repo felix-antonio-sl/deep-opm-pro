@@ -361,7 +361,12 @@ export type PatchOplPropuesto =
        */
       procesoRef: ReferenciaEntidadPatch;
       procesoEsOrigen: boolean;
-      ramas: Array<{ origen: ReferenciaEntidadPatch; destino: ReferenciaEntidadPatch; estado?: string }>;
+      ramas: Array<{
+        origen: ReferenciaEntidadPatch;
+        destino: ReferenciaEntidadPatch;
+        estadoEntrada?: string;
+        estadoSalida?: string;
+      }>;
       modificador?: Modificador;
     };
 

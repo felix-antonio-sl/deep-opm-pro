@@ -203,6 +203,14 @@ describe("A6 — TS multi-destino se expande", () => {
     expect(oracionDe(l[1]!)).toBe("Verificación cambia Solicitud a 'en espera'.");
     expect(oracionDe(l[2]!)).toBe("Verificación cambia Solicitud a 'rechazada'.");
   });
+
+  test("no desarma el abanico cuantificado canónico", () => {
+    const l = una("Procesar cambia Grado a exactamente uno de `insuficiente` o `nulo`.");
+
+    expect(l.clase).toBe("estricta");
+    expect(oracionDe(l)).toBe("Procesar cambia Grado a exactamente uno de `insuficiente` o `nulo`.");
+    expect(parserAcepta(oracionDe(l))).toBe(true);
+  });
 });
 
 // ── A7 — `cambia X a b` sin origen (el parser lo acepta -> NO degrada R5) ──

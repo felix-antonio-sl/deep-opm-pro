@@ -520,3 +520,24 @@ Calentar agua consume Agua.
     expect(bundle.opl).not.toContain("en esa secuencia");
   });
 });
+
+describe("abanicos con estados", () => {
+  test("compila estados implícitos, dos ramas y un XOR sin exclusión L2", () => {
+    const proto = `# SD0
+
+\`\`\`opl
+Grado es informacional y ambiental.
+Procesar es físico y sistémico.
+Procesar cambia Grado a exactamente uno de \`insuficiente\` o \`nulo\`.
+\`\`\`
+`;
+    const { modelo, resumen, ledger } = compilarProto(proto, { id: "fan-estados", nombre: "Fan estados" });
+
+    expect(resumen.excluidas).toBe(0);
+    expect(resumen.fallos).toBe(0);
+    expect(ledger.entradas.some((entrada) => entrada.tipo === "excluida")).toBe(false);
+    expect(Object.values(modelo.estados).map((estado) => estado.nombre).sort()).toEqual(["insuficiente", "nulo"]);
+    expect(Object.values(modelo.enlaces)).toHaveLength(2);
+    expect(Object.values(modelo.abanicos ?? {})).toHaveLength(1);
+  });
+});

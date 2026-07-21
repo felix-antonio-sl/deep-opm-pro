@@ -24,7 +24,7 @@ import { aplicarModificador, definirDemora } from "../../modelo/modificadores";
 import { crearAutoInvocacion } from "../../modelo/autoinvocacion";
 import { definirRutaEtiqueta } from "../../modelo/rutas";
 import { posicionLibre } from "../../modelo/layout";
-import { entidadIdDeExtremo, extremoEstado, mismoExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
+import { extremoEstado, mismoExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
 import { formarAbanico } from "../../modelo/abanicos";
 import type { DesignacionEstado, Enlace, Id, Modelo, Modificador, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { claveNombre } from "./parsear";
@@ -166,7 +166,13 @@ function aplicarPatchEnlace(
 
   // Idempotencia (D3): si ya existe un enlace con misma tripla, reusamos para
   // aplicar modificador/tiempos en lugar de duplicar.
-  const existente = buscarEnlaceCon(modelo, patch.tipoEnlace, origenId, destinoId);
+  const existente = buscarEnlaceCon(
+    modelo,
+    patch.tipoEnlace,
+    extremos.value.origen,
+    extremos.value.destino,
+    extremos.value,
+  );
   if (existente) {
     return aplicarMetadatosCondicionExcepcion(modelo, existente, patch, extremos.value);
   }
@@ -264,11 +270,24 @@ function aplicarMetadatosCondicionExcepcion(
   return ok(siguiente);
 }
 
-function buscarEnlaceCon(modelo: Modelo, tipo: TipoEnlace, origenId: Id, destinoId: Id): Enlace | null {
+function buscarEnlaceCon(
+  modelo: Modelo,
+  tipo: TipoEnlace,
+  origen: ExtremoEntrada,
+  destino: ExtremoEntrada,
+  estados?: { estadoEntradaId?: Id; estadoSalidaId?: Id },
+): Enlace | null {
+  const origenNormalizado = normalizarExtremo(origen);
+  const destinoNormalizado = normalizarExtremo(destino);
   return Object.values(modelo.enlaces).find((enlace) => {
     if (enlace.tipo !== tipo) return false;
-    return entidadIdDeExtremo(modelo, enlace.origenId) === origenId
-      && entidadIdDeExtremo(modelo, enlace.destinoId) === destinoId;
+    if (!mismoExtremo(enlace.origenId, origenNormalizado)) return false;
+    if (!mismoExtremo(enlace.destinoId, destinoNormalizado)) return false;
+    if (tipo === "efecto") {
+      return enlace.estadoEntradaId === estados?.estadoEntradaId
+        && enlace.estadoSalidaId === estados?.estadoSalidaId;
+    }
+    return true;
   }) ?? null;
 }
 
@@ -294,7 +313,7 @@ function enlaceMasRecientePorExtremos(
 
 function resolverExtremosPatch(
   modelo: Modelo,
-  patch: Extract<PatchOplPropuesto, { tipo: "crear-enlace" }>,
+  patch: Pick<Extract<PatchOplPropuesto, { tipo: "crear-enlace" }>, "tipoEnlace" | "estadoEntrada" | "estadoSalida">,
   origenId: Id,
   destinoId: Id,
 ): Resultado<{ origen: ExtremoEntrada; destino: ExtremoEntrada; estadoEntradaId?: Id; estadoSalidaId?: Id }> {
@@ -413,7 +432,10 @@ function aplicarPatchAbanico(
     const origenId = resolverRefSinCreadas(modelo, rama.origen);
     const destinoId = resolverRefSinCreadas(modelo, rama.destino);
     if (!origenId || !destinoId) continue;
-    const enlace = buscarEnlaceParaAbanico(modelo, patch.tipoEnlace, origenId, destinoId, patch.modificador);
+    const extremos = resolverExtremosPatch(modelo, { tipoEnlace: patch.tipoEnlace, ...rama }, origenId, destinoId);
+    if (!extremos.ok) return fallo(extremos.error);
+    const enlace = buscarEnlaceCon(modelo, patch.tipoEnlace, extremos.value.origen, extremos.value.destino, extremos.value);
+    if (enlace && patch.modificador !== undefined && enlace.modificador !== patch.modificador) continue;
     if (enlace) enlacesRama.push(enlace);
   }
 
@@ -445,22 +467,6 @@ function resolverRefSinCreadas(modelo: Modelo, ref: ReferenciaEntidadPatch): Id 
   return Object.values(modelo.entidades).find((entidad) =>
     claveNombre(entidad.nombre) === clave && (ref.entidadTipo === undefined || entidad.tipo === ref.entidadTipo)
   )?.id ?? null;
-}
-
-function buscarEnlaceParaAbanico(
-  modelo: Modelo,
-  tipo: TipoEnlace,
-  origenId: Id,
-  destinoId: Id,
-  modificador: Modificador | undefined,
-): Enlace | null {
-  return Object.values(modelo.enlaces).find((enlace) => {
-    if (enlace.tipo !== tipo) return false;
-    if (entidadIdDeExtremo(modelo, enlace.origenId) !== origenId) return false;
-    if (entidadIdDeExtremo(modelo, enlace.destinoId) !== destinoId) return false;
-    if (modificador !== undefined && enlace.modificador !== modificador) return false;
-    return true;
-  }) ?? null;
 }
 
 function ok<T>(value: T): Resultado<T> {

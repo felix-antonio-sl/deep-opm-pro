@@ -117,6 +117,8 @@ export function recolectarEstadosUnion(oraciones: string[]): Map<string, string[
         if (a.iniciadorEstado) agregar(a.iniciador, [a.iniciadorEstado]);
         if (a.base?.estadoEntrada) agregar(a.base.objeto ?? "", [a.base.estadoEntrada]);
         if (a.base?.estadoSalida) agregar(a.base.objeto ?? "", [a.base.estadoSalida]);
+      } else if (a.kind === "abanico" && a.otrosEstados?.length) {
+        agregar(a.otros[0] ?? "", a.otrosEstados);
       }
     }
   }
@@ -654,10 +656,23 @@ function emitirAbanico(
   ast: Extract<OracionOplAst, { kind: "abanico" }>,
   ctx: ContextoEmision,
 ): ResultadoEmision {
-  // Forma con estados (§11.3): el aplicador del reverse no inversa extremos de
-  // estado desde el abanico — fuera del alcance L2 (registrar exclusión).
   if (ast.otrosEstados && ast.otrosEstados.length >= 2) {
-    return { estado: "excluida", clase: "abanico-con-estados", razon: "abanico §11.3 con estados: extremos por estado fuera del alcance L2" };
+    const objeto = ast.otros[0] ?? "";
+    const hechos: HechoEmitido[] = [];
+    const enlaceIds: string[] = [];
+    for (const estado of ast.otrosEstados) {
+      const base = ast.tipoEnlace === "resultado"
+        ? { proceso: ast.proceso, objeto, estadoSalida: estado }
+        : { proceso: ast.proceso, objeto, estadoEntrada: estado };
+      const resultado = emitirBase(ast.tipoEnlace, base, ctx, ast.modificador ? { modificador: ast.modificador } : {});
+      if (resultado.estado !== "aplicada") return resultado;
+      hechos.push(...resultado.hechos);
+      enlaceIds.push(...(resultado.enlaceIds ?? []));
+    }
+    if (enlaceIds.length < 2) return { estado: "fallo", razon: "abanico con menos de 2 ramas de estado resolubles" };
+    ctx.autor.abanico(ctx.opdKey, enlaceIds, ast.operador);
+    hechos.push({ primitiva: "abanico", detalle: `${ast.operador} (${enlaceIds.length} ramas de estado)` });
+    return { estado: "aplicada", hechos, enlaceIds };
   }
   const otrosTipo = ast.tipoEnlace === "invocacion" ? "proceso" : "objeto";
   const procesoKey = keyEntidad(ast.proceso, ctx, "proceso");
