@@ -77,7 +77,8 @@ export function parsearParrafoOpl(texto: string): ParseResultOpl {
       continue;
     }
     const textoSinPunto = linea.texto.replace(PUNTO_FINAL, "").trim();
-    const parsed = parsearOracion(textoSinPunto, linea);
+    const textoMarcadoSinPunto = textoMarcadoDeLinea(linea.original).replace(PUNTO_FINAL, "").trim();
+    const parsed = parsearOracion(textoSinPunto, linea, textoMarcadoSinPunto);
     ast.push(parsed.ast);
     diagnosticos.push(...parsed.diagnosticos);
   }
@@ -130,7 +131,22 @@ function limpiarMarkdown(texto: string): string {
     .replace(/`([^`\n]+)`/g, "$1");
 }
 
-function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: OracionOplAst; diagnosticos: DiagnosticoOpl[] } {
+/** Conserva backticks de estado para desambiguar los conectores `de`/`a` de TS3. */
+function textoMarcadoDeLinea(original: string): string {
+  const sinNumeracion = original.replace(/^\s*(?:\d+(?:\.\d+)*[.)]|[-•])\s+/, "").trim();
+  const etiquetaMatch = ETIQUETA_SUFIX.exec(sinNumeracion);
+  const sinEtiqueta = etiquetaMatch ? sinNumeracion.slice(0, etiquetaMatch.index).trim() : sinNumeracion;
+  return sinEtiqueta
+    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
+    .replace(/\*([^*\s][^*\n]*?)\*/g, "$1")
+    .trim();
+}
+
+function parsearOracion(
+  texto: string,
+  linea: LineaOplNormalizada,
+  textoMarcado = texto,
+): { ast: OracionOplAst; diagnosticos: DiagnosticoOpl[] } {
   // SSOT §13: ruta etiquetada. Si la oracion empieza por `Por ruta <etiqueta>, ...`
   // delegamos el parseo del sub-texto y enriquecemos el AST resultante con
   // `rutaEtiqueta`. Solo aplica en familias procedimental / evento / condicion
@@ -140,7 +156,9 @@ function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: Oraci
     const etiqueta = (rutaMatch[1] ?? "").trim();
     const subTexto = (rutaMatch[2] ?? "").trim();
     if (etiqueta && subTexto) {
-      const hijo = parsearOracion(subTexto, linea);
+      const rutaMarcadaMatch = RUTA_PREFIJO_RE.exec(textoMarcado);
+      const subTextoMarcado = (rutaMarcadaMatch?.[2] ?? subTexto).trim();
+      const hijo = parsearOracion(subTexto, linea, subTextoMarcado);
       const astConRuta = aplicarRutaAlAst(hijo.ast, etiqueta);
       return { ast: astConRuta, diagnosticos: hijo.diagnosticos };
     }
@@ -150,7 +168,7 @@ function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: Oraci
     ?? parsearClasificacionRasgo(texto, linea)
     ?? parsearEstados(texto, linea)
     ?? parsearAbanicoEvento(texto, linea)
-    ?? parsearEvento(texto, linea)
+    ?? parsearEvento(texto, linea, textoMarcado)
     ?? parsearExcepcion(texto, linea)
     // `parsearAbanico` (ronda 26/L3) DEBE correr antes de `parsearCondicion` y
     // `parsearProcedimental`. Las oraciones de abanico se mimetizan con las
@@ -158,8 +176,8 @@ function parsearOracion(texto: string, linea: LineaOplNormalizada): { ast: Oraci
     // "al menos uno de"). Si NO esta el cuantificador, parsearAbanico devuelve
     // null y la cadena continua → aditividad estricta.
     ?? parsearAbanico(texto, linea)
-    ?? parsearCondicion(texto, linea)
-    ?? parsearProcedimental(texto, linea)
+    ?? parsearCondicion(texto, linea, textoMarcado)
+    ?? parsearProcedimental(texto, linea, textoMarcado)
     ?? parsearEstructural(texto, linea)
     ?? parsearDesignacionEstado(texto, linea)
     ?? parsearPlegadoParcial(texto, linea)
@@ -605,7 +623,7 @@ const CONDICION_OCURRE_RE =
 const CONDICION_AGENTE_RE =
   /^(.+?)\s+maneja\s+(.+?)\s+si\s+(.+?)\s+(?:(existe)|est[aá]\s+en\s+`?([^`,]+?)`?),\s*de\s+lo\s+contrario\s+(.+?)\s+se\s+omite$/iu;
 
-function parsearCondicion(texto: string, linea: LineaOplNormalizada) {
+function parsearCondicion(texto: string, linea: LineaOplNormalizada, textoMarcado = texto) {
   const agente = CONDICION_AGENTE_RE.exec(texto);
   if (agente) {
     const proceso = normalizarNombreOpl(agente[2] ?? "");
@@ -642,7 +660,9 @@ function parsearCondicion(texto: string, linea: LineaOplNormalizada) {
     });
   }
 
-  const base = clasificarSubClausulaCondicion(subClausula, proceso, condicionante);
+  const subClausulaMarcada = /,\s*en\s+cuyo\s+caso\s+(.+),\s*de\s+lo\s+contrario\s+/iu.exec(textoMarcado)?.[1]?.trim()
+    ?? subClausula;
+  const base = clasificarSubClausulaCondicion(subClausula, proceso, condicionante, subClausulaMarcada);
   if (!base) return null;
   return astCondicion(linea, {
     proceso,
@@ -658,6 +678,7 @@ function clasificarSubClausulaCondicion(
   sub: string,
   proceso: string,
   condicionante: string,
+  subMarcada = sub,
 ): { base: "consumo" | "efecto"; estadoSalida?: string } | null {
   const procesoClave = claveNombre(proceso);
   const condicionanteClave = claveNombre(condicionante);
@@ -678,6 +699,12 @@ function clasificarSubClausulaCondicion(
     if (claveNombre(normalizarNombreOpl(match[1] ?? "")) !== procesoClave) return null;
     if (claveNombre(normalizarNombreOpl(match[2] ?? "")) !== condicionanteClave) return null;
     return { base: "efecto" };
+  }
+  const cambioMarcado = parsearCambioEstadoMarcado(subMarcada);
+  if (cambioMarcado?.proceso) {
+    if (claveNombre(cambioMarcado.proceso) !== procesoClave) return null;
+    if (claveNombre(cambioMarcado.objeto) !== condicionanteClave) return null;
+    return { base: "efecto", estadoSalida: cambioMarcado.estadoSalida };
   }
   // CS2: "Proceso cambia Objeto de `s1` a `s2`" (backticks opcionales: limpiarMarkdown los puede haber quitado).
   match = /^(.+?)\s+cambia\s+(.+?)\s+de\s+`?([^`]+?)`?\s+a\s+`?([^`]+?)`?$/iu.exec(sub);
@@ -735,7 +762,7 @@ function astCondicion(
 // de probabilidad se descarta para el match; la planificacion lo ignora.
 const PROBABILIDAD_SUFIX_RE = /\s*(?:\(probabilidad:\s*[^)]+\)|Pr\s*=\s*\d+(?:[.,]\d+)?)\s*$/iu;
 
-function parsearEvento(texto: string, linea: LineaOplNormalizada) {
+function parsearEvento(texto: string, linea: LineaOplNormalizada, textoMarcado = texto) {
   const textoSinProb = texto.replace(PROBABILIDAD_SUFIX_RE, "").trim();
 
   // Forma ET-agente: "X inicia y maneja Y" (sin coma + que).
@@ -776,7 +803,8 @@ function parsearEvento(texto: string, linea: LineaOplNormalizada) {
     return astEvento(linea, { iniciador, proceso, ...(iniciadorEstado ? { iniciadorEstado } : {}) });
   }
 
-  const base = parsearSubClausulaEvento(subClausula, proceso, iniciadorEstado);
+  const subClausulaMarcada = /,\s*que\s+(.+)$/iu.exec(textoMarcado)?.[1]?.trim() ?? subClausula;
+  const base = parsearSubClausulaEvento(subClausula, proceso, iniciadorEstado, subClausulaMarcada);
   if (!base) return null;
 
   return astEvento(linea, {
@@ -791,6 +819,7 @@ function parsearSubClausulaEvento(
   sub: string,
   proceso: string,
   iniciadorEstado: string | undefined,
+  subMarcada = sub,
 ): AstProcedimentalBase | null {
   // "consume X [en `s`]" → consumo (origen objeto=X, destino proceso).
   let match = /^consume\s+(.+)$/iu.exec(sub);
@@ -826,6 +855,17 @@ function parsearSubClausulaEvento(
   match = /^afecta\s+(.+)$/iu.exec(sub);
   if (match) {
     return { tipoEnlace: "efecto", proceso, objeto: normalizarNombreOpl(match[1] ?? "") };
+  }
+
+  const cambioMarcado = parsearCambioEstadoMarcado(subMarcada);
+  if (cambioMarcado) {
+    return {
+      tipoEnlace: "efecto",
+      proceso,
+      objeto: cambioMarcado.objeto,
+      estadoEntrada: cambioMarcado.estadoEntrada,
+      estadoSalida: cambioMarcado.estadoSalida,
+    };
   }
 
   // "cambia X de `s1` a `s2`" → efecto con transicion (ETS2). Backticks
@@ -896,7 +936,7 @@ function astEvento(
   };
 }
 
-function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
+function parsearProcedimental(texto: string, linea: LineaOplNormalizada, textoMarcado = texto) {
   let match = /^(.+?) se invoca a s[ií] mismo(?: despu[eé]s de (.+?))?$/iu.exec(texto);
   if (match) {
     const proceso = normalizarNombreOpl(match[1] ?? "");
@@ -955,6 +995,8 @@ function parsearProcedimental(texto: string, linea: LineaOplNormalizada) {
       ...(objeto.multiplicidad ? { multiplicidadDestino: objeto.multiplicidad } : {}),
     });
   }
+  const cambioMarcado = parsearCambioEstadoMarcado(textoMarcado);
+  if (cambioMarcado?.proceso) return astProcedimental(linea, { tipoEnlace: "efecto", ...cambioMarcado, proceso: cambioMarcado.proceso });
   match = /^(.+?) cambia (.+?) de (.+?) a (.+)$/iu.exec(texto);
   if (match) return astProcedimental(linea, { tipoEnlace: "efecto", proceso: normalizarNombreOpl(match[1] ?? ""), objeto: normalizarNombreOpl(match[2] ?? ""), estadoEntrada: limpiarEstado(match[3] ?? ""), estadoSalida: limpiarEstado(match[4] ?? "") });
   match = /^(.+?) cambia (.+?) de (.+)$/iu.exec(texto);
@@ -1275,6 +1317,25 @@ function parsearBandasOrden(temporal: string): string[][] {
 
 function limpiarEstado(texto: string): string {
   return texto.replace(/\([^)]*\)/g, "").replace(/\.$/, "").trim();
+}
+
+const CAMBIO_ESTADO_MARCADO_RE = /^(?:(.+?)\s+)?cambia\s+(.+?)\s+de\s+`([^`]+)`\s+a\s+`([^`]+)`$/iu;
+const PROBABILIDAD_MARCADA_SUFIX_RE = /\s+(?:`Pr\s*=\s*\d+(?:[.,]\d+)?`|\(probabilidad:\s*[^)]+\))$/iu;
+
+function parsearCambioEstadoMarcado(texto: string): {
+  proceso?: string;
+  objeto: string;
+  estadoEntrada: string;
+  estadoSalida: string;
+} | null {
+  const match = CAMBIO_ESTADO_MARCADO_RE.exec(texto.trim().replace(PROBABILIDAD_MARCADA_SUFIX_RE, ""));
+  if (!match) return null;
+  return {
+    ...(match[1] ? { proceso: normalizarNombreOpl(match[1]) } : {}),
+    objeto: normalizarNombreOpl(match[2] ?? ""),
+    estadoEntrada: limpiarEstado(match[3] ?? ""),
+    estadoSalida: limpiarEstado(match[4] ?? ""),
+  };
 }
 
 function limpiarObjetoConEstado(texto: string): { nombre: string; estado?: string } {

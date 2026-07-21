@@ -54,6 +54,22 @@ describe("parser OPL reverse base", () => {
     });
   });
 
+  test("TS3 preserva nombres compuestos y estados que contienen de/a", () => {
+    const result = parsearParrafoOpl(
+      "*Corregir de Brecha* cambia **Grado de Cobertura Asistencial Efectiva** de `fuera de cobertura` a `a la espera`.",
+    );
+
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "procedimental",
+      tipoEnlace: "efecto",
+      proceso: "Corregir de Brecha",
+      objeto: "Grado de Cobertura Asistencial Efectiva",
+      estadoEntrada: "fuera de cobertura",
+      estadoSalida: "a la espera",
+    });
+  });
+
   test("no parsea 'puede ser' como estados", () => {
     const result = parsearParrafoOpl("Pedido puede ser abierto o cerrado.");
 
@@ -178,6 +194,27 @@ describe("parser OPL — eventos (SSOT §6: ET/EH/ETS/EHS)", () => {
         objeto: "Pedido",
         estadoEntrada: "pendiente",
         estadoSalida: "aprobado",
+      },
+    });
+  });
+
+  test("ETS2 preserva nombres compuestos y estados que contienen de/a", () => {
+    const result = parsearParrafoOpl(
+      "**Grado de Cobertura Asistencial Efectiva** en `fuera de cobertura` inicia *Corregir de Brecha*, que cambia **Grado de Cobertura Asistencial Efectiva** de `fuera de cobertura` a `a la espera`.",
+    );
+
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "evento",
+      iniciador: "Grado de Cobertura Asistencial Efectiva",
+      iniciadorEstado: "fuera de cobertura",
+      proceso: "Corregir de Brecha",
+      base: {
+        tipoEnlace: "efecto",
+        proceso: "Corregir de Brecha",
+        objeto: "Grado de Cobertura Asistencial Efectiva",
+        estadoEntrada: "fuera de cobertura",
+        estadoSalida: "a la espera",
       },
     });
   });

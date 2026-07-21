@@ -216,6 +216,23 @@ describe("parser OPL — condiciones (§7) y excepciones (§8.1)", () => {
     });
   });
 
+  test("CS2 preserva nombres compuestos y estados que contienen de/a", () => {
+    const result = parsearParrafoOpl(
+      "*Corregir de Brecha* ocurre si **Grado de Cobertura Asistencial Efectiva** está en `fuera de cobertura`, en cuyo caso *Corregir de Brecha* cambia **Grado de Cobertura Asistencial Efectiva** de `fuera de cobertura` a `a la espera`, de lo contrario *Corregir de Brecha* se omite.",
+    );
+
+    expect(result.diagnosticos).toEqual([]);
+    expect(result.ast[0]).toMatchObject({
+      kind: "condicion",
+      proceso: "Corregir de Brecha",
+      condicionante: "Grado de Cobertura Asistencial Efectiva",
+      condicionanteEstado: "fuera de cobertura",
+      base: "efecto",
+      estadoSalida: "a la espera",
+      sinConsecuencia: false,
+    });
+  });
+
   test("CS6 parsea condicion instrumento con estado especificado", () => {
     const result = parsearParrafoOpl("*Procesar* ocurre si **Pedido** está en `abierto`, de lo contrario *Procesar* se omite.");
     expect(result.ast[0]).toMatchObject({
