@@ -356,6 +356,14 @@ una fuente legal. Las anclas normativas `[RATIFICAR]` solo pasan a vigentes vía
 re-elicitación de la skill (LogDecisiones v0 exporta con `modeloHash=protoHash` del
 sello; bloqueado sin sello).
 
+Las afirmaciones de rol, restricción, exclusión o frontera que no son primitivas
+OPM se conservan aparte como `declaracionesNoNucleares`. Cada declaración porta
+ID, afirmación, targets resolubles, propietario semántico, procedencia y estado de
+aserción; la evaluación es opcional y su ausencia significa «no aplica», no
+«satisfecha». El perfil de intercambio y el documento canónico las conservan; el
+diagrama canónico las excluye para no convertir metadata de gobernanza en hechos
+OPM ni confundirla con `AnclaNormativa` o notas de mesa.
+
 #### A.6 Puente directo mesa↔skill (CLI)
 
 Además del puente W6.0 por portapapeles, un agente con acceso al host puede operar
@@ -379,6 +387,15 @@ escrituras heredadas de modelo, workspace, versión, autosave y borrado responde
   `[RATIFICAR]`, notas, diagnóstico, OPL) leyendo el estado vivo; observa tanto
   el guardado como la presencia o ausencia de autosave y emite un
   `Testigo-Base` opaco junto a la fuente elegida.
+- `cd app && bun run mesa recuperar <modeloId> > bundle.json` — recupera por ID
+  el JSON completo, lo valida y escribe exactamente los bytes remotos en stdout;
+  no lista, no resuelve nombres ni reserializa el bundle.
+- `cd app && bun run mesa preflight-retiro <modeloId>` — ejecuta solo lecturas y
+  emite un recibo con hash/bytes del bundle, presencia en workspace e historial
+  recuperable. Identifica la UI de archivar/restaurar y al operador como actor,
+  pero no muta ni acredita por sí solo que ese operador tenga permiso en el
+  destino; esa confirmación externa sigue siendo obligatoria antes del primer
+  push.
 - `cd app && bun run mesa push <modelo> <bundle.json> --base <Testigo-Base> --nota "…"` —
   valida con el contrato de import y guarda una **nueva revisión** sobre la base
   exacta del `pull`; a un modelo con **sello** exige un bundle con procedencia
@@ -393,10 +410,11 @@ las dos ramas observadas por `pull`: revisión y contenido guardados, y contenid
 del autosave o su ausencia. El CLI comprueba ese testigo antes de enviar y el
 servidor vuelve a comprobarlo dentro de la misma transacción que guarda la
 revisión, crea su versión y consolida el autosave. Si cualquiera de esas ramas
-cambió, responde `409` y no escribe nada. En una creación, modelo, versión y
-especie —incluida la marca de apunte en el workspace— se registran en esa misma
-transacción. Solo cuando la fuente elegida por aquel `pull` fue un autosave se
-exige confirmación humana mediante `--confirmado-por-operador`. El testigo no es
+cambió, responde `409` y no escribe nada. En una creación, el rótulo externo se
+toma de `modelo.nombre`; modelo, versión y especie —incluida la marca de apunte
+en el workspace— se registran en esa misma transacción. Solo cuando la fuente
+elegida por aquel `pull` fue un autosave se exige confirmación humana mediante
+`--confirmado-por-operador`. El testigo no es
 un secreto ni concede permisos: debe conservarse sin modificar junto al bundle
 que originó.
 

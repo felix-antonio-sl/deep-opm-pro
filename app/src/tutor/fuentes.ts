@@ -190,7 +190,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "operation",
     "docs/manual-opforja.md",
-    "aa9e890d26d7503c7062bee541112acabfc30a842c78fa9d3327d20f6a29404a",
+    "cac65b55831302578dae28d0f9bc4179fb956b87230bd20703774d4ad5b5227f",
     [
       sourceAnchor("what-is", "Qué es opforja", "0. Qué es opforja"),
       sourceAnchor("mental-model", "Modelo mental mínimo", "1. Modelo mental mínimo"),
