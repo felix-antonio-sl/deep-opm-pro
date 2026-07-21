@@ -30,10 +30,11 @@ const raiz = koraRaiz();
 const ssotMontada = existsSync(raiz);
 
 describe("resolutorUrn — config de datos, re-anclaje a pneuma", () => {
-  test("el mapa tiene exactamente los 4 URN canónicos de la familia forja", () => {
+  test("el mapa tiene exactamente las 5 fuentes propietarias del tutor contextual", () => {
     expect(Object.keys(mapaUrn()).sort()).toEqual(
       [
         "urn:fxsl:kb:metodologia-forja-opm-es",
+        "urn:fxsl:kb:opm-categorial-es",
         "urn:fxsl:kb:reglas-opm-estrictas-es",
         "urn:fxsl:kb:spec-forja-opd-es",
         "urn:fxsl:kb:spec-forja-opl-es",

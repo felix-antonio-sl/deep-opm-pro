@@ -25,6 +25,10 @@
     "urn:fxsl:kb:metodologia-forja-opm-es": {
       "path": "artefactos/conocimiento/fxsl/metodologia-forja-opm-es.md",
       "version": "1.6.1"
+    },
+    "urn:fxsl:kb:opm-categorial-es": {
+      "path": "artefactos/conocimiento/fxsl/opm-categorial-es.md",
+      "version": "1.3.0"
     }
   },
   "puente_inverso": {
