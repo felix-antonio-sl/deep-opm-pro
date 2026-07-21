@@ -274,7 +274,7 @@ export function cablearDrag(args: CablearDragArgs): () => void {
     const opdActual = opdActivoIdRef.current;
     const afectados = abanicosAfectadosPorEntidad(modeloActual, opdActual, meta.entidadId);
     for (const abanico of afectados) {
-      recalcularOverlayDesdeLinkView(paper, graph, modeloActual, abanico);
+      recalcularOverlayDesdeLinkView(paper, graph, modeloActual, abanico, opdActual);
     }
   });
 

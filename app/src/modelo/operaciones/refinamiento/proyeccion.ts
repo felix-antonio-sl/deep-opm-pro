@@ -150,6 +150,27 @@ export function sincronizarRepresentacionRefinamiento(
   return ok(limpiarAparienciasExternasObsoletas(proyectado.value, opdId, contorno.entidad.id, planExternos.keys));
 }
 
+export function proyeccionesCanonicasEnlaceExternoRefinado(
+  modelo: Modelo,
+  opdId: Id,
+  enlacePadreId: Id,
+): Array<{ origenId: ExtremoEnlace; destinoId: ExtremoEnlace }> {
+  const opd = modelo.opds[opdId];
+  if (!opd?.padreId) return [];
+  const contorno = procesoDescompuestoEnOpd(modelo, opd);
+  const enlacePadre = modelo.enlaces[enlacePadreId];
+  if (!contorno || !enlacePadre) return [];
+  return proyeccionesEnlaceExterno(
+    enlacePadre,
+    contorno.entidad.id,
+    subprocesosAutomaticos(modelo, opd, contorno.entidad.id),
+  );
+}
+
+export function idPuertoAbanicoDerivado(abanicoPadreId: Id, opdHijoId: Id, lado: "origen" | "destino"): Id {
+  return `port-fan-ref-${abanicoPadreId}-${opdHijoId}-${lado}`;
+}
+
 export function redistribuirEnlacesExternosSiPrimerSubproceso(modelo: Modelo, opdId: Id, subprocesoId: Id): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd?.padreId) return ok(modelo);
@@ -401,7 +422,7 @@ function proyectarAbanicosExternosDerivados(args: {
     const aparienciaPuerto = aparienciaDeEntidad(args.apariencias, puertoComun.entidadId);
     if (!aparienciaPuerto) continue;
 
-    const portId = `port-fan-ref-${abanicoPadre.id}-${args.opdId}-${puertoComun.lado}`;
+    const portId = idPuertoAbanicoDerivado(abanicoPadre.id, args.opdId, puertoComun.lado);
     const puertoRelativo = puertoRelativoPadre(args.padre, abanicoPadre)
       ?? puertoFallback(puertoComun.lado);
     const puertoActual = aparienciaPuerto.ports?.[portId];

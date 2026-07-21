@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { abanicoDeEnlace } from "../modelo/abanicos";
+import { abanicoDeEnlace, puedeEditarAbanicoEnOpd } from "../modelo/abanicos";
 import { esEnlaceEstructuralFundamental } from "../modelo/constantes";
 import { etiquetaEnlaceNormalizada, validarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { entidadDeExtremo, entidadIdDeExtremo, nombreExtremo } from "../modelo/extremos";
@@ -87,6 +87,7 @@ export function InspectorEnlace({ enlace }: Props) {
     abrirInspectorEnlaceDesdeOpl,
   } = useInspectorEnlaceViewModel();
   const abanico = abanicoDeEnlace(modelo, enlace.id);
+  const puedeEditarAbanico = !abanico || puedeEditarAbanicoEnOpd(abanico, opdActivoId);
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
   const endpointActual = contextoReanclaje(modelo, opdActivoId, enlace)?.endpointActualId ?? "";
@@ -275,6 +276,7 @@ export function InspectorEnlace({ enlace }: Props) {
               multiplicidadDestino={multiplicidadDestino}
               probabilidad={probabilidad}
               demora={demora}
+              puedeEditarDecision={puedeEditarAbanico}
               onMultiplicidad={cambiarMultiplicidad}
               onModificador={cambiarModificador}
               onSubtipoModificador={aplicarSubtipoModificador}
@@ -316,6 +318,8 @@ export function InspectorEnlace({ enlace }: Props) {
             <SeccionAbanico
               modelo={modelo}
               abanico={abanico}
+              puedeEditar={puedeEditarAbanico}
+              {...(abanico ? { propietarioNombre: modelo.opds[abanico.opdId]?.nombre ?? abanico.opdId } : {})}
               onAlternarOperador={alternarOperadorAbanico}
               onProbabilidades={definirProbabilidadesAbanico}
               onQuitarRama={quitarRamaDeAbanico}
@@ -344,24 +348,25 @@ export function InspectorEnlace({ enlace }: Props) {
         </FichaSeccionEnlace>
         <FichaSeccionEnlace kicker="Extremos" testid="inspector-panel-enlace-extremos">
           <>
-            <SeccionExtremos modelo={modelo} opdId={opdActivoId} enlace={enlace} onApuntarExtremo={apuntarExtremo} onCrearFan={crearAbanicoDesdeEnlace} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
+            <SeccionExtremos modelo={modelo} opdId={opdActivoId} enlace={enlace} puedeEditar={puedeEditarAbanico} onApuntarExtremo={apuntarExtremo} onCrearFan={crearAbanicoDesdeEnlace} onAbrirMoverPuerto={() => setDialogoMoverPuertoAbierto(true)} />
             <SeccionRuta modelo={modelo} enlace={enlace} rutaEtiqueta={rutaEtiqueta} onRutaEtiqueta={cambiarRutaEtiqueta} />
             <SeccionReanclaje
               modelo={modelo}
               opdActivoId={opdActivoId}
               enlace={enlace}
+              puedeEditar={puedeEditarAbanico}
               endpointSeleccionado={endpointSeleccionado}
               onEndpointSeleccionado={setEndpointSeleccionado}
               onAplicar={reanclarEnlaceExternoDerivado}
               onAutomatico={volverEnlaceExternoDerivadoAAutomatico}
             />
-            {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffect} title="Convierte el efecto en consumo + objeto intermedio + resultado">Split en par</button> : null}
-            {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} onClick={splitEffectParcial} title="Convierte el efecto en TS4/TS5 con estado no especificado">Split TS4/TS5 parcial</button> : null}
+            {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} disabled={!puedeEditarAbanico} onClick={splitEffect} title="Convierte el efecto en consumo + objeto intermedio + resultado">Split en par</button> : null}
+            {enlace.tipo === "efecto" ? <button type="button" style={style.secondaryButton} disabled={!puedeEditarAbanico} onClick={splitEffectParcial} title="Convierte el efecto en TS4/TS5 con estado no especificado">Split TS4/TS5 parcial</button> : null}
             {accionContorno?.tipo === "recolectar" ? (
-              <button type="button" style={style.secondaryButton} onClick={recolectarContorno} title="Materializa el enlace padre en este OPD de refinamiento">Recolectar contorno</button>
+              <button type="button" style={style.secondaryButton} disabled={!puedeEditarAbanico} onClick={recolectarContorno} title="Materializa el enlace padre en este OPD de refinamiento">Recolectar contorno</button>
             ) : null}
             {accionContorno?.tipo === "distribuir" ? (
-              <button type="button" style={style.secondaryButton} onClick={distribuirContorno} title="Restaura la proyección automática del enlace externo">Distribuir contorno</button>
+              <button type="button" style={style.secondaryButton} disabled={!puedeEditarAbanico} onClick={distribuirContorno} title="Restaura la proyección automática del enlace externo">Distribuir contorno</button>
             ) : null}
             {accionContorno ? <p style={style.hint}>{accionContorno.detalle}</p> : null}
             {resolverComoEnlace ? <button type="button" style={style.secondaryButton} onClick={resolverDecision} title="Evalúa la decisión de este enlace">Resolver decisión</button> : null}
@@ -369,7 +374,7 @@ export function InspectorEnlace({ enlace }: Props) {
         </FichaSeccionEnlace>
       </div>
       <DialogoMoverPuerto
-        open={dialogoMoverPuertoAbierto}
+        open={dialogoMoverPuertoAbierto && puedeEditarAbanico}
         modelo={modelo}
         opdId={opdActivoId}
         enlace={enlace}
@@ -383,8 +388,8 @@ export function InspectorEnlace({ enlace }: Props) {
           setDialogoMoverPuertoAbierto(false);
         }}
       />
-      <button type="button" style={style.dangerButton} onClick={eliminar}>Eliminar enlace</button>
-      <button type="button" style={style.oplEditButton} onClick={() => abrirInspectorEnlaceDesdeOpl(enlace.id)} title="Editar este enlace desde el panel OPL-ES">
+      <button type="button" style={style.dangerButton} disabled={!puedeEditarAbanico} onClick={eliminar}>Eliminar enlace</button>
+      <button type="button" style={style.oplEditButton} disabled={!puedeEditarAbanico} onClick={() => abrirInspectorEnlaceDesdeOpl(enlace.id)} title="Editar este enlace desde el panel OPL-ES">
         Editar OPL
       </button>
     </>

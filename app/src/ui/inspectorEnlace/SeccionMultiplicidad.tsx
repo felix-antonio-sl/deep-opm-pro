@@ -11,6 +11,7 @@ interface Props {
   multiplicidadDestino: string;
   probabilidad: string;
   demora: string;
+  puedeEditarDecision: boolean;
   onMultiplicidad: (lado: "origen" | "destino", value: string) => void;
   onModificador: (value: string) => void;
   onSubtipoModificador: (value: SubtipoModificador) => void;
@@ -43,7 +44,7 @@ export function SeccionMultiplicidad(props: Props) {
           <h3 style={titleStyle}>Modificador</h3>
           <label style={style.field}>
             <span class="opm-label-uppercase" style={style.label}>Tipo</span>
-            <select data-testid="modificador-enlace-select" style={style.input} value={props.enlace.modificador ?? ""} onChange={(event) => props.onModificador(event.currentTarget.value as Modificador | "")}>
+            <select data-testid="modificador-enlace-select" style={style.input} value={props.enlace.modificador ?? ""} disabled={!props.puedeEditarDecision} onChange={(event) => props.onModificador(event.currentTarget.value as Modificador | "")}>
               <option value="">Ninguno</option>
               {modificadorOfrecido(props.enlace.tipo, props.enlace.modificador, "condicion") ? <option value="condicion">Condición</option> : null}
               {modificadorOfrecido(props.enlace.tipo, props.enlace.modificador, "evento") ? <option value="evento">Evento</option> : null}
@@ -60,6 +61,7 @@ export function SeccionMultiplicidad(props: Props) {
                     type="button"
                     data-testid={`subtipo-modificador-${subtipo}`}
                     aria-pressed={subtipoActual === subtipo}
+                    disabled={!props.puedeEditarDecision}
                     style={subtipoActual === subtipo ? subtipoActivoStyle : subtipoButtonStyle}
                     onClick={() => props.onSubtipoModificador(subtipo)}
                   >
@@ -72,7 +74,7 @@ export function SeccionMultiplicidad(props: Props) {
           {props.enlace.modificador === "evento" ? (
             <label style={style.field}>
               <span class="opm-label-uppercase" style={style.label}>Probabilidad</span>
-              <input data-testid="probabilidad-evento-input" aria-invalid={errorProbabilidad} placeholder="0.7" style={errorProbabilidad ? inputErrorStyle : style.input} value={props.probabilidad} onInput={(event) => props.onProbabilidad(event.currentTarget.value)} />
+              <input data-testid="probabilidad-evento-input" aria-invalid={errorProbabilidad} placeholder="0.7" style={errorProbabilidad ? inputErrorStyle : style.input} value={props.probabilidad} disabled={!props.puedeEditarDecision} onInput={(event) => props.onProbabilidad(event.currentTarget.value)} />
               {errorProbabilidad ? <span role="alert" style={errorStyle}>Usa un número entre 0 y 1</span> : null}
             </label>
           ) : null}

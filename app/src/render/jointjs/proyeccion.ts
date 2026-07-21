@@ -1,7 +1,7 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { aparicionesVisiblesEnOpd } from "../../modelo/politicaApariciones";
-import { puertoComunDeAbanico } from "../../modelo/abanicos";
+import { proyeccionesAbanicoEnOpd, puertoComunDeAbanico } from "../../modelo/abanicos";
 import type { Apariencia, Enlace, EstadoDrift, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
@@ -114,14 +114,19 @@ export function proyectarModeloAJointCells(
     return entidad ? proyectarImagenesEntidad(modeloRender, opdId, apariencia, entidad, opcionesRender.modoImagenGlobal) : [];
   });
   const proxies = apariencias.flatMap((apariencia) => proyectarProxyExtraccion(opdId, opd, apariencia));
-  const overlaysAbanico = Object.values(modeloRender.abanicos ?? {})
-    .filter((abanico) => abanico.opdId === opdId)
-    .flatMap((abanico) => {
+  const proyeccionesAbanico = proyeccionesAbanicoEnOpd(modeloRender, opdId);
+  const proyeccionesAbanicoCompletas = proyeccionesAbanico.filter((proyeccion) => proyeccion.completa);
+  const enlacesMiembroAbanicoVisibles = new Set<Id>(
+    proyeccionesAbanico.flatMap((proyeccion) => proyeccion.enlaceIdsVisibles),
+  );
+  const overlaysAbanico = proyeccionesAbanicoCompletas
+    .flatMap(({ abanico }) => {
       const aparienciaPuerto = aparienciaPorEntidad.get(puertoComunDeAbanico(abanico).entidadId);
       if (!aparienciaPuerto) return [];
       return proyectarOverlayAbanicoCanonico({
         modelo: modeloRender,
         opd,
+        opdId,
         abanico,
         aparienciaPuerto,
         aparienciaPorEntidad,
@@ -132,9 +137,7 @@ export function proyectarModeloAJointCells(
   // el OpmDefaultLink de OpCloud (shared.ts:2450-2457) cuyos enlaces
   // procedurales no setean router y caen al default 'normal'.
   const enlacesEnAbanico = new Set<Id>(
-    Object.values(modeloRender.abanicos ?? {})
-      .filter((abanico) => abanico.opdId === opdId)
-      .flatMap((abanico) => abanico.enlaceIds),
+    proyeccionesAbanicoCompletas.flatMap((proyeccion) => proyeccion.enlaceIdsVisibles),
   );
   const enlacesConEndpoint = Object.values(opd.enlaces).flatMap((aparienciaEnlace): EnlaceConEndpointVisual[] => {
     const enlace = modeloRender.enlaces[aparienciaEnlace.enlaceId];
@@ -196,6 +199,7 @@ export function proyectarModeloAJointCells(
     return [proyectarEnlace(opdId, enlace, aparienciaEnlace.id, origen, destino, aparienciaEnlace.vertices, aparienciaEnlace.labelPositions, enlaceResaltado, enlacesEnAbanico.has(enlace.id), {
       usarJumpover,
       activaSimulacion: enlaceActivoRuntime,
+      preservarPuerto: enlacesMiembroAbanicoVisibles.has(enlace.id),
     })];
   });
 

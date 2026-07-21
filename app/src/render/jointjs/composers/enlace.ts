@@ -133,7 +133,7 @@ export function proyectarEnlace(
   labelPositions: LayoutLabelsEnlace,
   seleccionada: boolean,
   enAbanico = false,
-  opciones: { usarJumpover?: boolean; activaSimulacion?: boolean } = {},
+  opciones: { usarJumpover?: boolean; activaSimulacion?: boolean; preservarPuerto?: boolean } = {},
 ): JointCellJson {
   const verticesRender = verticesEnlace(enlace.tipo, origen, destino, vertices);
   const wrapWidth = anchoWrapEntreApariencias(etiquetaEnlaceNormalizada(enlace.etiqueta) || enlace.rutaEtiqueta || "", origen.apariencia, destino.apariencia);
@@ -173,8 +173,8 @@ export function proyectarEnlace(
   return {
     id: aparienciaEnlaceId,
     type: "standard.Link",
-    source: endpointJoint(origen, preservarPuertoRender(enlace.tipo, enAbanico)),
-    target: endpointJoint(destino, preservarPuertoRender(enlace.tipo, enAbanico)),
+    source: endpointJoint(origen, preservarPuertoRender(enlace.tipo, enAbanico, opciones.preservarPuerto)),
+    target: endpointJoint(destino, preservarPuertoRender(enlace.tipo, enAbanico, opciones.preservarPuerto)),
     vertices: verticesRender,
     router,
     connector,
@@ -323,8 +323,8 @@ export function endpointJoint(endpoint: EndpointVisual, preservarPuerto = true):
   return extremo(endpoint.apariencia.id, endpoint.portId);
 }
 
-function preservarPuertoRender(tipo: TipoEnlace, enAbanico: boolean): boolean {
-  if (enAbanico) return true;
+function preservarPuertoRender(tipo: TipoEnlace, enAbanico: boolean, preservarPuerto?: boolean): boolean {
+  if (enAbanico || preservarPuerto) return true;
   return tipo !== "consumo" && tipo !== "resultado" && tipo !== "efecto";
 }
 

@@ -5,6 +5,7 @@ import {
   definirProbabilidadesAbanico as definirProbabilidadesAbanicoOp,
   disolverAbanico as disolverAbanicoOp,
   formarAbanico,
+  puedeEditarAbanicoEnOpd,
   quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
 } from "../../modelo/abanicos";
 import { anclaEnlaceMasCercana, type AnclaRelojEnlace } from "../../modelo/anclajesEnlace";
@@ -37,7 +38,7 @@ import {
 import { definirRutaEtiqueta } from "../../modelo/rutas";
 import { commitModelo, enlaceNuevo, mensajeBloqueoEdicion, type GetStore, type SetStore } from "../runtime";
 import { addFlash } from "../feedback";
-import type { Id, Modelo } from "../../modelo/tipos";
+import type { Abanico, Id, Modelo } from "../../modelo/tipos";
 import type { ModeloSlice } from "../tipos";
 
 /**
@@ -241,7 +242,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
     },
 
     alternarOperadorAbanicoSeleccionado(operador) {
-      const { modelo, enlaceSeleccionId } = get();
+      const { modelo, opdActivoId, enlaceSeleccionId } = get();
       if (!enlaceSeleccionId) {
         set({ mensaje: "Selecciona un enlace para alternar el operador del abanico" });
         return;
@@ -249,6 +250,11 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       const abanico = abanicoDeEnlace(modelo, enlaceSeleccionId);
       if (!abanico) {
         set({ mensaje: "El enlace no pertenece a un abanico" });
+        return;
+      }
+      const bloqueoPropietario = mensajeBloqueoAbanicoHeredado(modelo, opdActivoId, abanico);
+      if (bloqueoPropietario) {
+        set({ mensaje: bloqueoPropietario });
         return;
       }
       const resultado = alternarOperadorAbanicoOp(modelo, abanico.id, operador);
@@ -260,7 +266,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
     },
 
     definirProbabilidadesAbanicoSeleccionado(probabilidades) {
-      const { modelo, enlaceSeleccionId } = get();
+      const { modelo, opdActivoId, enlaceSeleccionId } = get();
       if (!enlaceSeleccionId) {
         set({ mensaje: "Selecciona un enlace del abanico para definir probabilidades" });
         return;
@@ -268,6 +274,11 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       const abanico = abanicoDeEnlace(modelo, enlaceSeleccionId);
       if (!abanico) {
         set({ mensaje: "El enlace no pertenece a un abanico" });
+        return;
+      }
+      const bloqueoPropietario = mensajeBloqueoAbanicoHeredado(modelo, opdActivoId, abanico);
+      if (bloqueoPropietario) {
+        set({ mensaje: bloqueoPropietario });
         return;
       }
       const resultado = definirProbabilidadesAbanicoOp(modelo, abanico.id, probabilidades);
@@ -281,7 +292,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
     },
 
     quitarRamaDeAbanicoSeleccionado() {
-      const { modelo, enlaceSeleccionId } = get();
+      const { modelo, opdActivoId, enlaceSeleccionId } = get();
       if (!enlaceSeleccionId) {
         set({ mensaje: "Selecciona un enlace para quitar del abanico" });
         return;
@@ -289,6 +300,11 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       const abanico = abanicoDeEnlace(modelo, enlaceSeleccionId);
       if (!abanico) {
         set({ mensaje: "El enlace no pertenece a un abanico" });
+        return;
+      }
+      const bloqueoPropietario = mensajeBloqueoAbanicoHeredado(modelo, opdActivoId, abanico);
+      if (bloqueoPropietario) {
+        set({ mensaje: bloqueoPropietario });
         return;
       }
       const resultado = quitarRamaDeAbanicoOp(modelo, abanico.id, enlaceSeleccionId);
@@ -300,7 +316,7 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
     },
 
     disolverAbanicoSeleccionado() {
-      const { modelo, enlaceSeleccionId } = get();
+      const { modelo, opdActivoId, enlaceSeleccionId } = get();
       if (!enlaceSeleccionId) {
         set({ mensaje: "Selecciona un enlace del abanico a disolver" });
         return;
@@ -308,6 +324,11 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       const abanico = abanicoDeEnlace(modelo, enlaceSeleccionId);
       if (!abanico) {
         set({ mensaje: "El enlace no pertenece a un abanico" });
+        return;
+      }
+      const bloqueoPropietario = mensajeBloqueoAbanicoHeredado(modelo, opdActivoId, abanico);
+      if (bloqueoPropietario) {
+        set({ mensaje: bloqueoPropietario });
         return;
       }
       const resultado = disolverAbanicoOp(modelo, abanico.id);
@@ -585,6 +606,12 @@ export function accionesEnlace(set: SetStore, get: GetStore): Partial<ModeloSlic
       });
     },
   };
+}
+
+function mensajeBloqueoAbanicoHeredado(modelo: Modelo, opdActivoId: Id, abanico: Abanico): string | null {
+  if (puedeEditarAbanicoEnOpd(abanico, opdActivoId)) return null;
+  const propietario = modelo.opds[abanico.opdId]?.nombre ?? abanico.opdId;
+  return `Este abanico pertenece a '${propietario}'. Cambia a ese OPD para editarlo.`;
 }
 
 function anclaActualDelExtremoComun(modelo: Modelo, opdId: Id, enlaceId: Id, lado: "origen" | "destino"): AnclaRelojEnlace {
