@@ -223,12 +223,12 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     const version = resumen?.versiones?.find((item) => item.id === versionId);
     if (!version) {
       const error = "Versión no encontrada";
-      set({ mensaje: error });
+      set({ mensaje: feedback === "receipt" ? null : error });
       return { ok: false, operation, error };
     }
     if (!persistenciaBackendHabilitada()) {
       const error = "Backend de modelos no disponible";
-      set({ mensaje: error });
+      set({ mensaje: feedback === "receipt" ? null : error });
       return { ok: false, operation, error };
     }
     const backend = await cargarVersionBackend(modeloId, versionId);
@@ -236,12 +236,12 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       return { ok: false, operation, error: "El contexto cambió antes de completar la restauración" };
     }
     if (!backend.ok) {
-      set({ mensaje: backend.error });
+      set({ mensaje: feedback === "receipt" ? null : backend.error });
       return { ok: false, operation, error: backend.error };
     }
     const hidratado = hidratarModelo(backend.value.json);
     if (!hidratado.ok) {
-      set({ mensaje: hidratado.error });
+      set({ mensaje: feedback === "receipt" ? null : hidratado.error });
       return { ok: false, operation, error: hidratado.error };
     }
     const restaurado = hidratado.value;
@@ -263,7 +263,7 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     }
     if (!resultado.ok) {
       const error = `No se pudo restaurar versión en servidor: ${resultado.error}`;
-      set({ mensaje: error });
+      set({ mensaje: feedback === "receipt" ? null : error });
       return { ok: false, operation, error };
     }
     guardado = resultado.value;
@@ -304,18 +304,18 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     const operation = "version-delete" as const;
     if (!persistenciaBackendHabilitada()) {
       const error = "Backend de modelos no disponible";
-      set({ mensaje: error });
+      set({ mensaje: feedback === "receipt" ? null : error });
       return { ok: false, operation, error };
     }
     const sessionEpoch = captureSessionEpoch();
-    set({ mensaje: "Eliminando versión en servidor..." });
+    set({ mensaje: feedback === "receipt" ? null : "Eliminando versión en servidor..." });
     const resultado = await borrarVersionBackend(modeloId, versionId);
     if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) {
       return { ok: false, operation, error: "La sesión cambió antes de completar la eliminación" };
     }
     if (!resultado.ok && resultado.error !== "Versión no encontrada") {
       const error = `No se pudo eliminar versión en servidor: ${resultado.error}`;
-      set({ mensaje: error });
+      set({ mensaje: feedback === "receipt" ? null : error });
       return { ok: false, operation, error };
     }
     const resumen = get().modelosGuardados.find((item) => item.id === modeloId);
@@ -323,7 +323,7 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     const eliminado = eliminarVersionResultado(get().indice, modeloId, versionId);
     if (!eliminado.ok) {
       const error = eliminado.error.mensaje;
-      set({ mensaje: error });
+      set({ mensaje: feedback === "receipt" ? null : error });
       return { ok: false, operation, error };
     }
     const indice = eliminado.value;

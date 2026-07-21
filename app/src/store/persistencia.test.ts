@@ -46,6 +46,42 @@ describe("slice persistencia backend-only", () => {
     expect(backend.workspacePutCount).toBe(0);
   });
 
+  test("bootstrap y reapertura conservan las versiones del indice persistido", async () => {
+    const id = "modelo-con-historia";
+    const ahora = "2026-07-21T12:00:00.000Z";
+    const version = {
+      id: "version-historica",
+      nombre: "Corte verificable",
+      creadoEn: ahora,
+      modeloPayloadKey: "version-historica",
+      bytes: 128,
+    };
+    backend.modelos.set(id, {
+      id,
+      nombre: "Modelo con historia",
+      descripcion: "original",
+      creadoEn: ahora,
+      actualizadoEn: ahora,
+      carpetaId: null,
+      json: exportarModelo(crearModelo("Modelo con historia")),
+      revision: 1,
+    });
+    backend.workspace = {
+      modelos: [{ id, carpetaId: null, versiones: [version] }],
+      carpetas: [],
+      recientes: [id],
+    };
+    backend.workspaceRevision = 1;
+
+    store.getState().listarModelosGuardados();
+    await esperar(() => store.getState().modelosGuardados[0]?.versiones?.length === 1);
+    expect(store.getState().modelosGuardados[0]?.versiones).toEqual([version]);
+
+    store.getState().cargarLocal(id);
+    await esperar(() => store.getState().mensaje === "Modelo cargado: Modelo con historia");
+    expect(store.getState().modelosGuardados[0]?.versiones).toEqual([version]);
+  });
+
   test("dos escrituras de la misma pestaña se confirman en orden CAS", async () => {
     store.getState().listarModelosGuardados();
     await esperar(() => store.getState().workspaceRevision === 0);
