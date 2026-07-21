@@ -24,6 +24,7 @@ import type { NodoOpd, LineaEstructural } from "./estructura";
 import { Resolutor } from "./resolutor";
 import { emitirCompuesta, emitirOracion, recolectarEstadosUnion, recolectarRasgos } from "./emisor";
 import type { HechoEmitido } from "./emisor";
+import { estabilizarIdsReferenciables } from "./estabilizarIds";
 import type { Ancla, LineaNormalizada } from "./tipos";
 import {
   compilarAnclasDeLinea,
@@ -166,6 +167,7 @@ export function compilarProto(markdown: string, opciones: OpcionesCompilacion = 
     procesarOpd(nodo, autor, resolutor, entradas, estadosUnion, estadosDeclarados, enlacesProcedurales, clavesAncla, contabAnclas, secuenciaColaAncla);
   }
 
+  estabilizarIdsReferenciables(autor.modelo);
   const resumen = resumir(entradas, plan.opds.length, contabAnclas.total);
   return { autor, modelo: autor.modelo, ledger: { entradas }, resumen };
 }

@@ -43,6 +43,8 @@
 // corte de sub-OPD con un encabezado ni con una oración estructural).
 
 import { construirContextoProto, normalizarBloqueOpl } from "./normalizador";
+import { claveNombre } from "../../opl/parser/parsear";
+import { hashContenido } from "../procedencia";
 import type { ContextoProto, LineaNormalizada } from "./tipos";
 
 /** Un OPD del plan: o el raíz (sin refinable) o un refinamiento de una entidad. */
@@ -107,7 +109,6 @@ export function leerEstructura(markdown: string): PlanEstructura {
   const contexto = construirContextoProto(bloques.map((b) => b.lineas));
 
   const opds: NodoOpd[] = [];
-  let contadorOpd = 0;
   // El "OPD abierto" al que se anexan los bloques de continuación (regla 4).
   let opdActual: NodoOpd | null = null;
 
@@ -121,7 +122,7 @@ export function leerEstructura(markdown: string): PlanEstructura {
       // Regla 2: el primer bloque define el OPD raíz. Si trae una oración
       // estructural (raro en el primer bloque), su refinable se usa como nombre.
       const nodo: NodoOpd = {
-        clave: bloque.encabezadoClave || `opd-${++contadorOpd}`,
+        clave: bloque.encabezadoClave || "sd0",
         nombre: bloque.encabezado || "Raíz",
         padreClave: null,
         refinableNombre: null,
@@ -136,7 +137,7 @@ export function leerEstructura(markdown: string): PlanEstructura {
       // Si el primer bloque trae estructura, no la perdemos: la registramos como
       // descomposición del raíz hacia un OPD que llegará en bloques siguientes.
       if (estructura?.clase === "estructura") {
-        opdActual = abrirOpdRefinamiento(estructura, opds, opdActual, ++contadorOpd, bloque);
+        opdActual = abrirOpdRefinamiento(estructura, opdActual, bloque);
         opds.push(opdActual);
       }
       continue;
@@ -145,7 +146,7 @@ export function leerEstructura(markdown: string): PlanEstructura {
     if (estructura?.clase === "estructura") {
       // Regla 3: abre un OPD hijo de refinamiento de la entidad estructurada.
       const padre = opdActual ?? opds[0]!;
-      const nodo = abrirOpdRefinamiento(estructura, opds, padre, ++contadorOpd, bloque);
+      const nodo = abrirOpdRefinamiento(estructura, padre, bloque);
       nodo.hechos = hechos;
       opds.push(nodo);
       opdActual = nodo;
@@ -166,16 +167,14 @@ export function leerEstructura(markdown: string): PlanEstructura {
 /** Construye un NodoOpd de refinamiento a partir de una oración `estructura`. */
 function abrirOpdRefinamiento(
   estructura: Extract<LineaNormalizada, { clase: "estructura" }>,
-  opds: NodoOpd[],
   padre: NodoOpd,
-  contador: number,
   bloque: BloqueCrudo,
 ): NodoOpd {
   const refinable = extraerRefinable(estructura.oracion);
   const esDespliegue = /\bse\s+despliega\s+en\b/iu.test(estructura.oracion);
   return {
-    clave: bloque.encabezadoClave || `opd-${contador}`,
-    nombre: bloque.encabezado || refinable.nombre || `OPD ${contador}`,
+    clave: bloque.encabezadoClave || claveRefinamiento(refinable.nombre, esDespliegue),
+    nombre: bloque.encabezado || `${esDespliegue ? "Unfold" : "In-zoom"} de ${refinable.nombre}`,
     padreClave: padre.clave,
     refinableNombre: refinable.nombre,
     refinamiento: esDespliegue ? "despliegue" : "descomposicion",
@@ -184,6 +183,19 @@ function abrirOpdRefinamiento(
     hechos: [],
     lineaMd: bloque.lineaMd,
   };
+}
+
+/** Clave estable para el sub-OPD estricto que no declara encabezado. */
+function claveRefinamiento(refinable: string, esDespliegue: boolean): string {
+  const clave = claveNombre(refinable);
+  const slug = clave
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/gu, "-")
+    .replace(/^-|-$/gu, "")
+    .slice(0, 48) || "entidad";
+  return `${esDespliegue ? "unfold" : "inzoom"}-${slug}-${hashContenido(clave)}`;
 }
 
 /**

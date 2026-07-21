@@ -237,6 +237,7 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
 
   function opd(key: OpdKey, nombre: string, padreKey: OpdKey | null = null, ordenLocal?: number): Id {
     const id = `opd-${key}`;
+    if (oid.has(key) || modelo.opds[id]) throw new Error(`OPD con clave propietaria duplicada: '${key}'.`);
     oid.set(key, id);
     modelo.opds[id] = {
       id,
@@ -291,6 +292,10 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     const entidadId = idEntidad(entidadKey);
     for (const [indice, nombre] of nombres.entries()) {
       const id = `s-${entidadKey}-${slug(nombre)}`;
+      const existente = modelo.estados[id];
+      if (existente && (existente.entidadId !== entidadId || existente.nombre !== nombre)) {
+        throw new Error(`Estado con ID propietario colisionante: '${id}'.`);
+      }
       sid.set(`${entidadKey}:${nombre}`, id);
       const esInicial = nombre === inicial;
       const esFinal = nombre === final;
