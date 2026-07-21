@@ -200,6 +200,7 @@ export const PARTICION_MODELO: Record<keyof Modelo, ClaseCampo> = {
   descripcion: "excluido",
   ontologia: "excluido",
   satisfaccionesRequisito: "excluido",
+  declaracionesNoNucleares: "excluido",
   anclasNormativas: "excluido",
   notasMesa: "excluido",
   estereotipos: "excluido",

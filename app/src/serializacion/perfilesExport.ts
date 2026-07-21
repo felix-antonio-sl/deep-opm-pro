@@ -39,7 +39,7 @@ export const PERFIL_DEFAULT_DOCUMENTO = "canon-documento" satisfies PerfilExport
  * de perfil la consume (única fuente de verdad).
  */
 export const ATRIBUTOS_DE_PERFIL = {
-  "canon-documento": ["satisfaccionesRequisito", "procedencia"],
+  "canon-documento": ["satisfaccionesRequisito", "declaracionesNoNucleares", "procedencia"],
 } as const satisfies Partial<Record<PerfilExport, readonly (keyof Modelo)[]>>;
 
 /**
@@ -90,6 +90,7 @@ export function filtrarModeloPorPerfil(modelo: Modelo, perfil: PerfilExport): Mo
     notasMesa: _notasMesa,
     ontologia: _ontologia,
     satisfaccionesRequisito: _satisfacciones,
+    declaracionesNoNucleares: _declaracionesNoNucleares,
     procedencia: _procedencia,
     ...base
   } = modelo;
@@ -173,6 +174,25 @@ export function emitirDocumentoCanonico(modelo: Modelo, opciones: { esApunte?: b
     .replace(/^# /, "### Modelo: ")
     .replace(/^## /gm, "#### ");
   secciones.push(`## OPL completa\n\n${opl.trimEnd()}`);
+
+  const declaraciones = Object.values(filtrado.declaracionesNoNucleares ?? {})
+    .sort((a, b) => a.id.localeCompare(b.id, "es"));
+  if (declaraciones.length > 0) {
+    const cuerpo = declaraciones.map((declaracion) => {
+      const evaluacion = declaracion.estadoEvaluacion ? ` · ${declaracion.estadoEvaluacion}` : "";
+      const targets = declaracion.targets
+        .map((target) => target.tipo === "modelo" ? "modelo" : `${target.tipo}:${target.id}`)
+        .join(", ") || "sin target";
+      const procedencia = declaracion.procedencia.join("; ") || "sin procedencia declarada";
+      return [
+        `- **${declaracion.id}** · ${declaracion.clase} · ${declaracion.estadoAsercion}${evaluacion}: ${declaracion.afirmacion}`,
+        `  - Propietario semántico: ${declaracion.propietarioSemantico}`,
+        `  - Targets: ${targets}`,
+        `  - Procedencia: ${procedencia}`,
+      ].join("\n");
+    }).join("\n");
+    secciones.push(`## Declaraciones no nucleares\n\n${cuerpo}`);
+  }
 
   if (filtrado.procedencia) {
     const sello = Object.entries(filtrado.procedencia)

@@ -5,6 +5,7 @@ import type { Enlace } from "./enlace";
 import type { Estado } from "./estado";
 import type {
   AnclaNormativa,
+  DeclaracionNoNuclear,
   Estereotipo,
   NotaMesa,
   OntologiaOrganizacional,
@@ -60,6 +61,8 @@ export interface Modelo {
   abanicos?: Record<Id, Abanico>;
   ontologia?: OntologiaOrganizacional;
   satisfaccionesRequisito?: Record<Id, SatisfaccionRequisito>;
+  /** Meta tipada de roles/restricciones/exclusiones/fronteras; no es OPM nuclear. */
+  declaracionesNoNucleares?: Record<Id, DeclaracionNoNuclear>;
   /** W5.1: trazabilidad de procedencia normativa. Aditivo y opcional (extensión declarada). */
   anclasNormativas?: Record<Id, AnclaNormativa>;
   /** W6.5-a: notas de mesa (comentarios de revisión por componente). Aditivo y opcional. */

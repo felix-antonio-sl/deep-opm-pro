@@ -40,6 +40,30 @@ export interface SatisfaccionRequisito {
   descripcion?: string;
 }
 
+// --- DeclaraciónNoNuclear (OPF-C01-GP-05) ---------------------------------
+// Meta tipada para afirmaciones de gobernanza del modelo. No crea primitivas
+// OPM, no emite OPL nuclear y conserva su especie frente a anclas/notas.
+
+export type ClaseDeclaracionNoNuclear = "rol" | "restriccion" | "exclusion" | "frontera";
+export type EstadoAsercionNoNuclear = "ratificada" | "hipotesis" | "pendiente";
+export type EstadoEvaluacionNoNuclear = "no-evaluada" | "indeterminada" | "satisfecha" | "fallida";
+
+export type TargetDeclaracionNoNuclear =
+  | { tipo: "modelo" }
+  | { tipo: "opd" | "entidad" | "estado" | "enlace" | "abanico"; id: Id };
+
+export interface DeclaracionNoNuclear {
+  id: Id;
+  clase: ClaseDeclaracionNoNuclear;
+  afirmacion: string;
+  targets: TargetDeclaracionNoNuclear[];
+  propietarioSemantico: string;
+  procedencia: string[];
+  estadoAsercion: EstadoAsercionNoNuclear;
+  /** Ausente significa “no aplica”; nunca se infiere `satisfecha`. */
+  estadoEvaluacion?: EstadoEvaluacionNoNuclear;
+}
+
 // --- Estereotipo (D6) -------------------------------------------------------
 // Extensión ADITIVA y OPCIONAL del formato `deep-opm-pro.modelo.v0`: catálogo de
 // estereotipos (built-in de fábrica + entradas de `Modelo.estereotipos`). Mismo

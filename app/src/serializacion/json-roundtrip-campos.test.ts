@@ -42,6 +42,7 @@ const CAMPOS_MODELO = {
   abanicos: true,
   ontologia: true,
   satisfaccionesRequisito: true,
+  declaracionesNoNucleares: true,
   anclasNormativas: true,
   notasMesa: true,
   estereotipos: true,

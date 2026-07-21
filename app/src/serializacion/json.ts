@@ -39,6 +39,7 @@ import { validarReferenciasOpd } from "./validarIntegridad";
 import { normalizarModelo, normalizarVersiones } from "./validarNormalizacion";
 import { validarOpds } from "./validarOpds";
 import { validarEstados } from "./validarEstados";
+import { validarDeclaracionesNoNucleares } from "./validarDeclaracionesNoNucleares";
 
 const FORMATO = "deep-opm-pro.modelo.v0";
 
@@ -194,6 +195,14 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     estadosValidados.value,
   );
   if (!abanicosValidados.ok) return abanicosValidados;
+  const declaracionesValidadas = validarDeclaracionesNoNucleares(value.declaracionesNoNucleares, {
+    opds: opdsValidados.value,
+    entidades: entidadesValidadas.value,
+    estados: estadosValidados.value,
+    enlaces: enlacesValidados.value,
+    abanicos: abanicosValidados.value,
+  });
+  if (!declaracionesValidadas.ok) return declaracionesValidadas;
 
   const modelo: Modelo = {
     id,
@@ -208,6 +217,7 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     abanicos: abanicosValidados.value,
     ...(ontologiaValidada.value ? { ontologia: ontologiaValidada.value } : {}),
     ...(Object.keys(satisfaccionesValidadas.value).length > 0 ? { satisfaccionesRequisito: satisfaccionesValidadas.value } : {}),
+    ...(Object.keys(declaracionesValidadas.value).length > 0 ? { declaracionesNoNucleares: declaracionesValidadas.value } : {}),
     ...(Object.keys(anclasValidadas.value).length > 0 ? { anclasNormativas: anclasValidadas.value } : {}),
     ...(Object.keys(notasMesaValidadas.value).length > 0 ? { notasMesa: notasMesaValidadas.value } : {}),
     ...(Object.keys(estereotiposValidados.value).length > 0 ? { estereotipos: estereotiposValidados.value } : {}),

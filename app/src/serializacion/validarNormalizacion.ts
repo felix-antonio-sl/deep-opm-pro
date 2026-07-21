@@ -83,6 +83,9 @@ export function normalizarModelo(modelo: Modelo): Modelo {
     abanicos: modelo.abanicos ?? {},
     ...(modelo.ontologia ? { ontologia: modelo.ontologia } : {}),
     ...(modelo.satisfaccionesRequisito ? { satisfaccionesRequisito: modelo.satisfaccionesRequisito } : {}),
+    ...(modelo.declaracionesNoNucleares && Object.keys(modelo.declaracionesNoNucleares).length > 0
+      ? { declaracionesNoNucleares: modelo.declaracionesNoNucleares }
+      : {}),
     // W5.1: extensión meta del autor; allowlist condicional (ausente/{} ⇒ no se emite = byte-identidad).
     ...(modelo.anclasNormativas && Object.keys(modelo.anclasNormativas).length > 0 ? { anclasNormativas: modelo.anclasNormativas } : {}),
     // W6.5-a: notas de mesa; allowlist condicional (ausente/{} ⇒ no se emite = byte-identidad).
