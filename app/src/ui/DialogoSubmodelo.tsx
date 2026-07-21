@@ -5,8 +5,10 @@ import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { useOpmStore } from "../store";
+import { deriveReuseIntent, runTutorPolicy } from "../tutor";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
+import { TutorInterventionDetails, mapearLentesTutor } from "./TutorDetails";
 
 export function DialogoSubmodelo() {
   const persistencia = useZustandPersistencePort();
@@ -41,6 +43,14 @@ export function DialogoSubmodelo() {
   ), [hijos.modelos, modeloPersistidoId, query]);
 
   const seleccionado = modelosCatalogo.find((item) => item.id === seleccionadoId) ?? null;
+  const intervencionTutor = runTutorPolicy(deriveReuseIntent({
+    intentId: `submodel:${seleccionId ?? "none"}:choice`,
+    focus: "submodel",
+    phase: "choice",
+    referenceLoaded: !!seleccionado,
+    readOnly: true,
+    activeLenses: mapearLentesTutor(modelo.lentesConocimiento ?? []),
+  }));
   const seleccionarModelo = (id: Id) => {
     const item = modelosCatalogo.find((modeloGuardado) => modeloGuardado.id === id);
     setSeleccionadoId(id);
@@ -62,11 +72,12 @@ export function DialogoSubmodelo() {
       actions={(
         <>
           <DialogoAccion onClick={cerrar}>Cancelar</DialogoAccion>
-          <DialogoAccion tono="primaria" disabled={disabled} onClick={guardar}>Conectar</DialogoAccion>
+          <DialogoAccion tutorEntrypoint="submodel:connect-reference" tono="primaria" disabled={disabled} onClick={guardar}>Conectar</DialogoAccion>
         </>
       )}
     >
       <div style={formStyles.body}>
+        <TutorInterventionDetails intervention={intervencionTutor} testId="tutor-dialogo-submodelo" />
         <div style={formStyles.status}>
           <span style={formStyles.statusStrong}>Ancla</span>
           <span>{entidad?.nombre ?? "sin selección"}</span>

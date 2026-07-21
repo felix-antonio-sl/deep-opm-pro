@@ -55,8 +55,8 @@ export function codexFrameRows(canvasOnly = false): string {
 
 export function codexFrameColumns({ leftWidth, rightWidth, isTablet, canvasOnly = false }: CodexFrameColumnsParams): string {
   if (canvasOnly) return "minmax(0, 1fr)";
-  const left = isTablet ? Math.min(leftWidth, 300) : leftWidth;
-  const right = isTablet ? Math.min(rightWidth, 300) : rightWidth;
+  const left = isTablet ? Math.min(leftWidth, 200) : leftWidth;
+  const right = isTablet ? Math.min(rightWidth, 220) : rightWidth;
   return `${left}px 6px minmax(0, 1fr) 6px ${right}px`;
 }
 
@@ -94,12 +94,12 @@ export function CodexFrame({
         breadcrumb del manuscrito; la derecha imprime la meta (`N oraciones ·
         ● sin guardar · ⌘K`).
       */}
-      {canvasOnly ? null : <header style={style.header}>
-        <div data-testid="codex-wordmark" style={style.wordmark}>Opforja</div>
+      {canvasOnly ? null : <header style={{ ...style.header, ...(isTablet ? style.headerTablet : {}) }}>
+        <div data-testid="codex-wordmark" style={isTablet ? style.wordmarkTablet : style.wordmark}>Opforja</div>
         <div style={style.headerTabsSlot}>{tabs}</div>
         <div style={style.breadcrumbSlot}>{breadcrumb}</div>
         <div style={style.toolbarSlot}>{toolbar}</div>
-        <div style={style.headerMeta}>{meta}</div>
+        <div style={isTablet ? style.headerMetaTablet : style.headerMeta}>{meta}</div>
         {menu}
       </header>}
       <section
@@ -147,6 +147,9 @@ const style = {
     position: "relative",
     zIndex: 20,
   },
+  headerTablet: {
+    gridTemplateColumns: "auto minmax(90px, 140px) minmax(70px, 110px) minmax(250px, 1fr)",
+  },
   // Wordmark único "Opforja" en Inria Serif italic ~22px, sin chip.
   wordmark: {
     display: "flex",
@@ -156,6 +159,19 @@ const style = {
     fontFamily: tokens.typography.serif,
     fontStyle: "italic",
     fontSize: `${tokens.typography.fs.fs22}px`,
+    fontWeight: tokens.typography.weights.regular,
+    letterSpacing: tokens.typography.ls.tight,
+    color: tokens.colors.ink,
+    whiteSpace: "nowrap",
+  },
+  wordmarkTablet: {
+    display: "flex",
+    alignItems: "center",
+    padding: "0 10px",
+    borderRight: `1px solid ${tokens.colors.rule}`,
+    fontFamily: tokens.typography.serif,
+    fontStyle: "italic",
+    fontSize: `${tokens.typography.fs.fs17}px`,
     fontWeight: tokens.typography.weights.regular,
     letterSpacing: tokens.typography.ls.tight,
     color: tokens.colors.ink,
@@ -196,6 +212,9 @@ const style = {
     fontSize: `${tokens.typography.fs.fs11}px`,
     fontStyle: "italic",
     whiteSpace: "nowrap",
+  },
+  headerMetaTablet: {
+    display: "none",
   },
   body: {
     minWidth: 0,

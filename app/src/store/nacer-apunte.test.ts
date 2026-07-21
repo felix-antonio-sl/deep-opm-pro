@@ -141,17 +141,126 @@ describe("nacerApunte (store)", () => {
     const id = store.getState().modeloPersistidoId!;
     expect(store.getState().indice.modelos.some((m) => m.id === id && m.esApunte === true)).toBe(true);
 
-    store.getState().confirmarGraduacion({ modeloId: id, nombre: "Modelo graduado", carpetaId: null });
-    // esApunte off en el índice → la cinta desaparece.
-    expect(store.getState().indice.modelos.some((m) => m.id === id && m.esApunte === true)).toBe(false);
-    expect(store.getState().dialogoGraduarModeloId).toBeNull();
+    store.getState().abrirGraduar(id);
+    store.getState().confirmarGraduacion({
+      modeloId: id,
+      nombre: "Modelo graduado",
+      carpetaId: null,
+      bloqueos: 0,
+      mejoras: 0,
+    });
+
+    // Hasta que el backend confirme la transición compuesta, la identidad local
+    // sigue siendo Apunte y el diálogo permanece abierto.
+    expect(store.getState().indice.modelos.some((m) => m.id === id && m.esApunte === true)).toBe(true);
+    expect(store.getState().dialogoGraduarModeloId).toBe(id);
 
     // El renombrado es async; espera a que asiente y verifica que NO se re-infecta
     // (el record no persiste la especie → sincronizar no re-marca el apunte).
     await esperar(() => store.getState().modelo.nombre === "Modelo graduado");
+    expect(store.getState().dialogoGraduarModeloId).toBeNull();
     store.getState().listarModelosGuardados();
     await esperar(() => store.getState().mensaje === null);
     expect(store.getState().indice.modelos.some((m) => m.id === id && m.esApunte === true)).toBe(false);
+  });
+
+  test("marcar un Apunte como Biblioteca reutiliza graduación y confirma ambos ejes atómicamente", async () => {
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null);
+    const id = store.getState().modeloPersistidoId!;
+
+    store.getState().toggleBibliotecaModelo(id);
+    expect(store.getState().dialogoGraduarModeloId).toBe(id);
+    expect(store.getState().graduacionDestino).toBe("biblioteca");
+
+    store.getState().confirmarGraduacion({
+      modeloId: id,
+      nombre: "Biblioteca graduada",
+      carpetaId: null,
+      bloqueos: 0,
+      mejoras: 0,
+    });
+    expect(store.getState().indice.modelos.find((modelo) => modelo.id === id)?.esApunte).toBe(true);
+
+    await esperar(() => store.getState().dialogoGraduarModeloId === null);
+    const entrada = store.getState().indice.modelos.find((modelo) => modelo.id === id);
+    expect(entrada?.esApunte).toBeUndefined();
+    expect(entrada?.esBiblioteca).toBe(true);
+    expect(store.getState().mensaje).toBe("Ahora es Modelo de Biblioteca · sin pendientes de cierre");
+  });
+
+  test("marcar un Apunte inactivo no abre ni reemplaza el modelo de trabajo actual", async () => {
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null);
+    const primerId = store.getState().modeloPersistidoId!;
+
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null && store.getState().modeloPersistidoId !== primerId);
+    const activoId = store.getState().modeloPersistidoId!;
+    const activoNombre = store.getState().modelo.nombre;
+
+    store.getState().toggleBibliotecaModelo(primerId);
+    await esperar(() => store.getState().graduacionModeloObjetivo?.id === primerId);
+    expect(store.getState().modeloPersistidoId).toBe(activoId);
+
+    store.getState().confirmarGraduacion({
+      modeloId: primerId,
+      nombre: "Biblioteca sin abrir",
+      carpetaId: null,
+      bloqueos: 0,
+      mejoras: 0,
+    });
+    await esperar(() => store.getState().dialogoGraduarModeloId === null);
+
+    expect(store.getState().modeloPersistidoId).toBe(activoId);
+    expect(store.getState().modelo.nombre).toBe(activoNombre);
+    expect(store.getState().indice.modelos.find((modelo) => modelo.id === primerId)?.esBiblioteca).toBe(true);
+  });
+
+  test("fallo de persistencia conserva Apunte, nombre, destino y diálogo", async () => {
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null);
+    const id = store.getState().modeloPersistidoId!;
+    const nombreOriginal = store.getState().modelo.nombre;
+    backend.fallarSiguienteGraduacion("conflicto de prueba");
+
+    store.getState().abrirGraduar(id);
+    store.getState().confirmarGraduacion({
+      modeloId: id,
+      nombre: "Nombre que no debe entrar",
+      carpetaId: null,
+      bloqueos: 1,
+      mejoras: 2,
+    });
+    await esperar(() => store.getState().graduacionError !== null);
+
+    const estado = store.getState();
+    expect(estado.modelo.nombre).toBe(nombreOriginal);
+    expect(estado.indice.modelos.find((modelo) => modelo.id === id)?.esApunte).toBe(true);
+    expect(estado.dialogoGraduarModeloId).toBe(id);
+    expect(estado.graduacionError).toBe(
+      "No se pudo graduar · conflicto de prueba · Reintentar",
+    );
+    expect(backend.modelos.get(id)?.nombre).toBe(nombreOriginal);
+  });
+
+  test("nombre vacío no inicia persistencia ni cierra el diálogo", async () => {
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null);
+    const id = store.getState().modeloPersistidoId!;
+    store.getState().abrirGraduar(id);
+
+    store.getState().confirmarGraduacion({
+      modeloId: id,
+      nombre: "   ",
+      carpetaId: null,
+      bloqueos: 0,
+      mejoras: 0,
+    });
+
+    expect(store.getState().graduacionEnCurso).toBe(false);
+    expect(store.getState().dialogoGraduarModeloId).toBe(id);
+    expect(store.getState().graduacionError).toContain("El nombre no puede quedar vacío");
   });
 });
 
@@ -175,6 +284,7 @@ interface BackendMock {
   };
   workspaceRevision: number;
   bloquearSiguienteGuardado(): { iniciado: Promise<void>; liberar(): void };
+  fallarSiguienteGraduacion(causa: string): void;
 }
 
 function instalarBackendMock(): BackendMock {
@@ -183,6 +293,7 @@ function instalarBackendMock(): BackendMock {
   let siguienteGuardado:
     | { iniciado: ReturnType<typeof diferido>; liberado: ReturnType<typeof diferido> }
     | null = null;
+  let siguienteGraduacionError: string | null = null;
   const backend: BackendMock = {
     modelos: new Map(),
     workspace: { modelos: [], carpetas: [], recientes: [] },
@@ -192,6 +303,9 @@ function instalarBackendMock(): BackendMock {
       const liberado = diferido();
       siguienteGuardado = { iniciado, liberado };
       return { iniciado: iniciado.promise, liberar: liberado.resolver };
+    },
+    fallarSiguienteGraduacion(causa) {
+      siguienteGraduacionError = causa;
     },
   };
   globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
@@ -222,14 +336,46 @@ function instalarBackendMock(): BackendMock {
     if (url.endsWith("/revisiones") && method === "POST") {
       const incoming = body.model as ModeloPersistido;
       const persistir = () => {
-        if (backend.modelos.has(incoming.id)) {
-          return jsonResponse({ error: "El modelo ya existe" }, 409);
-        }
         const version = {
           ...body.version,
           modeloPayloadKey: body.version.id,
           bytes: incoming.json.length,
         };
+        const actual = backend.modelos.get(incoming.id);
+        if (body.base?.kind === "existing") {
+          if (siguienteGraduacionError) {
+            const error = siguienteGraduacionError;
+            siguienteGraduacionError = null;
+            return jsonResponse({ error }, 409);
+          }
+          if (!actual) return jsonResponse({ error: "Modelo no encontrado" }, 409);
+          const guardado = {
+            ...incoming,
+            autosalvado: false,
+            revision: (actual.revision ?? 1) + 1,
+          };
+          backend.modelos.set(guardado.id, guardado);
+          backend.workspace = {
+            ...backend.workspace,
+            modelos: backend.workspace.modelos.map((item) => {
+              if (item.id !== guardado.id) return item;
+              const { esApunte: _esApunte, ...modelo } = item;
+              return {
+                ...modelo,
+                carpetaId: body.graduation?.folderId ?? null,
+                ...(body.graduation?.role === "library" ? { esBiblioteca: true } : {}),
+                versiones: [version, ...(item.versiones ?? [])],
+              };
+            }),
+          };
+          backend.workspaceRevision += 1;
+          return jsonResponse({
+            model: guardado,
+            version,
+            workspace: { indice: backend.workspace, revision: backend.workspaceRevision },
+          });
+        }
+        if (actual) return jsonResponse({ error: "El modelo ya existe" }, 409);
         const guardado = { ...incoming, autosalvado: false, revision: 1 };
         backend.modelos.set(guardado.id, guardado);
         backend.workspace = {

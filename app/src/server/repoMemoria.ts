@@ -10,6 +10,7 @@ import { evaluarPoliticaCommit, PersistenciaConflictError } from "./modelPersist
 import { hashPassword } from "./passwordHash";
 import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/modelos";
 import {
+  graduarApunte,
   indiceVacio,
   type WorkspacePersistido,
 } from "../persistencia/workspace";
@@ -179,6 +180,29 @@ export function crearRepoMemoria(
       if (versiones.has(versionKey)) {
         throw new PersistenciaConflictError("La versión ya existe");
       }
+      const indiceConEspecie = !current && commit.speciesOnCreate
+        ? establecerEspecieCreada(
+            workspace.indice,
+            commit.model.id,
+            commit.speciesOnCreate,
+          )
+        : workspace.indice;
+      const indiceTransicionado = commit.graduation
+        ? graduarApunte(
+            indiceConEspecie,
+            commit.model.id,
+            commit.graduation.folderId,
+            commit.graduation.role === "library" ? "biblioteca" : "trabajo",
+          )
+        : { ok: true as const, value: indiceConEspecie };
+      if (!indiceTransicionado.ok) {
+        throw new PersistenciaConflictError(indiceTransicionado.error);
+      }
+      const indiceFinal = registrarVersionEnWorkspace(
+        indiceTransicionado.value,
+        commit.model.id,
+        commit.version,
+      );
       const saved: ModeloPersistido = {
         ...commit.model,
         autosalvado: false,
@@ -191,19 +215,8 @@ export function crearRepoMemoria(
         version: commit.version,
         json: saved.json,
       });
-      const indiceConEspecie = !current && commit.speciesOnCreate
-        ? establecerEspecieCreada(
-            workspace.indice,
-            saved.id,
-            commit.speciesOnCreate,
-          )
-        : workspace.indice;
       const workspaceGuardado = {
-        indice: registrarVersionEnWorkspace(
-          indiceConEspecie,
-          saved.id,
-          commit.version,
-        ),
+        indice: indiceFinal,
         revision: workspace.revision + 1,
       };
       workspaces.set(session.tenantId, workspaceGuardado);

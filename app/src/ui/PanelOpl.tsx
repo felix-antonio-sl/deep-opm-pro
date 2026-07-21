@@ -9,6 +9,10 @@ import { editorOplStyles } from "./panelOpl/styles";
 import { ToolbarOpl } from "./panelOpl/Toolbar";
 import { scrollBehaviorPreferido } from "./motion";
 import { tokens } from "./tokens";
+import { derivarDeltaLineasOpl, type DeltaLineasOpl } from "../opl/panel";
+import { clasificarEdicionOpl } from "../opl/clasificadorEdicion";
+import { deriveViewIntent, runTutorPolicy } from "../tutor";
+import { TutorInterventionDetails } from "./TutorDetails";
 
 /**
  * Barrel publico del panel OPL-ES. IFML: PanelOpl es el detail OPL del
@@ -22,7 +26,49 @@ export function PanelOpl() {
 
 export function PanelOplView({ vm }: { vm: PanelOplViewModel }) {
   const [edicion, setEdicion] = useState<EdicionOpl | null>(null);
+  const [deltaOpl, setDeltaOpl] = useState<DeltaLineasOpl | null>(null);
   const contenedorRef = useRef<HTMLElement | null>(null);
+  const anteriorRef = useRef<{
+    modelo: PanelOplViewModel["modelo"];
+    lineas: { id: string; texto: string }[];
+  } | null>(null);
+  const firmaLineas = JSON.stringify(vm.lineas.map((linea) => [linea.id, linea.texto]));
+  const clasificacionOpl = vm.editorLibre
+    ? clasificarEdicionOpl(vm.textoLibre, vm.previewLibre)
+    : null;
+  const intervencionOpl = runTutorPolicy(deriveViewIntent({
+    intentId: vm.editorLibre ? "opl:reverse-preview" : `opl:delta:${firmaLineas}`,
+    focus: "opl",
+    recognizedLines: clasificacionOpl
+      ? clasificacionOpl.resumen.aplicables + clasificacionOpl.resumen.sinCambio
+      : (deltaOpl?.lineasCambiadasIds.length ?? 0),
+    unrecognizedLines: clasificacionOpl?.resumen.noAplicables ?? 0,
+    previewVisible: !!vm.previewLibre || !!deltaOpl,
+  }));
+
+  useEffect(() => {
+    const actuales = vm.lineas.map(({ id, texto }) => ({ id, texto }));
+    const anterior = anteriorRef.current;
+    anteriorRef.current = { modelo: vm.modelo, lineas: actuales };
+    if (!anterior || anterior.modelo.id !== vm.modelo.id || anterior.modelo === vm.modelo) {
+      setDeltaOpl(null);
+      return;
+    }
+    const delta = derivarDeltaLineasOpl(anterior.lineas, actuales);
+    setDeltaOpl(delta.nuevasOModificadas > 0 || delta.eliminadas > 0 ? delta : null);
+  }, [vm.modelo, firmaLineas]);
+
+  useEffect(() => {
+    const primeraId = deltaOpl?.lineasCambiadasIds[0];
+    if (!primeraId || vm.editorLibre || vm.minimizado || vm.vistaMapaActiva) return;
+    const ordinal = vm.lineas.find((linea) => linea.id === primeraId)?.ordinal;
+    if (ordinal === undefined) return;
+    requestAnimationFrame(() => {
+      contenedorRef.current
+        ?.querySelector<HTMLElement>(`[data-opl-ordinal="${ordinal}"]`)
+        ?.scrollIntoView({ block: "nearest", behavior: scrollBehaviorPreferido() });
+    });
+  }, [deltaOpl, vm.editorLibre, vm.minimizado, vm.vistaMapaActiva, firmaLineas]);
 
   /**
    * Coherencia transversal: cuando una seleccion proviene de canvas/Inspector,
@@ -113,14 +159,30 @@ export function PanelOplView({ vm }: { vm: PanelOplViewModel }) {
         onEditarLibre={vm.alternarEditorLibre}
       />
 
+      {deltaOpl ? (
+        <div
+          data-testid="panel-opl-delta"
+          data-product-feedback="opl-delta"
+          style={style.deltaTutor}
+        >
+          <div role="status" aria-live="polite">
+            OPL actualizada · {deltaOpl.nuevasOModificadas} línea{deltaOpl.nuevasOModificadas === 1 ? "" : "s"} nueva{deltaOpl.nuevasOModificadas === 1 ? "" : "s"} o modificada{deltaOpl.nuevasOModificadas === 1 ? "" : "s"}
+            {deltaOpl.eliminadas > 0 ? ` · ${deltaOpl.eliminadas} eliminada${deltaOpl.eliminadas === 1 ? "" : "s"}` : ""}
+          </div>
+        </div>
+      ) : null}
+
       {vm.editorLibre ? (
-        <EditorOplHonesto
-          texto={vm.textoLibre}
-          preview={vm.previewLibre}
-          onTexto={vm.fijarTextoLibre}
-          onCancelar={vm.cancelarEditorLibre}
-          onAplicar={vm.aplicarEditorLibre}
-        />
+        <>
+          {!deltaOpl ? <TutorInterventionDetails intervention={intervencionOpl} testId="tutor-panel-opl-editor" /> : null}
+          <EditorOplHonesto
+            texto={vm.textoLibre}
+            preview={vm.previewLibre}
+            onTexto={vm.fijarTextoLibre}
+            onCancelar={vm.cancelarEditorLibre}
+            onAplicar={vm.aplicarEditorLibre}
+          />
+        </>
       ) : vm.visibles.length === 0 ? (
         <span style={style.empty}>
           {vm.lineas.length === 0
@@ -133,6 +195,7 @@ export function PanelOplView({ vm }: { vm: PanelOplViewModel }) {
         <Bloques
           bloques={vm.bloques}
           visiblesPorId={vm.visiblesPorId}
+          lineasConDelta={new Set(deltaOpl?.lineasCambiadasIds ?? [])}
           opdActivoId={vm.opdActivoId}
           hoverOplRef={vm.hoverOplRef}
           seleccionRef={vm.seleccionRef}
@@ -176,5 +239,14 @@ const style = {
     borderTop: `1px solid ${tokens.colors.bordePanel}`,
   },
   toolbarSpacer: { minHeight: 26, marginBottom: 10 },
+  deltaTutor: {
+    margin: "4px 0 8px",
+    paddingLeft: 8,
+    borderLeft: `2px solid ${tokens.colors.inkSoft}`,
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: 12,
+    lineHeight: 1.4,
+  },
   empty: { color: tokens.colors.textoTerciario },
 } satisfies Record<string, preact.JSX.CSSProperties>;

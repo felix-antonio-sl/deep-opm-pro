@@ -8,7 +8,7 @@ test("drag desde anchor abre MenuTipoEnlace anclado y confirma conexion", async 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloConexionAnchor(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(elementoPorTexto(page, "Entrada")).toBeVisible();
   await expect(elementoPorTexto(page, "Procesar")).toBeVisible();
   await elementoPorTexto(page, "Entrada").click();
@@ -47,7 +47,7 @@ test("camino Conectar por boton muestra tip de anchor antes de elegir destino", 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloConexionAnchor(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await elementoPorTexto(page, "Entrada").locator('[joint-selector="body"]').click();
 
   await page.getByTestId("abrir-menu-tipo-enlace").click();
@@ -64,7 +64,7 @@ test("teclado conecta foco origen y destino mediante MenuTipoEnlace", async ({ p
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloConexionAnchor(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   const entrada = elementoPorTexto(page, "Entrada");
   const procesar = elementoPorTexto(page, "Procesar");
@@ -110,7 +110,7 @@ test("drag desde anchor por hover (sin seleccion) conecta entidad → entidad", 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloConexionAnchor(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(elementoPorTexto(page, "Entrada")).toBeVisible();
 
   // Sin click previo: hover activa los anchors (jointjs.css :hover).
@@ -142,7 +142,7 @@ test("drag desde anchor de estado resuelve el proceso bajo el cursor como destin
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloConexionEstado(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(elementoPorTexto(page, "O")).toBeVisible();
 
   await elementoPorTexto(page, "O").locator('[joint-selector="body"]').hover();

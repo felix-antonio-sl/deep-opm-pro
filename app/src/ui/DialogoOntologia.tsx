@@ -1,12 +1,15 @@
 import { useEffect, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import type { ModoReforzamientoOntologia, TerminoOntologia } from "../modelo/tipos";
+import { deriveKnowledgeIntent, runTutorPolicy } from "../tutor";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
+import { TutorInterventionDetails, mapearLentesTutor } from "./TutorDetails";
 
 export function DialogoOntologia() {
   const abierto = useOpmStore((s) => s.dialogoOntologiaAbierto);
   const ontologia = useOpmStore((s) => s.modelo.ontologia);
+  const lentes = useOpmStore((s) => s.modelo.lentesConocimiento ?? []);
   const cerrar = useOpmStore((s) => s.cerrarDialogoOntologia);
   const guardarOntologia = useOpmStore((s) => s.definirOntologiaOrganizacionalActual);
   const [modo, setModo] = useState<ModoReforzamientoOntologia>(ontologia?.modo ?? "none");
@@ -23,29 +26,37 @@ export function DialogoOntologia() {
   };
   const terminos = parsearTerminos(texto);
   const totalSinonimos = terminos.reduce((total, termino) => total + (termino.sinonimos?.length ?? 0), 0);
+  const intervencionTutor = runTutorPolicy(deriveKnowledgeIntent({
+    intentId: "ontology:edit",
+    focus: "ontology",
+    termCount: terminos.length,
+    automaticConsumerAvailable: false,
+    activeLenses: mapearLentesTutor(lentes),
+  }));
 
   return (
     <Dialogo
       open={abierto}
-      title="Ontología"
+      title="Normalización léxica"
       onCancel={cerrar}
       size="lg"
       testId="dialogo-ontologia"
       actions={(
         <>
           <DialogoAccion onClick={cerrar}>Cancelar</DialogoAccion>
-          <DialogoAccion onClick={() => guardarOntologia(undefined)}>Desactivar</DialogoAccion>
-          <DialogoAccion tono="primaria" onClick={guardar}>Guardar</DialogoAccion>
+          <DialogoAccion tutorEntrypoint="ontology:save" onClick={() => guardarOntologia(undefined)}>Desactivar</DialogoAccion>
+          <DialogoAccion tutorEntrypoint="ontology:save" tono="primaria" onClick={guardar}>Guardar</DialogoAccion>
         </>
       )}
     >
       <div style={formStyles.body}>
+        <TutorInterventionDetails intervention={intervencionTutor} testId="tutor-dialogo-ontologia" />
         <label style={formStyles.field}>
           <span style={formStyles.label}>Modo</span>
           <select style={formStyles.input} value={modo} onChange={(event) => setModo(event.currentTarget.value as ModoReforzamientoOntologia)}>
-            <option value="none">Sin control</option>
-            <option value="suggest">Sugerir canónico</option>
-            <option value="enforce">Reforzar canónico</option>
+            <option value="none">Glosario sin aplicación</option>
+            <option value="suggest">Preferencia canónica registrada</option>
+            <option value="enforce">Control canónico registrado</option>
           </select>
         </label>
         <div style={formStyles.status} data-testid="ontologia-resumen">
@@ -63,7 +74,7 @@ export function DialogoOntologia() {
           />
         </label>
         <p style={formStyles.hint}>
-          Una línea por término: canónico = sinónimo, sinónimo. Sugerir conserva el nombre escrito; reforzar reemplaza el sinónimo por el canónico.
+          Una línea por término: canónico = sinónimo, sinónimo. Los modos quedan registrados en el modelo; esta interfaz todavía no sugiere ni reemplaza nombres automáticamente.
         </p>
       </div>
     </Dialogo>
@@ -92,9 +103,9 @@ function parsearTerminos(texto: string): TerminoOntologia[] {
 }
 
 function etiquetaModo(modo: ModoReforzamientoOntologia): string {
-  if (modo === "suggest") return "Sugerir";
-  if (modo === "enforce") return "Reforzar";
-  return "Sin control";
+  if (modo === "suggest") return "Preferencia registrada";
+  if (modo === "enforce") return "Control registrado";
+  return "Glosario";
 }
 
 const formStyles = {

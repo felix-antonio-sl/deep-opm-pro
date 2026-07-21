@@ -21,6 +21,9 @@ if [ -n "${CAMBIOS_BUILD}" ]; then
 fi
 FECHA="$(date +%Y-%m-%d)"
 
+echo "→ materializando corpus local del tutor desde fuentes vivas"
+bun run --cwd app tutor:corpus
+
 echo "→ desplegando opforja · ${FECHA} · build ${SHA}"
 OPFORJA_BUILD="${SHA}" docker compose up -d --build
 

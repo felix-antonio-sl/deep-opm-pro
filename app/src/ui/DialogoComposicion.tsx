@@ -8,8 +8,10 @@ import { hidratarModelo } from "../serializacion/json";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { useOpmStore } from "../store";
+import { runTutorPolicy } from "../tutor/politica";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
+import { TutorInterventionDetails, mapearLentesTutor } from "./TutorDetails";
 
 export function DialogoComposicion() {
   const persistencia = useZustandPersistencePort();
@@ -24,6 +26,7 @@ export function DialogoComposicion() {
   const [modeloB, setModeloB] = useState<Modelo | null>(null);
   const [errorModelo, setErrorModelo] = useState<string | null>(null);
   const [compartidas, setCompartidas] = useState<Record<Id, Id>>({});
+  const [sugeridas, setSugeridas] = useState<Record<Id, Id>>({});
   // Flags LOCALES al diálogo: antes toggleaban estado global del workspace (afectaba
   // el árbol de toda la app) — efecto secundario sorpresivo desde un modal.
   const [mostrarArchivados, setMostrarArchivados] = useState(false);
@@ -37,6 +40,7 @@ export function DialogoComposicion() {
     setModeloB(null);
     setErrorModelo(null);
     setCompartidas({});
+    setSugeridas({});
     setMostrarArchivados(false);
     setMostrarVersiones(false);
   }, [abierto, persistencia.listarModelosGuardados]);
@@ -59,11 +63,13 @@ export function DialogoComposicion() {
       setModeloB(null);
       setErrorModelo("Cargando modelo desde servidor...");
       setCompartidas({});
+      setSugeridas({});
       void cargarModeloBackend(id).then((cargado) => {
         if (!cargado.ok) {
           setModeloB(null);
           setErrorModelo(cargado.error);
           setCompartidas({});
+          setSugeridas({});
           return;
         }
         const hidratado = hidratarModelo(cargado.value.json);
@@ -71,17 +77,21 @@ export function DialogoComposicion() {
           setModeloB(null);
           setErrorModelo(`No se pudo leer el modelo: ${hidratado.error}`);
           setCompartidas({});
+          setSugeridas({});
           return;
         }
         setModeloB(hidratado.value);
         setErrorModelo(null);
-        setCompartidas(sugerirCompartidasPorInterfaz(modelo, hidratado.value));
+        const coincidencias = sugerirCompartidasPorInterfaz(modelo, hidratado.value);
+        setCompartidas(coincidencias);
+        setSugeridas(coincidencias);
       });
       return;
     }
     setModeloB(null);
     setErrorModelo("Backend de modelos no disponible");
     setCompartidas({});
+    setSugeridas({});
   };
 
   const entidadesA = useMemo(() => ordenarEntidades(modelo), [modelo]);
@@ -92,6 +102,30 @@ export function DialogoComposicion() {
     () => (modeloB ? resumenComposicion(modelo, modeloB, normalizarCompartidas(compartidas, modelo, modeloB)) : null),
     [modelo, modeloB, compartidas],
   );
+  const mappingResolvable = modeloB
+    ? Object.entries(compartidas).every(([bId, aId]) => {
+      const entidadB = modeloB.entidades[bId];
+      const entidadA = modelo.entidades[aId];
+      return !!entidadA && !!entidadB && entidadA.tipo === entidadB.tipo;
+    })
+    : true;
+  const cargandoModelo = errorModelo === "Cargando modelo desde servidor...";
+  const integrityBlocked = !!seleccionado && !cargandoModelo && (
+    (!!errorModelo && !modeloB) || (!!modeloB && !resumen)
+  );
+  const intentIdTutor = `composition:${seleccionadoId ?? "choose"}`;
+  const intervencionTutor = runTutorPolicy({
+    kind: "composition",
+    intentId: intentIdTutor,
+    actionId: "composition:apply",
+    surface: "composition-dialog",
+    interactionMode: "editable",
+    activeLenses: mapearLentesTutor(modelo.lentesConocimiento ?? []),
+    phase: modeloB ? "preflight" : "choice",
+    mappingResolvable,
+    integrityBlocked,
+    linealityConflict: (resumen?.conflictosLineal ?? 0) > 0,
+  }, integrityBlocked ? [{ owner: "product", intentId: intentIdTutor }] : []);
 
   const fijarCompartida = (bId: Id, aId: Id | "") => {
     setCompartidas((actual) => {
@@ -103,7 +137,7 @@ export function DialogoComposicion() {
   };
 
   const guardar = () => {
-    if (!seleccionado) return;
+    if (!seleccionado || !modeloB || !resumen) return;
     componer({ modeloId: seleccionado.id, compartidas: compartirActivas });
   };
 
@@ -117,11 +151,22 @@ export function DialogoComposicion() {
       actions={(
         <>
           <DialogoAccion onClick={cerrar}>Cancelar</DialogoAccion>
-          <DialogoAccion tono="primaria" disabled={!seleccionado || !!errorModelo} onClick={guardar}>Componer</DialogoAccion>
+          <DialogoAccion
+            tono="primaria"
+            tutorEntrypoint="composition:apply"
+            disabled={!seleccionado || !!errorModelo || !modeloB || !resumen || !mappingResolvable || integrityBlocked}
+            onClick={guardar}
+          >
+            Componer
+          </DialogoAccion>
         </>
       )}
     >
       <div style={styles.body}>
+        <TutorInterventionDetails
+          intervention={intervencionTutor}
+          testId="tutor-dialogo-composicion"
+        />
         <div style={styles.flagsBar}>
           <label style={styles.flag}>
             <input type="checkbox" checked={mostrarArchivados} onChange={(event) => setMostrarArchivados(event.currentTarget.checked)} />
@@ -164,12 +209,14 @@ export function DialogoComposicion() {
             <strong style={styles.sectionTitle}>Interfaz compartida</strong>
             <span style={styles.sectionMeta}>{Object.keys(compartirActivas).length} activa{Object.keys(compartirActivas).length === 1 ? "" : "s"}</span>
           </div>
+          {modeloB ? <p style={styles.inPlace}>Origen: «{modeloB.nombre}». Cada coincidencia por nombre y tipo es una sugerencia; confirma que representa lo mismo.</p> : null}
           {resumen ? (
             <div style={resumen.conflictosLineal > 0 ? styles.previewWarn : styles.preview} data-testid="composicion-preview">
               {`Resultado: +${resumen.entidadesNuevas} cosa${resumen.entidadesNuevas === 1 ? "" : "s"}, +${resumen.enlacesNuevos} enlace${resumen.enlacesNuevos === 1 ? "" : "s"} · ${resumen.compartidas} compartida${resumen.compartidas === 1 ? "" : "s"}`}
-              {resumen.conflictosLineal > 0 ? ` · ⚠ ${resumen.conflictosLineal} conflicto${resumen.conflictosLineal === 1 ? "" : "s"} de linealidad` : ""}
+              {resumen.conflictosLineal > 0 ? ` · △ ${resumen.conflictosLineal} mejora${resumen.conflictosLineal === 1 ? "" : "s"} de linealidad; no bloquea` : ""}
             </div>
           ) : null}
+          {modeloB && !resumen ? <div style={styles.error}>La interfaz no produce un modelo íntegro; revisa los mapeos antes de componer.</div> : null}
           {errorModelo ? <div style={styles.error}>{errorModelo}</div> : null}
           {!modeloB && !errorModelo ? <div style={styles.empty}>Selecciona un modelo para revisar la interfaz.</div> : null}
           {modeloB && entidadesB.length > 0 ? (
@@ -179,6 +226,9 @@ export function DialogoComposicion() {
                   <span style={styles.entidadB}>
                     <strong style={styles.nombreEntidad}>{entidadB.nombre}</strong>
                     <span style={styles.tipoEntidad}>{labelTipo(entidadB.tipo)}</span>
+                    {sugeridas[entidadB.id] === compartidas[entidadB.id]
+                      ? <span style={styles.tipoEntidad}>Coincidencia sugerida; confirma que representan lo mismo</span>
+                      : null}
                   </span>
                   <select
                     aria-label={`Compartir ${entidadB.nombre}`}

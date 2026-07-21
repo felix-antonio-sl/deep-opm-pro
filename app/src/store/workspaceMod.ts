@@ -92,7 +92,11 @@ import {
   reposicionarVerticeApariencia,
   reanclarExtremoEnlace as reanclarExtremoEnlaceOp,
 } from "../modelo/enlaceVertices";
-import type { ResumenModeloPersistido } from "../persistencia/modelos";
+import {
+  construirModeloPersistido,
+  resumenDesdeModeloPersistido,
+  type ResumenModeloPersistido,
+} from "../persistencia/modelos";
 import {
   archivarCarpeta as archivarCarpetaEnIndiceOp,
   archivarModelo as archivarModeloEnIndiceOp,
@@ -126,7 +130,13 @@ import {
   pegarCarpeta,
   pegarModelo,
 } from "../persistencia/movimientoModelos";
-import { guardarVersionBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
+import {
+  cargarModeloBackend,
+  confirmarRevisionBackend,
+  guardarVersionBackend,
+  observarBaseRevisionBackend,
+  persistenciaBackendHabilitada,
+} from "../persistencia/backend";
 import { construirVersionPersistible } from "../persistencia/versiones";
 import {
   crearAutosalvado,
@@ -157,6 +167,7 @@ import {
   crearPestanaDesdeModelo,
   crearPestanaNueva,
   duplicarPestana as duplicarPestanaEstado,
+  etiquetaPestana,
   reordenarPestanas as reordenarPestanasEstado,
 } from "./pestanas";
 import {
@@ -182,7 +193,7 @@ import {
 } from "../canvas/operacionesBatch";
 import type { CrearSlice, WorkspaceModSlice } from "./tipos";
 import {
-  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, modelosRecientesDeIndice, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
+  ANCHO_PANEL_ARBOL_DEFAULT, ANCHO_PANEL_ARBOL_MAX, ANCHO_PANEL_ARBOL_MIN, PORTAPAPELES_WORKSPACE_TTL_MS, PREF_MOSTRAR_ARCHIVADOS_KEY, PREF_MOSTRAR_VERSIONES_KEY, activarEstadoPestanas, activarPestanaNueva, aparienciaSeleccionadaActiva, commitModelo, confirmarEliminacionOpd, conBaseRevision, crearIdModeloLocal, entidadNueva, enlaceNuevo, escribirIndiceWorkspace, escribirPreferenciaBooleana, estadoModelo, estadoSeleccionDesdeIds, hermanosOrdenados, leerIndiceWorkspace, leerPreferenciaBooleana, leerPreferenciasMapa, limitar, limitarAnchoPanelArbol, listarModelosGuardadosSeguro, mapaWorkspaceDesdeEstado, marcarSnapshotJson, marcarSnapshotModelo, mergeWorkspaceBootstrap, modelosRecientesDeIndice, observePersistedWorkspace, obtenerAutosalvadoControl, obtenerEstadoStore, opdActivoSeguro, opdDestinoDeAviso, persistirPreferenciasMapa, fijarAutosalvadoControl, resetHistorial, setEstadoStore, sincronizarIndiceConModelosGuardados, actualizarPreferenciasUi, validarSubprocesoTimeline,
   pestanaReemplazable,
   deshacerRuntime,
   rehacerRuntime,
@@ -199,6 +210,14 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
   carpetaActualId: null,
   modelosRecientes: [],
   dialogoGraduarModeloId: null,
+  graduacionDestino: "modelo",
+  graduacionModeloObjetivo: null,
+  graduacionDescripcionObjetivo: "",
+  graduacionRevisionObjetivo: null,
+  graduacionCarpetaObjetivo: null,
+  graduacionEnCurso: false,
+  graduacionError: null,
+  dialogoRolBibliotecaModeloId: null,
 
   crearCarpetaEnActual(nombre) {
     const { indice, carpetaActualId } = get();
@@ -380,15 +399,42 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
 
   toggleBibliotecaModelo(modeloId) {
     const actual = get().indice.modelos.find((modelo) => modelo.id === modeloId);
-    const valor = !(actual?.esBiblioteca ?? false);
-    const indice = marcarBibliotecaEnIndiceOp(get().indice, modeloId, valor);
+    if (!actual) {
+      set({ mensaje: "Modelo no encontrado" });
+      return;
+    }
+    if (actual.esApunte === true) {
+      get().abrirGraduar(modeloId, "biblioteca");
+      return;
+    }
+    set({ dialogoRolBibliotecaModeloId: modeloId, mensaje: null });
+  },
+
+  confirmarRolBiblioteca() {
+    const estado = get();
+    const modeloId = estado.dialogoRolBibliotecaModeloId;
+    if (!modeloId) return;
+    const actual = estado.indice.modelos.find((modelo) => modelo.id === modeloId);
+    if (!actual || actual.esApunte === true) {
+      set({ dialogoRolBibliotecaModeloId: null, mensaje: "El rol del modelo cambió; revisa antes de confirmar." });
+      return;
+    }
+    const valor = actual.esBiblioteca !== true;
+    const indice = marcarBibliotecaEnIndiceOp(estado.indice, modeloId, valor);
     escribirIndiceWorkspace(indice);
     const modelosGuardados = modelosGuardadosWorkspace(get);
     set({
+      dialogoRolBibliotecaModeloId: null,
       indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice),
       modelosGuardados,
-      mensaje: valor ? "Modelo marcado como biblioteca" : "Modelo quitado de bibliotecas",
+      mensaje: valor
+        ? "Ahora es Modelo de Biblioteca · el contenido y el rigor no cambiaron"
+        : "Ahora es Modelo de Trabajo · no volvió a Apunte",
     });
+  },
+
+  cancelarRolBiblioteca() {
+    set({ dialogoRolBibliotecaModeloId: null, mensaje: null });
   },
 
   // Modo apunte — gemelo de `toggleBibliotecaModelo`. Marca/desmarca la especie
@@ -411,34 +457,274 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
   // «Momento de graduación» (diseño §3). Abre/cierra el diálogo que pide el
   // nombre definitivo + carpeta y muestra la validez ahora EXIGIBLE (los avisos
   // que en apunte estaban en observación). El id es el del apunte a graduar.
-  abrirGraduar(modeloId) {
-    set({ dialogoGraduarModeloId: modeloId, mensaje: null });
+  abrirGraduar(modeloId, destino = "modelo") {
+    const estado = get();
+    const entrada = estado.indice.modelos.find((modelo) => modelo.id === modeloId);
+    if (entrada?.esApunte !== true) {
+      set({ mensaje: "El modelo ya no es un Apunte" });
+      return;
+    }
+    const activo = estado.modeloPersistidoId === modeloId && estado.modelo.id === modeloId;
+    const base = {
+      dialogoGraduarModeloId: modeloId,
+      graduacionDestino: destino,
+      graduacionModeloObjetivo: activo ? estado.modelo : null,
+      graduacionDescripcionObjetivo: activo ? estado.descripcionModeloLocal : "",
+      graduacionRevisionObjetivo: activo ? (estado.revisionBasePorModelo[modeloId] ?? null) : null,
+      graduacionCarpetaObjetivo: entrada.carpetaId,
+      graduacionEnCurso: !activo,
+      graduacionError: null,
+      mensaje: null,
+    } as const;
+    set(base);
+    if (activo) return;
+    if (!persistenciaBackendHabilitada()) {
+      set({
+        graduacionEnCurso: false,
+        graduacionError: "No se pudo preparar la transición · Persistencia backend no disponible",
+      });
+      return;
+    }
+    const sessionEpoch = captureSessionEpoch();
+    void cargarModeloBackend(modeloId).then((cargado) => {
+      if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin || get().dialogoGraduarModeloId !== modeloId) return;
+      if (!cargado.ok) {
+        set({
+          graduacionEnCurso: false,
+          graduacionError: `No se pudo preparar la transición · ${cargado.error}`,
+        });
+        return;
+      }
+      const hidratado = hidratarModelo(cargado.value.json);
+      if (!hidratado.ok || typeof cargado.value.revision !== "number") {
+        set({
+          graduacionEnCurso: false,
+          graduacionError: !hidratado.ok
+            ? `No se pudo preparar la transición · ${hidratado.error}`
+            : "No se pudo preparar la transición · Revisión base ausente",
+        });
+        return;
+      }
+      set({
+        graduacionModeloObjetivo: hidratado.value,
+        graduacionDescripcionObjetivo: cargado.value.descripcion,
+        graduacionRevisionObjetivo: cargado.value.revision,
+        graduacionCarpetaObjetivo: cargado.value.carpetaId ?? null,
+        graduacionEnCurso: false,
+        graduacionError: null,
+      });
+    });
   },
 
   cerrarGraduar() {
-    set({ dialogoGraduarModeloId: null });
+    if (get().graduacionEnCurso && get().graduacionModeloObjetivo) return;
+    set({
+      dialogoGraduarModeloId: null,
+      graduacionDestino: "modelo",
+      graduacionModeloObjetivo: null,
+      graduacionDescripcionObjetivo: "",
+      graduacionRevisionObjetivo: null,
+      graduacionCarpetaObjetivo: null,
+      graduacionError: null,
+    });
   },
 
-  // Gradúa el apunte: (1) mueve a la carpeta elegida; (2) desmarca la especie
-  // apunte (esApunte off en el índice — la cinta desaparece); (3) renombra si
-  // cambió (sólo el modelo activo tiene renombrado por id). Orden: los ops SÍNCRONOS
-  // de índice primero, el renombrado ASÍNCRONO al final para que su `.then` lea el
-  // índice ya graduado. `esApunte` vive sólo en el índice, así que el toggle basta.
+  // La graduación cruza el endpoint de revisión atómica: nombre/documento,
+  // versión, destino y especie se confirman juntos en servidor. El store no
+  // publica ningún cambio local hasta recibir ese recibo.
   confirmarGraduacion(input) {
     const estado = get();
-    const { modeloId, carpetaId } = input;
     const nombreLimpio = input.nombre.trim();
-    const carpetaActual = estado.indice.modelos.find((m) => m.id === modeloId)?.carpetaId ?? null;
-    if (carpetaId !== carpetaActual) {
-      get().moverModeloACarpetaEnIndice(modeloId, carpetaId);
+    const fallarAntesDePersistir = (causa: string) => {
+      set({
+        graduacionEnCurso: false,
+        graduacionError: `No se pudo graduar · ${causa} · Reintentar`,
+        mensaje: null,
+      });
+    };
+    if (estado.graduacionEnCurso) return;
+    if (!nombreLimpio) {
+      fallarAntesDePersistir("El nombre no puede quedar vacío");
+      return;
     }
-    const entrada = get().indice.modelos.find((m) => m.id === modeloId);
-    if (entrada?.esApunte) get().toggleApunteModelo(modeloId);
-    const esActivo = estado.modeloPersistidoId === modeloId;
-    if (esActivo && nombreLimpio && nombreLimpio !== estado.modelo.nombre) {
-      get().renombrarModeloActual(nombreLimpio);
+    const modeloInicial = estado.graduacionModeloObjetivo;
+    if (!modeloInicial || modeloInicial.id !== input.modeloId) {
+      fallarAntesDePersistir("El Apunte no está preparado");
+      return;
     }
-    set({ dialogoGraduarModeloId: null });
+    const entrada = estado.indice.modelos.find((modelo) => modelo.id === input.modeloId);
+    if (entrada?.esApunte !== true) {
+      fallarAntesDePersistir("El modelo ya no es un Apunte");
+      return;
+    }
+    const validacionNombre = validarNombreModeloLocal(
+      nombreLimpio,
+      estado.modelosGuardados,
+      input.modeloId,
+    );
+    if (!validacionNombre.ok) {
+      fallarAntesDePersistir(validacionNombre.error ?? "Nombre de modelo inválido");
+      return;
+    }
+    const baseRevision = estado.graduacionRevisionObjetivo;
+    if (typeof baseRevision !== "number") {
+      fallarAntesDePersistir("Recarga el Apunte para fijar su revisión base");
+      return;
+    }
+    if (!persistenciaBackendHabilitada()) {
+      fallarAntesDePersistir("Persistencia backend no disponible");
+      return;
+    }
+
+    const sessionEpoch = captureSessionEpoch();
+    const pestanaOrigenId = estado.pestanasAbiertas.find((pestana) => pestana.modeloId === input.modeloId)?.id ?? null;
+    const indiceInicial = estado.indice;
+    const descripcionInicial = estado.graduacionDescripcionObjetivo;
+    const destinoGraduacion = estado.graduacionDestino;
+    const modeloCandidato: Modelo = { ...modeloInicial, nombre: validacionNombre.nombre };
+    set({
+      graduacionEnCurso: true,
+      graduacionError: null,
+      mensaje: destinoGraduacion === "biblioteca" ? "Graduando y marcando Biblioteca…" : "Graduando Apunte…",
+    });
+
+    void (async () => {
+      const base = await observarBaseRevisionBackend(input.modeloId, baseRevision);
+      if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
+      if (!base.ok) {
+        fallarAntesDePersistir(base.error);
+        return;
+      }
+      const persistido = construirModeloPersistido({
+        id: input.modeloId,
+        nombre: validacionNombre.nombre,
+        descripcion: descripcionInicial,
+        json: exportarModelo(modeloCandidato, input.carpetaId),
+        autosalvado: false,
+        revision: baseRevision,
+        carpetaId: input.carpetaId,
+      }, base.value.model);
+      const version = construirVersionPersistible(modeloCandidato, {
+        nombre: destinoGraduacion === "biblioteca" ? "Graduación a Modelo de Biblioteca" : "Graduación a Modelo",
+        descripcion: destinoGraduacion === "biblioteca"
+          ? "Snapshot confirmado al graduar el Apunte y cambiar su rol"
+          : "Snapshot confirmado al graduar el Apunte",
+      });
+      const resultado = await confirmarRevisionBackend({
+        model: persistido,
+        version: version.version,
+        base: { kind: "existing", witness: base.value.witness },
+        graduation: {
+          kind: "graduate",
+          folderId: input.carpetaId,
+          role: destinoGraduacion === "biblioteca" ? "library" : "work",
+        },
+        confirmedByOperator: true,
+      });
+      if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
+      if (!resultado.ok) {
+        fallarAntesDePersistir(resultado.error);
+        return;
+      }
+
+      observePersistedWorkspace(resultado.value.workspace);
+      const actual = get();
+      const indice = mergeWorkspaceBootstrap(
+        resultado.value.workspace.indice,
+        indiceInicial,
+        actual.indice,
+      );
+      const entradaConfirmada = indice.modelos.find((modelo) => modelo.id === input.modeloId);
+      const resumen = {
+        ...resumenDesdeModeloPersistido(resultado.value.model),
+        ...(entradaConfirmada?.versiones ? { versiones: entradaConfirmada.versiones } : {}),
+      };
+      const modelosGuardados = [
+        resumen,
+        ...actual.modelosGuardados.filter((modelo) => modelo.id !== input.modeloId),
+      ].sort((a, b) => b.actualizadoEn.localeCompare(a.actualizadoEn));
+      const revisionBasePorModelo = conBaseRevision(
+        actual.revisionBasePorModelo,
+        input.modeloId,
+        resultado.value.model.revision,
+      );
+      const pestanaOrigen = pestanaOrigenId
+        ? actual.pestanasAbiertas.find((pestana) => pestana.id === pestanaOrigenId)
+        : undefined;
+      const origenSigueActivo = pestanaOrigenId !== null && actual.pestanaActivaId === pestanaOrigenId &&
+        actual.modeloPersistidoId === input.modeloId;
+      const modeloVivoBase = origenSigueActivo ? actual.modelo : pestanaOrigen?.modelo;
+      const modeloVivo = modeloVivoBase
+        ? { ...modeloVivoBase, nombre: validacionNombre.nombre }
+        : modeloCandidato;
+      const huboCambiosPosteriores = Boolean(modeloVivoBase) &&
+        exportarModelo(modeloVivoBase!) !== exportarModelo(modeloInicial);
+      const snapshotConfirmado = exportarModelo(modeloCandidato);
+      const especieRecibo = destinoGraduacion === "biblioteca" ? "Modelo de Biblioteca" : "Modelo";
+      const recibo = input.bloqueos === 0 && input.mejoras === 0
+        ? `Ahora es ${especieRecibo} · sin pendientes de cierre`
+        : `Ahora es ${especieRecibo} · ${input.bloqueos} bloqueos · ${input.mejoras} mejoras`;
+
+      if (!origenSigueActivo) {
+        set({
+          pestanasAbiertas: actual.pestanasAbiertas.map((pestana) =>
+            pestanaOrigenId !== null && pestana.id === pestanaOrigenId
+              ? {
+                  ...pestana,
+                  modelo: modeloVivo,
+                  etiqueta: etiquetaPestana({ nombre: modeloVivo.nombre, modeloId: input.modeloId }),
+                  dirty: huboCambiosPosteriores,
+                  snapshotJson: snapshotConfirmado,
+                }
+              : pestana
+          ),
+          indice,
+          modelosGuardados,
+          revisionBasePorModelo,
+          dialogoGraduarModeloId: null,
+          graduacionDestino: "modelo",
+          graduacionModeloObjetivo: null,
+          graduacionDescripcionObjetivo: "",
+          graduacionRevisionObjetivo: null,
+          graduacionCarpetaObjetivo: null,
+          graduacionEnCurso: false,
+          graduacionError: null,
+          mensaje: recibo,
+        });
+        return;
+      }
+
+      marcarSnapshotModelo(modeloCandidato);
+      const parcial = estadoModelo(modeloVivo, {
+        dirty: huboCambiosPosteriores,
+        dirtyModelo: huboCambiosPosteriores ? actual.dirtyModelo : false,
+        indice,
+        modelosGuardados,
+        revisionBasePorModelo,
+        carpetaActualId: input.carpetaId,
+        workspaceLocal: workspaceDesdeModelo(
+          modeloVivo,
+          input.modeloId,
+          actual.descripcionModeloLocal,
+          input.carpetaId,
+        ),
+        dialogoGraduarModeloId: null,
+        graduacionDestino: "modelo",
+        graduacionModeloObjetivo: null,
+        graduacionDescripcionObjetivo: "",
+        graduacionRevisionObjetivo: null,
+        graduacionCarpetaObjetivo: null,
+        graduacionEnCurso: false,
+        graduacionError: null,
+        mensaje: recibo,
+      });
+      const pestanasAbiertas = (parcial.pestanasAbiertas ?? actual.pestanasAbiertas).map((pestana) =>
+        pestanaOrigenId !== null && pestana.id === pestanaOrigenId
+          ? { ...pestana, snapshotJson: snapshotConfirmado }
+          : pestana
+      );
+      set({ ...parcial, pestanasAbiertas });
+    })();
   },
 
   archivarCarpetaPorId(carpetaId) {
@@ -474,23 +760,29 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
   },
 
   async crearVersionAhora(opts) {
+    const operation = "version-create" as const;
     const { modelo, modeloPersistidoId } = get();
     const sessionEpoch = captureSessionEpoch();
     const pestanaOrigenId = get().pestanaActivaId;
     if (!modeloPersistidoId) {
-      set({ mensaje: "Guarda el modelo antes de versionarlo" });
-      return false;
+      const error = "Guarda el modelo antes de versionarlo";
+      set({ mensaje: error });
+      return { ok: false, operation, error };
     }
     if (!persistenciaBackendHabilitada()) {
-      set({ mensaje: "Backend de modelos no disponible" });
-      return false;
+      const error = "Backend de modelos no disponible";
+      set({ mensaje: error });
+      return { ok: false, operation, error };
     }
     const persistible = construirVersionPersistible(modelo, opts);
     const guardada = await guardarVersionBackend(modeloPersistidoId, persistible.version, persistible.json);
-    if (!versionOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, modeloPersistidoId)) return false;
+    if (!versionOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, modeloPersistidoId)) {
+      return { ok: false, operation, error: "El contexto cambió antes de completar la versión" };
+    }
     if (!guardada.ok) {
-      set({ mensaje: `No se pudo guardar versión en servidor: ${guardada.error}` });
-      return false;
+      const error = `No se pudo guardar versión en servidor: ${guardada.error}`;
+      set({ mensaje: error });
+      return { ok: false, operation, error };
     }
     const versionResumen = guardada.value.version;
     try {
@@ -508,12 +800,19 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
         modelosGuardados: modelosGuardadosWorkspace(get).map((item) =>
           item.id === modeloPersistidoId ? { ...item, versiones } : item,
         ),
-        mensaje: "Versión creada",
+        mensaje: opts?.feedback === "receipt" ? null : "Versión creada",
       });
-      return true;
+      return {
+        ok: true,
+        operation,
+        resultId: versionResumen.id,
+        modelId: modeloPersistidoId,
+        versionId: versionResumen.id,
+      };
     } catch (error) {
-      set({ mensaje: error instanceof Error ? error.message : "No se pudo crear versión" });
-      return false;
+      const detail = error instanceof Error ? error.message : "No se pudo crear versión";
+      set({ mensaje: detail });
+      return { ok: false, operation, error: detail };
     }
   }
 });

@@ -7,6 +7,7 @@ import {
   emitirEventoBugCapture,
 } from "../app/bugCapture";
 import { useCommandPaletteViewModel } from "../app/viewmodels/commandPaletteViewModel";
+import type { LenteConocimiento } from "../modelo/tipos";
 import type { AccionContextual, AccionContextualId } from "../store/acciones-contextuales";
 import { accionesContextualesEntidad, accionesParaSuperficie } from "../store/acciones-contextuales";
 import { listarAtajos, type RegistroAtajo } from "./atajosTeclado";
@@ -29,6 +30,19 @@ import {
 import { ejecutarAccionContextualEntidad } from "./ejecutarAccionContextual";
 import { tokens } from "./tokens";
 import { etiquetaModoGlobal, siguienteModoGlobal } from "./toolbar/toolbarStyles";
+import { deriveKnowledgeIntent, deriveViewIntent } from "../tutor/adaptadores";
+import {
+  resolveTutorContent,
+  searchTutorContent,
+  type ResolvedTutorContent,
+} from "../tutor/contenidos";
+import {
+  resolveTutorSourceDocument,
+  resolveTutorSourceRef,
+  searchTutorSources,
+} from "../tutor/fuentes";
+import { runTutorPolicy } from "../tutor/politica";
+import type { KnowledgeLens, TutorContentId, TutorSourceId } from "../tutor/tipos";
 
 interface Props {
   abierto: boolean;
@@ -37,7 +51,7 @@ interface Props {
 
 export interface CommandPaletteItem {
   id: string;
-  tipo: "atajo" | "accion-contextual" | "accion-menu";
+  tipo: "atajo" | "accion-contextual" | "accion-menu" | "referencia-tutor";
   label: string;
   descripcion: string;
   categoria: string;
@@ -46,6 +60,8 @@ export interface CommandPaletteItem {
   registroIndex?: number;
   accionId?: AccionContextualId;
   menuActionId?: string;
+  tutorContentId?: TutorContentId;
+  tutorSourceId?: TutorSourceId;
   frecuenciaUso: number;
 }
 
@@ -247,13 +263,52 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     hayEnlaceSeleccionado: !!enlaceSeleccionId,
   });
   const registros = listarAtajos();
-  const items = filtrarItemsCommandPalette(
+  const itemsComando = filtrarItemsCommandPalette(
     construirItemsCommandPalette(registros, accionesContextuales, accionesMenu, frecuenciaUso),
     query,
-  ).slice(0, query.trim() ? 12 : 60);
+  );
+  const lentesTutor = mapearLentesTutor(modelo.lentesConocimiento ?? []);
+  const items = query.trim()
+    ? combinarResultadosCommandPalette(
+        itemsComando,
+        construirItemsTutorCommandPalette(query, lentesTutor),
+        12,
+      )
+    : itemsComando.slice(0, 60);
   const grupos = gruposCommandPaletteParaRender(items, query);
   const indicePorItemId = new Map(items.map((item, index) => [item.id, index]));
   const itemActivo = items[activo] ?? items[0] ?? null;
+  const contenidoTutorActivo = itemActivo?.tutorContentId
+    ? resolveTutorContent(itemActivo.tutorContentId, lentesTutor)
+    : null;
+  const fuenteTutorActiva = itemActivo?.tutorSourceId
+    ? resolveTutorSourceDocument(itemActivo.tutorSourceId)
+    : null;
+  const intervencionPalette = itemActivo?.tipo === "referencia-tutor"
+    ? runTutorPolicy(deriveViewIntent({
+        intentId: `discovery:${query.trim()}`,
+        focus: "discovery",
+        query,
+        contentMatches: items.filter((item) => !!item.tutorContentId).length,
+        sourceMatches: items.filter((item) => !!item.tutorSourceId).length,
+        activeLenses: lentesTutor,
+      }))
+    : itemActivo?.menuActionId === "copiar-contexto-skill" || itemActivo?.menuActionId === "copiar-log-decisiones"
+      ? runTutorPolicy(deriveKnowledgeIntent({
+          intentId: `handoff:${itemActivo.menuActionId}`,
+          focus: "handoff",
+          payloadReady: true,
+          activeLenses: lentesTutor,
+        }))
+      : itemActivo?.menuActionId === "buscar-modelo"
+        ? runTutorPolicy(deriveViewIntent({
+            intentId: `navigation:${itemActivo.menuActionId}:${query.trim()}`,
+            focus: "navigation",
+            query,
+            resultCount: itemsComando.length,
+            activeLenses: lentesTutor,
+          }))
+        : null;
 
   useLayoutEffect(() => {
     if (!abierto) return;
@@ -284,6 +339,16 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const ejecutar = (item: CommandPaletteItem | null) => {
     if (!item) return;
     registrarUsoCommandPalette(item.id);
+    if (item.tipo === "referencia-tutor") {
+      const href = fuenteTutorActiva?.href ?? (
+        contenidoTutorActivo ? resolverReferenciasContenidoTutor(contenidoTutorActivo)[0]?.href : null
+      );
+      if (href) {
+        window.open(href, "_blank", "noopener,noreferrer");
+        onCerrar();
+      }
+      return;
+    }
     if (item.tipo === "atajo") {
       const registro = item.registroIndex !== undefined ? registros[item.registroIndex] : undefined;
       registro?.handler(new KeyboardEvent("keydown"));
@@ -329,6 +394,10 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
       aria-modal="true"
       aria-label="Comandos"
       data-testid="command-palette"
+      {...(intervencionPalette ? {
+        "data-tutor-policy-kind": intervencionPalette.kind,
+        ...(intervencionPalette.kind === "silent" ? {} : { "data-tutor-policy-action": intervencionPalette.actionId }),
+      } : {})}
       data-ifml-stereotype="Modal"
       data-ifml-modal="true"
       style={style.backdrop}
@@ -383,6 +452,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
                       role="option"
                       aria-selected={seleccionado}
                       data-testid={`command-palette-item-${item.id}`}
+                      {...(item.menuActionId ? { "data-tutor-entrypoint": `palette:${item.menuActionId}` } : {})}
                       style={seleccionado ? style.itemActivo : style.item}
                       onMouseEnter={() => setActivo(index)}
                       onClick={() => ejecutar(item)}
@@ -403,10 +473,51 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
             </section>
           ))}
         </div>
+        {contenidoTutorActivo ? (
+          <aside
+            aria-label="Referencia contextual de opforja"
+            data-testid="command-palette-tutor-preview"
+            style={style.tutorPreview}
+          >
+            <div style={style.tutorMomento}>{contenidoTutorActivo.moment}</div>
+            <div style={style.tutorAhora}>{contenidoTutorActivo.now}</div>
+            <div style={style.tutorCriterio}><strong>Criterio:</strong> {contenidoTutorActivo.criterion}</div>
+            {contenidoTutorActivo.lensDetails.map((detalle) => (
+              <div key={detalle.lens} style={style.tutorLente}>
+                <strong>{rotuloLenteTutor(detalle.lens)}:</strong> {detalle.criterion}
+              </div>
+            ))}
+            <div style={style.tutorFuentes}>
+              {resolverReferenciasContenidoTutor(contenidoTutorActivo).map((resuelta) => (
+                <a
+                  key={`${resuelta.source.sourceId}:${resuelta.anchor.id}`}
+                  href={resuelta.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={style.tutorFuente}
+                >
+                  {resuelta.source.title} · {resuelta.anchor.label}
+                </a>
+              ))}
+            </div>
+          </aside>
+        ) : fuenteTutorActiva ? (
+          <aside
+            aria-label="Fuente local de opforja"
+            data-testid="command-palette-tutor-preview"
+            style={style.tutorPreview}
+          >
+            <div style={style.tutorMomento}>{fuenteTutorActiva.source.title}</div>
+            <div style={style.tutorAhora}>{fuenteTutorActiva.source.locator}</div>
+            <div style={style.tutorCriterio}>
+              <strong>Secciones:</strong> {fuenteTutorActiva.source.anchors.slice(0, 4).map((anchor) => anchor.label).join(" · ")}
+            </div>
+          </aside>
+        ) : null}
         <footer style={style.footer}>
           <span>{GLIFO_NAV_UP}{GLIFO_NAV_DOWN} navegar</span>
           <span style={style.footerSep}>{GLIFO_SEP}</span>
-          <span>{GLIFO_ENTER} ejecutar</span>
+          <span>{GLIFO_ENTER} {contenidoTutorActivo || fuenteTutorActiva ? "ver referencia" : "ejecutar"}</span>
           <span style={style.footerSep}>{GLIFO_SEP}</span>
           <span>esc cerrar</span>
         </footer>
@@ -494,6 +605,96 @@ export function construirItemsCommandPalette(
   });
 }
 
+export function construirItemsTutorCommandPalette(
+  query: string,
+  lentes: readonly KnowledgeLens[],
+): CommandPaletteItem[] {
+  if (!query.trim()) return [];
+  const contenidos = searchTutorContent(query, lentes).map((contenido) => ({
+    id: `tutor-${contenido.contentId}`,
+    tipo: "referencia-tutor" as const,
+    label: `Referencia · ${contenido.moment}`,
+    descripcion: contenido.now,
+    categoria: "referencia",
+    tutorContentId: contenido.contentId,
+    textoBusqueda: textoBusqueda([
+      contenido.moment,
+      contenido.now,
+      contenido.criterion,
+      ...contenido.lensDetails.map((detalle) => detalle.criterion),
+    ]),
+    frecuenciaUso: 0,
+  }));
+  const fuentes = searchTutorSources(query).map((source) => ({
+    id: `tutor-${source.sourceId}`,
+    tipo: "referencia-tutor" as const,
+    label: `Fuente · ${source.title}`,
+    descripcion: source.locator,
+    categoria: "referencia",
+    tutorSourceId: source.sourceId,
+    textoBusqueda: textoBusqueda([
+      source.title,
+      source.locator,
+      source.sourceId,
+      ...source.anchors.flatMap((anchor) => [anchor.label, anchor.heading]),
+    ]),
+    frecuenciaUso: 0,
+  }));
+  const consulta = normalizarTextoBusqueda(query);
+  const fuentesExactas = fuentes.filter((item) =>
+    normalizarTextoBusqueda(item.label).includes(consulta) ||
+    normalizarTextoBusqueda(item.descripcion).includes(consulta)
+  );
+  const idsExactos = new Set(fuentesExactas.map((item) => item.id));
+  return [
+    ...fuentesExactas,
+    ...contenidos,
+    ...fuentes.filter((item) => !idsExactos.has(item.id)),
+  ];
+}
+
+export function combinarResultadosCommandPalette(
+  comandos: readonly CommandPaletteItem[],
+  referencias: readonly CommandPaletteItem[],
+  limite: number,
+): CommandPaletteItem[] {
+  if (limite <= 0) return [];
+  const cupoReferencias = Math.min(3, referencias.length, limite);
+  return [
+    ...comandos.slice(0, limite - cupoReferencias),
+    ...referencias.slice(0, cupoReferencias),
+  ];
+}
+
+function resolverReferenciasContenidoTutor(contenido: ResolvedTutorContent) {
+  const refs = [
+    ...contenido.sourceRefs,
+    ...contenido.lensDetails.flatMap((detalle) => detalle.sourceRefs),
+  ];
+  return refs
+    .filter((ref, index, todas) =>
+      todas.findIndex((otra) => otra.sourceId === ref.sourceId && otra.anchor === ref.anchor) === index
+    )
+    .flatMap((ref) => {
+      const resuelta = resolveTutorSourceRef(ref);
+      return resuelta ? [resuelta] : [];
+    });
+}
+
+function mapearLentesTutor(lentes: readonly LenteConocimiento[]): KnowledgeLens[] {
+  return lentes.map((lente) => {
+    if (lente === "sistemas") return "systems";
+    if (lente === "salud") return "health";
+    return "software";
+  });
+}
+
+function rotuloLenteTutor(lente: KnowledgeLens): string {
+  if (lente === "systems") return "Sistemas";
+  if (lente === "health") return "Salud";
+  return "Software";
+}
+
 function claveAtajoPalette(combo: string, label: string): string {
   return `${combo}|${normalizarTextoBusqueda(label)}`;
 }
@@ -572,7 +773,7 @@ export function construirAccionesMenuCommandPalette(deps: AccionesMenuCommandPal
     { id: "guardar-como", label: "Guardar como", descripcion: "Guardar una copia editable del modelo", categoria: "archivo", run: deps.abrirGuardarComo },
     { id: "abrir-pestana", label: "Abrir como pestaña", descripcion: "Duplicar el modelo actual en una pestaña adicional", categoria: "archivo", atajo: "Ctrl+T", run: deps.abrirPestanaNueva },
     { id: "configuracion", label: "Configuración", descripcion: "Renombrar el modelo, ajustar preferencias y cuadrícula", categoria: "archivo", run: deps.abrirDialogoConfiguracion },
-    { id: "configurar-ontologia", label: "Configurar ontología", descripcion: "Editar términos canónicos, sinónimos y modo de control", categoria: "archivo", run: deps.abrirDialogoOntologia },
+    { id: "configurar-ontologia", label: "Normalización léxica", descripcion: "Registrar términos canónicos y sinónimos de la ontología organizacional", categoria: "archivo", run: deps.abrirDialogoOntologia },
     { id: "versiones-modelo", label: "Versiones del modelo", descripcion: "Abrir el historial de versiones del modelo", categoria: "archivo", enabled: !!deps.abrirDialogoVersiones, run: deps.abrirDialogoVersiones ?? (() => {}) },
     { id: "crear-requisito", label: deps.hayEntidadSeleccionada || deps.hayEnlaceSeleccionado ? "Crear requisito vinculado" : "Crear requisito", descripcion: "Crea un requisito visible y navegable en el modelo", categoria: "edicion", run: deps.abrirCrearRequisito },
     { id: "marcar-requisito", label: "Marcar como requisito", descripcion: "Convierte el objeto seleccionado en un requisito", categoria: "edicion", enabled: deps.hayEntidadSeleccionada, run: deps.abrirMarcarRequisito },
@@ -740,7 +941,7 @@ const style = {
     width: "min(760px, calc(100vw - 32px))",
     maxHeight: "min(620px, calc(100vh - 120px))",
     display: "grid",
-    gridTemplateRows: "auto minmax(0, 1fr) auto",
+    gridTemplateRows: "auto minmax(0, 1fr) auto auto",
     border: `1px solid ${tokens.colors.ruleStrong}`,
     background: tokens.colors.paper,
     color: tokens.colors.ink,
@@ -881,6 +1082,51 @@ const style = {
     letterSpacing: tokens.typography.ls.kbd,
   },
   categoria: { color: tokens.colors.inkSoft, fontFamily: tokens.typography.sans, fontSize: `${tokens.typography.fs.fs9}px`, fontWeight: tokens.typography.weights.regular, textTransform: "uppercase", letterSpacing: tokens.typography.ls.mark },
+  tutorPreview: {
+    display: "grid",
+    gap: "6px",
+    padding: "14px 22px",
+    borderTop: `1px solid ${tokens.colors.rule}`,
+    background: tokens.colors.paperWarm,
+    maxHeight: "190px",
+    overflowY: "auto",
+  },
+  tutorMomento: {
+    color: tokens.colors.crimson,
+    fontFamily: tokens.typography.sans,
+    fontSize: `${tokens.typography.fs.fs10}px`,
+    fontWeight: tokens.typography.weights.semibold,
+    letterSpacing: tokens.typography.ls.section,
+    textTransform: "uppercase",
+  },
+  tutorAhora: {
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs14}px`,
+  },
+  tutorCriterio: {
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.sans,
+    fontSize: `${tokens.typography.fs.fs11}px`,
+  },
+  tutorLente: {
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.sans,
+    fontSize: `${tokens.typography.fs.fs11}px`,
+  },
+  tutorFuentes: {
+    display: "grid",
+    gap: "2px",
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.mono,
+    fontSize: `${tokens.typography.fs.fs9}px`,
+    overflowWrap: "anywhere",
+  },
+  tutorFuente: {
+    color: tokens.colors.inkSoft,
+    textDecoration: "underline",
+    textUnderlineOffset: "2px",
+  },
   footer: {
     minHeight: "38px",
     display: "inline-flex",

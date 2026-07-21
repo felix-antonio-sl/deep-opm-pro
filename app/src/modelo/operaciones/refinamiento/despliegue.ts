@@ -34,6 +34,10 @@ export interface DespliegueObjeto {
   modo: ModoDespliegueObjeto;
 }
 
+export interface OpcionesDespliegue {
+  preguntaGuia?: string;
+}
+
 // BUG-372334: en despliegue (unfold) el padre OPM va en su tamaño normal y las
 // partes se posicionan FUERA, debajo, conectadas por enlaces estructurales con
 // markers canonicos (triangulo agregacion, etc.). Inzoom (descomposicion) es
@@ -67,6 +71,7 @@ export function desplegarObjeto(
   opdPadreId: Id,
   objetoId: Id,
   modo: ModoDespliegueObjeto = "agregacion",
+  opciones: OpcionesDespliegue = {},
 ): Resultado<DespliegueObjeto> {
   const opdPadre = modelo.opds[opdPadreId];
   if (!opdPadre) return fallo(`OPD no existe: ${opdPadreId}`);
@@ -141,6 +146,7 @@ export function desplegarObjeto(
     opdHijoId,
     tipo: "despliegue",
     modo,
+    ...(opciones.preguntaGuia !== undefined ? { preguntaGuia: opciones.preguntaGuia } : {}),
   });
   if (!enlazado.ok) return fallo(enlazado.error);
   return ok({ modelo: enlazado.value, opdId: opdHijoId, creado: true, modo });

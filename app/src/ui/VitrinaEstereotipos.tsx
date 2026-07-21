@@ -25,8 +25,10 @@ import type { Entidad, Estado, Estereotipo, Modelo, TipoEntidad } from "../model
 import { listarBibliotecas } from "../persistencia/workspace";
 import { cargarModeloBackend } from "../persistencia/backend";
 import { hidratarModelo } from "../serializacion/json";
+import { deriveReuseIntent, runTutorPolicy } from "../tutor";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
+import { TutorInterventionDetails } from "./TutorDetails";
 
 const GRUPOS: ReadonlyArray<{ clave: keyof GruposEstereotipos; titulo: string }> = [
   { clave: "objetos", titulo: "Objetos" },
@@ -67,6 +69,7 @@ export function VitrinaEstereotipos() {
   const [nombre, setNombre] = useState("");
   const [proposito, setProposito] = useState("");
   const [resaltadoId, setResaltadoId] = useState<string | null>(null);
+  const [eleccionTutor, setEleccionTutor] = useState<"copy" | "anchor" | null>(null);
 
   // Bibliotecas designadas (B1): id del índice cruzado con `modelosGuardados` por nombre.
   const nombrePorId = new Map(modelosGuardados.map((m) => [m.id, m.nombre]));
@@ -85,6 +88,7 @@ export function VitrinaEstereotipos() {
       setNombre("");
       setProposito("");
       setResaltadoId(null);
+      setEleccionTutor(null);
     }
   }, [abierta]);
 
@@ -147,9 +151,13 @@ export function VitrinaEstereotipos() {
   const estadosDePieza = (pieza: Entidad): Estado[] =>
     biblioteca ? Object.values(biblioteca.modelo.estados).filter((s) => s.entidadId === pieza.id) : [];
 
-  const calcar = (pieza: Entidad) => calcarPieza({ entidad: pieza, estados: estadosDePieza(pieza) });
+  const calcar = (pieza: Entidad) => {
+    setEleccionTutor("copy");
+    calcarPieza({ entidad: pieza, estados: estadosDePieza(pieza) });
+  };
   const anclar = (pieza: Entidad) => {
     if (!biblioteca) return;
+    setEleccionTutor("anchor");
     void anclarPieza({
       entidad: pieza,
       estados: estadosDePieza(pieza),
@@ -165,6 +173,14 @@ export function VitrinaEstereotipos() {
     setNombre("");
     setProposito("");
   };
+  const intentIdTutor = `pieces:${fuente}`;
+  const intervencionTutor = runTutorPolicy(deriveReuseIntent({
+    intentId: intentIdTutor,
+    focus: "pieces",
+    originSelected: esLocal || !!biblioteca,
+    anchorAvailable: !!biblioteca,
+    choice: eleccionTutor,
+  }));
 
   return (
     <Dialogo
@@ -175,7 +191,8 @@ export function VitrinaEstereotipos() {
       testId="vitrina-estereotipos"
       actions={<DialogoAccion onClick={cerrar}>Cerrar</DialogoAccion>}
     >
-      <div style={style.body}>
+      <div style={style.body} data-tutor-intent={intentIdTutor}>
+        <TutorInterventionDetails intervention={intervencionTutor} testId="tutor-piezas" />
         <section style={style.fuente} aria-label="Fuente de Piezas">
           <span style={style.fuenteRotulo}>Fuente</span>
           <div style={style.fuenteChips} role="radiogroup" aria-label="Fuente de Piezas">
@@ -195,8 +212,8 @@ export function VitrinaEstereotipos() {
           </div>
           <p style={style.fuenteAyuda} data-testid="piezas-ayuda">
             {esLocal
-              ? "Estereotipos de este modelo. Calcar inserta una copia en el OPD activo."
-              : `De ${nombreFuente}: Calcar trae una copia tuya; Anclar la mantiene vigilada (te avisa si ${nombreFuente} cambia).`}
+              ? "Fuente local seleccionada: estereotipos de este modelo."
+              : `Fuente externa seleccionada: ${nombreFuente}.`}
           </p>
         </section>
 
@@ -224,7 +241,10 @@ export function VitrinaEstereotipos() {
                         estereotipo={estereotipo}
                         resaltado={resaltadoId === estereotipo.id}
                         onResaltar={() => setResaltadoId(estereotipo.id)}
-                        {...(estereotipo.plantilla ? { onCalcar: () => injertar(estereotipo.id) } : {})}
+                        {...(estereotipo.plantilla ? { onCalcar: () => {
+                          setEleccionTutor("copy");
+                          injertar(estereotipo.id);
+                        } } : {})}
                       />
                     ))}
                   </ul>
@@ -353,7 +373,7 @@ function ItemEstereotipo({ estereotipo, resaltado, onResaltar, onCalcar }: ItemE
         ) : null}
       </div>
       {onCalcar ? (
-        <button type="button" onClick={onCalcar} data-testid={`vitrina-injertar-${estereotipo.id}`} style={style.botonCalcar}>
+        <button type="button" onClick={onCalcar} data-tutor-entrypoint="pieces:copy" data-testid={`vitrina-injertar-${estereotipo.id}`} style={style.botonCalcar}>
           Calcar
         </button>
       ) : (
@@ -394,10 +414,10 @@ function ItemPieza({ pieza, resaltado, onResaltar, onCalcar, onAnclar }: ItemPie
         <span style={style.itemProposito}>{subtitulo}</span>
       </div>
       <div style={style.piezaAcciones}>
-        <button type="button" onClick={onCalcar} data-testid={`pieza-calcar-${pieza.id}`} style={style.botonCalcar}>
+        <button type="button" onClick={onCalcar} data-tutor-entrypoint="pieces:copy" data-testid={`pieza-calcar-${pieza.id}`} style={style.botonCalcar}>
           Calcar
         </button>
-        <button type="button" onClick={onAnclar} data-testid={`pieza-anclar-${pieza.id}`} style={style.botonAnclar}>
+        <button type="button" onClick={onAnclar} data-tutor-entrypoint="pieces:anchor" data-testid={`pieza-anclar-${pieza.id}`} style={style.botonAnclar}>
           Anclar
         </button>
       </div>

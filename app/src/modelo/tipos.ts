@@ -73,7 +73,14 @@ export type { OperadorAbanico, PuertoAbanicoExacto, Abanico } from "./tipos/aban
 
 export type { Opd } from "./tipos/opd";
 
-export type { VersionResumen, Modelo } from "./tipos/modelo";
+export type {
+  FichaTrabajo,
+  LenteConocimiento,
+  TipoModelo,
+  VidaUtilModelo,
+  VersionResumen,
+  Modelo,
+} from "./tipos/modelo";
 
 export type {
   ModoReforzamientoOntologia,

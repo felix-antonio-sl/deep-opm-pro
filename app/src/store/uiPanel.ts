@@ -279,6 +279,15 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
 
   moverOpdEnGestion(opdId, nuevoPadreId, posicion) {
     const { modelo } = get();
+    const actual = modelo.opds[opdId];
+    if (!actual) {
+      set({ mensaje: `OPD no existe: ${opdId}` });
+      return;
+    }
+    if (actual.padreId !== nuevoPadreId) {
+      set({ mensaje: "Mover bajo otro padre cambia el refinamiento; usa Adoptar" });
+      return;
+    }
     const resultado = moverNodo(modelo, opdId, nuevoPadreId, posicion);
     if (!resultado.ok) {
       set({ mensaje: resultado.error });

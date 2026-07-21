@@ -16,6 +16,12 @@ describe("ejecutarAccionContextualEntidad", () => {
       kind: "normal",
     });
 
+    expect(store.getState().confirmacionEliminarRefinamiento).toMatchObject({
+      entidadId,
+      tipo: "descomposicion",
+    });
+    expect(store.getState().modelo.entidades[entidadId]?.refinamientos?.descomposicion).toBeDefined();
+    store.getState().confirmarEliminarRefinamiento();
     expect(store.getState().modelo.entidades[entidadId]?.refinamientos?.descomposicion).toBeUndefined();
   });
 
@@ -29,6 +35,12 @@ describe("ejecutarAccionContextualEntidad", () => {
       kind: "normal",
     });
 
+    expect(store.getState().confirmacionEliminarRefinamiento).toMatchObject({
+      entidadId,
+      tipo: "despliegue",
+    });
+    expect(store.getState().modelo.entidades[entidadId]?.refinamientos?.despliegue).toBeDefined();
+    store.getState().confirmarEliminarRefinamiento();
     expect(store.getState().modelo.entidades[entidadId]?.refinamientos?.despliegue).toBeUndefined();
   });
 

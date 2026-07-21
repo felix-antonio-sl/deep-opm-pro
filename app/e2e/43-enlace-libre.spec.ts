@@ -13,7 +13,7 @@ test("R sin selección entra en enlace libre y dos clicks crean el enlace", asyn
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloDosCosas(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(elementoPorTexto(page, "Entrada")).toBeVisible();
   await expect(elementoPorTexto(page, "Procesar")).toBeVisible();
 
@@ -44,7 +44,7 @@ test("Escape en fase elige-origen cancela el enlace libre sin crear nada", async
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloDosCosas(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(elementoPorTexto(page, "Entrada")).toBeVisible();
 
   await page.locator(".joint-paper").click({ position: { x: 6, y: 6 } });

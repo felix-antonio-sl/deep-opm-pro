@@ -23,4 +23,28 @@ describe("slice workspaceMod", () => {
 
     expect(store.getState().mensaje).toBe("Backend de modelos no disponible");
   });
+
+  test("cambiar el rol Biblioteca exige confirmación y quitarlo nunca restaura Apunte", () => {
+    store.setState({
+      indice: {
+        modelos: [{ id: "modelo-rol", carpetaId: null }],
+        carpetas: [],
+        recientes: [],
+      },
+    });
+
+    store.getState().toggleBibliotecaModelo("modelo-rol");
+    expect(store.getState().indice.modelos[0]?.esBiblioteca).toBeUndefined();
+    expect(store.getState().dialogoRolBibliotecaModeloId).toBe("modelo-rol");
+    store.getState().cancelarRolBiblioteca();
+    expect(store.getState().indice.modelos[0]?.esBiblioteca).toBeUndefined();
+
+    store.getState().toggleBibliotecaModelo("modelo-rol");
+    store.getState().confirmarRolBiblioteca();
+    expect(store.getState().indice.modelos[0]?.esBiblioteca).toBe(true);
+
+    store.getState().toggleBibliotecaModelo("modelo-rol");
+    store.getState().confirmarRolBiblioteca();
+    expect(store.getState().indice.modelos[0]).toEqual({ id: "modelo-rol", carpetaId: null });
+  });
 });

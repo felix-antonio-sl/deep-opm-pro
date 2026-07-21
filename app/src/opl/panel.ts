@@ -42,6 +42,31 @@ export interface PanelOplDerivado {
   previewLibre: PrevisualizacionOplReverse | null;
 }
 
+export interface DeltaLineasOpl {
+  lineasCambiadasIds: string[];
+  nuevasOModificadas: number;
+  eliminadas: number;
+}
+
+/** Delta textual exacto del eco OPL. Compara identidad estable + texto; no
+ * interpreta significado ni promete equivalencia entre modelos. */
+export function derivarDeltaLineasOpl(
+  anteriores: readonly Pick<OplLineaInteractiva, "id" | "texto">[],
+  actuales: readonly Pick<OplLineaInteractiva, "id" | "texto">[],
+): DeltaLineasOpl {
+  const previas = new Map(anteriores.map((linea) => [linea.id, linea.texto]));
+  const siguientes = new Map(actuales.map((linea) => [linea.id, linea.texto]));
+  const lineasCambiadasIds = actuales
+    .filter((linea) => previas.get(linea.id) !== linea.texto)
+    .map((linea) => linea.id);
+  const eliminadas = anteriores.filter((linea) => !siguientes.has(linea.id)).length;
+  return {
+    lineasCambiadasIds,
+    nuevasOModificadas: lineasCambiadasIds.length,
+    eliminadas,
+  };
+}
+
 export function derivarPanelOpl(input: DerivarPanelOplInput): PanelOplDerivado {
   const seleccionRef = referenciaSeleccionada(input.seleccionId, input.enlaceSeleccionId);
   const opds = ordenarOpdsParaOpl(input.modelo);

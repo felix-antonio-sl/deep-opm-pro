@@ -167,7 +167,7 @@ async function importarDocumento(page: Page, doc: unknown): Promise<void> {
   const dialogo = await abrirDialogoCargarModelo(page);
   await jsonEditor(page).fill(JSON.stringify(doc, null, 2));
   await expect(dialogo.getByTestId("import-preview")).toBeVisible();
-  await dialogo.getByRole("button", { name: "Importar", exact: true }).click();
+  await dialogo.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(dialogo).toHaveCount(0);
 }
 

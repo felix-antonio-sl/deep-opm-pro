@@ -8,6 +8,7 @@ import { tokens } from "../tokens";
 interface BloquesProps {
   bloques: BloqueOpl[];
   visiblesPorId: Set<string>;
+  lineasConDelta: ReadonlySet<string>;
   opdActivoId: string;
   hoverOplRef: OplReferencia | null;
   seleccionRef: OplReferencia | null;
@@ -71,6 +72,7 @@ function LineaOpl(props: BloquesProps & { linea: OplLineaInteractiva; bloqueOpdI
     props.procesoActivoSimId != null &&
     lineaTocaReferencia(props.linea, { tipo: "entidad", id: props.procesoActivoSimId });
   const esSeleccionada = lineaTocaReferencia(props.linea, props.seleccionRef);
+  const esDeltaTutor = props.lineasConDelta.has(props.linea.id);
   // Composición sim-activa + selección: cuando ambas coinciden, la barra sim
   // (bosque, 4px exterior) envuelve a la barra de selección (cinabrio, 2px
   // interior) y conserva el tinte bosque. No clobbering de una sobre otra.
@@ -97,11 +99,13 @@ function LineaOpl(props: BloquesProps & { linea: OplLineaInteractiva; bloqueOpdI
         "data-testid": "opl-line",
         "data-sim-activa": esProcesoActivoSim ? "true" : undefined,
         "data-opl-ordinal": props.linea.ordinal,
+        "data-opl-delta": esDeltaTutor ? "true" : undefined,
         "data-opd-id": props.bloqueOpdId,
       }}
       estiloContenedor={{
         ...style.linea,
         ...(props.linea.opdId === props.opdActivoId ? style.lineaOpdActiva : {}),
+        ...(esDeltaTutor ? style.lineaDeltaTutor : {}),
         ...(lineaTocaReferencia(props.linea, props.hoverOplRef) ? style.lineaHover : {}),
         ...(esSeleccionada ? style.lineaSeleccionada : {}),
         ...estiloSimActiva,
@@ -183,6 +187,10 @@ const style = {
     letterSpacing: 0,
   },
   lineaOpdActiva: { background: "transparent" },
+  lineaDeltaTutor: {
+    background: tokens.colors.paperWarm,
+    boxShadow: `inset 2px 0 0 ${tokens.colors.inkSoft}`,
+  },
   lineaHover: { background: tokens.colors.ink04 },
   // Línea seleccionada: barra lateral 2px cinabrio (consistente con árbol y
   // apariencia activa del inspector).

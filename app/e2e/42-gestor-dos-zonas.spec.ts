@@ -28,6 +28,10 @@ async function marcarBiblioteca(page: Page, modeloId: string): Promise<void> {
     const m = (await import(ruta)) as { store: { getState: () => { toggleBibliotecaModelo: (id: string) => void } } };
     m.store.getState().toggleBibliotecaModelo(id);
   }, { ruta: RUTA_STORE, id: modeloId });
+  const dialogo = page.getByTestId("dialogo-rol-biblioteca");
+  await expect(dialogo).toBeVisible();
+  await dialogo.getByRole("button", { name: "Marcar como Biblioteca", exact: true }).click();
+  await expect(dialogo).toHaveCount(0);
 }
 
 test("dos zonas rigor×rol: el chip muta in-situ al graduar; marcar biblioteca salta de zona", async ({ page }) => {

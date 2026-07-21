@@ -111,6 +111,30 @@ test.describe("mobile-readonly invariantes", () => {
     expect(typeof snapshotAntes).toBe("string");
     expect(snapshotDespues).toBe(snapshotAntes);
   });
+
+  test("Acerca explica lectura con una sola voz y fuentes navegables", async ({ page }) => {
+    await page.goto("/");
+    await esperarMobileLectura(page);
+
+    await expect(page.getByRole("button", { name: "Objeto", exact: true })).toHaveCount(0);
+    await expect(page.getByTestId("connect-anchor")).toHaveCount(0);
+    await page.getByTestId("mobile-tab-acerca").click();
+
+    const tutor = page.getByTestId("tutor-mobile-readonly");
+    await expect(page.locator('[data-tutor-intervention]:visible')).toHaveCount(1);
+    await expect(tutor).toHaveAttribute("data-tutor-intervention", "orient");
+    await expect(tutor).toContainText("Puedes leer y navegar; la mutación pertenece a una apertura editable compatible.");
+    await expect(tutor.getByText("Criterio", { exact: true })).toBeVisible();
+    await tutor.getByText("Fundamento", { exact: true }).click();
+    const referencia = tutor.getByRole("link").first();
+    await expect(referencia).toBeVisible();
+    const popupPromise = page.waitForEvent("popup");
+    await referencia.click();
+    const fuente = await popupPromise;
+    await fuente.waitForLoadState("domcontentloaded");
+    await expect(fuente).toHaveURL(/\/tutor-sources\//);
+    await fuente.close();
+  });
 });
 
 test.describe("mobile-readonly montaje por viewport", () => {

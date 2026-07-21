@@ -219,7 +219,7 @@ async function importarDocumento(page: Page, doc: unknown): Promise<void> {
   const dialogo = await abrirDialogoCargarModelo(page);
   await jsonEditor(page).fill(JSON.stringify(doc, null, 2));
   await expect(dialogo.getByTestId("import-preview")).toBeVisible();
-  await dialogo.getByRole("button", { name: "Importar", exact: true }).click();
+  await dialogo.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(dialogo).toHaveCount(0);
 }
 
@@ -303,6 +303,14 @@ test.describe("Centinela de Drift — mecánica e2e", () => {
     await expect(badgeDrift(page)).toContainText("⟳");
     await expect(page.getByTestId("anclaje-resincronizar")).toBeVisible();
     await expect(page.getByTestId("anclaje-soltar")).toBeVisible();
+    const tutor = page.getByTestId("tutor-inspector-anclaje");
+    await expect(tutor).toHaveAttribute("data-tutor-intervention", "ask");
+    await expect(tutor).toContainText("Elige aceptar la firma actual o perder la vigilancia.");
+    await expect(tutor.getByText("Criterio", { exact: true })).toBeVisible();
+    await expect(tutor.getByText("Fundamento", { exact: true })).toBeVisible();
+    await tutor.getByText("Fundamento", { exact: true }).click();
+    await expect(tutor.locator('a[href^="/tutor-sources/"]').first()).toBeVisible();
+    await expect(page.locator('[data-tutor-intervention]:visible')).toHaveCount(1);
     expect(await driftDeLaAnclada(page)).toBe("divergente");
   });
 
@@ -353,6 +361,18 @@ test.describe("Centinela de Drift — mecánica e2e", () => {
     await expect(badgeDrift(page)).toHaveCount(0);
     await expect(markaAmarre(page)).toHaveCount(1);
     expect(await driftDeLaAnclada(page)).toBe("sincronizado");
+
+    await page.keyboard.press("Control+z");
+    await seleccionarAnclada(page);
+    await expect(page.getByTestId("inspector-anclaje-divergente")).toBeVisible();
+    await expect(badgeDrift(page)).toContainText("⟳");
+    expect(await driftDeLaAnclada(page)).toBe("divergente");
+
+    await page.keyboard.press("Control+Shift+z");
+    await seleccionarAnclada(page);
+    await expect(page.getByTestId("inspector-anclaje-sincronizado")).toBeVisible();
+    await expect(markaAmarre(page)).toHaveCount(1);
+    expect(await driftDeLaAnclada(page)).toBe("sincronizado");
   });
 
   test("soltar: la cosa pierde el anclaje, se va la sección del Inspector y el marcador", async ({ page }) => {
@@ -371,5 +391,11 @@ test.describe("Centinela de Drift — mecánica e2e", () => {
     await expect(markaAmarre(page)).toHaveCount(0);
     expect(await driftDeLaAnclada(page)).toBeUndefined();
     await expect(elementoPorTexto(page, ANCLADA_NOMBRE)).toBeVisible();
+
+    await page.keyboard.press("Control+z");
+    await elementoPorTexto(page, ANCLADA_NOMBRE).click();
+    await expect(page.getByTestId("inspector-anclaje-divergente")).toBeVisible();
+    await expect(badgeDrift(page)).toContainText("⟳");
+    expect(await driftDeLaAnclada(page)).toBe("divergente");
   });
 });

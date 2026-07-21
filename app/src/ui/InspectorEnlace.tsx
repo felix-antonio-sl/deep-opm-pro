@@ -23,6 +23,8 @@ import { SeccionReanclaje, contextoReanclaje } from "./inspectorEnlace/SeccionRe
 import { SeccionRuta } from "./inspectorEnlace/SeccionRuta";
 import { DialogoMoverPuerto } from "./DialogoMoverPuerto";
 import { tokens } from "./tokens";
+import { deriveLinkDesignIntent, runTutorPolicy } from "../tutor";
+import { TutorInterventionDetails, mapearLentesTutor } from "./TutorDetails";
 
 interface Props {
   enlace: Enlace;
@@ -111,6 +113,21 @@ export function InspectorEnlace({ enlace }: Props) {
   const recolectarContorno = useOpmStore((s) => s.recolectarEnlaceContornoSeleccionado);
   const distribuirContorno = useOpmStore((s) => s.distribuirEnlaceContornoSeleccionado);
   const resolverDecision = useOpmStore((s) => s.resolverDecisionSeleccionada);
+  const lentesTutor = mapearLentesTutor(modelo.lentesConocimiento ?? []);
+  const intervencionEnlace = runTutorPolicy(esEnlaceEstructuralFundamental(enlace.tipo)
+    ? deriveLinkDesignIntent({
+        intentId: `link:${enlace.id}:structural`,
+        focus: "structural",
+        selectedRelation: relacionEstructuralTutor(enlace.tipo),
+        activeLenses: lentesTutor,
+      })
+    : deriveLinkDesignIntent({
+        intentId: `link:${enlace.id}:procedural`,
+        focus: "procedural",
+        endpointsReady: !!origen && !!destino,
+        selectedType: enlace.tipo,
+        activeLenses: lentesTutor,
+      }));
 
   useEffect(() => {
     setMultiplicidadOrigen(enlace.multiplicidadOrigen ?? "");
@@ -223,6 +240,10 @@ export function InspectorEnlace({ enlace }: Props) {
         <span style={style.kind}>Enlace {capitalizar(enlace.tipo)}</span>
         <span style={style.id} title={enlace.id}>{identificadorEnlaceInspector(enlace.id)}</span>
       </div>
+      <TutorInterventionDetails
+        intervention={intervencionEnlace}
+        testId="tutor-inspector-enlace"
+      />
       <div style={style.summary}>
         <span>{origen ? nombreExtremo(modelo, enlace.origenId) : enlace.origenId.id}</span>
         <span style={style.arrow}>{"->"}</span>
@@ -372,6 +393,16 @@ export function InspectorEnlace({ enlace }: Props) {
 
 function capitalizar(texto: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+function relacionEstructuralTutor(
+  tipo: TipoEnlace,
+): "aggregation" | "exhibition" | "generalization" | "instantiation" | null {
+  if (tipo === "agregacion") return "aggregation";
+  if (tipo === "exhibicion") return "exhibition";
+  if (tipo === "generalizacion") return "generalization";
+  if (tipo === "clasificacion") return "instantiation";
+  return null;
 }
 
 /**

@@ -5,7 +5,11 @@ import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
 import { hidratarModelo } from "../serializacion/json";
 import type { Modelo } from "../modelo/tipos";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
+import { useOpmStore } from "../store";
+import { runTutorPolicy } from "../tutor/politica";
+import type { PersistenceIntentSnapshot } from "../tutor/tipos";
 import { tokens } from "./tokens";
+import { TutorInterventionDetails } from "./TutorDetails";
 
 type VistaPreviaImportacion = { ok: true; texto: string } | { ok: false; error: string };
 
@@ -22,10 +26,20 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
   const [errorImportacion, setErrorImportacion] = useState<string | null>(null);
   const [arrastrando, setArrastrando] = useState(false);
   const [modeloSeleccionadoId, setModeloSeleccionadoId] = useState("");
+  const [operacionTutor, setOperacionTutor] = useState<"import-active" | "import-new" | "export" | null>(null);
   const modeloSeleccionado = modeloSeleccionadoId || workspace.modelosGuardados[0]?.id || "";
   const vistaPrevia = useMemo(() => (texto.trim() ? obtenerVistaPreviaImportacion(texto) : null), [texto]);
   const mensajeError = errorImportacion ?? (vistaPrevia?.ok === false ? vistaPrevia.error : null);
   const confirmarSiDirty = useConfirmarSiDirty();
+  const abrirPestanaImportandoJson = useOpmStore((s) => s.abrirPestanaImportandoJson);
+  const intervencionTutor = operacionTutor && (operacionTutor === "export" || vistaPrevia?.ok)
+    ? runTutorPolicy(
+      construirSnapshotPersistencia(operacionTutor, persistencia.dirtyModelo),
+      operacionTutor === "import-active" && persistencia.dirtyModelo
+        ? [{ owner: "product", intentId: "persistence:import-active" }]
+        : [],
+    )
+    : null;
 
   useEffect(() => {
     persistencia.listarModelosGuardados();
@@ -51,6 +65,7 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
   };
 
   const manejarImportar = () => {
+    setOperacionTutor("import-active");
     const validacion = validarImportacionActual(texto);
     if (!validacion.ok) {
       setErrorImportacion(validacion.error);
@@ -64,9 +79,21 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
     });
   };
 
+  const manejarImportarEnPestanaNueva = () => {
+    setOperacionTutor("import-new");
+    const validacion = validarImportacionActual(texto);
+    if (!validacion.ok) {
+      setErrorImportacion(validacion.error);
+      return;
+    }
+    setErrorImportacion(null);
+    abrirPestanaImportandoJson(texto);
+    onImported?.();
+  };
+
   return (
     <div style={style.root}>
-      {mostrarModelosLocales ? <div style={style.block}>
+      {mostrarModelosLocales ? <div key="modelos-locales" style={style.block}>
         <div style={style.title}>Modelos locales</div>
         <div style={style.actions}>
           <select
@@ -92,12 +119,13 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
         </div>
       </div> : null}
 
-      <div style={style.block}>
+      <div key="json" style={style.block}>
         <div style={style.title}>JSON</div>
         <div style={style.actions}>
           <button
             type="button"
             style={style.button}
+            onFocus={() => setOperacionTutor("export")}
             onClick={() => {
               setTexto(persistencia.exportarJson());
               setArchivoNombre("");
@@ -109,6 +137,7 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
           <button
             type="button"
             style={style.button}
+            onFocus={() => setOperacionTutor("export")}
             onClick={() => {
               const json = persistencia.exportarJson();
               setTexto(json);
@@ -119,11 +148,18 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
           >
             Descargar JSON
           </button>
-          <button type="button" style={style.button} onClick={manejarImportar}>Importar</button>
+          <button type="button" data-tutor-entrypoint="workspace:import-active" style={style.button} onFocus={() => setOperacionTutor("import-active")} onClick={manejarImportar}>Importar y reemplazar pestaña activa</button>
+          <button type="button" data-tutor-entrypoint="workspace:import-new-tab" style={style.button} onFocus={() => setOperacionTutor("import-new")} onClick={manejarImportarEnPestanaNueva}>Importar en pestaña nueva</button>
         </div>
       </div>
 
-      <div style={style.block}>
+      <div key="tutor" style={style.tutorSlot}>
+        {intervencionTutor ? (
+          <TutorInterventionDetails intervention={intervencionTutor} abrirEnPrimerUso={false} testId="tutor-importacion-json" />
+        ) : null}
+      </div>
+
+      <div key="archivo-json" style={style.block}>
         <div style={style.title}>Archivo JSON</div>
         <label style={style.filePicker}>
           <span style={style.filePickerRow}>
@@ -181,6 +217,27 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
       </div>
     </div>
   );
+}
+
+function construirSnapshotPersistencia(
+  operation: "import-active" | "import-new" | "export",
+  hasUnsavedChanges: boolean,
+): PersistenceIntentSnapshot {
+  const base = {
+    kind: "persistence" as const,
+    intentId: `persistence:${operation}`,
+    interactionMode: "editable" as const,
+    hasUnsavedChanges,
+    destructiveConfirmed: false,
+    phase: "decision" as const,
+  };
+  if (operation === "import-active") {
+    return { ...base, operation, actionId: "workspace:import-active", surface: "workspace-manager" };
+  }
+  if (operation === "import-new") {
+    return { ...base, operation, actionId: "workspace:import-new-tab", surface: "workspace-manager" };
+  }
+  return { ...base, operation, actionId: "palette:exportar-json", surface: "command-palette" };
 }
 
 function validarImportacionActual(texto: string): VistaPreviaImportacion {
@@ -252,6 +309,7 @@ const style = {
     gap: tokens.spacing.md,
     marginTop: tokens.spacing.lg,
   },
+  tutorSlot: { display: "contents" },
   // Cada tarjeta: borde + radio + padding tokenizados, fondo elevado.
   block: {
     display: "grid",

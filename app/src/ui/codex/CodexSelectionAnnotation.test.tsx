@@ -10,6 +10,7 @@ import {
   marcaDeContexto,
   metaDeContexto,
   posicionarAnotacion,
+  resolverIntervencionTutorRefinamiento,
 } from "./CodexSelectionAnnotation";
 import type { ContextoBarraSeleccion } from "../BarraHerramientasElemento";
 import { GLIFO_REF, GLIFO_SEP } from "./glifos";
@@ -123,5 +124,23 @@ describe("CodexSelectionAnnotation · posicionamiento", () => {
     );
     expect(pos.left).toBeGreaterThanOrEqual(158);
     expect(pos.left).toBeLessThanOrEqual(162);
+  });
+});
+
+describe("CodexSelectionAnnotation · tutor contextual", () => {
+  test("el gesto de refinamiento usa la política viva y conserva las lentes activas", () => {
+    const intervencion = resolverIntervencionTutorRefinamiento({
+      tipo: "descomposicion",
+      opdPadreId: "opd-1",
+      entidadId: "o.06",
+      entidadNombre: "Beneficiario",
+    }, "¿Qué partes explican el servicio?", ["health", "systems"]);
+
+    expect(intervencion.kind).toBe("orient");
+    if (intervencion.kind !== "silent") {
+      expect(intervencion.contentId).toBe("content.refinement.question");
+      expect(intervencion.owner).toBe("selection-annotation");
+      expect(intervencion.activeLenses).toEqual(["systems", "health"]);
+    }
   });
 });

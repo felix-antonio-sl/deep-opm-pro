@@ -214,30 +214,35 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     set({ dialogoVersionesAbierto: null });
   },
 
-  async restaurarVersionComoCopia(modeloId, versionId) {
+  async restaurarVersionComoCopia(modeloId, versionId, feedback = "message") {
+    const operation = "version-restore-copy" as const;
     const sessionEpoch = captureSessionEpoch();
     const pestanaOrigenId = get().pestanaActivaId;
     const snapshotOrigen = exportarModelo(get().modelo);
     const resumen = get().modelosGuardados.find((item) => item.id === modeloId);
     const version = resumen?.versiones?.find((item) => item.id === versionId);
     if (!version) {
-      set({ mensaje: "Versión no encontrada" });
-      return;
+      const error = "Versión no encontrada";
+      set({ mensaje: error });
+      return { ok: false, operation, error };
     }
     if (!persistenciaBackendHabilitada()) {
-      set({ mensaje: "Backend de modelos no disponible" });
-      return;
+      const error = "Backend de modelos no disponible";
+      set({ mensaje: error });
+      return { ok: false, operation, error };
     }
     const backend = await cargarVersionBackend(modeloId, versionId);
-    if (!restorationOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) return;
+    if (!restorationOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) {
+      return { ok: false, operation, error: "El contexto cambió antes de completar la restauración" };
+    }
     if (!backend.ok) {
       set({ mensaje: backend.error });
-      return;
+      return { ok: false, operation, error: backend.error };
     }
     const hidratado = hidratarModelo(backend.value.json);
     if (!hidratado.ok) {
       set({ mensaje: hidratado.error });
-      return;
+      return { ok: false, operation, error: hidratado.error };
     }
     const restaurado = hidratado.value;
     const fecha = version.creadoEn.slice(0, 10);
@@ -253,10 +258,13 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
     };
     let guardado: ModeloPersistido;
     const resultado = await guardarModeloBackend(construirModeloPersistido(inputGuardado));
-    if (!restorationOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) return;
+    if (!restorationOriginIsCurrent(get, sessionEpoch, pestanaOrigenId, snapshotOrigen)) {
+      return { ok: false, operation, error: "El contexto cambió antes de persistir la copia restaurada" };
+    }
     if (!resultado.ok) {
-      set({ mensaje: `No se pudo restaurar versión en servidor: ${resultado.error}` });
-      return;
+      const error = `No se pudo restaurar versión en servidor: ${resultado.error}`;
+      set({ mensaje: error });
+      return { ok: false, operation, error };
     }
     guardado = resultado.value;
     const indice = {
@@ -275,47 +283,59 @@ export const createCarpetasSlice: CrearSlice<CarpetasSlice> = (set, get) => ({
       descripcionModeloLocal: guardado.descripcion,
       modelosGuardados: [resumenDesdeModeloPersistido(guardado), ...get().modelosGuardados.filter((item) => item.id !== guardado.id)],
       indice,
-      dialogoVersionesAbierto: null,
       workspaceLocal: workspaceDesdeModelo(modeloCopia, guardado.id, guardado.descripcion, carpetaId),
       revisionBasePorModelo: conBaseRevision(
         get().revisionBasePorModelo,
         guardado.id,
         guardado.revision,
       ),
-      mensaje: "Versión restaurada como copia",
+      mensaje: feedback === "receipt" ? null : "Versión restaurada como copia",
     }));
+    return {
+      ok: true,
+      operation,
+      resultId: guardado.id,
+      modelId: guardado.id,
+      versionId,
+    };
   },
 
-  eliminarVersionPorId(modeloId, versionId) {
+  async eliminarVersionPorId(modeloId, versionId, feedback = "message") {
+    const operation = "version-delete" as const;
     if (!persistenciaBackendHabilitada()) {
-      set({ mensaje: "Backend de modelos no disponible" });
-      return;
+      const error = "Backend de modelos no disponible";
+      set({ mensaje: error });
+      return { ok: false, operation, error };
     }
     const sessionEpoch = captureSessionEpoch();
     set({ mensaje: "Eliminando versión en servidor..." });
-    void borrarVersionBackend(modeloId, versionId).then((resultado) => {
-      if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
-      if (!resultado.ok && resultado.error !== "Versión no encontrada") {
-        set({ mensaje: `No se pudo eliminar versión en servidor: ${resultado.error}` });
-        return;
-      }
-      const resumen = get().modelosGuardados.find((item) => item.id === modeloId);
-      const versiones = (resumen?.versiones ?? []).filter((version) => version.id !== versionId);
-      const eliminado = eliminarVersionResultado(get().indice, modeloId, versionId);
-      if (!eliminado.ok) {
-        set({ mensaje: eliminado.error.mensaje });
-        return;
-      }
-      const indice = eliminado.value;
-      escribirIndiceWorkspace(indice);
-      set({
-        indice,
-        modelosGuardados: get().modelosGuardados.map((item) =>
-          item.id === modeloId ? { ...item, versiones } : item
-        ),
-        mensaje: "Versión eliminada",
-      });
+    const resultado = await borrarVersionBackend(modeloId, versionId);
+    if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) {
+      return { ok: false, operation, error: "La sesión cambió antes de completar la eliminación" };
+    }
+    if (!resultado.ok && resultado.error !== "Versión no encontrada") {
+      const error = `No se pudo eliminar versión en servidor: ${resultado.error}`;
+      set({ mensaje: error });
+      return { ok: false, operation, error };
+    }
+    const resumen = get().modelosGuardados.find((item) => item.id === modeloId);
+    const versiones = (resumen?.versiones ?? []).filter((version) => version.id !== versionId);
+    const eliminado = eliminarVersionResultado(get().indice, modeloId, versionId);
+    if (!eliminado.ok) {
+      const error = eliminado.error.mensaje;
+      set({ mensaje: error });
+      return { ok: false, operation, error };
+    }
+    const indice = eliminado.value;
+    escribirIndiceWorkspace(indice);
+    set({
+      indice,
+      modelosGuardados: get().modelosGuardados.map((item) =>
+        item.id === modeloId ? { ...item, versiones } : item
+      ),
+      mensaje: feedback === "receipt" ? null : "Versión eliminada",
     });
+    return { ok: true, operation, resultId: versionId, modelId: modeloId, versionId };
   },
 
   abrirDialogoBuscarGlobal() {

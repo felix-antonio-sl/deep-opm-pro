@@ -243,6 +243,7 @@ export async function confirmarRevisionBackend(input: {
   version: VersionResumen;
   base: BaseRevisionCommitBackend;
   speciesOnCreate?: "apunte" | "modelo";
+  graduation?: { kind: "graduate"; folderId: string | null; role: "work" | "library" };
   confirmedByOperator?: boolean;
 }): Promise<Resultado<RevisionConfirmadaBackend>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");

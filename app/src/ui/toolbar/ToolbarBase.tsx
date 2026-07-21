@@ -158,6 +158,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
   // Tablet conserva todo pero cabrá mejor por la toolbar overflow existente.
   const breakpoint = useBreakpoint();
   const esMobile = breakpoint === "mobile";
+  const esTablet = breakpoint === "tablet";
 
   useEffect(() => iniciarAutosalvado(), [iniciarAutosalvado]);
   // IFML H-3 / Ronda 15 L3: el modal "nombre cosa" lee `nuevaCosaPendiente` del
@@ -287,7 +288,7 @@ export function ToolbarBase({ children, modelarSlot, conectarSlot, statusSlot }:
           y los atajos Ctrl+Z / Ctrl+Shift+Z siguen activos via
           `globalShortcutsPort`. Esto reduce densidad visual sin perder
           funcionalidad ni esteerabilidad. */}
-      <div role="group" aria-label="Modelo" style={style.cluster} data-slot="cluster-modelo" data-cluster="modelo">
+      <div role="group" aria-label="Modelo" style={esTablet ? style.clusterTabletOculto : style.cluster} data-slot="cluster-modelo" data-cluster="modelo">
         {/* Ronda Codex v2 L2 (wordmark dup, auditoría rev2 §05): el chip
             "OPFORJA" duplicado se elimina de la toolbar. El único wordmark del
             chrome es ahora "Opforja" (Inria Serif italic) en el header de

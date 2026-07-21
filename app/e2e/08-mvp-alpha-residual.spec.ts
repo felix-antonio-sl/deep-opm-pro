@@ -269,7 +269,7 @@ test("imagenes: suprime bitmap en objeto desplegado y conserva metadata", async 
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloConImagenRefinada(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(0);
 
   const exportado = await exportadoActual(page);
@@ -287,7 +287,7 @@ test("imagenes: toggle global modo texto oculta bitmaps del OPD activo", async (
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloConImagenes(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(page.locator('.joint-element image[joint-selector="imagen"]')).toHaveCount(2);
 
   await clickModoImagenGlobalDesdeMas(page);

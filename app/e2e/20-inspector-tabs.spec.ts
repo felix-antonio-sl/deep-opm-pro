@@ -28,6 +28,8 @@ test("entidad muestra ficha continua con las 6 secciones apiladas y sin tabs", a
 
   const inspector = page.getByTestId("inspector");
   await expect(inspector).toHaveAttribute("data-modo-inspector", "entidad");
+  await expect(page.getByTestId("tutor-inspector-entidad"))
+    .toContainText("Un objeto existe durante el tiempo; un proceso transforma objetos o sus estados.");
 
   // Ficha continua: NO hay tablist ni tabs.
   await expect(inspector.locator('[role="tablist"]')).toHaveCount(0);
@@ -82,6 +84,8 @@ test("conectar submodelo selecciona un modelo existente desde catálogo y crea r
 
   const dialogo = page.getByTestId("dialogo-submodelo");
   await expect(dialogo).toBeVisible();
+  await expect(dialogo.getByTestId("tutor-dialogo-submodelo"))
+    .toContainText("La referencia es solo lectura; para integrar hechos usa composición con interfaz compartida.");
   await expect(dialogo.getByText("Modelo sub E2E")).toBeVisible();
   await expect(dialogo.getByText("Detalle existente")).toBeVisible();
 

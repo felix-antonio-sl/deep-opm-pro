@@ -10,6 +10,7 @@ import { derivarPanelOpl } from "../../opl/panel";
 import type { PrevisualizacionOplReverse } from "../../opl/parser";
 
 export interface PanelOplViewModel {
+  modelo: Modelo;
   vistaMapaActiva: boolean;
   opdActivoId: Id;
   filtroActivo: boolean;
@@ -152,6 +153,7 @@ export function usePanelOplViewModel(): PanelOplViewModel {
   };
 
   return {
+    modelo,
     vistaMapaActiva,
     opdActivoId,
     filtroActivo,

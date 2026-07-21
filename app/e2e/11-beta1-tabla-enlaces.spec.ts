@@ -57,7 +57,7 @@ test("workbench Beta1: lista, filtra, edita multiplicidad y elimina enlace cross
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await abrirTablaPorMenu(page);
   // El modelo organizacional smoke trae 3 enlaces (agente, consumo, resultado).
@@ -119,7 +119,7 @@ test("workbench Beta1: ordenamiento por columna alterna ascendente/descendente",
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await abrirTablaPorMenu(page);
 
   const colTipo = page.getByTestId("tabla-enlaces-col-tipo");
@@ -145,7 +145,7 @@ test("workbench denso: busca enlaces y filtra por familia sin perder contexto", 
   const modelo = modeloMarkersCanonicos();
   modelo.modelo.enlaces["e-agent"].etiqueta = "rol clinico";
   await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await abrirTablaPorMenu(page);
 
   await expect(page.getByTestId("tabla-enlaces-fila")).toHaveCount(10);
@@ -186,7 +186,7 @@ test("workbench denso: resalta filas filtradas en el canvas sin cerrar tabla", a
   const modelo = modeloMarkersCanonicos();
   modelo.modelo.enlaces["e-agent"].etiqueta = "rol clinico";
   await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await abrirTablaPorMenu(page);
 
   await page.getByTestId("tabla-enlaces-familia-procedural").click();
@@ -224,7 +224,7 @@ test("workbench denso: resalta extremo de estado filtrado sobre la capsula OPM",
   const modelo = modeloTransicionEstados();
   modelo.modelo.enlaces["e-consumo"].etiqueta = "entrada-pendiente";
   await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await abrirTablaPorMenu(page);
 
   await page.getByTestId("tabla-enlaces-buscar").fill("entrada-pendiente");
@@ -260,7 +260,7 @@ test("workbench Beta1: edicion de etiqueta persiste y la fila refleja el cambio 
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloSmokeTablaEnlaces(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await abrirTablaPorMenu(page);
 
   await page.getByTestId("tabla-enlaces-filtro").selectOption("agente");

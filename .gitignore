@@ -20,6 +20,8 @@ app/bun.lockb
 app/*.tsbuildinfo
 app/test-results/
 app/playwright-report/
+app/.tutor-corpus/
+app/.tutor-corpus.lock/
 /test-results/
 
 # Reportes de auditoría generados; el estado versionado vive en docs/handoff-AAAA-MM-DD.md

@@ -5,6 +5,7 @@ import {
   agruparIssuesDiagnostico,
   derivarIssuesDiagnostico,
   resumirPanelDiagnostico,
+  resumirDeltaDiagnostico,
   severidadDiagnostico,
   severidadDesdeAviso,
 } from "./panelDiagnosticoViewModel";
@@ -201,6 +202,12 @@ describe("panelDiagnosticoViewModel · issues", () => {
 });
 
 describe("panelDiagnosticoViewModel · resumen visible", () => {
+  test("anuncia solo el delta entre recomputaciones", () => {
+    expect(resumirDeltaDiagnostico(["a", "b"], ["b", "c", "d"]))
+      .toBe("Diagnóstico actualizado: 2 hallazgos nuevos y 1 hallazgo resuelto.");
+    expect(resumirDeltaDiagnostico(["a"], ["a"])).toBe("");
+  });
+
   test("prioriza bloqueos y conserva el resto sin llamar sugerencia a todo", () => {
     const issues = derivarIssuesDiagnostico([
       avisoDiagnostico({ id: "b1", codigo: "b1", severidad: "error" }),

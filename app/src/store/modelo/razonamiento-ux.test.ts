@@ -98,7 +98,9 @@ describe("consultarRazonamiento — proyección UX del Piso 3", () => {
     expect(enlacesCono.length).toBeGreaterThan(0);
     for (const e of enlacesCono) expect(s.seleccionados).toContain(e);
     expect(s.seleccionados).not.toContain(fabricarId); // excluye el propio elemento
-    expect(s.mensaje).toMatch(/2 cosa\(s\) aguas abajo/i); // el conteo es de cosas, no enlaces
+    expect(s.mensaje).toMatch(/2 cosa\(s\).*alcanzables aguas abajo/i); // el conteo es de cosas, no enlaces
+    expect(s.mensaje).toContain("no prueba causalidad");
+    expect(s.mensaje).not.toMatch(/se caen|colapsa/i);
   });
 
   test("consulta sin resultados: informa por toast y no introduce selección espuria", () => {

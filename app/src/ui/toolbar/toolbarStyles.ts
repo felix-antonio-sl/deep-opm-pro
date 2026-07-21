@@ -98,6 +98,9 @@ export const toolbarStyle = {
     minWidth: 0,
     flex: "0 0 auto",
   },
+  clusterTabletOculto: {
+    display: "none",
+  },
   clusterLabel: {
     position: "static",
     width: "auto",

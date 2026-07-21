@@ -415,6 +415,26 @@ export function marcarApunte(indice: WorkspaceIndice, modeloId: Id, valor: boole
 }
 
 /**
+ * Transición mínima de workspace para graduar. Valida el destino antes de
+ * retirar la especie Apunte, de modo que el llamador pueda persistir el índice
+ * resultante como una sola unidad y nunca observar una promoción parcial.
+ */
+export function graduarApunte(
+  indice: WorkspaceIndice,
+  modeloId: Id,
+  carpetaId: Id | null,
+  rol: "trabajo" | "biblioteca" = "trabajo",
+): Resultado<WorkspaceIndice> {
+  const entrada = indice.modelos.find((modelo) => modelo.id === modeloId);
+  if (!entrada) return fallo("Apunte no encontrado en el índice");
+  if (entrada.esApunte !== true) return fallo("El modelo ya no es un Apunte");
+  const movido = moverModeloACarpeta(indice, modeloId, carpetaId);
+  if (!movido.ok) return movido;
+  const graduado = marcarApunte(movido.value, modeloId, false);
+  return ok(rol === "biblioteca" ? marcarBiblioteca(graduado, modeloId, true) : graduado);
+}
+
+/**
  * B1 — Read-path del flag biblioteca. Lista las entradas del índice designadas
  * como biblioteca (origen de Piezas). Lo consume la superficie «Piezas» (B2)
  * para poblar el selector de fuente; se cruza por id con `modelosGuardados`

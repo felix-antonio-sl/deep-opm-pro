@@ -1,7 +1,22 @@
 import { describe, expect, test } from "bun:test";
 import type { ContextoSimulacion, EntradaTraceSim } from "../../modelo/simulacion/tipos";
 import type { Modelo } from "../../modelo/tipos";
+import { faseTutorSimulacion } from "./BarraSimulacion";
 import { proyectarDecisionXorSimulacion, proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion } from "./proyeccionBarra";
+
+describe("faseTutorSimulacion", () => {
+  test("prioriza bloqueo, cierre y decisión antes del progreso", () => {
+    expect(faseTutorSimulacion("bloqueado", 2, true, true)).toBe("blocked");
+    expect(faseTutorSimulacion("completado", 2, true, true)).toBe("complete");
+    expect(faseTutorSimulacion("ejecutando", 2, true, true)).toBe("decision");
+  });
+
+  test("distingue autoavance, paso manual y preflight desde estado real", () => {
+    expect(faseTutorSimulacion("ejecutando", 0, true, false)).toBe("running");
+    expect(faseTutorSimulacion("ejecutando", 1, false, false)).toBe("step");
+    expect(faseTutorSimulacion("preparado", 0, false, false)).toBe("preflight");
+  });
+});
 
 describe("proyeccionBarraSimulacion", () => {
   test("proyecta bloqueo como estado no ejecutable con texto visible", () => {

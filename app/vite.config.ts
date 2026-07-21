@@ -11,6 +11,7 @@ const APP_ROOT = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = path.resolve(APP_ROOT, "..");
 const BUGS_ROOT = path.join(REPO_ROOT, "docs", "bugs");
 export default defineConfig({
+  publicDir: ".tutor-corpus",
   plugins: [preact(), bugCapturePlugin()],
   // Versión de opforja para la UI: la fecha se computa al construir; el short
   // SHA llega por el arg `VITE_OPFORJA_BUILD` (el build Docker excluye .git).
@@ -45,6 +46,14 @@ export default defineConfig({
           if (modulo.includes("/src/render/jointjs/mapaExport")) return "feature-export";
 
           if (modulo.includes("/src/ui/asistente/")) return "feature-asistente";
+
+          if (
+            modulo.includes("/src/tutor/contenidoRuntime") ||
+            modulo.includes("/src/tutor/contenidos") ||
+            modulo.includes("/src/tutor/fuentes")
+          ) return "feature-tutor-content";
+
+          if (modulo.includes("/src/tutor/")) return "feature-tutor-policy";
 
           if (
             modulo.includes("/src/ui/DialogoBuscarGlobal") ||

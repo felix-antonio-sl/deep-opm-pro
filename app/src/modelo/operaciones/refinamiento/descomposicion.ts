@@ -42,6 +42,10 @@ export interface DescomposicionProceso {
   refinadorIds: Id[];
 }
 
+export interface OpcionesDescomposicion {
+  preguntaGuia?: string;
+}
+
 // W3.1: las constantes de dimensionado canónico (paddingSuperior/separacionVertical/
 // contornoWidth/contornoHeight, derivadas de minSubthings/multAncho) vienen ahora de la
 // fuente única `canvas/constantesInzoom`. Lo exclusivo de la semilla se queda local:
@@ -65,7 +69,12 @@ const ORIGEN_CONTORNO_DESCOMPOSICION = {
   y: Math.round(CENTRO_CANVAS_GEOMETRICO.y - INZOOM.contornoHeight / 2),
 } as const;
 
-export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id): Resultado<DescomposicionProceso> {
+export function descomponerProceso(
+  modelo: Modelo,
+  opdPadreId: Id,
+  procesoId: Id,
+  opciones: OpcionesDescomposicion = {},
+): Resultado<DescomposicionProceso> {
   const opdPadre = modelo.opds[opdPadreId];
   if (!opdPadre) return fallo(`OPD no existe: ${opdPadreId}`);
   const proceso = modelo.entidades[procesoId];
@@ -128,6 +137,7 @@ export function descomponerProceso(modelo: Modelo, opdPadreId: Id, procesoId: Id
     entidadId: procesoId,
     opdHijoId,
     tipo: "descomposicion",
+    ...(opciones.preguntaGuia !== undefined ? { preguntaGuia: opciones.preguntaGuia } : {}),
   });
   if (!enlazado.ok) return fallo(enlazado.error);
   const siguiente = sincronizarRepresentacionRefinamiento(enlazado.value, opdHijoId, {

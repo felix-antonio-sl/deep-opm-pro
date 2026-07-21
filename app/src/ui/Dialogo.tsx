@@ -4,6 +4,7 @@ import { Children, createPortal } from "preact/compat";
 import { useLayoutEffect, useMemo, useRef } from "preact/hooks";
 import { GLIFO_SEP } from "./codex/glifos";
 import { tokens } from "./tokens";
+import type { TutorEntrypointId } from "../tutor";
 
 /**
  * Diálogo modal accesible con captura Esc obligatoria [HU-30.037, Met §6]
@@ -68,6 +69,8 @@ interface DialogoProps {
 export function Dialogo(props: DialogoProps) {
   const dialogRef = useRef<HTMLElement>(null);
   const titleId = useRef(`dialogo-${Math.random().toString(36).slice(2)}`);
+  const onCancelRef = useRef(props.onCancel);
+  onCancelRef.current = props.onCancel;
   const tamano: DialogoSize = props.size ?? "md";
   const modal = props.modal ?? true;
   const stereotype = estereotipoDialogo(modal);
@@ -78,6 +81,9 @@ export function Dialogo(props: DialogoProps) {
 
   useLayoutEffect(() => {
     if (!props.open) return undefined;
+    const focoAnterior = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
     const dialog = dialogRef.current;
     const initialFocus = props.initialFocusRef?.current ?? primerFoco(dialog);
     window.setTimeout(() => initialFocus?.focus(), 0);
@@ -89,7 +95,7 @@ export function Dialogo(props: DialogoProps) {
         // tiene prioridad sobre los atajos globales.
         event.preventDefault();
         event.stopImmediatePropagation();
-        props.onCancel();
+        onCancelRef.current();
         return;
       }
       if (event.key !== "Tab" || !dialog) return;
@@ -97,13 +103,13 @@ export function Dialogo(props: DialogoProps) {
     };
 
     window.addEventListener("keydown", manejarTecla, true);
-    return () => window.removeEventListener("keydown", manejarTecla, true);
-    // Dep restringida: el listener solo necesita re-registrarse cuando cambia
-    // el flag `open` o el callback `onCancel`. Antes la dep `[props]` causaba
-    // re-registros en cada render del provider (objeto literal nuevo cada vez),
-    // dejando una ventana intermitente sin listener — flaky para Escape.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.open, props.onCancel]);
+    return () => {
+      window.removeEventListener("keydown", manejarTecla, true);
+      window.setTimeout(() => {
+        if (focoAnterior?.isConnected) focoAnterior.focus();
+      }, 0);
+    };
+  }, [props.open]);
 
   if (!props.open) return null;
   if (typeof document === "undefined") return null;
@@ -205,6 +211,7 @@ interface DialogoAccionProps {
   title?: string;
   "aria-label"?: string;
   testId?: string;
+  tutorEntrypoint?: TutorEntrypointId;
   innerRef?: RefObject<HTMLButtonElement>;
 }
 
@@ -225,6 +232,7 @@ export function DialogoAccion(props: DialogoAccionProps) {
   if (props.title) extra.title = props.title;
   if (props["aria-label"]) extra["aria-label"] = props["aria-label"];
   if (props.testId) extra["data-testid"] = props.testId;
+  if (props.tutorEntrypoint) extra["data-tutor-entrypoint"] = props.tutorEntrypoint;
   return (
     <button type={props.type ?? "button"} style={estilo} {...extra}>
       {props.children}

@@ -15,6 +15,10 @@ export interface Opd {
   id: Id;
   nombre: string;
   padreId: Id | null;
+  /** Pregunta metodológica que gobierna el refinamiento realizado por este OPD.
+   * No forma parte del OPL nuclear ni altera la firma de frontera. Opcional para
+   * conservar documentos y consumidores anteriores al tutor contextual. */
+  preguntaGuia?: string;
   apariencias: Record<Id, Apariencia>;
   enlaces: Record<Id, AparienciaEnlace>;
   vista?: OpdVista;

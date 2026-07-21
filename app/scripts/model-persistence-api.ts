@@ -16,7 +16,7 @@ import type {
   WorkspaceIndice,
   WorkspacePersistido,
 } from "../src/persistencia/workspace";
-import { indiceVacio } from "../src/persistencia/workspace";
+import { graduarApunte, indiceVacio } from "../src/persistencia/workspace";
 import {
   establecerEspecieCreada,
   registrarVersionEnWorkspace,
@@ -719,6 +719,18 @@ function repositorioPostgres(): ModelPersistenceRepository {
         });
         if (!veredicto.ok) throw new PersistenciaConflictError(veredicto.motivo);
 
+        const indiceTransicionado = commit.graduation
+          ? graduarApunte(
+              workspace.indice,
+              commit.model.id,
+              commit.graduation.folderId,
+              commit.graduation.role === "library" ? "biblioteca" : "trabajo",
+            )
+          : { ok: true as const, value: workspace.indice };
+        if (!indiceTransicionado.ok) {
+          throw new PersistenciaConflictError(indiceTransicionado.error);
+        }
+
         const saved = await persistModelInTransaction(
           tx,
           session,
@@ -734,7 +746,7 @@ function repositorioPostgres(): ModelPersistenceRepository {
           tx,
           session,
           registrarVersionEnWorkspace(
-            workspace.indice,
+            indiceTransicionado.value,
             saved.id,
             commit.version,
           ),

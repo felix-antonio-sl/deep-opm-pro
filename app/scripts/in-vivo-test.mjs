@@ -1,12 +1,13 @@
 // Auditoria in-vivo del modelador OPM en navegador real.
-// Uso: node scripts/in-vivo-test.mjs [URL]
-// Default URL: http://127.0.0.1:5173/
+// Uso: node scripts/in-vivo-test.mjs [URL_DESKTOP] [URL_MOBILE]
+// Defaults: desktop http://127.0.0.1:5173/; mobile usa la misma URL.
 
 import { chromium } from "@playwright/test";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const URL_OBJETIVO = process.argv[2] ?? "http://127.0.0.1:5173/";
+const URL_MOBILE = process.argv[3] ?? URL_OBJETIVO;
 const RAIZ_REPO = resolve(import.meta.dirname, "..", "..");
 const DIR_SHOTS = resolve(RAIZ_REPO, "app/test-results/in-vivo");
 const RUTA_RESUMEN = resolve(DIR_SHOTS, "_resumen.json");
@@ -115,6 +116,18 @@ async function crearCosa(page, tipo, nombre) {
   }
   await page.waitForTimeout(180);
   return elementoPorTexto(page, nombre);
+}
+
+async function confirmarRefinamientoPendiente(page, pregunta, modo) {
+  const formulario = page.getByTestId("tutor-refinamiento");
+  await formulario.waitFor({ state: "visible", timeout: 1500 });
+  const selectorModo = formulario.getByTestId("tutor-refinamiento-modo");
+  if ((await locatorCount(selectorModo)) > 0) {
+    await selectorModo.selectOption(modo ?? "agregacion");
+  }
+  await formulario.getByTestId("tutor-refinamiento-pregunta").fill(pregunta);
+  await formulario.getByTestId("tutor-refinamiento-confirmar").click();
+  await formulario.waitFor({ state: "detached", timeout: 2500 });
 }
 
 async function ejecutarComando(page, query, itemId) {
@@ -288,7 +301,7 @@ function modeloSystemDiagramSonda() {
 async function importarModelo(page, modelo) {
   const dialogo = await abrirDialogoJson(page);
   await dialogo.locator('textarea[spellcheck="false"]').first().fill(JSON.stringify(modelo));
-  await dialogo.getByRole("button", { name: "Importar", exact: true }).click();
+  await dialogo.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   const confirmacion = page.getByRole("dialog").filter({ has: page.getByRole("button", { name: "Descartar" }) });
   if (await waitVisible(confirmacion, 500)) {
     await confirmacion.getByRole("button", { name: "Descartar" }).click();
@@ -344,7 +357,8 @@ function generarReporte() {
   return `# Reporte ejecutivo in-vivo OPMKV
 
 **Fecha**: ${FECHA}
-**URL auditada**: \`${URL_OBJETIVO}\`
+**URL desktop auditada**: \`${URL_OBJETIVO}\`
+**URL mobile auditada**: \`${URL_MOBILE}\`
 
 ## Veredicto
 
@@ -377,6 +391,7 @@ ${artifacts}
 ## Hallazgos UX accionables
 
 - El diagnóstico presenta la severidad canónica dominante, agrupa observadores equivalentes y mantiene fuente, fundamento y acciones dentro del hallazgo.
+- El tutor contextual exige una pregunta antes de refinar y ofrece referencias locales con criterio y fuentes sin convertirlas en comandos ejecutables.
 - El scaffolding de descomposicion entra directamente en renombrado inline encadenado: Enter avanza por los tres subprocesos y el diagnostico los agrupa en un solo aviso.
 - La barra de simulacion reserva "Listo para simular" para el estado previo; durante una ejecucion informa "Simulando" y explicita la microfase activa.
 - El canvas reencuadra el OPD activo al cambiar el viewport y conserva todas sus cosas dentro del area visible.
@@ -392,7 +407,7 @@ ${artifacts}
 
 \`\`\`bash
 cd app
-node scripts/in-vivo-test.mjs ${URL_OBJETIVO}
+node scripts/in-vivo-test.mjs ${URL_OBJETIVO} ${URL_MOBILE}
 \`\`\`
 `;
 }
@@ -444,7 +459,7 @@ try {
     "Diagnostico se omite cuando el modelo vacio no tiene avisos",
     (await locatorCount(page.getByTestId("panel-diagnostico"))) === 0,
   );
-  await recordVisible("1. Carga y bienvenida", "Hint compacto Iniciar SD visible", page.getByTestId("estado-vacio-hint").or(page.getByTestId("estado-vacio-opm")));
+  await recordVisible("1. Carga y bienvenida", "Elección compacta SD-first/Taller visible", page.getByTestId("estado-vacio-hint"));
   await screenshot(page, "02-workbench-vacio.png");
 
   const mainAttrs = await page.locator("main").evaluate((el) => ({
@@ -478,6 +493,19 @@ try {
     "CommandPalette expone la puerta unificada de modelos y JSON",
     (await locatorCount(page.getByTestId("command-palette-item-menu-abrir-importar"))) === 1,
   );
+  await palette.getByRole("combobox").fill("composición linealidad");
+  const referenciaTutor = page.getByTestId("command-palette-item-tutor-content.composition.choice");
+  await recordVisible("2. Chrome IFML", "Ctrl+K encuentra referencia local del tutor", referenciaTutor);
+  await referenciaTutor.hover();
+  const previewTutor = page.getByTestId("command-palette-tutor-preview");
+  const textoPreviewTutor = await previewTutor.textContent().catch(() => "");
+  recordBool(
+    "2. Chrome IFML",
+    "Referencia del tutor expone criterio y fuentes sin ejecutar una acción",
+    Boolean(textoPreviewTutor?.includes("Criterio:") && textoPreviewTutor.includes("Reglas OPM estrictas")),
+    textoPreviewTutor?.slice(0, 240) ?? "",
+  );
+  await screenshot(page, "03b-tutor-referencia.png");
   await page.keyboard.press("Escape");
   recordBool("2. Chrome IFML", "Escape cierra CommandPalette", (await locatorCount(page.getByTestId("command-palette"))) === 0);
 
@@ -584,6 +612,24 @@ try {
   await resetWorkbench(page);
   await crearCosa(page, "Proceso", "Procesar Pedido");
   await page.getByTestId("barra-inzoom").click();
+  const formularioRefinamiento = page.getByTestId("tutor-refinamiento");
+  await recordVisible("7. Scaffolding sin ruido", "Refinar abre el gateway de pregunta sin mutar el árbol", formularioRefinamiento);
+  await page.keyboard.press("Escape");
+  recordBool(
+    "7. Scaffolding sin ruido",
+    "Escape conserva selección y devuelve foco al disparador",
+    (await locatorCount(formularioRefinamiento)) === 0
+      && await page.getByTestId("barra-inzoom").evaluate((el) => el === document.activeElement).catch(() => false),
+  );
+  await page.getByTestId("barra-inzoom").click();
+  await formularioRefinamiento.waitFor({ state: "visible", timeout: 1500 });
+  recordBool(
+    "7. Scaffolding sin ruido",
+    "Confirmar refinamiento permanece deshabilitado sin pregunta",
+    await formularioRefinamiento.getByTestId("tutor-refinamiento-confirmar").isDisabled(),
+  );
+  await screenshot(page, "10a-refinamiento-gateway.png");
+  await confirmarRefinamientoPendiente(page, "¿Qué subprocesos explican este proceso?");
   const renameEncadenado = page.getByTestId("renombrado-inline");
   await recordVisible("7. Scaffolding sin ruido", "Descomponer abre el primer placeholder en edicion inline", renameEncadenado);
   const panelDiagnosticoScaffolding = page.getByTestId("panel-diagnostico");
@@ -710,24 +756,24 @@ try {
   await page.setViewportSize({ width: 1440, height: 900 });
   await resetWorkbench(page);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 20000 });
+  await page.goto(URL_MOBILE, { waitUntil: "networkidle", timeout: 20000 });
   await cerrarPantallaInicioSiVisible(page);
   const overflow = await page.evaluate(() => ({
     doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     body: document.body.scrollWidth - document.body.clientWidth,
   }));
   recordBool("9. Mobile review", "Viewport 390x844 no tiene overflow horizontal >8px", overflow.doc <= 8 && overflow.body <= 8, JSON.stringify(overflow));
-  await recordVisible("9. Mobile review", "Tabs mobile review visibles", page.getByTestId("modo-revision-mobile"));
+  await recordVisible("9. Mobile review", "Shell mobile de lectura visible", page.getByTestId("mobile-app-lectura"));
   recordBool("9. Mobile review", "Toolbar pesada no se monta en mobile", (await locatorCount(page.getByTestId("toolbar-actions-pesadas"))) === 0);
-  for (const tab of ["canvas", "opds", "opl", "issues"]) {
+  for (const tab of ["modelos", "diagrama", "opds", "opl", "acerca"]) {
     await recordVisible("9. Mobile review", `Tab ${tab} visible`, page.getByTestId(`mobile-tab-${tab}`));
   }
   await page.getByTestId("mobile-tab-opds").click();
-  await recordVisible("9. Mobile review", "Tab OPDs abre panel de arbol", page.getByTestId("mobile-pane-opds"));
+  await recordVisible("9. Mobile review", "Tab OPDs abre panel de arbol", page.getByTestId("mobile-vista-opds"));
   await page.getByTestId("mobile-tab-opl").click();
-  await recordVisible("9. Mobile review", "Tab OPL abre panel OPL", page.getByTestId("mobile-pane-opl"));
-  await page.getByTestId("mobile-tab-issues").click();
-  await recordVisible("9. Mobile review", "Tab Issues muestra aviso de edicion escritorio/tablet", page.getByTestId("mobile-aviso-edicion"));
+  await recordVisible("9. Mobile review", "Tab OPL abre panel OPL", page.getByTestId("mobile-vista-opl"));
+  await page.getByTestId("mobile-tab-acerca").click();
+  await recordVisible("9. Mobile review", "Tab Acerca explica que la edición requiere escritorio o tablet", page.getByTestId("mobile-vista-acerca"));
   await screenshot(page, "14-mobile-review.png");
 } catch (error) {
   record("0. Runtime", "Excepcion no controlada de la sonda", "FAIL", error?.stack ?? String(error));
@@ -736,6 +782,7 @@ try {
   const resumen = {
     fecha: FECHA,
     url: URL_OBJETIVO,
+    mobileUrl: URL_MOBILE,
     ...resumenConteos(),
     findings,
     pageErrors,

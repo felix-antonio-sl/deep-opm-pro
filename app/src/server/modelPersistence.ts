@@ -86,6 +86,11 @@ export interface ModelRevisionCommit {
   version: VersionResumen;
   base: ModelRevisionBase;
   speciesOnCreate?: Exclude<Especie, "biblioteca">;
+  graduation?: {
+    kind: "graduate";
+    folderId: string | null;
+    role: "work" | "library";
+  };
   confirmedByOperator?: boolean;
 }
 
@@ -127,7 +132,7 @@ export function evaluarPoliticaCommit(
   const selectedJson = commit.base.witness.source === "autosave"
     ? destination.autosaveJson
     : destination.savedJson;
-  if (selectedJson !== null && esSinDelta(commit.model.json, selectedJson)) {
+  if (!commit.graduation && selectedJson !== null && esSinDelta(commit.model.json, selectedJson)) {
     return { ok: false, motivo: "sin cambios: no se crea revisión" };
   }
   return veredicto;
@@ -498,16 +503,32 @@ function validateModelRevisionCommit(modelId: string, input: unknown): ModelRevi
 
   let base: ModelRevisionBase;
   let speciesOnCreate: ModelRevisionCommit["speciesOnCreate"];
+  let graduation: ModelRevisionCommit["graduation"];
   if (esRecord(input.base) && input.base.kind === "new") {
     base = { kind: "new" };
     if (input.speciesOnCreate !== "apunte" && input.speciesOnCreate !== "modelo") {
       throw new Error("Revision de modelo invalida: especie");
     }
+    if (input.graduation !== undefined) throw new Error("Revision de modelo invalida: graduacion");
     speciesOnCreate = input.speciesOnCreate;
   } else if (esRecord(input.base) && input.base.kind === "existing") {
     const witness = normalizeBaseWitness(input.base.witness);
     if (!witness) throw new Error("Revision de modelo invalida: base");
     if (input.speciesOnCreate !== undefined) throw new Error("Revision de modelo invalida: especie");
+    if (input.graduation !== undefined) {
+      if (!esRecord(input.graduation) ||
+        input.graduation.kind !== "graduate" ||
+        (input.graduation.role !== "work" && input.graduation.role !== "library") ||
+        !(input.graduation.folderId === null ||
+          (typeof input.graduation.folderId === "string" && input.graduation.folderId.trim()))) {
+        throw new Error("Revision de modelo invalida: graduacion");
+      }
+      graduation = {
+        kind: "graduate",
+        folderId: input.graduation.folderId === null ? null : input.graduation.folderId.trim(),
+        role: input.graduation.role,
+      };
+    }
     base = { kind: "existing", witness };
   } else {
     throw new Error("Revision de modelo invalida: base");
@@ -526,6 +547,7 @@ function validateModelRevisionCommit(modelId: string, input: unknown): ModelRevi
     },
     base,
     ...(speciesOnCreate ? { speciesOnCreate } : {}),
+    ...(graduation ? { graduation } : {}),
     ...(input.confirmedByOperator === true ? { confirmedByOperator: true } : {}),
   };
 }

@@ -6,6 +6,8 @@ import type {
   EstadoRatificacion,
   EstadoSatisfaccionRequisito,
   Estereotipo,
+  FichaTrabajo,
+  LenteConocimiento,
   AparienciaPlantilla,
   PlantillaEstereotipo,
   Id,
@@ -21,6 +23,12 @@ import type {
   SubmodeloReferencia,
 } from "../modelo/tipos";
 import { COMPONENTES_SELLO } from "../modelo/tipos";
+import {
+  LENTES_CONOCIMIENTO_ORDEN,
+  TIPOS_MODELO_ORDEN,
+  normalizarFichaTrabajo,
+  normalizarLentesConocimiento,
+} from "../modelo/fichaTrabajo";
 import { esRequisito } from "../modelo/estereotipos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
 import { validarApariencias, validarAparienciasEnlace } from "./validarApariencias";
@@ -143,7 +151,7 @@ function validarModelo(value: unknown): Resultado<Modelo> {
   if (!entidadesValidadas.ok) return entidadesValidadas;
   const estadosValidados = validarEstados(estados, entidadesValidadas.value);
   if (!estadosValidados.ok) return estadosValidados;
-  const opdsValidados = validarOpds(opds, entidadesValidadas.value);
+  const opdsValidados = validarOpds(opds, entidadesValidadas.value, opdRaizId);
   if (!opdsValidados.ok) return opdsValidados;
   if (!opdsValidados.value[opdRaizId]) return fallo(`OPD raíz no existe: ${opdRaizId}`);
   const enlacesValidados = validarEnlaces(enlaces, entidadesValidadas.value, estadosValidados.value);
@@ -170,6 +178,10 @@ function validarModelo(value: unknown): Resultado<Modelo> {
   if (!estereotiposValidados.ok) return estereotiposValidados;
   const procedenciaValidada = validarProcedencia(value.procedencia);
   if (!procedenciaValidada.ok) return procedenciaValidada;
+  const fichaTrabajoValidada = validarFichaTrabajo(value.fichaTrabajo);
+  if (!fichaTrabajoValidada.ok) return fichaTrabajoValidada;
+  const lentesConocimientoValidadas = validarLentesConocimiento(value.lentesConocimiento);
+  if (!lentesConocimientoValidadas.ok) return lentesConocimientoValidadas;
   const submodelosValidados = validarSubmodelos(value.submodelos, entidadesValidadas.value, opdsValidados.value);
   if (!submodelosValidados.ok) return submodelosValidados;
   const padreSubmodeloValidado = validarReferenciaPadreSubmodelo(value.referenciaPadreSubmodelo, entidadesValidadas.value);
@@ -200,6 +212,8 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     ...(Object.keys(notasMesaValidadas.value).length > 0 ? { notasMesa: notasMesaValidadas.value } : {}),
     ...(Object.keys(estereotiposValidados.value).length > 0 ? { estereotipos: estereotiposValidados.value } : {}),
     ...(procedenciaValidada.value ? { procedencia: procedenciaValidada.value } : {}),
+    ...(fichaTrabajoValidada.value ? { fichaTrabajo: fichaTrabajoValidada.value } : {}),
+    ...(lentesConocimientoValidadas.value ? { lentesConocimiento: lentesConocimientoValidadas.value } : {}),
     ...(Object.keys(submodelosValidados.value).length > 0 ? { submodelos: submodelosValidados.value } : {}),
     ...(padreSubmodeloValidado.value ? { referenciaPadreSubmodelo: padreSubmodeloValidado.value } : {}),
     ...(value.archivado === true ? { archivado: true } : {}),
@@ -426,6 +440,53 @@ function validarPlantillaEstereotipo(estId: Id, value: unknown): Resultado<Plant
  * sobre opcional ausente). Presente ⇒ las 3 componentes del sello deben ser strings no
  * vacíos; un sello malformado se RECHAZA con diagnóstico (no se descarta en silencio).
  */
+function validarFichaTrabajo(value: unknown): Resultado<FichaTrabajo | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!esRecord(value)) return fallo("Modelo inválido: fichaTrabajo");
+  const ficha: FichaTrabajo = {};
+  for (const campo of [
+    "preguntaHabilitante",
+    "duenoSignificado",
+    "responsableDecision",
+    "criterioSuficiencia",
+    "revisarCuando",
+  ] as const) {
+    const campoValue = value[campo];
+    if (campoValue === undefined) continue;
+    if (typeof campoValue !== "string") return fallo(`Modelo inválido: fichaTrabajo.${campo}`);
+    if (campoValue.trim()) ficha[campo] = campoValue.trim();
+  }
+  if (value.tiposModelo !== undefined) {
+    if (!Array.isArray(value.tiposModelo) ||
+      value.tiposModelo.some((tipo) =>
+        typeof tipo !== "string" || !TIPOS_MODELO_ORDEN.includes(tipo as never)
+      )) {
+      return fallo("Modelo inválido: fichaTrabajo.tiposModelo");
+    }
+    if (value.tiposModelo.length > 0) {
+      ficha.tiposModelo = value.tiposModelo as NonNullable<FichaTrabajo["tiposModelo"]>;
+    }
+  }
+  if (value.vidaUtil !== undefined) {
+    if (value.vidaUtil !== "respuesta-puntual" && value.vidaUtil !== "referencia-viva") {
+      return fallo("Modelo inválido: fichaTrabajo.vidaUtil");
+    }
+    ficha.vidaUtil = value.vidaUtil;
+  }
+  return ok(normalizarFichaTrabajo(ficha));
+}
+
+function validarLentesConocimiento(value: unknown): Resultado<LenteConocimiento[] | undefined> {
+  if (value === undefined) return ok(undefined);
+  if (!Array.isArray(value) ||
+    value.some((lente) =>
+      typeof lente !== "string" || !LENTES_CONOCIMIENTO_ORDEN.includes(lente as never)
+    )) {
+    return fallo("Modelo inválido: lentesConocimiento");
+  }
+  return ok(normalizarLentesConocimiento(value as LenteConocimiento[]));
+}
+
 function validarProcedencia(value: unknown): Resultado<SelloProcedencia | undefined> {
   if (value === undefined) return ok(undefined);
   if (!esRecord(value)) return fallo("Modelo inválido: procedencia");

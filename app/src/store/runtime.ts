@@ -156,6 +156,8 @@ export function activarEstadoPestanas(set: SetStore, estado: { pestanas: Pestana
     eligiendoOrigenEnlace: false,
     modoCreacion: null,
     nuevaCosaPendiente: null,
+    refinamientoPendiente: null,
+    confirmacionEliminarRefinamiento: null,
     colaRenombradoPendiente: [],
     hoverOplRef: null,
     modeloPersistidoId: pestana.modeloId,
@@ -474,6 +476,8 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
     // o creación pendiente que pudiera haber quedado abierto.
     colisionPendiente: null,
     nuevaCosaPendiente: null,
+    refinamientoPendiente: null,
+    confirmacionEliminarRefinamiento: null,
     ...extra,
   };
 }

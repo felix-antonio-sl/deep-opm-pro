@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { useZustandDiagnosticsPort } from "../app/ports/zustandDiagnosticsPort";
 import {
   agruparIssuesDiagnostico,
   derivarIssuesDiagnostico,
+  resumirDeltaDiagnostico,
   resumirPanelDiagnostico,
   type DiagnosticoIssue,
   type DiagnosticoIssueAgrupado,
@@ -44,7 +45,6 @@ export function PanelDiagnostico(props: PanelDiagnosticoProps = {}) {
   );
   const grupos = useMemo(() => agruparIssuesDiagnostico(issues), [issues]);
   const resumen = useMemo(() => resumirPanelDiagnostico(issues), [issues]);
-
   useEffect(() => {
     const abrirAviso = (event: Event) => {
       const detail = (event as CustomEvent<{ reglaId?: string }>).detail;
@@ -69,6 +69,7 @@ export function PanelDiagnostico(props: PanelDiagnosticoProps = {}) {
   return (
     <aside
       data-testid="panel-diagnostico"
+      data-tutor-capability="cap.diagnostic.reactive"
       data-expandido={expandido ? "true" : "false"}
       data-severidad-dominante={resumen.dominante}
       aria-label="Diagnóstico del OPD activo"
@@ -126,6 +127,37 @@ export function PanelDiagnostico(props: PanelDiagnosticoProps = {}) {
         </div>
       ) : null}
     </aside>
+  );
+}
+
+/** Vive aunque el panel visual tenga cero issues, para observar el delta
+ * inicial 0→N sin montar una segunda voz diagnóstica. */
+export function AnunciadorDeltaDiagnostico() {
+  const [anuncio, setAnuncio] = useState("");
+  const idsPreviosRef = useRef<readonly string[]>([]);
+  const { avisos, navegarAviso } = useZustandDiagnosticsPort();
+  const esApunte = useOpmStore((s) => s.indice.modelos.some((item) => item.id === s.modelo.id && item.esApunte === true));
+  const ids = useMemo(
+    () => derivarIssuesDiagnostico(avisos, navegarAviso, { esApunte }).map((issue) => issue.id).sort(),
+    [avisos, navegarAviso, esApunte],
+  );
+  const firma = JSON.stringify(ids);
+
+  useEffect(() => {
+    const anteriores = idsPreviosRef.current;
+    idsPreviosRef.current = ids;
+    setAnuncio(resumirDeltaDiagnostico(anteriores, ids));
+  }, [firma]);
+
+  return (
+    <span
+      data-testid="diagnostico-delta-live"
+      aria-live="polite"
+      aria-atomic="true"
+      style={style.srOnly}
+    >
+      {anuncio}
+    </span>
   );
 }
 
@@ -376,4 +408,15 @@ const style = {
   criterioBloque: { display: "grid", gap: 2, margin: 0, lineHeight: 1.35 },
   criterioLabel: { color: tokens.colors.textoPrimario, fontFamily: tokens.typography.familyChrome, fontSize: 10, fontStyle: "normal" },
   acciones: { display: "grid", gap: 3, margin: 0, paddingLeft: 16 },
+  srOnly: {
+    position: "absolute",
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    whiteSpace: "nowrap",
+    border: 0,
+  },
 } satisfies Record<string, preact.JSX.CSSProperties>;

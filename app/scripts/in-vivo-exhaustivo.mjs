@@ -186,7 +186,7 @@ async function importarJsonTexto(page, json) {
   const textarea = dialogo.locator("textarea[data-testid='textarea-json']");
   await textarea.waitFor({ state: "visible", timeout: 3000 });
   await textarea.fill(json);
-  await dialogo.getByRole("button", { name: "Importar", exact: true }).click();
+  await dialogo.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   const confirmacion = page.getByRole("dialog").filter({ has: page.getByRole("button", { name: "Descartar" }) });
   if (await waitVisible(confirmacion, 500)) {
     await confirmacion.getByRole("button", { name: "Descartar" }).click();
@@ -806,7 +806,7 @@ try {
       el.dispatchEvent(new Event("change", { bubbles: true }));
     }, hodomJson);
     await page.waitForTimeout(300);
-    await dlgH.getByRole("button", { name: "Importar", exact: true }).click();
+    await dlgH.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
     await page.waitForTimeout(2000);
     const confirmH = page.getByRole("dialog").filter({ has: page.getByRole("button", { name: "Descartar" }) });
     if (await waitVisible(confirmH, 1500)) {

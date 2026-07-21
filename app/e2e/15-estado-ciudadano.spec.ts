@@ -93,7 +93,7 @@ async function importarJson(page: Page, modelo: unknown): Promise<void> {
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 }
 

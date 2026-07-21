@@ -14,7 +14,9 @@ export function GestionArbolOpd() {
 
   const pegarSobre = (targetId: Id) => {
     if (!cortadoId || cortadoId === targetId) return;
-    // Mover al target como padre, al final de la lista
+    // Cortar/Pegar solo reordena hermanos. Reparentar cambia el hecho de
+    // refinamiento y debe pasar por el gateway convergente de adopción.
+    if (modelo.opds[cortadoId]?.padreId !== targetId) return;
     moverOpdEnGestion(cortadoId, targetId, 999999);
     setCortadoId(null);
   };
@@ -158,11 +160,11 @@ function renderNodo(nodo: NodoGestionOpd, ops: RenderOps): preact.VNode | null {
               Cortar
             </button>
           )}
-          {ops.cortadoId && ops.cortadoId !== opd.id && (
+          {ops.cortadoId && ops.cortadoId !== opd.id && ops.modelo.opds[ops.cortadoId]?.padreId === opd.id && (
             <button
               type="button"
               style={{ ...style.actionBtn, ...style.pasteBtn }}
-              title={`Pegar como hijo de ${nombreMostrar}`}
+              title={`Reordenar al final de los hijos de ${nombreMostrar}`}
               onClick={() => ops.pegarSobre(opd.id)}
             >
               Pegar aquí

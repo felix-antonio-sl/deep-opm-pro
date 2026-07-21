@@ -9,6 +9,9 @@ import { SeccionDesignaciones } from "./SeccionDesignaciones";
 import { SeccionDuracion } from "./SeccionDuracion";
 import { tokens } from "../tokens";
 import { estadosDeEntidad } from "../../modelo/operaciones";
+import { tieneDesignacion } from "../../modelo/estadosDesignaciones";
+import { deriveElementIntent, runTutorPolicy } from "../../tutor";
+import { TutorInterventionDetails, mapearLentesTutor } from "../TutorDetails";
 
 interface Props {
   estado: Estado;
@@ -37,6 +40,7 @@ interface Props {
  */
 export function InspectorEstado({ estado }: Props) {
   const modelo = useOpmStore((s) => s.modelo);
+  const contextoSimulacion = useOpmStore((s) => s.contextoSimulacion);
   const renombrarEstado = useOpmStore((s) => s.renombrarEstadoSeleccionadoSmart);
   const designarEstado = useOpmStore((s) => s.designarEstadoSeleccionado);
   const quitarDesignacion = useOpmStore((s) => s.quitarDesignacionEstadoSeleccionado);
@@ -52,6 +56,14 @@ export function InspectorEstado({ estado }: Props) {
   const puedeSubir = indice > 0;
   const puedeBajar = indice >= 0 && indice < hermanos.length - 1;
   const puedeEliminar = hermanos.length > 2;
+  const intervencionTutor = runTutorPolicy(deriveElementIntent({
+    intentId: `state:${estado.id}:lifecycle`,
+    focus: "state",
+    ownerKind: objeto?.tipo === "proceso" ? "process" : "object",
+    declaredCurrent: tieneDesignacion(estado, "current"),
+    runtimeCurrent: contextoSimulacion?.estadosCurrent[estado.entidadId] === estado.id,
+    activeLenses: mapearLentesTutor(modelo.lentesConocimiento ?? []),
+  }));
 
   const [nombreInput, setNombreInput] = useState(estado.nombre);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -115,6 +127,10 @@ export function InspectorEstado({ estado }: Props) {
       </header>
 
       <CodexInspectSection label="Identidad" testId="inspector-estado-identidad">
+        <TutorInterventionDetails
+          intervention={intervencionTutor}
+          testId="tutor-inspector-estado"
+        />
         <CodexStateRow
           nameSlot={inputNombre}
           estadoId={estado.id}

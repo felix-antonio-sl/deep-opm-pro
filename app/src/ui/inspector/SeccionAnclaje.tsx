@@ -7,9 +7,12 @@
 // no cromático de alarma — crimson es UI-only (foco/selección, ui-forja/06 §100).
 // Diseño rector: spec `…/2026-06-26-corte-centinela-drift-ui-design.md` §4.3.
 import type { Entidad } from "../../modelo/tipos";
+import { useState } from "preact/hooks";
 import { useOpmStore } from "../../store";
+import { deriveReuseIntent, runTutorPolicy } from "../../tutor";
 import { tokens } from "../tokens";
 import { copyAnclaje } from "./anclajePresentacion";
+import { TutorInterventionDetails } from "../TutorDetails";
 
 interface Props {
   entidad: Entidad;
@@ -24,14 +27,31 @@ export function SeccionAnclaje({ entidad }: Props) {
   const driftMap = useOpmStore((s) => s.driftMap);
   const reSincronizar = useOpmStore((s) => s.reSincronizarAnclajeEntidad);
   const soltar = useOpmStore((s) => s.soltarAnclajeEntidad);
+  const [eleccionTutor, setEleccionTutor] = useState<"resync" | "detach" | null>(null);
 
   const anclaje = entidad.anclaje;
   if (!anclaje) return null;
 
   const copy = copyAnclaje(driftMap[entidad.id], anclaje);
+  const tutorActivo = copy.estado === "divergente";
+  const intentIdTutor = `anchor:${entidad.id}:drift`;
+  const intervencionTutor = runTutorPolicy(deriveReuseIntent({
+    intentId: intentIdTutor,
+    focus: "anchor-drift",
+    driftDetected: tutorActivo,
+    choice: eleccionTutor,
+  }));
 
   return (
-    <div style={anclajeStyles.field} data-testid={`inspector-anclaje-${copy.estado}`}>
+    <div
+      style={anclajeStyles.field}
+      data-testid={`inspector-anclaje-${copy.estado}`}
+      data-tutor-intent={intentIdTutor}
+    >
+      <TutorInterventionDetails
+        intervention={intervencionTutor}
+        testId="tutor-inspector-anclaje"
+      />
       {copy.titulo ? <p style={anclajeStyles.titulo}>{copy.titulo}</p> : null}
       <p style={anclajeStyles.cuerpo}>{copy.cuerpo}</p>
       <div style={anclajeStyles.acciones}>
@@ -40,7 +60,11 @@ export function SeccionAnclaje({ entidad }: Props) {
             type="button"
             style={anclajeStyles.botonResync}
             data-testid="anclaje-resincronizar"
-            onClick={() => void reSincronizar(entidad.id)}
+            data-tutor-entrypoint="anchor:resync"
+            onClick={() => {
+              setEleccionTutor("resync");
+              void reSincronizar(entidad.id);
+            }}
           >
             Re-sincronizar
           </button>
@@ -50,13 +74,17 @@ export function SeccionAnclaje({ entidad }: Props) {
             type="button"
             style={anclajeStyles.botonSoltar}
             data-testid="anclaje-soltar"
-            onClick={() => soltar(entidad.id)}
+            data-tutor-entrypoint="anchor:detach"
+            onClick={() => {
+              setEleccionTutor("detach");
+              soltar(entidad.id);
+            }}
           >
             Soltar
           </button>
         ) : null}
       </div>
-      <p style={anclajeStyles.aviso}>{copy.avisoAcciones}</p>
+      {!tutorActivo ? <p style={anclajeStyles.aviso}>{copy.avisoAcciones}</p> : null}
     </div>
   );
 }

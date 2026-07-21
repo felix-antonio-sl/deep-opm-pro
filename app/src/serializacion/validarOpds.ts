@@ -91,7 +91,11 @@ export function validarModoDespliegue(entidadId: Id, value: unknown): Resultado<
   return fallo(`Refinamiento inválido: ${entidadId}.modo`);
 }
 
-export function validarOpds(value: Record<string, unknown>, entidades: Record<Id, Entidad>): Resultado<Record<Id, Opd>> {
+export function validarOpds(
+  value: Record<string, unknown>,
+  entidades: Record<Id, Entidad>,
+  opdRaizId?: Id,
+): Resultado<Record<Id, Opd>> {
   const opds: Record<Id, Opd> = {};
   for (const [id, raw] of Object.entries(value)) {
     if (!esRecord(raw)) return fallo(`OPD inválido: ${id}`);
@@ -99,6 +103,13 @@ export function validarOpds(value: Record<string, unknown>, entidades: Record<Id
     if (typeof raw.nombre !== "string") return fallo(`OPD inválido: ${id}.nombre`);
     if (raw.padreId !== undefined && raw.padreId !== null && typeof raw.padreId !== "string") {
       return fallo(`OPD inválido: ${id}.padreId`);
+    }
+    let preguntaGuia: string | undefined;
+    if (raw.preguntaGuia !== undefined) {
+      if (typeof raw.preguntaGuia !== "string" || !raw.preguntaGuia.trim()) {
+        return fallo(`OPD inválido: ${id}.preguntaGuia`);
+      }
+      preguntaGuia = raw.preguntaGuia.trim();
     }
     if (!esRecord(raw.apariencias)) return fallo(`OPD inválido: ${id}.apariencias`);
     if (!esRecord(raw.enlaces)) return fallo(`OPD inválido: ${id}.enlaces`);
@@ -125,7 +136,10 @@ export function validarOpds(value: Record<string, unknown>, entidades: Record<Id
     opds[id] = {
       id,
       nombre: raw.nombre,
-      padreId: raw.padreId ?? null,
+      // Ausencia legacy se cuelga de la raíz cuando el documento completo la
+      // aporta; `null` explícito se conserva porque identifica un OPD de Taller.
+      padreId: raw.padreId === undefined && id !== opdRaizId ? opdRaizId ?? null : raw.padreId ?? null,
+      ...(preguntaGuia ? { preguntaGuia } : {}),
       apariencias: apariencias.value,
       enlaces: enlaces.value,
       ...(vista.value ? { vista: vista.value } : {}),

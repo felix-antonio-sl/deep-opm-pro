@@ -12,9 +12,11 @@ import { useAppShellViewModel } from "../../app/viewmodels/appShellViewModel";
 import { usePanelOplViewModel } from "../../app/viewmodels/panelOplViewModel";
 import type { JointCanvasAdapter } from "../../render/jointjs/jointCanvasAdapter";
 import { useOpmStore } from "../../store";
+import { deriveViewIntent, runTutorPolicy, type TutorIntervention } from "../../tutor";
 import { ArbolOpd } from "../ArbolOpd";
 import { JointCanvasFeedbackBoundary } from "../JointCanvasFeedbackBoundary";
 import { PanelOplView } from "../PanelOpl";
+import { TutorInterventionDetails } from "../TutorDetails";
 import { tokens } from "../tokens";
 import { debeAutoAbrirModelos, modeloSinContenido } from "./seleccionModelos";
 import { VistaBusquedaLectura } from "./VistaBusquedaLectura";
@@ -77,16 +79,28 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
   const opd = modelo.opds[opdActivoId];
   const nombreOpd = opd?.nombre ?? "Sin OPD";
   const nombreModelo = modelo.nombre ?? "Modelo sin nombre";
+  const intervencionLectura = runTutorPolicy(deriveViewIntent({
+    intentId: `mobile-read:${modelo.id}`,
+    focus: "mobile-read",
+    editable: false,
+  }));
 
   return (
     <div
       data-testid="mobile-app-lectura"
       data-context-modo="lectura"
+      data-tutor-capability="cap.interaction.readonly"
+      data-tutor-policy-kind={intervencionLectura.kind}
       style={style.container}
     >
       <header data-testid="mobile-header-lectura" style={style.header}>
         <div style={style.headerInner}>
           <span data-testid="mobile-breadcrumb-opd" style={style.breadcrumb}>{nombreOpd}</span>
+          {opd?.preguntaGuia ? (
+            <span data-testid="mobile-pregunta-guia" style={style.preguntaGuia}>
+              {`Pregunta guía · ${opd.preguntaGuia}`}
+            </span>
+          ) : null}
         </div>
         <button
           data-testid="mobile-boton-buscar"
@@ -132,7 +146,7 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
         ) : null}
         {vista === "acerca" ? (
           <div data-testid="mobile-vista-acerca" style={style.vistaAcerca}>
-            <AcercaLectura nombreModelo={nombreModelo} />
+            <AcercaLectura nombreModelo={nombreModelo} intervention={intervencionLectura} />
           </div>
         ) : null}
       </main>
@@ -160,12 +174,13 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
   );
 }
 
-function AcercaLectura({ nombreModelo }: { nombreModelo: string }) {
+function AcercaLectura({ nombreModelo, intervention }: { nombreModelo: string; intervention: TutorIntervention }) {
   return (
     <div style={style.acerca}>
       <h2 style={style.acercaTitulo}>{nombreModelo}</h2>
       <p style={style.acercaTexto}>Modelo OPM en modo lectura.</p>
       <p style={style.acercaTexto}>Para editar, abre en escritorio o tablet.</p>
+      <TutorInterventionDetails intervention={intervention} testId="tutor-mobile-readonly" />
     </div>
   );
 }
@@ -173,7 +188,7 @@ function AcercaLectura({ nombreModelo }: { nombreModelo: string }) {
 const style: Record<string, preact.JSX.CSSProperties> = {
   container: {
     display: "grid",
-    gridTemplateRows: "48px minmax(0, 1fr) 56px",
+    gridTemplateRows: "auto minmax(0, 1fr) 56px",
     width: "100%",
     height: "100%",
     background: tokens.colors.fondoApp,
@@ -187,10 +202,13 @@ const style: Record<string, preact.JSX.CSSProperties> = {
     padding: `0 ${tokens.spacing.md}px`,
     background: tokens.colors.paper,
     borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`,
-    minHeight: 0,
+    minHeight: "48px",
   },
   headerInner: {
+    flex: "1 1 auto",
     minWidth: 0,
+    display: "grid",
+    gap: "2px",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
@@ -199,6 +217,15 @@ const style: Record<string, preact.JSX.CSSProperties> = {
     fontSize: `${tokens.typography.fs.fs13}px`,
     fontWeight: tokens.typography.weights.bold,
     color: tokens.colors.ink,
+  },
+  preguntaGuia: {
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs10}px`,
   },
   botonBuscar: {
     flex: "0 0 auto",

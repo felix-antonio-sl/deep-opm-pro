@@ -14,6 +14,7 @@ function modeloConAnclas() {
       nombre: "Modelo con anclas",
       opdRaizId: "opd-1",
       nextSeq: 10,
+      procedencia: { protoHash: "hash-proto-anclas", autoriaVersion: "1", layoutVersion: "1" },
       entidades: { "o-1": objeto("o-1", "Frontera HD") },
       enlaces: {},
       opds: {
@@ -76,6 +77,72 @@ test("rama vacía proyecta anclas del modelo y del OPD activo", async ({ page })
   await expect(page.getByTestId("inspector-registro-ratificar")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
+});
+
+test("Nota y RATIFICAR conservan voz, fuente, destino, undo y recibo separados", async ({ page }) => {
+  await page.addInitScript(() => {
+    const target = window as typeof window & { __logTutorCopiado?: string[] };
+    target.__logTutorCopiado = [];
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText(texto: string) {
+          target.__logTutorCopiado?.push(texto);
+          return Promise.resolve();
+        },
+      },
+    });
+  });
+  await page.goto("/");
+  await importarModeloJson(page, modeloConAnclas());
+  await page.getByRole("button", { name: "Nota del modelo" }).click();
+
+  const tutorNota = page.getByTestId("tutor-nota-mesa");
+  const tutorRatificar = page.getByTestId("tutor-registro-ratificar");
+  await expect(tutorNota).toHaveCount(1);
+  await expect(tutorRatificar).toHaveCount(1);
+  await expect(tutorNota).toHaveAttribute("data-tutor-action", "inspector:note-add");
+  await expect(tutorRatificar).toHaveAttribute("data-tutor-action", "inspector:anchor-ratify-source");
+  for (const tutor of [tutorNota, tutorRatificar]) {
+    await tutor.scrollIntoViewIfNeeded();
+    await tutor.getByText("Fundamento", { exact: true }).click();
+    await expect(tutor.locator('a[href^="/tutor-sources/"]').first()).toBeVisible();
+  }
+
+  const ratificarGenerico = page.getByTestId("ancla-item").filter({ hasText: "[RATIFICAR]" });
+  await expect(ratificarGenerico).toHaveCount(1);
+  await page.getByTestId("nota-mesa-input").fill("Revisar frontera sin autoridad normativa");
+  await page.getByTestId("nota-mesa-agregar").click();
+  await expect(page.getByTestId("nota-mesa-item")).toHaveText("Revisar frontera sin autoridad normativa×");
+  await expect(ratificarGenerico).toHaveCount(1);
+  await expect(page.getByTestId("nota-mesa-item")).not.toContainText("RATIFICAR");
+  await page.keyboard.press("Control+z");
+  await expect(page.getByTestId("nota-mesa-item")).toHaveCount(0);
+
+  const fila = page.getByTestId("registro-ratificar-fila");
+  await page.getByTestId("registro-anotar-mesa").click();
+  await expect(fila).toContainText("anotado-en-mesa");
+  await page.keyboard.press("Control+z");
+  await expect(fila).toContainText("pendiente");
+  await page.keyboard.press("Control+Shift+z");
+  await expect(fila).toContainText("anotado-en-mesa");
+
+  await page.getByTestId("registro-fuente-input").fill("Acta mesa 2026-07-21");
+  await page.getByTestId("registro-ratificar-fuente").click();
+  await expect(fila).toContainText("ratificado-con-fuente");
+  await expect(fila).toContainText("Acta mesa 2026-07-21");
+  await page.keyboard.press("Control+z");
+  await expect(fila).toContainText("anotado-en-mesa");
+
+  await page.getByTestId("registro-copiar-log").click();
+  const copiados = await page.evaluate(() => (
+    window as typeof window & { __logTutorCopiado?: string[] }
+  ).__logTutorCopiado ?? []);
+  expect(copiados).toHaveLength(1);
+  expect(JSON.parse(copiados[0] ?? "{}")).toMatchObject({
+    schema: "deep-opm-pro.log-decisiones.v0",
+    modeloHash: "hash-proto-anclas",
+  });
 });
 
 test("entidad seleccionada muestra sus anclas con referencia formateada", async ({ page }) => {

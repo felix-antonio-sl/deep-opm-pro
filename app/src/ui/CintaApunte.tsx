@@ -21,10 +21,10 @@ export function CintaApunte(): JSX.Element | null {
   if (!esApunte) return null;
 
   return (
-    <div data-testid="cinta-apunte" role="status" aria-live="polite" style={s.cinta}>
+    <div data-testid="cinta-apunte" data-tutor-capability="cap.lifecycle.regime" role="status" aria-live="polite" style={s.cinta}>
       <span style={s.glifo} aria-hidden="true">◷</span>
       <span style={s.texto} data-testid="cinta-apunte-estado">
-        <span style={s.rotulo}>Apunte</span> {"·"} borrador OPM, el rigor de cierre se relaja
+        <span style={s.rotulo}>Apunte</span> {"·"} integridad obligatoria; cierre en observación
       </span>
       {/* «Momento de graduación» (diseño §3): la acción vive donde vive la identidad
           del apunte. Palabra-acción (sin fondo/borde/sombra, ui-forja), no un botón. */}

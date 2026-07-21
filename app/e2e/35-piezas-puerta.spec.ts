@@ -149,6 +149,15 @@ async function seleccionActual(page: Page): Promise<{ id: string | null; anclado
   }, RUTA_STORE);
 }
 
+async function cantidadEntidades(page: Page): Promise<number> {
+  return page.evaluate(async (ruta) => {
+    const m = await import(ruta) as {
+      store: { getState: () => { modelo: { entidades: Record<string, unknown> } } };
+    };
+    return Object.keys(m.store.getState().modelo.entidades).length;
+  }, RUTA_STORE);
+}
+
 // Abre la superficie Piezas vía el store expuesto por Vite dev. El comando equivalente
 // del command palette («Piezas») lo cubre `CommandPalette.test.ts`; aquí lo que se
 // falsea es la superficie y sus verbos, no el atajo de apertura.
@@ -198,23 +207,43 @@ test.describe("La PUERTA del Anclaje — superficie Piezas", () => {
     await expect(chipBiblioteca).toBeVisible();
     await chipBiblioteca.click();
 
+    const tutor = page.getByTestId("tutor-piezas");
+    await expect(tutor).toHaveAttribute("data-tutor-intervention", "ask");
+    await expect(tutor).toContainText("Decide entre independencia y seguimiento del origen.");
+    await expect(tutor.getByText("Criterio", { exact: true })).toBeVisible();
+    await expect(tutor.getByText("Fundamento", { exact: true })).toBeVisible();
+    await tutor.getByText("Fundamento", { exact: true }).click();
+    await expect(tutor.locator('a[href^="/tutor-sources/"]').first()).toBeVisible();
+    await expect(page.locator('[data-tutor-intervention]:not([data-tutor-intervention="silent"]):visible')).toHaveCount(1);
+
     // Sus entidades aparecen como Piezas, con AMBOS verbos (fuente externa).
     await expect(page.getByTestId(`pieza-item-${PIEZA_ID}`)).toBeVisible();
     await expect(page.getByTestId(`pieza-calcar-${PIEZA_ID}`)).toBeVisible();
     await expect(page.getByTestId(`pieza-anclar-${PIEZA_ID}`)).toBeVisible();
 
     // Calcar: clona-y-olvida. La Pieza aterriza seleccionada, SIN anclaje. Modal abierto.
+    const entidadesAntes = await cantidadEntidades(page);
     await page.getByTestId(`pieza-calcar-${PIEZA_ID}`).click();
     await expect(page.getByTestId("vitrina-estereotipos")).toBeVisible();
     await expect.poll(async () => (await seleccionActual(page)).id).not.toBeNull();
     const trasCalcar = await seleccionActual(page);
     expect(trasCalcar.anclado).toBe(false);
+    expect(await cantidadEntidades(page)).toBe(entidadesAntes + 1);
+    await page.getByRole("button", { name: "Cerrar", exact: true }).click();
+    await page.keyboard.press("Control+z");
+    await expect.poll(() => cantidadEntidades(page)).toBe(entidadesAntes);
 
     // Anclar: clona + ata. La nueva Pieza queda anclada a la biblioteca y sincronizada.
+    await abrirPiezas(page);
+    await page.getByTestId(`piezas-fuente-${LIB_ID}`).click();
     await page.getByTestId(`pieza-anclar-${PIEZA_ID}`).click();
     await expect.poll(async () => (await seleccionActual(page)).anclado).toBe(true);
     const trasAnclar = await seleccionActual(page);
     expect(trasAnclar.modeloIdAnclaje).toBe(LIB_ID);
     expect(trasAnclar.drift).toBe("sincronizado");
+    expect(await cantidadEntidades(page)).toBe(entidadesAntes + 1);
+    await page.getByRole("button", { name: "Cerrar", exact: true }).click();
+    await page.keyboard.press("Control+z");
+    await expect.poll(() => cantidadEntidades(page)).toBe(entidadesAntes);
   });
 });

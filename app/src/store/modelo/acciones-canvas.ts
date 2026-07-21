@@ -510,11 +510,19 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
     },
 
     deshacer() {
+      const modeloAnterior = get().modelo;
       deshacerRuntime(set, get);
+      if (cambiaronAnclajes(modeloAnterior, get().modelo)) {
+        void get().cargarYEvaluarDrift();
+      }
     },
 
     rehacer() {
+      const modeloAnterior = get().modelo;
       rehacerRuntime(set, get);
+      if (cambiaronAnclajes(modeloAnterior, get().modelo)) {
+        void get().cargarYEvaluarDrift();
+      }
     },
 
     cambiarModoPlegadoSeleccionado(modo) {
@@ -1021,6 +1029,20 @@ function gridConfigDesdeEstado(estado: ReturnType<GetStore>): GridConfig {
 
 function cuantizarDesdeEstado(estado: ReturnType<GetStore>, x: number, y: number): { x: number; y: number } {
   return cuantizarPosicion(x, y, gridConfigDesdeEstado(estado));
+}
+
+function cambiaronAnclajes(
+  anterior: ReturnType<GetStore>["modelo"],
+  siguiente: ReturnType<GetStore>["modelo"],
+): boolean {
+  return JSON.stringify(firmaAnclajes(anterior)) !== JSON.stringify(firmaAnclajes(siguiente));
+}
+
+function firmaAnclajes(modelo: ReturnType<GetStore>["modelo"]) {
+  return Object.values(modelo.entidades)
+    .filter((entidad) => entidad.anclaje !== undefined)
+    .map((entidad) => [entidad.id, entidad.anclaje] as const)
+    .sort(([left], [right]) => left.localeCompare(right, "en"));
 }
 
 function aparienciaSeleccionadaParaTraer(

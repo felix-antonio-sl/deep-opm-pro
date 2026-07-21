@@ -146,6 +146,25 @@ export interface ResumenPanelDiagnostico {
   dominante: SeveridadDiagnostico | "sin-hallazgos";
 }
 
+/** Resume solo cambios de identidad entre dos recomputaciones. El panel sigue
+ * siendo el único propietario visual de los hallazgos; este texto alimenta su
+ * live region accesible sin repetir el contenido de cada issue. */
+export function resumirDeltaDiagnostico(
+  anteriores: readonly string[],
+  actuales: readonly string[],
+): string {
+  const previos = new Set(anteriores);
+  const siguientes = new Set(actuales);
+  const nuevos = [...siguientes].filter((id) => !previos.has(id)).length;
+  const resueltos = [...previos].filter((id) => !siguientes.has(id)).length;
+  if (nuevos === 0 && resueltos === 0) return "";
+  const partes = [
+    ...(nuevos > 0 ? [`${nuevos} ${nuevos === 1 ? "hallazgo nuevo" : "hallazgos nuevos"}`] : []),
+    ...(resueltos > 0 ? [`${resueltos} ${resueltos === 1 ? "hallazgo resuelto" : "hallazgos resueltos"}`] : []),
+  ];
+  return `Diagnóstico actualizado: ${partes.join(" y ")}.`;
+}
+
 /** Resumen compacto para una columna estrecha. Nombra la severidad dominante
  * y conserva la existencia de las restantes sin degradarlas a "sugerencias". */
 export function resumirPanelDiagnostico(issues: readonly DiagnosticoIssue[]): ResumenPanelDiagnostico {

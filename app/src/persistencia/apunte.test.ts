@@ -4,7 +4,7 @@ import {
   resumenDesdeModeloPersistido,
   type ModeloPersistido,
 } from "./modelos";
-import { marcarApunte, marcarBiblioteca, type WorkspaceIndice } from "./workspace";
+import { graduarApunte, marcarApunte, marcarBiblioteca, type WorkspaceIndice } from "./workspace";
 
 // Modo apunte — gemelo de `esBiblioteca` + invariante de exclusión mutua.
 // Spec: docs/superpowers/specs/2026-06-30-modo-apunte-design.md §3.5, §7.
@@ -77,6 +77,41 @@ describe("apunte — invariante de exclusión mutua apunte ⊕ biblioteca (corre
   test("marcarApunte(false) retira el flag (índice mínimo, no false)", () => {
     const tras = marcarApunte(indice(), "ap-1", false);
     expect(tras.modelos.find((m) => m.id === "ap-1")).toEqual({ id: "ap-1", carpetaId: null });
+  });
+
+  test("graduar valida el destino antes de retirar la especie", () => {
+    const base = indice();
+    expect(graduarApunte(base, "ap-1", "carpeta-inexistente")).toEqual({
+      ok: false,
+      error: "Carpeta destino no encontrada",
+    });
+    expect(base.modelos.find((m) => m.id === "ap-1")?.esApunte).toBe(true);
+  });
+
+  test("graduar produce nombre de especie y destino como un solo índice", () => {
+    const base = {
+      ...indice(),
+      carpetas: [{ id: "carpeta-1", nombre: "Trabajo", padreId: null, creadoEn: 1 }],
+    };
+    const resultado = graduarApunte(base, "ap-1", "carpeta-1");
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value.modelos.find((m) => m.id === "ap-1")).toEqual({
+      id: "ap-1",
+      carpetaId: "carpeta-1",
+    });
+  });
+
+  test("graduar a Biblioteca abandona Apunte y fija rol en la misma transición", () => {
+    const base = indice();
+    const resultado = graduarApunte(base, "ap-1", null, "biblioteca");
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value.modelos.find((m) => m.id === "ap-1")).toEqual({
+      id: "ap-1",
+      carpetaId: null,
+      esBiblioteca: true,
+    });
   });
 
   test("nunca coexisten ambos flags tras cualquier toggle", () => {

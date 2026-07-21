@@ -2,8 +2,10 @@
 import { notasDeTarget } from "../../modelo/notasMesa";
 import type { TargetAncla } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
+import { deriveKnowledgeIntent, runTutorPolicy } from "../../tutor";
 import { inspectorStyles as style } from "../inspectorStyles";
 import { tokens } from "../tokens";
+import { TutorInterventionDetails, mapearLentesTutor } from "../TutorDetails";
 import { useState } from "preact/hooks";
 
 /**
@@ -22,6 +24,12 @@ export function SeccionNotasMesa(props: Props) {
   const eliminarNotaMesa = useOpmStore((s) => s.eliminarNotaMesa);
   const [borrador, setBorrador] = useState("");
   const notas = notasDeTarget(modelo, props.target);
+  const intervencionTutor = runTutorPolicy(deriveKnowledgeIntent({
+    intentId: `evidence:note:${props.target.tipo}:${"id" in props.target ? props.target.id : "model"}`,
+    focus: "evidence",
+    route: "local-note",
+    activeLenses: mapearLentesTutor(modelo.lentesConocimiento ?? []),
+  }));
 
   const anotar = () => {
     const texto = borrador.trim();
@@ -31,7 +39,12 @@ export function SeccionNotasMesa(props: Props) {
   };
 
   return (
-    <div style={style.field} data-testid="inspector-seccion-notas-mesa">
+    <div
+      style={style.field}
+      data-testid="inspector-seccion-notas-mesa"
+      data-tutor-policy-kind={intervencionTutor.kind}
+      data-tutor-policy-action={intervencionTutor.kind === "silent" ? undefined : intervencionTutor.actionId}
+    >
       <span class="opm-label-uppercase" style={style.label}>Notas de mesa</span>
       {notas.map((nota) => (
         <div key={nota.id} style={notasStyles.item} data-testid="nota-mesa-item">
@@ -42,12 +55,14 @@ export function SeccionNotasMesa(props: Props) {
             title="Eliminar nota (resuelta)"
             aria-label={`Eliminar nota: ${nota.texto}`}
             data-testid="nota-mesa-eliminar"
+            data-tutor-entrypoint="inspector:note-delete"
             onClick={() => eliminarNotaMesa(nota.id)}
           >
             ×
           </button>
         </div>
       ))}
+      <TutorInterventionDetails intervention={intervencionTutor} testId="tutor-nota-mesa" />
       <div style={notasStyles.editor}>
         <textarea
           data-testid="nota-mesa-input"
@@ -60,6 +75,7 @@ export function SeccionNotasMesa(props: Props) {
           type="button"
           style={notasStyles.agregar}
           data-testid="nota-mesa-agregar"
+          data-tutor-entrypoint="inspector:note-add"
           disabled={!borrador.trim()}
           onClick={anotar}
         >

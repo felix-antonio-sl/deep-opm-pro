@@ -12,7 +12,7 @@
  */
 
 import { expect, test } from "@playwright/test";
-import { esperarWorkbenchInicial, clickLinkPorTipo, ejecutarComandoPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual } from "./_smoke-helpers";
+import { confirmarRefinamientoPendiente, esperarWorkbenchInicial, clickLinkPorTipo, ejecutarComandoPalette, elegirTipoEnlaceDesdeMenu, elementoPorTexto, exportadoActual } from "./_smoke-helpers";
 
 test("seleccionar una cosa enciende barra contextual e Inspector con la misma referencia", async ({ page }) => {
   const pageErrors: string[] = [];
@@ -90,6 +90,9 @@ test("inzoom desde barra contextual navega al OPD hijo y arbol expone el descend
   // Inzoom desde la barra contextual flotante (no desde Inspector).
   await expect(page.getByTestId("barra-inzoom")).toBeVisible();
   await page.getByTestId("barra-inzoom").click();
+  await confirmarRefinamientoPendiente(page, {
+    pregunta: "¿Qué subprocesos explican este proceso?",
+  });
 
   // El arbol OPD debe exponer el OPD hijo y marcarlo como activo.
   const arbol = page.getByRole("tree", { name: "Árbol OPD" });

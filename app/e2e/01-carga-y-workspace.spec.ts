@@ -231,14 +231,14 @@ test("asiste importacion JSON con archivo, preview, confirmacion y error legible
   await expect(page.getByTestId("import-preview")).toHaveText('Modelo "Modelo multi OPD" — 2 entidades, 2 OPDs, 0 enlaces');
 
   const dialogo = page.getByRole("dialog", { name: "Hay cambios sin guardar" });
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Cancelar" }).click();
   await expect(dialogo).toHaveCount(0);
   await expect(elementoPorTexto(page, "Objeto")).toHaveCount(1);
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(dialogo).toBeVisible();
   await dialogo.getByRole("button", { name: "Descartar" }).click();
   await expect(elementoPorTexto(page, "Objeto Raiz")).toHaveCount(1);

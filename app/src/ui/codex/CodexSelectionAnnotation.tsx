@@ -41,15 +41,24 @@ import {
   type ContextoBarraSeleccion,
 } from "../BarraHerramientasElemento";
 import type { Id } from "../../modelo/tipos";
+import type { ModoDespliegueObjeto, TipoRefinamiento } from "../../modelo/tipos";
+import { useOpmStore } from "../../store";
+import type { RefinamientoPendiente } from "../../store/tipos";
+import { runTutorPolicy } from "../../tutor/politica";
+import type { KnowledgeLens, TutorIntervention } from "../../tutor/tipos";
 import { useCanvasPaper } from "../CanvasAdapterContext";
 import { abrirSeccionesDe } from "../inspector/seccionColapso";
 import { tokens } from "../tokens";
+import { useTutorContent } from "../useTutorContent";
+import { TutorFoundationLinks } from "../TutorDetails";
 import { GLIFO_REF, GLIFO_SEP } from "./glifos";
 
 const OFFSET = 10;
 const PADDING_VIEWPORT = 8;
 const ALTO_ESTIMADO = 46;
 const ANCHO_ESTIMADO = 300;
+const ALTO_FORMULARIO_REFINAMIENTO = 390;
+const ANCHO_FORMULARIO_REFINAMIENTO = 420;
 
 export interface AccionAnotacion {
   label: string;
@@ -85,6 +94,9 @@ export function CodexSelectionAnnotation() {
   const paper = useCanvasPaper();
   const [posicion, setPosicion] = useState<PosicionAnotacion | null>(null);
   const [host, setHost] = useState<HTMLElement | null>(null);
+  const refinamientoPendiente = useOpmStore((s) => s.refinamientoPendiente);
+  const confirmarRefinamientoPendiente = useOpmStore((s) => s.confirmarRefinamientoPendiente);
+  const cancelarRefinamientoPendiente = useOpmStore((s) => s.cancelarRefinamientoPendiente);
 
   const contexto = useMemo(
     () => resolverContextoBarra(modelo, opdActivoId, seleccionId, enlaceSeleccionId, seleccionados),
@@ -147,7 +159,8 @@ export function CodexSelectionAnnotation() {
       };
       setPosicion(posicionarAnotacion(rectEnHost, host.clientHeight, {
         anchoCanvas: host.clientWidth,
-        anchoEstimado: ANCHO_ESTIMADO,
+        anchoEstimado: refinamientoPendiente ? ANCHO_FORMULARIO_REFINAMIENTO : ANCHO_ESTIMADO,
+        altoEstimado: refinamientoPendiente ? ALTO_FORMULARIO_REFINAMIENTO : ALTO_ESTIMADO,
       }));
     };
     const onFrame = () => requestAnimationFrame(actualizar);
@@ -163,7 +176,7 @@ export function CodexSelectionAnnotation() {
       window.removeEventListener("resize", onFrame);
       viewport?.removeEventListener("scroll", onFrame);
     };
-  }, [acciones.length, contexto, host, paper]);
+  }, [acciones.length, contexto, host, paper, refinamientoPendiente]);
 
   if (!contexto || !posicion || !host) return null;
 
@@ -199,6 +212,28 @@ export function CodexSelectionAnnotation() {
   };
 
   const { marca, marcaGrande } = marcaDeContexto(contexto);
+
+  if (refinamientoPendiente) {
+    return createPortal(
+      <FormularioRefinamiento
+        key={claveRefinamientoPendiente(refinamientoPendiente)}
+        pendiente={refinamientoPendiente}
+        modelo={modelo}
+        posicion={posicion}
+        onConfirmar={confirmarRefinamientoPendiente}
+        onCancelar={() => {
+          const testId = refinamientoPendiente.tipo === "descomposicion"
+            ? "barra-inzoom"
+            : refinamientoPendiente.tipo === "despliegue"
+              ? "barra-unfold"
+              : `tree-node-${refinamientoPendiente.opdSueltoId}`;
+          cancelarRefinamientoPendiente();
+          if (testId) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-testid="${testId}"]`)?.focus());
+        }}
+      />,
+      host,
+    );
+  }
 
   return createPortal(
     <div
@@ -286,7 +321,7 @@ function tituloAccion(accion: AccionBarra): string {
 export function posicionarAnotacion(
   rect: { x: number; y: number; width: number; height: number },
   altoCanvas: number,
-  opciones: { anchoCanvas?: number; anchoEstimado?: number } = {},
+  opciones: { anchoCanvas?: number; anchoEstimado?: number; altoEstimado?: number } = {},
 ): PosicionAnotacion {
   const leftBase = rect.x + rect.width / 2;
   const medioAncho = (opciones.anchoEstimado ?? ANCHO_ESTIMADO) / 2;
@@ -297,10 +332,225 @@ export function posicionarAnotacion(
       )
     : leftBase;
   const yAbajo = rect.y + rect.height + OFFSET;
-  if (altoCanvas > 0 && yAbajo + ALTO_ESTIMADO > altoCanvas - PADDING_VIEWPORT) {
-    return { left, top: Math.max(PADDING_VIEWPORT, rect.y - OFFSET - ALTO_ESTIMADO), placement: "arriba" };
+  const altoEstimado = opciones.altoEstimado ?? ALTO_ESTIMADO;
+  if (altoCanvas > 0 && yAbajo + altoEstimado > altoCanvas - PADDING_VIEWPORT) {
+    return { left, top: Math.max(PADDING_VIEWPORT, rect.y - OFFSET - altoEstimado), placement: "arriba" };
   }
   return { left, top: yAbajo, placement: "abajo" };
+}
+
+interface FormularioRefinamientoProps {
+  pendiente: RefinamientoPendiente;
+  modelo: ReturnType<typeof useBarraHerramientasElementoViewModel>["modelo"];
+  posicion: PosicionAnotacion;
+  onConfirmar: (input: {
+    preguntaGuia: string;
+    entidadId?: Id;
+    tipo?: TipoRefinamiento;
+    modo?: ModoDespliegueObjeto;
+  }) => void;
+  onCancelar: () => void;
+}
+
+function FormularioRefinamiento(props: FormularioRefinamientoProps) {
+  const inicial = props.pendiente;
+  const [pregunta, setPregunta] = useState(inicial.tipo === "adopcion" ? inicial.preguntaInicial ?? "" : "");
+  const [entidadId, setEntidadId] = useState(inicial.entidadId);
+  const [tipo, setTipo] = useState<TipoRefinamiento>(inicial.tipo === "adopcion" ? inicial.refinamiento : inicial.tipo);
+  const [modo, setModo] = useState<ModoDespliegueObjeto | "">(
+    inicial.tipo === "despliegue" || inicial.tipo === "adopcion" ? inicial.modo ?? "" : "",
+  );
+  const lentesTutor = (props.modelo.lentesConocimiento ?? []).map<KnowledgeLens>((lente) => {
+    if (lente === "sistemas") return "systems";
+    if (lente === "salud") return "health";
+    return "software";
+  });
+  const intervencionTutor = resolverIntervencionTutorRefinamiento(inicial, pregunta, lentesTutor);
+  const vistaTutor = useTutorContent(
+    intervencionTutor.kind !== "silent" ? intervencionTutor.contentId : null,
+    intervencionTutor.kind !== "silent" ? intervencionTutor.activeLenses : [],
+  );
+  const contenidoTutor = vistaTutor?.contenido ?? null;
+
+  const esAdopcion = inicial.tipo === "adopcion";
+  const requiereRelacion = tipo === "despliegue";
+  const valido = pregunta.trim().length > 0 && (!requiereRelacion || modo !== "");
+  const titulo = inicial.tipo === "adopcion"
+    ? `Adoptar «${inicial.opdNombre}»`
+    : inicial.tipo === "descomposicion"
+      ? `Descomponer «${inicial.entidadNombre}»`
+      : `Desplegar «${inicial.entidadNombre}»`;
+  const nombreEntidad = props.modelo.entidades[entidadId]?.nombre ?? entidadId;
+  const rotuloPregunta = esAdopcion
+    ? `¿Qué pregunta responde este OPD al refinar «${nombreEntidad}»?`
+    : "¿Qué pregunta buscas responder con este refinamiento?";
+  const entidadesElegibles = Object.values(props.modelo.opds[inicial.opdPadreId]?.apariencias ?? {})
+    .map((apariencia) => props.modelo.entidades[apariencia.entidadId])
+    .filter((entidad): entidad is NonNullable<typeof entidad> => !!entidad)
+    .filter((entidad, index, todas) => todas.findIndex((otra) => otra.id === entidad.id) === index);
+
+  const confirmar = () => {
+    props.onConfirmar({
+      preguntaGuia: pregunta,
+      ...(esAdopcion ? { entidadId, tipo } : {}),
+      ...(requiereRelacion && modo ? { modo } : {}),
+    });
+  };
+
+  return (
+    <form
+      aria-label={titulo}
+      data-atajos-local="true"
+      data-placement={props.posicion.placement}
+      data-testid="tutor-refinamiento"
+      style={{ ...style.formulario, left: `${props.posicion.left}px`, top: `${props.posicion.top}px` }}
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (valido) confirmar();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          props.onCancelar();
+        }
+      }}
+    >
+      <div style={style.formularioTitulo}>{titulo}</div>
+
+      {esAdopcion ? (
+        <>
+          <label style={style.campoFormulario}>
+            <span style={style.rotuloFormulario}>Elemento que refina</span>
+            <select
+              aria-label="Elemento que refina"
+              data-testid="tutor-refinamiento-entidad"
+              style={style.controlFormulario}
+              value={entidadId}
+              onChange={(event) => setEntidadId(event.currentTarget.value)}
+            >
+              {entidadesElegibles.map((entidad) => <option key={entidad.id} value={entidad.id}>{entidad.nombre}</option>)}
+            </select>
+          </label>
+          <label style={style.campoFormulario}>
+            <span style={style.rotuloFormulario}>Tipo de refinamiento</span>
+            <select
+              aria-label="Tipo de refinamiento"
+              data-testid="tutor-refinamiento-tipo"
+              style={style.controlFormulario}
+              value={tipo}
+              onChange={(event) => {
+                const siguiente = event.currentTarget.value as TipoRefinamiento;
+                setTipo(siguiente);
+                if (siguiente === "descomposicion") setModo("");
+              }}
+            >
+              <option value="descomposicion">Descomposición</option>
+              <option value="despliegue">Despliegue</option>
+            </select>
+          </label>
+        </>
+      ) : null}
+
+      {requiereRelacion ? (
+        <label style={style.campoFormulario}>
+          <span style={style.rotuloFormulario}>Relación estructural</span>
+          <select
+            aria-label="Relación estructural"
+            data-testid="tutor-refinamiento-modo"
+            style={style.controlFormulario}
+            value={modo}
+            onChange={(event) => setModo(event.currentTarget.value as ModoDespliegueObjeto | "")}
+          >
+            <option value="">Elige una relación…</option>
+            <option value="agregacion">Partes (agregación)</option>
+            <option value="exhibicion">Atributos (exhibición)</option>
+            <option value="generalizacion">Especializaciones</option>
+            <option value="clasificacion">Instancias</option>
+          </select>
+        </label>
+      ) : null}
+
+      <label style={style.campoFormulario}>
+        <span style={style.rotuloFormulario}>{rotuloPregunta}</span>
+        <input
+          autoFocus
+          aria-describedby="tutor-refinamiento-apoyo tutor-refinamiento-error"
+          aria-label="Pregunta guía"
+          data-testid="tutor-refinamiento-pregunta"
+          placeholder="Escribe la pregunta…"
+          style={style.controlFormulario}
+          value={pregunta}
+          onInput={(event) => setPregunta(event.currentTarget.value)}
+        />
+      </label>
+      <span id="tutor-refinamiento-apoyo" style={style.apoyoFormulario}>
+        {contenidoTutor?.now} Quedará visible en el OPD hijo; no forma parte del OPL.
+      </span>
+      {esAdopcion ? (
+        <span style={style.apoyoFormulario}>Adoptar integra este OPD al árbol. El rigor del Apunte o Modelo no cambia.</span>
+      ) : null}
+      <span id="tutor-refinamiento-error" role="alert" aria-live="assertive" style={style.errorFormulario}>
+        {inicial.error ?? ""}
+      </span>
+      <details style={style.porqueFormulario}>
+        <summary>Criterio</summary>
+        <p style={style.porqueTexto}>{contenidoTutor?.criterion}</p>
+        {contenidoTutor?.lensDetails.map((detalle) => (
+          <p key={detalle.lens} style={style.porqueTexto}>{detalle.criterion}</p>
+        ))}
+      </details>
+      <details style={style.porqueFormulario}>
+        <summary>Fundamento</summary>
+        <p style={style.fundamentoTexto}>
+          <TutorFoundationLinks referencias={vistaTutor?.referencias ?? []} inline />
+        </p>
+      </details>
+      <div style={style.accionesFormulario}>
+        <button type="button" style={style.accionSecundariaFormulario} onClick={props.onCancelar}>Cancelar</button>
+        <button
+          type="submit"
+          data-testid="tutor-refinamiento-confirmar"
+          disabled={!valido}
+          style={valido ? style.accionPrimariaFormulario : style.accionPrimariaDeshabilitadaFormulario}
+        >
+          {esAdopcion ? "Adoptar y abrir OPD" : "Crear y abrir OPD"}
+        </button>
+      </div>
+      <span style={style.srOnly}>Refinando {nombreEntidad}</span>
+    </form>
+  );
+}
+
+export function resolverIntervencionTutorRefinamiento(
+  pendiente: RefinamientoPendiente,
+  pregunta: string,
+  activeLenses: readonly KnowledgeLens[],
+): TutorIntervention {
+  const base = {
+    kind: "refine",
+    intentId: `refinement:${claveRefinamientoPendiente(pendiente)}`,
+    surface: "selection-annotation",
+    interactionMode: "editable",
+    stage: "question",
+    questionComplete: pregunta.trim().length > 0,
+    integrityBlocked: false,
+    activeLenses,
+  } as const;
+  if (pendiente.tipo === "adopcion") {
+    return runTutorPolicy({ ...base, actionId: "tree:adopt-refinement", mode: "adoption" });
+  }
+  if (pendiente.tipo === "descomposicion") {
+    return runTutorPolicy({ ...base, actionId: "contextual:inzoom", mode: "decomposition" });
+  }
+  return runTutorPolicy({ ...base, actionId: "contextual:unfold", mode: "unfold" });
+}
+
+function claveRefinamientoPendiente(pendiente: RefinamientoPendiente): string {
+  if (pendiente.tipo === "adopcion") {
+    return `${pendiente.tipo}:${pendiente.opdSueltoId}:${pendiente.entidadId}:${pendiente.refinamiento}`;
+  }
+  return `${pendiente.tipo}:${pendiente.opdPadreId}:${pendiente.entidadId}`;
 }
 
 function canvasPaneDePaper(paper: dia.Paper | null): HTMLElement | null {
@@ -441,6 +691,125 @@ function esPrimaria(id: AccionBarraId): boolean {
 }
 
 const style = {
+  formulario: {
+    position: "absolute",
+    zIndex: 14,
+    transform: "translateX(-50%)",
+    width: `min(${ANCHO_FORMULARIO_REFINAMIENTO}px, calc(100% - 16px))`,
+    maxHeight: "min(560px, calc(100% - 16px))",
+    overflow: "auto",
+    display: "grid",
+    gap: "10px",
+    padding: "14px 16px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    boxShadow: tokens.shadows.none,
+    pointerEvents: "auto",
+    fontFamily: tokens.typography.serif,
+  },
+  formularioTitulo: {
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs17}px`,
+    fontWeight: tokens.typography.weights.bold,
+  },
+  campoFormulario: {
+    display: "grid",
+    gap: "5px",
+  },
+  rotuloFormulario: {
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs13}px`,
+    lineHeight: tokens.typography.lh.body,
+  },
+  controlFormulario: {
+    width: "100%",
+    minHeight: "36px",
+    boxSizing: "border-box",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ruleStrong}`,
+    borderRadius: 0,
+    padding: "7px 9px",
+    background: tokens.colors.paper,
+    color: tokens.colors.ink,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: `${tokens.typography.fs.fs13}px`,
+  },
+  apoyoFormulario: {
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: `${tokens.typography.fs.fs11}px`,
+    lineHeight: tokens.typography.lh.body,
+  },
+  errorFormulario: {
+    minHeight: "16px",
+    color: tokens.colors.crimson,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: `${tokens.typography.fs.fs11}px`,
+  },
+  porqueFormulario: {
+    paddingTop: "6px",
+    borderTop: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
+    color: tokens.colors.inkMid,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: `${tokens.typography.fs.fs11}px`,
+  },
+  porqueTexto: {
+    margin: "7px 0 3px",
+    lineHeight: tokens.typography.lh.body,
+  },
+  fundamentoTexto: {
+    margin: 0,
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.mono,
+    fontSize: `${tokens.typography.fs.fs9}px`,
+    lineHeight: tokens.typography.lh.body,
+  },
+  accionesFormulario: {
+    display: "flex",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    gap: "14px",
+    paddingTop: "4px",
+  },
+  accionSecundariaFormulario: {
+    minHeight: "34px",
+    border: 0,
+    borderBottom: `${tokens.stroke.hairline}px solid ${tokens.colors.inkSoft}`,
+    borderRadius: 0,
+    padding: "4px 1px",
+    background: "transparent",
+    color: tokens.colors.inkSoft,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs13}px`,
+    cursor: "pointer",
+  },
+  accionPrimariaFormulario: {
+    minHeight: "36px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.ink}`,
+    borderRadius: 0,
+    padding: "7px 12px",
+    background: tokens.colors.ink,
+    color: tokens.colors.paper,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs13}px`,
+    fontWeight: tokens.typography.weights.bold,
+    cursor: "pointer",
+  },
+  accionPrimariaDeshabilitadaFormulario: {
+    minHeight: "36px",
+    border: `${tokens.stroke.hairline}px solid ${tokens.colors.rule}`,
+    borderRadius: 0,
+    padding: "7px 12px",
+    background: tokens.colors.paperWarm,
+    color: tokens.colors.inkFaint,
+    fontFamily: tokens.typography.serif,
+    fontSize: `${tokens.typography.fs.fs13}px`,
+    fontWeight: tokens.typography.weights.bold,
+    cursor: "not-allowed",
+  },
   barra: {
     position: "absolute",
     zIndex: 13,

@@ -47,6 +47,11 @@ describe("acciones de Taller en el store", () => {
     store.getState().seleccionarEntidad(pId);
 
     store.getState().adoptarOpdEnSeleccion(sueltoId, "descomposicion");
+    store.getState().confirmarRefinamientoPendiente({
+      entidadId: pId,
+      tipo: "descomposicion",
+      preguntaGuia: "¿Cómo se realiza Cargar?",
+    });
 
     const estado = store.getState();
     expect(esOpdSuelto(estado.modelo, sueltoId)).toBe(false); // adoptado: ya no es suelto

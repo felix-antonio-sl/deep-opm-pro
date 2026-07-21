@@ -313,6 +313,34 @@ describe("UX store para capacidades OPCloud aspiracionales", () => {
     expect(estado.seleccionados).toHaveLength(2);
     expect(estado.mensaje).toBe("Estereotipo injertado");
   });
+
+  test("abrir capacidades y resolver sin selección son efectos transitorios, no commits", () => {
+    const modeloAntes = exportarModelo(store.getState().modelo);
+    const undoAntes = store.getState().puedeDeshacer;
+
+    store.getState().abrirDialogoRequisito("crear");
+    expect(store.getState().dialogoRequisitoAbierto).toBe("crear");
+    expect(exportarModelo(store.getState().modelo)).toBe(modeloAntes);
+    expect(store.getState().puedeDeshacer).toBe(undoAntes);
+    store.getState().cerrarDialogoRequisito();
+
+    store.getState().abrirDialogoSubmodelo();
+    expect(store.getState().dialogoSubmodeloAbierto).toBeTrue();
+    expect(exportarModelo(store.getState().modelo)).toBe(modeloAntes);
+    expect(store.getState().puedeDeshacer).toBe(undoAntes);
+    store.getState().cerrarDialogoSubmodelo();
+
+    store.getState().abrirDialogoSimulacionNumerica();
+    expect(store.getState().dialogoSimulacionNumericaAbierto).toBeTrue();
+    expect(exportarModelo(store.getState().modelo)).toBe(modeloAntes);
+    expect(store.getState().puedeDeshacer).toBe(undoAntes);
+    store.getState().cerrarDialogoSimulacionNumerica();
+
+    store.getState().resolverDecisionSeleccionada();
+    expect(store.getState().mensaje).toBe("Selecciona una rama o enlace de decisión");
+    expect(exportarModelo(store.getState().modelo)).toBe(modeloAntes);
+    expect(store.getState().puedeDeshacer).toBe(undoAntes);
+  });
 });
 
 function instalarBackendMock(): void {

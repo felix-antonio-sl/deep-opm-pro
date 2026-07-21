@@ -202,7 +202,9 @@ export function ArbolOpd() {
             style={style.tallerTree}
             data-atajos-contexto="panel-arbol"
           >
-            <div style={style.tallerHeader}>Taller</div>
+            <div style={style.tallerHeader}>
+              Taller · {sueltos.length} OPD(s) aún sin lugar en el árbol. Sus hechos ya emiten OPL.
+            </div>
             {nodosSueltosVisibles.map(({ nodo }) => renderNodo(nodo))}
           </div>
         ) : null}

@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { elementoPorTexto, esperarWorkbenchInicial } from "./_smoke-helpers";
+import {
+  confirmarRefinamientoPendiente,
+  elementoPorTexto,
+  esperarWorkbenchInicial,
+} from "./_smoke-helpers";
 
 // Taller bottom-up (R-OPD-REF-20): un OPD suelto (padreId:null ≠ raíz) es un
 // estado transitorio legítimo del arranque bottom-up. Vive en la banda «Taller»
@@ -42,6 +46,9 @@ test("crear un OPD suelto, adoptarlo como descomposición y reconciliar el árbo
   await sueltoItem.click({ button: "right" });
   await expect(page.getByTestId("menu-contextual-arbol")).toBeVisible();
   await page.getByTestId("menu-adoptar-descomposicion").click();
+  await confirmarRefinamientoPendiente(page, {
+    pregunta: "¿Qué parte de Cargar explica este fragmento?",
+  });
 
   // Adoptado: ya no es suelto → la banda desaparece y el OPD cuelga del árbol.
   await expect(banda).toHaveCount(0);

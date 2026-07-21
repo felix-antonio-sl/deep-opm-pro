@@ -162,7 +162,7 @@ test("modo imagen global cicla desde el command palette y refleja el estado en e
   expect(pageErrors).toEqual([]);
 });
 
-test("configuración se invoca desde el command palette y plantillas no aparece", async ({ page }) => {
+test("configuración se invoca desde el command palette y plantillas no es un comando", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -173,7 +173,9 @@ test("configuración se invoca desde el command palette y plantillas no aparece"
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   await palette.getByRole("combobox").fill("plantillas");
-  await expect(palette).toContainText("¿Buscas algo del modelo? Prueba Ctrl+F");
+  await expect(
+    palette.locator('[role="option"]:not([data-testid^="command-palette-item-tutor-"])'),
+  ).toHaveCount(0);
   await page.keyboard.press("Escape");
 
   await ejecutarComandoPalette(page, "configuracion", "menu-configuracion");
@@ -213,7 +215,9 @@ test("el command palette es superset del antiguo menú: archivo, datos y herrami
   await visiblePorQuery("auto layout", "menu-auto-layout");
   await combobox.fill("modo solo canvas");
   await expect(palette.getByTestId("command-palette-item-menu-solo-canvas")).toBeVisible();
-  await expect(palette.getByRole("option")).toHaveCount(1);
+  await expect(
+    palette.locator('[role="option"]:not([data-testid^="command-palette-item-tutor-"])'),
+  ).toHaveCount(1);
   await combobox.fill("mapa del sistema");
   await expect(palette.getByText("Mapa del sistema", { exact: true })).toHaveCount(0);
   await page.keyboard.press("Escape");

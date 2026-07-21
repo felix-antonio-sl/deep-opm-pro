@@ -27,17 +27,50 @@ test("componer con modelo desde catálogo aplica interfaz compartida sugerida", 
   await ejecutarComandoPalette(page, "componer", "accion-componer-modelo");
   const dialogo = page.getByTestId("dialogo-composicion");
   await expect(dialogo).toBeVisible();
+  const tutor = dialogo.getByTestId("tutor-dialogo-composicion");
+  await expect(tutor).toHaveAttribute("data-tutor-intervention", "ask");
+  await expect(tutor).toContainText("Confirma interfaz, mapeos, procedencia y contenido incorporado.");
+  await tutor.getByText("Criterio", { exact: true }).click();
+  await expect(tutor).toContainText("Mapeos irresolubles o integridad rota bloquean");
   await expect(dialogo.getByText("Modelo facturación E2E")).toBeVisible();
   await dialogo.getByTestId("composicion-modelo-tile").first().click();
+  await expect(tutor).toHaveAttribute("data-tutor-intervention", "orient");
   await expect(dialogo.getByLabel("Compartir Cliente")).toBeVisible();
   await expect(dialogo.getByText("1 activa")).toBeVisible();
+
+  // Simula un mapeo obsoleto que quedó apuntando a una entidad inexistente.
+  // La transacción debe bloquearse y permitir volver a una opción válida sin
+  // tocar el modelo activo.
+  const exportadoAntes = await exportadoActualSinCerrarComposicion(page);
+  await dialogo.getByLabel("Compartir Cliente").evaluate((select) => {
+    const option = document.createElement("option");
+    option.value = "entidad-inexistente";
+    option.textContent = "Entidad inexistente";
+    select.append(option);
+    (select as HTMLSelectElement).value = option.value;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await expect(tutor).toHaveAttribute("data-tutor-intervention", "block");
+  await expect(dialogo.getByRole("button", { name: "Componer", exact: true })).toBeDisabled();
+
+  await dialogo.getByLabel("Compartir Cliente").selectOption({ label: "Cliente" });
+  await expect(tutor).toHaveAttribute("data-tutor-intervention", "orient");
+  expect(await exportadoActualSinCerrarComposicion(page)).toEqual(exportadoAntes);
   await dialogo.getByRole("button", { name: "Componer", exact: true }).click();
   await expect(dialogo).toHaveCount(0);
+  await expect(page.getByTestId("flash-toast").filter({ hasText: 'Modelo compuesto con "Modelo facturación E2E"' })).toBeVisible();
+  await expect(page.getByTestId("tutor-dialogo-composicion")).toHaveCount(0);
 
   const exportado = await exportadoActual(page);
   const nombres = Object.values(exportado.modelo.entidades).map((entidad) => entidad.nombre);
   expect(nombres.filter((nombre) => nombre === "Cliente")).toHaveLength(1);
   expect(nombres).toContain("Factura");
+
+  await page.keyboard.press("Control+z");
+  await expect.poll(() => exportadoActualSinCerrarComposicion(page)).toEqual(exportadoAntes);
+
+  await page.keyboard.press("Control+Shift+z");
+  await expect.poll(() => exportadoActualSinCerrarComposicion(page)).toEqual(exportado);
   expect(pageErrors).toEqual([]);
 });
 
@@ -110,4 +143,11 @@ interface ModeloApi {
   carpetaId?: string | null;
   json: string;
   revision: number;
+}
+
+async function exportadoActualSinCerrarComposicion(page: Page) {
+  return page.evaluate(async () => {
+    const { store } = await import("/src/store.ts");
+    return JSON.parse(store.getState().exportarJson());
+  });
 }

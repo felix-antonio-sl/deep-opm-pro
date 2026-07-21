@@ -1,5 +1,9 @@
 import { normalizarExtremo } from "../modelo/extremos";
 import { rutaEtiquetaNormalizada } from "../modelo/rutas";
+import {
+  normalizarFichaTrabajo,
+  normalizarLentesConocimiento,
+} from "../modelo/fichaTrabajo";
 import type {
   Apariencia,
   Entidad,
@@ -37,13 +41,22 @@ export function normalizarModelo(modelo: Modelo): Modelo {
       }
       const padreId = id === modelo.opdRaizId
         ? null
-        : opd.padreId && opd.padreId !== id && modelo.opds[opd.padreId]
-          ? opd.padreId
-          : modelo.opdRaizId;
+        : opd.padreId === null
+          ? null
+          : opd.padreId !== id && modelo.opds[opd.padreId]
+            ? opd.padreId
+            : modelo.opdRaizId;
       const apariencias = Object.fromEntries(
         Object.entries(opd.apariencias).map(([aparienciaId, apariencia]) => [aparienciaId, apariencia]),
       ) as Record<Id, Apariencia>;
-      return [id, { ...opd, padreId, apariencias }];
+      const preguntaGuia = textoOpcional(opd.preguntaGuia);
+      const { preguntaGuia: _preguntaGuia, ...opdBase } = opd;
+      return [id, {
+        ...opdBase,
+        padreId,
+        ...(preguntaGuia ? { preguntaGuia } : {}),
+        apariencias,
+      }];
     }),
   );
   const enlaces = Object.fromEntries(
@@ -56,6 +69,8 @@ export function normalizarModelo(modelo: Modelo): Modelo {
     Object.entries(modelo.entidades).map(([id, entidad]) => [id, normalizarEntidad(entidad)]),
   ) as Record<Id, Entidad>;
   const versiones = normalizarVersiones(modelo.versiones);
+  const fichaTrabajo = normalizarFichaTrabajo(modelo.fichaTrabajo);
+  const lentesConocimiento = normalizarLentesConocimiento(modelo.lentesConocimiento);
   return {
     id: modelo.id,
     nombre: modelo.nombre,
@@ -76,6 +91,8 @@ export function normalizarModelo(modelo: Modelo): Modelo {
     ...(modelo.estereotipos && Object.keys(modelo.estereotipos).length > 0 ? { estereotipos: modelo.estereotipos } : {}),
     // W5.3/L6: sello de procedencia; allowlist condicional (ausente ⇒ no se emite = byte-identidad).
     ...(modelo.procedencia ? { procedencia: modelo.procedencia } : {}),
+    ...(fichaTrabajo ? { fichaTrabajo } : {}),
+    ...(lentesConocimiento ? { lentesConocimiento } : {}),
     ...(modelo.submodelos ? { submodelos: modelo.submodelos } : {}),
     ...(modelo.referenciaPadreSubmodelo ? { referenciaPadreSubmodelo: modelo.referenciaPadreSubmodelo } : {}),
     ...(modelo.archivado ? { archivado: true } : {}),

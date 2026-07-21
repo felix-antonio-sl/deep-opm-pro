@@ -25,7 +25,10 @@ export function SeccionAnclas(props: Props) {
   if (anclas.length === 0) return null;
 
   return (
-    <div style={style.field} data-testid="inspector-seccion-anclas">
+    <div
+      style={style.field}
+      data-testid="inspector-seccion-anclas"
+    >
       <span class="opm-label-uppercase" style={style.label}>
         {props.titulo ?? "Anclas normativas"} · {anclas.length}
       </span>

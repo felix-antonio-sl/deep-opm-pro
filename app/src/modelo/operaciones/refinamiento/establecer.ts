@@ -12,6 +12,7 @@ export interface EnlaceRefinamiento {
   opdHijoId: Id;
   tipo: TipoRefinamiento;
   modo?: ModoDespliegueObjeto;
+  preguntaGuia?: string;
 }
 
 /**
@@ -43,10 +44,18 @@ export function establecerRefinamiento(modelo: Modelo, enlace: EnlaceRefinamient
     return fallo("Refinamiento cíclico: el OPD hijo es ancestro del OPD padre");
   }
   const slot = modo ? { opdId: opdHijoId, modo } : { opdId: opdHijoId };
+  const preguntaGuia = enlace.preguntaGuia?.trim();
   return ok({
     ...modelo,
     entidades: { ...modelo.entidades, [entidadId]: fijarRefinamiento(entidad, tipo, slot) },
-    opds: { ...modelo.opds, [opdHijoId]: { ...opdHijo, padreId: opdPadreId } },
+    opds: {
+      ...modelo.opds,
+      [opdHijoId]: {
+        ...opdHijo,
+        padreId: opdPadreId,
+        ...(preguntaGuia ? { preguntaGuia } : {}),
+      },
+    },
   });
 }
 
@@ -68,6 +77,7 @@ export interface AdopcionOpd {
   opdSueltoId: Id;
   tipo: TipoRefinamiento;
   modo?: ModoDespliegueObjeto;
+  preguntaGuia?: string;
 }
 
 /**
@@ -87,5 +97,6 @@ export function adoptarOpd(modelo: Modelo, args: AdopcionOpd): Resultado<Modelo>
     tipo: args.tipo,
     // exactOptionalPropertyTypes: omitir `modo` en vez de pasar `undefined`.
     ...(args.modo ? { modo: args.modo } : {}),
+    ...(args.preguntaGuia !== undefined ? { preguntaGuia: args.preguntaGuia } : {}),
   });
 }

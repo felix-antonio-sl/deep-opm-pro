@@ -194,6 +194,10 @@ export function DialogoCargarModelo() {
     onVersiones: (modeloId) => workspace.abrirDialogoVersiones(modeloId),
     onArchivar: (modeloId) => workspace.archivarModeloPorId(modeloId),
     onRestaurar: (modeloId) => workspace.restaurarModeloPorId(modeloId),
+    onToggleBiblioteca: (modeloId) => {
+      persistencia.cerrarCargarModelo();
+      workspace.toggleBibliotecaModelo(modeloId);
+    },
     onEliminar: (modeloId, nombre) => {
       const ok = typeof globalThis.confirm !== "function"
         || globalThis.confirm(`¿Eliminar definitivamente el modelo "${nombre}"? Esta acción no se puede deshacer.`);
@@ -211,6 +215,7 @@ export function DialogoCargarModelo() {
     workspace.abrirDialogoVersiones,
     workspace.archivarModeloPorId,
     workspace.restaurarModeloPorId,
+    workspace.toggleBibliotecaModelo,
   ]);
 
   const menuProps: MenuAccionesContexto = {
@@ -416,6 +421,7 @@ interface AccionesModelo {
   onVersiones: (id: Id) => void;
   onArchivar: (id: Id) => void;
   onRestaurar: (id: Id) => void;
+  onToggleBiblioteca: (id: Id) => void;
   onEliminar: (id: Id, nombre: string) => void;
 }
 
@@ -474,6 +480,9 @@ function MenuAccionesModelo(props: { modelo: ResumenModeloPersistido; menu: Menu
         <div role="menu" style={style.accionesMenu} onMouseLeave={menu.onCerrar} data-testid="modelo-acciones-menu">
           <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onAbrirEnPestana(modelo.id); }}>Abrir en pestaña nueva</AccionItem>
           <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onVersiones(modelo.id); }}>Ver versiones</AccionItem>
+          <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onToggleBiblioteca(modelo.id); }}>
+            {modelo.esBiblioteca ? "Quitar de bibliotecas" : "Marcar como Biblioteca"}
+          </AccionItem>
           {modelo.archivado
             ? <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onRestaurar(modelo.id); }}>Restaurar</AccionItem>
             : <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onArchivar(modelo.id); }}>Archivar</AccionItem>}

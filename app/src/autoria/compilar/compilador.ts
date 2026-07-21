@@ -14,6 +14,11 @@
 
 import { crearAutor } from "../dsl";
 import type { Autor } from "../dsl";
+import {
+  normalizarFichaTrabajo,
+  normalizarLentesConocimiento,
+} from "../../modelo/fichaTrabajo";
+import type { FichaTrabajo, LenteConocimiento } from "../../modelo/tipos";
 import { leerEstructura } from "./estructura";
 import type { NodoOpd, LineaEstructural } from "./estructura";
 import { Resolutor } from "./resolutor";
@@ -80,6 +85,10 @@ export interface OpcionesCompilacion {
   nombre?: string;
   /** Id del modelo. */
   id?: string;
+  /** Ficha propietaria del proto. El bundle la conserva como metadata no OPL. */
+  fichaTrabajo?: FichaTrabajo;
+  /** Enfoques declarados upstream; nunca se infieren desde el contenido. */
+  lentesConocimiento?: readonly LenteConocimiento[];
 }
 
 /**
@@ -91,6 +100,10 @@ export interface OpcionesCompilacion {
 export function compilarProto(markdown: string, opciones: OpcionesCompilacion = {}): ResultadoCompilacion {
   const plan = leerEstructura(markdown);
   const autor = crearAutor({ ...(opciones.id ? { id: opciones.id } : {}), ...(opciones.nombre ? { nombre: opciones.nombre } : {}) });
+  const fichaTrabajo = normalizarFichaTrabajo(opciones.fichaTrabajo);
+  const lentesConocimiento = normalizarLentesConocimiento(opciones.lentesConocimiento);
+  if (fichaTrabajo) autor.modelo.fichaTrabajo = fichaTrabajo;
+  if (lentesConocimiento) autor.modelo.lentesConocimiento = lentesConocimiento;
   const resolutor = new Resolutor();
   // Semilla de tipos: el ContextoProto recorrió todo el proto e infirió objeto/
   // proceso por uso global. Sembrarlos evita que un proceso nombrado antes de su

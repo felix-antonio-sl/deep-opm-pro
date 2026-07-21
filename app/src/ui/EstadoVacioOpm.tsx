@@ -13,6 +13,7 @@
  */
 
 import { useEstadoVacioOpmViewModel } from "../app/viewmodels/estadoVacioOpmViewModel";
+import { deriveEntryIntent, runTutorPolicy } from "../tutor";
 import { colors, radii, shadows, spacing, typography } from "./tokens";
 
 export function EstadoVacioOpm() {
@@ -20,7 +21,7 @@ export function EstadoVacioOpm() {
 
   if (vm.readOnly) return null;
   if (vm.estaVacio) {
-    return <HintInicioVacio />;
+    return <EleccionEntrada onSd={vm.empezarPorSd} onTaller={vm.empezarPorTaller} />;
   }
   if (vm.sugerenciaResultado) {
     return (
@@ -34,15 +35,34 @@ export function EstadoVacioOpm() {
   return null;
 }
 
-function HintInicioVacio() {
+function EleccionEntrada(props: { onSd: () => void; onTaller: () => void }) {
+  const intentId = "purpose:empty-state";
+  const intervention = runTutorPolicy(deriveEntryIntent({
+    intentId,
+    focus: "purpose",
+    strategy: null,
+    purposePresent: false,
+  }), [{ owner: "product", intentId }]);
   return (
     <div
       data-testid="estado-vacio-hint"
-      role="note"
-      aria-label="Iniciar SD"
+      role="region"
+      aria-label="Elegir entrada al modelado"
+      data-tutor-intervention={intervention.kind}
+      data-tutor-owner="product"
       style={style.hint}
     >
-      O objeto · P proceso · R relación
+      <strong style={style.pregunta}>¿Qué tienes más claro ahora?</strong>
+      <div style={style.accionesEntrada}>
+        <button type="button" data-testid="estado-vacio-empezar-sd" style={style.entrada} onClick={props.onSd}>
+          Función y frontera · empezar por SD
+        </button>
+        <span aria-hidden="true">·</span>
+        <button type="button" data-testid="estado-vacio-empezar-taller" style={style.entrada} onClick={props.onTaller}>
+          Fragmento concreto · empezar en Taller
+        </button>
+      </div>
+      <span style={style.apoyoEntrada}>Son dos entradas legítimas dentro del mismo Apunte.</span>
     </div>
   );
 }
@@ -95,10 +115,36 @@ const style = {
     fontSize: typography.sizes.base,
     fontWeight: typography.weights.medium,
     color: colors.ink50,
-    pointerEvents: "none",
+    pointerEvents: "auto",
     zIndex: 4,
     maxWidth: 420,
     textAlign: "center",
+    display: "grid",
+    gap: spacing.xs,
+  },
+  pregunta: {
+    color: colors.ink,
+    fontWeight: typography.weights.semibold,
+  },
+  accionesEntrada: {
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+  },
+  entrada: {
+    border: 0,
+    borderBottom: `1px solid ${colors.ink50}`,
+    padding: "2px 0",
+    background: "transparent",
+    color: colors.ink70,
+    font: "inherit",
+    cursor: "pointer",
+  },
+  apoyoEntrada: {
+    color: colors.ink50,
+    fontSize: typography.sizes.sm,
   },
   nudge: {
     position: "absolute",

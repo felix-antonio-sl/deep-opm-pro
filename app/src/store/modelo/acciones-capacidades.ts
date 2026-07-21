@@ -26,6 +26,7 @@ import { obtenerRefinamiento } from "../../modelo/refinamientos";
 import type { Id, Modelo, Resultado, TargetSatisfaccionRequisito } from "../../modelo/tipos";
 import { cargarModeloBackend, persistenciaBackendHabilitada } from "../../persistencia/backend";
 import { exportarModelo, hidratarModelo } from "../../serializacion/json";
+import { validarReferenciasOpd } from "../../serializacion/validarIntegridad";
 import { commitModelo, estadoSeleccionDesdeIds, type GetStore, type SetStore } from "../runtime";
 import { captureSessionEpoch, isSessionEpochCurrent } from "../sessionEpoch";
 import type { ModeloSlice } from "../tipos";
@@ -219,13 +220,18 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
           set({ mensaje: resultado.error });
           return;
         }
+        const integridad = validarReferenciasOpd(resultado.value);
+        if (!integridad.ok) {
+          set({ mensaje: `Composición bloqueada · integridad rota · ${integridad.error}` });
+          return;
+        }
         const totalCompartidas = Object.keys(input.compartidas ?? {}).length;
         // Confianza calibrada: advertir si la fusión creó un conflicto de recurso
         // lineal (objeto lineal con múltiples consumidores). No bloquea —es undoable—
         // pero no se fusiona a un estado inválido en silencio.
         const conflictosLineal = verificarLinealidad(resultado.value).filter((o) => o.severidad === "error-linealidad");
         const avisoLineal = conflictosLineal.length > 0
-          ? ` · ⚠ ${conflictosLineal.length} conflicto${conflictosLineal.length === 1 ? "" : "s"} de linealidad`
+          ? ` · △ ${conflictosLineal.length} mejora${conflictosLineal.length === 1 ? "" : "s"} de linealidad; no bloquea`
           : "";
         commitModelo(set, modelo, resultado.value, {
           opdActivoId: modelo.opdRaizId,
@@ -552,13 +558,13 @@ export function accionesCapacidades(set: SetStore, get: GetStore): Partial<Model
       if (consulta.tipo === "impacto-aguas-abajo") {
         const cosas = [...new Set(derivados.map((h) => h.entidadId).filter((id): id is Id => Boolean(id)))];
         if (cosas.length === 0) {
-          set({ mensaje: `Si colapsa "${nombre(consulta.elementoId)}" no se cae nada aguas abajo` });
+          set({ mensaje: `Cono estructural desde "${nombre(consulta.elementoId)}" · sin cosas alcanzables aguas abajo; no prueba causalidad` });
           return;
         }
         const enlaces = derivados.map((h) => h.enlaceId).filter((id): id is Id => Boolean(id));
         set({
           ...estadoSeleccionDesdeIds(modelo, [...new Set([...cosas, ...enlaces])], "simple"),
-          mensaje: `Si colapsa "${nombre(consulta.elementoId)}" se caen ${cosas.length} cosa(s) aguas abajo`,
+          mensaje: `Cono estructural desde "${nombre(consulta.elementoId)}" · ${cosas.length} cosa(s) y ${enlaces.length} enlace(s) alcanzables aguas abajo; no prueba causalidad ni equivalencia conductual`,
         });
         return;
       }

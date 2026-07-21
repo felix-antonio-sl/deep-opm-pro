@@ -39,6 +39,9 @@ export function MenuContextualArbol(props: MenuContextualArbolProps) {
   const esRaiz = props.opdId === props.modelo.opdRaizId;
   const tieneHijos = Object.values(props.modelo.opds).some((item) => item.padreId === props.opdId);
   const tienePadre = !!opd.padreId && !!props.modelo.opds[opd.padreId];
+  const puedePegarComoReorden = !!props.opdCortadoId
+    && props.opdCortadoId !== props.opdId
+    && props.modelo.opds[props.opdCortadoId]?.padreId === props.opdId;
 
   return (
     <div
@@ -75,7 +78,7 @@ export function MenuContextualArbol(props: MenuContextualArbolProps) {
       <Item label="Eliminar OPD" iconUrl={deleteIcon} disabled={esRaiz || tieneHijos} onClick={() => props.onEliminar(props.opdId)} />
       <div aria-hidden="true" style={style.divider} />
       <Item label="Cortar nodo" disabled={esRaiz} onClick={() => props.onCortar(props.opdId)} />
-      <Item label="Pegar aquí" disabled={!props.opdCortadoId || props.opdCortadoId === props.opdId} onClick={() => props.onPegar(props.opdId)} />
+      <Item label="Pegar al final de sus hijos" disabled={!puedePegarComoReorden} onClick={() => props.onPegar(props.opdId)} />
       <div aria-hidden="true" style={style.divider} />
       <Item label="Reordenar: subir" disabled={esRaiz} onClick={() => props.onReordenar(props.opdId, "arriba")} />
       <Item label="Reordenar: bajar" disabled={esRaiz} onClick={() => props.onReordenar(props.opdId, "abajo")} />

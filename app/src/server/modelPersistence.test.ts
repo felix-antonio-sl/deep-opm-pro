@@ -702,6 +702,113 @@ describe("modelPersistence API", () => {
     expect(await repo.listVersions!(sesionTest, initial.id)).toEqual([]);
   });
 
+  test("graduación a Biblioteca confirma nombre, destino, especie y rol en la misma revisión", async () => {
+    const modeloBase = { ...crearModelo("Apunte"), id: "apunte-graduable" };
+    const initial = {
+      ...modeloPersistido(modeloBase.id, modeloBase.nombre),
+      json: exportarModelo(modeloBase),
+      revision: 1,
+    };
+    const repo = repoMemoria([initial]);
+    const handler = crearModelPersistenceFetchHandler({ repo });
+    const indice: WorkspaceIndice = {
+      modelos: [{ id: initial.id, carpetaId: null, esApunte: true }],
+      carpetas: [{ id: "carpeta-modelos", nombre: "Modelos", padreId: null, creadoEn: 1 }],
+      recientes: [],
+    };
+    await handler(new Request("http://opforja.test/__deep-opm/workspace", {
+      method: "PUT",
+      body: JSON.stringify({ indice, revisionBase: 0 }),
+    }));
+    const witness = createBaseWitness({
+      modelId: initial.id,
+      saved: { revision: 1, updatedAt: initial.actualizadoEn, json: initial.json },
+      autosave: null,
+    });
+    const candidate = {
+      ...initial,
+      nombre: "Modelo graduado",
+      json: exportarModelo({ ...modeloBase, nombre: "Modelo graduado" }),
+    };
+
+    const response = await handler(new Request(
+      `http://opforja.test/__deep-opm/modelos/${initial.id}/revisiones`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          model: candidate,
+          version: versionPersistida("v-graduacion"),
+          base: { kind: "existing", witness },
+          graduation: { kind: "graduate", folderId: "carpeta-modelos", role: "library" },
+          confirmedByOperator: true,
+        }),
+      },
+    ));
+
+    const body = await response.json() as {
+      model: ModeloPersistido;
+      workspace: { indice: WorkspaceIndice };
+      error?: string;
+    };
+    expect({ status: response.status, error: body.error }).toEqual({ status: 200, error: undefined });
+    expect(body.model.nombre).toBe("Modelo graduado");
+    expect(body.workspace.indice.modelos.find((modelo) => modelo.id === initial.id)).toEqual(
+      expect.objectContaining({ id: initial.id, carpetaId: "carpeta-modelos" }),
+    );
+    expect(body.workspace.indice.modelos.find((modelo) => modelo.id === initial.id)?.esApunte).toBeUndefined();
+    expect(body.workspace.indice.modelos.find((modelo) => modelo.id === initial.id)?.esBiblioteca).toBe(true);
+    expect(await repo.listVersions!(sesionTest, initial.id)).toHaveLength(1);
+  });
+
+  test("graduación con destino inválido no cambia modelo, especie ni versiones", async () => {
+    const modeloBase = { ...crearModelo("Apunte original"), id: "apunte-destino-invalido" };
+    const initial = {
+      ...modeloPersistido(modeloBase.id, modeloBase.nombre),
+      json: exportarModelo(modeloBase),
+      revision: 1,
+    };
+    const repo = repoMemoria([initial]);
+    const handler = crearModelPersistenceFetchHandler({ repo });
+    const indice: WorkspaceIndice = {
+      modelos: [{ id: initial.id, carpetaId: null, esApunte: true }],
+      carpetas: [],
+      recientes: [],
+    };
+    await handler(new Request("http://opforja.test/__deep-opm/workspace", {
+      method: "PUT",
+      body: JSON.stringify({ indice, revisionBase: 0 }),
+    }));
+    const witness = createBaseWitness({
+      modelId: initial.id,
+      saved: { revision: 1, updatedAt: initial.actualizadoEn, json: initial.json },
+      autosave: null,
+    });
+    const candidate = {
+      ...initial,
+      nombre: "Nombre que no entra",
+      json: exportarModelo({ ...modeloBase, nombre: "Nombre que no entra" }),
+    };
+
+    const response = await handler(new Request(
+      `http://opforja.test/__deep-opm/modelos/${initial.id}/revisiones`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          model: candidate,
+          version: versionPersistida("v-no-entra"),
+          base: { kind: "existing", witness },
+          graduation: { kind: "graduate", folderId: "ausente", role: "work" },
+          confirmedByOperator: true,
+        }),
+      },
+    ));
+
+    expect(response.status).toBe(409);
+    expect(await repo.get(sesionTest, initial.id)).toEqual(initial);
+    expect((await repo.getWorkspace!(sesionTest))?.indice.modelos[0]?.esApunte).toBe(true);
+    expect(await repo.listVersions!(sesionTest, initial.id)).toEqual([]);
+  });
+
   test("colisión de id de versión devuelve 409 sin avanzar el modelo", async () => {
     const initial = { ...modeloPersistido("modelo-version-colision", "Base"), revision: 2 };
     const repo = repoMemoria([initial]);

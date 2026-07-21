@@ -1,9 +1,20 @@
 import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import type { Id, Modelo, Resultado } from "../modelo/tipos";
-import { derivarPanelOpl, referenciaSeleccionada } from "./panel";
+import { derivarDeltaLineasOpl, derivarPanelOpl, referenciaSeleccionada } from "./panel";
 
 describe("panel OPL como capacidad", () => {
+  test("deriva un delta textual exacto sin marcar líneas estables", () => {
+    expect(derivarDeltaLineasOpl(
+      [{ id: "estable", texto: "A" }, { id: "cambia", texto: "B" }, { id: "sale", texto: "C" }],
+      [{ id: "estable", texto: "A" }, { id: "cambia", texto: "B2" }, { id: "entra", texto: "D" }],
+    )).toEqual({
+      lineasCambiadasIds: ["cambia", "entra"],
+      nuevasOModificadas: 2,
+      eliminadas: 1,
+    });
+  });
+
   test("deriva lineas, texto y bloques sin alterar frases OPL", () => {
     const { modelo } = modeloBasico();
 

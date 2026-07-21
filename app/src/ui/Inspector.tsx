@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "preact/compat";
 import { useInspectorViewModel, type InspectorViewModel } from "../app/viewmodels/inspectorViewModel";
 import { useOpmStore } from "../store";
 import { inspectorStyles as style } from "./inspectorStyles";
@@ -8,6 +9,9 @@ import { SeccionAnclas } from "./inspector/SeccionAnclas";
 import { SeccionDisclosure } from "./inspector/SeccionDisclosure";
 import { SeccionNotasMesa } from "./inspector/SeccionNotasMesa";
 import { SeccionRegistroRatificar } from "./inspector/SeccionRegistroRatificar";
+
+const SeccionFichaTrabajo = lazy(() => import("./inspector/SeccionFichaTrabajo")
+  .then((module) => ({ default: module.SeccionFichaTrabajo })));
 
 /**
  * Inspector raiz: ViewContainer XOR (estado | entidad | enlace | vacio).
@@ -39,7 +43,7 @@ export function Inspector() {
       {estado
         ? <InspectorEstado estado={estado} />
         : entidad
-          ? <InspectorEntidad entidad={entidad} />
+          ? <InspectorEntidad key={entidad.id} entidad={entidad} />
           : enlace
             ? <InspectorEnlace enlace={enlace} />
             : (
@@ -81,6 +85,7 @@ function InspectorVacio(props: { procedencia: InspectorViewModel["procedencia"] 
       {/* W6.4: anclas modelo-nivel y del OPD activo — solo visibles si existen. */}
       <SeccionAnclas target={{ tipo: "modelo" }} titulo="Anclas del modelo" />
       <SeccionAnclasOpdActivo />
+      <Suspense fallback={null}><SeccionFichaTrabajo /></Suspense>
       {/* C′·A (m-6): la rama vacía era «Selecciona un elemento.» + editor de Notas
           incondicional (método sin contexto). La nota de modelo baja a un disclosure
           cerrado: se puede crear, pero no grita. Ratificar y anclas ya se auto-gatean. */}

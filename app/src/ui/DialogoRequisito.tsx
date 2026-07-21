@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "preact/hooks";
 import { useOpmStore } from "../store";
 import { esRequisito } from "../modelo/estereotipos";
 import type { EstadoSatisfaccionRequisito, Modelo, RequisitoEntidadMetadata } from "../modelo/tipos";
+import { deriveKnowledgeIntent, runTutorPolicy } from "../tutor";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { tokens } from "./tokens";
+import { TutorInterventionDetails, mapearLentesTutor } from "./TutorDetails";
 
 export function DialogoRequisito() {
   const modo = useOpmStore((s) => s.dialogoRequisitoAbierto);
@@ -66,6 +68,15 @@ export function DialogoRequisito() {
   const guardarDisabled = modo === "satisfacer"
     ? !requisitoSeleccionado
     : !idLogico.trim() || !descripcion.trim() || (modo === "crear" && !nombre.trim());
+  const operacionTutor = modo === "crear" ? "create" : modo === "marcar" ? "mark" : "satisfy";
+  const intervencionTutor = runTutorPolicy(deriveKnowledgeIntent({
+    intentId: `requirement:${modo}:${seleccionId ?? enlaceSeleccionId ?? "standalone"}`,
+    focus: "requirement",
+    operation: operacionTutor,
+    coverageDeclared: modo === "satisfacer" && satisfaction !== "pendiente",
+    externalEvidencePresent: false,
+    activeLenses: mapearLentesTutor(modelo.lentesConocimiento ?? []),
+  }));
 
   return (
     <Dialogo
@@ -77,11 +88,15 @@ export function DialogoRequisito() {
       actions={(
         <>
           <DialogoAccion onClick={cerrar}>Cancelar</DialogoAccion>
-          <DialogoAccion tono="primaria" disabled={guardarDisabled} onClick={guardar}>Guardar</DialogoAccion>
+          <DialogoAccion tutorEntrypoint={`requirement:${operacionTutor}`} tono="primaria" disabled={guardarDisabled} onClick={guardar}>Guardar</DialogoAccion>
         </>
       )}
     >
       <div style={formStyles.body}>
+        <TutorInterventionDetails
+          intervention={intervencionTutor}
+          testId="tutor-dialogo-requisito"
+        />
         {modo === "crear" ? (
           <>
             <label style={formStyles.field}>

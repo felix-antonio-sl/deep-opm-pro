@@ -2,8 +2,10 @@
 import { anclasPendientes } from "../../modelo/anclasNormativas";
 import type { AnclaNormativa } from "../../modelo/tipos";
 import { useOpmStore } from "../../store";
+import { deriveKnowledgeIntent, runTutorPolicy } from "../../tutor";
 import { inspectorStyles as style } from "../inspectorStyles";
 import { tokens } from "../tokens";
+import { TutorInterventionDetails, mapearLentesTutor } from "../TutorDetails";
 import { useState } from "preact/hooks";
 
 /**
@@ -18,17 +20,25 @@ export function SeccionRegistroRatificar() {
   const pendientes = anclasPendientes(modelo);
   const copiarLog = useOpmStore((s) => s.copiarLogDecisionesAlPortapapeles);
   if (pendientes.length === 0) return null;
+  const intervencionTutor = runTutorPolicy(deriveKnowledgeIntent({
+    intentId: `evidence:ratification:${pendientes.map((ancla) => ancla.id).sort().join(",")}`,
+    focus: "evidence",
+    route: "normative-ratification",
+    activeLenses: mapearLentesTutor(modelo.lentesConocimiento ?? []),
+  }));
 
   return (
     <div style={style.field} data-testid="inspector-registro-ratificar">
       <span class="opm-label-uppercase" style={style.label}>
         Registro [RATIFICAR] · {pendientes.length}
       </span>
+      <TutorInterventionDetails intervention={intervencionTutor} testId="tutor-registro-ratificar" />
       {pendientes.map((ancla) => <FilaPendiente key={ancla.id} ancla={ancla} />)}
       <button
         type="button"
         style={registroStyles.boton}
         data-testid="registro-copiar-log"
+        data-tutor-entrypoint="inspector:copy-decision-log"
         title="Copiar el LogDecisiones v0 para el estado re-elicitar de la skill"
         onClick={() => { void copiarLog(); }}
       >
@@ -65,6 +75,7 @@ function FilaPendiente(props: { ancla: AnclaNormativa }) {
               type="button"
               style={registroStyles.boton}
               data-testid="registro-anotar-mesa"
+              data-tutor-entrypoint="inspector:anchor-mark-noted"
               onClick={() => anotarEnMesa(props.ancla.claveProto)}
             >
               Anotar en mesa
@@ -82,6 +93,7 @@ function FilaPendiente(props: { ancla: AnclaNormativa }) {
             type="button"
             style={registroStyles.boton}
             data-testid="registro-ratificar-fuente"
+            data-tutor-entrypoint="inspector:anchor-ratify-source"
             disabled={!fuente.trim()}
             onClick={() => { ratificar(props.ancla.claveProto, fuente); setFuente(""); }}
           >

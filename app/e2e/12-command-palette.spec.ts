@@ -72,7 +72,7 @@ test("Command Palette abre Abrir / importar unificado", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test("Command Palette no expone asistente, ejemplos ni plantillas", async ({ page }) => {
+test("Command Palette no expone asistente, ejemplos ni plantillas como comandos", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -85,10 +85,10 @@ test("Command Palette no expone asistente, ejemplos ni plantillas", async ({ pag
 
   for (const query of ["asistente", "ejemplo", "plantilla"]) {
     await palette.getByRole("combobox").fill(query);
-    await expect(palette).toContainText("¿Buscas algo del modelo? Prueba Ctrl+F");
-    await expect(palette.getByRole("option")).toHaveCount(0);
+    await expect(
+      palette.locator('[role="option"]:not([data-testid^="command-palette-item-tutor-"])'),
+    ).toHaveCount(0);
   }
-
   expect(pageErrors).toEqual([]);
 });
 

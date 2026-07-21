@@ -47,7 +47,7 @@ const ENLACE_MAX: Required<Enlace> = {
   derivado: { tipo: "enlace-externo-refinamiento", refinamientoId: "r", enlacePadreId: "p" },
 };
 const OPD_MAX: Required<Opd> = {
-  id: "o", nombre: "n", padreId: null, apariencias: {}, enlaces: {}, vista: { kind: "generic-view" }, ordenLocal: 0, ordenInzoom: [],
+  id: "o", nombre: "n", padreId: null, preguntaGuia: "¿Qué pregunta?", apariencias: {}, enlaces: {}, vista: { kind: "generic-view" }, ordenLocal: 0, ordenInzoom: [],
 };
 const ABANICO_MAX: Required<Abanico> = {
   id: "ab", opdId: "o", puertoComun: { entidadId: "e", lado: "origen", portId: "p" }, puertoEntidadId: "e",

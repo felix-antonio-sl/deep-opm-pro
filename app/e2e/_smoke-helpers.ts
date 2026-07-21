@@ -227,10 +227,43 @@ export async function ejecutarAccionCommandPalette(
   await expect(page.getByTestId(`command-palette-item-${itemId}`)).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
+  if (itemId === "accion-inzoom") {
+    await confirmarRefinamientoPendiente(page, {
+      pregunta: "¿Qué partes explican esta cosa?",
+    });
+  }
+  if (itemId === "accion-unfold") {
+    await confirmarRefinamientoPendiente(page, {
+      pregunta: "¿Qué relación estructural explica esta cosa?",
+      modo: "agregacion",
+    });
+  }
+  if (itemId === "accion-quitar-descomposicion" || itemId === "accion-quitar-despliegue") {
+    const dialogo = page.getByTestId("dialogo-eliminar-refinamiento");
+    await expect(dialogo).toBeVisible();
+    await dialogo.getByTestId("dialogo-eliminar-refinamiento-confirmar").click();
+    await expect(dialogo).toHaveCount(0);
+  }
   if (itemId === "accion-inzoom" && !opciones.preservarRenombradoEncadenado) {
     const renombrado = page.getByTestId("renombrado-inline");
     if (await renombrado.isVisible().catch(() => false)) await renombrado.press("Escape");
   }
+}
+
+export async function confirmarRefinamientoPendiente(
+  page: import("@playwright/test").Page,
+  opciones: { pregunta?: string; modo?: "agregacion" | "exhibicion" | "generalizacion" | "clasificacion" } = {},
+): Promise<void> {
+  const formulario = page.getByTestId("tutor-refinamiento");
+  await expect(formulario).toBeVisible();
+  const modo = formulario.getByTestId("tutor-refinamiento-modo");
+  if ((await modo.count()) > 0) {
+    await modo.selectOption(opciones.modo ?? "agregacion");
+  }
+  await formulario.getByTestId("tutor-refinamiento-pregunta")
+    .fill(opciones.pregunta ?? "¿Qué decisión debe aclarar este refinamiento?");
+  await formulario.getByTestId("tutor-refinamiento-confirmar").click();
+  await expect(formulario).toHaveCount(0);
 }
 
 export async function desplegarComoAgregacion(page: import("@playwright/test").Page): Promise<void> {
@@ -337,7 +370,7 @@ export async function importarModeloJson(page: import("@playwright/test").Page, 
   const dialogo = await abrirDialogoCargarModelo(page);
   await jsonEditor(page).fill(JSON.stringify(contenido, null, 2));
   await expect(dialogo.getByTestId("import-preview")).toBeVisible();
-  await dialogo.getByRole("button", { name: "Importar", exact: true }).click();
+  await dialogo.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(dialogo).toHaveCount(0);
 }
 

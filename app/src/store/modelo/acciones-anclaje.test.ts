@@ -15,7 +15,7 @@ import {
   crearObjeto,
   firmaBiblioteca,
 } from "../../modelo/operaciones";
-import type { BibliotecaRef, Id, Modelo, Resultado } from "../../modelo/tipos";
+import type { BibliotecaRef, EstadoDrift, Id, Modelo, Resultado } from "../../modelo/tipos";
 import type { ModeloPersistido } from "../../persistencia/modelos";
 import { exportarModelo, hidratarModelo } from "../../serializacion/json";
 import { store } from "../../store";
@@ -210,6 +210,10 @@ describe("reSincronizarAnclajeEntidad — re-congela al hash vivo y entra al und
     expect(store.getState().puedeDeshacer).toBe(true);
     store.getState().deshacer();
     expect(store.getState().modelo.entidades[id]!.anclaje!.biblioteca.frozenAtHash).toBe(firmaServida(v1));
+    await esperarDrift(id, "divergente");
+
+    store.getState().rehacer();
+    await esperarDrift(id, "sincronizado");
   });
 
   test("biblioteca caída ⇒ mensaje de error, modelo intacto (no muta el anclaje)", async () => {
@@ -243,6 +247,10 @@ describe("soltarAnclajeEntidad — desancla, sale del driftMap, commit deshacibl
     // El undo inmediato restaura el anclaje; conservar el cambio sí deja la cosa
     // como Calco, sin una reconversión directa posterior a Anclaje.
     expect(store.getState().modelo.entidades[id]!.anclaje).toBeDefined();
+    await esperarDrift(id, "sincronizado");
+
+    store.getState().rehacer();
+    await esperarDrift(id, undefined);
   });
 
   test("soltar una cosa NO anclada ⇒ mensaje de error, sin commit", () => {
@@ -255,6 +263,14 @@ describe("soltarAnclajeEntidad — desancla, sale del driftMap, commit deshacibl
     expect(store.getState().puedeDeshacer).toBe(false);
   });
 });
+
+async function esperarDrift(id: Id, esperado: EstadoDrift | undefined): Promise<void> {
+  for (let intento = 0; intento < 20; intento += 1) {
+    if (store.getState().driftMap[id] === esperado) return;
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  }
+  expect(store.getState().driftMap[id]).toBe(esperado);
+}
 
 interface BackendMock {
   modelos: Map<string, ModeloPersistido>;

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { autoInvocacionDeProceso } from "../modelo/autoinvocacion";
 import { esRequisito } from "../modelo/estereotipos";
 import { agregacionesInzoomFaltantes, esAtributoDerivado, estadoSubmodelo, estadosDeEntidad, materializacionEfectivaSubmodelo, relacionesPlegadasEstructurales, relacionesSemiplegadasEstructurales } from "../modelo/operaciones";
@@ -27,6 +27,8 @@ import { SeccionRefinamiento, OPCIONES_DESPLIEGUE_OBJETO } from "./inspector/Sec
 import { primerOpdConEntidad, satisfaccionesDeRequisito, satisfaccionesDeTarget, SeccionCoberturaRequisito, SeccionRequisitosVinculados } from "./inspector/SeccionRequisitos";
 import { SeccionTamano } from "./inspector/SeccionTamano";
 import { SeccionUrls } from "./inspector/SeccionUrls";
+import { deriveElementIntent, runTutorPolicy } from "../tutor";
+import { TutorInterventionDetails, mapearLentesTutor } from "./TutorDetails";
 
 export { OPCIONES_DESPLIEGUE_OBJETO };
 
@@ -97,6 +99,9 @@ export function InspectorEntidad({ entidad }: Props) {
   // resto del viewmodel).
   const solicitarFocusNombre = useOpmStore((s) => s.solicitarFocusNombre);
   const consumirFocusNombre = useOpmStore((s) => s.consumirFocusNombre);
+  const [focoTutor, setFocoTutor] = useState<"kind" | "properties">(
+    solicitarFocusNombre === entidad.id ? "kind" : "properties",
+  );
   const abrirDialogoRequisito = useOpmStore((s) => s.abrirDialogoRequisito);
   const crearRequirementViewSeleccionado = useOpmStore((s) => s.crearRequirementViewSeleccionado);
   const abrirDialogoSubmodelo = useOpmStore((s) => s.abrirDialogoSubmodelo);
@@ -126,6 +131,20 @@ export function InspectorEntidad({ entidad }: Props) {
   const submodelosEntidad = Object.values(modelo.submodelos ?? {}).filter((ref) => ref.anchorEntidadId === entidad.id);
   const satisfaccionesEntidad = satisfaccionesDeTarget(modelo, { tipo: "entidad", id: entidad.id });
   const satisfaccionesCubiertas = esRequisito(entidad) ? satisfaccionesDeRequisito(modelo, entidad.id) : [];
+  const lentesTutor = mapearLentesTutor(modelo.lentesConocimiento ?? []);
+  const intervencionEntidad = runTutorPolicy(focoTutor === "kind"
+    ? deriveElementIntent({
+        intentId: `entity:${entidad.id}:kind`,
+        focus: "kind",
+        chosenKind: entidad.tipo === "objeto" ? "object" : "process",
+        activeLenses: lentesTutor,
+      })
+    : deriveElementIntent({
+        intentId: `entity:${entidad.id}:properties`,
+        focus: "properties",
+        property: "essence",
+        activeLenses: lentesTutor,
+      }));
   // C′·A (M-4): «Anclaje» nace abierta si la biblioteca divergió (pide atención),
   // plegada si está al día — la sección se auto-muestra cuando importa.
   const anclajeAbierto = entidad.anclaje != null && (driftMap[entidad.id] ?? "no-resuelto") !== "sincronizado";
@@ -179,10 +198,20 @@ export function InspectorEntidad({ entidad }: Props) {
           data-testid="inspector-entidad-nombre"
           style={style.input}
           value={entidad.nombre}
-          onInput={(event) => renombrar(event.currentTarget.value)}
+          onInput={(event) => {
+            setFocoTutor("properties");
+            renombrar(event.currentTarget.value);
+          }}
+          onBlur={() => setFocoTutor("properties")}
           onKeyDown={reenviarComboGlobalDesdeInput}
         />
       </label>
+      {!debeMostrarSeccionAnclaje(entidad) ? (
+        <TutorInterventionDetails
+          intervention={intervencionEntidad}
+          testId="tutor-inspector-entidad"
+        />
+      ) : null}
       {/*
         Ficha continua (Codex C9): las secciones se apilan en orden
         estricto Semántica → Enlaces → Refinamiento → Extensiones → Apariciones → Tamaño.

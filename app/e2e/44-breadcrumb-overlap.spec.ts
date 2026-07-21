@@ -27,7 +27,7 @@ test("los segmentos del breadcrumb no se solapan con nombres largos", async ({ p
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloRutaLarga(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   // Activar el OPD hoja de nombre largo para que el breadcrumb muestre la ruta profunda.
   await page.getByTestId("tree-node-opd-3").click();
@@ -53,7 +53,7 @@ test("con barra angosta el breadcrumb recorta sin solaparse (excede el contenedo
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await jsonEditor(page).fill(JSON.stringify(modeloRutaLarga(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await page.getByTestId("tree-node-opd-3").click();
   await expect(page.getByTestId("breadcrumb-opd-opd-3")).toBeVisible();
 

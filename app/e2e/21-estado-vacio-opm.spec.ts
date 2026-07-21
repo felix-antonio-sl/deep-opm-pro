@@ -2,8 +2,8 @@
  * Smoke ronda 21 L1 — Estado vacio OPM (Corte 3.5 sustracción de chrome).
  *
  * Cubre el resultado esperado tras el corte 3.5:
- *  - canvas vacío muestra solo un hint inferior discreto, no un bloque
- *    "Iniciar SD" centrado con 3 botones primarios;
+ *  - canvas vacío muestra una elección inferior discreta entre SD-first y
+ *    Taller, no un bloque centrado con 3 botones primarios;
  *  - la toolbar (Objeto / Proceso) es el único punto de entrada para crear
  *    la primera cosa;
  *  - el hint desaparece al existir la primera apariencia;
@@ -22,7 +22,7 @@ import {
   elementoPorTexto,
 } from "./_smoke-helpers";
 
-test("canvas vacio muestra hint inferior discreto, no overlay centrado", async ({ page }) => {
+test("canvas vacio ofrece SD-first y Taller de forma simétrica, no overlay centrado", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -32,8 +32,11 @@ test("canvas vacio muestra hint inferior discreto, no overlay centrado", async (
   // El hint es discreto y vive dentro del canvas-pane.
   const hint = page.getByTestId("estado-vacio-hint");
   await expect(hint).toBeVisible();
-  await expect(hint).toHaveAttribute("aria-label", "Iniciar SD");
-  await expect(hint).toContainText("O objeto · P proceso · R relación");
+  await expect(hint).toHaveAttribute("aria-label", "Elegir entrada al modelado");
+  await expect(hint).toContainText("¿Qué tienes más claro ahora?");
+  await expect(hint.getByTestId("estado-vacio-empezar-sd")).toHaveText("Función y frontera · empezar por SD");
+  await expect(hint.getByTestId("estado-vacio-empezar-taller")).toHaveText("Fragmento concreto · empezar en Taller");
+  await expect(hint).toContainText("Son dos entradas legítimas dentro del mismo Apunte.");
 
   // El bloque centrado "Iniciar SD" con sus 3 botones primarios ya no existe.
   await expect(page.getByTestId("estado-vacio-opm")).toHaveCount(0);

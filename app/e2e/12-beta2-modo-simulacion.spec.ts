@@ -205,7 +205,7 @@ test("simulacion: navegar a otro OPD no aborta la corrida (B0.026)", async ({ pa
   await esperarWorkbenchInicial(page);
 
   await jsonEditor(page).fill(JSON.stringify(modeloSimulacionDosOpds(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   // El fixture nombra al OPD raiz "SD" (render: "sd"); "system diagram" era el
   // default historico ya retirado del codigo. El OPD hijo "SD1" se valida abajo.
   await expect(page.getByTestId("breadcrumb-opd")).toContainText("sd");
@@ -233,7 +233,7 @@ test("simulacion: la edicion queda sellada — R no enciende modo enlace y el bl
   await esperarWorkbenchInicial(page);
 
   await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstados(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion")).toBeVisible();
@@ -265,7 +265,7 @@ test("simulacion: decision XOR inline — elegir una rama aplica su transicion",
   await esperarWorkbenchInicial(page);
 
   await jsonEditor(page).fill(JSON.stringify(modeloAbanicoRutasEstados(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Aprobar");
@@ -296,7 +296,7 @@ test("simulacion: estados, enlaces y tokens se activan visualmente en el canvas"
   await esperarWorkbenchInicial(page);
 
   await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstadosDosPasosVisual(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await entrarSimulacionDesdeMas(page);
   await expect(page.getByTestId("barra-simulacion-proceso-activo")).toContainText("Aprobar");

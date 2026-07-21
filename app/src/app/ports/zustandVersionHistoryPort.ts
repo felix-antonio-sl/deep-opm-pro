@@ -17,11 +17,9 @@ export function useZustandVersionHistoryPort(): VersionHistoryPort {
     cerrar,
     modelos,
     modeloPersistidoId,
-    crearVersionAhora: async (opts) => {
-      await crearVersionAhora(opts);
-    },
-    restaurar,
-    eliminar,
+    crearVersionAhora: (opts) => crearVersionAhora({ ...opts, feedback: "receipt" }),
+    restaurar: (modeloId, versionId) => restaurar(modeloId, versionId, "receipt"),
+    eliminar: (modeloId, versionId) => eliminar(modeloId, versionId, "receipt"),
     mostrarVersiones,
     toggleMostrarVersiones,
   };

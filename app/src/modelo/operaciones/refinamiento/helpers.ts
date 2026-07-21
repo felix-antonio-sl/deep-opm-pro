@@ -329,7 +329,7 @@ function codigoOpd(nombre: string): string {
   return /^SD(?:\d+(?:\.\d+)*)?/.exec(nombre.trim())?.[0] ?? nombre;
 }
 
-function idsSubarbolOpd(modelo: Modelo, raizId: Id): Set<Id> {
+export function idsSubarbolOpd(modelo: Modelo, raizId: Id): Set<Id> {
   const removidos = new Set<Id>();
   const pendientes = [raizId];
   while (pendientes.length > 0) {

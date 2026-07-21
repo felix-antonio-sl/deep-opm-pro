@@ -140,7 +140,8 @@ import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
 import type { Consulta } from "../modelo/razonamiento";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, Id, ImagenEntidad, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoRefinamiento, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, FichaTrabajo, Id, ImagenEntidad, LayoutEstados, LenteConocimiento, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoRefinamiento, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
 import { generarOpl } from "../opl/generar";
@@ -183,6 +184,21 @@ import {
   nudgeEnlaces,
   pegarSeleccion,
 } from "../canvas/operacionesBatch";
+
+export type VersionMutationOperation = "version-create" | "version-restore-copy" | "version-delete";
+export type VersionMutationReceipt =
+  | {
+      ok: true;
+      operation: VersionMutationOperation;
+      resultId: Id;
+      modelId: Id;
+      versionId: Id;
+    }
+  | {
+      ok: false;
+      operation: VersionMutationOperation;
+      error: string;
+    };
 
 /** [Ronda 16 L2] Filtros disponibles en `DialogoBuscarCosas`. */
 export type BusquedaCosasFiltro = "todos" | "objetos" | "procesos" | "estados" | "enlaces";
@@ -228,6 +244,50 @@ export type ResultadoBusquedaSalto =
 
 export type DialogoRequisitoModo = "crear" | "marcar" | "satisfacer";
 
+/** Intención efímera previa a crear o adoptar un refinamiento desde la UI.
+ * Prepararla no muta el modelo ni el historial. */
+export type RefinamientoPendiente =
+  | {
+      tipo: "descomposicion";
+      opdPadreId: Id;
+      entidadId: Id;
+      entidadNombre: string;
+      error?: string;
+    }
+  | {
+      tipo: "despliegue";
+      opdPadreId: Id;
+      entidadId: Id;
+      entidadNombre: string;
+      modo: ModoDespliegueObjeto | null;
+      error?: string;
+    }
+  | {
+      tipo: "adopcion";
+      opdPadreId: Id;
+      opdSueltoId: Id;
+      opdNombre: string;
+      entidadId: Id;
+      refinamiento: TipoRefinamiento;
+      modo: ModoDespliegueObjeto | null;
+      preguntaInicial?: string;
+      error?: string;
+    };
+
+export interface ConfirmacionRefinamientoPendiente {
+  preguntaGuia: string;
+  entidadId?: Id;
+  tipo?: TipoRefinamiento;
+  modo?: ModoDespliegueObjeto;
+}
+
+export interface ConfirmacionEliminarRefinamiento {
+  tipo: TipoRefinamiento;
+  entidadId: Id;
+  opdRaizId: Id;
+  opdIds: Id[];
+}
+
 export interface OpmStore {
   modelo: Modelo;
   opdActivoId: Id;
@@ -265,6 +325,8 @@ export interface OpmStore {
    * al confirmar (renombrar) o descartar.
    */
   nuevaCosaPendiente: { entidadId: Id; aparienciaId: Id; nombre: string } | null;
+  refinamientoPendiente: RefinamientoPendiente | null;
+  confirmacionEliminarRefinamiento: ConfirmacionEliminarRefinamiento | null;
   /** Brecha B3/B4: diálogo de colisión de nombre abierto. `null` = cerrado. */
   colisionPendiente: ColisionPendiente | null;
   filtroOplPorSeleccion: boolean;
@@ -487,12 +549,19 @@ export interface OpmStore {
   fijarModoCreacion: (tipo: TipoEntidad | null) => void;
   descomponerSeleccionada: () => void;
   desplegarSeleccionada: (modo?: ModoDespliegueObjeto) => void;
+  confirmarRefinamientoPendiente: (input: ConfirmacionRefinamientoPendiente) => void;
+  cancelarRefinamientoPendiente: () => void;
+  actualizarPreguntaGuiaOpd: (opdId: Id, preguntaGuia: string) => void;
+  actualizarFichaTrabajo: (ficha: FichaTrabajo | undefined) => void;
+  actualizarLentesConocimiento: (lentes: readonly LenteConocimiento[] | undefined) => void;
   /** Taller (R-OPD-REF-20): crea un OPD suelto vacío y lo activa. */
   nuevoOpdSuelto: () => void;
   /** Taller: adopta un OPD suelto como refinamiento de la cosa seleccionada. */
   adoptarOpdEnSeleccion: (opdSueltoId: Id, tipo: TipoRefinamiento, modo?: ModoDespliegueObjeto) => void;
   quitarDescomposicionSeleccionada: () => void;
   quitarDespliegueSeleccionado: () => void;
+  confirmarEliminarRefinamiento: () => void;
+  cancelarEliminarRefinamiento: () => void;
   reasignarEnlaceExternoManual: (opdId: Id, aparienciaEnlaceId: Id, nuevoSubprocesoId: Id) => void;
   eliminarOpdDesdeArbol: (opdId: Id) => void;
   cambiarOpdActivo: (id: Id) => void;
@@ -782,21 +851,37 @@ export interface OpmStore {
   /** «Momento de graduación» (diseño §3): id del apunte cuyo diálogo de graduación
    *  está abierto; null = cerrado. */
   dialogoGraduarModeloId: Id | null;
+  graduacionDestino: "modelo" | "biblioteca";
+  graduacionModeloObjetivo: Modelo | null;
+  graduacionDescripcionObjetivo: string;
+  graduacionRevisionObjetivo: number | null;
+  graduacionCarpetaObjetivo: Id | null;
+  graduacionEnCurso: boolean;
+  graduacionError: string | null;
+  dialogoRolBibliotecaModeloId: Id | null;
   /** Abre el diálogo de graduación de un apunte (nombre/carpeta + validez exigible). */
-  abrirGraduar: (modeloId: Id) => void;
+  abrirGraduar: (modeloId: Id, destino?: "modelo" | "biblioteca") => void;
   cerrarGraduar: () => void;
   /** Gradúa un apunte a modelo: renombra si cambió (modelo activo), mueve a la
    *  carpeta elegida y desmarca la especie apunte (esApunte off en el índice). El
    *  chip de rigor del gestor muta in-situ (deriva de `especieDe`). */
-  confirmarGraduacion: (input: { modeloId: Id; nombre: string; carpetaId: Id | null }) => void;
+  confirmarGraduacion: (input: {
+    modeloId: Id;
+    nombre: string;
+    carpetaId: Id | null;
+    bloqueos: number;
+    mejoras: number;
+  }) => void;
+  confirmarRolBiblioteca: () => void;
+  cancelarRolBiblioteca: () => void;
   archivarCarpetaPorId: (carpetaId: Id) => void;
   restaurarCarpetaPorId: (carpetaId: Id) => void;
   guardarConVersion: () => Promise<void>;
-  crearVersionAhora: (opts?: { nombre?: string; descripcion?: string }) => Promise<boolean>;
+  crearVersionAhora: (opts?: { nombre?: string; descripcion?: string; feedback?: "message" | "receipt" }) => Promise<VersionMutationReceipt>;
   abrirDialogoVersiones: (modeloId: Id) => void;
   cerrarDialogoVersiones: () => void;
-  restaurarVersionComoCopia: (modeloId: Id, versionId: Id) => Promise<void>;
-  eliminarVersionPorId: (modeloId: Id, versionId: Id) => void;
+  restaurarVersionComoCopia: (modeloId: Id, versionId: Id, feedback?: "message" | "receipt") => Promise<VersionMutationReceipt>;
+  eliminarVersionPorId: (modeloId: Id, versionId: Id, feedback?: "message" | "receipt") => Promise<VersionMutationReceipt>;
   abrirDialogoBuscarGlobal: () => void;
   cerrarDialogoBuscarGlobal: () => void;
   fijarBusquedaGlobalQuery: (q: string) => void;

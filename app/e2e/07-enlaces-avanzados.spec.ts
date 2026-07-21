@@ -364,7 +364,7 @@ test("apunta enlaces procedurales a estados y emite transicion OPL TS3", async (
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstados(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
   await expect(page.locator(".joint-link")).toHaveCount(2);
@@ -385,7 +385,7 @@ test("crea resultado hacia capsula de estado por gesto directo y preserva TS3", 
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloTransicionEstadosIncompleto(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
   await expect(page.locator(".joint-link")).toHaveCount(1);
@@ -408,7 +408,7 @@ test("edita rutas en ramas de abanico hacia estados y sincroniza OPL y JSON", as
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloAbanicoRutasEstados(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await expect(page.locator('[joint-selector^="stateCapsule"]')).toHaveCount(2);
   await expect(page.locator(".joint-link")).toHaveCount(2);
@@ -437,7 +437,7 @@ test("split de efecto TS3 convierte enlace en efectos entrada/salida sin objeto 
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloEfectoTs3ParaSplit(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   // Hay 2 entidades + 1 efecto TS3 con estado de entrada/salida.
   await expect(page.locator(".joint-element")).toHaveCount(2);
@@ -474,7 +474,7 @@ test("fusiona agregaciones en bus unico y renombra etiqueta de enlace", async ({
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloBusAgregacion(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(3);
   await expect(page.locator(".joint-element polygon")).toHaveCount(1);
@@ -498,7 +498,7 @@ test("HU-1B.001/.002/.003 traer conectados hidrata vecinos directos desde menu c
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloTraerConectadosSmoke(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await page.locator('[role="treeitem"][data-opd-id="opd-traer"]').click();
   await expect(elementoPorTexto(page, "Procesar")).toHaveCount(1);
   await expect(page.locator(".joint-element")).toHaveCount(1);
@@ -524,7 +524,7 @@ test("HU-1B.015 ocultar apariencia no borra entidad logical", async ({ page }) =
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloTraerConectadosSmoke(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await page.locator('[role="treeitem"][data-opd-id="opd-traer"]').click();
   await elementoPorTexto(page, "Procesar").click();
   await abrirTraerConectadosDesdeMenuEntidad(page, "Procesar");

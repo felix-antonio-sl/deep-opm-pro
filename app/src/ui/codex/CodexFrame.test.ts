@@ -18,7 +18,7 @@ describe("CodexFrame contract", () => {
 
   test("acota columnas laterales en tablet para mantener canvas util", () => {
     expect(codexFrameColumns({ leftWidth: 360, rightWidth: 420, isTablet: true })).toBe(
-      "300px 6px minmax(0, 1fr) 6px 300px",
+      "200px 6px minmax(0, 1fr) 6px 220px",
     );
   });
 

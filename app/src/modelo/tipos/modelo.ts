@@ -33,6 +33,21 @@ export interface VersionResumen {
   bytes: number;
 }
 
+export type TipoModelo = "dominio" | "realizacion" | "introduccion-operacion";
+export type VidaUtilModelo = "respuesta-puntual" | "referencia-viva";
+export type LenteConocimiento = "sistemas" | "software" | "salud";
+
+/** Contexto metodológico no derivable. No emite OPL ni altera validez OPM. */
+export interface FichaTrabajo {
+  preguntaHabilitante?: string;
+  duenoSignificado?: string;
+  responsableDecision?: string;
+  tiposModelo?: TipoModelo[];
+  criterioSuficiencia?: string;
+  vidaUtil?: VidaUtilModelo;
+  revisarCuando?: string;
+}
+
 export interface Modelo {
   id: Id;
   nombre: string;
@@ -54,6 +69,10 @@ export interface Modelo {
   estereotipos?: Record<Id, Estereotipo>;
   /** W5.3/L6: sello de origen del bundle emitido (proto+versiones). Aditivo y opcional. */
   procedencia?: SelloProcedencia;
+  /** Ficha local progresiva. Con procedencia, su propiedad corresponde al upstream. */
+  fichaTrabajo?: FichaTrabajo;
+  /** Enfoques especializados explícitos; OPM general permanece como base fija. */
+  lentesConocimiento?: LenteConocimiento[];
   submodelos?: Record<Id, SubmodeloReferencia>;
   referenciaPadreSubmodelo?: ReferenciaPadreSubmodelo;
   archivado?: boolean;

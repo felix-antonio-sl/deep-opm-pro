@@ -6,6 +6,8 @@ import {
   agruparItemsCommandPalette,
   construirAccionesMenuCommandPalette,
   construirItemsCommandPalette,
+  construirItemsTutorCommandPalette,
+  combinarResultadosCommandPalette,
   filtrarItemsCommandPalette,
   gruposCommandPaletteParaRender,
   normalizarTextoBusqueda,
@@ -93,6 +95,42 @@ describe("CommandPalette — tres estratos deduplicados", () => {
     expect(items.some((item) => item.tipo === "accion-contextual" && item.accionId === "inzoom")).toBe(true);
     expect(items.some((item) => item.tipo === "accion-menu" && item.menuActionId === "tabla-enlaces")).toBe(true);
     expect(items.some((item) => item.menuActionId === "versiones-modelo")).toBe(false);
+  });
+
+  test("Ctrl+K incorpora referencias locales solo cuando existe una consulta", () => {
+    expect(construirItemsTutorCommandPalette("", [])).toEqual([]);
+    const items = construirItemsTutorCommandPalette("composición linealidad", ["systems"]);
+    expect(items.length).toBeGreaterThan(0);
+    expect(items[0]?.tipo).toBe("referencia-tutor");
+    expect(items[0]?.tutorContentId).toBe("content.composition.choice");
+    expect(items[0]?.label).toContain("Referencia");
+  });
+
+  test("Ctrl+K descubre una fuente completa aunque no dependa del copy de una guía", () => {
+    const items = construirItemsTutorCommandPalette("opforja y skill flujo de trabajo", []);
+    const fuente = items.find((item) => item.tutorSourceId === "source.cheatsheet.skill-flow");
+
+    expect(fuente?.label).toBe("Fuente · opforja y skill — Flujo de trabajo");
+    expect(fuente?.tutorContentId).toBeUndefined();
+    expect(items[0]?.id).toBe("tutor-source.cheatsheet.skill-flow");
+  });
+
+  test("Ctrl+K reserva espacio para referencias aunque doce comandos coincidan", () => {
+    const comandos = Array.from({ length: 12 }, (_, index) => ({
+      id: `menu-coincidente-${index}`,
+      tipo: "accion-menu" as const,
+      label: `Composición ${index}`,
+      descripcion: "Composición y linealidad",
+      categoria: "archivo",
+      textoBusqueda: "composicion linealidad",
+      frecuenciaUso: 0,
+    }));
+    const referencias = construirItemsTutorCommandPalette("composición linealidad", []);
+
+    const resultados = combinarResultadosCommandPalette(comandos, referencias, 12);
+
+    expect(resultados).toHaveLength(12);
+    expect(resultados.some((item) => item.tipo === "referencia-tutor")).toBe(true);
   });
 
   test("filtra por terminos de label, categoria o atajo", () => {

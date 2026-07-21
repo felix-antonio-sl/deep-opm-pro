@@ -18,6 +18,8 @@ export const MODELO_SLICE_CAPABILITIES = {
     "vitrinaEstereotiposAbierta",
     "gridConfig",
     "nuevaCosaPendiente",
+    "refinamientoPendiente",
+    "confirmacionEliminarRefinamiento",
     "colisionPendiente",
   ],
   appFlow: [
@@ -70,6 +72,8 @@ export const MODELO_SLICE_CAPABILITIES = {
     "nacerApunte",
     "activarReadOnly",
     "gobernarAperturaBiblioteca",
+    "actualizarFichaTrabajo",
+    "actualizarLentesConocimiento",
   ],
   entityCommands: [
     "crearObjetoDemo",
@@ -157,8 +161,13 @@ export const MODELO_SLICE_CAPABILITIES = {
   opdCommands: [
     "descomponerSeleccionada",
     "desplegarSeleccionada",
+    "confirmarRefinamientoPendiente",
+    "cancelarRefinamientoPendiente",
+    "actualizarPreguntaGuiaOpd",
     "quitarDescomposicionSeleccionada",
     "quitarDespliegueSeleccionado",
+    "confirmarEliminarRefinamiento",
+    "cancelarEliminarRefinamiento",
     "reasignarEnlaceExternoManual",
     "eliminarOpdDesdeArbol",
     "cambiarOpdActivo",

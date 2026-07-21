@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "tutor:corpus": "bun run scripts/generar-corpus-tutor.ts",
+    "dev": "bun run tutor:corpus && vite",
+    "build": "bun run tutor:corpus && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "bun test src",

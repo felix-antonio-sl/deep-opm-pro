@@ -17,7 +17,7 @@ test("backup JSON descarga archivo, reimporta y conserva el modelo", async ({ pa
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
   await expect(page.getByTestId("import-preview")).toBeVisible();
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(page.getByTestId("dialogo-abrir-importar")).toHaveCount(0);
   await expect(svgText(page, "Agente")).toBeVisible();
 
@@ -48,7 +48,7 @@ test("backup JSON descarga archivo, reimporta y conserva el modelo", async ({ pa
 
   await jsonEditor(page).fill(backupJson);
   await expect(page.getByTestId("import-preview")).toContainText("Markers canonicos");
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(page.getByTestId("dialogo-abrir-importar")).toHaveCount(0);
   await expect(svgText(page, "Agente")).toBeVisible();
 

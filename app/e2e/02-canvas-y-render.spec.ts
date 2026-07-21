@@ -60,7 +60,7 @@ test("Exportar OPD actual como PNG descarga el paper del canvas sin chrome de ap
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
   await expect(svgText(page, "Agente")).toBeVisible();
 
@@ -101,7 +101,7 @@ test("Exportar todos los OPDs como PNG descarga paquete ZIP", async ({ page }) =
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloDosOpds(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
 
   const downloadPromise = page.waitForEvent("download");
@@ -130,7 +130,7 @@ test("renderiza todos los markers canonicos de enlaces", async ({ page }) => {
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloMarkersCanonicos(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(14);
   // Exhibicion = 2 poligonos (outer contorno + inner relleno); antes eran 3.
@@ -146,7 +146,7 @@ test("renderiza abanicos O/XOR con conectores canonicos sin texto de marcador", 
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloAbanicoLogico(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(2);
   await expect(page.locator(".joint-element path[joint-selector=body]")).toHaveCount(1);
@@ -188,7 +188,7 @@ test("renderiza modificadores evento/condicion y demora de invocacion", async ({
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloModificadoresEnlace(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await expect(page.locator(".joint-link")).toHaveCount(3);
   // SSOT §4.1/§4.2: marcas canonicas `c`/`e` MINUSCULAS para condicion/evento.
@@ -213,7 +213,7 @@ test("aplica subtipo NO desde inspector y emite badge negado", async ({ page }) 
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloNoModificador(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await clickLinkPorTipo(page, "Consumo");
   await page.getByTestId("modificador-enlace-select").selectOption("no");
@@ -233,7 +233,7 @@ test("mover puerto desde dialogo cambia extremo destino del enlace", async ({ pa
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloMoverPuerto(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await clickLinkPorTipo(page, "Consumo");
   // Ronda 20 L1: SeccionExtremos vive en tab `Extremos` del Inspector enlace.
@@ -265,7 +265,7 @@ test("BUG-20260520T043712Z-72ab52 crea fan desde ramas existentes", async ({ pag
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloFanManualDesdeRamas(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   await clickLinkPorIndice(page, 0);
   await irATabExtremos(page);
@@ -332,7 +332,7 @@ test("par transformador duplicado emite un bloqueo canónico", async ({ page }) 
 
   await page.goto("/");
   await jsonEditor(page).fill(JSON.stringify(modeloConsumoDuplicado(), null, 2));
-  await page.getByRole("button", { name: "Importar", exact: true }).click();
+  await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
   const diagnostico = page.getByTestId("panel-diagnostico");
   await page.getByTestId("panel-diagnostico-toggle").click();
@@ -729,12 +729,16 @@ test("L1 toolbar split conserva root y controles por modo", async ({ page }) => 
   // Ronda 24 L4 #6: tras crear y seleccionar el objeto, el cluster Conectar
   // se monta porque hay origen disponible.
   await expect(page.locator('[data-slot="cluster-conectar"]')).toBeVisible();
-  // P0 UI/UX 2026-05-26: plantillas deja de existir como superficie de producto.
+  // P0 UI/UX 2026-05-26: plantillas no vuelve como superficie ejecutable.
+  // La búsqueda pedagógica del corpus se prueba con términos realmente
+  // indexados en `45-tutor-contextual.spec.ts`.
   await page.keyboard.press("Control+k");
-  await expect(page.getByTestId("command-palette")).toBeVisible();
-  await page.getByTestId("command-palette").getByRole("combobox").fill("plantillas");
-  await expect(page.getByTestId("command-palette")).toContainText("¿Buscas algo del modelo? Prueba Ctrl+F");
-  await expect(page.getByTestId("command-palette").getByRole("option")).toHaveCount(0);
+  const palettePlantillas = page.getByTestId("command-palette");
+  await expect(palettePlantillas).toBeVisible();
+  await palettePlantillas.getByRole("combobox").fill("plantillas");
+  await expect(
+    palettePlantillas.locator('[role="option"]:not([data-testid^="command-palette-item-tutor-"])'),
+  ).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
   await expect(page.getByTestId("abrir-menu-tipo-enlace")).toBeEnabled();

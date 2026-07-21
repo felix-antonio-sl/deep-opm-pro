@@ -22,6 +22,9 @@ ENV VITE_MOBILE_READONLY=${VITE_MOBILE_READONLY}
 # Versión visible en la UI: short SHA del commit desplegado (la fecha la computa vite).
 ARG VITE_OPFORJA_BUILD=local
 ENV VITE_OPFORJA_BUILD=${VITE_OPFORJA_BUILD}
+# El deploy canónico materializa el corpus vivo antes de construir; dentro del
+# contexto Docker se valida su presencia y no se intenta leer repos vecinos.
+ENV TUTOR_CORPUS_PREBUILT=1
 
 COPY --from=deps /workspace/app/node_modules ./app/node_modules
 COPY app ./app
@@ -65,6 +68,7 @@ FROM nginx:1.27-alpine AS runner
 
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /workspace/app/dist /usr/share/nginx/html
+RUN chmod -R a+rX /usr/share/nginx/html
 
 EXPOSE 8080
 

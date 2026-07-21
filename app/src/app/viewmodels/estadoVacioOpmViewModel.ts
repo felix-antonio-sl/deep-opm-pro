@@ -4,6 +4,7 @@ import type { Apariencia, Entidad } from "../../modelo/tipos";
 import { useZustandEditabilityPort } from "../ports/zustandEditabilityPort";
 import { useZustandModelCommandPort } from "../ports/zustandModelCommandPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
+import { useOpmStore } from "../../store";
 
 export interface SugerenciaEnlaceResultado {
   proceso: Entidad;
@@ -13,7 +14,8 @@ export interface SugerenciaEnlaceResultado {
 export function useEstadoVacioOpmViewModel() {
   const { modelo, opdActivoId } = useZustandOpdNavigationPort();
   const { readOnly } = useZustandEditabilityPort();
-  const { crearEnlaceEntreEntidades } = useZustandModelCommandPort();
+  const { crearEnlaceEntreEntidades, crearEntidadEnCanvas } = useZustandModelCommandPort();
+  const nuevoOpdSuelto = useOpmStore((s) => s.nuevoOpdSuelto);
 
   const apariencias = useMemo(
     () => Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}) as Apariencia[],
@@ -45,6 +47,8 @@ export function useEstadoVacioOpmViewModel() {
     estaVacio: apariencias.length === 0,
     sugerenciaResultado,
     conectarResultado,
+    empezarPorSd: () => crearEntidadEnCanvas("proceso", { x: 260, y: 100 }),
+    empezarPorTaller: nuevoOpdSuelto,
   };
 }
 

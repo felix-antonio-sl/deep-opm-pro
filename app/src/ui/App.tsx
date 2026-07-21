@@ -47,7 +47,7 @@ import { esMobileLectura, useBreakpoint } from "./layoutResponsive";
 import { MensajeFlashBridge } from "./MensajeFlashBridge";
 import { ModoRevisionMobile, AvisoEditarEnEscritorio } from "./ModoRevisionMobile";
 import { MobileReadonlyApp } from "./mobile/MobileReadonlyApp";
-import { PanelDiagnostico } from "./PanelDiagnostico";
+import { AnunciadorDeltaDiagnostico, PanelDiagnostico } from "./PanelDiagnostico";
 import { PanelOplView } from "./PanelOpl";
 import { BarraSimulacion } from "./simulacion/BarraSimulacion";
 import { tokens } from "./tokens";
@@ -68,6 +68,8 @@ const DialogoSimulacionNumerica = lazy(() => import("./DialogoSimulacionNumerica
 const DialogoColisionNombre = lazy(() => import("./DialogoColisionNombre").then((m) => ({ default: m.DialogoColisionNombre })));
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
 const DialogoGraduar = lazy(() => import("./DialogoGraduar").then((m) => ({ default: m.DialogoGraduar })));
+const DialogoEliminarRefinamiento = lazy(() => import("./DialogoEliminarRefinamiento").then((m) => ({ default: m.DialogoEliminarRefinamiento })));
+const DialogoRolBiblioteca = lazy(() => import("./DialogoRolBiblioteca").then((m) => ({ default: m.DialogoRolBiblioteca })));
 const DialogoImportarExportarJson = lazy(() => import("./DialogoImportarExportarJson").then((m) => ({ default: m.DialogoImportarExportarJson })));
 const DialogoVersiones = lazy(() => import("./DialogoVersiones").then((m) => ({ default: m.DialogoVersiones })));
 const Timeline = lazy(() => import("./Timeline").then((m) => ({ default: m.Timeline })));
@@ -298,6 +300,7 @@ export function App() {
                 <div style={layout.oplLeftContent}>
                   <PanelOplView vm={panelOplVm} />
                 </div>
+                <AnunciadorDeltaDiagnostico />
                 {avisosDiagnostico.length > 0 ? (
                   <div
                     style={{
@@ -429,6 +432,8 @@ export function App() {
         )}
         {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
         {dialogoGraduarAbierto ? <Suspense fallback={null}><DialogoGraduar /></Suspense> : null}
+        <Suspense fallback={null}><DialogoEliminarRefinamiento /></Suspense>
+        <Suspense fallback={null}><DialogoRolBiblioteca /></Suspense>
         {dialogoConfiguracionAbierto ? <Suspense fallback={null}><DialogoConfiguracion /></Suspense> : null}
         {dialogoOntologiaAbierto ? <Suspense fallback={null}><DialogoOntologia /></Suspense> : null}
         {dialogoRequisitoAbierto ? <Suspense fallback={null}><DialogoRequisito /></Suspense> : null}

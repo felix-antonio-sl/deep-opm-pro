@@ -5,6 +5,10 @@ import { descriptorFaseSimulacion, fasesDelPasoSimulacion } from "../../modelo/s
 import { useBreakpoint } from "../layoutResponsive";
 import { tokens } from "../tokens";
 import { proyectarDecisionXorSimulacion, proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion, type NarrativaSimulacion } from "./proyeccionBarra";
+import { runTutorPolicy } from "../../tutor/politica";
+import type { SimulationIntentSnapshot } from "../../tutor/tipos";
+import { useTutorContent } from "../useTutorContent";
+import { TutorFoundationLinks } from "../TutorDetails";
 
 export function BarraSimulacion(): JSX.Element | null {
   const {
@@ -34,6 +38,46 @@ export function BarraSimulacion(): JSX.Element | null {
     return () => window.clearTimeout(timeoutId);
   }, [autoAvance, contexto?.estado, contexto?.faseActual, contexto?.modeloId, contexto?.pasoActual, contexto?.plan.length, ejecutarPaso, velocidadSimulacion]);
 
+  // Decisión XOR pendiente del paso actual: solo en avance manual (en
+  // autoavance el runner resuelve solo, según el modo activo).
+  const ramasXorTutor = contexto && !autoAvance
+    ? proyectarDecisionXorSimulacion(modelo, contexto)
+    : null;
+  const ultimaTraza = contexto?.trace.at(-1);
+  const faseTutor = contexto
+    ? faseTutorSimulacion(
+        contexto.estado,
+        contexto.trace.length,
+        autoAvance,
+        (ramasXorTutor?.length ?? 0) > 0,
+      )
+    : null;
+  const baseTutor = contexto
+    ? {
+        kind: "simulation",
+        intentId: `simulation:${contexto.modeloId}:${contexto.opdId}:${contexto.pasoActual}:${contexto.faseActual ?? "preflight"}`,
+        ...(ultimaTraza ? { resultId: `simulation-result:${ultimaTraza.numero}` } : {}),
+        surface: "simulation-bar",
+        interactionMode: "simulation",
+        firstUse: contexto.trace.length === 0,
+      } as const
+    : null;
+  const intervencionTutor = (() => {
+    if (!baseTutor || !faseTutor) return null;
+    if (faseTutor === "decision") {
+      return runTutorPolicy({ ...baseTutor, actionId: "simulation:decision", phase: "decision" });
+    }
+    return runTutorPolicy({ ...baseTutor, actionId: "simulation:step", phase: faseTutor });
+  })();
+  const vistaTutor = useTutorContent(
+    intervencionTutor && intervencionTutor.kind !== "silent"
+      ? intervencionTutor.contentId
+      : null,
+    intervencionTutor && intervencionTutor.kind !== "silent"
+      ? intervencionTutor.activeLenses
+      : [],
+  );
+
   if (!contexto) return null;
 
   const pasoActual = contexto.plan[contexto.pasoActual];
@@ -43,9 +87,11 @@ export function BarraSimulacion(): JSX.Element | null {
   const estadoBarra = proyectarEstadoBarraSimulacion(contexto, autoAvance);
   const narrativa = proyectarNarrativaSimulacion(modelo, contexto, autoAvance);
   const faseActual = pasoActual ? descriptorFaseSimulacion(modelo, pasoActual, contexto.faseActual) : null;
-  // Decisión XOR pendiente del paso actual: solo en avance manual (en
-  // autoavance el runner resuelve solo, según el modo activo).
-  const ramasXor = !autoAvance ? proyectarDecisionXorSimulacion(modelo, contexto) : null;
+  const ramasXor = ramasXorTutor;
+  const contenidoTutor = vistaTutor?.contenido ?? null;
+  const narrativaVisible = contenidoTutor
+    ? { ...narrativa, detalle: `${contenidoTutor.now} ${narrativa.detalle}` }
+    : narrativa;
   const fasesPasoActual = pasoActual ? fasesDelPasoSimulacion(modelo, pasoActual) : [];
   const completado = estadoBarra.completado;
   const bloqueado = estadoBarra.bloqueado;
@@ -84,6 +130,7 @@ export function BarraSimulacion(): JSX.Element | null {
       <style>{`@keyframes sim-live-dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.35)}}.sim-live-dot--idle{display:inline-block}.sim-live-dot--running{animation:sim-live-dot-pulse 1.4s ease-in-out infinite;transform-origin:center}.sim-control:hover:not(:disabled):not(.sim-control-activo){color:${C.ink};background:${C.paper};border-color:${C.ruleStrong}}.sim-control:active:not(:disabled){background:${C.paperWarm}}.sim-control:focus,.sim-control:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}.sim-control:disabled{color:${C.inkSoft};background:transparent;border-color:${C.rule};cursor:not-allowed;opacity:0.6}.sim-control.sim-control-activo{color:${C.ink};background:${C.paper};border-color:${C.ruleStrong};border-bottom-color:${C.crimson};border-bottom-width:2px}.sim-control.sim-control-activo:hover:not(:disabled){background:${C.paperWarm}}.sim-segment:hover:not(:disabled){color:${C.ink};background:${C.paper}}.sim-segment:focus,.sim-segment:focus-visible{outline:2px solid ${C.crimson};outline-offset:2px}`}</style>
       <div
         data-testid="barra-simulacion"
+        data-tutor-capability="cap.simulation.conceptual"
         role="toolbar"
         // BUG-20260608T171552Z-17477a ronda 3 (F1.4): el aria-label del
         // toolbar incluye el modo para que screen readers anuncien el
@@ -131,9 +178,9 @@ export function BarraSimulacion(): JSX.Element | null {
             style={s.narrativaInlineMobile}
             data-testid="barra-simulacion-narrativa"
             aria-live="polite"
-            title={narrativa.detalle}
+            title={narrativaVisible.detalle}
           >
-            {narrativa.titulo}
+            {narrativaVisible.titulo}
           </span>
         ) : null}
         {/* BUG-20260608T171552Z-17477a ronda 2 (F1.7): el copy de "sin procesos"
@@ -176,17 +223,31 @@ export function BarraSimulacion(): JSX.Element | null {
 
       {!esMobile ? (
         <div
-          style={{ ...s.narrativa, ...estiloNarrativa(narrativa.tono) }}
+          style={{ ...s.narrativa, ...estiloNarrativa(narrativaVisible.tono) }}
           data-testid="barra-simulacion-narrativa"
           aria-live="polite"
         >
-          <span style={s.narrativaMarca} aria-hidden="true">{marcaNarrativa(narrativa.tono)}</span>
+          <span style={s.narrativaMarca} aria-hidden="true">{marcaNarrativa(narrativaVisible.tono)}</span>
           <span style={s.narrativaTexto}>
-            <strong style={s.narrativaTitulo}>{narrativa.titulo}</strong>
-            <span style={s.narrativaDetalle}>{narrativa.detalle}</span>
+            <strong style={s.narrativaTitulo}>{narrativaVisible.titulo}</strong>
+            <span style={s.narrativaDetalle}>{narrativaVisible.detalle}</span>
+            {contenidoTutor ? (
+              <>
+                <details style={s.tutorDetails}>
+                  <summary>Criterio</summary>
+                  <span style={s.narrativaDetalle}>{contenidoTutor.criterion}</span>
+                </details>
+                <details style={s.tutorDetails}>
+                  <summary>Fundamento</summary>
+                  <span style={s.tutorFuentes}>
+                    <TutorFoundationLinks referencias={vistaTutor?.referencias ?? []} inline />
+                  </span>
+                </details>
+              </>
+            ) : null}
           </span>
-          <span style={s.narrativaContexto} aria-label={`Contexto: ${narrativa.contexto.join(", ")}`}>
-            {narrativa.contexto.map((item) => (
+          <span style={s.narrativaContexto} aria-label={`Contexto: ${narrativaVisible.contexto.join(", ")}`}>
+            {narrativaVisible.contexto.map((item) => (
               <span key={item} style={s.narrativaChip}>{item}</span>
             ))}
           </span>
@@ -400,6 +461,20 @@ export function BarraSimulacion(): JSX.Element | null {
   );
 }
 
+export function faseTutorSimulacion(
+  estado: "preparado" | "ejecutando" | "completado" | "bloqueado",
+  trazas: number,
+  autoAvance: boolean,
+  decisionPendiente: boolean,
+): SimulationIntentSnapshot["phase"] {
+  if (estado === "bloqueado") return "blocked";
+  if (estado === "completado") return "complete";
+  if (decisionPendiente) return "decision";
+  if (autoAvance) return "running";
+  if (trazas > 0) return "step";
+  return "preflight";
+}
+
 function intervaloAutoAvanceMs(velocidad: number): number {
   return Math.round(900 / velocidad);
 }
@@ -469,6 +544,8 @@ type EstilosBarra = {
   narrativaTexto: JSX.CSSProperties;
   narrativaTitulo: JSX.CSSProperties;
   narrativaDetalle: JSX.CSSProperties;
+  tutorDetails: JSX.CSSProperties;
+  tutorFuentes: JSX.CSSProperties;
   narrativaContexto: JSX.CSSProperties;
   narrativaChip: JSX.CSSProperties;
   control: JSX.CSSProperties;
@@ -738,6 +815,22 @@ export const s: EstilosBarra = {
     color: C.inkMid,
     fontSize: T.sizes.sm,
     lineHeight: 1.35,
+    overflowWrap: "anywhere" as const,
+  },
+  tutorDetails: {
+    display: "grid",
+    gap: 4,
+    flexBasis: "100%",
+    color: C.inkMid,
+    fontSize: T.sizes.sm,
+    lineHeight: 1.35,
+  },
+  tutorFuentes: {
+    display: "block",
+    marginTop: 4,
+    color: C.inkSoft,
+    fontFamily: T.fontFamilyMono,
+    fontSize: 10,
     overflowWrap: "anywhere" as const,
   },
   narrativaContexto: {

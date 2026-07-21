@@ -6,6 +6,7 @@ import { accionesCapacidades } from "./modelo/acciones-capacidades";
 import { accionesEnlace } from "./modelo/acciones-enlace";
 import { accionesEntidad } from "./modelo/acciones-entidad";
 import { accionesEstados } from "./modelo/acciones-estados";
+import { accionesFicha } from "./modelo/acciones-ficha";
 import { accionesOpd } from "./modelo/acciones-opd";
 import { accionesUI } from "./modelo/acciones-ui";
 
@@ -41,9 +42,12 @@ export const createModeloSlice: CrearSlice<ModeloSlice> = (set, get) => ({
   idsResaltadosTemporales: [],
   // IFML H-3 / Ronda 15 L3: NavigationFlow tipado del flujo de creación.
   nuevaCosaPendiente: null,
+  refinamientoPendiente: null,
+  confirmacionEliminarRefinamiento: null,
 
   ...accionesEntidad(set, get),
   ...accionesEstados(set, get),
+  ...accionesFicha(set, get),
   ...accionesOpd(set, get),
   ...accionesEnlace(set, get),
   ...accionesCapacidades(set, get),

@@ -9,6 +9,7 @@ import {
   reanclarEnlaceExternoDerivado,
 } from "../../modelo/operaciones";
 import { crearOpdSuelto } from "../../modelo/operaciones/opdSuelto";
+import { idsSubarbolOpd } from "../../modelo/operaciones/refinamiento/helpers";
 import {
   moverNodo,
   ordenSegunCanvasPadre,
@@ -17,6 +18,7 @@ import {
 import {
   commitModelo,
   confirmarEliminacionOpd,
+  mensajeBloqueoEdicion,
   opdActivoSeguro,
   opdDestinoDeAviso,
   type GetStore,
@@ -57,6 +59,21 @@ export function moverOpdGestion(modelo: Modelo, opdId: Id, nuevoPadreId: Id | nu
   return moverNodo(modelo, opdId, nuevoPadreId, posicion);
 }
 
+export function actualizarPreguntaGuia(modelo: Modelo, opdId: Id, preguntaGuia: string): Resultado<Modelo> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return { ok: false, error: `OPD no existe: ${opdId}` };
+  const limpia = preguntaGuia.trim();
+  if (!limpia) return { ok: false, error: "La pregunta guía no puede quedar vacía." };
+  if (opd.preguntaGuia === limpia) return { ok: true, value: modelo };
+  return {
+    ok: true,
+    value: {
+      ...modelo,
+      opds: { ...modelo.opds, [opdId]: { ...opd, preguntaGuia: limpia } },
+    },
+  };
+}
+
 function nombreOpdUnico(modelo: Modelo, opdId: Id, nombre: string): string {
   const opd = modelo.opds[opdId];
   if (!opd) return nombre;
@@ -79,6 +96,11 @@ function nombreOpdUnico(modelo: Modelo, opdId: Id, nombre: string): string {
 export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> {
   return {
     descomponerSeleccionada() {
+      const bloqueo = mensajeBloqueoEdicion(get());
+      if (bloqueo) {
+        set({ refinamientoPendiente: null, mensaje: bloqueo });
+        return;
+      }
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId) {
         set({ mensaje: "Selecciona una cosa para descomponer" });
@@ -90,26 +112,32 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         return;
       }
 
-      const resultado = descomponerProceso(modelo, opdActivoId, seleccionId);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
+      const existente = obtenerRefinamiento(entidad, "descomposicion");
+      if (existente) {
+        if (!modelo.opds[existente.opdId]) {
+          set({ mensaje: `OPD de descomposición no existe: ${existente.opdId}` });
+          return;
+        }
+        set({ opdActivoId: existente.opdId, refinamientoPendiente: null, mensaje: null });
         return;
       }
-      const colaRenombradoPendiente = resultado.value.refinadorIds.map((id) => ({
-        tipo: "entidad" as const,
-        id,
-      }));
-      commitModelo(set, modelo, resultado.value.modelo, {
-        opdActivoId: resultado.value.opdId,
-        seleccionId,
-        colaRenombradoPendiente,
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        mensaje: resultado.value.creado ? "OPD hijo creado" : null,
+      set({
+        refinamientoPendiente: {
+          tipo: "descomposicion",
+          opdPadreId: opdActivoId,
+          entidadId: seleccionId,
+          entidadNombre: entidad.nombre,
+        },
+        mensaje: null,
       });
     },
 
-    desplegarSeleccionada(modo = "agregacion") {
+    desplegarSeleccionada(modo) {
+      const bloqueo = mensajeBloqueoEdicion(get());
+      if (bloqueo) {
+        set({ refinamientoPendiente: null, mensaje: bloqueo });
+        return;
+      }
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId) {
         set({ mensaje: "Selecciona una cosa para desplegar" });
@@ -121,18 +149,135 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         return;
       }
 
-      const resultado = desplegarObjeto(modelo, opdActivoId, seleccionId, modo);
+      const existente = obtenerRefinamiento(entidad, "despliegue");
+      if (existente) {
+        if (!modelo.opds[existente.opdId]) {
+          set({ mensaje: `OPD de despliegue no existe: ${existente.opdId}` });
+          return;
+        }
+        set({ opdActivoId: existente.opdId, refinamientoPendiente: null, mensaje: null });
+        return;
+      }
+      set({
+        refinamientoPendiente: {
+          tipo: "despliegue",
+          opdPadreId: opdActivoId,
+          entidadId: seleccionId,
+          entidadNombre: entidad.nombre,
+          modo: modo ?? null,
+        },
+        mensaje: null,
+      });
+    },
+
+    confirmarRefinamientoPendiente(input) {
+      const estado = get();
+      const bloqueo = mensajeBloqueoEdicion(estado);
+      if (bloqueo) {
+        set({ refinamientoPendiente: null, mensaje: bloqueo });
+        return;
+      }
+      const pendiente = estado.refinamientoPendiente;
+      if (!pendiente) return;
+      const preguntaGuia = input.preguntaGuia.trim();
+      if (!preguntaGuia) {
+        set({ refinamientoPendiente: { ...pendiente, error: "Escribe una pregunta antes de crear el refinamiento." } });
+        return;
+      }
+
+      if (pendiente.tipo === "descomposicion") {
+        const resultado = descomponerProceso(
+          estado.modelo,
+          pendiente.opdPadreId,
+          pendiente.entidadId,
+          { preguntaGuia },
+        );
+        if (!resultado.ok) {
+          set({ refinamientoPendiente: { ...pendiente, error: resultado.error } });
+          return;
+        }
+        const colaRenombradoPendiente = resultado.value.refinadorIds.map((id) => ({ tipo: "entidad" as const, id }));
+        commitModelo(set, estado.modelo, resultado.value.modelo, {
+          opdActivoId: resultado.value.opdId,
+          seleccionId: pendiente.entidadId,
+          colaRenombradoPendiente,
+          enlaceSeleccionId: null,
+          modoEnlace: null,
+          refinamientoPendiente: null,
+          mensaje: null,
+        });
+        return;
+      }
+
+      if (pendiente.tipo === "despliegue") {
+        const modo = input.modo ?? pendiente.modo;
+        if (!modo) {
+          set({ refinamientoPendiente: { ...pendiente, error: "Elige una relación antes de crear el refinamiento." } });
+          return;
+        }
+        const resultado = desplegarObjeto(
+          estado.modelo,
+          pendiente.opdPadreId,
+          pendiente.entidadId,
+          modo,
+          { preguntaGuia },
+        );
+        if (!resultado.ok) {
+          set({ refinamientoPendiente: { ...pendiente, error: resultado.error } });
+          return;
+        }
+        commitModelo(set, estado.modelo, resultado.value.modelo, {
+          opdActivoId: resultado.value.opdId,
+          seleccionId: pendiente.entidadId,
+          enlaceSeleccionId: null,
+          modoEnlace: null,
+          refinamientoPendiente: null,
+          mensaje: null,
+        });
+        return;
+      }
+
+      const entidadId = input.entidadId ?? pendiente.entidadId;
+      const tipo = input.tipo ?? pendiente.refinamiento;
+      const modo = input.modo ?? pendiente.modo ?? undefined;
+      if (tipo === "despliegue" && !modo) {
+        set({ refinamientoPendiente: { ...pendiente, error: "Elige una relación antes de crear el refinamiento." } });
+        return;
+      }
+      const resultado = adoptarOpd(estado.modelo, {
+        opdPadreId: pendiente.opdPadreId,
+        entidadId,
+        opdSueltoId: pendiente.opdSueltoId,
+        tipo,
+        ...(modo ? { modo } : {}),
+        preguntaGuia,
+      });
+      if (!resultado.ok) {
+        set({ refinamientoPendiente: { ...pendiente, error: resultado.error } });
+        return;
+      }
+      commitModelo(set, estado.modelo, resultado.value, {
+        opdActivoId: pendiente.opdSueltoId,
+        seleccionId: entidadId,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        refinamientoPendiente: null,
+        mensaje: null,
+      });
+    },
+
+    cancelarRefinamientoPendiente() {
+      set({ refinamientoPendiente: null, mensaje: null });
+    },
+
+    actualizarPreguntaGuiaOpd(opdId, preguntaGuia) {
+      const { modelo } = get();
+      const resultado = actualizarPreguntaGuia(modelo, opdId, preguntaGuia);
       if (!resultado.ok) {
         set({ mensaje: resultado.error });
         return;
       }
-      commitModelo(set, modelo, resultado.value.modelo, {
-        opdActivoId: resultado.value.opdId,
-        seleccionId,
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        mensaje: resultado.value.creado ? "OPD de despliegue creado" : null,
-      });
+      commitModelo(set, modelo, resultado.value, { mensaje: null });
     },
 
     nuevoOpdSuelto() {
@@ -148,81 +293,128 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
     },
 
     adoptarOpdEnSeleccion(opdSueltoId: Id, tipo: TipoRefinamiento, modo?: ModoDespliegueObjeto) {
+      const bloqueo = mensajeBloqueoEdicion(get());
+      if (bloqueo) {
+        set({ refinamientoPendiente: null, mensaje: bloqueo });
+        return;
+      }
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId || !modelo.entidades[seleccionId]) {
         set({ mensaje: "Selecciona la cosa que adoptará el OPD suelto" });
         return;
       }
-      const r = adoptarOpd(modelo, {
-        opdPadreId: opdActivoId,
-        entidadId: seleccionId,
-        opdSueltoId,
-        tipo,
-        ...(modo ? { modo } : {}),
-      });
-      if (!r.ok) {
-        set({ mensaje: r.error });
+      const opdSuelto = modelo.opds[opdSueltoId];
+      if (!opdSuelto) {
+        set({ mensaje: `OPD no existe: ${opdSueltoId}` });
         return;
       }
-      commitModelo(set, modelo, r.value, {
-        opdActivoId: opdSueltoId,
-        seleccionId,
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        mensaje: "OPD suelto adoptado",
+      set({
+        refinamientoPendiente: {
+          tipo: "adopcion",
+          opdPadreId: opdActivoId,
+          opdSueltoId,
+          opdNombre: opdSuelto.nombre,
+          entidadId: seleccionId,
+          refinamiento: tipo,
+          modo: tipo === "despliegue" ? modo ?? null : null,
+          ...(opdSuelto.preguntaGuia ? { preguntaInicial: opdSuelto.preguntaGuia } : {}),
+        },
+        mensaje: null,
       });
     },
 
     quitarDescomposicionSeleccionada() {
+      const bloqueo = mensajeBloqueoEdicion(get());
+      if (bloqueo) {
+        set({ confirmacionEliminarRefinamiento: null, mensaje: bloqueo });
+        return;
+      }
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId) {
         set({ mensaje: "Selecciona una cosa descompuesta" });
         return;
       }
       const entidad = modelo.entidades[seleccionId];
-      if (!entidad || !obtenerRefinamiento(entidad, "descomposicion")) {
+      const refinamiento = entidad ? obtenerRefinamiento(entidad, "descomposicion") : undefined;
+      if (!entidad || !refinamiento) {
         set({ mensaje: "Selecciona una cosa descompuesta" });
         return;
       }
-
-      const resultado = quitarDescomposicionProceso(modelo, seleccionId);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
-        return;
-      }
-      commitModelo(set, modelo, resultado.value, {
-        opdActivoId: opdActivoSeguro(resultado.value, opdActivoId),
-        seleccionId,
-        enlaceSeleccionId: null,
-        modoEnlace: null,
-        mensaje: "Descomposición eliminada",
+      set({
+        confirmacionEliminarRefinamiento: {
+          tipo: "descomposicion",
+          entidadId: seleccionId,
+          opdRaizId: refinamiento.opdId,
+          opdIds: [...idsSubarbolOpd(modelo, refinamiento.opdId)],
+        },
+        mensaje: null,
       });
     },
 
     quitarDespliegueSeleccionado() {
+      const bloqueo = mensajeBloqueoEdicion(get());
+      if (bloqueo) {
+        set({ confirmacionEliminarRefinamiento: null, mensaje: bloqueo });
+        return;
+      }
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId) {
         set({ mensaje: "Selecciona una cosa desplegada" });
         return;
       }
       const entidad = modelo.entidades[seleccionId];
-      if (!entidad || !obtenerRefinamiento(entidad, "despliegue")) {
+      const refinamiento = entidad ? obtenerRefinamiento(entidad, "despliegue") : undefined;
+      if (!entidad || !refinamiento) {
         set({ mensaje: "Selecciona una cosa desplegada" });
         return;
       }
+      set({
+        confirmacionEliminarRefinamiento: {
+          tipo: "despliegue",
+          entidadId: seleccionId,
+          opdRaizId: refinamiento.opdId,
+          opdIds: [...idsSubarbolOpd(modelo, refinamiento.opdId)],
+        },
+        mensaje: null,
+      });
+    },
 
-      const resultado = quitarDespliegueObjeto(modelo, seleccionId);
-      if (!resultado.ok) {
-        set({ mensaje: resultado.error });
+    confirmarEliminarRefinamiento() {
+      const estado = get();
+      const confirmacion = estado.confirmacionEliminarRefinamiento;
+      if (!confirmacion) return;
+      const bloqueo = mensajeBloqueoEdicion(estado);
+      if (bloqueo) {
+        set({ confirmacionEliminarRefinamiento: null, mensaje: bloqueo });
         return;
       }
-      commitModelo(set, modelo, resultado.value, {
-        opdActivoId: opdActivoSeguro(resultado.value, opdActivoId),
-        seleccionId,
+      const entidadActual = estado.modelo.entidades[confirmacion.entidadId];
+      const refinamientoActual = entidadActual
+        ? obtenerRefinamiento(entidadActual, confirmacion.tipo)
+        : undefined;
+      if (refinamientoActual?.opdId !== confirmacion.opdRaizId) {
+        set({ confirmacionEliminarRefinamiento: null, mensaje: "El refinamiento cambió; revisa su alcance antes de eliminar." });
+        return;
+      }
+      const resultado = confirmacion.tipo === "descomposicion"
+        ? quitarDescomposicionProceso(estado.modelo, confirmacion.entidadId)
+        : quitarDespliegueObjeto(estado.modelo, confirmacion.entidadId);
+      if (!resultado.ok) {
+        set({ confirmacionEliminarRefinamiento: null, mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, estado.modelo, resultado.value, {
+        confirmacionEliminarRefinamiento: null,
+        opdActivoId: opdActivoSeguro(resultado.value, estado.opdActivoId),
+        seleccionId: confirmacion.entidadId,
         enlaceSeleccionId: null,
         modoEnlace: null,
-        mensaje: "Despliegue eliminado",
+        mensaje: confirmacion.tipo === "descomposicion" ? "Descomposición eliminada" : "Despliegue eliminado",
       });
+    },
+
+    cancelarEliminarRefinamiento() {
+      set({ confirmacionEliminarRefinamiento: null, mensaje: null });
     },
 
     reasignarEnlaceExternoManual(opdId, aparienciaEnlaceId, nuevoSubprocesoId) {
