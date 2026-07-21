@@ -6,7 +6,7 @@ export function definirRutaEtiqueta(modelo: Modelo, enlaceId: Id, etiqueta: stri
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
   const rutaEtiqueta = rutaEtiquetaNormalizada(etiqueta);
   if (rutaEtiqueta && !enlaceAdmiteRuta(modelo, enlaceId)) {
-    return fallo("La ruta requiere un enlace procedural con extremo Estado");
+    return fallo("La ruta requiere un enlace procedural ligado a un estado");
   }
   if (enlace.rutaEtiqueta === rutaEtiqueta) return ok(modelo);
   const siguiente = { ...enlace };
@@ -32,7 +32,9 @@ export function rutaEtiquetaNormalizada(etiqueta: string | undefined): string | 
 export function enlaceAdmiteRuta(modelo: Modelo, enlaceId: Id): boolean {
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace || naturalezaDeEnlace(enlace.tipo) !== "procedural") return false;
-  return enlace.origenId.kind === "estado" || enlace.destinoId.kind === "estado";
+  return enlace.origenId.kind === "estado"
+    || enlace.destinoId.kind === "estado"
+    || (enlace.tipo === "efecto" && Boolean(enlace.estadoEntradaId || enlace.estadoSalidaId));
 }
 
 function ok<T>(value: T): Resultado<T> {

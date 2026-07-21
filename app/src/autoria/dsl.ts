@@ -56,6 +56,7 @@ import { entidadDeExtremo } from "../modelo/extremos";
 import { validarFirmaEnlace } from "../modelo/operaciones/helpers";
 import { formarAbanico } from "../modelo/abanicos";
 import { definirDemora } from "../modelo/modificadores";
+import { definirRutaEtiqueta } from "../modelo/rutas";
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { normalizarPosicionLabelEnlace } from "../modelo/etiquetasEnlace";
 import type { AnclaNormativa } from "../modelo/tipos";
@@ -596,6 +597,15 @@ export function crearAutor(opciones: OpcionesAutor = {}): Autor {
     const apId = `ae-${aparienciaEnlaceSeq++}`;
     const apariencia: AparienciaEnlace = { id: apId, enlaceId: id, opdId, vertices: [] };
     modelo.opds[opdId]!.enlaces[apId] = apariencia;
+    if (opts.rutaEtiqueta) {
+      const conRuta = definirRutaEtiqueta(modelo, id, opts.rutaEtiqueta);
+      if (!conRuta.ok) {
+        throw new Error(
+          `Ruta ilegal en OPD '${opdKey}' (${origenEntidad.nombre} ${tipo} ${destinoEntidad.nombre}): ${conRuta.error}`,
+        );
+      }
+      modelo.enlaces[id] = conRuta.value.enlaces[id]!;
+    }
     // W4.1 (#21): demora de invocación delegada al kernel (`definirDemora`), aplicada sobre el
     // enlace recién escrito. Vuelca el resultado inmutable al modelo mutable del autor.
     if (opts.demora) {

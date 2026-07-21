@@ -354,6 +354,7 @@ function emitirProcedimental(
   return emitirBase(ast.tipoEnlace, ast, ctx, {
     ...(ast.multiplicidadOrigen ? { multiplicidadOrigen: ast.multiplicidadOrigen } : {}),
     ...(ast.multiplicidadDestino ? { multiplicidadDestino: ast.multiplicidadDestino } : {}),
+    ...(ast.rutaEtiqueta ? { rutaEtiqueta: ast.rutaEtiqueta } : {}),
     ...(ast.demora ? { demora: ast.demora } : {}),
     ...(ast.etiqueta ? { etiqueta: ast.etiqueta } : {}),
   });
@@ -560,6 +561,7 @@ function emitirEvento(
     modificador: "evento",
     ...(b.multiplicidadOrigen ? { multiplicidadOrigen: b.multiplicidadOrigen } : {}),
     ...(b.multiplicidadDestino ? { multiplicidadDestino: b.multiplicidadDestino } : {}),
+    ...(b.rutaEtiqueta ? { rutaEtiqueta: b.rutaEtiqueta } : {}),
     ...(ast.etiqueta ? { etiqueta: ast.etiqueta } : {}),
   });
 }
@@ -649,6 +651,7 @@ function emitirCondicion(
     ...(ast.estadoSalida ? { estadoSalida: ast.estadoSalida } : {}),
   }, ctx, {
     modificador: "condicion",
+    ...(ast.rutaEtiqueta ? { rutaEtiqueta: ast.rutaEtiqueta } : {}),
     ...(ast.etiqueta ? { etiqueta: ast.etiqueta } : {}),
   });
 }
