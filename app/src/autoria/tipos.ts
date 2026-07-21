@@ -23,6 +23,8 @@ export type ExtremoEntrada = EntKey | { estado: string; entidad: EntKey };
 /** Opciones de un enlace procedural/estructural. */
 export interface OpcionesEnlace {
   etiqueta?: string;
+  /** Etiqueta semántica de ruta; requiere un enlace procedural ligado a un estado. */
+  rutaEtiqueta?: string;
   /** Estado de entrada del destino (para efecto/consumo con transición explícita). */
   entrada?: string;
   /** Estado de salida del destino. */
