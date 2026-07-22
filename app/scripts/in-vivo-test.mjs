@@ -621,14 +621,26 @@ try {
   await page.getByTestId("barra-inzoom").click();
   const formularioRefinamiento = page.getByTestId("tutor-refinamiento");
   await recordVisible("7. Scaffolding sin ruido", "Refinar abre el gateway de pregunta sin mutar el árbol", formularioRefinamiento);
+  // `autoFocus` se aplica tras montar el portal. Esperar esa precondición evita
+  // que una pulsación sintética irrealmente inmediata caiga sobre `body` y sea
+  // interpretada por el atajo global en vez de por el gateway local.
+  await page.waitForFunction(() => (
+    document.activeElement?.getAttribute("data-testid") === "tutor-refinamiento-pregunta"
+  ), undefined, { timeout: 2500 });
   await page.keyboard.press("Escape");
+  await formularioRefinamiento.waitFor({ state: "detached", timeout: 2500 });
+  const disparadorRefinamiento = page.getByTestId("barra-inzoom");
+  await disparadorRefinamiento.waitFor({ state: "visible", timeout: 2500 });
+  const focoRestaurado = await page.waitForFunction(() => (
+    document.activeElement?.getAttribute("data-testid") === "barra-inzoom"
+  ), undefined, { timeout: 2500 }).then(() => true).catch(() => false);
   recordBool(
     "7. Scaffolding sin ruido",
     "Escape conserva selección y devuelve foco al disparador",
     (await locatorCount(formularioRefinamiento)) === 0
-      && await page.getByTestId("barra-inzoom").evaluate((el) => el === document.activeElement).catch(() => false),
+      && focoRestaurado,
   );
-  await page.getByTestId("barra-inzoom").click();
+  await disparadorRefinamiento.click();
   await formularioRefinamiento.waitFor({ state: "visible", timeout: 1500 });
   recordBool(
     "7. Scaffolding sin ruido",
