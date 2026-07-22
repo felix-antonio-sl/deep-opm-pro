@@ -10,7 +10,6 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
-import { tmpdir } from "node:os";
 import { TUTOR_SOURCES } from "../src/tutor/fuentes";
 
 const appRoot = resolve(import.meta.dir, "..");
@@ -73,7 +72,9 @@ await conLock(async () => {
     return;
   }
 
-  const tempRoot = join(tmpdir(), `opforja-tutor-corpus-${process.pid}-${Date.now()}`);
+  // El staging debe vivir junto al destino: `renameSync` no cruza sistemas de
+  // archivos (EXDEV), algo habitual cuando el repo y /tmp usan montajes distintos.
+  const tempRoot = join(appRoot, `.tutor-corpus.tmp-${process.pid}-${Date.now()}`);
   const tempSources = join(tempRoot, "tutor-sources");
   mkdirSync(tempSources, { recursive: true });
   const materialized: MaterializedSource[] = [];
