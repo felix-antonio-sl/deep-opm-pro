@@ -100,6 +100,13 @@ async function resetWorkbench(page) {
   }).catch(() => undefined);
   await page.goto(URL_OBJETIVO, { waitUntil: "networkidle", timeout: 20000 });
   await cerrarPantallaInicioSiVisible(page);
+  // La persistencia backend sobrevive al storage del navegador. Igual que los
+  // smoke, la sonda necesita un modelo plano fresco entre escenarios para que
+  // una importación anterior no contamine selección, OPD activo ni dirty state.
+  await page.waitForFunction(() => (
+    typeof window.__opmTest?.nuevoModeloPlano === "function"
+  ), undefined, { timeout: 2500 });
+  await page.evaluate(() => window.__opmTest.nuevoModeloPlano());
   await page.waitForTimeout(250);
 }
 
