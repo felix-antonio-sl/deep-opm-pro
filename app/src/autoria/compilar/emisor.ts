@@ -117,6 +117,9 @@ export function recolectarEstadosUnion(oraciones: string[]): Map<string, string[
         if (a.iniciadorEstado) agregar(a.iniciador, [a.iniciadorEstado]);
         if (a.base?.estadoEntrada) agregar(a.base.objeto ?? "", [a.base.estadoEntrada]);
         if (a.base?.estadoSalida) agregar(a.base.objeto ?? "", [a.base.estadoSalida]);
+      } else if (a.kind === "condicion") {
+        if (a.condicionanteEstado) agregar(a.condicionante, [a.condicionanteEstado]);
+        if (a.estadoSalida) agregar(a.condicionante, [a.estadoSalida]);
       } else if (a.kind === "abanico" && a.otrosEstados?.length) {
         agregar(a.otros[0] ?? "", a.otrosEstados);
         if (a.estadoEntradaComun) agregar(a.otros[0] ?? "", [a.estadoEntradaComun]);
@@ -641,13 +644,12 @@ function emitirCondicion(
   ast: Extract<OracionOplAst, { kind: "condicion" }>,
   ctx: ContextoEmision,
 ): ResultadoEmision {
-  // `condicionante` es el objeto; `proceso` el proceso. `emitirBase` los coloca
-  // según el tipo. El estado del condicionante (CS*) no se inversea como extremo
-  // desde el reverse (planificar.ts lo preserva pero no lo aplica) — lo omitimos
-  // como el reverse, salvo `estadoSalida` de efecto (que sí va como metadato).
+  // `condicionante` es el objeto; `proceso` el proceso. Su estado forma parte
+  // del extremo o del TS3 compacto, igual que en el reverse vigente.
   return emitirBase(ast.base, {
     proceso: ast.proceso,
     objeto: ast.condicionante,
+    ...(ast.condicionanteEstado ? { estadoEntrada: ast.condicionanteEstado } : {}),
     ...(ast.estadoSalida ? { estadoSalida: ast.estadoSalida } : {}),
   }, ctx, {
     modificador: "condicion",

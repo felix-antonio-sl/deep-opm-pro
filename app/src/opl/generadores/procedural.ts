@@ -335,8 +335,24 @@ function oracionCondicion(
     case "resultado":
       return oracionEnlaceSinModificador(modelo, enlace);
     case "efecto": {
+      const procesoEntidad = origen.tipo === "proceso" ? origen : destino.tipo === "proceso" ? destino : null;
+      const objetoEntidad = origen.tipo === "objeto" ? origen : destino.tipo === "objeto" ? destino : null;
+      const procesoCompacto = procesoEntidad
+        ? nombreOplConMultiplicidad(procesoEntidad, procesoEntidad === origen ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino)
+        : null;
+      const objetoCompacto = objetoEntidad
+        ? nombreOplConMultiplicidad(objetoEntidad, objetoEntidad === origen ? enlace.multiplicidadOrigen : enlace.multiplicidadDestino)
+        : null;
       const proceso = origen.tipo === "proceso" ? origenOpl : destino.tipo === "proceso" ? destinoOpl : null;
       const objeto = origen.tipo === "objeto" ? origenOpl : destino.tipo === "objeto" ? destinoOpl : null;
+      const entrada = enlace.estadoEntradaId ? modelo.estados[enlace.estadoEntradaId] : undefined;
+      const salida = enlace.estadoSalidaId ? modelo.estados[enlace.estadoSalidaId] : undefined;
+      if (procesoCompacto && objetoCompacto && entrada && salida) {
+        return `${procesoCompacto} ocurre si ${objetoCompacto} está en \`${nombreCanonicoEstado(entrada)}\`, en cuyo caso ${procesoCompacto} cambia ${objetoCompacto} de \`${nombreCanonicoEstado(entrada)}\` a \`${nombreCanonicoEstado(salida)}\`, de lo contrario ${procesoCompacto} se omite.`;
+      }
+      if (procesoCompacto && objetoCompacto && salida) {
+        return `${procesoCompacto} ocurre si ${objetoCompacto} existe, en cuyo caso ${procesoCompacto} cambia ${objetoCompacto} a \`${nombreCanonicoEstado(salida)}\`, de lo contrario ${procesoCompacto} se omite.`;
+      }
       return proceso && objeto ? `${proceso} ocurre si ${objeto} existe, en cuyo caso ${proceso} afecta ${objeto}, de lo contrario ${proceso} se omite.` : null;
     }
     case "invocacion":

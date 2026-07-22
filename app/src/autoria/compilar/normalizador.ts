@@ -840,6 +840,10 @@ function dividirProcesosDisyuncion(texto: string): string[] {
 // ── Reescrituras que expanden (A1, A6) ───────────────────────────────────
 
 function expandir(sinPunto: string, contexto: ContextoProto): LineaNormalizada[] | null {
+  // Una condición canónica puede contener `cambia ... de ... a ...` como
+  // cláusula subordinada. A6 solo expande una transición principal.
+  if (/\bocurre\s+si\b/iu.test(sinPunto)) return null;
+
   // A1: `A, B y C son <esencia> y <afiliacion>` -> una descripcion por entidad.
   const a1 = /^(.+?)\s+son\s+(f[ií]sic[oa]s?|informacionales?)\s+y\s+(sist[eé]mic[oa]s?|ambientales?)$/iu.exec(sinPunto);
   if (a1) {
@@ -1120,6 +1124,7 @@ function detectarVerboNoCanonico(sinPunto: string): { categoria: CategoriaRechaz
   if (/^.+?\s+es\s+(?:f[ií]sic[oa]|informacional|sist[eé]mic[oa]|ambiental|inicial|final)\b/iu.test(sinPunto)) return null; // copular / designacion
   if (/^.+?\s+es\s+una\s+instancia\s+de\b/iu.test(sinPunto)) return null; // clasificacion
   if (/\binicia\b/iu.test(sinPunto)) return null; // evento
+  if (/\bocurre\s+si\b/iu.test(sinPunto)) return null; // condición canónica
 
   // Verbo canonico en cualquier posicion -> forma valida.
   if (VERBO_CANONICO_RE.test(conEspacios)) return null;
