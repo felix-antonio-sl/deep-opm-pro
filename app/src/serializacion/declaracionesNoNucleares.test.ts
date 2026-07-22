@@ -25,7 +25,7 @@ function modeloConDeclaraciones() {
   return autor.modelo;
 }
 
-describe("OPF-C01-GP-05 — declaraciones no nucleares tipadas", () => {
+describe("declaraciones no nucleares — serialización y perfiles", () => {
   test("hidratar y reexportar conserva bytes canónicos y no inventa estadoEvaluacion", () => {
     const json = exportarModelo(modeloConDeclaraciones());
     const hidratado = hidratarModelo(json);

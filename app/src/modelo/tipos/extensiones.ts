@@ -40,9 +40,10 @@ export interface SatisfaccionRequisito {
   descripcion?: string;
 }
 
-// --- DeclaraciónNoNuclear (OPF-C01-GP-05) ---------------------------------
-// Meta tipada para afirmaciones de gobernanza del modelo. No crea primitivas
-// OPM, no emite OPL nuclear y conserva su especie frente a anclas/notas.
+// --- DeclaraciónNoNuclear ---------------------------------------------------
+// Extensión opcional del formato para afirmaciones generales de gobernanza.
+// No crea primitivas OPM, no emite OPL nuclear y conserva su especie frente a
+// anclas/notas. Contrato de producto: manual-opforja.md, § A.5.
 
 export type ClaseDeclaracionNoNuclear = "rol" | "restriccion" | "exclusion" | "frontera";
 export type EstadoAsercionNoNuclear = "ratificada" | "hipotesis" | "pendiente";
