@@ -14,12 +14,13 @@ export function DialogoRolBiblioteca() {
   const cancelar = useOpmStore((s) => s.cancelarRolBiblioteca);
   const cancelarRef = useRef<HTMLButtonElement>(null);
   const quitar = entrada?.esBiblioteca === true;
+  const intentId = `lifecycle:${modeloId ?? "none"}:${quitar ? "unmark-library" : "mark-library"}`;
   const intervencionTutor = runTutorPolicy(deriveEntryIntent({
-    intentId: `lifecycle:${modeloId ?? "none"}:${quitar ? "unmark-library" : "mark-library"}`,
+    intentId,
     focus: "lifecycle",
     transition: quitar ? "unmark-library" : "mark-library",
     factsPreserved: true,
-  }));
+  }), [{ owner: "product", intentId }]);
 
   return (
     <Dialogo
@@ -39,7 +40,7 @@ export function DialogoRolBiblioteca() {
       )}
     >
       <TutorInterventionDetails intervention={intervencionTutor} testId="tutor-dialogo-biblioteca" />
-      <p>
+      <p data-tutor-surface-owner="product" data-tutor-intent={intentId}>
         {quitar
           ? `«${nombre}» volverá a Modelo de Trabajo, nunca a Apunte. El contenido y el rigor no cambian.`
           : `«${nombre}»: cambia el rol a Biblioteca. El contenido y el rigor no cambian. Marcar no abre el modelo.`}

@@ -79,4 +79,12 @@ describe("validarOpds", () => {
     if (!resultado.ok) return;
     expect(resultado.value).toBe("agregacion");
   });
+
+  test("preserva la ausencia legacy de modo aunque el runtime derive agregacion", () => {
+    const resultado = validarRefinamiento("e-1", { tipo: "despliegue", opdId: "opd-2" });
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value).toEqual({ tipo: "despliegue", opdId: "opd-2" });
+  });
 });

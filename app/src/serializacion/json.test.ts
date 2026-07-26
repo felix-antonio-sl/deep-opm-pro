@@ -4,12 +4,35 @@ import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, cambiarAfiliacion, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
+import { modoDespliegue } from "../opl/generadores/refinamiento";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
 
 describe("serializacion JSON", () => {
+  test("no materializa modo al reexportar un despliegue legacy que lo omitía", () => {
+    let modelo = crearModelo("Legacy sin modo");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 20 }, "Sistema"));
+    const objetoId = entidadPorNombre(modelo, "Sistema");
+    modelo = must(desplegarObjeto(modelo, modelo.opdRaizId, objetoId, "agregacion")).modelo;
+    const documento = JSON.parse(exportarModelo(modelo));
+    const entidad = documento.modelo.entidades[objetoId];
+    const opdId = entidad.refinamientos.despliegue.opdId;
+    delete entidad.refinamientos;
+    entidad.refinamiento = { tipo: "despliegue", opdId };
+
+    const hidratado = hidratarModelo(JSON.stringify(documento));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.entidades[objetoId]?.refinamientos?.despliegue)
+      .toEqual({ opdId });
+    const reexportado = JSON.parse(exportarModelo(hidratado.value));
+    expect(reexportado.modelo.entidades[objetoId].refinamientos.despliegue)
+      .toEqual({ opdId });
+  });
+
   test("hace round-trip del modelo minimo", () => {
     const creado = crearObjeto(crearModelo("Prueba"), "opd-1", { x: 10, y: 20 }, "Sistema");
     expect(creado.ok).toBe(true);
@@ -1080,7 +1103,7 @@ describe("serializacion JSON", () => {
     }
   });
 
-  test("hidratar despliegue legacy sin modo asume agregacion", () => {
+  test("hidratar despliegue legacy conserva ausencia y deriva agregacion en lectura", () => {
     let modelo = crearModelo("Legacy despliegue");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 200, y: 120 }, "Vehiculo"));
     const objetoId = entidadPorNombre(modelo, "Vehiculo");
@@ -1090,8 +1113,8 @@ describe("serializacion JSON", () => {
     const slotDesp = entidad?.refinamientos?.despliegue;
     if (!entidad || !slotDesp) return;
     // Inyecta el documento con el formato legacy `refinamiento` y SIN `modo`
-    // (escenario pre-15.2 sin modo persistido); el migrador debe asumir
-    // "agregacion" y hidratar al record nuevo `refinamientos`.
+    // (escenario pre-15.2 sin modo persistido); el migrador conserva la
+    // ausencia y el dominio deriva "agregacion" solo al leer la relación.
     const { refinamientos: _omit, ...sinNuevo } = entidad;
     const json = JSON.stringify({
       formato: "deep-opm-pro.modelo.v0",
@@ -1111,7 +1134,11 @@ describe("serializacion JSON", () => {
 
     expect(hidratado.ok).toBe(true);
     if (!hidratado.ok) return;
-    expect(hidratado.value.entidades[objetoId]?.refinamientos?.despliegue?.modo).toBe("agregacion");
+    const entidadHidratada = hidratado.value.entidades[objetoId];
+    const opdHijo = hidratado.value.opds[slotDesp.opdId];
+    expect(entidadHidratada?.refinamientos?.despliegue?.modo).toBeUndefined();
+    if (!entidadHidratada || !opdHijo) return;
+    expect(modoDespliegue(hidratado.value, entidadHidratada, opdHijo)).toBe("agregacion");
   });
 
   test("round-trip preserva apariencia.modoPlegado parcial", () => {

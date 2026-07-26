@@ -30,6 +30,8 @@ async function marcarBiblioteca(page: Page, modeloId: string): Promise<void> {
   }, { ruta: RUTA_STORE, id: modeloId });
   const dialogo = page.getByTestId("dialogo-rol-biblioteca");
   await expect(dialogo).toBeVisible();
+  await expect(dialogo.getByTestId("tutor-dialogo-biblioteca")).toHaveCount(0);
+  await expect(dialogo.locator('[data-tutor-surface-owner="product"]')).toHaveCount(1);
   await dialogo.getByRole("button", { name: "Marcar como Biblioteca", exact: true }).click();
   await expect(dialogo).toHaveCount(0);
 }

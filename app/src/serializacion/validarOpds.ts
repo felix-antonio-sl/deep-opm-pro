@@ -39,7 +39,11 @@ export function validarRefinamiento(entidadId: Id, value: unknown): Resultado<Re
   }
   const modo = validarModoDespliegue(entidadId, value.modo);
   if (!modo.ok) return modo;
-  return ok({ tipo: value.tipo, opdId: value.opdId, modo: modo.value });
+  return ok({
+    tipo: value.tipo,
+    opdId: value.opdId,
+    ...(value.modo !== undefined ? { modo: modo.value } : {}),
+  });
 }
 
 export function validarRefinamientos(
@@ -64,7 +68,10 @@ export function validarRefinamientos(
       } else {
         const modo = validarModoDespliegue(entidadId, slot.modo);
         if (!modo.ok) return modo;
-        acumulado.despliegue = { opdId: slot.opdId, modo: modo.value };
+        acumulado.despliegue = {
+          opdId: slot.opdId,
+          ...(slot.modo !== undefined ? { modo: modo.value } : {}),
+        };
       }
     }
   }
@@ -77,7 +84,10 @@ export function validarRefinamientos(
     if (acumulado[tipo] === undefined) {
       acumulado[tipo] = tipo === "descomposicion"
         ? { opdId: legacy.value.opdId }
-        : { opdId: legacy.value.opdId, modo: legacy.value.modo ?? "agregacion" };
+        : {
+            opdId: legacy.value.opdId,
+            ...(legacy.value.modo !== undefined ? { modo: legacy.value.modo } : {}),
+          };
     }
   }
 

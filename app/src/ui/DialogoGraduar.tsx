@@ -71,13 +71,14 @@ export function DialogoGraduar() {
   );
 
   const nombreValido = nombre.trim().length > 0;
+  const intentId = `lifecycle:${modeloId ?? "none"}:${esBiblioteca ? "graduate-library" : "graduate"}`;
   const intervencionTutor = runTutorPolicy(deriveEntryIntent({
-    intentId: `lifecycle:${modeloId ?? "none"}:${esBiblioteca ? "graduate-library" : "graduate"}`,
+    intentId,
     focus: "lifecycle",
     transition: esBiblioteca ? "graduate-library" : "graduate",
     factsPreserved: true,
     activeLenses: mapearLentesTutor(modelo?.lentesConocimiento ?? []),
-  }));
+  }), [{ owner: "product", intentId }]);
   const graduar = () => {
     if (modeloId === null) return;
     confirmarGraduacion({
@@ -120,7 +121,7 @@ export function DialogoGraduar() {
     >
       <div style={style.container}>
         <TutorInterventionDetails intervention={intervencionTutor} testId="tutor-dialogo-graduar" />
-        <p style={style.intro}>
+        <p style={style.intro} data-tutor-surface-owner="product" data-tutor-intent={intentId}>
           {esBiblioteca
             ? "Dejará de ser Apunte y quedará como Modelo de Biblioteca. Los hechos no cambian. Si luego quitas el rol Biblioteca, volverá a Modelo de Trabajo, no a Apunte."
             : "Al graduar cambia el rigor, no los hechos."}

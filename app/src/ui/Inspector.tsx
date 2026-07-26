@@ -16,9 +16,9 @@ const SeccionFichaTrabajo = lazy(() => import("./inspector/SeccionFichaTrabajo")
 /**
  * Inspector raiz: ViewContainer XOR (estado | entidad | enlace | vacio).
  * El branch vacio es sólo una indicación editorial de selección; la identidad
- * del modelo y el renombrado viven en el header/palette. aria-live="polite"
- * anuncia transiciones de seleccion como master-detail. Selecciones cruzadas
- * con Panel OPL pasan por
+ * del modelo y el renombrado viven en el header/palette. Las transiciones de
+ * selección se anuncian una sola vez desde la barra contextual; el árbol entero
+ * del Inspector no es una región viva. Selecciones cruzadas con Panel OPL pasan por
  * seleccionarDesdeOpl/abrirInspectorEnlaceDesdeOpl.
  *
  * Pattern-match natural sobre los tres campos exclusivos del coproducto
@@ -38,7 +38,6 @@ export function Inspector() {
       aria-label="Inspector"
       data-testid="inspector"
       data-modo-inspector={modo}
-      aria-live="polite"
     >
       {estado
         ? <InspectorEstado estado={estado} />

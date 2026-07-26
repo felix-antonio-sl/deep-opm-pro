@@ -33,6 +33,8 @@ test("seleccionar una cosa enciende barra contextual e Inspector con la misma re
   await expect(barra).toHaveAttribute("role", "toolbar");
   await expect(barra).toHaveAttribute("aria-label", /Acciones sobre Objeto/);
   await expect(page.getByTestId("barra-live-region")).toContainText("Cosa seleccionada: Objeto");
+  await expect(page.getByTestId("inspector")).not.toHaveAttribute("aria-live");
+  await expect(page.getByTestId("flash-toast").filter({ hasText: /Objeto creado/ })).toHaveCount(0);
 
   // El boton inzoom existe y dispara descomposicion (conexion barra -> Inspector via store).
   await expect(page.getByTestId("barra-inzoom")).toBeVisible();

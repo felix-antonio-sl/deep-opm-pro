@@ -53,6 +53,8 @@ test("«Nuevo» nace un apunte editable al instante, aparece en el gestor y se g
   // 4. Graduar desde la cinta: el diálogo pide nombre + muestra el reporte de validez.
   await cinta.getByTestId("cinta-apunte-graduar").click();
   await expect(page.getByTestId("dialogo-graduar")).toBeVisible();
+  await expect(page.getByTestId("tutor-dialogo-graduar")).toHaveCount(0);
+  await expect(page.getByTestId("dialogo-graduar").locator('[data-tutor-surface-owner="product"]')).toHaveCount(1);
   await expect(page.getByTestId("graduar-validez")).toBeVisible();
   await page.getByTestId("graduar-nombre").fill("Modelo graduado");
   await page.getByTestId("graduar-confirmar").click();
