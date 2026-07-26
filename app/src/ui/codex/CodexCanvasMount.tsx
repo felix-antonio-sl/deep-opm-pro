@@ -10,6 +10,7 @@ import { CodexSelectionAnnotation } from "./CodexSelectionAnnotation";
 import { GLIFO_SEP } from "./glifos";
 import { useTutorContent } from "../useTutorContent";
 import { TutorFoundationLinks, useTutorDisclosurePreference } from "../TutorDetails";
+import { esOpdSuelto } from "../../modelo/opdSueltos";
 
 interface CodexCanvasMountProps {
   children: ComponentChildren;
@@ -33,9 +34,13 @@ export function CodexCanvasMount({ children, floating, topbar, chromeVisible = t
   const opdActivo = modelo.opds[opdActivoId];
   const code = opdActivo ? codigoOpd(opdActivo.nombre) : "SD";
   const esRaiz = opdActivoId === modelo.opdRaizId;
-  // §4: kicker "SD · OPD raíz" (del OPD activo, lectura). Para OPDs hijos se
-  // refleja el código + "OPD refinado" para no mentir sobre la jerarquía.
-  const kicker = `${code} ${GLIFO_SEP} ${esRaiz ? "OPD raíz" : "OPD refinado"}`;
+  // §4: el kicker declara la posición estructural real del OPD activo.
+  const claseOpd = esRaiz
+    ? "OPD raíz"
+    : esOpdSuelto(modelo, opdActivoId)
+      ? "OPD suelto"
+      : "OPD refinado";
+  const kicker = `${code} ${GLIFO_SEP} ${claseOpd}`;
   const zoom = useZoomDisplay();
 
   return (

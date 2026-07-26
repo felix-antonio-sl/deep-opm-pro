@@ -14,7 +14,11 @@ export interface BloqueOpl {
   oraciones: OracionOpl[];
 }
 
-export function agruparOracionesPorOpd(oraciones: OplLineaInteractiva[], modelo: Modelo): BloqueOpl[] {
+export function agruparOracionesPorOpd(
+  oraciones: OplLineaInteractiva[],
+  modelo: Modelo,
+  ordenOpdIds: readonly Id[] = ordenarOpdsParaOpl(modelo),
+): BloqueOpl[] {
   const bloques = new Map<Id, BloqueOpl>();
   for (const oracion of oraciones) {
     const opdId = oracion.opdId;
@@ -38,7 +42,7 @@ export function agruparOracionesPorOpd(oraciones: OplLineaInteractiva[], modelo:
       oraciones: [oracionConOpd],
     });
   }
-  return ordenarOpdsParaOpl(modelo)
+  return ordenOpdIds
     .flatMap((opdId) => {
       const bloque = bloques.get(opdId);
       return bloque ? [bloque] : [];

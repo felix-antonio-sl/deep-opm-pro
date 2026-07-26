@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { crearOpdSuelto } from "../modelo/operaciones/opdSuelto";
 import type { Id, Modelo, Resultado } from "../modelo/tipos";
 import { derivarDeltaLineasOpl, derivarPanelOpl, referenciaSeleccionada } from "./panel";
 
@@ -35,6 +36,49 @@ describe("panel OPL como capacidad", () => {
     expect(derivado.visibles).toHaveLength(derivado.lineas.length);
     expect(derivado.visiblesPorId.size).toBe(derivado.lineas.length);
     expect(derivado.previewLibre).toBeNull();
+  });
+
+  test("un OPD suelto activo proyecta solo su OPL sin contaminar el árbol canónico", () => {
+    let modelo = crearModelo("Taller");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Raíz canónica"));
+    const creado = crearOpdSuelto(modelo);
+    modelo = creado.modelo;
+    modelo = must(crearProceso(modelo, creado.opdId, { x: 0, y: 0 }, "Proyectar"));
+    modelo = must(crearObjeto(modelo, creado.opdId, { x: 220, y: 0 }, "Resultado"));
+    modelo = must(crearEnlace(
+      modelo,
+      creado.opdId,
+      entidad(modelo, "Proyectar"),
+      entidad(modelo, "Resultado"),
+      "resultado",
+    ));
+
+    const base = {
+      modelo,
+      opdActivoId: creado.opdId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      filtroActivo: false,
+      busquedaOpl: "",
+      editorLibre: false,
+      textoLibre: "",
+    };
+    const derivado = derivarPanelOpl(base);
+
+    expect(derivado.lineas.map((linea) => linea.texto)).toEqual([
+      "*Proyectar* es un proceso informacional y sistémico.",
+      "**Resultado** es un objeto informacional y sistémico.",
+      "*Proyectar* genera **Resultado**.",
+    ]);
+    expect(derivado.textoOplActual).not.toContain("Raíz canónica");
+    expect(derivado.bloques.map((bloque) => bloque.opdId)).toEqual([creado.opdId]);
+
+    const roundtrip = derivarPanelOpl({
+      ...base,
+      editorLibre: true,
+      textoLibre: derivado.textoOplActual,
+    });
+    expect(roundtrip.previewLibre?.patches ?? []).toHaveLength(0);
   });
 
   test("régimen apunte: el canónico y el display emiten el proceso placeholder (excepción a R-ENT-2) y el roundtrip queda estable", () => {

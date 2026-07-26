@@ -21,12 +21,13 @@ import type {
 export function planificarEdicionOplLibre(
   modelo: Modelo,
   texto: string,
-  opts: { opdActivoId?: Id } = {},
+  opts: { opdActivoId?: Id; opdIdsAlcance?: readonly Id[] } = {},
 ): PrevisualizacionOplReverse {
   const parse = parsearParrafoOpl(texto);
   const diagnosticos = [...parse.diagnosticos];
   const patches: PatchOplPropuesto[] = [];
-  const lineasActuales = ordenarOpdsParaOpl(modelo).flatMap((opdId) => generarOplInteractivo(modelo, opdId));
+  const lineasActuales = (opts.opdIdsAlcance ?? ordenarOpdsParaOpl(modelo))
+    .flatMap((opdId) => generarOplInteractivo(modelo, opdId));
   const registry = new PatchRegistry(patches, diagnosticos);
 
   for (const ast of parse.ast) {

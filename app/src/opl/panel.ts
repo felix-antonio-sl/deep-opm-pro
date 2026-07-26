@@ -1,4 +1,5 @@
 import type { Id, Modelo } from "../modelo/tipos";
+import { esOpdSuelto } from "../modelo/opdSueltos";
 import { agruparOracionesPorOpd, ordenarOpdsParaOpl, type BloqueOpl } from "./bloquesJerarquicos";
 import { generarOplInteractivo } from "./generar";
 import {
@@ -69,7 +70,9 @@ export function derivarDeltaLineasOpl(
 
 export function derivarPanelOpl(input: DerivarPanelOplInput): PanelOplDerivado {
   const seleccionRef = referenciaSeleccionada(input.seleccionId, input.enlaceSeleccionId);
-  const opds = ordenarOpdsParaOpl(input.modelo);
+  const opds = esOpdSuelto(input.modelo, input.opdActivoId)
+    ? [input.opdActivoId]
+    : ordenarOpdsParaOpl(input.modelo);
 
   const visibilidad = input.visibilidad ?? VISIBILIDAD_OPL_DEFAULT;
 
@@ -86,9 +89,12 @@ export function derivarPanelOpl(input: DerivarPanelOplInput): PanelOplDerivado {
       : opds.flatMap((id) => generarOplInteractivo(input.modelo, id, visibilidad));
 
   const previewLibre = input.editorLibre
-    ? planificarEdicionOplLibre(input.modelo, input.textoLibre, { opdActivoId: input.opdActivoId })
+    ? planificarEdicionOplLibre(input.modelo, input.textoLibre, {
+        opdActivoId: input.opdActivoId,
+        opdIdsAlcance: opds,
+      })
     : null;
-  const bloques = agruparOracionesPorOpd(lineas, input.modelo);
+  const bloques = agruparOracionesPorOpd(lineas, input.modelo, opds);
   const filtradasPorSeleccion = input.filtroActivo ? filtrarLineasPorReferencia(lineas, seleccionRef) : lineas;
   const query = input.busquedaOpl.toLowerCase().trim();
   const visibles = query

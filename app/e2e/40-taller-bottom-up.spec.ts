@@ -37,6 +37,20 @@ test("crear un OPD suelto, adoptarlo como descomposición y reconciliar el árbo
   const sueltoTestId = await sueltoItem.getAttribute("data-testid");
   expect(sueltoTestId).toBeTruthy();
   await expect(mainTree.locator(`[data-testid="${sueltoTestId}"]`)).toHaveCount(0);
+  await expect(page.getByTestId("canvas-header")).toContainText("Boceto 1 · OPD suelto");
+
+  // El OPL del Taller acompaña al fragmento activo aunque todavía no pertenezca
+  // al árbol canónico. No debe esperar a la adopción para reflejar lo dibujado.
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Proyectar");
+  await page.getByRole("button", { name: "Objeto", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Resultado");
+  await page.getByTestId("estado-vacio-conectar-resultado").click();
+  const opl = page.getByTestId("panel-opl");
+  await expect(opl).toContainText("Proyectar es un proceso informacional y sistémico.");
+  await expect(opl).toContainText("Resultado es un objeto informacional y sistémico.");
+  await expect(opl).toContainText("Proyectar genera Resultado.");
+  await expect(opl).not.toContainText("Sin OPL todavía");
 
   // Volver a la raíz y seleccionar el proceso (crear el suelto activó el suelto).
   await mainTree.getByRole("treeitem").first().click();
@@ -53,6 +67,7 @@ test("crear un OPD suelto, adoptarlo como descomposición y reconciliar el árbo
   // Adoptado: ya no es suelto → la banda desaparece y el OPD cuelga del árbol.
   await expect(banda).toHaveCount(0);
   await expect(mainTree.locator(`[data-testid="${sueltoTestId}"]`)).toHaveCount(1);
+  await expect(page.getByTestId("canvas-header")).toContainText("Boceto 1 · OPD refinado");
 
   expect(pageErrors).toEqual([]);
 });
