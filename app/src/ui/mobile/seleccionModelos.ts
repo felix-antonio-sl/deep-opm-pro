@@ -11,12 +11,11 @@ export function modeloSinContenido(modelo: Modelo): boolean {
 
 export interface ContextoAutoAbrir {
   modeloVacio: boolean;
-  hayGuardados: boolean;
   /** El usuario ya tocó la navegación: no quitarle el control. */
   yaInteractuo: boolean;
 }
 
-/** Auto-switch inicial a la vista Modelos: solo sobre el SD vacío, con guardados y sin interacción previa. */
+/** Auto-switch inicial a Modelos: evita un canvas vacío y respeta la navegación explícita. */
 export function debeAutoAbrirModelos(contexto: ContextoAutoAbrir): boolean {
-  return contexto.modeloVacio && contexto.hayGuardados && !contexto.yaInteractuo;
+  return contexto.modeloVacio && !contexto.yaInteractuo;
 }

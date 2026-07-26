@@ -49,7 +49,6 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
   // en la vista Modelos (lista del tenant autenticado + carga read-only).
   const [vista, setVista] = useState<MobileVistaLectura>("diagrama");
   const [busquedaActiva, setBusquedaActiva] = useState(false);
-  const modelosGuardados = useOpmStore((s) => s.modelosGuardados);
   const listarModelosGuardados = useOpmStore((s) => s.listarModelosGuardados);
   const yaInteractuo = useRef(false);
   const modeloVacio = modeloSinContenido(modelo);
@@ -63,18 +62,13 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
   // Auto-switch inicial: sobre el SD vacío de sesión, la vista útil es Modelos
   // aunque el catálogo esté vacío — sin quitarle control a quien ya navegó.
   useEffect(() => {
-    const contexto = {
+    if (debeAutoAbrirModelos({
       modeloVacio,
-      hayGuardados: modelosGuardados.length > 0,
       yaInteractuo: yaInteractuo.current,
-    };
-    if (
-      debeAutoAbrirModelos(contexto)
-      || (contexto.modeloVacio && !contexto.hayGuardados && !contexto.yaInteractuo)
-    ) {
+    })) {
       setVista("modelos");
     }
-  }, [modeloVacio, modelosGuardados.length]);
+  }, [modeloVacio]);
 
   const navegar = (nueva: MobileVistaLectura) => {
     yaInteractuo.current = true;
@@ -136,11 +130,7 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
         ) : null}
         {vista === "modelos" && !busquedaActiva ? (
           <div style={style.vistaFull}>
-            {modeloVacio && modelosGuardados.length === 0 ? (
-              <ModelosVaciosLectura />
-            ) : (
-              <VistaModelosLectura onAbierto={() => navegar("diagrama")} />
-            )}
+            <VistaModelosLectura onAbierto={() => navegar("diagrama")} />
           </div>
         ) : null}
         {vista === "opds" ? (
@@ -179,17 +169,6 @@ export function MobileReadonlyApp({ onAdapterChange }: Props) {
           );
         })}
       </nav>
-    </div>
-  );
-}
-
-function ModelosVaciosLectura() {
-  return (
-    <div data-testid="mobile-vista-modelos" style={style.modelosVacios}>
-      <h2 style={style.modelosVaciosTitulo}>Modelos guardados</h2>
-      <p data-testid="mobile-modelos-vacio" style={style.modelosVaciosTexto}>
-        No hay modelos guardados. Para crear o editar, abre opforja en escritorio o tablet.
-      </p>
     </div>
   );
 }
@@ -276,27 +255,6 @@ const style: Record<string, preact.JSX.CSSProperties> = {
     minHeight: 0,
     overflow: "auto",
     padding: `${tokens.spacing.md}px`,
-  },
-  modelosVacios: {
-    width: "100%",
-    height: "100%",
-    overflow: "auto",
-    padding: `${tokens.spacing.md}px`,
-    boxSizing: "border-box",
-    display: "flex",
-    flexDirection: "column",
-    gap: `${tokens.spacing.sm}px`,
-  },
-  modelosVaciosTitulo: {
-    margin: 0,
-    fontSize: `${tokens.typography.fs.fs17}px`,
-    fontWeight: tokens.typography.weights.bold,
-    color: tokens.colors.ink,
-  },
-  modelosVaciosTexto: {
-    margin: 0,
-    color: tokens.colors.inkSoft,
-    fontSize: `${tokens.typography.fs.fs13}px`,
   },
   nav: {
     display: "flex",

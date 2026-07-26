@@ -34,7 +34,7 @@ export function VistaModelosLectura(props: Props) {
       <h2 style={vistaStyles.titulo}>Modelos guardados</h2>
       {modelosGuardados.length === 0 ? (
         <p style={vistaStyles.vacio} data-testid="mobile-modelos-vacio">
-          No hay modelos guardados en esta cuenta.
+          No hay modelos guardados. Para crear o editar, abre opforja en escritorio o tablet.
         </p>
       ) : (
         <ul style={vistaStyles.lista}>

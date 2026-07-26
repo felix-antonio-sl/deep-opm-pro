@@ -24,19 +24,15 @@ describe("modeloSinContenido — ¿es el SD vacío de sesión?", () => {
 });
 
 describe("debeAutoAbrirModelos — auto-switch inicial a la lista", () => {
-  test("modelo vacío + hay guardados + sin interacción ⇒ abrir lista", () => {
-    expect(debeAutoAbrirModelos({ modeloVacio: true, hayGuardados: true, yaInteractuo: false })).toBe(true);
+  test("modelo vacío + sin interacción ⇒ abrir lista", () => {
+    expect(debeAutoAbrirModelos({ modeloVacio: true, yaInteractuo: false })).toBe(true);
   });
 
   test("si el usuario ya navegó, no se le quita el control", () => {
-    expect(debeAutoAbrirModelos({ modeloVacio: true, hayGuardados: true, yaInteractuo: true })).toBe(false);
-  });
-
-  test("sin modelos guardados no hay nada que abrir", () => {
-    expect(debeAutoAbrirModelos({ modeloVacio: true, hayGuardados: false, yaInteractuo: false })).toBe(false);
+    expect(debeAutoAbrirModelos({ modeloVacio: true, yaInteractuo: true })).toBe(false);
   });
 
   test("con un modelo ya cargado (no vacío) se respeta el diagrama", () => {
-    expect(debeAutoAbrirModelos({ modeloVacio: false, hayGuardados: true, yaInteractuo: false })).toBe(false);
+    expect(debeAutoAbrirModelos({ modeloVacio: false, yaInteractuo: false })).toBe(false);
   });
 });
