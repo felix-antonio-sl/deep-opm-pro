@@ -12,6 +12,7 @@
 # Restauración:
 #   gunzip -c ~/backups/opforja/opforja-<stamp>.sql.gz | docker exec -i opforja-postgres psql -U opforja -d opforja
 set -euo pipefail
+umask 077
 
 DIR="${OPFORJA_BACKUP_DIR:-$HOME/backups/opforja}"
 RETENCION_DIAS="${OPFORJA_BACKUP_RETENTION_DAYS:-14}"
