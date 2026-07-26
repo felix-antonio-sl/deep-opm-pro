@@ -93,7 +93,7 @@ export function TutorFoundationLinks({
           <span key={referencia.key}>
             {index > 0 ? " · " : null}
             <a href={referencia.href} target="_blank" rel="noreferrer" style={style.fuente}>
-              {referencia.title} · {referencia.href}
+              {referencia.title} · {referencia.section}
             </a>
           </span>
         ))}
@@ -105,7 +105,7 @@ export function TutorFoundationLinks({
       {referencias.map((referencia) => (
         <li key={referencia.key}>
           <a href={referencia.href} target="_blank" rel="noreferrer" style={style.fuente}>
-            {referencia.title} · {referencia.href}
+            {referencia.title} · {referencia.section}
           </a>
         </li>
       ))}

@@ -23,6 +23,8 @@ test("refinar pide una pregunta antes del único commit y la muestra en el OPD h
   await formulario.getByText("Fundamento", { exact: true }).click();
   const fuenteManual = formulario.getByRole("link", { name: /Manual de opforja/ });
   await expect(fuenteManual).toBeVisible();
+  await expect(fuenteManual).toHaveText("Manual de opforja · Refinar sin romper el modelo");
+  await expect(formulario).not.toContainText("/tutor-sources/");
   const popupPromise = page.waitForEvent("popup");
   await fuenteManual.click();
   const fuenteCompleta = await popupPromise;

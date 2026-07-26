@@ -11,6 +11,7 @@ interface TutorContentView {
 export interface TutorSourceView {
   key: string;
   title: string;
+  section: string;
   href: string;
 }
 
@@ -52,6 +53,7 @@ export function useTutorContent(
         return fuente ? [{
           key: `${ref.sourceId}:${ref.anchor}`,
           title: fuente.source.title,
+          section: fuente.anchor.label,
           href: fuente.href,
         }] : [];
       });
@@ -61,7 +63,7 @@ export function useTutorContent(
       setView({
         contenido,
         referencias: unicas,
-        fuentes: unicas.map((referencia) => `${referencia.title} · ${referencia.href}`),
+        fuentes: unicas.map((referencia) => `${referencia.title} · ${referencia.section}`),
       });
     });
     return () => { activo = false; };

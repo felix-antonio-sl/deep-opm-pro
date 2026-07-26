@@ -19,6 +19,7 @@ test.describe("mobile-readonly invariantes", () => {
   test("gesto drag no muta modelo", async ({ page }) => {
     await page.goto("/");
     await esperarMobileLectura(page);
+    await page.getByTestId("mobile-tab-diagrama").click();
 
     const snapshotAntes = await page.evaluate(() => (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.());
 
@@ -142,11 +143,12 @@ test.describe("mobile-readonly montaje por viewport", () => {
   // eliminados): proyecta el modelo activo de la sesión (carga directa desde el
   // backend) y monta según viewport + flag. La selección de modelo se delega a
   // la futura capa de tenants/auth.
-  test("la vista por defecto es el diagrama", async ({ page }) => {
+  test("sin contenido evita mostrar un canvas vacío", async ({ page }) => {
     await page.setViewportSize(VIEWPORT_MOBILE);
     await page.goto("/");
     await esperarMobileLectura(page);
-    await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
+    await expect(page.getByTestId("mobile-vista-modelos")).toBeVisible();
+    await expect(page.getByTestId("mobile-vista-diagrama")).toHaveCount(0);
   });
 
   test("desktop no monta mobile-app-lectura", async ({ page }) => {
@@ -286,14 +288,25 @@ test.describe("mobile-readonly selector de modelos", () => {
     await expect(page.getByTestId("mobile-vista-opl")).toContainText("Paciente");
   });
 
-  test("sin modelos guardados no hay auto-switch: el diagrama sigue siendo la vista inicial", async ({ page }) => {
+  test("sin modelos guardados explica cómo crear o editar sin mutar el modelo", async ({ page }) => {
     await page.goto("/");
     await esperarMobileLectura(page);
-    await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
-    await expect(page.getByTestId("mobile-vista-modelos")).toHaveCount(0);
-    // La tab existe y lleva a la lista vacía.
-    await page.getByTestId("mobile-tab-modelos").click();
-    await expect(page.getByTestId("mobile-modelos-vacio")).toBeVisible();
+    const snapshotAntes = await page.evaluate(() =>
+      (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } })
+        .__opmTest?.exportarModeloActual?.()
+    );
+
+    await expect(page.getByTestId("mobile-vista-modelos")).toBeVisible();
+    await expect(page.getByTestId("mobile-modelos-vacio")).toHaveText(
+      "No hay modelos guardados. Para crear o editar, abre opforja en escritorio o tablet.",
+    );
+
+    const snapshotDespues = await page.evaluate(() =>
+      (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } })
+        .__opmTest?.exportarModeloActual?.()
+    );
+    expect(typeof snapshotAntes).toBe("string");
+    expect(snapshotDespues).toBe(snapshotAntes);
   });
 });
 
