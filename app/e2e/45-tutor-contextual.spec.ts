@@ -273,7 +273,22 @@ test("Ctrl+K encuentra una referencia local y muestra criterio con fuentes", asy
   await referenciaCompleta.waitForLoadState("domcontentloaded");
   await expect(referenciaCompleta).toHaveURL(/\/tutor-sources\/source\.canon\.rules\.html#[a-z0-9-]+$/);
   await expect(referenciaCompleta.locator("body")).toContainText("Reglas OPM estrictas — SSOT prescriptiva");
-  await expect(referenciaCompleta.locator(":target")).toBeVisible();
+  await expect(referenciaCompleta.locator("main.reader")).toBeVisible();
+  await expect(referenciaCompleta.locator("main.reader strong").first()).toBeVisible();
+  await expect(referenciaCompleta.locator("main.reader > p code").first()).toBeVisible();
+  await expect(referenciaCompleta.locator("pre.source")).toHaveCount(0);
+  await expect(referenciaCompleta.locator(".source-metadata")).not.toHaveAttribute("open", "");
+  const objetivo = referenciaCompleta.locator(":target");
+  await expect(objetivo).toBeVisible();
+  expect(await objetivo.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return rect.bottom > 0 && rect.top < window.innerHeight;
+  })).toBe(true);
+  const ancho = await referenciaCompleta.locator("body").evaluate((body) => ({
+    client: body.clientWidth,
+    scroll: body.scrollWidth,
+  }));
+  expect(ancho.scroll).toBeLessThanOrEqual(ancho.client + 1);
 });
 
 test("Ctrl+K deja PDF, diff y merge como referencia sin CTA ficticio", async ({ page }) => {

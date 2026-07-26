@@ -11,13 +11,17 @@ import {
 } from "node:fs";
 import { join, resolve } from "node:path";
 import { TUTOR_SOURCES } from "../src/tutor/fuentes";
+import {
+  renderTutorMarkdownPage,
+  TUTOR_MARKDOWN_RENDERER_VERSION,
+} from "./render-tutor-markdown";
 
 const appRoot = resolve(import.meta.dir, "..");
 const repoRoot = resolve(appRoot, "..");
 const outputRoot = join(appRoot, ".tutor-corpus");
 const lockPath = join(appRoot, ".tutor-corpus.lock");
 const resolverPath = join(repoRoot, "docs/canon-opm/resolutor-urn.json");
-const MANIFEST_SCHEMA_VERSION = 1;
+const MANIFEST_SCHEMA_VERSION = 2;
 
 interface ResolverConfig {
   kora_raiz_default: string;
@@ -59,6 +63,7 @@ await conLock(async () => {
   });
   const fingerprint = sha256(JSON.stringify({
     schemaVersion: MANIFEST_SCHEMA_VERSION,
+    markdownRendererVersion: TUTOR_MARKDOWN_RENDERER_VERSION,
     sources: inputs.map(({ source, digest }) => ({
       sourceId: source.sourceId,
       documentPath: source.documentPath,
@@ -84,7 +89,7 @@ await conLock(async () => {
       const fileName = `${source.sourceId}.html`;
       const html = source.locator.endsWith(".html")
         ? instrumentarHtml(body, source.anchors)
-        : renderMarkdownSource(source.title, source.locator, body, source.anchors);
+        : renderTutorMarkdownPage(source.title, source.locator, body, source.anchors);
       writeFileSync(join(tempSources, fileName), html, "utf8");
       materialized.push({
         sourceId: source.sourceId,
@@ -98,6 +103,7 @@ await conLock(async () => {
     }
     writeFileSync(join(tempSources, "manifest.json"), JSON.stringify({
       schemaVersion: MANIFEST_SCHEMA_VERSION,
+      markdownRendererVersion: TUTOR_MARKDOWN_RENDERER_VERSION,
       fingerprint,
       sources: materialized,
     }, null, 2), "utf8");
@@ -179,27 +185,6 @@ function instrumentarHtml(
     ? instrumented.replace(/<\/head>/i, `${styles}</head>`)
     : `${styles}${instrumented}`;
   return instrumented;
-}
-
-function renderMarkdownSource(
-  title: string,
-  locator: string,
-  body: string,
-  anchors: readonly { id: string; heading: string }[],
-): string {
-  const byHeading = new Map(anchors.map((anchor) => [normalizarHeading(anchor.heading), anchor.id]));
-  const rendered = body.split(/\r?\n/).map((line) => {
-    const heading = /^(?:#{1,6})\s+(.+?)\s*$/.exec(line)?.[1];
-    const id = heading ? byHeading.get(normalizarHeading(heading)) : undefined;
-    return id
-      ? `<span id="${escapeAttr(id)}" class="source-anchor">${escapeHtml(line)}</span>`
-      : escapeHtml(line);
-  }).join("\n");
-  return `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escapeHtml(title)}</title><style>
-body{margin:0;background:#f4f0e8;color:#24211d;font:15px/1.55 Georgia,serif}.meta{position:sticky;top:0;padding:12px 20px;background:#f4f0e8;border-bottom:1px solid #b9b1a4}.meta strong{display:block}.meta code{font:12px/1.4 ui-monospace,monospace;color:#655f57}.source{margin:0;padding:20px;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.55 ui-monospace,monospace}.source-anchor{display:block}:target{outline:3px solid #b11f2a;outline-offset:4px;scroll-margin-top:68px}
-</style></head><body><header class="meta"><strong>${escapeHtml(title)}</strong><code>${escapeHtml(locator)}</code></header><pre class="source">${rendered}</pre></body></html>`;
 }
 
 function normalizarHeading(value: string): string {
