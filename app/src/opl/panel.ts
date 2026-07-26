@@ -70,7 +70,9 @@ export function derivarDeltaLineasOpl(
 
 export function derivarPanelOpl(input: DerivarPanelOplInput): PanelOplDerivado {
   const seleccionRef = referenciaSeleccionada(input.seleccionId, input.enlaceSeleccionId);
-  const opds = esOpdSuelto(input.modelo, input.opdActivoId)
+  const esBocetoSuelto = esOpdSuelto(input.modelo, input.opdActivoId)
+    && input.modelo.opds[input.opdActivoId]?.vista === undefined;
+  const opds = esBocetoSuelto
     ? [input.opdActivoId]
     : ordenarOpdsParaOpl(input.modelo);
 

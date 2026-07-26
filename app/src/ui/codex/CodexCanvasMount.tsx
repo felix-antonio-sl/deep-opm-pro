@@ -34,10 +34,11 @@ export function CodexCanvasMount({ children, floating, topbar, chromeVisible = t
   const opdActivo = modelo.opds[opdActivoId];
   const code = opdActivo ? codigoOpd(opdActivo.nombre) : "SD";
   const esRaiz = opdActivoId === modelo.opdRaizId;
+  const esBocetoSuelto = esOpdSuelto(modelo, opdActivoId) && opdActivo?.vista === undefined;
   // §4: el kicker declara la posición estructural real del OPD activo.
   const claseOpd = esRaiz
     ? "OPD raíz"
-    : esOpdSuelto(modelo, opdActivoId)
+    : esBocetoSuelto
       ? "OPD suelto"
       : "OPD refinado";
   const kicker = `${code} ${GLIFO_SEP} ${claseOpd}`;

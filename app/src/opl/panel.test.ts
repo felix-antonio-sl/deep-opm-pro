@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { crearAutor } from "../autoria";
 import { crearEnlace, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
 import { crearOpdSuelto } from "../modelo/operaciones/opdSuelto";
 import type { Id, Modelo, Resultado } from "../modelo/tipos";
@@ -79,6 +80,30 @@ describe("panel OPL como capacidad", () => {
       textoLibre: derivado.textoOplActual,
     });
     expect(roundtrip.previewLibre?.patches ?? []).toHaveLength(0);
+  });
+
+  test("una vista genérica suelta conserva la OPL del árbol canónico", () => {
+    const autor = crearAutor({ id: "panel-vista", nombre: "Panel vista" });
+    autor.entidad("objeto", "objeto", "Hecho canónico", "informacional", "sistemica");
+    autor.opd("sd", "SD", null);
+    autor.ver("sd", "objeto", 0, 0);
+    const vistaId = autor.opd("vista", "Vista", null);
+    autor.vistaGenerica("vista");
+    autor.ver("vista", "objeto", 0, 0);
+
+    const derivado = derivarPanelOpl({
+      modelo: autor.modelo,
+      opdActivoId: vistaId,
+      seleccionId: null,
+      enlaceSeleccionId: null,
+      filtroActivo: false,
+      busquedaOpl: "",
+      editorLibre: false,
+      textoLibre: "",
+    });
+
+    expect(derivado.textoOplActual).toContain("**Hecho canónico**");
+    expect(derivado.bloques.map((bloque) => bloque.opdId)).toEqual([autor.modelo.opdRaizId]);
   });
 
   test("régimen apunte: el canónico y el display emiten el proceso placeholder (excepción a R-ENT-2) y el roundtrip queda estable", () => {
