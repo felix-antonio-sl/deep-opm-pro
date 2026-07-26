@@ -1,8 +1,8 @@
 # Tutor contextual de opforja — diseño integral del ciclo de modelamiento
 
-**Fecha:** 2026-07-21 · **Estado:** APROBADO PARA IMPLEMENTACIÓN; sustituye el alcance parcial
-centrado en refinamiento · **Ámbito:** producto y arquitectura; autoriza implementación local,
-tests, commits y push controlado. **No autoriza deploy.**
+**Fecha:** 2026-07-21 · **Estado:** APROBADO PARA IMPLEMENTACIÓN; NO AUTORIZA DEPLOY ·
+**Ámbito:** producto y arquitectura; sustituye el alcance parcial centrado en refinamiento y
+autoriza implementación local, tests, commits y push controlado.
 
 ## 1. Función esencial
 
@@ -102,14 +102,14 @@ autorizado.
 Esta matriz congela los conflictos detectados al contrastar el diseño con el canon, el producto vivo
 y sus regresiones. La implementación no reabre estas decisiones por conveniencia local:
 
-| Tensión | Evidencia propietaria o viva | Contrato ratificado |
-| --- | --- | --- |
-| `[RATIFICAR]` | Metodología A7, manuales y puente humano-agente | Es un estado recibido de una ancla normativa upstream; la mesa no lo crea como marca genérica ni ratifica su propia hipótesis. |
-| Recurso lineal con varios consumidores | `R-CAT-LIN-2`, `severidadDiagnostico` y `CODIGOS_EQUIVALENTES` | `RECURSO_LINEAL_MULTIPLES_CONSUMIDORES` es una **mejora metodológica navegable**, no un bloqueo de integridad ni una precondición para componer. |
-| Composición | Familia `R-CAT-COMP`, `componerModelos` y `DialogoComposicion` | Selección de fuente, mapeos resolubles e integridad del resultado son precondiciones de la transacción. La linealidad orienta sin impedirla. La vista previa declara incorporación y procedencia; aplicar cruza un commit único y undo recupera el modelo anterior. |
-| Graduación | Contrato Apunte/Taller y `diagnosticoSeveridad` | `SD_SIN_PROCESO_PRINCIPAL` es mejora metodológica. Graduar cambia rigor, nombre/destino elegidos y especie; no certifica, repara, adopta OPDs ni cambia el rol Biblioteca. |
-| Autoridad categorial | `urn:fxsl:kb:opm-categorial-es` v1.3.0 | Solo explica estructura y preservación. Está registrada en el resolutor para que `Fundamento` pueda navegarla sin enlaces rotos; nunca decide severidad. |
-| Revalidación | `PanelDiagnostico` y `ui-forja/05-interactions.md` §6 | El diagnóstico se recomputa reactivamente tras cambios del modelo. “Referencias a revalidación” significa recomputación automática, navegación y anuncio accesible del delta; no existe botón ni acción manual de restauración, aprobación o mutación. |
+| Afirmación | Plano propietario | URN/fuente | Comportamiento vivo | Decisión | Prueba falsable |
+| --- | --- | --- | --- | --- | --- |
+| `[RATIFICAR]` no es una marca genérica. | Método y procedencia upstream. | `urn:fxsl:kb:metodologia-forja-opm-es` A7; contrato de anclas normativas. | La proyección aparece solo cuando una entrada Proto/importada declara un ancla con `estado: pendiente-ratificacion`; el registro puede documentar la decisión humana, pero no cambia por sí solo `estado` a `vigente`. | La mesa conserva y explica ese estado, pero no lo inventa ni ratifica automáticamente una hipótesis. | `app/src/modelo/{anclasNormativas,logDecisiones}.test.ts` y `app/e2e/33-anclas-inspector.spec.ts` deben demostrar filtro, conservación y ausencia de transición automática a `vigente`. |
+| La linealidad con varios consumidores no bloquea. | Validez y severidad. | `urn:fxsl:kb:reglas-opm-estrictas-es`; `R-CAT-LIN-2`; `severidadDiagnostico`; `CODIGOS_EQUIVALENTES`. | `RECURSO_LINEAL_MULTIPLES_CONSUMIDORES` se proyecta como mejora y la composición permanece disponible si satisface sus propias precondiciones. | Orientar y navegar al hecho, sin elevarlo a bloqueo ni usarlo como gate de `Componer`. | `app/src/modelo/{checkers-linealidad,diagnosticoSeveridad}.test.ts` y `app/src/modelo/composicion/linealidad.test.ts` deben conservar la severidad y el gate no bloqueante. |
+| Componer sí tiene precondiciones transaccionales propias. | Integridad de la operación de modelo. | Familia `R-CAT-COMP`; `componerModelos`; `DialogoComposicion`. | La fuente y los mapeos deben resolverse y el resultado debe ser íntegro; aplicar crea un commit único y undo recupera el modelo anterior. | Bloquear solo por esas precondiciones; presentar incorporación y procedencia antes de confirmar. | `app/src/modelo/composicion/{componer,componer-integridad,interfaz}.test.ts`, `app/src/store/modelo/composicion-ux.test.ts` y `app/e2e/32-composicion-modelos.spec.ts` deben cubrir rechazo, aplicación y recuperación. |
+| Graduar aumenta rigor, no certifica. | Método, ciclo de vida y severidad. | `urn:fxsl:kb:metodologia-forja-opm-es`; contrato Apunte/Taller; `diagnosticoSeveridad`. | `SD_SIN_PROCESO_PRINCIPAL` sigue siendo mejora; graduar cambia rigor, nombre/destino elegidos y especie, sin reparar hechos, adoptar OPDs ni cambiar el rol Biblioteca. | No convertir la mejora en bloqueo ni comunicar certificación automática. | `app/src/leyes/taller-rigor-al-graduar.test.ts`, `app/src/modelo/diagnosticoSeveridad.test.ts` y `app/e2e/{41-nacimiento-apunte,42-gestor-dos-zonas}.spec.ts` deben demostrar el cambio explícito y sus invariantes. |
+| La fuente categorial explica, pero no decide validez. | Explicación formal. | `urn:fxsl:kb:opm-categorial-es` v1.3.0; `docs/canon-opm/resolutor-urn.json`. | `Fundamento` puede resolver y abrir la fuente; ningún consumidor de severidad la usa como autoridad propietaria. | Publicar solo citas resolubles y mantenerla fuera de los gates. | `app/src/tutor/registro.test.ts`, el gate de corpus y `app/e2e/45-tutor-contextual.spec.ts` deben fallar ante una ruta rota o una fuente decisoria incorrecta. |
+| Revalidar significa recomputar automáticamente. | Interacción del diagnóstico. | `PanelDiagnostico`; `ui-forja/05-interactions.md` §6. | El diagnóstico y su delta accesible se actualizan reactivamente tras cambiar el modelo; no existe acción manual. | Navegar o explicar el diagnóstico vigente, sin restaurar el botón retirado ni crear una segunda superficie persistente. | `app/e2e/11-beta1-validacion-metodologica.spec.ts` y las pruebas del diagnóstico deben comprobar actualización reactiva y ausencia de `panel-diagnostico-revalidar`. |
 
 ## 3. Principios de experiencia
 
