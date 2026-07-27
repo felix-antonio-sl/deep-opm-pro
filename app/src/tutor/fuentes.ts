@@ -211,7 +211,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "domain",
     "docs/manual-sistemas-opm.md",
-    "7501f0a2e0fad028a47bb1114dfbe3ab647efac8005d12d43cb87d67fb3cd4e3",
+    "8aec563d4650eca454cc0fb918a94c9d45e941ba2c18030fdc4c0a69fa189f0e",
     [
       sourceAnchor("semantic-table", "Mesa semántica", "1.1 Una mesa semántica, no el sistema ejecutor"),
       sourceAnchor("evidence", "Base documental y evidencia", "2.1 La base documental es evidencia, no OPM crudo"),
@@ -254,7 +254,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "domain",
     "docs/manual-sanitarios-opm.md",
-    "d2d81b3e6e85074e799502b314d44da54e2c23eee59a8bf0bd6637c012eab7f6",
+    "4ee89282905cbdeaad3ca988096b240ded7dd3e8220964d5ad9c968da16e3779",
     [
       sourceAnchor("boundary", "Contrato, frontera y ruteo", "0. Contrato, frontera y ruteo"),
       sourceAnchor("clinical-state", "Estado clínico y estado administrativo", "P2 · Estado clínico y estado administrativo no comparten eje `[asistencial · unidad–establecimiento]`"),
@@ -328,10 +328,10 @@ export const TUTOR_SOURCES = [
   repositorySource("source.cheatsheet.patterns", "opforja — Patrones y antipatrones", "cheatsheet", "pedagogy", "docs/cheatsheets/opforja-patrones.html", "60464dc573d2d86b07709177653a0d456f9a047ece77b956600ec8a18c5f5b14", [
     sourceAnchor("pattern-structure", "Estructura de un patrón"), sourceAnchor("process-object", "Proceso vs objeto"), sourceAnchor("bad-refinement", "Refinar mal"),
   ]),
-  repositorySource("source.cheatsheet.systems", "opforja — Transformar sistemas", "cheatsheet", "domain", "docs/cheatsheets/opforja-sistemas.html", "8ced5b8939b69f991066c68553e5263d7242bca277fd27db46e3f54e663f4b9a", [
+  repositorySource("source.cheatsheet.systems", "opforja — Transformar sistemas", "cheatsheet", "domain", "docs/cheatsheets/opforja-sistemas.html", "0b010832f63abb63d25f1facb390d94dfa964898908a7dd5a8908aa5b68d1886", [
     sourceAnchor("purpose", "Pregunta antes que modelo"), sourceAnchor("entry", "SD-primero o middle-out"), sourceAnchor("transition", "AS-IS ≠ TO-BE ≠ transición"), sourceAnchor("adoption", "El sistema incluye a quienes cambian"),
   ]),
-  repositorySource("source.cheatsheet.software", "opforja — Ingeniería de software", "cheatsheet", "domain", "docs/cheatsheets/opforja-software.html", "b5e372e7670f10980cf4e75ccd4a5d30b816537af42ebf8f2f175e95e55b5b63", [
+  repositorySource("source.cheatsheet.software", "opforja — Ingeniería de software", "cheatsheet", "domain", "docs/cheatsheets/opforja-software.html", "b3edd1ac6c04189a0dad378857f4be644321a18a5c0e28b7e1a19d544764289a", [
     sourceAnchor("requirements", "Cobertura visible"), sourceAnchor("interfaces", "Contextos e interfaces"), sourceAnchor("agent-contract", "Contrato de implementación"), sourceAnchor("delivery", "Modela CI/CD; ejecútalo fuera"),
   ]),
   repositorySource("source.cheatsheet.health-management", "opforja — Sanitario, gestión y asistencial", "cheatsheet", "domain", "docs/cheatsheets/opforja-sanitarios-gestion.html", "58b349fb11381a454ae0f7e5ffa227b2e621954f27b383ab4c646138610c7eae", [
@@ -340,10 +340,10 @@ export const TUTOR_SOURCES = [
   repositorySource("source.cheatsheet.sociosanitary", "opforja — Sistemas sociosanitarios", "cheatsheet", "domain", "docs/cheatsheets/opforja-sociosanitarios.html", "d24eabee32114950e5db09b64e21fe2b2247b25c72ae779ed7f80d2aba52b051", [
     sourceAnchor("classification", "Clasifica el sistema real"), sourceAnchor("frontier", "Frontera explícita"), sourceAnchor("middle-out", "Middle-out"), sourceAnchor("states", "Estados, no organigrama"),
   ]),
-  repositorySource("source.cheatsheet.runbook", "opforja — Runbook de cero a modelo completo", "cheatsheet", "operation", "docs/cheatsheets/opforja-runbook.html", "46b94b28d0353f52042b05e9508f55e771aef4d347843b75d159bf3e4f23ac25", [
+  repositorySource("source.cheatsheet.runbook", "opforja — Runbook de cero a modelo completo", "cheatsheet", "operation", "docs/cheatsheets/opforja-runbook.html", "1f4ebe9dcac136e9597b4e4ef54206a4ef205c48586ea0efa8f484b37e5150b7", [
     sourceAnchor("before-seed", "Antes de la semilla"), sourceAnchor("build-sd", "Construir el SD raíz"), sourceAnchor("refinement", "Refinar por niveles"), sourceAnchor("close", "Cerrar el modelo"),
   ]),
-  repositorySource("source.cheatsheet.unblocked", "opforja — Uso avanzado sin bloqueo", "cheatsheet", "operation", "docs/cheatsheets/opforja-no-bloqueado.html", "c3582b0865927281d9cee7643802ad8a72b43db0b30e4de22c51e80c6153b440", [
+  repositorySource("source.cheatsheet.unblocked", "opforja — Uso avanzado sin bloqueo", "cheatsheet", "operation", "docs/cheatsheets/opforja-no-bloqueado.html", "c7465bfd8f5096cfe2b4eb994cf3d537573eec14f4614a0efe3a4efad9802d7d", [
     sourceAnchor("two-gates", "Dos gates, dos naturalezas"), sourceAnchor("read-rule", "Lee la regla, no fuerces"), sourceAnchor("record", "Registra en vez de trabarte"),
   ]),
   repositorySource("source.cheatsheet.anchor-copy", "opforja — Anclar y calcar", "cheatsheet", "operation", "docs/cheatsheets/opforja-anclar-calcar.html", "d153e7adbaa43f105f953ee3fd50d6a0aa4db5070f862e9109c7f068dfbe7b59", [
@@ -352,7 +352,7 @@ export const TUTOR_SOURCES = [
   repositorySource("source.cheatsheet.skill-interaction", "opforja — Hablar con la skill", "cheatsheet", "operation", "docs/cheatsheets/opforja-interaccion-skill.html", "feb2bb13a115a72a2a17609d26de00691a0a02ac0d42cc7cf41cd19fc06fa69d", [
     sourceAnchor("roles", "El reparto"), sourceAnchor("purpose", "Dale un propósito claro"), sourceAnchor("limits", "No pidas lo imposible"),
   ]),
-  repositorySource("source.cheatsheet.skill-flow", "opforja y skill — Flujo de trabajo", "cheatsheet", "operation", "docs/cheatsheets/opforja-skill-flujo.html", "e44ef9eb36983d06ddeda90d58a1bad5b4dc81636996e61b2b47b4dc9ff1ec9c", [
+  repositorySource("source.cheatsheet.skill-flow", "opforja y skill — Flujo de trabajo", "cheatsheet", "operation", "docs/cheatsheets/opforja-skill-flujo.html", "677ca58429f1de9ab9fbe63ce23aec726674f2e4f5d4f458210b2a51d4a73cb8", [
     sourceAnchor("agent-loop", "Loop de modelado del agente"), sourceAnchor("push-rules", "Reglas del push"), sourceAnchor("provenance", "La procedencia decide"), sourceAnchor("limits", "Límites de la mesa"),
   ]),
 ] as const satisfies readonly TutorSource[];
