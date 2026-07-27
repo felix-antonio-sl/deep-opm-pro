@@ -182,7 +182,7 @@ export function InspectorEntidad({ entidad }: Props) {
     <>
       {/*
         Header editorial — kind como heading (Inria Serif 700/15, NO uppercase).
-        Identificador canónico de punto (`o.11`, `p.03`) en mono 10 ink-30 a la
+        Identificador canónico de punto (`o.11`, `p.03`) en mono 10 inkSoft a la
         derecha, alineado con el rótulo del canvas (Codex v2 / L3: antes mostraba
         el `id` interno con guion `o-11`). El `data-entidad-id` preserva el id
         interno crudo para deeplink/debug; el title también.

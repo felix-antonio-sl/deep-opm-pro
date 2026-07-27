@@ -72,8 +72,8 @@ export const inspectorStyles = {
   },
   // Header del Inspector: nombre del kind ("Objeto"/"Proceso"/"Enlace …")
   // como heading editorial — Inter Tight 700/15 NO uppercase (es identidad,
-  // no UI label). Borde inferior 1.5px ink. ID interno (jetBrains mono 10
-  // ink-30) sigue accesible vía title/data-attr para deeplink/debug.
+  // no UI label). Borde inferior 1.5px ink. ID interno (JetBrains Mono 10
+  // inkSoft) sigue accesible vía title/data-attr para deeplink/debug.
   header: {
     display: "flex",
     alignItems: "center",

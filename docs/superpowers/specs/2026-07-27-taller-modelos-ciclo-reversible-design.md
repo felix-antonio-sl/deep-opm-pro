@@ -313,8 +313,8 @@ El mismo documento y el Boceto `opd-3` conservaron identidad, hechos, carpeta y
 cuatro versiones durante el ciclo completo. El Tutor mantuvo una sola voz y el
 runtime quedó sin errores inesperados. Axe 4.10.2 terminó con cero violaciones
 en los cinco estados auditados. El tenant sintético fue eliminado y los
-agregados regresaron al baseline. P4 y P5 quedan habilitadas. Evidencia:
-`docs/REPORTE-EJECUTIVO.md`.
+agregados regresaron al baseline. En ese corte P4 y P5 quedaron habilitadas; sus
+cierres están registrados a continuación. Evidencia: `docs/REPORTE-EJECUTIVO.md`.
 
 ### Fase P4 — propagación humana y documental
 
