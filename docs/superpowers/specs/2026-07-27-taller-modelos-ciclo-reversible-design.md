@@ -2,10 +2,10 @@
 
 **Fecha:** 2026-07-27
 
-**Estado:** IMPLEMENTADO, PUBLICADO Y DESPLEGADO. P1/P2 se reabrieron y cerraron
-sobre el build `f6471d5b`, que contiene la corrección `ba2e7de1`. P3 funcional
-terminó verde, pero el gate integral permanece en NO-GO por hallazgos serios de
-accesibilidad. P4/P5 siguen pendientes.
+**Estado:** IMPLEMENTADO, PUBLICADO, DESPLEGADO Y CERRADO EN **GO**. P1/P2
+desplegaron `26f6f551`; P3 terminó en GO integral, P4 quedó propagada y P5 cerró
+después de dos recorridos autenticados separados por una ventana productiva de
+3 h 14 min.
 
 **Reemplaza parcialmente:** `2026-07-06-apuntes-taller-design.md` en vocabulario
 visible, gestor y reversibilidad. Conserva sus decisiones de kernel, integridad y
@@ -355,9 +355,19 @@ sesiones autorizadas. Cerrar con un corte explícito:
 - **GO con límite**: runtime sano pero falta recorrido autenticado o restauración;
 - **NO-GO**: pérdida, incompatibilidad o desincronización reproducible.
 
-**Estado 2026-07-27:** P5 habilitada e iniciada con un recorrido autorizado,
-contenedores sanos, reinicios cero y sin marcadores de error recientes. La
-ventana sostenida aún no se presenta como cerrada.
+**Cierre 2026-07-27 — GO:** la ventana observable transcurrió entre
+`04:35:21Z` y `07:49:33Z` sobre `26f6f551`. Dos recorridos autenticados quedaron
+separados por 3 h 14 min. El segundo abrió un payload sintético
+`deep-opm-pro.modelo.v0`, ejecutó el ciclo reversible completo y confirmó
+identidad, hechos, agrupación, cuatro versiones y rollback. Los diálogos
+`Devolver a Bocetos` y `Eliminar refinamiento y subárbol` mostraron efectos
+preservador y destructivo inequívocos.
+
+Durante la ventana, web/API registraron únicamente respuestas `200` y los
+`401` de sesión anónima y `404` de autosave ausente esperados; no hubo `5xx`,
+errores de hidratación, conflictos, bugs activos ni reinicios. El tenant
+sintético se eliminó y los ocho agregados regresaron exactamente al baseline.
+No se infiere comprensión humana ni adopción real a partir de esta sonda.
 
 ## 9. Matriz de efectos posteriores
 
