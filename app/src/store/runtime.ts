@@ -162,6 +162,7 @@ export function activarEstadoPestanas(set: SetStore, estado: { pestanas: Pestana
     nuevaCosaPendiente: null,
     refinamientoPendiente: null,
     confirmacionEliminarRefinamiento: null,
+    confirmacionDevolverBoceto: null,
     colaRenombradoPendiente: [],
     hoverOplRef: null,
     modeloPersistidoId: pestana.modeloId,
@@ -749,6 +750,7 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
     nuevaCosaPendiente: null,
     refinamientoPendiente: null,
     confirmacionEliminarRefinamiento: null,
+    confirmacionDevolverBoceto: null,
     ...extra,
   };
 }

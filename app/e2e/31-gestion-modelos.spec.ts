@@ -5,6 +5,7 @@ import {
   ejecutarComandoPalette,
   esperarWorkbenchInicial,
   guardarComoActual,
+  irAEspacioModelos,
 } from "./_smoke-helpers";
 
 // BUG-20260526T022611Z-679f28 — usabilidad de "Abrir modelo": acciones por fila.
@@ -20,6 +21,7 @@ test("BUG-679f28: cada modelo expone menú de acciones (versiones, archivar, eli
   await crearModeloNuevoDesdeMenu(page);
 
   const dialogo = await abrirDialogoCargarModelo(page);
+  await irAEspacioModelos(dialogo);
   const toggle = dialogo.getByTestId("modelo-acciones-toggle").first();
   await expect(toggle).toBeVisible();
   await toggle.click();
@@ -44,6 +46,7 @@ test("BUG-679f28: eliminar desde el menú quita el modelo del catálogo", async 
   await crearModeloNuevoDesdeMenu(page);
 
   const dialogo = await abrirDialogoCargarModelo(page);
+  await irAEspacioModelos(dialogo);
   const tile = dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo desechable" });
   await expect(tile).toHaveCount(1);
   await tile.getByTestId("modelo-acciones-toggle").click();
@@ -106,6 +109,7 @@ test("higiene: eliminar desde el menú de fila confirma nombrando el modelo", as
   await crearModeloNuevoDesdeMenu(page);
 
   const dialogo = await abrirDialogoCargarModelo(page);
+  await irAEspacioModelos(dialogo);
   const tile = dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo con nombre único" });
   await expect(tile).toHaveCount(1);
   await tile.getByTestId("modelo-acciones-toggle").click();

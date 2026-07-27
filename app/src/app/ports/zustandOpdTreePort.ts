@@ -21,6 +21,7 @@ export function useZustandOpdTreePort(): OpdTreePort {
   const abrirGestionArbol = useOpmStore((s) => s.abrirGestionArbol);
   const nuevoOpdSuelto = useOpmStore((s) => s.nuevoOpdSuelto);
   const adoptarOpdEnSeleccion = useOpmStore((s) => s.adoptarOpdEnSeleccion);
+  const solicitarDevolverOpdABocetos = useOpmStore((s) => s.solicitarDevolverOpdABocetos);
 
   return {
     vistaMapaActiva: APP_FEATURES.mapaSistema ? vistaMapaActiva : false,
@@ -41,5 +42,6 @@ export function useZustandOpdTreePort(): OpdTreePort {
     abrirGestionArbol,
     nuevoOpdSuelto,
     adoptarOpdEnSeleccion,
+    solicitarDevolverOpdABocetos,
   };
 }

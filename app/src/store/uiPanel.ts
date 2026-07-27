@@ -285,7 +285,7 @@ export const createUiPanelSlice: CrearSlice<UiPanelSlice> = (set, get) => ({
       return;
     }
     if (actual.padreId !== nuevoPadreId) {
-      set({ mensaje: "Mover bajo otro padre cambia el refinamiento; usa Adoptar" });
+      set({ mensaje: "Mover bajo otro padre cambia el refinamiento; usa Integrar desde Bocetos" });
       return;
     }
     const resultado = moverNodo(modelo, opdId, nuevoPadreId, posicion);

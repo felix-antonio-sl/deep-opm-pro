@@ -15,7 +15,7 @@ export function GestionArbolOpd() {
   const pegarSobre = (targetId: Id) => {
     if (!cortadoId || cortadoId === targetId) return;
     // Cortar/Pegar solo reordena hermanos. Reparentar cambia el hecho de
-    // refinamiento y debe pasar por el gateway convergente de adopción.
+    // refinamiento y debe pasar por el gateway convergente de integración.
     if (modelo.opds[cortadoId]?.padreId !== targetId) return;
     moverOpdEnGestion(cortadoId, targetId, 999999);
     setCortadoId(null);

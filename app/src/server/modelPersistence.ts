@@ -91,6 +91,9 @@ export interface ModelRevisionCommit {
     folderId: string | null;
     role: "work" | "library";
   };
+  reopening?: {
+    kind: "reopen";
+  };
   confirmedByOperator?: boolean;
 }
 
@@ -132,7 +135,7 @@ export function evaluarPoliticaCommit(
   const selectedJson = commit.base.witness.source === "autosave"
     ? destination.autosaveJson
     : destination.savedJson;
-  if (!commit.graduation && selectedJson !== null && esSinDelta(commit.model.json, selectedJson)) {
+  if (!commit.graduation && !commit.reopening && selectedJson !== null && esSinDelta(commit.model.json, selectedJson)) {
     return { ok: false, motivo: "sin cambios: no se crea revisión" };
   }
   return veredicto;
@@ -504,12 +507,14 @@ function validateModelRevisionCommit(modelId: string, input: unknown): ModelRevi
   let base: ModelRevisionBase;
   let speciesOnCreate: ModelRevisionCommit["speciesOnCreate"];
   let graduation: ModelRevisionCommit["graduation"];
+  let reopening: ModelRevisionCommit["reopening"];
   if (esRecord(input.base) && input.base.kind === "new") {
     base = { kind: "new" };
     if (input.speciesOnCreate !== "apunte" && input.speciesOnCreate !== "modelo") {
       throw new Error("Revision de modelo invalida: especie");
     }
     if (input.graduation !== undefined) throw new Error("Revision de modelo invalida: graduacion");
+    if (input.reopening !== undefined) throw new Error("Revision de modelo invalida: reapertura");
     speciesOnCreate = input.speciesOnCreate;
   } else if (esRecord(input.base) && input.base.kind === "existing") {
     const witness = normalizeBaseWitness(input.base.witness);
@@ -528,6 +533,15 @@ function validateModelRevisionCommit(modelId: string, input: unknown): ModelRevi
         folderId: input.graduation.folderId === null ? null : input.graduation.folderId.trim(),
         role: input.graduation.role,
       };
+    }
+    if (input.reopening !== undefined) {
+      if (!esRecord(input.reopening) || input.reopening.kind !== "reopen") {
+        throw new Error("Revision de modelo invalida: reapertura");
+      }
+      if (graduation) {
+        throw new Error("Revision de modelo invalida: transiciones incompatibles");
+      }
+      reopening = { kind: "reopen" };
     }
     base = { kind: "existing", witness };
   } else {
@@ -548,6 +562,7 @@ function validateModelRevisionCommit(modelId: string, input: unknown): ModelRevi
     base,
     ...(speciesOnCreate ? { speciesOnCreate } : {}),
     ...(graduation ? { graduation } : {}),
+    ...(reopening ? { reopening } : {}),
     ...(input.confirmedByOperator === true ? { confirmedByOperator: true } : {}),
   };
 }

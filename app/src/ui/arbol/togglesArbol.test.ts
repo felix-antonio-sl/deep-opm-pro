@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../../modelo/operaciones";
 import { crearOpdSuelto } from "../../modelo/operaciones/opdSuelto";
 import type { Modelo } from "../../modelo/tipos";
-import { construirArbol, nodosSueltosTaller } from "../../app/viewmodels/arbolOpdEstructura";
+import { construirArbol, nodosBocetos } from "../../app/viewmodels/arbolOpdEstructura";
 import { expandirTodoArbol, idsColapsables } from "./togglesArbol";
 
 describe("toggles del arbol OPD", () => {
@@ -21,13 +21,13 @@ describe("toggles del arbol OPD", () => {
   });
 });
 
-describe("banda Taller en el árbol", () => {
-  test("un suelto NO cuelga de la raíz; aparece en la banda Taller", () => {
+describe("banda Bocetos en el árbol", () => {
+  test("un suelto NO cuelga de la raíz; aparece en Bocetos", () => {
     const { modelo, opdId } = crearOpdSuelto(crearModelo("M"));
     const arbol = construirArbol(modelo);
     const raiz = arbol[0]!;
     expect(raiz.hijos.some((h) => h.opd.id === opdId)).toBe(false);
-    const taller = nodosSueltosTaller(modelo);
+    const taller = nodosBocetos(modelo);
     expect(taller.map((n) => n.opd.id)).toContain(opdId);
   });
 
@@ -36,7 +36,7 @@ describe("banda Taller en el árbol", () => {
     const corrupto = { ...m, opds: { ...m.opds, "opd-x": { id: "opd-x", nombre: "x", padreId: "opd-fantasma", apariencias: {}, enlaces: {} } } };
     const raiz = construirArbol(corrupto)[0]!;
     expect(raiz.hijos.some((h) => h.opd.id === "opd-x")).toBe(true);
-    expect(nodosSueltosTaller(corrupto).some((n) => n.opd.id === "opd-x")).toBe(false);
+    expect(nodosBocetos(corrupto).some((n) => n.opd.id === "opd-x")).toBe(false);
   });
 });
 

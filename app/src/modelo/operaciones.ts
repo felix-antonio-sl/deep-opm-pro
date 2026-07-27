@@ -18,6 +18,7 @@ export { detectarColisionNombre, type ColisionNombre } from "./operaciones/colis
 
 export {
   adoptarOpd,
+  devolverOpdABocetos,
   aparienciaEsSubprocesoInternoDeInzoom,
   aplicarOrdenInzoomDerivado,
   derivarOrdenInzoomDeGeometria,
@@ -29,7 +30,13 @@ export {
   quitarDespliegueObjeto,
   recolectarEnlaceExternoEnRefinamiento,
 } from "./operaciones/refinamiento";
-export type { AdopcionOpd, DescomposicionProceso, DespliegueObjeto, EnlaceRefinamiento } from "./operaciones/refinamiento";
+export type {
+  AdopcionOpd,
+  DescomposicionProceso,
+  DespliegueObjeto,
+  DevolucionOpdABocetos,
+  EnlaceRefinamiento,
+} from "./operaciones/refinamiento";
 
 export {
   renombrarEntidad,

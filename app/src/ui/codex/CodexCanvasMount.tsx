@@ -39,8 +39,8 @@ export function CodexCanvasMount({ children, floating, topbar, chromeVisible = t
   const claseOpd = esRaiz
     ? "OPD raíz"
     : esBocetoSuelto
-      ? "OPD suelto"
-      : "OPD refinado";
+      ? "Boceto no integrado"
+      : "OPD integrado";
   const kicker = `${code} ${GLIFO_SEP} ${claseOpd}`;
   const zoom = useZoomDisplay();
 

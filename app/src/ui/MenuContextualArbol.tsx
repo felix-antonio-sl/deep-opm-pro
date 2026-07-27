@@ -27,10 +27,12 @@ export interface MenuContextualArbolProps {
   onBuscar: () => void;
   onIrPadre: (opdId: Id) => void;
   onIrPrimerHijo: (opdId: Id) => void;
-  /** Taller (R-OPD-REF-20): el OPD es un suelto adoptable (`esOpdSuelto`). */
+  /** Bocetos (R-OPD-REF-20): el OPD es un fragmento integrable (`esOpdSuelto`). */
   esSuelto?: boolean;
+  esRefinamientoIntegrado?: boolean;
   onAdoptarComoDescomposicion?: (opdId: Id) => void;
   onAdoptarComoDespliegue?: (opdId: Id) => void;
+  onDevolverABocetos?: (opdId: Id) => void;
 }
 
 export function MenuContextualArbol(props: MenuContextualArbolProps) {
@@ -62,14 +64,24 @@ export function MenuContextualArbol(props: MenuContextualArbolProps) {
       {props.esSuelto ? (
         <>
           <Item
-            label="Adoptar como descomposición"
+            label="Integrar como descomposición"
             testId="menu-adoptar-descomposicion"
             onClick={() => props.onAdoptarComoDescomposicion?.(props.opdId)}
           />
           <Item
-            label="Adoptar como despliegue"
+            label="Integrar como despliegue"
             testId="menu-adoptar-despliegue"
             onClick={() => props.onAdoptarComoDespliegue?.(props.opdId)}
+          />
+          <div aria-hidden="true" style={style.divider} />
+        </>
+      ) : null}
+      {!esRaiz && props.esRefinamientoIntegrado ? (
+        <>
+          <Item
+            label="Devolver a Bocetos"
+            testId="menu-devolver-bocetos"
+            onClick={() => props.onDevolverABocetos?.(props.opdId)}
           />
           <div aria-hidden="true" style={style.divider} />
         </>

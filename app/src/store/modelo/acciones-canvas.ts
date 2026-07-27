@@ -398,7 +398,7 @@ export function accionesCanvas(set: SetStore, get: GetStore): Partial<ModeloSlic
     // mensaje accionable del gate, nunca export degradado en silencio.
     async copiarCanonDocumentoAlPortapapeles() {
       const { modelo, indice } = get();
-      // R-OPD-REF-20: en un apunte, «OPD sin adoptar» degrada a observación (no
+      // R-OPD-REF-20: en un apunte, «Boceto sin integrar» degrada a observación (no
       // bloquea); en un modelo bloquea. La especie es el bit persistido del índice.
       const esApunte = indice.modelos.some((m) => m.id === modelo.id && m.esApunte === true);
       const documento = emitirDocumentoCanonico(modelo, { esApunte });

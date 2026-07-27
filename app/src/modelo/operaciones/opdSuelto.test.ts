@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo, crearProceso } from "./creacion";
 import { crearOpdSuelto } from "./opdSuelto";
-import { adoptarOpd } from "./refinamiento/establecer";
-import { obtenerRefinamiento } from "../refinamientos";
+import { adoptarOpd, devolverOpdABocetos } from "./refinamiento/establecer";
+import { fijarRefinamiento, obtenerRefinamiento } from "../refinamientos";
 import { esOpdSuelto } from "../opdSueltos";
 import type { Modelo, Resultado } from "../tipos";
 
@@ -63,5 +63,176 @@ describe("adoptarOpd", () => {
     const procesoId = primerProcesoId(m);
     const r = adoptarOpd(m, { opdPadreId: "opd-1", entidadId: procesoId, opdSueltoId: m.opdRaizId, tipo: "descomposicion" });
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("devolverOpdABocetos", () => {
+  test("es la inversa no destructiva de adoptar: preserva identidad y contenido", () => {
+    let modelo: Modelo = must(crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Cargar"));
+    const procesoId = primerProcesoId(modelo);
+    const creado = crearOpdSuelto(modelo, "Hipótesis");
+    modelo = {
+      ...creado.modelo,
+      opds: {
+        ...creado.modelo.opds,
+        [creado.opdId]: {
+          ...creado.modelo.opds[creado.opdId]!,
+          preguntaGuia: "¿Cómo cargar?",
+        },
+      },
+    };
+    const antesDeAdoptar = modelo;
+    const adoptado = must(adoptarOpd(modelo, {
+      opdPadreId: modelo.opdRaizId,
+      entidadId: procesoId,
+      opdSueltoId: creado.opdId,
+      tipo: "descomposicion",
+    }));
+
+    const devuelto = must(devolverOpdABocetos(adoptado, creado.opdId));
+
+    expect(devuelto).toEqual(expect.objectContaining({
+      opdId: creado.opdId,
+      entidadId: procesoId,
+      tipo: "descomposicion",
+    }));
+    expect(devuelto.modelo).toEqual(antesDeAdoptar);
+    expect(esOpdSuelto(devuelto.modelo, creado.opdId)).toBe(true);
+  });
+
+  test("preserva por identidad todo el subárbol integrado", () => {
+    let modelo: Modelo = must(crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Padre"));
+    const padreId = primerProcesoId(modelo);
+    const hijo = crearOpdSuelto(modelo, "Hijo");
+    modelo = must(adoptarOpd(hijo.modelo, {
+      opdPadreId: modelo.opdRaizId,
+      entidadId: padreId,
+      opdSueltoId: hijo.opdId,
+      tipo: "descomposicion",
+    }));
+    modelo = must(crearProceso(modelo, hijo.opdId, { x: 40, y: 40 }, "Nieto"));
+    const nietoEntidadId = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Nieto")!.id;
+    const nieto = crearOpdSuelto(modelo, "Detalle");
+    modelo = must(adoptarOpd(nieto.modelo, {
+      opdPadreId: hijo.opdId,
+      entidadId: nietoEntidadId,
+      opdSueltoId: nieto.opdId,
+      tipo: "descomposicion",
+    }));
+    const opdsAntes = Object.keys(modelo.opds).sort();
+    const entidadesAntes = Object.keys(modelo.entidades).sort();
+
+    const devuelto = must(devolverOpdABocetos(modelo, hijo.opdId)).modelo;
+
+    expect(Object.keys(devuelto.opds).sort()).toEqual(opdsAntes);
+    expect(Object.keys(devuelto.entidades).sort()).toEqual(entidadesAntes);
+    expect(devuelto.opds[hijo.opdId]!.padreId).toBeNull();
+    expect(devuelto.opds[nieto.opdId]!.padreId).toBe(hijo.opdId);
+    expect(obtenerRefinamiento(devuelto.entidades[nietoEntidadId]!, "descomposicion")?.opdId).toBe(nieto.opdId);
+  });
+
+  test("rechaza raíz, Boceto ya suelto e integrado sin vínculo", () => {
+    const modelo = crearModelo("M");
+    expect(devolverOpdABocetos(modelo, modelo.opdRaizId)).toEqual({
+      ok: false,
+      error: "La raíz del modelo no puede convertirse en Boceto",
+    });
+    const suelto = crearOpdSuelto(modelo);
+    expect(devolverOpdABocetos(suelto.modelo, suelto.opdId)).toEqual({
+      ok: false,
+      error: `El OPD ${suelto.opdId} ya está en Bocetos`,
+    });
+    const inconsistente: Modelo = {
+      ...suelto.modelo,
+      opds: {
+        ...suelto.modelo.opds,
+        [suelto.opdId]: { ...suelto.modelo.opds[suelto.opdId]!, padreId: modelo.opdRaizId },
+      },
+    };
+    expect(devolverOpdABocetos(inconsistente, suelto.opdId)).toEqual({
+      ok: false,
+      error: "El OPD integrado no tiene un vínculo de refinamiento que devolver",
+    });
+  });
+
+  test("falla cerrado si más de una cosa reclama el mismo OPD", () => {
+    let modelo = must(crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Uno"));
+    modelo = must(crearProceso(modelo, "opd-1", { x: 200, y: 0 }, "Dos"));
+    const procesos = Object.values(modelo.entidades).filter((entidad) => entidad.tipo === "proceso");
+    const creado = crearOpdSuelto(modelo);
+    modelo = must(adoptarOpd(creado.modelo, {
+      opdPadreId: modelo.opdRaizId,
+      entidadId: procesos[0]!.id,
+      opdSueltoId: creado.opdId,
+      tipo: "descomposicion",
+    }));
+    modelo = {
+      ...modelo,
+      entidades: {
+        ...modelo.entidades,
+        [procesos[1]!.id]: fijarRefinamiento(
+          modelo.entidades[procesos[1]!.id]!,
+          "descomposicion",
+          { opdId: creado.opdId },
+        ),
+      },
+    };
+
+    expect(devolverOpdABocetos(modelo, creado.opdId)).toEqual({
+      ok: false,
+      error: "El OPD está vinculado por más de un refinamiento; corrige la integridad antes de devolverlo",
+    });
+  });
+
+  test("falla cerrado si dos slots de la misma cosa reclaman el mismo OPD", () => {
+    let modelo = must(crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Uno"));
+    const procesoId = primerProcesoId(modelo);
+    const creado = crearOpdSuelto(modelo);
+    modelo = must(adoptarOpd(creado.modelo, {
+      opdPadreId: modelo.opdRaizId,
+      entidadId: procesoId,
+      opdSueltoId: creado.opdId,
+      tipo: "descomposicion",
+    }));
+    modelo = {
+      ...modelo,
+      entidades: {
+        ...modelo.entidades,
+        [procesoId]: fijarRefinamiento(
+          modelo.entidades[procesoId]!,
+          "despliegue",
+          { opdId: creado.opdId },
+        ),
+      },
+    };
+
+    expect(devolverOpdABocetos(modelo, creado.opdId)).toEqual({
+      ok: false,
+      error: "El OPD está vinculado por más de un refinamiento; corrige la integridad antes de devolverlo",
+    });
+  });
+
+  test("falla cerrado si el vínculo no coincide con el padre del OPD", () => {
+    let modelo = must(crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Uno"));
+    const procesoId = primerProcesoId(modelo);
+    const creado = crearOpdSuelto(modelo);
+    modelo = must(adoptarOpd(creado.modelo, {
+      opdPadreId: modelo.opdRaizId,
+      entidadId: procesoId,
+      opdSueltoId: creado.opdId,
+      tipo: "descomposicion",
+    }));
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [creado.opdId]: { ...modelo.opds[creado.opdId]!, padreId: "opd-inexistente" },
+      },
+    };
+
+    expect(devolverOpdABocetos(modelo, creado.opdId)).toEqual({
+      ok: false,
+      error: "El vínculo de refinamiento no coincide con el padre del OPD; corrige la integridad antes de devolverlo",
+    });
   });
 });

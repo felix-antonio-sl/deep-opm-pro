@@ -13,7 +13,7 @@ export function construirArbol(modelo: Modelo): NodoOpdData[] {
   const esSuelto = (id: Id) => esOpdSuelto(modelo, id);
   const hijosPorPadre = new Map<Id, Opd[]>();
   for (const opd of Object.values(modelo.opds)) {
-    if (opd.id === raiz.id || esSuelto(opd.id)) continue; // sueltos → banda Taller, no árbol
+    if (opd.id === raiz.id || esSuelto(opd.id)) continue; // sueltos → Bocetos, no árbol integrado
     const padreId = padreValido(modelo, opd, raiz.id);
     const hijos = hijosPorPadre.get(padreId) ?? [];
     hijos.push(opd);
@@ -42,12 +42,12 @@ export function construirArbol(modelo: Modelo): NodoOpdData[] {
 }
 
 /**
- * Subárboles de la banda «Taller» (R-OPD-REF-20): un nodo nivel-0 por cada OPD
+ * Subárboles de la banda «Bocetos» (R-OPD-REF-20): un nodo nivel-0 por cada OPD
  * suelto, con sus descendientes adoptados internamente (un suelto puede tener
  * refinamiento propio). Proyección de navegación derivada, no identidad
  * persistida.
  */
-export function nodosSueltosTaller(modelo: Modelo): NodoOpdData[] {
+export function nodosBocetos(modelo: Modelo): NodoOpdData[] {
   const sueltos = Object.values(modelo.opds).filter((opd) => esOpdSuelto(modelo, opd.id));
   const hijosPorPadre = new Map<Id, Opd[]>();
   for (const opd of Object.values(modelo.opds)) {

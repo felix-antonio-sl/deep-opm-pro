@@ -39,6 +39,7 @@ export interface WorkspacePort {
   restaurarModeloPorId: (modeloId: Id) => void;
   toggleBibliotecaModelo: (modeloId: Id) => void;
   toggleApunteModelo: (modeloId: Id) => void;
+  abrirReaperturaTaller: (modeloId: Id) => void;
   archivarCarpetaPorId: (carpetaId: Id) => void;
   restaurarCarpetaPorId: (carpetaId: Id) => void;
   abrirDialogoVersiones: (modeloId: Id) => void;
@@ -65,6 +66,13 @@ export function resolverHijosWorkspace(
       if (modeloIndice.archivado) modelo.archivado = true;
       if (modeloIndice.esBiblioteca) modelo.esBiblioteca = true;
       if (modeloIndice.esApunte) modelo.esApunte = true;
+      if (modeloIndice.esApunte !== true) delete modelo.esApunte;
+      if (modeloIndice.esBiblioteca !== true) delete modelo.esBiblioteca;
+      if (modeloIndice.archivado !== true) {
+        delete modelo.archivado;
+        delete modelo.archivadoEn;
+        delete modelo.archivadoAuto;
+      }
       if (modelo.archivadoEn === undefined && modeloIndice.archivadoEn !== undefined) {
         modelo.archivadoEn = modeloIndice.archivadoEn;
       }

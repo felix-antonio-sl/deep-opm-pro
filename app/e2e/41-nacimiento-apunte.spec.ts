@@ -44,8 +44,12 @@ test("«Nuevo» nace un apunte editable al instante, aparece en el gestor y se g
 
   // 3. El apunte YA está en el gestor sin guardar manual (persistido al nacer).
   const gestor = await abrirDialogoCargarModelo(page);
+  await expect(gestor.getByTestId("gestor-espacio-taller")).toHaveAttribute("aria-current", "page");
   await expect(
-    gestor.getByTestId("modelo-fila-cargar").filter({ hasText: /Apunte \d{4}-\d{2}-\d{2}/ }).first(),
+    gestor.getByTestId("gestor-zona-taller")
+      .getByTestId("modelo-fila-cargar")
+      .filter({ hasText: /Apunte \d{4}-\d{2}-\d{2}/ })
+      .first(),
   ).toBeVisible();
   await gestor.getByRole("button", { name: "Cancelar" }).click();
   await expect(gestor).toHaveCount(0);
@@ -61,6 +65,7 @@ test("«Nuevo» nace un apunte editable al instante, aparece en el gestor y se g
 
   // 5. La cinta apunte desaparece: ya es modelo (especie apunte apagada en el índice).
   await expect(page.getByTestId("cinta-apunte")).toHaveCount(0);
+  await expect(page.getByTestId("cinta-modelo")).toContainText("Modelo · en Modelos");
 
   expect(pageErrors).toEqual([]);
 });

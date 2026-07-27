@@ -809,6 +809,134 @@ describe("modelPersistence API", () => {
     expect(await repo.listVersions!(sesionTest, initial.id)).toEqual([]);
   });
 
+  test("reapertura confirma el mismo Modelo como Apunte y crea una versión atómica", async () => {
+    const modeloBase = { ...crearModelo("Modelo reconocido"), id: "modelo-reabrible" };
+    const initial = {
+      ...modeloPersistido(modeloBase.id, modeloBase.nombre),
+      json: exportarModelo(modeloBase),
+      revision: 1,
+    };
+    const repo = repoMemoria([initial]);
+    const handler = crearModelPersistenceFetchHandler({ repo });
+    const indice: WorkspaceIndice = {
+      modelos: [{ id: initial.id, carpetaId: null }],
+      carpetas: [],
+      recientes: [],
+    };
+    await handler(new Request("http://opforja.test/__deep-opm/workspace", {
+      method: "PUT",
+      body: JSON.stringify({ indice, revisionBase: 0 }),
+    }));
+    const witness = createBaseWitness({
+      modelId: initial.id,
+      saved: { revision: 1, updatedAt: initial.actualizadoEn, json: initial.json },
+      autosave: null,
+    });
+
+    const response = await handler(new Request(
+      `http://opforja.test/__deep-opm/modelos/${initial.id}/revisiones`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          model: initial,
+          version: versionPersistida("v-reapertura"),
+          base: { kind: "existing", witness },
+          reopening: { kind: "reopen" },
+          confirmedByOperator: true,
+        }),
+      },
+    ));
+
+    const body = await response.json() as {
+      model: ModeloPersistido;
+      workspace: { indice: WorkspaceIndice };
+      error?: string;
+    };
+    expect({ status: response.status, error: body.error }).toEqual({ status: 200, error: undefined });
+    expect(body.model.id).toBe(initial.id);
+    expect(body.model.json).toBe(initial.json);
+    expect(body.model.revision).toBe(2);
+    expect(body.workspace.indice.modelos.find((modelo) => modelo.id === initial.id)?.esApunte).toBe(true);
+    expect(await repo.listVersions!(sesionTest, initial.id)).toHaveLength(1);
+  });
+
+  test("reapertura de Biblioteca falla sin cambiar modelo, rol ni versiones", async () => {
+    const modeloBase = { ...crearModelo("Biblioteca"), id: "biblioteca-no-reabrible" };
+    const initial = {
+      ...modeloPersistido(modeloBase.id, modeloBase.nombre),
+      json: exportarModelo(modeloBase),
+      revision: 1,
+    };
+    const repo = repoMemoria([initial]);
+    const handler = crearModelPersistenceFetchHandler({ repo });
+    const indice: WorkspaceIndice = {
+      modelos: [{ id: initial.id, carpetaId: null, esBiblioteca: true }],
+      carpetas: [],
+      recientes: [],
+    };
+    await handler(new Request("http://opforja.test/__deep-opm/workspace", {
+      method: "PUT",
+      body: JSON.stringify({ indice, revisionBase: 0 }),
+    }));
+    const witness = createBaseWitness({
+      modelId: initial.id,
+      saved: { revision: 1, updatedAt: initial.actualizadoEn, json: initial.json },
+      autosave: null,
+    });
+
+    const response = await handler(new Request(
+      `http://opforja.test/__deep-opm/modelos/${initial.id}/revisiones`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          model: initial,
+          version: versionPersistida("v-no-entra-reapertura"),
+          base: { kind: "existing", witness },
+          reopening: { kind: "reopen" },
+          confirmedByOperator: true,
+        }),
+      },
+    ));
+
+    expect(response.status).toBe(409);
+    expect(await repo.get(sesionTest, initial.id)).toEqual(initial);
+    expect((await repo.getWorkspace!(sesionTest))?.indice.modelos[0]?.esBiblioteca).toBe(true);
+    expect(await repo.listVersions!(sesionTest, initial.id)).toEqual([]);
+  });
+
+  test("rechaza graduación y reapertura simultáneas antes de cualquier escritura", async () => {
+    const initial = { ...modeloPersistido("modelo-transicion-exclusiva", "Modelo"), revision: 1 };
+    const repo = repoMemoria([initial]);
+    const handler = crearModelPersistenceFetchHandler({ repo });
+    const witness = createBaseWitness({
+      modelId: initial.id,
+      saved: { revision: 1, updatedAt: initial.actualizadoEn, json: initial.json },
+      autosave: null,
+    });
+
+    const response = await handler(new Request(
+      `http://opforja.test/__deep-opm/modelos/${initial.id}/revisiones`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          model: initial,
+          version: versionPersistida("v-transicion-invalida"),
+          base: { kind: "existing", witness },
+          graduation: { kind: "graduate", folderId: null, role: "work" },
+          reopening: { kind: "reopen" },
+          confirmedByOperator: true,
+        }),
+      },
+    ));
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      error: "Revision de modelo invalida: transiciones incompatibles",
+    });
+    expect(await repo.get(sesionTest, initial.id)).toEqual(initial);
+    expect(await repo.listVersions!(sesionTest, initial.id)).toEqual([]);
+  });
+
   test("colisión de id de versión devuelve 409 sin avanzar el modelo", async () => {
     const initial = { ...modeloPersistido("modelo-version-colision", "Base"), revision: 2 };
     const repo = repoMemoria([initial]);

@@ -82,7 +82,7 @@ describe("gateway transaccional de refinamiento", () => {
     expect(store.getState().modelo.entidades[id]?.refinamientos?.despliegue?.modo).toBe("exhibicion");
   });
 
-  test("adoptar cancela como identidad y undo devuelve el OPD al Taller con su pregunta previa", () => {
+  test("integrar cancela como identidad y undo devuelve el OPD a Bocetos con su pregunta previa", () => {
     let base = must(crearProceso(store.getState().modelo, store.getState().modelo.opdRaizId, { x: 20, y: 20 }, "Resolver"));
     const suelto = crearOpdSuelto(base, "Hipótesis");
     base = {
@@ -113,5 +113,40 @@ describe("gateway transaccional de refinamiento", () => {
     store.getState().deshacer();
     expect(exportarModelo(store.getState().modelo)).toBe(antes);
     expect(store.getState().modelo.opds[suelto.opdId]?.preguntaGuia).toBe("¿Pregunta previa?");
+  });
+
+  test("devolver a Bocetos conserva el subárbol y ofrece undo independiente de eliminar", () => {
+    let base = must(crearProceso(store.getState().modelo, store.getState().modelo.opdRaizId, { x: 20, y: 20 }, "Resolver"));
+    const suelto = crearOpdSuelto(base, "Hipótesis");
+    base = suelto.modelo;
+    store.getState().importarJson(exportarModelo(base));
+    const id = entidadId(store.getState().modelo, "Resolver");
+    store.getState().cambiarOpdActivo(base.opdRaizId);
+    store.getState().seleccionarEntidad(id);
+    store.getState().adoptarOpdEnSeleccion(suelto.opdId, "descomposicion");
+    store.getState().confirmarRefinamientoPendiente({
+      entidadId: id,
+      tipo: "descomposicion",
+      preguntaGuia: "¿Cómo se resuelve?",
+    });
+    const integrado = exportarModelo(store.getState().modelo);
+    const cantidadOpds = Object.keys(store.getState().modelo.opds).length;
+
+    store.getState().solicitarDevolverOpdABocetos(suelto.opdId);
+    expect(store.getState().confirmacionDevolverBoceto).toMatchObject({
+      opdId: suelto.opdId,
+      entidadId: id,
+      tipo: "descomposicion",
+    });
+    store.getState().confirmarDevolverOpdABocetos();
+
+    expect(Object.keys(store.getState().modelo.opds)).toHaveLength(cantidadOpds);
+    expect(store.getState().modelo.opds[suelto.opdId]?.padreId).toBeNull();
+    expect(store.getState().modelo.opds[suelto.opdId]?.preguntaGuia).toBe("¿Cómo se resuelve?");
+    expect(store.getState().modelo.entidades[id]?.refinamientos?.descomposicion).toBeUndefined();
+    expect(store.getState().mensaje).toBe("OPD devuelto a Bocetos · contenido preservado");
+
+    store.getState().deshacer();
+    expect(exportarModelo(store.getState().modelo)).toBe(integrado);
   });
 });

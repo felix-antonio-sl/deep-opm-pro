@@ -32,6 +32,20 @@ export async function crearTestigoBaseBrowser(
   };
 }
 
+export function testigosBaseIguales(
+  left: MesaBaseWitnessV1,
+  right: MesaBaseWitnessV1,
+): boolean {
+  return left.format === right.format &&
+    left.modelId === right.modelId &&
+    left.saved.revision === right.saved.revision &&
+    left.saved.updatedAt === right.saved.updatedAt &&
+    left.saved.sha256 === right.saved.sha256 &&
+    left.autosave?.createdAt === right.autosave?.createdAt &&
+    left.autosave?.sha256 === right.autosave?.sha256 &&
+    left.source === right.source;
+}
+
 async function sha256(value: string): Promise<string> {
   const bytes = new TextEncoder().encode(value);
   const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);

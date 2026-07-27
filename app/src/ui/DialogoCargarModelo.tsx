@@ -5,8 +5,7 @@ import lockIcon from "../../../assets/svg/lock.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
 import type { Id } from "../modelo/tipos";
 import type { ResumenModeloPersistido } from "../persistencia/modelos";
-import type { CarpetaIndice } from "../persistencia/workspace";
-import { listarBibliotecas } from "../persistencia/workspace";
+import type { CarpetaIndice, WorkspaceIndice } from "../persistencia/workspace";
 import { especieDe } from "../persistencia/especie";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
@@ -18,11 +17,10 @@ import { PersistenciaJson } from "./PersistenciaJson";
 import { tokens } from "./tokens";
 
 /**
- * Diálogo «Modelos». Higiene del gestor (spec 2026-07-06 chrome-gestion-design
- * §1 + puerta steve-jobs): un solo buscador, sidebar mínima de carpetas, «Importar
- * JSON» como acción del encabezado (no sección), estado vacío con CTA, footer con
- * primario visual, catálogo como lista única (sin vista tarjetas ni botón «Abrir»
- * por fila — se abre por doble-click de fila o por el primario del footer).
+ * Gestor «Trabajo de modelado». Sus espacios expresan estados/roles distintos:
+ * Taller contiene Apuntes; Modelos contiene documentos reconocidos y deriva su
+ * preparación formal; Bibliotecas es un rol global; Archivo es una lente de
+ * retención. Las carpetas organizan Taller y Modelos sin crear otra taxonomía.
  * Persistencia/carga: [Met §6].
  */
 export function DialogoCargarModelo() {
@@ -30,6 +28,8 @@ export function DialogoCargarModelo() {
   const workspace = useZustandWorkspacePort();
   const confirmarSiDirty = useConfirmarSiDirty();
   const nacerApunte = useOpmStore((s) => s.nacerApunte);
+  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
+  const [espacio, setEspacio] = useState<EspacioTrabajo>("taller");
   const [seleccionadoId, setSeleccionadoId] = useState<Id | null>(null);
   const [orden, setOrden] = useState<OrdenCargar>(() => leerOrdenCargar());
   const [query, setQuery] = useState("");
@@ -50,69 +50,91 @@ export function DialogoCargarModelo() {
     setCreandoCarpeta(false);
     setNombreCarpetaNueva("");
     setRenombrandoCarpetaId(null);
-  }, [persistencia.dialogoCargarModeloAbierto, persistencia.listarModelosGuardados]);
+    const entradaActiva = workspace.indice.modelos.find((modelo) => modelo.id === modeloPersistidoId);
+    const inicial: EspacioTrabajo = entradaActiva?.archivado === true
+      ? "archivo"
+      : entradaActiva?.esBiblioteca === true
+        ? "bibliotecas"
+        : entradaActiva?.esApunte === true
+          ? "taller"
+          : entradaActiva
+            ? "modelos"
+            : workspace.mostrarArchivados
+              ? "archivo"
+              : "taller";
+    setEspacio(inicial);
+    if (workspace.mostrarArchivados !== (inicial === "archivo")) workspace.toggleMostrarArchivados();
+  }, [
+    persistencia.dialogoCargarModeloAbierto,
+    persistencia.listarModelosGuardados,
+    modeloPersistidoId,
+  ]);
 
-  // «Archivo» = lente de archivados sobre el ámbito actual (activa el flag del
-  // store); «Todas»/carpetas lo desactivan.
-  const enArchivo = workspace.mostrarArchivados;
+  // Los cuatro espacios son navegación primaria. Las carpetas organizan Taller
+  // y Modelos; Biblioteca es global y Archivo es una lente transversal.
+  const enArchivo = espacio === "archivo";
 
   const hijos = useMemo(
-    () => workspace.listarHijosActuales({ incluirArchivados: enArchivo }),
-    [workspace.indice, workspace.carpetaActualId, workspace.modelosGuardados, enArchivo],
+    () => workspace.listarHijosActuales(),
+    [workspace.indice, workspace.carpetaActualId, workspace.modelosGuardados],
   );
 
+  const catalogoGlobal = useMemo(
+    () => fusionarCatalogoGlobal(workspace.indice, workspace.modelosGuardados),
+    [workspace.indice, workspace.modelosGuardados],
+  );
+  const candidatos = espacio === "bibliotecas" || espacio === "archivo"
+    ? catalogoGlobal
+    : hijos.modelos;
   const modelosCatalogo = useMemo(
     () => ordenarModelos(
-      hijos.modelos.filter((modelo) => (enArchivo ? modelo.archivado === true : true) && coincideBusqueda(modelo, query)),
+      candidatos.filter((modelo) => coincideBusqueda(modelo, query)),
       orden,
     ),
-    [hijos.modelos, orden, query, enArchivo],
+    [candidatos, orden, query],
   );
-
-  // Zona «Trabajo» (rol): registros NO biblioteca del ámbito actual — apuntes +
-  // modelos JUNTOS, ordenados por la columna elegida (por defecto recencia). El
-  // chip de rigor (derivado de especieDe) distingue apunte/modelo en la fila.
-  const trabajoModelos = useMemo(
-    () => modelosCatalogo.filter((modelo) => especieDe(modelo) !== "biblioteca"),
-    [modelosCatalogo],
+  const tallerModelos = modelosCatalogo.filter((modelo) =>
+    modelo.archivado !== true && especieDe(modelo) === "apunte"
   );
-
-  // Zona «Bibliotecas» (estante aparte, solo-lectura): las bibliotecas del índice
-  // completo (no scopeadas a carpeta — son tipos precargables globales), cruzadas
-  // con los resúmenes guardados para el nombre/fecha, filtradas por búsqueda y sin
-  // archivadas. Su rol es distinto (fuente de Piezas), por eso viven fuera de
-  // «Trabajo». Se ocultan bajo la lente «Archivo».
-  const bibliotecasModelos = useMemo(() => {
-    if (enArchivo) return [];
-    const guardados = new Map(workspace.modelosGuardados.map((modelo) => [modelo.id, modelo]));
-    const filas = listarBibliotecas(workspace.indice)
-      .map((entrada) => {
-        const guardado = guardados.get(entrada.id);
-        if (!guardado) return undefined;
-        return { ...guardado, esBiblioteca: true, ...(entrada.archivado ? { archivado: true } : {}) } as ResumenModeloPersistido;
-      })
-      .filter((fila): fila is ResumenModeloPersistido => fila !== undefined)
-      .filter((fila) => fila.archivado !== true && coincideBusqueda(fila, query));
-    return ordenarModelos(filas, orden);
-  }, [workspace.indice, workspace.modelosGuardados, query, orden, enArchivo]);
-
-  const hayTrabajo = trabajoModelos.length > 0;
-  const hayBibliotecas = bibliotecasModelos.length > 0;
-  const catalogoVacio = !hayTrabajo && !hayBibliotecas;
+  const modelosReconocidos = modelosCatalogo.filter((modelo) =>
+    modelo.archivado !== true && especieDe(modelo) === "modelo"
+  );
+  const modelosListos = modelosReconocidos.filter((modelo) => modelo.estadoCierre?.listoFormalmente === true);
+  const modelosConPendientes = modelosReconocidos.filter((modelo) => modelo.estadoCierre?.listoFormalmente !== true);
+  const bibliotecasModelos = modelosCatalogo.filter((modelo) =>
+    modelo.archivado !== true && especieDe(modelo) === "biblioteca"
+  );
+  const archivadosModelos = modelosCatalogo.filter((modelo) => modelo.archivado === true);
+  const filasEspacio = espacio === "taller"
+    ? tallerModelos
+    : espacio === "modelos"
+      ? modelosReconocidos
+      : espacio === "bibliotecas"
+        ? bibliotecasModelos
+        : archivadosModelos;
+  const catalogoVacio = filasEspacio.length === 0;
   const seleccionado = useMemo(
-    () => [...trabajoModelos, ...bibliotecasModelos].find((modelo) => modelo.id === seleccionadoId) ?? null,
-    [trabajoModelos, bibliotecasModelos, seleccionadoId],
+    () => filasEspacio.find((modelo) => modelo.id === seleccionadoId) ?? null,
+    [filasEspacio, seleccionadoId],
   );
+  const conteos = useMemo(() => ({
+    taller: catalogoGlobal.filter((modelo) => modelo.archivado !== true && especieDe(modelo) === "apunte").length,
+    modelos: catalogoGlobal.filter((modelo) => modelo.archivado !== true && especieDe(modelo) === "modelo").length,
+    bibliotecas: catalogoGlobal.filter((modelo) => modelo.archivado !== true && especieDe(modelo) === "biblioteca").length,
+    archivo: catalogoGlobal.filter((modelo) => modelo.archivado === true).length,
+  }), [catalogoGlobal]);
 
   const carpetasOrdenadas = useMemo(
     () => ordenarCarpetasJerarquia(workspace.indice.carpetas.filter((carpeta) => !carpeta.archivada)),
     [workspace.indice.carpetas],
   );
 
-  const raizActiva = !enArchivo && workspace.carpetaActualId === null;
+  const usaCarpetas = espacio === "taller" || espacio === "modelos";
+  const raizActiva = usaCarpetas && workspace.carpetaActualId === null;
+  const enCarpeta = usaCarpetas && workspace.carpetaActualId !== null;
   const carpetaActiva = useCallback(
-    (carpetaId: Id) => !enArchivo && workspace.carpetaActualId === carpetaId,
-    [enArchivo, workspace.carpetaActualId],
+    (carpetaId: Id) => usaCarpetas && workspace.carpetaActualId === carpetaId,
+    [usaCarpetas, workspace.carpetaActualId],
   );
 
   const alternarOrden = useCallback((columna: OrdenCargar["columna"]) => {
@@ -129,19 +151,21 @@ export function DialogoCargarModelo() {
     confirmarSiDirty(() => persistencia.cargarLocal(modeloId));
   }, [confirmarSiDirty, persistencia.cargarLocal]);
 
-  // Navegación de la sidebar. «Archivo» prende el flag; «Todas»/carpetas lo
-  // apagan antes de cambiar de carpeta (el port solo expone el toggle).
-  const irARaiz = useCallback(() => {
-    if (workspace.mostrarArchivados) workspace.toggleMostrarArchivados();
-    workspace.abrirCarpeta(null);
-  }, [workspace.mostrarArchivados, workspace.toggleMostrarArchivados, workspace.abrirCarpeta]);
-  const irACarpeta = useCallback((carpetaId: Id) => {
-    if (workspace.mostrarArchivados) workspace.toggleMostrarArchivados();
-    workspace.abrirCarpeta(carpetaId);
-  }, [workspace.mostrarArchivados, workspace.toggleMostrarArchivados, workspace.abrirCarpeta]);
-  const irAArchivo = useCallback(() => {
-    if (!workspace.mostrarArchivados) workspace.toggleMostrarArchivados();
+  const cambiarEspacio = useCallback((siguiente: EspacioTrabajo) => {
+    setEspacio(siguiente);
+    setSeleccionadoId(null);
+    setMenuAccionesId(null);
+    if (workspace.mostrarArchivados !== (siguiente === "archivo")) {
+      workspace.toggleMostrarArchivados();
+    }
   }, [workspace.mostrarArchivados, workspace.toggleMostrarArchivados]);
+
+  const irARaiz = useCallback(() => {
+    workspace.abrirCarpeta(null);
+  }, [workspace.abrirCarpeta]);
+  const irACarpeta = useCallback((carpetaId: Id) => {
+    workspace.abrirCarpeta(carpetaId);
+  }, [workspace.abrirCarpeta]);
 
   // Arrastrar un modelo (tile/fila) a una carpeta de la sidebar lo mueve.
   const iniciarDragModelo = useCallback((event: DragEvent, modeloId: Id) => {
@@ -198,6 +222,10 @@ export function DialogoCargarModelo() {
       persistencia.cerrarCargarModelo();
       workspace.toggleBibliotecaModelo(modeloId);
     },
+    onReabrirTaller: (modeloId) => {
+      persistencia.cerrarCargarModelo();
+      workspace.abrirReaperturaTaller(modeloId);
+    },
     onEliminar: (modeloId, nombre) => {
       const ok = typeof globalThis.confirm !== "function"
         || globalThis.confirm(`¿Eliminar definitivamente el modelo "${nombre}"? Esta acción no se puede deshacer.`);
@@ -216,6 +244,7 @@ export function DialogoCargarModelo() {
     workspace.archivarModeloPorId,
     workspace.restaurarModeloPorId,
     workspace.toggleBibliotecaModelo,
+    workspace.abrirReaperturaTaller,
   ]);
 
   const menuProps: MenuAccionesContexto = {
@@ -228,7 +257,7 @@ export function DialogoCargarModelo() {
   return (
     <Dialogo
       open={persistencia.dialogoCargarModeloAbierto}
-      title="Modelos"
+      title="Trabajo de modelado"
       onCancel={persistencia.cerrarCargarModelo}
       size="xl"
       testId="dialogo-abrir-importar"
@@ -240,13 +269,14 @@ export function DialogoCargarModelo() {
       )}
     >
       <div style={style.container}>
-        <aside style={style.sidebar}>
+        <aside style={style.sidebar} aria-label="Organización por carpetas">
           <nav style={style.sidebarLista} aria-label="Carpetas">
             <button
               type="button"
               data-testid="gestor-sidebar-todas"
               style={raizActiva ? style.sidebarItemActivo : style.sidebarItem}
               aria-current={raizActiva ? "true" : undefined}
+              disabled={!usaCarpetas}
               onClick={irARaiz}
               onDragOver={permitirDrop}
               onDrop={(event) => soltarEnCarpeta(event as unknown as DragEvent, null)}
@@ -277,6 +307,7 @@ export function DialogoCargarModelo() {
                   style={{ ...(carpetaActiva(carpeta.id) ? style.sidebarItemActivo : style.sidebarItem), paddingLeft: `${10 + nivel * 12}px` }}
                   aria-current={carpetaActiva(carpeta.id) ? "true" : undefined}
                   title={carpeta.nombre}
+                  disabled={!usaCarpetas}
                   onClick={() => irACarpeta(carpeta.id)}
                   onDblClick={() => iniciarRenombrarCarpeta(carpeta)}
                   onDragOver={permitirDrop}
@@ -287,18 +318,15 @@ export function DialogoCargarModelo() {
               )
             ))}
 
-            <button
-              type="button"
-              data-testid="gestor-sidebar-archivo"
-              style={enArchivo ? style.sidebarItemActivo : style.sidebarItem}
-              aria-current={enArchivo ? "true" : undefined}
-              onClick={irAArchivo}
-            >
-              Archivo
-            </button>
           </nav>
           <div style={style.sidebarFoot}>
-            {creandoCarpeta ? (
+            {!usaCarpetas ? (
+              <span style={style.sidebarNota}>
+                {espacio === "bibliotecas"
+                  ? "Bibliotecas es un estante global."
+                  : "Archivo reúne todo lo archivado."}
+              </span>
+            ) : creandoCarpeta ? (
               <input
                 type="text"
                 style={style.sidebarInput}
@@ -319,6 +347,20 @@ export function DialogoCargarModelo() {
         </aside>
 
         <div style={style.main}>
+          <nav style={style.espacios} aria-label="Espacios de trabajo">
+            {(["taller", "modelos", "bibliotecas", "archivo"] as const).map((item) => (
+              <button
+                key={item}
+                type="button"
+                data-testid={`gestor-espacio-${item}`}
+                aria-current={espacio === item ? "page" : undefined}
+                style={espacio === item ? style.espacioActivo : style.espacio}
+                onClick={() => cambiarEspacio(item)}
+              >
+                {nombreEspacio(item)} <span style={style.espacioConteo}>{conteos[item]}</span>
+              </button>
+            ))}
+          </nav>
           {/* La barra de catálogo (buscar · vistas · Importar JSON) solo aparece
               cuando hay sobre qué actuar: con modelos, con búsqueda activa (para
               poder limpiarla en «Sin resultados») o en la lente «Archivo». En el
@@ -353,11 +395,11 @@ export function DialogoCargarModelo() {
           ) : null}
 
           <div style={style.catalogo}>
-            {hayTrabajo ? (
-              <section style={style.zona} data-testid="gestor-zona-trabajo">
-                <div style={style.zonaTitulo}>Trabajo</div>
+            {espacio === "taller" && tallerModelos.length > 0 ? (
+              <section style={style.zona} data-testid="gestor-zona-taller">
+                <div style={style.zonaTitulo}>Apuntes en Taller <span style={style.zonaNota}>exploración · cierre en observación</span></div>
                 <TablaModelos
-                  modelos={trabajoModelos}
+                  modelos={tallerModelos}
                   seleccionadoId={seleccionadoId}
                   orden={orden}
                   mostrarVersiones={workspace.mostrarVersiones}
@@ -369,11 +411,59 @@ export function DialogoCargarModelo() {
                 />
               </section>
             ) : null}
-            {hayBibliotecas ? (
+            {espacio === "modelos" && modelosListos.length > 0 ? (
+              <section style={style.zona} data-testid="gestor-modelos-listos">
+                <div style={style.zonaTitulo}>Listos formalmente</div>
+                <TablaModelos
+                  modelos={modelosListos}
+                  seleccionadoId={seleccionadoId}
+                  orden={orden}
+                  mostrarVersiones={workspace.mostrarVersiones}
+                  onOrden={alternarOrden}
+                  onSeleccionar={setSeleccionadoId}
+                  onAbrir={abrirSeleccionado}
+                  onIniciarDrag={iniciarDragModelo}
+                  menu={menuProps}
+                />
+              </section>
+            ) : null}
+            {espacio === "modelos" && modelosConPendientes.length > 0 ? (
+              <section style={style.zona} data-testid="gestor-modelos-pendientes">
+                <div style={style.zonaTitulo}>Con pendientes <span style={style.zonaNota}>Modelo reconocido · requiere cierre adicional</span></div>
+                <TablaModelos
+                  modelos={modelosConPendientes}
+                  seleccionadoId={seleccionadoId}
+                  orden={orden}
+                  mostrarVersiones={workspace.mostrarVersiones}
+                  onOrden={alternarOrden}
+                  onSeleccionar={setSeleccionadoId}
+                  onAbrir={abrirSeleccionado}
+                  onIniciarDrag={iniciarDragModelo}
+                  menu={menuProps}
+                />
+              </section>
+            ) : null}
+            {espacio === "bibliotecas" && bibliotecasModelos.length > 0 ? (
               <section style={style.zona} data-testid="gestor-zona-bibliotecas">
-                <div style={style.zonaTitulo}>Bibliotecas <span style={style.zonaNota}>estante · solo-lectura</span></div>
+                <div style={style.zonaTitulo}>Modelos de Biblioteca <span style={style.zonaNota}>estante global · solo lectura al abrir</span></div>
                 <TablaModelos
                   modelos={bibliotecasModelos}
+                  seleccionadoId={seleccionadoId}
+                  orden={orden}
+                  mostrarVersiones={workspace.mostrarVersiones}
+                  onOrden={alternarOrden}
+                  onSeleccionar={setSeleccionadoId}
+                  onAbrir={abrirSeleccionado}
+                  onIniciarDrag={iniciarDragModelo}
+                  menu={menuProps}
+                />
+              </section>
+            ) : null}
+            {espacio === "archivo" && archivadosModelos.length > 0 ? (
+              <section style={style.zona} data-testid="gestor-zona-archivo">
+                <div style={style.zonaTitulo}>Archivados <span style={style.zonaNota}>retención · no expresa madurez</span></div>
+                <TablaModelos
+                  modelos={archivadosModelos}
                   seleccionadoId={seleccionadoId}
                   orden={orden}
                   mostrarVersiones={workspace.mostrarVersiones}
@@ -393,10 +483,20 @@ export function DialogoCargarModelo() {
                     <button type="button" style={style.emptyLink} onClick={() => setQuery("")}>Limpiar búsqueda</button>
                   </>
                 ) : enArchivo ? (
-                  <span style={style.emptyText}>No hay modelos archivados.</span>
+                  <span style={style.emptyText}>Archivo está vacío.</span>
+                ) : espacio === "modelos" ? (
+                  <span style={style.emptyText}>
+                    {enCarpeta
+                      ? "No hay Modelos reconocidos en esta carpeta."
+                      : "Aún no hay Modelos reconocidos. Gradúa un Apunte desde Taller cuando corresponda."}
+                  </span>
+                ) : espacio === "bibliotecas" ? (
+                  <span style={style.emptyText}>Aún no hay Modelos con rol Biblioteca.</span>
+                ) : enCarpeta ? (
+                  <span style={style.emptyText}>No hay Apuntes en esta carpeta.</span>
                 ) : (
                   <>
-                    <span style={style.emptyText}>Aún no hay modelos. Crea uno nuevo o importa un JSON.</span>
+                    <span style={style.emptyText}>Taller está vacío. Crea un Apunte nuevo o importa un JSON.</span>
                     <div style={style.emptyCtas}>
                       <button type="button" style={style.emptyCta} onClick={crearNuevoModelo}>Nuevo</button>
                       <button type="button" data-testid="abrir-importar-json" style={style.emptyCta} onClick={() => setImportarAbierto(true)}>Importar JSON</button>
@@ -412,8 +512,43 @@ export function DialogoCargarModelo() {
   );
 }
 
+type EspacioTrabajo = "taller" | "modelos" | "bibliotecas" | "archivo";
 type OrdenCargar = { columna: "nombre" | "descripcion" | "actualizadoEn" | "bytes"; direccion: "asc" | "desc" };
 let ordenCargarMemoria: OrdenCargar = { columna: "actualizadoEn", direccion: "desc" };
+
+function nombreEspacio(espacio: EspacioTrabajo): string {
+  if (espacio === "taller") return "Taller";
+  if (espacio === "modelos") return "Modelos";
+  if (espacio === "bibliotecas") return "Bibliotecas";
+  return "Archivo";
+}
+
+function fusionarCatalogoGlobal(
+  indice: WorkspaceIndice,
+  guardados: ResumenModeloPersistido[],
+): ResumenModeloPersistido[] {
+  const porId = new Map(guardados.map((modelo) => [modelo.id, modelo]));
+  return indice.modelos.flatMap((entrada) => {
+    const guardado = porId.get(entrada.id);
+    if (!guardado) return [];
+    const fila: ResumenModeloPersistido = {
+      ...guardado,
+      carpetaId: entrada.carpetaId,
+    };
+    delete fila.esApunte;
+    delete fila.esBiblioteca;
+    delete fila.archivado;
+    delete fila.archivadoEn;
+    delete fila.archivadoAuto;
+    if (entrada.esApunte === true) fila.esApunte = true;
+    if (entrada.esBiblioteca === true) fila.esBiblioteca = true;
+    if (entrada.archivado === true) fila.archivado = true;
+    if (entrada.archivadoEn !== undefined) fila.archivadoEn = entrada.archivadoEn;
+    if (entrada.archivadoAuto !== undefined) fila.archivadoAuto = entrada.archivadoAuto;
+    if (entrada.versiones !== undefined) fila.versiones = entrada.versiones;
+    return [fila];
+  });
+}
 
 interface AccionesModelo {
   onAbrir: (id: Id) => void;
@@ -422,6 +557,7 @@ interface AccionesModelo {
   onArchivar: (id: Id) => void;
   onRestaurar: (id: Id) => void;
   onToggleBiblioteca: (id: Id) => void;
+  onReabrirTaller: (id: Id) => void;
   onEliminar: (id: Id, nombre: string) => void;
 }
 
@@ -480,6 +616,11 @@ function MenuAccionesModelo(props: { modelo: ResumenModeloPersistido; menu: Menu
         <div role="menu" style={style.accionesMenu} onMouseLeave={menu.onCerrar} data-testid="modelo-acciones-menu">
           <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onAbrirEnPestana(modelo.id); }}>Abrir en pestaña nueva</AccionItem>
           <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onVersiones(modelo.id); }}>Ver versiones</AccionItem>
+          {especieDe(modelo) === "modelo" && modelo.archivado !== true ? (
+            <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onReabrirTaller(modelo.id); }}>
+              Reabrir en Taller…
+            </AccionItem>
+          ) : null}
           <AccionItem onClick={() => { menu.onCerrar(); menu.acciones.onToggleBiblioteca(modelo.id); }}>
             {modelo.esBiblioteca ? "Quitar de bibliotecas" : "Marcar como Biblioteca"}
           </AccionItem>
@@ -562,27 +703,33 @@ function TablaModelos(props: {
   );
 }
 
-/**
- * Chip de rigor por fila (Ola 4, spec §6). Deriva la especie del record con
- * `especieDe` — chip PURAMENTE observacional, sin flag ni estado nuevo. Muestra
- * «Apunte» (borrador sin rigor de cierre) o «Modelo» (rigor exigible); una
- * biblioteca NO lleva chip aquí (vive en su zona, self-suppress). Al graduar un
- * apunte, `especieDe` cambia y el chip muta in-situ de «Apunte» a «Modelo» sin
- * que la fila salte de zona (maduró, no cambió de rol). Estética ui-forja neutra
- * (ink/paper), sin color semántico OPM (R-OPD-UI-1).
- */
+/** Estado semántico derivado: especie/rol + preparación formal, nunca otro flag. */
 function ChipRigor(props: { modelo: ResumenModeloPersistido }) {
   const especie = especieDe(props.modelo);
-  if (especie === "biblioteca") return null;
+  const estado = props.modelo.estadoCierre;
+  const bocetos = estado?.bocetos ?? 0;
+  const label = especie === "apunte"
+    ? `Apunte${bocetos > 0 ? ` · ${bocetos} Boceto${bocetos === 1 ? "" : "s"}` : ""}`
+    : especie === "biblioteca"
+      ? `Biblioteca · ${estado?.listoFormalmente ? "lista formalmente" : "con pendientes"}`
+      : estado?.listoFormalmente
+        ? "Listo formalmente"
+        : estado
+          ? `${estado.pendientes} pendiente${estado.pendientes === 1 ? "" : "s"}`
+          : "Estado por calcular";
   const esApunte = especie === "apunte";
   return (
     <span
       data-testid={`chip-rigor-${props.modelo.id}`}
       data-especie={especie}
       style={esApunte ? style.chipApunte : style.chipModelo}
-      title={esApunte ? "Apunte — borrador sin rigor de cierre" : "Modelo — rigor de cierre exigible"}
+      title={esApunte
+        ? "Apunte en Taller — cierre en observación"
+        : especie === "biblioteca"
+          ? "Modelo con rol Biblioteca"
+          : "Modelo — rigor de cierre exigible"}
     >
-      {esApunte ? "Apunte" : "Modelo"}
+      {label}
     </span>
   );
 }
@@ -730,12 +877,52 @@ const style = {
     fontSize: "13px",
     boxSizing: "border-box",
   },
+  sidebarNota: {
+    display: "block",
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "11px",
+    lineHeight: 1.45,
+  },
   main: {
     flex: "1 1 auto",
     minWidth: 0,
     display: "flex",
     flexDirection: "column",
     gap: "10px",
+  },
+  espacios: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    borderBottom: `1px solid ${tokens.colors.ink15}`,
+  },
+  espacio: {
+    minHeight: "36px",
+    border: 0,
+    borderBottom: `${tokens.stroke.bold}px solid transparent`,
+    background: "transparent",
+    color: tokens.colors.ink50,
+    cursor: "pointer",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "12px",
+    fontWeight: 500,
+  },
+  espacioActivo: {
+    minHeight: "36px",
+    border: 0,
+    borderBottom: `${tokens.stroke.bold}px solid ${tokens.colors.ink}`,
+    background: tokens.colors.ink04,
+    color: tokens.colors.ink,
+    cursor: "pointer",
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: "12px",
+    fontWeight: 700,
+  },
+  espacioConteo: {
+    marginLeft: "4px",
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.mono,
+    fontSize: "10px",
   },
   toolbar: {
     display: "flex",

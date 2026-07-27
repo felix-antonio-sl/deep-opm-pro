@@ -131,12 +131,15 @@ import {
   pegarModelo,
 } from "../persistencia/movimientoModelos";
 import {
+  cargarBaseRevisionBackend,
   cargarModeloBackend,
   confirmarRevisionBackend,
   guardarVersionBackend,
   observarBaseRevisionBackend,
   persistenciaBackendHabilitada,
+  type BaseRevisionBackend,
 } from "../persistencia/backend";
+import { testigosBaseIguales } from "../persistencia/baseWitnessBrowser";
 import { construirVersionPersistible } from "../persistencia/versiones";
 import {
   crearAutosalvado,
@@ -144,6 +147,7 @@ import {
   type AutosalvadoControl,
 } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
+import { resumirEstadoCierre } from "../modelo/estadoCierre";
 import type { Aviso } from "../modelo/validaciones";
 import type { Afiliacion, Apariencia, DesignacionEstado, DuracionTemporal, Esencia, ExtremoEnlace, Id, LayoutEstados, Modelo, Modificador, ModoDespliegueObjeto, ModoPlegado, Opd, OperadorAbanico, OrdenPartesPlegado, Pestana, PestanaId, Posicion, TipoEnlace, TipoEntidad, UrlObjetoTipada, UiPortapapelesVisual, VersionResumen } from "../modelo/tipos";
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
@@ -214,9 +218,17 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
   graduacionModeloObjetivo: null,
   graduacionDescripcionObjetivo: "",
   graduacionRevisionObjetivo: null,
+  graduacionTestigoObjetivo: null,
   graduacionCarpetaObjetivo: null,
   graduacionEnCurso: false,
   graduacionError: null,
+  dialogoReabrirModeloId: null,
+  reaperturaModeloObjetivo: null,
+  reaperturaDescripcionObjetivo: "",
+  reaperturaRevisionObjetivo: null,
+  reaperturaTestigoObjetivo: null,
+  reaperturaEnCurso: false,
+  reaperturaError: null,
   dialogoRolBibliotecaModeloId: null,
 
   crearCarpetaEnActual(nombre) {
@@ -465,19 +477,25 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       return;
     }
     const activo = estado.modeloPersistidoId === modeloId && estado.modelo.id === modeloId;
+    const pestana = estado.pestanasAbiertas.find((item) => item.modeloId === modeloId);
+    const modeloEnSesion = activo ? estado.modelo : (pestana?.modelo ?? null);
+    const descripcionEnSesion = activo
+      ? estado.descripcionModeloLocal
+      : (pestana?.descripcionModeloLocal ?? "");
     const base = {
       dialogoGraduarModeloId: modeloId,
       graduacionDestino: destino,
-      graduacionModeloObjetivo: activo ? estado.modelo : null,
-      graduacionDescripcionObjetivo: activo ? estado.descripcionModeloLocal : "",
-      graduacionRevisionObjetivo: activo ? (estado.revisionBasePorModelo[modeloId] ?? null) : null,
+      graduacionModeloObjetivo: modeloEnSesion,
+      graduacionDescripcionObjetivo: descripcionEnSesion,
+      graduacionRevisionObjetivo: modeloEnSesion ? (estado.revisionBasePorModelo[modeloId] ?? null) : null,
+      graduacionTestigoObjetivo: null,
       graduacionCarpetaObjetivo: entrada.carpetaId,
-      graduacionEnCurso: !activo,
+      graduacionEnCurso: modeloEnSesion === null,
       graduacionError: null,
       mensaje: null,
     } as const;
     set(base);
-    if (activo) return;
+    if (modeloEnSesion) return;
     if (!persistenciaBackendHabilitada()) {
       set({
         graduacionEnCurso: false,
@@ -486,7 +504,7 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       return;
     }
     const sessionEpoch = captureSessionEpoch();
-    void cargarModeloBackend(modeloId).then((cargado) => {
+    void cargarBaseRevisionBackend(modeloId).then((cargado) => {
       if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin || get().dialogoGraduarModeloId !== modeloId) return;
       if (!cargado.ok) {
         set({
@@ -495,21 +513,20 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
         });
         return;
       }
-      const hidratado = hidratarModelo(cargado.value.json);
-      if (!hidratado.ok || typeof cargado.value.revision !== "number") {
+      const preparado = prepararObjetivoTransicion(cargado.value);
+      if (!preparado.ok) {
         set({
           graduacionEnCurso: false,
-          graduacionError: !hidratado.ok
-            ? `No se pudo preparar la transición · ${hidratado.error}`
-            : "No se pudo preparar la transición · Revisión base ausente",
+          graduacionError: `No se pudo preparar la transición · ${preparado.error}`,
         });
         return;
       }
       set({
-        graduacionModeloObjetivo: hidratado.value,
-        graduacionDescripcionObjetivo: cargado.value.descripcion,
-        graduacionRevisionObjetivo: cargado.value.revision,
-        graduacionCarpetaObjetivo: cargado.value.carpetaId ?? null,
+        graduacionModeloObjetivo: preparado.modelo,
+        graduacionDescripcionObjetivo: cargado.value.model.descripcion,
+        graduacionRevisionObjetivo: preparado.revision,
+        graduacionTestigoObjetivo: cargado.value.witness,
+        graduacionCarpetaObjetivo: cargado.value.model.carpetaId ?? null,
         graduacionEnCurso: false,
         graduacionError: null,
       });
@@ -524,6 +541,7 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       graduacionModeloObjetivo: null,
       graduacionDescripcionObjetivo: "",
       graduacionRevisionObjetivo: null,
+      graduacionTestigoObjetivo: null,
       graduacionCarpetaObjetivo: null,
       graduacionError: null,
     });
@@ -580,6 +598,7 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     const pestanaOrigenId = estado.pestanasAbiertas.find((pestana) => pestana.modeloId === input.modeloId)?.id ?? null;
     const indiceInicial = estado.indice;
     const descripcionInicial = estado.graduacionDescripcionObjetivo;
+    const testigoObjetivo = estado.graduacionTestigoObjetivo;
     const destinoGraduacion = estado.graduacionDestino;
     const modeloCandidato: Modelo = { ...modeloInicial, nombre: validacionNombre.nombre };
     set({
@@ -593,6 +612,10 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
       if (!base.ok) {
         fallarAntesDePersistir(base.error);
+        return;
+      }
+      if (testigoObjetivo && !testigosBaseIguales(testigoObjetivo, base.value.witness)) {
+        fallarAntesDePersistir("El Apunte cambió desde que abriste la revisión; vuelve a abrirla");
         return;
       }
       const persistido = construirModeloPersistido({
@@ -637,6 +660,7 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       const entradaConfirmada = indice.modelos.find((modelo) => modelo.id === input.modeloId);
       const resumen = {
         ...resumenDesdeModeloPersistido(resultado.value.model),
+        estadoCierre: resumirEstadoCierre(modeloCandidato),
         ...(entradaConfirmada?.versiones ? { versiones: entradaConfirmada.versiones } : {}),
       };
       const modelosGuardados = [
@@ -661,9 +685,9 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
         exportarModelo(modeloVivoBase!) !== exportarModelo(modeloInicial);
       const snapshotConfirmado = exportarModelo(modeloCandidato);
       const especieRecibo = destinoGraduacion === "biblioteca" ? "Modelo de Biblioteca" : "Modelo";
-      const recibo = input.bloqueos === 0 && input.mejoras === 0
+      const recibo = input.bloqueos === 0 && input.mejoras === 0 && input.bocetos === 0
         ? `Ahora es ${especieRecibo} · sin pendientes de cierre`
-        : `Ahora es ${especieRecibo} · ${input.bloqueos} bloqueos · ${input.mejoras} mejoras`;
+        : `Ahora es ${especieRecibo} · ${input.bloqueos} bloqueos de cierre · ${input.mejoras} mejoras · ${input.bocetos} Bocetos`;
 
       if (!origenSigueActivo) {
         set({
@@ -686,6 +710,7 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
           graduacionModeloObjetivo: null,
           graduacionDescripcionObjetivo: "",
           graduacionRevisionObjetivo: null,
+          graduacionTestigoObjetivo: null,
           graduacionCarpetaObjetivo: null,
           graduacionEnCurso: false,
           graduacionError: null,
@@ -713,9 +738,266 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
         graduacionModeloObjetivo: null,
         graduacionDescripcionObjetivo: "",
         graduacionRevisionObjetivo: null,
+        graduacionTestigoObjetivo: null,
         graduacionCarpetaObjetivo: null,
         graduacionEnCurso: false,
         graduacionError: null,
+        mensaje: recibo,
+      });
+      const pestanasAbiertas = (parcial.pestanasAbiertas ?? actual.pestanasAbiertas).map((pestana) =>
+        pestanaOrigenId !== null && pestana.id === pestanaOrigenId
+          ? { ...pestana, snapshotJson: snapshotConfirmado }
+          : pestana
+      );
+      set({ ...parcial, pestanasAbiertas });
+    })();
+  },
+
+  abrirReaperturaTaller(modeloId) {
+    const estado = get();
+    const entrada = estado.indice.modelos.find((modelo) => modelo.id === modeloId);
+    if (!entrada) {
+      set({ mensaje: "Modelo no encontrado" });
+      return;
+    }
+    if (entrada.esBiblioteca === true) {
+      set({ mensaje: "Quita primero el rol Biblioteca para reabrir el Modelo en Taller" });
+      return;
+    }
+    if (entrada.esApunte === true) {
+      set({ mensaje: "El documento ya está en Taller" });
+      return;
+    }
+    const activo = estado.modeloPersistidoId === modeloId && estado.modelo.id === modeloId;
+    const pestana = estado.pestanasAbiertas.find((item) => item.modeloId === modeloId);
+    const modeloEnSesion = activo ? estado.modelo : (pestana?.modelo ?? null);
+    const descripcionEnSesion = activo
+      ? estado.descripcionModeloLocal
+      : (pestana?.descripcionModeloLocal ?? "");
+    set({
+      dialogoReabrirModeloId: modeloId,
+      reaperturaModeloObjetivo: modeloEnSesion,
+      reaperturaDescripcionObjetivo: descripcionEnSesion,
+      reaperturaRevisionObjetivo: modeloEnSesion ? (estado.revisionBasePorModelo[modeloId] ?? null) : null,
+      reaperturaTestigoObjetivo: null,
+      reaperturaEnCurso: modeloEnSesion === null,
+      reaperturaError: null,
+      mensaje: null,
+    });
+    if (modeloEnSesion) return;
+    if (!persistenciaBackendHabilitada()) {
+      set({
+        reaperturaEnCurso: false,
+        reaperturaError: "No se pudo preparar la reapertura · Persistencia backend no disponible",
+      });
+      return;
+    }
+    const sessionEpoch = captureSessionEpoch();
+    void cargarBaseRevisionBackend(modeloId).then((cargado) => {
+      if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin || get().dialogoReabrirModeloId !== modeloId) return;
+      if (!cargado.ok) {
+        set({
+          reaperturaEnCurso: false,
+          reaperturaError: `No se pudo preparar la reapertura · ${cargado.error}`,
+        });
+        return;
+      }
+      const preparado = prepararObjetivoTransicion(cargado.value);
+      if (!preparado.ok) {
+        set({
+          reaperturaEnCurso: false,
+          reaperturaError: `No se pudo preparar la reapertura · ${preparado.error}`,
+        });
+        return;
+      }
+      set({
+        reaperturaModeloObjetivo: preparado.modelo,
+        reaperturaDescripcionObjetivo: cargado.value.model.descripcion,
+        reaperturaRevisionObjetivo: preparado.revision,
+        reaperturaTestigoObjetivo: cargado.value.witness,
+        reaperturaEnCurso: false,
+        reaperturaError: null,
+      });
+    });
+  },
+
+  cerrarReaperturaTaller() {
+    if (get().reaperturaEnCurso && get().reaperturaModeloObjetivo) return;
+    set({
+      dialogoReabrirModeloId: null,
+      reaperturaModeloObjetivo: null,
+      reaperturaDescripcionObjetivo: "",
+      reaperturaRevisionObjetivo: null,
+      reaperturaTestigoObjetivo: null,
+      reaperturaEnCurso: false,
+      reaperturaError: null,
+    });
+  },
+
+  confirmarReaperturaTaller() {
+    const estado = get();
+    const modeloId = estado.dialogoReabrirModeloId;
+    const modeloInicial = estado.reaperturaModeloObjetivo;
+    const fallarAntesDePersistir = (causa: string) => {
+      set({
+        reaperturaEnCurso: false,
+        reaperturaError: `No se pudo reabrir · ${causa} · Reintentar`,
+        mensaje: null,
+      });
+    };
+    if (estado.reaperturaEnCurso) return;
+    if (!modeloId || !modeloInicial || modeloInicial.id !== modeloId) {
+      fallarAntesDePersistir("El Modelo no está preparado");
+      return;
+    }
+    const entrada = estado.indice.modelos.find((modelo) => modelo.id === modeloId);
+    if (!entrada) {
+      fallarAntesDePersistir("Modelo no encontrado");
+      return;
+    }
+    if (entrada.esBiblioteca === true) {
+      fallarAntesDePersistir("Quita primero el rol Biblioteca");
+      return;
+    }
+    if (entrada.esApunte === true) {
+      fallarAntesDePersistir("El documento ya está en Taller");
+      return;
+    }
+    const baseRevision = estado.reaperturaRevisionObjetivo;
+    if (typeof baseRevision !== "number") {
+      fallarAntesDePersistir("Recarga el Modelo para fijar su revisión base");
+      return;
+    }
+    if (!persistenciaBackendHabilitada()) {
+      fallarAntesDePersistir("Persistencia backend no disponible");
+      return;
+    }
+
+    const sessionEpoch = captureSessionEpoch();
+    const pestanaOrigenId = estado.pestanasAbiertas.find((pestana) => pestana.modeloId === modeloId)?.id ?? null;
+    const indiceInicial = estado.indice;
+    const descripcionInicial = estado.reaperturaDescripcionObjetivo;
+    const testigoObjetivo = estado.reaperturaTestigoObjetivo;
+    set({
+      reaperturaEnCurso: true,
+      reaperturaError: null,
+      mensaje: "Reabriendo Modelo en Taller…",
+    });
+
+    void (async () => {
+      const base = await observarBaseRevisionBackend(modeloId, baseRevision);
+      if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
+      if (!base.ok) {
+        fallarAntesDePersistir(base.error);
+        return;
+      }
+      if (testigoObjetivo && !testigosBaseIguales(testigoObjetivo, base.value.witness)) {
+        fallarAntesDePersistir("El Modelo cambió desde que abriste la reapertura; vuelve a abrirla");
+        return;
+      }
+      const persistido = construirModeloPersistido({
+        id: modeloId,
+        nombre: modeloInicial.nombre,
+        descripcion: descripcionInicial,
+        json: exportarModelo(modeloInicial, entrada.carpetaId),
+        autosalvado: false,
+        revision: baseRevision,
+        carpetaId: entrada.carpetaId,
+      }, base.value.model);
+      const version = construirVersionPersistible(modeloInicial, {
+        nombre: "Reapertura en Taller",
+        descripcion: "Snapshot confirmado al reabrir el Modelo como Apunte",
+      });
+      const resultado = await confirmarRevisionBackend({
+        model: persistido,
+        version: version.version,
+        base: { kind: "existing", witness: base.value.witness },
+        reopening: { kind: "reopen" },
+        confirmedByOperator: true,
+      });
+      if (!isSessionEpochCurrent(sessionEpoch) || get().requiereLogin) return;
+      if (!resultado.ok) {
+        fallarAntesDePersistir(resultado.error);
+        return;
+      }
+
+      observePersistedWorkspace(resultado.value.workspace);
+      const actual = get();
+      const indice = mergeWorkspaceBootstrap(
+        resultado.value.workspace.indice,
+        indiceInicial,
+        actual.indice,
+      );
+      const entradaConfirmada = indice.modelos.find((modelo) => modelo.id === modeloId);
+      const resumen = {
+        ...resumenDesdeModeloPersistido(resultado.value.model),
+        estadoCierre: resumirEstadoCierre(modeloInicial),
+        ...(entradaConfirmada?.versiones ? { versiones: entradaConfirmada.versiones } : {}),
+      };
+      const modelosGuardados = [
+        resumen,
+        ...actual.modelosGuardados.filter((modelo) => modelo.id !== modeloId),
+      ].sort((a, b) => b.actualizadoEn.localeCompare(a.actualizadoEn));
+      const revisionBasePorModelo = conBaseRevision(
+        actual.revisionBasePorModelo,
+        modeloId,
+        resultado.value.model.revision,
+      );
+      const pestanaOrigen = pestanaOrigenId
+        ? actual.pestanasAbiertas.find((pestana) => pestana.id === pestanaOrigenId)
+        : undefined;
+      const origenSigueActivo = pestanaOrigenId !== null &&
+        actual.pestanaActivaId === pestanaOrigenId &&
+        actual.modeloPersistidoId === modeloId;
+      const modeloVivo = origenSigueActivo ? actual.modelo : (pestanaOrigen?.modelo ?? modeloInicial);
+      const huboCambiosPosteriores = exportarModelo(modeloVivo) !== exportarModelo(modeloInicial);
+      const snapshotConfirmado = exportarModelo(modeloInicial);
+      const recibo = "Reabierto en Taller · ahora es Apunte · identidad y hechos preservados";
+      const estadoDialogoCerrado = {
+        dialogoReabrirModeloId: null,
+        reaperturaModeloObjetivo: null,
+        reaperturaDescripcionObjetivo: "",
+        reaperturaRevisionObjetivo: null,
+        reaperturaTestigoObjetivo: null,
+        reaperturaEnCurso: false,
+        reaperturaError: null,
+      } as const;
+
+      if (!origenSigueActivo) {
+        set({
+          pestanasAbiertas: actual.pestanasAbiertas.map((pestana) =>
+            pestanaOrigenId !== null && pestana.id === pestanaOrigenId
+              ? {
+                  ...pestana,
+                  modelo: modeloVivo,
+                  dirty: huboCambiosPosteriores,
+                  snapshotJson: snapshotConfirmado,
+                }
+              : pestana
+          ),
+          indice,
+          modelosGuardados,
+          revisionBasePorModelo,
+          ...estadoDialogoCerrado,
+          mensaje: recibo,
+        });
+        return;
+      }
+
+      marcarSnapshotModelo(modeloInicial);
+      const parcial = estadoModelo(modeloVivo, {
+        dirty: huboCambiosPosteriores,
+        dirtyModelo: huboCambiosPosteriores ? actual.dirtyModelo : false,
+        indice,
+        modelosGuardados,
+        revisionBasePorModelo,
+        workspaceLocal: workspaceDesdeModelo(
+          modeloVivo,
+          modeloId,
+          actual.descripcionModeloLocal,
+          entrada.carpetaId,
+        ),
+        ...estadoDialogoCerrado,
         mensaje: recibo,
       });
       const pestanasAbiertas = (parcial.pestanasAbiertas ?? actual.pestanasAbiertas).map((pestana) =>
@@ -816,6 +1098,21 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     }
   }
 });
+
+function prepararObjetivoTransicion(base: BaseRevisionBackend):
+  | { ok: true; modelo: Modelo; revision: number }
+  | { ok: false; error: string } {
+  const json = base.witness.source === "autosave"
+    ? base.autosave?.json
+    : base.model.json;
+  if (!json) return { ok: false, error: "El autosalvado efectivo no está disponible" };
+  if (typeof base.model.revision !== "number") {
+    return { ok: false, error: "Revisión base ausente" };
+  }
+  const hidratado = hidratarModelo(json);
+  if (!hidratado.ok) return { ok: false, error: hidratado.error };
+  return { ok: true, modelo: hidratado.value, revision: base.model.revision };
+}
 
 function modelosGuardadosWorkspace(get: GetStore) {
   return persistenciaBackendHabilitada() ? get().modelosGuardados : listarModelosGuardadosSeguro();

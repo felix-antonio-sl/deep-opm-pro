@@ -127,7 +127,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
   const confirmarSiDirty = useConfirmarSiDirty();
   const canvasPaper = useCanvasPaper();
   // R-OPD-REF-20: la especie del modelo activo (bit persistido del índice). En un
-  // apunte, «OPD sin adoptar» degrada a observación y no bloquea la realización PNG.
+  // apunte, «Boceto OPD sin integrar» degrada a observación y no bloquea la realización PNG.
   const esApunte = useOpmStore((s) => s.indice.modelos.some((m) => m.id === s.modelo.id && m.esApunte === true));
   const {
     modelo,
@@ -223,7 +223,7 @@ export function CommandPalette({ abierto, onCerrar }: Props) {
     modeloBloqueadoDensidad: Object.keys(modelo.opds).some(
       (opdId) => perfilCanonDiagrama(modelo, opdId).estado === "bloqueado",
     ),
-    // R-OPD-REF-20 (EXPORT-GATE): un OPD suelto no adoptado no se realiza como
+    // R-OPD-REF-20 (EXPORT-GATE): un Boceto no integrado no se realiza como
     // PNG canónico; en apunte degrada a observación (se permite con la marca de
     // bosquejo). El ZIP itera todos los OPDs, así que gatea a nivel de modelo.
     opdActivoBloqueadoSuelto: esOpdSuelto(modelo, opdActivoId) && !esApunte,

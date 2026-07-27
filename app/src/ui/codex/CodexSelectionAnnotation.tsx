@@ -376,7 +376,7 @@ function FormularioRefinamiento(props: FormularioRefinamientoProps) {
   const requiereRelacion = tipo === "despliegue";
   const valido = pregunta.trim().length > 0 && (!requiereRelacion || modo !== "");
   const titulo = inicial.tipo === "adopcion"
-    ? `Adoptar «${inicial.opdNombre}»`
+    ? `Integrar «${inicial.opdNombre}»`
     : inicial.tipo === "descomposicion"
       ? `Descomponer «${inicial.entidadNombre}»`
       : `Desplegar «${inicial.entidadNombre}»`;
@@ -488,7 +488,7 @@ function FormularioRefinamiento(props: FormularioRefinamientoProps) {
         {contenidoTutor?.now} Quedará visible en el OPD hijo; no forma parte del OPL.
       </span>
       {esAdopcion ? (
-        <span style={style.apoyoFormulario}>Adoptar integra este OPD al árbol. El rigor del Apunte o Modelo no cambia.</span>
+        <span style={style.apoyoFormulario}>Integrar vincula este Boceto al árbol como OPD. El rigor del Apunte o Modelo no cambia.</span>
       ) : null}
       <span id="tutor-refinamiento-error" role="alert" aria-live="assertive" style={style.errorFormulario}>
         {inicial.error ?? ""}
@@ -514,7 +514,7 @@ function FormularioRefinamiento(props: FormularioRefinamientoProps) {
           disabled={!valido}
           style={valido ? style.accionPrimariaFormulario : style.accionPrimariaDeshabilitadaFormulario}
         >
-          {esAdopcion ? "Adoptar y abrir OPD" : "Crear y abrir OPD"}
+          {esAdopcion ? "Integrar y abrir OPD" : "Crear y abrir OPD"}
         </button>
       </div>
       <span style={style.srOnly}>Refinando {nombreEntidad}</span>

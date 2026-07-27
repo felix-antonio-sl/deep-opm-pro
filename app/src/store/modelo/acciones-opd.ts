@@ -1,7 +1,8 @@
 import { eliminarOpdHoja } from "../../modelo/opdEliminacion";
-import { obtenerRefinamiento } from "../../modelo/refinamientos";
+import { obtenerRefinamiento, refinaA } from "../../modelo/refinamientos";
 import {
   adoptarOpd,
+  devolverOpdABocetos,
   descomponerProceso,
   desplegarObjeto,
   quitarDescomposicionProceso,
@@ -288,7 +289,7 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         seleccionId: null,
         enlaceSeleccionId: null,
         modoEnlace: null,
-        mensaje: "OPD suelto creado (Taller)",
+        mensaje: "Boceto OPD creado",
       });
     },
 
@@ -300,7 +301,7 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
       }
       const { modelo, opdActivoId, seleccionId } = get();
       if (!seleccionId || !modelo.entidades[seleccionId]) {
-        set({ mensaje: "Selecciona la cosa que adoptará el OPD suelto" });
+        set({ mensaje: "Selecciona la cosa que el Boceto refinará al integrarse" });
         return;
       }
       const opdSuelto = modelo.opds[opdSueltoId];
@@ -321,6 +322,75 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         },
         mensaje: null,
       });
+    },
+
+    solicitarDevolverOpdABocetos(opdId) {
+      const estado = get();
+      const bloqueo = mensajeBloqueoEdicion(estado);
+      if (bloqueo) {
+        set({ confirmacionDevolverBoceto: null, mensaje: bloqueo });
+        return;
+      }
+      const opd = estado.modelo.opds[opdId];
+      if (!opd || opdId === estado.modelo.opdRaizId || opd.padreId === null) {
+        set({ confirmacionDevolverBoceto: null, mensaje: "Selecciona un OPD integrado para devolverlo a Bocetos" });
+        return;
+      }
+      const propietario = Object.values(estado.modelo.entidades)
+        .map((entidad) => {
+          const refinamiento = refinaA(entidad, opdId);
+          return refinamiento ? { entidadId: entidad.id, tipo: refinamiento.tipo } : null;
+        })
+        .find((item): item is NonNullable<typeof item> => item !== null);
+      if (!propietario) {
+        set({ confirmacionDevolverBoceto: null, mensaje: "El OPD no tiene un vínculo de refinamiento reversible" });
+        return;
+      }
+      set({
+        confirmacionDevolverBoceto: {
+          ...propietario,
+          opdId,
+          opdIds: [...idsSubarbolOpd(estado.modelo, opdId)],
+        },
+        mensaje: null,
+      });
+    },
+
+    confirmarDevolverOpdABocetos() {
+      const estado = get();
+      const confirmacion = estado.confirmacionDevolverBoceto;
+      if (!confirmacion) return;
+      const bloqueo = mensajeBloqueoEdicion(estado);
+      if (bloqueo) {
+        set({ confirmacionDevolverBoceto: null, mensaje: bloqueo });
+        return;
+      }
+      const entidad = estado.modelo.entidades[confirmacion.entidadId];
+      const refinamiento = entidad ? obtenerRefinamiento(entidad, confirmacion.tipo) : undefined;
+      if (refinamiento?.opdId !== confirmacion.opdId) {
+        set({
+          confirmacionDevolverBoceto: null,
+          mensaje: "El vínculo cambió; revisa el OPD antes de devolverlo.",
+        });
+        return;
+      }
+      const resultado = devolverOpdABocetos(estado.modelo, confirmacion.opdId);
+      if (!resultado.ok) {
+        set({ confirmacionDevolverBoceto: null, mensaje: resultado.error });
+        return;
+      }
+      commitModelo(set, estado.modelo, resultado.value.modelo, {
+        confirmacionDevolverBoceto: null,
+        opdActivoId: confirmacion.opdId,
+        seleccionId: null,
+        enlaceSeleccionId: null,
+        modoEnlace: null,
+        mensaje: "OPD devuelto a Bocetos · contenido preservado",
+      });
+    },
+
+    cancelarDevolverOpdABocetos() {
+      set({ confirmacionDevolverBoceto: null, mensaje: null });
     },
 
     quitarDescomposicionSeleccionada() {

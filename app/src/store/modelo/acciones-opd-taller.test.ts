@@ -19,7 +19,7 @@ beforeEach(() => {
   store.getState().importarJson(exportarModelo(crearModelo("Taller store")));
 });
 
-describe("acciones de Taller en el store", () => {
+describe("acciones de Bocetos en el store", () => {
   test("nuevoOpdSuelto crea un suelto vacío y lo activa", () => {
     const nuevoModelo = must(crearProceso(store.getState().modelo, store.getState().modelo.opdRaizId, { x: 0, y: 0 }, "Cargar"));
     store.getState().importarJson(exportarModelo(nuevoModelo));
@@ -69,6 +69,6 @@ describe("acciones de Taller en el store", () => {
     store.getState().adoptarOpdEnSeleccion(sueltoId, "descomposicion");
 
     expect(exportarModelo(store.getState().modelo)).toBe(antes);
-    expect(store.getState().mensaje).toBe("Selecciona la cosa que adoptará el OPD suelto");
+    expect(store.getState().mensaje).toBe("Selecciona la cosa que el Boceto refinará al integrarse");
   });
 });

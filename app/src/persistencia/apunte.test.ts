@@ -4,7 +4,13 @@ import {
   resumenDesdeModeloPersistido,
   type ModeloPersistido,
 } from "./modelos";
-import { graduarApunte, marcarApunte, marcarBiblioteca, type WorkspaceIndice } from "./workspace";
+import {
+  graduarApunte,
+  marcarApunte,
+  marcarBiblioteca,
+  reabrirModeloEnTaller,
+  type WorkspaceIndice,
+} from "./workspace";
 
 // Modo apunte — gemelo de `esBiblioteca` + invariante de exclusión mutua.
 // Spec: docs/superpowers/specs/2026-06-30-modo-apunte-design.md §3.5, §7.
@@ -125,5 +131,31 @@ describe("apunte — invariante de exclusión mutua apunte ⊕ biblioteca (corre
         expect(modelo.esApunte === true && modelo.esBiblioteca === true).toBe(false);
       }
     }
+  });
+
+  test("reabrir conserva el mismo registro y lo devuelve a Taller", () => {
+    const base = indice();
+    const resultado = reabrirModeloEnTaller(base, "m-1");
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value.modelos).toHaveLength(base.modelos.length);
+    expect(resultado.value.modelos.find((m) => m.id === "m-1")).toEqual({
+      id: "m-1",
+      carpetaId: null,
+      esApunte: true,
+    });
+  });
+
+  test("reabrir rechaza Apuntes y Bibliotecas sin mutar el índice", () => {
+    const base = indice();
+    expect(reabrirModeloEnTaller(base, "ap-1")).toEqual({
+      ok: false,
+      error: "El documento ya está en Taller",
+    });
+    expect(reabrirModeloEnTaller(base, "lib-1")).toEqual({
+      ok: false,
+      error: "Quita primero el rol Biblioteca para reabrir el Modelo en Taller",
+    });
+    expect(base.modelos.find((m) => m.id === "lib-1")?.esBiblioteca).toBe(true);
   });
 });

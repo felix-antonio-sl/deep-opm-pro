@@ -190,7 +190,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "operation",
     "docs/manual-opforja.md",
-    "cac65b55831302578dae28d0f9bc4179fb956b87230bd20703774d4ad5b5227f",
+    "e5083f5923fbc1307549bb442777c94fc2f1ae386cccdeb3129feae310c55879",
     [
       sourceAnchor("what-is", "Qué es opforja", "0. Qué es opforja"),
       sourceAnchor("mental-model", "Modelo mental mínimo", "1. Modelo mental mínimo"),
@@ -274,7 +274,7 @@ export const TUTOR_SOURCES = [
     "guide",
     "operation",
     "docs/uso-productivo.md",
-    "a923efa7054f97301a284151e9bb0cb0018818d61906eb316ed898961fa5c523",
+    "ab4b618c2d9c80202dee07429430378631df80fec67da5626e2d296b4cd46d27",
     [
       sourceAnchor("enter", "Entrar", "Entrar"),
       sourceAnchor("start-model", "Empezar un modelo", "Empezar un modelo"),
@@ -313,7 +313,7 @@ export const TUTOR_SOURCES = [
   repositorySource("source.cheatsheet.basic", "opforja — Uso básico", "cheatsheet", "operation", "docs/cheatsheets/opforja-basico.html", "52830dadde1f7c80b3fe11888a1a3b53df82d4aba938f4fbe7467035966b06ce", [
     sourceAnchor("enter", "Entrar"), sourceAnchor("create", "Crear en el canvas"), sourceAnchor("save", "Guardar"), sourceAnchor("export", "Exportar para compartir"),
   ]),
-  repositorySource("source.cheatsheet.advanced", "opforja — Uso avanzado", "cheatsheet", "operation", "docs/cheatsheets/opforja-avanzado.html", "c74b0fefe4d99859dce76724d21c7f7377488b2be5693f6dae74b4918e3d5aae", [
+  repositorySource("source.cheatsheet.advanced", "opforja — Uso avanzado", "cheatsheet", "operation", "docs/cheatsheets/opforja-avanzado.html", "6fae066c551181ef71132c94b9bbf1a028ea1444218af4bac8fa44488d3a7d46", [
     sourceAnchor("bimodality", "Bimodalidad OPD ↔ OPL"), sourceAnchor("refinement", "Refinar sin romper"), sourceAnchor("states", "Estados y designaciones"), sourceAnchor("simulation", "Simulación por microfases"),
   ]),
   repositorySource("source.cheatsheet.ontology", "opforja — Uso de ontología", "cheatsheet", "pedagogy", "docs/cheatsheets/opforja-ontologia.html", "0ae0b9161688d5a778ade027b67dfe748c5725ecc7c288cd4f443dab3d4dfeb3", [

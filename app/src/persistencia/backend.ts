@@ -8,6 +8,8 @@ import {
 import { crearTestigoBaseBrowser } from "./baseWitnessBrowser";
 import type { WorkspaceIndice, WorkspacePersistido } from "./workspace";
 import { indiceVacio } from "./workspace";
+import { resumirEstadoCierre } from "../modelo/estadoCierre";
+import { hidratarModelo } from "../serializacion/json";
 import {
   encodeSessionIdentity,
   SESSION_IDENTITY_HEADER,
@@ -204,20 +206,35 @@ export async function observarBaseRevisionBackend(
   id: string,
   revisionEsperada: number,
 ): Promise<Resultado<BaseRevisionBackend>> {
+  const base = await cargarBaseRevisionBackend(id);
+  if (!base.ok) return base;
+  if (base.value.model.revision !== revisionEsperada) {
+    return fallo("Conflicto de persistencia");
+  }
+  return base;
+}
+
+/**
+ * Lee guardado + autosave como una sola base observable. El testigo señala
+ * cuál de las dos fuentes es efectiva, sin consolidarla ni escribir nada.
+ */
+export async function cargarBaseRevisionBackend(
+  id: string,
+): Promise<Resultado<BaseRevisionBackend>> {
   const [modelResult, autosaveResult] = await Promise.all([
     cargarModeloBackend(id),
     cargarAutosalvadoBackend(id),
   ]);
   if (!modelResult.ok) return modelResult;
   if (!autosaveResult.ok) return autosaveResult;
-  if (modelResult.value.revision !== revisionEsperada) {
-    return fallo("Conflicto de persistencia");
+  if (typeof modelResult.value.revision !== "number") {
+    return fallo("Revisión base ausente");
   }
   try {
     const witness = await crearTestigoBaseBrowser({
       modelId: id,
       saved: {
-        revision: revisionEsperada,
+        revision: modelResult.value.revision,
         updatedAt: modelResult.value.actualizadoEn,
         json: modelResult.value.json,
       },
@@ -244,6 +261,7 @@ export async function confirmarRevisionBackend(input: {
   base: BaseRevisionCommitBackend;
   speciesOnCreate?: "apunte" | "modelo";
   graduation?: { kind: "graduate"; folderId: string | null; role: "work" | "library" };
+  reopening?: { kind: "reopen" };
   confirmedByOperator?: boolean;
 }): Promise<Resultado<RevisionConfirmadaBackend>> {
   if (!persistenciaBackendHabilitada()) return fallo("Persistencia backend no disponible");
@@ -505,7 +523,10 @@ function normalizarModeloPersistido(value: unknown): ModeloPersistido | null {
 
 function resumenDesdeModelo(modelo: ModeloPersistido): ResumenModeloPersistido {
   const { json: _json, ...resumen } = modelo;
-  return resumen;
+  const hidratado = hidratarModelo(modelo.json);
+  return hidratado.ok
+    ? { ...resumen, estadoCierre: resumirEstadoCierre(hidratado.value) }
+    : resumen;
 }
 
 function normalizarWorkspace(value: unknown): WorkspaceIndice {

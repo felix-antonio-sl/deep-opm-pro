@@ -29,6 +29,7 @@ export function useZustandWorkspacePort(): WorkspacePort {
   const restaurarModeloPorId = useOpmStore((s) => s.restaurarModeloPorId);
   const toggleBibliotecaModelo = useOpmStore((s) => s.toggleBibliotecaModelo);
   const toggleApunteModelo = useOpmStore((s) => s.toggleApunteModelo);
+  const abrirReaperturaTaller = useOpmStore((s) => s.abrirReaperturaTaller);
   const archivarCarpetaPorId = useOpmStore((s) => s.archivarCarpetaPorId);
   const restaurarCarpetaPorId = useOpmStore((s) => s.restaurarCarpetaPorId);
   const abrirDialogoVersiones = useOpmStore((s) => s.abrirDialogoVersiones);
@@ -58,6 +59,7 @@ export function useZustandWorkspacePort(): WorkspacePort {
     restaurarModeloPorId,
     toggleBibliotecaModelo,
     toggleApunteModelo,
+    abrirReaperturaTaller,
     archivarCarpetaPorId,
     restaurarCarpetaPorId,
     abrirDialogoVersiones,

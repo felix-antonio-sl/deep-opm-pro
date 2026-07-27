@@ -7,7 +7,6 @@ import { registrarAtajo } from "./atajosTeclado";
 import { MenuContextualArbol } from "./MenuContextualArbol";
 import { aplanarNodosVisibles, atajoPanelArbolDesdeEvento, manejarTeclaNodoArbol, siguienteFocoArbol } from "./arbol/handlersTeclado";
 import { NodoOpd } from "./arbol/NodoOpd";
-import { esOpdSuelto } from "../modelo/opdSueltos";
 import {
   cantidadHijos,
   expandirTodoArbol,
@@ -46,6 +45,9 @@ export function ArbolOpd() {
     esApunte,
     nuevoOpdSuelto,
     adoptarOpdEnSeleccion,
+    solicitarDevolverOpdABocetos,
+    esOpdBoceto,
+    esOpdIntegrado,
   } = useArbolOpdViewModel();
   const [colapsado, setColapsado] = useState<Set<Id>>(new Set());
   const [renombrando, setRenombrando] = useState<{ id: Id; valor: string } | null>(null);
@@ -197,13 +199,13 @@ export function ArbolOpd() {
         {sueltos.length > 0 ? (
           <div
             role="tree"
-            aria-label="Taller — OPD sueltos"
+            aria-label="Bocetos — OPD aún no integrados"
             data-testid="arbol-banda-taller"
             style={style.tallerTree}
             data-atajos-contexto="panel-arbol"
           >
             <div style={style.tallerHeader}>
-              Taller · {sueltos.length} OPD(s) aún sin lugar en el árbol. Sus hechos ya emiten OPL.
+              Bocetos · {sueltos.length} OPD{sueltos.length === 1 ? "" : "s"} aún sin integrar. Sus hechos ya emiten OPL.
             </div>
             {nodosSueltosVisibles.map(({ nodo }) => renderNodo(nodo))}
           </div>
@@ -212,10 +214,10 @@ export function ArbolOpd() {
           type="button"
           data-testid="arbol-nuevo-suelto"
           style={style.tallerNuevo}
-          title="Traza un OPD suelto bottom-up y adóptalo después"
+          title="Traza un Boceto OPD bottom-up e intégralo después"
           onClick={nuevoOpdSuelto}
         >
-          + OPD suelto
+          + Nuevo boceto OPD
         </button>
       </div>
       {menuContextual ? (
@@ -279,13 +281,18 @@ export function ArbolOpd() {
             if (primero) cambiarOpdActivo(primero.id);
             setMenuContextual(null);
           }}
-          esSuelto={esOpdSuelto(modelo, menuContextual.opdId)}
+          esSuelto={esOpdBoceto(menuContextual.opdId)}
+          esRefinamientoIntegrado={esOpdIntegrado(menuContextual.opdId)}
           onAdoptarComoDescomposicion={(opdId) => {
             adoptarOpdEnSeleccion(opdId, "descomposicion");
             setMenuContextual(null);
           }}
           onAdoptarComoDespliegue={(opdId) => {
             adoptarOpdEnSeleccion(opdId, "despliegue");
+            setMenuContextual(null);
+          }}
+          onDevolverABocetos={(opdId) => {
+            solicitarDevolverOpdABocetos(opdId);
             setMenuContextual(null);
           }}
         />

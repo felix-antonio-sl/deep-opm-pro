@@ -5,12 +5,11 @@ import {
   esperarWorkbenchInicial,
 } from "./_smoke-helpers";
 
-// Taller bottom-up (R-OPD-REF-20): un OPD suelto (padreId:null ≠ raíz) es un
-// estado transitorio legítimo del arranque bottom-up. Vive en la banda «Taller»
-// (proyección DERIVADA, no especie ni estructura persistida) y se reconcilia con
-// el árbol vía «adoptar», que invoca el MISMO constructor `establecerRefinamiento`
-// que el top-down (convergencia por construcción).
-test("crear un OPD suelto, adoptarlo como descomposición y reconciliar el árbol", async ({ page }) => {
+// Bocetos bottom-up (R-OPD-REF-20): un OPD suelto (padreId:null ≠ raíz) es un
+// componente transitorio legítimo. Vive en la banda «Bocetos» (proyección
+// DERIVADA, no especie documental) y converge con el árbol mediante «Integrar».
+// La operación inversa lo devuelve a Bocetos sin cambiar identidad ni contenido.
+test("integrar un Boceto y devolver el mismo OPD sin pérdida", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -27,19 +26,20 @@ test("crear un OPD suelto, adoptarlo como descomposición y reconciliar el árbo
   // Sin sueltos aún: la banda no existe, pero el gesto sí.
   await expect(banda).toHaveCount(0);
 
-  // Crear un OPD suelto bottom-up.
+  // Crear un Boceto OPD bottom-up.
   await page.getByTestId("arbol-nuevo-suelto").click();
 
-  // El suelto aparece bajo la banda Taller y NO cuelga de la raíz.
+  // El Boceto aparece en su banda local y NO cuelga de la raíz.
   await expect(banda).toBeVisible();
+  await expect(banda).toContainText("Bocetos · 1 OPD aún sin integrar");
   const sueltoItem = banda.getByRole("treeitem").first();
   await expect(sueltoItem).toBeVisible();
   const sueltoTestId = await sueltoItem.getAttribute("data-testid");
   expect(sueltoTestId).toBeTruthy();
   await expect(mainTree.locator(`[data-testid="${sueltoTestId}"]`)).toHaveCount(0);
-  await expect(page.getByTestId("canvas-header")).toContainText("Boceto 1 · OPD suelto");
+  await expect(page.getByTestId("canvas-header")).toContainText("Boceto 1 · Boceto no integrado");
 
-  // El OPL del Taller acompaña al fragmento activo aunque todavía no pertenezca
+  // El OPL del Boceto acompaña al fragmento activo aunque todavía no pertenezca
   // al árbol canónico. No debe esperar a la adopción para reflejar lo dibujado.
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Proyectar");
@@ -56,7 +56,7 @@ test("crear un OPD suelto, adoptarlo como descomposición y reconciliar el árbo
   await mainTree.getByRole("treeitem").first().click();
   await elementoPorTexto(page, "Cargar").click();
 
-  // Adoptar el suelto como descomposición de «Cargar» desde su menú contextual.
+  // Integrar el Boceto como descomposición de «Cargar» desde su menú contextual.
   await sueltoItem.click({ button: "right" });
   await expect(page.getByTestId("menu-contextual-arbol")).toBeVisible();
   await page.getByTestId("menu-adoptar-descomposicion").click();
@@ -67,7 +67,29 @@ test("crear un OPD suelto, adoptarlo como descomposición y reconciliar el árbo
   // Adoptado: ya no es suelto → la banda desaparece y el OPD cuelga del árbol.
   await expect(banda).toHaveCount(0);
   await expect(mainTree.locator(`[data-testid="${sueltoTestId}"]`)).toHaveCount(1);
-  await expect(page.getByTestId("canvas-header")).toContainText("Boceto 1 · OPD refinado");
+  await expect(page.getByTestId("canvas-header")).toContainText("Boceto 1 · OPD integrado");
+
+  // La inversa explícita NO es «Eliminar refinamiento»: conserva el OPD, su OPL
+  // y todo su subárbol, y lo devuelve con el mismo identificador a Bocetos.
+  const integrado = mainTree.locator(`[data-testid="${sueltoTestId}"]`);
+  await integrado.click({ button: "right" });
+  await page.getByTestId("menu-devolver-bocetos").click();
+  const dialogoDevolver = page.getByTestId("dialogo-devolver-boceto");
+  await expect(dialogoDevolver).toBeVisible();
+  await expect(dialogoDevolver.getByTestId("tutor-dialogo-devolver-boceto")).toBeVisible();
+  await expect(dialogoDevolver).toContainText("No se elimina contenido");
+  await dialogoDevolver.getByTestId("dialogo-devolver-boceto-confirmar").click();
+
+  await expect(dialogoDevolver).toHaveCount(0);
+  await expect(mainTree.locator(`[data-testid="${sueltoTestId}"]`)).toHaveCount(0);
+  await expect(banda.locator(`[data-testid="${sueltoTestId}"]`)).toHaveCount(1);
+  await expect(page.getByTestId("canvas-header")).toContainText("Boceto 1 · Boceto no integrado");
+  await expect(opl).toContainText("Proyectar genera Resultado.");
+
+  // El historial restaura la integración sin fabricar un OPD nuevo.
+  await page.keyboard.press("Control+z");
+  await expect(banda).toHaveCount(0);
+  await expect(mainTree.locator(`[data-testid="${sueltoTestId}"]`)).toHaveCount(1);
 
   expect(pageErrors).toEqual([]);
 });

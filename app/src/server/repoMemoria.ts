@@ -12,6 +12,7 @@ import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/
 import {
   graduarApunte,
   indiceVacio,
+  reabrirModeloEnTaller,
   type WorkspacePersistido,
 } from "../persistencia/workspace";
 import { autosaveTimestampAfter, baseWitnessMatches } from "../mesa/baseWitness";
@@ -194,6 +195,8 @@ export function crearRepoMemoria(
             commit.graduation.folderId,
             commit.graduation.role === "library" ? "biblioteca" : "trabajo",
           )
+        : commit.reopening
+          ? reabrirModeloEnTaller(indiceConEspecie, commit.model.id)
         : { ok: true as const, value: indiceConEspecie };
       if (!indiceTransicionado.ok) {
         throw new PersistenciaConflictError(indiceTransicionado.error);

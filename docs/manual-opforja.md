@@ -136,8 +136,9 @@ resume su forma:
   la equivalencia OPD↔OPL. **SD-primero** (opción predeterminada del asistente A2): fija la función
   en el SD y refina hacia abajo. **Bottom-up (bosquejo)**: traza **fragmentos sueltos**
   —OPDs sin padre— sin comprometer aún un SD, y reconcílialos después hacia el SD0 por
-  **adopción** (verbo «adoptar» del Taller — fija padre + declara refinamiento en un
-  gesto, el mismo constructor que el refinamiento top-down, convergente en el vínculo).
+  **integración** (acción «Integrar» sobre un Boceto — fija padre + declara
+  refinamiento en un gesto; internamente conserva el constructor histórico
+  `adoptarOpd`, convergente con el refinamiento top-down).
   La reconciliación resuelve **dónde pertenece** el fragmento; no cambia su especie.
   El asistente de etapas 0–11 (A2) realiza el arranque SD-primero; el bottom-up entra
   a él durante la reconciliación.
@@ -170,14 +171,17 @@ conviven — un apunte es el hogar natural del bosquejo bottom-up:
   sigue siendo OPM legítimo, pero los gates de **validez** de A8 bajan a
   observación al margen en vez de bloquear. Régimen permisivo de la skill
   (§Regimen apunte).
-- **Bosquejo** relaja el **orden de arranque** (A1.5): permite trazar OPDs sueltos sin
-  fijar el SD primero, y reconciliar después. Régimen §Regimen bosquejo de la skill.
+- **Bosquejo** relaja el **orden de arranque** (A1.5): permite trazar Bocetos OPD
+  sin fijar el SD primero, integrarlos después y devolver un OPD integrado a
+  Bocetos sin pérdida. Régimen §Regimen bosquejo de la skill.
 En ambos la **integridad referencial nunca se relaja**: no se permiten enlaces rotos
-ni referencias inexistentes. Un OPD suelto es una deuda de portabilidad distinta:
+ni referencias inexistentes. Un Boceto sin integrar es una deuda de portabilidad distinta:
 en un apunte se informa y el export puede conservar la marca de bosquejo; en un
-modelo bloquea el export canónico hasta adoptar o reconciliar. **Graduar** cambia el
-régimen apunte→modelo y reengancha la severidad de A8; no adopta OPDs sueltos. El
-diálogo informa esa severidad, pero deja la decisión final a la persona.
+modelo bloquea el export canónico hasta integrar. **Graduar** cambia el régimen
+Apunte→Modelo y reengancha la severidad de A8; no integra Bocetos. **Reabrir en
+Taller** hace el camino Modelo→Apunte conservando identidad y hechos. El diálogo
+separa integridad, integración, cierre formal y validación humana; solo la
+integridad rota impide graduar.
 
 ---
 
@@ -201,7 +205,7 @@ metodológica: canvas OPD y panel OPL proyectan el mismo hecho; el JSON permite
 rehidratarlo; una imagen solo lo comunica; y la identidad de una cosa no cambia por
 navegar entre sus apariciones.
 
-El Taller y el régimen apunte se explican en §2; el puente humano-agente, en §A; y
+Taller, Bocetos y el régimen Apunte se explican en §2; el puente humano-agente, en §A; y
 Piezas, Calco y Anclaje, en §9. Los nombres, chips o fechas de una superficie no se
 duplican aquí.
 
@@ -209,8 +213,8 @@ duplican aquí.
 
 Walkthrough subordinado al orden normativo §A2 (al conducir una sesión A2 manda la
 secuencia 0–11). Es recorrido didáctico, no botones concretos. Describe el
-arranque **SD-primero**; para el arranque **bottom-up** (bosquejar fragmentos sueltos y
-reconciliarlos hacia el SD0 por «adoptar») ver §2/A1.5. Ambos arranques convergen en
+arranque **SD-primero**; para el arranque **bottom-up** (crear Bocetos e
+integrarlos hacia el SD0) ver §2/A1.5. Ambos arranques convergen en
 un SD coherente; la graduación es una decisión de cierre separada.
 
 1. **Declarar el propósito**: oración verbo-objeto que diga el cambio sin fijar la
@@ -257,11 +261,12 @@ confirma la equivalencia.
   no eliminación del modelo; no suprimir un estado que participa en un enlace visible.
 - **Realizaciones hermanas**: alternativas internas comparables si preservan la firma
   de frontera.
-- **Adoptar un OPD suelto** (arranque bottom-up, §2/A1.5): declarar un fragmento del
-  Taller como in-zoom/unfold de una cosa existente es un acto de refinamiento legítimo —
-  fija padre + refinamiento en un gesto, el **mismo constructor** que el refinamiento
-  top-down (convergen en el vínculo; el contenido del hijo difiere: el top-down
-  auto-andamia, adoptar toma el suelto tal cual).
+- **Integrar un Boceto** (arranque bottom-up, §2/A1.5): declarar el fragmento
+  como in-zoom/unfold de una cosa existente es un acto de refinamiento legítimo;
+  fija padre + refinamiento en un gesto con el **mismo constructor** que el
+  refinamiento top-down. El top-down auto-andamia; Integrar conserva el contenido
+  existente. **Devolver a Bocetos** es la inversa preservadora. **Eliminar
+  refinamiento** es otra operación y destruye el subárbol.
 - **Cuándo no refinar**: SD con barro, refinamiento que repite el padre, detalle por
   curiosidad, vista padre que ya sirve, supuesto de dominio no confirmado, o cuando la
   capacidad de UI requerida no está estabilizada (documentar como brecha).

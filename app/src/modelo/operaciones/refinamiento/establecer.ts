@@ -1,5 +1,10 @@
 import { esOpdSuelto } from "../../opdSueltos";
-import { fijarRefinamiento, obtenerRefinamiento } from "../../refinamientos";
+import {
+  fijarRefinamiento,
+  obtenerRefinamiento,
+  quitarRefinamiento,
+  refinamientosDe,
+} from "../../refinamientos";
 import type { Id, Modelo, ModoDespliegueObjeto, Resultado, TipoRefinamiento } from "../../tipos";
 import { entidadVisibleEnOpd, fallo, ok } from "../helpers";
 
@@ -98,5 +103,66 @@ export function adoptarOpd(modelo: Modelo, args: AdopcionOpd): Resultado<Modelo>
     // exactOptionalPropertyTypes: omitir `modo` en vez de pasar `undefined`.
     ...(args.modo ? { modo: args.modo } : {}),
     ...(args.preguntaGuia !== undefined ? { preguntaGuia: args.preguntaGuia } : {}),
+  });
+}
+
+export interface DevolucionOpdABocetos {
+  modelo: Modelo;
+  opdId: Id;
+  entidadId: Id;
+  tipo: TipoRefinamiento;
+}
+
+/**
+ * Operación inversa NO destructiva de `establecerRefinamiento`.
+ *
+ * Desvincula un OPD integrado de la entidad que lo refina y lo devuelve al
+ * conjunto de Bocetos (`padreId:null`, sin ser la raíz). Preserva por identidad
+ * el OPD y todo su subárbol, junto con entidades, enlaces, estados, geometría,
+ * nombres y pregunta guía. La eliminación destructiva del refinamiento sigue
+ * siendo una operación distinta y explícita.
+ */
+export function devolverOpdABocetos(
+  modelo: Modelo,
+  opdId: Id,
+): Resultado<DevolucionOpdABocetos> {
+  const opd = modelo.opds[opdId];
+  if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  if (opdId === modelo.opdRaizId) return fallo("La raíz del modelo no puede convertirse en Boceto");
+  if (opd.padreId === null) return fallo(`El OPD ${opdId} ya está en Bocetos`);
+
+  const propietarios = Object.values(modelo.entidades).flatMap((entidad) =>
+    refinamientosDe(entidad)
+      .filter((refinamiento) => refinamiento.opdId === opdId)
+      .map((refinamiento) => ({ entidad, refinamiento }))
+  );
+
+  if (propietarios.length === 0) {
+    return fallo("El OPD integrado no tiene un vínculo de refinamiento que devolver");
+  }
+  if (propietarios.length > 1) {
+    return fallo("El OPD está vinculado por más de un refinamiento; corrige la integridad antes de devolverlo");
+  }
+
+  const { entidad, refinamiento } = propietarios[0]!;
+  const opdPadre = modelo.opds[opd.padreId];
+  if (!opdPadre || !entidadVisibleEnOpd(opdPadre, entidad.id)) {
+    return fallo("El vínculo de refinamiento no coincide con el padre del OPD; corrige la integridad antes de devolverlo");
+  }
+  return ok({
+    modelo: {
+      ...modelo,
+      entidades: {
+        ...modelo.entidades,
+        [entidad.id]: quitarRefinamiento(entidad, refinamiento.tipo),
+      },
+      opds: {
+        ...modelo.opds,
+        [opdId]: { ...opd, padreId: null },
+      },
+    },
+    opdId,
+    entidadId: entidad.id,
+    tipo: refinamiento.tipo,
   });
 }

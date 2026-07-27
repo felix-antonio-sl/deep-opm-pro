@@ -310,12 +310,9 @@ export type EntryIntentSnapshot = EntryBase & (
       | { actionId: "workspace:graduate-library"; transition: "graduate-library" }
       | { actionId: "workspace:mark-library"; transition: "mark-library" }
       | { actionId: "workspace:unmark-library"; transition: "unmark-library" }
+      | { actionId: "workspace:reopen-workshop"; transition: "reopen-workshop" }
+      | { actionId: "tree:return-sketch"; transition: "return-sketch" }
     ))
-  | {
-      focus: "degrade";
-      actionId: "tutor:search";
-      transitionAvailable: false;
-    }
   | ({
       focus: "purpose";
       actionId: "empty-state:choose-entry";
@@ -530,14 +527,6 @@ export type NumericSimulationIntentSnapshot = Omit<TutorIntentBase, "actionId" |
   modelsProcessDynamics: false;
 };
 
-export interface RefinementUnavailableIntentSnapshot extends Omit<TutorIntentBase, "actionId" | "surface"> {
-  kind: "refinement-unavailable";
-  actionId: "tutor:search";
-  surface: "command-palette";
-  operation: "unadopt";
-  available: false;
-}
-
 export interface ExportUnavailableIntentSnapshot extends Omit<TutorIntentBase, "actionId" | "surface"> {
   kind: "export-unavailable";
   actionId: "tutor:search";
@@ -559,7 +548,6 @@ export type TutorIntentSnapshot =
   | KnowledgeIntentSnapshot
   | ReuseIntentSnapshot
   | NumericSimulationIntentSnapshot
-  | RefinementUnavailableIntentSnapshot
   | ExportUnavailableIntentSnapshot;
 
 export type TutorPriority =

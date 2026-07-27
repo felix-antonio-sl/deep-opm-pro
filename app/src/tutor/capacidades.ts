@@ -128,6 +128,7 @@ const entrypointDefinitions: readonly EntrypointDefinition[] = [
   semantic("inspector:anchor-ratify-source", "cap.evidence.notes-anchors"),
   semantic("inspector:copy-decision-log", "cap.handoff.skill"),
   semantic("tree:adopt-refinement", "cap.refinement.advanced"),
+  semantic("tree:return-sketch", "cap.refinement.unadopt"),
   semantic("tree:derived-view", "cap.view.derived"),
   semantic("opd-header:question-frontier", "cap.refinement.advanced"),
   semantic("opl:read", "cap.opl.forward-reverse"),
@@ -155,6 +156,7 @@ const entrypointDefinitions: readonly EntrypointDefinition[] = [
   semantic("workspace:graduate-library", "cap.lifecycle.regime"),
   semantic("workspace:mark-library", "cap.lifecycle.regime"),
   semantic("workspace:unmark-library", "cap.lifecycle.regime"),
+  semantic("workspace:reopen-workshop", "cap.lifecycle.degrade"),
   semantic("tutor:search", "cap.discovery.corpus"),
   semantic("mobile:read-context", "cap.interaction.readonly"),
 ] as const;
@@ -207,7 +209,7 @@ export const TUTOR_CAPABILITIES = [
       effect("workspace", ["workspace:mark-library"], "Designa un Modelo de Trabajo como fuente de Piezas sin abrirlo.", "Quitar de bibliotecas recupera Modelo de Trabajo."),
       effect("workspace", ["workspace:unmark-library"], "Retira el rol Biblioteca sin cambiar hechos ni rigor.", "Marcar de nuevo recupera el rol, no una versión histórica del contenido."),
     ],
-    limits: ["Adoptar no gradúa; graduar no certifica; marcar Biblioteca no abre."],
+    limits: ["Integrar un Boceto no gradúa; graduar no certifica; marcar Biblioteca no abre."],
     silentWhen: ["La especie y la consecuencia ya son inequívocas en la superficie."],
   }),
   capability({
@@ -332,15 +334,15 @@ export const TUTOR_CAPABILITIES = [
   capability({
     capabilityId: "cap.refinement.advanced",
     cut: "3C",
-    family: "Refinamiento, adopción, plegado y frontera",
+    family: "Refinamiento, integración de Bocetos, plegado y frontera",
     status: "live",
     behavior: "guide",
     owners: ["selection-annotation", "opd-header", "tree", "inspector"],
     effects: [
       effect("transient-ui", ["contextual:verificar-coherencia-descomposicion", "inspector:refinement", "opd-header:question-frontier"], "Prepara pregunta, tipo y relación.", "Cancelar es identidad."),
-      effect("model", ["contextual:inzoom", "contextual:quitar-descomposicion", "contextual:quitar-despliegue", "contextual:unfold", "palette:distribuir-contorno", "palette:recolectar-contorno", "tree:adopt-refinement"], "Aplica refinamiento o adopción en un commit.", "Undo restaura árbol, slot y pregunta previos."),
+      effect("model", ["contextual:inzoom", "contextual:quitar-descomposicion", "contextual:quitar-despliegue", "contextual:unfold", "palette:distribuir-contorno", "palette:recolectar-contorno", "tree:adopt-refinement"], "Aplica refinamiento o integra un Boceto en un commit.", "Undo restaura árbol, slot y pregunta previos."),
     ],
-    limits: ["Adoptar integra sin graduar; quitar refinamiento elimina el subárbol vivo."],
+    limits: ["Integrar un Boceto no gradúa; Devolver a Bocetos preserva; quitar refinamiento elimina el subárbol vivo."],
     silentWhen: ["El resultado confirmado ya es visible y no compite con otro feedback."],
   }),
   capability({
@@ -651,24 +653,31 @@ export const TUTOR_CAPABILITIES = [
   capability({
     capabilityId: "cap.lifecycle.degrade",
     cut: "7C",
-    family: "Degradar Modelo a Apunte",
-    status: "absent",
-    behavior: "silent",
-    owners: ["workspace-manager"],
-    effects: [],
-    limits: ["No existe transición Modelo→Apunte."],
-    silentWhen: ["Siempre: no se insinúa como acción."],
+    family: "Reabrir Modelo en Taller",
+    status: "live",
+    behavior: "guide",
+    owners: ["workspace-manager", "modal"],
+    effects: [effectSequence(["workspace:reopen-workshop"], [
+      effectStep("read", "Explica el cambio de régimen y verifica que sea un Modelo de Trabajo.", "Cancelar conserva el Modelo y su posición."),
+      effectStep("external", "Confirma una versión de reapertura sobre la revisión observada.", "Un conflicto conserva Modelo, versión e índice anteriores."),
+      effectStep("workspace", "Devuelve el mismo registro a Apunte y al espacio Taller.", "Una transacción fallida no adelanta el régimen local."),
+    ])],
+    limits: ["No cambia hechos ni certifica; una Biblioteca debe abandonar primero su rol."],
+    silentWhen: ["El documento ya es Apunte o la transición no fue invocada."],
   }),
   capability({
     capabilityId: "cap.refinement.unadopt",
     cut: "7C",
-    family: "Desadoptar sin borrar",
-    status: "absent",
-    behavior: "silent",
-    owners: ["tree"],
-    effects: [],
-    limits: ["Quitar refinamiento destruye el subárbol; no lo devuelve al Taller."],
-    silentWhen: ["Siempre: no se rotula la eliminación como desadopción."],
+    family: "Devolver OPD integrado a Bocetos",
+    status: "live",
+    behavior: "confirm",
+    owners: ["tree", "modal"],
+    effects: [effectSequence(["tree:return-sketch"], [
+      effectStep("read", "Muestra el vínculo y el subárbol que se conservarán.", "Cancelar mantiene el refinamiento integrado."),
+      effectStep("model", "Suelta el slot de refinamiento y devuelve la raíz del subárbol a Bocetos.", "Undo restaura el vínculo exacto y su ubicación en el árbol."),
+    ])],
+    limits: ["No elimina contenido; eliminar refinamiento sigue siendo una acción destructiva distinta."],
+    silentWhen: ["El OPD ya es Boceto, es la raíz o no pertenece a un refinamiento."],
   }),
   capability({
     capabilityId: "cap.certification.automatic",
@@ -700,9 +709,9 @@ export const CAPABILITY_BY_ID = new Map<CapabilityId, CapabilityDescriptor>(
 
 export const TUTOR_CUT_COVERAGE = [
   cutCoverage("1A", ["cap.refinement.advanced"], ["contextual:inzoom", "opd-header:question-frontier"], ["scenario.refinement.question-required", "scenario.refinement.confirmed"], "Pregunta guía, commit único y confirmación del resultado de descomposición."),
-  cutCoverage("1B", ["cap.refinement.advanced"], ["contextual:unfold", "tree:adopt-refinement"], ["scenario.refinement.question-complete"], "Despliegue y adopción atraviesan el gateway tipado sin relación implícita."),
+  cutCoverage("1B", ["cap.refinement.advanced"], ["contextual:unfold", "tree:adopt-refinement"], ["scenario.refinement.question-complete"], "Despliegue e integración de Bocetos atraviesan el gateway tipado sin relación implícita."),
   cutCoverage("2A", ["cap.refinement.advanced", "cap.diagnostic.reactive"], ["contextual:inzoom", "diagnostic:focus-issue"], ["scenario.refinement.integrity-wins", "scenario.refinement.claimed-silent"], "Arbitraje determinista y deduplicación por intención o resultado."),
-  cutCoverage("2B", ["cap.start.workspace", "cap.lifecycle.regime"], ["palette:nuevo-modelo", "tree:adopt-refinement"], ["scenario.entry.new-note-choice", "scenario.entry.lifecycle-decision"], "Apunte y Taller se distinguen sin convertir adopción en graduación."),
+  cutCoverage("2B", ["cap.start.workspace", "cap.lifecycle.regime"], ["palette:nuevo-modelo", "tree:adopt-refinement"], ["scenario.entry.new-note-choice", "scenario.entry.lifecycle-decision"], "Apunte y Taller se distinguen sin convertir integración en graduación."),
   cutCoverage("2C", ["cap.lifecycle.regime"], ["workspace:graduate-model"], ["scenario.entry.lifecycle-decision"], "Graduación valida antes de una secuencia externa y de workspace recuperable."),
   cutCoverage("2D", ["cap.lifecycle.regime"], ["workspace:graduate-library", "workspace:mark-library", "workspace:unmark-library"], ["scenario.entry.lifecycle-decision"], "Rol Biblioteca y rigor conservan transiciones explícitas y guardia de apertura."),
   cutCoverage("3A", ["cap.start.workspace", "cap.purpose.sd-frontier", "cap.ficha.local"], ["empty-state:choose-entry", "inspector:ficha-pregunta-habilitante", "inspector:ficha-lentes-conocimiento"], ["scenario.entry.purpose-workshop", "scenario.ficha.local-lenses-committed"], "Entrada simétrica y ficha local editable con roundtrip y undo."),
@@ -717,7 +726,7 @@ export const TUTOR_CUT_COVERAGE = [
   cutCoverage("6B", ["cap.submodel.reference", "cap.composition.interface"], ["submodel:open-reference", "composition:apply"], ["scenario.reuse.submodel-readonly", "scenario.composition.preflight-oriented", "scenario.composition.mapping-blocked"], "Referencia e integración se separan; composición valida interfaz, procedencia y reversibilidad."),
   cutCoverage("7A", ["cap.evidence.notes-anchors", "cap.handoff.skill", "cap.ficha.upstream"], ["inspector:note-add", "inspector:anchor-ratify-source", "inspector:copy-decision-log", "palette:copiar-contexto-skill"], ["scenario.knowledge.evidence-local-note", "scenario.knowledge.evidence-route", "scenario.knowledge.handoff-ready", "scenario.nonlive.ficha-upstream"], "Nota, ancla, ratificación, relevo y ficha upstream conservan destinos distintos."),
   cutCoverage("7B", ["cap.history.review-version", "cap.persistence.import-save", "cap.export.interchange"], ["workspace:create-version", "workspace:restore-version-copy", "workspace:delete-version", "workspace:import-active", "workspace:import-new-tab", "palette:exportar-json"], ["scenario.persistence.version-create-confirmed", "scenario.persistence.version-restore-confirmed", "scenario.persistence.version-delete-confirmed", "scenario.persistence.import-active-dirty", "scenario.persistence.export-confirmed"], "Historia, importación e intercambio declaran destino, reemplazo y recuperación."),
-  cutCoverage("7C", ["cap.discovery.corpus", "cap.interaction.readonly", "cap.export.pdf-diff-merge", "cap.inference.ai"], ["tutor:search", "mobile:read-context"], ["scenario.view.discovery-source-and-content", "scenario.view.mobile-readonly", "scenario.nonlive.export-pdf", "scenario.nonlive.inference"], "Corpus local, descubrimiento, solo lectura y silencios no vivos quedan auditados."),
+  cutCoverage("7C", ["cap.discovery.corpus", "cap.interaction.readonly", "cap.lifecycle.degrade", "cap.refinement.unadopt", "cap.export.pdf-diff-merge", "cap.inference.ai"], ["tutor:search", "mobile:read-context", "workspace:reopen-workshop", "tree:return-sketch"], ["scenario.view.discovery-source-and-content", "scenario.view.mobile-readonly", "scenario.lifecycle.reopen-workshop", "scenario.refinement.return-sketch", "scenario.nonlive.export-pdf", "scenario.nonlive.inference"], "Corpus local, solo lectura y las reversas explícitas de documento y componente quedan auditados junto a límites no vivos."),
 ] as const satisfies readonly TutorCutCoverage[];
 
 export function getCapability(capabilityId: CapabilityId): CapabilityDescriptor | null {

@@ -376,13 +376,21 @@ export async function importarModeloJson(page: import("@playwright/test").Page, 
 
 export async function abrirDialogoCargarModelo(page: import("@playwright/test").Page): Promise<import("@playwright/test").Locator> {
   await ejecutarMenuPrincipal(page, "Abrir / importar...");
-  const dialogo = page.getByRole("dialog", { name: "Modelos" });
+  const dialogo = page.getByRole("dialog", { name: "Trabajo de modelado" });
   await expect(dialogo).toBeVisible();
   return dialogo;
 }
 
+export async function irAEspacioModelos(dialogo: import("@playwright/test").Locator): Promise<void> {
+  const espacioModelos = dialogo.getByTestId("gestor-espacio-modelos");
+  await expect(espacioModelos).toBeVisible();
+  await espacioModelos.click();
+  await expect(espacioModelos).toHaveAttribute("aria-current", "page");
+}
+
 export async function cargarPrimerModelo(page: import("@playwright/test").Page): Promise<void> {
   const dialogo = await abrirDialogoCargarModelo(page);
+  await irAEspacioModelos(dialogo);
   // Sin botón «Abrir» por fila (puerta steve-jobs): la fila se abre por
   // doble-click (el click simple solo selecciona).
   await dialogo.getByTestId("modelo-fila-cargar").first().dblclick();

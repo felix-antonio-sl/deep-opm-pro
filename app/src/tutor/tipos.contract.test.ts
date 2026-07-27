@@ -73,7 +73,8 @@ const VALID_SNAPSHOTS = [
   { ...entry, focus: "lifecycle", surface: "modal", transition: "graduate-library", actionId: "workspace:graduate-library", phase: "decision", factsPreserved: true },
   { ...entry, focus: "lifecycle", surface: "modal", transition: "mark-library", actionId: "workspace:mark-library", phase: "decision", factsPreserved: true },
   { ...entry, focus: "lifecycle", surface: "modal", transition: "unmark-library", actionId: "workspace:unmark-library", phase: "decision", factsPreserved: true },
-  { ...entry, focus: "degrade", surface: "command-palette", actionId: "tutor:search", transitionAvailable: false },
+  { ...entry, focus: "lifecycle", surface: "modal", transition: "reopen-workshop", actionId: "workspace:reopen-workshop", phase: "decision", factsPreserved: true },
+  { ...entry, focus: "lifecycle", surface: "modal", transition: "return-sketch", actionId: "tree:return-sketch", phase: "decision", factsPreserved: true },
   { ...entry, ...lenses, focus: "purpose", surface: "empty-state", actionId: "empty-state:choose-entry", strategy: null, purposePresent: false },
 
   { ...element, ...lenses, focus: "kind", actionId: "canvas:create-object-process", surface: "canvas", chosenKind: null },
@@ -117,7 +118,6 @@ const VALID_SNAPSHOTS = [
   { ...numeric, actionId: "simulation:numeric-run", phase: "sampled" },
   { ...numeric, actionId: "simulation:numeric-csv", phase: "download" },
 
-  { ...core, kind: "refinement-unavailable", actionId: "tutor:search", surface: "command-palette", operation: "unadopt", available: false },
   { ...core, kind: "export-unavailable", actionId: "tutor:search", surface: "command-palette", format: "pdf", available: false },
   { ...core, kind: "export-unavailable", actionId: "tutor:search", surface: "command-palette", format: "diff", available: false },
   { ...core, kind: "export-unavailable", actionId: "tutor:search", surface: "command-palette", format: "merge", available: false },
@@ -177,8 +177,8 @@ describe("contrato exhaustivo de snapshots del tutor", () => {
 
       // @ts-expect-error transición y acción de ciclo de vida deben coincidir
       acceptSnapshot({ ...entry, focus: "lifecycle", surface: "modal", transition: "graduate", actionId: "workspace:mark-library", phase: "decision", factsPreserved: true });
-      // @ts-expect-error entrada no consume selectedType
-      acceptSnapshot({ ...entry, focus: "degrade", surface: "command-palette", actionId: "tutor:search", transitionAvailable: false, selectedType: "consumo" });
+      // @ts-expect-error reapertura no usa la acción de graduación
+      acceptSnapshot({ ...entry, focus: "lifecycle", surface: "modal", transition: "reopen-workshop", actionId: "workspace:graduate-model", phase: "decision", factsPreserved: true });
       // @ts-expect-error elemento no consume conteos OPL
       acceptSnapshot({ ...element, ...lenses, focus: "kind", actionId: "canvas:create-object-process", surface: "canvas", chosenKind: "object", recognizedLines: 1 });
       // @ts-expect-error enlace estructural no consume campos procedurales
@@ -191,8 +191,6 @@ describe("contrato exhaustivo de snapshots del tutor", () => {
       acceptSnapshot({ ...reuse, focus: "pieces", actionId: "pieces:copy", surface: "pieces", originSelected: true, anchorAvailable: true, choice: "copy", driftDetected: true });
       // @ts-expect-error CSV solo corresponde a download
       acceptSnapshot({ ...numeric, actionId: "simulation:numeric-csv", phase: "sampled" });
-      // @ts-expect-error refinamiento ausente no consume formato de exportación
-      acceptSnapshot({ ...core, kind: "refinement-unavailable", actionId: "tutor:search", surface: "command-palette", operation: "unadopt", available: false, format: "pdf" });
       // @ts-expect-error exportación ausente no consume operación de refinamiento
       acceptSnapshot({ ...core, kind: "export-unavailable", actionId: "tutor:search", surface: "command-palette", format: "pdf", available: false, operation: "unadopt" });
     }

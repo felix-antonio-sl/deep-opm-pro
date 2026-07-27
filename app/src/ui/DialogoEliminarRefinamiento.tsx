@@ -45,7 +45,7 @@ export function DialogoEliminarRefinamiento() {
       <ul>
         {opds.map((opd) => <li key={opd.id}>{opd.nombre}</li>)}
       </ul>
-      <p>El subárbol no vuelve al Taller. Esta operación se puede deshacer.</p>
+      <p>El subárbol no vuelve a Bocetos. Si quieres conservarlo, cancela y usa «Devolver a Bocetos». Esta operación se puede deshacer.</p>
     </Dialogo>
   );
 }

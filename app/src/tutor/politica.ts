@@ -9,7 +9,6 @@ import type {
   LinkDesignIntentSnapshot,
   NumericSimulationIntentSnapshot,
   PersistenceIntentSnapshot,
-  RefinementUnavailableIntentSnapshot,
   ReuseIntentSnapshot,
   SimulationIntentSnapshot,
   TutorCandidate,
@@ -114,8 +113,6 @@ function candidatesForSnapshot(snapshot: TutorIntentSnapshot): TutorCandidate[] 
       return reuseCandidates(snapshot);
     case "numeric-simulation":
       return numericSimulationCandidates(snapshot);
-    case "refinement-unavailable":
-      return refinementUnavailableCandidates(snapshot);
     case "export-unavailable":
       return exportUnavailableCandidates(snapshot);
   }
@@ -126,11 +123,15 @@ function entryCandidates(snapshot: EntryIntentSnapshot): TutorCandidate[] {
     case "start":
       return [candidate(snapshot, "content.start.entry", snapshot.phase === "committed" ? "consequence" : "optional-teaching")];
     case "lifecycle":
+      if (snapshot.transition === "reopen-workshop") {
+        return [candidate(snapshot, "content.lifecycle.reopen", snapshot.factsPreserved ? "optional-teaching" : "human-decision")];
+      }
+      if (snapshot.transition === "return-sketch") {
+        return [candidate(snapshot, "content.refinement.return-sketch", snapshot.factsPreserved ? "optional-teaching" : "human-decision")];
+      }
       return [candidate(snapshot, "content.lifecycle.regime", snapshot.factsPreserved ? "optional-teaching" : "human-decision")];
     case "purpose":
       return [candidate(snapshot, "content.purpose.frontier", snapshot.purposePresent ? "optional-teaching" : "human-decision")];
-    case "degrade":
-      return [];
   }
 }
 
@@ -207,10 +208,6 @@ function reuseCandidates(snapshot: ReuseIntentSnapshot): TutorCandidate[] {
 
 function numericSimulationCandidates(snapshot: NumericSimulationIntentSnapshot): TutorCandidate[] {
   return [candidate(snapshot, "content.simulation.numeric.scope", "optional-teaching")];
-}
-
-function refinementUnavailableCandidates(_snapshot: RefinementUnavailableIntentSnapshot): TutorCandidate[] {
-  return [];
 }
 
 function exportUnavailableCandidates(_snapshot: ExportUnavailableIntentSnapshot): TutorCandidate[] {

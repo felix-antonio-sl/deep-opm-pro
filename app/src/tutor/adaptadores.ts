@@ -7,7 +7,6 @@ import type {
   KnowledgeLens,
   LinkDesignIntentSnapshot,
   NumericSimulationIntentSnapshot,
-  RefinementUnavailableIntentSnapshot,
   ReuseIntentSnapshot,
   ViewIntentSnapshot,
 } from "./tipos";
@@ -22,8 +21,7 @@ interface AdapterBase extends LensAwareAdapter {
 
 export type EntryTutorState = AdapterBase & (
   | { focus: "start"; operation: "new-note" | "duplicate-tab"; tabsBefore: number; tabsAfter: number }
-  | { focus: "lifecycle"; transition: "graduate" | "graduate-library" | "mark-library" | "unmark-library"; factsPreserved: boolean }
-  | { focus: "degrade"; transitionAvailable: false }
+  | { focus: "lifecycle"; transition: "graduate" | "graduate-library" | "mark-library" | "unmark-library" | "reopen-workshop" | "return-sketch"; factsPreserved: boolean }
   | ({ focus: "purpose"; strategy: "sd-first" | "workshop" | null; purposePresent: boolean } & LensAwareAdapter)
 );
 
@@ -65,16 +63,11 @@ export function deriveEntryIntent(state: EntryTutorState): EntryIntentSnapshot {
           return { ...base, kind: "entry", focus: "lifecycle", actionId: "workspace:mark-library", surface: "modal", transition: "mark-library", phase: "decision", factsPreserved: state.factsPreserved };
         case "unmark-library":
           return { ...base, kind: "entry", focus: "lifecycle", actionId: "workspace:unmark-library", surface: "modal", transition: "unmark-library", phase: "decision", factsPreserved: state.factsPreserved };
+        case "reopen-workshop":
+          return { ...base, kind: "entry", focus: "lifecycle", actionId: "workspace:reopen-workshop", surface: "modal", transition: "reopen-workshop", phase: "decision", factsPreserved: state.factsPreserved };
+        case "return-sketch":
+          return { ...base, kind: "entry", focus: "lifecycle", actionId: "tree:return-sketch", surface: "modal", transition: "return-sketch", phase: "decision", factsPreserved: state.factsPreserved };
       }
-    case "degrade":
-      return {
-        ...base,
-        kind: "entry",
-        focus: "degrade",
-        actionId: "tutor:search",
-        surface: "command-palette",
-        transitionAvailable: false,
-      };
     case "purpose":
       return {
         ...base,
@@ -296,12 +289,6 @@ export function deriveNumericSimulationIntent(
   if (state.phase === "download") return { ...base, actionId: "simulation:numeric-csv", phase: "download" };
   if (state.phase === "sampled") return { ...base, actionId: "simulation:numeric-run", phase: "sampled" };
   return { ...base, actionId: "simulation:numeric-run", phase: "configure" };
-}
-
-export function deriveRefinementUnavailableIntent(
-  state: AdapterBase & { operation: "unadopt" },
-): RefinementUnavailableIntentSnapshot {
-  return { ...adapterBase(state), kind: "refinement-unavailable", actionId: "tutor:search", surface: "command-palette", operation: state.operation, available: false };
 }
 
 export function deriveExportUnavailableIntent(

@@ -1,6 +1,10 @@
 # Apuntes desatendidos + Taller bottom-up + realización en el gestor — diseño (Corte B′⊕D-especies)
 
-**Fecha:** 2026-07-06 · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato. · **Doctrina:** bottom-up de primera clase, firmada y aplicada en `kora-pneuma`.
+**Fecha:** 2026-07-06 · **Estado:** BASE HISTÓRICA REALIZADA. El contrato
+`2026-07-27-taller-modelos-ciclo-reversible-design.md` reemplaza desde el
+2026-07-27 las secciones de vocabulario visible, gestor y reversibilidad. Este
+documento conserva las decisiones de kernel, integridad y convergencia.
+**Doctrina:** bottom-up de primera clase, firmada y aplicada en `kora-pneuma`.
 
 **Fusión (arbitraje sobre el comité):** B′ y la parte de especies del gestor comparten la misma superficie (la representación de especies) — se construyen como UN corte para pagar la integración una sola vez (pushout sobre lo compartido). La higiene pura del gestor (sin especies) se adelantó a la Ola 1.
 

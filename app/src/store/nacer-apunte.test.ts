@@ -148,6 +148,7 @@ describe("nacerApunte (store)", () => {
       carpetaId: null,
       bloqueos: 0,
       mejoras: 0,
+      bocetos: 0,
     });
 
     // Hasta que el backend confirme la transición compuesta, la identidad local
@@ -162,6 +163,98 @@ describe("nacerApunte (store)", () => {
     store.getState().listarModelosGuardados();
     await esperar(() => store.getState().mensaje === null);
     expect(store.getState().indice.modelos.some((m) => m.id === id && m.esApunte === true)).toBe(false);
+  });
+
+  test("reabrir devuelve el mismo Modelo a Taller y confirma una versión atómica", async () => {
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null);
+    const id = store.getState().modeloPersistidoId!;
+    store.getState().abrirGraduar(id);
+    store.getState().confirmarGraduacion({
+      modeloId: id,
+      nombre: "Modelo reversible",
+      carpetaId: null,
+      bloqueos: 0,
+      mejoras: 0,
+      bocetos: 0,
+    });
+    await esperar(() => store.getState().dialogoGraduarModeloId === null);
+    const jsonGraduado = backend.modelos.get(id)?.json;
+    expect(store.getState().indice.modelos.find((modelo) => modelo.id === id)?.esApunte).toBeUndefined();
+
+    store.getState().abrirReaperturaTaller(id);
+    expect(store.getState().dialogoReabrirModeloId).toBe(id);
+    store.getState().confirmarReaperturaTaller();
+
+    expect(store.getState().indice.modelos.find((modelo) => modelo.id === id)?.esApunte).toBeUndefined();
+    await esperar(() => store.getState().dialogoReabrirModeloId === null);
+    const entrada = store.getState().indice.modelos.find((modelo) => modelo.id === id);
+    expect(entrada?.esApunte).toBe(true);
+    expect(store.getState().modeloPersistidoId).toBe(id);
+    expect(backend.modelos.get(id)?.json).toBe(jsonGraduado);
+    expect(entrada?.versiones?.[0]?.nombre).toBe("Reapertura en Taller");
+    expect(store.getState().mensaje).toBe(
+      "Reabierto en Taller · ahora es Apunte · identidad y hechos preservados",
+    );
+  });
+
+  test("reapertura inactiva usa el autosalvado efectivo y bloquea si cambia antes de confirmar", async () => {
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null);
+    const modeloId = store.getState().modeloPersistidoId!;
+    store.getState().abrirGraduar(modeloId);
+    store.getState().confirmarGraduacion({
+      modeloId,
+      nombre: "Modelo con autosave",
+      carpetaId: null,
+      bloqueos: 0,
+      mejoras: 0,
+      bocetos: 0,
+    });
+    await esperar(() => store.getState().dialogoGraduarModeloId === null);
+    const pestanaModeloId = store.getState().pestanasAbiertas.find((pestana) => pestana.modeloId === modeloId)!.id;
+    const modeloBase = store.getState().modelo;
+    const guardado = backend.modelos.get(modeloId)!;
+    const autosaveA = exportarModelo({ ...modeloBase, nombre: "Autosave A" });
+    backend.autosaves.set(modeloId, {
+      modeloId,
+      creadoEn: new Date(Date.parse(guardado.actualizadoEn) + 1_000).toISOString(),
+      json: autosaveA,
+    });
+
+    store.getState().nacerApunte();
+    await esperar(() =>
+      store.getState().modeloPersistidoId !== null &&
+      store.getState().modeloPersistidoId !== modeloId
+    );
+    const modeloActivoId = store.getState().modeloPersistidoId;
+    store.getState().cerrarPestana(pestanaModeloId, { forzar: true });
+
+    store.getState().abrirReaperturaTaller(modeloId);
+    await esperar(() => store.getState().reaperturaModeloObjetivo?.nombre === "Autosave A");
+
+    const autosaveB = exportarModelo({ ...modeloBase, nombre: "Autosave B" });
+    backend.autosaves.set(modeloId, {
+      modeloId,
+      creadoEn: new Date(Date.parse(guardado.actualizadoEn) + 2_000).toISOString(),
+      json: autosaveB,
+    });
+    store.getState().confirmarReaperturaTaller();
+    await esperar(() => store.getState().reaperturaError !== null);
+
+    expect(store.getState().reaperturaError).toContain("cambió desde que abriste la reapertura");
+    expect(backend.modelos.get(modeloId)?.json).toBe(guardado.json);
+    expect(backend.workspace.modelos.find((modelo) => modelo.id === modeloId)?.esApunte).toBeUndefined();
+
+    store.getState().cerrarReaperturaTaller();
+    store.getState().abrirReaperturaTaller(modeloId);
+    await esperar(() => store.getState().reaperturaModeloObjetivo?.nombre === "Autosave B");
+    store.getState().confirmarReaperturaTaller();
+    await esperar(() => store.getState().dialogoReabrirModeloId === null);
+
+    expect(JSON.parse(backend.modelos.get(modeloId)!.json).modelo).toEqual(JSON.parse(autosaveB).modelo);
+    expect(backend.workspace.modelos.find((modelo) => modelo.id === modeloId)?.esApunte).toBe(true);
+    expect(store.getState().modeloPersistidoId).toBe(modeloActivoId);
   });
 
   test("marcar un Apunte como Biblioteca reutiliza graduación y confirma ambos ejes atómicamente", async () => {
@@ -179,6 +272,7 @@ describe("nacerApunte (store)", () => {
       carpetaId: null,
       bloqueos: 0,
       mejoras: 0,
+      bocetos: 0,
     });
     expect(store.getState().indice.modelos.find((modelo) => modelo.id === id)?.esApunte).toBe(true);
 
@@ -209,6 +303,7 @@ describe("nacerApunte (store)", () => {
       carpetaId: null,
       bloqueos: 0,
       mejoras: 0,
+      bocetos: 0,
     });
     await esperar(() => store.getState().dialogoGraduarModeloId === null);
 
@@ -231,6 +326,7 @@ describe("nacerApunte (store)", () => {
       carpetaId: null,
       bloqueos: 1,
       mejoras: 2,
+      bocetos: 0,
     });
     await esperar(() => store.getState().graduacionError !== null);
 
@@ -256,6 +352,7 @@ describe("nacerApunte (store)", () => {
       carpetaId: null,
       bloqueos: 0,
       mejoras: 0,
+      bocetos: 0,
     });
 
     expect(store.getState().graduacionEnCurso).toBe(false);
@@ -266,11 +363,13 @@ describe("nacerApunte (store)", () => {
 
 interface BackendMock {
   modelos: Map<string, ModeloPersistido>;
+  autosaves: Map<string, { modeloId: string; creadoEn: string; json: string }>;
   workspace: {
     modelos: Array<{
       id: string;
       carpetaId: string | null;
       esApunte?: boolean;
+      esBiblioteca?: boolean;
       versiones?: Array<{
         id: string;
         creadoEn: string;
@@ -296,6 +395,7 @@ function instalarBackendMock(): BackendMock {
   let siguienteGraduacionError: string | null = null;
   const backend: BackendMock = {
     modelos: new Map(),
+    autosaves: new Map(),
     workspace: { modelos: [], carpetas: [], recientes: [] },
     workspaceRevision: 0,
     bloquearSiguienteGuardado() {
@@ -355,17 +455,29 @@ function instalarBackendMock(): BackendMock {
             revision: (actual.revision ?? 1) + 1,
           };
           backend.modelos.set(guardado.id, guardado);
+          backend.autosaves.delete(guardado.id);
           backend.workspace = {
             ...backend.workspace,
             modelos: backend.workspace.modelos.map((item) => {
               if (item.id !== guardado.id) return item;
-              const { esApunte: _esApunte, ...modelo } = item;
-              return {
-                ...modelo,
-                carpetaId: body.graduation?.folderId ?? null,
-                ...(body.graduation?.role === "library" ? { esBiblioteca: true } : {}),
-                versiones: [version, ...(item.versiones ?? [])],
-              };
+              if (body.graduation) {
+                const { esApunte: _esApunte, ...modelo } = item;
+                return {
+                  ...modelo,
+                  carpetaId: body.graduation.folderId,
+                  ...(body.graduation.role === "library" ? { esBiblioteca: true } : {}),
+                  versiones: [version, ...(item.versiones ?? [])],
+                };
+              }
+              if (body.reopening) {
+                const { esBiblioteca: _esBiblioteca, ...modelo } = item;
+                return {
+                  ...modelo,
+                  esApunte: true,
+                  versiones: [version, ...(item.versiones ?? [])],
+                };
+              }
+              return { ...item, versiones: [version, ...(item.versiones ?? [])] };
             }),
           };
           backend.workspaceRevision += 1;
@@ -429,6 +541,13 @@ function instalarBackendMock(): BackendMock {
         return bloqueo.liberado.promise.then(persistir);
       }
       return Promise.resolve(persistir());
+    }
+    if (url.endsWith("/autosave") && method === "GET") {
+      const id = decodeURIComponent(url.split("/").at(-2) ?? "");
+      const autosave = backend.autosaves.get(id);
+      return Promise.resolve(autosave
+        ? jsonResponse(autosave)
+        : jsonResponse({ error: "Autosalvado no encontrado" }, 404));
     }
     if (url.startsWith("/__deep-opm/modelos/") && method === "GET") {
       const id = decodeURIComponent(url.split("/").pop() ?? "");

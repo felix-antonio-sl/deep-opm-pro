@@ -14,7 +14,9 @@ import { tokens } from "./tokens";
 export function CintaApunte(): JSX.Element | null {
   // El bit persistido del modelo activo es la única verdad. Un modelo nuevo o
   // importado (id ausente del índice) no es apunte hasta marcarse.
-  const esApunte = useOpmStore((s) => s.indice.modelos.some((m) => m.id === s.modelo.id && m.esApunte === true));
+  const esApunte = useOpmStore((s) => s.indice.modelos.some((m) =>
+    m.id === s.modelo.id && m.esApunte === true && m.archivado !== true
+  ));
   const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
   const abrirGraduar = useOpmStore((s) => s.abrirGraduar);
 
@@ -24,7 +26,7 @@ export function CintaApunte(): JSX.Element | null {
     <div data-testid="cinta-apunte" data-tutor-capability="cap.lifecycle.regime" role="status" aria-live="polite" style={s.cinta}>
       <span style={s.glifo} aria-hidden="true">◷</span>
       <span style={s.texto} data-testid="cinta-apunte-estado">
-        <span style={s.rotulo}>Apunte</span> {"·"} integridad obligatoria; cierre en observación
+        <span style={s.rotulo}>Apunte</span> {"·"} en Taller {"·"} integridad obligatoria; cierre en observación
       </span>
       {/* «Momento de graduación» (diseño §3): la acción vive donde vive la identidad
           del apunte. Palabra-acción (sin fondo/borde/sombra, ui-forja), no un botón. */}
@@ -35,7 +37,7 @@ export function CintaApunte(): JSX.Element | null {
           style={s.graduar}
           onClick={() => abrirGraduar(modeloPersistidoId)}
         >
-          Graduar
+          Revisar para graduar
         </button>
       ) : null}
     </div>

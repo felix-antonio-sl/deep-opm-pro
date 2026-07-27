@@ -6,17 +6,19 @@ import {
 } from "./_smoke-helpers";
 
 /**
- * Ola 4 «Gestor de dos zonas rigor×rol» (diseño §6). Verifica que el gestor
- * segrega por ROL (Trabajo vs Bibliotecas) y que el chip de rigor deriva de la
- * ESPECIE (Apunte/Modelo), mutando in-situ al graduar SIN que la fila salte de
- * zona (maduró el rigor, no cambió el rol). Marcar biblioteca SÍ cambia el rol:
- * la fila salta al estante «Bibliotecas».
+ * Ciclo documental reversible:
+ *   Taller/Apunte ⇄ Modelos/Modelo → Bibliotecas
+ *
+ * Los espacios son navegación primaria; el rigor formal y el rol Biblioteca se
+ * derivan sin crear nuevas especies. Graduar y reabrir conservan el mismo ID.
  */
 const RUTA_STORE = "/src/store.ts";
 
 async function idModeloActivo(page: Page): Promise<string> {
   const id = await page.evaluate(async (ruta) => {
-    const m = (await import(ruta)) as { store: { getState: () => { modeloPersistidoId: string | null } } };
+    const m = (await import(ruta)) as {
+      store: { getState: () => { modeloPersistidoId: string | null } };
+    };
     return m.store.getState().modeloPersistidoId;
   }, RUTA_STORE);
   expect(id).toBeTruthy();
@@ -25,89 +27,106 @@ async function idModeloActivo(page: Page): Promise<string> {
 
 async function marcarBiblioteca(page: Page, modeloId: string): Promise<void> {
   await page.evaluate(async ({ ruta, id }) => {
-    const m = (await import(ruta)) as { store: { getState: () => { toggleBibliotecaModelo: (id: string) => void } } };
+    const m = (await import(ruta)) as {
+      store: { getState: () => { toggleBibliotecaModelo: (id: string) => void } };
+    };
     m.store.getState().toggleBibliotecaModelo(id);
   }, { ruta: RUTA_STORE, id: modeloId });
   const dialogo = page.getByTestId("dialogo-rol-biblioteca");
   await expect(dialogo).toBeVisible();
-  await expect(dialogo.getByTestId("tutor-dialogo-biblioteca")).toHaveCount(0);
-  await expect(dialogo.locator('[data-tutor-surface-owner="product"]')).toHaveCount(1);
   await dialogo.getByRole("button", { name: "Marcar como Biblioteca", exact: true }).click();
   await expect(dialogo).toHaveCount(0);
 }
 
-test("dos zonas rigor×rol: el chip muta in-situ al graduar; marcar biblioteca salta de zona", async ({ page }) => {
+test("el mismo documento transita Taller ⇄ Modelos y conserva Biblioteca como rol", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
 
-  // 1. Nace un apunte (puerta «Nuevo» real).
+  // 1. Todo nace Apunte y el gestor abre en Taller.
   await ejecutarComandoPalette(page, "nuevo", "menu-nuevo-modelo");
-  await expect(page.getByTestId("cinta-apunte")).toBeVisible();
+  await expect(page.getByTestId("cinta-apunte")).toContainText("Apunte · en Taller");
+  const documentoId = await idModeloActivo(page);
 
-  // 2. En el gestor, el apunte está en la zona «Trabajo» con chip «Apunte».
   let gestor = await abrirDialogoCargarModelo(page);
-  const trabajo = gestor.getByTestId("gestor-zona-trabajo");
-  await expect(trabajo).toBeVisible();
-  const filaApunte = trabajo
+  await expect(gestor.getByTestId("gestor-espacio-taller")).toHaveAttribute("aria-current", "page");
+  const filaApunte = gestor.getByTestId("gestor-zona-taller")
     .getByTestId("modelo-fila-cargar")
     .filter({ hasText: /Apunte \d{4}-\d{2}-\d{2}/ })
     .first();
   await expect(filaApunte).toBeVisible();
-  const chipApunte = filaApunte.locator('[data-testid^="chip-rigor-"]');
-  await expect(chipApunte).toHaveAttribute("data-especie", "apunte");
-  await expect(chipApunte).toHaveText("Apunte");
-  // Aún no hay biblioteca: la fila del apunte no está en un estante de bibliotecas.
-  await expect(gestor.getByTestId("gestor-zona-bibliotecas")).toHaveCount(0);
+  await expect(filaApunte.locator('[data-testid^="chip-rigor-"]')).toHaveAttribute("data-especie", "apunte");
   await gestor.getByRole("button", { name: "Cancelar" }).click();
-  await expect(gestor).toHaveCount(0);
 
-  // 3. Graduar desde la cinta (nombre definitivo).
+  // 2. Graduar reconoce el documento como Modelo, sin alterar su identidad.
   await page.getByTestId("cinta-apunte-graduar").click();
-  await expect(page.getByTestId("dialogo-graduar")).toBeVisible();
-  await page.getByTestId("graduar-nombre").fill("Modelo graduado 42");
-  await page.getByTestId("graduar-confirmar").click();
-  await expect(page.getByTestId("cinta-apunte")).toHaveCount(0);
-  const modeloId = await idModeloActivo(page);
+  const graduacion = page.getByTestId("dialogo-graduar");
+  await expect(graduacion.getByTestId("graduar-integridad")).toBeVisible();
+  await expect(graduacion.getByTestId("graduar-integracion")).toBeVisible();
+  await expect(graduacion.getByTestId("graduar-validez")).toBeVisible();
+  await expect(graduacion.getByTestId("graduar-validacion-humana")).toContainText("no registrada");
+  await graduacion.getByTestId("graduar-nombre").fill("Modelo graduado 42");
+  await graduacion.getByTestId("graduar-confirmar").click();
+  await expect(graduacion).toHaveCount(0);
+  await expect(page.getByTestId("cinta-modelo")).toContainText("Modelo · en Modelos");
+  expect(await idModeloActivo(page)).toBe(documentoId);
 
-  // 4. Reabrir: el MISMO ítem sigue en «Trabajo» pero con el chip mutado a «Modelo»
-  //    (maduró, no cambió de rol → no saltó de zona).
   gestor = await abrirDialogoCargarModelo(page);
-  const trabajo2 = gestor.getByTestId("gestor-zona-trabajo");
-  const filaModelo = trabajo2
+  await expect(gestor.getByTestId("gestor-espacio-modelos")).toHaveAttribute("aria-current", "page");
+  const filaModelo = gestor
+    .locator('[data-testid^="gestor-modelos-"]')
     .getByTestId("modelo-fila-cargar")
     .filter({ hasText: "Modelo graduado 42" })
     .first();
   await expect(filaModelo).toBeVisible();
-  const chipModelo = filaModelo.locator('[data-testid^="chip-rigor-"]');
-  await expect(chipModelo).toHaveAttribute("data-especie", "modelo");
-  await expect(chipModelo).toHaveText("Modelo");
-  // No está en un estante de bibliotecas todavía.
+  await expect(filaModelo.locator('[data-testid^="chip-rigor-"]')).toHaveAttribute("data-especie", "modelo");
   await expect(
-    gestor.getByTestId("gestor-zona-bibliotecas").getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo graduado 42" }),
-  ).toHaveCount(0);
-  await gestor.getByRole("button", { name: "Cancelar" }).click();
-  await expect(gestor).toHaveCount(0);
+    gestor.locator('[data-testid="gestor-modelos-listos"], [data-testid="gestor-modelos-pendientes"]'),
+  ).toHaveCount(1);
 
-  // 5. Marcar biblioteca = cambio de ROL → la fila salta al estante «Bibliotecas»
-  //    (y ya no está en «Trabajo»).
-  await marcarBiblioteca(page, modeloId);
+  // 3. Reabrir desde el propio gestor devuelve el mismo documento al Taller.
+  await filaModelo.getByTestId("modelo-acciones-toggle").click();
+  await filaModelo.getByRole("menuitem", { name: "Reabrir en Taller…" }).click();
+  const reapertura = page.getByTestId("dialogo-reabrir-taller");
+  await expect(reapertura).toBeVisible();
+  await expect(reapertura.getByTestId("tutor-dialogo-reabrir")).toHaveCount(0);
+  await expect(reapertura.locator('[data-tutor-surface-owner="product"]')).toHaveCount(1);
+  await expect(reapertura.getByTestId("reabrir-taller-confirmar"))
+    .toHaveAttribute("data-tutor-entrypoint", "workspace:reopen-workshop");
+  await expect(reapertura).toContainText("No cambian su ID");
+  await reapertura.getByTestId("reabrir-taller-confirmar").click();
+  await expect(reapertura).toHaveCount(0);
+  await expect(page.getByTestId("cinta-apunte")).toContainText("Apunte · en Taller");
+  expect(await idModeloActivo(page)).toBe(documentoId);
+
   gestor = await abrirDialogoCargarModelo(page);
-  const bibliotecas = gestor.getByTestId("gestor-zona-bibliotecas");
-  await expect(bibliotecas).toBeVisible();
-  const filaBiblioteca = bibliotecas
+  await expect(gestor.getByTestId("gestor-espacio-taller")).toHaveAttribute("aria-current", "page");
+  await expect(
+    gestor.getByTestId("gestor-zona-taller")
+      .getByTestId("modelo-fila-cargar")
+      .filter({ hasText: "Modelo graduado 42" }),
+  ).toHaveCount(1);
+  await gestor.getByRole("button", { name: "Cancelar" }).click();
+
+  // 4. Biblioteca sigue siendo un rol ortogonal: se alcanza desde Modelo y
+  // ocupa su propio estante, conservando ID y mostrando preparación formal.
+  await page.getByTestId("cinta-apunte-graduar").click();
+  await page.getByTestId("graduar-confirmar").click();
+  await expect(page.getByTestId("cinta-modelo")).toBeVisible();
+  await marcarBiblioteca(page, documentoId);
+  expect(await idModeloActivo(page)).toBe(documentoId);
+
+  gestor = await abrirDialogoCargarModelo(page);
+  await expect(gestor.getByTestId("gestor-espacio-bibliotecas")).toHaveAttribute("aria-current", "page");
+  const filaBiblioteca = gestor.getByTestId("gestor-zona-bibliotecas")
     .getByTestId("modelo-fila-cargar")
     .filter({ hasText: "Modelo graduado 42" })
     .first();
   await expect(filaBiblioteca).toBeVisible();
-  // En su estante ya no lleva chip de rigor (self-suppress de la especie biblioteca).
-  await expect(filaBiblioteca.locator('[data-testid^="chip-rigor-"]')).toHaveCount(0);
-  // Salió de «Trabajo».
-  await expect(
-    gestor.getByTestId("gestor-zona-trabajo").getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo graduado 42" }),
-  ).toHaveCount(0);
+  await expect(filaBiblioteca.locator('[data-testid^="chip-rigor-"]')).toHaveAttribute("data-especie", "biblioteca");
+  await expect(filaBiblioteca.locator('[data-testid^="chip-rigor-"]')).toContainText("Biblioteca");
 
   expect(pageErrors).toEqual([]);
 });

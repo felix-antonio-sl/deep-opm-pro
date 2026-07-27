@@ -14,6 +14,7 @@ import {
   desplegarComoAgregacion,
   guardarComoActual,
   abrirDialogoCargarModelo,
+  irAEspacioModelos,
   cargarPrimerModelo,
   crearModeloNuevoDesdeMenu,
   abrirMenuPrincipal,
@@ -117,6 +118,7 @@ test("workspace local abre menu, guarda como, guarda incremental y carga desde d
   await crearModeloNuevoDesdeMenu(page);
   await expect(page.locator(".joint-element")).toHaveCount(0);
   const dialogoCargar = await abrirDialogoCargarModelo(page);
+  await irAEspacioModelos(dialogoCargar);
   // Post L4 ronda6: cada modelo en "Recientes" es un boton con data-testid="modelo-fila-cargar".
   const tileWorkspaceL2 = dialogoCargar.getByTestId("modelo-fila-cargar").filter({ hasText: /Workspace L2/ });
   await expect(tileWorkspaceL2).toBeVisible();
@@ -148,6 +150,7 @@ test("L2 dialogo cargar busca descripcion, selecciona tile y carga", async ({ pa
   await guardarComoActual(page, "Busqueda L2", "descripcion persistencia l2");
   await crearModeloNuevoDesdeMenu(page);
   const dialogo = await abrirDialogoCargarModelo(page);
+  await irAEspacioModelos(dialogo);
   await dialogo.getByLabel("Buscar modelos por nombre").fill("persistencia");
 
   const tile = dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: /Busqueda L2/ });

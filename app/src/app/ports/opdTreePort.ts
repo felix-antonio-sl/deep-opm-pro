@@ -19,4 +19,5 @@ export interface OpdTreePort {
   abrirGestionArbol: OpmStore["abrirGestionArbol"];
   nuevoOpdSuelto: OpmStore["nuevoOpdSuelto"];
   adoptarOpdEnSeleccion: OpmStore["adoptarOpdEnSeleccion"];
+  solicitarDevolverOpdABocetos: OpmStore["solicitarDevolverOpdABocetos"];
 }

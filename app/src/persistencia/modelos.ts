@@ -1,4 +1,5 @@
 import type { VersionResumen } from "../modelo/tipos";
+import type { EstadoCierreModelo } from "../modelo/estadoCierre";
 import { compactarJsonDocumento } from "./compactacion";
 
 export interface ResumenModeloPersistido {
@@ -24,6 +25,11 @@ export interface ResumenModeloPersistido {
   versiones?: VersionResumen[];
   crearVersionAlGuardar?: boolean;
   revision?: number;
+  /**
+   * Proyección derivada para catálogo/UX. No se persiste: se recalcula desde el
+   * payload y por eso no puede divergir del documento fuente.
+   */
+  estadoCierre?: EstadoCierreModelo;
 }
 
 export interface ModeloPersistido extends ResumenModeloPersistido {
@@ -116,6 +122,7 @@ export function resumenDesdeModeloPersistido(modelo: ModeloPersistido): ResumenM
     ...(modelo.versiones !== undefined ? { versiones: modelo.versiones } : {}),
     ...(modelo.crearVersionAlGuardar !== undefined ? { crearVersionAlGuardar: modelo.crearVersionAlGuardar } : {}),
     ...(modelo.revision !== undefined ? { revision: modelo.revision } : {}),
+    ...(modelo.estadoCierre !== undefined ? { estadoCierre: modelo.estadoCierre } : {}),
   };
 }
 

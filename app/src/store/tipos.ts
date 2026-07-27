@@ -141,6 +141,7 @@ import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
 import type { Consulta } from "../modelo/razonamiento";
 import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, FichaTrabajo, Id, ImagenEntidad, LayoutEstados, LenteConocimiento, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoRefinamiento, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { MesaBaseWitnessV1 } from "../mesa/baseWitness";
 
 import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
@@ -288,6 +289,13 @@ export interface ConfirmacionEliminarRefinamiento {
   opdIds: Id[];
 }
 
+export interface ConfirmacionDevolverBoceto {
+  tipo: TipoRefinamiento;
+  entidadId: Id;
+  opdId: Id;
+  opdIds: Id[];
+}
+
 export interface OpmStore {
   modelo: Modelo;
   opdActivoId: Id;
@@ -327,6 +335,7 @@ export interface OpmStore {
   nuevaCosaPendiente: { entidadId: Id; aparienciaId: Id; nombre: string } | null;
   refinamientoPendiente: RefinamientoPendiente | null;
   confirmacionEliminarRefinamiento: ConfirmacionEliminarRefinamiento | null;
+  confirmacionDevolverBoceto: ConfirmacionDevolverBoceto | null;
   /** Brecha B3/B4: diálogo de colisión de nombre abierto. `null` = cerrado. */
   colisionPendiente: ColisionPendiente | null;
   filtroOplPorSeleccion: boolean;
@@ -554,10 +563,14 @@ export interface OpmStore {
   actualizarPreguntaGuiaOpd: (opdId: Id, preguntaGuia: string) => void;
   actualizarFichaTrabajo: (ficha: FichaTrabajo | undefined) => void;
   actualizarLentesConocimiento: (lentes: readonly LenteConocimiento[] | undefined) => void;
-  /** Taller (R-OPD-REF-20): crea un OPD suelto vacío y lo activa. */
+  /** Bocetos (R-OPD-REF-20): crea un OPD suelto vacío y lo activa. */
   nuevoOpdSuelto: () => void;
-  /** Taller: adopta un OPD suelto como refinamiento de la cosa seleccionada. */
+  /** Integra un Boceto como refinamiento de la cosa seleccionada. */
   adoptarOpdEnSeleccion: (opdSueltoId: Id, tipo: TipoRefinamiento, modo?: ModoDespliegueObjeto) => void;
+  /** Prepara la devolución no destructiva de un OPD integrado a Bocetos. */
+  solicitarDevolverOpdABocetos: (opdId: Id) => void;
+  confirmarDevolverOpdABocetos: () => void;
+  cancelarDevolverOpdABocetos: () => void;
   quitarDescomposicionSeleccionada: () => void;
   quitarDespliegueSeleccionado: () => void;
   confirmarEliminarRefinamiento: () => void;
@@ -855,9 +868,17 @@ export interface OpmStore {
   graduacionModeloObjetivo: Modelo | null;
   graduacionDescripcionObjetivo: string;
   graduacionRevisionObjetivo: number | null;
+  graduacionTestigoObjetivo: MesaBaseWitnessV1 | null;
   graduacionCarpetaObjetivo: Id | null;
   graduacionEnCurso: boolean;
   graduacionError: string | null;
+  dialogoReabrirModeloId: Id | null;
+  reaperturaModeloObjetivo: Modelo | null;
+  reaperturaDescripcionObjetivo: string;
+  reaperturaRevisionObjetivo: number | null;
+  reaperturaTestigoObjetivo: MesaBaseWitnessV1 | null;
+  reaperturaEnCurso: boolean;
+  reaperturaError: string | null;
   dialogoRolBibliotecaModeloId: Id | null;
   /** Abre el diálogo de graduación de un apunte (nombre/carpeta + validez exigible). */
   abrirGraduar: (modeloId: Id, destino?: "modelo" | "biblioteca") => void;
@@ -871,7 +892,12 @@ export interface OpmStore {
     carpetaId: Id | null;
     bloqueos: number;
     mejoras: number;
+    bocetos: number;
   }) => void;
+  /** Devuelve el mismo Modelo de Trabajo al régimen Apunte y al espacio Taller. */
+  abrirReaperturaTaller: (modeloId: Id) => void;
+  cerrarReaperturaTaller: () => void;
+  confirmarReaperturaTaller: () => void;
   confirmarRolBiblioteca: () => void;
   cancelarRolBiblioteca: () => void;
   archivarCarpetaPorId: (carpetaId: Id) => void;

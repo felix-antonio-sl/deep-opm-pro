@@ -15,7 +15,7 @@ describe("LEY: export honesto (R-OPD-REF-20)", () => {
     const { modelo } = crearOpdSuelto(crearModelo("M"));
     const r = exportarModeloConPerfil(modelo, "canon-diagrama");
     expect(r.ok).toBe(false);
-    expect((r as { error: string }).error).toContain("sin adoptar");
+    expect((r as { error: string }).error).toContain("sin integrar");
   });
 
   test("apunte con OPD sin adoptar → NO bloquea (observación)", () => {

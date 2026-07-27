@@ -58,8 +58,8 @@ origen, luego en el destino; `Esc` cancela).
 Para modelar con método desde cero (qué función transforma a quién antes de
 dibujar), sigue el flujo del [manual de opforja](manual-opforja.md#2-flujo-de-modelamiento-forja),
 que admite **dos
-arranques**: **SD-primero** (top-down) y **bottom-up** (bosquejar OPDs sueltos en
-el Taller y adoptarlos después, ver §Taller).
+arranques**: **SD-primero** (top-down) y **bottom-up** (crear Bocetos OPD e
+integrarlos después, ver §Taller).
 
 ## Apuntes — borradores sin rigor
 
@@ -69,60 +69,69 @@ exige cerrar** como modelo válido. Sirve para pensar y bocetar sin que la
 validación interrumpa. Relaja el *rigor*, no la *semántica*: sigue siendo
 OPM legítimo, no un dibujo libre.
 
-- **Nacer y graduar**: todo modelo **nace apunte** (comando `Nuevo`). Un apunte
-  muestra la cinta **`Apunte`** en la parte superior; **clic en esa cinta abre
-  «Graduar apunte a modelo»**, que muestra el reporte de validez (lo que en el
-  apunte estaba en observación) y te deja decidir. Graduar **no bloquea**
-  por validez: informa y deja decidir. Después de graduar, esas señales recuperan
-  severidad de modelo y pueden bloquear operaciones como el export canónico.
+- **Nacer y graduar**: todo modelo **nace Apunte** (comando `Nuevo`) y vive en
+  **Taller**. Su cinta ofrece `Revisar para graduar`. El diálogo separa
+  integridad, Bocetos, cierre formal OPM y validación humana. La integridad rota
+  bloquea; si solo quedan Bocetos o deuda formal, puedes `Seguir en Taller y
+  corregir` o `Graduar con pendientes` de manera explícita.
 - **Qué cambia**: en un apunte los avisos de **validez** (falta de
   transformee, nombres pobres, firma de enlaces…) bajan de *bloqueo* a
   *observación al margen* — no detienen el trabajo. La **integridad** del
   documento (referencias rotas, enlaces sin extremo) **sigue bloqueando**:
   un apunte roto no es un borrador legítimo, es un documento roto.
-- **Graduar no deja rastro**: al quitarle la marca, los avisos de validez
-  vuelven a bloquear y el modelo es un modelo más. Las observaciones que
-  quedaron pendientes son el checklist de lo que falta cerrar.
-- **No se mezcla con biblioteca**: un modelo es apunte o biblioteca, no
-  ambos a la vez.
+- **Graduar conserva identidad**: el documento pasa a **Modelos** con el mismo
+  ID, hechos, OPDs, OPL y carpeta; se confirma una versión. `Listo formalmente`
+  o `Con pendientes` se calcula desde el diagnóstico actual, no se marca a mano.
+- **Reabrir es la inversa**: un Modelo de Trabajo puede usar `Reabrir en Taller`.
+  Vuelve como Apunte con el mismo ID y contenido y se confirma una versión
+  `Reapertura en Taller`.
+- **No se mezcla con Biblioteca**: Biblioteca es un rol de Modelo. Para reabrir
+  una Biblioteca, primero hay que quitarle ese rol.
 
-## Taller — bosquejar bottom-up
+## Taller — documentos exploratorios y Bocetos bottom-up
 
-No hace falta partir del SD raíz. En el árbol de OPDs, la banda **`Taller`** aloja
-**OPDs sueltos** —fragmentos sin padre—: traza hechos OPM locales sin comprometer
-aún un SD. Créalos con el botón de OPD suelto del árbol.
+**Taller** es el espacio global de los documentos Apunte. Dentro de cualquier
+documento, la banda local **`Bocetos`** aloja OPDs todavía no integrados al árbol:
+fragmentos sin padre que permiten trazar hechos OPM sin comprometer aún un SD.
+Créalos con `+ Nuevo boceto OPD`.
 
-Cuando un fragmento encaja, **adóptalo**: clic derecho sobre el OPD suelto →
-`Adoptar como descomposición` (in-zoom de un proceso) o `Adoptar como despliegue`
-(unfold de un objeto). Adoptar fija el padre y declara el refinamiento en un gesto
-—el mismo resultado que el camino top-down—. Adoptar y graduar son operaciones
-distintas: adoptar fija padre y refinamiento; graduar cambia el régimen
-apunte→modelo. Un OPD suelto:
+Cuando un fragmento encaja, **intégralo**: clic derecho sobre el Boceto →
+`Integrar como descomposición` (in-zoom de un proceso) o
+`Integrar como despliegue` (unfold de un objeto). Integrar fija el padre y
+declara el refinamiento en un gesto —el mismo resultado que el camino top-down—.
+El componente pasa a ser un **OPD integrado**.
 
-- en un **apunte**, el gate baja a observación y permite exportar; el documento
-  canónico Markdown declara que contiene bosquejos;
-- en un **modelo**, bloquea el export canónico hasta adoptarlo o reconciliarlo;
-- nunca se corrige por el solo hecho de graduar.
+`Devolver a Bocetos` hace el camino inverso sin pérdida: conserva el ID, hechos,
+geometría, pregunta guía y subárbol. No lo confundas con
+`Eliminar refinamiento`, que sí destruye el subárbol.
+
+Integrar/devolver y graduar/reabrir son ciclos distintos:
+
+- en un **Apunte**, un Boceto pendiente es observación y la salida declara el
+  bosquejo;
+- en un **Modelo**, un Boceto bloquea el export canónico hasta integrarlo;
+- graduar no integra Bocetos y devolver un OPD no reabre el documento.
 
 La base metodológica está en
 [A1.5 del manual de opforja](manual-opforja.md#2-flujo-de-modelamiento-forja).
 
 ## Gestionar modelos
 
-Abrir el gestor desde `Ctrl+K` › `Abrir / importar modelo` (o el menú ☰). Un solo
-buscador filtra todo; a la izquierda, las carpetas y `Archivo`. Los modelos se
-agrupan en **dos zonas por su rol**:
+Abrir **Trabajo de modelado** desde `Ctrl+K` › `Abrir / importar modelo` (o el
+menú ☰). Un buscador filtra el espacio activo. La navegación superior separa:
 
-- **`Trabajo`**: tus apuntes y modelos juntos, por recencia. El chip de cada fila
-  dice si es apunte o modelo, y **muta in-situ al graduar** (la fila no salta de
-  zona: el modelo maduró, no cambió de naturaleza).
-- **`Bibliotecas`**: los modelos designados como fuente, en un estante aparte, que
-  se abren en **solo-lectura** (editarlos exige confirmación). De ellas se traen
-  Piezas al lienzo (ver
+- **`Taller`**: Apuntes, con sus Bocetos pendientes visibles en el chip.
+- **`Modelos`**: Modelos de Trabajo, agrupados en `Listos formalmente` y
+  `Con pendientes`.
+- **`Bibliotecas`**: Modelos designados como fuente, en un estante global que se
+  abre en **solo lectura**. De aquí se traen Piezas al lienzo (ver
   [Patrones y Piezas](manual-opforja.md#9-patrones-de-modelado)).
+- **`Archivo`**: lente de todo lo archivado; no expresa madurez.
 
-Acciones por fila (al pasar el cursor): abrir, abrir en pestaña nueva, duplicar,
-archivar, eliminar (con confirmación). `Importar JSON` es una acción del encabezado.
+Las carpetas organizan Taller y Modelos. En el menú `Acciones` de cada fila se
+puede abrir en otra pestaña, revisar versiones, reabrir un Modelo en Taller,
+marcar/quitar Biblioteca, archivar/restaurar o eliminar con confirmación.
+`Importar JSON` permanece en el encabezado.
 
 ## Tres operaciones diarias
 

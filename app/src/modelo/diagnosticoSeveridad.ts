@@ -104,7 +104,7 @@ export function resumenSeveridadesTexto(resumen: ResumenSeveridades): string {
  * Spec: docs/superpowers/specs/2026-06-30-modo-apunte-design.md §1, §3.4.
  */
 
-/** Código de la condición de export «OPD sin adoptar» (R-OPD-REF-20). NO es una
+/** Código legado de la condición «Boceto OPD sin integrar» (R-OPD-REF-20). NO es una
  *  clase de severidad del panel (no está en SEVERIDAD_POR_CODIGO); es condición
  *  del gate de export canónico. Se lista en CODIGOS_VALIDEZ_DEGRADABLES_APUNTE para
  *  que en APUNTE degrade a observación (no bloquea el export del bosquejo). */

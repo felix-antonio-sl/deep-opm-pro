@@ -16,7 +16,11 @@ import type {
   WorkspaceIndice,
   WorkspacePersistido,
 } from "../src/persistencia/workspace";
-import { graduarApunte, indiceVacio } from "../src/persistencia/workspace";
+import {
+  graduarApunte,
+  indiceVacio,
+  reabrirModeloEnTaller,
+} from "../src/persistencia/workspace";
 import {
   establecerEspecieCreada,
   registrarVersionEnWorkspace,
@@ -726,6 +730,8 @@ function repositorioPostgres(): ModelPersistenceRepository {
               commit.graduation.folderId,
               commit.graduation.role === "library" ? "biblioteca" : "trabajo",
             )
+          : commit.reopening
+            ? reabrirModeloEnTaller(workspace.indice, commit.model.id)
           : { ok: true as const, value: workspace.indice };
         if (!indiceTransicionado.ok) {
           throw new PersistenciaConflictError(indiceTransicionado.error);

@@ -64,7 +64,7 @@ export function gateDensidadCanonica(modelo: Modelo): Resultado<true> {
 }
 
 /**
- * Condición de export canónico «OPD sin adoptar» (R-OPD-REF-20): un modelo con
+ * Condición de export canónico «Boceto OPD sin integrar» (R-OPD-REF-20): un modelo con
  * OPDs sueltos no cierra como documento canónico. En un MODELO bloquea con causa;
  * en un APUNTE (rigor relajado) degrada a observación vía la whitelist
  * CODIGOS_VALIDEZ_DEGRADABLES_APUNTE — NO es una clase de severidad nueva.
@@ -79,7 +79,7 @@ export function gateOpdsSinAdoptar(modelo: Modelo, opciones: { esApunte?: boolea
   const nombres = sueltos.map((o) => `'${o.nombre}'`).join(", ");
   return {
     ok: false,
-    error: `Export canónico bloqueado: OPD sin adoptar: ${nombres}. Adopta cada OPD suelto (in-zoom/unfold de una cosa) o reconcílialo antes de exportar.`,
+    error: `Export canónico bloqueado: Boceto OPD sin integrar: ${nombres}. Integra cada Boceto como refinamiento (in-zoom/unfold de una cosa) antes de exportar.`,
   };
 }
 
@@ -144,7 +144,7 @@ export function emitirDocumentoCanonico(modelo: Modelo, opciones: { esApunte?: b
   secciones.push(`# ${filtrado.nombre}`);
   const sueltosMarca = opdsSueltos(modelo);
   if (opciones.esApunte && sueltosMarca.length > 0) {
-    secciones.push(`> **Bosquejo**: contiene ${sueltosMarca.length} OPD(s) sin adoptar (observación, no bloqueo).`);
+    secciones.push(`> **Bosquejo**: contiene ${sueltosMarca.length} Boceto(s) OPD sin integrar (observación, no bloqueo).`);
   }
   secciones.push(`> Perfil de export: \`canon-documento\` (R-VIS-EXP-2).`);
   if (typeof filtrado.descripcion === "string" && filtrado.descripcion.trim()) {

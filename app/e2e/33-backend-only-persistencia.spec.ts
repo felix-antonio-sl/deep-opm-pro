@@ -4,6 +4,7 @@ import {
   crearModeloNuevoDesdeMenu,
   elementoPorTexto,
   guardarComoActual,
+  irAEspacioModelos,
 } from "./_smoke-helpers";
 
 test("persistencia backend-only guarda y carga desde API", async ({ page }) => {
@@ -25,6 +26,7 @@ test("persistencia backend-only guarda y carga desde API", async ({ page }) => {
 
   await crearModeloNuevoDesdeMenu(page);
   const dialogo = await abrirDialogoCargarModelo(page);
+  await irAEspacioModelos(dialogo);
   await expect(dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: /Backend Only E2E/ })).toBeVisible();
   await dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: /Backend Only E2E/ }).dblclick();
   await expect(dialogo).toHaveCount(0);

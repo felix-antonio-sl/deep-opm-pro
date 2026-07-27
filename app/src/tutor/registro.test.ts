@@ -155,6 +155,14 @@ describe("registro verificable del tutor", () => {
     const lifecycle = effectByEntrypoint("cap.lifecycle.regime");
     expect(effectKinds(lifecycle, "workspace:graduate-model")).toEqual(["read", "external", "workspace"]);
     expect(effectKinds(lifecycle, "workspace:mark-library")).toEqual(["workspace"]);
+
+    const reopening = effectByEntrypoint("cap.lifecycle.degrade");
+    expect(effectKinds(reopening, "workspace:reopen-workshop")).toEqual(["read", "external", "workspace"]);
+    expect(lastRecovery(reopening, "workspace:reopen-workshop")).toContain("no adelanta el régimen local");
+
+    const returning = effectByEntrypoint("cap.refinement.unadopt");
+    expect(effectKinds(returning, "tree:return-sketch")).toEqual(["read", "model"]);
+    expect(lastRecovery(returning, "tree:return-sketch")).toContain("restaura el vínculo exacto");
   });
 
   test("ficha local y ficha upstream conservan contratos separados", () => {

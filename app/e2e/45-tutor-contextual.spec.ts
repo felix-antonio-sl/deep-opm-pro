@@ -90,7 +90,7 @@ test("Editar la pregunta conserva valor y foco al cancelar y revela su fundament
   await expect(editar).toBeFocused();
 });
 
-test("Escape al cancelar adopción conserva la selección y devuelve foco al OPD suelto", async ({ page }) => {
+test("Escape al cancelar integración conserva la selección y devuelve foco al Boceto", async ({ page }) => {
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Proceso", exact: true }).click();

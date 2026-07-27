@@ -435,6 +435,24 @@ export function graduarApunte(
 }
 
 /**
+ * Transición inversa de régimen: el mismo Modelo de Trabajo vuelve a Apunte y,
+ * por tanto, al espacio Taller. No duplica ni mueve el registro y rechaza el
+ * rol Biblioteca para mantener ortogonales rigor y reutilización.
+ */
+export function reabrirModeloEnTaller(
+  indice: WorkspaceIndice,
+  modeloId: Id,
+): Resultado<WorkspaceIndice> {
+  const entrada = indice.modelos.find((modelo) => modelo.id === modeloId);
+  if (!entrada) return fallo("Modelo no encontrado en el índice");
+  if (entrada.esBiblioteca === true) {
+    return fallo("Quita primero el rol Biblioteca para reabrir el Modelo en Taller");
+  }
+  if (entrada.esApunte === true) return fallo("El documento ya está en Taller");
+  return ok(marcarApunte(indice, modeloId, true));
+}
+
+/**
  * B1 — Read-path del flag biblioteca. Lista las entradas del índice designadas
  * como biblioteca (origen de Piezas). Lo consume la superficie «Piezas» (B2)
  * para poblar el selector de fuente; se cruza por id con `modelosGuardados`

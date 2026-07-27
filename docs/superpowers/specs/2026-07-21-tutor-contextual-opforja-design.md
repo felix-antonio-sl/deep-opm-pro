@@ -1,8 +1,8 @@
 # Tutor contextual de opforja — diseño integral del ciclo de modelamiento
 
-**Fecha:** 2026-07-21 · **Estado:** APROBADO PARA IMPLEMENTACIÓN; NO AUTORIZA DEPLOY ·
-**Ámbito:** producto y arquitectura; sustituye el alcance parcial centrado en refinamiento y
-autoriza implementación local, tests, commits y push controlado.
+**Fecha:** 2026-07-21 · **Estado:** REALIZADO; enmendado el 2026-07-27 por el
+ciclo reversible de `2026-07-27-taller-modelos-ciclo-reversible-design.md`;
+NO AUTORIZA DEPLOY · **Ámbito:** producto y arquitectura.
 
 ## 1. Función esencial
 
@@ -17,9 +17,9 @@ deliberadamente mínima.
 
 La experiencia icónica es el refinamiento:
 
-> Al iniciar in-zoom, unfold o la adopción de un OPD como hijo, opforja pregunta qué pregunta
-> busca responder ese refinamiento y hace visibles modalidad, adoptante y relación estructural cuando
-> corresponden. Sin esas decisiones explícitas no crea el vínculo. Al confirmarlas, crea o adopta el
+> Al iniciar in-zoom, unfold o la integración de un Boceto como OPD hijo, opforja pregunta qué pregunta
+> busca responder ese refinamiento y hace visibles modalidad, elemento refinado y relación estructural cuando
+> corresponden. Sin esas decisiones explícitas no crea el vínculo. Al confirmarlas, crea o integra el
 > OPD, conserva la pregunta como guía metodológica y devuelve al modelador al canvas con el siguiente
 > paso útil.
 
@@ -107,7 +107,7 @@ y sus regresiones. La implementación no reabre estas decisiones por convenienci
 | `[RATIFICAR]` no es una marca genérica. | Método y procedencia upstream. | `urn:fxsl:kb:metodologia-forja-opm-es` A7; contrato de anclas normativas. | La proyección aparece solo cuando una entrada Proto/importada declara un ancla con `estado: pendiente-ratificacion`; el registro puede documentar la decisión humana, pero no cambia por sí solo `estado` a `vigente`. | La mesa conserva y explica ese estado, pero no lo inventa ni ratifica automáticamente una hipótesis. | `app/src/modelo/{anclasNormativas,logDecisiones}.test.ts` y `app/e2e/33-anclas-inspector.spec.ts` deben demostrar filtro, conservación y ausencia de transición automática a `vigente`. |
 | La linealidad con varios consumidores no bloquea. | Validez y severidad. | `urn:fxsl:kb:reglas-opm-estrictas-es`; `R-CAT-LIN-2`; `severidadDiagnostico`; `CODIGOS_EQUIVALENTES`. | `RECURSO_LINEAL_MULTIPLES_CONSUMIDORES` se proyecta como mejora y la composición permanece disponible si satisface sus propias precondiciones. | Orientar y navegar al hecho, sin elevarlo a bloqueo ni usarlo como gate de `Componer`. | `app/src/modelo/{checkers-linealidad,diagnosticoSeveridad}.test.ts` y `app/src/modelo/composicion/linealidad.test.ts` deben conservar la severidad y el gate no bloqueante. |
 | Componer sí tiene precondiciones transaccionales propias. | Integridad de la operación de modelo. | Familia `R-CAT-COMP`; `componerModelos`; `DialogoComposicion`. | La fuente y los mapeos deben resolverse y el resultado debe ser íntegro; aplicar crea un commit único y undo recupera el modelo anterior. | Bloquear solo por esas precondiciones; presentar incorporación y procedencia antes de confirmar. | `app/src/modelo/composicion/{componer,componer-integridad,interfaz}.test.ts`, `app/src/store/modelo/composicion-ux.test.ts` y `app/e2e/32-composicion-modelos.spec.ts` deben cubrir rechazo, aplicación y recuperación. |
-| Graduar aumenta rigor, no certifica. | Método, ciclo de vida y severidad. | `urn:fxsl:kb:metodologia-forja-opm-es`; contrato Apunte/Taller; `diagnosticoSeveridad`. | `SD_SIN_PROCESO_PRINCIPAL` sigue siendo mejora; graduar cambia rigor, nombre/destino elegidos y especie, sin reparar hechos, adoptar OPDs ni cambiar el rol Biblioteca. | No convertir la mejora en bloqueo ni comunicar certificación automática. | `app/src/leyes/taller-rigor-al-graduar.test.ts`, `app/src/modelo/diagnosticoSeveridad.test.ts` y `app/e2e/{41-nacimiento-apunte,42-gestor-dos-zonas}.spec.ts` deben demostrar el cambio explícito y sus invariantes. |
+| Graduar aumenta rigor, no certifica. | Método, ciclo de vida y severidad. | `urn:fxsl:kb:metodologia-forja-opm-es`; contrato Apunte/Taller; `diagnosticoSeveridad`. | `SD_SIN_PROCESO_PRINCIPAL` sigue siendo mejora; graduar cambia rigor, nombre/destino elegidos y especie, sin reparar hechos, integrar Bocetos ni cambiar el rol Biblioteca. | No convertir la mejora en bloqueo ni comunicar certificación automática. | `app/src/leyes/taller-rigor-al-graduar.test.ts`, `app/src/modelo/diagnosticoSeveridad.test.ts` y `app/e2e/{41-nacimiento-apunte,42-gestor-dos-zonas}.spec.ts` deben demostrar el cambio explícito y sus invariantes. |
 | La fuente categorial explica, pero no decide validez. | Explicación formal. | `urn:fxsl:kb:opm-categorial-es` v1.3.0; `docs/canon-opm/resolutor-urn.json`. | `Fundamento` puede resolver y abrir la fuente; ningún consumidor de severidad la usa como autoridad propietaria. | Publicar solo citas resolubles y mantenerla fuera de los gates. | `app/src/tutor/registro.test.ts`, el gate de corpus y `app/e2e/45-tutor-contextual.spec.ts` deben fallar ante una ruta rota o una fuente decisoria incorrecta. |
 | Revalidar significa recomputar automáticamente. | Interacción del diagnóstico. | `PanelDiagnostico`; `ui-forja/05-interactions.md` §6. | El diagnóstico y su delta accesible se actualizan reactivamente tras cambiar el modelo; no existe acción manual. | Navegar o explicar el diagnóstico vigente, sin restaurar el botón retirado ni crear una segunda superficie persistente. | `app/e2e/11-beta1-validacion-metodologica.spec.ts` y las pruebas del diagnóstico deben comprobar actualización reactiva y ausencia de `panel-diagnostico-revalidar`. |
 
@@ -146,9 +146,9 @@ abandonar el gesto.
 
 | Eje | Polos | Transición viva | Lo que **no** significa |
 | --- | --- | --- | --- |
-| **Rigor** | Apunte → Modelo | `Graduar` vuelve exigibles las señales metodológicas antes relajadas. | No adopta OPDs, no corrige hechos y no certifica calidad. No existe hoy una acción UI de degradar. |
-| **Integración** | Taller → árbol de OPDs | `Adoptar` vincula un OPD suelto como refinamiento y conserva su identidad. | No gradúa el apunte. Quitar un refinamiento hoy elimina su subárbol; no lo devuelve al Taller. |
-| **Rol** | Trabajo ⇄ Biblioteca | `Marcar/Quitar de bibliotecas` designa o retira al modelo como fuente de Piezas. | No lo abre, no cambia por sí solo la guardia de edición y no prueba validez ni madurez. Si el origen era Apunte, marcar también abandona ese rigor. |
+| **Rigor** | Apunte ⇄ Modelo | `Graduar` vuelve exigible el cierre; `Reabrir en Taller` lo devuelve a observación. | No integra Bocetos, no corrige hechos y no certifica calidad. |
+| **Integración** | Boceto ⇄ OPD integrado | `Integrar` vincula el Boceto como refinamiento; `Devolver a Bocetos` libera el vínculo y conserva el subárbol. | No gradúa ni reabre el documento. `Eliminar refinamiento` sigue siendo destructivo. |
+| **Rol** | Modelo de Trabajo ⇄ Modelo de Biblioteca | `Marcar/Quitar de bibliotecas` designa o retira al modelo como fuente de Piezas. | No lo abre, no cambia por sí solo la guardia de edición y no prueba validez ni madurez. Si el origen era Apunte, marcar también abandona ese rigor. |
 
 Los estados legales son `(Apunte, Trabajo)`, `(Modelo, Trabajo)` y `(Modelo, Biblioteca)`;
 `(Apunte, Biblioteca)` es ilegal. Quitar de Bibliotecas vuelve a `(Modelo, Trabajo)`, nunca a Apunte.
@@ -161,7 +161,7 @@ permanece igual.
 
 ### 3.3 Un ciclo de remodelamiento, no un wizard
 
-El trabajo puede empezar por una función clara, por fragmentos en Taller o por un modelo existente.
+El trabajo puede empezar por una función clara, por Bocetos dentro de Taller o por un modelo existente.
 No se persiste una “etapa actual” ni se encierra al modelador en una secuencia. El momento se deriva
 del gesto, la selección, el OPD, el régimen y el modo de trabajo explícitos.
 
@@ -230,10 +230,11 @@ semántica OPM.
   `evidencia externa`; nunca los fusiona bajo “correcto”.
 - Un bloqueo nombra causa y salida: `Este enlace no admite ese extremo · Elegir otro tipo`; se evita
   `Algo salió mal`.
-- Una confirmación dice hecho y consecuencia, no juicio: `OPD adoptado · ahora refina «Proceso»`, no
+- Una confirmación dice hecho y consecuencia, no juicio: `OPD integrado · ahora refina «Proceso»`, no
   `¡Excelente trabajo!`.
-- Los verbos visibles coinciden con el producto: Adoptar, Graduar, Calcar, Anclar, Re-sincronizar,
-  Componer, Conectar y Restaurar no se diluyen en “continuar”, “usar” o “sincronizar todo”.
+- Los verbos visibles coinciden con el producto: Integrar, Devolver a Bocetos, Graduar, Reabrir en
+  Taller, Calcar, Anclar, Re-sincronizar, Componer, Conectar y Restaurar no se diluyen en
+  “continuar”, “usar” o “sincronizar todo”.
 - No habla en primera persona, no atribuye intención al modelador y no presenta inferencias como
   confianza probabilística.
 
@@ -291,29 +292,29 @@ Esta corrección es una decisión material de producto y por eso se entrega como
 oculta dentro del cambio de schema ni se modifica parcialmente el default. Su aprobación ocurre al
 aprobar esta especificación escrita y sus cuatro variantes se verifican por separado.
 
-### 6.3 Adoptar un OPD existente
+### 6.3 Integrar un Boceto existente
 
-Antes de enlazar el OPD elegido como hijo se abre un único gateway `Adoptar «{opd}»`. El contexto
-preseleccionado se hace visible y editable; nunca se hereda como significado oculto:
+Antes de enlazar el Boceto elegido como hijo se abre un único gateway `Integrar «{opd}»`. El
+contexto preseleccionado se hace visible y editable; nunca se hereda como significado oculto:
 
-1. `Elemento que refina`: una cosa elegible del OPD adoptante;
+1. `Elemento que refina`: una cosa elegible del OPD integrador;
 2. `Tipo de refinamiento`: `Descomposición` o `Despliegue`;
 3. si es despliegue, `Relación estructural`: las cuatro alternativas de §6.2;
 4. `Pregunta guía`: `¿Qué pregunta responde este OPD al refinar «{nombre}»?`.
 
-La acción `Adoptar y abrir OPD` solo se habilita cuando todos los campos exigibles están resueltos.
+La acción `Integrar y abrir OPD` solo se habilita cuando todos los campos exigibles están resueltos.
 Si el OPD ya tiene `preguntaGuia`, aparece prellenada y editable. Confirmar invoca el mismo
 `establecerRefinamiento` usado por el camino top-down y cruza un solo commit con adoptante, tipo,
 relación cuando aplica, vínculo y pregunta. No queda un `modo` legacy implícito. Undo devuelve el OPD
-al Taller y restaura vínculo, ubicación y pregunta previos —incluida la ausencia—; no elimina el OPD.
-Cancelar conserva selección, modelo y undo intactos. Ambos menús vivos de adopción atraviesan este
-mismo gateway.
+al espacio Bocetos y restaura vínculo, ubicación y pregunta previos —incluida la ausencia—; no
+elimina el OPD. Cancelar conserva selección, modelo y undo intactos. Ambos menús vivos de integración
+atraviesan este mismo gateway.
 
 ### 6.4 Reordenar no cambia silenciosamente el significado
 
 `Cortar/Pegar` se limita a reordenar OPDs hermanos. Mover un OPD bajo otra cosa no es layout: cambia
-el hecho de refinamiento y debe pasar por el gateway de adopción/reubicación, actualizar de forma
-atómica `padreId`, el slot semántico de la cosa adoptante, modalidad, relación y pregunta guía, y
+el hecho de refinamiento y debe pasar por el gateway de integración/reubicación, actualizar de forma
+atómica `padreId`, el slot semántico de la cosa integradora, modalidad, relación y pregunta guía, y
 ofrecer undo íntegro. Hasta que esa convergencia exista, la UI no ofrece pegar bajo un padre distinto.
 Así el árbol, el kernel y la pregunta nunca describen tres contextos incompatibles.
 
@@ -324,7 +325,7 @@ Así el árbol, el kernel y la pregunta nunca describen tres contextos incompati
   `Añadir pregunta`.
 - Navegar hacia un refinamiento existente no vuelve a preguntar.
 - Exportar un modelo histórico no materializa defaults ni introduce diffs espurios.
-- El gate duro aplica solo a nuevas operaciones de descomponer, desplegar y adoptar.
+- El gate duro aplica solo a nuevas operaciones de descomponer, desplegar e integrar un Boceto.
 - Este gate es el contrato de declaración de un gesto nuevo, no un juicio de invalidez OPM. En modo
   Apunte y en modelos legacy la ausencia sigue siendo observable y corregible, nunca inválida por sí
   sola.
@@ -540,7 +541,7 @@ Nueva evidencia o una revisión entrante nunca cruza de lectura a mutación sin 
 explícita.
 
 En Cortes 1A/1B, `refinamientoPendiente` es estado efímero de aplicación, no parte de `Modelo`. Las
-acciones de descomponer, desplegar y adoptar lo abren cuando el refinamiento es nuevo; confirmar
+acciones de descomponer, desplegar e integrar un Boceto lo abren cuando el refinamiento es nuevo; confirmar
 pasa `preguntaGuia` —y en unfold la relación elegida— a la operación de dominio y realiza un único
 `commitModelo`. Los constructores de dominio aceptan el metadato como opcional para no romper
 imports, fixtures ni consumidores legítimos fuera del gesto interactivo. Todos los disparadores de
@@ -560,7 +561,7 @@ ley que la justifique.
 | --- | --- |
 | Estado vacío + toolbar | Elegir SD-first o Taller y enseñar la primera distinción objeto/proceso/enlace sin onboarding. |
 | Canvas + `CodexSelectionAnnotation` | Acción inmediata, pregunta previa y confirmación del gesto seleccionado. |
-| Cabecera + árbol + Taller | Mostrar/editar la pregunta, ubicación y carácter raíz/refinado/suelto/derivado; explicar adopción sin añadir badges duplicados. |
+| Cabecera + árbol + Bocetos | Mostrar/editar la pregunta, ubicación y carácter raíz/integrado/Boceto/derivado; explicar integración sin añadir badges duplicados. |
 | `CintaApunte` / `DialogoGraduar` | Explicar y ejecutar únicamente el cambio de rigor, con validez exigible y consecuencias. |
 | Gestor | Designar/retirar el rol Biblioteca y manejar guardado, versión, archivo y revisión; marcar no abre el modelo. |
 | `CintaBiblioteca` | Explicar la guardia de apertura solo lectura y pedir una decisión consciente antes de editar; no es dueña del rol. |
@@ -627,7 +628,7 @@ El tutor reconoce doce momentos, pero no los convierte en pasos obligatorios:
    afectado, frontera y criterio de suficiencia.
 3. **Explorar:** capturar fragmentos legítimos en un Apunte, desde el SD o bottom-up en Taller.
 4. **Formalizar:** distinguir objetos, procesos, estados, roles, transformaciones y relaciones.
-5. **Integrar:** traer apariencias, adoptar OPDs, construir el árbol y refinar con una pregunta.
+5. **Integrar:** traer apariencias, integrar Bocetos, construir el árbol y refinar con una pregunta.
 6. **Leer:** contrastar cada cambio significativo con el OPL que realmente produjo.
 7. **Validar:** separar integridad, cierre metodológico y estilo; navegar hasta el hecho corregible.
 8. **Analizar:** buscar, recorrer dependencias, verificar frontera, comparar vistas y razonar impacto.
@@ -663,7 +664,7 @@ efecto.
 | Familia viva | Decisión o comprensión que custodia | Superficie propietaria y conducta del tutor |
 | --- | --- | --- |
 | **Nuevo, abrir, importar, guardar y autosalvar** | Distinguir explorar, retomar, copiar y preservar; evitar pérdida ante dirty, import o revisión remota. | Estado vacío, gestor, `ChipPersistencia` y diálogos existentes. Calla en guardados rutinarios; declara identidad, destino, secuencia de efectos y recuperación. Importar en la activa anticipa reemplazo e historial nuevo; importar en pestaña nueva no. |
-| **Apunte, Modelo, Taller y Biblioteca** | Reconocer qué eje cambia: rigor, integración o rol. | `CintaApunte`, árbol/Taller, `DialogoGraduar`, gestor y `CintaBiblioteca`. Nunca los presenta como cuatro modos equivalentes. |
+| **Apunte, Modelo, Taller y Biblioteca** | Reconocer qué eje cambia: rigor, integración o rol. | `CintaApunte`, `CintaModelo`, banda Bocetos, diálogos de graduación/reapertura, gestor y `CintaBiblioteca`. Nunca los presenta como modos equivalentes. |
 | **Propósito, SD y frontera** | Elegir entrada SD-first o bottom-up; explicitar función, beneficiario/afectado, transformee, valor y límite del sistema. | Estado vacío, selección y cabecera del OPD. Pregunta solo lo que el operador debe decidir; remite a método y manuales de dominio para profundizar. |
 | **Objetos y procesos** | Distinguir lo que existe de lo que transforma; nombrar sin convertir la interfaz, el documento o la organización en sustituto del fenómeno. | Creación, renombrado e Inspector. En primer uso o duda ofrece el criterio; no clasifica nombres mediante heurísticas. |
 | **Esencia, afiliación, alias, descripción, unidad, valor, URL e imagen** | Separar semántica OPM, metadato del dominio y mera realización visual. | Campo exacto del Inspector. Enseña al abrir una propiedad no obvia; calla en edición repetida y nunca hace que una imagen o alias cambie la identidad lógica. |
@@ -672,7 +673,7 @@ efecto.
 | **Enlaces estructurales** | Distinguir partes, atributos exhibidos, especializaciones e instancias. | Selector de relación, unfold y edición del enlace. Expone las cuatro alternativas cuando cambian el significado; no usa agregación silenciosa. |
 | **Control, abanicos, multiplicidad, rutas y excepciones** | Distinguir esperar, omitir, disparar; todas/exactamente una/al menos una; cardinalidad, escenario y umbral temporal. | Secciones del enlace, abanico y decisión. Preguntas breves ligadas al control activo; el diagnóstico conserva inconsistencias persistentes. El abanico probabilístico declarado con pesos pendientes (`R-FAN-PROB-1`, caso C) permanece programado: el tutor no confunde alternativas ordinarias con probabilidades ni presenta el uniforme de simulación como pesos persistidos. |
 | **Apariciones, traer, ocultar, plegar y layout** | Entender que una entidad lógica puede aparecer en varios OPDs y que visibilidad/layout no crean ni borran hechos. | Canvas, acciones contextuales, árbol e Inspector. Confirma efectos de vista y solo interviene por colisión, densidad, frontera o posible confusión entre apariencia e identidad. |
-| **Taller, adopción y árbol de OPDs** | Integrar un OPD suelto sin confundir el acto con graduación ni reordenar con reparentar. | Banda Taller, menú del OPD y gateway de adopción. Declara `Adoptar integra; no gradúa`; pide adoptante, modalidad, relación si aplica y pregunta. Cortar/Pegar solo reordena hermanos hasta que reparentar converja por el mismo kernel. Eliminar un refinamiento usa copy destructivo de subárbol; jamás promete devolverlo al Taller. |
+| **Bocetos, integración y árbol de OPDs** | Integrar un Boceto sin confundir el acto con graduación ni reordenar con reparentar. | Banda Bocetos, menú del OPD y gateway de integración. Declara `Integrar no gradúa`; pide elemento refinado, modalidad, relación si aplica y pregunta. `Devolver a Bocetos` preserva identidad y subárbol. Cortar/Pegar solo reordena hermanos. Eliminar un refinamiento conserva su copy destructivo y se presenta por separado. |
 | **Refinamiento, plegado y frontera** | Elegir pregunta guía, descomposición/despliegue, relación estructural, contenido nuevo, orden, mecanismo y preservación de frontera. | Anotación de selección, cabecera del OPD, árbol e Inspector. Aplica el flujo icónico de §6 y ofrece verificar coherencia cuando la capacidad existe. |
 | **Vistas derivadas y de requisito/submodelo** | Saber si se está leyendo una proyección sin hechos nuevos o editando el modelo propietario. | Cabecera y árbol. Muestra propósito y solo-lectura; no ofrece mutaciones imposibles ni llama refinamiento a una vista genérica. |
 | **OPL legible y edición inversa** | Confirmar que el texto expresa la intención; saber qué líneas se aplicarán, cuáles no y por qué. | `PanelOpl` y `EditorOplHonesto`. Señala el delta real, conserva la previsualización por línea y remite al canvas cuando una forma no tenga inversa viva. No juzga la intención. |
@@ -684,7 +685,7 @@ efecto.
 | **Anclaje y drift** | Comprender origen, estado sincronizado/divergente, alcance de resincronizar y efecto de soltar el vínculo. | Sección `Anclaje` del Inspector. `Re-sincronizar` acepta la firma viva como nueva referencia y **no cambia el contenido local**; `Soltar` crea independencia y pierde vigilancia. Mientras no exista diff visual no finge previsualizar cambios. |
 | **Submodelo y composición** | Elegir entre consultar una referencia solo lectura o incorporar hechos mediante una interfaz compartida. | `DialogoSubmodelo` y `DialogoComposicion`. Pregunta `¿referencia o integración?`; una coincidencia sugerida es heurística, no prueba equivalencia. Los mapeos inválidos o un resultado sin integridad bloquean la transacción; un conflicto de linealidad se muestra como mejora metodológica navegable y no deshabilita `Componer`. Declara incorporación, procedencia y reversibilidad antes de aplicar. |
 | **Notas, anclas, `[RATIFICAR]` y puente con la skill** | Capturar una duda sin fosilizarla como definición y usar la autoridad correcta. | Inspector y comandos de contexto/log. Nota para duda/hipótesis/cambio pendiente; ledger/fuente externa para procedencia y fuerza de evidencia; ancla solo para afirmación normativa. `[RATIFICAR]` aparece únicamente cuando un ancla upstream ya llegó `pendiente-ratificacion`; opforja registra su transición, no crea pendientes genéricos. `modelamiento-opm` sigue siendo el consumidor externo que re-elicita. |
-| **Graduación** | Ver qué severidades pasan a exigibles y decidir con conocimiento; comprender que los hechos no cambian. | `CintaApunte` y `DialogoGraduar`. Muestra issues navegables, cambios/no-cambios y una confirmación honesta; no repara, adopta ni certifica. |
+| **Graduación y reapertura** | Ver qué severidades pasan a exigibles, decidir con conocimiento y volver a explorar sin duplicar. | `CintaApunte`, `CintaModelo`, `DialogoGraduar` y `DialogoReabrirTaller`. Separa integridad, integración, cierre formal y validación humana; preserva identidad; no repara, integra ni certifica. |
 | **Biblioteca y guardia de apertura** | Designar una fuente de Piezas sin confundir rol con apertura o edición. | El Gestor es dueño de `Marcar/Quitar de bibliotecas`; marcar no abre. Si el origen es Apunte, explicita la transición combinada rigor+rol. Quitar vuelve a `(Modelo, Trabajo)`, nunca a Apunte. Al abrir, `CintaBiblioteca` gobierna `solo lectura ⇄ edición`; editar no retira el rol Biblioteca. |
 | **Versiones, revisión remota, import/export y relevo** | Preservar historia, restaurar como copia, escoger JSON/OPL/Markdown/PNG/contexto-skill y entender los gates canónicos. | Chip, versiones, importación y `Ctrl+K`. Explica finalidad, alcance, bloqueos y destino; restaurar crea copia y eliminar una versión exige confirmación irreversible. No promete PDF, diff visual ni merge automático inexistentes. |
 | **Lectura móvil, simulación y solo lectura** | Entender por qué una acción no está disponible y dónde puede realizarse. | Superficie móvil o cinta del modo activo. Enseña y navega sin renderizar controles de mutación imposibles. |
@@ -734,19 +735,21 @@ otro sistema.
 **Fundamento base:** `urn:fxsl:kb:reglas-opm-estrictas-es`, `docs/manual-opforja.md` §8 y
 `docs/superpowers/specs/2026-07-06-apuntes-taller-design.md` §4/§7.
 
-#### C. Adoptar no es graduar
+#### C. Integrar no es graduar
 
-Cuando hay OPDs sueltos, Taller explica discretamente:
+Cuando hay Bocetos, su banda local explica discretamente:
 
-> Taller · {N} OPD(s) aún sin lugar en el árbol. Sus hechos ya emiten OPL.
+> Bocetos · {N} OPD(s) aún sin integrar. Sus hechos ya emiten OPL.
 
-Al adoptar, junto a la pregunta guía de §6.3 aparece:
+Al integrar, junto a la pregunta guía de §6.3 aparece:
 
-> Adoptar integra este OPD al árbol. El rigor del Apunte o Modelo no cambia.
+> Integrar vincula este Boceto al árbol como OPD. El rigor del Apunte o Modelo no cambia.
 
-La operación es atómica y undo lo devuelve al Taller. En cambio, **quitar** una descomposición o
-despliegue existente destruye el subárbol según el comportamiento vivo; su confirmación debe decir
-`Eliminar refinamiento y subárbol`, enumerar el alcance y ofrecer `Cancelar` como foco inicial.
+La operación es atómica y undo lo devuelve a Bocetos. `Devolver a Bocetos` ofrece
+la misma inversa preservadora como gesto explícito. En cambio, **quitar** una
+descomposición o despliegue existente destruye el subárbol; su confirmación debe
+decir `Eliminar refinamiento y subárbol`, enumerar el alcance y ofrecer
+`Cancelar` como foco inicial.
 
 **Fundamento base:** `urn:fxsl:kb:metodologia-forja-opm-es`,
 `urn:fxsl:kb:spec-forja-opd-es` y
@@ -856,7 +859,7 @@ notas, anclas normativas, ratificaciones y versiones; no en un workflow oculto d
 El comando elegido explica su producto antes de ejecutarse: JSON preserva el modelo; OPL/Markdown
 comunica su lectura textual; documento canónico agrega portada, métricas, árbol, OPL y procedencia;
 PNG realiza OPDs; contexto/log prepara el relevo a la skill. Un export bloqueado enfoca la causa
-existente —densidad u OPD sin adoptar bajo el régimen correspondiente— y ofrece la acción
+existente —densidad o Boceto pendiente de integración bajo el régimen correspondiente— y ofrece la acción
 correctiva viva. No ofrece PDF ni un diff que el producto no sabe producir.
 
 **Fundamento base:** `docs/uso-productivo.md` §Versiones/§Exportar y compartir,
@@ -892,7 +895,7 @@ exentos con razón; no se pretende descubrir JSX por heurística.
 | `live-read` | Vista genérica cargada/creada por canales que ya la soportan | Explica que navega y no emite OPL; la UI no ofrece crearla si no tiene entrypoint vivo. |
 | `reference-only` | Out-zoom/abstracción automática; abanico probabilístico declarado con pesos pendientes (`R-FAN-PROB-1`, caso C) | Puede abrir fundamento conceptual; no muestra un botón ni simula disponibilidad. En el abanico distingue caso B/C y aclara que el uniforme usado al simular no persiste pesos. |
 | `external` | PDF real, diff visual de modelos/versiones, merge multiusuario, co-simulación federada, inferencia OPM automática | Explica el límite cuando sea pertinente y ofrece solo exportes/operaciones realmente vivos. |
-| `absent` | Degradar Modelo→Apunte, desadoptar sin borrar, graduación que repara/adopta, certificación automática | No aparece como acción. El tutor nunca la insinúa en copy. |
+| `absent` | Graduación que repara o integra, certificación automática | No aparece como acción. El tutor nunca la insinúa en copy. |
 
 “Completo” significa que no queda una acción semántica viva sin clasificación, una transición sin
 consecuencia explícita, una regla citada sin dueño ni una fuente viva fuera del inventario.
@@ -918,10 +921,10 @@ consecuencia explícita, una regla citada sin dueño ni una fuente viva fuera de
 
 - Iniciar cada gesto no muta modelo ni undo.
 - Blanco/espacios mantiene deshabilitada la confirmación.
-- Descomponer y desplegar crean OPD + vínculo + pregunta; adoptar confirma adoptante, tipo, relación
+- Descomponer y desplegar crean OPD + vínculo + pregunta; integrar confirma elemento refinado, tipo, relación
   cuando aplica y pregunta sobre el OPD existente. Cada gesto cruza un solo commit y ningún slot queda
   con modalidad implícita.
-- Un undo de creación revierte OPD, vínculo y pregunta; uno de adopción devuelve el OPD al Taller y
+- Un undo de creación revierte OPD, vínculo y pregunta; uno de integración devuelve el OPD a Bocetos y
   restaura su pregunta previa. Redo restaura el resultado confirmado.
 - Editar o añadir una pregunta cruza un commit propio; cancelar no muta, undo restaura el valor
   anterior/ausencia y redo recupera el nuevo.
@@ -930,14 +933,14 @@ consecuencia explícita, una regla citada sin dueño ni una fuente viva fuera de
   puede cambiar el bloque OPL.
 - Navegar legacy es no bloqueante.
 - `Esc`, foco, lector de pantalla y viewport estrecho cumplen el contrato.
-- Mouse, atajos, menú contextual, `Ctrl+K` y ambos menús de adopción atraviesan el mismo gateway:
+- Mouse, atajos, menú contextual, `Ctrl+K` y ambos menús de integración atraviesan el mismo gateway:
   ningún entrypoint puede crear un refinamiento sin la declaración completa.
 - Cortar/Pegar solo reordena hermanos. Reparentar actualiza árbol, slot semántico y pregunta por el
   gateway convergente o permanece indisponible.
 - En mobile read-only (390×844) la pregunta se puede leer y no aparece una acción imposible. En los
   viewports editables mínimos (640×800) y desktop compacto (1280×720), el editor no tapa
   simultáneamente selección y OPL.
-- Los Cortes 1A/1B absorben o suprimen los mensajes de éxito existentes de descomponer, desplegar y adoptar para
+- Los Cortes 1A/1B absorben o suprimen los mensajes de éxito existentes de descomponer, desplegar e integrar para
   el mismo `resultId`: el estado resultante es la confirmación. No introduce toast, flash ni
   diagnóstico nuevo para esos resultados.
 
@@ -958,10 +961,11 @@ consecuencia explícita, una regla citada sin dueño ni una fuente viva fuera de
 
 ### 13.3 Ciclo, ejes y efectos
 
-- Adoptar conserva rigor y rol; undo devuelve el OPD al Taller con la identidad y pregunta previas.
+- Integrar conserva rigor y rol; Devolver a Bocetos y undo conservan identidad, contenido y pregunta.
 - Graduar conserva entidades, estados, enlaces, OPDs y OPL; solo cambia rigor y los metadatos de
   nombre/carpeta elegidos. Nombre no vacío y destino explícito se validan antes; un fallo remoto o de
-  índice conserva íntegro el Apunte y entrega recuperación. No adopta, repara ni certifica.
+  índice conserva íntegro el Apunte y entrega recuperación. Reabrir confirma una versión y devuelve
+  el mismo registro a Taller. Ninguna transición integra, repara ni certifica.
 - Marcar un Apunte como Biblioteca exige una consecuencia explícita de rigor+rol; una Biblioteca no
   se rotula válida, canónica ni certificada.
 - La transición Apunte→Biblioteca reutiliza issues navegables, nombre y destino de graduación; con
@@ -969,7 +973,7 @@ consecuencia explícita, una regla citada sin dueño ni una fuente viva fuera de
 - Marcar no abre; abrir activa solo lectura; editar cambia la guardia sin quitar rol; desmarcar vuelve
   siempre a `(Modelo, Trabajo)`, nunca a Apunte.
 - Quitar un refinamiento anuncia y prueba eliminación del subárbol; nunca se describe como
-  desadopción ni out-zoom.
+  Devolver a Bocetos ni como out-zoom.
 - Cobertura de requisito nunca se presenta como evidencia externa de satisfacción.
 - Una derivación de impacto o coherencia declara su alcance: la firma de frontera es condición
   necesaria, no equivalencia conductual suficiente.
@@ -1019,9 +1023,9 @@ Roundtrip de `preguntaGuia`, intento transitorio, descomposición top-down, comm
 cabecera OPD y compatibilidad legacy. Absorbe el flash duplicado del resultado. La regeneración OPL
 vigente basta; no se construye un subsistema de diff.
 
-### Corte 1B — despliegue y adopción sin significado implícito
+### Corte 1B — despliegue e integración sin significado implícito
 
-Añade las cuatro relaciones de unfold y el gateway completo de adopción: adoptante, tipo, relación
+Añade las cuatro relaciones de unfold y el gateway completo de integración: cosa integradora, tipo, relación
 cuando aplica y pregunta. Cubre ambos menús, elimina el default legacy en UI y restringe Cortar/Pegar
 a hermanos hasta que reparentar converja por `establecerRefinamiento`. Cierra con identidad
 padre↔slot↔OPD↔pregunta y undo íntegro.
@@ -1034,7 +1038,7 @@ existe registro universal.
 
 ### Corte 2B — Apunte y Taller comprensibles
 
-Régimen de issues en Apunte, Taller como integración y copy adoptar≠graduar, con navegación al hecho.
+Régimen de issues en Apunte, Taller como integración y copy integrar≠graduar, con navegación al hecho.
 El gesto no cambia rigor ni rol y el modelo sigue usable al cerrar el corte.
 
 ### Corte 2C — graduación recuperable
@@ -1133,7 +1137,7 @@ El sistema está completo cuando:
 - `preguntaGuia`, ficha y enfoques hacen roundtrip, con compatibilidad legacy;
 - cada mutación tutorizada del documento es atómica y undoable; cada efecto de workspace o externo
   declara y prueba su recuperación real;
-- los tres ejes, el ciclo de remodelamiento y las separaciones adoptar/graduar/componer/anclar están
+- los tres ejes, el ciclo de remodelamiento y las separaciones integrar/graduar/componer/anclar están
   cubiertos por regresiones de producto;
 - capacidades `reference-only`, externas o ausentes nunca aparecen como acciones vivas;
 - el recorrido esencial funciona con teclado, lector de pantalla, móvil aplicable y movimiento

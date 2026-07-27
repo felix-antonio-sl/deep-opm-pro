@@ -44,6 +44,7 @@ export const createModeloSlice: CrearSlice<ModeloSlice> = (set, get) => ({
   nuevaCosaPendiente: null,
   refinamientoPendiente: null,
   confirmacionEliminarRefinamiento: null,
+  confirmacionDevolverBoceto: null,
 
   ...accionesEntidad(set, get),
   ...accionesEstados(set, get),

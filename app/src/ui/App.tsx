@@ -28,6 +28,7 @@ import { Breadcrumb } from "./Breadcrumb";
 import { CapturadorBugs } from "./CapturadorBugs";
 import { CintaApunte } from "./CintaApunte";
 import { CintaBiblioteca } from "./CintaBiblioteca";
+import { CintaModelo } from "./CintaModelo";
 import { HaloEstado } from "./HaloEstado";
 import { configurarContextoAtajos, escucharGlobal, registrarAtajo } from "./atajosTeclado";
 import { CanvasAdapterContext } from "./CanvasAdapterContext";
@@ -68,7 +69,9 @@ const DialogoSimulacionNumerica = lazy(() => import("./DialogoSimulacionNumerica
 const DialogoColisionNombre = lazy(() => import("./DialogoColisionNombre").then((m) => ({ default: m.DialogoColisionNombre })));
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
 const DialogoGraduar = lazy(() => import("./DialogoGraduar").then((m) => ({ default: m.DialogoGraduar })));
+const DialogoReabrirTaller = lazy(() => import("./DialogoReabrirTaller").then((m) => ({ default: m.DialogoReabrirTaller })));
 const DialogoEliminarRefinamiento = lazy(() => import("./DialogoEliminarRefinamiento").then((m) => ({ default: m.DialogoEliminarRefinamiento })));
+const DialogoDevolverBoceto = lazy(() => import("./DialogoDevolverBoceto").then((m) => ({ default: m.DialogoDevolverBoceto })));
 const DialogoRolBiblioteca = lazy(() => import("./DialogoRolBiblioteca").then((m) => ({ default: m.DialogoRolBiblioteca })));
 const DialogoImportarExportarJson = lazy(() => import("./DialogoImportarExportarJson").then((m) => ({ default: m.DialogoImportarExportarJson })));
 const DialogoVersiones = lazy(() => import("./DialogoVersiones").then((m) => ({ default: m.DialogoVersiones })));
@@ -339,7 +342,7 @@ export function App() {
             canvas={(
               <CodexCanvasMount
                 chromeVisible={!uiSoloCanvas}
-                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <><CintaBiblioteca /><CintaApunte /></>}
+                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <><CintaBiblioteca /><CintaApunte /><CintaModelo /></>}
               >
                 <JointCanvasFeedbackBoundary readonlyMode={modoSoloLectura} onAdapterChange={setCanvasAdapter} />
                 {/*
@@ -432,7 +435,9 @@ export function App() {
         )}
         {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
         {dialogoGraduarAbierto ? <Suspense fallback={null}><DialogoGraduar /></Suspense> : null}
+        <Suspense fallback={null}><DialogoReabrirTaller /></Suspense>
         <Suspense fallback={null}><DialogoEliminarRefinamiento /></Suspense>
+        <Suspense fallback={null}><DialogoDevolverBoceto /></Suspense>
         <Suspense fallback={null}><DialogoRolBiblioteca /></Suspense>
         {dialogoConfiguracionAbierto ? <Suspense fallback={null}><DialogoConfiguracion /></Suspense> : null}
         {dialogoOntologiaAbierto ? <Suspense fallback={null}><DialogoOntologia /></Suspense> : null}
