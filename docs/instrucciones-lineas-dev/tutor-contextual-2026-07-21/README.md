@@ -20,7 +20,7 @@ Objetivo: implementar el diseño aprobado del tutor contextual sin duplicar el m
 4. `preguntaGuia`, ficha y lentes son metadatos: no emiten OPL nuclear ni alteran la firma de frontera.
 5. La ausencia de metadatos en documentos legacy permanece ausencia después de exportar/hidratar.
 6. Cada mutación de modelo tutorizada cruza un solo `commitModelo`; cancelar es identidad.
-7. Adoptar integra sin graduar; graduar cambia rigor, no hechos; marcar Biblioteca cambia rol, no certifica.
+7. Integrar vincula un Boceto al árbol sin graduar; graduar cambia rigor, no hechos; marcar Biblioteca cambia rol, no certifica.
 8. La linealidad múltiple es una mejora metodológica no bloqueante para composición.
 9. La lente categorial solo explica preservación/composición y siempre cita una fuente resoluble.
 10. No tocar deploy, base de datos de producto, mesa remota, infraestructura ni repos vecinos.
@@ -53,9 +53,9 @@ bun run cordon:estado
 | Corte | Capacidad inicial | Delta de esta ronda | Dueño |
 | --- | --- | --- | --- |
 | 1A | Descomposición directa, sin pregunta | `preguntaGuia`, gateway, edición inline, roundtrip y undo atómico | L1 |
-| 1B | Unfold con agregación por defecto y adopción directa | Elección explícita de 4 relaciones, adopción completa y reordenamiento seguro | L1 |
+| 1B | Unfold con agregación por defecto e integración directa | Elección explícita de 4 relaciones, integración completa y reordenamiento seguro | L1 |
 | 2A | Flash y diagnóstico existentes, sin árbitro tutor | Snapshot mínimo, prioridad estable y deduplicación por resultado | L1+L2 |
-| 2B | Apunte/Taller vivos | Copy de régimen, Taller integrable y adoptar≠graduar | L1 |
+| 2B | Apunte/Taller vivos | Copy de régimen, Taller integrable e integrar≠graduar | L1 |
 | 2C | Graduación síncrona parcial | Validación, issues navegables, consecuencia y recuperación sin estado parcial | L1 |
 | 2D | Biblioteca y guardia ya vivas | Contratos de rol/rigor y ruta combinada desde Apunte | L1+L2 |
 | 3A | Estado vacío y descripción libre | Entrada SD-first/Taller y `FichaTrabajo` local sin procedencia | L1 |
@@ -123,4 +123,3 @@ No hay HU viva específica del tutor en el backlog histórico; el usuario prohib
 - Teclado, foco, `aria-live`, 390×844 read-only, 640×800 editable y 1280×720 compacto.
 - `bun run check`, `lint`, `build`, `design:governance`, smoke e in-situ verdes.
 - Producción permanece en `b1502882`; no se ejecuta deploy.
-

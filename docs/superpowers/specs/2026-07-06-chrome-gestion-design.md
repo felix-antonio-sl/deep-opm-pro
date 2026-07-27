@@ -5,7 +5,7 @@
 ## 1. Higiene pura del gestor (Ola 1 — sin especies, ejecuta m-2/m-5/M-5)
 
 - **Un solo buscador** que filtra todo (mata los dos apilados).
-- **Sidebar mínima**: `Todas` · carpetas · `Archivo`; crear/renombrar al pie; drag de fila a carpeta.
+- **Sidebar mínima**: `Raíz` (documentos sin carpeta) · carpetas · `Archivo`; crear/renombrar al pie; drag de fila a carpeta.
 - **Un solo estado vacío por contexto, con CTA** (el CTA definitivo de una puerta llega con B′⊕D; en Ola 1: «Nuevo apunte · Importar JSON» sobre lo existente).
 - **«Importar JSON» = acción del encabezado**, no sección.
 - **Footer con primario visual** real.

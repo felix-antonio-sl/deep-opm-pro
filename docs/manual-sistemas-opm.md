@@ -241,7 +241,7 @@ Secuencia mínima:
 5. abre un **apunte** y bosqueja ese fragmento en el Taller;
 6. lee el OPL con el dueño de significado;
 7. registra huecos y contradicciones sin inventar puentes;
-8. reconcilia el SD y adopta los OPDs sueltos cuando su relación sea conocida;
+8. reconcilia el SD e integra los Bocetos al árbol cuando su relación sea conocida;
 9. gradúa solo cuando el modelo ya puede asumir rigor de referencia.
 
 La interfaz de graduación **muestra** los problemas con severidad de modelo, pero
@@ -308,8 +308,8 @@ Bosqueja el fragmento conocido y pregunta:
 - ¿qué cosa existente refina este OPD?;
 - ¿es in-zoom o unfold?
 
-Los OPDs sueltos pueden vivir en un apunte. Para que el modelo sea portable deben
-adoptarse o reconciliarse con una cosa del modelo; graduar es otro eje y no corrige
+Los Bocetos pueden vivir en un apunte. Para que el modelo sea portable deben
+integrarse a una cosa del modelo; graduar es otro eje y no corrige
 por sí solo una estructura huérfana.
 
 ### 3.4 AS-IS y TO-BE no son versiones del mismo dibujo
@@ -768,8 +768,8 @@ reinterpreta el estado desde el manual.
 La aplicación y su toolchain permiten:
 
 - crear apuntes y graduarlos a modelos;
-- bosquejar OPDs sueltos en el Taller;
-- adoptar o reconciliar esos OPDs para lograr portabilidad;
+- bosquejar Bocetos en el Taller;
+- integrar esos Bocetos para lograr portabilidad;
 - modelar objetos, procesos, estados, enlaces y refinamientos;
 - editar y generar OPL, diagnosticar y validar estructura;
 - representar requisitos y metacobertura dentro del modelo;

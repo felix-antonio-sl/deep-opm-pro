@@ -77,8 +77,8 @@ fijar un literal de glosa de herramienta) y corrige anclas SSOT misatribuidas
 (`LF-05.9`, `LF-06.9`).
 
 La versión `1.6.0` (2026-07-07) incorporó el arranque bottom-up de primera clase:
-los fragmentos pueden nacer como OPDs sueltos en Taller y reconciliarse por
-adopción, mientras la integridad permanece exigible y el rigor de cierre se
+los fragmentos pueden nacer como Bocetos en Taller e integrarse al árbol,
+mientras la integridad permanece exigible y el rigor de cierre se
 cobra al graduar o exportar canónico.
 
 La versión `1.6.1` (2026-07-18) acotó la igualdad de firma de frontera a

@@ -40,7 +40,7 @@ en una frase y enlazarlo.
 | Materia | Propietario |
 |---|---|
 | Ontología, enlaces, refinamientos, OPD y OPL | [Manual de OPM puro](manual-opm-puro.md) y canon OPM |
-| Método Forja, validación tripartita, apunte, Taller, adopción de OPDs sueltos y graduación | [Manual de opforja](manual-opforja.md) |
+| Método Forja, validación tripartita, apunte, Taller, integración de Bocetos y graduación | [Manual de opforja](manual-opforja.md) |
 | Operaciones, menús, atajos, persistencia y exportación | [Uso productivo](uso-productivo.md) |
 | Evidencia, ficha, AS-IS/TO-BE, alternativas, autonomía, gates, adopción del cambio y retiro | [Manual de sistemas](manual-sistemas-opm.md) |
 | Semántica sanitaria | [Manual sanitario](manual-sanitarios-opm.md) |

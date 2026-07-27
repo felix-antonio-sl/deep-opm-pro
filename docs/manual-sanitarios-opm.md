@@ -795,7 +795,7 @@ diseñado como un todo. Se modela en modo reverso (metodología §A1.3), desde l
 práctica observada, no solo desde el procedimiento prescrito. El dueño sanitario
 acepta el AS-IS antes de diseñar el TO-BE.
 
-La mecánica de apunte, Taller, adopción y graduación pertenece al
+La mecánica de apunte, Taller, integración de Bocetos y graduación pertenece al
 [manual de opforja](manual-opforja.md#2-flujo-de-modelamiento-forja). Graduar cambia
 el régimen de rigor; no resuelve una ambigüedad clínica, un OPD huérfano ni la falta
 de aceptación sanitaria.

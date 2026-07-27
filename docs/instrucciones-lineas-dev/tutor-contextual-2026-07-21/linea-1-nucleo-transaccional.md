@@ -72,8 +72,8 @@ Todos los entrypoints de UI usan el gateway. Un undo revierte cada mutación com
 - Dominio: descomponer/desplegar/adoptar × variantes y pregunta.
 - Serialización: válido, inválido, legacy, OPL invariante.
 - Store: intención no muta, confirmación un commit, cancelar identidad, undo/redo.
-- UI: foco, error, pregunta visible/editable, adopción, graduación, entrada inicial.
-- E2E: mouse, atajo, Ctrl+K, menús de adopción y viewports exigidos.
+- UI: foco, error, pregunta visible/editable, integración, graduación, entrada inicial.
+- E2E: mouse, atajo, Ctrl+K, menús de integración y viewports exigidos.
 
 ## 8. Verificación
 
@@ -92,13 +92,13 @@ bun run browser:smoke
 - Pregunta obligatoria solo para gestos interactivos nuevos; opcional en kernel/legacy.
 - Unfold sin default silencioso de UI.
 - Reordenar no reparenta.
-- Graduar no adopta, repara, certifica ni cambia hechos.
+- Graduar no integra, repara, certifica ni cambia hechos.
 - Ficha local no existe en modelos con procedencia.
 
 ## 10. Decisiones que tomas vos
 
 - El componente existente exacto que alberga el editor sin ocultar selección y OPL.
-- El mínimo estado transitorio que conserva origen de foco y variante de adopción.
+- El mínimo estado transitorio que conserva origen de foco y variante de integración.
 - La operación de workspace más simple que garantice rollback real de graduación.
 
 Documentar toda elección en tests y mensaje de commit.
@@ -106,4 +106,3 @@ Documentar toda elección en tests y mensaje de commit.
 ## 11. Forma del entregable
 
 Commits sugeridos: `feat(tutor): gobernar refinamientos con pregunta`, `fix(workspace): hacer graduación recuperable`, `feat(tutor): añadir entrada y ficha local`. No tocar HANDOFF hasta el cierre de la ronda ni incluir cambios ajenos.
-

@@ -308,17 +308,13 @@ Abortar y volver al build anterior ante pérdida de identidad/contenido,
 desincronización índice-payload, error de CAS no recuperable o imposibilidad de
 abrir documentos existentes.
 
-**Corte observado 2026-07-27:** nivel 1 verde y nivel 2 funcional verde sobre
-`f6471d5b`. El mismo documento y el Boceto `opd-3` conservaron identidad, hechos,
-carpeta y versiones durante el ciclo completo. El Tutor mantuvo una sola voz y
-el runtime quedó sin errores. El tenant sintético fue eliminado y los agregados
-regresaron al baseline.
-
-El gate integral de P3 permanece en **NO-GO**: Axe 4.10.2 encontró impacto
-`serious` por contraste, objetivos táctiles menores de 24×24 px y un canvas
-`role="img"` con descendientes enfocables. No se activa rollback funcional
-porque no ocurrió ninguno de sus criterios; sí se mantiene bloqueado P4 hasta
-corregir y repetir P3. Evidencia: `docs/REPORTE-EJECUTIVO.md`.
+**Corte final observado 2026-07-27:** P3 **GO integral** sobre `26f6f551`.
+El mismo documento y el Boceto `opd-3` conservaron identidad, hechos, carpeta y
+cuatro versiones durante el ciclo completo. El Tutor mantuvo una sola voz y el
+runtime quedó sin errores inesperados. Axe 4.10.2 terminó con cero violaciones
+en los cinco estados auditados. El tenant sintético fue eliminado y los
+agregados regresaron al baseline. P4 y P5 quedan habilitadas. Evidencia:
+`docs/REPORTE-EJECUTIVO.md`.
 
 ### Fase P4 — propagación humana y documental
 
@@ -335,6 +331,10 @@ Acciones:
 
 No migrar nombres almacenados ni reescribir modelos: el cambio es de navegación
 y semántica de interfaz.
+
+**Estado 2026-07-27:** propagación repo-local completada en la guía del Tutor,
+manuales, canon, cheatsheets, especificación de gestión, reporte y handoff. No
+se ejecutaron comunicaciones externas.
 
 ### Fase P5 — observación y cierre
 
@@ -354,6 +354,10 @@ sesiones autorizadas. Cerrar con un corte explícito:
 - **GO**: identidad, contenido, agrupación y rollback demostrados;
 - **GO con límite**: runtime sano pero falta recorrido autenticado o restauración;
 - **NO-GO**: pérdida, incompatibilidad o desincronización reproducible.
+
+**Estado 2026-07-27:** P5 habilitada e iniciada con un recorrido autorizado,
+contenedores sanos, reinicios cero y sin marcadores de error recientes. La
+ventana sostenida aún no se presenta como cerrada.
 
 ## 9. Matriz de efectos posteriores
 
