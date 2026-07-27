@@ -593,6 +593,12 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
       fallarAntesDePersistir("Persistencia backend no disponible");
       return;
     }
+    const modeloCandidato: Modelo = { ...modeloInicial, nombre: validacionNombre.nombre };
+    const bundleCandidato = hidratarModelo(exportarModelo(modeloCandidato, input.carpetaId));
+    if (!bundleCandidato.ok) {
+      fallarAntesDePersistir(`Integridad del modelo: ${bundleCandidato.error}`);
+      return;
+    }
 
     const sessionEpoch = captureSessionEpoch();
     const pestanaOrigenId = estado.pestanasAbiertas.find((pestana) => pestana.modeloId === input.modeloId)?.id ?? null;
@@ -600,7 +606,6 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     const descripcionInicial = estado.graduacionDescripcionObjetivo;
     const testigoObjetivo = estado.graduacionTestigoObjetivo;
     const destinoGraduacion = estado.graduacionDestino;
-    const modeloCandidato: Modelo = { ...modeloInicial, nombre: validacionNombre.nombre };
     set({
       graduacionEnCurso: true,
       graduacionError: null,

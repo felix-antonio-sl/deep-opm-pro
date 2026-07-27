@@ -3,6 +3,7 @@ import {
   confirmarRefinamientoPendiente,
   elementoPorTexto,
   esperarWorkbenchInicial,
+  ejecutarComandoPalette,
 } from "./_smoke-helpers";
 
 // Bocetos bottom-up (R-OPD-REF-20): un OPD suelto (padreId:null ≠ raíz) es un
@@ -91,5 +92,46 @@ test("integrar un Boceto y devolver el mismo OPD sin pérdida", async ({ page })
   await expect(banda).toHaveCount(0);
   await expect(mainTree.locator(`[data-testid="${sueltoTestId}"]`)).toHaveCount(1);
 
+  expect(pageErrors).toEqual([]);
+});
+
+test("un Apunte con Boceto integrado pasa la integridad dura y se gradúa", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+  await ejecutarComandoPalette(page, "nuevo", "menu-nuevo-modelo");
+
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Cargar");
+  const mainTree = page.getByRole("tree", { name: "Árbol OPD" });
+  await page.getByTestId("arbol-nuevo-suelto").click();
+  const banda = page.getByTestId("arbol-banda-taller");
+  const sueltoItem = banda.getByRole("treeitem").first();
+  await page.getByRole("button", { name: "Proceso", exact: true }).click();
+  await page.getByLabel("Nombre").fill("Proyectar");
+
+  await mainTree.getByRole("treeitem").first().click();
+  await elementoPorTexto(page, "Cargar").click();
+  await sueltoItem.click({ button: "right" });
+  await page.getByTestId("menu-adoptar-descomposicion").click();
+  await confirmarRefinamientoPendiente(page, {
+    pregunta: "¿Qué parte de Cargar explica este fragmento?",
+  });
+  await page.screenshot({
+    path: "test-results/lifecycle-boceto-integrado-serializable.png",
+    fullPage: true,
+  });
+
+  await page.getByTestId("cinta-apunte-graduar").click();
+  const graduacion = page.getByTestId("dialogo-graduar");
+  await expect(graduacion.getByTestId("graduar-integridad")).toContainText("Integridad · íntegra");
+  await graduacion.getByTestId("graduar-nombre").fill("Modelo con Boceto integrado");
+  await graduacion.getByTestId("graduar-confirmar").click();
+
+  await expect(graduacion).toHaveCount(0);
+  await expect(page.getByTestId("cinta-modelo")).toContainText("Modelo · en Modelos");
+  await expect(page.getByTestId("graduar-error")).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { Id } from "../modelo/tipos";
 import { listarAvisosDiagnostico } from "../modelo/diagnostico";
 import { opdsSueltos } from "../modelo/opdSueltos";
+import { validarReferenciasOpd } from "../serializacion/validarIntegridad";
 import { useOpmStore } from "../store";
 import {
   derivarIssuesDiagnostico,
@@ -86,7 +87,12 @@ export function DialogoGraduar() {
     [modelo, modeloId, modeloPersistidoId, navegarAviso],
   );
   const pendientesFormales = cierre.bloqueosCierre.length + cierre.mejoras.length + cierre.bocetos.length;
-  const hayPendientes = cierre.integridad.length + pendientesFormales > 0;
+  const integridadReferencial = useMemo(
+    () => modelo ? validarReferenciasOpd(modelo) : { ok: true as const, value: true as const },
+    [modelo],
+  );
+  const bloqueosIntegridad = integridadReferencial.ok ? cierre.integridad.length : 1;
+  const hayPendientes = bloqueosIntegridad + pendientesFormales > 0;
 
   const carpetasVivas = useMemo(
     () => carpetas.filter((c) => !c.archivada).sort((a, b) => a.nombre.localeCompare(b.nombre, "es-CL")),
@@ -131,12 +137,12 @@ export function DialogoGraduar() {
             tono="primaria"
             testId="graduar-confirmar"
             tutorEntrypoint={esBiblioteca ? "workspace:graduate-library" : "workspace:graduate-model"}
-            disabled={!preparado || !nombreValido || graduacionEnCurso || cierre.integridad.length > 0}
+            disabled={!preparado || !nombreValido || graduacionEnCurso || bloqueosIntegridad > 0}
             onClick={graduar}
           >
             {graduacionEnCurso
               ? (preparado ? "Graduando…" : "Preparando…")
-              : cierre.integridad.length > 0
+              : bloqueosIntegridad > 0
                 ? "Corrige la integridad para graduar"
                 : pendientesFormales > 0
                   ? esBiblioteca ? "Graduar con pendientes y marcar Biblioteca" : "Graduar con pendientes"
@@ -200,8 +206,12 @@ export function DialogoGraduar() {
         </label>
 
         <section style={style.reporte} data-testid="graduar-integridad">
-          <h3 style={style.reporteTitulo}>1. Integridad · {cierre.integridad.length === 0 ? "íntegra" : `${cierre.integridad.length} bloqueo${cierre.integridad.length === 1 ? "" : "s"}`}</h3>
-          {cierre.integridad.length === 0 ? (
+          <h3 style={style.reporteTitulo}>1. Integridad · {bloqueosIntegridad === 0 ? "íntegra" : `${bloqueosIntegridad} bloqueo${bloqueosIntegridad === 1 ? "" : "s"}`}</h3>
+          {!integridadReferencial.ok ? (
+            <p role="alert" style={style.errorOperacion}>
+              Referencias del modelo: {integridadReferencial.error}
+            </p>
+          ) : cierre.integridad.length === 0 ? (
             <p style={style.reporteVacio} data-testid="graduar-validez-vacio">
               Sin referencias o estructura inválidas detectadas.
             </p>

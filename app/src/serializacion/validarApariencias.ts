@@ -132,7 +132,9 @@ export function validarContextoRefinamientoApariencia(
 ): Resultado<Apariencia["contextoRefinamiento"] | undefined> {
   if (value === undefined) return ok(undefined);
   if (!esRecord(value)) return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento`);
-  if (value.tipo !== "descomposicion") return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.tipo`);
+  if (value.tipo !== "descomposicion" && value.tipo !== "despliegue") {
+    return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.tipo`);
+  }
   if (typeof value.refinableEntidadId !== "string") {
     return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.refinableEntidadId`);
   }
@@ -142,6 +144,9 @@ export function validarContextoRefinamientoApariencia(
   if (value.contenedorAparienciaId !== undefined && typeof value.contenedorAparienciaId !== "string") {
     return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.contenedorAparienciaId`);
   }
+  if (value.origen !== undefined && value.origen !== "adopcion") {
+    return fallo(`Apariencia inválida: ${aparienciaId}.contextoRefinamiento.origen`);
+  }
   let enlacesPadreIds: Id[] | undefined;
   if (value.enlacesPadreIds !== undefined) {
     if (!Array.isArray(value.enlacesPadreIds) || value.enlacesPadreIds.some((id) => typeof id !== "string")) {
@@ -150,11 +155,12 @@ export function validarContextoRefinamientoApariencia(
     enlacesPadreIds = [...value.enlacesPadreIds] as Id[];
   }
   return ok({
-    tipo: "descomposicion",
+    tipo: value.tipo,
     refinableEntidadId: value.refinableEntidadId,
     rol: value.rol,
     ...(value.contenedorAparienciaId ? { contenedorAparienciaId: value.contenedorAparienciaId } : {}),
     ...(enlacesPadreIds ? { enlacesPadreIds } : {}),
+    ...(value.origen === "adopcion" ? { origen: value.origen } : {}),
   });
 }
 

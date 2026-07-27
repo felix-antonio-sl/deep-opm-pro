@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { crearModelo, crearProceso } from "./creacion";
+import { crearModelo, crearObjeto, crearProceso } from "./creacion";
 import { crearOpdSuelto } from "./opdSuelto";
 import { adoptarOpd, devolverOpdABocetos } from "./refinamiento/establecer";
 import { fijarRefinamiento, obtenerRefinamiento } from "../refinamientos";
 import { esOpdSuelto } from "../opdSueltos";
+import { exportarModelo, hidratarModelo } from "../../serializacion/json";
+import { validarReferenciasOpd } from "../../serializacion/validarIntegridad";
 import type { Modelo, Resultado } from "../tipos";
 
 /** Desempaqueta un Resultado en tests (idioma del repo: lanza ante fallo). */
@@ -48,6 +50,45 @@ describe("adoptarOpd", () => {
     expect(out.opds[creado.opdId]!.padreId).toBe("opd-1");
     expect(obtenerRefinamiento(out.entidades[procesoId]!, "descomposicion")?.opdId).toBe(creado.opdId);
     expect(esOpdSuelto(out, creado.opdId)).toBe(false); // ya no es suelto: fue adoptado
+  });
+
+  test("materializa una descomposición serializable y la inversa sobrevive guardar y abrir", () => {
+    let modelo: Modelo = must(crearProceso(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Cargar"));
+    const procesoId = primerProcesoId(modelo);
+    const creado = crearOpdSuelto(modelo, "Hipótesis");
+    modelo = must(crearProceso(creado.modelo, creado.opdId, { x: 240, y: 180 }, "Proyectar"));
+    const bocetoPersistido = must(hidratarModelo(exportarModelo(modelo)));
+
+    const adoptado = must(adoptarOpd(bocetoPersistido, {
+      opdPadreId: bocetoPersistido.opdRaizId,
+      entidadId: procesoId,
+      opdSueltoId: creado.opdId,
+      tipo: "descomposicion",
+    }));
+
+    expect(validarReferenciasOpd(adoptado)).toEqual({ ok: true, value: true });
+    const reabierto = must(hidratarModelo(exportarModelo(adoptado)));
+    const devuelto = must(devolverOpdABocetos(reabierto, creado.opdId)).modelo;
+    expect(devuelto).toEqual(bocetoPersistido);
+  });
+
+  test("materializa un despliegue serializable y reversible", () => {
+    let modelo: Modelo = must(crearObjeto(crearModelo("M"), "opd-1", { x: 0, y: 0 }, "Pedido"));
+    const objetoId = Object.values(modelo.entidades).find((entidad) => entidad.tipo === "objeto")!.id;
+    const creado = crearOpdSuelto(modelo, "Estructura");
+    modelo = must(crearObjeto(creado.modelo, creado.opdId, { x: 240, y: 180 }, "Parte"));
+    const antesDeAdoptar = modelo;
+
+    const adoptado = must(adoptarOpd(modelo, {
+      opdPadreId: modelo.opdRaizId,
+      entidadId: objetoId,
+      opdSueltoId: creado.opdId,
+      tipo: "despliegue",
+      modo: "agregacion",
+    }));
+
+    expect(validarReferenciasOpd(adoptado)).toEqual({ ok: true, value: true });
+    expect(must(devolverOpdABocetos(adoptado, creado.opdId)).modelo).toEqual(antesDeAdoptar);
   });
 
   test("rechaza adoptar un OPD que no es suelto (ya tiene padre)", () => {

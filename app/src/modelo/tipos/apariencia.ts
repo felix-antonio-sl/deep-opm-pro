@@ -15,11 +15,13 @@ export type ModoTamano = "auto" | "manual";
 export type RolContextoRefinamiento = "contorno" | "interno" | "externo";
 
 export interface ContextoRefinamientoApariencia {
-  tipo: "descomposicion";
+  tipo: "descomposicion" | "despliegue";
   refinableEntidadId: Id;
   rol: RolContextoRefinamiento;
   contenedorAparienciaId?: Id;
   enlacesPadreIds?: Id[];
+  /** Apariencia derivada al integrar un Boceto; se retira al devolverlo. */
+  origen?: "adopcion";
 }
 
 export interface PuertoApariencia {

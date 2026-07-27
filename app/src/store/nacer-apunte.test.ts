@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { crearModelo } from "../modelo/operaciones";
+import {
+  adoptarOpd,
+  crearModelo,
+  crearOpdSuelto,
+  crearProceso,
+} from "../modelo/operaciones";
 import { forgetObservedBackendSession } from "../persistencia/backend";
 import { especieDe } from "../persistencia/especie";
 import type { ModeloPersistido } from "../persistencia/modelos";
@@ -359,7 +364,65 @@ describe("nacerApunte (store)", () => {
     expect(store.getState().dialogoGraduarModeloId).toBe(id);
     expect(store.getState().graduacionError).toContain("El nombre no puede quedar vacío");
   });
+
+  test("integridad de bundle inválida bloquea antes de persistir", async () => {
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null);
+    const id = store.getState().modeloPersistidoId!;
+    const persistidoAntes = backend.modelos.get(id)!;
+    let modelo = resultadoOk(crearProceso(
+      store.getState().modelo,
+      store.getState().modelo.opdRaizId,
+      { x: 80, y: 80 },
+      "Cargar",
+    ));
+    const procesoId = Object.values(modelo.entidades).find((entidad) => entidad.tipo === "proceso")!.id;
+    const boceto = crearOpdSuelto(modelo);
+    modelo = resultadoOk(adoptarOpd(boceto.modelo, {
+      opdPadreId: modelo.opdRaizId,
+      entidadId: procesoId,
+      opdSueltoId: boceto.opdId,
+      tipo: "descomposicion",
+    }));
+    const opdIntegrado = modelo.opds[boceto.opdId]!;
+    modelo = {
+      ...modelo,
+      opds: {
+        ...modelo.opds,
+        [boceto.opdId]: {
+          ...opdIntegrado,
+          apariencias: Object.fromEntries(
+            Object.entries(opdIntegrado.apariencias)
+              .filter(([, apariencia]) => apariencia.entidadId !== procesoId),
+          ),
+        },
+      },
+    };
+    store.setState({ modelo });
+
+    store.getState().abrirGraduar(id);
+    store.getState().confirmarGraduacion({
+      modeloId: id,
+      nombre: "Modelo inválido",
+      carpetaId: null,
+      bloqueos: 0,
+      mejoras: 0,
+      bocetos: 0,
+    });
+
+    expect(store.getState().graduacionEnCurso).toBe(false);
+    expect(store.getState().dialogoGraduarModeloId).toBe(id);
+    expect(store.getState().graduacionError).toContain(
+      `Integridad del modelo: Refinamiento inválido: ${procesoId}.apariencia`,
+    );
+    expect(backend.modelos.get(id)).toEqual(persistidoAntes);
+  });
 });
+
+function resultadoOk<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
+  if (!resultado.ok) throw new Error(resultado.error);
+  return resultado.value;
+}
 
 interface BackendMock {
   modelos: Map<string, ModeloPersistido>;

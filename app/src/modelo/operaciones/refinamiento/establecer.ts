@@ -1,3 +1,11 @@
+import { CANON } from "../../constantes";
+import {
+  INZOOM_CANON,
+  contornoHeightCanonico,
+  contornoWidthCanonico,
+} from "../../constantesInzoom";
+import { contextoContornoAdopcion } from "../../contextoRefinamiento";
+import { CENTRO_CANVAS_GEOMETRICO } from "../../layout";
 import { esOpdSuelto } from "../../opdSueltos";
 import {
   fijarRefinamiento,
@@ -5,7 +13,15 @@ import {
   quitarRefinamiento,
   refinamientosDe,
 } from "../../refinamientos";
-import type { Id, Modelo, ModoDespliegueObjeto, Resultado, TipoRefinamiento } from "../../tipos";
+import type {
+  Apariencia,
+  Id,
+  Modelo,
+  ModoDespliegueObjeto,
+  Opd,
+  Resultado,
+  TipoRefinamiento,
+} from "../../tipos";
 import { entidadVisibleEnOpd, fallo, ok } from "../helpers";
 
 export interface EnlaceRefinamiento {
@@ -95,7 +111,9 @@ export function adoptarOpd(modelo: Modelo, args: AdopcionOpd): Resultado<Modelo>
   if (!esOpdSuelto(modelo, args.opdSueltoId)) {
     return fallo(`El OPD ${args.opdSueltoId} no es un suelto adoptable (o es la raíz)`);
   }
-  return establecerRefinamiento(modelo, {
+  const materializado = materializarRefinableEnBoceto(modelo, args);
+  if (!materializado.ok) return materializado;
+  return establecerRefinamiento(materializado.value, {
     opdPadreId: args.opdPadreId,
     entidadId: args.entidadId,
     opdHijoId: args.opdSueltoId,
@@ -104,6 +122,87 @@ export function adoptarOpd(modelo: Modelo, args: AdopcionOpd): Resultado<Modelo>
     ...(args.modo ? { modo: args.modo } : {}),
     ...(args.preguntaGuia !== undefined ? { preguntaGuia: args.preguntaGuia } : {}),
   });
+}
+
+/**
+ * La serialización dura exige que la cosa refinada aparezca en el OPD hijo.
+ * Un Boceto bottom-up puede no contenerla todavía, por lo que Integrar agrega
+ * una apariencia derivada. Su contexto conserva el origen para que Devolver
+ * retire solo esta proyección y deje intacto todo contenido autorado.
+ */
+function materializarRefinableEnBoceto(modelo: Modelo, args: AdopcionOpd): Resultado<Modelo> {
+  const opd = modelo.opds[args.opdSueltoId];
+  if (!opd) return fallo(`OPD no existe: ${args.opdSueltoId}`);
+  if (Object.values(opd.apariencias).some((apariencia) => apariencia.entidadId === args.entidadId)) {
+    return ok(modelo);
+  }
+
+  const aparienciaId = idAparienciaAdopcion(args);
+  if (opd.apariencias[aparienciaId]) {
+    return fallo("No se pudo integrar el Boceto: colisión en la apariencia derivada del refinamiento");
+  }
+  const apariencia: Apariencia = {
+    id: aparienciaId,
+    entidadId: args.entidadId,
+    opdId: opd.id,
+    ...geometriaRefinableAdoptado(opd, args.tipo),
+    contextoRefinamiento: contextoContornoAdopcion(args.tipo, args.entidadId),
+  };
+  return ok({
+    ...modelo,
+    opds: {
+      ...modelo.opds,
+      [opd.id]: {
+        ...opd,
+        apariencias: { ...opd.apariencias, [apariencia.id]: apariencia },
+      },
+    },
+  });
+}
+
+function idAparienciaAdopcion(args: AdopcionOpd): Id {
+  return `a-adopcion-${args.tipo}-${args.entidadId}-${args.opdSueltoId}`;
+}
+
+function geometriaRefinableAdoptado(
+  opd: Opd,
+  tipo: TipoRefinamiento,
+): Pick<Apariencia, "x" | "y" | "width" | "height"> {
+  const contenido = Object.values(opd.apariencias);
+  if (contenido.length === 0) {
+    const width = tipo === "descomposicion" ? contornoWidthCanonico : CANON.dims.cosaWidth;
+    const height = tipo === "descomposicion" ? contornoHeightCanonico() : CANON.dims.cosaHeight;
+    return {
+      x: Math.round(CENTRO_CANVAS_GEOMETRICO.x - width / 2),
+      y: Math.round(CENTRO_CANVAS_GEOMETRICO.y - height / 2),
+      width,
+      height,
+    };
+  }
+
+  const minX = Math.min(...contenido.map((apariencia) => apariencia.x));
+  const minY = Math.min(...contenido.map((apariencia) => apariencia.y));
+  const maxX = Math.max(...contenido.map((apariencia) => apariencia.x + apariencia.width));
+  const maxY = Math.max(...contenido.map((apariencia) => apariencia.y + apariencia.height));
+  if (tipo === "descomposicion") {
+    const paddingHorizontal = CANON.dims.cosaWidth;
+    return {
+      x: minX - paddingHorizontal,
+      y: minY - INZOOM_CANON.paddingSuperior,
+      width: Math.max(contornoWidthCanonico, maxX - minX + paddingHorizontal * 2),
+      height: Math.max(
+        contornoHeightCanonico(contenido.length),
+        maxY - minY + INZOOM_CANON.paddingSuperior + INZOOM_CANON.paddingInferior,
+      ),
+    };
+  }
+
+  return {
+    x: Math.round((minX + maxX - CANON.dims.cosaWidth) / 2),
+    y: minY - CANON.dims.cosaHeight - INZOOM_CANON.gapInterno,
+    width: CANON.dims.cosaWidth,
+    height: CANON.dims.cosaHeight,
+  };
 }
 
 export interface DevolucionOpdABocetos {
@@ -149,6 +248,22 @@ export function devolverOpdABocetos(
   if (!opdPadre || !entidadVisibleEnOpd(opdPadre, entidad.id)) {
     return fallo("El vínculo de refinamiento no coincide con el padre del OPD; corrige la integridad antes de devolverlo");
   }
+  const aparienciasDerivadas = Object.values(opd.apariencias).filter((apariencia) => {
+    const contexto = apariencia.contextoRefinamiento;
+    return contexto?.origen === "adopcion" &&
+      contexto.rol === "contorno" &&
+      contexto.tipo === refinamiento.tipo &&
+      contexto.refinableEntidadId === entidad.id;
+  });
+  if (aparienciasDerivadas.length > 1) {
+    return fallo("El OPD contiene más de una apariencia derivada de su integración; corrige la integridad antes de devolverlo");
+  }
+  const aparienciaDerivadaId = aparienciasDerivadas[0]?.id;
+  const apariencias = aparienciaDerivadaId
+    ? Object.fromEntries(
+        Object.entries(opd.apariencias).filter(([aparienciaId]) => aparienciaId !== aparienciaDerivadaId),
+      )
+    : opd.apariencias;
   return ok({
     modelo: {
       ...modelo,
@@ -158,7 +273,7 @@ export function devolverOpdABocetos(
       },
       opds: {
         ...modelo.opds,
-        [opdId]: { ...opd, padreId: null },
+        [opdId]: { ...opd, padreId: null, apariencias },
       },
     },
     opdId,

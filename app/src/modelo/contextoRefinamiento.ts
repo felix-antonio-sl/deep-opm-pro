@@ -6,10 +6,18 @@ import type {
   Id,
   Modelo,
   RolContextoRefinamiento,
+  TipoRefinamiento,
 } from "./tipos";
 
 export function contextoContornoDescomposicion(refinableEntidadId: Id): ContextoRefinamientoApariencia {
   return { tipo: "descomposicion", refinableEntidadId, rol: "contorno" };
+}
+
+export function contextoContornoAdopcion(
+  tipo: TipoRefinamiento,
+  refinableEntidadId: Id,
+): ContextoRefinamientoApariencia {
+  return { tipo, refinableEntidadId, rol: "contorno", origen: "adopcion" };
 }
 
 export function contextoInternoDescomposicion(
@@ -39,9 +47,9 @@ export function contextoRefinamientoValido(
   apariencia: Apariencia,
 ): ContextoRefinamientoApariencia | null {
   const contexto = apariencia.contextoRefinamiento;
-  if (!contexto || contexto.tipo !== "descomposicion") return null;
+  if (!contexto) return null;
   const refinable = modelo.entidades[contexto.refinableEntidadId];
-  if (!refinable || obtenerRefinamiento(refinable, "descomposicion")?.opdId !== opdId) return null;
+  if (!refinable || obtenerRefinamiento(refinable, contexto.tipo)?.opdId !== opdId) return null;
   return contexto;
 }
 
