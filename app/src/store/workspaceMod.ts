@@ -117,7 +117,6 @@ import {
   moverModeloACarpeta as moverModeloACarpetaEnIndiceOp,
   listarHijosDeCarpeta,
   marcarBiblioteca as marcarBibliotecaEnIndiceOp,
-  marcarApunte as marcarApunteEnIndiceOp,
   restaurarCarpeta as restaurarCarpetaEnIndiceOp,
   restaurarModelo as restaurarModeloEnIndiceOp,
   rutaDeCarpeta,
@@ -449,21 +448,15 @@ export const createWorkspaceModSlice: CrearSlice<WorkspaceModSlice> = (set, get)
     set({ dialogoRolBibliotecaModeloId: null, mensaje: null });
   },
 
-  // Modo apunte — gemelo de `toggleBibliotecaModelo`. Marca/desmarca la especie
-  // apunte (borrador OPM sin rigor de cierre). El MISMO gesto es la promoción:
-  // desmarcar gradúa el apunte a modelo (corrección 8). `marcarApunteEnIndiceOp`
-  // sella la exclusión mutua con biblioteca (corrección 5).
+  // Compatibilidad del port histórico: ya no altera la especie directamente.
+  // Toda transición cruza el diálogo formal, su testigo y el commit atómico.
   toggleApunteModelo(modeloId) {
     const actual = get().indice.modelos.find((modelo) => modelo.id === modeloId);
-    const valor = !(actual?.esApunte ?? false);
-    const indice = marcarApunteEnIndiceOp(get().indice, modeloId, valor);
-    escribirIndiceWorkspace(indice);
-    const modelosGuardados = modelosGuardadosWorkspace(get);
-    set({
-      indice: sincronizarIndiceConModelosGuardados(modelosGuardados, indice),
-      modelosGuardados,
-      mensaje: valor ? "Modelo marcado como apunte" : "Apunte graduado a modelo",
-    });
+    if (actual?.esApunte === true) {
+      get().abrirGraduar(modeloId);
+      return;
+    }
+    get().abrirReaperturaTaller(modeloId);
   },
 
   // «Momento de graduación» (diseño §3). Abre/cierra el diálogo que pide el

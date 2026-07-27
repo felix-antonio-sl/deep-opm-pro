@@ -1,6 +1,7 @@
 // [JOYAS §1-3] Chrome UI consume tokens centralizados; canvas semántico invariante.
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import autosaveIcon from "../../../assets/svg/autosave.svg";
+import editAliasIcon from "../../../assets/svg/editAlias.svg";
 import lockIcon from "../../../assets/svg/lock.svg";
 import verFileIcon from "../../../assets/svg/verFile.svg";
 import type { Id } from "../modelo/tipos";
@@ -734,12 +735,21 @@ function ChipRigor(props: { modelo: ResumenModeloPersistido }) {
   );
 }
 
+export function accesoCatalogo(
+  modelo: Pick<ResumenModeloPersistido, "esApunte" | "esBiblioteca">,
+): "editable" | "solo-lectura" {
+  return especieDe(modelo) === "biblioteca" ? "solo-lectura" : "editable";
+}
+
 function Glifos(props: { modelo: ResumenModeloPersistido; mostrarVersiones: boolean }) {
   const versiones = props.modelo.versiones?.length ?? 0;
+  const acceso = accesoCatalogo(props.modelo);
   return (
     <span style={style.glyphs}>
-      <span title="Editable" aria-label="Editable" style={style.glyphText}>✎</span>
-      {props.modelo.archivado ? <img src={lockIcon} alt="candado" style={style.glyphIcon} title="Archivado" /> : null}
+      {acceso === "solo-lectura"
+        ? <img src={lockIcon} alt="solo lectura" style={style.glyphIcon} title="Solo lectura · Modelo de Biblioteca" />
+        : <img src={editAliasIcon} alt="editable" style={style.glyphIcon} title="Editable" />}
+      {props.modelo.archivado ? <img src={lockIcon} alt="archivado" style={style.glyphIcon} title="Archivado" /> : null}
       {props.modelo.autosalvado ? <img src={autosaveIcon} alt="autosalvado" style={style.glyphIcon} title="Autosalvado" /> : null}
       {props.mostrarVersiones && versiones > 0 ? <img src={verFileIcon} alt={`${versiones} versiones`} style={style.glyphIcon} title={`${versiones} versiones`} /> : null}
     </span>
@@ -1042,7 +1052,6 @@ const style = {
   },
   glyphs: { display: "inline-flex", gap: "6px", alignItems: "center", justifySelf: "end" },
   glyphIcon: { width: "14px", height: "14px" },
-  glyphText: { color: tokens.colors.ink50, fontSize: "14px", fontWeight: 600, lineHeight: 1 },
   archiveBadge: {
     position: "absolute",
     right: "8px",

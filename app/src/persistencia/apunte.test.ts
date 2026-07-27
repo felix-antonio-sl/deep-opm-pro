@@ -146,6 +146,25 @@ describe("apunte — invariante de exclusión mutua apunte ⊕ biblioteca (corre
     });
   });
 
+  test("reabrir conserva la carpeta elegida explícitamente al graduar", () => {
+    const base = {
+      ...indice(),
+      carpetas: [{ id: "carpeta-1", nombre: "Trabajo", padreId: null, creadoEn: 1 }],
+    };
+    const graduado = graduarApunte(base, "ap-1", "carpeta-1");
+    expect(graduado.ok).toBe(true);
+    if (!graduado.ok) return;
+
+    const reabierto = reabrirModeloEnTaller(graduado.value, "ap-1");
+    expect(reabierto.ok).toBe(true);
+    if (!reabierto.ok) return;
+    expect(reabierto.value.modelos.find((modelo) => modelo.id === "ap-1")).toEqual({
+      id: "ap-1",
+      carpetaId: "carpeta-1",
+      esApunte: true,
+    });
+  });
+
   test("reabrir rechaza Apuntes y Bibliotecas sin mutar el índice", () => {
     const base = indice();
     expect(reabrirModeloEnTaller(base, "ap-1")).toEqual({

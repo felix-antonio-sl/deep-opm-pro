@@ -203,6 +203,29 @@ describe("nacerApunte (store)", () => {
     );
   });
 
+  test("el toggle heredado delega en graduación y reapertura sin mutar por atajo", async () => {
+    store.getState().nacerApunte();
+    await esperar(() => store.getState().modeloPersistidoId !== null);
+    const id = store.getState().modeloPersistidoId!;
+
+    store.getState().toggleApunteModelo(id);
+    expect(store.getState().dialogoGraduarModeloId).toBe(id);
+    expect(store.getState().indice.modelos.find((modelo) => modelo.id === id)?.esApunte).toBe(true);
+    store.getState().confirmarGraduacion({
+      modeloId: id,
+      nombre: "Modelo por flujo formal",
+      carpetaId: null,
+      bloqueos: 0,
+      mejoras: 0,
+      bocetos: 0,
+    });
+    await esperar(() => store.getState().dialogoGraduarModeloId === null);
+
+    store.getState().toggleApunteModelo(id);
+    expect(store.getState().dialogoReabrirModeloId).toBe(id);
+    expect(store.getState().indice.modelos.find((modelo) => modelo.id === id)?.esApunte).toBeUndefined();
+  });
+
   test("reapertura inactiva usa el autosalvado efectivo y bloquea si cambia antes de confirmar", async () => {
     store.getState().nacerApunte();
     await esperar(() => store.getState().modeloPersistidoId !== null);
