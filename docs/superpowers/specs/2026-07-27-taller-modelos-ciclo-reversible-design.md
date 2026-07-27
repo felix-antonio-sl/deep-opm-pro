@@ -172,12 +172,25 @@ servidor sigue verificando un testigo fresco antes del commit.
 El backend ya lee el payload al listar. Esa lectura hidrata el modelo y adjunta a
 su resumen un `estadoCierre` transitorio. El campo no entra al JSON persistido.
 
-### 5.5 Bocetos sin encoding nuevo
+### 5.5 Procedencia visual aditiva sin estado nuevo
 
-`Devolver a Bocetos` quita el refinamiento mediante el kernel existente y
+Un OPD integrado debe contener una apariencia de la cosa refinada para pasar la
+integridad dura del bundle. Como un Boceto bottom-up puede no traerla, Integrar
+materializa una proyección derivada solo cuando falta:
+
+- descomposición: contorno canónico que envuelve el contenido existente;
+- despliegue: apariencia normal de la cosa sobre la estructura.
+
+No se agrega un flag de Boceto, preparación ni madurez. La apariencia derivada
+usa el `contextoRefinamiento` ya existente, ampliado de forma retrocompatible
+con `tipo:"despliegue"` y `origen:"adopcion"`. Esta procedencia sobrevive
+guardar/abrir y permite que `Devolver a Bocetos` retire exclusivamente la
+proyección creada por Integrar, sin tocar apariencias autoradas.
+
+`Devolver a Bocetos` quita además el refinamiento mediante el kernel existente y
 desvincula solo la raíz elegida. Los descendientes conservan sus padres
-internos. La operación rechaza raíz, Boceto ya suelto, ausencia de dueño y
-vínculos inconsistentes.
+internos. La operación rechaza raíz, Boceto ya suelto, ausencia de dueño,
+procedencia ambigua y vínculos inconsistentes.
 
 ## 6. Tutor contextual
 
