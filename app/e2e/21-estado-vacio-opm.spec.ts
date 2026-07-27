@@ -97,7 +97,7 @@ test("primera cosa creada desde toolbar queda centrada en el canvas visible", as
     const centroElemento = elementBox.y + elementBox.height / 2;
     return Math.abs(centroElemento - centroCanvas);
   }).toBeLessThan(90);
-  const scroll = await page.getByRole("img", { name: "OPD activo" }).evaluate((el) => ({
+  const scroll = await page.getByRole("region", { name: "OPD activo" }).evaluate((el) => ({
     left: el.scrollLeft,
     top: el.scrollTop,
   }));

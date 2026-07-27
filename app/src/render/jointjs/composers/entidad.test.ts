@@ -365,7 +365,7 @@ describe("D6.3 badge de estereotipo en canvas", () => {
     const cell = proyectarEntidad(modelo, modelo.opdRaizId, apariencia, entidad, false, false, {});
     const attrs = cell.attrs as Record<string, Record<string, unknown>>;
 
-    expect(attrs.stereotypeBadge?.fill).toBe("#807b6e"); // CODEX.colores.inkSoft
+    expect(attrs.stereotypeBadge?.fill).toBe("#6b665c"); // CODEX.colores.inkSoft
     expect(attrs.stereotypeBadge?.fill).not.toBe("#8e2a2e"); // crimson PROHIBIDO
   });
 

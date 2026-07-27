@@ -54,7 +54,7 @@ async function crearObjetoViaCanvasStickyActivo(
 
   // Clic en el canvas para crear la entidad provisional.
   // Posicionamos lejos del borde para evitar hacer clic sobre un elemento existente.
-  const canvas = page.getByRole("img", { name: "OPD activo" });
+  const canvas = page.getByRole("region", { name: "OPD activo" });
   const rect = await canvas.boundingBox();
   const x = rect ? rect.width * 0.4 : 300;
   const y = rect ? rect.height * 0.5 : 200;

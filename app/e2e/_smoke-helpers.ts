@@ -418,7 +418,7 @@ export async function assertWorkbenchLayout(page: import("@playwright/test").Pag
 }
 
 export async function assertCanvasScrollable(page: import("@playwright/test").Page): Promise<void> {
-  const canvas = page.getByRole("img", { name: "OPD activo" });
+  const canvas = page.getByRole("region", { name: "OPD activo" });
   const scroll = await canvas.evaluate((element) => {
     const target = element as HTMLElement;
     target.scrollTo({ left: 160, top: 120 });

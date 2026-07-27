@@ -21,6 +21,7 @@ test("BUG-679f28: cada modelo expone menú de acciones (versiones, archivar, eli
   await crearModeloNuevoDesdeMenu(page);
 
   const dialogo = await abrirDialogoCargarModelo(page);
+  await expect(dialogo.getByTestId("gestor-sidebar-todas")).toHaveText("Raíz");
   await irAEspacioModelos(dialogo);
   const toggle = dialogo.getByTestId("modelo-acciones-toggle").first();
   await expect(toggle).toBeVisible();
@@ -154,7 +155,7 @@ test("higiene: arrastrar un tile a una carpeta de la sidebar persiste el movimie
     folderEl.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
   });
 
-  // Salió de «Todas» (raíz) …
+  // Salió de «Raíz» …
   await expect(dialogo.getByTestId("modelo-fila-cargar").filter({ hasText: "Modelo movible" })).toHaveCount(0);
   // … y aparece al abrir la carpeta destino.
   await dialogo.getByTestId("gestor-sidebar-carpeta").click();

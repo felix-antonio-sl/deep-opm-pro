@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { inspectorStyles } from "../inspectorStyles";
 import { abrirSeccionesDe, claveColapso, EVENTO_ABRIR_COLAPSO, escribirAbierta, leerAbierta } from "./seccionColapso";
 
 function mockStorage(): Storage {
@@ -33,6 +34,11 @@ function fakeEl(key: string | null, parent: unknown): HTMLElement {
 }
 
 describe("seccionColapso", () => {
+  test("los toggles de sección y disclosure alcanzan el target WCAG de 24 px", () => {
+    expect(inspectorStyles.fichaKickerBoton.minHeight).toBe(24);
+    expect(inspectorStyles.disclosureBoton.minHeight).toBe(24);
+  });
+
   test("claveColapso espacia bajo el prefijo del Inspector", () => {
     expect(claveColapso("Semántica")).toBe("opm.inspector.colapso.Semántica");
   });

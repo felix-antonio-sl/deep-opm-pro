@@ -82,7 +82,7 @@ export function renderTutorMarkdownPage(
       --paper-warm:#eeece2;
       --ink:#171511;
       --ink-mid:#5a564c;
-      --ink-soft:#807b6e;
+      --ink-soft:#6b665c;
       --rule:#d3cec1;
       --rule-strong:#aea899;
       --crimson:#8e2a2e;

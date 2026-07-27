@@ -23,7 +23,7 @@ const CX = {
   paperWarm:    '#eeece2',
   ink:          '#171511',
   inkMid:       '#5a564c',
-  inkSoft:      '#807b6e',
+  inkSoft:      '#6b665c',
   inkFaint:     '#b5b0a4',
   rule:         '#d3cec1',
   ruleStrong:   '#aea899',

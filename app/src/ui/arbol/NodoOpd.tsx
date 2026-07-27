@@ -260,9 +260,9 @@ function estiloNodo(nivel: number, activo: boolean): preact.JSX.CSSProperties {
 }
 
 const markerBase: preact.JSX.CSSProperties = {
-  width: "14px",
-  minWidth: "14px",
-  height: "18px",
+  width: "24px",
+  minWidth: "24px",
+  height: "24px",
   border: 0,
   background: "transparent",
   padding: 0,
@@ -278,9 +278,9 @@ const actionBase: preact.JSX.CSSProperties = {
   border: 0,
   background: "transparent",
   padding: 0,
-  width: "18px",
-  minWidth: "18px",
-  height: "18px",
+  width: "24px",
+  minWidth: "24px",
+  height: "24px",
   display: "inline-flex" as const,
   alignItems: "center",
   justifyContent: "center",
@@ -293,7 +293,7 @@ const style = {
   node: {
     width: "100%",
     display: "grid",
-    gridTemplateColumns: "14px minmax(0, 1fr) auto auto auto",
+    gridTemplateColumns: "24px minmax(0, 1fr) auto auto auto",
     alignItems: "center",
     gap: "6px",
     paddingTop: "4px",

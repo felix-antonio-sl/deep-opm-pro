@@ -259,7 +259,7 @@ async function main() {
     {
       const { context, page } = await nuevaPagina(browser, opts.url, { width: 1280, height: 720 }, runtime);
       await recorder.criterio(page, "carga inicial y estado vacio", async () => {
-        const canvas = await page.getByRole("img", { name: "OPD activo" }).count();
+        const canvas = await page.getByRole("region", { name: "OPD activo" }).count();
         const elementos = await page.locator(".joint-element").count();
         const oplVacio = await page.getByText("Sin OPL todavía.").count();
         if (canvas !== 1 || elementos !== 0 || oplVacio === 0) throw new Error("workspace inicial no esta vacio y listo");
@@ -398,7 +398,7 @@ async function main() {
       await recorder.criterio(page, "auto-layout y fit visible", async () => {
         await page.getByTestId("toolbar-aplicar-layout").click();
         await page.waitForTimeout(700);
-        const canvasLocator = page.locator('[role="img"][aria-label="OPD activo"], [data-testid="canvas-pane"]').first();
+        const canvasLocator = page.locator('[role="region"][aria-label="OPD activo"], [data-testid="canvas-pane"]').first();
         if (await canvasLocator.count() === 0) throw new Error("canvas OPD no visible");
         const canvas = await canvasLocator.evaluate((el) => ({
           scrollLeft: el.scrollLeft,

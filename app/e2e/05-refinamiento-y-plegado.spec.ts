@@ -95,7 +95,7 @@ test("descompone proceso y navega al OPD hijo", async ({ page }) => {
     const centroCanvasX = canvasBox.x + canvasBox.width / 2;
     return Math.abs(centroContornoX - centroCanvasX);
   }).toBeLessThan(260);
-  const scrollRefinado = await page.getByRole("img", { name: "OPD activo" }).evaluate((el) => ({
+  const scrollRefinado = await page.getByRole("region", { name: "OPD activo" }).evaluate((el) => ({
     left: el.scrollLeft,
     top: el.scrollTop,
   }));
@@ -538,7 +538,7 @@ test("mantiene canvas e inspector en columnas separadas tras recalculos", async 
   await page.waitForTimeout(4000);
   await assertWorkbenchLayout(page);
   await assertCanvasScrollable(page);
-  await page.getByRole("img", { name: "OPD activo" }).evaluate((element) => (element as HTMLElement).scrollTo({ left: 0, top: 0 }));
+  await page.getByRole("region", { name: "OPD activo" }).evaluate((element) => (element as HTMLElement).scrollTo({ left: 0, top: 0 }));
   await page.screenshot({ path: "test-results/opm-layout-columns.png", fullPage: true });
 
   expect(pageErrors).toEqual([]);
@@ -715,7 +715,7 @@ test("L3 descomposicion avanzada: inspector reasigna, inline renombra, paralelo 
 
   const proceso2ParaRename = elementoPorTexto(page, "Procesar 2");
   await expect(proceso2ParaRename).toBeVisible();
-  const viewport = page.getByRole("img", { name: "OPD activo" });
+  const viewport = page.getByRole("region", { name: "OPD activo" });
   const scrollAntesDeRenombrar = await viewport.evaluate((elemento) => ({
     left: elemento.scrollLeft,
     top: elemento.scrollTop,

@@ -400,7 +400,7 @@ test("HU-SHARED-002: deshacer revierte creación de cosa con un solo Ctrl+Z (ato
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
-  const canvas = page.getByRole("img", { name: "OPD activo" });
+  const canvas = page.getByRole("region", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modal = page.getByTestId("modal-nombre-cosa");
   if (await modal.count()) {

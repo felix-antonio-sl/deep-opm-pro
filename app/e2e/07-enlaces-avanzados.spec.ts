@@ -643,7 +643,7 @@ test("HU-11.012: editar etiqueta de enlace estructural persiste vía inspector",
     await expect(modalNombre).toHaveCount(0);
   }
 
-  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 8, y: 8 } });
+  await page.getByRole("region", { name: "OPD activo" }).click({ position: { x: 8, y: 8 } });
   await page.keyboard.press("Control+a");
   await page.getByTestId("abrir-menu-tipo-enlace").click();
   const menu = page.getByTestId("menu-tipo-enlace");

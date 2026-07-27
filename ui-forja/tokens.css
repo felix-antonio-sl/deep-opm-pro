@@ -17,7 +17,7 @@
   --cx-paper-warm:   #eeece2;  /* fondo de zonas secundarias (marginalia, dividers) — contraste intensificado */
   --cx-ink:          #171511;  /* tinta principal — paper-black ligeramente cálido */
   --cx-ink-mid:      #5a564c;  /* cuerpo de texto secundario, etiquetas en cursiva */
-  --cx-ink-soft:     #807b6e;  /* metadatos, kickers, números mono — ~4:1 vs paper, legibilidad AA */
+  --cx-ink-soft:     #6b665c;  /* metadatos, kickers, números mono — AA sobre paper y paper-warm */
   --cx-ink-faint:    #b5b0a4;  /* separadores tipográficos (·), elementos "off" — más presencia */
   --cx-rule:         #d3cec1;  /* hairlines normales (1px) — borde más visible */
   --cx-rule-strong:  #aea899;  /* hairlines de divisor estructural (split inspector/OPL) — borde más visible */

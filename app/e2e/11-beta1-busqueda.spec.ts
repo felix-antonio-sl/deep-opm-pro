@@ -26,7 +26,7 @@ test("ronda 16 L2: Ctrl+F abre dialogo y filtra entidades", async ({ page }) => 
 
   // Foco fuera de inputs antes de Ctrl+F (el atajo no debe robar focus
   // de un input activo; basta clicar el canvas para liberar foco).
-  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
+  await page.getByRole("region", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");
 
   const dialogo = page.getByTestId("dialogo-buscar-cosas");
@@ -62,7 +62,7 @@ test("ronda 16 L2: Ctrl+F abre dialogo y filtra entidades", async ({ page }) => 
 
 test("una búsqueda local vacía continúa en el workspace conservando la consulta", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
+  await page.getByRole("region", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");
 
   const query = "inexistente-en-modelo";
@@ -88,7 +88,7 @@ test("ronda 16 L2: salto desde busqueda cambia OPD + selecciona + sincroniza OPL
   await expect(page.locator('[role="treeitem"][data-opd-id="opd-1"]'))
     .toHaveAttribute("aria-current", "page");
 
-  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
+  await page.getByRole("region", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");
 
   // Espera el input focuseado antes de fill (ver nota en test :106): el
@@ -139,7 +139,7 @@ test("ronda 16 L2: busqueda de estados y etiqueta de enlace", async ({ page }) =
   await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
   await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
-  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
+  await page.getByRole("region", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");
 
   // Espera el input focuseado antes de fill (DialogoBuscarCosas dispara
@@ -188,7 +188,7 @@ test("ronda 16 L2: salto a enlace selecciona enlace y dispara halo temporal", as
   await jsonEditor(page).fill(JSON.stringify(modelo, null, 2));
   await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
-  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
+  await page.getByRole("region", { name: "OPD activo" }).click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+f");
 
   // Espera input focuseado antes de fill (ver nota en test :106).

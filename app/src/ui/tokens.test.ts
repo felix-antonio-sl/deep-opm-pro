@@ -12,6 +12,11 @@ import { colors, radii, shadows, spacing, stroke, tokens, transitions, typograph
  */
 
 describe("tokens.colors - contrato Codex [ronda-codex L1]", () => {
+  test("inkSoft cumple WCAG AA para texto normal sobre paper y paperWarm", () => {
+    expect(contraste(colors.inkSoft, colors.paper)).toBeGreaterThanOrEqual(4.5);
+    expect(contraste(colors.inkSoft, colors.paperWarm)).toBeGreaterThanOrEqual(4.5);
+  });
+
   test("paleta canvas semantica permanece invariante [JOYAS §1]", () => {
     expect(colors.canvas.objeto).toBe("#70E483");
     expect(colors.canvas.objetoSuave).toBe("#70e483");
@@ -28,7 +33,7 @@ describe("tokens.colors - contrato Codex [ronda-codex L1]", () => {
     expect(colors.paperWarm).toBe("#eeece2");
     expect(colors.ink).toBe("#171511");
     expect(colors.inkMid).toBe("#5a564c");
-    expect(colors.inkSoft).toBe("#807b6e");
+    expect(colors.inkSoft).toBe("#6b665c");
     expect(colors.inkFaint).toBe("#b5b0a4");
     expect(colors.rule).toBe("#d3cec1");
     expect(colors.ruleStrong).toBe("#aea899");

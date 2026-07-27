@@ -6,6 +6,12 @@ import { fileURLToPath } from "node:url";
 const RENDER_JOINTJS_ROOT = dirname(fileURLToPath(import.meta.url));
 
 describe("frontera render/UI JointJS", () => {
+  test("el canvas interactivo se anuncia como región, no como imagen", () => {
+    const source = readFileSync(join(RENDER_JOINTJS_ROOT, "JointCanvas.tsx"), "utf8");
+    expect(source).toContain('role="region" aria-label="OPD activo"');
+    expect(source).not.toContain('role="img" aria-label="OPD activo"');
+  });
+
   test("render/jointjs no importa el adapter concreto de feedback Zustand", () => {
     const offenders = sourceFiles(RENDER_JOINTJS_ROOT)
       .filter((file) => {

@@ -746,7 +746,7 @@ export function JointCanvas({
     && renombradoEncadenado?.entidadId === renombradoActivo.entidadId;
 
   return (
-    <div ref={viewportRef} role="img" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
+    <div ref={viewportRef} role="region" aria-label="OPD activo" data-atajos-contexto="canvas" style={style.viewport}>
       <div ref={paperHostRef} style={style.paperHost}>
         <OverlayLayer paper={adapterState?.paper ?? null} overlays={feedbackOverlays} />
         {!readonlyMode && renombrado?.entidad && renombrado.apariencia ? (

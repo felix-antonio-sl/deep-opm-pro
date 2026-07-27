@@ -903,7 +903,7 @@ export const s: EstilosBarra = {
   // outline crimson canon (ui-forja §4.1 "focus states").
   // BUG-20260608T171552Z-17477a ronda 2 (F1.14): el `controlDeshabilitado`
   // sube de `inkFaint` (#b5b0a4, ~2.4:1 sobre paperWarm — FAIL AA) a
-  // `inkSoft` (#807b6e, ~3.5:1) + `opacity 0.6` para transparenta el
+  // `inkSoft` (#6b665c, AA sin opacidad) + `opacity 0.6` para transparentar el
   // control sin invisibilizarlo. `borderColor` sube de paperWarm (mismo
   // color que el fondo, invisible) a `rule` (hairline visible) para que
   // la silueta de botón se conserve. El cursor `not-allowed` se mantiene

@@ -277,12 +277,14 @@ export function DialogoCargarModelo() {
               data-testid="gestor-sidebar-todas"
               style={raizActiva ? style.sidebarItemActivo : style.sidebarItem}
               aria-current={raizActiva ? "true" : undefined}
+              aria-label="Raíz, documentos sin carpeta"
+              title="Documentos sin carpeta"
               disabled={!usaCarpetas}
               onClick={irARaiz}
               onDragOver={permitirDrop}
               onDrop={(event) => soltarEnCarpeta(event as unknown as DragEvent, null)}
             >
-              Todas
+              Raíz
             </button>
 
             {carpetasOrdenadas.map(({ carpeta, nivel }) => (

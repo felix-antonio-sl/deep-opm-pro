@@ -156,7 +156,7 @@ test("L4 arrastra cosa desde Toolbar al canvas y respeta posicion de drop", asyn
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
-  const canvas = page.getByRole("img", { name: "OPD activo" });
+  const canvas = page.getByRole("region", { name: "OPD activo" });
   const scrollInicial = await canvas.evaluate((element) => ({
     left: (element as HTMLElement).scrollLeft,
     top: (element as HTMLElement).scrollTop,
@@ -183,7 +183,7 @@ test("L4 menu de tipos validos muestra previsualización OPL y filtra por direcc
   await page.getByLabel("Nombre").fill("Entrada");
   await page.getByRole("button", { name: "Proceso", exact: true }).click();
   await page.getByLabel("Nombre").fill("Procesar");
-  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 8, y: 8 } });
+  await page.getByRole("region", { name: "OPD activo" }).click({ position: { x: 8, y: 8 } });
   await page.keyboard.press("Control+a");
   await page.getByTestId("abrir-menu-tipo-enlace").click();
 
@@ -195,7 +195,7 @@ test("L4 menu de tipos validos muestra previsualización OPL y filtra por direcc
   await expect(menu.getByTestId("menu-tipo-enlace-consumo")).toBeVisible();
   await menu.getByRole("button", { name: "Entrada", exact: true }).click();
   await expect(menu.getByText(/genera|requiere|maneja/)).toBeVisible();
-  await page.getByRole("img", { name: "OPD activo" }).click({ position: { x: 8, y: 8 } });
+  await page.getByRole("region", { name: "OPD activo" }).click({ position: { x: 8, y: 8 } });
   await expect(page.getByTestId("menu-tipo-enlace")).toHaveCount(0);
   expect(pageErrors).toEqual([]);
 });
@@ -461,7 +461,7 @@ test("HU-10.003: drag Objeto al canvas abre modal-nombre-cosa y Enter persiste e
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
-  const canvas = page.getByRole("img", { name: "OPD activo" });
+  const canvas = page.getByRole("region", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
   const modal = page.getByTestId("modal-nombre-cosa");
@@ -483,7 +483,7 @@ test("HU-10.003: modal-nombre-cosa expone el form con input controlado para nomb
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
-  const canvas = page.getByRole("img", { name: "OPD activo" });
+  const canvas = page.getByRole("region", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
 
   const modal = page.getByTestId("modal-nombre-cosa");
@@ -508,7 +508,7 @@ test("HU-30.019: doble clic sobre tile en DialogoCargarModelo carga modelo y cie
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
-  const canvas = page.getByRole("img", { name: "OPD activo" });
+  const canvas = page.getByRole("region", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modalNombre = page.getByTestId("modal-nombre-cosa");
   if (await modalNombre.count()) {
@@ -539,7 +539,7 @@ test("HU-30.020: clic sobre tile selecciona y botón Cargar del diálogo carga m
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
-  const canvas = page.getByRole("img", { name: "OPD activo" });
+  const canvas = page.getByRole("region", { name: "OPD activo" });
   await page.getByTestId("toolbar-drag-objeto").dragTo(canvas, { targetPosition: { x: 320, y: 190 } });
   const modalNombre = page.getByTestId("modal-nombre-cosa");
   if (await modalNombre.count()) {

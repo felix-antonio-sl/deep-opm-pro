@@ -561,7 +561,7 @@ function canvasPaneDePaper(paper: dia.Paper | null): HTMLElement | null {
 
 function viewportDePaper(paper: dia.Paper): HTMLElement | null {
   const el = (paper as unknown as { el?: Element }).el;
-  return el?.closest<HTMLElement>('[role="img"][aria-label="OPD activo"]') ?? null;
+  return el?.closest<HTMLElement>('[data-atajos-contexto="canvas"][aria-label="OPD activo"]') ?? null;
 }
 
 interface RectCliente {

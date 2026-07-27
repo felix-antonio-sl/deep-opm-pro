@@ -105,7 +105,7 @@ Todo el chrome vive en escala neutra fría. Nada de cream warm, nada de sienna �
 | `--cx-paper-warm` | `#eeece2` | fondos secundarios (alert callout, divisor) — contraste intensificado |
 | `--cx-ink` | `#171511` | tinta principal |
 | `--cx-ink-mid` | `#5a564c` | cuerpo secundario, etiquetas italic |
-| `--cx-ink-soft` | `#807b6e` | metadatos, kickers, números mono — ~4:1 vs paper (AA) |
+| `--cx-ink-soft` | `#6b665c` | metadatos, kickers, números mono — AA sobre paper y paper-warm |
 | `--cx-ink-faint` | `#b5b0a4` | separadores inline (`·`), elementos "off" |
 | `--cx-rule` | `#d3cec1` | hairlines normales |
 | `--cx-rule-strong` | `#aea899` | hairlines de divisor estructural |
@@ -269,7 +269,7 @@ Transición: `100ms ease` en color únicamente.
 
 - **Cuerpo ink sobre paper:** ratio ~16:1. WCAG AAA.
 - **inkMid sobre paper:** ratio ~7.1:1. AA cuerpo.
-- **inkSoft sobre paper:** ratio ~3.0:1. **Solo para texto ≥ 12px medium o ≥ 14px regular**.
+- **inkSoft sobre paper:** ratio ~5.5:1; sobre paper-warm, ~4.8:1. AA para texto normal.
 - **Crimson sobre paper:** ratio ~8.4:1. AA pasa.
 - El selected underline crimson SIEMPRE se acompaña de otra señal (color del número, marca `※`).
 - Todos los elementos interactivos focusables por teclado.

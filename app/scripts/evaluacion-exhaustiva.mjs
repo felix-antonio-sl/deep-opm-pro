@@ -566,7 +566,7 @@ const DEMOS = ["System Diagram", "SD Sync", "SD Async", "OnStar System", "OPM St
   record("ifml-l3", "bus-dom-sin-listener-vivo", ajenoNoAbre ? "OK" : "FAIL", "Un dispatch externo de opm:nueva-cosa no debe abrir el modal");
 
   // b) drop al canvas dispara el modal via Action -> store -> View.
-  const canvas = page.locator('[role="img"][aria-label="OPD activo"]').first();
+  const canvas = page.locator('[role="region"][aria-label="OPD activo"]').first();
   let dropOk = false;
   try {
     const dragSource = page.locator('[data-testid="toolbar-modo-creacion-objeto"]').first();

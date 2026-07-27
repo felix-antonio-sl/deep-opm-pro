@@ -33,7 +33,7 @@ test("chrome Codex elimina cajas residuales en estado vacio", async ({ page }) =
   await expect(page.getByTestId("bug-capture-open")).toHaveCount(0);
   await expect(page.getByTestId("bug-ledger-open")).toHaveCount(0);
 
-  const canvasViewport = page.getByRole("img", { name: "OPD activo" });
+  const canvasViewport = page.getByRole("region", { name: "OPD activo" });
   await expect(canvasViewport).toHaveCSS("overflow-x", "auto");
   await expect(canvasViewport).toHaveCSS("overflow-y", "auto");
 });

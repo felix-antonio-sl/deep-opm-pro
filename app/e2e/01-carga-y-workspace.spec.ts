@@ -56,7 +56,7 @@ test("primer paint arranca vacio sin onboarding, ejemplos ni System Diagram", as
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
-  await expect(page.getByRole("img", { name: "OPD activo" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "OPD activo" })).toBeVisible();
   await expect(page.locator(".joint-paper svg")).toHaveCount(1);
   await expect(page.locator(".joint-element")).toHaveCount(0);
   await expect(page.locator(".joint-link")).toHaveCount(0);
@@ -208,7 +208,7 @@ test("workspace L4 mueve modelos y busca global con guard", async ({ page }) => 
     folderEl.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt }));
     folderEl.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
   });
-  // Salió de «Todas» (raíz) y reaparece al abrir la carpeta destino.
+  // Salió de «Raíz» y reaparece al abrir la carpeta destino.
   await expect(dialogoCargar.getByTestId("modelo-fila-cargar").filter({ hasText: "Workspace L4 Busqueda" })).toHaveCount(0);
   await dialogoCargar.getByRole("button", { name: /Destino L4/ }).click();
   await expect(dialogoCargar.getByTestId("modelo-fila-cargar").filter({ hasText: "Workspace L4 Busqueda" })).toHaveCount(1);

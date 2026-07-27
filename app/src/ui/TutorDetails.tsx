@@ -54,7 +54,7 @@ export function TutorDetails({
               setCriterioAbierto(abierto);
             }}
           >
-            <summary>{rotuloCriterio}</summary>
+            <summary style={style.summary}>{rotuloCriterio}</summary>
             <p style={style.texto}>{vista.contenido.criterion}</p>
             {vista.contenido.lensDetails.map((detalle) => (
               <p key={detalle.lens} style={style.lente}>{detalle.criterion}</p>
@@ -68,7 +68,7 @@ export function TutorDetails({
               setFundamentoAbierto(abierto);
             }}
           >
-            <summary>Fundamento</summary>
+            <summary style={style.summary}>Fundamento</summary>
             <TutorFoundationLinks referencias={vista.referencias} />
           </details>
         </div>
@@ -215,6 +215,7 @@ const style = {
   contenido: { display: "grid", gap: `${tokens.spacing.xs}px` },
   ahora: { margin: 0, color: tokens.colors.inkMid },
   detalle: { minWidth: 0 },
+  summary: { minHeight: 24, display: "flex", alignItems: "center", cursor: "pointer" },
   texto: { margin: "5px 0 0" },
   lente: { margin: "4px 0 0", fontStyle: "italic" },
   fuentes: { display: "grid", gap: "4px", margin: "5px 0 0", paddingLeft: "18px" },
