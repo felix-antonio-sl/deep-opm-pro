@@ -27,10 +27,13 @@ Este archivo no es la SSOT. La autoridad primaria vive en KORA:
 - URN: `urn:fxsl:kb:spec-forja-opd-es`
 - Resolución de path: por URN vía `docs/canon-opm/resolutor-urn.json` (re-ancla a la SSOT viva en PNEUMA bajo `KORA_RAIZ`, default `/home/felix/kora-pneuma`; la bestia congelada `/home/felix/kora` queda como último origen histórico). Lector: `app/src/canon/resolutorUrn.ts`.
 - Estado: `publicado`
-- Versión vigente observada: `1.3.1` (2026-07-18). Conserva el Taller bottom-up
-  de v1.3.0 y precisa R-OPD-REF-10: preservar la firma de frontera es necesario,
-  pero no prueba equivalencia conductual ni sustituibilidad total. El dato vivo
-  lo resuelve `docs/canon-opm/resolutor-urn.json`, no este número.
+- Versión vigente observada: `1.4.0` (2026-07-27). Formaliza Bocetos como
+  componentes raíz-de-fragmento visibles en Taller, con Integrar y Devolver
+  reversibles y Eliminar como operación destructiva separada. Conserva por
+  compatibilidad los identificadores internos `adoptarOpd` y
+  `origen:"adopcion"`; la canonicidad y los gates pertenecen a
+  `reglas-opm-estrictas-es`. El dato vivo lo resuelve
+  `docs/canon-opm/resolutor-urn.json`, no este número.
 
 ## Rol En Opforja
 

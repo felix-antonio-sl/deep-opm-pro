@@ -103,14 +103,14 @@ export function evaluarCordonSkill(
  */
 export const CORDON_SKILL_NOMBRE = "modelamiento-opm";
 
-// v2.0.2 (corrección epistémica, 2026-07-18): conserva el puente directo y las
-// guardas de v2.0.1, y acota la igualdad de firma a equivalencia observacional
-// relativa: no implica identidad, bisimulación ni sustituibilidad total. El
-// `hash-fuente` testifica el ARTEFACTO FUENTE en pneuma (sha256 de
+// v2.1.0 (ciclo reversible, 2026-07-27): distingue Taller/Modelos y separa
+// Apunte⇄Modelo de Boceto⇄OPD integrado sin convertir graduación o integración
+// en validación humana. El `hash-fuente` testifica el ARTEFACTO FUENTE en pneuma
+// (sha256 de
 // `artefactos/skills/kora/modelamiento-opm/SKILL.md`), re-emitido con
 // `kora.py transmutar` a claude-code/codex/opencode (3 sellos identicos, paridad fiel).
 export const CORDON_SKILL_ESPERADO: EsperadoCordon = {
-  version: "2.0.2",
-  hashFuente: "sha256:733f6943d8643b69f36395c8ed859f8d5847c1f2ec53e0c74f368123aa11fd80",
+  version: "2.1.0",
+  hashFuente: "sha256:8cf8dd16dd843c967d585edfd3508425d835686508d89836978e31ad03639483",
   target: "claude-code",
 };

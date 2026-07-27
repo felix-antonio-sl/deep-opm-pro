@@ -67,7 +67,7 @@ export const TUTOR_SOURCES = [
     "Reglas OPM estrictas",
     "validity",
     "urn:fxsl:kb:reglas-opm-estrictas-es",
-    "1.4.2",
+    "1.5.0",
     [
       sourceAnchor("ontology-entities", "Ontología de entidades", "2. Ontología de entidades"),
       sourceAnchor("modeling-principles", "Principios de modelado como reglas", "Principios de modelado como reglas"),
@@ -90,7 +90,7 @@ export const TUTOR_SOURCES = [
     "Metodología Forja OPM",
     "method",
     "urn:fxsl:kb:metodologia-forja-opm-es",
-    "1.6.1",
+    "1.7.0",
     [
       sourceAnchor("before-seed", "Antes de la semilla", "A0. Antes de la semilla (fase pre-SD)"),
       sourceAnchor("principle-classification", "Principio rector y clasificación", "A1. Principio rector y clasificación"),
@@ -111,7 +111,7 @@ export const TUTOR_SOURCES = [
     "Especificación Forja OPD",
     "opd",
     "urn:fxsl:kb:spec-forja-opd-es",
-    "1.3.1",
+    "1.4.0",
     [
       sourceAnchor("persistence-rule", "Canonicidad por persistencia", "§1 Regla rectora: canonicidad por persistencia en export"),
       sourceAnchor("things", "Cosas: las ocho representaciones", "§2 Cosas: las ocho representaciones"),
@@ -166,7 +166,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "pedagogy",
     "docs/manual-opm-puro.md",
-    "6609bb84bff0fbec2109fb8e5acb3df2bc76555891d181d3071f22c3735fd752",
+    "16527d98ee4b977417937942494c780b1cac79f139db98d67c609c68c7da2be4",
     [
       sourceAnchor("ontology", "La ontología mínima", "§1 La ontología mínima: cosas, objetos, procesos"),
       sourceAnchor("frontier", "Propiedades genéricas y frontera", "§2 Propiedades genéricas y frontera del sistema"),

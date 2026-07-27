@@ -2020,7 +2020,7 @@ protocolo, la skill `pensamiento-modelador` sobre el kb
 | OPL-ES | `urn:fxsl:kb:opl-es` (v3.0.x) | plantillas textuales, vocabulario, decisiones de diseño del español |
 | OPD — Gramática visual | `urn:fxsl:kb:opd-es` | geometría, marcadores, reglas `V-*` (citadas vía canon prescriptivo) |
 | Manual metodológico | `urn:fxsl:kb:manual-metodologico-opm-es` (v3.0.x) | método del SD, refinamiento, heurísticas, verificación, control de flujo |
-| Reglas OPM estrictas | `urn:fxsl:kb:reglas-opm-estrictas-es` (v1.4.x) | reglas `R-*`, anti-patrones `AP-*`, tablas-gate de bisimetría |
+| Reglas OPM estrictas | `urn:fxsl:kb:reglas-opm-estrictas-es` (v1.5.x) | reglas `R-*`, anti-patrones `AP-*`, tablas-gate de bisimetría |
 | Tensiones del modelamiento | `urn:fxsl:kb:tensiones-modelamiento` (v1.0.0) | marco de las 52 tensiones (Partes 0, VII, Apéndice D) |
 | [ISO 19450:2024](https://www.iso.org/standard/84612.html) | — | estándar vigente de referencia de OPM (operacionalizado por el corpus) |
 

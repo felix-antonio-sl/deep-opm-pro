@@ -86,6 +86,12 @@ equivalencia observacional relativa. Es una condición necesaria de sustitución
 no identidad, bisimulación ni equivalencia categorial; una lectura de fibración
 permanece hipotética hasta construir y probar sus datos formales.
 
+La versión `1.7.0` (2026-07-27) separó dos ciclos reversibles sobre identidades
+distintas: el documento transita Apunte⇄Modelo mediante Graduar/Reabrir y cada
+componente transita Boceto⇄OPD integrado mediante Integrar/Devolver. La
+graduación exige integridad, pero puede asumir deuda formal y Bocetos pendientes
+sin integrarlos implícitamente ni afirmar validación humana.
+
 ## Acceso Rápido
 
 ```bash

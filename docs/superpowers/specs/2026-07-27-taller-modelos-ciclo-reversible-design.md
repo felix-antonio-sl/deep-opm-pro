@@ -369,6 +369,22 @@ errores de hidratación, conflictos, bugs activos ni reinicios. El tenant
 sintético se eliminó y los ocho agregados regresaron exactamente al baseline.
 No se infiere comprensión humana ni adopción real a partir de esta sonda.
 
+### Propagación al ecosistema — 2026-07-27
+
+El contrato se elevó a la SSOT KORA y a la skill `modelamiento-opm` en
+`e43ebf791d31325efa410dd31c7aad38c2dd04f5`:
+
+- reglas `1.5.0`, OPD `1.4.0` y método `1.7.0`;
+- skill `2.1.0`, emitida para Claude Code, Codex y OpenCode con paridad fiel;
+- resolver, fuentes del Tutor y cordón repo-local alineados con esas versiones
+  y con el hash de la skill;
+- identificadores internos `adoptarOpd` y `origen:"adopcion"` preservados como
+  compatibilidad, sin elevarlos a vocabulario de usuario ni a OPL.
+
+Esta propagación no modifica modelos, esquema ni datos. La publicación Git y la
+instalación de la skill son hechos separados del despliegue de la app: hasta un
+nuevo deploy autorizado, producción conserva el corpus Tutor del build anterior.
+
 ## 9. Matriz de efectos posteriores
 
 | Superficie | Efecto esperado | Riesgo | Mitigación/observable |

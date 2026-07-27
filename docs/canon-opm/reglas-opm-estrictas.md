@@ -75,11 +75,13 @@ El paquete deliberado de la auditoría se materializó el 2026-06-14 en
 procedimental — y resoluciones del panel arbitrado por el operador). Este puente
 no copia el canon; consultar la SSOT por la URN.
 
-Versión vigente observada: `1.4.2` (2026-07-18). Acota R-CAT-EQ a equivalencia
-observacional relativa por firma y declara que la composición implementada es
-una unión por interfaz: un pushout sigue siendo una formalización candidata
-hasta probar su propiedad universal. El dato vivo lo resuelve
-`docs/canon-opm/resolutor-urn.json`, no este número.
+Versión vigente observada: `1.5.0` (2026-07-27). Añade
+`R-CAN-BOCETO-1..4`: un documento conserva identidad durante
+Apunte⇄Modelo, mientras cada componente conserva la suya durante
+Boceto⇄OPD integrado. Integrar/Devolver no equivalen a Graduar/Reabrir; los
+Bocetos bloquean exportación canónica, no graduación si la integridad está
+sana, y ninguna de estas operaciones acredita validación humana. El dato vivo
+lo resuelve `docs/canon-opm/resolutor-urn.json`, no este número.
 
 ## Acceso Rápido
 
