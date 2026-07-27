@@ -2,9 +2,10 @@
 
 **Fecha:** 2026-07-27
 
-**Estado:** IMPLEMENTADO Y PUBLICADO EN GIT. P1/P2 quedaron cerradas para el
-build productivo `e67e8621`; la corrección de cierre `ba2e7de1` está publicada
-en fuente y requiere un nuevo gate de despliegue. P3–P5 siguen pendientes.
+**Estado:** IMPLEMENTADO, PUBLICADO Y DESPLEGADO. P1/P2 se reabrieron y cerraron
+sobre el build `f6471d5b`, que contiene la corrección `ba2e7de1`. P3 funcional
+terminó verde, pero el gate integral permanece en NO-GO por hallazgos serios de
+accesibilidad. P4/P5 siguen pendientes.
 
 **Reemplaza parcialmente:** `2026-07-06-apuntes-taller-design.md` en vocabulario
 visible, gestor y reversibilidad. Conserva sus decisiones de kernel, integridad y
@@ -306,6 +307,18 @@ Nivel 2, solo con cuenta/tenant de prueba autorizados:
 Abortar y volver al build anterior ante pérdida de identidad/contenido,
 desincronización índice-payload, error de CAS no recuperable o imposibilidad de
 abrir documentos existentes.
+
+**Corte observado 2026-07-27:** nivel 1 verde y nivel 2 funcional verde sobre
+`f6471d5b`. El mismo documento y el Boceto `opd-3` conservaron identidad, hechos,
+carpeta y versiones durante el ciclo completo. El Tutor mantuvo una sola voz y
+el runtime quedó sin errores. El tenant sintético fue eliminado y los agregados
+regresaron al baseline.
+
+El gate integral de P3 permanece en **NO-GO**: Axe 4.10.2 encontró impacto
+`serious` por contraste, objetivos táctiles menores de 24×24 px y un canvas
+`role="img"` con descendientes enfocables. No se activa rollback funcional
+porque no ocurrió ninguno de sus criterios; sí se mantiene bloqueado P4 hasta
+corregir y repetir P3. Evidencia: `docs/REPORTE-EJECUTIVO.md`.
 
 ### Fase P4 — propagación humana y documental
 
