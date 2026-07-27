@@ -48,7 +48,8 @@ const C = tokens.colors;
 const T = tokens.typography;
 
 // Hairline tinta-papel (gate `design:governance`): borde superior `rule` suave,
-// rótulo en `inkSoft`, subtítulo en `inkFaint`. Sin botones, sin sombras, sin
+// rótulo y texto en `inkSoft`; `inkFaint` queda solo para el glifo decorativo.
+// Sin botones, sin sombras, sin
 // crimson — el apunte es identidad serena, no alarma.
 const s = {
   cinta: {
@@ -72,7 +73,7 @@ const s = {
     flex: "0 0 auto",
   },
   texto: {
-    color: C.inkFaint,
+    color: C.inkSoft,
     minWidth: 0,
   },
   rotulo: {

@@ -64,7 +64,7 @@ const s = {
     lineHeight: 1,
     flex: "0 0 auto",
   },
-  texto: { color: C.inkFaint, minWidth: 0 },
+  texto: { color: C.inkSoft, minWidth: 0 },
   rotulo: {
     color: C.inkSoft,
     fontWeight: T.weights.bold,

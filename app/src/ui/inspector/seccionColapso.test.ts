@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { inspectorStyles } from "../inspectorStyles";
+import { tokens } from "../tokens";
 import { abrirSeccionesDe, claveColapso, EVENTO_ABRIR_COLAPSO, escribirAbierta, leerAbierta } from "./seccionColapso";
 
 function mockStorage(): Storage {
@@ -37,6 +38,10 @@ describe("seccionColapso", () => {
   test("los toggles de sección y disclosure alcanzan el target WCAG de 24 px", () => {
     expect(inspectorStyles.fichaKickerBoton.minHeight).toBe(24);
     expect(inspectorStyles.disclosureBoton.minHeight).toBe(24);
+  });
+
+  test("el identificador canónico usa tinta con contraste AA", () => {
+    expect(inspectorStyles.id.color).toBe(tokens.colors.inkSoft);
   });
 
   test("claveColapso espacia bajo el prefijo del Inspector", () => {

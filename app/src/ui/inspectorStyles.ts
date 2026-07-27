@@ -93,7 +93,7 @@ export const inspectorStyles = {
     lineHeight: 1.2,
   },
   id: {
-    color: tokens.colors.ink30,
+    color: tokens.colors.inkSoft,
     fontFamily: tokens.typography.fontFamilyMono,
     fontSize: `${tokens.typography.sizes.xxs}px`,
     fontWeight: tokens.typography.weights.medium,
