@@ -2,8 +2,9 @@
 
 **Fecha:** 2026-07-27
 
-**Estado:** IMPLEMENTADO EN EL REPOSITORIO; publicación Git incluida en el cierre
-del corte; despliegue productivo pendiente de autorización separada.
+**Estado:** IMPLEMENTADO Y PUBLICADO EN GIT. P1/P2 quedaron cerradas para el
+build productivo `e67e8621`; la corrección de cierre `ba2e7de1` está publicada
+en fuente y requiere un nuevo gate de despliegue. P3–P5 siguen pendientes.
 
 **Reemplaza parcialmente:** `2026-07-06-apuntes-taller-design.md` en vocabulario
 visible, gestor y reversibilidad. Conserva sus decisiones de kernel, integridad y
@@ -96,8 +97,10 @@ persona decide entre **Seguir en Taller y corregir** y
 
 ### L1. Identidad documental
 
-Graduar y reabrir conservan el mismo `model.id`, registro, carpeta y hechos OPM.
-Cada transición confirma una versión, pero no duplica el documento.
+Graduar y reabrir conservan el mismo `model.id`, registro y hechos OPM. Graduar
+conserva la carpeta por defecto, pero puede trasladar el documento al destino
+que la persona elija explícitamente; reabrir conserva la carpeta vigente. Cada
+transición confirma una versión, pero no duplica el documento.
 
 ### L2. Identidad del componente
 
@@ -126,7 +129,7 @@ diagnóstico vigentes. No se persiste un flag que pueda quedar obsoleto.
 | Gesto | Precondición | Efectos | Preserva | Recuperación |
 | --- | --- | --- | --- | --- |
 | Nuevo | sesión y backend disponibles | crea registro `Apunte` en Taller | — | el nacimiento es inmediato; luego puede archivarse/eliminarse |
-| Graduar a Modelo | Apunte íntegro, nombre y destino | versión + cambio atómico de índice a Modelo | ID y hechos | conflicto/fallo conserva Apunte; luego puede Reabrirse |
+| Graduar a Modelo | Apunte íntegro, nombre y destino | versión + destino elegido + cambio atómico de índice a Modelo | ID y hechos | conflicto/fallo conserva Apunte; luego puede Reabrirse |
 | Reabrir en Taller | Modelo de Trabajo, revisión observada | versión «Reapertura en Taller» + cambio atómico a Apunte | ID, hechos, carpeta | cancelar/fallo conserva Modelo |
 | Integrar como… | Boceto y cosa destino compatibles | fija padre y slot de refinamiento | ID y contenido del Boceto | undo restaura Boceto |
 | Devolver a Bocetos | OPD integrado no raíz con dueño único | libera slot y fija `padreId:null` en la raíz del subárbol | subárbol y todos sus hechos | undo restaura vínculo exacto |
@@ -294,7 +297,9 @@ Nivel 2, solo con cuenta/tenant de prueba autorizados:
 1. Crear un Apunte sintético sin datos reales.
 2. Trazar un Boceto con contenido reconocible.
 3. Integrarlo y devolverlo; comparar ID y contenido.
-4. Graduar, reabrir y volver a graduar; comparar `model.id`, carpeta y versión.
+4. Graduar eligiendo carpeta, reabrir y volver a graduar; comparar `model.id`,
+   hechos y versiones, y comprobar que la reapertura conserva la carpeta
+   elegida.
 5. Confirmar agrupación Taller/Modelos y Tutor contextual.
 6. Eliminar o archivar el artefacto de prueba según la política acordada.
 
