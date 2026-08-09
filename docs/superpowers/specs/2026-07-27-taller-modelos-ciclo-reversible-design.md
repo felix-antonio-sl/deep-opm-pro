@@ -244,7 +244,7 @@ corte, y cada fase tiene un gate de entrada.
 Acciones:
 
 1. Publicar los commits semánticos.
-2. Registrar SHA, pruebas y límites en el handoff.
+2. Reportar SHA, pruebas y límites al cerrar la tarea.
 3. Confirmar que no hubo migración, escritura de modelos ni `mesa push`.
 
 Evidencia: SHA remoto, divergencia `0/0`, resultados de `gate:refactor`.
@@ -334,7 +334,7 @@ No migrar nombres almacenados ni reescribir modelos: el cambio es de navegación
 y semántica de interfaz.
 
 **Estado 2026-07-27:** propagación repo-local completada en la guía del Tutor,
-manuales, canon, cheatsheets, especificación de gestión, reporte y handoff. No
+manuales, canon, cheatsheets, especificación de gestión y reporte. No
 se ejecutaron comunicaciones externas.
 
 ### Fase P5 — observación y cierre

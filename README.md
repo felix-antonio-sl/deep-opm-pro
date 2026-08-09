@@ -9,15 +9,11 @@ La aplicación está en producción en [opforja.sanixai.com](https://opforja.san
 
 ## Estado
 
-El corte documental vigente es el
-[handoff](HANDOFF.md), cuyo corte interno es el 2026-08-09. La dirección futura está en el
-[roadmap del 2026-08-09](docs/roadmap/roadmap-2026-08-09.md).
-
-Al iniciar el corte del 2026-08-09, `main` y `origin/main` coincidían en `2e7246a6`;
-producción servía el build `2761196a`, con salud pública correcta. Este mantenimiento
-documental modifica tres fuentes del corpus Tutor y no se ha desplegado. La sonda
-productiva prueba identidad y salud técnica, no que el árbol local esté publicado ni
-validación humana de los modelos creados con la herramienta.
+El estado operativo no se duplica en una instantánea documental: Git fija la fuente,
+`cd app && bun run cordon:estado` contrasta fuente, canon, skills y producción, y el
+[índice de bugs](docs/bugs/INDEX.md) muestra defectos activos. La dirección futura vive
+en el [roadmap](docs/roadmap/roadmap-2026-08-09.md) y solo se abre por evidencia, un bug
+reproducible o una decisión explícita.
 
 ## Límites
 

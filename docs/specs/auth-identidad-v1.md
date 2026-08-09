@@ -1,6 +1,6 @@
 # Auth/identidad v1 — identidad durable single-operator
 
-**Estado**: DESPLEGADO Y OPERATIVO (2026-06-10) · **Frente**: corte mayor auth/tenants (HANDOFF § Frentes abiertos #2)
+**Estado**: DESPLEGADO Y OPERATIVO (2026-06-10) · **Frente**: corte mayor auth/tenants
 **Desbloquea**: gate C3 de W6.1 (re-protección de la instancia) · 2 `test.fixme` mobile (modelo sembrado tras login)
 
 ## Decisiones rectoras (adjudicadas con el operador)

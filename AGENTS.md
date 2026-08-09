@@ -20,17 +20,17 @@ Construir y mantener el modelador OPM/ISO 19450 de `app/`. El resultado debe pre
 
 ## Verificación
 
-Ejecuta desde `app/` la comprobación más focal y amplía según el riesgo:
+Para cambios de código, usa por defecto desde `app/`:
 
 ```bash
-bun run typecheck
-bun run test
-bun run lint
-bun run build
 bun run check
 ```
 
-Para cambios de interacción o render, añade el smoke de navegador pertinente. Para cambios arquitectónicos o de gobernanza visual, usa los gates declarados en `app/package.json`. No declares roundtrip ni fidelidad visual sin observarlos.
+Añade únicamente la comprobación que corresponda al cambio: tests focales para
+semántica OPD/OPL, el escenario de navegador afectado para interacción o render,
+`build` para empaquetado/corpus y los gates declarados en `app/package.json` para
+refactors transversales o gobierno visual. No acumules controles no relacionados ni
+declares roundtrip o fidelidad visual sin observarlos.
 
 ## Entrega
 

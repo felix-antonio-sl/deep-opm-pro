@@ -8,9 +8,10 @@
 
 El árbol activo quedó reducido a orientación, contratos vigentes, decisiones técnicas,
 operación, aprendizaje, referencias y dirección futura con un propietario explícito por
-materia. El estado actual vive en el [handoff](../../HANDOFF.md) y la próxima
-dirección en el [roadmap](../roadmap/roadmap-2026-08-09.md); las specs realizadas, actas
-y auditorías históricas ya no se interpretan como backlog.
+materia. En ese corte se creó una instantánea operativa, retirada después al cerrar el
+trabajo; Git conserva esa evidencia. La próxima dirección vive en el
+[roadmap](../roadmap/roadmap-2026-08-09.md); las specs realizadas, actas y auditorías
+históricas ya no se interpretan como backlog.
 
 ## Intervención
 
@@ -19,8 +20,8 @@ y auditorías históricas ya no se interpretan como backlog.
 - se crearon índices para decisiones, specs, referencias, notas técnicas y la ruta
   histórica `superpowers/specs`;
 - se separó la decisión EQUILIBRIO de su acta y se conservó como decisión durable;
-- se sustituyeron el handoff histórico por `HANDOFF.md`, con fecha de corte interna, y
-  el roadmap anterior por el corte del 2026-08-09;
+- se sustituyeron la continuidad histórica por una instantánea raíz temporal y el
+  roadmap anterior por el corte del 2026-08-09;
 - se archivaron 23 artefactos sin editar: planes ejecutados, prompts, notas de sesión,
   auditorías cerradas, specs reemplazadas, una solicitud upstream resuelta y el reporte
   productivo del 2026-07-27;

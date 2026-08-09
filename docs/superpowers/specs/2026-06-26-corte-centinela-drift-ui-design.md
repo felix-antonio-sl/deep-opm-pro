@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-06-26 · **Repo:** `deep-opm-pro` · **Frente:** gist-anchor / Anclaje · **Alcance:** Opción **α** (solo vigilancia) + «marcador-que-responde».
 **Estado:** REALIZADO Y DESPLEGADO; conservar como contrato de diseño histórico, no como instrucción pendiente.
-**Funda en:** `docs/auditorias/2026-06-24-acta-{nominacion-reuso-tipos-opforja,valor-anclaje-centinela-drift}.md`, veredicto Steve Jobs+mente-omega (2026-06-26). Estado actual: `HANDOFF.md`.
+**Funda en:** `docs/auditorias/2026-06-24-acta-{nominacion-reuso-tipos-opforja,valor-anclaje-centinela-drift}.md`, veredicto Steve Jobs+mente-omega (2026-06-26). El estado actual lo deciden la implementación y sus tests.
 **Kernel pre-existente (verde, sin UI):** `app/src/modelo/operaciones/anclaje.ts`.
 
 ---
@@ -142,7 +142,7 @@ Condiciones de validación, **parte del corte**, no opcionales:
 - **Unit (store/resolutor)** — `acciones-anclaje.test.ts`: junta modeloId únicos; `no-resuelto` ante carga fallida; `driftMap` correcto ante hash igual/distinto; `reSincronizarAnclajeEntidad` re-congela y limpia el estado; `soltarAnclajeEntidad` quita anclaje y sale del `driftMap`; commits entran al undo.
 - **Render** — `composers/entidad.test.ts`: marca presente solo si `driftMap[id] !== "sincronizado"`; ausente para `sincronizado` (D2); glifo por estado; **sin crimson** en los attrs del marcador (aserción dura D3); sobrevive a variantes (estados/plegado/selección).
 - **E2E** (`e2e/`): importar un bundle con una cosa anclada divergente → marcador visible en canvas → abrir Inspector → ver el aviso + Re-sincronizar/Soltar → Re-sincronizar borra la marca; Soltar muestra la advertencia de irreversibilidad y desancla.
-- **Validación en vivo (manual, amarra 2)** — el flujo HODOM↔gist real, documentado en el HANDOFF.
+- **Validación en vivo (manual, amarra 2)** — el flujo HODOM↔gist real, conservado en la evidencia del corte.
 - **Gates:** `bun run check` + `lint` + `design:governance` (marcador) + `build` + `browser:smoke`. Cierre con `gate:refactor`.
 
 ## 8. Riesgos

@@ -23,7 +23,7 @@ Disenso de entrada: steipete (disolver en Fase 1) · allan (Fase 0 bloqueante an
 ### D-C — punto de corte seguro: distinguir reversibilidad-técnica de hito-de-valor
 - **Fin de Fase 1** es un **punto de commit reversible** (verde, aditivo, sin deuda — steipete tiene razón), **pero NO un hito de valor**: el `driftMap` es invisible (jobs: «media plomería»; allan: «capacidad, no outcome»).
 - El **primer hito de valor** —el «corte» en sentido de Jobs— es **Fase 1 + Fase 2 («el aviso aparece»)**. El Inspector (Fase 3) es la segunda unidad (actuar); el aviso ya vale sin ella.
-- **Honestidad de reporte (allan, vinculante):** el HANDOFF nombra el fin de Fase 1 como **capacidad**, nunca como valor entregado. **No se despliega** algo invisible: el deploy es tras el corte de valor + amarras.
+- **Honestidad de reporte (allan, vinculante):** el cierre nombra el fin de Fase 1 como **capacidad**, nunca como valor entregado. **No se despliega** algo invisible: el deploy es tras el corte de valor + amarras.
 
 ## Refuerzos adoptados (de los tres)
 1. **Copiar el fixture al árbol de pruebas de opforja** (test hermético, no leer cross-repo desde `gist-opm/`), con **comment de procedencia** (commit-hash de origen en gist-opm) — steipete.

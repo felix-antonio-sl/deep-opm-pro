@@ -190,7 +190,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "operation",
     "docs/manual-opforja.md",
-    "22a2f5e6ac37e417f29d0d565d92e627dd891d45efa9da6bec4b298da57d8a2e",
+    "d8463ef0bf11fe2b6a206e2d8a034106e3755a169e15ad2a7add72f0b3f9f448",
     [
       sourceAnchor("what-is", "Qué es opforja", "0. Qué es opforja"),
       sourceAnchor("mental-model", "Modelo mental mínimo", "1. Modelo mental mínimo"),
@@ -211,7 +211,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "domain",
     "docs/manual-sistemas-opm.md",
-    "2a437f19bb7194d6579afb5f7e7f8096fe479af89da0864e9c05c6e2eca9eaed",
+    "48c6f6aa1b2eb52f8708775fa1793b6f00f16e069089c03f64bdc9ce9dfbb4d8",
     [
       sourceAnchor("semantic-table", "Mesa semántica", "1.1 Una mesa semántica, no el sistema ejecutor"),
       sourceAnchor("evidence", "Base documental y evidencia", "2.1 La base documental es evidencia, no OPM crudo"),

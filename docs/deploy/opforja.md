@@ -184,8 +184,8 @@ Notas operativas:
 
 ## Actualización
 
-1. Cerrar cambios de app con `bun run gate:refactor` cuando el cambio toque
-   comportamiento.
+1. Cerrar cambios de app con `cd app && bun run check`; añadir el E2E afectado para
+   interacción y reservar `gate:refactor` para cambios transversales.
 2. Ejecutar `./deploy/deploy.sh` desde la raíz.
 3. Verificar `docker compose ps`, `healthz` interno y `curl -I` externo.
 4. Abrir la app y ejecutar el smoke manual autorizado: crear/cargar un modelo

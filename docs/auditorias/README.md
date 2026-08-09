@@ -1,18 +1,17 @@
 # Auditorías y actas
 
 Las auditorías y actas conservan evidencia o decisiones aún citadas. No describen el
-estado actual: para eso se usan el [handoff](../../HANDOFF.md) y el
-[roadmap](../roadmap/roadmap-2026-08-09.md).
+estado actual: para eso se usan Git, implementación y tests. El
+[roadmap](../roadmap/roadmap-2026-08-09.md) contiene solo dirección futura.
 
 Los punteros de estado incluidos dentro de una acta histórica pertenecen a su fecha de
-corte y no reemplazan esos dos documentos vigentes.
+corte y no reemplazan la evidencia viva.
 
-## Auditoría vigente
+## Corte de consolidación
 
 La [auditoría documental del 2026-08-09](auditoria-documental-2026-08-09.md) registra la
-clasificación, intervención, archivo, evidencia y límites de este mantenimiento. Es un
-corte cerrado: las próximas actualizaciones se crean con fecha nueva y esta versión se
-archiva sin editar.
+clasificación, intervención, archivo, evidencia y límites de ese mantenimiento. Es un
+corte cerrado, no una superficie de estado ni un backlog.
 
 ## Decisiones con referencia viva
 
@@ -53,7 +52,5 @@ Los archivos se trasladaron sin edición a `_archivo/`; Git conserva su historia
 
 ## Política
 
-Antes de retirar un artefacto, busca su nombre y sus IDs en todo el repositorio. Una
-cita en código, tests, una norma o una decisión vigente basta para conservarlo. Para
-actualizar una auditoría o acta de la misma especie, crea un archivo nuevo fechado y
-archiva el anterior sin modificarlo.
+Conserva una auditoría o acta solo mientras código, tests, una norma o una decisión
+vigente la citen. Git conserva el resto de la historia.

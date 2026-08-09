@@ -75,13 +75,6 @@ function anclasMarkdown(texto: string): Set<string> {
 }
 
 describe("corpus documental · una fuente por concepto y proyecciones navegables", () => {
-  test("el handoff vivo usa un nombre estable y conserva la fecha dentro del documento", () => {
-    const handoff = resolve(RAIZ_REPO, "HANDOFF.md");
-    expect(existsSync(handoff)).toBe(true);
-    expect(readFileSync(handoff, "utf8")).toMatch(/\*\*Fecha de corte:\*\* \d{4}-\d{2}-\d{2}/);
-    expect(readdirSync(DOCS).filter((nombre) => /^handoff(?:-\d{4}-\d{2}-\d{2})?\.md$/i.test(nombre))).toEqual([]);
-  });
-
   test("las sondas visuales generan evidencia efímera y no sobrescriben reportes activos", () => {
     expect(existsSync(resolve(DOCS, "REPORTE-EJECUTIVO.md"))).toBe(false);
     for (const script of ["in-vivo-test.mjs", "in-vivo-exhaustivo.mjs"]) {

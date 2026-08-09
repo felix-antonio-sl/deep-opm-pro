@@ -5,7 +5,8 @@ modelador OPM/ISO 19450 opforja. Aquí se separan orientación, contratos vigent
 decisiones técnicas, operación, referencias históricas y dirección futura.
 
 - **Instancia en producción:** [opforja.sanixai.com](https://opforja.sanixai.com)
-- **Estado verificado:** [HANDOFF.md](../HANDOFF.md), con fecha de corte interna
+- **Estado operativo:** Git, tests y `cd app && bun run cordon:estado`
+- **Defectos activos:** [índice de bugs](bugs/INDEX.md)
 - **Dirección vigente:** [roadmap del 2026-08-09](roadmap/roadmap-2026-08-09.md)
 
 ## Qué es este repositorio
@@ -30,14 +31,14 @@ Su organización principal es:
 | Quiero… | Empieza aquí | Continúa con |
 |---|---|---|
 | orientarme en el repositorio | [README raíz](../README.md) | [AGENTS.md](../AGENTS.md) |
-| conocer el estado actual | [Handoff](../HANDOFF.md) | [Roadmap](roadmap/roadmap-2026-08-09.md) |
+| conocer el estado actual | Git y `bun run cordon:estado` | [Índice de bugs](bugs/INDEX.md) |
 | usar la aplicación | [Uso productivo](uso-productivo.md) | [Hoja básica](cheatsheets/opforja-basico.html) |
 | aprender OPM | [Manual de OPM puro](manual-opm-puro.md) | [Manual de opforja](manual-opforja.md) |
 | aplicar el método Forja | [Manual de opforja](manual-opforja.md) | [Manual de sistemas](manual-sistemas-opm.md) |
 | modelar sistemas sanitarios | [Manual de sistemas](manual-sistemas-opm.md) | [Manual sanitario](manual-sanitarios-opm.md) |
 | desarrollar software | [AGENTS.md](../AGENTS.md) | [Manual de software](manual-software-opm.md) |
 | revisar contratos técnicos | [Índice de especificaciones](specs/README.md) | [Índice de decisiones](decisiones/README.md) |
-| desplegar u operar | [Runbook](deploy/opforja.md) | [Handoff](../HANDOFF.md) |
+| desplegar u operar | [Runbook](deploy/opforja.md) | `bun run cordon:estado` |
 | investigar antecedentes | [Referencias históricas](reference/README.md) | [Auditorías y actas](auditorias/README.md) |
 
 ## Jerarquía de autoridad
@@ -49,9 +50,9 @@ Su organización principal es:
 3. El comportamiento verificable de `app/` y sus tests decide qué está implementado.
 4. [GOVERNANCE de ui-forja](../ui-forja/GOVERNANCE.md) gobierna estética y chrome
    bajo la precedencia semántica OPM.
-5. El [handoff](../HANDOFF.md) fija el estado con fecha interna; el
-   [roadmap](roadmap/roadmap-2026-08-09.md) fecha la dirección; el
-   [índice de bugs](bugs/INDEX.md) registra defectos observados.
+5. Git, la implementación y sus tests fijan el estado; `cordon:estado` contrasta
+   producción y canon; el [roadmap](roadmap/roadmap-2026-08-09.md) contiene dirección
+   y el [índice de bugs](bugs/INDEX.md), defectos observados.
 6. Las [especificaciones](specs/README.md), [decisiones](decisiones/README.md),
    actas y auditorías conservan contratos o evidencia; no sustituyen el estado vivo.
 7. Git y `reference/` conservan historia. `_archivo/` es desplazamiento local e
@@ -74,14 +75,13 @@ Cada concepto durable tiene un solo hogar explicativo:
 | [Hojas rápidas](cheatsheets/README.md) | proyecciones visuales derivadas de los manuales |
 
 Las hojas rápidas no crean capacidades ni reglas nuevas. Los manuales conservan
-principios durables; el handoff y el roadmap concentran el estado mutable.
+principios durables; Git conserva cierres y el roadmap solo contiene dirección futura.
 
 ## Estructura documental activa
 
 ```text
 docs/
 ├── README.md                         orientación e índice
-├── ../HANDOFF.md                     estado actual, nombre estable
 ├── roadmap/
 │   ├── README.md                     contrato del roadmap
 │   ├── roadmap-2026-08-09.md         próxima dirección
@@ -104,8 +104,8 @@ su clasificación vigente está centralizada en [specs/README.md](specs/README.m
 ## Vigencia y archivo
 
 - Solo hay una versión activa por especie operativa.
-- `HANDOFF.md` es único, vive en la raíz, no lleva fecha en el nombre y se actualiza
-  en el mismo archivo; la fecha de corte vive dentro y Git conserva sus versiones.
+- No se mantiene una instantánea paralela del estado. Si una tarea queda materialmente
+  inconclusa, `AGENTS.md` permite un `HANDOFF.md` raíz temporal que se elimina al cerrar.
 - Informes, auditorías, actas y documentos operativos nuevos usan
   `<especie>-AAAA-MM-DD.md`; si hay más de uno el mismo día, usan `-2`, `-3`, etc.
 - Un sucesor se crea como archivo nuevo. La versión anterior se mueve a `_archivo/`

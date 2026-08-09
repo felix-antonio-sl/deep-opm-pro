@@ -49,4 +49,4 @@ bisimulación, adjunción ni equivalencia matemática total.
   normativa correspondiente.
 - Una fila cerrada se elimina en el siguiente saneo, salvo que una ley ejecutable la use
   como control explícito.
-- El handoff registra evidencia del corte; este archivo no acumula cronología.
+- Git y los resultados de verificación conservan la evidencia; este archivo no acumula cronología.

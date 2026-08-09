@@ -58,8 +58,8 @@ Las etiquetas forman un vocabulario cerrado:
 | **PROPUESTO** | Es una hipótesis de incremento acotado y preliminarmente compatible; todavía no existe ni implica factibilidad validada, prioridad o compromiso. |
 | **EXTERNO** | Lo ejecuta o conserva otro sistema; opforja puede modelarlo, pero no lo realiza. |
 
-El [handoff vigente](../HANDOFF.md) fecha el estado operativo y el
-[roadmap vigente](roadmap/roadmap-2026-08-09.md) fecha la dirección. Una etiqueta
+La implementación y sus tests fijan el estado operativo; el
+[roadmap vigente](roadmap/roadmap-2026-08-09.md) contiene dirección. Una etiqueta
 **PROPUESTO** no equivale a prioridad.
 
 ### Ruteo por necesidad
@@ -757,11 +757,11 @@ una dependencia tardía y qué activa la reversa.
 
 ## 9. Frontera de capacidad de opforja
 
-Esta sección es un resumen navegable, no otra fuente de estado. El
-[handoff vigente](../HANDOFF.md) tiene precedencia sobre lo implementado y el
-[registro de conformidad](roadmap/registro-conformidad-ssot.md), sobre las brechas
-respecto del canon. Si divergen de este inventario, se corrige el resumen; no se
-reinterpreta el estado desde el manual.
+Esta sección es un resumen navegable, no otra fuente de estado. El código y sus tests
+deciden qué está implementado; el
+[registro de conformidad](roadmap/registro-conformidad-ssot.md) declara qué brechas
+permanecen respecto del canon. Si divergen de este inventario, se corrige el resumen;
+no se reinterpreta el estado desde el manual.
 
 ### 9.1 IMPLEMENTADO
 

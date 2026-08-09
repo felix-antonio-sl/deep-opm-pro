@@ -8,8 +8,8 @@ la herramienta sobre un tronco de método común.
   ver [resolutor repo-local](canon-opm/resolutor-urn.json) → `puente_inverso`).
 - Instancia en producción:
   [opforja.sanixai.com](https://opforja.sanixai.com).
-- Estado operativo vigente (bloqueantes, pendientes, riesgos):
-  [handoff vigente](../HANDOFF.md).
+- Estado operativo: implementación, tests, Git, índice de bugs y
+  `cd app && bun run cordon:estado`.
 
 ## Contrato del manual
 
@@ -607,7 +607,7 @@ Las dos filas anteriores son brechas respecto del canon, no un catálogo complet
 producto. La matriz transversal `IMPLEMENTADO | PROPUESTO | EXTERNO` vive en el
 [manual para transformar sistemas](manual-sistemas-opm.md#9-frontera-de-capacidad-de-opforja).
 Los manuales de dominio agregan solo consecuencias propias. El estado exacto sigue
-en el handoff y el registro de conformidad.
+en la implementación, sus tests y el registro de conformidad.
 
 ---
 

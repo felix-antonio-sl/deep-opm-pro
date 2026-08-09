@@ -25,9 +25,8 @@ procedencia histórica, no una herramienta requerida para mantener el producto.
   reemplaza el vocabulario visible, gestor y reversibilidad del diseño de Apuntes/Taller.
 - Auth v1 y el [manual de opforja](../manual-opforja.md) prevalecen sobre las secciones
   históricas de autenticación del puente mesa↔skill.
-- El [handoff vigente](../../HANDOFF.md) decide estado; ninguna spec realizada
-  se interpreta como tarea pendiente.
-- La implementación y sus tests deciden qué parte de un diseño está materializada.
+- La implementación y sus tests deciden estado y qué parte de un diseño está
+  materializada; ninguna spec realizada se interpreta como tarea pendiente.
 
 ## Material retirado el 2026-08-09
 

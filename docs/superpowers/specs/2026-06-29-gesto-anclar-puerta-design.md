@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-06-29 · **Frente:** gist-anchor / Anclaje · **Estado:** REALIZADO Y DESPLEGADO; referencia de contrato.
 **Gobernanza:** diseño de UI por `steve-jobs` (a cargo, delegado por el operador); plan de implementación por panel `steipete × allan-kelly`; ejecución orquestada por `steipete` vía paralelización (skill `lineas-paralelas`).
-**SSOT relacionada:** acta de nominación `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; acta de valor/criterio de muerte `docs/auditorias/2026-06-24-acta-valor-anclaje-centinela-drift.md`; estado vivo `HANDOFF.md`.
+**SSOT relacionada:** acta de nominación `docs/auditorias/2026-06-24-acta-nominacion-reuso-tipos-opforja.md`; acta de valor/criterio de muerte `docs/auditorias/2026-06-24-acta-valor-anclaje-centinela-drift.md`. El estado vivo lo deciden la implementación y sus tests.
 
 ---
 
@@ -132,4 +132,4 @@ Componentes del corte, con dependencias para particionar en líneas paralelas. *
 - Validación in-vivo del flujo con gist real (abrir Piezas de gist → Anclar una Pieza a un derivado → mutar gist → el chip aparece) — extiende las amarras.
 - Doctrina (a) elevada como working-artifact (no bloquea deploy).
 - Deploy autorizado por el curador; HODOM sin regresión.
-- HANDOFF + memoria consolidados.
+- SHA, pruebas y límites reportados al cerrar.
