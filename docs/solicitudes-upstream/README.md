@@ -1,9 +1,15 @@
-# Solicitudes upstream — índice
+# Solicitudes upstream
 
-Canal de propuestas desde opforja hacia autoridades externas. Solo permanecen visibles solicitudes con una acción pendiente.
+No hay solicitudes upstream activas al 2026-08-09.
 
-| Solicitud | Estado y dueño |
-|---|---|
-| `2026-06-24-cordon-version-skill-via-sello.md` | Petición menor y opcional: canonizar en KORA que los consumidores leen metadata desde `kora:sello`. Dueño: custodio KORA. |
+La petición opcional sobre lectura de metadata desde `kora:sello` se archivó porque el
+cordón ya consume el sello desplegado y el producto no conserva una dependencia abierta.
+Esto no afirma ni requiere una modificación adicional de KORA.
 
-Las solicitudes resueltas o retiradas fueron desplazadas a `_archivo/` el 2026-07-12. Para una nueva versión de la misma solicitud, usar `<especie>-AAAA-MM-DD.md` y desplazar la previa antes de publicar.
+Para abrir una solicitud nueva:
+
+1. identifica autoridad externa, decisión requerida y bloqueo concreto;
+2. usa `<especie>-AAAA-MM-DD.md`;
+3. conserva una sola versión activa por especie;
+4. archiva la versión anterior sin editarla cuando exista sucesora;
+5. retira la solicitud del árbol activo cuando deje de bloquear o dirigir trabajo.

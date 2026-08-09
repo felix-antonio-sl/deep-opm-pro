@@ -1,33 +1,59 @@
-# Auditorías y actas — índice
+# Auditorías y actas
+
+Las auditorías y actas conservan evidencia o decisiones aún citadas. No describen el
+estado actual: para eso se usan el [handoff](../../HANDOFF.md) y el
+[roadmap](../roadmap/roadmap-2026-08-09.md).
+
+Los punteros de estado incluidos dentro de una acta histórica pertenecen a su fecha de
+corte y no reemplazan esos dos documentos vigentes.
+
+## Auditoría vigente
+
+La [auditoría documental del 2026-08-09](auditoria-documental-2026-08-09.md) registra la
+clasificación, intervención, archivo, evidencia y límites de este mantenimiento. Es un
+corte cerrado: las próximas actualizaciones se crean con fecha nueva y esta versión se
+archiva sin editar.
+
+## Decisiones con referencia viva
+
+| Artefacto | Valor que conserva |
+|---|---|
+| [Flujo dominio ↔ mesa](2026-06-04-acta-mesa-flujo-canonico-dominio-opforja.md) | frontera entre producto y modelos externos |
+| [Persistencia backend](2026-06-04-persistencia-backend.md) | procedencia de decisiones de IDs, consistencia y operación |
+| [Alcance de Anclaje](2026-06-24-acta-alcance-anclaje-gist.md) | contrato citado por kernel y tests |
+| [Nominación de reuso](2026-06-24-acta-nominacion-reuso-tipos-opforja.md) | Calcar, Anclar, Pieza y Soltar |
+| [Valor del Centinela](2026-06-24-acta-valor-anclaje-centinela-drift.md) | criterio de valor y no-muerte del frente |
+| [Arranque del Centinela](2026-06-26-acta-arranque-centinela-drift.md) | decisiones de realización citadas por store y leyes |
+| [Firma del Centinela](2026-06-26-acta-quietud-firma-centinela.md) | partición semántica citada por kernel y tests |
+| [Drift granular](2026-06-30-acta-c4-drift-granular-pieza.md) | contrato RADIO-1 y `frozenAtPieza` |
+| [Manual sanitario](2026-07-09-acta-manual-sanitarios-opm.md) | arquitectura editorial y límites del manual |
+
+## Evidencia técnica conservada
+
+| Artefacto | Uso vigente |
+|---|---|
+| [Alineación OPL](2026-05-26-alineacion-opl/README.md) | procedencia forense de reglas y decisiones OPL aún trazables |
+| [Auditoría SSOT/corpus](2026-06-12-auditoria-ssot-corpus.md) | procedencia de enmiendas en puentes, registro y `ui-forja` |
+
+La evidencia técnica no abre trabajo por sí sola. Una brecha solo entra al roadmap con
+caso, decisión o gate afectado.
+
+## Material archivado el 2026-08-09
+
+- auditoría integral del 2026-06-11: sus brechas activas ya viven en el registro de
+  conformidad y el roadmap;
+- auditoría UX Jobs del 2026-06-12 y reauditoría del 2026-07-07: sus cortes fueron
+  implementados y absorbidos por `ui-forja`, specs y tests;
+- pendientes de emulación de enlaces OPCloud: mezclaban cierres y backlog sin prioridad;
+  las capacidades ausentes generales quedaron en el roadmap.
+- acta EQUILIBRIO del 2026-06-04: su decisión vigente se consolidó en
+  [decisiones/equilibrio-llm.md](../decisiones/equilibrio-llm.md).
+
+Los archivos se trasladaron sin edición a `_archivo/`; Git conserva su historia.
 
 ## Política
 
-Una auditoría permanece visible solo si sostiene una brecha abierta o si código, tests, normas o decisiones vigentes la citan como autoridad. No describe por sí sola el estado actual: para eso se usan `../handoff-2026-07-21.md` y `../roadmap/roadmap-2026-07-18.md`.
-
-## Brechas abiertas
-
-| Artefacto | Valor vigente |
-|---|---|
-| `2026-07-07-reauditoria-ux-diagramatica.md` | Evidencia reproducible de C′·B (M-3) y C′·C (M-6, m-4). C′·A, m-1 y m-3 ya están cerrados. |
-| `2026-06-11-auditoria-integral-opforja.md` | Inventario de brechas y oportunidades; solo es accionable cuando el roadmap o R-CONF-7 recogen una fila concreta. |
-| `opcloud-enlaces-pendientes/` | Referencia técnica de enlaces; no implica prioridad sin demanda o gate afectado. |
-
-## Autoridad o trazabilidad viva
-
-| Artefacto | Por qué permanece |
-|---|---|
-| `2026-06-04-acta-mesa-equilibrio-encarnacion.md` | Decisión EQUILIBRIO sobre la distribución del LLM. |
-| `2026-06-04-acta-mesa-flujo-canonico-dominio-opforja.md` | Arquitectura del flujo dominio ↔ mesa. |
-| `2026-06-04-persistencia-backend.md` | IDs de hallazgo citados por implementación y operación. |
-| `2026-06-12-auditoria-ssot-corpus.md` | Procedencia de enmiendas en puentes y `ui-forja`. |
-| `2026-06-12-auditoria-ux-jobs.md` | Procedencia de C-1 y M-1/M-2 citada por código y tests. |
-| `2026-06-24-acta-alcance-anclaje-gist.md` | Contrato de alcance citado por el kernel de Anclaje. |
-| `2026-06-24-acta-nominacion-reuso-tipos-opforja.md` | Nominación Calco/Anclaje/Pieza/Soltar. |
-| `2026-06-24-acta-valor-anclaje-centinela-drift.md` | Criterio de valor del frente Anclaje. |
-| `2026-06-26-acta-arranque-centinela-drift.md` | Decisiones de realización citadas por cortes posteriores. |
-| `2026-06-26-acta-quietud-firma-centinela.md` | Contrato de firma semántica y partición de campos. |
-| `2026-06-30-acta-c4-drift-granular-pieza.md` | Contrato RADIO-1 y `frozenAtPieza`. |
-| `2026-07-09-acta-manual-sanitarios-opm.md` | Arquitectura editorial y límites del manual sanitario. |
-| `2026-05-26-alineacion-opl/` | Procedencia forense de decisiones OPL todavía citadas. |
-
-Antes de retirar un artefacto, buscar su nombre y sus IDs de hallazgo en todo el repositorio. Una cita de autoridad en código productivo o tests basta para conservarlo.
+Antes de retirar un artefacto, busca su nombre y sus IDs en todo el repositorio. Una
+cita en código, tests, una norma o una decisión vigente basta para conservarlo. Para
+actualizar una auditoría o acta de la misma especie, crea un archivo nuevo fechado y
+archiva el anterior sin modificarlo.

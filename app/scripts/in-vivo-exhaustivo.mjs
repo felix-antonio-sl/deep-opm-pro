@@ -4,7 +4,7 @@
 // Complementa app/scripts/in-vivo-test.mjs (que valida contrato base) y agrega:
 //   - bloques 8..12: tablet, persistencia, command palette exhaustivo, undo real,
 //     IFML data-attributes, import corrupto, import HODOM v1.6 real.
-// El reporte ejecutivo se reemplaza en docs/REPORTE-EJECUTIVO.md.
+// El reporte de la sonda queda junto a sus resultados efímeros.
 
 import { chromium } from "@playwright/test";
 import { mkdirSync, rmSync, readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -17,7 +17,7 @@ const RUTA_HODOM = process.argv[3] ?? "";
 const RAIZ_REPO = resolve(import.meta.dirname, "..", "..");
 const DIR_SHOTS = resolve(RAIZ_REPO, "app/test-results/in-vivo-exhaustivo");
 const RUTA_RESUMEN = resolve(DIR_SHOTS, "_resumen.json");
-const RUTA_REPORT = resolve(RAIZ_REPO, "docs/REPORTE-EJECUTIVO.md");
+const RUTA_REPORT = resolve(DIR_SHOTS, "_reporte.md");
 const FECHA = new Date().toISOString();
 
 rmSync(DIR_SHOTS, { recursive: true, force: true });

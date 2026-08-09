@@ -25,9 +25,6 @@ app/.tutor-corpus.lock/
 app/.tutor-corpus.tmp-*/
 /test-results/
 
-# Reportes de auditoría generados; el estado versionado vive en docs/handoff-AAAA-MM-DD.md
-docs/REPORTE-EJECUTIVO.md
-
 # Secrets de despliegue (docker compose los lee; JAMÁS versionar)
 .env
 

@@ -11,7 +11,7 @@ const URL_MOBILE = process.argv[3] ?? URL_OBJETIVO;
 const RAIZ_REPO = resolve(import.meta.dirname, "..", "..");
 const DIR_SHOTS = resolve(RAIZ_REPO, "app/test-results/in-vivo");
 const RUTA_RESUMEN = resolve(DIR_SHOTS, "_resumen.json");
-const RUTA_REPORT = resolve(RAIZ_REPO, "docs/REPORTE-EJECUTIVO.md");
+const RUTA_REPORT = resolve(DIR_SHOTS, "_reporte.md");
 const FECHA = new Date().toISOString();
 
 rmSync(DIR_SHOTS, { recursive: true, force: true });

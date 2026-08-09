@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { mapaUrn, resolverUrn } from "../src/canon/resolutorUrn";
@@ -90,10 +90,7 @@ export async function ejecutarCordonEstado(): Promise<number> {
   const estado = git(["status", "--porcelain"]);
   const docsTree = git(["rev-parse", "--short=12", "HEAD:docs"]);
   const manualBlob = git(["hash-object", "docs/manual-opforja.md"]).slice(0, 12);
-  const handoff = readdirSync(join(REPO_ROOT, "docs"))
-    .filter((nombre) => /^handoff-\d{4}-\d{2}-\d{2}\.md$/.test(nombre))
-    .sort()
-    .at(-1) ?? "no encontrado";
+  const handoff = existsSync(join(REPO_ROOT, "HANDOFF.md")) ? "HANDOFF.md" : "no encontrado";
   const ssot = Object.entries(mapaUrn()).map(([urn, pin]) => {
     const viva = versionUrn(urn);
     return `${urn.replace("urn:fxsl:kb:", "")}=${viva ?? "SKIP"}${viva && viva !== pin.version ? ` (pin ${pin.version})` : ""}`;

@@ -190,7 +190,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "operation",
     "docs/manual-opforja.md",
-    "e5083f5923fbc1307549bb442777c94fc2f1ae386cccdeb3129feae310c55879",
+    "22a2f5e6ac37e417f29d0d565d92e627dd891d45efa9da6bec4b298da57d8a2e",
     [
       sourceAnchor("what-is", "Qué es opforja", "0. Qué es opforja"),
       sourceAnchor("mental-model", "Modelo mental mínimo", "1. Modelo mental mínimo"),
@@ -211,7 +211,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "domain",
     "docs/manual-sistemas-opm.md",
-    "8aec563d4650eca454cc0fb918a94c9d45e941ba2c18030fdc4c0a69fa189f0e",
+    "2a437f19bb7194d6579afb5f7e7f8096fe479af89da0864e9c05c6e2eca9eaed",
     [
       sourceAnchor("semantic-table", "Mesa semántica", "1.1 Una mesa semántica, no el sistema ejecutor"),
       sourceAnchor("evidence", "Base documental y evidencia", "2.1 La base documental es evidencia, no OPM crudo"),
@@ -331,7 +331,7 @@ export const TUTOR_SOURCES = [
   repositorySource("source.cheatsheet.systems", "opforja — Transformar sistemas", "cheatsheet", "domain", "docs/cheatsheets/opforja-sistemas.html", "0b010832f63abb63d25f1facb390d94dfa964898908a7dd5a8908aa5b68d1886", [
     sourceAnchor("purpose", "Pregunta antes que modelo"), sourceAnchor("entry", "SD-primero o middle-out"), sourceAnchor("transition", "AS-IS ≠ TO-BE ≠ transición"), sourceAnchor("adoption", "El sistema incluye a quienes cambian"),
   ]),
-  repositorySource("source.cheatsheet.software", "opforja — Ingeniería de software", "cheatsheet", "domain", "docs/cheatsheets/opforja-software.html", "b3edd1ac6c04189a0dad378857f4be644321a18a5c0e28b7e1a19d544764289a", [
+  repositorySource("source.cheatsheet.software", "opforja — Ingeniería de software", "cheatsheet", "domain", "docs/cheatsheets/opforja-software.html", "d0bb3472f5166e319309763284f893d28eb52f5d874a52700658d5070cf39d41", [
     sourceAnchor("requirements", "Cobertura visible"), sourceAnchor("interfaces", "Contextos e interfaces"), sourceAnchor("agent-contract", "Contrato de implementación"), sourceAnchor("delivery", "Modela CI/CD; ejecútalo fuera"),
   ]),
   repositorySource("source.cheatsheet.health-management", "opforja — Sanitario, gestión y asistencial", "cheatsheet", "domain", "docs/cheatsheets/opforja-sanitarios-gestion.html", "58b349fb11381a454ae0f7e5ffa227b2e621954f27b383ab4c646138610c7eae", [

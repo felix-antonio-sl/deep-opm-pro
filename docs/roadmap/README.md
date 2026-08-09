@@ -2,18 +2,22 @@
 
 ## Vigente
 
-`roadmap-2026-07-18.md` contiene únicamente la dirección futura y sus gates de apertura. El estado operativo vive en `../handoff-2026-07-21.md`.
+El [roadmap del 2026-08-09](roadmap-2026-08-09.md) contiene únicamente dirección
+futura y condiciones de apertura. El estado operativo vive en el
+[handoff vigente](../../HANDOFF.md).
 
 ## Documentos permanentes
 
 | Archivo | Propósito |
 |---|---|
-| `quality-ledger.md` | Gates ejecutables de calidad. |
-| `registro-conformidad-ssot.md` | Brechas DEBE declaradas y mapeo de gates R-CONF-7. |
-| `protocolo-re-pin.md` | Protocolo actual de re-pin para cambios de SSOT y goldens; requiere futura generalización para retirar rutas de dominio. |
+| [quality-ledger.md](quality-ledger.md) | gates ejecutables y umbrales de calidad |
+| [registro-conformidad-ssot.md](registro-conformidad-ssot.md) | brechas normativas activas y fronteras sin testigo completo |
 
-El roadmap anterior mezclaba cortes cerrados con pendientes y fue desplazado a `_archivo/` el 2026-07-12. La historia versionada permanece en Git.
+El protocolo de re-pin ligado a un repositorio de dominio se archivó el 2026-08-09:
+la herramienta no hardcodea rutas ni gobierna los modelos que la consumen.
 
 ## Actualización
 
-No editar el roadmap vigente en sitio. Crear `roadmap-AAAA-MM-DD.md`, desplazar la versión anterior a `_archivo/` y actualizar este índice.
+No edites el roadmap vigente en sitio. Crea `roadmap-AAAA-MM-DD.md`, mueve la
+versión anterior a `_archivo/` y actualiza este índice, el índice documental y el
+handoff que corresponda.

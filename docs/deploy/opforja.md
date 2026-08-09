@@ -1,4 +1,4 @@
-# Deploy Opforja
+# Despliegue de opforja
 
 **Dominio:** `https://opforja.sanixai.com`
 **Modo:** SPA estática Vite servida por Nginx, sidecar interno Bun para captura
@@ -84,9 +84,8 @@ Referencia normativa interna: `app/src/modelo/politicaApariciones.ts` (+ su ley 
 ## Acceso operativo
 
 - Estado vigente: acceso publico, sin usuario Basic Auth requerido.
-- Estado privado reversible: usuario Basic Auth `fsanhuezal`; contraseña
-  entregada fuera del repositorio; usar hash APR1 en labels Traefik, nunca la
-  contraseña en claro.
+- Estado privado reversible: usuario Basic Auth administrado fuera del repositorio;
+  usar hash APR1 en labels Traefik, nunca el usuario real ni la contraseña en claro.
 - Alcance del Basic Auth, cuando se reactive: barrera perimetral de despliegue
   privado, no auth de aplicación ni identidad multiusuario.
 
@@ -133,7 +132,7 @@ Si se reactiva Basic Auth, verificar acceso autenticado sin escribir la
 contraseña en el repo:
 
 ```bash
-OPFORJA_USER=fsanhuezal OPFORJA_PASS='<secreto-local>' \
+OPFORJA_USER='<usuario>' OPFORJA_PASS='<secreto-local>' \
   curl -sS -o /tmp/opforja.html -w '%{http_code} %{content_type} %{size_download}\n' \
   -u "$OPFORJA_USER:$OPFORJA_PASS" https://opforja.sanixai.com/
 # Esperado en modo privado: 200 text/html ...
@@ -157,25 +156,25 @@ CLI dentro del contenedor `model-api`:
 
 ```bash
 # Crear cuenta nueva (tenant nuevo). La password se pide por stdin.
-docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts crear felix@example.com
+docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts crear '<email>'
 
 # ADOPCIÓN: crear cuenta ligada a un tenant anónimo EXISTENTE (rescatar datos).
 # Identificar primero el tenant valioso:
 docker exec -it opforja-postgres psql -U opforja -d opforja \
   -c "SELECT tenant_id, COUNT(*) AS modelos FROM opforja_models GROUP BY 1 ORDER BY 2 DESC"
-docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts crear felix@example.com --tenant <tenant-id>
+docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts crear '<email>' --tenant <tenant-id>
 
 # Reset de password / listar cuentas
-docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts reset felix@example.com
+docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts reset '<email>'
 docker exec -it opforja-model-api bun run ./app/scripts/auth-cuenta.ts listar
 ```
 
 Notas operativas:
 
 - El gate vive en `model-api` (`MODEL_REQUIRE_AUTH: "true"` en compose).
-  **Rollback de emergencia**: cambiar a `"false"` + `docker compose up -d`
-  restaura el comportamiento anónimo previo sin tocar datos (la migración 4
-  es aditiva).
+  **Rollback de emergencia**: cambiar a `"false"` y ejecutar el circuito canónico
+  `./deploy/deploy.sh`; restaura el comportamiento anónimo previo sin tocar datos
+  (la migración 4 es aditiva).
 - Las cookies anónimas previas quedan invalidadas al activar el gate
   (los datos NO se pierden: se rescatan con adopción `--tenant`).
 - La cookie autenticada dura 30 días y rota en cada login. "Cerrar sesión"
@@ -189,9 +188,10 @@ Notas operativas:
    comportamiento.
 2. Ejecutar `./deploy/deploy.sh` desde la raíz.
 3. Verificar `docker compose ps`, `healthz` interno y `curl -I` externo.
-4. Abrir la app y ejecutar smoke manual mínimo:
-   crear/cargar modelo, descargar backup JSON, exportar PNG del OPD activo y
-   crear un bug de prueba con texto corto para verificar `docs/bugs/BUG-*`.
+4. Abrir la app y ejecutar el smoke manual autorizado: crear/cargar un modelo
+   sintético, descargar su backup JSON y exportar PNG del OPD activo. Crear un bug de
+   prueba solo con autorización explícita, porque deja un artefacto operativo en
+   `docs/bugs/BUG-*`; retirarlo o cerrarlo al terminar.
 
 ## Datos del usuario
 
