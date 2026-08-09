@@ -11,9 +11,9 @@ La aplicación está en producción en [opforja.sanixai.com](https://opforja.san
 
 El estado operativo no se duplica en una instantánea documental: Git fija la fuente,
 `cd app && bun run cordon:estado` contrasta fuente, canon, skills y producción, y el
-[índice de bugs](docs/bugs/INDEX.md) muestra defectos activos. La dirección futura vive
-en el [roadmap](docs/roadmap/roadmap-2026-08-09.md) y solo se abre por evidencia, un bug
-reproducible o una decisión explícita.
+[índice de bugs](docs/bugs/INDEX.md) muestra defectos activos. No hay una iniciativa
+funcional abierta; el [próximo corte](docs/roadmap/README.md) solo se abre por evidencia,
+un bug reproducible o una decisión explícita.
 
 ## Límites
 

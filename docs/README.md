@@ -7,7 +7,7 @@ decisiones técnicas, operación, referencias históricas y dirección futura.
 - **Instancia en producción:** [opforja.sanixai.com](https://opforja.sanixai.com)
 - **Estado operativo:** Git, tests y `cd app && bun run cordon:estado`
 - **Defectos activos:** [índice de bugs](bugs/INDEX.md)
-- **Dirección vigente:** [roadmap del 2026-08-09](roadmap/roadmap-2026-08-09.md)
+- **Próximo corte:** [criterios de apertura](roadmap/README.md)
 
 ## Qué es este repositorio
 
@@ -51,8 +51,8 @@ Su organización principal es:
 4. [GOVERNANCE de ui-forja](../ui-forja/GOVERNANCE.md) gobierna estética y chrome
    bajo la precedencia semántica OPM.
 5. Git, la implementación y sus tests fijan el estado; `cordon:estado` contrasta
-   producción y canon; el [roadmap](roadmap/roadmap-2026-08-09.md) contiene dirección
-   y el [índice de bugs](bugs/INDEX.md), defectos observados.
+   producción y canon; los [criterios del próximo corte](roadmap/README.md) evitan abrir
+   trabajo sin evidencia y el [índice de bugs](bugs/INDEX.md) registra defectos observados.
 6. Las [especificaciones](specs/README.md), [decisiones](decisiones/README.md),
    actas y auditorías conservan contratos o evidencia; no sustituyen el estado vivo.
 7. Git y `reference/` conservan historia. `_archivo/` es desplazamiento local e
@@ -75,7 +75,7 @@ Cada concepto durable tiene un solo hogar explicativo:
 | [Hojas rápidas](cheatsheets/README.md) | proyecciones visuales derivadas de los manuales |
 
 Las hojas rápidas no crean capacidades ni reglas nuevas. Los manuales conservan
-principios durables; Git conserva cierres y el roadmap solo contiene dirección futura.
+principios durables; Git conserva cierres y el próximo corte solo se abre con evidencia.
 
 ## Estructura documental activa
 
@@ -83,8 +83,7 @@ principios durables; Git conserva cierres y el roadmap solo contiene dirección 
 docs/
 ├── README.md                         orientación e índice
 ├── roadmap/
-│   ├── README.md                     contrato del roadmap
-│   ├── roadmap-2026-08-09.md         próxima dirección
+│   ├── README.md                     criterios del próximo corte
 │   └── registro-conformidad-ssot.md  brechas normativas declaradas
 ├── decisiones/README.md              decisiones técnicas vigentes
 ├── specs/README.md                   mapa de especificaciones y reemplazos

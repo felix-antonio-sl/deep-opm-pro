@@ -58,9 +58,9 @@ Las etiquetas forman un vocabulario cerrado:
 | **PROPUESTO** | Es una hipótesis de incremento acotado y preliminarmente compatible; todavía no existe ni implica factibilidad validada, prioridad o compromiso. |
 | **EXTERNO** | Lo ejecuta o conserva otro sistema; opforja puede modelarlo, pero no lo realiza. |
 
-La implementación y sus tests fijan el estado operativo; el
-[roadmap vigente](roadmap/roadmap-2026-08-09.md) contiene dirección. Una etiqueta
-**PROPUESTO** no equivale a prioridad.
+La implementación y sus tests fijan el estado operativo; los
+[criterios del próximo corte](roadmap/README.md) exigen evidencia antes de abrir trabajo.
+Una etiqueta **PROPUESTO** no equivale a prioridad.
 
 ### Ruteo por necesidad
 

@@ -211,7 +211,7 @@ export const TUTOR_SOURCES = [
     "manual",
     "domain",
     "docs/manual-sistemas-opm.md",
-    "48c6f6aa1b2eb52f8708775fa1793b6f00f16e069089c03f64bdc9ce9dfbb4d8",
+    "5e7b61704424fe27a32448403b873b988e90579126f7c772dd8b5ee6574f7f5a",
     [
       sourceAnchor("semantic-table", "Mesa semántica", "1.1 Una mesa semántica, no el sistema ejecutor"),
       sourceAnchor("evidence", "Base documental y evidencia", "2.1 La base documental es evidencia, no OPM crudo"),

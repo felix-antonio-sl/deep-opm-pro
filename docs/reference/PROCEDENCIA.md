@@ -27,9 +27,9 @@ repos (todas las ramas, tags y stash). Lo no absorbido aquí vive ahí.
   el plan ejecutivo JointJS, el mapping SSOT-visual (123 reglas V-*), el contrato
   pre-render, la gramática OPL y el handoff operativo. Valor: criterio operacional
   del isomorfismo OPL↔OPD con leyes verificables.
-- `ssot/candidate-extensions.md` — 13 hallazgos candidatos a retornar al SSOT de
-  kora (compound name order-dependency, ambigüedad de link types, gaps de cobertura,
-  disyuntivas V-54/V-115). Complementa el canal vivo `docs/solicitudes-upstream/`.
+- `ssot/candidate-extensions.md` — 13 hallazgos históricos candidatos a retornar al
+  SSOT de kora (compound name order-dependency, ambigüedad de link types, gaps de
+  cobertura, disyuntivas V-54/V-115).
 
 ### `opm-model-app/` — formalización categórica y reglas derivadas
 - `ARQUITECTURA-CATEGORICA.md` — constitución categórica (funtores, adjunciones,
