@@ -2,7 +2,7 @@ import { esAutoInvocacion } from "../../modelo/autoinvocacion";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { aparicionesVisiblesEnOpd } from "../../modelo/politicaApariciones";
 import { proyeccionesAbanicoEnOpd, puertoComunDeAbanico } from "../../modelo/abanicos";
-import type { Apariencia, Enlace, EstadoDrift, Estado, ExtremoEnlace, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
+import type { Apariencia, EstadoDrift, Estado, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
 import type { OplReferencia } from "../../opl/interaccion";
 import { proyectarOverlayAbanicoCanonico } from "./abanicoOverlay";
 import { centroApariencia, proyectarBusesEstructurales, separarCentroSimboloEstructural, type EnlaceConEndpointVisual, type ReservaSimboloEstructural } from "./agregacionBus";

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { crearEstadosIniciales, crearModelo, crearObjeto, estadosDeEntidad, moverEstado, renombrarEstado } from "../../../modelo/operaciones";
-import type { Apariencia, Modelo, Resultado } from "../../../modelo/tipos";
+import type { Apariencia, Resultado } from "../../../modelo/tipos";
 import { anchoCapsulaEstado, dimensionesConEstados, puntoCapsulaEstado, rectCapsulaEstado } from "./estados";
 
 describe("composer estados", () => {

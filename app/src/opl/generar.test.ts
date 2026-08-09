@@ -1355,10 +1355,6 @@ describe("HU-50.015 especializacion interactiva", () => {
     modelo = desplegado.modelo;
 
     modelo = must(crearObjeto(modelo, desplegado.opdId, { x: 220, y: 140 }, "Auto"));
-    const enlaceId = Object.keys(modelo.enlaces).find(
-      (id) => modelo.enlaces[id]?.tipo === "generalizacion",
-    );
-
     const interactivoHijo = generarOplInteractivo(modelo, desplegado.opdId);
     // Buscar en la oración de enlace individual (no en la de refinamiento)
     const lineaEnlace = interactivoHijo.find(

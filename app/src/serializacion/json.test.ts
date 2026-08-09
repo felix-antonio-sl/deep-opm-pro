@@ -7,7 +7,7 @@ import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { modoDespliegue } from "../opl/generadores/refinamiento";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
-import type { Apariencia, Modelo, ModoDespliegueObjeto, RefinamientoEntidad, TipoEnlace } from "../modelo/tipos";
+import type { Apariencia, Modelo, ModoDespliegueObjeto, TipoEnlace } from "../modelo/tipos";
 import { exportarModelo, hidratarModelo } from "./json";
 
 describe("serializacion JSON", () => {

@@ -399,7 +399,7 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         set({ confirmacionEliminarRefinamiento: null, mensaje: bloqueo });
         return;
       }
-      const { modelo, opdActivoId, seleccionId } = get();
+      const { modelo, seleccionId } = get();
       if (!seleccionId) {
         set({ mensaje: "Selecciona una cosa descompuesta" });
         return;
@@ -427,7 +427,7 @@ export function accionesOpd(set: SetStore, get: GetStore): Partial<ModeloSlice> 
         set({ confirmacionEliminarRefinamiento: null, mensaje: bloqueo });
         return;
       }
-      const { modelo, opdActivoId, seleccionId } = get();
+      const { modelo, seleccionId } = get();
       if (!seleccionId) {
         set({ mensaje: "Selecciona una cosa desplegada" });
         return;

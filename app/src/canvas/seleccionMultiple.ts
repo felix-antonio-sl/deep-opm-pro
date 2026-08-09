@@ -19,7 +19,7 @@ export function vacia(): EstadoSeleccion {
   return { seleccionados: [], modo: "simple" };
 }
 
-export function setSeleccion(s: EstadoSeleccion, ids: Id[]): EstadoSeleccion {
+export function setSeleccion(ids: Id[]): EstadoSeleccion {
   const seleccionados = unicos(ids);
   return {
     seleccionados,
@@ -29,12 +29,12 @@ export function setSeleccion(s: EstadoSeleccion, ids: Id[]): EstadoSeleccion {
 
 export function agregar(s: EstadoSeleccion, id: Id): EstadoSeleccion {
   if (s.seleccionados.includes(id)) return s;
-  return setSeleccion(s, [...s.seleccionados, id]);
+  return setSeleccion([...s.seleccionados, id]);
 }
 
 export function quitar(s: EstadoSeleccion, id: Id): EstadoSeleccion {
   if (!s.seleccionados.includes(id)) return s;
-  return setSeleccion(s, s.seleccionados.filter((actual) => actual !== id));
+  return setSeleccion(s.seleccionados.filter((actual) => actual !== id));
 }
 
 export function toggle(s: EstadoSeleccion, id: Id): EstadoSeleccion {

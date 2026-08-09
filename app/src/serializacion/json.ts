@@ -31,7 +31,6 @@ import {
 } from "../modelo/fichaTrabajo";
 import { esRequisito } from "../modelo/estereotipos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
-import { validarApariencias, validarAparienciasEnlace } from "./validarApariencias";
 import { validarEnlaces, validarAbanicos } from "./validarEnlaces";
 import { validarEntidades } from "./validarEntidades";
 import { esEnteroSeguro, esNumeroFinito, esRecord, fallo, ok } from "./validarHelpers";

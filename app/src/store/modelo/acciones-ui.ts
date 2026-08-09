@@ -19,7 +19,7 @@ import {
   type WorkspacePersistido,
 } from "../../persistencia/workspace";
 import { construirVersionPersistible } from "../../persistencia/versiones";
-import { exportarModelo, hidratarModelo } from "../../serializacion/json";
+import { exportarModelo } from "../../serializacion/json";
 import { nombreApunteDeFecha } from "../../persistencia/nombreApunte";
 import {
   activarPestanaNueva,

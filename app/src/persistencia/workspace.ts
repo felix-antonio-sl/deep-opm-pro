@@ -141,7 +141,7 @@ export function indiceVacio(): WorkspaceIndice {
   return { modelos: [], carpetas: [], recientes: [] };
 }
 
-function generarIdCarpeta(indice: WorkspaceIndice): Id {
+function generarIdCarpeta(): Id {
   if (typeof globalThis.crypto?.randomUUID === "function") return `carpeta-${globalThis.crypto.randomUUID()}`;
   return `carpeta-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -162,7 +162,7 @@ export function crearCarpeta(
   if (duplicada) return fallo("Ya existe una carpeta con ese nombre en esta ubicación");
 
   const carpeta: CarpetaIndice = {
-    id: generarIdCarpeta(indice),
+    id: generarIdCarpeta(),
     nombre: limpio,
     padreId,
     creadoEn: Date.now(),

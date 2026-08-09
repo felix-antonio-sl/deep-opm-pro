@@ -5,7 +5,6 @@ import {
   injertarEstereotipo,
 } from "./injertoEstereotipo";
 import { crearModelo, crearObjeto, crearProceso } from "../operaciones";
-import { agregarEstado } from "./estados";
 import { crearEnlace } from "./enlaces";
 import { extremoEntidad } from "../extremos";
 import { estereotipoDe } from "../estereotipos";

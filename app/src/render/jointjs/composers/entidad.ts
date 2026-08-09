@@ -14,13 +14,12 @@ import { estadoVisibleEnAparicion } from "../../../modelo/visibilidadEstados";
 import type { Anclaje, Apariencia, Entidad, EstadoDrift, Estado, Id, Modelo } from "../../../modelo/tipos";
 import { selectorAnchorEstado, targetsEstado } from "../estadoTargets";
 import { filasPlegadoConNesting } from "../plegadoNesting";
-import type { FilaPlegadoParcialExtendida } from "../plegadoNesting";
 import type { JointCellJson, OpcionesProyeccion, RolApariencia } from "../proyeccionTipos";
 import { CODEX, colorEntidadCodex } from "../constantes.codex";
 import { colorTextoParaFill } from "./colores";
 import { dimensionesConEstados, ESTADOS, rectCapsulaEstadoLocal } from "./estados";
 import { puntoHandleEstado } from "../handlers/estadoGeometry";
-import { attrsPlegadoParcial, dimensionesPlegadoParcial, markupPlegadoParcial, selectoresPartesPlegadas, textoFilaPlegado, PLEGADO } from "./plegado";
+import { attrsPlegadoParcial, dimensionesPlegadoParcial, markupPlegadoParcial, selectoresPartesPlegadas } from "./plegado";
 
 /**
  * Composer de cosas OPM (objetos/procesos): markup, attrs, metadatos,
@@ -427,21 +426,6 @@ function dimensionesContornoConPadding(
   return {
     width: Math.max(sizeBase.width, right),
     height: Math.max(sizeBase.height, bottom),
-  };
-}
-
-function attrsIndiceEntidad(modelo: Modelo, opdId: Id, apariencia: Apariencia, entidad: Entidad): Record<string, unknown> {
-  return {
-    text: identificadorCanonicoApariencia(modelo, opdId, apariencia, entidad),
-    fontFamily: CODEX.fuentes.mono,
-    fontSize: CODEX.index.fontSize,
-    fontWeight: CODEX.index.fontWeight,
-    fill: CODEX.colores.inkSoft,
-    letterSpacing: CODEX.index.letterSpacing,
-    textAnchor: "start",
-    refX: 0,
-    refY: `calc(h + ${CODEX.index.offsetY})`,
-    pointerEvents: "none",
   };
 }
 

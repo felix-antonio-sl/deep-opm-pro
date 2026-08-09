@@ -1,5 +1,5 @@
-import { crearAutosalvado, type AutosalvadoControl } from "../persistencia/autosalvado";
-import { exportarModelo, hidratarModelo } from "../serializacion/json";
+import type { AutosalvadoControl } from "../persistencia/autosalvado";
+import { exportarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
 import type { Abanico, Apariencia, ExtremoEnlace, Id, Modelo, Opd, Pestana, PestanaId } from "../modelo/tipos";
 import { construirDescriptorMapa, type CriterioResaltado } from "../canvas/mapaSistema";
@@ -25,27 +25,7 @@ import {
   type WorkspaceIndice,
   type WorkspacePersistido,
 } from "../persistencia/workspace";
-import {
-  agregar as seleccionAgregar,
-  quitar as seleccionQuitar,
-  setSeleccion as seleccionSet,
-  todasDelOpd,
-  toggle as seleccionToggle,
-  vacia as seleccionVacia,
-  type ModoSeleccion,
-} from "../canvas/seleccionMultiple";
-import {
-  alinearEnlacesAbajo,
-  alinearEnlacesArriba,
-  alinearEnlacesDerecha,
-  alinearEnlacesIzquierda,
-  conectarMultiAlTodo,
-  copiarSeleccion,
-  eliminarBatch,
-  nudgeApariencias,
-  nudgeEnlaces,
-  pegarSeleccion,
-} from "../canvas/operacionesBatch";
+import type { ModoSeleccion } from "../canvas/seleccionMultiple";
 import type { StoreApi } from "zustand/vanilla";
 import { etiquetaPestana } from "./pestanas";
 import { RUNTIME_EFFECTS_DEFAULT, type RuntimeEffects } from "./runtimeEffects";

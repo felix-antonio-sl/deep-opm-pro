@@ -14,7 +14,7 @@
 
 import { useEstadoVacioOpmViewModel } from "../app/viewmodels/estadoVacioOpmViewModel";
 import { deriveEntryIntent, runTutorPolicy } from "../tutor";
-import { colors, radii, shadows, spacing, typography } from "./tokens";
+import { colors, shadows, spacing, typography } from "./tokens";
 
 export function EstadoVacioOpm() {
   const vm = useEstadoVacioOpmViewModel();

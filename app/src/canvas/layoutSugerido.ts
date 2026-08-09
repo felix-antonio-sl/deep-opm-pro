@@ -238,9 +238,7 @@ function layoutConContorno(
   const columnasIzq = Math.max(1, Math.ceil(entradas.length / DENSIDAD.umbralNivelDenso));
   const columnasDer = Math.max(1, Math.ceil(salidas.length / DENSIDAD.umbralNivelDenso));
   const anchoMaxEntrada = anchoMaxApariencia(entradas, CANON.dims.cosaWidth);
-  const anchoMaxSalida = anchoMaxApariencia(salidas, CANON.dims.cosaWidth);
   const anchoIzqTotal = columnasIzq * anchoMaxEntrada + (columnasIzq - 1) * INZOOM.gapInternoHorizontal;
-  const _anchoDerTotal = columnasDer * anchoMaxSalida + (columnasDer - 1) * INZOOM.gapInternoHorizontal;
   // El contorno se desplaza horizontalmente para hacer espacio a la columna
   // izquierda completa: `xIzq + anchoIzqTotal + margenExterno`.
   const xIzq = INZOOM.margenExterno;
@@ -261,24 +259,6 @@ function layoutConContorno(
   posicionarColumnaDensa(salidas, xDer, columnasDer, contornoY, contornoHeight, posiciones);
 
   return posiciones;
-}
-
-function posicionarColumna(
-  lista: Apariencia[],
-  x: number,
-  contornoY: number,
-  contornoHeight: number,
-  gap: number,
-  acumulador: PosicionSugerida[],
-): void {
-  if (lista.length === 0) return;
-  const alturaTotal = lista.reduce((sum, a) => sum + a.height, 0) + gap * (lista.length - 1);
-  // Centra verticalmente respecto al contorno; si no cabe arriba, alinea al top.
-  let yCursor = Math.max(contornoY, contornoY + (contornoHeight - alturaTotal) / 2);
-  for (const apariencia of lista) {
-    acumulador.push({ aparienciaId: apariencia.id, x: Math.round(x), y: Math.round(yCursor) });
-    yCursor += apariencia.height + gap;
-  }
 }
 
 /**

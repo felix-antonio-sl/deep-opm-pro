@@ -4,7 +4,6 @@ import type {
   Modelo,
   Opd,
   Resultado,
-  SubmodeloReferencia,
 } from "./tipos";
 import {
   estadoSubmodelo,

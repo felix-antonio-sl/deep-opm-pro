@@ -27,7 +27,6 @@ import { renombrarEtiquetaEnlace } from "../../modelo/etiquetasEnlace";
 import { crearEnlaceTransaccional } from "../../modelo/transaccionEnlace";
 import { mismaReferencia } from "../../opl/interaccion";
 import type { EsenciaVisibilidad } from "../../opl/opciones";
-import { generarOpl } from "../../opl/generar";
 import { exportarOplModeloMarkdown, exportarOplOpdMarkdown } from "../../opl/exportarMarkdown";
 import { emitirDocumentoCanonico } from "../../serializacion/perfilesExport";
 import { exportarContextoSkill } from "../../opl/contextoSkill";

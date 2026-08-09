@@ -13,8 +13,6 @@ import {
   crearProceso,
   definirTiempoExcepcionEnlace,
   descomponerProceso,
-  moverApariencia,
-  renombrarEntidad,
   renombrarEstado,
 } from "../operaciones";
 import { fijarDuracion } from "../objetoDuracion";

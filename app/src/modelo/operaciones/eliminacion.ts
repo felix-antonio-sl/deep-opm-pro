@@ -8,7 +8,6 @@ import type {
   Estado,
   Id,
   Modelo,
-  Opd,
   Resultado,
 } from "../tipos";
 import { entidadVisibleEnOpd, fallo, ok, siguienteId } from "./helpers";

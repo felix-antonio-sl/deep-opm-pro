@@ -365,7 +365,7 @@ function reglaAgenteRequiereObjetoFisico(modelo: Modelo, opdActivoId: Id): Aviso
       destino.tipo === "proceso" &&
       origen.esencia !== "fisica"
     ))
-    .map(({ enlace, origen, destino }) => avisoEnlace(modelo, opdActivoId, enlace, {
+    .map(({ enlace, origen }) => avisoEnlace(modelo, opdActivoId, enlace, {
       reglaId: "agente-requiere-objeto-fisico",
       severidad: "error",
       mensaje: `Un agente representa una persona u objeto físico que habilita el proceso, pero ${origen.nombre} es informacional. Si es software, sistema o dato, usa instrumento en vez de agente; si es realmente humano, cambia su esencia a física.`,

@@ -26,7 +26,7 @@ import { definirRutaEtiqueta } from "../../modelo/rutas";
 import { posicionLibre } from "../../modelo/layout";
 import { extremoEstado, mismoExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
 import { formarAbanico } from "../../modelo/abanicos";
-import type { DesignacionEstado, Enlace, Id, Modelo, Modificador, Resultado, TipoEnlace } from "../../modelo/tipos";
+import type { DesignacionEstado, Enlace, Id, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { claveNombre } from "./parsear";
 import type { PatchOplPropuesto, ReferenciaEntidadPatch } from "./tipos";
 

@@ -143,7 +143,6 @@ export function proyectarNarrativaSimulacion(
 ): NarrativaSimulacion {
   const totalPasos = contexto.plan.length;
   const ejecutados = contexto.trace.length;
-  const modo = contexto.modo ?? "determinista";
   // BUG-20260608T171552Z-17477a ronda 2 (F1.19): en el contexto narrativo,
   // el modo ya se muestra en el segmented de la barra (es setting visible
   // ahí). Duplicarlo aquí como chip es ruido. El progreso "ejecutados/total"

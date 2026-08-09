@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { aplicarEdicionOpl, type IntencionEdicionOpl } from "./edicionCanvas";
-import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso } from "../modelo/operaciones";
+import { crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto } from "../modelo/operaciones";
 import type { Modelo } from "../modelo/tipos";
 
 function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {

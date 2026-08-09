@@ -4,7 +4,7 @@
 // sin levantar el ciclo completo de zustand.
 import { CANON } from "./constantes";
 import { obtenerRefinamiento } from "./refinamientos";
-import type { Apariencia, Id, Modelo, Posicion, TipoEntidad } from "./tipos";
+import type { Id, Modelo, Posicion, TipoEntidad } from "./tipos";
 
 export interface ContornoRefinable {
   id: Id;
@@ -18,8 +18,6 @@ export interface ContornoRefinable {
 const FILAS_BUSQUEDA = 20;
 const ALTO_FILA = 88;
 const MARGEN_INTERNO = 36;
-const PADDING_OFFSET = 68;
-const PADDING_INFERIOR = 24;
 const MARGEN_SOLAPE = 18;
 const CONTORNO_PAD_X = 4;
 const CONTORNO_PAD_TOP = 28;

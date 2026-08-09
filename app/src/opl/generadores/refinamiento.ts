@@ -37,7 +37,7 @@ export function oracionRefinamiento(modelo: Modelo, apariencia: Apariencia, enti
     if (!slot) continue;
     const opdHijo = modelo.opds[slot.opdId];
     if (!opdHijo) continue;
-    const aparienciasInternas = aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)
+    const aparienciasInternas = aparienciasInternasDeRefinamiento(opdHijo, entidad)
       .sort((a, b) => compararOrdenTemporal(a, b));
     const internos = aparienciasInternas
       .flatMap((aparienciaInterna) => {
@@ -125,7 +125,7 @@ export function modoPorTipoEnlace(tipo: TipoEnlace): ModoDespliegueObjeto | null
   return null;
 }
 
-export function aparienciasInternasDeRefinamiento(modelo: Modelo, opdHijo: Opd, entidad: Entidad): Apariencia[] {
+export function aparienciasInternasDeRefinamiento(opdHijo: Opd, entidad: Entidad): Apariencia[] {
   const contorno = Object.values(opdHijo.apariencias).find((apariencia) => apariencia.entidadId === entidad.id);
   if (!contorno) return [];
   const otras = Object.values(opdHijo.apariencias).filter((apariencia) => apariencia.entidadId !== entidad.id);
@@ -159,7 +159,7 @@ export function refsRefinamiento(modelo: Modelo, apariencia: Apariencia, entidad
     const opdId = obtenerRefinamiento(entidad, tipoActual)?.opdId;
     const opdHijo = opdId ? modelo.opds[opdId] : undefined;
     if (!opdHijo) continue;
-    for (const interna of aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)) {
+    for (const interna of aparienciasInternasDeRefinamiento(opdHijo, entidad)) {
       refs.push(refEntidad(interna.entidadId));
     }
   }
@@ -219,7 +219,7 @@ export function hintsRefinamiento(modelo: Modelo, apariencia: Apariencia, entida
     else hints.push({ texto: verboDescomposicion, ref: refEntidad(entidad.id), rol: "verbo" });
   }
 
-  for (const interna of aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)) {
+  for (const interna of aparienciasInternasDeRefinamiento(opdHijo, entidad)) {
     const entidadInterna = modelo.entidades[interna.entidadId];
     if (!entidadInterna) continue;
     const enlaceHijo = enlaceHijoPorEntidadId.get(interna.entidadId);
@@ -313,7 +313,7 @@ export function emitirDespliegueOcurren(
   opdHijo: Opd,
   ordinal: number,
 ): OplLineaInteractiva | null {
-  const aparienciasInternas = aparienciasInternasDeRefinamiento(modelo, opdHijo, entidad)
+  const aparienciasInternas = aparienciasInternasDeRefinamiento(opdHijo, entidad)
     .sort((a, b) => compararOrdenTemporal(a, b));
   const internos = aparienciasInternas
     .flatMap((apariencia) => {
@@ -382,7 +382,6 @@ function indicesOpdEnArbol(modelo: Modelo, opdId: Id): number[] {
 }
 
 export function emitirEspecializacion(
-  modelo: Modelo,
   entidadPadre: Entidad,
   hijo: { entidad: Entidad; enlace: Enlace },
   ordinal: number,

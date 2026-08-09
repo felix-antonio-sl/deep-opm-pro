@@ -33,8 +33,7 @@ export default defineConfig({
 
           if (
             modulo.includes("/src/render/jointjs/customShapes") ||
-            modulo.includes("/src/render/jointjs/linkAssets") ||
-            modulo.includes("/src/render/jointjs/jointMarkerAssets")
+            modulo.includes("/src/render/jointjs/linkAssets")
           ) return "vendor-jointjs";
 
           if (
@@ -44,8 +43,6 @@ export default defineConfig({
           ) return "feature-mapa";
 
           if (modulo.includes("/src/render/jointjs/mapaExport")) return "feature-export";
-
-          if (modulo.includes("/src/ui/asistente/")) return "feature-asistente";
 
           if (
             modulo.includes("/src/tutor/contenidoRuntime") ||

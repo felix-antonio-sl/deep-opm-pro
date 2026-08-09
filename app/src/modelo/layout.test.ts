@@ -10,7 +10,7 @@ import {
   solapa,
 } from "./layout";
 import { crearModelo, crearObjeto, crearProceso, descomponerProceso, desplegarObjeto } from "./operaciones";
-import type { Apariencia, Modelo, Resultado } from "./tipos";
+import type { Apariencia, Resultado } from "./tipos";
 
 describe("modelo/layout", () => {
   test("solapa detecta interseccion con margen y descarta el contorno refinable", () => {

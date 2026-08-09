@@ -1,4 +1,3 @@
-import { CANON } from "../../modelo/constantes";
 import { puertoComunDeAbanico } from "../../modelo/abanicos";
 import { entidadIdDeExtremo } from "../../modelo/extremos";
 import type { Abanico, Apariencia, Id, Modelo, Opd, Posicion, TipoEntidad } from "../../modelo/tipos";

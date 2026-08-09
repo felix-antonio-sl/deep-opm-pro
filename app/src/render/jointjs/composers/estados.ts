@@ -48,12 +48,6 @@ export function altoCapsulaEstado(estado: Estado): number {
   return Math.max(ESTADOS.capsuleHeight, manual);
 }
 
-interface EndpointVisual {
-  apariencia: Apariencia;
-  proxy?: { entidadId: Id; nombre: string };
-  punto?: Posicion;
-}
-
 export interface RectCapsulaEstado {
   x: number;
   y: number;

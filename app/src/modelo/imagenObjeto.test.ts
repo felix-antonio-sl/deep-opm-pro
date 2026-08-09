@@ -7,7 +7,7 @@ import {
   validarUrlImagen,
 } from "./imagenObjeto";
 import { crearModelo, crearObjeto } from "./operaciones";
-import type { Modelo, Resultado } from "./tipos";
+import type { Resultado } from "./tipos";
 
 describe("imagenObjeto", () => {
   afterEach(() => {

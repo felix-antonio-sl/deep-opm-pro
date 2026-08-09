@@ -167,9 +167,8 @@ function fallo<T = never>(error: string): Resultado<T> {
 
 
 import type { CrearSlice, PestanasSlice } from "./tipos";
-import { activarEstadoPestanas, activarPestanaNueva, conBaseRevision, estadoModelo, resetHistorial } from "./runtime";
+import { activarEstadoPestanas, activarPestanaNueva, conBaseRevision } from "./runtime";
 import { cargarModeloBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
-import { workspaceDesdeModelo } from "../persistencia/workspace";
 import { hidratarModelo } from "../serializacion/json";
 import { captureSessionEpoch, isSessionEpochCurrent } from "./sessionEpoch";
 

@@ -1,16 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { crearModelo } from "../modelo/operaciones";
-import type { Modelo, Resultado } from "../modelo/tipos";
+import type { Modelo } from "../modelo/tipos";
 import { exportarModelo } from "../serializacion/json";
 import { store } from "../store";
 
 // W6.5-b: acciones de store del registro [RATIFICAR] — commitModelo ⇒ undoables
 // y persistidas; export del LogDecisiones v0 al portapapeles.
-
-function must<T>(resultado: Resultado<T>): T {
-  if (!resultado.ok) throw new Error(resultado.error);
-  return resultado.value;
-}
 
 function sembrarConPendiente(): void {
   // El store es singleton compartido entre archivos: otro test puede dejar

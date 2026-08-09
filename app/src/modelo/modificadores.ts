@@ -5,7 +5,7 @@ import type { Enlace, Id, Modelo, Modificador, Resultado, SubtipoModificador } f
 export function aplicarModificador(modelo: Modelo, enlaceId: Id, modificador: Modificador): Resultado<Modelo> {
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
-  const legal = validarModificadorEnlace(enlace, modificador);
+  const legal = validarModificadorEnlace(enlace);
   if (!legal.ok) return legal;
   return ok({
     ...modelo,
@@ -128,7 +128,7 @@ export function crearInvocacion(
 
 export function validarMetadatosEnlace(enlace: Enlace): Resultado<true> {
   if (enlace.modificador) {
-    const modificador = validarModificadorEnlace(enlace, enlace.modificador);
+    const modificador = validarModificadorEnlace(enlace);
     if (!modificador.ok) return modificador;
   }
   if (enlace.subtipoModificador !== undefined) {
@@ -195,7 +195,7 @@ export function probabilidadValida(value: number): boolean {
   return Number.isFinite(value) && value >= 0 && value <= 1;
 }
 
-function validarModificadorEnlace(enlace: Enlace, modificador: Modificador): Resultado<true> {
+function validarModificadorEnlace(enlace: Enlace): Resultado<true> {
   if (naturalezaDeEnlace(enlace.tipo) !== "procedural") {
     return fallo("Los modificadores condicion/evento/NO aplican solo a enlaces procedurales [V-240]");
   }
@@ -213,7 +213,7 @@ function validarSubtipoModificador(enlace: Enlace, subtipo: SubtipoModificador):
   if (enlace.modificador !== requerido) {
     return fallo(`El subtipo ${subtipo} requiere modificador ${requerido}`);
   }
-  const legal = validarModificadorEnlace(enlace, requerido);
+  const legal = validarModificadorEnlace(enlace);
   if (!legal.ok) return legal;
   return ok(true);
 }

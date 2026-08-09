@@ -1279,7 +1279,6 @@ describe("store undo/redo y dirty state", () => {
     // Crear un enlace via operaciones y usarlo directamente
     const modelo = store.getState().modelo;
     const objId = Object.values(modelo.entidades).find((e) => e.tipo === "objeto")!.id;
-    const procId = Object.values(modelo.entidades).find((e) => e.tipo === "proceso")!.id;
     // Saltar la restricción de consumo via modificando tipos en el store directamente
     // Usar la acción de crear enlace del store
     store.getState().seleccionarEntidad(objId);
@@ -1546,7 +1545,6 @@ describe("mapa del sistema", () => {
 
   test("renombrarOpdDesdeArbol cambia nombre con validacion", () => {
     const raizId = store.getState().modelo.opdRaizId;
-    const nombreOriginal = store.getState().modelo.opds[raizId]!.nombre;
     store.getState().renombrarOpdDesdeArbol(raizId, "NuevoNombre");
     expect(store.getState().modelo.opds[raizId]!.nombre).toBe("NuevoNombre");
     expect(store.getState().puedeDeshacer).toBe(true);

@@ -41,17 +41,6 @@ function cloneOpds(modelo: Modelo): Record<Id, Opd> {
   ) as Record<Id, Opd>;
 }
 
-/** Reemplaza un OPD en el record clonado, preservando campos obligatorios. */
-function setOpd(
-  opds: Record<Id, Opd>,
-  opd: Opd,
-  patch: Partial<Pick<Opd, "padreId" | "ordenLocal">>,
-): Opd {
-  const actualizado: Opd = { ...opd, ...patch };
-  opds[opd.id] = actualizado;
-  return actualizado;
-}
-
 // ─── API pública ────────────────────────────────────────────────────
 
 /**

@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { crearModelo, crearProceso } from "../modelo/operaciones/creacion";
 import { crearOpdSuelto } from "../modelo/operaciones/opdSuelto";
 import { exportarModeloConPerfil, gateOpdsSinAdoptar } from "../serializacion/perfilesExport";
-import type { Modelo, Resultado } from "../modelo/tipos";
+import type { Resultado } from "../modelo/tipos";
 
 /** Desempaqueta un Resultado en tests (idioma del repo: lanza ante fallo). */
 function must<T>(resultado: Resultado<T>): T {

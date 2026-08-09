@@ -207,7 +207,7 @@ describe("estadosCurrentIniciales", () => {
     const pedidoId = entidadId(modelo, "Pedido");
     const estadosCreados = must(crearEstadosIniciales(modelo, pedidoId));
     modelo = estadosCreados.modelo;
-    const [pendienteId, aprobadoId] = estadosCreados.estadoIds;
+    const [, aprobadoId] = estadosCreados.estadoIds;
 
     modelo = must(designarCurrent(modelo, aprobadoId));
 

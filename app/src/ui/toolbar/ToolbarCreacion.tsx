@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { useToolbarCreacionViewModel } from "../../app/viewmodels/toolbarCreacionViewModel";
 import type { ModoEnlace } from "../../canvas/modoEnlace";
 import type { ExtremoEntrada } from "../../modelo/extremos";
-import type { Id, TipoEnlace } from "../../modelo/tipos";
+import type { TipoEnlace } from "../../modelo/tipos";
 import { MenuTipoEnlace, TIPOS_ENLACE_MENU } from "../MenuTipoEnlace";
 import { colors, stroke } from "../tokens";
 import { ToolbarActionButton } from "./toolbarPrimitives";

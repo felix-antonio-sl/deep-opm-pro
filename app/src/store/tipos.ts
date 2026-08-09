@@ -1,151 +1,22 @@
-import { crearCosaEnPosicion } from "../modelo/creacionInterna";
-import { extremoEstado, type ExtremoEntrada } from "../modelo/extremos";
-import {
-  designarCurrent,
-  designarDefault,
-  designarFinal,
-  designarInicial,
-  quitarDesignacion,
-  restaurarEstado,
-  suprimirEstado,
-} from "../modelo/estadosDesignaciones";
-import {
-  contenedorRefinamiento,
-  dentroDeApariencia,
-  posicionLibre,
-} from "../modelo/layout";
-import {
-  actualizarVerticesEnlace as actualizarVerticesEnlaceOp,
-  ajustarMultiplicidad,
-  apuntarExtremoEnlace,
-  cambiarAfiliacion,
-  cambiarEsencia,
-  agregarEstado,
-  crearEnlace,
-  crearEstadosIniciales,
-  crearModelo,
-  crearObjeto,
-  crearProceso,
-  descomponerProceso,
-  desplegarObjeto,
-  eliminarEnlace,
-  eliminarEstado as eliminarEstadoOp,
-  moverApariencia as moverAparienciaEntidad,
-  moverAparienciaPorId,
-  quitarDescomposicionProceso,
-  quitarDespliegueObjeto,
-  quitarEstadosObjeto,
-  reanclarEnlaceExternoDerivado as reanclarEnlaceExternoDerivadoOp,
-  renombrarEntidad,
-  renombrarEstado,
-  splitEffectEnPar,
-  volverEnlaceExternoDerivadoAAutomatico as volverEnlaceExternoDerivadoAAutomaticoOp,
-  type AjustePuertoEnlace,
-} from "../modelo/operaciones";
-import {
-  agregarUrl,
-  editarAlias,
-  editarDescripcion,
-  editarUnidad,
-  eliminarUrl,
-  reordenarUrls,
-} from "../modelo/objetoMetadata";
-import { fijarDuracion, quitarDuracion } from "../modelo/objetoDuracion";
-import {
-  cambiarOrdenPartes as cambiarOrdenPartesOp,
-  cambiarModoPlegado as cambiarModoPlegadoOp,
-  crearEnlaceConExtremoPlegado,
-  extraerParteDePlegado as extraerParteDePlegadoOp,
-  reinsertarParteEnPlegado as reinsertarParteEnPlegadoOp,
-} from "../modelo/plegado";
-import {
-  abanicoDeEnlace,
-  alternarOperadorAbanico as alternarOperadorAbanicoOp,
-  disolverAbanico as disolverAbanicoOp,
-  formarAbanicoAutomatico,
-  quitarRamaDeAbanico as quitarRamaDeAbanicoOp,
-  sincronizarAbanicos,
-} from "../modelo/abanicos";
-import { crearAutoInvocacion } from "../modelo/autoinvocacion";
-import { eliminarOpdHoja } from "../modelo/opdEliminacion";
-import {
-  listarHermanos,
-  moverNodo,
-  ordenSegunCanvasPadre,
-  reordenarHermanos,
-  validarMovimientoSinCiclo,
-} from "../modelo/opdReorden";
-import {
-  aplicarModificador,
-  definirDemora,
-  definirProbabilidad,
-  quitarModificador,
-} from "../modelo/modificadores";
-import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
-import { definirRutaEtiqueta } from "../modelo/rutas";
-import {
-  fijarMultiplicidadOrigen,
-  fijarMultiplicidadDestino,
-  quitarMultiplicidad,
-} from "../modelo/enlaceMultiplicidad";
-import {
-  insertarVerticeApariencia,
-  reposicionarVerticeApariencia,
-  reanclarExtremoEnlace as reanclarExtremoEnlaceOp,
-} from "../modelo/enlaceVertices";
+import type { ExtremoEntrada } from "../modelo/extremos";
+import type { AjustePuertoEnlace } from "../modelo/operaciones";
 import type { ResumenModeloPersistido } from "../persistencia/modelos";
 import {
-  archivarCarpeta as archivarCarpetaEnIndiceOp,
-  archivarModelo as archivarModeloEnIndiceOp,
-  buscarGlobal,
-  validarNombreModeloLocal,
-  workspaceDesdeModelo,
   type WorkspaceModeloLocal,
-  type CarpetaIndice,
   type BusquedaGlobalEstado,
   type PortapapelesWorkspace,
-  type ResultadoBusquedaGlobal,
   type WorkspaceIndice,
-  type MapaWorkspace,
-  indiceVacio,
-  crearCarpeta as crearCarpetaEnIndice,
-  renombrarCarpeta as renombrarCarpetaEnIndiceOp,
-  eliminarCarpeta as eliminarCarpetaEnIndiceOp,
-  moverModeloACarpeta as moverModeloACarpetaEnIndiceOp,
-  listarHijosDeCarpeta,
-  restaurarCarpeta as restaurarCarpetaEnIndiceOp,
-  restaurarModelo as restaurarModeloEnIndiceOp,
-  rutaDeCarpeta,
 } from "../persistencia/workspace";
-import {
-  cortarCarpeta as cortarCarpetaWorkspace,
-  cortarModelo as cortarModeloWorkspace,
-  moverCarpeta,
-  moverModelo,
-  pegarCarpeta,
-  pegarModelo,
-} from "../persistencia/movimientoModelos";
-import {
-  crearVersion,
-  eliminarVersion,
-  restaurarVersion,
-} from "../persistencia/versiones";
-import {
-  crearAutosalvado,
-  type AutosalvadoEstado,
-  type AutosalvadoControl,
-} from "../persistencia/autosalvado";
-import { exportarModelo, hidratarModelo } from "../serializacion/json";
+import type { AutosalvadoEstado } from "../persistencia/autosalvado";
 import type { Aviso } from "../modelo/validaciones";
 import type { AnclaRelojEnlace } from "../modelo/anclajesEnlace";
 import type { ColisionNombre } from "../modelo/operaciones";
 import type { Consulta } from "../modelo/razonamiento";
-import type { Afiliacion, AnclajesSimboloEstructural, Apariencia, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, FichaTrabajo, Id, ImagenEntidad, LayoutEstados, LenteConocimiento, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, Opd, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoRefinamiento, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto, VersionResumen } from "../modelo/tipos";
+import type { Afiliacion, AnclajesSimboloEstructural, CrucesPuenteSkill, DesignacionEstado, DuracionTemporal, Entidad, Esencia, Estado, EstadoCargaSubmodelo, EstadoDrift, EstadoSatisfaccionRequisito, ExtremoEnlace, FichaTrabajo, Id, ImagenEntidad, LayoutEstados, LenteConocimiento, Modelo, Modificador, ModoDespliegueObjeto, ModoImagenEntidad, ModoPlegado, OntologiaOrganizacional, OperadorAbanico, OrdenPartesPlegado, ParametrosSimulacionEntidad, Pestana, PestanaId, Posicion, RequisitoEntidadMetadata, SubtipoModificador, TargetAncla, TipoEnlace, TipoEntidad, TipoRefinamiento, TipoValorSlot, UnidadTiempo, UrlObjetoTipada, UiPortapapelesVisual, ValorConcreto } from "../modelo/tipos";
 import type { MesaBaseWitnessV1 } from "../mesa/baseWitness";
 
-import { mismaReferencia, type OplReferencia } from "../opl/interaccion";
+import type { OplReferencia } from "../opl/interaccion";
 import type { EsenciaVisibilidad } from "../opl/opciones";
-import { generarOpl } from "../opl/generar";
 import {
   type CriterioResaltado,
 } from "../canvas/mapaSistema";
@@ -154,37 +25,7 @@ import type { AnchorConexion, ModoEnlace } from "../canvas/modoEnlace";
 export type { ModoEnlace } from "../canvas/modoEnlace";
 import type { FamiliaTraerConectados } from "../canvas/reglasTraer";
 import type { GridConfig } from "../canvas/grid";
-import {
-  abrirPestana as abrirPestanaEstado,
-  cambiarActiva as cambiarPestanaActivaEstado,
-  cerrarPestana as cerrarPestanaEstado,
-  clonarModelo,
-  crearPestanaDesdeModelo,
-  crearPestanaNueva,
-  duplicarPestana as duplicarPestanaEstado,
-  reordenarPestanas as reordenarPestanasEstado,
-} from "./pestanas";
-import {
-  agregar as seleccionAgregar,
-  quitar as seleccionQuitar,
-  setSeleccion as seleccionSet,
-  todasDelOpd,
-  toggle as seleccionToggle,
-  vacia as seleccionVacia,
-  type ModoSeleccion,
-} from "../canvas/seleccionMultiple";
-import {
-  alinearEnlacesAbajo,
-  alinearEnlacesArriba,
-  alinearEnlacesDerecha,
-  alinearEnlacesIzquierda,
-  conectarMultiAlTodo,
-  copiarSeleccion,
-  eliminarBatch,
-  nudgeApariencias,
-  nudgeEnlaces,
-  pegarSeleccion,
-} from "../canvas/operacionesBatch";
+import type { ModoSeleccion } from "../canvas/seleccionMultiple";
 
 export type VersionMutationOperation = "version-create" | "version-restore-copy" | "version-delete";
 export type VersionMutationReceipt =

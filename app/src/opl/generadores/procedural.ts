@@ -100,7 +100,7 @@ function transicionesEstadoBase(modelo: Modelo, opd: Opd, enlacesExcluidos: Read
     const estadoEntrada = estadoDeExtremo(modelo, consumo.origenId);
     const estadoSalida = estadoDeExtremo(modelo, resultado.destinoId);
     if (!proceso || !objeto || !estadoEntrada || !estadoSalida) continue;
-    const texto = oracionTransicionEstados(modelo, proceso, objeto, estadoEntrada, estadoSalida, consumo, resultado);
+    const texto = oracionTransicionEstados(proceso, objeto, estadoEntrada, estadoSalida, consumo, resultado);
     lineaPorEnlaceConsumo.set(consumo.id, {
       texto,
       refs: [
@@ -141,7 +141,6 @@ function elegirResultadoParaPath(consumo: Enlace, candidatos: Enlace[]): Enlace 
 }
 
 function oracionTransicionEstados(
-  modelo: Modelo,
   proceso: Entidad,
   objeto: Entidad,
   estadoEntrada: NonNullable<ReturnType<typeof estadoDeExtremo>>,

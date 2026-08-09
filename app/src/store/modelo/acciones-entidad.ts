@@ -29,7 +29,7 @@ import {
   reordenarUrls,
 } from "../../modelo/objetoMetadata";
 import { aparienciaDeEntidadEnOpd } from "../../modelo/politicaApariciones";
-import type { Apariencia, Id, LayoutEstados, Modelo, ModoImagenEntidad, ParametrosSimulacionEntidad, TipoValorSlot } from "../../modelo/tipos";
+import type { Apariencia, LayoutEstados, Modelo, ModoImagenEntidad, ParametrosSimulacionEntidad, TipoValorSlot } from "../../modelo/tipos";
 import { commitModelo, type GetStore, type SetStore } from "../runtime";
 import { addFlash } from "../feedback";
 import type { ModeloSlice } from "../tipos";

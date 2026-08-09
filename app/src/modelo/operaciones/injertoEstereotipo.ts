@@ -131,8 +131,8 @@ export function injertarEstereotipo(
   const visibles = new Set(Object.values(apariencias).filter((a) => a.opdId === opdId).map((a) => a.entidadId));
   const enlacesAparicion: Record<Id, AparienciaEnlace> = { ...opd.enlaces };
   for (const enlace of enlacesClonados) {
-    const origen = entidadIdDeExtremo(enlace.origenId, estadoMap, estados);
-    const destino = entidadIdDeExtremo(enlace.destinoId, estadoMap, estados);
+    const origen = entidadIdDeExtremo(enlace.origenId, estados);
+    const destino = entidadIdDeExtremo(enlace.destinoId, estados);
     if (!origen || !destino || !visibles.has(origen) || !visibles.has(destino)) continue;
     const aeId = proximo("ae");
     enlacesAparicion[aeId] = { id: aeId, enlaceId: enlace.id, opdId, vertices: [] };
@@ -331,7 +331,7 @@ function remapEnlace(
   };
 }
 
-function entidadIdDeExtremo(extremo: ExtremoEnlace, estadoMap: Map<Id, Id>, estados: Record<Id, Estado>): Id | undefined {
+function entidadIdDeExtremo(extremo: ExtremoEnlace, estados: Record<Id, Estado>): Id | undefined {
   if (extremo.kind === "entidad") return extremo.id;
   return estados[extremo.id]?.entidadId;
 }

@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { describe, expect, test, beforeEach } from "bun:test";
 import { crearAutosalvado, type AutosalvadoEstado } from "./autosalvado";
 
 describe("autosalvado (L4)", () => {

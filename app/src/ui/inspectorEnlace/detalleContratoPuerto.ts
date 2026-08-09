@@ -50,8 +50,8 @@ export interface DetalleContratoPuertoEnlace {
 
 export function detalleContratoPuertoEnlace(modelo: Modelo, opdId: Id, enlace: Enlace): DetalleContratoPuertoEnlace {
   const extremos: DetalleExtremoPuerto[] = [
-    detalleExtremo(modelo, opdId, enlace, "origen", enlace.origenId),
-    detalleExtremo(modelo, opdId, enlace, "destino", enlace.destinoId),
+    detalleExtremo(modelo, opdId, "origen", enlace.origenId),
+    detalleExtremo(modelo, opdId, "destino", enlace.destinoId),
   ];
   const abanico = abanicoDeEnlace(modelo, enlace.id);
   const puertoComun = abanico ? puertoExactoCompartidoDeAbanico(modelo, abanico) : undefined;
@@ -94,7 +94,7 @@ export function detalleContratoPuertoEnlace(modelo: Modelo, opdId: Id, enlace: E
   return detalle;
 }
 
-function detalleExtremo(modelo: Modelo, opdId: Id, enlace: Enlace, lado: LadoEnlace, extremo: ExtremoEnlace): DetalleExtremoPuerto {
+function detalleExtremo(modelo: Modelo, opdId: Id, lado: LadoEnlace, extremo: ExtremoEnlace): DetalleExtremoPuerto {
   const entidad = entidadDeExtremo(modelo, extremo);
   if (!entidad) {
     return {
