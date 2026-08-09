@@ -34,8 +34,8 @@ test("toolbar plano Codex v1.1: creadores visibles sin selección, sin overflow"
   await expect(toolbarRoot).toBeVisible();
 
   // Contamos botones visibles dentro del toolbar-root. Codex v1.1 expone los
-  // creadores inline y persistencia. La paleta de comandos ya no tiene botón
-  // visible: se abre por Ctrl/Cmd+K.
+  // creadores inline y persistencia. El acceso visible a la paleta vive en la
+  // meta del header, fuera del toolbar-root, y no altera este conteo.
   const conteo = await toolbarRoot.evaluate((root) => {
     const visibles = (el: Element) => {
       const rect = (el as HTMLElement).getBoundingClientRect();
@@ -67,7 +67,7 @@ test("toolbar plano Codex v1.1: creadores visibles sin selección, sin overflow"
   expect(pageErrors).toEqual([]);
 });
 
-test("toolbar omite rótulos redundantes y no duplica la paleta como botón", async ({ page }) => {
+test("toolbar omite rótulos redundantes y el acceso a la paleta vive en la meta del header", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -80,9 +80,13 @@ test("toolbar omite rótulos redundantes y no duplica la paleta como botón", as
   await expect(page.getByRole("group", { name: "Modelar" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Objeto", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Proceso", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Buscar comandos" })).toHaveCount(0);
-  await page.keyboard.press("Control+k");
+  const toolbarRoot = page.getByTestId("toolbar-root");
+  const abrirComandos = page.getByRole("button", { name: "Buscar comandos" });
+  await expect(abrirComandos).toBeVisible();
+  await expect(toolbarRoot.getByRole("button", { name: "Buscar comandos" })).toHaveCount(0);
+  await abrirComandos.click();
   await expect(page.getByTestId("command-palette")).toBeVisible();
+  await expect(page.getByTestId("command-palette").getByRole("combobox")).toBeFocused();
 
   expect(pageErrors).toEqual([]);
 });

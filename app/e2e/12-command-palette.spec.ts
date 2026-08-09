@@ -4,18 +4,20 @@ import { esperarWorkbenchInicial } from "./_smoke-helpers";
 /**
  * Ronda 22 §7.10 — Command Palette como superficie discoverable.
  *
- * Cubre el contrato minimo: Ctrl+K abre, fuzzy search encuentra acciones
+ * Cubre el contrato minimo: el control visible y Ctrl+K abren, fuzzy search encuentra acciones
  * estaticas del MenuPrincipal, Enter ejecuta y Escape cierra.
  */
 
-test("Ctrl+K abre palette, busca accion de menu y Enter la ejecuta", async ({ page }) => {
+test("el control ⌘K abre palette con foco, busca accion de menu y Enter la ejecuta", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
 
-  await page.keyboard.press("Control+k");
+  const abrirComandos = page.getByRole("button", { name: "Buscar comandos" });
+  await expect(abrirComandos).toBeVisible();
+  await abrirComandos.click();
   const palette = page.getByTestId("command-palette");
   await expect(palette).toBeVisible();
   await expect(palette).toHaveAttribute("data-ifml-stereotype", "Modal");

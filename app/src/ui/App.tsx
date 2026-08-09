@@ -131,6 +131,7 @@ export function App() {
   // designado para graduar (estado desacoplado del appShell, como CintaApunte).
   const dialogoGraduarAbierto = useOpmStore((s) => s.dialogoGraduarModeloId !== null);
   const verificarSesion = useOpmStore((s) => s.verificarSesion);
+  const abrirDialogoComandos = useOpmStore((s) => s.abrirDialogoComandos);
   useEffect(() => {
     void verificarSesion();
   }, [verificarSesion]);
@@ -279,7 +280,13 @@ export function App() {
             menu={null}
             tabs={<BarraPestanas />}
             breadcrumb={<Breadcrumb />}
-            meta={<ChromeMetaCodex oraciones={oracionesOpl} dirty={dirtyModelo} />}
+            meta={(
+              <ChromeMetaCodex
+                oraciones={oracionesOpl}
+                dirty={dirtyModelo}
+                onAbrirComandos={abrirDialogoComandos}
+              />
+            )}
             leftPanel={(
               <section data-testid="opl-pane" style={layout.oplLeftPane}>
                 <CodexColHeader
@@ -481,7 +488,7 @@ export function App() {
 /**
  * Meta editorial del header Codex: `N oraciones · ● sin guardar · ⌘K`.
  * El indicador "sin guardar" sólo aparece si el modelo está sucio; `⌘K`
- * queda como recordatorio mínimo de la paleta sin botón visible dedicado.
+ * abre la paleta desde un control mínimo y accesible.
  */
 function OplHeaderMeta({ vm }: { vm: PanelOplViewModel }) {
   if (!vm.filtroActivo) return null;
@@ -510,7 +517,15 @@ function OplHeaderMeta({ vm }: { vm: PanelOplViewModel }) {
   );
 }
 
-function ChromeMetaCodex({ oraciones, dirty }: { oraciones: number; dirty: boolean }) {
+function ChromeMetaCodex({
+  oraciones,
+  dirty,
+  onAbrirComandos,
+}: {
+  oraciones: number;
+  dirty: boolean;
+  onAbrirComandos: () => void;
+}) {
   return (
       <span data-testid="codex-header-meta" style={metaCodex.wrap}>
       <span data-testid="codex-meta-oraciones">
@@ -523,7 +538,15 @@ function ChromeMetaCodex({ oraciones, dirty }: { oraciones: number; dirty: boole
         </>
       ) : null}
       <span aria-hidden="true" style={metaCodex.sep}>·</span>
-      <kbd style={metaCodex.kbd}>⌘K</kbd>
+      <button
+        type="button"
+        aria-label="Buscar comandos"
+        title="Buscar comandos"
+        style={metaCodex.commandButton}
+        onClick={onAbrirComandos}
+      >
+        ⌘K
+      </button>
     </span>
   );
 }
@@ -542,7 +565,7 @@ const metaCodex = {
     color: tokens.colors.inkMid,
     fontStyle: "normal",
   },
-  kbd: {
+  commandButton: {
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -550,7 +573,9 @@ const metaCodex = {
     height: "16px",
     padding: "0 4px",
     border: `1px solid ${tokens.colors.rule}`,
+    background: "transparent",
     color: tokens.colors.ink,
+    cursor: "pointer",
     fontFamily: tokens.typography.mono,
     fontStyle: "normal",
     fontSize: `${tokens.typography.fs.fs10}px`,
