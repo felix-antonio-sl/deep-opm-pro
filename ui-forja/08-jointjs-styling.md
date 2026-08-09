@@ -1,6 +1,6 @@
 # Codex — Estilo Visual de JointJS
 
-**Producto:** OpForja (editor OPM)
+**Producto:** opforja (editor OPM)
 **Propuesta:** Codex · v1.0
 **Versión de JointJS asumida:** 3.7 core, sin Rappid
 

@@ -1,6 +1,6 @@
 # Codex — Iconografía tipográfica
 
-**Producto:** OpForja (editor OPM)
+**Producto:** opforja (editor OPM)
 **Propuesta:** Codex · v1.0
 
 Codex **no usa iconos vectoriales**. Toda señal gráfica está hecha con caracteres Unicode. Esta es una decisión deliberada: refuerza el carácter editorial y elimina la dependencia de una librería de iconos.

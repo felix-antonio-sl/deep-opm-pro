@@ -1,6 +1,6 @@
 # Codex — Especificación de Diseño Visual
 
-**Producto:** OpForja (editor OPM)
+**Producto:** opforja (editor OPM)
 **Propuesta:** Codex
 **Versión:** 1.2 — autoridad normativa vigente
 **Fecha:** 2026-05-25

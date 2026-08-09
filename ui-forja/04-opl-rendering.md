@@ -1,6 +1,6 @@
 # Codex — Realización canónica de OPL
 
-**Producto:** OpForja (editor OPM)
+**Producto:** opforja (editor OPM)
 **Propuesta:** Codex · v1.0
 **Capa SSOT propietaria:** `urn:fxsl:kb:opl-es` (opm-opl-es v3.0.0)
 
@@ -202,7 +202,7 @@ Codex soporta el patrón canónico:
 
 > *"Un modelo con prosa de apoyo en español y OPL canónica en inglés es aceptable como artefacto editorial."* — §18.5
 
-Inversamente: si los nombres del modelo están en inglés (como en el ejemplo precargado de OpForja: "System Name", "Beneficiary Group", "Main System Doing") y el OPL se renderiza con verbos canónicos en ES (`consume`, `genera`, `consta de`), eso ES aceptable.
+Inversamente: si los nombres del modelo están en inglés (como en el ejemplo precargado de opforja: "System Name", "Beneficiary Group", "Main System Doing") y el OPL se renderiza con verbos canónicos en ES (`consume`, `genera`, `consta de`), eso ES aceptable.
 
 **Limitaciones:**
 
@@ -264,7 +264,7 @@ Esta bidireccionalidad es **fundamental** y debe implementarse en v1.
 
 ## 12. Apéndice — Ejemplo completo de SD (canónico)
 
-OPL canónica para el ejemplo precargado de OpForja (SD raíz, ~24 oraciones):
+OPL canónica para el ejemplo precargado de opforja (SD raíz, ~24 oraciones):
 
 ```
 01. System Name es informacional.

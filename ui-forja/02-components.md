@@ -1,6 +1,6 @@
 # Codex — Inventario de Componentes (Chrome)
 
-**Producto:** OpForja (editor OPM)
+**Producto:** opforja (editor OPM)
 **Propuesta:** Codex · v1.1
 
 > **Scope crítico:** este documento describe **solo el chrome de la app** — todo lo que NO está dentro del `<div>` donde JointJS renderiza el `paper`. Los símbolos OPM (objetos, procesos, estados, enlaces, triángulos), el marquee de selección, el pan/zoom y los highlighters viven en JointJS y se especifican en [`08-jointjs-styling.md`](08-jointjs-styling.md).

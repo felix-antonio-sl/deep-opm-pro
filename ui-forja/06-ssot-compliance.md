@@ -1,6 +1,6 @@
 # Codex — Mapa de Cumplimiento contra la SSOT OPM-ES
 
-**Producto:** OpForja (editor OPM)
+**Producto:** opforja (editor OPM)
 **Propuesta:** Codex · v1.0
 **SSOT versión revisada:** OPM-ES corpus v3.0.0 (2026-04-27)
 

@@ -1,6 +1,6 @@
 # Codex — Interacciones del Chrome
 
-**Producto:** OpForja (editor OPM)
+**Producto:** opforja (editor OPM)
 **Propuesta:** Codex · v1.1
 
 > **Scope:** este documento cubre solo las interacciones del **chrome** (command palette, panel toggles, hover/focus states en HTML). Las interacciones del **canvas** (selección, marquee, drag, pan, zoom, edición inline de etiquetas, refinamiento) las maneja JointJS y se especifican en [`08-jointjs-styling.md` §6](08-jointjs-styling.md#6-element-tools-y-link-tools).

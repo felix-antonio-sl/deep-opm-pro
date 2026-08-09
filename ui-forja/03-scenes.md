@@ -1,6 +1,6 @@
 # Codex — Especificación de Pantallas
 
-**Producto:** OpForja (editor OPM)
+**Producto:** opforja (editor OPM)
 **Propuesta:** Codex · v1.1
 
 Cuatro pantallas canónicas. Cada una usa el mismo [`CodexFrame`](02-components.md#1-codexframe) y solo varía qué llena las tres regiones (OPL izquierda, canvas-mount, índice/inspector derecho) y qué *floating* aparece sobre el canvas.

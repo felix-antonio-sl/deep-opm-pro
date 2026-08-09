@@ -1,6 +1,6 @@
 # ui-forja-governance — autoridad normativa de diseño
 
-**Producto:** Opforja
+**Producto:** opforja
 **Estado:** normativa vigente para decisiones visuales y estructurales de la aplicación
 **Versión:** 1.2
 **Fecha:** 2026-06-12
@@ -11,7 +11,7 @@
 
 ## 1. Autoridad y precedencia
 
-`ui-forja-governance` es la fuente única de verdad para el diseño de interfaz de Opforja: frame, chrome, tokens, tipografía, composición, componentes, interacción visual y apariencia JointJS **no portadora de semántica OPM**. Lo visualmente significativo OPM (formas, contornos, sombras semánticas, marcadores, estados, designaciones, refinamiento, layout semántico, arcos lógicos, verticalidad temporal, supresiones, marcas de simulación, entre otros) lo gobierna `urn:fxsl:kb:spec-forja-opd-es`.
+`ui-forja-governance` es la fuente única de verdad para el diseño de interfaz de opforja: frame, chrome, tokens, tipografía, composición, componentes, interacción visual y apariencia JointJS **no portadora de semántica OPM**. Lo visualmente significativo OPM (formas, contornos, sombras semánticas, marcadores, estados, designaciones, refinamiento, layout semántico, arcos lógicos, verticalidad temporal, supresiones, marcas de simulación, entre otros) lo gobierna `urn:fxsl:kb:spec-forja-opd-es`.
 
 La precedencia completa del repo es:
 
