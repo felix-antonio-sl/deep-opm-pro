@@ -29,7 +29,7 @@ El patron canonico de referencia es la ronda 3 ya emitida en
 ## Cuando Usar
 
 - El operador pide estructurar trabajo pendiente para ejecucion concurrente.
-- Hay HANDOFF.md vigente con pendientes priorizados que necesitan particion.
+- El operador entrega pendientes priorizados que necesitan particion.
 - Se quiere convergencia controlada con orden de merge declarado.
 - Se necesita asignacion a agentes independientes con scope estricto.
 
@@ -38,8 +38,8 @@ El patron canonico de referencia es la ronda 3 ya emitida en
 - Tarea unica de una sola linea: escribir directo, no generar 3 docs.
 - Decision arquitectural pura sin trabajo de implementacion: usar
   `urn:dev:artefacto:steipete` o un agente de pensamiento.
-- Reescribir HANDOFF o backlog HU: esos archivos son responsabilidad del
-  operador o de la skill custodio canonica.
+- Crear continuidad o backlog para justificar la particion: si no hay pendientes
+  explicitos, no usar esta skill.
 - Generar codigo: esta skill emite documentos de instrucciones, no codigo.
 
 ## Workflow
@@ -52,17 +52,15 @@ Identificar:
 - **Ronda destino**: nombre del directorio (`ronda3`, `ronda-2026-05`, etc.).
   Si el operador no lo da, usar `ronda<N+1>` calculando del directorio
   existente.
-- **Pendientes a cubrir**: lista explicita o "los del HANDOFF".
+- **Pendientes a cubrir**: lista explicita entregada por el operador.
 - **Restricciones**: orden de merge sugerido, lineas excluidas, prioridades.
 
-Si el intent es ambiguo: leer HANDOFF y proponer particion al operador antes
-de codificar.
+Si el intent es ambiguo, pedir la decision minima antes de generar documentos.
 
-### 2. Leer HANDOFF y backlog
+### 2. Leer solo el contexto necesario
 
-- `docs/HANDOFF.md`: estado, decisiones vigentes, pendientes inmediatos.
-- `docs/historias-usuario-v2/` o equivalente: backlog HU para anclar cada
-  linea.
+- `AGENTS.md` y la solicitud vigente.
+- Los archivos o pendientes nombrados por el operador.
 - `docs/instrucciones-lineas-dev/<ronda-previa>/README.md` si existe: heredar
   formato y reglas duras estables.
 
@@ -174,7 +172,7 @@ Cada `linea-<i>-<slug>.md` con secciones obligatorias en orden:
   seccion.
 - Modularidad por dominio: archivos disjuntos cuando hay dominio nuevo.
 - 11 secciones obligatorias en cada brief, en orden.
-- No tocar HANDOFF.md ni `docs/historias-usuario-v2/` desde la skill.
+- No crear continuidad ni backlog desde la skill.
 - Idiomas: documentos en es-CL; identificadores y comandos en forma original.
 - Loop verde obligatorio en cada brief con comandos del repo.
 - Si una linea propone violar una regla comun del README, la skill rechaza la
@@ -213,4 +211,4 @@ Reporte breve al operador al cerrar:
 - Tabla de N lineas con titulo, HU eje, riesgo y archivo dominio nuevo.
 - Orden de merge sugerido con rationale en una linea.
 - Metricas esperadas post-ronda (tests, smoke, build) si el repo las define.
-- Confirmacion de regla "no tocar HANDOFF" cumplida.
+- Confirmacion de que la skill no creó continuidad ni backlog.
