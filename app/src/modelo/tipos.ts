@@ -96,6 +96,7 @@ export type {
   EstadoEvaluacionNoNuclear,
   TargetDeclaracionNoNuclear,
   DeclaracionNoNuclear,
+  FamiliaEfectosPreestado,
   AparienciaPlantilla,
   PlantillaEstereotipo,
   Estereotipo,

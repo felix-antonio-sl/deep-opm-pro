@@ -1,6 +1,6 @@
 import { estadosDeEntidad } from "../modelo/operaciones";
 import { estadoVisibleEnAparicion } from "../modelo/visibilidadEstados";
-import type { Enlace, Entidad, Id, Modelo, Opd } from "../modelo/tipos";
+import type { Enlace, Entidad, FamiliaEfectosPreestado, Id, Modelo, Opd } from "../modelo/tipos";
 import type { VisibilidadOpl } from "./opciones";
 import { crearLineaOplInteractiva, type OplLineaInteractiva } from "./interaccion";
 import { profundidadOpd } from "./bloquesJerarquicos";
@@ -173,7 +173,64 @@ function generarLineasOpl(modelo: Modelo, opd: Opd, opciones?: VisibilidadOpl): 
     if (texto) agregarLinea(lineas, texto, refsEnlace(modelo, enlace), hintsEnlace(modelo, enlace, texto));
   }
 
+  for (const familia of Object.values(modelo.familiasEfectosPreestado ?? {}).filter(
+    (item) => item.opdId === opd.id,
+  )) {
+    agregarLineaFamiliaEfectosPreestado(lineas, modelo, familia);
+  }
+
   return lineas;
+}
+
+function agregarLineaFamiliaEfectosPreestado(
+  lineas: OplLineaPendiente[],
+  modelo: Modelo,
+  familia: FamiliaEfectosPreestado,
+): void {
+  const proceso = modelo.entidades[familia.procesoId];
+  const objeto = modelo.entidades[familia.objetoId];
+  if (proceso?.tipo !== "proceso" || objeto?.tipo !== "objeto") return;
+  const miembros = familia.enlaceIds.map((enlaceId) => {
+    const enlace = modelo.enlaces[enlaceId];
+    const entrada = enlace?.estadoEntradaId ? modelo.estados[enlace.estadoEntradaId] : undefined;
+    const salida = enlace?.estadoSalidaId ? modelo.estados[enlace.estadoSalidaId] : undefined;
+    const ruta = enlace?.rutaEtiqueta?.trim();
+    return enlace && entrada && salida && ruta ? { enlace, entrada, salida, ruta } : null;
+  });
+  if (miembros.some((miembro) => miembro === null)) return;
+  const dominio = familia.dominioEstadoIds.map((estadoId) => modelo.estados[estadoId]);
+  if (dominio.some((estado) => !estado)) return;
+  const completos = miembros.filter((miembro): miembro is NonNullable<typeof miembro> => miembro !== null);
+  const dominioTexto = dominio
+    .filter((estado): estado is NonNullable<typeof estado> => estado !== undefined)
+    .map((estado) => `\`${estado.nombre}\``)
+    .join("; ");
+  const detalle = completos
+    .map(({ entrada, salida, ruta }) => `\`${entrada.nombre}\` —ruta \`${ruta}\`→ \`${salida.nombre}\``)
+    .join("; ");
+  const texto = `[Extensión declarada: ${familia.id}] La familia ${familia.cobertura} indexada por preestado de ${nombreOpl(proceso)} sobre ${nombreOpl(objeto)} tiene dominio {${dominioTexto}} y comprende ${detalle}; exactamente un miembro aplica para el preestado real.`;
+  agregarLinea(
+    lineas,
+    texto,
+    [
+      refEntidad(proceso.id),
+      refEntidad(objeto.id),
+      ...completos.flatMap(({ enlace, entrada, salida }) => [
+        refEnlace(enlace.id),
+        refEstado(entrada.id),
+        refEstado(salida.id),
+      ]),
+    ],
+    [
+      hintEntidad(proceso),
+      hintEntidad(objeto),
+      ...completos.flatMap(({ enlace, entrada, salida }) => [
+        hintEnlace(enlace, "ruta por preestado"),
+        hintEstado(entrada),
+        hintEstado(salida),
+      ]),
+    ],
+  );
 }
 
 interface GrupoAndProcedural {

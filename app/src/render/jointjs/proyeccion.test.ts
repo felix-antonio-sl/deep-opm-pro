@@ -388,6 +388,46 @@ describe("proyeccion JointJS", () => {
     expect((line?.targetMarker as Attrs | undefined)?.d).toBe(LINK_ASSETS.procedural.efecto.marker.d);
   });
 
+  test("proyecta un efecto TS3 compacto como dos arcos anclados a los estados", () => {
+    let modelo = crearModelo();
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 20, y: 30 }, "Pedido"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 130 }, "Resolver"));
+    const pedidoId = entidadPorNombre(modelo, "Pedido");
+    const resolverId = entidadPorNombre(modelo, "Resolver");
+    const estados = must(crearEstadosIniciales(modelo, pedidoId));
+    modelo = estados.modelo;
+    const [entradaId, salidaId] = estados.estadoIds;
+    if (!entradaId || !salidaId) throw new Error("La prueba esperaba dos estados");
+    modelo = must(crearEnlace(
+      modelo,
+      modelo.opdRaizId,
+      resolverId,
+      pedidoId,
+      "efecto",
+      "",
+      { estadoEntradaId: entradaId, estadoSalidaId: salidaId },
+    ));
+    const enlaceId = Object.keys(modelo.enlaces)[0];
+    if (!enlaceId) throw new Error("La prueba esperaba un efecto TS3");
+
+    const cells = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .filter((cell) => cell.opm.kind === "enlace" && cell.opm.enlaceId === enlaceId);
+    const entrada = cells.find((cell) => cell.opm.kind === "enlace" && cell.opm.segmentoTs3 === "entrada");
+    const salida = cells.find((cell) => cell.opm.kind === "enlace" && cell.opm.segmentoTs3 === "salida");
+    const aparienciaPedido = aparienciaDeEntidad(modelo, modelo.opdRaizId, pedidoId);
+    const aparienciaResolver = aparienciaDeEntidad(modelo, modelo.opdRaizId, resolverId);
+
+    expect(cells).toHaveLength(2);
+    expect(entrada?.source).toMatchObject({ id: aparienciaPedido.id, selector: "stateCapsule0" });
+    expect(entrada?.target).toMatchObject({ id: aparienciaResolver.id });
+    expect(salida?.source).toMatchObject({ id: aparienciaResolver.id });
+    expect(salida?.target).toMatchObject({ id: aparienciaPedido.id, selector: "stateCapsule1" });
+    expect(((entrada?.attrs as Attrs | undefined)?.line as Attrs | undefined)?.sourceMarker).toBeNull();
+    expect(((entrada?.attrs as Attrs | undefined)?.line as Attrs | undefined)?.targetMarker).toBeTruthy();
+    expect(((salida?.attrs as Attrs | undefined)?.line as Attrs | undefined)?.sourceMarker).toBeNull();
+    expect(((salida?.attrs as Attrs | undefined)?.line as Attrs | undefined)?.targetMarker).toBeTruthy();
+  });
+
   test("BUG-7fcdba: consumo, resultado y efecto usan ancla canonica center+boundary aunque el modelo persista ports", () => {
     for (const tipo of ["consumo", "resultado", "efecto"] as const) {
       const modelo = modeloConEnlace(tipo);

@@ -86,6 +86,9 @@ export function normalizarModelo(modelo: Modelo): Modelo {
     ...(modelo.declaracionesNoNucleares && Object.keys(modelo.declaracionesNoNucleares).length > 0
       ? { declaracionesNoNucleares: modelo.declaracionesNoNucleares }
       : {}),
+    ...(modelo.familiasEfectosPreestado && Object.keys(modelo.familiasEfectosPreestado).length > 0
+      ? { familiasEfectosPreestado: modelo.familiasEfectosPreestado }
+      : {}),
     // W5.1: extensión meta del autor; allowlist condicional (ausente/{} ⇒ no se emite = byte-identidad).
     ...(modelo.anclasNormativas && Object.keys(modelo.anclasNormativas).length > 0 ? { anclasNormativas: modelo.anclasNormativas } : {}),
     // W6.5-a: notas de mesa; allowlist condicional (ausente/{} ⇒ no se emite = byte-identidad).

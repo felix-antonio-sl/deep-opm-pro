@@ -345,6 +345,11 @@ export function checkParTransformadorDuplicado(modelo: Modelo): AvisoMetodologic
   for (const enlace of Object.values(modelo.enlaces)) {
     if (!TRANSFORMADORES_PAR.has(enlace.tipo)) continue;
     if (enlace.derivado || enlace.efectoEscindido) continue;
+    // Un TS3 compacto conserva un único efecto lógico entidad↔entidad, pero
+    // sus estados de entrada/salida viven como metadatos del enlace. No es un
+    // transformador plano duplicado: visualmente se realiza como el par
+    // estado-origen→proceso + proceso→estado-destino (R-OPD-TR-6).
+    if (enlace.estadoEntradaId || enlace.estadoSalidaId) continue;
     if (enlace.origenId.kind === "estado" || enlace.destinoId.kind === "estado") continue;
     if (abanicoDeEnlace(modelo, enlace.id)) continue;
     const origen = entidadDeExtremo(modelo, enlace.origenId);

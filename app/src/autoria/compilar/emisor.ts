@@ -14,7 +14,8 @@ import type { Autor } from "../dsl";
 import type { ExtremoEntrada, OpcionesEnlace } from "../tipos";
 import { parsearParrafoOpl } from "../../opl/parser/parsear";
 import type { OracionOplAst } from "../../opl/parser/tipos";
-import type { TipoEnlace } from "../../modelo/tipos";
+import type { FamiliaEfectosPreestado, TipoEnlace } from "../../modelo/tipos";
+import { entidadIdDeExtremo } from "../../modelo/extremos";
 import { aplicarModificador } from "../../modelo/modificadores";
 import { Resolutor } from "./resolutor";
 import type { Directiva, Emision, LineaNormalizada } from "./tipos";
@@ -28,6 +29,7 @@ export interface HechoEmitido {
     | "enlace"
     | "designarEstado"
     | "abanico"
+    | "familiaPreestado"
     | "ver";
   /** Detalle textual (p.ej. el tipo de enlace, el nombre de la entidad). */
   detalle: string;
@@ -123,6 +125,11 @@ export function recolectarEstadosUnion(oraciones: string[]): Map<string, string[
       } else if (a.kind === "abanico" && a.otrosEstados?.length) {
         agregar(a.otros[0] ?? "", a.otrosEstados);
         if (a.estadoEntradaComun) agregar(a.otros[0] ?? "", [a.estadoEntradaComun]);
+      } else if (a.kind === "familia-efectos-preestado") {
+        agregar(a.objeto, [
+          ...a.dominioEstados,
+          ...a.miembros.flatMap((miembro) => [miembro.estadoEntrada, miembro.estadoSalida]),
+        ]);
       }
     }
   }
@@ -249,6 +256,8 @@ function emitirAst(ast: OracionOplAst, ctx: ContextoEmision): ResultadoEmision {
       return emitirCondicion(ast, ctx);
     case "abanico":
       return emitirAbanico(ast, ctx);
+    case "familia-efectos-preestado":
+      return emitirFamiliaEfectosPreestado(ast, ctx);
     case "excepcion":
       return emitirExcepcion(ast, ctx);
     case "designacion-estado":
@@ -264,6 +273,118 @@ function emitirAst(ast: OracionOplAst, ctx: ContextoEmision): ResultadoEmision {
     default:
       return { estado: "fallo", razon: `kind de AST no manejado: ${(ast as { kind: string }).kind}` };
   }
+}
+
+function emitirFamiliaEfectosPreestado(
+  ast: Extract<OracionOplAst, { kind: "familia-efectos-preestado" }>,
+  ctx: ContextoEmision,
+): ResultadoEmision {
+  const proceso = ctx.resolutor.buscar(ast.proceso);
+  const objeto = ctx.resolutor.buscar(ast.objeto);
+  if (!proceso || proceso.tipo !== "proceso") {
+    return { estado: "fallo", razon: `familia ${ast.familiaId}: proceso '${ast.proceso}' no declarado` };
+  }
+  if (!objeto || objeto.tipo !== "objeto") {
+    return { estado: "fallo", razon: `familia ${ast.familiaId}: objeto '${ast.objeto}' no declarado` };
+  }
+  if (ast.miembros.length < 2 || new Set(ast.dominioEstados.map(claveEntidad)).size < 2) {
+    return { estado: "fallo", razon: `familia ${ast.familiaId}: requiere al menos dos miembros y dos preestados de dominio` };
+  }
+
+  const procesoId = ctx.autor.id(proceso.key);
+  const objetoId = ctx.autor.id(objeto.key);
+  const opdId = ctx.autor.idOpd(ctx.opdKey);
+  const estadoIdPorNombre = (nombre: string): string | null => {
+    const clave = claveEntidad(limpiarEstado(nombre));
+    return Object.values(ctx.autor.modelo.estados).find(
+      (estado) => estado.entidadId === objetoId && claveEntidad(estado.nombre) === clave,
+    )?.id ?? null;
+  };
+
+  const dominioEstadoIds: string[] = [];
+  for (const nombre of ast.dominioEstados) {
+    const estadoId = estadoIdPorNombre(nombre);
+    if (!estadoId) return { estado: "fallo", razon: `familia ${ast.familiaId}: estado de dominio '${nombre}' no declarado` };
+    if (dominioEstadoIds.includes(estadoId)) {
+      return { estado: "fallo", razon: `familia ${ast.familiaId}: estado de dominio '${nombre}' repetido` };
+    }
+    dominioEstadoIds.push(estadoId);
+  }
+
+  const enlacesDelOpd = new Set(
+    Object.values(ctx.autor.modelo.opds[opdId]?.enlaces ?? {}).map((apariencia) => apariencia.enlaceId),
+  );
+  const enlaceIds: string[] = [];
+  const preestados = new Set<string>();
+  for (const miembro of ast.miembros) {
+    const estadoEntradaId = estadoIdPorNombre(miembro.estadoEntrada);
+    const estadoSalidaId = estadoIdPorNombre(miembro.estadoSalida);
+    if (!estadoEntradaId || !estadoSalidaId) {
+      return { estado: "fallo", razon: `familia ${ast.familiaId}: estados no resueltos para la ruta '${miembro.rutaEtiqueta}'` };
+    }
+    if (!dominioEstadoIds.includes(estadoEntradaId)) {
+      return { estado: "fallo", razon: `familia ${ast.familiaId}: preestado '${miembro.estadoEntrada}' fuera del dominio` };
+    }
+    if (preestados.has(estadoEntradaId)) {
+      return { estado: "fallo", razon: `familia ${ast.familiaId}: más de un miembro para el preestado '${miembro.estadoEntrada}'` };
+    }
+    preestados.add(estadoEntradaId);
+
+    const enlace = Object.values(ctx.autor.modelo.enlaces).find((candidato) =>
+      candidato.tipo === "efecto"
+      && entidadIdDeExtremo(ctx.autor.modelo, candidato.origenId) === procesoId
+      && entidadIdDeExtremo(ctx.autor.modelo, candidato.destinoId) === objetoId
+      && candidato.estadoEntradaId === estadoEntradaId
+      && candidato.estadoSalidaId === estadoSalidaId
+      && candidato.rutaEtiqueta?.trim() === miembro.rutaEtiqueta.trim()
+      && enlacesDelOpd.has(candidato.id)
+    );
+    if (!enlace) {
+      return { estado: "fallo", razon: `familia ${ast.familiaId}: no se resolvió el TS3 con ruta '${miembro.rutaEtiqueta}'` };
+    }
+    if (enlaceIds.includes(enlace.id)) {
+      return { estado: "fallo", razon: `familia ${ast.familiaId}: el TS3 '${miembro.rutaEtiqueta}' se repite` };
+    }
+    if (Object.values(ctx.autor.modelo.abanicos ?? {}).some((abanico) => abanico.enlaceIds.includes(enlace.id))) {
+      return { estado: "fallo", razon: `familia ${ast.familiaId}: el TS3 '${miembro.rutaEtiqueta}' ya pertenece a un abanico lógico` };
+    }
+    enlaceIds.push(enlace.id);
+  }
+
+  if (ast.cobertura === "total" && preestados.size !== dominioEstadoIds.length) {
+    return { estado: "fallo", razon: `familia ${ast.familiaId}: cobertura total sin un miembro por cada preestado del dominio` };
+  }
+  if (ast.cobertura === "parcial" && preestados.size >= dominioEstadoIds.length) {
+    return { estado: "fallo", razon: `familia ${ast.familiaId}: cobertura parcial debe omitir al menos un preestado del dominio` };
+  }
+
+  const familia: FamiliaEfectosPreestado = {
+    id: ast.familiaId,
+    tipo: "particion-preestado",
+    estatuto: "extension-declarada",
+    opdId,
+    procesoId,
+    objetoId,
+    enlaceIds,
+    dominioEstadoIds,
+    cobertura: ast.cobertura,
+    aplicacion: "exactamente-uno-por-preestado",
+  };
+  const existente = ctx.autor.modelo.familiasEfectosPreestado?.[familia.id];
+  if (existente) {
+    return JSON.stringify(existente) === JSON.stringify(familia)
+      ? { estado: "aplicada", hechos: [] }
+      : { estado: "fallo", razon: `familia ${familia.id}: ya existe con otra definición` };
+  }
+  ctx.autor.modelo.familiasEfectosPreestado = {
+    ...(ctx.autor.modelo.familiasEfectosPreestado ?? {}),
+    [familia.id]: familia,
+  };
+  return {
+    estado: "aplicada",
+    hechos: [{ primitiva: "familiaPreestado", detalle: `${familia.id} (${familia.cobertura}, ${familia.enlaceIds.length} miembros)` }],
+    enlaceIds: [...familia.enlaceIds],
+  };
 }
 
 // ── Cosas ────────────────────────────────────────────────────────────────

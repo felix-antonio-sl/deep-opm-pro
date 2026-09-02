@@ -164,7 +164,8 @@ function parsearOracion(
     }
   }
 
-  return parsearDescripcion(texto, linea)
+  return parsearFamiliaEfectosPreestado(textoMarcado, linea)
+    ?? parsearDescripcion(texto, linea)
     ?? parsearClasificacionRasgo(texto, linea)
     ?? parsearEstados(texto, linea)
     ?? parsearAbanicoEvento(texto, linea)
@@ -194,6 +195,47 @@ function parsearOracion(
         sugerencia: "Usa una plantilla SSOT: descripcion, estados, enlace procedural, enlace estructural o contexto.",
       }],
     };
+}
+
+function parsearFamiliaEfectosPreestado(
+  textoMarcado: string,
+  linea: LineaOplNormalizada,
+): { ast: OracionOplAst; diagnosticos: DiagnosticoOpl[] } | null {
+  const match = /^\[Extensi[oó]n declarada:\s*([^\]]+)\]\s+La familia (total|parcial) indexada por preestado de (.+?) sobre (.+?) tiene dominio \{(.+)\} y comprende (.+); exactamente un miembro aplica para el preestado real$/iu.exec(textoMarcado);
+  if (!match) return null;
+  const familiaId = (match[1] ?? "").trim();
+  const cobertura = (match[2] ?? "").toLocaleLowerCase("es") as "total" | "parcial";
+  const proceso = normalizarNombreOpl(match[3] ?? "");
+  const objeto = normalizarNombreOpl(match[4] ?? "");
+  const dominioEstados = (match[5] ?? "")
+    .split(";")
+    .map((item) => /^`([^`]+)`$/u.exec(item.trim())?.[1]?.trim() ?? "")
+    .filter(Boolean);
+  const miembros = (match[6] ?? "")
+    .split(";")
+    .map((item) => /^`([^`]+)`\s+—ruta\s+`([^`]+)`→\s+`([^`]+)`$/u.exec(item.trim()))
+    .map((item) => item ? {
+      estadoEntrada: (item[1] ?? "").trim(),
+      rutaEtiqueta: (item[2] ?? "").trim(),
+      estadoSalida: (item[3] ?? "").trim(),
+    } : null);
+  if (!familiaId || !proceso || !objeto || dominioEstados.length < 2 || miembros.length < 2 || miembros.some((item) => item === null)) {
+    return null;
+  }
+  return {
+    ast: {
+      kind: "familia-efectos-preestado",
+      linea: linea.linea,
+      familiaId,
+      cobertura,
+      proceso,
+      objeto,
+      dominioEstados,
+      miembros: miembros.filter((item): item is NonNullable<typeof item> => item !== null),
+      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
+    },
+    diagnosticos: [],
+  };
 }
 
 /**

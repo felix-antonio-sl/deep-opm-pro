@@ -65,6 +65,25 @@ export interface DeclaracionNoNuclear {
   estadoEvaluacion?: EstadoEvaluacionNoNuclear;
 }
 
+// --- FamiliaEfectosPreestado ----------------------------------------------
+// Extensión semántica declarada, no primitiva OPM ni operador lógico. Agrupa
+// efectos TS3 canónicos por el estado previo del mismo objeto. Su significado
+// es selección funcional: para un preestado real conocido aplica exactamente
+// un miembro; no expresa AND, XOR ni OR.
+
+export interface FamiliaEfectosPreestado {
+  id: Id;
+  tipo: "particion-preestado";
+  estatuto: "extension-declarada";
+  opdId: Id;
+  procesoId: Id;
+  objetoId: Id;
+  enlaceIds: Id[];
+  dominioEstadoIds: Id[];
+  cobertura: "total" | "parcial";
+  aplicacion: "exactamente-uno-por-preestado";
+}
+
 // --- Estereotipo (D6) -------------------------------------------------------
 // Extensión ADITIVA y OPCIONAL del formato `deep-opm-pro.modelo.v0`: catálogo de
 // estereotipos (built-in de fábrica + entradas de `Modelo.estereotipos`). Mismo

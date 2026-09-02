@@ -26,7 +26,7 @@ import { definirRutaEtiqueta } from "../../modelo/rutas";
 import { posicionLibre } from "../../modelo/layout";
 import { extremoEstado, mismoExtremo, normalizarExtremo, type ExtremoEntrada } from "../../modelo/extremos";
 import { formarAbanico } from "../../modelo/abanicos";
-import type { DesignacionEstado, Enlace, Id, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
+import type { DesignacionEstado, Enlace, FamiliaEfectosPreestado, Id, Modelo, Resultado, TipoEnlace } from "../../modelo/tipos";
 import { claveNombre } from "./parsear";
 import type { PatchOplPropuesto, ReferenciaEntidadPatch } from "./tipos";
 
@@ -34,8 +34,8 @@ export function aplicarPatchesOpl(modelo: Modelo, patches: PatchOplPropuesto[], 
   let siguiente = modelo;
   const creadas = new Map<string, Id>();
 
-  for (const patch of patches.filter((p): p is Exclude<PatchOplPropuesto, { tipo: "crear-enlace" | "fijar-etiqueta-enlace" | "crear-abanico" }> =>
-    p.tipo !== "crear-enlace" && p.tipo !== "fijar-etiqueta-enlace" && p.tipo !== "crear-abanico"
+  for (const patch of patches.filter((p): p is Exclude<PatchOplPropuesto, { tipo: "crear-enlace" | "fijar-etiqueta-enlace" | "crear-abanico" | "crear-familia-efectos-preestado" }> =>
+    p.tipo !== "crear-enlace" && p.tipo !== "fijar-etiqueta-enlace" && p.tipo !== "crear-abanico" && p.tipo !== "crear-familia-efectos-preestado"
   )) {
     const resultado = aplicarPatchNoEnlace(siguiente, patch, opdId, creadas);
     if (!resultado.ok) return resultado;
@@ -56,12 +56,20 @@ export function aplicarPatchesOpl(modelo: Modelo, patches: PatchOplPropuesto[], 
     siguiente = resultado.value;
   }
 
+  // Cuarta fase: la familia declarada referencia los TS3 ya creados y sus
+  // rutas. No es un abanico y nunca participa en la fase lógica anterior.
+  for (const patch of patches.filter((p): p is Extract<PatchOplPropuesto, { tipo: "crear-familia-efectos-preestado" }> => p.tipo === "crear-familia-efectos-preestado")) {
+    const resultado = aplicarPatchFamiliaEfectosPreestado(siguiente, patch, opdId);
+    if (!resultado.ok) return resultado;
+    siguiente = resultado.value;
+  }
+
   return ok(siguiente);
 }
 
 function aplicarPatchNoEnlace(
   modelo: Modelo,
-  patch: Exclude<PatchOplPropuesto, { tipo: "crear-enlace" | "fijar-etiqueta-enlace" | "crear-abanico" }>,
+  patch: Exclude<PatchOplPropuesto, { tipo: "crear-enlace" | "fijar-etiqueta-enlace" | "crear-abanico" | "crear-familia-efectos-preestado" }>,
   opdId: Id,
   creadas: Map<string, Id>,
 ): Resultado<Modelo> {
@@ -488,6 +496,68 @@ function aplicarPatchAbanico(
   const modeloConPuertos: Modelo = { ...modelo, enlaces: enlacesConPuerto };
 
   return formarAbanico(modeloConPuertos, opdId, enlacesRama.map((e) => e.id), patch.operador);
+}
+
+function aplicarPatchFamiliaEfectosPreestado(
+  modelo: Modelo,
+  patch: Extract<PatchOplPropuesto, { tipo: "crear-familia-efectos-preestado" }>,
+  opdId: Id,
+): Resultado<Modelo> {
+  const procesoId = resolverRefSinCreadas(modelo, patch.procesoRef);
+  const objetoId = resolverRefSinCreadas(modelo, patch.objetoRef);
+  if (!procesoId || !objetoId) return fallo(`No se resolvieron los extremos de la familia ${patch.familiaId}`);
+  const dominioEstadoIds: Id[] = [];
+  for (const nombre of patch.dominioEstados) {
+    const estadoId = resolverEstadoPorNombre(modelo, objetoId, nombre);
+    if (!estadoId) return fallo(`No existe el estado de dominio '${nombre}' para la familia ${patch.familiaId}`);
+    dominioEstadoIds.push(estadoId);
+  }
+
+  const enlaceIds: Id[] = [];
+  for (const miembro of patch.miembros) {
+    const estadoEntradaId = resolverEstadoPorNombre(modelo, objetoId, miembro.estadoEntrada);
+    const estadoSalidaId = resolverEstadoPorNombre(modelo, objetoId, miembro.estadoSalida);
+    if (!estadoEntradaId || !estadoSalidaId) {
+      return fallo(`No se resolvieron los estados del miembro de la familia ${patch.familiaId}`);
+    }
+    const enlace = buscarEnlaceCon(
+      modelo,
+      "efecto",
+      procesoId,
+      objetoId,
+      { estadoEntradaId, estadoSalidaId },
+    );
+    if (!enlace || enlace.rutaEtiqueta?.trim() !== miembro.rutaEtiqueta.trim()) {
+      return fallo(`No se resolvió el TS3 con ruta '${miembro.rutaEtiqueta}' de la familia ${patch.familiaId}`);
+    }
+    enlaceIds.push(enlace.id);
+  }
+
+  const familia: FamiliaEfectosPreestado = {
+    id: patch.familiaId,
+    tipo: "particion-preestado",
+    estatuto: "extension-declarada",
+    opdId,
+    procesoId,
+    objetoId,
+    enlaceIds,
+    dominioEstadoIds,
+    cobertura: patch.cobertura,
+    aplicacion: "exactamente-uno-por-preestado",
+  };
+  const existente = modelo.familiasEfectosPreestado?.[familia.id];
+  if (existente) {
+    return JSON.stringify(existente) === JSON.stringify(familia)
+      ? ok(modelo)
+      : fallo(`La familia ${familia.id} ya existe con otra definición`);
+  }
+  return ok({
+    ...modelo,
+    familiasEfectosPreestado: {
+      ...(modelo.familiasEfectosPreestado ?? {}),
+      [familia.id]: familia,
+    },
+  });
 }
 
 function resolverRefSinCreadas(modelo: Modelo, ref: ReferenciaEntidadPatch): Id | null {

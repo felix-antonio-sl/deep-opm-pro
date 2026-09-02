@@ -115,6 +115,9 @@ function remapearReferenciasEnlace(modelo: Modelo, mapa: Map<Id, Id>): void {
       satisfaccion.target = { ...satisfaccion.target, id: mapa.get(satisfaccion.target.id) ?? satisfaccion.target.id };
     }
   }
+  for (const familia of Object.values(modelo.familiasEfectosPreestado ?? {})) {
+    familia.enlaceIds = familia.enlaceIds.map((id) => mapa.get(id) ?? id);
+  }
 }
 
 function remapearAbanicos(modelo: Modelo): void {
