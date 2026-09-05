@@ -2,13 +2,11 @@ import { useZustandAppShellOverlaysPort } from "../ports/zustandAppShellOverlays
 import { useZustandAppShellWorkbenchPort } from "../ports/zustandAppShellWorkbenchPort";
 
 export function useAppShellViewModel() {
-  const workbench = useZustandAppShellWorkbenchPort();
-  const overlays = useZustandAppShellOverlaysPort();
+  return useZustandAppShellWorkbenchPort();
+}
 
-  return {
-    ...workbench,
-    ...overlays,
-  };
+export function useAppShellDialogsViewModel() {
+  return useZustandAppShellOverlaysPort();
 }
 
 export type AppShellViewModel = ReturnType<typeof useAppShellViewModel>;
