@@ -50,6 +50,14 @@ export type OpmJointMetadata =
       operador: "O" | "XOR";
     }
   | {
+      kind: "overlay-declaracion-no-nuclear";
+      opdId: Id;
+      declaracionId: Id;
+      clase: "rol" | "restriccion" | "exclusion" | "frontera";
+      estadoAsercion: "ratificada" | "hipotesis" | "pendiente";
+      estadoEvaluacion?: "no-evaluada" | "indeterminada" | "satisfecha" | "fallida";
+    }
+  | {
       kind: "imagen-overlay";
       opdId: Id;
       entidadId: Id;

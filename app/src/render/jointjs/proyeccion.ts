@@ -22,6 +22,7 @@ import {
 } from "./composers/halos";
 import { proyectarImagenesEntidad } from "./composers/imagenOverlay";
 import { normalizarOpcionesProyeccion, OPCIONES_PROYECCION_DEFAULT } from "./proyeccionOpciones";
+import { proyectarOverlaysDeclaracionesNoNucleares } from "./declaracionesNoNuclearesOverlay";
 import type { JointCellJson, OpcionesProyeccion } from "./proyeccionTipos";
 
 export type { JointCellJson, OpcionesProyeccion, OpmJointMetadata, RolApariencia } from "./proyeccionTipos";
@@ -132,6 +133,7 @@ export function proyectarModeloAJointCells(
         aparienciaPorEntidad,
       });
     });
+  const overlaysDeclaracionesNoNucleares = proyectarOverlaysDeclaracionesNoNucleares(modeloRender, opdId);
   // Enlaces que pertenecen a un abanico usan router recto para converger en
   // el dockPoint del puerto sin las rutas en L del routerManhattan, replicando
   // el OpmDefaultLink de OpCloud (shared.ts:2450-2457) cuyos enlaces
@@ -272,7 +274,7 @@ export function proyectarModeloAJointCells(
       })
     : [];
 
-  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...elementos, ...imagenes, ...halos, ...halosSimulacion];
+  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...overlaysDeclaracionesNoNucleares, ...elementos, ...imagenes, ...halos, ...halosSimulacion];
 }
 
 function symbolPosEstructural(
