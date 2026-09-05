@@ -4,6 +4,7 @@ import type { JointCellJson } from "./proyeccionTipos";
 
 const ANCHO = 760;
 const ALTO = 112;
+const SEPARACION = 16;
 
 export function proyectarOverlaysFamiliasPreestado(modelo: Modelo, opdId: Id): JointCellJson[] {
   const opd = modelo.opds[opdId];
@@ -11,7 +12,8 @@ export function proyectarOverlaysFamiliasPreestado(modelo: Modelo, opdId: Id): J
   const enlacesVisibles = new Set(Object.values(opd.enlaces).map((apariencia) => apariencia.enlaceId));
   return Object.values(modelo.familiasEfectosPreestado ?? {})
     .filter((familia) => familia.opdId === opdId || familia.enlaceIds.every((id) => enlacesVisibles.has(id)))
-    .flatMap((familia) => {
+    .sort((a, b) => a.id.localeCompare(b.id, "es"))
+    .flatMap((familia, indice) => {
       const procesoApariencia = Object.values(opd.apariencias).find(
         (apariencia) => apariencia.entidadId === familia.procesoId,
       );
@@ -27,7 +29,7 @@ export function proyectarOverlaysFamiliasPreestado(modelo: Modelo, opdId: Id): J
         type: "standard.Rectangle",
         position: {
           x: Math.max(12, Math.round(centroX - ANCHO / 2)),
-          y: Math.round(maxY + 56),
+          y: Math.round(maxY + 56 + indice * (ALTO + SEPARACION)),
         },
         size: { width: ANCHO, height: ALTO },
         attrs: {

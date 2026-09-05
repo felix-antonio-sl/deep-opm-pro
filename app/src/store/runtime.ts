@@ -18,6 +18,7 @@ import { RUNTIME_EFFECTS_DEFAULT, type RuntimeEffects } from "./runtimeEffects";
 import type { OpmStore } from "./tipos";
 import { captureSessionEpoch, isSessionEpochCurrent } from "./sessionEpoch";
 import { mensajeBloqueoCambioAbanicoHeredado } from "../modelo/inheritedFanGuard";
+import { validarSemanticaFamiliasPreestado } from "../modelo/familiasEfectosPreestado";
 import { mergeWorkspaceBootstrap } from "./workspaceMerge";
 export { fusionarPreferenciasBootstrap, mergeWorkspaceBootstrap } from "./workspaceMerge";
 
@@ -376,7 +377,7 @@ export function mensajeBloqueoEdicion(
 
 /**
  * Devuelve `true` solo si el cambio quedó aplicado (o no había cambio
- * semántico que aplicar). `false` = bloqueado por solo-lectura — los
+ * semántico que aplicar). `false` = bloqueado por solo-lectura o integridad semántica — los
  * callsites NO deben emitir flashes de éxito en ese caso.
  */
 export function commitModelo(
@@ -398,6 +399,11 @@ export function commitModelo(
     : null;
   if (bloqueoAbanico) {
     set({ mensaje: bloqueoAbanico });
+    return false;
+  }
+  const familias = validarSemanticaFamiliasPreestado(sincronizado.familiasEfectosPreestado, sincronizado);
+  if (!familias.ok) {
+    set({ mensaje: `Cambio no aplicado. ${familias.error}. Actualiza o retira la declaración de familia en la misma edición.` });
     return false;
   }
   if (previoSincronizado === sincronizado || exportarModelo(previoSincronizado) === exportarModelo(sincronizado)) {

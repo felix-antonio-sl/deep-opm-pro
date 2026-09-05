@@ -51,7 +51,7 @@ export function entidadDeExtremo(modelo: Modelo, extremo: ExtremoEnlace): Entida
   return estado ? modelo.entidades[estado.entidadId] : undefined;
 }
 
-export function entidadIdDeExtremo(modelo: Modelo, extremo: ExtremoEnlace): Id | null {
+export function entidadIdDeExtremo(modelo: Pick<Modelo, "entidades" | "estados">, extremo: ExtremoEnlace): Id | null {
   if (extremo.kind === "entidad") return modelo.entidades[extremo.id] ? extremo.id : null;
   const estado = modelo.estados?.[extremo.id];
   return estado && modelo.entidades[estado.entidadId] ? estado.entidadId : null;

@@ -15,6 +15,8 @@ import { generarOpl } from "../opl/generar";
 import { aplicarPatchesOpl, planificarEdicionOplLibre } from "../opl/parser";
 import { proyectarModeloAJointCells } from "../render/jointjs/proyeccion";
 import { compilarProto } from "../autoria/compilar/compilador";
+import { store } from "../store";
+import { commitModelo } from "../store/runtime";
 
 type ModeloFixture = Modelo & {
   familiasEfectosPreestado?: Record<Id, FamiliaEfectosPreestado>;
@@ -159,6 +161,64 @@ describe("familia de efectos indexada por preestado (extensión declarada)", () 
     expect(familia).toBeDefined();
     expect(contrato).toBeDefined();
     expect(posicionContrato?.y).toBeGreaterThanOrEqual(fondoFamilia + 16);
+  });
+
+  test("dos familias visibles ocupan tarjetas separadas y ordenadas por identidad", () => {
+    const modelo = modeloConFamilia();
+    const segunda = structuredClone(familiaDe(modelo));
+    segunda.id = "F_C02";
+    // Cada familia conserva sus propios miembros, aun compartiendo objeto y proceso.
+    segunda.enlaceIds = segunda.enlaceIds.map((id) => {
+      const copiaId = `${id}-segunda`;
+      modelo.enlaces[copiaId] = { ...modelo.enlaces[id]!, id: copiaId };
+      return copiaId;
+    });
+    modelo.familiasEfectosPreestado = { F_C02: segunda, ...modelo.familiasEfectosPreestado };
+    const overlays = proyectarModeloAJointCells(modelo, modelo.opdRaizId, null, null)
+      .filter((cell) => cell.opm.kind === "overlay-familia-preestado");
+    expect(overlays.map((cell) => cell.opm.kind === "overlay-familia-preestado" ? cell.opm.familiaId : null))
+      .toEqual(["F_C01", "F_C02"]);
+    const primero = overlays[0]!;
+    const segundo = overlays[1]!;
+    expect((segundo.position as { y: number }).y)
+      .toBeGreaterThanOrEqual((primero.position as { y: number }).y + (primero.size as { height: number }).height + 16);
+  });
+
+  test("editar un miembro no puede dejar una declaración imposible de reabrir", () => {
+    store.setState({ readOnly: false, contextoSimulacion: null });
+    store.getState().importarJson(exportarModelo(modeloConFamilia()));
+    const previo = store.getState().modelo;
+    const enlaceId = familiaDe(previo).enlaceIds[0]!;
+    const siguiente = structuredClone(previo);
+    delete siguiente.enlaces[enlaceId]!.rutaEtiqueta;
+    const antes = exportarModelo(previo);
+
+    const aplicado = commitModelo(store.setState, previo, siguiente);
+
+    expect(aplicado).toBe(false);
+    expect(exportarModelo(store.getState().modelo)).toBe(antes);
+    expect(store.getState().mensaje).toContain("Cambio no aplicado");
+    expect(store.getState().mensaje).toContain("F_C01");
+    expect(hidratarModelo(exportarModelo(store.getState().modelo)).ok).toBe(true);
+    store.getState().importarJson(exportarModelo(crearModelo()));
+  });
+
+  test("actualizar un miembro válido conserva la familia y permite deshacer y rehacer", () => {
+    store.setState({ readOnly: false, contextoSimulacion: null });
+    store.getState().importarJson(exportarModelo(modeloConFamilia()));
+    const previo = store.getState().modelo;
+    const enlaceId = familiaDe(previo).enlaceIds[0]!;
+    const siguiente = must(definirRutaEtiqueta(previo, enlaceId, "restablecer cobertura"));
+
+    expect(commitModelo(store.setState, previo, siguiente)).toBe(true);
+    expect(store.getState().modelo.enlaces[enlaceId]?.rutaEtiqueta).toBe("restablecer cobertura");
+    expect(hidratarModelo(exportarModelo(store.getState().modelo)).ok).toBe(true);
+    store.getState().deshacer();
+    expect(store.getState().modelo.enlaces[enlaceId]?.rutaEtiqueta).toBe("establecer cobertura");
+    store.getState().rehacer();
+    expect(store.getState().modelo.enlaces[enlaceId]?.rutaEtiqueta).toBe("restablecer cobertura");
+    expect(store.getState().modelo.familiasEfectosPreestado).toEqual(previo.familiasEfectosPreestado);
+    store.getState().importarJson(exportarModelo(crearModelo()));
   });
 
   test("el compilador Proto emite la familia como hecho tipado recuperable", () => {
