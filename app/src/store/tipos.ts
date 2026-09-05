@@ -404,6 +404,21 @@ export interface OpmStore {
   actualizarPreguntaGuiaOpd: (opdId: Id, preguntaGuia: string) => void;
   actualizarFichaTrabajo: (ficha: FichaTrabajo | undefined) => void;
   actualizarLentesConocimiento: (lentes: readonly LenteConocimiento[] | undefined) => void;
+  /** Mesa de exploración del Apunte: material meta hasta la confirmación atómica. */
+  agregarFuenteExploracion: (input: { titulo?: string; contenido: string }) => Id | null;
+  agregarTrazoExploracion: (input: { fuenteIds: Id[]; texto: string }) => Id | null;
+  editarTrazoExploracion: (id: Id, texto: string) => void;
+  crearPropuestaExploracion: (input: {
+    trazoIds: Id[];
+    entidadTipo: "objeto" | "proceso";
+    nombre: string;
+    opdId?: Id;
+  }) => Id | null;
+  editarPropuestaExploracion: (
+    id: Id,
+    input: { entidadTipo: "objeto" | "proceso"; nombre: string; opdId?: Id },
+  ) => void;
+  confirmarPropuestaExploracion: (id: Id) => Id | null;
   /** Bocetos (R-OPD-REF-20): crea un OPD suelto vacío y lo activa. */
   nuevoOpdSuelto: () => void;
   /** Integra un Boceto como refinamiento de la cosa seleccionada. */

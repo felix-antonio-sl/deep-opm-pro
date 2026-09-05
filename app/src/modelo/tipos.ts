@@ -107,6 +107,15 @@ export type {
   RatificacionAncla,
   AnclaNormativa,
   NotaMesa,
+  FuenteExploracionTexto,
+  TrazoExploracion,
+  OperacionSemanticaExploracionCrearEntidad,
+  OperacionSemanticaExploracion,
+  EstadoPropuestaExploracion,
+  PropuestaOpmExploracion,
+  TargetHechoExploracion,
+  ConfirmacionExploracion,
+  MesaExploracionV1,
   SelloProcedencia,
   EstadoCargaSubmodelo,
   SubmodeloSource,
@@ -121,7 +130,11 @@ export type {
   OpdVista,
   DecisionPolicy,
 } from "./tipos/extensiones";
-export { COMPONENTES_SELLO, COMPONENTES_SELLO_OPCIONALES } from "./tipos/extensiones";
+export {
+  COMPONENTES_SELLO,
+  COMPONENTES_SELLO_OPCIONALES,
+  MESA_EXPLORACION_SCHEMA,
+} from "./tipos/extensiones";
 
 export type { SeveridadAviso, CodigoChecker, AvisoMetodologico, NavegacionAviso } from "./tipos/avisos";
 

@@ -43,6 +43,7 @@ export type SurfaceOwner =
   | "command-palette"
   | "canvas"
   | "empty-state"
+  | "exploration-table"
   | "tree"
   | "persistence-chip"
   | "modal"
@@ -527,6 +528,16 @@ export type NumericSimulationIntentSnapshot = Omit<TutorIntentBase, "actionId" |
   modelsProcessDynamics: false;
 };
 
+export type ExplorationIntentSnapshot = Omit<TutorIntentBase, "actionId" | "surface"> & {
+  kind: "exploration";
+  surface: "exploration-table";
+} & (
+  | { phase: "source"; actionId: "exploration:open" }
+  | { phase: "trace" | "interpretation"; actionId: "exploration:interpret" }
+  | { phase: "proposal"; actionId: "exploration:confirm" }
+  | { phase: "confirmed"; actionId: "exploration:undo"; resultId: string }
+);
+
 export interface ExportUnavailableIntentSnapshot extends Omit<TutorIntentBase, "actionId" | "surface"> {
   kind: "export-unavailable";
   actionId: "tutor:search";
@@ -547,6 +558,7 @@ export type TutorIntentSnapshot =
   | ViewIntentSnapshot
   | KnowledgeIntentSnapshot
   | ReuseIntentSnapshot
+  | ExplorationIntentSnapshot
   | NumericSimulationIntentSnapshot
   | ExportUnavailableIntentSnapshot;
 

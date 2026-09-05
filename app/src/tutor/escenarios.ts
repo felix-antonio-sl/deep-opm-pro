@@ -9,6 +9,7 @@ import type {
 import {
   deriveElementIntent,
   deriveEntryIntent,
+  deriveExplorationIntent,
   deriveExportUnavailableIntent,
   deriveKnowledgeIntent,
   deriveLinkDesignIntent,
@@ -79,6 +80,20 @@ const persistence: PersistenceIntentSnapshot = {
 };
 
 export const TUTOR_SCENARIOS: readonly TutorScenario[] = [
+  {
+    scenarioId: "scenario.exploration.interpretation",
+    capabilityId: "cap.exploration.preformal",
+    condition: "Una fuente ya conserva un trazo y la persona debe distinguir cosa de proceso antes de proponer.",
+    snapshot: deriveExplorationIntent({ intentId: "intent-exploration-interpretation", phase: "interpretation" }),
+    expected: { kind: "ask", intentId: "intent-exploration-interpretation", actionId: "exploration:interpret", owner: "exploration-table", contentId: "content.exploration.preformal", priority: "human-decision", activeLenses: [] },
+    expectedContent: { contentId: "content.exploration.preformal", authorityPlane: "method", actionId: "exploration:interpret", activeLenses: [] },
+    accessibility: ["La pregunta observable precede a la clasificación y no presenta inferencia automática."],
+    testCondition: "integration",
+    integrationEvidence: {
+      file: "e2e/47-mesa-exploracion.spec.ts",
+      test: "Mesa de exploración conserva lo preformal hasta confirmar, deja rastro y permite deshacer, corregir y recuperar",
+    },
+  },
   {
     scenarioId: "scenario.refinement.question-required",
     capabilityId: "cap.refinement.advanced",

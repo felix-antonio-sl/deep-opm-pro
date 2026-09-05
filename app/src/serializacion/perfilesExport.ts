@@ -88,6 +88,7 @@ export function filtrarModeloPorPerfil(modelo: Modelo, perfil: PerfilExport): Mo
   if (perfil === "intercambio") return modelo;
   const {
     notasMesa: _notasMesa,
+    mesaExploracion: _mesaExploracion,
     ontologia: _ontologia,
     satisfaccionesRequisito: _satisfacciones,
     declaracionesNoNucleares: _declaracionesNoNucleares,

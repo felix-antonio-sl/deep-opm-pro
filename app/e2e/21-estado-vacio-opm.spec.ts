@@ -20,6 +20,7 @@ import { expect, test } from "@playwright/test";
 import {
   esperarWorkbenchInicial,
   elementoPorTexto,
+  ejecutarComandoPalette,
 } from "./_smoke-helpers";
 
 test("canvas vacio ofrece SD-first y Taller de forma simétrica, no overlay centrado", async ({ page }) => {
@@ -28,6 +29,8 @@ test("canvas vacio ofrece SD-first y Taller de forma simétrica, no overlay cent
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
+  await ejecutarComandoPalette(page, "nuevo", "menu-nuevo-modelo");
+  await expect(page.getByTestId("cinta-apunte")).toBeVisible();
 
   // El hint es discreto y vive dentro del canvas-pane.
   const hint = page.getByTestId("estado-vacio-hint");
@@ -36,7 +39,8 @@ test("canvas vacio ofrece SD-first y Taller de forma simétrica, no overlay cent
   await expect(hint).toContainText("¿Qué tienes más claro ahora?");
   await expect(hint.getByTestId("estado-vacio-empezar-sd")).toHaveText("Función y frontera · empezar por SD");
   await expect(hint.getByTestId("estado-vacio-empezar-taller")).toHaveText("Fragmento concreto · empezar en Taller");
-  await expect(hint).toContainText("Son dos entradas legítimas dentro del mismo Apunte.");
+  await expect(hint.getByTestId("estado-vacio-empezar-exploracion")).toHaveText("Material todavía ambiguo · explorar antes de modelar");
+  await expect(hint).toContainText("Son tres entradas legítimas dentro del mismo Apunte");
 
   // El bloque centrado "Iniciar SD" con sus 3 botones primarios ya no existe.
   await expect(page.getByTestId("estado-vacio-opm")).toHaveCount(0);

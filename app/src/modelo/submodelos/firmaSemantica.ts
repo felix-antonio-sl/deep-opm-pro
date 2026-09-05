@@ -203,6 +203,7 @@ export const PARTICION_MODELO: Record<keyof Modelo, ClaseCampo> = {
   declaracionesNoNucleares: "excluido",
   anclasNormativas: "excluido",
   notasMesa: "excluido",
+  mesaExploracion: "excluido",
   estereotipos: "excluido",
   procedencia: "excluido",
   fichaTrabajo: "excluido",
@@ -259,6 +260,7 @@ export function proyectarSemantico(modelo: Modelo): Record<string, unknown> {
     abanicos: mapRecord(modelo.abanicos ?? {}, proyectarAbanico),
   };
 }
+
 
 /** Indexa items con `id` en un `Record` keyado por id (identidad referencial; orden-libre tras `ordenarJson`). */
 function indexarPorId<T extends { id: Id }>(

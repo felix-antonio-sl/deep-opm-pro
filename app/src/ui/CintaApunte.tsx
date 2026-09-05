@@ -11,7 +11,7 @@ import type { JSX } from "preact";
 import { useOpmStore } from "../store";
 import { tokens } from "./tokens";
 
-export function CintaApunte(): JSX.Element | null {
+export function CintaApunte({ onExplorar }: { onExplorar?: () => void }): JSX.Element | null {
   // El bit persistido del modelo activo es la única verdad. Un modelo nuevo o
   // importado (id ausente del índice) no es apunte hasta marcarse.
   const esApunte = useOpmStore((s) => s.indice.modelos.some((m) =>
@@ -28,6 +28,17 @@ export function CintaApunte(): JSX.Element | null {
       <span style={s.texto} data-testid="cinta-apunte-estado">
         <span style={s.rotulo}>Apunte</span> {"·"} en Taller {"·"} integridad obligatoria; cierre en observación
       </span>
+      {onExplorar ? (
+        <button
+          type="button"
+          data-testid="cinta-apunte-explorar"
+          data-tutor-entrypoint="exploration:open"
+          style={s.explorar}
+          onClick={onExplorar}
+        >
+          Explorar material
+        </button>
+      ) : null}
       {/* «Momento de graduación» (diseño §3): la acción vive donde vive la identidad
           del apunte. Palabra-acción (sin fondo/borde/sombra, ui-forja), no un botón. */}
       {modeloPersistidoId ? (
@@ -93,6 +104,22 @@ const s = {
     fontSize: T.fs.fs13,
     fontWeight: T.weights.bold,
     borderBottom: `1px solid ${C.inkSoft}`,
+    cursor: "pointer",
+    transition: tokens.transitions.fast,
+  },
+  explorar: {
+    display: "inline-flex",
+    minHeight: 24,
+    alignItems: "center",
+    flex: "0 0 auto",
+    border: 0,
+    borderBottom: `1px solid ${C.inkSoft}`,
+    background: "transparent",
+    padding: "2px 2px",
+    color: C.inkSoft,
+    fontFamily: T.serif,
+    fontSize: T.fs.fs13,
+    fontWeight: T.weights.bold,
     cursor: "pointer",
     transition: tokens.transitions.fast,
   },

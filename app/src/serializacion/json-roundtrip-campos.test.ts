@@ -45,6 +45,7 @@ const CAMPOS_MODELO = {
   declaracionesNoNucleares: true,
   anclasNormativas: true,
   notasMesa: true,
+  mesaExploracion: true,
   estereotipos: true,
   procedencia: true,
   fichaTrabajo: true,

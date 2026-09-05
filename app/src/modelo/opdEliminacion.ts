@@ -15,6 +15,18 @@ export function diagnosticarEliminacionOpd(modelo: Modelo, opdId: Id): Resultado
     return ok({ hoja: false, hijos: [], motivoBloqueo: "No se puede eliminar el OPD raíz SD" });
   }
 
+  const propuestaPendiente = Object.values(modelo.mesaExploracion?.propuestas ?? {})
+    .find((propuesta) => (
+      propuesta.estado === "pendiente" && propuesta.operacion.opdId === opdId
+    ));
+  if (propuestaPendiente) {
+    return ok({
+      hoja: false,
+      hijos: [],
+      motivoBloqueo: `No se puede eliminar el OPD: contiene la propuesta pendiente ${propuestaPendiente.id}`,
+    });
+  }
+
   const hijos = Object.values(modelo.opds)
     .filter((candidato) => candidato.padreId === opdId)
     .map((hijo) => hijo.id)

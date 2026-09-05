@@ -2,6 +2,7 @@ import type {
   CompositionIntentSnapshot,
   ElementIntentSnapshot,
   EntryIntentSnapshot,
+  ExplorationIntentSnapshot,
   ExportUnavailableIntentSnapshot,
   FichaLocalIntentSnapshot,
   KnowledgeIntentSnapshot,
@@ -111,11 +112,22 @@ function candidatesForSnapshot(snapshot: TutorIntentSnapshot): TutorCandidate[] 
       return knowledgeCandidates(snapshot);
     case "reuse":
       return reuseCandidates(snapshot);
+    case "exploration":
+      return explorationCandidates(snapshot);
     case "numeric-simulation":
       return numericSimulationCandidates(snapshot);
     case "export-unavailable":
       return exportUnavailableCandidates(snapshot);
   }
+}
+
+function explorationCandidates(snapshot: ExplorationIntentSnapshot): TutorCandidate[] {
+  const priority = snapshot.phase === "interpretation" || snapshot.phase === "proposal"
+    ? "human-decision"
+    : snapshot.phase === "confirmed"
+      ? "consequence"
+      : "optional-teaching";
+  return [candidate(snapshot, "content.exploration.preformal", priority)];
 }
 
 function entryCandidates(snapshot: EntryIntentSnapshot): TutorCandidate[] {

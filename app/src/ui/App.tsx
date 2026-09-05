@@ -68,6 +68,7 @@ const VitrinaEstereotipos = lazy(() => import("./VitrinaEstereotipos").then((m) 
 const DialogoSimulacionNumerica = lazy(() => import("./DialogoSimulacionNumerica").then((m) => ({ default: m.DialogoSimulacionNumerica })));
 const DialogoColisionNombre = lazy(() => import("./DialogoColisionNombre").then((m) => ({ default: m.DialogoColisionNombre })));
 const DialogoGuardarComo = lazy(() => import("./DialogoGuardarComo").then((m) => ({ default: m.DialogoGuardarComo })));
+const DialogoMesaExploracion = lazy(() => import("./DialogoMesaExploracion").then((m) => ({ default: m.DialogoMesaExploracion })));
 const DialogoGraduar = lazy(() => import("./DialogoGraduar").then((m) => ({ default: m.DialogoGraduar })));
 const DialogoReabrirTaller = lazy(() => import("./DialogoReabrirTaller").then((m) => ({ default: m.DialogoReabrirTaller })));
 const DialogoEliminarRefinamiento = lazy(() => import("./DialogoEliminarRefinamiento").then((m) => ({ default: m.DialogoEliminarRefinamiento })));
@@ -184,6 +185,14 @@ export function App() {
   const oracionesOpl = panelOplVm.lineas.length;
   const avisosDiagnostico = listarAvisosDiagnostico(modelo, { tipo: "opd", opdId: opdActivoId });
   const [diagnosticoExpandido, setDiagnosticoExpandido] = useState(false);
+  const [mesaExploracionAbierta, setMesaExploracionAbierta] = useState(false);
+  // Tras la primera apertura se conserva el montaje para que el affordance de
+  // undo inmediato sobreviva a navegar al hecho y volver sin otra mutación.
+  const [mesaExploracionMontada, setMesaExploracionMontada] = useState(false);
+  const abrirMesaExploracion = () => {
+    setMesaExploracionMontada(true);
+    setMesaExploracionAbierta(true);
+  };
 
   useEffect(() => {
     if (avisosDiagnostico.length === 0) setDiagnosticoExpandido(false);
@@ -349,7 +358,7 @@ export function App() {
             canvas={(
               <CodexCanvasMount
                 chromeVisible={!uiSoloCanvas}
-                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <><CintaBiblioteca /><CintaApunte /><CintaModelo /></>}
+                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <><CintaBiblioteca /><CintaApunte onExplorar={abrirMesaExploracion} /><CintaModelo /></>}
               >
                 <JointCanvasFeedbackBoundary readonlyMode={modoSoloLectura} onAdapterChange={setCanvasAdapter} />
                 {/*
@@ -361,7 +370,7 @@ export function App() {
                   funcional, le traslada las acciones del bar preservando testids
                   y retira/repurposa `BarraHerramientasElemento`.
                 */}
-                <EstadoVacioOpm />
+                <EstadoVacioOpm onExplorar={abrirMesaExploracion} />
               </CodexCanvasMount>
             )}
             rightDivider={panelInspectorAbierto ? (
@@ -441,6 +450,11 @@ export function App() {
           />
         )}
         {dialogoGuardarComoAbierto ? <Suspense fallback={null}><DialogoGuardarComo /></Suspense> : null}
+        {mesaExploracionMontada ? (
+          <Suspense fallback={null}>
+            <DialogoMesaExploracion open={mesaExploracionAbierta} onCerrar={() => setMesaExploracionAbierta(false)} />
+          </Suspense>
+        ) : null}
         {dialogoGraduarAbierto ? <Suspense fallback={null}><DialogoGraduar /></Suspense> : null}
         <Suspense fallback={null}><DialogoReabrirTaller /></Suspense>
         <Suspense fallback={null}><DialogoEliminarRefinamiento /></Suspense>

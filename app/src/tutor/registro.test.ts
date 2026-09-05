@@ -178,6 +178,30 @@ describe("registro verificable del tutor", () => {
     expect(upstream?.entrypointIds).toEqual([]);
   });
 
+  test("Mesa de exploración tiene voz Tutor propia y declara transición meta a hecho reversible", () => {
+    const mesa = CAPABILITY_BY_ID.get("cap.exploration.preformal");
+    expect(mesa?.status).toBe("live");
+    expect(mesa?.owners).toContain("exploration-table");
+    expect(mesa?.entrypointIds).toEqual([
+      "exploration:confirm",
+      "exploration:interpret",
+      "exploration:open",
+      "exploration:undo",
+    ]);
+    expect(mesa?.effects.flatMap((effect) => effect.steps.map((step) => step.kind)))
+      .toEqual(["transient-ui", "model", "model", "model"]);
+    expect(lastRecovery(effectByEntrypoint("cap.exploration.preformal"), "exploration:confirm"))
+      .toContain("fuente y trazo");
+
+    const contenido = getTutorContent("content.exploration.preformal");
+    expect(contenido?.now).toBe(
+      "Señala primero lo observable; la Mesa no convierte nada en OPM hasta que confirmes.",
+    );
+    expect(contenido?.criterion).toContain("Existe → objeto");
+    expect(contenido?.criterion).toContain("Ocurre o cambia → proceso");
+    expect(auditTutorRegistry()).toEqual([]);
+  });
+
   test("crear, restaurar y eliminar version tienen efectos mutantes propios", () => {
     const history = CAPABILITY_BY_ID.get("cap.history.review-version");
     expect(history).toBeDefined();

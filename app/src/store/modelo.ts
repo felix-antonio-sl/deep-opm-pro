@@ -7,6 +7,7 @@ import { accionesEnlace } from "./modelo/acciones-enlace";
 import { accionesEntidad } from "./modelo/acciones-entidad";
 import { accionesEstados } from "./modelo/acciones-estados";
 import { accionesFicha } from "./modelo/acciones-ficha";
+import { accionesMesaExploracion } from "./modelo/acciones-mesa-exploracion";
 import { accionesOpd } from "./modelo/acciones-opd";
 import { accionesUI } from "./modelo/acciones-ui";
 
@@ -49,6 +50,7 @@ export const createModeloSlice: CrearSlice<ModeloSlice> = (set, get) => ({
   ...accionesEntidad(set, get),
   ...accionesEstados(set, get),
   ...accionesFicha(set, get),
+  ...accionesMesaExploracion(set, get),
   ...accionesOpd(set, get),
   ...accionesEnlace(set, get),
   ...accionesCapacidades(set, get),

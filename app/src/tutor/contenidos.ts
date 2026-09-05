@@ -119,6 +119,23 @@ export const TUTOR_CONTENT: readonly TutorContent[] = [
     action: { kind: "focus", actionId: "canvas:create-object-process", label: "Elegir objeto o proceso" },
   },
   {
+    contentId: "content.exploration.preformal",
+    capabilityId: "cap.exploration.preformal",
+    moment: "Al convertir un fragmento observable en una propuesta todavía pendiente",
+    contexts: ["editable"],
+    authorityPlane: "method",
+    now: "Señala primero lo observable; la Mesa no convierte nada en OPM hasta que confirmes.",
+    criterion: "Existe → objeto. Ocurre o cambia → proceso. La vista previa muestra la forma y la oración OPL que se crearán.",
+    sourceRefs: refs(
+      ref("source.canon.method", "governing-boundary"),
+      ref("source.canon.rules", "ontology-entities"),
+      ref("source.manual.opm", "ontology"),
+      ref("source.manual.opforja", "forja-flow"),
+    ),
+    applicableLenses: [],
+    action: { kind: "focus", actionId: "exploration:interpret", label: "Interpretar el trazo" },
+  },
+  {
     contentId: "content.entity.properties",
     capabilityId: "cap.entity.properties",
     moment: "Al abrir una propiedad no obvia",

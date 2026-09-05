@@ -1,6 +1,7 @@
 import type {
   ElementIntentSnapshot,
   EntryIntentSnapshot,
+  ExplorationIntentSnapshot,
   ExportUnavailableIntentSnapshot,
   FichaLocalIntentSnapshot,
   KnowledgeIntentSnapshot,
@@ -289,6 +290,31 @@ export function deriveNumericSimulationIntent(
   if (state.phase === "download") return { ...base, actionId: "simulation:numeric-csv", phase: "download" };
   if (state.phase === "sampled") return { ...base, actionId: "simulation:numeric-run", phase: "sampled" };
   return { ...base, actionId: "simulation:numeric-run", phase: "configure" };
+}
+
+export function deriveExplorationIntent(
+  state: AdapterBase & (
+    | { phase: "source" | "trace" | "interpretation" | "proposal" }
+    | { phase: "confirmed"; resultId: string }
+  ),
+): ExplorationIntentSnapshot {
+  const base = {
+    ...adapterBase(state),
+    kind: "exploration" as const,
+    surface: "exploration-table" as const,
+  };
+  switch (state.phase) {
+    case "source":
+      return { ...base, phase: "source", actionId: "exploration:open" };
+    case "trace":
+      return { ...base, phase: "trace", actionId: "exploration:interpret" };
+    case "interpretation":
+      return { ...base, phase: "interpretation", actionId: "exploration:interpret" };
+    case "proposal":
+      return { ...base, phase: "proposal", actionId: "exploration:confirm" };
+    case "confirmed":
+      return { ...base, phase: "confirmed", actionId: "exploration:undo", resultId: state.resultId };
+  }
 }
 
 export function deriveExportUnavailableIntent(

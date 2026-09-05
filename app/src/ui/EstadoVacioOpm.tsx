@@ -13,15 +13,22 @@
  */
 
 import { useEstadoVacioOpmViewModel } from "../app/viewmodels/estadoVacioOpmViewModel";
-import { deriveEntryIntent, runTutorPolicy } from "../tutor";
 import { colors, shadows, spacing, typography } from "./tokens";
 
-export function EstadoVacioOpm() {
+export function EstadoVacioOpm({ onExplorar }: { onExplorar?: () => void }) {
   const vm = useEstadoVacioOpmViewModel();
 
   if (vm.readOnly) return null;
   if (vm.estaVacio) {
-    return <EleccionEntrada onSd={vm.empezarPorSd} onTaller={vm.empezarPorTaller} />;
+    const explorar = vm.esApunte ? onExplorar : undefined;
+    return (
+      <EleccionEntrada
+        onSd={vm.empezarPorSd}
+        onTaller={vm.empezarPorTaller}
+        tutorInterventionKind={vm.intervencionEntradaKind}
+        {...(explorar ? { onExplorar: explorar } : {})}
+      />
+    );
   }
   if (vm.sugerenciaResultado) {
     return (
@@ -35,20 +42,18 @@ export function EstadoVacioOpm() {
   return null;
 }
 
-function EleccionEntrada(props: { onSd: () => void; onTaller: () => void }) {
-  const intentId = "purpose:empty-state";
-  const intervention = runTutorPolicy(deriveEntryIntent({
-    intentId,
-    focus: "purpose",
-    strategy: null,
-    purposePresent: false,
-  }), [{ owner: "product", intentId }]);
+function EleccionEntrada(props: {
+  onSd: () => void;
+  onTaller: () => void;
+  onExplorar?: () => void;
+  tutorInterventionKind: string;
+}) {
   return (
     <div
       data-testid="estado-vacio-hint"
       role="region"
       aria-label="Elegir entrada al modelado"
-      data-tutor-intervention={intervention.kind}
+      data-tutor-intervention={props.tutorInterventionKind}
       data-tutor-owner="product"
       style={style.hint}
     >
@@ -61,8 +66,26 @@ function EleccionEntrada(props: { onSd: () => void; onTaller: () => void }) {
         <button type="button" data-testid="estado-vacio-empezar-taller" style={style.entrada} onClick={props.onTaller}>
           Fragmento concreto · empezar en Taller
         </button>
+        {props.onExplorar ? (
+          <>
+            <span aria-hidden="true">·</span>
+            <button
+              type="button"
+              data-testid="estado-vacio-empezar-exploracion"
+              data-tutor-entrypoint="exploration:open"
+              style={style.entrada}
+              onClick={props.onExplorar}
+            >
+              Material todavía ambiguo · explorar antes de modelar
+            </button>
+          </>
+        ) : null}
       </div>
-      <span style={style.apoyoEntrada}>Son dos entradas legítimas dentro del mismo Apunte.</span>
+      <span style={style.apoyoEntrada}>
+        {props.onExplorar
+          ? "Son tres entradas legítimas dentro del mismo Apunte; la Mesa conserva lo ambiguo fuera de OPM."
+          : "Son dos entradas legítimas dentro del mismo Apunte."}
+      </span>
     </div>
   );
 }
@@ -134,6 +157,9 @@ const style = {
     gap: spacing.xs,
   },
   entrada: {
+    display: "inline-flex",
+    minHeight: 24,
+    alignItems: "center",
     border: 0,
     borderBottom: `1px solid ${colors.ink50}`,
     padding: "2px 0",

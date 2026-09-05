@@ -5,6 +5,7 @@ import { useZustandEditabilityPort } from "../ports/zustandEditabilityPort";
 import { useZustandModelCommandPort } from "../ports/zustandModelCommandPort";
 import { useZustandOpdNavigationPort } from "../ports/zustandOpdNavigationPort";
 import { useOpmStore } from "../../store";
+import { deriveEntryIntent, runTutorPolicy } from "../../tutor";
 
 export interface SugerenciaEnlaceResultado {
   proceso: Entidad;
@@ -16,6 +17,9 @@ export function useEstadoVacioOpmViewModel() {
   const { readOnly } = useZustandEditabilityPort();
   const { crearEnlaceEntreEntidades, crearEntidadEnCanvas } = useZustandModelCommandPort();
   const nuevoOpdSuelto = useOpmStore((s) => s.nuevoOpdSuelto);
+  const esApunte = useOpmStore((state) => state.indice.modelos.some((item) =>
+    item.id === state.modelo.id && item.esApunte === true && item.archivado !== true
+  ));
 
   const apariencias = useMemo(
     () => Object.values(modelo.opds[opdActivoId]?.apariencias ?? {}) as Apariencia[],
@@ -44,12 +48,24 @@ export function useEstadoVacioOpmViewModel() {
 
   return {
     readOnly,
+    esApunte,
+    intervencionEntradaKind: intervencionEntrada().kind,
     estaVacio: apariencias.length === 0,
     sugerenciaResultado,
     conectarResultado,
     empezarPorSd: () => crearEntidadEnCanvas("proceso", { x: 260, y: 100 }),
     empezarPorTaller: nuevoOpdSuelto,
   };
+}
+
+function intervencionEntrada() {
+  const intentId = "purpose:empty-state";
+  return runTutorPolicy(deriveEntryIntent({
+    intentId,
+    focus: "purpose",
+    strategy: null,
+    purposePresent: false,
+  }), [{ owner: "product", intentId }]);
 }
 
 /**

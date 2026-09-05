@@ -203,6 +203,76 @@ export interface NotaMesa {
   fecha: string;
 }
 
+// --- MesaExploracionV1 ------------------------------------------------------
+// Extensión META del Apunte para material todavía preformal. Fuente, trazo y
+// propuesta pendiente no son cosas OPM, no emiten OPL y no alteran la firma
+// semántica. Solo una confirmación crea un hecho mediante el kernel OPM.
+
+export const MESA_EXPLORACION_SCHEMA = "deep-opm-pro.mesa-exploracion.v1" as const;
+
+export interface FuenteExploracionTexto {
+  id: Id;
+  tipo: "texto";
+  titulo?: string;
+  contenido: string;
+  creadaEn: string;
+}
+
+export interface TrazoExploracion {
+  id: Id;
+  /** Relación N:M: un trazo puede proceder de una o más fuentes. */
+  fuenteIds: Id[];
+  texto: string;
+  creadoEn: string;
+  editadoEn?: string;
+}
+
+export interface OperacionSemanticaExploracionCrearEntidad {
+  tipo: "crear-entidad";
+  entidadTipo: "objeto" | "proceso";
+  nombre: string;
+  opdId: Id;
+}
+
+export type OperacionSemanticaExploracion = OperacionSemanticaExploracionCrearEntidad;
+
+export type EstadoPropuestaExploracion = "pendiente" | "confirmada";
+
+export interface PropuestaOpmExploracion {
+  id: Id;
+  /** Relación N:M: una propuesta puede interpretar uno o más trazos. */
+  trazoIds: Id[];
+  baseFirmaSemantica: string;
+  operacion: OperacionSemanticaExploracion;
+  estado: EstadoPropuestaExploracion;
+  creadaEn: string;
+  confirmacionId?: Id;
+}
+
+export interface TargetHechoExploracion {
+  tipo: "entidad";
+  id: Id;
+  opdId: Id;
+}
+
+export interface ConfirmacionExploracion {
+  id: Id;
+  propuestaId: Id;
+  /** La operación v1 confirma exactamente un hecho atómico. */
+  targets: [TargetHechoExploracion];
+  fuenteIds: Id[];
+  trazoIds: Id[];
+  confirmadoEn: string;
+}
+
+export interface MesaExploracionV1 {
+  schema: typeof MESA_EXPLORACION_SCHEMA;
+  fuentes: Record<Id, FuenteExploracionTexto>;
+  trazos: Record<Id, TrazoExploracion>;
+  propuestas: Record<Id, PropuestaOpmExploracion>;
+  confirmaciones: Record<Id, ConfirmacionExploracion>;
+}
+
 // --- SelloProcedencia (W5.3 / L6) -------------------------------------------
 // Extensión ADITIVA y OPCIONAL del formato `deep-opm-pro.modelo.v0`: sello de
 // origen del bundle emitido por `autoria/compilar` (acta mesa flujo-canónico

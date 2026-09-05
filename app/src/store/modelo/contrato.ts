@@ -75,6 +75,12 @@ export const MODELO_SLICE_CAPABILITIES = {
     "gobernarAperturaBiblioteca",
     "actualizarFichaTrabajo",
     "actualizarLentesConocimiento",
+    "agregarFuenteExploracion",
+    "agregarTrazoExploracion",
+    "editarTrazoExploracion",
+    "crearPropuestaExploracion",
+    "editarPropuestaExploracion",
+    "confirmarPropuestaExploracion",
   ],
   entityCommands: [
     "crearObjetoDemo",

@@ -13,6 +13,15 @@
  */
 
 export { crearModelo, crearObjeto, crearProceso } from "./operaciones/creacion";
+export {
+  agregarFuenteExploracion,
+  agregarTrazoExploracion,
+  editarTrazoExploracion,
+  crearPropuestaExploracion,
+  editarPropuestaExploracion,
+  previsualizarPropuestaExploracion,
+  confirmarPropuestaExploracion,
+} from "./mesaExploracion";
 export { crearOpdSuelto } from "./operaciones/opdSuelto";
 export { detectarColisionNombre, type ColisionNombre } from "./operaciones/colisionNombre";
 

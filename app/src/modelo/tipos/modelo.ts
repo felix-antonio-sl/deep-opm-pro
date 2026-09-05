@@ -7,6 +7,7 @@ import type {
   AnclaNormativa,
   DeclaracionNoNuclear,
   Estereotipo,
+  MesaExploracionV1,
   NotaMesa,
   OntologiaOrganizacional,
   ReferenciaPadreSubmodelo,
@@ -67,6 +68,8 @@ export interface Modelo {
   anclasNormativas?: Record<Id, AnclaNormativa>;
   /** W6.5-a: notas de mesa (comentarios de revisión por componente). Aditivo y opcional. */
   notasMesa?: Record<Id, NotaMesa>;
+  /** Material preformal del Apunte; meta explícita, no OPM nuclear ni tercera notación. */
+  mesaExploracion?: MesaExploracionV1;
   /** D6: catálogo de estereotipos (plantillas de subgrafo + de fábrica). Aditivo y opcional
    *  (hermano de anclasNormativas): excluido de validarModelo nuclear / conteo OPL / checkers. */
   estereotipos?: Record<Id, Estereotipo>;
