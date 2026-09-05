@@ -1,6 +1,6 @@
-import { ordenarOpdsParaOpl } from "../../opl/bloquesJerarquicos";
-import { generarOpl } from "../../opl/generar";
-import type { Id, Modelo } from "../tipos";
+import { ordenarOpdsParaOpl } from "./bloquesJerarquicos";
+import { generarOpl } from "./generar";
+import type { Id, Modelo } from "../modelo/tipos";
 
 export interface OplBloque {
   opdId: Id;
@@ -9,7 +9,7 @@ export interface OplBloque {
 }
 
 /**
- * Wrapper de compatibilidad para scripts antiguos.
+ * Generación por bloques para exportación y scripts.
  * La fuente canonica de OPL vive en `src/opl/generar.ts`.
  */
 export function generarOplEstructurado(modelo: Modelo): OplBloque[] {

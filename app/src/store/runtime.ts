@@ -1,69 +1,77 @@
 import type { AutosalvadoControl } from "../persistencia/autosalvado";
 import { exportarModelo } from "../serializacion/json";
 import type { Aviso } from "../modelo/validaciones";
-import type { Abanico, Apariencia, ExtremoEnlace, Id, Modelo, Opd, Pestana, PestanaId } from "../modelo/tipos";
+import type { Apariencia, Id, Modelo, Opd, Pestana, PestanaId } from "../modelo/tipos";
 import { construirDescriptorMapa, type CriterioResaltado } from "../canvas/mapaSistema";
 import { dentroDeApariencia } from "../modelo/layout";
 import { aparienciaDeEntidadEnOpd, opdIdDeEntidadVisible } from "../modelo/politicaApariciones";
-import { obtenerRefinamiento, refinaA } from "../modelo/refinamientos";
-import { puedeEditarAbanicoEnOpd, sincronizarAbanicos } from "../modelo/abanicos";
+import { obtenerRefinamiento } from "../modelo/refinamientos";
+import { sincronizarAbanicos } from "../modelo/abanicos";
 import { sincronizarPuertosTodosLosOpd } from "../modelo/operaciones";
-import {
-  idPuertoAbanicoDerivado,
-  proyeccionesCanonicasEnlaceExternoRefinado,
-} from "../modelo/operaciones/refinamiento";
 import type { ResumenModeloPersistido } from "../persistencia/modelos";
-import {
-  cargarWorkspaceBackend,
-  guardarWorkspaceBackend,
-  persistenciaBackendHabilitada,
-} from "../persistencia/backend";
-import {
-  indiceVacio,
-  workspaceDesdeModelo,
-  type MapaWorkspace,
-  type WorkspaceIndice,
-  type WorkspacePersistido,
-} from "../persistencia/workspace";
+import { cargarWorkspaceBackend, guardarWorkspaceBackend, persistenciaBackendHabilitada } from "../persistencia/backend";
+import { indiceVacio, workspaceDesdeModelo, type MapaWorkspace, type WorkspaceIndice, type WorkspacePersistido } from "../persistencia/workspace";
 import type { ModoSeleccion } from "../canvas/seleccionMultiple";
 import type { StoreApi } from "zustand/vanilla";
-import { etiquetaPestana } from "./pestanas";
+import { clonarModelo, etiquetaPestana } from "./pestanas";
 import { RUNTIME_EFFECTS_DEFAULT, type RuntimeEffects } from "./runtimeEffects";
 import type { OpmStore } from "./tipos";
-import {
-  captureSessionEpoch,
-  isSessionEpochCurrent,
-} from "./sessionEpoch";
+import { captureSessionEpoch, isSessionEpochCurrent } from "./sessionEpoch";
+import { mensajeBloqueoCambioAbanicoHeredado } from "../modelo/inheritedFanGuard";
+import { mergeWorkspaceBootstrap } from "./workspaceMerge";
+export { fusionarPreferenciasBootstrap, mergeWorkspaceBootstrap } from "./workspaceMerge";
 
 export const UNDO_LIMIT = 100;
+
 export const WS_KEY = "workspace";
+
 export const PREF_MOSTRAR_ARCHIVADOS_KEY = "mostrarArchivados";
+
 export const PREF_MOSTRAR_VERSIONES_KEY = "mostrarVersiones";
+
 export const PORTAPAPELES_WORKSPACE_TTL_MS = 5 * 60 * 1000;
+
 export const ANCHO_PANEL_ARBOL_DEFAULT = 210;
+
 export const ANCHO_PANEL_ARBOL_MIN = 160;
+
 export const ANCHO_PANEL_ARBOL_MAX = 600;
+
 // BUG-20260511T225343Z-696858: inspector derecho resizable via DivisorPanel.
 // Defaults proporcionales a anchoPanelArbol (240/160/600 → 300/240/560).
 export const ANCHO_PANEL_INSPECTOR_DEFAULT = 360;
+
 export const ANCHO_PANEL_INSPECTOR_MIN = 240;
+
 export const ANCHO_PANEL_INSPECTOR_MAX = 560;
+
 // BUG-20260607T215222Z-624056: panel OPL izquierdo resizable horizontalmente.
 export const ANCHO_PANEL_OPL_LEFT_DEFAULT = 240;
+
 export const ANCHO_PANEL_OPL_LEFT_MIN = 160;
+
 export const ANCHO_PANEL_OPL_LEFT_MAX = 400;
 
 let snapshotGuardado = "";
+
 let undoStack: Modelo[] = [];
+
 let redoStack: Modelo[] = [];
+
 let autosalvadoControl: AutosalvadoControl | null = null;
+
 let pollRevisionTimer: ReturnType<typeof setInterval> | null = null;
+
 let storeApi: StoreApi<OpmStore> | null = null;
+
 let runtimeEffects: RuntimeEffects = RUNTIME_EFFECTS_DEFAULT;
+
 let workspaceWriteQueue: Promise<void> = Promise.resolve();
+
 let persistedWorkspaceIndex: WorkspaceIndice | null = null;
 
 export function conectarRuntimeStore(api: StoreApi<OpmStore>): void { storeApi = api; }
+
 export function inicializarRuntimeStore(api: StoreApi<OpmStore>, modelo: Modelo): void {
   storeApi = api;
   undoStack = [];
@@ -72,24 +80,39 @@ export function inicializarRuntimeStore(api: StoreApi<OpmStore>, modelo: Modelo)
   resetWorkspacePersistenceRuntime();
   snapshotGuardado = exportarModelo(sincronizarPuertosTodosLosOpd(modelo));
 }
+
 export function resetWorkspacePersistenceRuntime(): void {
   workspaceWriteQueue = Promise.resolve();
   persistedWorkspaceIndex = null;
 }
+
 export function obtenerRuntimeEffects(): RuntimeEffects { return runtimeEffects; }
+
 export function fijarRuntimeEffects(effects: RuntimeEffects): void { runtimeEffects = effects; }
+
 export function resetRuntimeEffects(): void { runtimeEffects = RUNTIME_EFFECTS_DEFAULT; }
+
 function estadoActual(): OpmStore | null { return storeApi?.getState() ?? null; }
+
 export function obtenerEstadoStore(): OpmStore { const estado = estadoActual(); if (!estado) throw new Error("Store OPM no inicializado"); return estado; }
+
 export function setEstadoStore(partial: Partial<OpmStore>): void { storeApi?.setState(partial); }
+
 export function inicializarSnapshot(modelo: Modelo): void { snapshotGuardado = exportarModelo(sincronizarPuertosTodosLosOpd(modelo)); }
+
 export function marcarSnapshotModelo(modelo: Modelo): void { snapshotGuardado = exportarModelo(sincronizarPuertosTodosLosOpd(modelo)); }
+
 export function marcarSnapshotJson(snapshotJson: string): void { snapshotGuardado = snapshotJson; }
+
 export function obtenerAutosalvadoControl(): AutosalvadoControl | null { return autosalvadoControl; }
+
 export function fijarAutosalvadoControl(control: AutosalvadoControl | null): void { autosalvadoControl = control; }
+
 // A′-vitrina: singleton del poll de revisión (patrón autosalvadoControl).
 export function obtenerPollRevisionTimer(): ReturnType<typeof setInterval> | null { return pollRevisionTimer; }
+
 export function fijarPollRevisionTimer(timer: ReturnType<typeof setInterval> | null): void { pollRevisionTimer = timer; }
+
 /**
  * A′-vitrina: fija la «base» de revisión de un modelo. Compartido por los
  * puntos donde el store aprende una revisión fresca del backend (guardar,
@@ -100,7 +123,6 @@ export function conBaseRevision(mapa: Record<string, number>, id: string, revisi
   if ((mapa[id] ?? -1) > revision) return mapa;
   return { ...mapa, [id]: revision };
 }
-function clonarModeloRuntime(modelo: Modelo): Modelo { if (typeof structuredClone === "function") return structuredClone(modelo); return JSON.parse(JSON.stringify(modelo)) as Modelo; }
 
 export function entidadNueva(previo: Modelo, siguiente: Modelo): Id | null {
   const previos = new Set(Object.keys(previo.entidades));
@@ -113,6 +135,7 @@ export function enlaceNuevo(previo: Modelo, siguiente: Modelo): Id | null {
 }
 
 export type SetStore = (partial: Partial<OpmStore>) => void;
+
 export type GetStore = () => OpmStore;
 
 export function activarPestanaNueva(set: SetStore, get: GetStore, pestana: Pestana, mensaje: string): void {
@@ -173,7 +196,7 @@ export function sincronizarPestanaActivaEnLista(state: OpmStore): Pestana[] {
     const etiqueta = etiquetaPestana({ nombre: state.modelo.nombre, modeloId: state.modeloPersistidoId });
     return {
       ...pestana,
-      modelo: clonarModeloRuntime(state.modelo),
+      modelo: clonarModelo(state.modelo),
       dirty: state.dirty,
       historialUndo: [...undoStack],
       cursorUndo: undoStack.length,
@@ -402,266 +425,6 @@ export function commitModelo(
   return true;
 }
 
-function mensajeBloqueoCambioAbanicoHeredado(
-  previo: Modelo,
-  siguiente: Modelo,
-  opdActivoId: Id,
-  origen: "edicion" | "historial" = "edicion",
-): string | null {
-  const abanicoIds = new Set([
-    ...Object.keys(previo.abanicos ?? {}),
-    ...Object.keys(siguiente.abanicos ?? {}),
-  ]);
-  for (const abanicoId of abanicoIds) {
-    const abanicoPrevio = previo.abanicos?.[abanicoId];
-    const abanicoSiguiente = siguiente.abanicos?.[abanicoId];
-    const abanico = abanicoPrevio ?? abanicoSiguiente;
-    if (!abanico) continue;
-    if (puedeEditarAbanicoEnOpd(abanico, opdActivoId)) continue;
-    const introducePropietarioConAbanico =
-      abanicoPrevio === undefined &&
-      abanicoSiguiente !== undefined &&
-      previo.opds[abanico.opdId] === undefined &&
-      siguiente.opds[abanico.opdId] !== undefined;
-    if (introducePropietarioConAbanico) continue;
-    if (esTransicionAbanicoAutomaticoDesdeActivo(
-      previo,
-      siguiente,
-      abanicoPrevio,
-      abanicoSiguiente,
-      opdActivoId,
-      origen,
-    )) continue;
-    const cambioAgrupador = JSON.stringify(abanicoPrevio) !== JSON.stringify(abanicoSiguiente);
-    const enlaceIds = new Set([
-      ...(abanicoPrevio ? idsRamasCustodiadas(previo, abanicoPrevio) : []),
-      ...(abanicoSiguiente ? idsRamasCustodiadas(siguiente, abanicoSiguiente) : []),
-    ]);
-    const cambioRama = [...enlaceIds].some((enlaceId) => (
-      firmaRamaAbanico(previo, enlaceId) !== firmaRamaAbanico(siguiente, enlaceId)
-    ));
-    if (!cambioAgrupador && !cambioRama) continue;
-    const propietario = previo.opds[abanico.opdId]?.nombre ?? siguiente.opds[abanico.opdId]?.nombre ?? abanico.opdId;
-    return `Este abanico pertenece a '${propietario}'. Cambia a ese OPD para editarlo.`;
-  }
-  return null;
-}
-
-function esTransicionAbanicoAutomaticoDesdeActivo(
-  previo: Modelo,
-  siguiente: Modelo,
-  abanicoPrevio: Abanico | undefined,
-  abanicoSiguiente: Abanico | undefined,
-  opdActivoId: Id,
-  origen: "edicion" | "historial",
-): boolean {
-  const referencia = abanicoPrevio ?? abanicoSiguiente;
-  if (!referencia) return false;
-  const opdHijoId = referencia.opdId;
-  if (abanicoPrevio === undefined && abanicoSiguiente !== undefined) {
-    return previo.opds[opdHijoId]?.padreId === opdActivoId &&
-      esProyeccionAbanicoAutomatico(siguiente, abanicoSiguiente, opdActivoId, opdHijoId);
-  }
-  if (abanicoPrevio !== undefined && abanicoSiguiente !== undefined) {
-    return esProyeccionAbanicoAutomatico(previo, abanicoPrevio, opdActivoId, opdHijoId) &&
-      esProyeccionAbanicoAutomatico(siguiente, abanicoSiguiente, opdActivoId, opdHijoId);
-  }
-  if (abanicoPrevio === undefined || abanicoSiguiente !== undefined) return false;
-  return esProyeccionAbanicoAutomatico(previo, abanicoPrevio, opdActivoId, opdHijoId) &&
-    esRetiroProyeccionPuro(previo, siguiente, abanicoPrevio) &&
-    (
-      origen === "historial" ||
-      !fuenteProyeccionSigueVigente(previo, siguiente, abanicoPrevio, opdActivoId) ||
-      existeProyeccionSucesora(previo, siguiente, abanicoPrevio, opdActivoId)
-    );
-}
-
-function esProyeccionAbanicoAutomatico(
-  modelo: Modelo,
-  abanico: Abanico,
-  opdActivoId: Id,
-  opdHijoId: Id,
-): boolean {
-  const opdHijo = modelo.opds[opdHijoId];
-  if (!opdHijo || opdHijo.padreId !== opdActivoId || abanico.opdId !== opdHijoId || abanico.decision) return false;
-  if (abanico.enlaceIds.length < 2 || new Set(abanico.enlaceIds).size !== abanico.enlaceIds.length) return false;
-
-  const enlacesPadreIds: Id[] = [];
-  let refinamientoId: Id | null = null;
-  for (const enlaceId of abanico.enlaceIds) {
-    const enlaceHijo = modelo.enlaces[enlaceId];
-    const derivado = enlaceHijo?.derivado;
-    if (
-      !enlaceHijo ||
-      !tieneFormaEnlaceDerivadoAutomatico(enlaceHijo) ||
-      derivado?.tipo !== "enlace-externo-refinamiento" ||
-      derivado.origen !== "automatico"
-    ) return false;
-    if (refinamientoId === null) refinamientoId = derivado.refinamientoId;
-    if (derivado.refinamientoId !== refinamientoId) return false;
-    const enlacePadre = modelo.enlaces[derivado.enlacePadreId];
-    if (
-      !enlacePadre ||
-      enlacePadre.tipo !== enlaceHijo.tipo ||
-      enlacePadre.etiqueta !== enlaceHijo.etiqueta ||
-      !proyeccionesCanonicasEnlaceExternoRefinado(modelo, opdHijoId, enlacePadre.id).some((proyeccion) => (
-        coincideExtremoProyectado(enlaceHijo.origenId, proyeccion.origenId, abanico, "origen") &&
-        coincideExtremoProyectado(enlaceHijo.destinoId, proyeccion.destinoId, abanico, "destino")
-      ))
-    ) return false;
-    enlacesPadreIds.push(enlacePadre.id);
-  }
-  const refinada = refinamientoId ? modelo.entidades[refinamientoId] : undefined;
-  if (
-    !refinamientoId ||
-    !refinada ||
-    new Set(enlacesPadreIds).size !== enlacesPadreIds.length ||
-    !refinaA(refinada, opdHijoId)
-  ) return false;
-
-  const abanicoPadre = buscarFuenteProyeccion(modelo, abanico, opdActivoId, refinamientoId, enlacesPadreIds);
-  return !!abanicoPadre &&
-    abanico.puertoComun.portId === idPuertoAbanicoDerivado(abanicoPadre.id, opdHijoId, abanico.puertoComun.lado) &&
-    idsEnBijeccion(abanico.enlaceIds, enlacesAutomaticosVisiblesDeFuente(modelo, opdHijoId, abanicoPadre));
-}
-
-function tieneFormaEnlaceDerivadoAutomatico(enlace: Modelo["enlaces"][Id]): boolean {
-  if (!enlace) return false;
-  const camposPermitidos = new Set(["id", "tipo", "origenId", "destinoId", "etiqueta", "derivado"]);
-  return Object.keys(enlace).every((campo) => camposPermitidos.has(campo));
-}
-
-function coincideExtremoProyectado(
-  actual: ExtremoEnlace,
-  esperado: ExtremoEnlace,
-  abanico: Abanico,
-  lado: "origen" | "destino",
-): boolean {
-  if (actual.kind !== esperado.kind || actual.id !== esperado.id) return false;
-  const portIdEsperado = abanico.puertoComun.lado === lado
-    ? abanico.puertoComun.portId
-    : esperado.portId;
-  return actual.portId === portIdEsperado;
-}
-
-function esRetiroProyeccionPuro(previo: Modelo, siguiente: Modelo, abanico: Abanico): boolean {
-  return abanico.enlaceIds.every((enlaceId) => {
-    const enlacePrevio = previo.enlaces[enlaceId];
-    const enlaceSiguiente = siguiente.enlaces[enlaceId];
-    return !!enlacePrevio && (
-      enlaceSiguiente === undefined || JSON.stringify(enlacePrevio) === JSON.stringify(enlaceSiguiente)
-    );
-  });
-}
-
-function fuenteProyeccionSigueVigente(
-  previo: Modelo,
-  siguiente: Modelo,
-  abanicoHijo: Abanico,
-  opdActivoId: Id,
-): boolean {
-  const refinamientoId = previo.enlaces[abanicoHijo.enlaceIds[0]!]?.derivado?.refinamientoId;
-  const refinada = refinamientoId ? siguiente.entidades[refinamientoId] : undefined;
-  if (!refinada || !refinaA(refinada, abanicoHijo.opdId)) return false;
-  return Object.values(siguiente.abanicos ?? {}).some((abanicoPadre) => (
-    abanicoPadre.opdId === opdActivoId &&
-    abanicoPadre.puertoComun.entidadId === refinamientoId
-  ));
-}
-
-function existeProyeccionSucesora(
-  previo: Modelo,
-  siguiente: Modelo,
-  abanicoHijoPrevio: Abanico,
-  opdActivoId: Id,
-): boolean {
-  const fuentePrevia = fuenteDeProyeccion(previo, abanicoHijoPrevio, opdActivoId);
-  if (!fuentePrevia) return false;
-  const mismaFuenteVigente = siguiente.abanicos?.[fuentePrevia.id]?.opdId === opdActivoId;
-  return Object.values(siguiente.abanicos ?? {}).some((candidato) => {
-    if (
-      candidato.opdId !== abanicoHijoPrevio.opdId ||
-      !esProyeccionAbanicoAutomatico(siguiente, candidato, opdActivoId, abanicoHijoPrevio.opdId)
-    ) return false;
-    const fuenteSiguiente = fuenteDeProyeccion(siguiente, candidato, opdActivoId);
-    if (!fuenteSiguiente) return false;
-    return mismaFuenteVigente
-      ? fuenteSiguiente.id === fuentePrevia.id
-      : fuenteSiguiente.puertoComun.entidadId === fuentePrevia.puertoComun.entidadId;
-  });
-}
-
-function fuenteDeProyeccion(modelo: Modelo, abanicoHijo: Abanico, opdActivoId: Id): Abanico | undefined {
-  const derivaciones = abanicoHijo.enlaceIds.map((enlaceId) => modelo.enlaces[enlaceId]?.derivado);
-  const refinamientoId = derivaciones[0]?.refinamientoId;
-  if (!refinamientoId || derivaciones.some((derivacion) => derivacion?.refinamientoId !== refinamientoId)) return undefined;
-  const enlacesPadreIds = derivaciones.flatMap((derivacion) => derivacion?.enlacePadreId ? [derivacion.enlacePadreId] : []);
-  return buscarFuenteProyeccion(modelo, abanicoHijo, opdActivoId, refinamientoId, enlacesPadreIds);
-}
-
-function buscarFuenteProyeccion(
-  modelo: Modelo,
-  abanicoHijo: Abanico,
-  opdActivoId: Id,
-  refinamientoId: Id,
-  enlacesPadreIds: readonly Id[],
-): Abanico | undefined {
-  return Object.values(modelo.abanicos ?? {}).find((candidato) => (
-    candidato.id !== abanicoHijo.id &&
-    candidato.opdId === opdActivoId &&
-    candidato.operador === abanicoHijo.operador &&
-    candidato.puertoComun.entidadId === refinamientoId &&
-    idsEnBijeccion(candidato.enlaceIds, enlacesPadreIds)
-  ));
-}
-
-function idsRamasCustodiadas(modelo: Modelo, abanico: Abanico): Id[] {
-  const opdPadreId = modelo.opds[abanico.opdId]?.padreId;
-  if (!opdPadreId) return abanico.enlaceIds;
-  const fuente = fuenteDeProyeccion(modelo, abanico, opdPadreId);
-  if (!fuente) return abanico.enlaceIds;
-  return [...abanico.enlaceIds, ...enlacesAutomaticosVisiblesDeFuente(modelo, abanico.opdId, fuente)];
-}
-
-function enlacesAutomaticosVisiblesDeFuente(modelo: Modelo, opdHijoId: Id, fuente: Abanico): Id[] {
-  const opdHijo = modelo.opds[opdHijoId];
-  if (!opdHijo) return [];
-  const enlacesFuente = new Set(fuente.enlaceIds);
-  return Object.values(opdHijo.enlaces).flatMap((apariencia) => {
-    const enlace = modelo.enlaces[apariencia.enlaceId];
-    const derivado = enlace?.derivado;
-    return enlace &&
-      derivado?.tipo === "enlace-externo-refinamiento" &&
-      derivado.origen === "automatico" &&
-      derivado.refinamientoId === fuente.puertoComun.entidadId &&
-      enlacesFuente.has(derivado.enlacePadreId)
-      ? [enlace.id]
-      : [];
-  });
-}
-
-function idsEnBijeccion(a: readonly Id[], b: readonly Id[]): boolean {
-  if (a.length !== b.length || new Set(a).size !== a.length || new Set(b).size !== b.length) return false;
-  const idsB = new Set(b);
-  return a.every((id) => idsB.has(id));
-}
-
-function firmaRamaAbanico(modelo: Modelo, enlaceId: Id): string {
-  const enlace = modelo.enlaces[enlaceId];
-  if (!enlace) return "ausente";
-  return JSON.stringify({
-    tipo: enlace.tipo,
-    origenId: enlace.origenId,
-    destinoId: enlace.destinoId,
-    estadoEntradaId: enlace.estadoEntradaId,
-    estadoSalidaId: enlace.estadoSalidaId,
-    modificador: enlace.modificador,
-    subtipoModificador: enlace.subtipoModificador,
-    probabilidad: enlace.probabilidad,
-    derivado: enlace.derivado,
-  });
-}
-
 export function cambiaronOpds(previo: Modelo, siguiente: Modelo): boolean {
   return JSON.stringify(previo.opds) !== JSON.stringify(siguiente.opds);
 }
@@ -705,7 +468,7 @@ export function estadoModelo(modelo: Modelo, extra: Partial<OpmStore> = {}): Par
           const etiqueta = etiquetaPestana({ nombre: modeloSincronizado.nombre, modeloId });
           return {
             ...pestana,
-            modelo: clonarModeloRuntime(modeloSincronizado),
+            modelo: clonarModelo(modeloSincronizado),
             dirty,
             historialUndo: [...undoStack],
             cursorUndo: undoStack.length,
@@ -865,69 +628,6 @@ export function leerIndiceWorkspace(): WorkspaceIndice {
   return indiceVacio();
 }
 
-/**
- * Anti-race del bootstrap del workspace: el load async del backend
- * (`sincronizarListadoBackend`) puede resolver DESPUÉS de que el usuario haya
- * cambiado una preferencia (p.ej. visibilidad de esencia OPL) en los primeros
- * ms de sesión. Sin esto, el `set({ indice })` del bootstrap pisaría ese cambio
- * con el `preferenciasUi` del backend (que aún no lo tenía).
- *
- * Fusiona dando precedencia POR CLAVE a las preferencias locales (cambios
- * en-sesión) sobre las del backend. En un load fresco el índice local es
- * `indiceVacio()` (sin `preferenciasUi`), así que el backend gana intacto; tras
- * un cambio del usuario, esa clave gana y el resto del backend se conserva.
- */
-export function fusionarPreferenciasBootstrap(
-  indiceBackend: WorkspaceIndice,
-  indiceLocal: WorkspaceIndice,
-): WorkspaceIndice {
-  const prefsLocales = indiceLocal.preferenciasUi;
-  if (!prefsLocales || Object.keys(prefsLocales).length === 0) return indiceBackend;
-  return {
-    ...indiceBackend,
-    preferenciasUi: { ...(indiceBackend.preferenciasUi ?? {}), ...prefsLocales },
-  };
-}
-
-/**
- * Aplica al snapshot remoto únicamente el delta ocurrido localmente desde la
- * base observada. Así el bootstrap conserva cambios tempranos sin borrar
- * carpetas/modelos remotos que el estado inicial todavía no conocía.
- */
-export function mergeWorkspaceBootstrap(
-  backendIndex: WorkspaceIndice,
-  baseIndex: WorkspaceIndice,
-  localIndex: WorkspaceIndice,
-): WorkspaceIndice {
-  return {
-    modelos: mergeCollectionById(
-      backendIndex.modelos,
-      baseIndex.modelos,
-      localIndex.modelos,
-    ),
-    carpetas: mergeCollectionById(
-      backendIndex.carpetas,
-      baseIndex.carpetas,
-      localIndex.carpetas,
-    ),
-    recientes: areEqual(baseIndex.recientes, localIndex.recientes)
-      ? backendIndex.recientes
-      : localIndex.recientes,
-    ...mergeOptionalField(
-      "busquedaGlobalUltima",
-      backendIndex.busquedaGlobalUltima,
-      baseIndex.busquedaGlobalUltima,
-      localIndex.busquedaGlobalUltima,
-    ),
-    ...mergeOptionalField(
-      "preferenciasUi",
-      backendIndex.preferenciasUi,
-      baseIndex.preferenciasUi,
-      localIndex.preferenciasUi,
-    ),
-  };
-}
-
 /** Registra una lectura sin permitir que una respuesta vieja retroceda la base. */
 export function observePersistedWorkspace(workspace: WorkspacePersistido): boolean {
   const state = estadoActual();
@@ -939,75 +639,6 @@ export function observePersistedWorkspace(workspace: WorkspacePersistido): boole
   persistedWorkspaceIndex = workspace.indice;
   setEstadoStore({ workspaceRevision: workspace.revision });
   return true;
-}
-
-function mergeCollectionById<T extends { id: Id }>(
-  remoteItems: T[],
-  base: T[],
-  localItems: T[],
-): T[] {
-  const result = new Map(remoteItems.map((item) => [item.id, item]));
-  const baseById = new Map(base.map((item) => [item.id, item]));
-  const localById = new Map(localItems.map((item) => [item.id, item]));
-  for (const id of new Set([...baseById.keys(), ...localById.keys()])) {
-    const baseItem = baseById.get(id);
-    const localItem = localById.get(id);
-    if (areEqual(baseItem, localItem)) continue;
-    if (!localItem) {
-      result.delete(id);
-      continue;
-    }
-    const remoteItem = result.get(id);
-    result.set(
-      id,
-      baseItem && remoteItem
-        ? mergeRecord(remoteItem, baseItem, localItem)
-        : localItem,
-    );
-  }
-  return [...result.values()];
-}
-
-function mergeRecord<T extends object>(remote: T, base: T, local: T): T {
-  const result = { ...remote } as Record<string, unknown>;
-  const baseRecord = base as Record<string, unknown>;
-  const localRecord = local as Record<string, unknown>;
-  for (const key of new Set([...Object.keys(baseRecord), ...Object.keys(localRecord)])) {
-    if (areEqual(baseRecord[key], localRecord[key])) continue;
-    if (localRecord[key] === undefined) delete result[key];
-    else result[key] = localRecord[key];
-  }
-  return result as T;
-}
-
-function mergeOptionalField<K extends string, T>(
-  key: K,
-  remote: T | undefined,
-  base: T | undefined,
-  local: T | undefined,
-): Partial<Record<K, T>> {
-  if (areEqual(base, local)) {
-    return remote === undefined ? {} : { [key]: remote } as Record<K, T>;
-  }
-  if (local === undefined) return {};
-  if (isPlainObject(remote) && isPlainObject(local)) {
-    return {
-      [key]: mergeRecord(
-        remote,
-        isPlainObject(base) ? base : {},
-        local,
-      ) as T,
-    } as Record<K, T>;
-  }
-  return { [key]: local } as Record<K, T>;
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function areEqual(a: unknown, b: unknown): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 export function sincronizarIndiceConModelosGuardados(modelosGuardados: ResumenModeloPersistido[], indice: WorkspaceIndice): WorkspaceIndice {

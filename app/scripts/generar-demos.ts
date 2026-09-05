@@ -8,7 +8,7 @@
 
 import { exportarModelo } from "../src/serializacion/json";
 import { fixtureTodos } from "../src/modelo/fixtures";
-import { generarOplTexto } from "../src/modelo/opl/generador-opl";
+import { generarOplTexto } from "../src/opl/estructurado";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 

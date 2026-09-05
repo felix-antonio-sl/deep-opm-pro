@@ -1,5 +1,5 @@
 import type { Id } from "./comunes";
-import type { EsenciaVisibilidad } from "../../opl/opciones";
+export type EsenciaVisibilidad = "siempre" | "solo-difiere" | "oculta";
 
 /**
  * Tipos UI del workspace que NO pertenecen al JSON OPM canónico.

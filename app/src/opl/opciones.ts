@@ -4,7 +4,8 @@
  * - `esApunte` es de RÉGIMEN: excepción de apunte a R-ENT-2 (spec-forja-opl-es).
  * Consumidores: panel OPL, export Markdown, contexto skill, vista móvil.
  */
-export type EsenciaVisibilidad = "siempre" | "solo-difiere" | "oculta";
+import type { EsenciaVisibilidad } from "../modelo/tipos/ui";
+export type { EsenciaVisibilidad } from "../modelo/tipos/ui";
 export interface VisibilidadOpl {
   esencia: EsenciaVisibilidad;
   /**

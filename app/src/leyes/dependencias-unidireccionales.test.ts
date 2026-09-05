@@ -109,6 +109,13 @@ describe("L7 — render ↛ SSOT: las capas fuente no importan de src/render", (
 });
 
 describe("L8 — frontera de aplicación: app y store no dependen de capas superiores", () => {
+  test("el kernel no depende de OPL, serialización, persistencia, store, app ni UI", () => {
+    const kernel = join(SRC_ROOT, "modelo");
+    const violaciones = ["opl", "serializacion", "persistencia", "store", "app", "ui"]
+      .flatMap((capa) => detectarImportsACapa([kernel], join(SRC_ROOT, capa)));
+    expect(violaciones).toEqual([]);
+  });
+
   test("src/app no importa producción desde src/ui ni src/render", () => {
     const violaciones = [
       ...detectarImportsACapa([APP_ROOT], UI_ROOT),

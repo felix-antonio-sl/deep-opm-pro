@@ -7,7 +7,7 @@ import { ajustarMultiplicidad, cambiarAfiliacion, cambiarEsencia, conectarSubmod
 import { cambiarModoPlegado } from "../modelo/plegado";
 import { definirRutaEtiqueta } from "../modelo/rutas";
 import type { Apariencia, Modelo, Resultado } from "../modelo/tipos";
-import { generarOplEstructurado, generarOplTexto } from "../modelo/opl/generador-opl";
+import { generarOplEstructurado, generarOplTexto } from "./estructurado";
 import { ordenarOpdsParaOpl } from "./bloquesJerarquicos";
 import { generarOpl, generarOplInteractivo } from "./generar";
 import { aparienciaDeEntidadEnOpd } from "../modelo/politicaApariciones";
