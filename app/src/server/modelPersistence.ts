@@ -1,28 +1,16 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { Buffer } from "node:buffer";
-import { HASH_SENUELO, verifyPassword } from "./passwordHash";
 import type { ModeloPersistido, ResumenModeloPersistido } from "../persistencia/modelos";
 import type { Especie } from "../persistencia/especie";
-import type {
-  WorkspaceIndice,
-  WorkspacePersistido,
-  WorkspaceWrite,
-} from "../persistencia/workspace";
+import type { WorkspacePersistido, WorkspaceWrite } from "../persistencia/workspace";
 import { indiceVacio } from "../persistencia/workspace";
-import {
-  encodeSessionIdentity,
-  SESSION_IDENTITY_HEADER,
-} from "../persistencia/sessionIdentity";
-import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "../persistencia/workspaceStorage";
+import { encodeSessionIdentity, SESSION_IDENTITY_HEADER } from "../persistencia/sessionIdentity";
 import type { VersionResumen } from "../modelo/tipos";
-import { normalizeBaseWitness, type MesaBaseWitnessV1 } from "../mesa/baseWitness";
-import { isValidTimestamp } from "../mesa/timestampOrder";
-import {
-  bundleTieneSello,
-  evaluarPush,
-  type VeredictoPush,
-} from "../mesa/validarPush";
+import { type MesaBaseWitnessV1 } from "../mesa/baseWitness";
+import { bundleTieneSello, evaluarPush, type VeredictoPush } from "../mesa/validarPush";
 import { esSinDelta } from "../mesa/esSinDelta";
+import { leerJsonRequest, responderJson } from "./persistenceHttp";
+import { COOKIE_NAME, resolverSesionAnonima, manejarLogin } from "./persistenceSession";
+import { validarModeloPersistido, validateWorkspaceWrite, validarVersionPersistida, validateModelRevisionCommit, validarAutosalvadoPersistido } from "./validatePersistence";
+export { crearCookieSessionResolver } from "./persistenceSession";
 
 export interface PersistenciaSesion {
   tenantId: string;
@@ -175,24 +163,16 @@ export interface ModelPersistenceOptions {
 }
 
 const ENDPOINT = "/__deep-opm/modelos";
-const WORKSPACE_ENDPOINT = "/__deep-opm/workspace";
-const SESSION_ENDPOINT = "/__deep-opm/session";
-const DEFAULT_MAX_BODY_BYTES = 15 * 1024 * 1024;
-const COOKIE_NAME = "opforja_session";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
-const AUTH_LOGIN_ENDPOINT = "/__deep-opm/auth/login";
-const AUTH_LOGOUT_ENDPOINT = "/__deep-opm/auth/logout";
-// Cookie autenticada más corta que la anónima (spec §2): 30 días, rotada por login.
-const AUTH_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
-interface TokenSesionFirmado {
-  tenantId: string;
-  userId: string;
-  iat: number;
-  exp: number;
-  auth?: boolean;
-  nonce?: string;
-}
+const WORKSPACE_ENDPOINT = "/__deep-opm/workspace";
+
+const SESSION_ENDPOINT = "/__deep-opm/session";
+
+const DEFAULT_MAX_BODY_BYTES = 15 * 1024 * 1024;
+
+const AUTH_LOGIN_ENDPOINT = "/__deep-opm/auth/login";
+
+const AUTH_LOGOUT_ENDPOINT = "/__deep-opm/auth/logout";
 
 export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptions) {
   const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
@@ -344,48 +324,6 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
   };
 }
 
-export function crearCookieSessionResolver(secret: string, cookieName = COOKIE_NAME): PersistenciaSessionResolver {
-  return {
-    async resolve(request) {
-      const token = leerCookie(request.headers.get("cookie") ?? "", cookieName);
-      const payload = token ? verificarTokenSesion(token, secret) : null;
-      if (payload) return payload;
-      const tenantId = `tenant-${randomBytes(16).toString("hex")}`;
-      const userId = `user-${randomBytes(16).toString("hex")}`;
-      const ahora = ahoraEpochSeconds();
-      const firmado = firmarTokenSesion({ tenantId, userId, iat: ahora, exp: ahora + SESSION_MAX_AGE_SECONDS }, secret);
-      const secure = esRequestSeguro(request) ? "; Secure" : "";
-      return {
-        tenantId,
-        userId,
-        setCookie: `${cookieName}=${firmado}; Path=/; Max-Age=${SESSION_MAX_AGE_SECONDS}; HttpOnly; SameSite=Lax${secure}`,
-      };
-    },
-  };
-}
-
-function resolverSesionAnonima(): PersistenciaSessionResolver {
-  return {
-    async resolve() {
-      return { tenantId: "tenant-test", userId: "user-test" };
-    },
-  };
-}
-
-async function leerJsonRequest(request: Request, maxBodyBytes: number): Promise<unknown> {
-  const contentLength = Number(request.headers.get("content-length") ?? 0);
-  if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
-    throw new Error("Payload demasiado grande");
-  }
-  const text = await request.text();
-  if (new TextEncoder().encode(text).byteLength > maxBodyBytes) throw new Error("Payload demasiado grande");
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error("JSON invalido");
-  }
-}
-
 function partesRutaModelo(pathname: string): string[] {
   if (!pathname.startsWith(`${ENDPOINT}/`)) return [];
   return pathname
@@ -402,223 +340,6 @@ function rutaPermitidaParaAgente(request: Request, url: URL): boolean {
   return Boolean(partes[0] && partes.length === 2 && partes[1] === "revisiones");
 }
 
-function validarModeloPersistido(input: unknown): ModeloPersistido {
-  if (!esRecord(input)) throw new Error("Modelo persistido invalido");
-  const record = esRecord(input.modelo) ? input.modelo : input;
-  if (!esRecord(record)) throw new Error("Modelo persistido invalido");
-  if (typeof record.id !== "string" || !record.id.trim()) throw new Error("Modelo persistido invalido: id");
-  if (typeof record.nombre !== "string" || !record.nombre.trim()) throw new Error("Modelo persistido invalido: nombre");
-  if (!isValidTimestamp(record.creadoEn)) throw new Error("Modelo persistido invalido: creadoEn");
-  if (!isValidTimestamp(record.actualizadoEn)) throw new Error("Modelo persistido invalido: actualizadoEn");
-  if (typeof record.json !== "string" || !record.json.trim()) throw new Error("Modelo persistido invalido: json");
-  try {
-    JSON.parse(record.json);
-  } catch {
-    throw new Error("Modelo persistido invalido: json");
-  }
-  const base: ModeloPersistido = {
-    id: record.id,
-    nombre: record.nombre,
-    descripcion: typeof record.descripcion === "string" ? record.descripcion : "",
-    creadoEn: record.creadoEn,
-    actualizadoEn: record.actualizadoEn,
-    json: record.json,
-  };
-  if (record.carpetaId === null || typeof record.carpetaId === "string") base.carpetaId = record.carpetaId;
-  if (typeof record.ultimaApertura === "string") base.ultimaApertura = record.ultimaApertura;
-  if (typeof record.autosalvado === "boolean") base.autosalvado = record.autosalvado;
-  if (typeof record.archivado === "boolean") base.archivado = record.archivado;
-  if (typeof record.archivadoEn === "string") base.archivadoEn = record.archivadoEn;
-  if (typeof record.archivadoAuto === "boolean") base.archivadoAuto = record.archivadoAuto;
-  if (typeof record.esBiblioteca === "boolean") base.esBiblioteca = record.esBiblioteca;
-  if (typeof record.esApunte === "boolean") base.esApunte = record.esApunte;
-  if (Array.isArray(record.versiones)) base.versiones = record.versiones.filter(esVersionResumen);
-  if (typeof record.crearVersionAlGuardar === "boolean") base.crearVersionAlGuardar = record.crearVersionAlGuardar;
-  if (typeof record.revision === "number" && Number.isInteger(record.revision) && record.revision >= 0) {
-    base.revision = record.revision;
-  }
-  return base;
-}
-
-function validarWorkspaceIndice(input: unknown): WorkspaceIndice {
-  if (!esRecord(input)) throw new Error("Workspace persistido invalido");
-  const record = esRecord(input.indice) ? input.indice : input;
-  if (!esRecord(record)) throw new Error("Workspace persistido invalido");
-  return {
-    modelos: Array.isArray(record.modelos)
-      ? record.modelos.map(normalizarModeloIndice).filter((modelo): modelo is WorkspaceIndice["modelos"][number] => modelo !== null)
-      : [],
-    carpetas: Array.isArray(record.carpetas)
-      ? record.carpetas.map(normalizarCarpetaIndice).filter((carpeta): carpeta is WorkspaceIndice["carpetas"][number] => carpeta !== null)
-      : [],
-    recientes: Array.isArray(record.recientes) ? record.recientes.filter((id): id is string => typeof id === "string") : [],
-    ...(typeof record.busquedaGlobalUltima === "string" ? { busquedaGlobalUltima: record.busquedaGlobalUltima } : {}),
-    ...(esPreferenciasUi(record.preferenciasUi) ? { preferenciasUi: record.preferenciasUi } : {}),
-  };
-}
-
-function validateWorkspaceWrite(input: unknown): WorkspaceWrite {
-  if (!esRecord(input) ||
-    typeof input.revisionBase !== "number" ||
-    !Number.isInteger(input.revisionBase) ||
-    input.revisionBase < 0) {
-    throw new Error("Workspace persistido invalido: revisionBase");
-  }
-  return {
-    indice: validarWorkspaceIndice(input),
-    revisionBase: input.revisionBase,
-  };
-}
-
-function validarVersionPersistida(modeloId: string, input: unknown): BackendVersionPersistida {
-  if (!esRecord(input)) throw new Error("Version persistida invalida");
-  const version = esRecord(input.version) ? input.version : null;
-  const json = typeof input.json === "string" ? input.json : typeof input.payload === "string" ? input.payload : "";
-  if (!version || !esVersionResumen(version)) throw new Error("Version persistida invalida");
-  validarJsonString(json, "Version persistida invalida: json");
-  return {
-    modeloId,
-    version: {
-      id: version.id,
-      creadoEn: version.creadoEn,
-      nombre: version.nombre,
-      ...(typeof version.descripcion === "string" ? { descripcion: version.descripcion } : {}),
-      ...(version.preservar === true ? { preservar: true } : {}),
-      modeloPayloadKey: version.modeloPayloadKey,
-      bytes: version.bytes,
-    },
-    json,
-  };
-}
-
-function validateModelRevisionCommit(modelId: string, input: unknown): ModelRevisionCommit {
-  if (!esRecord(input)) throw new Error("Revision de modelo invalida");
-  const model = validarModeloPersistido(input.model);
-  if (model.id !== modelId) throw new Error("Revision de modelo invalida: id");
-  if (!esRecord(input.version) ||
-    typeof input.version.id !== "string" ||
-    !input.version.id.trim() ||
-    !isValidTimestamp(input.version.creadoEn) ||
-    typeof input.version.nombre !== "string" ||
-    !input.version.nombre.trim()) {
-    throw new Error("Revision de modelo invalida: version");
-  }
-
-  let base: ModelRevisionBase;
-  let speciesOnCreate: ModelRevisionCommit["speciesOnCreate"];
-  let graduation: ModelRevisionCommit["graduation"];
-  let reopening: ModelRevisionCommit["reopening"];
-  if (esRecord(input.base) && input.base.kind === "new") {
-    base = { kind: "new" };
-    if (input.speciesOnCreate !== "apunte" && input.speciesOnCreate !== "modelo") {
-      throw new Error("Revision de modelo invalida: especie");
-    }
-    if (input.graduation !== undefined) throw new Error("Revision de modelo invalida: graduacion");
-    if (input.reopening !== undefined) throw new Error("Revision de modelo invalida: reapertura");
-    speciesOnCreate = input.speciesOnCreate;
-  } else if (esRecord(input.base) && input.base.kind === "existing") {
-    const witness = normalizeBaseWitness(input.base.witness);
-    if (!witness) throw new Error("Revision de modelo invalida: base");
-    if (input.speciesOnCreate !== undefined) throw new Error("Revision de modelo invalida: especie");
-    if (input.graduation !== undefined) {
-      if (!esRecord(input.graduation) ||
-        input.graduation.kind !== "graduate" ||
-        (input.graduation.role !== "work" && input.graduation.role !== "library") ||
-        !(input.graduation.folderId === null ||
-          (typeof input.graduation.folderId === "string" && input.graduation.folderId.trim()))) {
-        throw new Error("Revision de modelo invalida: graduacion");
-      }
-      graduation = {
-        kind: "graduate",
-        folderId: input.graduation.folderId === null ? null : input.graduation.folderId.trim(),
-        role: input.graduation.role,
-      };
-    }
-    if (input.reopening !== undefined) {
-      if (!esRecord(input.reopening) || input.reopening.kind !== "reopen") {
-        throw new Error("Revision de modelo invalida: reapertura");
-      }
-      if (graduation) {
-        throw new Error("Revision de modelo invalida: transiciones incompatibles");
-      }
-      reopening = { kind: "reopen" };
-    }
-    base = { kind: "existing", witness };
-  } else {
-    throw new Error("Revision de modelo invalida: base");
-  }
-
-  return {
-    model,
-    version: {
-      id: input.version.id,
-      creadoEn: input.version.creadoEn,
-      nombre: input.version.nombre,
-      ...(typeof input.version.descripcion === "string" ? { descripcion: input.version.descripcion } : {}),
-      ...(input.version.preservar === true ? { preservar: true } : {}),
-      modeloPayloadKey: input.version.id,
-      bytes: new TextEncoder().encode(model.json).byteLength,
-    },
-    base,
-    ...(speciesOnCreate ? { speciesOnCreate } : {}),
-    ...(graduation ? { graduation } : {}),
-    ...(reopening ? { reopening } : {}),
-    ...(input.confirmedByOperator === true ? { confirmedByOperator: true } : {}),
-  };
-}
-
-function validarAutosalvadoPersistido(modeloId: string, input: unknown): BackendAutosaveWrite {
-  if (!esRecord(input)) throw new Error("Autosalvado persistido invalido");
-  const json = typeof input.json === "string" ? input.json : "";
-  validarJsonString(json, "Autosalvado persistido invalido: json");
-  if (typeof input.revisionBase !== "number" || !Number.isInteger(input.revisionBase) || input.revisionBase < 0) {
-    throw new Error("Autosalvado persistido invalido: revisionBase");
-  }
-  if (input.creadoEn !== undefined && !isValidTimestamp(input.creadoEn)) {
-    throw new Error("Autosalvado persistido invalido: creadoEn");
-  }
-  return {
-    modeloId,
-    creadoEn: typeof input.creadoEn === "string" ? input.creadoEn : new Date().toISOString(),
-    json,
-    revisionBase: input.revisionBase,
-  };
-}
-
-function validarJsonString(json: string, error: string): void {
-  if (!json.trim()) throw new Error(error);
-  try {
-    JSON.parse(json);
-  } catch {
-    throw new Error(error);
-  }
-}
-
-function esVersionResumen(value: unknown): value is VersionResumen {
-  if (!esRecord(value) ||
-    typeof value.id !== "string" || !value.id.trim() ||
-    !isValidTimestamp(value.creadoEn) ||
-    typeof value.nombre !== "string" || !value.nombre.trim() ||
-    typeof value.modeloPayloadKey !== "string" || !value.modeloPayloadKey.trim() ||
-    typeof value.bytes !== "number" || !Number.isSafeInteger(value.bytes) || value.bytes < 0) {
-    return false;
-  }
-  return true;
-}
-
-function responderJson(status: number, payload: unknown, session?: PersistenciaSesion): Response {
-  const headers = new Headers({ "content-type": "application/json; charset=utf-8" });
-  if (session?.setCookie) headers.set("set-cookie", session.setCookie);
-  return new Response(JSON.stringify(payload), {
-    status,
-    headers,
-  });
-}
-
-function esRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 function esErrorPayload(message: string): boolean {
   return message.startsWith("Payload") ||
     message.startsWith("JSON") ||
@@ -627,111 +348,4 @@ function esErrorPayload(message: string): boolean {
     message.startsWith("Workspace persistido") ||
     message.startsWith("Version persistida") ||
     message.startsWith("Autosalvado persistido");
-}
-
-function leerCookie(cookies: string, name: string): string | null {
-  for (const part of cookies.split(";")) {
-    const [rawName, ...rawValue] = part.trim().split("=");
-    if (rawName === name) return rawValue.join("=") || null;
-  }
-  return null;
-}
-
-function esRequestSeguro(request: Request): boolean {
-  if (request.headers.get("x-forwarded-proto") === "https") return true;
-  const host = request.headers.get("host") ?? "";
-  if (host && !host.startsWith("localhost") && !host.startsWith("127.0.0.1")) return true;
-  try {
-    return new URL(request.url).protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-async function manejarLogin(request: Request, auth: AuthOptions, maxBodyBytes: number): Promise<Response> {
-  let body: unknown;
-  try {
-    body = await leerJsonRequest(request, maxBodyBytes);
-  } catch (error) {
-    return responderJson(400, { error: error instanceof Error ? error.message : "JSON invalido" });
-  }
-  if (!esRecord(body) || typeof body.email !== "string" || typeof body.password !== "string") {
-    return responderJson(400, { error: "Login invalido: email y password requeridos" });
-  }
-  const email = body.email.trim().toLowerCase();
-  const cuenta = await auth.repo.getCuentaPorEmail(email);
-  // Verificación SIEMPRE (señuelo si no hay cuenta): respuesta y costo uniformes,
-  // sin oráculo de existencia de email (spec §3).
-  const valida = verifyPassword(body.password, cuenta?.passwordHash ?? HASH_SENUELO);
-  if (!cuenta || !valida) return responderJson(401, { error: "Credenciales inválidas" });
-
-  const ahora = ahoraEpochSeconds();
-  if (auth.repo.touchLogin) await auth.repo.touchLogin(cuenta.id, new Date(ahora * 1000).toISOString());
-  const cookieName = auth.cookieName ?? COOKIE_NAME;
-  const token = firmarTokenSesion({
-    tenantId: cuenta.tenantId,
-    userId: cuenta.userId,
-    iat: ahora,
-    exp: ahora + AUTH_SESSION_MAX_AGE_SECONDS,
-    auth: true,
-    // Rotación por login (spec §2): el nonce hace único cada token emitido.
-    nonce: randomBytes(8).toString("hex"),
-  }, auth.secret);
-  const secure = esRequestSeguro(request) ? "; Secure" : "";
-  const session: PersistenciaSesion = {
-    tenantId: cuenta.tenantId,
-    userId: cuenta.userId,
-    auth: true,
-    authKind: "operator",
-    setCookie: `${cookieName}=${token}; Path=/; Max-Age=${AUTH_SESSION_MAX_AGE_SECONDS}; HttpOnly; SameSite=Lax${secure}`,
-  };
-  return responderJson(200, { session: { tenantId: session.tenantId, userId: session.userId, auth: true } }, session);
-}
-
-function firmarTokenSesion(payload: TokenSesionFirmado, secret: string): string {
-  const encoded = base64UrlEncode(JSON.stringify(payload));
-  return `${encoded}.${firma(encoded, secret)}`;
-}
-
-function verificarTokenSesion(token: string, secret: string): PersistenciaSesion | null {
-  const [encoded, signature] = token.split(".");
-  if (!encoded || !signature) return null;
-  const expected = firma(encoded, secret);
-  if (!compararConstante(signature, expected)) return null;
-  try {
-    const parsed = JSON.parse(base64UrlDecode(encoded));
-    if (!esRecord(parsed) || typeof parsed.tenantId !== "string" || typeof parsed.userId !== "string") return null;
-    if (typeof parsed.exp !== "number" || !Number.isFinite(parsed.exp)) return null;
-    if (typeof parsed.iat !== "number" || !Number.isFinite(parsed.iat)) return null;
-    if (parsed.exp <= ahoraEpochSeconds()) return null;
-    return {
-      tenantId: parsed.tenantId,
-      userId: parsed.userId,
-      ...(parsed.auth === true ? { auth: true, authKind: "operator" as const } : {}),
-    };
-  } catch {
-    return null;
-  }
-}
-
-function ahoraEpochSeconds(): number {
-  return Math.floor(Date.now() / 1000);
-}
-
-function firma(value: string, secret: string): string {
-  return createHmac("sha256", secret).update(value).digest("base64url");
-}
-
-function compararConstante(a: string, b: string): boolean {
-  const ba = Buffer.from(a);
-  const bb = Buffer.from(b);
-  return ba.length === bb.length && timingSafeEqual(ba, bb);
-}
-
-function base64UrlEncode(value: string): string {
-  return Buffer.from(value, "utf8").toString("base64url");
-}
-
-function base64UrlDecode(value: string): string {
-  return Buffer.from(value, "base64url").toString("utf8");
 }
