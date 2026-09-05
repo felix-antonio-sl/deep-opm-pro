@@ -109,6 +109,13 @@ o el bundle no contiene el SHA esperado. `OPFORJA_URL` permite verificar otra
 instancia del mismo circuito. Las regresiones del script se comprueban con
 `cd app && bun test scripts/deploy.test.ts`.
 
+`bun run cordon:skill` comprueba las emisiones instaladas de Claude y Codex
+contra los pins por runtime de `app/src/canon/selloSkill.ts`. Las versiones
+aceptadas pueden diferir: Codex 3.1.0 conserva el contrato operativo de Forja
+2.1.0 en su referencia de operación profunda. Un cambio de pin requiere
+contrastar el hash con la fuente KORA y revisar ese contrato; el despliegue
+de la aplicación no modifica las skills instaladas.
+
 Verificar contenedor:
 
 ```bash

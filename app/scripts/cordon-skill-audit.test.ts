@@ -7,7 +7,9 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { auditarRutaSkill } from "./cordon-skill-audit";
-import { CORDON_SKILL_ESPERADO } from "../src/canon/selloSkill";
+import { CORDON_SKILL_ESPERADOS } from "../src/canon/selloSkill";
+
+const CORDON_SKILL_ESPERADO = CORDON_SKILL_ESPERADOS["claude-code"];
 
 const selloFresco = [
   "<!-- kora:sello",

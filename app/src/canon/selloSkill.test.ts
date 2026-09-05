@@ -5,7 +5,7 @@
 // sello y el evaluador del veredicto del cordón. La IO (localizar el deploy) vive
 // en scripts/cordon-skill-audit.ts.
 import { describe, expect, test } from "bun:test";
-import { evaluarCordonSkill, parsearSelloKora } from "./selloSkill";
+import { CORDON_SKILL_ESPERADOS, evaluarCordonSkill, parsearSelloKora } from "./selloSkill";
 
 const SELLO_VALIDO = [
   "# modelamiento-opm",
@@ -48,6 +48,24 @@ const ESPERADO = {
 const selloCon = (over: Partial<typeof ESPERADO>) => ({ fuente: "urn:x", ...ESPERADO, ...over });
 
 describe("evaluarCordonSkill — veredicto del cordón (version-duro / hash-blando / target / skip)", () => {
+  test("cada runtime valida su emisión compatible, sin asumir versiones simultáneas", () => {
+    for (const esperado of Object.values(CORDON_SKILL_ESPERADOS)) {
+      const sello = { fuente: "urn:kora:artefacto:modelamiento-opm", ...esperado };
+      expect(evaluarCordonSkill(sello, esperado).estado).toBe("ok");
+    }
+    expect(evaluarCordonSkill(
+      { fuente: "urn:kora:artefacto:modelamiento-opm", ...CORDON_SKILL_ESPERADOS.codex },
+      CORDON_SKILL_ESPERADOS["claude-code"],
+    ).estado).toBe("fallo");
+  });
+
+  test("el pin por runtime sigue detectando downgrade y drift", () => {
+    const esperado = CORDON_SKILL_ESPERADOS.codex;
+    const sello = { fuente: "urn:kora:artefacto:modelamiento-opm", ...esperado };
+    expect(evaluarCordonSkill({ ...sello, version: "2.1.0" }, esperado).estado).toBe("fallo");
+    expect(evaluarCordonSkill({ ...sello, hashFuente: "sha256:0000" }, esperado).estado).toBe("advertencia");
+  });
+
   test("ok cuando version, hash-fuente y target del deploy coinciden con lo esperado", () => {
     const v = evaluarCordonSkill(selloCon({}), ESPERADO);
     expect(v.estado).toBe("ok");

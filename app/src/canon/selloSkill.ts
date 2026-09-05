@@ -95,22 +95,24 @@ export function evaluarCordonSkill(
   return { estado: "ok", motivo: `skill v${sello.version} coincide con el repo` };
 }
 
-/**
- * Skill del cordón que opforja consume como mesa de trabajo, y los valores que su
- * deploy DEBE testimoniar. PINEADO: al bumpear la skill (p. ej. D3 → v1.10.0) hay
- * que actualizar aquí — ese es el punto del gate, forzar la actualización consciente.
- * Único lugar de verdad (greppable: `CORDON_SKILL_ESPERADO`).
- */
+/** Emisiones compatibles revisadas por runtime; no presuponen despliegue simultáneo. */
 export const CORDON_SKILL_NOMBRE = "modelamiento-opm";
+export type TargetCordonSkill = "claude-code" | "codex";
 
-// v2.1.0 (ciclo reversible, 2026-07-27): distingue Taller/Modelos y separa
-// Apunte⇄Modelo de Boceto⇄OPD integrado sin convertir graduación o integración
-// en validación humana. El `hash-fuente` testifica el ARTEFACTO FUENTE en pneuma
-// (sha256 de
-// `artefactos/skills/kora/modelamiento-opm/SKILL.md`), re-emitido con
-// `kora.py transmutar` a claude-code/codex/opencode (3 sellos identicos, paridad fiel).
-export const CORDON_SKILL_ESPERADO: EsperadoCordon = {
-  version: "2.1.0",
-  hashFuente: "sha256:8cf8dd16dd843c967d585edfd3508425d835686508d89836978e31ad03639483",
-  target: "claude-code",
+// Claude conserva la emisión 2.1.0 del ciclo reversible (fuente e43ebf7).
+// Codex 3.1.0 incorpora revelación progresiva: su fibra operacion-profunda
+// conserva Apunte⇄Modelo, Boceto⇄OPD, bundle v0, Testigo-Base y no-clobber.
+// Ambos consumen el mismo canon OPM/Forja pineado en resolutorUrn.
+// Los hashes corresponden al archivo fuente de KORA, no a una etiqueta inferida.
+export const CORDON_SKILL_ESPERADOS: Record<TargetCordonSkill, EsperadoCordon> = {
+  "claude-code": {
+    version: "2.1.0",
+    hashFuente: "sha256:8cf8dd16dd843c967d585edfd3508425d835686508d89836978e31ad03639483",
+    target: "claude-code",
+  },
+  codex: {
+    version: "3.1.0",
+    hashFuente: "sha256:cfa80c33aed313d04af3ca8c400f40e5266b97d4aa60e55ab09e6dffac093ef2",
+    target: "codex",
+  },
 };

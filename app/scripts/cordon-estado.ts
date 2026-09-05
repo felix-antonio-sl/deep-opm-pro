@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { mapaUrn, resolverUrn } from "../src/canon/resolutorUrn";
-import { CORDON_SKILL_ESPERADO, parsearSelloKora, type SelloKora } from "../src/canon/selloSkill";
+import { CORDON_SKILL_ESPERADOS, evaluarCordonSkill, parsearSelloKora, type SelloKora, type TargetCordonSkill } from "../src/canon/selloSkill";
 
 const APP_ROOT = resolve(import.meta.dir, "..");
 const REPO_ROOT = resolve(APP_ROOT, "..");
@@ -60,13 +60,10 @@ function versionUrn(urn: string): string | null {
   return existsSync(ruta) ? versionFrontmatter(readFileSync(ruta, "utf8")) : null;
 }
 
-function estadoSello(sello: SelloKora | null, target: string): string {
+function estadoSello(sello: SelloKora | null, target: TargetCordonSkill): string {
   if (!sello) return "SKIP · deploy no encontrado o sin sello";
-  const coincide =
-    sello.version === CORDON_SKILL_ESPERADO.version &&
-    sello.hashFuente === CORDON_SKILL_ESPERADO.hashFuente &&
-    sello.target === target;
-  return `${coincide ? "OK" : "FALLO"} · v${sello.version} · ${sello.target} · ${sello.hashFuente.slice(0, 19)}…`;
+  const veredicto = evaluarCordonSkill(sello, CORDON_SKILL_ESPERADOS[target]);
+  return `${veredicto.estado.toUpperCase()} · v${sello.version} · ${sello.target} · ${sello.hashFuente.slice(0, 19)}… · ${veredicto.motivo}`;
 }
 
 async function leerProduccion(): Promise<{ build: string | null; health: string; session: number | null }> {
@@ -102,9 +99,9 @@ export async function ejecutarCordonEstado(): Promise<number> {
     build: produccion.build,
     cambiaProducto: cambiaProductoDesde(produccion.build),
   });
-  const skillFalla = !claude || !codex ||
-    claude.version !== CORDON_SKILL_ESPERADO.version || claude.hashFuente !== CORDON_SKILL_ESPERADO.hashFuente || claude.target !== "claude-code" ||
-    codex.version !== CORDON_SKILL_ESPERADO.version || codex.hashFuente !== CORDON_SKILL_ESPERADO.hashFuente || codex.target !== "codex";
+  const skillFalla =
+    evaluarCordonSkill(claude, CORDON_SKILL_ESPERADOS["claude-code"]).estado !== "ok" ||
+    evaluarCordonSkill(codex, CORDON_SKILL_ESPERADOS.codex).estado !== "ok";
 
   console.log("Cordón de estado · compuesto opforja");
   console.log(`1. SSOT OPM/Forja · ${ssot.join(" · ")}`);
