@@ -250,13 +250,18 @@ describe("nacerApunte (store)", () => {
       json: autosaveA,
     });
 
+    // Otro documento debe tener su propia pestaña. Reutilizar la activa y
+    // cerrar su id anterior cerraba el Apunte nuevo según el orden de la suite.
+    store.getState().abrirPestanaNueva();
     store.getState().nacerApunte();
     await esperar(() =>
       store.getState().modeloPersistidoId !== null &&
       store.getState().modeloPersistidoId !== modeloId
     );
     const modeloActivoId = store.getState().modeloPersistidoId;
+    expect(store.getState().pestanaActivaId).not.toBe(pestanaModeloId);
     store.getState().cerrarPestana(pestanaModeloId, { forzar: true });
+    expect(store.getState().modeloPersistidoId).toBe(modeloActivoId);
 
     store.getState().abrirReaperturaTaller(modeloId);
     await esperar(() => store.getState().reaperturaModeloObjetivo?.nombre === "Autosave A");

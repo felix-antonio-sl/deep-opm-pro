@@ -356,19 +356,16 @@ test("panel OPL selecciona enlace especifico en oracion multi-enlace", async ({ 
   expect(pageErrors).toEqual([]);
 });
 
-// Ronda23 L1 #5: el botón AI Text está oculto tras `AI_TEXT_HABILITADO=false`
-// en `src/ui/panelOpl/Toolbar.tsx` hasta que la feature exista. Cuando se
-// implemente, bajar el flag y descomentar este smoke (o reescribir contra el
-// flujo real). Se conserva como referencia del contrato esperado.
-test.skip("panel OPL muestra placeholder de AI Text sin ejecutar funcionalidad", async ({ page }) => {
+// La acción de IA permanece oculta mientras no exista un flujo implementado.
+test("panel OPL no ofrece acciones de IA pendientes de implementar", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await esperarWorkbenchInicial(page);
   await restaurarPanelOplSiMinimizado(page);
-  await page.getByTestId("panel-opl-ai-text").click();
-  await expect(page.getByText("Próximamente: oraciones generadas por LLM")).toBeVisible();
+  await expect(page.getByTestId("panel-opl-ai-text")).toHaveCount(0);
+  await expect(page.getByText("Próximamente: oraciones generadas por LLM")).toHaveCount(0);
 
   expect(pageErrors).toEqual([]);
 });

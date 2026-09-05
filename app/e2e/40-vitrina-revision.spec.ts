@@ -3,8 +3,7 @@ import { esperarWorkbenchInicial } from "./_smoke-helpers";
 
 // A′-vitrina: chip ramificado de revisión del agente + colapso de hitos.
 // Se simula el escenario de producción inyectando en el store la base y la
-// revisión remota (el repo de memoria de dev no incrementa `revision`, así que
-// el poll no pisa la inyección). Técnica de inyección: import('/src/store.ts').
+// revisión remota, con el poll detenido. Técnica de inyección: import('/src/store.ts').
 
 /** Crea+guarda un modelo, detiene el poll y fija base=5 + revisión remota del agente=6. */
 async function prepararEscenario(page: import("@playwright/test").Page): Promise<string> {
@@ -66,7 +65,15 @@ test("historial: una sesión de agente colapsa en un hito expandible", async ({ 
   // Inyectar historial: humana + corrida de 3 versiones de agente + humana.
   await page.evaluate((modeloId) => {
     return import("/src/store.ts").then(({ store }) => {
-      const V = (vid: string, nombre: string, min: number) => ({ id: vid, nombre, creadoEn: `2026-07-07T12:0${min}:00.000Z`, modeloPayloadKey: vid, bytes: 100 });
+      // Mantener la sesión reciente: las versiones antiguas se depuran por edad.
+      const ahora = Date.now();
+      const V = (vid: string, nombre: string, min: number) => ({
+        id: vid,
+        nombre,
+        creadoEn: new Date(ahora - (6 - min) * 60_000).toISOString(),
+        modeloPayloadKey: vid,
+        bytes: 100,
+      });
       const versiones = [
         V("h2", "Guardado manual", 5),
         V("a3", "agente·paso 3", 4),

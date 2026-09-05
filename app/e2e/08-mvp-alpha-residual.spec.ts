@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { abrirSeccionInspector } from "./_colapso-helpers";
 import {
   clickToolbarMasItem,
   ejecutarComandoPalette,
@@ -122,30 +123,21 @@ test("alinear selección: tres cosas quedan alineadas a la izquierda", async ({ 
   expect(pageErrors).toEqual([]);
 });
 
-// SEL-2 (Codex rev2 §6.2 — decisión bloqueada): la selección ya no emite los 8
-// resize-handles flotantes. La affordance Codex es solo el underline crimson +
-// la anotación tipográfica. El redimensionado manual por arrastre de handle se
-// retira; el tamaño manual sigue disponible vía Inspector. Test conservado como
-// skip para documentar la retirada (no se elimina la huella histórica).
-test.skip("resize handle: esquina persiste tamaño manual", async ({ page }) => {
+test("tamaño manual se edita desde Inspector y conserva el valor exportado", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
-
   await page.goto("/");
+  await esperarWorkbenchInicial(page);
   await page.getByRole("button", { name: "Objeto", exact: true }).click();
   await elementoPorTexto(page, "Objeto").click();
-  const handle = page.locator('[joint-selector="resize-se"]').first();
-  await expect(handle).toBeVisible();
-  const box = await handle.boundingBox();
-  if (!box) throw new Error("No se renderizó handle de resize");
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 + 42, box.y + box.height / 2 + 28, { steps: 6 });
-  await page.mouse.up();
-
+  await abrirSeccionInspector(page, "inspector-panel-tamano");
+  const tamano = page.getByRole("region", { name: "Tamaño", exact: true });
+  await tamano.getByLabel("Ancho", { exact: true }).fill("220");
+  await tamano.getByLabel("Alto", { exact: true }).fill("100");
+  await tamano.getByLabel("Alto", { exact: true }).blur();
   const apariencia = await aparienciaRaizPorNombre(page, "Objeto");
-  expect(apariencia.width).toBeGreaterThan(135);
-  expect(apariencia.height).toBeGreaterThan(60);
+  expect(apariencia.width).toBe(220);
+  expect(apariencia.height).toBe(100);
   expect(apariencia.modoTamano).toBe("manual");
   expect(pageErrors).toEqual([]);
 });

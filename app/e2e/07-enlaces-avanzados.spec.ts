@@ -439,9 +439,10 @@ test("split de efecto TS3 convierte enlace en efectos entrada/salida sin objeto 
   await jsonEditor(page).fill(JSON.stringify(modeloEfectoTs3ParaSplit(), null, 2));
   await page.getByRole("button", { name: "Importar y reemplazar pestaña activa", exact: true }).click();
 
-  // Hay 2 entidades + 1 efecto TS3 con estado de entrada/salida.
+  // Un efecto lógico TS3 se dibuja con dos segmentos, conservando su identidad.
   await expect(page.locator(".joint-element")).toHaveCount(2);
-  await expect(page.locator(".joint-link")).toHaveCount(1);
+  await expect(page.locator(".joint-link")).toHaveCount(2);
+  expect(Object.keys(JSON.parse(await jsonEditor(page).first().inputValue()).modelo.enlaces)).toHaveLength(1);
 
   // Seleccionar el enlace de efecto desde su verbo OPL y escindirlo. El efecto
   // TS3 con par de estados (estadoEntradaId/estadoSalidaId) verbaliza la
@@ -458,6 +459,7 @@ test("split de efecto TS3 convierte enlace en efectos entrada/salida sin objeto 
 
   // El JSON exportado refleja el split canonico sin objeto sintetico ni consumo/resultado sustitutos.
   const json = await jsonEditor(page).first().inputValue();
+  expect(Object.keys(JSON.parse(json).modelo.enlaces)).toHaveLength(2);
   expect(json).toContain('"tipo": "efecto"');
   expect(json).toContain('"rol": "entrada"');
   expect(json).toContain('"rol": "salida"');

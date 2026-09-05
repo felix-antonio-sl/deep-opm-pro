@@ -3,7 +3,7 @@
  *
  * Verifica que:
  * - Ningún gesto mobile readonly muta el modelo (drag, resize, link, etc.)
- * - Deep links se parsean correctamente
+ * - Modelos guardados se abren en lectura desde el catálogo
  * - La búsqueda no muta el modelo al seleccionar
  * - El toggle de diagnóstico persiste
  */
@@ -17,8 +17,7 @@ test.describe("mobile-readonly invariantes", () => {
   test.use({ viewport: VIEWPORT_MOBILE });
 
   test("gesto drag no muta modelo", async ({ page }) => {
-    await page.goto("/");
-    await esperarMobileLectura(page);
+    await abrirModeloSembrado(page);
     await page.getByTestId("mobile-tab-diagrama").click();
 
     const snapshotAntes = await page.evaluate(() => (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.());
@@ -37,8 +36,7 @@ test.describe("mobile-readonly invariantes", () => {
   });
 
   test("resize no muta modelo", async ({ page }) => {
-    await page.goto("/");
-    await esperarMobileLectura(page);
+    await abrirModeloSembrado(page);
 
     const snapshotAntes = await page.evaluate(() => (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.());
 
@@ -54,8 +52,7 @@ test.describe("mobile-readonly invariantes", () => {
   });
 
   test("link desde anchor no muta modelo", async ({ page }) => {
-    await page.goto("/");
-    await esperarMobileLectura(page);
+    await abrirModeloSembrado(page);
 
     const snapshotAntes = await page.evaluate(() => (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.());
 
@@ -70,21 +67,15 @@ test.describe("mobile-readonly invariantes", () => {
     expect(snapshotDespues).toBe(snapshotAntes);
   });
 
-  // FIXME(mobile-contenido): el shell mobile-readonly proyecta el modelo ACTIVO
-  // de la sesión (carga directa del backend), que en dev/test arranca VACÍO — no
-  // hay forma de seleccionar un modelo con contenido hasta que exista la capa de
-  // tenants/auth (decisión 2026-06-09: se eliminó la carga por URL; la selección
-  // de modelo se delega a tenants/auth). Sin contenido, `[data-opm-kind=entidad]`
-  // no existe. Secundario: `window.__opmStore` no está expuesto → el chequeo de
-  // no-mutación es no-op. Reactivar cuando exista selección de modelo (tenants).
-  test.fixme("bottom sheet no muta modelo", async ({ page }) => {
-    await page.goto("/");
-    await esperarMobileLectura(page);
+  test("tap en una entidad visible no muta modelo", async ({ page }) => {
+    await abrirModeloSembrado(page);
 
     const snapshotAntes = await page.evaluate(() => (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.());
 
-    // Tap en una entidad abre bottom sheet (si aplica)
-    await page.click("[data-opm-kind=entidad]");
+    // Interacción sobre una cosa cargada por la API, en el canvas de lectura.
+    const entidad = page.locator('.joint-element').filter({ hasText: "Paciente" });
+    await expect(entidad).toBeVisible();
+    await entidad.click();
 
     const snapshotDespues = await page.evaluate(() => (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.());
 
@@ -141,12 +132,12 @@ test.describe("mobile-readonly invariantes", () => {
 test.describe("mobile-readonly montaje por viewport", () => {
   // El shell mobile-readonly ya NO usa routing por URL (deep-links /m/:id
   // eliminados): proyecta el modelo activo de la sesión (carga directa desde el
-  // backend) y monta según viewport + flag. La selección de modelo se delega a
-  // la futura capa de tenants/auth.
+  // backend) y monta según viewport + flag. La selección usa el catálogo de la sesión.
   test("sin contenido evita mostrar un canvas vacío", async ({ page }) => {
     await page.setViewportSize(VIEWPORT_MOBILE);
     await page.goto("/");
     await esperarMobileLectura(page);
+    await expect(page.getByTestId("mobile-app-lectura")).toHaveAttribute("data-context-modo", "lectura");
     await expect(page.getByTestId("mobile-vista-modelos")).toBeVisible();
     await expect(page.getByTestId("mobile-vista-diagrama")).toHaveCount(0);
   });
@@ -186,19 +177,17 @@ test.describe("mobile-readonly búsqueda", () => {
     await expect(page.getByTestId("mobile-busqueda-toggle-diagnostico-input")).toBeChecked();
   });
 
-  // FIXME(mobile-contenido): mismo bloqueo que "bottom sheet no muta modelo" —
-  // sin un modelo con contenido (pendiente de tenants/auth) no hay
-  // `mobile-busqueda-hit`.
-  test.fixme("búsqueda no muta modelo al navegar", async ({ page }) => {
-    await page.goto("/");
-    await esperarMobileLectura(page);
+  test("búsqueda no muta modelo al navegar", async ({ page }) => {
+    await abrirModeloSembrado(page);
 
     const snapshotAntes = await page.evaluate(() => (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.());
 
     await page.getByTestId("mobile-boton-buscar").click();
-    await page.getByTestId("mobile-busqueda-input").fill("proceso");
+    await page.getByTestId("mobile-busqueda-input").fill("Paciente");
     // Click en primer hit
-    await page.getByTestId("mobile-busqueda-hit").first().click();
+    await page.getByTestId("mobile-busqueda-hit").filter({ hasText: "Paciente" }).first().click();
+    await expect(page.getByTestId("mobile-busqueda-vista")).toHaveCount(0);
+    await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
 
     const snapshotDespues = await page.evaluate(() => (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.());
 
@@ -315,33 +304,6 @@ test.describe("mobile-readonly selector de modelos", () => {
 test.describe("mobile-readonly gestos táctiles del canvas", () => {
   test.use({ viewport: VIEWPORT_MOBILE, hasTouch: true });
 
-  async function abrirModeloSembrado(page: import("@playwright/test").Page): Promise<void> {
-    await page.goto("/");
-    await esperarMobileLectura(page);
-    const status = await page.evaluate(async (modelo) => {
-      const r = await fetch("/__deep-opm/modelos", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ modelo }),
-      });
-      return r.status;
-    }, modeloGuardadoFixture());
-    expect(status).toBe(200);
-    await page.reload();
-    await esperarMobileLectura(page);
-    await page.getByTestId("mobile-modelo-item").first().click();
-    await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
-    // La vista diagrama se monta antes de que cargarLocal commitee el modelo
-    // sembrado: esperar el commit real evita snapshots del modelo vacío inicial.
-    await expect
-      .poll(async () =>
-        page.evaluate(() =>
-          (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.(),
-        ),
-      )
-      .toContain('"m-mobile"');
-  }
-
   function dispatchTouch(
     page: import("@playwright/test").Page,
     tipo: "touchstart" | "touchmove" | "touchend",
@@ -423,3 +385,30 @@ test.describe("mobile-readonly gestos táctiles del canvas", () => {
     expect(snapshotDespues).toBe(snapshotAntes);
   });
 });
+
+async function abrirModeloSembrado(page: import("@playwright/test").Page): Promise<void> {
+  await page.goto("/");
+  await esperarMobileLectura(page);
+  const status = await page.evaluate(async (modelo) => {
+    const r = await fetch("/__deep-opm/modelos", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ modelo }),
+    });
+    return r.status;
+  }, modeloGuardadoFixture());
+  expect(status).toBe(200);
+  await page.reload();
+  await esperarMobileLectura(page);
+  await page.getByTestId("mobile-modelo-item").first().click();
+  await expect(page.getByTestId("mobile-vista-diagrama")).toBeVisible();
+  // La vista diagrama se monta antes de que cargarLocal commitee el modelo
+  // sembrado: esperar el commit real evita snapshots del modelo vacío inicial.
+  await expect
+    .poll(async () =>
+      page.evaluate(() =>
+        (window as unknown as { __opmTest?: { exportarModeloActual?: () => string } }).__opmTest?.exportarModeloActual?.(),
+      ),
+    )
+    .toContain('"m-mobile"');
+}

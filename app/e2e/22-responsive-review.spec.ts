@@ -92,13 +92,6 @@ test.describe("mobile 390x844 — modo revisión sin toolbar saturada", () => {
     await expect(page.getByTestId("canvas-pane")).toBeVisible();
   });
 
-  test("mobile-readonly app se monta con data-context-modo=lectura (cuando VITE_MOBILE_READONLY=true)", async ({ page }) => {
-    // Este test requiere que el build se haga con VITE_MOBILE_READONLY=true.
-    // Con el flag en false (default), el mobile usa el modo revisión antiguo.
-    // Se verifica en Fase 5 cuando se activa el flag en producción.
-    test.skip(true, "Requiere VITE_MOBILE_READONLY=true en build");
-  });
-
   test("EPICA-42 (comentarios/notas): no disponible → WARN no bloqueante", async ({ page }) => {
     // El brief §6 / §7 exige que si EPICA-42 no está implementada productivamente,
     // se deje un WARN explícito en lugar de un FAIL. Aquí no hay tab "Notas"
