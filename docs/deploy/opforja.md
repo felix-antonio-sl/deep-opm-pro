@@ -103,7 +103,11 @@ build (automática vía vite) + el short SHA del commit desplegado (tooltip); si
 el arbol tiene cambios sin commitear, marca el build `-dirty`. **No usar
 `docker compose up -d --build` a secas: el SHA quedaría en `local`** (la fecha
 si se estampa igual). El script también espera salud y confirma que el SHA
-viaja en el bundle servido.
+viaja en el bundle servido. El comando falla si Compose no alcanza disponibilidad
+en 120 segundos, el sitio no responde, el acceso anónimo a sesión no devuelve 401
+o el bundle no contiene el SHA esperado. `OPFORJA_URL` permite verificar otra
+instancia del mismo circuito. Las regresiones del script se comprueban con
+`cd app && bun test scripts/deploy.test.ts`.
 
 Verificar contenedor:
 

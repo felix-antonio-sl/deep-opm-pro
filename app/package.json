@@ -17,7 +17,7 @@
     "cordon:skill": "bun test scripts/cordon-skill-audit.test.ts && bun run scripts/cordon-skill-audit.ts",
     "cordon:estado": "bun test scripts/cordon-estado.test.ts && bun run scripts/cordon-estado.ts",
     "quality:gate": "bun run scripts/quality-ledger.mjs --markdown --check",
-    "gate:refactor": "bun run check && bun run lint && bun run build && bun run design:governance && bun run cordon:skill && bun run browser:smoke && bun run quality:gate",
+    "gate:refactor": "bun test scripts/deploy.test.ts && bun run check && bun run lint && bun run build && bun run design:governance && bun run cordon:skill && bun run browser:smoke --workers=2 && bun run quality:gate",
     "security:scan": "bun pm scan",
     "visual:audit": "node scripts/in-vivo-test.mjs",
     "visual:deep": "node scripts/in-vivo-deep-checks.mjs",
