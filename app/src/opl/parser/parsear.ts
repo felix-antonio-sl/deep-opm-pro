@@ -197,6 +197,22 @@ function parsearOracion(
     };
 }
 
+/** El punto y coma separa miembros solo fuera de una etiqueta entre backticks. */
+function splitFamilyItems(text: string): string[] {
+  const items: string[] = [];
+  let start = 0;
+  let quoted = false;
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] === "`") quoted = !quoted;
+    else if (text[index] === ";" && !quoted) {
+      items.push(text.slice(start, index).trim());
+      start = index + 1;
+    }
+  }
+  items.push(text.slice(start).trim());
+  return items;
+}
+
 function parsearFamiliaEfectosPreestado(
   textoMarcado: string,
   linea: LineaOplNormalizada,
@@ -207,19 +223,16 @@ function parsearFamiliaEfectosPreestado(
   const cobertura = (match[2] ?? "").toLocaleLowerCase("es") as "total" | "parcial";
   const proceso = normalizarNombreOpl(match[3] ?? "");
   const objeto = normalizarNombreOpl(match[4] ?? "");
-  const dominioEstados = (match[5] ?? "")
-    .split(";")
-    .map((item) => /^`([^`]+)`$/u.exec(item.trim())?.[1]?.trim() ?? "")
-    .filter(Boolean);
-  const miembros = (match[6] ?? "")
-    .split(";")
+  const dominioEstados = splitFamilyItems(match[5] ?? "")
+    .map((item) => /^`([^`]+)`$/u.exec(item)?.[1]?.trim() ?? "");
+  const miembros = splitFamilyItems(match[6] ?? "")
     .map((item) => /^`([^`]+)`\s+—ruta\s+`([^`]+)`→\s+`([^`]+)`$/u.exec(item.trim()))
     .map((item) => item ? {
       estadoEntrada: (item[1] ?? "").trim(),
       rutaEtiqueta: (item[2] ?? "").trim(),
       estadoSalida: (item[3] ?? "").trim(),
     } : null);
-  if (!familiaId || !proceso || !objeto || dominioEstados.length < 2 || miembros.length < 2 || miembros.some((item) => item === null)) {
+  if (!familiaId || !proceso || !objeto || dominioEstados.length < 2 || dominioEstados.some((item) => !item) || miembros.length < 2 || miembros.some((item) => item === null)) {
     return null;
   }
   return {

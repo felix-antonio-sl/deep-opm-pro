@@ -111,6 +111,35 @@ describe("familia de efectos indexada por preestado (extensión declarada)", () 
     expect(generarOpl(recuperado)).toEqual(oplOriginal);
   });
 
+  test("round-trip OPL conserva punto y coma dentro de estados y rutas de la familia", () => {
+    let original = modeloConFamilia();
+    const family = familiaDe(original);
+    original = must(renombrarEstado(original, family.dominioEstadoIds[0]!, "nulo; inicial"));
+    original = must(renombrarEstado(original, family.dominioEstadoIds[2]!, "suficiente; final"));
+    original = must(definirRutaEtiqueta(original, family.enlaceIds[0]!, "restablecer; cobertura"));
+    expect(hidratarModelo(exportarModelo(original)).ok).toBe(true);
+
+    const originalOpl = generarOpl(original);
+    const empty = crearModelo("Reverse con delimitadores en etiquetas");
+    const preview = planificarEdicionOplLibre(empty, originalOpl.join("\n"), {
+      opdActivoId: empty.opdRaizId,
+    });
+    expect(preview.diagnosticos.filter((item) => item.severidad === "error")).toEqual([]);
+
+    const recovered = must(aplicarPatchesOpl(empty, preview.patches, empty.opdRaizId));
+    expect(triplesFamilia(recovered, familiaDe(recovered))).toEqual(triplesFamilia(original, family));
+    expect(generarOpl(recovered)).toEqual(originalOpl);
+  });
+
+  test("OPL rechaza un elemento vacío del dominio en vez de descartarlo", () => {
+    const opl = generarOpl(modeloConFamilia()).join("\n")
+      .replace("tiene dominio {`nulo`;", "tiene dominio {`nulo`; ;");
+    const empty = crearModelo("Reverse con dominio inválido");
+    const preview = planificarEdicionOplLibre(empty, opl, { opdActivoId: empty.opdRaizId });
+
+    expect(preview.diagnosticos.some((item) => item.severidad === "error")).toBe(true);
+  });
+
   test("OPD muestra una agrupación declarada distinta de O, XOR y AND", () => {
     const modelo = modeloConFamilia();
 
