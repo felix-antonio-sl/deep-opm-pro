@@ -23,6 +23,7 @@ import type {
   ReferenciaNormaExtraida,
   ReglaT2,
 } from "./tipos";
+import { parsearParrafoOpl } from "../../opl/parser/parsear";
 
 // ── Lexico canonico ─────────────────────────────────────────────────────
 
@@ -291,6 +292,20 @@ function normalizarLinea(linea: string, contexto: ContextoProto): LineaNormaliza
   if (linea.startsWith("#")) {
     const texto = linea.replace(/^#\s*/, "");
     return [{ clase: "comentario", texto, anclas: extraerAnclasDeLinea(linea) }];
+  }
+
+  // Extensión declarada de partición por preestado. El prefijo entre corchetes
+  // forma parte de la gramática OPL de la extensión; NO es un ancla normativa.
+  // Se acepta únicamente cuando el parser canónico reconoce la oración completa,
+  // antes de que la extracción genérica de anclas quite el prefijo y la corrompa.
+  const candidataFamilia = asegurarPunto(linea.replace(/\.\s*$/, "").trim());
+  const parseadaFamilia = parsearParrafoOpl(candidataFamilia);
+  if (
+    parseadaFamilia.ast.length === 1
+    && parseadaFamilia.ast[0]?.kind === "familia-efectos-preestado"
+    && !parseadaFamilia.diagnosticos.some((item) => item.severidad === "error")
+  ) {
+    return [{ clase: "estricta", oracion: candidataFamilia }];
   }
 
   // 2) Extraer anclas inline (se conservan junto a la linea; el emisor las compila

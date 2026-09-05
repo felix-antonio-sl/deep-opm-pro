@@ -1,5 +1,5 @@
 import { esAutoInvocacion } from "../../modelo/autoinvocacion";
-import { entidadIdDeExtremo } from "../../modelo/extremos";
+import { entidadDeExtremo, entidadIdDeExtremo, extremoEntidad, extremoEstado } from "../../modelo/extremos";
 import { aparicionesVisiblesEnOpd } from "../../modelo/politicaApariciones";
 import { proyeccionesAbanicoEnOpd, puertoComunDeAbanico } from "../../modelo/abanicos";
 import type { Apariencia, EstadoDrift, Estado, Id, Modelo, Posicion, TipoEnlace } from "../../modelo/tipos";
@@ -22,6 +22,7 @@ import {
 } from "./composers/halos";
 import { proyectarImagenesEntidad } from "./composers/imagenOverlay";
 import { normalizarOpcionesProyeccion, OPCIONES_PROYECCION_DEFAULT } from "./proyeccionOpciones";
+import { proyectarOverlaysFamiliasPreestado } from "./familiaPreestadoOverlay";
 import { proyectarOverlaysDeclaracionesNoNucleares } from "./declaracionesNoNuclearesOverlay";
 import type { JointCellJson, OpcionesProyeccion } from "./proyeccionTipos";
 
@@ -37,6 +38,12 @@ const TIPOS_REFINAMIENTO_ESTRUCTURAL: readonly TipoEnlace[] = [
 ] as const;
 
 const UMBRAL_JUMPOVER_DENSO = 35;
+
+function fondoDeOverlay(celda: JointCellJson): number {
+  const posicion = celda.position as { y?: number } | undefined;
+  const tamano = celda.size as { height?: number } | undefined;
+  return (posicion?.y ?? 0) + (tamano?.height ?? 0);
+}
 
 export interface OpcionesSimulacionRender {
   procesoActivoId: Id | null;
@@ -133,7 +140,21 @@ export function proyectarModeloAJointCells(
         aparienciaPorEntidad,
       });
     });
-  const overlaysDeclaracionesNoNucleares = proyectarOverlaysDeclaracionesNoNucleares(modeloRender, opdId);
+  const overlaysFamiliasPreestado = proyectarOverlaysFamiliasPreestado(modeloRender, opdId);
+  const enlacesConRutaEnOverlayFamilia = new Set(
+    overlaysFamiliasPreestado.flatMap((overlay) =>
+      overlay.opm.kind === "overlay-familia-preestado" ? overlay.opm.enlaceIds : []
+    ),
+  );
+  const fondoFamiliasPreestado = overlaysFamiliasPreestado.reduce(
+    (maximo, overlay) => Math.max(maximo, fondoDeOverlay(overlay)),
+    Number.NEGATIVE_INFINITY,
+  );
+  const overlaysDeclaracionesNoNucleares = proyectarOverlaysDeclaracionesNoNucleares(
+    modeloRender,
+    opdId,
+    Number.isFinite(fondoFamiliasPreestado) ? fondoFamiliasPreestado + 16 : undefined,
+  );
   // Enlaces que pertenecen a un abanico usan router recto para converger en
   // el dockPoint del puerto sin las rutas en L del routerManhattan, replicando
   // el OpmDefaultLink de OpCloud (shared.ts:2450-2457) cuyos enlaces
@@ -190,6 +211,63 @@ export function proyectarModeloAJointCells(
     if (origen.apariencia.id === destino.apariencia.id) return [];
     const enlaceResaltado = enlace.id === seleccionEnlaceId || seleccionMultiple.has(enlace.id) || refResaltaEnlace(enlace, hoverOplRef);
     const enlaceActivoRuntime = enlacesInvolucradosSim.has(enlace.id);
+    if (enlace.tipo === "efecto" && enlace.estadoEntradaId && enlace.estadoSalidaId) {
+      const proceso = [
+        entidadDeExtremo(modeloRender, enlace.origenId),
+        entidadDeExtremo(modeloRender, enlace.destinoId),
+      ].find((entidad) => entidad?.tipo === "proceso");
+      if (!proceso) return [];
+      const procesoVisual = resolverEndpointVisual(
+        modeloRender,
+        opd,
+        aparienciaPorEntidad,
+        extremoEntidad(proceso.id),
+      );
+      const entradaVisual = resolverEndpointVisual(
+        modeloRender,
+        opd,
+        aparienciaPorEntidad,
+        extremoEstado(enlace.estadoEntradaId),
+      );
+      const salidaVisual = resolverEndpointVisual(
+        modeloRender,
+        opd,
+        aparienciaPorEntidad,
+        extremoEstado(enlace.estadoSalidaId),
+      );
+      if (!procesoVisual || !entradaVisual || !salidaVisual) return [];
+      const opcionesTs3 = {
+        usarJumpover,
+        activaSimulacion: enlaceActivoRuntime,
+        ocultarRuta: enlacesConRutaEnOverlayFamilia.has(enlace.id),
+      };
+      return [
+        proyectarEnlace(
+          opdId,
+          enlace,
+          `${aparienciaEnlace.id}:ts3-entrada`,
+          entradaVisual,
+          procesoVisual,
+          [],
+          aparienciaEnlace.labelPositions,
+          enlaceResaltado,
+          false,
+          { ...opcionesTs3, segmentoTs3: "entrada" },
+        ),
+        proyectarEnlace(
+          opdId,
+          enlace,
+          `${aparienciaEnlace.id}:ts3-salida`,
+          procesoVisual,
+          salidaVisual,
+          [],
+          aparienciaEnlace.labelPositions,
+          enlaceResaltado,
+          false,
+          { ...opcionesTs3, segmentoTs3: "salida" },
+        ),
+      ];
+    }
     const refinableId = entidadIdDeExtremo(modeloRender, enlace.origenId);
     const ordenado = refinableId
       ? modeloRender.entidades[refinableId]?.orderedFundamentalTypes?.includes(enlace.tipo) ?? false
@@ -274,7 +352,7 @@ export function proyectarModeloAJointCells(
       })
     : [];
 
-  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...overlaysDeclaracionesNoNucleares, ...elementos, ...imagenes, ...halos, ...halosSimulacion];
+  return [...busCells, ...enlaces, ...proxies, ...overlaysAbanico, ...overlaysFamiliasPreestado, ...overlaysDeclaracionesNoNucleares, ...elementos, ...imagenes, ...halos, ...halosSimulacion];
 }
 
 function symbolPosEstructural(

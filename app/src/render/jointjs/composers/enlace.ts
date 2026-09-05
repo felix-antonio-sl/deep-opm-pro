@@ -133,7 +133,13 @@ export function proyectarEnlace(
   labelPositions: LayoutLabelsEnlace,
   seleccionada: boolean,
   enAbanico = false,
-  opciones: { usarJumpover?: boolean; activaSimulacion?: boolean; preservarPuerto?: boolean } = {},
+  opciones: {
+    usarJumpover?: boolean;
+    activaSimulacion?: boolean;
+    preservarPuerto?: boolean;
+    segmentoTs3?: "entrada" | "salida";
+    ocultarRuta?: boolean;
+  } = {},
 ): JointCellJson {
   const verticesRender = verticesEnlace(enlace.tipo, origen, destino, vertices);
   const wrapWidth = anchoWrapEntreApariencias(etiquetaEnlaceNormalizada(enlace.etiqueta) || enlace.rutaEtiqueta || "", origen.apariencia, destino.apariencia);
@@ -183,7 +189,7 @@ export function proyectarEnlace(
       ...etiquetasModificador(enlace, labelPositions, wrapWidth),
       ...etiquetasTagged(enlace, labelPositions, wrapWidth),
       ...(esEnlaceEstructuralEtiquetado(enlace.tipo) ? [] : etiquetaEnlace(enlace, labelPositions, wrapWidth)),
-      ...etiquetasRuta(enlace, labelPositions, wrapWidth),
+      ...(opciones.ocultarRuta ? [] : etiquetasRuta(enlace, labelPositions, wrapWidth)),
       ...etiquetasOpcloudAvanzadas(enlace, labelPositions, wrapWidth),
       ...etiquetasProxyParte(origen, destino, labelPositions, wrapWidth),
       ...(activoRuntime ? [etiquetaTokenSimulacion(enlace.tipo)] : []),
@@ -203,7 +209,7 @@ export function proyectarEnlace(
         strokeWidth: seleccionada ? grosorEnlace + 2 : activoRuntime ? grosorEnlace + 1.5 : grosorEnlace,
         ...(activoRuntime ? { strokeDasharray: "7 4", strokeLinecap: "round", "data-opm-sim": "runtime-link" } : {}),
         ...(dashOverride !== undefined ? { strokeDasharray: dashOverride } : {}),
-        sourceMarker: marcadorBidireccional ?? marcadorFuente(enlace.tipo),
+        sourceMarker: opciones.segmentoTs3 ? null : marcadorBidireccional ?? marcadorFuente(enlace.tipo),
         targetMarker: marcadorBidireccional ?? marcadorDestino(enlace.tipo),
       },
     },
@@ -213,6 +219,7 @@ export function proyectarEnlace(
       enlaceId: enlace.id,
       aparienciaEnlaceId,
       tipo: enlace.tipo,
+      ...(opciones.segmentoTs3 ? { segmentoTs3: opciones.segmentoTs3 } : {}),
     },
     z: tocaEstado ? Z_ENLACE_ESTADO : Z_ENLACE,
   };

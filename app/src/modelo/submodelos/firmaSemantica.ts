@@ -29,6 +29,7 @@ import type {
   Enlace,
   Estado,
   ExtremoEnlace,
+  FamiliaEfectosPreestado,
   Id,
   Modelo,
   Opd,
@@ -201,6 +202,7 @@ export const PARTICION_MODELO: Record<keyof Modelo, ClaseCampo> = {
   ontologia: "excluido",
   satisfaccionesRequisito: "excluido",
   declaracionesNoNucleares: "excluido",
+  familiasEfectosPreestado: "firmado",
   anclasNormativas: "excluido",
   notasMesa: "excluido",
   mesaExploracion: "excluido",
@@ -258,9 +260,29 @@ export function proyectarSemantico(modelo: Modelo): Record<string, unknown> {
     estados: mapRecord(modelo.estados, (s) => proyectar(s, PARTICION_ESTADO)),
     enlaces: mapRecord(modelo.enlaces, (l) => proyectar(l, PARTICION_ENLACE)),
     abanicos: mapRecord(modelo.abanicos ?? {}, proyectarAbanico),
+    familiasEfectosPreestado: mapRecord(
+      modelo.familiasEfectosPreestado ?? {},
+      proyectarFamiliaEfectosPreestado,
+    ),
   };
 }
 
+function proyectarFamiliaEfectosPreestado(
+  familia: FamiliaEfectosPreestado,
+): Record<string, unknown> {
+  return {
+    id: familia.id,
+    tipo: familia.tipo,
+    estatuto: familia.estatuto,
+    opdId: familia.opdId,
+    procesoId: familia.procesoId,
+    objetoId: familia.objetoId,
+    enlaceIds: familia.enlaceIds,
+    dominioEstadoIds: familia.dominioEstadoIds,
+    cobertura: familia.cobertura,
+    aplicacion: familia.aplicacion,
+  };
+}
 
 /** Indexa items con `id` en un `Record` keyado por id (identidad referencial; orden-libre tras `ordenarJson`). */
 function indexarPorId<T extends { id: Id }>(

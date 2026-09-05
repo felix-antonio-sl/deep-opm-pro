@@ -43,6 +43,7 @@ const CAMPOS_MODELO = {
   ontologia: true,
   satisfaccionesRequisito: true,
   declaracionesNoNucleares: true,
+  familiasEfectosPreestado: true,
   anclasNormativas: true,
   notasMesa: true,
   mesaExploracion: true,

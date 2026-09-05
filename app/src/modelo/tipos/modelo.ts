@@ -7,6 +7,7 @@ import type {
   AnclaNormativa,
   DeclaracionNoNuclear,
   Estereotipo,
+  FamiliaEfectosPreestado,
   MesaExploracionV1,
   NotaMesa,
   OntologiaOrganizacional,
@@ -64,6 +65,8 @@ export interface Modelo {
   satisfaccionesRequisito?: Record<Id, SatisfaccionRequisito>;
   /** Meta tipada de roles/restricciones/exclusiones/fronteras; no es OPM nuclear. */
   declaracionesNoNucleares?: Record<Id, DeclaracionNoNuclear>;
+  /** Extensión declarada que agrupa TS3 por preestado; no es un abanico lógico. */
+  familiasEfectosPreestado?: Record<Id, FamiliaEfectosPreestado>;
   /** W5.1: trazabilidad de procedencia normativa. Aditivo y opcional (extensión declarada). */
   anclasNormativas?: Record<Id, AnclaNormativa>;
   /** W6.5-a: notas de mesa (comentarios de revisión por componente). Aditivo y opcional. */

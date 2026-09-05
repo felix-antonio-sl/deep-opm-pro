@@ -21,6 +21,7 @@ export type OpmJointMetadata =
       tipo: TipoEnlace;
       enlaceIds?: Id[];
       aparienciaEnlaceIds?: Id[];
+      segmentoTs3?: "entrada" | "salida";
       rolEstructural?: "refinable" | "rama" | "simbolo";
       rolInvocacion?: "auto-salida" | "auto-retorno";
       ladoRefinable?: "origen" | "destino";
@@ -48,6 +49,13 @@ export type OpmJointMetadata =
       opdId: Id;
       abanicoId: Id;
       operador: "O" | "XOR";
+    }
+  | {
+      kind: "overlay-familia-preestado";
+      opdId: Id;
+      familiaId: Id;
+      enlaceIds: Id[];
+      cobertura: "total" | "parcial";
     }
   | {
       kind: "overlay-declaracion-no-nuclear";

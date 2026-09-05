@@ -277,6 +277,18 @@ export type OracionOplAst =
       etiqueta?: string;
     }
   | {
+      /** Extensión declarada; no es una primitiva OPM ni un fan lógico. */
+      kind: "familia-efectos-preestado";
+      linea: number;
+      familiaId: Id;
+      cobertura: "total" | "parcial";
+      proceso: string;
+      objeto: string;
+      dominioEstados: string[];
+      miembros: Array<{ estadoEntrada: string; rutaEtiqueta: string; estadoSalida: string }>;
+      etiqueta?: string;
+    }
+  | {
       kind: "unsupported";
       linea: number;
       texto: string;
@@ -372,6 +384,16 @@ export type PatchOplPropuesto =
         estadoSalida?: string;
       }>;
       modificador?: Modificador;
+    }
+  | {
+      tipo: "crear-familia-efectos-preestado";
+      linea: number;
+      familiaId: Id;
+      cobertura: "total" | "parcial";
+      procesoRef: ReferenciaEntidadPatch;
+      objetoRef: ReferenciaEntidadPatch;
+      dominioEstados: string[];
+      miembros: Array<{ estadoEntrada: string; rutaEtiqueta: string; estadoSalida: string }>;
     };
 
 export interface PrevisualizacionOplReverse {

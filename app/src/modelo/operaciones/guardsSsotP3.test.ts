@@ -122,6 +122,36 @@ describe("R-OPD-HAB-4 — unicidad de rol por par objeto-proceso", () => {
     if (!duplicada.ok) expect(duplicada.error).toContain("R-OPD-HAB-4");
   });
 
+  test("checker no confunde efectos TS3 compactos distintos con transformadores planos duplicados", () => {
+    let m = base();
+    const cosaId = idDe(m, "Cosa");
+    const [entradaA, salida] = Object.values(m.estados).filter((estado) => estado.entidadId === cosaId);
+    if (!entradaA || !salida) throw new Error("Fixture requiere estados iniciales");
+    const agregado = must(agregarEstado(m, cosaId, "entrada-b"));
+    m = agregado.modelo;
+
+    m = must(crearEnlace(
+      m,
+      m.opdRaizId,
+      idDe(m, "Procesar"),
+      cosaId,
+      "efecto",
+      "",
+      { estadoEntradaId: entradaA.id, estadoSalidaId: salida.id },
+    ));
+    m = must(crearEnlace(
+      m,
+      m.opdRaizId,
+      idDe(m, "Procesar"),
+      cosaId,
+      "efecto",
+      "",
+      { estadoEntradaId: agregado.estadoId, estadoSalidaId: salida.id },
+    ));
+
+    expect(checkParTransformadorDuplicado(m)).toEqual([]);
+  });
+
   test("rechaza metadatos TS3 parciales o pertenecientes a otro objeto", () => {
     let m = base();
     const cosaId = idDe(m, "Cosa");

@@ -71,6 +71,8 @@ function planificarAst(
       return planificarAbanico(modelo, ast, registry);
     case "excepcion":
       return planificarExcepcion(modelo, ast, registry);
+    case "familia-efectos-preestado":
+      return planificarFamiliaEfectosPreestado(modelo, ast, registry);
     case "estructural":
       return planificarEstructural(modelo, ast, registry, opdActivoId);
     case "designacion-estado":
@@ -93,6 +95,26 @@ function planificarAst(
     case "unsupported":
       return;
   }
+}
+
+function planificarFamiliaEfectosPreestado(
+  modelo: Modelo,
+  ast: Extract<OracionOplAst, { kind: "familia-efectos-preestado" }>,
+  registry: PatchRegistry,
+): void {
+  const procesoRef = refEntidadPorNombre(modelo, ast.proceso, "proceso", ast.linea, registry);
+  const objetoRef = refEntidadPorNombre(modelo, ast.objeto, "objeto", ast.linea, registry);
+  if (!procesoRef || !objetoRef) return;
+  registry.add({
+    tipo: "crear-familia-efectos-preestado",
+    linea: ast.linea,
+    familiaId: ast.familiaId,
+    cobertura: ast.cobertura,
+    procesoRef,
+    objetoRef,
+    dominioEstados: ast.dominioEstados,
+    miembros: ast.miembros,
+  });
 }
 
 function planificarContexto(
@@ -1067,6 +1089,8 @@ function patchKey(patch: PatchOplPropuesto): string {
       const procesoKey = refKey(patch.procesoRef);
       return `${patch.tipo}:${patch.linea}:${patch.tipoEnlace}:${procesoKey}:${patch.procesoEsOrigen ? "o" : "d"}:${patch.modificador ?? ""}`;
     }
+    case "crear-familia-efectos-preestado":
+      return `${patch.tipo}:${patch.familiaId}`;
     case "crear-refinamiento":
       return `${patch.tipo}:${patch.entidadId}:${patch.familia}`;
     case "set-orden-inzoom":
