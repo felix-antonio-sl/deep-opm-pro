@@ -54,6 +54,8 @@ export interface EsperadoCordon {
   version: string;
   hashFuente: string;
   target: string;
+  /** Firma de los archivos de una emisión nativa revisada, sin sello embebido. */
+  nativeHash?: string;
 }
 
 /**
@@ -114,5 +116,7 @@ export const CORDON_SKILL_ESPERADOS: Record<TargetCordonSkill, EsperadoCordon> =
     version: "3.1.0",
     hashFuente: "sha256:cfa80c33aed313d04af3ca8c400f40e5266b97d4aa60e55ab09e6dffac093ef2",
     target: "codex",
+    // Render canónico KORA contrastado byte a byte con sus 11 archivos instalados.
+    nativeHash: "sha256:0315794b4a10fb0ee70cd5e34310a9b88580063d482459125cf94ef1ee5174a3",
   },
 };

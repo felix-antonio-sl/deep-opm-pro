@@ -25,7 +25,7 @@ relations:
 Este archivo no es la SSOT. La autoridad primaria vive en KORA:
 
 - URN: `urn:fxsl:kb:spec-forja-opd-es`
-- Resolución de path: por URN vía `docs/canon-opm/resolutor-urn.json` (re-ancla a la SSOT viva en PNEUMA bajo `KORA_RAIZ`, default `/home/felix/kora-pneuma`; la bestia congelada `/home/felix/kora` queda como último origen histórico). Lector: `app/src/canon/resolutorUrn.ts`.
+- Resolución de path: por URN vía `docs/canon-opm/resolutor-urn.json`, hacia la biblioteca KORA seleccionada. `KORA_RAIZ` permite cambiar la raíz. Lector: `app/src/canon/resolutorUrn.ts`.
 - Estado: `publicado`
 - Versión vigente observada: `1.4.0` (2026-07-27). Formaliza Bocetos como
   componentes raíz-de-fragmento visibles en Taller, con Integrar y Devolver
@@ -65,6 +65,6 @@ estable.
 ## Acceso Rápido
 
 ```bash
-KORA_RAIZ="${KORA_RAIZ:-/home/felix/kora-pneuma}"
-cat "$KORA_RAIZ/artefactos/conocimiento/fxsl/spec-forja-opd-es.md"   # path resuelto por docs/canon-opm/resolutor-urn.json (SSOT viva en pneuma)
+cd app  # desde la raíz del repositorio
+bun -e 'import { readFileSync } from "node:fs"; import { resolverUrn } from "./src/canon/resolutorUrn"; process.stdout.write(readFileSync(resolverUrn("urn:fxsl:kb:spec-forja-opd-es"), "utf8"));'
 ```

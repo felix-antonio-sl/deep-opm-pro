@@ -1,8 +1,8 @@
 // Corte C3 — resolutor URN como config de DATOS (spec §5.3).
-// Resuelve urn:fxsl:kb:* -> path absoluto a la SSOT VIVA en pneuma, leyendo el
+// Resuelve urn:fxsl:kb:* -> path absoluto a la SSOT VIVA en la biblioteca KORA, leyendo el
 // mapa de datos puros docs/canon-opm/resolutor-urn.json. Función pura de datos:
 // NO ejecuta kora.py ni ningún subprocess; solo lee el JSON y compone la ruta.
-// KORA_RAIZ (env) re-ancla la raíz; el default apunta a pneuma, no a la bestia.
+// KORA_RAIZ (env) re-ancla la raíz; el default apunta a la biblioteca KORA, no a la bestia.
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
@@ -21,7 +21,7 @@ interface ConfigResolutor {
 
 const config: ConfigResolutor = JSON.parse(readFileSync(RUTA_JSON, "utf8"));
 
-/** Raíz efectiva del corpus: env KORA_RAIZ o el default de pneuma del JSON. */
+/** Raíz efectiva del corpus: env KORA_RAIZ o el default de la biblioteca KORA del JSON. */
 export function koraRaiz(): string {
   return process.env.KORA_RAIZ ?? config.kora_raiz_default;
 }

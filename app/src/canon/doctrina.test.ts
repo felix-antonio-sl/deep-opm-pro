@@ -1,6 +1,6 @@
 // Corte C2 — IO de la doctrina del cordón (decisión D-DOCTRINA, spec §5.2).
 // La lectura de las 4 SSOT forja vive en `canon/doctrina.ts` (NO en el kernel
-// puro `autoria/procedencia.ts`). Aquí se verifica que, con pneuma montada,
+// puro `autoria/procedencia.ts`). Aquí se verifica que, con la biblioteca KORA montada,
 // produce 4 textos no vacíos y un hash de doctrina estable.
 //
 // SKIP nombrado (mismo patrón que resolutorUrn.test): si KORA_RAIZ no está
@@ -24,7 +24,7 @@ describe("doctrina — IO de las 4 SSOT forja para el sello (corte C2)", () => {
     ]);
   });
 
-  test("leerDoctrinaParaSello() devuelve 4 textos no vacíos y hashDoctrina es estable (pneuma montada)", () => {
+  test("leerDoctrinaParaSello() devuelve 4 textos no vacíos y hashDoctrina es estable (la biblioteca KORA montada)", () => {
     if (!ssotMontada) {
       console.warn(
         `[doctrina] SSOT no montada, lectura no verificada (KORA_RAIZ=${raiz})`,

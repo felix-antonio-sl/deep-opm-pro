@@ -1,6 +1,6 @@
 // Corte C3 — el resolutor URN es config de DATOS (spec §5.3): un mapa
 // urn:fxsl:kb:* -> { path relativo a KORA_RAIZ, version observada } que re-ancla
-// los puentes docs/canon-opm/ a la SSOT VIVA en pneuma (no a la bestia congelada).
+// los puentes docs/canon-opm/ a la SSOT VIVA en la biblioteca KORA (no a la bestia congelada).
 //
 // Leyes operacionalizadas por este test:
 //   L1 — todo URN del mapa resuelve a un path absoluto bajo KORA_RAIZ.
@@ -12,14 +12,14 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, test } from "bun:test";
 import { koraRaiz, mapaUrn, resolverUrn } from "./resolutorUrn";
 
-// Lee el campo `version:` plano del frontmatter YAML de una SSOT de pneuma.
+// Lee el campo `version:` plano del frontmatter YAML de una SSOT de la biblioteca KORA.
 function versionFrontmatter(absPath: string): string | null {
   const texto = readFileSync(absPath, "utf8");
   const m = texto.match(/^version:\s*"?([0-9]+\.[0-9]+\.[0-9]+)"?/m);
   return m?.[1] ?? null;
 }
 
-// Lee el campo `urn:` plano del frontmatter YAML de una SSOT de pneuma.
+// Lee el campo `urn:` plano del frontmatter YAML de una SSOT de la biblioteca KORA.
 function urnFrontmatter(absPath: string): string | null {
   const texto = readFileSync(absPath, "utf8");
   const m = texto.match(/^urn:\s*"?(urn:[^"\s]+)"?/m);
@@ -29,7 +29,7 @@ function urnFrontmatter(absPath: string): string | null {
 const raiz = koraRaiz();
 const ssotMontada = existsSync(raiz);
 
-describe("resolutorUrn — config de datos, re-anclaje a pneuma", () => {
+describe("resolutorUrn — config de datos, re-anclaje a la biblioteca KORA", () => {
   test("el mapa tiene exactamente las 5 fuentes propietarias del tutor contextual", () => {
     expect(Object.keys(mapaUrn()).sort()).toEqual(
       [

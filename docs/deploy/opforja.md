@@ -111,10 +111,17 @@ instancia del mismo circuito. Las regresiones del script se comprueban con
 
 `bun run cordon:skill` comprueba las emisiones instaladas de Claude y Codex
 contra los pins por runtime de `app/src/canon/selloSkill.ts`. Las versiones
-aceptadas pueden diferir: Codex 3.1.0 conserva el contrato operativo de Forja
-2.1.0 en su referencia de operación profunda. Un cambio de pin requiere
-contrastar el hash con la fuente KORA y revisar ese contrato; el despliegue
-de la aplicación no modifica las skills instaladas.
+aceptadas pueden diferir. Las emisiones con sello conservan la comprobación de
+versión y procedencia; la emisión nativa de Codex se compara por la firma del
+conjunto de `SKILL.md` y sus referencias. Esa firma se contrastó con una salida
+de `kora_cli.py render codex urn:kora:artefacto:modelamiento-opm`, sin reinstalar.
+Un cambio de pin requiere revisar la emisión desde su fuente KORA y su contrato;
+no basta con tomar el hash de lo instalado. El despliegue de la aplicación no
+modifica las skills ni la biblioteca externa.
+
+El corpus OPM se resuelve mediante `docs/canon-opm/resolutor-urn.json` hacia
+`kora-knowledge`. `KORA_RAIZ` permite cambiar la raíz para el lector de doctrina;
+`TUTOR_CANON_ROOT` cumple esa función para la materialización del Tutor.
 
 Verificar contenedor:
 

@@ -7,9 +7,10 @@
 // Salida greppable: `[CORDON:codex] FALLO: deploy stale: skill vX != esperada vY`.
 // Exit 1 solo en FALLO duro; ADVERTENCIA/SKIP/OK no rompen el gate (R-CONF-7: la
 // divergencia se reporta, no se silencia; la indeterminación se nombra, no se finge).
-import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import {
   CORDON_SKILL_ESPERADOS,
   CORDON_SKILL_NOMBRE,
@@ -28,6 +29,24 @@ export function rutaDeployPorDefecto(target: TargetCordonSkill = "claude-code"):
   return join(raiz, CORDON_SKILL_NOMBRE, "SKILL.md");
 }
 
+/** Firma la entrada y sus referencias; rechaza enlaces simbólicos dentro de la emisión. */
+export function fingerprintNativeSkill(directory: string): string {
+  const files: Array<[string, string]> = [];
+  const collect = (relative: string) => {
+    for (const entry of readdirSync(join(directory, relative), { withFileTypes: true })) {
+      const path = relative ? `${relative}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) collect(path);
+      else if (entry.isFile()) {
+        files.push([path, createHash("sha256").update(readFileSync(join(directory, path))).digest("hex")]);
+      } else throw new Error(`Archivo nativo no regular: ${path}`);
+    }
+  };
+  collect("");
+  const manifest = files.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+    .map(([path, hash]) => `${path}\0${hash}`).join("\n");
+  return `sha256:${createHash("sha256").update(manifest).digest("hex")}`;
+}
+
 /**
  * Audita una ruta concreta del deploy contra lo esperado. El archivo ausente es un
  * SKIP nombrado (CI/otra máquina sin `~/.claude/skills` montado), no un falso rojo.
@@ -39,7 +58,16 @@ export function auditarRutaSkill(rutaArchivo: string, esperado: EsperadoCordon):
       motivo: `deploy de la skill no encontrado en ${rutaArchivo} (¿~/.claude/skills montado?)`,
     };
   }
-  return evaluarCordonSkill(parsearSelloKora(readFileSync(rutaArchivo, "utf8")), esperado);
+  const sello = parsearSelloKora(readFileSync(rutaArchivo, "utf8"));
+  if (sello || !esperado.nativeHash) return evaluarCordonSkill(sello, esperado);
+  try {
+    const actual = fingerprintNativeSkill(dirname(rutaArchivo));
+    return actual === esperado.nativeHash
+      ? { estado: "ok", motivo: `emisión nativa ${esperado.target} coincide con la revisión canónica: ${actual}` }
+      : { estado: "fallo", motivo: `emisión nativa ${esperado.target} difiere de la revisión canónica: ${actual}` };
+  } catch (error) {
+    return { estado: "fallo", motivo: `emisión nativa no verificable: ${error instanceof Error ? error.message : String(error)}` };
+  }
 }
 
 if (import.meta.main) {

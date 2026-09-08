@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join, resolve } from "node:path";
+import { resolve } from "node:path";
 import { mapaUrn, resolverUrn } from "../src/canon/resolutorUrn";
-import { CORDON_SKILL_ESPERADOS, evaluarCordonSkill, parsearSelloKora, type SelloKora, type TargetCordonSkill } from "../src/canon/selloSkill";
+import { CORDON_SKILL_ESPERADOS } from "../src/canon/selloSkill";
+import { auditarRutaSkill, rutaDeployPorDefecto } from "./cordon-skill-audit";
 
 const APP_ROOT = resolve(import.meta.dir, "..");
 const REPO_ROOT = resolve(APP_ROOT, "..");
@@ -65,19 +65,9 @@ export function cambiaProductoDesde(build: string | null, repoRoot = REPO_ROOT):
   return nuevos.status === 0 ? nuevos.stdout.length > 0 : null;
 }
 
-function selloSkill(ruta: string): SelloKora | null {
-  return existsSync(ruta) ? parsearSelloKora(readFileSync(ruta, "utf8")) : null;
-}
-
 function versionUrn(urn: string): string | null {
   const ruta = resolverUrn(urn);
   return existsSync(ruta) ? versionFrontmatter(readFileSync(ruta, "utf8")) : null;
-}
-
-function estadoSello(sello: SelloKora | null, target: TargetCordonSkill): string {
-  if (!sello) return "SKIP · deploy no encontrado o sin sello";
-  const veredicto = evaluarCordonSkill(sello, CORDON_SKILL_ESPERADOS[target]);
-  return `${veredicto.estado.toUpperCase()} · v${sello.version} · ${sello.target} · ${sello.hashFuente.slice(0, 19)}… · ${veredicto.motivo}`;
 }
 
 async function leerProduccion(): Promise<{ build: string | null; health: string; session: number | null }> {
@@ -105,24 +95,22 @@ export async function ejecutarCordonEstado(): Promise<number> {
     const viva = versionUrn(urn);
     return `${urn.replace("urn:fxsl:kb:", "")}=${viva ?? "SKIP"}${viva && viva !== pin.version ? ` (pin ${pin.version})` : ""}`;
   });
-  const claude = selloSkill(join(homedir(), ".claude", "skills", "modelamiento-opm", "SKILL.md"));
-  const codex = selloSkill(join(homedir(), ".agents", "skills", "modelamiento-opm", "SKILL.md"));
+  const claude = auditarRutaSkill(rutaDeployPorDefecto("claude-code"), CORDON_SKILL_ESPERADOS["claude-code"]);
+  const codex = auditarRutaSkill(rutaDeployPorDefecto("codex"), CORDON_SKILL_ESPERADOS.codex);
   const produccion = await leerProduccion();
   const derivaFuente = clasificarDerivaFuente({
     head: sha,
     build: produccion.build,
     cambiaProducto: cambiaProductoDesde(produccion.build),
   });
-  const skillFalla =
-    evaluarCordonSkill(claude, CORDON_SKILL_ESPERADOS["claude-code"]).estado !== "ok" ||
-    evaluarCordonSkill(codex, CORDON_SKILL_ESPERADOS.codex).estado !== "ok";
+  const skillFalla = claude.estado !== "ok" || codex.estado !== "ok";
 
   console.log("Cordón de estado · compuesto opforja");
   console.log(`1. SSOT OPM/Forja · ${ssot.join(" · ")}`);
   console.log(`2. App · ${sha} · origin/main detrás ${upstream[0] ?? "?"}, delante ${upstream[1] ?? "?"} · árbol ${estado ? "con cambios" : "limpio"}`);
   console.log(`3. Documentación · árbol Git ${docsTree}`);
-  console.log(`4. Skill Claude · ${estadoSello(claude, "claude-code")}`);
-  console.log(`   Skill Codex  · ${estadoSello(codex, "codex")}`);
+  console.log(`4. Skill Claude · ${claude.estado.toUpperCase()} · ${claude.motivo}`);
+  console.log(`   Skill Codex  · ${codex.estado.toUpperCase()} · ${codex.motivo}`);
   console.log(`5. Método/manual · metodologia-forja-opm-es=${versionUrn("urn:fxsl:kb:metodologia-forja-opm-es") ?? "SKIP"} · manual blob ${manualBlob}`);
   console.log("");
   console.log("Operación");
@@ -130,7 +118,7 @@ export async function ejecutarCordonEstado(): Promise<number> {
   console.log(`- Fuente ↔ deploy: ${derivaFuente}`);
   console.log("");
   console.log("Fronteras sin testigo completo");
-  console.log("- SSOT ↔ skill desplegada: el sello prueba identidad, versión y procedencia; la equivalencia semántica aún requiere revisión humana.");
+  console.log("- SSOT ↔ skill desplegada: sello o firma contrastan la emisión revisada; la equivalencia semántica aún requiere revisión humana.");
   console.log("- docs/uso-productivo.md ↔ app: existen leyes editoriales y E2E parciales, pero no un comparador de todas sus afirmaciones de comportamiento.");
   return skillFalla ? 1 : 0;
 }

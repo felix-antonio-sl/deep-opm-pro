@@ -1,5 +1,5 @@
 // Corte C2 — IO de la doctrina del cordón (decisión D-DOCTRINA, spec §5.2).
-// Lee el CONTENIDO de las 4 SSOT forja desde pneuma (vía el resolutor URN del
+// Lee el CONTENIDO de las 4 SSOT forja desde la biblioteca KORA (vía el resolutor URN del
 // corte C3) para que el consumidor (script de emisión) arme `doctrinaVersion`
 // con `autoria/procedencia.hashDoctrina`. Aquí vive la IO; `procedencia.ts`
 // permanece puro (solo hashea contenido ya leído).
