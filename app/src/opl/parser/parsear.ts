@@ -1,70 +1,15 @@
-import type { Afiliacion, DesignacionEstado, Esencia, OperadorAbanico, TipoEntidad, TipoEnlace } from "../../modelo/tipos";
+import type { Afiliacion, DesignacionEstado, Esencia, TipoEntidad, TipoEnlace } from "../../modelo/tipos";
 import type { AstProcedimentalBase, DiagnosticoOpl, LineaOplNormalizada, OracionOplAst, ParseResultOpl } from "./tipos";
 
-const PUNTO_FINAL = /\.\s*$/;
-const ETIQUETA_SUFIX = /\s*\[etiqueta:\s*([^\]]+)\]\s*$/i;
+import { parsearAbanico, parsearAbanicoEvento, parsearFamiliaEfectosPreestado } from "./groups";
+import {
+  PUNTO_FINAL, RUTA_PREFIJO_RE, claveNombre, dividirLista, extraerMultiplicidadDeNombre,
+  limpiarEstado, limpiarObjetoConEstado, limpiarObjetoConEstadoConMultiplicidad,
+  normalizarLineas, normalizarNombreOpl, parsearCambioEstadoMarcado, textoMarcadoDeLinea,
+} from "./text";
 
-/**
- * SSOT §12. Multiplicidad canonica como PREFIJO de nombre. El generador emite
- * la cardinalidad delante del token de entidad: `2 **Pedidos**`, `1..N **Recursos**`,
- * `+ **Componentes**`, `2..* **Cosas**`, `* **Veces**`. Esta regex extrae la
- * cardinalidad y deja el resto del texto.
- *
- * Lenguaje aceptado (espejo de `MULTIPLICIDAD_CANONICA_RE` del modelo): `1`,
- * `2..N`, `2..*`, `0..3`, `+`, `*`. Cualquier otro prefijo no matchea y queda
- * como nombre.
- */
-const MULTIPLICIDAD_PREFIJO_RE = /^\s*(?:(\d+(?:\.\.(?:\d+|N|\*))?|N|\+|\*)\s+(.+)|un\s+(.+?)\s+opcional(?:es)?|una\s+(.+?)\s+opcional(?:es)?)$/iu;
-
-/**
- * SSOT §13. Prefijo de ruta etiquetada. El generador emite
- * `Por ruta <etiqueta>, <oracion base>` cuando el enlace tiene `rutaEtiqueta`.
- * La etiqueta llega ya sin backticks/markdown (limpiarMarkdown corre antes).
- * Case-insensitive por afinidad al dictado humano (D6).
- */
-const RUTA_PREFIJO_RE = /^Por\s+ruta\s+(.+?),\s*(.+)$/iu;
-
-/**
- * Extrae prefijo de multiplicidad (SSOT §12) de un texto. Devuelve la
- * multiplicidad como string literal y el nombre limpio. Si no hay prefijo
- * canonico, `multiplicidad` es undefined y `nombre` es el texto sin tocar.
- *
- * D5: prefijos no canonicos (e.g. `{abc}`) se ignoran silenciosamente —
- * `normalizarNombreOpl` ya descarta `{...}` segun la regla previa y el resto
- * del enlace se aplica.
- *
- * NOTA: este helper opera sobre texto sin pasar por `normalizarNombreOpl`,
- * que descarta el prefijo numerico/estrella. Usar `extraerMultiplicidadDeNombre`
- * para casos donde el texto crudo ya viene con markdown limpiado pero sin
- * normalizar.
- */
-export function extraerMultiplicidad(texto: string): { multiplicidad?: string; nombre: string } {
-  const match = MULTIPLICIDAD_PREFIJO_RE.exec(texto.trim());
-  if (!match) return { nombre: texto.trim() };
-  const multiplicidad = (match[1] ?? "").trim() || "0..1";
-  const nombre = (match[2] ?? match[3] ?? match[4] ?? "").trim();
-  if (!multiplicidad || !nombre) return { nombre: texto.trim() };
-  return { multiplicidad, nombre };
-}
-
-/**
- * Pipeline canonico para extremos con multiplicidad prefija (SSOT §12).
- * Toma texto crudo (post-`limpiarMarkdown` que ya corrio en `normalizarLinea`),
- * extrae multiplicidad del prefijo y normaliza el nombre restante con
- * `normalizarNombreOpl`.
- *
- * Esta es la API correcta para el parser: si pasamos texto crudo a
- * `normalizarNombreOpl` directamente, el prefijo `2 ` o `*` se descarta
- * silenciosamente (regla previa de `normalizarNombreOpl`) y perdemos la
- * multiplicidad.
- */
-function extraerMultiplicidadDeNombre(crudo: string): { multiplicidad?: string; nombre: string } {
-  const extraida = extraerMultiplicidad(crudo);
-  return {
-    nombre: normalizarNombreOpl(extraida.nombre),
-    ...(extraida.multiplicidad ? { multiplicidad: extraida.multiplicidad } : {}),
-  };
-}
+// Conserva la entrada pública del parser para sus consumidores.
+export { claveNombre, extraerMultiplicidad, normalizarLineas, normalizarNombreOpl } from "./text";
 
 export function parsearParrafoOpl(texto: string): ParseResultOpl {
   const lineas = normalizarLineas(texto);
@@ -84,62 +29,6 @@ export function parsearParrafoOpl(texto: string): ParseResultOpl {
   }
 
   return { ast, diagnosticos, lineas };
-}
-
-export function normalizarLineas(texto: string): LineaOplNormalizada[] {
-  return texto
-    .split(/\r?\n/)
-    .map((original, index) => normalizarLinea(original, index + 1))
-    .filter((linea): linea is LineaOplNormalizada => linea !== null);
-}
-
-export function normalizarNombreOpl(raw: string): string {
-  return limpiarMarkdown(raw)
-    .replace(/^\s*(?:\d+(?:\.\.(?:\d+|N))?|\*)\s+/i, "")
-    .replace(/\s+Pr\s*=\s*\d+(?:[.,]\d+)?\s*$/iu, "")
-    .replace(/\s+\[[^\]\r\n]+\]/g, "")
-    .replace(/\s+\{[^}\r\n]+\}/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-export function claveNombre(raw: string): string {
-  return normalizarNombreOpl(raw)
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLocaleLowerCase("es");
-}
-
-function normalizarLinea(original: string, linea: number): LineaOplNormalizada | null {
-  const sinNumeracion = original.replace(/^\s*(?:\d+(?:\.\d+)*[.)]|[-•])\s+/, "").trim();
-  if (!sinNumeracion) return null;
-  const etiquetaMatch = ETIQUETA_SUFIX.exec(sinNumeracion);
-  const etiqueta = etiquetaMatch?.[1]?.trim();
-  const sinEtiqueta = etiqueta ? sinNumeracion.slice(0, etiquetaMatch!.index).trim() : sinNumeracion;
-  return {
-    linea,
-    original,
-    texto: limpiarMarkdown(sinEtiqueta).trim(),
-    ...(etiqueta ? { etiqueta } : {}),
-  };
-}
-
-function limpiarMarkdown(texto: string): string {
-  return texto
-    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
-    .replace(/\*([^*\s][^*\n]*?)\*/g, "$1")
-    .replace(/`([^`\n]+)`/g, "$1");
-}
-
-/** Conserva backticks de estado para desambiguar los conectores `de`/`a` de TS3. */
-function textoMarcadoDeLinea(original: string): string {
-  const sinNumeracion = original.replace(/^\s*(?:\d+(?:\.\d+)*[.)]|[-•])\s+/, "").trim();
-  const etiquetaMatch = ETIQUETA_SUFIX.exec(sinNumeracion);
-  const sinEtiqueta = etiquetaMatch ? sinNumeracion.slice(0, etiquetaMatch.index).trim() : sinNumeracion;
-  return sinEtiqueta
-    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
-    .replace(/\*([^*\s][^*\n]*?)\*/g, "$1")
-    .trim();
 }
 
 function parsearOracion(
@@ -197,60 +86,6 @@ function parsearOracion(
     };
 }
 
-/** El punto y coma separa miembros solo fuera de una etiqueta entre backticks. */
-function splitFamilyItems(text: string): string[] {
-  const items: string[] = [];
-  let start = 0;
-  let quoted = false;
-  for (let index = 0; index < text.length; index += 1) {
-    if (text[index] === "`") quoted = !quoted;
-    else if (text[index] === ";" && !quoted) {
-      items.push(text.slice(start, index).trim());
-      start = index + 1;
-    }
-  }
-  items.push(text.slice(start).trim());
-  return items;
-}
-
-function parsearFamiliaEfectosPreestado(
-  textoMarcado: string,
-  linea: LineaOplNormalizada,
-): { ast: OracionOplAst; diagnosticos: DiagnosticoOpl[] } | null {
-  const match = /^\[Extensi[oó]n declarada:\s*([^\]]+)\]\s+La familia (total|parcial) indexada por preestado de (.+?) sobre (.+?) tiene dominio \{(.+)\} y comprende (.+); exactamente un miembro aplica para el preestado real$/iu.exec(textoMarcado);
-  if (!match) return null;
-  const familiaId = (match[1] ?? "").trim();
-  const cobertura = (match[2] ?? "").toLocaleLowerCase("es") as "total" | "parcial";
-  const proceso = normalizarNombreOpl(match[3] ?? "");
-  const objeto = normalizarNombreOpl(match[4] ?? "");
-  const dominioEstados = splitFamilyItems(match[5] ?? "")
-    .map((item) => /^`([^`]+)`$/u.exec(item)?.[1]?.trim() ?? "");
-  const miembros = splitFamilyItems(match[6] ?? "")
-    .map((item) => /^`([^`]+)`\s+—ruta\s+`([^`]+)`→\s+`([^`]+)`$/u.exec(item.trim()))
-    .map((item) => item ? {
-      estadoEntrada: (item[1] ?? "").trim(),
-      rutaEtiqueta: (item[2] ?? "").trim(),
-      estadoSalida: (item[3] ?? "").trim(),
-    } : null);
-  if (!familiaId || !proceso || !objeto || dominioEstados.length < 2 || dominioEstados.some((item) => !item) || miembros.length < 2 || miembros.some((item) => item === null)) {
-    return null;
-  }
-  return {
-    ast: {
-      kind: "familia-efectos-preestado",
-      linea: linea.linea,
-      familiaId,
-      cobertura,
-      proceso,
-      objeto,
-      dominioEstados,
-      miembros: miembros.filter((item): item is NonNullable<typeof item> => item !== null),
-      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
-    },
-    diagnosticos: [],
-  };
-}
-
 /**
  * Aplica `rutaEtiqueta` al AST hijo si el kind admite ruta. Familias soportadas:
  * - `procedimental`: rutaEtiqueta directo (esta en AstProcedimentalBase).
@@ -271,292 +106,6 @@ function aplicarRutaAlAst(ast: OracionOplAst, rutaEtiqueta: string): OracionOplA
   }
   if (ast.kind === "condicion") return { ...ast, rutaEtiqueta };
   return ast;
-}
-
-// SSOT §11.2-§11.4: abanicos XOR/OR (ronda 26/L3). Reconoce las formas
-// emitidas por `generadores/abanico.ts:oracionAbanico` y por
-// `oracionAbanicoCondicional`.
-//
-// Decision D1: cuantificador → operador
-//   - "exactamente uno de" → "XOR"
-//   - "al menos uno de"   → "O"
-// Sin override desde texto: si la palabra no aparece, no hay abanico.
-//
-// Cubre tres familias:
-//
-// A) §11.2-§11.3 forma directa
-//    `<Proceso> <verbo> [<Obj> (a|de) ]<cuant> <lista>.`
-//
-// B) §11.4 forma condicional generica
-//    `<Proceso> ocurre si <cuant> <lista> existe[, en cuyo caso <sub>],
-//     de lo contrario <Proceso> se omite.`
-//
-// C) Variantes condicionales especificas (cierre TODOs L3):
-//    - resultado: `<P> ocurre si <cuant> <lista> puede generarse, en cuyo
-//      caso <P> genera <cuant> <lista>, de lo contrario <P> se omite.`
-//    - invocacion: `<P> invoca <cuant> <lista> si <P> ocurre.`
-
-const ABANICO_CUANT_RE = /^(exactamente uno de|al menos uno de)\s+(.+)$/iu;
-
-function operadorDeCuantificador(cuant: string): OperadorAbanico {
-  return /exactamente/i.test(cuant) ? "XOR" : "O";
-}
-
-function tokenizarListaAbanico(texto: string): string[] {
-  return texto
-    .split(/\s*,\s*/u)
-    .flatMap((parte) => parte.split(/\s+(?:y|o)\s+/iu))
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function parsearAbanico(texto: string, linea: LineaOplNormalizada, textoMarcado = texto) {
-  return parsearAbanicoResultadoCondicional(texto, linea)
-    ?? parsearAbanicoInvocacionCondicional(texto, linea)
-    ?? parsearAbanicoCondicional(texto, linea)
-    ?? parsearAbanicoDirecto(texto, linea, textoMarcado);
-}
-
-const ABANICO_EFECTO_EVENTO_OBJETO_PROCESOS_RE =
-  /^(.+?)\s+inicia\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+?),\s*(?:y\s+es\s+afectado\s+por\s+el\s+proceso\s+que\s+ocurre|que\s+afecta\s+(?:el|al)\s+proceso\s+que\s+ocurre)$/iu;
-
-function parsearAbanicoEvento(texto: string, linea: LineaOplNormalizada) {
-  const match = ABANICO_EFECTO_EVENTO_OBJETO_PROCESOS_RE.exec(texto);
-  if (!match) return null;
-  const proceso = normalizarNombreOpl(match[1] ?? "");
-  const operador = operadorDeCuantificador(match[2] ?? "");
-  const otros = tokenizarListaAbanico(match[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
-  if (!proceso || otros.length < 2) return null;
-  return astAbanico(linea, {
-    proceso,
-    operador,
-    tipoEnlace: "efecto",
-    otros,
-    puertoEsOrigen: true,
-    modificador: "evento",
-  });
-}
-
-// Variante (C) resultado + condicion + abanico (TODO cerrado en L3).
-const ABANICO_RESULTADO_COND_RE =
-  /^(.+?)\s+ocurre\s+si\s+(exactamente uno de|al menos uno de)\s+(.+?)\s+puede\s+generarse,\s*en\s+cuyo\s+caso\s+(.+?)\s+genera\s+(?:exactamente uno de|al menos uno de)\s+.+?,\s*de\s+lo\s+contrario\s+(.+?)\s+se\s+omite$/iu;
-
-function parsearAbanicoResultadoCondicional(texto: string, linea: LineaOplNormalizada) {
-  const match = ABANICO_RESULTADO_COND_RE.exec(texto);
-  if (!match) return null;
-  const proceso = normalizarNombreOpl(match[1] ?? "");
-  const operador = operadorDeCuantificador(match[2] ?? "");
-  const otros = tokenizarListaAbanico(match[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
-  const procesoSub = normalizarNombreOpl(match[4] ?? "");
-  const procesoOmitido = normalizarNombreOpl(match[5] ?? "");
-  if (!proceso || otros.length < 2) return null;
-  if (claveNombre(procesoSub) !== claveNombre(proceso)) return null;
-  if (claveNombre(procesoOmitido) !== claveNombre(proceso)) return null;
-  return astAbanico(linea, {
-    proceso, operador, tipoEnlace: "resultado", otros, puertoEsOrigen: true, modificador: "condicion",
-  });
-}
-
-// Variante (C) invocacion + condicion + abanico (TODO cerrado en L3).
-const ABANICO_INVOCACION_COND_RE =
-  /^(.+?)\s+invoca\s+(exactamente uno de|al menos uno de)\s+(.+?)\s+si\s+(.+?)\s+ocurre$/iu;
-
-function parsearAbanicoInvocacionCondicional(texto: string, linea: LineaOplNormalizada) {
-  const match = ABANICO_INVOCACION_COND_RE.exec(texto);
-  if (!match) return null;
-  const proceso = normalizarNombreOpl(match[1] ?? "");
-  const operador = operadorDeCuantificador(match[2] ?? "");
-  const otros = tokenizarListaAbanico(match[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
-  const procesoCondicion = normalizarNombreOpl(match[4] ?? "");
-  if (!proceso || otros.length < 2) return null;
-  if (claveNombre(procesoCondicion) !== claveNombre(proceso)) return null;
-  return astAbanico(linea, {
-    proceso, operador, tipoEnlace: "invocacion", otros, puertoEsOrigen: true, modificador: "condicion",
-  });
-}
-
-// Variante (A) §11.2-§11.3 directa. Tabla derivada del generador (cf. abanico.ts:94-119).
-const ABANICO_VERBO_RE_LIST = [
-  { re: /^(.+?)\s+consume\s+(.+)$/iu, tipo: "consumo" as const, puertoEsOrigen: false },
-  { re: /^(.+?)\s+genera\s+(.+)$/iu, tipo: "resultado" as const, puertoEsOrigen: true },
-  { re: /^(.+?)\s+requiere\s+(.+)$/iu, tipo: "instrumento" as const, puertoEsOrigen: false },
-  { re: /^(.+?)\s+afecta\s+(.+)$/iu, tipo: "efecto" as const, puertoEsOrigen: true },
-  { re: /^(.+?)\s+invoca\s+(.+)$/iu, tipo: "invocacion" as const, puertoEsOrigen: true },
-  { re: /^(.+?)\s+maneja\s+(.+)$/iu, tipo: "agente" as const, puertoEsOrigen: true },
-  { re: /^(.+?)\s+es\s+consumido\s+por\s+(.+)$/iu, tipo: "consumo" as const, puertoEsOrigen: true },
-  { re: /^(.+?)\s+es\s+generado\s+por\s+(.+)$/iu, tipo: "resultado" as const, puertoEsOrigen: false },
-  { re: /^(.+?)\s+es\s+requerido\s+por\s+(.+)$/iu, tipo: "instrumento" as const, puertoEsOrigen: true },
-  { re: /^(.+?)\s+es\s+invocado\s+por\s+(.+)$/iu, tipo: "invocacion" as const, puertoEsOrigen: false },
-  { re: /^(.+?)\s+es\s+manejado\s+por\s+(.+)$/iu, tipo: "agente" as const, puertoEsOrigen: false },
-] as const;
-
-const ABANICO_CAMBIA_RE =
-  /^(.+?)\s+cambia\s+(.+?)\s+(a|de)\s+(exactamente uno de|al menos uno de)\s+(.+)$/iu;
-const ABANICO_CAMBIA_ENTRADA_COMUN_RE =
-  /^(.+?)\s+cambia\s+(.+?)\s+de\s+`([^`]+)`\s+a\s+(exactamente uno de|al menos uno de)\s+(.+)$/iu;
-const ABANICO_EFECTO_OBJETO_AFECTADO_PROCESOS_RE =
-  /^(.+?)\s+es\s+afectado\s+por\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+)$/iu;
-const ABANICO_EFECTO_OBJETO_PROCESOS_RE =
-  /^(.+?)\s+afecta\s+a\s+(exactamente uno de|al menos uno de)\s+(?:los\s+procesos\s+)?(.+)$/iu;
-
-function parsearAbanicoDirecto(texto: string, linea: LineaOplNormalizada, textoMarcado = texto) {
-  const entradaComun = ABANICO_CAMBIA_ENTRADA_COMUN_RE.exec(textoMarcado);
-  if (entradaComun) {
-    const proceso = normalizarNombreOpl(entradaComun[1] ?? "");
-    const objeto = normalizarNombreOpl(entradaComun[2] ?? "");
-    const estadoEntradaComun = limpiarEstado(entradaComun[3] ?? "");
-    const operador = operadorDeCuantificador(entradaComun[4] ?? "");
-    const estados = tokenizarListaAbanico(entradaComun[5] ?? "").map(limpiarEstadoMarcado).filter(Boolean);
-    if (!proceso || !objeto || !estadoEntradaComun || estados.length < 2) return null;
-    return astAbanico(linea, {
-      proceso,
-      operador,
-      tipoEnlace: "efecto",
-      otros: estados.map(() => objeto),
-      otrosEstados: estados,
-      estadoEntradaComun,
-      puertoEsOrigen: true,
-    });
-  }
-
-  const cambia = ABANICO_CAMBIA_RE.exec(texto);
-  if (cambia) {
-    const proceso = normalizarNombreOpl(cambia[1] ?? "");
-    const objeto = normalizarNombreOpl(cambia[2] ?? "");
-    const direccion = (cambia[3] ?? "").toLocaleLowerCase("es");
-    const operador = operadorDeCuantificador(cambia[4] ?? "");
-    const estados = tokenizarListaAbanico(cambia[5] ?? "").map(limpiarEstado).filter(Boolean);
-    if (!proceso || !objeto || estados.length < 2) return null;
-    const tipo: Extract<TipoEnlace, "consumo" | "resultado"> = direccion === "a" ? "resultado" : "consumo";
-    return astAbanico(linea, {
-      proceso, operador, tipoEnlace: tipo,
-      otros: estados.map(() => objeto),
-      otrosEstados: estados,
-      puertoEsOrigen: direccion === "a",
-    });
-  }
-
-  const efectoObjetoProcesos = ABANICO_EFECTO_OBJETO_AFECTADO_PROCESOS_RE.exec(texto)
-    ?? ABANICO_EFECTO_OBJETO_PROCESOS_RE.exec(texto);
-  if (efectoObjetoProcesos) {
-    const proceso = normalizarNombreOpl(efectoObjetoProcesos[1] ?? "");
-    const operador = operadorDeCuantificador(efectoObjetoProcesos[2] ?? "");
-    const otros = tokenizarListaAbanico(efectoObjetoProcesos[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
-    if (proceso && otros.length >= 2) {
-      return astAbanico(linea, {
-        proceso, operador, tipoEnlace: "efecto", otros, puertoEsOrigen: true,
-      });
-    }
-  }
-
-  for (const entry of ABANICO_VERBO_RE_LIST) {
-    const match = entry.re.exec(texto);
-    if (!match) continue;
-    const proceso = normalizarNombreOpl(match[1] ?? "");
-    const restoMatch = ABANICO_CUANT_RE.exec((match[2] ?? "").trim());
-    if (!restoMatch) continue;
-    const operador = operadorDeCuantificador(restoMatch[1] ?? "");
-    const otros = tokenizarListaAbanico(restoMatch[2] ?? "").map(normalizarNombreOpl).filter(Boolean);
-    if (!proceso || otros.length < 2) continue;
-    return astAbanico(linea, {
-      proceso, operador, tipoEnlace: entry.tipo, otros, puertoEsOrigen: entry.puertoEsOrigen,
-    });
-  }
-  return null;
-}
-
-const ABANICO_CONDICION_RE =
-  /^(.+?)\s+ocurre\s+si\s+(exactamente uno de|al menos uno de)\s+(.+?)\s+existe(?:,\s*en\s+cuyo\s+caso\s+(.+?))?,\s*de\s+lo\s+contrario\s+(.+?)\s+se\s+omite$/iu;
-
-function parsearAbanicoCondicional(texto: string, linea: LineaOplNormalizada) {
-  const match = ABANICO_CONDICION_RE.exec(texto);
-  if (!match) return null;
-  const proceso = normalizarNombreOpl(match[1] ?? "");
-  const operador = operadorDeCuantificador(match[2] ?? "");
-  const otros = tokenizarListaAbanico(match[3] ?? "").map(normalizarNombreOpl).filter(Boolean);
-  const subClausula = (match[4] ?? "").trim();
-  const procesoOmitido = normalizarNombreOpl(match[5] ?? "");
-  if (!proceso || otros.length < 2) return null;
-  if (claveNombre(procesoOmitido) !== claveNombre(proceso)) return null;
-
-  if (!subClausula) {
-    return astAbanico(linea, {
-      proceso, operador, tipoEnlace: "instrumento", otros, puertoEsOrigen: false, modificador: "condicion",
-    });
-  }
-
-  const clasificacion = clasificarSubClausulaAbanico(subClausula, proceso, otros);
-  if (!clasificacion) return null;
-  return astAbanico(linea, {
-    proceso, operador, tipoEnlace: clasificacion.tipo, otros,
-    puertoEsOrigen: clasificacion.puertoEsOrigen, modificador: "condicion",
-  });
-}
-
-function clasificarSubClausulaAbanico(
-  sub: string,
-  proceso: string,
-  otros: string[],
-): { tipo: Extract<TipoEnlace, "agente" | "instrumento" | "consumo" | "resultado" | "efecto" | "invocacion">; puertoEsOrigen: boolean } | null {
-  const procesoClave = claveNombre(proceso);
-  const otrosClaves = new Set(otros.map((nombre) => claveNombre(nombre)));
-
-  let match = /^(.+?)\s+consume\s+(.+)$/iu.exec(sub);
-  if (match && claveNombre(normalizarNombreOpl(match[1] ?? "")) === procesoClave) {
-    if (listaSeCorrespondeConOtros(match[2] ?? "", otrosClaves)) {
-      return { tipo: "consumo", puertoEsOrigen: false };
-    }
-  }
-  match = /^(.+?)\s+afecta\s+(.+)$/iu.exec(sub);
-  if (match && claveNombre(normalizarNombreOpl(match[1] ?? "")) === procesoClave) {
-    if (listaSeCorrespondeConOtros(match[2] ?? "", otrosClaves)) {
-      return { tipo: "efecto", puertoEsOrigen: true };
-    }
-  }
-  match = /^(exactamente uno de|al menos uno de)\s+(.+?)\s+maneja\s+(.+)$/iu.exec(sub);
-  if (match && claveNombre(normalizarNombreOpl(match[3] ?? "")) === procesoClave) {
-    if (listaSeCorrespondeConOtros(match[2] ?? "", otrosClaves)) {
-      return { tipo: "agente", puertoEsOrigen: false };
-    }
-  }
-  return null;
-}
-
-function listaSeCorrespondeConOtros(textoLista: string, otrosClaves: Set<string>): boolean {
-  const items = tokenizarListaAbanico(textoLista).map(normalizarNombreOpl).map(claveNombre);
-  if (items.length === 0) return false;
-  return items.every((clave) => otrosClaves.has(clave));
-}
-
-function astAbanico(
-  linea: LineaOplNormalizada,
-  payload: {
-    proceso: string;
-    operador: OperadorAbanico;
-    tipoEnlace: Extract<TipoEnlace, "agente" | "instrumento" | "consumo" | "resultado" | "efecto" | "invocacion">;
-    otros: string[];
-    otrosEstados?: string[];
-    estadoEntradaComun?: string;
-    puertoEsOrigen: boolean;
-    modificador?: "condicion" | "evento";
-  },
-) {
-  return {
-    ast: {
-      kind: "abanico" as const,
-      linea: linea.linea,
-      proceso: payload.proceso,
-      operador: payload.operador,
-      tipoEnlace: payload.tipoEnlace,
-      otros: payload.otros,
-      ...(payload.otrosEstados ? { otrosEstados: payload.otrosEstados } : {}),
-      ...(payload.estadoEntradaComun ? { estadoEntradaComun: payload.estadoEntradaComun } : {}),
-      puertoEsOrigen: payload.puertoEsOrigen,
-      ...(payload.modificador ? { modificador: payload.modificador } : {}),
-      ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}),
-    },
-    diagnosticos: [],
-  };
 }
 
 function parsearDescripcion(texto: string, linea: LineaOplNormalizada) {
@@ -1138,18 +687,6 @@ function parsearProcedimental(texto: string, linea: LineaOplNormalizada, textoMa
  * aplicar `extraerMultiplicidadDeNombre` al lado izquierdo. El estado va
  * por `limpiarEstado` que ya descarta parentesis.
  */
-function limpiarObjetoConEstadoConMultiplicidad(texto: string): { nombre: string; estado?: string; multiplicidad?: string } {
-  const conEstado = /^(.+?)\s+en\s+(.+)$/iu.exec(texto.trim());
-  const crudoNombre = (conEstado?.[1] ?? texto).trim();
-  const estado = conEstado?.[2] ? limpiarEstado(conEstado[2]) : undefined;
-  const extraida = extraerMultiplicidadDeNombre(crudoNombre);
-  return {
-    nombre: extraida.nombre,
-    ...(estado ? { estado } : {}),
-    ...(extraida.multiplicidad ? { multiplicidad: extraida.multiplicidad } : {}),
-  };
-}
-
 function parsearEstructural(texto: string, linea: LineaOplNormalizada) {
   let match = /^(.+?) consta(?:n)? de (.+)$/iu.exec(texto);
   if (match) return astEstructural(linea, "agregacion", match[1] ?? "", match[2] ?? "");
@@ -1316,11 +853,6 @@ function astMetadata(linea: LineaOplNormalizada, sujeto: string, campo: Extract<
   return { ast: { kind: "metadata" as const, linea: linea.linea, sujeto: normalizarNombreOpl(sujeto), campo, valor, ...(linea.etiqueta ? { etiqueta: linea.etiqueta } : {}) }, diagnosticos: [] };
 }
 
-function dividirLista(texto: string, conjuncion: "y" | "o"): string[] {
-  const re = conjuncion === "y" ? /\s+y\s+/iu : /\s+o\s+/iu;
-  return texto.split(",").flatMap((parte) => parte.split(re)).map((item) => item.trim()).filter(Boolean);
-}
-
 /**
  * Fase 1·U4 — parsea la cola de una oración de descomposición a bandas de orden
  * (espejo del forward `describirProcesosTemporales`). Devuelve `undefined` cuando
@@ -1391,39 +923,6 @@ function parsearBandasOrden(temporal: string): string[][] {
     }
   }
   return bandas.filter((banda) => banda.length > 0);
-}
-
-function limpiarEstado(texto: string): string {
-  return texto.replace(/\([^)]*\)/g, "").replace(/\.$/, "").trim();
-}
-
-function limpiarEstadoMarcado(texto: string): string {
-  return limpiarEstado(texto).replace(/^`|`$/gu, "").trim();
-}
-
-const CAMBIO_ESTADO_MARCADO_RE = /^(?:(.+?)\s+)?cambia\s+(.+?)\s+de\s+`([^`]+)`\s+a\s+`([^`]+)`$/iu;
-const PROBABILIDAD_MARCADA_SUFIX_RE = /\s+(?:`Pr\s*=\s*\d+(?:[.,]\d+)?`|\(probabilidad:\s*[^)]+\))$/iu;
-
-function parsearCambioEstadoMarcado(texto: string): {
-  proceso?: string;
-  objeto: string;
-  estadoEntrada: string;
-  estadoSalida: string;
-} | null {
-  const match = CAMBIO_ESTADO_MARCADO_RE.exec(texto.trim().replace(PROBABILIDAD_MARCADA_SUFIX_RE, ""));
-  if (!match) return null;
-  return {
-    ...(match[1] ? { proceso: normalizarNombreOpl(match[1]) } : {}),
-    objeto: normalizarNombreOpl(match[2] ?? ""),
-    estadoEntrada: limpiarEstado(match[3] ?? ""),
-    estadoSalida: limpiarEstado(match[4] ?? ""),
-  };
-}
-
-function limpiarObjetoConEstado(texto: string): { nombre: string; estado?: string } {
-  const match = /^(.+?) en (.+)$/iu.exec(texto.trim());
-  if (!match) return { nombre: normalizarNombreOpl(texto) };
-  return { nombre: normalizarNombreOpl(match[1] ?? ""), estado: limpiarEstado(match[2] ?? "") };
 }
 
 function parsearEsencia(texto: string): Esencia {
