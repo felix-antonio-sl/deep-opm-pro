@@ -31,12 +31,15 @@ import { oracionEnlaceEstructural } from "./estructural";
 export function oracionEnlaceConRuta(modelo: Modelo, enlace: Enlace, esApunte = false): string | null {
   const ruta = rutaEtiquetaNormalizada(enlace.rutaEtiqueta);
   if (!ruta) return oracionEnlace(modelo, enlace, esApunte);
-  const base = oracionProcedimentalParaRuta(modelo, enlace, esApunte) ?? oracionEnlaceSinEtiqueta(modelo, enlace, esApunte);
+  const base = oracionProcedimentalParaRuta(modelo, enlace, esApunte);
   return conEtiquetaEnlace(enlace, base ? `Por ruta ${ruta}, ${base}` : null);
 }
 
 export function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace, esApunte = false): string | null {
   if (!enlaceOplEsEmitible(modelo, enlace, esApunte)) return null;
+  // La variante consume/genera con estado solo sustituye la oración simple;
+  // eventos, condiciones y negación conservan su generador correspondiente.
+  if (enlace.modificador) return oracionEnlaceSinEtiqueta(modelo, enlace, esApunte);
   const origen = entidadDeExtremo(modelo, enlace.origenId);
   const destino = entidadDeExtremo(modelo, enlace.destinoId);
   if (!origen || !destino) return null;
@@ -48,7 +51,7 @@ export function oracionProcedimentalParaRuta(modelo: Modelo, enlace: Enlace, esA
     const estado = estadoDeExtremo(modelo, enlace.origenId);
     return estado ? `${nombreOplConMultiplicidad(destino, enlace.multiplicidadDestino)} consume ${nombreOplConMultiplicidad(origen, enlace.multiplicidadOrigen)} en \`${nombreCanonicoEstado(estado)}\`.` : null;
   }
-  return oracionEnlace(modelo, enlace, esApunte);
+  return oracionEnlaceSinEtiqueta(modelo, enlace, esApunte);
 }
 
 export function transicionesEstado(

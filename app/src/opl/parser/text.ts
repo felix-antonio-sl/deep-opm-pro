@@ -19,10 +19,32 @@ const MULTIPLICIDAD_PREFIJO_RE = /^\s*(?:(\d+(?:\.\.(?:\d+|N|\*))?|N|\+|\*)\s+(.
 /**
  * SSOT §13. Prefijo de ruta etiquetada. El generador emite
  * `Por ruta <etiqueta>, <oracion base>` cuando el enlace tiene `rutaEtiqueta`.
- * La etiqueta llega ya sin backticks/markdown (limpiarMarkdown corre antes).
- * Case-insensitive por afinidad al dictado humano (D6).
+ * La forma simple sigue admitiendo texto sin tipografía (D6).
  */
-export const RUTA_PREFIJO_RE = /^Por\s+ruta\s+(.+?),\s*(.+)$/iu;
+const RUTA_PREFIJO_RE = /^Por\s+ruta\s+(.+?),\s*(.+)$/iu;
+
+/** Lee la ruta antes de borrar la tipografía que delimita su oración base. */
+export function extractRoutePrefix(original: string): { label: string; sentence: string } | null {
+  const quoted = /^Por\s+ruta\s+`([^`]+)`,\s*(.+)$/iu.exec(original);
+  const body = /^Por\s+ruta\s+(.+)$/iu.exec(original)?.[1];
+  // La primera cosa marcada delimita la oración, con o sin multiplicidad.
+  // Conserva las comas de la etiqueta y las del nombre de esa cosa.
+  if (!quoted && body) {
+    for (const separator of body.matchAll(/,\s*/gu)) {
+      const sentence = body.slice(separator.index + separator[0].length);
+      const subject = extraerMultiplicidad(sentence).nombre;
+      if (/^(?:\*\*[^*\n]+\*\*|\*[^*\n]+\*)\s+.+$/u.test(subject)) {
+        const label = body.slice(0, separator.index).trim();
+        if (label) return { label, sentence };
+      }
+    }
+  }
+  const match = quoted ?? RUTA_PREFIJO_RE.exec(original);
+  if (!match) return null;
+  const label = (match[1] ?? "").trim();
+  const sentence = (match[2] ?? "").trim();
+  return label && sentence ? { label, sentence } : null;
+}
 
 /**
  * Extrae prefijo de multiplicidad (SSOT §12) de un texto. Devuelve la
@@ -111,12 +133,16 @@ export function limpiarMarkdown(texto: string): string {
     .replace(/`([^`\n]+)`/g, "$1");
 }
 
-/** Conserva backticks de estado para desambiguar los conectores `de`/`a` de TS3. */
-export function textoMarcadoDeLinea(original: string): string {
+/** Retira adornos de línea y conserva los límites tipográficos de sus tokens. */
+export function originalSentence(original: string): string {
   const sinNumeracion = original.replace(/^\s*(?:\d+(?:\.\d+)*[.)]|[-•])\s+/, "").trim();
   const etiquetaMatch = ETIQUETA_SUFIX.exec(sinNumeracion);
-  const sinEtiqueta = etiquetaMatch ? sinNumeracion.slice(0, etiquetaMatch.index).trim() : sinNumeracion;
-  return sinEtiqueta
+  return etiquetaMatch ? sinNumeracion.slice(0, etiquetaMatch.index).trim() : sinNumeracion;
+}
+
+/** Conserva backticks de estado para desambiguar los conectores `de`/`a` de TS3. */
+export function textoMarcadoDeLinea(original: string): string {
+  return originalSentence(original)
     .replace(/\*\*([^*\n]+)\*\*/g, "$1")
     .replace(/\*([^*\s][^*\n]*?)\*/g, "$1")
     .trim();

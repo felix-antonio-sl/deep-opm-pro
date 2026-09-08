@@ -129,6 +129,31 @@ test("panel OPL aplica edicion libre con preview y propaga al canvas", async ({ 
   expect(pageErrors).toEqual([]);
 });
 
+test("OPL conserva una ruta con coma y su condición al aplicarla desde el editor", async ({ page }) => {
+  await page.goto("/");
+  await esperarWorkbenchInicial(page);
+  await page.getByTestId("panel-opl-editar-libre").click();
+  await page.getByTestId("panel-opl-editor-textarea").fill([
+    "**Pedido** es un objeto informacional y sistémico.",
+    "**Pedido** puede estar `abierto` o `cerrado`.",
+    "*Procesar* es un proceso informacional y sistémico.",
+    "Por ruta urgente, secundaria, *Procesar* ocurre si **Pedido** está en `abierto`, en cuyo caso *Procesar* consume **Pedido** en `abierto`, de lo contrario *Procesar* se omite.",
+  ].join("\n"));
+  await expect(page.getByTestId("panel-opl-editor-aplicar")).toBeEnabled();
+  await page.getByTestId("panel-opl-editor-aplicar").click();
+  await expect(elementoPorTexto(page, "Pedido")).toHaveCount(1);
+  await expect(elementoPorTexto(page, "Procesar")).toHaveCount(1);
+  await expect(page.getByLabel("Panel OPL-ES")).toContainText("Por ruta urgente, secundaria,");
+  await expect(page.getByLabel("Panel OPL-ES")).toContainText("ocurre si");
+
+  const exported = await exportadoActual(page);
+  expect(Object.values(exported.modelo.entidades).map((entity) => entity.nombre).sort()).toEqual(["Pedido", "Procesar"]);
+  expect(Object.values(exported.modelo.enlaces)).toHaveLength(1);
+  expect(Object.values(exported.modelo.enlaces)[0]).toMatchObject({
+    tipo: "consumo", modificador: "condicion", rutaEtiqueta: "urgente, secundaria",
+  });
+});
+
 test("OPL agrupa oraciones por OPD y permite colapsar bloques", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));

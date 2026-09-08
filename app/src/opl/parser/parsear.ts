@@ -3,9 +3,9 @@ import type { AstProcedimentalBase, DiagnosticoOpl, LineaOplNormalizada, Oracion
 
 import { parsearAbanico, parsearAbanicoEvento, parsearFamiliaEfectosPreestado } from "./groups";
 import {
-  PUNTO_FINAL, RUTA_PREFIJO_RE, claveNombre, dividirLista, extraerMultiplicidadDeNombre,
-  limpiarEstado, limpiarObjetoConEstado, limpiarObjetoConEstadoConMultiplicidad,
-  normalizarLineas, normalizarNombreOpl, parsearCambioEstadoMarcado, textoMarcadoDeLinea,
+  PUNTO_FINAL, claveNombre, dividirLista, extraerMultiplicidadDeNombre, extractRoutePrefix,
+  limpiarEstado, limpiarMarkdown, limpiarObjetoConEstado, limpiarObjetoConEstadoConMultiplicidad,
+  normalizarLineas, normalizarNombreOpl, originalSentence, parsearCambioEstadoMarcado, textoMarcadoDeLinea,
 } from "./text";
 
 // Conserva la entrada pública del parser para sus consumidores.
@@ -23,7 +23,8 @@ export function parsearParrafoOpl(texto: string): ParseResultOpl {
     }
     const textoSinPunto = linea.texto.replace(PUNTO_FINAL, "").trim();
     const textoMarcadoSinPunto = textoMarcadoDeLinea(linea.original).replace(PUNTO_FINAL, "").trim();
-    const parsed = parsearOracion(textoSinPunto, linea, textoMarcadoSinPunto);
+    const original = originalSentence(linea.original).replace(PUNTO_FINAL, "").trim();
+    const parsed = parsearOracion(textoSinPunto, linea, textoMarcadoSinPunto, original);
     ast.push(parsed.ast);
     diagnosticos.push(...parsed.diagnosticos);
   }
@@ -35,22 +36,18 @@ function parsearOracion(
   texto: string,
   linea: LineaOplNormalizada,
   textoMarcado = texto,
+  original = textoMarcado,
 ): { ast: OracionOplAst; diagnosticos: DiagnosticoOpl[] } {
   // SSOT §13: ruta etiquetada. Si la oracion empieza por `Por ruta <etiqueta>, ...`
   // delegamos el parseo del sub-texto y enriquecemos el AST resultante con
   // `rutaEtiqueta`. Solo aplica en familias procedimental / evento / condicion
   // (las unicas que el modelo soporta para rutas; `enlaceAdmiteRuta`).
-  const rutaMatch = RUTA_PREFIJO_RE.exec(texto);
-  if (rutaMatch) {
-    const etiqueta = (rutaMatch[1] ?? "").trim();
-    const subTexto = (rutaMatch[2] ?? "").trim();
-    if (etiqueta && subTexto) {
-      const rutaMarcadaMatch = RUTA_PREFIJO_RE.exec(textoMarcado);
-      const subTextoMarcado = (rutaMarcadaMatch?.[2] ?? subTexto).trim();
-      const hijo = parsearOracion(subTexto, linea, subTextoMarcado);
-      const astConRuta = aplicarRutaAlAst(hijo.ast, etiqueta);
-      return { ast: astConRuta, diagnosticos: hijo.diagnosticos };
-    }
+  const route = extractRoutePrefix(original);
+  if (route) {
+    const hijo = parsearOracion(
+      limpiarMarkdown(route.sentence), linea, textoMarcadoDeLinea(route.sentence), route.sentence,
+    );
+    return { ast: aplicarRutaAlAst(hijo.ast, route.label), diagnosticos: hijo.diagnosticos };
   }
 
   return parsearFamiliaEfectosPreestado(textoMarcado, linea)
@@ -67,7 +64,7 @@ function parsearOracion(
     // null y la cadena continua → aditividad estricta.
     ?? parsearAbanico(texto, linea, textoMarcado)
     ?? parsearCondicion(texto, linea, textoMarcado)
-    ?? parsearProcedimental(texto, linea, textoMarcado)
+    ?? parsearProcedimental(texto, linea, textoMarcado, original)
     ?? parsearEstructural(texto, linea)
     ?? parsearDesignacionEstado(texto, linea)
     ?? parsearPlegadoParcial(texto, linea)
@@ -289,7 +286,7 @@ function parsearCondicion(texto: string, linea: LineaOplNormalizada, textoMarcad
 
   const subClausulaMarcada = /,\s*en\s+cuyo\s+caso\s+(.+),\s*de\s+lo\s+contrario\s+/iu.exec(textoMarcado)?.[1]?.trim()
     ?? subClausula;
-  const base = clasificarSubClausulaCondicion(subClausula, proceso, condicionante, subClausulaMarcada);
+  const base = clasificarSubClausulaCondicion(subClausula, proceso, condicionante, subClausulaMarcada, estado);
   if (!base) return null;
   return astCondicion(linea, {
     proceso,
@@ -306,6 +303,7 @@ function clasificarSubClausulaCondicion(
   proceso: string,
   condicionante: string,
   subMarcada = sub,
+  guardState?: string,
 ): { base: "consumo" | "efecto"; estadoSalida?: string } | null {
   const procesoClave = claveNombre(proceso);
   const condicionanteClave = claveNombre(condicionante);
@@ -318,7 +316,11 @@ function clasificarSubClausulaCondicion(
   match = /^(.+?)\s+consume\s+(.+)$/iu.exec(sub);
   if (match) {
     if (claveNombre(normalizarNombreOpl(match[1] ?? "")) !== procesoClave) return null;
-    if (claveNombre(normalizarNombreOpl(match[2] ?? "")) !== condicionanteClave) return null;
+    const consumed = limpiarObjetoConEstado(match[2] ?? "");
+    if (claveNombre(consumed.nombre) !== condicionanteClave) return null;
+    // El generador repite el estado de la guarda en el extremo consumido.
+    // Solo se puede omitir del AST cuando acredita el mismo estado.
+    if (consumed.estado && (!guardState || claveNombre(consumed.estado) !== claveNombre(guardState))) return null;
     return { base: "consumo" };
   }
   match = /^(.+?)\s+afecta\s+(.+)$/iu.exec(sub);
@@ -563,7 +565,22 @@ function astEvento(
   };
 }
 
-function parsearProcedimental(texto: string, linea: LineaOplNormalizada, textoMarcado = texto) {
+function parsearProcedimental(texto: string, linea: LineaOplNormalizada, textoMarcado = texto, original = texto) {
+  // La superficie reverse todavía no representa la negación en su AST.
+  // No absorber «no» en el sujeto y producir un enlace positivo por accidente.
+  if (/^.+?\s+no\s+(?:consumen?|generan?|afectan?|cambia|manejan?|requieren?|invocan?)\s+.+$/iu.test(original)) {
+    return {
+      ast: { kind: "unsupported" as const, linea: linea.linea, texto },
+      diagnosticos: [{
+        codigo: "unsupported-kernel" as const,
+        severidad: "error" as const,
+        linea: linea.linea,
+        columna: 1,
+        mensaje: "La negación del enlace se conserva en OPL, pero su edición reverse aún no está soportada.",
+        sugerencia: "Edita el modificador del enlace desde el diagrama.",
+      }],
+    };
+  }
   let match = /^(.+?) se invoca a s[ií] mismo(?: despu[eé]s de (.+?))?$/iu.exec(texto);
   if (match) {
     const proceso = normalizarNombreOpl(match[1] ?? "");
