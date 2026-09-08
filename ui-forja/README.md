@@ -64,15 +64,8 @@ No gobierna:
 2. Consultar GOVERNANCE y el documento propietario de la superficie.
 3. Cambiar tokens antes que introducir valores directos cuando corresponda.
 4. Verificar la experiencia afectada en la aplicación, no solo en una escena estática.
-5. Ejecutar:
+5. Aplicar la [verificación de GOVERNANCE](GOVERNANCE.md#6-gates-ejecutables),
+   proporcional a la superficie modificada.
 
-```bash
-cd app
-bun run check
-bun run lint
-bun run build
-bun run design:governance
-```
-
-Para cambios de interacción o canvas se añaden los E2E focales. Una suite verde prueba
-el contrato mecanizado; no sustituye la evaluación humana del software feel.
+Una suite verde prueba el contrato mecanizado; no sustituye la evaluación humana
+de la experiencia de uso.

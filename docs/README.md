@@ -105,13 +105,16 @@ su clasificación vigente está centralizada en [specs/README.md](specs/README.m
 - Solo hay una versión activa por especie operativa.
 - No se mantiene una instantánea paralela del estado. Si una tarea queda materialmente
   inconclusa, `AGENTS.md` permite un `HANDOFF.md` raíz temporal que se elimina al cerrar.
-- Informes, auditorías, actas y documentos operativos nuevos usan
-  `<especie>-AAAA-MM-DD.md`; si hay más de uno el mismo día, usan `-2`, `-3`, etc.
-- Un sucesor se crea como archivo nuevo. La versión anterior se mueve a `_archivo/`
-  sin editarla.
-- Los planes ejecutados, prompts de asignación y notas de sesión sin consumidores se
-  archivan; no permanecen como instrucciones aparentes.
-- Git conserva la historia versionada. `_archivo/` y `*.tar.gz` permanecen ignorados.
+- Los contratos, manuales, índices y runbooks se actualizan en su ruta estable;
+  Git conserva las versiones anteriores.
+- Usa un documento fechado cuando deba conservarse un corte de evidencia o un acta
+  con valor propio. Su fecha y procedencia se conservan aunque una decisión posterior
+  lo reemplace.
+- Retira planes ejecutados, prompts de asignación y notas de sesión cuando ya no
+  tengan consumidores ni una obligación de conservación. Antes de retirar información
+  única, comprueba que siga recuperable.
+- `_archivo/` y `*.tar.gz` permanecen ignorados para conservación local cuando sea
+  necesaria; no se exige duplicar allí la historia ya conservada por Git.
 
 ## Contrato editorial
 

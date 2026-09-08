@@ -72,26 +72,28 @@ Todo cambio visual debe cumplir:
 3. No introducir sombras offset, gradientes decorativos, orbs, cards anidadas o radius decorativo.
 4. Mantener textos dentro de sus contenedores en desktop y mobile.
 5. Mantener accesibilidad: foco visible, labels accesibles, target mínimo 24 px y contraste WCAG 2.2 AA.
-6. Correr `bun run check`, `bun run lint`, `bun run build` y el subset Playwright afectado.
+6. Comprobar la superficie afectada según §6 y conservar evidencia del recorrido visual.
 
 ## 6. Gates ejecutables
 
-Los gates mínimos para cambios de UI son:
+La selección de comprobaciones sigue [AGENTS.md](../AGENTS.md). Para cambios de
+código de UI:
 
 ```bash
 cd app
 bun run check
 bun run lint
-bun run build
 bun run design:governance
 ```
 
-Para cambios de layout/canvas se añade:
+Añade el escenario Playwright que observe la interacción o el render modificado.
+Para layout/canvas, selecciona los escenarios pertinentes de canvas, panel OPL,
+árbol, toolbar, responsive e Inspector; no se exige ejecutarlos todos para una
+corrección localizada.
 
-```bash
-cd app
-bunx playwright test e2e/02-canvas-y-render.spec.ts e2e/03-opl-panel.spec.ts e2e/04-arbol-y-pestanas.spec.ts e2e/12-toolbar-overflow.spec.ts e2e/22-responsive-review.spec.ts e2e/23-inspector-resize.spec.ts
-```
+`bun run build` corresponde a cambios de empaquetado o corpus. `gate:refactor`
+corresponde a cambios transversales. Un cambio solo documental se comprueba con
+sus enlaces y `bun run design:governance` cuando afecta este contrato o sus tokens.
 
 ## 7. Resolución de conflictos
 

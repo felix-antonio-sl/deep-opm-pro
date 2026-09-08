@@ -33,6 +33,7 @@ segunda fuente de estado.
 ## Cómo mantener este índice
 
 - Añadir una fila solo si una decisión cambia conducta futura o arbitra una tensión real.
-- Si una decisión es reemplazada, actualizar la fila hacia su sucesora y archivar el
-  operativo anterior; Git conserva la deliberación.
+- Si una decisión es reemplazada, actualizar la fila hacia su fuente vigente;
+  conservar un acta anterior cuando su evidencia o procedencia tenga valor propio.
+  Git conserva las versiones anteriores de los documentos operativos.
 - No copiar el contenido completo de una spec o acta. Este archivo orienta y enlaza.
