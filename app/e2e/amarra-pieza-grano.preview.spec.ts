@@ -15,13 +15,12 @@
 //      centinela no está muerto: discrimina la vecindad propia de la ajena.
 //
 // `.preview.spec.ts` ⇒ EXCLUIDA del smoke/gate (`playwright.config.ts: testIgnore`).
-// Re-correr: `bunx playwright test amarra-pieza-grano.preview.spec.ts --project=chromium`.
-// Lee gist-opm-v0.json de su SSOT con `fs` (no engorda este repo).
+// Re-correr: `bun run browser:external amarra-pieza-grano`.
+// OPFORJA_GIST_BUNDLE indica el bundle gist-opm-v0.json de su SSOT; se lee con fs.
 import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { esperarWorkbenchInicial } from "./_smoke-helpers";
 
-const GIST_PATH = "/home/felix/projects/gist-opm/bundles/gist-opm-v0.json";
 const LIB_ID = "gist-opm-v0";
 const LIB_NOMBRE = "gist 14.1.0 — greda OPM (catálogo dockable)";
 const PIEZA_ANCLADA = "ent-Assignment"; // «Asignación» — la pieza que anclamos
@@ -29,7 +28,12 @@ const PIEZA_AJENA = "ent-Account"; // «Cuenta» — pieza NO anclada, fuera de 
 const RUTA_STORE = "/src/store.ts";
 const CAP = "test-results/amarra-pieza-grano";
 
-const gistV1 = readFileSync(GIST_PATH, "utf8");
+let gistV1: string;
+test.beforeAll(() => {
+  const ruta = process.env.OPFORJA_GIST_BUNDLE;
+  if (!ruta) throw new Error("Define OPFORJA_GIST_BUNDLE para ejecutar esta amarra externa.");
+  gistV1 = readFileSync(ruta, "utf8");
+});
 function gistConRename(piezaId: string, nuevoNombre: string): string {
   const doc = JSON.parse(gistV1) as { modelo: { entidades: Record<string, { nombre: string }> } };
   doc.modelo.entidades[piezaId].nombre = nuevoNombre;

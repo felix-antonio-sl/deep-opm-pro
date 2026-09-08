@@ -20,10 +20,11 @@ const BASE_URL_AUTH = `http://127.0.0.1:${PORT_AUTH}`;
 
 const MOBILE_SPEC = /mobile-readonly\.spec\.ts/;
 const AUTH_SPEC = /auth\.spec\.ts/;
+const PREVIEW_SPEC = /.*\.preview\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./e2e",
-  testIgnore: /.*\.preview\.spec\.ts/,
+  testIgnore: PREVIEW_SPEC,
   timeout: 30_000,
   expect: {
     timeout: 5_000,
@@ -57,7 +58,8 @@ export default defineConfig({
       name: "chromium",
       // El smoke productivo excluye el shell mobile-readonly y el lane auth:
       // cada uno corre en su propio project contra el server con su flag activo.
-      testIgnore: [MOBILE_SPEC, AUTH_SPEC],
+      // El testIgnore del proyecto reemplaza el global: conservar ambas fronteras.
+      testIgnore: [PREVIEW_SPEC, MOBILE_SPEC, AUTH_SPEC],
       use: { ...devices["Desktop Chrome"], baseURL: BASE_URL },
     },
     {

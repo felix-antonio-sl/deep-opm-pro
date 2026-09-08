@@ -10,11 +10,11 @@
 //
 // SUFIJO `.preview.spec.ts`: `playwright.config.ts` lo excluye del smoke/CI vía
 // `testIgnore: /.*\.preview\.spec\.ts/`, así que NO entra al gate. Re-ejecutable:
-//   bunx playwright test amarra-gist-real.preview.spec.ts --project=chromium
+//   bun run browser:external amarra-gist-real
 //
 // FUENTES SSOT (otro repo — se LEEN con fs, no se copian al repo):
-//   - greda:     /home/felix/projects/gist-opm/bundles/gist-opm-v0.json  (118 piezas)
-//   - derivado:  /home/felix/projects/gist-opm/bundles/sd0-ejemplar-transaccion.json
+//   - OPFORJA_GIST_BUNDLE: bundle gist-opm-v0.json con las piezas usadas abajo.
+//   - OPFORJA_SD0_BUNDLE: derivado sd0-ejemplar-transaccion.json.
 //
 // CORRESPONDENCIAS DE ANCLAJE elegidas (entidad del derivado → piezaId real de gist):
 //   - o-asignacion-3 (Asignación) → ent-Assignment (Asignación)  — EXACTA.
@@ -25,9 +25,9 @@
 //   (gist real no tiene `ent-Resource`/`ent-Party`; el experimento falsa la DETECCIÓN,
 //    no la corrección ontológica del mapeo —eso es trabajo del gesto de anclar futuro—.)
 //
-// GRANO HONESTO: el drift hoy es a grano de BIBLIOTECA (C4 pieza-nivel pendiente).
-// La amarra 2b lo exhibe: mutar `ent-Account` (NO anclada) IGUAL hace divergir lo
-// anclado a `ent-Assignment`. Esa es la verdad que el curador debe ver.
+// Compatibilidad del grano BIBLIOTECA: este bundle inyecta anclajes legacy sin
+// frozenAtPieza. La amarra 2b conserva esa cobertura; el grano de pieza por el
+// gesto actual se verifica en amarra-pieza-grano.preview.spec.ts.
 
 import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
@@ -40,15 +40,23 @@ const RUTA_JSON = "/src/serializacion/json.ts";
 const RUTA_ANCLAJE = "/src/modelo/operaciones/anclaje.ts";
 const RUTA_BACKEND = "/src/persistencia/backend.ts";
 
-// --- Fuentes SSOT reales (absolutas; otro repo) ----------------------------------
-const RUTA_GIST = "/home/felix/projects/gist-opm/bundles/gist-opm-v0.json";
-const RUTA_SD0 = "/home/felix/projects/gist-opm/bundles/sd0-ejemplar-transaccion.json";
+// Las fuentes se abren al ejecutar, no al descubrir las pruebas.
+type GistBundle = { modelo: { id: string; nombre: string; entidades: Record<string, { nombre: string }> } };
+let GIST_V1: string;
+let SD0_RAW: string;
+let GIST_ID: string;
+let GIST_NOMBRE: string;
 
-const GIST_V1 = readFileSync(RUTA_GIST, "utf8");
-const SD0_RAW = readFileSync(RUTA_SD0, "utf8");
-const GIST_BUNDLE = JSON.parse(GIST_V1) as { modelo: { id: string; nombre: string; entidades: Record<string, { nombre: string }> } };
-const GIST_ID = GIST_BUNDLE.modelo.id; // "gist-opm-v0"
-const GIST_NOMBRE = GIST_BUNDLE.modelo.nombre;
+test.beforeAll(() => {
+  const rutaGist = process.env.OPFORJA_GIST_BUNDLE;
+  const rutaSd0 = process.env.OPFORJA_SD0_BUNDLE;
+  if (!rutaGist || !rutaSd0) throw new Error("Define OPFORJA_GIST_BUNDLE y OPFORJA_SD0_BUNDLE para ejecutar esta amarra externa.");
+  GIST_V1 = readFileSync(rutaGist, "utf8");
+  SD0_RAW = readFileSync(rutaSd0, "utf8");
+  const gist = JSON.parse(GIST_V1) as GistBundle;
+  GIST_ID = gist.modelo.id;
+  GIST_NOMBRE = gist.modelo.nombre;
+});
 
 // Anclajes: entidad del derivado → pieza real de gist.
 const ANCLAJES: ReadonlyArray<{ entidadId: string; piezaId: string }> = [
@@ -60,9 +68,9 @@ const CLIENTE_ID = "sd0-anclado-amarra-gist";
 
 // Capturas → app/test-results/ (gitignored). Subcarpeta dedicada para el curador.
 const DIR_CAPTURAS = fileURLToPath(new URL("../test-results/amarra-gist-real/", import.meta.url));
-mkdirSync(DIR_CAPTURAS, { recursive: true });
 
 async function capturar(page: Page, nombre: string): Promise<void> {
+  mkdirSync(DIR_CAPTURAS, { recursive: true });
   await page.screenshot({ path: `${DIR_CAPTURAS}${nombre}` });
 }
 
@@ -84,7 +92,7 @@ function construirClienteAnclado(frozenAtHash: string): unknown {
 // Greda gist con UNA pieza renombrada (mutación SEMÁNTICA real: la firma del
 // Centinela excluye layout pero incluye nombres ⇒ el hash vivo cambia).
 function gistConPiezaRenombrada(piezaId: string, nuevoNombre: string): string {
-  const bundle = JSON.parse(GIST_V1) as typeof GIST_BUNDLE;
+  const bundle = JSON.parse(GIST_V1) as GistBundle;
   const pieza = bundle.modelo.entidades[piezaId];
   if (!pieza) throw new Error(`gist real no tiene la pieza esperada: ${piezaId}`);
   pieza.nombre = nuevoNombre;

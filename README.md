@@ -43,5 +43,19 @@ cd app
 bun run check
 ```
 
+El smoke habitual (`bun run browser:smoke`) usa los casos propios del producto.
+Las amarras con modelos externos se ejecutan por separado, desde `app/`, indicando
+sus fuentes sin copiarlas al repositorio:
+
+```bash
+OPFORJA_GIST_BUNDLE=/ruta/gist-opm-v0.json \
+OPFORJA_SD0_BUNDLE=/ruta/sd0-ejemplar-transaccion.json \
+bun run browser:external
+```
+
+Este comando usa Vite con persistencia efímera local. Si falta una fuente requerida,
+falla explícitamente; `--list` permite descubrir las pruebas sin abrir esos archivos.
+`PW_PORT` permite elegir otro puerto local.
+
 `AGENTS.md` es la autoridad local de trabajo. `CLAUDE.md` es solo un adaptador que la
 importa para runtimes compatibles.

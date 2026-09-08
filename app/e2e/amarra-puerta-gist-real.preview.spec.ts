@@ -7,20 +7,24 @@
 // criterio de muerte ("si nunca se ancla nada en el flujo real").
 //
 // `.preview.spec.ts` ⇒ EXCLUIDA del smoke/gate (`playwright.config.ts: testIgnore`).
-// Re-correr: `bunx playwright test amarra-puerta-gist-real.preview.spec.ts --project=chromium`.
-// Lee gist-opm-v0.json de su SSOT con `fs` (no engorda este repo).
+// Re-correr: `bun run browser:external amarra-puerta-gist-real`.
+// OPFORJA_GIST_BUNDLE indica el bundle gist-opm-v0.json de su SSOT; se lee con fs.
 import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { esperarWorkbenchInicial } from "./_smoke-helpers";
 
-const GIST_PATH = "/home/felix/projects/gist-opm/bundles/gist-opm-v0.json";
 const LIB_ID = "gist-opm-v0";
 const LIB_NOMBRE = "gist 14.1.0 — greda OPM (catálogo dockable)";
 const PIEZA_ID = "ent-Assignment"; // «Asignación» — pieza real de gist
 const RUTA_STORE = "/src/store.ts";
 const CAP = "test-results/amarra-puerta-gist-real";
 
-const gistV1 = readFileSync(GIST_PATH, "utf8");
+let gistV1: string;
+test.beforeAll(() => {
+  const ruta = process.env.OPFORJA_GIST_BUNDLE;
+  if (!ruta) throw new Error("Define OPFORJA_GIST_BUNDLE para ejecutar esta amarra externa.");
+  gistV1 = readFileSync(ruta, "utf8");
+});
 function gistMutado(): string {
   const doc = JSON.parse(gistV1) as { modelo: { entidades: Record<string, { nombre: string }> } };
   doc.modelo.entidades[PIEZA_ID].nombre = "Asignación Revisada";
