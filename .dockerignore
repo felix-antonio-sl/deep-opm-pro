@@ -1,8 +1,14 @@
 .git
+.env
+.env.*
+.agents
 .claude
 .codex
 .config
 .opencode
+.remember
+.superpowers
+_archivo
 _local
 decompiled
 tmp

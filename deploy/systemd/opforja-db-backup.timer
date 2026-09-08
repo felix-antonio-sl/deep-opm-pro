@@ -1,8 +1,8 @@
 [Unit]
-Description=Timer diario del backup de la DB de opforja (03:30 local)
+Description=Timer diario del backup de la DB de opforja (03:30 America/Santiago)
 
 [Timer]
-OnCalendar=*-*-* 03:30:00
+OnCalendar=*-*-* 03:30:00 America/Santiago
 Persistent=true
 
 [Install]
