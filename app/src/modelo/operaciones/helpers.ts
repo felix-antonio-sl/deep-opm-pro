@@ -16,6 +16,35 @@ export function siguienteId(modelo: Modelo, prefijo: string): Id {
   return `${prefijo}-${modelo.nextSeq}`;
 }
 
+/** Advances the global allocator past a stable ID that uses a legacy prefix. */
+export function secuenciaPosteriorId(id: Id, minimo: number): number {
+  const match = /^(?:a|ab|ae|e|efe|est|ge|nm|o|opd|p|s|sm|sr)-(\d+)$/.exec(id);
+  if (!match?.[1]) return minimo;
+  const suffix = Number(match[1]);
+  return Number.isSafeInteger(suffix) ? Math.max(minimo, suffix + 1) : minimo;
+}
+
+/** Checks semantic IDs, including OPD-local appearance IDs. */
+export function idModeloExiste(modelo: Modelo, id: Id): boolean {
+  if (
+    modelo.id === id || modelo.opdRaizId === id || modelo.entidades[id] || modelo.estados[id] ||
+    modelo.enlaces[id] || modelo.opds[id] || modelo.abanicos?.[id]
+  ) return true;
+  for (const opd of Object.values(modelo.opds)) {
+    if (Object.hasOwn(opd.apariencias, id) || Object.hasOwn(opd.enlaces, id)) return true;
+  }
+  const otherMaps: Array<Record<Id, unknown> | undefined> = [
+    modelo.satisfaccionesRequisito,
+    modelo.declaracionesNoNucleares,
+    modelo.familiasEfectosPreestado,
+    modelo.anclasNormativas,
+    modelo.notasMesa,
+    modelo.estereotipos,
+    modelo.submodelos,
+  ];
+  return otherMaps.some((map) => !!map && Object.hasOwn(map, id));
+}
+
 export function ok<T>(value: T): Resultado<T> {
   return { ok: true, value };
 }

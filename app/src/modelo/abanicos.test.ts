@@ -36,6 +36,34 @@ describe("abanicos lógicos O/XOR", () => {
     });
   });
 
+  test("formarAbanico acepta un ID estable libre y adelanta el asignador", () => {
+    const { modelo, enlaces } = modeloConResultados(["A", "B"]);
+
+    const resultado = formarAbanico(modelo, modelo.opdRaizId, enlaces, "XOR", "ab-900");
+
+    expect(resultado.ok).toBe(true);
+    if (!resultado.ok) return;
+    expect(resultado.value.abanicos?.["ab-900"]?.enlaceIds).toEqual(enlaces);
+    expect(resultado.value.abanicos?.["ab-900"]?.operador).toBe("XOR");
+    expect(resultado.value.nextSeq).toBeGreaterThan(900);
+  });
+
+  test("un ID estable en colisión o un puerto con grupo existente no modifica el modelo", () => {
+    const { modelo: base, enlaces } = modeloConResultados(["A", "B", "C", "D"]);
+    const primera = must(formarAbanico(base, base.opdRaizId, enlaces.slice(0, 2), "XOR"));
+    const idExistente = Object.keys(primera.abanicos ?? {})[0]!;
+
+    const collision = formarAbanico(base, base.opdRaizId, enlaces.slice(0, 2), "XOR", entidad(base, "A"));
+    expect(collision.ok).toBe(false);
+    if (!collision.ok) expect(collision.error).toContain("ID ya existe");
+
+    const implicitMerge = formarAbanico(primera, primera.opdRaizId, enlaces.slice(2), "XOR", "xor-new");
+    expect(implicitMerge.ok).toBe(false);
+    if (!implicitMerge.ok) expect(implicitMerge.error).toContain("Ya existe un abanico");
+    expect(primera.abanicos?.[idExistente]?.enlaceIds).toEqual(enlaces.slice(0, 2));
+    expect(Object.keys(primera.abanicos ?? {})).toEqual([idExistente]);
+  });
+
   test("permite dos abanicos del mismo tipo y entidad cuando usan puertos exactos distintos", () => {
     let modelo = crearModelo();
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 40, y: 120 }, "P"));

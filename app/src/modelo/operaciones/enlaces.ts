@@ -24,7 +24,7 @@ import type {
 } from "../tipos";
 import { CANON, naturalezaDeEnlace } from "../constantes";
 import { aparienciaDeEntidadEnOpd, aparicionesVisiblesEnOpd } from "../politicaApariciones";
-import { fallo, ok, siguienteId, validarFirmaEnlace } from "./helpers";
+import { fallo, idModeloExiste, ok, secuenciaPosteriorId, siguienteId, validarFirmaEnlace } from "./helpers";
 import {
   procesoDescompuestoEnOpd,
   refrescarEnlacesExternosDerivados,
@@ -95,9 +95,11 @@ export function crearEnlace(
   tipo: TipoEnlace,
   etiqueta = "",
   transicion?: { estadoEntradaId?: Id; estadoSalidaId?: Id },
+  opciones: { id?: Id } = {},
 ): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
+  if (opciones.id && idModeloExiste(modelo, opciones.id)) return fallo(`ID ya existe: ${opciones.id}`);
   const origenExtremo = normalizarExtremo(origenId);
   const destinoExtremo = normalizarExtremo(destinoId);
   const origen = entidadDeExtremo(modelo, origenExtremo);
@@ -141,8 +143,15 @@ export function crearEnlace(
     return fallo("El enlace requiere que origen y destino tengan apariencia en el OPD");
   }
 
-  const enlaceId = siguienteId(modelo, "e");
-  const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "ae");
+  const enlaceId = opciones.id ?? siguienteId(modelo, "e");
+  let aparienciaSeq = modelo.nextSeq + 1;
+  let aparienciaId = siguienteId({ ...modelo, nextSeq: aparienciaSeq }, "ae");
+  while (
+    idModeloExiste(modelo, aparienciaId) || aparienciaId === enlaceId
+  ) {
+    aparienciaSeq += 1;
+    aparienciaId = siguienteId({ ...modelo, nextSeq: aparienciaSeq }, "ae");
+  }
   const enlace: Enlace = {
     id: enlaceId,
     tipo,
@@ -156,7 +165,7 @@ export function crearEnlace(
 
   const base: Modelo = {
     ...modelo,
-    nextSeq: modelo.nextSeq + 2,
+    nextSeq: secuenciaPosteriorId(enlaceId, Math.max(modelo.nextSeq + 2, aparienciaSeq + 1)),
     enlaces: { ...modelo.enlaces, [enlaceId]: enlace },
     opds: {
       ...modelo.opds,

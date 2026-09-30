@@ -1,6 +1,6 @@
 import type { Estado, Id, Modelo, Resultado } from "../tipos";
 import { eliminarEnlacesPorExtremosEstado } from "./eliminacion";
-import { fallo, ok, siguienteId } from "./helpers";
+import { fallo, idModeloExiste, ok, secuenciaPosteriorId, siguienteId } from "./helpers";
 
 /**
  * Operaciones de estados de objeto: crear estados iniciales, agregar, renombrar,
@@ -109,24 +109,30 @@ export function crearEstadosIniciales(modelo: Modelo, entidadId: Id): Resultado<
   });
 }
 
-export function agregarEstado(modelo: Modelo, entidadId: Id, nombre?: string): Resultado<EstadoCreado> {
+export function agregarEstado(
+  modelo: Modelo,
+  entidadId: Id,
+  nombre?: string,
+  opciones: { id?: Id } = {},
+): Resultado<EstadoCreado> {
   const entidad = modelo.entidades[entidadId];
   if (!entidad) return fallo(`Entidad no existe: ${entidadId}`);
   if (entidad.tipo !== "objeto") return fallo("Los estados sólo aplican a objetos");
   if (estadosDeEntidad(modelo, entidadId).length < 2) {
     return fallo("Agregar un estado requiere que el objeto ya tenga al menos dos estados");
   }
+  if (opciones.id && idModeloExiste(modelo, opciones.id)) return fallo(`ID ya existe: ${opciones.id}`);
 
   const limpio = nombre?.trim() || siguienteNombreEstado(modelo, entidadId);
   const validado = validarNombreEstado(modelo, entidadId, limpio);
   if (!validado.ok) return validado;
 
-  const estadoId = siguienteId(modelo, "s");
+  const estadoId = opciones.id ?? siguienteId(modelo, "s");
   const estado: Estado = { id: estadoId, entidadId, nombre: validado.value };
   return ok({
     modelo: {
       ...modelo,
-      nextSeq: modelo.nextSeq + 1,
+      nextSeq: secuenciaPosteriorId(estadoId, modelo.nextSeq + 1),
       estados: {
         ...(modelo.estados ?? {}),
         [estadoId]: estado,

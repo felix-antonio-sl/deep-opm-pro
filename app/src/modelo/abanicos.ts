@@ -1,5 +1,6 @@
 import { naturalezaDeEnlace } from "./constantes";
 import { entidadIdDeExtremo } from "./extremos";
+import { idModeloExiste, secuenciaPosteriorId } from "./operaciones/helpers";
 import type { Abanico, Enlace, Id, Modelo, OperadorAbanico, PuertoAbanicoExacto, Resultado, TipoEnlace } from "./tipos";
 
 type LadoEnlace = "origen" | "destino";
@@ -40,16 +41,26 @@ export function formarAbanico(
   opdId: Id,
   enlaceIds: Id[],
   operador: OperadorAbanico = "O",
+  stableId?: Id,
 ): Resultado<Modelo> {
+  if (stableId && idModeloExiste(modelo, stableId)) return fallo(`ID ya existe: ${stableId}`);
   const validado = validarCandidatoAbanico(modelo, opdId, enlaceIds, operador);
   if (!validado.ok) return validado;
   const puertoComun = puertoAbanicoDesdeExacto(validado.value.puertoComun);
   const existente = abanicoExistentePara(modelo, opdId, puertoComun, validado.value.tipo);
   if (existente) {
+    // A stable ID signals a new semantic creation; it may not silently merge
+    // the requested branches into an existing logical group.
+    if (stableId) return fallo(`Ya existe un abanico en el puerto seleccionado: ${existente.id}`);
     return agregarRamasAAbanico(modelo, existente.id, validado.value.enlaces.map((enlace) => enlace.id), operador);
   }
 
-  const abanicoId = siguienteId(modelo, "ab");
+  let siguienteSeq = modelo.nextSeq;
+  let abanicoId = stableId;
+  if (!abanicoId) {
+    do { abanicoId = `ab-${siguienteSeq}`; siguienteSeq++; }
+    while (idModeloExiste(modelo, abanicoId));
+  }
   const abanico: Abanico = {
     id: abanicoId,
     opdId,
@@ -61,7 +72,7 @@ export function formarAbanico(
 
   return ok({
     ...modelo,
-    nextSeq: modelo.nextSeq + 1,
+    nextSeq: secuenciaPosteriorId(abanicoId, Math.max(modelo.nextSeq + 1, siguienteSeq)),
     abanicos: {
       ...(modelo.abanicos ?? {}),
       [abanicoId]: abanico,
@@ -454,10 +465,6 @@ function enlaceVisibleEnOpd(modelo: Modelo, opdId: Id, enlaceId: Id): boolean {
 
 function esOperadorAbanico(value: unknown): value is OperadorAbanico {
   return value === "O" || value === "XOR";
-}
-
-function siguienteId(modelo: Modelo, prefijo: string): Id {
-  return `${prefijo}-${modelo.nextSeq}`;
 }
 
 function ordenarConSeleccionPrimero(enlaceIds: Id[], enlaceSeleccionId: Id): Id[] {

@@ -2,7 +2,7 @@ import { CANON } from "../constantes";
 import { nombreReforzadoPorOntologia } from "../ontologia";
 import type { Apariencia, Entidad, Id, Modelo, Opd, Posicion, Resultado, TipoEntidad } from "../tipos";
 import { nombreEntidadDisponible, nombreUnicoEntidad } from "./entidad";
-import { fallo, ok, siguienteId } from "./helpers";
+import { fallo, idModeloExiste, ok, secuenciaPosteriorId, siguienteId } from "./helpers";
 import { redistribuirEnlacesExternosSiPrimerSubproceso } from "./refinamiento";
 
 /**
@@ -36,12 +36,24 @@ export function crearModelo(nombre = "Modelo OPM"): Modelo {
   };
 }
 
-export function crearObjeto(modelo: Modelo, opdId: Id, posicion: Posicion, nombre?: string): Resultado<Modelo> {
-  return crearEntidad(modelo, opdId, "objeto", posicion, nombre);
+export function crearObjeto(
+  modelo: Modelo,
+  opdId: Id,
+  posicion: Posicion,
+  nombre?: string,
+  opciones: { id?: Id } = {},
+): Resultado<Modelo> {
+  return crearEntidad(modelo, opdId, "objeto", posicion, nombre, opciones);
 }
 
-export function crearProceso(modelo: Modelo, opdId: Id, posicion: Posicion, nombre?: string): Resultado<Modelo> {
-  return crearEntidad(modelo, opdId, "proceso", posicion, nombre);
+export function crearProceso(
+  modelo: Modelo,
+  opdId: Id,
+  posicion: Posicion,
+  nombre?: string,
+  opciones: { id?: Id } = {},
+): Resultado<Modelo> {
+  return crearEntidad(modelo, opdId, "proceso", posicion, nombre, opciones);
 }
 
 function crearEntidad(
@@ -50,9 +62,12 @@ function crearEntidad(
   tipo: TipoEntidad,
   posicion: Posicion,
   nombre: string | undefined,
+  opciones: { id?: Id },
 ): Resultado<Modelo> {
   const opd = modelo.opds[opdId];
   if (!opd) return fallo(`OPD no existe: ${opdId}`);
+
+  if (opciones.id && idModeloExiste(modelo, opciones.id)) return fallo(`ID ya existe: ${opciones.id}`);
 
   const nombreBase = tipo === "objeto" ? "Objeto" : "Proceso";
   const nombreLimpio = nombre?.trim();
@@ -61,8 +76,13 @@ function crearEntidad(
     return fallo(`Ya existe '${nombreFinal}' en el modelo`);
   }
 
-  const entidadId = siguienteId(modelo, tipo === "objeto" ? "o" : "p");
-  const aparienciaId = siguienteId({ ...modelo, nextSeq: modelo.nextSeq + 1 }, "a");
+  const entidadId = opciones.id ?? siguienteId(modelo, tipo === "objeto" ? "o" : "p");
+  let aparienciaSeq = modelo.nextSeq + 1;
+  let aparienciaId = siguienteId({ ...modelo, nextSeq: aparienciaSeq }, "a");
+  while (idModeloExiste(modelo, aparienciaId) || aparienciaId === entidadId) {
+    aparienciaSeq += 1;
+    aparienciaId = siguienteId({ ...modelo, nextSeq: aparienciaSeq }, "a");
+  }
   const entidad: Entidad = {
     id: entidadId,
     tipo,
@@ -88,7 +108,7 @@ function crearEntidad(
 
   const base: Modelo = {
     ...modelo,
-    nextSeq: modelo.nextSeq + 2,
+    nextSeq: secuenciaPosteriorId(entidadId, Math.max(modelo.nextSeq + 2, aparienciaSeq + 1)),
     entidades: { ...modelo.entidades, [entidadId]: entidad },
     opds: { ...modelo.opds, [opdId]: nextOpd },
   };
