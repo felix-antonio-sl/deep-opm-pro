@@ -3,6 +3,7 @@ import { extremoApuntaAEntidad, extremoEntidad, extremoEstado } from "../modelo/
 import { crearAutoInvocacion } from "../modelo/autoinvocacion";
 import { aplicarModificador, definirDemora, definirProbabilidad } from "../modelo/modificadores";
 import { actualizarPosicionSimboloEstructural, ajustarMultiplicidad, cambiarAfiliacion, crearEnlace, crearEstadosIniciales, crearModelo, crearObjeto, crearProceso, definirBackwardTag, definirRequisitosEnlace, definirTasaEnlace, definirTiempoExcepcionEnlace, designarEstadoFinal, designarEstadoInicial, descomponerProceso, desplegarObjeto, reanclarEnlaceExternoDerivado } from "../modelo/operaciones";
+import { fijarMultiplicidadOrigen } from "../modelo/enlaceMultiplicidad";
 import { renombrarEtiquetaEnlace } from "../modelo/etiquetasEnlace";
 import { modoDespliegue } from "../opl/generadores/refinamiento";
 import { cambiarModoPlegado, extraerParteDePlegado, partesExtraidasEn } from "../modelo/plegado";
@@ -563,6 +564,31 @@ describe("serializacion JSON", () => {
     if (!hidratado.ok) return;
     expect(hidratado.value.enlaces[enlaceId]?.multiplicidadOrigen).toBe("2..N");
     expect(hidratado.value.enlaces[enlaceId]?.multiplicidadDestino).toBe("*");
+  });
+
+  test("multiplicidad opcional '?' fijada por cualquier camino vuelve a hidratar", () => {
+    let modelo = crearModelo("Multiplicidad opcional");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 0, y: 0 }, "Recurso"));
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 200, y: 0 }, "Procesar"));
+    modelo = must(crearEnlace(
+      modelo,
+      modelo.opdRaizId,
+      entidadPorNombre(modelo, "Recurso"),
+      entidadPorNombre(modelo, "Procesar"),
+      "consumo",
+    ));
+    const enlaceId = Object.values(modelo.enlaces)[0]?.id;
+    expect(enlaceId).toBeDefined();
+    if (!enlaceId) return;
+    modelo = must(ajustarMultiplicidad(modelo, enlaceId, "destino", "?"));
+    modelo = must(fijarMultiplicidadOrigen(modelo, enlaceId, "?"));
+
+    const hidratado = hidratarModelo(exportarModelo(modelo));
+
+    expect(hidratado.ok).toBe(true);
+    if (!hidratado.ok) return;
+    expect(hidratado.value.enlaces[enlaceId]?.multiplicidadOrigen).toBe("?");
+    expect(hidratado.value.enlaces[enlaceId]?.multiplicidadDestino).toBe("?");
   });
 
   test("JSON OPM no serializa pestanas de sesion", () => {

@@ -6,12 +6,16 @@ import {
   quitarMultiplicidad,
   validarMultiplicidad,
 } from "./enlaceMultiplicidad";
-import { crearModelo, crearEnlace, crearObjeto, crearProceso } from "./operaciones";
+import { crearModelo, crearEnlace, crearObjeto, crearProceso, validarMultiplicidad as validarMultiplicidadOperaciones } from "./operaciones";
 import type { Enlace, Modelo, TipoEnlace } from "./tipos";
 
 function est(m: Modelo, id: string): Enlace { return m.enlaces[id]!; }
 
 describe("validarMultiplicidad", () => {
+  test("es una sola regla para edición, inspector e hidratación", () => {
+    expect(validarMultiplicidadOperaciones).toBe(validarMultiplicidad);
+  });
+
   test("acepta canónicas", () => {
     for (const val of MULTIPLICIDADES_CANONICAS) {
       expect(validarMultiplicidad(val)).toBe(true);

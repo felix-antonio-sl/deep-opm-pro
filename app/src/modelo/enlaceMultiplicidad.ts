@@ -14,12 +14,16 @@ export type MultiplicidadCanonica = (typeof MULTIPLICIDADES_CANONICAS)[number];
 const MULTIPLICIDAD_RE = /^\d+$|^N$|^\+$|^\*$|^\?$|^\d+\.\.\d+$|^\d+\.\.N$|^\d+\.\.\*$/;
 
 /**
- * Valida si un texto es una multiplicidad válida.
+ * Valida si un texto es una multiplicidad válida. Fuente única: la usan la
+ * edición, el inspector y la hidratación del JSON, para que todo valor que se
+ * pueda fijar también se pueda volver a cargar.
  * SSOT: opm-opl-es.md §12 — la multiplicidad aparece en oraciones OPL.
  */
 export function validarMultiplicidad(texto: string): boolean {
   return MULTIPLICIDAD_RE.test(texto);
 }
+
+export const MENSAJE_MULTIPLICIDAD_INVALIDA = "Multiplicidad inválida: usa 1, +, *, ?, 0..1, 0..N, 2..*, 2..N o 1..5";
 
 /**
  * Fija la multiplicidad del lado origen de un enlace.
@@ -66,7 +70,7 @@ function fijarMultiplicidad(
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
 
   if (valor !== "" && !validarMultiplicidad(valor)) {
-    return fallo("Multiplicidad inválida: usa 1, +, *, ?, 0..1, 0..N, 2..*, 2..N o 1..5");
+    return fallo(MENSAJE_MULTIPLICIDAD_INVALIDA);
   }
 
   const actual = enlace[campo];

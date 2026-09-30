@@ -77,10 +77,10 @@ export {
 } from "./operaciones/estados";
 export type { EstadosInicialesObjeto, EstadoCreado } from "./operaciones/estados";
 
+export { validarMultiplicidad } from "./enlaceMultiplicidad";
 export {
   crearEnlace,
   apuntarExtremoEnlace,
-  validarMultiplicidad,
   ajustarMultiplicidad,
   moverPuertoEnlace,
   separarGrupoEstructural,
