@@ -1,5 +1,6 @@
 import { ejecutarCorrida, ejecutarFaseSimulacion, iniciarSimulacion, reiniciarSimulacion, resolverRamaSimulacion } from "../modelo/simulacion/runner";
 import type { ContextoSimulacion, ModoSimulacion } from "../modelo/simulacion/tipos";
+import { validarEscenario, type EscenarioSimulacion } from "../modelo/simulacion/scenario";
 import type { Id } from "../modelo/tipos";
 import type { CrearSlice, SimulacionSlice } from "./sliceTypes";
 import type { OpmStore } from "./tipos";
@@ -19,6 +20,7 @@ import type { OpmStore } from "./tipos";
  */
 export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => ({
   contextoSimulacion: null,
+  modeloBaseSimulacion: null,
   readOnlyPrevSimulacion: null,
   autoAvanceSimulacionActivo: false,
   velocidadSimulacion: 1,
@@ -30,6 +32,7 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     const contexto = iniciarSimulacion(modelo, opdActivoId);
     set({
       contextoSimulacion: contexto,
+      modeloBaseSimulacion: modelo,
       readOnlyPrevSimulacion: readOnly,
       autoAvanceSimulacionActivo: false,
       readOnly: true,
@@ -48,11 +51,37 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
     });
   },
 
+  aplicarEscenarioSimulacion(escenario: EscenarioSimulacion | null) {
+    const { contextoSimulacion, modelo } = get();
+    if (!contextoSimulacion) return "No hay una simulación activa para fijar el escenario.";
+    if (escenario) {
+      const validacion = validarEscenario(modelo, escenario);
+      if (!validacion.ok) return validacion.error;
+    }
+    const inicio = iniciarSimulacion(modelo, contextoSimulacion.opdId, {
+      ...(contextoSimulacion.semilla !== undefined ? { semilla: contextoSimulacion.semilla } : {}),
+      ...(escenario ? { escenario } : {}),
+    });
+    set({
+      contextoSimulacion: {
+        ...inicio,
+        ...(contextoSimulacion.modo ? { modo: contextoSimulacion.modo } : {}),
+      },
+      modeloBaseSimulacion: modelo,
+      autoAvanceSimulacionActivo: false,
+      mensaje: escenario
+        ? `Escenario «${escenario.proposito}» fijado sobre el modelo activo.`
+        : "Ensayo sin escenario explícito.",
+    });
+    return null;
+  },
+
   salirModoSimulacion() {
     const { readOnlyPrevSimulacion, contextoSimulacion } = get();
     if (contextoSimulacion === null) return;
     set({
       contextoSimulacion: null,
+      modeloBaseSimulacion: null,
       readOnly: readOnlyPrevSimulacion ?? false,
       readOnlyPrevSimulacion: null,
       autoAvanceSimulacionActivo: false,
@@ -61,8 +90,13 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   },
 
   ejecutarPasoSimulacion() {
-    const { contextoSimulacion, modelo, opdActivoId } = get();
+    const { contextoSimulacion, modelo, modeloBaseSimulacion, opdActivoId } = get();
     if (!contextoSimulacion) return;
+    if (contextoSimulacion.escenario && modeloBaseSimulacion !== modelo) {
+      const bloqueado = bloquearEscenarioPorCambioBase(contextoSimulacion);
+      set({ contextoSimulacion: bloqueado, autoAvanceSimulacionActivo: false, mensaje: bloqueado.trace.at(-1)?.diagnostico ?? null });
+      return;
+    }
     if (contextoSimulacion.estado === "completado" || contextoSimulacion.estado === "bloqueado") {
       if (get().autoAvanceSimulacionActivo) set({ autoAvanceSimulacionActivo: false });
       return;
@@ -88,8 +122,13 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   },
 
   resolverRamaSimulacionActual(enlaceId) {
-    const { contextoSimulacion, modelo, opdActivoId } = get();
+    const { contextoSimulacion, modelo, modeloBaseSimulacion, opdActivoId } = get();
     if (!contextoSimulacion) return;
+    if (contextoSimulacion.escenario && modeloBaseSimulacion !== modelo) {
+      const bloqueado = bloquearEscenarioPorCambioBase(contextoSimulacion);
+      set({ contextoSimulacion: bloqueado, autoAvanceSimulacionActivo: false, mensaje: bloqueado.trace.at(-1)?.diagnostico ?? null });
+      return;
+    }
     if (contextoSimulacion.estado === "completado" || contextoSimulacion.estado === "bloqueado") return;
     const siguiente = resolverRamaSimulacion(modelo, contextoSimulacion, enlaceId);
     // El kernel devuelve el MISMO contexto cuando el enlace no es rama del
@@ -111,8 +150,13 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   },
 
   ejecutarCorridaSimulacion() {
-    const { contextoSimulacion, modelo, opdActivoId } = get();
+    const { contextoSimulacion, modelo, modeloBaseSimulacion, opdActivoId } = get();
     if (!contextoSimulacion) return;
+    if (contextoSimulacion.escenario && modeloBaseSimulacion !== modelo) {
+      const bloqueado = bloquearEscenarioPorCambioBase(contextoSimulacion);
+      set({ contextoSimulacion: bloqueado, autoAvanceSimulacionActivo: false, mensaje: bloqueado.trace.at(-1)?.diagnostico ?? null });
+      return;
+    }
     const final = ejecutarCorrida(modelo, contextoSimulacion);
     const ultimo = final.plan[final.plan.length - 1];
     const destino = ultimo?.opdId ?? opdActivoId;
@@ -125,8 +169,13 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   },
 
   reiniciarSimulacionActual() {
-    const { contextoSimulacion, modelo, opdActivoId } = get();
+    const { contextoSimulacion, modelo, modeloBaseSimulacion, opdActivoId } = get();
     if (!contextoSimulacion) return;
+    if (contextoSimulacion.escenario && modeloBaseSimulacion !== modelo) {
+      const bloqueado = bloquearEscenarioPorCambioBase(contextoSimulacion);
+      set({ contextoSimulacion: bloqueado, autoAvanceSimulacionActivo: false, mensaje: bloqueado.trace.at(-1)?.diagnostico ?? null });
+      return;
+    }
     const ctx = reiniciarSimulacion(modelo, contextoSimulacion);
     const destino = ctx.plan[0]?.opdId ?? ctx.opdId;
     set({
@@ -137,8 +186,13 @@ export const createSimulacionSlice: CrearSlice<SimulacionSlice> = (set, get) => 
   },
 
   iniciarAutoAvanceSimulacion() {
-    const { contextoSimulacion } = get();
+    const { contextoSimulacion, modelo, modeloBaseSimulacion } = get();
     if (!contextoSimulacion || contextoSimulacion.plan.length === 0 || contextoSimulacion.estado === "completado" || contextoSimulacion.estado === "bloqueado") return;
+    if (contextoSimulacion.escenario && modeloBaseSimulacion !== modelo) {
+      const bloqueado = bloquearEscenarioPorCambioBase(contextoSimulacion);
+      set({ contextoSimulacion: bloqueado, autoAvanceSimulacionActivo: false, mensaje: bloqueado.trace.at(-1)?.diagnostico ?? null });
+      return;
+    }
     set({
       autoAvanceSimulacionActivo: true,
       mensaje: "Simulación automática iniciada.",
@@ -210,5 +264,30 @@ function patchNavegacionSimulacion(opdActivoId: Id): Partial<OpmStore> {
     modoCreacion: null,
     nuevaCosaPendiente: null,
     hoverOplRef: null,
+  };
+}
+
+function bloquearEscenarioPorCambioBase(contexto: ContextoSimulacion): ContextoSimulacion {
+  if (contexto.estado === "bloqueado") return contexto;
+  const paso = contexto.plan[contexto.pasoActual];
+  if (!paso) return { ...contexto, estado: "bloqueado" };
+  return {
+    ...contexto,
+    estado: "bloqueado",
+    trace: [
+      ...contexto.trace,
+      {
+        numero: contexto.trace.length + 1,
+        opdId: paso.opdId,
+        opdNombre: paso.opdNombre,
+        procesoId: paso.procesoId,
+        procesoNombre: paso.procesoNombre,
+        transicionesAplicadas: [],
+        cambiosValor: [],
+        diagnostico: "No soportado: la revisión base del escenario cambió; fija un escenario nuevo para continuar.",
+        resultadoEscenario: "no-soportado",
+        evidenciaEscenario: contexto.escenario ? [{ tipo: "declaracion", id: contexto.escenario.id }] : [],
+      },
+    ],
   };
 }

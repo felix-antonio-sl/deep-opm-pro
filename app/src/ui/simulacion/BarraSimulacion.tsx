@@ -1,5 +1,5 @@
 import type { JSX } from "preact";
-import { useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { useZustandSimulationPort } from "../../app/ports/zustandSimulationPort";
 import { descriptorFaseSimulacion, fasesDelPasoSimulacion } from "../../modelo/simulacion/fases";
 import { useBreakpoint } from "../layoutResponsive";
@@ -9,10 +9,12 @@ import { runTutorPolicy } from "../../tutor/politica";
 import type { SimulationIntentSnapshot } from "../../tutor/tipos";
 import { useTutorContent } from "../useTutorContent";
 import { TutorFoundationLinks } from "../TutorDetails";
+import { PanelEscenarioSimulacion } from "./PanelEscenarioSimulacion";
 
 export function BarraSimulacion(): JSX.Element | null {
   const {
     modelo,
+    modeloBase,
     contexto,
     autoAvance,
     velocidad: velocidadSimulacion,
@@ -28,9 +30,11 @@ export function BarraSimulacion(): JSX.Element | null {
     salir,
     fijarModo,
     fijarSemilla,
+    aplicarEscenario,
   } = useZustandSimulationPort();
 
   const esMobile = useBreakpoint() === "mobile";
+  const [escenarioExpandido, setEscenarioExpandido] = useState(false);
 
   useEffect(() => {
     if (!contexto || !autoAvance || contexto.estado === "completado" || contexto.estado === "bloqueado" || contexto.plan.length === 0) return;
@@ -101,7 +105,8 @@ export function BarraSimulacion(): JSX.Element | null {
   const fasesPasoActual = pasoActual ? fasesDelPasoSimulacion(modelo, pasoActual) : [];
   const completado = estadoBarra.completado;
   const bloqueado = estadoBarra.bloqueado;
-  const controlesDeshabilitados = sinProcesos || !estadoBarra.puedeEjecutar;
+  const baseObsoleta = Boolean(contexto.escenario && modeloBase !== modelo);
+  const controlesDeshabilitados = sinProcesos || !estadoBarra.puedeEjecutar || baseObsoleta;
   const C = tokens.colors;
 
   const velocidades = [0.5, 1, 2, 4] as const;
@@ -144,7 +149,13 @@ export function BarraSimulacion(): JSX.Element | null {
         // simulacion" — sin el modo, el usuario con SR no sabía si
         // estaba en determinista, muestreo o exhaustivo.
         aria-label={`Controles de simulacion, modo ${contexto.modo ?? "determinista"}`}
-        style={esMobile ? { ...s.barra, ...s.barraMobile } : s.barra}
+        style={esMobile
+          ? {
+              ...s.barra,
+              ...s.barraMobile,
+              ...(escenarioExpandido ? { height: "auto", minHeight: 48, overflowX: "visible", overflowY: "visible", flexWrap: "wrap", alignItems: "flex-start" } : {}),
+            }
+          : s.barra}
       >
       {!esMobile ? (
         <>
@@ -323,7 +334,7 @@ export function BarraSimulacion(): JSX.Element | null {
         </button>
         <span style={s.sep}>&middot;</span>
 
-        <button type="button" className="sim-control" style={s.control} onClick={reiniciar} disabled={sinProcesos} data-testid="barra-simulacion-reiniciar" title="Volver al paso 0 — reversible con Ctrl+Z">
+        <button type="button" className="sim-control" style={s.control} onClick={reiniciar} disabled={sinProcesos || baseObsoleta} data-testid="barra-simulacion-reiniciar" title="Volver al paso 0 — reversible con Ctrl+Z">
           reiniciar
         </button>
         <span style={s.sep}>&middot;</span>
@@ -462,6 +473,13 @@ export function BarraSimulacion(): JSX.Element | null {
           })}
         </div>
       ) : null}
+      <PanelEscenarioSimulacion
+        modelo={modelo}
+        modeloBase={modeloBase}
+        contexto={contexto}
+        aplicarEscenario={aplicarEscenario}
+        onOpenChange={setEscenarioExpandido}
+      />
       </div>
     </>
   );

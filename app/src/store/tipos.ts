@@ -906,6 +906,8 @@ export interface OpmStore {
   // ── Beta2 / Ronda 17 L2: modo simulación conceptual ──────────────
   /** Contexto activo de simulación; `null` cuando no estamos en modo. */
   contextoSimulacion: import("../modelo/simulacion/tipos").ContextoSimulacion | null;
+  /** Revisión inmutable del modelo que abrió el ensayo; identidad distinta invalida el resultado. */
+  modeloBaseSimulacion: Modelo | null;
   /** Snapshot del `readOnly` previo a entrar en modo simulación. Permite
    *  restaurar el flag al salir sin perder el modo solo-lectura del modelo. */
   readOnlyPrevSimulacion: boolean | null;
@@ -914,6 +916,8 @@ export interface OpmStore {
   /** Razón de velocidad de tokens/simulacion, inspirada en `tokenRuntimeRatio`. */
   velocidadSimulacion: number;
   iniciarModoSimulacion: () => void;
+  /** Reemplaza los datos iniciales del ensayo y reinicia el runner sobre la revisión activa. */
+  aplicarEscenarioSimulacion: (escenario: import("../modelo/simulacion/scenario").EscenarioSimulacion | null) => string | null;
   salirModoSimulacion: () => void;
   ejecutarPasoSimulacion: () => void;
   /** Resuelve inline la decisión XOR pendiente: aplica la rama elegida del abanico. */

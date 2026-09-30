@@ -1,5 +1,6 @@
 import type { Id, Modelo } from "../../modelo/tipos";
 import type { ContextoSimulacion, EntradaTraceSim, PasoSimulacion, TransicionEstadoSim } from "../../modelo/simulacion/tipos";
+import type { ConclusionEscenario, EscenarioSimulacion, ResultadoPasoEscenario } from "../../modelo/simulacion/scenario";
 import { descriptorFaseSimulacion, transicionesVigentesSimulacion } from "../../modelo/simulacion/fases";
 import { decisionXorSimulacion } from "../../modelo/simulacion/runner";
 
@@ -21,6 +22,101 @@ export interface NarrativaSimulacion {
   titulo: string;
   detalle: string;
   contexto: string[];
+}
+
+export interface ConclusionEscenarioVisible extends ConclusionEscenario {
+  titulo: string;
+  invalidada: boolean;
+}
+
+const ROTULOS_RESULTADO_ESCENARIO: Record<ResultadoPasoEscenario, string> = {
+  avance: "Avance",
+  espera: "En espera",
+  omision: "Omisión por condición",
+  "evento-no-ocurrido": "Evento no ocurrido",
+  "evento-perdido": "Evento ocurrido y perdido",
+  indeterminado: "Indeterminado",
+  "no-soportado": "No soportado",
+  truncado: "Truncado",
+};
+
+/** Presenta el outcome como conclusión acotada; no convierte la traza en predicción. */
+export function proyectarConclusionEscenario(
+  escenario: EscenarioSimulacion,
+  entrada: EntradaTraceSim | undefined,
+  revisionVigente: boolean,
+): ConclusionEscenarioVisible {
+  const resultado = entrada?.resultadoEscenario ?? (entrada?.omitido ? "omision" : "avance");
+  return {
+    resultado,
+    titulo: ROTULOS_RESULTADO_ESCENARIO[resultado],
+    referencias: entrada?.evidenciaEscenario ?? [],
+    invalidada: !revisionVigente,
+    limites: limitesConclusionEscenario(resultado, !revisionVigente),
+  };
+}
+
+export function rotuloReferenciaEscenario(
+  modelo: Modelo,
+  escenario: EscenarioSimulacion,
+  referencia: ConclusionEscenario["referencias"][number],
+): string {
+  if (referencia.tipo === "estado") {
+    const estado = modelo.estados[referencia.id];
+    if (!estado) return `Estado ${referencia.id}`;
+    return `${modelo.entidades[estado.entidadId]?.nombre ?? estado.entidadId}: ${estado.nombre}`;
+  }
+  if (referencia.tipo === "enlace") {
+    const enlace = modelo.enlaces[referencia.id];
+    if (!enlace) return `Enlace ${referencia.id}`;
+    const origen = nombreExtremoProyeccion(modelo, enlace.origenId);
+    const destino = nombreExtremoProyeccion(modelo, enlace.destinoId);
+    return `${enlace.tipo}: ${origen} → ${destino}`;
+  }
+  if (referencia.tipo === "supuesto") {
+    const supuesto = escenario.supuestos.find((item) => item.id === referencia.id);
+    return supuesto ? `Supuesto: ${supuesto.descripcion}` : `Supuesto ${referencia.id}`;
+  }
+  if (referencia.tipo === "declaracion") return `Escenario: ${escenario.proposito}`;
+  return `Regla ${referencia.id}`;
+}
+
+function limitesConclusionEscenario(resultado: ResultadoPasoEscenario, invalidada: boolean): string[] {
+  const limites: string[] = [];
+  if (invalidada) limites.push("La base activa cambió; este resultado solo corresponde a la revisión fijada.");
+  switch (resultado) {
+    case "avance":
+      limites.push("El avance vale bajo los datos y supuestos declarados; no predice el sistema real ni cubre todas sus trayectorias.");
+      break;
+    case "espera":
+      limites.push("La espera indica una precondición pendiente en este escenario; no implica imposibilidad general.");
+      break;
+    case "omision":
+    case "evento-no-ocurrido":
+      limites.push("El proceso se omitió y no aplicó sus efectos de salida.");
+      break;
+    case "evento-perdido":
+      limites.push("El evento se consumió aunque el proceso no pudo avanzar.");
+      break;
+    case "indeterminado":
+      limites.push("Los datos no permiten decidir este paso; lo desconocido no se convierte en ausencia ni en un estado de dominio.");
+      break;
+    case "no-soportado":
+      limites.push("Esta construcción no fue ejecutada; su comportamiento queda fuera de la conclusión.");
+      break;
+    case "truncado":
+      limites.push("La ejecución alcanzó su límite; esto no demuestra imposibilidad ni exploración exhaustiva.");
+      break;
+  }
+  return limites;
+}
+
+function nombreExtremoProyeccion(modelo: Modelo, extremo: import("../../modelo/tipos").ExtremoEnlace): string {
+  if (extremo.kind === "entidad") return modelo.entidades[extremo.id]?.nombre ?? extremo.id;
+  const estado = modelo.estados[extremo.id];
+  return estado
+    ? `${modelo.entidades[estado.entidadId]?.nombre ?? estado.entidadId}: ${estado.nombre}`
+    : extremo.id;
 }
 
 export function proyectarEstadoBarraSimulacion(

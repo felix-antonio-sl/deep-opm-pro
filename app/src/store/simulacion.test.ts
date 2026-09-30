@@ -8,6 +8,7 @@ import { compartirAnclaExtremosEnlaces } from "../modelo/operaciones/ports";
 import type { Modelo, Resultado } from "../modelo/tipos";
 import { store } from "../store";
 import { normalizarVelocidadSimulacion } from "./simulacion";
+import { crearEscenario } from "../modelo/simulacion/scenario";
 
 describe("headless simulacion", () => {
   beforeEach(() => {
@@ -57,6 +58,47 @@ describe("simulacion bloqueada", () => {
     expect(store.getState().contextoSimulacion?.estado).toBe("bloqueado");
     expect(store.getState().autoAvanceSimulacionActivo).toBe(false);
     expect(store.getState().mensaje).toContain("límite");
+  });
+});
+
+describe("escenario fijado a la revisión activa", () => {
+  beforeEach(() => {
+    store.getState().salirModoSimulacion();
+    store.getState().importarJson(exportarModelo(crearModelo()));
+  });
+
+  afterEach(() => store.getState().salirModoSimulacion());
+
+  test("un cambio de la referencia base bloquea la continuación y deja evidencia visible", () => {
+    let modelo = crearModelo("Base de escenario");
+    modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Procesar"));
+    store.getState().importarJson(exportarModelo(modelo));
+    store.getState().iniciarModoSimulacion();
+    const activo = store.getState().modelo;
+    const escenario = crearEscenario({
+      id: "ensayo-base",
+      modeloId: activo.id,
+      revisionBase: `local:${activo.id}:${activo.nextSeq}`,
+      proposito: "Comprobar que se invalida al cambiar la base",
+      alcanceIds: [],
+      conocimientoInicial: { presencia: {}, estadosCurrent: {} },
+      supuestos: [],
+      parametros: {},
+      capacidadesSoportadas: [],
+    });
+
+    expect(store.getState().aplicarEscenarioSimulacion(escenario)).toBeNull();
+    store.setState({ modelo: { ...store.getState().modelo, nombre: "Base modificada" } });
+    store.getState().ejecutarPasoSimulacion();
+
+    const contexto = store.getState().contextoSimulacion;
+    expect(store.getState().modeloBaseSimulacion).not.toBe(store.getState().modelo);
+    expect(contexto?.estado).toBe("bloqueado");
+    expect(contexto?.trace.at(-1)).toMatchObject({
+      resultadoEscenario: "no-soportado",
+      evidenciaEscenario: [{ tipo: "declaracion", id: "ensayo-base" }],
+    });
+    expect(contexto?.trace.at(-1)?.diagnostico).toContain("revisión base del escenario cambió");
   });
 });
 

@@ -1,9 +1,11 @@
 import type { ModoSimulacion } from "../../modelo/simulacion/tipos";
+import type { EscenarioSimulacion } from "../../modelo/simulacion/scenario";
 import type { OpmStore } from "../../store";
 
 export interface SimulationPort {
   modelo: OpmStore["modelo"];
   contexto: OpmStore["contextoSimulacion"];
+  modeloBase: OpmStore["modeloBaseSimulacion"];
   autoAvance: OpmStore["autoAvanceSimulacionActivo"];
   velocidad: OpmStore["velocidadSimulacion"];
   headless: OpmStore["headlessSimulacion"];
@@ -18,4 +20,5 @@ export interface SimulationPort {
   salir: OpmStore["salirModoSimulacion"];
   fijarModo: (modo: ModoSimulacion) => void;
   fijarSemilla: (semilla: number | undefined) => void;
+  aplicarEscenario: (escenario: EscenarioSimulacion | null) => string | null;
 }

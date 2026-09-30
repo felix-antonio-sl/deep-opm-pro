@@ -2,7 +2,15 @@ import { describe, expect, test } from "bun:test";
 import type { ContextoSimulacion, EntradaTraceSim } from "../../modelo/simulacion/tipos";
 import type { Modelo } from "../../modelo/tipos";
 import { faseTutorSimulacion } from "./BarraSimulacion";
-import { proyectarDecisionXorSimulacion, proyectarEstadoBarraSimulacion, proyectarNarrativaSimulacion, rotuloTraceSimulacion } from "./proyeccionBarra";
+import {
+  proyectarConclusionEscenario,
+  proyectarDecisionXorSimulacion,
+  proyectarEstadoBarraSimulacion,
+  proyectarNarrativaSimulacion,
+  rotuloReferenciaEscenario,
+  rotuloTraceSimulacion,
+} from "./proyeccionBarra";
+import type { EscenarioSimulacion, ResultadoPasoEscenario } from "../../modelo/simulacion/scenario";
 
 describe("faseTutorSimulacion", () => {
   test("prioriza bloqueo, cierre y decisión antes del progreso", () => {
@@ -195,6 +203,56 @@ describe("proyeccionBarraSimulacion", () => {
 
   test("decisión XOR: corrida completada no ofrece opciones", () => {
     expect(proyectarDecisionXorSimulacion(modeloVeredictoXor(), contexto({ estado: "completado" }))).toBeNull();
+  });
+});
+
+describe("explicación acotada del escenario", () => {
+  const escenario: EscenarioSimulacion = {
+    id: "escenario-prueba",
+    modeloId: "m",
+    revisionBase: "local:m:1",
+    proposito: "Comprobar agua",
+    alcanceIds: ["agua"],
+    conocimientoInicial: { presencia: {}, estadosCurrent: {} },
+    supuestos: [],
+    parametros: {},
+    capacidadesSoportadas: [],
+  };
+
+  test("explica outcome, referencias legibles y límite sin convertir unknown en ausencia", () => {
+    const conclusion = proyectarConclusionEscenario(escenario, entrada(1, {
+      resultadoEscenario: "indeterminado",
+      evidenciaEscenario: [
+        { tipo: "estado", id: "s1" },
+        { tipo: "regla", id: "R-EJEC-6" },
+      ],
+    }), true);
+
+    expect(conclusion).toMatchObject({ resultado: "indeterminado", titulo: "Indeterminado", invalidada: false });
+    expect(conclusion.limites.join(" ")).toContain("no se convierte en ausencia");
+    expect(rotuloReferenciaEscenario(modeloAgua(), escenario, conclusion.referencias[0]!)).toBe("Agua: solidificada");
+    expect(rotuloReferenciaEscenario(modeloAgua(), escenario, conclusion.referencias[1]!)).toBe("Regla R-EJEC-6");
+  });
+
+  test("marca como histórica una conclusión si el objeto base ya no es el activo", () => {
+    const conclusion = proyectarConclusionEscenario(escenario, entrada(1, {
+      resultadoEscenario: "avance",
+    }), false);
+    expect(conclusion.invalidada).toBe(true);
+    expect(conclusion.limites[0]).toContain("base activa cambió");
+  });
+
+  test("mantiene nombres y límites distintos para cada resultado del escenario", () => {
+    const resultados: ResultadoPasoEscenario[] = [
+      "avance", "espera", "omision", "evento-no-ocurrido", "evento-perdido", "indeterminado", "no-soportado", "truncado",
+    ];
+    const proyecciones = resultados.map((resultado) => proyectarConclusionEscenario(
+      escenario,
+      entrada(1, { resultadoEscenario: resultado }),
+      true,
+    ));
+    expect(new Set(proyecciones.map((item) => item.titulo)).size).toBe(resultados.length);
+    expect(proyecciones.every((item) => item.limites.length > 0)).toBe(true);
   });
 });
 

@@ -13,7 +13,7 @@ import {
 } from "../operaciones";
 import { definirRutaEtiqueta } from "../rutas";
 import type { Modelo, Resultado } from "../tipos";
-import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
+import { estadosCurrentDeclarados, estadosCurrentIniciales, planificarSimulacion } from "./plan";
 
 function must<T>(resultado: Resultado<T>): T {
   if (!resultado.ok) throw new Error(`Fixture fail: ${resultado.error}`);
@@ -229,7 +229,7 @@ describe("estadosCurrentIniciales", () => {
     expect(current[pedidoId]).toBe(pendienteId);
   });
 
-  test("sin designaciones, el current cae al primer estado por orden estable", () => {
+  test("sin designaciones, conserva el fallback histórico para el runner heredado", () => {
     let modelo = crearModelo("SinDesig");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Libre"));
     const libreId = entidadId(modelo, "Libre");
@@ -239,6 +239,15 @@ describe("estadosCurrentIniciales", () => {
 
     const current = estadosCurrentIniciales(modelo);
     expect(current[libreId]).toBe(primeroId);
+    expect(modelo.estados[primeroId]?.id).toBe(primeroId);
+  });
+
+  test("el perfil declarado no elige un primer estado sin designación", () => {
+    let modelo = crearModelo("SinDesigDeclarado");
+    modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Libre"));
+    const libreId = entidadId(modelo, "Libre");
+    modelo = must(crearEstadosIniciales(modelo, libreId)).modelo;
+    expect(estadosCurrentDeclarados(modelo)[libreId]).toBeUndefined();
   });
 
   test("objeto sin estados no aparece en current", () => {

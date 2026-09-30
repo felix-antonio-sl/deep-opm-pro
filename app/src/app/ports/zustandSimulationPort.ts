@@ -4,6 +4,7 @@ import type { SimulationPort } from "./simulationPort";
 export function useZustandSimulationPort(): SimulationPort {
   const modelo = useOpmStore((s) => s.modelo);
   const contexto = useOpmStore((s) => s.contextoSimulacion);
+  const modeloBase = useOpmStore((s) => s.modeloBaseSimulacion);
   const autoAvance = useOpmStore((s) => s.autoAvanceSimulacionActivo);
   const velocidad = useOpmStore((s) => s.velocidadSimulacion);
   const headless = useOpmStore((s) => s.headlessSimulacion);
@@ -18,10 +19,12 @@ export function useZustandSimulationPort(): SimulationPort {
   const salir = useOpmStore((s) => s.salirModoSimulacion);
   const fijarModo = useOpmStore((s) => s.fijarModoSimulacion);
   const fijarSemilla = useOpmStore((s) => s.fijarSemillaSimulacion);
+  const aplicarEscenario = useOpmStore((s) => s.aplicarEscenarioSimulacion);
 
   return {
     modelo,
     contexto,
+    modeloBase,
     autoAvance,
     velocidad,
     headless,
@@ -36,5 +39,6 @@ export function useZustandSimulationPort(): SimulationPort {
     salir,
     fijarModo,
     fijarSemilla,
+    aplicarEscenario,
   };
 }

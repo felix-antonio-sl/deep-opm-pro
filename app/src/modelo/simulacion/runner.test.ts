@@ -145,14 +145,16 @@ describe("ejecutarPaso — flujo determinista", () => {
     expect(ctx.trace[0]?.transicionesAplicadas).toHaveLength(1);
   });
 
-  test("emite diagnóstico no simulable cuando current no coincide con estadoAntes esperado", () => {
+  test("espera si current conocido no coincide con el estadoAntes requerido", () => {
     const { modelo, aprobadoId, pedidoId } = modeloTransicionAprobar();
     // Forzar current incorrecto: aprobado en vez de pendiente
     const ctx0 = iniciarSimulacion(modelo, modelo.opdRaizId);
     const ctx1 = { ...ctx0, estadosCurrent: { ...ctx0.estadosCurrent, [pedidoId]: aprobadoId } };
 
     const ctx2 = ejecutarPaso(modelo, ctx1);
-    expect(ctx2.trace[0]?.diagnostico).toContain("No simulable");
+    expect(ctx2.trace[0]?.diagnostico).toContain("En espera");
+    expect(ctx2.trace[0]?.resultadoEscenario).toBe("espera");
+    expect(ctx2.estado).toBe("bloqueado");
     expect(ctx2.trace[0]?.transicionesAplicadas).toEqual([]);
     // No mutó el estado current
     expect(ctx2.estadosCurrent[pedidoId]).toBe(aprobadoId);
@@ -277,6 +279,7 @@ describe("condiciones e invocaciones OPM", () => {
     expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["Revisar", "Archivar"]);
     expect(fin.trace[0]?.diagnostico).toContain("evento no ocurrido");
     expect(fin.trace[0]?.omitido).toBe(true);
+    expect(fin.trace[0]?.resultadoEscenario).toBe("evento-no-ocurrido");
     expect(fin.trace[0]?.transicionesAplicadas).toEqual([]);
     expect(fin.estadosCurrent[pedidoId]).toBe(cerradoId);
   });
@@ -324,7 +327,7 @@ describe("condiciones e invocaciones OPM", () => {
     expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["A", "C"]);
   });
 
-  test("invocación no salta cuando el proceso invocador no es ejecutable", () => {
+  test("espera por precondición base y no dispara la invocación de un proceso que no inicia", () => {
     let modelo = crearModelo("Invocacion no ejecutable");
     modelo = must(crearObjeto(modelo, modelo.opdRaizId, { x: 100, y: 100 }, "Pedido"));
     modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 300, y: 100 }, "A"));
@@ -344,9 +347,10 @@ describe("condiciones e invocaciones OPM", () => {
     const ctx1 = { ...ctx0, estadosCurrent: { ...ctx0.estadosCurrent, [pedidoId]: cerradoId } };
     const fin = ejecutarCorrida(modelo, ctx1);
 
-    expect(fin.estado).toBe("completado");
-    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["A", "B", "C"]);
-    expect(fin.trace[0]?.diagnostico).toContain("No simulable");
+    expect(fin.estado).toBe("bloqueado");
+    expect(fin.trace.map((t) => t.procesoNombre)).toEqual(["A"]);
+    expect(fin.trace[0]?.resultadoEscenario).toBe("espera");
+    expect(fin.trace[0]?.diagnostico).toContain("En espera");
   });
 
   test("efecto condicional solo salida evalúa existencia del objeto, no el estado destino", () => {

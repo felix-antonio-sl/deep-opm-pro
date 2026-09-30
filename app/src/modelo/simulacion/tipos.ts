@@ -1,4 +1,5 @@
 import type { DuracionTemporal, Id, UnidadTiempo, ValorConcreto } from "../tipos";
+import type { ConclusionEscenario, EscenarioSimulacion, ResultadoPasoEscenario, ReferenciaEvidenciaEscenario } from "./scenario";
 
 /**
  * Tipos del kernel de simulación conceptual (Beta2 / Ronda 17 L1).
@@ -109,7 +110,13 @@ export interface EntradaTraceSim {
   /** Duracion muestreada del paso en segundos, unidad canonica de reloj. */
   duracion?: number;
   eventosTemporales?: EventoTemporalSim[];
+  /** Outcome under the selected scenario profile; absent in older saved traces. */
+  resultadoEscenario?: ResultadoPasoEscenario;
+  evidenciaEscenario?: ReferenciaEvidenciaEscenario[];
 }
+
+/** A scenario-level conclusion keeps its evidence and limits attached. */
+export type ConclusionSimulacion = ConclusionEscenario;
 
 export type EstadoSimulacion = "preparado" | "ejecutando" | "completado" | "bloqueado";
 
@@ -138,4 +145,6 @@ export interface ContextoSimulacion {
   semilla?: number;
   /** Reloj acumulado de la simulacion (S3 tiempo hibrido). */
   reloj?: number;
+  /** Optional explicit scenario. Existing callers keep the previous entry point. */
+  escenario?: EscenarioSimulacion;
 }

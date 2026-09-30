@@ -1,6 +1,6 @@
 import type { Abanico, Enlace, Id, Modelo } from "../tipos";
 import { entidadIdDeExtremo, nombreExtremo } from "../extremos";
-import { estadosCurrentIniciales, planificarSimulacion } from "./plan";
+import { estadosCurrentDeclarados, estadosCurrentIniciales, planificarSimulacion } from "./plan";
 import type { ContextoSimulacion, EntradaTraceSim, EventoTemporalSim, ModoSimulacion, TransicionEstadoSim } from "./tipos";
 import { aplicarCambiosValor, iniciarValoresRuntime } from "./valores";
 import { efectoUnico, tomarUnico, type Efecto, type Sucesor } from "./efecto";
@@ -8,11 +8,15 @@ import { resolverDecisionAbanico } from "../decision";
 import { rngSembrado } from "./rng";
 import { detectarEventosTemporalesPaso, inferirDuracionPasoSim } from "./tiempo";
 import { normalizarFaseSimulacion, primeraFaseSimulacion, siguienteFaseSimulacion } from "./fases";
+import { evaluateEnablers } from "./enablers";
+import { conocimientoRuntimeEscenario } from "./scenario";
+import type { ConocimientoRuntimeEscenario, EscenarioSimulacion, ResultadoPasoEscenario, ReferenciaEvidenciaEscenario } from "./scenario";
 
 export const LIMITE_PASOS_SIMULACION = 200;
 
 export interface OpcionesInicioSimulacion {
   semilla?: number;
+  escenario?: EscenarioSimulacion;
 }
 
 /**
@@ -22,6 +26,15 @@ export interface OpcionesInicioSimulacion {
 export function iniciarSimulacion(modelo: Modelo, opdId: Id, opciones: OpcionesInicioSimulacion = {}): ContextoSimulacion {
   const plan = planificarSimulacion(modelo, opdId);
   const rngInicial = opciones.semilla !== undefined ? rngSembrado(opciones.semilla) : undefined;
+  const estadosCurrent = opciones.escenario
+    ? estadosCurrentDeclarados(modelo)
+    : estadosCurrentIniciales(modelo);
+  if (opciones.escenario?.modeloId === modelo.id) {
+    for (const [entidadId, dato] of Object.entries(opciones.escenario.conocimientoInicial.estadosCurrent)) {
+      if (dato.estado === "conocido") estadosCurrent[entidadId] = dato.valor;
+      else delete estadosCurrent[entidadId];
+    }
+  }
   return {
     modeloId: modelo.id,
     opdId,
@@ -29,10 +42,11 @@ export function iniciarSimulacion(modelo: Modelo, opdId: Id, opciones: OpcionesI
     pasoActual: 0,
     faseActual: primeraFaseSimulacion(modelo, plan[0]),
     estado: plan.length === 0 ? "completado" : "preparado",
-    estadosCurrent: estadosCurrentIniciales(modelo),
+    estadosCurrent,
     valoresRuntime: iniciarValoresRuntime(modelo, rngInicial),
     trace: [],
     ...(opciones.semilla !== undefined ? { semilla: opciones.semilla } : {}),
+    ...(opciones.escenario ? { escenario: opciones.escenario } : {}),
   };
 }
 
@@ -49,14 +63,174 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   }
 
   const paso = contexto.plan[contexto.pasoActual]!;
-  const motivosOmitirPorEvento = motivosOmitirPorEventoNoOcurrido(modelo, paso, contexto.estadosCurrent);
-  if (motivosOmitirPorEvento.length > 0) {
-    return efectoUnico(omitirPaso(modelo, contexto, paso, `evento no ocurrido (${motivosOmitirPorEvento.join("; ")})`));
+  if (contexto.escenario && contexto.escenario.modeloId !== modelo.id) {
+    return efectoUnico(bloquearPaso(
+      modelo,
+      contexto,
+      paso,
+      "No soportado: el escenario pertenece a otro modelo",
+      "no-soportado",
+      [{ tipo: "declaracion", id: contexto.escenario.id }],
+    ));
+  }
+  const conocimiento = conocimientoRuntimeEscenario(contexto.escenario, contexto.estadosCurrent);
+  const eventos = evaluarModificadores(modelo, paso, conocimiento, "evento");
+  if (eventos.satisfechas.length === 0 && eventos.incumplidas.length > 0 && eventos.desconocidas.length === 0) {
+    return efectoUnico(omitirPaso(
+      modelo,
+      contexto,
+      paso,
+      `evento no ocurrido (${eventos.incumplidas.map((item) => item.motivo).join("; ")})`,
+      "evento-no-ocurrido",
+      [
+        ...eventos.incumplidas.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        { tipo: "regla", id: "R-EJEC-7" },
+      ],
+    ));
+  }
+  if (eventos.satisfechas.length === 0 && eventos.desconocidas.length > 0) {
+    return efectoUnico(bloquearPaso(
+      modelo,
+      contexto,
+      paso,
+      `Indeterminado: evento sin estado conocido (${eventos.desconocidas.map((item) => item.motivo).join("; ")})`,
+      "indeterminado",
+      [
+        ...eventos.desconocidas.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        { tipo: "regla", id: "R-EJEC-7" },
+      ],
+    ));
   }
 
-  const motivosOmitir = motivosOmitirPorCondicion(modelo, paso, contexto.estadosCurrent);
-  if (motivosOmitir.length > 0) {
-    return efectoUnico(omitirPaso(modelo, contexto, paso, `condición no satisfecha (${motivosOmitir.join("; ")})`));
+  const condiciones = evaluarModificadores(modelo, paso, conocimiento, "condicion");
+  if (condiciones.incumplidas.length > 0) {
+    return efectoUnico(omitirPaso(
+      modelo,
+      contexto,
+      paso,
+      `condición no satisfecha (${condiciones.incumplidas.map((item) => item.motivo).join("; ")})`,
+      "omision",
+      [
+        ...condiciones.incumplidas.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        ...eventos.satisfechas.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        { tipo: "regla", id: "R-EJEC-7" },
+        { tipo: "regla", id: "R-EJEC-8" },
+        ...(eventos.satisfechas.length > 0 ? [{ tipo: "regla" as const, id: "V-13" }] : []),
+      ],
+      eventos.satisfechas.length > 0
+        ? consumirEventosEvaluados(modelo, eventos.satisfechas.map((item) => item.enlaceId), contexto.estadosCurrent)
+        : undefined,
+    ));
+  }
+  if (condiciones.desconocidas.length > 0) {
+    const eventoPerdido = eventos.satisfechas.length > 0;
+    return efectoUnico(bloquearPaso(
+      modelo,
+      contexto,
+      paso,
+      `${eventoPerdido ? "Evento perdido; " : ""}Indeterminado: condición sin estado conocido (${condiciones.desconocidas.map((item) => item.motivo).join("; ")})`,
+      eventoPerdido ? "evento-perdido" : "indeterminado",
+      [
+        ...condiciones.desconocidas.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        ...eventos.satisfechas.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        { tipo: "regla", id: "R-EJEC-7" },
+        { tipo: "regla", id: "R-EJEC-8" },
+        ...(eventoPerdido ? [{ tipo: "regla" as const, id: "V-13" }] : []),
+      ],
+      eventoPerdido
+        ? consumirEventosEvaluados(modelo, eventos.satisfechas.map((item) => item.enlaceId), contexto.estadosCurrent)
+        : undefined,
+    ));
+  }
+
+  const habilitadores = evaluateEnablers(modelo, paso, conocimiento);
+  if (habilitadores.estado === "impedidos") {
+    const eventoPerdido = eventos.satisfechas.length > 0;
+    return efectoUnico(bloquearPaso(
+      modelo,
+      contexto,
+      paso,
+      `${eventoPerdido ? "Evento perdido; " : ""}En espera: ${habilitadores.motivos.join("; ")}`,
+      eventoPerdido ? "evento-perdido" : "espera",
+      [
+        ...habilitadores.precondiciones.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        ...eventos.satisfechas.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        { tipo: "regla", id: "R-EJEC-6" },
+        { tipo: "regla", id: "R-ECA-2" },
+        ...(eventoPerdido ? [{ tipo: "regla" as const, id: "V-13" }] : []),
+      ],
+      eventoPerdido
+        ? consumirEventosEvaluados(modelo, eventos.satisfechas.map((item) => item.enlaceId), contexto.estadosCurrent)
+        : undefined,
+    ));
+  }
+  if (habilitadores.estado === "no-conocidos") {
+    const eventoPerdido = eventos.satisfechas.length > 0;
+    return efectoUnico(bloquearPaso(
+      modelo,
+      contexto,
+      paso,
+      `${eventoPerdido ? "Evento perdido; " : ""}Indeterminado: ${habilitadores.motivos.join("; ")}`,
+      eventoPerdido ? "evento-perdido" : "indeterminado",
+      [
+        ...habilitadores.precondiciones
+          .filter((item) => item.estado === "desconocida")
+          .map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        ...eventos.satisfechas.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        { tipo: "regla", id: "R-EJEC-6" },
+        { tipo: "regla", id: "R-ECA-2" },
+        ...(eventoPerdido ? [{ tipo: "regla" as const, id: "V-13" }] : []),
+      ],
+      eventoPerdido
+        ? consumirEventosEvaluados(modelo, eventos.satisfechas.map((item) => item.enlaceId), contexto.estadosCurrent)
+        : undefined,
+    ));
+  }
+  if (habilitadores.estado === "no-soportado") {
+    return efectoUnico(bloquearPaso(
+      modelo,
+      contexto,
+      paso,
+      `No soportado: ${habilitadores.motivos.join("; ")}`,
+      "no-soportado",
+      [
+        ...habilitadores.precondiciones.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        { tipo: "regla", id: "R-EJEC-6" },
+      ],
+    ));
+  }
+
+  const delegaAlRefinamiento = Boolean(paso.opdHijoId);
+  const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
+  const estadosRama = abanico ? estadosDestinoDeRamas(modelo, abanico) : new Set<Id>();
+  const estadosDeEventosNoOcurridos = new Set<Id>();
+  for (const evento of eventos.incumplidas) {
+    const enlace = modelo.enlaces[evento.enlaceId];
+    if (enlace?.origenId.kind === "estado") estadosDeEventosNoOcurridos.add(enlace.origenId.id);
+  }
+  const transicionesEfectivas = delegaAlRefinamiento ? [] : paso.transicionesPlanificadas.filter((transicion) => (
+    (transicion.estadoDespuesId === null || !estadosRama.has(transicion.estadoDespuesId)) &&
+    !(eventos.satisfechas.length > 0 && transicion.estadoAntesId && estadosDeEventosNoOcurridos.has(transicion.estadoAntesId))
+  ));
+  const estadoEntrada = validarEstadosDeEntrada(modelo, transicionesEfectivas, contexto.estadosCurrent);
+  if (estadoEntrada.estado !== "satisfecha") {
+    const eventoPerdido = eventos.satisfechas.length > 0;
+    return efectoUnico(bloquearPaso(
+      modelo,
+      contexto,
+      paso,
+      `${eventoPerdido ? "Evento perdido; " : ""}${estadoEntrada.estado === "desconocida" ? "Indeterminado" : "En espera"}: ${estadoEntrada.motivo}`,
+      eventoPerdido ? "evento-perdido" : estadoEntrada.estado === "desconocida" ? "indeterminado" : "espera",
+      [
+        ...(estadoEntrada.estadoId ? [{ tipo: "estado" as const, id: estadoEntrada.estadoId }] : []),
+        ...eventos.satisfechas.map((item) => ({ tipo: "enlace" as const, id: item.enlaceId })),
+        { tipo: "regla", id: "R-EJEC-6" },
+        ...(eventoPerdido ? [{ tipo: "regla" as const, id: "V-13" }] : []),
+      ],
+      eventoPerdido
+        ? consumirEventosEvaluados(modelo, eventos.satisfechas.map((item) => item.enlaceId), contexto.estadosCurrent)
+        : undefined,
+    ));
   }
 
   const modo = contexto.modo ?? "determinista";
@@ -73,16 +247,11 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
   // REALIZAN son los hijos (consumo al primero, resultado al último). Aplicarla
   // también en el padre la duplicaría: el padre consumiría el estado inicial
   // antes de que el primer subproceso lo use.
-  const delegaAlRefinamiento = Boolean(paso.opdHijoId);
-  const abanico = abanicoXorDeSalida(modelo, paso.procesoId);
-  const estadosRama = abanico ? estadosDestinoDeRamas(modelo, abanico) : new Set<Id>();
   const transicionesAplicadas: TransicionEstadoSim[] = [];
   const motivosBloqueo: string[] = [];
   const estadosCurrent: Record<Id, Id> = { ...contexto.estadosCurrent };
   const transicionesPorEntidad = agruparTransicionesPorEntidad(
-    delegaAlRefinamiento ? [] : paso.transicionesPlanificadas.filter((transicion) => (
-      transicion.estadoDespuesId === null || !estadosRama.has(transicion.estadoDespuesId)
-    )),
+    transicionesEfectivas,
   );
 
   for (const [entidadId, transicionesEntidad] of transicionesPorEntidad) {
@@ -127,6 +296,7 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     procesoNombre: paso.procesoNombre,
     transicionesAplicadas,
     cambiosValor,
+    resultadoEscenario: "avance",
   };
 
   const duracionPaso = inferirDuracionPasoSim(
@@ -157,7 +327,9 @@ export function pasoEfecto(modelo: Modelo, contexto: ContextoSimulacion): Efecto
     pasoActual: nuevoPaso,
     faseActual: primeraFaseSimulacion(modelo, contexto.plan[nuevoPaso]),
     estado: nuevoPaso >= contexto.plan.length ? "completado" : "ejecutando",
-    estadosCurrent,
+    estadosCurrent: eventos.satisfechas.length > 0
+      ? consumirEventosEvaluados(modelo, eventos.satisfechas.map((item) => item.enlaceId), estadosCurrent)
+      : estadosCurrent,
     valoresRuntime: valoresNuevos,
     trace: [...contexto.trace, entrada],
     reloj: relojNuevo,
@@ -294,6 +466,38 @@ function agruparTransicionesPorEntidad(transiciones: readonly TransicionEstadoSi
   return grupos;
 }
 
+function validarEstadosDeEntrada(
+  modelo: Modelo,
+  transiciones: readonly TransicionEstadoSim[],
+  estadosCurrent: Readonly<Record<Id, Id>>,
+): { estado: "satisfecha" | "incumplida" | "desconocida"; motivo: string; estadoId?: Id } {
+  for (const [entidadId, alternativas] of agruparTransicionesPorEntidad(transiciones)) {
+    const conEntrada = alternativas.filter((transicion) => transicion.estadoAntesId !== null);
+    if (conEntrada.length === 0) continue;
+    const observadoId = estadosCurrent[entidadId];
+    const vigente = conEntrada.find((transicion) => transicion.estadoAntesId === observadoId);
+    if (vigente) continue;
+    if (observadoId === undefined) {
+      return {
+        estado: "desconocida",
+        motivo: `${modelo.entidades[entidadId]?.nombre ?? entidadId} no tiene estado runtime conocido`,
+        ...(conEntrada[0]?.estadoAntesId ? { estadoId: conEntrada[0].estadoAntesId } : {}),
+      };
+    }
+    const observado = modelo.estados[observadoId]?.nombre ?? observadoId;
+    const esperados = conEntrada.map((transicion) => {
+      const estadoId = transicion.estadoAntesId;
+      return estadoId ? modelo.estados[estadoId]?.nombre ?? estadoId : "sin estado";
+    });
+    return {
+      estado: "incumplida",
+      motivo: `${modelo.entidades[entidadId]?.nombre ?? entidadId} está en ${observado}; se requiere ${esperados.join(" o ")}`,
+      ...(conEntrada[0]?.estadoAntesId ? { estadoId: conEntrada[0].estadoAntesId } : {}),
+    };
+  }
+  return { estado: "satisfecha", motivo: "" };
+}
+
 function transicionesCompatiblesConCurrent(
   transiciones: readonly TransicionEstadoSim[],
   estadosCurrent: Record<Id, Id>,
@@ -388,6 +592,9 @@ function omitirPaso(
   contexto: ContextoSimulacion,
   paso: PasoConEnlaces,
   motivo: string,
+  resultadoEscenario: ResultadoPasoEscenario = "omision",
+  evidenciaEscenario: ReferenciaEvidenciaEscenario[] = [],
+  estadosCurrent?: Record<Id, Id>,
 ): ContextoSimulacion {
   const nuevoPaso = contexto.pasoActual + 1;
   const entrada: EntradaTraceSim = {
@@ -400,52 +607,135 @@ function omitirPaso(
     cambiosValor: [],
     omitido: true,
     diagnostico: `Omitido: ${motivo}`,
+    resultadoEscenario,
+    evidenciaEscenario,
   };
   return {
     ...contexto,
     pasoActual: nuevoPaso,
     faseActual: primeraFaseSimulacion(modelo, contexto.plan[nuevoPaso]),
     estado: nuevoPaso >= contexto.plan.length ? "completado" : "ejecutando",
+    ...(estadosCurrent ? { estadosCurrent } : {}),
     trace: [...contexto.trace, entrada],
   };
 }
 
-function motivosOmitirPorEventoNoOcurrido(
+function bloquearPaso(
   modelo: Modelo,
+  contexto: ContextoSimulacion,
   paso: PasoConEnlaces,
-  estadosCurrent: Record<Id, Id>,
-): string[] {
-  const motivos: string[] = [];
-  const enlacesIds = new Set([...paso.enlacesEntradaIds, ...paso.enlacesSalidaIds]);
-  for (const enlaceId of enlacesIds) {
-    const enlace = modelo.enlaces[enlaceId];
-    if (!enlace || enlace.modificador !== "evento") continue;
-    if (!TIPOS_CONDICION_EJECUTABLES.has(enlace.tipo)) continue;
-    const condicionante = extremoCondicionanteDeProceso(modelo, enlace, paso.procesoId);
-    if (!condicionante) continue;
-    const motivo = motivoCondicionIncumplida(modelo, condicionante, estadosCurrent);
-    if (motivo) motivos.push(motivo);
-  }
-  return motivos;
+  motivo: string,
+  resultadoEscenario: ResultadoPasoEscenario,
+  evidenciaEscenario: ReferenciaEvidenciaEscenario[],
+  estadosCurrent?: Record<Id, Id>,
+): ContextoSimulacion {
+  const entrada: EntradaTraceSim = {
+    numero: contexto.trace.length + 1,
+    opdId: paso.opdId,
+    opdNombre: paso.opdNombre,
+    procesoId: paso.procesoId,
+    procesoNombre: paso.procesoNombre,
+    transicionesAplicadas: [],
+    cambiosValor: [],
+    diagnostico: motivo,
+    resultadoEscenario,
+    evidenciaEscenario,
+  };
+  return {
+    ...contexto,
+    estado: "bloqueado",
+    ...(estadosCurrent ? { estadosCurrent } : {}),
+    trace: [...contexto.trace, entrada],
+  };
 }
 
-function motivosOmitirPorCondicion(
+/** An evaluated event is consumed even when a later base precondition blocks the process. */
+function consumirEventosEvaluados(
+  modelo: Modelo,
+  enlacesEventoIds: readonly Id[],
+  estadosCurrent: Readonly<Record<Id, Id>>,
+): Record<Id, Id> {
+  const siguientes = { ...estadosCurrent };
+  for (const enlaceId of enlacesEventoIds) {
+    const enlace = modelo.enlaces[enlaceId];
+    if (!enlace || enlace.origenId.kind !== "estado") continue;
+    const estado = modelo.estados[enlace.origenId.id];
+    if (estado && siguientes[estado.entidadId] === estado.id) delete siguientes[estado.entidadId];
+  }
+  return siguientes;
+}
+
+function evaluarModificadores(
   modelo: Modelo,
   paso: PasoConEnlaces,
-  estadosCurrent: Record<Id, Id>,
-): string[] {
-  const motivos: string[] = [];
+  escenario: ConocimientoRuntimeEscenario,
+  modificador: "evento" | "condicion",
+): {
+  satisfechas: Array<{ enlaceId: Id; motivo: string }>;
+  incumplidas: Array<{ enlaceId: Id; motivo: string }>;
+  desconocidas: Array<{ enlaceId: Id; motivo: string }>;
+} {
+  const satisfechas: Array<{ enlaceId: Id; motivo: string }> = [];
+  const incumplidas: Array<{ enlaceId: Id; motivo: string }> = [];
+  const desconocidas: Array<{ enlaceId: Id; motivo: string }> = [];
   const enlacesIds = new Set([...paso.enlacesEntradaIds, ...paso.enlacesSalidaIds]);
   for (const enlaceId of enlacesIds) {
     const enlace = modelo.enlaces[enlaceId];
-    if (!enlace || enlace.modificador !== "condicion") continue;
+    if (!enlace || enlace.modificador !== modificador) continue;
     if (!TIPOS_CONDICION_EJECUTABLES.has(enlace.tipo)) continue;
     const condicionante = extremoCondicionanteDeProceso(modelo, enlace, paso.procesoId);
     if (!condicionante) continue;
-    const motivo = motivoCondicionIncumplida(modelo, condicionante, estadosCurrent);
-    if (motivo) motivos.push(motivo);
+    const evaluacion = evaluarPrecondicion(modelo, condicionante, escenario);
+    const motivo = `${nombreExtremo(modelo, condicionante)} ${evaluacion.motivo}`;
+    if (evaluacion.estado === "satisfecha") satisfechas.push({ enlaceId, motivo });
+    if (evaluacion.estado === "incumplida") incumplidas.push({ enlaceId, motivo });
+    if (evaluacion.estado === "desconocida") desconocidas.push({ enlaceId, motivo });
   }
-  return motivos;
+  return { satisfechas, incumplidas, desconocidas };
+}
+
+function evaluarPrecondicion(
+  modelo: Modelo,
+  extremo: Enlace["origenId"],
+  escenario: ConocimientoRuntimeEscenario,
+): { estado: "satisfecha" | "incumplida" | "desconocida"; motivo: string } {
+  const entidadId = entidadIdDeExtremo(modelo, extremo);
+  if (!entidadId || !modelo.entidades[entidadId]) {
+    return { estado: "desconocida", motivo: "no tiene referente runtime conocido" };
+  }
+  const presencia = escenario.presencia[entidadId];
+  if (presencia?.estado === "conocido" && presencia.valor === "ausente") {
+    return { estado: "incumplida", motivo: "está declarado ausente" };
+  }
+  if (extremo.kind === "estado") {
+    const estado = modelo.estados[extremo.id];
+    if (!estado) return { estado: "desconocida", motivo: "no existe en el modelo" };
+    if (estado.suprimido) return { estado: "desconocida", motivo: "está suprimido" };
+    const observado = escenario.estadosCurrent[estado.entidadId];
+    if (observado?.estado !== "conocido") {
+      return { estado: "desconocida", motivo: "no tiene un estado runtime conocido" };
+    }
+    const estadoObservado = modelo.estados[observado.valor];
+    if (!estadoObservado || estadoObservado.entidadId !== estado.entidadId || estadoObservado.suprimido) {
+      return { estado: "desconocida", motivo: "tiene una referencia runtime de estado inválida" };
+    }
+    return observado.valor === estado.id
+      ? { estado: "satisfecha", motivo: "está vigente" }
+      : { estado: "incumplida", motivo: `no está en el estado requerido ${estado.nombre}` };
+  }
+  if (presencia?.estado === "conocido") {
+    return presencia.valor === "presente"
+      ? { estado: "satisfecha", motivo: "está presente" }
+      : { estado: "incumplida", motivo: "está declarado ausente" };
+  }
+  if (escenario.estadosCurrent[entidadId]?.estado === "conocido") {
+    const estadoObservado = modelo.estados[escenario.estadosCurrent[entidadId]!.valor];
+    if (!estadoObservado || estadoObservado.entidadId !== entidadId || estadoObservado.suprimido) {
+      return { estado: "desconocida", motivo: "tiene una referencia runtime de estado inválida" };
+    }
+    return { estado: "satisfecha", motivo: "está presente según su estado runtime" };
+  }
+  return { estado: "desconocida", motivo: "su presencia no está declarada" };
 }
 
 function extremoCondicionanteDeProceso(
@@ -464,28 +754,6 @@ function extremoCondicionanteDeProceso(
   }
   if (destinoEntidadId === procesoId && origenEntidadId !== procesoId) return enlace.origenId;
   return undefined;
-}
-
-function motivoCondicionIncumplida(
-  modelo: Modelo,
-  extremo: Enlace["origenId"],
-  estadosCurrent: Record<Id, Id>,
-): string | undefined {
-  if (extremo.kind === "estado") {
-    const estado = modelo.estados[extremo.id];
-    if (!estado) return `${extremo.id} no existe`;
-    const observado = estadosCurrent[estado.entidadId] ?? null;
-    if (observado !== estado.id) {
-      return `${nombreExtremo(modelo, extremo)} no está vigente`;
-    }
-    return undefined;
-  }
-
-  const entidad = modelo.entidades[extremo.id];
-  if (!entidad || entidad.tipo !== "objeto") return undefined;
-  const estados = Object.values(modelo.estados ?? {}).filter((estado) => estado.entidadId === entidad.id && !estado.suprimido);
-  if (estados.length === 0) return undefined;
-  return estadosCurrent[entidad.id] ? undefined : `${entidad.nombre} no existe`;
 }
 
 function resolverSiguientePasoPorInvocacion(
@@ -551,7 +819,24 @@ function bloquearPorLimite(contexto: ContextoSimulacion, limite: number): Contex
     trace[idx] = {
       ...ultima,
       diagnostico: ultima.diagnostico ? `${ultima.diagnostico}; ${diagnostico}` : diagnostico,
+      resultadoEscenario: "truncado",
     };
+  } else {
+    const paso = contexto.plan[contexto.pasoActual];
+    if (paso) {
+      trace.push({
+        numero: 1,
+        opdId: paso.opdId,
+        opdNombre: paso.opdNombre,
+        procesoId: paso.procesoId,
+        procesoNombre: paso.procesoNombre,
+        transicionesAplicadas: [],
+        cambiosValor: [],
+        diagnostico,
+        resultadoEscenario: "truncado",
+        evidenciaEscenario: [],
+      });
+    }
   }
   return { ...contexto, estado: "bloqueado", trace };
 }
@@ -561,7 +846,10 @@ function bloquearPorLimite(contexto: ContextoSimulacion, limite: number): Contex
  * Equivale a un nuevo `iniciarSimulacion` sobre el mismo OPD.
  */
 export function reiniciarSimulacion(modelo: Modelo, contexto: ContextoSimulacion): ContextoSimulacion {
-  return iniciarSimulacion(modelo, contexto.opdId, contexto.semilla !== undefined ? { semilla: contexto.semilla } : {});
+  return iniciarSimulacion(modelo, contexto.opdId, {
+    ...(contexto.semilla !== undefined ? { semilla: contexto.semilla } : {}),
+    ...(contexto.escenario ? { escenario: contexto.escenario } : {}),
+  });
 }
 
 /**

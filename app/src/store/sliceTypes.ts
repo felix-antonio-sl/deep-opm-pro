@@ -286,11 +286,13 @@ export type PestanasSlice = Slice<
 
 export type SimulacionSlice = Slice<
   | "contextoSimulacion"
+  | "modeloBaseSimulacion"
   | "readOnlyPrevSimulacion"
   | "autoAvanceSimulacionActivo"
   | "velocidadSimulacion"
   | "headlessSimulacion"
   | "iniciarModoSimulacion"
+  | "aplicarEscenarioSimulacion"
   | "salirModoSimulacion"
   | "ejecutarPasoSimulacion"
   | "resolverRamaSimulacionActual"
