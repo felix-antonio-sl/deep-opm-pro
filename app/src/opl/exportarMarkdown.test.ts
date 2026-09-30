@@ -32,6 +32,7 @@ describe("exportarOplOpdMarkdown — OPD en vista", () => {
     const md = exportarOplOpdMarkdown(modelo, modelo.opdRaizId);
 
     expect(md.startsWith("# Demo — ")).toBe(true);
+    expect(md).toContain("> Alcance: OPL local del OPD «SD».");
     // Las frases OPL ya vienen en Markdown inline (**Cosa** ...); cada una es viñeta.
     expect(md).toContain("\n- **Cosa**");
     expect(md).not.toContain("<"); // nada de HTML
@@ -54,6 +55,7 @@ describe("exportarOplModeloMarkdown — modelo completo", () => {
     const md = exportarOplModeloMarkdown(modelo);
 
     expect(md.startsWith("# Sistema\n")).toBe(true);
+    expect(md).toContain("> Alcance: OPL completo del modelo; incluye todos los OPDs en orden jerárquico.");
     // Hay al menos dos OPDs (raíz + descomposición), cada uno con su sección ##.
     const secciones = md.split("\n").filter((linea) => linea.startsWith("## "));
     expect(secciones.length).toBeGreaterThanOrEqual(2);

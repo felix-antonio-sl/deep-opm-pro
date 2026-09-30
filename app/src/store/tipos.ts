@@ -405,7 +405,7 @@ export interface OpmStore {
   actualizarFichaTrabajo: (ficha: FichaTrabajo | undefined) => void;
   actualizarLentesConocimiento: (lentes: readonly LenteConocimiento[] | undefined) => void;
   /** Mesa de exploración del Apunte: material meta hasta la confirmación atómica. */
-  agregarFuenteExploracion: (input: { titulo?: string; contenido: string }) => Id | null;
+  agregarFuenteExploracion: (input: { titulo?: string; contenido: string; mediaType?: "text/markdown" }) => Id | null;
   agregarTrazoExploracion: (input: { fuenteIds: Id[]; texto: string }) => Id | null;
   editarTrazoExploracion: (id: Id, texto: string) => void;
   crearPropuestaExploracion: (input: {

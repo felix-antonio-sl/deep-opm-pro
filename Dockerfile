@@ -52,7 +52,9 @@ CMD ["bun", "run", "./app/scripts/bug-capture-api.ts"]
 FROM oven/bun:1.3.10-slim AS model-api
 WORKDIR /workspace
 
+COPY --from=deps /workspace/app/node_modules ./app/node_modules
 COPY app/src ./app/src
+COPY app/.tutor-corpus ./app/.tutor-corpus
 COPY app/scripts/model-persistence-api.ts ./app/scripts/model-persistence-api.ts
 # Auth v1: CLI de administracion de cuentas (docker exec; spec auth-identidad-v1 §5).
 COPY app/scripts/auth-cuenta.ts ./app/scripts/auth-cuenta.ts

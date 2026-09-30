@@ -7,7 +7,7 @@ decisiones técnicas, operación, referencias históricas y dirección futura.
 - **Instancia en producción:** [opforja.sanixai.com](https://opforja.sanixai.com)
 - **Estado operativo:** Git, tests y `cd app && bun run cordon:estado`
 - **Defectos activos:** [índice de bugs](bugs/INDEX.md)
-- **Próximo corte:** [criterios de apertura](roadmap/README.md)
+- **Próximo corte:** [producto integrado, I1](roadmap/README.md)
 
 ## Qué es este repositorio
 
@@ -83,7 +83,8 @@ principios durables; Git conserva cierres y el próximo corte solo se abre con e
 docs/
 ├── README.md                         orientación e índice
 ├── roadmap/
-│   ├── README.md                     criterios del próximo corte
+│   ├── README.md                     dirección del corte activo y criterios de apertura
+│   ├── implementacion-producto-integrado.md  plan por incrementos
 │   └── registro-conformidad-ssot.md  brechas normativas declaradas
 ├── decisiones/README.md              decisiones técnicas vigentes
 ├── specs/README.md                   mapa de especificaciones y reemplazos

@@ -2,6 +2,7 @@ import type { Resultado } from "../modelo/tipos";
 import type { VersionResumen } from "../modelo/tipos";
 import type { MesaBaseWitnessV1 } from "../mesa/baseWitness";
 import {
+  construirModeloPersistido,
   type ModeloPersistido,
   type ResumenModeloPersistido,
 } from "./modelos";
@@ -9,19 +10,27 @@ import { crearTestigoBaseBrowser } from "./baseWitnessBrowser";
 import type { WorkspaceIndice, WorkspacePersistido } from "./workspace";
 import { indiceVacio } from "./workspace";
 import { resumirEstadoCierre } from "../modelo/estadoCierre";
-import { hidratarModelo } from "../serializacion/json";
+import { carpetaIdDeJson, exportarModelo, hidratarModelo } from "../serializacion/json";
 import {
   encodeSessionIdentity,
   SESSION_IDENTITY_HEADER,
   type SessionIdentity,
 } from "./sessionIdentity";
+import { getLocalDocumentRepository } from "./localRepository";
 import { esPreferenciasUi, normalizarCarpetaIndice, normalizarModeloIndice } from "./workspaceStorage";
+import { compactarJsonDocumento } from "./compactacion";
+import type { LocalJournalEntry } from "./localRepository";
+import type { SyncRemoteDocument, SyncTransport } from "./syncQueue";
 
 const ENDPOINT = "/__deep-opm/modelos";
 const WORKSPACE_ENDPOINT = "/__deep-opm/workspace";
 const SESSION_ENDPOINT = "/__deep-opm/session";
 const backendUnauthorizedListeners = new Set<() => void>();
 let observedSessionIdentity: string | null = null;
+let documentLocalIdentity: { status: "authenticated" | "offline" | "unauthenticated" | "unavailable"; identity: SessionIdentity | null } = {
+  status: "unavailable",
+  identity: null,
+};
 let sessionBoundaryVersion = 0;
 let pendingSessionRequest: {
   boundaryVersion: number;
@@ -75,7 +84,84 @@ export function onBackendUnauthorized(listener: () => void): () => void {
 
 export function forgetObservedBackendSession(): void {
   observedSessionIdentity = null;
+  documentLocalIdentity = { status: "unauthenticated", identity: null };
+  void getLocalDocumentRepository().clearActiveIdentity().catch(() => undefined);
   sessionBoundaryVersion += 1;
+}
+
+export type DocumentLocalIdentity =
+  | { status: "authenticated" | "offline"; identity: SessionIdentity }
+  | { status: "unauthenticated" | "unavailable"; identity: null };
+
+/** Local writes are partitioned by the last verified tenant/user identity. */
+export function getDocumentLocalIdentity(): DocumentLocalIdentity {
+  return { ...documentLocalIdentity } as DocumentLocalIdentity;
+}
+
+export function selectedRevisionSnapshot(base: BaseRevisionBackend): string {
+  return base.witness.source === "autosave" && base.autosave
+    ? base.autosave.json
+    : base.model.json;
+}
+
+export function createBackendDocumentSyncTransport(): SyncTransport {
+  return {
+    async readRemote({ identity, documentId }): Promise<SyncRemoteDocument> {
+      assertCurrentAuthenticatedIdentity(identity);
+      const result = await cargarBaseRevisionBackend(documentId);
+      if (!result.ok) throw new Error(result.error);
+      const effectiveJson = selectedRevisionSnapshot(result.value);
+      const hydrated = hidratarModelo(effectiveJson);
+      if (!hydrated.ok) throw new Error(`La base remota no es un modelo válido: ${hydrated.error}`);
+      return {
+        revision: result.value.model.revision!,
+        // Compare like with like: tab snapshots may have been serialized
+        // without the optional folder argument, while persisted revisions
+        // include null or a real folder id. This canonical form still uses
+        // the exact effective ancestor and the commit retains its raw CAS witness.
+        snapshotJson: exportarModelo(hydrated.value, carpetaIdDeJson(effectiveJson)),
+        witness: result.value.witness,
+      };
+    },
+    async commitRemote({ identity, documentId, operation, base, confirmedByOperator }): Promise<SyncRemoteDocument> {
+      assertCurrentAuthenticatedIdentity(identity);
+      if (typeof base.witness !== "object" || base.witness === null) {
+        throw new Error("La sincronización requiere el testigo remoto vigente");
+      }
+      const witness = base.witness as MesaBaseWitnessV1;
+      if (witness.modelId !== documentId || witness.saved.revision !== base.revision) {
+        throw new Error("La base remota cambió; vuelve a leer antes de sincronizar");
+      }
+      const hydrated = hidratarModelo(operation.snapshotJson);
+      if (!hydrated.ok) throw new Error(`La copia local no es un modelo válido: ${hydrated.error}`);
+      const current = await cargarModeloBackend(documentId);
+      if (!current.ok) throw new Error(current.error);
+      const model = construirModeloPersistido({
+        id: documentId,
+        nombre: hydrated.value.nombre,
+        descripcion: current.value.descripcion,
+        json: operation.snapshotJson,
+        revision: base.revision,
+        ...(current.value.carpetaId !== undefined ? { carpetaId: current.value.carpetaId } : {}),
+      }, current.value);
+      const compacted = compactarJsonDocumento(operation.snapshotJson);
+      const version: VersionResumen = {
+        id: operation.id,
+        creadoEn: operation.createdAt,
+        nombre: `Copia local ${operation.localRevision}`,
+        modeloPayloadKey: operation.id,
+        bytes: compacted.length,
+      };
+      const committed = await confirmarRevisionBackend({
+        model,
+        version,
+        base: { kind: "existing", witness },
+        confirmedByOperator: confirmedByOperator === true,
+      });
+      if (!committed.ok) throw new Error(committed.error);
+      return { revision: committed.value.model.revision!, snapshotJson: committed.value.model.json };
+    },
+  };
 }
 
 export async function obtenerSesionBackend(): Promise<Resultado<SesionBackend>> {
@@ -83,7 +169,10 @@ export async function obtenerSesionBackend(): Promise<Resultado<SesionBackend>> 
   const requestBoundaryVersion = sessionBoundaryVersion;
   try {
     const response = await fetchBackendSession(requestBoundaryVersion);
-    if (!response.ok) return fallo(errorDesdeBody(response.body) ?? "No se pudo iniciar sesión de workspace");
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) notifyBackendUnauthorized();
+      return fallo(errorDesdeBody(response.body) ?? "No se pudo iniciar sesión de workspace");
+    }
     const session = sesionDesdeBody(response.body);
     if (!session) return fallo("Respuesta de sesión inválida");
     if (!acceptSessionResponse(session, requestBoundaryVersion)) {
@@ -100,6 +189,7 @@ const AUTH_LOGOUT_ENDPOINT = "/__deep-opm/auth/logout";
 
 export type EstadoSesionBackend =
   | { estado: "autenticada"; session: SesionBackend }
+  | { estado: "offline"; identity: SesionBackend }
   | { estado: "requiere-login" }
   | { estado: "error"; error: string };
 
@@ -109,7 +199,12 @@ export async function obtenerEstadoSesionBackend(): Promise<EstadoSesionBackend>
   const requestBoundaryVersion = sessionBoundaryVersion;
   try {
     const response = await fetchBackendSession(requestBoundaryVersion);
-    if (response.status === 401) return { estado: "requiere-login" };
+    if (response.status === 401 || response.status === 403) {
+      notifyBackendUnauthorized();
+      return response.status === 401
+        ? { estado: "requiere-login" }
+        : { estado: "error", error: errorDesdeBody(response.body) ?? "Acceso de sesión rechazado" };
+    }
     if (!response.ok) return { estado: "error", error: errorDesdeBody(response.body) ?? "No se pudo iniciar sesión de workspace" };
     const session = sesionDesdeBody(response.body);
     if (!session) return { estado: "error", error: "Respuesta de sesión inválida" };
@@ -118,6 +213,11 @@ export async function obtenerEstadoSesionBackend(): Promise<EstadoSesionBackend>
     }
     return { estado: "autenticada", session };
   } catch {
+    const cachedIdentity = await getLocalDocumentRepository().getActiveIdentity().catch(() => null);
+    if (cachedIdentity && requestBoundaryVersion === sessionBoundaryVersion) {
+      documentLocalIdentity = { status: "offline", identity: cachedIdentity };
+      return { estado: "offline", identity: cachedIdentity };
+    }
     return { estado: "error", error: "No se pudo conectar al backend de modelos" };
   }
 }
@@ -551,7 +651,9 @@ async function fetchBackend(input: RequestInfo | URL, init?: RequestInit): Promi
     headers.set(SESSION_IDENTITY_HEADER, requestIdentity);
   }
   const response = await fetch(input, { ...init, headers });
-  if (response.status === 401 && requestIdentity === observedSessionIdentity) {
+  if (String(input).split("?")[0] !== SESSION_ENDPOINT &&
+    (response.status === 401 || response.status === 403) &&
+    requestIdentity === observedSessionIdentity) {
     notifyBackendUnauthorized();
   }
   return response;
@@ -587,6 +689,15 @@ function acceptSessionResponse(
   return observeBackendSession(session, allowChange);
 }
 
+function assertCurrentAuthenticatedIdentity(identity: SessionIdentity): void {
+  if (documentLocalIdentity.status !== "authenticated" ||
+    !documentLocalIdentity.identity ||
+    documentLocalIdentity.identity.tenantId !== identity.tenantId ||
+    documentLocalIdentity.identity.userId !== identity.userId) {
+    throw new Error("La sesión actual no autoriza sincronizar esta copia local");
+  }
+}
+
 function observeBackendSession(session: SesionBackend, allowChange = false): boolean {
   const identity = encodeSessionIdentity(session);
   if (observedSessionIdentity && observedSessionIdentity !== identity && !allowChange) {
@@ -595,6 +706,8 @@ function observeBackendSession(session: SesionBackend, allowChange = false): boo
   }
   if (observedSessionIdentity !== identity) sessionBoundaryVersion += 1;
   observedSessionIdentity = identity;
+  documentLocalIdentity = { status: "authenticated", identity: { tenantId: session.tenantId, userId: session.userId } };
+  void getLocalDocumentRepository().activateIdentity(session).catch(() => undefined);
   return true;
 }
 

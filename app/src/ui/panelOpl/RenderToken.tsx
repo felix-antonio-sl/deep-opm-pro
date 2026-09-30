@@ -37,6 +37,7 @@ export function RenderToken(props: RenderTokenProps) {
     return (
       <input
         key={props.token.id}
+        data-atajos-local="true"
         aria-label="Renombrar desde OPL"
         value={props.edicion.valor}
         autoFocus
@@ -49,10 +50,16 @@ export function RenderToken(props: RenderTokenProps) {
         }
         onKeyDown={(event) => {
           if (event.key === "Enter") {
+            event.preventDefault();
+            event.stopPropagation();
             props.renombrarEntidadDesdeOpl(props.edicion!.id, props.edicion!.valor);
             props.setEdicion(null);
           }
-          if (event.key === "Escape") props.setEdicion(null);
+          if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
+            props.setEdicion(null);
+          }
         }}
         onBlur={() => props.setEdicion(null)}
       />
@@ -63,6 +70,7 @@ export function RenderToken(props: RenderTokenProps) {
     return (
       <input
         key={props.token.id}
+        data-atajos-local="true"
         aria-label="Renombrar estado desde OPL"
         value={props.edicion.valor}
         autoFocus
@@ -75,10 +83,16 @@ export function RenderToken(props: RenderTokenProps) {
         }
         onKeyDown={(event) => {
           if (event.key === "Enter") {
+            event.preventDefault();
+            event.stopPropagation();
             props.renombrarEstadoDesdeOpl(props.edicion!.id, props.edicion!.valor);
             props.setEdicion(null);
           }
-          if (event.key === "Escape") props.setEdicion(null);
+          if (event.key === "Escape") {
+            event.preventDefault();
+            event.stopPropagation();
+            props.setEdicion(null);
+          }
         }}
         onBlur={() => props.setEdicion(null)}
       />
@@ -92,10 +106,18 @@ export function RenderToken(props: RenderTokenProps) {
   const contenido = textoVisibleToken(props.token);
   const isEnlaceDestino = props.token.rol === "nombre" && props.token.ref?.tipo === "enlace";
   const enlaceRef = props.token.ref?.tipo === "enlace" ? props.token.ref : null;
+  const etiquetaAccesible = props.token.ref?.tipo === "entidad" || props.token.ref?.tipo === "estado"
+    ? `Editar ${contenido} desde OPL`
+    : `Seleccionar ${contenido} desde OPL`;
   const common = {
     key: props.token.id,
     "data-opl-token": props.token.ref ? `${props.token.ref.tipo}:${props.token.ref.id}` : undefined,
     "data-opl-rol": props.token.rol,
+    role: interactivo ? "button" as const : undefined,
+    tabIndex: interactivo ? 0 : undefined,
+    "aria-label": interactivo ? etiquetaAccesible : undefined,
+    "aria-keyshortcuts": interactivo && (props.token.ref?.tipo === "entidad" || props.token.ref?.tipo === "estado") ? "Enter F2" : undefined,
+    title: interactivo && (props.token.ref?.tipo === "entidad" || props.token.ref?.tipo === "estado") ? "Pulsa Enter o F2 para editar el nombre" : undefined,
     style: {
       ...style.token,
       ...(interactivo ? style.tokenInteractivo : {}),
@@ -107,6 +129,23 @@ export function RenderToken(props: RenderTokenProps) {
     onMouseLeave: () => props.token.ref && props.fijarHoverOpl(null),
     onClick: () => {
       if (props.token.ref) props.seleccionarDesdeOpl(props.token.ref);
+    },
+    onKeyDown: (event: KeyboardEvent) => {
+      if (!props.token.ref) return;
+      if ((event.key === "Enter" || event.key === "F2") && props.token.ref.tipo === "entidad") {
+        event.preventDefault();
+        props.setEdicion({ tipo: "entidad", id: props.token.ref.id, tokenId: props.token.id, valor: contenido });
+        return;
+      }
+      if ((event.key === "Enter" || event.key === "F2") && props.token.ref.tipo === "estado") {
+        event.preventDefault();
+        props.setEdicion({ tipo: "estado", id: props.token.ref.id, tokenId: props.token.id, valor: props.token.texto.replace(/`/g, "") });
+        return;
+      }
+      if (event.key === "Enter") {
+        event.preventDefault();
+        props.seleccionarDesdeOpl(props.token.ref);
+      }
     },
     onDblClick: () => {
       if (props.token.ref?.tipo === "entidad") {

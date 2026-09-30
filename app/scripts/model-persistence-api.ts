@@ -10,6 +10,16 @@ import {
   type ModelPersistenceRepository,
   type PersistenciaSesion,
 } from "../src/server/modelPersistence";
+import {
+  crearRepoAgentePostgres,
+  migrarTablasAgente,
+  persistModelInTransaction,
+  upsertAutosaveInTransaction,
+} from "../src/server/agent/postgresRepository";
+import type { AgentRepository } from "../src/server/agent/repository";
+import { createAgentService } from "../src/server/agent/service";
+import { crearRepoReviewPostgres, migrarTablasReview } from "../src/server/review/postgresRepository";
+import { createReviewService } from "../src/server/review/service";
 import { autosaveTimestampAfter, baseWitnessMatches } from "../src/mesa/baseWitness";
 import type { ModeloPersistido, ResumenModeloPersistido } from "../src/persistencia/modelos";
 import type {
@@ -363,6 +373,20 @@ const MIGRACIONES_SCHEMA = [
       `;
     },
   },
+  {
+    version: 6,
+    nombre: "persistencia_agente_atomica",
+    async run(db: typeof sql) {
+      await migrarTablasAgente(db);
+    },
+  },
+  {
+    version: 7,
+    nombre: "revision_compartida_inmutable",
+    async run(db: typeof sql) {
+      await migrarTablasReview(db);
+    },
+  },
 ] satisfies Array<{ version: number; nombre: string; run: (db: typeof sql) => Promise<void> }>;
 
 await inicializarSchema();
@@ -385,8 +409,15 @@ function construirSessionResolver() {
   );
 }
 
+const modelRepository = repositorioPostgres();
+if (!modelRepository.agentRepository) throw new Error("Repositorio agéntico no conectado a la persistencia canónica");
+const agentService = createAgentService(modelRepository.agentRepository);
+const reviewService = createReviewService({ repository: crearRepoReviewPostgres(sql) });
 const handler = crearModelPersistenceFetchHandler({
-  repo: repositorioPostgres(),
+  repo: modelRepository,
+  agentHandler: agentService.handle,
+  reviewPublicHandler: reviewService.handlePublic,
+  reviewOperatorHandler: reviewService.handleOperator,
   sessionResolver: construirSessionResolver(),
   auth: { repo: authRepositorioPostgres(), secret: SESSION_SECRET, requireAuth: REQUIRE_AUTH },
 });
@@ -400,7 +431,7 @@ Bun.serve({
     const response = await handler(request);
     logEvento("model_api_request", {
       method: request.method,
-      path: url.pathname,
+      path: redactReviewRequestPath(url.pathname),
       status: response.status,
       durationMs: Math.round(performance.now() - inicio),
     });
@@ -437,8 +468,10 @@ function authRepositorioPostgres(): AuthRepository {
   };
 }
 
-function repositorioPostgres(): ModelPersistenceRepository {
+function repositorioPostgres(): ModelPersistenceRepository & { agentRepository: AgentRepository } {
+  const agentRepository = crearRepoAgentePostgres(sql);
   return {
+    agentRepository,
     async touchSession(session) {
       await asegurarSesion(session);
     },
@@ -835,93 +868,6 @@ function repositorioPostgres(): ModelPersistenceRepository {
   };
 }
 
-async function persistModelInTransaction(
-  db: typeof sql,
-  session: PersistenciaSesion,
-  model: ModeloPersistido,
-  currentRevision: number | null,
-): Promise<ModeloPersistido> {
-  const payloadBase64 = base64Utf8(model.json);
-  const versionsBase64 = model.versiones ? base64Utf8(JSON.stringify(model.versiones)) : null;
-  const nextRevision = currentRevision === null ? 1 : currentRevision + 1;
-  const savedRows = await db`
-    INSERT INTO opforja_models (
-      tenant_id,
-      owner_id,
-      id,
-      nombre,
-      descripcion,
-      carpeta_id,
-      creado_en,
-      actualizado_en,
-      ultima_apertura,
-      autosalvado,
-      archivado,
-      archivado_en,
-      archivado_auto,
-      crear_version_al_guardar,
-      versiones,
-      revision,
-      payload
-    )
-    VALUES (
-      ${session.tenantId},
-      ${session.userId},
-      ${model.id},
-      ${model.nombre},
-      ${model.descripcion},
-      ${model.carpetaId ?? null},
-      ${model.creadoEn},
-      ${model.actualizadoEn},
-      ${model.ultimaApertura ?? null},
-      ${model.autosalvado ?? null},
-      ${model.archivado ?? null},
-      ${model.archivadoEn ?? null},
-      ${model.archivadoAuto ?? null},
-      ${model.crearVersionAlGuardar ?? null},
-      CASE
-        WHEN ${versionsBase64}::text IS NULL THEN NULL
-        ELSE convert_from(decode(${versionsBase64}, 'base64'), 'UTF8')::jsonb
-      END,
-      ${nextRevision},
-      convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
-    )
-    ON CONFLICT (tenant_id, id) DO UPDATE SET
-      owner_id = EXCLUDED.owner_id,
-      nombre = EXCLUDED.nombre,
-      descripcion = EXCLUDED.descripcion,
-      carpeta_id = EXCLUDED.carpeta_id,
-      actualizado_en = EXCLUDED.actualizado_en,
-      ultima_apertura = EXCLUDED.ultima_apertura,
-      autosalvado = EXCLUDED.autosalvado,
-      archivado = EXCLUDED.archivado,
-      archivado_en = EXCLUDED.archivado_en,
-      archivado_auto = EXCLUDED.archivado_auto,
-      crear_version_al_guardar = EXCLUDED.crear_version_al_guardar,
-      versiones = EXCLUDED.versiones,
-      revision = EXCLUDED.revision,
-      payload = EXCLUDED.payload
-    WHERE opforja_models.revision = ${currentRevision ?? -1}
-    RETURNING id
-  `;
-  if (savedRows.length === 0) throw new PersistenciaConflictError();
-
-  if (model.autosalvado === true) {
-    await upsertAutosaveInTransaction(db, session, {
-      modeloId: model.id,
-      creadoEn: autosaveTimestampAfter(model.actualizadoEn),
-      json: model.json,
-    });
-  } else if (model.autosalvado === false) {
-    await db`
-      DELETE FROM opforja_model_autosaves
-      WHERE tenant_id = ${session.tenantId} AND modelo_id = ${model.id}
-    `;
-  }
-
-  return { ...model, revision: nextRevision };
-}
-
 async function persistFreshVersionInTransaction(
   db: typeof sql,
   session: PersistenciaSesion,
@@ -970,28 +916,6 @@ async function insertVersionInTransaction(
     RETURNING id
   `;
   return rows.length > 0;
-}
-
-async function upsertAutosaveInTransaction(
-  db: typeof sql,
-  session: PersistenciaSesion,
-  autosave: BackendAutosalvadoPersistido,
-): Promise<void> {
-  const payloadBase64 = base64Utf8(autosave.json);
-  await db`
-    INSERT INTO opforja_model_autosaves (tenant_id, modelo_id, owner_id, creado_en, payload)
-    VALUES (
-      ${session.tenantId},
-      ${autosave.modeloId},
-      ${session.userId},
-      ${autosave.creadoEn},
-      convert_from(decode(${payloadBase64}, 'base64'), 'UTF8')::jsonb
-    )
-    ON CONFLICT (tenant_id, modelo_id) DO UPDATE SET
-      owner_id = EXCLUDED.owner_id,
-      creado_en = EXCLUDED.creado_en,
-      payload = EXCLUDED.payload
-  `;
 }
 
 async function lockWorkspaceInTransaction(
@@ -1103,6 +1027,18 @@ async function podarVersionesPostgres(
 
 function logEvento(evento: string, data: Record<string, unknown> = {}): void {
   console.log(JSON.stringify({ ts: new Date().toISOString(), evento, ...data }));
+}
+
+function redactReviewRequestPath(pathname: string): string {
+  const root = "/__deep-opm/review";
+  if (!pathname.startsWith(`${root}/`)) return pathname;
+  const parts = pathname.slice(root.length + 1).split("/");
+  if (parts[0] === "grants") {
+    if (parts.length === 1) return `${root}/grants`;
+    if (parts[1] === "annotations") return `${root}/grants/[share]/annotations/[annotation]/resolve`;
+    return `${root}/grants/[share]`;
+  }
+  return parts.length > 1 ? `${root}/[token]/annotations` : `${root}/[token]`;
 }
 
 function idLog(id: string): string {

@@ -75,6 +75,10 @@ export type { Opd } from "./tipos/opd";
 
 export type {
   FichaTrabajo,
+  ModalidadDocumento,
+  ContextoModalidadDocumento,
+  CambioModalidadDocumento,
+  RevisionHumanaDocumento,
   LenteConocimiento,
   TipoModelo,
   VidaUtilModelo,
@@ -86,6 +90,16 @@ export type {
   ModoReforzamientoOntologia,
   TerminoOntologia,
   OntologiaOrganizacional,
+  PieceBehaviorDimension,
+  PieceBehaviorObservation,
+  PieceBoundaryRole,
+  PieceIdentity,
+  PieceLineageEntry,
+  PieceLineageRecord,
+  PieceManifest,
+  PieceProfile,
+  PieceReferenceMetadata,
+  PieceVersion,
   DurezaRequisito,
   EstadoSatisfaccionRequisito,
   RequisitoEntidadMetadata,
@@ -134,6 +148,7 @@ export type {
 export {
   COMPONENTES_SELLO,
   COMPONENTES_SELLO_OPCIONALES,
+  MAX_MARKDOWN_SOURCE_BYTES,
   MESA_EXPLORACION_SCHEMA,
 } from "./tipos/extensiones";
 

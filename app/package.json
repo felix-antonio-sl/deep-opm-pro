@@ -34,9 +34,11 @@
     "mesa": "bun scripts/mesa-cli.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.49",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource/inria-sans": "^5.2.8",
     "@fontsource/inria-serif": "^5.2.8",
+    "ai": "7.0.100",
     "jointjs": "^3.7.7",
     "preact": "^10.25.0",
     "zustand": "^5.0.0"

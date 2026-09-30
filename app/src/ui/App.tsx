@@ -53,6 +53,8 @@ import { PanelOplView } from "./PanelOpl";
 import { BarraSimulacion } from "./simulacion/BarraSimulacion";
 import { tokens } from "./tokens";
 import { Toolbar } from "./Toolbar";
+import { AgentWorkbench } from "./agent/AgentWorkbench";
+import { DocumentActions } from "./DocumentActions";
 
 const Timeline = lazy(() => import("./Timeline").then((m) => ({ default: m.Timeline })));
 
@@ -78,6 +80,8 @@ export function App() {
   // Auth v1 (spec §4): con login obligatorio el backend responde 401 y la app
   // monta PantallaLogin en lugar del workbench (early-return tras los hooks).
   const requiereLogin = useOpmStore((s) => s.requiereLogin);
+  const documentId = useOpmStore((s) => s.modeloPersistidoId);
+  const localDocumentId = useOpmStore((s) => s.modeloPersistidoId ?? `local:${s.pestanaActivaId}`);
   const verificarSesion = useOpmStore((s) => s.verificarSesion);
   const abrirDialogoComandos = useOpmStore((s) => s.abrirDialogoComandos);
   useEffect(() => {
@@ -175,6 +179,10 @@ export function App() {
           <>
             {contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <Toolbar />}
             <BarraPestanas />
+            <div style={{ minWidth: 0 }}>
+              <AgentWorkbench model={modelo} activeOpdId={opdActivoId} renderDocumentActions={(operations) =>
+                <DocumentActions compact documentId={documentId} localDocumentId={localDocumentId} model={modelo} opdId={opdActivoId} operations={operations} />} />
+            </div>
             <section
               data-testid="mobile-revision-section"
               style={layout.mobileSection}
@@ -305,7 +313,14 @@ export function App() {
             canvas={(
               <CodexCanvasMount
                 chromeVisible={!uiSoloCanvas}
-                topbar={contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <><CintaBiblioteca /><CintaApunte onExplorar={abrirMesaExploracion} /><CintaModelo /></>}
+                topbar={(
+                  <>
+                    {/* Mantiene el encargo en el chrome del editor y usa controles planos accesibles: ui-forja/GOVERNANCE.md §§2, 5. */}
+                    <AgentWorkbench model={modelo} activeOpdId={opdActivoId} renderDocumentActions={(operations) =>
+                      <DocumentActions documentId={documentId} localDocumentId={localDocumentId} model={modelo} opdId={opdActivoId} operations={operations} />} />
+                    {contextoWorkbench.modo === "simulacion" ? <BarraSimulacion /> : <><CintaBiblioteca /><CintaApunte onExplorar={abrirMesaExploracion} /><CintaModelo /></>}
+                  </>
+                )}
               >
                 <JointCanvasFeedbackBoundary readonlyMode={modoSoloLectura} onAdapterChange={setCanvasAdapter} />
                 {/*
@@ -748,7 +763,7 @@ const layout = {
   // section contiene canvas+overlay+tabs como flex columna. Sin OPL inferior.
   pageMobile: {
     display: "grid",
-    gridTemplateRows: "48px 32px minmax(0, 1fr)",
+    gridTemplateRows: "48px 32px auto minmax(0, 1fr)",
     width: "100%",
     height: "100%",
     background: tokens.colors.fondoApp,

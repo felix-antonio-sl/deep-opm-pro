@@ -24,6 +24,8 @@ import type {
   SubmodeloMaterializacion,
   SubmodeloReferencia,
   SubmodeloSource,
+  PieceReferenceMetadata,
+  PieceLineageRecord,
   TerminoOntologia,
   VersionResumen,
 } from "../modelo/tipos";
@@ -52,6 +54,7 @@ const CAMPOS_MODELO = {
   fichaTrabajo: true,
   lentesConocimiento: true,
   submodelos: true,
+  pieceLineage: true,
   referenciaPadreSubmodelo: true,
   archivado: true,
   archivadoEn: true,
@@ -307,7 +310,26 @@ const CAMPOS_SUBMODELO = {
   anchor: true,
   contrato: true,
   materializacion: true,
+  piece: true,
 } satisfies Record<keyof SubmodeloReferencia, true>;
+
+const CAMPOS_PIECE_LINEAGE = {
+  manifestId: true,
+  function: true,
+  lineage: true,
+} satisfies Record<keyof PieceLineageRecord, true>;
+
+const CAMPOS_PIECE_REFERENCE = {
+  manifestId: true,
+  identity: true,
+  function: true,
+  boundary: true,
+  version: true,
+  profile: true,
+  lineage: true,
+  behavior: true,
+  losses: true,
+} satisfies Record<keyof PieceReferenceMetadata, true>;
 
 const CAMPOS_REFERENCIA_PADRE = {
   modeloId: true,
@@ -341,7 +363,9 @@ void [
   CAMPOS_SUBMODELO_ANCHOR,
   CAMPOS_SUBMODELO_CONTRATO,
   CAMPOS_SUBMODELO_MATERIALIZACION,
-  CAMPOS_SUBMODELO,
+    CAMPOS_SUBMODELO,
+  CAMPOS_PIECE_LINEAGE,
+  CAMPOS_PIECE_REFERENCE,
   CAMPOS_REFERENCIA_PADRE,
 ];
 
@@ -808,6 +832,27 @@ function modeloConCamposOpcionales(): Modelo {
           sourceHash: "source-1",
           materializedAt: "2026-06-06T00:00:00.000Z",
         },
+        piece: {
+          manifestId: "piece:modelo-sub:resource:v1",
+          identity: { modelId: "modelo-sub", pieceId: "remote-o-pedido" },
+          function: "Provee insumo",
+          boundary: { scope: "direct-incidence", roles: [], signature: "[]" },
+          version: { id: "v1", contentHash: "hash-piece-1" },
+          profile: { id: "entity-neighborhood", version: "1" },
+          lineage: [{ identity: { modelId: "modelo-sub", pieceId: "remote-o-pedido" }, version: { id: "v1", contentHash: "hash-piece-1" }, relation: "source" }],
+          behavior: {},
+          losses: ["Los refinamientos externos no se materializan."],
+        },
+      },
+    },
+    pieceLineage: {
+      "o-resultado": {
+        manifestId: "piece:modelo-roundtrip-campos:o-resultado:v1",
+        function: "Produce resultado del pedido",
+        lineage: [
+          { identity: { modelId: "biblioteca", pieceId: "resultado" }, version: { id: "v1", contentHash: "source-hash" }, relation: "source" },
+          { identity: { modelId: "modelo-roundtrip-campos", pieceId: "o-resultado" }, version: { id: "local-v1", contentHash: "local-hash" }, relation: "copy" },
+        ],
       },
     },
     referenciaPadreSubmodelo: {

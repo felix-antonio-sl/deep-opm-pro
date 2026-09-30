@@ -211,6 +211,7 @@ export const PARTICION_MODELO: Record<keyof Modelo, ClaseCampo> = {
   fichaTrabajo: "excluido",
   lentesConocimiento: "excluido",
   submodelos: "excluido",
+  pieceLineage: "excluido",
   referenciaPadreSubmodelo: "excluido",
   archivado: "excluido",
   archivadoEn: "excluido",

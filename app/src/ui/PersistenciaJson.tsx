@@ -2,8 +2,9 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { useZustandPersistencePort } from "../app/ports/zustandPersistencePort";
 import { useZustandWorkspacePort } from "../app/ports/zustandWorkspacePort";
-import { hidratarModelo } from "../serializacion/json";
+import { exportarModelo } from "../serializacion/json";
 import type { Modelo } from "../modelo/tipos";
+import { migrateDocument } from "../persistencia/documentMigration";
 import { useConfirmarSiDirty } from "./ConfirmacionContext";
 import { useOpmStore } from "../store";
 import { runTutorPolicy } from "../tutor/politica";
@@ -28,7 +29,8 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
   const [modeloSeleccionadoId, setModeloSeleccionadoId] = useState("");
   const [operacionTutor, setOperacionTutor] = useState<"import-active" | "import-new" | "export" | null>(null);
   const modeloSeleccionado = modeloSeleccionadoId || workspace.modelosGuardados[0]?.id || "";
-  const vistaPrevia = useMemo(() => (texto.trim() ? obtenerVistaPreviaImportacion(texto) : null), [texto]);
+  const migracion = useMemo(() => (texto.trim() ? migrateDocument(texto) : null), [texto]);
+  const vistaPrevia = useMemo(() => obtenerVistaPreviaImportacion(migracion), [migracion]);
   const mensajeError = errorImportacion ?? (vistaPrevia?.ok === false ? vistaPrevia.error : null);
   const confirmarSiDirty = useConfirmarSiDirty();
   const abrirPestanaImportandoJson = useOpmStore((s) => s.abrirPestanaImportandoJson);
@@ -66,14 +68,13 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
 
   const manejarImportar = () => {
     setOperacionTutor("import-active");
-    const validacion = validarImportacionActual(texto);
-    if (!validacion.ok) {
-      setErrorImportacion(validacion.error);
+    if (!migracion?.ok) {
+      setErrorImportacion(migracion?.error ?? "Pega o selecciona un JSON de modelo");
       return;
     }
     setErrorImportacion(null);
     confirmarSiDirty(() => {
-      persistencia.importarJson(texto);
+      persistencia.importarJson(exportarModelo(migracion.value.document));
       setErrorImportacion(null);
       onImported?.();
     });
@@ -81,13 +82,12 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
 
   const manejarImportarEnPestanaNueva = () => {
     setOperacionTutor("import-new");
-    const validacion = validarImportacionActual(texto);
-    if (!validacion.ok) {
-      setErrorImportacion(validacion.error);
+    if (!migracion?.ok) {
+      setErrorImportacion(migracion?.error ?? "Pega o selecciona un JSON de modelo");
       return;
     }
     setErrorImportacion(null);
-    abrirPestanaImportandoJson(texto);
+    abrirPestanaImportandoJson(exportarModelo(migracion.value.document));
     onImported?.();
   };
 
@@ -200,6 +200,18 @@ export function PersistenciaJson({ onImported, mostrarModelosLocales = true }: P
         </div>
         {archivoNombre ? <div style={style.meta}>Archivo: {archivoNombre}</div> : null}
         {vistaPrevia?.ok ? <div data-testid="import-preview" style={style.preview}>{vistaPrevia.texto}</div> : null}
+        {migracion?.ok && migracion.value.sourceProfile.looseOpdIds.length > 0 ? (
+          <div role="status" data-testid="import-continuity-notice" style={style.preview}>
+            Se conservarán {migracion.value.sourceProfile.looseOpdIds.length} OPD(s) suelto(s). No se integran ni gradúan al importar.
+          </div>
+        ) : null}
+        {migracion?.ok && migracion.value.unrepresentedData.length > 0 ? (
+          <section role="note" data-testid="import-recovery-notice" style={style.preview}>
+            <div>El modelo puede abrirse, pero estos datos no tienen representación en el formato actual: {migracion.value.unrepresentedData.map((item) => item.path).join(", ")}.</div>
+            <div>El original sigue intacto en esta importación. Descarga una copia antes de cerrar si quieres conservar esos datos.</div>
+            <button type="button" style={style.button} onClick={() => descargarOriginal(texto)}>Descargar original</button>
+          </section>
+        ) : null}
         {mensajeError ? <div role="alert" style={style.error}>{mensajeError}</div> : null}
         <textarea
           data-testid="textarea-json"
@@ -240,15 +252,12 @@ function construirSnapshotPersistencia(
   return { ...base, operation, actionId: "palette:exportar-json", surface: "command-palette" };
 }
 
-function validarImportacionActual(texto: string): VistaPreviaImportacion {
-  if (!texto.trim()) return { ok: false, error: "Pega o selecciona un JSON de modelo" };
-  return obtenerVistaPreviaImportacion(texto);
-}
-
-function obtenerVistaPreviaImportacion(texto: string): VistaPreviaImportacion {
-  const resultado = hidratarModelo(texto);
-  if (!resultado.ok) return { ok: false, error: resultado.error };
-  return { ok: true, texto: describirModelo(resultado.value) };
+function obtenerVistaPreviaImportacion(
+  migracion: ReturnType<typeof migrateDocument> | null,
+): VistaPreviaImportacion | null {
+  if (!migracion) return null;
+  if (!migracion.ok) return { ok: false, error: migracion.error };
+  return { ok: true, texto: describirModelo(migracion.value.document) };
 }
 
 function describirModelo(modelo: Modelo): string {
@@ -268,6 +277,18 @@ function descargarJsonBackup(json: string): void {
   const enlace = document.createElement("a");
   enlace.href = url;
   enlace.download = nombreArchivoBackupJson(json);
+  document.body.append(enlace);
+  enlace.click();
+  enlace.remove();
+  URL.revokeObjectURL(url);
+}
+
+function descargarOriginal(json: string): void {
+  const blob = new Blob([json], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const enlace = document.createElement("a");
+  enlace.href = url;
+  enlace.download = `${nombreArchivoBackupJson(json).replace(/\.json$/, "")}-original.json`;
   document.body.append(enlace);
   enlace.click();
   enlace.remove();

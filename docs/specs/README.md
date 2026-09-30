@@ -4,6 +4,16 @@
 `../superpowers/specs/` porque código y tests las citan; el nombre del directorio es
 procedencia histórica, no una herramienta requerida para mantener el producto.
 
+## Producto objetivo
+
+- [opforja: producto integrado](opforja-producto-integrado.md) — especificación
+  propuesta de experiencia, trabajo agéntico en tiempo real, contratos semánticos,
+  revisión, portabilidad y transición desde el código actual. Es insumo de desarrollo;
+  no declara esas capacidades implementadas ni sustituye silenciosamente los
+  contratos operativos vigentes.
+- [Plan de implementación por incrementos](../roadmap/implementacion-producto-integrado.md)
+  — decisiones técnicas, tareas y aceptación; I1 integra el agente desde el primer corte.
+
 ## Contratos vigentes o citados por implementación
 
 | Especificación | Estado documental | Alcance que conserva |

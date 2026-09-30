@@ -1,5 +1,6 @@
 import { useMemo, useState } from "preact/hooks";
 import { useOpmStore } from "../../store";
+import { esOpdSuelto } from "../../modelo/opdSueltos";
 import { useZustandOplPort } from "../ports/zustandOplPort";
 import type { Id } from "../../modelo/tipos/comunes";
 import type { Modelo } from "../../modelo/tipos/modelo";
@@ -13,6 +14,7 @@ export interface PanelOplViewModel {
   modelo: Modelo;
   vistaMapaActiva: boolean;
   opdActivoId: Id;
+  alcanceOpl: "modelo-completo" | "opd-local";
   filtroActivo: boolean;
   /**
    * Codex L6 (G7): identificador canónico del elemento que filtra el panel
@@ -120,6 +122,9 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [modelo, opdActivoId, seleccionId, enlaceSeleccionId, filtroActivo, busquedaOpl, editorLibre, textoLibre, visibilidad.esencia, visibilidad.esApunte],
   );
+  const alcanceOpl = esOpdSuelto(modelo, opdActivoId) && modelo.opds[opdActivoId]?.vista === undefined
+    ? "opd-local"
+    : "modelo-completo";
 
   // B0.025: id del proceso activo durante la simulacion, para que el panel OPL
   // resalte su frase sin regenerar texto. `null` cuando no se simula.
@@ -156,6 +161,7 @@ export function usePanelOplViewModel(): PanelOplViewModel {
     modelo,
     vistaMapaActiva,
     opdActivoId,
+    alcanceOpl,
     filtroActivo,
     filtroCodigo,
     hoverOplRef,

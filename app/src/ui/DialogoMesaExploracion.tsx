@@ -8,6 +8,7 @@ import type {
 } from "../app/viewmodels/mesaExploracionViewModel";
 import { useMesaExploracionViewModel } from "../app/viewmodels/mesaExploracionViewModel";
 import { useEffect, useRef, useState } from "preact/hooks";
+import { decodeMarkdownSource } from "../agent/markdownSource";
 import { Dialogo, DialogoAccion } from "./Dialogo";
 import { TutorInterventionDetails } from "./TutorDetails";
 import { tokens } from "./tokens";
@@ -25,6 +26,7 @@ export function DialogoMesaExploracion({ open, onCerrar }: DialogoMesaExploracio
   const mesa = useMesaExploracionViewModel();
   const { etapa } = mesa;
   const [fuenteBorrador, setFuenteBorrador] = useState("");
+  const [errorFuenteMarkdown, setErrorFuenteMarkdown] = useState<string | null>(null);
   const [trazoBorrador, setTrazoBorrador] = useState("");
   const [tipoElegido, setTipoElegido] = useState<"objeto" | "proceso" | null>(null);
   const [nombreBorrador, setNombreBorrador] = useState("");
@@ -76,7 +78,19 @@ export function DialogoMesaExploracion({ open, onCerrar }: DialogoMesaExploracio
   }, [open, etapa, editandoTrazo, tipoElegido, corrigiendoPropuesta]);
 
   const conservarFuente = () => {
-    if (mesa.conservarFuente(fuenteBorrador)) setFuenteBorrador("");
+    if (mesa.conservarFuente(fuenteBorrador)) {
+      setFuenteBorrador("");
+      setErrorFuenteMarkdown(null);
+    }
+  };
+  const conservarArchivoMarkdown = async (file: File | null) => {
+    if (!file) return;
+    try {
+      const source = decodeMarkdownSource(file.name, new Uint8Array(await file.arrayBuffer()));
+      if (mesa.conservarFuente(source.content, { titulo: source.title, mediaType: source.mediaType })) setErrorFuenteMarkdown(null);
+    } catch (error) {
+      setErrorFuenteMarkdown(error instanceof Error ? error.message : "No se pudo conservar el archivo Markdown");
+    }
   };
   const conservarTrazo = () => {
     if (mesa.conservarTrazo(trazoBorrador)) setTrazoBorrador("");
@@ -181,6 +195,17 @@ export function DialogoMesaExploracion({ open, onCerrar }: DialogoMesaExploracio
               rows={5}
               style={style.textarea}
             />
+            <label for="mesa-fuente-markdown" style={style.label}>O adjunta un archivo Markdown (.md), hasta 128 kB</label>
+            <input
+              id="mesa-fuente-markdown"
+              data-testid="mesa-fuente-markdown"
+              aria-describedby="mesa-fuente-markdown-ayuda"
+              type="file"
+              accept=".md,text/markdown"
+              onChange={(event) => { void conservarArchivoMarkdown(event.currentTarget.files?.[0] ?? null); }}
+            />
+            <p id="mesa-fuente-markdown-ayuda" style={style.ayuda}>Se conserva el texto UTF-8 sin normalizar. Los enlaces incluidos no se abren automáticamente.</p>
+            {errorFuenteMarkdown ? <p role="alert" style={style.ayuda}>{errorFuenteMarkdown}</p> : null}
           </form>
         ) : null}
 

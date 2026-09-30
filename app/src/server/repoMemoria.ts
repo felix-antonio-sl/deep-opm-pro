@@ -22,6 +22,8 @@ import {
 } from "../mesa/especieWorkspace";
 import { especieDe } from "../persistencia/especie";
 import { isTimestampAfter } from "../mesa/timestampOrder";
+import { crearRepoAgenteMemoria } from "./agent/memoryRepository";
+import type { AgentRepository } from "./agent/repository";
 
 /**
  * Sesión por defecto del repositorio en memoria. Coincide con la que devuelve
@@ -49,12 +51,42 @@ export const SESION_MEMORIA_POR_DEFECTO: PersistenciaSesion = {
 export function crearRepoMemoria(
   inicial: ModeloPersistido[] = [],
   sesionInicial: PersistenciaSesion = SESION_MEMORIA_POR_DEFECTO,
-): ModelPersistenceRepository {
+): ModelPersistenceRepository & { agentRepository: AgentRepository; getDocumentOwner(session: PersistenciaSesion, id: string): string | null } {
   const datos = new Map(inicial.map((modelo) => [clave(sesionInicial, modelo.id), modelo]));
+  const owners = new Map(inicial.map((modelo) => [clave(sesionInicial, modelo.id), sesionInicial.userId]));
   const workspaces = new Map<string, WorkspacePersistido>();
   const versiones = new Map<string, BackendVersionPersistida>();
   const autosaves = new Map<string, BackendAutosalvadoPersistido>();
+  const documentLocks = new Map<string, Promise<void>>();
+  const withDocumentLock = <T>(session: PersistenciaSesion, id: string, work: () => Promise<T>) =>
+    enColaDocumento(documentLocks, clave(session, id), work);
+  const putModelLocked = (session: PersistenciaSesion, modelo: ModeloPersistido, expectedRevision: number) => {
+    const modelKey = clave(session, modelo.id);
+    const current = datos.get(modelKey);
+    if (!current || (current.revision ?? 0) !== expectedRevision) throw new PersistenciaConflictError();
+    const saved = { ...modelo, autosalvado: false, revision: expectedRevision + 1 };
+    datos.set(modelKey, saved);
+    autosaves.delete(modelKey);
+    return saved;
+  };
+  const agentRepository = crearRepoAgenteMemoria({
+    withDocumentLock,
+    getModel(session, id) {
+      return datos.get(clave(session, id)) ?? null;
+    },
+    getAutosave(session, id) {
+      const autosave = autosaves.get(clave(session, id));
+      return autosave ? { creadoEn: autosave.creadoEn, json: autosave.json } : null;
+    },
+    isWritable(session, id) {
+      const workspace = workspaces.get(session.tenantId);
+      return !workspace?.indice.modelos.some((item) => item.id === id && item.esBiblioteca === true);
+    },
+    putModelLocked,
+  });
   return {
+    agentRepository,
+    getDocumentOwner(session, id) { return owners.get(clave(session, id)) ?? null; },
     async list(session, includePayload = false) {
       const modelos = [...datos.entries()]
         .filter(([key]) => key.startsWith(`${session.tenantId}:`))
@@ -66,36 +98,43 @@ export function crearRepoMemoria(
       return datos.get(clave(session, id)) ?? null;
     },
     async save(session, modelo) {
-      const modelKey = clave(session, modelo.id);
-      const current = datos.get(modelKey);
-      const currentRevision = current?.revision ?? 0;
-      if (current && modelo.revision !== currentRevision) {
-        throw new PersistenciaConflictError();
-      }
-      if (!current && modelo.revision !== undefined) {
-        throw new PersistenciaConflictError("El modelo ya no existe");
-      }
-      const saved = { ...modelo, revision: current ? currentRevision + 1 : 1 };
-      datos.set(modelKey, saved);
-      if (saved.autosalvado === true) {
-        autosaves.set(modelKey, {
-          modeloId: saved.id,
-          creadoEn: autosaveTimestampAfter(saved.actualizadoEn),
-          json: saved.json,
-        });
-      } else if (saved.autosalvado === false) {
-        autosaves.delete(modelKey);
-      }
-      return saved;
+      return withDocumentLock(session, modelo.id, async () => {
+        const modelKey = clave(session, modelo.id);
+        const current = datos.get(modelKey);
+        const currentRevision = current?.revision ?? 0;
+        if (current && modelo.revision !== currentRevision) {
+          throw new PersistenciaConflictError();
+        }
+        if (!current && modelo.revision !== undefined) {
+          throw new PersistenciaConflictError("El modelo ya no existe");
+        }
+        const saved = { ...modelo, revision: current ? currentRevision + 1 : 1 };
+        datos.set(modelKey, saved);
+        if (!current) owners.set(modelKey, session.userId);
+        if (saved.autosalvado === true) {
+          autosaves.set(modelKey, {
+            modeloId: saved.id,
+            creadoEn: autosaveTimestampAfter(saved.actualizadoEn),
+            json: saved.json,
+          });
+        } else if (saved.autosalvado === false) {
+          autosaves.delete(modelKey);
+        }
+        return saved;
+      });
     },
     async delete(session, id) {
-      const modelKey = clave(session, id);
-      const deleted = datos.delete(modelKey);
-      autosaves.delete(modelKey);
-      for (const key of versiones.keys()) {
-        if (key.startsWith(`${session.tenantId}:${id}:`)) versiones.delete(key);
-      }
-      return deleted;
+      return withDocumentLock(session, id, async () => {
+        const modelKey = clave(session, id);
+        const deleted = datos.delete(modelKey);
+        owners.delete(modelKey);
+        autosaves.delete(modelKey);
+        for (const key of versiones.keys()) {
+          if (key.startsWith(`${session.tenantId}:${id}:`)) versiones.delete(key);
+        }
+        await agentRepository.deleteDocument?.(session, id);
+        return deleted;
+      });
     },
     async getWorkspace(session) {
       return workspaces.get(session.tenantId) ?? null;
@@ -133,6 +172,7 @@ export function crearRepoMemoria(
       return versiones.delete(claveVersion(session, modeloId, versionId));
     },
     async commitRevision(session, commit) {
+      return withDocumentLock(session, commit.model.id, async () => {
       const modelKey = clave(session, commit.model.id);
       const current = datos.get(modelKey) ?? null;
       const workspace = workspaces.get(session.tenantId) ?? {
@@ -212,6 +252,7 @@ export function crearRepoMemoria(
         revision: current ? (current.revision ?? 0) + 1 : 1,
       };
       datos.set(modelKey, saved);
+      if (!current) owners.set(modelKey, session.userId);
       autosaves.delete(modelKey);
       versiones.set(versionKey, {
         modeloId: saved.id,
@@ -228,31 +269,34 @@ export function crearRepoMemoria(
         version: commit.version,
         workspace: workspaceGuardado,
       };
+      });
     },
     async getAutosave(session, modeloId) {
       return autosaves.get(clave(session, modeloId)) ?? null;
     },
     async saveAutosave(session, autosave) {
-      const modelKey = clave(session, autosave.modeloId);
-      const current = datos.get(modelKey);
-      if (!current || current.revision !== autosave.revisionBase) {
-        throw new PersistenciaConflictError();
-      }
-      const { revisionBase: _revisionBase, ...input } = autosave;
-      const existingAutosave = autosaves.get(modelKey);
-      if (existingAutosave &&
-        !isTimestampAfter(input.creadoEn, existingAutosave.creadoEn)) {
-        throw new PersistenciaConflictError("El autosalvado es anterior al ya persistido");
-      }
-      const persisted = {
-        ...input,
-        creadoEn: isTimestampAfter(input.creadoEn, current.actualizadoEn)
-          ? input.creadoEn
-          : autosaveTimestampAfter(current.actualizadoEn),
-      };
-      autosaves.set(clave(session, autosave.modeloId), persisted);
-      datos.set(modelKey, { ...current, autosalvado: true });
-      return persisted;
+      return withDocumentLock(session, autosave.modeloId, async () => {
+        const modelKey = clave(session, autosave.modeloId);
+        const current = datos.get(modelKey);
+        if (!current || current.revision !== autosave.revisionBase) {
+          throw new PersistenciaConflictError();
+        }
+        const { revisionBase: _revisionBase, ...input } = autosave;
+        const existingAutosave = autosaves.get(modelKey);
+        if (existingAutosave &&
+          !isTimestampAfter(input.creadoEn, existingAutosave.creadoEn)) {
+          throw new PersistenciaConflictError("El autosalvado es anterior al ya persistido");
+        }
+        const persisted = {
+          ...input,
+          creadoEn: isTimestampAfter(input.creadoEn, current.actualizadoEn)
+            ? input.creadoEn
+            : autosaveTimestampAfter(current.actualizadoEn),
+        };
+        autosaves.set(modelKey, persisted);
+        datos.set(modelKey, { ...current, autosalvado: true });
+        return persisted;
+      });
     },
     async health() {
       return true;
@@ -293,4 +337,23 @@ export function clave(session: PersistenciaSesion, id: string): string {
 
 export function claveVersion(session: PersistenciaSesion, modeloId: string, versionId: string): string {
   return `${session.tenantId}:${modeloId}:${versionId}`;
+}
+
+async function enColaDocumento<T>(
+  locks: Map<string, Promise<void>>,
+  documentKey: string,
+  work: () => Promise<T>,
+): Promise<T> {
+  const previous = locks.get(documentKey) ?? Promise.resolve();
+  let release!: () => void;
+  const turn = new Promise<void>((resolve) => { release = resolve; });
+  const queued = previous.then(() => turn);
+  locks.set(documentKey, queued);
+  await previous;
+  try {
+    return await work();
+  } finally {
+    release();
+    if (locks.get(documentKey) === queued) locks.delete(documentKey);
+  }
 }

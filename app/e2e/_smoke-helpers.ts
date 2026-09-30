@@ -85,7 +85,9 @@ export function modeloTraerConectadosSmoke() {
 }
 
 export async function esperarWorkbenchInicial(page: import("@playwright/test").Page): Promise<void> {
-  await expect(page.getByTestId("toolbar-root")).toBeVisible();
+  // The editor bootstraps asynchronously so the public reader can open without
+  // importing editor state. A cold Vite graph may finish after the load event.
+  await expect(page.getByTestId("toolbar-root")).toBeVisible({ timeout: 15_000 });
   await expect(page.getByTestId("canvas-pane")).toBeVisible();
 }
 
@@ -498,6 +500,7 @@ export function jsonEditor(page: Page) {
 }
 
 async function abrirDialogoJson(page: Page) {
+  await esperarWorkbenchInicial(page);
   const dialogo = page.getByTestId("dialogo-abrir-importar");
   if (!(await dialogo.isVisible().catch(() => false))) {
     // Ronda Codex v2 L5: el menú lateral se retiró; abrimos vía palette.

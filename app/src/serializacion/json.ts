@@ -14,6 +14,7 @@ import { validarSatisfaccionesRequisito, validarAnclasNormativas, validarNotasMe
 import { validarOntologiaOrganizacional, validarFichaTrabajo, validarLentesConocimiento, validarProcedencia } from "./validateAuthoring";
 import { validarEstereotipos } from "./validateStereotypes";
 import { validarSubmodelos, validarReferenciaPadreSubmodelo } from "./validateSubmodels";
+import { validarPieceLineage } from "./validatePieceLineage";
 
 const FORMATO = "deep-opm-pro.modelo.v0";
 
@@ -91,6 +92,8 @@ function validarModelo(value: unknown): Resultado<Modelo> {
 
   const entidadesValidadas = validarEntidades(entidades);
   if (!entidadesValidadas.ok) return entidadesValidadas;
+  const pieceLineageValidado = validarPieceLineage(value.pieceLineage, id, entidadesValidadas.value);
+  if (!pieceLineageValidado.ok) return pieceLineageValidado;
   const estadosValidados = validarEstados(estados, entidadesValidadas.value);
   if (!estadosValidados.ok) return estadosValidados;
   const opdsValidados = validarOpds(opds, entidadesValidadas.value, opdRaizId);
@@ -181,6 +184,7 @@ function validarModelo(value: unknown): Resultado<Modelo> {
     ...(fichaTrabajoValidada.value ? { fichaTrabajo: fichaTrabajoValidada.value } : {}),
     ...(lentesConocimientoValidadas.value ? { lentesConocimiento: lentesConocimientoValidadas.value } : {}),
     ...(Object.keys(submodelosValidados.value).length > 0 ? { submodelos: submodelosValidados.value } : {}),
+    ...(Object.keys(pieceLineageValidado.value).length > 0 ? { pieceLineage: pieceLineageValidado.value } : {}),
     ...(padreSubmodeloValidado.value ? { referenciaPadreSubmodelo: padreSubmodeloValidado.value } : {}),
     ...(value.archivado === true ? { archivado: true } : {}),
     ...(typeof value.archivadoEn === "string" ? { archivadoEn: value.archivadoEn } : {}),

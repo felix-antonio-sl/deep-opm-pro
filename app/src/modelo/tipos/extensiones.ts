@@ -229,9 +229,13 @@ export interface NotaMesa {
 
 export const MESA_EXPLORACION_SCHEMA = "deep-opm-pro.mesa-exploracion.v1" as const;
 
+/** Bounded size for an explicitly attached Markdown source. */
+export const MAX_MARKDOWN_SOURCE_BYTES = 128_000;
+
 export interface FuenteExploracionTexto {
   id: Id;
   tipo: "texto";
+  mediaType?: "text/markdown";
   titulo?: string;
   contenido: string;
   creadaEn: string;
@@ -360,6 +364,84 @@ export interface SubmodeloContrato {
   frozenAtHash?: string;
 }
 
+/** Stable source identity for a reusable piece and any independently copied version. */
+export interface PieceIdentity {
+  modelId: Id;
+  pieceId: Id;
+}
+
+export interface PieceVersion {
+  id: string;
+  contentHash: string;
+}
+
+export type PieceBehaviorDimension = "time" | "errors" | "retry" | "internalBehavior";
+
+export interface PieceBehaviorObservation {
+  value: string;
+  evidence: string;
+}
+
+export interface PieceProfile {
+  id: string;
+  version: string;
+}
+
+export interface PieceBoundaryRole {
+  entityId: Id;
+  linkType: string;
+  role: "source" | "destination";
+}
+
+export interface PieceLineageEntry {
+  identity: PieceIdentity;
+  version: PieceVersion;
+  relation: "source" | "copy" | "update";
+}
+
+/** Durable provenance for an independent local copy; it is document metadata, not OPM content. */
+export interface PieceLineageRecord {
+  manifestId: string;
+  function: string;
+  lineage: PieceLineageEntry[];
+}
+
+/** Explicit summary for a reusable Piece; never asserts behavioral equivalence. */
+export interface PieceManifest {
+  schema: "opforja.piece.v1";
+  manifestId: string;
+  identity: PieceIdentity;
+  function: string;
+  boundary: {
+    scope: "direct-incidence";
+    roles: PieceBoundaryRole[];
+    signature: string;
+  };
+  version: PieceVersion;
+  profile: PieceProfile;
+  lineage: PieceLineageEntry[];
+  behavior: Partial<Record<PieceBehaviorDimension, PieceBehaviorObservation>>;
+  /** Known projection losses, described in human-readable terms. */
+  losses: string[];
+}
+
+/** Metadata on a read-only, single-piece SubmodelReference. */
+export interface PieceReferenceMetadata {
+  manifestId: string;
+  identity: PieceIdentity;
+  function: string;
+  boundary: {
+    scope: "direct-incidence";
+    roles: PieceBoundaryRole[];
+    signature: string;
+  };
+  version: PieceVersion;
+  profile: PieceProfile;
+  lineage: PieceLineageEntry[];
+  behavior: Partial<Record<PieceBehaviorDimension, PieceBehaviorObservation>>;
+  losses: string[];
+}
+
 /**
  * Anclaje (modo de referencia viva): referencia VIVA a un tipo de
  * una biblioteca de tipos externa (p.ej. la greda gist), SIN copiar. Clona la forma de
@@ -431,6 +513,8 @@ export interface SubmodeloReferencia {
   anchor?: SubmodeloAnchor;
   contrato?: SubmodeloContrato;
   materializacion?: SubmodeloMaterializacion;
+  /** Present only for a reusable, protected single-Piece reference. */
+  piece?: PieceReferenceMetadata;
 }
 
 export interface ReferenciaPadreSubmodelo {

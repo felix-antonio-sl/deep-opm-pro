@@ -124,8 +124,11 @@ export function useMesaExploracionViewModel() {
     intervention,
     targetDisponible,
     hechoNombre: hecho?.nombre,
-    conservarFuente(contenido: string): boolean {
-      return Boolean(agregarFuente({ contenido }));
+    conservarFuente(
+      contenido: string,
+      options: { titulo?: string; mediaType?: "text/markdown" } = {},
+    ): boolean {
+      return Boolean(agregarFuente({ contenido, ...options }));
     },
     conservarTrazo(texto: string): boolean {
       if (!actual.fuente) return false;

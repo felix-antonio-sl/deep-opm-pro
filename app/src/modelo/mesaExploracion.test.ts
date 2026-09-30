@@ -103,6 +103,19 @@ describe("Mesa de exploración · capa meta", () => {
     expect(f.modelo.mesaExploracion?.fuentes[f.fuenteId]?.contenido).toBe(original);
   });
 
+  test("limita solo los adjuntos Markdown explícitos a 128 kB", () => {
+    const modelo = crearModelo("Fuente grande");
+    const resultado = agregarFuenteExploracion(modelo, {
+      contenido: "x".repeat(128_001),
+      mediaType: "text/markdown",
+    }, AHORA);
+
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) expect(resultado.error).toContain("128 kB");
+    expect(modelo.mesaExploracion).toBeUndefined();
+    expect(agregarFuenteExploracion(modelo, { contenido: "y".repeat(128_001) }, AHORA).ok).toBe(true);
+  });
+
   test("edita texto e interpretación pendientes sin convertirlos en hechos", () => {
     const f = fuente(crearModelo("Editar"), "texto inicial");
     const t = trazo(f.modelo, [f.fuenteId], "fragmento inicial");

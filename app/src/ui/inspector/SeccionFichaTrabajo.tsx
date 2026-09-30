@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type {
   FichaTrabajo,
   LenteConocimiento,
+  ModalidadDocumento,
   TipoModelo,
 } from "../../modelo/tipos";
+import { actualizarModalidadDocumento } from "../../modelo/fichaTrabajo";
 import { useOpmStore } from "../../store";
+import { useZustandEditabilityPort } from "../../app/ports/zustandEditabilityPort";
 import {
   deriveFichaLocalIntent,
   deriveKnowledgeIntent,
@@ -12,6 +15,7 @@ import {
   type FichaLocalTutorState,
   type TutorEntrypointId,
 } from "../../tutor";
+import { deriveDocumentPolicy } from "../../modelo/documentPolicy";
 import { inspectorStyles } from "../inspectorStyles";
 import { tokens } from "../tokens";
 import { TutorInterventionDetails, mapearLentesTutor } from "../TutorDetails";
@@ -30,8 +34,19 @@ const LENTES: readonly { id: LenteConocimiento; label: string }[] = [
 ];
 
 export function SeccionFichaTrabajo() {
+  const modelo = useOpmStore((s) => s.modelo);
   const ficha = useOpmStore((s) => s.modelo.fichaTrabajo);
   const procedencia = useOpmStore((s) => s.modelo.procedencia);
+  const modeloPersistidoId = useOpmStore((s) => s.modeloPersistidoId);
+  const catalogEntry = useOpmStore((s) => s.indice.modelos.find((entry) => entry.id === modeloPersistidoId));
+  const editability = useZustandEditabilityPort();
+  const policy = deriveDocumentPolicy({
+    ...modelo,
+    ...(catalogEntry?.esApunte === true ? { esApunte: true } : {}),
+    ...(catalogEntry?.esBiblioteca === true ? { esBiblioteca: true } : {}),
+    ...(catalogEntry?.archivado === true ? { archivado: true } : {}),
+    readOnly: editability.readOnly,
+  });
   const lentes = useOpmStore((s) => s.modelo.lentesConocimiento ?? []);
   const actualizarFicha = useOpmStore((s) => s.actualizarFichaTrabajo);
   const actualizarLentes = useOpmStore((s) => s.actualizarLentesConocimiento);
@@ -88,6 +103,7 @@ export function SeccionFichaTrabajo() {
           Propiedad upstream · opforja no crea una ficha local paralela. Para cambiarla, re-elicita en la fuente autoral.
         </p>
         {ficha ? <FichaLectura ficha={ficha} /> : null}
+        {ficha?.revisionesHumanas?.length ? <ListaRevisionesHumanas ficha={ficha} /> : null}
       </SeccionDisclosure>
     );
   }
@@ -101,12 +117,65 @@ export function SeccionFichaTrabajo() {
     <SeccionDisclosure titulo="Ficha de trabajo" colapsoId="modelo.ficha" testid="inspector-ficha-trabajo">
       <div style={style.cuerpo}>
         <p style={style.apoyo}>Completa solo lo que ayude a decidir. La ficha no emite OPL ni bloquea el modelado.</p>
+        {policy.actions.edit === "read-only" ? (
+          <p style={style.apoyo} data-testid="document-policy-readonly">Esta pestaña está en solo lectura; siguen vigentes las guardas de edición del documento.</p>
+        ) : null}
+        {policy.pending.length > 0 ? (
+          <div style={style.historial} data-testid="document-policy-pendientes">
+            <span style={inspectorStyles.label}>Contexto abierto ({policy.pending.length})</span>
+            {policy.pending.map((pending) => <span key={`${pending.kind}:${pending.id}`}>{pending.label}</span>)}
+          </div>
+        ) : null}
+        {policy.contextNotes.length > 0 ? (
+          <div style={style.historial} data-testid="document-policy-notas">
+            <span style={inspectorStyles.label}>Notas de contexto</span>
+            {policy.contextNotes.map((note) => <span key={note.id}>{note.label}</span>)}
+          </div>
+        ) : null}
         <CampoTexto
           label="Pregunta habilitante"
           entrypoint="inspector:ficha-pregunta-habilitante"
           value={ficha?.preguntaHabilitante ?? ""}
           onCommit={(value) => actualizarCampo("pregunta-habilitante", "preguntaHabilitante", value)}
         />
+        <label style={style.campo}>
+          <span style={inspectorStyles.label}>Este trabajo representa</span>
+          <select
+            aria-label="Modalidad del documento"
+            data-testid="modalidad-documento"
+            style={inspectorStyles.input}
+            value={ficha?.modalidad ?? ""}
+            onKeyDown={reenviarUndoGlobalDesdeControl}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              if (value !== "existente" && value !== "propuesto" && value !== "exploratorio") {
+                if (!value) {
+                  const { modalidad: _modalidad, ...base } = ficha ?? {};
+                  actualizarFicha(base);
+                }
+                return;
+              }
+              const result = actualizarModalidadDocumento(modelo, value as ModalidadDocumento);
+              if (result.ok) actualizarFicha(result.value.fichaTrabajo);
+            }}
+          >
+            <option value="">Sin declarar</option>
+            <option value="existente">Describe lo existente</option>
+            <option value="propuesto">Propone un diseño</option>
+            <option value="exploratorio">Explora una posibilidad</option>
+          </select>
+        </label>
+        {ficha?.historialModalidad?.length ? (
+          <details data-testid="historial-modalidad" style={style.historial}>
+            <summary>Declaraciones de modalidad anteriores ({ficha.historialModalidad.length})</summary>
+            {ficha.historialModalidad.map((item, index) => (
+              <p key={`${item.modalidad}-${index}`} style={style.notaHistoria}>
+                {item.modalidad} · {item.contexto.preguntaHabilitante ?? "sin pregunta registrada"}
+                {item.contexto.motivoCambio ? ` · ${item.contexto.motivoCambio}` : ""}
+              </p>
+            ))}
+          </details>
+        ) : null}
         <CampoTexto
           label="Dueño del significado"
           entrypoint="inspector:ficha-dueno-significado"
@@ -126,6 +195,7 @@ export function SeccionFichaTrabajo() {
           seleccionadas={ficha?.tiposModelo ?? []}
           onChange={(tiposModelo) => confirmarCambio("tipos-modelo", tiposModelo, () => actualizarFicha({ ...(ficha ?? {}), tiposModelo }))}
         />
+        {ficha?.revisionesHumanas?.length ? <ListaRevisionesHumanas ficha={ficha} /> : null}
         <CampoTexto
           label="Criterio de suficiencia"
           entrypoint="inspector:ficha-criterio-suficiencia"
@@ -267,8 +337,9 @@ function valorFichaTutor(
 }
 
 function FichaLectura({ ficha }: { ficha: FichaTrabajo }) {
-  const lineas = Object.entries(ficha).filter(([, value]) =>
-    Array.isArray(value) ? value.length > 0 : Boolean(value)
+  const lineas = Object.entries(ficha).filter(([key, value]) =>
+    key !== "revisionesHumanas" && key !== "historialModalidad" &&
+    (Array.isArray(value) ? value.length > 0 : Boolean(value))
   );
   return (
     <dl style={style.lectura}>
@@ -279,6 +350,19 @@ function FichaLectura({ ficha }: { ficha: FichaTrabajo }) {
         </div>
       ))}
     </dl>
+  );
+}
+
+function ListaRevisionesHumanas({ ficha }: { ficha: FichaTrabajo }) {
+  return (
+    <section data-testid="revisiones-humanas-ficha" style={style.historial}>
+      <div style={inspectorStyles.label}>Revisión humana registrada · no certifica el contenido</div>
+      {ficha.revisionesHumanas?.map((revision, index) => (
+        <p key={`${revision.actorId}-${revision.revision}-${index}`} style={style.notaHistoria}>
+          {revision.actorId} · revisión {revision.revision} · alcance: {revision.scope.join(", ")} · {revision.outcome} · {revision.revisadoEn}
+        </p>
+      ))}
+    </section>
   );
 }
 
@@ -306,6 +390,15 @@ const style = {
     lineHeight: 1.45,
   },
   campo: { display: "grid", gap: `${tokens.spacing.xs}px` },
+  historial: {
+    display: "grid",
+    gap: `${tokens.spacing.xs}px`,
+    padding: `${tokens.spacing.sm}px 0`,
+    borderTop: `${tokens.stroke.hairline}px solid ${tokens.colors.ink15}`,
+    color: tokens.colors.ink70,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+  },
+  notaHistoria: { margin: 0, lineHeight: 1.45 },
   textarea: { height: "54px", minHeight: "54px", resize: "vertical" },
   fieldset: {
     display: "grid",

@@ -39,15 +39,22 @@ export function compareBoundarySignature(
   const frontera = new Set(fronteraDe(modelo, eq.padreId));
   const firmaA = firmaFronteraDeOpd(modelo, frontera, eq.opdA);
   const firmaB = firmaFronteraDeOpd(modelo, frontera, eq.opdB);
+  return { ok: true, value: compareBoundaryObservations(firmaA, firmaB) };
+}
+
+/** Compares already projected boundary roles without claiming total equivalence. */
+export function compareBoundaryObservations(
+  signatureA: Iterable<string>,
+  signatureB: Iterable<string>,
+): BoundarySignatureComparison {
+  const firmaA = new Set(signatureA);
+  const firmaB = new Set(signatureB);
   const diferencias: string[] = [];
   for (const f of firmaA) if (!firmaB.has(f)) diferencias.push(f);
   for (const f of firmaB) if (!firmaA.has(f)) diferencias.push(f);
   return {
-    ok: true,
-    value: {
-      sameSignature: diferencias.length === 0,
-      scope: "boundary-signature",
-      ...(diferencias.length > 0 ? { differences: diferencias } : {}),
-    },
+    sameSignature: diferencias.length === 0,
+    scope: "boundary-signature",
+    ...(diferencias.length > 0 ? { differences: diferencias.sort() } : {}),
   };
 }

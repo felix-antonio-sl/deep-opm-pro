@@ -19,8 +19,8 @@ const PORT_AUTH = String(Number(PORT) + 2);
 const BASE_URL_AUTH = `http://127.0.0.1:${PORT_AUTH}`;
 
 const MOBILE_SPEC = /mobile-readonly\.spec\.ts/;
-const AUTH_SPEC = /auth\.spec\.ts/;
-const PREVIEW_SPEC = /.*\.preview\.spec\.ts/;
+const AUTH_SPEC = /(auth|revision-reader|revision-owner|refinement-proposal|reusable-pieces)\.spec\.ts/;
+const PREVIEW_SPEC = /(?:.*\.preview|portable-reader)\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./e2e",

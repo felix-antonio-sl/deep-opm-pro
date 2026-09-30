@@ -10,6 +10,7 @@ import { esSinDelta } from "../mesa/esSinDelta";
 import { leerJsonRequest, responderJson } from "./persistenceHttp";
 import { COOKIE_NAME, resolverSesionAnonima, manejarLogin } from "./persistenceSession";
 import { validarModeloPersistido, validateWorkspaceWrite, validarVersionPersistida, validateModelRevisionCommit, validarAutosalvadoPersistido } from "./validatePersistence";
+import type { AgentRepository } from "./agent/repository";
 export { crearCookieSessionResolver } from "./persistenceSession";
 
 export interface PersistenciaSesion {
@@ -130,6 +131,8 @@ export function evaluarPoliticaCommit(
 }
 
 export interface ModelPersistenceRepository {
+  /** Present only when this persistence adapter shares its model transaction with agent state. */
+  agentRepository?: AgentRepository;
   touchSession?(session: PersistenciaSesion): Promise<void>;
   list(session: PersistenciaSesion, includePayload?: boolean): Promise<Array<ModeloPersistido | ResumenModeloPersistido>>;
   get(session: PersistenciaSesion, id: string): Promise<ModeloPersistido | null>;
@@ -160,6 +163,11 @@ export interface ModelPersistenceOptions {
   maxBodyBytes?: number;
   /** Auth v1: presente ⇒ endpoints login/logout activos; requireAuth gobierna el gate. */
   auth?: AuthOptions;
+  /** Agent HTTP surface after the same session, tenant, and identity gates. */
+  agentHandler?: (request: Request, session: PersistenciaSesion) => Promise<Response>;
+  /** Public capability links resolve a fixed snapshot without creating an editor session. */
+  reviewPublicHandler?: (request: Request) => Promise<Response>;
+  reviewOperatorHandler?: (request: Request, session: PersistenciaSesion) => Promise<Response>;
 }
 
 const ENDPOINT = "/__deep-opm/modelos";
@@ -167,6 +175,10 @@ const ENDPOINT = "/__deep-opm/modelos";
 const WORKSPACE_ENDPOINT = "/__deep-opm/workspace";
 
 const SESSION_ENDPOINT = "/__deep-opm/session";
+
+const AGENT_ENDPOINT = "/__deep-opm/agent";
+const REVIEW_ENDPOINT = "/__deep-opm/review";
+const REVIEW_OPERATOR_ENDPOINT = `${REVIEW_ENDPOINT}/grants`;
 
 const DEFAULT_MAX_BODY_BYTES = 15 * 1024 * 1024;
 
@@ -184,6 +196,14 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
       return responderJson(ok ? 200 : 503, { ok });
     }
 
+    const reviewOperator = url.pathname === REVIEW_OPERATOR_ENDPOINT ||
+      url.pathname.startsWith(`${REVIEW_OPERATOR_ENDPOINT}/`);
+    if (!reviewOperator && url.pathname.startsWith(`${REVIEW_ENDPOINT}/`)) {
+      return options.reviewPublicHandler
+        ? options.reviewPublicHandler(request)
+        : responderJson(404, { error: "Revisión no disponible" });
+    }
+
     if (options.auth && request.method === "POST" && url.pathname === AUTH_LOGIN_ENDPOINT) {
       return manejarLogin(request, options.auth, maxBodyBytes);
     }
@@ -196,10 +216,12 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
       });
     }
 
-    const esRutaPersistencia = url.pathname === SESSION_ENDPOINT ||
+    const esRutaPersistencia = reviewOperator || url.pathname === SESSION_ENDPOINT ||
       url.pathname === WORKSPACE_ENDPOINT ||
       url.pathname === ENDPOINT ||
-      url.pathname.startsWith(`${ENDPOINT}/`);
+      url.pathname.startsWith(`${ENDPOINT}/`) ||
+      url.pathname === AGENT_ENDPOINT ||
+      url.pathname.startsWith(`${AGENT_ENDPOINT}/`);
     if (!esRutaPersistencia) {
       return responderJson(404, { error: "Not found" });
     }
@@ -210,7 +232,9 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
       // tenants anónimos (spec D3/§2). Las cookies anónimas viejas caen aquí.
       return responderJson(401, { error: "No autenticado" });
     }
-    if (session.authKind === "agent" && !rutaPermitidaParaAgente(request, url)) {
+    if (session.authKind === "agent" &&
+      (reviewOperator || url.pathname === AGENT_ENDPOINT || url.pathname.startsWith(`${AGENT_ENDPOINT}/`) ||
+        !rutaPermitidaParaAgente(request, url))) {
       return responderJson(403, {
         error: "El token de agente solo permite lectura y commit atómico de revisiones",
       }, session);
@@ -224,6 +248,18 @@ export function crearModelPersistenceFetchHandler(options: ModelPersistenceOptio
     }
     try {
       if (options.repo.touchSession) await options.repo.touchSession(session);
+
+      if (reviewOperator) {
+        if (session.auth !== true) return responderJson(401, { error: "No autenticado" });
+        if (!options.reviewOperatorHandler) return responderJson(501, { error: "Revisiones no disponibles" }, session);
+        return await options.reviewOperatorHandler(request, session);
+      }
+
+      if (url.pathname === AGENT_ENDPOINT || url.pathname.startsWith(`${AGENT_ENDPOINT}/`)) {
+        if (session.auth !== true) return responderJson(401, { error: "No autenticado" });
+        if (!options.agentHandler) return responderJson(501, { error: "Runtime de agente no disponible" }, session);
+        return await options.agentHandler(request, session);
+      }
 
       if (request.method === "GET" && url.pathname === SESSION_ENDPOINT) {
         return responderJson(200, { session: { tenantId: session.tenantId, userId: session.userId, ...(session.auth === true ? { auth: true } : {}) } }, session);

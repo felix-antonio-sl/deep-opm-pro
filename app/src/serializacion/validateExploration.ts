@@ -1,5 +1,5 @@
 import type { MesaExploracionV1, Id, Modelo, Resultado } from "../modelo/tipos";
-import { MESA_EXPLORACION_SCHEMA } from "../modelo/tipos";
+import { MAX_MARKDOWN_SOURCE_BYTES, MESA_EXPLORACION_SCHEMA } from "../modelo/tipos";
 import { esRecord, fallo, ok } from "./validarHelpers";
 
 /**
@@ -30,6 +30,12 @@ export function validarMesaExploracion(
     if (typeof raw.contenido !== "string" || !raw.contenido.trim()) {
       return fallo(`Fuente de exploración inválida: ${id}.contenido`);
     }
+    if (raw.mediaType !== undefined && raw.mediaType !== "text/markdown") {
+      return fallo(`Fuente de exploración inválida: ${id}.mediaType`);
+    }
+    if (raw.mediaType === "text/markdown" && new TextEncoder().encode(raw.contenido).byteLength > MAX_MARKDOWN_SOURCE_BYTES) {
+      return fallo(`Fuente de exploración inválida: ${id}.contenido supera el límite de 128 kB`);
+    }
     if (typeof raw.creadaEn !== "string" || !raw.creadaEn.trim()) {
       return fallo(`Fuente de exploración inválida: ${id}.creadaEn`);
     }
@@ -39,6 +45,7 @@ export function validarMesaExploracion(
     fuentes[id] = {
       id,
       tipo: "texto",
+      ...(raw.mediaType === "text/markdown" ? { mediaType: "text/markdown" as const } : {}),
       ...(typeof raw.titulo === "string" ? { titulo: raw.titulo.trim() } : {}),
       contenido: raw.contenido,
       creadaEn: raw.creadaEn.trim(),

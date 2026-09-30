@@ -102,6 +102,7 @@ export function normalizarModelo(modelo: Modelo): Modelo {
     ...(fichaTrabajo ? { fichaTrabajo } : {}),
     ...(lentesConocimiento ? { lentesConocimiento } : {}),
     ...(modelo.submodelos ? { submodelos: modelo.submodelos } : {}),
+    ...(modelo.pieceLineage && Object.keys(modelo.pieceLineage).length > 0 ? { pieceLineage: modelo.pieceLineage } : {}),
     ...(modelo.referenciaPadreSubmodelo ? { referenciaPadreSubmodelo: modelo.referenciaPadreSubmodelo } : {}),
     ...(modelo.archivado ? { archivado: true } : {}),
     ...(typeof modelo.archivadoEn === "string" ? { archivadoEn: modelo.archivadoEn } : {}),

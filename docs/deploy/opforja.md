@@ -51,8 +51,12 @@ La persistencia de modelos vive en `opforja-postgres` y se expone a la SPA por
 se emite solo en el login (`POST /__deep-opm/auth/login`); ya no se acuñan
 tenants anónimos. Modelos, workspace/carpetas, versiones y autosave quedan
 aislados por `tenant_id` de la cuenta.
-No hay caché ni recuperación heredada desde el almacenamiento del navegador:
-si la API no está disponible, la app falla de forma explícita en persistencia.
+El editor conserva una copia local en IndexedDB, separada por tenant, usuario y
+documento. «Guardado aquí» confirma esa escritura local; «Sincronizado» exige
+el acuse remoto de la misma revisión. La copia local permite recuperar trabajo
+de una cuenta previamente autenticada cuando se corta la conexión. Un cierre
+de sesión o un rechazo de autenticación no autoriza abrir ni reenviar los datos
+de esa cuenta desde otra identidad.
 
 ## Contrato funcional de apariciones
 
@@ -200,6 +204,50 @@ Notas operativas:
 - Fuerza bruta: acotada por el rate-limit nginx existente + costo scrypt;
   el login responde "Credenciales inválidas" uniforme (sin oráculo de email).
 
+## Agente integrado en el candidato de producto
+
+El servicio de tareas vive en `model-api` y comparte las transacciones de modelos.
+No requiere otro contenedor ni un runtime de herramientas de shell. Está apagado
+por defecto; la edición manual sigue disponible sin proveedor generativo.
+
+| Variable de servidor | Valor o función |
+|---|---|
+| `OPFORJA_AGENT_ENABLED` | `true` habilita llamadas; por defecto `false` |
+| `OPFORJA_AGENT_PROVIDER` | `xiaomi-mimo` por defecto; `opencode-zen` como alternativa explícita |
+| `OPFORJA_AGENT_MODEL` | `mimo-v2.6-pro` para MiMo directo |
+| `OPFORJA_AGENT_API_KEY` | credencial del proveedor seleccionado, solo en entorno de servidor |
+| `OPFORJA_AGENT_MAX_TASK_USD` | presupuesto inicial por tarea; por defecto `1` USD |
+
+Las claves no usan prefijo `VITE_` ni se incluyen en el build del navegador. Una
+credencial de Zen, MiMo directo o un plan de tokens se usa únicamente en su ruta
+correspondiente. El adaptador MiMo está fijado a
+`https://api.xiaomimimo.com/v1/chat/completions`; no acepta una URL arbitraria.
+La red `agent-egress` permite salida del servicio al proveedor sin exponer puertos
+del backend. La ruta SSE de tareas desactiva el buffering en Nginx.
+
+Antes de habilitar inferencia, ejecutar desde `app/`, con la credencial configurada
+en el `.env` privado de la raíz (o ya exportada en el entorno):
+
+```bash
+bun --env-file=../.env run scripts/probe-agent-provider.ts --provider xiaomi-mimo --model mimo-v2.6-pro --synthetic
+```
+
+La sonda verifica catálogo y dos turnos con herramienta sintética; no envía modelos
+del usuario. Un pase acredita esa conexión, no la calidad general del modelado.
+Cambiar a un modelo sin precios conocidos exige configurar explícitamente su
+precio y fecha en el servidor; el servicio no sustituye el modelo en silencio.
+Los límites por tarea conservan consumo acumulado. Si falta uso informado, la
+reserva se mantiene y continuar requiere aceptación explícita en la interfaz.
+
+El corpus del agente reutiliza `.tutor-corpus/tutor-sources` materializado durante
+el build. El contenedor no necesita acceso al repositorio KORA del host. Un fallo
+del proveedor suspende la tarea y preserva los cambios ya confirmados y sus
+recibos. Desactivar inferencia no revierte esos cambios.
+
+Esta configuración pertenece al candidato en desarrollo; no acredita que la
+instancia publicada ya ejecute estas capacidades. El despliegue mantiene el
+procedimiento único `./deploy/deploy.sh` y requiere autorización de ese efecto.
+
 ## Actualización
 
 1. Cerrar cambios de app con `cd app && bun run check`; añadir el E2E afectado para
@@ -223,11 +271,40 @@ La persistencia primaria de modelos nuevos vive en Postgres, volumen Docker
   recientes, preferencias de workspace).
 - `opforja_model_versions`: snapshots versionados por modelo.
 - `opforja_model_autosaves`: último autosave por modelo.
+- `opforja_agent_tasks`, `opforja_agent_changes`, `opforja_agent_events`,
+  `opforja_agent_results` y `opforja_agent_variants`: tareas, propuestas,
+  recibos/inversos, resultados y continuidad del agente.
+- `opforja_review_shares`, `opforja_review_annotations` y
+  `opforja_review_resolutions`: revisiones fijas compartidas, observaciones y
+  resoluciones del propietario. Los tokens de lectura se almacenan como hash.
 
-La API devuelve JSON como texto para hidratar la app. El navegador no guarda
-payloads OPM ni snapshots de versiones. Los tenants anónimos previos se
-rescatan asociándolos a una cuenta con `auth:cuenta --tenant`; no se migran
-desde el almacenamiento del navegador.
+La API devuelve JSON como texto para hidratar la app. IndexedDB guarda el
+snapshot local, su diario pendiente, el historial necesario y las ramas en
+conflicto en una transacción por documento. La sincronización usa el ancestro
+capturado y un testigo de revisión; una divergencia conserva ambas ramas y pide
+una elección explícita. No aplica automáticamente «la última escritura gana».
+El control «Guardado del documento» permite guardar aquí, sincronizar, comparar
+el OPL de ambas ramas y descargar una recuperación completa. Ante cuota o fallo
+local, el estado permanece sin guardar y la copia en memoria sigue disponible
+para descarga; borrar datos del navegador puede eliminar trabajo no exportado.
+
+Los tenants anónimos previos se rescatan asociándolos a una cuenta con
+`auth:cuenta --tenant`; ese rescate no depende de la nueva copia local.
+
+«Compartir revisión» crea una instantánea fija, vinculada al propietario y a una
+revisión efectiva confirmada. El enlace permite leerla y añadir observaciones
+según su permiso; los cambios posteriores del editor no alteran esa copia.
+Revocar el enlace impide nuevas lecturas. Las rutas de revisión usan
+`Cache-Control: no-store` y `Referrer-Policy: no-referrer`; no registrar sus tokens.
+
+«Paquete portátil» exporta la revisión abierta con un manifiesto de perfil,
+integridad, vistas y fuentes seleccionadas expresamente. El lector estático
+vive en `/portable-reader/`. Puede prepararse conectado y volver a abrirse sin
+red; su service worker se limita a esa ruta y a sus recursos estáticos, sin
+cachear la API ni el editor. Las fuentes omitidas quedan como localizadores,
+sin texto oculto en el modelo serializado. Un perfil incompatible conserva los
+bytes originales para recuperación y muestra la limitación. El checksum
+acredita integridad de bytes, no equivalencia semántica ni verdad del modelo.
 
 Procedimiento detallado de respaldo manual por JSON:
 `docs/uso-productivo.md` §Respaldo Manual.
@@ -262,8 +339,8 @@ No usar `docker compose down -v` salvo que se quiera borrar la base de datos.
   el acceso se recupera con la contraseña de la cuenta (no hay recuperación
   por cookie anónima — ese esquema quedó retirado en auth v1, 2026-06-10).
 - La instancia está pública mientras `opforja-auth@docker` no esté aplicado.
-- El almacenamiento del navegador no es parte del plan de respaldo; el respaldo
-  portable sigue siendo el JSON descargado o el backup de Postgres.
+- La recuperación local no sustituye un respaldo independiente: conservar el
+  JSON/paquete descargado o el backup de Postgres fuera del navegador.
 - El endpoint de modelos acepta hasta 15 MiB por request en `model-api`;
   Nginx permite hasta 25 MB en `/__deep-opm/modelos` y
   `/__deep-opm/workspace`.

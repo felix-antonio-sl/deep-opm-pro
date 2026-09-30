@@ -2,6 +2,9 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { Buffer } from "node:buffer";
 import { crearCookieSessionResolver, crearModelPersistenceFetchHandler } from "./modelPersistence";
 import { crearAuthRepoMemoria, crearRepoMemoria } from "./repoMemoria";
+import { createAgentService } from "./agent/service";
+import { createReviewService } from "./review/service";
+import { createMemoryReviewRepository } from "./review/memoryRepository";
 
 /**
  * Secreto de sesión SOLO para dev/preview. Nunca llega a producción: estos
@@ -39,6 +42,8 @@ const RUTAS_PERSISTENCIA = [
   "/__deep-opm/workspace",
   "/__deep-opm/modelos",
   "/__deep-opm/auth",
+  "/__deep-opm/agent",
+  "/__deep-opm/review",
 ];
 
 /**
@@ -59,8 +64,22 @@ export function instalarModelPersistenceDevMiddleware(middlewares: ConnectMiddle
   // Con MODEL_REQUIRE_AUTH=true (lane e2e auth) el gate de login se activa con
   // la cuenta sembrada CUENTA_DEV_AUTH — mismo handler que producción.
   const requireAuth = process.env.MODEL_REQUIRE_AUTH === "true";
+  const repo = crearRepoMemoria();
+  const agent = createAgentService(repo.agentRepository);
+  const review = createReviewService({ repository: createMemoryReviewRepository((session, documentId) =>
+    repo.agentRepository.transaction(session, documentId, async (tx) => {
+      const document = await tx.getDocument();
+      const ownerId = repo.getDocumentOwner(session, documentId);
+      return document && ownerId ? {
+        ownerId, revision: document.model.revision ?? 0, source: document.source,
+        modelJson: document.effectiveJson, modelName: document.model.nombre,
+      } : null;
+    })) });
   const handler = crearModelPersistenceFetchHandler({
-    repo: crearRepoMemoria(),
+    repo,
+    agentHandler: agent.handle,
+    reviewPublicHandler: review.handlePublic,
+    reviewOperatorHandler: review.handleOperator,
     sessionResolver: crearCookieSessionResolver(SECRETO_SESION_DEV),
     ...(requireAuth
       ? {
@@ -88,8 +107,25 @@ export function instalarModelPersistenceDevMiddleware(middlewares: ConnectMiddle
         res.setHeader(clave, valor);
       });
       if (setCookies.length > 0) res.setHeader("set-cookie", setCookies);
-      const cuerpo = Buffer.from(await response.arrayBuffer());
-      res.end(cuerpo);
+      if (response.body) {
+        const reader = response.body.getReader();
+        const cancel = () => { void reader.cancel().catch(() => undefined); };
+        res.on("close", cancel);
+        try {
+          res.flushHeaders();
+          while (!res.destroyed) {
+            const chunk = await reader.read();
+            if (chunk.done) break;
+            if (!res.write(Buffer.from(chunk.value))) {
+              await new Promise<void>((resolve) => {
+                const done = () => { res.off("drain", done); res.off("close", done); resolve(); };
+                res.once("drain", done); res.once("close", done);
+              });
+            }
+          }
+        } finally { res.off("close", cancel); reader.releaseLock(); }
+      }
+      res.end();
     } catch (error) {
       res.statusCode = 500;
       res.setHeader("content-type", "application/json; charset=utf-8");

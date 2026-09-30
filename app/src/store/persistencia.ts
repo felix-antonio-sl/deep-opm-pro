@@ -8,6 +8,7 @@ import {
 import {
   borrarModeloBackend,
   cargarModeloBackend,
+  getDocumentLocalIdentity,
   cargarWorkspaceBackend,
   cerrarSesionBackend,
   confirmarRevisionBackend,
@@ -29,6 +30,7 @@ import {
   type WorkspacePersistido,
   indiceVacio,
 } from "../persistencia/workspace";
+import { getLocalDocumentRepository } from "../persistencia/localRepository";
 import { construirVersionPersistible } from "../persistencia/versiones";
 import { crearAutosalvado } from "../persistencia/autosalvado";
 import { exportarModelo, hidratarModelo } from "../serializacion/json";
@@ -57,6 +59,7 @@ import {
   setEstadoStore,
   sincronizarIndiceConModelosGuardados,
   resetWorkspacePersistenceRuntime,
+  restoreLocalDocumentRecord,
   type GetStore,
   type SetStore,
 } from "./runtime";
@@ -123,6 +126,20 @@ export const createPersistenciaSlice: CrearSlice<PersistenciaSlice> = (set, get)
     if (estadoSesion.estado === "requiere-login") {
       advanceSessionEpoch();
       purgeLocalSession(set, get);
+      return;
+    }
+    if (estadoSesion.estado === "offline") {
+      const repository = getLocalDocumentRepository();
+      const documents = await repository.listDocuments(estadoSesion.identity).catch(() => []);
+      if (!isSessionEpochCurrent(sessionEpoch) || getDocumentLocalIdentity().status !== "offline") return;
+      const latest = [...documents].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0];
+      if (!latest) {
+        set({ mensaje: "Backend sin conexión; no hay una copia local recuperable para esta cuenta" });
+        return;
+      }
+      if (!(await restoreLocalDocumentRecord(latest))) {
+        set({ mensaje: "Backend sin conexión; la copia local no se pudo abrir sin reemplazar cambios en memoria" });
+      }
     }
   },
   modeloPersistidoId: null,

@@ -73,6 +73,53 @@ export function validarFichaTrabajo(value: unknown): Resultado<FichaTrabajo | un
     }
     ficha.vidaUtil = value.vidaUtil;
   }
+  if (value.modalidad !== undefined) {
+    if (value.modalidad !== "existente" && value.modalidad !== "propuesto" && value.modalidad !== "exploratorio") {
+      return fallo("Modelo inválido: fichaTrabajo.modalidad");
+    }
+    ficha.modalidad = value.modalidad;
+  }
+  if (value.historialModalidad !== undefined) {
+    if (!Array.isArray(value.historialModalidad)) return fallo("Modelo inválido: fichaTrabajo.historialModalidad");
+    const historial: NonNullable<FichaTrabajo["historialModalidad"]> = [];
+    for (const item of value.historialModalidad) {
+      if (!esRecord(item) || (item.modalidad !== "existente" && item.modalidad !== "propuesto" && item.modalidad !== "exploratorio") || !esRecord(item.contexto)) {
+        return fallo("Modelo inválido: fichaTrabajo.historialModalidad");
+      }
+      const contexto: NonNullable<FichaTrabajo["historialModalidad"]>[number]["contexto"] = {};
+      for (const campo of ["preguntaHabilitante", "criterioSuficiencia", "responsableDecision", "motivoCambio"] as const) {
+        const valor = item.contexto[campo];
+        if (valor !== undefined && typeof valor !== "string") {
+          return fallo(`Modelo inválido: fichaTrabajo.historialModalidad.contexto.${campo}`);
+        }
+        if (typeof valor === "string" && valor.trim()) contexto[campo] = valor.trim();
+      }
+      historial.push({ modalidad: item.modalidad, contexto });
+    }
+    ficha.historialModalidad = historial;
+  }
+  if (value.revisionesHumanas !== undefined) {
+    if (!Array.isArray(value.revisionesHumanas)) return fallo("Modelo inválido: fichaTrabajo.revisionesHumanas");
+    const revisiones: NonNullable<FichaTrabajo["revisionesHumanas"]> = [];
+    for (const item of value.revisionesHumanas) {
+      if (!esRecord(item) || typeof item.actorId !== "string" || !item.actorId.trim() ||
+        !Number.isSafeInteger(item.revision) || (item.revision as number) < 0 ||
+        !Array.isArray(item.scope) || item.scope.length === 0 ||
+        item.scope.some((id) => typeof id !== "string" || !id.trim()) ||
+        (item.outcome !== "aceptado" && item.outcome !== "requiere-cambios" && item.outcome !== "abierto") ||
+        typeof item.revisadoEn !== "string" || !item.revisadoEn.trim()) {
+        return fallo("Modelo inválido: fichaTrabajo.revisionesHumanas");
+      }
+      revisiones.push({
+        actorId: item.actorId.trim(),
+        revision: item.revision as number,
+        scope: item.scope.map((id) => (id as string).trim()),
+        outcome: item.outcome,
+        revisadoEn: item.revisadoEn.trim(),
+      });
+    }
+    ficha.revisionesHumanas = revisiones;
+  }
   return ok(normalizarFichaTrabajo(ficha));
 }
 

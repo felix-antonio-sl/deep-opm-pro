@@ -1,7 +1,7 @@
 import { crearObjeto, crearProceso } from "./operaciones/creacion";
 import { nombreReforzadoPorOntologia } from "./ontologia";
 import { firmaSnapshotSubmodelo } from "./submodelos/estado";
-import { MESA_EXPLORACION_SCHEMA } from "./tipos/extensiones";
+import { MAX_MARKDOWN_SOURCE_BYTES, MESA_EXPLORACION_SCHEMA } from "./tipos/extensiones";
 import type {
   Id,
   MesaExploracionV1,
@@ -13,6 +13,7 @@ import type {
 export interface AgregarFuenteExploracionInput {
   titulo?: string;
   contenido: string;
+  mediaType?: "text/markdown";
 }
 
 export interface AgregarTrazoExploracionInput {
@@ -39,6 +40,9 @@ export function agregarFuenteExploracion(
 ): Resultado<{ modelo: Modelo; fuenteId: Id }> {
   const contenido = input.contenido.trim();
   if (!contenido) return fallo("La fuente de texto está vacía");
+  if (input.mediaType === "text/markdown" && new TextEncoder().encode(input.contenido).byteLength > MAX_MARKDOWN_SOURCE_BYTES) {
+    return fallo("El archivo Markdown supera el límite de 128 kB");
+  }
   const timestamp = fechaValida(creadaEn);
   if (!timestamp.ok) return timestamp;
   const mesa = mesaActual(modelo);
@@ -53,6 +57,7 @@ export function agregarFuenteExploracion(
         [fuenteId]: {
           id: fuenteId,
           tipo: "texto",
+          ...(input.mediaType ? { mediaType: input.mediaType } : {}),
           ...(titulo ? { titulo } : {}),
           contenido: input.contenido,
           creadaEn: timestamp.value,

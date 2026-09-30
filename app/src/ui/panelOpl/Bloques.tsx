@@ -4,9 +4,11 @@ import { lineaTocaReferencia, referenciaEnlaceEspecifico, type OplLineaInteracti
 import { CodexOplNote } from "../codex/CodexOplNote";
 import { RenderToken, type EdicionOpl } from "./RenderToken";
 import { tokens } from "../tokens";
+import { atributosAlcanceOpl, type AlcanceOplPanel } from "./dataFlow";
 
 interface BloquesProps {
   bloques: BloqueOpl[];
+  alcance: AlcanceOplPanel;
   visiblesPorId: Set<string>;
   lineasConDelta: ReadonlySet<string>;
   opdActivoId: string;
@@ -30,8 +32,15 @@ interface BloquesProps {
  * Lo consume PanelOpl como leaf prop-driven.
  */
 export function Bloques(props: BloquesProps) {
+  const bloqueActivo = props.bloques.find((bloque) => bloque.opdId === props.opdActivoId);
+  const etiquetaAlcance = props.alcance === "modelo-completo"
+    ? "OPL completo · todos los OPDs"
+    : `OPL local · ${bloqueActivo?.opdNombre ?? "OPD activo"}`;
   return (
-    <div>
+    <div role="group" {...atributosAlcanceOpl(props.alcance)}>
+      <div style={style.alcance} data-testid="opl-alcance">
+        {etiquetaAlcance}
+      </div>
       {props.bloques.map((bloque) => {
         const oracionesVisibles = bloque.oraciones.filter((linea) => props.visiblesPorId.has(linea.id));
         if (oracionesVisibles.length === 0) return null;
@@ -41,17 +50,22 @@ export function Bloques(props: BloquesProps) {
             key={bloque.opdId}
             data-testid={`bloque-opl-${bloque.opdId}`}
             data-opl-nivel={bloque.profundidad}
+            data-opd-activo={bloque.opdId === props.opdActivoId ? "true" : "false"}
             style={estiloBloque(bloque.profundidad)}
           >
             <button
               type="button"
               data-testid={`cabecera-bloque-opl-${bloque.opdId}`}
+              aria-current={bloque.opdId === props.opdActivoId ? "location" : undefined}
               style={style.bloqueHeader}
               onClick={() => props.alternarBloqueContraido(bloque.opdId)}
               aria-expanded={!colapsado}
             >
               <span style={style.chevron}>{colapsado ? "▸" : "▾"}</span>
               <span>{bloque.opdNombre}</span>
+              {bloque.opdId === props.opdActivoId ? (
+                <span style={style.bloqueFoco} data-testid="opl-bloque-foco">en foco · nivel {bloque.profundidad}</span>
+              ) : null}
               <span style={style.bloqueConteo}>({bloque.oraciones.length} oraciones)</span>
             </button>
             {colapsado ? null : oracionesVisibles.map((linea) => (
@@ -147,6 +161,15 @@ const style = {
     paddingLeft: 0,
     borderLeft: "0 solid transparent",
   },
+  alcance: {
+    margin: `0 0 ${tokens.spacing.xs}px`,
+    color: tokens.colors.ink50,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.medium,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
+  },
   // Section header del bloque OPD: tipográfico — sin caja, sólo label
   // uppercase y conteo en mono. Mantiene un click target amplio (32px alto)
   // mediante padding vertical pero el contorno desaparece.
@@ -183,6 +206,14 @@ const style = {
     fontFamily: tokens.typography.fontFamilyMono,
     fontSize: `${tokens.typography.sizes.sm}px`,
     fontWeight: tokens.typography.weights.normal,
+    textTransform: "none" as const,
+    letterSpacing: 0,
+  },
+  bloqueFoco: {
+    color: tokens.colors.accent,
+    fontFamily: tokens.typography.familyChrome,
+    fontSize: `${tokens.typography.sizes.xs}px`,
+    fontWeight: tokens.typography.weights.medium,
     textTransform: "none" as const,
     letterSpacing: 0,
   },

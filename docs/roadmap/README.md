@@ -1,7 +1,16 @@
 # Próximo corte de opforja
 
-No hay una iniciativa funcional abierta. El estado operativo se observa en Git, tests,
-el [índice de bugs](../bugs/INDEX.md) y `cd app && bun run cordon:estado`.
+La iniciativa activa es el [producto integrado de opforja](../specs/opforja-producto-integrado.md),
+abierta por decisión del operador. Su [registro de implementación y aceptación](implementacion-producto-integrado.md)
+conserva el resultado de los seis incrementos y su evidencia de integración:
+agente, cambios reversibles, continuidad, revisión compartida, escenarios,
+recuperación y piezas reutilizables.
+
+El candidato está implementado localmente, sin despliegue. Quedan la prueba con
+la API real seleccionada, la evaluación con personas y la aceptación operativa.
+I1 cierra con A01–A07, A20 y A22–A24: una suite con respuestas controladas no
+satisface ese cierre. El estado implementado se observa
+en Git, tests, el [índice de bugs](../bugs/INDEX.md) y `cd app && bun run cordon:estado`.
 
 Se abre trabajo solo ante una de estas señales:
 
@@ -13,5 +22,5 @@ Las brechas normativas activas y fronteras sin testigo completo viven en el
 [registro de conformidad SSOT](registro-conformidad-ssot.md). No son un calendario ni
 se convierten en backlog por existir.
 
-Cuando se abra un corte, edita esta fuente estable con su resultado observable y
-criterio de cierre. Al cerrarlo, retira esa dirección: Git conserva la historia.
+Mantén aquí el resultado observable y criterio del corte activo. Al cerrarlo,
+retira esa dirección o identifica el siguiente corte sustentado: Git conserva la historia.

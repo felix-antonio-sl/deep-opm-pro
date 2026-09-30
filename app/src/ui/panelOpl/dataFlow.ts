@@ -1,4 +1,5 @@
 export type EstadoIfmlPanelOpl = "activo" | "minimizado" | "no-disponible-mapa";
+export type AlcanceOplPanel = "modelo-completo" | "opd-local";
 
 export const PANEL_OPL_IFML = {
   viewComponent: "PanelOpl",
@@ -18,5 +19,18 @@ export function atributosIfmlPanelOpl(estado: EstadoIfmlPanelOpl): Record<`data-
     "data-ifml-detail-siblings": PANEL_OPL_IFML.detailSiblings,
     "data-ifml-dataflow": PANEL_OPL_IFML.dataFlow,
     "data-ifml-state": estado,
+  };
+}
+
+export function atributosAlcanceOpl(alcance: AlcanceOplPanel): Record<`data-${string}`, string> & { "aria-label": string } {
+  if (alcance === "opd-local") {
+    return {
+      "aria-label": "OPL local del OPD activo",
+      "data-opl-alcance": "opd-local",
+    };
+  }
+  return {
+    "aria-label": "OPL con alcance de todos los OPDs del modelo; el filtro actual puede limitar las líneas visibles",
+    "data-opl-alcance": "modelo-completo",
   };
 }

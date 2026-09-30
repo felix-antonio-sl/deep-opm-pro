@@ -1,5 +1,6 @@
 import type { EstadoCargaSubmodelo, Id, Modelo, ReferenciaPadreSubmodelo, Resultado, SubmodeloReferencia } from "../modelo/tipos";
 import { esRecord, fallo, ok } from "./validarHelpers";
+import { validarPieceReferenceMetadata } from "./validatePieceLineage";
 
 export function validarSubmodelos(
   value: unknown,
@@ -25,6 +26,11 @@ export function validarSubmodelos(
     if (!contrato.ok) return contrato;
     const materializacion = validarSubmodeloMaterializacion(id, raw.materializacion, opds);
     if (!materializacion.ok) return materializacion;
+    const piece = validarPieceReferenceMetadata(raw.piece, `${id}.piece`);
+    if (!piece.ok) return piece;
+    if (piece.value && piece.value.identity.modelId !== (source.value?.modeloId ?? raw.modeloId)) {
+      return fallo(`Submodelo inválido: ${id}.piece.identity.modelId no coincide con source.modeloId`);
+    }
     refs[id] = {
       id,
       modeloId: raw.modeloId,
@@ -37,6 +43,7 @@ export function validarSubmodelos(
       ...(anchor.value ? { anchor: anchor.value } : {}),
       ...(contrato.value ? { contrato: contrato.value } : {}),
       ...(materializacion.value ? { materializacion: materializacion.value } : {}),
+      ...(piece.value ? { piece: piece.value } : {}),
     };
   }
   return ok(refs);

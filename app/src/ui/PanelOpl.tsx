@@ -194,6 +194,7 @@ export function PanelOplView({ vm }: { vm: PanelOplViewModel }) {
       ) : (
         <Bloques
           bloques={vm.bloques}
+          alcance={vm.alcanceOpl}
           visiblesPorId={vm.visiblesPorId}
           lineasConDelta={new Set(deltaOpl?.lineasCambiadasIds ?? [])}
           opdActivoId={vm.opdActivoId}

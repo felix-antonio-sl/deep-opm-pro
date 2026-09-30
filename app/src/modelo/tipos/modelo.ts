@@ -11,6 +11,7 @@ import type {
   MesaExploracionV1,
   NotaMesa,
   OntologiaOrganizacional,
+  PieceLineageRecord,
   ReferenciaPadreSubmodelo,
   SatisfaccionRequisito,
   SelloProcedencia,
@@ -39,6 +40,28 @@ export interface VersionResumen {
 export type TipoModelo = "dominio" | "realizacion" | "introduccion-operacion";
 export type VidaUtilModelo = "respuesta-puntual" | "referencia-viva";
 export type LenteConocimiento = "sistemas" | "software" | "salud";
+export type ModalidadDocumento = "existente" | "propuesto" | "exploratorio";
+
+export interface ContextoModalidadDocumento {
+  preguntaHabilitante?: string;
+  criterioSuficiencia?: string;
+  responsableDecision?: string;
+  motivoCambio?: string;
+}
+
+export interface CambioModalidadDocumento {
+  modalidad: ModalidadDocumento;
+  contexto: ContextoModalidadDocumento;
+}
+
+/** Registro de una revisión humana de alcance acotado; no constituye certificación. */
+export interface RevisionHumanaDocumento {
+  actorId: string;
+  revision: number;
+  scope: string[];
+  outcome: "aceptado" | "requiere-cambios" | "abierto";
+  revisadoEn: string;
+}
 
 /** Contexto metodológico no derivable. No emite OPL ni altera validez OPM. */
 export interface FichaTrabajo {
@@ -49,6 +72,9 @@ export interface FichaTrabajo {
   criterioSuficiencia?: string;
   vidaUtil?: VidaUtilModelo;
   revisarCuando?: string;
+  modalidad?: ModalidadDocumento;
+  historialModalidad?: CambioModalidadDocumento[];
+  revisionesHumanas?: RevisionHumanaDocumento[];
 }
 
 export interface Modelo {
@@ -83,6 +109,8 @@ export interface Modelo {
   /** Enfoques especializados explícitos; OPM general permanece como base fija. */
   lentesConocimiento?: LenteConocimiento[];
   submodelos?: Record<Id, SubmodeloReferencia>;
+  /** Durable origin for independent copies of library Pieces; excluded from OPM semantics. */
+  pieceLineage?: Record<Id, PieceLineageRecord>;
   referenciaPadreSubmodelo?: ReferenciaPadreSubmodelo;
   archivado?: boolean;
   archivadoEn?: string;

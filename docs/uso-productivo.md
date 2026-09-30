@@ -148,8 +148,33 @@ El autosalvado persiste cambios de forma periódica. Mientras el estado diga
 abre **Guardar como o nueva versión**; el clic no fuerza por sí mismo el guardado.
 
 Los modelos se persisten en el backend (Postgres). Si el backend no
-está disponible, la app lo indica explícitamente; no hay fallback
-silencioso a localStorage.
+está disponible, la app lo indica explícitamente. El control **Guardado del
+documento** distingue **Guardado aquí** (copia confirmada en este navegador)
+de **Sincronizado** (esta misma revisión confirmada por el servidor). Permite
+guardar aquí, sincronizar y descargar una recuperación. Un conflicto conserva
+las dos ramas y permite compararlas antes de elegir. La copia local pertenece
+a la cuenta que la creó; no borres los datos del navegador antes de exportar
+trabajo pendiente.
+
+### Trabajar con el agente y revisar propuestas
+
+La entrada **Qué quieres conseguir** inicia un encargo sobre el documento
+guardado. La tarea conserva su objetivo, alcance y resultados. Puedes corregir
+el encargo o detenerlo; detener no deshace efectos ya confirmados. Una propuesta
+permite revisar la diferencia OPD/OPL antes de incorporarla. Deshacer se aplica
+sobre el estado actual y señala conflictos con trabajo posterior.
+
+El servicio necesita configuración de servidor. Si no está disponible, la
+edición manual sigue activa. **Proponer refinamiento** y **Reutilizar pieza**
+preparan cambios revisables mediante operaciones del modelo sin necesitar
+inferencia. La referencia a una pieza conserva su origen y protege su vista;
+la copia crea identidad propia y linaje. La comparación declara qué dimensiones
+se examinaron y qué límites conserva.
+
+**Compartir revisión** crea un enlace revocable a una instantánea fija y permite
+elegir sus fuentes. **Paquete portátil** descarga el documento para el lector
+independiente. Prepara ese lector mientras tienes conexión si necesitas abrirlo
+luego sin red; la caché del lector no instala el editor completo sin conexión.
 
 ### Buscar dentro del modelo — `Ctrl+F`
 
@@ -279,8 +304,10 @@ usar `Guardar como` desde el menú.
 
 Al reabrir, la app intenta restaurar el último modelo activo desde el
 backend. Si no aparece, abrir el gestor (`Ctrl+K` › `Abrir / importar
-modelo`) y elegirlo de la lista. Si tampoco está ahí, importar el último
-JSON descargado.
+modelo`) y elegirlo de la lista. Con la API inaccesible, una cuenta previamente
+autenticada puede recuperar su copia local confirmada. Si tampoco está ahí,
+importar el último JSON o paquete descargado. Un estado **Sin guardar aquí** no
+acredita recuperación de los últimos cambios.
 
 ### La app no carga o muestra error
 

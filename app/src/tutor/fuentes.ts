@@ -274,7 +274,7 @@ export const TUTOR_SOURCES = [
     "guide",
     "operation",
     "docs/uso-productivo.md",
-    "ab4b618c2d9c80202dee07429430378631df80fec67da5626e2d296b4cd46d27",
+    "5592c832971fddaaffa14102100b8188136fbb6f04e4d0b00798a7b19ae1da43",
     [
       sourceAnchor("enter", "Entrar", "Entrar"),
       sourceAnchor("start-model", "Empezar un modelo", "Empezar un modelo"),

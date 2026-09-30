@@ -41,6 +41,21 @@ describe("serialización Mesa de exploración", () => {
     expect(hidratado.entidades[recibo.targets[0]!.id]?.nombre).toBe("Solicitud");
   });
 
+  test("roundtrip conserva el tipo y los bytes UTF-8 originales de una fuente Markdown", () => {
+    const originalBytes = "\uFEFF# Retiro\r\n\r\nCamión y distribución.";
+    const added = must(agregarFuenteExploracion(crearModelo("Markdown"), {
+      titulo: "pedido.md",
+      contenido: originalBytes,
+      mediaType: "text/markdown",
+    }, AHORA));
+
+    const hydrated = must(hidratarModelo(exportarModelo(added.modelo)));
+    const source = hydrated.mesaExploracion?.fuentes[added.fuenteId];
+
+    expect(source).toMatchObject({ mediaType: "text/markdown", contenido: originalBytes });
+    expect(new TextEncoder().encode(source?.contenido)).toEqual(new TextEncoder().encode(originalBytes));
+  });
+
   test("un modelo sin Mesa no gana la extensión opcional", () => {
     const json = exportarModelo(crearModelo("Limpio"));
     expect(json).not.toContain("mesaExploracion");

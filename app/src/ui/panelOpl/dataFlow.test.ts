@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { atributosIfmlPanelOpl, PANEL_OPL_IFML, type EstadoIfmlPanelOpl } from "./dataFlow";
+import { atributosAlcanceOpl, atributosIfmlPanelOpl, PANEL_OPL_IFML, type EstadoIfmlPanelOpl } from "./dataFlow";
 
 describe("PanelOpl IFML DataFlow", () => {
   test("declara Canvas como master y OPL como detail multidetail", () => {
@@ -26,5 +26,16 @@ describe("PanelOpl IFML DataFlow", () => {
         "data-ifml-state": estado,
       });
     }
+  });
+
+  test("declara el alcance completo del panel y avisa que los filtros pueden ocultar líneas", () => {
+    expect(atributosAlcanceOpl("modelo-completo")).toEqual({
+      "aria-label": "OPL con alcance de todos los OPDs del modelo; el filtro actual puede limitar las líneas visibles",
+      "data-opl-alcance": "modelo-completo",
+    });
+    expect(atributosAlcanceOpl("opd-local")).toEqual({
+      "aria-label": "OPL local del OPD activo",
+      "data-opl-alcance": "opd-local",
+    });
   });
 });

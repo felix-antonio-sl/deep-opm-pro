@@ -27,7 +27,10 @@ export function exportarOplOpdMarkdown(modelo: Modelo, opdId: Id, opciones?: Opc
   const opd = modelo.opds[opdId];
   const titulo = opd ? `${modelo.nombre} — ${opd.nombre}` : modelo.nombre;
   const lineas = generarOpl(modelo, opdId, { esencia: "siempre", esApunte: opciones?.esApunte ?? false });
-  return `# ${titulo}\n\n${listaFrases(lineas)}\n`;
+  const alcance = opd
+    ? `> Alcance: OPL local del OPD «${opd.nombre}».`
+    : "> Alcance: OPD local solicitado; el OPD no existe en este modelo.";
+  return `# ${titulo}\n\n${alcance}\n\n${listaFrases(lineas)}\n`;
 }
 
 /**
@@ -40,7 +43,7 @@ export function exportarOplModeloMarkdown(modelo: Modelo, opciones?: OpcionesExp
     return `## ${opd.nombre}\n\n${listaFrases(lineas)}`;
   });
   const cuerpo = secciones.length > 0 ? secciones.join("\n\n") : "_Sin OPDs._";
-  return `# ${modelo.nombre}\n\n${cuerpo}\n`;
+  return `# ${modelo.nombre}\n\n> Alcance: OPL completo del modelo; incluye todos los OPDs en orden jerárquico.\n\n${cuerpo}\n`;
 }
 
 /** Recorre los OPDs en preorden (padre antes que hijos), respetando ordenLocal. */
