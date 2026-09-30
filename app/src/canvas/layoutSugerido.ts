@@ -97,6 +97,7 @@ export function calcularLayoutSugerido(
 ): PosicionSugerida[] {
   const opd = modelo.opds[opdId];
   if (!opd) return [];
+  if (validarOrdenInzoomParaLayout(modelo, opdId)) return [];
   const apariencias = Object.values(opd.apariencias);
   if (apariencias.length === 0) return [];
 
@@ -164,13 +165,8 @@ function layoutConContorno(
   // BUG-densos-HODOM: el modelo real tiene embedded con anchos personalizados
   // (240/280/320 px), no `CANON.dims.cosaWidth=135`. Usamos las dimensiones
   // REALES de cada embedded para que el contorno los acoja, no las canonicas.
-  const grillaEmbedded = calcularGrillaDensa(embedded, {
-    umbral: DENSIDAD.umbralNivelDenso,
-    maxColumnas: DENSIDAD.maxColumnasInzoom,
-  });
-  const filasEmbedded = grillaEmbedded.filas;
-  const inzoomDenso = filasEmbedded.length > 1;
-  const filasVisualesEmbedded = inzoomDenso ? filasEmbedded : embedded.map((child) => [child]);
+  const filasVisualesEmbedded = filasInzoom(modelo, opdId, embedded);
+  const inzoomDenso = Boolean(modelo.opds[opdId]?.ordenInzoom?.length) || embedded.length >= DENSIDAD.umbralNivelDenso;
   const subthings = Math.max(INZOOM.minSubthings, embedded.length);
   const anchoCanonico = CANON.dims.cosaWidth * INZOOM.multAncho;
   // Ancho real necesario: la fila mas ancha de embedded + padding lateral.
@@ -599,6 +595,10 @@ export function aplicarLayoutSugerido(
   opdId: Id,
   opciones: OpcionesLayoutSugerido = {},
 ): Resultado<Modelo> {
+  const errorOrden = validarOrdenInzoomParaLayout(modelo, opdId);
+  if (errorOrden) {
+    return { ok: false, error: `No se aplicó auto-layout: ${errorOrden}; se conservó la geometría anterior.` };
+  }
   const posiciones = calcularLayoutSugerido(modelo, opdId, opciones);
   if (posiciones.length === 0) return { ok: true, value: modelo };
 
@@ -643,6 +643,83 @@ export function aplicarLayoutSugerido(
     },
   };
   return refrescarEnlacesExternosDerivados(siguiente, opdId);
+}
+
+/**
+ * Para un proceso descompuesto, las bandas declaradas son también bandas
+ * geométricas del auto-layout. Un proceso sin declarar queda después de los
+ * listados, como en el plan de simulación. Los OPDs legacy sin campo conservan
+ * el layout geométrico previo.
+ */
+function filasInzoom(modelo: Modelo, opdId: Id, embedded: Apariencia[]): Apariencia[][] {
+  const opd = modelo.opds[opdId];
+  const bandas = opd?.ordenInzoom;
+  if (!bandas?.length) {
+    const grilla = calcularGrillaDensa(embedded, {
+      umbral: DENSIDAD.umbralNivelDenso,
+      maxColumnas: DENSIDAD.maxColumnasInzoom,
+    });
+    return grilla.filas.length > 1 ? grilla.filas : embedded.map((item) => [item]);
+  }
+
+  const porProceso = new Map<Id, Apariencia>();
+  for (const apariencia of embedded) {
+    if (modelo.entidades[apariencia.entidadId]?.tipo === "proceso") {
+      porProceso.set(apariencia.entidadId, apariencia);
+    }
+  }
+  const usados = new Set<Id>();
+  const filas: Apariencia[][] = [];
+  for (const banda of bandas) {
+    const procesos = banda
+      .map((entidadId) => porProceso.get(entidadId))
+      .filter((item): item is Apariencia => Boolean(item))
+      .sort((a, b) => a.entidadId.localeCompare(b.entidadId, "es-CL"));
+    if (procesos.length > 0) {
+      filas.push(procesos);
+      procesos.forEach((proceso) => usados.add(proceso.entidadId));
+    }
+  }
+  const noListados = [...porProceso.values()]
+    .filter((apariencia) => !usados.has(apariencia.entidadId))
+    .sort((a, b) => a.entidadId.localeCompare(b.entidadId, "es-CL"));
+  filas.push(...noListados.map((apariencia) => [apariencia]));
+
+  // Objetos internos no participan en `ordenInzoom`; se mantienen visibles
+  // en una banda propia, después del orden de procesos, sin incluirlos en él.
+  const objetosInternos = embedded
+    .filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo !== "proceso")
+    .sort((a, b) => a.entidadId.localeCompare(b.entidadId, "es-CL"));
+  filas.push(...objetosInternos.map((apariencia) => [apariencia]));
+  return filas;
+}
+
+/** Valida que las bandas puedan realizarse como filas de procesos internos. */
+function validarOrdenInzoomParaLayout(modelo: Modelo, opdId: Id): string | null {
+  const opd = modelo.opds[opdId];
+  if (!opd?.ordenInzoom?.length) return null;
+  const contorno = contenedorRefinamiento(modelo, opdId);
+  if (!contorno || modelo.entidades[contorno.entidadId]?.tipo !== "proceso") {
+    return `el OPD "${opd.nombre}" declara ordenInzoom, pero no realiza la descomposición de un proceso`;
+  }
+  const procesosInternos = new Set(
+    Object.values(opd.apariencias)
+      .filter((apariencia) => apariencia.id !== contorno.id)
+      .filter((apariencia) => modelo.entidades[apariencia.entidadId]?.tipo === "proceso")
+      .map((apariencia) => apariencia.entidadId),
+  );
+  const vistos = new Set<Id>();
+  for (const [bandaIndex, banda] of opd.ordenInzoom.entries()) {
+    if (banda.length === 0) return `ordenInzoom contiene una banda vacía en la posición ${bandaIndex + 1}`;
+    for (const entidadId of banda) {
+      if (vistos.has(entidadId)) return `ordenInzoom repite el proceso "${entidadId}"`;
+      if (!procesosInternos.has(entidadId)) {
+        return `ordenInzoom refiere "${entidadId}", que no es un proceso interno visible del OPD`;
+      }
+      vistos.add(entidadId);
+    }
+  }
+  return null;
 }
 
 /** Helper: dimension total que ocuparia el preview (sin mutar). */

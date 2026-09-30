@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { crearModelo, crearProceso, descomponerProceso } from "../modelo/operaciones";
 import type { Modelo } from "../modelo/tipos";
 import { aplicarLayoutSugerido, calcularLayoutSugerido, dimensionesLayoutSugerido } from "./layoutSugerido";
 
@@ -106,6 +107,38 @@ describe("layoutSugerido", () => {
     expect(externoOut.x).toBeGreaterThan(contorno.x + contornoWidth);
   });
 
+  test("auto-layout conserva orden declarado y paralelismo de ordenInzoom", () => {
+    const { modelo, opdHijoId, hijos } = modeloInzoomConOrden([["Proceso 2", "Proceso 3"], ["Proceso 1"]]);
+    const antes = firmaHechosYOrden(modelo, opdHijoId);
+    const aplicado = aplicarLayoutSugerido(modelo, opdHijoId);
+
+    expect(aplicado.ok).toBe(true);
+    if (!aplicado.ok) return;
+
+    const apariencias = aplicado.value.opds[opdHijoId]!.apariencias;
+    const posiciones = hijos.map((nombre) => apariencias[aparienciaId(modelo, opdHijoId, nombre)]!);
+    const porNombre = new Map(hijos.map((nombre, indice) => [nombre, posiciones[indice]!]));
+    expect(porNombre.get("Proceso 2")!.y).toBe(porNombre.get("Proceso 3")!.y);
+    expect(porNombre.get("Proceso 2")!.y).toBeLessThan(porNombre.get("Proceso 1")!.y);
+    expect(firmaHechosYOrden(aplicado.value, opdHijoId)).toEqual(antes);
+  });
+
+  test("rechaza ordenInzoom que no se puede realizar y conserva geometría", () => {
+    const { modelo, opdHijoId } = modeloInzoomConOrden([["Paso 1"]]);
+    const opd = modelo.opds[opdHijoId]!;
+    const ordenInvalido = {
+      ...modelo,
+      opds: { ...modelo.opds, [opdHijoId]: { ...opd, ordenInzoom: [["proceso-ausente"]] } },
+    };
+    const geometriaAntes = JSON.stringify(ordenInvalido.opds[opdHijoId]!.apariencias);
+    const aplicado = aplicarLayoutSugerido(ordenInvalido, opdHijoId);
+
+    expect(aplicado.ok).toBe(false);
+    if (aplicado.ok) return;
+    expect(aplicado.error).toContain("ordenInzoom");
+    expect(JSON.stringify(ordenInvalido.opds[opdHijoId]!.apariencias)).toBe(geometriaAntes);
+  });
+
   test("layered centra cada banda alrededor del centro X global, no left-aligned", () => {
     const modelo = modeloSdAncho();
     const posiciones = calcularLayoutSugerido(modelo, "opd-1");
@@ -191,6 +224,50 @@ describe("layoutSugerido", () => {
     expect(columnasEntradas.size).toBeGreaterThanOrEqual(3);
   });
 });
+
+function modeloInzoomConOrden(bandas: string[][]): { modelo: Modelo; opdHijoId: string; hijos: string[] } {
+  let modelo = crearModelo("Orden inzoom");
+  modelo = must(crearProceso(modelo, modelo.opdRaizId, { x: 120, y: 100 }, "Proceso"));
+  const padre = Object.values(modelo.entidades).find((entidad) => entidad.nombre === "Proceso");
+  if (!padre) throw new Error("No se creó el proceso padre");
+  const descompuesto = must(descomponerProceso(modelo, modelo.opdRaizId, padre.id));
+  modelo = descompuesto.modelo;
+  const hijos = ["Proceso 1", "Proceso 2", "Proceso 3"];
+  const hijoIds = Object.fromEntries(hijos.map((nombre) => {
+    const entidad = Object.values(modelo.entidades).find((candidata) => candidata.nombre === nombre);
+    if (!entidad) throw new Error(`No se creó ${nombre}`);
+    return [nombre, entidad.id];
+  }));
+  const opdHijo = modelo.opds[descompuesto.opdId]!;
+  const ordenInzoom = bandas.map((banda) => banda.map((nombre) => hijoIds[nombre]!));
+  modelo = {
+    ...modelo,
+    opds: { ...modelo.opds, [descompuesto.opdId]: { ...opdHijo, ordenInzoom } },
+  };
+  return { modelo, opdHijoId: descompuesto.opdId, hijos };
+}
+
+function aparienciaId(modelo: Modelo, opdId: string, nombre: string): string {
+  const entidad = Object.values(modelo.entidades).find((candidata) => candidata.nombre === nombre);
+  if (!entidad) throw new Error(`No existe entidad ${nombre}`);
+  const apariencia = Object.values(modelo.opds[opdId]!.apariencias).find((candidata) => candidata.entidadId === entidad.id);
+  if (!apariencia) throw new Error(`No existe apariencia de ${nombre}`);
+  return apariencia.id;
+}
+
+function firmaHechosYOrden(modelo: Modelo, opdId: string): unknown {
+  return {
+    entidades: modelo.entidades,
+    estados: modelo.estados,
+    enlaces: modelo.enlaces,
+    ordenInzoom: modelo.opds[opdId]?.ordenInzoom,
+  };
+}
+
+function must<T>(resultado: { ok: true; value: T } | { ok: false; error: string }): T {
+  if (!resultado.ok) throw new Error(resultado.error);
+  return resultado.value;
+}
 
 function modeloPipeline(): Modelo {
   return {
