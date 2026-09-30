@@ -26,6 +26,7 @@ corte y no reemplazan la evidencia viva.
 | Artefacto | Uso vigente |
 |---|---|
 | [Auditoría SSOT/corpus](2026-06-12-auditoria-ssot-corpus.md) | procedencia de enmiendas en puentes, registro y `ui-forja` |
+| [Evaluación de Jev](2026-09-23-evaluacion-jev.md) | sondas sintéticas reales y oportunidades propuestas para el producto integrado y su desarrollo |
 
 La evidencia técnica no abre trabajo por sí sola. Una brecha solo abre un corte con un
 caso, una decisión o un gate afectado.
