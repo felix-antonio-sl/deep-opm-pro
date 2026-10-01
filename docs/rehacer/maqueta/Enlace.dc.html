@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<title>Crear enlace</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inria+Serif:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#8e2a2e}a:hover{color:#5f1c1f}
+button{font:inherit;color:inherit;cursor:pointer}
+.o{font-weight:700}
+.p{font-style:italic}
+.s{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;background:#dedacb;padding:0 4px;border-radius:3px}
+.kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:#807b6e}
+</style>
+</helmet>
+<div style="width: 960px; height: 600px; position: relative; background: #fafaf8; color: #171511; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 13px; overflow: hidden">
+<svg width="960" height="600" viewBox="0 0 960 600" role="img" aria-label="Arrastre de un enlace desde el estado pendiente hacia Pagar" style="display: block; position: absolute; left: 0; top: 0">
+<defs>
+<filter id="sombra" x="-10%" y="-10%" width="130%" height="150%"><feDropShadow dx="6" dy="6" stdDeviation="1" style="flood-color: #171511; flood-opacity: 0.68"></feDropShadow></filter>
+</defs>
+<rect x="80" y="80" width="240" height="110" style="fill: #fafaf8; stroke: #27613f; stroke-width: 1.5"></rect>
+<text x="200" y="114" style="font-family: 'Inria Serif', serif; font-size: 17px; text-anchor: middle; fill: #171511">Pedido</text>
+<rect x="98" y="146" width="84" height="28" rx="8" style="fill: #dedacb; stroke: #68711f; stroke-width: 3"></rect>
+<text x="140" y="165" style="font-family: 'Inria Serif', serif; font-style: italic; font-size: 13px; text-anchor: middle; fill: #171511">pendiente</text>
+<g style="opacity: 0.4">
+<rect x="198" y="146" width="70" height="28" rx="8" style="fill: #dedacb; stroke: #68711f; stroke-width: 1.2"></rect>
+<text x="233" y="165" style="font-family: 'Inria Serif', serif; font-style: italic; font-size: 13px; text-anchor: middle; fill: #171511">pagado</text>
+</g>
+<text x="276" y="160" style="font-size: 14px; fill: #8e2a2e">×</text>
+
+<line x1="140" y1="174" x2="218" y2="373" style="stroke: #8e2a2e; stroke-width: 1.25; stroke-dasharray: 3 3"></line>
+<polygon points="140,168 146,174 140,180 134,174" style="fill: #8e2a2e"></polygon>
+
+<ellipse cx="230" cy="410" rx="92" ry="46" style="fill: rgba(142,42,46,0.06); stroke: #8e2a2e; stroke-width: 1"></ellipse>
+<ellipse cx="230" cy="410" rx="80" ry="36" style="fill: #fafaf8; stroke: #1d3f78; stroke-width: 1.5"></ellipse>
+<text x="230" y="416" style="font-family: 'Inria Serif', serif; font-style: italic; font-size: 17px; text-anchor: middle; fill: #171511">Pagar</text>
+
+<rect x="54" y="494" width="162" height="72" style="fill: none; stroke: #8e2a2e; stroke-width: 1; stroke-dasharray: 2 3"></rect>
+<rect x="60" y="500" width="150" height="60" style="fill: #fafaf8; stroke: #27613f; stroke-width: 1.5; stroke-dasharray: 8 4; filter: url(#sombra)"></rect>
+<text x="135" y="536" style="font-family: 'Inria Serif', serif; font-size: 17px; text-anchor: middle; fill: #171511">Cliente</text>
+</svg>
+
+<div role="menu" aria-label="Tipo de enlace" style="position: absolute; left: 400px; top: 96px; width: 500px; background: #fafaf8; border: 1px solid rgba(23,21,17,0.22); border-radius: 8px; box-shadow: 0 8px 24px rgba(23,21,17,0.12); display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 10px 14px; border-bottom: 1px solid rgba(23,21,17,0.12); display: flex; align-items: baseline; gap: 10px">
+<span style="font-family: 'Inria Serif', serif; font-size: 15px"><span class="o">Pedido</span> en <span class="s">pendiente</span> → <span class="p">Pagar</span></span>
+<div style="flex-grow: 1"></div>
+<span style="font-size: 11px; letter-spacing: 0.08em; color: #807b6e">TIPO DE ENLACE</span>
+</div>
+<button role="menuitem" style="display: grid; grid-template-columns: 20px 96px 1fr; align-items: baseline; text-align: left; border: none; background: rgba(142,42,46,0.07); padding: 8px 14px"><span class="kbd">1</span><span>consumo</span><span style="font-family: 'Inria Serif', serif; font-size: 14px"><span class="p">Pagar</span> consume <span class="o">Pedido</span> en <span class="s">pendiente</span>. <span style="font-family: system-ui, sans-serif; font-size: 11px; color: #807b6e">último usado</span></span></button>
+<button role="menuitem" style="display: grid; grid-template-columns: 20px 96px 1fr; align-items: baseline; text-align: left; border: none; background: none; padding: 8px 14px"><span class="kbd">2</span><span>efecto</span><span style="font-family: 'Inria Serif', serif; font-size: 14px"><span class="p">Pagar</span> cambia <span class="o">Pedido</span> de <span class="s">pendiente</span>.</span></button>
+<button role="menuitem" style="display: grid; grid-template-columns: 20px 96px 1fr; align-items: baseline; text-align: left; border: none; background: none; padding: 8px 14px"><span class="kbd">3</span><span>instrumento</span><span style="font-family: 'Inria Serif', serif; font-size: 14px"><span class="p">Pagar</span> requiere <span class="o">Pedido</span> en <span class="s">pendiente</span>.</span></button>
+<div style="padding: 6px 14px 2px; font-size: 11px; color: #807b6e">desde <span class="p" style="font-family: 'Inria Serif', serif; font-size: 12px">Pagar</span></div>
+<button role="menuitem" style="display: grid; grid-template-columns: 20px 96px 1fr; align-items: baseline; text-align: left; border: none; background: none; padding: 8px 14px"><span class="kbd">4</span><span>efecto</span><span style="font-family: 'Inria Serif', serif; font-size: 14px"><span class="p">Pagar</span> cambia <span class="o">Pedido</span> a <span class="s">pendiente</span>.</span></button>
+<div style="border-top: 1px solid rgba(23,21,17,0.12); padding: 8px 14px; display: flex; flex-direction: column; gap: 4px; color: #5a564c; font-size: 12px">
+<div style="color: #171511">▾ No disponibles</div>
+<div><span style="display: inline-block; width: 92px">resultado</span>nunca al estado inicial <span class="s">pendiente</span> (AP-04)</div>
+<div><span style="display: inline-block; width: 92px">agente</span>solo desde un objeto físico (AP-05)</div>
+<div><span style="display: inline-block; width: 92px">invocación</span>solo entre procesos</div>
+<div><span style="display: inline-block; width: 92px">estructurales</span>no entre objeto y proceso con estado · y 5 más</div>
+</div>
+<div style="border-top: 1px solid rgba(23,21,17,0.12); padding: 7px 14px; display: flex; gap: 14px; color: #807b6e; font-size: 12px">
+<span><span class="kbd">↑↓</span> elegir</span><span><span class="kbd">1–4</span> directo</span><span><span class="kbd">↵</span> crear</span><span><span class="kbd">Tab</span> otra orientación</span><span><span class="kbd">⎋</span> cancelar</span>
+</div>
+</div>
+
+<div role="status" style="position: absolute; left: 0; right: 0; bottom: 0; height: 32px; display: flex; align-items: center; padding: 0 14px; border-top: 1px solid rgba(23,21,17,0.14); color: #5a564c">Enlace desde <span class="o" style="font-family: 'Inria Serif', serif; color: #171511; margin: 0 4px">Pedido</span> en <span class="s" style="margin: 0 4px">pendiente</span>: los destinos legales se realzan; <span style="color: #8e2a2e; margin: 0 4px">×</span> no admite ningún tipo</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":960,"height":600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

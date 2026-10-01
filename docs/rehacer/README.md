@@ -155,6 +155,25 @@ queda en silencio. Las que más conviene revisar:
    conservando el volumen para volver atrás (DESIGN §9.4). Solo se hace con autorización explícita
    y solo mediante `./deploy/deploy.sh`.
 
+## Maqueta de interfaz (parcial, en pausa)
+
+[`maqueta/`](maqueta/) conserva las fuentes de una maqueta estática de la interfaz de DESIGN §7.
+Es un lienzo de diseño de claude.ai (formato `.dc.html` con `canvas.json`), privado para el dueño,
+que se interrumpió a pedido el 2026-09-30.
+
+| Pantalla | Archivo | Estado |
+|---|---|---|
+| Editor de escritorio (SD) | `maqueta/Main.dc.html` | publicada en el lienzo |
+| Crear enlace (solo tipos legales) | `maqueta/Enlace.dc.html` | redactada, sin publicar |
+| Descomponer en bandas (SD1) | `maqueta/Descomponer.dc.html` | redactada, sin publicar |
+| Editar OPL, informe de importación, biblioteca, ancho estrecho | — | pendientes: `canvas.json` ya reserva sus marcos |
+
+Usa la paleta, los trazos y los paths de marcadores literales de spec-OPD §18, con un modelo de
+ejemplo ilustrativo. Fuera del lienzo no se ejecuta, porque depende de su runtime (`support.js`).
+
+Queda abierta una decisión que la maqueta deja a la vista: DESIGN §5.3 emite D1 con el literal de
+reglas (`**Bodeguero** es física.`) sin concordar el género. Al parsear acepta `físico`.
+
 ## Plan si se aprueba
 
 DESIGN §12 divide la implementación en 22 paquetes de trabajo repartidos en seis olas:

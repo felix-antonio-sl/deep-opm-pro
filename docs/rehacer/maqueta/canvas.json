@@ -1,0 +1,22 @@
+{
+  "v": 3,
+  "createdOnFiles": { "v": 1, "at": "2026-09-30T21:30:00Z" },
+  "title": "opforja rehecho · maqueta de UI",
+  "launch": { "view": "canvas" },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 1600, "h": 940, "title": "Editor · escritorio (SD)" },
+    "Enlace.dc.html": { "x": 0, "y": 1060, "w": 960, "h": 600, "title": "Crear enlace · solo tipos legales" },
+    "Descomponer.dc.html": { "x": 1040, "y": 1060, "w": 960, "h": 640, "title": "Descomponer · bandas de subprocesos (SD1)" },
+    "EditorOpl.dc.html": { "x": 0, "y": 1820, "w": 560, "h": 720, "title": "Editar OPL · cuatro estados de línea" },
+    "Importar.dc.html": { "x": 640, "y": 1820, "w": 680, "h": 720, "title": "Informe de importación" },
+    "Biblioteca.dc.html": { "x": 1400, "y": 1820, "w": 1100, "h": 640, "title": "Biblioteca de modelos" },
+    "Estrecho.dc.html": { "x": 2580, "y": 1820, "w": 390, "h": 844, "title": "Ancho estrecho (390 px)" }
+  },
+  "order": ["Main.dc.html", "Enlace.dc.html", "Descomponer.dc.html", "EditorOpl.dc.html", "Importar.dc.html", "Biblioteca.dc.html", "Estrecho.dc.html"],
+  "notes": {
+    "titulo": { "x": 0, "y": -300, "text": "opforja rehecho — maqueta de UI (datos ilustrativos)", "kind": "title1", "maxW": 2970 },
+    "claves": { "x": 1680, "y": 0, "w": 340, "maxH": 520, "size": "s", "fill": "gray", "text": "Cómo leer la maqueta\n\n• Paleta, trazos y marcadores: spec-forja-opd §18 (paths literales).\n• Carmesí = solo canal UI: selección, foco, asas, guías. Nunca marca semántica.\n• Sombra = física · contorno discontinuo = ambiental · contorno grueso = refinada.\n• El lienzo queda limpio: la validación vive en Diagnóstico.\n• Una sola franja al pie del lienzo responde a cada operación.\n• Modelos y cifras son ilustrativos; no hay implementación todavía." }
+  },
+  "designSystems": []
+}
