@@ -8,6 +8,7 @@ decisiones técnicas, operación, referencias históricas y dirección futura.
 - **Estado operativo:** Git, tests y `cd app && bun run cordon:estado`
 - **Defectos activos:** [índice de bugs](bugs/INDEX.md)
 - **Próximo corte:** [producto integrado, I1](roadmap/README.md)
+- **Propuesta de rehacer opforja (pendiente de aprobación):** [estudio, canon y diseño](rehacer/README.md)
 
 ## Qué es este repositorio
 

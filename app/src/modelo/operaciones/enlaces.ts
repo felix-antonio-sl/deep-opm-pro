@@ -23,6 +23,7 @@ import type {
   TipoEnlace,
 } from "../tipos";
 import { CANON, naturalezaDeEnlace } from "../constantes";
+import { MENSAJE_MULTIPLICIDAD_INVALIDA, validarMultiplicidad } from "../enlaceMultiplicidad";
 import { aparienciaDeEntidadEnOpd, aparicionesVisiblesEnOpd } from "../politicaApariciones";
 import { fallo, idModeloExiste, ok, secuenciaPosteriorId, siguienteId, validarFirmaEnlace } from "./helpers";
 import {
@@ -50,12 +51,6 @@ export type LadoExtremoEnlace = "origen" | "destino";
 
 const TIPOS_ESTRUCTURALES = ["agregacion", "exhibicion", "generalizacion", "clasificacion"] as const satisfies readonly TipoEnlace[];
 
-const MULTIPLICIDAD_CANONICA_RE = /^\d+$|^N$|^\+$|^\*$|^\d+\.\.\d+$|^\d+\.\.N$|^\d+\.\.\*$/;
-
-export function validarMultiplicidad(texto: string): boolean {
-  return MULTIPLICIDAD_CANONICA_RE.test(texto);
-}
-
 export function ajustarMultiplicidad(
   modelo: Modelo,
   enlaceId: Id,
@@ -65,7 +60,7 @@ export function ajustarMultiplicidad(
   const enlace = modelo.enlaces[enlaceId];
   if (!enlace) return fallo(`Enlace no existe: ${enlaceId}`);
   if (texto !== "" && !validarMultiplicidad(texto)) {
-    return fallo("Multiplicidad inválida: usa 1, +, *, ?, 0..1, 2..*, 2..N o 1..5");
+    return fallo(MENSAJE_MULTIPLICIDAD_INVALIDA);
   }
 
   const campo = lado === "origen" ? "multiplicidadOrigen" : "multiplicidadDestino";

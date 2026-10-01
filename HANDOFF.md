@@ -49,3 +49,19 @@ controlado y PostgreSQL aislado.
 No ampliar el alcance para solventar la ausencia de credencial. Conservar el
 kernel y el gateway comunes. Si se autoriza despliegue, usar exclusivamente
 `./deploy/deploy.sh`. Retirar este archivo cuando se cierre el trabajo pendiente.
+
+## Propuesta de rehacer opforja (pendiente de aprobación)
+
+El 2026-09-30 el dueño encargó rehacer opforja sobre el canon entregado:
+`reglas-opm-estrictas-es` 1.5.0, `spec-forja-opd-es` 1.4.0, `spec-forja-opl-es` 1.4.1 y
+`metodologia-forja-opm-es` 1.7.0, «ni más ni menos», con servidor mínimo sobre archivos. Pidió
+detenerse antes de implementar. El estudio, la especificación derivada del canon y el diseño final
+están en [docs/rehacer/](docs/rehacer/README.md), integrados en `main`. No se implementó ni
+desplegó nada; `app/` solo recibió una corrección independiente: un solo `validarMultiplicidad`,
+que acepta `?`. La maqueta de interfaz quedó en pausa a pedido del dueño: estado y pendientes en
+`docs/rehacer/README.md`.
+
+Próxima acción: revisión del dueño. Si aprueba, se ejecuta el plan de
+`docs/rehacer/design/DESIGN.md` §12 en una rama `rehacer` creada desde `main`. Ese plan retira el
+agente integrado, así que la aprobación dejaría obsoleto el pendiente de credencial descrito
+arriba.

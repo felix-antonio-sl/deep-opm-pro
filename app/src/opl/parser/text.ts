@@ -10,9 +10,10 @@ const ETIQUETA_SUFIX = /\s*\[etiqueta:\s*([^\]]+)\]\s*$/i;
  * `+ **Componentes**`, `2..* **Cosas**`, `* **Veces**`. Esta regex extrae la
  * cardinalidad y deja el resto del texto.
  *
- * Lenguaje aceptado (espejo de `MULTIPLICIDAD_CANONICA_RE` del modelo): `1`,
- * `2..N`, `2..*`, `0..3`, `+`, `*`. Cualquier otro prefijo no matchea y queda
- * como nombre.
+ * Lenguaje aceptado (subconjunto de `validarMultiplicidad` en
+ * `modelo/enlaceMultiplicidad.ts`): `1`, `2..N`, `2..*`, `0..3`, `+`, `*`.
+ * `?` no se emite como prefijo: se escribe `un/una … opcional` y se lee como
+ * `0..1`. Cualquier otro prefijo no matchea y queda como nombre.
  */
 const MULTIPLICIDAD_PREFIJO_RE = /^\s*(?:(\d+(?:\.\.(?:\d+|N|\*))?|N|\+|\*)\s+(.+)|un\s+(.+?)\s+opcional(?:es)?|una\s+(.+?)\s+opcional(?:es)?)$/iu;
 
