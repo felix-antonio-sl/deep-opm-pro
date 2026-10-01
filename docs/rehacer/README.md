@@ -1,8 +1,8 @@
 # Rehacer opforja: estudio, canon y diseño (propuesta)
 
 **Estado al 2026-09-30:** propuesta de diseño **pendiente de aprobación** del dueño del producto.
-No hay implementación. El código de `app/` no cambió, salvo la corrección independiente
-`96b398e` (un solo `validarMultiplicidad`, que acepta `?`). Producción no se tocó.
+No hay implementación. El código de `app/` no cambió, salvo una corrección independiente: un solo
+`validarMultiplicidad`, que acepta `?`. Producción no se tocó.
 
 Este directorio conserva, dentro del repositorio, el trabajo previo a rehacer opforja. Esos
 documentos nacieron en un espacio efímero de sesión y aquí quedan recuperables. Cuando la
@@ -184,10 +184,10 @@ DESIGN §12 divide la implementación en 22 paquetes de trabajo repartidos en se
 - Cada integración exige `bun run check` en verde. Al final hay 26 escenarios e2e y 40 golden SVG
   revisados a ojo.
 
-La reescritura vive en la rama `rehacer`, creada desde `main` (`8ada528`), que reúne todos sus
-commits. `main` y producción no cambian hasta un merge y un despliegue autorizados. El tag
-`pre-rehacer` sobre la base se crea al empezar WP-0. Nada se implementa ni se despliega sin
-aprobación explícita.
+La propuesta está integrada en `main`. Si se aprueba, la implementación se hace en una rama
+`rehacer` creada desde `main`, con el tag `pre-rehacer` sobre la base al empezar WP-0
+(DESIGN §12.1). Producción no cambia hasta un despliegue autorizado. Nada se implementa ni se
+despliega sin aprobación explícita.
 
 ## Límites
 
