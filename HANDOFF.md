@@ -59,6 +59,10 @@ detenerse antes de implementar. El estudio, la especificación derivada del cano
 están en [docs/rehacer/](docs/rehacer/README.md). No se implementó ni desplegó nada; `app/` solo
 recibió la corrección independiente `96b398e`.
 
+Todo el avance está en la rama `rehacer`, creada desde `main` (`8ada528`); `main` no cambió. La
+maqueta de interfaz quedó en pausa a pedido del dueño: estado y pendientes en
+`docs/rehacer/README.md`.
+
 Próxima acción: revisión del dueño. Si aprueba, se ejecuta el plan de
-`docs/rehacer/design/DESIGN.md` §12 en la rama asignada. Ese plan retira el agente integrado, así
+`docs/rehacer/design/DESIGN.md` §12 en la rama `rehacer`. Ese plan retira el agente integrado, así
 que la aprobación dejaría obsoleto el pendiente de credencial descrito arriba.

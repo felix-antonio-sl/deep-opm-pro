@@ -184,8 +184,10 @@ DESIGN §12 divide la implementación en 22 paquetes de trabajo repartidos en se
 - Cada integración exige `bun run check` en verde. Al final hay 26 escenarios e2e y 40 golden SVG
   revisados a ojo.
 
-El plan menciona una rama `rehacer`. En esta sesión el trabajo va en la rama asignada, salvo que el
-dueño indique otra. Nada se implementa ni se despliega sin aprobación explícita.
+La reescritura vive en la rama `rehacer`, creada desde `main` (`8ada528`), que reúne todos sus
+commits. `main` y producción no cambian hasta un merge y un despliegue autorizados. El tag
+`pre-rehacer` sobre la base se crea al empezar WP-0. Nada se implementa ni se despliega sin
+aprobación explícita.
 
 ## Límites
 
