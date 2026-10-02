@@ -2420,10 +2420,17 @@ ninguna coordenada decide un hecho (P6).
 - **Tamaño inicial** 135×60. La escena dibuja `máx(guardado, necesario)`. Si el crecimiento produce
   un solape, lo informa la advertencia de export: nunca se re-rutea en silencio.
 - **Descomposición**:
-  - Contenedor: ancho `máx(420, banda más ancha + 80)` y alto `64 + nBandas·100 + (internos ? 100
-    : 0) + 24`.
-  - La banda k va en `y = contenedor.y + 64 + k·100`, con sus subprocesos centrados a 40 px entre
-    sí. Los objetos internos van en una fila inferior dentro del contenedor.
+  - El ancho de una fila es la suma de los anchos guardados de sus cosas más 40 px entre cosas.
+    Contenedor: ancho `máx(420, banda más ancha + 80, fila de objetos internos + 80)`.
+  - Cada banda k reserva `paso(k) = máx(100, alto guardado máximo de la banda k + 40)`.
+    Va en `y = contenedor.y + 64 + suma(pasos anteriores)`, con sus subprocesos centrados a
+    40 px entre sí. Los tamaños guardados se conservan.
+  - Los objetos internos van en una fila inferior dentro del contenedor, en
+    `y = contenedor.y + 64 + suma(pasos de todas las bandas)`. Si existe esa fila, reserva
+    `máx(100, alto guardado máximo de los objetos internos + 40)`; si no, reserva 0.
+  - Alto del contenedor: `64 + suma(pasos de las bandas) + reserva de internos + 24`.
+    Para filas de alto 60 los pasos siguen siendo 100; el ancho cambia cuando la fila de
+    internos necesita más espacio que el contenedor calculado por las bandas.
   - Externos (R-HIJO-3, R-OPD-LAY-9):
     - entradas (objeto de consumo, efecto de entrada, evento) en una columna a la izquierda;
     - salidas (resultado) a la derecha;
@@ -2431,8 +2438,8 @@ ninguna coordenada decide un hecho (P6).
     - procesos (invocación, excepción) a la derecha, bajo las salidas.
 
     En cada grupo, por nombre.
-  - Al cambiar las bandas se recalculan solo la `y` de los internos y el alto del contenedor. Mover
-    el contenedor mueve a sus internos.
+  - Al cambiar las bandas se recalculan solo la `y` de los internos y el alto del contenedor,
+    usando estos mismos pasos y reserva. Mover el contenedor mueve a sus internos.
 - **Despliegue**: la cosa arriba al centro; los refinadores en fila 180 px debajo, centrados, por
   nombre.
 - **Sin auto-layout global**: el canon no lo exige, y así desaparece el riesgo de que cambie hechos.

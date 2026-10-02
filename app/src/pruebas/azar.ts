@@ -1,0 +1,3 @@
+import type { Modelo } from '../nucleo/tipos';
+import { modeloCon } from './constructores';
+export function azar(semilla: number, perfil: 'estricto' | 'completo' = 'estricto'): Modelo { let s = semilla >>> 0; const n = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s; }; const objetos = Array.from({ length: 1 + n() % 6 }, (_, i) => [`Objeto_${i}`, Array.from({ length: n() % 4 }, (_, j) => `estado_${j}`)] as const); const procesos = Array.from({ length: 1 + n() % 5 }, (_, i) => `Procesar_${i}`); const enlaces = objetos.map(([nombre], i) => [perfil === 'completo' && i % 2 ? 'instrumento' as const : 'consumo' as const, nombre, procesos[i % procesos.length]!] as const); return modeloCon({ objetos, procesos, enlaces }); }
