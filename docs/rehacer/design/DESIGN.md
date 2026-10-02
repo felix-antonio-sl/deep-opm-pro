@@ -1089,7 +1089,9 @@ export const suprimirEstado: Operacion<{ estado: Id; opd: Id | null; activa: boo
   // null = global; activa=true rechaza 'estado-enlazado' si un enlace anclado se ve donde se ocultaría (LF-03)
 
 // matriz.ts (consulta; §4.3.4)
-export function tiposLegales(m: Modelo, a: { readonly opd: Id; readonly desde: ExtremoRef; readonly hacia: ExtremoRef }): readonly OpcionTipo[];
+export interface DatosEtiquetas { readonly etiqueta?: string | null; readonly inversa?: string | null }
+export function tiposLegales(m: Modelo, a: { readonly opd: Id; readonly desde: ExtremoRef; readonly hacia: ExtremoRef;
+                                           readonly etiquetas?: DatosEtiquetas }): readonly OpcionTipo[];
 // enlaces.ts
 export const crearEnlace:       Operacion<{ opd: Id; candidato: EnlaceNuevo; abanicoCon?: { enlace: Id; operador: Operador } }>;
   // 'no-visible' (T-066/visibilidad), 'interno-no-visible', forma, 'no-ofrecido', 'ya-existe', contexto (DS-20);
@@ -1098,6 +1100,8 @@ export const crearEnlace:       Operacion<{ opd: Id; candidato: EnlaceNuevo; aba
   // abanicoCon: crea y forma/extiende el abanico en la misma transacción (R-FAN-5, DR-6). creados[0] = id.
   // exhibición desde un exhibidor ambiental (o con afiliación ambiental heredada por la cadena) ⇒ el rasgo y
   // sus propios rasgos pasan a ambientales, con traza (T-091 «al crear la exhibición», R-OBJ-6, CC-02).
+  // valida etiquetas con normalizarEtiquetas antes de persistir: igualdad válida no vacía ⇒ recíproco,
+  // traza R-STRE-1; el resultado efectivo cumple F-11. Los datos faltantes o inválidos no se insertan.
 export const cambiarTipoEnlace: Operacion<{ enlace: Id; tipo: TipoEnlace }>;   // conserva id; campos incompatibles se retiran con traza; rama de abanico ⇒ 'abanico'
 export const fijarEstados:      Operacion<{ enlace: Id; estados: EstadosEnlace }>;   // forma de `estados` debe calzar con el tipo
 export const fijarControl:      Operacion<{ enlace: Id; control: Control | null }>;
@@ -1313,25 +1317,57 @@ export type OpcionTipo =
   | { readonly tipo: TipoEnlace; readonly sentido: 'directo' | 'inverso'; readonly legal: true;
       readonly candidato: EnlaceNuevo; readonly avisos: readonly Violacion[] }
   | { readonly tipo: TipoEnlace; readonly sentido: 'directo' | 'inverso'; readonly legal: false;
-      readonly motivo: Violacion; readonly alternativa?: Alternativa };
+      readonly motivo: Violacion; readonly alternativa?: Alternativa }
+  | { readonly tipo: 'etiquetadoBidireccional'; readonly sentido: 'directo' | 'inverso';
+      readonly legal: 'pendiente'; readonly requiere: readonly ['etiqueta', 'inversa'];
+      readonly avisos: readonly Violacion[] }
+  | { readonly tipo: 'reciproco'; readonly sentido: 'directo' | 'inverso';
+      readonly legal: 'pendiente'; readonly requiere: readonly ['etiqueta'];
+      readonly avisos: readonly Violacion[] };
 export function violacionesForma(m: Modelo, e: Enlace | EnlaceNuevo): readonly Violacion[];
+export function normalizarEtiquetas(e: EnlaceNuevo): Respuesta<EnlaceNuevo>;
 ```
 
-- **`tiposLegales`** construye un candidato por cada fila y cada sentido admisible del gesto.
+- **`tiposLegales`** evalúa una intención por cada fila y cada sentido admisible del gesto.
   - Los estados arrastrados van al rol que la fila admite. En efecto, van a `entrada` si el gesto
     sale del estado y a `salida` si llega a él. En generalización, van al par solo si ambos extremos
     son estados.
-  - Cada candidato pasa por `violacionesForma`, `noOfrecido`, las precondiciones y
-    `violacionesContexto`.
+  - `etiquetas` aporta datos del usuario en los roles origen/destino de la opción después de
+    aplicar `sentido`; no se infieren de nombres ni se intercambian por una suposición lingüística.
+    La firma del gesto y las precondiciones decidibles se validan primero con la misma matriz.
+  - Un bidireccional sin los datos requeridos devuelve `legal:'pendiente'`, requiere etiqueta e
+    inversa y no contiene candidato. Un recíproco con estados y sin etiqueta suministrada también
+    queda pendiente. Un null explícito, vacío o léxico inválido en un dato requerido devuelve
+    rechazo; unidireccional y recíproco sin estados conservan la etiqueta opcional ausente/null.
+    El hecho real recíproco con estados y sin etiqueta sigue rechazado por B-05.
+  - Una intención completa pasa por `normalizarEtiquetas` (léxico único; igualdad bidireccional
+    válida y no vacía ⇒ recíproco con traza R-STRE-1), `violacionesForma`, `noOfrecido` y las
+    precondiciones. Su admisibilidad se evalúa sobre el resultado efectivo de distribución (§4.5.3)
+    y el cierre DS-20. `legal:true.candidato` conserva la intención completa que recibe creación;
+    puede transformarse antes de persistir. F-11 se exige al modelo efectivo final.
   - Si R-ROL-UNIC-1 bloquea por un enlace existente L sobre el mismo par, adjunta la `alternativa`
     del «segundo gesto»:
     - si L es un TS4 y el gesto llega a otro estado del objeto, o L es un TS5 y el gesto sale de un
       estado, `completarCambio`;
     - si L es del mismo tipo y el abanico sería legal, `abanicoCon`;
     - si no, `cambiarTipoExistente`.
-  - Orden: legales por `menu`, luego ilegales con motivo.
+    Una colisión solo por ancestro/descendiente conserva el rechazo sin estas alternativas de
+    mismo par. La identidad de un hecho es semántica y no depende del orden de claves anidadas.
+  - Orden: completas legales por `menu`, pendientes seleccionables por `menu`, luego rechazadas
+    con motivo. Los consumidores comparan `legal === true/false/'pendiente'` explícitamente.
+- **`normalizarEtiquetas`** es un ayudante puro compartido por consulta y operaciones de enlaces;
+  conserva la entrada, usa `validarEtiqueta` sin trim/capitalización y devuelve la intención
+  normalizada con sus trazas. No es una operación registrada. La consulta conserva el candidato
+  completo original para que creación pueda emitir la traza de su normalización.
 - **`crearEnlace`**, `reanclarExtremo` y `cambiarTipoEnlace` usan las mismas funciones, más la
-  distribución y el cierre DS-20.
+  distribución y el cierre DS-20. Consulta completa, creación y reparación consumen la misma
+  distribución pura; no se ignoran R-DIST-1/AP-07/R-CX-DIST-2 en los hechos efectivos.
+  DS-20 compara siempre el original real, antes de insertar candidato o reservar ids, con el
+  resultado efectivo final; el borrador que ya contiene el enlace no se toma por modelo previo.
+- **Integración serial (B-28):** WP-2 verifica las reglas y los estados de datos; WP-3b verifica
+  equivalencia real sobre constructores sin refinamientos; WP-4r agrega la distribución compartida
+  a consulta/creación/reparación y cierra la equivalencia refinada. Hasta WP-4r/H2 no se declara
+  esa equivalencia completa ni se acredita con stubs; el límite permanece en conformidad/HANDOFF.
 - **Planificador OPL**: cada hecho reconocido se convierte en el mismo `EnlaceNuevo`.
   - Forma, contexto o precondición fallidos dan `type-mismatch` y la razón `enlace-invalido-firma`,
     con la regla en el mensaje.
@@ -1478,6 +1514,19 @@ banda; el **último** es el último de la última banda. Para cada enlace del co
 - Si un enlace migrado es rama de un abanico, el abanico sigue: con extremo común en `P`, todas las
   ramas en `P` migran juntas al mismo subproceso.
 - `distribuirEnlace` aplica la tabla a un solo enlace.
+
+La única realización pura de esta tabla vive en `refinamiento.ts` (WP-4r) y sirve también al
+ensayo de consulta y a creación. Su frontera interna es reutilizable, sin operación nueva:
+
+```ts
+export function planificarDistribucion(m: Modelo, a: { readonly opd: Id; readonly enlace: Enlace }): Respuesta<Hecho>;
+```
+
+`m` es el borrador preparado con enlace/id/secuencia y pertenencia al abanico si procede; para
+reparación contiene el enlace existente. La salida entrega modelo de ensayo, ids adicionales y
+trazas sin mutar la entrada. El plan no hace DS-20 contra ese borrador: el consumidor conserva
+el original anterior a insertar y valida forma/soporte/contexto finales y DS-20 contra ese original.
+Una función interna existente con esa misma frontera se reutiliza en vez de duplicar la tabla.
 
 #### 4.5.4 Desplegar (unfold) por modo (T-071)
 
@@ -2690,7 +2739,8 @@ canónica (P7), y toda acción se deshace en un paso.
       └ ↑↓ · 1–9 · ↵ · Tab otra orientación · ⎋ ────────────────────┘
       ```
 
-      - Cada vista previa es la línea que emitirá el generador real (`lineaDeEnlace`).
+      - Cada vista previa de una opción completa es la línea del resultado efectivo del ensayo
+        que emitirá el generador real (`lineaDeEnlace`). Una pendiente muestra los datos requeridos.
       - «N no disponibles» se despliega con los motivos, por ejemplo «agente: solo desde objeto
         físico (AP-05)».
       - La fila resaltada al abrir es el último tipo usado para ese par de clases y orientación
@@ -2703,7 +2753,10 @@ canónica (P7), y toda acción se deshace en un paso.
       - si hay un consumo y se intenta un instrumento, la fila bloqueada dice «Ya existe consumo
         entre **Agua** y *Hervir* (un procedimental por par, T-053)» y ofrece «Cambiar tipo del
         existente».
-   5. ↵ o un dígito crea el enlace. La línea nueva se resalta 2 s en el OPL.
+   5. ↵ o un dígito confirma la opción: una completa aceptada crea el enlace; una pendiente abre
+      sus campos antes de insertar. Al confirmar datos se reevalúa el mismo gesto/sentido y solo
+      `legal === true` permite creación. ⎋ cancela sin acción, id ni cambio de modelo.
+      La línea creada se resalta 2 s en el OPL.
    6. Si el proceso está descompuesto, la franja informa la migración: «migrado a *Recibir*
       (R-DIST-1)».
    7. **Por teclado**: con una cosa o un estado seleccionado, `R` entra al modo enlace («Enlace desde
@@ -2720,8 +2773,11 @@ canónica (P7), y toda acción se deshace en un paso.
      excepción, estructural, mitad escindida, o `c` con multiplicidad («combinación sin plantilla,
      DR-44»).
 9. **Etiquetas, ruta y multiplicidad.**
-   - Al crear un etiquetado se abre el editor de etiqueta en el punto medio. El bidireccional tiene
-     dos campos (`Tab`); si ambas etiquetas son iguales pasa a recíproco, con traza (R-STRE-1).
+   - Al seleccionar un etiquetado se abre el editor de etiqueta en el punto medio antes de
+     persistir. El bidireccional tiene dos campos (`Tab`); el recíproco con estados requiere una
+     etiqueta. Confirmar vuelve a consultar con los datos; cancelar conserva el modelo. Dos
+     etiquetas válidas no vacías e iguales se normalizan mediante creación a recíproco con traza
+     R-STRE-1. Unidireccional y recíproco sin estados admiten etiqueta ausente.
    - La ruta se edita en Propiedades (solo en consumo y resultado).
    - La multiplicidad por extremo legal se rota con `M` en el extremo objeto o refinador, y con
      `Mayús+M` en el origen de los etiquetados, en el orden —, `?`, `*`, `+`. Propiedades muestra la
@@ -3485,9 +3541,16 @@ Gates del Anexo A (T-303) y sus suites:
     por `tiposLegales`).
   - Un manejador sistémico **no** se rechaza (T-268).
 - `propiedades.test.ts`:
-  - Sobre todos los pares de extremos, incluidos estados, de 3 modelos de muestra y 50 de `azar`:
-    **`tiposLegales` nunca ofrece lo que `crearEnlace` rechaza, y todo lo que `crearEnlace` acepta
-    aparece en `tiposLegales`**.
+  - Sobre todos los pares de extremos, incluidos estados, de 3 modelos de muestra y 50 de `azar`,
+    con datos de etiquetas completos: **`tiposLegales` ofrece `legal:true` exactamente cuando
+    `crearEnlace` acepta esa intención por su resultado efectivo**. Las pendientes no contienen
+    candidato; se completan y se reevalúan. Las alternativas se prueban con su acción y opciones
+    específicas, incluido `abanicoCon`. WP-3b cubre modelos sin refinamientos y WP-4r añade la
+    integración refinada; hasta entonces B-28 declara el límite WP-2/H1.
+  - Vacíos/null/léxico inválido requeridos se rechazan; ausencia produce pendiente sin consumir
+    ids/mutar, completación conserva F-11 y B-05, igualdad válida normaliza con R-STRE-1.
+    La integración refinada cubre 0/1/≥2 subprocesos, TS3 con/sin control/en abanico, evento
+    sistémico, recursión, aparición externa, colisión final, rollback y DS-20 contra el original.
 - `secuencias.test.ts` (WP-4r, porque usa todas las operaciones, CC-23): invariantes tras secuencias
   aleatorias, 200 semillas × 40 acciones de `azar.acciones(m)`; después de cada paso,
   `validarForma` es vacía, no hay errores de contexto nuevos (DS-20) y la entrada no mutó.
@@ -3846,6 +3909,7 @@ parseo OPL, X = export.
 | B-25 | T-320 (Bocetos/Apunte), T-321 (coaccionar a informacional), T-323 (simulación), T-324 (extensiones) | no implementado (PUEDE / si existe) | — | fuera de alcance; T-322 (marca `×` al arrastrar) sí existe | CANON §0.4 |
 | B-26 | T-100 ★ (OPL completo «cubre todo el modelo cargado») | parcial | G·X | una cosa sin aparición o un enlace sin vista (DS-6; llegan por quitar la última aparición o por import) no pertenecen a ningún bloque: se diagnostican (`cosa-sin-aparicion`, `enlace-sin-vista`), bloquean `canon-documento` y el menú avisa en «OPL Markdown»; el JSON los conserva | DS-6, CC-01 |
 | B-27 | T-106 ★ / DR-2 («D2 y D4 no se emiten en canónico») frente a T-190 ★ / R-BI-DUAL-1 (un rectángulo aislado debe viajar por OPL) | parcial (desvío consciente) | G·P | el canónico emite D2 **solo** para una cosa visible que ninguna otra oración de su bloque menciona (mención mínima); nunca D4; el parser acepta D2 como mención | DS-2, CC-27 |
+| B-28 | T-040 / §10.2: equivalencia menú/creación por resultado efectivo con refinamientos | parcial (integración temporal) | N·U | WP-2 comprueba matriz y datos pendientes; WP-3b comprueba creación sin refinamientos; la distribución pura compartida de consulta/creación/reparación y sus propiedades se integran en WP-4r | opción A de HANDOFF autorizada por coordinación delegada; cierre de integración refinada en WP-4r/H2, sin stubs como evidencia |
 
 ### 11.4 Lista exacta de eliminación (rama `rehacer`, WP-0)
 
@@ -3900,11 +3964,13 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
   - Hasta WP-19, `docs/especificacion.md` es `docs/rehacer/understand/CANON.md` y `canon/` se
     copia de `docs/rehacer/canon/` (mapa completo en `docs/rehacer/plan/README.md`).
   - El WP cierra con `bun run check` verde. Ninguna prueba se debilita para pasar.
-- **Propiedad exclusiva de archivos.** Los archivos stub que crea WP-1 pasan a ser del WP dueño. Los
-  únicos archivos que tocan dos WP son tres, y se tocan en serie:
+- **Propiedad exclusiva de archivos.** Los archivos stub que crea WP-1 pasan a ser del WP dueño.
+  Los archivos compartidos se tocan en serie:
   - `nucleo/enlaces.ts`: WP-3b lo crea y WP-4r le agrega la llamada a `distribuir`;
   - `nucleo/cosas.ts`: WP-3a lo crea y WP-4r le agrega la inserción de subprocesos;
   - `opl/documento.ts`: WP-7 escribe `generarDocumentoOpl` y WP-9 le agrega `importarOpl` (CC-23).
+  - `nucleo/matriz.ts` y `nucleo/propiedades.test.ts`: WP-2 produce la consulta, WP-3b comprueba
+    propiedades sin refinamientos y WP-4r integra el hook de distribución y amplía propiedades.
 - **Cambios de contrato.** Solo se hacen por propuesta en `HANDOFF.md`, que es único, raíz, estable
   y sin fecha. Allí también se lleva la cuenta de qué WP cerró y cuál sigue. WP-19 lo elimina.
 
@@ -3914,18 +3980,18 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 |---|---|---|---|---|---|
 | **WP-0** | Andamiaje y retiro | borrados de §11.4; `canon/**` (+`LEEME.md` con sha256); `app/{package.json,bun.lock,bunfig.toml,tsconfig.json,vite.config.ts,index.html,playwright.config.ts,.gitignore}`; `app/src/arquitectura.test.ts`; `app/herramientas/dev.ts`; `git mv fixtures/demo-models/*.json app/fixtures/v0/`; `AGENTS.md` (§11.2); `HANDOFF.md` | scripts `dev`, `check`, `test`, `golden`, `build`, `e2e` (§10.1); dependencias de §2.2 | — | `bun install` no agrega nada fuera de §2.2 · `bun run check` verde · `git ls-files` no lista ninguna ruta de §11.4 · `sha256sum canon/*/content.md` coincide con `canon/LEEME.md` |
 | **WP-1** | Contratos y fundamentos | `nucleo/{tipos,resultado,ids,indice,lexico,herencia,forma,modelo,operaciones,colocacion}.ts` (completos); **stubs** con firmas exactas de todo archivo de §2.1 en `nucleo/ codec/ opl/ opd/ editor/`; `src/pruebas/{constructores,azar,expectativas-matriz}.ts` | produce §3.1, §3.2 (`validarForma`), §3.3, §4.1 (`transaccion`, `Tx` implementados), `Indice`, `claveNombre`, `buscarPorNombre`, `describirEnlace`, `sugerirNombre`, `OPERACIONES`/`Accion`, todos los tipos de §5.2, §6.1, §6.2, §6.8 y §7.6 | WP-0 | `bun run check` verde con los stubs · `forma.test` (F-1…F-13) · `lexico.test` (EBNF, y/e, o/u, `sugerirNombre`, T-025) · `herencia.test` (T-093) · `indice.test` · `colocacion.test` (hueco libre, contenedor, bandas, externos, despliegue; sin solapes) · `azar.test`: 200 semillas producen modelos con `validarForma = []` · `constructores` cubren todos los tipos de enlace |
-| **WP-2** | Matriz de validez | `nucleo/matriz.ts` | `MATRIZ`, `REGLAS_CONTEXTO`, `NO_OFRECIDO`, `violacionesForma/Contexto/Abanico`, `noOfrecido`, `tiposLegales` (con `Alternativa`), `erroresContexto` | WP-1 | `bun test src/nucleo/matriz.test.ts`: coincide con `expectativas-matriz.ts`; ≥1 caso legal y ≥1 ilegal por fila de CANON §2.1 y por regla; títulos T-040…T-066, T-268 · `NO_OFRECIDO` cada fila probada |
+| **WP-2** | Matriz de validez | `nucleo/matriz.ts`, `nucleo/matriz.test.ts`; conformidad (filas y B-28) | `MATRIZ`, `REGLAS_CONTEXTO`, `NO_OFRECIDO`, `violacionesForma/Contexto/Abanico`, `noOfrecido`, `tiposLegales` (con `Alternativa` y datos pendientes), `normalizarEtiquetas`, `erroresContexto` | WP-1 | `bun test src/nucleo/matriz.test.ts`: coincide con `expectativas-matriz.ts`; ≥1 caso legal y ≥1 ilegal por fila de CANON §2.1 y por regla; títulos T-040…T-066, T-268 · `NO_OFRECIDO` cada fila probada · etiquetas pendientes/completas, F-11/B-05, igualdad con R-STRE-1, sentido/pureza, duplicados semánticos y alternativas solo del mismo par · B-28 declara integración refinada pendiente de WP-4r/H2 |
 | **WP-4p** | Proyección y árbol | `nucleo/proyeccion.ts`, `nucleo/frontera.test.ts` | `proyectar`, `Vista`; `etiquetaOpd` y `opdsEnPreorden` se reexportan y leen `indice(m).preorden`/`.etiqueta` de WP-1: una sola implementación (CC-22) | WP-1 | `proyeccion.test`: 12 niveles de fuerza, 9 celdas R-PREC, R-VIS-HIJO-1 + DR-13, estados anclados visibles, `SDx.y` que muta (T-085, T-086, T-031) · `frontera.test` con mutante que la pone roja (T-089) |
 | **WP-6** | Códec v0 | `codec/**`; `app/fixtures/v0/sintetico.json` (generado por `azar`, semilla fija) | §3.4 completo | WP-1; merge tras WP-4p (export de visibilidad y etapa 12) | `codec.test` (una prueba por regla de §3.4.2) · `codec-fijo.test` · `codec-derivados.test` (23 derivados) · `codec-visibilidad.test` · los 6 fixtures importan `ok` |
 | **WP-8a** | Geometría, marcadores y fuente | `opd/{tokens,geometria,marcadores,metricas,fuente}.ts`; `herramientas/medir-fuente.ts` | `Punto`, `Rect`, recortes, peine, rayo, lazo, arcos, cruces; `anchoTexto`, `envolver`; base64 de la fuente | WP-1 | `geometria.test` (T-211, T-216, T-224) · `marcadores.test` (paths ≡ canon, T-209, T-210, T-212, T-215) · `medir-fuente.ts` corre en Chromium de `/opt/pw-browsers` y regenera ambos archivos de forma idéntica dos veces |
 | **WP-11** | Servidor | `servidor/{principal,sesion,almacen,cuenta}.ts` | §8.1–§8.3; `crearServidor({ datos, web, secreto, token?, version, canon: { leerCanonico, importarV0, exportarV0, revision, resumen } })` (códec inyectable) | WP-1; merge tras WP-6 (pruebas de integración con el códec real) | `sesion.test`, `almacen.test`, `principal.test` (§10.6), incluidos Bearer, previas, `?respaldo=1`, 422, `X-Opforja-Version`, `ID_MODELO` en rutas y el arranque con archivos no canónicos (CC-14, CC-16) · `cuenta` porta `pre-rehacer:app/src/server/passwordHash.ts` (se verifica un hash real del formato viejo) |
 | **WP-18** | Despliegue (sin desplegar) | `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `deploy/{deploy.sh,deploy.test.ts,respaldo.sh}`, `deploy/systemd/opforja-respaldo.*` | §9 | WP-0 (redacción); la verificación de imagen necesita WP-11 y WP-14 | `bun test ../deploy` al cerrar · `docker compose build` correcto en local y la imagen sin `src/`, pruebas ni `node_modules` **cuando existan `servidor/` y `main.tsx`** (se verifica en la ola 4 o en WP-19; antes `vite build` no tiene entrada, CC-23) |
 | **WP-3a** | Operaciones: cosas y estados | `nucleo/{cosas,estados}.ts` | §4.2 (cosas, estados) | WP-2, WP-4p (`suprimirEstado` consulta la visibilidad de enlaces anclados, CC-23) | `cosas.test`, `estados.test`: éxito, rechazo con código, trazas, ids, deshacer; T-062, T-063, T-065, T-081, T-248, T-251, **DS-5** (`tiene-refinamiento`), **DS-6** (última aparición), selección múltiple, DS-20 |
-| **WP-3b** | Operaciones: enlaces y abanicos | `nucleo/{enlaces,abanicos}.ts` | §4.2 (enlaces, abanicos), `reanclarExtremo`, alternativas del segundo gesto | WP-2, WP-4p (`crearEnlace` muestra el estado oculto donde el enlace se ve, CC-23) | `enlaces.test`, `abanicos.test`: `crearEnlace` con `abanicoCon`, `fijarEstados` (4 formas), `reanclarExtremo` (todas las familias, T1→TS1, T-250), `eliminarEnlaces` (mitad escindida ⇒ standalone; `valor` huérfano retirado, CC-03), exhibición que propaga lo ambiental (CC-02), T-066 · `propiedades.test` (`tiposLegales` ≡ `crearEnlace`, sobre modelos de `constructores`; sin secuencias de operaciones de WP-3a) |
+| **WP-3b** | Operaciones: enlaces y abanicos | `nucleo/{enlaces,abanicos}.ts`, sus pruebas y `nucleo/propiedades.test.ts` | §4.2 (enlaces, abanicos), `reanclarExtremo`, alternativas del segundo gesto | WP-2, WP-4p (`crearEnlace` muestra el estado oculto donde el enlace se ve, CC-23) | `enlaces.test`, `abanicos.test`: `crearEnlace` con `abanicoCon`, `fijarEstados` (4 formas), `reanclarExtremo` (todas las familias, T1→TS1, T-250), `eliminarEnlaces` (mitad escindida ⇒ standalone; `valor` huérfano retirado, CC-03), exhibición que propaga lo ambiental (CC-02), T-066 · `propiedades.test` (`tiposLegales` ≡ `crearEnlace`, sobre 3 modelos de muestra de `constructores` y 50 de `azar` sin refinamientos, con etiquetas completas, pendientes no persistibles y normalización con traza; integración refinada en WP-4r/B-28; sin secuencias de operaciones de WP-3a) |
 | **WP-5** | Diagnóstico y gates | `nucleo/diagnostico.ts` | `CATALOGO`, `diagnosticar`, `gatesExportacion`, reparaciones | WP-2, WP-4p | `diagnostico.test`: cada código con un caso positivo y uno negativo, y cada `reparacion` es una `Accion` bien formada (que aplicada lo resuelve se prueba en `reparaciones.test` de WP-4r, que ya tiene todas las operaciones, CC-23); T-260, T-261, T-263 (un solo código, con herencia y subprocesos), T-265, T-268, T-283 |
 | **WP-7** | OPL: generación | `opl/{vocabulario,linea,plantillas,generar}.ts`; `opl/documento.ts` (`generarDocumentoOpl`) | `PLANTILLAS` (con `hacia`), `generarBloque`, `generarModelo`, `textoCanonico`, `lineaDeEnlace` | WP-4p | `vocabulario/plantillas/generar.test`: T-100…T-139 de la tabla §12.6; RF2b sin coma; RFE; mención mínima; ids de línea estables; unidades es-CL |
 | **WP-8b** | OPD: escena, dibujo, export | `opd/{escena,dibujo,exportar}.ts`, `opd/__golden__/**` | `escena`, `dibujar`, `aTexto`, `exportarDiagrama`, `exportarDocumento`, `advertenciasEscena` | WP-4p, WP-8a, WP-6 (los golden del SD y de un OPD profundo de cada fixture importan v0, CC-23); gates tras WP-5 | `escena/exportar/golden.test`: 40 golden revisados **visualmente** uno a uno (SYNTHESIS §8-5); T-200…T-228 de la tabla §12.6; `@font-face` en el export |
-| **WP-4r** | Refinamiento (operaciones) | `nucleo/refinamiento.ts`; hook de `distribuir` en `nucleo/enlaces.ts` y de subproceso en `nucleo/cosas.ts` | §4.5 (`descomponer`, `agregarSubprocesos`, `moverSubproceso`, `fijarBandas`, `desplegar`, `agregarRefinadores`, `eliminarRefinamiento`, `distribuirEnlace`) | WP-3a, WP-3b, WP-5 (para `reparaciones.test`) | `refinamiento.test`: tabla §4.5.3 fila por fila, incluida DS-4; T-070…T-083; sin semillas; un `gesto`; materialización · `secuencias.test` (200 semillas × 40 acciones de `azar.acciones`, incluidas las de refinamiento: `validarForma` vacía, sin errores de contexto nuevos, entrada sin mutar) · `reparaciones.test` (cada reparación de `CATALOGO` y `REGLAS_CONTEXTO`, aplicada con `aplicarAccion`, hace desaparecer su diagnóstico) |
+| **WP-4r** | Refinamiento (operaciones) | `nucleo/refinamiento.ts`; hook de `distribuir` en `nucleo/enlaces.ts` y de subproceso en `nucleo/cosas.ts`; hook de ensayo en `nucleo/matriz.ts`; ampliación `nucleo/propiedades.test.ts` | §4.5 (`descomponer`, `agregarSubprocesos`, `moverSubproceso`, `fijarBandas`, `desplegar`, `agregarRefinadores`, `eliminarRefinamiento`, `distribuirEnlace`) | WP-3a, WP-3b, WP-5 (para `reparaciones.test`) | `refinamiento.test`: tabla §4.5.3 fila por fila, incluida DS-4; T-070…T-083; sin semillas; un `gesto`; materialización · `secuencias.test` (200 semillas × 40 acciones de `azar.acciones`, incluidas las de refinamiento: `validarForma` vacía, sin errores de contexto nuevos, entrada sin mutar) · `reparaciones.test` (cada reparación de `CATALOGO` y `REGLAS_CONTEXTO`, aplicada con `aplicarAccion`, hace desaparecer su diagnóstico) · `propiedades.test`: consulta ≡ creación por resultado efectivo de distribución real compartida con reparación; 0/1/≥2 subprocesos, TS3/control/abanico, evento, recursión, aparición externa, colisión, rollback y DS-20 contra original; cierre de integración N de B-28 en WP-4r/H2 |
 | **WP-9** | OPL: análisis y edición inversa | `opl/{analizar,planificar,aplicar,no-soportadas}.ts`; `opl/documento.ts` (`importarOpl`) | `analizar`, `planificar`, `aplicarPlan`, `NO_SOPORTADAS`, `NO_CANONIZADAS`, `TEXTO_RAZON` | WP-7, WP-3a, WP-3b, WP-4r | `analizar/editor-opl/roundtrip-matriz/roundtrip-azar/roundtrip-tabla92/composicion/lente.test`: T-150…T-196; D1/D3 «solo si difieren» y creación por tipografía en el **mismo merge** (SYNTHESIS §8-16); ~700 casos en < 3 s |
 | **WP-13** | Editor | `editor/**` | §7.6 (`crearEditor`, `Cliente`, `AlmacenLocal`, `COMANDOS`, `reducirGesto`) | WP-3a/b, WP-4r, WP-6, WP-7 (`lineasNuevas` usa `generarModelo`); contrato de WP-11 | `estado/guardado/comandos/gestos.test` (§10.6): ambas resoluciones de conflicto, 404/413, apertura no canónica, salida con pendientes, reingreso, versión nueva, un paso por `gesto`, deshacer vuelve al OPD · `aplicarOpl` se prueba con un `Plan` construido a mano (`base` + `acciones`), sin depender del analizador de WP-9 (CC-23) |
 | **WP-10** | Integración códec × OPL y rendimiento | `opl/roundtrip-modelos.test.ts`, `src/rendimiento.test.ts` (sin dueño antes, CC-23) | — | WP-6, WP-9, WP-5, WP-8b | auto-reparseo por OPD con 0 cambios en los 6 fixtures y el sintético (UX-01) · estricto de documento completo para los que pasan los gates · `rendimiento.test` (§2.4, falla a 3×) |

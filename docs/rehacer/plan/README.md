@@ -64,9 +64,11 @@ DESIGN usa las rutas del repositorio final. Hasta que WP-19 cierre, equivalen a 
 Hitos de revisión con el dueño:
 
 - **H1, tras la ola 1.** Contratos, matriz, proyección, códec, geometría y servidor en verde. Los 6
-  fixtures v0 importan bien.
+  fixtures v0 importan bien. B-28 declara la equivalencia con distribución refinada pendiente de
+  WP-4r/H2; H1 no acredita esa integración mediante stubs.
 - **H2, tras la ola 3.** Núcleo, diagnóstico, OPL de ida y vuelta, y editor. El roundtrip estricto
-  por enumeración de la matriz da verde.
+  por enumeración de la matriz da verde, y la equivalencia menú/creación por resultado efectivo de
+  distribución refinada real tiene sus propiedades verdes (WP-4r, integración N de B-28).
 - **H3, tras la ola 5.** UI completa y 26 e2e en verde. Hay PR abierto y nada desplegado.
 
 ## Protocolo por paquete
@@ -75,11 +77,15 @@ Hitos de revisión con el dueño:
    DESIGN se ubican por su encabezado (`grep -n '^#' docs/rehacer/design/DESIGN.md`).
 2. Escribir primero las pruebas. Cada prueba de requisito se titula con su T-ID
    (`test('T-043 …')`), así `bun test -t T-043` la encuentra.
-3. Tocar solo los `archivos` del paquete. Los únicos archivos compartidos son tres y se tocan en
+3. Tocar solo los `archivos` del paquete. Los archivos compartidos declarados se tocan en
    serie (DESIGN §12.1):
    - `nucleo/enlaces.ts`;
    - `nucleo/cosas.ts`;
    - `opl/documento.ts`.
+   - `nucleo/matriz.ts`: WP-2 produce consulta y normalización; WP-4r agrega el ensayo compartido
+     de distribución.
+   - `nucleo/propiedades.test.ts`: WP-3b prueba creación sin refinamientos; WP-4r amplía la
+     integración refinada sin retirar la cobertura anterior.
 4. Ninguna regla OPM vive fuera de `nucleo/matriz.ts` o `nucleo/diagnostico.ts`. Ninguna oración
    OPL vive fuera de `opl/plantillas.ts`. Toda mutación es una `Operacion` registrada.
 5. Cerrar con `cd app && bun run check` en verde, más las verificaciones de `aceptacion`. Ninguna
@@ -99,6 +105,12 @@ WP-8b → WP-4r → WP-9 → WP-13 → WP-10 → WP-12 → WP-14 → WP-15 → W
 
 - WP-18 se redacta en su turno; la verificación de su imagen se hace después de WP-14.
 - WP-14, WP-15 y WP-16 se cierran con `bun run check` y `bun run build`; sus e2e los ejecuta WP-17.
+- La opción A de la frontera menú/creación, resuelta por coordinación delegada en HANDOFF,
+  conserva este orden: WP-2 prueba etiquetas pendientes/completas y reglas nativas; WP-3b ejecuta
+  propiedades reales sin refinamientos; WP-4r implementa la distribución pura única consumida por
+  consulta, creación y reparación y completa las propiedades refinadas. B-28 permanece explícita
+  en conformidad/HANDOFF hasta esa aceptación. DS-20 usa siempre el original anterior a insertar
+  frente al resultado efectivo final; nunca un borrador intermedio como modelo previo.
 - Entre paquetes no se pregunta si seguir. Una ambigüedad que el canon y DESIGN dejan abierta se
   resuelve con la opción más simple que los respete y se anota en `HANDOFF.md`.
 - Al cerrar cada ola, el agente relee el diff de la ola contra el canon y DESIGN (firma, OPL

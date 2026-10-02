@@ -1,6 +1,6 @@
 # OpForja rehecho — tablero único
 
-Estado: WP-0 y WP-1 cerrados; WP-2 es el primer paquete pendiente. H1 sigue pendiente.
+Estado: WP-0, WP-1 y WP-2 cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-4p es el siguiente paquete. H1 sigue pendiente.
 Rama `rehacer`; base y tag `pre-rehacer`: `513ac041`. La directora creó/publicó rama y tag.
 WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. La directora publica un commit por paquete.
 
@@ -11,15 +11,19 @@ La autoridad OPM es el canon vendorizado de `canon/`. Decisiones fijas: 1–28 d
 El [mapa temporal del plan](docs/rehacer/plan/README.md) resuelve las referencias a documentos
 finales hasta WP-19; `docs/rehacer/` permanece íntegro. El dueño autorizó expresamente la propuesta
 de colocación de §6.6. El contrato se registró antes de reanudar producción; WP-1 superó las tres
-regresiones, el check y la revisión focal. Se continúa por WP-2 con integración real sin dobles.
+regresiones, el check y la revisión focal. WP-2 conserva el historial de las dos regresiones rojas;
+la resolución delegada de la opción A se registró antes de modificar contratos y producción.
+El candidato conserva check integrado verde y revisiones independientes de contrato y producto
+favorables. El nuevo pedido del dueño retoma la publicación de WP-2 y la ejecución lineal; la
+restricción local correspondía al incremento delegado anterior, cuyo recibo se conserva abajo.
 
 ## Tablero lineal
 
 | Orden | Paquete | Estado | Commit |
 |---:|---|---|---|
 | 0 | WP-0 | Cerrado: aceptación y revisión verdes | `b9d94180b5f587cdf125d8c4fabcf26edb5917c3` |
-| 1 | WP-1 | Cerrado: aceptación y revisión verdes; ajuste autorizado incorporado | Este commit: `feat(nucleo): contratos y fundamentos del modelador (WP-1)` |
-| 2 | WP-2 | Pendiente | — |
+| 1 | WP-1 | Cerrado: aceptación y revisión verdes; ajuste autorizado incorporado | `817061a7f8312aa495b9ad00190f7d30db11ca40` |
+| 2 | WP-2 | Cerrado: aceptación y revisiones verdes; opción A incorporada | Este commit: `feat(nucleo): matriz de validez única (WP-2)`; hash se incorpora en la siguiente actualización |
 | 3 | WP-4p | Pendiente | — |
 | 4 | WP-6 | Pendiente | — |
 | 5 | WP-8a | Pendiente | — |
@@ -380,3 +384,384 @@ El commit del propio cierre se localiza por el título único de la fila del tab
 paquete lo fija como SHA literal. Dirección revisó y preparó únicamente los 61 archivos fuente/
 pruebas nuevos de WP-1, el ajuste autorizado de DESIGN y este tablero, con diff sin errores de
 espacio. El cierre se publica únicamente en origin/rehacer; main permanece fuera de la entrega.
+
+
+## WP-2: candidato y evidencia acotada
+
+Propiedad: `app/src/nucleo/matriz.ts`, su suite y el registro obligatorio de conformidad.
+Se materializaron las 15 filas literales de firma, las reglas de contexto (incluidas las dos
+severidades de AP-27), validez de abanicos, las cinco filas NO_OFRECIDO y las consultas del menú
+con alternativas. `erroresContexto` incluye solo errores; DS-20 tolera errores previos por identidad
+`codigo+refs`. Reparaciones devuelven acciones registradas; no implementan operaciones futuras.
+
+Integración sin mocks de matriz/diagnóstico: F-2/F-5, ambas excepciones, error nuevo DS-20,
+error previo, rollback/pureza, identidad `codigo+refs` aun con otra regla y excepción explícita;
+200 semillas congeladas de `azar` con `validarForma=[]`. Los modelos válidos de la suite se
+comprueban además en `afterEach`. Estados iniciales, herencia múltiple/ciclos, unicidad entre
+ancestro/descendiente (sin colisión entre hermanos), abanicos y AP-27 tienen contraejemplos reales.
+El manejador de excepción sistémico se admite (T-268); los avisos de duración/afiliación son WP-5.
+
+Evidencia del candidato (logs en `/tmp/opforja-rehacer/`): RED inicial 0 pass / 48 fail contra
+stubs (`WP-2-red.log`); GREEN focal 48 pass / 0 fail. Check inicial detectó cuatro errores de
+TypeScript en pruebas, corregidos sin cambiar expectativas. RED de bordes 53 pass / 4 fail
+(`WP-2-red-bordes.log`): ramas idénticas, campos de estado ajenos, multiplicidad etiquetada
+inválida y propuesta de segundo abanico sobre enlace agrupado; corregidos. Check posterior
+verde 114 pass / 0 fail, 1265 aserciones (`WP-2-green-check.log`), anterior al último caso de
+anclaje vacío y a la concreción bidireccional pendiente. RED adicional de anclaje vacío observado.
+Check verde histórico previo a la regresión activa: 115 pass / 0 fail, 1269 aserciones
+(`WP-2-historical-green-check.log`); focal histórico 58 pass / 0 fail, 852 aserciones
+(`WP-2-historical-green-focal.log`). No es el estado actual del candidato.
+Regresión activa T-040/T-120, ambas orientaciones: candidato legal incorporado tal cual con
+id único y extremos visibles deja F-11; RED focal real 0 pass / 2 fail, 10 aserciones
+(`WP-2-red-bidireccional.log`). Check final actual: 115 pass / 2 fail, 1279 aserciones,
+117 casos en 13 archivos, TypeScript estricto aprobado (`WP-2-final-check.log`); exit 1
+por las dos regresiones F-11.
+
+Concreción aprobada por dirección: `noOfrecidoDescomposicion(m,cosa)` consulta B-02, porque
+una descomposición no es un enlace; se mantienen las firmas exactas existentes. El propietario
+WP-4r deberá integrarla con `descomponer`. Desviación de frontera TDD declarada: el ayudante
+se redactó inicialmente con el primer GREEN; se devolvió a stub antes de su prueba T-072,
+se observó RED 0 pass / 1 fail y se reintegró el mínimo GREEN. No se presenta como TDD original
+sin esa corrección.
+
+Concreción pendiente de dirección: `tiposLegales` no recibe las etiquetas de un gesto
+bidireccional, pero OpcionTipo exige candidato completo. El candidato actual usa etiquetas
+vacías a completar y devuelve `legal:true` para la firma; persistido así incumple F-11.
+La regresión conserva el fallo F-11 sin cambios de producción, saltos ni expectativas debilitadas.
+La rama está congelada y no se declara cierre ni la propiedad menú/crearEnlace (§10.2).
+No se inventarán etiquetas ni se cambiará contrato sin resolución de dirección.
+
+Conformidad B-02/B-04/B-05/B-06/B-08: evidencia N limitada a consultas e integración de forma.
+UI, operaciones de enlaces/abanicos/refinamiento, importación, OPL y exportación siguen en sus
+paquetes. T-062/T-065 pertenecen al léxico/identidad y operaciones posteriores; T-063 aquí
+acredita reevaluación de firma, no la operación de cambio de tipo. No se adelanta WP-4p ni otro
+paquete. H1–H3 pendientes. Sin stage/commit/push, cambios de rama, producción, despliegue,
+contenedores, migración real, credenciales ni `.env`.
+
+## Detención WP-2: evidencia y propuesta al dueño
+
+Esta sección es una propuesta, sin autorización de implementación. La respuesta «Autorizo»
+anterior resolvió exclusivamente la propuesta de colocación de §6.6; ese ajuste está cerrado y
+publicado en WP-1. No autoriza por inferencia cambiar esta nueva frontera de DESIGN.
+
+### Incompatibilidades comprobadas
+
+1. DESIGN §4.2 da a `tiposLegales` únicamente OPD y extremos. §4.3.4 exige que una opción
+   `legal:true` contenga `EnlaceNuevo`, pero F-11 (§3.2) exige dos etiquetas no vacías y distintas
+   en el bidireccional. La consulta actual entrega ambas vacías; al incorporar su candidato
+   literal a un modelo válido, las dos orientaciones producen exclusivamente F-11. Las dos
+   regresiones T-040/T-120 están activas en `matriz.test.ts`, sin modificación de producción
+   para esconder el fallo. Bloquear siempre este tipo tampoco permite la completitud de §10.2
+   cuando creación recibe las etiquetas válidas del usuario. El recíproco con estados presenta
+   la misma necesidad de recibir una etiqueta: sin ella cae en B-05.
+2. §4.3.4 filtra por contexto la intención de enlace al contorno, mientras §4.2/§4.5.3 exigen que
+   creación distribuya automáticamente los enlaces tardíos antes del cierre. Una sonda pura,
+   con modelo válido y un subproceso, observó consumo objeto→contenedor rechazado por el menú
+   con R-DIST-1, y su hecho efectivo objeto→subproceso sin violaciones de forma/contexto.
+   La operación futura no se ejecutó: la diferencia se cotejó contra su contrato literal.
+   Una consulta sobre el resultado transformado puede resolverla, pero necesita precisar
+   §4.3.4 y la asignación serial de su integración, sin ignorar las reglas de contorno.
+
+### Cambio mínimo propuesto
+
+Ampliar la entrada de consulta (§4.2) con datos opcionales del usuario, aplicables a las tres
+filas etiquetadas. Las etiquetas corresponden a origen/destino de la opción seleccionada después
+de aplicar su sentido; la UI conserva ese sentido durante la edición.
+
+```ts
+export interface DatosEtiquetas {
+  readonly etiqueta?: string | null;
+  readonly inversa?: string | null;
+}
+export function tiposLegales(m: Modelo, a: {
+  readonly opd: Id;
+  readonly desde: ExtremoRef;
+  readonly hacia: ExtremoRef;
+  readonly etiquetas?: DatosEtiquetas;
+}): readonly OpcionTipo[];
+```
+
+Conservar los casos booleanos de `OpcionTipo` y agregar en §4.3.4 estos dos casos de datos
+pendientes, que no contienen candidato:
+
+```ts
+| { readonly tipo: 'etiquetadoBidireccional'; readonly sentido: 'directo' | 'inverso';
+    readonly legal: 'pendiente'; readonly requiere: readonly ['etiqueta', 'inversa'];
+    readonly avisos: readonly Violacion[] }
+| { readonly tipo: 'reciproco'; readonly sentido: 'directo' | 'inverso';
+    readonly legal: 'pendiente'; readonly requiere: readonly ['etiqueta'];
+    readonly avisos: readonly Violacion[] }
+```
+
+La firma y las precondiciones decidibles se comprueban primero: un gesto inválido conserva su
+rechazo. Después, datos requeridos no suministrados permiten `pendiente`; un null explícito,
+una cadena vacía o un léxico inválido los rechazan con motivo. Unidireccional y recíproco sin
+estados conservan la etiqueta opcional: ausente/null significa sin etiqueta. Recíproco con estados
+requiere la etiqueta; el hecho real sin ella sigue excluido por B-05. Las consultas y operaciones
+usan `validarEtiqueta`, sin recortar, capitalizar ni inventar frases.
+
+`legal:true.candidato` se precisa como intención completa apta para creación. La creación puede
+transformarla por las reglas declaradas; el modelo efectivo final debe cumplir F-11. Dos etiquetas
+válidas y no vacías, iguales entre sí, se normalizan a recíproco mediante creación con traza
+R-STRE-1. Las vacías nunca habilitan esa normalización. Se conservan los tipos `EnlaceNuevo` y
+las firmas de las operaciones persistentes; no se añade una operación para datos pendientes.
+
+En los flujos 7/9 de §7.3, elegir `pendiente` abre los campos antes de insertar el enlace.
+Cancelar deja cero acciones, cero ids y el mismo modelo. Confirmar vuelve a evaluar con los
+datos del usuario; solo `legal === true` habilita creación. Los consumidores distinguen
+explícitamente true/false/pendiente. El menú ordena completas, pendientes seleccionables y
+rechazadas; la vista previa OPL de una completa corresponde al resultado efectivo del ensayo
+real. Una pendiente muestra los campos requeridos, sin generar frases de dominio ficticias.
+
+Precisar §§4.3.4/4.5.3/10.2 para que consulta completa, creación y reparación consuman una única
+distribución pura autoritativa. La consulta ensaya en memoria sobre una copia y descarta el
+resultado; la operación entrega el Hecho y las trazas. Se validan datos, forma, NO_OFRECIDO,
+precondiciones y el contexto final. R-DIST-1/AP-07/R-CX-DIST-2 se conservan y siguen rechazando
+hechos ilegales que permanecieran en el contorno. El ensayo incluye recursión, apariciones
+externas, escisiones y abanicos, con los mecanismos existentes de ids y copia de camino.
+
+El cierre DS-20 compara siempre el modelo original, anterior a insertar el candidato, con el
+resultado efectivo final. Nunca toma como base el borrador intermedio que ya contiene el enlace:
+un error introducido allí podría compartir `codigo+refs` con el error final y quedar eximido
+incorrectamente. La política de identidad de DS-20 permanece intacta.
+
+La frontera interna propuesta para el transformador, dentro del archivo propietario
+`nucleo/refinamiento.ts` de WP-4r, es:
+
+```ts
+export function planificarDistribucion(m: Modelo, a: {
+  readonly opd: Id;
+  readonly enlace: Enlace;
+}): Respuesta<Hecho>;
+```
+
+Su entrada es el borrador preparado con enlace/id/secuencia y abanico, si procede; su salida es
+el modelo de ensayo, ids adicionales y trazas. No se registra en OPERACIONES ni aplica DS-20
+tomando ese borrador por original. El consumidor conserva el original real para el cierre.
+Una función interna existente con exactamente esa frontera se reutiliza; hay una sola tabla y
+una sola implementación de distribución para consulta, creación y reparación.
+
+### Alcance serial y pruebas propuestos
+
+Se conserva el orden lineal del plan. La resolución comprende precisar DESIGN y las lecturas,
+propiedad de archivos y aceptación de `plan.json`/README afectados:
+
+- WP-2 comprueba realmente forma, contexto, NO_OFRECIDO y los estados de datos de etiquetas.
+  Registra expresamente que la equivalencia completa con distribución sobre modelos refinados
+  aún necesita WP-4r. Ningún stub de distribución se cuenta como aceptación.
+- WP-3b ejecuta propiedades reales de menú/creación sobre los constructores sin refinamientos,
+  con etiquetas completas, normalización a recíproco, datos pendientes y rechazos. Conserva la
+  cobertura y los negativos existentes; no acredita modelos refinados mediante dobles.
+- WP-4r añade el hook propietario de `nucleo/matriz.ts` a los hooks ya previstos de enlaces y
+  cosas, lee las cláusulas de consumidores/equivalencia y completa `propiedades.test.ts` con
+  distribución real. La aceptación completa se cierra en WP-4r/H2. La brecha de integración
+  debe quedar explícita en conformidad y HANDOFF antes de cerrar paquetes anteriores.
+
+La propiedad mantiene ambos sentidos: para modelo original, OPD e intención completa con sus
+datos, la consulta ofrece `legal:true` exactamente cuando creación la acepta por el resultado
+efectivo. Una pendiente se completa y se vuelve a evaluar. Las alternativas del segundo gesto
+se comprueban con su acción y opciones específicas, incluido `abanicoCon`, y no se confunden con
+creación simple. La UI obtiene la vista previa del mismo ensayo y el generador real.
+
+Las dos regresiones actuales se convierten, solo después de aprobar el nuevo contrato, en
+controles de falta de datos→pendiente sin mutación y completación→resultado válido, preservando
+la cobertura de rechazo de vacíos/F-11. Se añaden igualdad válida→recíproco con traza y el caso
+B-05 con/sin etiqueta. No se elimina cobertura ni se salta o cuarentena una prueba para pasar.
+En WP-4r se exige consumo/resultado con 0/1/≥2 subprocesos, TS3 con/sin control/en abanico,
+evento sistémico, refinamiento recursivo, aparición externa, colisión en destino, rollback,
+entrada congelada y DS-20 contra el original. Los negativos sobre contorno persistido se conservan.
+
+### Hallazgos ordinarios conservados para la reanudación
+
+La otra revisión independiente encontró dos defectos dentro del contrato vigente, sin necesidad
+de una autorización adicional de diseño:
+
+- `mismoHecho` normaliza solo el nivel superior. Una generalización de estados válida con
+  `estados:{especializacion:sb,general:sa}` se ofrece como nueva, pero con las mismas claves
+  en orden inverso da `ya-existe`. La sonda tiene aserción RED real, exit 1. Hay que corregir la
+  igualdad semántica por campos y añadir su regresión antes de cerrar WP-2.
+- Una colisión por enlace a un ancestro adjunta `cambiarTipoExistente` aunque §4.3.4 limita esas
+  alternativas al mismo par. Cambiar el tipo conserva el extremo en el padre y deja bloqueado
+  el gesto al hijo. Hay que distinguir esos pares y probarlo, conservando R-ROL-UNIC-1.
+
+Los informes y sondas están en `/tmp/opforja-rehacer/WP-2-review-matriz.md`,
+`WP-2-review-probe.ts`, `WP-2-contract-probe.ts` y `WP-2-propuesta-frontera-enlaces.md`.
+No se corrigió producción después de confirmar la detención contractual. Los hallazgos ordinarios
+no están resueltos por los 115 casos verdes del check actual.
+
+### Estado al detenerse y condición de continuación
+
+Check actual observado: TypeScript estricto aprobado, **115 pass / 2 fail**, 1279 aserciones,
+117 pruebas en 13 archivos, exit 1 por las dos regresiones F-11. Se conserva el verde histórico
+como histórico. WP-2 no cumple cierre; H1, H2 y H3 siguen pendientes. Conformidad registra
+B-02/B-04/B-05/B-06/B-08 con evidencia limitada a consultas de núcleo y forma; no acredita
+operaciones, UI, importación, OPL o exportación futuros.
+
+Git verificado: `HEAD == origin/rehacer == refs/heads/rehacer` en
+`817061a7f8312aa495b9ad00190f7d30db11ca40`, divergencia `0 0`. `main`, `origin/main` y
+`pre-rehacer` continúan en `513ac041f6eb91dc8bf0eb5319a492eb6ff25f6d`.
+El trabajo local de WP-2 está conservado sin stage/commit/push en `matriz.ts`, `matriz.test.ts`,
+`docs/conformidad.md` y este HANDOFF. DESIGN y el plan no se modificaron para esta propuesta.
+
+Se detiene por la instrucción del dueño: «Si un contrato de DESIGN debe cambiar, propónlo en
+HANDOFF.md y detente». Para continuar falta la resolución explícita de esta propuesta conjunta.
+Si se autoriza, primero se registra el contrato aprobado y su asignación en el plan, luego se
+corrige WP-2 sobre el candidato conservado, se cumplen sus aceptaciones/check y se publica su
+único commit/push. Después sigue WP-4p y el resto del orden lineal. No se pide autorización para
+continuar entre paquetes ni se reabre ninguna decisión fija 1–28.
+
+## Resolución delegada de coordinación: opción A para WP-2
+
+Procedencia: mensaje de coordinación Korax recibido del hilo
+`01a0fc4b-2579-75b7-818e-9c97fe5db026`. El coordinador declara un nuevo mandato explícito de
+Félix para continuar los trabajos detenidos por confirmación confiando en su criterio, y autoriza
+la opción A después de revisar la propuesta concreta anterior. Se registra como decisión técnica
+delegada; no se atribuye a una aprobación humana directa del detalle ni al «Autorizo» de WP-1.
+
+Alcance autorizado: DatosEtiquetas opcionales; OpcionTipo pendiente sin candidato; captura de
+datos antes de persistir; normalización canónica con traza; ensayo/distribución puro compartido;
+DS-20 contra original real y resultado final; integración refinada en WP-4r/H2 con límite explícito
+WP-2/H1. Se conservan F-11, canon, decisiones fijas 1–28, orden serial y cobertura de pruebas.
+Se corrigen también duplicados semánticos y alternativas ante ancestros. Criterio declarado:
+resuelve contradicciones del objetivo menú/creación, es reversible y comprobable en Git, sin
+ampliar infraestructura, objetivos o riesgo operativo.
+
+La directora registra primero esta resolución y ajusta DESIGN, plan.json y README, incluidas
+lecturas, propiedad y aceptación. Luego la única ejecutora de WP-2 corrige el candidato conservado
+con RED/GREEN y revisión independiente GPT-6.1-Sol High. La normalización de etiquetas se
+centraliza como ayudante puro de matriz, reutilizable por creación futura, sin agregar operaciones
+registradas ni duplicar reglas en consumidores.
+
+Este incremento autoriza modificaciones y comprobaciones locales. No autoriza nuevas operaciones
+de red, comunicaciones externas, merge, push, publicación, despliegue, producción/contenedores,
+migración real, credenciales/.env, autenticación ni Air. Se conservará un candidato listo para
+revisión; la aceptación local no se declara cierre publicado del paquete ni resultado de H1.
+La condición anterior de detención queda resuelta en este alcance; el historial rojo permanece
+como evidencia de la detención anterior.
+
+## WP-2: candidato local tras la opción A delegada
+
+Estado: **CANDIDATO LOCAL VERIFICADO**, con revisión independiente favorable según el recibo
+final siguiente; publicación fuera del alcance de este incremento. No se declara paquete CERRADO,
+publicación ni aceptación de H1/H2/H3.
+La autoridad para esta reanudación es la resolución delegada Korax registrada arriba; no se
+atribuye a una aprobación humana directa del detalle ni al «Autorizo» de colocación en WP-1.
+
+Cambios de esta reanudación, sobre el trabajo WP-2 conservado:
+
+- `DatosEtiquetas` opcionales y `OpcionTipo` discriminada por true/false/`pendiente`. El
+  bidireccional requiere etiqueta e inversa; el recíproco con estados requiere etiqueta.
+  Ausencia/undefined requerida produce pendiente sin candidato ni id; null, vacío y léxico
+  explícito inválido producen rechazo. En unidireccional y recíproco sin estados, ausencia/null
+  se omiten. Las etiquetas siguen los roles de la opción después de su sentido, sin intercambio
+  lingüístico, recorte, capitalización ni frases inventadas.
+- Un borrador interno tipado conserva la firma incompleta sin fabricar un `EnlaceNuevo` con
+  etiquetas vacías ni casts. Comparte la comprobación de firma de MATRIZ. Firma, anclajes,
+  aparición e internos se comprueban antes de devolver pendiente.
+- `normalizarEtiquetas` es el ayudante puro real centralizado: usa `validarEtiqueta`, convierte
+  bidireccional válido de etiquetas iguales a recíproco y devuelve traza R-STRE-1 con ambas
+  etiquetas. Conserva estado de origen, multiplicidades e input congelado. No es operación
+  registrada. La consulta evalúa el hecho normalizado para forma, NO_OFRECIDO y duplicados,
+  pero devuelve la intención completa original para que creación futura emita su traza real.
+- Los duplicados se comparan semánticamente también en claves anidadas; las dos ordenaciones
+  de generalización de estados existentes dan `ya-existe`. Las colisiones de ancestro o
+  descendiente conservan R-ROL-UNIC-1 sin alternativa del mismo par; el mismo par conserva
+  completarCambio/abanicoCon/cambiarTipoExistente.
+- B-05 describe ahora los datos pendientes y completos de consulta. B-28 registra la integración
+  temporal: N pendiente de WP-4r/H2 y U de WP-15/WP-17. B-02/B-04/B-06/B-08 conservan sus
+  estados y límites; ninguna fila se declara cerrada sin todas sus superficies.
+
+TDD y evidencia local:
+
+| corte observado | pruebas | aserciones | resultado |
+|---|---|---|---|
+| Histórico anterior de check, conservado arriba | 115 pass / 2 fail; 117 pruebas, 13 archivos | 1279 | rojo F-11 |
+| Focal antes de nuevas ediciones de producción | 58 pass / 2 fail; 60 pruebas | 862 | exit 1 por ambas regresiones F-11 |
+| RED del contrato A y bugs revisados, antes de producción | 57 pass / 14 fail; 71 pruebas | 934 | exit 1, fallos de contrato pendiente/completo, normalización, duplicado anidado y alternativa al ancestro |
+| GREEN focal de matriz | 71 pass / 0 fail | 1115 | exit 0 |
+| Check completo local actual | 128 pass / 0 fail; 128 pruebas, 13 archivos | 1532 | TypeScript estricto y suite, exit 0 |
+| Focal de aceptación T-040…T-066/T-120/T-268/T-072 | 71 pass / 0 fail | 1115 | exit 0 |
+| `git diff --check` (solo lectura) | no aplica | no aplica | exit 0 |
+
+Las dos regresiones F-11 originales se adaptaron al contrato delegado: falta de datos queda
+pendiente sin candidato y completación con etiquetas distintas conserva forma/F-11 en ambos
+sentidos. La expectativa anterior T-050 sin etiquetas ahora exige pendiente para el gesto válido;
+los gestos inválidos siguen rechazados. Se mantienen los negativos F-11 de vacíos persistidos,
+B-05 real sin etiqueta, normalización válida con traza, las 15 filas del oracle manual,
+F-2/F-5 reales, ambas excepciones, AP-27, DS-20 y 200 semillas con forma real. No se eliminó,
+saltó ni puso en cuarentena una prueba. La primera ejecución de check tras el GREEN focal detectó
+errores de TypeScript en las pruebas (exactOptionalPropertyTypes/ids) y en el armado del caso
+pendiente; se corrigieron manteniendo todas las aserciones antes del check verde informado.
+
+Límites concretos: no se implementó `crearEnlace`, refinamiento ni un stub de distribución para
+aceptación. El ayudante puro con traza se ejecutó realmente; la emisión por una operación de
+creación futura sigue sin ejecutarse. La distribución compartida y equivalencia refinada N de
+B-28 se prueban en WP-4r/H2; WP-3b ejecutará las propiedades de creación sin refinamientos.
+Se conservan los rechazos de contorno persistido R-DIST-1/AP-07/R-CX-DIST-2. No se acredita UI,
+OPD↔OPL, roundtrip completo, códec, servidor, render, export, aceptación humana ni despliegue.
+
+Solo se editaron por esta ejecutora `app/src/nucleo/matriz.ts`, `matriz.test.ts`,
+`docs/conformidad.md` y este apéndice. Se conservaron los ajustes de DESIGN/plan de dirección y
+el trabajo previo. No hubo stage/commit/push/fetch/merge, red, comunicación externa, instalación,
+contenedores, producción, migración real, credenciales/.env, autenticación ni Air. Todos los Bun
+se ejecutaron con `PATH=/tmp/opforja-rehacer-tools:$PATH`, wrapper de Bun `--no-env-file`.
+Los logs y el informe están en `/tmp/opforja-rehacer/WP-2-opcion-A-*.log` y
+`WP-2-opcion-A-report.md`. Fuentes de producción y pruebas congeladas para revisión.
+
+## Recibo de dirección: WP-2 local verificado
+
+La ejecución y las dos revisiones independientes se delegaron a GPT-6.1-Sol High, con una sola
+escritora de producción. La directora integró los ajustes contractuales antes de la ejecución,
+verificó el candidato final y mantuvo las fuentes congeladas durante las revisiones.
+
+- **Contrato y plan:** revisión independiente favorable, sin observaciones pendientes. Se
+  armonizaron propiedad de `matriz.test.ts`/`propiedades.test.ts`, normalización como contrato
+  producido y las tres muestras más 50 modelos de azar sin refinamientos en WP-3b. El orden
+  lineal de 23 paquetes y sus dependencias permanecen iguales. Canon y decisiones 1–28 no tienen
+  diff. Informe: `/tmp/opforja-rehacer/WP-2-opcion-A-review-contrato.md`.
+- **Producto:** revisión independiente favorable sobre fuentes congeladas; 9/9 sondas propias
+  verdes con producción real e inputs congelados. Focal observado por la revisora: 71 pass,
+  0 fail, 1115 aserciones. Comprueba ambos sentidos, firma antes de pendiente, datos inválidos,
+  normalización real/traza/F-11, B-05, duplicados anidados, alternativas y pureza/caché por
+  identidad. Informe y sondas: `/tmp/opforja-rehacer/WP-2-opcion-A-review-producto.md` y
+  `WP-2-opcion-A-review-producto-probe.ts`. No se sustituyó la integración futura por stubs.
+- **Verificación integrada de dirección:** desde `app/`,
+  `PATH=/tmp/opforja-rehacer-tools:$PATH bun run check`: exit 0, TypeScript estricto, 128 pass,
+  0 fail, 1532 aserciones, 13 archivos. Log:
+  `/tmp/opforja-rehacer/WP-2-opcion-A-check-direccion.log`. Producción y pruebas conservan los
+  hashes revisados: `6c553d3774d6496beb1bd78897fa77a1e945cd93888fceff745da13cb39886be`
+  y `d66d74d4350df21715044d5c8f6a8a4b252d5a7eba4e384baa0df9ceaab39c20`, respectivamente.
+- **Conformidad final:** se retiró una línea vacía que cortaba la tabla antes de B-28, se usó
+  el estado admitido `parcial` y se explicitó N en WP-4r/H2 frente a U en WP-15/WP-17. La
+  revisora confirmó esta corrección editorial sin repetir tests; hash final
+  `86d1244c493585dae3c58e26bb686c61b59f2d90685467f1c5f84c5d8f5077da`. B-05 conserva el
+  rechazo del hecho sin etiqueta; las otras cuatro filas preservan límites y evidencia N.
+
+Git local: rama `rehacer`, HEAD `817061a7f8312aa495b9ad00190f7d30db11ca40`; 0/0 frente a
+la referencia local `origin/rehacer`, índice vacío. No se consultó nuevamente el remoto en este
+incremento. Quedan siete rutas de trabajo intencionales: HANDOFF, matriz, sus pruebas,
+conformidad, DESIGN, README del plan y plan.json. Sin diff en canon, DECISIONS, CANON,
+forma/resultado/léxico, helpers de pruebas ni fixtures. Sin commit/push ni avance de paquete.
+
+El siguiente paso lineal sigue siendo cerrar/publicar WP-2 en el alcance que lo autorice y
+continuar con WP-4p. H1/H2/H3 permanecen pendientes. WP-3b comprobará creación real sin
+refinamientos; WP-4r/H2 completará la integración N de B-28 sobre distribución real compartida y
+DS-20 contra el original previo. La captura UI y su e2e corresponden a WP-15/WP-17. La decisión A
+está resuelta; no queda una pregunta técnica de confirmación dentro de este incremento local.
+
+## Reanudación del dueño y cierre WP-2
+
+Después del recibo local, el dueño pidió «continuemos». Se retoma la autorización original de
+commit semántico y push por paquete, sin pausas entre hitos. Los siete cambios pendientes
+corresponden exactamente al candidato autorizado y revisado; no son trabajo ajeno nuevo.
+Se comprobaron las seis huellas finales del recibo anterior: producción, pruebas, conformidad,
+DESIGN, README y plan.json idénticos a los revisados. Se conserva el historial del incremento
+local y su frontera de autorización, sin atribuirle publicación que no tuvo.
+
+Verificación antes de publicar WP-2: `PATH=/tmp/opforja-rehacer-tools:$PATH bun run check`
+desde `app/`, exit 0, TypeScript estricto, 128 pass / 0 fail, 1532 aserciones, 13 archivos.
+Log: `/tmp/opforja-rehacer/WP-2-check-publicacion.log`. Revisión de diff sin errores de espacios.
+Sin cambios de producción desde las revisiones independientes favorables. El cierre se publica
+con un único commit semántico WP-2 y push a `origin/rehacer`; el hash se registrará en la siguiente
+actualización del tablero. H1–H3 siguen pendientes. Siguiente: WP-4p (proyección y árbol), con
+preflight leído sin cambios contractuales, seguido de WP-6 y WP-8a en el orden del plan.

@@ -16,8 +16,8 @@
     "deploy": "cd app && bun test ../deploy"
   },
   "hitos": [
-    { "id": "H1", "trasOla": 1, "criterio": "contratos, matriz, proyección, códec v0, geometría y servidor con `bun run check` verde; los 6 fixtures v0 importan ok" },
-    { "id": "H2", "trasOla": 3, "criterio": "núcleo completo, diagnóstico, OPL generar+analizar+aplicar y editor; roundtrip estricto por enumeración de la matriz verde (R-§19-SIM-3)" },
+    { "id": "H1", "trasOla": 1, "criterio": "contratos, matriz, proyección, códec v0, geometría y servidor con `bun run check` verde; los 6 fixtures v0 importan ok; B-28 declara la equivalencia con distribución refinada pendiente de WP-4r/H2" },
+    { "id": "H2", "trasOla": 3, "criterio": "núcleo completo, diagnóstico, OPL generar+analizar+aplicar y editor; roundtrip estricto por enumeración de la matriz verde (R-§19-SIM-3); equivalencia menú/creación con distribución refinada real verde (B-28, WP-4r)" },
     { "id": "H3", "trasOla": 5, "criterio": "UI completa, 26 e2e verdes contra el build y el servidor real, documentación final; PR rehacer → main abierto, sin desplegar" }
   ],
   "olas": [
@@ -49,9 +49,9 @@
       "id": "WP-2", "ola": 1, "nombre": "Matriz de validez",
       "objetivo": "Una sola definición de qué enlace es legal (forma, contexto, NO_OFRECIDO, tiposLegales con alternativa), contrastada con una tabla transcrita a mano del canon.",
       "depende": ["WP-1"],
-      "archivos": ["app/src/nucleo/matriz.ts", "app/src/nucleo/matriz.test.ts"],
-      "lecturas": ["DESIGN §4.3", "DESIGN §10.2", "CANON §2", "CANON §6.5", "pre-rehacer:app/src/modelo/operaciones/helpers.ts (validarFirmaEnlace)", "pre-rehacer:app/src/modelo/operaciones/enlaces.ts (validarUnicidadRolPar)"],
-      "aceptacion": ["matriz.test coincide con pruebas/expectativas-matriz.ts", "≥1 caso legal y ≥1 ilegal por fila de CANON §2.1 y por regla de contexto", "títulos T-040…T-066 y T-268", "cada fila de NO_OFRECIDO probada por comportamiento"]
+      "archivos": ["app/src/nucleo/matriz.ts", "app/src/nucleo/matriz.test.ts", "docs/conformidad.md (filas materializadas y B-28)"],
+      "lecturas": ["DESIGN §3.2 (F-11)", "DESIGN §4.2 (consulta y etiquetas)", "DESIGN §4.3", "DESIGN §7.3 (flujos 7–9)", "DESIGN §10.2", "CANON §2", "CANON §6.5", "pre-rehacer:app/src/modelo/operaciones/helpers.ts (validarFirmaEnlace)", "pre-rehacer:app/src/modelo/operaciones/enlaces.ts (validarUnicidadRolPar)"],
+      "aceptacion": ["matriz.test coincide con pruebas/expectativas-matriz.ts", "≥1 caso legal y ≥1 ilegal por fila de CANON §2.1 y por regla de contexto", "títulos T-040…T-066 y T-268", "cada fila de NO_OFRECIDO probada por comportamiento", "etiquetas: ausencia requerida → pendiente sin candidato/ids/mutación; null/vacío/léxico inválido → rechazo; completación conserva F-11 y B-05; igualdad válida → recíproco con traza R-STRE-1; ambos sentidos y pureza", "duplicados semánticos independientes del orden de claves anidadas; alternativas solo sobre el mismo par, sin eludir unicidad ante ancestros", "B-28 explícita: no se acredita equivalencia refinada ni se implementa un stub de distribución para aceptación de WP-2/H1"]
     },
     {
       "id": "WP-4p", "ola": 1, "nombre": "Proyección y árbol",
@@ -107,7 +107,7 @@
       "depende": ["WP-2", "WP-4p"],
       "archivos": ["app/src/nucleo/{enlaces,abanicos}.ts", "pruebas enlaces.test.ts, abanicos.test.ts y propiedades.test.ts"],
       "lecturas": ["DESIGN §4.2", "DESIGN §4.3.4", "DESIGN §7.3 (flujos 7–10, 17, 28)", "DESIGN §1.6 (DS-9, DS-10, DS-13)", "CANON §2"],
-      "aceptacion": ["crearEnlace con abanicoCon; fijarEstados (4 formas); reanclarExtremo en todas las familias, T1→TS1 (T-250)", "eliminarEnlaces: mitad escindida pasa a standalone; valor huérfano retirado (CC-03); exhibición que propaga lo ambiental (CC-02); T-066", "propiedades.test: tiposLegales ≡ crearEnlace sobre modelos de constructores"]
+      "aceptacion": ["crearEnlace con abanicoCon; fijarEstados (4 formas); reanclarExtremo en todas las familias, T1→TS1 (T-250)", "eliminarEnlaces: mitad escindida pasa a standalone; valor huérfano retirado (CC-03); exhibición que propaga lo ambiental (CC-02); T-066", "propiedades.test: tiposLegales ≡ crearEnlace sobre constructores sin refinamientos (3 modelos de muestra y 50 de azar), con datos de etiquetas completos, pendientes no persistibles, normalización con traza y rechazos; integración refinada se amplía en WP-4r (B-28)"]
     },
     {
       "id": "WP-5", "ola": 2, "nombre": "Diagnóstico y gates",
@@ -137,9 +137,9 @@
       "id": "WP-4r", "ola": 3, "nombre": "Refinamiento (operaciones)",
       "objetivo": "Descomponer, subprocesos y bandas, distribución y escisión, desplegar por modo, colección incompleta y eliminar refinamiento.",
       "depende": ["WP-3a", "WP-3b", "WP-5"],
-      "archivos": ["app/src/nucleo/refinamiento.ts", "hook de distribuir en nucleo/enlaces.ts", "hook de subproceso en nucleo/cosas.ts"],
-      "lecturas": ["DESIGN §4.5", "DESIGN §1.6 (DS-3, DS-4, DS-16)", "CANON §3.1–§3.4"],
-      "aceptacion": ["refinamiento.test: la tabla de DESIGN §4.5.3 fila por fila, incluida DS-4; T-070…T-083; sin semillas; un gesto; materialización", "secuencias.test: 200 semillas × 40 acciones (validarForma vacía, sin errores de contexto nuevos, entrada sin mutar)", "reparaciones.test: cada reparación aplicada hace desaparecer su diagnóstico"]
+      "archivos": ["app/src/nucleo/refinamiento.ts", "hook de distribuir en nucleo/enlaces.ts", "hook de subproceso en nucleo/cosas.ts", "hook de ensayo de distribución en app/src/nucleo/matriz.ts", "app/src/nucleo/propiedades.test.ts (ampliación de integración refinada)"],
+      "lecturas": ["DESIGN §4.5", "DESIGN §4.1 (DS-20)", "DESIGN §4.3.4", "DESIGN §7.3 (flujos 7–9)", "DESIGN §10.2", "DESIGN §1.6 (DS-3, DS-4, DS-16)", "CANON §3.1–§3.4"],
+      "aceptacion": ["refinamiento.test: la tabla de DESIGN §4.5.3 fila por fila, incluida DS-4; T-070…T-083; sin semillas; un gesto; materialización", "secuencias.test: 200 semillas × 40 acciones (validarForma vacía, sin errores de contexto nuevos, entrada sin mutar)", "reparaciones.test: cada reparación aplicada hace desaparecer su diagnóstico", "propiedades.test: equivalencia en ambos sentidos entre menú y creación sobre el resultado efectivo de distribución real compartida con reparación; B-28 se cierra para integración N en WP-4r/H2", "integración refinada: consumo/resultado con 0/1/≥2 subprocesos, TS3 con/sin control/en abanico, evento sistémico, recursión, aparición externa, colisión final, rollback/pureza y DS-20 contra original previo a insertar; ninguna comparación contra borrador intermedio"]
     },
     {
       "id": "WP-9", "ola": 3, "nombre": "OPL: análisis y edición inversa",
