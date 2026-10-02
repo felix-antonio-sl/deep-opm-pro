@@ -32,4 +32,4 @@ export type ResultadoImport = {
     readonly ok: false;
     readonly informe: Informe;
 }; // informe.rechazos no vacío
-export function informeVacio(i: Informe): boolean { throw new Error('pendiente: WP-6'); }
+export function informeVacio(i: Informe): boolean { return [i.normalizado, i.descartado, i.rechazos, i.visibilidad].every(xs => xs.length === 0); }

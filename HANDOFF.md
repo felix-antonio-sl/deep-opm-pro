@@ -1,6 +1,6 @@
 # OpForja rehecho — tablero único
 
-Estado: WP-0, WP-1, WP-2 y WP-4p cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-6 es el siguiente paquete. H1 sigue pendiente.
+Estado: WP-0, WP-1, WP-2, WP-4p y WP-6 cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-6 aceptado: excepción C+R autorizada explícitamente por coordinación de Félix, documentada antes de código y comprobada con T-196 intacta y sondas independientes. H1, H2 y H3 siguen pendientes.
 Rama `rehacer`; base y tag `pre-rehacer`: `513ac041`. La directora creó/publicó rama y tag.
 WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. La directora publica un commit por paquete.
 
@@ -24,8 +24,8 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 | 0 | WP-0 | Cerrado: aceptación y revisión verdes | `b9d94180b5f587cdf125d8c4fabcf26edb5917c3` |
 | 1 | WP-1 | Cerrado: aceptación y revisión verdes; ajuste autorizado incorporado | `817061a7f8312aa495b9ad00190f7d30db11ca40` |
 | 2 | WP-2 | Cerrado: aceptación y revisiones verdes; opción A incorporada | `c1472817f8b6bcfa1b825240a8ccfe5826e04ea4` |
-| 3 | WP-4p | Cerrado: aceptación, mutantes reales y revisión verdes; B-19 materializada | Este commit: `feat(nucleo): proyección por OPD y ley de frontera (WP-4p)`; hash en siguiente actualización |
-| 4 | WP-6 | Pendiente | — |
+| 3 | WP-4p | Cerrado: aceptación, mutantes reales y revisión verdes; B-19 materializada | `ba5f8b5fd1fd39392f633795f0bb71cb356bd84c` |
+| 4 | WP-6 | Cerrado: doce etapas, punto fijo, fixtures y revisión independiente verdes | Commit de este cierre; SHA se registra al iniciar WP-8a |
 | 5 | WP-8a | Pendiente | — |
 | 6 | WP-11 | Pendiente | — |
 | 7 | WP-18 | Pendiente | — |
@@ -931,3 +931,430 @@ Se cierra con un solo commit semántico WP-4p y push a `origin/rehacer`. El sigu
 WP-6, con proyección real disponible, seis fixtures/23 derivados recontados y preflight preparado.
 H1/H2/H3 continúan pendientes. Ninguna prueba se eliminó, debilitó, saltó ni puso en cuarentena;
 sin despliegue, producción, contenedores, migración real ni acceso a credenciales/.env.
+
+
+## WP-6: mandato y resoluciones acotadas previas a producción
+
+WP-4p se publicó como `ba5f8b5fd1fd39392f633795f0bb71cb356bd84c`; el push y la
+paridad local/remota quedaron comprobados con árbol limpio y divergencia 0/0.
+La directora asigna exclusivamente `app/src/codec/**` y
+`app/fixtures/v0/sintetico.json` al ejecutor de WP-6. Este registro precede a su código.
+Las doce etapas de DESIGN §3.4.2, sus reglas, informes de pérdida y aceptación
+se verifican con el núcleo y la proyección reales; los seis fixtures, 23 derivados y
+200 semillas siguen siendo puertas de aceptación.
+
+- La importación síncrona exige SHA256 portátil sobre los bytes UTF-8 del payload recibido.
+  `revision` conserva su firma asíncrona; la selección explícita de revisión y la
+  comprobación de checksum no se reemplazan por normalización ni por otra revisión.
+- La API total devuelve rechazo para entrada inválida. La aserción de desarrollo de
+  §3.4.2 etapa 11 corresponde a un defecto residual interno de normalización: esa
+  condición específica no convierte una entrada ordinaria defectuosa en excepción.
+- Un `modo` ausente en metadatos de escisión solo se normaliza a `par` si existe un
+  grupo real de exactamente dos mitades complementarias TS4/TS5, con el mismo objeto,
+  estados propios y procedencia/acoplamiento canónicos F4. Los procesos pueden diferir
+  entre entrada temprana y salida tardía. No se inventan mitades ni procesos; no se
+  sobreescribe un modo explícito. Un grupo ambiguo conserva los hechos y declara la
+  pérdida de los metadatos irrepresentables. Fundamento: modelo legado 398–403,
+  SYNTHESIS 731–733 y R-SC 1103–1110; el caso antiguo de TS3 compacto no prueba un par.
+- Cotas con unidades fijas (ms, segundos, minutos, horas, días o semanas) admiten
+  conversión exacta a una unidad común como normalización equivalente. No se inventa
+  una conversión de meses o años a días sin anclaje. Si no cabe una representación
+  común, se conserva la primera cota conforme al contrato y se declara el valor y
+  unidad originales perdidos como conflicto de representación, sin atribuirles
+  incompatibilidad física.
+
+Estas resoluciones menores aplican los contratos existentes; no cambian DESIGN ni
+reabren las decisiones 1–28. La directora conserva el tablero y el registro común de
+conformidad; el ejecutor añade su evidencia al final de este HANDOFF.
+
+## WP-6: concreción de R-STRE-1 y excepción documental del punto fijo
+
+Antes de implementar la anotación afectada se registra la dirección recibida: DESIGN
+§3.4.2-7 exige normalizar `etiquetadoBidireccional` con etiquetas iguales a `reciproco`;
+§3.4.3 emite el recíproco con esa misma forma v0; §3.4.4 exige Informe vacío para el
+documento canónico propio. Se conserva la normalización R-STRE-1 para el legado.
+Tras cierre válido, solo cuando la entrada **directa v0 completa** coincide byte a byte
+con `exportarV0(modelo)`, se reconoce la excepción documental específica de §3.4.4 y
+se omite la anotación repetida de ese mapeo canónico. No se borran pérdidas, rechazos,
+visibilidad ni ignorados; no se eliminan normalizaciones de sobres, recovery, portable
+o aliases externos por coincidencia del payload. No se agrega marca de procedencia ni
+campo wire. Tests independientes exigirán normalización del legado y punto fijo/lector
+estricto del export exacto, además del rechazo del lector para otro formato textual.
+Es aplicación acotada del contrato existente bajo dirección delegada, sin modificar
+DESIGN ni sustituir aceptación humana del modelado.
+
+## WP-6: contradicción pendiente C+R, F-5 y punto fijo
+
+RED reproducible antes de cambiar la rama afectada: consumo `c` anclado a `s-6`,
+control condición y multiplicidad `+`, junto con resultado `r` anclado a `s-7`,
+mismo objeto/proceso. DESIGN §3.4.2-7 (líneas 747–754; CC-11 línea 4465) conserva
+ambos al existir multiplicidad que impide la fusión sin pérdida. Etapa 9 F-5 retira
+esa multiplicidad no ofrecida con DR-44, conservando el mínimo elemento. El export
+canónico de ambos hechos carece entonces del impedimento y la importación siguiente
+fusiona a TS3, contradiciendo §3.4.4 (949–955). El códec actual queda refutado por
+`T-196 C+R bloqueado por multiplicidad luego retirada por F-5 también exige punto fijo`
+en `app/src/codec/codec-reglas.test.ts`; evidencia
+`/tmp/opforja-rehacer/WP-6-red-contrato-CR-F5.log`, 0 pass / 1 fail, 6 aserciones.
+
+Se comunicó a dirección; no se modificó producción de esta rama. La excepción
+documental autorizada para la anotación repetida R-STRE-1 no se generaliza aquí:
+conservar dos hechos en el documento canónico exacto cambia el resultado de la
+fusión, y requiere resolver expresamente la interacción antes de implementarla.
+La propuesta mínima a evaluar es reconocer el export directo exacto para preservar
+sus hechos, manteniendo íntegra la fusión prescrita para entrada legado. Pendiente
+dirección; no se declara aceptación ni se altera DESIGN. Continúan las reglas
+independientes. El caso distinto C+R fusionado, alias del resultado y recuperación
+de su id como salida TS3 derivada sí pasa con expectativas literales por OPD y
+visibilidad vacía en el mismo log.
+
+## WP-6: recibo congelado bajo STOP por contradicción contractual
+
+Dirección detuvo explícitamente WP-6 al confirmar la revisión independiente que
+C+R/F-5/punto fijo exige cambiar DESIGN. No se ejecutó la propuesta de reconocer
+antes de fusión el documento directo exacto, ni segunda fusión tras perder mult,
+ni marcador/default/multiplicidad ficticios. Se conservan fuentes y RED sin aceptar
+ni publicar el paquete. Continuación: autorización humana y actualización documental
+previas a cualquier implementación. Dictamen y propuesta:
+`/tmp/opforja-rehacer/WP-6-review-contrato-CR-F5.md`.
+
+Freeze confirmado: no quedaron procesos/tools activos; todas las llamadas anteriores
+terminaron con exit code final. Después del STOP solo lecturas y recibos. Ownership
+respetado: codec/**, fixture sintético y append HANDOFF; git status del freeze solo
+lista esas rutas. Sin núcleo/proyección/generador/pruebas ajenas, DESIGN/plan ni
+conformidad editados; no stage/commit/push.
+
+Evidencia del writer: RED inicial 0/62; primer integrado 63/0; ampliación 36 reglas
+36/0; derivados/bandas y oráculos 45/0; excepciones firma RED0/2→GREEN3/0; DR-23
+lista objetos sin parte RED2/1→GREEN3/0. Último focal completo codec 125/1, 2778
+expectativas, antes de siete tests literales de conteos; último focal fixtures y
+conteos, incluidos 200 modelos reales de azar, 15/0 y 2098 expectativas. Último
+tsc local observado exit0 precede esos siete tests. No se suman suites ni se afirma
+una ejecución 132/1. Los seis fixtures originales, sintético semilla20261002, 23
+derivados literales y doce oráculos de visibilidad fixture/OPD quedaron contrastados
+con la proyección real, sin distribución futura/dobles. La salida TS3 que recupera
+el id del resultado C+R conserva visibilidad vacía en la sonda literal independiente.
+
+Dirección ejecutó un único `bun run check` sobre este freeze: TypeScript verde;
+338 pass / 1 fail, 4603 expectativas, 20 archivos, exit1. Solo falla
+`T-196 C+R bloqueado por multiplicidad luego retirada por F-5 también exige punto fijo`.
+Log `/tmp/opforja-rehacer/WP-6-check-direccion-bloqueo.log`, leído sin repetir ejecución.
+Reproducción roja aislada: `/tmp/opforja-rehacer/WP-6-red-contrato-CR-F5.log`, 0/1,
+6 expectativas. No se declara aceptación global ni punto fijo para todos los modelos.
+
+Incidente declarado: desde raíz se ejecutó por error
+`PATH=/tmp/opforja-rehacer-tools:$PATH bun x tsc --noEmit -p app`.
+Log `WP-6-ts-primer-intento.log` dice resolución/descarga/extracción de46paquetes,
+Saved lockfile y dos errores TypeScript. Se informó inmediatamente; dirección
+ordenó solo tsc local/Bun wrapper y continuar en alcance. Status posterior y freeze
+no muestran package/lockfile ni otro artefacto repo: solo rutas propias. Se comprobó
+tsc local existente; no se retiraron archivos desconocidos/versionados ni caché.
+No se afirma ausencia de efectos en la caché externa ni ausencia de red durante toda
+la ejecución. No se repitió bun x ni instalación, no entorno/.env/credenciales leídos.
+
+Recibo completo, aceptación por etapa, límites, títulos exactos de evidencia I para
+B-02/04/05/06/08 y B-07/10/12/16, conteos literales, logs e incidente:
+`/tmp/opforja-rehacer/WP-6-recibo-bloqueado.md`. B-28 queda pendiente. Huellas SHA256:
+
+| Ruta | SHA256 |
+|---|---|
+| app/src/codec/canonico.ts | ba083ed67b7b74a66a738eb78af6d4b8f7d7d5e9eaaa80d37681881ea46419d8 |
+| app/src/codec/codec-derivados.test.ts | 1ec870d5210321e74eeed79f4ba6de43b45c5735d42b440f80e270554df9b65a |
+| app/src/codec/codec-fijo.test.ts | 7b20e3bf51da1b099aa42bba2ea1f58768be0b933203a610bb4d9e1700b3c6d6 |
+| app/src/codec/codec-reglas.test.ts | 3cc84d3f8dd348782d2af270cff2510be93e3394ff8881c214bd3b7c17c57646 |
+| app/src/codec/codec-visibilidad.test.ts | 4a67acb2477366f80c2fa3a54959e9acd32d1b6fde21ecce081a3aa0b35b76f7 |
+| app/src/codec/codec.test.ts | cc5ce4a68ba1df5e6cdbdc5c41b930c99912b6d2dce0f74caf74c9f3f7ae2042 |
+| app/src/codec/exportar.ts | a6ba76fdf6d75199618583bd209007dc6dc2ce431ec3670ce052c6a6feeeebca |
+| app/src/codec/importar.ts | ed7daf83e60d1296fdaf91b125040fc19b0485c980669013743e9afe209dcc22 |
+| app/src/codec/informe.ts | 1a1f2be73745527090990c6347ce237488be22b53bbdb16dd202052979c257f5 |
+| app/src/codec/pruebas.ts | c11011ca71c24beb9380a318ffcc52eb6b514ba9aab6a901d829d25d6a564ee5 |
+| app/src/codec/sha256.ts | 1270a4cfe68858bfd0aaea7c4449298b6bfd657210a3df8af4f85eea932a68c1 |
+| app/src/codec/v0.ts | 96cc57ebc38733aab8ab948d87290128aedbe2e4bc4adc204a912fd421877ef5 |
+| app/fixtures/v0/sintetico.json | ed6cd8790d300dfbfd44f91647131880edb70525520365729deea2604e5b82fb |
+
+Se conservan ambos preflights WP-6 y el informe independiente WP-4p. Sin publicación,
+despliegue, producción, contenedores, migración real ni aceptación humana.
+
+
+## STOP de dirección WP-6: propuesta contractual pendiente del dueño
+
+La directora y la revisora independiente GPT-6.1-Sol High confirman la contradicción.
+Se aplica literalmente el límite del encargo: «Si un contrato de DESIGN debe cambiar,
+propónlo en HANDOFF.md y detente». No se implementa la propuesta ni se pasa a WP-8a.
+DESIGN, DECISIONS 1–28, plan, canon, núcleo y generador permanecen sin cambios.
+La ejecutora confirmó freeze, ausencia de procesos activos y recibo terminado.
+
+### Reproducción y resultado conjunto
+
+La regresión `T-196 C+R bloqueado por multiplicidad luego retirada por F-5 también
+exige punto fijo` está en `app/src/codec/codec-reglas.test.ts:87`. Fuente mínima:
+consumo `c` desde el estado `s-6` a `p-2`, condición y multiplicidad `+`, y resultado
+`r` de `p-2` a `s-7` del mismo objeto. CC-11 conserva los dos hechos porque la fuente
+trae multiplicidad; DR-44/F-5 retira esa multiplicidad no ofrecida. El export conserva
+consumo y resultado sin el campo. La reimportación fusiona a TS3, elimina `r` y su
+apariencia, y cambia el siguiente export. No es una anotación espuria de informe.
+
+Cláusulas decisivas de DESIGN: §3.4.2-7 (748–757 y 786–787), §3.4.3 (929–933),
+y la ley §3.4.1 (622–623) / §3.4.4. El dictamen independiente está en
+`/tmp/opforja-rehacer/WP-6-review-contrato-CR-F5.md`; el RED aislado es 0/1.
+
+Dirección ejecutó una sola vez sobre el freeze:
+`cd app && PATH=/tmp/opforja-rehacer-tools:$PATH bun run check`, log
+`/tmp/opforja-rehacer/WP-6-check-direccion-bloqueo.log`. TypeScript pasó; 338 pass /
+1 fail, 4603 aserciones en 20 archivos, exit 1. El único fallo es esta regresión.
+Se mantienen las 338 pruebas verdes y el RED; ninguna se debilita, salta o pone en
+cuarentena. Los seis fixtures, 23 derivados, doce OPD, sintético de semilla 20261002
+y 200 semillas tienen sus resultados individuales en el recibo de la ejecutora.
+Eso no cierra WP-6 ni acredita un hito.
+
+### Propuesta precisa para autorización, todavía sin aplicar
+
+Extender §3.4.2-7 / CC-11 y referenciarlo en §3.4.4 con esta excepción:
+
+> La fusión legacy de consumo con estado y resultado con estado no se aplica a un
+> documento v0 directo cuyos bytes completos coincidan con el export canónico del
+> modelo candidato válido que conserva esos dos enlaces. Ese documento representa
+> los hechos cargados del modelo; el importador conserva sus tipos e identidades,
+> incluso cuando hay un conflicto de contexto. El reconocimiento se resuelve antes
+> de la fusión C+R. En entradas legacy y en los sobres persistido, de recuperación
+> y portátil rigen las reglas ordinarias de fusión y el informe correspondiente.
+> Este reconocimiento no elimina pérdidas, rechazos, diferencias de visibilidad
+> ni información ignorada, y no añade campos ni marcadores al formato.
+
+El candidato se construye sin la fusión C+R, con las mismas reglas de forma, y solo
+se reconoce si pasa `validarForma`, carece de pérdidas/rechazos/diff sustantivo y
+la igualdad del documento directo con su export es exacta. Esta excepción amplía
+el reconocimiento de estructura: la concreción anterior de R-STRE-1 solo omite
+anotaciones y no autoriza esta ampliación. Es un cambio propuesto de DESIGN.
+
+Consecuencia explícita para decidir: el par C+R en un documento directo en bytes
+canónicos conserva sus hechos; reformatearlo o envolverlo lo somete a la fusión
+legacy. No se presupone que esa distinción de representación esté ya autorizada.
+La revisión recomienda conservar los dos hechos y el conflicto recuperable de P8.
+Fusionar después de pérdidas sería otro cambio, repararía automáticamente la fuente
+y no resolvería por sí solo la ley para todos los pares nativos con contexto cargado.
+
+Tras autorización: registrar el contrato antes de código, implementar la excepción,
+observar GREEN de esta misma regresión, ejecutar las sondas independientes conservadas
+y el check del candidato, materializar las filas I de conformidad comprobadas, cerrar
+WP-6 en un commit semántico y push, y seguir WP-8a en el orden original. Sin autorización,
+permanece STOP y todo el candidato se conserva localmente.
+
+### Estado Git, conformidad e incidente
+
+Último paquete cerrado/publicado: WP-4p `ba5f8b5fd1fd39392f633795f0bb71cb356bd84c`.
+HEAD, origin/rehacer y `git ls-remote origin refs/heads/rehacer` coinciden; divergencia
+0/0. El árbol conserva cambios intencionales y sin publicar de codec, sintético y
+HANDOFF. `git diff --check` pasó. No hay stage, commit ni push de WP-6.
+Las filas de conformidad publicadas siguen B-02, B-04, B-05, B-06, B-08, B-19 y B-28;
+inguna cerrada. La evidencia candidata I de esas filas y B-07/B-10/B-12/B-16 queda
+en el recibo, pendiente de integración con el commit aceptado. B-28 no acredita
+distribución refinada; H1/H2/H3 no alcanzados.
+
+Incidente declarado: la ejecutora invocó `bun x tsc --noEmit -p app` por error y
+el gestor informó descarga/extracción de 46 paquetes. Las comprobaciones posteriores
+de dirección muestran package/lockfiles/configs/contratos sin cambios; status solo
+contiene el ownership de WP-6 y HANDOFF. No se afirma ausencia de efectos en la caché
+externa. Se conservaron archivos, se prohibió repetir bun x y se usó TypeScript local.
+Recibo y huellas: `/tmp/opforja-rehacer/WP-6-recibo-bloqueado.md`.
+
+Sin despliegue, producción, contenedores, migración real, merge o push a main.
+La aprobación requerida corresponde únicamente al cambio contractual descrito arriba.
+
+
+## WP-6: resolución explícita de coordinación de Félix y reanudación
+
+La coordinación de Félix, con criterio técnico delegado explícito, leyó el recibo,
+la propuesta y el dictamen independiente y autorizó precisamente el reconocimiento
+previo a fusión C+R de v0 DIRECTO con igualdad íntegra EXACTA de bytes contra el export
+del candidato válido que conserva ambos enlaces, tipos, ids y contexto recuperable.
+Exige validarForma y ausencia de pérdidas/rechazos/diff sustantivo. Aceptó explícitamente
+que reformatear o envolver sigue la ruta legacy ordinaria y puede fusionar.
+
+Dirección registró esa excepción en DESIGN §§3.4.2-7 y 3.4.4 ANTES de reanudar código.
+No se interpreta como autorización general de otros contratos: este cambio corresponde
+solo a la propuesta exacta C+R; canon, decisiones 1–28 y formato v0 permanecen vigentes.
+Se conservan el STOP histórico y el RED T-196 intacto. La nueva instrucción revoca esa
+pausa y ordena continuar aquí WP-6, después WP-8a y el resto del plan hasta H1/H2/H3.
+
+La ejecutora retoma exclusivamente codec/** y el fixture sintético; una revisión
+independiente observará la excepción y las sondas. Dirección conserva documentos y
+conformidad, commit/push por paquete a rehacer. No se autorizan otras instalaciones
+o red fuera del Git ya mandatado, costes, destrucción, credenciales, despliegue,
+producción, contenedores, migración real ni main. T-196 debe mostrar RED→GREEN; el
+check completo y la aceptación de WP-6 siguen pendientes antes de su publicación.
+
+## WP-6: implementación reanudada, GREEN y freeze para revisión
+
+La ejecutora leyó la autorización y las cláusulas registradas antes de código.
+T-196 bloque 87–91 permaneció INTACTA: RED fresco 0/1 con 6 expectativas
+(`WP-6-red-reanudacion-CR.log`) y GREEN posterior. Se agregaron siete adversarios
+con wire directo MANUAL, no expectativa calculada con import/export: exacto conserva
+C/R y contexto; reformateado/sin LF/otro indentado/espacio y registro/recovery/portable reales
+siguen legacy; pérdidas, rechazos y diff no se esconden. RED nuevos 6/1, 53 expectativas
+(`WP-6-red-reconocimiento.log`), GREEN conjunto T196+adversarios+SHA 9/0, 71 expectativas
+(`WP-6-green-reanudacion-CR.log`). No se debilitaron expectativas anteriores.
+
+Cambio mínimo: fusión C+R extraída como fase; para v0 directo se cierra un candidato
+sin esa fase y se exige forma vacía, sin descartado/rechazos/diff, y bytes completos
+EXACTOS frente a export. Si no reconoce, pipeline ordinario fresco con su Informe;
+sobres siguen directamente legacy. No nueva firma/flag público, campo wire, marcador
+ni fusión tardía tras pérdidas. Se conserva la concreción acotada R-STRE-1.
+
+Focal final códec 140/0, 2858 expectativas, 6 archivos
+(`WP-6-green-codec-reanudado.log`). TypeScript local final exit 0
+(`WP-6-ts-reanudado.log`). Check COMPLETO del writer desde app con wrapper
+`PATH=/tmp/opforja-rehacer-tools:$PATH bun run check`: TypeScript verde;
+346 pass / 0 fail, 4662 expectativas, 21 archivos, exit 0 (`WP-6-check-final.log`).
+El anterior 338/1 de dirección corresponde SOLO al candidato bloqueado. Diff espacios
+exit0. Los seis fixtures+syntético/23derivados/manualvisibilidad/200semillas reales
+continúan verdes; se usa proyección REAL y no distribución futura/dobles.
+
+Freeze para revisión independiente, sin más código mientras se evalúa. Importar:
+`7f1b44859472c8228d2e279b971de26b52d77724e47d5c92a1878c6c7bc2f3d0`;
+nueva codec-reconocimiento.test:
+`f08654a9049a3b57f653a45ff584534725593111502e175df5f467654872b2a3`.
+De las 13 huellas del freeze bloqueado, solo importar cambió; las otras 12 permanecen
+idénticas. codec-reglas conserva 3cc84d3f8dd348782d2af270cff2510be93e3394ff8881c214bd3b7c17c57646,
+acreditando T-196 intacta. Manifest completo de 14 rutas, aceptación por 12 etapas y títulos
+exactos de evidencia I B-02/04/05/06/08 y B-07/10/12/16:
+`/tmp/opforja-rehacer/WP-6-implementacion-reporte.md`. B-28 queda pendiente.
+
+Status mantiene solo ownership+HANDOFF y DESIGN de dirección, preservado. Solo
+append de evidencia HANDOFF por ejecutora, sin editar tablero/conformidad/contratos.
+Sin stage/commit/push. Reanudación usa exclusivamente Bun wrapper/tsc local; no bun x,
+instalación ni red nuevas. Se conserva sin ocultar el incidente previo del recibo
+bloqueado y sus efectos externos no cuantificados. Sin .env/credenciales, prod,
+containers, PG/migración real ni deploy. Pendiente revisión, cierre de dirección y
+publicación; suite verde no es aceptación humana ni H1/H2/H3.
+
+## WP-6: reparación de tres hallazgos y nuevo freeze
+
+La revisión independiente refutó el primer freeze 346/0 con dos defectos materiales:
+evento sistémico legacy en habilitadores, y desconocidos a 40000 niveles que lanzaban
+RangeError. El dictamen literal independiente confirmó además el descarte del tipo
+no string de valorSlot aun sin valor. Se reparan dentro de codec, sin cambio adicional
+de DESIGN ni oráculos debilitados. Los resultados previos permanecen históricos.
+
+RED propios antes de producción: agente e instrumento sistémicos y desconocido 40k,
+5 pass / 3 fail (`WP-6-red-review-reparacion.log`). GREEN 8/0, 37 expectativas
+(`WP-6-green-review-reparacion.log`): se recupera el reanclaje indicado por el derivado
+automático también para agente/instrumento `e` sistémicos. Ambientales y ausencia de
+derivado conservan contorno; no se fabrica distribución ni se llama WP-4r. Desconocidos
+usan pila DFS iterativa sin límite arbitrario, preservando rutas completas, orden de
+hojas, categorías, vacíos/null y originales.
+
+valorSlot: RED propio 1/1 con negativa string (`WP-6-red-slot-sin-valor.log`); GREEN
+3/0, 17 expectativas incluyendo el caso con valor anterior
+(`WP-6-green-slot-sin-valor.log`). Sin valor queda ignorado y el modelo no obtiene
+valor; tipo no string se informa como pérdida independiente. Fundamento literal
+DESIGN §3.4.2-4 y `/tmp/opforja-rehacer/WP-6-review-dictamen-freeze-1.md`.
+
+Se añaden solo diez regresiones: seis eventos en codec-derivados, cuatro desconocidos/
+slot en codec-reglas, sin editar pruebas existentes. Bloque T-196 original líneas87–91
+comparado con el RED previo y encontrado idéntico; SHA256 de ese fragmento:
+`2e3c5aa5e9b1dc9d2f52c487161768aaf8bf89e53648efb29e171d42dd85996d`.
+
+Focal final 150 pass / 0 fail, 2905 expectativas, seis archivos
+(`WP-6-green-codec-reparacion-final.log`). Un único check completo posterior a las
+tres reparaciones: TypeScript estricto verde; 356 pass / 0 fail, 4709 expectativas,
+21 archivos, exit0 (`WP-6-check-reparacion-final.log`). Todos desde app con wrapper
+`PATH=/tmp/opforja-rehacer-tools:$PATH`, sin nueva instalación/red. Una inferencia
+string en los loops nuevos de pruebas se corrigió a tuple const y tsc local volvió
+a verde; no se alteraron expectativas. Diff espacios exit0.
+
+Nuevo freeze para rerevisión, sin más código mientras se evalúa. Solo estas tres
+huellas difieren del primer freeze 346/0; las otras once de las14rutas permanecen:
+
+- importar.ts: `d378cccb3d040125b41572b970eb2ed017d1ed5614209c9d94fd01338e36de73`.
+- codec-derivados.test.ts: `74c96690ff550fd97a18b6da30af8b41211d484d04228e34edb068797b606f5a`.
+- codec-reglas.test.ts: `7451fa86379ae7e2b5e341c1ea8b84bfe2782a8a4464d6bde82ed34172346d29`.
+
+Manifest completo, doce etapas, filas I y evidencia histórica actualizados en
+`/tmp/opforja-rehacer/WP-6-implementacion-reporte.md`. Conformidad y DESIGN de dirección
+se preservan, sin tablero/documentos de contrato editados por ejecutora. B-28 pendiente.
+Sin procesos de código activos, stage/commit/push, .env/credenciales, prod, containers,
+PG/migración real ni deploy. Pendiente revisión y cierre de dirección.
+
+## WP-6: reparación vecina de totalidad y freeze 364/0
+
+La rerevisión refutó el freeze 356/0 con valorSlot objeto JSON cuyo `toString:7`
+lanza TypeError al coercionar. Se inspeccionaron las conversiones locales String/
+Number; las dos multiplicidades tenían el mismo vecino lanzable. RED propios
+0 pass / 6 fail, 12 expectativas (`WP-6-red-total-vecinos.log`): dos objetos con
+métodos no invocables, array que fabricaba texto, ambas multiplicidades objeto y
+valorSlot objeto profundo a 40000 niveles.
+
+La reparación descarta el valor objeto/array completo con su original en Informe,
+sin fabricar texto ni rechazar el documento: cosa, exhibición y forma válida se
+conservan sin valor. Tipo sigue pérdida independiente; números/texto/primitivos
+seguros y slots sin valor conservan comportamiento anterior. Multiplicidades solo
+coercionan string/number; objetos se declaran DR-21 sin perder enlace. Informe
+serializa pérdidas completas mediante pila iterativa preservando JSON/orden/escapes,
+sin evaluar métodos de usuario, sin recursión ni límite arbitrario. No catch global;
+la aserción interna residual de desarrollo permanece intacta. GREEN focal 9/0,
+47 expectativas (`WP-6-green-total-vecinos.log`) y controles adicionales de
+primitivos y extensión declarada profunda pasan. Solo ocho regresiones añadidas;
+ninguna prueba previa modificada y sin cambios de contratos.
+
+Focal completo final 158 pass / 0 fail, 2957 expectativas, seis archivos
+(`WP-6-green-codec-total-final.log`). Check completo ÚNICO posterior a esta reparación,
+desde app con Bun wrapper: TypeScript estricto verde, 364 pass / 0 fail, 4761
+expectativas, 21 archivos, exit0 (`WP-6-check-total-final.log`). Diff espacios exit0.
+Los resultados 346/0 y 356/0 corresponden a freezes anteriores refutados; no se
+presentan como aceptación. No nuevas instalaciones/red ni Git mutante.
+
+T-196 original continúa íntegra: el SHA previo 2e3c5aa5... corresponde a líneas87–91
+unidas con LF y LF FINAL; la extracción de dirección test→`});` SIN LF final da
+`6a3eb87214a9f7b4358058dc7b87a9f7b210c51703af83d88f6a02e2e253e312`.
+La igualdad literal fue comprobada; las dos huellas difieren solo por ese LF.
+Referencia `/tmp/opforja-rehacer/WP-6-direccion-T196-intacto.json`.
+
+Freeze sin procesos activos para rerevisión. Solo dos huellas cambian respecto al
+356/0; las otras doce de las catorce permanecen idénticas:
+
+- importar.ts: `f1571e4de629e7eaa7ca25f12198978074d6258de5ef1dcf0c96b52b9a9e21d7`.
+- codec-reglas.test.ts: `1068831a49f36982bd9a794db3313e82ee8e8adbc8d3c9877ecd9ece2d60a8d1`.
+
+Manifest y recibo completos actualizados en
+`/tmp/opforja-rehacer/WP-6-implementacion-reporte.md`, preservando la historia/REDs y
+el incidente previo. Ownership y cambios documentales de dirección conservados;
+tablero/conformidad/contratos no editados por ejecutora. B-28 pendiente. Sin nuevas
+fuentes/pruebas/check durante rerevisión, stage/commit/push, .env/credenciales, prod,
+containers, PG/migración real ni deploy. Pendiente aceptación y publicación de dirección.
+
+
+## WP-6: cierre aceptado por dirección
+
+La revisión independiente aceptó el tercer freeze corregido en cumplimiento y calidad:
+`/tmp/opforja-rehacer/WP-6-review-aceptacion-final.md`. Los dictámenes negativos y RED
+anteriores permanecen en la historia de este tablero y en scratch. Los hallazgos de
+reanclaje de evento sistémico, recorrido profundo, tipo del slot sin valor y coerción de
+valores objeto se resolvieron con regresiones previas; no se debilitó, saltó ni puso en
+cuarentena ninguna prueba. Dirección confirmó las 14 huellas del recibo final.
+
+Check final del candidato aceptado: TypeScript estricto verde; **364 pass / 0 fail,
+4761 expectativas, 21 archivos, exit 0**, log `WP-6-check-total-final.log`. Focal codec:
+158/0, 2957 expectativas. La revisión ejecutó 251/0 y 4886 expectativas en su suite
+conservada, más 10/0 y 123 expectativas de vecinos justificados en otra ejecución;
+no se presenta la suma de 261 como un solo comando. Logs `WP-6-review-total-final.log`
+y `WP-6-review-conversion-vecina.log`. Los seis fixtures originales conservan bytes;
+se verificaron sintético fijo, 23 derivados, 12 mapas de OPD y 200 semillas reales.
+
+T-196 original se comparó íntegramente por dirección y revisión con el bloque conservado:
+SHA256 sin LF final `6a3eb87214a9f7b4358058dc7b87a9f7b210c51703af83d88f6a02e2e253e312`;
+con exactamente un LF `2e3c5aa5e9b1dc9d2f52c487161768aaf8bf89e53648efb29e171d42dd85996d`.
+Son dos extracciones del mismo bloque intacto. El archivo de pruebas creció solo con
+regresiones; no se afirma que su huella completa siga igual tras esas adiciones.
+
+DESIGN §§3.4.2-7/3.4.4 incorpora únicamente la excepción C+R autorizada antes de código:
+directo completo, bytes exactos, forma válida y sin pérdida/rechazo/diff sustantivo.
+Tipos, ids y contexto se conservan; reformateados y sobres siguen legacy. Sin marcadores
+ni cambios de formato, canon o DECISIONS 1–28. Conformidad materializa I en B-02/04/05/06/08
+y nuevas B-07/10/12/16; las once filas siguen parciales. B-19 y B-28 conservan sus límites;
+no se acredita distribución refinada, OPL, render, UI o gates futuros. H1/H2/H3 pendientes.
+
+Se cierra con un commit semántico de WP-6 y push a origin/rehacer. El SHA propio se
+incorpora al iniciar el paquete siguiente, evitando un commit documental adicional.
+Continúa inmediatamente WP-8a, como ordena el mandato vigente. Sin despliegue, producción,
+contenedores, migración real, merge o push a main; sin nuevas instalaciones ni red externa
+fuera del Git mandatado. El incidente anterior permanece declarado, sin limpieza destructiva.

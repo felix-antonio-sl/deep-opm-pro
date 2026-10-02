@@ -753,6 +753,18 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
      usan las etapas 8, 9 y 12. Si alguno lleva ruta o multiplicidad (TS3–TS5 no tienen hueco, DR-19 y
      DR-44), **no se fusiona**: ambos se cargan tal cual y quedan como `enlace-invalido`
      (R-ROL-UNIC-1), error recuperable que decide el operador (P8).
+     **Excepción de documento directo canónico (CC-11, autorizada por coordinación de Félix):**
+     antes de la fusión C+R se construye un candidato que conserva ambos enlaces, sus tipos,
+     ids y contexto recuperable. Solo se reconoce si `validarForma(candidato)` es vacía,
+     no hay pérdidas (`descartado`), rechazos ni diff sustantivo de visibilidad, y la entrada
+     v0 **DIRECTA completa** coincide en sus bytes **EXACTAMENTE** con
+     `exportarV0(candidato)`. En ese caso se conservan los dos hechos y no se aplica la
+     fusión legacy. El reconocimiento no elimina pérdidas, rechazos, diferencias de
+     visibilidad ni información ignorada. No añade campos ni marcadores al formato v0.
+     Reformatear o envolver el documento sigue la ruta legacy ordinaria y puede fusionarlo;
+     en los sobres persistido, de recuperación y portátil rigen las reglas ordinarias.
+     Esta excepción estructural se realiza antes de fusionar, no mediante limpieza posterior
+     del Informe, y queda ligada a la ley de §3.4.4.
    - **`invocacion`** (se admite origen = destino) y **`excepcionSobretiempo|Subtiempo`** conservan
      su tipo.
      - `tiempoMaximo`/`tiempoMinimo` con su unidad pasan a `duracion.max|min` de la fuente
@@ -948,6 +960,13 @@ Mapeos de salida:
 
 #### 3.4.4 Punto fijo y lector estricto
 
+- El reconocimiento previo a fusión C+R de §3.4.2-7 conserva los hechos de un v0 DIRECTO
+  canónico completo: exige forma válida, ausencia de pérdidas/rechazos/diff sustantivo e
+  igualdad íntegra EXACTA de bytes contra el export del candidato que conserva ambos
+  enlaces. Mantiene sus tipos, ids y contexto recuperable; no elimina evidencia ni añade
+  marcadores. La versión reformateada o envuelta sigue la ruta legacy ordinaria y puede
+  fusionarse. Esta consecuencia de representación fue aceptada explícitamente por la
+  coordinación de Félix; la excepción no modifica canon ni DECISIONS 1–28 ni formato v0.
 - Lo que el export deriva (`opds[].enlaces`, `apariencias[].id`, `opds[].nombre`,
   `efectoEscindido.enlacePadreId`, `abanicos[].opdId|puertoComun|puertoEntidadId`, `refinamientos`,
   las cotas `tiempoMaximo|tiempoMinimo` de las excepciones) el importador lo **reconoce y no lo
