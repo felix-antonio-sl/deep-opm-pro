@@ -12,7 +12,7 @@ function caso(nombre: string, cuerpo: () => void): void {
 }
 const errores = (m: Modelo): readonly Violacion[] => m.nombre.startsWith('error') ? [{ codigo: 'prueba-contexto', regla: 'producto', mensaje: 'Error de prueba', refs: (m.nombre.split(':')[1] ?? 'o-1').split(',').map(id => ({ tipo: 'cosa' as const, id })) }] : [];
 if (aislado)
-    mock.module('./matriz', () => ({ erroresContexto: errores, MATRIZ: {}, noOfrecido: () => { throw new Error('fuera del doble de transacción'); } }));
+    mock.module('./matriz', () => ({ erroresContexto: errores, MATRIZ: {}, noOfrecido: () => { throw new Error('fuera del doble de transacción'); }, violacionesForma: () => { throw new Error('fuera del doble de transacción'); } }));
 const { transaccion } = await import('./resultado');
 const { aplicarAcciones, aplicarAccion, etiquetaAccion, OPERACIONES } = await import('./operaciones');
 const { fijarDescripcionModelo } = await import('./modelo');

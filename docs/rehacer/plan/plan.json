@@ -97,7 +97,7 @@
       "id": "WP-3a", "ola": 2, "nombre": "Operaciones: cosas y estados",
       "objetivo": "Operaciones puras de cosas y estados con rechazos tipados, trazas y cierre DS-20.",
       "depende": ["WP-2", "WP-4p"],
-      "archivos": ["app/src/nucleo/{cosas,estados}.ts", "pruebas cosas.test.ts y estados.test.ts"],
+      "archivos": ["app/src/nucleo/{cosas,estados}.ts", "pruebas cosas.test.ts y estados.test.ts", "app/src/nucleo/resultado.test.ts (ajuste serial mínimo: exportación violacionesForma del doble aislado con guarda de no invocación; casos/cuerpos/expectativas WP-1 intactos)"],
       "lecturas": ["DESIGN §4.2", "DESIGN §4.4", "DESIGN §4.5.7", "DESIGN §7.3 (flujos 4–6, 16, 25)", "DESIGN §1.6 (DS-5, DS-6, DS-20)", "CANON §1"],
       "aceptacion": ["cosas.test y estados.test: éxito, rechazo con código, trazas, ids, deshacer", "T-062, T-063, T-065, T-081, T-248, T-251", "DS-5 (tiene-refinamiento), DS-6 (última aparición), selección múltiple, DS-20"]
     },

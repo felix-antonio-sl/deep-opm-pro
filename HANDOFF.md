@@ -1,6 +1,6 @@
 # OpForja rehecho — tablero único
 
-Estado: WP-0, WP-1, WP-2, WP-4p, WP-6, WP-8a y WP-11 cerrados y publicados. WP-18 cierra su turno de redacción y validación local, con check 568/0, focal de deploy 30/0 y revisión independiente de 28 casos distintos verdes. H1 tiene sus criterios actuales verdes: contratos, matriz, proyección, códec, geometría, servidor y seis fixtures; la aceptación de imagen de WP-18 sigue NO_EJECUTADO y diferida tras WP-14, sin dispensa. Sigue WP-3a sin pausa de hito. H2/H3 pendientes. Las autorizaciones B y C+R se preservan; layout/ownership y volumen WP-18 ya se aplicaron documentalmente antes de código. DS-20/propiedad serial WP-4r y VAL WP-9 siguen autorizados y se aplicarán en sus turnos.
+Estado: WP-0, WP-1, WP-2, WP-4p, WP-6, WP-8a y WP-11 cerrados y publicados. WP-18 cierra su turno de redacción y validación local, con check 568/0, focal de deploy 30/0 y revisión independiente de 28 casos distintos verdes. Los checks y seis fixtures de H1 están verdes, pero su revisión semántica se reabre por el hallazgo R+C/metadata de proyección documentado abajo. La aceptación de imagen de WP-18 sigue NO_EJECUTADO y diferida tras WP-14, sin dispensa. Sigue WP-3a sin pausa de hito. H2/H3 pendientes. Las autorizaciones B y C+R se preservan; layout/ownership y volumen WP-18 ya se aplicaron documentalmente antes de código. DS-20/propiedad serial WP-4r y VAL WP-9 siguen autorizados y se aplicarán en sus turnos.
 Rama `rehacer`; base y tag `pre-rehacer`: `513ac041`. La directora creó/publicó rama y tag.
 WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. La directora publica un commit por paquete.
 
@@ -24,12 +24,12 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 | 0 | WP-0 | Cerrado: aceptación y revisión verdes | `b9d94180b5f587cdf125d8c4fabcf26edb5917c3` |
 | 1 | WP-1 | Cerrado: aceptación y revisión verdes; ajuste autorizado incorporado | `817061a7f8312aa495b9ad00190f7d30db11ca40` |
 | 2 | WP-2 | Cerrado: aceptación y revisiones verdes; opción A incorporada | `c1472817f8b6bcfa1b825240a8ccfe5826e04ea4` |
-| 3 | WP-4p | Cerrado: aceptación, mutantes reales y revisión verdes; B-19 materializada | `ba5f8b5fd1fd39392f633795f0bb71cb356bd84c` |
+| 3 | WP-4p | Cierre previo publicado; nuevo hallazgo R+C/metadata abierto para resolución en WP-5 | `ba5f8b5fd1fd39392f633795f0bb71cb356bd84c` |
 | 4 | WP-6 | Cerrado: doce etapas, punto fijo, fixtures y revisión independiente verdes | `dcdbbf67e36c4e817c10485586e0ea29d5efa1ce` |
 | 5 | WP-8a | Cerrado: geometría, paths, generador real y revisión verdes; T-216 corregida | `5ceb3cbaa3829a4cd7988fb8f0b10ac170bdfbfe` |
 | 6 | WP-11 | Cerrado: B, preservación física, check y revisión completa verdes | `a82f2bdf2270132eb14891ce0967de7050eb20ff` |
-| 7 | WP-18 | Cerrado turno de redacción: scripts/check/revisión verdes; imagen pendiente tras WP-14 | commit de este recibo |
-| 8 | WP-3a | Pendiente | — |
+| 7 | WP-18 | Cerrado turno de redacción: scripts/check/revisión verdes; imagen pendiente tras WP-14 | `978605960ff405b5cd50aa7a5fb673703ad4c286` |
+| 8 | WP-3a | Cerrado: 21 operaciones, check 646/0 y revisión independiente de 69 casos verdes; ajuste mínimo autorizado aplicado; integración refinada espera WP-4r | SHA al abrir WP-3b |
 | 9 | WP-3b | Pendiente | — |
 | 10 | WP-5 | Pendiente | — |
 | 11 | WP-7 | Pendiente | — |
@@ -45,7 +45,7 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 | 21 | WP-17 | Pendiente | — |
 | 22 | WP-19 | Pendiente | — |
 
-H1 (tras ola 1): criterios de contratos/matriz/proyección/códec/geometría/servidor y fixtures verdes. WP-18 cerró solo redacción; su aceptación de imagen sigue pendiente. H2 (tras ola 3) y H3 (tras ola 5): pendientes.
+H1 (tras ola 1): checks y fixtures verdes; revisión semántica reabierta por continuidad R+C/metadata en proyección, sin aceptación definitiva hasta reparar. WP-18 cerró solo redacción; su aceptación de imagen sigue pendiente. H2 (tras ola 3) y H3 (tras ola 5): pendientes.
 WP-18 verifica su imagen después de WP-14; WP-17 ejecuta los e2e completos.
 
 ## WP-0: realización y evidencia
@@ -2070,3 +2070,194 @@ La aceptación de imagen permanece registrada aparte para después de WP-14. H2/
 pendientes. Publicación de este turno: un commit semántico y push rehacer, sin main;
 el SHA se fijará al abrir WP-3a. Sigue WP-3a inmediatamente, después WP-3b/WP-5/WP-7/WP-8b
 y el resto lineal hasta el objetivo completo, sin pausar por cierre de paquete o hito.
+
+### Apertura serial de WP-3a
+
+WP-18 publicado en `978605960ff405b5cd50aa7a5fb673703ad4c286`: HEAD, origin/rehacer y
+ls-remote iguales; divergencia 0 0 y árbol limpio antes de esta apertura. Main/origin/main/tag
+conservan `513ac041f6eb91dc8bf0eb5319a492eb6ff25f6d`. Su imagen sigue pendiente.
+
+Propiedad: nucleo/cosas.ts, estados.ts y sus respectivas pruebas. Única escritora GPT-6.1-Sol
+High; dirección conserva documentos/Git y la revisión es independiente. Se reutiliza preflight
+actual de WP-3a, contrastando las lecturas del plan, sin cambios contractuales. DS-5, DS-6 y
+DS-20 contra original, entrada inmutable, trazas, IDs, selección múltiple y proyección real
+son aceptación de este turno. Crear primer subproceso y distribución real 0→1 es integración
+serial de WP-4r según plan; no se acredita ahora con doble ni éxito inventado. RED→GREEN,
+check completo nuevo y freeze/revisión preceden a aceptar y publicar WP-3a.
+
+### Hallazgo en contraste para WP-5 — continuidad R+C y metadatos
+
+La preparación independiente WP-5 identifica una incoherencia documental: canon R-PREC-2/3
+condiciona recomposición/conflicto a continuidad trazable de identidad/estados; DESIGN §4.4
+fija conflicto warning/contención sin continuidad, pero §4.6 paso 4 exige ambos/conflicto
+para todo R+C. La proyección aceptada reproduce ese último literal y sus pruebas exigen
+error/gramatical también para R+C y para precedencia inválida, contrario al catálogo de §4.4.
+Dirección contrastó las fuentes. No está cubierto por las cuatro correcciones autorizadas.
+
+Se preparan sondas propias sobre la proyección estable con forma/contexto reales para distinguir
+el defecto observado de posibles montajes sin prueba de continuidad. Todavía no se adjudica un
+RED ni se modifica contrato, proyección o pruebas. La propuesta precisa y su revisión deberán
+preceder a cualquier corrección contractual; WP-3a continúa solo dentro del contrato vigente.
+Los verdes anteriores de H1 son evidencia histórica y no dispensan este hallazgo posterior.
+
+La sonda real `/tmp/opforja-rehacer/WP-5-continuidad-proyeccion.test.ts` observó 5 pass /
+2 fail, 67 expectativas: RED de continuidad directa (mismo objeto/estado propio, resultado
+anterior a consumo en bandas estrictas) y RED de metadata R+C. Cinco negativas conservan
+ambos hechos y conflicto. Forma, contexto esperado y pureza pasaron antes de ambas refutaciones;
+no son errores de montaje. Log original conservado. La revisión independiente de esta evidencia
+y propuesta está en curso; ninguna corrección fue aplicada. H1 se reabre en este aspecto.
+B-29 registra temporalmente el DEBE incumplido en conformidad, sin usar la brecha para dispensarlo.
+La reparación contractual sigue pendiente de resolución expresa; WP-3a continúa independiente.
+
+### Propuesta precisa WP-5 — B-29, continuidad R+C y metadata (SIN APLICAR)
+
+Patch revisable: `/tmp/opforja-rehacer/WP-5-propuesta-continuidad-proyeccion.patch`,
+64 líneas, SHA-256 `4058a22a41b22fb2d434481592c3ae71aec8ce9eb20e4e1b6d4b1a8e5fae1e72`.
+Dirección verificó huella y `git apply --check` exit 0 sin aplicar. Versiones previas de 55
+líneas y 64 líneas se conservan como v1/v2, con hashes y sus dictámenes. La versión final solo
+amplía la aceptación recomendada; no fija un algoritmo privado como definición exhaustiva.
+
+Diff propuesto: §4.4 atribuye precedencia inválida a R-PREC-1/AP-30, manteniendo error/contención;
+§4.6 restituye R-PREC-2 (efecto únicamente con continuidad de identidad/estados trazables,
+procedencia íntegra) y R-PREC-3/4 (sin evidencia, ambos hechos/conflicto warning/contención).
+DESIGN/README/plan declaran propiedad serial mínima WP-5 sobre proyeccion.ts,
+proyeccion.test.ts y frontera.test.ts para esa reparación y metadata. No retira propiedad ni
+aceptación original WP-5, canon/decisiones, formato v0, APIs o los ajustes B/layout/volumen,
+DS-20/VAL y semillas previamente autorizados.
+
+Aceptación añadida: positivos de continuidad directa, cadena R→E→C y anidado secuencial;
+negativos de estados sin conexión/cadena rota y ancestros paralelos sin inventar orden escalar.
+Exige firma de estados, IDs/procedencia, entrada inmutable, anclajes visibles y 12 fuerzas
+sin pérdidas, nueve celdas, negativos previos y ley/oráculo independiente de frontera.
+Metadata §4.4 con la misma cobertura, corrigiendo el esperado errado sin quitar casos.
+Los 34 códigos P/N, reparaciones bien formadas y T-ID originales siguen íntegros.
+
+Revisión independiente favorable a la dirección semántica con esa aceptación explícita:
+`/tmp/opforja-rehacer/WP-5-review-propuesta-continuidad.md`. Los siete casos originales 5/2
+se conservan. Sus seis casos propios distintos válidos consolidan cuatro RED producto y dos
+GREEN: directo, cadena, anidado secuencial y metadata R+R fallan; cadena rota y anidado paralelo
+preservan R+C. Primer run 1/5 (31 expectativas) incluye dos F-7 de montaje, no fallos producto;
+archivo/log preservados, corrección solo de orden de hermanos y rerun anidado 1/1 (19)
+sin alterar esperados. No se suman esos runs como suite única ni se atribuye un algoritmo
+completo por los testigos positivos. La revisión documental final de la huella ampliada precede
+a solicitar resolución. No hubo reparación ni modificación de pruebas de producto.
+
+Pendiente de autorización específica de Félix/supervisión por cambio de contrato y ownership,
+conforme al plan. Aplicación solo al abrir WP-5 si se autoriza; ninguna implementación de esa
+corrección antes de documentar la resolución. WP-3a y preparación independiente compatible
+continúan sin usar el hallazgo para cambiar sus contratos ni atribuir verde definitivo a H1.
+
+### WP-3a — concreciones conservadoras dentro del contrato vigente
+
+Dirección conserva el rechazo tipo-incompatible al convertir objeto con valor puntual:
+F-13 no representa ese hecho en un proceso y §4.2 no autoriza retirarlo en cambiarTipoCosa.
+El operador puede ejecutar fijarValor(null) explícitamente antes del cambio. Igual criterio
+para proceso con duración: fijarDuracion(null) previo, original/campo/argumentos/IDs intactos
+al rechazar. La retirada automática de duración no tenía prueba estable ni fuente explícita;
+era una decisión de implementación aún sin aceptar. Se exige RED→GREEN para esa corrección.
+No es una nueva prohibición OPM, API, pérdida consentida implícitamente ni excepción DS-20.
+
+La dependencia 0→1 de crearCosa se limita por capacidad serial: con contorno procedimental
+vacío la distribución es vacua y se verifican membership/ID/trazas reales; con contorno no
+vacío que aún espera hook WP-4r, rechazo producto antes de reservar IDs/publicar candidato.
+Se consume esProcedimental compartido, sin segunda tabla de migración. Positivo vacuo queda
+nativo; negativo temporal tiene RED→GREEN scratch preservado, sin convertir un rechazo de
+capacidad pendiente en prohibición canónica o expectativa nativa permanente que impida WP-4r.
+El hook futuro sustituirá esa guarda con distribución real y aceptación propia, sin debilitar
+las pruebas estables ni atribuir su aceptación a un doble. B-28 mantiene la integración pendiente.
+
+### WP-3a — freeze de candidata y propuesta mínima del harness (SIN APLICAR)
+
+Las cuatro fuentes quedan congeladas según `/tmp/opforja-rehacer/WP-3a-freeze.sha256`
+y `WP-3a-freeze-manifest.json`. Recibo completo: `WP-3a-implementacion-reporte.md`.
+Observado nativo: 78 pass / 0 fail, 751 expectativas, dos archivos; TypeScript verde.
+Incluye RED→GREEN real de lote vacío, overflow F-12, conservación de duración y referencias
+de impedimentos; los montajes originales fallidos quedan preservados y diferenciados.
+La guarda temporal 0→1 conserva su sonda scratch separada; no se suma al conteo nativo.
+
+El check completo nuevo terminó 641 pass / 5 fail, 7153 expectativas, 31 archivos,
+exit 1 (`WP-3a-check-final.log`). Los cinco fallos son SyntaxError al cargar la exportación
+violacionesForma ausente del doble matriz de resultado.test.ts, antes de ejecutar el cuerpo.
+No se atribuyen a comportamiento de WP-3a ni se acepta/publica el paquete con ese check.
+La revisión independiente de las cuatro fuentes y sondas propias está activa; la escritora
+las conserva inmóviles mientras se resuelve el ajuste del harness ajeno a su propiedad.
+
+Propuesta precisa: `/tmp/opforja-rehacer/WP-3a-propuesta-harness-transaccion.patch`,
+53 líneas, SHA-256 `fd8af23b5288fb520124f1f237a3e546bd1a3c4d01271116d5b538aac175b9b7`.
+DESIGN §12.1/tabla WP-3a, README y plan.json declaran propiedad serial mínima sobre
+nucleo/resultado.test.ts únicamente para añadir violacionesForma al doble aislado.
+El único cambio ejecutable es esa exportación, que lanza el mismo fallo fuera del doble
+que noOfrecido. Casos, cuerpos, expectativas, aislamiento y demás guardas WP-1 intactos.
+No se cambia producción para adaptarla al doble, firmas públicas ni canon/DECISIONS/v0.
+Los ajustes B, layout/volumen WP-18, DS-20/VAL y 200×40 acciones previamente autorizados
+se conservan íntegros; las propuestas son disjuntas y se refrescarán al aplicar en su turno.
+
+Dirección comprobó git apply --check exit 0 sin aplicar. Copia scratch del harness,
+con cambios de rutas exclusivamente para importarlo desde /tmp, observó 5 pass / 0 fail,
+10 expectativas externas; cada proceso hijo conserva sus cuerpos originales y sale 0.
+Log `WP-3a-propuesta-harness-green.log`; scratch SHA-256
+`e26f91a4c9c3e3ac45f4b1e116f947603affda85082dd7cddbb29f189d84dd08`.
+Esto comprueba la propuesta de montaje, no la aceptación productiva de cosas/estados.
+Revisión independiente favorable: `WP-3a-review-propuesta-harness.md`. Comprobó huella,
+patch entero, guarda y comparación literal desde const entrada hasta EOF: todos los casos,
+cuerpos, expectativas y afterEach originales coinciden. Leyó el 5/0 de ensayo sin atribuirle
+la aceptación de cosas/estados. Las 60 sondas independientes intactas más dos adversarios
+propios observan 62/0, 1107 expectativas; la auditoría completa del paquete sigue activa.
+Pendiente de autoridad para modificar ownership, según protocolo de plan §3 y la condición
+humana de proponer en HANDOFF cualquier cambio de DESIGN antes de aplicarlo.
+Después de una resolución favorable: registrar primero, aplicar ese cambio exacto,
+check íntegro nuevo y dictamen completo antes de aceptar WP-3a. No hay skip, cuarentena,
+expectativa retirada ni permiso operativo adicional. WP-5/B-29 conserva su pregunta pendiente.
+
+### Resolución expresa del ajuste mínimo del harness WP-3a
+
+Félix respondió «Autorizar el ajuste mínimo del harness WP-3a» a la pregunta específica
+del patch de 53 líneas, SHA-256
+`fd8af23b5288fb520124f1f237a3e546bd1a3c4d01271116d5b538aac175b9b7`.
+Dirección vuelve a verificar la huella y registra aquí la resolución antes de aplicar.
+Se autoriza solo la propiedad serial declarada y la exportación violacionesForma con
+guarda de no invocación; casos, cuerpos y expectativas WP-1 permanecen intactos.
+Dirección aplica primero los cuatro hunks documentales; después la única escritora
+del paquete aplica el hunk ejecutable, conservando las cuatro fuentes congeladas.
+Se exigen revisión completa y check íntegro nuevo; el ensayo 5/0 no es aceptación.
+No cubre otra excepción contractual ni operación externa. La propuesta específica
+WP-5/B-29 continúa pendiente de su resolución; todas las autorizaciones previas
+y sus límites siguen vigentes.
+
+### Cierre técnico WP-3a — cosas y estados
+
+Aceptación de dirección tras dictamen independiente final favorable
+`/tmp/opforja-rehacer/WP-3a-review-dictamen-final.md`, leído completo.
+Quince operaciones de cosas y seis de estados reales, sin cambio de firmas ni matriz duplicada.
+El alcance de plan se comprueba con éxito/rechazo tipado, trazas, identidad, snapshot previo,
+DS-5/6/20, selección múltiple atómica, alcance/refinamientos, cascadas y visibilidad real.
+Se conserva valor/duración hasta retiro explícito, se rechaza fan mixto al borrar estado,
+se conserva soporte de hijo y se valida overflow F-12 sin cap arbitrario.
+
+Focal nativo observado: 78 pass / 0 fail, 751 expectativas. El ajuste exacto autorizado
+del doble pasó sus cinco casos reales (5/0, 10 expectativas externas), cuerpos intactos.
+Check íntegro nuevo: TypeScript y 646 pass / 0 fail, 7153 expectativas, 31 archivos,
+18.32 s, exit 0; log `WP-3a-check-harness-final.log` SHA-256
+`0bc986fe4f55f6f4c8868892342ded45f955fd95735bcfa8b1658a54364b1498`.
+El check histórico 641/5 queda preservado como fallo de carga del doble, sin dispensarlo.
+Manifest final `WP-3a-freeze-manifest-final.json` y `WP-3a-freeze-final.sha256`:
+5/5 huellas verificadas; las cuatro fuentes productivas mantienen sus huellas anteriores.
+
+La revisión independiente observó 69 casos distintos verdes: 62/0, 1107 expectativas
+(60 originales intactas más dos adversarios) y 7/0, 88 expectativas propias complementarias.
+Auditoría completa de las cuatro fuentes/suites y 21 operadores, sin defectos materiales.
+Verificó el único hunk del doble y bloque literal de casos contra HEAD; no repitió las
+69 sondas ni el check con fuentes intactas. No hubo prueba debilitada, skip o cuarentena.
+
+Conformidad conserva doce filas parciales. B-06 añade evidencia limitada de conservación
+en operación de estado; creación/edición de enlaces y abanicos, UI y OPL siguen pendientes.
+B-28 conserva distribución real no vacía pendiente de WP-4r/H2, con guarda temporal antes
+de reservar IDs y negativo scratch separado, sin expectativa nativa permanente.
+El positivo 0→1 vacío sí está observado. B-29 mantiene hallazgo R+C/metadata y propuesta
+WP-5 pendiente de resolución expresa. H1 conserva checks/fixtures verdes con revisión
+semántica reabierta por B-29; H2/H3 pendientes. WP-18 imagen sigue NO_EJECUTADO tras WP-14.
+Los snapshots recuperables no acreditan historial editor, Ctrl+Z, UI, OPL ni render futuros.
+
+Publicación: un commit semántico de este paquete y push a rehacer; el SHA se fijará en
+la apertura siguiente, después de verificar igualdad local/remota, 0 0 y árbol limpio.
+Sigue WP-3b inmediatamente, luego WP-5 y el resto lineal, sin pausa de paquete/hito.
