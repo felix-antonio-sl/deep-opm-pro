@@ -1,6 +1,6 @@
 # OpForja rehecho — tablero único
 
-Estado: WP-0, WP-1, WP-2, WP-4p, WP-6 y WP-8a cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-6 aceptado: excepción C+R autorizada explícitamente por coordinación de Félix, documentada antes de código y comprobada con T-196 intacta y sondas independientes. WP-8a aceptado tras la reparación T-216; continúa WP-11 después de su publicación. H1, H2 y H3 siguen pendientes.
+Estado: WP-0, WP-1, WP-2, WP-4p, WP-6, WP-8a y WP-11 cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-6 aceptado: excepción C+R autorizada explícitamente por coordinación de Félix, documentada antes de código y comprobada con T-196 intacta y sondas independientes. WP-8a aceptado tras la reparación T-216 y publicado. WP-11 aceptado tras B y reparación física UTF-8: check fresco 568/0 y 60 casos independientes distintos verdes, con informes/originales íntegros; se publica el commit de este recibo. El layout/ownership acotado de WP-18 fue autorizado y se aplicará al iniciar ese paquete. El bundle futuro DS-20/VAL/volumen/propiedad serial está autorizado específicamente; se aplicará por partes documentales en los turnos WP-18, WP-4r y WP-9. H1, H2 y H3 siguen pendientes.
 Rama `rehacer`; base y tag `pre-rehacer`: `513ac041`. La directora creó/publicó rama y tag.
 WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. La directora publica un commit por paquete.
 
@@ -26,9 +26,9 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 | 2 | WP-2 | Cerrado: aceptación y revisiones verdes; opción A incorporada | `c1472817f8b6bcfa1b825240a8ccfe5826e04ea4` |
 | 3 | WP-4p | Cerrado: aceptación, mutantes reales y revisión verdes; B-19 materializada | `ba5f8b5fd1fd39392f633795f0bb71cb356bd84c` |
 | 4 | WP-6 | Cerrado: doce etapas, punto fijo, fixtures y revisión independiente verdes | `dcdbbf67e36c4e817c10485586e0ea29d5efa1ce` |
-| 5 | WP-8a | Cerrado: geometría, paths, generador real y revisión verdes; T-216 corregida | Commit de este cierre; SHA al iniciar WP-11 |
-| 6 | WP-11 | Pendiente | — |
-| 7 | WP-18 | Pendiente | — |
+| 5 | WP-8a | Cerrado: geometría, paths, generador real y revisión verdes; T-216 corregida | `5ceb3cbaa3829a4cd7988fb8f0b10ac170bdfbfe` |
+| 6 | WP-11 | Cerrado: B, preservación física, check y revisión completa verdes | commit de este recibo |
+| 7 | WP-18 | Pendiente; layout, ownership y nombre físico de volumen autorizados | — |
 | 8 | WP-3a | Pendiente | — |
 | 9 | WP-3b | Pendiente | — |
 | 10 | WP-5 | Pendiente | — |
@@ -1493,3 +1493,468 @@ Cierre con un commit semántico y push a origin/rehacer; el SHA se registra al i
 Continúa inmediatamente el servidor mínimo. Sin cambios de DESIGN/canon/decisiones por WP-8a,
 Git a main, merge, despliegue, contenedores, producción, migración real, instalaciones ni red
 externa fuera del Git mandatario. Escrituras ajenas preservadas.
+
+
+## WP-11: inicio y concreción menor de autenticación
+
+WP-8a publicado como `5ceb3cbaa3829a4cd7988fb8f0b10ac170bdfbfe`. Dirección verificó
+HEAD = origin/rehacer = ls-remote, divergencia 0/0 y árbol limpio antes de este inicio.
+main, origin/main y pre-rehacer permanecen en `513ac041f6eb91dc8bf0eb5319a492eb6ff25f6d`.
+
+Plan WP-11: propiedad exclusiva app/servidor/{principal,sesion,almacen,cuenta}.ts y pruebas;
+una ejecutora GPT-6.1-Sol High. Dirección conserva documentos y publicación; revisión prepara
+oráculos independientes en scratch. Preflight `/tmp/opforja-rehacer/WP-11-preflight-actual.md`
+y contexto literal `/tmp/opforja-rehacer/WP-11-contract-context.md`. El códec WP-6 es ahora
+real, aceptado y publicado: la mención de stub en el preflight es histórica y no autoriza
+un doble de códec para declarar aceptación. Se utiliza el vector scrypt legado sintético
+preparado; nunca cuenta, configuración de auth ni credenciales operativas.
+
+Dirección concreta antes de código: una cabecera Authorization presente se valida como Bearer;
+un valor erróneo no se oculta tras una cookie válida. Si no hay cabecera, se usa la cookie.
+La regla específica de §8.2 gobierna /api/sesion: Bearer no autentica GET y DELETE con Bearer
+da 400. Origin ausente no añade un requisito; si viene, debe coincidir con el host. Estas
+precisiones mantienen el contrato y sus códigos; no requieren cambios de DESIGN.
+
+Pruebas en directorios temporales propios y servidor efímero en loopback, con cuenta/HMAC/token
+sintéticos explícitos; reloj controlado para límites, copias y purga. Se comprueban efectos de
+CAS, escritura/errores y conservación CC-14 con códec real, no solo llamadas a dobles. No nuevas
+instalaciones, red externa, secretos, contenedores, producción, migración real o despliegue.
+Continúa WP-18 después del cierre y publicación WP-11. H1/H2/H3 siguen pendientes.
+
+
+## WP-18: propuesta precisa pendiente por layout de build observado
+
+Durante la preparación independiente de WP-18, dirección comprobó una discrepancia real de
+DESIGN §9.1 con Bun 1.3.11. La sonda sintética aislada en
+`/tmp/opforja-rehacer/WP-18-sonda-layout/` contiene solo tres módulos literales propios, sin
+imports ni datos operativos. El comando literal de §9.1 termina verde pero emite:
+
+- dist-servidor/servidor/principal.js;
+- dist-servidor/servidor/cuenta.js;
+- dist-servidor/herramientas/migrar-postgres.js.
+
+Al copiar dist-servidor a ./servidor, el CMD y los comandos de §9.4 buscan archivos planos que
+no existen en ese layout. La segunda sonda, con `--entry-naming '[name].js'`, emite exactamente
+principal.js, cuenta.js y migrar-postgres.js en una salida plana. Ambas usaron Bun wrapper
+--no-env-file y fuentes scratch; no construyeron la app ni invocaron contenedores, instalación,
+red, secretos o migración. Son evidencia acotada de salida del bundler, no aceptación de imagen.
+
+Propuesta revisable: `/tmp/opforja-rehacer/WP-18-propuesta-layout.patch`. Agrega únicamente
+`--entry-naming '[name].js'` al comando de DESIGN §9.1 y declara el compartido serial de
+app/package.json, vite.config.ts y playwright.config.ts en DESIGN §§12.1/12.2 y el plan WP-18.
+Así WP-18 podrá corregir el andamiaje dist/cliente + dist/servidor para producir dist/ y
+dist-servidor/ coherentes con el Dockerfile y su CMD. Sin nuevos endpoints, formato v0,
+dependencias, instalaciones, canon, DECISIONS 1–28 o cambio de criterios/pruebas.
+
+Contrato y plan permanecen intactos: es propuesta pendiente de supervisión, conforme a la
+regla expresa de cambios de DESIGN. No bloquea WP-11 ni la preparación independiente; no se
+aplicará la parte afectada de WP-18 antes de resolución. La revisión independiente contrastará
+si esta corrección es mínima o existe una realización íntegramente compatible. La verificación
+real de imagen permanece diferida y NO_EJECUTADA bajo la prohibición de contenedores.
+
+
+Revisión independiente de la propuesta WP-18: dos dictámenes favorables técnicamente,
+`/tmp/opforja-rehacer/WP-18-review-layout-contrato.md` y
+`/tmp/opforja-rehacer/WP-18-review-layout.md`. Confirman el desajuste de paths y recomiendan
+el flag como solución mínima. Un ensamblado posterior puede conservar el comando Bun, pero
+agrega mecanismos y política de traslado de artefactos; la sonda sintética no acredita sus
+imports reales. El ownership propuesto se limita al layout/arranque, sin obligar a tocar los
+tres archivos si no es necesario. No constituye autorización ni aceptación de imagen.
+La resolución precisa se presentó a supervisión; sigue pendiente. WP-11 continúa, independiente.
+
+
+## Preparación futura WP-4r / WP-9: puntos que necesitan resolución en su turno
+
+Preflights de lectura independientes conservados:
+`/tmp/opforja-rehacer/WP-4r-preflight-actual.md` y
+`/tmp/opforja-rehacer/WP-9-preflight-actual.md`. No ejecutan ni aceptan sus capacidades y
+no afectan WP-11. Antes de programar los aspectos señalados deben contrastarse estas fuentes:
+
+- DESIGN §5.2 declara que fijarBandas usa permiteErroresNuevos; §4.1 y DS-20 reservan esa
+  excepción a moverSubproceso. Es una contradicción textual concreta, no una decisión resuelta
+  por este preflight. El contrato vigente de distribución no cambia.
+- DESIGN §5.7 pone valor en pasada A/fase 1; §5.2 crea una exhibición faltante en fase 2,
+  mientras fijarValor exige el rasgo de una exhibición (F-13). VAL desde vacío necesita un
+  orden coherente que preserve F-13 y el roundtrip estricto; no puede descartarse vía partial-parse
+  para declarar aceptación.
+- La aceptación WP-4r nombra azar.acciones, pero pruebas/azar.ts solo exporta el generador de
+  modelos de WP-1. Su extensión necesita ownership serial explícito. Las 200×40 secuencias
+  deben conservar su ley sin errores nuevos; los movimientos válidos para esa ley pueden
+  generarse y la excepción recuperable T-269 probarse aparte, sin esconderla ni debilitar el
+  oráculo. Si se pretende incluir esos movimientos excepcionales en la misma ley universal,
+  debe resolverse expresamente esa tensión.
+
+No se cambió canon, DECISIONS, DESIGN, plan, oráculos o código por estos hallazgos. Los informes
+contienen citas y alternativas; las decisiones se prepararán cuando corresponda en el orden
+serial, conservando el mandato de una escritora y revisión independiente por paquete.
+
+
+## WP-11 — ejecución local y freeze para revisión independiente
+
+La única ejecutora añadió exclusivamente app/servidor/{principal,sesion,almacen,cuenta}.ts y
+sus cuatro pruebas. Los ocho archivos quedan congelados; no se modifica tablero, conformidad,
+DESIGN, plan, configs, códec o fuentes ajenas. Este append fue liberado expresamente por dirección.
+Recibo completo: /tmp/opforja-rehacer/WP-11-implementacion-reporte.md.
+Manifest SHA-256 de los ocho archivos: /tmp/opforja-rehacer/WP-11-freeze-manifest.json.
+
+Verificación local del candidato: focal43pass/0fail/409expect/4files en
+WP-11-green-servidor-final.log; check completo único exit0, TypeScript local verde,
+536pass/0fail/6148expect/29files en WP-11-check-final.log. Ambos logs están bajo
+/tmp/opforja-rehacer/. Comandos con env mínimo PATH=/tmp/opforja-rehacer-tools:/usr/bin:/bin;
+los hijos Bun nativos usan --no-env-file y configuración sintética explícita. RED reales previos
+cuenta/sesión0/10, almacén0/13 y HTTP0/8; los bordes nuevos tienen RED/GREEN propios conservados
+y enumerados en el recibo, sin debilitar sus expectativas. git diff --check exit0 y verificación
+separada de EOF/whitespace de los ocho archivos nuevos sin errores; no Git mutante.
+
+Se observaron dos entrypoints reales, HTTP en loopback/puerto efímero, CLI por stdin sintético,
+compatibilidad del vector scrypt legado independiente, CAS concurrente,2000activos/507,
+previas100PUT/1min y rotación30, CC-14 sobre bytes originales,422/informe con códec real,
+Bearer/cookie/CSRF/headers y todos los códigos previstos. No se ejecutaron gates futuros.
+
+Los límites de tamaño se comprobaron en25MiB=26214400bytes y4KiB=4096bytes UTF8 reales;
+nombre200codepoints. Los fallos FS antes del rename preservan/restauran original activo;
+después de instalar por rename, un fallo de fsync del directorio deja versión completa e índice/CAS
+coherentes aunque la petición falle: debe releerse. DELETE instalado conserva original en papelera
+y ya no declara activo. Previas/papelera pueden conservar originales del intento fallido.
+No se acredita transacción multidirectorio, crash/power-loss, segundo fallo simultáneo o múltiples
+procesos. Purga>30d/arranque probada; timer24h configurado, sin observar24h en producción.
+
+Todos los procesos/timers propios terminaron; ninguna lectura de .env/cuenta real/credenciales,
+instalación,bun x/npx,red externa,contenedor,PG,producción o deploy. No stage/commit/push.
+La suite verde es evidencia local; no cierra ni publica WP-11. Fuentes en espera de revisión
+independiente y mandato de dirección. B-28 y distribución futura no reciben crédito.
+
+## WP-11 — primera revisión refuta el freeze de 536 pruebas
+
+El candidato anterior queda rechazado para cierre. La revisión comprobó los ocho hashes del
+freeze y observó 18 sondas verdes, 162 expectativas, pero seis sondas adversarias fallaron por
+comportamiento real del servidor y el disco: 0 pass / 6 fail, 14 expectativas. El check de 536
+pruebas sigue siendo evidencia de ese candidato; no acredita la aceptación ni la corrección de
+estos bordes. Dictamen y RED conservados, sin sobrescribirlos:
+`/tmp/opforja-rehacer/WP-11-review-dictamen-freeze536.md` y
+`/tmp/opforja-rehacer/WP-11-review-adversarios-completo.log`.
+
+- Un cuerpo de login con UTF-8 ilegible devuelve 400 antes del hash/señuelo y no cuenta como
+  fallo; cinco cuerpos ilegibles permiten luego un login correcto (204). Dos sondas muestran
+  el mismo defecto de uniformidad y límite de §8.2.
+- Una ruta sin extensión bajo `/assets/` sirve el index correcto con caché immutable durante un
+  año, en contra de la obligación `no-store` del recurso SPA (§8.1).
+- El sobre `{json: <v0>}` permite que un `modelo.id` original inválido se repare como `m-import`
+  y se acepte con 201. El contrato HTTP pide documento v0 en raíz y validación del id original;
+  el soporte de recuperación de sobres del códec no amplía el cuerpo externo (§8.1, CC-16).
+- Restaurar un histórico CC-14 con un campo desconocido descartado devuelve 201 sin informe,
+  canonicaliza y elimina la última copia original. La sonda contó cero archivos que conservaran
+  sus bytes en todo el árbol temporal. Es pérdida material silenciosa; no se dispensa con una
+  brecha, una suite verde ni un cambio de expectativa.
+- Dos arranques con archivos ilegibles distintos y el mismo filename sobrescriben el primero
+  en `archivo/invalidos/`. §8.3 no fija los nombres en caso de colisión. Dirección concreta la
+  conservación con un destino no ocupado dentro de ese directorio, manteniendo el basename
+  cuando esté libre; no añade rutas HTTP ni amplía la autoridad operativa.
+
+Se reabre exclusivamente la escritora de WP-11 para los cuatro defectos compatibles con el
+contrato (login, caché, cuerpo/id y archivo), con regresiones propias RED antes del arreglo y sin
+modificar pruebas existentes ni oráculos independientes. Las cuatro fuentes tendrán una pasada
+conservadora de legibilidad de autenticación, CAS, commit, rollback y limpieza. El código de
+restauración histórica queda quieto mientras dirección prepara una resolución revisable: la
+tabla actual solo declara 201 `{id,rev}` / 404, pero exige escrituras canónicas y no ofrece
+aceptación de pérdidas. La recomendación técnica independiente contrastará recuperación exacta,
+conservación e informe antes de proponer un cambio contractual. No hay permiso tácito para
+añadir 422, flags, endpoints o para ocultar pérdidas/rechazos/visibilidad.
+
+El próximo freeze deberá conservar estos RED, incluir regresiones verdes, un check completo
+nuevo y rerevisión independiente, incluidos los entrypoints reales como hijos. WP-11 sigue
+abierto y sin commit/push; WP-18 mantiene su propuesta documental pendiente y los hitos siguen
+pendientes. No cambian canon, DECISIONS 1–28, DESIGN ni plan por este dictamen.
+
+## WP-11 — reparación parcial verde; resolución de restauración pendiente
+
+La escritora conservó las 43 pruebas anteriores y añadió cuatro regresiones propias: RED
+0 pass / 4 fail, 7 expectativas; después del arreglo y formato, focal 47 pass / 0 fail,
+439 expectativas en cuatro archivos y TypeScript local exit 0. Recibo y huellas nuevos:
+`/tmp/opforja-rehacer/WP-11-reparacion536-parcial.md` y
+`/tmp/opforja-rehacer/WP-11-freeze-parcial-revision536.json`. Dirección verificó 8/8 hashes.
+La restauración solo recibió formato; no cambió su conducta ni se anticiparon nuevos esperados.
+
+La rerevisión independiente ejecutó completas las 18 sondas positivas (18/0, 162 expectativas),
+las seis adversarias intactas (5/1, 17 expectativas) y cuatro pruebas de CLI y servidor como
+hijos reales (4/0, 72 expectativas): total 27 pass / 1 fail, 251 expectativas. El único RED es la
+pérdida silenciosa de restauración. Los entrypoints pasaron en su primera ejecución, con Bun
+sin env, datos/stdin sintéticos, loopback, puerto efímero y terminación/limpieza comprobadas.
+Dictamen: `/tmp/opforja-rehacer/WP-11-review-dictamen-parcial.md`; 8/8 hashes también coinciden
+independientemente. Login, SPA, CC-16 y archivo sin sobrescrituras quedaron observados verdes;
+las ramas de auth/CAS/commit/rollback son ahora legibles. No se repitió el check completo de un
+candidato que conserva un fallo material conocido. WP-11 sigue sin aceptación ni commit/push.
+
+### Propuesta concreta de restauración para resolución de supervisión
+
+Patch revisable, todavía SIN APLICAR:
+`/tmp/opforja-rehacer/WP-11-propuesta-restauracion-direccion.patch`.
+`git apply --check` confirma que aplica a DESIGN vigente; no se modificó el contrato. La propuesta
+afecta únicamente §§3.4.4, 7.3-2, 7.6, 8.1 y 10.6:
+
+1. Importar la fuente antes de exportar. Rechazos: 400 con Informe completo; descartes: 422 con
+   Informe completo. Ambos dejan la entrada original intacta (bytes, nombre y fecha), sin
+   instalar un modelo ni crear respaldo. La ruta no incorpora aceptación de pérdidas.
+2. Fuente histórica NO canónica sin rechazos/descartes: 201 con `canonicalizado:true` e Informe
+   original completo, incluida visibilidad. Instalar canónico y conservar los bytes exactos como
+   respaldo `motivo:"reemplazado"` en la papelera existente, con la retención de 30 días. El
+   respaldo es durable antes de retirar la entrada fuente; las ventanas de fallo conservan la
+   última copia original. Coordinar sus nombres con todos los productores de papelera.
+3. Fuente canónica: mantener 201 actual, incluido id ocupado y nuevo `m-…`; la reescritura de id
+   prevista por el contrato no añade por sí sola otro respaldo. Los límites comunes de tamaño,
+   nombre y cupo aplican al candidato canónico: nombre > 200 caracteres da 400, tamaño 413 y
+   cupo 507, sin instalar ni retirar la fuente. El 400 por nombre lleva error e Informe original
+   cuando haya recanonicalización; no fabrica un rechazo del códec ni añade límite al histórico
+   que CC-14 permite leer.
+4. Cliente futuro: devolver éxito con sus campos opcionales o `FalloApi`; Biblioteca muestra el
+   Informe completo y conserva la entrada ante rechazo. Tras red/5xx, refresca Biblioteca y
+   Papelera; no repite automáticamente POST, pues puede haberse instalado el modelo. Añadir
+   cobertura de originales/informes/visibilidad, id ocupado, concurrencia y fallos de escritura.
+
+Consecuencia que requiere aceptación expresa: un histórico legible con descartes NO se restaura
+mediante ese botón; devuelve 422 y permanece en papelera con su fecha y retención existentes.
+Recuperarlo por el procedimiento operativo e importarlo usa el flujo de informe ya previsto.
+No se añaden flags, endpoints, directorios ni formato v0; canon y DECISIONS 1–28 permanecen.
+
+El contraste independiente A/B está en
+`/tmp/opforja-rehacer/WP-11-restauracion-contrato-preflight.md`: recomienda B sin flag nuevo y
+considera coherente el patch inicial; sus tres precisiones de nombres/límites/red se incorporaron
+al candidato final. La alternativa de recuperar bytes históricos con 201 exige una excepción
+de escrituras canónicas y reescritura fiel de sobres/paquetes al ocupar id; exportar el import
+repite la pérdida y no la resuelve. Este dictamen técnico no concede autoridad contractual.
+
+La segunda revisión independiente leyó completo el patch final de 79 líneas y no identifica
+otra omisión material ni ampliación oculta. Dictamen:
+`/tmp/opforja-rehacer/WP-11-review-propuesta-restauracion.md`.
+SHA-256 del candidato final:
+`cee62005137690b25c726a15d992a4d18a86b18035768062200273f85a45907b`.
+La precisión de nombre > 200 caracteres distingue el 400 de API de los rechazos del códec;
+los errores por límites conservan la fuente. La revisión es favorable a la propuesta como
+cambio explícito, pero no autoriza ni acepta su implementación. Los oráculos y RED siguen
+intactos hasta resolución documental.
+
+La pausa del aspecto afectado deriva de la instrucción expresa del dueño: si DESIGN debe
+cambiar, proponer en HANDOFF y detenerlo. Se conserva todo el trabajo y todos los RED. Tras
+resolución: documentar primero, regresar RED→GREEN, rerevisión independiente y check íntegro
+nuevo, luego commit/push único de WP-11 y WP-18 en el orden autorizado. La propuesta WP-18
+de layout/ownership sigue pendiente por separado. Ningún hito cerrado ni prueba dispensada.
+
+### Resolución expresa de WP-18: layout y ownership autorizados
+
+El dueño respondió «Autorizar la corrección acotada» a la pregunta precisa de WP-18 registrada
+arriba: añadir `--entry-naming '[name].js'` en DESIGN §9.1 y declarar `app/package.json`,
+`app/vite.config.ts` y `app/playwright.config.ts` compartidos seriales de WP-18, exclusivamente
+para layout y arranque. Patch autorizado:
+`/tmp/opforja-rehacer/WP-18-propuesta-layout.patch`. Los dos dictámenes y la sonda conservados
+sustentan la resolución. El ownership habilita los ajustes necesarios, no obliga a editar los
+tres archivos ni amplía dependencias o criterios.
+
+Esta resolución revoca solo el estado pendiente de esa propuesta de WP-18. Dirección aplicará
+primero su patch documental al iniciar el paquete, tras aceptar/publicar WP-11, y conservará el
+commit/push propio de cada paquete y el orden lineal. No se ha aplicado todavía DESIGN/plan ni
+se ha escrito código futuro. No autoriza contenedores, instalaciones, red adicional, producción,
+deploy, migración real, merge/push main, costes, destrucción ni acceso a credenciales. La
+propuesta de restauración WP-11 sigue pendiente de una resolución diferente y precisa.
+
+### Resolución expresa de WP-11: propuesta B autorizada
+
+Supervisión comunicó la autorización expresa de Félix sobre la propuesta documental B de
+79 líneas, SHA-256 `cee62005137690b25c726a15d992a4d18a86b18035768062200273f85a45907b`,
+en `/tmp/opforja-rehacer/WP-11-propuesta-restauracion-direccion.patch`. Dirección verificó esa
+huella antes de aplicarla. Se registra PRIMERO esta resolución; a continuación se aplica
+únicamente ese patch en DESIGN y se libera a la única escritora para la corrección acotada.
+
+La autorización cubre 400/422 con Informe y entrada intacta, histórico recuperable con Informe
+completo y respaldo exacto de 30 días, límites y coordinación de nombres, y el contrato de
+cliente/Biblioteca detallado en el candidato. Revoca el pendiente de B; no autoriza otras
+excepciones de DESIGN, contenedores, red adicional, despliegue, migración real ni ampliación
+de publicación. WP-18 conserva su autorización anterior y sigue tras el cierre de WP-11.
+
+La aceptación de WP-11 requiere RED→GREEN observado, originales byteexactos, límites,
+concurrencia/fallos, revisión independiente y check íntegro NUEVO. Se preservan todos los RED
+anteriores y las pruebas existentes. Las contradicciones previsibles de fijarBandas/DS-20,
+VAL/exhibición, volumen Compose y aclaraciones seriales menores se agruparán en una propuesta
+revisable separada; esta resolución no permite implementarlas. Continúa el objetivo original.
+
+Aplicación documental observada antes de liberar código: DESIGN cambió exactamente con el
+patch autorizado (32 inserciones, 3 supresiones; seis hunks), git diff --check exit 0.
+README/plan, canon y DECISIONS no se modificaron por esta resolución. Las ocho fuentes de
+servidor seguían en el freeze parcial al registrar y aplicar el contrato.
+
+### Propuesta agrupada de contradicciones previsibles — pendiente de autoridad
+
+En cumplimiento de la supervisión se preparó una propuesta única, SIN APLICAR:
+`/tmp/opforja-rehacer/propuesta-contradicciones-previsibles.md` y su patch documental de
+156 líneas `/tmp/opforja-rehacer/propuesta-contradicciones-previsibles.patch`, SHA-256
+`b1aaef41f9ef5a8008978cbace9236a773deb0b387b793af8d25e3c186952cd6`.
+Dirección leyó completos informe/patch, verificó la huella y `git apply --check` exit 0.
+
+La resolución propuesta conserva canon, DECISIONS 1–28, DS-20, F-13, las tres fases y las
+firmas públicas. Corrige únicamente las contradicciones documentales y propiedad serial:
+
+1. `fijarBandas` pública aplica cierre DS-20 normal; solo `moverSubproceso` usa su excepción.
+   Ambas pueden compartir preparación interna de partición/layout, sin migrar enlaces.
+   El oráculo 200 semillas × 40 acciones permanece; la excepción recuperable se prueba además
+   por fixture independiente. No filtrar acciones por su resultado ni reducir contadores.
+2. VAL con exhibición existente conserva fase 1; si falta, el patch ya existente se resuelve
+   en fase 2 con crear/reusar exhibición ANTES de fijarValor. Se ordenan patches y después se
+   aplanan sus acciones, sin cuarta fase, operación nueva, estado huérfano ni duplicado RF2/VAL.
+   Ensayo y aplicación usan la misma secuencia y deben acreditar strict, conflicto e idempotencia.
+3. Compose declara únicamente `name: opforja-datos` para alinear su nombre físico con los
+   consumidores de respaldo/migración existentes. No autoriza operaciones Docker ni datos reales;
+   la prueba estática futura no sustituye el gate de imagen real.
+4. WP-4r recibe extensión serial de `app/src/pruebas/{azar.ts,azar.test.ts}` para `azar.acciones`
+   y propiedad explícita de `nucleo/{refinamiento,secuencias,reparaciones}.test.ts`, ya exigidos.
+   Preserva generador, API, perfiles, semillas y pruebas históricas de WP-1.
+
+El dictamen independiente `/tmp/opforja-rehacer/WP-11-review-contradicciones-previsibles.md`
+considera las cuatro correcciones mínimas y coherentes tras contrastar canon/DESIGN/DECISIONS;
+no concede autoridad ni acredita implementación. La aclaración del informe sobre partición
+vacía no prohíbe `[]` para un conjunto vacío si el contrato lo permite.
+
+La propuesta modifica solo DESIGN, README y plan.json en los ámbitos citados. Se separó
+mecánicamente para aplicar cada corrección documental ANTES del código de su propio turno,
+si se autoriza, preservando B y el layout de WP-18 ya autorizado por separado:
+
+- WP-18, volumen: 15 líneas; SHA-256
+  `122ad81520c263ae9244e0538369f03d96920b07386656bfe56f0d4222eb7174`.
+- WP-4r, DS-20/propiedad/secuencias: 57 líneas; SHA-256
+  `b014aae87d8ebb0335ddbf7dad807b88b4e13a616fbdd8af13bd392095a7b591`.
+- WP-9, VAL: 41 líneas; SHA-256
+  `ff7194284939b796af907dac3c01f00e12ef7d2d30687db962103768d6676781`.
+
+Los tres patches scratch se llaman `propuesta-contradicciones-previsibles-WP-<id>.patch`;
+su reunión reproduce exactamente el bundle. No se aplicó ninguno. Se refrescará solo su
+contexto al turno correspondiente, conservando el contenido autorizado y toda edición ajena.
+No incluye interfaces futuras de editor, catálogo/FAN5A ni otra excepción. La autorización
+de restauración B/layout no cubre este bundle; el aspecto contractual afectado queda pendiente
+de resolución expresa mientras WP-11 continúa con su revisión y aceptación.
+
+### WP-11 — implementación B y nueva revisión física
+
+Tras documentar la autorización B, la única escritora conservó las 47 pruebas previas y añadió
+19 casos de restauración. RED propio corregido de fixture: 3 pass / 13 fail, 54 expectativas,
+16 casos (`WP-11-red-restauracion-B-fixture-verificada.log`). El primer log se conserva y
+se distingue su error de campo wire `aparienciasEnlace` frente a `enlaces`; solo se corrigió
+ese montaje, sin cambiar esperados. Otro RED propio confirmó pérdida de la entrada canónica
+ocupada tras unlink + fsync fallido (`WP-11-red-restauracion-B-canonico-sync.log`).
+
+El candidato B congelado alcanzó focal 66/0, 593 expectativas; TypeScript local exit 0;
+check NUEVO 559/0, 6332 expectativas en 29 archivos (`WP-11-check-restauracion-B-final.log`).
+Dirección verificó sus 8/8 hashes (`WP-11-freeze-restauracion-B-final.json`). Recibo:
+`/tmp/opforja-rehacer/WP-11-restauracion-B-implementacion-reporte.md`. No se acepta ni publica
+ese candidato solo por su suite verde.
+
+La revisión independiente confirmó las ocho variantes históricas directo/registro/recovery/
+portable por id libre/ocupado: informes originales y visibilidad, canónico instalado y respaldo
+byteexacto. También pasaron nombre/tamaño, lectura histórica > 25 MiB, fuente canónica ocupada
+sin respaldo artificial, carreras de entrada/nombres, tres fallos FS y retención de 30 días.
+Las 18 sondas positivas, seis adversarias B y cuatro entrypoints reales pasaron completas.
+
+La sonda física nueva sí encontró un defecto material: un único byte FF ilegible como UTF-8
+en el archivo original se decodifica por sustitución y se activa como otro texto con U+FFFD,
+bytes/revisión distintos. Las precondiciones de su fixture y el control U+FFFD válidamente
+codificado EF BF BD pasaron. Log conservado:
+`/tmp/opforja-rehacer/WP-11-review-restauracion-physical-B-final.log`. La obligación observada
+es legibilidad UTF-8 y preservación/CAS del original; DESIGN no prescribe el algoritmo decoder.
+No se propone otra excepción contractual ni se acepta una revisión sobre bytes fabricados.
+
+Dos sondas de cupo agotaron el tiempo durante su montaje de 2.000 guardados/fsync secuenciales;
+son fallos del harness, no RED acreditado del producto. La revisora conserva ambos logs y
+los esperados mientras sustituye únicamente la siembra por archivos canónicos propios e
+inicialización real. Las fuentes permanecen quietas hasta terminar esa revisión; después la
+misma escritora reparará el defecto físico con RED→GREEN y check íntegro nuevo. WP-11 sigue
+sin aceptación/commit/push y sin crédito de H1.
+
+Dictamen independiente cerrado:
+`/tmp/opforja-rehacer/WP-11-review-dictamen-B-final-negativo.md`. Por ejecución: positivas
+18/0 (162 expectativas), adversarias B 6/0 (23), entrypoints 4/0 (72), restauración/físicas
+21/3 (278, incluidos los dos timeouts de setup), rerun exclusivamente de cupo/carrera 2/0
+(4009). Los 52 casos distintos consolidan 51 GREEN y un RED físico del producto; no hubo
+una ejecución única 51/1. Setup previo y motivo conservados. Se liberó la reparación física
+solo después de terminar todas las sondas y cerrar sus procesos.
+
+La preparación independiente de WP-18 está en
+`/tmp/opforja-rehacer/WP-18-review-preparacion-independiente.md`. Precisa una errata del
+preflight antiguo: DESIGN §8.7 sí fija el timer a diario a las 03:30. Ese literal manda;
+no hay horario libre. Su apéndice antiguo de integración queda supersedido por las
+autorizaciones actuales: layout/ownership autorizado, volumen bundle aún pendiente.
+
+### Resolución expresa del bundle — autoridad documental acotada
+
+Supervisión comunicó el «Autorizo» expreso de Félix sobre las cuatro correcciones del patch
+de 156 líneas `/tmp/opforja-rehacer/propuesta-contradicciones-previsibles.patch`, SHA-256
+`b1aaef41f9ef5a8008978cbace9236a773deb0b387b793af8d25e3c186952cd6`.
+Dirección volvió a verificar huella y contador y registra esta resolución ANTES de aplicar
+cualquier parte. Revoca únicamente el pendiente del bundle preciso presentado y revisado.
+
+Quedan autorizados: fijarBandas pública con cierre normal y excepción solo moverSubproceso;
+VAL con exhibición faltante como compuesto de fase 2 antes de fijar valor, con F-13 y strict;
+nombre físico Compose `opforja-datos`; propiedad serial mínima de pruebas WP-4r conservando
+generador histórico, expectativas y 200 semillas × 40 acciones. No hay otra excepción de DESIGN.
+
+Aplicación prevista, todavía SIN APLICAR: la parte volumen se integrará documentalmente al
+abrir WP-18 junto al layout ya autorizado; DS-20/propiedad/secuencias al abrir WP-4r; VAL al
+abrir WP-9. Se comprobará cada patch separado y se refrescará únicamente contexto contra
+DESIGN/README/plan vigentes para conservar B/layout y cualquier edición ajena, sin cambiar
+contenido aprobado. Cada implementación espera su turno, RED→GREEN, check y revisión
+independiente; aprobación documental no equivale a aceptación ni cierre.
+
+No autoriza Docker, red adicional, instalación, credenciales, destrucción, PostgreSQL real,
+despliegue ni ampliación de publicación. Permanece el mandato de commit/push por paquete en
+rehacer y PR final, sin merge/push main. WP-11 continúa con la misma escritora en reparación
+UTF-8, nuevo freeze, check y revisión completa antes de cerrar; después sigue WP-18 y el
+resto del orden lineal. Los estados pendientes de las secciones históricas quedan preservados
+como evidencia anterior y supersedidos exclusivamente por esta resolución.
+
+### WP-11 — cierre aceptado del servidor mínimo
+
+Dirección acepta el freeze físico final después de la reparación y revisión COMPLETA requerida
+por supervisión. Recibo de implementación:
+`/tmp/opforja-rehacer/WP-11-utf8-fisico-implementacion-reporte.md`; manifest:
+`/tmp/opforja-rehacer/WP-11-freeze-utf8-fisico-final.json`. RED propio previo 2/6 (17
+expectativas, ocho casos) pasó a 8/0 (37); se añadió después una novena regresión HTTP de
+integración sin atribuirle un RED inexistente. Las 66 pruebas previas permanecen; focal final
+75/0, 663 expectativas. TypeScript exit 0 y check NUEVO único 568/0, 6402 expectativas en
+29 archivos (`WP-11-check-utf8-fisico-final.log`). Dirección verificó los ocho archivos y
+sus hashes exactos antes de integrar; no se modificó el códec ni T-196.
+
+Dictamen independiente favorable:
+`/tmp/opforja-rehacer/WP-11-review-dictamen-utf8-final.md`. Se repitieron completas las
+52 sondas conservadas y se añadieron ocho comprobaciones físicas: los 60 casos distintos
+quedaron GREEN, sin fallo material pendiente observado. Los conteos reales por ejecución
+son 18/0 (162 expectativas), 6/0 (23), 4/0 (72), 31/1 (4398), 1/0 (17) y 2/0 (43).
+No se presenta ese consolidado como un único run 60/0. El único fallo 31/1 era una
+sobre-especificación del oráculo nuevo que exigía 500 al listar papelera ilegible: la lista
+200 es literal de §8.1; omitir lo que no permite construir una FilaPapelera legible es
+interpretación compatible, no mandato textual. Se conserva el oráculo/log original y el
+ajuste fundado refuerza Buffer/SHA/tamaño/mtime/nombre/árbol y control legible. Los otros
+oráculos, incluidos los 52 anteriores y T-196, permanecen intactos. La revisión verificó
+8/8 hashes antes y después; todos sus procesos terminaron.
+
+Aceptación de plan.json observada: cookie/CSRF/Origin y Bearer, códigos/cabeceras/version,
+cuenta y hash scrypt legado reales sobre fixtures sintéticas; CAS concurrente y previas;
+respaldo PUT y restauración B con Informe original completo, visibilidad y fuente exacta;
+400/422 y límites 4 KiB/25 MiB/200 puntos/2000 modelos, CC-14/CC-16, ocho variantes
+históricas × id libre/ocupado, carreras de cupo/entrada/nombres, retención y fallos FS.
+UTF-8 válido conserva bytes/revisión; el ilegible no fabrica texto ni cuenta. BOM se
+preserva para el lector real. En corrupción posterior, los lectores requeridos exponen
+el error IO existente y conservan la fuente; no inventan Informe.
+
+Los freezes 536 y 559 refutados, todos los RED y los dos errores de montaje/oráculo quedan
+preservados con su clasificación y reparación. No se debilita, salta ni pone en cuarentena
+ninguna prueba. No se promete transacción multidirectorio, tolerancia comprobada a cortes
+eléctricos, múltiples procesos o dos fallos FS simultáneos. Los datos, cuentas y servidores
+de prueba fueron propios/sintéticos; no hubo producción, contenedores ni migración real.
+
+No se agregaron/cerraron filas de catálogo o listas NO_* ni DEBE OPM en WP-11: las once
+brechas parciales de docs/conformidad.md siguen vigentes y B-28 refinado espera WP-4r/H2.
+No corresponde inventar una brecha para dispensar una pérdida conocida: las detectadas se
+repararon y comprobaron. H1 aún espera WP-18 en su turno de redacción; H2/H3 permanecen.
+
+Publicación: fetch origin/rehacer completado y divergencia previa 0 0. Se integra únicamente
+HANDOFF, el DESIGN B autorizado y los ocho archivos del servidor. El SHA del commit de este
+recibo se fija al abrir el siguiente paquete, sin amend ni segundo commit de WP-11.
+Sigue WP-18 directamente: aplicar primero layout/ownership y volumen documentales ya
+autorizados, después una única escritora, pruebas de scripts/check y revisión independiente;
+imagen real sigue diferida tras WP-14 y NO_EJECUTADO bajo la prohibición de contenedores.

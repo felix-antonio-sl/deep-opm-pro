@@ -997,6 +997,9 @@ Mapeos de salida:
     `descartado`, muestra antes el Informe de importación con «Abrir de todos modos»; el primer
     guardado de ese modelo va con `?respaldo=1`, así el original queda en la papelera y nada se
     pierde en silencio.
+  - la restauración de papelera también importa antes de canonicalizar (§8.1). Los rechazos o
+    descartes conservan la entrada intacta y se informan; un histórico sin descartes puede
+    restaurarse canónico con su Informe completo y un respaldo exacto del original.
 
 ---
 
@@ -2684,7 +2687,12 @@ canónica (P7), y toda acción se deshace en un paso.
      `renombrarModelo`, `exportarV0` y `PUT` con `If-Match`.
    - **Descargar**: `⋯ › Descargar JSON`, que hace `GET ?descargar=1`.
    - **Eliminar** (`Supr`): una Decisión «Mover *X* a la papelera (se conserva 30 días)». La sección
-     «Papelera (N)» tiene **Restaurar** y **Eliminar definitivamente**.
+     «Papelera (N)» tiene **Restaurar** y **Eliminar definitivamente**. Restaurar muestra el
+     Informe completo si recanonicaliza; ante 400/422 muestra el rechazo o la pérdida y mantiene
+     la entrada. No ofrece aceptar pérdidas desde esta acción; la recuperación del original por
+     el procedimiento operativo y su importación mantienen el flujo de informe de §7.3-3. Ante
+     error de red o 5xx se refrescan Biblioteca y Papelera; no se repite automáticamente el POST,
+     porque la escritura puede haberse instalado aunque la respuesta fallara.
    - **Nuevo** (`N`): pide el nombre en línea, crea el modelo con `crearModelo`, lo sube con `POST`
      y lo abre.
 3. **Importar** (botón, `I` o soltar un archivo).
@@ -3068,7 +3076,7 @@ export interface Cliente {
   guardar(id: Id, texto: string, rev: string, o?: { respaldo?: true }): Promise<{ rev: string } | { conflicto: string } | FalloApi>;
   eliminar(id: Id): Promise<void>;
   papelera(): Promise<readonly FilaPapelera[]>;
-  restaurar(entrada: string): Promise<{ id: Id; rev: string }>;
+  restaurar(entrada: string): Promise<{ id: Id; rev: string; canonicalizado?: true; informe?: Informe } | FalloApi>;
   purgar(entrada: string): Promise<void>;
   versionServidor(): string | null;               // última cabecera X-Opforja-Version vista
 }
@@ -3153,7 +3161,7 @@ completo** (DECISIONS 13): no hay CLI `mesa` ni protocolo de testigo.
 | `PUT /api/modelos/:id` | sesión + CSRF | `If-Match: "<rev>"` obligatoria; cuerpo = documento con `modelo.id === :id`; `?aceptarPerdidas=1`, `?respaldo=1` opcionales | `200 {"rev","canonicalizado"?,"informe"?}` · `400` · `404` · `412 {"error":"Revisión desactualizada","rev":"<actual>"}` · `413` · `422` · `428` (sin If-Match) |
 | `DELETE /api/modelos/:id` | sesión + CSRF | `If-Match` opcional | `204` (a papelera) · `404` · `412` |
 | `GET /api/papelera` | sesión | — | `200 {"entradas":[{"entrada","id","nombre","eliminado","motivo":"eliminado"|"reemplazado"}]}` |
-| `POST /api/papelera/:entrada/restaurar` | sesión + CSRF | — | `201 {"id","rev"}` (con id ocupado se asigna `m-…` nuevo y se reescribe `modelo.id`) · `404` |
+| `POST /api/papelera/:entrada/restaurar` | sesión + CSRF | — | `201 {"id","rev","canonicalizado"?,"informe"?}` (con id ocupado se asigna `m-…` nuevo y se reescribe `modelo.id`) · `400` (rechazos con informe, o límite de nombre) · `404` · `413` · `422` (pérdidas, con informe; conserva la entrada) · `507` |
 | `DELETE /api/papelera/:entrada` | sesión + CSRF | — | `204` (definitivo) |
 | `GET /*` | no | — | estáticos de `OPFORJA_WEB`; toda ruta sin extensión da `index.html` (`no-store`); `/assets/*` inmutables por 1 año |
 
@@ -3175,6 +3183,23 @@ Reglas de las rutas:
   Así un agente externo con el token puede escribir un v0 válido sin reproducir el formateo exacto,
   y ninguna pérdida ocurre en silencio (DECISIONS 12–13). Los errores de canon (diagnóstico) **no**
   impiden guardar (T-288).
+- **Restaurar papelera** importa el texto original antes de exportarlo. Con `rechazos` responde
+  400; con `descartado` no vacío responde 422. En ambos casos devuelve el Informe completo y
+  conserva la entrada original intacta (bytes, nombre y fecha), sin instalar un modelo ni crear
+  respaldo. Esta ruta no admite `aceptarPerdidas`: recuperar un original con descartes exige el
+  procedimiento operativo y el flujo de importación ya previsto. Si no hay rechazos ni descartes,
+  restaura canónico; si la fuente no pasaba `leerCanonico`, responde con `canonicalizado: true`
+  y su Informe original completo, incluida visibilidad, y conserva los bytes exactos como
+  respaldo `motivo:"reemplazado"` con la retención de 30 días de §8.3. Ese respaldo queda durable
+  antes de retirar la entrada fuente; ningún fallo elimina la única copia original. Restaurar
+  una fuente canónica mantiene el flujo actual, incluida la reescritura de id ocupado. El mutex
+  de entrada, el de id y el cupo coordinado siguen aplicando; no se promete una transacción
+  multidirectorio ni se ocultan errores de escritura. Los nombres de respaldo se coordinan con
+  todos los productores de papelera para no sobrescribir originales. Los límites comunes de
+  tamaño, nombre y cupo se comprueban sobre el candidato canónico a instalar: nombre > 200
+  caracteres da 400 con error e Informe original cuando haya recanonicalización, sin inventar
+  un rechazo del códec. Los errores 400/413/507 por límites no instalan un modelo ni retiran la
+  entrada fuente. Esto no añade un límite al tamaño del histórico que CC-14 permite leer.
 - **`?respaldo=1`** (conflicto «Conservar mis cambios», §8.4). Dentro del mutex, antes de escribir,
   mueve el archivo vigente a la papelera con `motivo:"reemplazado"`.
 - **Renombrar** desde la Biblioteca no tiene ruta propia: es `GET`, `renombrarModelo`, `exportarV0`
@@ -3747,6 +3772,10 @@ Gates del Anexo A (T-303) y sus suites:
 - `servidor/almacen.test.ts`:
   - la escritura atómica (con un fallo simulado entre `write` y `rename`) y el CAS con 412;
   - la papelera, `?respaldo=1` (`motivo:"reemplazado"`), la restauración con id ocupado y la purga;
+    restaurar un histórico con rechazos/descartes da 400/422 con Informe completo y no cambia
+    su entrada ni instala un modelo; un histórico sin descartes conserva su respaldo exacto y
+    devuelve el Informe completo al recanonicalizar, incluso visibilidad y con id ocupado;
+    se cubren concurrencia y fallos de escritura sin perder la última copia original;
   - el índice reconstruido; un documento no canónico da canonicalización o 422; al arrancar, un
     archivo legible pero no canónico **sigue en `modelos/`** y solo el ilegible va a
     `archivo/invalidos/` (CC-14);
