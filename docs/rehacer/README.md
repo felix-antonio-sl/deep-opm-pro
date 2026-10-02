@@ -136,6 +136,10 @@ queda en silencio. Las que más conviene revisar:
 
 ## Qué debe revisar el dueño antes de aprobar
 
+Revisado el 2026-10-02. La simulación sale, D1 concuerda en género, el contrato externo es JSON v0 +
+API con token y la implementación va en una sesión nueva ([`DECISIONS.md`](DECISIONS.md) 25–28). La
+lista queda como registro de lo que se revisó.
+
 1. **La lista de retiros** de la sección anterior, en especial la simulación. El canon no la exige,
    pero el historial de bugs muestra que se usó.
 2. **Consumidores externos.** La skill `modelamiento-opm` y el CLI `mesa` dejan de funcionar tal
@@ -171,8 +175,8 @@ que se interrumpió a pedido el 2026-09-30.
 Usa la paleta, los trazos y los paths de marcadores literales de spec-OPD §18, con un modelo de
 ejemplo ilustrativo. Fuera del lienzo no se ejecuta, porque depende de su runtime (`support.js`).
 
-Queda abierta una decisión que la maqueta deja a la vista: DESIGN §5.3 emite D1 con el literal de
-reglas (`**Bodeguero** es física.`) sin concordar el género. Al parsear acepta `físico`.
+La decisión que la maqueta dejaba a la vista ya está tomada: D1 concuerda en género
+(`**Bodeguero** es físico.`, `**Caja** es física.`; DECISIONS 25, DS-26).
 
 ## Plan si se aprueba
 

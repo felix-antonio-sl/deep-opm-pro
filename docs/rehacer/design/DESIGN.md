@@ -168,6 +168,7 @@ del canon. Todas van a `docs/decisiones.md` y, si tocan un DEBE, también a «Br
 | DS-23 | **Un solo dibujo, dos adaptadores**: `opd/dibujo.ts` produce un árbol `NodoSvg`. El lienzo lo convierte a vnodes de Preact (identidad por `key`) y el export lo serializa a cadena. | Sin `preact-render-to-string` ni `innerHTML`; se prueba en Bun sin DOM. |
 | DS-24 | **Unidad de tiempo por defecto `min`.** | R-EXC-5 exige un default; A P-15. |
 | DS-25 | **Colocación en el núcleo** (`nucleo/colocacion.ts`), porque las operaciones y el OPL deben dejar apariciones con posición. | C §6.5. |
+| DS-26 | **D1 y D4 concuerdan en género**: `**Bodeguero** es físico.` · `**Caja** es física.`, con el género de la cosa (masculino por defecto, femenino si `genero: 'f'`). El parser acepta ambas formas para cualquier cosa. | Decisión del dueño (DECISIONS 25, 2026-10-02). R-OPL-1 fija el género gramatical; las plantillas de reglas §4.4 usan «Cosa», femenino. |
 
 ---
 
@@ -1808,10 +1809,10 @@ Huecos:
 
 | id | patrón | |
 |---|---|---|
-| D1 | `{C} es física.` (se acepta `físico`) | G |
+| D1 | `{C} es físico.` · `{C} es física.` según el género de la cosa (DS-26: masculino por defecto, R-OPL-1); se aceptan ambas | G |
 | D2 | `{C} es informacional.` | G solo por mención mínima (DS-2) y en display `siempre`; P |
 | D3 | `{C} es ambiental.` | G |
-| D4 | `{C} es sistémica.` (se acepta `sistémico`) | P |
+| D4 | `{C} es sistémico.` · `{C} es sistémica.` (se aceptan ambas) | P |
 | ENT3 | `{C} es un objeto|proceso <esencia>[ y <afiliación>].` · `… es un objeto|proceso <afiliación>.` (R-ENT-3) | P (DECISIONS 20) |
 | D11/D12 | `{C} es persistente|transitoria.`: si es coherente, sin cambio; si no, `non-canonical` (DR-3) | P |
 | D5 | `{O} puede estar {Lo:s}.` | G |
@@ -3704,7 +3705,7 @@ Infraestructura:
 | 13 | desplegar | `U` agregación con dos partes da CX3 y RF1 atómicas; la colección incompleta da la barra y «y al menos otra parte» |
 | 14 | navegación y cámara | árbol, ruta, ↵ entra, `Alt+↑` sube; al cambiar de OPD el bbox queda encuadrado |
 | 15 | quitar ≠ eliminar | `Supr` en la última aparición deja la cosa en el modelo (`cosa-sin-aparicion`), y `Ctrl+K › Traer` la devuelve; `Mayús+Supr` en una cosa refinada se rechaza con «Elimina primero su refinamiento» |
-| 16 | editar OPL | agregar `**Cliente** es física.` da «1 aplicable»; Aplicar pone la cosa en el lienzo con la línea resaltada; reabrir da «Sin cambios aplicables»; una línea inválida muestra su razón y no bloquea las demás |
+| 16 | editar OPL | agregar `**Cliente** es físico.` da «1 aplicable»; Aplicar pone la cosa en el lienzo con la línea resaltada; reabrir da «Sin cambios aplicables»; una línea inválida muestra su razón y no bloquea las demás |
 | 17 | bimodal | el hover de un token realza el elemento (atributo de realce en la capa UI) y viceversa; un clic en un token de otro bloque navega y selecciona sin cambiar la `rev` |
 | 18 | diagnóstico y reparación | un proceso sin transformación da una advertencia e «Ir» lo selecciona; un modelo sembrado con dos nombres duplicados muestra «Aplicar a los N», que renombra con sufijo; el SVG no tiene marcas |
 | 19 | exportar y vista canon | el SVG descargado no tiene `data-ref` ni clases UI, y sí `@font-face`; un OPD con 1 subproceso deja el ítem deshabilitado por AP-13; `F9` dibuja el mismo SVG que el export; tras «Guardado», el JSON exportado ≡ `GET`; una cosa quitada de su último OPD deshabilita `canon-documento` (B-26) |
@@ -3853,7 +3854,7 @@ Antes de borrar se crea el tag `pre-rehacer` sobre la base. Sirve para portar po
 | `setup.sh` | regenera bundles de OPCloud |
 | `tsconfig.json`, `bunfig.toml` (raíz) | apuntan al `app/src` viejo |
 | `HANDOFF.md` | continuidad obsoleta (se recrea uno nuevo mientras la rama esté abierta) |
-| `docs/` completo, salvo lo de §11.1: `JOYAS.md`, `auditorias/`, `bugs/`, `canon-opm/` (puentes y resolutor URN), `cheatsheets/`, `decisiones/`, `deploy/opforja.md`, `ejemplos/`, `manual-*.md` (5), `memorias-aprendizajes/`, `reference/`, `render-headless.md`, `roadmap/`, `specs/`, `superpowers/`, `uso-productivo.md`, `verify-reproducible.md`; `docs/README.md` se reescribe | documentación de capacidades retiradas, histórica o duplicada del canon |
+| `docs/` completo, salvo lo de §11.1 y **`docs/rehacer/`, que se conserva hasta WP-19** porque es la fuente del plan (WP-19 mueve `understand/CANON.md` a `docs/especificacion.md` y retira el resto): `JOYAS.md`, `auditorias/`, `bugs/`, `canon-opm/` (puentes y resolutor URN), `cheatsheets/`, `decisiones/`, `deploy/opforja.md`, `ejemplos/`, `manual-*.md` (5), `memorias-aprendizajes/`, `reference/`, `render-headless.md`, `roadmap/`, `specs/`, `superpowers/`, `uso-productivo.md`, `verify-reproducible.md`; `docs/README.md` se reescribe | documentación de capacidades retiradas, histórica o duplicada del canon |
 | `app/src/**` (1 141) | se reescribe (§2); lo portable se lee de `pre-rehacer` (§12.3) |
 | `app/e2e/**` (76) | se reemplaza por los 26 escenarios nuevos |
 | `app/scripts/**` (29) | bug-capture, cordón, design-governance, quality-ledger, in-vivo, mesa, corpus del tutor, render-headless, verify-reproducible; `deploy.test.ts` pasa a `deploy/deploy.test.ts` y `auth-cuenta.ts` se porta a `servidor/cuenta.ts` |
@@ -3886,9 +3887,11 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
   - Cada WP abre con sus `*.test.ts`, que salen de estas fuentes:
     - las filas T-NNN de `docs/especificacion.md`, con el T-ID en el título;
     - las leyes de `pre-rehacer:app/src/leyes/`;
-    - las sondas `understand/probe_critico*.test.ts`, reexpresadas sobre la API nueva. Viven en el
-      scratchpad de la sesión de diseño, que es efímero: si no está disponible, su contenido es
-      redundante con las filas T-NNN de `docs/especificacion.md` y no bloquea ningún WP.
+    - los hallazgos de las sondas del crítico (`understand/SYNTHESIS.md` §10), reexpresados sobre la
+      API nueva. Las sondas mismas no se versionaron; su contenido es redundante con las filas T-NNN
+      y no bloquea ningún WP.
+  - Hasta WP-19, `docs/especificacion.md` es `docs/rehacer/understand/CANON.md` y `canon/` se
+    copia de `docs/rehacer/canon/` (mapa completo en `docs/rehacer/plan/README.md`).
   - El WP cierra con `bun run check` verde. Ninguna prueba se debilita para pasar.
 - **Propiedad exclusiva de archivos.** Los archivos stub que crea WP-1 pasan a ser del WP dueño. Los
   únicos archivos que tocan dos WP son tres, y se tocan en serie:

@@ -43,3 +43,9 @@
 22. Selección múltiple mínima: SÍ (shift-clic; mover, eliminar/quitar, y seleccionar ≥2 enlaces para formar abanico). Sin portapapeles.
 23. = 18.
 24. `canon-documento` = archivo HTML autocontenido (árbol OPD + por cada OPD su SVG canónico y su OPL). Además export OPL Markdown, SVG por OPD y JSON v0.
+
+## Decisiones de revisión del dueño (2026-10-02) — fijas
+25. **D1 y D4 concuerdan en género** (`**Bodeguero** es físico.`, `**Caja** es física.`), con el género de la cosa (masculino por defecto). El parser acepta ambas formas. DESIGN lo recoge como DS-26.
+26. **La simulación se retira** (confirmado tras revisar su uso histórico). Queda declarada en el registro de conformidad (modo runtime vacío, B-21; T-323 en B-25).
+27. **Contrato para agentes externos: JSON v0 + API HTTP del servidor mínimo con token Bearer** (DESIGN §8). Se retiran el CLI `mesa` y su protocolo de testigo. Tarea externa a este repositorio: actualizar las referencias de la skill `modelamiento-opm` en KORA cuando el servidor nuevo esté desplegado.
+28. **La implementación se hace en una sesión nueva**, a partir del plan empaquetado en `plan/` (`plan/README.md`, `plan/PROMPT.md`, `plan/plan.json`). Esta sesión no implementa.
