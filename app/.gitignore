@@ -1,1 +1,8 @@
+node_modules/
+dist/
+.datos-dev/
+.env
+.env.*
+playwright-report/
+test-results/
 _eval-output/

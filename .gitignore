@@ -1,18 +1,6 @@
-# Bundles originales de OPCloud (42 MB main.js + complementos)
-# Propiedad de OPCloud Ltd. Se regeneran con: bash setup.sh
+# Artefactos locales y temporales: se preservan los ignores históricos.
 _local/
-
-# Decompilacion de webcrack (809 modulos, 91 MB)
-# Se regenera con: bash setup.sh
 decompiled/
-
-# opm-extracted/ SI se versiona: derivado curado de decompiled/ (~8 MiB,
-# 349 archivos OPM legibles). Es la forma navegable y trazable que usa el
-# resto del repo (app/, AGENTS.md, agentes) como referencia OPM. Se regenera
-# con `node opm-extracted/tools/{extract,refactor,build-index}.mjs`.
-# (no entry — versionado intencionalmente)
-
-# App build artifacts
 app/node_modules/
 app/dist/
 app/.vite/
@@ -24,11 +12,7 @@ app/.tutor-corpus/
 app/.tutor-corpus.lock/
 app/.tutor-corpus.tmp-*/
 /test-results/
-
-# Secrets de despliegue (docker compose los lee; JAMÁS versionar)
 .env
-
-# Archivos temporales
 .claude/
 .codex/
 .opencode/
@@ -38,3 +22,7 @@ _archivo/
 *.tar.gz
 .DS_Store
 tmp/
+
+# Datos locales del servidor mínimo y variantes de configuración privada.
+app/.datos-dev/
+.env.*

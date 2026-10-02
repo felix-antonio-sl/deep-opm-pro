@@ -1,8 +1,2 @@
-[install]
-minimumReleaseAge = 604800
-minimumReleaseAgeExcludes = [
-  "@types/bun",
-]
-
-[install.security]
-scanner = "@socketsecurity/bun-security-scanner"
+[test]
+root = "."

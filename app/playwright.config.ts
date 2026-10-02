@@ -1,76 +1,20 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices } from '@playwright/test';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
-// El puerto del dev server es configurable por env para permitir correr el
-// smoke de un worktree aislado sin colisionar con otra instancia en 5173.
-const PORT = process.env.PW_PORT ?? "5173";
-const BASE_URL = `http://127.0.0.1:${PORT}`;
-
-// El shell mobile-readonly solo se monta con el build flag VITE_MOBILE_READONLY
-// === "true" (App.tsx) Y un viewport mobile. Ese flag no puede coexistir con la
-// app productiva en un mismo server, así que el project `mobile` corre contra un
-// segundo dev server dedicado en PORT+1 con el flag activo.
-const PORT_MOBILE = String(Number(PORT) + 1);
-const BASE_URL_MOBILE = `http://127.0.0.1:${PORT_MOBILE}`;
-
-// Auth v1: el gate de login (MODEL_REQUIRE_AUTH) cambia el comportamiento de
-// TODO el backend dev, así que el lane auth corre contra un tercer dev server
-// dedicado en PORT+2 (mismo patrón que mobile).
-const PORT_AUTH = String(Number(PORT) + 2);
-const BASE_URL_AUTH = `http://127.0.0.1:${PORT_AUTH}`;
-
-const MOBILE_SPEC = /mobile-readonly\.spec\.ts/;
-const AUTH_SPEC = /(auth|revision-reader|revision-owner|refinement-proposal|reusable-pieces)\.spec\.ts/;
-const PREVIEW_SPEC = /(?:.*\.preview|portable-reader)\.spec\.ts/;
-
+const datosPropios = !process.env.OPFORJA_E2E_DATOS;
+const datos = process.env.OPFORJA_E2E_DATOS || mkdtempSync(join(tmpdir(), 'opforja-e2e-'));
+process.env.OPFORJA_E2E_DATOS = datos;
+if (datosPropios) process.once('exit', () => rmSync(datos, { recursive: true, force: true }));
+const argumentoDatos = `'${datos.replaceAll("'", "'\\''")}'`;
 export default defineConfig({
-  testDir: "./e2e",
-  testIgnore: PREVIEW_SPEC,
-  timeout: 30_000,
-  expect: {
-    timeout: 5_000,
+  testDir: './e2e',
+  fullyParallel: false,
+  use: { ...devices['Desktop Chrome'], baseURL: 'http://127.0.0.1:8787' },
+  webServer: {
+    command: `bun dist/servidor/principal.js --datos ${argumentoDatos}`,
+    url: 'http://127.0.0.1:8787/salud',
+    reuseExistingServer: false,
   },
-  use: {
-    trace: "retain-on-failure",
-    screenshot: "only-on-failure",
-  },
-  webServer: [
-    {
-      command: `bun run dev --host 127.0.0.1 --port ${PORT} --strictPort`,
-      url: `${BASE_URL}/`,
-      reuseExistingServer: true,
-      timeout: 60_000,
-    },
-    {
-      command: `VITE_MOBILE_READONLY=true bun run dev --host 127.0.0.1 --port ${PORT_MOBILE} --strictPort`,
-      url: `${BASE_URL_MOBILE}/`,
-      reuseExistingServer: true,
-      timeout: 60_000,
-    },
-    {
-      command: `MODEL_REQUIRE_AUTH=true bun run dev --host 127.0.0.1 --port ${PORT_AUTH} --strictPort`,
-      url: `${BASE_URL_AUTH}/`,
-      reuseExistingServer: true,
-      timeout: 60_000,
-    },
-  ],
-  projects: [
-    {
-      name: "chromium",
-      // El smoke productivo excluye el shell mobile-readonly y el lane auth:
-      // cada uno corre en su propio project contra el server con su flag activo.
-      // El testIgnore del proyecto reemplaza el global: conservar ambas fronteras.
-      testIgnore: [PREVIEW_SPEC, MOBILE_SPEC, AUTH_SPEC],
-      use: { ...devices["Desktop Chrome"], baseURL: BASE_URL },
-    },
-    {
-      name: "mobile",
-      testMatch: MOBILE_SPEC,
-      use: { ...devices["Desktop Chrome"], baseURL: BASE_URL_MOBILE },
-    },
-    {
-      name: "auth",
-      testMatch: AUTH_SPEC,
-      use: { ...devices["Desktop Chrome"], baseURL: BASE_URL_AUTH },
-    },
-  ],
 });
