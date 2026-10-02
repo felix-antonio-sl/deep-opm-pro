@@ -3431,7 +3431,7 @@ CMD ["bun", "servidor/principal.js"]
 ```
 
 `bun run build` ejecuta `vite build && bun build servidor/principal.ts servidor/cuenta.ts
-herramientas/migrar-postgres.ts --target=bun --outdir dist-servidor`. La imagen de ejecución no contiene
+herramientas/migrar-postgres.ts --target=bun --outdir dist-servidor --entry-naming '[name].js'`. La imagen de ejecución no contiene
 fuentes, pruebas ni `node_modules`.
 
 ### 9.2 `docker-compose.yml`
@@ -3458,12 +3458,13 @@ services:
       - "traefik.http.middlewares.opforja-hsts.headers.stsSeconds=63072000"
       - "traefik.http.middlewares.opforja-hsts.headers.stsIncludeSubdomains=true"
       - "traefik.http.services.opforja.loadbalancer.server.port=8080"
-volumes: { opforja-datos: {} }
+volumes: { opforja-datos: { name: opforja-datos } }
 networks: { web: { external: true } }
 ```
 
-Un servicio y un volumen. Las demás cabeceras las pone el servidor: una sola fuente, probada en
-`principal.test.ts`.
+Un servicio y un volumen. Su nombre físico es `opforja-datos`, el mismo del respaldo (§8.7)
+y la migración (§9.4), sin prefijo de proyecto Compose. Las demás cabeceras las pone el servidor:
+una sola fuente, probada en `principal.test.ts`.
 
 ### 9.3 `deploy/deploy.sh` (único circuito, adaptado)
 
@@ -4014,6 +4015,7 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
   - El WP cierra con `bun run check` verde. Ninguna prueba se debilita para pasar.
 - **Propiedad exclusiva de archivos.** Los archivos stub que crea WP-1 pasan a ser del WP dueño.
   Los archivos compartidos se tocan en serie:
+  - `app/package.json`, `app/vite.config.ts` y `app/playwright.config.ts`: WP-0 crea el andamiaje y WP-18 integra el layout de §9.1;
   - `nucleo/enlaces.ts`: WP-3b lo crea y WP-4r le agrega la llamada a `distribuir`;
   - `nucleo/cosas.ts`: WP-3a lo crea y WP-4r le agrega la inserción de subprocesos;
   - `opl/documento.ts`: WP-7 escribe `generarDocumentoOpl` y WP-9 le agrega `importarOpl` (CC-23).
@@ -4033,7 +4035,7 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 | **WP-6** | Códec v0 | `codec/**`; `app/fixtures/v0/sintetico.json` (generado por `azar`, semilla fija) | §3.4 completo | WP-1; merge tras WP-4p (export de visibilidad y etapa 12) | `codec.test` (una prueba por regla de §3.4.2) · `codec-fijo.test` · `codec-derivados.test` (23 derivados) · `codec-visibilidad.test` · los 6 fixtures importan `ok` |
 | **WP-8a** | Geometría, marcadores y fuente | `opd/{tokens,geometria,marcadores,metricas,fuente}.ts`; `herramientas/medir-fuente.ts` | `Punto`, `Rect`, recortes, peine, rayo, lazo, arcos, cruces; `anchoTexto`, `envolver`; base64 de la fuente | WP-1 | `geometria.test` (T-211, T-216, T-224) · `marcadores.test` (paths ≡ canon, T-209, T-210, T-212, T-215) · `medir-fuente.ts` corre en Chromium de `/opt/pw-browsers` y regenera ambos archivos de forma idéntica dos veces |
 | **WP-11** | Servidor | `servidor/{principal,sesion,almacen,cuenta}.ts` | §8.1–§8.3; `crearServidor({ datos, web, secreto, token?, version, canon: { leerCanonico, importarV0, exportarV0, revision, resumen } })` (códec inyectable) | WP-1; merge tras WP-6 (pruebas de integración con el códec real) | `sesion.test`, `almacen.test`, `principal.test` (§10.6), incluidos Bearer, previas, `?respaldo=1`, 422, `X-Opforja-Version`, `ID_MODELO` en rutas y el arranque con archivos no canónicos (CC-14, CC-16) · `cuenta` porta `pre-rehacer:app/src/server/passwordHash.ts` (se verifica un hash real del formato viejo) |
-| **WP-18** | Despliegue (sin desplegar) | `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `deploy/{deploy.sh,deploy.test.ts,respaldo.sh}`, `deploy/systemd/opforja-respaldo.*` | §9 | WP-0 (redacción); la verificación de imagen necesita WP-11 y WP-14 | `bun test ../deploy` al cerrar · `docker compose build` correcto en local y la imagen sin `src/`, pruebas ni `node_modules` **cuando existan `servidor/` y `main.tsx`** (se verifica en la ola 4 o en WP-19; antes `vite build` no tiene entrada, CC-23) |
+| **WP-18** | Despliegue (sin desplegar) | `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `deploy/{deploy.sh,deploy.test.ts,respaldo.sh}`, `deploy/systemd/opforja-respaldo.*`; `app/{package.json,vite.config.ts,playwright.config.ts}` (compartidos seriales de andamiaje) | §9 | WP-0 (redacción); la verificación de imagen necesita WP-11 y WP-14 | `bun test ../deploy` al cerrar · `docker compose build` correcto en local y la imagen sin `src/`, pruebas ni `node_modules` **cuando existan `servidor/` y `main.tsx`** (se verifica en la ola 4 o en WP-19; antes `vite build` no tiene entrada, CC-23) |
 | **WP-3a** | Operaciones: cosas y estados | `nucleo/{cosas,estados}.ts` | §4.2 (cosas, estados) | WP-2, WP-4p (`suprimirEstado` consulta la visibilidad de enlaces anclados, CC-23) | `cosas.test`, `estados.test`: éxito, rechazo con código, trazas, ids, deshacer; T-062, T-063, T-065, T-081, T-248, T-251, **DS-5** (`tiene-refinamiento`), **DS-6** (última aparición), selección múltiple, DS-20 |
 | **WP-3b** | Operaciones: enlaces y abanicos | `nucleo/{enlaces,abanicos}.ts`, sus pruebas y `nucleo/propiedades.test.ts` | §4.2 (enlaces, abanicos), `reanclarExtremo`, alternativas del segundo gesto | WP-2, WP-4p (`crearEnlace` muestra el estado oculto donde el enlace se ve, CC-23) | `enlaces.test`, `abanicos.test`: `crearEnlace` con `abanicoCon`, `fijarEstados` (4 formas), `reanclarExtremo` (todas las familias, T1→TS1, T-250), `eliminarEnlaces` (mitad escindida ⇒ standalone; `valor` huérfano retirado, CC-03), exhibición que propaga lo ambiental (CC-02), T-066 · `propiedades.test` (`tiposLegales` ≡ `crearEnlace`, sobre 3 modelos de muestra de `constructores` y 50 de `azar` sin refinamientos, con etiquetas completas, pendientes no persistibles y normalización con traza; integración refinada en WP-4r/B-28; sin secuencias de operaciones de WP-3a) |
 | **WP-5** | Diagnóstico y gates | `nucleo/diagnostico.ts` | `CATALOGO`, `diagnosticar`, `gatesExportacion`, reparaciones | WP-2, WP-4p | `diagnostico.test`: cada código con un caso positivo y uno negativo, y cada `reparacion` es una `Accion` bien formada (que aplicada lo resuelve se prueba en `reparaciones.test` de WP-4r, que ya tiene todas las operaciones, CC-23); T-260, T-261, T-263 (un solo código, con herencia y subprocesos), T-265, T-268, T-283 |

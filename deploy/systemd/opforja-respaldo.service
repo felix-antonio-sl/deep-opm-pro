@@ -1,0 +1,8 @@
+[Unit]
+Description=Respaldo privado de los archivos de OpForja
+
+[Service]
+Type=oneshot
+Environment=OPFORJA_REPO=/home/felix/projects/deep-opm-pro
+UMask=0077
+ExecStart=/bin/bash -c 'exec "$OPFORJA_REPO/deploy/respaldo.sh"'

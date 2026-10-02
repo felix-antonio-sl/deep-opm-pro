@@ -1,6 +1,6 @@
 # OpForja rehecho — tablero único
 
-Estado: WP-0, WP-1, WP-2, WP-4p, WP-6, WP-8a y WP-11 cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-6 aceptado: excepción C+R autorizada explícitamente por coordinación de Félix, documentada antes de código y comprobada con T-196 intacta y sondas independientes. WP-8a aceptado tras la reparación T-216 y publicado. WP-11 aceptado tras B y reparación física UTF-8: check fresco 568/0 y 60 casos independientes distintos verdes, con informes/originales íntegros; se publica el commit de este recibo. El layout/ownership acotado de WP-18 fue autorizado y se aplicará al iniciar ese paquete. El bundle futuro DS-20/VAL/volumen/propiedad serial está autorizado específicamente; se aplicará por partes documentales en los turnos WP-18, WP-4r y WP-9. H1, H2 y H3 siguen pendientes.
+Estado: WP-0, WP-1, WP-2, WP-4p, WP-6, WP-8a y WP-11 cerrados y publicados. WP-18 cierra su turno de redacción y validación local, con check 568/0, focal de deploy 30/0 y revisión independiente de 28 casos distintos verdes. H1 tiene sus criterios actuales verdes: contratos, matriz, proyección, códec, geometría, servidor y seis fixtures; la aceptación de imagen de WP-18 sigue NO_EJECUTADO y diferida tras WP-14, sin dispensa. Sigue WP-3a sin pausa de hito. H2/H3 pendientes. Las autorizaciones B y C+R se preservan; layout/ownership y volumen WP-18 ya se aplicaron documentalmente antes de código. DS-20/propiedad serial WP-4r y VAL WP-9 siguen autorizados y se aplicarán en sus turnos.
 Rama `rehacer`; base y tag `pre-rehacer`: `513ac041`. La directora creó/publicó rama y tag.
 WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. La directora publica un commit por paquete.
 
@@ -27,8 +27,8 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 | 3 | WP-4p | Cerrado: aceptación, mutantes reales y revisión verdes; B-19 materializada | `ba5f8b5fd1fd39392f633795f0bb71cb356bd84c` |
 | 4 | WP-6 | Cerrado: doce etapas, punto fijo, fixtures y revisión independiente verdes | `dcdbbf67e36c4e817c10485586e0ea29d5efa1ce` |
 | 5 | WP-8a | Cerrado: geometría, paths, generador real y revisión verdes; T-216 corregida | `5ceb3cbaa3829a4cd7988fb8f0b10ac170bdfbfe` |
-| 6 | WP-11 | Cerrado: B, preservación física, check y revisión completa verdes | commit de este recibo |
-| 7 | WP-18 | Pendiente; layout, ownership y nombre físico de volumen autorizados | — |
+| 6 | WP-11 | Cerrado: B, preservación física, check y revisión completa verdes | `a82f2bdf2270132eb14891ce0967de7050eb20ff` |
+| 7 | WP-18 | Cerrado turno de redacción: scripts/check/revisión verdes; imagen pendiente tras WP-14 | commit de este recibo |
 | 8 | WP-3a | Pendiente | — |
 | 9 | WP-3b | Pendiente | — |
 | 10 | WP-5 | Pendiente | — |
@@ -45,7 +45,7 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 | 21 | WP-17 | Pendiente | — |
 | 22 | WP-19 | Pendiente | — |
 
-H1 (tras ola 1), H2 (tras ola 3) y H3 (tras ola 5): pendientes. Ningún hito alcanzado.
+H1 (tras ola 1): criterios de contratos/matriz/proyección/códec/geometría/servidor y fixtures verdes. WP-18 cerró solo redacción; su aceptación de imagen sigue pendiente. H2 (tras ola 3) y H3 (tras ola 5): pendientes.
 WP-18 verifica su imagen después de WP-14; WP-17 ejecuta los e2e completos.
 
 ## WP-0: realización y evidencia
@@ -1958,3 +1958,115 @@ recibo se fija al abrir el siguiente paquete, sin amend ni segundo commit de WP-
 Sigue WP-18 directamente: aplicar primero layout/ownership y volumen documentales ya
 autorizados, después una única escritora, pruebas de scripts/check y revisión independiente;
 imagen real sigue diferida tras WP-14 y NO_EJECUTADO bajo la prohibición de contenedores.
+
+### Apertura serial de WP-18
+
+WP-11 publicado en `a82f2bdf2270132eb14891ce0967de7050eb20ff`: HEAD, origin/rehacer y
+ls-remote iguales, divergencia 0 0 y árbol limpio. Main/origin/main y tag pre-rehacer siguen
+en `513ac041f6eb91dc8bf0eb5319a492eb6ff25f6d`; no hubo push/merge main.
+
+Se registra ANTES de código la aplicación de los dos alcances documentales autorizados de
+WP-18: patch de layout/ownership y parte volumen del bundle aprobado. Dirección comprobará
+y aplicará solo `/tmp/opforja-rehacer/WP-18-propuesta-layout.patch` y
+`/tmp/opforja-rehacer/propuesta-contradicciones-previsibles-WP-18.patch` (15 líneas, SHA-256
+`122ad81520c263ae9244e0538369f03d96920b07386656bfe56f0d4222eb7174`). El contrato B
+se preserva; las partes DS-20/VAL quedan para sus turnos futuros, sin aplicación anticipada.
+
+Propiedad serial de package/vite/playwright limitada a layout/arranque, incluida conexión
+de main.tsx mediante configuración Vite pre-transform dentro de esa propiedad. Índice HTML
+no se modifica fuera de ownership. Timer literal DESIGN §8.7: 03:30 diario. Dockerfile,
+Compose, deploy/respaldo y unidades son redacción comprobable en este turno; pruebas locales
+de scripts con copias/datos propios y sustitutos estrictos, sin Docker/red reales. Check del
+paquete y revisión independiente obligatorios. Gate de imagen real se difiere según plan
+hasta después de WP-14 y queda NO_EJECUTADO bajo la prohibición humana de contenedores.
+
+Aplicación documental efectiva observada antes de liberar a la escritora: ambos patches
+pasaron git apply --check y se aplicaron sin conflicto; diff --check exit 0. DESIGN incorpora
+únicamente layout/ownership WP-18 y nombre físico de volumen (7 inserciones/5 supresiones);
+README incorpora la línea compartida y plan.json el ownership acotado. B permanece íntegro;
+DS-20/VAL del bundle no se aplicaron todavía.
+
+WP-18 inició TDD sobre copias aisladas: RED 8 pass / 14 fail, 43 expectativas en 22 casos
+(`/tmp/opforja-rehacer/WP-18-red-inicial.log`). El sustituto estricto bloqueó la llamada
+legacy de corpus; layout/circuito antiguos y respaldo/unidades ausentes fueron refutados.
+Las negativas que ya pasaban por rechazo temprano se conservan y deben llegar a su camino
+real en GREEN. No se invocaron Docker/red reales ni scripts operativos originales.
+
+Precisión menor de realización dentro del literal de respaldo: retención de 14 días por
+tiempo transcurrido, conservando la frontera y retirando lo vencido; no sumar tácitamente
+un día por redondeo de mtime. La poda afecta solo archivos regulares con nombre diario
+`opforja-YYYY-MM-DD.tgz`, preservando ajenos incluso con prefijo parecido, y ocurre solo
+tras publicar el archivo completo. Se comunicó antes de verificar el candidato y no cambia
+DESIGN ni autoriza operación real. Las sondas independientes fijan sus esperados desde
+esta precisión y el literal normativo, sin copiar el resultado de implementación.
+
+El migrador todavía NO existe; la mención previa de stub fue inexacta y se corrigió.
+WP-18 conserva el comando final de tres entradas, comprueba el layout con principal/cuenta
+reales y declara la tercera entrada pendiente de WP-12. No crea ni simula un migrador ajeno.
+Build completo se verifica tras WP-14, posterior a WP-12; no se dispensa ni marca verde
+la ausencia actual. Imagen real sigue NO_EJECUTADO bajo prohibición de contenedores.
+
+### WP-18 — aceptación del turno de redacción y validación local
+
+Dirección acepta el candidato congelado de once archivos, sin adjudicar la aceptación futura
+de imagen. Recibo completo: `/tmp/opforja-rehacer/WP-18-implementacion-reporte.md`;
+manifest: `/tmp/opforja-rehacer/WP-18-freeze-manifest.json`. Focal propio final de deploy:
+30 pass / 0 fail, 151 expectativas. TypeScript local, sintaxis Bash y diff check exit 0.
+Check completo NUEVO: 568 pass / 0 fail, 6402 expectativas, 29 archivos, 18.24 s,
+`/tmp/opforja-rehacer/WP-18-check-final.log`. El focal deploy no forma parte de ese check.
+Las once huellas fueron reverificadas y las ocho fuentes WP-11 permanecen intactas.
+
+RED→GREEN conservado: 8/14 inicial; frontera de retención que se adelantaba por redondeo;
+publicación sobre directorio homónimo y servidor de pruebas sin host explícito; fallo
+`git status` 38 confundido con árbol limpio. Se repararon con comparación >14 días,
+rename mv -fT, loopback explícito y asignación autónoma de status bajo set -e. Los errores
+previos de cwd/gzip/env del harness se distinguen y sus logs se conservan. No se retiró
+ni debilitó ninguna expectativa; las negativas finales alcanzan su camino real.
+
+Dictamen favorable: `/tmp/opforja-rehacer/WP-18-review-dictamen-final.md`. Revisión distinta
+de la escritora: 28 casos distintos GREEN, distribuidos en shell 18/0 (82 expectativas),
+layout 2/0 (5), retención 2/0 (22) y estáticos/configuración 6/0 (70). Una repetición focal
+1/0 (14) fortaleció la igualdad exacta de 14 días, sin contarla como caso nuevo. Verificó
+11/11 hashes y modos antes/después, WP-11 8/8 intacto y Bash -n exit 0. No observó defecto
+material. Los ajustes privados previos del stub mv y variable de destino se documentaron
+sin cambiar los oráculos de conservación, fallo o poda.
+
+Plan observado en este turno: scripts escritos con herramientas sustituidas estrictamente
+sobre copias/datos propios; respaldo completo byteexacto, permisos privados, fallos de
+lectura/compresión/publicación preservando anteriores, sin poda al fallar; retención >14d
+con frontera conservada a resolución de un segundo y solo archivos regulares diarios
+propios. Circuito Git/Compose/salud-versión/sesión401/HTML y códigos de fallo comprobados
+con sustitutos; ningún Docker, Compose ni despliegue real. Timer literal 03:30 inspeccionado,
+sin instalar unidades. Compose declara un servicio y nombre físico opforja-datos autorizado.
+Dockerfile se revisó estáticamente, sin afirmar contenido efectivo de una imagen.
+
+Bun real compiló únicamente principal.js/cuenta.js planos a temporales propios, sin ejecutar
+los bundles. Migrar-postgres.ts todavía ausente hasta WP-12 y main.tsx hasta WP-14. Vite
+pre-transform y comando Playwright aislado se comprobaron por invocación local/proxy;
+no acreditan UI ni e2e. El comando final de tres entradas y build completo conservan su
+gate futuro, sin stubs. La verificación de imagen de plan.json queda NO_EJECUTADO tras
+WP-14 según README; la prohibición humana de contenedores sigue vigente. No se dispensa
+esa aceptación, no se acredita runtime, snapshot global, recuperación operativa ni powerloss.
+
+### H1 — resultados de la ola 1 y continuidad
+
+Contratos WP-1, matriz WP-2, proyección WP-4p, códec WP-6, geometría/fuente WP-8a y servidor
+WP-11 están aceptados con revisiones independientes y checks verdes. Los seis fixtures v0
+importan ok en WP-6; su punto fijo, derivados e informes de visibilidad conservan evidencia.
+La revisión acumulada de firma/identidad/estado, códec, proyección y brechas no encontró
+una brecha silenciosa adicional en esta ola. La excepción C+R se documentó antes de código
+con T-196 intacta, y B preserva íntegros Informe y bytes históricos. Geometría/fuente tienen
+mediciones observadas; todavía no se atribuye fidelidad del render completo ni roundtrip
+OPL futuro por esos resultados.
+
+Conformidad mantiene once brechas parciales materializadas: B-02, B-04, B-05, B-06, B-07,
+B-08, B-10, B-12, B-16, B-19 y B-28. WP-11/WP-18 no cambian filas NO_* o CATALOGO ni
+cierran DEBE OPM. B-28 declara expresamente pendiente la equivalencia menú/creación con
+resultado efectivo de distribución refinada real en WP-4r/H2; no se acredita con stubs.
+Las dimensiones P/U y demás integración futuras siguen pendientes según conformidad.
+
+H1 cumple sus criterios semánticos y check actuales; la ola 1 solo exige redacción WP-18.
+La aceptación de imagen permanece registrada aparte para después de WP-14. H2/H3 siguen
+pendientes. Publicación de este turno: un commit semántico y push rehacer, sin main;
+el SHA se fijará al abrir WP-3a. Sigue WP-3a inmediatamente, después WP-3b/WP-5/WP-7/WP-8b
+y el resto lineal hasta el objetivo completo, sin pausar por cierre de paquete o hito.

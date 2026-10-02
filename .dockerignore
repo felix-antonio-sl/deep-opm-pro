@@ -27,3 +27,11 @@ docs/instrucciones-lineas-dev
 
 *.tar.gz
 *.tsbuildinfo
+
+app/dist-servidor
+**/.env
+**/.env.*
+**/cuenta.json
+app/.datos*
+datos
+respaldos

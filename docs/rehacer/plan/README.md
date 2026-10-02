@@ -79,6 +79,7 @@ Hitos de revisión con el dueño:
    (`test('T-043 …')`), así `bun test -t T-043` la encuentra.
 3. Tocar solo los `archivos` del paquete. Los archivos compartidos declarados se tocan en
    serie (DESIGN §12.1):
+   - `app/package.json`, `app/vite.config.ts` y `app/playwright.config.ts`: WP-0 crea el andamiaje; WP-18 integra en serie el layout de DESIGN §9.1;
    - `nucleo/enlaces.ts`;
    - `nucleo/cosas.ts`;
    - `opl/documento.ts`.

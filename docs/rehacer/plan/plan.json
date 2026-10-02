@@ -89,7 +89,7 @@
       "id": "WP-18", "ola": 1, "nombre": "Despliegue (sin desplegar)",
       "objetivo": "Dockerfile, docker-compose.yml con un servicio y un volumen, deploy.sh adaptado como único circuito, respaldo y procedimiento de transición documentado. No se despliega.",
       "depende": ["WP-0"], "verificarTras": ["WP-11", "WP-14"],
-      "archivos": ["Dockerfile", "docker-compose.yml", ".dockerignore", "deploy/{deploy.sh,deploy.test.ts,respaldo.sh}", "deploy/systemd/opforja-respaldo.{service,timer}"],
+      "archivos": ["Dockerfile", "docker-compose.yml", ".dockerignore", "deploy/{deploy.sh,deploy.test.ts,respaldo.sh}", "deploy/systemd/opforja-respaldo.{service,timer}", "app/{package.json,vite.config.ts,playwright.config.ts} (compartidos seriales de andamiaje: layout DESIGN §9.1)"],
       "lecturas": ["DESIGN §9", "understand/server-deploy.md §1 y §11", "pre-rehacer:deploy/deploy.sh", "pre-rehacer:app/scripts/deploy.test.ts"],
       "aceptacion": ["bun test ../deploy verde", "docker compose build correcto y la imagen sin src/, pruebas ni node_modules (se verifica en la ola 4, cuando existen servidor/ y main.tsx)"]
     },

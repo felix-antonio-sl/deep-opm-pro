@@ -1,78 +1,21 @@
-# syntax=docker/dockerfile:1.7
+FROM oven/bun:1.3 AS construccion
+WORKDIR /src/app
+COPY app/package.json app/bun.lock app/bunfig.toml ./
+RUN bun --no-env-file install --frozen-lockfile
+COPY app/ ./
+ARG OPFORJA_VERSION=local
+ENV OPFORJA_VERSION=$OPFORJA_VERSION
+RUN bun --no-env-file run build
 
-# -----------------------------------------------------------------------------
-# Stage 1 - deps: instala dependencias Bun de la app Vite.
-# -----------------------------------------------------------------------------
-FROM oven/bun:1.3.10-slim AS deps
-WORKDIR /workspace/app
-
-COPY app/package.json app/bun.lock ./
-RUN bun install --frozen-lockfile
-
-# -----------------------------------------------------------------------------
-# Stage 2 - builder: compila el bundle estatico.
-# -----------------------------------------------------------------------------
-FROM oven/bun:1.3.10-slim AS builder
-WORKDIR /workspace
-
-ARG VITE_ENABLE_BUG_CAPTURE=false
-ENV VITE_ENABLE_BUG_CAPTURE=${VITE_ENABLE_BUG_CAPTURE}
-ARG VITE_MOBILE_READONLY=false
-ENV VITE_MOBILE_READONLY=${VITE_MOBILE_READONLY}
-# Versión visible en la UI: short SHA del commit desplegado (la fecha la computa vite).
-ARG VITE_OPFORJA_BUILD=local
-ENV VITE_OPFORJA_BUILD=${VITE_OPFORJA_BUILD}
-# El deploy canónico materializa el corpus vivo antes de construir; dentro del
-# contexto Docker se valida su presencia y no se intenta leer repos vecinos.
-ENV TUTOR_CORPUS_PREBUILT=1
-
-COPY --from=deps /workspace/app/node_modules ./app/node_modules
-COPY app ./app
-COPY assets ./assets
-
-WORKDIR /workspace/app
-RUN bun run build
-
-# -----------------------------------------------------------------------------
-# Stage opcional - bug-capture: API interna para persistir reportes dev/ops.
-# -----------------------------------------------------------------------------
-FROM oven/bun:1.3.10-slim AS bug-capture
-WORKDIR /workspace
-
-COPY app/src/server ./app/src/server
-COPY app/scripts/bug-capture-api.ts ./app/scripts/bug-capture-api.ts
-
-EXPOSE 3000
-
-CMD ["bun", "run", "./app/scripts/bug-capture-api.ts"]
-
-# -----------------------------------------------------------------------------
-# Stage opcional - model-api: API interna para persistir modelos en Postgres.
-# -----------------------------------------------------------------------------
-FROM oven/bun:1.3.10-slim AS model-api
-WORKDIR /workspace
-
-COPY --from=deps /workspace/app/node_modules ./app/node_modules
-COPY app/src ./app/src
-COPY app/.tutor-corpus ./app/.tutor-corpus
-COPY app/scripts/model-persistence-api.ts ./app/scripts/model-persistence-api.ts
-# Auth v1: CLI de administracion de cuentas (docker exec; spec auth-identidad-v1 §5).
-COPY app/scripts/auth-cuenta.ts ./app/scripts/auth-cuenta.ts
-
-EXPOSE 3001
-
-CMD ["bun", "run", "./app/scripts/model-persistence-api.ts"]
-
-# -----------------------------------------------------------------------------
-# Stage 3 - runner: Nginx sirve la SPA estatica con fallback a index.html.
-# -----------------------------------------------------------------------------
-FROM nginx:1.27-alpine AS runner
-
-COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /workspace/app/dist /usr/share/nginx/html
-RUN chmod -R a+rX /usr/share/nginx/html
-
+FROM oven/bun:1.3-slim
+WORKDIR /opt/opforja
+COPY --from=construccion /src/app/dist ./web
+COPY --from=construccion /src/app/dist-servidor ./servidor
+ARG OPFORJA_VERSION=local
+ENV OPFORJA_DATOS=/datos OPFORJA_WEB=/opt/opforja/web PORT=8080 NODE_ENV=production OPFORJA_VERSION=$OPFORJA_VERSION
+RUN mkdir -p /datos && chown bun:bun /datos
+USER bun
 EXPOSE 8080
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1
+HEALTHCHECK --interval=10s --timeout=3s --retries=5 \
+  CMD bun --no-env-file -e "fetch('http://127.0.0.1:8080/salud').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+CMD ["bun", "--no-env-file", "servidor/principal.js"]

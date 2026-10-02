@@ -1,122 +1,23 @@
 services:
   opforja:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        VITE_ENABLE_BUG_CAPTURE: "true"
-        VITE_MOBILE_READONLY: "true"
-        VITE_OPFORJA_BUILD: ${OPFORJA_BUILD:-local}
-    image: deep-opm-pro-opforja:latest
+    build: { context: ., args: { OPFORJA_VERSION: "${OPFORJA_BUILD:-local}" } }
+    image: opforja:latest
     container_name: opforja
     restart: unless-stopped
-    depends_on:
-      bug-capture:
-        condition: service_started
-      model-api:
-        condition: service_healthy
-    networks:
-      - web
-      - opforja-internal
+    environment:
+      OPFORJA_SECRETO: ${OPFORJA_SECRETO:?OPFORJA_SECRETO requerido (.env junto al compose)}
+      OPFORJA_TOKEN: ${OPFORJA_TOKEN:-}
+    volumes: [ "opforja-datos:/datos" ]
+    networks: [ web ]
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
       - "traefik.http.routers.opforja.rule=Host(`opforja.sanixai.com`)"
       - "traefik.http.routers.opforja.entrypoints=websecure"
       - "traefik.http.routers.opforja.tls.certresolver=myresolver"
-      - "traefik.http.routers.opforja.middlewares=opforja-security-headers@docker"
+      - "traefik.http.routers.opforja.middlewares=opforja-hsts@docker"
+      - "traefik.http.middlewares.opforja-hsts.headers.stsSeconds=63072000"
+      - "traefik.http.middlewares.opforja-hsts.headers.stsIncludeSubdomains=true"
       - "traefik.http.services.opforja.loadbalancer.server.port=8080"
-      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Strict-Transport-Security=max-age=63072000; includeSubDomains; preload"
-      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.X-Frame-Options=DENY"
-      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
-      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Referrer-Policy=no-referrer"
-      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Permissions-Policy=camera=(), microphone=(), geolocation=()"
-      - "traefik.http.middlewares.opforja-security-headers.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
-
-  postgres:
-    image: postgres:16-alpine
-    container_name: opforja-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: opforja
-      POSTGRES_USER: opforja
-      # Blindaje 2026-06-06: sin default inseguro — compose FALLA si falta (.env del servidor, gitignored).
-      POSTGRES_PASSWORD: ${OPFORJA_DB_PASSWORD:?OPFORJA_DB_PASSWORD requerido (define .env junto al compose)}
-    volumes:
-      - opforja-postgres-data:/var/lib/postgresql/data
-    networks:
-      - opforja-internal
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U opforja -d opforja"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  model-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: model-api
-    image: deep-opm-pro-model-api:latest
-    container_name: opforja-model-api
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: postgres://opforja:${OPFORJA_DB_PASSWORD:?OPFORJA_DB_PASSWORD requerido}@postgres:5432/opforja
-      MODEL_API_PORT: "3001"
-      # Blindaje 2026-06-06: el default "opforja-dev-session" permitía FORJAR cookies de tenant.
-      MODEL_SESSION_SECRET: ${OPFORJA_SESSION_SECRET:?OPFORJA_SESSION_SECRET requerido (define .env junto al compose)}
-      # Auth v1 (docs/specs/auth-identidad-v1.md): login obligatorio. Rollback
-      # de emergencia: "false" restaura tenants anónimos sin tocar datos.
-      MODEL_REQUIRE_AUTH: "true"
-      # Carril de token de agente (Ola 1 puente mesa↔skill, 2026-07-06).
-      # Fail-closed: sin OPFORJA_AGENT_TOKEN (≥48) en .env, el carril queda
-      # deshabilitado y la ruta de cookie del navegador es idéntica a hoy.
-      # Rollback: borrar estas 2 líneas de .env + rebuild.
-      MODEL_AGENT_TOKEN: ${OPFORJA_AGENT_TOKEN:-}
-      MODEL_AGENT_IDENTITY: ${OPFORJA_AGENT_IDENTITY:-}
-      # Inferencia integrada: credencial solo en el backend, separada del token mesa.
-      OPFORJA_AGENT_ENABLED: ${OPFORJA_AGENT_ENABLED:-false}
-      OPFORJA_AGENT_PROVIDER: ${OPFORJA_AGENT_PROVIDER:-xiaomi-mimo}
-      OPFORJA_AGENT_MODEL: ${OPFORJA_AGENT_MODEL:-mimo-v2.6-pro}
-      OPFORJA_AGENT_API_KEY: ${OPFORJA_AGENT_API_KEY:-}
-      OPFORJA_AGENT_MAX_TASK_USD: ${OPFORJA_AGENT_MAX_TASK_USD:-1}
-    networks:
-      - opforja-internal
-      - agent-egress
-    healthcheck:
-      test: ["CMD", "bun", "-e", "const r=await fetch('http://127.0.0.1:3001/healthz'); process.exit(r.ok ? 0 : 1)"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-  bug-capture:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: bug-capture
-    image: deep-opm-pro-bug-capture:latest
-    container_name: opforja-bug-capture
-    restart: unless-stopped
-    environment:
-      BUG_CAPTURE_REPO_ROOT: /workspace
-      BUG_CAPTURE_BUGS_ROOT: /workspace/docs/bugs
-      BUG_CAPTURE_PORT: "3000"
-    volumes:
-      - ./docs/bugs:/workspace/docs/bugs
-    networks:
-      - opforja-internal
-
-networks:
-  web:
-    external: true
-  opforja-internal:
-    internal: true
-  # Salida HTTPS para inferencia; no publica puertos del backend.
-  agent-egress:
-
-volumes:
-  opforja-postgres-data:
+volumes: { opforja-datos: { name: opforja-datos } }
+networks: { web: { external: true } }

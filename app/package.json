@@ -6,7 +6,7 @@
   "scripts": {
     "check": "tsc --noEmit -p . && bun test src servidor herramientas",
     "dev": "bun herramientas/dev.ts",
-    "build": "vite build && bun build servidor/principal.ts --target=bun --outdir=dist/servidor",
+    "build": "vite build && bun build servidor/principal.ts servidor/cuenta.ts herramientas/migrar-postgres.ts --target=bun --outdir dist-servidor --entry-naming '[name].js'",
     "e2e": "bun run build && playwright test",
     "golden": "OPFORJA_GOLDEN=escribir bun test src/opd/golden.test.ts"
   },
