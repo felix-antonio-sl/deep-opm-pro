@@ -61,7 +61,8 @@ desplegó nada; `app/` solo recibió una corrección independiente: un solo `val
 que acepta `?`. La maqueta de interfaz quedó en pausa a pedido del dueño: estado y pendientes en
 `docs/rehacer/README.md`.
 
-Próxima acción: revisión del dueño. Si aprueba, se ejecuta el plan de
-`docs/rehacer/design/DESIGN.md` §12 en una rama `rehacer` creada desde `main`. Ese plan retira el
-agente integrado, así que la aprobación dejaría obsoleto el pendiente de credencial descrito
-arriba.
+El dueño revisó el diseño el 2026-10-02 (`docs/rehacer/DECISIONS.md` 25–28) y pidió implementarlo
+en una sesión nueva. Próxima acción: abrir esa sesión con el mensaje de
+[`docs/rehacer/plan/PROMPT.md`](docs/rehacer/plan/PROMPT.md); el protocolo está en
+`docs/rehacer/plan/README.md`. Ese plan retira el agente integrado, así que deja obsoleto el
+pendiente de credencial descrito arriba.

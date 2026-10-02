@@ -1,7 +1,8 @@
 # Rehacer opforja: estudio, canon y diseño (propuesta)
 
-**Estado al 2026-09-30:** propuesta de diseño **pendiente de aprobación** del dueño del producto.
-No hay implementación. El código de `app/` no cambió, salvo una corrección independiente: un solo
+**Estado al 2026-10-02:** diseño revisado por el dueño ([`DECISIONS.md`](DECISIONS.md) 25–28). La
+implementación se hará en una **sesión nueva**, con el plan empaquetado en [`plan/`](plan/README.md).
+Todavía no hay implementación. El código de `app/` no cambió, salvo una corrección independiente: un solo
 `validarMultiplicidad`, que acepta `?`. Producción no se tocó.
 
 Este directorio conserva, dentro del repositorio, el trabajo previo a rehacer opforja. Esos
@@ -35,6 +36,7 @@ porqué, las 24 preguntas abiertas del estudio.
 | Estudio del repositorio | 18 lectores: núcleo, análisis, simulación, OPL, serialización, store, render, capa app, UI, autoría/tutor/mesa/agente, servidor/deploy, tests/gobernanza, autoridad OPM, producto, bugs/auditorías, gobierno visual e historia Git, y UX en vivo con Playwright. Después, una síntesis y un crítico con sondas ejecutables contra el código real | [`understand/SYNTHESIS.md`](understand/SYNTHESIS.md) y los dossiers en [`understand/`](understand/) |
 | Canon | 7 lectores leyeron los cuatro documentos completos, por tramos. Después, una especificación derivada y una auditoría adversarial contra la fuente | [`understand/CANON.md`](understand/CANON.md): 248 requisitos T-NNN, 180 núcleo ★, con la EBNF idéntica a la fuente |
 | Diseño | 3 arquitectos con lentes distintas (minimalismo radical, fluidez del experto, conformidad por construcción) y 3 jueces (canon, simplicidad, usabilidad y factibilidad). Después, una síntesis y un crítico que revisó la cobertura del canon fila por fila | [`design/DESIGN.md`](design/DESIGN.md), el diseño final. Las alternativas están en `design/DESIGN-{A,B,C}.md` |
+| Plan | Revisión del dueño y empaquetado para una sesión nueva | [`plan/README.md`](plan/README.md) (protocolo), [`plan/PROMPT.md`](plan/PROMPT.md) (mensaje de arranque) y [`plan/plan.json`](plan/plan.json) (23 paquetes en 6 olas) |
 
 `CANON.md` es un texto derivado. Ante cualquier duda, manda [`canon/`](canon/).
 
@@ -178,20 +180,19 @@ ejemplo ilustrativo. Fuera del lienzo no se ejecuta, porque depende de su runtim
 La decisión que la maqueta dejaba a la vista ya está tomada: D1 concuerda en género
 (`**Bodeguero** es físico.`, `**Caja** es física.`; DECISIONS 25, DS-26).
 
-## Plan si se aprueba
+## Plan de implementación
 
-DESIGN §12 divide la implementación en 22 paquetes de trabajo repartidos en seis olas:
+Está empaquetado en [`plan/`](plan/README.md) para una sesión nueva:
 
-- Primero van los contratos. WP-1 deja stubs con las firmas exactas.
-- Las pruebas se escriben antes que el código, cada una con el T-ID del requisito en su título.
-- Cada archivo tiene un único paquete dueño.
-- Cada integración exige `bun run check` en verde. Al final hay 26 escenarios e2e y 40 golden SVG
-  revisados a ojo.
+- [`plan/PROMPT.md`](plan/PROMPT.md) es el mensaje para abrir esa sesión.
+- [`plan/README.md`](plan/README.md) fija el protocolo: autoridad, mapa de rutas, preparación,
+  olas, hitos H1–H3, reglas por paquete, orquestación y continuidad.
+- [`plan/plan.json`](plan/plan.json) tiene los 23 paquetes de DESIGN §12, con dependencias,
+  archivos propios, lecturas exactas y criterios de aceptación.
 
-La propuesta está integrada en `main`. Si se aprueba, la implementación se hace en una rama
-`rehacer` creada desde `main`, con el tag `pre-rehacer` sobre la base al empezar WP-0
-(DESIGN §12.1). Producción no cambia hasta un despliegue autorizado. Nada se implementa ni se
-despliega sin aprobación explícita.
+La implementación va en una rama `rehacer` creada desde `main`, con el tag `pre-rehacer` sobre la
+base. Se detiene en cada hito para revisión. Producción no cambia hasta un despliegue autorizado
+mediante `./deploy/deploy.sh`.
 
 ## Límites
 

@@ -1,0 +1,217 @@
+{
+  "formato": "opforja.plan-rehacer.v1",
+  "fecha": "2026-10-02",
+  "base": { "rama": "main", "commit": "f42024d", "tagInicial": "pre-rehacer" },
+  "ramaTrabajo": "rehacer",
+  "autoridad": [
+    "docs/rehacer/canon/ (los 4 documentos: manda ante cualquier conflicto)",
+    "docs/rehacer/DECISIONS.md (decisiones fijas del dueño, 1–28)",
+    "docs/rehacer/understand/CANON.md (requisitos T-NNN y DR-n derivados del canon)",
+    "docs/rehacer/design/DESIGN.md (diseño final: contratos, flujos, plan)"
+  ],
+  "verificacion": {
+    "porDefecto": "cd app && bun run check",
+    "e2e": "cd app && bun run e2e",
+    "build": "cd app && bun run build",
+    "deploy": "cd app && bun test ../deploy"
+  },
+  "hitos": [
+    { "id": "H1", "trasOla": 1, "criterio": "contratos, matriz, proyección, códec v0, geometría y servidor con `bun run check` verde; los 6 fixtures v0 importan ok" },
+    { "id": "H2", "trasOla": 3, "criterio": "núcleo completo, diagnóstico, OPL generar+analizar+aplicar y editor; roundtrip estricto por enumeración de la matriz verde (R-§19-SIM-3)" },
+    { "id": "H3", "trasOla": 5, "criterio": "UI completa, 26 e2e verdes contra el build y el servidor real, documentación final; PR rehacer → main abierto, sin desplegar" }
+  ],
+  "olas": [
+    { "ola": 0, "paquetes": ["WP-0", "WP-1"], "nota": "en serie: WP-0 y luego WP-1" },
+    { "ola": 1, "paquetes": ["WP-2", "WP-4p", "WP-6", "WP-8a", "WP-11", "WP-18"], "nota": "en paralelo; WP-6 se integra después de WP-4p y WP-11 después de WP-6; WP-18 solo redacta" },
+    { "ola": 2, "paquetes": ["WP-3a", "WP-3b", "WP-5", "WP-7", "WP-8b"], "nota": "en paralelo; los gates de WP-8b se integran después de WP-5" },
+    { "ola": 3, "paquetes": ["WP-4r", "WP-9", "WP-13"], "nota": "WP-4r antes que WP-9; WP-13 en paralelo con WP-4r/WP-9 cuando sus dependencias cierran; WP-17 se redacta" },
+    { "ola": 4, "paquetes": ["WP-10", "WP-12", "WP-14", "WP-15", "WP-16"], "nota": "WP-14, WP-15 y WP-16 son un tren: se integran juntos y sus e2e los corre WP-17; aquí se verifica la imagen de WP-18" },
+    { "ola": 5, "paquetes": ["WP-17", "WP-19"], "nota": "WP-17 ejecuta los e2e; WP-19 cierra docs y abre el PR rehacer → main; nada se despliega" }
+  ],
+  "paquetes": [
+    {
+      "id": "WP-0", "ola": 0, "nombre": "Andamiaje y retiro",
+      "objetivo": "Crear la rama rehacer y el tag pre-rehacer, retirar lo listado en DESIGN §11.4 (conservando docs/rehacer/), vendorizar el canon en canon/ y dejar el andamiaje de app/ con check verde.",
+      "depende": [],
+      "archivos": ["borrados de DESIGN §11.4", "canon/** (copia byte a byte de docs/rehacer/canon/ + canon/LEEME.md con sha256)", "app/{package.json,bun.lock,bunfig.toml,tsconfig.json,vite.config.ts,index.html,playwright.config.ts,.gitignore}", "app/src/arquitectura.test.ts", "app/herramientas/dev.ts", "app/fixtures/v0/*.json (git mv de fixtures/demo-models/*.json)", "AGENTS.md (texto de DESIGN §11.2)", "HANDOFF.md (tablero del plan)"],
+      "lecturas": ["DESIGN §2.1", "DESIGN §2.2", "DESIGN §10.1", "DESIGN §11.1", "DESIGN §11.2", "DESIGN §11.4", "DESIGN §12.1", "DECISIONS.md", "plan/README.md"],
+      "aceptacion": ["bun install no agrega dependencias fuera de DESIGN §2.2", "bun run check verde", "git ls-files no lista ninguna ruta de DESIGN §11.4", "sha256sum canon/*/content.md coincide con canon/LEEME.md y con docs/rehacer/canon/", "docs/rehacer/ sigue intacto"]
+    },
+    {
+      "id": "WP-1", "ola": 0, "nombre": "Contratos y fundamentos",
+      "objetivo": "Escribir completos los fundamentos del núcleo y, como stubs con firmas exactas, todo archivo de contrato de DESIGN §2.1, más la infraestructura de pruebas.",
+      "depende": ["WP-0"],
+      "archivos": ["app/src/nucleo/{tipos,resultado,ids,indice,lexico,herencia,forma,modelo,operaciones,colocacion}.ts", "stubs con firmas exactas de todo archivo de DESIGN §2.1 en nucleo/ codec/ opl/ opd/ editor/", "app/src/pruebas/{constructores,azar,expectativas-matriz}.ts"],
+      "lecturas": ["DESIGN §3.1", "DESIGN §3.2", "DESIGN §3.3", "DESIGN §3.4.1", "DESIGN §4.1", "DESIGN §4.2", "DESIGN §5.2", "DESIGN §6.1", "DESIGN §6.2", "DESIGN §6.6", "DESIGN §6.8", "DESIGN §7.6", "DESIGN §10.1", "DESIGN §10.2", "CANON §1", "CANON §2.1"],
+      "aceptacion": ["bun run check verde con los stubs", "forma.test (F-1…F-13)", "lexico.test (EBNF, y/e, o/u, sugerirNombre, T-025)", "herencia.test (T-093)", "indice.test", "colocacion.test (hueco libre, contenedor, bandas, externos, despliegue; sin solapes)", "azar.test: 200 semillas con validarForma = []", "los constructores cubren todos los tipos de enlace"]
+    },
+    {
+      "id": "WP-2", "ola": 1, "nombre": "Matriz de validez",
+      "objetivo": "Una sola definición de qué enlace es legal (forma, contexto, NO_OFRECIDO, tiposLegales con alternativa), contrastada con una tabla transcrita a mano del canon.",
+      "depende": ["WP-1"],
+      "archivos": ["app/src/nucleo/matriz.ts", "app/src/nucleo/matriz.test.ts"],
+      "lecturas": ["DESIGN §4.3", "DESIGN §10.2", "CANON §2", "CANON §6.5", "pre-rehacer:app/src/modelo/operaciones/helpers.ts (validarFirmaEnlace)", "pre-rehacer:app/src/modelo/operaciones/enlaces.ts (validarUnicidadRolPar)"],
+      "aceptacion": ["matriz.test coincide con pruebas/expectativas-matriz.ts", "≥1 caso legal y ≥1 ilegal por fila de CANON §2.1 y por regla de contexto", "títulos T-040…T-066 y T-268", "cada fila de NO_OFRECIDO probada por comportamiento"]
+    },
+    {
+      "id": "WP-4p", "ola": 1, "nombre": "Proyección y árbol",
+      "objetivo": "Vista derivada por OPD (visibilidad, abstracción por fuerza semántica, precedencia R-PREC, R-VIS-HIJO-1 con DR-13), etiquetas SDx.y en preorden y ley de frontera.",
+      "depende": ["WP-1"],
+      "archivos": ["app/src/nucleo/proyeccion.ts", "app/src/nucleo/proyeccion.test.ts", "app/src/nucleo/frontera.test.ts"],
+      "lecturas": ["DESIGN §4.6", "DESIGN §4.7", "DESIGN §4.8", "DESIGN §10.2", "CANON §3.5", "CANON §3.6", "pre-rehacer:app/src/modelo/hechos/visibilidadEstados.ts (sin la guarda global, SYNTHESIS C-06)"],
+      "aceptacion": ["proyeccion.test: 12 niveles de fuerza, 9 celdas R-PREC, R-VIS-HIJO-1 + DR-13, estados anclados visibles, SDx.y que muta (T-085, T-086, T-031)", "frontera.test con un mutante que la pone roja (T-089)", "una sola implementación de preorden y etiquetas en indice.ts (CC-22)"]
+    },
+    {
+      "id": "WP-6", "ola": 1, "nombre": "Códec deep-opm-pro.modelo.v0",
+      "objetivo": "Importar todas las codificaciones v0 y legacy con informe de lo no representado, y exportar la forma canónica determinista con punto fijo.",
+      "depende": ["WP-1"], "integrarTras": ["WP-4p"],
+      "archivos": ["app/src/codec/**", "app/fixtures/v0/sintetico.json (generado por pruebas/azar.ts, semilla fija)"],
+      "lecturas": ["DESIGN §3.4", "DESIGN §10.4", "understand/serializacion-persistencia.md §2–§4", "understand/modelo-nucleo.md §3", "understand/SYNTHESIS.md §5.1 y §8 (riesgos 1, 19, 20, 21)", "pre-rehacer:app/src/serializacion/", "pre-rehacer:app/src/persistencia/documentMigration.ts (collectUnrepresented)"],
+      "aceptacion": ["codec.test: una prueba por etapa de DESIGN §3.4.2", "codec-fijo.test (importar∘exportar es punto fijo)", "codec-derivados.test (23 derivados)", "codec-visibilidad.test", "los 6 fixtures de app/fixtures/v0/ importan ok"]
+    },
+    {
+      "id": "WP-8a", "ola": 1, "nombre": "Geometría, marcadores y fuente",
+      "objetivo": "Geometría pura del OPD, marcadores con los paths literales del canon y métricas e incrustación de Inria Serif generadas en Chromium.",
+      "depende": ["WP-1"],
+      "archivos": ["app/src/opd/{tokens,geometria,marcadores,metricas,fuente}.ts", "app/herramientas/medir-fuente.ts"],
+      "lecturas": ["DESIGN §6.3", "DESIGN §6.4", "DESIGN §6.5", "DESIGN §10.5", "CANON §5.4", "CANON §5.5", "pre-rehacer:app/src/render/jointjs/ (calcularGeometriaAbanicoDesdePuntos, autoinvocacionLoop)"],
+      "aceptacion": ["geometria.test (T-211, T-216, T-224)", "marcadores.test: paths idénticos a spec-forja-opd §18.3 (T-209, T-210, T-212, T-215)", "medir-fuente.ts corre en el Chromium de /opt/pw-browsers y regenera ambos archivos de forma idéntica dos veces"]
+    },
+    {
+      "id": "WP-11", "ola": 1, "nombre": "Servidor mínimo",
+      "objetivo": "Bun.serve con una cuenta, cookie firmada y CSRF, token Bearer opcional, modelos como archivos con CAS por sha256, papelera, copias previas y canonicalización con 422.",
+      "depende": ["WP-1"], "integrarTras": ["WP-6"],
+      "archivos": ["app/servidor/{principal,sesion,almacen,cuenta}.ts", "app/servidor/*.test.ts"],
+      "lecturas": ["DESIGN §8.1", "DESIGN §8.2", "DESIGN §8.3", "DESIGN §8.5", "DESIGN §10.6", "understand/server-deploy.md §6, §7 y §18", "pre-rehacer:app/src/server/passwordHash.ts", "pre-rehacer:app/src/serializacion/portablePackage.ts (constantTimeEqual)"],
+      "aceptacion": ["sesion.test, almacen.test y principal.test (DESIGN §10.6)", "cubre Bearer, copias previas, ?respaldo=1, 422, X-Opforja-Version, ID_MODELO en rutas y arranque con archivos no canónicos (CC-14, CC-16)", "verifica un hash real del formato scrypt viejo"]
+    },
+    {
+      "id": "WP-18", "ola": 1, "nombre": "Despliegue (sin desplegar)",
+      "objetivo": "Dockerfile, docker-compose.yml con un servicio y un volumen, deploy.sh adaptado como único circuito, respaldo y procedimiento de transición documentado. No se despliega.",
+      "depende": ["WP-0"], "verificarTras": ["WP-11", "WP-14"],
+      "archivos": ["Dockerfile", "docker-compose.yml", ".dockerignore", "deploy/{deploy.sh,deploy.test.ts,respaldo.sh}", "deploy/systemd/opforja-respaldo.{service,timer}"],
+      "lecturas": ["DESIGN §9", "understand/server-deploy.md §1 y §11", "pre-rehacer:deploy/deploy.sh", "pre-rehacer:app/scripts/deploy.test.ts"],
+      "aceptacion": ["bun test ../deploy verde", "docker compose build correcto y la imagen sin src/, pruebas ni node_modules (se verifica en la ola 4, cuando existen servidor/ y main.tsx)"]
+    },
+    {
+      "id": "WP-3a", "ola": 2, "nombre": "Operaciones: cosas y estados",
+      "objetivo": "Operaciones puras de cosas y estados con rechazos tipados, trazas y cierre DS-20.",
+      "depende": ["WP-2", "WP-4p"],
+      "archivos": ["app/src/nucleo/{cosas,estados}.ts", "pruebas cosas.test.ts y estados.test.ts"],
+      "lecturas": ["DESIGN §4.2", "DESIGN §4.4", "DESIGN §4.5.7", "DESIGN §7.3 (flujos 4–6, 16, 25)", "DESIGN §1.6 (DS-5, DS-6, DS-20)", "CANON §1"],
+      "aceptacion": ["cosas.test y estados.test: éxito, rechazo con código, trazas, ids, deshacer", "T-062, T-063, T-065, T-081, T-248, T-251", "DS-5 (tiene-refinamiento), DS-6 (última aparición), selección múltiple, DS-20"]
+    },
+    {
+      "id": "WP-3b", "ola": 2, "nombre": "Operaciones: enlaces y abanicos",
+      "objetivo": "Crear, cambiar tipo, fijar atributos, reanclar y eliminar enlaces; formar y disolver abanicos; alternativas del segundo gesto.",
+      "depende": ["WP-2", "WP-4p"],
+      "archivos": ["app/src/nucleo/{enlaces,abanicos}.ts", "pruebas enlaces.test.ts, abanicos.test.ts y propiedades.test.ts"],
+      "lecturas": ["DESIGN §4.2", "DESIGN §4.3.4", "DESIGN §7.3 (flujos 7–10, 17, 28)", "DESIGN §1.6 (DS-9, DS-10, DS-13)", "CANON §2"],
+      "aceptacion": ["crearEnlace con abanicoCon; fijarEstados (4 formas); reanclarExtremo en todas las familias, T1→TS1 (T-250)", "eliminarEnlaces: mitad escindida pasa a standalone; valor huérfano retirado (CC-03); exhibición que propaga lo ambiental (CC-02); T-066", "propiedades.test: tiposLegales ≡ crearEnlace sobre modelos de constructores"]
+    },
+    {
+      "id": "WP-5", "ola": 2, "nombre": "Diagnóstico y gates",
+      "objetivo": "Catálogo de diagnósticos con familia, severidad y acción canónica; gates del export canónico; reparaciones como acciones.",
+      "depende": ["WP-2", "WP-4p"],
+      "archivos": ["app/src/nucleo/diagnostico.ts", "app/src/nucleo/diagnostico.test.ts"],
+      "lecturas": ["DESIGN §4.4", "DESIGN §6.8 (gates)", "CANON §6.4", "CANON §6.5", "CANON §7", "understand/SYNTHESIS.md §10.3"],
+      "aceptacion": ["cada código con un caso positivo y uno negativo; cada reparacion es una Accion bien formada", "T-260, T-261, T-263 (un solo código, con herencia y subprocesos), T-265, T-268, T-283"]
+    },
+    {
+      "id": "WP-7", "ola": 2, "nombre": "OPL: generación",
+      "objetivo": "Vocabulario, línea con tokens tipados, tabla única de plantillas y generador por OPD y del modelo completo.",
+      "depende": ["WP-4p"],
+      "archivos": ["app/src/opl/{vocabulario,linea,plantillas,generar}.ts", "app/src/opl/documento.ts (generarDocumentoOpl)"],
+      "lecturas": ["DESIGN §5.1", "DESIGN §5.2", "DESIGN §5.3", "DESIGN §5.4", "DESIGN §5.7", "DESIGN §1.6 (DS-1, DS-2, DS-15, DS-17, DS-26)", "CANON §4.1–§4.7"],
+      "aceptacion": ["vocabulario/plantillas/generar.test: T-100…T-139 de DESIGN §12.6", "D1/D4 concuerdan en género (DS-26)", "RF2b sin coma; mención mínima; ids de línea estables; unidades es-CL"]
+    },
+    {
+      "id": "WP-8b", "ola": 2, "nombre": "OPD: escena, dibujo y export",
+      "objetivo": "Escena pura por OPD, un solo dibujo con dos adaptadores (lienzo y cadena SVG), export canon-diagrama y canon-documento con la fuente incrustada.",
+      "depende": ["WP-4p", "WP-8a", "WP-6"], "integrarTras": ["WP-5 (gates)"],
+      "archivos": ["app/src/opd/{escena,dibujo,exportar}.ts", "app/src/opd/__golden__/**"],
+      "lecturas": ["DESIGN §6.1", "DESIGN §6.2", "DESIGN §6.6", "DESIGN §6.7", "DESIGN §6.8", "DESIGN §10.5", "CANON §5"],
+      "aceptacion": ["escena/exportar/golden.test: 40 golden revisados visualmente uno a uno (SYNTHESIS §8-5)", "T-200…T-228 de DESIGN §12.6", "@font-face en el export"]
+    },
+    {
+      "id": "WP-4r", "ola": 3, "nombre": "Refinamiento (operaciones)",
+      "objetivo": "Descomponer, subprocesos y bandas, distribución y escisión, desplegar por modo, colección incompleta y eliminar refinamiento.",
+      "depende": ["WP-3a", "WP-3b", "WP-5"],
+      "archivos": ["app/src/nucleo/refinamiento.ts", "hook de distribuir en nucleo/enlaces.ts", "hook de subproceso en nucleo/cosas.ts"],
+      "lecturas": ["DESIGN §4.5", "DESIGN §1.6 (DS-3, DS-4, DS-16)", "CANON §3.1–§3.4"],
+      "aceptacion": ["refinamiento.test: la tabla de DESIGN §4.5.3 fila por fila, incluida DS-4; T-070…T-083; sin semillas; un gesto; materialización", "secuencias.test: 200 semillas × 40 acciones (validarForma vacía, sin errores de contexto nuevos, entrada sin mutar)", "reparaciones.test: cada reparación aplicada hace desaparecer su diagnóstico"]
+    },
+    {
+      "id": "WP-9", "ola": 3, "nombre": "OPL: análisis y edición inversa",
+      "objetivo": "Normalización y reconocimiento por esqueletos con la misma tabla, planificador de patches con los 4 estados de línea y 8 razones, aplicación atómica por fases, importación de OPL.",
+      "depende": ["WP-7", "WP-3a", "WP-3b", "WP-4r"],
+      "archivos": ["app/src/opl/{analizar,planificar,aplicar,no-soportadas}.ts", "app/src/opl/documento.ts (importarOpl)"],
+      "lecturas": ["DESIGN §5.5", "DESIGN §5.6", "DESIGN §5.7", "DESIGN §5.8", "DESIGN §5.9", "DESIGN §10.3", "CANON §4.8–§4.11", "CANON §6.2", "CANON §6.3", "pre-rehacer:app/src/opl/parser/parsear.ts (parsearBandasOrden)", "pre-rehacer:app/src/opl/parser/planificar.ts (PatchRegistry)", "pre-rehacer:app/src/opl/clasificadorEdicion.ts"],
+      "aceptacion": ["analizar/editor-opl/roundtrip-matriz/roundtrip-azar/roundtrip-tabla92/composicion/lente.test: T-150…T-196", "D1/D3 «solo si difieren» y creación por tipografía en el mismo merge (SYNTHESIS §8-16)", "~700 casos en < 3 s"]
+    },
+    {
+      "id": "WP-13", "ola": 3, "nombre": "Editor (estado de aplicación)",
+      "objetivo": "Estado del editor, historial, selección y franja; registro único de comandos y atajos; cliente HTTP; autoguardado con CAS, borrador IndexedDB y conflictos; máquina de gestos.",
+      "depende": ["WP-3a", "WP-3b", "WP-4r", "WP-6", "WP-7"], "contrato": ["WP-11"],
+      "archivos": ["app/src/editor/**"],
+      "lecturas": ["DESIGN §7.6", "DESIGN §7.4", "DESIGN §8.4", "DESIGN §10.6"],
+      "aceptacion": ["estado/guardado/comandos/gestos.test (DESIGN §10.6): ambas resoluciones de conflicto, 404/413, apertura no canónica, salida con pendientes, reingreso, versión nueva, un paso por gesto, deshacer vuelve al OPD", "aplicarOpl se prueba con un Plan construido a mano (sin depender de WP-9)"]
+    },
+    {
+      "id": "WP-10", "ola": 4, "nombre": "Integración códec × OPL y rendimiento",
+      "objetivo": "Auto-reparseo con cero cambios sobre los modelos reales y el sintético, roundtrip estricto de documento completo y metas de rendimiento.",
+      "depende": ["WP-6", "WP-9", "WP-5", "WP-8b"],
+      "archivos": ["app/src/opl/roundtrip-modelos.test.ts", "app/src/rendimiento.test.ts"],
+      "lecturas": ["DESIGN §5.9", "DESIGN §2.4", "DESIGN §10.3", "DESIGN §10.4"],
+      "aceptacion": ["auto-reparseo por OPD con 0 cambios en los 6 fixtures y el sintético (UX-01)", "estricto de documento completo para los que pasan los gates", "rendimiento.test falla a 3× el objetivo de DESIGN §2.4"]
+    },
+    {
+      "id": "WP-12", "ola": 4, "nombre": "Migración desde PostgreSQL",
+      "objetivo": "Herramienta de un solo uso, de solo lectura sobre PostgreSQL, que escribe los modelos como archivos v0 con un informe por modelo.",
+      "depende": ["WP-6", "WP-11", "WP-5"],
+      "archivos": ["app/herramientas/migrar-postgres.ts", "app/herramientas/migrar-postgres.test.ts"],
+      "lecturas": ["DESIGN §8.6", "DESIGN §10.6", "understand/server-deploy.md §5"],
+      "aceptacion": ["migrar-postgres.test con fuente falsa: los 8 casos de DESIGN §10.6"]
+    },
+    {
+      "id": "WP-14", "ola": 4, "nombre": "UI: armazón", "tren": "UI",
+      "objetivo": "App, acceso, biblioteca, informe de importación, editor (cabecera, disposición, modos), diálogo genérico, ayuda, franja y estilos.",
+      "depende": ["WP-13"],
+      "archivos": ["app/src/ui/{App,Acceso,Biblioteca,InformeImportacion,Editor,Dialogo,Ayuda,Franja}.tsx", "app/src/ui/estilos.css", "app/src/main.tsx"],
+      "lecturas": ["DESIGN §7.1", "DESIGN §7.2", "DESIGN §7.5", "DESIGN §6.5 (tokens)", "docs/rehacer/maqueta/Main.dc.html (referencia visual)"],
+      "aceptacion": ["e2e 1 y 2 (no necesitan lienzo ni paneles); e2e 3, 21 y 24 se evalúan en WP-17"]
+    },
+    {
+      "id": "WP-15", "ola": 4, "nombre": "UI: lienzo", "tren": "UI",
+      "objetivo": "Lienzo SVG con cámara, capa UI en carmesí, nombre en línea, menú de tipo de enlace con vista previa OPL y menú contextual.",
+      "depende": ["WP-8b", "WP-13", "WP-7"],
+      "archivos": ["app/src/ui/{Lienzo,SvgPreact,CapaUi,NombreEnLinea,MenuTipoEnlace,MenuContextual}.tsx"],
+      "lecturas": ["DESIGN §7.3 (flujos 4–18, 20, 25)", "DESIGN §6.7", "DESIGN §7.4", "docs/rehacer/maqueta/Enlace.dc.html", "docs/rehacer/maqueta/Descomponer.dc.html"],
+      "aceptacion": ["bun run check y bun run build verdes; sus e2e (4–13, 15, 22, 23, 25) se evalúan en WP-17"]
+    },
+    {
+      "id": "WP-16", "ola": 4, "nombre": "UI: paneles", "tren": "UI",
+      "objetivo": "Propiedades con «Enlaces (N)», árbol de OPDs, panel y editor OPL, diagnóstico con reparaciones, buscar y exportar.",
+      "depende": ["WP-9", "WP-8b", "WP-13", "WP-5"],
+      "archivos": ["app/src/ui/{Inspector,ArbolOpd,PanelOpl,EditorOpl,PanelDiagnostico,Buscar,MenuExportar}.tsx"],
+      "lecturas": ["DESIGN §7.3 (flujos 14–15, 19–24, 26–27)", "DESIGN §5.8", "DESIGN §6.8"],
+      "aceptacion": ["bun run check y bun run build verdes; sus e2e (14, 16–20, 26) se evalúan en WP-17"]
+    },
+    {
+      "id": "WP-17", "ola": 5, "nombre": "E2E",
+      "objetivo": "Los 26 escenarios Playwright contra el build y el servidor real con datos temporales.",
+      "depende": ["WP-14", "WP-15", "WP-16"], "redactarDesde": ["WP-13"],
+      "archivos": ["app/e2e/**"],
+      "lecturas": ["DESIGN §10.7"],
+      "aceptacion": ["los 26 escenarios verdes con el Chromium de /opt/pw-browsers y 0 errores de página"]
+    },
+    {
+      "id": "WP-19", "ola": 5, "nombre": "Documentación y cierre",
+      "objetivo": "README, NOTICE y docs finales; docs/conformidad.md con brechas y trazabilidad; mover CANON.md a docs/especificacion.md; retirar docs/rehacer/ y HANDOFF.md; abrir el PR rehacer → main sin desplegar.",
+      "depende": ["WP-0", "WP-1", "WP-2", "WP-3a", "WP-3b", "WP-4p", "WP-4r", "WP-5", "WP-6", "WP-7", "WP-8a", "WP-8b", "WP-9", "WP-10", "WP-11", "WP-12", "WP-13", "WP-14", "WP-15", "WP-16", "WP-17", "WP-18"],
+      "archivos": ["README.md", "NOTICE.md", "docs/** (DESIGN §11.1)", "borra HANDOFF.md y docs/rehacer/"],
+      "lecturas": ["DESIGN §11.1", "DESIGN §11.2", "DESIGN §11.3", "DESIGN §12.6", "DESIGN §1.5"],
+      "aceptacion": ["cada fila con registro tiene su B-nn y viceversa", "cada fila de DESIGN §12.6 apunta a archivos y pruebas existentes; bun test -t <T-ID> encuentra ≥1 prueba por ★ no registrado como brecha", "bun run check, bun run e2e y bun run build verdes desde un clon limpio"]
+    }
+  ]
+}
