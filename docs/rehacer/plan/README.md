@@ -99,6 +99,23 @@ Hitos de revisión con el dueño:
   siguiente.
 - Un golden SVG nuevo o cambiado no se acepta sin abrir el SVG y mirarlo.
 
+### Con un solo agente (por ejemplo, Codex CLI local)
+
+Sin orquestación multiagente, los paquetes corren uno a la vez en el checkout de trabajo, en este
+orden lineal. Respeta todas las dependencias de `plan.json`:
+
+`WP-0 → WP-1 → WP-2 → WP-4p → WP-6 → WP-8a → WP-11 → WP-18 → WP-3a → WP-3b → WP-5 → WP-7 →
+WP-8b → WP-4r → WP-9 → WP-13 → WP-10 → WP-12 → WP-14 → WP-15 → WP-16 → WP-17 → WP-19`
+
+- WP-18 se redacta en su turno; la verificación de su imagen se hace después de WP-14.
+- WP-14, WP-15 y WP-16 se cierran con `bun run check` y `bun run build`; sus e2e los ejecuta WP-17.
+- La revisión adversarial de cada ola la hace el mismo agente al cerrarla: relee el diff de la ola
+  contra el canon y DESIGN (firma, OPL literal, roundtrip y brechas sin registro) y corrige antes de
+  seguir.
+- Mientras WP-0 no reescriba `AGENTS.md`, si el vigente contradice este plan (por ejemplo, al pedir
+  usar el corpus KORA instalado), manda el plan: el canon son los cuatro documentos de
+  `docs/rehacer/canon/`.
+
 ## Continuidad ante límites de sesión
 
 Cada paquete cerrado queda con commit y push. `HANDOFF.md` es el tablero único. Si la sesión se
