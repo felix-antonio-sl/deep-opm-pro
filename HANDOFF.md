@@ -1,6 +1,6 @@
 # OpForja rehecho — tablero único
 
-Estado: WP-0, WP-1, WP-2, WP-4p y WP-6 cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-6 aceptado: excepción C+R autorizada explícitamente por coordinación de Félix, documentada antes de código y comprobada con T-196 intacta y sondas independientes. H1, H2 y H3 siguen pendientes.
+Estado: WP-0, WP-1, WP-2, WP-4p, WP-6 y WP-8a cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-6 aceptado: excepción C+R autorizada explícitamente por coordinación de Félix, documentada antes de código y comprobada con T-196 intacta y sondas independientes. WP-8a aceptado tras la reparación T-216; continúa WP-11 después de su publicación. H1, H2 y H3 siguen pendientes.
 Rama `rehacer`; base y tag `pre-rehacer`: `513ac041`. La directora creó/publicó rama y tag.
 WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. La directora publica un commit por paquete.
 
@@ -25,8 +25,8 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 | 1 | WP-1 | Cerrado: aceptación y revisión verdes; ajuste autorizado incorporado | `817061a7f8312aa495b9ad00190f7d30db11ca40` |
 | 2 | WP-2 | Cerrado: aceptación y revisiones verdes; opción A incorporada | `c1472817f8b6bcfa1b825240a8ccfe5826e04ea4` |
 | 3 | WP-4p | Cerrado: aceptación, mutantes reales y revisión verdes; B-19 materializada | `ba5f8b5fd1fd39392f633795f0bb71cb356bd84c` |
-| 4 | WP-6 | Cerrado: doce etapas, punto fijo, fixtures y revisión independiente verdes | Commit de este cierre; SHA se registra al iniciar WP-8a |
-| 5 | WP-8a | Pendiente | — |
+| 4 | WP-6 | Cerrado: doce etapas, punto fijo, fixtures y revisión independiente verdes | `dcdbbf67e36c4e817c10485586e0ea29d5efa1ce` |
+| 5 | WP-8a | Cerrado: geometría, paths, generador real y revisión verdes; T-216 corregida | Commit de este cierre; SHA al iniciar WP-11 |
 | 6 | WP-11 | Pendiente | — |
 | 7 | WP-18 | Pendiente | — |
 | 8 | WP-3a | Pendiente | — |
@@ -1358,3 +1358,138 @@ incorpora al iniciar el paquete siguiente, evitando un commit documental adicion
 Continúa inmediatamente WP-8a, como ordena el mandato vigente. Sin despliegue, producción,
 contenedores, migración real, merge o push a main; sin nuevas instalaciones ni red externa
 fuera del Git mandatado. El incidente anterior permanece declarado, sin limpieza destructiva.
+
+
+## WP-8a: inicio y concreciones menores compatibles
+
+WP-6 publicado como `dcdbbf67e36c4e817c10485586e0ea29d5efa1ce`. Dirección verificó
+HEAD = origin/rehacer = ls-remote, divergencia 0/0 y árbol limpio antes de iniciar WP-8a.
+main, origin/main y pre-rehacer siguen en `513ac041f6eb91dc8bf0eb5319a492eb6ff25f6d`.
+
+Lecturas y propiedad: plan WP-8a y preflight `/tmp/opforja-rehacer/WP-8a-preflight-actual.md`.
+Una ejecutora GPT-6.1-Sol High escribe exclusivamente tokens/geometria/marcadores/metricas/fuente,
+herramientas/medir-fuente y sus pruebas. Dirección conserva documentos y publicación;
+la revisión independiente prepara oráculos sin escribir producto. No se inicia WP-11 todavía.
+
+Dirección concreta antes de código dos detalles que DESIGN deja a la realización:
+
+- Paths literales de §6.4 se conservan byte a byte. La colocación transforma su marco
+  intrínseco al marco con +x hacia el extremo; no altera las cadenas del canon para orientar
+  puntas, arpones, piruletas o triángulos. Se comprueban dirección y cuerpo detrás del extremo.
+- La métrica conserva avances regular/itálica a 1000 unidades y agrega márgenes laterales
+  generados por glifo en los tamaños canónicos 11/13/17. `anchoTexto` une avance y límites
+  de tinta de todos los glifos posicionados; `envolver` usa ese mismo ancho. La copia de
+  expresión se normaliza a NFC, sin mutar nombres persistidos. El futuro dibujo WP-8b debe
+  aplicar la misma fuente y font-kerning:none, font-variant-ligatures:none, letter-spacing:0
+  y word-spacing:0. No hay medición DOM en runtime ni cambios de las firmas de DESIGN.
+
+Fundamento de la segunda concreción: `/tmp/opforja-rehacer/WP-8a-texto-criterio.md`.
+Las sondas conservadas mostraron que suma de avances o márgenes a 1000 escalados no bastan
+frente a getBBox. Avances1000+márgenes por tamaño coincidieron dentro de 2% en 136 muestras
+locales (11/13/17/20, regular/itálica); error máximo 0,151812%, dos corridas idénticas.
+Eso es preparación, no e2e5, render integrado ni regeneración de los archivos reales.
+Tamaños arbitrarios y caracteres fuera del subconjunto usan una aproximación determinista
+sin garantía universal 2%; no se presenta el avance de reserva como el glifo desconocido.
+Se comprobarán generador real y sus dos outputs idénticos dos veces en el turno de WP-8a.
+
+Chromium de máquina se usa conforme al README porque /opt/pw-browsers no existe. No se
+instala navegador, fuente ni paquete. Canon, DESIGN y decisiones 1–28 siguen sin cambios
+por estas concreciones; una incompatibilidad material nueva requiere su propuesta expresa.
+
+
+## WP-8a: recibo de ejecución del candidato local congelado
+
+Ejecutora conserva ownership de diez archivos propios (cinco módulos opd, generador y cuatro
+pruebas); fuentes/pruebas congeladas y liberadas a revisión independiente de dirección.
+Recibo completo: `/tmp/opforja-rehacer/WP-8a-implementacion-reporte.md`, con manifest SHA256,
+criterios, convenciones degeneradas, reproducción y límites. Estado CANDIDATO LOCAL;
+no cierre/publicación por ejecutora. No se editaron fuentes vecinales, fixtures, escena/dibujo/
+exportar, contratos, canon, decisiones o conformidad.
+
+TDD real antes de producción: 0 pass /121 fail,121 expectativas,cuatro archivos,
+`WP-8a-red-stubs.log`. Focal final:123 pass/0 fail,948 expectativas,cuatro archivos,
+`WP-8a-green-focal-3.log`. Check integrado final desde app con Bun wrapper: TypeScript estricto
+verde; **487 pass/0 fail,5709 expectativas,25 archivos,exit0**, `WP-8a-check-final.log`.
+Diff espacios exit0. No prueba debilitada/saltada/cuarentena. Anotaciones de pruebas corregidas
+sin cambiar afirmaciones; errores de cwd iniciales se conservan y no se cuentan como RED/GREEN.
+
+Generador REAL ejecutado dos veces con las dos WOFF2 locales y Chromium completo147.0.7727.15
+seleccionado previamente; ambas fuentes loaded y ambos artefactos byte idénticos. También la
+prueba del generador repite en scratch aislado y compara contra fuentes congeladas. SHA256:
+metricas.ts `d72f3729cacf97bcb50a46f69580dc91624810dd473cc244b871ff4878f7dfcd`;
+fuente.ts `705701c346cb22467374faf3b23e3f4067fa69b247e4b0cebb45b71f4d5a5cff`.
+Logs `WP-8a-generador-real-{1,2}.log`; primeras copias conservadas.
+
+API generada real coincide numéricamente Bun/navegador y dentro2% de getBBox en102 textos
+sintéticos (17cadenas,11/13/17,regular/itálica). Un lanzamiento adicional sin executablePath
+usó chromium-headless-shell y falló bbox2.299821%; el log122/1 se conserva. Se alineó la
+comprobación con el Chromium completo ya elegido, sin cambiar algoritmo/corpus/tolerancia.
+No se acredita e2e5. Dirección conserva la continuidad de selección del mismo ejecutable para
+WP-17 y de política CSS/NFC para WP-8b. Arbitrarios/fallback/otros visores siguen sin garantía2%.
+
+Geometría analítica sin redondeo legacy; paths byte exactos y transformaciones con ancla/cuerpo;
+peine/sector/fans/intersecciones y tokens según lecturas. La lámina scratch de helpers reales
+SVG/PNG se abrió y examinó; no es golden de producto, escena, export ni validación humana.
+Render/UI/gates futuros e H1/H2/H3 pendientes. Sin Git mutante, red externa, instalación,
+.env/secretos, contenedores,prod/deploy/PG/migración real ni subdelegación. Espera revisión.
+
+
+## WP-8a: corrección de revisión T-216 y nuevo freeze
+
+La revisión independiente refutó el candidato487/0 con dos extremos DISTINTOS colineales
+(100,0)/(200,0), caja común[-10,-10,20,20]. Acople(10,0) y sector[0,0] devolvían0arcos para
+XOR/OR por una condición adicional incorrecta. La topología canónica XOR1/OR2 depende del
+operador, no de una apertura angular positiva. El dictamen preliminar no cierra el paquete.
+Probe/log independientes WP-8a-review-colineales.test.ts y .log se conservan(1pass/2fail).
+
+Ejecutora añadió regresiones propias primero: RED13 pass/2 fail,63 expectativas,15seleccionadas,
+55filtradas, `WP-8a-red-colineales-propio.log`. Solo se retiró la condición de amplitud0;
+registros XOR/OR conservan desde=hasta, radios30/35, centro/dash/trazo y permutación. AND0 y
+menos de2ramas permanecen controles. No se amplió/inventó sector ni corrigió ninguna expectativa
+previa: todas las pruebas originales siguen íntegras. Se corrige la concreción equivocada del
+recibo anterior “amplitud0 no inventa arcos”; su origen y refutación quedan documentados.
+
+Focal fresh: **129 pass/0 fail,978 expectativas**,4archivos,exit0,
+`WP-8a-green-colineales-focal.log`. Check fresh: TypeScript estricto verde y
+**493 pass/0 fail,5739 expectativas,25archivos,exit0**, `WP-8a-check-colineales-final.log`.
+Diff espaciosexit0. Ambos checks repiten generación real aislada2x/igualdad con repo y contraste
+API Bun/Chromium102casos. Los artefactos metricas/fuente preservan sus huellas anteriores.
+Solo cambian dos huellas del nuevo freeze:
+
+- geometria.ts: `fb595dd6868da5cb49449bb5e7c187a45fc98229e15d5bc61bb29059919762dc`.
+- geometria.test.ts: `9a6ee038e6a53e2eb2eb56276412415f5ec6c352042c16e4668446dad4710774`.
+
+Recibo/manifest vigente `/tmp/opforja-rehacer/WP-8a-implementacion-reporte.md` conserva toda la
+historia y límites. Fuentes/pruebas nuevamente congeladas, escritura liberada a rerevisión.
+No fuentes vecinales/fixtures/contratos alterados ni Git mutante/red/env/instalación. Aún candidato
+local, no paquete cerrado/publicado; arco colineal conserva registro pero render/export real
+pertenece a futura integración, sin inventar sector ni acreditar e2e5/fidelidad visual.
+
+
+## WP-8a: cierre aceptado por dirección
+
+Dictamen independiente vigente: `/tmp/opforja-rehacer/WP-8a-review-aceptacion-final.md`.
+Dirección verificó las diez huellas de `/tmp/opforja-rehacer/WP-8a-review-manifest-final.sha256`
+contra el candidato y el recibo actualizado. La rerevisión dio **136 pass / 0 fail, 660
+expectativas**, incluyendo las tres sondas colineales conservadas; no se cambió su oráculo.
+El check integrado reciente del mismo candidato es **TypeScript estricto + 493 pass / 0 fail,
+5739 expectativas, 25 archivos, exit 0**. El candidato anterior 487/0 fue refutado y permanece
+como historia, junto con el RED de revisión y el RED propio; ninguna prueba se debilitó.
+
+XOR conserva un registro de radio 30 y OR dos de radios 30/35 en el sector [0,0]; AND ninguno.
+Los otros ocho archivos mantienen sus huellas, incluida la métrica y la fuente. Por ello siguen
+vigentes las 174 observaciones independientes dentro de 2% (máximo 0,24052734375%), los 448
+avances exactos a 1000, las 18 envolturas Bun/navegador y la doble regeneración REAL de ambos
+artefactos. No se repitió la medición independiente sin un cambio que lo justificara.
+
+No se alteraron tablas NO_* o CATALOGO ni se cerró un DEBE de conformidad ajeno al paquete.
+Las once brechas registradas siguen parciales; B-19 y B-28 requieren sus integraciones futuras.
+WP-8b debe aplicar la política CSS/NFC de este tablero y conservar el operador al dibujar el
+sector degenerado; WP-17 debe seleccionar el mismo Chromium completo en su fixture e2e antes
+de medir. El fallo de headless-shell se conserva y no recibe crédito de aceptación. No se
+acreditan escena, export canónico, golden, e2e, UI, H1 ni aceptación humana del modelado.
+
+Cierre con un commit semántico y push a origin/rehacer; el SHA se registra al iniciar WP-11.
+Continúa inmediatamente el servidor mínimo. Sin cambios de DESIGN/canon/decisiones por WP-8a,
+Git a main, merge, despliegue, contenedores, producción, migración real, instalaciones ni red
+externa fuera del Git mandatario. Escrituras ajenas preservadas.
