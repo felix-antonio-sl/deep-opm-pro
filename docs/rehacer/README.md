@@ -184,9 +184,14 @@ La decisión que la maqueta dejaba a la vista ya está tomada: D1 concuerda en g
 
 Está empaquetado en [`plan/`](plan/README.md) para una sesión nueva:
 
-- [`plan/PROMPT.md`](plan/PROMPT.md) es el mensaje para abrir esa sesión.
+- [`plan/PROMPT.md`](plan/PROMPT.md) explica cómo abrir esa sesión en Codex CLI: el arranque y
+  un `/goal` por hito.
 - [`plan/README.md`](plan/README.md) fija el protocolo: autoridad, mapa de rutas, preparación,
-  olas, hitos H1–H3, reglas por paquete, orquestación y continuidad.
+  olas, hitos H1–H3, reglas por paquete, orquestación y continuidad. Su sección «Con Codex CLI»
+  es el contrato que citan esos objetivos.
+- [`.codex/rules/rehacer.rules`](../../.codex/rules/rehacer.rules) y
+  [`.codex/agents/revisor-rehacer.toml`](../../.codex/agents/revisor-rehacer.toml) dejan a git
+  trabajar dentro del sandbox y definen al revisor de cada ola. WP-19 los retira.
 - [`plan/plan.json`](plan/plan.json) tiene los 23 paquetes de DESIGN §12, con dependencias,
   archivos propios, lecturas exactas y criterios de aceptación.
 

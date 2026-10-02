@@ -62,7 +62,7 @@ que acepta `?`. La maqueta de interfaz quedó en pausa a pedido del dueño: esta
 `docs/rehacer/README.md`.
 
 El dueño revisó el diseño el 2026-10-02 (`docs/rehacer/DECISIONS.md` 25–28) y pidió implementarlo
-en una sesión nueva. Próxima acción: abrir esa sesión con el mensaje de
-[`docs/rehacer/plan/PROMPT.md`](docs/rehacer/plan/PROMPT.md); el protocolo está en
-`docs/rehacer/plan/README.md`. Ese plan retira el agente integrado, así que deja obsoleto el
+en una sesión nueva. Próxima acción: abrir Codex CLI en h289 como indica
+[`docs/rehacer/plan/PROMPT.md`](docs/rehacer/plan/PROMPT.md), con un `/goal` por hito; el
+protocolo está en `docs/rehacer/plan/README.md`. Ese plan retira el agente integrado, así que deja obsoleto el
 pendiente de credencial descrito arriba.

@@ -1,8 +1,8 @@
 # Plan de implementación de opforja rehecho
 
 **Estado al 2026-10-02:** empaquetado y listo para ejecutarse en una **sesión nueva**
-(DECISIONS 28). Esta sesión no implementa. La ejecución empieza cuando el dueño abre la sesión
-con [`PROMPT.md`](PROMPT.md).
+(DECISIONS 28). Esta sesión no implementa. La ejecución empieza cuando el dueño abre Codex CLI con
+[`PROMPT.md`](PROMPT.md): un hilo, un `/goal` por hito.
 
 Qué se construye: el diseño de [`../design/DESIGN.md`](../design/DESIGN.md). Es un modelador
 OPM bimodal OPD/OPL que implementa lo que el canon exige a la herramienta, ni más ni menos, con un
@@ -85,10 +85,10 @@ Hitos de revisión con el dueño:
 6. Hacer **un commit semántico por paquete**, en español, por ejemplo
    `feat(nucleo): matriz de validez única (WP-2)`, con los T-ID que cierra. Lo acompaña cualquier
    fila nueva B-nn del registro de conformidad.
-7. Actualizar el tablero de `HANDOFF.md` (paquete · estado · commit · notas) y hacer push a
-   `origin/rehacer`.
+7. Actualizar `HANDOFF.md`: el progreso del paquete y, si las hubo, sus sorpresas y decisiones.
+   Después, hacer push a `origin/rehacer`.
 
-## Orquestación multiagente
+## Orquestación multiagente (alternativa con Claude Code)
 
 - Corre un agente por paquete, cada uno en un **worktree aislado** sobre `rehacer`. Así una
   suite a medio escribir no contamina la de otro.
@@ -99,28 +99,78 @@ Hitos de revisión con el dueño:
   siguiente.
 - Un golden SVG nuevo o cambiado no se acepta sin abrir el SVG y mirarlo.
 
-### Con un solo agente (por ejemplo, Codex CLI local)
+### Con Codex CLI: un hilo y un `/goal` por hito
 
-Sin orquestación multiagente, los paquetes corren uno a la vez en el checkout de trabajo, en este
-orden lineal. Respeta todas las dependencias de `plan.json`:
+Esta es la variante en uso (h289). El arranque y los tres objetivos están en
+[`PROMPT.md`](PROMPT.md). Esta sección es el contrato que esos objetivos citan.
+
+**Quién escribe.** Un solo hilo de Codex escribe código, en el checkout de trabajo y en la rama
+`rehacer`. Los subagentes de Codex comparten ese checkout, y la documentación de Codex desaconseja
+usarlos en paralelo para trabajo con mucha escritura. Por eso los paquetes corren uno a la vez, en
+este orden lineal, que respeta todas las dependencias de `plan.json`:
 
 `WP-0 → WP-1 → WP-2 → WP-4p → WP-6 → WP-8a → WP-11 → WP-18 → WP-3a → WP-3b → WP-5 → WP-7 →
 WP-8b → WP-4r → WP-9 → WP-13 → WP-10 → WP-12 → WP-14 → WP-15 → WP-16 → WP-17 → WP-19`
 
 - WP-18 se redacta en su turno; la verificación de su imagen se hace después de WP-14.
 - WP-14, WP-15 y WP-16 se cierran con `bun run check` y `bun run build`; sus e2e los ejecuta WP-17.
-- La revisión adversarial de cada ola la hace el mismo agente al cerrarla: relee el diff de la ola
-  contra el canon y DESIGN (firma, OPL literal, roundtrip y brechas sin registro) y corrige antes de
-  seguir.
-- Mientras WP-0 no reescriba `AGENTS.md`, si el vigente contradice este plan (por ejemplo, al pedir
-  usar el corpus KORA instalado), manda el plan: el canon son los cuatro documentos de
-  `docs/rehacer/canon/`.
+
+**Un objetivo por hito.** Cada hito (H1, H2 y H3) es un `/goal`. El objetivo persiste entre turnos
+y compactaciones, Codex sigue solo mientras el hilo está libre y lo da por cumplido solo con
+evidencia. Al cumplirlo se detiene, y el dueño revisa el hito antes de fijar el siguiente.
+
+**Autonomía dentro del objetivo.** Entre paquetes no se pregunta «¿sigo?»: se cierra el paquete y
+se empieza el siguiente. Una ambigüedad que el canon y DESIGN dejan abierta se resuelve con la
+opción más simple que los respete y se anota en el registro de decisiones de `HANDOFF.md`. Solo se
+detiene el trabajo para pedir algo al dueño en estos casos:
+
+- un contrato de DESIGN debe cambiar (la propuesta va en `HANDOFF.md`);
+- el canon y DESIGN chocan;
+- falta algo del entorno: Bun no es 1.3.x, no hay red o no hay Chromium;
+- la única salida exige algo prohibido abajo.
+
+**Revisión de ola.** Al cerrar cada ola, el hilo pide al subagente `revisor_rehacer`
+(`.codex/agents/revisor-rehacer.toml`, de solo lectura) que revise el diff de la ola contra el canon
+y DESIGN. Ese subagente busca problemas de firma, OPL literal, roundtrip, reglas fuera de lugar,
+brechas sin registro, pruebas debilitadas y alcance. El hilo corrige sus hallazgos antes de abrir la
+ola siguiente y anota en `HANDOFF.md` los que descarte, con su motivo.
+
+**Permisos.** Codex corre en `workspace-write` con red y revisión automática de aprobaciones
+(`--approve-for-me`). En ese sandbox, `.git/` y `.codex/` son de solo lectura, así que
+[`.codex/rules/rehacer.rules`](../../../.codex/rules/rehacer.rules) deja pasar estos comandos:
+
+- git local (`add`, `commit`, `mv`, `rm`, `restore`, `switch`, `fetch`, `pull`);
+- el tag `pre-rehacer`;
+- el push a `rehacer` y a `pre-rehacer`.
+
+Las mismas reglas prohíben el push a `main`, el push forzado, `docker` y `deploy/deploy.sh`. Cualquier
+otra escalación pasa por el revisor automático. Hay que lanzar git en comandos simples, sin heredoc
+ni sustituciones, para que las reglas apliquen. WP-0 borra `.codex/skills/lineas-paralelas/` con
+`git rm`.
+
+**Entorno.** Si la máquina no tiene `/opt/pw-browsers`, se usa el Chromium de Playwright local, y
+si falta se instala para el proyecto. No se ejecutan `docker` ni `./deploy/deploy.sh`, y no se leen,
+copian ni muestran `.env` ni credenciales.
+
+**Precedencia.** Mientras WP-0 no reescriba `AGENTS.md`, si el vigente contradice este plan (por
+ejemplo, al pedir usar el corpus KORA instalado), manda el plan: el canon son los cuatro documentos
+de `docs/rehacer/canon/`.
 
 ## Continuidad ante límites de sesión
 
-Cada paquete cerrado queda con commit y push. `HANDOFF.md` es el tablero único. Si la sesión se
-interrumpe, la siguiente retoma desde ahí: lee el tablero, verifica `bun run check` en
-`origin/rehacer` y sigue con el primer paquete pendiente de la ola abierta.
+Cada paquete cerrado queda con commit y push. `HANDOFF.md` es el documento vivo único de la
+implementación. WP-0 lo crea con estas cuatro secciones, y cada paquete las mantiene al día:
+
+1. **Progreso.** Tablero con paquete, estado, commit, fecha y hora UTC, y notas.
+2. **Sorpresas y hallazgos.** Lo que el código o las pruebas revelaron y el plan no preveía, con
+   una línea de evidencia.
+3. **Registro de decisiones.** Cada ambigüedad resuelta sin el dueño: decisión, motivo y fecha.
+4. **Resultados por hito.** Para H1, H2 y H3: qué quedó verde, qué brechas B-nn se registraron y
+   qué sigue.
+
+La implementación debe poder retomarse solo con el repositorio: este plan, `HANDOFF.md` y
+`origin/rehacer`. Si la sesión se interrumpe, la siguiente lee el tablero, verifica
+`bun run check` en `origin/rehacer` y sigue con el primer paquete pendiente.
 
 ## Prohibido en la sesión de implementación
 

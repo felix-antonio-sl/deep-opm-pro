@@ -33,7 +33,7 @@
       "id": "WP-0", "ola": 0, "nombre": "Andamiaje y retiro",
       "objetivo": "Crear la rama rehacer y el tag pre-rehacer, retirar lo listado en DESIGN §11.4 (conservando docs/rehacer/), vendorizar el canon en canon/ y dejar el andamiaje de app/ con check verde.",
       "depende": [],
-      "archivos": ["borrados de DESIGN §11.4", "canon/** (copia byte a byte de docs/rehacer/canon/ + canon/LEEME.md con sha256)", "app/{package.json,bun.lock,bunfig.toml,tsconfig.json,vite.config.ts,index.html,playwright.config.ts,.gitignore}", "app/src/arquitectura.test.ts", "app/herramientas/dev.ts", "app/fixtures/v0/*.json (git mv de fixtures/demo-models/*.json)", "AGENTS.md (texto de DESIGN §11.2)", "HANDOFF.md (tablero del plan)"],
+      "archivos": ["borrados de DESIGN §11.4 (con git rm: .codex/ es de solo lectura en el sandbox de Codex)", "canon/** (copia byte a byte de docs/rehacer/canon/ + canon/LEEME.md con sha256)", "app/{package.json,bun.lock,bunfig.toml,tsconfig.json,vite.config.ts,index.html,playwright.config.ts,.gitignore}", "app/src/arquitectura.test.ts", "app/herramientas/dev.ts", "app/fixtures/v0/*.json (git mv de fixtures/demo-models/*.json)", "AGENTS.md (texto de DESIGN §11.2)", "HANDOFF.md (documento vivo: progreso, sorpresas y hallazgos, registro de decisiones, resultados por hito)"],
       "lecturas": ["DESIGN §2.1", "DESIGN §2.2", "DESIGN §10.1", "DESIGN §11.1", "DESIGN §11.2", "DESIGN §11.4", "DESIGN §12.1", "DECISIONS.md", "plan/README.md"],
       "aceptacion": ["bun install no agrega dependencias fuera de DESIGN §2.2", "bun run check verde", "git ls-files no lista ninguna ruta de DESIGN §11.4", "sha256sum canon/*/content.md coincide con canon/LEEME.md y con docs/rehacer/canon/", "docs/rehacer/ sigue intacto"]
     },
@@ -207,9 +207,9 @@
     },
     {
       "id": "WP-19", "ola": 5, "nombre": "Documentación y cierre",
-      "objetivo": "README, NOTICE y docs finales; docs/conformidad.md con brechas y trazabilidad; mover CANON.md a docs/especificacion.md; retirar docs/rehacer/ y HANDOFF.md; abrir el PR rehacer → main sin desplegar.",
+      "objetivo": "README, NOTICE y docs finales; docs/conformidad.md con brechas y trazabilidad; mover CANON.md a docs/especificacion.md; retirar docs/rehacer/, HANDOFF.md y el andamiaje de Codex del plan; abrir el PR rehacer → main sin desplegar.",
       "depende": ["WP-0", "WP-1", "WP-2", "WP-3a", "WP-3b", "WP-4p", "WP-4r", "WP-5", "WP-6", "WP-7", "WP-8a", "WP-8b", "WP-9", "WP-10", "WP-11", "WP-12", "WP-13", "WP-14", "WP-15", "WP-16", "WP-17", "WP-18"],
-      "archivos": ["README.md", "NOTICE.md", "docs/** (DESIGN §11.1)", "borra HANDOFF.md y docs/rehacer/"],
+      "archivos": ["README.md", "NOTICE.md", "docs/** (DESIGN §11.1)", "borra HANDOFF.md, docs/rehacer/, .codex/agents/revisor-rehacer.toml y .codex/rules/rehacer.rules"],
       "lecturas": ["DESIGN §11.1", "DESIGN §11.2", "DESIGN §11.3", "DESIGN §12.6", "DESIGN §1.5"],
       "aceptacion": ["cada fila con registro tiene su B-nn y viceversa", "cada fila de DESIGN §12.6 apunta a archivos y pruebas existentes; bun test -t <T-ID> encuentra ≥1 prueba por ★ no registrado como brecha", "bun run check, bun run e2e y bun run build verdes desde un clon limpio"]
     }
