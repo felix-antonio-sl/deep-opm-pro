@@ -1,6 +1,6 @@
 # OpForja rehecho — tablero único
 
-Estado: WP-0, WP-1 y WP-2 cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-4p es el siguiente paquete. H1 sigue pendiente.
+Estado: WP-0, WP-1, WP-2 y WP-4p cerrados con aceptación y revisión verdes. El dueño pidió «continuemos» tras el recibo local de WP-2; se retoma el mandato original de commit/push por paquete y continuidad lineal. WP-6 es el siguiente paquete. H1 sigue pendiente.
 Rama `rehacer`; base y tag `pre-rehacer`: `513ac041`. La directora creó/publicó rama y tag.
 WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. La directora publica un commit por paquete.
 
@@ -23,8 +23,8 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 |---:|---|---|---|
 | 0 | WP-0 | Cerrado: aceptación y revisión verdes | `b9d94180b5f587cdf125d8c4fabcf26edb5917c3` |
 | 1 | WP-1 | Cerrado: aceptación y revisión verdes; ajuste autorizado incorporado | `817061a7f8312aa495b9ad00190f7d30db11ca40` |
-| 2 | WP-2 | Cerrado: aceptación y revisiones verdes; opción A incorporada | Este commit: `feat(nucleo): matriz de validez única (WP-2)`; hash se incorpora en la siguiente actualización |
-| 3 | WP-4p | Pendiente | — |
+| 2 | WP-2 | Cerrado: aceptación y revisiones verdes; opción A incorporada | `c1472817f8b6bcfa1b825240a8ccfe5826e04ea4` |
+| 3 | WP-4p | Cerrado: aceptación, mutantes reales y revisión verdes; B-19 materializada | Este commit: `feat(nucleo): proyección por OPD y ley de frontera (WP-4p)`; hash en siguiente actualización |
 | 4 | WP-6 | Pendiente | — |
 | 5 | WP-8a | Pendiente | — |
 | 6 | WP-11 | Pendiente | — |
@@ -765,3 +765,169 @@ Sin cambios de producción desde las revisiones independientes favorables. El ci
 con un único commit semántico WP-2 y push a `origin/rehacer`; el hash se registrará en la siguiente
 actualización del tablero. H1–H3 siguen pendientes. Siguiente: WP-4p (proyección y árbol), con
 preflight leído sin cambios contractuales, seguido de WP-6 y WP-8a en el orden del plan.
+
+
+## Recibo local WP-4p — proyección y árbol, pendiente de revisión/publicación
+
+Implementación limitada a `app/src/nucleo/proyeccion.ts`, `proyeccion.test.ts` y
+`frontera.test.ts`; no se cambió ningún contrato ni otra capa. La proyección deriva visibilidad
+por OPD, roles, estados visibles/ocultos, abstracción exclusiva de procesos de in-zoom,
+procedencia y claves; conserva DR-13 en el contorno. Preorden y etiquetas se consumen de
+`indice.ts`, sin segunda implementación. Memo por modelo/OPD; sin mutar el modelo.
+
+T-085 se comprueba mediante la tabla literal de 12 niveles (13 filas por el empate
+Consumo/Resultado), las nueve celdas R-PREC y los tres contraejemplos de control registrados
+por dirección. La comparación de control se limita a la clase retenida. Conflictos R+R/C+C
+y R+C se conservan como hechos vistos con diagnósticos, sin inventar continuidad.
+Los efectos usan entrada temprana/salida tardía por bandas, incluido el par escindido;
+los abanicos colapsados no quedan degenerados. T-086 cubre raíz/descomposición/despliegue y
+R-VIS-HIJO-1. T-018 comprueba supresión local/global con excepción de anclajes visibles,
+y T-031 la etiqueta mutable con id estable. Se aporta la representación derivada de
+colecciones incompletas; la operación/ajuste con traza de T-087 corresponde a WP-4r.
+
+TDD observado: RED contra stubs, 0 pass / 63 fail, log
+`/tmp/opforja-rehacer/WP-4p-red.log`; luego GREEN focal. La prueba adicional de independencia
+local/global se contrastó con un segundo mutante real que eliminó la guarda local y produjo
+0 pass / 1 fail, exit 1, en T-018; la fuente se restauró byte a byte.
+
+T-089 usa un oráculo independiente de fusión del hijo y casos de las nueve combinaciones
+transformadoras, habilitación y contorno. Además de las aserciones negativas de tipo/estado/
+omisión, se ejecutó un mutante temporal REAL de producción: la entrada del efecto fusionado
+pasó de `temprano?.entrada` a `tardio?.entrada`. `bun test src/nucleo/frontera.test.ts`
+quedó ROJO con 11 pass / 1 fail, exit 1; falló «T-089 frontera efecto + efecto coincide con
+fusión independiente del hijo» al observar c en lugar de a. Log:
+`/tmp/opforja-rehacer/WP-4p-mutante-frontera-red.log`. Restauración en finally comprobada
+byte a byte; GREEN posterior 64 pass / 0 fail, 185 aserciones, log
+`/tmp/opforja-rehacer/WP-4p-restauracion-green.log`.
+
+Check final desde app con `PATH=/tmp/opforja-rehacer-tools:$PATH bun run check`, wrapper
+`--no-env-file`: exit 0, TypeScript estricto, 192 pass / 0 fail, 1717 aserciones en 15 archivos.
+Log `/tmp/opforja-rehacer/WP-4p-check.log`. Diff revisado y sin errores de espacios.
+Producción congelada para revisión independiente con estas huellas:
+
+- `app/src/nucleo/proyeccion.ts`: `2bdcec46b621a1eede74cd53c99b5219f6ee2f8c0f721a1b9cade81c624b2ee8`
+- `app/src/nucleo/proyeccion.test.ts`: `2a2d286b1162a35734e455db9c72eea52c4b5ad03653426315fe424d0419eb06`
+- `app/src/nucleo/frontera.test.ts`: `19fa750d75df6778d89e21f2a29ce540000648f70d72605d4fc4e2eb2f30c2ba`
+
+Sin filas nuevas de NO_OFRECIDO/NO_SOPORTADAS/NO_CANONIZADAS/CATALOGO ni cambio de brecha.
+B-19 y B-28 mantienen su estado previo. El verde no acredita todavía roundtrip OPD↔OPL,
+fidelidad SVG, integración de distribución WP-4r, aceptación humana ni H1. Sin Git mutante,
+red, instalación, credenciales, contenedor, migración real, despliegue ni producción.
+
+
+## Reparación de WP-4p tras revisión independiente negativa
+
+La revisión refutó la suficiencia del candidato congelado anterior en dos aspectos materiales:
+(1) el camino de conflicto conservaba dos ramas de consumo de un mismo abanico colapsado y un
+resultado ajeno como TRES vistos; (2) el comparador temporal reconstruía rutas profundas por
+proceso y tenía coste cuadrático. La sonda contó 153/561/2145/8385/33153 accesos OPD para
+16/32/64/128/256 niveles. El verde previo no cubría esos casos. No se publicó ese candidato.
+
+Regresiones primero: fan colapsado con R+C, C+C y R+R ajenos, y coste estructural con índice
+precalentado (16/32/64/128 niveles, límite lineal de accesos, sin medir tiempos). RED observado:
+52 pass / 7 fail, exit 1; `/tmp/opforja-rehacer/WP-4p-reparacion-red.log`.
+La corrección colapsa las ramas también al producir los hechos que sobreviven al conflicto,
+conservando control, estado y todos sus ids. Otra regresión detectó que una rama directa
+individual se marcaba abstraída en ese camino: 61 pass / 1 fail, exit 1; corregida conservando
+el registro directo. Log `/tmp/opforja-rehacer/WP-4p-reparacion-red-rama-directa.log`.
+
+El tiempo se calcula una vez por modelo desde el preorden existente del índice: se comparten
+los prefijos de bandas paralelas y se asignan rangos escalares. Cada prefijo se recorre una vez;
+no se copian rutas ni se compara por profundidad por cada enlace. La sonda original observa
+ahora 34/66/130/258/514 accesos OPD para las mismas cinco profundidades. Log:
+`/tmp/opforja-rehacer/WP-4p-reparacion-coste.log`. Una prueba literal adicional cubre el empate
+de prefijos paralelos y la banda exterior tardía. Sin modificar indice.ts ni duplicar el
+preorden/etiquetas de navegación.
+
+Como cambió la comparación temporal, se repitió el mutante REAL T-089 entrada temprana→tardía:
+11 pass / 1 fail, exit 1, en frontera efecto+efecto. También se contrastó un mutante real que
+rompe los prefijos compartidos: 0 pass / 1 fail en T-085 de paralelismo. Ambos restaurados en
+finally, byte a byte. Logs `WP-4p-reparacion-mutante-frontera-red.log` y
+`WP-4p-reparacion-mutante-prefijos-paralelos-red.log` bajo `/tmp/opforja-rehacer/`.
+Restauración observada GREEN 74 pass / 0 fail, 230 aserciones, log
+`/tmp/opforja-rehacer/WP-4p-reparacion-restauracion-green.log`.
+
+Check integrado FINAL tras restauración: exit 0, TypeScript estricto, 202 pass / 0 fail,
+1762 aserciones en 15 archivos; `/tmp/opforja-rehacer/WP-4p-reparacion-check.log`.
+Sonda de la revisora ejecutada sin cambiarla: 31 pass / 0 fail, 114 aserciones,
+`/tmp/opforja-rehacer/WP-4p-reparacion-sonda-independiente.log`. Toda ejecución Bun por wrapper
+`--no-env-file`. Diff revisado, sin errores de espacios. Producción nuevamente congelada:
+
+- `app/src/nucleo/proyeccion.ts`: `ad1db7e39d825a108756e1303138afdf67952d6113b6e76fb26b07bcce899bbd`
+- `app/src/nucleo/proyeccion.test.ts`: `adf7b96050815e497503094af9fa730d827619ca4f64541b0bf1acaa2bfd0e7d`
+- `app/src/nucleo/frontera.test.ts`: `19fa750d75df6778d89e21f2a29ce540000648f70d72605d4fc4e2eb2f30c2ba`
+
+No se cambió DESIGN, otro contrato, matriz, índice ni fila de conformidad. La reparación se
+limita al ownership previo. Pendiente rerevisión independiente y publicación por dirección.
+Persisten los límites del recibo anterior: H1, roundtrip, SVG, WP-4r y aceptación humana sin
+acreditar. No se ejecutó Git mutante, red, instalación, contenedores ni producción.
+
+
+## Segunda reparación de WP-4p — abanico mixto cargado
+
+La revisión independiente volvió a refutar la suficiencia del candidato reparado: un fan
+mixto de consumo y resultado, cargable con validarForma real = [] y noOfrecido real = null,
+se colapsaba por fanID a un solo visto. El diagnóstico R+C sobrevivía, pero la expresión
+perdía una de sus clases transformadoras. Este candidato tampoco se publicó.
+
+Primero se agregaron cuatro regresiones: C+R, R+C, C+C+R y R+R+C dentro del mismo abanico.
+Se comprobó forma/F-5 mediante los validadores reales, sin stubs. RED observado: 62 pass /
+4 fail, exit 1; `/tmp/opforja-rehacer/WP-4p-reparacion-mixto-red.log`. La corrección mínima
+agrupa las ramas por fanID Y tipo en el camino de conflicto. Así cada clase homogénea puede
+colapsar sin eliminar la clase incompatible, con sus estados/control/procedencia/refs.
+Los casos de fan homogéneo ante conflicto ajeno y la rama directa permanecen verdes.
+
+GREEN focal FINAL: 78 pass / 0 fail, 272 aserciones;
+`/tmp/opforja-rehacer/WP-4p-reparacion-mixto-focal.log`. Check integrado FINAL: exit 0,
+TypeScript estricto, 206 pass / 0 fail, 1804 aserciones en 15 archivos;
+`/tmp/opforja-rehacer/WP-4p-reparacion-mixto-check.log`.
+Las dos sondas independientes sin editar dan 33 pass / 0 fail, 121 aserciones;
+`/tmp/opforja-rehacer/WP-4p-reparacion-mixto-sondas.log`. La sonda estructural conserva
+34/66/130/258/514 accesos para 16/32/64/128/256 niveles;
+`/tmp/opforja-rehacer/WP-4p-reparacion-mixto-coste.log`.
+
+No se alteró la elección de entrada/salida ni el comparador temporal: el bloque desde
+tiemposMemo se contrastó byte a byte contra el backup de la reparación anterior. La evidencia
+real de mutante T-089 y restauración sigue aplicando; frontera vuelve a verde. No se repitió
+ese mutante por instrucción de dirección. Diff revisado y sin errores de espacios. Nuevo freeze:
+
+- `app/src/nucleo/proyeccion.ts`: `53c7932a4718ae557779827d3a284e830c2fec719afcbbded66380d37ff7660c`
+- `app/src/nucleo/proyeccion.test.ts`: `72e9b6ea3031a582df7132bb9f027ee140231f2a35f8a3d9900303f0c5e208e1`
+- `app/src/nucleo/frontera.test.ts`: `19fa750d75df6778d89e21f2a29ce540000648f70d72605d4fc4e2eb2f30c2ba`
+
+Cambios limitados a proyeccion.ts/proyeccion.test.ts y este recibo al final de HANDOFF.
+frontera.test.ts conserva su huella. Sin cambio de contrato, DESIGN, índice ni otras fuentes;
+se conservaron los cambios de dirección en conformidad. Pendiente rerevisión y publicación.
+No Git mutante, red, instalación, contenedores, migración real ni despliegue. Siguen vigentes
+las fronteras de evidencia del paquete: no roundtrip, SVG, WP-4r, H1 ni aceptación humana.
+
+## Cierre de dirección WP-4p
+
+La revisión independiente GPT-6.1-Sol High termina favorable sobre el último freeze; los tres
+hallazgos materiales previos están resueltos. Se conserva su historia y los RED observados,
+sin publicar los candidatos refutados. La proyección, sus pruebas y frontera tienen las huellas
+finales del recibo anterior; `indice.ts` y los contratos no cambiaron.
+
+Verificación final de la ejecutora, leída y contrastada por dirección: TypeScript estricto y
+`bun run check` exit 0, 206 pass / 0 fail, 1804 aserciones, 15 archivos; focal 78 pass / 0 fail,
+272 aserciones. Logs `WP-4p-reparacion-mixto-check.log` y `WP-4p-reparacion-mixto-focal.log` en
+`/tmp/opforja-rehacer/`. El check de dirección 202/0 pertenece al freeze anterior, no sustituye
+el check final posterior a la reparación del abanico mixto.
+
+La revisora volvió a ejecutar, sin cambiar expectativas, el adversario mixto (2/0), el abanico
+colapsado con resultado ajeno (1/0), la matriz de abanicos con conflictos y hechos dominados
+(1/0) y el focal de abanicos del producto (12/0). Comparador, selección temporal y frontera
+conservan la evidencia de coste lineal, oráculo independiente y mutantes reales ya revisada;
+sus bloques y huellas se comprobaron sin repetir suites ajenas al último cambio. Informe final:
+`/tmp/opforja-rehacer/WP-4p-review-producto.md`. Sin observaciones materiales pendientes.
+
+Dirección materializa B-19 en `docs/conformidad.md` conforme al protocolo de paquete §6, que
+acompaña las nuevas filas B-nn en el mismo commit. Coincide con DESIGN §11.3: parcial, N·G·X,
+DR-13. T-086 acredita N y la conservación del instrumento al contorno; G/X quedan pendientes
+de WP-7/WP-8b. No se amplía la autorización de contorno para consumo/resultado/evento sistémico.
+La revisora aprobó esa fila. B-28 y las otras cinco filas preservan sus límites.
+
+Se cierra con un solo commit semántico WP-4p y push a `origin/rehacer`. El siguiente paquete es
+WP-6, con proyección real disponible, seis fixtures/23 derivados recontados y preflight preparado.
+H1/H2/H3 continúan pendientes. Ninguna prueba se eliminó, debilitó, saltó ni puso en cuarentena;
+sin despliegue, producción, contenedores, migración real ni acceso a credenciales/.env.
