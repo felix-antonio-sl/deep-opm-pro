@@ -1,6 +1,6 @@
 # OpForja rehecho — tablero único
 
-Estado: WP-0, WP-1, WP-2, WP-4p, WP-6, WP-8a y WP-11 cerrados y publicados. WP-18 cierra su turno de redacción y validación local, con check 568/0, focal de deploy 30/0 y revisión independiente de 28 casos distintos verdes. Los checks y seis fixtures de H1 están verdes, pero su revisión semántica se reabre por el hallazgo R+C/metadata de proyección documentado abajo. La aceptación de imagen de WP-18 sigue NO_EJECUTADO y diferida tras WP-14, sin dispensa. Sigue WP-3a sin pausa de hito. H2/H3 pendientes. Las autorizaciones B y C+R se preservan; layout/ownership y volumen WP-18 ya se aplicaron documentalmente antes de código. DS-20/propiedad serial WP-4r y VAL WP-9 siguen autorizados y se aplicarán en sus turnos.
+Estado: WP-0, WP-1, WP-2, WP-4p, WP-6, WP-8a, WP-11 y WP-3a cerrados y publicados. WP-18 cierra su turno de redacción y validación local, con check 568/0, focal de deploy 30/0 y revisión independiente de 28 casos distintos verdes. Los checks y seis fixtures de H1 están verdes, pero su revisión semántica se reabre por el hallazgo R+C/metadata de proyección documentado abajo. La aceptación de imagen de WP-18 sigue NO_EJECUTADO y diferida tras WP-14, sin dispensa. WP-3a cerró con check 646/0 y revisión independiente de 69 casos verdes. WP-3b queda cerrado con check íntegro nuevo 790/0 y revisión independiente favorable de 153 casos distintos; su único hunk de harness autorizado conserva los cinco casos. Sigue WP-5 en el orden lineal, con la propuesta R+C/B-29 todavía pendiente de resolución específica. H2/H3 pendientes. Las autorizaciones B y C+R se preservan; layout/ownership y volumen WP-18 ya se aplicaron documentalmente antes de código. DS-20/propiedad serial WP-4r y VAL WP-9 siguen autorizados y se aplicarán en sus turnos.
 Rama `rehacer`; base y tag `pre-rehacer`: `513ac041`. La directora creó/publicó rama y tag.
 WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. La directora publica un commit por paquete.
 
@@ -29,8 +29,8 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 | 5 | WP-8a | Cerrado: geometría, paths, generador real y revisión verdes; T-216 corregida | `5ceb3cbaa3829a4cd7988fb8f0b10ac170bdfbfe` |
 | 6 | WP-11 | Cerrado: B, preservación física, check y revisión completa verdes | `a82f2bdf2270132eb14891ce0967de7050eb20ff` |
 | 7 | WP-18 | Cerrado turno de redacción: scripts/check/revisión verdes; imagen pendiente tras WP-14 | `978605960ff405b5cd50aa7a5fb673703ad4c286` |
-| 8 | WP-3a | Cerrado: 21 operaciones, check 646/0 y revisión independiente de 69 casos verdes; ajuste mínimo autorizado aplicado; integración refinada espera WP-4r | SHA al abrir WP-3b |
-| 9 | WP-3b | Pendiente | — |
+| 8 | WP-3a | Cerrado: 21 operaciones, check 646/0 y revisión independiente de 69 casos verdes; ajuste mínimo autorizado aplicado; integración refinada espera WP-4r | `e9a849cea53786149ab288e9f86b098a5f59f33c` |
+| 9 | WP-3b | Cerrado: HAR exacto autorizado, check íntegro nuevo 790/0 y revisión independiente favorable; 153 sondas conservadas, seis huellas verificadas; distribución refinada espera WP-4r | Este commit |
 | 10 | WP-5 | Pendiente | — |
 | 11 | WP-7 | Pendiente | — |
 | 12 | WP-8b | Pendiente | — |
@@ -2261,3 +2261,364 @@ Los snapshots recuperables no acreditan historial editor, Ctrl+Z, UI, OPL ni ren
 Publicación: un commit semántico de este paquete y push a rehacer; el SHA se fijará en
 la apertura siguiente, después de verificar igualdad local/remota, 0 0 y árbol limpio.
 Sigue WP-3b inmediatamente, luego WP-5 y el resto lineal, sin pausa de paquete/hito.
+
+### Apertura serial de WP-3b
+
+WP-3a publicado en `e9a849cea53786149ab288e9f86b098a5f59f33c`: HEAD, origin/rehacer
+y ls-remote iguales, divergencia 0 0 y árbol limpio antes de abrir este paquete.
+Main/origin/main/pre-rehacer conservan `513ac041f6eb91dc8bf0eb5319a492eb6ff25f6d`.
+
+Propiedad exclusiva: nucleo/enlaces.ts, abanicos.ts, enlaces.test.ts, abanicos.test.ts y
+propiedades.test.ts. Se mantiene la misma única escritora GPT-6.1-Sol High; dirección
+conserva documentos/Git y revisión independiente. README/plan y lecturas WP-3b completas
+preceden a sus pruebas RED. El preflight WP-3b actual y 106 sondas independientes ya
+preparadas se reutilizan; estas últimas todavía no ejecutadas sobre el candidato futuro.
+
+Concreción de reanclado respetando la firma vigente y R-OPD-EDIT-4: proceso de efecto
+conserva objeto y estados; T3 hacia otro objeto sin estado no inventa anclaje. TS4/TS5
+con papel único permiten estado propio explícito y su retiro con traza. En T3/TS3, un
+único estado propuesto que no identifica entrada/salida rechaza referencia-ambigua sin
+pérdida ni cambio de ID; la edición explícita de ambos papeles usa fijarEstados existente.
+No se decide salida por llamar destino al extremo ni se copia un estado a ambos papeles.
+Mitad escindida conserva bilateralidad; cambio incompatible de objeto/anclaje rechaza
+F-4, sin convertirla unilateralmente en standalone. No-op genuinamente inequívoco permitido.
+Es una concreción conservadora del contrato/canon, sin API nueva ni excepción DS-20.
+
+Se exigen alternativas reales del segundo gesto, normalización con traza y datos
+pendientes no persistibles, identidad al reanclar, 15 tipos en ambas orientaciones,
+cuatro formas de estado, abanicos y CC-02/03/T-066 con proyección/matriz reales.
+Propiedades: tres modelos de muestra y 50 semillas completas sin refinamientos, todos
+los pares/tipos/sentidos, sin filtro por éxito ni debilitamiento del generador histórico.
+B-28 solo acredita este turno sin distribución refinada; esa integración espera WP-4r.
+B-29 y propuesta de continuidad R+C siguen esperando resolución para WP-5; no se aplica
+ese contrato en WP-3b. Si otra exportación rompe el doble aislado, se conserva evidencia
+y se prepara ajuste preciso de propiedad; no se adapta producción ni se debilita la prueba.
+RED→GREEN, check íntegro nuevo, freeze y revisión independiente preceden a aceptación.
+
+### WP-3b — frontera temporal de distribuirEnlace
+
+La operación registrada distribuirEnlace tiene su implementación real y aceptación
+de reparación en WP-4r según el plan. Dentro de propiedad enlaces.ts, dirección concreta
+que su stub pueda devolver rechazo tipado no-ofrecido/regla producto por capacidad
+pendiente, antes de reservar IDs, conservando firma, registro y entrada íntegra.
+No hay éxito simulado, regla OPM nueva, excepción DS-20 ni crédito de distribución real.
+El RED→GREEN de esa frontera queda en scratch separado, sin expectativa nativa
+permanente de rechazo que impida el hook futuro. No se modifica otra fuente ni contrato.
+
+CrearEnlace conserva las capacidades reales de este turno. Cualquier frontera refinada
+pendiente se delimita con reglas compartidas y refs concretas; no se duplica una tabla
+de migración ni se bloquea por clase todo refinamiento. Los casos admitidos que no
+requieren distribuir siguen funcionando. B-28 mantiene resultado efectivo refinado
+pendiente hasta WP-4r; la operación aún pendiente no acredita equivalencia de menú.
+
+### WP-3b — RED inicial y preparación de revisión
+
+Primer RED real: `WP-3b-RED-inicial.log`, 0 pass / 52 fail sobre llamadas a stubs
+de enlaces, sin error de importación. RED separado de abanicos:
+`WP-3b-RED-abanicos.log`, 0 pass / 22 fail, dos expectativas alcanzadas sobre stubs.
+Son 74 casos distintos iniciales. El error previo de cwd al escribir la suite de
+abanicos no creó ese archivo y queda diferenciado como montaje, sin crédito de RED.
+La misma escritora inicia el mínimo GREEN; no hay candidata aceptada ni check nuevo aún.
+
+Preparación de revisión independiente ampliada: 149 casos previstos, cero observados.
+Las 106 sondas originales siguen byteexactas SHA-256
+`0c2e211df90e59f30d94f695783856ad76d08eb819c658ab6164ddea7f606f29`.
+43 complementarios propios SHA-256
+`9f9e21bd36936f31a79fdea4bac768ac0bcee724bee7dedeb2f94c62e657d282`
+cubren LF-03/T-066, setters, cambio de tipo/CC-03, alternativas/formas de estados,
+reanclado/escisión y abanicos/rollback. Informe y manifest ampliados en scratch,
+leídos completos por dirección; seis contratos estables intactos. La preparación
+no acredita montaje/validez ni ejecución. Se activará solo tras freeze, conservando
+oráculos y clasificando montaje frente a producto con precondiciones reales.
+
+### WP-3b — GREEN parcial y propuesta mínima del harness (SIN APLICAR)
+
+Primer GREEN de enlaces y abanicos: 74 pass / 0 fail, 636 expectativas.
+Propiedades completas: 54 pass / 0 fail, 353491 expectativas, 10.43 s;
+tres muestras de constructores y 50 semillas históricas completas sin refinamientos,
+todos los pares, quince tipos y ambos sentidos, sin filtrar por resultado.
+Logs `WP-3b-GREEN-intento-1.log` y `WP-3b-propiedades-primera.log` preservados.
+Son comprobaciones parciales sobre una candidata aún móvil; no equivalen a aceptación.
+Los adversarios propios nuevos observaron 1 pass / 4 fail (`WP-3b-RED-bordes.log`);
+la única escritora continúa su reparación dentro de los cinco archivos autorizados.
+
+La comprobación preventiva del harness real de transacción terminó 0 pass / 5 fail
+por SyntaxError de carga de violacionesAbanico, antes de ejecutar los cuerpos.
+Faltan asimismo normalizarEtiquetas y violacionesContexto, importadas por las operaciones.
+Log `WP-3b-harness-resultado-focal.log` preservado. No se adapta producción al doble,
+no se debilitan expectativas ni se acepta/publica el paquete con ese fallo.
+La resolución anterior WP-3a autorizó solo violacionesForma y permanece íntegra;
+no se interpreta como autorización de estas tres exportaciones adicionales.
+
+Propuesta precisa: `/tmp/opforja-rehacer/WP-3b-propuesta-harness-transaccion.patch`,
+53 líneas, SHA-256 `46414c551bda35fdeb9abeb64cf08dd81d95f2d3fab82e8936dcb840360cd70c`.
+Concatena byteexactamente el fragmento documental de 42 líneas, SHA-256
+`7751e5490de87257133e62c4a756f538a709d69819feaa4fea42e9314090d4b4`,
+y el ejecutable de 11 líneas, SHA-256
+`89c0cfda099f1d3f9eff396e83ebe11ea6bf1f6c98b4820e027ce8e655c0a2a5`.
+DESIGN §12.1/tabla WP-3b, README y plan declaran propiedad serial mínima de
+nucleo/resultado.test.ts únicamente para añadir violacionesAbanico, normalizarEtiquetas
+y violacionesContexto al doble aislado, cada una con el mismo throw de no invocación.
+Los cinco casos, cuerpos, expectativas, afterEach, aislamiento y guardas previas
+permanecen literales. No se modifica ningún contrato semántico, firma pública,
+canon, DECISIONS, formato v0 ni permiso operativo. Todas las autorizaciones anteriores
+y sus límites se conservan; WP-5/B-29 mantiene su pregunta específica pendiente.
+
+Dirección leyó ambos fragmentos completos, verificó las huellas y el ensamblado,
+y observó git apply --check exit 0 sin aplicar. La copia aislada con ajustes de rutas
+solo para /tmp y las tres exportaciones observó 5 pass / 0 fail, diez expectativas
+externas (`WP-3b-harness-propuesta-GREEN.log`). Copia SHA-256
+`880c2c6e6ddc540d953d7cc0cc674f096334695930a439ac0743bba811e2e087`.
+Comparación literal const entrada→EOF: igual, SHA-256
+`7cfe3a2e164ccd605039055538854fe10cd3886397911a3521be90a9c83d8241`.
+Este ensayo acredita el montaje propuesto, no las operaciones nuevas. Revisión
+independiente específica en curso, sin fuentes móviles ni ejecución duplicada.
+Pendiente de resolución expresa por la condición humana de proponer en HANDOFF
+cualquier cambio de DESIGN y por ownership del protocolo de plan §3.
+Tras resolución favorable: registrarla primero, aplicar documentación antes del hunk
+ejecutable por la misma escritora, check íntegro nuevo y revisión completa de WP-3b.
+La reparación y las pruebas independientes del harness continúan sin asumir aprobación.
+
+Dictamen independiente favorable para presentar la propuesta, leído entero por dirección:
+`/tmp/opforja-rehacer/WP-3b-harness-revision-dictamen.md`, SHA-256
+`541d6c6883b46929f2b36c24991e5e6c92904559c8abbc34c53bde41dbc34bfe`.
+La revisión reconstruyó el archivo HEAD exacto retirando solo rutas scratch y las tres
+exportaciones, confirmó guardas, aislamiento y cinco casos literales, y verificó los
+cuatro hunks documentales en memoria. No ejecutó producto ni leyó fuentes móviles.
+Su evidencia independiente conserva la limitación RED de carga frente al ensayo GREEN
+y no sustituye autoridad supervisora ni aceptación completa de WP-3b.
+
+### WP-3b — primera congelación funcional, sin aceptación
+
+Focal nuevo sobre las tres suites propias: 142 pass / 0 fail, 354243 expectativas,
+9.73 s, exit 0 (`WP-3b-focal-freeze-1.log`); TypeScript exit 0 y diff check limpio.
+Manifest `WP-3b-manifest-freeze-1.json` y `WP-3b-freeze-1.sha256`: dirección verifica
+5/5 huellas. El único cambio posterior al focal fue título T-248→T-054 del caso
+eliminar ramas, sin cambiar cuerpo, expectativas ni producción. Las cinco fuentes
+quedan inmóviles mientras la revisora activa las 149 sondas y audita el paquete.
+El check íntegro y la propiedad serial del harness siguen pendientes de resolución;
+el focal no acredita aceptación, publicación ni distribución refinada.
+
+La frontera temporal B-28 tiene dos comprobaciones scratch actuales verdes,
+catorce expectativas, preservando original e IDs con rechazo no-ofrecido/producto
+basado en R-DIST-1 compartida (`WP-3b-frontera-actual-GREEN.log`). El contraste
+0/2 con el stub histórico de HEAD se ejecutó después de esta congelación:
+`WP-3b-frontera-cronologia.json` lo distingue expresamente de RED anterior a producción.
+No se presenta esa comparación retrospectiva como TDD previo de la guarda ni como
+distribución real. Los RED nativos de las capacidades y cuatro bordes sí precedieron
+sus reparaciones. La guarda temporal continúa reemplazable por WP-4r, sin negativa
+nativa permanente que impida su implementación futura.
+
+### WP-3b — reparación de revisión y segunda congelación
+
+La revisión del freeze 1 queda negativa y preservada: 149 sondas originales observan
+148 pass / 1 fail, 434285 expectativas; el fallo restante sobreespecifica no-visible
+en un montaje que incumplía también interno-no-visible, sin prioridad de códigos
+establecida por DESIGN/T-066. Tres controles adicionales observan 2 pass / 1 fail,
+21 expectativas: ese RED sí demuestra pérdida implícita real de ambos anclajes TS3
+al reanclar a otro objeto sin papel de estado explícito. Dictamen completo
+`WP-3b-review-dictamen-freeze-1.md`, leído por dirección; candidato no aceptado.
+
+La misma escritora añadió dos negativos nativos antes de corregir: hacia otro objeto
+y hacia rectángulo del mismo objeto, ambos TS3 sin selección inequívoca de papel.
+RED 0/2 (`WP-3b-RED-revision-TS3-vecino.log`) y GREEN 2/0 con trece expectativas
+(`WP-3b-GREEN-revision-TS3-final.log`). La rama de objeto TS3 devuelve ahora
+referencia-ambigua/R-OPD-EDIT-4, conservando hechos/roles/IDs y original; no cambia
+el reanclado inequívoco del proceso ni los casos T3/TS4/TS5. Es reparación dentro
+del criterio canónico/preflight ya concretado, sin nueva excepción contractual.
+
+Dirección detectó asimismo un fixture nativo T-066 con apariciones fuera del alcance
+y secuencia inválida. Su bloque original completo se preserva en scratch. La escritora
+corrigió solo ese montaje y agregó precondiciones reales de forma/contexto vacíos,
+sin cambiar códigos/expectativas ni prioridad productiva; montaje corregido 1/0.
+El error intermedio de tipado de ref opcional se conserva y está resuelto en el tsc vigente.
+
+Freeze 2: dos suites focales 90 pass / 0 fail, 768 expectativas, 95 ms, exit 0;
+TypeScript exit 0 y diff check limpio. `WP-3b-freeze-2.sha256` y
+`WP-3b-manifest-freeze-2.json`: 5/5 huellas verificadas por dirección.
+Solo enlaces.ts/enlaces.test.ts cambian respecto al freeze 1. Las propiedades
+54/0 y 353491 expectativas conservan huella y creación intactas; no se repiten
+por rutina al reparar exclusivamente reanclado. Recibo de implementación vigente
+`WP-3b-implementacion-reporte.md`, leído completo; no hay aceptación ni check íntegro.
+
+Revisión actual: 106 sondas originales byteexactas más los 43 complementarios v2,
+149 pass / 0 fail, 434290 expectativas, 6.27 s. Se conserva el complemento original
+SHA-256 `9f9e21bd36936f31a79fdea4bac768ac0bcee724bee7dedeb2f94c62e657d282`
+y su log 148/1. La versión v2 SHA-256
+`30dd46733586a69f93ec7a2bfb732fcb0a86f81b6e8910e60297b694dd40840c`
+corrige únicamente el montaje del caso de aparición activa: OPD descendiente activo
+sin el vecino, dueño del interno con ese vecino presente; añade comprobaciones de
+ambas condiciones. Conserva el esperado no-visible y los otros 42 casos literales.
+Dirección leyó el diff; no se retira, debilita, salta ni cuarentena ningún caso.
+El fallo de montaje no recibe crédito de RED producto ni se oculta bajo el nuevo GREEN.
+Los cuatro controles independientes actuales observan 4/0, 31 expectativas,
+incluida la sonda TS3 antes roja. Auditoría completa de dos fuentes y tres suites
+terminada por la revisora, pendiente de su dictamen final escrito y del check íntegro
+nuevo después de resolver la propuesta de harness. No hay publicación anticipada.
+
+Dictamen funcional freeze 2 recibido y leído completo por dirección:
+`/tmp/opforja-rehacer/WP-3b-review-dictamen-funcional-freeze-2.md` y
+`WP-3b-review-manifest-funcional-freeze-2.json`. Favorable exclusivamente condicionado
+al hunk exacto autorizado del harness y al check íntegro nuevo verde. Verifica 5/5
+huellas antes/después y auditoría completa; no quedan defectos materiales conocidos
+del alcance revisado. No se repetirán las 153 sondas con las mismas cinco fuentes
+por rutina. Ninguna condición restante se confunde con aceptación supervisora.
+La propuesta del harness de 53 líneas continúa SIN APLICAR y con pregunta pendiente;
+la documentación de WP-5/B-29 continúa pendiente de su resolución específica.
+
+### Preparación independiente de WP-5/7/8b, sin ejecución adicional
+
+Dirección leyó completos los informes y manifests actualizados. La concreción FAN5A
+es compatible con DESIGN §§4.3.4/4.4/5.3: diagnosticar debe consumir las funciones
+compartidas violacionesAbanico y noOfrecido con el tercer argumento del abanico,
+deduplicar por identidad y emitir el código existente abanico-invalido. No duplica
+matriz, añade códigos ni altera contratos. Un modelo bruto que solo incumpla F5
+permite examinar defensivamente FAN5A; no es modelo persistible ni entrada válida
+para una operación. El generador futuro omite ese hecho no representable sin
+inventar T3, perder el abanico silenciosamente ni emitir frases de error como OPL.
+La composición real diagnóstico + generación se verificará cuando WP-7 exista.
+
+Se conservan las 146 sondas preparadas de WP-5 y se añaden seis casos FAN5A en
+`WP-5-review-FAN5A-diagnostico.test.ts`, SHA-256
+`2427d06c635b185fdc4a1f51c0577527c18ffbf9f34d3a8426c81db8b56ceeb4`;
+cuatro casos conjuntos posteriores en `WP-5-review-FAN5A-conjunto-WP7.test.ts`,
+SHA-256 `99197fec549f67218030a2f71e109f41f976be5ab79e6ea508b75c5703300b38`.
+Estado de estas sondas nuevas: PREPARADAS, cero ejecutadas, sin crédito GREEN.
+Los negativos ya observados de continuidad R+C/B-29 permanecen separados y
+la propuesta precisa de 64 líneas mantiene su resolución supervisora pendiente.
+Su contexto deberá refrescarse al turno sin cambiar efectos ni autorizaciones previas.
+
+WP-8b dispone de catálogo y drivers semántico/visual independientes preparados:
+40 construidos y 12 selecciones históricas producen 50 vistas únicas previstas,
+porque dos fixtures solo contienen una raíz. No hay 52 renders ni observación visual.
+`WP-8b-review-preparacion.md` y su manifest dejan pendientes tipado, fixtures complejos,
+gates WP-5 y OPL WP-7 reales, freeze y apertura individual de los 50 SVG/capturas.
+Driver visual SHA-256
+`aa2d18357a42878364a4dbfe0c7934f063c92b2cf16cd0396bf0fcca4436c9e1`;
+su futura captura declara CAPTURADO_NO_INSPECCIONADO hasta revisar cada imagen.
+No se ejecutaron producto, navegador, golden, build ni fuentes móviles en esta preparación.
+
+### WP-10 — propuesta anticipada mínima de propiedad, SIN APLICAR
+
+DESIGN §2.4 exige generar mediante pruebas/azar.ts, perfil hodom y semilla fija,
+262 cosas / 192 estados / 433 enlaces / 36 OPDs. El archivo estable ofrece solo
+estricto/completo; el sintético histórico pequeño no satisface ese benchmark.
+Construir el grande localmente en rendimiento.test o simular un selector no realiza
+la procedencia contratada. WP-10 posee ahora solo sus dos suites; la propiedad
+serial autorizada de WP-4r para acciones no se interpreta como permiso para este perfil.
+
+Propuesta revisable: `/tmp/opforja-rehacer/WP-10-review-preparacion-propuesta-ownership.patch`,
+44 líneas / cuatro hunks / DESIGN, README y plan; SHA-256
+`f028e0b56f232dc245104ac5062228f97f479b6f6f81fa2aefb41c0c30dc93c4`.
+Declara azar.ts compartido serial solo para añadir hodom, lectura y aceptación
+del tamaño exacto, forma/contexto válidos, determinismo y pureza. Preserva literalmente
+el generador histórico y las acciones 200 × 40 vigentes al abrir el turno, semillas
+y ocho objetivos con fallo 3×; no cambia matriz, códec, API ni permisos operativos.
+Dirección leyó el patch completo, verificó huella y git apply --check exit 0 sin aplicar.
+Debe refrescarse solo contexto tras los compartidos anteriores, conservando sus efectos.
+
+Informe independiente completo `WP-10-review-preparacion-informe.md`, SHA-256
+`1eb9d57bc70b4959ed465a6fa9e1d2c5c295311655fe28ac3624636c67f00305`,
+y manifest SHA-256 `17bdec1bd8367c1bd965ac51e03fc9599b445c5464483950aa1865137daedcf8`:
+14 casos previstos sobre siete archivos y sus 13 OPDs; cero ejecutados/observados.
+Elegibilidad estricta solo por gates reales, con rechazos conservados. Dos casos
+del HODOM grande y ocho mediciones quedan pendientes del perfil real y de su turno.
+Dictamen independiente `WP-10-review-propuesta-ownership-dictamen.md`, SHA-256
+`9083a6891e147d9717c3fdd10e0ea9f1da6a7b18c000b238e769740d840d5f06`,
+favorable para presentar, leído entero por dirección. Añadir un export separado
+para hodom conserva firma y cuerpo históricos: §2.4 fija módulo/perfil/semilla,
+sin imponer la sintaxis azar(semilla, 'hodom'). No hay autoridad, aplicación,
+rendimiento medido ni aceptación anticipada. La resolución se requerirá en WP-10.
+
+### WP-17 — preparación de arranque y brecha de wiring por resolver
+
+Preflight actualizado leído entero por dirección: `WP-17-preflight-actual.md`,
+SHA-256 `4f8c5b358f289fb7ebd6e07bf5d7261b8e8bafd13518e8fddbf64dcdc386701e`.
+Se conserva su borrador anterior. Cuenta se lee perezosamente al autenticar;
+el CLI real puede crear la cuenta sintética antes de sembrar modelos por API,
+con datos temporales propios. No se ejecutaron CLI, servidor, build ni navegador.
+
+El config raíz aprobado en WP-18 arranca el bundle real local y no tiene globalSetup;
+`bun run e2e` usa ese config por defecto. Un config privado en e2e/* permitiría
+realizar setup/teardown y Chromium local dentro de propiedad WP-17, pero invocarlo
+solo con --config no demuestra el comando literal exigido al cierre H3. Esta
+discrepancia queda abierta; no se cambia package/config raíz ni se acepta un
+comando alternativo por silencio. Revisión independiente acotada en curso para
+hallar una realización compatible o el mínimo wiring serial revisable antes de su turno.
+Los 26 casos completos, CAS/offline/OPDs, cero pageerror, fixture y navegador reales
+siguen pendientes de implementación/observación. No se oculta la discrepancia
+ni se convierte la preparación o fallback permitido en aceptación e2e.
+
+### WP-3b — resolución expresa del ajuste mínimo del harness
+
+Félix responde «ok. vamos con ello» a la explicación y propuesta específica del
+harness WP-3b de 53 líneas. Dirección registra esta resolución antes de aplicar
+documentación o código. Autoriza exclusivamente el patch
+`/tmp/opforja-rehacer/WP-3b-propuesta-harness-transaccion.patch`, SHA-256
+`46414c551bda35fdeb9abeb64cf08dd81d95f2d3fab82e8936dcb840360cd70c`:
+propiedad serial de resultado.test.ts y tres exportaciones guardadas del doble aislado,
+con cinco casos/cuerpos/expectativas literales. No amplía las otras autorizaciones
+ni resuelve por inferencia la propuesta distinta WP-5/B-29 o las preparaciones futuras.
+
+Dirección verificó de nuevo las huellas de los tres fragmentos y las cinco fuentes
+freeze 2 (5/5 OK). Primero aplica el fragmento documental de 42 líneas a DESIGN,
+README y plan; después la misma escritora aplica el ejecutable de 11 líneas.
+El check íntegro nuevo y la revisión final siguen siendo condiciones de aceptación;
+la resolución humana no se confunde con GREEN ni publicación del paquete.
+
+Documentación exacta aplicada antes del hunk ejecutable. La misma escritora conservó
+5/5 huellas productivas freeze 2 y los cinco casos del harness literales; sexto archivo
+resultado.test.ts SHA-256 `0bcb70bf8d279712b0f63dab884fa0216d9d1a02a44c7c31fad4e97233c16536`.
+Comparación const entrada→EOF, incluido LF final, igual a HEAD, SHA-256
+`7cfe3a2e164ccd605039055538854fe10cd3886397911a3521be90a9c83d8241`.
+Manifest `WP-3b-manifest-final-HAR.json` y seis huellas `WP-3b-freeze-final-HAR.sha256`:
+dirección verifica 6/6. Único check íntegro nuevo desde app con entorno mínimo:
+790 pass / 0 fail, 361412 expectativas, 34 archivos, 28.62 s, exit 0;
+log `WP-3b-check-final-HAR.log` y salida `.exit`, leídos por dirección.
+Incluye los cinco casos HAR reales. Sin repetir focal de montaje ni las 153 sondas.
+La revisión final comprueba el hunk/docs/log y una actualización factual de conformidad
+que mantiene B-04/05/06/07/08/28 parciales y B-29 abierta. Aceptación/publicación pendientes.
+
+Dictamen de wiring WP-17 recibido y leído entero por dirección:
+`WP-17-review-wiring-dictamen.md`, SHA-256
+`54ba1bd0c320e1c34e62d02b059dfcd0702293f367e79b6dd96448a8c3806d90`.
+El Playwright local no descubre globalSetup en e2e/* sin enlace desde el config raíz;
+conservando bun run e2e, el mínimo hunk es globalSetup: './e2e/global-setup.ts'.
+La selección PW_CHROMIUM sí cabe en fixture compartido propio e2e/*; no requiere
+ampliar package/Vite ni cambiar el layout WP-18. Ownership serial mínimo de ese
+único enlace deberá proponerse/resolverse antes de WP-17. La diferencia del ejemplo
+de arranque fuente/4173 frente al bundle/8787 actual permanece separada, sin equivalencia
+contractual concedida por ese dictamen. Cero ejecuciones; ninguna nueva autoridad aplicada.
+
+### WP-3b — aceptación de dirección y cierre de paquete
+
+Dirección leyó completos recibo vigente, manifest de implementación y dictamen/manifest
+independientes de cierre. Dictamen `WP-3b-review-cierre-autorizado.md`, SHA-256
+`30097c97f9696c5740afdb057eeb317e39ae7260e2dcf23cdedeffcb013ad2a0`;
+manifest independiente SHA-256
+`6b2ffda4c8fd6603598167b6b7f450731bdca16a17452872cb6d2b6f72c91b25`.
+Confirma aplicación exacta del bundle autorizado desde HEAD a DESIGN/README/plan/HAR,
+cinco casos literales, tres guardas de no invocación, seis huellas y check nuevo 790/0.
+Las cinco fuentes productivas conservan las 149 + 4 sondas y auditoría completa,
+sin repetirlas ni sumar expectativas de runs distintos. No queda defecto material
+conocido dentro del alcance nativo de WP-3b.
+
+Conformidad incorpora la evidencia N B-04/05/06/07/08 y creación sin refinamientos
+de B-28, mediante el patch factual de 54 líneas revisado independientemente;
+las seis filas permanecen parciales, B-29 no cambia y ninguna superficie futura
+se acredita. Se conserva la cronología RED/GREEN, el fallo de montaje y el contraste
+temporal B-28 posterior a producción, sin presentarlo como TDD previo.
+
+El recibo anterior completo se conserva como
+`WP-3b-implementacion-reporte-pre-cierre-HAR.md`, SHA-256
+`d4fb6ba1b18cf2faf7617e197281d97683b4c94840bc562635d459f01c6ce9d1`.
+El vigente SHA-256 `8f27ae77a17bfeee7513a53df2bf7f4172692dcb0a44ee12c331538fc6be0805`
+marca explícitamente los apartados previos a HAR como históricos, preservando todas
+las cifras. Es una corrección editorial scratch sin cambio del candidato ni rerun.
+
+Dirección acepta el paquete y lo reúne en un único commit semántico con push a
+origin/rehacer, conservando main y pre-rehacer. Próximo paquete: WP-5. La propuesta
+R+C/B-29 mantiene su resolución humana pendiente; las capacidades independientes
+del diagnóstico pueden avanzar dentro del contrato vigente, sin alterar proyección
+ni sus suites fuera de propiedad. H1 sigue con revisión semántica reabierta;
+H2/H3, integración refinada B-28 e imagen WP-18 siguen pendientes.

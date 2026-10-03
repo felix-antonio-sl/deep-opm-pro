@@ -105,7 +105,7 @@
       "id": "WP-3b", "ola": 2, "nombre": "Operaciones: enlaces y abanicos",
       "objetivo": "Crear, cambiar tipo, fijar atributos, reanclar y eliminar enlaces; formar y disolver abanicos; alternativas del segundo gesto.",
       "depende": ["WP-2", "WP-4p"],
-      "archivos": ["app/src/nucleo/{enlaces,abanicos}.ts", "pruebas enlaces.test.ts, abanicos.test.ts y propiedades.test.ts"],
+      "archivos": ["app/src/nucleo/{enlaces,abanicos}.ts", "pruebas enlaces.test.ts, abanicos.test.ts y propiedades.test.ts", "app/src/nucleo/resultado.test.ts (ajuste serial mínimo: exports violacionesAbanico, normalizarEtiquetas y violacionesContexto del doble aislado con guarda de no invocación; casos/cuerpos/expectativas WP-1 intactos)"],
       "lecturas": ["DESIGN §4.2", "DESIGN §4.3.4", "DESIGN §7.3 (flujos 7–10, 17, 28)", "DESIGN §1.6 (DS-9, DS-10, DS-13)", "CANON §2"],
       "aceptacion": ["crearEnlace con abanicoCon; fijarEstados (4 formas); reanclarExtremo en todas las familias, T1→TS1 (T-250)", "eliminarEnlaces: mitad escindida pasa a standalone; valor huérfano retirado (CC-03); exhibición que propaga lo ambiental (CC-02); T-066", "propiedades.test: tiposLegales ≡ crearEnlace sobre constructores sin refinamientos (3 modelos de muestra y 50 de azar), con datos de etiquetas completos, pendientes no persistibles, normalización con traza y rechazos; integración refinada se amplía en WP-4r (B-28)"]
     },

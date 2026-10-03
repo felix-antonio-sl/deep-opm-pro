@@ -82,7 +82,7 @@ Hitos de revisión con el dueño:
    - `app/package.json`, `app/vite.config.ts` y `app/playwright.config.ts`: WP-0 crea el andamiaje; WP-18 integra en serie el layout de DESIGN §9.1;
    - `nucleo/enlaces.ts`;
    - `nucleo/cosas.ts`;
-   - `nucleo/resultado.test.ts`: WP-3a agrega únicamente `violacionesForma` al doble aislado, con fallo explícito si se invoca; sin cambiar casos, cuerpos ni expectativas de WP-1.
+   - `nucleo/resultado.test.ts`: WP-3a agrega únicamente `violacionesForma` al doble aislado, con fallo explícito si se invoca; sin cambiar casos, cuerpos ni expectativas de WP-1. WP-3b agrega después únicamente `violacionesAbanico`, `normalizarEtiquetas` y `violacionesContexto` con la misma guarda; mantiene íntegros los cinco casos.
    - `opl/documento.ts`.
    - `nucleo/matriz.ts`: WP-2 produce consulta y normalización; WP-4r agrega el ensayo compartido
      de distribución.
