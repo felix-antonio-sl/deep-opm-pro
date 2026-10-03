@@ -86,6 +86,7 @@ Hitos de revisión con el dueño:
    - `opl/documento.ts`.
    - `nucleo/matriz.ts`: WP-2 produce consulta y normalización; WP-4r agrega el ensayo compartido
      de distribución.
+   - `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}`: WP-4p produce; WP-5 integra en serie continuidad R+C y metadata conforme a DESIGN §4.4/§4.6, sin retirar cobertura previa.
    - `nucleo/propiedades.test.ts`: WP-3b prueba creación sin refinamientos; WP-4r amplía la
      integración refinada sin retirar la cobertura anterior.
 4. Ninguna regla OPM vive fuera de `nucleo/matriz.ts` o `nucleo/diagnostico.ts`. Ninguna oración

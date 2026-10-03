@@ -85,3 +85,40 @@ test('T-089 oráculo detecta mutantes de tipo, estado y omisión de frontera', (
     ];
     for (const mutante of mutantes) expect(firmaPadre(mutante)).not.toEqual(fusionDelHijo(m));
 });
+
+// Oráculo adicional independiente: consume bandas/hechos de este montaje, nunca auxiliares
+// de proyección. La continuidad se prueba en el hijo antes de mirar la firma del padre.
+function fronteraRcp(m: Modelo): readonly string[] {
+    const h = m.opds.hijo!; if (h.tipo !== 'descomposicion') throw new Error('montaje');
+    const es = Object.values(m.enlaces).filter((e): e is EnlaceProcedimental => 'objeto' in e && e.objeto === 'b');
+    const r = es.find(e => e.tipo === 'resultado'), c = es.find(e => e.tipo === 'consumo');
+    if (!r || r.tipo !== 'resultado' || !c || c.tipo !== 'consumo') throw new Error('montaje RCP');
+    const banda = (id: Id) => h.bandas.findIndex(b => b.includes(id));
+    let previo = banda(r.proceso), actual = r.estado;
+    const efectos = es.filter(e => e.tipo === 'efecto');
+    // Este oráculo deliberadamente recorre las bandas explícitas, sin comparador del producto.
+    const ordenados = h.bandas.flatMap(b => efectos.filter(e => b.includes(e.proceso)));
+    let probado = actual !== undefined && c.estado !== undefined && previo >= 0 && ordenados.length === efectos.length;
+    for (const e of ordenados) {
+        if (e.tipo !== 'efecto') continue;
+        probado &&= banda(e.proceso) > previo && e.entrada === actual && e.salida !== undefined;
+        actual = e.salida; previo = banda(e.proceso);
+    }
+    probado &&= banda(c.proceso) > previo && actual === c.estado;
+    return probado ? [firma({ id: 'oraculo-rcp', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: r.estado!, salida: c.estado! })] : [firma(r), firma(c)].sort();
+}
+for (const caso of ['directo', 'cadena', 'rotura', 'paralelo'] as const) {
+    test(`T-089 frontera RCP ${caso} contrasta continuidad original y firma del padre`, () => {
+        const base = ejemplo(['resultado', 'consumo']);
+        const h = base.opds.hijo!; if (h.tipo !== 'descomposicion') throw new Error('montaje');
+        const es: EnlaceProcedimental[] = [{ id: 'r', tipo: 'resultado', objeto: 'b', proceso: 'primero', estado: 'a' },
+            { id: 'c', tipo: 'consumo', objeto: 'b', proceso: 'ultimo', estado: caso === 'directo' ? 'a' : 'd' }];
+        if (caso !== 'directo') es.push({ id: 'e', tipo: 'efecto', objeto: 'b', proceso: 'medio', entrada: caso === 'rotura' ? 'c' : 'a', salida: 'd' });
+        const m = congelar({ ...base, cosas: { ...base.cosas, medio: { id: 'medio', tipo: 'proceso' as const, nombre: 'Procesar Intermedio', esencia: 'informacional' as const, afiliacion: 'sistemica' as const } },
+            enlaces: Object.fromEntries(es.map(e => [e.id, e])), opds: { ...base.opds, hijo: { ...h, bandas: caso === 'paralelo' ? [['primero', 'medio'], ['ultimo']] : [['primero'], ['medio'], ['ultimo']], apariciones: { ...h.apariciones, medio: { x: 0, y: 0, ancho: 140, alto: 60 } } } } });
+        const antes = JSON.stringify(m), v = proyectar(m, 'raiz');
+        expect(firmaPadre(v)).toEqual(fronteraRcp(m));
+        expect(fronteraRcp(m)).toEqual(caso === 'directo' ? ['["b","efecto",["a","a"]]'] : caso === 'cadena' ? ['["b","efecto",["a","d"]]'] : ['["b","consumo",["d"]]', '["b","resultado",["a"]]']);
+        expect(JSON.stringify(m)).toBe(antes);
+    });
+}

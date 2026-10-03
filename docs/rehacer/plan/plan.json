@@ -113,9 +113,9 @@
       "id": "WP-5", "ola": 2, "nombre": "Diagnóstico y gates",
       "objetivo": "Catálogo de diagnósticos con familia, severidad y acción canónica; gates del export canónico; reparaciones como acciones.",
       "depende": ["WP-2", "WP-4p"],
-      "archivos": ["app/src/nucleo/diagnostico.ts", "app/src/nucleo/diagnostico.test.ts"],
-      "lecturas": ["DESIGN §4.4", "DESIGN §6.8 (gates)", "CANON §6.4", "CANON §6.5", "CANON §7", "understand/SYNTHESIS.md §10.3"],
-      "aceptacion": ["cada código con un caso positivo y uno negativo; cada reparacion es una Accion bien formada", "T-260, T-261, T-263 (un solo código, con herencia y subprocesos), T-265, T-268, T-283"]
+      "archivos": ["app/src/nucleo/diagnostico.ts", "app/src/nucleo/diagnostico.test.ts", "app/src/nucleo/proyeccion.ts", "app/src/nucleo/proyeccion.test.ts", "app/src/nucleo/frontera.test.ts"],
+      "lecturas": ["DESIGN §4.4", "DESIGN §4.6 (continuidad R+C y metadata)", "DESIGN §6.8 (gates)", "CANON §6.4", "CANON §6.5", "CANON §7", "understand/SYNTHESIS.md §10.3"],
+      "aceptacion": ["cada código con un caso positivo y uno negativo; cada reparacion es una Accion bien formada", "T-260, T-261, T-263 (un solo código, con herencia y subprocesos), T-265, T-268, T-283", "T-085/T-089: continuidad R+C directa, R→E→C y anidada secuencial acreditada por hechos/estados originales; negativos de cadena rota y anidado paralelo, firma de estados, IDs/procedencia, pureza, anclajes visibles y 12 fuerzas sin pérdidas; conservar 9 celdas, negativos y ley/oráculo independiente de frontera; metadata DESIGN §4.4 con igual cobertura"]
     },
     {
       "id": "WP-7", "ola": 2, "nombre": "OPL: generación",

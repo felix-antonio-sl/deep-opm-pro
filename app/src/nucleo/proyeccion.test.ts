@@ -4,7 +4,7 @@ import type { Modelo, Enlace, EnlaceProcedimental, Id, Aparicion, Opd, Cosa, Con
 import { proyectar, etiquetaOpd, opdsEnPreorden } from './proyeccion';
 import { indice } from './indice';
 import { validarForma } from './forma';
-import { noOfrecido } from './matriz';
+import { noOfrecido, violacionesContexto } from './matriz';
 
 const caja: Aparicion = { x: 0, y: 0, ancho: 140, alto: 60 };
 const apps = (...ids: Id[]): Record<Id, Aparicion> => Object.fromEntries(ids.map(id => [id, caja]));
@@ -125,7 +125,7 @@ for (const [a, b, esperado, codigo] of celdas) {
         expect(v.conflictos.map(d => d.codigo)).toEqual(codigo ? [codigo] : []);
         if (codigo) {
             expect(v.enlaces.map(e => e.hechos)).toEqual([['a'], ['b']]);
-            expect(v.conflictos[0]).toMatchObject({ regla: codigo === 'precedencia-invalida' ? 'R-PREC-1' : 'R-PREC-3', familia: 'gramatical', severidad: 'error', opd: 'raiz', refs: [{ tipo: 'enlace', id: 'a' }, { tipo: 'enlace', id: 'b' }] });
+            expect(v.conflictos[0]).toMatchObject({ regla: codigo === 'precedencia-invalida' ? 'R-PREC-1' : 'R-PREC-3', familia: 'contencion', severidad: codigo === 'precedencia-invalida' ? 'error' : 'warning', opd: 'raiz', refs: [{ tipo: 'enlace', id: 'a' }, { tipo: 'enlace', id: 'b' }] });
         } else {
             expect(v.enlaces[0]?.hechos).toEqual(['a', 'b']);
             expect(v.enlaces[0]?.enlace.id).toBe('a');
@@ -377,3 +377,228 @@ test('T-086 proyección es pura, memoiza modelo/OPD y claves no dependen de posi
     const cambiado = modelo([{ id: 'a', tipo: 'instrumento', objeto: 'b', proceso: 's1', estado: 'b0', control: 'e' }]);
     expect(proyectar(cambiado, 'raiz').enlaces[0]?.clave).not.toBe(v.enlaces[0]?.clave);
 });
+
+// R-PREC-2: oráculos nuevos literales, sobre hechos y bandas originales.
+function cadenaRcp(anidado = false, paralelo = false, rota = false): Modelo {
+    const base = modelo();
+    const rutas = anidado ? ['n1', 'n2', 's3'] : ['s1', 's2', 's3'];
+    const enlaces: Enlace[] = [
+        { id: 'r', tipo: 'resultado', objeto: 'b', proceso: rutas[0]!, estado: 'b0' },
+        { id: 'e', tipo: 'efecto', objeto: 'b', proceso: rutas[1]!, entrada: rota ? 'b3' : 'b0', salida: 'b1', control: 'e' },
+        { id: 'c', tipo: 'consumo', objeto: 'b', proceso: rutas[2]!, estado: 'b1', control: 'c' },
+    ];
+    const hijo = base.opds.hijo!; if (hijo.tipo !== 'descomposicion') throw new Error('montaje');
+    if (!anidado) return modelo(enlaces, { opds: { ...base.opds, hijo: { ...hijo, bandas: paralelo ? [['s1', 's2'], ['s3']] : hijo.bandas } } });
+    return modelo(enlaces, { cosas: { ...base.cosas, n1: proceso('n1'), n2: proceso('n2') }, opds: { ...base.opds,
+        hijo: { ...hijo, bandas: paralelo ? [['s1', 's2'], ['s3']] : hijo.bandas },
+        a: { id: 'a', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, objetosInternos: [], bandas: [['n1']], apariciones: apps('b', 's1', 'n1') },
+        bOpd: { id: 'bOpd', tipo: 'descomposicion', padre: 'hijo', cosa: 's2', orden: 1, objetosInternos: [], bandas: [['n2']], apariciones: apps('b', 's2', 'n2') },
+    } });
+}
+for (const invertido of [false, true]) {
+    test(`T-085 RCP directo con continuidad por ID, orden de mapa ${invertido ? 'C-R' : 'R-C'}`, () => {
+        const es: Enlace[] = [{ id: 'r', tipo: 'resultado', objeto: 'b', proceso: 's1', estado: 'b1' }, { id: 'c', tipo: 'consumo', objeto: 'b', proceso: 's3', estado: 'b1', control: 'c' }];
+        const m = modelo(invertido ? [...es].reverse() : es), antes = JSON.stringify(m);
+        expect(validarForma(m)).toEqual([]);
+        const v = proyectar(m, 'raiz');
+        expect(v.conflictos).toEqual([]); expect(v.enlaces).toHaveLength(1);
+        expect(v.enlaces[0]!.enlace).toEqual({ id: invertido ? 'c' : 'r', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b1', salida: 'b1', control: 'c' });
+        expect(v.enlaces[0]!.hechos).toEqual(invertido ? ['c', 'r'] : ['r', 'c']);
+        expect(v.enlaces[0]!.abstraido).toBe(true); expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+for (const anidado of [false, true]) {
+    test(`T-085 RCP cadena R→E→C ${anidado ? 'anidada secuencial' : 'secuencial'} conserva firma, control y procedencia`, () => {
+        const m = cadenaRcp(anidado), antes = JSON.stringify(m), v = proyectar(m, 'raiz');
+        expect(validarForma(m)).toEqual([]);
+        expect(v.conflictos).toEqual([]); expect(v.enlaces).toHaveLength(1);
+        expect(v.enlaces[0]!.enlace).toEqual({ id: 'r', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b1', control: 'e' });
+        expect(v.enlaces[0]!.hechos).toEqual(['r', 'e', 'c']); expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+for (const [anidado, paralelo, rota] of [[false, false, true], [true, false, true], [false, true, false], [true, true, false]] as const) {
+    test(`T-085 RCP sin testigo anidado=${anidado} paralelo=${paralelo} rota=${rota} conserva ambos y warning`, () => {
+        const m = cadenaRcp(anidado, paralelo, rota), v = proyectar(m, 'raiz');
+        expect(validarForma(m)).toEqual([]);
+        expect(v.enlaces.map(e => e.enlace.tipo)).toEqual(['resultado', 'consumo']);
+        expect(new Set(v.enlaces.flatMap(e => e.hechos))).toEqual(new Set(['r', 'e', 'c']));
+        expect(v.conflictos).toEqual([expect.objectContaining({ codigo: 'conflicto-resultado-consumo', regla: 'R-PREC-3', familia: 'contencion', severidad: 'warning', opd: 'raiz' })]);
+    });
+}
+for (const caso of ['sin-estado', 'inverso-temporal', 'misma-banda', 'mismo-nombre-otro-ID', 'estado-ajeno', 'efecto-sin-salida', 'padre-descendiente'] as const) {
+    test(`T-085 RCP no inventa continuidad: ${caso}`, () => {
+        const base = modelo();
+        const b = base.cosas.b!; if (b.tipo !== 'objeto') throw new Error('montaje');
+        const es: Enlace[] = [{ id: 'r', tipo: 'resultado', objeto: 'b', proceso: caso === 'inverso-temporal' ? 's3' : caso === 'padre-descendiente' ? 'p' : 's1', ...(caso === 'sin-estado' ? {} : { estado: caso === 'estado-ajeno' ? 'x0' : 'b0' }) },
+            { id: 'c', tipo: 'consumo', objeto: 'b', proceso: caso === 'inverso-temporal' ? 's1' : caso === 'misma-banda' ? 's1' : 's3', estado: caso === 'mismo-nombre-otro-ID' ? 'b1' : 'b0' }];
+        if (caso === 'efecto-sin-salida') es.push({ id: 'e', tipo: 'efecto', objeto: 'b', proceso: 's2', entrada: 'b0' });
+        const m = modelo(es, caso === 'mismo-nombre-otro-ID' ? { cosas: { ...base.cosas, b: { ...b, estados: b.estados.map(s => ({ ...s, nombre: 'igual' })) } } } : {});
+        const v = proyectar(m, 'raiz');
+        expect(v.enlaces.map(e => e.enlace.tipo)).toEqual(['resultado', 'consumo']);
+        expect(v.conflictos[0]).toMatchObject({ codigo: 'conflicto-resultado-consumo', severidad: 'warning', familia: 'contencion' });
+        expect(new Set(v.enlaces.flatMap(e => e.hechos))).toEqual(new Set(es.map(e => e.id)));
+    });
+}
+
+test('T-018 RCP efecto recombinado fuerza visibles estados propios ocultos y conserva identidad', () => {
+    const base = cadenaRcp(), b = base.cosas.b!; if (b.tipo !== 'objeto') throw new Error('montaje');
+    const m = congelar({ ...base, cosas: { ...base.cosas, b: { ...b, estados: b.estados.map(s => ({ ...s, suprimido: true as const })) } }, opds: { ...base.opds, raiz: { ...base.opds.raiz!, apariciones: { ...base.opds.raiz!.apariciones, b: { ...caja, ocultos: ['b0', 'b1', 'b2', 'b3'] } } } } });
+    const antes = JSON.stringify(m);
+    expect(proyectar(m, 'raiz').cosas.find(c => c.cosa === 'b')?.estadosVisibles).toEqual(['b0', 'b1']);
+    expect(JSON.stringify(m)).toBe(antes); expect(base.cosas.b).toBe(b);
+});
+
+test('T-085 RCP cadena vuelve al mismo estado por hechos distintos y no por nombres; orden del mapa independiente', () => {
+    const es: Enlace[] = [{ id: 'r', tipo: 'resultado', objeto: 'b', proceso: 's1', estado: 'b0' },
+        { id: 'e1', tipo: 'efecto', objeto: 'b', proceso: 's2', entrada: 'b0', salida: 'b1', control: 'c' },
+        { id: 'e2', tipo: 'efecto', objeto: 'b', proceso: 's3', entrada: 'b1', salida: 'b0', control: 'c' },
+        { id: 'c', tipo: 'consumo', objeto: 'b', proceso: 's4', estado: 'b0', control: 'c' },
+        { id: 'habilitador', tipo: 'agente', objeto: 'b', proceso: 's1', control: 'e' }];
+    const base = modelo(), hijo = base.opds.hijo!; if (hijo.tipo !== 'descomposicion') throw new Error('montaje');
+    const m = modelo([...es].reverse(), { cosas: { ...base.cosas, s4: proceso('s4') }, opds: { ...base.opds, hijo: { ...hijo, bandas: [['s1'], ['s2'], ['s3'], ['s4']], apariciones: { ...hijo.apariciones, s4: caja } } } });
+    const antes = JSON.stringify(m), v = proyectar(m, 'raiz');
+    expect(validarForma(m)).toEqual([]); expect(v.conflictos).toEqual([]);
+    expect(v.enlaces).toHaveLength(1);
+    expect(v.enlaces[0]!.enlace).toEqual({ id: 'habilitador', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b0', control: 'c' });
+    expect(v.enlaces[0]!.hechos).toEqual(['habilitador', 'c', 'e2', 'e1', 'r']); expect(JSON.stringify(m)).toBe(antes);
+});
+for (const profundidad of [16, 32, 64, 128]) {
+    test(`T-085 RCP consultas compartidas con ${profundidad} niveles y pares, sin recorridos por profundidad por enlace`, () => {
+        const cosas: Record<Id, Cosa> = { p0: proceso('p0') }, enlaces: Record<Id, Enlace> = {}, opds: Record<Id, Opd> = {};
+        for (let i = 1; i <= profundidad; i++) {
+            cosas[`p${i}`] = proceso(`p${i}`); cosas[`q${i}`] = proceso(`q${i}`); cosas[`o${i}`] = objeto(`o${i}`);
+            opds[`d${i}`] = { id: `d${i}`, tipo: 'descomposicion', padre: i === 1 ? 'raiz' : `d${i - 1}`, cosa: `p${i - 1}`, orden: 0, bandas: [[`p${i}`], [`q${i}`]], objetosInternos: [], apariciones: apps(`p${i - 1}`, `p${i}`, `q${i}`) };
+            enlaces[`r${i}`] = { id: `r${i}`, tipo: 'resultado', objeto: `o${i}`, proceso: `p${profundidad}`, estado: `o${i}0` };
+            enlaces[`c${i}`] = { id: `c${i}`, tipo: 'consumo', objeto: `o${i}`, proceso: 'q1', estado: `o${i}0` };
+        }
+        opds.raiz = { id: 'raiz', tipo: 'raiz', apariciones: apps('p0', ...Array.from({ length: profundidad }, (_, i) => `o${i + 1}`)) };
+        let accesos = 0;
+        const observados = new Proxy(opds, { get(target, key, receiver) { if (typeof key === 'string' && Object.hasOwn(target, key)) accesos++; return Reflect.get(target, key, receiver); } });
+        const m = modelo([], { cosas, enlaces, opds: observados }); indice(m); accesos = 0;
+        const v = proyectar(m, 'raiz');
+        expect(v.conflictos).toEqual([]); expect(v.enlaces).toHaveLength(profundidad);
+        expect(v.enlaces.every(e => e.enlace.tipo === 'efecto' && e.hechos.length === 2)).toBe(true);
+        expect(accesos).toBeLessThanOrEqual(20 * profundidad + 20);
+    });
+}
+
+// Presupuestos antes de GREEN: cuatro accesos por dimensión permitida cubren pasadas
+// constantes. No se incluye el índice frío ni objetos ajenos que no se inspeccionan/emiten.
+for (const ajenos of [128, 256]) {
+    test(`T-085 coste A no escanea ${ajenos} objetos ajenos al certificado temporal`, () => {
+        const base = modelo(), extras = Object.fromEntries(Array.from({ length: ajenos }, (_, i) => {
+            const id = `ajeno-${i}`; return [id, { ...objeto(id), estados: [] }];
+        }));
+        let lecturas = 0;
+        const registro = { ...base.cosas, ...extras };
+        const cosas = new Proxy(registro, { get(target, key, receiver) {
+            if (typeof key === 'string' && Object.hasOwn(target, key)) lecturas++;
+            return Reflect.get(target, key, receiver);
+        } });
+        const m = modelo([{ id: 'r', tipo: 'resultado', objeto: 'b', proceso: 's1', estado: 'b0' },
+            { id: 'c', tipo: 'consumo', objeto: 'b', proceso: 's2', estado: 'b0' }], { cosas, secuencia: 10000 });
+        expect(validarForma(m)).toEqual([]);
+        expect(Object.values(m.enlaces).flatMap(e => violacionesContexto(m, e))).toEqual([]);
+        const antes = JSON.stringify(m); indice(m); lecturas = 0;
+        const v = proyectar(m, 'raiz'), costo = lecturas;
+        expect(v.enlaces.map(e => e.enlace)).toEqual([{ id: 'r', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b0' }]);
+        expect(v.enlaces[0]!.hechos).toEqual(['r', 'c']); expect(v.conflictos).toEqual([]);
+        const D = 2, P = 5, E = 2, A = 4, S = 8;
+        expect(costo).toBeLessThanOrEqual(4 * (D + P + E + A + S));
+        expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+for (const n of [64, 128]) {
+    test(`T-085 coste D ${n} grupos y ${n} estados no multiplican lecturas propias`, () => {
+        let lecturas = 0;
+        const estados = new Proxy(Array.from({ length: n }, (_, i) => ({ id: `estado-${i}`, nombre: `estado${i}` })), {
+            get(target, key, receiver) { if (typeof key === 'string' && /^\d+$/.test(key)) lecturas++; return Reflect.get(target, key, receiver); }
+        });
+        const cosas: Record<Id, Cosa> = { b: { ...objeto('b'), tipo: 'objeto', estados } }, enlaces: Enlace[] = [];
+        const opds: Record<Id, Opd> = { raiz: { id: 'raiz', tipo: 'raiz', apariciones: apps('b', ...Array.from({ length: n }, (_, i) => `p${i}`)) } };
+        for (let i = 0; i < n; i++) {
+            for (const id of [`p${i}`, `r${i}`, `c${i}`]) cosas[id] = proceso(id);
+            opds[`h${i}`] = { id: `h${i}`, tipo: 'descomposicion', padre: 'raiz', cosa: `p${i}`, orden: i,
+                bandas: [[`r${i}`], [`c${i}`]], objetosInternos: [], apariciones: apps('b', `p${i}`, `r${i}`, `c${i}`) };
+            enlaces.push({ id: `res${i}`, tipo: 'resultado', objeto: 'b', proceso: `r${i}`, estado: `estado-${i}` },
+                { id: `cons${i}`, tipo: 'consumo', objeto: 'b', proceso: `c${i}`, estado: `estado-${i}` });
+        }
+        const m = modelo(enlaces, { cosas, opds, secuencia: 10000 });
+        expect(validarForma(m)).toEqual([]);
+        expect(Object.values(m.enlaces).flatMap(e => violacionesContexto(m, e))).toEqual([]);
+        const antes = JSON.stringify(m); indice(m); lecturas = 0;
+        const v = proyectar(m, 'raiz'), costo = lecturas;
+        expect(v.conflictos).toEqual([]);
+        expect(v.enlaces.map(e => e.enlace)).toEqual(Array.from({ length: n }, (_, i) => ({ id: `res${i}`, tipo: 'efecto', objeto: 'b', proceso: `p${i}`, entrada: `estado-${i}`, salida: `estado-${i}` })));
+        expect(v.enlaces.map(e => e.hechos)).toEqual(Array.from({ length: n }, (_, i) => [`res${i}`, `cons${i}`]));
+        const D = n + 1, P = 3 * n, E = 2 * n, A = n + 1, S = n;
+        expect(costo).toBeLessThanOrEqual(4 * (D + P + E + A + S));
+        expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+
+test('T-085 coste A comparte certificado entre vistas y separa nuevas identidades; memo no lee modelo', () => {
+    const base = modelo(), hijo = base.opds.hijo!; if (hijo.tipo !== 'descomposicion') throw new Error('montaje');
+    const registro: Record<Id, Opd> = { ...base.opds,
+        hijo: { ...hijo, bandas: [['s1'], ['s2']] },
+        profundo: { id: 'profundo', tipo: 'descomposicion', padre: 'hijo', cosa: 's1', orden: 0, bandas: [['u'], ['v']], objetosInternos: [], apariciones: apps('b', 's1', 'u', 'v') },
+        ajeno: { id: 'ajeno', tipo: 'descomposicion', padre: 'hijo', cosa: 's2', orden: 1, bandas: [['w']], objetosInternos: [], apariciones: apps('b', 's2', 'w') } };
+    let lecturas = 0, ajenas = 0;
+    const opds = new Proxy(registro, { get(target, key, receiver) {
+        if (typeof key === 'string' && Object.hasOwn(target, key)) { lecturas++; if (key === 'ajeno') ajenas++; }
+        return Reflect.get(target, key, receiver);
+    } });
+    const m = modelo([{ id: 'r', tipo: 'resultado', objeto: 'b', proceso: 'u', estado: 'b0' }, { id: 'c', tipo: 'consumo', objeto: 'b', proceso: 'v', estado: 'b0' }], {
+        opds, cosas: { ...base.cosas, u: proceso('u'), v: proceso('v'), w: proceso('w') } });
+    expect(validarForma(m)).toEqual([]); expect(Object.values(m.enlaces).flatMap(e => violacionesContexto(m, e))).toEqual([]);
+    const antes = JSON.stringify(m); indice(m); lecturas = 0; ajenas = 0;
+    const raiz = proyectar(m, 'raiz');
+    expect(raiz.enlaces[0]!.enlace).toEqual({ id: 'r', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b0' });
+    expect(ajenas).toBeGreaterThan(0);
+    lecturas = 0; ajenas = 0;
+    expect(proyectar(m, 'raiz')).toBe(raiz); expect(lecturas).toBe(0);
+    const intermedia = proyectar(m, 'hijo');
+    expect(intermedia.enlaces[0]!.enlace).toEqual({ id: 'r', tipo: 'efecto', objeto: 'b', proceso: 's1', entrada: 'b0', salida: 'b0' });
+    expect(intermedia.enlaces[0]!.hechos).toEqual(['r', 'c']); expect(ajenas).toBe(0);
+    const otro = congelar({ ...m }); indice(otro); ajenas = 0;
+    expect(proyectar(otro, 'raiz')).not.toBe(raiz); expect(ajenas).toBeGreaterThan(0);
+    expect(JSON.stringify(m)).toBe(antes);
+});
+
+test('T-085 coste C conserva rangos con huecos y cruce base 256, identidad y procedencia en orden original', () => {
+    const ids = Array.from({ length: 300 }, (_, i) => `s${i}`), cosas = { b: objeto('b'), p: proceso('p'), ...Object.fromEntries(ids.map(id => [id, proceso(id)])) };
+    const m = modelo([{ id: 'c', tipo: 'consumo', objeto: 'b', proceso: 's299', estado: 'b1', control: 'c' },
+        { id: 'e', tipo: 'efecto', objeto: 'b', proceso: 's256', entrada: 'b0', salida: 'b1', control: 'c' },
+        { id: 'r', tipo: 'resultado', objeto: 'b', proceso: 's254', estado: 'b0' }], {
+        cosas, secuencia: 10000, opds: { raiz: { id: 'raiz', tipo: 'raiz', apariciones: apps('b', 'p') },
+            hijo: { id: 'hijo', tipo: 'descomposicion', padre: 'raiz', cosa: 'p', orden: 0, bandas: ids.map(id => [id]), objetosInternos: [], apariciones: apps('b', 'p', ...ids) } } });
+    expect(validarForma(m)).toEqual([]); expect(Object.values(m.enlaces).flatMap(e => violacionesContexto(m, e))).toEqual([]);
+    const antes = JSON.stringify(m), v = proyectar(m, 'raiz');
+    expect(v.conflictos).toEqual([]); expect(v.enlaces).toHaveLength(1);
+    expect(v.enlaces[0]!.enlace).toEqual({ id: 'c', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b1', control: 'c' });
+    expect(v.enlaces[0]!.hechos).toEqual(['c', 'e', 'r']); expect(JSON.stringify(m)).toBe(antes);
+});
+for (const inverso of [false, true]) {
+    test(`T-085 coste C empates paralelos no fabrican secuencia ni reordenan procedencia inverso=${inverso}`, () => {
+        const base = modelo(), hijo = base.opds.hijo!; if (hijo.tipo !== 'descomposicion') throw new Error('montaje');
+        const es: Enlace[] = [{ id: 'r', tipo: 'resultado', objeto: 'b', proceso: 's1', estado: 'b0' }, { id: 'c', tipo: 'consumo', objeto: 'b', proceso: 's2', estado: 'b0' }];
+        const m = modelo(inverso ? es.reverse() : es, { opds: { ...base.opds, hijo: { ...hijo, bandas: [['s1', 's2'], ['s3']] } } });
+        expect(validarForma(m)).toEqual([]); expect(Object.values(m.enlaces).flatMap(e => violacionesContexto(m, e))).toEqual([]);
+        const antes = JSON.stringify(m), v = proyectar(m, 'raiz');
+        expect(v.enlaces.map(e => [e.enlace.id, e.enlace.tipo, e.hechos])).toEqual(inverso ? [['c', 'consumo', ['c']], ['r', 'resultado', ['r']]] : [['r', 'resultado', ['r']], ['c', 'consumo', ['c']]]);
+        expect(v.conflictos.map(d => [d.codigo, d.severidad])).toEqual([['conflicto-resultado-consumo', 'warning']]);
+        expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+for (const n of [32, 128]) {
+    test(`T-086 coste vista E=0 materializa ${n} apariciones sin confundir salida con enlaces`, () => {
+        const ids = Array.from({ length: n }, (_, i) => `o${i}`), cosas: Record<Id, Cosa> = { p: proceso('p') };
+        for (const id of ids) cosas[id] = { ...objeto(id), tipo: 'objeto', estados: [] };
+        const m = modelo([], { cosas, secuencia: 10000, opds: { raiz: { id: 'raiz', tipo: 'raiz', apariciones: apps('p', ...ids) } } });
+        expect(validarForma(m)).toEqual([]);
+        const antes = JSON.stringify(m), v = proyectar(m, 'raiz');
+        expect(v.enlaces).toEqual([]); expect(v.conflictos).toEqual([]);
+        expect(v.cosas.map(c => [c.cosa, c.rol, c.estadosVisibles])).toEqual(['p', ...ids].map(id => [id, 'libre', []]));
+        expect(proyectar(m, 'raiz')).toBe(v); expect(JSON.stringify(m)).toBe(antes);
+    });
+}

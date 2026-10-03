@@ -88,6 +88,7 @@ export function proyectar(m: Modelo, opd: Id): Vista {
     }
     const abstraidos = new Set([...grupos.values()].filter(g => g.some(e => e.abstraido)));
     const compararTiempo = comparadorTemporal(m, idx);
+    const continuidades = continuidadesTrazables(m, idx, [...abstraidos]);
     const enlaces: EnlaceVisto[] = [], conflictos: Diagnostico[] = [], emitidos = new Set<EnlaceVisto[]>();
     for (const e of directos) {
         if (!esProcedimental(e.enlace)) { enlaces.push(e); continue; }
@@ -95,7 +96,7 @@ export function proyectar(m: Modelo, opd: Id): Vista {
         if (!abstraidos.has(grupo)) { enlaces.push(e); continue; }
         if (emitidos.has(grupo)) continue;
         emitidos.add(grupo);
-        const fusion = fusionar(grupo, idx, opd, compararTiempo);
+        const fusion = fusionar(grupo, idx, opd, compararTiempo, continuidades.get(grupo));
         enlaces.push(...fusion.enlaces); conflictos.push(...fusion.conflictos);
     }
 
@@ -168,7 +169,7 @@ function clave(e: Enlace): string {
 }
 const fuerzaControl = (e: EnlaceProcedimental): number => 'control' in e ? e.control === 'e' ? 2 : e.control === 'c' ? 0 : 1 : 1;
 
-function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararTiempo: (a: Id, b: Id) => number): { enlaces: readonly EnlaceVisto[]; conflictos: readonly Diagnostico[] } {
+function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararTiempo: (a: Id, b: Id) => number, continuidad?: EnlaceProcedimental): { enlaces: readonly EnlaceVisto[]; conflictos: readonly Diagnostico[] } {
     if (grupo.length === 1) return { enlaces: grupo, conflictos: [] };
     const hechos = grupo.map(v => v.enlace as EnlaceProcedimental);
     const resultados = hechos.filter(e => e.tipo === 'resultado');
@@ -177,7 +178,7 @@ function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararT
     const cantidad = (es: readonly EnlaceProcedimental[]) => new Set(es.map(e => idx.abanicoDeEnlace.get(e.id) ?? e.id)).size;
     const codigos: ('precedencia-invalida' | 'conflicto-resultado-consumo')[] = [];
     if (cantidad(resultados) > 1 || cantidad(consumos) > 1) codigos.push('precedencia-invalida');
-    if (resultados.length && consumos.length) codigos.push('conflicto-resultado-consumo');
+    if (resultados.length && consumos.length && !continuidad) codigos.push('conflicto-resultado-consumo');
     if (codigos.length) {
         const retenidos = colapsarRamas(grupo.filter(v => v.enlace.tipo === 'resultado' || v.enlace.tipo === 'consumo'), idx);
         const primeros = new Set(retenidos[0]!.hechos);
@@ -190,9 +191,14 @@ function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararT
             return { ...v, enlace, clave: clave(enlace), hechos: ids };
         });
         const conflictos = codigos.map((codigo): Diagnostico => ({ codigo, regla: codigo === 'precedencia-invalida' ? 'R-PREC-1' : 'R-PREC-3',
-            severidad: 'error', familia: 'gramatical', mensaje: codigo === 'precedencia-invalida' ? 'Precedencia transformadora inválida al abstraer.' : 'Resultado y consumo sin continuidad trazable.',
+            severidad: codigo === 'precedencia-invalida' ? 'error' : 'warning', familia: 'contencion', mensaje: codigo === 'precedencia-invalida' ? 'Precedencia transformadora inválida al abstraer.' : 'Resultado y consumo sin continuidad trazable.',
             accion: 'Corregir el nivel hijo', refs: retenidos.flatMap(v => v.hechos.map(id => ({ tipo: 'enlace' as const, id }))), opd }));
         return { enlaces, conflictos };
+    }
+    if (continuidad) {
+        const ids = grupo.flatMap(v => v.hechos);
+        const enlace = { ...continuidad, id: ids[0]! };
+        return { enlaces: [{ clave: clave(enlace), enlace, hechos: ids, abstraido: true }], conflictos: [] };
     }
     const tipo: EnlaceProcedimental['tipo'] = resultados.length ? 'resultado' : consumos.length ? 'consumo'
         : hechos.some(e => e.tipo === 'efecto') ? 'efecto' : hechos.some(e => e.tipo === 'agente') ? 'agente' : 'instrumento';
@@ -297,4 +303,135 @@ function colecciones(m: Modelo, o: Opd): Vista['incompletas'] {
         if (!lista.has(key)) lista.set(key, { refinable: e.refinable, relacion: e.tipo, declarada: false });
     }
     return [...lista.values()];
+}
+
+/** R-PREC-2 no usa los extremos ya abstraídos para probar identidad ni continuidad.
+ * Las bandas ordenan los hechos una vez; el árbol original distingue secuencia de paralelo. */
+function continuidadesTrazables(m: Modelo, idx: Indice, grupos: readonly (readonly EnlaceVisto[])[]): ReadonlyMap<readonly EnlaceVisto[], EnlaceProcedimental> {
+    type R = Extract<EnlaceProcedimental, { tipo: 'resultado' }>;
+    type C = Extract<EnlaceProcedimental, { tipo: 'consumo' }>;
+    interface Candidato { grupo: readonly EnlaceVisto[]; r: R; c: C; orden: EnlaceProcedimental[]; consultas: number[] }
+    const candidatos: Candidato[] = [];
+    for (const grupo of grupos) {
+        const originales = grupo.flatMap(v => v.hechos.map(id => m.enlaces[id])).filter((e): e is EnlaceProcedimental => e !== undefined && esProcedimental(e));
+        const rs = originales.filter((e): e is R => e.tipo === 'resultado'), cs = originales.filter((e): e is C => e.tipo === 'consumo');
+        // Un fan con alternativas no acredita una única trayectoria de estados.
+        if (rs.length !== 1 || cs.length !== 1) continue;
+        const r = rs[0]!, c = cs[0]!, objeto = m.cosas[r.objeto];
+        if (objeto?.tipo !== 'objeto' || r.objeto !== c.objeto || r.estado === undefined || c.estado === undefined) continue;
+        const propio = (estado: Id) => idx.estadoDe.get(estado)?.objeto === r.objeto;
+        if (!propio(r.estado) || !propio(c.estado)) continue;
+        if (originales.some(e => e.objeto !== r.objeto || e.tipo === 'efecto' && (e.entrada === undefined || e.salida === undefined || !propio(e.entrada) || !propio(e.salida)))) continue;
+        candidatos.push({ grupo, r, c, orden: [], consultas: [] });
+    }
+    const resultado = new Map<readonly EnlaceVisto[], EnlaceProcedimental>();
+    if (!candidatos.length) return resultado;
+    let tiempos = tiemposMemo.get(m);
+    if (!tiempos) { tiempos = ordenarBandas(m, idx); tiemposMemo.set(m, tiempos); }
+    const entradas: { candidato: Candidato; enlace: EnlaceProcedimental; rango: number }[] = [];
+    for (const candidato of candidatos) for (const v of candidato.grupo) for (const id of v.hechos) {
+        const e = m.enlaces[id];
+        if (!e || !esProcedimental(e) || !['resultado', 'consumo', 'efecto'].includes(e.tipo)) continue;
+        entradas.push({ candidato, enlace: e, rango: tiempos.get(e.proceso) ?? 0 });
+    }
+    for (const x of ordenarRangos(entradas)) x.candidato.orden.push(x.enlace);
+    const consultas: { a: Id; b: Id }[] = [], preparados: Candidato[] = [];
+    for (const candidato of candidatos) {
+        const { r, c, orden } = candidato;
+        if (orden[0]?.id !== r.id || orden.at(-1)?.id !== c.id) continue;
+        let estado = r.estado, coherente = true;
+        for (const e of orden.slice(1, -1)) {
+            if (e.tipo !== 'efecto' || e.entrada !== estado) { coherente = false; break; }
+            estado = e.salida;
+        }
+        if (!coherente || estado !== c.estado) continue;
+        for (let i = 1; i < orden.length; i++) {
+            candidato.consultas.push(consultas.length);
+            consultas.push({ a: orden[i - 1]!.proceso, b: orden[i]!.proceso });
+        }
+        preparados.push(candidato);
+    }
+    const anteriores = secuenciaOriginal(m, idx, consultas);
+    for (const candidato of preparados) {
+        if (!candidato.consultas.every(i => anteriores[i])) continue;
+        const { r, c, grupo, orden } = candidato;
+        // El resultado no es entrada de control; tampoco lo son habilitadores absorbidos.
+        const entradas = orden.filter(e => e.tipo === 'consumo' || e.tipo === 'efecto');
+        const fuerte = entradas.reduce((a, b) => fuerzaControl(b) > fuerzaControl(a) ? b : a);
+        const control = 'control' in fuerte ? fuerte.control : undefined;
+        const visto = grupo.find(v => esProcedimental(v.enlace))!.enlace as EnlaceProcedimental;
+        const mult = c.mult ?? r.mult;
+        resultado.set(grupo, { id: grupo[0]!.hechos[0]!, tipo: 'efecto', objeto: r.objeto, proceso: visto.proceso,
+            entrada: r.estado!, salida: c.estado!, ...(control ? { control } : {}), ...(mult ? { mult } : {}) });
+    }
+    return resultado;
+}
+
+/** Radix estable: siete dígitos base 256 cubren todos los enteros seguros de Number.
+ * División (sin coerción bitwise) conserva los mismos rangos y sus empates. Las pasadas
+ * recorren sólo hechos y 256 contadores, nunca los huecos hasta el mayor rango. */
+function ordenarRangos<T extends { readonly rango: number }>(elementos: readonly T[]): readonly T[] {
+    if (elementos.length < 2) return elementos;
+    let actual = [...elementos], divisor = 1;
+    for (let pasada = 0; pasada < 7; pasada++, divisor *= 256) {
+        const posiciones = Array<number>(256).fill(0);
+        const digito = (e: T) => Math.floor(e.rango / divisor) % 256;
+        for (const e of actual) posiciones[digito(e)]!++;
+        let inicio = 0;
+        for (let i = 0; i < posiciones.length; i++) {
+            const cantidad = posiciones[i]!; posiciones[i] = inicio; inicio += cantidad;
+        }
+        const siguiente = Array<T>(actual.length);
+        for (const e of actual) siguiente[posiciones[digito(e)]!++] = e;
+        actual = siguiente;
+    }
+    return actual;
+}
+
+const secuenciasMemo = new WeakMap<Modelo, (a: Id, b: Id) => boolean>();
+/** Dos órdenes del bosque original: las bandas no cambian de orden, sólo se invierten
+ * miembros paralelos en la segunda pasada. Componente e intervalos excluyen raíces
+ * ajenas y ancestros. Preparación iterativa compartida O(D+P); consulta O(1). */
+function secuenciaOriginal(m: Modelo, idx: Indice, consultas: readonly { a: Id; b: Id }[]): readonly boolean[] {
+    if (!consultas.length) return [];
+    let anterior = secuenciasMemo.get(m);
+    if (!anterior) {
+        const bandas = new Map<Id, readonly (readonly Id[])[]>();
+        for (const id of idx.preorden) {
+            const o = m.opds[id]!;
+            if (o.tipo === 'descomposicion') bandas.set(o.cosa, o.bandas);
+        }
+        const raices = [...bandas.keys()].filter(id => !idx.subprocesoDe.has(id));
+        const primero = new Map<Id, number>(), segundo = new Map<Id, number>(), fin = new Map<Id, number>(), componente = new Map<Id, Id>();
+        type Paso = { id: Id; raiz: Id; salida: boolean };
+        for (const invertir of [false, true]) {
+            const orden = invertir ? segundo : primero, pendientes: Paso[] = [];
+            for (let i = raices.length - 1; i >= 0; i--) pendientes.push({ id: raices[i]!, raiz: raices[i]!, salida: false });
+            let posicion = 0;
+            while (pendientes.length) {
+                const { id, raiz, salida } = pendientes.pop()!;
+                if (salida) { if (!invertir) fin.set(id, posicion); continue; }
+                orden.set(id, posicion++);
+                if (!invertir) componente.set(id, raiz);
+                pendientes.push({ id, raiz, salida: true });
+                const hijos = bandas.get(id) ?? [];
+                for (let b = hijos.length - 1; b >= 0; b--) {
+                    const miembros = hijos[b]!;
+                    if (invertir) {
+                        for (let i = 0; i < miembros.length; i++) pendientes.push({ id: miembros[i]!, raiz, salida: false });
+                    } else {
+                        for (let i = miembros.length - 1; i >= 0; i--) pendientes.push({ id: miembros[i]!, raiz, salida: false });
+                    }
+                }
+            }
+        }
+        anterior = (a, b) => {
+            const x = primero.get(a), y = primero.get(b), u = segundo.get(a), v = segundo.get(b);
+            if (x === undefined || y === undefined || u === undefined || v === undefined || componente.get(a) !== componente.get(b)) return false;
+            if (x <= y && y < fin.get(a)! || y <= x && x < fin.get(b)!) return false;
+            return x < y && u < v;
+        };
+        secuenciasMemo.set(m, anterior);
+    }
+    return consultas.map(({ a, b }) => anterior(a, b));
 }

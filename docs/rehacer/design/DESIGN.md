@@ -1430,7 +1430,7 @@ export type CodigoDiagnostico = (typeof CATALOGO)[number]['codigo'];   // unión
 | `estado-duplicado` | T-015 | error | identidad | dos estados de un objeto con la misma clave | `renombrarEstado` a sugerido |
 | `estado-fuera-de-lexico` | T-025 | error | gramatical | nombre de estado fuera del léxico | `renombrarEstado` a sugerido |
 | `etiqueta-fuera-de-lexico` | R-OPL-SE-1, EBNF `frase_no_capitalizada` / `cadena_etiqueta` | error | gramatical | etiqueta fuera de `frase_no_capitalizada` (incluida la que empieza en mayúscula: cubre la «etiqueta estructural no minúscula» de T-266, que `fijarEtiqueta` ya rechaza al nombrar) o ruta fuera de `cadena_etiqueta`; solo llega por import (CC-06) | — |
-| `precedencia-invalida` | AP-30, R-PREC-2 | error | contencion | en la vista del padre colisionan R+R o C+C | — |
+| `precedencia-invalida` | AP-30, R-PREC-1 | error | contencion | en la vista del padre colisionan R+R o C+C | — |
 | `conflicto-resultado-consumo` | R-PREC-3/4 | warning | contencion | colisión R+C sin continuidad de estados | — |
 | `proceso-sin-transformacion` | R-PROC-2, R-OPD-TR-8 | warning | metodologica | sin consumo, resultado ni efecto propio, heredado (DR-43) ni en sus subprocesos | — |
 | `subproceso-sin-transformado` | método A3.1 | warning | metodologica | subproceso sin transformador propio ni heredado | — |
@@ -1652,7 +1652,9 @@ Algoritmo (DR-13, R-VIS-HIJO-1, reglas §6.5/§6.6):
    - entre transformadores rige la matriz 3×3:
      - E+E da E, E+R da R y E+C da C;
      - R+R y C+C dan `precedencia-invalida` y se muestran ambos;
-     - R+C muestra ambos y emite `conflicto-resultado-consumo`;
+     - R+C se recompone como efecto solo con continuidad de identidad y estados trazables
+       (R-PREC-2), conservando la procedencia de los hechos; sin esa evidencia se muestran ambos
+       y se emite `conflicto-resultado-consumo` (R-PREC-3/4), `warning` de `contencion` (§4.4);
    - entre habilitadores, el agente prevalece sobre el instrumento;
    - el control resultante es el de mayor fuerza: evento > sin control > condición.
 
@@ -1664,7 +1666,13 @@ Algoritmo (DR-13, R-VIS-HIJO-1, reglas §6.5/§6.6):
 6. Estados visibles: `¬suprimido ∧ id ∉ aparicion.ocultos`, **salvo** los anclados por un enlace
    visible en ese OPD, que siempre se ven. `suprimirEstado` rechaza ocultarlos, y
    `crearEnlace`/`fijarEstados` los des-suprimen localmente con traza (LF-03).
-7. Memo por `(modelo, opd)` en `WeakMap`; costo O(enlaces) con el índice.
+7. Memo por `(modelo, opd)` en `WeakMap`: consultar la misma vista memoizada cuesta O(1).
+   Para una vista nueva, con el índice básico ya construido, el costo es O(D + P + E + A + S):
+   D OPDs del modelo, P procesos relevantes, E enlaces escaneados, A apariciones de la vista y
+   S estados o entradas ocultos inspeccionados o emitidos. Los auxiliares temporales privados
+   y puros se comparten por identidad de Modelo y se preparan en O(D + P); cada consulta de
+   secuencia cuesta O(1). La construcción fría del índice básico se mide aparte. Se conservan
+   las latencias de §2.4 y todas las pruebas existentes.
 
 **Ley de frontera** (T-089, DR-16). La firma `{(externa, tipo fusionado, estados)}` de los enlaces
 del contenedor en la vista del padre es igual a la fusión de los enlaces entre externos y {contenedor
@@ -4019,6 +4027,7 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
   - `nucleo/enlaces.ts`: WP-3b lo crea y WP-4r le agrega la llamada a `distribuir`;
   - `nucleo/cosas.ts`: WP-3a lo crea y WP-4r le agrega la inserción de subprocesos;
   - `opl/documento.ts`: WP-7 escribe `generarDocumentoOpl` y WP-9 le agrega `importarOpl` (CC-23).
+  - `nucleo/proyeccion.ts`, `nucleo/proyeccion.test.ts` y `nucleo/frontera.test.ts`: WP-4p produce proyección y leyes; WP-5 integra en serie continuidad R+C y metadata de conflictos conforme a §4.4/§4.6, sin retirar cobertura previa.
   - `nucleo/resultado.test.ts`: WP-3a completa en serie la exportación `violacionesForma` del doble aislado de transacción con una guarda que falla si se invoca; conserva íntegros casos, cuerpos y expectativas de WP-1. WP-3b agrega únicamente `violacionesAbanico`, `normalizarEtiquetas` y `violacionesContexto`, con la misma guarda de no invocación y conservación íntegra de los cinco casos.
   - `nucleo/matriz.ts` y `nucleo/propiedades.test.ts`: WP-2 produce la consulta, WP-3b comprueba
     propiedades sin refinamientos y WP-4r integra el hook de distribución y amplía propiedades.
@@ -4039,7 +4048,7 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 | **WP-18** | Despliegue (sin desplegar) | `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `deploy/{deploy.sh,deploy.test.ts,respaldo.sh}`, `deploy/systemd/opforja-respaldo.*`; `app/{package.json,vite.config.ts,playwright.config.ts}` (compartidos seriales de andamiaje) | §9 | WP-0 (redacción); la verificación de imagen necesita WP-11 y WP-14 | `bun test ../deploy` al cerrar · `docker compose build` correcto en local y la imagen sin `src/`, pruebas ni `node_modules` **cuando existan `servidor/` y `main.tsx`** (se verifica en la ola 4 o en WP-19; antes `vite build` no tiene entrada, CC-23) |
 | **WP-3a** | Operaciones: cosas y estados | `nucleo/{cosas,estados}.ts`; `nucleo/resultado.test.ts` (ajuste serial mínimo del doble aislado: exportación `violacionesForma` con guarda de no invocación) | §4.2 (cosas, estados) | WP-2, WP-4p (`suprimirEstado` consulta la visibilidad de enlaces anclados, CC-23) | `cosas.test`, `estados.test`: éxito, rechazo con código, trazas, ids, deshacer; T-062, T-063, T-065, T-081, T-248, T-251, **DS-5** (`tiene-refinamiento`), **DS-6** (última aparición), selección múltiple, DS-20 |
 | **WP-3b** | Operaciones: enlaces y abanicos | `nucleo/{enlaces,abanicos}.ts`, sus pruebas y `nucleo/propiedades.test.ts`; `nucleo/resultado.test.ts` (ajuste serial mínimo: tres exportaciones del doble aislado con guarda de no invocación; casos/cuerpos/expectativas WP-1 intactos) | §4.2 (enlaces, abanicos), `reanclarExtremo`, alternativas del segundo gesto | WP-2, WP-4p (`crearEnlace` muestra el estado oculto donde el enlace se ve, CC-23) | `enlaces.test`, `abanicos.test`: `crearEnlace` con `abanicoCon`, `fijarEstados` (4 formas), `reanclarExtremo` (todas las familias, T1→TS1, T-250), `eliminarEnlaces` (mitad escindida ⇒ standalone; `valor` huérfano retirado, CC-03), exhibición que propaga lo ambiental (CC-02), T-066 · `propiedades.test` (`tiposLegales` ≡ `crearEnlace`, sobre 3 modelos de muestra de `constructores` y 50 de `azar` sin refinamientos, con etiquetas completas, pendientes no persistibles y normalización con traza; integración refinada en WP-4r/B-28; sin secuencias de operaciones de WP-3a) |
-| **WP-5** | Diagnóstico y gates | `nucleo/diagnostico.ts` | `CATALOGO`, `diagnosticar`, `gatesExportacion`, reparaciones | WP-2, WP-4p | `diagnostico.test`: cada código con un caso positivo y uno negativo, y cada `reparacion` es una `Accion` bien formada (que aplicada lo resuelve se prueba en `reparaciones.test` de WP-4r, que ya tiene todas las operaciones, CC-23); T-260, T-261, T-263 (un solo código, con herencia y subprocesos), T-265, T-268, T-283 |
+| **WP-5** | Diagnóstico y gates | `nucleo/diagnostico.ts`, `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}` (compartidos seriales para continuidad R+C y metadata) | `CATALOGO`, `diagnosticar`, `gatesExportacion`, reparaciones | WP-2, WP-4p | `diagnostico.test`: cada código con un caso positivo y uno negativo, y cada `reparacion` es una `Accion` bien formada (que aplicada lo resuelve se prueba en `reparaciones.test` de WP-4r, que ya tiene todas las operaciones, CC-23); T-260, T-261, T-263 (un solo código, con herencia y subprocesos), T-265, T-268, T-283; T-085/T-089 continuidad R+C directa, R→E→C y anidada secuencial acreditada por hechos/estados originales; negativos de cadena rota y anidado paralelo, firma de estados, IDs/procedencia, pureza, anclajes visibles y 12 fuerzas sin pérdidas; conservar 9 celdas, negativos y ley/oráculo independiente de frontera; metadata §4.4 con igual cobertura |
 | **WP-7** | OPL: generación | `opl/{vocabulario,linea,plantillas,generar}.ts`; `opl/documento.ts` (`generarDocumentoOpl`) | `PLANTILLAS` (con `hacia`), `generarBloque`, `generarModelo`, `textoCanonico`, `lineaDeEnlace` | WP-4p | `vocabulario/plantillas/generar.test`: T-100…T-139 de la tabla §12.6; RF2b sin coma; RFE; mención mínima; ids de línea estables; unidades es-CL |
 | **WP-8b** | OPD: escena, dibujo, export | `opd/{escena,dibujo,exportar}.ts`, `opd/__golden__/**` | `escena`, `dibujar`, `aTexto`, `exportarDiagrama`, `exportarDocumento`, `advertenciasEscena` | WP-4p, WP-8a, WP-6 (los golden del SD y de un OPD profundo de cada fixture importan v0, CC-23); gates tras WP-5 | `escena/exportar/golden.test`: 40 golden revisados **visualmente** uno a uno (SYNTHESIS §8-5); T-200…T-228 de la tabla §12.6; `@font-face` en el export |
 | **WP-4r** | Refinamiento (operaciones) | `nucleo/refinamiento.ts`; hook de `distribuir` en `nucleo/enlaces.ts` y de subproceso en `nucleo/cosas.ts`; hook de ensayo en `nucleo/matriz.ts`; ampliación `nucleo/propiedades.test.ts` | §4.5 (`descomponer`, `agregarSubprocesos`, `moverSubproceso`, `fijarBandas`, `desplegar`, `agregarRefinadores`, `eliminarRefinamiento`, `distribuirEnlace`) | WP-3a, WP-3b, WP-5 (para `reparaciones.test`) | `refinamiento.test`: tabla §4.5.3 fila por fila, incluida DS-4; T-070…T-083; sin semillas; un `gesto`; materialización · `secuencias.test` (200 semillas × 40 acciones de `azar.acciones`, incluidas las de refinamiento: `validarForma` vacía, sin errores de contexto nuevos, entrada sin mutar) · `reparaciones.test` (cada reparación de `CATALOGO` y `REGLAS_CONTEXTO`, aplicada con `aplicarAccion`, hace desaparecer su diagnóstico) · `propiedades.test`: consulta ≡ creación por resultado efectivo de distribución real compartida con reparación; 0/1/≥2 subprocesos, TS3/control/abanico, evento, recursión, aparición externa, colisión, rollback y DS-20 contra original; cierre de integración N de B-28 en WP-4r/H2 |
