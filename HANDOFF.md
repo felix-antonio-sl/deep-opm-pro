@@ -1,8 +1,34 @@
 # OpForja rehecho — tablero único
 
-Estado: WP-0, WP-1, WP-2, WP-4p, WP-6, WP-8a, WP-11, WP-3a y WP-3b cerrados y publicados. WP-18 cerró su turno de redacción con check y revisión verdes; su aceptación de imagen sigue NO_EJECUTADO y diferida tras WP-14. WP-5 aceptado técnicamente: diagnóstico/gates y reparación R+C/B-29, ampliación formal de coste autorizada/aplicada, reparación A–D con check íntegro nuevo 882/0, focal 170/0 y revisión independiente 158/0 sin reservas materiales. El commit y la publicación WP-5 se ejecutan después de este recibo de aceptación, con su permiso separado. H1 recertificado en su alcance de contratos/matriz/proyección/códec/geometría/servidor y seis fixtures; B-28 refinada y la imagen WP-18 mantienen sus condiciones futuras. Sigue WP-7 en orden serial. H2/H3 pendientes. WP-10/17 y DS-20/WP-4r/VAL/WP-9 están autorizados sólo para sus turnos; los payloads previos se preservan.
+Estado: WP-0, WP-1, WP-2, WP-4p, WP-6, WP-8a, WP-11, WP-3a y WP-3b cerrados y publicados. WP-18 cerró su turno de redacción con check y revisión verdes; su aceptación de imagen sigue NO_EJECUTADO y diferida tras WP-14. WP-5 aceptado técnicamente: diagnóstico/gates y reparación R+C/B-29, ampliación formal de coste autorizada/aplicada, reparación A–D con check íntegro nuevo 882/0, focal 170/0 y revisión independiente 158/0 sin reservas materiales. WP-5 publicado como 77f484907c7678c72485246c965ddbfa00d532c7, con HEAD/origin/remoto exactos, 0/0 y árbol limpio al cerrar. H1 recertificado en su alcance de contratos/matriz/proyección/códec/geometría/servidor y seis fixtures; B-28 refinada y la imagen WP-18 mantienen sus condiciones futuras. WP-7 aceptado técnicamente con B-32 reparado, check1081/0 y revisión global98/0 favorables; commit/publicación serial se verifican después de este recibo. Esta orden termina al cierre verificado de WP-7 y no inicia otros paquetes. H2/H3 pendientes. WP-10/17 y DS-20/WP-4r/VAL/WP-9 están autorizados sólo para sus turnos; los payloads previos se preservan.
 Rama `rehacer`; base y tag `pre-rehacer`: `513ac041`. La directora creó/publicó rama y tag.
-WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. La directora publica un commit por paquete.
+WP-0: `b9d94180b5f587cdf125d8c4fabcf26edb5917c3`. Se conserva un commit semántico por paquete. La autorización específica serial del usuario, aportada por el padre y registrada abajo, permite publicar en origin/rehacer sólo después de pruebas completas, revisión independiente favorable y aceptación de cada paquete.
+
+WP-7 actual: ACEPTADO TÉCNICAMENTE por dirección en su alcance vigente.
+DOC63 B-32 exacto fue registrado/aplicado antes de código; reparación única
+conserva el estado común explícito por identidad, ausencia básica y heterogeneidad
+sin pérdidas. RED nativo4/7→GREEN11/0, focal200/0/TSC0, check íntegro NUEVO1081/0,
+363567 expectativas/39 archivos, cero skips; freeze6 quieto con10 fuentes/copias
+conformes. Revisión independiente global98/0 y dictamen e2477e6f… favorables;
+revisión factual V2 a1ac5e54… favorable y aplicada exactamente, con verificación
+postintegración. Los cinco oráculos históricos fueron corregidos por primarias
+y callbacks completos observados; histórico75/7 y RED0/2 conservados íntegros.
+
+Conformidad mantiene27 filas:23parcial,3zona laxa y B-32 enforzado exclusivamente
+en G. Las25 filas ajenas son byteexactas; reglas/superficies/otros26estados
+preservados. B-31 permanece LOCAL NO_CANONIZADA/parcialG·P·X, inversa/política
+WP-9 futura; DR-13/R+C/abstracción conservan límites de cobertura y demás
+superficies. Canon/DECISIONS/CANON protegidos19/19 sin cambios.
+
+Publicación serial WP-7 autorizada: las condiciones técnicas ya se cumplieron.
+Un commit semántico y push origin/rehacer se ejecutan DESPUÉS de este recibo
+y se verifican en recibo externo WP-7-publicacion-verificada.json y mensaje
+final, sin segundo commit para insertar el SHA del propio commit. El commit
+se localiza por el título único «feat(opl): generar OPL trazable por OPD y
+documento (WP-7)» en rehacer, como establece el patrón de cierre de este tablero.
+No se declara publicación observada antes de efectuar/verificar ese paso.
+Al verificarla, STOP WP-7: no iniciar WP-8b ni otro paquete. H2/H3 pendientes.
+No main/merge/tag/deploy/infra/credenciales/instalaciones/PG real/Docker.
 
 ## Autoridad y continuidad
 
@@ -31,8 +57,8 @@ restricción local correspondía al incremento delegado anterior, cuyo recibo se
 | 7 | WP-18 | Cerrado turno de redacción: scripts/check/revisión verdes; imagen pendiente tras WP-14 | `978605960ff405b5cd50aa7a5fb673703ad4c286` |
 | 8 | WP-3a | Cerrado: 21 operaciones, check 646/0 y revisión independiente de 69 casos verdes; ajuste mínimo autorizado aplicado; integración refinada espera WP-4r | `e9a849cea53786149ab288e9f86b098a5f59f33c` |
 | 9 | WP-3b | Cerrado: HAR exacto autorizado, check íntegro nuevo 790/0 y revisión independiente favorable; 153 sondas conservadas, seis huellas verificadas; distribución refinada espera WP-4r | `1f3ec7f0fe5361e60a82c8a2d57b7fe525dc46d1` |
-| 10 | WP-5 | Aceptado: diagnóstico/gates, R+C trazable y coste formal A–D; check 882/0, focal 170/0 y revisión independiente 158/0; publicación condicionada validada | Commit semántico WP-5; SHA se registra al iniciar WP-7 |
-| 11 | WP-7 | Pendiente | — |
+| 10 | WP-5 | Cerrado y publicado: diagnóstico/gates, R+C trazable y coste formal A–D; check 882/0, focal 170/0 y revisión independiente 158/0 | `77f484907c7678c72485246c965ddbfa00d532c7` |
+| 11 | WP-7 | Aceptado: generación G, HAR/FAN local/B-32, RED4/7→GREEN11/0, focal200/0, check1081/0/TSC0, revisión global98/0 y factual favorables. 27 filas preservadas; B-32 enforzado sóloG, B-31 parcial. Publicación condicionada ya validada; STOP tras verificar | Commit semántico WP-7 por título único; SHA exacto en recibo de publicación/mensaje final |
 | 12 | WP-8b | Pendiente | — |
 | 13 | WP-4r | Pendiente | — |
 | 14 | WP-9 | Pendiente | — |
@@ -3173,3 +3199,1394 @@ Publicación aún no ejecutada en este evento. El permiso específico separado
 05:21 UTC se hará efectivo para este candidato aceptado; se verificará igualdad
 del SHA remoto exacto, HEAD y origin/rehacer, sin main/tag/deploy. El SHA propio
 se registra al iniciar el siguiente paquete para conservar un commit por paquete.
+
+### WP-5 — publicación verificada y continuidad WP-7
+
+Evento de publicación DESPUÉS de aceptación. Commit semántico único
+77f484907c7678c72485246c965ddbfa00d532c7, feat(nucleo): diagnóstico y gates con
+proyección trazable (WP-5), diez archivos. Git push origin rehacer terminó exit0.
+Lectura remota explícita confirmó EXACTAMENTE ese SHA en refs/heads/rehacer;
+HEAD y origin/rehacer iguales, rev-list 0/0 y git status limpio al cerrar. Main,
+origin/main, pre-rehacer y sus refs remotas permanecen
+513ac041f6eb91dc8bf0eb5319a492eb6ff25f6d. Sin main/merge/deploy ni Docker/PG.
+Se hizo efectivo sólo el permiso específico de publicación WP-5 ya registrado;
+esta evidencia no agrega permisos para otro acto.
+
+Este registro de SHA y publicación inicia la continuidad WP-7, preservando un
+commit por paquete sin reescribir el commit publicado. La directora retoma el
+orden original y la misma escritora; WP-7 leerá sus lecturas, escribirá pruebas y
+observará RED antes de sustituir stubs. Revisión independiente preparada:40
+objetivos T-100…T-139 y cuatro conjuntos FAN5A, todavía NO_EJECUTADOS. No se
+acredita por WP-5 generación/parseo/roundtrip ni H2/H3. WP-10/17 sólo sus turnos.
+
+### Procedencia directa del mandato original de commit/push por paquete
+
+Verificación solicitada por supervisión, sin nueva aprobación ni consulta privada.
+La instrucción consta en el mensaje ORIGINAL visible de esta conversación, con
+role=user, antes de las continuidades y propuestas. Cita literal de ese mensaje:
+
+> Cierra los paquetes uno a la vez, en el orden lineal del plan, con un commit semántico por paquete y push a origin/rehacer.
+
+La misma instrucción directa fija trabajo en rehacer, checks/aceptación por paquete
+y límites operativos; el mandato se conserva con esas condiciones. Esta cita se
+obtiene del contenido role=user visible, no de resumen, plan, memoria o agente.
+Para ese mensaje original no se exponen ID ni fecha en el mecanismo disponible;
+no se asignan los del hilo, la fecha del reloj o los de otro mensaje. No se leyeron
+sesiones privadas ni credenciales para acreditarlo.
+
+El permiso coordinado y verificado WP-5 tiene su procedencia/alcance separado y
+no se amplía por inferencia. Para otras publicaciones se conserva únicamente el
+mandato explícito original por paquete, con pruebas, revisión y aceptación antes
+del push, mientras siga vigente. Esta verificación no aporta permiso nuevo ni
+revoca uno real. Continúa ejecución local WP-7 por la misma escritora; toda
+limitación nueva se presentará con resultado revisable antes del acto afectado.
+
+
+### Publicaciones posteriores a WP-5 — condición vigente de procedencia primaria
+
+Instrucción pública nueva del padre, role=user: la cita literal y declaración de
+un agente no sustituyen la verificación independiente del mensaje inicial real.
+El padre informa que cloud_threads.read fue rechazado por placement format
+version2 y que el ejecutor no expone una lectura primaria soportada del hilo.
+Son datos aportados por el padre; esta directora no presenta ese intento como
+una llamada propia ni asigna un ID o fecha que el mecanismo no expone.
+
+La cita original de la sección anterior se conserva como contenido visible y
+memoria de la instrucción, pero no satisface por sí sola esta condición adicional.
+Los pushes posteriores a WP-5 quedan PENDIENTES DE CONFIRMACIÓN mediante lectura
+soportada primaria o autorización específica. Esta condición prevalece sobre la
+conclusión operativa anterior acerca de efectuar futuros pushes. WP-5 publicado
+y verificado mantiene su autoridad y resultado; no se repite su publicación.
+
+Continúa WP-7 local, pruebas, freeze y revisión, con una única escritora. Los
+resultados se preparan para revisión e integración por el padre. No se pide una
+nueva acción al usuario desde este hilo. Las resoluciones WP-10/17 siguen
+limitadas a sus turnos y no aportan permiso de publicación. Se preservan todos
+los límites operativos y no se accede a sesiones privadas o credenciales.
+
+### WP-7 — RED real inicial y propuesta acotada HAR-7
+
+Dirección observó WP-7-RED-inicial.log/.exit: exit 1, 1 pass / 53 fail,
+5 expectativas, 54 casos en cuatro archivos, 53 ms. Las suites cargan y los
+fallos alcanzan los stubs reales WP-7; el único GREEN conserva importarOpl
+pendiente de WP-9. La escritora continúa dentro de los archivos propietarios,
+con expectativas literales antes de implementar cada capacidad.
+
+El smoke contratos.test.ts de WP-1 exige que las seis funciones sigan pendientes.
+WP-7 debe realizar cinco de ellas y WP-9 realiza la restante. El archivo no está
+declarado compartido serial en DESIGN §12.1/§12.2 ni en archivos de plan.json;
+DESIGN §12.5.1 y README protocolo 3 limitan la propiedad. Se conserva intacto el
+archivo real y se prepara esta resolución precisa, sin aplicarla:
+
+- DOC: /tmp/opforja-rehacer/WP-7-propuesta-HAR-7-documental.patch, 53 líneas,
+  SHA-256 44a11fa59db60cee7f7cec57a664de4b4fa5b631047046334fd89ce06a7d1628.
+  Declara propiedad serial mínima de WP-7 para cinco expectativas temporales de
+  generación y WP-9 únicamente para la expectativa restante de importarOpl.
+- Ejecutable WP-7 separado: /tmp/opforja-rehacer/WP-7-propuesta-HAR-7-ejecutable.patch,
+  25 líneas, SHA-256 a0ffe5201bcf6068fbd1600e986a6f1a106b1c40875f6e8c346af422071aabc1.
+  Preserva imports, seis asignaciones de firmas y bucle typeof literalmente;
+  fija checks manuales del modelo vacío y mantiene importarOpl pendiente.
+- Informe 8ef8d4bd3ca5e46b49a3824b1d1f9ffc5317ce35e64bb86d9cbd734cf5a0cc2b;
+  evidencia 45e29184bcfeb95931303328c0a6c961ddd25d3529010de69e4736b59ea726be;
+  manifest 7f0b9369536060821406baa81cc1e27c2b1cc1875d692881a3acab10bdc7945e.
+
+Dirección leyó los cinco artefactos completos. La propuesta deriva sus checks de
+contrato y constructor estables; no leyó implementación móvil ni oráculos
+independientes. Aplicación y reversión en memoria acreditan preservación de los
+cuatro archivos base y JSON válido; cero ejecuciones de HAR-7, sin RED/GREEN
+atribuido a la propuesta. Revisión independiente documental activada, aún
+pendiente. El cambio contractual y el test real quedan sin aplicar hasta su
+resolución. Se entrega a coordinación del padre sin solicitar una acción nueva
+al usuario desde este hilo; el resto de WP-7 local sigue avanzando.
+
+
+### HAR-7 — revisión independiente y precisión de título, pendientes de resolución
+
+Dirección leyó íntegros el dictamen inicial independiente y su evidencia,
+SHA-256 1483ef3a4fc1d0b8ae4dc14b94dbf3c3dc47f7a7ee372d1fc5a1ea1373f50a9b
+ y 6d2fbb76ac2c8731e7da4e705405f609f085d8f8d9c39d53bc1c97aaa81bdc1e.
+La revisión confirma que la transferencia genérica de stubs no asigna de forma
+inequívoca este test transversal a WP-7/WP-9 y que se necesita declarar propiedad
+serial. Los checks manuales vacíos son coherentes con el contrato; no sustituyen
+la cobertura funcional del paquete. Verificó siete hunks y preservación en
+memoria, con cero ejecuciones, sin atribuirse autoridad para aplicar.
+
+Dirección detectó una precisión de continuidad y la revisora la confirmó: el
+título «importación pendiente» quedaría falso al realizar WP-9 si este paquete
+sólo recibe la expectativa restante. La versión propuesta vigente conserva
+T-100 y usa «contratos OPL conservan las seis firmas y verifican su comportamiento».
+No requiere ampliar la propiedad futura ni cambiar un expected. El dictamen
+inicial se conserva junto con esta reserva, sin ocultar su estado provisional.
+
+Se conserva DOC original de 53 líneas, SHA-256
+44a11fa59db60cee7f7cec57a664de4b4fa5b631047046334fd89ce06a7d1628.
+Ejecutable vigente propuesto: WP-7-propuesta-HAR-7-ejecutable-titulo-neutral.patch,
+25 líneas, SHA-256 7fa15e75aff77feee87e995a69a50678de1cc2ff62dcb1e87d8b5b0e90024d62.
+Candidato scratch f40c3b0b57fb97c0c2853027ab3bd669c1fa180848e9a08bd7573d338f2c7974;
+manifest 2173ddf3621c43c34a68ac61d33d8b9a18468d709bc34638af68009c8370027c.
+Los anteriores se preservan literalmente; el único delta es el título. Dirección
+observó git apply --check exit 0 para DOC y ambos ejecutables, sin aplicarlos.
+El archivo real sigue byteexacto, SHA-256
+5dc46ea1dc00cfef80f071d455f053fadae323ee259a9f3619b2bb2d2a959672.
+La revisora verifica ahora esa precisión para cerrar su dictamen de propuesta.
+
+Pendiente resolución documental: no se actualiza DESIGN/README/plan ni el harness
+real. La escritora terminará el producto local y registrará el check íntegro
+vigente, incluso si falla por este smoke; ningún parche temporal o exclusión
+convierte ese resultado en verde. La revisión funcional independiente se hace
+sobre freeze. Aceptación y commit esperan resolución y check íntegro nuevo verde;
+publicación mantiene además la condición primaria separada ya registrada.
+
+
+### HAR-7 — propuesta final revisada, disponible para coordinación del padre
+
+Dictamen independiente final leído completo por dirección, SHA-256
+7cd564db0d3f27fc384ec5992d75fe1a80989bb11c2f9db37058852bdfd19c16;
+evidencia 215df0ae48565d6665fb0ea1ea783148b4426023e030960461a1f7662f10c642.
+Favorable a DOC53 44a11fa59db60cee7f7cec57a664de4b4fa5b631047046334fd89ce06a7d1628
+más ejecutable25 de título neutral
+7fa15e75aff77feee87e995a69a50678de1cc2ff62dcb1e87d8b5b0e90024d62.
+Comparación independiente acreditó delta único de título y resto byteexacto.
+Reserva de continuidad resuelta sin ampliar la propiedad futura WP-9. La
+revisora no repitió siete hunks ni atribuyó el apply-check de dirección como
+propio. Cero ejecuciones de producto/Bun/pruebas; 44 sondas intactas.
+
+Estos dos patches son la versión concreta revisable para coordinación del padre.
+Su recomendación no constituye autorización ni aceptación. Permanecen sin
+aplicar DOC y harness. Continúa WP-7 local por la misma escritora; el bloqueo
+contractual HAR-7 y el de publicación primaria son condiciones distintas.
+
+
+### Procedencia de publicación — intento soportado de dirección sin resultado
+
+El catálogo de herramientas observado ahora por dirección sí expone
+`codex_app__read_thread`, a diferencia de la disponibilidad aportada por el padre
+para su ejecutor. Se intentó una sola lectura soportada del hilo cuyo ID público
+aportó el padre, 01a0fe65-da59-7183-bda8-ab63317680d9, turnLimit 1, sin outputs.
+La llamada y tres esperas sólo devolvieron Script running, cell 91. Se terminó
+la espera del script sin respuesta útil; no se repite la llamada ni se atribuye
+el rechazo placement version2 del padre como error de este intento.
+
+No se obtuvo mensaje original, role=user primario, ID, fecha o autor originales
+por esa herramienta. Metadata disponible no equivale a lectura acreditada.
+Permanece la condición de publicación posterior a WP-5 pendiente de confirmación
+primaria o autorización específica. Evidencia pública acotada:
+/tmp/opforja-rehacer/WP-7-publicacion-lectura-primaria-intento.json.
+No se accedió a rutas privadas o credenciales ni se pidió nueva acción al usuario.
+
+### WP-7 — primer bloque de agrupaciones GREEN, candidato aún móvil
+
+Dirección observó WP-7-GREEN-agrupaciones.log/.exit: 87 pass / 0 fail,
+574 expectativas, cuatro archivos, 80 ms, exit 0. Incluye variantes simples,
+estados, multiplicidad, RF2b sin coma, control, FAN5A de entrada común y contexto
+por bandas. No es freeze, check global ni aceptación. La escritora completa
+restricciones/hacia, especialización incompleta/RH1/RFE y procedencia de plegado.
+Los dos montajes iniciales y sus logs se preservan; las correcciones se concretan
+contra el constructor y el orden de DESIGN, sin presentarlas como RED de producto.
+
+Borde nuevo reportado: el núcleo admite FAN5A de salida común/entradas diferentes
+y DESIGN sólo declara su plantilla de entrada común. La rama afectada está
+pendiente de reproducción y diagnóstico primario independiente. No se introduce
+plantilla o pérdida por inferencia; continúa trabajo independiente con una sola
+escritora. HAR-7 pendiente sigue separado de este borde y de publicación primaria.
+
+
+### WP-7 — preparación de conformidad condicionada, sin evidencia anticipada
+
+Dirección leyó informe fc359021ff4fed2ceb352e13ada5970718692b3436609ed82fe53e6f36208a0d,
+patch61 8633a90a2f38268c77c2705395fee7a6baf99466ead66789fd27f0b908bb24a1
+y evidencia/manifest; recuperó la fila B-26 truncada en la primera salida.
+La propuesta sólo puede incorporarse tras aceptación del freeze y observación
+de cada cláusula. Conserva estados/superficies de las 21 filas actuales y 16
+filas byteexactas. Proyecta evidencia G en B-06/08/19/26/29 y materializa B-09/13/20/27
+ya definidos en inventario, con 25 filas abiertas. No se aplica por esta preparación.
+
+El borde FAN5A de salida común descubierto después exige revisar la suficiencia
+de B-06 antes de aceptar esa fila; el candidato no prueba cobertura total ni
+cierra el hallazgo. Parser, strict, export/UI, DS-10 parcial y latencias WP-10
+conservan sus condiciones futuras. Cero ejecuciones o lectura de producto móvil
+por la preparadora. Los títulos de pruebas se contrastan con CANON/tabla12.6:
+EX es T-115, incompleta T-118, CX por bandas T-125 y ausencia con <2 T-127.
+La corrección de T-IDs conserva cuerpos y expectativas; se preservan originales.
+
+
+### WP-7 — desajuste FAN5A salida común reproducido, rama contractual detenida
+
+Dirección leyó completos propuesta propia, script y JSON de evidencia, además
+del diagnóstico primario independiente cb695b171b49419b11ee9e774f2d63832b919adb5fa691bead3fb7caec976446.
+El modelo sintético tiene e1 entrada a/salida b y e2 entrada b/salida b, fan OR f,
+objeto Pedido y proceso Procesar. Forma [], noOfrecido [null,null] y
+violacionesAbanico [] son resultados reales. La vista conserva ambos enlaces y
+sus hechos, pero no glifo de abanico por los extremos cosa-cosa coincidentes.
+El diagnóstico real sólo emite estado-sin-escritor y nombre-proceso-largo;
+no hay error de este desajuste. El generador móvil conserva D5/D2, omite ambas
+ramas y no ofrece el operador. Esa pérdida de superficie queda expuesta, no
+se atribuye a validez nuclear ni se presenta el input como no ofrecido.
+
+La lectura independiente contrasta matriz 222–228 y DESIGN §4.3.3 (entrada O
+salida común admitidas) con §5.3 y autoridad primaria spec-OPL R-FAN-5A/EBNF,
+que dan entrada común y salidas alternativas para TS3 completo. FAN5e pierde
+salida; FAN5s pierde entradas; genérico pierde anclajes; dos TS3 sueltos pierden
+operador/membresía y DS-10 requiere ruta. No se encontró representación ya
+inequívocamente contratada que conserve el fact-set de este caso.
+
+RED nativo T-124 de conservación real está preservado en
+WP-7-RED-inversas-bordes.log/.exit. Ese intento dio 86 pass / 6 fail:
+dos fallos de montaje de hacia y cuatro defectos alcanzados de producto,
+incluido salida común, RH1, RFE y normalización de bidireccional. No se
+presentan los seis como RED de producto ni se debilita el caso de conservación.
+La rama salida común permanece detenida. Resto de capacidades independientes
+continúa por la única escritora antes de freeze/check/revisión.
+
+Las opciones propias/independientes son PROPUESTAS, no permisos: acreditar una
+superficie bajo canon antes de concretar DESIGN, o delimitar oferta explícita
+y sus consumidores. Restringir la oferta N afectaría positivos históricos
+de WP-2/WP-3b; dirección exige confrontar ese efecto con el mandato de no
+debilitar ninguna prueba, sin avalar una modificación de oráculos por conveniencia.
+Se activó una sonda independiente sólo de núcleo estable con tres estados y
+operadores OR/XOR, sin ejecutar OPL móvil; comprobará admisión/pureza y precisará
+los positivos históricos. La resolución contractual se prepara para el padre,
+sin nueva pregunta al usuario desde este hilo ni cambios de canon/decisiones.
+
+### WP-7 — precisión de secuencia TDD de hacia
+
+La escritora informó que dos tests nuevos tenían alias de importación equivocado
+y sus ramas FAN/CX de hacia se escribieron antes de un RED válido. Se preservaron
+snapshot de tests y fuente prematuros. Retiró sólo esas ramas propias, concretó
+el alias sin alterar expected y observó RED real 1 pass / 2 fail,
+Reconocimiento no definido para FAN5A/CX2, 277 expectativas, 29 ms, exit 1.
+Dirección leyó ese log/exit y el GREEN posterior 3 pass / 0 fail,
+279 expectativas, 29 ms, exit 0. No se oculta el orden inicial incorrecto ni
+se declara TDD perfecto desde el comienzo; la evidencia de montaje y la de
+producto se conservan separadas. La revisión final contrastará estos bytes.
+
+
+### FAN5A salida común — admisión independiente y positivos históricos observados
+
+Dirección leyó completos addendum e6d0b3ebda0751cbe71c6cc65b599adbef00e1fb23687bf223ed57d6535b8deb,
+log/exit y manifest posterior 3aa7c4125d850e35fb2ba45fe21a584d609d029342586a8daacaaf94d7b6fe3f;
+contrastó directamente los dos títulos y cuerpos históricos estables. La sonda
+independiente NUEVA sólo del núcleo dio 2 pass / 0 fail, 46 expectativas,
+un archivo, 46 ms, exit 0. OR/XOR con entradas s-4/s-5 y salida tercera s-6
+pasan forma/firma/contexto/abanico, noOfrecido null, preservan e-20/e-21 y
+anclajes/operador/membresía, input congelado sin mutar. Vista con ambos hechos,
+sin abanicos visibles; diagnóstico real sin errores. No se ejecutó OPL móvil.
+
+Positivos históricos concretos: matriz.test.ts:245 exige null en «T-054 FAN5
+estados entrada común, salida común y prohibición ambas variables»;
+abanicos.test.ts:112–118, «T-054 estados de efecto mismo par: salida común
+permitida, dos dimensiones distintas B-06», exige formar OR real con
+s-3→s-5/s-4→s-5. El segundo caso ya usa tres estados, por lo que el borde no
+se explica por autorretorno del primer montaje. El título de matriz.test.ts:225
+no se cuenta como otro positivo de salida común: su cuerpo sólo comparte entrada.
+
+Queda limitada la opción inicial del diagnóstico independiente: restringir N
+cambiaría null por B-06 y éxito por rechazo en esos oráculos. No es una corrección
+G rutinaria compatible automáticamente con preservarlos ni una autorización
+para debilitar pruebas. Se conserva el dictamen inicial junto a su addendum,
+sin modificar matriz/consumidores/tests ni ampliar contrato por inferencia.
+No se acredita solución G ni aceptación. Rama contractual detenida, resto local
+completándose antes de freeze y revisión funcional.
+
+La revisora comprobó antes/después 36 TS del núcleo byteexactos; dirección
+comprobó sus huellas actuales y las de cuatro artefactos. Las 44 sondas OPL y
+helper originales siguen intactos y pendientes del freeze. No se suman estos
+dos casos a un supuesto GREEN global ni se presenta la propuesta de conformidad
+como evidencia aplicada. HAR-7 y publicación primaria conservan gates separados.
+
+
+### WP-7 — freezes locales, corrección de tipos y T-127
+
+Se conservan todos los candidatos y resultados anteriores. Manifest freeze 1:
+cfa138cbad6b8ab679a83ca34864437d847212eb76bdd3f65468de67255dec2c.
+Su check exit 2 falló en TypeScript antes de ejecutar Bun: dos montajes propios
+extendían el helper tipado Cosa con propiedades exclusivas de Objeto. La
+corrección limitada cambia el tipo de retorno a Objeto y su importación; no
+cambia cuerpos, datos, expectativas ni semántica de producto. Manifest freeze 2:
+dca51a4fbf12714be3519eb4f489ea9dabffa244292da7c72131dcffc1a71abe.
+TypeScript exit 0; check íntegro observado por dirección: 1011 pass / 3 fail,
+362864 expectativas, 1014 tests en 39 archivos, 29,40 s, exit 1.
+Log SHA-256 8b0964874ed00c07f485d7e11f99753b7996a834dbc9e06ae88ef11a136d258c.
+
+Antes de activar revisión funcional se reprodujo un defecto propio T-127:
+dos especializaciones de estado del mismo refinador fabricaban CX3 porque se
+contaban enlaces en vez de identidades de refinador. RED scratch real 0/1,
+2 expectativas, 44 ms; RED nativo real 124/3, 393 expectativas, un archivo,
+100 ms, incluidos los dos RED contractuales conservados. Se deduplican los
+refinadores por id antes del mínimo dos; no se modifica núcleo ni contrato.
+Se añadieron ocho literales RF3/RF3b/RF4/RF4b para objetos y procesos. Estos ocho
+son cobertura adicional, no se presentan como ocho RED de producto anteriores.
+El delta freeze 2→3 sólo contiene esa reparación propia y nueve casos nuevos;
+los cuerpos y expectativas preexistentes permanecen intactos.
+
+Manifest actual freeze 3, SHA-256:
+e2b50cb4fe775e6cb2fb105da9ce0b6b13191c25696d2347e488c88cb009c89c.
+Dirección comprobó 10/10 huellas: cinco fuentes, cuatro suites nuevas y el
+harness histórico intacto. TypeScript exit 0. Focal observado: 139 pass / 2 fail,
+697 expectativas, 141 tests en cuatro archivos, 120 ms, exit 1; T-127 verde.
+Check íntegro nuevo observado: 1020 pass / 3 fail, 362882 expectativas,
+1023 tests en 39 archivos, 29,25 s, exit 1. Log:
+/tmp/opforja-rehacer/WP-7-check-freeze-3.log,
+SHA-256 ca463817e8daaf5c38346bf9dd06aa2cc62f790008328eb21175aeb24ac30186.
+
+Los tres fallos son explícitos y siguen activos: T-123 salida común TS3 omite
+ambos hechos/operador; T-122 objeto común pierde la asociación de estado por
+rama; T-100 smoke histórico todavía exige pendiente en las cinco funciones
+de generación ya realizadas. No se excluye ninguno ni se aplica HAR-7 temporal.
+Check rojo no constituye aceptación, cierre de paquete ni evidencia anticipada
+de conformidad. No hay stage, commit o push WP-7. La revisión funcional
+independiente de 44 sondas originales se activó sobre este freeze quieto; la
+misma escritora espera su dictamen antes de otras reparaciones propias.
+
+
+### WP-7 — segundo borde contractual de abanicos y evidencia independiente
+
+Dirección leyó completos el recibo contractual conjunto de la escritora,
+SHA-256 0b70de5e06ecf038991fa877bd650edd413e3ec02a73191b916983bc7a9960e3,
+y el diagnóstico primario independiente,
+SHA-256 65e2bd4daa0b6e5f5d07556289bd326bb5692f513f61c5b5eb8ebdc08941f414.
+También examinó el script y las ocho filas de evidencia de consumo, resultado,
+agente e instrumento con objeto común y dos procesos: anclajes distintos o uno
+ausente. Forma/firma/abanico válidos y noOfrecido null no autorizan perderlos.
+En consumo, resultado e instrumento el texto aplica el primer estado a ambos
+procesos; con una rama sin anclaje inventa su restricción. Agente omite los
+anclajes. Los hechos conservados en metadata no reparan esa pérdida textual.
+No se extiende esta observación a multiplicidades u otros montajes no probados.
+
+La sonda independiente adicional, exclusivamente de núcleo estable, dio
+7 pass / 0 fail, 171 expectativas, un archivo, 54 ms, exit 0. Cinco montajes
+ofrecidos preservan ambos hechos/anclajes/IDs/operador/membresía y pureza.
+Dos efectos parciales ya son controles B-06/F-5 no ofrecidos con diagnóstico
+real; no se cuentan como capacidades nuevas sin texto. No ejecutó OPL ni check.
+Log SHA-256 b66a002cdc2b64bf133fa80fcbc1c770d84604cbf0dce0cccea9d59fd027cd38;
+manifest posterior 70045995aa4055210806140af17600cde96e90cbd03eed6e40f0da733aefcaeb.
+Dirección verificó los 36 archivos actuales del núcleo y cuatro artefactos
+contra esas huellas. Se conserva aparte el run previo 2/0/46 de salida común.
+
+El diagnóstico contrasta R-FAN-EST-1, que permite estado independiente por rama,
+con el único hueco compartido de las orientaciones afectadas en DESIGN §5.3.
+DS-10 sólo cubre rutas y no resuelve estos casos. Ambas ramas contractuales
+permanecen detenidas: ninguna plantilla nueva, reducción de oferta nuclear,
+política de pérdidas o cambio de oráculos fue autorizado. La coordinación del
+padre dispone de evidencia concreta sin nueva pregunta al usuario desde este
+ejecutor. HAR-7 y la condición de publicación primaria siguen separados.
+
+
+### WP-7 — revisión funcional independiente del freeze 3 en curso
+
+Run único de las 44 sondas originales observado por dirección: 39 pass / 5 fail,
+16544 expectativas, dos archivos, 179 ms, exit 1. Log
+/tmp/opforja-rehacer/WP-7-review-freeze-3-probes44.log,
+SHA-256 63f7d01862320468cf21ddd03aa0780d6a23318171b20f02f0d46187026f16fb.
+Los dos adversarios FAN5A con variación de ambas dimensiones pasan el rechazo
+cerrado y el diagnóstico real; no se sustituyen por los casos contractuales
+de salida común ni se pierden sus oráculos anteriores.
+
+Fallos observados: T-101 D6 difiere en conjunción/comas, T-104 falta una palabra
+fija del vocabulario y tres T-123 difieren en orden de estados alternativos.
+La revisora está contrastando fuente primaria, DESIGN y preservación para
+clasificar defecto de producto frente a oráculo nuevo incorrecto. Estas cinco
+observaciones no se declaran automáticamente cinco defectos del producto ni
+habilitan cambiar expectativas por su output. Todos los artefactos originales
+y el run se preservan; no hubo repetición ni ajuste previo de sondas.
+
+Dirección leyó el recibo freeze 3 completo, SHA-256
+70715dfe3729ed255e617ac12ad793b7e3facf1b8317fa821f7199eb2a98e069,
+y comprobó DESIGN, README del plan, plan.json, conformidad, DECISIONS y CANON
+byteexactos contra 77f4849. HEAD y origin/rehacer locales permanecen en ese
+commit; no es una nueva comprobación remota ni una autorización de push.
+La escritora mantiene el freeze mientras concluye la lectura independiente.
+
+
+### WP-7 — recibo conjunto revisable para coordinación del padre
+
+Dirección leyó y verificó los dos artefactos preparados sin ejecuciones nuevas:
+/tmp/opforja-rehacer/WP-7-propuesta-resolucion-contractual-conjunta.md,
+38 líneas, SHA-256 7be9748ce2f640068086f8676928d95caead41ed21b13a35d8f7e08752fa1978;
+JSON compañero, 118 líneas, SHA-256
+2b47c2394f6b5e48352e6b422108bb19a82763a809f6953e64912f1cfe552988.
+Tres fuentes de diagnóstico y tres de autoridad conservan sus huellas.
+
+Reúne ambos inputs admitidos, RED T-123/T-122 y asociaciones textuales faltantes.
+El recibo especifica qué tendría que contener una resolución futura: literal
+exacto y reconocimiento inverso compatible con canon superior, preservación
+de estados presentes/ausentes por rama, entrada/salida, cuantificador,
+membresía, identidad/procedencia y todos los positivos/negativos históricos.
+No inventa una superficie canónica ni es un patch de contrato aprobado.
+Restringir N rompería positivos históricos y no está permitido como reparación
+WP-7; oraciones sueltas perderían operador sin la condición de ruta DS-10.
+Metadata y D5 no sustituyen asociación textual. Se conserva el tramo detenido
+sin declarar ninguna de esas vías aplicada o aceptada.
+
+Este recibo deja la limitación concreta disponible para que el padre integre
+la resolución, conforme a su instrucción vigente de no pedir nueva acción al
+usuario desde este hilo. No concede autoridad, no amplía HAR-7 ni confirma
+procedencia de publicación. Las reparaciones propias independientes siguen
+por la misma escritora después del dictamen freeze 3.
+
+
+### WP-7 — dictamen freeze 3 recibido, liberación de reparación propia
+
+Dirección leyó completos y verificó dictamen independiente
+6f5918d9cd94bf2852dac33a535225eb4565fec9ba4c04211e1286d856952c86
+y manifest posterior 4996c668eea8108c1e26dfaa8d290e34cfffe9abd3041ca9de347683569a7acd.
+La revisión concluyó cinco fuentes y cuatro suites completas, con 10/10
+huellas antes/después y originales de 44 sondas/helper intactos. El candidato
+NO es aceptable. El run sigue siendo 39/5, no se recalcula 43/1 por clasificación.
+
+T-104 es defecto real: el extractor borra macros con palabras fijas. La
+reparación se libera dentro del contrato con un RED nativo manual antes del
+código, igualdad léxica cerrada que incluya expansiones finitas y ausencia de
+sinónimos/nombres de usuario. El oráculo nativo anterior replica el extractor;
+se conserva su snapshot y su igualdad no se elimina para ocultar la omisión.
+Se deberá explicar cualquier precisión de ese universo contra §5.1/§5.3.
+
+D6 producción respeta la enumeración literal por comas de DESIGN y reglas;
+el expected scratch con o es contrario a esa superficie. Los tres T-123
+exigen una permutación de estados FAN que no es DEBE publicado: determinismo
+sí; el orden del modelo es DEBERÍA de destinos, distinto del DEBE D5/D6.
+No se cambian esos cuatro oráculos ni producción para fabricar un GREEN.
+Las aserciones posteriores a los fallos no reciben crédito de ejecución.
+
+Se reproducirán antes de código los riesgos estáticos T-118 (exhibición mixta
+incompleta) y T-105 (inversas CXI/CX3s). Deben conservar ambas listas, contenedor,
+refinadores, tipos, orden, refs y hechos contratados. Sólo una contradicción
+DESIGN efectivamente demostrada detendría esa rama para propuesta; las claves
+privadas de Huecos permiten reparación compatible sin ampliar API normativa.
+No se presenta análisis estático como RED. La misma escritora recibió el
+dictamen y reanudó estas tareas dentro de los nueve archivos propios; revisora
+quieta hasta nuevo freeze. Después se exige focal, check íntegro nuevo y revisión
+independiente. Los dos RED FAN, HAR-7, documentos y publicación siguen intactos.
+
+
+### WP-7 — reparación propia RED→GREEN y freeze 4 observado
+
+Dirección leyó completos RED 0 pass / 6 fail, 10 expectativas, seis casos
+seleccionados, 66 ms, exit 1, y GREEN posterior 6 pass / 0 fail,
+83 expectativas, 58 ms, exit 0. Son seis regresiones nativas dentro de propiedad,
+previas a la corrección de producción. Los logs conservan los filtros focales;
+no se confunden con check íntegro ni se ocultan los tests contractuales activos.
+RED log SHA-256 4db507d15eb8e885fafe28d34780356c97f72f17ef9ca5c61ae471204790c028;
+GREEN log d136be084dd8dda4b05be19d8787015ad3a4d8374bcfe0b5ec6747c2cba552ab.
+
+El vocabulario ahora contempla las expansiones finitas compartidas de
+cuantificadores, multiplicidad, conjunciones y unidades. La igualdad nativa
+sigue cerrada contra 108 palabras manuales y excluye nombres/sinónimos; el
+original que replicaba el extractor incompleto se preserva byteexacto. No se
+elimina la igualdad para esconder la omisión. Exhibición mixta incompleta
+retiene ambos rasgos con texto, tipos, refs y hecho por token; RF2i agrega la
+otra lista y reconoce ambas. DESIGN §5.3 ya declara RF2i como cola y §5.4 exige
+agregarla a la agrupación; reglas §4.10/colecciones incompletas aporta el
+literal de RF2b y la cola. No se introduce una excepción de contrato.
+
+CXI y CX3s separan claves privadas de contenedor y lista. Precisión de RED:
+en CXI la primera aserción de hacia ya pasó y el fallo fue la tokenización
+que repetía el contenedor en vez de los subprocesos. CX3s falló al tratar
+una lista como escalar. Los GREEN verifican ambos caminos y los tipos/orden;
+no se acredita un parser o roundtrip WP-9 todavía inexistente.
+
+Sólo vocabulario.ts y plantillas.ts productivos cambiaron respecto de freeze 3;
+generar.ts, linea.ts y documento.ts permanecen byteexactos. Plantillas.test
+conserva su prefijo previo; generar.test conserva todo su cuerpo previo al
+retirar el único import nuevo. Vocabulario.test es la precisión de universo
+cerrado justificada arriba, con snapshot previo intacto. Delta completo leído,
+SHA-256 b5cc795758f5a7d9697573b82aec666e502d34df6d6a3915be5dc99de377bfa2.
+Las dos pruebas FAN y contratos.test no cambian. El recibo anterior completo
+permanece literal al final del nuevo; dirección verificó ambas preservaciones.
+
+Manifest freeze 4, 10/10 huellas actuales verificadas por dirección:
+5eb91de4deb571941698a4c5267b022851d77ae6424e5a28887fc6d34eaacb4e.
+Focal completo nuevo: 144 pass / 2 fail, 776 expectativas, 146 tests en cuatro
+archivos, 130 ms, exit 1; TypeScript focal exit 0. Check íntegro nuevo observado:
+1025 pass / 3 fail, 362961 expectativas, 1028 tests en 39 archivos,
+28,81 s, exit 1. Log /tmp/opforja-rehacer/WP-7-check-freeze-4.log,
+SHA-256 a5a3f5ad595c0a0bcaf9401d3d83ad1f455892173b33f61746ac5cab65143b39.
+Los tres fallos siguen siendo exactamente T-123, T-122 y smoke T-100 HAR-7.
+No se ejecuta otro check por esta actualización documental.
+
+Recibo vigente leído en su tramo nuevo y verificado con histórico byteexacto,
+SHA-256 7d04caab28bbf1cd0da174d63393563818c33799d4539d6b3ea7dfdd6a906b7f.
+Fuentes quietas, sin proceso de escritora activo, pendientes del nuevo dictamen
+independiente. Las sondas originales seguirán intactas; las adicionales cubrirán
+reparaciones y aserciones no alcanzadas por los oráculos discutidos, con conteos
+separados y sin reemplazar ni recalcular el run anterior. No hay aceptación,
+commit o publicación WP-7 ni resolución inferida para los tres gates pendientes.
+
+
+### WP-7 — sondas adicionales preparadas y revisión freeze 4 liberada
+
+Doce casos independientes nuevos cubren D6 con literal correcto, seis FAN5s/e/A
+OR/XOR con estados ligados a sus propios hechos y determinismo, vocabulario
+expandido, exhibición mixta incompleta en ambos tipos de exhibidor e inversas
+CXI/CX3s. Son adicionales; los 44 originales y helper siguen byteexactos.
+Dos precisiones se hicieron antes de ejecutar o leer freeze 4: NombreTipado
+obligatorio para cosa de despliegue, y así como obligatorio para rasgos
+heterogéneos más cola. La primera v1 esperaba string; la segunda admitía comas
+de forma excesivamente permisiva. Se conservan v1/nota/manifest no ejecutados.
+La v2 fortalece el oráculo por DESIGN §5.2 y spec-OPL §6.2, no por output.
+
+Dirección leyó íntegros sonda original, nota, manifest y delta de dos hunks.
+V2 SHA-256 ee66db5073ce78a5ddd57d3266bb74a96f0c4e63b73c5ffeffa7da6c3a6cf398;
+nota 04fb8bcef45950ba8d35226ed362d32e8e975d02b215c7bbd2424368fe4c9071;
+manifest adc34593334180de1791d944ed6b07060525bdb824c0ddf832f84dd2c5673f63;
+delta d0fdaf99238e4c38a1f85acfcf3163d4db976f1b975742d74c4719debb1f0d03.
+La revisora recibió señal para una ejecución conjunta explícita de 44 originales
+y 12 adicionales sobre freeze 4 quieto, con subtotales separados y nuevo
+dictamen del delta. No se repite check completo. Una igualdad raw posterior
+del T-104 original podría seguir fallando tras la reparación; se conservará
+y clasificará donde efectivamente aborte, sin contabilizar verde ficticio ni
+editarla. En este evento la ejecución/dictamen siguen pendientes; preparación
+no equivale a resultado ni autorización contractual/publicación.
+
+
+### WP-7 — run independiente freeze 4 observado, dictamen estático pendiente
+
+Una ejecución conjunta real: 51 pass / 5 fail, 17234 expectativas,
+56 tests en tres archivos, 180 ms, exit 1. Subtotales reales: originales
+44 = 39 pass / 5 fail; adicionales 12 = 12 pass / 0 fail. Dirección observó
+log y exit, SHA-256 f66a26712e064cbb45bb93f3a23e16593759eec7e9ef0bc0b67cfb77a0da0b9d,
+/tmp/opforja-rehacer/WP-7-review-freeze-4-probes56.log.
+No se reporta una suite 56/0 ni se descuentan los cinco oráculos originales.
+
+Las doce nuevas alcanzaron todas sus aserciones de D6/visibilidad/anclado,
+FAN5s/e/A OR/XOR, estado→hecho, refs, IDs, operador, pureza/determinismo,
+vocabulario expandido, exhibición mixta incompleta en ambas orientaciones y
+contextos CXI/CX3s. No hubo adaptación de driver o cambio de la sonda v2
+durante la ejecución. Continúa auditoría estática/documental y huellas finales;
+no se ejecuta otro run o check para ese dictamen.
+
+El T-104 original ahora supera presencia de palabras y negativos anteriores;
+aborta en la igualdad posterior :186, cuyo conjunto esperado omite las 16
+palabras de las ocho unidades es-CL en singular/plural. Log muestra exactamente
+16 palabras recibidas adicionales, no palabras arbitrarias de dominio. Es
+una observación distinta al RED anterior en exactamente :178; la clasificación
+primaria final debe reflejarla sin sustituir la expectativa original ni devolver
+producción a un vocabulario incompleto. D6 y tres T-123 conservan las diferencias
+de oráculo ya justificadas; no reciben crédito sus aserciones que abortaron.
+Los dos negativos FAN5A de variación doble siguen GREEN reales, sin reemplazo.
+
+Check nativo íntegro sigue 1025/3; no se vuelve verde por estas doce sondas.
+Los dos RED contractuales FAN y HAR-7 mantienen la aceptación bloqueada;
+la condición de publicación primaria permanece independiente. No hay commit
+ni push WP-7. La misma escritora conserva el freeze quieto mientras concluye
+el dictamen final de reparaciones, sin implementación del siguiente paquete.
+
+
+### WP-7 — cierre de revisión acotada y bloqueo exacto del cierre serial
+
+Dirección leyó completo el dictamen freeze 4: favorable a las reparaciones
+rutinarias y NO favorable a aceptar el paquete mientras continúen los dos
+bordes FAN y HAR-7. No identificó nuevo RED rutinario de producto en el único
+run56. Se revisó delta completo, seis regresiones nativas, RED→GREEN, inventario
+manual108/108, conservación de cuerpos/snapshots, recibo histórico y 10/10 huellas.
+Run real 51/5 y sus subtotales permanecen; ninguna de las cinco expectativas
+originales fue editada o descontada. El nuevo punto de aborto T-104 corresponde
+sólo a las dieciséis palabras de unidades omitidas por su oráculo, con presencia
+inicial ahora alcanzada y verde. No se suman focal/adicionales al check global.
+
+Se precisó exclusivamente la frase ambigua reparación publicada a reparación
+del candidato local congelado, porque no existe commit/push WP-7. V1 dictamen
+1cef56cd81cb1a1aaeeaa3114c3aed8d4a905e7c21dd878b7557c5b78946f812 y
+manifest24a7afa018adcd2bad346d9144532a87a60aa5c80f0c7fb9e1ec8c6c0d03c532
+se conservaron byteexactos. Dirección verificó delta exacto de una frase y
+sólo su huella en manifest; cero nuevas ejecuciones o cambios de fuente.
+Dictamen vigente /tmp/opforja-rehacer/WP-7-review-freeze-4-dictamen.md,
+SHA-256 2b45a833afb6a8556197dc267ac7442333e4050a0fb6ece53c7edd0ad930cd91;
+manifest posterior 3b6e07fa591782c54c167185b7f6bfa343b4d7588b46a1c7bf097804bd41df16.
+
+Condiciones restantes, separadas:
+
+1. Realización textual FAN compatible con canon y DESIGN para TS3 salida
+   común/entradas distintas y objeto común/estados presentes o ausentes por
+   rama. RED T-123/T-122 siguen íntegros. El recibo conjunto38 con SHA
+   7be9748ce2f640068086f8676928d95caead41ed21b13a35d8f7e08752fa1978
+   precisa evidencia, límites y condiciones; no inventa un literal autorizado.
+2. Propiedad serial HAR-7 para el smoke temporal, DOC53 SHA
+   44a11fa59db60cee7f7cec57a664de4b4fa5b631047046334fd89ce06a7d1628
+   y ejecutable neutral25 SHA
+   7fa15e75aff77feee87e995a69a50678de1cc2ff62dcb1e87d8b5b0e90024d62.
+   Propuesta revisada favorablemente, aún sin resolución/aplicación; no cubren
+   esta propiedad las autorizaciones HAR previas de otros paquetes.
+3. Publicación posterior a WP-5: falta confirmar procedencia primaria mediante
+   lectura soportada o recibir autorización específica. El intento soportado
+   registrado no dio evidencia útil; no se repite ni se consulta sesión privada.
+   La cita de HANDOFF o este dictamen no sustituyen esa confirmación.
+
+Padre integra esas condiciones según su última instrucción; no se solicita
+nueva acción al usuario desde este ejecutor. La aprobación y aplicación de
+cualquier resolución deberán registrarse antes de producción; después habrá
+check íntegro nuevo y revisión antes de aceptación. No se confunde aprobación
+con aceptación ni aceptación local con publicación. El siguiente paquete de
+producción es WP-8b, una vez cerrado WP-7 en el orden serial autorizado.
+Preparaciones futuras y autorizaciones WP-10/17 permanecen sólo para sus turnos.
+
+Verificación final local de dirección: fuentes10/10 y originales44/helper/v2
+byteexactos; DESIGN/README/plan/conformidad/DECISIONS/CANON idénticos a cierre
+77f4849. HEAD y origin/rehacer locales siguen
+77f484907c7678c72485246c965ddbfa00d532c7. Cambios propios preservados sin stage:
+HANDOFF, cinco fuentes OPL y cuatro suites nuevas. No se afirma árbol limpio
+ni nueva paridad remota. No hay proceso de escritora activo ni implementación
+paralela; candidata queda congelada. H2/H3, e2e/build finales y PR siguen pendientes.
+
+
+### WP-7 — acuse de autorización específica FAN / HAR-7 / publicación serial
+
+Procedencia pública recibida: el padre 01a0fe65-da59-7183-bda8-ab63317680d9
+aporta evidencia primaria de transcript. Assistant
+Sentinel_ce910eb2048c81919ec76a7b90c2dae8 preguntó a 2026-10-03 13:18 UTC
+los tres pasos acotados; User Sentinel_0582b3b51154819180c5dfc79cea26bb
+respondió directamente a 2026-10-03 13:23 UTC: «autorizo».
+Identificadores y horas son los suministrados en el mensaje público del padre;
+este ejecutor no afirma haberlos obtenido mediante una nueva lectura de hilo.
+La resolución es del usuario; la transmisión del padre no es una aprobación
+nueva ni una aceptación anticipada del resultado.
+
+Alcance FAN: únicamente TS3 salida común/entradas distintas y objeto común
+consumo/resultado/agente/instrumento con estados heterogéneos o ausentes por
+rama, ya observados. Cabeceras literales XOR «Exactamente una de estas ramas:»
+y OR «Al menos una de estas ramas:». Cada rama conserva una oración base
+completa, sus estados o ausencia, IDs y hechos; sin herencia entre ramas.
+Antes de modificar producción se formalizarán candidato documental exacto,
+gramática, reconocimiento cerrado y alcance del bloque, y se obtendrá revisión
+independiente de compatibilidad. Es una extensión local NO_CANONIZADA, con
+inversión sin pérdidas obligatoria en WP-9 y sin conformidad ISO demostrada.
+No se permite perder el operador, escoger el primer estado, admitir variación
+simultánea de entrada y salida ni añadir capacidades. Los casos representables
+y AND mantienen sus reglas; un conflicto material requiere precisarlo.
+
+Alcance HAR-7: cinco expectativas exactas del ejecutable neutral revisado:
+bloque [], modelo con cabecera ## SD y metadata literal, texto vacío, previa
+inexistente null y documento # Prueba más ## SD. Las seis firmas y todos los
+typeof se conservan; importar sigue pendiente de WP-9. Verificadas de nuevo
+las huellas DOC53 44a11fa59db60cee7f7cec57a664de4b4fa5b631047046334fd89ce06a7d1628
+y ejecutable25 7fa15e75aff77feee87e995a69a50678de1cc2ff62dcb1e87d8b5b0e90024d62.
+Su aplicación será serial dentro de la propiedad documentada y conservará el
+payload exacto si se refresca contexto. Este evento es acuse; aún no aplicación.
+
+Publicación: autorización específica nueva para un commit/push por paquete,
+en orden, únicamente origin/rehacer de deep-opm-pro y después de pruebas
+completas, revisión independiente favorable y aceptación. Resuelve ahora la
+retención por falta de lectura primaria del mandato inicial. El intento previo
+se conserva como historia, sin repetir lecturas ni acceder a sesiones privadas.
+WP-5 ya publicado no se repite. No autoriza main, merge, tags ni despliegue.
+
+Continuidad: misma única escritora y revisión independiente; se preservan los
+RED, oráculos y freeze 4. Después de aplicar: focal y check íntegro realmente
+verdes, nuevo freeze y dictamen independiente antes de aceptar/publicar.
+WP-10/17 conservan sólo sus turnos y límites. Docker, PostgreSQL real,
+producción, credenciales, infraestructura, destrucción, nuevas instalaciones,
+red adicional y otras excepciones contractuales siguen fuera del alcance.
+Acuse, candidato revisado, aplicación, pruebas/revisión, aceptación y publicación
+se registrarán como eventos separados. HEAD/origin locales verificados
+77f484907c7678c72485246c965ddbfa00d532c7; cambios propios preservados.
+
+
+### WP-7 — límite vigente de ejecución activa
+
+El padre precisa en mensaje público posterior que esta orden de continuidad
+se reduce exclusivamente a WP-7. Informa que la instrucción anterior fue
+rechazada por revisión automática por ampliar a siguientes paquetes; este
+registro atribuye esa observación al mensaje recibido, sin afirmar un rechazo
+local de una herramienta de este ejecutor.
+
+Se ejecutará sólo: formalización FAN local y revisión antes de producción,
+HAR-7 exacto, pruebas completas, nuevo freeze, revisión independiente,
+aceptación y publicación WP-7 únicamente si cumple la autorización de 13:23.
+La inversión WP-9 se registra como obligación futura y no se ejecuta ahora.
+Después de cerrar/publicar/verificar WP-7 se reportará y se detendrá esta orden.
+No se inicia ni se delega ejecución/publicación de WP-8b u otros paquetes.
+Las autorizaciones anteriores reales se conservan; su alcance no amplía la
+orden activa actual. WP-5 publicado no se repite. Se mantienen procedencia,
+límites, una escritora y eventos separados registrados en el acuse anterior.
+
+
+### WP-7 — aplicación documental HAR-7 exacta
+
+Después del acuse se verificó y aplicó sin refresco ni alteración el DOC53
+/tmp/opforja-rehacer/WP-7-propuesta-HAR-7-documental.patch,
+SHA-256 44a11fa59db60cee7f7cec57a664de4b4fa5b631047046334fd89ce06a7d1628.
+Git apply --check y diff --check verdes. Cambian únicamente DESIGN §12.1/12.2,
+README del plan y plan.json para declarar propiedad serial de contratos.test.ts:
+WP-7 las cinco expectativas de generación; WP-9 la importación restante sólo
+cuando llegue su turno. Se conserva íntegro el payload autorizado.
+La escritora recibe señal para aplicar sólo el ejecutable neutral25 exacto;
+FAN sigue quieto hasta candidato documental y revisión independiente favorable.
+Esta aplicación documental no es aceptación WP-7 ni implementación WP-9.
+
+
+### WP-7 — aplicación ejecutable HAR-7 y GREEN focal observado
+
+La única escritora verificó dry-run y aplicó únicamente el executable neutral25
+SHA-256 7fa15e75aff77feee87e995a69a50678de1cc2ff62dcb1e87d8b5b0e90024d62.
+Dirección comprobó de nuevo el diff reconstruido contra el original freeze 4:
+coincide byteexactamente con el patch autorizado. Seis firmas y typeof siguen
+literales, importarOpl mantiene su expectativa pendiente. Original HAR
+5dc46ea1dc00cfef80f071d455f053fadae323ee259a9f3619b2bb2d2a959672
+conservado; HAR nuevo f40c3b0b57fb97c0c2853027ab3bd669c1fa180848e9a08bd7573d338f2c7974.
+
+RED real anterior: smoke HAR-7 del check freeze 4. GREEN focal nuevo observado:
+1 pass / 0 fail, 12 expectativas, exit 0, log
+/tmp/opforja-rehacer/WP-7-HAR-7-GREEN.log leído por dirección.
+Manifest /tmp/opforja-rehacer/WP-7-HAR-7-aplicacion-manifest.json registra
+payload exacto y fuentes propias freeze 4 aún 9/9. No check completo nuevo
+en este evento ni aceptación. FAN permanece sin modificar hasta su revisión
+documental de compatibilidad; WP-9 sólo tiene obligación futura.
+
+Precisión de procedencia de esa comprobación de dirección: la primera consulta
+buscó una copia HAR inexistente en el directorio plano freeze 4 y falló por ruta;
+el manifest sólo registra su hash. Se repitió correctamente contra el original
+versionado `git show HEAD:app/src/opl/contratos.test.ts`, observando SHA original
+5dc46ea1… y payload exacto true. Evidencia pública de fuente, no lectura de sesión:
+/tmp/opforja-rehacer/WP-7-HAR-7-direccion-verificacion.json. La escritura del evento
+anterior no se cuenta como prueba; queda sustentada por esta comprobación real.
+
+
+### WP-7 — candidato FAN documental exacto remitido a revisión previa
+
+Dirección leyó íntegros candidato V4, informe y manifest: conjunto294 SHA-256
+08e8b4d1e5163978750c7763bfef0d8aea0fced6aea25c2f54c09295ed53dd52;
+DOC274 2ccdd924403a60ceb1354f5f26475159b83c960dbcad9f62623ee8392bab3cae;
+conformidad20 d17c7afab621d4cb145c1c10103cb7e9dfb2bf9003b1da75a3bd2af432d6ec4f.
+No se aplicó. Precisa §5.3.1, cabeceras exactas, dos bordes admitidos, dos
+espacios ASCII por rama completa, ≥2 ramas, frontera vacío/no-indentado/EOF,
+una LineaOpl semántica desde tokens, dominio tipado O/P/E sin defaults y tabla
+única; B-31 registra origen LOCAL NO_CANONIZADO y T-103/T-105/T-122/T-123 parciales.
+Conserva HAR y sólo declara delta superficial de dos assertions históricas con
+originales/RED archivados y garantías de estados/hechos/IDs sin recortar.
+
+Reserva futura explícita: NO_CANONIZADAS/non-canonical/error/no-aplicable sigue
+vigente. WP-9 debe recuperar sin pérdidas HechoTexto, enlaces, estados/ausencias,
+operador y membresía; la política de aplicación/0 errores/estricto requiere
+resolución expresa antes de implementar ese turno. No se implementa ni se
+promete strict, ni se agrega flag/API/perfil/gate nuevo o filtro de oráculos.
+Esta tensión no impide G local WP-7; no se presenta como conformidad ISO.
+
+Revisión previa asignada a la misma revisora independiente. Dirección detectó
+una ambigüedad de negación en V4 y solicitó únicamente precisión textual para
+que diga expresamente ni se cambia un gate ni se recorta el enumerador.
+V4 y anteriores quedan preservados; V5 exacta será revisada antes de aplicar.
+Cero nuevas ejecuciones FAN/cambios de producto durante esta preparación.
+
+
+### WP-7 — revisión documental FAN V5 favorable específica
+
+Dirección leyó completo el dictamen independiente
+/tmp/opforja-rehacer/WP-7-review-FAN-local-dictamen-v5.md,
+SHA-256 1ecf566312c37d69911a39da811b300771aed20a546d733cb575d1f31896274f.
+Favorable exclusivamente a compatibilidad documental V5, no aceptación de WP-7.
+Conjunto294 6a5fc51402718270f2d392239a326fe04c1837676703a870829a562cedde57db;
+DOC274 2d8384d7f73fdf7e9bd9421f63a48f83a8fea66efa0d4ee6bfb913d9c8784617;
+conformidad20 d17c7afab621d4cb145c1c10103cb7e9dfb2bf9003b1da75a3bd2af432d6ec4f.
+Revisora verificó cuatro archivos/17 hunks en memoria, delta exacto de dos
+renglones V4→V5, HAR íntegro, plan con sólo adiciones acotadas de aceptación,
+21 filas previas byteexactas más B-31 parcial y oráculos/protegidos conservados.
+Manifest propio be0946c882d2f0d8d7933f6aa1b77c86c19f22dade6adfc5c91b24a829f79fd2;
+evidencia 0b1d266caf91e446398f7a850af881e6e440473fc838ac6e086ecf68801de7db.
+Cero ejecuciones de producto en esa revisión previa. Se libera únicamente el
+carril G autorizado tras aplicación documental; los límites WP-9/ISO y la
+reserva separada de agente uniforme no quedan resueltos por ese favorable.
+
+
+### WP-7 — nuevo diagnóstico real de agente con estado uniforme, fuera FAN local
+
+La sonda aislada de la misma escritora confirmó lo que la revisión había
+señalado estáticamente: XOR y OR con objeto físico común y el mismo estado
+listo presente en ambas ramas son ofertas N válidas (forma vacía, noOfrecido
+null/null, violacionesAbanico vacías y contexto vacío), pero G pierde el estado.
+Run real 0 pass / 2 fail, 24 expectativas, exit 1, log
+/tmp/opforja-rehacer/WP-7-agente-uniforme-diagnostico.log leído íntegro por dirección.
+Identidad de plantilla/línea, operador, lista de procesos, hechos e input puro
+pasan; tokens de estado [] fallan frente al anclaje s/listo. La aserción literal
+posterior no alcanzada no se cuenta como ejecutada. Input sintético completo y
+output quedan en WP-7-agente-uniforme-diagnostico-observado.json.
+
+El DESIGN previo usa {O} sin sufijo e en agente con objeto común; la realización
+congelada conserva estado en h.O, pero el hueco escalar no lo emite. Esto no es
+un tercer caso autorizado de FANLOCAL: §5.3.1 sólo admite tuplas no uniformes.
+Se prepara propuesta contractual mínima separada y no se aplica esa corrección
+por analogía. La reserva es material para aceptación/publicación global WP-7;
+un check nativo verde de los dos casos autorizados no podrá silenciarla.
+Se continúa exclusivamente el trabajo G ya autorizado que sigue independiente;
+no se concede nueva autoridad ni se inicia otro paquete.
+
+
+### WP-7 — aplicación FAN documental V5 después de revisión
+
+Aplicado únicamente el conjunto V5 revisado, sin refresco de contexto ni otro
+payload. Dry-run y diff --check verdes; huellas reales coinciden 4/4 con candidato:
+DESIGN dc0ee7691a1fd5d70e36d94c52b727b440c89bcb60e040def41286eaf3eb357c;
+README 9e6f6b68e53429a0877fb50a68fd2b5d43ae2d9dd2740862433dba33c20f3fc1;
+plan fe022ae32b4345d9cb5cd119a536eba00756bfc23740f51821f9658c251b59b1;
+conformidad 9bbc079e3fcb2a17ac10902f9471a8e558386915305bf0695e666877c03b5bf8.
+Canon vendorizado/origen, DECISIONS y CANON siguen byteexactos respecto del
+manifest previo. B-31 queda registrada antes de producción como local parcial,
+con P/estricto y presentación/export pendientes; sin crédito de G anticipado.
+
+Señal a la misma única escritora para implementar sólo los dos casos FAN
+aprobados, con RED previo, cabeceras y ramas completas, tabla/vocabulario/tokens,
+preservación exacta de los originales y delta mínimo de dos asserts. Después:
+focal/check íntegro nuevo, freeze y revisión independiente. Agente uniforme
+permanece fuera de la corrección autorizada; su propuesta separada y RED real
+impiden anticipar aceptación/publicación global. No se implementa WP-9 ni se
+inicia otro paquete. Esta aplicación documental no equivale a aceptación.
+
+
+### WP-7 — propuesta mínima B-32 congelada, sin aplicar ni resolver
+
+Dirección leyó completos los dos patches separados, la nota y el manifest, y
+verificó ocho huellas/contadores de artefactos y tres bases reales intactas.
+Propuesta contractual: /tmp/opforja-rehacer/WP-7-agente-uniforme-propuesta-documental.patch,
+63 líneas/5 hunks, SHA-256
+c41dfbdf04a15722d54921e1e2d94a4ff97509c553faac224218d6001126be43.
+Sólo celda de agente con objeto común `{O}`→`{Oe}`: conservar el estado propio
+explícito uniforme en texto/tokens/ref y en cada enlace de `hacia`; cuando todas
+las ramas carecen de estado, conservar forma básica. Sin default ni herencia,
+sin añadir `m`, N, control, ruta, AND, API o ampliar FANLOCAL. Exige RED nativo,
+GREEN, check fresco y revisión antes de aceptar; parser completo sigue WP-9.
+Se propone la precisión contractual y el criterio de aceptación WP-7; ninguna
+autorización actual de FAN/HAR se interpreta como autorización de este cambio.
+
+Registro factual separado: WP-7-agente-uniforme-conformidad-factual-propuesta.patch,
+20 líneas/2 hunks, SHA-256
+2922477bdf0c3ba2d14e057cba1850839f87cf8eaf4d5e807f98e4b241d1a56b.
+Sólo registra pérdida G temporal B-32 y RED previo 0/2/24, sin acreditar reparación,
+cierre ni aserción literal posterior al fallo. Su revisión no concede autoridad
+contractual. Nota SHA-256 a55b521c7bc30d2579e8ce7b5a72b2a199128d933efd804c2ac0cd4d6332c9ca;
+manifest b86889784d60ad598ecac59396f7e58ba6d31515927a47ce2cf59762d3d4921d.
+Ambos patches quedan sin aplicar mientras se revisan; el contractual además
+requiere resolución específica. No se repite ninguna aprobación ya resuelta.
+
+### WP-7 — RED y GREEN nativos de los dos FAN autorizados
+
+La única escritora observó RED antes de producción: 0 pass / 45 fail, 156
+expectativas, exit 1, log WP-7-FAN-local-RED-nativo.log SHA-256
+d49f3efe6310ac98def4ac35cda88a877a8dbbc37c9b25b2ea0d5f46ad450abe.
+GREEN seleccionado nuevo: 45 pass / 0 fail, 477 expectativas, exit 0, log
+WP-7-FAN-local-GREEN-nativo-v2.log SHA-256
+7c116c41d3bf57c7da25f70cb49b1bcfa65d602a5afdaccc0ab410ceb2ed3bbc.
+Focal completo con HAR: 189 pass / 0 fail, 1252 expectativas, cinco archivos,
+exit 0; WP-7-FAN-local-focal.log SHA-256
+17d262d132d2910b0a8b8550afa4a01bd4eb69f066459aacf0c34c6ef82477d5.
+Dirección comprobó resúmenes y códigos reales; TypeScript 0 comunicado por la
+escritora será cotejado en nuevo check/freeze. Check íntegro nuevo y revisión
+independiente final todavía pendientes: estos focales no aceptan el paquete.
+
+Se conserva el primer intento GREEN 44/1 y su snapshot: el montaje nuevo había
+confundido número de filas PLANTILLAS con vocabulario (110). La escritora corrigió
+únicamente la cuenta de catálogo 116→118 frente a VOC 108→110; la revisión
+comprobará inventario manual y expectativas cerradas. No se borra ni se omite
+ese fallo. B-32 continúa fuera del código autorizado; su RED no se oculta por
+este focal nativo verde. Cero aceptación, commit/push o inicio de otro paquete.
+
+
+### WP-7 — revisión de propuesta B-32 y decisión limitada de registro factual
+
+Dictamen independiente leído íntegro por dirección:
+/tmp/opforja-rehacer/WP-7-review-agente-uniforme-propuesta-dictamen.md,
+SHA-256 95466175206375ef2d00e87e81f17d9616fb2854c37091640ac6e86f76ad177f.
+Manifest e85c255b42f3d16142d6f957b20affe0359af66eaee32f8d97025e36295d6949
+y evidencia 8b2a4754571c3335581c90b344053e43e6c7af954a2086e86e846ee50ca9c291,
+también leídos completos. Favorable específico a minimalidad/compatibilidad del
+contrato propuesto y exactitud del registro factual; NO autoriza aplicar DOC63,
+reparar producto ni aceptar/publicar WP-7. Siete hunks/tres bases aplican/revierten
+en memoria; B-31/HAR y 22 filas previas permanecen literales; cero nuevas pruebas,
+lecturas móviles de G o escrituras del repositorio por esa revisora.
+
+Dirección mantendrá DOC63 contractual sin aplicar y sin resolver. Se integra
+únicamente el factual20 revisado a docs/conformidad.md, como registro obligatorio
+de una pérdida observada; no cambia DESIGN/plan, producción o autoridad. B-32
+queda parcial G, reparación pendiente y sin crédito de cierre. La ejecución G
+autorizada continúa hasta check/freeze/revisión; global WP-7 permanece bloqueado.
+
+
+### WP-7 — aplicación exclusiva del registro factual B-32
+
+Después del registro y revisión específicos anteriores se aplicó sólo factual20
+SHA-256 2922477bdf0c3ba2d14e057cba1850839f87cf8eaf4d5e807f98e4b241d1a56b.
+Dry-run y aplicación exit 0. Conformidad real coincide con candidato:
+d1b44a689de51921be65cf1e2e59e206f9ef508be7a9c7b326b8cda6b2bc80a2.
+DESIGN dc0ee769… y plan fe022ae3… permanecen intactos: no se aplicó DOC63 ni se
+liberó reparación O→Oe. B-32 parcial G registra la pérdida real y su propuesta
+pendiente, sin alterar las 22 filas previas ni cerrar ninguna de las 23 actuales.
+
+### WP-7 — check íntegro nuevo freeze 5, revisión final iniciada
+
+Freeze 5 se materializó antes del check; diez archivos con copias completas,
+incluido HAR f40c3b0b…; manifest WP-7-freeze-5-manifest.json SHA-256
+591d8c5d5f8e7a7deefe729148e7eee175078cb641ee8e80c8b22faca3ab7f98.
+Comando check intacto: `tsc --noEmit -p . && bun test src servidor herramientas`.
+Run completo nuevo: TypeScript verde, 1070 pass / 0 fail, 363430 expectativas,
+1070 casos en 39 archivos, 29.68 s, exit 0. Log WP-7-check-freeze-5.log SHA-256
+a7a931f1f208d486317b3e41835f399044963603736afc9dbb95a2d2d43624ab.
+Dirección cotejó el exit, resumen, ausencia de líneas fail y las diez fuentes
+contra sus copias/manifest: 10/10 conformes; no reejecutó el check. La sesión propia
+63665 de la escritora terminó. Verificación propia queda en
+/tmp/opforja-rehacer/WP-7-freeze-5-direccion-verificacion.json.
+
+Oráculos originales 44+12/helper y diagnóstico agente uniforme conservan las
+cinco huellas anteriores. Fuente quieta; misma revisora independiente liberada
+para revisión estática y sondas nuevas manuales congeladas antes de leer el código,
+más oráculos históricos íntegros. El check nativo verde no resuelve el RED externo
+B-32 ni acredita inversa WP-9/ISO/aceptación/publicación. Revisión final pendiente;
+no se inicia otro paquete.
+
+
+### WP-7 — ejecución independiente freeze 5, todos los casos contados
+
+Única corrida independiente nueva: 75 pass / 7 fail, 18086 expectativas, 82 casos
+en cinco archivos, 267 ms, exit 1. Log leído completo por dirección:
+/tmp/opforja-rehacer/WP-7-review-freeze-5-probes82.log, SHA-256
+076846fca19e78873fda9c2e47d724e6ed3f3161b758774e093f3e1c33ccbeef.
+Exit separado 1; after-manifest completo
+75d707bdf00c14a99ab3c914e77af0cf3fd19818b6ffb0ecc9b66c5a83ade534.
+
+Subtotales reales: 44 originales = 39/5; 12 adicionales anteriores = 12/0;
+24 FANLOCAL nuevos = 24/0; diagnóstico uniforme original = 0/2. Los cinco
+fallos históricos conservados son D6 con disyunción frente a comas canónicas,
+igualdad raw de vocabulario que omite 16 palabras de unidades y tres expectativas
+de orden FAN persistido frente al orden determinista por nombre. No se editaron,
+saltaron ni pusieron en cuarentena; no se convierte la corrida completa en GREEN.
+Las sondas adicionales manuales están congeladas antes de leer producción y no
+sustituyen aquellos oráculos. La revisora no ajustó driver/expected ni repitió run.
+
+Los otros dos fallos vuelven a confirmar B-32 material: gates reales vacíos,
+IDs/hechos/operador/pureza intactos y tokens de estado []. El literal posterior
+al RED no se acredita como ejecutado. JSON histórico y nueva copia observada
+coinciden byteexactamente (fc92f153…), ambos preservados por separado antes/después
+del test que escribe su ruta fija. Diez fuentes/copia y seis oráculos siguen
+intactos en manifest posterior. La revisora terminó lectura completa de fuentes,
+suites/HAR y delta sin nuevo defecto material en los dos dominios autorizados;
+el dictamen escrito específico está en cierre. Global WP-7 sigue impedido por B-32.
+
+### WP-7 — candidato factual completo de conformidad, revisión pendiente
+
+Propuesta scratch leída íntegra por dirección, sin aplicar:
+/tmp/opforja-rehacer/WP-7-conformidad-factual-freeze-5.patch, 57 líneas/3 hunks,
+SHA-256 258b7e661c417b4ef8083852c22de3ee38eb8d46458ddc36b741f6200447b3ed.
+Nota dcfc494a12413ea3a24b22f4e850915f9493539c9d47a53071a691f0243eee41
+y manifest d81f04509591203f489ef010c71072117b66407cbaeaf642ad88f42597107416,
+también leídos completos. Sobre 23 filas abiertas propone 27, incorpora únicamente
+brechas ya DESIGN B-09/13/20/27 y evidencia factual de B-06/08/19/26/29/31.
+Conserva las 16 filas ajenas y B-32 byteexactas, estados y superficies existentes.
+No acredita P/inversa/strict, X/export, U, latencias o ISO, ni cierra ninguna fila.
+
+Los títulos/logs de T-135 no individualizan por sí solos las tres variantes DR-13
+del contorno ni positivo/negativo G de continuidad R+C; T-115 EX tampoco acredita
+una sonda de ausencia de EX. La propuesta explicita esos límites, no fabrica
+evidencia ni aplica el viejo draft61 condicionado a cierre. La revisión independiente
+contrastará respaldo de fuente/suite y precisará sólo el estado factual del dictamen
+específico, conservando originales. DESIGN/plan y DOC63 B-32 permanecen intactos.
+
+
+### WP-7 — dictamen independiente final específico G y bloqueo global
+
+Dirección leyó completos dictamen WP-7-review-freeze-5-dictamen.md, SHA-256
+95ed211f331524d829e00fb9b966005c6ba6b88dba63b19163a61f4dbe785719,
+y manifest final eba59187138677c6a91b75bd3f95ac1f8e6a89aad230715d26f93d2f6922bae6.
+Favorable únicamente a realización G de los dos dominios FAN locales §5.3.1.
+Global WP-7 NO ACEPTADO/IMPEDIDO por B-32, confirmado de nuevo en la corrida 75/7.
+No hay otro defecto material en el alcance G local revisado. Una única corrida,
+sin ajustar oráculos/driver, sin otro check y con diez fuentes/copias y seis
+oráculos/helper byteexactos; lectura completa de fuentes, suites, HAR y delta.
+
+Revisión confirmó conservación de cuerpos anteriores salvo dos sustituciones
+superficiales autorizadas fortalecidas, apéndices y HAR neutral exacto; no skips,
+cierre ficticio, cambio N/canon/DECISIONS o ampliación de dominio. El montaje 44/1
+queda preservado y justificado por inventario independiente 116→118/108→110.
+Se reconoce tabla estructurada, no parser textual ni inversión/strict/ISO futuros.
+
+La procedencia local une Set(items.flatMap(v.hechos)) según código y conserva
+asociación estado→rama en sondas reales. T-135 nativo/independiente demuestra
+plegado/proyección y procedencia real por separado; no hubo fixture runtime
+combinado FANLOCAL sobre vista abstraída ni comprobación específica de las tres
+variantes DR-13 del contorno o positivo/negativo G de continuidad R+C. Esos límites
+se registran, sin sumar pruebas separadas como equivalencia o inventar doubles.
+La aplicación/inversión textual WP-9 queda sólo como obligación futura; no se ejecuta.
+
+Revisión factual V1: aplicación/reversión exactas de tres hunks, 23→27 filas,
+estados/superficies literales y 17 filas previas byteexactas incluida B-32; evidencia
+5bb3bda222b36d26234ae97b22c029efa083cca791ae16cb9f01507b0e42289a leída completa.
+Se prepara únicamente V2 de dos menciones de dictamen pendiente ya obsoletas;
+sin cambiar créditos/límites/autoridad. DOC63 B-32 continúa sin aplicar ni resolver.
+No aceptación, commit/push ni inicio de otro paquete. Esta orden se detendrá tras
+integración factual revisada y recibo final del impedimento, conforme al límite vigente.
+
+
+### WP-7 — revisión factual V2 favorable antes de integración
+
+Dirección leyó íntegros el delta de dos frases, nota, manifest y dictamen factual
+final V2 /tmp/opforja-rehacer/WP-7-review-conformidad-freeze-5-dictamen-v2.md,
+SHA-256 27992f3a872ce7d627a9fcebdf38b07aa2398baf23ce59db575eea2c5e9d26f0.
+Manifest independiente fbb8d050315f24e5d0e7bdf0dea8d0a17e28426edc3caf90f832b671cb243abe.
+Favorable al factual V2 exclusivamente: mismo contenido del candidato V1 revisado,
+con sólo dos precisiones cronológicas del estado del dictamen. Patch57 V2
+bf1caef5514d45d6a44962e5daa52d03e0de2bff18149667efc019f6663108e6;
+delta21 6238673294a855549723c0e27b1dbc5ba23eb46640677e87cbdd2edc1939041d.
+V1 completo sigue preservado; 27 filas abiertas y B-32 literal, sin crédito nuevo
+ni cierre. Cero pruebas o escrituras de repo por preparadora/revisora durante
+este cierre. No hubo reparación material nueva ni otra escritora de producción.
+
+Se integrará únicamente ese registro factual en docs/conformidad.md; contrato
+DOC63 B-32, DESIGN/plan y fuentes permanecen sin cambiar. La aprobación documental
+factual no es aceptación global o autorización de reparación/publicación WP-7.
+
+
+### WP-7 — integración factual V2 y preservación final
+
+Después del registro y favorable independientes, dirección comprobó exactamente
+las dos sustituciones V1→V2 y reconstruyó el payload completo: coincide byteexacto
+con patch57 bf1caef5514d45d6a44962e5daa52d03e0de2bff18149667efc019f6663108e6.
+Dry-run/aplicación exit 0; docs/conformidad.md real coincide con candidata V2:
+fdac9e6052c63c20613289f2e3994aa2c94cd487902ff48d32c0504c178e6e5f.
+27 filas abiertas (24 parcial y 3 zona laxa), 17 anteriores byteexactas incluida
+B-32, estados/superficies preservados. V1 y draft61 históricos siguen originales.
+DESIGN dc0ee769… y plan fe022ae3… no cambiaron; diez fuentes freeze 5 permanecen
+conformes. Canon vendorizado/origen, DECISIONS y CANON: 19/19 protegidos intactos.
+Cero nuevas pruebas tras el check/revisión: no hay nuevo código que verificar.
+
+### WP-7 — aceptación retenida por contrato preciso, orden detenida
+
+Global WP-7 NO ACEPTADO por B-32 material, confirmado en XOR y OR con todos los
+gates N reales satisfechos. La propuesta exacta pendiente es
+/tmp/opforja-rehacer/WP-7-agente-uniforme-propuesta-documental.patch, 63 líneas,
+SHA-256 c41dfbdf04a15722d54921e1e2d94a4ff97509c553faac224218d6001126be43.
+Cambia sólo celda agente objeto común `{O}`→`{Oe}` opcional con estado explícito
+uniforme, conservación en texto/tokens/ref/hecho y hacia por rama; ausencia total
+mantiene forma básica. No añade `m`, estado inventado, control/ruta/AND, N, API,
+formato v0 o dominio FANLOCAL; canon/DECISIONS intactos. Propuesta revisada favorable
+95466175…, SIN resolución/aplicación/producción. El límite directo del encargo exige
+proponer cambios de DESIGN y detenerse; no se infiere autoridad de FAN/HAR.
+
+Para una continuación limitada de WP-7 se requiere resolver esa propuesta antes
+de código, conservar los RED y aplicar sólo si se libera su alcance; después RED
+nativo→GREEN, positivos sin estado, hacia/identidad/procedencia/pureza, nuevo check,
+freeze y revisión independientes. Las comprobaciones G específicas DR-13/R+C y
+la combinación local sobre vista abstraída mantienen los límites registrados;
+no se presumen satisfechas por sumar pruebas. WP-9/inversión es obligación futura
+registrada, NO ejecutada. Esta orden actual concluye en STOP, sin iniciar WP-8b
+ni otro paquete y sin ampliar ninguno de sus permisos.
+
+### WP-7 — publicación no ejecutada por condición de aceptación incumplida
+
+La autorización específica serial de las 13:23 permanece vigente en su alcance:
+un commit/push a origin/rehacer sólo después de pruebas/revisión/aceptación. Este
+candidato no está aceptado globalmente, por lo que no hubo commit, stage ni push
+WP-7, ni nueva consulta de remoto. HEAD y origin/rehacer local siguen
+77f484907c7678c72485246c965ddbfa00d532c7; divergencia local 0/0 y staging vacío.
+Los 15 archivos locales propios de WP-7 permanecen sin descartar. WP-5 publicado
+no se repite; main/tag conservan su base 513ac041… sin operación sobre ellos.
+No Docker/PG real/producción/deploy/merge/credenciales/instalaciones o red adicional.
+No se solicita nuevamente ningún permiso ya acreditado. Padre integra la propuesta
+pendiente; supervisión no se interpreta como nueva autorización ni aceptación.
+
+
+### WP-7 — recepción y resolución específica B-32 antes de aplicación
+
+Fuente de autoridad: mensaje actual role=user, continuación de Félix transmitida
+por coordinación Korax. Se registra la evidencia explícita aportada en ese mensaje:
+Assistant Sentinel_a6766bdebb4c8191a4c381c28c899af3,
+2026-10-04T00:35:08.568269+00:00, propuso precisión/reparación acotada de B-32,
+nuevas pruebas/revisión y publicación condicionada; User
+Sentinel_de1800ac52ec8191b2760325931bf467,
+2026-10-04T00:37:41+00:00, respondió literalmente «autorizo».
+Estos IDs/fechas son transcript suministrado públicamente por coordinación; no se
+atribuyen a una lectura independiente de sesión o herramienta ni a nueva autorización
+inferida de agente. No se consultan sesiones privadas o credenciales.
+
+Se autoriza exactamente DOC63
+/tmp/opforja-rehacer/WP-7-agente-uniforme-propuesta-documental.patch,
+SHA-256 c41dfbdf04a15722d54921e1e2d94a4ff97509c553faac224218d6001126be43,
+huella verificada y patch leído completo. Dictamen previo de compatibilidad leído:
+95466175206375ef2d00e87e81f17d9616fb2854c37091640ac6e86f76ad177f.
+La aplicación toca únicamente DESIGN y aceptación WP-7 en plan.json. Las 27 filas
+factuales actuales de conformidad se preservan: NO aplicar factual20 histórico.
+
+Reparación única liberada: agente de objeto común {O}→{Oe} opcional solamente si
+todas las ramas comparten la misma identidad de estado explícito propio. Ausencia
+total mantiene básico; heterogeneidad/ausencia parcial conserva FANLOCAL B-31.
+Sin estado inventado/heredado. Exige texto/tokens/ref/hecho miembro real, hacia
+por rama, IDs/procedencia/orden/operador/pureza. Conservar RED históricos y observar
+RED nativo antes de producción; GREEN XOR/OR, positivos sin estado, hacia e
+identidades, nuevas pruebas pertinentes, check completo, nuevo freeze y revisión
+independiente de aceptación global. Resolver cinco discrepancias de oráculos con
+evidencia de contrato y criterio de cierre verificable; sin debilitar/borrar
+fallos ni recuento verde retroactivo del 75/7. Toda nueva decisión de diseño fuera
+de B-32 requiere consulta previa; no se la infiere de esta autorización.
+
+Misma única escritora de producción; agentes existentes sin duplicación. DR-13,
+R+C y abstracción mantienen sus límites de cobertura; nada de ISO/strict/parser
+WP-9, cuya inversa sigue sólo obligación futura. Alcance EXCLUSIVO WP-7; después
+de cierre/publicación verificados se detiene, sin WP-8b ni otro paquete.
+
+Publicación ya autorizada condicionalmente por User
+Sentinel_0582b3b51154819180c5dfc79cea26bb, Oct3 13:23 «autorizo» a propuesta13:18:
+sólo después de aceptación global, check y revisión independiente favorables,
+un commit/push origin/rehacer y SHA remoto exacto. No se repite ese permiso ni WP-5.
+Sin main/merge/tag/deploy/infra/credenciales, instalaciones o nuevas operaciones
+externas. Este acuse precede aplicación documental/producción y no acepta el resultado.
+Se conserva HANDOFF anterior íntegro en scratch (SHA b2b441e1…).
+
+
+### WP-7 — aplicación documental exacta B-32 tras autorización
+
+Después del acuse anterior se aplicó únicamente DOC63 autorizado SHA c41dfbdf…:
+dry-run/aplicación exit 0. DESIGN real f542b2a4148600869bf816c8e269d9a12d666c89f852c5f5221e4bf8de6d77c7;
+plan real 7c3fa6ce0ff4bdb1759fca4d38e76168564061097e8d9028769f03431df9968d,
+JSON válido. Coinciden con los dos candidatos exactos revisados. Conformidad
+fdac9e6052c63c20613289f2e3994aa2c94cd487902ff48d32c0504c178e6e5f permanece
+intacta con sus 27 filas; no se aplicó el factual20 antiguo. Gramática/política
+B-31 y HAR se conservan. Producción aún freeze 5; sólo se libera a la misma
+escritora para pruebas RED previas y reparación B-32 limitada. Aprobación/aplicación
+no equivale a aceptación; check nuevo/freeze/revisión global siguen pendientes.
+
+
+### WP-7 — RED nativo B-32 y concreción privada de identidad en evaluación
+
+La única escritora añadió once casos nativos como apéndices de generar.test.ts
+y plantillas.test.ts; raíz comprobó que ambos prefijos freeze 5 permanecen
+literales. Una ejecución real antes de código: 4 pass / 7 fail, 97 expectativas,
+11 casos, exit 1. Log WP-7-B32-RED-nativo.log SHA
+8365207eb1314a6cac8dea9805b2625ae8fe286a3ce57966b67bceef83cb4996.
+Ausencia total: cuatro positivos pasan. Uniforme explícito: cuatro fallan; dos
+contratos de tabla fallan por O frente a Oe. El séptimo negativo conserva dos
+IDs propios distintos de estado con el mismo texto: forma/matriz/contexto/fan
+pasan, pero la clasificación privada compara nombres y selecciona uniforme.
+No se atribuye ausencia de diagnóstico nominal a ese adversario cargado.
+
+Evidencia previa a producción WP-7-B32-identidad-estado-evidencia.md SHA
+84f7cef8291052e5cc071c18d658e854cc685d4704966fdf4a38fe5bb92ecc31.
+El contrato vigente §5.3.1 exige tupla (estado especificado,id del estado);
+la autorización B-32 exige TODAS misma identidad y conserva heterogeneidad B-31.
+Dirección contrasta con revisión independiente el ajuste privado mínimo de
+comparación por ref/id cuando existe, manteniendo hacia textual sin Modelo.
+No propone ampliar literal/dominio/API/N/parser; producción continúa freeze 5
+mientras se precisa este alcance. Los asserts posteriores al RED no reciben
+crédito observado. El recibo histórico freeze 5 permanece byteexacto bfb0a832….
+
+
+### WP-7 — reconciliación previa de cinco oráculos, sin ejecución retroactiva
+
+El histórico independiente 75 pass / 7 fail / 82 casos conserva su log/exit y
+originales byteexactos: cinco discrepancias de oráculo y dos RED materiales B-32.
+Se prepararon versiones nuevas de los mismos 40+4 casos; no se borra/salta un caso
+ni se modifica un modelo, ID, firma, helper, invariante o negativo. Dirección
+leyó los dos deltas completos y la nota; revisión independiente previa favorable
+WP-7-review-oraculos-corregidos-dictamen.md SHA
+38c8ea726a5037e56646054f626f01853942f2905f4e519bad42911f0677c1cd.
+
+Clasificación y criterio de cierre verificable:
+1. T-101/D6: esperado con conjunción sobreespecificado; DESIGN §5.3 y
+   reglas:505/spec-OPL:276 exigen comas en Lista. Sólo cambia ese literal;
+   el callback debe llegar verde a la comprobación posterior de estado cerrado.
+2. T-104: igualdad raw incompleta porque u es metahueco; se agregan exactamente
+   16 palabras de ocho unidades es-CL singulares/plurales. Mantiene igualdad
+   cerrada raw y añade contraste con manual previo de 110 palabras únicas;
+   todo el callback, incluida MATRIZ→PLANTILLAS, debe ejecutarse verde.
+3. T-123 general: orden persistido de estados aplicado indebidamente a una
+   lista de ramas. Se fija pagado antes de pendiente conforme al orden
+   determinista por nombre/ID de §5.4, conservando D5/D6 en orden persistido.
+   Deben pasar FAN5s, FAN5e, FAN5A y las negativas posteriores antes abortadas.
+4–5. FAN5A conjunto XOR y OR: mismo orden literal de ramas, sin aceptar
+   permutaciones alternativas; generarBloque/generarModelo, todos hechos/refs,
+   tokens miembros reales y pureza deben verificarse en ambos callbacks.
+
+Nuevos candidatos congelados: general40 SHA
+885a4a5159fe8e78cd2b055393cd965a53768e71388a31a3d5545b78ef2b7890;
+conjunto4 SHA 076f62820f03c26a7419fd61f564f2a5b1e9f36894c7fb9425d7bb0ccb3d1a97.
+Ledger WP-7-oraculos-corregidos-discrepancias.json y manifest e949110d…
+conservan primarias y whitelist; revertir sólo la whitelist recupera originals
+byteexactos. Cero ejecuciones nuevas en esta preparación/revisión. Los asserts
+antes abortados no reciben pass retrospectivo. Activación futura única: 44
+corregidas + 12 previas + 24 locales + 2 diagnóstico original + 16 sondas B-32
+manualmente congeladas; total 98, sólo después de check/freeze quieto y señal raíz.
+Cualquier fallo nuevo se contrasta con precondición/contrato antes de tocar expected.
+No cambia contrato/producción ni amplía DR-13/R+C, abstracción, P/strict/ISO.
+
+
+### WP-7 — alcance técnico de comparación por identidad precisado, antes de código
+
+Revisión independiente estática leída completa: WP-7-review-B32-identidad-dictamen.md
+SHA fe5269a1123bf20a84c04fa3e97e7734bf0df7ab9a5f24c0913f27018f4f1118,
+favorable al menor ajuste privado ref.tipo/ref.id de estado en RAMAS. Dirección
+resuelve dentro de la autorización B-32 ya registrada: aplicar la identidad
+disponible en huecos fuente es cumplimiento del contrato vigente §5.3.1 y B-32,
+no nueva decisión de diseño ni ampliación de B-31. Se libera a la misma escritora
+para ese ajuste limitado junto a O→Oe. Presencia/ausencia se conserva; ref/no-ref
+no se fusiona por texto; fallback textual únicamente para hacia sin Modelo/ref,
+sin resolver/inventar identidad ni implementar WP-9. Guardas restantes, dominios,
+literales, API, matriz/N, control/ruta/AND y política siguen iguales.
+
+El adversario con estados homónimos acredita sólo forma/oferta/contexto/fan
+observados; puede conservar estado-duplicado léxico. No se lo declara canónico
+válido ni se oculta ese diagnóstico. Ello no autoriza perder IDs de un modelo
+cargado. El mismo negativo nativo debe pasar realmente conservando ambos refs
+y hechos. Esta concreción no acepta WP-7: exige reparación, GREEN, check fresco,
+freeze quieto y revisión global independientes. No otra excepción de DESIGN.
+
+
+### WP-7 — aplicación productiva B-32 y primer GREEN nativo observado
+
+La misma escritora aplicó el arreglo mínimo sólo a plantillas.ts: agente común
+O→Oe y comparación RAMAS de presencia/ref.tipo+id/nombre explícito sin ref;
+ref/no-ref no se iguala por texto. Raíz leyó el delta íntegro contra freeze 5:
+ningún cambio de TS3, familia/dominio, literal B-31, N, API o parser.
+
+Nueva ejecución nativa seleccionada B-32: 11 pass / 0 fail, 136 expectativas,
+once casos completos, exit 0; raíz leyó log y exit. Log GREEN SHA d9130093e6fa264ae4477274d30be405610c0c157c284be6315966ba4f06d2ae.
+Pasan XOR/OR uniforme y ausencia total, sus permutaciones, hacia por rama y
+el mismo negativo de dos IDs distintos homónimos con ambos refs/hechos B-31.
+El RED nativo 4/7/97 y el diagnóstico histórico 0/2 permanecen preservados.
+Después se añadió una comprobación explícita de estado-duplicado nominal al
+adversario, sin cambiar una expectativa previa; se observará en el focal y
+check fresco, no recibe crédito en esta ejecución anterior.
+
+Las 19 referencias protegidas y ocho artefactos históricos comprobados por
+raíz siguen byteexactos; conformidad real27 fdac9e60… aún intacta. Focal íntegro
+afectado, TSC, check nuevo, freeze 6 y revisión global independiente98 siguen
+pendientes. Este GREEN no acepta ni publica el paquete.
+
+
+### WP-7 — check íntegro nuevo y freeze 6 quieto antes de revisión global
+
+La escritora terminó sin procesos propios activos y confirmó fuente QUIETA
+postcheck. Raíz leyó recibo vigente nuevo 0c7d243b… y comprobó logs/exits:
+focal completo 200 pass / 0 fail, 1389 expectativas, cinco archivos, exit 0;
+TSC exit 0; check nuevo real con wrapper/env mínimo desde app, TypeScript verde
+y 1081 pass / 0 fail, 363567 expectativas, 39 archivos, 28.83 s, exit 0.
+No skips: 1081 líneas pass, cero fail/skip en log. Check SHA
+ed5d7e876023ed1065845b82a98adf62f676ee14c97e1e7d71743e509f953432.
+El focal posterior observa estado-duplicado nominal sin pérdida de IDs; no se
+llama canónico válido el adversario ni se oculta su diagnóstico.
+
+Freeze 6 manifest adb6250085201ef151a99f815da0f575b67be696e8957eba35183f80e91b8169;
+raíz verificó DIEZ archivos actuales y DIEZ copias idénticos, HAR f40 íntegro
+y prefijos nativos anteriores byteexactos. Sólo plantillas.ts y dos apéndices
+de suites cambiaron frente a freeze 5. Proof independiente raíz
+WP-7-root-freeze-6-verificacion.json; delta WP-7-freeze-5-a-6.diff.
+Las once pruebas nuevas aportan finalmente 137 expectativas: primer GREEN136
+precede comprobación nominal añadida y observada en focal/check.
+
+Se activó revisión independiente global sobre esa fuente quieta: única
+conjunción explícita98, sin fullcheck duplicado ni ejecución en paralelo.
+Los 44 corregidos ya revisados y 12+24+2+16 mantienen huellas/expecteds y logs
+históricos. Revisión/aceptación/publicación siguen PENDIENTES en este evento.
+Propuesta factual de estado B-32 se prepara sólo en scratch sobre27 actuales;
+no se aplica sin datos nuevos y revisión. No otro paquete.
+
+
+### WP-7 — ejecución independiente nueva98 GREEN, dictamen global en curso
+
+Una sola conjunción real sobre freeze 6 quieto: 98 pass / 0 fail, 18782
+expectativas, seis archivos, 257 ms, exit 0. Raíz comprobó log/exit y98 líneas
+pass, cero fail/skip. Log WP-7-review-freeze-6-probes98.log SHA
+22c2e8a76ed8d94d468ddefbc61c5b34c254e5323125d9c689a6e800876331a6.
+Desglose: mismos40+4 corregidos, doce previos, veinticuatro locales, dos
+diagnósticos originales B-32 y dieciséis B-32 nuevos congelados antes de fuente.
+Los callbacks antes abortados ahora llegan completos a final; original B-32
+XOR/OR conserva fuente/expecteds y pasa todas sus aserciones. Sin sumar
+ejecuciones históricas, sin transformar retrospectivamente75/7 en verde.
+
+Se preservó JSON diagnóstico anterior fc92f153… antes del run; el nuevo resultado
+queda separado. Revisión confirma diez fuentes/copias y seis suites intactas
+postrun. Auditoría completa de fuente/delta/aceptación y propuesta factual
+documental aún en curso; no hay dictamen global favorable ni aceptación de
+dirección acreditados en este evento. Sin nuevas pruebas/escrituras productivas,
+commit/push o inicio de otro paquete.
+
+
+### WP-7 — dictamen global favorable leído, revisión factual final pendiente
+
+Raíz leyó COMPLETO WP-7-review-freeze-6-dictamen.md SHA
+e2477e6f312452104ad90317cf3290a28e544e251bc258f0771e18f413c9bf41;
+manifest final 092dd2fb4b0294a245f71646b8fed21ebae63996ad92a39dbcadf69dd631d01e.
+Dictamen favorable para aceptación técnica del alcance WP-7 vigente, sin nuevo
+defecto material ni discrepancia de oráculo pendiente. Auditoría completa de
+cinco fuentes, cuatro suites propias y HAR; diez fuentes/copias conformes.
+
+Desglose real98/0: general40, FAN5A conjunto4, reparaciones12, locales24,
+diagnóstico original2 y nuevasB32 16. Se observaron callbacks completos y
+se conservó fuente/modelos/negativos/historial. Fuente G repara estado uniforme
+por identidad y fallback heterogéneo sin pérdida; no nueva N/API/gramática.
+B-31/P-WP9/ISO/strict y las coberturas específicas DR-13/R+C/abstracción
+conservan sus límites; no se convierten en superficies acreditadas por títulos.
+
+Propuesta factual V1 e38e178… fue leída por raíz y revisora; no aplicada.
+Se detectaron dos frases contextuales de no aceptación que quedarían obsoletas
+al cierre; sólo esas frases se refrescan en scratch, conservando todos los
+demás deltas/25 filas ajenas/27 IDs. Revisión V2 exacta precede integración.
+Aceptación final de dirección y commit/push siguen pendientes en este evento;
+no nuevas pruebas ni escrituras productivas para cambios factuales documentales.
+
+
+### WP-7 — revisión factual V2 favorable recibida antes de integrar
+
+Raíz leyó completos V2, delta exclusivo de dos frases, nota/manifest y dictamen
+independiente documental a1ac5e541b6a87d0b7871632a9a151ae4f175e1bfa4770daa0628a920f22de54.
+GLOBAL e2477e6f… y DOCUMENTAL V2 son favorables sin reserva material; huellas
+verificadas antes de aplicación. Se integra sólo factual75 SHA
+20e95771edcf7d4db2ec5cade47b32d6d64ecddb2e70077925e3bdb939eb65a8
+sobre bases actuales27 fdac9e60…/DESIGN f542b2a4…, no factual20 anterior.
+Candidata mantiene27 IDs,25 filas ajenas byteexactas, reglas/superficies y26
+estados; sólo B-32 pasa a enforzado en su única G comprobada. B-31 permanece
+parcial/no canonizada, T-122 parcialB-31, y límites restantes literales.
+No cambia semántica DOC63/V5/HAR/plan/README ni concede otra autorización.
+No nuevas pruebas por esta precisión factual. Aplicación/aceptación/publicación
+se registran como actos separados a continuación; no están anticipados aquí.
+
+
+### WP-7 — integración factual exacta verificada
+
+Después de ambos dictámenes favorables y su recepción anterior, dry-run y
+aplicación factual75 V2 fueron exit0. Conformidad actual SHA
+8498aa4a694e935df1bef13d27ea7ca15d40509e1c58cf995696d97b027ff6de;
+DESIGN e59cd998c2c3fd02ef4b08e16215cd98bd72803fe21744f25e316a00cc173fea,
+ambos byteexactos a las candidatas revisadas. Plan7c3fa6ce…/README9e6f6b68…
+intactos y JSON válido. Proof raíz WP-7-root-cierre-factual-verificado.json:
+27 IDs,25filas ajenas byteexactas, reglas/superficies/26estados conservados;
+23parcial+3zona laxa+1enforzado exclusivamenteB-32/G. Diez fuentes freeze6
+y19autoridades protegidas nuevamente conformes. No tests nuevos tras este
+factual: ninguna fuente/caso cambió ni los tests leen estos documentos.
+
+### WP-7 — aceptación técnica de dirección, distinta de publicación
+
+Dirección acepta WP-7 conforme a plan.json vigente y su aceptación completa:
+
+- T-100…T-139 en superficie G: vocabulario cerrado110, tabla única118, tokens
+  tipados, texto/ref/hecho recuperables, generación por OPD/preorden/modelo,
+  preview y documento puros con firmas conservadas; importar sigue WP-9.
+- Concordancia D1/D4 DS-26, RF2b sin coma, mención mínima, IDs estables, listas
+  deterministas y unidades es-CL observadas por nativos y revisión independiente.
+- B-31: sólo dos bordes autorizados, cabeceras exactas XOR/OR, >=2 bases completas
+  indentadas, una línea semántica multilínea y estados/ausencias/IDs/procedencia/
+  operador/ref/hecho/pureza; matrices, AND/rutas/controles y negativos preservados.
+- B-32: resolución DOC63 previa, RED real previo a código4/7/97→GREEN11/0/136;
+  ausencia total y mismo estado propio por identidad, heterogeneidad por ID
+  preservada; hacia por rama, texto/tokens/ref/hecho miembro real, todos los
+  hechos/operador/orden/pureza. Focal200/0/1389 y check íntegro1081/0/TSC0 frescos.
+- Revisión global98/0 completa y dictamen e2477e6f… favorable sin defecto material
+  pendiente; documental V2 a1ac5e54… favorable aplicada/verificada. Los cinco
+  oráculos se cerraron en NUEVA ejecución completa, con logs75/7 y RED0/2
+  históricos/modelos/negativos/prefijos conservados, sin skips/cuarentena.
+
+La aceptación se limita al alcance G de WP-7 y mantiene las brechas declaradas:
+B-31 no se canoniza; no parser/inversa/strict WP-9, ISO, X/UI, latencias WP-10
+ni crédito nuevo combinado de abstracción o variantes DR-13/R+C no ejecutadas.
+H1 conserva sus condiciones; H2/H3 y B-28 refinada/imagenWP-18 siguen pendientes.
+Una única escritora de producción y revisión independiente; cambios ajenos
+preservados. No otro paquete iniciado ni nueva excepción contractual.
+
+### WP-7 — entrega serial lista, publicación por verificar
+
+Las condiciones de la autorización específica13:23 ya se cumplen. Se prepara
+un solo commit semántico en español por WP-7, sólo los15 archivos propios, con
+su tablero y conformidad; push únicamente origin/rehacer y comprobación exacta
+HEAD/origin/remoto,0/0 y árbol limpio. El acto/resultados se conservan fuera del
+commit en /tmp/opforja-rehacer/WP-7-publicacion-verificada.json y mensaje final,
+como recibo independiente de publicación. El SHA propio no puede escribirse
+en su contenido sin crear otro commit: este tablero usa su título único para
+localizarlo; la siguiente continuación autorizada podrá fijar el SHA literal.
+No se inicia esa continuación ni otro paquete para hacerlo. WP-5 no se repite.
+Si commit/push o verificación fallan, se comunica esa limitación y se conserva
+el candidato; aceptación técnica no se transforma en publicación por inferencia.
+Tras publicación y verificación STOP exclusivoWP-7, sin WP-8b/main/merge/tag/
+deploy/infra/credenciales/PG real/Docker. Ninguna aprobación ya resuelta se repite.

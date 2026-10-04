@@ -1,7 +1,8 @@
+import { generarModelo, textoCanonico } from './generar';
 import type { Modelo } from '../nucleo/tipos';
 import type { Respuesta } from '../nucleo/resultado';
 import type { Plan } from './planificar';
-export function generarDocumentoOpl(m: Modelo): string { throw new Error('pendiente: WP-7'); }
+export function generarDocumentoOpl(m: Modelo): string { return `# ${m.nombre}\n\n${textoCanonico(generarModelo(m))}`; }
 export function importarOpl(nombre: string, texto: string): Respuesta<{
     modelo: Modelo;
     plan: Plan;

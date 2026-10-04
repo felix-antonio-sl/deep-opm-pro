@@ -84,11 +84,19 @@ Hitos de revisión con el dueño:
    - `nucleo/cosas.ts`;
    - `nucleo/resultado.test.ts`: WP-3a agrega únicamente `violacionesForma` al doble aislado, con fallo explícito si se invoca; sin cambiar casos, cuerpos ni expectativas de WP-1. WP-3b agrega después únicamente `violacionesAbanico`, `normalizarEtiquetas` y `violacionesContexto` con la misma guarda; mantiene íntegros los cinco casos.
    - `opl/documento.ts`.
+   - `opl/contratos.test.ts`: WP-7 sustituye sólo las cinco expectativas temporales de generación por checks reales de §5.4/§5.7; conserva literalmente las seis asignaciones de firmas, el bucle `typeof` y `importarOpl` pendiente. WP-9 sustituye sólo la expectativa restante de `importarOpl`, concretada en su turno conforme a §5.7 y sus pruebas nativas, conservando los otros checks.
    - `nucleo/matriz.ts`: WP-2 produce consulta y normalización; WP-4r agrega el ensayo compartido
      de distribución.
    - `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}`: WP-4p produce; WP-5 integra en serie continuidad R+C y metadata conforme a DESIGN §4.4/§4.6, sin retirar cobertura previa.
    - `nucleo/propiedades.test.ts`: WP-3b prueba creación sin refinamientos; WP-4r amplía la
      integración refinada sin retirar la cobertura anterior.
+   - FAN local B-31: WP-7 genera sólo los dos bordes de DESIGN §5.3.1, con una LineaOpl
+     multilineal y cabecera exacta; WP-9 reconocerá el bloque cerrado en su propio turno.
+     Conserva non-canonical/error/no-aplicable y tiene pendiente resolver aplicación/estricto
+     local sin pérdidas antes de implementación WP-9; no se promete 0 errores ni dispensa.
+     No es superficie canónica/ISO, no modifica N ni amplía DS-10. Se conservan las dos
+     regresiones y sólo se corrigen sus assertions de cuantificador como precisa §10.3.
+     HAR-7 y sus seis firmas/typeof/importación pendiente permanecen íntegros.
 4. Ninguna regla OPM vive fuera de `nucleo/matriz.ts` o `nucleo/diagnostico.ts`. Ninguna oración
    OPL vive fuera de `opl/plantillas.ts`. Toda mutación es una `Operacion` registrada.
 5. Cerrar con `cd app && bun run check` en verde, más las verificaciones de `aceptacion`. Ninguna

@@ -26,3 +26,15 @@ export interface OpcionesOpl {
     readonly esencia: 'siempre' | 'solo-difiere' | 'oculta';
     readonly numeracion: boolean;
 }
+
+export function textoDeTokens(tokens: readonly TokenOpl[]): string {
+    return tokens.map(t => t.marca === 'objeto' ? `**${t.texto}**` : t.marca === 'proceso' ? `*${t.texto}*` : t.marca === 'estado' ? `\`${t.texto}\`` : t.texto).join('');
+}
+export function refsDeTokens(tokens: readonly TokenOpl[]): readonly Ref[] {
+    const vistas = new Set<string>(), refs: Ref[] = [];
+    for (const t of tokens) if (t.ref) {
+        const clave = `${t.ref.tipo}:${t.ref.id}`;
+        if (!vistas.has(clave)) { vistas.add(clave); refs.push(t.ref); }
+    }
+    return refs;
+}

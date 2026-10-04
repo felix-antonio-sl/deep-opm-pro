@@ -1736,7 +1736,7 @@ export interface TokenOpl {
 export interface LineaOpl {
   readonly id: string;              // estable por hecho, no posicional: `${opd}#${plantilla}:${clave}` (§5.4)
   readonly plantilla: string;       // id de §5.3
-  readonly texto: string;           // Markdown canónico; se construye desde los tokens (una sola fuente)
+  readonly texto: string;           // desde tokens; una oración o el bloque local multilineal de §5.3.1
   readonly tokens: readonly TokenOpl[];
   readonly refs: readonly Ref[];    // únicas por tipo:id, en orden de primera aparición
   readonly hechos: readonly Id[];   // enlaces del modelo que la línea expresa (abstraídos incluidos)
@@ -1956,9 +1956,21 @@ Parsear EX1/EX2 con número fija además `duracion.max|min` de la fuente: la cot
 | consumo | `{P} consume {Q} {Lo:mOe}.` | `{Q^} {Lo:P} consume {mOe}.` |
 | resultado | `{Q^} {Lo:P} genera {mOe}.` | `{P} genera {Q} {Lo:mOe}.` |
 | efecto | sobre objetos: `{P} afecta {Q} {Lo:mO}.` | sobre procesos: `{O} es afectado por {Q} {Lo:P}.` |
-| agente | `{P} es manejado por {Q} {Lo:mOe}.` | `{O} maneja {Q} {Lo:P}.` |
+| agente | `{P} es manejado por {Q} {Lo:mOe}.` | `{Oe} maneja {Q} {Lo:P}.` |
 | instrumento | `{P} requiere {Q} {Lo:mOe}.` | `{Q^} {Lo:P} requiere {mOe}.` |
 | invocación | `{Q^} {Lo:P} invoca {P}.` | `{P} invoca {Q} {Lo:P}.` |
+
+En agente con objeto común, `{Oe}` conserva `en {s}` sólo cuando TODAS las ramas llevan
+la misma identidad de estado propio explícito. Si todas carecen de estado, conserva la forma
+básica sin sufijo. `hacia` reconstruye cada enlace agente con ese mismo estado explícito, o
+sin estado cuando está ausente: nunca default global ni herencia desde una rama. El token de
+estado mantiene su ref y un `hecho` miembro real; `hechos` conserva todos los IDs/procedencia.
+Estados heterogéneos o parcialmente ausentes siguen exclusivamente FANLOCAL (§5.3.1), sin
+tercer fallback. No agrega `m`, control, ruta, AND, firma o API ni cambia canon/DECISIONS.
+Esta concreción contractual fue autorizada y registrada/aplicada antes de código. B-32
+conserva el RED G histórico y registra reparación nativa observada en freeze 6; check
+completo fresco observado 1081/0 y nueva ejecución independiente 98/0. El cierre G exige
+dictamen global y revisión documental favorables, sin crédito de superficies futuras.
 
 Casos especiales de abanico:
 
@@ -1991,6 +2003,104 @@ Casos especiales de abanico:
 `así como` en CX lleva los **objetos internos** (R-OPL-CX-6, PUEDE). Se emite porque el alcance
 interno/externo decide la visibilidad (R-VIS-HIJO-1), y sin él el roundtrip no sería estricto.
 
+### 5.3.1 Bloques FAN locales no canonizados (B-31)
+
+Extensión **LOCAL NO_CANONIZADA**, autorizada para conservar dos ofertas N históricas cuya
+superficie literal no está en el canon. No es una plantilla ISO ni evidencia de conformidad
+canónica. No cambia canon, DECISIONS 1–28, v0, APIs ni validez de enlaces. R-FAN-EST-1 y la
+nota de R-FAN-5A mantienen la admisión N; los nuevos literales son una decisión local declarada.
+
+Sólo aplica a un fan XOR/OR válido por la matriz compartida, con ≥2 ramas homogéneas, sin
+control ni ruta, que satisface exactamente uno de estos bordes:
+
+1. Todos TS3, mismo objeto/proceso y salida propia común; todas las entradas propias presentes,
+   con ≥2 entradas distintas. No admite entrada y salida simultáneamente variables.
+2. Consumo, resultado, agente o instrumento, mismo objeto y procesos distintos; la tupla
+   `(estado especificado, id del estado)` no es uniforme entre ramas, incluida presencia/ausencia.
+   Conserva la multiplicidad por rama que la matriz ya admite; no agrega combinaciones nuevas.
+
+Los fans ya representables siguen sus plantillas actuales. AND sigue plano sin cabecera; si
+alguna rama porta ruta, DS-10 tiene precedencia y sigue plano con su prefijo. Las combinaciones
+B-06/B-08, controles mixtos y demás negativas conservan matriz, diagnóstico y comportamiento.
+
+| id local | patrón del bloque | estado de producto | registro |
+|---|---|---|---|
+| FANLOCAL-XOR | `Exactamente una de estas ramas:` + salto + `{RAMAS}` | G local | B-31 |
+| FANLOCAL-OR | `Al menos una de estas ramas:` + salto + `{RAMAS}` | G local | B-31 |
+
+Estos dos registros pertenecen a la misma `PLANTILLAS`, con metadata interna local y
+`registro: 'B-31'`; G significa generación/reconocimiento del producto, no origen canónico.
+`RAMAS` es una secuencia cerrada de oraciones base de esa tabla: TS3 para el borde 1;
+T1/TS1, T2/TS2, H1/HS1 o H2/HS2 para el borde 2, todas de una sola familia.
+Cada rama repite explícitamente proceso, objeto, estado presente y, en TS3, entrada y salida;
+una ausencia no hereda estado de otra rama ni de la cabecera. Se compone/reconoce por la misma
+tabla; no hay segunda copia de sus literales. La cabecera fija sólo el operador.
+
+Gramática local de encuadre (LF; CRLF se convierte a LF antes de encuadrar):
+
+```ebnf
+bloque_fan_local = cabecera_fan_local, LF, rama_local, LF, rama_local, { LF, rama_local } ;
+cabecera_fan_local = "Exactamente una de estas ramas:" | "Al menos una de estas ramas:" ;
+rama_local = "  ", oracion_base_completa ;
+```
+
+La cabecera empieza en columna 0 y se compara con esos literales exactos tras NFC. Cada rama
+empieza con **exactamente dos espacios ASCII**, seguidos inmediatamente por su oración con
+punto final; no tabulaciones, viñetas, numeración, marcadores de cierre ni identificadores
+textuales nuevos. La indentación es encuadre, no un hecho ni un marcador de operador.
+El cuerpo es la secuencia contigua de renglones indentados hasta el primer vacío, no indentado
+o EOF; el terminador no se consume. Una cabecera nueva en columna 0 cierra el grupo anterior y
+abre otro independiente, sin exigir línea vacía. No cruza cabecera de OPD, documento o alcance.
+Una cabecera indentada, cuerpo inválido, familia mixta, <2 ramas o dominio distinto rechazan el
+bloque entero; no se rescatan ramas como enlaces planos/AND ni se absorben oraciones vecinas.
+Una cabecera sola no es display ni una oración independiente válida.
+
+Representación mínima: **una sola `LineaOpl` semántica** por fan local; `texto` y `tokens`
+contienen cabecera, LF, encuadre y ramas. No se agrega campo público. No lleva `soloDisplay`:
+la cabecera porta semántica. `textoDeTokens(tokens) === texto`; `textoCanonico` conserva
+saltos/espacios internos y las cabeceras `##` actuales. Su id es
+`${opd}#FANLOCAL-XOR:FAN:${fan.id}` o la variante OR, nunca posición/nombre/SDx.
+Las ramas siguen nombre del otro extremo (colación es/base) e id del enlace como desempate
+(§5.4); para el mismo par se desempata por id del enlace. Los tokens de cada rama conservan
+`hecho` y `ref` propios, incluidos ambos estados TS3. `refs` únicas en primera aparición;
+`hechos` es la unión ordenada, sin pérdidas, de la procedencia de cada rama vista, incluidos
+abstraídos. `opd`, etiqueta y profundidad provienen de la vista; no se mutan fuente, IDs,
+estados, enlaces, operador o membresía. La cabecera/encuadre no fabrica ref/hecho propio.
+
+**Inversa obligatoria futura WP-9, sin implementación ni aceptación anticipada en WP-7.**
+El framing anterior se reconoce antes de colapsar espacios/quitar numeración de §5.5.
+Cada cuerpo se reconoce por su plantilla base en `PLANTILLAS`; antes de `hacia` se exigen
+marcas O=objeto (`**…**`), P=proceso (`*…*`) y E=estado (backticks), con todos los huecos
+requeridos y sin texto residual. Cada base produce exactamente un HechoTexto enlace permitido.
+No se infieren tipos/estados desde huecos sin marca, defaults de `hacia` o ramas vecinas;
+el dominio se valida sobre esos extremos explícitos. En WP-9 la resolución al Modelo y los
+gates N de firma/forma/contexto/noOfrecido son reales, nunca defaults plausibles. El resultado es un único
+`HechoTexto { k: 'abanico', operador, ramas }`, con todas las ramas, sin herencia ni deduplicación
+por objeto. La cabecera no usa `cabecera` de OPD ni `soloDisplay`. `LineaAnalizada` sigue por
+renglón físico: el hecho del grupo se asocia al número de la cabecera; los cuerpos no producen
+hechos independientes ni nuevas acciones. El plan conserva trazabilidad de sus números y
+estado del grupo (cuerpos con detalle de pertenencia, como el par SE3), sin firma pública nueva.
+El alcance es el actual de `planificar`: OPD explícito, o último `## SDx` con alcance modelo;
+no hay ámbito/perfil/flag nuevo que autorice aplicación local. Un bloque mal formado da
+`syntax-error` sin rescate; un candidato rechazado por matriz conserva su código existente.
+
+`NO_CANONIZADAS` de WP-9 registrará `fan-local-xor` y `fan-local-or`, ambos B-31. El bloque
+válido se reconoce léxicamente y recupera el HechoTexto completo, pero **reporta `non-canonical`
+con severidad error**, regla/origen local B-31 visible y atribución al grupo. El plan vigente lo
+clasifica no-aplicable/forma-no-reconocida sin acciones; no aplica cuerpos como enlaces planos
+ni oculta diagnóstico porque el texto venga del propio generador. Conserva código, severidad,
+razones y rechazo actual de las demás filas (R-IMPORT-6, §5.5/§5.6); nunca evidencia ISO.
+
+**Obligación pendiente de inversión SIN PÉRDIDAS WP-9:** el reconocimiento debe recuperar todos
+los enlaces, estados/ausencias, operador y membresía desde texto, sin usar metadata oculta.
+La política vigente de error/no-aplicable entra en tensión con aplicar esa extensión y exigir
+cero errores/roundtrip estricto de §5.9. Se resolverá expresamente en WP-9 antes de implementar
+aplicación/inversa estricta local; aquí no se autoriza esa excepción ni se declara dispensa
+ni se cambia un gate ni se recorta el enumerador. No se promete verde estricto/0 errores de estos
+bloques. Si se resolviera posteriormente una aplicación local, tendrá que conservar grupo
+atómico, fases 2/3, idempotencia, pureza y partial-parse entre grupos; no se decide esa política
+ahora. Vocabulario cerrado agrega sólo los literales de esta tabla (incluidos `estas` y `ramas`).
+
 ### 5.4 Generador (`opl/generar.ts`) — CONTRATO
 
 ```ts
@@ -2018,7 +2128,7 @@ Emisión de un bloque, sobre `proyectar(m, opd)`, en este orden (DR-32 ajustado 
      de cada tipo, por nombre del otro extremo.
    - Un enlace con control emite **solo** su variante E\*/C\*: un hecho, una oración (T-112).
    - Cada abanico emite una oración, en el grupo de su proceso común o, si el común es el objeto,
-     en el del primer proceso rama. La excepción es DS-10.
+     en el del primer proceso rama. Las excepciones son DS-10 y el bloque local cerrado de §5.3.1.
    - La ruta prefija la oración completa (T-129).
    - Clave de línea: `<plantilla>:<enlace>` o `FAN:<abanico>`.
 4. **Estructurales**:
@@ -2052,6 +2162,9 @@ subyacentes. No hay fusión opaca.
 
 ### 5.5 Analizador (`opl/analizar.ts`)
 
+WP-9 encuadra primero los dos bloques locales de §5.3.1, conservando su indentación y
+fronteras antes de la normalización por renglón. El resto sigue este algoritmo sin cambios.
+
 1. **Normalización** (R-§18-NORM-1, T-152):
    - NFC. Tabulaciones y espacios no separables pasan a espacio, y los espacios se colapsan.
    - Se quitan viñetas y numeración iniciales (`- `, `• `, `1.`, `1)`).
@@ -2078,6 +2191,8 @@ subyacentes. No hay fusión opaca.
 5. **Residual SE1** (DR-36, T-170): `⟨mC⟩ <frase_no_capitalizada> ⟨mC⟩.`, con ambos extremos del
    mismo tipo tipográfico y sin otro esqueleto, da SE1 con esa etiqueta.
 6. **No soportadas y no canonizadas** (`opl/no-soportadas.ts`, cada fila con `regla` y `registro`).
+   Las dos filas locales autorizadas B-31 tienen el reconocimiento cerrado de §5.3.1; no se
+   confunden con la lista de formas rechazadas que sigue.
    Se reconocen **antes** de fallar y se responden sin mutar:
    - **`NO_SOPORTADAS`** dan `unsupported-canonical` (warning, T-156): RX1/RX2 `puede ser`;
      plurales por multiplicidad (`consumen`, `generan`, `afectan`, `requieren`, `manejan`,
@@ -2215,6 +2330,12 @@ export function importarOpl(nombre: string, texto: string): Respuesta<{ modelo: 
   - sobre cualquier otro token de un enlace, selecciona el enlace y abre Propiedades.
 
 ### 5.9 Cómo se garantiza `parsear(generar(m))` y el fixture estricto R-§19-SIM-3
+
+WP-9 tiene pendiente inversión SIN PÉRDIDAS de los dos dominios locales de §5.3.1. La política
+vigente `non-canonical`/error/no-aplicable contradice su aplicación con cero errores/estricto;
+se requiere resolver ese punto en su turno antes de implementación, sin filtrar casos ni
+recortar el enumerador. No es una nueva bisimetría parcial ni una pérdida dispensada, y no
+se da por resuelto o verde aquí. Reconocimiento local completo no acredita evidencia ISO.
 
 1. **Por construcción** (P4): generar y reconocer usan el mismo `patron`. `plantillas.test.ts`
    exige, por cada plantilla G, que `hacia(desde(h))` sea la identidad sobre el hecho, en todas sus
@@ -3657,13 +3778,27 @@ Gates del Anexo A (T-303) y sus suites:
   - tokens, refs e ids de línea estables;
   - el display `siempre`/`oculta` sin tocar el canónico (T-139);
   - abanico con ruta como una oración por enlace;
-  - FAN5A que falla cerrado sin `throw`.
+  - T-122 agente de objeto común con estado uniforme XOR/OR (B-32): RED nativo antes de
+    corrección, GREEN con texto completo/estado/ref/hecho real/todos los IDs/operador/pureza;
+    sin estado conserva texto básico. `hacia` de tabla repite sólo el estado explícito en cada
+    rama; la inversa completa de parser sigue WP-9. Check íntegro fresco y revisión antes de cierre.
+  - FAN5A que falla cerrado sin `throw`; mantiene las negativas de ambas dimensiones variables.
+  - FANLOCAL-XOR/OR sólo en los dos bordes de §5.3.1: cabecera exacta, cada oración base
+    completa, tokens/refs/hechos/IDs/operador/procedencia y pureza. T-103 mantiene una oración
+    con punto por renglón del cuerpo; su única excepción local es la cabecera terminada en `:`.
+  - Se archivan byteexactos las dos regresiones RED nativas T-122/T-123 y sus logs originales.
+    Sólo sus dos assertions históricas de substring `al menos uno de`/`exactamente uno de`
+    (generar.test.ts:181 y :260 en el freeze previo) se sustituyen por cabecera EXACTA autorizada
+    y oraciones completas; se conservan fixtures, títulos, estados/ausencia, hechos/refs/IDs,
+    operador y controles. No se agrega texto artificial para satisfacer el literal anterior.
 - `analizar.test.ts`:
   - la normalización, los spans y el sufijo ` proceso`;
   - el plegado de multiplicidad y de estados; las listas mixtas de CX;
   - el residual SE1 y `Current`;
   - cada fila de `NO_SOPORTADAS` da `unsupported-canonical` sin mutar, y cada una de
-    `NO_CANONIZADAS`, `non-canonical`;
+    `NO_CANONIZADAS`, `non-canonical`; las dos locales B-31 recuperan el HechoTexto completo
+    y conservan non-canonical/error/no-aplicable; negativos de encuadre/dominio sin rescate.
+    La política de aplicación/estricto local queda pendiente de resolución previa en WP-9;
   - D1–D4, ENT3, COND-ALT, TS4/TS5 standalone y FAN-5B.
 - `editor-opl.test.ts`:
   - los 4 estados con su precedencia, las 8 razones y el resumen con el rótulo del botón;
@@ -3967,6 +4102,8 @@ parseo OPL, X = export.
 | B-26 | T-100 ★ (OPL completo «cubre todo el modelo cargado») | parcial | G·X | una cosa sin aparición o un enlace sin vista (DS-6; llegan por quitar la última aparición o por import) no pertenecen a ningún bloque: se diagnostican (`cosa-sin-aparicion`, `enlace-sin-vista`), bloquean `canon-documento` y el menú avisa en «OPL Markdown»; el JSON los conserva | DS-6, CC-01 |
 | B-27 | T-106 ★ / DR-2 («D2 y D4 no se emiten en canónico») frente a T-190 ★ / R-BI-DUAL-1 (un rectángulo aislado debe viajar por OPL) | parcial (desvío consciente) | G·P | el canónico emite D2 **solo** para una cosa visible que ninguna otra oración de su bloque menciona (mención mínima); nunca D4; el parser acepta D2 como mención | DS-2, CC-27 |
 | B-28 | T-040 / §10.2: equivalencia menú/creación por resultado efectivo con refinamientos | parcial (integración temporal) | N·U | WP-2 comprueba matriz y datos pendientes; WP-3b comprueba creación sin refinamientos; la distribución pura compartida de consulta/creación/reparación y sus propiedades se integran en WP-4r | opción A de HANDOFF autorizada por coordinación delegada; cierre de integración refinada en WP-4r/H2, sin stubs como evidencia |
+| B-31 | T-103/T-105/T-122/T-123: realización local de dos ofertas FAN sin literal canónico completo | parcial (desvío local declarado) | G·P·X | bloque XOR/OR de §5.3.1, sólo salida común TS3 o objeto común C/R/A/I con estado heterogéneo/ausente; G se verifica en WP-7; P/inversión sin pérdidas en WP-9 conserva non-canonical/error/no-aplicable con política aplicación/estricto pendiente de resolución; X en sus paquetes; no evidencia ISO | autorización pública registrada en HANDOFF; no cambia N/canon/DECISIONS ni habilita ambos estados variables, controles o rutas adicionales; no se cierra por aprobar el contrato |
+| B-32 | T-122 / R-FAN-EST-1 y HS1: fidelidad G del agente de objeto común con estado uniforme | enforzado | G | RED histórico XOR/OR 0/2 conservado: oferta N válida e IDs/hechos/operador intactos, con omisión del estado. Freeze 6 observa RED nativo 4/7/97 expectativas → GREEN 11/0/136, focal 200/0/1389 y TSC 0; check completo fresco observado 1081/0 y nueva revisión independiente 98/0, con diagnóstico original y 16 sondas B-32 completos | DOC63 `{O}`→`{Oe}` autorizado/aplicado antes de código, sólo estado uniforme explícito por identidad; sin estado conserva básico, heterogéneo/ausente sigue FANLOCAL. Cierre limitado a G tras check fresco y revisión completa favorable; sin ampliar N/canon. Inversa completa sigue WP-9 sin crédito anticipado |
 
 ### 11.4 Lista exacta de eliminación (rama `rehacer`, WP-0)
 
@@ -4027,6 +4164,7 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
   - `nucleo/enlaces.ts`: WP-3b lo crea y WP-4r le agrega la llamada a `distribuir`;
   - `nucleo/cosas.ts`: WP-3a lo crea y WP-4r le agrega la inserción de subprocesos;
   - `opl/documento.ts`: WP-7 escribe `generarDocumentoOpl` y WP-9 le agrega `importarOpl` (CC-23).
+  - `opl/contratos.test.ts`: WP-7 sustituye sólo las cinco expectativas temporales de generación por checks reales de §5.4/§5.7; conserva literalmente las seis asignaciones de firmas, el bucle `typeof` y `importarOpl` pendiente. WP-9 sustituye sólo la expectativa restante de `importarOpl`, concretada en su turno conforme a §5.7 y sus pruebas nativas, conservando los otros checks.
   - `nucleo/proyeccion.ts`, `nucleo/proyeccion.test.ts` y `nucleo/frontera.test.ts`: WP-4p produce proyección y leyes; WP-5 integra en serie continuidad R+C y metadata de conflictos conforme a §4.4/§4.6, sin retirar cobertura previa.
   - `nucleo/resultado.test.ts`: WP-3a completa en serie la exportación `violacionesForma` del doble aislado de transacción con una guarda que falla si se invoca; conserva íntegros casos, cuerpos y expectativas de WP-1. WP-3b agrega únicamente `violacionesAbanico`, `normalizarEtiquetas` y `violacionesContexto`, con la misma guarda de no invocación y conservación íntegra de los cinco casos.
   - `nucleo/matriz.ts` y `nucleo/propiedades.test.ts`: WP-2 produce la consulta, WP-3b comprueba
@@ -4049,10 +4187,10 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 | **WP-3a** | Operaciones: cosas y estados | `nucleo/{cosas,estados}.ts`; `nucleo/resultado.test.ts` (ajuste serial mínimo del doble aislado: exportación `violacionesForma` con guarda de no invocación) | §4.2 (cosas, estados) | WP-2, WP-4p (`suprimirEstado` consulta la visibilidad de enlaces anclados, CC-23) | `cosas.test`, `estados.test`: éxito, rechazo con código, trazas, ids, deshacer; T-062, T-063, T-065, T-081, T-248, T-251, **DS-5** (`tiene-refinamiento`), **DS-6** (última aparición), selección múltiple, DS-20 |
 | **WP-3b** | Operaciones: enlaces y abanicos | `nucleo/{enlaces,abanicos}.ts`, sus pruebas y `nucleo/propiedades.test.ts`; `nucleo/resultado.test.ts` (ajuste serial mínimo: tres exportaciones del doble aislado con guarda de no invocación; casos/cuerpos/expectativas WP-1 intactos) | §4.2 (enlaces, abanicos), `reanclarExtremo`, alternativas del segundo gesto | WP-2, WP-4p (`crearEnlace` muestra el estado oculto donde el enlace se ve, CC-23) | `enlaces.test`, `abanicos.test`: `crearEnlace` con `abanicoCon`, `fijarEstados` (4 formas), `reanclarExtremo` (todas las familias, T1→TS1, T-250), `eliminarEnlaces` (mitad escindida ⇒ standalone; `valor` huérfano retirado, CC-03), exhibición que propaga lo ambiental (CC-02), T-066 · `propiedades.test` (`tiposLegales` ≡ `crearEnlace`, sobre 3 modelos de muestra de `constructores` y 50 de `azar` sin refinamientos, con etiquetas completas, pendientes no persistibles y normalización con traza; integración refinada en WP-4r/B-28; sin secuencias de operaciones de WP-3a) |
 | **WP-5** | Diagnóstico y gates | `nucleo/diagnostico.ts`, `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}` (compartidos seriales para continuidad R+C y metadata) | `CATALOGO`, `diagnosticar`, `gatesExportacion`, reparaciones | WP-2, WP-4p | `diagnostico.test`: cada código con un caso positivo y uno negativo, y cada `reparacion` es una `Accion` bien formada (que aplicada lo resuelve se prueba en `reparaciones.test` de WP-4r, que ya tiene todas las operaciones, CC-23); T-260, T-261, T-263 (un solo código, con herencia y subprocesos), T-265, T-268, T-283; T-085/T-089 continuidad R+C directa, R→E→C y anidada secuencial acreditada por hechos/estados originales; negativos de cadena rota y anidado paralelo, firma de estados, IDs/procedencia, pureza, anclajes visibles y 12 fuerzas sin pérdidas; conservar 9 celdas, negativos y ley/oráculo independiente de frontera; metadata §4.4 con igual cobertura |
-| **WP-7** | OPL: generación | `opl/{vocabulario,linea,plantillas,generar}.ts`; `opl/documento.ts` (`generarDocumentoOpl`) | `PLANTILLAS` (con `hacia`), `generarBloque`, `generarModelo`, `textoCanonico`, `lineaDeEnlace` | WP-4p | `vocabulario/plantillas/generar.test`: T-100…T-139 de la tabla §12.6; RF2b sin coma; RFE; mención mínima; ids de línea estables; unidades es-CL |
+| **WP-7** | OPL: generación | `opl/{vocabulario,linea,plantillas,generar}.ts`; `opl/documento.ts` (`generarDocumentoOpl`); `opl/contratos.test.ts` (serial: sólo cinco expectativas temporales de generación; seis firmas/typeof e importación pendiente intactos) | `PLANTILLAS` (con `hacia`), `generarBloque`, `generarModelo`, `textoCanonico`, `lineaDeEnlace` | WP-4p | `vocabulario/plantillas/generar.test`: T-100…T-139 de la tabla §12.6; RF2b sin coma; RFE; mención mínima; ids de línea estables; unidades es-CL |
 | **WP-8b** | OPD: escena, dibujo, export | `opd/{escena,dibujo,exportar}.ts`, `opd/__golden__/**` | `escena`, `dibujar`, `aTexto`, `exportarDiagrama`, `exportarDocumento`, `advertenciasEscena` | WP-4p, WP-8a, WP-6 (los golden del SD y de un OPD profundo de cada fixture importan v0, CC-23); gates tras WP-5 | `escena/exportar/golden.test`: 40 golden revisados **visualmente** uno a uno (SYNTHESIS §8-5); T-200…T-228 de la tabla §12.6; `@font-face` en el export |
 | **WP-4r** | Refinamiento (operaciones) | `nucleo/refinamiento.ts`; hook de `distribuir` en `nucleo/enlaces.ts` y de subproceso en `nucleo/cosas.ts`; hook de ensayo en `nucleo/matriz.ts`; ampliación `nucleo/propiedades.test.ts` | §4.5 (`descomponer`, `agregarSubprocesos`, `moverSubproceso`, `fijarBandas`, `desplegar`, `agregarRefinadores`, `eliminarRefinamiento`, `distribuirEnlace`) | WP-3a, WP-3b, WP-5 (para `reparaciones.test`) | `refinamiento.test`: tabla §4.5.3 fila por fila, incluida DS-4; T-070…T-083; sin semillas; un `gesto`; materialización · `secuencias.test` (200 semillas × 40 acciones de `azar.acciones`, incluidas las de refinamiento: `validarForma` vacía, sin errores de contexto nuevos, entrada sin mutar) · `reparaciones.test` (cada reparación de `CATALOGO` y `REGLAS_CONTEXTO`, aplicada con `aplicarAccion`, hace desaparecer su diagnóstico) · `propiedades.test`: consulta ≡ creación por resultado efectivo de distribución real compartida con reparación; 0/1/≥2 subprocesos, TS3/control/abanico, evento, recursión, aparición externa, colisión, rollback y DS-20 contra original; cierre de integración N de B-28 en WP-4r/H2 |
-| **WP-9** | OPL: análisis y edición inversa | `opl/{analizar,planificar,aplicar,no-soportadas}.ts`; `opl/documento.ts` (`importarOpl`) | `analizar`, `planificar`, `aplicarPlan`, `NO_SOPORTADAS`, `NO_CANONIZADAS`, `TEXTO_RAZON` | WP-7, WP-3a, WP-3b, WP-4r | `analizar/editor-opl/roundtrip-matriz/roundtrip-azar/roundtrip-tabla92/composicion/lente.test`: T-150…T-196; D1/D3 «solo si difieren» y creación por tipografía en el **mismo merge** (SYNTHESIS §8-16); ~700 casos en < 3 s |
+| **WP-9** | OPL: análisis y edición inversa | `opl/{analizar,planificar,aplicar,no-soportadas}.ts`; `opl/documento.ts` (`importarOpl`); `opl/contratos.test.ts` (serial: sólo expectativa restante de importación, concretada en su turno conforme a §5.7; demás checks intactos) | `analizar`, `planificar`, `aplicarPlan`, `NO_SOPORTADAS`, `NO_CANONIZADAS`, `TEXTO_RAZON` | WP-7, WP-3a, WP-3b, WP-4r | `analizar/editor-opl/roundtrip-matriz/roundtrip-azar/roundtrip-tabla92/composicion/lente.test`: T-150…T-196; D1/D3 «solo si difieren» y creación por tipografía en el **mismo merge** (SYNTHESIS §8-16); ~700 casos en < 3 s |
 | **WP-13** | Editor | `editor/**` | §7.6 (`crearEditor`, `Cliente`, `AlmacenLocal`, `COMANDOS`, `reducirGesto`) | WP-3a/b, WP-4r, WP-6, WP-7 (`lineasNuevas` usa `generarModelo`); contrato de WP-11 | `estado/guardado/comandos/gestos.test` (§10.6): ambas resoluciones de conflicto, 404/413, apertura no canónica, salida con pendientes, reingreso, versión nueva, un paso por `gesto`, deshacer vuelve al OPD · `aplicarOpl` se prueba con un `Plan` construido a mano (`base` + `acciones`), sin depender del analizador de WP-9 (CC-23) |
 | **WP-10** | Integración códec × OPL y rendimiento | `opl/roundtrip-modelos.test.ts`, `src/rendimiento.test.ts` (sin dueño antes, CC-23) | — | WP-6, WP-9, WP-5, WP-8b | auto-reparseo por OPD con 0 cambios en los 6 fixtures y el sintético (UX-01) · estricto de documento completo para los que pasan los gates · `rendimiento.test` (§2.4, falla a 3×) |
 | **WP-12** | Migración desde PostgreSQL | `herramientas/migrar-postgres.ts` (+ `.test.ts`) | §8.6 (`FuenteLegada`, informes) | WP-6, WP-11, WP-5 | `migrar-postgres.test` con fuente falsa (8 casos de §10.6) |
@@ -4061,6 +4199,12 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 | **WP-16** | UI: paneles | `ui/{Inspector,ArbolOpd,PanelOpl,EditorOpl,PanelDiagnostico,Buscar,MenuExportar}.tsx` | Propiedades con «Enlaces (N)», búsqueda, editor OPL de 4 estados, diagnóstico con «Aplicar a los N», export con gates y advertencias | WP-9, WP-8b, WP-13, WP-5 | `bun run check` y `bun run build`; sus e2e (14, 16–20, 26) necesitan el lienzo de WP-15 y se evalúan en WP-17 (CC-23) |
 | **WP-17** | E2E | `e2e/**` | infraestructura §10.7 | redacción desde WP-13; ejecución tras WP-14–16 (WP-14, WP-15 y WP-16 se integran como un solo tren: ninguno cierra sus e2e por separado) | los 26 escenarios verdes contra el build y el servidor real (Chromium de `/opt/pw-browsers`), con 0 errores de página |
 | **WP-19** | Documentación y cierre | `README.md`, `NOTICE.md`, `docs/**`; borra `HANDOFF.md` | §11 | todos | cada fila de las tablas con `registro` tiene su B-nn, y viceversa (revisión del diff) · cada fila de §12.6 apunta a archivos y pruebas existentes (`bun test -t <T-ID>` encuentra ≥1 prueba por ★ no registrado como brecha) · `bun run check`, `bun run e2e` y `bun run build` verdes desde un clon limpio |
+
+WP-7 incorpora únicamente la generación local de §5.3.1 en sus archivos/pruebas propios,
+con B-31 y el delta explícito de dos assertions de §10.3. WP-9 tiene la obligación futura de
+reconocimiento cerrado e inversión sin pérdidas del mismo bloque en sus archivos/pruebas
+propios; aplicación/estricto local requieren la resolución explícita pendiente de §5.3.1,
+sin adelantarlos en WP-7. El ownership serial HAR-7 de `opl/contratos.test.ts` queda íntegro.
 
 ### 12.3 Qué se porta por lectura desde `pre-rehacer` (no se copia a ciegas)
 
@@ -4190,9 +4334,9 @@ fila de Brechas. La columna Prueba nombra el archivo; el título lleva el T-ID.
 | T-100 | OPL completo en preorden | `generarModelo` + `opdsEnPreorden`; la cosa sin aparición y el enlace sin vista no caen en ningún bloque: diagnóstico, gate de `canon-documento` y aviso en el export OPL (DS-6, CC-01) | WP-7, WP-5 | `generar.test`, `diagnostico.test`, e2e 19 | **parcial (B-26)** |
 | T-101 | solo estados visibles; D6 | `generarBloque` paso 2 | WP-7 | `generar.test`, e2e 6 | enforzado |
 | T-102 | tipografía Markdown | texto desde tokens | WP-7 | `generar.test` | enforzado |
-| T-103 | una oración por línea, con punto | `generarBloque` | WP-7 | `generar.test` | enforzado |
+| T-103 | una oración por línea, con punto | `generarBloque`; excepción local sólo cabecera FAN de §5.3.1; cuerpo conserva punto por renglón | WP-7 | `generar.test` | **parcial (B-31)** |
 | T-104 | vocabulario cerrado | `VOCABULARIO` ≡ literales | WP-7 | `vocabulario.test` | enforzado |
-| T-105 | plantillas literales (tabla 9.2 mínima) | `PLANTILLAS` | WP-7 | `plantillas.test`, `roundtrip-tabla92.test` | enforzado |
+| T-105 | plantillas literales (tabla 9.2 mínima) | `PLANTILLAS`; FANLOCAL explícitamente no canonizado (§5.3.1) | WP-7 | `plantillas.test`, `roundtrip-tabla92.test` | **parcial (B-31)** |
 | T-106 | D1/D3 solo si difieren | `generarBloque` paso 2; D2 solo como mención mínima de una cosa que ninguna otra oración nombra (DS-2) | WP-7 | `generar.test` | **parcial (B-27, DS-2)** |
 | T-107 | D5 `puede estar`, en orden | D5 | WP-7 | `generar.test` | enforzado |
 | T-108 | D7–D10 | D7/D8/D9/D10 | WP-7 | `generar.test` | enforzado |
@@ -4205,7 +4349,8 @@ fila de Brechas. La columna Prueba nombra el archivo; el título lleva el T-ID.
 | T-116 | IV1 e IV2 | IV1, IV2 (sin demora) | WP-7 | `generar.test` | enforzado |
 | T-117 | RF1–RF4b, RH1, variantes de proceso | plantillas estructurales | WP-7 | `generar.test` | enforzado |
 | T-119 | SE1 y SE2 | plantillas | WP-7 | `plantillas.test` | enforzado |
-| T-122 | 24 plantillas de abanico; ramas con estado | tabla de abanicos | WP-7 | `plantillas.test`, `roundtrip-matriz.test` | enforzado |
+| T-122 | 24 plantillas de abanico; ramas con estado | tabla de abanicos; agente de objeto común conserva estado uniforme propio según §5.3, con reparación G observada, check fresco y ejecución independiente; dos bordes locales cerrados de §5.3.1 sin alterar los representables | WP-7 | `plantillas.test`, `roundtrip-matriz.test` | **parcial (B-31)** |
+| T-123 | estados por rama de fan del mismo objeto | FAN5s/e/A actuales; salida común TS3 local según §5.3.1 | WP-7, WP-9 | `generar.test`, `roundtrip-matriz.test` | **parcial (B-31)** |
 | T-125 | CX1/CX2/mixta en el hijo | `generarBloque` paso 1 | WP-7 | `generar.test`, e2e 11 | enforzado |
 | T-126 | CX3 `se despliega en SDx en` | CX3 | WP-7 | `generar.test`, e2e 13 | enforzado |
 | T-127 | sin CX con <2 refinadores | R-CX-0 | WP-7 | `generar.test` | enforzado |
@@ -4305,7 +4450,7 @@ demás no ★ se prueban en su WP con su T-ID en el título, por ejemplo:
 
 - T-017 y T-109 (`Current`), T-020 (valor), T-034/T-118/T-217 (incompleta), T-035 (género);
 - T-050 (tipo), T-057 (con B-04), T-058, T-061, T-081, T-088–T-091;
-- T-120, T-121 (enforzado por DS-8), T-123, T-124 (con B-08), T-128, T-129 (con DS-10), T-138, T-139;
+- T-120, T-121 (enforzado por DS-8), T-124 (con B-08), T-128, T-129 (con DS-10), T-138, T-139;
 - T-154, T-163, T-165, T-169, T-175, T-183, T-205, T-207, T-218, T-219, T-222, T-225, T-226;
 - T-229 se cumple por ausencia: no hay grilla, snap ni guías inteligentes, y las guías de banda no
   usan el dash de afiliación (e2e 12 comprueba que la guía de banda no lleva `stroke-dasharray: 8 4`;
