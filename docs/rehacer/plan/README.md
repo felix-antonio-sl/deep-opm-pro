@@ -87,7 +87,7 @@ Hitos de revisión con el dueño:
    - `opl/contratos.test.ts`: WP-7 sustituye sólo las cinco expectativas temporales de generación por checks reales de §5.4/§5.7; conserva literalmente las seis asignaciones de firmas, el bucle `typeof` y `importarOpl` pendiente. WP-9 sustituye sólo la expectativa restante de `importarOpl`, concretada en su turno conforme a §5.7 y sus pruebas nativas, conservando los otros checks.
    - `nucleo/matriz.ts`: WP-2 produce consulta y normalización; WP-4r agrega el ensayo compartido
      de distribución.
-   - `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}`: WP-4p produce; WP-5 integra en serie continuidad R+C y metadata conforme a DESIGN §4.4/§4.6, sin retirar cobertura previa.
+   - `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}`: WP-4p produce; WP-5 integra en serie continuidad R+C y metadata conforme a DESIGN §4.4/§4.6, sin retirar cobertura previa. WP-8b integra después en serie únicamente la reparación de visibilidad de abanicos por estados propios en proyeccion.ts/proyeccion.test.ts (DESIGN §4.3.2/§4.6.5, T-054/T-086/T-216); misma escritora productiva, sin editar frontera.test.ts, fusionar/colapsarRamas, matriz, herencia, parser ni las negativas B-06. Exige RED nativo previo, GREEN, check fresco y revisión independiente del freeze conjunto, conservando toda la cobertura anterior.
    - `nucleo/propiedades.test.ts`: WP-3b prueba creación sin refinamientos; WP-4r amplía la
      integración refinada sin retirar la cobertura anterior.
    - FAN local B-31: WP-7 genera sólo los dos bordes de DESIGN §5.3.1, con una LineaOpl

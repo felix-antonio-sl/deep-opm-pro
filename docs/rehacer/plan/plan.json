@@ -129,9 +129,9 @@
       "id": "WP-8b", "ola": 2, "nombre": "OPD: escena, dibujo y export",
       "objetivo": "Escena pura por OPD, un solo dibujo con dos adaptadores (lienzo y cadena SVG), export canon-diagrama y canon-documento con la fuente incrustada.",
       "depende": ["WP-4p", "WP-8a", "WP-6"], "integrarTras": ["WP-5 (gates)"],
-      "archivos": ["app/src/opd/{escena,dibujo,exportar}.ts", "app/src/opd/__golden__/**"],
-      "lecturas": ["DESIGN §6.1", "DESIGN §6.2", "DESIGN §6.6", "DESIGN §6.7", "DESIGN §6.8", "DESIGN §10.5", "CANON §5"],
-      "aceptacion": ["escena/exportar/golden.test: 40 golden revisados visualmente uno a uno (SYNTHESIS §8-5)", "T-200…T-228 de DESIGN §12.6", "@font-face en el export"]
+      "archivos": ["app/src/opd/{escena,dibujo,exportar}.ts", "app/src/opd/{escena,exportar,golden}.test.ts", "app/src/opd/__golden__/**", "app/src/nucleo/{proyeccion.ts,proyeccion.test.ts} (excepción serial WP-8b: sólo visibilidad de fan por estados propios; misma escritora; sin fusionar/colapsarRamas ni frontera/matriz/herencia/parser)"],
+      "lecturas": ["DESIGN §6.1", "DESIGN §6.2", "DESIGN §6.6", "DESIGN §6.7", "DESIGN §6.8", "DESIGN §10.5", "CANON §5", "DESIGN §4.3.2", "DESIGN §4.6", "CANON §2.2", "CANON §3.5"],
+      "aceptacion": ["escena/exportar/golden.test: 40 golden revisados visualmente uno a uno (SYNTHESIS §8-5)", "T-200…T-228 de DESIGN §12.6", "@font-face en el export", "T-054/T-086/T-216: fan por estados propios conserva común proceso, IDs/operador/ramas/procedencia/pureza y visibilidad; colapso real, controles/negativas B-06 y cobertura WP-4p/WP-5 intactos; RED nativo anterior a reparación, GREEN, check fresco y revisión independiente del freeze conjunto"]
     },
     {
       "id": "WP-4r", "ola": 3, "nombre": "Refinamiento (operaciones)",

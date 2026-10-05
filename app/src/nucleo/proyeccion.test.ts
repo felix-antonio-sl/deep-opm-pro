@@ -4,7 +4,7 @@ import type { Modelo, Enlace, EnlaceProcedimental, Id, Aparicion, Opd, Cosa, Con
 import { proyectar, etiquetaOpd, opdsEnPreorden } from './proyeccion';
 import { indice } from './indice';
 import { validarForma } from './forma';
-import { noOfrecido, violacionesContexto } from './matriz';
+import { noOfrecido, violacionesContexto, violacionesAbanico } from './matriz';
 
 const caja: Aparicion = { x: 0, y: 0, ancho: 140, alto: 60 };
 const apps = (...ids: Id[]): Record<Id, Aparicion> => Object.fromEntries(ids.map(id => [id, caja]));
@@ -602,3 +602,103 @@ for (const n of [32, 128]) {
         expect(proyectar(m, 'raiz')).toBe(v); expect(JSON.stringify(m)).toBe(antes);
     });
 }
+
+// Candidato de regresión: SIN_EJECUTAR; integrar sólo tras resolver la propiedad serial.
+function wp8bFan(enlaces: readonly Enlace[], operador: 'XOR' | 'OR'): Modelo {
+    const base = modelo();
+    return modelo(enlaces, { abanicos: { f: { id: 'f', operador, enlaces: enlaces.map(e => e.id) } },
+        opds: { raiz: { id: 'raiz', tipo: 'raiz', apariciones: { b: caja, p: caja, z: caja } } },
+        cosas: base.cosas });
+}
+const wp8bEstados: readonly { nombre: string; ramas: readonly Enlace[] }[] = [
+    ...(['consumo', 'resultado', 'agente', 'instrumento'] as const).map(tipo => ({ nombre: tipo,
+        ramas: [{ id: 'fan-a', tipo, objeto: 'b', proceso: 'p', estado: 'b1' }, { id: 'fan-b', tipo, objeto: 'b', proceso: 'p', estado: 'b2' }] })),
+    { nombre: 'TS4 entradas distintas', ramas: [
+        { id: 'fan-a', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b1' },
+        { id: 'fan-b', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b2' }] },
+    { nombre: 'TS5 salidas distintas', ramas: [
+        { id: 'fan-a', tipo: 'efecto', objeto: 'b', proceso: 'p', salida: 'b1' },
+        { id: 'fan-b', tipo: 'efecto', objeto: 'b', proceso: 'p', salida: 'b2' }] },
+    { nombre: 'TS3 entrada común', ramas: [
+        { id: 'fan-a', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b1' },
+        { id: 'fan-b', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b2' }] },
+    { nombre: 'TS3 salida común', ramas: [
+        { id: 'fan-a', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b1', salida: 'b3' },
+        { id: 'fan-b', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b2', salida: 'b3' }] },
+];
+for (const operador of ['XOR', 'OR'] as const) for (const caso of wp8bEstados) {
+    test(`T-086 fan ${operador} ${caso.nombre} conserva estados propios y común proceso`, () => {
+        const m = wp8bFan(caso.ramas, operador), antes = JSON.stringify(m);
+        expect(validarForma(m)).toEqual([]);
+        expect(violacionesAbanico(m, m.abanicos.f!)).toEqual([]);
+        for (const e of caso.ramas) {
+            expect(violacionesContexto(m, e)).toEqual([]);
+            expect(noOfrecido(m, e, m.abanicos.f!)).toBeNull();
+        }
+        const v = proyectar(m, 'raiz');
+        expect(v.abanicos).toEqual([{ abanico: 'f', operador, ramas: ['fan-a', 'fan-b'], comun: 'p' }]);
+        expect(v.enlaces.map(e => [e.enlace, e.hechos, e.abstraido])).toEqual(caso.ramas.map(e => [e, [e.id], false]));
+        expect(v.conflictos).toEqual([]);
+        expect(proyectar(m, 'raiz')).toBe(v);
+        expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+for (const tipo of ['consumo', 'resultado', 'agente', 'instrumento'] as const)
+    for (const anclajes of ['uniforme', 'diferentes', 'ausencia-parcial'] as const)
+        for (const operador of ['XOR', 'OR'] as const) {
+            test(`T-086 fan ${operador} ${tipo} con objeto común conserva anclaje ${anclajes}`, () => {
+                const ramas: readonly Enlace[] = [
+                    { id: 'fan-a', tipo, objeto: 'b', proceso: 'p', estado: 'b1' },
+                    { id: 'fan-b', tipo, objeto: 'b', proceso: 'z', ...(anclajes === 'ausencia-parcial' ? {} : { estado: anclajes === 'uniforme' ? 'b1' : 'b2' }) }
+                ];
+                const m = wp8bFan(ramas, operador), antes = JSON.stringify(m), v = proyectar(m, 'raiz');
+                expect(validarForma(m)).toEqual([]);
+                expect(violacionesAbanico(m, m.abanicos.f!)).toEqual([]);
+                for (const e of ramas) {
+                    expect(violacionesContexto(m, e)).toEqual([]);
+                    expect(noOfrecido(m, e, m.abanicos.f!)).toBeNull();
+                }
+                expect(v.abanicos).toEqual([{ abanico: 'f', operador, ramas: ['fan-a', 'fan-b'], comun: 'b' }]);
+                expect(v.enlaces.map(e => [e.enlace, e.hechos, e.abstraido])).toEqual(ramas.map(e => [e, [e.id], false]));
+                expect(JSON.stringify(m)).toBe(antes);
+            });
+        }
+test('T-086 fan por estados propios colapsado al padre sigue siendo un único hecho con procedencia', () => {
+    const base = modelo([
+        { id: 'fan-a', tipo: 'consumo', objeto: 'b', proceso: 's1', estado: 'b1' },
+        { id: 'fan-b', tipo: 'consumo', objeto: 'b', proceso: 's2', estado: 'b2' }
+    ]);
+    const m = congelar({ ...base, abanicos: { f: { id: 'f', operador: 'OR' as const, enlaces: ['fan-a', 'fan-b'] } } }), antes = JSON.stringify(m);
+    const v = proyectar(m, 'raiz');
+    expect(v.abanicos).toEqual([]);
+    expect(v.enlaces).toHaveLength(1);
+    expect(v.enlaces[0]?.hechos).toEqual(['fan-a', 'fan-b']);
+    expect(v.enlaces[0]?.abstraido).toBe(true);
+    expect(v.conflictos).toEqual([]);
+    expect(JSON.stringify(m)).toBe(antes);
+});
+test('T-054 fan TS3 de ambas dimensiones variables sigue no ofrecido B-06', () => {
+    const m = wp8bFan([
+        { id: 'fan-a', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b1' },
+        { id: 'fan-b', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b2', salida: 'b3' }
+    ], 'OR');
+    for (const e of Object.values(m.enlaces)) expect(noOfrecido(m, e, m.abanicos.f!)).toMatchObject({ id: 'nf-abanico-efecto-mixto', registro: 'B-06' });
+    // No se dicta una nueva política de vista para modelos no ofrecidos: se conserva la admisión y sus negativas nativas.
+});
+test('T-054 repetir un mismo estado/fact en dos IDs no crea alternativas legales', () => {
+    const m = wp8bFan([
+        { id: 'fan-a', tipo: 'consumo', objeto: 'b', proceso: 'p', estado: 'b1' },
+        { id: 'fan-b', tipo: 'consumo', objeto: 'b', proceso: 'p', estado: 'b1' }
+    ], 'OR');
+    expect(violacionesAbanico(m, m.abanicos.f!).some(v => v.regla === 'R-FAN-GEO-2')).toBe(true);
+});
+test('T-086 fan de objeto común desaparece si una rama deja de ser visible', () => {
+    const base = wp8bFan([
+        { id: 'fan-a', tipo: 'agente', objeto: 'b', proceso: 'p', estado: 'b1' },
+        { id: 'fan-b', tipo: 'agente', objeto: 'b', proceso: 'z', estado: 'b2' }
+    ], 'XOR');
+    const m = congelar({ ...base, opds: { raiz: { id: 'raiz', tipo: 'raiz' as const, apariciones: { b: caja, p: caja } } } });
+    const v = proyectar(m, 'raiz');
+    expect(v.enlaces.map(e => e.hechos)).toEqual([['fan-a']]);
+    expect(v.abanicos).toEqual([]);
+});

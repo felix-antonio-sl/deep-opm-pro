@@ -116,8 +116,11 @@ export function proyectar(m: Modelo, opd: Id): Vista {
         const desde = extremosRamas.every(x => x.origen === a.origen);
         const hacia = extremosRamas.every(x => x.destino === a.destino);
         if (!desde && !hacia) continue;
-        if (new Set(extremosRamas.map(x => desde ? x.destino : x.origen)).size !== ramas.length) continue;
-        abanicos.push({ abanico: f.id, operador: f.operador, ramas: ramas.map(r => r!.enlace.id), comun: desde ? a.origen : a.destino });
+        if (new Set(ramas.map(r => r!.clave)).size !== ramas.length) continue;
+        // Ramas por estados de un mismo objeto: el común es el proceso (DESIGN §4.3.2).
+        const primera = ramas[0]!.enlace;
+        const comun = desde && hacia && esProcedimental(primera) ? primera.proceso : desde ? a.origen : a.destino;
+        abanicos.push({ abanico: f.id, operador: f.operador, ramas: ramas.map(r => r!.enlace.id), comun });
     }
     const cosas: CosaVista[] = Object.keys(o.apariciones).map(id => {
         const c = m.cosas[id]!;
