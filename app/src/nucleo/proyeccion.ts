@@ -172,6 +172,14 @@ function clave(e: Enlace): string {
 }
 const fuerzaControl = (e: EnlaceProcedimental): number => 'control' in e ? e.control === 'e' ? 2 : e.control === 'c' ? 0 : 1 : 1;
 
+// Fuerza de los hechos originales; no asigna ids ni sintetiza una Vista.
+export function hechoDeMayorFuerza(hechos: readonly EnlaceProcedimental[]): EnlaceProcedimental {
+    const transformadores = hechos.filter(e => e.tipo === 'consumo' || e.tipo === 'resultado');
+    const tipo = hechos.some(e => e.tipo === 'efecto') ? 'efecto' : hechos.some(e => e.tipo === 'agente') ? 'agente' : 'instrumento';
+    const clase = transformadores.length ? transformadores : hechos.filter(e => e.tipo === tipo);
+    return clase.reduce((a, b) => fuerzaControl(b) > fuerzaControl(a) ? b : a);
+}
+
 function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararTiempo: (a: Id, b: Id) => number, continuidad?: EnlaceProcedimental): { enlaces: readonly EnlaceVisto[]; conflictos: readonly Diagnostico[] } {
     if (grupo.length === 1) return { enlaces: grupo, conflictos: [] };
     const hechos = grupo.map(v => v.enlace as EnlaceProcedimental);
@@ -203,11 +211,8 @@ function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararT
         const enlace = { ...continuidad, id: ids[0]! };
         return { enlaces: [{ clave: clave(enlace), enlace, hechos: ids, abstraido: true }], conflictos: [] };
     }
-    const tipo: EnlaceProcedimental['tipo'] = resultados.length ? 'resultado' : consumos.length ? 'consumo'
-        : hechos.some(e => e.tipo === 'efecto') ? 'efecto' : hechos.some(e => e.tipo === 'agente') ? 'agente' : 'instrumento';
+    const elegido = hechoDeMayorFuerza(hechos), tipo = elegido.tipo;
     const clase = hechos.filter(e => e.tipo === tipo);
-    // Canon §6.5: comparar controles dentro de la clase retenida, nunca transferirlos de otra.
-    const elegido = clase.reduce((a, b) => fuerzaControl(b) > fuerzaControl(a) ? b : a);
     const ids = grupo.flatMap(v => v.hechos);
     let enlace: EnlaceProcedimental = { ...elegido, id: ids[0]! };
     if (tipo === 'efecto') {

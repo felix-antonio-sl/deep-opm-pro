@@ -7,6 +7,7 @@ import { validarNombreCosa } from './lexico';
 import { violacionesForma } from './matriz';
 import { validarForma } from './forma';
 import { colocarDescomposicion } from './colocacion';
+import { distribuirContornoTx } from './refinamiento';
 
 const ref = (id: Id): Ref => ({ tipo: 'cosa', id });
 function negar(tx: Tx, codigo: CodigoRechazo, regla: string, mensaje: string, refs: readonly Ref[]): never {
@@ -77,11 +78,7 @@ export const crearCosa: Operacion<{
     const interno = o.tipo === 'descomposicion' && (a.alcance === 'interno' || a.alcance === undefined && dentro(a, contenedor!));
     if (interno && a.tipo === 'proceso' && o.tipo === 'descomposicion') {
         if (a.banda && (!Number.isInteger(a.banda.indice) || a.banda.indice < 0 || a.banda.indice > o.bandas.length)) negar(tx, 'forma', 'F-8', 'La banda está fuera de la descomposición.', [{ tipo: 'opd', id: o.id }]);
-        if (!o.bandas.length) {
-            // Frontera temporal del plan serial: WP-4r reemplaza la guarda con su hook real.
-            const contorno = Object.values(m.enlaces).filter(e => esProcedimental(e) && e.proceso === o.cosa);
-            if (contorno.length) negar(tx, 'no-ofrecido', 'producto', 'Crear el primer subproceso con contorno procedimental requiere la distribución real pendiente de WP-4r.', [{ tipo: 'opd', id: o.id }, ...contorno.map(e => ({ tipo: 'enlace' as const, id: e.id }))]);
-        }
+
     }
     const id = tx.nuevoId(a.tipo === 'objeto' ? 'o' : 'p');
     const afiliacion = interno && o.tipo === 'descomposicion' ? m.cosas[o.cosa]!.afiliacion : 'sistemica';
@@ -95,6 +92,7 @@ export const crearCosa: Operacion<{
         else bandas.splice(a.banda?.indice ?? bandas.length, 0, [id]);
         const nuevo = { ...o, bandas, objetosInternos, apariciones: { ...o.apariciones, [id]: app } };
         tx.poner('opds', { ...nuevo, apariciones: colocarDescomposicion(tx.m, nuevo) });
+        if (a.tipo === 'proceso' && o.bandas.length === 0) distribuirContornoTx(tx, o.id);
         if (afiliacion === 'ambiental') tx.traza({ regla: 'R-OBJ-6', mensaje: `**${a.nombre}** heredó la afiliación ambiental del contenedor.`, refs: [ref(id), ref(o.cosa)] });
     } else tx.poner('opds', { ...o, apariciones: { ...o.apariciones, [id]: contenedor ? externo(tx, app, contenedor, id, o.id) : app } });
     formaCajas(tx, o.id);

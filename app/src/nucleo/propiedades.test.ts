@@ -108,3 +108,30 @@ test('T-120 pendientes no tienen candidato ni IDs, completación y normalizació
     }
     expect(JSON.stringify(m)).toBe(antes);
 });
+
+// Integración refinada B-28: mismas intenciones manuales de la cobertura anterior.
+import { descomponer } from './refinamiento';
+import { erroresContexto } from './matriz';
+import { must } from '../pruebas/constructores';
+for (const [i, original] of [...muestras, ...Array.from({ length: 50 }, (_, i) => azar(i + 1, 'completo'))].entries()) {
+    const cantidades = i < 3 ? [0, 1, 3] : [i % 3];
+    for (const n of cantidades) test(`T-040 T-075 B-28 propiedad refinada muestra${i} subprocesos${n}, ambas orientaciones`, () => {
+        const padre = Object.values(original.cosas).find(c => c.tipo === 'proceso')!.id;
+        const bandas = Array.from({ length: n }, (_, k) => [`Refinar_${i}_${k}`]);
+        const m = congelar(must(descomponer(original, { opd: original.raiz, proceso: padre, bandas })).modelo), antes = JSON.stringify(m);
+        expect(validarForma(m)).toEqual([]); expect(erroresContexto(m)).toEqual([]);
+        for (const opd of Object.values(m.opds)) {
+            const extremos: ExtremoRef[] = Object.keys(opd.apariciones).flatMap(id => { const c = m.cosas[id]!; return [{ cosa: id }, ...(c.tipo === 'objeto' ? c.estados.map(s => ({ cosa: id, estado: s.id })) : [])]; });
+            for (const desde of extremos) for (const hacia of extremos) {
+                const opciones = tiposLegales(m, { opd: opd.id, desde, hacia, etiquetas: { etiqueta: 'conoce', inversa: 'es-conocido' } });
+                expect(opciones).toHaveLength(30);
+                for (const tipo of tipos) for (const sentido of ['directo', 'inverso'] as const) {
+                    const candidato = congelar(intencion(tipo, desde, hacia, sentido)), opcion = opciones.find(o => o.tipo === tipo && o.sentido === sentido)!, r = crearEnlace(m, { opd: opd.id, candidato });
+                    expect(r.ok, JSON.stringify({ i, n, opd: opd.id, tipo, sentido, desde, hacia, opcion, respuesta: r.ok ? 'ok' : r.rechazo })).toBe(opcion.legal === true);
+                    if (r.ok) { expect(validarForma(r.valor.modelo)).toEqual([]); expect(erroresContexto(r.valor.modelo)).toEqual([]); expect(r.valor.creados[0]).toBe(`e-${m.secuencia}`); }
+                    expect(JSON.stringify(m)).toBe(antes);
+                }
+            }
+        }
+    }, 120000);
+}

@@ -47,3 +47,13 @@ caso('T-043 constructores cubren cada uno de los 15 tipos sin operaciones', () =
     }
     expect(vistos).toEqual(new Set(tipos));
 });
+
+test('T-303 azar.acciones conserva API/modelos WP1 y ofrece acciones reales reproducibles sin mutación', async () => {
+    expect(typeof azar.acciones).toBe('function');
+    const { aplicarAccion } = await import('../nucleo/operaciones');
+    const m = azar(12, 'completo'), antes = JSON.stringify(m), acciones = azar.acciones(m);
+    expect(acciones).toEqual(azar.acciones(m)); expect(acciones.length).toBeGreaterThan(0);
+    expect(acciones.some(a => a.op === 'descomponer')).toBe(true); expect(acciones.some(a => a.op === 'desplegar')).toBe(true);
+    for (const accion of acciones) { const r = aplicarAccion(m, accion); if (r.ok) expect(validarForma(r.valor.modelo)).toEqual([]); expect(JSON.stringify(m)).toBe(antes); }
+    expect(azar(12, 'completo')).toEqual(m);
+});

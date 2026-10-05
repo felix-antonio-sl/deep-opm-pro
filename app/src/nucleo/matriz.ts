@@ -1,3 +1,5 @@
+import { validarForma } from './forma';
+import { planificarDistribucion } from './refinamiento';
 import { esProcedimental, extremos } from './tipos';
 import { indice } from './indice';
 import { generales } from './herencia';
@@ -471,8 +473,15 @@ export function tiposLegales(m: Modelo, a: {
             if (nf) v = motivo('no-ofrecido', nf.regla, nf.motivo);
             if (!v && Object.values(m.enlaces).some(x => mismoHecho(x, nuevo)))
                 v = motivo('ya-existe', 'R-EDIT-1', 'El mismo enlace ya existe.');
-            // B-28: distribución compartida real pendiente de WP-4r; no se ensaya con un stub.
-            const vs = !v ? contexto(m, e, true) : [], avisos = !v ? contexto(m, e, false).filter(x => !vs.some(y => y.regla === x.regla)) : [];
+            const ensayo = !v ? planificarDistribucion({ ...m, enlaces: { ...m.enlaces, [id]: e } }, { opd: a.opd, enlace: e }) : undefined;
+            if (ensayo && !ensayo.ok) v = { codigo: ensayo.rechazo.codigo, regla: ensayo.rechazo.regla, mensaje: ensayo.rechazo.mensaje, refs: ensayo.rechazo.refs };
+            const efectivo = ensayo?.ok ? ensayo.valor.modelo : m;
+            if (!v) v = validarForma(efectivo)[0];
+            const claveError = (v: Violacion) => JSON.stringify([v.codigo, v.refs.map(r => `${r.tipo}:${r.id}`).sort()]);
+            const previos = new Set(!v ? erroresContexto(m).map(claveError) : []);
+            const vs = !v ? erroresContexto(efectivo).filter(v => !previos.has(claveError(v))) : [];
+            const arista = efectivo.enlaces[id] ?? e;
+            const avisos = !v ? contexto(efectivo, arista, false).filter(x => !vs.some(y => y.regla === x.regla)) : [];
             v ??= vs[0];
             if (v) {
                 const existente = v.regla === 'R-ROL-UNIC-1' ? colision(m, e, idx) : undefined;

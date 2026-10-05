@@ -1508,8 +1508,10 @@ Se deshace en un paso.
   - Recalcula la `y` de todos los internos y la altura del contenedor (R-LAY-4).
   - **No migra enlaces**. Usa `permiteErroresNuevos`: la doble vara o el AP-27 que surjan quedan
     como error recuperable (T-269).
-  - `fijarBandas` aplica una partición completa del mismo conjunto de subprocesos; lo usan el OPL
-    (`fijar-orden`) y `moverSubproceso`, con las mismas reglas.
+  - `fijarBandas` aplica una partición completa del mismo conjunto de subprocesos, sin migrar
+    enlaces, y aplica el cierre DS-20 normal. El OPL (`fijar-orden`) usa esta operación pública;
+    puede compartir internamente la preparación de partición y layout con `moverSubproceso`,
+    cuya excepción `permiteErroresNuevos` sigue siendo exclusiva.
 - La posición vertical es función de la banda. El arrastre vertical en el lienzo se traduce en
   `moverSubproceso`, nunca en una coordenada libre (P6, T-082). El arrastre horizontal es libre y
   queda confinado al contenedor (R-OPD-UI-3).
@@ -1842,7 +1844,8 @@ export const TEXTO_RAZON: Readonly<Record<RazonNoAplicable, string>>;           
 
 `fijarBandas: Operacion<{ opd: Id; bandas: readonly (readonly Id[])[] }>` se agrega a
 `nucleo/refinamiento.ts`. Recibe una partición del **mismo** conjunto de subprocesos, no migra y
-usa `permiteErroresNuevos`. `moverSubproceso` se implementa con ella.
+aplica el cierre DS-20 normal. La preparación de partición y layout puede compartirse
+internamente con `moverSubproceso`; solo esta última usa `permiteErroresNuevos` (§4.1, DS-20).
 
 `crearCosa` acepta además `alcance?: 'interno' | 'externo'`, que prevalece sobre la inferencia
 geométrica; el planificador OPL siempre lo pasa.
@@ -3750,6 +3753,9 @@ Gates del Anexo A (T-303) y sus suites:
 - `secuencias.test.ts` (WP-4r, porque usa todas las operaciones, CC-23): invariantes tras secuencias
   aleatorias, 200 semillas × 40 acciones de `azar.acciones(m)`; después de cada paso,
   `validarForma` es vacía, no hay errores de contexto nuevos (DS-20) y la entrada no mutó.
+  Este oráculo universal se conserva: las secuencias incluyen movimientos que no crean errores
+  nuevos. La excepción recuperable de `moverSubproceso` se verifica además en el fixture
+  específico de `refinamiento.test.ts`, sin reducir las 200 × 40 acciones ni extenderla a `fijarBandas`.
 - `forma.test.ts`: cada invariante F-1…F-13, violada, da la violación esperada.
 - `cosas.test.ts`, `estados.test.ts`, `enlaces.test.ts`, `abanicos.test.ts`: para cada operación de
   §4.2, el éxito, el rechazo con su código y regla, las trazas, la identidad de los ids y un paso de
@@ -3765,7 +3771,9 @@ Gates del Anexo A (T-303) y sus suites:
   - `descomponer`: externos copiados, contenedor, R-HIJO-5, ciclo, objeto rechazado.
   - La tabla §4.5.3 fila por fila con |S| = 0, 1 y ≥2, incluida **la fila DS-4** (TS3 con `c` y TS3
     en abanico migran enteros), el enlace tardío recursivo, la escisión con sus ids (T-074, T-075),
-    `moverSubproceso` y `fijarBandas` sin migración.
+    `moverSubproceso` y `fijarBandas` sin migración. Un orden que crea AP-27 o doble vara
+    queda recuperable con `moverSubproceso`, pero `fijarBandas` pública lo rechaza por DS-20
+    sin mutar entrada, ids ni enlaces; el orden que no crea error sí se acepta.
   - `desplegar` por modo (R-HIJO-4).
   - `eliminarRefinamiento`: hoja, materialización, cascada de internos, `precedencia-invalida` no
     materializada.
@@ -4182,12 +4190,15 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
   - El WP cierra con `bun run check` verde. Ninguna prueba se debilita para pasar.
 - **Propiedad exclusiva de archivos.** Los archivos stub que crea WP-1 pasan a ser del WP dueño.
   Los archivos compartidos se tocan en serie:
+  - `src/pruebas/azar.ts` y `src/pruebas/azar.test.ts`: WP-1 crea el generador de modelos;
+    WP-4r agrega y prueba `azar.acciones(m)` para secuencias, conservando la API y cobertura anteriores;
   - `app/package.json`, `app/vite.config.ts` y `app/playwright.config.ts`: WP-0 crea el andamiaje y WP-18 integra el layout de §9.1;
   - `nucleo/enlaces.ts`: WP-3b lo crea y WP-4r le agrega la llamada a `distribuir`;
   - `nucleo/cosas.ts`: WP-3a lo crea y WP-4r le agrega la inserción de subprocesos;
   - `opl/documento.ts`: WP-7 escribe `generarDocumentoOpl` y WP-9 le agrega `importarOpl` (CC-23).
   - `opl/contratos.test.ts`: WP-7 sustituye sólo las cinco expectativas temporales de generación por checks reales de §5.4/§5.7; conserva literalmente las seis asignaciones de firmas, el bucle `typeof` y `importarOpl` pendiente. WP-9 sustituye sólo la expectativa restante de `importarOpl`, concretada en su turno conforme a §5.7 y sus pruebas nativas, conservando los otros checks.
   - `nucleo/proyeccion.ts`, `nucleo/proyeccion.test.ts` y `nucleo/frontera.test.ts`: WP-4p produce proyección y leyes; WP-5 integra en serie continuidad R+C y metadata de conflictos conforme a §4.4/§4.6, sin retirar cobertura previa. WP-8b integra después en serie únicamente la reparación de visibilidad de abanicos por estados propios en proyeccion.ts/proyeccion.test.ts (DESIGN §4.3.2/§4.6.5, T-054/T-086/T-216); misma escritora productiva, sin editar frontera.test.ts, fusionar/colapsarRamas, matriz, herencia, parser ni las negativas B-06. Exige RED nativo previo, GREEN, check fresco y revisión independiente del freeze conjunto, conservando toda la cobertura anterior.
+  - `nucleo/proyeccion.ts`: WP-4r reutiliza en serie la selección existente del hecho de mayor fuerza para materializar su id original (DS-16, §4.5.6). Propiedad mínima: extracción/exportación del helper interno y su consumo por fusionar y refinamiento, con resultados de Vista idénticos, ramas de conflicto/continuidad, controles dentro de clase y empates vigentes; suites previas y ley de frontera conservadas. Exige RED nativo, GREEN, check nuevo y revisión GLOBAL del freeze conjunto.
   - `nucleo/resultado.test.ts`: WP-3a completa en serie la exportación `violacionesForma` del doble aislado de transacción con una guarda que falla si se invoca; conserva íntegros casos, cuerpos y expectativas de WP-1. WP-3b agrega únicamente `violacionesAbanico`, `normalizarEtiquetas` y `violacionesContexto`, con la misma guarda de no invocación y conservación íntegra de los cinco casos.
   - `nucleo/matriz.ts` y `nucleo/propiedades.test.ts`: WP-2 produce la consulta, WP-3b comprueba
     propiedades sin refinamientos y WP-4r integra el hook de distribución y amplía propiedades.
@@ -4211,7 +4222,7 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 | **WP-5** | Diagnóstico y gates | `nucleo/diagnostico.ts`, `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}` (compartidos seriales para continuidad R+C y metadata) | `CATALOGO`, `diagnosticar`, `gatesExportacion`, reparaciones | WP-2, WP-4p | `diagnostico.test`: cada código con un caso positivo y uno negativo, y cada `reparacion` es una `Accion` bien formada (que aplicada lo resuelve se prueba en `reparaciones.test` de WP-4r, que ya tiene todas las operaciones, CC-23); T-260, T-261, T-263 (un solo código, con herencia y subprocesos), T-265, T-268, T-283; T-085/T-089 continuidad R+C directa, R→E→C y anidada secuencial acreditada por hechos/estados originales; negativos de cadena rota y anidado paralelo, firma de estados, IDs/procedencia, pureza, anclajes visibles y 12 fuerzas sin pérdidas; conservar 9 celdas, negativos y ley/oráculo independiente de frontera; metadata §4.4 con igual cobertura |
 | **WP-7** | OPL: generación | `opl/{vocabulario,linea,plantillas,generar}.ts`; `opl/documento.ts` (`generarDocumentoOpl`); `opl/contratos.test.ts` (serial: sólo cinco expectativas temporales de generación; seis firmas/typeof e importación pendiente intactos) | `PLANTILLAS` (con `hacia`), `generarBloque`, `generarModelo`, `textoCanonico`, `lineaDeEnlace` | WP-4p | `vocabulario/plantillas/generar.test`: T-100…T-139 de la tabla §12.6; RF2b sin coma; RFE; mención mínima; ids de línea estables; unidades es-CL |
 | **WP-8b** | OPD: escena, dibujo, export | `opd/{escena,dibujo,exportar}.ts`, sus suites `escena/exportar/golden.test.ts`, `opd/__golden__/**`; `nucleo/{proyeccion.ts,proyeccion.test.ts}` (excepción serial exclusiva: reparación de fan por estados propios) | `escena`, `dibujar`, `aTexto`, `exportarDiagrama`, `exportarDocumento`, `advertenciasEscena` | WP-4p, WP-8a, WP-6 (los golden del SD y de un OPD profundo de cada fixture importan v0, CC-23); gates tras WP-5 | `escena/exportar/golden.test`: 40 golden revisados **visualmente** uno a uno (SYNTHESIS §8-5); T-200…T-228 de la tabla §12.6; `@font-face` en el export; regresión nativa T-054/T-086/T-216 de abanicos por estados propios, común proceso, IDs/operador/ramas/procedencia/pureza, colapso real y negativas B-06 conservadas; RED antes de reparación, check fresco y revisión independiente conjunta |
-| **WP-4r** | Refinamiento (operaciones) | `nucleo/refinamiento.ts`; hook de `distribuir` en `nucleo/enlaces.ts` y de subproceso en `nucleo/cosas.ts`; hook de ensayo en `nucleo/matriz.ts`; ampliación `nucleo/propiedades.test.ts` | §4.5 (`descomponer`, `agregarSubprocesos`, `moverSubproceso`, `fijarBandas`, `desplegar`, `agregarRefinadores`, `eliminarRefinamiento`, `distribuirEnlace`) | WP-3a, WP-3b, WP-5 (para `reparaciones.test`) | `refinamiento.test`: tabla §4.5.3 fila por fila, incluida DS-4; T-070…T-083; sin semillas; un `gesto`; materialización · `secuencias.test` (200 semillas × 40 acciones de `azar.acciones`, incluidas las de refinamiento: `validarForma` vacía, sin errores de contexto nuevos, entrada sin mutar) · `reparaciones.test` (cada reparación de `CATALOGO` y `REGLAS_CONTEXTO`, aplicada con `aplicarAccion`, hace desaparecer su diagnóstico) · `propiedades.test`: consulta ≡ creación por resultado efectivo de distribución real compartida con reparación; 0/1/≥2 subprocesos, TS3/control/abanico, evento, recursión, aparición externa, colisión, rollback y DS-20 contra original; cierre de integración N de B-28 en WP-4r/H2 |
+| **WP-4r** | Refinamiento (operaciones) | `nucleo/refinamiento.ts`; hook de `distribuir` en `nucleo/enlaces.ts` y de subproceso en `nucleo/cosas.ts`; hook de ensayo en `nucleo/matriz.ts`; ampliación `nucleo/propiedades.test.ts`; ampliación serial `src/pruebas/{azar.ts,azar.test.ts}`; `nucleo/{refinamiento,secuencias,reparaciones}.test.ts`; `nucleo/proyeccion.ts` (extracción/reutilización serial mínima del selector existente para DS-16) | §4.5 (`descomponer`, `agregarSubprocesos`, `moverSubproceso`, `fijarBandas`, `desplegar`, `agregarRefinadores`, `eliminarRefinamiento`, `distribuirEnlace`) | WP-3a, WP-3b, WP-5 (para `reparaciones.test`) | `refinamiento.test`: tabla §4.5.3 fila por fila, incluida DS-4; T-070…T-083; sin semillas; un `gesto`; materialización; DS-20 normal en `fijarBandas` y excepción exclusiva de `moverSubproceso` · `azar.test` conserva los modelos de WP-1 y prueba `azar.acciones` · `secuencias.test` (200 semillas × 40 acciones de `azar.acciones`, incluidas las de refinamiento: `validarForma` vacía, sin errores de contexto nuevos, entrada sin mutar) · `reparaciones.test` (cada reparación de `CATALOGO` y `REGLAS_CONTEXTO`, aplicada con `aplicarAccion`, hace desaparecer su diagnóstico) · `propiedades.test`: consulta ≡ creación por resultado efectivo de distribución real compartida con reparación; 0/1/≥2 subprocesos, TS3/control/abanico, evento, recursión, aparición externa, colisión, rollback y DS-20 contra original; cierre de integración N de B-28 en WP-4r/H2 |
 | **WP-9** | OPL: análisis y edición inversa | `opl/{analizar,planificar,aplicar,no-soportadas}.ts`; `opl/documento.ts` (`importarOpl`); `opl/contratos.test.ts` (serial: sólo expectativa restante de importación, concretada en su turno conforme a §5.7; demás checks intactos) | `analizar`, `planificar`, `aplicarPlan`, `NO_SOPORTADAS`, `NO_CANONIZADAS`, `TEXTO_RAZON` | WP-7, WP-3a, WP-3b, WP-4r | `analizar/editor-opl/roundtrip-matriz/roundtrip-azar/roundtrip-tabla92/composicion/lente.test`: T-150…T-196; D1/D3 «solo si difieren» y creación por tipografía en el **mismo merge** (SYNTHESIS §8-16); ~700 casos en < 3 s |
 | **WP-13** | Editor | `editor/**` | §7.6 (`crearEditor`, `Cliente`, `AlmacenLocal`, `COMANDOS`, `reducirGesto`) | WP-3a/b, WP-4r, WP-6, WP-7 (`lineasNuevas` usa `generarModelo`); contrato de WP-11 | `estado/guardado/comandos/gestos.test` (§10.6): ambas resoluciones de conflicto, 404/413, apertura no canónica, salida con pendientes, reingreso, versión nueva, un paso por `gesto`, deshacer vuelve al OPD · `aplicarOpl` se prueba con un `Plan` construido a mano (`base` + `acciones`), sin depender del analizador de WP-9 (CC-23) |
 | **WP-10** | Integración códec × OPL y rendimiento | `opl/roundtrip-modelos.test.ts`, `src/rendimiento.test.ts` (sin dueño antes, CC-23) | — | WP-6, WP-9, WP-5, WP-8b | auto-reparseo por OPD con 0 cambios en los 6 fixtures y el sintético (UX-01) · estricto de documento completo para los que pasan los gates · `rendimiento.test` (§2.4, falla a 3×) |

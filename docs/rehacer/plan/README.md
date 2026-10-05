@@ -79,6 +79,8 @@ Hitos de revisión con el dueño:
    (`test('T-043 …')`), así `bun test -t T-043` la encuentra.
 3. Tocar solo los `archivos` del paquete. Los archivos compartidos declarados se tocan en
    serie (DESIGN §12.1):
+   - `app/src/pruebas/{azar.ts,azar.test.ts}`: WP-1 crea el generador de modelos; WP-4r
+     agrega y prueba `azar.acciones(m)` sin retirar API ni cobertura anteriores.
    - `app/package.json`, `app/vite.config.ts` y `app/playwright.config.ts`: WP-0 crea el andamiaje; WP-18 integra en serie el layout de DESIGN §9.1;
    - `nucleo/enlaces.ts`;
    - `nucleo/cosas.ts`;
@@ -88,6 +90,7 @@ Hitos de revisión con el dueño:
    - `nucleo/matriz.ts`: WP-2 produce consulta y normalización; WP-4r agrega el ensayo compartido
      de distribución.
    - `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}`: WP-4p produce; WP-5 integra en serie continuidad R+C y metadata conforme a DESIGN §4.4/§4.6, sin retirar cobertura previa. WP-8b integra después en serie únicamente la reparación de visibilidad de abanicos por estados propios en proyeccion.ts/proyeccion.test.ts (DESIGN §4.3.2/§4.6.5, T-054/T-086/T-216); misma escritora productiva, sin editar frontera.test.ts, fusionar/colapsarRamas, matriz, herencia, parser ni las negativas B-06. Exige RED nativo previo, GREEN, check fresco y revisión independiente del freeze conjunto, conservando toda la cobertura anterior.
+   - `nucleo/proyeccion.ts`: WP-4r reutiliza en serie la selección existente del hecho de mayor fuerza para materializar su id original (DS-16, §4.5.6). Propiedad mínima: extracción/exportación del helper interno y su consumo por fusionar y refinamiento, con resultados de Vista idénticos, ramas de conflicto/continuidad, controles dentro de clase y empates vigentes; suites previas y ley de frontera conservadas. Exige RED nativo, GREEN, check nuevo y revisión GLOBAL del freeze conjunto.
    - `nucleo/propiedades.test.ts`: WP-3b prueba creación sin refinamientos; WP-4r amplía la
      integración refinada sin retirar la cobertura anterior.
    - FAN local B-31: WP-7 genera sólo los dos bordes de DESIGN §5.3.1, con una LineaOpl

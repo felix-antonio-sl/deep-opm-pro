@@ -8,6 +8,7 @@ import { validarForma } from './forma';
 import { MATRIZ, violacionesForma, normalizarEtiquetas, noOfrecido, violacionesContexto } from './matriz';
 import { proyectar } from './proyeccion';
 import { validarAbanicoTx } from './abanicos';
+import { distribuirEnTx } from './refinamiento';
 const ref = (id: Id): Ref => ({ tipo: 'enlace', id });
 function negar(tx: Tx, codigo: CodigoRechazo, regla: string, mensaje: string, refs: readonly Ref[]): never {
     return tx.rechazar({ codigo, regla, mensaje, refs });
@@ -65,12 +66,12 @@ function duplicado(tx: Tx, e: Enlace) {
     if (otro)
         negar(tx, 'ya-existe', 'R-EDIT-1', 'El mismo enlace ya existe.', [ref(otro.id), ref(e.id)]);
 }
-// B-28: frontera consumida de las reglas compartidas, sin tabla privada de distribución.
-function requiereDistribucion(tx: Tx, e: Enlace) {
-    const v = violacionesContexto(tx.m, e).find(v => ['R-DIST-1', 'R-CX-DIST-2', 'AP-07'].includes(v.regla));
-    if (v)
-        negar(tx, 'no-ofrecido', 'producto', `La edición requiere la distribución real pendiente de WP-4r (${v.regla}).`, v.refs);
+function requiereDistribucion(tx: Tx, e: Enlace) { distribuirEnTx(tx, e.id, tx.m.raiz); }
+function formaDistribucionFinal(tx: Tx): void {
+    const v = validarForma(tx.m)[0];
+    if (v) negar(tx, 'forma', v.regla, v.mensaje, v.refs);
 }
+
 function anclas(e: Enlace): readonly Id[] {
     switch (e.tipo) {
         case 'consumo':
@@ -86,6 +87,12 @@ function anclas(e: Enlace): readonly Id[] {
     }
 }
 function mostrar(tx: Tx, id: Id) {
+    const e = obtener(tx, id);
+    mostrarUno(tx, id);
+    if (e.tipo === 'efecto' && e.escision)
+        mostrarUno(tx, e.escision.par);
+}
+function mostrarUno(tx: Tx, id: Id) {
     const e = obtener(tx, id), pendientes = new Map<Id, Set<Id>>();
     for (const oid of indice(tx.m).preorden) {
         const vista = proyectar(tx.m, oid);
@@ -176,6 +183,7 @@ function guardar(tx: Tx, anterior: Enlace, candidato: Enlace, ensayarDistribucio
     valorHuerfano(tx, anterior);
     ambiente(tx, e);
     mostrar(tx, e.id);
+    if (ensayarDistribucion) formaDistribucionFinal(tx);
 }
 function cambiarCampo(e: Enlace, campo: string, valor: unknown): Enlace {
     const n = { ...e } as unknown as Record<string, unknown>;
@@ -213,6 +221,7 @@ export const crearEnlace: Operacion<{
     requiereDistribucion(tx, e);
     ambiente(tx, e);
     mostrar(tx, e.id);
+    formaDistribucionFinal(tx);
 });
 export const fijarEstados: Operacion<{
     enlace: Id;
@@ -438,7 +447,9 @@ export const distribuirEnlace: Operacion<{
     enlace: Id;
 }> = (m, a) => transaccion(m, tx => {
     const e = obtener(tx, a.enlace);
-    negar(tx, 'no-ofrecido', 'producto', 'La distribución real pertenece a la integración pendiente de WP-4r.', [ref(e.id)]);
+    distribuirEnTx(tx, e.id, tx.m.raiz);
+    mostrar(tx, e.id);
+    formaDistribucionFinal(tx);
 });
 export const eliminarEnlaces: Operacion<{
     enlaces: readonly Id[];
