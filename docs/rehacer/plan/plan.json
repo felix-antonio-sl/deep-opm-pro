@@ -169,7 +169,7 @@
       "id": "WP-12", "ola": 4, "nombre": "Migración desde PostgreSQL",
       "objetivo": "Herramienta de un solo uso, de solo lectura sobre PostgreSQL, que escribe los modelos como archivos v0 con un informe por modelo.",
       "depende": ["WP-6", "WP-11", "WP-5"],
-      "archivos": ["app/herramientas/migrar-postgres.ts", "app/herramientas/migrar-postgres.test.ts"],
+      "archivos": ["app/herramientas/migrar-postgres.ts", "app/herramientas/migrar-postgres.test.ts", "app/src/opl/plantillas.ts (serial: sólo colación privada de datosContexto)", "app/src/opl/plantillas.test.ts (APPEND controles de colación/bandas)", "app/src/nucleo/proyeccion.ts (serial: sólo guarda de extremo ya resuelto en visto)", "app/src/nucleo/matriz.ts (serial: sólo exclusión de otros tipos en rolCero)", "app/src/nucleo/{proyeccion.test.ts,matriz.test.ts} (APPEND paridad de extremos y roles)", "app/src/nucleo/{herencia.ts,herencia.test.ts} (serial: sólo guarda sin generalización saliente y APPEND controles DFS)"],
       "lecturas": ["DESIGN §8.6", "DESIGN §10.6", "understand/server-deploy.md §5"],
       "aceptacion": ["migrar-postgres.test con fuente falsa: los 8 casos de DESIGN §10.6"]
     },

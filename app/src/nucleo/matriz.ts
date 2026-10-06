@@ -105,6 +105,7 @@ function colision(m: Modelo, e: Enlace, idx: Indice): Enlace | undefined {
 // RROL1 permite el instrumento abstracto afectado en detalle cuando el cambio
 // explícito prueba entrada=salida. Es un límite recuperable del producto, no F5.
 function rolCero(m: Modelo, e: Enlace, idx: Indice): boolean {
+    if (e.tipo !== 'instrumento' && e.tipo !== 'efecto') return false;
     const otro = colision(m, e, idx);
     if (!otro) return false;
     const instrumento = e.tipo === 'instrumento' ? e : otro.tipo === 'instrumento' ? otro : undefined;

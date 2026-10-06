@@ -452,12 +452,13 @@ function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
     }
     throw new Error(`Reconocimiento no definido para ${id}`);
 }
+const colacionContexto = new Intl.Collator('es', { sensitivity: 'base' });
 /** La secuencia conserva cada banda; solo los miembros de una banda se ordenan por nombre. */
 export function datosContexto(m: Modelo, opd: string): HechoGenerable | null {
     const d = m.opds[opd]!;
     if (d.tipo === 'raiz')
         return null;
-    const cmp = (a: string, b: string) => m.cosas[a]!.nombre.localeCompare(m.cosas[b]!.nombre, 'es', { sensitivity: 'base' }) || a.localeCompare(b);
+    const cmp = (a: string, b: string) => colacionContexto.compare(m.cosas[a]!.nombre, m.cosas[b]!.nombre) || a.localeCompare(b);
     const idx = indice(m);
     if (d.tipo === 'descomposicion') {
         if (d.bandas.flat().length < 2)

@@ -48,3 +48,24 @@ test('T-093 incidencia conserva DFS previo, orden, herencia múltiple y ciclos',
     const ids = (n: string) => porNombre(grafo, n).id;
     expect(generales(grafo, ids('Beta'))).toEqual([ids('Alfa'), ids('Delta'), ids('Gamma')]);
 });
+
+// Control GREEN-first de la guarda WP-12: ausencia de salida y SELF no inventan ancestros.
+test('T-093 ausencia, SELF y ciclos preservan orden completo sin contaminar otra consulta', () => {
+    const b = modeloCon({ objetos: [['Alfa', []], ['Beta', []], ['Gamma', []]],
+        enlaces: [['agregacion', 'Alfa', 'Beta']] });
+    const [a, beta, g] = ['Alfa', 'Beta', 'Gamma'].map(n => porNombre(b, n).id);
+    const propio = { ...b, enlaces: { ...b.enlaces,
+        self: { id: 'self', tipo: 'generalizacion' as const, refinable: a!, refinador: a! } } };
+    // SELF es un dato diagnóstico para el helper, no una oferta de crear generalización reflexiva.
+    const ciclo = { ...propio, enlaces: { ...propio.enlaces,
+        primero: { id: 'primero', tipo: 'generalizacion' as const, refinable: beta!, refinador: a! },
+        segundo: { id: 'segundo', tipo: 'generalizacion' as const, refinable: g!, refinador: beta! },
+        cierre: { id: 'cierre', tipo: 'generalizacion' as const, refinable: a!, refinador: g! } } };
+    const antes = JSON.stringify([b, propio, ciclo]);
+    expect(generales(b, a!)).toEqual([]); expect(generales(propio, a!)).toEqual([]);
+    expect(generales(ciclo, a!)).toEqual([beta!, g!]);
+    expect(generales(ciclo, g!)).toEqual([a!, beta!]);
+    expect(generales(ciclo, 'ausente')).toEqual([]);
+    expect(generales(propio, a!)).toEqual([]); expect(generales(b, beta!)).toEqual([]);
+    expect(JSON.stringify([b, propio, ciclo])).toBe(antes);
+});

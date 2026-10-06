@@ -130,3 +130,29 @@ test('T-191 token externo congelado conserva ref externa mutable sin contaminar 
  const a=tabla.tokensPlantilla('CXM',h),snapshot=JSON.stringify(a);expect(Object.isFrozen(ref)).toBe(false);ref.id='b';const b=tabla.tokensPlantilla('CXM',h);expect(b.find(t=>t.texto==='Alfa')!.ref!.id).toBe('b');expect(a.find(t=>t.texto==='Alfa')!.ref!.id).toBe('a');expect(JSON.stringify(a)).toBe(snapshot);
  const circular:tabla.Huecos={};(circular as Record<string,unknown>).extra=circular;expect(()=>tabla.tokensPlantilla('NO-EXISTE',circular)).toThrow('Plantilla desconocida: NO-EXISTE');
 });
+
+test('T-127 colación de contexto conserva Unicode, equivalencias y desempate por ID anterior', () => {
+    const nombres = ['Árbol', 'Arbol', 'A\u0301rbol', 'Índice', 'indice', 'I\u0301ndice', 'Ñandú', 'Nandu', 'Órbita', 'Operar 2', 'Operar 10', '', ' '] as const;
+    for (const a of nombres) for (const b of nombres) {
+        const m: import('../nucleo/tipos').Modelo = { id: 'm-orden', nombre: 'Orden', raiz: 'sd', unidadTiempo: 'min', secuencia: 10,
+            cosas: { p: {id:'p', tipo:'proceso', nombre:'Procesar', esencia:'informacional', afiliacion:'sistemica'},
+                'p-2': {id:'p-2', tipo:'proceso', nombre:a, esencia:'informacional', afiliacion:'sistemica'},
+                'p-10': {id:'p-10', tipo:'proceso', nombre:b, esencia:'informacional', afiliacion:'sistemica'} }, enlaces:{}, abanicos:{},
+            opds:{sd:{id:'sd', tipo:'raiz', apariciones:{}}, h:{id:'h', tipo:'descomposicion', padre:'sd', cosa:'p', orden:0, bandas:[['p-2','p-10']], objetosInternos:[], apariciones:{}}} };
+        const antes = JSON.stringify(m), h = tabla.datosContexto(m, 'h')!;
+        // Expresión previa independiente: el nuevo comparador debe ser extensionalmente idéntico.
+        const esperado = ['p-2','p-10'].sort((x,y) => m.cosas[x]!.nombre.localeCompare(m.cosas[y]!.nombre, 'es', {sensitivity:'base'}) || x.localeCompare(y));
+        expect(h.plantilla).toBe('CX2'); expect((h.huecos.Plista as tabla.Hueco[]).map(x=>x.ref!.id)).toEqual(esperado);
+        expect(JSON.stringify(m)).toBe(antes);
+    }
+});
+
+test('T-127 colación local nunca altera bandas, entradas ni conjunción observable', () => {
+    const m: import('../nucleo/tipos').Modelo = {id:'m-bandas', nombre:'Bandas', raiz:'sd', unidadTiempo:'min', secuencia:10,
+        cosas:Object.fromEntries([['p','Procesar'],['a','Índice'],['b','Arbol'],['c','Árbol'],['d','Isla']].map(([id,nombre]) => [id!,{id:id!,tipo:'proceso' as const,nombre:nombre!,esencia:'informacional' as const,afiliacion:'sistemica' as const}])), enlaces:{}, abanicos:{},
+        opds:{sd:{id:'sd',tipo:'raiz',apariciones:{}},h:{id:'h',tipo:'descomposicion',cosa:'p',padre:'sd',orden:0,bandas:[['c','b'],['d','a']],objetosInternos:[],apariciones:{}}}};
+    const antes=JSON.stringify(m), h=tabla.datosContexto(m,'h')!;
+    expect(h.plantilla).toBe('CXM'); expect(tabla.PLANTILLAS.find(p=>p.id==='CXM')!.hacia(h.huecos)).toEqual([{k:'descomposicion', proceso:'Procesar', bandas:[['Arbol','Árbol'],['Índice','Isla']], internos:[]}]);
+    expect(tabla.tokensPlantilla(h.plantilla,h.huecos).map(t=>t.texto).join('')).toBe('Procesar se descompone en paralelo Arbol y Árbol, y paralelo Índice e Isla, en esa secuencia.');
+    expect(JSON.stringify(m)).toBe(antes);
+});

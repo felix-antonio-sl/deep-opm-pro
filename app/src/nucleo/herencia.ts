@@ -2,6 +2,10 @@ import type { Modelo, Id } from './tipos';
 import { indice } from './indice';
 export function generales(m: Modelo, cosa: Id): readonly Id[] {
     const idx = indice(m);
+    if (!(idx.enlacesDeCosa.get(cosa) ?? []).some(id => {
+        const e = m.enlaces[id]!;
+        return e.tipo === 'generalizacion' && e.refinador === cosa && e.refinable !== cosa;
+    })) return [];
     const vistos = new Set<Id>([cosa]);
     const lista: Id[] = [];
     const visitar = (id: Id) => {

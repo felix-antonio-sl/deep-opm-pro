@@ -49,6 +49,7 @@ export function proyectar(m: Modelo, opd: Id): Vista {
     const internos = alcance(m, o);
     const vistos = new Map<Id, Id | undefined>();
     function visto(id: Id): Id | undefined {
+        if (vistos.has(id)) return vistos.get(id);
         const camino: Id[] = [], visitados = new Set<Id>();
         let actual: Id | undefined = id;
         while (actual !== undefined && !vistos.has(actual)) {

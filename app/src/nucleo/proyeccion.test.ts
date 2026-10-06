@@ -846,3 +846,27 @@ for(const [a,b] of [['consumo','efecto'],['efecto','resultado']] as const){
         expect(v.conflictos).toEqual([]);expect(v.enlaces.map(e=>e.enlace.tipo)).toEqual([a==='consumo'?'consumo':'resultado']);expect(v.enlaces[0]!.hechos).toEqual(['contorno','interno']);expect(JSON.stringify(m)).toBe(antes);
     });
 }
+
+// Controles de resolución repetida WP-12; no exigen una caché ni un detalle privado.
+test('T-085 extremos repetidos conservan elevado, directo e invisible incluso con nombres iguales', () => {
+    const es: Enlace[] = [
+        { id: 'elevado-b', tipo: 'instrumento', objeto: 'b', proceso: 's1' },
+        { id: 'elevado-y', tipo: 'instrumento', objeto: 'y', proceso: 's1' },
+        { id: 'directo', tipo: 'instrumento', objeto: 'b', proceso: 'z' },
+        { id: 'oculto-1', tipo: 'instrumento', objeto: 'x', proceso: 's1' },
+        { id: 'oculto-2', tipo: 'instrumento', objeto: 'x', proceso: 's2' }
+    ];
+    const b = modelo(), m = modelo(es, { cosas: { ...b.cosas,
+        p: { ...b.cosas.p!, nombre: 'Igual' }, z: { ...b.cosas.z!, nombre: 'Igual' } } });
+    const antes = JSON.stringify(m); expect(validarForma(m)).toEqual([]);
+    const v = proyectar(m, 'raiz');
+    expect(v.enlaces.map(e => [e.enlace, e.hechos, e.abstraido])).toEqual([
+        [{ id: 'elevado-b', tipo: 'instrumento', objeto: 'b', proceso: 'p' }, ['elevado-b'], true],
+        [{ id: 'elevado-y', tipo: 'instrumento', objeto: 'y', proceso: 'p' }, ['elevado-y'], true],
+        [{ id: 'directo', tipo: 'instrumento', objeto: 'b', proceso: 'z' }, ['directo'], false]
+    ]);
+    expect(v.conflictos).toEqual([]); expect(proyectar(m, 'raiz')).toBe(v);
+    // El enlace directo b→z une dos externos en el hijo: DR-13 lo conserva sólo en la raíz.
+    expect(proyectar(m, 'hijo').enlaces.flatMap(e => e.hechos)).toEqual(['elevado-b', 'elevado-y', 'oculto-1', 'oculto-2']);
+    expect(JSON.stringify(m)).toBe(antes);
+});

@@ -613,3 +613,19 @@ test('T-053 incidencia conserva primer conflicto, orden de diagnósticos y exenc
         .toEqual([['no-ofrecido', 'R-ROL-1', 'e-101'], ['no-ofrecido', 'R-ROL-1', 'e-102']]);
     expect(erroresContexto(fan).filter(v => v.regla.startsWith('R-ROL'))).toEqual([]);
 });
+
+// Controles de equivalencia de la guarda privada WP-12; pueden iniciar GREEN.
+for (const tipo of ['consumo', 'resultado', 'agente'] as const) {
+    test(`T-053 RROL1 ${tipo} no forma neto cero pero conserva colisión y orden`, () => {
+        const b = base(), [a, , , p, q] = ids(b);
+        const es: Enlace[] = [{ id: 'e-101', tipo: 'instrumento', objeto: a!, proceso: p! },
+            { id: 'e-102', tipo, objeto: a!, proceso: q! }];
+        for (const orden of [es, [...es].reverse()]) {
+            const m = poner(refinar(b), ...orden), antes = JSON.stringify(m);
+            expect(validarForma(m)).toEqual([]);
+            expect(erroresContexto(m).filter(v => v.regla.startsWith('R-ROL')).map(v => [v.regla, v.refs[0]?.id]))
+                .toEqual(orden.map(e => ['R-ROL-UNIC-1', e.id]));
+            expect(JSON.stringify(m)).toBe(antes);
+        }
+    });
+}
