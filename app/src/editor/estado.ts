@@ -186,7 +186,7 @@ export function crearEditor(dep: {
             if (!i.ok) { error('El documento no se puede abrir.', 'error', i.informe); return; }
             const canonical = exportarV0(i.modelo) === r.texto;
             apertura = { id, texto: r.texto, rev: r.rev, modelo: i.modelo, informe: i.informe, canonical };
-            if (i.informe.descartado.length) { publicar({ solicitud: { k: 'informe', informe: i.informe }, modo: 'gestion-modal' }); return; }
+            if (i.informe.descartado.length) { publicar({ solicitud: { k: 'informe', informe: i.informe, texto: r.texto }, modo: 'gestion-modal' }); return; }
             await instalarApertura();
         } catch (e) { if (gen === generacion) error(e instanceof Error ? e.message : 'No se pudo abrir el modelo.'); }
     }

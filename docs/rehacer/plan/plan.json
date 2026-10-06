@@ -177,7 +177,7 @@
       "id": "WP-14", "ola": 4, "nombre": "UI: armazón", "tren": "UI",
       "objetivo": "App, acceso, biblioteca, informe de importación, editor (cabecera, disposición, modos), diálogo genérico, ayuda, franja y estilos.",
       "depende": ["WP-13"],
-      "archivos": ["app/src/ui/{App,Acceso,Biblioteca,InformeImportacion,Editor,Dialogo,Ayuda,Franja}.tsx", "app/src/ui/estilos.css", "app/src/main.tsx"],
+      "archivos": ["app/src/ui/{App,Acceso,Biblioteca,InformeImportacion,Editor,Dialogo,Ayuda,Franja}.tsx", "app/src/ui/estilos.css", "app/src/main.tsx", "app/src/ui/armazon.test.ts (comportamiento)", "app/src/editor/estado.ts (serial: texto original en Informe con descartes)", "app/src/editor/guardado.test.ts (APPEND original/apertura/respaldo)"],
       "lecturas": ["DESIGN §7.1", "DESIGN §7.2", "DESIGN §7.5", "DESIGN §6.5 (tokens)", "docs/rehacer/maqueta/Main.dc.html (referencia visual)"],
       "aceptacion": ["e2e 1 y 2 (no necesitan lienzo ni paneles); e2e 3, 21 y 24 se evalúan en WP-17"]
     },

@@ -88,3 +88,15 @@ test('WP-13 DES§8.4 recrear con limpieza tardía conserva cambios nuevos y nuev
 test('WP-13 DES§8.4 descartar borrador antiguo no cambia modal del modelo nuevo',async()=>{
  const {d,ed}=await abierto(),q=diferida<void>();d.borradores.set(d.m.id,{base:'a',texto:d.texto,fecha:1});d.local.borrar=async()=>q.promesa;const p=ed.resolverBorrador('descartar');await ciclos();ed.salirIgualmente();const otro=crearModelo({id:'m-nuevo',nombre:'Nuevo'});d.documento(exportarV0(otro));await ed.abrir(otro.id);ed.solicitar({k:'ayuda'});ed.fijarModo('gestion-modal');q.resolver();await p;expect(ed.obtener().solicitud?.k).toBe('ayuda');expect(ed.obtener().modo).toBe('gestion-modal');ed.salirIgualmente();
 });
+
+test('T-287 WP-14 apertura con pérdidas entrega bytes originales al Informe antes de confirmar', async () => {
+    const d = dependencias(), raw = JSON.parse(d.texto); raw.modelo.vistasTipificadas = ['retirada'];
+    const original = '  ' + JSON.stringify(raw) + '\n'; d.documento(original);
+    const ed = crearEditor(configuracion(d)); await ed.abrir(d.m.id);
+    expect(ed.obtener().modelo).toBeNull(); expect(ed.obtener().solicitud?.k).toBe('informe');
+    expect(ed.obtener().solicitud?.informe!.descartado.length).toBeGreaterThan(0);
+    expect(d.peticiones.filter(p => p.tipo === 'PUT')).toHaveLength(0);
+    expect(ed.obtener().solicitud?.texto).toBe(original);
+    await ed.confirmarImportacion(); expect(ed.obtener().modelo!.id).toBe(d.m.id); expect(ed.obtener().rev).toBe('a'.repeat(64));
+    await ed.guardarAhora(); expect(d.peticiones.find(p => p.tipo === 'PUT')!.o).toEqual({ respaldo: true }); ed.salirIgualmente();
+});
