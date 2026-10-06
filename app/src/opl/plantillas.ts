@@ -113,19 +113,57 @@ function validarHuecos(patron: string, h: Huecos): boolean {
     }
     return true;
 }
+type PartePatron={readonly literal:string;readonly hueco?:string};
+type SeccionPatron={readonly partes:readonly PartePatron[];readonly requiere?:readonly string[]};
+// Únicamente estructura del patrón vendorizado; no guarda huecos ni hechos de un modelo.
+const literalesCompilados=new Map<string,readonly TokenOpl[]>();
+const patronesCompilados=new Map<string,readonly SeccionPatron[]>();
+function partesPatron(s:string):PartePatron[]{
+    const partes:PartePatron[]=[];let pos=0;
+    for(const x of s.matchAll(/\{([^}]+)\}/g)){partes.push({literal:s.slice(pos,x.index),hueco:x[1]!});pos=x.index!+x[0].length;}
+    if(pos<s.length)partes.push({literal:s.slice(pos)});return partes;
+}
+function compilarTokens(patron:string):readonly SeccionPatron[]{
+    const secciones:SeccionPatron[]=[];let pos=0;
+    for(const x of patron.matchAll(/\[([^\[\]]+)\]/g)){
+        if(pos<x.index!)secciones.push({partes:partesPatron(patron.slice(pos,x.index))});
+        secciones.push({partes:partesPatron(x[1]!),requiere:[...x[1]!.matchAll(/\{(?:L[oy]:)?([^}]+)\}/g)].map(m=>m[1]!)});pos=x.index!+x[0].length;
+    }
+    if(pos<patron.length)secciones.push({partes:partesPatron(patron.slice(pos))});return secciones;
+}
+function literalGenero(s:string,h:Huecos):string{
+    if(!s.includes('|'))return s;
+    return s.replace(/físico\|física/g,h.C&&!Array.isArray(h.C)&&uno(h,'C').genero==='f'?'física':'físico').replace(/sistémico\|sistémica/g,h.C&&!Array.isArray(h.C)&&uno(h,'C').genero==='f'?'sistémica':'sistémico').replace(/un\|una/g,h.general&&uno(h,'general').genero==='f'?'una':'un');
+}
+const memoTokensPorValor = new Map<string, readonly TokenOpl[]>();
+const LIMITE_MEMO_TOKENS = 2048;
 export function tokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
+    if (!tabla.has(id)) throw new Error(`Plantilla desconocida: ${id}`);
+    const clave = JSON.stringify([id, h]);
+    const anterior = memoTokensPorValor.get(clave);
+    if (anterior) return anterior;
+    const tokens = componerTokensPlantilla(id, h).map(t => Object.isFrozen(t) && (!t.ref || Object.isFrozen(t.ref))
+        ? t : Object.freeze({ ...t, ...(t.ref ? { ref: Object.freeze({ ...t.ref }) } : {}) }));
+    const salida = Object.freeze(tokens);
+    if (memoTokensPorValor.size >= LIMITE_MEMO_TOKENS) memoTokensPorValor.delete(memoTokensPorValor.keys().next().value!);
+    memoTokensPorValor.set(clave, salida);
+    return salida;
+}
+function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
     const p = tabla.get(id);
     if (!p)
         throw new Error(`Plantilla desconocida: ${id}`);
-    let patron = p.patron;
-    patron = patron.replace(/físico\|física/g, h.C && !Array.isArray(h.C) && uno(h, 'C').genero === 'f' ? 'física' : 'físico').replace(/sistémico\|sistémica/g, h.C && !Array.isArray(h.C) && uno(h, 'C').genero === 'f' ? 'sistémica' : 'sistémico');
-    patron = patron.replace(/un\|una/g, (h.general && uno(h, 'general').genero === 'f') ? 'una' : 'un');
-    patron = patron.replace(/\[([^\[\]]+)\]/g, (_, s: string) => { const keys = [...s.matchAll(/\{(?:L[oy]:)?([^}]+)\}/g)].map(x => x[1]!); return keys.every(k => lista(h, k).length) ? s : ''; });
+    let secciones=patronesCompilados.get(p.patron);if(!secciones){secciones=compilarTokens(p.patron);patronesCompilados.set(p.patron,secciones);}
     const tokens: TokenOpl[] = [];
-    const literal = (texto: string, rol: TokenOpl['rol'] = 'verbo') => { if (!texto)
-        return; const parts = texto.split('`Current`'); parts.forEach((part, i) => { if (i)
-        tokens.push({ texto: 'Current', rol: 'estado', marca: 'estado' }); if (part)
-        tokens.push({ texto: part, rol }); }); };
+    const literal = (texto:string,rol:TokenOpl['rol']='verbo')=>{
+        if(!texto)return;
+        const clave=rol+':'+texto;let cerrados=literalesCompilados.get(clave);
+        if(!cerrados){
+            const partes:TokenOpl[]=[];texto.split('`Current`').forEach((part,i)=>{if(i)partes.push(Object.freeze({texto:'Current',rol:'estado',marca:'estado'}));if(part)partes.push(Object.freeze({texto:part,rol}));});
+            cerrados=Object.freeze(partes);literalesCompilados.set(clave,cerrados);
+        }
+        tokens.push(...cerrados);
+    };
     function atom(x: Hueco, mult = false, conEstado = false, articulo = false) {
         if (articulo)
             literal(x.genero === 'f' ? 'una ' : 'un ');
@@ -164,19 +202,17 @@ export function tokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
             literal(!match || match[1] === 'Lista' || !ultimo ? ', ' : ` ${match[1] === 'Lo' ? conjuncionO(superficie) : conjuncionY(superficie)} `);
         } atom(x, mult, est, name === 'articulos'); });
     }
-    let pos = 0;
-    for (const x of patron.matchAll(/\{([^}]+)\}/g)) {
-        let tramo = patron.slice(pos, x.index);
-        const name = x[1]!.replace(/^(Ly|Lo|Lista):/, '');
-        const base = name.startsWith('m') ? name.slice(1) : name;
-        const siguiente = lista(h, name)[0] ?? lista(h, base)[0];
-        if (siguiente && / y $/.test(tramo))
-            tramo = tramo.replace(/ y $/, ` ${conjuncionY(superficieInicial(x[1]!, siguiente))} `);
-        literal(tramo);
-        slot(x[1]!);
-        pos = x.index! + x[0].length;
+    let tramo='';
+    for(const seccion of secciones){
+        if(seccion.requiere&&!seccion.requiere.every(k=>lista(h,k).length))continue;
+        for(const parte of seccion.partes){
+            tramo+=literalGenero(parte.literal,h);if(parte.hueco===undefined)continue;
+            const name=parte.hueco.replace(/^(Ly|Lo|Lista):/,''),base=name.startsWith('m')?name.slice(1):name,siguiente=lista(h,name)[0]??lista(h,base)[0];
+            if(siguiente&&/ y $/.test(tramo))tramo=tramo.replace(/ y $/,` ${conjuncionY(superficieInicial(parte.hueco,siguiente))} `);
+            literal(tramo);slot(parte.hueco);tramo='';
+        }
     }
-    literal(patron.slice(pos));
+    literal(tramo);
     // Capitalización inicial sin modificar nombres tipados ni identidades.
     const first = tokens[0];
     if (first && !first.marca)
@@ -304,11 +340,11 @@ export const LITERALES_EXPANDIDOS: readonly string[] = Object.freeze([
 ]);
 export function unidad(u: UnidadTiempo, n: number): string { return unidades[u][n === 1 ? 0 : 1]; }
 function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
-    const x = (k: string) => uno(h, k), nombre = (k: string): NombreTipado => ({ nombre: x(k).texto, tipo: x(k).marca === 'proceso' ? 'proceso' : 'objeto' });
+    const x = (k: string) => uno(h, k), nombre = (k: string): NombreTipado => ({ nombre: x(k).texto, tipo: x(k).marca === 'proceso' ? 'proceso' : 'objeto', ...(x(k).genero ? { genero: x(k).genero } : {}) });
     const extremo = (v: Hueco): ExtremoTexto => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto', ...(v.genero ? { genero: v.genero } : {}), ...(v.mult ? { mult: v.mult } : {}), ...(v.estado ? { estado: v.estado.texto } : {}) });
     const ext = (k: string) => extremo(x(k));
     if (id === 'D1' || id === 'D2')
-        return [{ k: id === 'D1' ? 'esencia' : 'mencion', cosa: nombre('C'), ...(id === 'D1' ? { valor: 'fisica' as const } : {}) } as HechoTexto];
+        return [{ k: 'esencia', cosa: nombre('C'), valor: id === 'D1' ? 'fisica' : 'informacional' }];
     if (id === 'D3' || id === 'D4')
         return [{ k: 'afiliacion', cosa: nombre('C'), valor: id === 'D3' ? 'ambiental' : 'sistemica' }];
     if (['D5', 'D6', 'ATR-E'].includes(id)) {

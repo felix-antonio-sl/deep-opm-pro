@@ -42,7 +42,7 @@ test('T-129 la ruta pertenece a la plantilla y su inversa conserva el campo orig
 });
 
 test('T-106 D4 reconoce los dos géneros y conserva afiliación sistémica sin emisión',()=>{
- const p=tabla.PLANTILLAS.find(p=>p.id==='D4')!;expect(p.estado).toBe('P');expect(p.desde).toBeUndefined();for(const genero of [undefined,'f'] as const)expect(p.hacia({C:{texto:'Cuenta',marca:'objeto',...(genero?{genero}:{})}})).toEqual([{k:'afiliacion',cosa:{nombre:'Cuenta',tipo:'objeto'},valor:'sistemica'}]);expect(p.patron).toContain('sistémico|sistémica');
+ const p=tabla.PLANTILLAS.find(p=>p.id==='D4')!;expect(p.estado).toBe('P');expect(p.desde).toBeUndefined();for(const genero of [undefined,'f'] as const)expect(p.hacia({C:{texto:'Cuenta',marca:'objeto',...(genero?{genero}:{})}})).toEqual([{k:'afiliacion',cosa:{nombre:'Cuenta',tipo:'objeto',...(genero?{genero}:{})},valor:'sistemica'}]);expect(p.patron).toContain('sistémico|sistémica');
 });
 test('T-115 restricciones de cota rechazan unidad ajena y número no decimal',()=>{
  const p=tabla.PLANTILLAS.find(p=>p.id==='EX1')!,base={P1:{texto:'Archivar',marca:'proceso' as const},P2:{texto:'Procesar',marca:'proceso' as const}};expect(p.restricciones!({...base,n:{texto:'1'},u:{texto:'años'}})).toBe(true);expect(p.restricciones!({...base,n:{texto:'NaN'},u:{texto:'años'}})).toBe(false);expect(p.restricciones!({...base,n:{texto:'1'},u:{texto:'centurias'}})).toBe(false);
@@ -97,4 +97,36 @@ test('T-127 CXM y/e lee la frase emitida, conserva comas, bandas y tokens',()=>{
  const p=tabla.PLANTILLAS.find(p=>p.id==='CXM')!,h=tabla.datosContexto({...m,opds:{h:d}},'h')!.huecos;
  expect(tabla.tokensPlantilla('CXM',h).map(t=>t.texto).join('')).toBe('P se descompone en paralelo Alfa y Beta, e Índice, en esa secuencia.');
  expect(p.hacia(h)).toEqual([{k:'descomposicion',proceso:'P',bandas:[['Alfa','Beta'],['Índice']],internos:[]}]);
+});
+
+test('T-191 compilación del patrón conserva opcionales género tokens y entradas intercaladas',()=>{
+ const O={texto:'Pedido',marca:'objeto' as const,ref:{tipo:'cosa' as const,id:'o'},hecho:'e'},P={texto:'Validar',marca:'proceso' as const,ref:{tipo:'cosa' as const,id:'p'},hecho:'e'},h={O,P,r:{texto:'principal'}},before=JSON.stringify(h);
+ const a=tabla.tokensPlantilla('T1',h);expect(a.map(t=>t.texto).join('')).toBe('Por ruta principal, Validar consume Pedido.');
+ expect(tabla.tokensPlantilla('T1',{O,P}).map(t=>t.texto).join('')).toBe('Validar consume Pedido.');
+ expect(tabla.tokensPlantilla('D1',{C:{...O,genero:'f'}}).map(t=>t.texto).join('')).toBe('Pedido es física.');
+ expect(tabla.tokensPlantilla('D1',{C:O}).map(t=>t.texto).join('')).toBe('Pedido es físico.');
+ expect(tabla.tokensPlantilla('T1',h)).toEqual(a);expect(JSON.stringify(h)).toBe(before);
+ const literal=a.find(t=>t.rol==='verbo')!;literal.texto;Reflect.set(literal,'texto','contaminado');expect(tabla.tokensPlantilla('T1',h).map(t=>t.texto).join('')).toBe('Por ruta principal, Validar consume Pedido.');
+});
+
+
+test('T-191 tokens derivados conservan valor completo identidad de hechos entradas y evicción',()=>{
+ const O={texto:'Pedido',marca:'objeto' as const,ref:{tipo:'cosa' as const,id:'o'},hecho:'e'},P={texto:'Validar',marca:'proceso' as const,ref:{tipo:'cosa' as const,id:'p'},hecho:'e'},h={O,P},before=JSON.stringify(h);
+ const a=tabla.tokensPlantilla('T1',h),snapshot=JSON.stringify(a);
+ const otro=tabla.tokensPlantilla('T1',{O:{...O,ref:{tipo:'cosa',id:'otro'},hecho:'otro-enlace'},P});
+ expect(otro.map(t=>t.texto)).toEqual(a.map(t=>t.texto));expect(otro.filter(t=>t.ref).map(t=>t.ref!.id)).toEqual(['p','otro']);expect(otro.filter(t=>t.hecho).map(t=>t.hecho)).toEqual(['e','otro-enlace']);
+ O.texto='Cuenta';expect(tabla.tokensPlantilla('T1',h).map(t=>t.texto).join('')).toBe('Validar consume Cuenta.');O.texto='Pedido';
+ expect(JSON.stringify(h)).toBe(before);expect(JSON.stringify(a)).toBe(snapshot);expect(Object.isFrozen(O)).toBe(false);expect(Object.isFrozen(O.ref)).toBe(false);
+ const externos=[{texto:'Alfa',rol:'nombre' as const,marca:'proceso' as const,ref:{tipo:'cosa' as const,id:'alfa'}}],cx={P,SEC:{texto:'',tokens:externos}};
+ expect(tabla.tokensPlantilla('CXM',cx).some(t=>t.ref?.id==='alfa')).toBe(true);expect(Object.isFrozen(externos)).toBe(false);expect(Object.isFrozen(externos[0])).toBe(false);expect(Object.isFrozen(externos[0]!.ref)).toBe(false);
+ externos[0]!.texto='Beta';expect(tabla.tokensPlantilla('CXM',cx).some(t=>t.texto==='Beta')).toBe(true);
+ for(let i=0;i<2100;i++)expect(tabla.tokensPlantilla('D1',{C:{texto:'Objeto_'+i,marca:'objeto'}}).map(t=>t.texto).join('')).toBe('Objeto_'+i+' es físico.');
+ expect(tabla.tokensPlantilla('T1',h)).toEqual(a);expect(JSON.stringify(a)).toBe(snapshot);
+ for(let i=0;i<2;i++)expect(()=>tabla.tokensPlantilla('NO-EXISTE',h)).toThrow('Plantilla desconocida: NO-EXISTE');
+});
+
+test('T-191 token externo congelado conserva ref externa mutable sin contaminar salidas',()=>{
+ const ref={tipo:'cosa' as const,id:'a'},token=Object.freeze({texto:'Alfa',rol:'nombre' as const,marca:'proceso' as const,ref}),h={P:{texto:'Gestionar',marca:'proceso' as const},SEC:{texto:'',tokens:[token]}};
+ const a=tabla.tokensPlantilla('CXM',h),snapshot=JSON.stringify(a);expect(Object.isFrozen(ref)).toBe(false);ref.id='b';const b=tabla.tokensPlantilla('CXM',h);expect(b.find(t=>t.texto==='Alfa')!.ref!.id).toBe('b');expect(a.find(t=>t.texto==='Alfa')!.ref!.id).toBe('a');expect(JSON.stringify(a)).toBe(snapshot);
+ const circular:tabla.Huecos={};(circular as Record<string,unknown>).extra=circular;expect(()=>tabla.tokensPlantilla('NO-EXISTE',circular)).toThrow('Plantilla desconocida: NO-EXISTE');
 });

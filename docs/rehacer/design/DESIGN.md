@@ -2218,7 +2218,9 @@ export function importarOpl(nombre: string, texto: string): Respuesta<{ modelo: 
       son subprocesos y el resto son externos.
     - Se aplican las oraciones de refinamiento: el OPD hijo se crea con la etiqueta de su cabecera,
       y la etiqueta resultante debe coincidir.
-    - Se aplican las oraciones de cosa: esencia, afiliación, estados, designaciones, valor.
+    - Se aplican las oraciones de cosa: esencia, afiliación, estados y designaciones.
+    - VAL se realiza en fase 2: crea la exhibición faltante antes de `fijarValor` dentro del
+      compuesto de su línea; la guarda F-13 nunca se omite.
   - **Pasada B** (fases 2 y 3, profundidad descendente): se aplica el resto contra la proyección de
     cada OPD.
 
@@ -2246,7 +2248,7 @@ export function importarOpl(nombre: string, texto: string): Respuesta<{ modelo: 
 
 ### 5.9 Cómo se garantiza `parsear(generar(m))` y el fixture estricto R-§19-SIM-3
 
-WP-9 realizará la inversa canónica de las superficies ofrecidas. DEC 29 retiró los dominios locales de abanicos en estado; no son una obligación de reconocimiento ni una nueva bisimetría parcial. Las pruebas de inversa siguientes siguen pendientes de WP-9.
+WP-9 realiza la inversa canónica de las superficies ofrecidas con PLANTILLAS compartidas, plan puro y aplicación nuclear. DEC 29 retiró los dominios locales de abanicos en estado; no son una obligación de reconocimiento ni una nueva bisimetría parcial. Las siete suites siguientes acreditan el corpus ofrecido; modelos reales completos WP-10 y revisión conjunta H2 siguen pendientes.
 
 1. **Por construcción** (P4): generar y reconocer usan el mismo `patron`. `plantillas.test.ts`
    exige, por cada plantilla G, que `hacia(desde(h))` sea la identidad sobre el hecho, en todas sus
@@ -3992,37 +3994,37 @@ parseo OPL, X = export.
 
 | id | regla | estado | U N I G P X | qué hace el producto | decisión |
 |---|---|---|---|---|---|
-| B-01 | RX1/RX2 puede ser (R-OPL-RF-5, DR-10) | no implementado | U·P | U y parser pendientes; no hay reconocimiento funcional del literal. | DEC 1; stub no acredita unsupported-canonical. |
-| B-02 | Descomposición de objeto (T-072, R-OPL-CX-4, DR-23) | parcial | U·N·I·P | N rechaza descomponer objetos; I convierte a despliegue sin crear enlaces o descarta el OPD redundante. U/P pendientes. | DEC 2, DS-18; parser pendiente: unsupported-canonical. |
+| B-01 | RX1/RX2 puede ser (R-OPL-RF-5, DR-10) | no implementado | U·P | P reconoce RX1/RX2 como unsupported-canonical; conserva modelo y no inventa especialización. U pendiente. | DEC 1; analizar/lente WP-9, capacidad sin implementar. |
+| B-02 | Descomposición de objeto (T-072, R-OPL-CX-4, DR-23) | parcial | U·N·I·P | N rechaza descomponer objetos; I convierte a despliegue o descarta redundante. P informa unsupported-canonical sin acciones; U pendiente. | DEC 2, DS-18; no nueva descomposición de objeto. |
 | B-03 | Agente humano (R-AG-1, AP-05, T-045) | parcial | N | N exige objeto físico y emite info agente-humano; no verifica el papel humano. | DEC 3, DR-5: juicio humano. |
-| B-04 | Multiplicidad sin hueco (T-057, DR-44, EBNF A.5/A.6/A.8) | parcial | N·I·G·U·P | N comprueba cada rama/extremo, uniformidad y ausencia parcial; I retira el fan completo sin perder ramas ni multiplicidades. Multiplicidad atómica irrepresentable se retira por campo con informe. G conserva las ofrecidas. U/P pendientes. | S4; no se inventa plantilla. |
-| B-05 | Recíproco con estados sin etiqueta (SE5 con estado, reglas §4.10) | parcial | U·N·I·P | Consulta/creación N exigen etiqueta para recíproco con estado y normalizan con traza; I descarta anclajes sin etiqueta. U/P pendientes. | Reglas §4.10; parser pendiente: unsupported-canonical. |
-| B-06 | Efectos sin plantilla FAN-5/5A y extremo común en estado (R-FAN-EST-1, PUEDE) | parcial | U·N·I·G·P | N rechaza el común en estado y TS3 salida común sin literal; I retira sólo el abanico con informe, conserva enlaces/estados. G atómico tras import. U/P pendientes. | DEC 29: extremo común en estado no implementado (PUEDE); no se añade dialecto ni representación local. |
-| B-07 | Ruta fuera de consumo y resultado (C-25, T-058) | parcial | U·N·I·P | N limita rutas a consumo/resultado y permite fijar/retirar valores; I descarta otras rutas con informe. U/P pendientes. | DR-19; parser pendiente: unsupported-canonical. |
-| B-08 | Control en abanico sin plantilla (T-056, T-124, C-18/19b) | parcial | N·I·U·P | C18 condicionado rechaza estado en cualquier rama; I retira sólo el fan, preserva IDs/controles/estados. CS1 atómico y variantes sin estado permanecen. U/P pendientes. | S3, DR-31. |
-| B-09 | Plurales por multiplicidad (DR-12, T-128) | parcial | G·P | G usa nombre singular con frase de multiplicidad antepuesta; plural canónico no acreditado en P. | DR-12; parser pendiente de WP-9. |
-| B-10 | Participación distinta de `?`, `*`, `+` (numérica, rangos y exactamente un) | parcial | I·P | I normaliza equivalencias legacy admitidas y descarta participaciones no canónicas por campo, con informe. P pendiente. | DR-21; parser pendiente: unsupported-canonical. |
-| B-11 | Despliegue dedicado se despliega por modo en | no implementado | P | G emite CX3; reconocimiento dedicado pendiente. | spec-OPL §7; WP-9. |
+| B-04 | Multiplicidad sin hueco (T-057, DR-44, EBNF A.5/A.6/A.8) | parcial | N·I·G·U·P | N comprueba huecos por rama/extremo; I retira fan/campo irrepresentable con informe y sin perder ramas. G conserva ofrecidas; P usa las mismas guardas al ensayar. U pendiente. | S4/WP-9; no nueva plantilla ni multiplicidad inventada. |
+| B-05 | Recíproco con estados sin etiqueta (SE5 con estado, reglas §4.10) | parcial | U·N·I·P | N exige etiqueta para recíproco con estado; I descarta anclaje sin etiqueta. P bloquea firma irrepresentable sin mutar; U pendiente. | Reglas §4.10; no recuperar una etiqueta inexistente. |
+| B-06 | Efectos sin plantilla FAN-5/5A y extremo común en estado (R-FAN-EST-1, PUEDE) | parcial | U·N·I·G·P | N rechaza común en estado y TS3 salida común sin literal; I retira sólo fan con informe. G atómico tras import; P excluye línea entera del dominio retirado. U pendiente. | DEC 29; FAN5s/e/A ofrecidos sí recuperan único grupo atómico. |
+| B-07 | Ruta fuera de consumo y resultado (C-25, T-058) | parcial | U·N·I·P | N ofrece rutas sólo C/R; I retira otras rutas con informe. P informa unsupported-canonical para rutas fuera de esas firmas; U pendiente. | DR-19; conserva etiqueta de ruta sin interpretar su contenido como gramática. |
+| B-08 | Control en abanico sin plantilla (T-056, T-124, C-18/19b) | parcial | N·I·U·P | C18 con estado carece de hueco: N rechaza, I retira sólo fan conservando ramas. P ensaya mismas guardas y excluye línea irrepresentable; CS1 atómico permanece. U pendiente. | S3/DR-31; no dialecto para controlar ramas con estados. |
+| B-09 | Plurales por multiplicidad (DR-12, T-128) | parcial | G·P | G antepone multiplicidad al nombre singular; P recupera ese literal y clasifica plural verbal no soportado como unsupported-canonical. | DR-12; no acredita inflexión plural lingüística ni la ofrece. |
+| B-10 | Participación distinta de `?`, `*`, `+` (numérica, rangos y exactamente un) | parcial | I·P | I normaliza equivalencias legacy admitidas o retira el campo con informe. P reconoce participación numérica/rango no ofrecida y deja línea sin acciones. | DR-21; ?/*/+ canónicos sí se reconstruyen. |
+| B-11 | Despliegue dedicado se despliega por modo en | no implementado | P | P reconoce la forma dedicada se despliega por modo en como unsupported-canonical. CX3 genérico emitido sí reconstruye los cuatro modos por sus relaciones. | spec-OPL §7/WP-9; no nueva oración dedicada. |
 | B-12 | Import con violaciones canónicas (T-288, R-ESC-OP-4) | parcial | I | I recupera contextos representables y descarta elementos irrepresentables con informe; positivos satisfacen forma. Gates X tienen cobertura acotada. | P8, DS-19; no acredita un pipeline adicional ni todas las reparaciones de importación. |
-| B-13 | Bisimetrías parciales declaradas (R-§19-ROT-1, T-193) | parcial | G·P | DS-10 emite ramas con ruta sin transportar XOR/OR por OPL; JSON conserva datos. Reconstrucción estricta no comprobada. | DESIGN §5.9: diez bisimetrías parciales; inversa WP-9/10/19 pendiente. |
+| B-13 | Bisimetrías parciales declaradas (R-§19-ROT-1, T-193) | parcial | G·P | Auto-reparseo conserva identidad/JSON; estricto recupera texto en corpus ofrecido. Diez parciales reproducidas siguen pérdidas textuales: DS10 no transporta operador. | DESIGN §5.9; lente.test, enumeración WP-9; modelos reales completos WP-10/H3 pendientes. |
 | B-14 | Heurísticas léxicas R-NOM-* y frase breve R-OPL-SE-1 (T-266) | parcial | N | N emite heurísticas de nombres/etiquetas con falsos positivos y negativos posibles; requiere juicio contextual. | DEC 19; no se declara detector lingüístico completo. |
 | B-15 | Cruces y oclusión (R-LAY-2, T-284) | parcial | X | X usa incidencia por tramo/peine y puerto de estado; avisa caja/cápsula ajena al tramo, área de rótulo (incluso propio), figura estructural, cruce, solape y punta corta. Pintura fina aclara etiquetas propias sin mover centros; no rerutea ni garantiza layout libre. | G1/G2/G5; importados con separación insuficiente conservan avisos/gates. |
-| B-16 | Extensiones con sintaxis OPL fuera de alcance (CANON §0.4) | parcial | I·P | I descarta extensiones fuera de alcance y vistas tipificadas con informe; P aún no implementado. | CANON §0.4, DEC 9: unsupported-canonical; Pr= fuera de abanico, non-canonical. |
+| B-16 | Extensiones con sintaxis OPL fuera de alcance (CANON §0.4) | parcial | I·P | I descarta extensiones/vistas tipificadas con informe. P clasifica unsupported-canonical/non-canonical antes del residual; nombres/estados/rutas opacos preservan su tipo. | CANON §0.4, DEC 9/29; sin parser local de extensiones. |
 | B-17 | Inconsistencias inter-OPD (R-OPD-VAL-6, T-094, DEBERÍA) | parcial | N | N detecta refinador en varios contextos y general redundante; reparación elimina este último diagnóstico. No es validador inter-OPD general. | R-OPD-VAL-6; alcance diagnóstico acotado. |
 | B-18 | Estado sin escritor con excepciones LF-19 (T-271) | parcial | N | N informa estado sin escritor; exceptúa inicial, ambiental, salida no especificada y glosa Coproducto XOR-n recuperable. | LF-19; no demuestra ejecución ni exhaustividad semántica. |
 | B-19 | R-VIS-HIJO-1 (T-086): procedimentales distributivos visibles en el contorno del hijo | parcial | N·G·X | N mantiene agente/instrumento/efecto sin estado en contorno del hijo; X observa esas tres variantes. G específica del contorno pendiente. | DR-13: desvío declarado; no habilita consumo/resultado ni evento sistémico en contorno. |
-| B-20 | Duración sin excepción que la cite (R-BI-DUAL-1, T-193) | zona laxa pendiente | G·P | Duración sin EX carece de oración y queda en JSON; evidencia G sobre EX no cierra su ausencia ni P. | Canon sin plantilla; strict pendiente. T204/T220 conservan crecimiento inscrito; export y mirada individual realizados en paso 2, sin aceptación de ola. |
+| B-20 | Duración sin excepción que la cite (R-BI-DUAL-1, T-193) | zona laxa pendiente | G·P | Duración sin EX no tiene oración; JSON la conserva. Auto-reparseo no la cambia, importación desde texto no la reconstruye. | Canon sin plantilla; parcial5 reproducida en lente.test, no capacidad nueva. |
 | B-21 | Modos visuales/simulación runtime (T-230) | no implementado | U | Runtime/simulación retirados; editor/UI aún pendientes. Current declarado no es runtime. | RETIRADA DEC 26; no crédito de cinco modos ni cuatro implementados. |
 | B-22 | Gate >25 cosas (R-LAY-1, T-283): exención salvo vista tipificada o refinamiento declarado | parcial | X | Gate por OPD bloquea >25 cosas; X observa permitir 21/25 y rechazar 26. Exención por refinamiento incumplida; menú pendiente. | Bloqueo conservador declarado; sin vistas tipificadas. |
 | B-23 | AP-14: estados duplicados para inicio/fin, bloqueo como sinónimo falso | zona laxa pendiente | N | N reconoce igualdad nominal, no sinonimia inicio/fin; permite estado inicial-final sin detector semántico adicional. | GAP-15: juicio humano; DEBE de sinonimia sin enforzar. |
 | B-24 | AP-22 sinónimos y AP-25 proceso de soporte sin esfuerzo sostenido, DEBE reportarse | zona laxa pendiente | N | N comprueba unicidad nominal y ausencia de transformación; no identifica sinónimos ni esfuerzo sostenido. | GAP-15; heurísticas no cierran AP-22/AP-25. |
-| B-25 | Bocetos/coacción/simulación/extensiones (T-320/321/323/324) | no implementado | U·I·P | Capacidades fuera de alcance; I informa campos descartados, U/P pendientes. Marca de arrastre T-322 pertenece a UI futura. | CANON §0.4, PUEDE; no nuevo dialecto. |
+| B-25 | Bocetos/coacción/simulación/extensiones (T-320/321/323/324) | no implementado | U·I·P | Capacidades fuera de alcance: I informa descartes, P reconoce límites y no construye grafos plausibles. U pendiente; arrastre T322 pertenece a UI futura. | CANON §0.4/PUEDE; no dialecto ni simulación nueva. |
 | B-26 | T-100: OPL completo cubre todo el modelo cargado | parcial | G·X | N bloquea documento por huérfanos; G genera bloques visibles. X observa cosa sin aparición: diagrama local permitido/documento rechazado. Menú pendiente. | DS-6, CC-01; no acredita todos los huérfanos ni cobertura textual completa. |
-| B-27 | T-106 / DR-2 frente a mención mínima T-190/R-BI-DUAL-1 | parcial | G·P | G emite D2 mínimo para cosa visible no mencionada y nunca D4; P/strict pendientes. | DS-2, CC-27: desvío consciente de DR-2. |
+| B-27 | T-106 / DR-2 frente a mención mínima T-190/R-BI-DUAL-1 | parcial | G·P | G emite D2 mínimo informacional para visible no mencionado; P reconstruye su dimensión sin perder género expresado por D1/D4. | DS-2/CC-27: desvío de DR-2 permanece; strict WP-9 acotado a superficies emitidas. |
 | B-28 | T-040 / DESIGN §10.2: consulta/creación por resultado efectivo refinado | parcial | N·U | N comparte distribución pura y DS-20 final/original; rechazo AP-29 en destino distribuido sin reservar ID. fijarBandas invierte sólo si el contexto final es válido; excepción exclusiva moverSubproceso intacta. U pendiente. | S5/S7; las 8000 acciones y generador históricos se conservan. |
-| B-29 | T-085/T-261: continuidad R+C abstraída y metadatos de conflictos (R-PREC-1/2/3/4, AP-30) | parcial | N·G·X | N aplica las nueve celdas temporales y la simétrica para orden desconocido; recompone R↔C sólo con continuidad trazable, conserva hechos y errores. G específica pendiente. | DEC 31–32: frontera/DS16/LF-03/costo y dos vistas reales observados; check 1830/0, TSC 0, exit 0. Aceptación de ola pendiente. |
+| B-29 | T-085/T-261: continuidad R+C abstraída y metadatos de conflictos (R-PREC-1/2/3/4, AP-30) | parcial | N·G·X | N aplica las nueve celdas temporales y la simétrica para orden desconocido; recompone R↔C sólo con continuidad trazable, conserva hechos y errores. G específica pendiente. | DEC 31–32: frontera/DS16/LF-03/costo y dos vistas reales observados; check1830/0/TSC0 y ola1–4 favorable/publicada69aee956; superficies G aún pendientes. |
 | B-30 | T-260/T-261/T-283: catálogo y gates | parcial | N·U | Catálogo conserva códigos y reparaciones reales; trivial cuenta refinadores revelados, no todos los nucleares. AP-29/ESCIND-2 y límite RROL1 trazables; heurística deverbal acotada. U pendiente. | S6/S7; CC-23, sin crédito de parser ni auditoría lingüística completa. |
-| B-34 | Cambio distributivo de rol neto cero (R-ROL-1, PUEDE) | no implementado | N·I·G·X·U·P | N reconoce instrumento ancestro/efecto hijo con mismo estado explícito y rechaza con no-ofrecido; contexto recuperable sin F-5, I conserva todos los enlaces. Diagnóstico declara límite producto y gates bloquean X; U/P pendientes. | S3/S7 §6 del dictamen; no prohibición OPM ni capacidad nueva, restantes RROLUNIC intactas. |
+| B-34 | Cambio distributivo de rol neto cero (R-ROL-1, PUEDE) | no implementado | N·I·G·X·U·P | N identifica instrumento ancestro/efecto hijo con mismo estado explícito y rechaza no-ofrecido; I conserva enlaces. P respeta el rechazo sin acciones; gates bloquean X, U pendiente. | S3/S7/WP-9; límite producto recuperable, no prohibición OPM. |
 
 ### 11.4 Lista exacta de eliminación (rama `rehacer`, WP-0)
 
@@ -4124,7 +4126,7 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 
 DEC 29 limita los abanicos a extremos comunes en bordes de cosas. WP-7 y WP-9 conservan
 las plantillas canónicas; las combinaciones no ofrecidas y su importación se registran en B-06.
-HAR-7 conserva sus firmas, checks de generación y la importación OPL pendiente de WP-9.
+HAR-7 conserva sus firmas y checks de generación; importarOpl ejecuta análisis/plan/aplicación real de WP-9.
 
 ### 12.3 Qué se porta por lectura desde `pre-rehacer` (no se copia a ciegas)
 
@@ -4254,9 +4256,9 @@ fila de Brechas. La columna Prueba nombra el archivo; el título lleva el T-ID.
 | T-100 | OPL completo en preorden | `generarModelo` + `opdsEnPreorden`; la cosa sin aparición y el enlace sin vista no caen en ningún bloque: diagnóstico, gate de `canon-documento` y aviso en el export OPL (DS-6, CC-01) | WP-7, WP-5 | `generar.test`, `diagnostico.test`, e2e 19 | **parcial (B-26)** |
 | T-101 | solo estados visibles; D6 | `generarBloque` paso 2 | WP-7 | `generar.test`, e2e 6 | enforzado |
 | T-102 | tipografía Markdown | texto desde tokens | WP-7 | `generar.test` | enforzado |
-| T-103 | una oración por línea, con punto | `generarBloque`; todas las plantillas canónicas conservan punto | WP-7 | `generar.test` | **parcial (B-06; inversa pendiente)** |
+| T-103 | una oración por línea, con punto | `generarBloque`; todas las plantillas canónicas conservan punto | WP-7 | `generar.test` | **parcial (B-06; FAN5 ofrecidos G/P realizados)** |
 | T-104 | vocabulario cerrado | `VOCABULARIO` ≡ literales | WP-7 | `vocabulario.test` | enforzado |
-| T-105 | plantillas literales (tabla 9.2 mínima) | `PLANTILLAS`; sólo tabla canónica | WP-7 | `plantillas.test`, `roundtrip-tabla92.test` | **parcial (B-06; inversa pendiente)** |
+| T-105 | plantillas literales (tabla 9.2 mínima) | `PLANTILLAS`; sólo tabla canónica | WP-7 | `plantillas.test`, `roundtrip-tabla92.test` | **parcial (B-06; FAN5 ofrecidos G/P realizados)** |
 | T-106 | D1/D3 solo si difieren | `generarBloque` paso 2; D2 solo como mención mínima de una cosa que ninguna otra oración nombra (DS-2) | WP-7 | `generar.test` | **parcial (B-27, DS-2)** |
 | T-107 | D5 `puede estar`, en orden | D5 | WP-7 | `generar.test` | enforzado |
 | T-108 | D7–D10 | D7/D8/D9/D10 | WP-7 | `generar.test` | enforzado |
@@ -4269,8 +4271,8 @@ fila de Brechas. La columna Prueba nombra el archivo; el título lleva el T-ID.
 | T-116 | IV1 e IV2 | IV1, IV2 (sin demora) | WP-7 | `generar.test` | enforzado |
 | T-117 | RF1–RF4b, RH1, variantes de proceso | plantillas estructurales | WP-7 | `generar.test` | enforzado |
 | T-119 | SE1 y SE2 | plantillas | WP-7 | `plantillas.test` | enforzado |
-| T-122 | 24 plantillas de abanico; ramas con estado | tabla de abanicos; estados sólo en extremos no comunes (DEC 29); extremo común en estado no implementado (PUEDE, B-06) | WP-7 | `plantillas.test`, `roundtrip-matriz.test` | **parcial (B-06; inversa pendiente)** |
-| T-123 | estados por rama de fan del mismo objeto | FAN5s/e/A canónicos; TS3 salida común sin literal no ofrecido (B-06) | WP-7, WP-9 | `generar.test`, `roundtrip-matriz.test` | **parcial (B-06; inversa pendiente)** |
+| T-122 | 24 plantillas de abanico; ramas con estado | tabla de abanicos; estados sólo en extremos no comunes (DEC 29); extremo común en estado no implementado (PUEDE, B-06) | WP-7 | `plantillas.test`, `roundtrip-matriz.test` | **parcial (B-06; FAN5 ofrecidos G/P realizados)** |
+| T-123 | estados por rama de fan del mismo objeto | FAN5s/e/A canónicos; TS3 salida común sin literal no ofrecido (B-06) | WP-7, WP-9 | `generar.test`, `roundtrip-matriz.test` | **parcial (B-06; FAN5 ofrecidos G/P realizados)** |
 | T-125 | CX1/CX2/mixta en el hijo | `generarBloque` paso 1 | WP-7 | `generar.test`, e2e 11 | enforzado |
 | T-126 | CX3 `se despliega en SDx en` | CX3 | WP-7 | `generar.test`, e2e 13 | enforzado |
 | T-127 | sin CX con <2 refinadores | R-CX-0 | WP-7 | `generar.test` | enforzado |

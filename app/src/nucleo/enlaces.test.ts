@@ -360,3 +360,16 @@ test('T-250 TS3 hacia rectángulo del mismo objeto no decide qué pierna se desa
     mal(op.reanclarExtremo(m, { opd: m.raiz, enlace: 'e-20', extremo: 'destino', hacia: { cosa: 'o-2' } }), 'referencia-ambigua', 'R-OPD-EDIT-4');
     expect(JSON.stringify(m)).toBe(antes);
 });
+
+// Control semántico GREEN-first: el RED causal de esta optimización es T-192.
+test('T-018 enlace sin anclas conserva supresión global/local sin traza LF-03', () => {
+    const b = base(), c = b.cosas['o-2'] as Objeto;
+    const m = congelar({ ...b, cosas: { ...b.cosas, 'o-2': { ...c, estados: c.estados.map(s => ({ ...s, suprimido: true as const })) } }, opds: { [b.raiz]: { ...b.opds[b.raiz]!, apariciones: { ...b.opds[b.raiz]!.apariciones, 'o-2': { ...b.opds[b.raiz]!.apariciones['o-2']!, ocultos: c.estados.map(s => s.id) } } } } });
+    const args = congelar({ opd: m.raiz, candidato: { tipo: 'consumo' as const, objeto: 'o-2', proceso: 'p-9' } }), antes = JSON.stringify([m, args]);
+    const r = op.crearEnlace(m, args), n = bien(r);
+    expect(n.cosas['o-2']).toEqual(m.cosas['o-2']);
+    expect(n.opds[n.raiz]!.apariciones['o-2']).toEqual(m.opds[m.raiz]!.apariciones['o-2']);
+    expect(n.enlaces[`e-${m.secuencia}`]).toEqual({ id: `e-${m.secuencia}`, ...args.candidato });
+    if (r.ok) expect(r.trazas.filter(t => t.regla === 'LF-03')).toEqual([]);
+    expect(JSON.stringify([m, args])).toBe(antes);
+});

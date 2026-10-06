@@ -93,10 +93,12 @@ function mostrar(tx: Tx, id: Id) {
         mostrarUno(tx, e.escision.par);
 }
 function mostrarUno(tx: Tx, id: Id) {
-    const e = obtener(tx, id), pendientes = new Map<Id, Set<Id>>();
+    const e = obtener(tx, id), estados = anclas(e);
+    if (!estados.length) return;
+    const pendientes = new Map<Id, Set<Id>>();
     for (const oid of indice(tx.m).preorden) {
         const vista = proyectar(tx.m, oid);
-        for (const s of anclas(e))
+        for (const s of estados)
             if (vista.enlaces.some(v => v.hechos.includes(id) && anclas(v.enlace).includes(s))) {
                 const donde = pendientes.get(s) ?? new Set<Id>();
                 donde.add(oid);

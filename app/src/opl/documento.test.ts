@@ -6,7 +6,7 @@ test('T-100 documento canónico con nombre y cabecera contextual de raíz',()=>{
  const m={...base,cosas:Object.fromEntries(Object.entries(base.cosas).map(([id,c])=>[id,{...c,esencia:'informacional' as const}]))};
  expect(generarDocumentoOpl(m)).toBe(`# ${m.nombre}\n\n## SD\n*Procesar* es informacional.\n**Pedido** es informacional.`);
 });
-test('T-287 importación OPL permanece pendiente de su propietaria WP-9',()=>{expect(()=>importarOpl('Prueba','')).toThrow('pendiente:');});
+test('T-287 importación OPL vacía crea modelo válido y plan sin acciones',()=>{const r=importarOpl('Prueba','');expect(r.ok).toBe(true);if(!r.ok)return;expect(r.valor.modelo.nombre).toBe('Prueba');expect(validarForma(r.valor.modelo)).toEqual([]);expect(r.valor.modelo.cosas).toEqual({});expect(r.valor.plan.acciones).toEqual([]);expect(r.valor.plan.resumen).toEqual({total:1,aplicables:0,noAplicables:0,ignoradas:1,sinCambio:0});});
 
 import type { Modelo } from '../nucleo/tipos';
 import { generarModelo, textoCanonico } from './generar';

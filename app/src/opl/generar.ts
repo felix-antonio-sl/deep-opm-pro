@@ -8,14 +8,33 @@ import type { OpcionesOpl, LineaOpl, TokenOpl } from './linea';
 import { textoDeTokens, refsDeTokens } from './linea';
 import { cosa, estadoHueco, hueco, datosEnlace, tokensPlantilla, datosContexto, PLANTILLAS } from './plantillas';
 import type { Huecos, HechoGenerable } from './plantillas';
-const cmp = (a: Cosa, b: Cosa) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }) || a.id.localeCompare(b.id);
+const colacionNombre = new Intl.Collator('es',{sensitivity:'base'});
+const cmp = (a: Cosa, b: Cosa) => colacionNombre.compare(a.nombre,b.nombre) || a.id.localeCompare(b.id);
 function profundidad(m: Modelo, opd: Id): number { let n = 0, o = m.opds[opd]; while (o && o.tipo !== 'raiz') {
     n++;
     o = m.opds[o.padre];
 } return n; }
+// Sólo salidas derivadas: no se retiene Modelo ni se congela ningún dato nuclear.
+const memoLineas = new WeakMap<readonly TokenOpl[], LineaOpl[]>();
 function linea(m: Modelo, opd: Id, h: HechoGenerable, clave: string, hechos: readonly Id[] = [], soloDisplay?: true): LineaOpl {
     const tokens = tokensPlantilla(h.plantilla, h.huecos);
-    return { id: `${opd}#${h.plantilla}:${clave}`, plantilla: h.plantilla, texto: textoDeTokens(tokens), tokens, refs: refsDeTokens(tokens), hechos, opd, etiquetaOpd: indice(m).etiqueta.get(opd) ?? opd, profundidad: profundidad(m, opd), ...(soloDisplay ? { soloDisplay } : {}) };
+    const etiquetaOpd = indice(m).etiqueta.get(opd) ?? opd, nivel = profundidad(m, opd);
+    let cache = memoLineas.get(tokens);
+    if (!cache && Object.isFrozen(tokens) && tokens.every(t => Object.isFrozen(t) && (!t.ref || Object.isFrozen(t.ref)))) {
+        cache = [];
+        memoLineas.set(tokens, cache);
+    }
+    const id = `${opd}#${h.plantilla}:${clave}`;
+    const anterior = cache?.find(l => l.id === id && l.plantilla === h.plantilla && l.opd === opd &&
+        l.etiquetaOpd === etiquetaOpd && l.profundidad === nivel && l.soloDisplay === soloDisplay &&
+        l.hechos.length === hechos.length && l.hechos.every((hecho, i) => hecho === hechos[i]));
+    if (anterior) return anterior;
+    const salida: LineaOpl = Object.freeze({ id, plantilla: h.plantilla, texto: textoDeTokens(tokens), tokens, refs: Object.freeze(refsDeTokens(tokens)), hechos: Object.freeze([...hechos]), opd, etiquetaOpd, profundidad: nivel, ...(soloDisplay ? { soloDisplay } : {}) });
+    if (cache) {
+        if (cache.length >= 8) cache.shift();
+        cache.push(salida);
+    }
+    return salida;
 }
 function emitirEnlace(m: Modelo, opd: Id, v: EnlaceVisto): LineaOpl[] {
     const normal = normalizarEtiquetas(v.enlace);
@@ -35,7 +54,7 @@ function emitirEnlace(m: Modelo, opd: Id, v: EnlaceVisto): LineaOpl[] {
 }
 export function lineaDeEnlace(m: Modelo, opd: Id, candidato: EnlaceNuevo): LineaOpl | null { if (!m.opds[opd])
     return null; const e = { ...candidato, id: 'previa' } as Enlace; return emitirEnlace(m, opd, { clave: 'previa', enlace: e, hechos: [], abstraido: false })[0] ?? null; }
-export function generarBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl[] {
+function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl[] {
     const vista = proyectar(m, opd), idx = indice(m), d = m.opds[opd]!;
     const orden = vista.cosas.map(v => m.cosas[v.cosa]!).sort((a, b) => {
         const av = vista.cosas.find(v => v.cosa === a.id)!, bv = vista.cosas.find(v => v.cosa === b.id)!;
@@ -284,15 +303,47 @@ export function generarBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly Lin
     const salida = [...contexto, ...cosas, ...enlaces];
     return o?.esencia === 'oculta' ? salida.filter(l => l.plantilla !== 'D1' && l.plantilla !== 'D2') : salida;
 }
-export function generarModelo(m: Modelo, o?: OpcionesOpl): readonly LineaOpl[] {
-    return indice(m).preorden.flatMap(opd => {
-        const idx = indice(m), d = m.opds[opd]!, label = idx.etiqueta.get(opd)!;
-        const tokens: TokenOpl[] = [{ texto: `## ${label}`, rol: 'texto', ref: { tipo: 'opd', id: opd } }];
-        if (d.tipo !== 'raiz') {
-            tokens.push({ texto: d.tipo === 'descomposicion' ? ' · descomposición de ' : ' · despliegue de ', rol: 'texto' }, { texto: m.cosas[d.cosa]!.nombre, rol: 'nombre', marca: m.cosas[d.cosa]!.tipo, ref: { tipo: 'cosa', id: d.cosa } }, { texto: ` · en ${idx.etiqueta.get(d.padre)}`, rol: 'texto', ref: { tipo: 'opd', id: d.padre } });
-        }
-        const cabecera: LineaOpl = { id: `${opd}#cabecera`, plantilla: 'cabecera', texto: textoDeTokens(tokens), tokens, refs: refsDeTokens(tokens), hechos: [], opd, etiquetaOpd: label, profundidad: profundidad(m, opd), soloDisplay: true };
-        return [cabecera, ...generarBloque(m, opd, o)];
-    });
+const memoCabeceras = new Map<string, LineaOpl>();
+function cabecera(m: Modelo, opd: Id): LineaOpl {
+    const idx = indice(m), d = m.opds[opd]!, label = idx.etiqueta.get(opd)!, nivel = profundidad(m, opd);
+    const c = d.tipo === 'raiz' ? undefined : m.cosas[d.cosa];
+    const padre = d.tipo === 'raiz' ? undefined : d.padre, etiquetaPadre = padre === undefined ? undefined : idx.etiqueta.get(padre);
+    const k = JSON.stringify([opd, label, nivel, d.tipo, d.tipo === 'raiz' ? undefined : d.cosa, c?.nombre, c?.tipo, padre, etiquetaPadre]);
+    const anterior = memoCabeceras.get(k);
+    if (anterior) return anterior;
+    const tokens: TokenOpl[] = [{ texto: `## ${label}`, rol: 'texto', ref: { tipo: 'opd', id: opd } }];
+    if (d.tipo !== 'raiz') {
+        tokens.push({ texto: d.tipo === 'descomposicion' ? ' · descomposición de ' : ' · despliegue de ', rol: 'texto' }, { texto: c!.nombre, rol: 'nombre', marca: c!.tipo, ref: { tipo: 'cosa', id: d.cosa } }, { texto: ` · en ${etiquetaPadre}`, rol: 'texto', ref: { tipo: 'opd', id: d.padre } });
+    }
+    const linea: LineaOpl = { id: `${opd}#cabecera`, plantilla: 'cabecera', texto: textoDeTokens(tokens), tokens, refs: refsDeTokens(tokens), hechos: [], opd, etiquetaOpd: label, profundidad: nivel, soloDisplay: true };
+    const salida = salidaInmutable([linea])[0]!;
+    if (memoCabeceras.size >= 64) memoCabeceras.delete(memoCabeceras.keys().next().value!);
+    memoCabeceras.set(k, salida);
+    return salida;
+}
+function construirModelo(m: Modelo, o?: OpcionesOpl): readonly LineaOpl[] {
+    return indice(m).preorden.flatMap(opd => [cabecera(m, opd), ...generarBloque(m, opd, o)]);
 }
 export function textoCanonico(lineas: readonly LineaOpl[]): string { return lineas.filter(l => !l.soloDisplay || l.texto.startsWith('## ')).map(l => l.texto).join('\n'); }
+
+// Resultados derivados por identidad inmutable y todas las opciones públicas.
+const memoBloques=new WeakMap<Modelo,Map<string,readonly LineaOpl[]>>();
+const memoModelos=new WeakMap<Modelo,Map<string,readonly LineaOpl[]>>();
+const claveOpciones=(o?:OpcionesOpl)=>JSON.stringify([o?.esencia??'solo-difiere',o?.numeracion??false]);
+function salidaInmutable(ls:readonly LineaOpl[]):readonly LineaOpl[]{
+    return Object.freeze(ls.map(l=>Object.isFrozen(l)?l:Object.freeze({...l,
+        // Sólo linea→tokensPlantilla produce vectores congelados; cabecera es local y mutable.
+        tokens:Object.isFrozen(l.tokens)?l.tokens:Object.freeze(l.tokens.map(t=>Object.freeze({...t,...(t.ref?{ref:Object.freeze({...t.ref})}:{})}))),
+        refs:Object.freeze(l.refs.map(r=>Object.isFrozen(r)?r:Object.freeze({...r}))),hechos:Object.freeze([...l.hechos])
+    })));
+}
+export function generarBloque(m:Modelo,opd:Id,o?:OpcionesOpl):readonly LineaOpl[]{
+    let cache=memoBloques.get(m);if(!cache){cache=new Map();memoBloques.set(m,cache);}
+    const k=JSON.stringify([opd,claveOpciones(o)]);let ls=cache.get(k);
+    if(!ls){ls=salidaInmutable(construirBloque(m,opd,o));cache.set(k,ls);}return ls;
+}
+export function generarModelo(m:Modelo,o?:OpcionesOpl):readonly LineaOpl[]{
+    let cache=memoModelos.get(m);if(!cache){cache=new Map();memoModelos.set(m,cache);}
+    const k=claveOpciones(o);let ls=cache.get(k);
+    if(!ls){ls=salidaInmutable(construirModelo(m,o));cache.set(k,ls);}return ls;
+}

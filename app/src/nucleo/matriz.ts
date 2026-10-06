@@ -423,15 +423,30 @@ function estadoGesto(e: BorradorNuevo, desde: ExtremoRef, hacia: ExtremoRef): bo
     return esperados.every(x => usados.some(([s, c]) => s === x.estado && c === x.cosa));
 }
 // Orden de propiedades irrelevante a cualquier profundidad; el orden de listas sí es semántico.
-function datoSemantico(dato: unknown): unknown {
-    if (Array.isArray(dato)) return dato.map(datoSemantico);
-    if (dato !== null && typeof dato === 'object')
-        return Object.fromEntries(Object.entries(dato).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, datoSemantico(v)]));
-    return dato;
+function serializarHecho(dato: unknown, raiz = false): string | undefined {
+    if (Array.isArray(dato)) return '[' + Array.from(dato, v => serializarHecho(v) ?? 'null').join(',') + ']';
+    if (dato !== null && typeof dato === 'object') {
+        const objeto = dato as Record<string, unknown>;
+        const entero = (k: string): boolean => String(Number(k) >>> 0) === k && Number(k) < 0xffffffff;
+        const claves = Object.keys(objeto).filter(k => (!raiz || k !== 'id') && objeto[k] !== undefined);
+        // JSON enumera índices enteros antes de las demás claves incluso tras fromEntries().
+        if (claves.some(k => k.charCodeAt(0) >= 48 && k.charCodeAt(0) <= 57))
+            claves.sort((a, b) => entero(a) ? entero(b) ? Number(a) - Number(b) : -1 : entero(b) ? 1 : a.localeCompare(b));
+        else claves.sort((a, b) => a.localeCompare(b));
+        const partes: string[] = [];
+        for (const k of claves) { const valor = serializarHecho(objeto[k]); if (valor !== undefined) partes.push(JSON.stringify(k) + ':' + valor); }
+        return '{' + partes.join(',') + '}';
+    }
+    return JSON.stringify(dato);
 }
 function mismoHecho(a: Enlace | EnlaceNuevo, b: Enlace | EnlaceNuevo): boolean {
-    const datos = (e: Enlace | EnlaceNuevo) => datoSemantico(Object.fromEntries(Object.entries(e).filter(([k]) => k !== 'id')));
-    return JSON.stringify(datos(a)) === JSON.stringify(datos(b));
+    if (a.tipo !== b.tipo) return false;
+    // Los extremos persistentes primarios son strings; su desigualdad descarta
+    // igualdad semántica antes de construir la representación completa.
+    if ('objeto' in a && 'objeto' in b && (a.objeto !== b.objeto || a.proceso !== b.proceso)) return false;
+    if ('refinable' in a && 'refinable' in b && (a.refinable !== b.refinable || a.refinador !== b.refinador)) return false;
+    if ('origen' in a && 'origen' in b && (a.origen !== b.origen || a.destino !== b.destino)) return false;
+    return serializarHecho(a, true) === serializarHecho(b, true);
 }
 function rechazoEtiqueta(valor: unknown, requerida: boolean): Rechazo | null {
     if (!requerida && (valor === undefined || valor === null)) return null;

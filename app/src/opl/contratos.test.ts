@@ -25,5 +25,5 @@ test('T-100 contratos OPL conservan las seis firmas y verifican su comportamient
     expect(texto([])).toBe('');
     expect(previa(m, m.raiz, { tipo: 'consumo', objeto: 'o-2', proceso: 'p-3' })).toBeNull();
     expect(doc(m).split('\n').filter(linea => linea !== '')).toEqual(['# Prueba', '## SD']);
-    expect(() => importar('Prueba', '')).toThrow('pendiente:');
+    expect(importar('Prueba', '')).toMatchObject({ok:true,valor:{modelo:{nombre:'Prueba',cosas:{},enlaces:{},abanicos:{},secuencia:2},plan:{acciones:[],resumen:{total:1,ignoradas:1,noAplicables:0}}}});
 });

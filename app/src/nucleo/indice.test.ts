@@ -67,3 +67,12 @@ caso('T-025 índice busca sin acentos, incluye estados, limita resultados y desc
         expect(i.estadoDe.get(o.estados[0]!.id)).toEqual({ objeto: o.id, posicion: 0 });
     }
 });
+
+caso('T-025 memo nominal acotada equivale a la expresión original con Unicode y evicción',()=>{
+    const original=(s:string)=>s.normalize('NFC').trim().replace(/\s+/g,' ').toLocaleLowerCase('es');
+    const casos=['','  ','Álfa','Álfa','ALFA','Alfa',' İSTANBUL ','I','Ñ','N','Straße','ΣΟΣ','ΣΟς',' Cuenta\t\nPrincipal ','\u00a0Pedido\u00a0','e\u0301','é','😀'];
+    for(const s of casos)expect(claveNombre(s)).toBe(original(s));
+    for(let i=0;i<5000;i++){const s=`  Caso ${i}  Á `;expect(claveNombre(s)).toBe(original(s));if(i%17===0)for(const x of casos)expect(claveNombre(x)).toBe(original(x));}
+    for(const s of [...casos].reverse())expect(claveNombre(s)).toBe(original(s));
+    expect(claveNombre('Alfa')).not.toBe(claveNombre('Álfa'));expect(claveNombre(' N ')).not.toBe(claveNombre(' Ñ '));
+});

@@ -551,3 +551,14 @@ for(const tipo of ['consumo','resultado','instrumento','agente'] as const)for(co
  if(tipo==='agente'){expect(r.modelo.abanicos).toEqual({});expect(r.informe.descartado).toEqual([expect.objectContaining({regla:'DR-44'})]);}else{expect(validarForma(m)).toEqual([]);expect(r.modelo.abanicos).toEqual(m.abanicos);expect(r.informe.descartado).toEqual([]);}
  expect(JSON.stringify(m)).toBe(antes);
 });
+
+
+test('T-052 igualdad semántica conserva estados, control, mult y ruta con mismos extremos y responde a entrada mutable',()=>{
+ const m=base(),[a,b,,p]=ids(m),original:Enlace={id:'e-101',tipo:'consumo',objeto:a!,proceso:p!},otro:Enlace={proceso:p!,objeto:a!,tipo:'consumo',id:'e-102'};
+ const fan:Abanico={id:'f-103',operador:'XOR',enlaces:[original.id,otro.id]};
+ const duplicado=(e:Enlace)=>violacionesAbanico({...m,enlaces:{[original.id]:original,[e.id]:e}},fan).some(v=>v.mensaje==='Las ramas deben representar enlaces distintos.');
+ expect(duplicado(otro)).toBe(true);
+ for(const cambio of [{estado:s(m)},{control:'c' as const},{mult:'+' as const},{ruta:'Otra'},{objeto:b!},{tipo:'resultado' as const}])expect(duplicado({...otro,...cambio})).toBe(false);
+ const mutable={...otro};expect(duplicado(mutable)).toBe(true);mutable.objeto=b!;expect(duplicado(mutable)).toBe(false);mutable.objeto=a!;expect(duplicado(mutable)).toBe(true);
+ const antes=JSON.stringify(m);expect(duplicado(Object.freeze({...otro}))).toBe(true);expect(JSON.stringify(m)).toBe(antes);
+});

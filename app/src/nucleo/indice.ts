@@ -24,7 +24,15 @@ export interface Indice {
     }>;
     readonly porClaveNombre: ReadonlyMap<string, readonly Id[]>; // ≥2 ⇒ nombre duplicado
 }
-export function claveNombre(nombre: string): string { return nombre.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('es'); } // NFC, espacios colapsados, recorte, toLocaleLowerCase('es')
+const memoNombres = new Map<string,string>();
+const LIMITE_MEMO_NOMBRES = 2048;
+export function claveNombre(nombre: string): string {
+    const previo = memoNombres.get(nombre);
+    if (previo !== undefined) return previo;
+    const clave = nombre.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('es');
+    if (memoNombres.size >= LIMITE_MEMO_NOMBRES) memoNombres.delete(memoNombres.keys().next().value!);
+    memoNombres.set(nombre,clave);return clave;
+} // NFC, espacios colapsados, recorte, toLocaleLowerCase('es')
 const memo = new WeakMap<Modelo, Indice>();
 export function indice(m: Modelo): Indice {
     const opd = (id: Id) => Object.hasOwn(m.opds, id) ? m.opds[id] : undefined;

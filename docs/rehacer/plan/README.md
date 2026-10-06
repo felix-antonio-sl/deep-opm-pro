@@ -1,7 +1,7 @@
 # Plan de implementación de opforja rehecho
 
 **Reanudación DEC 29–32:** sobre `rehacer`, desde `e287ba9` o posterior. Primero las
-correcciones solicitadas (pasos 1+2 publicados en `26935f4`, paso 3 en `5d23f8a`; paso 4 aceptado por dirección con check1906/0, TSC0, exit0 y revisión única GLOBAL_FAVORABLE de ola 1–4; listo para commit/push por raíz, publicación pendiente), después el plan pendiente; DEC 30 exige protocolo ligero y una
+correcciones solicitadas (pasos 1+2 publicados en `26935f4`, paso 3 en `5d23f8a`; paso 4 publicado en `69aee956` tras check1906/0, TSC0, exit0 y revisión única GLOBAL_FAVORABLE de ola 1–4; WP-9 activo), después el plan pendiente; DEC 30 exige protocolo ligero y una
 revisión por ola. La preparación de DEC 28 queda como antecedente, sin recrear rama ni tag.
 
 Qué se construye: el diseño de [`../design/DESIGN.md`](../design/DESIGN.md). Es un modelador
@@ -86,6 +86,7 @@ Hitos de revisión con el dueño:
    - `nucleo/cosas.ts`;
    - `nucleo/resultado.test.ts`: WP-3a agrega únicamente `violacionesForma` al doble aislado, con fallo explícito si se invoca; sin cambiar casos, cuerpos ni expectativas de WP-1. WP-3b agrega después únicamente `violacionesAbanico`, `normalizarEtiquetas` y `violacionesContexto` con la misma guarda; mantiene íntegros los cinco casos.
    - `opl/documento.ts`.
+   - WP-9 comparte serialmente `opl/plantillas.ts` sólo en `reconocer.nombre()` (género explícito) y D2 (esencia informacional), con su regresión. Comparte `nucleo/{indice.ts,indice.test.ts}` sólo para memo acotada de `claveNombre` por entrada textual exacta; transformación y WeakMap del índice intactas. Resolución técnica de dirección bajo el encargo directo de la inversa y su coste, sin decisión semántica nueva.
    - `opl/contratos.test.ts`: WP-7 sustituye sólo las cinco expectativas temporales de generación por checks reales de §5.4/§5.7; conserva literalmente las seis asignaciones de firmas, el bucle `typeof` y `importarOpl` pendiente. WP-9 sustituye sólo la expectativa restante de `importarOpl`, concretada en su turno conforme a §5.7 y sus pruebas nativas, conservando los otros checks.
    - `nucleo/matriz.ts`: WP-2 produce consulta y normalización; WP-4r agrega el ensayo compartido
      de distribución.
@@ -96,6 +97,7 @@ Hitos de revisión con el dueño:
    - DEC 29: sólo abanicos con extremo común en borde de cosa; estados no comunes preservados.
      Común en estado y TS3 sin literal completo se rechazan/importan como enlaces sueltos con
      informe B-06. HAR-7 y sus firmas permanecen intactos; no hay dialecto textual adicional.
+   - WP-9 comparte serialmente `opl/{generar.ts,generar.test.ts}` sólo para reutilizar salida readonly por identidad Modelo/OPD/opciones, con paridad y resistencia a contaminación; no se cachea un modelo importado ni una validación.
 4. Ninguna regla OPM vive fuera de `nucleo/matriz.ts` o `nucleo/diagnostico.ts`. Ninguna oración
    OPL vive fuera de `opl/plantillas.ts`. Toda mutación es una `Operacion` registrada.
 5. Cerrar con `cd app && bun run check` en verde, más las verificaciones de `aceptacion`. Ninguna
@@ -158,3 +160,9 @@ hitos H1–H3 son los puntos naturales para pausar.
 - Despliegue autorizado según DESIGN §9.4.
 - Fuera de este repositorio (DECISIONS 27): actualizar las referencias de la skill
   `modelamiento-opm` en KORA al contrato JSON v0 + API con token.
+
+## WP-9 — propiedad serial y cierre
+
+La propiedad compartida mínima cubre reconocer.nombre/D2 y tokensPlantilla/helpers privados en plantillas.ts, generación readonly por identidad/opciones y líneas/cabeceras derivadas acotadas en generar.ts, memo nominal exacta en indice.ts, comparación JSON equivalente en matriz.ts y mostrarUno sin anclas en enlaces.ts, con sus controles pertinentes. Patrones, reglas, firmas, IDs, hechos, operaciones, gates y distribución se conservan; ninguna entrada se congela. No hay caché NUEVA de validaciones/Tx/Modelos importados; memo existente intacta. Paridad frente a previo, pureza y coste completo son obligaciones; ensayos y retiradas están íntegros en bitácora.
+
+Cierre actual: check6 íntegro **2653/0, TSC0, exit0**,1.328.208expectativas/54archivos; T192 **2940,09ms** con5786propuestas/2996modelos/2734imports reales/258reusos exactos/2992comparaciones. Siete suites,200semillas×2perfiles,Tabla9.2 y composición generativa mantienen dimensiones/gates. Publicación por dirección pendiente; revisión conjunta WP9+WP13 en H2. UI/WP10/ISO y las diez parciales permanecen fuera del crédito de este cierre.

@@ -1,3 +1,4 @@
+import {proyectar} from '../nucleo/proyeccion';
 import { expect, test } from 'bun:test';
 import { generarBloque, generarModelo, lineaDeEnlace, textoCanonico } from './generar';
 import { congelar } from '../pruebas/constructores';
@@ -366,4 +367,69 @@ for(const operador of ['XOR','OR'] as const)for(const reverso of [false,true])te
  const enlaces:Enlace[]=[{id:'e1',tipo:'consumo',objeto:'o',proceso:'p',mult:'+'},{id:'e2',tipo:'consumo',objeto:'a',proceso:'p',mult:'?'}],b=m(enlaces),modelo=m(enlaces,{abanicos:{f:{id:'f',operador,enlaces:reverso?['e2','e1']:['e1','e2']}}});
  expect(validarForma(modelo)).toEqual([]);for(const e of enlaces){expect(noOfrecido(modelo,e,modelo.abanicos.f)).toBeNull();expect(violacionesContexto(modelo,e)).toEqual([]);}const antes=JSON.stringify(modelo),l=generarBloque(modelo,'sd').find(l=>l.hechos.length===2)!;
  expect(new Set(l.hechos)).toEqual(new Set(['e1','e2']));expect(l.texto).toContain('al menos un **Pedido**');expect(l.texto).toContain('un opcional **Cuenta**');expect(l.texto).toContain(operador==='XOR'?'exactamente uno de':'al menos uno de');expect(l.refs.map(r=>r.id)).toEqual(expect.arrayContaining(['p','o','a']));expect(JSON.stringify(modelo)).toBe(antes);
+});
+
+import {modeloCon} from '../pruebas/constructores';
+ test('T-191 generación memo conserva opciones identidad nueva e inmutabilidad de salida',()=>{
+    const b=modeloCon({objetos:[['Pedido',['nuevo','listo']]],procesos:['Validar'],enlaces:[['consumo','Pedido','Validar']]}),before=JSON.stringify(b);
+    const canon=generarModelo(b),bloque=generarBloque(b,b.raiz);expect(generarModelo(b)).toBe(canon);expect(generarBloque(b,b.raiz)).toBe(bloque);
+    for(const esencia of ['siempre','oculta','solo-difiere'] as const)for(const numeracion of [true,false]){
+        const o={esencia,numeracion},fresh=generarModelo({...b},o);expect(generarModelo(b,o)).toEqual(fresh);expect(generarModelo(b,o)).toBe(generarModelo(b,{...o}));expect(generarBloque(b,b.raiz,o)).toEqual(generarBloque({...b},b.raiz,o));
+    }
+    const c=Object.values(b.cosas)[0]!,cambio={...b,cosas:{...b.cosas,[c.id]:{...c,nombre:'Otra'}}};
+    expect(generarModelo(cambio).some(l=>l.texto.includes('**Otra**'))).toBe(true);expect(generarModelo(b)).toBe(canon);
+    for(const l of canon){expect(Object.isFrozen(l)).toBe(true);for(const xs of [l.tokens,l.refs,l.hechos])expect(Object.isFrozen(xs)).toBe(true);for(const t of l.tokens){expect(Object.isFrozen(t)).toBe(true);if(t.ref)expect(Object.isFrozen(t.ref)).toBe(true);}}
+    expect(Object.isFrozen(canon)).toBe(true);expect(Reflect.set(canon,'0',null)).toBe(false);expect(Reflect.set(canon[0]!,'texto','contaminado')).toBe(false);expect(Reflect.set(canon[0]!.tokens[0]!,'texto','contaminado')).toBe(false);
+    expect(JSON.stringify(b)).toBe(before);expect(generarModelo(b)).toEqual(canon);
+ });
+
+
+import {textoDeTokens as textoConsulta,refsDeTokens as refsConsulta} from './linea';
+test('T-135 consultas derivadas conservan orden identidad y entradas externas mutables',()=>{
+ const ref={tipo:'cosa' as const,id:'a'},token={texto:'Alfa',rol:'nombre' as const,marca:'objeto' as const,ref},tokens=[token];
+ expect(textoConsulta(tokens)).toBe('**Alfa**');expect(refsConsulta(tokens)).toEqual([{tipo:'cosa',id:'a'}]);token.texto='Beta';ref.id='b';expect(textoConsulta(tokens)).toBe('**Beta**');expect(refsConsulta(tokens)).toEqual([{tipo:'cosa',id:'b'}]);expect(Object.isFrozen(token)).toBe(false);expect(Object.isFrozen(ref)).toBe(false);expect(Object.isFrozen(tokens)).toBe(false);
+ const mutableRef={tipo:'estado' as const,id:'s1'},cerrado=Object.freeze([{texto:'listo',rol:'estado' as const,marca:'estado' as const,ref:mutableRef}].map(t=>Object.freeze(t)));expect(textoConsulta(cerrado)).toBe('`listo`');expect(refsConsulta(cerrado)).toEqual([{tipo:'estado',id:'s1'}]);mutableRef.id='s2';expect(refsConsulta(cerrado)).toEqual([{tipo:'estado',id:'s2'}]);expect(Object.isFrozen(mutableRef)).toBe(false);
+ const propios=Object.freeze([{texto:'Alfa',rol:'nombre' as const,marca:'objeto' as const,ref:Object.freeze({tipo:'cosa' as const,id:'a'})},{texto:'listo',rol:'estado' as const,marca:'estado' as const,ref:Object.freeze({tipo:'estado' as const,id:'a'})},{texto:'Alfa',rol:'nombre' as const,ref:Object.freeze({tipo:'cosa' as const,id:'a'})}].map(t=>Object.freeze(t))),a=refsConsulta(propios),snapshot=JSON.stringify(a);expect(a).toEqual([{tipo:'cosa',id:'a'},{tipo:'estado',id:'a'}]);Reflect.set(a,'0',{tipo:'cosa',id:'otra'});expect(JSON.stringify(refsConsulta(propios))).toBe(snapshot);expect(textoConsulta(propios)).toBe('**Alfa**`listo`Alfa');
+});
+
+
+test('T-135 línea propia cierra salida sin congelar hechos de Vista o Modelo',()=>{
+ const b=modeloCon({objetos:[['Pedido',[]]],procesos:['Validar'],enlaces:[['consumo','Pedido','Validar']]}),vista=proyectar(b,b.raiz),snapshot=JSON.stringify(vista),estadoFreeze=vista.enlaces.map(v=>Object.isFrozen(v.hechos)),input=JSON.stringify(b),lineas=generarModelo(b),hecho=Object.keys(b.enlaces)[0]!;
+ const l=lineas.find(l=>l.hechos.includes(hecho))!;expect(l).toBeDefined();expect(l.hechos).not.toBe(vista.enlaces[0]!.hechos);expect(l.hechos).toEqual([hecho]);Reflect.set(l.hechos,'0','otro');expect(l.hechos).toEqual([hecho]);expect(JSON.stringify(vista)).toBe(snapshot);expect(vista.enlaces.map(v=>Object.isFrozen(v.hechos))).toEqual(estadoFreeze);expect(JSON.stringify(b)).toBe(input);
+});
+
+
+test('T-191 línea derivada distingue OPD clave display y orden completo de hechos con mismos tokens',()=>{
+ const es:Enlace[]=[{id:'e1',tipo:'consumo',objeto:'o',proceso:'p'},{id:'e2',tipo:'consumo',objeto:'a',proceso:'p'},{id:'e3',tipo:'consumo',objeto:'b',proceso:'p'}],base=m(),extras={cosas:{...base.cosas,b:obj('b','Factura')},opds:{sd:{...base.opds.sd!,apariciones:{...base.opds.sd!.apariciones,b:ap}}}};
+ const normal=m(es,{...extras,abanicos:{f:{id:'f',operador:'OR',enlaces:['e1','e2','e3']}}}),inverso=m(es,{...extras,abanicos:{f:{id:'f',operador:'OR',enlaces:['e1','e3','e2']}}});
+ for(const mod of [normal,inverso])expect(validarForma(mod)).toEqual([]);
+ const a=generarBloque(normal,'sd').find(l=>l.hechos.length===3)!,b=generarBloque(inverso,'sd').find(l=>l.hechos.length===3)!;
+ expect(a.tokens).toBe(b.tokens);expect(a.texto).toBe(b.texto);expect(a.hechos).toEqual(['e1','e2','e3']);expect(b.hechos).toEqual(['e1','e3','e2']);expect(a).not.toBe(b);
+ const solo=m(),entrada=JSON.stringify(solo),normalD=generarBloque(solo,'sd').find(l=>l.id==='sd#D2:q')!,display=generarBloque({...solo},'sd',{esencia:'siempre',numeracion:false}).find(l=>l.tokens===normalD.tokens&&l.soloDisplay)!;
+ expect(display).toBeDefined();expect(normalD.soloDisplay).toBeUndefined();expect(display.soloDisplay).toBe(true);expect(display.id).not.toBe(normalD.id);expect(display.texto).toBe(normalD.texto);
+ const lineas=[];for(let i=0;i<11;i++){
+  const opd=`raiz-${i}`,mod:Modelo={...solo,raiz:opd,opds:{[opd]:{...solo.opds.sd!,id:opd}}};expect(validarForma(mod)).toEqual([]);
+  const l=generarBloque(mod,opd).find(l=>l.tokens===normalD.tokens)!;expect(l.opd).toBe(opd);expect(l.id).toBe(`${opd}#D2:q`);expect(l.etiquetaOpd).toBe('SD');expect(l.profundidad).toBe(0);expect(l.hechos).toEqual([]);lineas.push(l);
+ }
+ expect(generarBloque({...solo},'sd').find(l=>l.id===normalD.id)).toEqual(normalD);expect(lineas.every(l=>Object.isFrozen(l)&&Object.isFrozen(l.hechos)&&Object.isFrozen(l.refs))).toBe(true);expect(JSON.stringify(solo)).toBe(entrada);
+});
+
+test('T-191 metadatos de etiqueta y profundidad no se confunden al reutilizar tokens de enlace',()=>{
+ const b=hijo([['q'],['r']],[]),entrada=JSON.stringify(b),candidato:EnlaceNuevo={tipo:'consumo',objeto:'o',proceso:'q'};
+ expect(validarForma(b)).toEqual([]);const padre=lineaDeEnlace(b,'sd',candidato)!,h=lineaDeEnlace(b,'h',candidato)!;
+ expect(padre.tokens).toBe(h.tokens);expect(padre.texto).toBe(h.texto);expect(padre.opd).toBe('sd');expect(padre.etiquetaOpd).toBe('SD');expect(padre.profundidad).toBe(0);expect(h.opd).toBe('h');expect(h.etiquetaOpd).toBe('SD1');expect(h.profundidad).toBe(1);expect(padre.id).not.toBe(h.id);
+ expect(Reflect.set(h,'etiquetaOpd','contaminada')).toBe(false);expect(Reflect.set(h.refs[0]!,'id','otra')).toBe(false);expect(lineaDeEnlace({...b},'h',candidato)).toEqual(h);expect(JSON.stringify(b)).toBe(entrada);
+});
+
+
+test('T-185 cabecera derivada conserva nombre tipo referencias padre y metadatos con identidad nueva',()=>{
+ const b=hijo([['q'],['r']],[]),original=JSON.stringify(b);expect(validarForma(b)).toEqual([]);
+ const tomar=(m:Modelo,opd:string)=>generarModelo(m).find(l=>l.plantilla==='cabecera'&&l.opd===opd)!;
+ const primera=tomar(b,'h');expect(primera.texto).toBe('## SD1 · descomposición de *Procesar* · en SD');expect(primera.refs).toEqual([{tipo:'opd',id:'h'},{tipo:'cosa',id:'p'},{tipo:'opd',id:'sd'}]);
+ const cambio:Modelo={...b,cosas:{...b.cosas,p:{...b.cosas.p!,nombre:'Gestionar'}}};expect(validarForma(cambio)).toEqual([]);const otra=tomar(cambio,'h');expect(otra.texto).toBe('## SD1 · descomposición de *Gestionar* · en SD');expect(tomar({...b},'h')).toEqual(primera);
+ const cosas={...b.cosas};delete cosas.p;cosas.t={...b.cosas.p!,id:'t'};const opds=Object.fromEntries(Object.entries(b.opds).map(([id,o])=>{const apariciones={...o.apariciones};if(apariciones.p){apariciones.t=apariciones.p;delete apariciones.p;}return[id,{...o,apariciones,...(o.tipo!=='raiz'&&o.cosa==='p'?{cosa:'t'}:{})}];}));
+ const cambiaRef:Modelo={...b,cosas,opds};expect(validarForma(cambiaRef)).toEqual([]);const tercera=tomar(cambiaRef,'h');expect(tercera.texto).toBe(primera.texto);expect(tercera.refs).toEqual([{tipo:'opd',id:'h'},{tipo:'cosa',id:'t'},{tipo:'opd',id:'sd'}]);
+ const cambiarPadre:Modelo={...b,raiz:'raiz-otra',opds:{'raiz-otra':{...b.opds.sd!,id:'raiz-otra'},h:{...b.opds.h!,tipo:'descomposicion',padre:'raiz-otra',cosa:'p',orden:0,bandas:[['q'],['r']],objetosInternos:[]}}};expect(validarForma(cambiarPadre)).toEqual([]);const cuarta=tomar(cambiarPadre,'h');expect(cuarta.texto).toBe(primera.texto);expect(cuarta.refs).toEqual([{tipo:'opd',id:'h'},{tipo:'cosa',id:'p'},{tipo:'opd',id:'raiz-otra'}]);
+ for(let i=0;i<70;i++){const raiz=`raiz-cabecera-${i}`,modelo:Modelo={...b,raiz,opds:{[raiz]:{...b.opds.sd!,id:raiz},h:{...b.opds.h!,tipo:'descomposicion',padre:raiz,cosa:'p',orden:0,bandas:[['q'],['r']],objetosInternos:[]}}};expect(validarForma(modelo)).toEqual([]);const l=tomar(modelo,'h');expect(l.refs.at(-1)).toEqual({tipo:'opd',id:raiz});expect(l.texto).toBe(primera.texto);}
+ expect(Object.isFrozen(primera)).toBe(true);for(const xs of [primera.tokens,primera.refs,primera.hechos])expect(Object.isFrozen(xs)).toBe(true);for(const t of primera.tokens)if(t.ref)expect(Object.isFrozen(t.ref)).toBe(true);expect(Reflect.set(primera.refs[0]!,'id','contaminada')).toBe(false);expect(tomar({...b},'h')).toEqual(primera);expect(JSON.stringify(b)).toBe(original);
 });
