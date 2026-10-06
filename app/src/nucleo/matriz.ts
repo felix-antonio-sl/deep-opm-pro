@@ -94,9 +94,13 @@ function colision(m: Modelo, e: Enlace, idx: Indice): Enlace | undefined {
     if (!esProcedimental(e))
         return undefined;
     const as = ancestros(m, e.proceso, idx), fan = idx.abanicoDeEnlace.get(e.id);
-    return Object.values(m.enlaces).find(x => x.id !== e.id && esProcedimental(x) && x.objeto === e.objeto
-        && (as.has(x.proceso) || ancestros(m, x.proceso, idx).has(e.proceso))
-        && !(fan !== undefined && fan === idx.abanicoDeEnlace.get(x.id)));
+    for (const id of idx.enlacesDeCosa.get(e.objeto) ?? []) {
+        const x = m.enlaces[id]!;
+        if (x.id !== e.id && esProcedimental(x) && x.objeto === e.objeto
+            && (as.has(x.proceso) || ancestros(m, x.proceso, idx).has(e.proceso))
+            && !(fan !== undefined && fan === idx.abanicoDeEnlace.get(x.id))) return x;
+    }
+    return undefined;
 }
 // RROL1 permite el instrumento abstracto afectado en detalle cuando el cambio
 // explícito prueba entrada=salida. Es un límite recuperable del producto, no F5.

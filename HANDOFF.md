@@ -1,35 +1,29 @@
 # OpForja rehecho — tablero
 
-Rama `rehacer`. Pasos 1+2 publicados en `26935f4`, paso 3 en `5d23f8a`; dirección verificó paridad remota y árbol limpio en cada publicación. Paso 4 publicado en `69aee956`, verificado por dirección; WP-9 publicado `2abecc6`, verificado por dirección; WP-13 cerrado en este commit; DETENIDO EN H2. [Bitácora íntegra](docs/rehacer/bitacora.md) · [Decisiones 1–32](docs/rehacer/DECISIONS.md) · [Conformidad](docs/conformidad.md) · [Plan](docs/rehacer/plan/README.md).
+Rama `rehacer`. [Bitácora íntegra](docs/rehacer/bitacora.md) · [Decisiones 1–32](docs/rehacer/DECISIONS.md) · [Conformidad](docs/conformidad.md) · [Plan](docs/rehacer/plan/README.md).
 
 ## Autoridad directa vigente
 
 > «Un commit semántico por paso, siempre con check verde, y push a origin/rehacer. Revisión una vez por ola, contra el canon y con modelos reales. Detente solo en H2, en H3 o ante una contradicción real del contrato. Toda autorización tiene que ser una frase textual mía. Sin despliegue, sin producción, sin migración real, sin merge a main, sin leer .env ni credenciales.»
 > «unamos 1  o 2 en un solo commit»
 > «Con check verde, sigue el plan: WP-9 (con VAL) → WP-13 → H2 → WP-10 → WP-12 → WP-14 → WP-15 → WP-16 → WP-17 → WP-19 → H3.»
+> «continúa sin parar a informarme mientras no tengas un problema significativo»
 
-Son frases role=user del dueño, transmitidas por dirección; ID/fecha originales no expuestos. La segunda resolvió unir pasos 1+2 en el primer commit GREEN, ya publicado. Dirección posee Git/aceptación; una única escritora realiza el incremento autorizado. Citas completas en bitácora.
+Frases directas role=user transmitidas por dirección; ID/fecha originales no expuestos. La unión1+2 se consumó. La última reanudó después del corte H2. Una única escritora; Git/aceptación de dirección.
 
-## Paquetes y decisiones resueltas
+## Paquetes
 
 | Paquete / etapa | Estado |
 |---|---|
-| WP-0/1/2/4p/6/8a/11/3a/3b/5/7 | Publicados históricos; continuidad en bitácora, sin recertificación narrativa. |
-| WP-8b / WP-4r / corte gráfico | Publicados `31ea8ad` / `f4e16b8` / `e53fb47`; el último fue un corte RED reservado. |
-| Pasos 1+2 · DEC30/29 | Historia íntegra, protocolo ligero y conformidad compacta; abanicos sólo con extremo común en borde de cosa. Retirados FANLOCAL/B31/B32/B33, búsqueda de empaquetado/radios adaptados/vértices locales. |
-| Paso 3 · DEC31/32 | Tabla27 temporal e internas elevadas ocultas; check1830/0/TSC0. |
-| Paso 4 · dictamen | S2–S7/G1–G5 y coherencia/trazabilidad integrados; check1906/0/TSC0/exit0. Revisión única favorable, aceptado y publicado `69aee956`; paridad remota,0/0,árbol limpio verificados por dirección. |
-| WP-9 (VAL) → WP-13 → H2 | WP-9 con VAL y siete suites/corpus completo: check2653/0/TSC0/exit0; T1922940,09ms. WP-9 publicado `2abecc6`; WP-13 cerrado en este commit: check2756/0/TSC0/exit0, revisión conjunta GLOBAL_FAVORABLE y aceptación técnica de dirección. DETENIDO EN H2. |
-| WP-10 →12→14→15→16→17→19→H3 | Pendientes en orden autorizado; H3 exige suite/e2e/build y revisión de modelos reales. |
+| WP-0/1/2/4p/6/8a/11/3a/3b/5/7 | Publicados históricos, evidencia en bitácora. |
+| WP-8b / WP-4r / corte gráfico | `31ea8ad` / `f4e16b8` / `e53fb47`; el último fue corte RED reservado. |
+| Pasos1+2 /3 /4 | Publicados `26935f4` / `5d23f8a` / `69aee956`; ola1–4 favorable. DEC29–32 aplicadas, sin dominios locales retirados. |
+| WP-9 / WP-13 / H2 | Publicados `2abecc6` / `bc22451d`; revisión conjunta favorable y H2 detenido, luego reanudado directamente. Paridad remota verificada por dirección. |
+| WP-10 | Cerrado en este commit, aceptación técnica de dirección: check2783/0/TSC0/exit0. 49OPDs auto, cinco documentos estrictos ofrecidos; tres modelos conservan gates. Ocho metas verdes y perfil262/192/433/36; históricos200×40 intactos. |
+| WP-12→14→15→16→17→19→H3 | Siguiente secuencia autorizada tras relevo/publicación de dirección. Revisión única ola4; H3 exige suite/e2e/build y modelos reales. |
 
-## Revisión y siguiente paso
+## Siguiente paso y límites
 
-Ola1–4: revisión favorable y publicación69aee956. Evidencia en bitácora; UI/producto completo/ISO pendientes.
+WP-10 aceptado técnicamente por dirección y cerrado en este commit; Git y verificación de publicación corresponden a dirección. Misma escritora QUIETO_WP10, runners propios0; no inicia WP-12 por cuenta propia. Propiedad serial mínima: perfil hodom, colación v0 equivalente e incidencia colision/generales con paridad; ninguna regla/API/JSON/DS20 nueva.
 
-Dirección acepta WP-13/criterios H2 tras revisión conjunta GLOBAL_FAVORABLE. Dirección conserva Git y verifica la publicación en el recibo de entrega. DETENIDO EN H2; próximo WP-10 al retomar. IndexedDB real y probe Vite verdes; build completo exit1 por main.tsx ausente (WP-14). UI/WP-10 no iniciados.
-
-## Asuntos abiertos reales
-
-- B15 conserva límites de layout importado y avisos; cinco dibujos diagnosticados no son exports canónicos. WP-9 acredita sólo las superficies y límites de conformidad; UI/WP-10 siguen pendientes.
-- WP-18: imagen Docker futura tras WP-14 y permiso operativo; no se reabre infraestructura, migración ni despliegue real.
-- Ninguna contradicción material nueva demostrada. H2/H3 siguen siendo las condiciones de detención autorizadas.
+Diez parciales, B15/layout importado, documentos diagnosticados y UI/ISO permanecen limitados. IndexedDB/probe compilado acreditados en H2; build completo exit1 por entrada main.tsx prevista WP14. WP-18/imagenDocker requiere autorización aparte, fuera de H3; sin infraestructura/migración/despliegue real.

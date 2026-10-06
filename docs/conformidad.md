@@ -2,7 +2,7 @@
 
 Canon vendorizado: reglas OPM 1.5.0, spec-OPD 1.4.0, spec-OPL 1.4.1 y metodología 1.7.0; versiones y precedencia en [canon/LEEME.md](../canon/LEEME.md).
 Estados (R-APP-2): `enforzado`, `parcial`, `no implementado`, `zona laxa pendiente`. Superficies (R-APP-3): U UI, N núcleo, I importación, G generación OPL, P parseo OPL, X exportación. No se cierra una regla por una sola superficie.
-Historia original íntegra en [bitácora](rehacer/bitacora.md#conformidad-anterior-al-paso-1-de-decisión-30). Pasos 1+2 publicados `26935f4`, paso 3 `5d23f8a`; paso 4 publicado `69aee956`, revisión única de ola 1–4 favorable. WP-9 publicado2abecc6 con check2653/0/TSC0; WP-13 cerrado en este commit: revisión conjunta GLOBAL_FAVORABLE y aceptación técnica de dirección con gate2756/0/TSC0/exit0. DETENIDO EN H2. Dirección conserva Git y verifica la publicación en el recibo de entrega. DEC 29 retiró B-31/B-32/B-33/FANLOCAL; no son funciones actuales.
+Historia original íntegra en [bitácora](rehacer/bitacora.md#conformidad-anterior-al-paso-1-de-decisión-30). Pasos 1+2 publicados `26935f4`, paso 3 `5d23f8a`; paso 4 publicado `69aee956`, revisión única de ola 1–4 favorable. WP-9 publicado2abecc6 con check2653/0/TSC0; WP-13 publicado bc22451d tras revisión conjunta GLOBAL_FAVORABLE y aceptación técnica de dirección con gate2756/0/TSC0/exit0; H2 se detuvo y fue reanudado por instrucción directa. WP-10 cerrado en este commit con aceptación técnica de dirección: check2783/0/TSC0/exit0. Dirección conserva Git/aceptación; revisión única de ola 4 pendiente. DEC 29 retiró B-31/B-32/B-33/FANLOCAL; no son funciones actuales.
 
 ## Brechas
 
@@ -20,7 +20,7 @@ Historia original íntegra en [bitácora](rehacer/bitacora.md#conformidad-anteri
 | B-10 | Participación distinta de `?`, `*`, `+` (numérica, rangos y exactamente un) | parcial | I·P | I normaliza equivalencias legacy admitidas o retira el campo con informe. P reconoce participación numérica/rango no ofrecida y deja línea sin acciones. | DR-21; ?/*/+ canónicos sí se reconstruyen. |
 | B-11 | Despliegue dedicado se despliega por modo en | no implementado | P | P reconoce la forma dedicada se despliega por modo en como unsupported-canonical. CX3 genérico emitido sí reconstruye los cuatro modos por sus relaciones. | spec-OPL §7/WP-9; no nueva oración dedicada. |
 | B-12 | Import con violaciones canónicas (T-288, R-ESC-OP-4) | parcial | I | I recupera contextos representables y descarta elementos irrepresentables con informe; positivos satisfacen forma. Gates X tienen cobertura acotada. | P8, DS-19; no acredita un pipeline adicional ni todas las reparaciones de importación. |
-| B-13 | Bisimetrías parciales declaradas (R-§19-ROT-1, T-193) | parcial | G·P | Auto-reparseo conserva identidad/JSON; estricto recupera texto en corpus ofrecido. Diez parciales reproducidas siguen pérdidas textuales: DS10 no transporta operador. | DESIGN §5.9; lente.test, enumeración WP-9; modelos reales completos WP-10/H3 pendientes. |
+| B-13 | Bisimetrías parciales declaradas (R-§19-ROT-1, T-193) | parcial | G·P | Auto-reparseo conserva identidad/JSON; estricto recupera texto en corpus ofrecido. Diez parciales reproducidas siguen pérdidas textuales: DS10 no transporta operador. | DESIGN §5.9; lente/WP-9 y modelos WP-10: 49 OPDs auto, cinco documentos estrictos ofrecidos; H3 pendiente. |
 | B-14 | Heurísticas léxicas R-NOM-* y frase breve R-OPL-SE-1 (T-266) | parcial | N | N emite heurísticas de nombres/etiquetas con falsos positivos y negativos posibles; requiere juicio contextual. | DEC 19; no se declara detector lingüístico completo. |
 | B-15 | Cruces y oclusión (R-LAY-2, T-284) | parcial | X | X usa incidencia por tramo/peine y puerto de estado; avisa caja/cápsula ajena al tramo, área de rótulo (incluso propio), figura estructural, cruce, solape y punta corta. Pintura fina aclara etiquetas propias sin mover centros; no rerutea ni garantiza layout libre. | G1/G2/G5; importados con separación insuficiente conservan avisos/gates. |
 | B-16 | Extensiones con sintaxis OPL fuera de alcance (CANON §0.4) | parcial | I·P | I descarta extensiones/vistas tipificadas con informe. P clasifica unsupported-canonical/non-canonical antes del residual; nombres/estados/rutas opacos preservan su tipo. | CANON §0.4, DEC 9/29; sin parser local de extensiones. |
@@ -42,7 +42,7 @@ Historia original íntegra en [bitácora](rehacer/bitacora.md#conformidad-anteri
 
 ## Trazabilidad ★
 
-Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventario no acredita el comportamiento ni la inversa; cada fila limita las superficies realizadas. U y modelos reales completos de WP-10 siguen pendientes; H2 tiene revisión conjunta GLOBAL_FAVORABLE y aceptación técnica de dirección, sin ampliar el crédito de las filas. Las referencias históricas son ubicaciones de contraste, sin recertificarlas por esta tabla.
+Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventario no acredita el comportamiento ni la inversa; cada fila limita las superficies realizadas. U sigue pendiente; WP-10 acredita auto de todos los OPDs importados y estricto sólo en documentos ofrecidos por gates, sin limpiar modelos; H2 tiene revisión conjunta GLOBAL_FAVORABLE y aceptación técnica de dirección, sin ampliar el crédito de las filas. Las referencias históricas son ubicaciones de contraste, sin recertificarlas por esta tabla.
 
 | requisito | regla / alcance | estado | superficies | evidencia y límite |
 |---|---|---|---|---|
@@ -51,7 +51,7 @@ Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventar
 | T-004 | R-DOC-7, R-CONF-4, R-BI-3 | no implementado | pendiente | Sin callback nativo con este T-ID: evidencia o implementación pendiente; contrato en DESIGN §12.6. |
 | T-005 | R-OPL-LANG-4/5, R-OPL-EQ-5 | parcial | G | vocabulario.test y plantillas.test: léxico español funcional; U pendiente. |
 | T-006 | R-CONF-1, R-CONF-4, R-VIS-PRIM-1 | parcial | N/I/G/X según prueba; U/P pendientes | src/codec/codec-reglas.test.ts, src/codec/codec.test.ts; alcance específico, cierre por superficies pendiente |
-| T-010 | R-BI-0/1, R-OPD-BIM-2, R-META-5, R-CONSIST-1 | parcial | N·G·P·X | Mismo modelo/hecho y pureza; inversa G/P y controlador realizados en corpus ofrecido, contrastados en revisión H2. U y modelos reales completos WP-10 pendientes; diez parciales intactas. |
+| T-010 | R-BI-0/1, R-OPD-BIM-2, R-META-5, R-CONSIST-1 | parcial | N·G·P·X | Mismo modelo/hecho y pureza; inversa G/P y controlador realizados en corpus ofrecido, contrastados en revisión H2. WP-10 añade auto de 49 OPDs y cinco documentos estrictos desde base nueva; OnStar/Async/Sync conservan gates. U y diez parciales pendientes. |
 | T-011 | R-OPL-EDIT-5/8, R-OPD-BIM-2 | parcial | N·P | estado/comandos/gestos.test: controlador con operaciones reales, Plan manual/atómico, rollback, gesto/historia y undo. U pendiente; solicitudes tipadas no acreditan interfaz gráfica. |
 | T-012 | R-COSA-1, R-META-14, R-ENT-1 | enforzado | N·I | tipos.test negativas compiladas de tercer tipo + codec.test rechazo real de categorías. |
 | T-013 | R-OBJ-3, R-OPD-COSA-2/4, R-REF-4, R-CTRN-1 | enforzado | N | cosas.test/trazabilidad.test: defaults objeto/proceso y mismos datos intrínsecos entre apariciones. |
@@ -175,8 +175,8 @@ Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventar
 | T-184 | R-OPL-EDIT-9 | parcial | G·P; U pendiente | editor-opl: lista conserva estados/IDs anteriores y agrega sólo sub-span nuevo. |
 | T-185 | R-§19-DISP-1/2, R-§21-OPL-DISP | parcial | G·P; U pendiente | editor-opl: cabeceras display no producen acciones, sí contexto. |
 | T-190 | R-BI-DUAL-1, R-OPD-BIM-1 | parcial | G·P; U pendiente | roundtrip-matriz/Tabla9.2: hechos visibles emiten y se reconocen; huérfanos no inventados. |
-| T-191 | R-§19-SIM-1 | parcial | G·P; U pendiente | roundtrip-matriz/azar: auto-reparseo cero errores/acciones en corpus ofrecido. |
-| T-192 | R-§19-SIM-3, R-BI-TAB-1 | parcial | G·P; U pendiente | roundtrip-matriz:2996 modelos/2734 imports reales,5786 propuestas; todas dimensiones y presupuesto3000ms intacto. |
+| T-191 | R-§19-SIM-1 | parcial | G·P; U pendiente | roundtrip-matriz/azar y modelos WP-10: auto cero errores/acciones por cada OPD, 49 OPDs de seis fixtures+sintético+HODOM, identidad/JSON e informes intactos. |
+| T-192 | R-§19-SIM-3, R-BI-TAB-1 | parcial | G·P; U pendiente | roundtrip-matriz:2996 modelos/2734 imports reales,5786 propuestas y presupuesto3000ms intacto. WP-10 reconstruye cinco documentos ofrecidos desde base nueva; tres modelos conservan sus gates. |
 | T-193 | R-§19-ROT-1 | parcial | G·P; U pendiente | lente: diez parciales explícitas reproducidas; permanecen pérdidas textuales, no cerradas. |
 | T-194 | R-§19-COMP-1, R-COMP-REV-1/2 | parcial | G·P; U pendiente | composicion:68 casos originales +136 vectores generativos semilla0x1949; conjuntos de hechos. |
 | T-195 | R-BI-4 | parcial | G·P; U pendiente | editor-opl: COND-ALT preserva hecho y regenera superficie CT1 canónica. |
@@ -222,7 +222,7 @@ Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventar
 | T-286 | método Apéndice F, DR-41 | parcial | N/I/G/X según prueba; U/P pendientes | src/codec/codec-fijo.test.ts, src/codec/codec-reglas.test.ts; alcance específico, cierre por superficies pendiente |
 | T-287 | método Apéndice F | parcial | N/I/G/X según prueba; U/P pendientes | src/codec/codec-derivados.test.ts, src/codec/codec-reglas.test.ts, src/codec/codec-visibilidad.test.ts; otros casos en suites del requisito; alcance específico, cierre por superficies pendiente |
 | T-289 | R-IDP-3, AP-17 | parcial | N·I·P·X | Renumeración derivada conserva IDs; editor-opl resuelve SDx.y al hijo persistente y distingue contexto. U pendiente. |
-| T-300 | spec-OPL §22 | parcial | G·P | plantillas/vocabulario y siete suites WP-9 con núcleo real; UI/modelos completos WP-10 pendientes. |
+| T-300 | spec-OPL §22 | parcial | G·P | plantillas/vocabulario y siete suites WP-9 con núcleo real; WP-10 contrasta todos los OPDs importados y documentos completos ofrecidos. U pendiente; modelos con gates no se acreditan como strict. |
 | T-301 | R-§19-SIM-3, R-BI-TAB-1 | parcial | G·P | roundtrip-tabla92:26 filas con hechos esperados manuales; no segundo parser/oráculo automático. |
 | T-302 | spec-OPL §22, R-§19-LENS-1..3 | parcial | G·P | lente: conservación aditiva/pureza/no-op y diez parciales; no nueva capacidad textual. |
 | T-303 | R-ANEXO-CHECK-1 | no implementado | U·N·I·G·P·X | Gate de revisión manual global de ola pendiente; ninguna automatización ni cambio de títulos lo sustituye. |

@@ -11,6 +11,8 @@ import { azar } from '../pruebas/azar';
 import { validarForma } from './forma';
 import { transaccion } from './resultado';
 import type { Modelo, Enlace, EnlaceNuevo, TipoEnlace, Objeto, Abanico } from './tipos';
+import { esProcedimental } from './tipos';
+import { indice } from './indice';
 const validos: Modelo[] = [];
 const base = () => { const m = modeloCon({ objetos: [['A', ['inicio', 'fin']], ['B', ['activo', 'inactivo']], ['C', []]], procesos: ['Hacer', 'Usar', 'Acabar'] }); validos.push(m); return m; };
 const ids = (m: Modelo) => Object.values(m.cosas).map(c => c.id);
@@ -561,4 +563,53 @@ test('T-052 igualdad semántica conserva estados, control, mult y ruta con mismo
  for(const cambio of [{estado:s(m)},{control:'c' as const},{mult:'+' as const},{ruta:'Otra'},{objeto:b!},{tipo:'resultado' as const}])expect(duplicado({...otro,...cambio})).toBe(false);
  const mutable={...otro};expect(duplicado(mutable)).toBe(true);mutable.objeto=b!;expect(duplicado(mutable)).toBe(false);mutable.objeto=a!;expect(duplicado(mutable)).toBe(true);
  const antes=JSON.stringify(m);expect(duplicado(Object.freeze({...otro}))).toBe(true);expect(JSON.stringify(m)).toBe(antes);
+});
+
+test('T-053 incidencia conserva primer conflicto, orden de diagnósticos y exención del mismo abanico', () => {
+    function ascendientes(m: Modelo, p: string): Set<string> {
+        const idx = indice(m), vistos = new Set<string>();
+        while (!vistos.has(p)) {
+            vistos.add(p); const padre = idx.subprocesoDe.get(p), o = padre ? m.opds[padre.opd] : undefined;
+            if (o?.tipo !== 'descomposicion') break;
+            p = o.cosa;
+        }
+        return vistos;
+    }
+    function anterior(m: Modelo, e: Enlace): Enlace | undefined {
+        if (!esProcedimental(e)) return undefined;
+        const idx = indice(m), as = ascendientes(m, e.proceso), fan = idx.abanicoDeEnlace.get(e.id);
+        return Object.values(m.enlaces).find(x => x.id !== e.id && esProcedimental(x) && x.objeto === e.objeto
+            && (as.has(x.proceso) || ascendientes(m, x.proceso).has(e.proceso))
+            && !(fan !== undefined && fan === idx.abanicoDeEnlace.get(x.id)));
+    }
+    const b = base(), [a, otro, , p, q] = ids(b);
+    const roles = poner(refinar(b),
+        { id: 'e-101', tipo: 'instrumento', objeto: a!, proceso: p! },
+        { id: 'e-102', tipo: 'efecto', objeto: a!, proceso: q!, entrada: s(b), salida: s(b) },
+        { id: 'e-103', tipo: 'consumo', objeto: otro!, proceso: q! });
+    const inverso = { ...roles, enlaces: Object.fromEntries(Object.entries(roles.enlaces).reverse()) };
+    const fan = { ...roles, abanicos: { 'f-104': { id: 'f-104', operador: 'XOR' as const, enlaces: ['e-101', 'e-102'] } } };
+    const modelos = [roles, inverso, fan, azar(19450, 'hodom')];
+    for (let n = 0; n < 200; n++) modelos.push(azar(n, n % 2 ? 'estricto' : 'completo'));
+    for (const m of modelos) {
+        const antes = JSON.stringify(m), idx = indice(m);
+        for (const e of Object.values(m.enlaces)) {
+            const otro = anterior(m, e);
+            const instrumento = e.tipo === 'instrumento' ? e : otro?.tipo === 'instrumento' ? otro : undefined;
+            const efecto = e.tipo === 'efecto' ? e : otro?.tipo === 'efecto' ? otro : undefined;
+            const cero = !!otro && !!instrumento && !!efecto && efecto.entrada !== undefined && efecto.entrada === efecto.salida
+                && instrumento.proceso !== efecto.proceso && ascendientes(m, efecto.proceso).has(instrumento.proceso);
+            const esperado = REGLAS_CONTEXTO.filter(r => r.tipos.includes(e.tipo)).flatMap(r => {
+                const mensaje = r.id === 'R-ROL-1' ? (cero ? 'RROL1 permite instrumento abstracto y cambio explícito neto cero en detalle; el producto aún no ofrece esta combinación (B-34).' : null)
+                    : r.id === 'R-ROL-UNIC-1' ? (otro && !cero ? 'Ya existe un rol procedimental para el objeto y el proceso o su ancestro/descendiente.' : null)
+                    : r.viola(m, e, idx);
+                return mensaje ? [{ codigo: r.codigo ?? 'enlace-invalido', regla: r.id, mensaje, accion: r.accion, refs: [{ tipo: 'enlace' as const, id: e.id }] }] : [];
+            });
+            expect(violacionesContexto(m, e)).toEqual(esperado);
+        }
+        expect(JSON.stringify(m)).toBe(antes);
+    }
+    expect(erroresContexto(roles).filter(v => v.regla.startsWith('R-ROL')).map(v => [v.codigo, v.regla, v.refs[0]?.id]))
+        .toEqual([['no-ofrecido', 'R-ROL-1', 'e-101'], ['no-ofrecido', 'R-ROL-1', 'e-102']]);
+    expect(erroresContexto(fan).filter(v => v.regla.startsWith('R-ROL'))).toEqual([]);
 });

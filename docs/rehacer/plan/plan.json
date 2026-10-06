@@ -161,7 +161,7 @@
       "id": "WP-10", "ola": 4, "nombre": "Integración códec × OPL y rendimiento",
       "objetivo": "Auto-reparseo con cero cambios sobre los modelos reales y el sintético, roundtrip estricto de documento completo y metas de rendimiento.",
       "depende": ["WP-6", "WP-9", "WP-5", "WP-8b"],
-      "archivos": ["app/src/opl/roundtrip-modelos.test.ts", "app/src/rendimiento.test.ts"],
+      "archivos": ["app/src/opl/roundtrip-modelos.test.ts", "app/src/rendimiento.test.ts", "app/src/pruebas/azar.ts (serial WP-10: sólo perfil hodom §2.4; cuerpos históricos y acciones200×40 intactos)", "app/src/codec/{v0.ts,v0.test.ts} (serial WP-10: colación natural idéntica)", "app/src/nucleo/{matriz.ts,matriz.test.ts,herencia.ts,herencia.test.ts} (serial WP-10: sólo incidencia colision/generales y paridad, reglas/DFS intactos)"],
       "lecturas": ["DESIGN §5.9", "DESIGN §2.4", "DESIGN §10.3", "DESIGN §10.4"],
       "aceptacion": ["auto-reparseo por OPD con 0 cambios en los 6 fixtures y el sintético (UX-01)", "estricto de documento completo para los que pasan los gates", "rendimiento.test falla a 3× el objetivo de DESIGN §2.4"]
     },

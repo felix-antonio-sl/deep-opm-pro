@@ -7,7 +7,8 @@ export type Registro = Record<string, unknown>;
 export const registro = (v: unknown): Registro => v !== null && typeof v === 'object' && !Array.isArray(v) ? v as Registro : {};
 export const esRegistro = (v: unknown): v is Registro => v !== null && typeof v === 'object' && !Array.isArray(v);
 export const texto = (v: unknown, fallback = ''): string => typeof v === 'string' ? v : fallback;
-export const natural = (a: string, b: string): number => a.localeCompare(b, 'en', { numeric: true }) || (a < b ? -1 : a > b ? 1 : 0);
+const colacionNatural = new Intl.Collator('en', { numeric: true });
+export const natural = (a: string, b: string): number => colacionNatural.compare(a, b) || (a < b ? -1 : a > b ? 1 : 0);
 export const ordenar = <T>(r: Readonly<Record<Id, T>>): Record<Id,T> => Object.fromEntries(Object.entries(r).sort(([a],[b]) => natural(a,b)));
 export const unidades: readonly UnidadTiempo[] = ['ms','sec','min','hour','day','week','month','year'];
 export const unidad = (v: unknown): UnidadTiempo | undefined => {
