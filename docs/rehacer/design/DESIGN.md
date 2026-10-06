@@ -339,7 +339,7 @@ Frente a ~133 k de fuente y ~70 k de pruebas actuales, esto es un 12 % y un 14 %
 | `planificar` de 1 000 líneas | < 60 ms | ensayo sobre copia |
 
 `src/rendimiento.test.ts` construye el modelo con `pruebas/azar.ts` (semilla fija, perfil
-`hodom`) y falla si una medición supera **3×** su objetivo.
+`hodom`); cada meta usa la mediana de cinco identidades frescas tras calentar con otra, nunca una respuesta cacheada, y falla si supera **3×** su objetivo.
 
 ---
 
@@ -1124,7 +1124,10 @@ export const crearEnlace:       Operacion<{ opd: Id; candidato: EnlaceNuevo; aba
   // sus propios rasgos pasan a ambientales, con traza (T-091 «al crear la exhibición», R-OBJ-6, CC-02).
   // valida etiquetas con normalizarEtiquetas antes de persistir: igualdad válida no vacía ⇒ recíproco,
   // traza R-STRE-1; el resultado efectivo cumple F-11. Los datos faltantes o inválidos no se insertan.
-export const cambiarTipoEnlace: Operacion<{ enlace: Id; tipo: TipoEnlace }>;   // conserva id; campos incompatibles se retiran con traza; rama de abanico ⇒ 'abanico'
+export const cambiarTipoEnlace: Operacion<{ enlace: Id; tipo: TipoEnlace; etiquetas?: DatosEtiquetas }>;   // conserva id; campos incompatibles previos se retiran con traza; rama de abanico ⇒ 'abanico'
+  // Los datos explícitos se incorporan antes de normalizarEtiquetas, matriz y ensayo DS-20.
+  // Datos inaplicables ⇒ rechazo atómico como fijarEtiqueta; {} equivale a datos ausentes.
+  // Mismo tipo: conserva sus campos (incluida escision), salvo etiquetas explícitamente reemplazadas/eliminadas; sin datos mantiene comportamiento previo.
 export const fijarEstados:      Operacion<{ enlace: Id; estados: EstadosEnlace }>;   // forma de `estados` debe calzar con el tipo
 export const fijarControl:      Operacion<{ enlace: Id; control: Control | null }>;
 export const fijarEtiqueta:     Operacion<{ enlace: Id; etiqueta: string | null; inversa?: string | null }>;
@@ -4628,3 +4631,6 @@ Revisados y **sin cambio**:
   historial del navegador, encuadre DS-22, filtro del OPL por selección, «Enlaces (N)») sin cambio;
   el esquema PostgreSQL de §8.6 coincide con `scripts/model-persistence-api.ts` (columnas de
   `opforja_models`, `opforja_model_autosaves.creado_en`, `opforja_accounts.password_hash`).
+
+
+WP-15 comparte serialmente `editor/estado.ts` sólo para usar el registro humano `etiquetaAccion(modelo,a)` antes de aplicar y commit; APPEND `estado.test.ts` conserva gesto, historial y pureza. No modifica firmas ni operaciones nucleares.

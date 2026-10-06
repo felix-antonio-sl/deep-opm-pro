@@ -189,3 +189,17 @@ UI/armazón/main según plan, con suite nativa armazon.test y probes sobre build
 
 
 Candidato final WP-14: check íntegro **2824/0, TSC0, exit0**,1.334.099expectativas/64archivos/82,94s; T192 completa2885,512ms conserva2996/2992/2734/258/5786. Build6 total exit0, versión wp14-probe alineada con servidor temporal. Probes13/15 contra cuenta/almacenamiento/núcleo reales, transportes413/422/503 explícitamente sintéticos, pageErrors0/externos0.25PNG observados individualmente,8finales refrescan ranuras/Franja y estados complementarios. Original Blob byteexacto/BOM/UTF8 fatal, informes inicial/servidor preservados, reparaciones nucleares opt-in, CAS/401/borrador/404 y restaurar sin retry/pérdidas. Lienzo/paneles son ranuras tipadas sin contenido simulado;26escenarios/WP17, UI completa/ISO y formal ola4 pendientes. Git y aceptación de dirección; WP15 sólo tras relevo. Historial de fallos/montajes y límites en bitácora/recibo scratch, sin ceremonia adicional.
+
+
+## WP-15 — propiedad de integración
+
+Los seis componentes propios consumen escena/dibujar, tiposLegales, reducirGesto y Editor reales. Integración serial mínima App/Editor/estilos sólo para ranura de lienzo, solicitudes propias y capa UI; suite lienzo.test de bindings materiales. Sin productores canónicos/reglas paralelas ni paneles WP16. WP14 publicado efbe04a por dirección; WP15 activo.
+
+
+WP15 admite serialmente editor/estado.ts sólo para obtener etiquetaAccion(modelo,a) antes de aplicar/commit; APPEND estado.test contrasta Franja humana, gesto/undo/pureza. Registro único nuclear existente, sin mapa UI de operaciones ni cambio de firma/modelo. Conducción técnica de dirección bajo mandato humano vigente, no nueva autorización material.
+
+WP15 admite serialmente enlaces.ts exclusivamente helper privado duplicado y APPEND enlaces.test: rechazo temprano tipo/extremos distintos y firma local diferida hasta primera comparación elegible, manteniendo datos/orden/find/predicados/refs/DS20. Diagnóstico18 tras REDcoste3107/3033; optimización operativa bajo mandato directo, sin contrato/API/cache nuevo ; la firma V3 se realiza bajo autorización directa posterior.
+
+WP15: autorización humana directa resuelve V3; propiedad serial enlaces.ts cambiarTipoEnlace con DatosEtiquetas/APPEND enlaces.test y binding existente Lienzo/MenuTipo/APPEND lienzo.test. rendimiento.test mide mediana de cinco identidades frescas tras una identidad de calentamiento, todos predicados y límites intactos; no nueva optimización del generador. Formal única al cerrar WP16, Git por dirección.
+
+WP-15 cerrado en este commit: seis componentes de lienzo integrados, V3 cambiarTipoEnlace con DatosEtiquetas en una transacción y un undo, Franja desde etiquetaAccion. Check nuevo2855/0/TSC0/1.334.558/65archivos/80,76s, build total verde; T192 completa2828,152ms con corpus2996/2992/2734/258/5786 intacto. Ocho metas usan warmup separado y mediana de cinco identidades frescas, límites intactos. Browser afectado V3b/V3c acredita mismo ID, ambas etiquetas, recíproco, invalidación y undo; cuatro vistas finales1×/densidad2× observadas, offline y sin errores. Paneles WP16/e2e26/ISO pendientes, revisión única al cerrar WP16. Git y publicación por dirección; siguiente WP16 tras relevo.

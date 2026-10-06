@@ -5,6 +5,7 @@ import { transaccion } from './resultado';
 import type { EstadosEnlace, ExtremoRef } from './operaciones';
 import { indice } from './indice';
 import { validarForma } from './forma';
+import type { DatosEtiquetas } from './matriz';
 import { MATRIZ, violacionesForma, normalizarEtiquetas, noOfrecido, violacionesContexto } from './matriz';
 import { proyectar } from './proyeccion';
 import { validarAbanicoTx } from './abanicos';
@@ -62,7 +63,14 @@ function datos(e: Enlace | EnlaceNuevo): string {
     return JSON.stringify(ordenar(e));
 }
 function duplicado(tx: Tx, e: Enlace) {
-    const firma = datos(e), otro = Object.values(tx.m.enlaces).find(x => x.id !== e.id && datos(x) === firma);
+    let firma: string | undefined;
+    const otro = Object.values(tx.m.enlaces).find(x => {
+        if (x.id === e.id || x.tipo !== e.tipo) return false;
+        if ('objeto' in e && 'objeto' in x && (e.objeto !== x.objeto || e.proceso !== x.proceso)) return false;
+        if ('refinable' in e && 'refinable' in x && (e.refinable !== x.refinable || e.refinador !== x.refinador)) return false;
+        if ('origen' in e && 'origen' in x && (e.origen !== x.origen || e.destino !== x.destino)) return false;
+        return datos(x) === (firma ??= datos(e));
+    });
     if (otro)
         negar(tx, 'ya-existe', 'R-EDIT-1', 'El mismo enlace ya existe.', [ref(otro.id), ref(e.id)]);
 }
@@ -305,17 +313,25 @@ export const fijarMultiplicidad: Operacion<{
 export const cambiarTipoEnlace: Operacion<{
     enlace: Id;
     tipo: TipoEnlace;
+    etiquetas?: DatosEtiquetas;
 }> = (m, a) => transaccion(m, tx => {
     const e = obtener(tx, a.enlace);
     if (indice(m).abanicoDeEnlace.has(e.id))
         negar(tx, 'abanico', 'R-FAN-GEO-2', 'Una rama no cambia de tipo dentro del abanico.', [ref(e.id)]);
     if (e.tipo === 'efecto' && e.escision && a.tipo !== e.tipo)
         negar(tx, 'forma', 'F-4', 'Una mitad debe conservar su par de efecto.', [ref(e.id), ref(e.escision.par)]);
+    const f = MATRIZ[a.tipo];
+    if (a.etiquetas && ((a.etiquetas.etiqueta !== undefined || a.etiquetas.inversa !== undefined) && f.etiquetas === 'ninguna' || a.etiquetas.inversa !== undefined && f.etiquetas !== 'doble'))
+        negar(tx, 'tipo-incompatible', 'R-OPL-SE-2', 'Los datos de etiquetas no corresponden al tipo de enlace.', [ref(e.id)]);
     if (e.tipo === a.tipo) {
-        guardar(tx, e, e);
+        let candidato = e;
+        for (const k of ['etiqueta', 'inversa'] as const)
+            if (a.etiquetas && a.etiquetas[k] !== undefined)
+                candidato = cambiarCampo(candidato, k, a.etiquetas[k]);
+        guardar(tx, e, candidato);
         return;
     }
-    const f = MATRIZ[a.tipo], ex = extremos(e), campos: Record<string, unknown> = { id: e.id, tipo: a.tipo };
+    const ex = extremos(e), campos: Record<string, unknown> = { id: e.id, tipo: a.tipo };
     if (f.roles[0] === 'objeto') {
         campos.objeto = esProcedimental(e) ? e.objeto : a.tipo === 'resultado' || a.tipo === 'efecto' ? ex.destino : ex.origen;
         campos.proceso = esProcedimental(e) ? e.proceso : a.tipo === 'resultado' || a.tipo === 'efecto' ? ex.origen : ex.destino;
@@ -340,6 +356,12 @@ export const cambiarTipoEnlace: Operacion<{
     for (const k of permitidos)
         if (antiguos[k] !== undefined)
             campos[k] = antiguos[k];
+    for (const k of ['etiqueta', 'inversa'] as const)
+        if (a.etiquetas && a.etiquetas[k] !== undefined) {
+            const valor = a.etiquetas[k];
+            if (valor === null || valor === undefined) delete campos[k];
+            else campos[k] = valor;
+        }
     const trasladados = new Set<string>();
     if (MATRIZ[e.tipo].familia === 'etiquetada' && f.familia === 'etiquetada') {
         const origen = e.tipo === 'reciproco' ? e.estados?.origen : 'estadoOrigen' in e ? e.estadoOrigen : undefined;

@@ -373,3 +373,43 @@ test('T-018 enlace sin anclas conserva supresión global/local sin traza LF-03',
     if (r.ok) expect(r.trazas.filter(t => t.regla === 'LF-03')).toEqual([]);
     expect(JSON.stringify([m, args])).toBe(antes);
 });
+
+for (const candidato of firmas)
+ test(`T-040 duplicado ${candidato.tipo} conserva primer ID, campos y rollback con claves reordenadas`,()=>{
+  const dato={...candidato,id:'e-20'} as Enlace,m=con(base(),dato,{...dato,id:'e-21'}),antes=JSON.stringify(m),args={opd:m.raiz,candidato:Object.fromEntries(Object.entries(candidato).reverse()) as unknown as EnlaceNuevo};
+  const r=op.crearEnlace(m,args);expect(r.ok).toBe(false);if(!r.ok){expect(r.rechazo.codigo).toBe('ya-existe');expect(r.rechazo.regla).toBe('R-EDIT-1');expect(r.rechazo.refs).toEqual([{tipo:'enlace',id:'e-20'},{tipo:'enlace',id:'e-30'}]);}
+  expect(JSON.stringify(m)).toBe(antes);expect(m.secuencia).toBe(30);expect(args.candidato).toEqual(candidato);
+ });
+
+test('T-022 V3 datos atómicos conservan ID/seq y anclajes compatibles',()=>{
+ const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce',estadoOrigen:'s-3',estadoDestino:'s-6'}),antes=JSON.stringify(m);expect(validarForma(m)).toEqual([]);
+ const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'contiene',inversa:'pertenece'}}),n=bien(r);
+ expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'etiquetadoBidireccional',origen:'o-2',destino:'o-5',etiqueta:'contiene',inversa:'pertenece',estadoOrigen:'s-3'});expect(n.secuencia).toBe(m.secuencia);expect(Object.keys(n.enlaces)).toEqual(['e-20']);if(r.ok)expect(r.trazas.some(t=>t.regla==='R-OPD-OP-5'&&t.mensaje.includes('estadoDestino'))).toBe(true);expect(JSON.stringify(m)).toBe(antes);
+});
+test('T-120 V3 mismo tipo conserva resto y reemplaza/retira sólo datos explícitos',()=>{
+ const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce',estadoOrigen:'s-3'}),e=m.enlaces['e-20']! as Extract<Enlace,{tipo:'etiquetado'}>;
+ for(const etiquetas of [undefined,{},Object.fromEntries([['etiqueta',undefined]])])expect(bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:e.tipo,...(etiquetas?{etiquetas}:{})})).enlaces['e-20']).toEqual(e);
+ expect(bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:e.tipo,etiquetas:{etiqueta:'incluye'}})).enlaces['e-20']).toEqual({...e,etiqueta:'incluye'});const {etiqueta,...resto}=e as Extract<Enlace,{tipo:'etiquetado'}>;expect(bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:e.tipo,etiquetas:{etiqueta:null}})).enlaces['e-20']).toEqual(resto);
+});
+test('T-120 V3 etiquetas iguales normalizan recíproco con traza sin nuevo ID',()=>{
+ const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',estadoOrigen:'s-3'}),r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'asociado',inversa:'asociado'}}),n=bien(r);expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'reciproco',origen:'o-2',destino:'o-5',etiqueta:'asociado',estados:{origen:'s-3'}});if(r.ok)expect(r.trazas.some(t=>t.regla==='R-STRE-1')).toBe(true);expect(n.secuencia).toBe(m.secuencia);
+});
+test('T-040 V3 inaplicables rechazan incluso mismo tipo antes de reconstruir',()=>{
+ const m=con(base(),{id:'e-20',tipo:'efecto',objeto:'o-2',proceso:'p-9'}),antes=JSON.stringify(m);for(const etiquetas of [{etiqueta:'incluye'},{etiqueta:null},{inversa:'pertenece'}])mal(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'efecto',etiquetas}),'tipo-incompatible','R-OPL-SE-2');expect(bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'efecto',etiquetas:{}})).enlaces).toEqual(m.enlaces);expect(JSON.stringify(m)).toBe(antes);const e=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5'});mal(op.cambiarTipoEnlace(e,{enlace:'e-20',tipo:'etiquetado',etiquetas:{inversa:'impropia'}}),'tipo-incompatible');
+});
+test('T-040 V3 ausencia/vacío/null inválidos no cambian input ni consumen ID; rollback real',async()=>{
+ const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce'}),antes=JSON.stringify(m);for(const etiquetas of [undefined,{}, {etiqueta:'incluye',inversa:''},{etiqueta:null,inversa:'pertenece'},{etiqueta:'incluye',inversa:null}]){mal(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',...(etiquetas?{etiquetas}:{})}),'lexico');expect(JSON.stringify(m)).toBe(antes);expect(m.secuencia).toBe(30);}
+ const {aplicarAcciones}=await import('./operaciones');const r=aplicarAcciones(m,[{op:'renombrarModelo',args:{nombre:'No persistir'}},{op:'cambiarTipoEnlace',args:{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'incluye',inversa:''}}}]);expect(r.ok).toBe(false);expect(JSON.stringify(m)).toBe(antes);
+});
+test('T-022 V3 {} y undefined conservan ambas mitades y escision; campo inaplicable rechaza',()=>{
+ const m=con(base(),{id:'e-20',tipo:'efecto',objeto:'o-2',proceso:'p-9',entrada:'s-3',escision:{par:'e-21',mitad:'entrada'}},{id:'e-21',tipo:'efecto',objeto:'o-2',proceso:'p-10',salida:'s-4',escision:{par:'e-20',mitad:'salida'}}),antes=JSON.stringify(m);expect(validarForma(m)).toEqual([]);for(const etiquetas of [{},Object.fromEntries([['etiqueta',undefined]])]){const n=bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'efecto',etiquetas}));expect(n.enlaces).toEqual(m.enlaces);expect(n.secuencia).toBe(m.secuencia);}mal(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'efecto',etiquetas:{etiqueta:'ajena'}}),'tipo-incompatible');expect(JSON.stringify(m)).toBe(antes);
+});
+
+test('T-022 V3 multiplicidades compatibles sin estados conservan ID y secuencia',()=>{
+ const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce',multOrigen:'+',multDestino:'?'}),antes=JSON.stringify(m);expect(validarForma(m)).toEqual([]);
+ const n=bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'contiene',inversa:'pertenece'}}));expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'etiquetadoBidireccional',origen:'o-2',destino:'o-5',etiqueta:'contiene',inversa:'pertenece',multOrigen:'+',multDestino:'?'});expect(n.secuencia).toBe(m.secuencia);expect(JSON.stringify(m)).toBe(antes);
+});
+
+test('T-040 V3 estado y multiplicidad no ofrecidos conservan rechazo, input e identidad',()=>{
+ const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce',estadoOrigen:'s-3',estadoDestino:'s-6',multOrigen:'+',multDestino:'?'}),antes=JSON.stringify(m);expect(validarForma(m).map(x=>x.regla)).toContain('F-5');const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'contiene',inversa:'pertenece'}});expect(r.ok).toBe(false);expect(JSON.stringify(m)).toBe(antes);expect(m.secuencia).toBe(30);expect(Object.keys(m.enlaces)).toEqual(['e-20']);
+});

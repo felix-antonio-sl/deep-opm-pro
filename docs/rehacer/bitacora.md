@@ -5812,3 +5812,70 @@ RED1 nativo0/4 interfaz ausente; RED2 original0/1/5; RED4 respaldo4/1/20; RED6 b
 Build6 totalexit0/TSC6exit0; probes13/15 finalesexit0 con build/servidor compilados y versión wp14-probe. Cuenta/datos enteramente sintéticos, red externa bloqueada/serviceworkers bloqueados/Chromium1217 local; pageErrors0/externos0 y fuentesloaded. Probaron flujos1–2, ambasresolucionesCAS/copiareal,401/reingreso,413/borrador/salida,404/recreación, byteexactitud Blob antes/después Informe servidor, BOM rechazado sin recodificar/UTF8 inválido sin POST/U+FFFD válido, reparación opt-in EX real y422/restore503 sin repetirPOST/restore422 sin aceptar pérdidas.413/422/503 e Informe servidorSentinel son transportes sintéticos declarados; el resto usa backend/núcleo reales.25PNG abiertos individualmente,17v13 antes de copy final y8v15 del build final (tres vistas refrescadas más estados complementarios); no sustituye formal ola4 ni completa26escenarios. Informe/observaciones en /tmp/opforja-rehacer/reanudacion-decisiones29/wp14/.
 
 Check1 nuevo**2824/0/TSC0/exit0**,1.334.099expectativas/64archivos/82,94s; T192 COMPLETA2885,512ms con2996modelos/2992comparaciones/2734imports/258reusos/5786propuestas intactos; ocho metas verdes. Source funcional quieta después de este gate, sin nuevos runners por prosa. WP14 candidato listo para aceptación/Git de dirección; no publicación/aceptación propia, siguienteWP15 sólo tras relevo. QUIETO_WP14; propios0.
+
+
+## WP-15 — activación serial
+
+Dirección verificó publicación WP14 efbe04a9245e0fce5e1f80965bf8cc8be41d327d, HEAD/origin/remoto iguales y árbol limpio. Bajo la frase directa vigente «continúa sin parar a informarme mientras no tengas un problema significativo», activa WP15 con la misma escritora. Propiedad: seis componentes de lienzo y prueba nativa de bindings; integración serial mínima App/Editor/estilos para conectar lienzo/solicitudes y capa UI. Sin cambios al núcleo, render canónico, reducer ni paneles WP16. Formal única ola4 al cierre WP16, Git/aceptación en dirección.
+
+
+### WP15 — contradicción de firma y propuesta SIN_APLICAR
+
+DESIGN §4.2 no permite datos en cambiarTipoEnlace, mientras §7.3-9/28 exige completar tipo conservando ID. RED nativo real 0/1/4, exit1 (`wp15/RED-cambiar-tipo.log`): fuente legal inmutable, inversa pendiente impide primera transacción. Dirección/contraste independiente confirman contradicción; no núcleo ni DESIGN aplicados. Propuesta exacta V2 scratch `wp15/cambiar-tipo-etiquetas-propuesta-v2.md` y DOC-v2.patch: argumento DatosEtiquetas opcional antes de normalización/matriz/DS20; rechazo de campos impropios, mismo tipo conserva enlace completo/escision. Pendiente decisión humana; UI independiente continúa, WP15 NO_ACEPTADO. V1/RED permanecen.
+
+
+### WP15 — descripción humana del commit
+
+Dirección resuelve realización ordinaria serial editor/estado.ts: etiquetaAccion(modelo,a) antes de aplicar/commit, APPEND estado.test. Registro humano nuclear único; se retira mapa provisional UI, sin cambiar acciones/gestos/API. Propiedad registrada antes de fuente, bajo mandato directo vigente; no nueva autorización material. Browser9 cerrado con aserción inicial antes del libro, sin crédito GREEN; el fallo conservado se adjudicará antes del suplemento.
+
+
+WP15 propuesta documental V3 SIN_APLICAR: `/tmp/opforja-rehacer/reanudacion-decisiones29/wp15/cambiar-tipo-etiquetas-DOC-v3.patch`, SHA `1a9a0de9607950c56cbf5f26582649f37eab4fe9031d4c7545eeae934bb7f221`, comprobación en seco exit0. Dirección verificó y contraste independiente favorable sólo documental tras reparos V2: {} neutral; mismo tipo conserva campos salvo etiquetas explícitas; anclajes/multiplicidades sólo compatibles, retirada con traza existente. Pendiente FRASE humana concreta, no autorización ni aceptación; núcleo/contrato propuesta intactos. V1/V2/RED preservados. Browser10 sigue propio serial; no otro runner.
+
+
+WP15 suplemento14 exit0 (ocho capturas individuales) y16 exit0 tras RED15 de foco real: foco inicial de menú, Escape restaura lienzo/modo, F9 cancela gesto y bloquea mutación; build8 TOTAL0/TSC11 0. Check parcial1 TSC0/2830pass/1fail/1.334.274expect/65files/81,62s/exit1: único T192 completo3107,889273>3000ms, corpus2996/2992/2734/258/5786 intacto; NO_ACEPTADO, no repetición por suerte. Perfil18 scratch real mismo catálogo fresco163/1/18577,3033,554242ms;1949muestras del estricto. Investigación delimitada y propuesta helper privado duplicado en wp15/coste-diagnostico-18.md y coste-duplicado-propuesta.patch, SIN_APLICAR hasta resolución operativa de ownership. No caché/gate/API nuevos ni fuente nuclear cambiada. DOCV3 material sigue pendiente de frase humana. Los montajes9–13 y17 quedan clasificados; error de preservación v7-fallo sobrescrito por catch9 documentado, RED7/log y captura causal v7-resize-antes-gate intactos.
+
+
+Dirección adjudica propiedad técnica mínima WP15 enlaces.ts sólo helper duplicado y APPEND enlaces.test, después de diagnóstico18/REDcoste. Se registra ANTES de fuente: mismo serializador datos, orden/find, estado/metadata/IDs/DS20/gates; sólo exclusión primitiva demostrablemente distinta antes de ordenar otros enlaces. Equivalencia contra fuente previa realmente conectada y medición de catálogo completo obligatorias; no ganancia anticipada/cache/modelos importados/validación nueva. Firma/DOCtipo siguen SIN_APLICAR pendientes de frase humana.
+
+
+WP15 helper privado duplicado aplicado tras resolución operativa: paridad97/0/1455 contra fuente previa conectada, prefijos históricos íntegros. Catálogo fresh19:164/0/18577,2765,857001ms; check parcial2:TSC0/2845pass/1fail/1.334.379expect/65archivos/81,60s/exit1. Único T192 completo3053,788552ms (generar417,201/planificar175,298/importar1707,988/regenerar387,450), mismos2996/2992/2734/258/5786. Foco no sustituye gate integral; firma/DOCV3 material SIN_APLICAR. Próxima hipótesis delimitada: evitar datos(e) cuando find no alcanza ningún mismo tipo/extremos; no cache entre llamadas ni cambio del serializador/orden.
+
+
+Dirección admite ajuste operativo dentro del mismo helper duplicado: firma local diferida hasta primer candidato elegible, como máximo una vez; datos/orden/refs/rollback literales, sin cache entre llamadas ni firma material. Registro ANTES de fuente. Sonda20 sobre copia conectada del catálogo completo:6948llamadas,120comparaciones elegibles,6876firmas evitables;165/0/18578, mismoscontadores, sin atribuir su tiempo al gate. Paridad adicional contra HEAD original con cero candidatos/tipos-extremos distintos/primer-último duplicado antes de nueva medición.
+
+
+WP15 firma local diferida: paridad112/0/1725 contra fuente original conectada,15firmas/DS20/vacíos/primer-último elegible; catálogo21 fresco164/0/18577,2705,595908ms/importar1417,407, contadores íntegros. No sustituye gate completo. Error propio de preservación: diagnóstico20/coste21 heredaron Bun.write(libro-coste-19.json); se sobrescribió el JSON19, logs/suites/exits intactos. Bytes21 guardados con nombre nuevo, rectificación scratch preservacion-libro-coste-19.md; no reconstrucción ni claim byteexacto del libro19. No efecto en código/corpus/oráculos.
+
+
+WP15 check parcial3:TSC0/2845pass/1fail/1.334.377expect/65archivos/79,70s/exit1. T192 completo2743,180421ms verde y contadores íntegros; único generarModelo36/frío83,163748>75ms. Diagnóstico22 fresco copia nueve casos/dosidentidades/reloj:9/0, frío45,340844/normal17,266925,42muestras; no reproduce contexto integral ni demuestra causa externa/ganancia. Fuente quieta trascheck; siguiente contraste propuesto ventana JSC de ESA meta en suite completa, sin firma material aplicada.
+
+
+Dirección admite propiedad TEMPORAL sólo medir() de rendimiento.test para perfil23 contextual generarModelo frío/normal; registro previo a fuente. Copia original/candidata y destinos exclusivos perfil-generar-23 comprobados, nueve casos/dosidentidades/reloj/predicados/orden intactos. Se ejecuta bun test src servidor herramientas (diagnóstico instrumentado, no gate; no tsc por API profiler interna), luego restauración byteexacta incluso error. No fuente generador/DOCtipo ni umbrales modificados.
+
+
+Perfil23 contextual íntegro:2845/1/1.334.379/65/89,12s/exit1, INSTRUMENTADO NO gate. Generar frío52,458502/normal23,380207ms,48/24muestras; tampoco reprodujo83,163748ms. T1923158,111828ms instrumentado no sustituye check3GREEN2743,180421. Bun hrtime relativo y timestampsJSC usan orígenes diferentes: cotas no sirven como filtro absoluto; análisis por ventana start→dump, sin sumar inclusivas. Profiler interno carece de stop público local; su coste fuera de ventana impide tratar resto de suite como gate normal. Restauración rendimiento.test byteexacta cmp0/Gitdiffvacío/diff--check0, runners0. No fuente generador ni firma material aplicada; se conserva reserva específica, no causa ambiental ni ganancia inventada.
+
+
+### WP15 — cierre editorial del contraste24
+
+Contraste independiente exclusivamente scratch, sin producción ni DOC material aplicado. Paridad completa del anterior/candidato realmente conectados:5994comparaciones de documentos originales/reconstruidos, siete fixtures/HODOM36/opciones/IDs/refs/hechos/frozen/pureza y modelos cambiados. Ejecución172pass/1fail/935552aserciones/6,77s/exit1: único T192 diagnóstico4990,3726ms por trabajo adicional de doble generación/serialización/aserciones. Paridad correcta no equivale a ejecución verde ni gate productivo. Conteo separado acredita807vectores/4046tokens/2023refs,6876comprobaciones evitables, no ganancia suficiente.
+
+Ocho pares frescos contrabalanceados: frío medianaA40,483442/B38,323805ms, delta pareadoA−B1,159897ms; normalA16,984230/B18,440611ms, delta−1,494078ms. Dos pares fríos adversos (candidata más lenta); seis normales adversos. Fallos DS20 p4-A10,198927>9 y conteo-A10,671131>9 conservados, sin muestras retiradas/reintentadas. Ninguno reprodujo83,163748ms ni demuestra recuperar8,164ms de margen; candidata scratch SIN_APLICAR.
+
+Dos reservas actuales: DOCV3/firma material pendiente de frase humana específica; último check normal3 generarModelo/frío83,163748>75ms sin causa demostrada, aunque T1922743,180421ms sí verde. Siguiente paso resolver contradicción y continuar presupuesto antes de aceptar; no WP16/Git/build/check nuevo. Generador, performance suites y fuente funcional intactos en este relevo, runners0. Recibo actualizado wp15/resultado-parcial-2.md y contraste-deep-frozen-24/resultado.md.
+
+
+### WP15 — resolución humana directa y continuación
+
+Frase directa role=user transmitida íntegra por dirección; ID/fecha originales no expuestos:
+
+> «Autorizo la propuesta V3 (SHA-256 1a9a0de9607950c56cbf5f26582649f37eab4fe9031d4c7545eeae934bb7f221): cambiarTipoEnlace recibe etiquetas?: DatosEtiquetas y las valida en la misma transacción, conservando identidad, validaciones y trazas. Aplícala en DESIGN y en el código, cierra WP-15 con check verde y publícalo. Rendimiento: no sigas optimizando el generador. Una sola medición en frío dentro de la suite mide la compilación JIT y el ruido del proceso, no el producto. Autorizo cambiar la metodología de rendimiento.test.ts: cada meta se mide como la mediana de 5 identidades frescas, después de un calentamiento con otra identidad, y nunca sobre una respuesta cacheada. Los límites (3× de DESIGN §2.4) no cambian. Deja la regla en una línea en DESIGN §2.4. Después sigue con WP-16 sin detenerte. La revisión de ola va al cerrar WP-16, como tenías previsto. No hace falta registrar recibos parciales ni archivos auxiliares de diagnóstico: la evidencia es el commit con check verde.»
+
+Propiedad serial mínima previa a fuente: rendimiento.test sólo metodología seis identidades (una calentamiento/cinco muestras), DESIGN§2.4 una línea; enlaces.ts firma/datosV3+APPEND enlaces.test, binding mínimo Lienzo/MenuTipo+APPEND lienzo.test y coherencia de plan. Sin optimizar generador ni T192/corpus/umbrales/cache nuevos. Git/publicación en dirección, WP16 después de publicación verificada; formal ola al cerrarWP16.
+
+
+### Cierre técnico WP-15 tras autorización V3 y metodología de rendimiento
+
+Firma V3 aplicada a DESIGN/código; UI usa una cambiarTipoEnlace con ambas etiquetas y botón Aplicar cambio, conserva ID/seq, normaliza recíproco, rechaza datos inválidos sin mutación y deshace en un paso. {} y undefined neutrales, escision intacta, anclajes/multiplicidades compatibles y trazas/rollback contrastados. Dos fixtures nuevos con estado+multiplicidad alcanzaron F5 antes del arreglo: preservados como negativos, positivos legales separados. RED nativo y focal1/TSC1 conservados, no atribuidos a fallos nuevos de producto. Títulos nuevos precisados a T022 identidad y T011 operación compartida, cuerpos intactos.
+
+Check-V3 nuevo2855/0/TSC0/1.334.558expectativas/65archivos/80,76s/exit0; ocho metas por mediana5 tras warmup distinto, límites intactos. T192 completa2828,152ms, contadores2996/2992/2734/258/5786 sin cambios. Build-V3 total0. BrowserV3 inicial fue montaje constructor incorrecto; V3b/V3c0 alcanzaron el flujo compilado con datos/cuenta sintéticos, externos0/errores0 y cuatro vistas observadas individualmente1×/densidad2×. Sufijos2x de V3b no eran zoom real (1440px); V3c es raster2880×2000 con DPR2 y cámara100%, sin zoom de navegador/cámara, sin CSS sobrescrito. Franja humana y campos/terminales legibles. Históricos visuales y pérdidas scratch antes declaradas permanecen, no reconstruidas. No nuevas optimizaciones del generador/plantillas ni crédito de paneles/26e2e/ISO; formal única al cerrar WP16. Fuente quieta tras gate salvo títulos y esta prosa; publicación corresponde a dirección.

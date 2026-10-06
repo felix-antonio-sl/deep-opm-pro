@@ -95,7 +95,7 @@ export interface Editor {
 export interface Temporizador { programar(f: () => void, ms: number): unknown; cancelar(id: unknown): void; }
 declare const __OPFORJA_VERSION__: string;
 export const VERSION_BUNDLE = typeof __OPFORJA_VERSION__ === 'string' ? __OPFORJA_VERSION__ : 'local';
-import { aplicarAccion, aplicarAcciones } from '../nucleo/operaciones';
+import { aplicarAccion, aplicarAcciones, etiquetaAccion } from '../nucleo/operaciones';
 import { aplicarPlan } from '../opl/aplicar';
 import { generarModelo } from '../opl/generar';
 import { importarV0 } from '../codec/importar';
@@ -264,7 +264,11 @@ export function crearEditor(dep: {
         fijarCamara: camara => publicar({ camara: { ...camara, zoom: Math.max(.2, Math.min(3, camara.zoom)) } }),
         fijarPaneles: p => publicar({ paneles: { ...estado.paneles, ...p } }),
         fijarVista: v => publicar({ vista: { ...estado.vista, ...v } }), encuadrar,
-        ejecutar(a, o) { return puede() ? commit(aplicarAccion(estado.modelo!, a), a.op, o?.gesto) : prohibido(); },
+        ejecutar(a, o) {
+            if (!puede()) return prohibido();
+            const modelo = estado.modelo!, etiqueta = etiquetaAccion(modelo, a);
+            return commit(aplicarAccion(modelo, a), etiqueta, o?.gesto);
+        },
         ejecutarVarias(as, etiqueta) { return puede() ? commit(aplicarAcciones(estado.modelo!, as), etiqueta) : prohibido(); },
         aplicarOpl(plan) { return puede() ? commit(aplicarPlan(estado.modelo!, plan), 'Aplicar OPL') : prohibido(); },
         deshacer() { const p = estado.pasado.at(-1); if (!p || !puede()) return; const actual = snapshot(p.etiqueta), anteriorOpd=estado.opd; publicar({ modelo: p.modelo, opd: p.opd, seleccion: p.seleccion, pasado: estado.pasado.slice(0, -1), futuro: [...estado.futuro, actual].slice(-200), lineasNuevas: [] }); ultimoGesto = undefined; if (anteriorOpd !== p.opd) encuadrar(); editar(); },

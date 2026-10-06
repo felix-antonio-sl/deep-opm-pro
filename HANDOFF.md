@@ -21,11 +21,11 @@ Frases directas role=user transmitidas por dirección; ID/fecha originales no ex
 | WP-9 / WP-13 / H2 | Publicados `2abecc6` / `bc22451d`; revisión conjunta favorable y H2 detenido, luego reanudado directamente. Paridad remota verificada por dirección. |
 | WP-10 | Publicado `c94178fa`, paridad verificada por dirección; check2783/0/TSC0/exit0. Strict según gates y ocho metas verdes; históricos intactos. |
 | WP-12 | Publicado `6c99b17`, paridad verificada por dirección; aceptado técnicamente: check2815/0/TSC0/exit0,25casos con fuente falsa y CLI compilada. Revisión única ola4 pendiente. |
-| WP-14 | Implementado, candidato quieto: check2824/0/TSC0/exit0 y build total verdes; probes13/15 y25PNG observados. Aceptación/Git de dirección; formal ola4 pendiente. |
-| WP-15→16→17→19→H3 | Próximos tras relevo. H3 exige suite/e2e/build y modelos reales; imagenDocker requiere permiso aparte. |
+| WP-14 | Publicado `efbe04a`, paridad verificada por dirección; check2824/0/TSC0/exit0 y build total verdes,25PNG observados; formal ola4 pendiente. |
+| WP-15→16→17→19→H3 | WP15 cerrado en este commit; siguiente WP16 por relevo, restantes después. H3 exige suite/e2e/build y modelos reales; imagenDocker requiere permiso aparte. |
 
 ## Siguiente paso y límites
 
-WP-14 entregado para aceptación/publicación de dirección; siguiente WP-15 sólo tras relevo. Acceso/Biblioteca/Informe y decisiones de guardado operan con servidor compilado y datos sintéticos. Lienzo/paneles siguen WP-15/16; revisión formal única ola4 al terminar WP-16.
+WP15 cerrado en este commit: V3 autorizada literalmente en bitácora, datos validados en una transacción y ID/undo conservados. Check2855/0/TSC0/exit0, build total y browser afectados verdes; ocho metas con warmup separado+mediana5, límites intactos. T192 completa2828,152ms; corpus intacto. Firma material aplicada; helper privado de coste aplicado con paridad anterior. Generador/plantillas sin cambios. Dirección conserva Git y verifica publicación en su entrega; siguiente WP16 por relevo, revisión única al cerrarlo. Históricos y propuestas scratch preservados, sin aceptación global anticipada.
 
 Diez parciales, B15/layout importado, documentos diagnosticados y UI/ISO permanecen limitados. IndexedDB acreditado en H2; WP14 resuelve main y build completo. WP-18/imagenDocker requiere autorización aparte, fuera de H3; sin infraestructura/migración/despliegue real.

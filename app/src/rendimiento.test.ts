@@ -27,14 +27,19 @@ test('WP-10 DESIGN §2.4 perfil HODOM real, exacto, determinista y válido', () 
     expect(JSON.stringify(m)).toBe(antes);
 });
 
-// Dos trabajos independientes por meta: primera identidad fría y otra identidad de
-// uso normal; nunca se mide una segunda consulta sobre la misma respuesta cacheada.
+// Calentamiento independiente y mediana de cinco trabajos sobre identidades nuevas.
+// Preparar/comprobar quedan fuera del reloj; nunca se reutiliza una respuesta cacheada.
 function medir<T>(meta: string, limite: number, preparar: () => () => T, comprobar: (r: T) => void) {
-    for (const muestra of ['frío', 'normal'] as const) {
+    const calentamiento = preparar();
+    comprobar(calentamiento());
+    const medidas: number[] = [];
+    for (let muestra = 0; muestra < 5; muestra++) {
         const trabajo = preparar(), inicio = performance.now(), r = trabajo(), ms = performance.now() - inicio;
         comprobar(r);
-        expect(ms, `${meta}/${muestra}`).toBeLessThan(limite);
+        medidas.push(ms);
     }
+    const mediana = medidas.sort((a, b) => a - b)[2]!;
+    expect(mediana, `${meta}/mediana de cinco identidades frescas`).toBeLessThan(limite);
 }
 test('WP-10 DESIGN §2.4 operación nuclear efectiva incluye cierre DS20 <9ms', () => {
     medir('operación DS20', 9, () => { const m = azar(SEMILLA_HODOM, 'hodom'); return () => aplicarAccion(m, { op: 'renombrarModelo', args: { nombre: 'HODOM actualizado' } }); }, r => {

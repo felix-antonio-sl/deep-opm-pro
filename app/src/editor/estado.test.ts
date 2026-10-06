@@ -23,3 +23,12 @@ test('WP-13 DES§6.6 crear fuera de vista mueve mínimo cámara sin modificar po
 test('T-016 franja conserva traza nuclear al reemplazar designación por defecto',async()=>{
  const d=dependencias(),ed=crearEditor(configuracion(d));await ed.abrir(d.m.id);ed.ejecutar({op:'designar',args:{estado:'s-3',designacion:'porDefecto',activa:true}});const r=ed.ejecutar({op:'designar',args:{estado:'s-4',designacion:'porDefecto',activa:true}});expect(r.ok).toBe(true);if(!r.ok)throw Error('designacion');expect(r.trazas.length).toBeGreaterThan(0);expect(ed.obtener().franja!.trazas).toEqual(r.trazas);expect(ed.obtener().franja!.tipo).toBe('info');const n=ed.obtener().pasado.length,m=ed.obtener().modelo;const rechazado=ed.ejecutar({op:'renombrarCosa',args:{cosa:'o-2',nombre:'inválido!'}});expect(rechazado.ok).toBe(false);if(!rechazado.ok){expect(ed.obtener().franja!.regla).toBe(rechazado.rechazo.regla);expect(ed.obtener().franja!.texto).toBe(rechazado.rechazo.mensaje);}expect(ed.obtener().modelo).toBe(m);expect(ed.obtener().pasado).toHaveLength(n);ed.cerrar();await ciclos();
 });
+
+import {etiquetaAccion} from '../nucleo/operaciones';
+test('T-011 franja usa registro humano previo y conserva gesto único y undo',async()=>{
+ const d=dependencias(),ed=crearEditor(configuracion(d));await ed.abrir(d.m.id);const base=ed.obtener().modelo!,antes=exportarV0(base);
+ const a={op:'renombrarCosa' as const,args:{cosa:'o-2',nombre:'Pedido nuevo'}};
+ const etiqueta=etiquetaAccion(base,a);expect(ed.ejecutar(a,{gesto:'nombre'}).ok).toBe(true);
+ expect(ed.obtener().franja?.texto).toBe(etiqueta);expect(ed.obtener().pasado).toHaveLength(1);expect(exportarV0(base)).toBe(antes);
+ ed.deshacer();expect(ed.obtener().modelo).toBe(base);ed.cerrar();await ciclos();
+});
