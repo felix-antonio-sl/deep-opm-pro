@@ -2,7 +2,7 @@
 
 Canon vendorizado: reglas OPM 1.5.0, spec-OPD 1.4.0, spec-OPL 1.4.1 y metodología 1.7.0; versiones y precedencia en [canon/LEEME.md](../canon/LEEME.md).
 Estados (R-APP-2): `enforzado`, `parcial`, `no implementado`, `zona laxa pendiente`. Superficies (R-APP-3): U UI, N núcleo, I importación, G generación OPL, P parseo OPL, X exportación. No se cierra una regla por una sola superficie.
-Historia original íntegra en [bitácora](rehacer/bitacora.md#conformidad-anterior-al-paso-1-de-decisión-30). Pasos 1+2 publicados `26935f4`, paso 3 `5d23f8a`; paso 4 publicado `69aee956`, revisión única de ola 1–4 favorable. WP-9 realizado con check2653/0/TSC0; revisión conjunta con WP-13 en H2 pendiente. DEC 29 retiró B-31/B-32/B-33/FANLOCAL; no son funciones actuales.
+Historia original íntegra en [bitácora](rehacer/bitacora.md#conformidad-anterior-al-paso-1-de-decisión-30). Pasos 1+2 publicados `26935f4`, paso 3 `5d23f8a`; paso 4 publicado `69aee956`, revisión única de ola 1–4 favorable. WP-9 publicado2abecc6 con check2653/0/TSC0; WP-13 cerrado en este commit: revisión conjunta GLOBAL_FAVORABLE y aceptación técnica de dirección con gate2756/0/TSC0/exit0. DETENIDO EN H2. Dirección conserva Git y verifica la publicación en el recibo de entrega. DEC 29 retiró B-31/B-32/B-33/FANLOCAL; no son funciones actuales.
 
 ## Brechas
 
@@ -28,7 +28,7 @@ Historia original íntegra en [bitácora](rehacer/bitacora.md#conformidad-anteri
 | B-18 | Estado sin escritor con excepciones LF-19 (T-271) | parcial | N | N informa estado sin escritor; exceptúa inicial, ambiental, salida no especificada y glosa Coproducto XOR-n recuperable. | LF-19; no demuestra ejecución ni exhaustividad semántica. |
 | B-19 | R-VIS-HIJO-1 (T-086): procedimentales distributivos visibles en el contorno del hijo | parcial | N·G·X | N mantiene agente/instrumento/efecto sin estado en contorno del hijo; X observa esas tres variantes. G específica del contorno pendiente. | DR-13: desvío declarado; no habilita consumo/resultado ni evento sistémico en contorno. |
 | B-20 | Duración sin excepción que la cite (R-BI-DUAL-1, T-193) | zona laxa pendiente | G·P | Duración sin EX no tiene oración; JSON la conserva. Auto-reparseo no la cambia, importación desde texto no la reconstruye. | Canon sin plantilla; parcial5 reproducida en lente.test, no capacidad nueva. |
-| B-21 | Modos visuales/simulación runtime (T-230) | no implementado | U | Runtime/simulación retirados; editor/UI aún pendientes. Current declarado no es runtime. | RETIRADA DEC 26; no crédito de cinco modos ni cuatro implementados. |
+| B-21 | Modos visuales/simulación runtime (T-230) | no implementado | U | Runtime/simulación retirados; controlador WP-13 realiza cuatro estados efímeros, UI aún pendiente. Current declarado no es runtime. | RETIRADA DEC 26; no crédito de modos UI ni simulación por el controlador. |
 | B-22 | Gate >25 cosas (R-LAY-1, T-283): exención salvo vista tipificada o refinamiento declarado | parcial | X | Gate por OPD bloquea >25 cosas; X observa permitir 21/25 y rechazar 26. Exención por refinamiento incumplida; menú pendiente. | Bloqueo conservador declarado; sin vistas tipificadas. |
 | B-23 | AP-14: estados duplicados para inicio/fin, bloqueo como sinónimo falso | zona laxa pendiente | N | N reconoce igualdad nominal, no sinonimia inicio/fin; permite estado inicial-final sin detector semántico adicional. | GAP-15: juicio humano; DEBE de sinonimia sin enforzar. |
 | B-24 | AP-22 sinónimos y AP-25 proceso de soporte sin esfuerzo sostenido, DEBE reportarse | zona laxa pendiente | N | N comprueba unicidad nominal y ausencia de transformación; no identifica sinónimos ni esfuerzo sostenido. | GAP-15; heurísticas no cierran AP-22/AP-25. |
@@ -42,17 +42,17 @@ Historia original íntegra en [bitácora](rehacer/bitacora.md#conformidad-anteri
 
 ## Trazabilidad ★
 
-Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventario no acredita el comportamiento ni la inversa; U/P y revisión global siguen pendientes. Las referencias históricas son ubicaciones de contraste, sin recertificarlas por esta tabla.
+Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventario no acredita el comportamiento ni la inversa; cada fila limita las superficies realizadas. U y modelos reales completos de WP-10 siguen pendientes; H2 tiene revisión conjunta GLOBAL_FAVORABLE y aceptación técnica de dirección, sin ampliar el crédito de las filas. Las referencias históricas son ubicaciones de contraste, sin recertificarlas por esta tabla.
 
 | requisito | regla / alcance | estado | superficies | evidencia y límite |
 |---|---|---|---|---|
-| T-001 | R-CONF-7, R-APP-2, Anexo A «Deuda» | no implementado | pendiente | Sin callback nativo con este T-ID: evidencia o implementación pendiente; contrato en DESIGN §12.6. |
+| T-001 | R-CONF-7, R-APP-2, Anexo A «Deuda» | parcial | P | analizar.test comprueba regla y registro de cada límite inverso. No acredita auditoría completa del canon/deuda ni enforzado global. |
 | T-003 | R-ZNC-1/2, R-APP-5, R-AP-0C, R-OPD-VAL-4, R-§23-DEP-2, R-COMB-1 | parcial | N·I | Inventario de primaria y metadatos en trazabilidad.test; auditoría semántica completa de matriz/catálogo pendiente de revisión global. Recuperación import probada, no permiso por silencio. |
 | T-004 | R-DOC-7, R-CONF-4, R-BI-3 | no implementado | pendiente | Sin callback nativo con este T-ID: evidencia o implementación pendiente; contrato en DESIGN §12.6. |
 | T-005 | R-OPL-LANG-4/5, R-OPL-EQ-5 | parcial | G | vocabulario.test y plantillas.test: léxico español funcional; U pendiente. |
 | T-006 | R-CONF-1, R-CONF-4, R-VIS-PRIM-1 | parcial | N/I/G/X según prueba; U/P pendientes | src/codec/codec-reglas.test.ts, src/codec/codec.test.ts; alcance específico, cierre por superficies pendiente |
-| T-010 | R-BI-0/1, R-OPD-BIM-2, R-META-5, R-CONSIST-1 | parcial | N·G·X | trazabilidad.test: mismo modelo/hecho en OPD y OPL, pureza. Inversa P/editor pendientes. |
-| T-011 | R-OPL-EDIT-5/8, R-OPD-BIM-2 | no implementado | pendiente | Sin callback nativo con este T-ID: evidencia o implementación pendiente; contrato en DESIGN §12.6. |
+| T-010 | R-BI-0/1, R-OPD-BIM-2, R-META-5, R-CONSIST-1 | parcial | N·G·P·X | Mismo modelo/hecho y pureza; inversa G/P y controlador realizados en corpus ofrecido, contrastados en revisión H2. U y modelos reales completos WP-10 pendientes; diez parciales intactas. |
+| T-011 | R-OPL-EDIT-5/8, R-OPD-BIM-2 | parcial | N·P | estado/comandos/gestos.test: controlador con operaciones reales, Plan manual/atómico, rollback, gesto/historia y undo. U pendiente; solicitudes tipadas no acreditan interfaz gráfica. |
 | T-012 | R-COSA-1, R-META-14, R-ENT-1 | enforzado | N·I | tipos.test negativas compiladas de tercer tipo + codec.test rechazo real de categorías. |
 | T-013 | R-OBJ-3, R-OPD-COSA-2/4, R-REF-4, R-CTRN-1 | enforzado | N | cosas.test/trazabilidad.test: defaults objeto/proceso y mismos datos intrínsecos entre apariciones. |
 | T-014 | R-COSA-2, R-OPD-COSA-1 | parcial | N·X | tipos/escena derivan glifo y perseverancia del tipo; no campo persistido específico. Auditoría global pendiente. |

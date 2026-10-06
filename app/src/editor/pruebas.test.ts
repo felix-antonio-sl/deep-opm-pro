@@ -1,0 +1,12 @@
+import { modeloCon } from '../pruebas/constructores';
+import { exportarV0 } from '../codec/exportar';
+import type { Cliente } from './cliente';
+import type { AlmacenLocal } from './guardado';
+export const modelo = () => modeloCon({ objetos: [['Pedido', ['nuevo', 'listo']]], procesos: ['Preparar', 'Completar'] });
+export function diferida<T>() { let resolver!: (x:T)=>void, rechazar!: (x:unknown)=>void; const promesa=new Promise<T>((r,j)=>{resolver=r;rechazar=j;});return {promesa,resolver,rechazar}; }
+export async function ciclos() { for(let i=0;i<15;i++) await Promise.resolve(); }
+export function relojFalso(){let hora=0,id=0;const tareas=new Map<number,{a:number;f:()=>void}>();return {ahora:()=>hora,programar(f:()=>void,ms:number){const n=++id;tareas.set(n,{a:hora+ms,f});return n;},cancelar(n:unknown){tareas.delete(n as number);},async avanzar(ms:number){const hasta=hora+ms;for(;;){const p=[...tareas].filter(([,t])=>t.a<=hasta).sort((a,b)=>a[1].a-b[1].a||a[0]-b[0])[0];if(!p)break;hora=p[1].a;tareas.delete(p[0]);p[1].f();await ciclos();}hora=hasta;await ciclos();},pendientes:()=>tareas.size};}
+export function dependencias(){const m=modelo(),texto=exportarV0(m),peticiones:{tipo:string;[k:string]:unknown}[]=[],borradores=new Map<string,{base:string|null;texto:string;fecha:number}>();let documento=texto,rev='a'.repeat(64),version='local';
+const cliente:Cliente={sesion:async()=>({email:'prueba'}),entrar:async()=> 'ok',salir:async()=>{},listar:async()=>[],leer:async id=>{peticiones.push({tipo:'GET',id});return {texto:documento,rev};},crear:async texto=>{peticiones.push({tipo:'POST',texto});return {id:JSON.parse(texto).modelo.id,rev:'c'.repeat(64)};},guardar:async(id,texto,base,o)=>{peticiones.push({tipo:'PUT',id,texto,base,o});documento=texto;rev='b'.repeat(64);return {rev};},eliminar:async()=>{},papelera:async()=>[],restaurar:async()=>({id:m.id,rev}),purgar:async()=>{},versionServidor:()=>version};
+const local:AlmacenLocal={leer:async id=>borradores.get(id)??null,escribir:async(id,b)=>{borradores.set(id,{...b});},borrar:async id=>{borradores.delete(id);},ids:async()=>[...borradores.keys()]};return {m,texto,cliente,local,peticiones,borradores,reloj:relojFalso(),version(v:string){version=v;},documento(t:string,r=rev){documento=t;rev=r;}};}
+export function configuracion(d: ReturnType<typeof dependencias>) { return { cliente:d.cliente,local:d.local,reloj:d.reloj.ahora,temporizador:d.reloj,versionBundle:'local' }; }

@@ -3117,6 +3117,11 @@ export interface Editor {
 }
 export function crearEditor(dep: { readonly cliente: Cliente; readonly local: AlmacenLocal; readonly reloj?: () => number }): Editor;
 
+// Realización WP-13: scheduler inyectable y canales UI efímeros tipados
+// completan cámara/paneles/vista/solicitudes y decisiones de import/salida;
+// mantienen firmas previas, sin estado nuclear nuevo. SolicitudUI conserva
+// refs/opcion/texto/Informe y gesto efímero; el reductor añade estado (uno),
+// banda explícita, selección de menú, rueda/cámara e id de gesto. Tipos en editor/.
 // editor/cliente.ts (fetch inyectado; rutas de §8.1)
 export interface FilaModelo { readonly id: Id; readonly nombre: string; readonly modificado: string; readonly rev: string; readonly bytes: number; readonly cosas: number; readonly opds: number }
 export interface FilaPapelera { readonly entrada: string; readonly id: Id; readonly nombre: string; readonly eliminado: string; readonly motivo: 'eliminado' | 'reemplazado' }
@@ -3127,8 +3132,8 @@ export interface Cliente {
   salir(): Promise<void>;
   listar(): Promise<readonly FilaModelo[]>;
   leer(id: Id): Promise<{ texto: string; rev: string } | 'no-existe'>;
-  crear(texto: string): Promise<{ id: Id; rev: string } | FalloApi>;
-  guardar(id: Id, texto: string, rev: string, o?: { respaldo?: true }): Promise<{ rev: string } | { conflicto: string } | FalloApi>;
+  crear(texto: string): Promise<{ id: Id; rev: string; canonicalizado?: true; informe?: Informe } | FalloApi>;
+  guardar(id: Id, texto: string, rev: string, o?: { respaldo?: true }): Promise<{ rev: string; canonicalizado?: true; informe?: Informe } | { conflicto: string } | FalloApi>;
   eliminar(id: Id): Promise<void>;
   papelera(): Promise<readonly FilaPapelera[]>;
   restaurar(entrada: string): Promise<{ id: Id; rev: string; canonicalizado?: true; informe?: Informe } | FalloApi>;

@@ -153,7 +153,7 @@
       "id": "WP-13", "ola": 3, "nombre": "Editor (estado de aplicación)",
       "objetivo": "Estado del editor, historial, selección y franja; registro único de comandos y atajos; cliente HTTP; autoguardado con CAS, borrador IndexedDB y conflictos; máquina de gestos.",
       "depende": ["WP-3a", "WP-3b", "WP-4r", "WP-6", "WP-7"], "contrato": ["WP-11"],
-      "archivos": ["app/src/editor/**"],
+      "archivos": ["app/src/editor/**", "app/vite.config.ts (serial WP-13: constante de version bundle desde OPFORJA_VERSION de build, sin infra/deploy)"],
       "lecturas": ["DESIGN §7.6", "DESIGN §7.4", "DESIGN §8.4", "DESIGN §10.6"],
       "aceptacion": ["estado/guardado/comandos/gestos.test (DESIGN §10.6): ambas resoluciones de conflicto, 404/413, apertura no canónica, salida con pendientes, reingreso, versión nueva, un paso por gesto, deshacer vuelve al OPD", "aplicarOpl se prueba con un Plan construido a mano (sin depender de WP-9)"]
     },

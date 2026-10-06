@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 
 export default defineConfig({
+  define: { __OPFORJA_VERSION__: JSON.stringify(process.env.OPFORJA_VERSION ?? 'local') },
   plugins: [
     {
       name: 'opforja-entrada',

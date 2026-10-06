@@ -1,7 +1,7 @@
 # Plan de implementación de opforja rehecho
 
 **Reanudación DEC 29–32:** sobre `rehacer`, desde `e287ba9` o posterior. Primero las
-correcciones solicitadas (pasos 1+2 publicados en `26935f4`, paso 3 en `5d23f8a`; paso 4 publicado en `69aee956` tras check1906/0, TSC0, exit0 y revisión única GLOBAL_FAVORABLE de ola 1–4; WP-9 activo), después el plan pendiente; DEC 30 exige protocolo ligero y una
+correcciones solicitadas (pasos 1+2 publicados en `26935f4`, paso 3 en `5d23f8a`; paso 4 publicado en `69aee956` tras check1906/0, TSC0, exit0 y revisión única GLOBAL_FAVORABLE de ola 1–4; WP-9 publicado2abecc6; WP-13 cerrado en este commit, DETENIDO EN H2), después el plan pendiente; DEC 30 exige protocolo ligero y una
 revisión por ola. La preparación de DEC 28 queda como antecedente, sin recrear rama ni tag.
 
 Qué se construye: el diseño de [`../design/DESIGN.md`](../design/DESIGN.md). Es un modelador
@@ -165,4 +165,8 @@ hitos H1–H3 son los puntos naturales para pausar.
 
 La propiedad compartida mínima cubre reconocer.nombre/D2 y tokensPlantilla/helpers privados en plantillas.ts, generación readonly por identidad/opciones y líneas/cabeceras derivadas acotadas en generar.ts, memo nominal exacta en indice.ts, comparación JSON equivalente en matriz.ts y mostrarUno sin anclas en enlaces.ts, con sus controles pertinentes. Patrones, reglas, firmas, IDs, hechos, operaciones, gates y distribución se conservan; ninguna entrada se congela. No hay caché NUEVA de validaciones/Tx/Modelos importados; memo existente intacta. Paridad frente a previo, pureza y coste completo son obligaciones; ensayos y retiradas están íntegros en bitácora.
 
-Cierre actual: check6 íntegro **2653/0, TSC0, exit0**,1.328.208expectativas/54archivos; T192 **2940,09ms** con5786propuestas/2996modelos/2734imports reales/258reusos exactos/2992comparaciones. Siete suites,200semillas×2perfiles,Tabla9.2 y composición generativa mantienen dimensiones/gates. Publicación por dirección pendiente; revisión conjunta WP9+WP13 en H2. UI/WP10/ISO y las diez parciales permanecen fuera del crédito de este cierre.
+Cierre actual: check6 íntegro **2653/0, TSC0, exit0**,1.328.208expectativas/54archivos; T192 **2940,09ms** con5786propuestas/2996modelos/2734imports reales/258reusos exactos/2992comparaciones. Siete suites,200semillas×2perfiles,Tabla9.2 y composición generativa mantienen dimensiones/gates. Publicado2abecc6 por dirección; WP-13 cerrado en este commit, DETENIDO EN H2, revisión conjunta WP9+WP13 GLOBAL_FAVORABLE y aceptación técnica de dirección. UI/WP10/ISO y las diez parciales permanecen fuera del crédito de este cierre.
+
+## WP-13 — seams de realización
+
+Editor conserva firmas e incorpora canales efímeros tipados para solicitudes de UI/cámara/paneles/vista y decisiones de import/salida, con scheduler inyectable. DTO cliente conserva metadata HTTP ya contratada. Propiedad serial mínima de vite.config.ts: insertar versión del bundle desde OPFORJA_VERSION de build, sin ejecutar infra/deploy. Realización con cuatro suites y núcleo/Plan manual: check2756/0/TSC0/exit0 (59 archivos), focal103/0. Chromium offline acredita IndexedDB entre instancias/recarga y aborto real; probe Vite acredita versión independiente y PUT CAS. Build completo exit1 porque main.tsx, previsto WP-14, todavía no existe; no se altera la entrada para fingir build verde. Revisión conjunta WP9+WP13 GLOBAL_FAVORABLE tras las tres correcciones documentales; dirección acepta WP-13/criterios H2. WP-13 cerrado en este commit. Dirección conserva Git y verifica la publicación en el recibo de entrega. DETENIDO EN H2; próximo WP-10 al retomar. No se acredita UI por editor.

@@ -1,2 +1,2 @@
-// Pendiente: WP-9. Sin firma contractual declarada en las lecturas de WP-1.
+// Sin contrato adicional: el borrador local de WP-13 vive en guardado.ts.
 export {};
