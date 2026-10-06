@@ -188,15 +188,32 @@ test('T-018 LF-03 permite ocultar anclaje débil descartado por fuerza en padre,
         'e-10': { id: 'e-10', tipo: 'resultado' as const, objeto: 'o-2', proceso: 'p-7', estado: 's-4' },
     }, secuencia: 11 });
     expect(validarForma(debil)).toEqual([]);
-    // §4.6-4 dice literalmente E+R da R: solo se retiene el estado de R en padre.
-    expect(proyectar(debil, 'opd-1').enlaces[0]?.enlace).toMatchObject({ tipo: 'resultado', estado: 's-4' });
-    const r = e.suprimirEstado(debil, { estado: 's-3', opd: 'opd-1', activa: true });
+    // DEC31: E→R temporal es inválido y conserva los dos anclajes en el padre.
+    const antes = JSON.stringify(debil), temporal = proyectar(debil, 'opd-1');
+    expect(temporal.enlaces.map(v => v.enlace)).toEqual([
+        { id: 'e-9', tipo: 'efecto', objeto: 'o-2', proceso: 'p-5', entrada: 's-3' },
+        { id: 'e-10', tipo: 'resultado', objeto: 'o-2', proceso: 'p-5', estado: 's-4' },
+    ]);
+    expect(temporal.enlaces.map(v => v.hechos)).toEqual([['e-9'], ['e-10']]);
+    expect(temporal.conflictos).toEqual([expect.objectContaining({ codigo: 'precedencia-invalida', regla: 'R-PREC-1', familia: 'contencion', severidad: 'error', opd: 'opd-1', refs: [{ tipo: 'enlace', id: 'e-9' }, { tipo: 'enlace', id: 'e-10' }] })]);
+    rechazo(e.suprimirEstado(debil, { estado: 's-3', opd: 'opd-1', activa: true }), 'estado-enlazado', 'LF-03');
+    rechazo(e.suprimirEstado(debil, { estado: 's-3', opd: null, activa: true }), 'estado-enlazado', 'LF-03');
+    expect(JSON.stringify(debil)).toBe(antes);
+    const hijo = debil.opds['opd-8']!;
+    if (hijo.tipo !== 'descomposicion') throw new Error('montaje');
+    const paralelo = congelar<Modelo>({ ...debil, opds: { ...debil.opds, 'opd-8': { ...hijo, bandas: [['p-6', 'p-7']] } } });
+    expect(validarForma(paralelo)).toEqual([]);
+    // Sin orden temporal E+R usa la simétrica: sólo queda el estado de R en padre.
+    expect(proyectar(paralelo, 'opd-1').enlaces[0]?.enlace).toMatchObject({ tipo: 'resultado', estado: 's-4' });
+    expect(proyectar(paralelo, 'opd-1').conflictos).toEqual([]);
+    const r = e.suprimirEstado(paralelo, { estado: 's-3', opd: 'opd-1', activa: true });
     const n = bien(r);
     expect(n.opds['opd-1']!.apariciones['o-2']!.ocultos).toEqual(['s-3']);
     expect(proyectar(n, 'opd-1').cosas.find(c => c.cosa === 'o-2')?.estadosVisibles).toEqual(['s-4']);
     expect(objeto(n).estados).toHaveLength(2);
     expect(debil.opds['opd-1']!.apariciones['o-2']).not.toHaveProperty('ocultos');
-    rechazo(e.suprimirEstado(debil, { estado: 's-3', opd: null, activa: true }), 'estado-enlazado', 'LF-03');
+    expect(paralelo.opds['opd-1']!.apariciones['o-2']).not.toHaveProperty('ocultos');
+    rechazo(e.suprimirEstado(paralelo, { estado: 's-3', opd: null, activa: true }), 'estado-enlazado', 'LF-03');
 });
 test('T-093 estados propios del especial sostienen T3 tras borrar el último del general', () => {
     const m = modeloCon({ objetos: [['General', ['listo']], ['Especial', ['activo']]], procesos: ['Procesar'], enlaces: [['generalizacion', 'General', 'Especial'], ['efecto', 'Especial', 'Procesar']] });

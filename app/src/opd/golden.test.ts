@@ -112,7 +112,7 @@ function dibujoExportado(m: Modelo, opd: string, nombre: string): string {
     const inicio = r.valor.svg.indexOf(dibujo);
     expect(inicio).toBeGreaterThanOrEqual(0);
     if (process.env.OPFORJA_GOLDEN === 'escribir') {
-        const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso2/genuinos';
+        const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso3/genuinos';
         mkdirSync(directorio, { recursive: true });
         writeFileSync(`${directorio}/${nombre}.svg`, r.valor.svg);
         if (nombre === 'abanico-or') {
@@ -137,21 +137,29 @@ for (const c of casos)
     test(`T-223 golden ${c.nombre}: ${c.oraculo}`, () => {
         let svg: string;
         const reglasDiagnosticas: Record<string, string> = { OnStar_System: 'R-ROL-UNIC-1', SD_Async: 'R-ROL-UNIC-1', SD_Sync: 'R-INV-2B' };
-        const fixture = Object.keys(reglasDiagnosticas).find(f => c.nombre.startsWith(`fixture-${f}-`));
+        const fixture = c.nombre === 'fixture-SD_Sync-sd' ? undefined : Object.keys(reglasDiagnosticas).find(f => c.nombre.startsWith(`fixture-${f}-`));
         if (fixture) {
             // Modelos históricos recuperables: dibujo diagnóstico, nunca export canónico.
             const r = exportarDiagrama(c.m, c.opd, { version: 'DEC29' });
             expect(r.ok).toBe(false);
-            if (!r.ok) expect(r.rechazo.regla).toBe(c.nombre === 'fixture-SD_Sync-profundo' ? 'R-EFE-1' : reglasDiagnosticas[fixture]!);
+            const regla = c.nombre === 'fixture-SD_Sync-profundo' ? 'R-EFE-1' : reglasDiagnosticas[fixture]!;
+            if (!r.ok) expect(r.rechazo.regla).toBe(regla);
             expect(gatesExportacion(c.m, { opd: c.opd }).length).toBeGreaterThan(0);
             const e = escena(c.m, c.opd); svg = aTexto(dibujar(e, 'canon'));
             if (process.env.OPFORJA_GOLDEN === 'escribir') {
-                const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso2/diagnosticos';
+                const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso3/diagnosticos';
                 mkdirSync(directorio, { recursive: true });
                 const b = e.caja;
-                writeFileSync(`${directorio}/${c.nombre}.svg`, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x-24} ${b.y-24} ${b.ancho+48} ${b.alto+48}" width="${b.ancho+48}" height="${b.alto+48}"><title>DIBUJO DIAGNÓSTICO; export rechazado ${reglasDiagnosticas[fixture]}</title>${estiloProducto}${svg}</svg>`);
+                writeFileSync(`${directorio}/${c.nombre}.svg`, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x-24} ${b.y-24} ${b.ancho+48} ${b.alto+48}" width="${b.ancho+48}" height="${b.alto+48}"><title>DIBUJO DIAGNÓSTICO; export rechazado ${regla}</title>${estiloProducto}${svg}</svg>`);
             }
-        } else svg = dibujoExportado(c.m, c.opd, c.nombre);
+        } else {
+            if (c.nombre === 'fixture-SD_Sync-sd') {
+                // DEC32 oculta sólo las falsas invocaciones elevadas de esta vista.
+                expect(gatesExportacion(c.m, { opd: c.opd })).toEqual([]);
+                expect(erroresContexto(c.m).some(e => e.regla === 'R-INV-2B')).toBe(true);
+            }
+            svg = dibujoExportado(c.m, c.opd, c.nombre);
+        }
         const ruta = new URL(c.nombre + '.svg', carpeta);
         expect(svg).not.toContain('data-ref');
         expect(svg).not.toContain('#8e2a2e');

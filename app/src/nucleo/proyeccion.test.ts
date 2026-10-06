@@ -1,4 +1,7 @@
 import { expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import { importarV0 } from '../codec/importar';
+import { eliminarRefinamiento } from './refinamiento';
 import { congelar } from '../pruebas/constructores';
 import type { Modelo, Enlace, EnlaceProcedimental, Id, Aparicion, Opd, Cosa, Control } from './tipos';
 import { proyectar, etiquetaOpd, opdsEnPreorden } from './proyeccion';
@@ -63,12 +66,12 @@ test('T-086 abstracción recursiva eleva procesos, nunca objetos, estructurales 
     expect(v.enlaces[0]?.abstraido).toBe(true);
 });
 
-test('T-086 invocación colapsada conserva autoinvocación pero excepción no reflexiva desaparece', () => {
+test('T-086 DEC32 invocación interna elevada y excepción desaparecen en padre', () => {
     const v = proyectar(modelo([
         { id: 'inv', tipo: 'invocacion', origen: 's1', destino: 's2' },
         { id: 'exc', tipo: 'excepcionSubtiempo', origen: 's1', destino: 's2' }
     ]), 'raiz');
-    expect(v.enlaces.map(e => e.enlace)).toEqual([{ id: 'inv', tipo: 'invocacion', origen: 'p', destino: 'p' }]);
+    expect(v.enlaces).toEqual([]);
 });
 
 test('T-086 despliegue muestra refinable/refinadores del modo y oculta externos sin abstraerlos', () => {
@@ -113,9 +116,9 @@ for (const tipo of ['efecto', 'agente', 'instrumento'] as const) {
     }
 }
 const celdas: readonly [EnlaceProcedimental['tipo'], EnlaceProcedimental['tipo'], EnlaceProcedimental['tipo'] | readonly EnlaceProcedimental['tipo'][], 'precedencia-invalida' | 'conflicto-resultado-consumo' | undefined][] = [
-    ['efecto', 'efecto', 'efecto', undefined], ['efecto', 'resultado', 'resultado', undefined], ['efecto', 'consumo', 'consumo', undefined],
+    ['efecto', 'efecto', 'efecto', undefined], ['efecto', 'resultado', ['efecto', 'resultado'], 'precedencia-invalida'], ['efecto', 'consumo', 'consumo', undefined],
     ['resultado', 'efecto', 'resultado', undefined], ['resultado', 'resultado', ['resultado', 'resultado'], 'precedencia-invalida'], ['resultado', 'consumo', ['resultado', 'consumo'], 'conflicto-resultado-consumo'],
-    ['consumo', 'efecto', 'consumo', undefined], ['consumo', 'resultado', ['consumo', 'resultado'], 'conflicto-resultado-consumo'], ['consumo', 'consumo', ['consumo', 'consumo'], 'precedencia-invalida']
+    ['consumo', 'efecto', ['consumo', 'efecto'], 'precedencia-invalida'], ['consumo', 'resultado', ['consumo', 'resultado'], 'conflicto-resultado-consumo'], ['consumo', 'consumo', ['consumo', 'consumo'], 'precedencia-invalida']
 ];
 for (const [a, b, esperado, codigo] of celdas) {
     test(`T-085 R-PREC ${a} + ${b}`, () => {
@@ -139,7 +142,8 @@ for (const [a, b, tipo, control] of [
     [procedimental('efecto', 'a', 's1', 'c'), procedimental('agente', 'b', 's2', 'e'), 'efecto', 'c']
 ] as const) {
     test(`T-085 contraejemplo no transfiere control ${a.tipo} + ${b.tipo}`, () => {
-        const e = proyectar(modelo([a, b]), 'raiz').enlaces[0]!.enlace;
+        const base = modelo(), h = base.opds.hijo!; if (h.tipo !== 'descomposicion') throw Error('montaje');
+        const e = proyectar(modelo([a, b], { opds: { ...base.opds, hijo: { ...h, bandas: [['s1', 's2'], ['s3']] } } }), 'raiz').enlaces[0]!.enlace;
         expect(e.tipo).toBe(tipo);
         expect('control' in e ? e.control : undefined).toBe(control);
         if (tipo === 'resultado') expect(Object.hasOwn(e, 'control')).toBe(false);
@@ -169,7 +173,7 @@ test('T-085 conflictos múltiples no desaparecen por orden de fusión ni por hab
     const v = proyectar(modelo([
         procedimental('efecto', 'e', 's1'), procedimental('resultado', 'r1', 's2'), procedimental('resultado', 'r2', 's3'), procedimental('agente', 'a', 's1')
     ]), 'raiz');
-    expect(v.enlaces.map(e => e.enlace.tipo)).toEqual(['resultado', 'resultado']);
+    expect(v.enlaces.map(e => e.enlace.tipo)).toEqual(['efecto', 'resultado', 'resultado']);
     expect(v.conflictos.map(d => d.codigo)).toEqual(['precedencia-invalida']);
     expect(new Set(v.enlaces.flatMap(e => e.hechos))).toEqual(new Set(['e', 'r1', 'r2', 'a']));
 });
@@ -426,7 +430,7 @@ for (const [anidado, paralelo, rota] of [[false, false, true], [true, false, tru
     });
 }
 for (const caso of ['sin-estado', 'inverso-temporal', 'misma-banda', 'mismo-nombre-otro-ID', 'estado-ajeno', 'efecto-sin-salida', 'padre-descendiente'] as const) {
-    test(`T-085 RCP no inventa continuidad: ${caso}`, () => {
+    test(`T-085 RCP continuidad por identidad y DEC31: ${caso}`, () => {
         const base = modelo();
         const b = base.cosas.b!; if (b.tipo !== 'objeto') throw new Error('montaje');
         const es: Enlace[] = [{ id: 'r', tipo: 'resultado', objeto: 'b', proceso: caso === 'inverso-temporal' ? 's3' : caso === 'padre-descendiente' ? 'p' : 's1', ...(caso === 'sin-estado' ? {} : { estado: caso === 'estado-ajeno' ? 'x0' : 'b0' }) },
@@ -434,8 +438,14 @@ for (const caso of ['sin-estado', 'inverso-temporal', 'misma-banda', 'mismo-nomb
         if (caso === 'efecto-sin-salida') es.push({ id: 'e', tipo: 'efecto', objeto: 'b', proceso: 's2', entrada: 'b0' });
         const m = modelo(es, caso === 'mismo-nombre-otro-ID' ? { cosas: { ...base.cosas, b: { ...b, estados: b.estados.map(s => ({ ...s, nombre: 'igual' })) } } } : {});
         const v = proyectar(m, 'raiz');
-        expect(v.enlaces.map(e => e.enlace.tipo)).toEqual(['resultado', 'consumo']);
-        expect(v.conflictos[0]).toMatchObject({ codigo: 'conflicto-resultado-consumo', severidad: 'warning', familia: 'contencion' });
+        if (caso === 'inverso-temporal') {
+            // DEC31: C→R es temporalmente válido con el mismo estado por identidad.
+            expect(v.enlaces.map(e => e.enlace)).toEqual([{ id: 'r', tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: 'b0' }]);
+            expect(v.conflictos).toEqual([]);
+        } else {
+            expect(v.enlaces.map(e => e.enlace.tipo)).toEqual(['resultado', 'consumo']);
+            expect(v.conflictos[0]).toMatchObject({ codigo: 'conflicto-resultado-consumo', severidad: 'warning', familia: 'contencion' });
+        }
         expect(new Set(v.enlaces.flatMap(e => e.hechos))).toEqual(new Set(es.map(e => e.id)));
     });
 }
@@ -705,3 +715,134 @@ test('T-086 fan de objeto común desaparece si una rama deja de ser visible', ()
     expect(v.enlaces.map(e => e.hechos)).toEqual([['fan-a']]);
     expect(v.abanicos).toEqual([]);
 });
+
+// DEC31: tabla temporal literal del dueño, no calculada por auxiliares del producto.
+const tablaTemporal = [
+    ['efecto', 'efecto', 'efecto'], ['efecto', 'resultado', 'invalida'], ['efecto', 'consumo', 'consumo'],
+    ['resultado', 'efecto', 'resultado'], ['resultado', 'resultado', 'invalida'], ['resultado', 'consumo', 'efecto'],
+    ['consumo', 'efecto', 'invalida'], ['consumo', 'resultado', 'efecto'], ['consumo', 'consumo', 'invalida']
+] as const;
+function hechoTemporal(tipo: 'efecto' | 'resultado' | 'consumo', id: Id, proceso: Id, temprano: boolean): EnlaceProcedimental {
+    return tipo === 'efecto' ? { id, tipo, objeto: 'b', proceso, entrada: temprano ? 'b0' : 'b1', salida: temprano ? 'b1' : 'b2' }
+        : { id, tipo, objeto: 'b', proceso, estado: 'b0' };
+}
+for (const [a, b, esperado] of tablaTemporal) for (const invertir of [false, true]) {
+    test(`T-085 DEC31 tabla27 ${a}→${b} claves invertidas=${invertir}`, () => {
+        const es = [hechoTemporal(a, 'temprano', 's1', true), hechoTemporal(b, 'tardio', 's3', false)];
+        const m = modelo(invertir ? es.reverse() : es), antes = JSON.stringify(m);
+        expect(validarForma(m)).toEqual([]);
+        expect(Object.values(m.enlaces).flatMap(e => violacionesContexto(m, e))).toEqual([]);
+        const v = proyectar(m, 'raiz'), ids = invertir ? ['tardio', 'temprano'] : ['temprano', 'tardio'];
+        if (esperado === 'invalida') {
+            expect(v.enlaces.map(e => e.enlace.tipo)).toEqual(invertir ? [b, a] : [a, b]);
+            expect(v.enlaces.flatMap(e => e.hechos)).toEqual(ids);
+            expect(v.conflictos).toEqual([expect.objectContaining({ codigo: 'precedencia-invalida', severidad: 'error', refs: ids.map(id => ({ tipo: 'enlace', id })) })]);
+        } else {
+            expect(v.conflictos).toEqual([]); expect(v.enlaces).toHaveLength(1);
+            expect(v.enlaces[0]!.enlace.tipo).toBe(esperado);
+            expect(v.enlaces[0]!.enlace.id).toBe(ids[0]!); expect(v.enlaces[0]!.hechos).toEqual(ids);
+            if (esperado === 'efecto') expect(v.enlaces[0]!.enlace).toEqual({ id: ids[0]!, tipo: 'efecto', objeto: 'b', proceso: 'p', entrada: 'b0', salida: a === 'efecto' ? 'b2' : 'b0' });
+        }
+        expect(JSON.stringify(m)).toBe(antes); expect(proyectar(m, 'raiz')).toBe(v);
+    });
+}
+for (const [a, b] of tablaTemporal) for (const invertido of [false, true]) {
+    test(`T-085 DEC31 banda paralela ${a}+${b} claves invertidas=${invertido}`, () => {
+        const base = modelo(), h = base.opds.hijo!; if (h.tipo !== 'descomposicion') throw Error('montaje');
+        const es = [hechoTemporal(a, 'temprano', 's1', true), hechoTemporal(b, 'tardio', 's2', false)];
+        const m = modelo(invertido ? es.reverse() : es, { opds: { ...base.opds, hijo: { ...h, bandas: [['s1', 's2'], ['s3']] } } });
+        const antes = JSON.stringify(m), v = proyectar(m, 'raiz');
+        const invalidos = a === b && a !== 'efecto', rc = a !== b && a !== 'efecto' && b !== 'efecto';
+        expect(v.conflictos.map(d => d.codigo)).toEqual(invalidos ? ['precedencia-invalida'] : rc ? ['conflicto-resultado-consumo'] : []);
+        expect(v.enlaces.map(e => e.enlace.tipo).sort()).toEqual(invalidos || rc ? [a, b].sort() : [a === 'consumo' || b === 'consumo' ? 'consumo' : a === 'resultado' || b === 'resultado' ? 'resultado' : 'efecto']);
+        expect(new Set(v.enlaces.flatMap(e => e.hechos))).toEqual(new Set(['temprano', 'tardio']));
+        expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+for (const paralelo of [false, true]) for (const tipos of [['consumo', 'efecto'], ['efecto', 'resultado']] as const) {
+    test(`T-085 DEC31 anidamiento ${tipos.join('→')} paralelo=${paralelo}`, () => {
+        const base = modelo(), h = base.opds.hijo!; if (h.tipo !== 'descomposicion') throw Error('montaje');
+        const m = modelo([hechoTemporal(tipos[0], 'enlace-u', 'u', true), hechoTemporal(tipos[1], 'enlace-v', 'v', false)], {
+            cosas: { ...base.cosas, u: proceso('u'), v: proceso('v') }, opds: { ...base.opds,
+                hijo: { ...h, bandas: paralelo ? [['s1','s2'],['s3']] : h.bandas },
+                d1: { id:'d1', tipo:'descomposicion', padre:'hijo', cosa:'s1', orden:0, bandas:[['u']], objetosInternos:[], apariciones:apps('s1','u','b') },
+                d2: { id:'d2', tipo:'descomposicion', padre:'hijo', cosa:'s2', orden:1, bandas:[['v']], objetosInternos:[], apariciones:apps('s2','v','b') }
+            } });
+        expect(validarForma(m)).toEqual([]); const v=proyectar(m,'raiz');
+        expect(v.conflictos.map(d=>d.codigo)).toEqual(paralelo ? [] : ['precedencia-invalida']);
+        expect(v.enlaces.map(e=>e.enlace.tipo)).toEqual(paralelo ? [tipos[0]==='consumo' ? 'consumo':'resultado'] : [...tipos]);
+        expect(v.enlaces.flatMap(e=>e.hechos)).toEqual(['enlace-u','enlace-v']);
+    });
+}
+for (const estado of ['identidad', 'ausente', 'otro-ID', 'ajeno'] as const) {
+    test(`T-085 DEC31 C→R requiere continuidad ${estado}`, () => {
+        const es: Enlace[]=[{id:'c',tipo:'consumo',objeto:'b',proceso:'s1',...(estado==='ausente'?{}:{estado:'b0'}),control:'e',mult:'+'},
+            {id:'r',tipo:'resultado',objeto:'b',proceso:'s3',estado:estado==='otro-ID'?'b1':estado==='ajeno'?'x0':'b0'}];
+        const base=modelo(), b=base.cosas.b!; if(b.tipo!=='objeto')throw Error('montaje');
+        const m=modelo(es,estado==='otro-ID'?{cosas:{...base.cosas,b:{...b,estados:b.estados.map(s=>({...s,nombre:'igual'}))}}}:{}),antes=JSON.stringify(m),v=proyectar(m,'raiz');
+        if(estado==='identidad'){
+            expect(validarForma(m)).toEqual([]);expect(Object.values(m.enlaces).flatMap(e=>violacionesContexto(m,e))).toEqual([]);
+            expect(v.enlaces.map(e=>e.enlace)).toEqual([{id:'c',tipo:'efecto',objeto:'b',proceso:'p',entrada:'b0',salida:'b0',control:'e',mult:'+'}]);expect(v.conflictos).toEqual([]);
+        }else{expect(v.enlaces.map(e=>e.enlace.tipo)).toEqual(['consumo','resultado']);expect(v.conflictos[0]?.codigo).toBe('conflicto-resultado-consumo');}
+        expect(v.enlaces.flatMap(e=>e.hechos)).toEqual(['c','r']);expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+test('T-085 DEC31 cadena C→E→R conserva tres transformadores y error, no fuerte único',()=>{
+    const m=modelo([{id:'c',tipo:'consumo',objeto:'b',proceso:'s1',estado:'b0'}, {id:'e',tipo:'efecto',objeto:'b',proceso:'s2',entrada:'b0',salida:'b1'}, {id:'r',tipo:'resultado',objeto:'b',proceso:'s3',estado:'b1'}]),antes=JSON.stringify(m),v=proyectar(m,'raiz');
+    expect(validarForma(m)).toEqual([]);expect(v.enlaces.map(e=>e.enlace.tipo)).toEqual(['consumo','efecto','resultado']);expect(v.enlaces.flatMap(e=>e.hechos)).toEqual(['c','e','r']);expect(v.conflictos.map(d=>d.codigo)).toEqual(['precedencia-invalida']);expect(JSON.stringify(m)).toBe(antes);
+});
+for(const extremos of [['s1','s2'],['s1','s1'],['p','s1']] as const){
+    test(`T-086 DEC32 invocación ${extremos.join('→')} interna elevada desaparece sólo en padre`,()=>{
+        const m=modelo([{id:'iv',tipo:'invocacion',origen:extremos[0],destino:extremos[1]}]),antes=JSON.stringify(m);
+        expect(validarForma(m)).toEqual([]);expect(proyectar(m,'raiz').enlaces).toEqual([]);expect(proyectar(m,'hijo').enlaces.map(e=>e.enlace)).toEqual([m.enlaces.iv!]);expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+test('T-086 DEC32 reflexivo propio visible se conserva con identidad y procedencia',()=>{
+    const m=modelo([{id:'iv',tipo:'invocacion',origen:'p',destino:'p'}]),antes=JSON.stringify(m),v=proyectar(m,'raiz');
+    expect(v.enlaces.map(e=>[e.enlace,e.hechos,e.abstraido])).toEqual([[m.enlaces.iv!,['iv'],false]]);expect(JSON.stringify(m)).toBe(antes);
+});
+for(const [nombre,ids] of [['SD_Sync',['e-102','e-104','e-106']],['OnStar_System',['e-83','e-93']]] as const){
+    test(`T-086 DEC32 modelo real ${nombre} no inventa autoinvocaciones internas en padre`,()=>{
+        const r=importarV0(readFileSync(new URL(`../../fixtures/v0/${nombre}.json`,import.meta.url),'utf8'));expect(r.ok).toBe(true);if(!r.ok)throw Error('import real');
+        expect(validarForma(r.modelo)).toEqual([]);const antes=JSON.stringify(r.modelo),v=proyectar(r.modelo,r.modelo.raiz);
+        for(const id of ids){expect(r.modelo.enlaces[id]?.tipo).toBe('invocacion');expect(v.enlaces.some(e=>e.hechos.includes(id))).toBe(false);}
+        expect(JSON.stringify(r.modelo)).toBe(antes);
+    });
+}
+
+for(const [a,b] of [['consumo','resultado'],['resultado','consumo'],['consumo','efecto'],['efecto','resultado']] as const){
+    test(`T-083 T-085 DEC31 DS16 materialización ${a}→${b} conserva semántica, IDs y pérdidas`,()=>{
+        const es=[hechoTemporal(a,'temprano','s1',true),hechoTemporal(b,'tardio','s3',false)];
+        const m=modelo(es),antes=JSON.stringify(m);expect(validarForma(m)).toEqual([]);expect(Object.values(m.enlaces).flatMap(e=>violacionesContexto(m,e))).toEqual([]);
+        const v=proyectar(m,'raiz'),r=eliminarRefinamiento(m,{opd:'hijo'});expect(r.ok).toBe(true);if(!r.ok)throw Error(r.rechazo.regla);
+        const valido=a==='resultado'||b==='resultado'&&a==='consumo';
+        if(valido){
+            const id='temprano'; // C/R sin control tienen fuerza igual: DS16 conserva el empate original.
+            expect(v.enlaces[0]!.hechos).toEqual(['temprano','tardio']);
+            expect(r.valor.modelo.enlaces).toEqual({[id]:{id,tipo:'efecto',objeto:'b',proceso:'p',entrada:'b0',salida:'b0'}});
+            expect(r.trazas.find(t=>t.regla==='DS-16')?.refs).toEqual([{tipo:'enlace',id},{tipo:'cosa',id:'p'},{tipo:'opd',id:'raiz'}]);
+        }else{
+            expect(v.enlaces.flatMap(e=>e.hechos)).toEqual(['temprano','tardio']);expect(r.valor.modelo.enlaces).toEqual({});
+            expect(r.trazas.filter(t=>t.regla==='AP-30').flatMap(t=>t.refs.map(x=>x.id))).toEqual(['temprano','tardio']);
+        }
+        expect(validarForma(r.valor.modelo)).toEqual([]);expect(r.valor.modelo.cosas.b).toBe(m.cosas.b);expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+for(const n of [32,128,512]){
+    test(`T-085 DEC31 coste temporal sin comparación cuadrática ${n} efectos y resultado`,()=>{
+        const base=modelo(),ids=Array.from({length:n+1},(_,i)=>`sub${i}`),es=ids.map((id,i)=>hechoTemporal(i===n?'resultado':'efecto',`hecho${i}`,id,true));
+        let lecturas=0;const enlaces=Object.fromEntries(es.map(e=>[e.id,new Proxy(e,{get(target,key,receiver){if(key==='proceso')lecturas++;return Reflect.get(target,key,receiver);}})]));
+        const m=modelo([],{cosas:{...base.cosas,...Object.fromEntries(ids.map(id=>[id,proceso(id)]))},enlaces,
+            opds:{raiz:base.opds.raiz!,hijo:{id:'hijo',tipo:'descomposicion',padre:'raiz',cosa:'p',orden:0,bandas:ids.map(id=>[id]),objetosInternos:[],apariciones:apps('p','b',...ids)}}});
+        expect(validarForma(m)).toEqual([]);const antes=JSON.stringify(m);indice(m);lecturas=0;
+        const v=proyectar(m,'raiz'),coste=lecturas;
+        expect(v.conflictos.map(d=>d.codigo)).toEqual(['precedencia-invalida']);expect(v.enlaces.flatMap(e=>e.hechos)).toEqual(es.map(e=>e.id));
+        expect(coste).toBeLessThanOrEqual(8*(n+1)+64);lecturas=0;expect(proyectar(m,'raiz')).toBe(v);expect(lecturas).toBe(0);expect(JSON.stringify(m)).toBe(antes);
+    });
+}
+for(const [a,b] of [['consumo','efecto'],['efecto','resultado']] as const){
+    test(`T-085 DEC31 relación ancestro no inventa orden temporal ${a}+${b}`,()=>{
+        const m=modelo([hechoTemporal(a,'contorno','p',true),hechoTemporal(b,'interno','s1',false)]),antes=JSON.stringify(m),v=proyectar(m,'raiz');
+        expect(v.conflictos).toEqual([]);expect(v.enlaces.map(e=>e.enlace.tipo)).toEqual([a==='consumo'?'consumo':'resultado']);expect(v.enlaces[0]!.hechos).toEqual(['contorno','interno']);expect(JSON.stringify(m)).toBe(antes);
+    });
+}

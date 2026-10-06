@@ -1,6 +1,6 @@
 # OpForja rehecho — tablero
 
-Rama `rehacer`. Dirección incorporó por fast-forward `e287ba9`; este tablero distingue historia, correcciones activas y próximos hitos.
+Rama `rehacer`. Pasos 1+2 publicados en `26935f4`, verificados HEAD/origin/remoto y árbol limpio por dirección; este tablero distingue historia, correcciones activas y próximos hitos.
 [Bitácora íntegra](docs/rehacer/bitacora.md) · [Decisiones 1–32](docs/rehacer/DECISIONS.md) · [Dictamen externo](docs/rehacer/evaluacion/dictamen-e53fb47.md) · [Plan](docs/rehacer/plan/README.md).
 
 ## Autoridad textual del pedido actual
@@ -10,6 +10,7 @@ Rama `rehacer`. Dirección incorporó por fast-forward `e287ba9`; este tablero d
 > «Decisión 30: mueve el HANDOFF.md actual íntegro a docs/rehacer/bitacora.md y crea un HANDOFF.md de una página (tablero de paquetes, decisiones abiertas, siguiente paso). Reescribe docs/conformidad.md en el formato de DESIGN §11.3, tres líneas por fila como máximo.»
 > «Un commit semántico por paso, siempre con check verde, y push a origin/rehacer. Revisión una vez por ola, contra el canon y con modelos reales. Detente solo en H2, en H3 o ante una contradicción real del contrato. Toda autorización tiene que ser una frase textual mía. Sin despliegue, sin producción, sin migración real, sin merge a main, sin leer .env ni credenciales.»
 > «unamos 1  o 2 en un solo commit»
+> «Decisiones 31 y 32: implementa DESIGN §4.6 pasos 2 y 4 tal como están escritos, con pruebas para cada celda de la Tabla 27.»
 
 La cita es del mensaje directo del dueño transmitido íntegro por dirección en el turno actual; ID/fecha del mensaje no expuestos. Commit/push quedan condicionados a check verde. Dirección posee Git; una sola escritora realiza el paso activo.
 
@@ -26,18 +27,18 @@ La cita es del mensaje directo del dueño transmitido íntegro por dirección en
 
 ## Decisiones resueltas — no abiertas
 
-- DEC 29: «Abanicos como en la versión anterior de opforja»; extremo común en borde de cosa, estados no comunes conservados. Retira FANLOCAL/B-31/B-33, búsqueda de empaquetado y propuesta de vértices; escena/export no lanzan con modelo válido. Realización del paso 2 en verificación; aceptación de ola pendiente.
+- DEC 29: «Abanicos como en la versión anterior de opforja»; extremo común en borde de cosa, estados no comunes conservados. Retira FANLOCAL/B-31/B-33, búsqueda de empaquetado y propuesta de vértices; escena/export no lanzan con modelo válido. Realización publicada en `26935f4`; aceptación global de ola pendiente.
 - DEC 30: «Protocolo ligero»; historia íntegra a bitácora, tablero de una página, conformidad compacta y una revisión por ola.
-- DEC 31: «Precedencia al abstraer según ISO 19450 (Tabla 27, §14.2.4.1.1)»; C→R y R→C dan efecto, C→efecto y efecto→R inválidos. Realización pendiente del paso 3.
-- DEC 32: «Un enlace interno a un refinamiento no se ve en el padre» («cámbialo por supuesto»), también si el tipo admite reflexivo. Realización pendiente del paso 3.
+- DEC 31: «Precedencia al abstraer según ISO 19450 (Tabla 27, §14.2.4.1.1)»; C→R y R→C dan efecto, C→efecto y efecto→R inválidos. Paso 3: realización y check integrado verdes (1830/0, TSC 0, exit 0).
+- DEC 32: «Un enlace interno a un refinamiento no se ve en el padre» («cámbialo por supuesto»), también si el tipo admite reflexivo. Paso 3: realización y check integrado verdes (1830/0, TSC 0, exit 0).
 
 ## Paso activo y siguiente paso
 
 | Paso | Resultado requerido / estado |
 |---|---|
-| 1 · Documentación | HANDOFF original íntegro al inicio de bitácora; tablero y conformidad compactados. Preservación íntegra comprobada; baseline 1864/25, TSC 0, exit 1. |
+| 1 · Documentación | HANDOFF original íntegro al inicio de bitácora; tablero y conformidad compactados. Preservación íntegra comprobada; publicado junto al paso 2 en `26935f4`. |
 | 2 · DEC 29 | Alinear DESIGN/abanicos con la versión anterior; retirar locales/radios/búsqueda/vértices, import con informe y export sin excepción; check nuevo 1765/0, TSC 0, exit 0; golden 106/0. 94 exportados genuinos, 6 dibujos diagnosticados y 4 contenedores rechazados; 54 SVG cambiados observados individualmente (27+27). |
-| 3 · DEC 31–32 | Implementar §4.6 pasos 2/4 y probar cada celda de Tabla 27. Pendiente. |
+| 3 · DEC 31–32 | Internas elevadas ocultas y Tabla 27 temporal; nueve celdas × inversión de claves, paralelas/anidadas, DS16, controles/costo/memo. Focal DS16 367/0 y LF-03 251/0, golden 106/0; dos SVG cambiados mirados 1×/2×; check final 1830/0, TSC 0, exit 0. |
 | 4 · Dictamen | Reparar S2–S7/G1–G5 y reservas §6: B-33, coherencia B-32/registro y T-ID. Pendiente; retiros DEC 29 realizados en paso 2; defectos semánticos/gráficos restantes sin cierre. |
 | 5 · Plan | Con check verde: WP-9 (VAL) → WP-13 → H2 → WP-10 → WP-12 → WP-14 → WP-15 → WP-16 → WP-17 → WP-19 → H3. |
 
@@ -45,6 +46,6 @@ La cita es del mensaje directo del dueño transmitido íntegro por dirección en
 
 - Unidad del primer commit resuelta por la respuesta literal anterior: en el contexto de las dos alternativas, une pasos 1+2 en el primer commit GREEN. ID/fecha originales no expuestos; no autoriza commit rojo ni amplía el alcance.
 - WP-18: permiso Docker futuro, cuando corresponda; no se reabre infraestructura ni migración/despliegue real.
-- Siguiente acción: dirección verifica y publica juntos pasos 1+2 con check verde; paso 3 sigue después de la publicación y del relevo de dirección. Una revisión correctiva al cierre de la ola 2–4; paso 3 aún no iniciado.
+- Siguiente acción: publicar paso 3 GREEN por dirección; paso 4 sólo tras publicación/relevo. Fuente y capturas quietas; cero runners propios. Una revisión correctiva al cierre de la ola 2–4.
 
-Paso 2 queda quieto. Reservas para paso 4: trazo sobre rutas/Registro/estado vecino y puntas cercanas a otra cápsula (B-15/G2/G5); no se introduce reruteo. Async no tenía abanicos: descartado vacío, ocho R-ROL ya basales y todos los enlaces conservados; se corrige la inferencia inicial de diagnósticos nuevos. Resultados y observación por SVG en `/tmp/opforja-rehacer/reanudacion-decisiones29/paso2/`.
+Pasos 2–3 quedan quietos. Reservas para paso 4: trazo sobre rutas/Registro/estado vecino y puntas cercanas a otra cápsula (B-15/G2/G5); no se introduce reruteo. Async no tenía abanicos: descartado vacío, ocho R-ROL ya basales y todos los enlaces conservados; se corrige la inferencia inicial de diagnósticos nuevos. Resultados y observación por SVG en `/tmp/opforja-rehacer/reanudacion-decisiones29/paso2/`.

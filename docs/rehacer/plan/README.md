@@ -1,7 +1,7 @@
 # Plan de implementación de opforja rehecho
 
 **Reanudación DEC 29–32:** sobre `rehacer`, desde `e287ba9` o posterior. Primero las
-correcciones solicitadas, después el plan pendiente; DEC 30 exige protocolo ligero y una
+correcciones solicitadas (pasos 1+2 publicados en `26935f4`), después el plan pendiente; DEC 30 exige protocolo ligero y una
 revisión por ola. La preparación de DEC 28 queda como antecedente, sin recrear rama ni tag.
 
 Qué se construye: el diseño de [`../design/DESIGN.md`](../design/DESIGN.md). Es un modelador
@@ -89,7 +89,7 @@ Hitos de revisión con el dueño:
    - `opl/contratos.test.ts`: WP-7 sustituye sólo las cinco expectativas temporales de generación por checks reales de §5.4/§5.7; conserva literalmente las seis asignaciones de firmas, el bucle `typeof` y `importarOpl` pendiente. WP-9 sustituye sólo la expectativa restante de `importarOpl`, concretada en su turno conforme a §5.7 y sus pruebas nativas, conservando los otros checks.
    - `nucleo/matriz.ts`: WP-2 produce consulta y normalización; WP-4r agrega el ensayo compartido
      de distribución.
-   - `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}`: WP-4p produce; WP-5 integra en serie continuidad R+C y metadata conforme a DESIGN §4.4/§4.6, sin retirar cobertura previa. DEC 29 limita los abanicos a extremo común en borde de cosa y conserva estados no comunes por rama (T-054/T-086/T-216); los grupos retirados no aparecen en Vista, y su importación conserva enlaces, estados y procedencia. No altera las leyes de frontera ni la abstracción de §4.6; verificación mediante pruebas nativas, check y una revisión por ola (DEC 30).
+   - `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}`: WP-4p produce; WP-5 integra en serie continuidad R+C y metadata conforme a DESIGN §4.4/§4.6, sin retirar cobertura previa. DEC 29 limita los abanicos a extremo común en borde de cosa y conserva estados no comunes por rama (T-054/T-086/T-216); los grupos retirados no aparecen en Vista, y su importación conserva enlaces, estados y procedencia. DEC 31–32 realizan §4.6 pasos 2/4: internas elevadas ocultas y Tabla 27 temporal, con simétrica para orden desconocido; nueve celdas y ley de frontera independiente. Verificación mediante pruebas nativas, check y una revisión por ola (DEC 30). Paso 3 incluye adaptación serial mínima de `nucleo/estados.test.ts` para LF-03: E→R temporal conserva ambos anclajes; la banda paralela conserva el control de supresión local permitido.
    - `nucleo/proyeccion.ts`: WP-4r reutiliza en serie la selección existente del hecho de mayor fuerza para materializar su id original (DS-16, §4.5.6). Propiedad mínima: extracción/exportación del helper interno y su consumo por fusionar y refinamiento, con resultados de Vista idénticos, ramas de conflicto/continuidad, controles dentro de clase y empates vigentes; suites previas y ley de frontera conservadas. Exige RED nativo, GREEN, check nuevo y revisión de la ola (DEC 30).
    - `nucleo/propiedades.test.ts`: WP-3b prueba creación sin refinamientos; WP-4r amplía la
      integración refinada sin retirar la cobertura anterior.

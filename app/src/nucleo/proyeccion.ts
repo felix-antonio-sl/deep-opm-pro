@@ -71,7 +71,8 @@ export function proyectar(m: Modelo, opd: Id): Vista {
         const noAbstraer = fila.familia === 'estructural' || fila.familia === 'etiquetada';
         const origen = noAbstraer ? (Object.hasOwn(o.apariciones, ex.origen) ? ex.origen : undefined) : visto(ex.origen);
         const destino = noAbstraer ? (Object.hasOwn(o.apariciones, ex.destino) ? ex.destino : undefined) : visto(ex.destino);
-        if (origen === undefined || destino === undefined || (origen === destino && !fila.reflexivo)) continue;
+        if (origen === undefined || destino === undefined) continue;
+        if (origen === destino && (origen !== ex.origen || destino !== ex.destino || !fila.reflexivo)) continue;
         if (o.tipo !== 'raiz' && !internos.has(origen) && !internos.has(destino)) continue;
         const abstraido = origen !== ex.origen || destino !== ex.destino;
         const enlace: Enlace = !abstraido ? e : esProcedimental(e)
@@ -90,6 +91,7 @@ export function proyectar(m: Modelo, opd: Id): Vista {
     const abstraidos = new Set([...grupos.values()].filter(g => g.some(e => e.abstraido)));
     const compararTiempo = comparadorTemporal(m, idx);
     const continuidades = continuidadesTrazables(m, idx, [...abstraidos]);
+    const invalidosTemporales = precedenciasInvalidas(m, idx, [...abstraidos]);
     const enlaces: EnlaceVisto[] = [], conflictos: Diagnostico[] = [], emitidos = new Set<EnlaceVisto[]>();
     for (const e of directos) {
         if (!esProcedimental(e.enlace)) { enlaces.push(e); continue; }
@@ -97,7 +99,7 @@ export function proyectar(m: Modelo, opd: Id): Vista {
         if (!abstraidos.has(grupo)) { enlaces.push(e); continue; }
         if (emitidos.has(grupo)) continue;
         emitidos.add(grupo);
-        const fusion = fusionar(grupo, idx, opd, compararTiempo, continuidades.get(grupo));
+        const fusion = fusionar(grupo, idx, opd, compararTiempo, continuidades.get(grupo), invalidosTemporales.has(grupo));
         enlaces.push(...fusion.enlaces); conflictos.push(...fusion.conflictos);
     }
 
@@ -183,7 +185,7 @@ export function hechoDeMayorFuerza(hechos: readonly EnlaceProcedimental[]): Enla
     return clase.reduce((a, b) => fuerzaControl(b) > fuerzaControl(a) ? b : a);
 }
 
-function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararTiempo: (a: Id, b: Id) => number, continuidad?: EnlaceProcedimental): { enlaces: readonly EnlaceVisto[]; conflictos: readonly Diagnostico[] } {
+function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararTiempo: (a: Id, b: Id) => number, continuidad?: EnlaceProcedimental, temporalInvalida = false): { enlaces: readonly EnlaceVisto[]; conflictos: readonly Diagnostico[] } {
     if (grupo.length === 1) return { enlaces: grupo, conflictos: [] };
     const hechos = grupo.map(v => v.enlace as EnlaceProcedimental);
     const resultados = hechos.filter(e => e.tipo === 'resultado');
@@ -191,12 +193,12 @@ function fusionar(grupo: readonly EnlaceVisto[], idx: Indice, opd: Id, compararT
     // Ramas del mismo abanico que llegan al mismo extremo son un solo hecho visto (§4.6.5).
     const cantidad = (es: readonly EnlaceProcedimental[]) => new Set(es.map(e => idx.abanicoDeEnlace.get(e.id) ?? e.id)).size;
     const codigos: ('precedencia-invalida' | 'conflicto-resultado-consumo')[] = [];
-    if (cantidad(resultados) > 1 || cantidad(consumos) > 1) codigos.push('precedencia-invalida');
-    if (resultados.length && consumos.length && !continuidad) codigos.push('conflicto-resultado-consumo');
+    if (temporalInvalida || cantidad(resultados) > 1 || cantidad(consumos) > 1) codigos.push('precedencia-invalida');
+    if (!temporalInvalida && resultados.length && consumos.length && !continuidad) codigos.push('conflicto-resultado-consumo');
     if (codigos.length) {
-        const retenidos = colapsarRamas(grupo.filter(v => v.enlace.tipo === 'resultado' || v.enlace.tipo === 'consumo'), idx);
+        const retenidos = colapsarRamas(grupo.filter(v => v.enlace.tipo === 'resultado' || v.enlace.tipo === 'consumo' || temporalInvalida && v.enlace.tipo === 'efecto'), idx);
         const primeros = new Set(retenidos[0]!.hechos);
-        for (const v of grupo) if (v.enlace.tipo !== 'resultado' && v.enlace.tipo !== 'consumo')
+        for (const v of grupo) if (v.enlace.tipo !== 'resultado' && v.enlace.tipo !== 'consumo' && !(temporalInvalida && v.enlace.tipo === 'efecto'))
             for (const id of v.hechos) primeros.add(id);
         const hechosPrimero = grupo.flatMap(v => v.hechos).filter(id => primeros.has(id));
         const enlaces = retenidos.map((v, i) => {
@@ -349,13 +351,14 @@ function continuidadesTrazables(m: Modelo, idx: Indice, grupos: readonly (readon
     const consultas: { a: Id; b: Id }[] = [], preparados: Candidato[] = [];
     for (const candidato of candidatos) {
         const { r, c, orden } = candidato;
-        if (orden[0]?.id !== r.id || orden.at(-1)?.id !== c.id) continue;
-        let estado = r.estado, coherente = true;
+        const primero = orden[0], ultimo = orden.at(-1);
+        if (!primero || !ultimo || !((primero.id === r.id && ultimo.id === c.id) || (primero.id === c.id && ultimo.id === r.id))) continue;
+        let estado = 'estado' in primero ? primero.estado : undefined, coherente = true;
         for (const e of orden.slice(1, -1)) {
             if (e.tipo !== 'efecto' || e.entrada !== estado) { coherente = false; break; }
             estado = e.salida;
         }
-        if (!coherente || estado !== c.estado) continue;
+        if (!coherente || estado !== ('estado' in ultimo ? ultimo.estado : undefined)) continue;
         for (let i = 1; i < orden.length; i++) {
             candidato.consultas.push(consultas.length);
             consultas.push({ a: orden[i - 1]!.proceso, b: orden[i]!.proceso });
@@ -373,7 +376,7 @@ function continuidadesTrazables(m: Modelo, idx: Indice, grupos: readonly (readon
         const visto = grupo.find(v => esProcedimental(v.enlace))!.enlace as EnlaceProcedimental;
         const mult = c.mult ?? r.mult;
         resultado.set(grupo, { id: grupo[0]!.hechos[0]!, tipo: 'efecto', objeto: r.objeto, proceso: visto.proceso,
-            entrada: r.estado!, salida: c.estado!, ...(control ? { control } : {}), ...(mult ? { mult } : {}) });
+            entrada: (orden[0] as R | C).estado!, salida: (orden.at(-1) as R | C).estado!, ...(control ? { control } : {}), ...(mult ? { mult } : {}) });
     }
     return resultado;
 }
@@ -399,14 +402,18 @@ function ordenarRangos<T extends { readonly rango: number }>(elementos: readonly
     return actual;
 }
 
-const secuenciasMemo = new WeakMap<Modelo, (a: Id, b: Id) => boolean>();
+interface OrdenOriginal {
+    readonly primero: ReadonlyMap<Id, number>; readonly segundo: ReadonlyMap<Id, number>;
+    readonly fin: ReadonlyMap<Id, number>; readonly componente: ReadonlyMap<Id, Id>;
+    readonly anterior: (a: Id, b: Id) => boolean;
+}
+const secuenciasMemo = new WeakMap<Modelo, OrdenOriginal>();
 /** Dos órdenes del bosque original: las bandas no cambian de orden, sólo se invierten
  * miembros paralelos en la segunda pasada. Componente e intervalos excluyen raíces
  * ajenas y ancestros. Preparación iterativa compartida O(D+P); consulta O(1). */
-function secuenciaOriginal(m: Modelo, idx: Indice, consultas: readonly { a: Id; b: Id }[]): readonly boolean[] {
-    if (!consultas.length) return [];
-    let anterior = secuenciasMemo.get(m);
-    if (!anterior) {
+function ordenOriginal(m: Modelo, idx: Indice): OrdenOriginal {
+    let certificado = secuenciasMemo.get(m);
+    if (!certificado) {
         const bandas = new Map<Id, readonly (readonly Id[])[]>();
         for (const id of idx.preorden) {
             const o = m.opds[id]!;
@@ -436,13 +443,57 @@ function secuenciaOriginal(m: Modelo, idx: Indice, consultas: readonly { a: Id; 
                 }
             }
         }
-        anterior = (a, b) => {
+        const anterior = (a: Id, b: Id) => {
             const x = primero.get(a), y = primero.get(b), u = segundo.get(a), v = segundo.get(b);
             if (x === undefined || y === undefined || u === undefined || v === undefined || componente.get(a) !== componente.get(b)) return false;
             if (x <= y && y < fin.get(a)! || y <= x && x < fin.get(b)!) return false;
             return x < y && u < v;
         };
-        secuenciasMemo.set(m, anterior);
+        certificado = { primero, segundo, fin, componente, anterior };
+        secuenciasMemo.set(m, certificado);
     }
-    return consultas.map(({ a, b }) => anterior(a, b));
+    return certificado;
+}
+function secuenciaOriginal(m: Modelo, idx: Indice, consultas: readonly { a: Id; b: Id }[]): readonly boolean[] {
+    if (!consultas.length) return [];
+    const certificado = ordenOriginal(m, idx);
+    return consultas.map(({ a, b }) => certificado.anterior(a, b));
+}
+
+
+/** DEC31: testigos C→E o E→R en el árbol original, sin comparar todos los pares.
+ * Un barrido por fin/inicio excluye ancestros. El segundo orden excluye hermanos
+ * paralelos: ambos órdenes deben acreditar antes→después, dentro de la misma raíz.
+ * Radix y mínimos por grupo/componente conservan O(D+P+E), incluidos grupos grandes. */
+function precedenciasInvalidas(m: Modelo, idx: Indice, grupos: readonly (readonly EnlaceVisto[])[]): ReadonlySet<readonly EnlaceVisto[]> {
+    const relevantes = grupos.filter(g => g.some(v => v.enlace.tipo === 'efecto') && g.some(v => v.enlace.tipo === 'consumo' || v.enlace.tipo === 'resultado'));
+    const invalidos = new Set<readonly EnlaceVisto[]>();
+    if (!relevantes.length) return invalidos;
+    const o = ordenOriginal(m, idx);
+    interface Hecho { grupo: readonly EnlaceVisto[]; tipo: 'consumo' | 'efecto' | 'resultado'; componente: Id; segundo: number; rango: number }
+    const fuentes: Hecho[] = [], consultas: Hecho[] = [];
+    for (const grupo of relevantes) for (const v of grupo) for (const id of v.hechos) {
+        const e = m.enlaces[id];
+        if (!e || !esProcedimental(e) || !(e.tipo === 'consumo' || e.tipo === 'efecto' || e.tipo === 'resultado')) continue;
+        const componente = o.componente.get(e.proceso), segundo = o.segundo.get(e.proceso), inicio = o.primero.get(e.proceso), fin = o.fin.get(e.proceso);
+        if (componente === undefined || segundo === undefined || inicio === undefined || fin === undefined) continue;
+        const hecho = { grupo, tipo: e.tipo, componente, segundo };
+        if (e.tipo !== 'resultado') fuentes.push({ ...hecho, rango: fin });
+        if (e.tipo !== 'consumo') consultas.push({ ...hecho, rango: inicio });
+    }
+    const ordenados = ordenarRangos(fuentes);
+    const vistos = new Map<readonly EnlaceVisto[], Map<Id, { consumo: number; efecto: number }>>();
+    let i = 0;
+    for (const consulta of ordenarRangos(consultas)) {
+        while (i < ordenados.length && ordenados[i]!.rango <= consulta.rango) {
+            const f = ordenados[i++]!;
+            let componentes = vistos.get(f.grupo); if (!componentes) { componentes = new Map(); vistos.set(f.grupo, componentes); }
+            let minimo = componentes.get(f.componente); if (!minimo) { minimo = { consumo: Infinity, efecto: Infinity }; componentes.set(f.componente, minimo); }
+            if (f.tipo === 'consumo') minimo.consumo = Math.min(minimo.consumo, f.segundo);
+            else minimo.efecto = Math.min(minimo.efecto, f.segundo);
+        }
+        const minimo = vistos.get(consulta.grupo)?.get(consulta.componente);
+        if (minimo && (consulta.tipo === 'efecto' ? minimo.consumo : minimo.efecto) < consulta.segundo) invalidos.add(consulta.grupo);
+    }
+    return invalidos;
 }

@@ -5,7 +5,7 @@ Estados admitidos (R-APP-2): `enforzado`, `parcial`, `no implementado`, `zona la
 Superficies (R-APP-3): U = UI, N = núcleo, I = importación, G = generación OPL, P = parseo OPL, X = exportación. Cierre sólo con evidencia de todas las superficies aplicables.
 
 DEC 30 conserva el registro compacto y su evidencia anterior íntegra en [bitácora](rehacer/bitacora.md#conformidad-anterior-al-paso-1-de-decisión-30).
-DEC 29 retira las representaciones locales de abanico; su realización en paso 2 está en verificación. DEC 31–32 y defectos del dictamen siguen pendientes de pasos 3–4; no hay aceptación nueva por esta actualización.
+DEC 29 realizada y pasos 1+2 publicados en `26935f4`. DEC 31–32 realizadas en paso 3: check integrado 1830/0, TSC 0, exit 0. Los defectos restantes del dictamen siguen para paso 4; aceptación global de ola pendiente.
 
 ## Brechas
 
@@ -35,7 +35,7 @@ DEC 29 retira las representaciones locales de abanico; su realización en paso 2
 | B-26 | T-100: OPL completo cubre todo el modelo cargado | parcial | G·X | N bloquea documento por huérfanos; G genera bloques visibles. X observa cosa sin aparición: diagrama local permitido/documento rechazado. Menú pendiente. | DS-6, CC-01; no acredita todos los huérfanos ni cobertura textual completa. |
 | B-27 | T-106 / DR-2 frente a mención mínima T-190/R-BI-DUAL-1 | parcial | G·P | G emite D2 mínimo para cosa visible no mencionada y nunca D4; P/strict pendientes. | DS-2, CC-27: desvío consciente de DR-2. |
 | B-28 | T-040 / DESIGN §10.2: equivalencia menú/creación por resultado efectivo con refinamientos | parcial | N·U | N comparte distribución pura entre consulta, creación y reparación y compara resultado final con original (DS-20). U pendiente. | Integración refinada histórica WP-4r; S5 exige revisar reordenamiento de bandas, sin crédito UI/strict. |
-| B-29 | T-085/T-261: continuidad R+C abstraída y metadatos de conflictos (R-PREC-1/2/3/4, AP-30) | parcial | N·G·X | N recompone R+C con continuidad de identidad/estados y conserva procedencia; X observa continuidad y su negativo. G específica pendiente. | DEC 31 cambia precedencia temporal; celdas de Tabla 27 se implementarán/probarán en paso 3. |
+| B-29 | T-085/T-261: continuidad R+C abstraída y metadatos de conflictos (R-PREC-1/2/3/4, AP-30) | parcial | N·G·X | N aplica las nueve celdas temporales y la simétrica para orden desconocido; recompone R↔C sólo con continuidad trazable, conserva hechos y errores. G específica pendiente. | DEC 31–32: frontera/DS16/LF-03/costo y dos vistas reales observados; check 1830/0, TSC 0, exit 0. Aceptación de ola pendiente. |
 | B-30 | T-260/T-261/T-283: integración temporal del catálogo de diagnóstico y gates | parcial | N·U | N tiene catálogo/gates y reparaciones reales que retiran sus diagnósticos; U pendiente. No acredita importación adicional ni parser. | CC-23; S6/S7 y límites por fila pendientes de reparar, sin crédito OPD↔OPL. |
 
 ## Reservas del registro
