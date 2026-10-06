@@ -2482,12 +2482,15 @@ y peines (12) → aristas a estados (20). Los modos se distinguen así:
 ### 6.3 Geometría (`opd/geometria.ts`)
 
 - **Recorte exacto** (R-OPD-LAY-5, T-224). El segmento va de centro a centro y se recorta en el
-  perímetro real. Nunca hay extremos sueltos.
+  perímetro real. En la agrupación local con vértices descrita abajo, cada extremo se recorta
+  desde el centro de SU terminal hacia el vértice adyacente del recorrido. Nunca hay extremos
+  sueltos ni cambio de identidad del terminal por esa elección geométrica.
   - En el rectángulo, `s = min(w/2/|dx|, h/2/|dy|)`, y el punto es `c + s·d`.
   - En la elipse, `s = 1/√((dx/rx)² + (dy/ry)²)`.
   - En el estado, el recorte se hace sobre el rectángulo de la cápsula, con el arco de radio 8 en
     las esquinas.
-- **Procedimentales**, rectos (R-OPD-LAY-4, T-225):
+- **Procedimentales**, rectos (R-OPD-LAY-4, T-225), salvo los vértices de presentación
+  explícitamente permitidos en la agrupación local con terminales propios descrita abajo:
   - Consumo: punta en el proceso. Resultado: punta en el objeto o el estado.
   - Efecto T3: punta en ambos extremos.
   - TS3: dos tramos, `estado_entrada → proceso` (punta en el proceso) y `proceso → estado_salida`
@@ -2529,29 +2532,83 @@ y peines (12) → aristas a estados (20). Los modos se distinguen así:
   mismo objeto con la misma identidad de estado propio explícito en todas las ramas o sin estado
   en ninguna—, terminan en un **punto de acople**: el recorte del borde de ese terminal común hacia
   el centroide de los otros extremos. Un estado explícito usa el borde de su cápsula, no el objeto.
-  - **Excepción local de acople gráfico**: XOR/OR de consumo, resultado, agente o instrumento,
-    con objeto común, procesos distintos y estados no uniformes por presencia/identidad, ya
-    válido por la matriz y sin control. Cada rama conserva su terminal propio, recortado en la
-    cápsula del estado que especifica o en el objeto si no especifica estado; no hereda estado de
-    otra rama, de `porDefecto` ni de `Current`. Conserva IDs, referencias, hechos/procedencia,
-    dirección, marcador, operador y membresía, sin agregar tramos o nodos para reunir terminales.
+  - **Agrupación local con terminales propios**: XOR/OR de consumo, resultado, agente o
+    instrumento, con objeto común, procesos distintos y estados no uniformes por
+    presencia/identidad, ya válido por la matriz y sin control. Cada rama conserva su terminal
+    propio, recortado en la cápsula del estado que especifica o en el objeto si no especifica
+    estado; no hereda estado de otra rama, de `porDefecto` ni de `Current`. Conserva IDs,
+    referencias, hechos/procedencia, dirección, marcador, operador y membresía. La realización
+    primaria conserva exactamente los recorridos y terminales derivados de cada hecho sin fan.
+    Si el agrupamiento o la trazabilidad no pueden cumplir sobre los recorridos rectos, se
+    permiten únicamente en este
+    dominio vértices gráficos distintos por rama, derivados sin mutar posiciones persistidas
+    ni agregar cosa, estado, enlace, ID o junction compartido. Cada recorrido debe poder
+    seguirse visiblemente desde SU cápsula u objeto sin estado hasta SU proceso y viceversa,
+    sin atravesar cosas que oculten su continuidad ni sugerir asociaciones nuevas. Conserva
+    dirección, familia del marcador, operador, membresía, IDs y hechos/procedencia. Sus extremos
+    siguen recortados en los perímetros propios según el primer y último segmento; el puerto
+    numérico puede diferir del standalone cuando lo requiere ese recorrido, conservando siempre
+    identidad de estado/ausencia y extremo. Ruta y multiplicidad se sitúan respecto de los
+    segmentos efectivos, conservando sus distancias y estilo. La marca común y ambos radios de
+    OR deben reunir TODAS esas ramas. Ninguna construcción fallida del spike queda admitida
+    por permitir vértices, y ningún fallback dispensa agrupamiento o trazabilidad.
     Las rutas ya admitidas en consumo/resultado conservan DS-10: no se agrupa G; el fan N/X no se
     elimina. El bloque textual B-31 de §5.3.1 borde 2 sigue limitado a ramas sin ruta ni control;
-    esta excepción gráfica no amplía FANLOCAL ni su dominio textual.
-    El centro del arco es una **referencia gráfica** del objeto común: el recorte del borde de su
-    rectángulo hacia el centroide de los centros de los procesos. Si ese centroide coincide
-    exactamente con el centro del objeto, se adopta explícitamente la convención **este** ya
-    implementada: referencia `(centroO.x + anchoO/2, centroO.y)`. La referencia no sustituye los
-    terminales semánticos. El sector se calcula desde ella hacia los centros de los procesos.
-    El arco señala el objeto común y el operador del fan; esta representación no garantiza que
-    todos los trazos de las ramas lo intersecten ni que queden reunidos visualmente en un acople.
-    Esa limitación de asociación visual se declara en B-31/X, sin fidelidad canónica o ISO inferida.
-  - El arco se centra en el acople, o en la referencia de la excepción, con radio 30, y cubre el
-    sector angular mínimo de las ramas (en la excepción, de las direcciones indicadas), por el mismo
-    cálculo de `calcularGeometriaAbanicoDesdePuntos` + mayor hueco angular.
-  - XOR es un arco; OR, dos concéntricos (r 30 y 35); dash `4 1`, trazo 1.5.
-  - AND es la ausencia de arco. Los casos representables, efectos y controles conservan sus reglas;
-    esta excepción no cambia B-06/B-08 ni N/G, y B-31 sigue LOCAL NO_CANONIZADA, sin evidencia ISO.
+    esta agrupación gráfica no amplía FANLOCAL ni su dominio textual.
+    La marca tiene un **único centro de agrupación**, asociado al objeto común y seleccionado
+    determinísticamente dentro de su rectángulo. El centro no sustituye los terminales propios
+    ni crea un punto de unión entre las ramas. El radio interior `r > 0` se adapta a la geometría
+    derivada de las apariciones persistidas; XOR usa un arco y OR dos concéntricos de radios
+    `r` y `r + 5`, con dash `4 1` y trazo 1.5.
+    El sector se obtiene de las intersecciones reales con los recorridos finitos de TODAS las
+    ramas; en OR considera las intersecciones de AMBOS radios. Cada arco debe reunir visualmente
+    todas las ramas, con cruces visibles en su sector y correspondencia inequívoca entre cada
+    proceso y SU estado o ausencia. La elección debe comprobar analíticamente intersecciones
+    y visibilidad del sector dibujado, considerando cuerpos, cápsulas, marcadores, trazo, sombras
+    y etiquetas; el muestreo por sí solo no demuestra que cumpla.
+    No se impone la referencia hacia el centroide de procesos, la convención este ni un radio
+    envolvente fijo en este dominio. La ausencia de un candidato completo conserva pendiente
+    la reparación: no habilita omitir la marca, dejar ramas fuera, introducir un fallback que
+    incumpla, cambiar los hechos ni aceptar parcialmente el agrupamiento. Un layout cargado
+    con solapes conserva sus datos y avisos; esos avisos no dispensan esta condición.
+  - Los casos con terminal real común conservan su acople y radio 30, y cubren el sector angular
+    mínimo de las ramas mediante `calcularGeometriaAbanicoDesdePuntos` + mayor hueco angular.
+    XOR es un arco; OR, dos concéntricos de radios 30 y 35; dash `4 1`, trazo 1.5.
+    Excepción gráfica local limitada a XOR/OR de consumo, resultado, agente o instrumento,
+    sin control, con objeto común, procesos distintos y el mismo estado explícito por identidad
+    en todas las ramas, ya válido y ofrecido por N/matriz: la selección del packing permitido
+    por T-206 y del radio se realiza
+    sobre las cajas definitivas, incluida la expansión de contenedores. Se conserva un único
+    acople, obtenido por recorte de la cápsula común hacia el centroide de esas cajas de procesos;
+    el centro de cada arco es ese mismo acople. Cada rama sigue siendo recta, con su terminal,
+    dirección, marcador, ID, hechos, estado, procedencia y capa originales.
+    Si la geometría existente es un candidato completo con radio 30 (XOR) o radios 30 y 35
+    (OR), se conserva byteexacta. En otro caso se priorizan esos radios en una familia de
+    packings permitidos, finita, reproducible y con orden determinista explícito. Sólo cuando
+    ninguno de esos candidatos es completo se permite seleccionar un radio interior r >= 30;
+    XOR usa r y OR usa r y r + 5. No se exige probar que ningún packing concebible podría
+    funcionar: se declara la familia examinada, sus candidatos y el motivo analítico de rechazo.
+    Para cada packing, la selección de radio se deriva de los segmentos finitos y obstáculos
+    efectivos; los intervalos factibles y sus límites se contrastan analíticamente. Los empates
+    se resuelven por el orden de candidatos declarado, sin depender de nombres ni IDs de ramas.
+    El sector mínimo se obtiene de los recorridos reales evitando el mayor hueco angular.
+    Un candidato completo exige que cada arco cruce todas las ramas finitas, que todo su trazo
+    sea visible frente a cuerpos, cápsulas, sombras que lo cubran por capa, textos y marcadores,
+    y que las rectas conserven trazabilidad inequívoca hacia cada extremo sin invadir tinta de
+    estados o rótulos. Se contrasta analíticamente y mediante observación visual individual;
+    un muestreo, una búsqueda finita o el solo recuento de intersecciones no acreditan lo demás.
+    Si no se encuentra un candidato completo, la realización queda pendiente y conserva la
+    reserva: no se omite el grupo, no se acepta una rama fuera ni se exporta como conforme un
+    fallback incumplidor. No se mueve una posición persistida ni se añaden vértices, nodos,
+    marcas o variantes semánticas por esta excepción.
+    Esta selección de radio es una divergencia gráfica local respecto de la nota de realización
+    de spec-OPD §6.3 (radios heredados 30/35), registrada como B-33 en conformidad, pendiente
+    de validación y aceptación;
+    no altera el canon ni acredita ISO. Ausencia total de estado, común P, estados de identidad
+    distinta, AND, efecto y control quedan fuera; la política heterogénea B V2 no se modifica.
+  - AND es la ausencia de arco. Los casos representables, efectos y controles conservan sus
+    reglas; esta agrupación no cambia B-06/B-08 ni N/G. B-31 sigue LOCAL NO_CANONIZADA, sin
+    evidencia ISO ni crédito de inversa/strict/parser por esta realización.
 - **Marcas de control** (T-214): `e` o `c` en minúscula dentro de un círculo de 18 px (fondo papel,
   borde tinta), sobre la línea a 28 px del borde del proceso.
 - **Ruta y multiplicidad** (T-218, T-219):

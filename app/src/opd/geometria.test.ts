@@ -134,3 +134,70 @@ for (const operador of ['AND', 'XOR', 'OR'] as const) test(`T-216 menos de dos r
   expect(g.abanico(comun, [], operador).arcos).toEqual([]);
   expect(g.abanico(comun, [{ x: 100, y: 0 }], operador).arcos).toEqual([]);
 });
+
+test('T-216 B V2 visibilidad analítica detecta un obstáculo entre muestras', () => {
+  const comprobar = (g as unknown as { arcoLibre: (a: g.ArcoGeometrico, cajas: readonly Rect[]) => boolean }).arcoLibre;
+  expect(comprobar).toBeFunction();
+  const arco: g.ArcoGeometrico = { centro: { x: 0, y: 0 }, radio: 100, desde: 0, hasta: 1, dash: '4 1', trazo: 1.5 };
+  const angle = .123456789, x = 100 * Math.cos(angle), y = 100 * Math.sin(angle);
+  expect(comprobar(arco, [{ x: x - .000001, y: y - .000001, ancho: .000002, alto: .000002 }])).toBe(false);
+  expect(comprobar(arco, [{ x: 130, y: 130, ancho: 10, alto: 10 }])).toBe(true);
+});
+
+test('T-206 T-216 esquina de cápsula distingue bbox de área redondeada con trazo', () => {
+  const intersecta = (g as unknown as { intersectaCapsula: (a: Punto, b: Punto, caja: Rect, pad: number) => boolean }).intersectaCapsula;
+  expect(intersecta).toBeFunction();
+  const r = { x: 0, y: 0, ancho: 80, alto: 26 };
+  expect(intersecta({ x: 0, y: 0 }, { x: 3, y: 0 }, r, .75)).toBe(false);
+  expect(intersecta({ x: 9, y: -1 }, { x: 9, y: 1 }, r, .75)).toBe(true);
+  expect(intersecta({ x: -5, y: 13 }, { x: 90, y: 13 }, r, .75)).toBe(true);
+});
+
+// APPEND X: intervalos cerrados por obstáculo/sector, OR sobre ambos radios finitos.
+test('T-216 X radio analítico cruza todas las rectas y evita el cuerpo sin malla', () => {
+    expect(g.radioUniforme).toBeFunction();
+    const C = {x:0,y:0}, fines = [{x:200,y:-100},{x:200,y:100}];
+    const sector = g.sectorMinimo(C, fines);
+    const caja = {x:20,y:-20,ancho:80,alto:40};
+    const arcos = g.radioUniforme(C, fines, 'OR', [caja])!;
+    expect(arcos).toHaveLength(2); expect(arcos[0]!.radio).toBeGreaterThan(100);
+    expect(arcos[1]!.radio-arcos[0]!.radio).toBe(5);
+    for(const a of arcos) { expect(g.arcoLibre(a,[caja])).toBe(true); expect(a.desde).toBe(sector.desde); expect(a.hasta).toBe(sector.hasta);
+      for(const q of fines) expect(g.crucesCirculo(C,a.radio,C,q).length).toBeGreaterThan(0); }
+    expect(g.radioUniforme(C,[...fines].reverse(),'OR',[caja])).toEqual(arcos);
+});
+test('T-216 X radio no prolonga ramas cortas ni dispensa arco exterior OR', () => {
+    expect(g.radioUniforme).toBeFunction();
+    expect(g.radioUniforme({x:0,y:0},[{x:32,y:0},{x:0,y:32}],'OR',[])).toBeNull();
+    expect(g.radioUniforme({x:0,y:0},[{x:40,y:0},{x:0,y:40}],'XOR',[{x:-1,y:-1,ancho:100,alto:100}])).toBeNull();
+    const f = [{x:100,y:0},{x:0,y:100}];
+    expect(g.radioUniforme({x:0,y:0},f,'XOR',[])!.map(a=>a.radio)).toEqual([30]);
+    expect(g.radioUniforme({x:0,y:0},f,'OR',[])!.map(a=>a.radio)).toEqual([30,35]);
+});
+
+test('T-216 X intervalos consideran el interior del sector mayor que π y tangencias',()=>{
+    const C={x:0,y:0}, fines=[{x:200,y:0},{x:0,y:200},{x:-200,y:0},{x:0,y:-200}];
+    const r={x:-80,y:-10,ancho:160,alto:20}, arcs=g.radioUniforme(C,fines,'OR',[r])!;
+    expect(arcs).toHaveLength(2);expect(arcs[0]!.radio).toBeGreaterThan(Math.hypot(80,10));
+    expect(arcs.every(a=>g.arcoLibre(a,[r]))).toBe(true);
+    const tangent={x:30,y:-1,ancho:1,alto:2};
+    const ts=g.radioUniforme(C,[{x:100,y:0},{x:100,y:50}],'XOR',[tangent])!;
+    expect(ts[0]!.radio).toBeGreaterThan(31); expect(g.arcoLibre(ts[0]!,[tangent])).toBe(true);
+});
+
+test('T-216 X arco usa elipse efectiva cuando su bbox rechaza una esquina vacía',()=>{
+    expect(g.arcoLibreElipse).toBeFunction();
+    const E={x:20,y:-30,ancho:200,alto:60},a={centro:{x:0,y:0},radio:40,desde:Math.PI/4,hasta:Math.PI/3,dash:'4 1' as const,trazo:1.5 as const};
+    expect(g.arcoLibre(a,[E])).toBe(false);expect(g.arcoLibreElipse(a,E)).toBe(true);
+    expect(g.arcoLibreElipse({...a,desde:0,hasta:Math.PI/3},E)).toBe(false);
+    expect(g.arcoLibreElipse({...a,radio:120,desde:0,hasta:Math.PI},E)).toBe(false);
+});
+
+test('T-216 X trazo completo frente polígono real distingue bbox rotada y ala',()=>{
+    expect(g.arcoLibrePoligono).toBeFunction();
+    const arc={centro:{x:0,y:0},radio:30,desde:0,hasta:Math.PI*2,dash:'4 1' as const,trazo:1.5 as const};
+    const poly=[{x:0,y:0},{x:23,y:8},{x:12,y:0},{x:23,y:-8}];
+    expect(g.arcoLibrePoligono(arc,poly,1.25)).toBe(true);
+    expect(g.arcoLibrePoligono({...arc,radio:20},poly,1.25)).toBe(false);
+    expect(g.arcoLibrePoligono({...arc,radio:40},[{x:-50,y:-50},{x:50,y:-50},{x:50,y:50},{x:-50,y:50}],1.25)).toBe(false);
+});

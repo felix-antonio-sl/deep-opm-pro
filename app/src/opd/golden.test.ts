@@ -112,3 +112,272 @@ for (const c of casos)
     });
 if (process.env.OPFORJA_GOLDEN === 'escribir')
     test('T-223 recibo scratch de caja y procedencia de cada SVG', () => { const manifest = { construidos: 40, seleccionesFixture: fixtureSelections, unicos: casos.length, casos: casos.map(c => { const e = escena(c.m, c.opd), s = aTexto(dibujar(e, 'canon')); return { nombre: c.nombre, opd: c.opd, etiqueta: etiquetaOpd(c.m, c.opd), caja: e.caja, oraculo: c.oraculo, construido: c.construido, contexto: erroresContexto(c.m), sha256: createHash('sha256').update(s).digest('hex') }; }) }; writeFileSync('/tmp/opforja-rehacer/WP-8b-golden-manifest.json', JSON.stringify(manifest, null, 2)); expect(manifest.unicos).toBeGreaterThanOrEqual(46); });
+
+// B V2: apéndice; los 52 callbacks y 50 SVG anteriores conservan su prefijo.
+interface ArchivoB { readonly id: string; readonly grupo: string; readonly sha256: string; readonly jsonOriginal: string }
+const archivosB = JSON.parse(readFileSync(new URL('./pruebas/modelos-B-v2.json', import.meta.url), 'utf8')) as readonly ArchivoB[];
+const casosB: Caso[] = archivosB.map(f => ({ nombre: 'B-v2-' + f.id, m: JSON.parse(f.jsonOriginal) as Modelo, opd: 'sd', oraculo: `T-206 T-216 ${f.grupo}; entrada SHA ${f.sha256}`, construido: true }));
+function baseB(operador: 'XOR' | 'OR', tipo: 'consumo' | 'resultado' = 'consumo'): Modelo {
+    const objetos: Objeto = { ...obj('o', 'Registro'), estados: [{ id: 's1', nombre: 'pendiente' }, { id: 's2', nombre: 'pagado' }] };
+    const m = modelo([objetos, pro('p', 'Preparar'), pro('q', 'Despachar')], [
+        { id: 'e1', tipo, objeto: 'o', proceso: 'p', estado: 's1' },
+        { id: 'e2', tipo, objeto: 'o', proceso: 'q', estado: 's2' }
+    ], { o: a(0, 0, 300, 220), p: a(550, 0, 160, 80), q: a(550, 300, 160, 80) });
+    return { ...m, abanicos: { f: { id: 'f', operador, enlaces: ['e1', 'e2'] } } };
+}
+for (const operador of ['XOR', 'OR'] as const) {
+    const m = baseB(operador);
+    casosB.push({ nombre: `B-v2-tres-ramas-${operador}`, opd: 'sd', oraculo: 'T-216 tres ramas: dos estados por identidad y tres procesos', construido: true,
+        m: { ...m, cosas: { ...m.cosas, r: pro('r', 'Registrar') }, enlaces: { ...m.enlaces, e3: { id: 'e3', tipo: 'consumo', objeto: 'o', proceso: 'r', estado: 's1' } }, abanicos: { f: { ...m.abanicos.f!, enlaces: ['e1', 'e2', 'e3'] } }, opds: { sd: { ...m.opds.sd!, apariciones: { ...m.opds.sd!.apariciones, r: a(550, 600, 160, 80) } } } }
+    });
+}
+{
+    const m = baseB('XOR'), w: Objeto = { ...obj('w', 'Factura'), estados: [{ id: 'w1', nombre: 'abierto' }, { id: 'w2', nombre: 'cerrado' }] };
+    casosB.push({ nombre: 'B-v2-multiples-fans', opd: 'sd', oraculo: 'T-216 fans XOR y OR distintos sin fusión de pertenencia', construido: true,
+        m: { ...m, cosas: { ...m.cosas, w, u: pro('u', 'Facturar'), v: pro('v', 'Cerrar') }, enlaces: { ...m.enlaces, e3: { id: 'e3', tipo: 'consumo', objeto: 'w', proceso: 'u', estado: 'w1' }, e4: { id: 'e4', tipo: 'consumo', objeto: 'w', proceso: 'v', estado: 'w2' } }, abanicos: { ...m.abanicos, g: { id: 'g', operador: 'OR', enlaces: ['e3', 'e4'] } }, opds: { sd: { ...m.opds.sd!, apariciones: { ...m.opds.sd!.apariciones, w: a(900, 0, 300, 220), u: a(1450, 0, 160, 80), v: a(1450, 300, 160, 80) } } } }
+    });
+}
+{
+    const m = baseB('OR'), estados = [{ id: 's1', nombre: 'pendiente', inicial: true as const, final: true as const }, { id: 's2', nombre: 'pagado' }, { id: 's3', nombre: 'cerrado' }, { id: 's4', nombre: 'cancelado' }];
+    const procesos = ['p', 'q', 'u', 'v', 'w', 'z'], nombres = ['Preparar', 'Despachar', 'Cobrar', 'Liquidar', 'Cerrar', 'Archivar'];
+    casosB.push({ nombre: 'B-v2-uniformes-tres-fans-decoracion', opd: 'sd', oraculo: 'T-206 T-207 T-208 T-216 tres fans uniformes, inicial/final/default/current y chip', construido: true,
+        m: { ...m, cosas: { o: { ...obj('o', 'Registro'), estados, porDefecto: 's1', current: 's2' }, ...Object.fromEntries(procesos.map((id, i) => [id, pro(id, nombres[i]!)])) }, enlaces: Object.fromEntries(procesos.map((proceso, i) => [`e${i + 1}`, { id: `e${i + 1}`, tipo: 'consumo' as const, objeto: 'o', proceso, estado: `s${Math.floor(i / 2) + 1}` }])), abanicos: Object.fromEntries(['f', 'g', 'h'].map((id, i) => [id, { id, operador: 'OR' as const, enlaces: [`e${2 * i + 1}`, `e${2 * i + 2}`] }])), opds: { sd: { ...m.opds.sd!, apariciones: { o: { ...a(0, 0, 300, 220), ocultos: ['s4'] }, ...Object.fromEntries(procesos.map((id, i) => [id, a(550, -100 + i * 120, 160, 80)])) } } } }
+    });
+}
+for (const tipo of ['consumo', 'resultado'] as const) {
+    const m = baseB('OR', tipo);
+    const enlaces = Object.fromEntries(Object.entries(m.enlaces).map(([id, e]) => {
+        if (e.tipo !== 'consumo' && e.tipo !== 'resultado') throw Error('Fixture C/R');
+        return [id, { ...e, ruta: 'principal', mult: '+' as const }];
+    }));
+    casosB.push({ nombre: `B-v2-anotaciones-segmentos-${tipo}`, opd: 'sd', oraculo: 'T-218 T-219 DS10 y multiplicidad sobre segmentos propios reales', construido: true,
+        m: { ...m, enlaces, opds: { sd: { ...m.opds.sd!, apariciones: { ...m.opds.sd!.apariciones, p: a(200, 0, 160, 80) } } } }
+    });
+}
+test('T-223 B V2 inventario 34 modelos portables exactos más seis composiciones', () => {
+    expect(archivosB).toHaveLength(34);
+    expect(archivosB.filter(f => ['original16', 'degenerado2', 'DS10ruta2'].includes(f.grupo))).toHaveLength(20);
+    expect(casosB).toHaveLength(40);
+    expect(new Set(casosB.map(c => c.nombre)).size).toBe(40);
+    for (const archivo of archivosB) expect(createHash('sha256').update(archivo.jsonOriginal).digest('hex')).toBe(archivo.sha256);
+    for (const c of casosB) { expect(validarForma(c.m)).toEqual([]); expect(erroresContexto(c.m)).toEqual([]); }
+});
+for (const c of casosB) test(`T-223 golden ${c.nombre}: ${c.oraculo}`, () => {
+    const previo = JSON.stringify(c.m), e = escena(c.m, c.opd), svg = aTexto(dibujar(e, 'canon')), ruta = new URL(c.nombre + '.svg', carpeta);
+    expect(svg).not.toContain('data-ref');
+    expect(svg).not.toContain('#8e2a2e');
+    if (process.env.OPFORJA_GOLDEN === 'escribir') writeFileSync(ruta, svg);
+    expect(svg).toBe(readFileSync(ruta, 'utf8'));
+    expect(JSON.stringify(c.m)).toBe(previo);
+});
+if (process.env.OPFORJA_GOLDEN === 'escribir') test('T-223 B V2 recibo nuevo de caja y modelos, catálogo anterior separado', () => {
+    const manifest = casosB.map(c => { const e = escena(c.m, c.opd), svg = aTexto(dibujar(e, 'canon')); return { nombre: c.nombre, opd: c.opd, modelo: c.m, caja: e.caja, oraculo: c.oraculo, sha256: createHash('sha256').update(svg).digest('hex') }; });
+    writeFileSync('/tmp/opforja-rehacer/grafica-todas-ramas-escritora/implementacion-uniformes-X/golden-B-v2-manifest-X.json', JSON.stringify(manifest, null, 2) + '\n');
+    expect(manifest).toHaveLength(40);
+});
+
+// R2: dos contraejemplos exactos de centros ampliados; apéndice nuevo.
+const modelosGoldenR2: readonly Modelo[] = [
+    {
+        "id": "review-OR-consumo-distintos",
+        "nombre": "Modelo",
+        "raiz": "sd",
+        "secuencia": 100,
+        "unidadTiempo": "min",
+        "cosas": {
+            "o": {
+                "id": "o",
+                "nombre": "Registro",
+                "tipo": "objeto",
+                "esencia": "informacional",
+                "afiliacion": "sistemica",
+                "estados": [
+                    {
+                        "id": "s1",
+                        "nombre": "pendiente"
+                    },
+                    {
+                        "id": "s2",
+                        "nombre": "pagado"
+                    }
+                ]
+            },
+            "p": {
+                "id": "p",
+                "nombre": "Prepararaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "tipo": "proceso",
+                "esencia": "informacional",
+                "afiliacion": "sistemica"
+            },
+            "q": {
+                "id": "q",
+                "nombre": "Despacharaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "tipo": "proceso",
+                "esencia": "informacional",
+                "afiliacion": "sistemica"
+            }
+        },
+        "enlaces": {
+            "e1": {
+                "id": "e1",
+                "tipo": "consumo",
+                "objeto": "o",
+                "proceso": "p",
+                "estado": "s1"
+            },
+            "e2": {
+                "id": "e2",
+                "tipo": "consumo",
+                "objeto": "o",
+                "proceso": "q",
+                "estado": "s1"
+            }
+        },
+        "abanicos": {
+            "f": {
+                "id": "f",
+                "operador": "OR",
+                "enlaces": [
+                    "e1",
+                    "e2"
+                ]
+            }
+        },
+        "opds": {
+            "sd": {
+                "id": "sd",
+                "tipo": "raiz",
+                "apariciones": {
+                    "o": {
+                        "x": 0,
+                        "y": 0,
+                        "ancho": 300,
+                        "alto": 220
+                    },
+                    "p": {
+                        "x": -200,
+                        "y": -150,
+                        "ancho": 160,
+                        "alto": 80
+                    },
+                    "q": {
+                        "x": -200,
+                        "y": 350,
+                        "ancho": 160,
+                        "alto": 80
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "review-OR-resultado-distintos",
+        "nombre": "Modelo",
+        "raiz": "sd",
+        "secuencia": 100,
+        "unidadTiempo": "min",
+        "cosas": {
+            "o": {
+                "id": "o",
+                "nombre": "Registro",
+                "tipo": "objeto",
+                "esencia": "informacional",
+                "afiliacion": "sistemica",
+                "estados": [
+                    {
+                        "id": "s1",
+                        "nombre": "pendiente"
+                    },
+                    {
+                        "id": "s2",
+                        "nombre": "pagado"
+                    }
+                ]
+            },
+            "p": {
+                "id": "p",
+                "nombre": "Prepararaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "tipo": "proceso",
+                "esencia": "informacional",
+                "afiliacion": "sistemica"
+            },
+            "q": {
+                "id": "q",
+                "nombre": "Despacharaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "tipo": "proceso",
+                "esencia": "informacional",
+                "afiliacion": "sistemica"
+            }
+        },
+        "enlaces": {
+            "e1": {
+                "id": "e1",
+                "tipo": "resultado",
+                "objeto": "o",
+                "proceso": "p",
+                "estado": "s1"
+            },
+            "e2": {
+                "id": "e2",
+                "tipo": "resultado",
+                "objeto": "o",
+                "proceso": "q",
+                "estado": "s1"
+            }
+        },
+        "abanicos": {
+            "f": {
+                "id": "f",
+                "operador": "OR",
+                "enlaces": [
+                    "e1",
+                    "e2"
+                ]
+            }
+        },
+        "opds": {
+            "sd": {
+                "id": "sd",
+                "tipo": "raiz",
+                "apariciones": {
+                    "o": {
+                        "x": 0,
+                        "y": 0,
+                        "ancho": 300,
+                        "alto": 220
+                    },
+                    "p": {
+                        "x": -200,
+                        "y": -150,
+                        "ancho": 160,
+                        "alto": 80
+                    },
+                    "q": {
+                        "x": -200,
+                        "y": 350,
+                        "ancho": 160,
+                        "alto": 80
+                    }
+                }
+            }
+        }
+    }
+];
+for (const m of modelosGoldenR2) test(`T-223 golden B-v2-R2-centros-efectivos-${m.enlaces.e1!.tipo}: T-206 T-216`, () => {
+    expect(validarForma(m)).toEqual([]); expect(erroresContexto(m)).toEqual([]);
+    const previo = JSON.stringify(m), e = escena(m, 'sd'), svg = aTexto(dibujar(e, 'canon'));
+    const ruta = new URL(`B-v2-R2-centros-efectivos-${m.enlaces.e1!.tipo}.svg`, carpeta);
+    if (process.env.OPFORJA_GOLDEN === 'escribir') writeFileSync(ruta, svg);
+    expect(svg).toBe(readFileSync(ruta, 'utf8'));
+    expect(JSON.stringify(m)).toBe(previo);
+});
+
+// APPEND X: datos de los ocho RED de duración y cuatro contenedores nativos.
+const datosUniformesX = JSON.parse(readFileSync(new URL('./pruebas/modelos-uniformes-X.json',import.meta.url),'utf8')) as readonly {id:string;opd:string;sha256:string;jsonOriginal:string}[];
+for(const dato of datosUniformesX) test(`T-223 golden ${dato.id}: T-206 T-216 X tinta completa`,()=>{
+    expect(createHash('sha256').update(dato.jsonOriginal).digest('hex')).toBe(dato.sha256);
+    const m=JSON.parse(dato.jsonOriginal) as Modelo; expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);
+    const previo=JSON.stringify(m),s=escena(m,dato.opd),svg=aTexto(dibujar(s,'canon')),ruta=new URL(`${dato.id}.svg`,carpeta);
+    if(process.env.OPFORJA_GOLDEN==='escribir')writeFileSync(ruta,svg);
+    expect(svg).toBe(readFileSync(ruta,'utf8'));expect(JSON.stringify(m)).toBe(previo);
+});

@@ -322,12 +322,16 @@ function comprobarCriterioA(base: Modelo, referencia: { x: number; y: number }, 
     expect(vista.abanicos).toHaveLength(1);
     expect(vista.abanicos[0]).toMatchObject({ abanico: 'f', comun: 'o', operador: f.operador, ramas: ['e1', 'e2'] });
     expect(e.aristas.map(a => a.ref)).toEqual([{ tipo: 'enlace', id: 'e1' }, { tipo: 'enlace', id: 'e2' }]);
-    expect(e.arcos.map(a => [a.abanico, a.radio, a.doble])).toEqual(f.operador === 'OR' ? [['f', 30, true], ['f', 35, true]] : [['f', 30, false]]);
-    for (const arco of e.arcos) {
-        expect(arco.centro.x).toBeCloseTo(referencia.x, 9);
-        expect(arco.centro.y).toBeCloseTo(referencia.y, 9);
-        expect(arco.desde).toBeCloseTo(sector[0], 9);
-        expect(arco.hasta).toBeCloseTo(sector[1], 9);
+    if (uniforme) {
+        expect(e.arcos.map(a => [a.abanico, a.radio, a.doble])).toEqual(f.operador === 'OR' ? [['f', 30, true], ['f', 35, true]] : [['f', 30, false]]);
+        for (const arco of e.arcos) {
+            expect(arco.centro.x).toBeCloseTo(referencia.x, 9);
+            expect(arco.centro.y).toBeCloseTo(referencia.y, 9);
+            expect(arco.desde).toBeCloseTo(sector[0], 9);
+            expect(arco.hasta).toBeCloseTo(sector[1], 9);
+        }
+    } else {
+        comprobarB(base);
     }
     for (const id of f.enlaces) {
         const enlace = base.enlaces[id]!;
@@ -335,11 +339,11 @@ function comprobarCriterioA(base: Modelo, referencia: { x: number; y: number }, 
         const arista = e.aristas.find(a => a.ref.id === id)!, tramo = arista.tramos[0]!;
         expect(arista.hechos).toEqual([id]);
         expect(arista.tramos).toHaveLength(1);
-        expect(tramo.puntos).toHaveLength(2);
+        if (uniforme) expect(tramo.puntos).toHaveLength(2); else expect(tramo.puntos.length).toBeGreaterThanOrEqual(2);
         expect(tramo.inicio).toBeUndefined();
         expect(tramo.fin).toBe(enlace.tipo === 'agente' ? 'piruletaNegra' : enlace.tipo === 'instrumento' ? 'piruletaBlanca' : 'punta');
-        const terminal = enlace.tipo === 'resultado' ? tramo.puntos[1]! : tramo.puntos[0]!, proceso = e.nodos.find(n => n.ref.id === enlace.proceso)!;
-        const terminalP = enlace.tipo === 'resultado' ? tramo.puntos[0]! : tramo.puntos[1]!, pc = proceso.caja;
+        const terminal = enlace.tipo === 'resultado' ? tramo.puntos.at(-1)! : tramo.puntos[0]!, proceso = e.nodos.find(n => n.ref.id === enlace.proceso)!;
+        const terminalP = enlace.tipo === 'resultado' ? tramo.puntos[0]! : tramo.puntos.at(-1)!, pc = proceso.caja;
         expect(((terminalP.x - pc.x - pc.ancho / 2) / (pc.ancho / 2)) ** 2 + ((terminalP.y - pc.y - pc.alto / 2) / (pc.alto / 2)) ** 2).toBeCloseTo(1, 9);
         const estado = 'estado' in enlace ? enlace.estado : undefined;
         if (uniforme) {
@@ -357,7 +361,14 @@ function comprobarCriterioA(base: Modelo, referencia: { x: number; y: number }, 
             expect(Math.hypot(terminal.x - cx, terminal.y - cy)).toBeCloseTo(8, 9);
             // Terminal se conserva exactamente como el enlace standalone del mismo hecho.
             const sinFan = escena({ ...base, abanicos: {} }, 'sd').aristas.find(a => a.ref.id === id)!.tramos[0]!;
-            expect(terminal).toEqual(enlace.tipo === 'resultado' ? sinFan.puntos[1]! : sinFan.puntos[0]!);
+            if (tramo.puntos.length === 2) expect(terminal).toEqual(enlace.tipo === 'resultado' ? sinFan.puntos[1]! : sinFan.puntos[0]!);
+            else {
+                const propio = estado ? objeto.estados.find(s => s.ref.id === estado)!.caja : objeto.caja;
+                const adj = enlace.tipo === 'resultado' ? tramo.puntos.at(-2)! : tramo.puntos[1]!;
+                const cx = propio.x + propio.ancho / 2, cy = propio.y + propio.alto / 2;
+                expect((terminal.x - cx) * (adj.y - cy) - (terminal.y - cy) * (adj.x - cx)).toBeCloseTo(0, 7);
+                expect((terminal.x - cx) * (adj.x - cx) + (terminal.y - cy) * (adj.y - cy)).toBeGreaterThan(0);
+            }
         } else {
             const c = objeto.caja;
             expect(terminal.x).toBeGreaterThanOrEqual(c.x);
@@ -366,7 +377,14 @@ function comprobarCriterioA(base: Modelo, referencia: { x: number; y: number }, 
             expect(terminal.y).toBeLessThanOrEqual(c.y + c.alto);
             expect(Math.min(Math.abs(terminal.x - c.x), Math.abs(terminal.x - c.x - c.ancho), Math.abs(terminal.y - c.y), Math.abs(terminal.y - c.y - c.alto))).toBeCloseTo(0, 9);
             const sinFan = escena({ ...base, abanicos: {} }, 'sd').aristas.find(a => a.ref.id === id)!.tramos[0]!;
-            expect(terminal).toEqual(enlace.tipo === 'resultado' ? sinFan.puntos[1]! : sinFan.puntos[0]!);
+            if (tramo.puntos.length === 2) expect(terminal).toEqual(enlace.tipo === 'resultado' ? sinFan.puntos[1]! : sinFan.puntos[0]!);
+            else {
+                const propio = estado ? objeto.estados.find(s => s.ref.id === estado)!.caja : objeto.caja;
+                const adj = enlace.tipo === 'resultado' ? tramo.puntos.at(-2)! : tramo.puntos[1]!;
+                const cx = propio.x + propio.ancho / 2, cy = propio.y + propio.alto / 2;
+                expect((terminal.x - cx) * (adj.y - cy) - (terminal.y - cy) * (adj.x - cx)).toBeCloseTo(0, 7);
+                expect((terminal.x - cx) * (adj.x - cx) + (terminal.y - cy) * (adj.y - cy)).toBeGreaterThan(0);
+            }
         }
     }
     const svg = aTexto(dibujar(e, 'canon'));
@@ -391,7 +409,12 @@ for (const [tipo, operador, parcial] of [['consumo', 'XOR', false], ['agente', '
         expect(centro('o')).toEqual([150, 110]);
         expect(centro('p')).toEqual([630, 40]);
         expect(centro('q')).toEqual([-330, 180]);
-        if (parcial) expect(e.aristas.find(a => a.ref.id === 'e2')!.tramos[0]!.puntos[0]).toEqual({ x: 0, y: 131.875 });
+        if (parcial) {
+            const terminal = e.aristas.find(a => a.ref.id === 'e2')!.tramos[0]!.puntos[0]!;
+            expect(terminal.x).toBeGreaterThanOrEqual(0); expect(terminal.x).toBeLessThanOrEqual(300);
+            expect(terminal.y).toBeGreaterThanOrEqual(0); expect(terminal.y).toBeLessThanOrEqual(220);
+            expect(Math.min(terminal.x, 300 - terminal.x, terminal.y, 220 - terminal.y)).toBeCloseTo(0, 9);
+        }
         comprobarCriterioA(base, { x: 300, y: 110 }, [3.030935432415898, 6.074162364373322]);
     });
 for (const [tipo, operador] of [['consumo', 'XOR'], ['resultado', 'OR']] as const)
@@ -430,7 +453,11 @@ test('T-216 criterio A identidad distinta no se vuelve uniforme por nombre igual
         expect(terminal.x).toBeLessThanOrEqual(capsula.caja.x + capsula.caja.ancho);
     }
     expect(e.arcos).toHaveLength(2);
-    expect(e.arcos[0]!.centro).toEqual({ x: 300, y: 135 });
+    for (const arco of e.arcos) {
+        expect(arco.centro.x).toBeGreaterThanOrEqual(0); expect(arco.centro.x).toBeLessThanOrEqual(300);
+        expect(arco.centro.y).toBeGreaterThanOrEqual(0); expect(arco.centro.y).toBeLessThanOrEqual(220);
+        for (const a of e.aristas) expect(crucesB(arco, a.tramos[0]!.puntos).length).toBeGreaterThan(0);
+    }
     const exportado = exportarDiagrama(base, 'sd', { version: 'criterio-A-negativo' });
     expect(exportado.ok).toBe(false);
     if (exportado.ok) throw Error('Nombres de estado duplicados no exportables');
@@ -454,3 +481,1172 @@ for (const especificado of [true, false])
             comprobarCriterioA(base, referencia, sector, true);
         }
     });
+
+// B V2: el requisito alcanza cada miembro y cada radio del operador.
+import type { Escena, Punto } from './escena';
+// Oráculo independiente: raíces de la intersección círculo/segmento FINITO.
+function crucesB(arco: Escena['arcos'][number], puntos: readonly Punto[]): Punto[] {
+    const cruces: Punto[] = [];
+    for (let i = 1; i < puntos.length; i++) {
+        const a = puntos[i - 1]!, b = puntos[i]!, dx = b.x - a.x, dy = b.y - a.y;
+        const x = a.x - arco.centro.x, y = a.y - arco.centro.y;
+        const aa = dx * dx + dy * dy, bb = 2 * (x * dx + y * dy), cc = x * x + y * y - arco.radio ** 2;
+        const disc = bb * bb - 4 * aa * cc;
+        if (!aa || disc < 0) continue;
+        for (const t of [(-bb - Math.sqrt(disc)) / (2 * aa), (-bb + Math.sqrt(disc)) / (2 * aa)]) {
+            if (t < -1e-9 || t > 1 + 1e-9) continue;
+            const p = { x: a.x + t * dx, y: a.y + t * dy };
+            let angle = Math.atan2(p.y - arco.centro.y, p.x - arco.centro.x);
+            while (angle < arco.desde - 1e-9) angle += 2 * Math.PI;
+            if (angle <= arco.hasta + 1e-9) cruces.push(p);
+        }
+    }
+    return cruces;
+}
+function comprobarB(base: Modelo): void {
+    expect(validarForma(base)).toEqual([]);
+    expect(erroresContexto(base)).toEqual([]);
+    expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+    const antes = JSON.stringify(base);
+    congelarCriterioA(base);
+    const s = escena(base, 'sd'), vista = proyectar(base, 'sd');
+    const opacos = [
+        ...s.nodos.map(n => ({ x: n.caja.x - 1, y: n.caja.y - 1, ancho: n.caja.ancho + 2 + (n.fisica ? 8 : 0), alto: n.caja.alto + 2 + (n.fisica ? 8 : 0) })),
+        ...s.aristas.flatMap(a => a.etiquetas.map(l => ({ x: l.en.x - anchoTexto(l.texto, 11, l.italica) / 2 - 1, y: l.en.y - 12, ancho: anchoTexto(l.texto, 11, l.italica) + 2, alto: 16 }))),
+        ...s.aristas.flatMap(a => a.tramos.flatMap(t => {
+            const p = t.puntos.at(-1)!, adj = t.puntos.at(-2)!, len = Math.hypot(p.x - adj.x, p.y - adj.y), ux = (p.x - adj.x) / len, uy = (p.y - adj.y) / len;
+            const corners = [[0, -10], [0, 10], [-24, -10], [-24, 10]].map(([x, y]) => ({ x: p.x + x! * ux - y! * uy, y: p.y + x! * uy + y! * ux }));
+            const x = Math.min(...corners.map(p => p.x)), y = Math.min(...corners.map(p => p.y));
+            return t.fin ? [{ x: x - 1, y: y - 1, ancho: Math.max(...corners.map(p => p.x)) - x + 2, alto: Math.max(...corners.map(p => p.y)) - y + 2 }] : [];
+        }))
+    ];
+    for (const f of vista.abanicos) {
+        const node = s.nodos.find(n => n.ref.id === f.comun)!;
+        const arcos = s.arcos.filter(a => a.abanico === f.abanico);
+        expect(arcos).toHaveLength(f.operador === 'OR' ? 2 : 1);
+        if (f.operador === 'OR') expect(arcos[1]!.radio - arcos[0]!.radio).toBeCloseTo(5, 9);
+        for (const arco of arcos) {
+            expect(arco.centro.x).toBeGreaterThanOrEqual(node.caja.x);
+            expect(arco.centro.x).toBeLessThanOrEqual(node.caja.x + node.caja.ancho);
+            expect(arco.centro.y).toBeGreaterThanOrEqual(node.caja.y);
+            expect(arco.centro.y).toBeLessThanOrEqual(node.caja.y + node.caja.alto);
+            expect(arco.radio).toBeGreaterThan(0);
+            // Analítico sobre TODO el sector, incluidos extremos: no sólo sus
+            // cruces con las ramas ni una nube de muestras sobre el círculo.
+            for (const r of opacos) {
+                const corners = [{ x: r.x, y: r.y }, { x: r.x + r.ancho, y: r.y }, { x: r.x + r.ancho, y: r.y + r.alto }, { x: r.x, y: r.y + r.alto }, { x: r.x, y: r.y }];
+                expect(crucesB(arco, corners)).toHaveLength(0);
+                for (const angle of [arco.desde, arco.hasta]) {
+                    const x = arco.centro.x + arco.radio * Math.cos(angle), y = arco.centro.y + arco.radio * Math.sin(angle);
+                    expect(x >= r.x && x <= r.x + r.ancho && y >= r.y && y <= r.y + r.alto).toBe(false);
+                }
+            }
+            for (const id of f.ramas) {
+                const a = s.aristas.find(a => a.ref.id === id)!;
+                expect(a.hechos).toEqual([id]);
+                const cruces = a.tramos.flatMap(t => crucesB(arco, t.puntos));
+                expect(cruces.length).toBeGreaterThan(0);
+                // El cruce del arco no puede quedar oculto por el cuerpo común.
+                expect(cruces.some(p => p.x < node.caja.x - 1 || p.x > node.caja.x + node.caja.ancho + 9 || p.y < node.caja.y - 1 || p.y > node.caja.y + node.caja.alto + 9)).toBe(true);
+            }
+        }
+    }
+    expect(JSON.stringify(base)).toBe(antes);
+    expect(exportarDiagrama(base, 'sd', { version: 'B-v2' }).ok).toBe(true);
+}
+for (const operador of ['XOR', 'OR'] as const)
+    for (const tipo of ['consumo', 'resultado', 'agente', 'instrumento'] as const)
+        for (const parcial of [false, true])
+            test(`T-216 B V2 TODOS ${operador} ${tipo} ${parcial ? 'ausencia' : 'distintos'}`, () => comprobarB(modeloCriterioA(tipo, operador, parcial)));
+for (const [tipo, operador, parcial] of [['consumo', 'XOR', false], ['agente', 'OR', true]] as const)
+    test(`T-216 B V2 degenerado ${operador} ${tipo}`, () => {
+        const original = modeloCriterioA(tipo, operador, parcial);
+        comprobarB({ ...original, opds: { sd: { ...original.opds.sd!, apariciones: { ...original.opds.sd!.apariciones, q: { x: -410, y: 140, ancho: 160, alto: 80 } } } } });
+    });
+for (const [tipo, operador] of [['consumo', 'XOR'], ['resultado', 'OR']] as const)
+    for (const caso of ['DS10', 'proximo', 'dos-proximos', 'solapado'] as const)
+        test(`T-216 T-219 B V2 ${operador} ${tipo} ${caso}`, () => {
+            const original = modeloCriterioA(tipo, operador, false);
+            const apariciones = { ...original.opds.sd!.apariciones };
+            if (caso !== 'DS10') apariciones.p = { ...apariciones.p!, x: caso === 'solapado' ? 200 : 310 };
+            if (caso === 'dos-proximos') apariciones.q = { ...apariciones.q!, x: 310, y: 230 };
+            const enlaces = caso === 'DS10' ? Object.fromEntries(Object.entries(original.enlaces).map(([id, e]) => [id, { ...e, ruta: 'principal' } as Enlace])) : original.enlaces;
+            comprobarB({ ...original, enlaces, opds: { sd: { ...original.opds.sd!, apariciones } } });
+        });
+for (const operador of ['XOR', 'OR'] as const)
+    test(`T-216 B V2 tres ramas ${operador}`, () => {
+        const m = modeloCriterioA('consumo', operador, false);
+        comprobarB({ ...m, cosas: { ...m.cosas, r: p('r', 'Registrar') }, enlaces: { ...m.enlaces, e3: { id: 'e3', tipo: 'consumo', objeto: 'o', proceso: 'r', estado: 's1' } }, abanicos: { f: { ...m.abanicos.f!, enlaces: ['e1', 'e2', 'e3'] } }, opds: { sd: { ...m.opds.sd!, apariciones: { ...m.opds.sd!.apariciones, r: { x: 550, y: 600, ancho: 160, alto: 80 } } } } });
+    });
+
+import { intersectaCaja } from './geometria';
+test('T-216 B V2 degenerado mantiene continuidad sin cruzar otra cápsula', () => {
+    const m = modeloCriterioA('consumo', 'XOR', false);
+    const base: Modelo = { ...m, opds: { sd: { ...m.opds.sd!, apariciones: { ...m.opds.sd!.apariciones, q: { x: -410, y: 140, ancho: 160, alto: 80 } } } } };
+    expect(validarForma(base)).toEqual([]);
+    expect(erroresContexto(base)).toEqual([]);
+    expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+    const s = escena(base, 'sd'), otra = s.nodos.find(n => n.ref.id === 'o')!.estados.find(s => s.ref.id === 's1')!.caja;
+    const puntos = s.aristas.find(a => a.ref.id === 'e2')!.tramos[0]!.puntos;
+    expect(puntos.slice(1).some((b, i) => intersectaCaja(puntos[i]!, b, otra, 'rectangulo'))).toBe(false);
+});
+
+for (const operador of ['XOR', 'OR'] as const)
+    for (const tipo of ['consumo', 'resultado', 'agente', 'instrumento'] as const)
+        test(`T-206 T-216 uniforme tinta visible ${operador} ${tipo}`, () => {
+            const m = modeloCriterioA(tipo, operador, false);
+            const base: Modelo = { ...m, enlaces: Object.fromEntries(Object.entries(m.enlaces).map(([id, e]) => [id, { ...e, estado: 's1' } as Enlace])) };
+            expect(validarForma(base)).toEqual([]);
+            expect(erroresContexto(base)).toEqual([]);
+            expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+            const antes = JSON.stringify(base); congelarCriterioA(base);
+            const s = escena(base, 'sd'), objeto = s.nodos.find(n => n.ref.id === 'o')!;
+            expect(s.arcos.map(a => a.radio)).toEqual(operador === 'OR' ? [30, 35] : [30]);
+            for (const arco of s.arcos) {
+                const angulos = [arco.desde, arco.hasta, ...[0, Math.PI, 2 * Math.PI, 3 * Math.PI, 4 * Math.PI].filter(t => t >= arco.desde && t <= arco.hasta)];
+                const minX = Math.min(...angulos.map(t => arco.centro.x + arco.radio * Math.cos(t))) - .75;
+                expect(minX).toBeGreaterThan(objeto.caja.x + objeto.caja.ancho + (objeto.fisica ? 8 : 0));
+            }
+            const otro = objeto.estados.find(s => s.ref.id === 's2')!.caja;
+            for (const a of s.aristas) {
+                expect(a.tramos).toHaveLength(1);
+                expect(a.tramos[0]!.puntos).toHaveLength(2);
+                expect(a.tramos[0]!.puntos.slice(1).some((b, i) => intersectaCaja(a.tramos[0]!.puntos[i]!, b, otro, 'rectangulo'))).toBe(false);
+            }
+            expect(objeto.estados.map(s => s.ref.id)).toEqual(['s1', 's2']);
+            expect(JSON.stringify(base)).toBe(antes);
+        });
+
+for (const tipo of ['consumo', 'resultado'] as const)
+    test(`T-218 T-219 B V2 anotaciones siguen segmentos reales ${tipo}`, () => {
+        const m = modeloCriterioA(tipo, 'OR', false);
+        const base: Modelo = { ...m, enlaces: Object.fromEntries(Object.entries(m.enlaces).map(([id, e]) => { if (e.tipo !== 'consumo' && e.tipo !== 'resultado') throw Error('Fixture C/R'); return [id, { ...e, ruta: 'principal', mult: '+' as const }]; })), opds: { sd: { ...m.opds.sd!, apariciones: { ...m.opds.sd!.apariciones, p: { x: 200, y: 0, ancho: 160, alto: 80 } } } } };
+        expect(validarForma(base)).toEqual([]); expect(erroresContexto(base)).toEqual([]); expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+        // También contrastar el sector contra etiquetas y marcadores FINALES,
+        // después de derivar cada recorrido; no sólo las anotaciones de entrada.
+        comprobarB(base);
+        const s = escena(base, 'sd');
+        for (const a of s.aristas) {
+            const ps = a.tramos[0]!.puntos;
+            expect(ps.length).toBeGreaterThan(2);
+            const desdeO = tipo === 'resultado' ? [...ps].reverse() : ps;
+            const ruta = a.etiquetas.find(l => l.clave === 'ruta')!.en;
+            expect(desdeO.slice(1).some((b, i) => {
+                const p = desdeO[i]!, len = Math.hypot(b.x - p.x, b.y - p.y);
+                return Math.hypot(ruta.x - (p.x + b.x) / 2 - 10 * (b.y - p.y) / len, ruta.y - (p.y + b.y) / 2 + 10 * (b.x - p.x) / len) < 1e-8;
+            })).toBe(true);
+            const x = desdeO[0]!, y = desdeO[1]!, len = Math.hypot(y.x - x.x, y.y - x.y), mult = a.etiquetas.find(l => l.clave === 'mult-origen')!.en;
+            expect(mult.x).toBeCloseTo(x.x + 14 * (y.x - x.x) / len + 10 * (y.y - x.y) / len, 9);
+            expect(mult.y).toBeCloseTo(x.y + 14 * (y.y - x.y) / len - 10 * (y.x - x.x) / len, 9);
+        }
+    });
+
+test('T-216 B V2 múltiples fans conservan pertenencia e intersecciones', () => {
+    const m = modeloCriterioA('consumo', 'XOR', false), objeto = m.cosas.o! as Objeto;
+    const w: Objeto = { ...objeto, id: 'w', nombre: 'Factura', estados: [{ id: 'w1', nombre: 'abierto' }, { id: 'w2', nombre: 'cerrado' }] };
+    const base: Modelo = { ...m, cosas: { ...m.cosas, w, u: p('u', 'Facturar'), v: p('v', 'Cerrar') }, enlaces: { ...m.enlaces, e3: { id: 'e3', tipo: 'consumo', objeto: 'w', proceso: 'u', estado: 'w1' }, e4: { id: 'e4', tipo: 'consumo', objeto: 'w', proceso: 'v', estado: 'w2' } }, abanicos: { ...m.abanicos, g: { id: 'g', operador: 'OR', enlaces: ['e3', 'e4'] } }, opds: { sd: { ...m.opds.sd!, apariciones: { ...m.opds.sd!.apariciones, w: { x: 900, y: 0, ancho: 300, alto: 220 }, u: { x: 1450, y: 0, ancho: 160, alto: 80 }, v: { x: 1450, y: 300, ancho: 160, alto: 80 } } } } };
+    comprobarB(base);
+    const s = escena(base, 'sd');
+    expect(s.arcos.map(a => a.abanico)).toEqual(['f', 'g', 'g']);
+});
+test('T-216 B V2 repetibilidad, permutación y movimientos pequeños preservan los predicados', () => {
+    for (const operador of ['XOR', 'OR'] as const) for (const tipo of ['consumo', 'resultado'] as const) {
+        const original = modeloCriterioA(tipo, operador, false);
+        const base = escena(original, 'sd');
+        const firma = (s: Escena) => JSON.stringify({ arcos: s.arcos, caminos: [...s.aristas].sort((a, b) => a.ref.id.localeCompare(b.ref.id)).map(a => [a.ref.id, a.tramos]) });
+        expect(firma(escena(JSON.parse(JSON.stringify(original)), 'sd'))).toBe(firma(base));
+        const permutado: Modelo = { ...original, enlaces: Object.fromEntries(Object.entries(original.enlaces).reverse()), abanicos: { f: { ...original.abanicos.f!, enlaces: [...original.abanicos.f!.enlaces].reverse() } } };
+        expect(firma(escena(permutado, 'sd'))).toBe(firma(base));
+        for (const delta of [-1, 1]) for (const eje of ['x', 'y'] as const) {
+            const a = original.opds.sd!.apariciones.p!;
+            const m: Modelo = { ...original, opds: { sd: { ...original.opds.sd!, apariciones: { ...original.opds.sd!.apariciones, p: { ...a, [eje]: a[eje] + delta } } } } };
+            comprobarB(m);
+            const s = escena(m, 'sd');
+            expect(Number.isFinite(s.caja.ancho + s.caja.alto)).toBe(true);
+            // Esta guarda evita saltos sin límite, no afirma continuidad universal.
+            expect(Math.abs(s.arcos[0]!.radio - base.arcos[0]!.radio)).toBeLessThan(10);
+        }
+    }
+});
+
+test('T-216 B V2 ausencia agente no pierde continuidad en sombra propia', () => {
+    const m = modeloCriterioA('agente', 'OR', true);
+    const base: Modelo = { ...m, opds: { sd: { ...m.opds.sd!, apariciones: { ...m.opds.sd!.apariciones, q: { x: -410, y: 140, ancho: 160, alto: 80 } } } } };
+    expect(validarForma(base)).toEqual([]); expect(erroresContexto(base)).toEqual([]); expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+    const s = escena(base, 'sd'), o = s.nodos.find(n => n.ref.id === 'o')!, ps = s.aristas.find(a => a.ref.id === 'e2')!.tramos[0]!.puntos;
+    const shadow = { x: o.caja.x + o.caja.ancho + .01, y: o.caja.y + 8, ancho: 7.99, alto: o.caja.alto };
+    expect(ps.slice(1).some((b, i) => intersectaCaja(ps[i]!, b, shadow, 'rectangulo'))).toBe(false);
+});
+
+for (const operador of ['XOR', 'OR'] as const) for (const tipo of ['consumo', 'resultado', 'agente', 'instrumento'] as const) for (const parcial of [false, true])
+    test(`T-206 packing conserva lectura standalone ${operador} ${tipo} ${parcial ? 'ausencia' : 'distintos'}`, () => {
+        const m = modeloCriterioA(tipo, operador, parcial), base: Modelo = { ...m, abanicos: {} };
+        expect(validarForma(base)).toEqual([]); expect(erroresContexto(base)).toEqual([]); expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+        const s = escena(base, 'sd'), n = s.nodos.find(n => n.ref.id === 'o')!;
+        for (const a of s.aristas) {
+            const enlace = base.enlaces[a.ref.id]!;
+            if (!('estado' in enlace) || !enlace.estado) continue;
+            for (const otro of n.estados.filter(s => s.ref.id !== enlace.estado)) {
+                const ps = a.tramos[0]!.puntos;
+                expect(ps.slice(1).some((b, i) => intersectaCaja(ps[i]!, b, otro.caja, 'rectangulo'))).toBe(false);
+            }
+        }
+    });
+
+for (const tipo of ['consumo', 'resultado'] as const)
+    test(`T-216 B V2 primaria conserva rectas legibles ${tipo}`, () => {
+        const base = modeloCriterioA(tipo, 'OR', false);
+        expect(validarForma(base)).toEqual([]); expect(erroresContexto(base)).toEqual([]); expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+        const actual = escena(base, 'sd'), standalone = escena({ ...base, abanicos: {} }, 'sd');
+        // Witness analítico original: C=(150,110), r206.01075237738274/r+5
+        // cruza ambos segmentos fuera de O. El tramo superior pasa por fuera de
+        // la esquina rx8 de pagado: su bbox no es una cápsula opaca rectangular.
+        for (const a of actual.aristas) expect(a.tramos).toEqual(standalone.aristas.find(s => s.ref.id === a.ref.id)!.tramos);
+    });
+
+test('T-206 T-207 T-208 T-216 packing de tres fans conserva decoración y región inferior', () => {
+    const m = modeloCriterioA('consumo', 'OR', false), objeto = m.cosas.o! as Objeto;
+    const estados = [{ id: 's1', nombre: 'pendiente', inicial: true as const, final: true as const }, { id: 's2', nombre: 'pagado' }, { id: 's3', nombre: 'cerrado' }, { id: 's4', nombre: 'cancelado' }];
+    const procesos = ['p', 'q', 'u', 'v', 'w', 'z'], nombres = ['Preparar', 'Despachar', 'Cobrar', 'Liquidar', 'Cerrar', 'Archivar'];
+    const enlaces = Object.fromEntries(procesos.map((proceso, i) => [`e${i + 1}`, { id: `e${i + 1}`, tipo: 'consumo' as const, objeto: 'o', proceso, estado: `s${Math.floor(i / 2) + 1}` }]));
+    const base: Modelo = { ...m, cosas: { o: { ...objeto, estados, porDefecto: 's1', current: 's2' }, ...Object.fromEntries(procesos.map((id, i) => [id, p(id, nombres[i]!)])) }, enlaces, abanicos: Object.fromEntries(['f', 'g', 'h'].map((id, i) => [id, { id, operador: 'OR' as const, enlaces: [`e${2 * i + 1}`, `e${2 * i + 2}`] }])), opds: { sd: { ...m.opds.sd!, apariciones: { o: { ...m.opds.sd!.apariciones.o!, ocultos: ['s4'] }, ...Object.fromEntries(procesos.map((id, i) => [id, { x: 550, y: -100 + i * 120, ancho: 160, alto: 80 }])) } } } };
+    expect(validarForma(base)).toEqual([]); expect(erroresContexto(base)).toEqual([]); expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+    const antes = JSON.stringify(base); congelarCriterioA(base);
+    const s = escena(base, 'sd'), n = s.nodos.find(n => n.ref.id === 'o')!;
+    expect(n.estados.map(s => s.ref.id)).toEqual(['s1', 's2', 's3']);
+    expect(n.chipOcultos).toMatchObject({ n: 1, caja: { alto: 16 } });
+    expect(n.estados[0]).toMatchObject({ inicial: true, final: true, porDefecto: true });
+    expect(n.estados[1]).toMatchObject({ current: true });
+    for (const estado of n.estados) {
+        expect(estado.caja.alto).toBe(26);
+        expect(estado.caja.ancho).toBeCloseTo(anchoTexto(estado.nombre, 13, true) + 16 + (estado.inicial ? 6 : 0), 9);
+        const superior = estado.caja.y - (estado.current || estado.porDefecto ? 12 : 0);
+        expect(superior).toBeGreaterThan(n.rotulo.y + 4);
+        expect(estado.caja.x).toBeGreaterThanOrEqual(n.caja.x);
+        expect(estado.caja.x + estado.caja.ancho).toBeLessThanOrEqual(n.caja.x + n.caja.ancho);
+    }
+    expect(s.arcos.map(a => a.radio)).toEqual([30, 35, 30, 35, 30, 35]);
+    // Sector completo y dos radios; el packing no puede ocultar h detrás de O.
+    const r = { x: n.caja.x - .75, y: n.caja.y - .75, ancho: n.caja.ancho + 1.5, alto: n.caja.alto + 1.5 };
+    const contornoO = [{ x: r.x, y: r.y }, { x: r.x + r.ancho, y: r.y }, { x: r.x + r.ancho, y: r.y + r.alto }, { x: r.x, y: r.y + r.alto }, { x: r.x, y: r.y }];
+    for (const arco of s.arcos) {
+        expect(crucesB(arco, contornoO)).toHaveLength(0);
+        for (const angle of [arco.desde, arco.hasta]) {
+            const x = arco.centro.x + arco.radio * Math.cos(angle), y = arco.centro.y + arco.radio * Math.sin(angle);
+            expect(x >= r.x && x <= r.x + r.ancho && y >= r.y && y <= r.y + r.alto).toBe(false);
+        }
+    }
+    expect(s.aristas.every(a => a.tramos[0]!.puntos.length === 2)).toBe(true);
+    expect(JSON.stringify(base)).toBe(antes);
+});
+
+// Bytes de los 20 modelos archivados originales, portables; no constructor análogo.
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+const archivosOriginalesB = (JSON.parse(readFileSync(new URL('./pruebas/modelos-B-v2.json', import.meta.url), 'utf8')) as readonly { id: string; grupo: string; sha256: string; jsonOriginal: string }[]).filter(a => ['original16', 'degenerado2', 'DS10ruta2'].includes(a.grupo));
+for (const archivo of archivosOriginalesB)
+    test(`T-216 T-219 B V2 archivo exacto ${archivo.id}`, () => {
+        expect(createHash('sha256').update(archivo.jsonOriginal).digest('hex')).toBe(archivo.sha256);
+        comprobarB(JSON.parse(archivo.jsonOriginal) as Modelo);
+    });
+
+import { intersectaCapsula } from './geometria';
+for (const archivo of (JSON.parse(readFileSync(new URL('./pruebas/modelos-B-v2.json', import.meta.url), 'utf8')) as readonly { id: string; grupo: string; jsonOriginal: string }[]).filter(a => ['original16', 'degenerado2', 'DS10ruta2', 'stress6'].includes(a.grupo)))
+    test(`T-216 B V2 continuidad por identidad sobre modelo portátil ${archivo.id}`, () => {
+        const base = JSON.parse(archivo.jsonOriginal) as Modelo;
+        expect(validarForma(base)).toEqual([]); expect(erroresContexto(base)).toEqual([]); expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+        const previo = JSON.stringify(base); congelarCriterioA(base);
+        const s = escena(base, 'sd');
+        for (const a of s.aristas) {
+            const e = base.enlaces[a.ref.id]!;
+            if (!('objeto' in e) || !('proceso' in e) || e.tipo === 'efecto') throw Error('Dominio C/R/A/I');
+            const ps = a.tramos[0]!.puntos, estado = 'estado' in e ? e.estado : undefined;
+            expect(a.hechos).toEqual([e.id]);
+            for (let i = 1; i < ps.length; i++) {
+                const x = ps[i - 1]!, y = ps[i]!;
+                expect(Math.hypot(y.x - x.x, y.y - x.y)).toBeGreaterThan(0);
+                for (const n of s.nodos) {
+                    for (const st of n.estados.filter(st => st.ref.id !== estado))
+                        expect(intersectaCapsula(x, y, st.caja, st.inicial ? 1.5 : .75)).toBe(false);
+                    if (n.ref.id !== e.objeto && n.ref.id !== e.proceso)
+                        expect(intersectaCaja(x, y, { ...n.caja, ancho: n.caja.ancho + (n.fisica ? 8 : 0), alto: n.caja.alto + (n.fisica ? 8 : 0) }, 'rectangulo')).toBe(false);
+                    for (const [j, linea] of n.rotulo.lineas.entries()) {
+                        const w = anchoTexto(linea, 17, n.rotulo.italica);
+                        expect(intersectaCaja(x, y, { x: n.rotulo.x - w / 2, y: n.rotulo.y + j * 22 - 17, ancho: w, alto: 20 }, 'rectangulo')).toBe(false);
+                    }
+                    // La sombra propia capa10 oculta sólo ramas capa4; capa20 la sobrepinta.
+                    if (n.ref.id === e.objeto && n.fisica && a.capa === 4) {
+                        const c = n.caja;
+                        expect(intersectaCaja(x, y, { x: c.x + c.ancho + .01, y: c.y + 8, ancho: 7.99, alto: c.alto }, 'rectangulo')).toBe(false);
+                        expect(intersectaCaja(x, y, { x: c.x + 8, y: c.y + c.alto + .01, ancho: c.ancho, alto: 7.99 }, 'rectangulo')).toBe(false);
+                    }
+                }
+            }
+        }
+        // Un tramo compartido borraría el par rama–estado aunque conserve IDs.
+        for (let i = 0; i < s.aristas.length; i++) for (const b of s.aristas.slice(i + 1)) {
+            const as = s.aristas[i]!.tramos[0]!.puntos, bs = b.tramos[0]!.puntos;
+            for (let j = 1; j < as.length; j++) for (let k = 1; k < bs.length; k++) {
+                const a0 = as[j - 1]!, a1 = as[j]!, b0 = bs[k - 1]!, b1 = bs[k]!, dx = a1.x - a0.x, dy = a1.y - a0.y;
+                if (Math.abs(dx * (b1.y - b0.y) - dy * (b1.x - b0.x)) > 1e-7 || Math.abs(dx * (b0.y - a0.y) - dy * (b0.x - a0.x)) > 1e-7) continue;
+                const axis = Math.abs(dx) >= Math.abs(dy) ? 'x' : 'y';
+                const overlap = Math.min(Math.max(a0[axis], a1[axis]), Math.max(b0[axis], b1[axis])) - Math.max(Math.min(a0[axis], a1[axis]), Math.min(b0[axis], b1[axis]));
+                expect(overlap).toBeLessThanOrEqual(1e-7);
+            }
+        }
+        expect(JSON.stringify(base)).toBe(previo);
+    });
+
+// R2 B V2: contraejemplos independientes exactos, modelos legales antes del fix.
+const modelosCentrosEfectivosR2: readonly Modelo[] = [
+    {
+        "id": "review-OR-consumo-distintos",
+        "nombre": "Modelo",
+        "raiz": "sd",
+        "secuencia": 100,
+        "unidadTiempo": "min",
+        "cosas": {
+            "o": {
+                "id": "o",
+                "nombre": "Registro",
+                "tipo": "objeto",
+                "esencia": "informacional",
+                "afiliacion": "sistemica",
+                "estados": [
+                    {
+                        "id": "s1",
+                        "nombre": "pendiente"
+                    },
+                    {
+                        "id": "s2",
+                        "nombre": "pagado"
+                    }
+                ]
+            },
+            "p": {
+                "id": "p",
+                "nombre": "Prepararaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "tipo": "proceso",
+                "esencia": "informacional",
+                "afiliacion": "sistemica"
+            },
+            "q": {
+                "id": "q",
+                "nombre": "Despacharaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "tipo": "proceso",
+                "esencia": "informacional",
+                "afiliacion": "sistemica"
+            }
+        },
+        "enlaces": {
+            "e1": {
+                "id": "e1",
+                "tipo": "consumo",
+                "objeto": "o",
+                "proceso": "p",
+                "estado": "s1"
+            },
+            "e2": {
+                "id": "e2",
+                "tipo": "consumo",
+                "objeto": "o",
+                "proceso": "q",
+                "estado": "s1"
+            }
+        },
+        "abanicos": {
+            "f": {
+                "id": "f",
+                "operador": "OR",
+                "enlaces": [
+                    "e1",
+                    "e2"
+                ]
+            }
+        },
+        "opds": {
+            "sd": {
+                "id": "sd",
+                "tipo": "raiz",
+                "apariciones": {
+                    "o": {
+                        "x": 0,
+                        "y": 0,
+                        "ancho": 300,
+                        "alto": 220
+                    },
+                    "p": {
+                        "x": -200,
+                        "y": -150,
+                        "ancho": 160,
+                        "alto": 80
+                    },
+                    "q": {
+                        "x": -200,
+                        "y": 350,
+                        "ancho": 160,
+                        "alto": 80
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "review-OR-resultado-distintos",
+        "nombre": "Modelo",
+        "raiz": "sd",
+        "secuencia": 100,
+        "unidadTiempo": "min",
+        "cosas": {
+            "o": {
+                "id": "o",
+                "nombre": "Registro",
+                "tipo": "objeto",
+                "esencia": "informacional",
+                "afiliacion": "sistemica",
+                "estados": [
+                    {
+                        "id": "s1",
+                        "nombre": "pendiente"
+                    },
+                    {
+                        "id": "s2",
+                        "nombre": "pagado"
+                    }
+                ]
+            },
+            "p": {
+                "id": "p",
+                "nombre": "Prepararaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "tipo": "proceso",
+                "esencia": "informacional",
+                "afiliacion": "sistemica"
+            },
+            "q": {
+                "id": "q",
+                "nombre": "Despacharaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "tipo": "proceso",
+                "esencia": "informacional",
+                "afiliacion": "sistemica"
+            }
+        },
+        "enlaces": {
+            "e1": {
+                "id": "e1",
+                "tipo": "resultado",
+                "objeto": "o",
+                "proceso": "p",
+                "estado": "s1"
+            },
+            "e2": {
+                "id": "e2",
+                "tipo": "resultado",
+                "objeto": "o",
+                "proceso": "q",
+                "estado": "s1"
+            }
+        },
+        "abanicos": {
+            "f": {
+                "id": "f",
+                "operador": "OR",
+                "enlaces": [
+                    "e1",
+                    "e2"
+                ]
+            }
+        },
+        "opds": {
+            "sd": {
+                "id": "sd",
+                "tipo": "raiz",
+                "apariciones": {
+                    "o": {
+                        "x": 0,
+                        "y": 0,
+                        "ancho": 300,
+                        "alto": 220
+                    },
+                    "p": {
+                        "x": -200,
+                        "y": -150,
+                        "ancho": 160,
+                        "alto": 80
+                    },
+                    "q": {
+                        "x": -200,
+                        "y": 350,
+                        "ancho": 160,
+                        "alto": 80
+                    }
+                }
+            }
+        }
+    }
+];
+function comprobarUniformeEfectivoR2(base: Modelo, radioVariable = false): void {
+    expect(validarForma(base)).toEqual([]);
+    expect(erroresContexto(base)).toEqual([]);
+    expect(violacionesAbanico(base, base.abanicos.f!)).toEqual([]);
+    Object.values(base.enlaces).forEach(e => expect(noOfrecido(base, e, base.abanicos.f!)).toBeNull());
+    expect(gatesExportacion(base, { opd: 'sd' })).toEqual([]);
+    expect(gatesExportacion(base, 'modelo')).toEqual([]);
+    const antes = JSON.stringify(base); congelarCriterioA(base);
+    const s = escena(base, 'sd'), objeto = s.nodos.find(n => n.ref.id === 'o')!, estado = objeto.estados.find(n => n.ref.id === 's1')!;
+    if (radioVariable) { expect(s.arcos[0]!.radio).toBeGreaterThanOrEqual(30); expect(s.arcos.map(a => a.radio)).toEqual(base.abanicos.f!.operador === 'OR' ? [s.arcos[0]!.radio, s.arcos[0]!.radio + 5] : [s.arcos[0]!.radio]); }
+    else expect(s.arcos.map(a => a.radio)).toEqual(base.abanicos.f!.operador === 'OR' ? [30, 35] : [30]);
+    expect(objeto.estados.map(n => n.ref.id)).toEqual(['s1', 's2']);
+    const r = { x: objeto.caja.x - .75, y: objeto.caja.y - .75, ancho: objeto.caja.ancho + 1.5 + (objeto.fisica ? 8 : 0), alto: objeto.caja.alto + 1.5 + (objeto.fisica ? 8 : 0) };
+    const borde = [{ x: r.x, y: r.y }, { x: r.x + r.ancho, y: r.y }, { x: r.x + r.ancho, y: r.y + r.alto }, { x: r.x, y: r.y + r.alto }, { x: r.x, y: r.y }];
+    for (const arco of s.arcos) {
+        expect(crucesB(arco, borde)).toHaveLength(0);
+        for (const angulo of [arco.desde, arco.hasta]) {
+            const x = arco.centro.x + arco.radio * Math.cos(angulo), y = arco.centro.y + arco.radio * Math.sin(angulo);
+            expect(x >= r.x && x <= r.x + r.ancho && y >= r.y && y <= r.y + r.alto).toBe(false);
+        }
+    }
+    for (const a of s.aristas) {
+        const enlace = base.enlaces[a.ref.id]!;
+        if (!('objeto' in enlace) || !('proceso' in enlace) || enlace.tipo === 'efecto') throw Error('Fixture C/R/A/I');
+        expect(enlace.estado).toBe('s1'); expect(a.hechos).toEqual([enlace.id]); expect(a.capa).toBe(20);
+        expect(a.tramos).toHaveLength(1); const t = a.tramos[0]!; expect(t.puntos).toHaveLength(2); expect(t.fin).toBe(enlace.tipo === 'agente' ? 'piruletaNegra' : enlace.tipo === 'instrumento' ? 'piruletaBlanca' : 'punta');
+        const terminal = enlace.tipo === 'resultado' ? t.puntos.at(-1)! : t.puntos[0]!;
+        for (const arco of s.arcos) expect(terminal).toEqual(arco.centro);
+        const c = estado.caja, cx = Math.max(c.x + 8, Math.min(terminal.x, c.x + c.ancho - 8)), cy = Math.max(c.y + 8, Math.min(terminal.y, c.y + c.alto - 8));
+        expect(Math.hypot(terminal.x - cx, terminal.y - cy)).toBeCloseTo(8, 8);
+    }
+    expect(exportarDiagrama(base, 'sd', { version: 'B-v2-R2' }).ok).toBe(true);
+    expect(exportarDocumento(base, new Map(), { version: 'B-v2-R2' }).ok).toBe(true);
+    expect(JSON.stringify(base)).toBe(antes);
+}
+for (const base of modelosCentrosEfectivosR2)
+    test(`T-206 T-216 R2 centros P efectivos exactos ${base.enlaces.e1!.tipo}`, () => comprobarUniformeEfectivoR2(base));
+
+for (const operador of ['XOR', 'OR'] as const)
+    for (const tipo of ['consumo', 'resultado', 'agente', 'instrumento'] as const)
+        test(`T-206 T-216 R2 controles centros medidos ${operador} ${tipo}`, () => {
+            for (const variante of ['normal', 'nombre-largo', 'duracion'] as const) {
+                const m = modeloCriterioA(tipo, operador, false);
+                const procesos = Object.fromEntries(['p', 'q'].map(id => {
+                    const proceso = m.cosas[id]! as Proceso;
+                    return [id, { ...proceso,
+                        ...(variante === 'nombre-largo' ? { nombre: proceso.nombre + 'a'.repeat(100) } : {}),
+                        ...(variante === 'duracion' ? { duracion: { min: 1e20, esperada: 2e20, max: 3e20 } } : {}) }];
+                }));
+                const base: Modelo = { ...m, cosas: { ...m.cosas, ...procesos }, enlaces: Object.fromEntries(Object.entries(m.enlaces).map(([id, e]) => [id, { ...e, estado: 's1' } as Enlace])),
+                    opds: { sd: { ...m.opds.sd!, apariciones: { ...m.opds.sd!.apariciones,
+                        p: { x: -200, y: -150, ancho: 160, alto: 80 }, q: { x: -200, y: 350, ancho: 160, alto: 80 } } } } };
+                comprobarUniformeEfectivoR2(base, variante === 'duracion');
+                if (variante === 'duracion') comprobarTintaUniformeX(base, 'sd');
+            }
+        });
+
+// APPEND X: fallo que captura: el sector o glifo completo oculto pese a línea central visible.
+import { arcoLibre, expandirCaja, crucesCirculo } from './geometria';
+import { colocarMarcador } from './marcadores';
+function comprobarTintaUniformeX(base: Modelo, opd: string): void {
+    expect(validarForma(base)).toEqual([]); expect(erroresContexto(base)).toEqual([]);
+    expect(gatesExportacion(base, { opd })).toEqual([]);
+    const antes = JSON.stringify(base); congelarCriterioA(base); const e = escena(base, opd), objeto = e.nodos.find(n => n.ref.id === 'o')!;
+    expect(e.arcos.length).toBe(base.abanicos.f!.operador === 'OR' ? 2 : 1);
+    const cuerpo = expandirCaja({ ...objeto.caja, ancho: objeto.caja.ancho + (objeto.fisica ? 8 : 0), alto: objeto.caja.alto + (objeto.fisica ? 8 : 0) }, 1.5);
+    for (const arco of e.arcos) {
+        expect(arcoLibre({ ...arco, dash: '4 1', trazo: 1.5 }, [cuerpo])).toBe(true);
+        for (const arista of e.aristas.filter(a => base.abanicos.f!.enlaces.includes(a.ref.id))) {
+            const t = arista.tramos[0]!, enlace = base.enlaces[arista.ref.id]!;
+            expect(t.puntos).toHaveLength(2); expect(arista.hechos).toEqual([enlace.id]); expect(arista.capa).toBe(20);
+            const contacto = enlace.tipo === 'resultado' ? t.puntos.at(-1)! : t.puntos[0]!;
+            expect(contacto).toEqual(arco.centro);
+            const roots = crucesCirculo(arco.centro, arco.radio, t.puntos[0]!, t.puntos[1]!).filter(p => { let a = Math.atan2(p.y - arco.centro.y, p.x - arco.centro.x); while (a < arco.desde - 1e-9) a += Math.PI * 2; return a <= arco.hasta + 1e-9; });
+            expect(roots.length).toBeGreaterThan(0);
+        }
+    }
+    for (const arista of e.aristas) for (const t of arista.tramos) {
+        if (!t.fin) continue;
+        const mark = colocarMarcador(t.fin, t.puntos.at(-1)!, t.puntos.at(-2)!), M = mark.matriz;
+        const point = (x: number, y: number) => ({ x: M[0]*x + M[2]*y + M[4], y: M[1]*x + M[3]*y + M[5] });
+        const caps = e.nodos.flatMap(n => n.estados).filter(c => c.ref.id !== (base.enlaces[arista.ref.id]! as { estado?: string }).estado);
+        if (t.fin === 'punta') {
+            expect(mark.figura.datos).toBe('M 0 0 L 23 8 L 12 0 L 23 -8 Z');
+            const polygon = [point(0,0), point(23,8), point(12,0), point(23,-8)];
+            for (const c of caps) expect(polygon.some((a,i) => intersectaCapsula(a, polygon[(i+1)%4]!, c.caja, 1.1))).toBe(false);
+        } else {
+            expect(t.fin === 'piruletaBlanca' || t.fin === 'piruletaNegra').toBe(true);
+            const C = point(12,0); for (const c of caps) { expect(intersectaCapsula(point(0,0), point(7,0), c.caja, 1.1)).toBe(false); expect(intersectaCapsula(C,C,c.caja,6.1)).toBe(false); }
+        }
+    }
+    expect(JSON.stringify(base)).toBe(antes);
+}
+const modelosContenedorUniformeX: readonly Modelo[] = [
+  {
+    "id": "review-OR-consumo-distintos",
+    "nombre": "Modelo",
+    "raiz": "sd",
+    "secuencia": 100,
+    "unidadTiempo": "min",
+    "cosas": {
+      "o": {
+        "id": "o",
+        "nombre": "Registro",
+        "tipo": "objeto",
+        "esencia": "informacional",
+        "afiliacion": "sistemica",
+        "estados": [
+          {
+            "id": "s1",
+            "nombre": "pendiente"
+          },
+          {
+            "id": "s2",
+            "nombre": "pagado"
+          }
+        ]
+      },
+      "p": {
+        "id": "p",
+        "nombre": "Preparar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "q": {
+        "id": "q",
+        "nombre": "Despachar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "r": {
+        "id": "r",
+        "nombre": "Archivar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      }
+    },
+    "enlaces": {
+      "e1": {
+        "id": "e1",
+        "tipo": "instrumento",
+        "objeto": "o",
+        "proceso": "p",
+        "estado": "s1"
+      },
+      "e2": {
+        "id": "e2",
+        "tipo": "instrumento",
+        "objeto": "o",
+        "proceso": "q",
+        "estado": "s1"
+      }
+    },
+    "abanicos": {
+      "f": {
+        "id": "f",
+        "operador": "OR",
+        "enlaces": [
+          "e1",
+          "e2"
+        ]
+      }
+    },
+    "opds": {
+      "sd": {
+        "id": "sd",
+        "tipo": "raiz",
+        "apariciones": {
+          "o": {
+            "x": -400,
+            "y": 0,
+            "ancho": 300,
+            "alto": 220
+          },
+          "p": {
+            "x": 0,
+            "y": 0,
+            "ancho": 160,
+            "alto": 80
+          }
+        }
+      },
+      "h": {
+        "id": "h",
+        "tipo": "descomposicion",
+        "cosa": "p",
+        "padre": "sd",
+        "orden": 0,
+        "bandas": [
+          [
+            "q",
+            "r"
+          ]
+        ],
+        "objetosInternos": [],
+        "apariciones": {
+          "o": {
+            "x": 0,
+            "y": 0,
+            "ancho": 300,
+            "alto": 220
+          },
+          "p": {
+            "x": -600,
+            "y": -300,
+            "ancho": 160,
+            "alto": 80
+          },
+          "q": {
+            "x": 400,
+            "y": -150,
+            "ancho": 160,
+            "alto": 80
+          },
+          "r": {
+            "x": 1800,
+            "y": -150,
+            "ancho": 160,
+            "alto": 80
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "review-OR-consumo-distintos",
+    "nombre": "Modelo",
+    "raiz": "sd",
+    "secuencia": 100,
+    "unidadTiempo": "min",
+    "cosas": {
+      "o": {
+        "id": "o",
+        "nombre": "Registro",
+        "tipo": "objeto",
+        "esencia": "fisica",
+        "afiliacion": "sistemica",
+        "estados": [
+          {
+            "id": "s1",
+            "nombre": "pendiente"
+          },
+          {
+            "id": "s2",
+            "nombre": "pagado"
+          }
+        ]
+      },
+      "p": {
+        "id": "p",
+        "nombre": "Preparar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "q": {
+        "id": "q",
+        "nombre": "Despachar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "r": {
+        "id": "r",
+        "nombre": "Archivar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      }
+    },
+    "enlaces": {
+      "e1": {
+        "id": "e1",
+        "tipo": "agente",
+        "objeto": "o",
+        "proceso": "p",
+        "estado": "s1"
+      },
+      "e2": {
+        "id": "e2",
+        "tipo": "agente",
+        "objeto": "o",
+        "proceso": "q",
+        "estado": "s1"
+      }
+    },
+    "abanicos": {
+      "f": {
+        "id": "f",
+        "operador": "OR",
+        "enlaces": [
+          "e1",
+          "e2"
+        ]
+      }
+    },
+    "opds": {
+      "sd": {
+        "id": "sd",
+        "tipo": "raiz",
+        "apariciones": {
+          "o": {
+            "x": -400,
+            "y": 0,
+            "ancho": 300,
+            "alto": 220
+          },
+          "p": {
+            "x": 0,
+            "y": 0,
+            "ancho": 160,
+            "alto": 80
+          }
+        }
+      },
+      "h": {
+        "id": "h",
+        "tipo": "descomposicion",
+        "cosa": "p",
+        "padre": "sd",
+        "orden": 0,
+        "bandas": [
+          [
+            "q",
+            "r"
+          ]
+        ],
+        "objetosInternos": [],
+        "apariciones": {
+          "o": {
+            "x": 0,
+            "y": 0,
+            "ancho": 300,
+            "alto": 220
+          },
+          "p": {
+            "x": -600,
+            "y": -300,
+            "ancho": 160,
+            "alto": 80
+          },
+          "q": {
+            "x": 400,
+            "y": -150,
+            "ancho": 160,
+            "alto": 80
+          },
+          "r": {
+            "x": 1800,
+            "y": -150,
+            "ancho": 160,
+            "alto": 80
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "review-OR-consumo-distintos",
+    "nombre": "Modelo",
+    "raiz": "sd",
+    "secuencia": 100,
+    "unidadTiempo": "min",
+    "cosas": {
+      "o": {
+        "id": "o",
+        "nombre": "Registro",
+        "tipo": "objeto",
+        "esencia": "informacional",
+        "afiliacion": "sistemica",
+        "estados": [
+          {
+            "id": "s1",
+            "nombre": "pendiente"
+          },
+          {
+            "id": "s2",
+            "nombre": "pagado"
+          }
+        ]
+      },
+      "p": {
+        "id": "p",
+        "nombre": "Preparar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "q": {
+        "id": "q",
+        "nombre": "Despachar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "r": {
+        "id": "r",
+        "nombre": "Archivar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      }
+    },
+    "enlaces": {
+      "e1": {
+        "id": "e1",
+        "tipo": "instrumento",
+        "objeto": "o",
+        "proceso": "p",
+        "estado": "s1"
+      },
+      "e2": {
+        "id": "e2",
+        "tipo": "instrumento",
+        "objeto": "o",
+        "proceso": "q",
+        "estado": "s1"
+      }
+    },
+    "abanicos": {
+      "f": {
+        "id": "f",
+        "operador": "OR",
+        "enlaces": [
+          "e1",
+          "e2"
+        ]
+      }
+    },
+    "opds": {
+      "sd": {
+        "id": "sd",
+        "tipo": "raiz",
+        "apariciones": {
+          "o": {
+            "x": -400,
+            "y": 0,
+            "ancho": 300,
+            "alto": 220
+          },
+          "p": {
+            "x": 0,
+            "y": 0,
+            "ancho": 160,
+            "alto": 80
+          }
+        }
+      },
+      "h": {
+        "id": "h",
+        "tipo": "descomposicion",
+        "cosa": "p",
+        "padre": "sd",
+        "orden": 0,
+        "bandas": [
+          [
+            "q",
+            "r"
+          ]
+        ],
+        "objetosInternos": [],
+        "apariciones": {
+          "o": {
+            "x": 0,
+            "y": 0,
+            "ancho": 300,
+            "alto": 220
+          },
+          "p": {
+            "x": -600,
+            "y": 350,
+            "ancho": 160,
+            "alto": 80
+          },
+          "q": {
+            "x": 400,
+            "y": 500,
+            "ancho": 160,
+            "alto": 80
+          },
+          "r": {
+            "x": 1800,
+            "y": 500,
+            "ancho": 160,
+            "alto": 80
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "review-OR-consumo-distintos",
+    "nombre": "Modelo",
+    "raiz": "sd",
+    "secuencia": 100,
+    "unidadTiempo": "min",
+    "cosas": {
+      "o": {
+        "id": "o",
+        "nombre": "Registro",
+        "tipo": "objeto",
+        "esencia": "fisica",
+        "afiliacion": "sistemica",
+        "estados": [
+          {
+            "id": "s1",
+            "nombre": "pendiente"
+          },
+          {
+            "id": "s2",
+            "nombre": "pagado"
+          }
+        ]
+      },
+      "p": {
+        "id": "p",
+        "nombre": "Preparar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "q": {
+        "id": "q",
+        "nombre": "Despachar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      },
+      "r": {
+        "id": "r",
+        "nombre": "Archivar",
+        "tipo": "proceso",
+        "esencia": "informacional",
+        "afiliacion": "sistemica"
+      }
+    },
+    "enlaces": {
+      "e1": {
+        "id": "e1",
+        "tipo": "agente",
+        "objeto": "o",
+        "proceso": "p",
+        "estado": "s1"
+      },
+      "e2": {
+        "id": "e2",
+        "tipo": "agente",
+        "objeto": "o",
+        "proceso": "q",
+        "estado": "s1"
+      }
+    },
+    "abanicos": {
+      "f": {
+        "id": "f",
+        "operador": "OR",
+        "enlaces": [
+          "e1",
+          "e2"
+        ]
+      }
+    },
+    "opds": {
+      "sd": {
+        "id": "sd",
+        "tipo": "raiz",
+        "apariciones": {
+          "o": {
+            "x": -400,
+            "y": 0,
+            "ancho": 300,
+            "alto": 220
+          },
+          "p": {
+            "x": 0,
+            "y": 0,
+            "ancho": 160,
+            "alto": 80
+          }
+        }
+      },
+      "h": {
+        "id": "h",
+        "tipo": "descomposicion",
+        "cosa": "p",
+        "padre": "sd",
+        "orden": 0,
+        "bandas": [
+          [
+            "q",
+            "r"
+          ]
+        ],
+        "objetosInternos": [],
+        "apariciones": {
+          "o": {
+            "x": 0,
+            "y": 0,
+            "ancho": 300,
+            "alto": 220
+          },
+          "p": {
+            "x": -600,
+            "y": 350,
+            "ancho": 160,
+            "alto": 80
+          },
+          "q": {
+            "x": 400,
+            "y": 500,
+            "ancho": 160,
+            "alto": 80
+          },
+          "r": {
+            "x": 1800,
+            "y": 500,
+            "ancho": 160,
+            "alto": 80
+          }
+        }
+      }
+    }
+  }
+];
+test('T-206 T-216 X cajas P definitivas y tinta contenedor-instrumento-arriba', () => { const base = modelosContenedorUniformeX[0]!; comprobarTintaUniformeX(base, 'h'); const e = escena(base, 'h'), n = e.nodos.find(n => n.ref.id === 'p')!; expect(n.caja.ancho).toBe(2584); expect(n.caja.alto).toBe(254); });
+test('T-206 T-216 X cajas P definitivas y tinta contenedor-agente-arriba', () => { const base = modelosContenedorUniformeX[1]!; comprobarTintaUniformeX(base, 'h'); const e = escena(base, 'h'), n = e.nodos.find(n => n.ref.id === 'p')!; expect(n.caja.ancho).toBe(2584); expect(n.caja.alto).toBe(254); });
+test('T-206 T-216 X cajas P definitivas y tinta contenedor-instrumento-abajo', () => { const base = modelosContenedorUniformeX[2]!; comprobarTintaUniformeX(base, 'h'); const e = escena(base, 'h'), n = e.nodos.find(n => n.ref.id === 'p')!; expect(n.caja.ancho).toBe(2584); expect(n.caja.alto).toBe(254); });
+test('T-206 T-216 X cajas P definitivas y tinta contenedor-agente-abajo', () => { const base = modelosContenedorUniformeX[3]!; comprobarTintaUniformeX(base, 'h'); const e = escena(base, 'h'), n = e.nodos.find(n => n.ref.id === 'p')!; expect(n.caja.ancho).toBe(2584); expect(n.caja.alto).toBe(254); });
+
+// APPEND X: estabilidad por geometría e identidad; primer GREEN es cobertura adicional.
+for (const tipo of ['consumo','resultado','agente','instrumento'] as const)
+ test(`T-206 T-216 X radio y packing reproducibles por identidad ${tipo}`, () => {
+    const m=modeloCriterioA(tipo,'OR',false);
+    const base:Modelo={...m,cosas:{...m.cosas,p:{...m.cosas.p! as Proceso,duracion:{min:1e20,esperada:2e20,max:3e20}},q:{...m.cosas.q! as Proceso,duracion:{min:1e20,esperada:2e20,max:3e20}}},
+      enlaces:Object.fromEntries(Object.entries(m.enlaces).map(([id,e])=>[id,{...e,estado:'s1'} as Enlace])),
+      opds:{sd:{...m.opds.sd!,apariciones:{...m.opds.sd!.apariciones,p:{x:-200,y:-150,ancho:160,alto:80},q:{x:-200,y:350,ancho:160,alto:80}}}}};
+    comprobarTintaUniformeX(base,'sd');
+    const s=escena(base,'sd');
+    expect(escena(JSON.parse(JSON.stringify(base)) as Modelo,'sd')).toEqual(s);
+    const permutada:Modelo={...base,abanicos:{f:{...base.abanicos.f!,enlaces:[...base.abanicos.f!.enlaces].reverse()}}};
+    const perm=escena(permutada,'sd'); expect(perm.arcos).toEqual(s.arcos); expect(perm.nodos).toEqual(s.nodos);
+    for(const a of s.aristas) expect(perm.aristas.find(b=>b.ref.id===a.ref.id)).toEqual(a);
+    expect(base.opds.sd!.apariciones).toEqual({...m.opds.sd!.apariciones,p:{x:-200,y:-150,ancho:160,alto:80},q:{x:-200,y:350,ancho:160,alto:80}});
+ });
+for(const operador of ['XOR','OR'] as const)
+ test(`T-206 T-216 X tres ramas finitas completas ${operador}`,()=>{
+    const m=modeloCriterioA('consumo',operador,false);
+    const base:Modelo={...m,cosas:{...m.cosas, r:p('r','Archivar')},enlaces:{e1:{id:'e1',tipo:'consumo',objeto:'o',proceso:'p',estado:'s1'},e2:{id:'e2',tipo:'consumo',objeto:'o',proceso:'q',estado:'s1'},e3:{id:'e3',tipo:'consumo',objeto:'o',proceso:'r',estado:'s1'}},abanicos:{f:{id:'f',operador,enlaces:['e1','e2','e3']}},
+      opds:{sd:{...m.opds.sd!,apariciones:{...m.opds.sd!.apariciones,r:{x:650,y:180,ancho:160,alto:80}}}}};
+    comprobarTintaUniformeX(base,'sd'); expect(escena(base,'sd').arcos.map(a=>a.radio)).toEqual(operador==='OR'?[30,35]:[30]);
+ });
+
+// APPEND T204/T220: la medición genuina de tinta de [ y } precede a este RED.
+for(const declarado of [60,80]) test(`T-204 T-220 X duración inscrita con semiejes de contenido ${declarado}`,()=>{
+    const proc:Proceso={...p('p','Preparar'),duracion:{min:1e20,esperada:2e20,max:3e20}};
+    const base=m([proc]),modelo:Modelo={...base,opds:{sd:{...base.opds.sd!,apariciones:{p:{x:-200,y:-150,ancho:160,alto:declarado}}}}};
+    expect(validarForma(modelo)).toEqual([]);expect(erroresContexto(modelo)).toEqual([]);
+    const antes=JSON.stringify(modelo);congelarCriterioA(modelo);const n=escena(modelo,'sd').nodos[0]!;
+    const contenido=Math.max(anchoTexto(n.duracion!,11,false),...n.rotulo.lineas.map(l=>anchoTexto(l,17,true)));
+    expect(n.caja.ancho).toBeGreaterThanOrEqual(contenido*Math.SQRT2+16);
+    expect(n.caja.alto).toBeGreaterThanOrEqual((n.rotulo.lineas.length*22+20)*Math.SQRT2+16);
+    expect(modelo.opds.sd!.apariciones.p).toEqual({x:-200,y:-150,ancho:160,alto:declarado});expect(JSON.stringify(modelo)).toBe(antes);
+});
