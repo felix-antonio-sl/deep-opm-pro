@@ -1643,7 +1643,9 @@ Algoritmo (DR-13, R-VIS-HIJO-1, reglas §6.5/§6.6):
    descomposición D, es `visto(D.cosa)`. En otro caso es indefinido. Solo el in-zoom abstrae y solo
    eleva procesos, así el hecho abstraído conserva su firma.
 2. Para cada enlace se calculan sus extremos vistos. Si uno es indefinido, el enlace no se ve. Si
-   ambos colapsan en la misma cosa y el enlace no admite reflexivo, desaparece.
+   ambos extremos vistos son la misma cosa y al menos uno fue elevado por abstracción, el enlace es
+   interno al refinamiento y no se ve, aunque su tipo admita reflexivo (R-CAT-EQ-3, R-EJEC-9,
+   R-INV-2D, DECISIONS 32). Un reflexivo propio entre extremos visibles se conserva.
 3. En un OPD de **descomposición** se ven los enlaces que tocan al contenedor o a un interno, y se
    ocultan los que unen dos externos (R-VIS-HIJO-1). Los procedimentales al contorno se ven en el
    contorno: es un desvío declarado (DR-13, B-19). En un **despliegue** se ven los que tocan a la
@@ -1652,12 +1654,17 @@ Algoritmo (DR-13, R-VIS-HIJO-1, reglas §6.5/§6.6):
 4. Los procedimentales abstraídos se agrupan por par visto (objeto, proceso). En un grupo con más
    de un hecho:
    - el transformador prevalece sobre el habilitador (R-PREC-5);
-   - entre transformadores rige la matriz 3×3:
-     - E+E da E, E+R da R y E+C da C;
-     - R+R y C+C dan `precedencia-invalida` y se muestran ambos;
-     - R+C se recompone como efecto solo con continuidad de identidad y estados trazables
-       (R-PREC-2), conservando la procedencia de los hechos; sin esa evidencia se muestran ambos
-       y se emite `conflicto-resultado-consumo` (R-PREC-3/4), `warning` de `contencion` (§4.4);
+   - entre transformadores rige la Tabla 27 de ISO 19450 (§14.2.4.1.1, DECISIONS 31), que depende
+     del orden temporal de los dos subprocesos (banda del primero → banda del segundo):
+     - E→E da E; R→E da R; E→C da C;
+     - R→C y C→R dan E, con la entrada del hecho temprano y la salida del tardío, si hay
+       continuidad de estados trazables (R-PREC-2), conservando la procedencia; sin ella se muestran
+       ambos y se emite `conflicto-resultado-consumo` (R-PREC-3/4), `warning` de `contencion` (§4.4);
+     - C→C, R→R, C→E (afectar lo ya consumido) y E→R (crear lo que ya existía) dan
+       `precedencia-invalida` y se muestran ambos;
+     - si los dos hechos están en la misma banda, el orden no se conoce y rige la matriz simétrica
+       de reglas §6.6: E+E da E, E+R da R, E+C da C, R+C da E con la misma condición, y R+R y C+C
+       son inválidos;
    - entre habilitadores, el agente prevalece sobre el instrumento;
    - el control resultante es el de mayor fuerza: evento > sin control > condición.
 

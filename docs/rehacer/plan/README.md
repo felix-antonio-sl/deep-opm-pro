@@ -12,7 +12,7 @@ dependencias, archivos propios, lecturas y aceptación de cada paquete.
 ## Autoridad
 
 1. [`../canon/`](../canon/): los cuatro documentos. Mandan ante cualquier conflicto.
-2. [`../DECISIONS.md`](../DECISIONS.md): decisiones fijas del dueño (1–28). No se reabren.
+2. [`../DECISIONS.md`](../DECISIONS.md): decisiones fijas del dueño (1–32). No se reabren.
 3. [`../understand/CANON.md`](../understand/CANON.md): requisitos T-NNN y decisiones DR-n
    derivados del canon.
 4. [`../design/DESIGN.md`](../design/DESIGN.md): contratos, flujos y plan (§12). Un contrato

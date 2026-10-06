@@ -49,3 +49,21 @@
 26. **La simulación se retira** (confirmado tras revisar su uso histórico). Queda declarada en el registro de conformidad (modo runtime vacío, B-21; T-323 en B-25).
 27. **Contrato para agentes externos: JSON v0 + API HTTP del servidor mínimo con token Bearer** (DESIGN §8). Se retiran el CLI `mesa` y su protocolo de testigo. Tarea externa a este repositorio: actualizar las referencias de la skill `modelamiento-opm` en KORA cuando el servidor nuevo esté desplegado.
 28. **La implementación se hace en una sesión nueva**, a partir del plan empaquetado en `plan/` (`plan/README.md`, `plan/PROMPT.md`, `plan/plan.json`). Esta sesión no implementa.
+
+## Decisiones del dueño tras la evaluación externa del corte `e53fb47` (2026-10-06) — fijas
+Dictamen: [`evaluacion/dictamen-e53fb47.md`](evaluacion/dictamen-e53fb47.md). Estas decisiones mandan sobre DESIGN, que debe alinearse con ellas.
+
+29. **Abanicos como en la versión anterior de opforja** («inspirémonos en la versión antigua de opforja. ahí se dibujaba bien»). Respuesta a D1 y D2 del dictamen.
+    - Un abanico existe solo si todas sus ramas comparten el mismo extremo en el borde de la cosa común, objeto o proceso (`pre-rehacer:app/src/modelo/abanicos.ts`, `puertosExactosDeEnlace`). Un extremo común en un estado, o en estados distintos del mismo objeto, no forma abanico: los enlaces quedan sueltos. El estado en el extremo no común de cada rama se conserva (R-FAN-EST-1 es PUEDE).
+    - Se retiran FANLOCAL y su texto OPL local (B-31), la adaptación de radio (B-33), la búsqueda de empaquetado de estados y la propuesta de vértices. El import carga esos abanicos como enlaces sueltos con informe, como B-06. Se registra una brecha «no implementado (PUEDE)».
+    - El dibujo es el de la versión anterior (`pre-rehacer:app/src/render/jointjs/abanicoOverlay.ts`). El acople es el recorte del borde de la cosa común hacia el centroide de los otros extremos. El arco va centrado en el acople, con radio 30 (XOR) o 30 y 35 (OR) y el sector mínimo de las ramas. `escena()` y los exports nunca lanzan con un modelo válido: si algo queda tapado, avisan (B-15).
+30. **Protocolo ligero.**
+    - El `HANDOFF.md` actual se mueve íntegro a `docs/rehacer/bitacora.md`, y `HANDOFF.md` queda como tablero de una página: paquetes, decisiones abiertas y siguiente paso.
+    - Cada fila de `docs/conformidad.md` vuelve al formato de DESIGN §11.3, en tres líneas como máximo; la evidencia va a la bitácora.
+    - Hay una revisión por ola, contra el canon y con modelos reales.
+    - Solo se detiene el trabajo en los hitos o ante una contradicción contractual verdadera.
+    - Una autorización vale solo si es una frase textual del dueño, citada. No valen las delegadas ni las interpretadas.
+31. **Precedencia al abstraer según ISO 19450 (Tabla 27, §14.2.4.1.1).** Depende del orden temporal de los subprocesos y DESIGN §4.6, paso 4, la recoge:
+    - consumo → resultado da efecto, igual que resultado → consumo;
+    - consumo → efecto y efecto → resultado son inválidos.
+32. **Un enlace interno a un refinamiento no se ve en el padre** («cámbialo por supuesto»). Si los dos extremos de un enlace quedan dentro de la misma cosa refinada, el enlace es interno y desaparece en el OPD abstracto, aunque su tipo admita reflexivo. Corrige DESIGN §4.6, paso 2: las invocaciones entre subprocesos ya no se ven como «se invoca a sí mismo» (R-CAT-EQ-3, R-EJEC-9, R-INV-2D).
