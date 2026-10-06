@@ -178,10 +178,9 @@ test('T-126 despliegue mixto primero clase del refinable sin secuencia ni parale
  expect(generarBloque(mod,'h').filter(l=>l.hechos.length).map(l=>l.texto)).toEqual(['**Pedido** exhibe **Cuenta**.','**Pedido** exhibe *Procesar*.']);
 });
 
-test('T-123 salida común de TS3 admitida por forma/matriz no puede perder entradas ni operador',()=>{
+test('T-123 salida común de TS3 DEC29 no ofrecida falla cerrado antes de importar',()=>{
  const mod=m([{id:'e1',tipo:'efecto',objeto:'o',proceso:'p',entrada:'o-pend',salida:'o-pag'},{id:'e2',tipo:'efecto',objeto:'o',proceso:'p',entrada:'o-pag',salida:'o-pag'}],{abanicos:{f:{id:'f',operador:'OR',enlaces:['e1','e2']}}});
- expect(validarForma(mod)).toEqual([]);const ls=generarBloque(mod,'sd').filter(l=>l.hechos.length);expect(new Set(ls.flatMap(l=>l.hechos))).toEqual(new Set(['e1','e2']));
- expect(ls.map(l=>l.texto)).toEqual(['Al menos una de estas ramas:\n  *Procesar* cambia **Pedido** de `pendiente` a `pagado`.\n  *Procesar* cambia **Pedido** de `pagado` a `pagado`.']);expect(new Set(ls.flatMap(l=>l.tokens.filter(t=>t.ref?.tipo==='estado').map(t=>t.ref!.id)))).toEqual(new Set(['o-pend','o-pag']));
+ expect(validarForma({ ...mod, abanicos: {} })).toEqual([]);expect(validarForma(mod).map(v=>v.codigo)).toContain('F-5');expect(generarBloque(mod,'sd').filter(l=>l.hechos.length)).toEqual([]);
 });
 test('T-117 RH1 herencia múltiple sale de RF3, con artículo del general y refs propias',()=>{
  const base=m();const mod=m([{id:'e1',tipo:'generalizacion',refinable:'o',refinador:'b'},{id:'e2',tipo:'generalizacion',refinable:'a',refinador:'b'}],{cosas:{...base.cosas,o:{...base.cosas.o!,genero:'f'},b:obj('b','Factura')},opds:{sd:{id:'sd',tipo:'raiz',apariciones:{o:ap,a:ap,b:ap}}}});
@@ -258,9 +257,9 @@ test('T-120 SE3 utiliza claves estables de sus dos hechos de superficie',()=>{
  const mod=m([{id:'e1',tipo:'etiquetadoBidireccional',origen:'o',destino:'a',etiqueta:'tiene',inversa:'pertenece a'}]);expect(generarBloque(mod,'sd').filter(l=>l.hechos.length).map(l=>l.id)).toEqual(['sd#SE3a:e1','sd#SE3b:e1']);
 });
 
-test('T-122 estados por rama de objeto común no pueden reducirse al estado de una sola rama',()=>{
+test('T-122 estados por rama de objeto común DEC29 no se expresan mediante dialecto local',()=>{
  const mod=m([{id:'e1',tipo:'consumo',objeto:'o',proceso:'p',estado:'o-pend'},{id:'e2',tipo:'consumo',objeto:'o',proceso:'q',estado:'o-pag'}],{abanicos:{f:{id:'f',operador:'XOR',enlaces:['e1','e2']}}});
- expect(validarForma(mod)).toEqual([]);const ls=generarBloque(mod,'sd').filter(l=>l.hechos.length);expect(new Set(ls.flatMap(l=>l.hechos))).toEqual(new Set(['e1','e2']));expect(new Set(ls.flatMap(l=>l.tokens.filter(t=>t.ref?.tipo==='estado').map(t=>t.ref!.id)))).toEqual(new Set(['o-pend','o-pag']));expect(ls.map(l=>l.texto)).toEqual(['Exactamente una de estas ramas:\n  *Archivar* consume **Pedido** en `pagado`.\n  *Procesar* consume **Pedido** en `pendiente`.']);
+ expect(validarForma({ ...mod, abanicos: {} })).toEqual([]);expect(validarForma(mod).map(v=>v.codigo)).toContain('F-5');expect(generarBloque(mod,'sd').filter(l=>l.hechos.length)).toEqual([]);
 });
 
 test('T-135 etiqueta y ruta conservan token a hecho y referencia persistente del enlace',()=>{
@@ -305,54 +304,13 @@ test('T-118 exhibición mixta incompleta mantiene ambos rasgos tipados, hechos, 
  expect(JSON.stringify(mod)).toBe(before);
 });
 
-// §5.3.1 local B-31: cada expected es literal manual, no otra llamada al generador.
-for(const [op,header] of [['XOR','Exactamente una de estas ramas:'],['OR','Al menos una de estas ramas:']] as const)
- for(const tipo of ['consumo','resultado','agente','instrumento'] as const)
-  for(const ausente of [false,true])test(`T-122 local B-31 ${tipo} objeto común ${op} ${ausente?'ausencia':'heterogéneo'}`,()=>{
-   const base=m(),enlaces:Enlace[]=[{id:'e1',tipo,objeto:'o',proceso:'p',estado:'o-pend'},{id:'e2',tipo,objeto:'o',proceso:'q',...(ausente?{}:{estado:'o-pag'})}];
-   const mod=m(enlaces,{cosas:{...base.cosas,o:{...obj('o','Pedido'),esencia:'fisica'}},abanicos:{f:{id:'f',operador:op,enlaces:['e1','e2']}}});
-   expect(validarForma(mod)).toEqual([]);expect(violacionesAbanico(mod,mod.abanicos.f!)).toEqual([]);for(const e of enlaces){expect(noOfrecido(mod,e,mod.abanicos.f)).toBeNull();expect(violacionesContexto(mod,e)).toEqual([]);}
-   const before=JSON.stringify(mod),ls=generarBloque(mod,'sd').filter(l=>l.hechos.length);
-   const estadoQ=ausente?'':' en `pagado`';
-   const ramas=tipo==='consumo'?[`*Archivar* consume **Pedido**${estadoQ}.`,'*Procesar* consume **Pedido** en `pendiente`.']:tipo==='resultado'?[`*Archivar* genera **Pedido**${estadoQ}.`,'*Procesar* genera **Pedido** en `pendiente`.']:tipo==='agente'?[`**Pedido**${estadoQ} maneja *Archivar*.`,'**Pedido** en `pendiente` maneja *Procesar*.']:[`*Archivar* requiere **Pedido**${estadoQ}.`,'*Procesar* requiere **Pedido** en `pendiente`.'];
-   expect(ls.map(l=>l.texto)).toEqual([`${header}\n  ${ramas[0]}\n  ${ramas[1]}`]);
-   const l=ls[0]!;expect(l.id).toBe(`sd#FANLOCAL-${op}:FAN:f`);expect(l.plantilla).toBe(`FANLOCAL-${op}`);expect(l.hechos).toEqual(['e2','e1']);expect(l.opd).toBe('sd');expect(l.etiquetaOpd).toBe('SD');expect(l.profundidad).toBe(0);expect(l.soloDisplay).toBeUndefined();
-   expect(textoDeTokens(l.tokens)).toBe(l.texto);expect(l.refs).toEqual(refsDeTokens(l.tokens));
-   expect(l.tokens.filter(t=>t.marca==='estado').map(t=>[t.texto,t.ref,t.hecho])).toEqual(ausente?[['pendiente',{tipo:'estado',id:'o-pend'},'e1']]:[['pagado',{tipo:'estado',id:'o-pag'},'e2'],['pendiente',{tipo:'estado',id:'o-pend'},'e1']]);
-   expect(l.tokens.filter(t=>!t.marca).every(t=>!t.ref&&!t.hecho)).toBe(true);
-   expect(textoCanonico(ls)).toBe(l.texto);expect(generarDocumentoOpl(mod)).toContain(l.texto);expect(JSON.stringify(mod)).toBe(before);
-  });
-for(const [op,header] of [['XOR','Exactamente una de estas ramas:'],['OR','Al menos una de estas ramas:']] as const)test(`T-123 local B-31 TS3 salida común ${op}`,()=>{
- const mod=m([{id:'e1',tipo:'efecto',objeto:'o',proceso:'p',entrada:'o-pend',salida:'o-pag'},{id:'e2',tipo:'efecto',objeto:'o',proceso:'p',entrada:'o-pag',salida:'o-pag'}],{abanicos:{f:{id:'f',operador:op,enlaces:['e2','e1']}}});
- expect(validarForma(mod)).toEqual([]);expect(violacionesAbanico(mod,mod.abanicos.f!)).toEqual([]);for(const e of Object.values(mod.enlaces))expect(noOfrecido(mod,e,mod.abanicos.f)).toBeNull();
- const before=JSON.stringify(mod),l=generarBloque(mod,'sd').find(l=>l.hechos.length)!;
- expect(l?.texto).toBe(`${header}\n  *Procesar* cambia **Pedido** de \`pendiente\` a \`pagado\`.\n  *Procesar* cambia **Pedido** de \`pagado\` a \`pagado\`.`);
- expect(l.id).toBe(`sd#FANLOCAL-${op}:FAN:f`);expect(l.hechos).toEqual(['e1','e2']);expect(l.tokens.filter(t=>t.marca==='estado').map(t=>[t.ref!.id,t.hecho])).toEqual([['o-pend','e1'],['o-pag','e1'],['o-pag','e2'],['o-pag','e2']]);expect(JSON.stringify(mod)).toBe(before);
-});
-test('T-128 local B-31 conserva multiplicidad y género por rama sin glifos ni herencia',()=>{
- const base=m(),mod=m([{id:'e1',tipo:'instrumento',objeto:'o',proceso:'p',estado:'o-pend',mult:'+'},{id:'e2',tipo:'instrumento',objeto:'o',proceso:'q',mult:'?'}],{cosas:{...base.cosas,o:{...obj('o','Pedido'),esencia:'fisica',genero:'f'}},abanicos:{f:{id:'f',operador:'OR',enlaces:['e1','e2']}}});
- expect(validarForma(mod)).toEqual([]);expect(violacionesAbanico(mod,mod.abanicos.f!)).toEqual([]);for(const e of Object.values(mod.enlaces))expect(noOfrecido(mod,e,mod.abanicos.f)).toBeNull();
- expect(generarBloque(mod,'sd').filter(l=>l.hechos.length).map(l=>l.texto)).toEqual(['Al menos una de estas ramas:\n  *Archivar* requiere una opcional **Pedido**.\n  *Procesar* requiere al menos una **Pedido** en `pendiente`.']);
-});
-
+// DEC 29: estado común no ofrecido; los positivos canónicos sin estado siguen.
 for(const [op,q] of [['XOR','exactamente uno de'],['OR','al menos uno de']] as const)
- for(const estado of [undefined,'o-pend'] as const)
-  for(const permutado of [false,true])test(`T-122 B-32 agente común ${op} ${estado?'uniforme explícito':'ausencia total'} ${permutado?'permutado':'original'}`,()=>{
-   const base=m(),mod=m([{id:'e1',tipo:'agente',objeto:'o',proceso:'p',...(estado?{estado}:{})},{id:'e2',tipo:'agente',objeto:'o',proceso:'q',...(estado?{estado}:{})}],{cosas:{...base.cosas,o:{...obj('o','Operador'),esencia:'fisica'}},abanicos:{f:{id:'f',operador:op,enlaces:permutado?['e2','e1']:['e1','e2']}}});
-   expect(validarForma(mod)).toEqual([]);expect(violacionesAbanico(mod,mod.abanicos.f!)).toEqual([]);for(const e of Object.values(mod.enlaces)){expect(noOfrecido(mod,e,mod.abanicos.f)).toBeNull();expect(violacionesContexto(mod,e)).toEqual([]);}
-   const before=JSON.stringify(mod),ls=generarBloque(mod,'sd').filter(l=>l.hechos.length),l=ls[0]!;
-   expect(ls).toHaveLength(1);expect(l.texto).toBe(`**Operador**${estado?' en \`pendiente\`':''} maneja ${q} *Archivar* o *Procesar*.`);
-   expect(l.id).toBe(`sd#FAN-agente-divergente-${op}:FAN:f`);expect(l.hechos).toEqual(permutado?['e2','e1']:['e1','e2']);
-   const tokens=l.tokens.filter(t=>t.marca==='estado');expect(tokens.map(t=>[t.texto,t.ref])).toEqual(estado?[['pendiente',{tipo:'estado',id:'o-pend'}]]:[]);
-   if(estado)expect(mod.abanicos.f!.enlaces).toContain(tokens[0]!.hecho!);
-   expect(textoDeTokens(l.tokens)).toBe(l.texto);expect(l.refs).toEqual(refsDeTokens(l.tokens));expect(JSON.stringify(mod)).toBe(before);
-  });
-test('T-122 B-32 distinto id de estado con igual nombre no es estado uniforme',()=>{
- const base=m(),o={...obj('o','Operador'),esencia:'fisica' as const,estados:[{id:'o-pend',nombre:'listo'},{id:'o-pag',nombre:'listo'}]};
- const mod=m([{id:'e1',tipo:'agente',objeto:'o',proceso:'p',estado:'o-pend'},{id:'e2',tipo:'agente',objeto:'o',proceso:'q',estado:'o-pag'}],{cosas:{...base.cosas,o},abanicos:{f:{id:'f',operador:'XOR',enlaces:['e1','e2']}}});
- expect(validarForma(mod)).toEqual([]);expect(violacionesAbanico(mod,mod.abanicos.f!)).toEqual([]);for(const e of Object.values(mod.enlaces)){expect(noOfrecido(mod,e,mod.abanicos.f)).toBeNull();expect(violacionesContexto(mod,e)).toEqual([]);}
- // Precondiciones mecánicas vacías no equivalen a unicidad nominal ni a validez canónica.
- expect(diagnosticar(mod).some(d=>d.codigo==='estado-duplicado')).toBe(true);
- const before=JSON.stringify(mod),l=generarBloque(mod,'sd').find(l=>l.hechos.length)!;
- expect(l.plantilla).toBe('FANLOCAL-XOR');expect(l.hechos).toEqual(['e2','e1']);expect(l.tokens.filter(t=>t.marca==='estado').map(t=>[t.ref!.id,t.hecho])).toEqual([['o-pag','e2'],['o-pend','e1']]);expect(JSON.stringify(mod)).toBe(before);
-});
+ for(const permutado of [false,true])test(`T-122 agente común en borde ${op} ${permutado?'permutado':'original'}`,()=>{
+  const base=m(),mod=m([{id:'e1',tipo:'agente',objeto:'o',proceso:'p'},{id:'e2',tipo:'agente',objeto:'o',proceso:'q'}],{cosas:{...base.cosas,o:{...obj('o','Operador'),esencia:'fisica'}},abanicos:{f:{id:'f',operador:op,enlaces:permutado?['e2','e1']:['e1','e2']}}});
+  expect(validarForma(mod)).toEqual([]);for(const e of Object.values(mod.enlaces)){expect(noOfrecido(mod,e,mod.abanicos.f)).toBeNull();expect(violacionesContexto(mod,e)).toEqual([]);}
+  const before=JSON.stringify(mod),ls=generarBloque(mod,'sd').filter(l=>l.hechos.length),l=ls[0]!;
+  expect(ls).toHaveLength(1);expect(l.texto).toBe(`**Operador** maneja ${q} *Archivar* o *Procesar*.`);
+  expect(l.id).toBe(`sd#FAN-agente-divergente-${op}:FAN:f`);expect(l.hechos).toEqual(permutado?['e2','e1']:['e1','e2']);
+  expect(l.tokens.filter(t=>t.marca==='estado')).toEqual([]);expect(textoDeTokens(l.tokens)).toBe(l.texto);expect(l.refs).toEqual(refsDeTokens(l.tokens));expect(JSON.stringify(mod)).toBe(before);
+ });

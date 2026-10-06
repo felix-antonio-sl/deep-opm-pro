@@ -274,9 +274,12 @@ test('T-080 T-083 despliegue eliminado borra sólo refinadores de aparición exc
 test('T-080 T-083 internos con estados/enlaces se eliminan; abanico residual se disuelve', () => {
     const a = refinado(3, { id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p' });
     const b = must(crearCosa(a, { opd: 'dc', tipo: 'objeto', nombre: 'Registro', x: 150, y: 250, alcance: 'interno' })).modelo;
-    const m: Modelo = congelar({ ...b, cosas: { ...b.cosas, 'o-100': { ...b.cosas['o-100']! as Objeto, esencia: 'fisica', estados: [{ id: 'interno-listo', nombre: 'listo' }] } }, enlaces: { ...b.enlaces, uno: { id: 'uno', tipo: 'agente', objeto: 'o-100', proceso: 'a', estado: 'interno-listo' }, dos: { id: 'dos', tipo: 'agente', objeto: 'o-100', proceso: 'z' } }, abanicos: { f: { id: 'f', operador: 'XOR', enlaces: ['uno', 'dos'] } } });
-    sano(m); const r = must(eliminarRefinamiento(m, { opd: 'dc' })).modelo;
-    expect(r.cosas['o-100']).toBeUndefined(); expect(r.abanicos).toEqual({}); expect(r.enlaces).toEqual(a.enlaces); expect(r.cosas.o).toBe(a.cosas.o); sano(r);
+    const retirado: Modelo = congelar({ ...b, cosas: { ...b.cosas, 'o-100': { ...b.cosas['o-100']! as Objeto, esencia: 'fisica', estados: [{ id: 'interno-listo', nombre: 'listo' }] } }, enlaces: { ...b.enlaces, uno: { id: 'uno', tipo: 'agente', objeto: 'o-100', proceso: 'a', estado: 'interno-listo' }, dos: { id: 'dos', tipo: 'agente', objeto: 'o-100', proceso: 'z' } }, abanicos: { f: { id: 'f', operador: 'XOR', enlaces: ['uno', 'dos'] } } });
+    expect(validarForma(retirado).map(v => v.codigo)).toContain('F-5');
+    // DEC29: común proceso; el estado del interno permanece en el extremo no común.
+    const m: Modelo = congelar({ ...retirado, enlaces: { ...retirado.enlaces, dos: { id: 'dos', tipo: 'agente', objeto: 'b', proceso: 'a' } } });
+    const antes = JSON.stringify(m); sano(m); const r = must(eliminarRefinamiento(m, { opd: 'dc' })).modelo;
+    expect(r.cosas['o-100']).toBeUndefined(); expect(r.abanicos).toEqual({}); expect(r.enlaces).toEqual({ ...a.enlaces, dos: { id: 'dos', tipo: 'agente', objeto: 'b', proceso: 'p' } }); expect(r.cosas.o).toBe(a.cosas.o); sano(r); expect(JSON.stringify(m)).toBe(antes);
 });
 
 for (const n of [0, 1, 3] as const) for (const [nombre, control] of [['condición', 'c'], ['evento sistémico', 'e']] as const)

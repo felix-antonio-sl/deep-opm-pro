@@ -1,7 +1,7 @@
 import type { Cosa, Enlace, Modelo, Multiplicidad, Operador, Ref, UnidadTiempo } from '../nucleo/tipos';
 import { esProcedimental } from '../nucleo/tipos';
 import { indice } from '../nucleo/indice';
-import { conjuncionO, conjuncionY, validarNombreCosa, validarNombreEstado } from '../nucleo/lexico';
+import { conjuncionO, conjuncionY } from '../nucleo/lexico';
 import type { EnlaceTexto, ExtremoTexto, HechoTexto, NombreTipado } from './analizar';
 import type { TokenOpl } from './linea';
 /** Un hueco conserva su identidad y su papel, además de su superficie. No contiene Markdown. */
@@ -9,7 +9,6 @@ export interface Hueco {
     readonly texto: string;
     readonly tokens?: readonly TokenOpl[];
     readonly bandas?: readonly (readonly Hueco[])[];
-    readonly ramas?: readonly HechoGenerable[];
     readonly marca?: 'objeto' | 'proceso' | 'estado';
     readonly ref?: Ref;
     readonly hecho?: string;
@@ -33,8 +32,6 @@ export interface Plantilla {
     readonly desde?: (h: HechoGenerable) => Huecos | null;
     readonly hacia: (h: Huecos) => readonly HechoTexto[];
     readonly restricciones?: (h: Huecos) => boolean;
-    readonly origen?: 'LOCAL';
-    readonly registro?: 'B-31';
 }
 // Expansiones finitas de la tabla: se comparten entre emisión y vocabulario.
 const cuantificadores = { XOR: 'exactamente uno de', OR: 'al menos uno de' } as const;
@@ -57,7 +54,6 @@ const filas: readonly [
     ['EX1', '{P1} ocurre si duración de {P2} excede {n} {u}.', 'excepcion'], ['EX2', '{P1} ocurre si duración de {P2} es menor que {n} {u}.', 'excepcion'], ['EX1r', '{P1} ocurre si duración de {P2} excede su duración máxima.', 'excepcion'], ['EX2r', '{P1} ocurre si duración de {P2} es menor que su duración mínima.', 'excepcion'], ['IV1', '{P1} invoca {P2}.', 'invocacion'], ['IV2', '{P} se invoca a sí mismo.', 'invocacion'],
     ['RF1', '{vertice} consta de {Ly:mC}.', 'estructural'], ['RF1i', '{vertice} consta de {Lista:mC} y al menos otra parte.', 'estructural'], ['RF2', '{vertice} exhibe {Ly:C}.', 'estructural'], ['RF2b', '{vertice} exhibe {Ly:C} así como {Ly:otro}.', 'estructural'], ['RF2i', '{vertice} exhibe {Lista:C}[ así como {Ly:otro}] y al menos otro rasgo.', 'estructural'], ['RF3', '{Ly:C} son {general}.', 'estructural'], ['RF3b', '{C} es un|una {general}.', 'estructural'], ['RF3i', '{Lista:C} y al menos otra especialización son {general}.', 'estructural'], ['RH1', '{C} es {Ly:articulos}.', 'estructural'], ['RFE', '{Ly:Oe} son {O} en {s}.', 'estructural'], ['RF4', '{C} es una instancia de {general}.', 'estructural'], ['RF4b', '{Ly:C} son instancias de {general}.', 'estructural'],
     ['SE1', '{mC1} {t} {mC2}.', 'etiquetada'], ['SE2', '{mC1} se relaciona con {mC2}.', 'etiquetada'], ['SSE1', '{O1} en {a} {t} {O2}.', 'etiquetada'], ['SSE2', '{O1} {t} {O2} en {b}.', 'etiquetada'], ['SSE3', '{O1} en {a} {t} {O2} en {b}.', 'etiquetada'], ['SE3', '{mC1} {t} {mC2}.', 'etiquetada'], ['SSE4', '{O1} en {a} {t} {O2}.', 'etiquetada'], ['SSE5', '{O2} {t2} {O1} en {a}.', 'etiquetada'], ['SE4', '{mC1} y {mC2} son {t}.', 'etiquetada'], ['SE5', '{mC1} y {mC2} se relacionan.', 'etiquetada'], ['SSE6', '{O1} en {a} y {O2} en {b} son {t}.', 'etiquetada'], ['SSE7', '{O2} y {O1} en {a} son {t}.', 'etiquetada'],
-    ['FANLOCAL-XOR', 'Exactamente una de estas ramas:\n{RAMAS}', 'abanico'], ['FANLOCAL-OR', 'Al menos una de estas ramas:\n{RAMAS}', 'abanico'],
     ['FAN5s', '{P} cambia {O} a {Q} {Lo:s}.', 'abanico'], ['FAN5e', '{P} cambia {O} de {Q} {Lo:s}.', 'abanico'], ['FAN5A', '{P} cambia {O} de {e} a {Q} {Lo:s}.', 'abanico'], ['FAN4', '{O} inicia {Q} {Lo:Plista}, y es afectado por el proceso que ocurre.', 'abanico'], ['CFE', '{Q^} {Lo:Plista} ocurre si {O} existe, en cuyo caso afecta {O}, de lo contrario se omite.', 'abanico'], ['C18', '{P} ocurre si {Q} {Lo:Olista} existe, en cuyo caso {P} consume {Q} {Lo:Olista}, de lo contrario {P} se omite.', 'abanico'],
     ['CX1', '{P} se descompone en {Ly:Plista}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CX2', '{P} se descompone en paralelo {Ly:Plista}[, así como {Ly:O}].', 'contexto'], ['CXM', '{P} se descompone en {SEC}, en esa secuencia[, así como {Ly:O}].', 'contexto'], ['CXI', '{P} se descompone en {Ly:Plista}, así como {Ly:O}.', 'contexto', 'P'], ['CXN', '{P} desde {padre} se descompone en {opd} en {SEC}, en esa secuencia.', 'contexto', 'P'], ['CX3', '{vertice} se despliega en {opd} en {Ly:C}[, así como {Ly:otro}].', 'contexto'], ['CX3s', '{vertice} se despliega en {Ly:C}.', 'contexto', 'P']
 ];
@@ -69,7 +65,7 @@ const fans: readonly [
     ['consumo', '{P} consume {Q} {Lo:mOlistae}.', '{Q^} {Lo:Plista} consume {mOe}.'],
     ['resultado', '{Q^} {Lo:Plista} genera {mOe}.', '{P} genera {Q} {Lo:mOlistae}.'],
     ['efecto', '{P} afecta {Q} {Lo:mOlista}.', '{O} es afectado por {Q} {Lo:Plista}.'],
-    ['agente', '{P} es manejado por {Q} {Lo:mOlistae}.', '{Oe} maneja {Q} {Lo:Plista}.'],
+    ['agente', '{P} es manejado por {Q} {Lo:mOlistae}.', '{O} maneja {Q} {Lo:Plista}.'],
     ['instrumento', '{P} requiere {Q} {Lo:mOlistae}.', '{Q^} {Lo:Plista} requiere {mOe}.'],
     ['invocacion', '{Q^} {Lo:Plista} invoca {P}.', '{P} invoca {Q} {Lo:Plista}.']
 ];
@@ -81,7 +77,7 @@ export const PLANTILLAS: readonly Plantilla[] = Object.freeze([
         string,
         'abanico'
     ][]))
-].map(([id, base, familia, p]) => { const patron = conRuta.has(id) ? `[Por ruta {r}, ]${base}` : base; return Object.freeze({ id, patron, familia: familia as Plantilla['familia'], estado: p ?? 'G', ...(id.startsWith('FANLOCAL-') ? { origen: 'LOCAL' as const, registro: 'B-31' as const } : {}), ...(p ? {} : { desde: (h: HechoGenerable) => h.plantilla === id && validarHuecos(patron, h.huecos) ? h.huecos : null }), hacia: (h: Huecos) => validarHuecos(patron, h) ? reconocer(id, h) : [], restricciones: (h: Huecos) => validarHuecos(patron, h) }); }));
+].map(([id, base, familia, p]) => { const patron = conRuta.has(id) ? `[Por ruta {r}, ]${base}` : base; return Object.freeze({ id, patron, familia: familia as Plantilla['familia'], estado: p ?? 'G', ...(p ? {} : { desde: (h: HechoGenerable) => h.plantilla === id && validarHuecos(patron, h.huecos) ? h.huecos : null }), hacia: (h: Huecos) => validarHuecos(patron, h) ? reconocer(id, h) : [], restricciones: (h: Huecos) => validarHuecos(patron, h) }); }));
 const tabla = new Map(PLANTILLAS.map(p => [p.id, p]));
 export const hueco = (texto: string): Hueco => ({ texto });
 export function cosa(m: Modelo, id: string, hecho?: string, mult?: Multiplicidad, estado?: string): Hueco {
@@ -97,58 +93,7 @@ export function estadoHueco(m: Modelo, id: string, hecho?: string): Hueco {
 function uno(h: Huecos, k: string): Hueco { const x = h[k]; if (!x || Array.isArray(x))
     throw new Error(`Hueco escalar ausente: ${k}`); return x as Hueco; }
 function lista(h: Huecos, k: string): readonly Hueco[] { const x = h[k]; return !x ? [] : Array.isArray(x) ? x : [x as Hueco]; }
-/** B-31: bases completas y marcadas; ni texto opaco ni defaults crean un dominio plausible. */
-function ramasLocales(h: Huecos): readonly HechoGenerable[] | null {
-    const carrier = h.RAMAS;
-    if (!carrier || Array.isArray(carrier)) return null;
-    const dato = carrier as Hueco;
-    if (dato.texto !== '' || dato.tokens || !Array.isArray(dato.ramas) || dato.ramas.length < 2) return null;
-    const bases = new Set(['TS3', 'T1', 'TS1', 'T2', 'TS2', 'H1', 'HS1', 'H2', 'HS2']);
-    const atomo = (x: ValorHueco | undefined, marca: Hueco['marca']): x is Hueco => {
-        if (!x || Array.isArray(x)) return false;
-        const v = x as Hueco;
-        return v.marca === marca && typeof v.texto === 'string' &&
-            !(marca === 'estado' ? validarNombreEstado(v.texto) : validarNombreCosa(v.texto)) &&
-            !v.tokens && !v.bandas && !v.ramas && !v.estado &&
-            (v.mult === undefined || ['?', '*', '+'].includes(v.mult)) &&
-            (v.genero === undefined || v.genero === 'f');
-    };
-    const hechos: EnlaceTexto[] = [];
-    for (const r of dato.ramas) {
-        if (!r || !bases.has(r.plantilla) || !r.huecos || typeof r.huecos !== 'object' || Array.isArray(r.huecos)) return null;
-        const b = r.huecos;
-        if (Object.keys(b).some(k => !['O', 'mO', 'P', 'e', 's'].includes(k)) || !atomo(b.O, 'objeto') || !atomo(b.P, 'proceso')) return null;
-        if (b.mO && (!atomo(b.mO, 'objeto') || b.mO.texto !== b.O.texto || b.mO.mult !== b.O.mult || b.mO.genero !== b.O.genero ||
-            (b.mO.ref && b.O.ref && (b.mO.ref.tipo !== b.O.ref.tipo || b.mO.ref.id !== b.O.ref.id)))) return null;
-        const conEstado = ['TS3', 'TS1', 'TS2', 'HS1', 'HS2'].includes(r.plantilla);
-        if (conEstado ? !atomo(b.s, 'estado') : b.s !== undefined) return null;
-        if (r.plantilla === 'TS3' ? !atomo(b.e, 'estado') : b.e !== undefined) return null;
-        const base = tabla.get(r.plantilla);
-        if (!base?.restricciones?.(b)) return null;
-        const hs = reconocer(r.plantilla, b);
-        if (hs.length !== 1 || hs[0]!.k !== 'enlace') return null;
-        hechos.push(hs[0]!.enlace);
-    }
-    const primero = hechos[0]!;
-    if (primero.tipo === 'efecto') {
-        if (!hechos.every(e => e.tipo === 'efecto' && e.objeto.nombre === primero.objeto.nombre && e.proceso === primero.proceso &&
-            e.salida === primero.salida && !!e.entrada && !!e.salida)) return null;
-        if (new Set(hechos.map(e => e.tipo === 'efecto' ? e.entrada : undefined)).size < 2) return null;
-    } else if (['consumo', 'resultado', 'agente', 'instrumento'].includes(primero.tipo) && 'objeto' in primero) {
-        if (!hechos.every(e => e.tipo === primero.tipo && 'objeto' in e && e.objeto.nombre === primero.objeto.nombre)) return null;
-        if (new Set(hechos.map(e => 'proceso' in e ? e.proceso : undefined)).size !== hechos.length) return null;
-        // La fuente ya identifica el estado: no confundir IDs homónimos ni ref con ausencia de ref.
-        const estados = dato.ramas.map(r => {
-            const s = r.huecos.s as Hueco | undefined;
-            return !s ? JSON.stringify(['ausente']) : s.ref ?
-                JSON.stringify(['ref', s.ref.tipo, s.ref.id]) : JSON.stringify(['nombre', s.texto]);
-        });
-        if (new Set(estados).size < 2) return null;
-    } else return null;
-    return dato.ramas;
-}
 function validarHuecos(patron: string, h: Huecos): boolean {
-    if (patron.includes('{RAMAS}')) return ramasLocales(h) !== null;
     if (h.n && (!/^\d+(?:\.\d+)?$/.test(uno(h, 'n').texto) || !Number.isFinite(Number(uno(h, 'n').texto)))) return false;
     if (h.u && !Object.values(unidades).some(palabras => palabras.includes(uno(h, 'u').texto))) return false;
     const obligatorio = patron.replace(/\[([^\[\]]+)\]/g, '');
@@ -197,12 +142,6 @@ export function tokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
         }
     }
     function slot(k: string) {
-        if (k === 'RAMAS') {
-            const ramas = ramasLocales(h);
-            if (!ramas) throw new Error('Bloque local B-31 inválido');
-            ramas.forEach((r, i) => { literal(i ? '\n  ' : '  ', 'texto'); tokens.push(...tokensPlantilla(r.plantilla, r.huecos)); });
-            return;
-        }
         if (k === 'Q' || k === 'Q^') {
             literal(cuantificadores[uno(h, 'operador').texto as Operador]);
             return;
@@ -349,11 +288,6 @@ export const LITERALES_EXPANDIDOS: readonly string[] = Object.freeze([
 ]);
 export function unidad(u: UnidadTiempo, n: number): string { return unidades[u][n === 1 ? 0 : 1]; }
 function reconocer(id: string, h: Huecos): readonly HechoTexto[] {
-    if (id === 'FANLOCAL-XOR' || id === 'FANLOCAL-OR') {
-        const ramas = ramasLocales(h);
-        if (!ramas) return [];
-        return [{ k: 'abanico', operador: id === 'FANLOCAL-XOR' ? 'XOR' : 'OR', ramas: ramas.map(r => (reconocer(r.plantilla, r.huecos)[0] as Extract<HechoTexto, { k: 'enlace' }>).enlace) }];
-    }
     const x = (k: string) => uno(h, k), nombre = (k: string): NombreTipado => ({ nombre: x(k).texto, tipo: x(k).marca === 'proceso' ? 'proceso' : 'objeto' });
     const extremo = (v: Hueco): ExtremoTexto => ({ nombre: v.texto, tipo: v.marca === 'proceso' ? 'proceso' : 'objeto', ...(v.genero ? { genero: v.genero } : {}), ...(v.mult ? { mult: v.mult } : {}), ...(v.estado ? { estado: v.estado.texto } : {}) });
     const ext = (k: string) => extremo(x(k));

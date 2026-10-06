@@ -109,9 +109,9 @@ test('T-056 efecto fan control de objeto común sí tiene plantilla; instrumento
     const n = con([{ id: 'e-20', tipo: 'instrumento', objeto: 'o-2', proceso: 'p-11' }, { id: 'e-21', tipo: 'instrumento', objeto: 'o-6', proceso: 'p-11' }], [f]);
     mal(fan.fijarControlAbanico(n, { abanico: f.id, control: 'c' }), 'no-ofrecido', 'T-056');
 });
-test('T-054 estados de efecto mismo par: salida común permitida, dos dimensiones distintas B-06', () => {
+test('T-054 estados de efecto mismo par: DEC29 salida común y dos dimensiones distintas no ofrecidas B-06', () => {
     const es: Enlace[] = [{ id: 'e-20', tipo: 'efecto', objeto: 'o-2', proceso: 'p-11', entrada: 's-3', salida: 's-5' }, { id: 'e-21', tipo: 'efecto', objeto: 'o-2', proceso: 'p-11', entrada: 's-4', salida: 's-5' }];
-    bien(fan.formarAbanico(con(es), { enlaces: ['e-20', 'e-21'], operador: 'OR' }));
+    mal(fan.formarAbanico(con(es), { enlaces: ['e-20', 'e-21'], operador: 'OR' }), 'no-ofrecido', 'R-FAN-5/5A');
     mal(enlace.fijarEstados(con(es, [f]), { enlace: 'e-21', estados: { entrada: 's-4', salida: 's-3' } }), 'no-ofrecido', 'R-FAN-5/5A');
     const mixto = con([es[0]!, { id: 'e-21', tipo: 'efecto', objeto: 'o-6', proceso: 'p-11', entrada: 's-7', salida: 's-8' }]);
     mal(fan.formarAbanico(mixto, { enlaces: ['e-20', 'e-21'], operador: 'XOR' }), 'no-ofrecido', 'R-FAN-5/5A');

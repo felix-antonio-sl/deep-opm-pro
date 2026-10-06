@@ -629,14 +629,16 @@ const wp8bEstados: readonly { nombre: string; ramas: readonly Enlace[] }[] = [
 for (const operador of ['XOR', 'OR'] as const) for (const caso of wp8bEstados) {
     test(`T-086 fan ${operador} ${caso.nombre} conserva estados propios y común proceso`, () => {
         const m = wp8bFan(caso.ramas, operador), antes = JSON.stringify(m);
-        expect(validarForma(m)).toEqual([]);
+        expect(validarForma({ ...m, abanicos: {} })).toEqual([]);
+        expect(validarForma(m).every(v => v.codigo === 'F-5')).toBe(true);
         expect(violacionesAbanico(m, m.abanicos.f!)).toEqual([]);
         for (const e of caso.ramas) {
             expect(violacionesContexto(m, e)).toEqual([]);
-            expect(noOfrecido(m, e, m.abanicos.f!)).toBeNull();
+            if (caso.nombre === 'TS3 salida común') expect(noOfrecido(m, e, m.abanicos.f!)?.registro).toBe('B-06');
+            else expect(noOfrecido(m, e, m.abanicos.f!)).toBeNull();
         }
         const v = proyectar(m, 'raiz');
-        expect(v.abanicos).toEqual([{ abanico: 'f', operador, ramas: ['fan-a', 'fan-b'], comun: 'p' }]);
+        expect(v.abanicos).toEqual(caso.nombre === 'TS3 salida común' ? [] : [{ abanico: 'f', operador, ramas: ['fan-a', 'fan-b'], comun: 'p' }]);
         expect(v.enlaces.map(e => [e.enlace, e.hechos, e.abstraido])).toEqual(caso.ramas.map(e => [e, [e.id], false]));
         expect(v.conflictos).toEqual([]);
         expect(proyectar(m, 'raiz')).toBe(v);
@@ -652,13 +654,14 @@ for (const tipo of ['consumo', 'resultado', 'agente', 'instrumento'] as const)
                     { id: 'fan-b', tipo, objeto: 'b', proceso: 'z', ...(anclajes === 'ausencia-parcial' ? {} : { estado: anclajes === 'uniforme' ? 'b1' : 'b2' }) }
                 ];
                 const m = wp8bFan(ramas, operador), antes = JSON.stringify(m), v = proyectar(m, 'raiz');
-                expect(validarForma(m)).toEqual([]);
+                expect(validarForma({ ...m, abanicos: {} })).toEqual([]);
+                expect(validarForma(m).map(v => v.codigo)).toContain('F-5');
                 expect(violacionesAbanico(m, m.abanicos.f!)).toEqual([]);
                 for (const e of ramas) {
                     expect(violacionesContexto(m, e)).toEqual([]);
-                    expect(noOfrecido(m, e, m.abanicos.f!)).toBeNull();
+                    expect(noOfrecido(m, e, m.abanicos.f!)?.registro).toBe('B-06');
                 }
-                expect(v.abanicos).toEqual([{ abanico: 'f', operador, ramas: ['fan-a', 'fan-b'], comun: 'b' }]);
+                expect(v.abanicos).toEqual([]);
                 expect(v.enlaces.map(e => [e.enlace, e.hechos, e.abstraido])).toEqual(ramas.map(e => [e, [e.id], false]));
                 expect(JSON.stringify(m)).toBe(antes);
             });

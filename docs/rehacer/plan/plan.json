@@ -1,11 +1,11 @@
 {
   "formato": "opforja.plan-rehacer.v1",
   "fecha": "2026-10-02",
-  "base": { "rama": "main", "commit": "f42024d", "tagInicial": "pre-rehacer" },
+  "base": { "rama": "main", "commit": "513ac041f6eb91dc8bf0eb5319a492eb6ff25f6d", "tagInicial": "pre-rehacer" },
   "ramaTrabajo": "rehacer",
   "autoridad": [
     "docs/rehacer/canon/ (los 4 documentos: manda ante cualquier conflicto)",
-    "docs/rehacer/DECISIONS.md (decisiones fijas del dueño, 1–28)",
+    "docs/rehacer/DECISIONS.md (decisiones fijas del dueño, 1–32)",
     "docs/rehacer/understand/CANON.md (requisitos T-NNN y DR-n derivados del canon)",
     "docs/rehacer/design/DESIGN.md (diseño final: contratos, flujos, plan)"
   ],
@@ -123,15 +123,15 @@
       "depende": ["WP-4p"],
       "archivos": ["app/src/opl/{vocabulario,linea,plantillas,generar}.ts", "app/src/opl/documento.ts (generarDocumentoOpl)", "app/src/opl/contratos.test.ts (serial WP-7: sólo cinco expectativas temporales de generación por checks reales DESIGN §5.4/§5.7; seis firmas, typeof e importarOpl pendiente intactos)"],
       "lecturas": ["DESIGN §5.1", "DESIGN §5.2", "DESIGN §5.3", "DESIGN §5.4", "DESIGN §5.7", "DESIGN §1.6 (DS-1, DS-2, DS-15, DS-17, DS-26)", "CANON §4.1–§4.7"],
-      "aceptacion": ["vocabulario/plantillas/generar.test: T-100…T-139 de DESIGN §12.6", "D1/D4 concuerdan en género (DS-26)", "RF2b sin coma; mención mínima; ids de línea estables; unidades es-CL", "FAN local B-31 según DESIGN §5.3.1: sólo dos bordes autorizados, cabeceras exactas XOR/OR y ≥2 ramas completas indentadas, LineaOpl semántica multilineal, IDs/refs/hechos/estados/ausencia/operador/procedencia deterministas y pureza; originales RED T-122/T-123 intactos, delta exclusivo de dos assertions de substring fortalecido según §10.3; no implementa inversa WP-9 ni acredita ISO", "B-32 T-122 agente objeto común estado uniforme XOR/OR: resolución contractual previa, RED nativo antes de corrección, GREEN de texto/estado/ref/hecho miembro real/todos los IDs/operador/pureza, sin estado básico intacto, hacia conserva estado explícito por rama; check íntegro fresco y revisión, sin ampliar FANLOCAL ni implementar parser WP-9"]
+      "aceptacion": ["vocabulario/plantillas/generar.test: T-100…T-139 de DESIGN §12.6", "D1/D4 concuerdan en género (DS-26)", "RF2b sin coma; mención mínima; ids de línea estables; unidades es-CL", "DEC 29: sólo extremo común en borde de cosa; estados no comunes por rama, rechazo B-06 e importación de enlaces sueltos sin pérdida; sin dialecto OPL local"]
     },
     {
       "id": "WP-8b", "ola": 2, "nombre": "OPD: escena, dibujo y export",
       "objetivo": "Escena pura por OPD, un solo dibujo con dos adaptadores (lienzo y cadena SVG), export canon-diagrama y canon-documento con la fuente incrustada.",
       "depende": ["WP-4p", "WP-8a", "WP-6"], "integrarTras": ["WP-5 (gates)"],
-      "archivos": ["app/src/opd/{escena,dibujo,exportar}.ts", "app/src/opd/{escena,exportar,golden}.test.ts", "app/src/opd/__golden__/**", "app/src/nucleo/{proyeccion.ts,proyeccion.test.ts} (excepción serial WP-8b: sólo visibilidad de fan por estados propios; misma escritora; sin fusionar/colapsarRamas ni frontera/matriz/herencia/parser)"],
+      "archivos": ["app/src/opd/{escena,dibujo,exportar}.ts", "app/src/opd/{escena,exportar,golden}.test.ts", "app/src/opd/__golden__/**", "app/src/nucleo/{proyeccion.ts,proyeccion.test.ts} (excepción serial WP-8b: admisión/visibilidad DEC 29, común en borde de cosa y estados no comunes; sin fusionar/colapsarRamas ni frontera/herencia/parser)"],
       "lecturas": ["DESIGN §6.1", "DESIGN §6.2", "DESIGN §6.6", "DESIGN §6.7", "DESIGN §6.8", "DESIGN §10.5", "CANON §5", "DESIGN §4.3.2", "DESIGN §4.6", "CANON §2.2", "CANON §3.5"],
-      "aceptacion": ["escena/exportar/golden.test: 40 golden revisados visualmente uno a uno (SYNTHESIS §8-5)", "T-200…T-228 de DESIGN §12.6", "@font-face en el export", "T-054/T-086/T-216: fan por estados propios conserva común proceso, IDs/operador/ramas/procedencia/pureza y visibilidad; colapso real, controles/negativas B-06 y cobertura WP-4p/WP-5 intactos; RED nativo anterior a reparación, GREEN, check fresco y revisión independiente del freeze conjunto"]
+      "aceptacion": ["escena/exportar/golden.test: 40 golden revisados visualmente uno a uno (SYNTHESIS §8-5)", "T-200…T-228 de DESIGN §12.6", "@font-face en el export", "T-054/T-086/T-216, DEC 29: extremo común en borde de cosa, estados no comunes por rama, IDs/operador/procedencia/pureza; rechazo B-06 del común en estado, importación sin pérdida de enlaces y export genuino; controles y leyes de frontera intactos; check fresco y revisión por ola (DEC 30)"]
     },
     {
       "id": "WP-4r", "ola": 3, "nombre": "Refinamiento (operaciones)",
@@ -147,7 +147,7 @@
       "depende": ["WP-7", "WP-3a", "WP-3b", "WP-4r"],
       "archivos": ["app/src/opl/{analizar,planificar,aplicar,no-soportadas}.ts", "app/src/opl/documento.ts (importarOpl)", "app/src/opl/contratos.test.ts (serial WP-9: sólo expectativa restante de importarOpl, concretada en su turno conforme DESIGN §5.7 y pruebas nativas; demás checks intactos)"],
       "lecturas": ["DESIGN §5.5", "DESIGN §5.6", "DESIGN §5.7", "DESIGN §5.8", "DESIGN §5.9", "DESIGN §10.3", "CANON §4.8–§4.11", "CANON §6.2", "CANON §6.3", "pre-rehacer:app/src/opl/parser/parsear.ts (parsearBandasOrden)", "pre-rehacer:app/src/opl/parser/planificar.ts (PatchRegistry)", "pre-rehacer:app/src/opl/clasificadorEdicion.ts"],
-      "aceptacion": ["analizar/editor-opl/roundtrip-matriz/roundtrip-azar/roundtrip-tabla92/composicion/lente.test: T-150…T-196", "D1/D3 «solo si difieren» y creación por tipografía en el mismo merge (SYNTHESIS §8-16)", "~700 casos en < 3 s", "B-31 futuro: encuadre antes de normalización, frontera vacío/no-indentado/EOF sin consumir vecino, ≥2 ramas homogéneas del dominio cerrado, PLANTILLAS recupera HechoTexto completo sin herencia/AND/rescate parcial; mantener non-canonical/error/no-aplicable y obligación de inversión SIN PÉRDIDAS; resolver expresamente tensión aplicación/0 errores/estricto antes de implementar WP-9, sin filtrar oráculos ni nuevo flag/API/perfil; no crédito ISO"]
+      "aceptacion": ["analizar/editor-opl/roundtrip-matriz/roundtrip-azar/roundtrip-tabla92/composicion/lente.test: T-150…T-196", "D1/D3 «solo si difieren» y creación por tipografía en el mismo merge (SYNTHESIS §8-16)", "~700 casos en < 3 s"]
     },
     {
       "id": "WP-13", "ola": 3, "nombre": "Editor (estado de aplicación)",

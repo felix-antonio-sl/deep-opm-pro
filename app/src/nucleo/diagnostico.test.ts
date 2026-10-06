@@ -222,7 +222,7 @@ test('T-260 afiliación transitiva, un aviso por rasgo aun con diamante', () => 
 });
 test('T-054 FAN5A bruto informa no representable sin precondición de forma ni reparación automática', () => {
     const o = objeto('o');
-    const m = modelo([o, proceso('p'), proceso('q', 'Guardar Pedido')], [{ id: 'e1', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 'o-s1' }, { id: 'e2', tipo: 'efecto', objeto: 'o', proceso: 'q', salida: 'o-s2' }]);
+    const m = modelo([o, proceso('p'), proceso('q', 'Guardar Pedido')], [{ id: 'e1', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 'o-s1' }, { id: 'e2', tipo: 'efecto', objeto: 'o', proceso: 'p', salida: 'o-s2' }]);
     const bruto = cambiar(m, { abanicos: { f: { id: 'f', operador: 'XOR', enlaces: ['e1', 'e2'] } } });
     const texto = JSON.stringify(bruto);
     expect(validarForma(bruto).length).toBeGreaterThan(0);

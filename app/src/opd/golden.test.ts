@@ -4,6 +4,10 @@ import { createHash } from 'node:crypto';
 import type { Modelo, Cosa, Enlace, Opd, Aparicion, ModoDespliegue, Objeto, Proceso } from '../nucleo/tipos';
 import { escena } from './escena';
 import { dibujar, aTexto } from './dibujo';
+import { exportarDocumento, exportarDiagrama } from './exportar';
+import { generarBloque } from '../opl/generar';
+import { gatesExportacion } from '../nucleo/diagnostico';
+import { exportarV0 } from '../codec/exportar';
 import { importarV0 } from '../codec/importar';
 import { opdsEnPreorden, etiquetaOpd } from '../nucleo/proyeccion';
 import { validarForma } from '../nucleo/forma';
@@ -29,7 +33,7 @@ const estados: Cosa = { ...obj('o'), tipo: 'objeto', estados: [{ id: 's0', nombr
 agregar('estados-designaciones', modelo([estados]), 'T-206 T-207 6 cápsulas, doble/grueso, flecha abierta y pin externo');
 const ocultos: Cosa = { ...obj('o'), tipo: 'objeto', estados: [{ id: 's1', nombre: 'global', suprimido: true }, { id: 's2', nombre: 'local' }, { id: 's3', nombre: 'anclado', suprimido: true }] };
 agregar('estados-ocultos-anclados', modelo([ocultos, pro('p')], [{ id: 'enlace-e', tipo: 'consumo', objeto: 'o', proceso: 'p', estado: 's3' }], { o: { ...a(0, 0), ocultos: ['s1', 's2'] }, p: a(260, 180) }), 'T-208 chip ⋯2 y estado anclado visible');
-agregar('rotulos-largos-nfc', modelo([obj('o', 'A\u0301rbol Ñandú pingüino Información extraordinariamente larga conservada íntegra'), pro('p', 'Almacenar Información Íntegra')]), 'T-203 T-204 NFC, multilínea, sin recorte ni elipsis');
+agregar('rotulos-largos-nfc', modelo([obj('o', 'Árbol Ñandú pingüino Información extraordinariamente larga conservada íntegra'), pro('p', 'Almacenar Información Íntegra')]), 'T-203 T-204 NFC, multilínea, sin recorte ni elipsis');
 agregar('transformadores-basicos', modelo([obj('o1', 'Entrada'), pro('p'), obj('o2', 'Salida'), { ...obj('o3', 'Recurso'), estados: [{ id: 'sRecurso', nombre: 'disponible' }] }], [{ id: 'c', tipo: 'consumo', objeto: 'o1', proceso: 'p' }, { id: 'r', tipo: 'resultado', objeto: 'o2', proceso: 'p' }, { id: 't', tipo: 'efecto', objeto: 'o3', proceso: 'p' }], { o1: a(0, 0), p: a(270, 180), o2: a(540, 360), o3: a(0, 360) }), 'T-209 C hacia P, R hacia O, efecto ambos extremos');
 const stateObj = (id: string): Cosa => ({ ...obj(id, 'Pedido' + id.toUpperCase()), tipo: 'objeto', estados: [{ id: id + 'n', nombre: 'nuevo' }, { id: id + 'l', nombre: 'listo' }] });
 agregar('transformadores-estados', modelo([stateObj('a'), stateObj('b'), stateObj('c'), stateObj('d'), stateObj('e'), pro('p', 'Transformar')], [{ id: 'ts1', tipo: 'consumo', objeto: 'a', proceso: 'p', estado: 'an' }, { id: 'ts2', tipo: 'resultado', objeto: 'b', proceso: 'p', estado: 'bl' }, { id: 'ts3', tipo: 'efecto', objeto: 'c', proceso: 'p', entrada: 'cn', salida: 'cl' }, { id: 'ts4', tipo: 'efecto', objeto: 'd', proceso: 'p', entrada: 'dn' }, { id: 'ts5', tipo: 'efecto', objeto: 'e', proceso: 'p', salida: 'el' }], { a: a(0, 0), b: a(800, 0), c: a(0, 240), d: a(800, 240), e: a(400, 480), p: a(420, 240) }), 'T-209 T-206 TS1/2/3/4/5 estados y dirección');
@@ -89,6 +93,36 @@ for (const fixture of ['Modelo_Vacio', 'OPM_Structure_Meta_Model', 'OnStar_Syste
         casos.push({ nombre: `fixture-${fixture}-profundo`, m: r.modelo, opd: profundo, oraculo: 'T-223 fixture OPD máximo profundo, empate preorden', construido: false });
 }
 const carpeta = new URL('__golden__/', import.meta.url);
+function normalizar(m: Modelo): Modelo {
+    const r = importarV0(exportarV0(m));
+    expect(r.ok).toBe(true);
+    if (!r.ok) throw Error('Importación del caso golden');
+    expect(r.modelo.enlaces).toEqual(m.enlaces);
+    expect(r.modelo.cosas).toEqual(m.cosas);
+    return r.modelo;
+}
+let estiloProducto = '';
+/** El snapshot es el fragmento de dibujo extraído de una exportación canónica real. */
+function dibujoExportado(m: Modelo, opd: string, nombre: string): string {
+    const r = exportarDiagrama(m, opd, { version: 'DEC29' });
+    expect(r.ok).toBe(true);
+    if (!r.ok) throw Error(`Export ${nombre}: ${r.rechazo.regla}`);
+    const dibujo = aTexto(dibujar(escena(m, opd), 'canon'));
+    estiloProducto = r.valor.svg.match(/<style>[\s\S]*?<\/style>/)![0];
+    const inicio = r.valor.svg.indexOf(dibujo);
+    expect(inicio).toBeGreaterThanOrEqual(0);
+    if (process.env.OPFORJA_GOLDEN === 'escribir') {
+        const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso2/genuinos';
+        mkdirSync(directorio, { recursive: true });
+        writeFileSync(`${directorio}/${nombre}.svg`, r.valor.svg);
+        if (nombre === 'abanico-or') {
+            const doc = exportarDocumento(m, new Map(opdsEnPreorden(m).map(id => [id, generarBloque(m, id)])), { version: 'DEC29' });
+            expect(doc.ok).toBe(true);
+            if (doc.ok) writeFileSync(`${directorio}/${nombre}.html`, doc.valor.html);
+        }
+    }
+    return r.valor.svg.slice(inicio, inicio + dibujo.length);
+}
 test('T-223 inventario 40 construidos más vistas únicas de 12 selecciones reales', () => {
     expect(casos.filter(c => c.construido)).toHaveLength(40);
     expect(fixtureSelections).toHaveLength(6);
@@ -101,7 +135,24 @@ test('T-223 inventario 40 construidos más vistas únicas de 12 selecciones real
 });
 for (const c of casos)
     test(`T-223 golden ${c.nombre}: ${c.oraculo}`, () => {
-        const e = escena(c.m, c.opd), svg = aTexto(dibujar(e, 'canon')), ruta = new URL(c.nombre + '.svg', carpeta);
+        let svg: string;
+        const reglasDiagnosticas: Record<string, string> = { OnStar_System: 'R-ROL-UNIC-1', SD_Async: 'R-ROL-UNIC-1', SD_Sync: 'R-INV-2B' };
+        const fixture = Object.keys(reglasDiagnosticas).find(f => c.nombre.startsWith(`fixture-${f}-`));
+        if (fixture) {
+            // Modelos históricos recuperables: dibujo diagnóstico, nunca export canónico.
+            const r = exportarDiagrama(c.m, c.opd, { version: 'DEC29' });
+            expect(r.ok).toBe(false);
+            if (!r.ok) expect(r.rechazo.regla).toBe(c.nombre === 'fixture-SD_Sync-profundo' ? 'R-EFE-1' : reglasDiagnosticas[fixture]!);
+            expect(gatesExportacion(c.m, { opd: c.opd }).length).toBeGreaterThan(0);
+            const e = escena(c.m, c.opd); svg = aTexto(dibujar(e, 'canon'));
+            if (process.env.OPFORJA_GOLDEN === 'escribir') {
+                const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso2/diagnosticos';
+                mkdirSync(directorio, { recursive: true });
+                const b = e.caja;
+                writeFileSync(`${directorio}/${c.nombre}.svg`, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x-24} ${b.y-24} ${b.ancho+48} ${b.alto+48}" width="${b.ancho+48}" height="${b.alto+48}"><title>DIBUJO DIAGNÓSTICO; export rechazado ${reglasDiagnosticas[fixture]}</title>${estiloProducto}${svg}</svg>`);
+            }
+        } else svg = dibujoExportado(c.m, c.opd, c.nombre);
+        const ruta = new URL(c.nombre + '.svg', carpeta);
         expect(svg).not.toContain('data-ref');
         expect(svg).not.toContain('#8e2a2e');
         if (process.env.OPFORJA_GOLDEN === 'escribir') {
@@ -110,10 +161,8 @@ for (const c of casos)
         }
         expect(svg).toBe(readFileSync(ruta, 'utf8'));
     });
-if (process.env.OPFORJA_GOLDEN === 'escribir')
-    test('T-223 recibo scratch de caja y procedencia de cada SVG', () => { const manifest = { construidos: 40, seleccionesFixture: fixtureSelections, unicos: casos.length, casos: casos.map(c => { const e = escena(c.m, c.opd), s = aTexto(dibujar(e, 'canon')); return { nombre: c.nombre, opd: c.opd, etiqueta: etiquetaOpd(c.m, c.opd), caja: e.caja, oraculo: c.oraculo, construido: c.construido, contexto: erroresContexto(c.m), sha256: createHash('sha256').update(s).digest('hex') }; }) }; writeFileSync('/tmp/opforja-rehacer/WP-8b-golden-manifest.json', JSON.stringify(manifest, null, 2)); expect(manifest.unicos).toBeGreaterThanOrEqual(46); });
 
-// B V2: apéndice; los 52 callbacks y 50 SVG anteriores conservan su prefijo.
+// Modelos históricos: DEC29 retira sólo la agrupación no ofrecida, conserva todos los enlaces.
 interface ArchivoB { readonly id: string; readonly grupo: string; readonly sha256: string; readonly jsonOriginal: string }
 const archivosB = JSON.parse(readFileSync(new URL('./pruebas/modelos-B-v2.json', import.meta.url), 'utf8')) as readonly ArchivoB[];
 const casosB: Caso[] = archivosB.map(f => ({ nombre: 'B-v2-' + f.id, m: JSON.parse(f.jsonOriginal) as Modelo, opd: 'sd', oraculo: `T-206 T-216 ${f.grupo}; entrada SHA ${f.sha256}`, construido: true }));
@@ -160,20 +209,15 @@ test('T-223 B V2 inventario 34 modelos portables exactos más seis composiciones
     expect(casosB).toHaveLength(40);
     expect(new Set(casosB.map(c => c.nombre)).size).toBe(40);
     for (const archivo of archivosB) expect(createHash('sha256').update(archivo.jsonOriginal).digest('hex')).toBe(archivo.sha256);
-    for (const c of casosB) { expect(validarForma(c.m)).toEqual([]); expect(erroresContexto(c.m)).toEqual([]); }
+    for (const c of casosB) { const m = normalizar(c.m); expect(validarForma(m)).toEqual([]); expect(erroresContexto(m)).toEqual([]); }
 });
 for (const c of casosB) test(`T-223 golden ${c.nombre}: ${c.oraculo}`, () => {
-    const previo = JSON.stringify(c.m), e = escena(c.m, c.opd), svg = aTexto(dibujar(e, 'canon')), ruta = new URL(c.nombre + '.svg', carpeta);
+    const previo = JSON.stringify(c.m), m = normalizar(c.m), svg = dibujoExportado(m, c.opd, c.nombre), ruta = new URL(c.nombre + '.svg', carpeta);
     expect(svg).not.toContain('data-ref');
     expect(svg).not.toContain('#8e2a2e');
     if (process.env.OPFORJA_GOLDEN === 'escribir') writeFileSync(ruta, svg);
     expect(svg).toBe(readFileSync(ruta, 'utf8'));
     expect(JSON.stringify(c.m)).toBe(previo);
-});
-if (process.env.OPFORJA_GOLDEN === 'escribir') test('T-223 B V2 recibo nuevo de caja y modelos, catálogo anterior separado', () => {
-    const manifest = casosB.map(c => { const e = escena(c.m, c.opd), svg = aTexto(dibujar(e, 'canon')); return { nombre: c.nombre, opd: c.opd, modelo: c.m, caja: e.caja, oraculo: c.oraculo, sha256: createHash('sha256').update(svg).digest('hex') }; });
-    writeFileSync('/tmp/opforja-rehacer/grafica-todas-ramas-escritora/implementacion-uniformes-X/golden-B-v2-manifest-X.json', JSON.stringify(manifest, null, 2) + '\n');
-    expect(manifest).toHaveLength(40);
 });
 
 // R2: dos contraejemplos exactos de centros ampliados; apéndice nuevo.
@@ -363,21 +407,32 @@ const modelosGoldenR2: readonly Modelo[] = [
         }
     }
 ];
-for (const m of modelosGoldenR2) test(`T-223 golden B-v2-R2-centros-efectivos-${m.enlaces.e1!.tipo}: T-206 T-216`, () => {
-    expect(validarForma(m)).toEqual([]); expect(erroresContexto(m)).toEqual([]);
-    const previo = JSON.stringify(m), e = escena(m, 'sd'), svg = aTexto(dibujar(e, 'canon'));
+for (const original of modelosGoldenR2) test(`T-223 golden B-v2-R2-centros-efectivos-${original.enlaces.e1!.tipo}: T-206 T-216`, () => {
+    const m = normalizar(original); expect(validarForma(m)).toEqual([]); expect(erroresContexto(m)).toEqual([]);
+    const previo = JSON.stringify(m), svg = dibujoExportado(m, 'sd', `B-v2-R2-centros-efectivos-${m.enlaces.e1!.tipo}`);
     const ruta = new URL(`B-v2-R2-centros-efectivos-${m.enlaces.e1!.tipo}.svg`, carpeta);
     if (process.env.OPFORJA_GOLDEN === 'escribir') writeFileSync(ruta, svg);
     expect(svg).toBe(readFileSync(ruta, 'utf8'));
     expect(JSON.stringify(m)).toBe(previo);
 });
 
-// APPEND X: datos de los ocho RED de duración y cuatro contenedores nativos.
+// Modelos de duración y contenedor: preservados, agrupación retirada por DEC29.
 const datosUniformesX = JSON.parse(readFileSync(new URL('./pruebas/modelos-uniformes-X.json',import.meta.url),'utf8')) as readonly {id:string;opd:string;sha256:string;jsonOriginal:string}[];
-for(const dato of datosUniformesX) test(`T-223 golden ${dato.id}: T-206 T-216 X tinta completa`,()=>{
+for(const dato of datosUniformesX) test(`T-223 DEC29 ${dato.id}: importación y export real`,()=>{
     expect(createHash('sha256').update(dato.jsonOriginal).digest('hex')).toBe(dato.sha256);
-    const m=JSON.parse(dato.jsonOriginal) as Modelo; expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);
-    const previo=JSON.stringify(m),s=escena(m,dato.opd),svg=aTexto(dibujar(s,'canon')),ruta=new URL(`${dato.id}.svg`,carpeta);
-    if(process.env.OPFORJA_GOLDEN==='escribir')writeFileSync(ruta,svg);
-    expect(svg).toBe(readFileSync(ruta,'utf8'));expect(JSON.stringify(m)).toBe(previo);
+    const m=normalizar(JSON.parse(dato.jsonOriginal) as Modelo); expect(validarForma(m)).toEqual([]);
+    const previo=JSON.stringify(m);
+    if (dato.opd === 'h') {
+        expect(erroresContexto(m).map(v => v.regla)).toContain('R-ROL-UNIC-1');
+        const exportado = exportarDiagrama(m, dato.opd, { version: 'DEC29' });
+        expect(exportado.ok).toBe(false);
+        if (!exportado.ok) expect(exportado.rechazo.regla).toBe('R-ROL-UNIC-1');
+        expect(() => escena(m, dato.opd)).not.toThrow();
+    } else {
+        expect(erroresContexto(m)).toEqual([]);
+        const svg=dibujoExportado(m,dato.opd,dato.id),ruta=new URL(`${dato.id}.svg`,carpeta);
+        if(process.env.OPFORJA_GOLDEN==='escribir')writeFileSync(ruta,svg);
+        expect(svg).toBe(readFileSync(ruta,'utf8'));
+    }
+    expect(JSON.stringify(m)).toBe(previo);
 });

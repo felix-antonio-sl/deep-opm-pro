@@ -1,8 +1,8 @@
 # Plan de implementación de opforja rehecho
 
-**Estado al 2026-10-02:** empaquetado y listo para ejecutarse en una **sesión nueva**
-(DECISIONS 28), en h289, sobre `~/projects/deep-opm-pro`. Esta sesión no implementa. La
-ejecución empieza con el mensaje de [`PROMPT.md`](PROMPT.md).
+**Reanudación DEC 29–32:** sobre `rehacer`, desde `e287ba9` o posterior. Primero las
+correcciones solicitadas, después el plan pendiente; DEC 30 exige protocolo ligero y una
+revisión por ola. La preparación de DEC 28 queda como antecedente, sin recrear rama ni tag.
 
 Qué se construye: el diseño de [`../design/DESIGN.md`](../design/DESIGN.md). Es un modelador
 OPM bimodal OPD/OPL que implementa lo que el canon exige a la herramienta, ni más ni menos, con un
@@ -43,8 +43,8 @@ DESIGN usa las rutas del repositorio final. Hasta que WP-19 cierre, equivalen a 
 
 1. En h289, en `~/projects/deep-opm-pro`: `git status` sin cambios versionados pendientes (si los
    hay, detenerse y avisar; no se descartan), `git switch main` y `git pull --ff-only origin main`.
-2. Crear la rama `rehacer` desde `main` y el tag `pre-rehacer` sobre esa base, y hacer push de
-   ambos. Todo el trabajo va en `rehacer`.
+2. Preparación ya realizada: `rehacer` y tag `pre-rehacer` (`513ac041f6eb91dc8bf0eb5319a492eb6ff25f6d`).
+   No se recrean. La reanudación parte de `e287ba99f64d5f49e4322dbb55d0fb643baa4ec9`.
 3. Entorno: Bun 1.3.x y Chromium de Playwright (si no existe `/opt/pw-browsers`, el de la
    máquina). El corpus KORA no hace falta, porque el canon está versionado.
 4. Línea base del código anterior, solo como referencia: `cd app && bun install && bun run check`.
@@ -89,17 +89,13 @@ Hitos de revisión con el dueño:
    - `opl/contratos.test.ts`: WP-7 sustituye sólo las cinco expectativas temporales de generación por checks reales de §5.4/§5.7; conserva literalmente las seis asignaciones de firmas, el bucle `typeof` y `importarOpl` pendiente. WP-9 sustituye sólo la expectativa restante de `importarOpl`, concretada en su turno conforme a §5.7 y sus pruebas nativas, conservando los otros checks.
    - `nucleo/matriz.ts`: WP-2 produce consulta y normalización; WP-4r agrega el ensayo compartido
      de distribución.
-   - `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}`: WP-4p produce; WP-5 integra en serie continuidad R+C y metadata conforme a DESIGN §4.4/§4.6, sin retirar cobertura previa. WP-8b integra después en serie únicamente la reparación de visibilidad de abanicos por estados propios en proyeccion.ts/proyeccion.test.ts (DESIGN §4.3.2/§4.6.5, T-054/T-086/T-216); misma escritora productiva, sin editar frontera.test.ts, fusionar/colapsarRamas, matriz, herencia, parser ni las negativas B-06. Exige RED nativo previo, GREEN, check fresco y revisión independiente del freeze conjunto, conservando toda la cobertura anterior.
-   - `nucleo/proyeccion.ts`: WP-4r reutiliza en serie la selección existente del hecho de mayor fuerza para materializar su id original (DS-16, §4.5.6). Propiedad mínima: extracción/exportación del helper interno y su consumo por fusionar y refinamiento, con resultados de Vista idénticos, ramas de conflicto/continuidad, controles dentro de clase y empates vigentes; suites previas y ley de frontera conservadas. Exige RED nativo, GREEN, check nuevo y revisión GLOBAL del freeze conjunto.
+   - `nucleo/{proyeccion.ts,proyeccion.test.ts,frontera.test.ts}`: WP-4p produce; WP-5 integra en serie continuidad R+C y metadata conforme a DESIGN §4.4/§4.6, sin retirar cobertura previa. DEC 29 limita los abanicos a extremo común en borde de cosa y conserva estados no comunes por rama (T-054/T-086/T-216); los grupos retirados no aparecen en Vista, y su importación conserva enlaces, estados y procedencia. No altera las leyes de frontera ni la abstracción de §4.6; verificación mediante pruebas nativas, check y una revisión por ola (DEC 30).
+   - `nucleo/proyeccion.ts`: WP-4r reutiliza en serie la selección existente del hecho de mayor fuerza para materializar su id original (DS-16, §4.5.6). Propiedad mínima: extracción/exportación del helper interno y su consumo por fusionar y refinamiento, con resultados de Vista idénticos, ramas de conflicto/continuidad, controles dentro de clase y empates vigentes; suites previas y ley de frontera conservadas. Exige RED nativo, GREEN, check nuevo y revisión de la ola (DEC 30).
    - `nucleo/propiedades.test.ts`: WP-3b prueba creación sin refinamientos; WP-4r amplía la
      integración refinada sin retirar la cobertura anterior.
-   - FAN local B-31: WP-7 genera sólo los dos bordes de DESIGN §5.3.1, con una LineaOpl
-     multilineal y cabecera exacta; WP-9 reconocerá el bloque cerrado en su propio turno.
-     Conserva non-canonical/error/no-aplicable y tiene pendiente resolver aplicación/estricto
-     local sin pérdidas antes de implementación WP-9; no se promete 0 errores ni dispensa.
-     No es superficie canónica/ISO, no modifica N ni amplía DS-10. Se conservan las dos
-     regresiones y sólo se corrigen sus assertions de cuantificador como precisa §10.3.
-     HAR-7 y sus seis firmas/typeof/importación pendiente permanecen íntegros.
+   - DEC 29: sólo abanicos con extremo común en borde de cosa; estados no comunes preservados.
+     Común en estado y TS3 sin literal completo se rechazan/importan como enlaces sueltos con
+     informe B-06. HAR-7 y sus firmas permanecen intactos; no hay dialecto textual adicional.
 4. Ninguna regla OPM vive fuera de `nucleo/matriz.ts` o `nucleo/diagnostico.ts`. Ninguna oración
    OPL vive fuera de `opl/plantillas.ts`. Toda mutación es una `Operacion` registrada.
 5. Cerrar con `cd app && bun run check` en verde, más las verificaciones de `aceptacion`. Ninguna

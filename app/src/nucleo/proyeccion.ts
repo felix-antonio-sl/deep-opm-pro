@@ -1,5 +1,6 @@
 import type { Modelo, Id, RelacionIncompleta, Enlace, Operador, EnlaceProcedimental, Control, Opd } from './tipos';
 import { esProcedimental, extremos } from './tipos';
+import { noOfrecido } from './matriz';
 import { indice } from './indice';
 import type { Indice } from './indice';
 import { MATRIZ } from './matriz';
@@ -108,6 +109,8 @@ export function proyectar(m: Modelo, opd: Id): Vista {
     }
     const abanicos: AbanicoVisto[] = [];
     for (const f of Object.values(m.abanicos)) {
+        const primeraOriginal = m.enlaces[f.enlaces[0]!];
+        if (!primeraOriginal || noOfrecido(m, primeraOriginal, f)) continue;
         const ramas = f.enlaces.map(id => porHecho.get(id));
         if (ramas.some(r => r === undefined) || new Set(ramas).size !== ramas.length) continue;
         const extremosRamas = ramas.map(r => extremos(r!.enlace));

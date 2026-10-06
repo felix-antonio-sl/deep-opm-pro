@@ -88,17 +88,6 @@ test('T-281 árbol HTML refleja jerarquía OPD en lista anidada', () => {
         return;
     expect(r.valor.html).toContain('<li><a href="#opd-0">SD</a><ol><li><a href="#opd-1">SD1</a></li></ol></li>');
 });
-test('T-281 B-31 tokens G reales multilineales conservan cabecera ramas y referencias en HTML', () => {
-    const base = m(), o: Cosa = { ...obj('o'), nombre: 'Pedido', tipo: 'objeto', estados: [{ id: 'pend', nombre: 'pendiente' }, { id: 'pag', nombre: 'pagado' }] }, p: Cosa = { id: 'p', nombre: 'Procesar', tipo: 'proceso', esencia: 'informacional', afiliacion: 'sistemica' }, q: Cosa = { ...p, id: 'q', nombre: 'Archivar' }, a = { x: 0, y: 0, ancho: 135, alto: 60 }, fan: Modelo = { ...base, cosas: { o, p, q }, enlaces: { e1: { id: 'e1', tipo: 'consumo', objeto: 'o', proceso: 'p', estado: 'pend' }, e2: { id: 'e2', tipo: 'consumo', objeto: 'o', proceso: 'q', estado: 'pag' } }, abanicos: { f: { id: 'f', operador: 'XOR', enlaces: ['e1', 'e2'] } }, opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { o: a, p: { ...a, x: 300, y: 100 }, q: { ...a, x: 300, y: 300 } } } } };
-    expect(gatesExportacion(fan, 'modelo')).toEqual([]);
-    const ls = generarBloque(fan, 'sd'), l = ls.find(l => l.plantilla === 'FANLOCAL-XOR')!;
-    expect(l.texto).toBe('Exactamente una de estas ramas:\n  *Archivar* consume **Pedido** en `pagado`.\n  *Procesar* consume **Pedido** en `pendiente`.');
-    const r = exportarDocumento(fan, new Map([['sd', ls]]), { version: 'v' });
-    expect(r.ok).toBe(true);
-    if (!r.ok)
-        return;
-    expect(r.valor.html).toContain('Exactamente una de estas ramas:\n  <em>Archivar</em> consume <strong>Pedido</strong> en <code>pagado</code>.\n  <em>Procesar</em> consume <strong>Pedido</strong> en <code>pendiente</code>.');
-});
 test('T-284 advertencia incluye enlaces estructurales dibujados en peine', () => {
     const e = manual();
     const s = { clave: 'simbolo:a:agregacion', refinable: 'a', relacion: 'agregacion' as const, vertice: { x: 45, y: 45 }, orientacion: 'abajo' as const, incompleta: false, ramas: ['es'], peine: [[{ x: 40, y: 40 }, { x: 100, y: 100 }]], mult: [] };

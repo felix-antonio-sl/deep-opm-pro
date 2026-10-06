@@ -66,50 +66,9 @@ test('T-118 inversa exhibición incompleta conserva rasgos de ambos tipos y la d
  expect(tabla.PLANTILLAS.find(p=>p.id==='RF2i')!.hacia({vertice:{texto:'Pedido',marca:'objeto'},C:[{texto:'Cuenta',marca:'objeto'}],otro:[{texto:'Procesar',marca:'proceso'}]})).toEqual([{k:'enlace',enlace:{tipo:'exhibicion',refinable:{nombre:'Pedido',tipo:'objeto'},refinador:{nombre:'Cuenta',tipo:'objeto'}}},{k:'enlace',enlace:{tipo:'exhibicion',refinable:{nombre:'Pedido',tipo:'objeto'},refinador:{nombre:'Procesar',tipo:'proceso'}}},{k:'incompleta',cosa:{nombre:'Pedido',tipo:'objeto'},relacion:'exhibicion'}]);
 });
 
-const ramasTS3 = () => [
- {plantilla:'TS3',huecos:{O:{texto:'Pedido',marca:'objeto' as const},P:{texto:'Procesar',marca:'proceso' as const},e:{texto:'pendiente',marca:'estado' as const},s:{texto:'pagado',marca:'estado' as const}}},
- {plantilla:'TS3',huecos:{O:{texto:'Pedido',marca:'objeto' as const},P:{texto:'Procesar',marca:'proceso' as const},e:{texto:'pagado',marca:'estado' as const},s:{texto:'pagado',marca:'estado' as const}}}
-];
-// RAMAS es deliberadamente privado; el cast permite observar RED contra la firma previa sin cambiar producción.
-const locales = (ramas:readonly unknown[]) => ({RAMAS:{texto:'',ramas}} as unknown as tabla.Huecos);
-for(const op of ['XOR','OR'] as const)test(`T-105 local B-31 tabla única TS3 ${op} conserva operador y todos los roles`,()=>{
- const p=tabla.PLANTILLAS.find(p=>p.id===`FANLOCAL-${op}`);expect(p).toBeDefined();expect(p).toMatchObject({estado:'G',origen:'LOCAL',registro:'B-31'});
- const h=locales(ramasTS3()),before=JSON.stringify(h);expect(p!.desde!({plantilla:p!.id,huecos:h})).toBe(h);
- expect(p!.hacia(h)).toEqual([{k:'abanico',operador:op,ramas:[{tipo:'efecto',objeto:{nombre:'Pedido',tipo:'objeto'},proceso:'Procesar',entrada:'pendiente',salida:'pagado'},{tipo:'efecto',objeto:{nombre:'Pedido',tipo:'objeto'},proceso:'Procesar',entrada:'pagado',salida:'pagado'}]}]);expect(JSON.stringify(h)).toBe(before);
-});
-for(const tipo of ['consumo','resultado','agente','instrumento'] as const)test(`T-105 local B-31 hacia ${tipo} conserva ausencia y marca de objeto común`,()=>{
- const ids={consumo:['TS1','T1'],resultado:['TS2','T2'],agente:['HS1','H1'],instrumento:['HS2','H2']}[tipo];
- const O={texto:'Pedido',marca:'objeto' as const};
- const h=locales([{plantilla:ids[0]!,huecos:{O,mO:O,P:{texto:'Procesar',marca:'proceso'},s:{texto:'pendiente',marca:'estado'}}},{plantilla:ids[1]!,huecos:{O,mO:O,P:{texto:'Archivar',marca:'proceso'}}}]);
- const p=tabla.PLANTILLAS.find(p=>p.id==='FANLOCAL-XOR');expect(p).toBeDefined();expect(p!.hacia(h)).toEqual([{k:'abanico',operador:'XOR',ramas:[{tipo,objeto:{nombre:'Pedido',tipo:'objeto',estado:'pendiente'},proceso:'Procesar'},{tipo,objeto:{nombre:'Pedido',tipo:'objeto'},proceso:'Archivar'}]}]);
-});
-const rechazosLocales:readonly [string,(ramas:ReturnType<typeof ramasTS3>)=>readonly unknown[]][]=[
- ['cero',()=>[]],['una',r=>[r[0]]],['familia mixta',r=>[r[0],{plantilla:'T1',huecos:{O:r[1]!.huecos.O,mO:r[1]!.huecos.O,P:r[1]!.huecos.P}}]],
- ['tipo O incorrecto',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,O:{texto:'Pedido',marca:'proceso'}}}]],
- ['O sin marca',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,O:{texto:'Pedido'}}}]],
- ['P sin marca',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,P:{texto:'Procesar'}}}]],
- ['E sin marca',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,e:{texto:'pagado'}}}]],
- ['salida ausente',r=>[r[0],{plantilla:'TS3',huecos:{O:r[1]!.huecos.O,P:r[1]!.huecos.P,e:r[1]!.huecos.e}}]],
- ['entrada y salida variables',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,s:{texto:'anulado',marca:'estado'}}}]],
- ['entrada uniforme',r=>[r[0],r[0]]],['otro objeto',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,O:{texto:'Cuenta',marca:'objeto'}}}]],
- ['otro proceso TS3',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,P:{texto:'Archivar',marca:'proceso'}}}]],
- ['control',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,control:{texto:'e'}}}]],['ruta',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,r:{texto:'normal'}}}]],
- ['plantilla ajena',r=>[r[0],{...r[1],plantilla:'D5'}]],['fragmento opaco',r=>[r[0],{...r[1],huecos:{...r[1]!.huecos,P:{...r[1]!.huecos.P,tokens:[{texto:'texto residual',rol:'texto'}]}}}]]
-];
-for(const [nombre,cambiar] of rechazosLocales)test(`T-105 local B-31 rechaza cerrado ${nombre}`,()=>{
- const p=tabla.PLANTILLAS.find(p=>p.id==='FANLOCAL-XOR');expect(p).toBeDefined();const h=locales(cambiar(ramasTS3())),before=JSON.stringify(h);expect(p!.hacia(h)).toEqual([]);expect(p!.restricciones!(h)).toBe(false);expect(p!.desde!({plantilla:p!.id,huecos:h})).toBeNull();expect(JSON.stringify(h)).toBe(before);
-});
-test('T-105 local B-31 no acepta estado uniforme ni proceso repetido en objeto común',()=>{
- const p=tabla.PLANTILLAS.find(p=>p.id==='FANLOCAL-XOR');expect(p).toBeDefined();const O={texto:'Pedido',marca:'objeto' as const},s={texto:'pendiente',marca:'estado' as const},P={texto:'Procesar',marca:'proceso' as const};
- for(const r of [[{plantilla:'HS1',huecos:{O,mO:O,P,s}},{plantilla:'HS1',huecos:{O,mO:O,P:{texto:'Archivar',marca:'proceso'},s}}],[{plantilla:'HS1',huecos:{O,mO:O,P,s}},{plantilla:'H1',huecos:{O,mO:O,P}}]])expect(p!.hacia(locales(r))).toEqual([]);
-});
-
-for(const op of ['XOR','OR'] as const)test(`T-122 B-32 tabla agente objeto común ${op} conserva estado explícito o ausencia por rama`,()=>{
+for(const op of ['XOR','OR'] as const)test(`T-122 agente común tiene literal de cosa sin estado ${op}`,()=>{
  const p=tabla.PLANTILLAS.find(p=>p.id===`FAN-agente-divergente-${op}`)!;
- expect(p.patron).toBe('{Oe} maneja {Q} {Lo:Plista}.');
- for(const presente of [false,true]){
-  const O={texto:'Operador',marca:'objeto' as const,...(presente?{estado:{texto:'listo',marca:'estado' as const}}:{})};
-  const h={O,Plista:[{texto:'Archivar',marca:'proceso' as const},{texto:'Procesar',marca:'proceso' as const}],operador:{texto:op}},before=JSON.stringify(h);
-  expect(p.hacia(h)).toEqual([{k:'abanico',operador:op,ramas:[{tipo:'agente',objeto:{nombre:'Operador',tipo:'objeto',...(presente?{estado:'listo'}:{})},proceso:'Archivar'},{tipo:'agente',objeto:{nombre:'Operador',tipo:'objeto',...(presente?{estado:'listo'}:{})},proceso:'Procesar'}]}]);expect(JSON.stringify(h)).toBe(before);
- }
+ expect(p.patron).toBe('{O} maneja {Q} {Lo:Plista}.');
+ const h={O:{texto:'Operador',marca:'objeto' as const},Plista:[{texto:'Archivar',marca:'proceso' as const},{texto:'Procesar',marca:'proceso' as const}],operador:{texto:op}},before=JSON.stringify(h);
+ expect(p.hacia(h)).toEqual([{k:'abanico',operador:op,ramas:[{tipo:'agente',objeto:{nombre:'Operador',tipo:'objeto'},proceso:'Archivar'},{tipo:'agente',objeto:{nombre:'Operador',tipo:'objeto'},proceso:'Procesar'}]}]);expect(JSON.stringify(h)).toBe(before);
 });

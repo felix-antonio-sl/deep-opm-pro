@@ -839,7 +839,7 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
      derivado; si difieren, van a `normalizado`, o al diff de la etapa 12 en el caso de `opdId`.
    - `decision` va a `descartado`.
    - Las violaciones de contexto se **cargan**: tipos mixtos, sin extremo común, control mixto.
-   - Un abanico que cae en `NO_OFRECIDO` (control sin plantilla, efecto mixto; B-06, B-08) va a
+   - Un abanico que cae en `NO_OFRECIDO` (extremo común en estado, control sin plantilla o efecto sin plantilla; B-06, B-08) va a
      `descartado` y sus enlaces se conservan.
    - **Regla de cierre de F-5**: toda combinación que `noOfrecido` rechace se descarta en su mínimo
      elemento (el campo, el anclaje o el abanico), con informe. Esto incluye el recíproco sin
@@ -1303,7 +1303,7 @@ Reglas de abanico (`violacionesAbanico`, error `abanico-invalido`):
     objeto común en resultado;
   - divergente: el caso contrario;
   - ramas por estados de un mismo par objeto–proceso: el común es el proceso (DR-9);
-    con objeto común y procesos distintos rige el caso anterior (§5.3.1, borde 2 para estados no uniformes);
+    con objeto común y procesos distintos sólo se admite el borde del objeto, nunca un estado (DEC 29);
 - el control es uniforme; uno mixto viola R-ZNC-COMB-1 y el parser lo responde `non-canonical`.
 
 Estas condiciones de creación son precondiciones de las operaciones, no estado del modelo:
@@ -1325,7 +1325,8 @@ export function noOfrecido(m: Modelo, e: Enlace | EnlaceNuevo, abanico?: Abanico
 |---|---|---|---|
 | nf-mult-sin-hueco | multiplicidad junto a `c`; en efecto con `entrada` o `salida` (TS3–TS5 y ETS2–4 usan `identificador_de_objeto`); en etiquetados con algún estado (SSE) | DR-44, EBNF A.5/A.6/A.8 | B-04 |
 | nf-reciproco-estados-sin-etiqueta | recíproco sin etiqueta con estados (SE5 no tiene variante con estado) | reglas §4.10 | B-05 |
-| nf-abanico-efecto-mixto | abanico de efecto que no es T3 puro (sobre objetos o sobre procesos) ni ramas por estados de un mismo objeto con entrada común o salida común (FAN5s, FAN5e, FAN5A) | R-FAN-5/5A | B-06 |
+| nf-abanico-efecto-mixto | abanico de efecto que no es T3 puro ni FAN5s, FAN5e o FAN5A (TS3 con entrada común) | R-FAN-5/5A | B-06 |
+| nf-abanico-estado-comun | objeto común con cualquier estado explícito en sus ramas; uniforme, distinto o parcialmente ausente | R-FAN-EST-1 | B-06 |
 | nf-abanico-control | control en abanico salvo: consumo convergente con todas las ramas `c` (C-18); efecto divergente sobre procesos con todas `c` (reglas §7.4); efecto con objeto común y todas `e` (R-FAN-4) | T-056, C-19b | B-08 |
 | nf-descomposicion-objeto | descomponer un objeto | R-OPL-CX-4, DR-23 | B-02 |
 
@@ -1967,21 +1968,9 @@ Parsear EX1/EX2 con número fija además `duracion.max|min` de la fuente: la cot
 | consumo | `{P} consume {Q} {Lo:mOe}.` | `{Q^} {Lo:P} consume {mOe}.` |
 | resultado | `{Q^} {Lo:P} genera {mOe}.` | `{P} genera {Q} {Lo:mOe}.` |
 | efecto | sobre objetos: `{P} afecta {Q} {Lo:mO}.` | sobre procesos: `{O} es afectado por {Q} {Lo:P}.` |
-| agente | `{P} es manejado por {Q} {Lo:mOe}.` | `{Oe} maneja {Q} {Lo:P}.` |
+| agente | `{P} es manejado por {Q} {Lo:mOe}.` | `{O} maneja {Q} {Lo:P}.` |
 | instrumento | `{P} requiere {Q} {Lo:mOe}.` | `{Q^} {Lo:P} requiere {mOe}.` |
 | invocación | `{Q^} {Lo:P} invoca {P}.` | `{P} invoca {Q} {Lo:P}.` |
-
-En agente con objeto común, `{Oe}` conserva `en {s}` sólo cuando TODAS las ramas llevan
-la misma identidad de estado propio explícito. Si todas carecen de estado, conserva la forma
-básica sin sufijo. `hacia` reconstruye cada enlace agente con ese mismo estado explícito, o
-sin estado cuando está ausente: nunca default global ni herencia desde una rama. El token de
-estado mantiene su ref y un `hecho` miembro real; `hechos` conserva todos los IDs/procedencia.
-Estados heterogéneos o parcialmente ausentes siguen exclusivamente FANLOCAL (§5.3.1), sin
-tercer fallback. No agrega `m`, control, ruta, AND, firma o API ni cambia canon/DECISIONS.
-Esta concreción contractual fue autorizada y registrada/aplicada antes de código. B-32
-conserva el RED G histórico y registra reparación nativa observada en freeze 6; check
-completo fresco observado 1081/0 y nueva ejecución independiente 98/0. El cierre G exige
-dictamen global y revisión documental favorables, sin crédito de superficies futuras.
 
 Casos especiales de abanico:
 
@@ -2014,103 +2003,19 @@ Casos especiales de abanico:
 `así como` en CX lleva los **objetos internos** (R-OPL-CX-6, PUEDE). Se emite porque el alcance
 interno/externo decide la visibilidad (R-VIS-HIJO-1), y sin él el roundtrip no sería estricto.
 
-### 5.3.1 Bloques FAN locales no canonizados (B-31)
+### 5.3.1 Alcance de abanicos (DECISIONS 29)
 
-Extensión **LOCAL NO_CANONIZADA**, autorizada para conservar dos ofertas N históricas cuya
-superficie literal no está en el canon. No es una plantilla ISO ni evidencia de conformidad
-canónica. No cambia canon, DECISIONS 1–28, v0, APIs ni validez de enlaces. R-FAN-EST-1 y la
-nota de R-FAN-5A mantienen la admisión N; los nuevos literales son una decisión local declarada.
+Un abanico sólo se ofrece cuando todas las ramas comparten un extremo en el borde de la
+misma cosa, objeto o proceso. Un estado en ese extremo, uniforme o distinto por identidad,
+no forma abanico. Los estados del extremo no común se conservan por rama; FAN5s/FAN5e y
+FAN5A con entrada común mantienen sus plantillas canónicas. TS3 de salida común sin literal
+completo no se ofrece (B-06); no se añade un dialecto textual.
 
-Sólo aplica a un fan XOR/OR válido por la matriz compartida, con ≥2 ramas homogéneas, sin
-control ni ruta, que satisface exactamente uno de estos bordes:
-
-1. Todos TS3, mismo objeto/proceso y salida propia común; todas las entradas propias presentes,
-   con ≥2 entradas distintas. No admite entrada y salida simultáneamente variables.
-2. Consumo, resultado, agente o instrumento, mismo objeto y procesos distintos; la tupla
-   `(estado especificado, id del estado)` no es uniforme entre ramas, incluida presencia/ausencia.
-   Conserva la multiplicidad por rama que la matriz ya admite; no agrega combinaciones nuevas.
-
-Los fans ya representables siguen sus plantillas actuales. AND sigue plano sin cabecera; si
-alguna rama porta ruta, DS-10 tiene precedencia y sigue plano con su prefijo. Las combinaciones
-B-06/B-08, controles mixtos y demás negativas conservan matriz, diagnóstico y comportamiento.
-
-| id local | patrón del bloque | estado de producto | registro |
-|---|---|---|---|
-| FANLOCAL-XOR | `Exactamente una de estas ramas:` + salto + `{RAMAS}` | G local | B-31 |
-| FANLOCAL-OR | `Al menos una de estas ramas:` + salto + `{RAMAS}` | G local | B-31 |
-
-Estos dos registros pertenecen a la misma `PLANTILLAS`, con metadata interna local y
-`registro: 'B-31'`; G significa generación/reconocimiento del producto, no origen canónico.
-`RAMAS` es una secuencia cerrada de oraciones base de esa tabla: TS3 para el borde 1;
-T1/TS1, T2/TS2, H1/HS1 o H2/HS2 para el borde 2, todas de una sola familia.
-Cada rama repite explícitamente proceso, objeto, estado presente y, en TS3, entrada y salida;
-una ausencia no hereda estado de otra rama ni de la cabecera. Se compone/reconoce por la misma
-tabla; no hay segunda copia de sus literales. La cabecera fija sólo el operador.
-
-Gramática local de encuadre (LF; CRLF se convierte a LF antes de encuadrar):
-
-```ebnf
-bloque_fan_local = cabecera_fan_local, LF, rama_local, LF, rama_local, { LF, rama_local } ;
-cabecera_fan_local = "Exactamente una de estas ramas:" | "Al menos una de estas ramas:" ;
-rama_local = "  ", oracion_base_completa ;
-```
-
-La cabecera empieza en columna 0 y se compara con esos literales exactos tras NFC. Cada rama
-empieza con **exactamente dos espacios ASCII**, seguidos inmediatamente por su oración con
-punto final; no tabulaciones, viñetas, numeración, marcadores de cierre ni identificadores
-textuales nuevos. La indentación es encuadre, no un hecho ni un marcador de operador.
-El cuerpo es la secuencia contigua de renglones indentados hasta el primer vacío, no indentado
-o EOF; el terminador no se consume. Una cabecera nueva en columna 0 cierra el grupo anterior y
-abre otro independiente, sin exigir línea vacía. No cruza cabecera de OPD, documento o alcance.
-Una cabecera indentada, cuerpo inválido, familia mixta, <2 ramas o dominio distinto rechazan el
-bloque entero; no se rescatan ramas como enlaces planos/AND ni se absorben oraciones vecinas.
-Una cabecera sola no es display ni una oración independiente válida.
-
-Representación mínima: **una sola `LineaOpl` semántica** por fan local; `texto` y `tokens`
-contienen cabecera, LF, encuadre y ramas. No se agrega campo público. No lleva `soloDisplay`:
-la cabecera porta semántica. `textoDeTokens(tokens) === texto`; `textoCanonico` conserva
-saltos/espacios internos y las cabeceras `##` actuales. Su id es
-`${opd}#FANLOCAL-XOR:FAN:${fan.id}` o la variante OR, nunca posición/nombre/SDx.
-Las ramas siguen nombre del otro extremo (colación es/base) e id del enlace como desempate
-(§5.4); para el mismo par se desempata por id del enlace. Los tokens de cada rama conservan
-`hecho` y `ref` propios, incluidos ambos estados TS3. `refs` únicas en primera aparición;
-`hechos` es la unión ordenada, sin pérdidas, de la procedencia de cada rama vista, incluidos
-abstraídos. `opd`, etiqueta y profundidad provienen de la vista; no se mutan fuente, IDs,
-estados, enlaces, operador o membresía. La cabecera/encuadre no fabrica ref/hecho propio.
-
-**Inversa obligatoria futura WP-9, sin implementación ni aceptación anticipada en WP-7.**
-El framing anterior se reconoce antes de colapsar espacios/quitar numeración de §5.5.
-Cada cuerpo se reconoce por su plantilla base en `PLANTILLAS`; antes de `hacia` se exigen
-marcas O=objeto (`**…**`), P=proceso (`*…*`) y E=estado (backticks), con todos los huecos
-requeridos y sin texto residual. Cada base produce exactamente un HechoTexto enlace permitido.
-No se infieren tipos/estados desde huecos sin marca, defaults de `hacia` o ramas vecinas;
-el dominio se valida sobre esos extremos explícitos. En WP-9 la resolución al Modelo y los
-gates N de firma/forma/contexto/noOfrecido son reales, nunca defaults plausibles. El resultado es un único
-`HechoTexto { k: 'abanico', operador, ramas }`, con todas las ramas, sin herencia ni deduplicación
-por objeto. La cabecera no usa `cabecera` de OPD ni `soloDisplay`. `LineaAnalizada` sigue por
-renglón físico: el hecho del grupo se asocia al número de la cabecera; los cuerpos no producen
-hechos independientes ni nuevas acciones. El plan conserva trazabilidad de sus números y
-estado del grupo (cuerpos con detalle de pertenencia, como el par SE3), sin firma pública nueva.
-El alcance es el actual de `planificar`: OPD explícito, o último `## SDx` con alcance modelo;
-no hay ámbito/perfil/flag nuevo que autorice aplicación local. Un bloque mal formado da
-`syntax-error` sin rescate; un candidato rechazado por matriz conserva su código existente.
-
-`NO_CANONIZADAS` de WP-9 registrará `fan-local-xor` y `fan-local-or`, ambos B-31. El bloque
-válido se reconoce léxicamente y recupera el HechoTexto completo, pero **reporta `non-canonical`
-con severidad error**, regla/origen local B-31 visible y atribución al grupo. El plan vigente lo
-clasifica no-aplicable/forma-no-reconocida sin acciones; no aplica cuerpos como enlaces planos
-ni oculta diagnóstico porque el texto venga del propio generador. Conserva código, severidad,
-razones y rechazo actual de las demás filas (R-IMPORT-6, §5.5/§5.6); nunca evidencia ISO.
-
-**Obligación pendiente de inversión SIN PÉRDIDAS WP-9:** el reconocimiento debe recuperar todos
-los enlaces, estados/ausencias, operador y membresía desde texto, sin usar metadata oculta.
-La política vigente de error/no-aplicable entra en tensión con aplicar esa extensión y exigir
-cero errores/roundtrip estricto de §5.9. Se resolverá expresamente en WP-9 antes de implementar
-aplicación/inversa estricta local; aquí no se autoriza esa excepción ni se declara dispensa
-ni se cambia un gate ni se recorta el enumerador. No se promete verde estricto/0 errores de estos
-bloques. Si se resolviera posteriormente una aplicación local, tendrá que conservar grupo
-atómico, fases 2/3, idempotencia, pureza y partial-parse entre grupos; no se decide esa política
-ahora. Vocabulario cerrado agrega sólo los literales de esta tabla (incluidos `estas` y `ramas`).
+La combinación no ofrecida se registra como «no implementado (PUEDE)» en B-06.
+El import retira únicamente el abanico con informe, conservando todos los enlaces, estados,
+IDs y demás datos. Sus enlaces sueltos generan las oraciones atómicas correspondientes.
+Los errores de contexto recuperables conservan sus gates; no se inventa un export conforme.
+Los antecedentes retirados se conservan en la bitácora y el historial Git.
 
 ### 5.4 Generador (`opl/generar.ts`) — CONTRATO
 
@@ -2202,8 +2107,6 @@ fronteras antes de la normalización por renglón. El resto sigue este algoritmo
 5. **Residual SE1** (DR-36, T-170): `⟨mC⟩ <frase_no_capitalizada> ⟨mC⟩.`, con ambos extremos del
    mismo tipo tipográfico y sin otro esqueleto, da SE1 con esa etiqueta.
 6. **No soportadas y no canonizadas** (`opl/no-soportadas.ts`, cada fila con `regla` y `registro`).
-   Las dos filas locales autorizadas B-31 tienen el reconocimiento cerrado de §5.3.1; no se
-   confunden con la lista de formas rechazadas que sigue.
    Se reconocen **antes** de fallar y se responden sin mutar:
    - **`NO_SOPORTADAS`** dan `unsupported-canonical` (warning, T-156): RX1/RX2 `puede ser`;
      plurales por multiplicidad (`consumen`, `generan`, `afectan`, `requieren`, `manejan`,
@@ -2535,87 +2438,19 @@ y peines (12) → aristas a estados (20). Los modos se distinguen así:
     bidireccional, la etiqueta va a 1/3 desde el origen y la inversa a 1/3 desde el destino, en
     lados opuestos.
   - La multiplicidad se marca en ambos extremos (T-218).
-- **Abanicos** (T-216, DR-9). Si las ramas comparten el terminal real —el mismo proceso, o el
-  mismo objeto con la misma identidad de estado propio explícito en todas las ramas o sin estado
-  en ninguna—, terminan en un **punto de acople**: el recorte del borde de ese terminal común hacia
-  el centroide de los otros extremos. Un estado explícito usa el borde de su cápsula, no el objeto.
-  - **Agrupación local con terminales propios**: XOR/OR de consumo, resultado, agente o
-    instrumento, con objeto común, procesos distintos y estados no uniformes por
-    presencia/identidad, ya válido por la matriz y sin control. Cada rama conserva su terminal
-    propio, recortado en la cápsula del estado que especifica o en el objeto si no especifica
-    estado; no hereda estado de otra rama, de `porDefecto` ni de `Current`. Conserva IDs,
-    referencias, hechos/procedencia, dirección, marcador, operador y membresía. La realización
-    primaria conserva exactamente los recorridos y terminales derivados de cada hecho sin fan.
-    Si el agrupamiento o la trazabilidad no pueden cumplir sobre los recorridos rectos, se
-    permiten únicamente en este
-    dominio vértices gráficos distintos por rama, derivados sin mutar posiciones persistidas
-    ni agregar cosa, estado, enlace, ID o junction compartido. Cada recorrido debe poder
-    seguirse visiblemente desde SU cápsula u objeto sin estado hasta SU proceso y viceversa,
-    sin atravesar cosas que oculten su continuidad ni sugerir asociaciones nuevas. Conserva
-    dirección, familia del marcador, operador, membresía, IDs y hechos/procedencia. Sus extremos
-    siguen recortados en los perímetros propios según el primer y último segmento; el puerto
-    numérico puede diferir del standalone cuando lo requiere ese recorrido, conservando siempre
-    identidad de estado/ausencia y extremo. Ruta y multiplicidad se sitúan respecto de los
-    segmentos efectivos, conservando sus distancias y estilo. La marca común y ambos radios de
-    OR deben reunir TODAS esas ramas. Ninguna construcción fallida del spike queda admitida
-    por permitir vértices, y ningún fallback dispensa agrupamiento o trazabilidad.
-    Las rutas ya admitidas en consumo/resultado conservan DS-10: no se agrupa G; el fan N/X no se
-    elimina. El bloque textual B-31 de §5.3.1 borde 2 sigue limitado a ramas sin ruta ni control;
-    esta agrupación gráfica no amplía FANLOCAL ni su dominio textual.
-    La marca tiene un **único centro de agrupación**, asociado al objeto común y seleccionado
-    determinísticamente dentro de su rectángulo. El centro no sustituye los terminales propios
-    ni crea un punto de unión entre las ramas. El radio interior `r > 0` se adapta a la geometría
-    derivada de las apariciones persistidas; XOR usa un arco y OR dos concéntricos de radios
-    `r` y `r + 5`, con dash `4 1` y trazo 1.5.
-    El sector se obtiene de las intersecciones reales con los recorridos finitos de TODAS las
-    ramas; en OR considera las intersecciones de AMBOS radios. Cada arco debe reunir visualmente
-    todas las ramas, con cruces visibles en su sector y correspondencia inequívoca entre cada
-    proceso y SU estado o ausencia. La elección debe comprobar analíticamente intersecciones
-    y visibilidad del sector dibujado, considerando cuerpos, cápsulas, marcadores, trazo, sombras
-    y etiquetas; el muestreo por sí solo no demuestra que cumpla.
-    No se impone la referencia hacia el centroide de procesos, la convención este ni un radio
-    envolvente fijo en este dominio. La ausencia de un candidato completo conserva pendiente
-    la reparación: no habilita omitir la marca, dejar ramas fuera, introducir un fallback que
-    incumpla, cambiar los hechos ni aceptar parcialmente el agrupamiento. Un layout cargado
-    con solapes conserva sus datos y avisos; esos avisos no dispensan esta condición.
-  - Los casos con terminal real común conservan su acople y radio 30, y cubren el sector angular
-    mínimo de las ramas mediante `calcularGeometriaAbanicoDesdePuntos` + mayor hueco angular.
-    XOR es un arco; OR, dos concéntricos de radios 30 y 35; dash `4 1`, trazo 1.5.
-    Excepción gráfica local limitada a XOR/OR de consumo, resultado, agente o instrumento,
-    sin control, con objeto común, procesos distintos y el mismo estado explícito por identidad
-    en todas las ramas, ya válido y ofrecido por N/matriz: la selección del packing permitido
-    por T-206 y del radio se realiza
-    sobre las cajas definitivas, incluida la expansión de contenedores. Se conserva un único
-    acople, obtenido por recorte de la cápsula común hacia el centroide de esas cajas de procesos;
-    el centro de cada arco es ese mismo acople. Cada rama sigue siendo recta, con su terminal,
-    dirección, marcador, ID, hechos, estado, procedencia y capa originales.
-    Si la geometría existente es un candidato completo con radio 30 (XOR) o radios 30 y 35
-    (OR), se conserva byteexacta. En otro caso se priorizan esos radios en una familia de
-    packings permitidos, finita, reproducible y con orden determinista explícito. Sólo cuando
-    ninguno de esos candidatos es completo se permite seleccionar un radio interior r >= 30;
-    XOR usa r y OR usa r y r + 5. No se exige probar que ningún packing concebible podría
-    funcionar: se declara la familia examinada, sus candidatos y el motivo analítico de rechazo.
-    Para cada packing, la selección de radio se deriva de los segmentos finitos y obstáculos
-    efectivos; los intervalos factibles y sus límites se contrastan analíticamente. Los empates
-    se resuelven por el orden de candidatos declarado, sin depender de nombres ni IDs de ramas.
-    El sector mínimo se obtiene de los recorridos reales evitando el mayor hueco angular.
-    Un candidato completo exige que cada arco cruce todas las ramas finitas, que todo su trazo
-    sea visible frente a cuerpos, cápsulas, sombras que lo cubran por capa, textos y marcadores,
-    y que las rectas conserven trazabilidad inequívoca hacia cada extremo sin invadir tinta de
-    estados o rótulos. Se contrasta analíticamente y mediante observación visual individual;
-    un muestreo, una búsqueda finita o el solo recuento de intersecciones no acreditan lo demás.
-    Si no se encuentra un candidato completo, la realización queda pendiente y conserva la
-    reserva: no se omite el grupo, no se acepta una rama fuera ni se exporta como conforme un
-    fallback incumplidor. No se mueve una posición persistida ni se añaden vértices, nodos,
-    marcas o variantes semánticas por esta excepción.
-    Esta selección de radio es una divergencia gráfica local respecto de la nota de realización
-    de spec-OPD §6.3 (radios heredados 30/35), registrada como B-33 en conformidad, pendiente
-    de validación y aceptación;
-    no altera el canon ni acredita ISO. Ausencia total de estado, común P, estados de identidad
-    distinta, AND, efecto y control quedan fuera; la política heterogénea B V2 no se modifica.
-  - AND es la ausencia de arco. Los casos representables, efectos y controles conservan sus
-    reglas; esta agrupación no cambia B-06/B-08 ni N/G. B-31 sigue LOCAL NO_CANONIZADA, sin
-    evidencia ISO ni crédito de inversa/strict/parser por esta realización.
+- **Abanicos** (T-216, DR-9, DEC 29): sólo se forman con un extremo común en el borde de
+  la cosa, nunca en un estado. El acople es el recorte de ese borde hacia el centroide de
+  los otros extremos efectivos, incluidos sus estados no comunes y las cajas expandidas.
+  Todas las ramas conservan una recta por tramo, recortada en sus perímetros propios y
+  orientada según sus hechos; no hay búsqueda de packing, vértices gráficos ni radios adaptados.
+  El arco se centra en el acople: XOR usa radio 30; OR, radios 30 y 35; dash `4 1`, trazo 1.5.
+  El sector angular mínimo de las ramas evita el mayor hueco angular. En FAN5A lo determina
+  la dimensión variable, conservando ambos tramos del TS3 y su entrada común.
+  AND es la ausencia de arco. Efectos, controles y rutas representables conservan sus reglas;
+  DS-10 desagrupa el texto con ruta sin perder el abanico nuclear o gráfico.
+  Las posiciones persistidas, IDs, estados, hechos, dirección, marcadores y capas se conservan.
+  `escena()` y los exports no lanzan con un modelo válido: cruces u oclusiones se advierten
+  según B-15, sin reruteo automático ni rechazo por no encontrar una geometría alternativa.
 - **Marcas de control** (T-214): `e` o `c` en minúscula dentro de un círculo de 18 px (fondo papel,
   borde tinta), sobre la línea a 28 px del borde del proceso.
 - **Ruta y multiplicidad** (T-218, T-219):
@@ -3872,27 +3707,16 @@ Gates del Anexo A (T-303) y sus suites:
   - tokens, refs e ids de línea estables;
   - el display `siempre`/`oculta` sin tocar el canónico (T-139);
   - abanico con ruta como una oración por enlace;
-  - T-122 agente de objeto común con estado uniforme XOR/OR (B-32): RED nativo antes de
-    corrección, GREEN con texto completo/estado/ref/hecho real/todos los IDs/operador/pureza;
-    sin estado conserva texto básico. `hacia` de tabla repite sólo el estado explícito en cada
-    rama; la inversa completa de parser sigue WP-9. Check íntegro fresco y revisión antes de cierre.
-  - FAN5A que falla cerrado sin `throw`; mantiene las negativas de ambas dimensiones variables.
-  - FANLOCAL-XOR/OR sólo en los dos bordes de §5.3.1: cabecera exacta, cada oración base
-    completa, tokens/refs/hechos/IDs/operador/procedencia y pureza. T-103 mantiene una oración
-    con punto por renglón del cuerpo; su única excepción local es la cabecera terminada en `:`.
-  - Se archivan byteexactos las dos regresiones RED nativas T-122/T-123 y sus logs originales.
-    Sólo sus dos assertions históricas de substring `al menos uno de`/`exactamente uno de`
-    (generar.test.ts:181 y :260 en el freeze previo) se sustituyen por cabecera EXACTA autorizada
-    y oraciones completas; se conservan fixtures, títulos, estados/ausencia, hechos/refs/IDs,
-    operador y controles. No se agrega texto artificial para satisfacer el literal anterior.
+  - FAN5A conserva entrada común, estados variables, IDs y hechos; falla cerrado en bruto
+    ante combinaciones no ofrecidas. Tras import, enlaces sueltos conservan sus frases atómicas.
+  - DEC 29: rechazo del extremo común en estado, informe de importación sin pérdida de enlaces,
+    estados no comunes y plantillas canónicas; ningún dialecto textual adicional.
 - `analizar.test.ts`:
   - la normalización, los spans y el sufijo ` proceso`;
   - el plegado de multiplicidad y de estados; las listas mixtas de CX;
   - el residual SE1 y `Current`;
   - cada fila de `NO_SOPORTADAS` da `unsupported-canonical` sin mutar, y cada una de
-    `NO_CANONIZADAS`, `non-canonical`; las dos locales B-31 recuperan el HechoTexto completo
-    y conservan non-canonical/error/no-aplicable; negativos de encuadre/dominio sin rescate.
-    La política de aplicación/estricto local queda pendiente de resolución previa en WP-9;
+    `NO_CANONIZADAS`, `non-canonical`; sin rescate de combinaciones no ofrecidas.
   - D1–D4, ENT3, COND-ALT, TS4/TS5 standalone y FAN-5B.
 - `editor-opl.test.ts`:
   - los 4 estados con su precedencia, las 8 razones y el resumen con el rótulo del botón;
@@ -4173,7 +3997,7 @@ parseo OPL, X = export.
 | B-03 | Agente humano (R-AG-1, AP-05, T-045) | parcial | N | se exige objeto físico (proxy del método); el diagnóstico info `agente-humano` pide verificar | DECISIONS 3, DR-5 |
 | B-04 | Multiplicidad donde la plantilla no tiene hueco: con `c`, en efecto con estados, en SSE (T-057) | no implementado (no ofrecido) | U·N·I·P | no se ofrece, con motivo; la operación la rechaza; el import la descarta con informe; el parser responde `unsupported-canonical` | DR-44 |
 | B-05 | Recíproco con estados sin etiqueta (SE5 con estado) | no implementado | U·N·I·P | no se ofrece; el import descarta los anclajes; `unsupported-canonical` | reglas §4.10 |
-| B-06 | Abanico de efecto fuera de FAN-5/5A (entrada y salida variables a la vez, efectos mixtos) | no implementado | U·N·I·G·P | no se ofrece; el import descarta el abanico (conserva los enlaces) con informe | R-FAN-5/5A |
+| B-06 | Efectos sin plantilla FAN-5/5A; extremo común en estado (R-FAN-EST-1) | no implementado (PUEDE en estados) | U·N·I·G·P | no se ofrece; import retira sólo el abanico con informe, conservando enlaces y estados | R-FAN-5/5A, DEC 29 |
 | B-07 | Ruta fuera de consumo y resultado (C-25) | no implementado | U·N·I·P | irrepresentable por tipo; el import la descarta con informe; `unsupported-canonical` | DR-19, T-058 |
 | B-08 | Control en abanico sin plantilla (C-19b; C-18 de instrumento y agente) (T-056, T-124) | parcial | U·N·I·P | «Control de todas las ramas» ofrece solo las 3 combinaciones con plantilla; el import descarta el abanico (conserva los enlaces con su control) con informe | reglas §7.4 |
 | B-09 | Plurales por multiplicidad (`consumen`, `generan`, DR-12) | no implementado | G·P | se genera en singular con la frase antepuesta; el plural da `unsupported-canonical` | DR-12 |
@@ -4196,8 +4020,6 @@ parseo OPL, X = export.
 | B-26 | T-100 ★ (OPL completo «cubre todo el modelo cargado») | parcial | G·X | una cosa sin aparición o un enlace sin vista (DS-6; llegan por quitar la última aparición o por import) no pertenecen a ningún bloque: se diagnostican (`cosa-sin-aparicion`, `enlace-sin-vista`), bloquean `canon-documento` y el menú avisa en «OPL Markdown»; el JSON los conserva | DS-6, CC-01 |
 | B-27 | T-106 ★ / DR-2 («D2 y D4 no se emiten en canónico») frente a T-190 ★ / R-BI-DUAL-1 (un rectángulo aislado debe viajar por OPL) | parcial (desvío consciente) | G·P | el canónico emite D2 **solo** para una cosa visible que ninguna otra oración de su bloque menciona (mención mínima); nunca D4; el parser acepta D2 como mención | DS-2, CC-27 |
 | B-28 | T-040 / §10.2: equivalencia menú/creación por resultado efectivo con refinamientos | parcial (integración temporal) | N·U | WP-2 comprueba matriz y datos pendientes; WP-3b comprueba creación sin refinamientos; la distribución pura compartida de consulta/creación/reparación y sus propiedades se integran en WP-4r | opción A de HANDOFF autorizada por coordinación delegada; cierre de integración refinada en WP-4r/H2, sin stubs como evidencia |
-| B-31 | T-103/T-105/T-122/T-123: realización local de dos ofertas FAN sin literal canónico completo | parcial (desvío local declarado) | G·P·X | bloque XOR/OR de §5.3.1, sólo salida común TS3 o objeto común C/R/A/I con estado heterogéneo/ausente; G se verifica en WP-7; P/inversión sin pérdidas en WP-9 conserva non-canonical/error/no-aplicable con política aplicación/estricto pendiente de resolución; X en sus paquetes; no evidencia ISO | autorización pública registrada en HANDOFF; no cambia N/canon/DECISIONS ni habilita ambos estados variables, controles o rutas adicionales; no se cierra por aprobar el contrato |
-| B-32 | T-122 / R-FAN-EST-1 y HS1: fidelidad G del agente de objeto común con estado uniforme | enforzado | G | RED histórico XOR/OR 0/2 conservado: oferta N válida e IDs/hechos/operador intactos, con omisión del estado. Freeze 6 observa RED nativo 4/7/97 expectativas → GREEN 11/0/136, focal 200/0/1389 y TSC 0; check completo fresco observado 1081/0 y nueva revisión independiente 98/0, con diagnóstico original y 16 sondas B-32 completos | DOC63 `{O}`→`{Oe}` autorizado/aplicado antes de código, sólo estado uniforme explícito por identidad; sin estado conserva básico, heterogéneo/ausente sigue FANLOCAL. Cierre limitado a G tras check fresco y revisión completa favorable; sin ampliar N/canon. Inversa completa sigue WP-9 sin crédito anticipado |
 
 ### 11.4 Lista exacta de eliminación (rama `rehacer`, WP-0)
 
@@ -4261,8 +4083,8 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
   - `nucleo/cosas.ts`: WP-3a lo crea y WP-4r le agrega la inserción de subprocesos;
   - `opl/documento.ts`: WP-7 escribe `generarDocumentoOpl` y WP-9 le agrega `importarOpl` (CC-23).
   - `opl/contratos.test.ts`: WP-7 sustituye sólo las cinco expectativas temporales de generación por checks reales de §5.4/§5.7; conserva literalmente las seis asignaciones de firmas, el bucle `typeof` y `importarOpl` pendiente. WP-9 sustituye sólo la expectativa restante de `importarOpl`, concretada en su turno conforme a §5.7 y sus pruebas nativas, conservando los otros checks.
-  - `nucleo/proyeccion.ts`, `nucleo/proyeccion.test.ts` y `nucleo/frontera.test.ts`: WP-4p produce proyección y leyes; WP-5 integra en serie continuidad R+C y metadata de conflictos conforme a §4.4/§4.6, sin retirar cobertura previa. WP-8b integra después en serie únicamente la reparación de visibilidad de abanicos por estados propios en proyeccion.ts/proyeccion.test.ts (DESIGN §4.3.2/§4.6.5, T-054/T-086/T-216); misma escritora productiva, sin editar frontera.test.ts, fusionar/colapsarRamas, matriz, herencia, parser ni las negativas B-06. Exige RED nativo previo, GREEN, check fresco y revisión independiente del freeze conjunto, conservando toda la cobertura anterior.
-  - `nucleo/proyeccion.ts`: WP-4r reutiliza en serie la selección existente del hecho de mayor fuerza para materializar su id original (DS-16, §4.5.6). Propiedad mínima: extracción/exportación del helper interno y su consumo por fusionar y refinamiento, con resultados de Vista idénticos, ramas de conflicto/continuidad, controles dentro de clase y empates vigentes; suites previas y ley de frontera conservadas. Exige RED nativo, GREEN, check nuevo y revisión GLOBAL del freeze conjunto.
+  - `nucleo/proyeccion.ts`, `nucleo/proyeccion.test.ts` y `nucleo/frontera.test.ts`: WP-4p produce proyección y leyes; WP-5 integra en serie continuidad R+C y metadata de conflictos conforme a §4.4/§4.6, sin retirar cobertura previa. DEC 29 limita los abanicos a extremo común en borde de cosa y conserva estados no comunes por rama (T-054/T-086/T-216); los grupos retirados no aparecen en Vista, y su importación conserva enlaces, estados y procedencia. No altera las leyes de frontera ni la abstracción de §4.6; verificación mediante pruebas nativas, check y una revisión por ola (DEC 30).
+  - `nucleo/proyeccion.ts`: WP-4r reutiliza en serie la selección existente del hecho de mayor fuerza para materializar su id original (DS-16, §4.5.6). Propiedad mínima: extracción/exportación del helper interno y su consumo por fusionar y refinamiento, con resultados de Vista idénticos, ramas de conflicto/continuidad, controles dentro de clase y empates vigentes; suites previas y ley de frontera conservadas. Exige RED nativo, GREEN, check nuevo y revisión de la ola (DEC 30).
   - `nucleo/resultado.test.ts`: WP-3a completa en serie la exportación `violacionesForma` del doble aislado de transacción con una guarda que falla si se invoca; conserva íntegros casos, cuerpos y expectativas de WP-1. WP-3b agrega únicamente `violacionesAbanico`, `normalizarEtiquetas` y `violacionesContexto`, con la misma guarda de no invocación y conservación íntegra de los cinco casos.
   - `nucleo/matriz.ts` y `nucleo/propiedades.test.ts`: WP-2 produce la consulta, WP-3b comprueba
     propiedades sin refinamientos y WP-4r integra el hook de distribución y amplía propiedades.
@@ -4297,11 +4119,9 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 | **WP-17** | E2E | `e2e/**` | infraestructura §10.7 | redacción desde WP-13; ejecución tras WP-14–16 (WP-14, WP-15 y WP-16 se integran como un solo tren: ninguno cierra sus e2e por separado) | los 26 escenarios verdes contra el build y el servidor real (Chromium de `/opt/pw-browsers`), con 0 errores de página |
 | **WP-19** | Documentación y cierre | `README.md`, `NOTICE.md`, `docs/**`; borra `HANDOFF.md` | §11 | todos | cada fila de las tablas con `registro` tiene su B-nn, y viceversa (revisión del diff) · cada fila de §12.6 apunta a archivos y pruebas existentes (`bun test -t <T-ID>` encuentra ≥1 prueba por ★ no registrado como brecha) · `bun run check`, `bun run e2e` y `bun run build` verdes desde un clon limpio |
 
-WP-7 incorpora únicamente la generación local de §5.3.1 en sus archivos/pruebas propios,
-con B-31 y el delta explícito de dos assertions de §10.3. WP-9 tiene la obligación futura de
-reconocimiento cerrado e inversión sin pérdidas del mismo bloque en sus archivos/pruebas
-propios; aplicación/estricto local requieren la resolución explícita pendiente de §5.3.1,
-sin adelantarlos en WP-7. El ownership serial HAR-7 de `opl/contratos.test.ts` queda íntegro.
+DEC 29 limita los abanicos a extremos comunes en bordes de cosas. WP-7 y WP-9 conservan
+las plantillas canónicas; las combinaciones no ofrecidas y su importación se registran en B-06.
+HAR-7 conserva sus firmas, checks de generación y la importación OPL pendiente de WP-9.
 
 ### 12.3 Qué se porta por lectura desde `pre-rehacer` (no se copia a ciegas)
 
@@ -4431,9 +4251,9 @@ fila de Brechas. La columna Prueba nombra el archivo; el título lleva el T-ID.
 | T-100 | OPL completo en preorden | `generarModelo` + `opdsEnPreorden`; la cosa sin aparición y el enlace sin vista no caen en ningún bloque: diagnóstico, gate de `canon-documento` y aviso en el export OPL (DS-6, CC-01) | WP-7, WP-5 | `generar.test`, `diagnostico.test`, e2e 19 | **parcial (B-26)** |
 | T-101 | solo estados visibles; D6 | `generarBloque` paso 2 | WP-7 | `generar.test`, e2e 6 | enforzado |
 | T-102 | tipografía Markdown | texto desde tokens | WP-7 | `generar.test` | enforzado |
-| T-103 | una oración por línea, con punto | `generarBloque`; excepción local sólo cabecera FAN de §5.3.1; cuerpo conserva punto por renglón | WP-7 | `generar.test` | **parcial (B-31)** |
+| T-103 | una oración por línea, con punto | `generarBloque`; todas las plantillas canónicas conservan punto | WP-7 | `generar.test` | **parcial (B-06; inversa pendiente)** |
 | T-104 | vocabulario cerrado | `VOCABULARIO` ≡ literales | WP-7 | `vocabulario.test` | enforzado |
-| T-105 | plantillas literales (tabla 9.2 mínima) | `PLANTILLAS`; FANLOCAL explícitamente no canonizado (§5.3.1) | WP-7 | `plantillas.test`, `roundtrip-tabla92.test` | **parcial (B-31)** |
+| T-105 | plantillas literales (tabla 9.2 mínima) | `PLANTILLAS`; sólo tabla canónica | WP-7 | `plantillas.test`, `roundtrip-tabla92.test` | **parcial (B-06; inversa pendiente)** |
 | T-106 | D1/D3 solo si difieren | `generarBloque` paso 2; D2 solo como mención mínima de una cosa que ninguna otra oración nombra (DS-2) | WP-7 | `generar.test` | **parcial (B-27, DS-2)** |
 | T-107 | D5 `puede estar`, en orden | D5 | WP-7 | `generar.test` | enforzado |
 | T-108 | D7–D10 | D7/D8/D9/D10 | WP-7 | `generar.test` | enforzado |
@@ -4446,8 +4266,8 @@ fila de Brechas. La columna Prueba nombra el archivo; el título lleva el T-ID.
 | T-116 | IV1 e IV2 | IV1, IV2 (sin demora) | WP-7 | `generar.test` | enforzado |
 | T-117 | RF1–RF4b, RH1, variantes de proceso | plantillas estructurales | WP-7 | `generar.test` | enforzado |
 | T-119 | SE1 y SE2 | plantillas | WP-7 | `plantillas.test` | enforzado |
-| T-122 | 24 plantillas de abanico; ramas con estado | tabla de abanicos; agente de objeto común conserva estado uniforme propio según §5.3, con reparación G observada, check fresco y ejecución independiente; dos bordes locales cerrados de §5.3.1 sin alterar los representables | WP-7 | `plantillas.test`, `roundtrip-matriz.test` | **parcial (B-31)** |
-| T-123 | estados por rama de fan del mismo objeto | FAN5s/e/A actuales; salida común TS3 local según §5.3.1 | WP-7, WP-9 | `generar.test`, `roundtrip-matriz.test` | **parcial (B-31)** |
+| T-122 | 24 plantillas de abanico; ramas con estado | tabla de abanicos; estados sólo en extremos no comunes (DEC 29); extremo común en estado no implementado (PUEDE, B-06) | WP-7 | `plantillas.test`, `roundtrip-matriz.test` | **parcial (B-06; inversa pendiente)** |
+| T-123 | estados por rama de fan del mismo objeto | FAN5s/e/A canónicos; TS3 salida común sin literal no ofrecido (B-06) | WP-7, WP-9 | `generar.test`, `roundtrip-matriz.test` | **parcial (B-06; inversa pendiente)** |
 | T-125 | CX1/CX2/mixta en el hijo | `generarBloque` paso 1 | WP-7 | `generar.test`, e2e 11 | enforzado |
 | T-126 | CX3 `se despliega en SDx en` | CX3 | WP-7 | `generar.test`, e2e 13 | enforzado |
 | T-127 | sin CX con <2 refinadores | R-CX-0 | WP-7 | `generar.test` | enforzado |

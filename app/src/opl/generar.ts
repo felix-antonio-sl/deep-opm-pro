@@ -91,8 +91,7 @@ export function generarBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly Lin
         if (miembros.some(v => !v) || new Set(miembros).size !== miembros.length)
             continue;
         if (violacionesAbanico(m, fan).length || miembros.some(v => !!noOfrecido(m, v!.enlace, fan))) {
-            for (const id of fan.enlaces)
-                invalidos.add(id);
+            for (const id of fan.enlaces) invalidos.add(id);
             continue;
         }
         if (miembros.some(v => { const e = v!.enlace; return (e.tipo === 'consumo' || e.tipo === 'resultado') && e.ruta; }))
@@ -104,17 +103,6 @@ export function generarBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly Lin
         const porP = esProcedimental(first) && ls.every(v => esProcedimental(v.enlace) && v.enlace.proceso === first.proceso);
         const invComunDestino = first.tipo === 'invocacion' && ls.every(v => v.enlace.tipo === 'invocacion' && v.enlace.destino === first.destino);
         const items = [...ls].sort((a, b) => { const endpoint = (e: Enlace) => esProcedimental(e) ? (porP ? e.objeto : e.proceso) : invComunDestino ? extremos(e).origen : extremos(e).destino; return cmp(m.cosas[endpoint(a.enlace)]!, m.cosas[endpoint(b.enlace)]!) || a.enlace.id.localeCompare(b.enlace.id); });
-        // La fila local es la única autoridad de su dominio cerrado; los gates N y ruta ya pasaron.
-        if (esProcedimental(first) && ls.every(v => !violacionesForma(m, v.enlace).length)) {
-            const pidLocal = `FANLOCAL-${fan.operador}`;
-            const preparado: HechoGenerable = { plantilla: pidLocal, huecos: { RAMAS: { texto: '', ramas: items.map(v => datosEnlace(m, v.enlace)) } } };
-            if (PLANTILLAS.find(p => p.id === pidLocal)?.desde?.(preparado)) {
-                const hechos = [...new Set(items.flatMap(v => v.hechos))];
-                fanLineas.set(fan.id, linea(m, opd, preparado, `FAN:${fan.id}`, hechos));
-                for (const id of fan.enlaces) fanPorHecho.set(id, fan.id);
-                continue;
-            }
-        }
         const h: Record<string, import('./plantillas').ValorHueco> = { operador: hueco(fan.operador) };
         let pid: string;
         if (esProcedimental(first)) {
@@ -154,7 +142,7 @@ export function generarBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly Lin
                     for (const id of fan.enlaces)
                         invalidos.add(id);
                     continue;
-                } // Contrato de salida común pendiente: nunca perder sus entradas.
+                } // Sin literal completo: falla cerrado; el import preserva los enlaces sueltos.
                 (h.s as import('./plantillas').Hueco[]).sort((a, b) => a.texto.localeCompare(b.texto, 'es', { sensitivity: 'base' }) || (a.ref!.id.localeCompare(b.ref!.id)));
             }
             else {

@@ -199,7 +199,8 @@ export interface FilaNoOfrecido {
 export const NO_OFRECIDO: readonly FilaNoOfrecido[] = Object.freeze([
     Object.freeze({ id: 'nf-mult-sin-hueco', regla: 'DR-44', motivo: 'La plantilla no tiene hueco para multiplicidad junto a c, efecto con estados o etiquetado con estados.', registro: 'B-04' as const }),
     Object.freeze({ id: 'nf-reciproco-estados-sin-etiqueta', regla: 'reglas §4.10', motivo: 'El recíproco con estados requiere etiqueta; SE5 no tiene variante con estado.', registro: 'B-05' as const }),
-    Object.freeze({ id: 'nf-abanico-efecto-mixto', regla: 'R-FAN-5/5A', motivo: 'El abanico de efecto requiere T3 puro o estados de un objeto con entrada o salida común.', registro: 'B-06' as const }),
+    Object.freeze({ id: 'nf-abanico-estado-comun', regla: 'R-FAN-EST-1', motivo: 'El extremo común del abanico debe estar en el borde de una cosa, no en un estado (DEC 29).', registro: 'B-06' as const }),
+    Object.freeze({ id: 'nf-abanico-efecto-mixto', regla: 'R-FAN-5/5A', motivo: 'El abanico de efecto requiere T3 puro, FAN5s/FAN5e o TS3 con entrada común (FAN5A).', registro: 'B-06' as const }),
     Object.freeze({ id: 'nf-abanico-control', regla: 'T-056', motivo: 'Esta combinación de abanico y control es canónica pero carece de plantilla literal.', registro: 'B-08' as const }),
     Object.freeze({ id: 'nf-descomposicion-objeto', regla: 'R-OPL-CX-4', motivo: 'La descomposición de objeto no se ofrece (DR-23).', registro: 'B-02' as const }),
 ]);
@@ -216,18 +217,19 @@ export function noOfrecido(m: Modelo, e: Enlace | EnlaceNuevo, abanico?: Abanico
     if (!abanico || violacionesAbanico(m, abanico).length)
         return null;
     const es = abanico.enlaces.map(id => m.enlaces[id]!), c = comun(es), primero = es[0]!;
+    if (c === 'objeto' && es.some(x => anclajes(x).length > 0))
+        return no('nf-abanico-estado-comun');
     if (primero.tipo === 'efecto') {
         const efectos = es.filter((x): x is Extract<Enlace, {
             tipo: 'efecto';
         }> => x.tipo === 'efecto');
         const puros = efectos.every(x => x.entrada === undefined && x.salida === undefined);
         const entradaComun = efectos.every(x => x.entrada === primero.entrada) && primero.entrada !== undefined;
-        const salidaComun = efectos.every(x => x.salida === primero.salida) && primero.salida !== undefined;
         const mismoPar = efectos.every(x => x.objeto === primero.objeto && x.proceso === primero.proceso);
         const soloEntrada = efectos.every(x => x.entrada !== undefined && x.salida === undefined);
         const soloSalida = efectos.every(x => x.salida !== undefined && x.entrada === undefined);
         const completos = efectos.every(x => x.entrada !== undefined && x.salida !== undefined);
-        if (!(puros || mismoPar && (soloEntrada || soloSalida || completos && (entradaComun || salidaComun))))
+        if (!(puros || mismoPar && (soloEntrada || soloSalida || completos && entradaComun)))
             return no('nf-abanico-efecto-mixto');
     }
     const ctrl = control(primero);
