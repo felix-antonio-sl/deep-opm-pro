@@ -45,7 +45,7 @@ test('T-209 TS3 dos tramos y TS4/5 una punta', () => {
         }
     }
 });
-test('T-211 rayo invocación y lazo autoinvocación', () => { const e = escena(m([p(), p('q', 'Preparar')], [{ id: 'e', tipo: 'invocacion', origen: 'p', destino: 'q' }, { id: 'l', tipo: 'invocacion', origen: 'p', destino: 'p' }]), 'sd'); expect(e.aristas.every(a => a.rayo)).toBe(true); expect(e.aristas[0]!.tramos[0]!.puntos).toHaveLength(4); expect(e.aristas[1]!.tramos[0]!.puntos.length).toBeGreaterThan(4); });
+test('T-211 rayo invocación y lazo autoinvocación', () => { const e = escena(m([p(), p('q', 'Preparar')], [{ id: 'e', tipo: 'invocacion', origen: 'p', destino: 'q' }, { id: 'l', tipo: 'invocacion', origen: 'p', destino: 'p' }]), 'sd'); expect(e.aristas.every(a => a.rayo)).toBe(true); expect(e.aristas[0]!.tramos[0]!.puntos).toHaveLength(4); expect(e.aristas[1]!.tramos[0]!.puntos.length).toBe(3); });
 for (const tipo of ['agregacion', 'exhibicion', 'generalizacion', 'clasificacion'] as const)
     test(`T-212 símbolo compartido ${tipo} ortogonal`, () => {
         const e = escena(m([o(), o('a', 'Parte'), o('b', 'Rasgo')], [{ id: 'e1', tipo, refinable: 'o', refinador: 'a' }, { id: 'e2', tipo, refinable: 'o', refinador: 'b' }]), 'sd');
@@ -57,7 +57,7 @@ for (const tipo of ['agregacion', 'exhibicion', 'generalizacion', 'clasificacion
                 expect(t[i]!.x === t[i - 1]!.x || t[i]!.y === t[i - 1]!.y).toBe(true);
     });
 test('T-212 incompleta conserva barra bajo triángulo', () => { expect(escena(m([{ ...o(), incompleta: ['agregacion'] }, o('a')], [{ id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'a' }]), 'sd').simbolos[0]!.incompleta).toBe(true); });
-test('T-213 itálicas, ruta, multiplicidades y arpones', () => { const e = escena(m([o(), o('a', 'Cliente'), p()], [{ id: 'e', tipo: 'etiquetadoBidireccional', origen: 'o', destino: 'a', etiqueta: 'pertenece a', inversa: 'posee', multOrigen: '?', multDestino: '*' }, { id: 'r', tipo: 'consumo', objeto: 'o', proceso: 'p', ruta: 'principal', mult: '+' }]), 'sd'); expect(e.aristas[0]!.tramos[0]!.inicio).toBe('arponInverso'); expect(e.aristas[0]!.tramos[0]!.fin).toBe('arpon'); expect(e.aristas[0]!.etiquetas.filter(l => l.italica).map(l => l.texto)).toEqual(['pertenece a', 'posee']); expect(e.aristas[1]!.etiquetas.map(l => l.texto)).toEqual(['principal', '+']); });
+test('T-213 itálicas, ruta, multiplicidades y arpones', () => { const e = escena(m([o(), o('a', 'Cliente'), p()], [{ id: 'e', tipo: 'etiquetadoBidireccional', origen: 'o', destino: 'a', etiqueta: 'pertenece a', inversa: 'posee', multOrigen: '?', multDestino: '*' }, { id: 'r', tipo: 'consumo', objeto: 'o', proceso: 'p', ruta: 'principal', mult: '+' }]), 'sd'); expect(e.aristas[0]!.tramos[0]!.inicio).toBe('arpon'); expect(e.aristas[0]!.tramos[0]!.fin).toBe('arpon'); expect(e.aristas[0]!.etiquetas.filter(l => l.italica).map(l => l.texto)).toEqual(['pertenece a', 'posee']); expect(e.aristas[1]!.etiquetas.map(l => l.texto)).toEqual(['principal', '+']); });
 test('T-214 T-215 e/c y excepciones sin punta adicional', () => { const e = escena(m([o(), p(), p('q', 'Manejar')], [{ id: 'e', tipo: 'consumo', objeto: 'o', proceso: 'p', control: 'e' }, { id: 'c', tipo: 'instrumento', objeto: 'o', proceso: 'p', control: 'c' }, { id: 's', tipo: 'excepcionSobretiempo', origen: 'p', destino: 'q' }, { id: 'u', tipo: 'excepcionSubtiempo', origen: 'p', destino: 'q' }]), 'sd'); expect(e.aristas.map(a => a.marcas[0]!.texto)).toEqual(['e', 'c', '/', '//']); expect(e.aristas.slice(2).every(a => a.tramos[0]!.fin === undefined)).toBe(true); });
 for (const operador of ['XOR', 'OR'] as const)
     test(`T-216 ${operador} arcos extremo común`, () => { const base = m([o(), o('a', 'Cliente'), p()], [{ id: 'e1', tipo: 'consumo', objeto: 'o', proceso: 'p' }, { id: 'e2', tipo: 'consumo', objeto: 'a', proceso: 'p' }]), e = escena({ ...base, abanicos: { f: { id: 'f', operador, enlaces: ['e1', 'e2'] } } }, 'sd'); expect(e.arcos).toHaveLength(operador === 'XOR' ? 1 : 2); expect(e.aristas[0]!.tramos[0]!.puntos.at(-1)).toEqual(e.aristas[1]!.tramos[0]!.puntos.at(-1)); expect(e.arcos[0]!.centro).toEqual(e.aristas[0]!.tramos[0]!.puntos.at(-1)!); });
@@ -271,4 +271,31 @@ for(const declarado of [60,80]) test(`T-204 T-220 duración inscrita con semieje
     expect(n.caja.ancho).toBeGreaterThanOrEqual(contenido*Math.SQRT2+16);
     expect(n.caja.alto).toBeGreaterThanOrEqual((n.rotulo.lineas.length*22+20)*Math.SQRT2+16);
     expect(modelo.opds.sd!.apariciones.p).toEqual({x:-200,y:-150,ancho:160,alto:declarado});expect(JSON.stringify(modelo)).toBe(antes);
+});
+
+import { colocarMarcador } from './marcadores';
+for(const tipo of ['reciproco','etiquetadoBidireccional'] as const) test(`T-213 ${tipo} medias puntas en lados globales opuestos en ambas tangentes`,()=>{
+ const base=m([o(),o('b','Cliente')],[tipo==='etiquetadoBidireccional'?{id:'e',tipo,origen:'o',destino:'b',etiqueta:'conoce',inversa:'es-conocido'}:{id:'e',tipo,origen:'o',destino:'b',etiqueta:'conoce'}]);
+ expect(validarForma(base)).toEqual([]);expect(erroresContexto(base)).toEqual([]);
+ const t=escena(base,'sd').aristas[0]!.tramos[0]!, [a,b]=t.puntos;
+ const p0=colocarMarcador(t.inicio!,a!,b!),p1=colocarMarcador(t.fin!,b!,a!);
+ const ala=(q:typeof p0,p:typeof a)=>{const y=q.figura.datos.endsWith('-10')?-10:10;return {x:q.matriz[0]*20+q.matriz[2]*y+q.matriz[4]-p!.x,y:q.matriz[1]*20+q.matriz[3]*y+q.matriz[5]-p!.y};};
+ const w0=ala(p0,a),w1=ala(p1,b),dx=b!.x-a!.x,dy=b!.y-a!.y;
+ expect((dx*w0.y-dy*w0.x)*(dx*w1.y-dy*w1.x)).toBeLessThan(0);
+});
+test('T-221 contenedor final real centra nombre, duración y estados conservando posiciones persistidas',()=>{
+ const base=m([p('p','Procesar'),p('q','Preparar'),p('r','Finalizar')],[],[{id:'h',tipo:'descomposicion',padre:'sd',cosa:'p',orden:0,bandas:[['q'],['r']],objetosInternos:[],apariciones:{p:{x:0,y:0,ancho:200,alto:200},q:{x:50,y:80,ancho:135,alto:60},r:{x:550,y:250,ancho:135,alto:60}}}]);
+ expect(validarForma(base)).toEqual([]); expect(erroresContexto(base)).toEqual([]);const antes=JSON.stringify(base),n=escena(base,'h').nodos.find(n=>n.ref.id==='p')!;
+ expect(n.caja.ancho).toBe(709); expect(n.rotulo.x).toBe(n.caja.x+n.caja.ancho/2); expect(n.rotulo.y).toBe(n.caja.y+24);expect(JSON.stringify(base)).toBe(antes);
+});
+test('T-212 dibujo de triángulo estructural conserva trazo 1.2 y punta procedimental 1',()=>{
+ const e=escena(m([o(),o('b','Parte')],[{id:'e',tipo:'agregacion',refinable:'o',refinador:'b'}]),'sd');
+ const ns=elementos(dibujar(e,'canon'));expect(ns.find(n=>n.t==='polygon' && n.a.points==='15,0 30,30 0,30')?.a['stroke-width']).toBe(1.2);
+});
+
+test('T-219 tinta de ruta preserva negro y ancla10, con separación de papel del trazo asociado',()=>{
+ const b=modeloRevision(),base:Modelo={...b,enlaces:{en:{id:'en',tipo:'consumo',objeto:'o',proceso:'p',ruta:'principal'}}};revisarModelo(base);const e=escena(base,'sd'),ruta=e.aristas[0]!.etiquetas.find(l=>l.clave==='ruta')!;
+ const n=elementos(dibujar(e,'canon')).find(n=>n.t==='text'&&n.h?.includes('principal'))!;
+ expect(n.a.x).toBe(ruta.en.x);expect(n.a.y).toBe(ruta.en.y);expect(n.a.fill).toBe('#000');expect(n.a['font-size']).toBe(11);
+ expect(n.a['paint-order']).toBe('stroke fill');expect(n.a.stroke).toBe('#fafaf8');expect(n.a['stroke-width']).toBe(3);
 });

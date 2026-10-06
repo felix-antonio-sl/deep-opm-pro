@@ -64,6 +64,9 @@ export const EXPECTATIVAS_ABANICOS = {
     invocacion: { convergente: 'destino', divergente: 'origen', control: false },
 } as const;
 export const EXPECTATIVAS_REGLAS = [
+    { id: 'R-ROL-1', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento'], regla: 'Instrumento abstracto y cambio neto cero en detalle: PUEDE de RROL1, límite producto B34 recuperable.' },
+    { id: 'R-ESCIND-2', tipos: ['efecto'], regla: 'Entrada temprana y salida tardía del par escindido.' },
+    { id: 'AP-29', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento', 'agregacion', 'exhibicion', 'etiquetado', 'etiquetadoBidireccional', 'reciproco'], regla: 'RHER8 prohíbe duplicación nuclear explícita de hechos heredados.' },
     { id: 'R-ROL-UNIC-1', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento'], regla: 'Un procedimental por par; ramas del mismo abanico exceptuadas.' },
     { id: 'R-EFE-1', tipos: ['efecto'], regla: 'El objeto debe tener estados propios o heredados.' },
     { id: 'R-RES-1', tipos: ['resultado'], regla: 'El resultado nunca se ancla a un estado inicial.' },

@@ -152,3 +152,8 @@ test('T-206 T-216 esquina de cápsula distingue bbox de área redondeada con tra
   expect(intersecta({ x: 9, y: -1 }, { x: 9, y: 1 }, r, .75)).toBe(true);
   expect(intersecta({ x: -5, y: 13 }, { x: 90, y: 13 }, r, .75)).toBe(true);
 });
+
+test('T-211 lazo contiene un único quiebre de rayo en el pico, no dos zigzags', () => {
+ const g0=g.autoinvocacion({x:0,y:0,ancho:180,alto:90});
+ expect(g0.puntos).toEqual([g0.salida,g0.pico,g0.retorno]);
+});

@@ -116,4 +116,4 @@ export interface LineaAnalizada {
     readonly hechos: readonly HechoTexto[];
     readonly diagnosticos: readonly DiagOpl[];
 }
-export function analizar(texto: string): readonly LineaAnalizada[] { throw new Error('pendiente: WP-8b'); }
+export function analizar(texto: string): readonly LineaAnalizada[] { throw new Error('pendiente: WP-9'); }

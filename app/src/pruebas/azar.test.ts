@@ -20,7 +20,7 @@ afterEach(() => {
         expect(validarForma(m)).toEqual([]);
     modelos.length = 0;
 });
-caso('T-303 azar: dos perfiles, 200 semillas válidas, reproducibles y no idénticas', () => {
+caso('T-040 azar: dos perfiles, 200 semillas válidas, reproducibles y no idénticas', () => {
     const distintos = new Set<string>();
     for (let i = 0; i < 200; i++)
         for (const perfil of ['estricto', 'completo'] as const) {
@@ -33,7 +33,7 @@ caso('T-303 azar: dos perfiles, 200 semillas válidas, reproducibles y no idént
         }
     expect(distintos.size).toBeGreaterThan(100);
 });
-caso('T-043 constructores cubren cada uno de los 15 tipos sin operaciones', () => {
+caso('T-040 constructores cubren cada uno de los 15 tipos sin operaciones', () => {
     const tipos = Object.keys(EXPECTATIVAS_MATRIZ) as TipoEnlace[];
     expect(tipos.length).toBe(15);
     const vistos = new Set<TipoEnlace>();
@@ -48,7 +48,7 @@ caso('T-043 constructores cubren cada uno de los 15 tipos sin operaciones', () =
     expect(vistos).toEqual(new Set(tipos));
 });
 
-test('T-303 azar.acciones conserva API/modelos WP1 y ofrece acciones reales reproducibles sin mutación', async () => {
+test('T-040 azar.acciones conserva API/modelos WP1 y ofrece acciones reales reproducibles sin mutación', async () => {
     expect(typeof azar.acciones).toBe('function');
     const { aplicarAccion } = await import('../nucleo/operaciones');
     const m = azar(12, 'completo'), antes = JSON.stringify(m), acciones = azar.acciones(m);

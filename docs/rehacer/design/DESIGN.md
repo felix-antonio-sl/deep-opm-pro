@@ -1274,6 +1274,7 @@ export interface ReglaContexto {
   readonly id: string;                       // regla canónica
   readonly tipos: readonly TipoEnlace[];
   readonly severidad: 'error' | 'warning';   // warning solo AP-27 con previos omisibles
+  readonly codigo?: 'no-ofrecido'; readonly registro?: 'B-34'; // límite de producto recuperable
   viola(m: Modelo, e: Enlace, idx: Indice): string | null;   // mensaje o null
   readonly accion: string;                   // acción canónica (R-AP-0B)
   readonly reparacion?: (e: Enlace) => Accion;   // ejecutable en un clic
@@ -1288,7 +1289,10 @@ export function violacionesAbanico(m: Modelo, f: Abanico): readonly Violacion[];
 | R-AG-1 / AP-05 (DR-5) | agente | el objeto no es físico | «Usa instrumento para máquinas, software o IA; si es humano, márcalo físico» | — |
 | R-EFE-1 / R-OPD-EST-3 (DR-43) | efecto sin `entrada` ni `salida` | el objeto no tiene estados propios ni heredados | «Agrega estados al objeto o usa consumo/resultado» | — |
 | AP-04 / R-RES-1 | resultado | `estado` es inicial | «Ánclalo al objeto o a un estado no inicial» | — |
-| R-ROL-UNIC-1 / R-OPD-HAB-4 (DR-6) | procedimentales | otro procedimental une el mismo objeto con el mismo proceso, **o con un ancestro o descendiente por descomposición** (lectura distributiva), salvo ramas del mismo abanico | «Un solo rol por par objeto–proceso: edita el existente, completa el cambio o forma un abanico» | — |
+| R-ROL-UNIC-1 / R-OPD-HAB-4 (DR-6) | procedimentales | otro procedimental une el mismo objeto con el mismo proceso, **o con un ancestro o descendiente por descomposición** (lectura distributiva), salvo ramas del mismo abanico y el cambio explícito neto cero permitido por R-ROL-1 | «Un solo rol por par objeto–proceso: edita el existente, completa el cambio o forma un abanico» | — |
+| R-ROL-1 (PUEDE; B-34) | instrumento, efecto | instrumento del ancestro y efecto del subproceso con entrada/salida del MISMO estado explícito: capacidad canónica no implementada, no prohibición OPM | «Conserva los hechos y usa un solo rol ofrecido» | — |
+| R-ESCIND-2 / R-ESC-OP-4 | efecto escindido | entrada posterior a salida según bandas del árbol original; fijarBandas rechaza por DS-20 normal, moverSubproceso conserva su excepción recuperable | «Mantén entrada antes de salida» | — |
+| AP-29 / R-HER-8 | procedimentales, etiquetados, recíproco, agregación, exhibición | duplicado explícito de un hecho heredado transitivo/múltiple; se contrasta también el resultado distribuido final, sin materializar herencia | «Conserva el hecho general o un participante especializado distinto (R-HER-5)» | — |
 | R-DIST-1 / AP-06 | consumo, resultado | el proceso tiene descomposición con ≥1 subproceso | «Migra al primer/último subproceso» | `distribuirEnlace` |
 | R-CX-DIST-2 / AP-21 | procedimentales con `e` | el objeto es sistémico y el proceso tiene descomposición con ≥1 subproceso | «Mueve el evento al primer subproceso o marca ambiental el objeto» | `distribuirEnlace` |
 | AP-07 | efecto con `entrada` y `salida` | el proceso tiene descomposición con ≥2 subprocesos | «Escinde: TS4 en el primero, TS5 en el último» | `distribuirEnlace` |
@@ -1449,7 +1453,7 @@ export type CodigoDiagnostico = (typeof CATALOGO)[number]['codigo'];   // unión
 | `general-redundante` | R-OPD-VAL-6 | info | sugerencia | X especializa G y G′, y G′ es general de G | `eliminarEnlaces` del redundante |
 | `objeto-transiente` | AP-26 | warning | metodologica | objeto con exactamente un resultado y un consumo, y nada más | — |
 | `nombre-proceso-largo` | R-NOM-PROC-2 | warning | metodologica | fuera de 2–4 palabras | — |
-| `nombre-proceso-no-deverbal` | R-NOM-PROC-1 | warning | metodologica | heurística -ar/-er/-ir/-ción/-sión/-miento/-aje/-ado/-ido | — |
+| `nombre-proceso-no-deverbal` | R-NOM-PROC-1 | warning | metodologica | heurística -ar/-er/-ir/-ción/-sión/-miento/-aje/-ado/-ido/-ura/-ncia | — |
 | `nombre-objeto-plural` | R-NOM-OBJ-1/2 | warning | metodologica | heurística de plural sin `Conjunto`/`Grupo` | — |
 | `nombre-estado-no-descriptivo` | R-NOM-EST-1 | warning | metodologica | termina en -ar/-er/-ir o es un numeral puro | — |
 | `etiqueta-larga` | R-OPL-SE-1 («frase breve») | info | gramatical | etiqueta estructural de >4 palabras (heurística, B-14) | — |
@@ -1702,7 +1706,7 @@ es `opd.id` (AP-17). El OPL resuelve `SDx.y` al id (T-167).
 
 `herencia.generales(m, cosa): readonly Id[]` es el cierre transitivo por generalización, con
 herencia múltiple (T-093) y corte de ciclos. Lo usan solo R-EFE-1 (los estados heredados cuentan
-para T3), `proceso-sin-transformacion` y `subproceso-sin-transformado` (los transformadores del
+para T3), AP-29/R-HER-8 (evitar duplicados explícitos, con R-HER-5 para participantes distintos), `proceso-sin-transformacion` y `subproceso-sin-transformado` (los transformadores del
 general cuentan), y `general-redundante`. Nada heredado se dibuja ni se emite (T-092). El anclaje a
 estado solo admite estados propios.
 
@@ -1747,7 +1751,7 @@ export interface TokenOpl {
 export interface LineaOpl {
   readonly id: string;              // estable por hecho, no posicional: `${opd}#${plantilla}:${clave}` (§5.4)
   readonly plantilla: string;       // id de §5.3
-  readonly texto: string;           // desde tokens; una oración o el bloque local multilineal de §5.3.1
+  readonly texto: string;           // desde tokens; una oración canónica
   readonly tokens: readonly TokenOpl[];
   readonly refs: readonly Ref[];    // únicas por tipo:id, en orden de primera aparición
   readonly hechos: readonly Id[];   // enlaces del modelo que la línea expresa (abstraídos incluidos)
@@ -2044,7 +2048,7 @@ Emisión de un bloque, sobre `proyectar(m, opd)`, en este orden (DR-32 ajustado 
      de cada tipo, por nombre del otro extremo.
    - Un enlace con control emite **solo** su variante E\*/C\*: un hecho, una oración (T-112).
    - Cada abanico emite una oración, en el grupo de su proceso común o, si el común es el objeto,
-     en el del primer proceso rama. Las excepciones son DS-10 y el bloque local cerrado de §5.3.1.
+     en el del primer proceso rama. La excepción es DS-10.
    - La ruta prefija la oración completa (T-129).
    - Clave de línea: `<plantilla>:<enlace>` o `FAN:<abanico>`.
 4. **Estructurales**:
@@ -2077,9 +2081,6 @@ subyacentes. No hay fusión opaca.
 - La numeración es solo de display (T-246).
 
 ### 5.5 Analizador (`opl/analizar.ts`)
-
-WP-9 encuadra primero los dos bloques locales de §5.3.1, conservando su indentación y
-fronteras antes de la normalización por renglón. El resto sigue este algoritmo sin cambios.
 
 1. **Normalización** (R-§18-NORM-1, T-152):
    - NFC. Tabulaciones y espacios no separables pasan a espacio, y los espacios se colapsan.
@@ -2245,11 +2246,7 @@ export function importarOpl(nombre: string, texto: string): Respuesta<{ modelo: 
 
 ### 5.9 Cómo se garantiza `parsear(generar(m))` y el fixture estricto R-§19-SIM-3
 
-WP-9 tiene pendiente inversión SIN PÉRDIDAS de los dos dominios locales de §5.3.1. La política
-vigente `non-canonical`/error/no-aplicable contradice su aplicación con cero errores/estricto;
-se requiere resolver ese punto en su turno antes de implementación, sin filtrar casos ni
-recortar el enumerador. No es una nueva bisimetría parcial ni una pérdida dispensada, y no
-se da por resuelto o verde aquí. Reconocimiento local completo no acredita evidencia ISO.
+WP-9 realizará la inversa canónica de las superficies ofrecidas. DEC 29 retiró los dominios locales de abanicos en estado; no son una obligación de reconocimiento ni una nueva bisimetría parcial. Las pruebas de inversa siguientes siguen pendientes de WP-9.
 
 1. **Por construcción** (P4): generar y reconocer usan el mismo `patron`. `plantillas.test.ts`
    exige, por cada plantilla G, que `hacia(desde(h))` sea la identidad sobre el hecho, en todas sus
@@ -2344,9 +2341,10 @@ export interface Simbolo {                                 // triángulo estruct
   readonly vertice: Punto; readonly orientacion: 'abajo' | 'arriba' | 'derecha' | 'izquierda';
   readonly incompleta: boolean; readonly ramas: readonly Id[];          // enlaces
   readonly peine: readonly (readonly Punto[])[];                        // tramo común + bajadas (ortogonales)
+  readonly incidencias?: readonly { readonly refs: readonly Id[]; readonly extremos: readonly Id[]; readonly estados?: readonly Id[]; readonly contenedores?: readonly Id[] }[]; // por tramo desde Vista
   readonly mult: readonly { readonly texto: string; readonly en: Punto }[];
 }
-export interface Tramo { readonly puntos: readonly Punto[]; readonly inicio?: Marcador; readonly fin?: Marcador }
+export interface Tramo { readonly estados?: readonly (Id | undefined)[]; /* puerto de estado de cada extremo de este tramo, no unión TS3 */ readonly contenedores?: readonly Id[]; /* roles internos/subprocesos de Vista */ readonly extremos?: readonly Id[]; /* cosas visibles derivadas de Vista */ readonly puntos: readonly Punto[]; readonly inicio?: Marcador; readonly fin?: Marcador }
 export interface Arista {
   readonly ref: Ref; readonly hechos: readonly Id[];
   readonly tramos: readonly Tramo[];                       // TS3: 2 tramos (entrada→P, P→salida)
@@ -2389,18 +2387,17 @@ y peines (12) → aristas a estados (20). Los modos se distinguen así:
   `8 4` de afiliación (R-OPD-LAY-3). **No hay grilla ni snap**: son decoración opcional (R-OPD-UI-6
   PUEDE) que el canon no exige, y sin ellas T-229 se cumple por ausencia (CC-04).
 
+Las etiquetas de arista y multiplicidades se pintan con un trazo fino `paper` de 3 px bajo el relleno negro (`paint-order: stroke fill`), conservando fuente, centro, semántica y capas. No es caja ni máscara geométrica y no exime avisos de oclusión con cosas/glifos ajenos.
+
 ### 6.3 Geometría (`opd/geometria.ts`)
 
 - **Recorte exacto** (R-OPD-LAY-5, T-224). El segmento va de centro a centro y se recorta en el
-  perímetro real. En la agrupación local con vértices descrita abajo, cada extremo se recorta
-  desde el centro de SU terminal hacia el vértice adyacente del recorrido. Nunca hay extremos
-  sueltos ni cambio de identidad del terminal por esa elección geométrica.
+  perímetro real, conservando la identidad de cada terminal; los abanicos usan su acople común específico descrito abajo (DEC 29).
   - En el rectángulo, `s = min(w/2/|dx|, h/2/|dy|)`, y el punto es `c + s·d`.
   - En la elipse, `s = 1/√((dx/rx)² + (dy/ry)²)`.
   - En el estado, el recorte se hace sobre el rectángulo de la cápsula, con el arco de radio 8 en
     las esquinas.
-- **Procedimentales**, rectos (R-OPD-LAY-4, T-225), salvo los vértices de presentación
-  explícitamente permitidos en la agrupación local con terminales propios descrita abajo:
+- **Procedimentales**, rectos (R-OPD-LAY-4, T-225); sin vértices de fan (DEC 29):
   - Consumo: punta en el proceso. Resultado: punta en el objeto o el estado.
   - Efecto T3: punta en ambos extremos.
   - TS3: dos tramos, `estado_entrada → proceso` (punta en el proceso) y `proceso → estado_salida`
@@ -2619,7 +2616,10 @@ export function exportarDocumento(m: Modelo, opl: ReadonlyMap<Id, readonly Linea
   La edición nunca se bloquea.
 - **Advertencias** (R-LAY-2, T-284). `advertenciasEscena` cuenta:
   - cruces entre aristas que no comparten extremo;
-  - aristas que atraviesan una cosa que no es su extremo ni su contenedor;
+  - aristas/ramas de peine que atraviesan una cosa distinta de sus extremos visibles: incidencia por tramo desde Vista, nunca inferida de un punto dentro de una caja; contenedor exento sólo por roles de sus extremos, sin inmunidad de rótulos/cápsulas;
+  - cápsula no terminal por tramo, aunque pertenezca a la misma cosa; el puerto intencionado de ese tramo se conserva;
+  - recorrido o figura estructural que invade un cuerpo distinto de su puerto refinable o el área de un rótulo, incluso propio; es aviso conservador de lectura, no prueba de tinta de cada glifo;
+  - punta literal que invade una cosa/cápsula distinta de su puerto terminal o el área de un rótulo cuando la separación persistida es insuficiente;
   - cosas solapadas (salvo contenedor e interno).
 
   Se muestran en el menú **antes** de exportar, junto al ítem («⚠ 3 cruces, 1 oclusión · Ver»), sin
@@ -3480,7 +3480,7 @@ USER bun
 EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=3s --retries=5 \
   CMD bun -e "fetch('http://127.0.0.1:8080/salud').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
-CMD ["bun", "servidor/principal.js"]
+CMD ["bun", "--no-env-file", "servidor/principal.js"]
 ```
 
 `bun run build` ejecuta `vite build && bun build servidor/principal.ts servidor/cuenta.ts
@@ -3992,34 +3992,37 @@ parseo OPL, X = export.
 
 | id | regla | estado | U N I G P X | qué hace el producto | decisión |
 |---|---|---|---|---|---|
-| B-01 | RX1/RX2 `puede ser` (R-OPL-RF-5, DR-10) | no implementado | U·P | no se ofrece; el parser responde `unsupported-canonical` sin mutar | DECISIONS 1 |
-| B-02 | Descomposición de objeto (T-072, R-OPL-CX-4, DR-23) | no implementado | U·N·I·P | `descomponer` rechaza `descomposicion-objeto`; `**O** se descompone en` da `unsupported-canonical`; el import la convierte en despliegue por agregación **sin crear enlaces**, o descarta el OPD si ya hay despliegue | DECISIONS 2, DS-18 |
-| B-03 | Agente humano (R-AG-1, AP-05, T-045) | parcial | N | se exige objeto físico (proxy del método); el diagnóstico info `agente-humano` pide verificar | DECISIONS 3, DR-5 |
-| B-04 | Multiplicidad donde la plantilla no tiene hueco: con `c`, en efecto con estados, en SSE (T-057) | no implementado (no ofrecido) | U·N·I·P | no se ofrece, con motivo; la operación la rechaza; el import la descarta con informe; el parser responde `unsupported-canonical` | DR-44 |
-| B-05 | Recíproco con estados sin etiqueta (SE5 con estado) | no implementado | U·N·I·P | no se ofrece; el import descarta los anclajes; `unsupported-canonical` | reglas §4.10 |
-| B-06 | Efectos sin plantilla FAN-5/5A; extremo común en estado (R-FAN-EST-1) | no implementado (PUEDE en estados) | U·N·I·G·P | no se ofrece; import retira sólo el abanico con informe, conservando enlaces y estados | R-FAN-5/5A, DEC 29 |
-| B-07 | Ruta fuera de consumo y resultado (C-25) | no implementado | U·N·I·P | irrepresentable por tipo; el import la descarta con informe; `unsupported-canonical` | DR-19, T-058 |
-| B-08 | Control en abanico sin plantilla (C-19b; C-18 de instrumento y agente) (T-056, T-124) | parcial | U·N·I·P | «Control de todas las ramas» ofrece solo las 3 combinaciones con plantilla; el import descarta el abanico (conserva los enlaces con su control) con informe | reglas §7.4 |
-| B-09 | Plurales por multiplicidad (`consumen`, `generan`, DR-12) | no implementado | G·P | se genera en singular con la frase antepuesta; el plural da `unsupported-canonical` | DR-12 |
-| B-10 | Participación distinta de `?`, `*`, `+` (numérica, rangos, `exactamente un`) | no implementado | I·P | el import la descarta con informe; `unsupported-canonical` | DR-21 |
-| B-11 | Despliegue dedicado `se despliega por <modo> en` | no implementado | P | se genera CX3; la forma dedicada da `unsupported-canonical` | spec-OPL §7 |
-| B-12 | Import con violaciones canónicas (T-288, R-ESC-OP-4) | parcial | I | lo representable se carga como `error` recuperable que bloquea el export canónico; lo no representable (estado de proceso, control en resultado, estructural a estado salvo especialización, categorías erróneas, negación) **se descarta por elemento** con informe; nunca se rechaza el documento por esto | P8, DS-19 |
-| B-13 | Bisimetrías parciales (R-§19-ROT-1, T-193) | parcial (declarado) | G·P | las 10 de §5.9, con fixture no estricto por caso; se conservan en el JSON | §5.9 |
-| B-14 | Heurísticas léxicas R-NOM-* y «frase breve» de R-OPL-SE-1 (T-266) | parcial | N | advertencias metodológicas por heurística (`etiqueta-larga` incluida), con falsos positivos y negativos posibles | DECISIONS 19 |
-| B-15 | Cruces y oclusión (R-LAY-2, T-284) | parcial | X | advertencia por conteo en el menú antes de exportar; sin re-ruteo automático | §6.8 |
-| B-16 | Extensiones con sintaxis OPL fuera de alcance (CANON §0.4): `Pr=` en abanico, m-de-f, `después de`, negadas, EX combinada, RF2o, `[etiqueta: …]`, `es de tipo`, `varía de`, `donde`, CM1–CM3, CX4–CX8, `ordenados por`, marca `ordered`, vistas tipificadas (gate «Vistas» del Anexo A) | no implementado (PUEDE) | I·P | el parser responde `unsupported-canonical`; `Pr=` fuera de abanico da `non-canonical`; el import descarta los campos con informe | CANON §0.4, DECISIONS 9 |
-| B-17 | Inconsistencias inter-OPD (R-OPD-VAL-6, T-094, DEBERÍA) | parcial | N | detecta el refinador en varios contextos y el general redundante; no hay más detección inter-OPD | — |
-| B-18 | Estado sin escritor con excepciones LF-19 (T-271) | parcial | N | info; se eximen los estados iniciales y los de objetos ambientales | LF-19 |
-| B-19 | R-VIS-HIJO-1 (T-086 ★): en el hijo, solo enlaces que tocan el contenedor o internos | parcial | N·G·X | los procedimentales distributivos (agente, instrumento, efecto sin estado) quedan en el contorno y **se ven** en el hijo | DR-13 |
-| B-20 | Duración de proceso sin excepción que la cite: sin oración OPL (R-BI-DUAL-1) | zona laxa pendiente | G·P | se dibuja en la elipse y se conserva en el JSON; no viaja por OPL | el canon no da plantilla |
-| B-21 | Cinco modos visuales (T-230): modo runtime | parcial | U | edición, navegación, gestión-modal y estático realizados; runtime vacío (sin simulación) | DECISIONS 9 |
-| B-22 | Gate >25 cosas (R-LAY-1, T-283 ★): exención «salvo vista tipificada o refinamiento declarado» | parcial | X | bloqueo conservador de todo OPD con >25 cosas | sin vistas tipificadas |
-| B-23 | AP-14: estados duplicados para inicio/fin «DEBE bloquearse como sinónimo falso» | zona laxa pendiente | N | no es detectable mecánicamente (la sinonimia es juicio); el producto facilita D10 (inicial y final en un estado) | GAP-15 |
-| B-24 | AP-22 (sinónimos) y AP-25 (proceso de soporte sin esfuerzo sostenido): «DEBE reportarse» | zona laxa pendiente | N | no detectables; la unicidad nominal cubre solo los nombres iguales | GAP-15 |
-| B-25 | T-320 (Bocetos/Apunte), T-321 (coaccionar a informacional), T-323 (simulación), T-324 (extensiones) | no implementado (PUEDE / si existe) | — | fuera de alcance; T-322 (marca `×` al arrastrar) sí existe | CANON §0.4 |
-| B-26 | T-100 ★ (OPL completo «cubre todo el modelo cargado») | parcial | G·X | una cosa sin aparición o un enlace sin vista (DS-6; llegan por quitar la última aparición o por import) no pertenecen a ningún bloque: se diagnostican (`cosa-sin-aparicion`, `enlace-sin-vista`), bloquean `canon-documento` y el menú avisa en «OPL Markdown»; el JSON los conserva | DS-6, CC-01 |
-| B-27 | T-106 ★ / DR-2 («D2 y D4 no se emiten en canónico») frente a T-190 ★ / R-BI-DUAL-1 (un rectángulo aislado debe viajar por OPL) | parcial (desvío consciente) | G·P | el canónico emite D2 **solo** para una cosa visible que ninguna otra oración de su bloque menciona (mención mínima); nunca D4; el parser acepta D2 como mención | DS-2, CC-27 |
-| B-28 | T-040 / §10.2: equivalencia menú/creación por resultado efectivo con refinamientos | parcial (integración temporal) | N·U | WP-2 comprueba matriz y datos pendientes; WP-3b comprueba creación sin refinamientos; la distribución pura compartida de consulta/creación/reparación y sus propiedades se integran en WP-4r | opción A de HANDOFF autorizada por coordinación delegada; cierre de integración refinada en WP-4r/H2, sin stubs como evidencia |
+| B-01 | RX1/RX2 puede ser (R-OPL-RF-5, DR-10) | no implementado | U·P | U y parser pendientes; no hay reconocimiento funcional del literal. | DEC 1; stub no acredita unsupported-canonical. |
+| B-02 | Descomposición de objeto (T-072, R-OPL-CX-4, DR-23) | parcial | U·N·I·P | N rechaza descomponer objetos; I convierte a despliegue sin crear enlaces o descarta el OPD redundante. U/P pendientes. | DEC 2, DS-18; parser pendiente: unsupported-canonical. |
+| B-03 | Agente humano (R-AG-1, AP-05, T-045) | parcial | N | N exige objeto físico y emite info agente-humano; no verifica el papel humano. | DEC 3, DR-5: juicio humano. |
+| B-04 | Multiplicidad sin hueco (T-057, DR-44, EBNF A.5/A.6/A.8) | parcial | N·I·G·U·P | N comprueba cada rama/extremo, uniformidad y ausencia parcial; I retira el fan completo sin perder ramas ni multiplicidades. Multiplicidad atómica irrepresentable se retira por campo con informe. G conserva las ofrecidas. U/P pendientes. | S4; no se inventa plantilla. |
+| B-05 | Recíproco con estados sin etiqueta (SE5 con estado, reglas §4.10) | parcial | U·N·I·P | Consulta/creación N exigen etiqueta para recíproco con estado y normalizan con traza; I descarta anclajes sin etiqueta. U/P pendientes. | Reglas §4.10; parser pendiente: unsupported-canonical. |
+| B-06 | Efectos sin plantilla FAN-5/5A y extremo común en estado (R-FAN-EST-1, PUEDE) | parcial | U·N·I·G·P | N rechaza el común en estado y TS3 salida común sin literal; I retira sólo el abanico con informe, conserva enlaces/estados. G atómico tras import. U/P pendientes. | DEC 29: extremo común en estado no implementado (PUEDE); no se añade dialecto ni representación local. |
+| B-07 | Ruta fuera de consumo y resultado (C-25, T-058) | parcial | U·N·I·P | N limita rutas a consumo/resultado y permite fijar/retirar valores; I descarta otras rutas con informe. U/P pendientes. | DR-19; parser pendiente: unsupported-canonical. |
+| B-08 | Control en abanico sin plantilla (T-056, T-124, C-18/19b) | parcial | N·I·U·P | C18 condicionado rechaza estado en cualquier rama; I retira sólo el fan, preserva IDs/controles/estados. CS1 atómico y variantes sin estado permanecen. U/P pendientes. | S3, DR-31. |
+| B-09 | Plurales por multiplicidad (DR-12, T-128) | parcial | G·P | G usa nombre singular con frase de multiplicidad antepuesta; plural canónico no acreditado en P. | DR-12; parser pendiente de WP-9. |
+| B-10 | Participación distinta de `?`, `*`, `+` (numérica, rangos y exactamente un) | parcial | I·P | I normaliza equivalencias legacy admitidas y descarta participaciones no canónicas por campo, con informe. P pendiente. | DR-21; parser pendiente: unsupported-canonical. |
+| B-11 | Despliegue dedicado se despliega por modo en | no implementado | P | G emite CX3; reconocimiento dedicado pendiente. | spec-OPL §7; WP-9. |
+| B-12 | Import con violaciones canónicas (T-288, R-ESC-OP-4) | parcial | I | I recupera contextos representables y descarta elementos irrepresentables con informe; positivos satisfacen forma. Gates X tienen cobertura acotada. | P8, DS-19; no acredita un pipeline adicional ni todas las reparaciones de importación. |
+| B-13 | Bisimetrías parciales declaradas (R-§19-ROT-1, T-193) | parcial | G·P | DS-10 emite ramas con ruta sin transportar XOR/OR por OPL; JSON conserva datos. Reconstrucción estricta no comprobada. | DESIGN §5.9: diez bisimetrías parciales; inversa WP-9/10/19 pendiente. |
+| B-14 | Heurísticas léxicas R-NOM-* y frase breve R-OPL-SE-1 (T-266) | parcial | N | N emite heurísticas de nombres/etiquetas con falsos positivos y negativos posibles; requiere juicio contextual. | DEC 19; no se declara detector lingüístico completo. |
+| B-15 | Cruces y oclusión (R-LAY-2, T-284) | parcial | X | X usa incidencia por tramo/peine y puerto de estado; avisa caja/cápsula ajena al tramo, área de rótulo (incluso propio), figura estructural, cruce, solape y punta corta. Pintura fina aclara etiquetas propias sin mover centros; no rerutea ni garantiza layout libre. | G1/G2/G5; importados con separación insuficiente conservan avisos/gates. |
+| B-16 | Extensiones con sintaxis OPL fuera de alcance (CANON §0.4) | parcial | I·P | I descarta extensiones fuera de alcance y vistas tipificadas con informe; P aún no implementado. | CANON §0.4, DEC 9: unsupported-canonical; Pr= fuera de abanico, non-canonical. |
+| B-17 | Inconsistencias inter-OPD (R-OPD-VAL-6, T-094, DEBERÍA) | parcial | N | N detecta refinador en varios contextos y general redundante; reparación elimina este último diagnóstico. No es validador inter-OPD general. | R-OPD-VAL-6; alcance diagnóstico acotado. |
+| B-18 | Estado sin escritor con excepciones LF-19 (T-271) | parcial | N | N informa estado sin escritor; exceptúa inicial, ambiental, salida no especificada y glosa Coproducto XOR-n recuperable. | LF-19; no demuestra ejecución ni exhaustividad semántica. |
+| B-19 | R-VIS-HIJO-1 (T-086): procedimentales distributivos visibles en el contorno del hijo | parcial | N·G·X | N mantiene agente/instrumento/efecto sin estado en contorno del hijo; X observa esas tres variantes. G específica del contorno pendiente. | DR-13: desvío declarado; no habilita consumo/resultado ni evento sistémico en contorno. |
+| B-20 | Duración sin excepción que la cite (R-BI-DUAL-1, T-193) | zona laxa pendiente | G·P | Duración sin EX carece de oración y queda en JSON; evidencia G sobre EX no cierra su ausencia ni P. | Canon sin plantilla; strict pendiente. T204/T220 conservan crecimiento inscrito; export y mirada individual realizados en paso 2, sin aceptación de ola. |
+| B-21 | Modos visuales/simulación runtime (T-230) | no implementado | U | Runtime/simulación retirados; editor/UI aún pendientes. Current declarado no es runtime. | RETIRADA DEC 26; no crédito de cinco modos ni cuatro implementados. |
+| B-22 | Gate >25 cosas (R-LAY-1, T-283): exención salvo vista tipificada o refinamiento declarado | parcial | X | Gate por OPD bloquea >25 cosas; X observa permitir 21/25 y rechazar 26. Exención por refinamiento incumplida; menú pendiente. | Bloqueo conservador declarado; sin vistas tipificadas. |
+| B-23 | AP-14: estados duplicados para inicio/fin, bloqueo como sinónimo falso | zona laxa pendiente | N | N reconoce igualdad nominal, no sinonimia inicio/fin; permite estado inicial-final sin detector semántico adicional. | GAP-15: juicio humano; DEBE de sinonimia sin enforzar. |
+| B-24 | AP-22 sinónimos y AP-25 proceso de soporte sin esfuerzo sostenido, DEBE reportarse | zona laxa pendiente | N | N comprueba unicidad nominal y ausencia de transformación; no identifica sinónimos ni esfuerzo sostenido. | GAP-15; heurísticas no cierran AP-22/AP-25. |
+| B-25 | Bocetos/coacción/simulación/extensiones (T-320/321/323/324) | no implementado | U·I·P | Capacidades fuera de alcance; I informa campos descartados, U/P pendientes. Marca de arrastre T-322 pertenece a UI futura. | CANON §0.4, PUEDE; no nuevo dialecto. |
+| B-26 | T-100: OPL completo cubre todo el modelo cargado | parcial | G·X | N bloquea documento por huérfanos; G genera bloques visibles. X observa cosa sin aparición: diagrama local permitido/documento rechazado. Menú pendiente. | DS-6, CC-01; no acredita todos los huérfanos ni cobertura textual completa. |
+| B-27 | T-106 / DR-2 frente a mención mínima T-190/R-BI-DUAL-1 | parcial | G·P | G emite D2 mínimo para cosa visible no mencionada y nunca D4; P/strict pendientes. | DS-2, CC-27: desvío consciente de DR-2. |
+| B-28 | T-040 / DESIGN §10.2: consulta/creación por resultado efectivo refinado | parcial | N·U | N comparte distribución pura y DS-20 final/original; rechazo AP-29 en destino distribuido sin reservar ID. fijarBandas invierte sólo si el contexto final es válido; excepción exclusiva moverSubproceso intacta. U pendiente. | S5/S7; las 8000 acciones y generador históricos se conservan. |
+| B-29 | T-085/T-261: continuidad R+C abstraída y metadatos de conflictos (R-PREC-1/2/3/4, AP-30) | parcial | N·G·X | N aplica las nueve celdas temporales y la simétrica para orden desconocido; recompone R↔C sólo con continuidad trazable, conserva hechos y errores. G específica pendiente. | DEC 31–32: frontera/DS16/LF-03/costo y dos vistas reales observados; check 1830/0, TSC 0, exit 0. Aceptación de ola pendiente. |
+| B-30 | T-260/T-261/T-283: catálogo y gates | parcial | N·U | Catálogo conserva códigos y reparaciones reales; trivial cuenta refinadores revelados, no todos los nucleares. AP-29/ESCIND-2 y límite RROL1 trazables; heurística deverbal acotada. U pendiente. | S6/S7; CC-23, sin crédito de parser ni auditoría lingüística completa. |
+| B-34 | Cambio distributivo de rol neto cero (R-ROL-1, PUEDE) | no implementado | N·I·G·X·U·P | N reconoce instrumento ancestro/efecto hijo con mismo estado explícito y rechaza con no-ofrecido; contexto recuperable sin F-5, I conserva todos los enlaces. Diagnóstico declara límite producto y gates bloquean X; U/P pendientes. | S3/S7 §6 del dictamen; no prohibición OPM ni capacidad nueva, restantes RROLUNIC intactas. |
 
 ### 11.4 Lista exacta de eliminación (rama `rehacer`, WP-0)
 

@@ -74,7 +74,7 @@ const porCodigo = new Map<CodigoDiagnostico, FilaCatalogo>(CATALOGO.map(f => [f.
 const memo = new WeakMap<Modelo, readonly Diagnostico[]>();
 const ref = (tipo: Ref['tipo'], id: Id): Ref => ({ tipo, id });
 const infinitivo = (s: string) => /(?:ar|er|ir)$/iu.test(s);
-const nominalizacion = (s: string) => /(?:ción|sión|miento|aje|ado|ido)$/iu.test(s);
+const nominalizacion = (s: string) => /(?:ción|sión|miento|aje|ado|ido|ura|ncia)$/iu.test(s);
 const palabras = (s: string) => s.trim().split(/\s+/u).filter(Boolean);
 const transformador = (e: Enlace) => e.tipo === 'consumo' || e.tipo === 'resultado' || e.tipo === 'efecto';
 /** Barrido del modelo: las vistas, la herencia y la matriz conservan sus fuentes únicas. */
@@ -127,7 +127,7 @@ export function diagnosticar(m: Modelo): readonly Diagnostico[] {
         else if (n > 20)
             añadir('opd-denso', [ref('opd', id)], `Este OPD contiene ${n} cosas.`, { opd: id });
         if (o.tipo !== 'raiz') {
-            const hijos = o.tipo === 'descomposicion' ? new Set(o.bandas.flat()).size : new Set(enlaces.filter(e => e.tipo === o.modo && 'refinable' in e && e.refinable === o.cosa).map(e => 'refinador' in e ? e.refinador : '')).size;
+            const hijos = o.tipo === 'descomposicion' ? new Set(o.bandas.flat()).size : new Set(vista.enlaces.filter(v => v.enlace.tipo === o.modo && 'refinable' in v.enlace && v.enlace.refinable === o.cosa).map(v => 'refinador' in v.enlace ? v.enlace.refinador : '')).size;
             if (hijos < 2)
                 añadir('refinamiento-trivial', [ref('opd', id), ref('cosa', o.cosa)], `El refinamiento tiene ${hijos} hijos.`, { opd: id });
         }

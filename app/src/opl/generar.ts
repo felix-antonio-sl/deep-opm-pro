@@ -262,8 +262,14 @@ export function generarBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly Lin
         }
     }
     else
-        for (const v of estructurales)
-            enlaces.push(...emitirEnlace(m, opd, v));
+        for (const v of estructurales) {
+            const e = v.enlace;
+            if ('refinable' in e && vista.incompletas.some(i => i.refinable === e.refinable && i.relacion === e.tipo)) {
+                const datos = datosEnlace(m, e);
+                const pid = e.tipo === 'agregacion' ? 'RF1i' : e.tipo === 'exhibicion' ? 'RF2i' : e.tipo === 'generalizacion' && !e.estados ? 'RF3i' : datos.plantilla;
+                enlaces.push(linea(m, opd, { ...datos, plantilla: pid }, e.id, v.hechos));
+            } else enlaces.push(...emitirEnlace(m, opd, v));
+        }
     etiquetados.sort((a, b) => cmp(m.cosas[extremos(a.enlace).origen]!, m.cosas[extremos(b.enlace).origen]!) || cmp(m.cosas[extremos(a.enlace).destino]!, m.cosas[extremos(b.enlace).destino]!) || a.enlace.id.localeCompare(b.enlace.id));
     for (const v of etiquetados)
         enlaces.push(...emitirEnlace(m, opd, v));

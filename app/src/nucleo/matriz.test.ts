@@ -4,6 +4,9 @@ import type { DatosEtiquetas } from './matriz';
 import { MATRIZ, REGLAS_CONTEXTO, NO_OFRECIDO, noOfrecido, noOfrecidoDescomposicion, violacionesForma, violacionesContexto, violacionesAbanico, tiposLegales, erroresContexto } from './matriz';
 import { EXPECTATIVAS_MATRIZ, EXPECTATIVAS_REGLAS } from '../pruebas/expectativas-matriz';
 import { modeloCon, congelar } from '../pruebas/constructores';
+import { importarV0 } from '../codec/importar';
+import { exportarV0 } from '../codec/exportar';
+import { crearEnlace } from './enlaces';
 import { azar } from '../pruebas/azar';
 import { validarForma } from './forma';
 import { transaccion } from './resultado';
@@ -412,4 +415,139 @@ test('T-053 alternativas limitadas al mismo par, colisiones de ancestro/descendi
         expect(mismoPar?.legal).toBe(false);
         if (mismoPar?.legal === false) expect(mismoPar.alternativa).toEqual({ k: 'cambiarTipoExistente', enlace: 'e-101' });
     }
+});
+
+
+for (const operador of ['XOR', 'OR'] as const) for (const estadoRama of [0, 1, 2]) {
+    test(`T-056 C18 ${operador} estado en rama ${estadoRama} no ofrecido, import conserva hechos y retira sólo grupo`, () => {
+        const original = base(), [a, b, , p] = ids(original);
+        const ramas: Enlace[] = [
+            { id: 'e-101', tipo: 'consumo', objeto: a!, proceso: p!, control: 'c', ...(estadoRama !== 1 ? { estado: s(original) } : {}) },
+            { id: 'e-102', tipo: 'consumo', objeto: b!, proceso: p!, control: 'c', ...(estadoRama !== 0 ? { estado: s(original, 1) } : {}) },
+        ];
+        const f: Abanico = { id: 'f-103', operador, enlaces: ramas.map(e => e.id) };
+        const modelo = congelar({ ...poner(original, ...ramas), abanicos: { [f.id]: f } });
+        expect(validarForma({ ...modelo, abanicos: {} })).toEqual([]);
+        expect(validarForma(modelo)).toEqual([expect.objectContaining({ codigo: 'F-5', regla: 'F-5', refs: [{ tipo: 'abanico', id: f.id }] }), expect.objectContaining({ codigo: 'F-5', regla: 'F-5', refs: [{ tipo: 'abanico', id: f.id }] })]);
+        expect(violacionesAbanico(modelo, f)).toEqual([]);
+        const antes = JSON.stringify(modelo);
+        for (const e of ramas) expect(noOfrecido(modelo, e, f)?.registro).toBe('B-08');
+        const r = importarV0(exportarV0(modelo));
+        expect(r.ok).toBe(true); if (!r.ok) throw new Error(JSON.stringify(r.informe));
+        expect(r.modelo.abanicos).toEqual({});
+        expect(r.modelo.enlaces).toEqual(modelo.enlaces);
+        expect(r.modelo.cosas).toEqual(modelo.cosas);
+        expect(r.informe.descartado).toEqual([expect.objectContaining({ regla: 'T-056' })]);
+        expect(JSON.stringify(modelo)).toBe(antes);
+    });
+}
+for (const operador of ['XOR', 'OR'] as const) for (const mult of ['distinta', 'parcial'] as const) for (const invertir of [false, true]) {
+    test(`T-057 abanico objeto común ${operador} multiplicidad ${mult} orden ${invertir} no ofrecido completo`, () => {
+        const original = base(), [a, , , p, q] = ids(original);
+        const ramas: Enlace[] = [
+            { id: 'e-101', tipo: 'consumo', objeto: a!, proceso: p!, mult: '+' },
+            { id: 'e-102', tipo: 'consumo', objeto: a!, proceso: q!, ...(mult === 'distinta' ? { mult: '?' as const } : {}) },
+        ];
+        const f: Abanico = { id: 'f-103', operador, enlaces: (invertir ? [...ramas].reverse() : ramas).map(e => e.id) };
+        const modelo = congelar({ ...poner(original, ...ramas), abanicos: { [f.id]: f } });
+        expect(validarForma({ ...modelo, abanicos: {} })).toEqual([]);
+        expect(validarForma(modelo)).toEqual([expect.objectContaining({ codigo: 'F-5', regla: 'F-5', refs: [{ tipo: 'abanico', id: f.id }] }), expect.objectContaining({ codigo: 'F-5', regla: 'F-5', refs: [{ tipo: 'abanico', id: f.id }] })]); expect(violacionesAbanico(modelo, f)).toEqual([]);
+        const antes = JSON.stringify(modelo);
+        for (const e of ramas) expect(noOfrecido(modelo, e, f)?.registro).toBe('B-04');
+        const r = importarV0(exportarV0(modelo));
+        expect(r.ok).toBe(true); if (!r.ok) throw new Error(JSON.stringify(r.informe));
+        expect(r.modelo.enlaces).toEqual(modelo.enlaces); expect(r.modelo.abanicos).toEqual({});
+        expect(r.informe.descartado).toEqual([expect.objectContaining({ regla: 'DR-44' })]);
+        expect(JSON.stringify(modelo)).toBe(antes);
+    });
+}
+
+
+for (const tipo of ['instrumento', 'etiquetado', 'agregacion', 'exhibicion'] as const) {
+    test(`T-092 AP29 duplicado heredado ${tipo} transitivo se bloquea en menú y creación sin ID reservado`, () => {
+        const original = base(), [a, b, c, p] = ids(original);
+        const heredado: Enlace = tipo === 'instrumento' ? { id: 'e-103', tipo, objeto: a!, proceso: p! }
+            : tipo === 'etiquetado' ? { id: 'e-103', tipo, origen: a!, destino: p!, etiqueta: 'conoce' }
+            : { id: 'e-103', tipo, refinable: a!, refinador: c! };
+        // Etiquetados requieren igual categoría: se usa C como participante objeto.
+        const hecho: Enlace = heredado.tipo === 'etiquetado' ? { ...heredado, destino: c! } : heredado;
+        const medio = 'o-105';
+        const modelo = congelar<Modelo>({ ...poner(original,
+            { id: 'e-101', tipo: 'generalizacion', refinable: a!, refinador: medio },
+            { id: 'e-102', tipo: 'generalizacion', refinable: medio, refinador: b! }, hecho),
+            cosas: { ...original.cosas, [medio]: { id: medio, tipo: 'objeto', nombre: 'Intermedio', esencia: 'fisica', afiliacion: 'sistemica', estados: [] } },
+            opds: { ...original.opds, 'opd-1': { ...original.opds['opd-1']!, apariciones: { ...original.opds['opd-1']!.apariciones, [medio]: { x: 0, y: 400, ancho: 135, alto: 60 } } } },
+        });
+        expect(validarForma(modelo)).toEqual([]); expect(erroresContexto(modelo)).toEqual([]);
+        const antes = JSON.stringify(modelo);
+        const candidato: EnlaceNuevo = tipo === 'instrumento' ? { tipo, objeto: b!, proceso: p! }
+            : tipo === 'etiquetado' ? { tipo, origen: b!, destino: c!, etiqueta: 'conoce' }
+            : { tipo, refinable: b!, refinador: c! };
+        const e = { ...candidato, id: 'previa' } as Enlace;
+        expect(violacionesContexto(modelo, e).map(v => v.regla)).toContain('AP-29');
+        const gestos = tiposLegales(modelo, { desde: { cosa: b! }, hacia: { cosa: tipo === 'instrumento' ? p! : c! }, opd: 'opd-1', ...(tipo === 'etiquetado' ? { etiquetas: { etiqueta: 'conoce' } } : {}) });
+        expect(gestos.find(o => o.tipo === tipo && o.sentido === 'directo')).toMatchObject({ legal: false, motivo: { regla: 'AP-29' } });
+        const r = crearEnlace(modelo, { opd: 'opd-1', candidato });
+        expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.regla).toBe('AP-29');
+        expect(JSON.stringify(modelo)).toBe(antes); expect(modelo.secuencia).toBe(200);
+    });
+}
+
+for (const cero of [true, false]) test(`T-053 RROL1 cambio explícito neto cero ${cero} distingue límite de producto de prohibición canónica`, () => {
+    const original = base(), [a, , , p, q] = ids(original);
+    const modelo = sano(poner(refinar(original), { id: 'e-101', tipo: 'instrumento', objeto: a!, proceso: p! }));
+    expect(erroresContexto(modelo)).toEqual([]);
+    const antes = JSON.stringify(modelo);
+    const candidato: EnlaceNuevo = { tipo: 'efecto', objeto: a!, proceso: q!, entrada: s(modelo), salida: s(modelo, 0, cero ? 0 : 1) };
+    const r = crearEnlace(modelo, { opd: 'opd-100', candidato });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.rechazo).toMatchObject({ codigo: cero ? 'no-ofrecido' : 'contexto', regla: cero ? 'R-ROL-1' : 'R-ROL-UNIC-1' });
+    const consulta = opciones(modelo, a!, q!, s(modelo), undefined, 'opd-100').find(o => o.tipo === 'efecto' && o.sentido === 'directo');
+    expect(consulta?.legal).toBe(false); // El gesto parcial de efecto no incorpora estados; R-EDIT-1 conserva ese rechazo.
+    if (consulta?.legal === false) expect(consulta.motivo.regla).toBe('R-EDIT-1');
+    const completo = congelar<Modelo>({ ...modelo, enlaces: { ...modelo.enlaces, 'e-102': { ...candidato, id: 'e-102' } } });
+    expect(validarForma(completo)).toEqual([]);
+    expect(erroresContexto(completo).map(v => [v.codigo, v.regla])).toEqual(Array(2).fill([cero ? 'no-ofrecido' : 'enlace-invalido', cero ? 'R-ROL-1' : 'R-ROL-UNIC-1']));
+    const i = importarV0(exportarV0(completo));
+    expect(i.ok).toBe(true); if (!i.ok) throw Error(JSON.stringify(i.informe));
+    expect(i.modelo.enlaces).toEqual(completo.enlaces); expect(i.informe.descartado).toEqual([]);
+    expect(erroresContexto(i.modelo).map(v => [v.codigo, v.regla])).toEqual(erroresContexto(completo).map(v => [v.codigo, v.regla]));
+    expect(JSON.stringify(modelo)).toBe(antes); expect(modelo.secuencia).toBe(200);
+});
+
+test('T-053 RROL1 importación Async preserva ocho errores basales, todos los IDs y cero descartes',()=>{
+ const r=importarV0(require('node:fs').readFileSync(new URL('../../fixtures/v0/SD_Async.json',import.meta.url),'utf8'));
+ expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));
+ expect(Object.keys(r.modelo.enlaces)).toHaveLength(23);expect(r.informe.descartado).toEqual([]);
+ const errores=erroresContexto(r.modelo);expect(errores.filter(v=>v.regla==='R-ROL-UNIC-1').map(v=>v.refs[0]!.id)).toEqual(['e-25','e-27','e-29','e-31','e-66','e-68','e-70','e-72']);expect(errores.filter(v=>v.regla!=='R-ROL-UNIC-1').map(v=>[v.regla,v.refs[0]!.id])).toEqual([['R-EFE-1','e-76'],['R-EFE-1','e-78'],['R-EFE-1','e-80']]);
+ const s=exportarV0(r.modelo),i=importarV0(s);expect(i.ok).toBe(true);if(i.ok){expect(i.modelo.enlaces).toEqual(r.modelo.enlaces);expect(erroresContexto(i.modelo)).toEqual(errores);expect(i.informe.descartado).toEqual([]);}
+});
+test('T-092 AP29 distribución final acredita duplicado sólo en subproceso y permite participante distinto',()=>{
+ const original=base(),[a,b,c,p,q]=ids(original);
+ const modelo=sano(poner(refinar(original),{id:'e-101',tipo:'generalizacion',refinable:a!,refinador:b!},{id:'e-102',tipo:'consumo',objeto:a!,proceso:q!}));
+ expect(erroresContexto(modelo)).toEqual([]);const antes=JSON.stringify(modelo);
+ const gesto=opciones(modelo,b!,p!).find(o=>o.tipo==='consumo'&&o.sentido==='directo');expect(gesto).toMatchObject({legal:false,motivo:{regla:'AP-29'}});
+ const r=crearEnlace(modelo,{opd:modelo.raiz,candidato:{tipo:'consumo',objeto:b!,proceso:p!}});expect(r.ok).toBe(false);if(!r.ok)expect(r.rechazo.regla).toBe('AP-29');
+ const permitido=crearEnlace(modelo,{opd:modelo.raiz,candidato:{tipo:'consumo',objeto:c!,proceso:p!}});expect(permitido.ok).toBe(true);if(permitido.ok){expect(erroresContexto(permitido.valor.modelo)).toEqual([]);expect(permitido.valor.modelo.enlaces['e-200']).toEqual({id:'e-200',tipo:'consumo',objeto:c!,proceso:q!});}
+ expect(JSON.stringify(modelo)).toBe(antes);expect(modelo.secuencia).toBe(200);
+});
+
+test('T-092 herencia múltiple bloquea duplicado, R-HER-5 admite reemplazo por participante especializado propio',()=>{
+ const b=base(),[a,especial,c,p,q]=ids(b),m0=sano(poner(b,{id:'e-101',tipo:'generalizacion',refinable:a!,refinador:especial!},{id:'e-102',tipo:'generalizacion',refinable:c!,refinador:especial!},{id:'e-103',tipo:'instrumento',objeto:c!,proceso:p!}));
+ expect(erroresContexto(m0)).toEqual([]);expect(crearEnlace(m0,{opd:m0.raiz,candidato:{tipo:'instrumento',objeto:especial!,proceso:p!}})).toMatchObject({ok:false,rechazo:{regla:'AP-29'}});
+ const m1=sano(poner(b,{id:'e-101',tipo:'generalizacion',refinable:a!,refinador:especial!},{id:'e-102',tipo:'generalizacion',refinable:p!,refinador:q!},{id:'e-103',tipo:'instrumento',objeto:a!,proceso:p!}));
+ expect(erroresContexto(m1)).toEqual([]);const antes=JSON.stringify(m1),candidato:EnlaceNuevo={tipo:'instrumento',objeto:especial!,proceso:q!};expect(opciones(m1,especial!,q!).find(o=>o.tipo==='instrumento'&&o.sentido==='directo')).toMatchObject({legal:true});
+ const r=crearEnlace(m1,{opd:m1.raiz,candidato});expect(r.ok).toBe(true);if(r.ok){expect(erroresContexto(r.valor.modelo)).toEqual([]);expect(r.valor.modelo.enlaces['e-200']).toEqual({...candidato,id:'e-200'});expect(Object.keys(r.valor.modelo.enlaces)).toHaveLength(4);expect((r.valor.modelo.cosas[especial!] as Objeto).estados).toEqual((m1.cosas[especial!] as Objeto).estados);}
+ expect(JSON.stringify(m1)).toBe(antes);
+});
+
+for(const tipo of ['consumo','resultado','instrumento','agente'] as const)for(const operador of ['XOR','OR'] as const)test(`T-057 común O ${tipo} ${operador} multiplicidad uniforme frente hueco real`,()=>{
+ const b=base(),[a,,,p,q]=ids(b),rs:Enlace[]=[{id:'e-101',tipo,objeto:a!,proceso:p!,mult:'+'},{id:'e-102',tipo,objeto:a!,proceso:q!,mult:'+'}],f:Abanico={id:'f-103',operador,enlaces:rs.map(e=>e.id)},m=congelar<Modelo>({...poner(b,...rs),cosas:{...b.cosas,[a!]:{...b.cosas[a!]!,esencia:'fisica'} as Objeto},abanicos:{[f.id]:f}});
+ const antes=JSON.stringify(m);expect(violacionesAbanico(m,f)).toEqual([]);
+ for(const orden of [f.enlaces,[...f.enlaces].reverse()]){
+  const fan={...f,enlaces:orden};for(const e of rs)expect(noOfrecido(m,e,fan)?.registro).toBe(tipo==='agente'?'B-04':undefined);
+ }
+ const r=importarV0(exportarV0(m));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));expect(r.modelo.enlaces).toEqual(m.enlaces);
+ if(tipo==='agente'){expect(r.modelo.abanicos).toEqual({});expect(r.informe.descartado).toEqual([expect.objectContaining({regla:'DR-44'})]);}else{expect(validarForma(m)).toEqual([]);expect(r.modelo.abanicos).toEqual(m.abanicos);expect(r.informe.descartado).toEqual([]);}
+ expect(JSON.stringify(m)).toBe(antes);
 });

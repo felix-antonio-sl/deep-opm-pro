@@ -70,7 +70,7 @@ const pares: readonly [
     ['etiqueta-larga', 'T-266', () => modelo([objeto('o'), objeto('o2', 'Factura')], [{ id: 'e', tipo: 'etiquetado', origen: 'o', destino: 'o2', etiqueta: 'tiene un dato de factura' }]), () => modelo([objeto('o'), objeto('o2', 'Factura')], [{ id: 'e', tipo: 'etiquetado', origen: 'o', destino: 'o2', etiqueta: 'tiene dato de factura' }])],
     ['mezcla-infinitivo-nominalizacion', 'T-267', () => modelo([proceso('p'), proceso('q', 'Almacenamiento Pedido')]), () => modelo([proceso('p'), proceso('q', 'Guardar Pedido')])],
     ['estado-sin-escritor', 'T-260', () => modelo(undefined, [c('e', 'p', 'o-s1')]), () => modelo(undefined, [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p' }])],
-    ['agente-humano', 'T-043', () => modelo(undefined, [{ id: 'e', tipo: 'agente', objeto: 'o', proceso: 'p' }]), () => modelo(undefined, [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p' }])],
+    ['agente-humano', 'T-045', () => modelo(undefined, [{ id: 'e', tipo: 'agente', objeto: 'o', proceso: 'p' }]), () => modelo(undefined, [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p' }])],
     ['ajuste-automatico', 'T-087', () => { const m = modelo([objeto('o'), objeto('a', 'Factura')], [{ id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'a' }]); return cambiar(m, { opds: { sd: { ...m.opds.sd!, apariciones: { o: ap } } } }); }, () => modelo([objeto('o'), objeto('a', 'Factura')], [{ id: 'e', tipo: 'agregacion', refinable: 'o', refinador: 'a' }])],
     ['cosa-sin-aparicion', 'T-262', () => cambiar(modelo(), { opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { p: ap } } } }), () => modelo()],
     ['enlace-sin-vista', 'T-262', () => cambiar(modelo(undefined, [c('e')]), { opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { p: ap } } } }), () => modelo(undefined, [c('e')])],
@@ -326,4 +326,24 @@ test('T-262 un hecho visto sólo en nieto o absorbido por fuerza tiene vista rea
 
 test('T-261 catálogo de precedencia acredita AP-30 y R-PREC-1 literal', () => {
     expect(CATALOGO.find(f => f.codigo === 'precedencia-invalida')?.regla).toBe('AP-30, R-PREC-1');
+});
+
+
+test('T-077 refinamiento trivial cuenta refinadores revelados en cada OPD, no colección nuclear completa', () => {
+    const modeloParcial = modelo([objeto('o'), objeto('a', 'Cuenta'), objeto('b', 'Saldo')],
+        [{ id: 'e1', tipo: 'agregacion', refinable: 'o', refinador: 'a' }, { id: 'e2', tipo: 'agregacion', refinable: 'o', refinador: 'b' }],
+        [{ id: 'h', tipo: 'despliegue', padre: 'sd', cosa: 'o', modo: 'agregacion', orden: 0, apariciones: { o: ap, a: ap } }]);
+    expect(validarForma(modeloParcial)).toEqual([]);
+    const antes = JSON.stringify(modeloParcial);
+    expect(diagnosticar(modeloParcial).filter(d => d.codigo === 'refinamiento-trivial')).toEqual([expect.objectContaining({ opd: 'h', refs: [{ tipo: 'opd', id: 'h' }, { tipo: 'cosa', id: 'o' }] })]);
+    const h = modeloParcial.opds.h!;
+    const completo = cambiar(modeloParcial, { opds: { ...modeloParcial.opds, h: { ...h, apariciones: { ...h.apariciones, b: ap } } } });
+    expect(diagnosticar(completo).filter(d => d.codigo === 'refinamiento-trivial')).toEqual([]);
+    expect(JSON.stringify(modeloParcial)).toBe(antes);
+});
+
+
+for (const nombreObjeto of ['Apertura', 'Dependencia']) test(`T-266 heurística deverbal ${nombreObjeto} es warning contextual`, () => {
+    expect(diagnosticar(nombre(nombreObjeto, 'proceso')).filter(d => d.codigo === 'nombre-proceso-no-deverbal')).toEqual([]);
+    expect(diagnosticar(nombre('Mesa', 'proceso')).filter(d => d.codigo === 'nombre-proceso-no-deverbal')).toEqual([expect.objectContaining({ severidad: 'warning', refs: [{ tipo: 'cosa', id: 'p' }] })]);
 });

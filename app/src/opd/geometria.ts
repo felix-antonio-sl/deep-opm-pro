@@ -52,7 +52,7 @@ export function autoinvocacion(caja: Rect): { readonly salida: Punto; readonly r
   const salida = recortar(caja, sumar(c, { x: Math.sin(angulo), y: Math.cos(angulo) }), 'elipse');
   const retorno = recortar(caja, sumar(c, { x: -Math.sin(angulo), y: Math.cos(angulo) }), 'elipse');
   const pico = { x: c.x, y: caja.y + caja.alto + Math.max(56, caja.alto * .55) }; punto(pico);
-  return { salida, retorno, pico, puntos: [...rayo(salida, pico), ...rayo(pico, retorno).slice(1)] };
+  return { salida, retorno, pico, puntos: [salida, pico, retorno] };
 }
 function ordenPuntos(a: Punto, b: Punto): number { return a.x - b.x || a.y - b.y; }
 function centroide(puntos: readonly Punto[], reserva: Punto): Punto {

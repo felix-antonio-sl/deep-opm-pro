@@ -72,3 +72,29 @@ for(const op of ['XOR','OR'] as const)test(`T-122 agente común tiene literal de
  const h={O:{texto:'Operador',marca:'objeto' as const},Plista:[{texto:'Archivar',marca:'proceso' as const},{texto:'Procesar',marca:'proceso' as const}],operador:{texto:op}},before=JSON.stringify(h);
  expect(p.hacia(h)).toEqual([{k:'abanico',operador:op,ramas:[{tipo:'agente',objeto:{nombre:'Operador',tipo:'objeto'},proceso:'Archivar'},{tipo:'agente',objeto:{nombre:'Operador',tipo:'objeto'},proceso:'Procesar'}]}]);expect(JSON.stringify(h)).toBe(before);
 });
+
+
+for (const plantilla of ['SE4', 'SE5', 'SSE6', 'SSE7'] as const) {
+    test(`T-266 conjunción fonética de frase emitida ${plantilla} conserva tokens y estados`, () => {
+        const Libro = { texto: 'Libro', marca: 'objeto' as const, ref: { tipo: 'cosa' as const, id: 'l' } };
+        const Indice = { texto: 'Índice', marca: 'objeto' as const, ref: { tipo: 'cosa' as const, id: 'i' } };
+        const h = { C1: Libro, C2: Indice, O1: Libro, O2: Indice, a: { texto: 'listo', marca: 'estado' as const }, b: { texto: 'abierto', marca: 'estado' as const }, t: { texto: 'asociados' } };
+        const texto = tabla.tokensPlantilla(plantilla, h).map(t => t.texto).join('');
+        expect(texto).toContain(plantilla === 'SSE7' ? 'Índice y Libro' : plantilla === 'SSE6' ? 'listo e Índice' : 'Libro e Índice');
+        const tokens = tabla.tokensPlantilla(plantilla, h).filter(t => t.ref);
+        expect(tokens.map(t => t.ref!.id)).toEqual(plantilla === 'SSE7' ? ['i', 'l'] : ['l', 'i']);
+    });
+}
+test('T-117 RH1 conjunción sigue artículo pronunciado, no nombre aislado', () => {
+    const C = { texto: 'Colección', marca: 'objeto' as const };
+    const hs = { C, articulos: [{ texto: 'Libro', marca: 'objeto' as const }, { texto: 'Índice', marca: 'objeto' as const }] };
+    expect(tabla.tokensPlantilla('RH1', hs).map(t => t.texto).join('')).toBe('Colección es un Libro y un Índice.');
+});
+
+test('T-127 CXM y/e lee la frase emitida, conserva comas, bandas y tokens',()=>{
+ const m={id:'m',nombre:'Modelo',raiz:'sd',unidadTiempo:'min' as const,secuencia:10,cosas:Object.fromEntries(['P','Alfa','Beta','Índice','Isla'].map(id=>[id,{id,tipo:'proceso' as const,nombre:id,esencia:'informacional' as const,afiliacion:'sistemica' as const}])),enlaces:{},abanicos:{},opds:{}};
+ const d:import('../nucleo/tipos').OpdDescomposicion={id:'h',tipo:'descomposicion',cosa:'P',padre:'sd',orden:0,bandas:[['Alfa','Beta'],['Índice']],objetosInternos:[],apariciones:{}};
+ const p=tabla.PLANTILLAS.find(p=>p.id==='CXM')!,h=tabla.datosContexto({...m,opds:{h:d}},'h')!.huecos;
+ expect(tabla.tokensPlantilla('CXM',h).map(t=>t.texto).join('')).toBe('P se descompone en paralelo Alfa y Beta, e Índice, en esa secuencia.');
+ expect(p.hacia(h)).toEqual([{k:'descomposicion',proceso:'P',bandas:[['Alfa','Beta'],['Índice']],internos:[]}]);
+});

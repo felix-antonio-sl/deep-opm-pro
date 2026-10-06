@@ -1,7 +1,7 @@
 # Plan de implementación de opforja rehecho
 
 **Reanudación DEC 29–32:** sobre `rehacer`, desde `e287ba9` o posterior. Primero las
-correcciones solicitadas (pasos 1+2 publicados en `26935f4`), después el plan pendiente; DEC 30 exige protocolo ligero y una
+correcciones solicitadas (pasos 1+2 publicados en `26935f4`, paso 3 en `5d23f8a`; paso 4 aceptado por dirección con check1906/0, TSC0, exit0 y revisión única GLOBAL_FAVORABLE de ola 1–4; listo para commit/push por raíz, publicación pendiente), después el plan pendiente; DEC 30 exige protocolo ligero y una
 revisión por ola. La preparación de DEC 28 queda como antecedente, sin recrear rama ni tag.
 
 Qué se construye: el diseño de [`../design/DESIGN.md`](../design/DESIGN.md). Es un modelador

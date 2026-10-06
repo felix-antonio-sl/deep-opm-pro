@@ -24,16 +24,16 @@ afterEach(() => {
 const base = () => modeloCon({ objetos: [['Alfa', ['uno', 'dos']], ['Beta', ['tres']]], procesos: ['Gamma', 'Delta'] });
 const modificar = (m: Modelo, col: 'cosas' | 'enlaces' | 'opds', id: string, v: Cosa | Enlace | Opd) => congelar({ ...m, [col]: { ...m[col], [id]: v } });
 const verificar = (codigo: string, m: Modelo) => expect(validarForma(m).map(v => v.codigo)).toContain(codigo);
-caso('T-303 F-1 referencias y F-3 pertenencia de estados', () => { const m = base(), o = porNombre(m, 'Alfa'), p = porNombre(m, 'Gamma'), b = porNombre(m, 'Beta'); const e: Enlace = { id: 'e-100', tipo: 'consumo', objeto: o.id, proceso: p.id, estado: b.tipo === 'objeto' ? b.estados[0]!.id : '' }; verificar('F-3', modificar({ ...m, secuencia: 101 }, 'enlaces', e.id, e)); verificar('F-1', modificar({ ...m, secuencia: 101 }, 'enlaces', e.id, { ...e, objeto: 'ausente' })); });
-caso('T-303 F-2 clases, mismo tipo y reflexividad consultan la matriz', () => {
+caso('T-022 T-041 F-1 referencias y F-3 pertenencia de estados', () => { const m = base(), o = porNombre(m, 'Alfa'), p = porNombre(m, 'Gamma'), b = porNombre(m, 'Beta'); const e: Enlace = { id: 'e-100', tipo: 'consumo', objeto: o.id, proceso: p.id, estado: b.tipo === 'objeto' ? b.estados[0]!.id : '' }; verificar('F-3', modificar({ ...m, secuencia: 101 }, 'enlaces', e.id, e)); verificar('F-1', modificar({ ...m, secuencia: 101 }, 'enlaces', e.id, { ...e, objeto: 'ausente' })); });
+caso('T-040 F-2 clases, mismo tipo y reflexividad consultan la matriz', () => {
     const m = base(), o = porNombre(m, 'Alfa'), p = porNombre(m, 'Gamma');
     for (const e of [{ id: 'e-100', tipo: 'consumo' as const, objeto: p.id, proceso: o.id }, { id: 'e-100', tipo: 'agregacion' as const, refinable: o.id, refinador: p.id }, { id: 'e-100', tipo: 'excepcionSobretiempo' as const, origen: p.id, destino: p.id }])
         verificar('F-2', modificar({ ...m, secuencia: 101 }, 'enlaces', e.id, e));
 });
 caso('T-032 F-4 escisión bilateral, misma cosa y mitades sin control', () => { const m = base(), o = porNombre(m, 'Alfa'), p = porNombre(m, 'Gamma'); const s = o.tipo === 'objeto' ? o.estados[0]!.id : ''; const e: Enlace = { id: 'e-100', tipo: 'efecto', objeto: o.id, proceso: p.id, entrada: s, escision: { par: 'e-101', mitad: 'entrada' } }; verificar('F-4', modificar({ ...m, secuencia: 102 }, 'enlaces', e.id, e)); });
-caso('T-303 F-5 consulta noOfrecido para cada enlace', () => { const m = base(), a = porNombre(m, 'Alfa'), b = porNombre(m, 'Beta'); const e: Enlace = { id: 'e-100', tipo: 'etiquetado', origen: a.id, destino: b.id, etiqueta: 'prohibido' }; verificar('F-5', modificar({ ...m, secuencia: 101 }, 'enlaces', e.id, e)); });
+caso('T-040 F-5 consulta noOfrecido para cada enlace', () => { const m = base(), a = porNombre(m, 'Alfa'), b = porNombre(m, 'Beta'); const e: Enlace = { id: 'e-100', tipo: 'etiquetado', origen: a.id, destino: b.id, etiqueta: 'prohibido' }; verificar('F-5', modificar({ ...m, secuencia: 101 }, 'enlaces', e.id, e)); });
 caso('T-028 F-6 ramas mínimas, distintas y exclusivas', () => { const m = base(); verificar('F-6', { ...m, secuencia: 101, abanicos: { 'f-100': { id: 'f-100', operador: 'OR', enlaces: [] } } }); });
-caso('T-078 F-7 raíz designada y única', () => { const m = base(); verificar('F-7', { ...m, raiz: 'ausente' }); verificar('F-7', modificar({ ...m, secuencia: 101 }, 'opds', 'opd-100', { id: 'opd-100', tipo: 'raiz', apariciones: {} })); });
+caso('T-031 F-7 raíz designada y única', () => { const m = base(); verificar('F-7', { ...m, raiz: 'ausente' }); verificar('F-7', modificar({ ...m, secuencia: 101 }, 'opds', 'opd-100', { id: 'opd-100', tipo: 'raiz', apariciones: {} })); });
 caso('T-030 F-8 bandas, internos y alcance', () => { const m = base(), p = porNombre(m, 'Gamma'); verificar('F-8', modificar({ ...m, secuencia: 101 }, 'opds', 'opd-100', { id: 'opd-100', tipo: 'descomposicion', padre: m.raiz, cosa: p.id, orden: 0, bandas: [[]], objetosInternos: [], apariciones: { [p.id]: m.opds[m.raiz]!.apariciones[p.id]! } })); });
 caso('T-022 F-9 ids únicos, claves y secuencia', () => { const m = base(); verificar('F-9', { ...m, secuencia: 1 }); const o = porNombre(m, 'Alfa'); verificar('F-9', modificar(m, 'cosas', o.id, { ...o, id: 'otro' })); });
 caso('T-021 F-10 duración finita positiva y ordenada', () => {
@@ -43,15 +43,15 @@ caso('T-021 F-10 duración finita positiva y ordenada', () => {
     for (const duracion of [{ min: 0 }, { min: Infinity }, { min: 3, max: 2 }, { min: 3, esperada: 2 }, { esperada: 3, max: 2 }])
         verificar('F-10', modificar(m, 'cosas', p.id, { ...p, duracion }));
 });
-caso('T-303 F-11 etiquetas bidireccionales distintas y no vacías', () => { const m = base(), a = porNombre(m, 'Alfa'), b = porNombre(m, 'Beta'); verificar('F-11', modificar({ ...m, secuencia: 101 }, 'enlaces', 'e-100', { id: 'e-100', tipo: 'etiquetadoBidireccional', origen: a.id, destino: b.id, etiqueta: 'igual', inversa: 'igual' })); });
-caso('T-303 F-12 coordenadas y tamaños enteros finitos', () => { const m = base(), o = m.opds[m.raiz]!; const id = porNombre(m, 'Alfa').id; verificar('F-12', modificar(m, 'opds', o.id, { ...o, apariciones: { ...o.apariciones, [id]: { x: NaN, y: 0, ancho: 19, alto: 60 } } })); });
+caso('T-026 F-11 etiquetas bidireccionales distintas y no vacías', () => { const m = base(), a = porNombre(m, 'Alfa'), b = porNombre(m, 'Beta'); verificar('F-11', modificar({ ...m, secuencia: 101 }, 'enlaces', 'e-100', { id: 'e-100', tipo: 'etiquetadoBidireccional', origen: a.id, destino: b.id, etiqueta: 'igual', inversa: 'igual' })); });
+caso('T-064 F-12 coordenadas y tamaños enteros finitos', () => { const m = base(), o = m.opds[m.raiz]!; const id = porNombre(m, 'Alfa').id; verificar('F-12', modificar(m, 'opds', o.id, { ...o, apariciones: { ...o.apariciones, [id]: { x: NaN, y: 0, ancho: 19, alto: 60 } } })); });
 caso('T-020 F-13 valor solo en un rasgo exhibido', () => {
     const m = base(), o = porNombre(m, 'Alfa');
     if (o.tipo !== 'objeto')
         throw Error();
     verificar('F-13', modificar(m, 'cosas', o.id, { ...o, valor: '12' }));
 });
-caso('T-303 200 semillas válidas y deterministas; mutante no tautológico', () => {
+caso('T-022 T-040 200 semillas válidas y deterministas; mutante no tautológico', () => {
     for (let s = 0; s < 200; s++) {
         const m = azar(s);
         buenos.push(m);
@@ -61,7 +61,7 @@ caso('T-303 200 semillas válidas y deterministas; mutante no tautológico', () 
     const m = azar(1);
     verificar('F-9', { ...m, secuencia: 0 });
 });
-caso('T-303 positivos de estados, escisión, atributos y abanicos; mutantes por campo', () => {
+caso('T-015 T-032 T-028 positivos de estados, escisión, atributos y abanicos; mutantes por campo', () => {
     const m = base(), a = porNombre(m, 'Alfa'), b = porNombre(m, 'Beta'), p = porNombre(m, 'Gamma'), q = porNombre(m, 'Delta');
     if (a.tipo !== 'objeto' || b.tipo !== 'objeto')
         throw Error();
@@ -100,8 +100,8 @@ caso('T-078 árbol legal; mutantes ciclo, refinamiento repetido, orden y alcance
     verificar('F-8', modificar(bueno, 'opds', m.raiz, { ...raíz, apariciones: { ...sinInterno, [a.id]: caja } }));
     verificar('F-8', modificar(bueno, 'opds', hijo.id, { ...hijo, bandas: [[q.id, q.id]] }));
 });
-caso('T-303 F-5 noOfrecido recibe también cada abanico', () => { const m = base(), a = porNombre(m, 'Alfa'), b = porNombre(m, 'Beta'); const e: Enlace = { id: 'e-100', tipo: 'etiquetado', origen: a.id, destino: b.id, etiqueta: 'solo-abanico' }; const segundo: Enlace = { ...e, id: 'e-101' }; const bueno = { ...m, secuencia: 103, enlaces: { 'e-100': e, 'e-101': segundo } }; expect(validarForma(bueno)).toEqual([]); verificar('F-5', { ...bueno, abanicos: { 'f-102': { id: 'f-102', operador: 'OR', enlaces: ['e-100', 'e-101'] } } }); });
-caso('T-303 F-1 no confunde propiedades heredadas del Record con ids presentes', () => { const m = base(), p = porNombre(m, 'Gamma'); const e: Enlace = { id: 'e-100', tipo: 'consumo', objeto: 'toString', proceso: p.id }; verificar('F-1', modificar({ ...m, secuencia: 101 }, 'enlaces', e.id, e)); });
+caso('T-040 T-054 F-5 noOfrecido recibe también cada abanico', () => { const m = base(), a = porNombre(m, 'Alfa'), b = porNombre(m, 'Beta'); const e: Enlace = { id: 'e-100', tipo: 'etiquetado', origen: a.id, destino: b.id, etiqueta: 'solo-abanico' }; const segundo: Enlace = { ...e, id: 'e-101' }; const bueno = { ...m, secuencia: 103, enlaces: { 'e-100': e, 'e-101': segundo } }; expect(validarForma(bueno)).toEqual([]); verificar('F-5', { ...bueno, abanicos: { 'f-102': { id: 'f-102', operador: 'OR', enlaces: ['e-100', 'e-101'] } } }); });
+caso('T-022 F-1 no confunde propiedades heredadas del Record con ids presentes', () => { const m = base(), p = porNombre(m, 'Gamma'); const e: Enlace = { id: 'e-100', tipo: 'consumo', objeto: 'toString', proceso: p.id }; verificar('F-1', modificar({ ...m, secuencia: 101 }, 'enlaces', e.id, e)); });
 caso('T-022 F-1 y F-7 raíz heredada se diagnostica sin excepción', () => { const m = congelar({ ...modeloCon(), raiz: 'toString' }); const vs = validarForma(m); expect(vs.map(v => v.codigo)).toContain('F-1'); expect(vs.map(v => v.codigo)).toContain('F-7'); });
 caso('T-078 F-7 refinamiento exige apariciones propias aunque la cosa se llame toString', () => { const vacío = modeloCon(); const cosa = { id: 'toString', tipo: 'proceso' as const, nombre: 'Contener', esencia: 'informacional' as const, afiliacion: 'sistemica' as const }; const m = congelar({ ...vacío, secuencia: 101, cosas: { toString: cosa }, opds: { 'opd-1': { id: 'opd-1', tipo: 'raiz' as const, apariciones: {} }, 'opd-100': { id: 'opd-100', tipo: 'descomposicion' as const, padre: 'opd-1', cosa: cosa.id, orden: 0, bandas: [], objetosInternos: [], apariciones: {} } } }); expect(validarForma(m).map(v => v.codigo)).toContain('F-7'); });
 caso('T-030 F-8 subproceso con id toString necesita aparición propia y no hereda externas', () => { const vacío = modeloCon(); const contenedor = { id: 'p-2', tipo: 'proceso' as const, nombre: 'Contener', esencia: 'informacional' as const, afiliacion: 'sistemica' as const }, interno = { ...contenedor, id: 'toString', nombre: 'Ejecutar' }; const caja = { x: 0, y: 0, ancho: 420, alto: 188 }; const raíz = { id: 'opd-1', tipo: 'raiz' as const, apariciones: { 'p-2': caja } }; const hijo = { id: 'opd-100', tipo: 'descomposicion' as const, padre: 'opd-1', cosa: 'p-2', orden: 0, bandas: [['toString']], objetosInternos: [], apariciones: { 'p-2': caja } }; const sin = congelar({ ...vacío, secuencia: 101, cosas: { 'p-2': contenedor, toString: interno }, opds: { 'opd-1': raíz, 'opd-100': hijo } }); expect(validarForma(sin).map(v => v.codigo)).toContain('F-8'); const válido = congelar({ ...sin, opds: { 'opd-1': raíz, 'opd-100': { ...hijo, apariciones: { ...hijo.apariciones, toString: { x: 40, y: 64, ancho: 135, alto: 60 } } } } }); buenos.push(válido); expect(validarForma(válido)).toEqual([]); });

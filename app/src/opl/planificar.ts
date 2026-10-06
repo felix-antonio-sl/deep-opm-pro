@@ -38,6 +38,6 @@ export interface Plan {
     readonly acciones: readonly Accion[]; // de las líneas aplicables, en orden de fases
     readonly notas: readonly DiagOpl[]; // no-delete-by-absence (info, T-172)
 }
-export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Plan { throw new Error('pendiente: WP-13'); } // puro (T-173)
+export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Plan { throw new Error('pendiente: WP-9'); } // puro (T-173)
 // exige m === plan.base; si no ⇒ replanificar
-export const TEXTO_RAZON: Readonly<Record<RazonNoAplicable, string>> = new Proxy<Record<RazonNoAplicable, string>>({ 'forma-no-reconocida': '', 'entidad-no-existe': '', 'referencia-ambigua': '', 'enlace-invalido-firma': '', 'conflicto-patches': '', 'inversa-no-soportada': '', 'puntuacion-faltante': '', 'cambio-ya-presente': '' }, { get() { throw new Error('pendiente: WP-13'); } }); // textos visibles de CANON §6.2
+export const TEXTO_RAZON: Readonly<Record<RazonNoAplicable, string>> = new Proxy<Record<RazonNoAplicable, string>>({ 'forma-no-reconocida': '', 'entidad-no-existe': '', 'referencia-ambigua': '', 'enlace-invalido-firma': '', 'conflicto-patches': '', 'inversa-no-soportada': '', 'puntuacion-faltante': '', 'cambio-ya-presente': '' }, { get() { throw new Error('pendiente: WP-9'); } }); // textos visibles de CANON §6.2

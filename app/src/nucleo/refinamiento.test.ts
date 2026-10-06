@@ -112,7 +112,7 @@ test('T-083 T-080 DS16 eliminar hoja materializa TS3 y conserva externos', () =>
     const out = must(eliminarRefinamiento(r.modelo, { opd: 'opd-100' })).modelo;
     expect(Object.keys(out.opds)).toEqual(['sd']); expect(Object.keys(out.cosas).sort()).toEqual(['b', 'o', 'p', 'q']); expect(out.enlaces.e).toEqual(a.enlaces.e); expect(Object.keys(out.enlaces)).toEqual(['e']); sano(out);
 });
-test('T-082 fijarBandas acepta partición completa, realiza Y y conserva enlaces', () => {
+test('T-074 fijarBandas acepta partición completa, realiza Y y conserva enlaces', () => {
     const m = refinado(3, { id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p' });
     const r = must(fijarBandas(m, { opd: 'dc', bandas: [['c', 'a'], ['z']] })).modelo, dc = r.opds.dc! as OpdDescomposicion;
     expect(dc.bandas).toEqual([['c', 'a'], ['z']]); expect(dc.apariciones.c!.y).toBe(dc.apariciones.a!.y); expect(dc.apariciones.z!.y).toBeGreaterThan(dc.apariciones.a!.y); expect(r.enlaces).toBe(m.enlaces); sano(r);
@@ -424,4 +424,29 @@ test('T-018 T-074 R2 LF03 colisión final rechaza con rollback de flags, ocultos
     const a = ocultoR2('crear'), m: Modelo = congelar({ ...a, enlaces: { ...a.enlaces, previo: { id: 'previo', tipo: 'consumo', objeto: 'o', proceso: 'a', estado: 's0' } } }); sano(m);
     const args = congelar({ opd: 'sd', candidato: { tipo: 'efecto' as const, objeto: 'o', proceso: 'p', entrada: 's0', salida: 's1' } }), antes = JSON.stringify(m), aa = JSON.stringify(args), r = crearEnlace(m, args);
     expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.codigo).toBe('contexto'); expect(JSON.stringify(m)).toBe(antes); expect(JSON.stringify(args)).toBe(aa); expect(m.secuencia).toBe(100);
+});
+
+
+for (const anidado of [false, true]) test(`T-074 T-030 escisión invertida rechaza fijarBandas atómicamente, anidado=${anidado}`, () => {
+    const inicial = refinado(3, { id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 's0', salida: 's1' });
+    let modelo = must(distribuirEnlace(inicial, { enlace: 'e' })).modelo;
+    if (anidado) modelo = must(descomponer(modelo, { opd: 'dc', proceso: 'a', bandas: [['Preparar'], ['Recibir Pedido']] })).modelo;
+    sano(modelo);
+    const antes = JSON.stringify(modelo), args = congelar({ opd: 'dc', bandas: [['c'], ['z'], ['a']] });
+    const r = fijarBandas(modelo, args);
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+        expect(r.rechazo.codigo).toBe('contexto');
+        expect(r.rechazo.regla).toBe('R-ESCIND-2');
+        expect(r.rechazo.refs.some(ref => ref.tipo === 'enlace' && modelo.enlaces[ref.id]?.tipo === 'efecto')).toBe(true);
+    }
+    expect(JSON.stringify(modelo)).toBe(antes);
+    const correcto = must(fijarBandas(modelo, { opd: 'dc', bandas: [['a'], ['z', 'c']] })).modelo;
+    sano(correcto); expect(correcto.enlaces).toEqual(modelo.enlaces); expect(correcto.secuencia).toBe(modelo.secuencia);
+    const paralelo = must(fijarBandas(modelo, { opd: 'dc', bandas: [['a', 'c'], ['z']] })).modelo;
+    sano(paralelo); expect(paralelo.enlaces).toEqual(modelo.enlaces);
+    const movido = must(moverSubproceso(modelo, { opd: 'dc', proceso: 'a', destino: { nuevaBandaAntesDe: 3 } })).modelo;
+    expect(erroresContexto(movido).some(v => v.regla === 'R-ESCIND-2')).toBe(true);
+    expect(validarForma(movido)).toEqual([]); expect(movido.enlaces).toEqual(modelo.enlaces);
+    expect(JSON.stringify(modelo)).toBe(antes);
 });

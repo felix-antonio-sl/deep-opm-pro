@@ -13,6 +13,17 @@ function comprobarFirmas(): void {
     const excepcion: Excepcion = { id: 'e-1', tipo: 'excepcionSobretiempo', origen: 'p-1', destino: 'p-2' };
     // @ts-expect-error Conserva limitación de Extract del contrato: selección por literal individual = never.
     const individual: EnlaceDe<'excepcionSobretiempo'> = excepcion;
+    // @ts-expect-error T-012 sólo objeto o proceso; no tipo visual tercero.
+    const tercero: Cosa = { id: 'x', tipo: 'atributo', nombre: 'Peso', esencia: 'informacional', afiliacion: 'sistemica' };
+    // @ts-expect-error T-026 enlace binario requiere el proceso destino.
+    const incompleto: EnlaceNuevo = { tipo: 'consumo', objeto: 'o' };
+    // @ts-expect-error T-026 no hay lista de destinos como extremo nuclear.
+    const hiper: EnlaceNuevo = { tipo: 'consumo', objeto: 'o', proceso: ['p', 'q'] };
+    // @ts-expect-error T-027 e y c son un único modificador, no una lista.
+    const controles: EnlaceNuevo = { tipo: 'consumo', objeto: 'o', proceso: 'p', control: ['e', 'c'] };
+    // @ts-expect-error T-027 no se admite un segundo modificador persistido.
+    const doble: EnlaceNuevo = { tipo: 'consumo', objeto: 'o', proceso: 'p', control: 'e', condicion: 'c' };
+    void tercero; void incompleto; void hiper; void controles; void doble;
     void proceso;
     void resultado;
     void codigo;

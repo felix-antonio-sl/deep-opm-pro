@@ -6,4 +6,4 @@ export function generarDocumentoOpl(m: Modelo): string { return `# ${m.nombre}\n
 export function importarOpl(nombre: string, texto: string): Respuesta<{
     modelo: Modelo;
     plan: Plan;
-}> { throw new Error('pendiente: WP-13'); }
+}> { throw new Error('pendiente: WP-9'); }

@@ -112,7 +112,7 @@ function dibujoExportado(m: Modelo, opd: string, nombre: string): string {
     const inicio = r.valor.svg.indexOf(dibujo);
     expect(inicio).toBeGreaterThanOrEqual(0);
     if (process.env.OPFORJA_GOLDEN === 'escribir') {
-        const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso3/genuinos';
+        const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso4/genuinos';
         mkdirSync(directorio, { recursive: true });
         writeFileSync(`${directorio}/${nombre}.svg`, r.valor.svg);
         if (nombre === 'abanico-or') {
@@ -147,7 +147,7 @@ for (const c of casos)
             expect(gatesExportacion(c.m, { opd: c.opd }).length).toBeGreaterThan(0);
             const e = escena(c.m, c.opd); svg = aTexto(dibujar(e, 'canon'));
             if (process.env.OPFORJA_GOLDEN === 'escribir') {
-                const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso3/diagnosticos';
+                const directorio = '/tmp/opforja-rehacer/reanudacion-decisiones29/paso4/diagnosticos';
                 mkdirSync(directorio, { recursive: true });
                 const b = e.caja;
                 writeFileSync(`${directorio}/${c.nombre}.svg`, `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${b.x-24} ${b.y-24} ${b.ancho+48} ${b.alto+48}" width="${b.ancho+48}" height="${b.alto+48}"><title>DIBUJO DIAGNÓSTICO; export rechazado ${regla}</title>${estiloProducto}${svg}</svg>`);

@@ -141,6 +141,12 @@ export function tokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
             atom(x.estado);
         }
     }
+    function superficieInicial(k: string, x: Hueco): string {
+        const name = k.replace(/^(Ly|Lo|Lista):/, '');
+        if (name === 'articulos') return x.genero === 'f' ? 'una ' : 'un ';
+        if (name.startsWith('m') && x.mult) return multiplicidades[x.mult][x.genero === 'f' ? 1 : 0];
+        return x.tokens?.map(t => t.texto).join('') || x.texto;
+    }
     function slot(k: string) {
         if (k === 'Q' || k === 'Q^') {
             literal(cuantificadores[uno(h, 'operador').texto as Operador]);
@@ -154,12 +160,19 @@ export function tokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
             throw new Error(`Hueco ausente ${id}: ${k}`);
         values.forEach((x, i) => { if (i) {
             const ultimo = i === values.length - 1;
-            literal(!match || match[1] === 'Lista' || !ultimo ? ', ' : ` ${match[1] === 'Lo' ? conjuncionO(x.texto) : conjuncionY(x.texto)} `);
+            const superficie = superficieInicial(k, x);
+            literal(!match || match[1] === 'Lista' || !ultimo ? ', ' : ` ${match[1] === 'Lo' ? conjuncionO(superficie) : conjuncionY(superficie)} `);
         } atom(x, mult, est, name === 'articulos'); });
     }
     let pos = 0;
     for (const x of patron.matchAll(/\{([^}]+)\}/g)) {
-        literal(patron.slice(pos, x.index));
+        let tramo = patron.slice(pos, x.index);
+        const name = x[1]!.replace(/^(Ly|Lo|Lista):/, '');
+        const base = name.startsWith('m') ? name.slice(1) : name;
+        const siguiente = lista(h, name)[0] ?? lista(h, base)[0];
+        if (siguiente && / y $/.test(tramo))
+            tramo = tramo.replace(/ y $/, ` ${conjuncionY(superficieInicial(x[1]!, siguiente))} `);
+        literal(tramo);
         slot(x[1]!);
         pos = x.index! + x[0].length;
     }
@@ -208,7 +221,10 @@ export function datosEnlace(m: Modelo, e: Enlace, inverso = false): HechoGenerab
     else if (e.tipo === 'excepcionSobretiempo' || e.tipo === 'excepcionSubtiempo') {
         h.P1 = c(e.destino);
         h.P2 = c(e.origen);
-        const fuente = m.cosas[e.origen];
+        // Una fuente elevada conserva el ID del hecho: su cota sigue siendo nuclear.
+        // P2 expresa el extremo visible de esta vista, sin sustituirlo por algo invisible.
+        const original = m.enlaces[e.id];
+        const fuente = m.cosas[original?.tipo === e.tipo ? original.origen : e.origen];
         const campo = e.tipo === 'excepcionSobretiempo' ? 'max' : 'min';
         const dur = fuente?.tipo === 'proceso' ? fuente.duracion : undefined;
         const n = dur?.[campo];
@@ -416,7 +432,7 @@ export function datosContexto(m: Modelo, opd: string): HechoGenerable | null {
         if (id === 'CXM') {
             const tokens: TokenOpl[] = [];
             bandas.forEach((b, i) => { if (i)
-                tokens.push({ texto: i === bandas.length - 1 ? ', y ' : ', ', rol: 'texto' }); if (b.length > 1)
+                tokens.push({ texto: i === bandas.length - 1 ? `, ${conjuncionY(b.length > 1 ? 'paralelo' : m.cosas[b[0]!]!.nombre)} ` : ', ', rol: 'texto' }); if (b.length > 1)
                 tokens.push({ texto: 'paralelo ', rol: 'texto' }); b.forEach((id, j) => { if (j)
                 tokens.push({ texto: j === b.length - 1 ? ` ${conjuncionY(m.cosas[id]!.nombre)} ` : ', ', rol: 'texto' }); const c = cosa(m, id); tokens.push({ texto: c.texto, rol: 'nombre', ...(c.marca ? { marca: c.marca } : {}), ...(c.ref ? { ref: c.ref } : {}) }); }); });
             h.SEC = { texto: '', tokens, bandas: bandas.map(b => b.map(id => cosa(m, id))) };

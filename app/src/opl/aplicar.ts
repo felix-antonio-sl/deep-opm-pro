@@ -3,4 +3,4 @@ import type { Accion } from '../nucleo/operaciones';
 import type { Severidad } from '../nucleo/diagnostico';
 import type { Respuesta, Hecho } from '../nucleo/resultado';
 import type { Plan } from './planificar';
-export function aplicarPlan(m: Modelo, plan: Plan): Respuesta<Hecho> { throw new Error('pendiente: WP-13'); }
+export function aplicarPlan(m: Modelo, plan: Plan): Respuesta<Hecho> { throw new Error('pendiente: WP-9'); }

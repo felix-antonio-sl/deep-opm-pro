@@ -17,7 +17,7 @@ const texto = (s: string, p: Punto, px: number, italica = false): NodoSvg => nod
     style: 'font-kerning:none;font-variant-ligatures:none;letter-spacing:0;word-spacing:0',
     'text-anchor': 'middle'
 }, [s]);
-const figura = (f: FiguraLiteral, transform?: string): NodoSvg => nodo(f.tipo === 'path' ? 'path' : f.tipo === 'polilinea' ? 'polyline' : 'polygon', { [f.tipo === 'path' ? 'd' : 'points']: f.datos, fill: f.relleno === 'papel' ? COLORES.paper : f.relleno === 'tinta' ? COLORES.ink : 'none', stroke: COLORES.ink, 'stroke-width': 1, ...(transform ? { transform } : {}) });
+const figura = (f: FiguraLiteral, transform?: string, trazo: number = 1): NodoSvg => nodo(f.tipo === 'path' ? 'path' : f.tipo === 'polilinea' ? 'polyline' : 'polygon', { [f.tipo === 'path' ? 'd' : 'points']: f.datos, fill: f.relleno === 'papel' ? COLORES.paper : f.relleno === 'tinta' ? COLORES.ink : 'none', stroke: COLORES.ink, 'stroke-width': trazo, ...(transform ? { transform } : {}) });
 const matriz = (m: readonly number[]) => `matrix(${m.join(' ')})`;
 /** Un solo árbol semántico; el modo edición agrega referencias y áreas transparentes. */
 export function dibujar(e: Escena, modo: 'canon' | 'edicion'): NodoSvg {
@@ -69,17 +69,21 @@ export function dibujar(e: Escena, modo: 'canon' | 'edicion'): NodoSvg {
                 h.push(figura(m.texto === '/' ? MARCADORES.sobretiempo : MARCADORES.subtiempo, `translate(${m.en.x} ${m.en.y}) rotate(${m.angulo}) translate(-13 0)`));
             }
         }
-        h.push(...a.etiquetas.map(l => texto(l.texto, l.en, 11, l.italica)));
+        h.push(...a.etiquetas.map(l => {
+            const t = texto(l.texto, l.en, 11, l.italica);
+            // Halo de pintura: el ancla contractual, la tipografía y el recorrido no cambian.
+            return { ...t, a: { ...t.a, stroke: COLORES.paper, 'stroke-width': 3, 'stroke-linejoin': 'round', 'paint-order': 'stroke fill' } };
+        }));
         return envolver(`enlace:${a.ref.id}`, h);
     }
     function simbolo(s: Simbolo): NodoSvg {
         const topologia = triangulo(s.relacion), trans = matriz(colocarTriangulo(s.vertice, s.orientacion)), h: NodoSvg[] = s.peine.map(p => nodo('path', { d: camino(p), fill: 'none', stroke: COLORES.ink, 'stroke-width': TRAZOS.estructural }));
-        h.push(figura(topologia.exterior, trans));
+        h.push(figura(topologia.exterior, trans, TRAZOS.estructural));
         if (topologia.interior) {
             const i = topologia.interior;
-            h.push(i.tipo === 'circulo' ? nodo('circle', { cx: i.centro.x, cy: i.centro.y, r: i.radio, fill: COLORES.ink, transform: trans }) : figura(i, trans));
+            h.push(i.tipo === 'circulo' ? nodo('circle', { cx: i.centro.x, cy: i.centro.y, r: i.radio, fill: COLORES.ink, transform: trans }) : figura(i, trans, TRAZOS.estructural));
         }
-        h.push(...s.mult.map(l => texto(l.texto, l.en, 11)));
+        h.push(...s.mult.map(l => { const t = texto(l.texto, l.en, 11); return { ...t, a: { ...t.a, stroke: COLORES.paper, 'stroke-width': 3, 'stroke-linejoin': 'round', 'paint-order': 'stroke fill' } }; }));
         return envolver(s.clave, h);
     }
     function arco(a: Arco): NodoSvg { const x = a.centro.x, y = a.centro.y, r = a.radio, d = `M ${x + r * Math.cos(a.desde)} ${y + r * Math.sin(a.desde)} A ${r} ${r} 0 ${a.hasta - a.desde > Math.PI ? 1 : 0} 1 ${x + r * Math.cos(a.hasta)} ${y + r * Math.sin(a.hasta)}`; return nodo('path', { d, fill: 'none', stroke: COLORES.ink, 'stroke-width': TRAZOS.arco, 'stroke-dasharray': '4 1' }); }

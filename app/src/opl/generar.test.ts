@@ -314,3 +314,56 @@ for(const [op,q] of [['XOR','exactamente uno de'],['OR','al menos uno de']] as c
   expect(l.id).toBe(`sd#FAN-agente-divergente-${op}:FAN:f`);expect(l.hechos).toEqual(permutado?['e2','e1']:['e1','e2']);
   expect(l.tokens.filter(t=>t.marca==='estado')).toEqual([]);expect(textoDeTokens(l.tokens)).toBe(l.texto);expect(l.refs).toEqual(refsDeTokens(l.tokens));expect(JSON.stringify(mod)).toBe(before);
  });
+
+
+// PASO4 S2: las cotas pertenecen al hecho nuclear, aunque su fuente se vea abstraída.
+test('T-115 EX abstraída conserva dos cotas originales distintas, unidades, dirección y procedencia', () => {
+    const base = m();
+    const modelo = m([
+        { id: 'ex1', tipo: 'excepcionSobretiempo', origen: 'r', destino: 'q' },
+        { id: 'ex2', tipo: 'excepcionSubtiempo', origen: 't', destino: 'q' },
+    ], {
+        cosas: { ...base.cosas,
+            p: { ...pro('p', 'Procesar'), tipo: 'proceso', duracion: { max: 60, min: 30, unidad: 'min' } },
+            q: { ...pro('q', 'Archivar'), afiliacion: 'ambiental' },
+            r: { ...pro('r', 'Preparar'), tipo: 'proceso', duracion: { max: 5, unidad: 'min' } },
+            t: { ...pro('t', 'Validar'), tipo: 'proceso', duracion: { min: 2, unidad: 'hour' } },
+        },
+        opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { p: ap, q: ap } },
+            h: { id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas: [['r'], ['t']], objetosInternos: [], apariciones: { p: ap, q: ap, r: ap, t: ap } } },
+    });
+    expect(validarForma(modelo)).toEqual([]);
+    for (const e of Object.values(modelo.enlaces)) expect(violacionesContexto(modelo, e)).toEqual([]);
+    const antes = JSON.stringify(modelo), lineas = generarBloque(modelo, 'sd').filter(l => l.hechos.length);
+    expect(lineas.map(l => l.texto)).toEqual([
+        '*Archivar* ocurre si duración de *Procesar* excede 5 minutos.',
+        '*Archivar* ocurre si duración de *Procesar* es menor que 2 horas.',
+    ]);
+    expect(lineas.map(l => l.hechos)).toEqual([['ex1'], ['ex2']]);
+    for (const l of lineas) {
+        expect(l.refs).toEqual([{ tipo: 'cosa', id: 'q' }, { tipo: 'cosa', id: 'p' }]);
+        expect(l.tokens.filter(t => t.marca === 'proceso').map(t => t.hecho)).toEqual([l.hechos[0], l.hechos[0]]);
+    }
+    expect(JSON.stringify(modelo)).toBe(antes);
+});
+
+test('T-118 colección incompleta en hijo conserva la parte revelada y cola sin inventar refinadores', () => {
+    const base = m();
+    const modelo = m([{ id: 'parte-a', tipo: 'agregacion', refinable: 'o', refinador: 'a' }, { id: 'parte-b', tipo: 'agregacion', refinable: 'o', refinador: 'b' }], {
+        cosas: { ...base.cosas, b: obj('b', 'Saldo') },
+        opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { o: ap, a: ap, b: ap } },
+            h: { id: 'h', tipo: 'despliegue', padre: 'sd', cosa: 'o', modo: 'agregacion', orden: 0, apariciones: { o: ap, a: ap } } },
+    });
+    expect(validarForma(modelo)).toEqual([]);
+    const antes = JSON.stringify(modelo), lineas = generarBloque(modelo, 'h').filter(l => l.hechos.length);
+    expect(lineas.map(l => l.texto)).toEqual(['**Pedido** consta de **Cuenta** y al menos otra parte.']);
+    expect(lineas.map(l => l.hechos)).toEqual([['parte-a']]);
+    expect(lineas[0]!.refs).toEqual([{ tipo: 'cosa', id: 'o' }, { tipo: 'cosa', id: 'a' }]);
+    expect(JSON.stringify(modelo)).toBe(antes);
+});
+
+for(const operador of ['XOR','OR'] as const)for(const reverso of [false,true])test(`T-057 multiplicidades distintas por rama común P ${operador} permutación ${reverso}`,()=>{
+ const enlaces:Enlace[]=[{id:'e1',tipo:'consumo',objeto:'o',proceso:'p',mult:'+'},{id:'e2',tipo:'consumo',objeto:'a',proceso:'p',mult:'?'}],b=m(enlaces),modelo=m(enlaces,{abanicos:{f:{id:'f',operador,enlaces:reverso?['e2','e1']:['e1','e2']}}});
+ expect(validarForma(modelo)).toEqual([]);for(const e of enlaces){expect(noOfrecido(modelo,e,modelo.abanicos.f)).toBeNull();expect(violacionesContexto(modelo,e)).toEqual([]);}const antes=JSON.stringify(modelo),l=generarBloque(modelo,'sd').find(l=>l.hechos.length===2)!;
+ expect(new Set(l.hechos)).toEqual(new Set(['e1','e2']));expect(l.texto).toContain('al menos un **Pedido**');expect(l.texto).toContain('un opcional **Cuenta**');expect(l.texto).toContain(operador==='XOR'?'exactamente uno de':'al menos uno de');expect(l.refs.map(r=>r.id)).toEqual(expect.arrayContaining(['p','o','a']));expect(JSON.stringify(modelo)).toBe(antes);
+});

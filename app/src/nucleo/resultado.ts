@@ -68,7 +68,7 @@ export function transaccion(m: Modelo, cuerpo: (tx: Tx) => void, o?: {
             const previos = new Set(errores(m).map(clave));
             const nuevo = errores(actual).find(v => !previos.has(clave(v)));
             if (nuevo)
-                return { ok: false, rechazo: { codigo: 'contexto', regla: nuevo.regla, mensaje: nuevo.mensaje, refs: nuevo.refs, ...(nuevo.accion ? { accion: nuevo.accion } : {}) } };
+                return { ok: false, rechazo: { codigo: nuevo.codigo === 'no-ofrecido' ? 'no-ofrecido' : 'contexto', regla: nuevo.regla, mensaje: nuevo.mensaje, refs: nuevo.refs, ...(nuevo.accion ? { accion: nuevo.accion } : {}) } };
         }
         return { ok: true, valor: { modelo: actual, creados }, trazas };
     }

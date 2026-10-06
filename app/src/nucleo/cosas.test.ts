@@ -70,7 +70,7 @@ test('T-063 cambiar tipo consulta firma real de enlaces', () => {
     const m = modeloCon({ objetos: [['Pedido', []]], procesos: ['Procesar'], enlaces: [['consumo', 'Pedido', 'Procesar']] });
     rechazo(c.cambiarTipoCosa(m, { cosa: 'o-2' }), 'tipo-incompatible');
 });
-test('T-248 DS-20 rechaza agente informacional y permite error previo independiente', () => {
+test('T-045 DS-20 rechaza agente informacional y permite error previo independiente', () => {
     const m = modeloCon({ objetos: [['Persona', []]], procesos: ['Procesar'], enlaces: [['agente', 'Persona', 'Procesar']] });
     rechazo(c.fijarEsencia(m, { cosa: 'o-2', esencia: 'informacional' }), 'contexto', 'R-AG-1');
     const malo = congelar({ ...m, cosas: { ...m.cosas, 'o-2': { ...m.cosas['o-2']!, esencia: 'informacional' as const } } });
@@ -171,14 +171,14 @@ test('T-082 subproceso solo x, objeto interno confinado, externo rebota', () => 
     expect(ext.x + ext.ancho <= 100 || ext.x >= 600 || ext.y + ext.alto <= 100 || ext.y >= 500).toBe(true);
     if (r.ok) expect(r.trazas.some(t => t.regla === 'T-081')).toBe(true);
 });
-test('T-248 mover lote valida todas referencias antes de publicar, duplicate no doble delta', () => {
+test('T-064 mover lote valida todas referencias antes de publicar, duplicate no doble delta', () => {
     const m = descompuesta(), original = JSON.stringify(m);
     rechazo(c.moverApariciones(m, { opd: 'opd-7', mover: [{ cosa: 'p-4', x: 200, y: 200 }, { cosa: 'o-99', x: 0, y: 0 }] }), 'no-encontrado');
     expect(JSON.stringify(m)).toBe(original);
     const n = bien(c.moverApariciones(m, { opd: 'opd-7', mover: [{ cosa: 'p-4', x: 200, y: 200 }, { cosa: 'p-4', x: 200, y: 200 }] }));
     expect(n.opds['opd-7']!.apariciones['p-5']!.x).toBe(300);
 });
-test('T-082 redimensionar conserva posición, rechazo tamaño inválido y ausencia', () => {
+test('T-249 redimensionar conserva posición, rechazo tamaño inválido y ausencia', () => {
     const m = modeloCon({ objetos: [['Pedido', []]] });
     expect(bien(c.redimensionar(m, { opd: 'opd-1', cosa: 'o-2', ancho: 200, alto: 100 })).opds['opd-1']!.apariciones['o-2']).toEqual({ x: 0, y: 0, ancho: 200, alto: 100 });
     rechazo(c.redimensionar(m, { opd: 'opd-1', cosa: 'o-2', ancho: 0, alto: 100 }), 'forma');
@@ -205,7 +205,7 @@ test('T-083 DS-5 eliminar refinada aborta todo lote, nunca borra OPDs', () => {
     expect(JSON.stringify(m)).toBe(snapshot);
     rechazo(c.cambiarTipoCosa(m, { cosa: 'p-4' }), 'tipo-incompatible');
 });
-test('T-248 eliminar cascada de enlaces/estados/apariciones y miembro banda sin remigrar', () => {
+test('T-080 eliminar cascada de enlaces/estados/apariciones y miembro banda sin remigrar', () => {
     const m = descompuesta();
     const n = bien(c.eliminarCosas(m, { cosas: ['p-5', 'o-3'] }));
     expect(n.cosas).not.toHaveProperty('p-5'); expect(n.cosas).not.toHaveProperty('o-3');
@@ -244,7 +244,7 @@ test('T-062 primer subproceso con contorno vacío completa distribución vacua, 
     expect(n.enlaces).toBe(base.enlaces);
     if (r.ok) expect(r.valor.creados).toEqual(['p-8']);
 });
-test('T-248 cascada elimina estados y todos incidentes, abanico de una rama se disuelve', () => {
+test('T-080 cascada elimina estados y todos incidentes, abanico de una rama se disuelve', () => {
     const base = modeloCon({ objetos: [['Pedido', ['listo']], ['Factura', []]], procesos: ['Procesar'], enlaces: [['consumo', 'Pedido', 'Procesar'], ['consumo', 'Factura', 'Procesar']] });
     const m: Modelo = congelar({ ...base, enlaces: { ...base.enlaces, 'e-6': { id: 'e-6', tipo: 'consumo' as const, objeto: 'o-2', proceso: 'p-5', estado: 's-3' } }, abanicos: { 'f-8': { id: 'f-8', operador: 'XOR' as const, enlaces: ['e-6', 'e-7'] } }, secuencia: 9 });
     expect(validarForma(m)).toEqual([]); expect(erroresContexto(m)).toEqual([]);
@@ -280,7 +280,7 @@ test('T-093 eliminar general aplica DS-20 global y aborta lote antes de publicar
     rechazo(c.eliminarCosas(m, { cosas: ['o-5', 'o-2'] }), 'contexto', 'R-EFE-1');
     expect(JSON.stringify(m)).toBe(original);
 });
-test('T-248 DS-20 mismo código en refs distintas cuenta como error nuevo', () => {
+test('T-064 DS-20 mismo código en refs distintas cuenta como error nuevo', () => {
     const base = modeloCon({ objetos: [['Persona', []], ['Operador', []]], procesos: ['Procesar'], enlaces: [['agente', 'Persona', 'Procesar'], ['agente', 'Operador', 'Procesar']] });
     const m = congelar({ ...base, cosas: { ...base.cosas, 'o-2': { ...base.cosas['o-2']!, esencia: 'informacional' as const } } });
     expect(erroresContexto(m).map(v => v.regla)).toEqual(['R-AG-1']);
@@ -307,7 +307,7 @@ test('T-062 posición no finita nunca deja caja inválida ni reserva ID', () => 
     rechazo(c.moverApariciones(m, { opd: 'opd-1', mover: [{ cosa: 'o-2', x: Infinity, y: 0 }] }), 'forma', 'F-12');
     expect(m.secuencia).toBe(3);
 });
-test('T-248 todas las propiedades rechazan cosa ausente sin excepción ni ID', () => {
+test('T-064 todas las propiedades rechazan cosa ausente sin excepción ni ID', () => {
     const m = modeloCon();
     for (const r of [c.cambiarTipoCosa(m, { cosa: 'o-99' }), c.fijarEsencia(m, { cosa: 'o-99', esencia: 'fisica' }), c.fijarAfiliacion(m, { cosa: 'o-99', afiliacion: 'ambiental' }), c.fijarGenero(m, { cosa: 'o-99', genero: 'm' }), c.fijarDescripcion(m, { cosa: 'o-99', texto: null }), c.fijarValor(m, { objeto: 'o-99', valor: null }), c.fijarDuracion(m, { proceso: 'p-99', duracion: null }), c.fijarIncompleta(m, { cosa: 'o-99', relacion: 'agregacion', activa: false }), c.traerCosa(m, { cosa: 'o-99', opd: 'opd-1', x: 0, y: 0 }), c.eliminarCosas(m, { cosas: ['o-99'] })]) rechazo(r, 'no-encontrado');
 });
@@ -325,11 +325,11 @@ test('T-251 quitar aparición padre que sostiene hijo rechaza forma F-7 sin casc
     rechazo(c.quitarDeOpd(m, { opd: 'opd-1', cosas: ['o-2', 'p-4'] }), 'forma', 'F-7');
     expect(JSON.stringify(m)).toBe(snapshot);
 });
-test('T-248 mover exige 1..n antes de publicar', () => {
+test('T-064 mover exige 1..n antes de publicar', () => {
     const base = descompuesta();
     rechazo(c.moverApariciones(base, { opd: 'opd-7', mover: [] }), 'forma', 'producto');
 });
-test('T-248 mover rechaza overflow real sin caja inválida ni publicación parcial', () => {
+test('T-064 mover rechaza overflow real sin caja inválida ni publicación parcial', () => {
     const base = descompuesta();
     const o = base.opds['opd-7']!, cajas = { ...o.apariciones, 'p-4': { ...o.apariciones['p-4']!, x: -1e308 } };
     const m = congelar({ ...base, opds: { ...base.opds, 'opd-7': { ...o, apariciones: cajas } } });
@@ -337,7 +337,7 @@ test('T-248 mover rechaza overflow real sin caja inválida ni publicación parci
     rechazo(c.moverApariciones(m, { opd: 'opd-7', mover: [{ cosa: 'p-4', x: 1e308, y: 100 }] }), 'forma', 'F-12');
     expect(m.opds['opd-7']!.apariciones['p-4']!.x).toBe(-1e308);
 });
-test('T-248 cascada deja snapshot íntegro y recuperable con IDs, hechos, marcas y geometría', () => {
+test('T-080 cascada deja snapshot íntegro y recuperable con IDs, hechos, marcas y geometría', () => {
     const base = modeloCon({ objetos: [['Pedido', ['listo']], ['Factura', []]], procesos: ['Procesar'], enlaces: [['consumo', 'Pedido', 'Procesar']] });
     const m = congelar({ ...base, cosas: { ...base.cosas, 'o-2': { ...base.cosas['o-2']! as Objeto, porDefecto: 's-3', current: 's-3', estados: [{ id: 's-3', nombre: 'listo', inicial: true as const, final: true as const }] } }, opds: { 'opd-1': { ...base.opds['opd-1']!, apariciones: { ...base.opds['opd-1']!.apariciones, 'o-2': { ...base.opds['opd-1']!.apariciones['o-2']!, ocultos: ['s-3'] } } } } });
     const antes = structuredClone(m), snapshot = m;
