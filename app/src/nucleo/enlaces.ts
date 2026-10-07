@@ -314,6 +314,7 @@ export const cambiarTipoEnlace: Operacion<{
     enlace: Id;
     tipo: TipoEnlace;
     etiquetas?: DatosEtiquetas;
+    sentido?: 'directo' | 'inverso';
 }> = (m, a) => transaccion(m, tx => {
     const e = obtener(tx, a.enlace);
     if (indice(m).abanicoDeEnlace.has(e.id))
@@ -323,18 +324,19 @@ export const cambiarTipoEnlace: Operacion<{
     const f = MATRIZ[a.tipo];
     if (a.etiquetas && ((a.etiquetas.etiqueta !== undefined || a.etiquetas.inversa !== undefined) && f.etiquetas === 'ninguna' || a.etiquetas.inversa !== undefined && f.etiquetas !== 'doble'))
         negar(tx, 'tipo-incompatible', 'R-OPL-SE-2', 'Los datos de etiquetas no corresponden al tipo de enlace.', [ref(e.id)]);
-    if (e.tipo === a.tipo) {
+    if (e.tipo === a.tipo && a.sentido !== 'inverso') {
         let candidato = e;
         for (const k of ['etiqueta', 'inversa'] as const)
             if (a.etiquetas && a.etiquetas[k] !== undefined)
                 candidato = cambiarCampo(candidato, k, a.etiquetas[k]);
-        guardar(tx, e, candidato);
+        guardar(tx, e, candidato, a.sentido !== undefined);
         return;
     }
-    const ex = extremos(e), campos: Record<string, unknown> = { id: e.id, tipo: a.tipo };
+    const previos = extremos(e), ex = a.sentido === 'inverso' ? { origen: previos.destino, destino: previos.origen } : previos;
+    const campos: Record<string, unknown> = { id: e.id, tipo: a.tipo };
     if (f.roles[0] === 'objeto') {
-        campos.objeto = esProcedimental(e) ? e.objeto : a.tipo === 'resultado' || a.tipo === 'efecto' ? ex.destino : ex.origen;
-        campos.proceso = esProcedimental(e) ? e.proceso : a.tipo === 'resultado' || a.tipo === 'efecto' ? ex.origen : ex.destino;
+        campos.objeto = a.sentido === undefined && esProcedimental(e) ? e.objeto : a.tipo === 'resultado' || a.tipo === 'efecto' ? ex.destino : ex.origen;
+        campos.proceso = a.sentido === undefined && esProcedimental(e) ? e.proceso : a.tipo === 'resultado' || a.tipo === 'efecto' ? ex.origen : ex.destino;
     }
     else {
         campos[f.roles[0]] = ex.origen;
@@ -392,6 +394,82 @@ export const cambiarTipoEnlace: Operacion<{
         const estado = a.tipo === 'resultado' ? e.salida : e.entrada;
         if (estado)
             campos.estado = estado;
+    }
+    if (a.sentido !== undefined) {
+        const estados: [Id | undefined, Id | undefined] = [undefined, undefined];
+        if ('estado' in e && e.estado && esProcedimental(e)) estados[e.tipo === 'resultado' ? 1 : 0] = e.estado;
+        if ('estadoOrigen' in e) estados[0] = e.estadoOrigen;
+        if ('estadoDestino' in e) estados[1] = e.estadoDestino;
+        if ('estados' in e && e.estados) {
+            if ('general' in e.estados) {
+                estados[0] = e.estados.general;
+                estados[1] = e.estados.especializacion;
+            } else {
+                estados[0] = e.estados.origen;
+                estados[1] = e.estados.destino;
+            }
+        }
+        for (const k of ['estado', 'entrada', 'salida', 'estadoOrigen', 'estadoDestino', 'estados']) delete campos[k];
+        const [origen, destino] = a.sentido === 'inverso' ? [estados[1], estados[0]] : estados;
+        switch (f.estados) {
+            case 'objeto': {
+                const estado = e.tipo === 'efecto' ? (a.tipo === 'resultado' ? e.salida : e.entrada) : a.tipo === 'resultado' ? destino : origen;
+                if (estado && indice(m).estadoDe.get(estado)?.objeto === campos.objeto) campos.estado = estado;
+                break;
+            }
+            case 'entradaSalida':
+                if (e.tipo === 'efecto' && e.objeto === campos.objeto) {
+                    if (e.entrada) campos.entrada = e.entrada;
+                    if (e.salida) campos.salida = e.salida;
+                } else if (esProcedimental(e) && 'estado' in e && e.estado && e.objeto === campos.objeto)
+                    campos[e.tipo === 'resultado' ? 'salida' : 'entrada'] = e.estado;
+                break;
+            case 'parGeneralizacion':
+                if (origen && destino) campos.estados = { general: origen, especializacion: destino };
+                break;
+            case 'origenDestino':
+                if (origen) campos.estadoOrigen = origen;
+                if (destino) campos.estadoDestino = destino;
+                break;
+            case 'soloOrigen':
+                if (origen) campos.estadoOrigen = origen;
+                break;
+            case 'simetrico':
+                if (origen) campos.estados = { origen, ...(destino ? { destino } : {}) };
+                break;
+        }
+        // Los roles siguen a sus extremos: un enlace reflexivo puede tener dos valores distintos.
+        const multiplicidades: [Multiplicidad | undefined, Multiplicidad | undefined] = [undefined, undefined];
+        if ('mult' in e && e.mult) multiplicidades[esProcedimental(e) ? e.tipo === 'resultado' || e.tipo === 'efecto' ? 1 : 0 : 'refinador' in e ? 1 : 0] = e.mult;
+        if ('multOrigen' in e) multiplicidades[0] = e.multOrigen;
+        if ('multDestino' in e) multiplicidades[1] = e.multDestino;
+        const mult = a.sentido === 'inverso' ? [multiplicidades[1], multiplicidades[0]] : multiplicidades;
+        for (const k of ['mult', 'multOrigen', 'multDestino']) delete campos[k];
+        if (f.mult === 'ambos') {
+            if (mult[0]) campos.multOrigen = mult[0];
+            if (mult[1]) campos.multDestino = mult[1];
+        } else if (f.mult !== 'ninguno') {
+            const rol = f.mult === 'refinador' || f.mult === 'objeto' && (a.tipo === 'resultado' || a.tipo === 'efecto') ? 1 : 0;
+            if (mult[rol]) campos.mult = mult[rol];
+        }
+        // Cambiar el nombre del rol no es perder la asociación conservada.
+        const conservados = new Set(anclas(campos as unknown as Enlace));
+        for (const k of ['estado', 'entrada', 'salida', 'estadoOrigen', 'estadoDestino', 'estados']) {
+            const valor = antiguos[k];
+            const ids = typeof valor === 'string' ? [valor] : valor && typeof valor === 'object' ? Object.values(valor) : [];
+            if (ids.length && ids.every(id => typeof id === 'string' && conservados.has(id))) trasladados.add(k);
+            else trasladados.delete(k);
+        }
+        const finales: [unknown, unknown] = [undefined, undefined];
+        if (f.mult === 'ambos') {
+            finales[0] = campos.multOrigen;
+            finales[1] = campos.multDestino;
+        } else if (f.mult !== 'ninguno') finales[f.mult === 'refinador' || f.mult === 'objeto' && (a.tipo === 'resultado' || a.tipo === 'efecto') ? 1 : 0] = campos.mult;
+        for (const k of ['mult', 'multOrigen', 'multDestino']) {
+            const previo = k === 'multOrigen' ? 0 : k === 'multDestino' ? 1 : esProcedimental(e) ? e.tipo === 'resultado' || e.tipo === 'efecto' ? 1 : 0 : 'refinador' in e ? 1 : 0;
+            const elegido = a.sentido === 'inverso' ? 1 - previo : previo;
+            if (antiguos[k] !== undefined && finales[elegido] === antiguos[k]) trasladados.add(k);
+        }
     }
     for (const [k, v] of Object.entries(antiguos))
         if (k !== 'id' && k !== 'tipo' && !Object.hasOwn(campos, k) && !trasladados.has(k) && !['objeto', 'proceso', 'origen', 'destino', 'refinable', 'refinador'].includes(k))

@@ -8,24 +8,28 @@ Rama `rehacer`. [Bitácora íntegra](docs/rehacer/bitacora.md) · [Decisiones 1�
 > «unamos 1  o 2 en un solo commit»
 > «Con check verde, sigue el plan: WP-9 (con VAL) → WP-13 → H2 → WP-10 → WP-12 → WP-14 → WP-15 → WP-16 → WP-17 → WP-19 → H3.»
 > «continúa sin parar a informarme mientras no tengas un problema significativo»
+> «Después sigue con WP-16 sin detenerte. La revisión de ola va al cerrar WP-16, como tenías previsto. No hace falta registrar recibos parciales ni archivos auxiliares de diagnóstico: la evidencia es el commit con check verde.»
 
 Frases directas role=user transmitidas por dirección; ID/fecha originales no expuestos. La unión1+2 se consumó. La última reanudó después del corte H2. Una única escritora; Git/aceptación de dirección.
 
 ## Paquetes
 
-| Paquete / etapa | Estado |
+| Etapa | Estado |
 |---|---|
-| WP-0/1/2/4p/6/8a/11/3a/3b/5/7 | Publicados históricos, evidencia en bitácora. |
-| WP-8b / WP-4r / corte gráfico | `31ea8ad` / `f4e16b8` / `e53fb47`; el último fue corte RED reservado. |
-| Pasos1+2 /3 /4 | Publicados `26935f4` / `5d23f8a` / `69aee956`; ola1–4 favorable. DEC29–32 aplicadas, sin dominios locales retirados. |
-| WP-9 / WP-13 / H2 | Publicados `2abecc6` / `bc22451d`; revisión conjunta favorable y H2 detenido, luego reanudado directamente. Paridad remota verificada por dirección. |
-| WP-10 | Publicado `c94178fa`, paridad verificada por dirección; check2783/0/TSC0/exit0. Strict según gates y ocho metas verdes; históricos intactos. |
-| WP-12 | Publicado `6c99b17`, paridad verificada por dirección; aceptado técnicamente: check2815/0/TSC0/exit0,25casos con fuente falsa y CLI compilada. Revisión única ola4 pendiente. |
-| WP-14 | Publicado `efbe04a`, paridad verificada por dirección; check2824/0/TSC0/exit0 y build total verdes,25PNG observados; formal ola4 pendiente. |
-| WP-15→16→17→19→H3 | WP15 cerrado en este commit; siguiente WP16 por relevo, restantes después. H3 exige suite/e2e/build y modelos reales; imagenDocker requiere permiso aparte. |
+| Históricos y pasos1–4 | Publicados; antecedentes completos en bitácora. |
+| WP9/13/H2 | Publicados; corte H2 y posterior reanudación directa. |
+| WP10/12/14/15 | Publicados `c94178fa`/`6c99b17`/`efbe04a`/`ed5e0f8`. |
+| WP16 local | Cerrado y aceptado en este commit; misma ola4 GLOBAL_FAVORABLE. Git por dirección. |
+| WP17→WP19→H3 | SiguienteWP17 tras remoto verificado; no iniciados. |
+
+## Orientación autorizada — realización WP16
+
+> «Autorizo añadir sentido?: 'directo' | 'inverso' a cambiarTipoEnlace, relativo a sus extremos actuales, tal como lo propones en HANDOFF.md. Omitido, conserva el comportamiento vigente.»
+
+Autorización directa role=user recibida íntegra por dirección; ID/fecha originales no observables. Texto completo conservado en bitácora. Construir extremos/tipo/etiquetas atómicamente; mantener identidad, trazas y un undo. Ownership: enlaces.ts y APPEND enlaces.test; MenuTipoEnlace/Lienzo y APPEND lienzo.test; DESIGN§4.2/plan. Sin canon/formato/HTTP ni optimización del generador.
 
 ## Siguiente paso y límites
 
-WP15 cerrado en este commit: V3 autorizada literalmente en bitácora, datos validados en una transacción y ID/undo conservados. Check2855/0/TSC0/exit0, build total y browser afectados verdes; ocho metas con warmup separado+mediana5, límites intactos. T192 completa2828,152ms; corpus intacto. Firma material aplicada; helper privado de coste aplicado con paridad anterior. Generador/plantillas sin cambios. Dirección conserva Git y verifica publicación en su entrega; siguiente WP16 por relevo, revisión única al cerrarlo. Históricos y propuestas scratch preservados, sin aceptación global anticipada.
+Candidato final: sentido/peine y tres textos reparados.660opciones consultadas/15tipos; cada legal realizada contra candidato crudo en dominio finito con/sin datos distintos. Iguales: control literal recíproco/traza. Check NUEVO2884/0/TSC0/exit0; T192 completa2899,613ms, corpus intacto. Build8 total0; browser8/10 sin errores/externos,13PNG finales observados a1×, ID/undo y foco/teclado desktop/390. Antecedentes2872 y check1 sólo históricos. Misma revisión ola4 GLOBAL_FAVORABLE; dirección acepta WP16, cerrado en este commit. Dirección publica/verifica y activaWP17 tras SHA remoto verificado.
 
-Diez parciales, B15/layout importado, documentos diagnosticados y UI/ISO permanecen limitados. IndexedDB acreditado en H2; WP14 resuelve main y build completo. WP-18/imagenDocker requiere autorización aparte, fuera de H3; sin infraestructura/migración/despliegue real.
+Diez parciales/B15/26e2e/ISO conservan límites; sector cero colineal no acredita selección visual. WP18/Docker necesita autorización aparte. WP17 se activa después de publicación verificada de WP16.

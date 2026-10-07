@@ -193,7 +193,7 @@
       "id": "WP-16", "ola": 4, "nombre": "UI: paneles", "tren": "UI",
       "objetivo": "Propiedades con «Enlaces (N)», árbol de OPDs, panel y editor OPL, diagnóstico con reparaciones, buscar y exportar.",
       "depende": ["WP-9", "WP-8b", "WP-13", "WP-5"],
-      "archivos": ["app/src/ui/{Inspector,ArbolOpd,PanelOpl,EditorOpl,PanelDiagnostico,Buscar,MenuExportar}.tsx"],
+      "archivos": ["app/src/ui/{Inspector,ArbolOpd,PanelOpl,EditorOpl,PanelDiagnostico,Buscar,MenuExportar}.tsx", "app/src/ui/paneles.test.ts (bindings materiales)", "app/src/ui/{App,Editor}.tsx y estilos.css (integración serial mínima de paneles/historial/solicitudes)", "app/index.html (sólo estado textual de arranque)", "app/src/nucleo/enlaces.ts (serial: sentido relativo y transacción cambiarTipoEnlace)", "app/src/nucleo/enlaces.test.ts (APPEND candidatos legales/identidad/rollback)", "app/src/ui/{MenuTipoEnlace,Lienzo}.tsx (serial: sentido y enlace estructural)", "app/src/ui/lienzo.test.ts (APPEND bindings de sentido/peines)"],
       "lecturas": ["DESIGN §7.3 (flujos 14–15, 19–24, 26–27)", "DESIGN §5.8", "DESIGN §6.8"],
       "aceptacion": ["bun run check y bun run build verdes; sus e2e (14, 16–20, 26) se evalúan en WP-17"]
     },

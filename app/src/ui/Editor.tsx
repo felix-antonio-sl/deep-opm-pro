@@ -1,24 +1,20 @@
 import type { ComponentType } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { Editor as Controlador, EstadoEditor } from '../editor/estado';
-import { VERSION_BUNDLE } from '../editor/estado';
 import { COMANDOS } from '../editor/comandos';
 import { despacharAtajo } from '../editor/atajos';
-import { diagnosticar, gatesExportacion } from '../nucleo/diagnostico';
-import { etiquetaOpd, opdsEnPreorden } from '../nucleo/proyeccion';
-import { exportarV0 } from '../codec/exportar';
-import { generarDocumentoOpl } from '../opl/documento';
-import { generarBloque } from '../opl/generar';
-import { exportarDiagrama, exportarDocumento } from '../opd/exportar';
+import { diagnosticar } from '../nucleo/diagnostico';
+import { etiquetaOpd } from '../nucleo/proyeccion';
 import { Franja } from './Franja';
 import { Dialogo, LimitePanel } from './Dialogo';
-import { descargarTexto } from './Biblioteca';
+import { MenuExportar } from './MenuExportar';
+import { ArbolOpd, navegarConSeleccion } from './ArbolOpd';
 export interface DatosRanura { readonly editor: Controlador; readonly estado: EstadoEditor }
 export interface RanurasEditor { readonly lienzo?: ComponentType<DatosRanura>; readonly arbol?: ComponentType<DatosRanura>; readonly propiedades?: ComponentType<DatosRanura>; readonly opl?: ComponentType<DatosRanura>; readonly diagnostico?: ComponentType<DatosRanura>; readonly solicitud?: ComponentType<DatosRanura> }
 const GUARDADO = { guardado: 'Guardado', pendiente: 'Cambios sin guardar', guardando: 'Guardando…', 'sin-conexion': 'Sin conexión', conflicto: 'Conflicto', 'sesion-vencida': 'Sesión vencida', error: 'No se pudo guardar', eliminado: 'Eliminado en otra sesión', 'version-nueva': 'Versión nueva: recarga' };
 const titulos = { lienzo: 'Lienzo', arbol: 'OPDs', propiedades: 'Propiedades', opl: 'OPL', diagnostico: 'Diagnóstico' };
 export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: () => void; ranuras?: RanurasEditor }) {
-    const [zona, cambiar] = useState<keyof typeof titulos>('lienzo'), [menu, exportacion] = useState(false), [error, fallar] = useState(''), [renombre, renombrar] = useState(false), [nombre, nombrar] = useState('');
+    const [zona, cambiar] = useState<keyof typeof titulos>('lienzo'), [menu, exportacion] = useState(false), [rutaAbierta,abrirRuta]=useState(false), [renombre, renombrar] = useState(false), [nombre, nombrar] = useState('');
     const [ancho, anchura] = useState(() => { try { return Math.max(280, Math.min(700, Number(localStorage.getItem('opforja.columna')) || 400)); } catch { return 400; } }), derecha = useRef<HTMLElement>(null);
     const m = p.estado.modelo!, ds = diagnosticar(m), bloqueos = ds.filter(d => d.severidad === 'error').length, avisos = ds.filter(d => d.severidad === 'warning').length;
     const comando = (id: string) => COMANDOS.find(c => c.id === id)!;
@@ -37,9 +33,6 @@ export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: ()
     const ruta: string[] = []; let actual = p.estado.opd;
     while (m.opds[actual]) { ruta.unshift(actual); const o = m.opds[actual]!; if (o.tipo === 'raiz') break; actual = o.padre; }
     const nombreOpd = (id: string) => { const o = m.opds[id]!; return o.tipo === 'raiz' ? m.nombre : m.cosas[o.cosa]?.nombre ?? ''; };
-    const gateSvg = gatesExportacion(m, { opd: p.estado.opd }), gateHtml = gatesExportacion(m, 'modelo');
-    function svg() { const r = exportarDiagrama(m, p.estado.opd, { version: VERSION_BUNDLE }); if (r.ok) descargarTexto(r.valor.svg, r.valor.archivo, 'image/svg+xml'); else fallar(r.rechazo.mensaje); }
-    function html() { const lineas = new Map(opdsEnPreorden(m).map(id => [id, generarBloque(m, id)])), r = exportarDocumento(m, lineas, { version: VERSION_BUNDLE }); if (r.ok) descargarTexto(r.valor.html, r.valor.archivo, 'text/html'); else fallar(r.rechazo.mensaje); }
     function resize(e: PointerEvent) { if (!derecha.current) return; const inicio = e.clientX, base = ancho, limite = Math.min(700, window.innerWidth * .5);
         const mover = (v: PointerEvent) => anchura(Math.max(280, Math.min(limite, base + inicio - v.clientX)));
         const fin = () => { window.removeEventListener('pointermove', mover); window.removeEventListener('pointerup', fin); };
@@ -48,7 +41,7 @@ export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: ()
     useEffect(() => { try { localStorage.setItem('opforja.columna', String(ancho)); } catch { /* preferencia prescindible */ } }, [ancho]);
     return <div class="editor">
         <header class="editor-cabecera"><button aria-label="Volver a la Biblioteca" onClick={() => p.editor.cerrar()}>≡</button><button class="nombre-modelo" disabled={p.estado.modo !== 'edicion'} title={p.estado.modo !== 'edicion' ? 'El modelo está en modo navegación.' : 'Renombrar modelo'} onClick={() => { nombrar(m.nombre); renombrar(true); }}>{m.nombre} <span>✎</span></button>
-        <nav aria-label="Ruta de OPD">{ruta.map((id, i) => <span class="paso-ruta">{i > 0 && <span aria-hidden="true">›</span>}<button onClick={() => p.editor.navegar(id)} aria-current={id === p.estado.opd ? 'page' : undefined}>{etiquetaOpd(m, id)} <span class="rotulo-ruta">{nombreOpd(id)}</span></button></span>)}<select aria-label="OPD activo" value={p.estado.opd} onChange={e => p.editor.navegar(e.currentTarget.value)}>{opdsEnPreorden(m).map(id => <option value={id}>{etiquetaOpd(m, id)}</option>)}</select></nav>
+        <nav aria-label="Ruta de OPD">{ruta.map((id, i) => <span class="paso-ruta">{i > 0 && <span aria-hidden="true">›</span>}<button onClick={() => navegarConSeleccion(p.editor,id)} aria-current={id === p.estado.opd ? 'page' : undefined}>{etiquetaOpd(m, id)} <span class="rotulo-ruta">{nombreOpd(id)}</span></button></span>)}<button aria-label="Elegir OPD" aria-expanded={rutaAbierta} onClick={()=>abrirRuta(!rutaAbierta)}>▾</button></nav>
         <div class="indicador-guardado" role="status">{GUARDADO[p.estado.guardado]}{p.estado.guardado === 'version-nueva' && <button onClick={() => { void p.editor.guardarAhora().then(() => location.reload()); }}>Recargar</button>}</div>
         <div class="acciones-editor"><button onClick={() => { p.editor.fijarPaneles({ derecha: true }); cambiar('diagnostico'); }}>{bloqueos} bloqueos · {avisos} avisos</button>{boton('deshacer', '↶')}{boton('rehacer', '↷')}<button onClick={() => exportacion(!menu)}>Exportar ▾</button>{boton('ayuda', '?')}<button onClick={p.salir}>Salir</button></div>
         <details class="acciones-estrechas"><summary aria-label="Más acciones">⋯</summary>{boton('guardar')}{boton('deshacer')}{boton('rehacer')}<button onClick={() => exportacion(true)}>Exportar</button>{boton('ayuda')}<button onClick={p.salir}>Salir</button></details></header>
@@ -62,6 +55,7 @@ export function Editor(p: { editor: Controlador; estado: EstadoEditor; salir: ()
         <section class="zona-panel">{ranura(zona === 'diagnostico' ? 'diagnostico' : 'opl')}</section></aside>}</div>
         <nav class="navegacion-estrecha" aria-label="Zonas del editor">{Object.entries(titulos).map(([id, texto]) => <button aria-pressed={zona === id} onClick={() => { cambiar(id as keyof typeof titulos); p.editor.fijarPaneles({ arbol: true, derecha: true }); }}>{texto}{id === 'diagnostico' ? ` ${ds.length}` : ''}</button>)}</nav>
         {renombre && <Dialogo titulo="Renombrar modelo" cerrar={() => renombrar(false)}><form onSubmit={e => { e.preventDefault(); const r = p.editor.ejecutarVarias([{ op: 'renombrarModelo', args: { nombre } }], 'Modelo renombrado'); if (r.ok) renombrar(false); }}><label>Nombre del modelo<input autoFocus required value={nombre} onInput={e => nombrar(e.currentTarget.value)} /></label><button>Guardar nombre</button></form></Dialogo>}
-        {menu && <Dialogo titulo="Exportar" cerrar={() => { exportacion(false); fallar(''); }}><p>Instantánea del estado actual. Los controles del editor quedan fuera de la exportación.</p><div class="exportaciones"><button onClick={() => descargarTexto(exportarV0(m), `${m.nombre}.opforja.json`)}>Modelo JSON</button><button onClick={() => descargarTexto(generarDocumentoOpl(m), `${m.nombre}.md`, 'text/markdown')}>Documento OPL</button><button disabled={!!gateSvg.length} onClick={svg}>OPD SVG · canon-diagrama</button>{gateSvg[0] && <p>{gateSvg[0].regla}: {gateSvg[0].mensaje} <button onClick={() => { exportacion(false); p.editor.navegar(p.estado.opd, { seleccionar: gateSvg[0]!.refs }); cambiar('diagnostico'); }}>Ir</button></p>}<button disabled={!!gateHtml.length} onClick={html}>Documento HTML · canon-documento</button>{gateHtml[0] && <p>{gateHtml[0].regla}: {gateHtml[0].mensaje}</p>}</div>{error && <p role="alert">{error}</p>}</Dialogo>}
+        {rutaAbierta&&<Dialogo titulo="Diagramas del modelo" cerrar={()=>abrirRuta(false)}><ArbolOpd editor={p.editor} estado={p.estado} elegido={()=>abrirRuta(false)}/></Dialogo>}
+        {menu&&<MenuExportar editor={p.editor} estado={p.estado} cerrar={()=>exportacion(false)}/>}
     </div>;
 }

@@ -10,7 +10,8 @@ import { indice, claveNombre } from '../nucleo/indice';
 import { tiposLegales, MATRIZ } from '../nucleo/matriz';
 import type { TeclaComando } from '../editor/atajos';
 import type { Editor as Controlador } from '../editor/estado';
-import type { Ref, ModoDespliegue } from '../nucleo/tipos';
+import { extremos as extremosEnlace } from '../nucleo/tipos';
+import type { Modelo, Ref, ModoDespliegue } from '../nucleo/tipos';
 import { validarNombreCosa, validarNombreEstado } from '../nucleo/lexico';
 import { colocar } from '../nucleo/colocacion';
 import { escena } from '../opd/escena';
@@ -37,6 +38,25 @@ export function refCercana(elemento: Element | null): Ref | null {
 }
 export function despacharLienzo(editor:Controlador, contexto:ContextoComando, ev:TeclaComando):boolean {
     return despacharAtajo(editor,contexto,ev)||(contexto!=='lienzo'&&despacharAtajo(editor,'lienzo',ev));
+}
+export function extremosSeleccionados(m: Modelo, id: string) {
+    const enlace = m.enlaces[id];
+    if (!enlace) return null;
+    const ex = extremosEnlace(enlace);
+    const estado = (origen: boolean) => {
+        switch (enlace.tipo) {
+            case 'consumo': case 'agente': case 'instrumento': return origen ? enlace.estado : undefined;
+            case 'resultado': return origen ? undefined : enlace.estado;
+            case 'efecto': return origen ? undefined : enlace.salida ?? enlace.entrada;
+            case 'generalizacion': return origen ? enlace.estados?.general : enlace.estados?.especializacion;
+            case 'etiquetado': return origen ? enlace.estadoOrigen : enlace.estadoDestino;
+            case 'etiquetadoBidireccional': return origen ? enlace.estadoOrigen : undefined;
+            case 'reciproco': return origen ? enlace.estados?.origen : enlace.estados?.destino;
+            default: return undefined;
+        }
+    };
+    const desde = estado(true), hacia = estado(false);
+    return {desde:{cosa:ex.origen,...(desde?{estado:desde}:{})},hacia:{cosa:ex.destino,...(hacia?{estado:hacia}:{})}};
 }
 export function Lienzo(p: DatosRanura) {
     const m=p.estado.modelo!,opd=p.estado.opd,idx=indice(m),e=useMemo(()=>escena(m,opd),[m,opd]),canon=p.estado.modo==='estatico';
@@ -72,7 +92,7 @@ export function Lienzo(p: DatosRanura) {
             fijarTipoRefinador(t=>t==='objeto'?'proceso':'objeto');return;
         }
         const r=reducirGesto(s.modelo,s.opd,g,ev);
-        if(g.k==='menuTipo'&&r.acciones.some(a=>a.op==='crearEnlace')){const i=ev.k==='elegir'?ev.indice:ev.k==='tecla'&&/^[1-9]$/.test(ev.tecla)?Number(ev.tecla)-1:g.elegida??0;const o=g.opciones[i];if(o)try{localStorage.setItem(`opforja.enlace.${m.cosas[g.desde.cosa]?.tipo}.${m.cosas[g.hacia.cosa]?.tipo}`,JSON.stringify({tipo:o.tipo,sentido:o.sentido}));}catch{}}
+        if(g.k==='menuTipo'&&r.acciones.some(a=>a.op==='crearEnlace')){const i=ev.k==='elegir'?ev.indice:ev.k==='tecla'&&/^[1-9]$/.test(ev.tecla)?Number(ev.tecla)-1:g.elegida??0;const o=g.opciones[i];if(o)try{localStorage.setItem(`opforja.enlace.${m.cosas[g.desde.cosa]?.tipo}.${m.cosas[g.hacia.cosa]?.tipo}`,JSON.stringify({tipo:o.tipo,sentido:o.sentido}));}catch{}if(cambiando&&o){elegir(i);return;}}
         if(g.k==='encadenando'&&g.modo==='refinadores') {
             if(ev.k==='tecla'&&ev.tecla==='Enter'&&g.actual&&!validarNombreCosa(g.actual))tiposCadena.current.push(tipoRefinador);
             if(r.acciones.some(a=>a.op==='agregarRefinadores')) {
@@ -95,7 +115,7 @@ export function Lienzo(p: DatosRanura) {
     }
     useEffect(()=>{cambiar({k:'reposo'});editar(null);contextual(null);},[opd]);
     const previoGesto=useRef(gesto.k);
-    useEffect(()=>{if(gesto.k==='reposo'&&previoGesto.current!=='reposo'&&!document.querySelector('dialog[open]'))host.current?.focus();previoGesto.current=gesto.k;},[gesto.k]);
+    useEffect(()=>{if(gesto.k==='reposo'&&previoGesto.current!=='reposo'&&previoGesto.current!=='menuTipo'&&!document.querySelector('dialog[open]'))host.current?.focus();previoGesto.current=gesto.k;},[gesto.k]);
     useEffect(()=>{if(p.estado.modo==='navegacion'||p.estado.modo==='estatico'){cambiar({k:'reposo'});editar(null);contextual(null);}},[p.estado.modo]);
     useEffect(()=>{
         const s=p.estado.solicitud;if(!s)return;const ref=s.refs?.[0]??(p.estado.seleccion.estados[0]?{tipo:'estado' as const,id:p.estado.seleccion.estados[0]}:p.estado.seleccion.cosas[0]?{tipo:'cosa' as const,id:p.estado.seleccion.cosas[0]}:null);
@@ -112,7 +132,7 @@ export function Lienzo(p: DatosRanura) {
         }
         else if(s.k==='tipo'&&s.opcion==='confirmar-eliminar'){confirmarEliminar(true);p.editor.solicitar(null);}
         else if(s.k==='tipo'&&s.opcion==='coleccion-incompleta'&&p.estado.seleccion.simbolo){const z=e.simbolos.find(z=>z.clave===p.estado.seleccion.simbolo);if(z&&z.relacion!=='clasificacion')p.editor.ejecutar({op:'fijarIncompleta',args:{cosa:z.refinable,relacion:z.relacion,activa:!m.cosas[z.refinable]?.incompleta?.includes(z.relacion)}});p.editor.solicitar(null);}
-        else if(s.k==='tipo'&&p.estado.seleccion.enlaces.length){const z=e.aristas.find(z=>z.ref.id===p.estado.seleccion.enlaces[0]);const extremos=z?.tramos[0]?.extremos;if(extremos?.length===2){const t=z!.tramos[0]!,desde={cosa:extremos[0]!,...(t.estados?.[0]?{estado:t.estados[0]}:{})},hacia={cosa:extremos[1]!,...(t.estados?.[1]?{estado:t.estados[1]}:{})};cambiarEnlace(z!.ref.id);cambiar({k:'menuTipo',desde,hacia,opciones:tiposLegales(m,{opd,desde,hacia})});}p.editor.solicitar(null);}
+        else if(s.k==='tipo'&&p.estado.seleccion.enlaces.length){const id=p.estado.seleccion.enlaces[0]!,ex=extremosSeleccionados(m,id);if(ex){cambiarEnlace(id);cambiar({k:'menuTipo',...ex,opciones:tiposLegales(m,{opd,...ex})});}p.editor.solicitar(null);}
         else if(s.k==='camara'){espacio.current=true;p.editor.solicitar(null);}
     },[p.estado.solicitud]);
     useEffect(()=>{const modal=despliegue||eliminar||estadoBorrar!==null||ocultos!==null||buscar!==null;if(modal&&p.editor.obtener().modo==='edicion')p.editor.fijarModo('gestion-modal');return()=>{if(modal&&p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');};},[despliegue,eliminar,estadoBorrar,ocultos,buscar]);
@@ -170,7 +190,7 @@ export function Lienzo(p: DatosRanura) {
     const errorNombre=nombre===null?null:g.k==='estado'?validarNombreEstado(nombre):validarNombreCosa(nombre);
     const corregido=nombre?nombre[0]!.toLocaleUpperCase('es')+nombre.slice(1):'';
     function confirmarNombre(mayus=false){if(g.k==='creando'&&existente){if(existente.tipo===g.tipo){const r=p.editor.ejecutar({op:'traerCosa',args:{cosa:existente.id,opd,x:g.en.x,y:g.en.y}});if(r.ok)cancelar();}return;}evento({k:'tecla',tecla:'Enter',mayus,ctrl:false,alt:false});}
-    function elegir(i:number,operador?:'XOR'|'OR'){const z=actual.current;if(z.k!=='menuTipo')return;const o=z.opciones[i];if(o?.legal==='pendiente')return;try{if(o)localStorage.setItem(`opforja.enlace.${m.cosas[z.desde.cosa]?.tipo}.${m.cosas[z.hacia.cosa]?.tipo}`,JSON.stringify({tipo:o.tipo,sentido:o.sentido}));}catch{}p.editor.fijarModo('edicion');if(cambiando&&o){const r=p.editor.ejecutar({op:'cambiarTipoEnlace',args:{enlace:cambiando,tipo:o.tipo}});if(r.ok)cancelar();return;}evento({k:'elegir',indice:i,...(operador?{operador}:{})});if(actual.current.k==='reposo')host.current?.focus();}
+    function elegir(i:number,operador?:'XOR'|'OR'){const z=actual.current;if(z.k!=='menuTipo')return;const o=z.opciones[i];if(o?.legal==='pendiente')return;try{if(o)localStorage.setItem(`opforja.enlace.${m.cosas[z.desde.cosa]?.tipo}.${m.cosas[z.hacia.cosa]?.tipo}`,JSON.stringify({tipo:o.tipo,sentido:o.sentido}));}catch{}p.editor.fijarModo('edicion');if(cambiando&&o){const r=p.editor.ejecutar({op:'cambiarTipoEnlace',args:{enlace:cambiando,tipo:o.tipo,sentido:o.sentido}});if(r.ok)cancelar();return;}evento({k:'elegir',indice:i,...(operador?{operador}:{})});if(actual.current.k==='reposo')host.current?.focus();}
     useEffect(()=>{if(g.k==='menuTipo'){p.editor.fijarModo('gestion-modal');try{const ultimo=JSON.parse(localStorage.getItem(`opforja.enlace.${m.cosas[g.desde.cosa]?.tipo}.${m.cosas[g.hacia.cosa]?.tipo}`)??'null');const i=g.opciones.findIndex(o=>o.tipo===ultimo?.tipo&&o.sentido===ultimo?.sentido&&o.legal===true);if(i>=0&&g.elegida===undefined)cambiar({...g,elegida:i});}catch{}}},[g.k]);
     return <div class={`lienzo-interactivo modo-${p.estado.modo}`} ref={host} tabIndex={0} role="region" aria-label="Edición del diagrama" onKeyDown={teclado} onPointerDown={abajo} onPointerMove={mover} onPointerUp={arriba} onPointerCancel={()=>{dedos.current.clear();pellizco.current=null;bandaDrag.current=null;captura.current=null;cambiar({k:'reposo'});}} onLostPointerCapture={()=>{if(captura.current!==null){captura.current=null;cambiar({k:'reposo'});}}} onDblClick={doble} onContextMenu={ev=>{ev.preventDefault();if(p.estado.modo!=='edicion')return;const ref=refCercana(ev.target instanceof Element?ev.target:null);if(ref)p.editor.seleccionar(seleccionarRef(VACIA(),ref,false));cambiar({k:'reposo'});contextual(local(ev));p.editor.fijarModo('gestion-modal');}}>
         {!canon&&<div class="paleta-lienzo" onPointerDown={ev=>ev.stopPropagation()}><button disabled={p.estado.modo!=='edicion'} onClick={()=>cancelar()}>Seleccionar</button><button disabled={p.estado.modo!=='edicion'||!p.estado.seleccion.cosas.length&&!p.estado.seleccion.estados.length} onClick={()=>{const id=p.estado.seleccion.estados[0]??p.estado.seleccion.cosas[0];if(id)cambiar({k:'conectando',desde:extremo({tipo:p.estado.seleccion.estados.length?'estado':'cosa',id}),punto:cursor.current});}}>Conectar <kbd>R</kbd></button><button disabled={p.estado.modo!=='edicion'} onClick={()=>iniciarCreacion('objeto')}>Objeto <kbd>O</kbd></button><button disabled={p.estado.modo!=='edicion'} onClick={()=>iniciarCreacion('proceso')}>Proceso <kbd>P</kbd></button></div>}

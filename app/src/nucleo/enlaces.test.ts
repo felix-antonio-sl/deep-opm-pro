@@ -3,7 +3,8 @@ import * as op from './enlaces';
 import { modeloCon, congelar } from '../pruebas/constructores';
 import { validarForma } from './forma';
 import { proyectar } from './proyeccion';
-import { tiposLegales, erroresContexto } from './matriz';
+import { tiposLegales, erroresContexto, MATRIZ } from './matriz';
+import { extremos } from './tipos';
 import type { Modelo, Enlace, EnlaceNuevo, Objeto, TipoEnlace } from './tipos';
 import type { Hecho, Respuesta, CodigoRechazo } from './resultado';
 const resultados: Modelo[] = [];
@@ -412,4 +413,141 @@ test('T-022 V3 multiplicidades compatibles sin estados conservan ID y secuencia'
 
 test('T-040 V3 estado y multiplicidad no ofrecidos conservan rechazo, input e identidad',()=>{
  const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce',estadoOrigen:'s-3',estadoDestino:'s-6',multOrigen:'+',multDestino:'?'}),antes=JSON.stringify(m);expect(validarForma(m).map(x=>x.regla)).toContain('F-5');const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'contiene',inversa:'pertenece'}});expect(r.ok).toBe(false);expect(JSON.stringify(m)).toBe(antes);expect(m.secuencia).toBe(30);expect(Object.keys(m.enlaces)).toEqual(['e-20']);
+});
+
+test('T-022 sentido explícito invierte ambos extremos del mismo tipo en una transacción', () => {
+    const m = con(base(), {id:'e-20',tipo:'agregacion',refinable:'o-2',refinador:'o-5'}), antes = JSON.stringify(m);
+    const args = {enlace:'e-20',tipo:'agregacion' as const,sentido:'inverso' as const};
+    const r = op.cambiarTipoEnlace(m,args), n = bien(r);
+    expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'agregacion',refinable:'o-5',refinador:'o-2'});
+    expect(n.secuencia).toBe(m.secuencia); expect(JSON.stringify(m)).toBe(antes);
+    expect(bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'agregacion'})).enlaces).toEqual(m.enlaces);
+});
+
+test('T-040 cambio existente recorre opciones legales reales, ambos sentidos y datos por candidato', () => {
+    const cuenta = {directo:0,inverso:0,sinDatos:0,conDatos:0,pendiente:0,rechazada:0};
+    const tipos = new Set<TipoEnlace>();
+    const originales: EnlaceNuevo[] = [
+        {tipo:'agregacion',refinable:'o-2',refinador:'o-5'},
+        {tipo:'generalizacion',refinable:'o-2',refinador:'o-5',estados:{general:'s-3',especializacion:'s-6'}},
+        {tipo:'etiquetado',origen:'o-2',destino:'o-5',estadoOrigen:'s-3'},
+        {tipo:'etiquetado',origen:'o-2',destino:'o-5',estadoDestino:'s-6'},
+        {tipo:'consumo',objeto:'o-2',proceso:'p-9'},
+        {tipo:'consumo',objeto:'o-2',proceso:'p-9',estado:'s-3'},
+        {tipo:'resultado',objeto:'o-2',proceso:'p-9',estado:'s-4'},
+        {tipo:'efecto',objeto:'o-2',proceso:'p-9'},
+        {tipo:'exhibicion',refinable:'o-2',refinador:'p-9'},
+        {tipo:'invocacion',origen:'p-9',destino:'p-10'},
+        {tipo:'clasificacion',refinable:'p-9',refinador:'p-10'},
+    ];
+    for (const original of originales) {
+        const m = con(base(),{...original,id:'e-20'} as Enlace), ex = extremos(original);
+        const estadoDe = (id:string) => {
+            if ('estado' in original && original.estado && 'objeto' in original && original.objeto===id) return original.estado;
+            if ('estadoOrigen' in original && ex.origen===id) return original.estadoOrigen;
+            if ('estadoDestino' in original && ex.destino===id) return original.estadoDestino;
+            if ('estados' in original && original.estados) {
+                if ('general' in original.estados) return id===ex.origen?original.estados.general:original.estados.especializacion;
+                return id===ex.origen?original.estados.origen:original.estados.destino;
+            }
+            return undefined;
+        };
+        for (const etiquetas of [undefined,{etiqueta:'contiene',inversa:'pertenece'}]) {
+            const estadoOrigen = estadoDe(ex.origen), estadoDestino = estadoDe(ex.destino);
+            const desde = {cosa:ex.origen,...(estadoOrigen?{estado:estadoOrigen}:{})};
+            const hacia = {cosa:ex.destino,...(estadoDestino?{estado:estadoDestino}:{})};
+            // El candidato se consulta con los anclajes que realmente conserva el enlace actual.
+            const antes = JSON.stringify(m), opciones = tiposLegales(m,{opd:m.raiz,desde,hacia,...(etiquetas?{etiquetas}:{})});
+            for (const o of opciones) {
+                if (o.legal==='pendiente') {cuenta.pendiente++;continue;}
+                if (!o.legal) {cuenta.rechazada++;continue;}
+                cuenta[o.sentido]++;tipos.add(o.tipo);
+                const datos = MATRIZ[o.tipo].etiquetas === 'ninguna' ? undefined : MATRIZ[o.tipo].etiquetas === 'doble' ? etiquetas : etiquetas ? {etiqueta:etiquetas.etiqueta} : undefined;
+                cuenta[datos?'conDatos':'sinDatos']++;
+                const r = op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:o.tipo,sentido:o.sentido,...(datos?{etiquetas:datos}:{})});
+                expect(r.ok).toBe(true);
+                if (!r.ok) throw Error(`${original.tipo} → ${o.tipo}/${o.sentido}: ${r.rechazo.mensaje}`);
+                expect(r.valor.modelo.enlaces['e-20']).toEqual({...o.candidato,id:'e-20'});
+                expect(r.valor.modelo.secuencia).toBe(m.secuencia);expect(JSON.stringify(m)).toBe(antes);
+            }
+        }
+    }
+    for (const cantidad of Object.values(cuenta)) expect(cantidad).toBeGreaterThan(0);
+    expect(cuenta.directo + cuenta.inverso + cuenta.pendiente + cuenta.rechazada).toBe(660);
+    expect(cuenta.sinDatos + cuenta.conDatos).toBe(cuenta.directo + cuenta.inverso);
+    expect([...tipos].sort()).toEqual([...new Set(firmas.map(e=>e.tipo))].sort());
+});
+
+test('T-022 orientación conserva estados por dueño y multiplicidad compatible por rol elegido',()=>{
+    const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',estadoOrigen:'s-3',estadoDestino:'s-6',etiqueta:'conoce'}),antes=JSON.stringify(m);
+    const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetado',sentido:'inverso',etiquetas:{etiqueta:'incluye'}}),n=bien(r);
+    expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'etiquetado',origen:'o-5',destino:'o-2',estadoOrigen:'s-6',estadoDestino:'s-3',etiqueta:'incluye'});
+    if(r.ok)expect(r.trazas.filter(t=>t.mensaje.includes('retiró'))).toEqual([]);
+    const mult=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',multOrigen:'+',multDestino:'?',etiqueta:'conoce'});
+    expect(bien(op.cambiarTipoEnlace(mult,{enlace:'e-20',tipo:'etiquetado',sentido:'inverso'})).enlaces['e-20']).toEqual({id:'e-20',tipo:'etiquetado',origen:'o-5',destino:'o-2',multOrigen:'?',multDestino:'+',etiqueta:'conoce'});
+    expect(JSON.stringify(m)).toBe(antes);
+});
+
+test('T-120 orientación normaliza etiquetas iguales y retira sólo anclaje incompatible con traza',()=>{
+    const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',estadoOrigen:'s-3',estadoDestino:'s-6'}),antes=JSON.stringify(m);
+    const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',sentido:'inverso',etiquetas:{etiqueta:'asociado',inversa:'asociado'}}),n=bien(r);
+    expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'reciproco',origen:'o-5',destino:'o-2',estados:{origen:'s-6'},etiqueta:'asociado'});
+    if(r.ok){expect(r.trazas.some(t=>t.regla==='R-STRE-1')).toBe(true);expect(r.trazas.some(t=>t.refs.some(r=>r.tipo==='estado'&&r.id==='s-3'))).toBe(true);expect(r.trazas.some(t=>t.mensaje.includes('retiró un anclaje')&&t.refs.some(r=>r.tipo==='estado'&&r.id==='s-6'))).toBe(false);}
+    expect(JSON.stringify(m)).toBe(antes);expect(n.secuencia).toBe(m.secuencia);
+});
+
+test('T-040 orientación inválida y etiquetas inválidas hacen rollback entero sin identidad consumida',async()=>{
+    const m=con(base(),{id:'e-20',tipo:'consumo',objeto:'o-2',proceso:'p-9',estado:'s-3',control:'e',ruta:'principal'}),antes=JSON.stringify(m);
+    mal(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'consumo',sentido:'inverso'}),'forma');
+    const n=bien(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'resultado',sentido:'inverso'}));expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'resultado',objeto:'o-2',proceso:'p-9',estado:'s-3',ruta:'principal'});
+    const {aplicarAcciones}=await import('./operaciones');const r=aplicarAcciones(m,[{op:'renombrarModelo',args:{nombre:'No persistir'}},{op:'cambiarTipoEnlace',args:{enlace:'e-20',tipo:'consumo',sentido:'inverso'}}]);expect(r.ok).toBe(false);
+    const oo=con(base(),{id:'e-20',tipo:'agregacion',refinable:'o-2',refinador:'o-5'});
+    for(const etiquetas of [{etiqueta:null,inversa:'pertenece'},{etiqueta:'contiene',inversa:null},{etiqueta:'contiene',inversa:''}])mal(op.cambiarTipoEnlace(oo,{enlace:'e-20',tipo:'etiquetadoBidireccional',sentido:'inverso',etiquetas}),'lexico');
+    expect(JSON.stringify(m)).toBe(antes);expect(m.secuencia).toBe(30);
+});
+
+test('T-040 sentido explícito no elude abanicos ni la identidad de mitades escindidas',()=>{
+    const b=con(base(),{id:'e-20',tipo:'consumo',objeto:'o-2',proceso:'p-9'},{id:'e-21',tipo:'consumo',objeto:'o-5',proceso:'p-9'});
+    const m=congelar({...b,abanicos:{f:{id:'f',operador:'OR' as const,enlaces:['e-20','e-21']}}}),antes=JSON.stringify(m);
+    mal(op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'resultado',sentido:'inverso'}),'abanico');expect(JSON.stringify(m)).toBe(antes);
+    const par=con(base(),{id:'e-20',tipo:'efecto',objeto:'o-2',proceso:'p-9',entrada:'s-3',escision:{par:'e-21',mitad:'entrada'}},{id:'e-21',tipo:'efecto',objeto:'o-2',proceso:'p-10',salida:'s-4',escision:{par:'e-20',mitad:'salida'}});
+    expect(bien(op.cambiarTipoEnlace(par,{enlace:'e-20',tipo:'efecto',sentido:'directo',etiquetas:{}})).enlaces).toEqual(par.enlaces);
+    mal(op.cambiarTipoEnlace(par,{enlace:'e-20',tipo:'efecto',sentido:'inverso'}),'forma');mal(op.cambiarTipoEnlace(par,{enlace:'e-20',tipo:'resultado',sentido:'directo'}),'forma','F-4');
+});
+
+test('T-120 etiquetas iguales conservan intención consultada y realizan recíproco literal con traza',()=>{
+    const m=con(base(),{id:'e-20',tipo:'agregacion',refinable:'o-2',refinador:'o-5'}),etiquetas={etiqueta:'asociado',inversa:'asociado'};
+    for(const sentido of ['directo','inverso']as const){
+        const o=tiposLegales(m,{opd:m.raiz,desde:{cosa:'o-2'},hacia:{cosa:'o-5'},etiquetas}).find(x=>x.tipo==='etiquetadoBidireccional'&&x.sentido===sentido&&x.legal===true);
+        expect(o?.legal).toBe(true);if(!o||o.legal!==true)throw Error('opción ausente');
+        const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:o.tipo,sentido,etiquetas}),n=bien(r);
+        expect(o.candidato).toEqual({tipo:'etiquetadoBidireccional',origen:sentido==='directo'?'o-2':'o-5',destino:sentido==='directo'?'o-5':'o-2',...etiquetas});
+        expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'reciproco',origen:sentido==='directo'?'o-2':'o-5',destino:sentido==='directo'?'o-5':'o-2',etiqueta:'asociado'});
+        if(r.ok)expect(r.trazas.some(t=>t.regla==='R-STRE-1')).toBe(true);
+    }
+});
+
+test('T-022 traslado compatible entre roles de estado no inventa trazas de pérdida',()=>{
+    const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',estadoOrigen:'s-3',estadoDestino:'s-6'});
+    const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'generalizacion',sentido:'inverso'}),n=bien(r);
+    expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'generalizacion',refinable:'o-5',refinador:'o-2',estados:{general:'s-6',especializacion:'s-3'}});
+    if(r.ok)expect(r.trazas.filter(t=>t.regla==='R-OPD-OP-5')).toEqual([]);
+});
+
+test('T-022 etiquetado reflexivo invierte roles sin confundir estados del mismo dueño',()=>{
+    const e:Enlace={id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-2',estadoOrigen:'s-3',estadoDestino:'s-4',etiqueta:'relaciona'},m=con(base(),e),antes=JSON.stringify(m);
+    expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);
+    expect(bien(op.cambiarTipoEnlace(m,{enlace:e.id,tipo:e.tipo,sentido:'directo'})).enlaces[e.id]).toEqual(e);
+    const r=op.cambiarTipoEnlace(m,{enlace:e.id,tipo:e.tipo,sentido:'inverso'}),n=bien(r);
+    expect(n.enlaces[e.id]).toEqual({...e,estadoOrigen:'s-4',estadoDestino:'s-3'});expect(n.secuencia).toBe(m.secuencia);
+    if(r.ok)expect(r.trazas.filter(t=>t.regla==='R-OPD-OP-5')).toEqual([]);expect(JSON.stringify(m)).toBe(antes);
+});
+
+test('T-022 etiquetado reflexivo conserva multiplicidades distintas por rol al invertir',()=>{
+    const e:Enlace={id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-2',multOrigen:'+',multDestino:'?',etiqueta:'relaciona'},m=con(base(),e),antes=JSON.stringify(m);
+    expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);
+    expect(bien(op.cambiarTipoEnlace(m,{enlace:e.id,tipo:e.tipo,sentido:'directo'})).enlaces[e.id]).toEqual(e);
+    const r=op.cambiarTipoEnlace(m,{enlace:e.id,tipo:e.tipo,sentido:'inverso'}),n=bien(r);
+    expect(n.enlaces[e.id]).toEqual({...e,multOrigen:'?',multDestino:'+'});expect(n.secuencia).toBe(m.secuencia);
+    if(r.ok)expect(r.trazas.filter(t=>t.regla==='R-OPD-OP-5')).toEqual([]);expect(JSON.stringify(m)).toBe(antes);
 });

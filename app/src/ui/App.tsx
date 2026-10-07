@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { crearCliente } from '../editor/cliente';
 import { crearAlmacenLocal } from '../editor/guardado';
 import { crearEditor } from '../editor/estado';
@@ -11,19 +11,33 @@ import { Acceso } from './Acceso';
 import { Biblioteca, descargarTexto, descargarArchivo } from './Biblioteca';
 import { Editor } from './Editor';
 import { Lienzo } from './Lienzo';
+import { ArbolOpd, navegarConSeleccion } from './ArbolOpd';
+import { Inspector } from './Inspector';
+import { PanelOpl } from './PanelOpl';
+import { EditorOpl } from './EditorOpl';
+import { PanelDiagnostico } from './PanelDiagnostico';
+import { Buscar } from './Buscar';
 import type { RanurasEditor } from './Editor';
 import { Dialogo, LimitePanel } from './Dialogo';
 import { InformeImportacion } from './InformeImportacion';
 import { Ayuda } from './Ayuda';
+export async function navegarRuta(editor:Controlador,id:string,opd?:string):Promise<boolean>{
+ if(editor.obtener().modelo?.id!==id)await editor.abrir(id);
+ const actual=editor.obtener();if(actual.modelo?.id!==id)return false;
+ if(opd&&actual.modelo.opds[opd])navegarConSeleccion(editor,opd);
+ return true;
+}
 export function App(p: { cliente?: Cliente; local?: AlmacenLocal; editor?: Controlador; ranuras?: RanurasEditor }) {
     const deps = useMemo(() => { const cliente = p.cliente ?? crearCliente(fetch.bind(globalThis)), local = p.local ?? crearAlmacenLocal(); return { cliente, local, editor: p.editor ?? crearEditor({ cliente, local, tamano:()=>{const r=document.querySelector('.contenido-lienzo')?.getBoundingClientRect();return {ancho:r?.width??800,alto:r?.height??600};} }) }; }, []);
     useEffect(() => { deps.editor.fijarPaneles({ arbol: innerWidth >= 1600 }); }, []);
     const [informeCreado, informeServidor] = useState<{ informe: Informe; anterior?: Informe; original?: string; archivo?: Blob } | null>(null);
     const [estado, publicar] = useState(deps.editor.obtener()), [sesion, fijarSesion] = useState<string | null>(null), [arranque, listo] = useState(false), [error, fallar] = useState(''), [ocupado, ocupar] = useState(false), [salidaCuenta, cerrarCuenta] = useState(false);
     useEffect(() => deps.editor.suscribir(() => publicar(deps.editor.obtener())), []);
-    async function rutaPedida() { const x = /^#\/m\/([^/]+)(?:\/([^/]+))?$/.exec(location.hash); if (x) { await deps.editor.abrir(decodeURIComponent(x[1]!)); if (x[2] && deps.editor.obtener().modelo) deps.editor.navegar(decodeURIComponent(x[2])); } }
+    const leyendoRuta=useRef(false),inicioRuta=useRef(false);
+    async function rutaPedida() { const x = /^#\/m\/([^/]+)(?:\/([^/]+))?$/.exec(location.hash); leyendoRuta.current=true;try{if(x)await navegarRuta(deps.editor,decodeURIComponent(x[1]!),x[2]?decodeURIComponent(x[2]):undefined);else if(deps.editor.obtener().modelo)deps.editor.cerrar();}finally{const s=deps.editor.obtener(),ruta=s.modelo?`#/m/${encodeURIComponent(s.modelo.id)}/${encodeURIComponent(s.opd)}`:'#/';if(location.hash!==ruta)history.replaceState(null,'',ruta);leyendoRuta.current=false;inicioRuta.current=true;} }
     useEffect(() => { let activo = true; void deps.cliente.sesion().then(async s => { if (!activo) return; fijarSesion(s?.email ?? null); if (s) await rutaPedida(); }).catch(() => { if (activo) fallar('No se pudo comprobar la sesión. Reintenta.'); }).finally(() => { if (activo) { listo(true); document.body.dataset.listo = '1'; } }); return () => { activo = false; delete document.body.dataset.listo; }; }, []);
-    useEffect(() => { if (estado.modelo) history.replaceState(null, '', `#/m/${encodeURIComponent(estado.modelo.id)}/${encodeURIComponent(estado.opd)}`); else if (arranque && sesion) history.replaceState(null, '', '#/'); }, [estado.modelo?.id, estado.opd, arranque, sesion]);
+    useEffect(() => { if(leyendoRuta.current)return;const destino=estado.modelo?`#/m/${encodeURIComponent(estado.modelo.id)}/${encodeURIComponent(estado.opd)}`:'#/';if(arranque&&sesion&&location.hash!==destino){if(inicioRuta.current)history.pushState(null,'',destino);else{history.replaceState(null,'',destino);inicioRuta.current=true;}} }, [estado.modelo?.id, estado.opd, arranque, sesion]);
+    useEffect(()=>{const leer=()=>{if(!leyendoRuta.current)void rutaPedida();};window.addEventListener('popstate',leer);return()=>window.removeEventListener('popstate',leer);},[]);
     useEffect(() => { if (salidaCuenta && !estado.modelo) void salirCuenta(); }, [salidaCuenta, estado.modelo]);
     async function salirCuenta() { if (ocupado) return; ocupar(true); try { await deps.cliente.salir(); fijarSesion(null); cerrarCuenta(false); history.replaceState(null, '', '#/'); } catch { fallar('No se pudo cerrar la sesión. Reintenta.'); cerrarCuenta(false); } finally { ocupar(false); } }
     function salir() { if (estado.modelo) { cerrarCuenta(true); deps.editor.cerrar(); } else void salirCuenta(); }
@@ -35,9 +49,10 @@ export function App(p: { cliente?: Cliente; local?: AlmacenLocal; editor?: Contr
         : s?.k === 'borrador' ? { titulo: 'Recuperar cambios de este navegador', texto: s.servidorCambio ? 'El servidor cambió desde este borrador. Recuperar conservará tus cambios con respaldo.' : 'Este navegador conserva cambios que no están en la versión guardada.', acciones: [{ texto: 'Recuperar', hacer: () => accion(() => deps.editor.resolverBorrador('recuperar')) }, { texto: 'Descartar borrador', hacer: () => accion(() => deps.editor.resolverBorrador('descartar')) }, { texto: 'Descargar borrador', hacer: () => accion(() => deps.editor.resolverBorrador('descargar')) }] }
         : s?.k === 'salida' ? { titulo: 'Quedan cambios sin subir', texto: 'La salida no pudo guardar todos los cambios. Se conservan en el borrador de este navegador.', acciones: [{ texto: 'Reintentar', hacer: () => accion(async () => { await deps.editor.guardarAhora(); if (deps.editor.obtener().guardado === 'guardado' || deps.editor.obtener().guardado === 'version-nueva') deps.editor.cerrar(); }) }, { texto: 'Descargar JSON', hacer: descargar }, { texto: 'Salir de todos modos', hacer: () => deps.editor.salirIgualmente() }] } : null;
     if (!arranque) return <main class="arranque" role="status">Abriendo opforja…</main>;
-    return <><LimitePanel nombre="la aplicación">{!sesion ? <Acceso cliente={deps.cliente} entrado={async email => { fijarSesion(email); fallar(''); await rutaPedida(); }} /> : estado.modelo ? <Editor editor={deps.editor} estado={estado} salir={salir} ranuras={{ lienzo: Lienzo, ...p.ranuras }} /> : <Biblioteca key={sesion} cliente={deps.cliente} local={deps.local} editor={deps.editor} email={sesion} salir={salir} sesionVencida={() => fijarSesion(null)} informeCreado={informeServidor} />}</LimitePanel>
+    return <><LimitePanel nombre="la aplicación">{!sesion ? <Acceso cliente={deps.cliente} entrado={async email => { fijarSesion(email); fallar(''); await rutaPedida(); }} /> : estado.modelo ? <Editor editor={deps.editor} estado={estado} salir={salir} ranuras={{ lienzo: Lienzo, arbol:ArbolOpd, propiedades:Inspector, opl:PanelOpl, diagnostico:PanelDiagnostico, ...p.ranuras }} /> : <Biblioteca key={sesion} cliente={deps.cliente} local={deps.local} editor={deps.editor} email={sesion} salir={salir} sesionVencida={() => fijarSesion(null)} informeCreado={informeServidor} />}</LimitePanel>
         {error && <div class="error-app" role="alert">{error}<button onClick={() => { fallar(''); if (!sesion) location.reload(); }}>Reintentar</button></div>}
         {informeCreado && <InformeImportacion informe={informeCreado.informe} {...(informeCreado.anterior ? { anterior: informeCreado.anterior } : {})} {...(informeCreado.original !== undefined ? { original: informeCreado.original, descargar: () => informeCreado.archivo ? descargarArchivo(informeCreado.archivo, 'original-importado.json') : descargarTexto(informeCreado.original!, 'original-importado.json') } : {})} {...(estado.modelo ? { modelo: estado.modelo } : {})} cerrar={() => informeServidor(null)} />}
+        {estado.modelo&&s?.k==='buscar'&&<Buscar editor={deps.editor} estado={estado}/>}{estado.modelo&&s?.k==='opl'&&<EditorOpl editor={deps.editor} estado={estado}/>}
         {s?.k === 'ayuda' && <Ayuda cerrar={cancelar} />}
         {s?.k === 'reingreso' && <Dialogo titulo="Volver a entrar" ocupado={ocupado}><Acceso reingreso cliente={deps.cliente} entrado={async email => { fijarSesion(email); await deps.editor.guardarAhora(); }} /></Dialogo>}
         {s?.k === 'informe' && s.informe && <InformeImportacion informe={s.informe} {...(estado.modelo ? { modelo: estado.modelo } : {})} {...(s.texto !== undefined ? { original: s.texto, descargar: () => descargarTexto(s.texto!, 'original-abierto.json') } : {})} cerrar={cancelar} {...(!estado.modelo && !s.informe.rechazos.length ? { crear: async () => { await accion(() => deps.editor.confirmarImportacion()); }, aceptarTexto: 'Abrir de todos modos' } : {})} ocupado={ocupado} error={error} />}
@@ -45,6 +60,6 @@ export function App(p: { cliente?: Cliente; local?: AlmacenLocal; editor?: Contr
         {s?.k === 'descarga' && s.texto !== undefined && <Dialogo titulo="Descargar borrador" cerrar={() => deps.editor.solicitar({ k: 'borrador' })} acciones={[{ texto: 'Descargar JSON', hacer: () => descargarTexto(s.texto!, 'borrador.opforja.json') }]}><p>Descarga los bytes del borrador sin cambiarlos.</p></Dialogo>}
         {estado.modelo && estado.guardado === 'eliminado' && !s && <Dialogo titulo="Este modelo se eliminó en otra sesión" acciones={[{ texto: 'Guardarlo de nuevo', hacer: () => accion(() => deps.editor.guardarDeNuevo()) }, { texto: 'Descargar JSON', hacer: descargar }, { texto: 'Volver a Biblioteca', hacer: () => deps.editor.cerrar() }]}><p>Tus cambios siguen abiertos y se conservan en este navegador.</p></Dialogo>}
         {estado.modelo && estado.guardado === 'error' && !s && <Dialogo titulo="No se pudo guardar" acciones={[{ texto: 'Reintentar', hacer: () => accion(() => deps.editor.guardarAhora()) }, { texto: 'Descargar JSON', hacer: descargar }, { texto: 'Volver a Biblioteca', hacer: () => deps.editor.cerrar() }]}><p>{estado.franja?.texto}</p></Dialogo>}
-        {s && !['ayuda','reingreso','informe','conflicto','borrador','salida','descarga','biblioteca','importar','camara','crear','renombrar','estado','enlace','multiplicidad','tipo','desplegar','encadenar','refinador'].includes(s.k) && (p.ranuras?.solicitud ? <p.ranuras.solicitud editor={deps.editor} estado={estado} /> : <Dialogo titulo="Acción del editor" cerrar={cancelar}><p>Esta acción estará disponible al completar el lienzo y los paneles.</p></Dialogo>)}
+        {s && !['buscar','opl','ayuda','reingreso','informe','conflicto','borrador','salida','descarga','biblioteca','importar','camara','crear','renombrar','estado','enlace','multiplicidad','tipo','desplegar','encadenar','refinador'].includes(s.k) && (p.ranuras?.solicitud ? <p.ranuras.solicitud editor={deps.editor} estado={estado} /> : <Dialogo titulo="Acción del editor" cerrar={cancelar}><p>Esta acción estará disponible al completar el lienzo y los paneles.</p></Dialogo>)}
     </>;
 }

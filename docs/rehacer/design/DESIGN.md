@@ -1124,10 +1124,14 @@ export const crearEnlace:       Operacion<{ opd: Id; candidato: EnlaceNuevo; aba
   // sus propios rasgos pasan a ambientales, con traza (T-091 «al crear la exhibición», R-OBJ-6, CC-02).
   // valida etiquetas con normalizarEtiquetas antes de persistir: igualdad válida no vacía ⇒ recíproco,
   // traza R-STRE-1; el resultado efectivo cumple F-11. Los datos faltantes o inválidos no se insertan.
-export const cambiarTipoEnlace: Operacion<{ enlace: Id; tipo: TipoEnlace; etiquetas?: DatosEtiquetas }>;   // conserva id; campos incompatibles previos se retiran con traza; rama de abanico ⇒ 'abanico'
+export const cambiarTipoEnlace: Operacion<{ enlace: Id; tipo: TipoEnlace; etiquetas?: DatosEtiquetas; sentido?: 'directo' | 'inverso' }>;   // conserva id; campos incompatibles previos se retiran con traza; rama de abanico ⇒ 'abanico'
   // Los datos explícitos se incorporan antes de normalizarEtiquetas, matriz y ensayo DS-20.
   // Datos inaplicables ⇒ rechazo atómico como fijarEtiqueta; {} equivale a datos ausentes.
   // Mismo tipo: conserva sus campos (incluida escision), salvo etiquetas explícitamente reemplazadas/eliminadas; sin datos mantiene comportamiento previo.
+  // Sentido relativo a extremos actuales: omitido conserva comportamiento vigente; explícito construye y valida
+  // ambos extremos, tipo y etiquetas por roles elegidos en una transacción, incluso con el mismo tipo.
+  // Conserva identidad/secuencia, asociaciones compatibles por dueño/rol, validaciones/trazas y un deshacer;
+  // normalización, forma, oferta y DS-20 se contrastan contra el original real. UI transmite OpcionTipo.sentido.
 export const fijarEstados:      Operacion<{ enlace: Id; estados: EstadosEnlace }>;   // forma de `estados` debe calzar con el tipo
 export const fijarControl:      Operacion<{ enlace: Id; control: Control | null }>;
 export const fijarEtiqueta:     Operacion<{ enlace: Id; etiqueta: string | null; inversa?: string | null }>;

@@ -74,5 +74,27 @@ test('T-010 adaptación recursiva del dibujo REAL conserva todos los atributos, 
 
 test('T-011 V3 menú de cambio EXISTENTE emite una operación con datos/ID y un undo',async()=>{
  const {confirmarDatos}=await import('./MenuTipoEnlace'),{crearEnlace}=await import('../nucleo/enlaces'),{exportarV0}=await import('../codec/exportar');const b=modeloCon({objetos:[['Agua',[]],['Vaso',[]]]}),desde={cosa:porNombre(b,'Agua').id},hacia={cosa:porNombre(b,'Vaso').id};const c=crearEnlace(b,{opd:b.raiz,candidato:{tipo:'etiquetado',origen:desde.cosa,destino:hacia.cosa,etiqueta:'conoce'}});expect(c.ok).toBe(true);if(!c.ok)throw Error('montaje');const m=c.valor.modelo,id=c.valor.creados[0]!,opciones=tiposLegales(m,{opd:m.raiz,desde,hacia}),o=opciones.find(x=>x.tipo==='etiquetadoBidireccional'&&x.sentido==='directo')!,datos={etiqueta:'contiene',inversa:'pertenece'};
- const r=confirmarDatos(m,m.raiz,{k:'menuTipo',desde,hacia,opciones},o,datos,id);expect(r.acciones).toEqual([{op:'cambiarTipoEnlace',args:{enlace:id,tipo:'etiquetadoBidireccional',etiquetas:datos}}]);const d=dependencias();d.documento(exportarV0(m));const ed=crearEditor(configuracion(d));await ed.abrir(m.id);const antes=ed.obtener().modelo!;expect(ed.ejecutar(r.acciones[0]!).ok).toBe(true);const n=ed.obtener().modelo!;expect(Object.keys(n.enlaces)).toEqual([id]);expect(n.enlaces[id]).toMatchObject({id,tipo:'etiquetadoBidireccional',...datos});expect(n.secuencia).toBe(m.secuencia);expect(ed.obtener().pasado).toHaveLength(1);ed.deshacer();expect(ed.obtener().modelo).toBe(antes);expect(ed.obtener().pasado).toHaveLength(0);ed.cerrar();await ciclos();
+ const r=confirmarDatos(m,m.raiz,{k:'menuTipo',desde,hacia,opciones},o,datos,id);expect(r.acciones).toEqual([{op:'cambiarTipoEnlace',args:{enlace:id,tipo:'etiquetadoBidireccional',sentido:'directo',etiquetas:datos}}]);const d=dependencias();d.documento(exportarV0(m));const ed=crearEditor(configuracion(d));await ed.abrir(m.id);const antes=ed.obtener().modelo!;expect(ed.ejecutar(r.acciones[0]!).ok).toBe(true);const n=ed.obtener().modelo!;expect(Object.keys(n.enlaces)).toEqual([id]);expect(n.enlaces[id]).toMatchObject({id,tipo:'etiquetadoBidireccional',...datos});expect(n.secuencia).toBe(m.secuencia);expect(ed.obtener().pasado).toHaveLength(1);ed.deshacer();expect(ed.obtener().modelo).toBe(antes);expect(ed.obtener().pasado).toHaveLength(0);ed.cerrar();await ciclos();
+});
+
+test('T-011 elección inversa con datos conserva candidato, ID y un deshacer real', async()=>{
+    const {confirmarDatos}=await import('./MenuTipoEnlace'),{crearEnlace}=await import('../nucleo/enlaces'),{exportarV0}=await import('../codec/exportar');
+    const b=modeloCon({objetos:[['Pedido',[]],['Registro',[]]]}),desde={cosa:porNombre(b,'Pedido').id},hacia={cosa:porNombre(b,'Registro').id};
+    const c=crearEnlace(b,{opd:b.raiz,candidato:{tipo:'agregacion',refinable:desde.cosa,refinador:hacia.cosa}});expect(c.ok).toBe(true);if(!c.ok)throw Error('montaje');
+    const m=c.valor.modelo,id=c.valor.creados[0]!,opciones=tiposLegales(m,{opd:m.raiz,desde,hacia}),o=opciones.find(x=>x.tipo==='etiquetadoBidireccional'&&x.sentido==='inverso')!,datos={etiqueta:'contiene',inversa:'pertenece'};
+    const r=confirmarDatos(m,m.raiz,{k:'menuTipo',desde,hacia,opciones},o,datos,id);
+    expect(r.acciones).toHaveLength(1);expect(r.acciones[0]!.args).toEqual({enlace:id,tipo:'etiquetadoBidireccional',sentido:'inverso',etiquetas:datos});
+    const d=dependencias();d.documento(exportarV0(m));const ed=crearEditor(configuracion(d));await ed.abrir(m.id);const antes=ed.obtener().modelo!;
+    expect(ed.ejecutar(r.acciones[0]!).ok).toBe(true);expect(ed.obtener().modelo!.enlaces[id]).toEqual({id,tipo:'etiquetadoBidireccional',origen:hacia.cosa,destino:desde.cosa,...datos});
+    expect(ed.obtener().pasado).toHaveLength(1);ed.deshacer();expect(ed.obtener().modelo).toBe(antes);ed.cerrar();await ciclos();
+});
+
+test('T-011 menú de enlace estructural resuelve el mismo par nuclear fuera de aristas',async()=>{
+    const {extremosSeleccionados}=await import('./Lienzo');
+    const {crearEnlace}=await import('../nucleo/enlaces');const b=modeloCon({objetos:[['Pedido',[]],['Registro',[]]]});
+    const a=porNombre(b,'Pedido').id,z=porNombre(b,'Registro').id;
+    const r=crearEnlace(b,{opd:b.raiz,candidato:{tipo:'agregacion',refinable:a,refinador:z}});expect(r.ok).toBe(true);if(!r.ok)throw Error('montaje');
+    const m=r.valor.modelo,id=r.valor.creados[0]!;expect(escena(m,m.raiz).aristas.some(e=>e.ref.id===id)).toBe(false);
+    expect(extremosSeleccionados(m,id)).toEqual({desde:{cosa:a},hacia:{cosa:z}});
+    expect(extremosSeleccionados(m,'ausente')).toBeNull();
 });
