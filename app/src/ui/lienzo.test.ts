@@ -43,7 +43,7 @@ import { crearEditor } from '../editor/estado';
 import { dependencias, configuracion, ciclos } from '../editor/pruebas.test';
 import { reducirGesto } from '../editor/gestos';
 
-test('T-062 O con selección activa crea petición una vez y cancelar no reserva ID', async () => {
+test('T-062 T-252 O con selección activa crea petición una vez y cancelar no reserva ID', async () => {
     const { despacharLienzo }=await import('./Lienzo');
     const d=dependencias(), ed=crearEditor(configuracion(d));await ed.abrir(d.m.id);
     ed.seleccionar({cosas:['o-2'],estados:[],enlaces:[],abanicos:[]});

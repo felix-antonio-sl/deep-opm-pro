@@ -47,7 +47,7 @@ test('T-287 etapa 3: acumula referencias rotas con ruta sin fabricar entidades',
   const d = basico(); d.modelo.estados = { s: estado('s', 'missing') }; d.modelo.enlaces = { e: enlace('e', 'efecto', 'missing', 'p-2', { estadoEntradaId: 'other' }) }; d.modelo.opds['opd-1'].apariencias.bad = apariencia('not-there');
   const r = leer(d); expect(r.ok).toBe(false); expect(r.informe.rechazos.length).toBeGreaterThanOrEqual(4); expect(r.informe.rechazos.map(e => e.ruta)).toEqual(expect.arrayContaining(['estados.s.entidadId', 'enlaces.e.origenId', 'enlaces.e.estadoEntradaId', 'opds.opd-1.apariencias.bad.entidadId']));
 });
-test('T-287 etapa 4: tipo inválido rechaza; default y nombre NFC sin recortar', () => {
+test('T-287 T-012 etapa 4: tipo inválido rechaza; default y nombre NFC sin recortar', () => {
   for (const tipo of [undefined, 'otro']) { const d = basico(); d.modelo.entidades['o-1'].tipo = tipo; expect(leer(d).ok).toBe(false); }
   const d = basico(); d.modelo.entidades['o-1'].nombre = ' a\u0301  '; delete d.modelo.entidades['o-1'].esencia; d.modelo.entidades['o-1'].afiliacion = 'incorrecta';
   const r = ok(d); expect(r.modelo.cosas['o-1']!.nombre).toBe(' á  '); expect(r.modelo.cosas['o-1']!.esencia).toBe('informacional'); expect(r.informe.descartado.some(e => e.ruta.endsWith('afiliacion') && e.mensaje.includes('incorrecta'))).toBe(true);

@@ -36,7 +36,7 @@ function verificar(m: Modelo, id: string, estricto = true) {
     if(estricto)pendientesStrict.push({nombre:m.nombre,id,doc,clave:claveDocumento});
 }
 
-test('T-191 T-192 todas dimensiones legales de 15 firmas: auto-reparseo y estricto sin cuota', () => {
+test('T-191 T-192 T-190 todas dimensiones legales de 15 firmas: auto-reparseo y estricto sin cuota', () => {
     const fallos: string[] = [];
     const inicio = performance.now(), propuestos: Record<string, number> = {}, admitidos: Record<string, number> = {}, excluidos: Record<string, number> = {};
     const b = modeloCon({ objetos: [['Alfa', ['uno', 'dos', 'tres']], ['Ilustre', ['uno', 'dos', 'tres']]], procesos: ['Beta', 'Omega'] });
@@ -91,14 +91,14 @@ for (const tipo of ['consumo','resultado','efecto','agente','instrumento','invoc
 
 import { aplicarAcciones } from '../nucleo/operaciones';
 import { must } from '../pruebas/constructores';
-for(const bandas of [[['Recibir'],['Validar']], [['Recibir','Validar']], [['Recibir','Validar'],['Archivar']], [['Recibir'],['Validar','Archivar']], [['Recibir','Validar'],['Archivar'],['Enviar','Cobrar']]]) for(const internos of [false,true]) test(`T-192 CX bandas ${JSON.stringify(bandas)} internos ${internos}`,()=>{
+for(const bandas of [[['Recibir'],['Validar']], [['Recibir','Validar']], [['Recibir','Validar'],['Archivar']], [['Recibir'],['Validar','Archivar']], [['Recibir','Validar'],['Archivar'],['Enviar','Cobrar']]]) for(const internos of [false,true]) test(`T-192 T-166 CX bandas ${JSON.stringify(bandas)} internos ${internos}`,()=>{
  const inicio = performance.now();
  const b=modeloCon({procesos:['Gestionar']}),p=Object.keys(b.cosas)[0]!;
  const r=must(aplicarAcciones(b,[{op:'descomponer',args:{opd:b.raiz,proceso:p,bandas}}])),d=Object.values(r.modelo.opds).find(d=>d.tipo==='descomposicion')!;
  const m=internos?must(aplicarAcciones(r.modelo,[{op:'crearCosa',args:{opd:d.id,tipo:'objeto',nombre:'Registro',x:50,y:60,alcance:'interno'}}])).modelo:r.modelo;
  expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);verificar(m,`CX:${JSON.stringify(bandas)}:${internos}`);libro.push({familia:'CX',bandas,internos,admitido:true}); tiempoEnumeracion += performance.now()-inicio;
 });
-for(const modo of ['agregacion','exhibicion','generalizacion','clasificacion'] as const) for(const tipo of ['objeto','proceso'] as const) test(`T-192 CX3 modo ${modo} ${tipo}`,()=>{
+for(const modo of ['agregacion','exhibicion','generalizacion','clasificacion'] as const) for(const tipo of ['objeto','proceso'] as const) test(`T-192 T-166 CX3 modo ${modo} ${tipo}`,()=>{
  const inicio = performance.now();
  const b=modeloCon(tipo==='objeto'?{objetos:[['Colección',[]]]}:{procesos:['Coleccionar']}),id=Object.keys(b.cosas)[0]!;
  const m=must(aplicarAcciones(b,[{op:'desplegar',args:{opd:b.raiz,cosa:id,modo,refinadores:['Alfa','Ilustre']}}])).modelo;

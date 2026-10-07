@@ -1,3 +1,5 @@
+Derivada de `canon/`: reglas OPM1.5.0, spec-OPD1.4.0, spec-OPL1.4.1 y metodología1.7.0; ante conflicto manda `canon/`, con precedencia reglas > spec-OPD/spec-OPL > método. Las decisiones del dueño y DS se conservan en [decisiones.md](decisiones.md); los incumplimientos, en [conformidad.md](conformidad.md). El cuerpo que sigue reproduce íntegro CANON.md derivado del diseño; sus menciones al análisis histórico no añaden autoridad.
+
 # CANON — Especificación del producto opforja derivada del canon (ni más ni menos)
 
 Fuente única: los 4 documentos entregados por el dueño del producto.

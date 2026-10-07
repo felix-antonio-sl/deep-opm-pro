@@ -30,7 +30,7 @@ test('T-105 inversas estructurales recuperan ambas listas de RF2b e incompleta d
  expect(tabla.PLANTILLAS.find(x=>x.id==='RF2b')!.hacia({vertice:c,C:[a],otro:[p]})).toEqual([{k:'enlace',enlace:{tipo:'exhibicion',refinable:{nombre:'Pedido',tipo:'objeto'},refinador:{nombre:'Cuenta',tipo:'objeto'}}},{k:'enlace',enlace:{tipo:'exhibicion',refinable:{nombre:'Pedido',tipo:'objeto'},refinador:{nombre:'Procesar',tipo:'proceso'}}}]);
  expect(tabla.PLANTILLAS.find(x=>x.id==='RF3i')!.hacia({C:[a],general:c})).toEqual([{k:'enlace',enlace:{tipo:'generalizacion',refinable:{nombre:'Pedido',tipo:'objeto'},refinador:{nombre:'Cuenta',tipo:'objeto'}}},{k:'incompleta',cosa:{nombre:'Pedido',tipo:'objeto'},relacion:'generalizacion'}]);
 });
-test('T-105 ENT3 preserva esencia y afiliación explícitas sin crear propiedades implícitas',()=>{
+test('T-105 T-162 ENT3 preserva esencia y afiliación explícitas sin crear propiedades implícitas',()=>{
  expect(tabla.PLANTILLAS.find(x=>x.id==='ENT3')!.hacia({C:{texto:'Pedido',marca:'objeto'},esencia:{texto:'física'},afiliacion:{texto:'ambiental'}})).toEqual([{k:'mencion',cosa:{nombre:'Pedido',tipo:'objeto'}},{k:'esencia',cosa:{nombre:'Pedido',tipo:'objeto'},valor:'fisica'},{k:'afiliacion',cosa:{nombre:'Pedido',tipo:'objeto'},valor:'ambiental'}]);
 });
 test('T-121 inversa SSE5 conserva orientación superficial y el estado queda en el destino',()=>{
@@ -99,7 +99,7 @@ test('T-127 CXM y/e lee la frase emitida, conserva comas, bandas y tokens',()=>{
  expect(p.hacia(h)).toEqual([{k:'descomposicion',proceso:'P',bandas:[['Alfa','Beta'],['Índice']],internos:[]}]);
 });
 
-test('T-191 compilación del patrón conserva opcionales género tokens y entradas intercaladas',()=>{
+test('T-191 T-300 compilación del patrón conserva opcionales género tokens y entradas intercaladas',()=>{
  const O={texto:'Pedido',marca:'objeto' as const,ref:{tipo:'cosa' as const,id:'o'},hecho:'e'},P={texto:'Validar',marca:'proceso' as const,ref:{tipo:'cosa' as const,id:'p'},hecho:'e'},h={O,P,r:{texto:'principal'}},before=JSON.stringify(h);
  const a=tabla.tokensPlantilla('T1',h);expect(a.map(t=>t.texto).join('')).toBe('Por ruta principal, Validar consume Pedido.');
  expect(tabla.tokensPlantilla('T1',{O,P}).map(t=>t.texto).join('')).toBe('Validar consume Pedido.');

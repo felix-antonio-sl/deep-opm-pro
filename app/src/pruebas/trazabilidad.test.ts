@@ -58,10 +58,25 @@ test('T-289 renumeración de OPD por orden derivado no sustituye IDs al exportar
  const m=dosOpd(),n:Modelo={...m,opds:{...m.opds,h:{...m.opds.h!,orden:5} as Modelo['opds'][string]}},antes=JSON.stringify(n),r=importarV0(exportarV0(n));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));expect(Object.keys(r.modelo.opds).sort()).toEqual(['h','opd-1']);expect(r.modelo.opds.h).toMatchObject({id:'h',padre:'opd-1',cosa:'p-5',orden:0});expect(r.informe.normalizado.some(e=>e.ruta.includes('orden'))).toBe(true);expect(JSON.stringify(n)).toBe(antes);
 });
 test('T-003 toda regla de contexto y catálogo acredita primaria local o límite de producto declarado',()=>{
- const reglas=readFileSync(new URL('../../../docs/rehacer/canon/reglas-opm-estrictas-es/content.md',import.meta.url),'utf8'),opd=readFileSync(new URL('../../../docs/rehacer/canon/spec-forja-opd-es/content.md',import.meta.url),'utf8'),opl=readFileSync(new URL('../../../docs/rehacer/canon/spec-forja-opl-es/content.md',import.meta.url),'utf8');
+ const reglas=readFileSync(new URL('../../../canon/reglas-opm-estrictas-es/content.md',import.meta.url),'utf8'),opd=readFileSync(new URL('../../../canon/spec-forja-opd-es/content.md',import.meta.url),'utf8'),opl=readFileSync(new URL('../../../canon/spec-forja-opl-es/content.md',import.meta.url),'utf8');
  const texto=reglas+'\n'+opd+'\n'+opl,patron=(s:string)=>s.replace(/[^a-zA-Z0-9]/g,'').toUpperCase(),normal=patron(texto);
  const derivadas:Readonly<Record<string,string>>={'R-RES-1':'RRES1','R-EFE-1':'REFE1','R-ROL-UNIC-1':'ROPDHAB4','R-DIST-1':'RDIST1','R-CX-DIST-2':'RCXDIST2','R-AG-1':'RAG1'};
  for(const r of REGLAS_CONTEXTO)expect(normal.includes(patron(derivadas[r.id]??r.id)),r.id).toBe(true);
  for(const r of CATALOGO){expect(r.regla.length).toBeGreaterThan(0);expect(r.accion.length).toBeGreaterThan(0);} // Catálogo derivado tiene varias condiciones locales: alcance exacto se declara en conformidad, no sólo este inventario.
  expect(REGLAS_CONTEXTO.find(r=>r.id==='R-ROL-1')).toMatchObject({codigo:'no-ofrecido',registro:'B-34'});
+});
+
+test('T-014 perseverancia se deriva del tipo nuclear sin campo persistido ni glifo añadido',()=>{
+ const m=congelar(modeloCon({objetos:[['Pedido',[]]],procesos:['Procesar']})),antes=exportarV0(m);
+ sano(m);const e=escena(m,m.raiz);expect(e.nodos.map(n=>n.tipo)).toEqual(['objeto','proceso']);
+ const r=exportarDiagrama(m,m.raiz,{version:'trazabilidad'});expect(r.ok).toBe(true);if(!r.ok)throw Error(r.rechazo.mensaje);
+ const entidades=JSON.parse(antes).modelo.entidades;
+ expect(entidades['o-2'].tipo).toBe('objeto');expect(entidades['p-3'].tipo).toBe('proceso');
+ for(const c of [m.cosas['o-2']!,m.cosas['p-3']!,entidades['o-2'],entidades['p-3']]){
+  expect(c).not.toHaveProperty('persistencia');expect(c).not.toHaveProperty('perseverancia');
+ }
+ expect(r.valor.svg).toContain('>Pedido</text>');expect(r.valor.svg).toContain('>Procesar</text>');
+ expect(r.valor.svg).toContain('<rect');expect(r.valor.svg).toContain('<ellipse');
+ expect(r.valor.svg).not.toContain('perseverancia');expect(r.valor.svg).not.toContain('persistencia');
+ expect(exportarV0(m)).toBe(antes);
 });

@@ -40,3 +40,14 @@ test('T-193 parcial 9 no estricto: dirigidos opuestos se reconstruyen bidireccio
 test('T-193 parcial 10 no estricto: cosas sin aparición no pertenecen a un bloque',()=>{const b=modeloCon({objetos:[['Visible',[]],['Huérfana',[]]]}),[v]=Object.keys(b.cosas),m:Modelo={...b,opds:{[b.raiz]:{...b.opds[b.raiz]!,apariciones:{[v!]:b.opds[b.raiz]!.apariciones[v!]!}}}};preservar(m);expect(Object.values(reimportar(m).cosas).map(c=>c.nombre)).toEqual(['Visible']);
  const c=modeloCon({objetos:[['Visible',[]],['Huérfana',[]]],procesos:['Validar'],enlaces:[['consumo','Huérfana','Validar']]}),h=Object.values(c.cosas).find(x=>x.nombre==='Huérfana')!.id,apariciones={...c.opds[c.raiz]!.apariciones};delete apariciones[h];const conEnlace:Modelo={...c,opds:{[c.raiz]:{...c.opds[c.raiz]!,apariciones}}};preservar(conEnlace);expect(Object.values(conEnlace.enlaces)).toHaveLength(1);const importado=reimportar(conEnlace);expect(Object.values(importado.enlaces)).toEqual([]);expect(Object.values(importado.cosas).some(x=>x.nombre==='Huérfana')).toBe(false);
 });
+
+for(const [texto,campo,plantilla] of [
+ ['*Validar* cambia **Pedido** de `nuevo`.','entrada','TS4'],
+ ['*Validar* cambia **Pedido** a `nuevo`.','salida','TS5']
+] as const)test(`T-164 ${plantilla} desde vacío conserva estado sin inventar procedencia de escisión`,()=>{
+ const r=must(importarOpl('Standalone',texto)),m=r.modelo;expect(r.plan.resumen.noAplicables).toBe(0);expect(validarForma(m)).toEqual([]);
+ const o=Object.values(m.cosas).find(c=>c.nombre==='Pedido')!;expect(o.tipo).toBe('objeto');if(o.tipo!=='objeto')throw Error('Objeto real');
+ expect(o.estados.map(s=>s.nombre)).toEqual(['nuevo']);expect(Object.values(m.enlaces)).toEqual([{id:expect.any(String),tipo:'efecto',objeto:o.id,proceso:Object.values(m.cosas).find(c=>c.nombre==='Validar')!.id,[campo]:o.estados[0]!.id}]);
+ const e=Object.values(m.enlaces)[0]!;expect(e).not.toHaveProperty('escision');expect(e).not.toHaveProperty(campo==='entrada'?'salida':'entrada');
+ expect(generarModelo(m).find(l=>l.plantilla===plantilla)?.texto).toBe(texto);preservar(m);
+});

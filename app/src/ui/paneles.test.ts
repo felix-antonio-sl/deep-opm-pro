@@ -75,3 +75,32 @@ test('T-216 abanico colineal válido conserva sector cero como límite visual si
 test('T-022 ruta conserva selección visible por ID y elimina sólo la ausente en destino',async()=>{
  const {navegarRuta}=await import('./App');const d=dependencias(),b=modeloCon({objetos:[['Pedido',['nuevo']]],procesos:['Preparar'],enlaces:[['consumo','Pedido','Preparar']]}),m=must(descomponer(b,{opd:b.raiz,proceso:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})).modelo,hijo=Object.keys(m.opds).find(id=>id!==m.raiz)!,o=porNombre(m,'Pedido').id,interno=porNombre(m,'Recibir').id;d.documento(exportarV0(m));const ed=crearEditor(configuracion(d));await ed.abrir(m.id);const antes=exportarV0(ed.obtener().modelo!);ed.seleccionar({cosas:[o],estados:[],enlaces:[],abanicos:[]});await navegarRuta(ed,m.id,hijo);expect(ed.obtener().seleccion.cosas).toEqual([o]);ed.seleccionar({cosas:[o,interno],estados:[],enlaces:[],abanicos:[]});await navegarRuta(ed,m.id,m.raiz);expect(ed.obtener().seleccion.cosas).toEqual([o]);expect(exportarV0(ed.obtener().modelo!)).toBe(antes);expect(ed.obtener().pasado).toHaveLength(0);ed.cerrar();await ciclos();
 });
+
+test('T-242 realce por Ref tipada alcanza sólo la cosa o estado indicados y es efímero',async()=>{
+ const {CapaUi}=await import('./CapaUi'),{escena}=await import('../opd/escena');
+ const d=dependencias(),m=modeloCon({objetos:[['Pedido',['nuevo','listo']]],procesos:['Preparar']});d.documento(exportarV0(m));
+ const ed=crearEditor(configuracion(d));await ed.abrir(m.id);const base=ed.obtener().modelo!,antes=exportarV0(base),o=porNombre(base,'Pedido');if(o.tipo!=='objeto')throw Error('Objeto real');
+ function realces(v:unknown):string[]{
+  if(Array.isArray(v))return v.flatMap(realces);if(!v||typeof v!=='object')return [];
+  const n=v as {props?:{class?:string;children?:unknown;'data-ref'?:string}};
+  const hijos=n.props?.children,hs=Array.isArray(hijos)?hijos:[hijos];
+  const propio=n.props?.['data-ref'];return [...(propio&&hs.some(h=>!!h&&typeof h==='object'&&(h as {props?:{class?:string}}).props?.class==='hover-ui')?[propio]:[]),...hs.flatMap(realces)];
+ }
+ for(const ref of [{tipo:'cosa' as const,id:o.id},{tipo:'estado' as const,id:o.estados[1]!.id}]){
+  ed.realzar([ref]);const s=ed.obtener();expect(s.realce).toEqual([ref]);
+  const dibujo=CapaUi({modelo:base,escena:escena(base,base.raiz),seleccion:s.seleccion,hover:null,realce:s.realce,gesto:{k:'reposo'},zoom:1,legal:()=>false});
+  expect(realces(dibujo)).toEqual([`${ref.tipo}:${ref.id}`]);expect(exportarV0(ed.obtener().modelo!)).toBe(antes);expect(ed.obtener().pasado).toEqual([]);
+ }
+ ed.realzar([]);expect(ed.obtener().realce).toEqual([]);expect(ed.obtener().modelo).toBe(base);ed.cerrar();await ciclos();
+});
+test('T-243 clic resuelto por hecho navega y selecciona el ID exacto sin mutar modelo ni historial',async()=>{
+ const {refToken}=await import('./PanelOpl'),{irRefs}=await import('./ArbolOpd');
+ const d=dependencias(),b=modeloCon({objetos:[['Pedido',['nuevo']]],procesos:['Preparar'],enlaces:[['consumo','Pedido','Preparar']]}),m=must(descomponer(b,{opd:b.raiz,proceso:porNombre(b,'Preparar').id,bandas:[['Recibir'],['Entregar']]})).modelo,hijo=Object.keys(m.opds).find(id=>id!==m.raiz)!;d.documento(exportarV0(m));
+ const ed=crearEditor(configuracion(d));await ed.abrir(m.id);const base=ed.obtener().modelo!,antes=exportarV0(base),o=porNombre(base,'Pedido'),e=Object.values(base.enlaces)[0]!;
+ const ref=refToken({texto:'Pedido',rol:'nombre',ref:{tipo:'cosa',id:o.id},hecho:e.id})!;expect(ref).toEqual({tipo:'enlace',id:e.id});
+ irRefs(ed,[ref],base.raiz);expect(ed.obtener().opd).toBe(base.raiz);expect(ed.obtener().seleccion.enlaces).toEqual([e.id]);expect(ed.obtener().seleccion.cosas).toEqual([]);
+ irRefs(ed,[{tipo:'cosa',id:o.id}],base.raiz);expect(ed.obtener().seleccion.cosas).toEqual([o.id]);expect(ed.obtener().seleccion.enlaces).toEqual([]);
+ expect(hijo).not.toBe(base.raiz);irRefs(ed,[{tipo:'cosa',id:o.id}],hijo);expect(ed.obtener().opd).toBe(hijo);expect(ed.obtener().seleccion.cosas).toEqual([o.id]);expect(ed.obtener().seleccion.enlaces).toEqual([]);expect(exportarV0(ed.obtener().modelo!)).toBe(antes);expect(ed.obtener().pasado).toEqual([]);
+ irRefs(ed,[{tipo:'cosa',id:o.id}],base.raiz);expect(ed.obtener().opd).toBe(base.raiz);expect(ed.obtener().seleccion.cosas).toEqual([o.id]);
+ expect(exportarV0(ed.obtener().modelo!)).toBe(antes);expect(ed.obtener().modelo).toBe(base);expect(ed.obtener().pasado).toEqual([]);ed.cerrar();await ciclos();
+});

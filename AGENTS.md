@@ -7,8 +7,8 @@ Construir y mantener el modelador OPM/ISO 19450 de `app/`: un solo modelo, dos e
 ## Autoridad
 1. `canon/` (4 documentos vendorizados; versiones en `canon/LEEME.md`) es la autoridad OPM local.
    Precedencia: reglas > spec-OPD / spec-OPL > metodología.
-2. En `rehacer`, `docs/rehacer/DECISIONS.md` (1–32) fija las decisiones del dueño y manda sobre
-   `docs/rehacer/design/DESIGN.md`; `docs/rehacer/understand/CANON.md` deriva los T-NNN/DR-n del canon.
+2. `docs/especificacion.md` deriva del canon (T-NNN, DR-n); `docs/decisiones.md` fija las
+   decisiones del dueño y DS-n.
 3. `docs/conformidad.md` declara todo DEBE no cumplido. La brecha silenciosa está prohibida.
 No inventes reglas OPM locales. Si el canon no decide, aplica la válvula de simplicidad
 (especificación §0.5) y regístrala.

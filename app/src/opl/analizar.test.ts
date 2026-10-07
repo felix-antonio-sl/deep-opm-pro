@@ -8,7 +8,7 @@ test('T-150 normaliza NFC espacios viñetas y preserva nombres tipados cerrados'
     expect(l.diagnosticos).toEqual([]);
     expect(l.hechos).toEqual([{ k: 'enlace', enlace: { tipo: 'consumo', objeto: { nombre: 'Café', tipo: 'objeto' }, proceso: 'Validar' } }]);
 });
-test('T-151 no inventa entidades y requiere punto y spans cerrados', () => {
+test('T-151 T-160 no inventa entidades y requiere punto y spans cerrados', () => {
     for (const s of ['Validar consume Café.', '*Validar consume **Café**.', '*Validar* consume **Café**']) {
         expect(caso(s).hechos).toEqual([]); expect(caso(s).diagnosticos[0]?.codigo).toBe('syntax-error');
     }
@@ -42,7 +42,7 @@ test('T-100 dimensión informacional explícita no se degrada a mención', () =>
     expect(PLANTILLAS.find(p => p.id === 'D2')!.hacia({ C: { texto: 'Pedido', marca: 'objeto' } })).toEqual([{ k: 'esencia', cosa: { nombre: 'Pedido', tipo: 'objeto' }, valor: 'informacional' }]);
     expect(caso('**Pedido** es informacional.').hechos).toEqual([{ k: 'esencia', cosa: { nombre: 'Pedido', tipo: 'objeto' }, valor: 'informacional' }]);
 });
-test('T-138 género femenino tiene fuente literal D1/D4 y nunca el nombre', () => {
+test('T-138 T-162 género femenino tiene fuente literal D1/D4 y nunca el nombre', () => {
     expect(caso('**Persona** es física.').hechos).toEqual([{ k: 'esencia', cosa: { nombre: 'Persona', tipo: 'objeto', genero: 'f' }, valor: 'fisica' }]);
     expect(caso('*Persona* es sistémica.').hechos).toEqual([{ k: 'afiliacion', cosa: { nombre: 'Persona', tipo: 'proceso', genero: 'f' }, valor: 'sistemica' }]);
     expect(caso('**Persona** es físico.').hechos).toEqual([{ k: 'esencia', cosa: { nombre: 'Persona', tipo: 'objeto' }, valor: 'fisica' }]);

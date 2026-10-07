@@ -1,35 +1,20 @@
-# NOTICE
+# Avisos de autoría y licencias
 
-Este repositorio contiene dos clases de material que deben mantenerse
-conceptualmente separadas.
+El código propio del modelador rehecho está en `app/`.
+No se declara una licencia general para este repositorio.
 
-## Codigo Del Modelador
+Dependencias de ejecución fijadas en `app/package.json`:
 
-El codigo nuevo del modelador OPM vive en `app/`. Esta implementacion usa una
-arquitectura propia basada en Bun, Vite, Preact, Zustand y JointJS OSS. El
-kernel OPM esta en `app/src/modelo/`; JointJS se trata como adaptador de render.
+- Preact 10.29.1, licencia MIT; ©2015–present Jason Miller.
+  Texto primario: `app/node_modules/preact/LICENSE`.
+- Inria Serif 5.2.8, SIL Open Font License 1.1; ©2017 The Inria Serif
+  Project Authors (BlackFoundryCom/InriaFonts).
+  Texto primario: `app/node_modules/@fontsource/inria-serif/LICENSE`.
+  La fuente regular e itálica se incrusta en SVG/HTML canónicos, mediante
+  `app/src/opd/fuente.ts`. La licencia de la fuente se conserva al redistribuirla.
 
-No hay una licencia open-source repo-wide declarada en este corte. Hasta que se
-defina una politica de licencia explicita, no asumas permiso de redistribucion
-publica mas alla de los derechos ya otorgados por cada dependencia de terceros.
-
-## Material Observacional Y Derivado
-
-Los directorios `assets/`, `config/`, `catalog/`, `fixtures/`, `webroot/`,
-`opm-extracted/`, `decompiled/` y `_local/` contienen evidencia observacional,
-artefactos extraidos o derivados curados de OPCloud y de su sandbox publico.
-Ese material se conserva para trazabilidad, investigacion, interoperabilidad,
-validacion visual y construccion semantica basada en ISO 19450.
-
-OPCloud, sus marcas, assets, configuraciones, modelos de ejemplo y codigo
-original pertenecen a sus titulares respectivos. Estos insumos no convierten el
-repositorio en un fork autorizado de OPCloud ni habilitan copiar bloques de su
-implementacion dentro de `app/`.
-
-## Dependencias De Terceros
-
-Las dependencias de `app/package.json` se rigen por sus propias licencias. En
-particular, JointJS OSS 3.7 se usa como dependencia open-source bajo los terminos
-publicados por sus mantenedores. Cualquier cambio de distribucion o producto
-debe revisar licencias de dependencias y material observacional antes de salir
-del entorno de desarrollo.
+`canon/` contiene las cuatro obras del dueño vendorizadas como autoridad OPM local.
+Sus versiones y hashes figuran en `canon/LEEME.md`.
+El material observacional de OPCloud se retiró del árbol y permanece en el historial
+Git. No se atribuye licencia ni autorización de redistribución a ese material;
+purgar el historial requiere una decisión del dueño.

@@ -73,7 +73,7 @@ test('T-016 inicial/final combinables y múltiples; default/current exclusivos c
     }
     expect(objeto(original).estados).toEqual([{ id: 's-3', nombre: 'nuevo' }, { id: 's-4', nombre: 'listo' }]);
 });
-test('T-248 DS-20 designar resultado inicial rechaza, error previo no bloquea metadata', () => {
+test('T-043 DS-20 designar resultado inicial rechaza, error previo no bloquea metadata', () => {
     const m = conEnlace(modeloCon({ objetos: [['Pedido', ['listo']]], procesos: ['Procesar'] }), { id: 'e-5', tipo: 'resultado', objeto: 'o-2', proceso: 'p-4', estado: 's-3' });
     rechazo(e.designar(m, { estado: 's-3', designacion: 'inicial', activa: true }), 'contexto', 'R-RES-1');
     const malo = congelar({ ...m, cosas: { ...m.cosas, 'o-2': { ...objeto(m), estados: [{ ...objeto(m).estados[0]!, inicial: true as const }] } } });

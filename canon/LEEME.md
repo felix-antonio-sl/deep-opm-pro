@@ -15,5 +15,4 @@ Ante conflicto, estos documentos mandan sobre la especificación derivada y el d
 Las URN citadas en los `object.yaml` que no están aquí no son autoridad local.
 
 Para actualizar: reemplazar la carpeta completa, recalcular el SHA256 y revisar
-`docs/especificacion.md` y `docs/conformidad.md` en el mismo commit. Durante la
-implementación se aplica el mapa temporal de `docs/rehacer/plan/README.md`.
+`docs/especificacion.md` y `docs/conformidad.md` en el mismo commit. Las decisiones vigentes están en `docs/decisiones.md`.

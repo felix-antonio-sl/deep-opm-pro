@@ -28,7 +28,7 @@ test('T-178 conflictos rechazan ambas líneas sin reservar IDs ni descartar otra
     const r = aplicarPlan(m, p); expect(r.ok).toBe(true); if (r.ok) expect(Object.values(r.valor.modelo.cosas).map(c => c.nombre)).toEqual(['Validar']);
     expect(m.secuencia).toBe(2);
 });
-test('T-174 cuatro estados y ocho razones son visibles con partial parse real', () => {
+test('T-174 T-179 cuatro estados y ocho razones son visibles con partial parse real', () => {
     const m = vacio(), p = planificar(m, m.raiz, '\n**Pedido** es físico.\n??\n**Pedido** es físico.');
     expect(p.lineas.map(l => l.estado)).toEqual(['ignorada-vacia', 'aplicable', 'no-aplicable', 'sin-cambio']);
     expect(Object.values(TEXTO_RAZON)).toHaveLength(8); expect(Object.values(TEXTO_RAZON).every(Boolean)).toBe(true);
@@ -43,7 +43,7 @@ test('T-020 VAL crea primero la exhibición y después valor sin violar F13', ()
     expect(Object.values(r.valor.modelo.enlaces)).toEqual([expect.objectContaining({ tipo: 'exhibicion', refinador: a.id })]);
 });
 
-test('T-177 tipo incompatible y nombre ambiguo no mutan ni eligen primer candidato',()=>{
+test('T-177 T-158 tipo incompatible y nombre ambiguo no mutan ni eligen primer candidato',()=>{
  const m=vacio(),r=aplicarAcciones(m,[{op:'crearCosa',args:{opd:m.raiz,tipo:'objeto',nombre:'Pedido',x:0,y:0}}]);expect(r.ok).toBe(true);if(!r.ok)return;
  expect(planificar(r.valor.modelo,m.raiz,'*Pedido* es físico.').lineas[0]?.razon).toBe('enlace-invalido-firma');
  const c=Object.values(r.valor.modelo.cosas)[0]!,dup={...r.valor.modelo,cosas:{...r.valor.modelo.cosas,otro:{...c,id:'otro'}}};
@@ -149,7 +149,7 @@ test('T-184 editar lista de estados agrega sólo sub-span nuevo y conserva ident
  const m=modeloCon({objetos:[['Pedido',['nuevo','listo']]]}),o=Object.values(m.cosas)[0]!;if(o.tipo!=='objeto')throw Error('fixture');const antes=JSON.stringify(m),p=planificar(m,m.raiz,'**Pedido** puede estar `nuevo`, `listo` o `pagado`.');
  expect(p.resumen.noAplicables).toBe(0);expect(p.acciones).toEqual([{op:'agregarEstado',args:{objeto:o.id,nombre:'pagado'}}]);const resultado=must(aplicarPlan(m,p)).modelo,actual=resultado.cosas[o.id]!;if(actual.tipo!=='objeto')throw Error('fixture');const previos:typeof o.estados=actual.estados.slice(0,2);expect(previos).toEqual(o.estados);expect(actual.estados[2]!.nombre).toBe('pagado');expect(JSON.stringify(m)).toBe(antes);
 });
-test('T-195 condición alternativa reconstruye hecho y regeneración canónica sin conservar superficie',()=>{
+test('T-195 T-161 condición alternativa reconstruye hecho y regeneración canónica sin conservar superficie',()=>{
  const m=vacio(),p=planificar(m,m.raiz,'Si **Pedido** existe entonces *Validar* ocurre y consume **Pedido**, de lo contrario se omite *Validar*.');expect(p.resumen.noAplicables).toBe(0);const resultado=must(aplicarPlan(m,p)).modelo;expect(Object.values(resultado.enlaces)).toEqual([expect.objectContaining({tipo:'consumo',control:'c'})]);expect(textoCanonico(generarBloque(resultado,resultado.raiz))).toContain('*Validar* ocurre si **Pedido** existe, en cuyo caso **Pedido** se consume, de lo contrario *Validar* se omite.');
  expect(planificar(resultado,resultado.raiz,'Si **Pedido** existe entonces *Validar* ocurre y consume **Pedido**, de lo contrario se omite *Validar*.').acciones).toEqual([]);
 });
