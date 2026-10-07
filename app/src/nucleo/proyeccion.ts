@@ -89,19 +89,37 @@ export function proyectar(m: Modelo, opd: Id): Vista {
         const grupo = grupos.get(par) ?? [];
         grupo.push(e); grupos.set(par, grupo);
     }
-    const abstraidos = new Set([...grupos.values()].filter(g => g.some(e => e.abstraido)));
+    // La Tabla 27 combina sólo los hechos del detalle (subprocesos); el hecho propio del
+    // proceso visto compite después con ese resultado por fuerza semántica (reglas §6.5).
+    const detalles = new Map<EnlaceVisto[], EnlaceVisto[]>();
+    for (const g of grupos.values()) if (g.some(e => e.abstraido)) detalles.set(g, g.filter(e => e.abstraido));
     const compararTiempo = comparadorTemporal(m, idx);
-    const continuidades = continuidadesTrazables(m, idx, [...abstraidos]);
-    const invalidosTemporales = precedenciasInvalidas(m, idx, [...abstraidos]);
+    const continuidades = continuidadesTrazables(m, idx, [...detalles.values()]);
+    const invalidosTemporales = precedenciasInvalidas(m, idx, [...detalles.values()]);
     const enlaces: EnlaceVisto[] = [], conflictos: Diagnostico[] = [], emitidos = new Set<EnlaceVisto[]>();
     for (const e of directos) {
         if (!esProcedimental(e.enlace)) { enlaces.push(e); continue; }
         const grupo = grupos.get(JSON.stringify([e.enlace.objeto, e.enlace.proceso]))!;
-        if (!abstraidos.has(grupo)) { enlaces.push(e); continue; }
+        const detalle = detalles.get(grupo);
+        if (!detalle) { enlaces.push(e); continue; }
         if (emitidos.has(grupo)) continue;
         emitidos.add(grupo);
-        const fusion = fusionar(grupo, idx, opd, compararTiempo, continuidades.get(grupo), invalidosTemporales.has(grupo));
-        enlaces.push(...fusion.enlaces); conflictos.push(...fusion.conflictos);
+        const fusion = fusionar(detalle, idx, opd, compararTiempo, continuidades.get(detalle), invalidosTemporales.has(detalle));
+        const propios = grupo.filter(v => !v.abstraido);
+        conflictos.push(...fusion.conflictos);
+        if (!propios.length || fusion.conflictos.length) { enlaces.push(...propios, ...fusion.enlaces); continue; }
+        const candidatos = [...propios, ...fusion.enlaces];
+        const tipos = new Set(candidatos.map(v => v.enlace.tipo));
+        if (tipos.has('resultado') && tipos.has('consumo')) {
+            enlaces.push(...candidatos);
+            conflictos.push({ codigo: 'conflicto-resultado-consumo', regla: 'R-PREC-3', severidad: 'warning', familia: 'contencion',
+                mensaje: 'Resultado y consumo sin continuidad trazable.', accion: 'Corregir el nivel hijo',
+                refs: candidatos.flatMap(v => v.hechos.map(id => ({ tipo: 'enlace' as const, id }))), opd });
+            continue;
+        }
+        const elegido = hechoDeMayorFuerza(candidatos.map(v => v.enlace as EnlaceProcedimental));
+        const hechos = grupo.flatMap(v => v.hechos), enlace = { ...elegido, id: hechos[0]! };
+        enlaces.push({ clave: clave(enlace), enlace, hechos, abstraido: true });
     }
 
     const porHecho = new Map<Id, EnlaceVisto>();

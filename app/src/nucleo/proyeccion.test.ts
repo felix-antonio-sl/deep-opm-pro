@@ -8,6 +8,7 @@ import { proyectar, etiquetaOpd, opdsEnPreorden } from './proyeccion';
 import { indice } from './indice';
 import { validarForma } from './forma';
 import { noOfrecido, violacionesContexto, violacionesAbanico } from './matriz';
+import { generarBloque } from '../opl/generar';
 
 const caja: Aparicion = { x: 0, y: 0, ancho: 140, alto: 60 };
 const apps = (...ids: Id[]): Record<Id, Aparicion> => Object.fromEntries(ids.map(id => [id, caja]));
@@ -870,3 +871,28 @@ test('T-085 extremos repetidos conservan elevado, directo e invisible incluso co
     expect(proyectar(m, 'hijo').enlaces.flatMap(e => e.hechos)).toEqual(['elevado-b', 'elevado-y', 'oculto-1', 'oculto-2']);
     expect(JSON.stringify(m)).toBe(antes);
 });
+// DEC33: el hecho propio del padre y el del subproceso compiten por fuerza (reglas §6.5);
+// la vista abstracta muestra uno solo y su procedencia conserva ambos en el orden del grupo.
+for (const [arriba, abajo, tipo, rrol] of [
+    [procedimental('consumo', 'arriba', 'p'), procedimental('consumo', 'abajo', 's1'), 'consumo', []],
+    [procedimental('instrumento', 'arriba', 'p'), procedimental('instrumento', 'abajo', 's2'), 'instrumento', []],
+    [procedimental('agente', 'arriba', 'p'), procedimental('instrumento', 'abajo', 's1'), 'agente', []],
+    [procedimental('instrumento', 'arriba', 'p'), procedimental('agente', 'abajo', 's3'), 'agente', []],
+    [procedimental('efecto', 'arriba', 'p'), procedimental('consumo', 'abajo', 's1'), 'consumo', []],
+    [procedimental('instrumento', 'arriba', 'p'), procedimental('consumo', 'abajo', 's1'), 'consumo', ['R-ROL-3']]
+] as const) for (const invertido of [false, true]) {
+    test(`T-085 DEC33 padre ${arriba.tipo} + subproceso ${abajo.tipo} dan un solo hecho ${tipo} claves invertidas=${invertido}`, () => {
+        const es = invertido ? [abajo, arriba] : [arriba, abajo], m = modelo(es), antes = JSON.stringify(m);
+        expect(validarForma(m)).toEqual([]);
+        const roles = Object.values(m.enlaces).flatMap(e => violacionesContexto(m, e)).filter(v => v.regla.startsWith('R-ROL'));
+        expect(roles.map(v => v.regla)).toEqual(rrol.length ? [...rrol, ...rrol] : []);
+        const v = proyectar(m, 'raiz'), hechos = es.map(e => e.id);
+        expect(v.conflictos).toEqual([]);
+        expect(v.enlaces.map(({ enlace: x, hechos, abstraido }) => [x.tipo, 'objeto' in x ? x.objeto : undefined, 'proceso' in x ? x.proceso : undefined, x.id, hechos, abstraido]))
+            .toEqual([[tipo, 'b', 'p', hechos[0], hechos, true]]);
+        const lineas = generarBloque(m, 'raiz').filter(l => /\bb\b/.test(l.texto) && /\bp\b/.test(l.texto) && !l.texto.startsWith('#'));
+        expect(lineas).toHaveLength(1);
+        expect(proyectar(m, 'hijo').enlaces.flatMap(e => e.hechos).sort()).toEqual(['abajo', 'arriba']);
+        expect(JSON.stringify(m)).toBe(antes);
+    });
+}

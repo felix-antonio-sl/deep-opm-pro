@@ -79,6 +79,7 @@ Frase del dueño: «eso , hazlo tu mismo», sobre esta propuesta textual de dos 
       - habilitador arriba y transformación con cambio neto abajo es error R-ROL-3: el abstracto debe afectar también al objeto;
       - instrumento arriba y efecto neto cero abajo sigue en B-34 (R-ROL-1, no ofrecido);
       - las demás combinaciones son legales.
+    - Al abstraer, los hechos del detalle se funden por Tabla 27 (DEC31) y luego compiten por fuerza con los propios del padre (§6.5). El padre muestra un solo hecho, cuyo `hechos` sigue el orden del grupo. Resultado y consumo sin continuidad siguen siendo R-PREC-3.
 
 ## Resoluciones directas posteriores — vigentes
 
