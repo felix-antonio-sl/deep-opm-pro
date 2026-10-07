@@ -8,7 +8,11 @@ import { diagnosticar, gatesExportacion } from './nucleo/diagnostico';
 import { escena } from './opd/escena';
 import { dibujar } from './opd/dibujo';
 import { generarModelo } from './opl/generar';
-import { generarDocumentoOpl } from './opl/documento';
+import { generarDocumentoOpl, importarOpl } from './opl/documento';
+import { PLANTILLAS } from './opl/plantillas';
+import { casosRoundtrip, type EntradaCorpus, type EsperarCorpus } from './pruebas/corpus-roundtrip';
+import { modeloCon } from './pruebas/constructores';
+import type { Modelo } from './nucleo/tipos';
 import { planificar } from './opl/planificar';
 import { importarV0 } from './codec/importar';
 import { exportarV0 } from './codec/exportar';
@@ -40,6 +44,7 @@ function medir<T>(meta: string, limite: number, preparar: () => () => T, comprob
     }
     const mediana = medidas.sort((a, b) => a - b)[2]!;
     expect(mediana, `${meta}/mediana de cinco identidades frescas`).toBeLessThan(limite);
+    return { mediana, medidas };
 }
 test('WP-10 DESIGN §2.4 operación nuclear efectiva incluye cierre DS20 <9ms', () => {
     medir('operación DS20', 9, () => { const m = azar(SEMILLA_HODOM, 'hodom'); return () => aplicarAccion(m, { op: 'renombrarModelo', args: { nombre: 'HODOM actualizado' } }); }, r => {
@@ -73,3 +78,71 @@ test('WP-10 DESIGN §2.4 planificar1000 líneas genuinas <180ms', () => {
         return () => planificar(m, 'modelo', texto);
     }, r => { expect(r.lineas).toHaveLength(1000); expect(r.acciones).toEqual([]); expect(r.lineas.flatMap(l => l.diagnosticos.filter(d => d.severidad === 'error'))).toEqual([]); });
 });
+
+// Cada preparación crea colecciones y callbacks nuevos. Toda construcción de modelos,
+// enumeración, análisis, ensayo, importación y regeneración ocurre dentro del trabajo.
+// Los oráculos se recogen y comprueban después del reloj; ninguna respuesta se retiene.
+function prepararCorpusRoundtrip() {
+    const comprobaciones: (() => void)[] = [], libro: EntradaCorpus[] = [];
+    const pendientes: { nombre: string; id: string; doc: string; clave: string }[] = [];
+    const argumentosExactos = new Set<string>(), plantillas = new Set(PLANTILLAS.map(p => p.id));
+    let modelos = 0, importaciones = 0;
+    const esperar: EsperarCorpus = actual => ({
+        toEqual: esperado => { comprobaciones.push(() => { expect(actual).toEqual(esperado); }); },
+        toBe: esperado => { comprobaciones.push(() => { expect(actual).toBe(esperado); }); },
+        toBeGreaterThan: esperado => { comprobaciones.push(() => { expect(actual).toBeGreaterThan(esperado); }); },
+        toHaveLength: esperado => { comprobaciones.push(() => { expect(actual).toHaveLength(esperado); }); },
+        toBeNull: () => { comprobaciones.push(() => { expect(actual).toBeNull(); }); },
+    });
+    const verificar = (m: Modelo, id: string, estricto = true) => {
+        modelos++;
+        const doc = generarDocumentoOpl(m), p = planificar(m, 'modelo', doc);
+        esperar({ id, errores: p.lineas.flatMap(l => l.diagnosticos.filter(d => d.severidad === 'error')) }).toEqual({ id, errores: [] });
+        esperar({ id, acciones: p.acciones }).toEqual({ id, acciones: [] });
+        esperar(generarModelo(m).every(l => l.soloDisplay || plantillas.has(l.plantilla))).toBe(true);
+        if (estricto) pendientes.push({ nombre: m.nombre, id, doc, clave: JSON.stringify([m.nombre, doc]) });
+    };
+    const casos = casosRoundtrip(verificar, esperar, libro);
+    return () => {
+        for (const caso of casos) caso.ejecutar();
+        for (const { nombre, id, doc, clave } of pendientes) {
+            const r = importarOpl(nombre, doc); // Real en cada ocurrencia: sin retención ni respuesta cacheada.
+            importaciones++;
+            argumentosExactos.add(clave);
+            esperar({ id, ok: r.ok }).toEqual({ id, ok: true });
+            if (!r.ok) continue;
+            esperar(r.valor.plan.resumen.noAplicables).toBe(0);
+            esperar({ id, texto: generarDocumentoOpl(r.valor.modelo) }).toEqual({ id, texto: doc });
+        }
+        // También se conserva el trabajo intercalado de la guarda de factorización.
+        const b = modeloCon({ objetos: [['Pedido', []]], procesos: ['Validar'], enlaces: [['consumo', 'Pedido', 'Validar']] });
+        const antes = JSON.stringify(b), doc = generarDocumentoOpl(b), r = importarOpl(b.nombre, doc);
+        esperar(r.ok).toBe(true);
+        const respuestaAntes = JSON.stringify(r);
+        for (let i = 0; i < 8; i++) esperar(importarOpl('Otra', `**Objeto_${i}** es físico.`).ok).toBe(true);
+        const otra = importarOpl(b.nombre, doc);
+        esperar(otra.ok).toBe(true);
+        if (r.ok && otra.ok) {
+            esperar(generarDocumentoOpl(otra.valor.modelo)).toBe(doc);
+            esperar(otra.valor.modelo === r.valor.modelo).toBe(false);
+            esperar(JSON.stringify(r)).toBe(respuestaAntes);
+            esperar(JSON.stringify(b)).toBe(antes);
+        }
+        return { casos: casos.length, modelos, importaciones, pendientes: pendientes.length,
+            argumentosExactos: argumentosExactos.size, admitidos: libro.filter(c => c.admitido).length,
+            familias: [...new Set(libro.map(c => c.familia))].sort(), comprobaciones };
+    };
+}
+
+test('T-192 toda enumeración construcción análisis ensayo aplicación mediana <3000ms', () => {
+    const medidas = medir('T-192 corpus completo', 3000, prepararCorpusRoundtrip, r => {
+        for (const comprobar of r.comprobaciones) comprobar();
+        expect(r.casos).toBe(160);
+        expect(r.modelos).toBe(2996);
+        expect(r.admitidos).toBe(r.modelos);
+        expect(r.argumentosExactos).toBe(2734);
+        expect(r.importaciones).toBe(r.pendientes);
+        expect(r.familias).toEqual(['CX', 'CX3', 'EX', 'FAN5', 'atributos-mixtos', 'atómico', 'fan', 'fan-por-rama']);
+    });
+    console.log('T-192 rendimiento corpus completo', medidas);
+}, 30000); // Timeout técnico de seis corpus; el umbral de la mediana sigue siendo 3000ms.

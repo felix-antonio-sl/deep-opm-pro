@@ -145,6 +145,8 @@ original ISO ni sustituye las cuatro primarias locales.
 `src/rendimiento.test.ts` construye el modelo con `pruebas/azar.ts` (semilla fija, perfil
 `hodom`); cada meta usa la mediana de cinco identidades frescas tras calentar con otra, nunca una respuesta cacheada, y falla si supera **3×** su objetivo.
 
+T-192 conserva todos sus casos y aserciones de corrección; su tiempo se mide por separado en `rendimiento.test.ts` con esa metodología y el mismo límite de **3000 ms**.
+
 ---
 
 ### 4.2 API de operaciones (todas `Operacion<A>`, puras) — CONTRATO

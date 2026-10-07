@@ -164,9 +164,10 @@ se recupera a mano.
 ## Despliegue, recuperación y transición
 
 El único circuito es `./deploy/deploy.sh`, sujeto a autorización explícita.
-Construye con versión Git, espera salud y compara versión y acceso 401. No equivale
-a merge: el corte H3 deja un PR abierto y no modifica main. Lea el log sin cuerpos,
-claves ni tokens; si el almacenamiento falla, preserve la única copia original.
+Construye con versión Git, espera salud y compara versión y acceso 401. El corte H3
+ya está integrado en `main`; el despliegue requiere autorización y verificación
+operativas propias. Lea el log sin cuerpos, claves ni tokens; si el almacenamiento
+falla, preserve la única copia original.
 
 Recuperar una copia previa: copie el JSON elegido a una ubicación protegida y use
 Importar en Biblioteca (ID nuevo) o la API con CAS vigente. Restaurar papelera no
