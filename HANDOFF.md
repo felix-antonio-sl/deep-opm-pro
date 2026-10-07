@@ -1,35 +1,41 @@
 # Continuidad
 
-La fase A de `8d4e0b87` y el desglose posterior del ensayo están completados. Se
-conservan los originales e informes privados fuera de Git. El detalle de los nueve
-OPD, las 46 etiquetas, las 26 multiplicidades, las nueve rutas, los 1055 campos y
-los 203 errores está en:
+La fase A de `8d4e0b87` y el desglose del ensayo están completados. Se conservan
+los originales e informes privados. El detalle de nueve OPD, 46 etiquetas,
+26 multiplicidades, nueve rutas, 1055 campos y 203 errores está en:
 `/home/felix/.local/state/opforja/ensayos/fase-a-8d4e0b87-uq1bjdwm/ensayo/revision-usuario/DETALLE-DESCARTES.md`.
-Las propuestas de rescate y atribución de reglas siguen sin aplicar; no se cambió
-la conversión, el producto ni las severidades. Los siete modelos tienen errores
+Las propuestas de rescate no se aplicaron; los siete modelos conservan los errores
 de modelado pendientes de revisión humana.
 
-La imagen `8d4e0b87` queda corriendo por instrucción de Félix en el contenedor propio
-`opforja-revision-8d4e0b87-5me5hdtl`, puerto `127.0.0.1:32926`, con copias byteexactas
-de los siete modelos y cuenta sintética. Salud, versión, 401 sin sesión, login y
-lectura de los siete documentos están comprobados. No comparte datos ni red del
-stack de producción. El acceso y los datos de eliminación están en:
+La preview `8d4e0b87` continúa por instrucción de Félix en el contenedor propio
+`opforja-revision-8d4e0b87-5me5hdtl`, puerto `127.0.0.1:32926`, con copias
+byteexactas de los siete modelos y cuenta sintética. Su acceso y eliminación están en:
 `/home/felix/.local/state/opforja/ensayos/fase-a-8d4e0b87-uq1bjdwm/revision-usuario/ACCESO.md`.
 Eliminar únicamente esta instancia y su directorio temporal cuando Félix avise;
-preservar el ensayo original.
+preservar el ensayo original. La preview conserva su versión y datos.
 
-Autorización directa vigente: «T-192: autorizo separar su medición de tiempo de la
-prueba de corrección. Conserva todos sus casos y aserciones, y mide el tiempo en
-rendimiento.test.ts con la misma metodología de mediana, sin cambiar el límite.
-Con check verde, commitea y pushea esto junto con la corrección de docs/operacion.md.»
-El ajuste conserva todo el corpus y traslada la latencia a calentamiento más cinco
-identidades frescas, sin retención de respuestas y con 3000 ms intactos. La frase
-obsoleta de operación está corregida. Check íntegro verde: 2902 pruebas, cero fallos;
-T-192 mediana 2564,47 ms < 3000 ms. La revisión independiente del candidato es
-favorable; los 164 casos de corrección y sus oráculos se conservan. Commit y push
-están autorizados por la frase anterior; su SHA y paridad se verifican en Git.
-Los logs previos fallidos se conservan junto a la evidencia nueva.
+T-192 quedó publicado: calentamiento más cinco identidades frescas, corpus completo
+sin retención de respuestas y límite de 3000 ms. El candidato B-36 parte de
+`67542738`. La respuesta directa fue «B-36: conservar el modelo (recomendado)».
+Exportar conserva el OPL actual, avisa estados no expresados en ningún bloque y ofrece
+una elección explícita para mostrarlos mediante operaciones nativas y un UNDO.
+JSON permanece exacto. La reparación serial mínima del planificador distingue las
+dimensiones compatibles de designación y conserva los slots únicos por objeto;
+no cambia reglas, gramática ni operaciones. B-36 y las diez parciales siguen vigentes.
+
+Las regresiones RED y la evidencia nueva de esta ola se conservan en:
+`/home/felix/.local/state/opforja/ensayos/b36-67542738/`.
+Focal de parser y flujo: 77 pruebas, cero fallos. El check nuevo pasó con TSC verde,
+2960 pruebas, cero fallos y 1447380 aserciones en 66 archivos (98,20 s);
+T-192 dio una mediana de 2545,57 ms bajo el límite de 3000 ms. Build verde y
+27/27 recorridos e2e con Chromium 1217, incluidos los 26 originales y el flujo B-36.
+La revisión independiente final es favorable: focal propio 77/0, recorrido 27
+1/1 y capturas del aviso/estado expresado observadas. Las cuatro suites originales
+se conservaron como prefijos byteexactos. Candidato aceptado técnicamente dentro
+del alcance declarado; publicación y paridad se comprueban en Git. El primer
+commit, de designaciones, pasó además su check separado: 2942/0, TSC verde.
+El siguiente trabajo de producto es B-15: etiquetas y multiplicidades que pisan
+cosas o puntas. La revisión humana de los siete modelos sigue pendiente.
 
 La fase B sigue sin autorizar: respaldo, migración real, despliegue e intervención
-del stack actual requieren la decisión posterior de Félix. Esta entrega termina
-tras publicar el ajuste validado y dejar disponible la revisión aislada.
+del stack actual requieren la decisión posterior de Félix.

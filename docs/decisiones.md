@@ -553,8 +553,17 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
    conserva en el JSON y al reparsear sobre el modelo existente (T-159).
 2. El borrado: el OPL es aditivo.
 3. Posiciones y tamaños.
-4. Estados ocultos en **todos** los OPDs, por supresión global o local en todos: D6 no los nombra.
-   La supresión local, en cambio, sí se reconstruye (`sincronizar-estados` con `otros`).
+4. Estados no nombrados ni referenciados en ningún bloque, por supresión global o local en
+   todas sus apariciones: D6 no recupera sus nombres/designaciones desde vacío, incluso si otros
+   estados del objeto sí se expresan. La supresión local se reconstruye con `otros` cuando los
+   estados omitidos ya se conocen por otro bloque; no hay inversa exacta de supresión global.
+   Exportar conserva Documento OPL como expresión actual y avisa estas omisiones de objetos
+   con aparición. La elección explícita «Expresar estados omitidos» retira únicamente sus
+   supresiones mediante operaciones nativas, en una transacción/UNDO; cambia las vistas del
+   modelo, y el export posterior usa ese modelo actualizado. Cancelar o descargar OPL/JSON no
+   muta. JSON conserva los bytes completos. No se crean estados, nombres, enlaces, OPDs ni
+   apariciones; los huérfanos B-26 mantienen sus gates. B-36 sigue parcial si se elige el OPL
+   actual sin expresar, y las demás bisimetrías parciales permanecen vigentes.
 5. Duración de proceso sin una excepción que la cite: no hay plantilla (zona laxa, B-20).
 6. `descripcion`, y `genero` cuando ninguna oración muestra `un/una`.
 7. Refinamientos triviales (<2): sin oración CX (R-CX-0), no se reconstruyen desde el texto.
