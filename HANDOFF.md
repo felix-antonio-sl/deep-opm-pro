@@ -19,8 +19,8 @@ Frases directas role=user transmitidas por dirección; ID/fecha originales no ex
 | Históricos y pasos1–4 | Publicados; antecedentes completos en bitácora. |
 | WP9/13/H2 | Publicados; corte H2 y posterior reanudación directa. |
 | WP10/12/14/15 | Publicados `c94178fa`/`6c99b17`/`efbe04a`/`ed5e0f8`. |
-| WP16 local | Cerrado y aceptado en este commit; misma ola4 GLOBAL_FAVORABLE. Git por dirección. |
-| WP17→WP19→H3 | SiguienteWP17 tras remoto verificado; no iniciados. |
+| WP16 | Publicado `6e6d9940`; ola4 GLOBAL_FAVORABLE. |
+| WP17→WP19→H3 | WP17 cerrado/aceptado en este commit; WP19 tras publicación verificada. |
 
 ## Orientación autorizada — realización WP16
 
@@ -30,6 +30,8 @@ Autorización directa role=user recibida íntegra por dirección; ID/fecha origi
 
 ## Siguiente paso y límites
 
-Candidato final: sentido/peine y tres textos reparados.660opciones consultadas/15tipos; cada legal realizada contra candidato crudo en dominio finito con/sin datos distintos. Iguales: control literal recíproco/traza. Check NUEVO2884/0/TSC0/exit0; T192 completa2899,613ms, corpus intacto. Build8 total0; browser8/10 sin errores/externos,13PNG finales observados a1×, ID/undo y foco/teclado desktop/390. Antecedentes2872 y check1 sólo históricos. Misma revisión ola4 GLOBAL_FAVORABLE; dirección acepta WP16, cerrado en este commit. Dirección publica/verifica y activaWP17 tras SHA remoto verificado.
+WP16 publicado/verificado `6e6d9940`. WP17 realizado:26e2e genuinos verdes (build/servidor compilados, cuenta/datos sintéticos, versión e2e),0errores de página/externos; check nuevo2896/0/TSC0/exit0, build total0. T192 COMPLETA2963,107ms<3000; ocho metas y corpus intactos. Reparaciones mínimas: guard CLI de cuenta; multiplicidad por rol; Decisión Supr≥2 conserva hechos; menú Completar/XOR/OR y candidatos ofrecidos de resultado/efecto por identidad. Render/matriz/núcleo y generador intactos. Nueve PNG finales observados individualmente; B15/sectores estrechos conservan límites.
 
-Diez parciales/B15/26e2e/ISO conservan límites; sector cero colineal no acredita selección visual. WP18/Docker necesita autorización aparte. WP17 se activa después de publicación verificada de WP16.
+Dirección acepta técnicamente WP17 y sus criterios; cerrado en este commit. Dirección publica/verifica. WP19 únicamente tras SHA remoto verificado y relevo, luego una revisión conjunta de ola5 y detenerse en H3. Sin nueva contradicción material observada. Históricos/RED conservados en logs; contexto de error11 se perdió al arrancar12, declarado y no reconstruido. Compilados propios retirados del árbol.
+
+Diez parciales/B15/ISO conservan límites; sector cero colineal no acredita selección visual. WP18/Docker requiere autorización aparte. No optimización del generador ni cambios de umbrales.

@@ -11,7 +11,7 @@ import { tiposLegales, MATRIZ } from '../nucleo/matriz';
 import type { TeclaComando } from '../editor/atajos';
 import type { Editor as Controlador } from '../editor/estado';
 import { extremos as extremosEnlace } from '../nucleo/tipos';
-import type { Modelo, Ref, ModoDespliegue } from '../nucleo/tipos';
+import type { Modelo, Ref, ModoDespliegue, Enlace } from '../nucleo/tipos';
 import { validarNombreCosa, validarNombreEstado } from '../nucleo/lexico';
 import { colocar } from '../nucleo/colocacion';
 import { escena } from '../opd/escena';
@@ -23,6 +23,7 @@ import { NombreEnLinea } from './NombreEnLinea';
 import { MenuTipoEnlace, confirmarDatos } from './MenuTipoEnlace';
 import { MenuContextual } from './MenuContextual';
 import { Dialogo } from './Dialogo';
+import type { Accion } from '../nucleo/operaciones';
 const VACIA = (): Seleccion => ({ cosas: [], estados: [], enlaces: [], abanicos: [] });
 export function puntoModelo(p: Punto, c: Camara): Punto { return { x: (p.x-c.x)/c.zoom, y: (p.y-c.y)/c.zoom }; }
 export function seleccionarRef(s: Seleccion, ref: Ref | null, alternar: boolean): Seleccion {
@@ -58,10 +59,19 @@ export function extremosSeleccionados(m: Modelo, id: string) {
     const desde = estado(true), hacia = estado(false);
     return {desde:{cosa:ex.origen,...(desde?{estado:desde}:{})},hacia:{cosa:ex.destino,...(hacia?{estado:hacia}:{})}};
 }
+export function accionMultiplicidad(z: Enlace, origen: boolean): Accion {
+    const roles=MATRIZ[z.tipo].mult;
+    const ex=origen?'origen':roles==='refinador'?'refinador':roles==='ambos'?'destino':'objeto';
+    const valor=ex==='origen'&&'multOrigen'in z?z.multOrigen:ex==='destino'&&'multDestino'in z?z.multDestino:'mult'in z?z.mult:undefined;
+    const vals=[null,'?','*','+'] as const;
+    return {op:'fijarMultiplicidad',args:{enlace:z.id,extremo:ex,valor:vals[(vals.indexOf(valor??null)+1)%4]!}};
+}
+export function accionQuitar(refs:readonly Ref[]): Accion | null {const opd=refs.find(r=>r.tipo==='opd')?.id,cosas=refs.filter(r=>r.tipo==='cosa').map(r=>r.id);return opd&&cosas.length>=2?{op:'quitarDeOpd',args:{opd,cosas}}:null;}
 export function Lienzo(p: DatosRanura) {
     const m=p.estado.modelo!,opd=p.estado.opd,idx=indice(m),e=useMemo(()=>escena(m,opd),[m,opd]),canon=p.estado.modo==='estatico';
     const contenedor=m.opds[opd]!, host=useRef<HTMLDivElement>(null), svg=useRef<SVGSVGElement>(null);
     const [gesto,fijar]=useState<Gesto>({k:'reposo'}),actual=useRef<Gesto>(gesto),[hover,realzar]=useState<Ref|null>(null),[menu,contextual]=useState<Punto|null>(null);
+    const [quitar,confirmarQuitar]=useState<readonly Ref[]|null>(null);
     const [ocultos,mostrarOcultos]=useState<string|null>(null);
     const [edicion,editar]=useState<{ref:Ref;valor:string;inversa?:string;en:Punto}|null>(null),[despliegue,desplegar]=useState(false),[buscar,busqueda]=useState<string|null>(null),[eliminar,confirmarEliminar]=useState(false),[estadoBorrar,borrarEstado]=useState<string|null>(null),[cambiando,cambiarEnlace]=useState<string|null>(null);
     const dedos=useRef(new Map<number,Punto>()),pellizco=useRef<{distancia:number;centro:Punto;camara:Camara}|null>(null);
@@ -119,7 +129,8 @@ export function Lienzo(p: DatosRanura) {
     useEffect(()=>{if(p.estado.modo==='navegacion'||p.estado.modo==='estatico'){cambiar({k:'reposo'});editar(null);contextual(null);}},[p.estado.modo]);
     useEffect(()=>{
         const s=p.estado.solicitud;if(!s)return;const ref=s.refs?.[0]??(p.estado.seleccion.estados[0]?{tipo:'estado' as const,id:p.estado.seleccion.estados[0]}:p.estado.seleccion.cosas[0]?{tipo:'cosa' as const,id:p.estado.seleccion.cosas[0]}:null);
-        if(s.k==='crear'){iniciarCreacion(s.tipo??'objeto',s.texto??'');p.editor.solicitar(null);}
+        if(s.k==='tipo'&&s.opcion==='confirmar-quitar'){confirmarQuitar(s.refs??[]);p.editor.solicitar(null);}
+        else if(s.k==='crear'){iniciarCreacion(s.tipo??'objeto',s.texto??'');p.editor.solicitar(null);}
         else if(s.k==='estado'&&ref){cambiar({k:'estado',objeto:ref.tipo==='estado'?idx.estadoDe.get(ref.id)!.objeto:ref.id,nombre:''});p.editor.solicitar(null);}
         else if(s.k==='renombrar'&&ref){const b=caja(ref);editar({ref,valor:nombreRef(ref),en:b?pantalla({x:b.x,y:b.y}):{x:24,y:60}});p.editor.solicitar(null);}
         else if(s.k==='enlace'&&s.opcion==='buscar-o-crear'){busqueda((buscar??'')+(s.texto??''));p.editor.solicitar(null);}
@@ -127,7 +138,7 @@ export function Lienzo(p: DatosRanura) {
         else if(s.k==='encadenar'||s.k==='refinador'){tiposCadena.current=[];fijarTipoRefinador('objeto');cambiar({k:'encadenando',opd,bandas:[],actual:'',modo:contenedor.tipo==='despliegue'?'refinadores':'subprocesos',...(s.gesto?{id:s.gesto}:{})});p.editor.solicitar(null);}
         else if(s.k==='desplegar'){desplegar(true);p.editor.solicitar(null);}
         else if(s.k==='multiplicidad'){
-            const acciones=p.estado.seleccion.enlaces.map(enlace=>{const z=m.enlaces[enlace]!,roles=MATRIZ[z.tipo].mult;const ex=s.opcion==='origen'?'origen':roles==='refinador'?'refinador':'objeto';const valor=ex==='origen'&&'multOrigen'in z?z.multOrigen:'mult'in z?z.mult:undefined;const vals=[null,'?','*','+'] as const;return {op:'fijarMultiplicidad' as const,args:{enlace,extremo:ex as 'origen'|'refinador'|'objeto',valor:vals[(vals.indexOf(valor??null)+1)%4]!}};});
+            const acciones=p.estado.seleccion.enlaces.map(enlace=>accionMultiplicidad(m.enlaces[enlace]!,s.opcion==='origen'));
             if(acciones.length)p.editor.ejecutarVarias(acciones,'Multiplicidad de selección');p.editor.solicitar(null);
         }
         else if(s.k==='tipo'&&s.opcion==='confirmar-eliminar'){confirmarEliminar(true);p.editor.solicitar(null);}
@@ -135,7 +146,7 @@ export function Lienzo(p: DatosRanura) {
         else if(s.k==='tipo'&&p.estado.seleccion.enlaces.length){const id=p.estado.seleccion.enlaces[0]!,ex=extremosSeleccionados(m,id);if(ex){cambiarEnlace(id);cambiar({k:'menuTipo',...ex,opciones:tiposLegales(m,{opd,...ex})});}p.editor.solicitar(null);}
         else if(s.k==='camara'){espacio.current=true;p.editor.solicitar(null);}
     },[p.estado.solicitud]);
-    useEffect(()=>{const modal=despliegue||eliminar||estadoBorrar!==null||ocultos!==null||buscar!==null;if(modal&&p.editor.obtener().modo==='edicion')p.editor.fijarModo('gestion-modal');return()=>{if(modal&&p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');};},[despliegue,eliminar,estadoBorrar,ocultos,buscar]);
+    useEffect(()=>{const modal=quitar!==null||despliegue||eliminar||estadoBorrar!==null||ocultos!==null||buscar!==null;if(modal&&p.editor.obtener().modo==='edicion')p.editor.fijarModo('gestion-modal');return()=>{if(modal&&p.editor.obtener().modo==='gestion-modal')p.editor.fijarModo('edicion');};},[quitar,despliegue,eliminar,estadoBorrar,ocultos,buscar]);
     function teclado(ev:KeyboardEvent,enMenu=false) {
         if(ev.defaultPrevented||ev.isComposing)return;const target=ev.target instanceof Element?ev.target:null;if(target?.closest('dialog')&&!enMenu)return;const g=actual.current;
         if(g.k!=='reposo'&&['Escape','Enter','Tab','ArrowUp','ArrowDown'].includes(ev.key)||g.k==='menuTipo'&&/^[1-9]$/.test(ev.key)) {ev.preventDefault();ev.stopPropagation();evento({k:'tecla',tecla:ev.key,mayus:ev.shiftKey,ctrl:ev.ctrlKey,alt:ev.altKey});return;}
@@ -209,6 +220,7 @@ export function Lienzo(p: DatosRanura) {
         {despliegue&&<Dialogo titulo="Desplegar por modo" cerrar={()=>desplegar(false)}>{(['agregacion','exhibicion','generalizacion','clasificacion'] as ModoDespliegue[]).map((modo,i)=><button onClick={()=>{const cosa=p.editor.obtener().seleccion.cosas[0];if(!cosa)return;p.editor.fijarModo('edicion');const r=p.editor.ejecutar({op:'desplegar',args:{opd,cosa,modo}});if(r.ok){desplegar(false);p.editor.navegar(r.valor.creados.find(id=>r.valor.modelo.opds[id])!);p.editor.solicitar({k:'encadenar'});}}}>{i+1} {modo}</button>)}</Dialogo>}
         {ocultos&&m.cosas[ocultos]?.tipo==='objeto'&&<Dialogo titulo="Estados ocultos" cerrar={()=>mostrarOcultos(null)}>{m.cosas[ocultos].estados.filter(s=>!e.nodos.find(n=>n.ref.id===ocultos)?.estados.some(v=>v.ref.id===s.id)).map(s=><button onClick={()=>{p.editor.fijarModo('edicion');const r=p.editor.ejecutarVarias([{op:'suprimirEstado',args:{estado:s.id,opd:null,activa:false}},{op:'suprimirEstado',args:{estado:s.id,opd,activa:false}}],'Mostrar estado');if(r.ok)mostrarOcultos(null);}}>{s.nombre} · Mostrar</button>)}</Dialogo>}
         {estadoBorrar&&<Dialogo titulo="Eliminar estado enlazado" cerrar={()=>borrarEstado(null)}><p>Los enlaces anclados a este estado quedarán sobre su objeto.</p><button onClick={()=>{p.editor.fijarModo('edicion');const r=p.editor.ejecutar({op:'eliminarEstado',args:{estado:estadoBorrar}});if(r.ok)borrarEstado(null);}}>Eliminar estado</button></Dialogo>}
+        {quitar&&<Dialogo titulo="Confirmar quitar de este OPD" cerrar={()=>confirmarQuitar(null)}><p>Se quitarán {quitar.filter(r=>r.tipo==='cosa').length} apariciones. Las cosas, estados y enlaces se conservan en el modelo.</p><button onClick={()=>confirmarQuitar(null)}>Cancelar</button><button onClick={()=>{const accion=accionQuitar(quitar);if(!accion)return;p.editor.fijarModo('edicion');const r=p.editor.ejecutar(accion);if(r.ok)confirmarQuitar(null);}}>Quitar apariciones</button></Dialogo>}
         {eliminar&&<Dialogo titulo="Eliminar del modelo" cerrar={()=>confirmarEliminar(false)}><p>Se eliminarán {p.estado.seleccion.cosas.length} cosas, {p.estado.seleccion.cosas.reduce((n,id)=>{const c=m.cosas[id];return n+(c?.tipo==='objeto'?c.estados.length:0);},0)} estados y {Object.values(m.enlaces).filter(z=>p.estado.seleccion.cosas.some(id=>Object.values(z).includes(id))).length} enlaces; aparecen en {Object.values(m.opds).filter(o=>p.estado.seleccion.cosas.some(id=>o.apariciones[id])).length} OPDs. Quitar de este OPD conserva la cosa.</p><button class="peligro" onClick={()=>{p.editor.fijarModo('edicion');const r=p.editor.ejecutar({op:'eliminarCosas',args:{cosas:p.estado.seleccion.cosas}});if(r.ok)confirmarEliminar(false);}}>Eliminar definitivamente</button></Dialogo>}
         {buscar!==null&&g.k==='conectando'&&<Dialogo titulo="Destino del enlace" cerrar={()=>busqueda(null)}><input aria-label="Buscar destino" autoFocus value={buscar} onInput={ev=>busqueda(ev.currentTarget.value)} />{Object.values(m.cosas).filter(c=>contenedor.apariciones[c.id]&&claveNombre(c.nombre).includes(claveNombre(buscar))).map(c=><button onClick={()=>{p.editor.fijarModo('edicion');busqueda(null);evento({k:'arriba',punto:cursor.current,sobre:`cosa:${c.id}`,mayus:false});}}>{c.nombre}</button>)}{(['objeto','proceso'] as const).map(tipo=><button disabled={!!validarNombreCosa(buscar)} onClick={()=>{p.editor.fijarModo('edicion');const en=colocar(m,opd,{ancho:135,alto:60},{x:cursor.current.x,y:cursor.current.y+(tipo==='objeto'?-100:100)}),r=p.editor.ejecutar({op:'crearCosa',args:{opd,tipo,nombre:buscar,x:en.x,y:en.y}});if(r.ok){const cosa=r.valor.creados.find(id=>r.valor.modelo.cosas[id]);busqueda(null);if(cosa)evento({k:'arriba',punto:en,sobre:`cosa:${cosa}`,mayus:false});}}}>Crear {tipo} «{buscar}»</button>)}</Dialogo>}
         {g.k==='conectando'&&<p class="estado-gesto" role="status">Enlace: Tab recorre destinos · escribe nombre · ↵ tipo · ⎋</p>}

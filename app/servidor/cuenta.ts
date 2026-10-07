@@ -1,6 +1,6 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { readFile, mkdir, open, rename, unlink } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
 export interface Cuenta {
     readonly email: string;
     readonly hashClave: string;
@@ -120,7 +120,7 @@ export async function ejecutarCuenta(args: readonly string[], entrada: string, s
         return 1;
     }
 }
-if (import.meta.main) {
+if (import.meta.main && ['cuenta.ts', 'cuenta.js'].includes(basename(import.meta.path))) {
     const args = process.argv.slice(2);
     if (!args.includes('--datos') && process.env.OPFORJA_DATOS)
         args.push('--datos', process.env.OPFORJA_DATOS);

@@ -1,5 +1,6 @@
 import { createPortal } from 'preact/compat';
 import { useLayoutEffect, useRef, useState } from 'preact/hooks';
+import { indice } from '../nucleo/indice';
 import { tiposLegales } from '../nucleo/matriz';
 import type { DatosEtiquetas, OpcionTipo } from '../nucleo/matriz';
 import type { Modelo, Id } from '../nucleo/tipos';
@@ -14,17 +15,28 @@ export function confirmarDatos(m: Modelo, opd: Id, g: Extract<Gesto,{k:'menuTipo
     if (enlace) return {gesto:{k:'reposo'} as const,acciones:[{op:'cambiarTipoEnlace' as const,args:{enlace,tipo:eleccion.tipo,sentido:eleccion.sentido,etiquetas}}]};
     return reducirGesto(m,opd,{...g,opciones},{k:'elegir',indice});
 }
+export function opcionesPresentadas(opciones: readonly OpcionTipo[]) {
+    const disponibles=opciones.map((o,i)=>({o,i})).filter(({o})=>o.legal!==false||o.alternativa);
+    return [...disponibles.filter(({o})=>o.legal===false&&o.alternativa?.k==='completarCambio'),...disponibles.filter(({o})=>!(o.legal===false&&o.alternativa?.k==='completarCambio'))];
+}
+export function textoCompletar(m: Modelo, o: OpcionTipo): string | null {
+    if(o.legal!==false||o.alternativa?.k!=='completarCambio')return null;
+    const idx=indice(m),nombre=(id:Id)=>{const s=idx.estadoDe.get(id),c=s&&m.cosas[s.objeto];return s&&c?.tipo==='objeto'?c.estados[s.posicion]!.nombre:id;};
+    const estados=o.alternativa.estados;
+    if(!('entrada' in estados)||!estados.entrada||!estados.salida)return null;
+    return `Completar cambio: de ${nombre(estados.entrada)} a ${nombre(estados.salida)}`;
+}
 export function MenuTipoEnlace(p: { modelo: Modelo; opd: Id; gesto: Extract<Gesto,{k:'menuTipo'}>; cambio?: boolean; elegir: (indice: number, operador?: 'XOR'|'OR') => void; datos: (o: OpcionTipo, d: DatosEtiquetas) => boolean; tecla: (e: KeyboardEvent) => void; cancelar: () => void }) {
     const [pendiente, editar] = useState<OpcionTipo | null>(null), [etiqueta, nombrar] = useState(''), [inversa, invertir] = useState(''), [error, fallar] = useState('');
     const focoAnterior = useRef(document.activeElement instanceof HTMLElement ? document.activeElement : null);
     useLayoutEffect(() => () => { const anterior = focoAnterior.current; queueMicrotask(() => { if (anterior?.isConnected) anterior.focus(); }); }, []);
-    const disponibles=p.gesto.opciones.map((o,i)=>({o,i})).filter(({o})=>o.legal!==false||o.alternativa), no=p.gesto.opciones.filter(o=>o.legal===false&&!o.alternativa);
+    const disponibles=opcionesPresentadas(p.gesto.opciones), no=p.gesto.opciones.filter(o=>o.legal===false&&!o.alternativa);
     const nombre=(id:string)=>p.modelo.cosas[id]?.nombre??id;
     return createPortal(<Dialogo titulo={`Enlace: ${nombre(p.gesto.desde.cosa)} → ${nombre(p.gesto.hacia.cosa)}`} cerrar={p.cancelar}>
         <div class="menu-tipo" onKeyDown={e=>{if(!pendiente&&!e.isComposing&&!e.defaultPrevented&&!e.currentTarget.querySelector('input:focus')&&!(e.key==='Enter'&&e.target instanceof Element&&e.target.closest('[role="menuitem"]'))){const i=e.key==='Enter'?(p.gesto.elegida??0):/^[1-9]$/.test(e.key)?Number(e.key)-1:-1;const o=p.gesto.opciones[i];if(o?.legal==='pendiente'){e.preventDefault();e.stopPropagation();editar(o);fallar('');}else p.tecla(e);}}}>
         {!pendiente ? <><div role="menu" aria-label="Tipo de enlace">{disponibles.map(({o,i})=><div class={`opcion-tipo ${p.gesto.elegida===i?'elegida':''}`}>
-            <button role="menuitem" onClick={()=>{if(o.legal==='pendiente'){editar(o);fallar('');}else p.elegir(i);}}><kbd>{i<9?i+1:''}</kbd><span>{o.tipo} · {o.sentido}</span><span class="previa-opl">{o.legal===true?lineaDeEnlace(p.modelo,p.opd,o.candidato)?.tokens.map(t=>t.marca==='objeto'?<strong>{t.texto}</strong>:t.marca==='proceso'?<em>{t.texto}</em>:t.marca==='estado'?<code>{t.texto}</code>:t.texto):o.legal==='pendiente'?`Requiere ${o.requiere.join(' y ')}`:o.motivo.mensaje}</span></button>
-            {o.legal===false&&o.alternativa&&o.alternativa.k==='abanicoCon'&&<div><button onClick={()=>p.elegir(i,'XOR')}>Abanico XOR</button><button onClick={()=>p.elegir(i,'OR')}>Abanico OR</button></div>}
+            <button role="menuitem" onClick={()=>{if(o.legal==='pendiente'){editar(o);fallar('');}else p.elegir(i);}}><kbd>{i<9?i+1:''}</kbd><span>{textoCompletar(p.modelo,o)??`${o.tipo} · ${o.sentido}`}</span><span class="previa-opl">{o.legal===true?lineaDeEnlace(p.modelo,p.opd,o.candidato)?.tokens.map(t=>t.marca==='objeto'?<strong>{t.texto}</strong>:t.marca==='proceso'?<em>{t.texto}</em>:t.marca==='estado'?<code>{t.texto}</code>:t.texto):o.legal==='pendiente'?`Requiere ${o.requiere.join(' y ')}`:textoCompletar(p.modelo,o)?null:o.motivo.mensaje}</span></button>
+            {o.legal===false&&o.alternativa&&o.alternativa.k==='abanicoCon'&&<div><button onClick={()=>p.elegir(i,'XOR')}>Abanico XOR con el existente</button><button onClick={()=>p.elegir(i,'OR')}>Abanico OR con el existente</button></div>}
         </div>)}</div><details><summary>{no.length} tipos no disponibles</summary>{no.map(o=><p>{o.tipo} · {o.sentido}: {o.legal===false?`${o.motivo.regla}: ${o.motivo.mensaje}`:''}</p>)}</details><p class="ayuda-gesto">↑↓ elegir · 1–9 · ↵ confirmar · Tab otra orientación · ⎋</p></> : <form onSubmit={e=>{e.preventDefault();if(p.datos(pendiente,{etiqueta,...(pendiente.tipo==='etiquetadoBidireccional'?{inversa}:{})}))editar(null);else fallar('Los datos no admiten este enlace; revisa las etiquetas.');}}>
             <label>Etiqueta<input autoFocus value={etiqueta} onInput={e=>nombrar(e.currentTarget.value)} /></label>{pendiente.tipo==='etiquetadoBidireccional'&&<label>Etiqueta inversa<input value={inversa} onInput={e=>invertir(e.currentTarget.value)} /></label>}
             {error&&<p role="alert">{error}</p>}<button>{p.cambio?'Aplicar cambio':'Crear enlace'}</button><button type="button" onClick={()=>editar(null)}>Volver</button>

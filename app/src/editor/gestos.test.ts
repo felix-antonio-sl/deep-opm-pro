@@ -43,3 +43,24 @@ test('WP-13 DES§7.3 Enter vacío termina cadena confirmada como Escape',()=>{
 test('T-011 crear subproceso en banda explícita consume operación nuclear y mantiene paralelo',()=>{
  const base=modelo(),r=descomponer(base,{opd:base.raiz,proceso:'p-5',bandas:[['Recibir'],['Entregar']]});if(!r.ok)throw Error('fixture');const m=r.valor.modelo,opd=r.valor.creados[0]!,o=m.opds[opd]!;if(o.tipo!=='descomposicion')throw Error('tipo');const caja=o.apariciones[o.cosa]!,g={k:'creando' as const,tipo:'proceso' as const,nombre:'Validar',en:{x:caja.x+60,y:caja.y+80},banda:{indice:0,paralelo:true},id:'nuevo-sub'};const p=reducirGesto(m,opd,g,enter()),n=aplicarAcciones(m,p.acciones);expect(n.ok).toBe(true);if(!n.ok)throw Error(n.rechazo.mensaje);const hijo=n.valor.modelo.opds[opd]!;if(hijo.tipo!=='descomposicion')throw Error('tipo');expect(hijo.bandas).toHaveLength(2);expect(hijo.bandas[0]).toEqual([o.bandas[0]![0]!,n.valor.creados[0]!]);expect(validarForma(n.valor.modelo)).toEqual([]);
 });
+
+
+test('T-051 alternativa resultado XOR/OR realiza roles, estados e identidad en ambos sentidos',()=>{
+ for(const tipo of ['resultado','consumo','agente','instrumento'] as const)for(const sentido of ['directo','inverso'] as const)for(const operador of ['XOR','OR'] as const){
+  const b=modelo(),c=aplicarAcciones(b,[{op:'crearEnlace',args:{opd:b.raiz,candidato:{tipo,objeto:'o-2',proceso:'p-5',estado:'s-3'}}}]);expect(c.ok).toBe(true);if(!c.ok)throw Error(c.rechazo.mensaje);
+  const m=c.valor.modelo,primero=c.valor.creados[0]!,objeto={cosa:'o-2',estado:'s-4'},proceso={cosa:'p-5'},[desde,hacia]=tipo==='resultado'?(sentido==='directo'?[proceso,objeto]:[objeto,proceso]):(sentido==='directo'?[objeto,proceso]:[proceso,objeto]),opciones=tiposLegales(m,{opd:m.raiz,desde,hacia}),i=opciones.findIndex(o=>o.tipo===tipo&&o.sentido===sentido&&o.legal===false&&o.alternativa?.k==='abanicoCon');expect(i).toBeGreaterThanOrEqual(0);const antes=JSON.stringify(m),r=reducirGesto(m,m.raiz,{k:'menuTipo',desde,hacia,opciones},{k:'elegir',indice:i,operador});expect(r.acciones).toEqual([{op:'crearEnlace',args:{opd:m.raiz,candidato:{tipo,objeto:'o-2',proceso:'p-5',estado:'s-4'},abanicoCon:{enlace:primero,operador}}}]);
+  const n=aplicarAcciones(m,r.acciones);expect(n.ok).toBe(true);if(!n.ok)throw Error(n.rechazo.mensaje);const fan=Object.values(n.valor.modelo.abanicos)[0]!;expect(fan.operador).toBe(operador);expect(fan.enlaces).toContain(primero);expect(fan.enlaces).toHaveLength(2);expect(n.valor.modelo.enlaces[primero]).toEqual(m.enlaces[primero]);expect(validarForma(n.valor.modelo)).toEqual([]);expect(JSON.stringify(m)).toBe(antes);
+ }
+});
+
+
+test('T-051 efectos TS4/TS5 ofrecidos forman XOR/OR con estados originales y sin herencia',()=>{
+ let ofertas=0;
+ for(const rol of ['entrada','salida'] as const)for(const operador of ['XOR','OR'] as const){
+  const b=modelo(),c=aplicarAcciones(b,[{op:'crearEnlace',args:{opd:b.raiz,candidato:{tipo:'efecto',objeto:'o-2',proceso:'p-5',[rol]:'s-3'}}}]);expect(c.ok).toBe(true);if(!c.ok)throw Error(c.rechazo.mensaje);
+  const m=c.valor.modelo,id=c.valor.creados[0]!,objeto={cosa:'o-2',estado:'s-4'},proceso={cosa:'p-5'},[desde,hacia]=rol==='entrada'?[objeto,proceso]:[proceso,objeto],sentido=rol==='entrada'?'inverso':'directo',opciones=tiposLegales(m,{opd:m.raiz,desde,hacia}),i=opciones.findIndex(o=>o.tipo==='efecto'&&o.sentido===sentido&&o.legal===false&&o.alternativa?.k==='abanicoCon');expect(i).toBeGreaterThanOrEqual(0);ofertas++;
+  const antes=JSON.stringify(m),r=reducirGesto(m,m.raiz,{k:'menuTipo',desde,hacia,opciones},{k:'elegir',indice:i,operador});expect(r.acciones).toEqual([{op:'crearEnlace',args:{opd:m.raiz,candidato:{tipo:'efecto',objeto:'o-2',proceso:'p-5',[rol]:'s-4'},abanicoCon:{enlace:id,operador}}}]);
+  const n=aplicarAcciones(m,r.acciones);expect(n.ok).toBe(true);if(!n.ok)throw Error(n.rechazo.mensaje);const fan=Object.values(n.valor.modelo.abanicos)[0]!;expect(fan.operador).toBe(operador);expect(fan.enlaces).toContain(id);expect(fan.enlaces).toHaveLength(2);expect(n.valor.modelo.enlaces[id]).toEqual(m.enlaces[id]);expect(validarForma(n.valor.modelo)).toEqual([]);expect(JSON.stringify(m)).toBe(antes);
+ }
+ expect(ofertas).toBe(4);
+});

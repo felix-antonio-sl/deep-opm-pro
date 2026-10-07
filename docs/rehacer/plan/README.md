@@ -82,6 +82,7 @@ Hitos de revisión con el dueño:
    - `app/src/pruebas/{azar.ts,azar.test.ts}`: WP-1 crea el generador de modelos; WP-4r
      agrega y prueba `azar.acciones(m)` sin retirar API ni cobertura anteriores.
    - `app/package.json`, `app/vite.config.ts` y `app/playwright.config.ts`: WP-0 crea el andamiaje; WP-18 integra en serie el layout de DESIGN §9.1;
+   - `app/playwright.config.ts`: WP-17 registra en serie `globalSetup: './e2e/global-setup.ts'` y puerto validado por `e2e/configuracion.ts` en use.baseURL/PORT/webServer.url; el resto del config de WP-18 byteexacto; Chromium desde `PW_CHROMIUM` se selecciona en el fixture propio de `e2e/**`.
    - `nucleo/enlaces.ts`;
    - `nucleo/cosas.ts`;
    - `nucleo/resultado.test.ts`: WP-3a agrega únicamente `violacionesForma` al doble aislado, con fallo explícito si se invoca; sin cambiar casos, cuerpos ni expectativas de WP-1. WP-3b agrega después únicamente `violacionesAbanico`, `normalizarEtiquetas` y `violacionesContexto` con la misma guarda; mantiene íntegros los cinco casos.
@@ -214,3 +215,21 @@ WP16 — candidato final tras la autorización directa de sentido: cambiarTipoEn
 Recorrido nativo:11 enlaces existentes ×2 contextos de datos ×30 opciones=660 opciones consultadas; se realiza cada legal:true y se compara con su candidato crudo, cubriendo15tipos y ambos sentidos, sin excluir legales. Dominio finito declarado: sin datos o etiquetas distintas; las etiquetas iguales tienen control separado literal de recíproco y traza R-STRE-1, conservando intención consultada conforme§4.3.4. No afirma universalidad sobre valores infinitos. Controles de omisión/{}/anclajes/multiplicidades/escisión/abanicos/rollback y pureza permanecen.
 
 Gate final nuevo: **2884/0, TSC0, exit0**,1.335.290expectativas/66archivos/81,00s; T192 completa2899,613ms conserva2996/2992/2734/258/5786 y ocho metas. Build8 total0, versión wp16-sentido alineada con servidor temporal. Browser8/10 reales:0errores/externos,13PNG finales abiertos individualmente a1×; cambio directo/inverso con/sin datos, teclado y botones nativos, inválidos, recíproco, ID/secuencia/undo, foco/trap/Escape/confirmar/cancelar desktop y390. El solape de etiquetas del fixture conserva geometría/avisosB15; ningún productor canónico/generador/canon/códec cambia. Antecedentes2872 y check previo a última guarda permanecen sólo en bitácora. La misma revisión ola4 cerró GLOBAL_FAVORABLE; dirección acepta WP16/criterios del plan, cerrado en este commit. Dirección conserva Git y verifica publicación; WP17 tras SHA remoto verificado y relevo.
+
+WP-17 propiedad serial mínima: `servidor/cuenta.ts` exclusivamente guard CLI fuente/compilado y APPEND `servidor/cuenta.test.ts` con entradas compiladas reales. El build empaqueta el módulo importado y `import.meta.main` solo no distingue la entrada; no cambia lógica/validación/autenticación.
+
+WP-17 propiedad serial mínima: Lienzo.tsx sólo binding de multiplicidad y APPEND lienzo.test; matriz/campos reales, destino por defecto y origen con Mayús; sin validación paralela. Browser9 conserva RED R-MULT-1 previo.
+
+WP-17: dirección resuelve Supr sobre ≥2 cosas como Decisión de quitar apariciones, conservando hechos; Supr single y Mayús+Supr intactos. Propiedad mínima comandos.ts + APPEND comandos.test, canal existente k:tipo/opcion:confirmar-quitar sin modificar estado.ts, Lienzo/modal + APPEND lienzo.test. Refs y OPD capturados; cancelar nada, confirmar una operación/un undo, sin cambios nucleares.
+
+WP-17: dirección asigna MenuTipoEnlace.tsx sólo representación/prioridad visual de completarCambio y APPEND lienzo.test. Browser8/9 alcanza estado literal y conserva RED de fila ausente (§7.3-8); opciones/índices/elegir(i)/matriz/gestos/render intactos. Controles nativos de alternativa/ID/undo inicialmente GREEN, sin atribuir RED ficticio.
+
+WP-17 serial config: ruta absoluta a dist mediante fileURLToPath(new URL('./dist',import.meta.url)), compatible con Node de bun run e2e; sin cambio de package/Vite/arranque.
+WP-17: MenuTipoEnlace precisa únicamente texto de alternativa abanicoCon («Abanico XOR/OR con el existente»); índices, callbacks, validación y resultado intactos.
+
+WP-17: dirección resuelve seam mínimo gestos.ts sólo orientación de alternativa abanicoCon (resultado P→O, consumo/agente/instrumento O→P tras sentido), con APPEND gestos.test/lienzo.test. Browser14 RED R-EDIT-1; ninguna regla/matriz/forma/render nueva.
+
+WP-17: precisión serial de gestos.ts incluye alternativa efecto abanicoCon ofrecida, con estados por extremos originales según matriz; APPEND de las suites ya declaradas, sin ampliar ofertas.
+
+
+WP-17 realizado: comando `bun run e2e` genuino26/0/exit0, guardas0pageerrors/externos en todos los contextos, build/servidor compilados y datos sintéticos con versión e2e. Check final2896/0/TSC0/exit0 y build total0; T192 COMPLETA2963,107ms<3000, ocho metas/corpus intactos. Nueve capturas finales observadas individualmente, con límites B15/sectores estrechos. Reparaciones mínimas y RED históricos documentados en bitácora; sin nuevas reglas, render ni optimización del generador. WP17 cerrado y aceptado técnicamente en este commit por dirección, que publica/verifica; WP19 tras SHA remoto verificado/relevo y revisión formal única ola5 al cierreH3.

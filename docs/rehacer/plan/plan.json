@@ -201,9 +201,9 @@
       "id": "WP-17", "ola": 5, "nombre": "E2E",
       "objetivo": "Los 26 escenarios Playwright contra el build y el servidor real con datos temporales.",
       "depende": ["WP-14", "WP-15", "WP-16"], "redactarDesde": ["WP-13"],
-      "archivos": ["app/e2e/**"],
-      "lecturas": ["DESIGN §10.7"],
-      "aceptacion": ["los 26 escenarios verdes con el Chromium de /opt/pw-browsers y 0 errores de página"]
+      "archivos": ["app/e2e/**", "app/playwright.config.ts (ajuste serial exclusivo: globalSetup: './e2e/global-setup.ts' y parametrización del puerto validado por e2e/configuracion.ts en use.baseURL/PORT/webServer.url y ruta dist portable con node:url; demás bytes WP-18 intactos)", "app/servidor/cuenta.ts (sólo guard CLI fuente/compilado)", "app/servidor/cuenta.test.ts (APPEND regresión compilada real)", "app/src/ui/Lienzo.tsx (sólo multiplicidad y confirmar quitar múltiple)", "app/src/ui/lienzo.test.ts (APPEND ciclos/roles/atomicidad/undo)", "app/src/editor/comandos.ts (sólo Supr múltiple)", "app/src/editor/comandos.test.ts (APPEND solicitud/cancelación)", "app/src/editor/gestos.ts (sólo realización alternativa abanicoCon ofrecida: orientación y estados efecto por extremos originales)", "app/src/editor/gestos.test.ts (APPEND opciones/atomicidad)", "app/src/ui/MenuTipoEnlace.tsx (sólo representación/prioridad completarCambio y texto alternativa abanicoCon)"],
+      "lecturas": ["DESIGN §10.7", "app/playwright.config.ts actual (solo wiring; preservar WP-18)"],
+      "aceptacion": ["cd app && bun run e2e: los 26 escenarios verdes contra el build y el servidor real con Chromium conforme a DESIGN §10.7 (/opt/pw-browsers o launchOptions.executablePath desde PW_CHROMIUM en el fixture propio) y 0 errores de página", "el comando obligatorio selecciona el globalSetup registrado, puerto OPFORJA_E2E_PUERTO decimal1..65535 normalizado (default8787) y BASE única en config/setup/fixtures; sin cambiar package.json, vite.config.ts ni los demás bytes del config WP-18"]
     },
     {
       "id": "WP-19", "ola": 5, "nombre": "Documentación y cierre",

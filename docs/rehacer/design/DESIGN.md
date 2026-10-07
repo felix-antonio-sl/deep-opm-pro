@@ -3872,15 +3872,24 @@ Gates del Anexo A (T-303) y sus suites:
 
 Infraestructura:
 
-- `webServer` = `bun servidor/principal.ts` con `--datos <tmp> --web dist --puerto 4173`,
-  `OPFORJA_SECRETO` y `OPFORJA_TOKEN` de prueba.
-- `globalSetup` crea la cuenta con `cuenta crear` y siembra modelos por la API con el token.
+- `cd app && bun run e2e` ejecuta el build y Playwright con `app/playwright.config.ts`.
+  `webServer` lanza `bun --no-env-file dist-servidor/principal.js --host 127.0.0.1 --datos <tmp>`
+  desde `app`, con `env -i`, `PATH` explícito, `PORT=<puerto-e2e>`, `OPFORJA_WEB=<ruta absoluta a app/dist>`,
+  `OPFORJA_VERSION=e2e`, `OPFORJA_SECRETO` y `OPFORJA_TOKEN` sintéticos de prueba.
+  Espera `<BASE>/salud` y no reutiliza un servidor existente. La ruta absoluta a dist se obtiene con fileURLToPath(new URL('./dist',import.meta.url)) bajo el ejecutor Node de Playwright. `e2e/configuracion.ts` valida `OPFORJA_E2E_PUERTO` como decimal entero1..65535 (default8787), normaliza el puerto y deriva una única BASE usada por config, setup y fixtures.
+- `<tmp>` es un directorio temporal exclusivo de la corrida, compartido entre servidor y setup
+  mediante `OPFORJA_E2E_DATOS`; quien lo crea lo retira al finalizar. No se usan datos reales.
+- `globalSetup`, después de estar disponible `/salud`, ejecuta desde `app`
+  `bun --no-env-file dist-servidor/cuenta.js crear <correo-sintético> --datos <tmp>` con dos líneas
+  iguales por stdin de una clave sintética de al menos 10 caracteres; exige salida 0. Después
+  siembra modelos por la API real con el mismo token sintético del servidor.
 - Chromium de `/opt/pw-browsers` (`PLAYWRIGHT_BROWSERS_PATH`), con `@playwright/test` fijado a la
   versión cuyo `browsers.json` coincide, o `launchOptions.executablePath` desde `PW_CHROMIUM`.
 - El contrato «app lista» es `document.body.dataset.listo === "1"`.
 - Los localizadores van por rol y nombre accesible. El estado se lee con `GET /api/modelos/:id` y
   con el OPL visible. No se usa CSS ni `import("/src/…")`.
 - Un fixture exige 0 errores de página.
+- Precisión serial WP-17: `editor/gestos.ts` sólo realización de alternativa abanicoCon ofrecida: orientación y estados de efecto por extremos originales, APPEND gestos.test/lienzo.test; `servidor/cuenta.ts` limita su guard CLI a la entrada propia fuente/compilada; APPEND de `cuenta.test.ts` comprueba servidor compilado con stdin abierto y CLI compilada real. Sin cambio de cuenta/autenticación.
 
 | # | Escenario | Verifica |
 |---|---|---|
@@ -4070,6 +4079,8 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 
 ### 12.1 Estrategia
 
+Propiedad serial mínima WP-17: `servidor/cuenta.ts` sólo guard de entrada CLI y APPEND `servidor/cuenta.test.ts` compilado real; sin cambiar lógica, validaciones ni autenticación. También `ui/Lienzo.tsx` sólo multiplicidad y confirmación de quitar múltiples apariciones, APPEND `ui/lienzo.test.ts`; `editor/comandos.ts` sólo solicitud Supr múltiple por canal existente y APPEND `comandos.test.ts`, sin modificar controlador/núcleo. `ui/MenuTipoEnlace.tsx` sólo representación/prioridad visual de alternativa `completarCambio`, conservando índices/callbacks, con APPEND de `lienzo.test.ts`.
+
 - **Rama y tag.** Se trabaja en la rama `rehacer`, creada desde `main`, con el tag `pre-rehacer`.
   Producción sigue en el stack viejo hasta el merge y un despliegue **autorizado** (§9.4). Así
   ninguna capacidad en uso (abrir modelos, traer, quitar; SYNTHESIS §8-17/18) desaparece antes de
@@ -4096,6 +4107,7 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
   - `src/pruebas/azar.ts` y `src/pruebas/azar.test.ts`: WP-1 crea el generador de modelos;
     WP-4r agrega y prueba `azar.acciones(m)` para secuencias, conservando la API y cobertura anteriores;
   - `app/package.json`, `app/vite.config.ts` y `app/playwright.config.ts`: WP-0 crea el andamiaje y WP-18 integra el layout de §9.1;
+  - `app/playwright.config.ts`: WP-17 registra en serie `globalSetup: './e2e/global-setup.ts'` y parametriza exclusivamente el puerto mediante `e2e/configuracion.ts` en use.baseURL/PORT/webServer.url, conservando byte a byte el resto del config de WP-18; la selección de Chromium mediante `PW_CHROMIUM` permanece en el fixture propio de `e2e/**`.
   - `nucleo/enlaces.ts`: WP-3b lo crea y WP-4r le agrega la llamada a `distribuir`;
   - `nucleo/cosas.ts`: WP-3a lo crea y WP-4r le agrega la inserción de subprocesos;
   - `opl/documento.ts`: WP-7 escribe `generarDocumentoOpl` y WP-9 le agrega `importarOpl` (CC-23).
@@ -4135,7 +4147,7 @@ Se **reescriben**: `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitign
 | **WP-14** | UI: armazón | `ui/{App,Acceso,Biblioteca,InformeImportacion,Editor,Dialogo,Ayuda,Franja}.tsx`, `ui/estilos.css`, `main.tsx`; `ui/armazon.test.ts`; serial `editor/estado.ts` sólo texto original en Informe de apertura y APPEND `guardado.test.ts` | layout §7.1, superficies 1, 2, 11, 13 y 14, franja | WP-13 | e2e 1 y 2 (no necesitan lienzo ni paneles); e2e 3, 21 y 24 se evalúan en WP-17 (CC-23) |
 | **WP-15** | UI: lienzo | `ui/{Lienzo,SvgPreact,CapaUi,NombreEnLinea,MenuTipoEnlace,MenuContextual}.tsx` | gestos → `ejecutar`; menú desde `tiposLegales` con vista previa (`lineaDeEnlace`); modos §6.7 | WP-8b, WP-13, WP-7 | `bun run check` y `bun run build`; sus e2e (4–13, 15, 22, 23, 25) leen el OPL del panel de WP-16, así que se evalúan en WP-17 (CC-23) |
 | **WP-16** | UI: paneles | `ui/{Inspector,ArbolOpd,PanelOpl,EditorOpl,PanelDiagnostico,Buscar,MenuExportar}.tsx` | Propiedades con «Enlaces (N)», búsqueda, editor OPL de 4 estados, diagnóstico con «Aplicar a los N», export con gates y advertencias | WP-9, WP-8b, WP-13, WP-5 | `bun run check` y `bun run build`; sus e2e (14, 16–20, 26) necesitan el lienzo de WP-15 y se evalúan en WP-17 (CC-23) |
-| **WP-17** | E2E | `e2e/**` | infraestructura §10.7 | redacción desde WP-13; ejecución tras WP-14–16 (WP-14, WP-15 y WP-16 se integran como un solo tren: ninguno cierra sus e2e por separado) | los 26 escenarios verdes contra el build y el servidor real (Chromium de `/opt/pw-browsers`), con 0 errores de página |
+| **WP-17** | E2E | `e2e/**`; `app/playwright.config.ts` (ajuste serial exclusivo: `globalSetup`, puerto en use.baseURL/PORT/webServer.url y ruta web portable node:url.fileURLToPath(new URL('./dist',import.meta.url)); demás bytes intactos) | infraestructura §10.7; lectura del config raíz actual | redacción desde WP-13; ejecución tras WP-14–16 (WP-14, WP-15 y WP-16 se integran como un solo tren: ninguno cierra sus e2e por separado) | `cd app && bun run e2e`: los 26 escenarios verdes contra el build y el servidor real, con Chromium conforme a §10.7 (`/opt/pw-browsers` o `launchOptions.executablePath` desde `PW_CHROMIUM` en el fixture propio) y 0 errores de página; el comando selecciona el `globalSetup` registrado |
 | **WP-19** | Documentación y cierre | `README.md`, `NOTICE.md`, `docs/**`; borra `HANDOFF.md` | §11 | todos | cada fila de las tablas con `registro` tiene su B-nn, y viceversa (revisión del diff) · cada fila de §12.6 apunta a archivos y pruebas existentes (`bun test -t <T-ID>` encuentra ≥1 prueba por ★ no registrado como brecha) · `bun run check`, `bun run e2e` y `bun run build` verdes desde un clon limpio |
 
 DEC 29 limita los abanicos a extremos comunes en bordes de cosas. WP-7 y WP-9 conservan

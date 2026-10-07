@@ -149,9 +149,15 @@ export function reducirGesto(m: Modelo, opd: Id, g: Gesto, ev: EventoLienzo): {
                 const a = o.alternativa;
                 if (a.k === 'completarCambio') return salida(reposo, [{ op: 'fijarEstados', args: { enlace: a.enlace, estados: a.estados } }]);
                 if (a.k === 'cambiarTipoExistente') return salida(reposo, [{ op: 'cambiarTipoEnlace', args: { enlace: a.enlace, tipo: o.tipo } }]);
+                if (ev.operador && o.tipo === 'efecto') {
+                    const [proceso, objeto] = o.sentido === 'directo' ? [g.desde, g.hacia] : [g.hacia, g.desde];
+                    return salida(reposo, [{ op: 'crearEnlace', args: { opd, candidato: { tipo: 'efecto', objeto: objeto.cosa, proceso: proceso.cosa,
+                        ...(g.desde.estado && g.desde.cosa === objeto.cosa ? { entrada: g.desde.estado } : {}),
+                        ...(g.hacia.estado && g.hacia.cosa === objeto.cosa ? { salida: g.hacia.estado } : {}) }, abanicoCon: { enlace: a.enlace, operador: ev.operador } } }]);
+                }
                 if (ev.operador && ['consumo', 'resultado', 'agente', 'instrumento'].includes(o.tipo)) {
                     const [desde, hacia] = o.sentido === 'directo' ? [g.desde, g.hacia] : [g.hacia, g.desde];
-                    const roles = MATRIZ[o.tipo].roles, objeto = roles[0] === 'objeto' ? desde : hacia, proceso = roles[0] === 'objeto' ? hacia : desde;
+                    const objeto = o.tipo === 'resultado' ? hacia : desde, proceso = o.tipo === 'resultado' ? desde : hacia;
                     if (['consumo', 'resultado', 'agente', 'instrumento'].includes(o.tipo)) return salida(reposo, [{ op: 'crearEnlace', args: { opd, candidato: { tipo: o.tipo as 'consumo' | 'resultado' | 'agente' | 'instrumento', objeto: objeto.cosa, proceso: proceso.cosa, ...(objeto.estado ? { estado: objeto.estado } : {}) }, abanicoCon: { enlace: a.enlace, operador: ev.operador } } }]);
                 }
             }

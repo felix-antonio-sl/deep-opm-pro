@@ -46,3 +46,21 @@ test('WP-11 §8.2 CLI real por stdin sintético y --datos: crear, clave, cerrar-
 test('WP-11 §8.2 físico cuenta sintética UTF8 ilegible no fabrica email por sustitución',async()=>{
  const d=await datos(),texto=JSON.stringify({email:'\uFFFD@example.test',hashClave:vector.hashClave,versionCredencial:1}),valido=Buffer.from(texto),i=valido.indexOf(Buffer.from([239,191,189]));await writeFile(join(d,'cuenta.json'),valido);expect((await leerCuenta(d))?.email).toBe('\uFFFD@example.test');const invalido=Buffer.concat([valido.subarray(0,i),Buffer.from([255]),valido.subarray(i+3)]);await writeFile(join(d,'cuenta.json'),invalido);await expect(leerCuenta(d)).rejects.toThrow();expect(await ejecutarCuenta(['cerrar-sesiones','--datos',d],'')).toBe(1);expect(await readFile(join(d,'cuenta.json'))).toEqual(invalido);
 });
+
+
+test('WP-17 §10.7 principal compilado inicia salud con stdin abierto sin ejecutar cuenta CLI',async()=>{
+ const d=await datos(),out=join(d,'bin');const build=Bun.spawn([process.execPath,'--no-env-file','build',join(import.meta.dir,'principal.ts'),join(import.meta.dir,'cuenta.ts'),join(import.meta.dir,'../herramientas/migrar-postgres.ts'),'--target=bun','--outdir',out,'--entry-naming','[name].js'],{env:{PATH:'/tmp/opforja-rehacer-tools:/usr/bin:/bin'},stdout:'pipe',stderr:'pipe'});const [codigo]=await Promise.all([build.exited,new Response(build.stdout).text(),new Response(build.stderr).text()]);expect(codigo).toBe(0);
+ const h=Bun.spawn([process.execPath,'--no-env-file',join(out,'principal.js'),'--host','127.0.0.1','--puerto','0','--datos',join(d,'datos')],{env:{PATH:'/tmp/opforja-rehacer-tools:/usr/bin:/bin',OPFORJA_WEB:join(import.meta.dir,'../dist'),OPFORJA_VERSION:'e2e',OPFORJA_SECRETO:'secreto-sintetico-entrada-compilada-1234567890'},stdin:'pipe',stdout:'pipe',stderr:'pipe'});
+ let timer:ReturnType<typeof setTimeout>|undefined;
+ try{
+  const reader=h.stdout.getReader();const first=await Promise.race([reader.read(),new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('Principal no emitió arranque con stdin abierto')),2000);})]);if(timer)clearTimeout(timer);
+  const texto=new TextDecoder().decode(first.value);expect(texto).not.toContain('Clave y repetición');const arranque=JSON.parse(texto.trim());expect(arranque.evento).toBe('servidor-iniciado');expect(arranque.puerto).toBeGreaterThan(0);
+  const r=await fetch(`http://127.0.0.1:${arranque.puerto}/salud`);expect(r.status).toBe(200);expect(r.headers.get('X-Opforja-Version')).toBe('e2e');reader.releaseLock();
+ }finally{if(timer)clearTimeout(timer);h.kill();await h.exited;}
+});
+
+test('WP-17 §10.7 cuenta compilada real crea por stdin y conserva rechazo de segunda creación',async()=>{
+ const d=await datos(),out=join(d,'bin');const build=Bun.spawn([process.execPath,'--no-env-file','build',join(import.meta.dir,'principal.ts'),join(import.meta.dir,'cuenta.ts'),join(import.meta.dir,'../herramientas/migrar-postgres.ts'),'--target=bun','--outdir',out,'--entry-naming','[name].js'],{env:{PATH:'/tmp/opforja-rehacer-tools:/usr/bin:/bin'},stdout:'pipe',stderr:'pipe'});const [codigo]=await Promise.all([build.exited,new Response(build.stdout).text(),new Response(build.stderr).text()]);expect(codigo).toBe(0);
+ const ejecutar=async()=>{const h=Bun.spawn([process.execPath,'--no-env-file',join(out,'cuenta.js'),'crear','compilado@example.test','--datos',join(d,'datos')],{env:{PATH:'/tmp/opforja-rehacer-tools:/usr/bin:/bin'},stdin:new Blob(['clave-compilada-sintetica\nclave-compilada-sintetica\n']),stdout:'pipe',stderr:'pipe'});const [codigo,stdout,stderr]=await Promise.all([h.exited,new Response(h.stdout).text(),new Response(h.stderr).text()]);expect(stdout).not.toContain('clave-compilada-sintetica');expect(stderr).toBe('');return codigo;};
+ expect(await ejecutar()).toBe(0);const antes=await readFile(join(d,'datos/cuenta.json'));expect((await leerCuenta(join(d,'datos')))?.email).toBe('compilado@example.test');expect(await ejecutar()).toBe(1);expect(await readFile(join(d,'datos/cuenta.json'))).toEqual(antes);
+});
