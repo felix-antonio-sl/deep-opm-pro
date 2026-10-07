@@ -222,7 +222,17 @@ export function escena(m: Modelo, opd: Id): Escena {
         nodos[ci] = { ...n, caja, rotulo: { ...n.rotulo, x: caja.x + caja.ancho / 2 },
             estados: n.estados.map(s => ({ ...s, caja: { ...s.caja, x: s.caja.x + dx, y: s.caja.y + dy } })),
             ...(n.chipOcultos ? { chipOcultos: { ...n.chipOcultos, caja: { ...n.chipOcultos.caja, x: n.chipOcultos.caja.x + 2 * dx, y: n.chipOcultos.caja.y + dy } } } : {}) };
-
+        // El rótulo va arriba por dentro (T-221): si una cosa lo tapa, el contenedor crece hacia
+        // arriba lo justo para despejarlo, sin mover a nadie ni bajar el borde inferior, y sólo si
+        // el rótulo no queda bajo otra cosa (DEC34).
+        const c = nodos[ci]!, ancho = Math.max(0, ...c.rotulo.lineas.map(l => anchoTexto(l, 17, c.rotulo.italica))), alto = c.rotulo.lineas.length * 22 + 6;
+        const tapa = (x: NodoCosa, y: number) => x !== c && x.caja.x < c.rotulo.x + ancho / 2 + 6 && x.caja.x + x.caja.ancho > c.rotulo.x - ancho / 2 - 6 && x.caja.y < y + 7 + alto && x.caja.y + x.caja.alto > y + 7;
+        const bajo = nodos.filter(x => tapa(x, c.caja.y) && x.caja.y >= c.caja.y);
+        if (bajo.length) {
+            const y = Math.min(c.caja.y, Math.min(...bajo.map(x => x.caja.y)) - 7 - alto);
+            if (!nodos.some(x => tapa(x, y)))
+                nodos[ci] = { ...c, caja: { ...c.caja, y, alto: c.caja.alto + c.caja.y - y }, rotulo: { ...c.rotulo, y: y + 24 } };
+        }
     }
     const porId = new Map(nodos.map(n => [n.ref.id, n]));
     function contorno(id: Id, estado?: Id): Contorno { const n = porId.get(id)!; const s = estado ? n.estados.find(s => s.ref.id === estado) : undefined; return s ? { caja: s.caja, forma: 'capsula' } : { caja: n.caja, forma: forma(n) }; }

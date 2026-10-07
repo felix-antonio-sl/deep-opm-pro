@@ -343,3 +343,12 @@ test('T-204 T-212 DEC34 fixtures no ganan solapes que no tuvieran en el v0', () 
     // Único caso sin salida: fila sintética con 45 px entre cajas cuyos estados exigen +100 px de ancho.
     expect(nuevos).toEqual(['sintetico.json opd-1 Objeto_0 × Objeto_1', 'sintetico.json opd-1 Objeto_1 × Objeto_2', 'sintetico.json opd-1 Objeto_4 × Objeto_5', 'sintetico.json opd-1 Objeto_5 × Procesar_0']);
 });
+test('T-221 DEC34 interno sobre el rótulo del contenedor lo despeja creciendo hacia arriba', () => {
+    const base = m([p(), p('q', 'Preparar'), p('r', 'Despachar'), o('x', 'Registro')], [], [{ id: 'h', tipo: 'descomposicion', padre: 'sd', cosa: 'p', orden: 0, bandas: [['q'], ['r']], objetosInternos: ['x'],
+        apariciones: { p: { x: 0, y: 0, ancho: 400, alto: 300 }, x: { x: 130, y: 0, ancho: 135, alto: 60 }, q: { x: 130, y: 90, ancho: 135, alto: 60 }, r: { x: 130, y: 180, ancho: 135, alto: 60 } } }]);
+    expect(validarForma(base)).toEqual([]); const antes = JSON.stringify(base), e = escena(base, 'h'), c = e.nodos.find(n => n.ref.id === 'p')!, x = e.nodos.find(n => n.ref.id === 'x')!;
+    const w = anchoTexto(c.rotulo.lineas[0]!, 17, true), rotulo = { x: c.rotulo.x - w / 2, y: c.rotulo.y - 17, ancho: w, alto: 22 };
+    expect(c.caja.y).toBeLessThan(0); expect(c.caja.y + c.caja.alto).toBeGreaterThanOrEqual(300); expect(c.rotulo.y).toBe(c.caja.y + 24);
+    expect(rotulo.y + rotulo.alto).toBeLessThanOrEqual(x.caja.y);
+    expect(x.caja).toEqual({ x: 130, y: 0, ancho: 135, alto: 60 }); expect(JSON.stringify(base)).toBe(antes);
+});

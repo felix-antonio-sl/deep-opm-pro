@@ -84,6 +84,7 @@ Frase del dueño: «eso , hazlo tu mismo», sobre esta propuesta textual de dos 
 34. **El layout persistido manda; el texto se ajusta dentro** (R-OPD-COSA-6, R-OPD-LAY-1/4, R-ANID-1).
     - El rótulo se envuelve dentro de la caja persistida. Se prueba de la envoltura más ancha a la más estrecha y gana la primera que cabe; en la elipse, el bloque queda inscrito con 4 px de holgura lateral. Sólo si ninguna cabe la forma se expande, con la envoltura de menor área.
     - La forma que crece contiene siempre su caja persistida. Crece hacia el lado donde no pisa a una cosa que en lo persistido no pisaba y, a igual coste, conserva su esquina. A ninguna otra cosa se la mueve ni se la redimensiona.
+    - Si una cosa tapa el rótulo del contenedor, este crece hacia arriba lo justo para despejarlo, salvo que el rótulo quedara bajo otra cosa.
     - Contraste con la versión anterior (`pre-rehacer`, render headless de los fixtures v0):
       - los solapes que quedan en OnStar SD1 y SD Sync SD1 vienen de las posiciones del v0, la versión anterior los dibujaba igual y se avisan (B-15);
       - ningún OPD de los fixtures gana solapes respecto del v0, salvo la fila sintética cuyos estados exigen 100 px más que el hueco.
@@ -650,7 +651,8 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
 - **Instancia lógica** (T-222): el rótulo es `Nombre : Clase` si el objeto es instancia por
   clasificación (la clase es la primera por nombre).
 - **Contenedor** (T-221): la cosa refinada, en su OPD de descomposición, se dibuja agrandada, con el
-  rótulo arriba por dentro y los subprocesos en filas por banda (misma banda, misma altura).
+  rótulo arriba por dentro y los subprocesos en filas por banda (misma banda, misma altura). Si una
+  cosa tapa el rótulo, el contenedor crece hacia arriba lo justo para despejarlo (DEC34).
 - **Cruces** (para advertencias): intersección segmento–segmento y segmento–rectángulo o elipse, en
   `advertenciasEscena` (§6.8).
 

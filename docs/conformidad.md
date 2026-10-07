@@ -198,7 +198,7 @@ Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventar
 | T-215 | spec-OPD §6.2, reglas §3.9, DR-38 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/marcadores.test.ts; alcance específico, cierre por superficies pendiente |
 | T-216 | R-FAN-GEO-1/2, R-OPD-CTL-7, reglas §7.1, DR-9 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/decision29.test.ts, src/opd/escena.test.ts, src/opd/geometria.test.ts; otros casos en suites del requisito; alcance específico, cierre por superficies pendiente |
 | T-220 | R-OPD-INV-6, R-VIS-DUR-1/2 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts; alcance específico, cierre por superficies pendiente |
-| T-221 | R-ANID-1/1A, R-INV-2/2A, R-VIS-REF-1, R-OPD-REF-2 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts; alcance específico, cierre por superficies pendiente |
+| T-221 | R-ANID-1/1A, R-INV-2/2A, R-VIS-REF-1, R-OPD-REF-2 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts; DEC34 rótulo del contenedor despejado; alcance específico, cierre por superficies pendiente |
 | T-223 | R-MARCA-1, R-VIS-PRIM-1, R-§23-OPD-VOCAB | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/golden.test.ts; alcance específico, cierre por superficies pendiente |
 | T-224 | R-OPD-LAY-5 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/geometria.test.ts; alcance específico, cierre por superficies pendiente |
 | T-227 | R-OPD-UI-1/2/5, R-DEC-2/2A, AP-24, R-OPD-CAN-3 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/exportar.test.ts; alcance específico, cierre por superficies pendiente |
