@@ -35,3 +35,13 @@ test('T-287 el atributo opcional «tiene un **Y** opcional» sigue sin soporte y
     const r = importarOpl('Prueba', '## SD\n**Pedido** tiene una **Marca** opcional.'); expect(r.ok).toBe(true); if (!r.ok) return;
     expect(r.valor.modelo.enlaces).toEqual({});
 });
+
+import {aplicarAcciones} from '../nucleo/operaciones';
+import {porNombre,must} from '../pruebas/constructores';
+import {exportarV0} from '../codec/exportar';
+for(const designaciones of [
+ ['inicial','porDefecto'],['final','current'],['inicial','final','porDefecto'],['inicial','final','current'],['inicial','final','porDefecto','current']
+] as const)test(`T-108 T-192 dimensiones de designación coexistentes ${designaciones.join('+')} desde documento nativo visible`,()=>{
+ const b=modeloCon({objetos:[['Pedido',['pendiente','completado']]],procesos:['Preparar'],enlaces:[['efecto','Pedido','Preparar']]}),o=porNombre(b,'Pedido');if(o.tipo!=='objeto')throw Error('Objeto');const m=must(aplicarAcciones(b,designaciones.map(designacion=>({op:'designar' as const,args:{estado:o.estados[0]!.id,designacion,activa:true}})))).modelo,antes=exportarV0(m),texto=generarDocumentoOpl(m),r=importarOpl(m.nombre,texto);
+ expect(r.ok).toBe(true);if(!r.ok)throw Error('Importación');expect(r.valor.plan.resumen.noAplicables).toBe(0);expect(generarDocumentoOpl(r.valor.modelo)).toBe(texto);const objeto=porNombre(r.valor.modelo,'Pedido');if(objeto.tipo!=='objeto')throw Error('Objeto reconstruido');for(const d of designaciones)if(d==='inicial'||d==='final')expect(objeto.estados[0]![d]).toBe(true);else expect(objeto[d]).toBe(objeto.estados[0]!.id);expect(Object.values(r.valor.modelo.enlaces).map(e=>e.tipo)).toEqual(['efecto']);expect(exportarV0(m)).toBe(antes);
+});

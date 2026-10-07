@@ -76,7 +76,6 @@ function claveHecho(h: HechoTexto): string | null {
     const n = (s: string) => claveNombre(s);
     switch (h.k) {
         case 'esencia': case 'afiliacion': return `${h.k}:${n(h.cosa.nombre)}`;
-        case 'designacion': return `designacion:${n(h.objeto)}:${n(h.estado)}`;
         case 'valor': return `valor:${n(h.atributo)}`;
         case 'cota': return `cota:${n(h.proceso)}:${h.campo}`;
         case 'descomposicion': return `descomposicion:${n(h.proceso)}`;
@@ -127,12 +126,21 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
     }
     // Registro independiente del ensayo: un conflicto excluye AMBAS líneas y todas sus acciones.
     const registros = new Map<string, { numero: number; contenido: string }[]>();
+    const registrar = (k: string, contenido: string, numero: number) => {
+        const previos = registros.get(k) ?? [];
+        for (const p of previos) if (p.contenido !== contenido) for (const n of [p.numero, numero]) if (!prohibidas.has(n)) diagnosticar(n, { codigo: 'patch-conflict', severidad: 'error', linea: n, mensaje: 'Cambios incompatibles sobre el mismo hecho.' });
+        registros.set(k, [...previos, { numero, contenido }]);
+    };
     for (const t of trabajos) for (const h of t.hechos) {
+        if (h.k === 'designacion') {
+            // Inicial/final son dimensiones por estado; porDefecto/Current son slots únicos por objeto.
+            // D10 declara dos dimensiones compatibles, también con D7/D8 o declaraciones repetidas.
+            for (const d of h.designaciones) registrar(`designacion:${claveNombre(h.objeto)}:${d}${d === 'inicial' || d === 'final' ? ':' + claveNombre(h.estado) : ''}`, claveNombre(h.estado), t.l.numero);
+            continue;
+        }
         let k = claveHecho(h); if (!k) continue;
         if (h.k === 'cota') { const ex=t.hechos.find((x):x is Extract<HechoTexto,{k:'enlace'}>=>x.k==='enlace'&&(x.enlace.tipo==='excepcionSobretiempo'||x.enlace.tipo==='excepcionSubtiempo')); if(ex)k+=`:${estable(ex.enlace)}`; }
-        const previos = registros.get(k) ?? [], contenido = estable(h);
-        for (const p of previos) if (p.contenido !== contenido) for (const numero of [p.numero, t.l.numero]) if (!prohibidas.has(numero)) diagnosticar(numero, { codigo: 'patch-conflict', severidad: 'error', linea: numero, mensaje: 'Cambios incompatibles sobre el mismo hecho.' });
-        registros.set(k, [...previos, { numero: t.l.numero, contenido }]);
+        registrar(k, estable(h), t.l.numero);
     }
     // Dos oraciones dirigidas opuestas del mismo bloque son UN hecho bidireccional.
     for (let i = 0; i < trabajos.length; i++) {
