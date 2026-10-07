@@ -274,7 +274,7 @@ Reglas transversales de la matriz:
 | R-MOD-4, R-MOD-INPUT-1, R-OPD-CTL-3 | `e`/`c` solo en Pre(P) (consumo, efecto-entrada, agente, instrumento, con o sin estado); nunca Post(P). | NO DEBE | selector de control desactivado fuera de Pre(P) |
 | R-COMB-3, AP-28, R-§21-OPL-MOD | A lo sumo un control por enlace; `c`+`e` no canonizado. | PUEDE (uno) / NO DEBE | campo escalar ⇒ imposible por construcción |
 | R-ESCIND-0, R-ESC-1, AP-08 | Fragmento escindido (par TS4/TS5) sin `e`/`c`; un TS4/TS5 standalone sí admite (ETS3, ETS4, CS3, CS4). | NO DEBE | usar `escision` para decidir |
-| R-ROL-UNIC-1, R-HAB-AG-5, R-OPD-HAB-4 | A lo sumo **un** enlace procedimental (consumo/resultado/efecto/agente/instrumento) por par (objeto, proceso) en edición directa; excepción: ramas de un mismo abanico (DR-6). Sin auto-resolución en edición. Un enlace al contorno de un proceso descompuesto cuenta para todos sus subprocesos. | DEBE («el editor DEBE impedir el segundo enlace», R-OPD-HAB-4; «DEBEN conectarse por a lo más un», R-HAB-AG-5) | impedir el segundo enlace |
+| R-ROL-UNIC-1, R-HAB-AG-5, R-OPD-HAB-4 | A lo sumo **un** enlace procedimental (consumo/resultado/efecto/agente/instrumento) por par (objeto, proceso) en edición directa; excepción: ramas de un mismo abanico (DR-6). Sin auto-resolución en edición. Entre un proceso y su descendiente no hay colisión: rigen R-ROL-1/3 y, al abstraer, la fuerza semántica (§6.5, DEC33). | DEBE («el editor DEBE impedir el segundo enlace», R-OPD-HAB-4; «DEBEN conectarse por a lo más un», R-HAB-AG-5) | impedir el segundo enlace |
 | R-MULT-1/1A/1B/1C, R-OPD-MUL-1 | Multiplicidad solo en etiquetados, agregación y procedimentales; NUNCA en extremo proceso; la repetición se modela con proceso recurrente o subprocesos. | DEBE / NO DEBE / NUNCA | impedir |
 | R-OPL-RUTA-2/3 | Ruta = nombre definido por el modelador, no autogenerado; producto la restringe a consumo/resultado (restricción declarada, no límite del canon). | DEBE | impedir en otros tipos; ruta vacía no existe |
 | R-VIS-RUTA-1 | Con rutas, consumo y resultado se emparejan por coincidencia exacta de etiqueta. | DEBE | semántica (sin runtime: documental) |
@@ -1839,7 +1839,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-050 | Bidireccional/recíproco con estado solo en destino: impedir. | NO DEBE / DEBE bloquearse | imp | V-30, R-EST-SSE-1, AP-11, R-OPD-STR-9 | |
 | T-051 | `e`/`c` solo en consumo, efecto, agente e instrumento (Pre(P)); nunca en resultado, estructural, invocación, excepción ni fragmento escindido. | NO DEBE / NUNCA | imp | R-MOD-1..4, R-MOD-INPUT-1/2, R-MOD-CAT-1/2, R-EXC-1B, AP-01/02/08/09/10 | ★ |
 | T-052 | A lo sumo un control por enlace (`c`+`e` imposible). | NO DEBE | imp | R-COMB-3, AP-28, R-§21-OPL-MOD | ★ |
-| T-053 | A lo sumo un enlace procedimental por par (objeto, proceso), salvo ramas de un mismo abanico; los enlaces al contorno de un descompuesto cuentan para sus subprocesos; sin auto-resolución en edición. | DEBE | imp | R-ROL-UNIC-1, R-HAB-AG-5, R-OPD-HAB-4, reglas §6.5, DR-6 | ★ |
+| T-053 | A lo sumo un enlace procedimental por par (objeto, proceso), salvo ramas de un mismo abanico; entre niveles rigen R-ROL-1/3 y la precedencia al abstraer (DEC33); sin auto-resolución en edición. | DEBE | imp | R-ROL-UNIC-1, R-HAB-AG-5, R-OPD-HAB-4, reglas §6.5, DR-6 | ★ |
 | T-054 | Abanico: n ≥ 2, mismo tipo, extremo común; solo en consumo, resultado, efecto, agente, instrumento e invocación (convergente o divergente). | inf. DEBE | imp | spec-OPL §8.1, reglas §7.2, R-FAN-HAB-1, DR-9 | ★ |
 | T-055 | Abanicos de resultado e invocación sin `e`/`c`. | DEBE bloquearse | imp | AP-03, R-OPD-CTL-8, R-FAN-4 | ★ |
 | T-056 | Abanico con control mixto: rechazar como `non-canonical`. Abanico×control listado como válido pero sin plantilla literal (C-19b, C-18 instrumento, agente): no ofrecer; parser `unsupported-canonical`. | DEBE / NO DEBE | imp | R-ZNC-COMB-1, R-COMB-1, R-FAN-3, R-IMPORT-5, spec-OPL §8.3/§8.4 | |
@@ -2167,7 +2167,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | Parámetros de multiplicidad sin sintaxis. | GAP-18 reglas-b, G13 | No soportados (DR-21). |
 | Tabla 9.2 omite construcciones canónicas (proceso ambiental, TS1/TS2/TS4/TS5, HS*, etc.). | GAP-19 reglas-b | El gate completo son las tablas de §4.4 (T-105). |
 | «Semántica de control tipificada» para eventos OR / condiciones AND. | R-BR-2, GAP-21 reglas-b | Enlaces separados; semántica implícita (OR entre eventos, AND entre condiciones). Sin tipo nuevo. |
-| Cambio de rol entre niveles vs precedencia al abstraer. | R-ROL-1, GAP-13 método | No soportado (PUEDE); la unicidad incluye enlaces de contorno (T-053). |
+| Cambio de rol entre niveles vs precedencia al abstraer. | R-ROL-1, GAP-13 método | Neto cero no ofrecido (B-34); habilitador sobre transformación con cambio neto es R-ROL-3; al abstraer prevalece la fuerza (DEC33, T-053). |
 | Gate «Firma» del Anexo A más estricto que el canon («un structural conecta estado» = falla). | GAP-23 reglas-b | SSE permitidos según §4.4.7. |
 | «Replica layout» como falla del gate «Refinamiento». | GAP-24 reglas-b | Método (no mecánico). |
 | `docs/HANDOFF.md` (R-APP-1) vs `AGENTS.md` (HANDOFF.md raíz único). | GAP-26 reglas-b | Rige AGENTS.md del repo; el registro de conformidad vive en `docs/` (circunstancial). |

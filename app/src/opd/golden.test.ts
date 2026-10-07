@@ -136,13 +136,13 @@ test('T-223 inventario 40 construidos más vistas únicas de 12 selecciones real
 for (const c of casos)
     test(`T-223 golden ${c.nombre}: ${c.oraculo}`, () => {
         let svg: string;
-        const reglasDiagnosticas: Record<string, string> = { OnStar_System: 'R-ROL-UNIC-1', SD_Async: 'R-ROL-UNIC-1', SD_Sync: 'R-INV-2B' };
-        const fixture = c.nombre === 'fixture-SD_Sync-sd' ? undefined : Object.keys(reglasDiagnosticas).find(f => c.nombre.startsWith(`fixture-${f}-`));
-        if (fixture) {
+        // DEC33: R-ROL-UNIC-1 rige por proceso; sólo estas vistas conservan un error recuperable real.
+        const reglasDiagnosticas: Record<string, string> = { 'fixture-OnStar_System-profundo': 'R-INV-2B', 'fixture-SD_Async-sd': 'R-ROL-UNIC-1', 'fixture-SD_Async-profundo': 'R-ROL-UNIC-1', 'fixture-SD_Sync-profundo': 'R-EFE-1' };
+        const regla = reglasDiagnosticas[c.nombre];
+        if (regla) {
             // Modelos históricos recuperables: dibujo diagnóstico, nunca export canónico.
             const r = exportarDiagrama(c.m, c.opd, { version: 'DEC29' });
             expect(r.ok).toBe(false);
-            const regla = c.nombre === 'fixture-SD_Sync-profundo' ? 'R-EFE-1' : reglasDiagnosticas[fixture]!;
             if (!r.ok) expect(r.rechazo.regla).toBe(regla);
             expect(gatesExportacion(c.m, { opd: c.opd }).length).toBeGreaterThan(0);
             const e = escena(c.m, c.opd); svg = aTexto(dibujar(e, 'canon'));
@@ -430,17 +430,10 @@ for(const dato of datosUniformesX) test(`T-223 DEC29 ${dato.id}: importación y 
     expect(createHash('sha256').update(dato.jsonOriginal).digest('hex')).toBe(dato.sha256);
     const m=normalizar(JSON.parse(dato.jsonOriginal) as Modelo); expect(validarForma(m)).toEqual([]);
     const previo=JSON.stringify(m);
-    if (dato.opd === 'h') {
-        expect(erroresContexto(m).map(v => v.regla)).toContain('R-ROL-UNIC-1');
-        const exportado = exportarDiagrama(m, dato.opd, { version: 'DEC29' });
-        expect(exportado.ok).toBe(false);
-        if (!exportado.ok) expect(exportado.rechazo.regla).toBe('R-ROL-UNIC-1');
-        expect(() => escena(m, dato.opd)).not.toThrow();
-    } else {
-        expect(erroresContexto(m)).toEqual([]);
-        const svg=dibujoExportado(m,dato.opd,dato.id),ruta=new URL(`${dato.id}.svg`,carpeta);
-        if(process.env.OPFORJA_GOLDEN==='escribir')writeFileSync(ruta,svg);
-        expect(svg).toBe(readFileSync(ruta,'utf8'));
-    }
+    // DEC33: el mismo rol en el contenedor y en su subproceso no es colisión; todo se exporta.
+    expect(erroresContexto(m)).toEqual([]);
+    const svg=dibujoExportado(m,dato.opd,dato.id),ruta=new URL(`${dato.id}.svg`,carpeta);
+    if(process.env.OPFORJA_GOLDEN==='escribir')writeFileSync(ruta,svg);
+    expect(svg).toBe(readFileSync(ruta,'utf8'));
     expect(JSON.stringify(m)).toBe(previo);
 });

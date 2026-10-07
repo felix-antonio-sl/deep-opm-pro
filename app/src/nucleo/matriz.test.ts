@@ -139,7 +139,8 @@ test('T-050 gesto con estado solo destino no ofrece bi ni recíproco', () => {
 test('T-051 escisión no admite control pero TS4 standalone sí', () => { const m = base(), e: EnlaceNuevo = { tipo: 'efecto', objeto: ids(m)[0]!, proceso: ids(m)[3]!, entrada: s(m), control: 'e' }; expect(violacionesForma(m, e)).toEqual([]); expect(violacionesForma(m, { ...e, escision: { par: 'e-102', mitad: 'entrada' } }).length).toBeGreaterThan(0); });
 test('T-052 control escalar inválido se rechaza sin interpretar c+e', () => { const m = base(); const e = { tipo: 'consumo' as const, objeto: ids(m)[0]!, proceso: ids(m)[3]!, control: 'ce' }; expect(violacionesForma(m, e as unknown as EnlaceNuevo).length).toBeGreaterThan(0); });
 test('T-053 segundo transformador y habilitador bloqueados; mismo abanico exime', () => { const m = base(), e = enlace(m, 'consumo'), r = enlace(m, 'resultado', 'e-102'); const n = sano(poner(m, e)); expect(reglas(n, r)).toContain('R-ROL-UNIC-1'); const f: Abanico = { id: 'f-110', operador: 'XOR', enlaces: ['e-101', 'e-102'] }; const e2: Enlace = { id: 'e-102', tipo: 'consumo', objeto: ids(m)[0]!, proceso: ids(m)[3]!, estado: s(m) }; const fan = sano(congelar({ ...poner(m, e, e2), abanicos: { [f.id]: f } })); expect(reglas(fan, e2)).not.toContain('R-ROL-UNIC-1'); expect(reglas(n, enlace(m, 'instrumento', 'e-103'))).toContain('R-ROL-UNIC-1'); });
-test('T-053 unicidad entre ancestro y descendiente y no entre hermanos', () => { const m = sano(refinar(base())), [a, , , p, q, r] = ids(m); const n = sano(poner(m, { tipo: 'instrumento', id: 'e-101', objeto: a!, proceso: p! })); expect(reglas(n, { tipo: 'efecto', id: 'e-102', objeto: a!, proceso: q! })).toContain('R-ROL-UNIC-1'); const h = sano(poner(m, { tipo: 'instrumento', id: 'e-101', objeto: a!, proceso: q! })); expect(reglas(h, { tipo: 'instrumento', id: 'e-102', objeto: a!, proceso: r! })).not.toContain('R-ROL-UNIC-1'); });
+// DEC33: R-ROL-UNIC-1 rige por proceso; entre niveles sólo R-ROL-3 exige afectar arriba lo que se transforma abajo.
+test('T-053 entre ancestro y descendiente sólo R-ROL-3; ni colisión entre niveles ni entre hermanos', () => { const m = sano(refinar(base())), [a, , , p, q, r] = ids(m); const n = sano(poner(m, { tipo: 'instrumento', id: 'e-101', objeto: a!, proceso: p! })); const efecto = reglas(n, { tipo: 'efecto', id: 'e-102', objeto: a!, proceso: q! }); expect(efecto).toContain('R-ROL-3'); expect(efecto).not.toContain('R-ROL-UNIC-1'); expect(reglas(n, { tipo: 'instrumento', id: 'e-102', objeto: a!, proceso: q! })).not.toContain('R-ROL-UNIC-1'); expect(reglas(n, { tipo: 'instrumento', id: 'e-102', objeto: a!, proceso: q! })).not.toContain('R-ROL-3'); const af = sano(poner(m, { tipo: 'efecto', id: 'e-101', objeto: a!, proceso: p! })); expect(reglas(af, { tipo: 'efecto', id: 'e-102', objeto: a!, proceso: q! })).toEqual(expect.not.arrayContaining(['R-ROL-UNIC-1', 'R-ROL-3'])); const h = sano(poner(m, { tipo: 'instrumento', id: 'e-101', objeto: a!, proceso: q! })); expect(reglas(h, { tipo: 'instrumento', id: 'e-102', objeto: a!, proceso: r! })).not.toContain('R-ROL-UNIC-1'); });
 function fan(m: Modelo, tipo: 'consumo' | 'resultado' | 'efecto' | 'agente' | 'instrumento' | 'invocacion', comun: 'objeto' | 'proceso' = 'proceso', control?: 'c' | 'e'): Modelo { const [a, b, , p, q] = ids(m); const es: Enlace[] = tipo === 'invocacion' ? [{ tipo, id: 'e-101', origen: p!, destino: q! }, { tipo, id: 'e-102', origen: p!, destino: ids(m)[5]! }] : [{ tipo, id: 'e-101', objeto: a!, proceso: p!, ...(control ? { control } : {}) }, { tipo, id: 'e-102', objeto: comun === 'objeto' ? a! : b!, proceso: comun === 'proceso' ? p! : q!, ...(control ? { control } : {}) }]; return congelar({ ...poner(m, ...es), abanicos: { 'f-110': { id: 'f-110', operador: 'XOR', enlaces: ['e-101', 'e-102'] } } }); }
 test('T-054 seis tipos convergentes/divergentes y rechazo de geometría/tipos', () => {
     const m = base();
@@ -405,13 +406,12 @@ for (const inverso of [false, true]) test(`T-040 generalización de estados dupl
     expect(o?.legal).toBe(false);
     if (o?.legal === false) expect(o.motivo.codigo).toBe('ya-existe');
 });
-test('T-053 alternativas limitadas al mismo par, colisiones de ancestro/descendiente conservan rechazo', () => {
+test('T-053 alternativas limitadas al mismo par; entre ancestro y descendiente dos habilitadores son legales (DEC33)', () => {
     const m = sano(refinar(base())), [a, , , p, q] = ids(m);
     for (const [existente, destino] of [[p!, q!], [q!, p!]]) {
         const n = sano(poner(m, { tipo: 'instrumento', id: 'e-101', objeto: a!, proceso: existente! }));
         const o = opciones(n, a!, destino!, undefined, undefined, 'opd-100').find(o => o.tipo === 'agente' && o.sentido === 'directo');
-        expect(o?.legal).toBe(false);
-        if (o?.legal === false) expect(o.motivo.regla).toBe('R-ROL-UNIC-1');
+        expect(o?.legal).toBe(true);
         expect(o).not.toHaveProperty('alternativa');
         const mismoPar = opciones(n, a!, existente!, undefined, undefined, 'opd-100').find(o => o.tipo === 'agente' && o.sentido === 'directo');
         expect(mismoPar?.legal).toBe(false);
@@ -503,13 +503,13 @@ for (const cero of [true, false]) test(`T-053 RROL1 cambio explícito neto cero 
     const candidato: EnlaceNuevo = { tipo: 'efecto', objeto: a!, proceso: q!, entrada: s(modelo), salida: s(modelo, 0, cero ? 0 : 1) };
     const r = crearEnlace(modelo, { opd: 'opd-100', candidato });
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.rechazo).toMatchObject({ codigo: cero ? 'no-ofrecido' : 'contexto', regla: cero ? 'R-ROL-1' : 'R-ROL-UNIC-1' });
+    if (!r.ok) expect(r.rechazo).toMatchObject({ codigo: cero ? 'no-ofrecido' : 'contexto', regla: cero ? 'R-ROL-1' : 'R-ROL-3' });
     const consulta = opciones(modelo, a!, q!, s(modelo), undefined, 'opd-100').find(o => o.tipo === 'efecto' && o.sentido === 'directo');
     expect(consulta?.legal).toBe(false); // El gesto parcial de efecto no incorpora estados; R-EDIT-1 conserva ese rechazo.
     if (consulta?.legal === false) expect(consulta.motivo.regla).toBe('R-EDIT-1');
     const completo = congelar<Modelo>({ ...modelo, enlaces: { ...modelo.enlaces, 'e-102': { ...candidato, id: 'e-102' } } });
     expect(validarForma(completo)).toEqual([]);
-    expect(erroresContexto(completo).map(v => [v.codigo, v.regla])).toEqual(Array(2).fill([cero ? 'no-ofrecido' : 'enlace-invalido', cero ? 'R-ROL-1' : 'R-ROL-UNIC-1']));
+    expect(erroresContexto(completo).map(v => [v.codigo, v.regla])).toEqual(Array(2).fill([cero ? 'no-ofrecido' : 'enlace-invalido', cero ? 'R-ROL-1' : 'R-ROL-3']));
     const i = importarV0(exportarV0(completo));
     expect(i.ok).toBe(true); if (!i.ok) throw Error(JSON.stringify(i.informe));
     expect(i.modelo.enlaces).toEqual(completo.enlaces); expect(i.informe.descartado).toEqual([]);
@@ -565,7 +565,7 @@ test('T-052 igualdad semántica conserva estados, control, mult y ruta con mismo
  const antes=JSON.stringify(m);expect(duplicado(Object.freeze({...otro}))).toBe(true);expect(JSON.stringify(m)).toBe(antes);
 });
 
-test('T-053 incidencia conserva primer conflicto, orden de diagnósticos y exención del mismo abanico', () => {
+test('T-053 DEC33 incidencia por proceso, RROL1/RROL3 entre niveles, orden de diagnósticos y exención del mismo abanico', () => {
     function ascendientes(m: Modelo, p: string): Set<string> {
         const idx = indice(m), vistos = new Set<string>();
         while (!vistos.has(p)) {
@@ -575,13 +575,12 @@ test('T-053 incidencia conserva primer conflicto, orden de diagnósticos y exenc
         }
         return vistos;
     }
-    function anterior(m: Modelo, e: Enlace): Enlace | undefined {
-        if (!esProcedimental(e)) return undefined;
-        const idx = indice(m), as = ascendientes(m, e.proceso), fan = idx.abanicoDeEnlace.get(e.id);
-        return Object.values(m.enlaces).find(x => x.id !== e.id && esProcedimental(x) && x.objeto === e.objeto
-            && (as.has(x.proceso) || ascendientes(m, x.proceso).has(e.proceso))
-            && !(fan !== undefined && fan === idx.abanicoDeEnlace.get(x.id)));
-    }
+    const mismoFan = (m: Modelo, e: Enlace, x: Enlace) => { const idx = indice(m), f = idx.abanicoDeEnlace.get(e.id); return f !== undefined && f === idx.abanicoDeEnlace.get(x.id); };
+    const pares = (m: Modelo, e: Enlace) => !esProcedimental(e) ? [] : Object.values(m.enlaces).flatMap(x => {
+        if (x.id === e.id || !esProcedimental(x) || x.objeto !== e.objeto || x.proceso === e.proceso || mismoFan(m, e, x)) return [];
+        return ascendientes(m, e.proceso).has(x.proceso) ? [{ arriba: x, abajo: e }] : ascendientes(m, x.proceso).has(e.proceso) ? [{ arriba: e, abajo: x }] : [];
+    });
+    const cero = (d: Enlace) => d.tipo === 'efecto' && d.entrada !== undefined && d.entrada === d.salida;
     const b = base(), [a, otro, , p, q] = ids(b);
     const roles = poner(refinar(b),
         { id: 'e-101', tipo: 'instrumento', objeto: a!, proceso: p! },
@@ -594,14 +593,15 @@ test('T-053 incidencia conserva primer conflicto, orden de diagnósticos y exenc
     for (const m of modelos) {
         const antes = JSON.stringify(m), idx = indice(m);
         for (const e of Object.values(m.enlaces)) {
-            const otro = anterior(m, e);
-            const instrumento = e.tipo === 'instrumento' ? e : otro?.tipo === 'instrumento' ? otro : undefined;
-            const efecto = e.tipo === 'efecto' ? e : otro?.tipo === 'efecto' ? otro : undefined;
-            const cero = !!otro && !!instrumento && !!efecto && efecto.entrada !== undefined && efecto.entrada === efecto.salida
-                && instrumento.proceso !== efecto.proceso && ascendientes(m, efecto.proceso).has(instrumento.proceso);
+            // DEC33: la unicidad es por proceso; entre niveles sólo cuentan RROL1 y RROL3.
+            const mismo = esProcedimental(e) && Object.values(m.enlaces).some(x => x.id !== e.id && esProcedimental(x) && x.objeto === e.objeto && x.proceso === e.proceso && !mismoFan(m, e, x));
+            const ps = pares(m, e);
+            const rrol1 = (e.tipo === 'instrumento' || e.tipo === 'efecto') && ps.some(({ arriba, abajo }) => arriba.tipo === 'instrumento' && cero(abajo));
+            const rrol3 = ps.some(({ arriba, abajo }) => (arriba.tipo === 'agente' || arriba.tipo === 'instrumento') && ['consumo', 'resultado', 'efecto'].includes(abajo.tipo) && !cero(abajo));
             const esperado = REGLAS_CONTEXTO.filter(r => r.tipos.includes(e.tipo)).flatMap(r => {
-                const mensaje = r.id === 'R-ROL-1' ? (cero ? 'RROL1 permite instrumento abstracto y cambio explícito neto cero en detalle; el producto aún no ofrece esta combinación (B-34).' : null)
-                    : r.id === 'R-ROL-UNIC-1' ? (otro && !cero ? 'Ya existe un rol procedimental para el objeto y el proceso o su ancestro/descendiente.' : null)
+                const mensaje = r.id === 'R-ROL-1' ? (rrol1 ? 'RROL1 permite instrumento abstracto y cambio explícito neto cero en detalle; el producto aún no ofrece esta combinación (B-34).' : null)
+                    : r.id === 'R-ROL-UNIC-1' ? (mismo ? 'Ya existe un rol procedimental para el objeto y el proceso.' : null)
+                    : r.id === 'R-ROL-3' ? (rrol3 ? 'Un subproceso transforma el objeto, pero el proceso abstracto solo lo habilita: debe afectarlo también.' : null)
                     : r.viola(m, e, idx);
                 return mensaje ? [{ codigo: r.codigo ?? 'enlace-invalido', regla: r.id, mensaje, accion: r.accion, refs: [{ tipo: 'enlace' as const, id: e.id }] }] : [];
             });
@@ -616,7 +616,7 @@ test('T-053 incidencia conserva primer conflicto, orden de diagnósticos y exenc
 
 // Controles de equivalencia de la guarda privada WP-12; pueden iniciar GREEN.
 for (const tipo of ['consumo', 'resultado', 'agente'] as const) {
-    test(`T-053 RROL1 ${tipo} no forma neto cero pero conserva colisión y orden`, () => {
+    test(`T-053 RROL1 DEC33 ${tipo} bajo instrumento abstracto no forma neto cero: ${tipo === 'agente' ? 'dos habilitadores son legales' : 'RROL3 exige afectar arriba'}`, () => {
         const b = base(), [a, , , p, q] = ids(b);
         const es: Enlace[] = [{ id: 'e-101', tipo: 'instrumento', objeto: a!, proceso: p! },
             { id: 'e-102', tipo, objeto: a!, proceso: q! }];
@@ -624,7 +624,7 @@ for (const tipo of ['consumo', 'resultado', 'agente'] as const) {
             const m = poner(refinar(b), ...orden), antes = JSON.stringify(m);
             expect(validarForma(m)).toEqual([]);
             expect(erroresContexto(m).filter(v => v.regla.startsWith('R-ROL')).map(v => [v.regla, v.refs[0]?.id]))
-                .toEqual(orden.map(e => ['R-ROL-UNIC-1', e.id]));
+                .toEqual(tipo === 'agente' ? [] : orden.map(e => ['R-ROL-3', e.id]));
             expect(JSON.stringify(m)).toBe(antes);
         }
     });

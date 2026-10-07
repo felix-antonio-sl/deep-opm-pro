@@ -4,7 +4,7 @@ import { esProcedimental, extremos } from './tipos';
 import { indice } from './indice';
 import { generales } from './herencia';
 import { validarEtiqueta } from './lexico';
-import type { Familia, TipoEnlace, Modelo, Enlace, EnlaceNuevo, Id, Abanico } from './tipos';
+import type { Familia, TipoEnlace, Modelo, Enlace, EnlaceNuevo, EnlaceProcedimental, Id, Abanico } from './tipos';
 import type { Violacion, Respuesta, Rechazo } from './resultado';
 import type { Indice } from './indice';
 import type { Accion, EstadosEnlace, ExtremoRef } from './operaciones';
@@ -90,28 +90,45 @@ function ancestros(m: Modelo, p: Id, idx: Indice): ReadonlySet<Id> {
     }
     return vistos;
 }
+// R-ROL-UNIC-1 es por proceso: un objeto tiene un solo rol respecto del mismo proceso.
 function colision(m: Modelo, e: Enlace, idx: Indice): Enlace | undefined {
     if (!esProcedimental(e))
         return undefined;
-    const as = ancestros(m, e.proceso, idx), fan = idx.abanicoDeEnlace.get(e.id);
+    const fan = idx.abanicoDeEnlace.get(e.id);
     for (const id of idx.enlacesDeCosa.get(e.objeto) ?? []) {
         const x = m.enlaces[id]!;
-        if (x.id !== e.id && esProcedimental(x) && x.objeto === e.objeto
-            && (as.has(x.proceso) || ancestros(m, x.proceso, idx).has(e.proceso))
+        if (x.id !== e.id && esProcedimental(x) && x.objeto === e.objeto && x.proceso === e.proceso
             && !(fan !== undefined && fan === idx.abanicoDeEnlace.get(x.id))) return x;
     }
     return undefined;
+}
+// Entre niveles de una descomposición (R-ROL-1/2/3) el abstracto y su detalle pueden
+// tener enlaces propios con el mismo objeto; al abstraer prevalece el de mayor fuerza.
+function entreNiveles(m: Modelo, e: Enlace, idx: Indice): readonly { abstracto: EnlaceProcedimental; detalle: EnlaceProcedimental }[] {
+    if (!esProcedimental(e))
+        return [];
+    const pares: { abstracto: EnlaceProcedimental; detalle: EnlaceProcedimental }[] = [], as = ancestros(m, e.proceso, idx), fan = idx.abanicoDeEnlace.get(e.id);
+    for (const id of idx.enlacesDeCosa.get(e.objeto) ?? []) {
+        const x = m.enlaces[id]!;
+        if (x.id === e.id || !esProcedimental(x) || x.objeto !== e.objeto || x.proceso === e.proceso
+            || (fan !== undefined && fan === idx.abanicoDeEnlace.get(x.id))) continue;
+        if (as.has(x.proceso)) pares.push({ abstracto: x, detalle: e });
+        else if (ancestros(m, x.proceso, idx).has(e.proceso)) pares.push({ abstracto: e, detalle: x });
+    }
+    return pares;
+}
+const netoCero = (d: EnlaceProcedimental) => d.tipo === 'efecto' && d.entrada !== undefined && d.entrada === d.salida;
+const habilita = (d: EnlaceProcedimental) => d.tipo === 'agente' || d.tipo === 'instrumento';
+const transforma = (d: EnlaceProcedimental) => (d.tipo === 'consumo' || d.tipo === 'resultado' || d.tipo === 'efecto') && !netoCero(d);
+// R-ROL-3: si el detalle transforma con cambio neto, el abstracto no puede quedar como habilitador.
+function rolSinCambioArriba(m: Modelo, e: Enlace, idx: Indice): boolean {
+    return entreNiveles(m, e, idx).some(({ abstracto, detalle }) => habilita(abstracto) && transforma(detalle));
 }
 // RROL1 permite el instrumento abstracto afectado en detalle cuando el cambio
 // explícito prueba entrada=salida. Es un límite recuperable del producto, no F5.
 function rolCero(m: Modelo, e: Enlace, idx: Indice): boolean {
     if (e.tipo !== 'instrumento' && e.tipo !== 'efecto') return false;
-    const otro = colision(m, e, idx);
-    if (!otro) return false;
-    const instrumento = e.tipo === 'instrumento' ? e : otro.tipo === 'instrumento' ? otro : undefined;
-    const efecto = e.tipo === 'efecto' ? e : otro.tipo === 'efecto' ? otro : undefined;
-    return !!instrumento && !!efecto && efecto.entrada !== undefined && efecto.entrada === efecto.salida
-        && instrumento.proceso !== efecto.proceso && ancestros(m, efecto.proceso, idx).has(instrumento.proceso);
+    return entreNiveles(m, e, idx).some(({ abstracto, detalle }) => abstracto.tipo === 'instrumento' && netoCero(detalle));
 }
 function previos(m: Modelo, e: Enlace, idx: Indice): {
     evento: boolean;
@@ -183,7 +200,8 @@ export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
             return c?.tipo === 'objeto' && c.estados.some(s => s.id === e.estado && s.inicial) ? 'El resultado nunca se ancla al estado inicial.' : null;
         } }),
     regla({ id: 'R-ROL-1', tipos: PROCEDIMENTALES, severidad: 'error', codigo: 'no-ofrecido', registro: 'B-34', accion: 'Conserva los hechos importados; esta combinación permitida por RROL1 no está ofrecida por el producto', viola(m, e, idx) { return rolCero(m, e, idx) ? 'RROL1 permite instrumento abstracto y cambio explícito neto cero en detalle; el producto aún no ofrece esta combinación (B-34).' : null; } }),
-    regla({ id: 'R-ROL-UNIC-1', tipos: PROCEDIMENTALES, severidad: 'error', accion: 'Un solo rol por par objeto–proceso: edita el existente, completa el cambio o forma un abanico', viola(m, e, idx) { return colision(m, e, idx) && !rolCero(m, e, idx) ? 'Ya existe un rol procedimental para el objeto y el proceso o su ancestro/descendiente.' : null; } }),
+    regla({ id: 'R-ROL-UNIC-1', tipos: PROCEDIMENTALES, severidad: 'error', accion: 'Un solo rol por par objeto–proceso: edita el existente, completa el cambio o forma un abanico', viola(m, e, idx) { return colision(m, e, idx) ? 'Ya existe un rol procedimental para el objeto y el proceso.' : null; } }),
+    regla({ id: 'R-ROL-3', tipos: PROCEDIMENTALES, severidad: 'error', accion: 'Modela el objeto como afectado también en el proceso abstracto', viola(m, e, idx) { return rolSinCambioArriba(m, e, idx) ? 'Un subproceso transforma el objeto, pero el proceso abstracto solo lo habilita: debe afectarlo también.' : null; } }),
     regla({ id: 'R-DIST-1', tipos: ['consumo', 'resultado'], severidad: 'error', accion: 'Migra al primer/último subproceso', reparacion: e => ({ op: 'distribuirEnlace', args: { enlace: e.id } }), viola(m, e, idx) { return esProcedimental(e) && subprocesos(m, e.proceso, idx).length > 0 ? 'Consumo y resultado no pueden quedar en el contorno descompuesto.' : null; } }),
     regla({ id: 'R-CX-DIST-2', tipos: PRE, severidad: 'error', accion: 'Mueve el evento al primer subproceso o marca ambiental el objeto', reparacion: e => ({ op: 'distribuirEnlace', args: { enlace: e.id } }), viola(m, e, idx) { return esProcedimental(e) && control(e) === 'e' && cosa(m, e.objeto)?.afiliacion === 'sistemica' && subprocesos(m, e.proceso, idx).length > 0 ? 'El evento sistémico no cruza la frontera temporal.' : null; } }),
     regla({ id: 'AP-07', tipos: ['efecto'], severidad: 'error', accion: 'Escinde: TS4 en el primero, TS5 en el último', reparacion: e => ({ op: 'distribuirEnlace', args: { enlace: e.id } }), viola(m, e, idx) { return e.tipo === 'efecto' && e.entrada !== undefined && e.salida !== undefined && subprocesos(m, e.proceso, idx).length >= 2 ? 'El cambio completo debe escindirse al descomponer.' : null; } }),

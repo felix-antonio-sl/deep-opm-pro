@@ -13,7 +13,8 @@ import { azar } from '../pruebas/azar';
 const dir = new URL('../../fixtures/v0/', import.meta.url);
 // Gates del Modelo importado, sin limpiar hechos ni convertir rechazo en roundtrip.
 const rechazos: Readonly<Record<string, readonly (readonly [string, string])[]>> = {
-    'OnStar_System.json': [['R-ROL-UNIC-1', 'e-27'], ['R-ROL-UNIC-1', 'e-31'], ['R-ROL-UNIC-1', 'e-75'], ['R-INV-2B', 'e-93'], ['R-ROL-UNIC-1', 'e-95'], ['R-ROL-UNIC-1', 'e-99']],
+    // DEC33: R-ROL-UNIC-1 rige por proceso.
+    'OnStar_System.json': [['R-INV-2B', 'e-93']],
     'SD_Async.json': [['R-ROL-UNIC-1', 'e-25'], ['R-ROL-UNIC-1', 'e-27'], ['R-ROL-UNIC-1', 'e-29'], ['R-ROL-UNIC-1', 'e-31'], ['R-ROL-UNIC-1', 'e-66'], ['R-ROL-UNIC-1', 'e-68'], ['R-ROL-UNIC-1', 'e-70'], ['R-ROL-UNIC-1', 'e-72'], ['R-EFE-1', 'e-76'], ['R-EFE-1', 'e-78'], ['R-EFE-1', 'e-80'], ['T-025, R-§18-LEX-1', 'o-51'], ['T-025, R-§18-LEX-1', 'o-53'], ['A8.2', 'e-74']],
     'SD_Sync.json': [['R-EFE-1', 'e-88'], ['R-EFE-1', 'e-94'], ['R-EFE-1', 'e-96'], ['R-EFE-1', 'e-98'], ['R-INV-2B', 'e-102'], ['R-INV-2B', 'e-104'], ['R-INV-2B', 'e-106'], ['T-025, R-§18-LEX-1', 'o-80'], ['T-025, R-§18-LEX-1', 'o-82']],
 };

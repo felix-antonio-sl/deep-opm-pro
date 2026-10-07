@@ -68,6 +68,18 @@ Dictamen histórico: `89aaa3a5:docs/rehacer/evaluacion/dictamen-e53fb47.md`, con
     - consumo → efecto y efecto → resultado son inválidos.
 32. **Un enlace interno a un refinamiento no se ve en el padre** («cámbialo por supuesto»). Si los dos extremos de un enlace quedan dentro de la misma cosa refinada, el enlace es interno y desaparece en el OPD abstracto, aunque su tipo admita reflexivo. Corrige DESIGN §4.6, paso 2: las invocaciones entre subprocesos ya no se ven como «se invoca a sí mismo» (R-CAT-EQ-3, R-EJEC-9, R-INV-2D).
 
+## Decisiones del dueño tras probar la interfaz (2026-10-07) — fijas
+Frase del dueño: «eso , hazlo tu mismo», sobre esta propuesta textual de dos puntos:
+- «Respeta los tamaños y posiciones del v0 como lo hacía la versión anterior; si un texto no cabe, que se ajuste dentro sin pisar a sus vecinos. Ningún modelo importado debe quedar con figuras solapadas que antes no lo estaban.»
+- «Autorizo que R-ROL-UNIC-1 se limite al mismo proceso, como dice el canon, y que el caso ancestro/descendiente deje de ser bloqueo (R-ROL-1). Alinea DESIGN y conformidad con eso.»
+
+33. **Unicidad de rol por proceso; entre niveles manda la precedencia** (reglas §6.5 y R-ROL-1/2/3).
+    - R-ROL-UNIC-1 compara solo enlaces procedimentales del mismo objeto y el mismo proceso, salvo ramas de un mismo abanico. Un enlace al contorno de un proceso descompuesto ya no choca con los de sus subprocesos.
+    - Entre un proceso y su descendiente por descomposición (nunca despliegue, R-ROL-2), fuera de un mismo abanico:
+      - habilitador arriba y transformación con cambio neto abajo es error R-ROL-3: el abstracto debe afectar también al objeto;
+      - instrumento arriba y efecto neto cero abajo sigue en B-34 (R-ROL-1, no ofrecido);
+      - las demás combinaciones son legales.
+
 ## Resoluciones directas posteriores — vigentes
 
 Frases role=user recibidas textualmente; ID y fecha originales no observables.
@@ -373,8 +385,8 @@ export function normalizarEtiquetas(e: EnlaceNuevo): Respuesta<EnlaceNuevo>;
       estado, `completarCambio`;
     - si L es del mismo tipo y el abanico sería legal, `abanicoCon`;
     - si no, `cambiarTipoExistente`.
-    Una colisión solo por ancestro/descendiente conserva el rechazo sin estas alternativas de
-    mismo par. La identidad de un hecho es semántica y no depende del orden de claves anidadas.
+    Entre ancestro y descendiente no hay colisión de unicidad (DEC33). R-ROL-3 rechaza, sin
+    alternativas de mismo par, un habilitador sobre una transformación con cambio neto. La identidad de un hecho es semántica y no depende del orden de claves anidadas.
   - Orden: completas legales por `menu`, pendientes seleccionables por `menu`, luego rechazadas
     con motivo. Los consumidores comparan `legal === true/false/'pendiente'` explícitamente.
 - **`normalizarEtiquetas`** es un ayudante puro compartido por consulta y operaciones de enlaces;
@@ -726,7 +738,7 @@ respaldos, Docker y transición son procedimientos previstos, no ejecutados.
 |---|---|---|---|
 | T-001 ★ | FALTA | `docs/conformidad.md` con Brechas exhaustivas (§11.3), `registro` en cada fila de código y la regla de AGENTS | revisión del diff |
 | T-025 ★ | PARCIAL | `lexico.ts` valida al nombrar con error visible; ninguna operación ni el import reescriben nombres; la reparación es explícita (DS-7) | `lexico.test`, `codec.test`, e2e 4 |
-| T-053 ★ | PARCIAL | R-ROL-UNIC-1 distributiva sobre ancestros y descendientes; el segundo gesto ofrece completar el cambio, un abanico o cambiar el tipo; en OPL, TS1+TS2 del mismo par dan `enlace-invalido-firma` con la acción «usa `cambia … de … a …`» | `matriz.test`, `editor-opl.test`, e2e 8 |
+| T-053 ★ | PARCIAL | R-ROL-UNIC-1 por proceso; entre niveles, R-ROL-3 y precedencia al abstraer (DEC33); el segundo gesto ofrece completar el cambio, un abanico o cambiar el tipo; en OPL, TS1+TS2 del mismo par dan `enlace-invalido-firma` con la acción «usa `cambia … de … a …`» | `matriz.test`, `editor-opl.test`, e2e 8 |
 | T-060 ★ | CONTRADICE | R-DIST-1/AP-06/AP-21 en la matriz (lo cargado es error con reparación `distribuirEnlace`) + distribución 0→n + enlace tardío distribuido | `matriz.test`, `refinamiento.test` |
 | T-062 ★ | CONTRADICE | `crearCosa`, `agregarEstado`, `agregarSubprocesos` y `agregarRefinadores` exigen nombre; in-zoom y despliegue sin semillas | `cosas.test`, e2e 4, 6, 11 |
 | T-063 ★ | N/A (no existía) | `cambiarTipoCosa` + cierre DS-20 | `cosas.test` |

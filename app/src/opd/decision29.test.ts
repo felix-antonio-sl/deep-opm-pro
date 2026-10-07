@@ -116,10 +116,8 @@ for (const archivo of archivados)
         expect(e.aristas.flatMap(a => a.hechos).sort()).toEqual(Object.keys(original.enlaces).sort());
         expect(e.aristas.every(a => a.tramos.every(t => t.puntos.length === 2))).toBe(true);
         const exportado = exportarDiagrama(r.modelo, archivo.opd ?? 'sd', { version: 'DEC29' });
-        if (archivo.opd === 'h') {
-            expect(exportado.ok).toBe(false);
-            if (!exportado.ok) expect(exportado.rechazo.regla).toBe('R-ROL-UNIC-1');
-        } else expect(exportado.ok).toBe(true);
+        // DEC33: el mismo rol en el contenedor y en su subproceso no es una colisión.
+        expect(exportado.ok).toBe(true);
         expect(JSON.stringify(original)).toBe(antes);
     });
 
