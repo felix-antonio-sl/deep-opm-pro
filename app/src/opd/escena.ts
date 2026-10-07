@@ -323,6 +323,8 @@ export function escena(m: Modelo, opd: Id): Escena {
         const { marcas, etiquetas } = anotaciones(e, tramos);
         aristas.push({ ref: { tipo: 'enlace', id: e.id }, hechos: v.hechos, tramos: tramos.map((t, i) => ({ ...t, estados: e.tipo === 'efecto' && (e.entrada || e.salida) ? (e.entrada && i === 0 ? [e.entrada, undefined] : [undefined, e.salida]) : [estadoA, estadoB], contenedores: contenedoresDe([ex.origen, ex.destino]), extremos: e.tipo === 'efecto' && (e.entrada || e.salida) ? (e.entrada && i === 0 ? [e.objeto, e.proceso] : [e.proceso, e.objeto]) : [ex.origen, ex.destino] })), rayo: e.tipo === 'invocacion', marcas, etiquetas, capa: estadoA || estadoB ? 20 : 4 });
     }
+    // Peines ya trazados: su triángulo es un obstáculo y sus tramos, cortes que conviene evitar (DEC34).
+    const triangulos: Contorno[] = [], tramosPeine: (readonly Punto[])[] = [];
     for (const g of grupos.values()) {
         const e = g[0]!.enlace;
         if (!('refinable' in e))
@@ -336,9 +338,14 @@ export function escena(m: Modelo, opd: Id): Escena {
             return { ...contorno(r.refinador, s), id: r.id };
         });
         const incompleta = vista.incompletas.some(i => i.refinable === e.refinable && i.relacion === e.tipo);
-        const geo = peine(contorno(e.refinable, general), refinadores, incompleta);
+        const partes = g.flatMap(v => 'refinador' in v.enlace ? [v.enlace.refinador] : []), propios = new Set([e.refinable, ...partes, ...contenedoresDe([e.refinable, ...partes])]);
+        const geo = peine(contorno(e.refinable, general), refinadores, incompleta, [...nodos.filter(n => !propios.has(n.ref.id)).map(n => ({ caja: n.caja, forma: forma(n) })), ...triangulos], aristas.flatMap(a => a.tramos.map(t => t.puntos)), tramosPeine);
         if (!geo)
             continue;
+        const esquinas = [geo.vertice, ...[-15, 15].map(k => geo.orientacion === 'abajo' || geo.orientacion === 'arriba' ? { x: geo.base.x + k, y: geo.base.y } : { x: geo.base.x, y: geo.base.y + k })];
+        const x0 = Math.min(...esquinas.map(p => p.x)), y0 = Math.min(...esquinas.map(p => p.y));
+        triangulos.push({ caja: { x: x0, y: y0, ancho: Math.max(1, Math.max(...esquinas.map(p => p.x)) - x0), alto: Math.max(1, Math.max(...esquinas.map(p => p.y)) - y0) }, forma: 'rectangulo' });
+        tramosPeine.push(geo.tronco, geo.tallo, geo.barra, ...geo.ramas.map(r => r.puntos));
         simbolos.push({ clave: `simbolo:${e.refinable}:${e.tipo}${general ? ':' + general : ''}`, refinable: e.refinable, relacion: e.tipo, vertice: geo.vertice, orientacion: geo.orientacion, incompleta, ramas: g.map(v => v.enlace.id), peine: [geo.tronco, geo.tallo, geo.barra, ...geo.ramas.map(r => r.puntos), ...(geo.incompleta ? [geo.incompleta] : [])], incidencias: [...[geo.tronco, geo.tallo, geo.barra].map(() => ({ refs: g.map(v => v.enlace.id), extremos: [e.refinable], estados: general ? [general] : [], contenedores: contenedoresDe([e.refinable]) })), ...geo.ramas.map(r => { const x = g.find(v => v.enlace.id === r.id)!.enlace, extremos = 'refinador' in x ? [x.refinador] : []; return { refs: [r.id], extremos, estados: x.tipo === 'generalizacion' && x.estados ? [x.estados.especializacion] : [], contenedores: contenedoresDe(extremos) }; }), ...(geo.incompleta ? [{ refs: g.map(v => v.enlace.id), extremos: [] }] : [])], mult: g.flatMap(v => v.enlace.tipo === 'agregacion' && v.enlace.mult ? [{ texto: v.enlace.mult, en: multiplicidad(geo.ramas.find(r => r.id === v.enlace.id)!.puntos[1], geo.ramas.find(r => r.id === v.enlace.id)!.puntos[0]) }] : []) });
     }
     for (const f of vista.abanicos) {

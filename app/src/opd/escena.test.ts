@@ -352,3 +352,18 @@ test('T-221 DEC34 interno sobre el rótulo del contenedor lo despeja creciendo h
     expect(rotulo.y + rotulo.alto).toBeLessThanOrEqual(x.caja.y);
     expect(x.caja).toEqual({ x: 130, y: 0, ancho: 135, alto: 60 }); expect(JSON.stringify(base)).toBe(antes);
 });
+test('T-212 DEC34 peine de una columna de partes no atraviesa sus cajas', () => {
+    const partes = ['a', 'b', 'c', 'd'], base = sobre(m([o('t', 'Todo'), ...partes.map(id => o(id, `Parte ${id}`))], partes.map(id => ({ id: 'ag' + id, tipo: 'agregacion' as const, refinable: 't', refinador: id }))),
+        { t: { x: 660, y: 50, ancho: 135, alto: 60 }, ...Object.fromEntries(partes.map((id, i) => [id, { x: 760, y: 110 + 70 * i, ancho: 135, alto: 60 }])) });
+    const e = escena(base, 'sd'); expect(e.simbolos).toHaveLength(1);
+    expect(advertenciasEscena(e).filter(w => w.tipo === 'atraviesa')).toEqual([]);
+});
+test('T-212 DEC34 dos relaciones del mismo refinable no superponen sus triángulos', () => {
+    const rasgos = ['a', 'b', 'c'], base = sobre(m([o('t', 'Cosa'), ...rasgos.map(id => o(id, `Rasgo ${id}`)), o('p', 'Proceso'), o('q', 'Objeto')],
+        [...rasgos.map(id => ({ id: 'ex' + id, tipo: 'exhibicion' as const, refinable: 't', refinador: id })), ...['p', 'q'].map(id => ({ id: 'ge' + id, tipo: 'generalizacion' as const, refinable: 't', refinador: id }))]),
+        { t: { x: 300, y: 0, ancho: 135, alto: 60 }, ...Object.fromEntries(rasgos.map((id, i) => [id, { x: i * 260, y: 160, ancho: 230, alto: 90 }])), p: { x: 120, y: 360, ancho: 135, alto: 60 }, q: { x: 480, y: 360, ancho: 135, alto: 60 } });
+    const e = escena(base, 'sd'); expect(e.simbolos).toHaveLength(2);
+    const caja = (s: typeof e.simbolos[number]) => { const n = s.orientacion === 'abajo' || s.orientacion === 'arriba' ? { x: 15, y: 0 } : { x: 0, y: 15 }, d = { abajo: [0, 30], arriba: [0, -30], derecha: [30, 0], izquierda: [-30, 0] }[s.orientacion], b = { x: s.vertice.x + d[0]!, y: s.vertice.y + d[1]! }, ps = [s.vertice, { x: b.x + n.x, y: b.y + n.y }, { x: b.x - n.x, y: b.y - n.y }]; return { x0: Math.min(...ps.map(p => p.x)), x1: Math.max(...ps.map(p => p.x)), y0: Math.min(...ps.map(p => p.y)), y1: Math.max(...ps.map(p => p.y)) }; };
+    const [u, v] = e.simbolos.map(caja);
+    expect(u!.x1 <= v!.x0 || v!.x1 <= u!.x0 || u!.y1 <= v!.y0 || v!.y1 <= u!.y0).toBe(true);
+});

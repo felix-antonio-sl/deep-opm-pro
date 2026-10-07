@@ -85,6 +85,7 @@ Frase del dueño: «eso , hazlo tu mismo», sobre esta propuesta textual de dos 
     - El rótulo se envuelve dentro de la caja persistida. Se prueba de la envoltura más ancha a la más estrecha y gana la primera que cabe; en la elipse, el bloque queda inscrito con 4 px de holgura lateral. Sólo si ninguna cabe la forma se expande, con la envoltura de menor área.
     - La forma que crece contiene siempre su caja persistida. Crece hacia el lado donde no pisa a una cosa que en lo persistido no pisaba y, a igual coste, conserva su esquina. A ninguna otra cosa se la mueve ni se la redimensiona.
     - Si una cosa tapa el rótulo del contenedor, este crece hacia arriba lo justo para despejarlo, salvo que el rótulo quedara bajo otra cosa.
+    - El peine estructural prueba la barra transversal y la lateral en las cuatro orientaciones, empezando por la preferida, y queda el que atraviesa menos cosas. El triángulo de un peine ya trazado cuenta como cosa, así dos relaciones de un mismo refinable no se tapan; montarse sobre otro peine pesa menos que atravesar una cosa, y los cortes con enlaces sólo desempatan.
     - Contraste con la versión anterior (`pre-rehacer`, render headless de los fixtures v0):
       - los solapes que quedan en OnStar SD1 y SD Sync SD1 vienen de las posiciones del v0, la versión anterior los dibujaba igual y se avisan (B-15);
       - ningún OPD de los fixtures gana solapes respecto del v0, salvo la fila sintética cuyos estados exigen 100 px más que el hueco.
@@ -593,7 +594,10 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
   paralelas) a 22 px del manejador (DR-38, T-215).
 - **Estructurales fundamentales**. Se dibujan como un peine ortogonal por grupo (refinable,
   relación) (T-212, T-225):
-  - La orientación es el eje dominante del vector refinable→centroide de refinadores.
+  - La orientación preferida es el eje dominante del vector refinable→centroide de refinadores.
+    Si ese peine atraviesa cosas, se prueban la barra lateral (paralela al tallo, con ramas
+    perpendiculares) y las otras orientaciones, y queda el que menos cosas atraviesa, contando como
+    cosa el triángulo de los peines ya trazados (DEC34).
   - El vértice del triángulo (30×30) va a 24 px del borde del refinable, unido por un tramo recto.
   - La barra común va a 16 px de la base, y de ella bajan tramos ortogonales al centro de cada
     refinador, recortados en su borde.

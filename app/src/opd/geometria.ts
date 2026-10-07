@@ -71,27 +71,79 @@ export interface GeometriaPeine {
   readonly ramas: readonly { readonly id: string; readonly puntos: readonly [Punto, Punto] }[];
   readonly incompleta?: readonly [Punto, Punto];
 }
-export function peine(refinable: Contorno, refinadores: readonly (Contorno & { readonly id: string })[], incompleta: boolean): GeometriaPeine | null {
+/** Peine ortogonal (R-OPD-LAY-4). Primero el preferido: barra transversal en el lado de los
+ * refinadores. Si atraviesa cosas, prueba la barra lateral y las otras orientaciones, y queda la
+ * de menos cosas atravesadas; a igual cuenta, la anterior (DEC34). No mueve ni redimensiona cosas. */
+export function peine(refinable: Contorno, refinadores: readonly (Contorno & { readonly id: string })[], incompleta: boolean, obstaculos: readonly Contorno[] = [], trazos: readonly (readonly Punto[])[] = [], peines: readonly (readonly Punto[])[] = []): GeometriaPeine | null {
   const c = centro(refinable.caja);
   if (refinadores.length === 0) return null;
   const centros = refinadores.map(r => ({ r, c: centro(r.caja) }));
   const delta = diferencia(c, centroide(centros.map(r => r.c), c));
   const horizontal = Math.abs(delta.x) >= Math.abs(delta.y), signo = horizontal ? (delta.x < 0 ? -1 : 1) : (delta.y < 0 ? -1 : 1);
-  const orientacion: Orientacion = horizontal ? (signo > 0 ? 'derecha' : 'izquierda') : (signo > 0 ? 'abajo' : 'arriba');
-  const d = horizontal ? { x: signo, y: 0 } : { x: 0, y: signo };
+  const otro = horizontal ? (delta.y < 0 ? -1 : 1) : (delta.x < 0 ? -1 : 1);
+  const direcciones: readonly Punto[] = horizontal ? [{ x: signo, y: 0 }, { x: 0, y: otro }, { x: 0, y: -otro }, { x: -signo, y: 0 }] : [{ x: 0, y: signo }, { x: otro, y: 0 }, { x: -otro, y: 0 }, { x: 0, y: -signo }];
+  let mejor: GeometriaPeine | undefined, menor = Infinity;
+  for (const d of direcciones) for (const lateral of [false, true]) {
+    const geo = trazarPeine(refinable, centros, incompleta, d, lateral);
+    if (!geo) continue;
+    // Montarse sobre otro peine confunde más que cortar un enlace, pero menos que atravesar una cosa.
+    const k = atravesadas(geo, refinable, refinadores, obstaculos) + cortes(geo, peines) / 10 + cortes(geo, trazos) / 1000;
+    if (k < menor) { mejor = geo; menor = k; }
+    if (menor === 0) return mejor!;
+  }
+  return mejor ?? null;
+}
+function trazarPeine(refinable: Contorno, centros: readonly { readonly r: Contorno & { readonly id: string }; readonly c: Punto }[], incompleta: boolean, d: Punto, lateral: boolean): GeometriaPeine | null {
+  const c = centro(refinable.caja), horizontal = d.y === 0;
+  const orientacion: Orientacion = horizontal ? (d.x > 0 ? 'derecha' : 'izquierda') : (d.y > 0 ? 'abajo' : 'arriba');
   const n = horizontal ? { x: 0, y: 1 } : { x: 1, y: 0 };
   const borde = recortar(refinable.caja, sumar(c, d), refinable.forma), vertice = sumar(borde, d, 24), base = sumar(vertice, d, 30), bus = sumar(base, d, 16);
-  const transversal = (p: Punto) => horizontal ? p.y : p.x;
-  centros.sort((a, b) => transversal(a.c) - transversal(b.c) || ordenPuntos(a.c, b.c) || (a.r.id < b.r.id ? -1 : a.r.id > b.r.id ? 1 : 0));
-  const coordenadas = [transversal(bus), ...centros.map(r => transversal(r.c))];
-  const barra: readonly [Punto, Punto] = [sumar(bus, n, Math.min(...coordenadas) - transversal(bus)), sumar(bus, n, Math.max(...coordenadas) - transversal(bus))];
-  const ramas = centros.map(({ r, c: cr }) => {
-    const inicio = sumar(bus, n, transversal(cr) - transversal(bus));
-    const hacia = inicio.x === cr.x && inicio.y === cr.y ? sumar(cr, d, -1) : inicio;
-    return { id: r.id, puntos: [inicio, recortar(r.caja, hacia, r.forma)] as const };
-  });
+  const transversal = (p: Punto) => horizontal ? p.y : p.x, axial = (p: Punto) => horizontal ? p.x * d.x : p.y * d.y;
+  const ordenados = [...centros].sort((a, b) => transversal(a.c) - transversal(b.c) || ordenPuntos(a.c, b.c) || (a.r.id < b.r.id ? -1 : a.r.id > b.r.id ? 1 : 0));
+  let barra: readonly [Punto, Punto], ramas: { readonly id: string; readonly puntos: readonly [Punto, Punto] }[];
+  if (!lateral) {
+    const coordenadas = [transversal(bus), ...ordenados.map(r => transversal(r.c))];
+    barra = [sumar(bus, n, Math.min(...coordenadas) - transversal(bus)), sumar(bus, n, Math.max(...coordenadas) - transversal(bus))];
+    ramas = ordenados.map(({ r, c: cr }) => {
+      const inicio = sumar(bus, n, transversal(cr) - transversal(bus));
+      const hacia = inicio.x === cr.x && inicio.y === cr.y ? sumar(cr, d, -1) : inicio;
+      return { id: r.id, puntos: [inicio, recortar(r.caja, hacia, r.forma)] as const };
+    });
+  } else {
+    // Barra lateral: sigue la dirección del tallo y cada rama sale en perpendicular hacia su
+    // refinador. Sólo vale si todos quedan más allá del tallo y fuera de su eje.
+    if (ordenados.some(({ c: cr }) => axial(cr) <= axial(bus) || transversal(cr) === transversal(bus))) return null;
+    const hasta = Math.max(...ordenados.map(({ c: cr }) => axial(cr))) - axial(bus);
+    barra = [bus, sumar(bus, d, hasta)];
+    ramas = ordenados.map(({ r, c: cr }) => {
+      const inicio = sumar(bus, d, axial(cr) - axial(bus));
+      return { id: r.id, puntos: [inicio, recortar(r.caja, inicio, r.forma)] as const };
+    });
+  }
   return { orientacion, vertice, base, tronco: [borde, vertice], tallo: [base, bus], barra, ramas,
     ...(incompleta ? { incompleta: [sumar(sumar(base, d, 8), n, -7), sumar(sumar(base, d, 8), n, 7)] as const } : {}) };
+}
+// Enlaces ya trazados que corta el peine: sólo desempata entre peines que no atraviesan cosas.
+function cortes(g: GeometriaPeine, trazos: readonly (readonly Punto[])[]): number {
+  const n = g.orientacion === 'derecha' || g.orientacion === 'izquierda' ? { x: 0, y: 15 } : { x: 15, y: 0 };
+  const propios: (readonly [Punto, Punto])[] = [g.tronco, g.tallo, g.barra, ...g.ramas.map(r => r.puntos), [g.vertice, sumar(g.base, n)], [sumar(g.base, n), sumar(g.base, n, -1)], [sumar(g.base, n, -1), g.vertice]];
+  let k = 0;
+  for (const t of trazos) for (let i = 1; i < t.length; i++) if (propios.some(([a, b]) => intersectanSegmentos(a, b, t[i - 1]!, t[i]!))) k++;
+  return k;
+}
+// Cosas que cruza el peine: cada tramo exime sólo su propio extremo, y el triángulo exime al refinable.
+function atravesadas(g: GeometriaPeine, refinable: Contorno, refinadores: readonly (Contorno & { readonly id: string })[], obstaculos: readonly Contorno[]): number {
+  const forma = (x: Contorno) => x.forma === 'elipse' ? 'elipse' : 'rectangulo';
+  const toca = (a: Punto, b: Punto, x: Contorno) => intersectaCaja(a, b, x.caja, forma(x));
+  const n = g.orientacion === 'derecha' || g.orientacion === 'izquierda' ? { x: 0, y: 15 } : { x: 15, y: 0 };
+  const triangulo: readonly (readonly [Punto, Punto])[] = [[g.vertice, sumar(g.base, n)], [sumar(g.base, n), sumar(g.base, n, -1)], [sumar(g.base, n, -1), g.vertice]];
+  let k = 0;
+  for (const x of [...obstaculos, ...refinadores]) {
+    if ([g.tronco, g.tallo, g.barra, ...triangulo].some(([a, b]) => toca(a, b, x))) k++;
+  }
+  for (const r of g.ramas) for (const x of [...obstaculos, refinable, ...refinadores.filter(y => y.id !== r.id)]) if (toca(r.puntos[0], r.puntos[1], x)) k++;
+  if ([g.tallo, g.barra, ...triangulo].some(([a, b]) => toca(a, b, refinable))) k++;
+  return k;
 }
 /** Radianes: 0=este, positivos hacia abajo en SVG; hasta puede superar 2π.
  * Empate de huecos: menor ángulo de inicio. Puntos coincidentes no aportan dirección. */

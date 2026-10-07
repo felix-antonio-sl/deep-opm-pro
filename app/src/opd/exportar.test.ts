@@ -203,12 +203,23 @@ test('T-284 resultado a estado avisa rótulo propio atravesado sin modificar dib
 
 import { readFileSync } from 'node:fs';
 import { importarV0 } from '../codec/importar';
-for(const [archivo,nombre,obstaculo] of [['System_Diagram','Beneficiary Relevant Attribute','rótulo'],['OPM_Structure_Meta_Model','OPM Stereotype','cosa']] as const)test('T-284 figura estructural sobre '+obstaculo+' de refinador en fixture real '+archivo,()=>{
+// DEC34: el peine elige la orientación que no atraviesa cosas; en estos fixtures reales antes
+// invadía al refinador y ahora no. La detección sigue cubierta abajo con un caso sin salida.
+for(const [archivo,nombre] of [['System_Diagram','Beneficiary Relevant Attribute'],['OPM_Structure_Meta_Model','OPM Stereotype']] as const)test('T-284 DEC34 figura estructural ya no invade al refinador en fixture real '+archivo,()=>{
  const r=importarV0(readFileSync(new URL('../../fixtures/v0/'+archivo+'.json',import.meta.url),'utf8'));expect(r.ok).toBe(true);if(!r.ok)throw Error('Import rechazado');
  const base=r.modelo,antes=JSON.stringify(base),e=escena(base,base.raiz),n=e.nodos.find(n=>n.rotulo.lineas.join(' ').replaceAll(' ','')===nombre.replaceAll(' ',''))!;
  expect(n).toBeDefined();expect(gatesExportacion(base,{opd:base.raiz})).toEqual([]);
- expect(advertenciasEscena(e).some(w=>w.tipo==='atraviesa'&&w.refs.some(r=>r.id===n.ref.id)&&w.texto.startsWith('Una figura estructural')&&w.texto.includes(obstaculo))).toBe(true);
+ expect(advertenciasEscena(e).filter(w=>w.tipo==='atraviesa'&&w.refs.some(r=>r.id===n.ref.id)&&w.texto.startsWith('Una figura estructural'))).toEqual([]);
  expect(exportarDiagrama(base,base.raiz,{version:'paso4'}).ok).toBe(true);expect(JSON.stringify(base)).toBe(antes);
+});
+for(const obstaculo of ['rótulo','cosa'] as const)test('T-284 figura estructural sin salida sobre '+obstaculo+' de refinador se advierte',()=>{
+ // Cuatro partes a 10 px por cada lado: ninguna orientación deja sitio al triángulo.
+ const lados={n:{x:0,y:-70,ancho:80,alto:60},s:{x:0,y:50,ancho:80,alto:60},w:{x:-90,y:-10,ancho:80,alto:60},e:{x:90,y:-10,ancho:80,alto:60}};
+ const cosa=(id:string):Cosa=>({id,nombre:id==='t'?'Todo':`Parte${id.toUpperCase()}`,tipo:'objeto',estados:[],esencia:'informacional',afiliacion:'sistemica'});
+ const base:Modelo={...m(0),cosas:Object.fromEntries(['t',...Object.keys(lados)].map(id=>[id,cosa(id)])),enlaces:Object.fromEntries(Object.keys(lados).map(id=>['ag'+id,{id:'ag'+id,tipo:'agregacion' as const,refinable:'t',refinador:id}])),opds:{sd:{id:'sd',tipo:'raiz',apariciones:{t:{x:0,y:0,ancho:80,alto:40},...lados}}}};
+ const antes=JSON.stringify(base),e=escena(base,'sd');expect(e.simbolos).toHaveLength(1);
+ expect(advertenciasEscena(e).some(w=>w.tipo==='atraviesa'&&w.texto.startsWith('Una figura estructural')&&w.texto.includes(obstaculo)&&w.refs.some(r=>Object.keys(lados).includes(r.id)))).toBe(true);
+ expect(exportarDiagrama(base,'sd',{version:'paso4'}).ok).toBe(true);expect(JSON.stringify(base)).toBe(antes);
 });
 test('T-041 T-284 generalización de estados conserva los dos contactos terminales sin falsa cápsula ajena',()=>{
  const b=m(2),base:Modelo={...b,cosas:{o0:{...obj('o0'),tipo:'objeto',estados:[{id:'aa',nombre:'general'}]},o1:{...obj('o1'),tipo:'objeto',estados:[{id:'bb',nombre:'especial'}]}},enlaces:{g:{id:'g',tipo:'generalizacion',refinable:'o0',refinador:'o1',estados:{general:'aa',especializacion:'bb'}}}};
