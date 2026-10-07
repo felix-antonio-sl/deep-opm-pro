@@ -517,11 +517,11 @@ for (const cero of [true, false]) test(`T-053 RROL1 cambio explícito neto cero 
     expect(JSON.stringify(modelo)).toBe(antes); expect(modelo.secuencia).toBe(200);
 });
 
-test('T-053 RROL1 importación Async preserva ocho errores basales, todos los IDs y cero descartes',()=>{
+test('T-053 RROL1 DEC33 importación Async funde los hechos repetidos, sin R-ROL-UNIC-1 ni descartes',()=>{
  const r=importarV0(require('node:fs').readFileSync(new URL('../../fixtures/v0/SD_Async.json',import.meta.url),'utf8'));
  expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));
- expect(Object.keys(r.modelo.enlaces)).toHaveLength(23);expect(r.informe.descartado).toEqual([]);
- const errores=erroresContexto(r.modelo);expect(errores.filter(v=>v.regla==='R-ROL-UNIC-1').map(v=>v.refs[0]!.id)).toEqual(['e-25','e-27','e-29','e-31','e-66','e-68','e-70','e-72']);expect(errores.filter(v=>v.regla!=='R-ROL-UNIC-1').map(v=>[v.regla,v.refs[0]!.id])).toEqual([['R-EFE-1','e-76'],['R-EFE-1','e-78'],['R-EFE-1','e-80']]);
+ expect(Object.keys(r.modelo.enlaces)).toHaveLength(18);expect(r.informe.descartado).toEqual([]);
+ const errores=erroresContexto(r.modelo);expect(errores.filter(v=>v.regla==='R-ROL-UNIC-1')).toEqual([]);expect(errores.filter(v=>v.regla!=='R-ROL-UNIC-1').map(v=>[v.regla,v.refs[0]!.id])).toEqual([['R-EFE-1','e-76'],['R-EFE-1','e-78'],['R-EFE-1','e-80']]);
  const s=exportarV0(r.modelo),i=importarV0(s);expect(i.ok).toBe(true);if(i.ok){expect(i.modelo.enlaces).toEqual(r.modelo.enlaces);expect(erroresContexto(i.modelo)).toEqual(errores);expect(i.informe.descartado).toEqual([]);}
 });
 test('T-092 AP29 distribución final acredita duplicado sólo en subproceso y permite participante distinto',()=>{

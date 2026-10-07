@@ -241,6 +241,10 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
      WP-4r). Lo que queda en el contorno contra el canon (un consumo sin derivado, un TS3 sin
      derivados) se **carga** y lo marca `diagnosticar` como error con reparación `distribuirEnlace`,
      que el Informe ofrece en «Aplicar N reparaciones» (P8, CC-21).
+   - **Enlaces idénticos repetidos** (DEC33): v0 copiaba el mismo hecho en varios OPD. Tras los
+     derivados, un enlace igual a otro anterior en todo salvo el id se elimina y su id queda como
+     alias del primero (`normalizado`, R-ROL-UNIC-1). No se funden ramas de abanico ni mitades de
+     escisión; un enlace que difiere en estado, control, multiplicidad o ruta no es idéntico.
 9. **Abanicos.**
    - `operador` `O` pasa a `OR`; `XOR` queda igual.
    - **Abanicos derivados** (CC-26): v0 proyectaba el abanico del padre en cada OPD hijo como otro

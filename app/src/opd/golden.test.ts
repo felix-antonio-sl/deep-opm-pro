@@ -137,7 +137,7 @@ for (const c of casos)
     test(`T-223 golden ${c.nombre}: ${c.oraculo}`, () => {
         let svg: string;
         // DEC33: R-ROL-UNIC-1 rige por proceso; sólo estas vistas conservan un error recuperable real.
-        const reglasDiagnosticas: Record<string, string> = { 'fixture-OnStar_System-profundo': 'R-INV-2B', 'fixture-SD_Async-sd': 'R-ROL-UNIC-1', 'fixture-SD_Async-profundo': 'R-ROL-UNIC-1', 'fixture-SD_Sync-profundo': 'R-EFE-1' };
+        const reglasDiagnosticas: Record<string, string> = { 'fixture-OnStar_System-profundo': 'R-INV-2B', 'fixture-SD_Async-profundo': 'R-EFE-1', 'fixture-SD_Sync-profundo': 'R-EFE-1' };
         const regla = reglasDiagnosticas[c.nombre];
         if (regla) {
             // Modelos históricos recuperables: dibujo diagnóstico, nunca export canónico.

@@ -150,3 +150,14 @@ test('T-020 valores primitivos de slot conservan las conversiones texto y númer
 test('T-287 extensión declarada profunda conserva original y conteo en Informe iterativo',()=>{
  const d=documento([entidad('o-1')]);let value='7';for(let i=0;i<40000;i++)value='{"x":'+value+'}';const text=JSON.stringify(d).replace('"modelo":{','"modelo":{"ontologia":'+value+',');let r:ReturnType<typeof importarV0>|undefined;expect(()=>{r=importarV0(text);}).not.toThrow();expect(r?.ok).toBe(true);expect(r?.informe.descartado).toEqual([{ruta:'ontologia',mensaje:'1 elementos no representables: '+value+'.',regla:'T-006'}]);
 });
+test('T-053 DEC33 import funde el mismo hecho repetido por OPD y conserva los que difieren',()=>{
+ const d=refinado([enlace('e-10','agente','o-1','p-2'),enlace('e-11','agente','o-1','p-2'),enlace('e-12','instrumento','o-1','p-4'),enlace('e-13','instrumento','o-1','p-4',{modificador:'condicion'}),enlace('e-14','instrumento','o-1','p-4')]);
+ d.modelo.opds['opd-3'].enlaces=Object.fromEntries(['e-11','e-12','e-13','e-14'].map(id=>[`ae3-${id}`,{id:`ae3-${id}`,enlaceId:id,opdId:'opd-3',vertices:[]}]));
+ const antes=JSON.stringify(d),r=leer(d);expect(JSON.stringify(d)).toBe(antes);
+ expect(Object.keys(r.modelo.enlaces)).toEqual(['e-10','e-12','e-13']);
+ expect(r.modelo.enlaces['e-13']).toMatchObject({tipo:'instrumento',control:'c'});
+ expect(r.informe.normalizado.filter(e=>e.regla==='R-ROL-UNIC-1').map(e=>[e.ruta,e.mensaje])).toEqual([['enlaces.e-11','Enlace idéntico a e-10: el mismo hecho repetido se conserva una vez.'],['enlaces.e-14','Enlace idéntico a e-12: el mismo hecho repetido se conserva una vez.']]);
+ expect(r.informe.descartado).toEqual([]);expect(r.informe.visibilidad).toEqual([]);
+ const a=exportarV0(r.modelo),b=importarV0(a);expect(b.ok).toBe(true);if(!b.ok)throw Error(JSON.stringify(b.informe));
+ expect(b.modelo.enlaces).toEqual(r.modelo.enlaces);expect(b.informe.normalizado.filter(e=>e.regla==='R-ROL-UNIC-1')).toEqual([]);expect(exportarV0(b.modelo)).toBe(a);
+});

@@ -253,6 +253,7 @@ function importarDocumento(texto:string,fusionar?:FusionarPares):ResultadoImport
   const alias=new Map<string,string>(), remap=(id:string):string=> { const vistos=new Set<string>(); while(alias.has(id)&&!vistos.has(id)){vistos.add(id);id=alias.get(id)!;} return id; };
   construirEnlaces(data,cosas,enlaces,estadosRetirados,l,nuevo,modelo,alias,fusionar);
   mapearDerivados(data,cosas,enlaces,opds,alias,remap,l,nuevo);
+  fusionarDuplicados(data,enlaces,alias,remap,l);
   construirAbanicos(data,abanicos,enlaces,remap,l,modelo);
   for(const [id,c] of Object.entries(cosas)) if(c.tipo==='objeto'&&c.valor!==undefined&&!Object.values(enlaces).some(e=>e.tipo==='exhibicion'&&e.refinador===id)) { const {valor,...resto}=c; cosas[id]=resto; l.perder(`entidades.${id}.valorSlot.valor`,valor,'T-020','Valor sin exhibidor'); }
   if(raw.unidadTiempo===undefined) l.norm('unidadTiempo','Default min.'); else if(!unidad(raw.unidadTiempo)) l.perder('unidadTiempo',raw.unidadTiempo,'T-021');
@@ -520,6 +521,21 @@ function fusionarPares(data:Record<Col,Record<string,Registro>>,enlaces:Record<s
     if(xs.length!==2)continue;const c=xs.find(e=>e.tipo==='consumo'),r=xs.find(e=>e.tipo==='resultado');
     if(c?.tipo!=='consumo'||r?.tipo!=='resultado'||enFan.has(c.id)||enFan.has(r.id)||c.ruta!==undefined||r.ruta!==undefined||c.mult!==undefined||r.mult!==undefined)continue;
     enlaces[c.id]={id:c.id,tipo:'efecto',objeto:c.objeto,proceso:c.proceso,...(c.estado?{entrada:c.estado}:{}),...(r.estado?{salida:r.estado}:{}),...(c.control?{control:c.control}:{})};delete enlaces[r.id];alias.set(r.id,c.id);l.norm(`enlaces.${c.id}`,`Consumo + resultado ${r.id} → TS3; alias ${r.id} → ${c.id}.`,'T-032');
+  }
+}
+
+// Dos registros con el mismo contenido sobre los mismos extremos son un único hecho
+// repetido (copias por OPD del legado): se conserva el primero, sin pérdida (R-ROL-UNIC-1).
+function fusionarDuplicados(data:Record<Col,Record<string,Registro>>,enlaces:Record<string,Enlace>,alias:Map<string,string>,remap:(id:string)=>string,l:Lectura):void {
+  const enFan=new Set(Object.values(data.abanicos).flatMap(f=>Array.isArray(f.enlaceIds)?f.enlaceIds.map(v=>remap(str(v))):[]));
+  const vistos=new Map<string,string>();
+  for(const e of Object.values(enlaces)) {
+    if(enFan.has(e.id)||'escision' in e&&e.escision!==undefined)continue;
+    const {id,...resto}=e,clave=JSON.stringify(Object.entries(resto).sort(([a],[b])=>a<b?-1:a>b?1:0));
+    const previo=vistos.get(clave);
+    if(previo===undefined){vistos.set(clave,id);continue;}
+    delete enlaces[id];alias.set(id,previo);
+    l.norm(`enlaces.${id}`,`Enlace idéntico a ${previo}: el mismo hecho repetido se conserva una vez.`,'R-ROL-UNIC-1');
   }
 }
 

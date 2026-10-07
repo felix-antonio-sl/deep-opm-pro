@@ -17,8 +17,8 @@ const originales = [
  ['OPM_Structure_Meta_Model.json','opd-91',[],[]],
  ['OnStar_System.json','opd-1',[],[]],
  ['OnStar_System.json','opd-33',[],[]],
- ['SD_Async.json','opd-1',['e-62','e-64','e-66','e-68','e-70','e-72'],[]],
- ['SD_Async.json','opd-35',['e-19','e-25','e-27','e-29','e-31','e-33'],['e-62','e-74']],
+ ['SD_Async.json','opd-1',['e-62'],[]], // DEC33: las copias idénticas de SD1 ya no aparecen como hechos aparte
+ ['SD_Async.json','opd-35',['e-33'],['e-62','e-74']],
  ['SD_Sync.json','opd-1',[],[]],
  ['SD_Sync.json','opd-35',[],[]],
  ['System_Diagram.json','opd-1',[],[]],

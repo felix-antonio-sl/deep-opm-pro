@@ -80,6 +80,7 @@ Frase del dueño: «eso , hazlo tu mismo», sobre esta propuesta textual de dos 
       - instrumento arriba y efecto neto cero abajo sigue en B-34 (R-ROL-1, no ofrecido);
       - las demás combinaciones son legales.
     - Al abstraer, los hechos del detalle se funden por Tabla 27 (DEC31) y luego compiten por fuerza con los propios del padre (§6.5). El padre muestra un solo hecho, cuyo `hechos` sigue el orden del grupo. Resultado y consumo sin continuidad siguen siendo R-PREC-3.
+    - El importador funde en el primero los enlaces idénticos repetidos, con alias e informe `normalizado` (R-ROL-UNIC-1). Idénticos significa mismos extremos, tipo, estados, control, multiplicidad y ruta, fuera de abanicos y escisiones. Son la copia por OPD del formato anterior.
 
 ## Resoluciones directas posteriores — vigentes
 

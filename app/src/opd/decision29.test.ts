@@ -121,18 +121,18 @@ for (const archivo of archivados)
         expect(JSON.stringify(original)).toBe(antes);
     });
 
-test('T-287 DEC29 Async sin grupos conserva hechos y errores recuperables históricos', () => {
+test('T-287 DEC29 DEC33 Async sin grupos funde los hechos repetidos y conserva el punto fijo', () => {
     const r = importarV0(readFileSync(new URL('../../fixtures/v0/SD_Async.json', import.meta.url), 'utf8'));
     expect(r.ok).toBe(true); if (!r.ok) throw Error('Fixture Async');
     expect(r.modelo.abanicos).toEqual({});
     expect(r.informe.descartado).toEqual([]);
-    const errores = erroresContexto(r.modelo).filter(d => d.regla === 'R-ROL-UNIC-1');
-    expect(errores.flatMap(d => d.refs.map(ref => ref.id))).toEqual(['e-25','e-27','e-29','e-31','e-66','e-68','e-70','e-72']);
+    // Las copias idénticas por OPD del legado son el mismo hecho: se conserva el primero.
+    expect(r.informe.normalizado.filter(n => /idéntico/.test(n.mensaje)).map(n => n.ruta)).toEqual(['enlaces.e-64', 'enlaces.e-66', 'enlaces.e-68', 'enlaces.e-70', 'enlaces.e-72']);
+    for (const id of ['e-19', 'e-25', 'e-27', 'e-29', 'e-31']) expect(r.modelo.enlaces[id]).toBeDefined();
+    expect(erroresContexto(r.modelo).filter(d => d.regla === 'R-ROL-UNIC-1')).toEqual([]);
     const segunda = importarV0(exportarV0(r.modelo));
     expect(segunda.ok).toBe(true); if (!segunda.ok) throw Error('Punto fijo Async');
     expect(segunda.modelo.enlaces).toEqual(r.modelo.enlaces);
     expect(segunda.modelo.cosas).toEqual(r.modelo.cosas);
-    const exportado = exportarDiagrama(r.modelo, r.modelo.raiz, { version:'DEC29' });
-    expect(exportado.ok).toBe(false);
-    if (!exportado.ok) expect(exportado.rechazo.regla).toBe('R-ROL-UNIC-1');
+    expect(exportarDiagrama(r.modelo, r.modelo.raiz, { version:'DEC29' }).ok).toBe(true);
 });

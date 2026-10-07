@@ -16,7 +16,7 @@ const cuentas=[
  ['Modelo_Vacio.json',0,0,0,1,[]],
  ['OPM_Structure_Meta_Model.json',25,0,24,4,['enlaces.e-33.etiqueta','enlaces.e-49.etiqueta']],
  ['OnStar_System.json',15,4,20,2,[]],
- ['SD_Async.json',14,2,23,2,[]],
+ ['SD_Async.json',14,2,18,2,[]], // DEC33: cinco enlaces repetidos idénticos se funden sin pérdida
  ['SD_Sync.json',15,2,19,2,[]],
  ['System_Diagram.json',8,2,8,1,[]],
  ['sintetico.json',11,9,6,1,[]],
