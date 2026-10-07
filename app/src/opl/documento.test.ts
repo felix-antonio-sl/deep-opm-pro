@@ -22,10 +22,16 @@ test('T-282 Markdown genuino contiene todos los bloques en preorden y contexto d
 });
 // Revisión contra los ejemplos de Wikipedia/ISO: el texto que genera el producto vuelve idéntico.
 for (const texto of [
-    '**B** puede estar `s1`, `s2` o `s3`.\n*P* genera exactamente uno de **B** en `s1`, **B** en `s2` o **B** en `s3`.'
+    '**B** puede estar `s1`, `s2` o `s3`.\n*P* genera exactamente uno de **B** en `s1`, **B** en `s2` o **B** en `s3`.',
+    '**Auto** tiene un opcional **Techo Solar**.',
+    '**Auto** tiene al menos una **Rueda**.'
 ])
     test(`T-287 OPL→modelo→OPL idéntico: ${texto.split('\n').at(-1)}`, () => {
         const r = importarOpl('Prueba', `## SD\n${texto}`); expect(r.ok).toBe(true); if (!r.ok) return;
         expect(Object.keys(r.valor.modelo.enlaces).length).toBeGreaterThan(0);
         expect(generarDocumentoOpl(r.valor.modelo)).toBe(`# Prueba\n\n## SD\n${texto}`);
     });
+test('T-287 el atributo opcional «tiene un **Y** opcional» sigue sin soporte y no crea hechos', () => {
+    const r = importarOpl('Prueba', '## SD\n**Pedido** tiene una **Marca** opcional.'); expect(r.ok).toBe(true); if (!r.ok) return;
+    expect(r.valor.modelo.enlaces).toEqual({});
+});
