@@ -9,6 +9,12 @@ import { textoDeTokens, refsDeTokens } from './linea';
 import { cosa, estadoHueco, hueco, datosEnlace, tokensPlantilla, datosContexto, PLANTILLAS } from './plantillas';
 import type { Huecos, HechoGenerable } from './plantillas';
 const colacionNombre = new Intl.Collator('es',{sensitivity:'base'});
+// Ramas hacia estados del mismo objeto: orden del modelo, no del id (T-101), para que OPL→modelo→OPL sea idéntico.
+const posicionEstado = (m: Modelo, e: Enlace): number => {
+    if (!esProcedimental(e)) return -1;
+    const s = e.tipo === 'efecto' ? e.entrada ?? e.salida : e.estado, o = m.cosas[e.objeto];
+    return s && o?.tipo === 'objeto' ? o.estados.findIndex(x => x.id === s) : -1;
+};
 const cmp = (a: Cosa, b: Cosa) => colacionNombre.compare(a.nombre,b.nombre) || a.id.localeCompare(b.id);
 function profundidad(m: Modelo, opd: Id): number { let n = 0, o = m.opds[opd]; while (o && o.tipo !== 'raiz') {
     n++;
@@ -121,7 +127,7 @@ function construirBloque(m: Modelo, opd: Id, o?: OpcionesOpl): readonly LineaOpl
             continue;
         const porP = esProcedimental(first) && ls.every(v => esProcedimental(v.enlace) && v.enlace.proceso === first.proceso);
         const invComunDestino = first.tipo === 'invocacion' && ls.every(v => v.enlace.tipo === 'invocacion' && v.enlace.destino === first.destino);
-        const items = [...ls].sort((a, b) => { const endpoint = (e: Enlace) => esProcedimental(e) ? (porP ? e.objeto : e.proceso) : invComunDestino ? extremos(e).origen : extremos(e).destino; return cmp(m.cosas[endpoint(a.enlace)]!, m.cosas[endpoint(b.enlace)]!) || a.enlace.id.localeCompare(b.enlace.id); });
+        const items = [...ls].sort((a, b) => { const endpoint = (e: Enlace) => esProcedimental(e) ? (porP ? e.objeto : e.proceso) : invComunDestino ? extremos(e).origen : extremos(e).destino; return cmp(m.cosas[endpoint(a.enlace)]!, m.cosas[endpoint(b.enlace)]!) || posicionEstado(m, a.enlace) - posicionEstado(m, b.enlace) || a.enlace.id.localeCompare(b.enlace.id); });
         const h: Record<string, import('./plantillas').ValorHueco> = { operador: hueco(fan.operador) };
         let pid: string;
         if (esProcedimental(first)) {

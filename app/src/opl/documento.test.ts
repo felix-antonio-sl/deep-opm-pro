@@ -20,3 +20,12 @@ test('T-282 Markdown genuino contiene todos los bloques en preorden y contexto d
  expect(doc.indexOf('## SD\n')).toBeLessThan(doc.indexOf('## SD1'));
  expect(doc).toContain('*Procesar* se descompone');expect(doc).toContain('*Preparar*');expect(doc).toContain('*Finalizar*');expect(JSON.stringify(m)).toBe(antes);
 });
+// Revisión contra los ejemplos de Wikipedia/ISO: el texto que genera el producto vuelve idéntico.
+for (const texto of [
+    '**B** puede estar `s1`, `s2` o `s3`.\n*P* genera exactamente uno de **B** en `s1`, **B** en `s2` o **B** en `s3`.'
+])
+    test(`T-287 OPL→modelo→OPL idéntico: ${texto.split('\n').at(-1)}`, () => {
+        const r = importarOpl('Prueba', `## SD\n${texto}`); expect(r.ok).toBe(true); if (!r.ok) return;
+        expect(Object.keys(r.valor.modelo.enlaces).length).toBeGreaterThan(0);
+        expect(generarDocumentoOpl(r.valor.modelo)).toBe(`# Prueba\n\n## SD\n${texto}`);
+    });
