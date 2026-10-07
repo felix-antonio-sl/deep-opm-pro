@@ -186,7 +186,7 @@ Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventar
 | T-201 | R-SOMB-1..3, R-OPD-COSA-3, AP-19 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/tokens.test.ts; alcance específico, cierre por superficies pendiente |
 | T-202 | R-CTRN-2, R-OPD-REF-1 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts; alcance específico, cierre por superficies pendiente |
 | T-203 | R-COLOR-2, R-ROT-3, R-OPD-COSA-5, R-OPD-ROT-1 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/exportar.test.ts, src/opd/tokens.test.ts; alcance específico, cierre por superficies pendiente |
-| T-204 | R-ROT-1/2, R-OPD-COSA-6, AP-23 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/exportar.test.ts, src/opd/metricas.test.ts; alcance específico, cierre por superficies pendiente |
+| T-204 | R-ROT-1/2, R-OPD-COSA-6, AP-23 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/exportar.test.ts, src/opd/metricas.test.ts; DEC34 ajuste dentro de la caja persistida; alcance específico, cierre por superficies pendiente |
 | T-206 | R-OPD-EST-1/5/7, R-EST-2 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/geometria.test.ts, src/opd/golden.test.ts; alcance específico, cierre por superficies pendiente |
 | T-208 | R-OPD-EST-9, reglas §3.10, DR-15 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts; alcance específico, cierre por superficies pendiente |
 | T-209 | R-OPD-TR-1/2/6, reglas §3.7 | parcial | N/I/G/X según prueba; U/P pendientes | src/opd/escena.test.ts, src/opd/exportar.test.ts, src/opd/marcadores.test.ts; alcance específico, cierre por superficies pendiente |

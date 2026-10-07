@@ -81,6 +81,12 @@ Frase del dueño: «eso , hazlo tu mismo», sobre esta propuesta textual de dos 
       - las demás combinaciones son legales.
     - Al abstraer, los hechos del detalle se funden por Tabla 27 (DEC31) y luego compiten por fuerza con los propios del padre (§6.5). El padre muestra un solo hecho, cuyo `hechos` sigue el orden del grupo. Resultado y consumo sin continuidad siguen siendo R-PREC-3.
     - El importador funde en el primero los enlaces idénticos repetidos, con alias e informe `normalizado` (R-ROL-UNIC-1). Idénticos significa mismos extremos, tipo, estados, control, multiplicidad y ruta, fuera de abanicos y escisiones. Son la copia por OPD del formato anterior.
+34. **El layout persistido manda; el texto se ajusta dentro** (R-OPD-COSA-6, R-OPD-LAY-1/4, R-ANID-1).
+    - El rótulo se envuelve dentro de la caja persistida. Se prueba de la envoltura más ancha a la más estrecha y gana la primera que cabe; en la elipse, el bloque queda inscrito con 4 px de holgura lateral. Sólo si ninguna cabe la forma se expande, con la envoltura de menor área.
+    - La forma que crece contiene siempre su caja persistida. Crece hacia el lado donde no pisa a una cosa que en lo persistido no pisaba y, a igual coste, conserva su esquina. A ninguna otra cosa se la mueve ni se la redimensiona.
+    - Contraste con la versión anterior (`pre-rehacer`, render headless de los fixtures v0):
+      - los solapes que quedan en OnStar SD1 y SD Sync SD1 vienen de las posiciones del v0, la versión anterior los dibujaba igual y se avisan (B-15);
+      - ningún OPD de los fixtures gana solapes respecto del v0, salvo la fila sintética cuyos estados exigen 100 px más que el hueco.
 
 ## Resoluciones directas posteriores — vigentes
 
@@ -633,10 +639,12 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
     fuera de la cápsula (DR-37, T-207).
 - **Chip `⋯N`** (T-208): una cápsula de alto 16 en la esquina inferior derecha del objeto, con los
   estados ocultos. Persiste en `canon-diagrama` (DR-15).
-- **Rótulo** (T-204): serif 17 (itálica en procesos), envuelto por palabras a ~132 px, sin elipsis.
-  La forma se agranda: ancho = máx(declarado, rótulo + 28, fila de estados + 16), y el alto
-  análogamente. En la elipse, el rectángulo de texto se inscribe (semiejes = medio contenido × √2 +
-  8).
+- **Rótulo** (T-204): serif 17 (itálica en procesos), envuelto por palabras, sin elipsis, dentro de
+  la caja persistida (DEC34). En el rectángulo cabe con 8 px por lado; en la elipse, el bloque se
+  inscribe con 4 px de holgura lateral. Si ninguna envoltura cabe, la forma se agranda con la de
+  menor área: ancho = máx(declarado, rótulo + 24, fila de estados + 16), y el alto análogamente; la
+  elipse toma los semiejes de área mínima que inscriben el bloque. Con duración, semiejes = medio
+  contenido × √2 + 8. La forma agrandada crece hacia el lado libre y contiene su caja persistida.
 - **Duración** (T-220): va bajo el nombre dentro de la elipse, como `[min] {1, 3, 5}` en serif 11.
   Los valores ausentes se muestran como `–`. Sin duración no se dibuja nada.
 - **Instancia lógica** (T-222): el rótulo es `Nombre : Clase` si el objeto es instancia por

@@ -118,32 +118,62 @@ const multiplicidad = (objeto: Punto, otro: Punto): Punto => {
     const dx = (otro.x - objeto.x) / l, dy = (otro.y - objeto.y) / l;
     return { x: objeto.x + 14 * dx + 10 * dy, y: objeto.y + 14 * dy - 10 * dx };
 };
+// Rótulo dentro de la caja persistida (DEC34): se prueba de la envoltura más ancha a la más
+// estrecha y gana la primera que cabe; si ninguna cabe, la de menor área expandida (R-OPD-COSA-6).
+// La elipse exige que el bloque, con 4 px de holgura lateral, quede inscrito en su curva.
+function ajustarRotulo(texto: string, caja: { readonly ancho: number; readonly alto: number }, elipse: boolean, extra: number): { readonly lineas: readonly string[]; readonly ancho: number; readonly alto: number } {
+    let mejor: { lineas: readonly string[]; ancho: number; alto: number } | undefined, vista = '';
+    for (let maximo = 1e9; ; maximo = maximo === 1e9 ? caja.ancho - 16 : maximo - 8) {
+        if (maximo !== 1e9 && maximo < 40) break;
+        const lineas = envolver(texto, maximo, 17, elipse), clave = lineas.join('\n');
+        if (clave === vista) continue;
+        vista = clave;
+        const w = Math.max(0, ...lineas.map(l => anchoTexto(l, 17, elipse)));
+        let ancho: number, alto: number;
+        if (elipse) {
+            const a = caja.ancho / 2, b = caja.alto / 2, x = w / 2 + 4, y = lineas.length * 11;
+            if ((x / a) ** 2 + (y / b) ** 2 <= 1) { ancho = caja.ancho; alto = caja.alto; }
+            else if (x * Math.SQRT2 >= a && y * Math.SQRT2 >= b) { ancho = 2 * x * Math.SQRT2; alto = 2 * y * Math.SQRT2; }
+            else if (y * Math.SQRT2 < b) { ancho = 2 * Math.max(a, x / Math.sqrt(1 - (y / b) ** 2)); alto = caja.alto; }
+            else { ancho = caja.ancho; alto = 2 * Math.max(b, y / Math.sqrt(1 - (x / a) ** 2)); }
+        } else {
+            ancho = w + 16 <= caja.ancho ? caja.ancho : Math.max(caja.ancho, w + 24);
+            alto = lineas.length * 22 + 16 + extra <= caja.alto ? caja.alto : Math.max(caja.alto, lineas.length * 22 + 24 + extra);
+        }
+        ancho = Math.ceil(ancho); alto = Math.ceil(alto);
+        if (ancho === caja.ancho && alto === caja.alto) return { lineas, ancho, alto };
+        if (!mejor || ancho * alto < mejor.ancho * mejor.alto) mejor = { lineas, ancho, alto };
+    }
+    return mejor!;
+}
 /** Proyección y medidas deterministas. Las cajas persistidas son mínimos; no se mutan ni se autorutean. */
 export function escena(m: Modelo, opd: Id): Escena {
     const previa = memo.get(m)?.get(opd);
     if (previa)
         return previa;
     const vista = proyectar(m, opd), o = m.opds[opd]!, idx = indice(m);
-    const medirNodo = (v: typeof vista.cosas[number]): NodoCosa => {
+    const medirNodo = (v: typeof vista.cosas[number], ancla?: Punto): NodoCosa => {
         const c = m.cosas[v.cosa]!, a = o.apariciones[c.id]!, italica = c.tipo === 'proceso';
         const clasificacion = Object.values(m.enlaces).find(e => e.tipo === 'clasificacion' && e.refinador === c.id);
         const rotuloInstancia = clasificacion && 'refinable' in clasificacion ? `${c.nombre} : ${m.cosas[clasificacion.refinable]!.nombre}` : undefined;
-        const lineas = envolver(rotuloInstancia ?? c.nombre, Math.max(111, a.ancho - 24), 17, italica);
         const duracion = c.tipo === 'proceso' && c.duracion ? `[${c.duracion.unidad ?? m.unidadTiempo}] {${[c.duracion.min, c.duracion.esperada, c.duracion.max].map(n => n === undefined ? '–' : String(n)).join(', ')}}` : undefined;
         const propios = c.tipo === 'objeto' ? c.estados.filter(s => v.estadosVisibles.includes(s.id)) : [];
         const anchos = propios.map(s => anchoTexto(s.nombre, 13, true) + 16 + (s.inicial ? 6 : 0));
         // Valor puntual: expresión del objeto atributo, sin entidad/estado sintético.
         const valor = c.tipo === 'objeto' ? c.valor : undefined;
+        const ajuste = duracion ? undefined : ajustarRotulo(rotuloInstancia ?? c.nombre, a, italica, (propios.length ? 44 : 0) + (v.ocultos ? 28 : 0) + (valor ? 30 : 0));
+        const lineas = ajuste?.lineas ?? envolver(rotuloInstancia ?? c.nombre, Math.max(111, a.ancho - 24), 17, italica);
         const altoNombre = lineas.length * 22, altoExtra = duracion ? 20 : 0;
         const reservaEstados = propios.length ? 44 : 0;
-        const ancho = Math.max(a.ancho, (italica ? 1.4 : 1) * Math.max(0, ...lineas.map(l => anchoTexto(l, 17, italica))) + 24, duracion ? Math.SQRT2 * Math.max(anchoTexto(duracion, 11, false), ...lineas.map(l => anchoTexto(l, 17, italica))) + 16 : 0, propios.length ? anchos.reduce((s, w) => s + w, 0) + (propios.length - 1) * 8 + 16 : 0, valor ? anchoTexto(valor, 13, true) + 24 : 0);
-        let alto = Math.max(a.alto, duracion ? (altoNombre + altoExtra) * Math.SQRT2 + 16 : 0, altoNombre + altoExtra + 24 + (propios.length ? 44 : 0) + (v.ocultos ? 28 : 0) + (valor ? 30 : 0));
-        const caja = { x: a.x, y: a.y, ancho, alto }, contenedor = v.rol === 'contenedor';
-        let x = a.x + (ancho - (anchos.reduce((s, w) => s + w, 0) + Math.max(0, propios.length - 1) * 8)) / 2;
+        const ancho = Math.max(ajuste?.ancho ?? a.ancho, duracion ? Math.SQRT2 * Math.max(anchoTexto(duracion, 11, false), ...lineas.map(l => anchoTexto(l, 17, italica))) + 16 : 0, propios.length ? anchos.reduce((s, w) => s + w, 0) + (propios.length - 1) * 8 + 16 : 0, valor ? anchoTexto(valor, 13, true) + 24 : 0);
+        let alto = Math.max(ajuste?.alto ?? a.alto, duracion ? (altoNombre + altoExtra) * Math.SQRT2 + 16 : 0);
+        const contenedor = v.rol === 'contenedor', { x: x0, y: y0 } = ancla ?? a;
+        const caja = { x: x0, y: y0, ancho, alto };
+        let x = x0 + (ancho - (anchos.reduce((s, w) => s + w, 0) + Math.max(0, propios.length - 1) * 8)) / 2;
         const estados: NodoEstado[] = propios.map((s, i) => {
             const n: NodoEstado = {
                 ref: { tipo: 'estado', id: s.id },
-                caja: { x, y: a.y + alto - 42 - (valor ? 34 : 0) - (v.ocultos ? 28 : 0), ancho: anchos[i]!, alto: 26 },
+                caja: { x, y: y0 + alto - 42 - (valor ? 34 : 0) - (v.ocultos ? 28 : 0), ancho: anchos[i]!, alto: 26 },
                 nombre: s.nombre.normalize('NFC'), inicial: !!s.inicial, final: !!s.final,
                 porDefecto: c.tipo === 'objeto' && c.porDefecto === s.id,
                 current: c.tipo === 'objeto' && c.current === s.id
@@ -153,11 +183,35 @@ export function escena(m: Modelo, opd: Id): Escena {
         });
         if (valor) {
             const w = Math.max(52, anchoTexto(valor, 13, true) + 24);
-            estados.push({ ref: { tipo: 'cosa', id: c.id }, caja: { x: a.x + (ancho - w) / 2, y: a.y + alto - 36 - (v.ocultos ? 28 : 0), ancho: w, alto: 26 }, nombre: valor.normalize('NFC'), inicial: false, final: false, porDefecto: false, current: false });
+            estados.push({ ref: { tipo: 'cosa', id: c.id }, caja: { x: x0 + (ancho - w) / 2, y: y0 + alto - 36 - (v.ocultos ? 28 : 0), ancho: w, alto: 26 }, nombre: valor.normalize('NFC'), inicial: false, final: false, porDefecto: false, current: false });
         }
-        return { ref: { tipo: 'cosa', id: c.id }, tipo: c.tipo, caja, contenedor, grueso: idx.refinamientosDe.has(c.id), ambiental: c.afiliacion === 'ambiental', fisica: c.esencia === 'fisica', rotulo: { lineas, x: a.x + ancho / 2, y: contenedor ? a.y + 24 : a.y + (alto - altoExtra - reservaEstados - (v.ocultos ? 28 : 0) - (valor ? 30 : 0) - altoNombre) / 2 + 17, italica }, estados, ...(v.ocultos ? { chipOcultos: { n: v.ocultos, caja: { x: a.x + ancho - 54, y: a.y + alto - 26, ancho: 42, alto: 16 } } } : {}), ...(duracion ? { duracion } : {}), ...(rotuloInstancia ? { rotuloInstancia } : {}) };
+        return { ref: { tipo: 'cosa', id: c.id }, tipo: c.tipo, caja, contenedor, grueso: idx.refinamientosDe.has(c.id), ambiental: c.afiliacion === 'ambiental', fisica: c.esencia === 'fisica', rotulo: { lineas, x: x0 + ancho / 2, y: contenedor ? y0 + 24 : y0 + (alto - altoExtra - reservaEstados - (v.ocultos ? 28 : 0) - (valor ? 30 : 0) - altoNombre) / 2 + 17, italica }, estados, ...(v.ocultos ? { chipOcultos: { n: v.ocultos, caja: { x: x0 + ancho - 54, y: y0 + alto - 26, ancho: 42, alto: 16 } } } : {}), ...(duracion ? { duracion } : {}), ...(rotuloInstancia ? { rotuloInstancia } : {}) };
     };
-    const nodos: NodoCosa[] = vista.cosas.map(medirNodo);
+    // Una forma que debe expandirse crece hacia donde no pisa a otra (DEC34): siempre contiene la
+    // caja persistida y, a igual solape, conserva su esquina. Dos pasadas sobre las cajas ya medidas.
+    const medidos = vista.cosas.map(v => medirNodo(v)), cajas = medidos.map(n => n.caja);
+    const dentro = (i: number) => vista.cosas[i]!.rol === 'subproceso' || vista.cosas[i]!.rol === 'interno';
+    for (let pasada = 0; pasada < 2; pasada++)
+        for (let i = 0; i < medidos.length; i++) {
+            const n = medidos[i]!, a = o.apariciones[n.ref.id]!;
+            if (n.contenedor || (n.caja.ancho === a.ancho && n.caja.alto === a.alto)) continue;
+            // Pisar a quien no se pisaba en lo persistido pesa más que agrandar un solape heredado;
+            // entre formas que no se tocan, se prefiere que tampoco se crucen sus cajas (T-284).
+            const coste = (r: Rect) => cajas.reduce((t, c, j) => {
+                if (j === i || (medidos[j]!.contenedor && dentro(i))) return t;
+                const elipse = medidos[j]!.tipo === 'proceso' && !medidos[j]!.contenedor, area = solape(r, n.tipo === 'proceso', c, elipse);
+                const previa = o.apariciones[medidos[j]!.ref.id]!;
+                return t + (solape(a, n.tipo === 'proceso', previa, elipse) ? area : area * 1e6 + (cruce(a, previa) ? 0 : cruce(r, c) * 1e3));
+            }, 0);
+            const dx = n.caja.ancho - a.ancho, dy = n.caja.alto - a.alto;
+            let mejor = cajas[i]!, menor = coste(mejor);
+            for (const [fx, fy] of [[0, 0], [.5, .5], [1, 0], [0, 1], [1, 1], [.5, 0], [0, .5], [1, .5], [.5, 1]] as const) {
+                const r = { ...n.caja, x: a.x - dx * fx, y: a.y - dy * fy }, k = coste(r);
+                if (k < menor - 1e-9) { mejor = r; menor = k; }
+            }
+            cajas[i] = mejor;
+        }
+    const nodos: NodoCosa[] = vista.cosas.map((v, i) => cajas[i] === medidos[i]!.caja ? medidos[i]! : medirNodo(v, cajas[i]));
     // Un contenedor debe cubrir la expansión calculada de sus internos, sin moverlos.
     const internos = new Set(vista.cosas.filter(v => v.rol === 'subproceso' || v.rol === 'interno').map(v => v.cosa));
     const ci = nodos.findIndex(n => n.contenedor);
@@ -310,6 +364,16 @@ export function escena(m: Modelo, opd: Id): Escena {
     porOpd.set(opd, e);
     memo.set(m, porOpd);
     return e;
+}
+const cruce = (a: Rect, b: Rect): number => Math.max(0, Math.min(a.x + a.ancho, b.x + b.ancho) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.alto, b.y + b.alto) - Math.max(a.y, b.y));
+// Área común aproximada en rejilla de 4 px; distingue rectángulo y elipse.
+function solape(a: Rect, ea: boolean, b: Rect, eb: boolean): number {
+    const x0 = Math.max(a.x, b.x), x1 = Math.min(a.x + a.ancho, b.x + b.ancho), y0 = Math.max(a.y, b.y), y1 = Math.min(a.y + a.alto, b.y + b.alto);
+    if (x0 >= x1 || y0 >= y1) return 0;
+    const en = (r: Rect, e: boolean, x: number, y: number) => !e || ((x - r.x - r.ancho / 2) / (r.ancho / 2)) ** 2 + ((y - r.y - r.alto / 2) / (r.alto / 2)) ** 2 <= 1;
+    let n = 0;
+    for (let x = x0 + 2; x < x1; x += 4) for (let y = y0 + 2; y < y1; y += 4) if (en(a, ea, x, y) && en(b, eb, x, y)) n++;
+    return n * 16;
 }
 function cajaEscena(nodos: readonly NodoCosa[], simbolos: readonly Simbolo[], aristas: readonly Arista[], arcos: readonly Arco[]): Rect {
     const puntos: Punto[] = [];

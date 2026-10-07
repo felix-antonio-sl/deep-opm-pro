@@ -299,3 +299,47 @@ test('T-219 tinta de ruta preserva negro y ancla10, con separación de papel del
  expect(n.a.x).toBe(ruta.en.x);expect(n.a.y).toBe(ruta.en.y);expect(n.a.fill).toBe('#000');expect(n.a['font-size']).toBe(11);
  expect(n.a['paint-order']).toBe('stroke fill');expect(n.a.stroke).toBe('#fafaf8');expect(n.a['stroke-width']).toBe(3);
 });
+
+// DEC34: el layout importado respeta tamaños y posiciones persistidos; el texto se ajusta dentro
+// y sólo crece lo que no cabe, hacia donde no pisa a nadie.
+import { readFileSync, readdirSync } from 'node:fs';
+import { importarV0 } from '../codec/importar';
+import { advertenciasEscena } from './exportar';
+const sobre = (m0: Modelo, pos: Record<string, { x: number; y: number; ancho: number; alto: number }>): Modelo => ({ ...m0, opds: { ...m0.opds, sd: { ...m0.opds.sd!, apariciones: pos } } });
+for (const [tipo, nombre, lineas] of [['objeto', 'OnStar System', 1], ['objeto', 'System Handler', 2], ['objeto', 'Cellular Network', 2], ['proceso', 'Call Making', 1], ['proceso', 'Driver Rescuing', 2], ['proceso', 'Call Handling', 1]] as const)
+    test(`T-204 DEC34 ${tipo} «${nombre}» cabe envuelto en 135×60 sin crecer`, () => {
+        const c = tipo === 'objeto' ? o('c', nombre) : p('c', nombre), base = sobre(m([c]), { c: { x: 10, y: 20, ancho: 135, alto: 60 } }), antes = JSON.stringify(base);
+        const n = escena(base, 'sd').nodos[0]!;
+        expect(n.caja).toEqual({ x: 10, y: 20, ancho: 135, alto: 60 });
+        expect(n.rotulo.lineas).toHaveLength(lineas); expect(n.rotulo.lineas.join(' ')).toBe(nombre);
+        for (const [i, l] of n.rotulo.lineas.entries()) {
+            const w = anchoTexto(l, 17, tipo === 'proceso'), y = n.rotulo.y + i * 22 - 17;
+            if (tipo === 'objeto') { expect(w).toBeLessThanOrEqual(n.caja.ancho - 16); expect(y).toBeGreaterThanOrEqual(n.caja.y); expect(y + 22).toBeLessThanOrEqual(n.caja.y + n.caja.alto); }
+            else for (const yy of [y, y + 22]) expect(w / 2 + 4).toBeLessThanOrEqual(n.caja.ancho / 2 * Math.sqrt(Math.max(0, 1 - ((yy - n.caja.y - n.caja.alto / 2) / (n.caja.alto / 2)) ** 2)) + 1e-9);
+        }
+        expect(JSON.stringify(base)).toBe(antes);
+    });
+test('T-204 DEC34 expansión crece hacia el lado libre y contiene la caja persistida', () => {
+    const base = sobre(m([o('o', 'A'.repeat(60)), p()]), { o: { x: 0, y: 0, ancho: 135, alto: 60 }, p: { x: 140, y: 0, ancho: 135, alto: 60 } }), antes = JSON.stringify(base);
+    const e = escena(base, 'sd'), n = e.nodos.find(n => n.ref.id === 'o')!;
+    expect(n.caja.ancho).toBeGreaterThanOrEqual(anchoTexto('A'.repeat(60), 17, false) + 24);
+    expect(n.caja.x).toBeLessThan(0); expect(n.caja.x + n.caja.ancho).toBeGreaterThanOrEqual(135); expect(n.caja.y).toBeLessThanOrEqual(0); expect(n.caja.y + n.caja.alto).toBeGreaterThanOrEqual(60);
+    expect(n.caja.x + n.caja.ancho).toBeLessThanOrEqual(140);
+    expect(advertenciasEscena(e).filter(w => w.tipo === 'solape')).toEqual([]);
+    expect(e.nodos.find(n => n.ref.id === 'p')!.caja).toEqual({ x: 140, y: 0, ancho: 135, alto: 60 }); expect(JSON.stringify(base)).toBe(antes);
+});
+test('T-204 T-212 DEC34 fixtures no ganan solapes que no tuvieran en el v0', () => {
+    const area = (a: { x: number; y: number; ancho: number; alto: number }, b: typeof a) => Math.max(0, Math.min(a.x + a.ancho, b.x + b.ancho) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.alto, b.y + b.alto) - Math.max(a.y, b.y));
+    const nuevos: string[] = [];
+    for (const f of readdirSync(new URL('../../fixtures/v0/', import.meta.url)).filter(f => f.endsWith('.json')).sort()) {
+        const r = importarV0(readFileSync(new URL('../../fixtures/v0/' + f, import.meta.url), 'utf8')); if (!r.ok) throw Error(f);
+        for (const opd of Object.keys(r.modelo.opds)) {
+            const e = escena(r.modelo, opd), ap = r.modelo.opds[opd]!.apariciones;
+            for (const [i, a] of e.nodos.entries()) for (const b of e.nodos.slice(i + 1))
+                if (!a.contenedor && !b.contenedor && area(a.caja, b.caja) > 0 && area(ap[a.ref.id]!, ap[b.ref.id]!) === 0)
+                    nuevos.push(`${f} ${opd} ${r.modelo.cosas[a.ref.id]!.nombre} × ${r.modelo.cosas[b.ref.id]!.nombre}`);
+        }
+    }
+    // Único caso sin salida: fila sintética con 45 px entre cajas cuyos estados exigen +100 px de ancho.
+    expect(nuevos).toEqual(['sintetico.json opd-1 Objeto_0 × Objeto_1', 'sintetico.json opd-1 Objeto_1 × Objeto_2', 'sintetico.json opd-1 Objeto_4 × Objeto_5', 'sintetico.json opd-1 Objeto_5 × Procesar_0']);
+});

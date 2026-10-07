@@ -73,7 +73,8 @@ agregar('escision-vista-padre', escindido(), 'T-209 T-085 hechos par escindido p
 const col = escindido();
 agregar('fan-abstraido-colapsado', { ...col, enlaces: { en: { id: 'en', tipo: 'consumo', objeto: 'o', proceso: 'q' }, sa: { id: 'sa', tipo: 'consumo', objeto: 'o', proceso: 'r' } }, abanicos: { f: { id: 'f', operador: 'XOR', enlaces: ['en', 'sa'] } } }, 'T-216 T-085 fan colapsado: un hecho, sin arco inventado');
 agregar('cruce-con-advertencia', modelo([obj('a', 'Entrada'), obj('b', 'Reserva'), pro('p', 'Procesar'), pro('q', 'Guardar')], [{ id: 'ca', tipo: 'consumo', objeto: 'a', proceso: 'p' }, { id: 'cb', tipo: 'consumo', objeto: 'b', proceso: 'q' }], { a: a(0, 0), b: a(0, 300), p: a(500, 300), q: a(500, 0) }), 'T-284 cruce real, aviso fuera canon');
-agregar('expansion-con-solape', modelo([obj('o', 'A'.repeat(60)), pro('p')], [{ id: 'c', tipo: 'consumo', objeto: 'o', proceso: 'p' }], { o: a(0, 0), p: a(140, 0) }), 'T-204 T-284 expansión conserva posiciones y avisa solape');
+agregar('expansion-con-solape', modelo([obj('o', 'A'.repeat(60)), pro('p'), obj('q', 'Vecino')], [{ id: 'c', tipo: 'consumo', objeto: 'o', proceso: 'p' }], { o: a(0, 0), p: a(140, 0), q: a(-140, 0) }), 'T-204 T-284 expansión sin lado libre conserva posiciones y avisa solape');
+agregar('expansion-hacia-lado-libre', modelo([obj('o', 'A'.repeat(60)), pro('p')], [{ id: 'c', tipo: 'consumo', objeto: 'o', proceso: 'p' }], { o: a(0, 0), p: a(140, 0) }), 'T-204 DEC34 expansión crece hacia el lado libre, contiene la caja persistida y no solapa');
 const mezcla = modelo([...['objeto', 'proceso'].flatMap((tipo, j) => ['fisica', 'informacional'].flatMap((esencia, k) => ['sistemica', 'ambiental'].map((afiliacion, l) => ({ ...((tipo === 'objeto') ? obj('m' + j + k + l, 'Objeto' + String.fromCharCode(65 + k * 2 + l)) : pro('m' + j + k + l, 'Procesar' + String.fromCharCode(65 + k * 2 + l))), esencia, afiliacion } as Cosa)))), estados, ...triCs], triEs);
 agregar('vocabulario-en-grises', mezcla, 'T-223 T-203 composición ocho formas, designaciones y triángulos; gris se inspecciona adicionalmente');
 const fixtureSelections: {
@@ -123,8 +124,8 @@ function dibujoExportado(m: Modelo, opd: string, nombre: string): string {
     }
     return r.valor.svg.slice(inicio, inicio + dibujo.length);
 }
-test('T-223 inventario 40 construidos más vistas únicas de 12 selecciones reales', () => {
-    expect(casos.filter(c => c.construido)).toHaveLength(40);
+test('T-223 inventario 41 construidos más vistas únicas de 12 selecciones reales', () => {
+    expect(casos.filter(c => c.construido)).toHaveLength(41);
     expect(fixtureSelections).toHaveLength(6);
     expect(new Set(casos.map(c => c.nombre)).size).toBe(casos.length);
     for (const c of casos) {
