@@ -71,9 +71,12 @@ const limites = [
  ['**Pedido** Pr=0.3.','non-canonical'],
  ['*Procesar* consume exactamente uno de **Pedido** Pr=0.3 o **Registro** Pr=0.7.','unsupported-canonical'],
  ['**Pedido** inicia *Procesar* ocurre si **Pedido** existe.','non-canonical'],
- ['*Procesar* ocurre si **Pedido** está en `listo`, en cuyo caso *Procesar* afecta **Pedido**, de lo contrario *Procesar* se omite.','non-canonical']
+ ['*Procesar* ocurre si **Pedido** está en `listo`, en cuyo caso *Procesar* afecta **Pedido**, de lo contrario *Procesar* se omite.','non-canonical'],
+ ['**Proceso** exhibe `transitoria` **Perseverancia**.','non-canonical'],
+ ['**Proceso Físico** y **Objeto Físico** exhiben `física` **Esencia**.','non-canonical']
 ] as const;
 for(const [texto,codigo] of limites)test(`T-156 T-157 límite ${texto}`,()=>{const l=caso(texto);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]?.codigo).toBe(codigo);expect(l.diagnosticos[0]?.regla).toBeTruthy();});
+test('T-003 R-ZNC-1 la caracterización con estado especificado es no canonizada, registrada en B-37 y sin hechos',()=>{for(const t of ['**Objeto sin Estados** exhibe `cero` **Tamaño**.','**Proceso Físico** y **Objeto Físico** exhiben `física` **Esencia**.']){const l=caso(t);expect(l.hechos).toEqual([]);expect(l.diagnosticos[0]).toMatchObject({codigo:'non-canonical',regla:'R-ZNC-1'});}expect(NO_CANONIZADAS.find(x=>x.regla==='R-ZNC-1')?.registro).toBe('B-37');});
 test('T-001 cada límite inverso tiene regla y registro',()=>{for(const r of [...NO_SOPORTADAS,...NO_CANONIZADAS]){expect(r.regla).toBeTruthy();expect(r.registro).toMatch(/^B-\d\d$/);}});
 
 test('T-152 análisis puro memoizado conserva líneas y hechos ante intercalación y contaminación',()=>{

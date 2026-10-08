@@ -6,7 +6,9 @@ export const NO_CANONIZADAS: readonly LimiteOpl[] = [
     { patron: /puede ser .*`|\binicia e invoca\b|\bpuede generarse\b|\binvoca .* si .* ocurre\b/u, codigo: 'non-canonical', regla: 'R-MOD-INPUT-2', registro: 'B-16' },
     { patron: /(?:exactamente uno de|al menos uno de).*\bPr=/u, codigo: 'unsupported-canonical', regla: 'R-FAN-PR-1', registro: 'B-16' },
     { patron: /\bPr=|\bFANLOCAL\b|\bfan local\b|\b(?:XOR|OR|AND)\b/u, codigo: 'non-canonical', regla: 'R-CONF-6', registro: 'B-16' },
-    { patron: /\binicia .* (?:ocurre si|de lo contrario)|\bestá en .* afecta .* de lo contrario/u, codigo: 'non-canonical', regla: 'AP-28', registro: 'B-16' }
+    { patron: /\binicia .* (?:ocurre si|de lo contrario)|\bestá en .* afecta .* de lo contrario/u, codigo: 'non-canonical', regla: 'AP-28', registro: 'B-16' },
+    // Caracterización con estado especificado («**X** exhibe `valor` **Atributo**»): sin plantilla en reglas ni spec-OPL.
+    { patron: /\bexhiben? `s` \*\*N\*\*/u, codigo: 'non-canonical', regla: 'R-ZNC-1', registro: 'B-37' }
 ];
 export const NO_SOPORTADAS: readonly LimiteOpl[] = [
     { patron: /\bpuede ser\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-RF-5', registro: 'B-01' },
