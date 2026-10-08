@@ -3,6 +3,7 @@ import type { Modelo, Cosa, Enlace, Opd, Objeto, Proceso } from '../nucleo/tipos
 import { escena } from './escena';
 import { aTexto, dibujar } from './dibujo';
 import { anchoTexto } from './metricas';
+import { LARGO_MARCADOR, MARCADORES } from './marcadores';
 import { validarForma } from '../nucleo/forma';
 import { erroresContexto } from '../nucleo/matriz';
 import { proyectar } from '../nucleo/proyeccion';
@@ -230,13 +231,46 @@ test('T-208 revisión chip16 inferior derecho persiste canon', () => {
     expect(chip.n).toBe(1); expect(chip.caja.alto).toBe(16);
     expect(elementos(dibujar(e, 'canon')).some(n => n.t === 'rect' && n.a.height === 16 && n.a.rx === 8)).toBe(true);
 });
-test('T-218 revisión multiplicidad14+perpendicular10 por extremo objeto', () => {
+test('T-218 multiplicidad del extremo objeto: centro a 11 px del eje, 14 px sin punta o fuera de la punta23', () => {
     for (const tipo of ['consumo', 'resultado'] as const) {
         const base = { ...modeloRevision(), enlaces: { en: { id: 'en', tipo, objeto: 'o', proceso: 'p', mult: '+' as const } } }; revisarModelo(base);
-        const a = escena(base, 'sd').aristas[0]!, [s, t] = a.tramos[0]!.puntos, origen = tipo === 'consumo' ? s! : t!, otro = tipo === 'consumo' ? t! : s!, dx = otro.x - origen.x, dy = otro.y - origen.y, l = Math.hypot(dx, dy), q = a.etiquetas.find(l => l.clave === 'mult-origen')!, ox = q.en.x - origen.x, oy = q.en.y - origen.y;
-        expect((ox * dx + oy * dy) / l).toBeCloseTo(14, 9);
-        expect(Math.abs((dx * oy - dy * ox) / l)).toBeCloseTo(10, 9);
+        const a = escena(base, 'sd').aristas[0]!, [s, t] = a.tramos[0]!.puntos, origen = tipo === 'consumo' ? s! : t!, otro = tipo === 'consumo' ? t! : s!, dx = otro.x - origen.x, dy = otro.y - origen.y, l = Math.hypot(dx, dy), q = a.etiquetas.find(l => l.clave === 'mult-origen')!, ox = q.en.x - origen.x, oy = q.en.y - 4 - origen.y;
+        expect((ox * dx + oy * dy) / l).toBeCloseTo(tipo === 'consumo' ? 14 : 23 + 9, 9);
+        expect(Math.abs((dx * oy - dy * ox) / l)).toBeCloseTo(11, 9);
     }
+});
+test('T-218 LARGO_MARCADOR coincide con el alcance literal de punta, abierta y arpones', () => {
+    for (const id of ['punta', 'abierta', 'arpon', 'arponInverso'] as const)
+        expect(LARGO_MARCADOR[id]).toBe(Math.max(...(MARCADORES[id].datos.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number).filter((_, i) => i % 2 === 0)));
+});
+test('T-218 la multiplicidad no pisa la punta de su extremo en ninguna dirección', () => {
+    const estados = [{ id: 's1', nombre: 'nuevo' }, { id: 's2', nombre: 'listo' }];
+    const bi = { id: 'e', tipo: 'etiquetadoBidireccional' as const, origen: 'q', destino: 'o', etiqueta: 'usa', inversa: 'sirve a', multOrigen: '+' as const, multDestino: '*' as const };
+    const casos: readonly [Enlace, 'mult-origen' | 'mult-destino', 'inicio' | 'fin'][] = [
+        [{ id: 'e', tipo: 'resultado', objeto: 'o', proceso: 'p', mult: '+' }, 'mult-origen', 'fin'],
+        [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', mult: '*' }, 'mult-origen', 'fin'],
+        [{ id: 'e', tipo: 'etiquetado', origen: 'q', destino: 'o', etiqueta: 'usa', multDestino: '?' }, 'mult-destino', 'fin'],
+        [bi, 'mult-origen', 'inicio'], [bi, 'mult-destino', 'fin']];
+    for (const [enlace, clave, lado] of casos)
+        for (const [x, y] of [[420, 0], [0, 320], [-420, 0], [0, -320], [330, 250], [-330, 250]] as const) {
+            const otro = 'proceso' in enlace ? 'p' : 'q', base = m([{ ...o(), estados }, otro === 'p' ? p() : o('q', 'Cliente')], [enlace]);
+            const modelo: Modelo = { ...base, opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { o: { x: 0, y: 0, ancho: 200, alto: 90 }, [otro]: { x, y, ancho: 135, alto: 60 } } } } };
+            revisarModelo(modelo);
+            const a = escena(modelo, 'sd').aristas[0]!, t = a.tramos[0]!, id = t[lado]!, punta = lado === 'fin' ? t.puntos.at(-1)! : t.puntos[0]!, desde = lado === 'fin' ? t.puntos.at(-2)! : t.puntos[1]!;
+            const l = Math.hypot(desde.x - punta.x, desde.y - punta.y), ux = (desde.x - punta.x) / l, uy = (desde.y - punta.y) / l;
+            const q = a.etiquetas.find(e => e.clave === clave)!, cx = q.en.x - punta.x, cy = q.en.y - 4 - punta.y, radio = Math.hypot(anchoTexto(q.texto, 12, false) / 2, 6);
+            expect(cx * ux + cy * uy - radio).toBeGreaterThan(LARGO_MARCADOR[id]);
+        }
+});
+test('T-218 la multiplicidad no queda bajo la caja de su propia cosa cuando el enlace sale en diagonal', () => {
+    for (const tipo of ['consumo', 'resultado'] as const)
+        for (const [x, y] of [[300, 200], [-300, 200], [300, -200], [-300, -200], [150, 260], [-150, -260]] as const) {
+            const base = m([o(), p()], [{ id: 'e', tipo, objeto: 'o', proceso: 'p', mult: '?' }]);
+            const modelo: Modelo = { ...base, opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: { o: { x: 0, y: 0, ancho: 135, alto: 60 }, p: { x, y, ancho: 135, alto: 60 } } } } };
+            revisarModelo(modelo);
+            const q = escena(modelo, 'sd').aristas[0]!.etiquetas.find(e => e.clave === 'mult-origen')!, cx = q.en.x, cy = q.en.y - 4;
+            expect(cx < -5 || cx > 140 || cy < -5 || cy > 65).toBe(true);
+        }
 });
 test('T-220 revisión slots ausentes– sin duración ausente', () => {
     const base = modeloRevision(); revisarModelo(base);
@@ -254,9 +288,9 @@ test('T-214 T-218 T-219 revisión anotaciones siguen tramo final de abanico', ()
         expect(ruta.en.x - (s!.x + t!.x) / 2).toBeCloseTo(10 * dy / l, 9);
         expect(ruta.en.y - (s!.y + t!.y) / 2).toBeCloseTo(-10 * dx / l, 9);
         if (!control) {
-            const mult = a.etiquetas.find(e => e.clave === 'mult-origen')!;
-            expect(((mult.en.x - s!.x) * dx + (mult.en.y - s!.y) * dy) / l).toBeCloseTo(14, 9);
-            expect(Math.abs((dx * (mult.en.y - s!.y) - dy * (mult.en.x - s!.x)) / l)).toBeCloseTo(10, 9);
+            const mult = a.etiquetas.find(e => e.clave === 'mult-origen')!, cy = mult.en.y - 4;
+            expect(((mult.en.x - s!.x) * dx + (cy - s!.y) * dy) / l).toBeCloseTo(14, 9);
+            expect(Math.abs((dx * (cy - s!.y) - dy * (mult.en.x - s!.x)) / l)).toBeCloseTo(11, 9);
         }
     }
 });

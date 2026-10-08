@@ -18,6 +18,8 @@ export const MARCADORES = Object.freeze({
   subtiempo: { tipo: 'polilinea', datos: '4,10 13,-10 8.5,0 17,0 13,10 22,-10', relleno: 'ninguno' },
   triangulo: { tipo: 'poligono', datos: '15,0 30,30 0,30', relleno: 'papel' },
 } as const satisfies Record<string, FiguraLiteral>);
+/** Alcance de cada marcador terminal sobre el eje, medido desde el extremo (incluye el ancla). */
+export const LARGO_MARCADOR: Readonly<Record<Marcador, number>> = Object.freeze({ punta: 23, piruletaNegra: 17, piruletaBlanca: 17, abierta: 20, arpon: 20, arponInverso: 20 });
 export type Matriz = readonly [number, number, number, number, number, number];
 export interface Circulo { readonly tipo: 'circulo'; readonly centro: Punto; readonly radio: number; readonly relleno: 'tinta' }
 export function triangulo(relacion: 'agregacion' | 'generalizacion' | 'exhibicion' | 'clasificacion'): { readonly exterior: FiguraLiteral; readonly interior?: FiguraLiteral | Circulo } {

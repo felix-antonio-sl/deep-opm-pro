@@ -5,7 +5,7 @@ import { indice } from '../nucleo/indice';
 import { anchoTexto, envolver } from './metricas';
 import { recortarEnlace, rayo, autoinvocacion, peine, abanico, recortar } from './geometria';
 import type { Contorno } from './geometria';
-import { colocarMarcador, colocarTriangulo } from './marcadores';
+import { colocarMarcador, colocarTriangulo, LARGO_MARCADOR } from './marcadores';
 export interface Punto {
     readonly x: number;
     readonly y: number;
@@ -113,10 +113,16 @@ const cerca = (a: Punto, b: Punto, n: number): Punto => {
     const l = Math.hypot(b.x - a.x, b.y - a.y);
     return l ? { x: b.x + (a.x - b.x) * n / l, y: b.y + (a.y - b.y) * n / l } : b;
 };
-const multiplicidad = (objeto: Punto, otro: Punto): Punto => {
+// T-218: el centro del glifo queda a 11 px del eje y fuera de la punta de su extremo (14 px sin
+// marcador; largo del marcador + 9 con él). Cambia de lado sólo si el habitual cae sobre la caja de
+// su cosa y el otro no: el enlace ordinario se pinta bajo la entidad. `en` es la línea base, 4 px abajo.
+const multiplicidad = (objeto: Punto, otro: Punto, marcador?: Marcador, caja?: Rect): Punto => {
     const l = Math.hypot(otro.x - objeto.x, otro.y - objeto.y) || 1;
-    const dx = (otro.x - objeto.x) / l, dy = (otro.y - objeto.y) / l;
-    return { x: objeto.x + 14 * dx + 10 * dy, y: objeto.y + 14 * dy - 10 * dx };
+    const dx = (otro.x - objeto.x) / l, dy = (otro.y - objeto.y) / l, largo = marcador ? LARGO_MARCADOR[marcador] + 9 : 14;
+    const lado = (s: number): Punto => ({ x: objeto.x + largo * dx + 11 * dy * s, y: objeto.y + largo * dy - 11 * dx * s });
+    const sobre = (p: Punto) => !!caja && p.x > caja.x - 7 && p.x < caja.x + caja.ancho + 7 && p.y > caja.y - 7 && p.y < caja.y + caja.alto + 7;
+    const c = sobre(lado(1)) && !sobre(lado(-1)) ? lado(-1) : lado(1);
+    return { x: c.x, y: c.y + 4 };
 };
 // Rótulo dentro de la caja persistida (DEC34): se prueba de la envoltura más ancha a la más
 // estrecha y gana la primera que cabe; si ninguna cabe, la de menor área expandida (R-OPD-COSA-6).
@@ -267,11 +273,11 @@ export function escena(m: Modelo, opd: Id): Escena {
             etiqueta(e.ruta, 'ruta', en);
         }
         if ('mult' in e && e.mult)
-            etiqueta(e.mult, 'mult-origen', ex.origen === ('objeto' in e ? e.objeto : undefined) ? multiplicidad(a, t.puntos[1]!) : multiplicidad(b, t.puntos.at(-2)!));
+            etiqueta(e.mult, 'mult-origen', ex.origen === ('objeto' in e ? e.objeto : undefined) ? multiplicidad(a, t.puntos[1]!, t.inicio, porId.get(ex.origen)?.caja) : multiplicidad(b, t.puntos.at(-2)!, t.fin, porId.get(ex.destino)?.caja));
         if ('multOrigen' in e && e.multOrigen)
-            etiqueta(e.multOrigen, 'mult-origen', multiplicidad(a, b));
+            etiqueta(e.multOrigen, 'mult-origen', multiplicidad(a, b, t.inicio, porId.get(ex.origen)?.caja));
         if ('multDestino' in e && e.multDestino)
-            etiqueta(e.multDestino, 'mult-destino', multiplicidad(b, a));
+            etiqueta(e.multDestino, 'mult-destino', multiplicidad(b, a, t.fin, porId.get(ex.destino)?.caja));
         return { marcas, etiquetas };
     }
     for (const v of vista.enlaces) {
@@ -415,7 +421,7 @@ function cajaEscena(nodos: readonly NodoCosa[], simbolos: readonly Simbolo[], ar
     for (const s of simbolos) {
         s.peine.forEach(t => puntos.push(...t));
         transformar(colocarTriangulo(s.vertice, s.orientacion), [{ x: 0, y: 0 }, { x: 30, y: 0 }, { x: 30, y: 30 }, { x: 0, y: 30 }]);
-        s.mult.forEach(l => texto(l.texto, l.en, 11, false));
+        s.mult.forEach(l => texto(l.texto, l.en, 12, false));
     }
     for (const a of aristas) {
         for (const t of a.tramos) {
@@ -426,7 +432,7 @@ function cajaEscena(nodos: readonly NodoCosa[], simbolos: readonly Simbolo[], ar
                     transformar(m, [{ x: 0, y: -10 }, { x: 23, y: -10 }, { x: 23, y: 10 }, { x: 0, y: 10 }]);
                 }
         }
-        a.etiquetas.forEach(l => texto(l.texto, l.en, 11, l.italica));
+        a.etiquetas.forEach(l => texto(l.texto, l.en, l.clave.startsWith('mult') ? 12 : 11, l.italica));
         a.marcas.forEach(l => rect({ x: l.en.x - 24, y: l.en.y - 24, ancho: 48, alto: 48 }));
     }
     for (const a of arcos) {

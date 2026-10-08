@@ -70,7 +70,7 @@ export function dibujar(e: Escena, modo: 'canon' | 'edicion'): NodoSvg {
             }
         }
         h.push(...a.etiquetas.map(l => {
-            const t = texto(l.texto, l.en, 11, l.italica);
+            const t = texto(l.texto, l.en, l.clave.startsWith('mult') ? 12 : 11, l.italica); // multiplicidad: serif 12 (spec-OPD §9)
             // Halo de pintura: el ancla contractual, la tipografía y el recorrido no cambian.
             return { ...t, a: { ...t.a, stroke: COLORES.paper, 'stroke-width': 3, 'stroke-linejoin': 'round', 'paint-order': 'stroke fill' } };
         }));
@@ -83,7 +83,7 @@ export function dibujar(e: Escena, modo: 'canon' | 'edicion'): NodoSvg {
             const i = topologia.interior;
             h.push(i.tipo === 'circulo' ? nodo('circle', { cx: i.centro.x, cy: i.centro.y, r: i.radio, fill: COLORES.ink, transform: trans }) : figura(i, trans, TRAZOS.estructural));
         }
-        h.push(...s.mult.map(l => { const t = texto(l.texto, l.en, 11); return { ...t, a: { ...t.a, stroke: COLORES.paper, 'stroke-width': 3, 'stroke-linejoin': 'round', 'paint-order': 'stroke fill' } }; }));
+        h.push(...s.mult.map(l => { const t = texto(l.texto, l.en, 12); return { ...t, a: { ...t.a, stroke: COLORES.paper, 'stroke-width': 3, 'stroke-linejoin': 'round', 'paint-order': 'stroke fill' } }; }));
         return envolver(s.clave, h);
     }
     function arco(a: Arco): NodoSvg { const x = a.centro.x, y = a.centro.y, r = a.radio, d = `M ${x + r * Math.cos(a.desde)} ${y + r * Math.sin(a.desde)} A ${r} ${r} 0 ${a.hasta - a.desde > Math.PI ? 1 : 0} 1 ${x + r * Math.cos(a.hasta)} ${y + r * Math.sin(a.hasta)}`; return nodo('path', { d, fill: 'none', stroke: COLORES.ink, 'stroke-width': TRAZOS.arco, 'stroke-dasharray': '4 1' }); }

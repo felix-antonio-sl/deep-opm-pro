@@ -658,7 +658,9 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
 - **Ruta y multiplicidad** (T-218, T-219):
   - La ruta va en serif 11 a mitad del segmento, desplazada 10 px a la izquierda del sentido
     objeto→proceso.
-  - La multiplicidad va a 14 px del extremo objeto y a 10 px en perpendicular.
+  - La multiplicidad va en serif 12 (spec-OPD §9) junto a su extremo: su centro, a 11 px del eje y
+    a 14 px del extremo, o al largo de la punta + 9 px si ese extremo la tiene, para no pisarla.
+    Cambia de lado sólo si el habitual la deja sobre la caja de su propia cosa, que la taparía.
 - **Estados dentro del objeto** (T-206):
   - Van en filas en la región inferior, con separación 8. La cápsula mide 26 de alto y
     `texto(itálica 13) + 16` de ancho (+6 si es inicial). El objeto crece para contenerlas, nunca al
