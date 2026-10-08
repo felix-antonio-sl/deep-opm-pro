@@ -45,3 +45,14 @@ for(const designaciones of [
  const b=modeloCon({objetos:[['Pedido',['pendiente','completado']]],procesos:['Preparar'],enlaces:[['efecto','Pedido','Preparar']]}),o=porNombre(b,'Pedido');if(o.tipo!=='objeto')throw Error('Objeto');const m=must(aplicarAcciones(b,designaciones.map(designacion=>({op:'designar' as const,args:{estado:o.estados[0]!.id,designacion,activa:true}})))).modelo,antes=exportarV0(m),texto=generarDocumentoOpl(m),r=importarOpl(m.nombre,texto);
  expect(r.ok).toBe(true);if(!r.ok)throw Error('Importación');expect(r.valor.plan.resumen.noAplicables).toBe(0);expect(generarDocumentoOpl(r.valor.modelo)).toBe(texto);const objeto=porNombre(r.valor.modelo,'Pedido');if(objeto.tipo!=='objeto')throw Error('Objeto reconstruido');for(const d of designaciones)if(d==='inicial'||d==='final')expect(objeto.estados[0]![d]).toBe(true);else expect(objeto[d]).toBe(objeto.estados[0]!.id);expect(Object.values(r.valor.modelo.enlaces).map(e=>e.tipo)).toEqual(['efecto']);expect(exportarV0(m)).toBe(antes);
 });
+test('T-120 SE3 con la etiqueta por defecto vuelve desde vacío al mismo bidireccional, entre objetos y entre procesos',()=>{
+ for(const datos of [{objetos:[['Alfa',[]],['Beta',[]]] as const},{procesos:['Alfa','Beta']}]){
+  const base=modeloCon({...datos,enlaces:[['etiquetadoBidireccional','Alfa','Beta']]}),[id,e]=Object.entries(base.enlaces)[0]!;
+  const m={...base,enlaces:{[id]:{...e,etiqueta:'se relaciona con',inversa:'es relacionado por'}}} as typeof base,texto=generarDocumentoOpl(m);
+  expect(texto).toContain('se relaciona con');expect(texto).toContain('es relacionado por');
+  const r=importarOpl(m.nombre,texto);expect(r.ok).toBe(true);if(!r.ok)continue;
+  expect(r.valor.plan.resumen.noAplicables).toBe(0);
+  expect(Object.values(r.valor.modelo.enlaces)).toEqual([expect.objectContaining({tipo:'etiquetadoBidireccional',etiqueta:'se relaciona con',inversa:'es relacionado por'})]);
+  expect(generarDocumentoOpl(r.valor.modelo)).toBe(texto);
+ }
+});

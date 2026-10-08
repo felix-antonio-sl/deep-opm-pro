@@ -54,6 +54,15 @@ test('T-186 SE3 se combina por bloque antes del ensayo y segunda línea explica 
  expect(p.lineas.map(l=>l.estado)).toEqual(['aplicable','aplicable']);expect(p.lineas[1]?.detalle).toContain('par de la línea 1');
  const r=aplicarPlan(m,p);expect(r.ok).toBe(true);if(r.ok)expect(Object.values(r.valor.modelo.enlaces)).toEqual([expect.objectContaining({tipo:'etiquetadoBidireccional',etiqueta:'conoce',inversa:'pertenece a'})]);
 });
+test('T-186 SE3 con la etiqueta por defecto se combina en ambos órdenes, entre objetos y entre procesos',()=>{
+ for(const [a,b] of [['**Alfa**','**Beta**'],['*Alfa*','*Beta*']] as const)for(const texto of [`${a} se relaciona con ${b}.\n${b} es relacionado por ${a}.`,`${b} es relacionado por ${a}.\n${a} se relaciona con ${b}.`]){
+  const m=vacio(),p=planificar(m,m.raiz,texto);
+  expect(p.lineas.map(l=>l.estado)).toEqual(['aplicable','aplicable']);
+  const r=aplicarPlan(m,p);expect(r.ok).toBe(true);if(!r.ok)continue;
+  const enlaces=Object.values(r.valor.modelo.enlaces);expect(enlaces).toHaveLength(1);expect(enlaces[0]).toMatchObject({tipo:'etiquetadoBidireccional'});
+  expect(textoCanonico(generarBloque(r.valor.modelo,m.raiz)).split('\n').filter(l=>l&&!l.startsWith('#')).sort()).toEqual(texto.split('\n').sort());
+ }
+});
 test('T-178 conflicto de ajustes del mismo enlace rechaza ambas líneas conservando hecho nuclear',()=>{
  const r=aplicarAcciones(vacio(),[{op:'crearCosa',args:{opd:'opd-1',tipo:'objeto',nombre:'Pedido',x:0,y:0}},{op:'crearCosa',args:{opd:'opd-1',tipo:'proceso',nombre:'Validar',x:200,y:0}}]);expect(r.ok).toBe(true);if(!r.ok)return;
  const p=planificar(r.valor.modelo,'opd-1','**Pedido** inicia *Validar*, que consume **Pedido**.\n*Validar* consume **Pedido**.');

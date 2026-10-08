@@ -40,6 +40,7 @@ export interface Plan {
 }
 
 import { generarBloque, generarModelo, textoCanonico } from './generar';
+import { ETIQUETA_POR_DEFECTO } from './plantillas';
 import { analizar } from './analizar';
 import type { LineaAnalizada, HechoTexto, EnlaceTexto, ExtremoTexto, NombreTipado } from './analizar';
 import { aplicarAccion } from '../nucleo/operaciones';
@@ -150,7 +151,9 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
             const b = trabajos[j]!, eb = b.hechos.length === 1 && b.hechos[0]?.k === 'enlace' ? b.hechos[0].enlace : null;
             if (b.etiqueta !== a.etiqueta || !eb || eb.tipo !== 'etiquetado' || typeof eb.origen === 'string') continue;
             if (claveNombre(ea.origen.nombre) === claveNombre(eb.destino.nombre) && claveNombre(ea.destino.nombre) === claveNombre(eb.origen.nombre) && ea.origen.estado === eb.destino.estado && ea.destino.estado === eb.origen.estado) {
-                a.hechos = [{ k: 'enlace', enlace: { ...ea, tipo: ea.etiqueta === eb.etiqueta ? 'reciproco' : 'etiquetadoBidireccional', ...(ea.etiqueta !== eb.etiqueta ? { inversa: eb.etiqueta } : {}) } }];
+                // Una mitad leída como SE2 no trae etiqueta: en el par vale la reservada que la emitió.
+                const distintas = ea.etiqueta !== eb.etiqueta;
+                a.hechos = [{ k: 'enlace', enlace: { ...ea, tipo: distintas ? 'etiquetadoBidireccional' : 'reciproco', ...(distintas ? { etiqueta: ea.etiqueta ?? ETIQUETA_POR_DEFECTO, inversa: eb.etiqueta ?? ETIQUETA_POR_DEFECTO } : {}) } }];
                 b.hechos = []; pares.set(b.l.numero,a.l.numero); break;
             }
         }
@@ -207,7 +210,7 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
             if (e.tipo === 'invocacion' || e.tipo === 'excepcionSobretiempo' || e.tipo === 'excepcionSubtiempo') return { tipo: e.tipo, origen: id({ nombre: e.origen, tipo: 'proceso' }), destino: id({ nombre: e.destino as string, tipo: 'proceso' }) };
             if (!('etiqueta' in e) && typeof e.origen === 'string') throw new Fallo('type-mismatch', 'Extremos tipados requeridos.');
             const et = e as Extract<EnlaceTexto, { tipo: 'etiquetado' | 'etiquetadoBidireccional' | 'reciproco' }>;
-            const etiqueta = et.tipo === 'etiquetado' && et.etiqueta === 'se relaciona con' ? undefined : et.etiqueta;
+            const etiqueta = et.tipo === 'etiquetado' && et.etiqueta === ETIQUETA_POR_DEFECTO ? undefined : et.etiqueta;
             const dest = et.destino, origen = id(et.origen), destino = id(dest), so = st(et.origen), sd = st(dest);
             const b = { origen, destino, ...(etiqueta ? { etiqueta } : {}), ...(et.origen.mult ? { multOrigen: et.origen.mult } : {}), ...(dest.mult ? { multDestino: dest.mult } : {}) };
             if (e.tipo === 'reciproco') return { ...b, tipo: e.tipo, ...(so ? { estados: { origen: so, ...(sd ? { destino: sd } : {}) } } : {}) };

@@ -36,6 +36,8 @@ export interface Plantilla {
 // Expansiones finitas de la tabla: se comparten entre emisión y vocabulario.
 const cuantificadores = { XOR: 'exactamente uno de', OR: 'al menos uno de' } as const;
 const multiplicidades = { '?': ['un opcional ', 'una opcional '], '*': ['opcional (cero o más) ', 'opcional (cero o más) '], '+': ['al menos un ', 'al menos una '] } as const;
+/** Etiqueta reservada de SE2 (T-119): la emite un etiquetado sin etiqueta y la lee el parser como ausencia de etiqueta. */
+export const ETIQUETA_POR_DEFECTO = 'se relaciona con';
 const filas: readonly [
     string,
     string,
@@ -292,7 +294,7 @@ export function datosEnlace(m: Modelo, e: Enlace, inverso = false): HechoGenerab
         h.C2 = c(e.destino, e.multDestino);
         h.O1 = h.C1;
         h.O2 = h.C2;
-        h.t = { texto: e.etiqueta ?? 'se relaciona con', hecho: e.id, ref: { tipo: 'enlace', id: e.id } };
+        h.t = { texto: e.etiqueta ?? ETIQUETA_POR_DEFECTO, hecho: e.id, ref: { tipo: 'enlace', id: e.id } };
         if (e.tipo === 'reciproco') {
             if (e.estados) {
                 h.a = s(e.estados.origen);
