@@ -5,7 +5,7 @@ import type { Rechazo } from './resultado';
 import { indice, claveNombre } from './indice';
 import { generales } from './herencia';
 import { validarNombreCosa, validarNombreEstado, validarEtiqueta, sugerirNombre } from './lexico';
-import { violacionesContexto, violacionesAbanico, REGLAS_CONTEXTO, noOfrecido } from './matriz';
+import { violacionesContexto, violacionesAbanico, violacionesForma, REGLAS_CONTEXTO, noOfrecido } from './matriz';
 import { proyectar } from './proyeccion';
 export type Severidad = 'error' | 'warning' | 'info';
 export type FamiliaDiagnostico = 'gramatical' | 'metodologica' | 'identidad' | 'contencion' | 'sugerencia';
@@ -101,6 +101,11 @@ export function diagnosticar(m: Modelo): readonly Diagnostico[] {
             añadir('enlace-invalido', v.refs, v.mensaje, { regla: v.regla, accion: regla?.accion ?? v.accion!, severidad: regla?.severidad ?? 'error',
                 familia: ['R-DIST-1', 'R-CX-DIST-2', 'AP-07'].includes(v.regla) ? 'contencion' : 'gramatical', ...(reparacion ? { reparacion } : {}) });
         }
+    // Un dato que ninguna operación habría aceptado (ruta en un efecto, control o multiplicidad ajenos a su
+    // fila) hace que el generador omita el enlace en silencio: es error visible y bloquea el export (T-288).
+    for (const e of enlaces)
+        for (const v of violacionesForma(m, e))
+            añadir('enlace-invalido', v.refs, v.mensaje, { regla: v.regla });
     for (const f of Object.values(m.abanicos)) {
         for (const v of violacionesAbanico(m, f))
             añadir('abanico-invalido', v.refs, v.mensaje, { regla: v.regla });

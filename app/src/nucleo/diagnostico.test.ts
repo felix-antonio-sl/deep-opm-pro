@@ -347,3 +347,15 @@ for (const nombreObjeto of ['Apertura', 'Dependencia']) test(`T-266 heurística 
     expect(diagnosticar(nombre(nombreObjeto, 'proceso')).filter(d => d.codigo === 'nombre-proceso-no-deverbal')).toEqual([]);
     expect(diagnosticar(nombre('Mesa', 'proceso')).filter(d => d.codigo === 'nombre-proceso-no-deverbal')).toEqual([expect.objectContaining({ severidad: 'warning', refs: [{ tipo: 'cosa', id: 'p' }] })]);
 });
+test('T-288 T-283 un dato de enlace ajeno a su fila de la matriz es error visible y bloquea el export', () => {
+    const efecto: Enlace = { id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 'o-s1', salida: 'o-s2' };
+    expect(gatesExportacion(modelo(undefined, [efecto]), { opd: 'sd' })).toEqual([]);
+    for (const forzado of [{ ruta: 'r1' }, { control: 'x' }, { mult: '3' }]) {
+        const m = modelo(undefined, [{ ...efecto, ...forzado } as Enlace]);
+        expect(diagnosticar(m).filter(d => d.codigo === 'enlace-invalido' && d.severidad === 'error').length).toBeGreaterThan(0);
+        expect(gatesExportacion(m, { opd: 'sd' }).length).toBeGreaterThan(0);
+        expect(gatesExportacion(m, 'modelo').length).toBeGreaterThan(0);
+    }
+    expect(diagnosticar(modelo(undefined, [{ ...efecto, ruta: 'r1' } as Enlace])).find(d => d.regla === 'R-OPL-RUTA-2'))
+        .toMatchObject({ codigo: 'enlace-invalido', severidad: 'error', refs: [{ tipo: 'enlace', id: 'e' }] });
+});
