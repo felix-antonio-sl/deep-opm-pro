@@ -4,8 +4,8 @@ La fase A de `8d4e0b87` y el desglose del ensayo están completados. Se conserva
 los originales e informes privados. El detalle de nueve OPD, 46 etiquetas,
 26 multiplicidades, nueve rutas, 1055 campos y 203 errores está en:
 `/home/felix/.local/state/opforja/ensayos/fase-a-8d4e0b87-uq1bjdwm/ensayo/revision-usuario/DETALLE-DESCARTES.md`.
-Las propuestas de rescate no se aplicaron; los siete modelos conservan los errores
-de modelado pendientes de revisión humana.
+Las propuestas de rescate no se aplicaron. Por la nueva decisión del dueño, los
+modelos viejos y su revisión quedan fuera del corte; los ensayos se conservan.
 
 La preview `8d4e0b87` continúa por instrucción de Félix en el contenedor propio
 `opforja-revision-8d4e0b87-5me5hdtl`, puerto `127.0.0.1:32926`, con copias
@@ -35,7 +35,7 @@ se conservaron como prefijos byteexactos. Candidato aceptado técnicamente dentr
 del alcance declarado; publicación y paridad se comprueban en Git. El primer
 commit, de designaciones, pasó además su check separado: 2942/0, TSC verde.
 El siguiente trabajo de producto es B-15: etiquetas y multiplicidades que pisan
-cosas o puntas. La revisión humana de los siete modelos sigue pendiente.
+cosas o puntas; no forma parte de este corte operativo.
 
 Félix autorizó la fase B con su mensaje directo: «Vamos con la fase b».
 La preparación de `2dfe556f` está comprobada: respaldo PostgreSQL preliminar con
@@ -47,10 +47,14 @@ La imagen aislada pasó salud/versionado, 401 anónimo, login sintético, siete 
 byteexactos y CAS de los tres mayores. Esa prueba temporal ya se retiró. Evidencia:
 `/home/felix/.local/state/opforja/ensayos/fase-b-2dfe556f-yqwxf9b_/`.
 
-El corte está pendiente únicamente de la comprobación factual CC-17 (§9.4.1):
-confirmar que no quedan documentos exclusivos del navegador viejo sin sincronizar
-o recuperar; la pregunta al operador sigue pendiente. La migración real y el
-despliegue no se ejecutaron; el stack viejo y la preview siguen intactos.
-Después: congelar escritores viejos manteniendo PG, respaldar la fuente quieta,
-migrar/verificar `opforja-datos`, ejecutar `./deploy/deploy.sh` y completar el smoke
-humano. El secreto requerido está preparado en privado, sin instalarlo aún.
+Decisión nueva del dueño: «omitimos la migración» y «OpForja nuevo arranca con la
+biblioteca vacía», citada íntegramente en `docs/decisiones.md`. Quedan sin efecto
+CC-17, congelamiento, respaldo final, ensayo nuevo, migración, `--verificar` y
+revisión de los siete modelos y sus 121 errores. Se conserva el volumen PG sin
+montar tras el corte, el respaldo y todos los ensayos; la preview sigue intacta.
+
+`opforja-datos` no existe en la comprobación previa. El secreto ya está instalado
+fuera de Git, con permisos `0600`. Siguiente paso: `./deploy/deploy.sh`.
+No se porta ninguna cuenta ni modelo.
+El dueño creará la cuenta con su clave y hará el smoke: crear, editar, «Guardado»,
+recargar y comprobar persistencia. Despliegue todavía pendiente de ejecución.

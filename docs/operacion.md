@@ -1,9 +1,9 @@
 # Operación de OpForja
 
-Estos procedimientos son instrucciones para un operador autorizado. En el rehecho
-se probaron servidores/cuentas temporales sintéticos y fuentes falsas de migración.
-No se ejecutaron producción, PostgreSQL real, Docker, despliegue, respaldo o
-restauración operativa. WP-18/imagen real requiere autorización aparte, fuera de H3.
+Estos procedimientos son instrucciones para un operador autorizado. Las pruebas
+del rehecho y las comprobaciones operativas tienen evidencia separada: los ensayos
+PostgreSQL y el respaldo ya recuperado en aislamiento se conservan en privado.
+La decisión vigente de fase B autoriza el corte con biblioteca vacía (§9.4).
 No ejecute estos comandos por el solo hecho de leer esta guía.
 
 ## Variables y entorno
@@ -31,12 +31,14 @@ web y servidor deben llevar la misma OPFORJA_VERSION. envDir:false protege Vite.
   el formato `scrypt$16384$8$1$<sal>$<hash>`, porte exacto de `passwordHash.ts`, así que la
   migración copia el hash actual sin pedir la clave.
 - **CLI** (`servidor/cuenta.ts`, en el contenedor):
-  - `bun servidor/cuenta.js crear <email>` pide la clave dos veces por stdin (≥ 10 caracteres) y
-    falla si ya existe una cuenta;
+  - `bun --no-env-file servidor/cuenta.js crear <email>` recibe la clave dos veces por stdin
+    (≥ 10 caracteres) y falla si ya existe una cuenta;
   - `clave` cambia la clave y sube `versionCredencial`, lo que cierra las sesiones;
   - `cerrar-sesiones` sube `versionCredencial`.
 
-  Todas aceptan `--datos <dir>`.
+  Todas aceptan `--datos <dir>`. El CLI consume stdin hasta EOF y no desactiva
+  el eco: el operador captura su clave de forma protegida y la proporciona por
+  stdin, sin incluirla en argumentos ni logs.
 - **Sesión**: la cookie es `opforja_sesion=<b64url({"v":versionCredencial,"exp":epoch})>.<b64url(HMAC-SHA256)>`,
   con `HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000` (30 días; `Secure` se omite solo
   en `localhost`). Se verifica en tiempo constante; un `v` distinto del de la cuenta da 401.
@@ -85,6 +87,9 @@ web y servidor deben llevar la misma OPFORJA_VERSION. envDir:false protege Vite.
   evento de almacén. Nunca contiene contenido de modelos, claves ni tokens.
 
 ### 8.6 Migración única desde PostgreSQL (`herramientas/migrar-postgres.ts`)
+
+Capacidad disponible, fuera del corte vigente de fase B (§9.4). No se ejecuta
+para poblar la biblioteca nueva ni portar una cuenta.
 
 Uso, dentro de la imagen nueva y conectada a la red del stack viejo:
 
@@ -174,33 +179,40 @@ Importar en Biblioteca (ID nuevo) o la API con CAS vigente. Restaurar papelera n
 admite aceptar pérdidas; 400/422 conserva su entrada y muestra el Informe. Descargue
 el original antes de una recuperación manual y decida reparaciones explícitamente.
 
-### 9.4 Transición desde el stack actual (solo con autorización explícita)
+### 9.4 Corte de fase B sin migración (autorizado por el dueño)
 
-Precondiciones: el commit nuevo está en `main` y el `.env` tiene `OPFORJA_SECRETO`.
+Decisión textual vigente en `docs/decisiones.md`: «omitimos la migración» y
+«OpForja nuevo arranca con la biblioteca vacía». Este corte se hace sin CC-17,
+congelamiento separado, respaldo final, ensayo adicional, migración ni
+`--verificar`; la revisión de los siete modelos y sus 121 errores queda sin efecto.
+Los ensayos anteriores se conservan como evidencia histórica.
 
-1. **Congelar**: avisar al operador y no editar en la instancia vieja. Antes, en la instancia vieja,
-   **vaciar el carril local-first** (CC-17): el repositorio IndexedDB `opforja-local` del navegador
-   puede tener documentos en `saved-here` o `conflict` que nunca llegaron a PostgreSQL, y la
-   migración solo lee PostgreSQL. El operador sincroniza cada documento pendiente o descarga su JSON
-   de recuperación (`opforja.local-recovery.v1`), que el importador nuevo acepta (§3.4.2-1). La
-   transición no avanza mientras algún documento viejo muestre un estado distinto de
-   «Sincronizado».
-2. **Respaldo PostgreSQL**, con el script viejo, desde el tag anterior:
-   `git worktree add ../opforja-viejo pre-rehacer && ../opforja-viejo/deploy/backup-opforja-db.sh`.
-3. **Construir** sin arrancar: `OPFORJA_BUILD=$(git rev-parse --short HEAD) docker compose build`.
-4. **Ensayo de migración** contra el PostgreSQL vivo:
-   `docker run --rm --network deep-opm-pro_opforja-internal -v "$PWD/ensayo":/ensayo opforja:latest
-   bun servidor/migrar-postgres.js --url postgres://opforja:$OPFORJA_DB_PASSWORD@postgres:5432/opforja
-   --ensayo --salida /ensayo`.
+Precondiciones: commit nuevo en `main`, árbol limpio y `OPFORJA_SECRETO` instalado
+fuera de Git. El secreto de sesión no es la clave de la cuenta.
 
-   El operador revisa el `INFORME.md`: descartados, rechazados, errores de canon cargados y diff de
-   visibilidad.
-5. **Migración real**: el mismo comando con `-v opforja-datos:/datos` y sin `--ensayo`. Luego
-   `--verificar` debe terminar sin errores.
-6. **Desplegar**: `./deploy/deploy.sh`. La prueba de humo es humana: entrar, abrir tres modelos
-   grandes, comparar los conteos con el informe, editar y ver «Guardado».
-7. El volumen `opforja-postgres-data` **se conserva sin montar**: no se ejecuta `down -v` ni
-   `volume rm`. Se retira solo por decisión del dueño.
+1. **Destino vacío**: comprobar que `opforja-datos` no existe o está vacío antes del
+   deploy. Si contiene datos, conservarlos y detener el corte; no vaciarlo por
+   conveniencia. No copiar cuentas, modelos viejos ni material sintético al volumen.
+2. **Secreto**: instalar `OPFORJA_SECRETO` en el `.env` ignorado junto al compose,
+   con permisos `0600`, sin imprimirlo ni incluirlo en logs o argumentos.
+3. **Desplegar**: ejecutar únicamente `./deploy/deploy.sh`, con el proyecto Compose
+   real `deep-opm-pro`. Comprueba salud, versión Git, acceso 401 sin sesión y HTML
+   de la aplicación.
+   El deploy retira los servicios anteriores del proyecto y conserva sus volúmenes.
+4. **Cuenta humana**: avisar que el servicio está arriba sin cuenta. El dueño ejecuta
+   `servidor/cuenta.js crear <correo> --datos /datos` dentro del contenedor, usando
+   Bun y su propia clave dos veces por stdin (mínimo diez caracteres). El operador
+   captura la clave sin eco y termina stdin con EOF; el CLI no oculta el eco por sí solo.
+5. **Prueba de humo humana**: entrar, crear un modelo, editarlo, ver «Guardado»,
+   recargar y comprobar que persiste. La salud técnica no acredita este paso.
+
+Se conserva sin montar el volumen PostgreSQL real
+`deep-opm-pro_opforja-postgres-data` (nombre lógico anterior `opforja-postgres-data`),
+el respaldo PostgreSQL y la evidencia de ambos ensayos. No se ejecuta `down -v`,
+`volume rm` ni limpieza de esos archivos. La preview aislada sigue por su instrucción
+propia; no se incorpora al proyecto desplegado ni al volumen de producción.
+
+**Estado del corte:** decisión registrada; despliegue pendiente de ejecución.
 
 **Rollback**: `git checkout pre-rehacer && ./deploy/deploy.sh` levanta el stack viejo con su volumen
 intacto. Los cambios hechos en la versión nueva se llevan exportando el JSON. El importador viejo

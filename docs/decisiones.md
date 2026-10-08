@@ -3,7 +3,25 @@
 ## Del dueño (textuales)
 - «Rehaz OpForja con plena libertad creativa y de transformación, manteniendo siempre un respeto absoluto por los principios, la semántica y las reglas de OPM.» Objetivo: más usable, ágil, limpia, intuitiva, elegante, liviana, coherente. Eliminar sobreingeniería, lastre, burocracia y complejidad acumulada. Simplificar con criterio sin sobresimplificar.
 - «más simple aún. acá está el canon actualizado. ni más ni menos»: el canon son EXACTAMENTE 4 documentos (reglas-opm-estrictas-es 1.5.0, spec-forja-opd-es 1.4.0, spec-forja-opl-es 1.4.1, metodologia-forja-opm-es 1.7.0). Autoridad local: canon/<slug>/content.md. Especificación derivada: docs/especificacion.md (248 requisitos T-NNN).
-- Persistencia (respuesta explícita 2026-09-30): **«Servidor mínimo»** — el mismo cliente + un servicio pequeño con UNA cuenta y los modelos guardados como archivos JSON (`deep-opm-pro.modelo.v0`) en el servidor. Conserva el acceso desde cualquier navegador. Sin PostgreSQL. Migración única de los modelos actuales de PostgreSQL a archivos.
+- Persistencia (respuesta explícita 2026-09-30): **«Servidor mínimo»** — el mismo cliente + un servicio pequeño con UNA cuenta y los modelos guardados como archivos JSON (`deep-opm-pro.modelo.v0`) en el servidor. Conserva el acceso desde cualquier navegador. Sin PostgreSQL. La migración única prevista originalmente queda sin efecto para este corte por la decisión de fase B siguiente.
+
+## Decisión del dueño para el corte de fase B — vigente
+
+Mensaje directo del dueño, citado íntegramente; ID y fecha originales no observables:
+
+> Cambio de plan en la fase B: **omitimos la migración**. No conservo los modelos viejos; OpForja nuevo arranca con la biblioteca vacía.
+>
+> 1. Quedan sin efecto CC-17, el congelamiento, el respaldo final, el ensayo, la migración real y `--verificar`, y también la revisión de los siete modelos y de sus 121 errores.
+> 2. Antes de desplegar, confirma que el volumen `opforja-datos` no existe o está vacío. Ninguna cuenta ni modelo sintético debe llegar a producción.
+> 3. Instala el secreto y despliega con ./deploy/deploy.sh. Avísame cuando esté arriba: la cuenta la creo yo con `servidor/cuenta.js crear` y la clave la tecleo yo.
+> 4. Conserva sin montar `opforja-postgres-data`, el respaldo PostgreSQL y la evidencia de los ensayos. No borres nada de eso.
+> 5. Registra esta decisión, citada, en docs/decisiones.md. Anota en docs/operacion.md §9.4 que el corte se hizo sin migración y actualiza `HANDOFF.md`.
+> 6. La prueba de humo la hago yo: entrar, crear un modelo, editarlo, ver «Guardado», recargar y comprobar que sigue ahí.
+
+El corte usa un volumen nuevo vacío y no porta la cuenta antigua. La creación de
+cuenta y la aceptación humana quedan a cargo del dueño. Los respaldos y ensayos
+previos permanecen como evidencia histórica, sin obligación de revisar ni rescatar
+sus modelos. El procedimiento vigente está en `docs/operacion.md` §9.4.
 
 ## Del orquestador (derivadas del alcance «ni más ni menos»)
 - Alcance del producto = lo que CANON.md exige a la herramienta (+ infraestructura mínima: cuenta, abrir/guardar/listar/eliminar modelos, exportar). Lo que CANON.md §0.4 lista como «no entra» NO se implementa: simulación, bilingüismo, sub-modelos/composición, Bocetos/Apunte/Taller/Graduar/Biblioteca/versiones, estereotipos/requisitos, anclaje/drift/calcar, capa computacional, Pr/m-de-f, negación, demora, semi-plegado, vistas/Bring/mapa, estilado autoral, agente LLM integrado, tutor, mesa, revisión compartida, lector portátil, captura de bugs, modo móvil de solo lectura.
@@ -12,7 +30,7 @@
 - Registro de conformidad (R-CONF-7): un único documento del repo que declara cada DEBE no implementado (brecha silenciosa prohibida).
 - Canon vendorizado en el repo (los 4 documentos, tal cual) como autoridad local; se retiran puentes/resolutor URN.
 - Idioma: UI, OPL y docs en español es-CL; el código de dominio usa el vocabulario del canon en español (como el formato v0 y los tipos de CANON.md §1.2), de forma consistente en todo el código.
-- No desplegar (no autorizado). Mantener `./deploy/deploy.sh` como único circuito, adaptado al nuevo servicio.
+- El despliegue exige autorización explícita. Mantener `./deploy/deploy.sh` como único circuito, adaptado al nuevo servicio; el corte de fase B sin migración está autorizado por la decisión textual anterior.
 - Decisiones pendientes del canon (CANON.md §10.3) con default conforme: RX1/RX2 diferidos (`unsupported-canonical`), descomposición de objeto diferida y declarada, agente solo desde objeto físico (proxy declarado por el método).
 
 ## Material histórico de preparación (conservado en Git)
@@ -728,8 +746,10 @@ Infraestructura:
 ## Riesgos y mitigaciones — transferencia de las tablas 13.1 y 13.2
 
 Son distinciones y mecanismos del diseño; la acreditación efectiva y las superficies
-pendientes se consultan en conformidad, no se deducen de esta tabla. Las migraciones,
-respaldos, Docker y transición son procedimientos previstos, no ejecutados.
+pendientes se consultan en conformidad, no se deducen de esta tabla. Las referencias
+§9.4-2 y §9.4-4 de estas tablas corresponden al procedimiento histórico de respaldo
+y ensayo, fuera del corte vigente con biblioteca vacía. Los ensayos y respaldos ya
+realizados se conservan; no acreditan una migración real ni el smoke humano nuevo.
 
 ### 13.1 Riesgos de sobresimplificación de SYNTHESIS §8 (los 21, resueltos)
 
