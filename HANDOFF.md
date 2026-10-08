@@ -37,5 +37,20 @@ commit, de designaciones, pasó además su check separado: 2942/0, TSC verde.
 El siguiente trabajo de producto es B-15: etiquetas y multiplicidades que pisan
 cosas o puntas. La revisión humana de los siete modelos sigue pendiente.
 
-La fase B sigue sin autorizar: respaldo, migración real, despliegue e intervención
-del stack actual requieren la decisión posterior de Félix.
+Félix autorizó la fase B con su mensaje directo: «Vamos con la fase b».
+La preparación de `2dfe556f` está comprobada: respaldo PostgreSQL preliminar con
+recuperación aislada, imagen construida y ensayo actual de siete modelos, cero
+rechazos/fallos, dos autosaves y 16 versiones. Los 25 originales/versiones, los
+índices y los siete JSON canónicos coinciden byteexactamente con fase A; descartes
+y visibilidad se conservan. El diagnóstico vigente cuenta 121 errores, antes 203.
+La imagen aislada pasó salud/versionado, 401 anónimo, login sintético, siete GET
+byteexactos y CAS de los tres mayores. Esa prueba temporal ya se retiró. Evidencia:
+`/home/felix/.local/state/opforja/ensayos/fase-b-2dfe556f-yqwxf9b_/`.
+
+El corte está pendiente únicamente de la comprobación factual CC-17 (§9.4.1):
+confirmar que no quedan documentos exclusivos del navegador viejo sin sincronizar
+o recuperar; la pregunta al operador sigue pendiente. La migración real y el
+despliegue no se ejecutaron; el stack viejo y la preview siguen intactos.
+Después: congelar escritores viejos manteniendo PG, respaldar la fuente quieta,
+migrar/verificar `opforja-datos`, ejecutar `./deploy/deploy.sh` y completar el smoke
+humano. El secreto requerido está preparado en privado, sin instalarlo aún.
