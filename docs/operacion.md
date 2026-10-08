@@ -39,6 +39,27 @@ web y servidor deben llevar la misma OPFORJA_VERSION. envDir:false protege Vite.
   Todas aceptan `--datos <dir>`. El CLI consume stdin hasta EOF y no desactiva
   el eco: el operador captura su clave de forma protegida y la proporciona por
   stdin, sin incluirla en argumentos ni logs.
+
+  Para crear la cuenta desde una terminal interactiva en el host del contenedor,
+  este comando pregunta el correo y oculta la clave. El operador lo ejecuta;
+  ningún agente debe suministrar una clave sintética para el corte vigente.
+
+  ```sh
+  python3 -c '
+  import getpass, subprocess
+  correo = input("Correo: ").strip()
+  clave = getpass.getpass("Clave (mínimo 10 caracteres): ")
+  repeticion = getpass.getpass("Repite la clave: ")
+  if len(clave) < 10 or clave != repeticion:
+      raise SystemExit("Las claves deben coincidir y tener al menos 10 caracteres.")
+  resultado = subprocess.run(
+      ["docker", "exec", "-i", "opforja", "bun", "--no-env-file",
+       "servidor/cuenta.js", "crear", correo, "--datos", "/datos"],
+      input=clave + "\n" + repeticion + "\n", text=True)
+  raise SystemExit(resultado.returncode)
+  '
+  ```
+
 - **Sesión**: la cookie es `opforja_sesion=<b64url({"v":versionCredencial,"exp":epoch})>.<b64url(HMAC-SHA256)>`,
   con `HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=2592000` (30 días; `Secure` se omite solo
   en `localhost`). Se verifica en tiempo constante; un `v` distinto del de la cuenta da 401.
@@ -182,7 +203,7 @@ el original antes de una recuperación manual y decida reparaciones explícitame
 ### 9.4 Corte de fase B sin migración (autorizado por el dueño)
 
 Decisión textual vigente en `docs/decisiones.md`: «omitimos la migración» y
-«OpForja nuevo arranca con la biblioteca vacía». Este corte se hace sin CC-17,
+«OpForja nuevo arranca con la biblioteca vacía». El corte se hizo sin CC-17,
 congelamiento separado, respaldo final, ensayo adicional, migración ni
 `--verificar`; la revisión de los siete modelos y sus 121 errores queda sin efecto.
 Los ensayos anteriores se conservan como evidencia histórica.
@@ -212,7 +233,12 @@ el respaldo PostgreSQL y la evidencia de ambos ensayos. No se ejecuta `down -v`,
 `volume rm` ni limpieza de esos archivos. La preview aislada sigue por su instrucción
 propia; no se incorpora al proyecto desplegado ni al volumen de producción.
 
-**Estado del corte:** decisión registrada; despliegue pendiente de ejecución.
+**Resultado del corte:** `./deploy/deploy.sh` terminó con código 0 y versión
+`1e0d3ab0` en `https://opforja.sanixai.com`. Salud 200, acceso anónimo 401 y HTML
+200; el JavaScript servido contiene la misma versión. El control inicial de
+`opforja-datos` encontró cero archivos, cero modelos y ninguna cuenta. PostgreSQL
+quedó conservado sin montar, el respaldo mantuvo su hash y la preview su identidad.
+La creación de cuenta y el smoke humano siguen a cargo del dueño.
 
 **Rollback**: `git checkout pre-rehacer && ./deploy/deploy.sh` levanta el stack viejo con su volumen
 intacto. Los cambios hechos en la versión nueva se llevan exportando el JSON. El importador viejo

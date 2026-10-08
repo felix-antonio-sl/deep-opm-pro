@@ -53,8 +53,14 @@ CC-17, congelamiento, respaldo final, ensayo nuevo, migración, `--verificar` y
 revisión de los siete modelos y sus 121 errores. Se conserva el volumen PG sin
 montar tras el corte, el respaldo y todos los ensayos; la preview sigue intacta.
 
-`opforja-datos` no existe en la comprobación previa. El secreto ya está instalado
-fuera de Git, con permisos `0600`. Siguiente paso: `./deploy/deploy.sh`.
-No se porta ninguna cuenta ni modelo.
-El dueño creará la cuenta con su clave y hará el smoke: crear, editar, «Guardado»,
-recargar y comprobar persistencia. Despliegue todavía pendiente de ejecución.
+El corte sin migración está ejecutado: `./deploy/deploy.sh` terminó con código 0,
+versión `1e0d3ab0`, en `https://opforja.sanixai.com`. Salud/HTML 200, sesión anónima
+401 y bundle con la misma versión. `opforja-datos` no existía antes del deploy y su
+control inicial encontró cero archivos/modelos y ninguna cuenta. El secreto quedó
+fuera de Git con permisos `0600`; PG está conservado sin montar, el respaldo
+byteexacto y la preview intacta. El producto conserva el árbol `app/` validado en
+`2dfe556f`; los commits del corte sólo documentan la decisión y el resultado.
+
+Siguiente paso del dueño: crear la cuenta con su clave, entrar, crear un modelo,
+editarlo, ver «Guardado», recargar y comprobar persistencia. Esa aceptación humana
+está pendiente; el agente no creó cuenta ni modelos en producción.
