@@ -208,8 +208,10 @@ Estas leyes se prueban sobre todos los fixtures y 200 modelos de `pruebas/azar.t
    - **Multiplicidad**:
      - `?` y `0..1` dan `?`; `*`, `0..*` y `0..N` dan `*`; `+`, `1..*` y `1..N` dan `+`; `1` y
        `1..1` quedan ausentes.
-     - Otro valor va a `descartado` (DR-21), igual que una multiplicidad en un extremo ilegal
-       (proceso, todo).
+     - Un entero de 2 a 999999 (texto o número) se conserva y `n..n` da `n`; `2..*` se conserva y
+       `2..N` da `2..*` (DEC35).
+     - Otro valor, como `0` o `2..5`, va a `descartado` (DR-21), igual que una multiplicidad en un
+       extremo ilegal (proceso, todo).
      - Una multiplicidad que `noOfrecido` rechaza va a `descartado` (DR-44): junto a `c`, en efecto
        con estados o en etiquetado con estado.
    - **`rutaEtiqueta`** pasa a `ruta` en consumo y resultado (también en ramas de abanico, DS-10).

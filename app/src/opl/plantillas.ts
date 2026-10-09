@@ -35,7 +35,9 @@ export interface Plantilla {
 }
 // Expansiones finitas de la tabla: se comparten entre emisión y vocabulario.
 const cuantificadores = { XOR: 'exactamente uno de', OR: 'al menos uno de' } as const;
-const multiplicidades = { '?': ['un opcional ', 'una opcional '], '*': ['opcional (cero o más) ', 'opcional (cero o más) '], '+': ['al menos un ', 'al menos una '] } as const;
+const multiplicidades = { '?': ['un opcional ', 'una opcional '], '*': ['opcional (cero o más) ', 'opcional (cero o más) '], '+': ['al menos un ', 'al menos una '], '2..*': ['al menos dos ', 'al menos dos '] } as const;
+// DEC35: el entero exacto va en cifras y sin género (EBNF A.2 `limite_de_participacion`); el nombre sigue en singular (DR-12).
+const fraseMultiplicidad = (m: Multiplicidad, f: boolean): string => Object.hasOwn(multiplicidades, m) ? multiplicidades[m as keyof typeof multiplicidades][f ? 1 : 0] : `${m} `;
 /** Etiqueta reservada de SE2 (T-119): la emite un etiquetado sin etiqueta y la lee el parser como ausencia de etiqueta. */
 export const ETIQUETA_POR_DEFECTO = 'se relaciona con';
 const filas: readonly [
@@ -170,7 +172,7 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
         if (articulo)
             literal(x.genero === 'f' ? 'una ' : 'un ');
         if (mult && x.mult)
-            literal(multiplicidades[x.mult][x.genero === 'f' ? 1 : 0], 'multiplicidad');
+            literal(fraseMultiplicidad(x.mult, x.genero === 'f'), 'multiplicidad');
         if (x.tokens) {
             tokens.push(...x.tokens);
             return;
@@ -184,7 +186,7 @@ function componerTokensPlantilla(id: string, h: Huecos): readonly TokenOpl[] {
     function superficieInicial(k: string, x: Hueco): string {
         const name = k.replace(/^(Ly|Lo|Lista):/, '');
         if (name === 'articulos') return x.genero === 'f' ? 'una ' : 'un ';
-        if (name.startsWith('m') && x.mult) return multiplicidades[x.mult][x.genero === 'f' ? 1 : 0];
+        if (name.startsWith('m') && x.mult) return fraseMultiplicidad(x.mult, x.genero === 'f');
         return x.tokens?.map(t => t.texto).join('') || x.texto;
     }
     function slot(k: string) {

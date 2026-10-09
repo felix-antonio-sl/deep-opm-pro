@@ -4,7 +4,7 @@ import { esProcedimental, extremos } from './tipos';
 import { indice } from './indice';
 import { generales } from './herencia';
 import { validarEtiqueta } from './lexico';
-import type { Familia, TipoEnlace, Modelo, Enlace, EnlaceNuevo, EnlaceProcedimental, Id, Abanico } from './tipos';
+import type { Familia, TipoEnlace, Modelo, Enlace, EnlaceNuevo, EnlaceProcedimental, Id, Abanico, Multiplicidad } from './tipos';
 import type { Violacion, Respuesta, Rechazo } from './resultado';
 import type { Indice } from './indice';
 import type { Accion, EstadosEnlace, ExtremoRef } from './operaciones';
@@ -43,6 +43,8 @@ export interface FilaMatriz {
 }
 // La tabla es la única autoridad de firma para todos los consumidores.
 const fila = (f: FilaMatriz): FilaMatriz => Object.freeze({ ...f, roles: Object.freeze(f.roles), clases: Object.freeze(f.clases), plantillas: Object.freeze(f.plantillas) });
+/** DEC35: además de ?, * y +, un entero exacto n ≥ 2 y 2..* (EBNF A.2 `restriccion_de_participacion`). */
+export const esMultiplicidad = (v: unknown): v is Multiplicidad => typeof v === 'string' && /^(?:[?*+]|2\.\.\*|[2-9]|[1-9]\d{1,5})$/.test(v);
 export const MATRIZ: Readonly<Record<TipoEnlace, FilaMatriz>> = Object.freeze({
     consumo: fila({ familia: "transformadora", roles: ["objeto", "proceso"], clases: ["objeto", "proceso"], mismoTipo: false, reflexivo: false, estados: "objeto", control: true, abanico: true, ruta: true, mult: "objeto", etiquetas: "ninguna", plantillas: ["T1", "TS1", "ET1", "ETS1", "CT1", "CS1", "COND-ALT"], menu: 1 }),
     resultado: fila({ familia: "transformadora", roles: ["objeto", "proceso"], clases: ["objeto", "proceso"], mismoTipo: false, reflexivo: false, estados: "objeto", control: false, abanico: true, ruta: true, mult: "objeto", etiquetas: "ninguna", plantillas: ["T2", "TS2"], menu: 2 }),
@@ -410,9 +412,9 @@ function forma(m: Modelo, e: Borrador): readonly Violacion[] {
         fallo('R-ESCIND-0', 'La mitad escindida no admite control.');
     if (datos.ruta !== undefined && (!f.ruta || typeof datos.ruta !== 'string' || !datos.ruta.trim()))
         fallo('R-OPL-RUTA-2', 'La ruta debe tener nombre y solo se admite en consumo/resultado.');
-    if (['multOrigen', 'multDestino'].some(k => datos[k] !== undefined && !['?', '*', '+'].includes(String(datos[k]))))
-        fallo('R-MULT-1', 'La multiplicidad debe ser ?, * o +.');
-    if (datos.mult !== undefined && (!['objeto', 'refinador'].includes(f.mult) || !['?', '*', '+'].includes(String(datos.mult))) || (datos.multOrigen !== undefined || datos.multDestino !== undefined) && f.mult !== 'ambos')
+    if (['mult', 'multOrigen', 'multDestino'].some(k => datos[k] !== undefined && !esMultiplicidad(datos[k])))
+        fallo('R-MULT-1', 'La multiplicidad debe ser ?, *, +, 2..* o un entero desde 2.');
+    if (datos.mult !== undefined && !['objeto', 'refinador'].includes(f.mult) || (datos.multOrigen !== undefined || datos.multDestino !== undefined) && f.mult !== 'ambos')
         fallo('R-MULT-1', 'Multiplicidad en un rol no admitido.');
     if (e.tipo === 'reciproco' && e.estados && !e.estados.origen || e.tipo === 'etiquetadoBidireccional' && datos.estadoDestino !== undefined)
         fallo('AP-11', 'El enlace bidireccional o recíproco no admite estado solo en destino.');

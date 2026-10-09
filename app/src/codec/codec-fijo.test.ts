@@ -25,3 +25,11 @@ for(const [nombre,cosas,estados,enlaces,opds,perdidas] of cuentas)test(`T-286 co
  const r=importarV0(readFileSync(new URL(nombre,dir),'utf8'));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));expect([Object.keys(r.modelo.cosas).length,Object.values(r.modelo.cosas).flatMap(c=>c.tipo==='objeto'?c.estados:[]).length,Object.keys(r.modelo.enlaces).length,Object.keys(r.modelo.opds).length,Object.keys(r.modelo.abanicos).length]).toEqual([cosas,estados,enlaces,opds,0]);expect(r.informe.descartado.map(e=>e.ruta)).toEqual([...perdidas]);
 });
 test('T-196 punto fijo y pureza 200 semillas reales', () => { for (let i = 1; i <= 200; i++) fijo(azar(i, i % 2 ? 'estricto' : 'completo')); });
+import { modeloCon } from '../pruebas/constructores';
+test('T-286 DEC35 punto fijo con el entero exacto y 2..* en procedimental, agregación y etiquetado', () => {
+    const b = modeloCon({ objetos: [['Pieza', []], ['Conjunto', []], ['Cosa', []], ['Fábrica', []], ['Planta', []]], procesos: ['Fabricar'], enlaces: [['resultado', 'Pieza', 'Fabricar'], ['agregacion', 'Conjunto', 'Cosa'], ['etiquetado', 'Fábrica', 'Planta']] });
+    const [r, ag, et] = Object.values(b.enlaces) as [Extract<Modelo['enlaces'][string], { tipo: 'resultado' }>, Extract<Modelo['enlaces'][string], { tipo: 'agregacion' }>, Extract<Modelo['enlaces'][string], { tipo: 'etiquetado' }>];
+    const m: Modelo = { ...b, enlaces: { [r.id]: { ...r, mult: '3' }, [ag.id]: { ...ag, mult: '2..*' }, [et.id]: { ...et, etiqueta: 'comprende', multOrigen: '2..*', multDestino: '12' } } };
+    fijo(m);
+    expect(importarV0(exportarV0(m))).toMatchObject({ ok: true, modelo: { enlaces: m.enlaces } });
+});

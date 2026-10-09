@@ -116,10 +116,13 @@ const cerca = (a: Punto, b: Punto, n: number): Punto => {
 // T-218: el centro del glifo queda a 11 px del eje y fuera de la punta de su extremo (14 px sin
 // marcador; largo del marcador + 9 con él). Cambia de lado sólo si el habitual cae sobre la caja de
 // su cosa y el otro no: el enlace ordinario se pinta bajo la entidad. `en` es la línea base, 4 px abajo.
-const multiplicidad = (objeto: Punto, otro: Punto, marcador?: Marcador, caja?: Rect): Punto => {
+// Un texto ancho como «2..*» (DEC35) se aparta lo que pide su medio ancho; ?, *, + y una cifra no cambian.
+const multiplicidad = (objeto: Punto, otro: Punto, marcador?: Marcador, caja?: Rect, texto = '+'): Punto => {
     const l = Math.hypot(otro.x - objeto.x, otro.y - objeto.y) || 1;
-    const dx = (otro.x - objeto.x) / l, dy = (otro.y - objeto.y) / l, largo = marcador ? LARGO_MARCADOR[marcador] + 9 : 14;
-    const lado = (s: number): Punto => ({ x: objeto.x + largo * dx + 11 * dy * s, y: objeto.y + largo * dy - 11 * dx * s });
+    const dx = (otro.x - objeto.x) / l, dy = (otro.y - objeto.y) / l, medio = anchoTexto(texto, 12, false) / 2;
+    const largo = marcador ? LARGO_MARCADOR[marcador] + Math.max(9, medio * Math.abs(dx) + 4.5 * Math.abs(dy) + 3) : Math.max(14, medio * Math.abs(dx) + 4.5 * Math.abs(dy) + 4);
+    const lateral = Math.max(11, medio * Math.abs(dy) + 4.5 * Math.abs(dx) + 4);
+    const lado = (s: number): Punto => ({ x: objeto.x + largo * dx + lateral * dy * s, y: objeto.y + largo * dy - lateral * dx * s });
     const sobre = (p: Punto) => !!caja && p.x > caja.x - 7 && p.x < caja.x + caja.ancho + 7 && p.y > caja.y - 7 && p.y < caja.y + caja.alto + 7;
     const c = sobre(lado(1)) && !sobre(lado(-1)) ? lado(-1) : lado(1);
     return { x: c.x, y: c.y + 4 };
@@ -274,11 +277,11 @@ export function escena(m: Modelo, opd: Id): Escena {
             etiqueta(e.ruta, 'ruta', en);
         }
         if ('mult' in e && e.mult)
-            etiqueta(e.mult, 'mult-origen', ex.origen === ('objeto' in e ? e.objeto : undefined) ? multiplicidad(a, t.puntos[1]!, t.inicio, porId.get(ex.origen)?.caja) : multiplicidad(b, t.puntos.at(-2)!, t.fin, porId.get(ex.destino)?.caja));
+            etiqueta(e.mult, 'mult-origen', ex.origen === ('objeto' in e ? e.objeto : undefined) ? multiplicidad(a, t.puntos[1]!, t.inicio, porId.get(ex.origen)?.caja, e.mult) : multiplicidad(b, t.puntos.at(-2)!, t.fin, porId.get(ex.destino)?.caja, e.mult));
         if ('multOrigen' in e && e.multOrigen)
-            etiqueta(e.multOrigen, 'mult-origen', multiplicidad(a, b, t.inicio, porId.get(ex.origen)?.caja));
+            etiqueta(e.multOrigen, 'mult-origen', multiplicidad(a, b, t.inicio, porId.get(ex.origen)?.caja, e.multOrigen));
         if ('multDestino' in e && e.multDestino)
-            etiqueta(e.multDestino, 'mult-destino', multiplicidad(b, a, t.fin, porId.get(ex.destino)?.caja));
+            etiqueta(e.multDestino, 'mult-destino', multiplicidad(b, a, t.fin, porId.get(ex.destino)?.caja, e.multDestino));
         return { marcas, etiquetas };
     }
     for (const v of vista.enlaces) {
@@ -353,7 +356,7 @@ export function escena(m: Modelo, opd: Id): Escena {
         const x0 = Math.min(...esquinas.map(p => p.x)), y0 = Math.min(...esquinas.map(p => p.y));
         triangulos.push({ caja: { x: x0, y: y0, ancho: Math.max(1, Math.max(...esquinas.map(p => p.x)) - x0), alto: Math.max(1, Math.max(...esquinas.map(p => p.y)) - y0) }, forma: 'rectangulo' });
         tramosPeine.push(geo.tronco, geo.tallo, geo.barra, ...geo.ramas.map(r => r.puntos));
-        simbolos.push({ clave: `simbolo:${e.refinable}:${e.tipo}${general ? ':' + general : ''}`, refinable: e.refinable, relacion: e.tipo, vertice: geo.vertice, orientacion: geo.orientacion, incompleta, ramas: g.map(v => v.enlace.id), peine: [geo.tronco, geo.tallo, geo.barra, ...geo.ramas.map(r => r.puntos), ...(geo.incompleta ? [geo.incompleta] : [])], incidencias: [...[geo.tronco, geo.tallo, geo.barra].map(() => ({ refs: g.map(v => v.enlace.id), extremos: [e.refinable], estados: general ? [general] : [], contenedores: contenedoresDe([e.refinable]) })), ...geo.ramas.map(r => { const x = g.find(v => v.enlace.id === r.id)!.enlace, extremos = 'refinador' in x ? [x.refinador] : []; return { refs: [r.id], extremos, estados: x.tipo === 'generalizacion' && x.estados ? [x.estados.especializacion] : [], contenedores: contenedoresDe(extremos) }; }), ...(geo.incompleta ? [{ refs: g.map(v => v.enlace.id), extremos: [] }] : [])], mult: g.flatMap(v => v.enlace.tipo === 'agregacion' && v.enlace.mult ? [{ texto: v.enlace.mult, en: multiplicidad(geo.ramas.find(r => r.id === v.enlace.id)!.puntos[1], geo.ramas.find(r => r.id === v.enlace.id)!.puntos[0]) }] : []) });
+        simbolos.push({ clave: `simbolo:${e.refinable}:${e.tipo}${general ? ':' + general : ''}`, refinable: e.refinable, relacion: e.tipo, vertice: geo.vertice, orientacion: geo.orientacion, incompleta, ramas: g.map(v => v.enlace.id), peine: [geo.tronco, geo.tallo, geo.barra, ...geo.ramas.map(r => r.puntos), ...(geo.incompleta ? [geo.incompleta] : [])], incidencias: [...[geo.tronco, geo.tallo, geo.barra].map(() => ({ refs: g.map(v => v.enlace.id), extremos: [e.refinable], estados: general ? [general] : [], contenedores: contenedoresDe([e.refinable]) })), ...geo.ramas.map(r => { const x = g.find(v => v.enlace.id === r.id)!.enlace, extremos = 'refinador' in x ? [x.refinador] : []; return { refs: [r.id], extremos, estados: x.tipo === 'generalizacion' && x.estados ? [x.estados.especializacion] : [], contenedores: contenedoresDe(extremos) }; }), ...(geo.incompleta ? [{ refs: g.map(v => v.enlace.id), extremos: [] }] : [])], mult: g.flatMap(v => v.enlace.tipo === 'agregacion' && v.enlace.mult ? [{ texto: v.enlace.mult, en: multiplicidad(geo.ramas.find(r => r.id === v.enlace.id)!.puntos[1], geo.ramas.find(r => r.id === v.enlace.id)!.puntos[0], undefined, undefined, v.enlace.mult) }] : []) });
     }
     for (const f of vista.abanicos) {
         const ramas = f.ramas.map(id => aristas.find(a => a.ref.id === id)).filter((a): a is Arista => !!a);

@@ -54,6 +54,7 @@ agregar('abanico-or', fan('OR'), 'T-216 dos arcos concéntricos');
 agregar('enlaces-and', fan(), 'T-216 cuatro enlaces independientes, sin arco');
 agregar('incompletas', modelo(triCs.map((c, i) => i % 3 === 0 && i < 9 ? { ...c, incompleta: [modos[Math.floor(i / 3)] as 'agregacion' | 'exhibicion' | 'generalizacion'] } : c), triEs, triPos), 'T-217 barra A/Ex/G, clasificación completa');
 agregar('multiplicidades', modelo([obj('o', 'Lote'), pro('p'), obj('t', 'Todo'), obj('r', 'Parte'), obj('a', 'Cliente')], [{ id: 'c', tipo: 'consumo', objeto: 'o', proceso: 'p', mult: '?' }, { id: 'enlace-s', tipo: 'agregacion', refinable: 't', refinador: 'r', mult: '+' }, { id: 'enlace-e', tipo: 'etiquetado', origen: 'o', destino: 'a', etiqueta: 'pertenece a', multOrigen: '*', multDestino: '?' }], { o: a(0, 0), p: a(300, 200), t: a(650, 0), r: a(650, 250), a: a(0, 400) }), 'T-218 mult objeto/parte y extremos etiquetado');
+agregar('multiplicidades-dec35', modelo([obj('o', 'Pieza'), pro('p', 'Fabricar'), obj('c', 'Lote'), obj('t', 'Conjunto'), obj('r', 'Cosa'), obj('f', 'Fábrica'), obj('g', 'Planta')], [{ id: 'res', tipo: 'resultado', objeto: 'o', proceso: 'p', mult: '3' }, { id: 'con', tipo: 'consumo', objeto: 'c', proceso: 'p', mult: '2..*' }, { id: 'ag', tipo: 'agregacion', refinable: 't', refinador: 'r', mult: '2..*' }, { id: 'et', tipo: 'etiquetado', origen: 'f', destino: 'g', etiqueta: 'comprende', multOrigen: '2..*', multDestino: '12' }], { o: a(0, 0), p: a(300, 200), c: a(0, 200), t: a(650, 0), r: a(650, 250), f: a(1000, 0), g: a(1000, 300) }), 'T-218 DEC35 entero exacto y 2..* junto al extremo, fuera de la punta');
 const rutaFan = fan('XOR');
 agregar('rutas', { ...rutaFan, enlaces: Object.fromEntries(Object.values(rutaFan.enlaces).map(e => [e.id, { ...e, ruta: e.id.startsWith('c') ? 'entrada ' + e.id : 'salida ' + e.id }])) }, 'T-219 rutas C/R en ramas, no placeholders');
 agregar('duraciones', modelo([{ ...pro('p', 'Esperar'), tipo: 'proceso', duracion: { min: 1, esperada: 3, max: 5 } }, { ...pro('q', 'Guardar'), tipo: 'proceso', duracion: { max: 10, unidad: 'sec' } }, { ...pro('r', 'Despachar'), tipo: 'proceso', duracion: { min: 2, unidad: 'hour' } }]), 'T-220 unidad y cotas parciales bajo nombre');
@@ -124,8 +125,8 @@ function dibujoExportado(m: Modelo, opd: string, nombre: string): string {
     }
     return r.valor.svg.slice(inicio, inicio + dibujo.length);
 }
-test('T-223 inventario 41 construidos más vistas únicas de 12 selecciones reales', () => {
-    expect(casos.filter(c => c.construido)).toHaveLength(41);
+test('T-223 inventario 42 construidos más vistas únicas de 12 selecciones reales', () => {
+    expect(casos.filter(c => c.construido)).toHaveLength(42);
     expect(fixtureSelections).toHaveLength(6);
     expect(new Set(casos.map(c => c.nombre)).size).toBe(casos.length);
     for (const c of casos) {

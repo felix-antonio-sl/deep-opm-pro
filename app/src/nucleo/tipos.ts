@@ -6,7 +6,7 @@ export type UnidadTiempo = 'ms' | 'sec' | 'min' | 'hour' | 'day' | 'week' | 'mon
 export type ModoDespliegue = 'agregacion' | 'exhibicion' | 'generalizacion' | 'clasificacion';
 export type RelacionIncompleta = Exclude<ModoDespliegue, 'clasificacion'>; // nunca clasificación (T-034)
 export type Control = 'e' | 'c'; // escalar: c+e irrepresentable (T-052)
-export type Multiplicidad = '?' | '*' | '+'; // ausente = 1..1 (T-057)
+export type Multiplicidad = '?' | '*' | '+' | '2..*' | `${number}`; // ausente = 1..1 (T-057); el número es un entero ≥ 2 (DEC35)
 export type Operador = 'XOR' | 'OR'; // AND = ausencia de abanico (T-028)
 export type Designacion = 'inicial' | 'final' | 'porDefecto' | 'current';
 // ---------- Cosas y estados ----------

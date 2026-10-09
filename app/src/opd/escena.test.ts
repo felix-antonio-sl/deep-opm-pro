@@ -419,3 +419,18 @@ test('T-212 DEC34 dos relaciones del mismo refinable no superponen sus triángul
     const [u, v] = e.simbolos.map(caja);
     expect(u!.x1 <= v!.x0 || v!.x1 <= u!.x0 || u!.y1 <= v!.y0 || v!.y1 <= u!.y0).toBe(true);
 });
+import { intersectaCaja } from './geometria';
+test('T-218 DEC35 «2..*» y un entero quedan fuera de la punta, de la caja y del propio eje en horizontal, vertical y diagonal', () => {
+    const o0 = { x: 0, y: 0, ancho: 135, alto: 60 };
+    for (const [mult, destino] of [['2..*', { x: 400, y: 0 }], ['2..*', { x: 0, y: 300 }], ['2..*', { x: 300, y: 260 }], ['12', { x: 0, y: 300 }], ['3', { x: 300, y: 260 }]] as const)
+        for (const tipo of ['resultado', 'consumo'] as const) {
+            const base = sobre(m([o(), p()], [{ id: 'en', tipo, objeto: 'o', proceso: 'p', mult }]), { o: o0, p: { ...destino, ancho: 135, alto: 60 } });
+            expect(validarForma(base)).toEqual([]);
+            const e = escena(base, 'sd'), a = e.aristas[0]!, l = a.etiquetas.find(x => x.clave.startsWith('mult'))!;
+            expect(l.texto).toBe(mult);
+            // Área de tinta de cifras y signos: tres cuartos del cuerpo sobre la línea base.
+            const w = anchoTexto(mult, 12, false), caja = { x: l.en.x - w / 2, y: l.en.y - 9, ancho: w, alto: 9 };
+            for (const t of a.tramos) for (let i = 1; i < t.puntos.length; i++) expect(intersectaCaja(t.puntos[i - 1]!, t.puntos[i]!, caja, 'rectangulo')).toBe(false);
+            expect(advertenciasEscena(e).filter(x => x.texto.startsWith('La multiplicidad'))).toEqual([]);
+        }
+});

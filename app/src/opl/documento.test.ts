@@ -56,3 +56,38 @@ test('T-120 SE3 con la etiqueta por defecto vuelve desde vacío al mismo bidirec
   expect(generarDocumentoOpl(r.valor.modelo)).toBe(texto);
  }
 });
+import {analizar} from './analizar';
+import type {DatosModelo} from '../pruebas/constructores';
+test('T-057 DEC35 el entero exacto y «al menos dos» vuelven desde vacío al mismo enlace en cada familia',()=>{
+ for(const [datos,campos,linea] of [
+  [{objetos:[['Pieza',[]]],procesos:['Ensamblar'],enlaces:[['consumo','Pieza','Ensamblar']]},{mult:'2..*'},'*Ensamblar* consume al menos dos **Pieza**.'],
+  [{objetos:[['Pieza',[]]],procesos:['Fabricar'],enlaces:[['resultado','Pieza','Fabricar']]},{mult:'12'},'*Fabricar* genera 12 **Pieza**.'],
+  [{objetos:[['Llave',[]]],procesos:['Ensamblar'],enlaces:[['instrumento','Llave','Ensamblar']]},{mult:'3'},'*Ensamblar* requiere 3 **Llave**.'],
+  [{objetos:[['Operador',[]]],procesos:['Ensamblar'],enlaces:[['agente','Operador','Ensamblar']]},{mult:'2..*'},'Al menos dos **Operador** maneja *Ensamblar*.'],
+  [{objetos:[['Conjunto de Cosas',[]],['Cosa',[]]],enlaces:[['agregacion','Conjunto de Cosas','Cosa']]},{mult:'2..*'},'**Conjunto de Cosas** consta de al menos dos **Cosa**.'],
+  [{objetos:[['Fábrica',[]],['Planta',[]]],enlaces:[['etiquetado','Fábrica','Planta']]},{etiqueta:'comprende',multDestino:'3'},'**Fábrica** comprende 3 **Planta**.'],
+ ] as const){
+  const base=modeloCon(datos as unknown as DatosModelo),[id,e]=Object.entries(base.enlaces)[0]!,m={...base,enlaces:{[id]:{...e,...campos}}} as Modelo;
+  expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);
+  const texto=generarDocumentoOpl(m);expect(texto).toContain(linea);
+  const r=importarOpl(m.nombre,texto);expect(r.ok).toBe(true);if(!r.ok)continue;
+  expect(r.valor.plan.resumen.noAplicables).toBe(0);
+  expect(Object.values(r.valor.modelo.enlaces)).toEqual([expect.objectContaining({tipo:e.tipo,...campos})]);
+  expect(generarDocumentoOpl(r.valor.modelo)).toBe(texto);
+ }
+});
+test('T-057 DEC35 «dos o más» se lee como 2..* y se regenera «al menos dos»',()=>{
+ for(const [entrada,salida,campo] of [['*Ensamblar* consume dos o más **Pieza**.','*Ensamblar* consume al menos dos **Pieza**.','mult'],['**Operador** es físico.\nDos o más **Operador** maneja *Ensamblar*.','Al menos dos **Operador** maneja *Ensamblar*.','mult']] as const){
+  // El agente exige objeto físico (B-03): sin esa oración la línea no es aplicable.
+  const r=importarOpl('Prueba',`## SD\n${entrada}`);expect(r.ok).toBe(true);if(!r.ok)continue;
+  expect(r.valor.plan.resumen.noAplicables).toBe(0);
+  expect(Object.values(r.valor.modelo.enlaces)).toEqual([expect.objectContaining({[campo]:'2..*'})]);
+  expect(generarDocumentoOpl(r.valor.modelo)).toContain(salida);
+ }
+});
+test('T-057 DEC35 B-10 conserva fuera 0, 1, «exactamente un» y los rangos: se informan sin crear hechos',()=>{
+ for(const linea of ['*Ensamblar* consume 1 **Pieza**.','*Ensamblar* consume 0 **Pieza**.','*Ensamblar* consume exactamente una **Pieza**.','*Ensamblar* consume 2 a 5 **Pieza**.','**Fábrica** comprende 1 **Planta**.']){
+  const [l]=analizar(linea);expect(l!.hechos).toEqual([]);expect(l!.diagnosticos.map(d=>[d.codigo,d.regla])).toEqual([['unsupported-canonical','R-§18-PART-1']]);
+  const r=importarOpl('Prueba',`## SD\n${linea}`);expect(r.ok).toBe(true);if(r.ok)expect(r.valor.modelo.enlaces).toEqual({});
+ }
+});

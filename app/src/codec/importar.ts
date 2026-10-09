@@ -1,9 +1,9 @@
 import type { ResultadoImport } from './informe';
 import type { Entrada, Informe, DiffVisibilidad } from './informe';
-import type { Modelo, Cosa, Enlace, Opd, Abanico, Estado, Aparicion, Duracion, UnidadTiempo } from '../nucleo/tipos';
+import type { Modelo, Cosa, Enlace, Opd, Abanico, Estado, Aparicion, Duracion, UnidadTiempo, Multiplicidad } from '../nucleo/tipos';
 import { esProcedimental, extremos } from '../nucleo/tipos';
 import { validarForma } from '../nucleo/forma';
-import { MATRIZ, noOfrecido } from '../nucleo/matriz';
+import { MATRIZ, noOfrecido, esMultiplicidad } from '../nucleo/matriz';
 import { indice, describirEnlace } from '../nucleo/indice';
 import { proyectar } from '../nucleo/proyeccion';
 import { colocar } from '../nucleo/colocacion';
@@ -402,12 +402,15 @@ function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record
     if(x.kind==='estado') { const s=data.estados[id]!, c=str(s.entidadId); const estado=estadoPropio(id,c,r); return {cosa:c,...(estado?{estado}:{})}; }
     return {cosa:id};
   };
-  const mult=(v:unknown,r:string):'?'|'*'|'+'|undefined=> {
+  const mult=(v:unknown,r:string):Multiplicidad|undefined=> {
     if(v===undefined) return undefined;
     if(typeof v!=='string'&&typeof v!=='number') {l.perder(r,v,'DR-21','Multiplicidad fuera del producto');return undefined;}
-    const s=typeof v==='string'?v:String(v), alias:Record<string,'?'|'*'|'+'|undefined>={'?':'?','0..1':'?','*':'*','0..*':'*','0..N':'*','+':'+','1..*':'+','1..N':'+','1':undefined,'1..1':undefined};
-    if(!Object.hasOwn(alias,s)) { l.perder(r,v,'DR-21','Multiplicidad fuera del producto'); return undefined; }
-    const m=alias[s]; if(m&&m!==v)l.norm(r,`Multiplicidad equivalente ${s} → ${m}.`,'T-057'); return m;
+    // DEC35: el entero exacto n ≥ 2 y 2..* son del producto; n..n es el mismo entero.
+    const s=typeof v==='string'?v:String(v), alias:Record<string,Multiplicidad|undefined>={'0..1':'?','0..*':'*','0..N':'*','1..*':'+','1..N':'+','2..N':'2..*','1':undefined,'1..1':undefined};
+    const exacto=/^([1-9]\d*)\.\.\1$/.exec(s)?.[1];
+    const m=Object.hasOwn(alias,s)?alias[s]:esMultiplicidad(s)?s:exacto!==undefined&&esMultiplicidad(exacto)?exacto:null;
+    if(m===null) { l.perder(r,v,'DR-21','Multiplicidad fuera del producto'); return undefined; }
+    if(m&&m!==s)l.norm(r,`Multiplicidad equivalente ${s} → ${m}.`,'T-057'); return m;
   };
   const controles=(e:Registro,r:string):'c'|'e'|undefined=> {
     if(e.modificador==='condicion')return 'c'; if(e.modificador==='evento')return 'e';

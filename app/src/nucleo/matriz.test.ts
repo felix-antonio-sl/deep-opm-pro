@@ -247,7 +247,11 @@ test('T-041 import con campos de estado ajenos a la fila se rechaza', () => {
     for (const e of [{ ...enlace(m, 'agregacion'), estado: s(m) }, { ...enlace(m, 'invocacion'), estadoOrigen: s(m) }, { ...enlace(m, 'etiquetadoBidireccional'), estadoDestino: s(m, 1) }])
         expect(violacionesForma(m, e as unknown as Enlace).length).toBeGreaterThan(0);
 });
-test('T-057 valores de multiplicidad inválidos en etiquetados se rechazan', () => { const m = base(); expect(violacionesForma(m, { tipo: 'etiquetado', origen: ids(m)[0]!, destino: ids(m)[1]!, multOrigen: '2' } as unknown as EnlaceNuevo).length).toBeGreaterThan(0); });
+test('T-057 DEC35 la multiplicidad del etiquetado admite ?, *, +, 2..* y un entero desde 2; rechaza el resto', () => {
+    const m = base(), con = (multOrigen: string) => violacionesForma(m, { tipo: 'etiquetado', origen: ids(m)[0]!, destino: ids(m)[1]!, multOrigen } as unknown as EnlaceNuevo);
+    for (const v of ['?', '*', '+', '2..*', '2', '9', '12', '999999']) expect(con(v)).toEqual([]);
+    for (const v of ['1', '0', '02', '2..5', '3..*', '1000000', 'x', ' 2']) expect(con(v).map(x => x.regla)).toContain('R-MULT-1');
+});
 test('T-054 FAN5 estados entrada común, salida común y prohibición ambas variables', () => { const m = base(), a = ids(m)[0]!, p = ids(m)[3]!, f: Abanico = { id: 'f-110', operador: 'XOR', enlaces: ['e-101', 'e-102'] }, e: Enlace = { tipo: 'efecto', id: 'e-101', objeto: a, proceso: p, entrada: s(m), salida: s(m, 0, 1) }; let n = poner(m, e, { ...e, id: 'e-102', entrada: s(m, 0, 1) }); expect(noOfrecido(n, e, f)?.registro).toBe('B-06'); n = poner(m, e, { ...e, id: 'e-102', entrada: s(m, 0, 1), salida: s(m) }); expect(noOfrecido(n, e, f)?.registro).toBe('B-06'); });
 test('T-044 herencia múltiple con ciclos termina y conserva estados propios', () => { const m = base(), [a, b, c, p] = ids(m), n = sano(poner(m, { tipo: 'generalizacion', id: 'e-101', refinable: a!, refinador: c! }, { tipo: 'generalizacion', id: 'e-102', refinable: b!, refinador: c! }, { tipo: 'generalizacion', id: 'e-103', refinable: c!, refinador: b! })); expect(reglas(n, { tipo: 'efecto', id: 'e-104', objeto: c!, proceso: p! })).not.toContain('R-EFE-1'); expect(objeto(n, 2).estados).toEqual([]); });
 test('T-064 DS20 identidad codigo+refs tolera cambiar regla con mismas referencias', () => {

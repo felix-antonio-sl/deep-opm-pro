@@ -350,7 +350,7 @@ for (const nombreObjeto of ['Apertura', 'Dependencia']) test(`T-266 heurística 
 test('T-288 T-283 un dato de enlace ajeno a su fila de la matriz es error visible y bloquea el export', () => {
     const efecto: Enlace = { id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 'o-s1', salida: 'o-s2' };
     expect(gatesExportacion(modelo(undefined, [efecto]), { opd: 'sd' })).toEqual([]);
-    for (const forzado of [{ ruta: 'r1' }, { control: 'x' }, { mult: '3' }]) {
+    for (const forzado of [{ ruta: 'r1' }, { control: 'x' }, { mult: '1' }]) {
         const m = modelo(undefined, [{ ...efecto, ...forzado } as Enlace]);
         expect(diagnosticar(m).filter(d => d.codigo === 'enlace-invalido' && d.severidad === 'error').length).toBeGreaterThan(0);
         expect(gatesExportacion(m, { opd: 'sd' }).length).toBeGreaterThan(0);

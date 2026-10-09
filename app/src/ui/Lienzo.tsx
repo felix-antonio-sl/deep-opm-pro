@@ -11,7 +11,7 @@ import { tiposLegales, MATRIZ } from '../nucleo/matriz';
 import type { TeclaComando } from '../editor/atajos';
 import type { Editor as Controlador } from '../editor/estado';
 import { extremos as extremosEnlace } from '../nucleo/tipos';
-import type { Modelo, Ref, ModoDespliegue, Enlace } from '../nucleo/tipos';
+import type { Modelo, Ref, ModoDespliegue, Enlace, Multiplicidad } from '../nucleo/tipos';
 import { validarNombreCosa, validarNombreEstado } from '../nucleo/lexico';
 import { colocar } from '../nucleo/colocacion';
 import { escena } from '../opd/escena';
@@ -63,7 +63,8 @@ export function accionMultiplicidad(z: Enlace, origen: boolean): Accion {
     const roles=MATRIZ[z.tipo].mult;
     const ex=origen?'origen':roles==='refinador'?'refinador':roles==='ambos'?'destino':'objeto';
     const valor=ex==='origen'&&'multOrigen'in z?z.multOrigen:ex==='destino'&&'multDestino'in z?z.multDestino:'mult'in z?z.mult:undefined;
-    const vals=[null,'?','*','+'] as const;
+    // M recorre ?, *, + y ninguna; el entero exacto y 2..* se fijan en Propiedades (DEC35).
+    const vals:readonly (Multiplicidad|null)[]=[null,'?','*','+'];
     return {op:'fijarMultiplicidad',args:{enlace:z.id,extremo:ex,valor:vals[(vals.indexOf(valor??null)+1)%4]!}};
 }
 export function accionQuitar(refs:readonly Ref[]): Accion | null {const opd=refs.find(r=>r.tipo==='opd')?.id,cosas=refs.filter(r=>r.tipo==='cosa').map(r=>r.id);return opd&&cosas.length>=2?{op:'quitarDeOpd',args:{opd,cosas}}:null;}

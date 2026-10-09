@@ -118,7 +118,7 @@ test('T-050 R-STRE-1 legado se informa y solo documento canónico exacto evita r
   expect(ok({json:a}).informe.normalizado.some(e=>e.regla==='R-STRE-1')).toBe(true);
 });
 test('T-057 etapa 7: multiplicidad equivalentes y campos ilegales con pérdida declarada', () => {
-  for (const [legacy, mult] of [['?', '?'], ['0..1', '?'], ['*', '*'], ['0..N', '*'], ['+', '+'], ['1..N', '+'], ['1', undefined], ['1..1', undefined], ['2', undefined]]) { const d = basico(); d.modelo.enlaces.e = enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: legacy }); expect(ok(d).modelo.enlaces.e).toMatchObject(mult ? { mult } : { tipo: 'consumo' }); if (!mult) expect('mult' in ok(d).modelo.enlaces.e!).toBe(false); }
+  for (const [legacy, mult] of [['?', '?'], ['0..1', '?'], ['*', '*'], ['0..N', '*'], ['+', '+'], ['1..N', '+'], ['1', undefined], ['1..1', undefined], ['2', '2'], ['12', '12'], ['3..3', '3'], ['2..*', '2..*'], ['2..N', '2..*'], ['0', undefined], ['2..5', undefined]]) { const d = basico(); d.modelo.enlaces.e = enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: legacy }); expect(ok(d).modelo.enlaces.e).toMatchObject(mult ? { mult } : { tipo: 'consumo' }); if (!mult) expect('mult' in ok(d).modelo.enlaces.e!).toBe(false); }
   const d = basico(); d.modelo.enlaces.e = enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: '+', modificador: 'condicion' }); expect('mult' in ok(d).modelo.enlaces.e!).toBe(false);
 });
 test('T-021 etapa 7: cotas fijas convierten exactamente; calendario pierde representación sin equivalencia inventada', () => {
