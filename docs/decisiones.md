@@ -125,6 +125,12 @@ H-24 «Sí, agregar el aviso (Recomendado)», H-27 «32 px (Recomendado)» y, pa
 37. **Avisos y marcas del dibujo.** El export avisa, sin bloquear, cuando la etiqueta o la multiplicidad de un enlace tapa una cosa, aunque sea su propio extremo, o una punta; en un contenedor del tramo sólo cuenta su rótulo (T-284, B-15). La marca de control se centra a 32 px del borde del proceso (T-214).
 38. **Un solo despliegue, al terminar DEC35 y DEC37.** Fija el momento y no autoriza el despliegue: quien lo ejecute necesita la frase textual del dueño (DEC30).
 
+Autorización operativa cumplida para `5e0003f0`: respuesta directa `role=user`,
+«Autorizo», a «¿Autorizas ejecutar `./deploy/deploy.sh` para desplegar `5e0003f0`,
+conservando las cuentas y modelos actuales y manteniendo el corte sin migración?».
+ID y fecha originales no observables. Autoriza ese despliegue; no modifica el canon
+ni las decisiones de producto. El resultado operativo está en `docs/operacion.md` §9.4.
+
 ## Resoluciones directas posteriores — vigentes
 
 Frases role=user recibidas textualmente; ID y fecha originales no observables.

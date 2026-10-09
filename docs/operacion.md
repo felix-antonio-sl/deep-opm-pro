@@ -240,6 +240,21 @@ propia; no se incorpora al proyecto desplegado ni al volumen de producción.
 quedó conservado sin montar, el respaldo mantuvo su hash y la preview su identidad.
 La creación de cuenta y el smoke humano siguen a cargo del dueño.
 
+**Actualización DEC35–38:** el dueño respondió directamente «Autorizo» a la
+solicitud de desplegar `5e0003f0`, conservando cuentas/modelos y sin migración
+(cita en `docs/decisiones.md`). `./deploy/deploy.sh` terminó con código 0;
+salud y cabecera de versión informan `5e0003f0`, sesión anónima 401, HTML y bundle
+200, y el JavaScript servido contiene esa versión. Chromium observó la pantalla
+«Entrar», DOM listo y cero errores de página o solicitudes externas. La espera
+inicial `networkidle` venció; la comprobación posterior verificó la preparación
+real de la interfaz y su pantalla, sin cambiar el producto.
+
+Se conservó `opforja-datos:/datos`: cero archivos antes y después, con metadatos
+idénticos; no se crearon cuentas ni modelos de prueba. La preview histórica mantuvo
+su ID, tiempo de arranque y estado. No se ejecutó migración. El siguiente paso del
+dueño sigue siendo crear su cuenta con el comando protegido de §8.2 y realizar
+la prueba de humo humana.
+
 **Rollback**: `git checkout pre-rehacer && ./deploy/deploy.sh` levanta el stack viejo con su volumen
 intacto. Los cambios hechos en la versión nueva se llevan exportando el JSON. El importador viejo
 rechaza la multiplicidad `?`, los objetos con un solo estado, la especialización de estado, los
