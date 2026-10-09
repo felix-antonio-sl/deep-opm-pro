@@ -108,6 +108,23 @@ Frase del dueño: «eso , hazlo tu mismo», sobre esta propuesta textual de dos 
       - los solapes que quedan en OnStar SD1 y SD Sync SD1 vienen de las posiciones del v0, la versión anterior los dibujaba igual y se avisan (B-15);
       - ningún OPD de los fixtures gana solapes respecto del v0, salvo la fila sintética cuyos estados exigen 100 px más que el hueco.
 
+## Decisiones del dueño tras contrastar con las figuras de Wikipedia (2026-10-09) — fijas
+Respuestas del dueño a preguntas cerradas sobre el informe fusionado de las 20 figuras; se cita la opción elegida:
+H-06 «Números y «al menos dos» (Recomendado)», H-07 «Dejarla no canonizada (Recomendado)»,
+H-08 «Mantener consumo y resultado (Recomendado)», H-11 «Aceptar el límite (Recomendado)»,
+H-24 «Sí, agregar el aviso (Recomendado)», H-27 «32 px (Recomendado)» y, para el despliegue, «Al final, todo junto».
+
+35. **Multiplicidad exacta y «al menos dos»** (EBNF A.2 `restriccion_de_participacion`, R-MULT-1, B-10). Además de `?`, `*` y `+`, una participación admite un entero exacto n ≥ 2 y `2..*`, en las mismas filas de la matriz.
+    - OPL: «*Fabricar* genera 3 **Pieza**.» y «**Conjunto de Cosas** consta de al menos dos **Cosa**.». El sustantivo queda en singular (DR-12); el parser acepta también «dos o más».
+    - OPD: el símbolo es `3` o `2..*` junto al extremo (T-218).
+    - Siguen sin oferta, como `unsupported-canonical`: rangos `a..b`, intervalos, parámetros y `n..*` con n > 2, que la EBNF no escribe en prosa. Acota DR-21.
+36. **Límites que se mantienen.**
+    - La caracterización con estado especificado sigue no canonizada hasta que el canon le dé oración y glifo (B-37, R-ZNC-2).
+    - La ruta sigue sólo en consumo y resultado, como extensión declarada de producto (B-07, DR-19, R-OPL-RUTA-3).
+    - El género que el OPL no marca se pierde al reconstruir el modelo desde el texto; el JSON lo conserva y el inspector lo ajusta (B-38).
+37. **Avisos y marcas del dibujo.** El export avisa, sin bloquear, cuando la etiqueta o la multiplicidad de un enlace tapa otra cosa o la punta de otro enlace (T-284, B-15). La marca de control se centra a 32 px del borde del proceso (T-214).
+38. **Un solo despliegue, al terminar DEC35 y DEC37.** Fija el momento y no autoriza el despliegue: quien lo ejecute necesita la frase textual del dueño (DEC30).
+
 ## Resoluciones directas posteriores — vigentes
 
 Frases role=user recibidas textualmente; ID y fecha originales no observables.
