@@ -126,7 +126,7 @@ import { NO_SOPORTADAS, NO_CANONIZADAS } from './no-soportadas';
 interface Span { readonly texto: string; readonly marca: 'objeto' | 'proceso' | 'estado'; }
 const atom = '§\\d+§';
 // DEC35: «al menos dos» y «dos o más» son 2..*; el entero exacto va desde 2 (B-10 conserva los demás).
-const prefijo = '(?:(?:un opcional|una opcional|al menos un|al menos una|al menos dos|dos o más|opcional \\(cero o más\\)|[2-9]|[1-9]\\d{1,5}) )?';
+const prefijo = '(?:(?:un opcional|una opcional|al menos un|al menos una|al menos dos|dos o más|opcional \\(cero o más\\)|[2-9]|[1-9]\\d+) )?';
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&');
 function literal(s: string,inicial=false): string {
     const letras=(x:string)=>{const re=escape(x);return inicial?re.replace(/\p{L}/gu,c=>c.toLowerCase()===c.toUpperCase()?c:'['+c.toLowerCase()+c.toUpperCase()+']'):re;};
@@ -206,7 +206,7 @@ function capturar(k: string, s: string, spans: readonly Span[]): ValorHueco | nu
         return { texto: s };
     }
     const valores: Hueco[] = [];
-    for (const m of s.matchAll(/(?:(un opcional|una opcional|al menos un|al menos una|al menos dos|dos o más|opcional \(cero o más\)|[2-9]|[1-9]\d{1,5}|un|una) )?§(\d+)§(?: proceso)?(?: en §(\d+)§)?/gi)) {
+    for (const m of s.matchAll(/(?:(un opcional|una opcional|al menos un|al menos una|al menos dos|dos o más|opcional \(cero o más\)|[2-9]|[1-9]\d+|un|una) )?§(\d+)§(?: proceso)?(?: en §(\d+)§)?/gi)) {
         const modificador = m[1]?.toLowerCase();
         const span = spans[Number(m[2])]!, e = m[3] ? spans[Number(m[3])] : undefined;
         const esperado = ['s','e','a','b'].includes(name) ? 'estado' : /^(?:O|Olista)/.test(base) ? 'objeto' : /^(?:P|Plista)/.test(base) ? 'proceso' : undefined;

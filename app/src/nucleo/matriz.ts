@@ -44,7 +44,7 @@ export interface FilaMatriz {
 // La tabla es la única autoridad de firma para todos los consumidores.
 const fila = (f: FilaMatriz): FilaMatriz => Object.freeze({ ...f, roles: Object.freeze(f.roles), clases: Object.freeze(f.clases), plantillas: Object.freeze(f.plantillas) });
 /** DEC35: además de ?, * y +, un entero exacto n ≥ 2 y 2..* (EBNF A.2 `restriccion_de_participacion`). */
-export const esMultiplicidad = (v: unknown): v is Multiplicidad => typeof v === 'string' && /^(?:[?*+]|2\.\.\*|[2-9]|[1-9]\d{1,5})$/.test(v);
+export const esMultiplicidad = (v: unknown): v is Multiplicidad => typeof v === 'string' && /^(?:[?*+]|2\.\.\*|[2-9]|[1-9]\d+)$/.test(v);
 export const MATRIZ: Readonly<Record<TipoEnlace, FilaMatriz>> = Object.freeze({
     consumo: fila({ familia: "transformadora", roles: ["objeto", "proceso"], clases: ["objeto", "proceso"], mismoTipo: false, reflexivo: false, estados: "objeto", control: true, abanico: true, ruta: true, mult: "objeto", etiquetas: "ninguna", plantillas: ["T1", "TS1", "ET1", "ETS1", "CT1", "CS1", "COND-ALT"], menu: 1 }),
     resultado: fila({ familia: "transformadora", roles: ["objeto", "proceso"], clases: ["objeto", "proceso"], mismoTipo: false, reflexivo: false, estados: "objeto", control: false, abanico: true, ruta: true, mult: "objeto", etiquetas: "ninguna", plantillas: ["T2", "TS2"], menu: 2 }),

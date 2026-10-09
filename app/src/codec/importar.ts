@@ -59,9 +59,34 @@ class Lectura {
   }
 }
 const count = (x:unknown) => Array.isArray(x) ? x.length : esRegistro(x) ? Object.keys(x).length : x === undefined ? 0 : 1;
+// Las notaciones legacy decimales/exponenciales sólo equivalen a un entero seguro
+// si coinciden su coeficiente y su potencia decimal, no por el resultado redondeado de Number.
+function enteroJson(valor:string):string {
+  if(/^(0|[1-9]\d*)$/.test(valor))return valor;
+  const numero=Number(valor);
+  if(!Number.isSafeInteger(numero)||numero<1)return valor;
+  const partes=/^(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(valor);
+  if(!partes)return valor;
+  const cifras=(partes[1]!+(partes[2]??'')).replace(/^0+/,''),coeficiente=cifras.replace(/0+$/,'');
+  const potencia=Number(partes[3]??0)-(partes[2]?.length??0)+cifras.length-coeficiente.length;
+  const entero=String(numero),base=entero.replace(/0+$/,'');
+  return coeficiente===base&&potencia===entero.length-base.length?entero:valor;
+}
+// DEC35: conserva el lexema numérico de los dos campos legacy antes de que Number lo redondee.
+// La alternativa de cadena consume también los valores entre comillas; nunca altera su contenido.
+// Sin reviver recursivo: los documentos con desconocidos profundamente anidados siguen siendo legibles.
+function leerJson(texto:string):unknown {
+  const original = texto.replace(/("(?:[^"\\]|\\.)*")(\s*:\s*)(-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)(?=\s*[,}])|"(?:[^"\\]|\\.)*"/g,
+    (fragmento:string,clave:string|undefined,separador:string,numero:string) => {
+      if(clave===undefined)return fragmento;
+      const nombre:unknown=JSON.parse(clave);
+      return nombre==='multiplicidadOrigen'||nombre==='multiplicidadDestino' ? `${clave}${separador}"${enteroJson(numero)}"` : fragmento;
+    });
+  return JSON.parse(original);
+}
 function sobre(text:string,l:Lectura):Registro | undefined {
   let actual:unknown;
-  try { actual = JSON.parse(text); } catch { l.rechazar('$','JSON inválido.'); return undefined; }
+  try { actual = leerJson(text); } catch { l.rechazar('$','JSON inválido.'); return undefined; }
   for (let profundidad=0; profundidad<32; profundidad++) {
     if (!esRegistro(actual)) { l.rechazar('$','Sobre inválido.'); return undefined; }
     if (actual.carpetaId !== undefined) l.ignorar('carpetaId',actual.carpetaId);
@@ -93,7 +118,7 @@ function sobre(text:string,l:Lectura):Registro | undefined {
       l.desconocidos(p,'payload',['manifest','profile','revisions','sources']);
     } else { l.rechazar('formato','Formato no reconocido.'); return undefined; }
     if (typeof siguiente !== 'string') { l.rechazar('$','El sobre no contiene modelJson legible.'); return undefined; }
-    try { actual=JSON.parse(siguiente); } catch { l.rechazar('$','JSON inválido en el sobre.'); return undefined; }
+    try { actual=leerJson(siguiente); } catch { l.rechazar('$','JSON inválido en el sobre.'); return undefined; }
   }
   l.rechazar('$','Demasiados sobres anidados.'); return undefined;
 }
@@ -405,6 +430,7 @@ function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record
   const mult=(v:unknown,r:string):Multiplicidad|undefined=> {
     if(v===undefined) return undefined;
     if(typeof v!=='string'&&typeof v!=='number') {l.perder(r,v,'DR-21','Multiplicidad fuera del producto');return undefined;}
+    if(typeof v==='number'&&!Number.isSafeInteger(v)) {l.perder(r,v,'DR-21','Multiplicidad numérica sin entero exacto recuperable');return undefined;}
     // DEC35: el entero exacto n ≥ 2 y 2..* son del producto; n..n es el mismo entero.
     const s=typeof v==='string'?v:String(v), alias:Record<string,Multiplicidad|undefined>={'0..1':'?','0..*':'*','0..N':'*','1..*':'+','1..N':'+','2..N':'2..*','1':undefined,'1..1':undefined};
     const exacto=/^([1-9]\d*)\.\.\1$/.exec(s)?.[1];

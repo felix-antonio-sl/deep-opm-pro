@@ -1,7 +1,31 @@
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
-import {test,expect,EMAIL,PASSWORD,TOKEN,entrar,sembrar,abrir,leer,modelo,guardar,lienzo,cosa,seleccionar,tecla,crear,conectar,opl,guardado,editarOpl,aplicarTexto,descargar,cerrarInformes,captura,arrastrar,seleccionarEnlace,seleccionarSimbolo,arcos,navegar,arrastrarConexion} from './soporte';
 import type {Page,Locator} from '@playwright/test';
+import {test,expect,EMAIL,PASSWORD,TOKEN,entrar,sembrar,abrir,leer,modelo,guardar,lienzo,cosa,seleccionar,tecla,crear,conectar,opl,guardado,editarOpl,aplicarTexto,descargar,cerrarInformes,captura,arrastrar,seleccionarEnlace,seleccionarSimbolo,arcos,navegar,arrastrarConexion} from './soporte';
+import {importarV0} from '../src/codec/importar';
+import {exportarV0} from '../src/codec/exportar';
+
+test('T-057 DEC35 enfocar y desenfocar 400 cifras conserva la cantidad importada y su revisión',async({page,request})=>{
+ const id='e2e-dec35-400-cifras',valor='2'.repeat(400);await sembrar(request,'resultados',id);
+ const previo=await leer(request,id),entrada=modelo(previo);entrada.modelo.enlaces.e1!.multiplicidadDestino=valor;
+ const r=importarV0(JSON.stringify(entrada));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));
+ expect(r.informe.descartado).toEqual([]);expect(r.informe.rechazos).toEqual([]);await guardar(request,id,exportarV0(r.modelo),previo.rev);
+ await abrir(page,id);await seleccionarEnlace(page,'e1');const antes=await leer(request,id),campo=page.getByLabel('Cantidad exacta objeto',{exact:true});
+ await campo.focus();await campo.press('Tab');await guardado(page);
+ await expect.poll(async()=>modelo(await leer(request,id)).modelo.enlaces.e1!.multiplicidadDestino).toBe(valor);
+ const despues=await leer(request,id);expect(despues.texto).toBe(antes.texto);expect(despues.rev).toBe(antes.rev);await expect(campo).toHaveValue(valor);
+ await page.reload();await guardado(page);await seleccionarEnlace(page,'e1');await expect(campo).toHaveValue(valor);
+ await captura(page,'dec35-400-cifras');
+});
+test('T-057 DEC35 cantidad exacta larga conserva cifras en inspector, OPL, guardado y recarga',async({page,request})=>{
+ const id='e2e-dec35-entero';await sembrar(request,'resultados',id);await abrir(page,id);await seleccionarEnlace(page,'e1');
+ for(const valor of ['3','1000000','9007199254740993']){
+  const campo=page.getByRole('textbox',{name:'Cantidad exacta objeto',exact:true});await campo.fill(valor);await campo.press('Enter');
+  await expect.poll(async()=>modelo(await leer(request,id)).modelo.enlaces.e1!.multiplicidadDestino).toBe(valor);await guardado(page);
+  await expect(opl(page)).toContainText(`genera ${valor} `);await expect(svg(page).getByText(valor,{exact:true})).toBeVisible();
+  await page.reload();await cerrarInformes(page);await seleccionarEnlace(page,'e1');await expect(campo).toHaveValue(valor);await expect(opl(page)).toContainText(`genera ${valor} `);
+ }
+});
 const svg=(p:Page)=>p.getByLabel(/^Diagrama /);
 const estado=(p:Page,n:string)=>svg(p).getByText(n,{exact:true});
 const enlaceEnInspector=async(p:Page,n:string)=>{await seleccionar(p,n);await p.getByRole('complementary',{name:'Propiedades y OPL'}).getByRole('button',{name:/→/}).first().click();};

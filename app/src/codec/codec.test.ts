@@ -121,6 +121,64 @@ test('T-057 etapa 7: multiplicidad equivalentes y campos ilegales con pérdida d
   for (const [legacy, mult] of [['?', '?'], ['0..1', '?'], ['*', '*'], ['0..N', '*'], ['+', '+'], ['1..N', '+'], ['1', undefined], ['1..1', undefined], ['2', '2'], ['12', '12'], ['3..3', '3'], ['2..*', '2..*'], ['2..N', '2..*'], ['0', undefined], ['2..5', undefined]]) { const d = basico(); d.modelo.enlaces.e = enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: legacy }); expect(ok(d).modelo.enlaces.e).toMatchObject(mult ? { mult } : { tipo: 'consumo' }); if (!mult) expect('mult' in ok(d).modelo.enlaces.e!).toBe(false); }
   const d = basico(); d.modelo.enlaces.e = enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: '+', modificador: 'condicion' }); expect('mult' in ok(d).modelo.enlaces.e!).toBe(false);
 });
+test('T-057 T-286 DEC35 enteros largos y su intervalo exacto se importan sin pérdida y quedan en punto fijo', () => {
+  for (const valor of ['1000000', '9007199254740993', '123456789012345678901234567890'] as const)
+    for (const legacy of [valor, `${valor}..${valor}`]) {
+      const d = documento([entidad('o-1'), entidad('p-2', 'proceso')], [enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: legacy })]);
+      const r = ok(d); expect(r.modelo.enlaces.e).toEqual({ id: 'e', tipo: 'consumo', objeto: 'o-1', proceso: 'p-2', mult: valor });
+      expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]); expect(r.informe.visibilidad).toEqual([]);
+      const texto = exportarV0(r.modelo), vuelta = importarV0(texto); expect(vuelta.ok).toBe(true);
+      if (!vuelta.ok) throw Error(JSON.stringify(vuelta.informe));
+      expect(informeVacio(vuelta.informe)).toBe(true); expect(exportarV0(vuelta.modelo)).toBe(texto); expect(leerCanonico(texto).ok).toBe(true);
+    }
+});
+test('T-057 T-287 DEC35 el número JSON conserva sus cifras originales también dentro de sobres', () => {
+  for (const valor of ['1000000', '9007199254740993', '123456789012345678901234567890'] as const)
+    for (const [tipo, campo, desde, hasta] of [['consumo', 'multiplicidadOrigen', 'o-1', 'p-2'], ['resultado', 'multiplicidadDestino', 'p-2', 'o-1']] as const) {
+      const d = documento([entidad('o-1'), entidad('p-2', 'proceso')], [enlace('e', tipo, desde, hasta, { [campo]: valor })]);
+      const texto = JSON.stringify(d).replace(`${JSON.stringify(campo)}:${JSON.stringify(valor)}`, `${JSON.stringify(campo)}:${valor}`);
+      for (const entrada of [texto, JSON.stringify({ json: texto }), JSON.stringify({ format: 'opforja.local-recovery.v1', document: { snapshotJson: texto } })]) {
+        const r = importarV0(entrada); expect(r.ok).toBe(true); if (!r.ok) throw Error(JSON.stringify(r.informe));
+        expect(r.modelo.enlaces.e).toEqual({ id: 'e', tipo, objeto: 'o-1', proceso: 'p-2', mult: valor });
+        expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]); expect(r.informe.visibilidad).toEqual([]);
+        const canonico = exportarV0(r.modelo); expect(leerCanonico(canonico).ok).toBe(true);
+        const vuelta = importarV0(canonico); expect(vuelta.ok).toBe(true); if (vuelta.ok) expect(exportarV0(vuelta.modelo)).toBe(canonico);
+      }
+    }
+});
+test('T-057 T-287 extracción numérica conserva texto y claves escapadas, y rechaza ceros iniciales de JSON inválido', () => {
+  const valor = '9007199254740993', d = documento([entidad('o-1'), entidad('p-2', 'proceso')], [enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: valor })]);
+  d.modelo.nombre = `Texto con "multiplicidadOrigen":${valor} y \\ comillas`;
+  const texto = JSON.stringify(d).replace(`"multiplicidadOrigen":"${valor}"`, `"multiplicidad\\u004Frigen":${valor}`);
+  const r = importarV0(texto); expect(r.ok).toBe(true); if (!r.ok) throw Error(JSON.stringify(r.informe));
+  expect(r.modelo.nombre).toBe(d.modelo.nombre); expect(r.modelo.enlaces.e).toMatchObject({ mult: valor }); expect(r.informe.descartado).toEqual([]);
+  const invalido = JSON.stringify(d).replace(`"multiplicidadOrigen":"${valor}"`, '"multiplicidadOrigen":03');
+  expect(importarV0(invalido).ok).toBe(false);
+});
+test('T-057 T-287 un decimal JSON no inventa una multiplicidad entera por redondeo', () => {
+  for (const valor of ['2.0000000000000001', '9007199254740990.9', '20.0000000000000001e-1', '1.999999999999999999999', '3.3', '3e-1', '-2', '2e99999999'])
+    for (const [tipo, campo, desde, hasta] of [['consumo', 'multiplicidadOrigen', 'o-1', 'p-2'], ['resultado', 'multiplicidadDestino', 'p-2', 'o-1']] as const) {
+      const d = documento([entidad('o-1'), entidad('p-2', 'proceso')], [enlace('e', tipo, desde, hasta, { [campo]: valor })]);
+      const texto = JSON.stringify(d).replace(`${JSON.stringify(campo)}:${JSON.stringify(valor)}`, `${JSON.stringify(campo)}:${valor}`);
+      for (const entrada of [texto, JSON.stringify({ json: texto }), JSON.stringify({ format: 'opforja.local-recovery.v1', document: { snapshotJson: texto } })]) {
+        const r = importarV0(entrada); expect(r.ok).toBe(true); if (!r.ok) throw Error(JSON.stringify(r.informe));
+        expect(r.modelo.enlaces.e).toEqual({ id: 'e', tipo, objeto: 'o-1', proceso: 'p-2' });
+        expect(r.informe.descartado).toHaveLength(1); expect(r.informe.descartado[0]).toMatchObject({ regla: 'DR-21', ruta: `enlaces.e.${campo}` });
+        expect(r.informe.descartado[0]!.mensaje).toContain(valor); expect(r.informe.rechazos).toEqual([]); expect(r.informe.visibilidad).toEqual([]);
+      }
+    }
+});
+test('T-057 T-287 notaciones numéricas JSON exactamente enteras conservan su equivalencia sin admitirlas como cadenas', () => {
+  for (const [valor, mult] of [['2.0', '2'], ['2.0000000000000000', '2'], ['2e0', '2'], ['2E+0', '2'], ['0.2e1', '2'], ['20e-1', '2'], ['3e2', '300'], ['30.00e1', '300'], ['9007199254740991.0', '9007199254740991'], ['9.007199254740991e15', '9007199254740991']] as const) {
+    const d = documento([entidad('o-1'), entidad('p-2', 'proceso')], [enlace('e', 'consumo', 'o-1', 'p-2', { multiplicidadOrigen: valor })]);
+    const texto = JSON.stringify(d).replace(`"multiplicidadOrigen":"${valor}"`, `"multiplicidadOrigen":${valor}`);
+    const r = importarV0(texto); expect(r.ok).toBe(true); if (!r.ok) throw Error(JSON.stringify(r.informe));
+    expect(r.modelo.enlaces.e).toEqual({ id: 'e', tipo: 'consumo', objeto: 'o-1', proceso: 'p-2', mult });
+    expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]); expect(r.informe.visibilidad).toEqual([]);
+    const canonico = exportarV0(r.modelo); expect(leerCanonico(canonico).ok).toBe(true);
+    const cadena = ok(d); expect('mult' in cadena.modelo.enlaces.e!).toBe(false); expect(cadena.informe.descartado).toHaveLength(1);
+  }
+});
 test('T-021 etapa 7: cotas fijas convierten exactamente; calendario pierde representación sin equivalencia inventada', () => {
   const d = documento([entidad('p-1', 'proceso'), entidad('p-2', 'proceso')], [enlace('max', 'excepcionSobretiempo', 'p-1', 'p-2', { tiempoMaximo: '2', unidadTiempoMaximo: 'h' }), enlace('min', 'excepcionSubtiempo', 'p-1', 'p-2', { tiempoMinimo: '60', unidadTiempoMinimo: 'min' })]);
   expect(ok(d).modelo.cosas['p-1']).toMatchObject({ duracion: { max: 2, min: 1, unidad: 'hour' } });

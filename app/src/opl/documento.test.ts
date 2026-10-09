@@ -58,6 +58,29 @@ test('T-120 SE3 con la etiqueta por defecto vuelve desde vacío al mismo bidirec
 });
 import {analizar} from './analizar';
 import type {DatosModelo} from '../pruebas/constructores';
+import {fijarMultiplicidad} from '../nucleo/enlaces';
+test('T-057 DEC35 enteros de más de seis cifras conservan cada dígito al editar y reconstruir todas las familias',()=>{
+ for(const valor of ['1000000','9007199254740993','123456789012345678901234567890'] as const)
+  for(const [datos,extremo,campo] of [
+   [{objetos:[['Pieza',[]]],procesos:['Ensamblar'],enlaces:[['consumo','Pieza','Ensamblar']]},'objeto','mult'],
+   [{objetos:[['Pieza',[]]],procesos:['Fabricar'],enlaces:[['resultado','Pieza','Fabricar']]},'objeto','mult'],
+   [{objetos:[['Llave',[]]],procesos:['Ensamblar'],enlaces:[['instrumento','Llave','Ensamblar']]},'objeto','mult'],
+   [{objetos:[['Operador',[]]],procesos:['Ensamblar'],enlaces:[['agente','Operador','Ensamblar']]},'objeto','mult'],
+   [{objetos:[['Conjunto de Cosas',[]],['Cosa',[]]],enlaces:[['agregacion','Conjunto de Cosas','Cosa']]},'refinador','mult'],
+   [{objetos:[['Fábrica',[]],['Planta',[]]],enlaces:[['etiquetado','Fábrica','Planta']]},'origen','multOrigen'],
+   [{objetos:[['Fábrica',[]],['Planta',[]]],enlaces:[['etiquetado','Fábrica','Planta']]},'destino','multDestino'],
+  ] as const){
+   const base=modeloCon(datos),[id,e]=Object.entries(base.enlaces)[0]!,antes=exportarV0(base);
+   const cambio=fijarMultiplicidad(base,{enlace:id,extremo,valor});expect(cambio.ok).toBe(true);if(!cambio.ok)throw Error(cambio.rechazo.mensaje);
+   const m=cambio.valor.modelo;expect(m.enlaces[id]).toEqual({...e,[campo]:valor});expect(exportarV0(base)).toBe(antes);
+   expect(validarForma(m)).toEqual([]);expect(erroresContexto(m)).toEqual([]);
+   const texto=generarDocumentoOpl(m);expect(texto).toContain(`${valor} **`);
+   const r=importarOpl(m.nombre,texto);expect(r.ok).toBe(true);if(!r.ok)throw Error(r.rechazo.mensaje);
+   expect(r.valor.plan.resumen.noAplicables).toBe(0);
+   expect(Object.values(r.valor.modelo.enlaces)).toEqual([expect.objectContaining({tipo:e.tipo,[campo]:valor})]);
+   expect(generarDocumentoOpl(r.valor.modelo)).toBe(texto);
+  }
+});
 test('T-057 DEC35 el entero exacto y «al menos dos» vuelven desde vacío al mismo enlace en cada familia',()=>{
  for(const [datos,campos,linea] of [
   [{objetos:[['Pieza',[]]],procesos:['Ensamblar'],enlaces:[['consumo','Pieza','Ensamblar']]},{mult:'2..*'},'*Ensamblar* consume al menos dos **Pieza**.'],

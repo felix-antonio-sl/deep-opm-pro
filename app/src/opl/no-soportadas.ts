@@ -15,7 +15,7 @@ export const NO_SOPORTADAS: readonly LimiteOpl[] = [
     { patron: /\*\*[^*]+\*\* se descompone en\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-CX-4', registro: 'B-02' },
     { patron: /\b(?:consumen|generan|afectan|requieren|manejan|invocan)\b/u, codigo: 'unsupported-canonical', regla: 'DR-12', registro: 'B-09' },
     // DEC35 ofrece el entero exacto desde 2 y «al menos dos»/«dos o más»; quedan fuera 0, 1, «exactamente un» y los rangos.
-    { patron: /\b(?:exactamente un(?:a)?|[01]|\d+ a \d+|\d{7,}) \*\*/u, codigo: 'unsupported-canonical', regla: 'R-§18-PART-1', registro: 'B-10' },
+    { patron: /\b(?:exactamente un(?:a)?|[01]|\d+ a \d+) \*\*/u, codigo: 'unsupported-canonical', regla: 'R-§18-PART-1', registro: 'B-10' },
     { patron: /\bse despliega por (?:partes|especialización|instanciación|rasgos) en\b/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-11' },
     { patron: /^Por ruta .* (?:maneja|requiere|afecta|invoca|cambia)\b/u, codigo: 'unsupported-canonical', regla: 'R-OPL-RUTA-2', registro: 'B-07' },
     { patron: /\bes (?:persistente|transitoria|transitorio)\.$/u, codigo: 'unsupported-canonical', regla: 'R-IMPORT-5', registro: 'B-16' },
