@@ -157,13 +157,31 @@ test('T-214 revisión e/c círculos18 papel tinta en canon y edición', () => {
         expect(JSON.stringify(base)).toBe(antes);
     }
 });
-test('T-214 revisión control28 desde perímetroP sin cap proporcional', () => {
+test('T-214 revisión control32 desde perímetroP sin cap proporcional (DEC37)', () => {
     for (const x of [450, 210]) {
         const b = modeloRevision(), base = { ...b, enlaces: { en: { id: 'en', tipo: 'consumo' as const, objeto: 'o', proceso: 'p', control: 'e' as const } }, opds: { sd: { ...b.opds.sd!, apariciones: { ...b.opds.sd!.apariciones, p: { x, y: 0, ancho: 200, alto: 100 } } } } };
         revisarModelo(base);
         const a = escena(base, 'sd').aristas[0]!;
-        expect(distancia(a.marcas[0]!.en, a.tramos[0]!.puntos.at(-1)!)).toBeCloseTo(28, 9);
+        expect(distancia(a.marcas[0]!.en, a.tramos[0]!.puntos.at(-1)!)).toBeCloseTo(32, 9);
     }
+});
+test('T-214 DEC37 el círculo de control deja papel entre su trazo y las alas de la punta', () => {
+    const [, , alaX, alaY] = MARCADORES.punta.datos.match(/-?\d+(?:\.\d+)?/g)!.map(Number);
+    for (const tipo of ['consumo', 'efecto'] as const)
+        for (const control of ['e', 'c'] as const) {
+            const base: Modelo = { ...modeloRevision(), enlaces: { en: { id: 'en', tipo, objeto: 'o', proceso: 'p', control } } };
+            revisarModelo(base);
+            const e = escena(base, 'sd'), a = e.aristas[0]!, ps = a.tramos[0]!.puntos, c = a.marcas[0]!.en;
+            const alInicio = distancia(c, ps[0]!) < distancia(c, ps.at(-1)!), [punta, previo] = alInicio ? [ps[0]!, ps[1]!] : [ps.at(-1)!, ps.at(-2)!];
+            expect(alInicio ? a.tramos[0]!.inicio : a.tramos[0]!.fin).toBe('punta');
+            const l = distancia(punta, previo), u = { x: (previo.x - punta.x) / l, y: (previo.y - punta.y) / l };
+            const r = elementos(dibujar(e, 'canon')).find(n => n.t === 'circle' && n.a.fill === '#fafaf8')!.a.r as number;
+            // Ambos trazos miden 1 px: la holgura descuenta medio trazo de cada figura.
+            for (const signo of [1, -1]) {
+                const ala = { x: punta.x + u.x * alaX! - u.y * alaY! * signo, y: punta.y + u.y * alaX! + u.x * alaY! * signo };
+                expect(distancia(c, ala) - r - 1).toBeGreaterThan(1);
+            }
+        }
 });
 test('T-207 revisión DEFAULT superior izquierdo abierto y bbox de tinta', () => {
     const b = modeloRevision(), base = { ...b, cosas: { ...b.cosas, o: { ...b.cosas.o! as Objeto, porDefecto: 's' } } };
@@ -283,7 +301,7 @@ test('T-214 T-218 T-219 revisión anotaciones siguen tramo final de abanico', ()
         const b = modeloRevision(), base: Modelo = { ...b, cosas: { ...b.cosas, q: o('q', 'Cliente') }, enlaces: { en: { id: 'en', tipo: 'consumo', objeto: 'o', proceso: 'p', ruta: 'principal', ...(control ? { control } : { mult: '+' }) }, eq: { id: 'eq', tipo: 'consumo', objeto: 'q', proceso: 'p', ...(control ? { control } : {}) } }, abanicos: { f: { id: 'f', operador: 'XOR', enlaces: ['en', 'eq'] } }, opds: { sd: { ...b.opds.sd!, apariciones: { ...b.opds.sd!.apariciones, q: { x: 0, y: 500, ancho: 200, alto: 140 } } } } };
         revisarModelo(base);
         const a = escena(base, 'sd').aristas.find(a => a.ref.id === 'en')!, [s, t] = a.tramos[0]!.puntos;
-        if (control) expect(distancia(a.marcas[0]!.en, t!)).toBeCloseTo(28, 9);
+        if (control) expect(distancia(a.marcas[0]!.en, t!)).toBeCloseTo(32, 9);
         const dx = t!.x - s!.x, dy = t!.y - s!.y, l = Math.hypot(dx, dy), ruta = a.etiquetas.find(e => e.clave === 'ruta')!;
         expect(ruta.en.x - (s!.x + t!.x) / 2).toBeCloseTo(10 * dy / l, 9);
         expect(ruta.en.y - (s!.y + t!.y) / 2).toBeCloseTo(-10 * dx / l, 9);

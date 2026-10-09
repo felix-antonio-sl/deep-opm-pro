@@ -671,7 +671,7 @@ estricto» y su fila en la tabla 3 de `docs/conformidad.md`:
   `escena()` y los exports no lanzan con un modelo válido: cruces u oclusiones se advierten
   según B-15, sin reruteo automático ni rechazo por no encontrar una geometría alternativa.
 - **Marcas de control** (T-214): `e` o `c` en minúscula dentro de un círculo de 18 px (fondo papel,
-  borde tinta), sobre la línea a 28 px del borde del proceso.
+  borde tinta), sobre la línea a 32 px del borde del proceso (DEC37).
 - **Ruta y multiplicidad** (T-218, T-219):
   - La ruta va en serif 11 a mitad del segmento, desplazada 10 px a la izquierda del sentido
     objeto→proceso.

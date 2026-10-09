@@ -252,7 +252,8 @@ export function escena(m: Modelo, opd: Id): Escena {
         if ('control' in e && e.control) {
             const receptor = e.tipo === 'efecto' && e.entrada ? b : esProcedimental(e) && ex.destino === e.proceso ? b : a;
             const desde = receptor === b ? a : b;
-            marcas.push({ texto: e.control, en: cerca(desde, receptor, 28), angulo: 0 });
+            // DEC37: a 32 px el círculo (r 9) deja papel ante las alas de la punta (23 px, ±8).
+            marcas.push({ texto: e.control, en: cerca(desde, receptor, 32), angulo: 0 });
         }
         if (e.tipo === 'excepcionSobretiempo' || e.tipo === 'excepcionSubtiempo')
             marcas.push({ texto: e.tipo === 'excepcionSobretiempo' ? '/' : '//', en: cerca(a, b, 22), angulo });
