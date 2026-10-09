@@ -227,3 +227,32 @@ test('T-041 T-284 generalización de estados conserva los dos contactos terminal
  const antes=JSON.stringify(base),e=escena(base,'sd');
  expect(e.simbolos).toHaveLength(1);expect(advertenciasEscena(e).filter(w=>w.texto.includes('cápsula'))).toEqual([]);expect(JSON.stringify(base)).toBe(antes);
 });
+test('T-284 DEC37 avisa las etiquetas de un bidireccional corto que caen bajo sus cajas', () => {
+    const solapes = (base: Modelo) => advertenciasEscena(escena(base, 'sd')).filter(w => w.texto.startsWith('La etiqueta de un enlace se solapa con una cosa')).map(w => w.refs.map(r => r.id).join(' ')).sort();
+    // Como «Enlace ⇄ Frase Reservada» en la figura 16: con 40 px de tramo, las dos etiquetas quedan bajo las cajas.
+    const b = m(2), corto: Modelo = { ...b, enlaces: { r: { id: 'r', tipo: 'etiquetadoBidireccional', origen: 'o0', destino: 'o1', etiqueta: 'especifica textualmente', inversa: 'es especificado por' } },
+        opds: { sd: { ...b.opds.sd!, apariciones: { o0: { x: 0, y: 0, ancho: 135, alto: 60 }, o1: { x: 175, y: 0, ancho: 135, alto: 60 } } } } };
+    expect(gatesExportacion(corto, 'modelo')).toEqual([]);
+    const antes = JSON.stringify(corto);
+    expect(solapes(corto)).toEqual(['r o0', 'r o1']);
+    expect(JSON.stringify(corto)).toBe(antes);
+    const lejos: Modelo = { ...corto, opds: { sd: { ...corto.opds.sd!, apariciones: { ...corto.opds.sd!.apariciones, o1: { x: 600, y: 0, ancho: 135, alto: 60 } } } } };
+    expect(solapes(lejos)).toEqual([]);
+});
+test('T-284 DEC37 avisa la multiplicidad bajo otra cosa y la etiqueta sobre una punta; el contenedor sólo con su rótulo', () => {
+    const base = manual(), [e1, e2] = base.aristas as [Escena['aristas'][number], Escena['aristas'][number]];
+    const grande = { ...base.nodos[0]!, ref: { tipo: 'cosa' as const, id: 'grande' }, tipo: 'proceso' as const, contenedor: true, caja: { x: 0, y: 0, ancho: 300, alto: 300 }, rotulo: { lineas: ['grande'], x: 150, y: 20, italica: true } };
+    const dentro = (t: Escena['aristas'][number]['tramos'][number]) => ({ ...t, contenedores: ['grande'] });
+    const e: Escena = { ...base, nodos: [...base.nodos.filter(n => n.ref.id !== 'oculta'), grande], aristas: [
+        { ...e1, tramos: e1.tramos.map(dentro), etiquetas: [
+            { clave: 'mult-origen', texto: '+', en: { x: 20, y: 110 }, italica: false }, // pisa la cosa c
+            { clave: 'etiqueta', texto: 'apunta', en: { x: 100, y: 44 }, italica: true }, // pisa la punta de e2 y la cosa d
+            { clave: 'ruta', texto: 'principal', en: { x: 150, y: 22 }, italica: false }] }, // pisa el rótulo del contenedor
+        { ...e2, tramos: e2.tramos.map(t => ({ ...dentro(t), fin: 'punta' as const })) }] };
+    const antes = JSON.stringify(e), ws = advertenciasEscena(e), refs = (prefijo: string) => ws.filter(w => w.texto.startsWith(prefijo)).map(w => w.refs.map(r => r.id));
+    expect(refs('La multiplicidad de un enlace se solapa con una cosa')).toEqual([['e1', 'c']]);
+    expect(refs('La etiqueta de un enlace se solapa con una cosa')).toEqual([['e1', 'd'], ['e1', 'grande']]);
+    expect(refs('La etiqueta de un enlace se solapa con una punta')).toEqual([['e1', 'e2']]);
+    expect(refs('La multiplicidad de un enlace se solapa con una punta')).toEqual([]);
+    expect(JSON.stringify(e)).toBe(antes);
+});

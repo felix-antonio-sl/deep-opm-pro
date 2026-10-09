@@ -98,6 +98,36 @@ export function advertenciasEscena(e: Escena, _m?: Modelo): readonly Advertencia
             }
         }
     }
+    // DEC37: una etiqueta o una multiplicidad pisada por una cosa, aunque sea su extremo, o por una punta
+    // no se lee. Un contenedor del tramo sólo ocluye con su rótulo.
+    const puntas = e.aristas.flatMap(a => a.tramos.flatMap(t => ([[t.inicio, t.puntos[0], t.puntos[1]], [t.fin, t.puntos.at(-1), t.puntos.at(-2)]] as const).flatMap(([id, p, desde]) => {
+        if (id !== 'punta' || !p || !desde) return [];
+        const { figura, matriz: m } = colocarMarcador(id, p, desde);
+        return [{ ref: a.ref, ps: poligono(figura.datos, m) }];
+    })));
+    // La etiqueta usa el área de texto de cajaEscena; la multiplicidad, cifras y signos sin
+    // descendentes, sólo los tres cuartos del cuerpo sobre su línea base.
+    const area = (texto: string, en: Punto, mult: boolean, italica: boolean): Rect => {
+        const px = mult ? 12 : 11, ancho = anchoTexto(texto, px, italica);
+        return mult ? { x: en.x - ancho / 2, y: en.y - px * .75, ancho, alto: px * .75 } : { x: en.x - ancho / 2, y: en.y - px, ancho, alto: px + 4 };
+    };
+    const textos = [
+        ...e.aristas.flatMap(a => a.etiquetas.map(l => ({ refs: [a.ref], mult: l.clave.startsWith('mult'), caja: area(l.texto, l.en, l.clave.startsWith('mult'), l.italica),
+            contenedores: new Set(a.tramos.flatMap(t => t.contenedores ?? [])) }))),
+        ...e.simbolos.flatMap(s => s.mult.map(l => ({ refs: s.ramas.map(id => ({ tipo: 'enlace' as const, id })), mult: true, caja: area(l.texto, l.en, true, false),
+            contenedores: new Set((s.incidencias ?? []).flatMap(i => i.contenedores ?? [])) })))
+    ];
+    const seCruzan = (a: Rect, b: Rect) => a.x < b.x + b.ancho && a.x + a.ancho > b.x && a.y < b.y + b.alto && a.y + a.alto > b.y;
+    for (const l of textos) {
+        const quien = l.mult ? 'La multiplicidad' : 'La etiqueta', c = l.caja;
+        const esquinas = [{ x: c.x, y: c.y }, { x: c.x + c.ancho, y: c.y }, { x: c.x + c.ancho, y: c.y + c.alto }, { x: c.x, y: c.y + c.alto }];
+        for (const n of e.nodos)
+            if (l.contenedores.has(n.ref.id) ? rotulos(n).some(r => seCruzan(c, r)) : esquinas.some((p, i) => intersectaCaja(p, esquinas[(i + 1) % 4]!, n.caja, n.tipo === 'objeto' ? 'rectangulo' : 'elipse')))
+                ws.push({ tipo: 'atraviesa', refs: [...l.refs, n.ref], texto: `${quien} de un enlace se solapa con una cosa; la separación persistida es insuficiente.` });
+        for (const p of puntas)
+            if (tocaTexto(p.ps, c))
+                ws.push({ tipo: 'atraviesa', refs: l.refs.some(r => r.id === p.ref.id) ? l.refs : [...l.refs, p.ref], texto: `${quien} de un enlace se solapa con una punta; la separación persistida es insuficiente.` });
+    }
     for (const s of e.simbolos) {
         const ps = poligono(triangulo(s.relacion).exterior.datos, colocarTriangulo(s.vertice, s.orientacion));
         for (const n of e.nodos) {

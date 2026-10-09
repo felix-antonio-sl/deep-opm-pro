@@ -122,7 +122,7 @@ H-24 «Sí, agregar el aviso (Recomendado)», H-27 «32 px (Recomendado)» y, pa
     - La caracterización con estado especificado sigue no canonizada hasta que el canon le dé oración y glifo (B-37, R-ZNC-2).
     - La ruta sigue sólo en consumo y resultado, como extensión declarada de producto (B-07, DR-19, R-OPL-RUTA-3).
     - El género que el OPL no marca se pierde al reconstruir el modelo desde el texto; el JSON lo conserva y el inspector lo ajusta (B-38).
-37. **Avisos y marcas del dibujo.** El export avisa, sin bloquear, cuando la etiqueta o la multiplicidad de un enlace tapa otra cosa o la punta de otro enlace (T-284, B-15). La marca de control se centra a 32 px del borde del proceso (T-214).
+37. **Avisos y marcas del dibujo.** El export avisa, sin bloquear, cuando la etiqueta o la multiplicidad de un enlace tapa una cosa, aunque sea su propio extremo, o una punta; en un contenedor del tramo sólo cuenta su rótulo (T-284, B-15). La marca de control se centra a 32 px del borde del proceso (T-214).
 38. **Un solo despliegue, al terminar DEC35 y DEC37.** Fija el momento y no autoriza el despliegue: quien lo ejecute necesita la frase textual del dueño (DEC30).
 
 ## Resoluciones directas posteriores — vigentes
