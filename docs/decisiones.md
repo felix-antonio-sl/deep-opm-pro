@@ -131,6 +131,30 @@ conservando las cuentas y modelos actuales y manteniendo el corte sin migración
 ID y fecha originales no observables. Autoriza ese despliegue; no modifica el canon
 ni las decisiones de producto. El resultado operativo está en `docs/operacion.md` §9.4.
 
+## Decisiones del dueño sobre el saneo del canon (2026-10-10) — fijas
+Encargo: «Primero quiero que saneemos hasta el nivel atómico la documentación canónica sobre la que se
+construyó opforja. Asegurémonos que se alinee 100% con el estándar opm oficial y absoluta coherencia entre
+archivos e intrarchivo». Respuestas a preguntas cerradas: fuente «ISO 19450:2024 y tu KB (Recomendado)»,
+lugar «Aquí, con versión nueva (Recomendado)», alcance «Se mantiene el español, todo lo que está fundamentado
+y es orgánicamente integrado a ISO y nada más». Sobre el texto de la norma: «Trabajo con esto. Es lo mejor
+que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la opción elegida en cada caso.
+
+39. **Canon 2.0 sólo ISO, en español.** El canon cita la numeración de ISO/PAS 19450:2015; la alineación con la
+    IS 2024 queda pendiente hasta tener su texto. Lo informativo de la norma queda como guía DEBERÍA/PUEDE
+    («Queda como guía (Recomendado)»); el método de Dori que aplica construcciones ISO sin reglas nuevas queda
+    en metodología como guía no normativa («Quedan como guía (Recomendado)»).
+40. **Perfil OpForja.** Lo que sale del canon vive en `perfil/` con su mismo ID, debajo del canon y encima de la
+    especificación («Carpeta perfil/ (Recomendado)»). Esta ola edita documentos; el producto no cambia y cada
+    diferencia con el canon corregido se declara en `docs/conformidad.md` («Canon y documentos (Recomendado)»).
+41. **Abanicos de agente e instrumento en ambas direcciones** (ISO §12.2, A.4.5.3, Figura 38; la Tabla 20 muestra
+    una sola) — «Ambas direcciones (Recomendado)».
+42. **Varios eventos hacia un proceso:** cada uno inicia la evaluación de la precondición (ISO §3.18); el AND de
+    §12.1 recae sobre los objetos de la precondición — «Cada uno dispara la evaluación (Recomendado)».
+43. **«Al menos dos»** queda como realización española del rango 2..* (ISO §11.1); DEC35 sigue vigente —
+    «Realización de 2..* (Recomendado)».
+44. **Tabla 27 de precedencia:** se conserva la matriz, marcada no verificable porque faltan sus figuras en la
+    fuente — «Mantener y marcar (Recomendado)».
+
 ## Resoluciones directas posteriores — vigentes
 
 Frases role=user recibidas textualmente; ID y fecha originales no observables.
