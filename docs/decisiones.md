@@ -154,6 +154,11 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
     «Realización de 2..* (Recomendado)».
 44. **Tabla 27 de precedencia:** se conserva la matriz, marcada no verificable porque faltan sus figuras en la
     fuente — «Mantener y marcar (Recomendado)».
+45. **Al descomponer, el resultado va al último subproceso** — «Quiero que al descomponer el resultado vaya en
+    el último». El canon conserva el default de ISO §14.2.2.4.1 (consumo y resultado al primero, reasignables);
+    OpForja ancla el resultado al último como desviación declarada en el perfil y en conformidad, al amparo de la
+    NOTE 2 informativa de esa cláusula (defaults de herramienta que el modelador modifica). El consumo sigue al
+    primero. Confirma la conducta vigente (T-070).
 
 ## Resoluciones directas posteriores — vigentes
 
