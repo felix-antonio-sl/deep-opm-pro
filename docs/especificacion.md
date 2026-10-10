@@ -1,4 +1,4 @@
-Derivada de `canon/`: reglas OPM1.5.0, spec-OPD1.4.0, spec-OPL1.4.1 y metodología1.7.0; ante conflicto manda `canon/`, con precedencia reglas > spec-OPD/spec-OPL > método. Las decisiones del dueño y DS se conservan en [decisiones.md](decisiones.md); los incumplimientos, en [conformidad.md](conformidad.md). El cuerpo que sigue reproduce íntegro CANON.md derivado del diseño; sus menciones al análisis histórico no añaden autoridad.
+Derivada de `canon/` 1.x (reglas OPM 1.5.0, spec-OPD 1.4.0, spec-OPL 1.4.1, metodología 1.7.0). Desde el canon 2.0.0 (sólo ISO/PAS 19450:2015) lo propio de OpForja vive en `perfil/`, con los mismos IDs y números de sección; «reglas §n» y sus pares designan la sección homónima del canon y, si se repartió, su parte del perfil, y «perfil <documento> §n» apunta a una sección que pasó entera al perfil ([canon/CAMBIOS-2.0.md](../canon/CAMBIOS-2.0.md)). Ante conflicto manda `canon/` y luego `perfil/`, con precedencia reglas > spec-OPD/spec-OPL > método; donde un requisito T-NNN difiere del canon 2.0, la diferencia está declarada en [conformidad.md](conformidad.md) (B-39 en adelante). Las decisiones del dueño y DS se conservan en [decisiones.md](decisiones.md); los incumplimientos, en [conformidad.md](conformidad.md). El cuerpo que sigue reproduce íntegro CANON.md derivado del diseño; sus menciones al análisis histórico no añaden autoridad.
 
 # CANON — Especificación del producto opforja derivada del canon (ni más ni menos)
 
@@ -59,12 +59,12 @@ Regla de no sobrebloqueo (R-AP-0C, R-APP-5, R-OPD-VAL-4, R-ZNC-1/2): solo se **b
 |---|---|---|
 | Simulación / runtime (tokens, halos, pin runtime, trazas, límite de bucle, 1/n, tasas, distribuciones, estados suspendidos, headless) | Todo es condicional a que exista runtime; ninguna regla obliga a simular; reglas R-DOC-4C manda sacarlo del canon; método A8.1 ofrece el gate tripartito como sustituto | R-EJEC-3..10, R-EST-4, R-CONS-2/3, R-EFE-2/2A/2B/3, R-AG-2, R-EXC-4A, R-HER-6, R-PROB-1A, R-VIS-RUN-*, R-VIS-CONS-1, R-VIS-ASYNC-1, R-VIS-CTRL-1, spec-OPD §20 (R-OPD-SIM-1..7), método A6/A7/F.2 |
 | Bilingüismo EN↔ES | Condicionado a «herramienta bilingüe» | R-OPL-TEXT-4, R-OPL-EQ-2/3, R-OPL-TRANS-1..11, R-OPL-LANG-1/2/3, R-OPL-6/7 (parte EN) |
-| Composición inter-modelo, sub-modelos, referencias externas, interfaz congelada, composición por interfaz | Todo PUEDE o condicional a tener sub-modelos | R-META-4/6/7/8/12, CM1–CM3, R-OPL-CM-1, R-OPL-LANG-6/7, R-OPL-TOTAL-3, R-VIS-SUB-1..3, R-VIS-XMODEL-1, R-VIS-FAM-1 (sub-model), AP-18, R-OPD-REF-18, spec-OPL §24, método A4.4/LF-04 |
-| Anexo C categorial (linealidad, firma de frontera entre hermanos, pushout) | «NUNCA se expone al modelador»; severidad «mejora metodológica»; PUEDE. **Excepción**: R-CAT-EQ-3 (toda descomposición DEBE preservar la firma de frontera) SÍ entra (T-089) y, por R-ANEXO-CAT-0, DEBE realizarse como ley o checker ejecutable (DR-16) | R-ANEXO-CAT-0, R-CAT-LIN-*, R-CAT-EQ-1/2, R-CAT-COMP-*, método A0.4a (igualdad de firma entre hermanas) |
-| Bocetos, régimen Apunte/Modelo, Taller, Graduar, Reabrir, Integrar como…, Devolver a Bocetos, Biblioteca, versiones | Extensión declarada (PUEDE) con DEBE internos solo si existe | R-OPD-REF-20, R-CAN-BOCETO-1..4, R-ENT-2-APUNTE, método A1.5 |
+| Composición inter-modelo, sub-modelos, referencias externas, interfaz congelada, composición por interfaz | Todo PUEDE o condicional a tener sub-modelos | R-META-4/6/7/8/12, CM1–CM3, R-OPL-CM-1, R-OPL-LANG-6/7, R-OPL-TOTAL-3, R-VIS-SUB-1..3, R-VIS-XMODEL-1, R-VIS-FAM-1 (sub-model), AP-18, R-OPD-REF-18, perfil opl-opforja §24, perfil metodo-opforja §A4.4/LF-04 |
+| Anexo C categorial (linealidad, firma de frontera entre hermanos, pushout) | «NUNCA se expone al modelador»; severidad «mejora metodológica»; PUEDE. **Excepción**: R-CAT-EQ-3 (toda descomposición DEBE preservar la firma de frontera) SÍ entra (T-089) y, por R-ANEXO-CAT-0, DEBE realizarse como ley o checker ejecutable (DR-16) | R-ANEXO-CAT-0, R-CAT-LIN-*, R-CAT-EQ-1/2, R-CAT-COMP-*, perfil metodo-opforja §A0.4a (igualdad de firma entre hermanas) |
+| Bocetos, régimen Apunte/Modelo, Taller, Graduar, Reabrir, Integrar como…, Devolver a Bocetos, Biblioteca, versiones | Extensión declarada (PUEDE) con DEBE internos solo si existe | R-OPD-REF-20, R-CAN-BOCETO-1..4, R-ENT-2-APUNTE, perfil metodo-opforja §A1.5 |
 | Estereotipos, `<<Requirement>>`, vitrinas, injerto | PUEDE (extensión) | R-OPD-ROT-6, R-VIS-STEREO-1/2, R-VIS-REQ-1 |
 | Anclaje a Pieza / Centinela de Drift / Soltar / Calcar | Extensión declarada | R-OPD-ROT-9 |
-| Capa computacional: alias `{alias}`, unidades `[u]` en nombre, alias decorativo `(…)`, tipos de dato (`es de tipo`), rangos e intervalos, `donde …`, `varía de … a`, slots, fórmulas | PUEDE / sin generador en el canon (GAP-TIPO, GAP-VARIA, GAP-RANGO-TEXTUAL, GAP-DONDE-EXPRESION) | R-OBJ-4, R-ATR-3..6, R-OPL-TIPO-1/2, R-OPL-RANGO-1..3, R-OPL-CONJ-1, R-OPL-10, R-ROT-4, R-BR-5, R-VIS-COMP-1..3, método §9.20 |
+| Capa computacional: alias `{alias}`, unidades `[u]` en nombre, alias decorativo `(…)`, tipos de dato (`es de tipo`), rangos e intervalos, `donde …`, `varía de … a`, slots, fórmulas | PUEDE / sin generador en el canon (GAP-TIPO, GAP-VARIA, GAP-RANGO-TEXTUAL, GAP-DONDE-EXPRESION) | R-OBJ-4, R-ATR-3..6, R-OPL-TIPO-1/2, R-OPL-RANGO-1..3, R-OPL-CONJ-1, R-OPL-10, R-ROT-4, R-BR-5, R-VIS-COMP-1..3, método A5.20 |
 | Probabilidades `Pr=p`, abanico probabilístico, m-de-f | Condicionado a ofrecer la capacidad; R-FAN-M-* son PUEDE | R-PROB-1, R-FAN-PROB-1, R-FAN-6, R-FAN-M-1..4, R-FAN-8, R-OPD-CTL-9/10 |
 | Negación `¬` / variantes negadas / NOT compacto | Extensión declarada, emisión-only (rompe bimodalidad) | R-OPD-CTL-5, spec-OPL §3.4/§4.1/§4.2 (GAP-NEGADA-REVERSE), método A6 NOT |
 | Demora en invocación (`después de <demora>`), excepción combinada sub+sobretiempo | Extensión local (PUEDE) | R-OPD-INV-5, spec-OPL §5.3/§5.4 |
@@ -75,8 +75,8 @@ Regla de no sobrebloqueo (R-AP-0C, R-APP-5, R-OPD-VAL-4, R-ZNC-1/2): solo se **b
 | Estilado autoral, bitmaps, modo imagen, alias/descripciones visibles, jumpover, carriles 44/50 px, stick figure | PUEDE | R-OPD-ROT-8, R-OPD-CFG-2/3, R-OPD-LAY-6/7, R-OPD-COSA-9, R-VIS-AUTOR-1 |
 | Preset de esencia primaria del sistema | PUEDE | R-OBJ-5, R-OPD-CFG-4, método A2.3 |
 | Modo de preservación de superficie | PUEDE | R-OPL-SUP-1 |
-| Cambio de rol entre niveles (instrumento arriba, afectado abajo) | PUEDE condicionado | R-ROL-1/2/3, método §9.4 |
-| Materialización de herencia (dibujar/emitir heredados), discriminantes, operación «crear general» | R-HER-8 prohíbe materializar; discriminantes sin marca en el modelo; «crear general» es «la herramienta o el modelador» (R-HER-7) ⇒ método. **Ojo**: R-HER-1 y R-VIS-HER-1 («DEBEN aplicarse aunque no se dibujen») SÍ obligan a que los validadores cuenten lo heredado (DR-43); R-VIS-HER-2 (afiliación por cadena estructural) entra en T-091 | R-HER-3/4/5/7, método §9.13 |
+| Cambio de rol entre niveles (instrumento arriba, afectado abajo) | PUEDE condicionado | R-ROL-1/2/3, método A5.4 |
+| Materialización de herencia (dibujar/emitir heredados), discriminantes, operación «crear general» | R-HER-8 prohíbe materializar; discriminantes sin marca en el modelo; «crear general» es «la herramienta o el modelador» (R-HER-7) ⇒ método. **Ojo**: R-HER-1 y R-VIS-HER-1 («DEBEN aplicarse aunque no se dibujen») SÍ obligan a que los validadores cuenten lo heredado (DR-43); R-VIS-HER-2 (afiliación por cadena estructural) entra en T-091 | R-HER-3/4/5/7, método A5.13 |
 | Objetos específicos de estado materializados | Lectura de metamodelo | R-META-15/16 |
 | Asistente guiado de 11 etapas, lentes SD, viewpack, ledger, carriles valor/soporte, validación stakeholder, marca epistémica | Método humano | método A0–A2, A4.6, A7, A8.1, LF-06..LF-18 |
 | Descomposición reactiva por eventos (LF-06) | LF «propuesta», no ratificada | método LF-06 |
@@ -109,7 +109,7 @@ Regla de no sobrebloqueo (R-AP-0C, R-APP-5, R-OPD-VAL-4, R-ZNC-1/2): solo se **b
 | Perseverancia | Derivada del tipo: objeto = persistente, proceso = transitorio. «No hay otras opciones.» Sin glifo. No se almacena. | inf. DEBE | R-COSA-2, R-OPD-COSA-1, R-OPD-BIM-4 (DR-3) |
 | Esencia | {física, informacional}, default **informacional**; propiedad de la cosa (todas sus apariencias). | inf. DEBE | R-OBJ-3, R-OPD-COSA-2, R-REF-4 |
 | Afiliación | {sistémica, ambiental}, default **sistémica**; persiste en todos los niveles. | inf. DEBE / DEBE | R-OBJ-3, R-CTRN-1/1A, R-OPD-COSA-4 |
-| Nombre | Único en el modelo (1:1 cosa↔nombre canónico); reusar un nombre = nueva apariencia de la misma cosa; conflicto nominal se resuelve explícitamente (reusar / renombrar / descartar); nunca reescritura silenciosa. | DEBE (invariante) | método §9.15/A8.2, R-OPD-ROT-5, R-VIS-NOM-1, AP-22 |
+| Nombre | Único en el modelo (1:1 cosa↔nombre canónico); reusar un nombre = nueva apariencia de la misma cosa; conflicto nominal se resuelve explícitamente (reusar / renombrar / descartar); nunca reescritura silenciosa. | DEBE (invariante) | método A5.15/A8.2, R-OPD-ROT-5, R-VIS-NOM-1, AP-22 |
 | Léxico del nombre | Cosa: palabras separadas por un espacio, la primera capitalizada, caracteres = letra (incl. á é í ó ú ñ ü) · dígito · `-` · `_`, cada palabra empieza con letra. Estado: **una** palabra que empieza en minúscula. | DEBE (EBNF) | R-§18-LEX-1, R-OPL-LEX-1..3, EBNF A.2/A.3 (DR-8) |
 | Estado | Solo en objetos; atómico; nunca flotante ni de proceso. Orden persistido (roundtrip preserva la lista y su orden). | inf. NO DEBE / DEBE | R-EST-1, R-PROC-4, AP-12, R-OPD-EST-1/2, spec-OPL §2.3 |
 | Designaciones | Inicial 0..*, Final 0..* (combinables: D10), Por defecto 0..1, `Current` declarado 0..1 (persistente, distinto de runtime). | inf. DEBE | R-EST-2/3, R-OPD-EST-4..6 |
@@ -119,7 +119,7 @@ Regla de no sobrebloqueo (R-AP-0C, R-APP-5, R-OPD-VAL-4, R-ZNC-1/2): solo se **b
 | Duración (proceso) | `{min?, esperada?, max?, unidad?}`; unidad del sistema = default del modelo; duración > 0. EX1 exige `max`, EX2 exige `min`. | DEBE / inf. | R-EXC-2/3/4/5, R-PROC-3, R-OPD-INV-6 |
 | Unidades de tiempo | `ms, sec, min, hour, day, week, month, year` | inf. DEBE | R-OPD-INV-6 |
 | Género gramatical | Masculino por defecto, ajustable (para `un/una`). | inf. DEBE (default) | R-OPL-1 (DR-12) |
-| Enlace | origen, destino, tipo (familia derivada), extremos de estado opcionales, control (`e`/`c`, a lo sumo uno), etiqueta opcional, ruta opcional, multiplicidad por extremo. Solo binario. | DEBE | R-META-13, R-VIS-CONSTRUCT-1, R-COMB-3, R-§21-OPL-MOD, método §9.23 |
+| Enlace | origen, destino, tipo (familia derivada), extremos de estado opcionales, control (`e`/`c`, a lo sumo uno), etiqueta opcional, ruta opcional, multiplicidad por extremo. Solo binario. | DEBE | R-META-13, R-VIS-CONSTRUCT-1, R-COMB-3, R-§21-OPL-MOD, método A5.23 |
 | Familias | Seis, cerradas; todo enlace pertenece a exactamente una. | inf. DEBE | reglas §5.1, spec-OPD §4.1 |
 | Modificador | Atributo del enlace base; NO agrega cosa ni enlace. | inf. DEBE / NO DEBE | R-ECA-4, R-MOD-NAT-1, R-OPD-CTL-1 |
 | Abanico | ≥2 enlaces del mismo tipo con extremo común; operador XOR/OR; AND = ausencia de abanico. | inf. DEBE | spec-OPL §8.1, R-FAN-HAB-1, R-VIS-FAN-1 |
@@ -427,11 +427,11 @@ Realización mínima conforme (DR-13/DR-14):
 | R-OBJ-6, R-OPD-STR-13, R-VIS-HER-2 | «La afiliación DEBE heredarse por cadena estructural»; atributos **y operaciones** de cosa ambiental son ambientales «automáticamente» (propagar al crear la exhibición y al volver ambiental al exhibidor; advertir incoherencias en el resto de la cadena). | DEBE |
 | R-OBJ-7 | Procesos ejecutados por cosas ambientales DEBEN modelarse ambientales (advertencia metodológica). | DEBE |
 | R-OPD-OP-6 | Advertir si un objeto se incluye como refinador en más de un contexto con ambigüedad de pertenencia. | DEBE |
-| R-OPD-REF-10, método A0.4a | La descomposición DEBE preservar la firma de frontera del proceso abstracto; checker pasivo `DESCOMPOSICION_NO_PRESERVA_FRONTERA`. Con vista del padre derivada (§3.5) se cumple por construcción (DR-16). | DEBE |
+| R-OPD-REF-10, perfil metodo-opforja §A0.4a | La descomposición DEBE preservar la firma de frontera del proceso abstracto; checker pasivo `DESCOMPOSICION_NO_PRESERVA_FRONTERA`. Con vista del padre derivada (§3.5) se cumple por construcción (DR-16). | DEBE |
 | R-SD-4, R-VIS-SD-1 | El SD contiene exactamente un proceso sistémico (PUEDE contener ambientales) ⇒ advertir. | inf. DEBE |
 | R-OPD-VAL-6 | DEBERÍA detectar inconsistencias inter-OPD, cruce de eventos sistémicos, inclusión múltiple de refinador, generales redundantes junto a especializados. | DEBERÍA |
 | R-HER-8, AP-29, R-EST-HER-1, R-OPD-STR-6 | Heredados NO se dibujan ni se emiten como explícitos duplicados; la herramienta no materializa herencia. | NO DEBE |
-| R-HER-1, R-VIS-HER-1, R-OPD-STR-6 | La herencia (partes, rasgos, etiquetados, procedimentales; método §9.9 añade estados) «DEBE aplicarse aunque los enlaces heredados no se dibujen localmente» ⇒ los validadores que dependen de enlaces/estados consultan la cadena de generales (DR-43). | DEBE |
+| R-HER-1, R-VIS-HER-1, R-OPD-STR-6 | La herencia (partes, rasgos, etiquetados, procedimentales; método A5.9 añade estados) «DEBE aplicarse aunque los enlaces heredados no se dibujen localmente» ⇒ los validadores que dependen de enlaces/estados consultan la cadena de generales (DR-43). | DEBE |
 | R-HER-2 | Herencia múltiple permitida con trazabilidad de cada general (varios enlaces de generalización). | DEBE |
 
 ### 3.5 Proyección entre niveles (vista del OPD padre y visibilidad en el hijo)
@@ -488,7 +488,7 @@ Resolución mínima: «Inválido» ⇒ diagnóstico error AP-30 («Corregir el n
 | R-OPL-TOTAL-4/5 | El OPL de un OPD expresa solo estados visibles/referenciados ahí; el conjunto completo de estados = unión. | DEBE |
 | R-OPD-OP-4 | Toda migración preserva la identidad del hecho o declara eliminación/creación explícita. | DEBE |
 | R-OPD-OP-2 | Recomposición = inversa (COND). Producto: «Eliminar refinamiento» destructivo con confirmación que PUEDE materializar en el padre la vista abstraída (§3.5) antes de borrar internos (DR-17). | DEBE (si se ofrece) |
-| método A1.5-d | «Eliminar refinamiento es una operación destructiva distinta, nunca la inversa de Integrar». | inf. DEBE |
+| perfil metodo-opforja §A1.5-d | «Eliminar refinamiento es una operación destructiva distinta, nunca la inversa de Integrar». | inf. DEBE |
 
 ---
 
@@ -805,7 +805,7 @@ R-COMB-4 (DEBE, orden de superficie estable cuando coinciden dimensiones, textua
 | `2..*` | 2..* | al menos dos (el parser acepta también «dos o más»; DEC35) |
 | `n` (entero ≥ 2) | n..n | n, en cifras y sin género (EBNF A.2 `limite_de_participacion`; DEC35) |
 
-R-MULT-1 (DEBE): la emisión antepone la frase al sustantivo, concordando género. `Correcto: *Cocinar* requiere al menos una **Olla**.` `Incorrecto: *Cocinar* requiere 1..* **Olla**.` La frase de cardinalidad es un sub-span propio (spec-OPL §10.3). Fuera de estos valores (`0`, `1` explícito, `exactamente un/una`, otros rangos `qmín..qmáx`, intervalos, listas, parámetros, `m a n`, restricciones `donde …`): X (DR-21, DEC35). El sustantivo sigue en singular con cualquier valor (DR-12). Huecos donde la EBNF admite la frase: objeto de consumo/resultado/instrumento, sujeto de agente, lista de efecto, disparador de evento (A.5), partes de agregación (A.9), ambos extremos de etiquetados (A.8). Las plantillas de **condición** (A.6) y el **todo** de la agregación NO tienen hueco (DR-44). Estado: C (no ★).
+R-MULT-1 (DEBE): la emisión antepone la frase al sustantivo, concordando género. `Correcto: *Cocinar* requiere al menos una **Olla**.` `Incorrecto: *Cocinar* requiere 1..* **Olla**.` La frase de cardinalidad es un sub-span propio (perfil opl-opforja §10.3). Fuera de estos valores (`0`, `1` explícito, `exactamente un/una`, otros rangos `qmín..qmáx`, intervalos, listas, parámetros, `m a n`, restricciones `donde …`): X (DR-21, DEC35). El sustantivo sigue en singular con cualquier valor (DR-12). Huecos donde la EBNF admite la frase: objeto de consumo/resultado/instrumento, sujeto de agente, lista de efecto, disparador de evento (A.5), partes de agregación (A.9), ambos extremos de etiquetados (A.8). Las plantillas de **condición** (A.6) y el **todo** de la agregación NO tienen hueco (DR-44). Estado: C (no ★).
 
 ### 4.5 Orden y composición de oraciones (generador)
 
@@ -1371,7 +1371,7 @@ interface LineaOpl {
 
 ## 5. OPD: realización visual e interacción
 
-Norma de lectura (spec-OPD §18, textual): «la **estructura** de cada marca (forma, topología, conteo de trazos, dirección) es normativa; los valores cromáticos son tokens informativos (R-OPD-COSA-5) y los píxeles son la realización vigente (cambiables si preservan la distinción a cualquier zoom)».
+Norma de lectura (perfil opd-opforja §18, textual): «la **estructura** de cada marca (forma, topología, conteo de trazos, dirección) es normativa; los valores cromáticos son tokens informativos (R-OPD-COSA-5) y los píxeles son la realización vigente (cambiables si preservan la distinción a cualquier zoom)».
 
 ### 5.1 Regla rectora
 
@@ -1465,7 +1465,7 @@ Marcas textuales (reglas §3.9, textual; R-MARCA-1: DEBEN limitarse a esta tabla
 - Duración (R-OPD-INV-6): dentro de la elipse, bajo el nombre: `[unidad] {min, esperada, max} {distribución, parámetros}`; sin distribución NO se emite placeholder (DR-18).
 - Anidamiento (reglas §3.11, textual): objeto contiene estados, partes si está descompuesto, rasgos (semi-plegado); proceso inflado contiene subprocesos y objetos internos; estado no contiene NADA.
 
-### 5.5 Catálogo formal (spec-OPD §18, copia literal)
+### 5.5 Catálogo formal (perfil opd-opforja §18, copia literal)
 
 §18.1 Paleta (tokens informativos):
 
@@ -1557,7 +1557,7 @@ Informativo, no obliga (§0.4): hex, px, fuentes concretas, radios r30/35, offse
 | R-OPD-EDIT-6 | Rastrear refinadores y ajustar símbolo (colección incompleta, contorno grueso) y OPL al cambiar la colección. | DEBE |
 | R-OPD-EDIT-7 | Permitir reanclar los extremos de un **enlace estructural fundamental** (compuesto triangular). Para otros tipos el canon no lo exige (reanclar = borrar + crear es conforme). | DEBE |
 | R-VIS-APP-1 | Separar «quitar de este OPD» (apariencia) de «eliminar del modelo» (cosa). | NO DEBE (eliminar apariencia ≠ cosa) |
-| método §9.15 | Traer una cosa existente a otro OPD = nueva apariencia de la misma entidad. | invariante |
+| método A5.15 | Traer una cosa existente a otro OPD = nueva apariencia de la misma entidad. | invariante |
 | R-OPD-CFG-1/2 | Ninguna opción de presentación altera el hecho; toggles de vista admitidos (supresión de estados global+local; el OPL local refleja la vista). | DEBE / PUEDE |
 
 Operaciones mínimas del canvas que el canon presupone (★): crear objeto/proceso con nombre; renombrar; fijar esencia y afiliación; agregar/renombrar/reordenar/eliminar estados y designaciones; suprimir/expresar estados por OPD y global; crear enlace (menú filtrado) y fijar control, etiqueta(s), ruta, multiplicidad; formar/deshacer abanico XOR/OR; marcar colección incompleta; descomponer (in-zoom) y desplegar (unfold, eligiendo modo); reordenar subprocesos en bandas; eliminar refinamiento; navegar el árbol OPD; quitar apariencia vs eliminar del modelo; traer cosa existente; reanclar extremos de estructurales fundamentales; fijar duración (min/esperada/máx/unidad) de un proceso; mover/redimensionar; exportar.
@@ -1566,7 +1566,7 @@ Operaciones mínimas del canvas que el canon presupone (★): crear objeto/proce
 
 ## 6. Edición, importación y bloqueo; fallos y diagnóstico
 
-### 6.1 Escenarios OPD↔OPL (reglas §10)
+### 6.1 Escenarios OPD↔OPL (perfil reglas-opforja §10)
 
 | ID | Regla | Oblig. |
 |---|---|---|
@@ -1577,7 +1577,7 @@ Operaciones mínimas del canvas que el canon presupone (★): crear objeto/proce
 | R-EDIT-5 | Crear vistas no crea hechos nuevos (sin vistas en producto). | NO DEBE |
 | método A8.1 «Bimodalidad activa» | Tras cada edición gráfica, el OPL actualizado es visible (idealmente la oración del cambio). | inf. DEBE |
 
-### 6.2 Editor OPL (spec-OPL §15)
+### 6.2 Editor OPL (perfil opl-opforja §15)
 
 Clasificación por línea (R-OPL-EDIT-1, DEBE; precedencia: vacía → aplicable → error → sin-cambio):
 
@@ -1628,7 +1628,7 @@ Más (producto, DR-35): `crear-refinamiento` / `fijar-orden` para `se descompone
 | R-OPL-EDIT-8 | Etiqueta, control y tiempos solo por las operaciones validadas del kernel (una sola API de mutación para OPD y OPL). | DEBE / NO DEBE |
 | R-OPL-EDIT-9 | Editar una oración compuesta (listas) = mutación por hecho: solo mutan los hechos cuyos sub-spans cambiaron. | DEBE |
 
-### 6.3 Modos de fallo (spec-OPL §17)
+### 6.3 Modos de fallo (perfil opl-opforja §17)
 
 | ID | Regla | Oblig. |
 |---|---|---|
@@ -1810,9 +1810,9 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-021 | Duración de proceso `{min, esperada, max, unidad}`; unidad temporal del modelo como default; duración > 0. | DEBE / PUEDE | mod | R-EXC-4/5, R-PROC-3, R-OPD-INV-6 | ★ |
 | T-022 | Id persistente opaco para cosa, estado, enlace y OPD, estable bajo renumeración; nunca `SDx.y` ni nombre. | DEBE | mod | R-IDP-0C/2/3, R-META-9, Anexo A «Identidad», AP-17 | ★ |
 | T-023 | Apariencia ≠ cosa: una cosa PUEDE aparecer en N OPDs; ≤1 apariencia por (cosa, OPD). | PUEDE / NO DEBE | mod | R-VIS-APP-1, R-PRIN-9, R-INS-2, DR-25 | ★ |
-| T-024 | Nombre único en el modelo (objetos y procesos comparten espacio); reuso de nombre = nueva apariencia. | invariante | mod | método §9.15/A8.2, R-VIS-NOM-1, DR-22 | ★ |
+| T-024 | Nombre único en el modelo (objetos y procesos comparten espacio); reuso de nombre = nueva apariencia. | invariante | mod | método A5.15/A8.2, R-VIS-NOM-1, DR-22 | ★ |
 | T-025 | Léxico de nombres: cosa = palabras (letra/dígito/`-`/`_`, acentos, ñ, ü) separadas por un espacio, cada una empieza con letra, la primera en mayúscula; estado = una palabra que empieza en minúscula. Si la herramienta normaliza (casing, espacios), NO DEBE hacerlo en silencio. | DEBE / NO DEBE | imp | R-§18-LEX-1, R-OPL-LEX-1..3, R-OPD-ROT-5, R-VIS-AUTOR-2, DR-8 | ★ |
-| T-026 | Enlace binario con tipo (familia derivada, 6 familias cerradas), origen, destino, estado de entrada/salida opcional, control, etiqueta(s), ruta y multiplicidad por extremo. | DEBE | mod | R-META-13, reglas §5.1, método §9.23 | ★ |
+| T-026 | Enlace binario con tipo (familia derivada, 6 familias cerradas), origen, destino, estado de entrada/salida opcional, control, etiqueta(s), ruta y multiplicidad por extremo. | DEBE | mod | R-META-13, reglas §5.1, método A5.23 | ★ |
 | T-027 | Control `e`/`c` como atributo escalar del enlace (a lo sumo uno); no crea cosa ni enlace. | DEBE / PUEDE | mod | R-ECA-4, R-MOD-NAT-1, R-COMB-3, R-§21-OPL-MOD | ★ |
 | T-028 | Abanico XOR/OR como entidad explícita (n ≥ 2, mismo tipo, extremo común); AND = ausencia de abanico. | inf. DEBE | mod | spec-OPL §8.1, R-FAN-HAB-1, R-VIS-FAN-1 | ★ |
 | T-029 | Refinamiento en la cosa: descomposición `{opdId, orden en bandas}` y despliegue `{opdId, modo}`; a lo sumo uno de cada. | inf. DEBE | mod | método F, R-INV-2D, R-IDP-0A | ★ |
@@ -1879,7 +1879,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-086 | En un OPD hijo solo se ven enlaces que tocan el contenedor o internos. | DEBEN | ren | R-VIS-HIJO-1, R-OPD-REF-6 | ★ |
 | T-087 | Rastrear refinadores y ajustar automáticamente símbolo (contorno grueso, colección incompleta) y OPL al cambiar la colección, dejando traza de cada ajuste automático. | DEBE | ope | R-OPD-EDIT-6, R-OPD-OP-5, DR-45 | ★ |
 | T-088 | Advertir refinador incluido en más de un contexto con pertenencia ambigua. | DEBE | adv | R-OPD-OP-6 | |
-| T-089 | Firma de frontera de la descomposición preservada (checker pasivo `DESCOMPOSICION_NO_PRESERVA_FRONTERA`; por construcción con vista derivada, pero realizado como ley ejecutable en la suite). | DEBE | adv | R-OPD-REF-10, método A0.4a, R-CAT-EQ-3, R-ANEXO-CAT-0, DR-16 | |
+| T-089 | Firma de frontera de la descomposición preservada (checker pasivo `DESCOMPOSICION_NO_PRESERVA_FRONTERA`; por construcción con vista derivada, pero realizado como ley ejecutable en la suite). | DEBE | adv | R-OPD-REF-10, perfil metodo-opforja §A0.4a, R-CAT-EQ-3, R-ANEXO-CAT-0, DR-16 | |
 | T-090 | Advertir SD sin exactamente un proceso sistémico. | inf. DEBE | adv | R-SD-4, R-VIS-SD-1 | |
 | T-091 | Afiliación ambiental heredada por la cadena estructural: los rasgos (atributos **y operaciones**) de una cosa ambiental son ambientales «automáticamente» (propagar al crear la exhibición **y** al volver ambiental al exhibidor); advertir incoherencias restantes en la cadena estructural; advertir proceso ejecutado por cosas ambientales no ambiental. | DEBE | adv | R-OBJ-6/7, R-OPD-STR-13, R-VIS-HER-2 | |
 | T-092 | No materializar herencia: heredados ni se dibujan ni se emiten. | NO DEBE | ren | R-HER-8, AP-29, R-EST-HER-1, R-OPD-STR-6 | ★ |
@@ -1956,7 +1956,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-168 | Una línea abstraída del OPD padre se resuelve al hecho refinado existente (`sin-cambio`). | DEBE | par | R-OPL-DISP-4, DR-13 | ★ |
 | T-169 | Fan TS3 con entrada común ⇒ un TS3 por salida y un único abanico. | DEBE | par | R-FAN-5B | |
 | T-170 | Línea `**A** <frase en minúscula> **B**.` sin otro esqueleto ⇒ SE1 con esa etiqueta. | inf. | par | R-EST-TAG-1, DR-36 | ★ |
-| T-171 | El texto es un conjunto de hechos: reordenar líneas no muta; al regenerar se reimpone el orden canónico. | inf. | par | spec-OPL §19.5 | ★ |
+| T-171 | El texto es un conjunto de hechos: reordenar líneas no muta; al regenerar se reimpone el orden canónico. | inf. | par | perfil opl-opforja §19.5 | ★ |
 | T-172 | Una línea ausente nunca borra un hecho: `no-delete-by-absence` (info); el borrado es explícito (canvas/inspector). | NO DEBE | par | R-§19-LENS-1, R-OPL-EDIT-4, R-OPL-FALLO-8 | ★ |
 | T-173 | Preview puro: clasificar sin mutar; aplicar en una fase separada. | NO DEBE | par | R-§19-LENS-2 | ★ |
 | T-174 | Clasificación por línea: `ignorada-vacia`, `aplicable`, `no-aplicable`, `sin-cambio`, con esa precedencia. | DEBE | par | R-OPL-EDIT-1 | ★ |
@@ -2037,9 +2037,9 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-249 | Cambios en canales semánticos cambian hecho y OPL; cambios ornamentales no. | DEBE / NO DEBE | ope | R-EDIT-6/7, R-OPD-EDIT-2, R-OPD-BIM-3 | ★ |
 | T-250 | Reanclar extremos de enlaces estructurales fundamentales (compuesto triangular). | DEBE | ope | R-OPD-EDIT-7 | |
 | T-251 | Distinguir «quitar de este OPD» de «eliminar del modelo». | NO DEBE (confundir) | ope | R-VIS-APP-1 | ★ |
-| T-252 | Operaciones mínimas del canvas de §5.7 (crear/nombrar cosas, estados, designaciones, enlaces con control/etiqueta, abanicos, refinar, reordenar bandas, navegar árbol, traer cosa existente). | inf. DEBE | ope | reglas §8, spec-OPD §15, método §9.15 | ★ |
+| T-252 | Operaciones mínimas del canvas de §5.7 (crear/nombrar cosas, estados, designaciones, enlaces con control/etiqueta, abanicos, refinar, reordenar bandas, navegar árbol, traer cosa existente). | inf. DEBE | ope | reglas §8, spec-OPD §15, método A5.15 | ★ |
 | T-253 | Feedback de destinos válidos/inválidos en modo enlace, en canal UI. | DEBE | int | R-OPD-UI-5 | |
-| T-254 | Ningún gesto de la UI se presenta como validación humana del modelo. | inf. NO DEBE | int | método A1.5-f, R-CAN-BOCETO-4 | |
+| T-254 | Ningún gesto de la UI se presenta como validación humana del modelo. | inf. NO DEBE | int | perfil metodo-opforja §A1.5-f, R-CAN-BOCETO-4 | |
 
 ### 9.10 Validación y diagnóstico
 
@@ -2077,18 +2077,18 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 
 | ID | Requisito | Oblig. | Tipo | Fuente | ★ |
 |---|---|---|---|---|---|
-| T-300 | Tests de plantillas del generador y de vocabulario cerrado. | inf. DEBE | ver | spec-OPL §22 | ★ |
+| T-300 | Tests de plantillas del generador y de vocabulario cerrado. | inf. DEBE | ver | perfil opl-opforja §22 | ★ |
 | T-301 | Suite de roundtrip bisimétrico desde modelo vacío con fixtures por fila de la tabla 9.2, escisión y abanicos. | EXIGE | ver | R-§19-SIM-3, R-BI-TAB-1 | ★ |
-| T-302 | Leyes safe-lens ejecutables: no borrar por ausencia, preview puro, preservación de hechos, `unsupported-canonical` sin mutación. | inf. DEBE | ver | spec-OPL §22, R-§19-LENS-1..3 | ★ |
+| T-302 | Leyes safe-lens ejecutables: no borrar por ausencia, preview puro, preservación de hechos, `unsupported-canonical` sin mutación. | inf. DEBE | ver | perfil opl-opforja §22, R-§19-LENS-1..3 | ★ |
 | T-303 | Checklist de cierre del Anexo A de reglas usado como gate de cambios de modelado, parser, generador, import/export y render. | DEBE | ver | R-ANEXO-CHECK-1 | ★ |
-| T-304 | Tests de topología de marcadores y del kernel de refinamiento/distribución; smoke e2e de interacción y canvas (§24). El ejemplo «Lavar Platos» (spec-OPD Apéndice B) es ilustrativo, no fixture obligatorio (y difiere de DR-13 en la distribución del instrumento). | inf. DEBE | ver | spec-OPD §24, Apéndice B | |
+| T-304 | Tests de topología de marcadores y del kernel de refinamiento/distribución; smoke e2e de interacción y canvas (§24). El ejemplo «Lavar Platos» (spec-OPD Apéndice B) es ilustrativo, no fixture obligatorio (y difiere de DR-13 en la distribución del instrumento). | inf. DEBE | ver | perfil opd-opforja §24, Apéndice B | |
 | T-305 | Una captura de edición/navegación/modal no se acepta como evidencia de canonicidad. | NO DEBE | ver | R-OPD-CAN-4, R-VIS-EXP-6 | |
 
 ### 9.13 Capacidades opcionales (PUEDE) y solo-si-existen
 
 | ID | Requisito | Oblig. | Tipo | Fuente | ★ |
 |---|---|---|---|---|---|
-| T-320 | Bocetos y régimen Apunte/Modelo; si existen: integridad constante, Integrar ≠ Graduar, Devolver preserva id, hechos y subárbol, Bocetos bloquean export en Modelo, placeholders emiten OPL en Apunte. | PUEDE (DEBE internos) | ope | R-OPD-REF-20, R-CAN-BOCETO-1..4, R-ENT-2-APUNTE, método A1.5 | |
+| T-320 | Bocetos y régimen Apunte/Modelo; si existen: integridad constante, Integrar ≠ Graduar, Devolver preserva id, hechos y subárbol, Bocetos bloquean export en Modelo, placeholders emiten OPL en Apunte. | PUEDE (DEBE internos) | ope | R-OPD-REF-20, R-CAN-BOCETO-1..4, R-ENT-2-APUNTE, perfil metodo-opforja §A1.5 | |
 | T-321 | Coaccionar a informacional un objeto al volverlo atributo. | PUEDE | ope | método F | |
 | T-322 | Durante el arrastre, marca transitoria de enlace inválido (fuera de canon). | PUEDE | ren | R-OPD-VAL-3 | |
 | T-323 | Simulación: si existe, R-EJEC-7..10, R-OPD-SIM-1..7 y F.2 son DEBE, en canal propio no persistente. | DEBE si existe | ope | reglas §2.8, spec-OPD §20, método F.2 | |
@@ -2119,13 +2119,13 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | DR-13 | Enlaces del padre tras descomponer: «permitido al contorno = a todos» vs «procedimentales al contenedor NO visibles directamente (se distribuyen)»; identidad del hecho a través de la migración; vista del padre. | reglas §8.5, R-OPD-REF-6/11, R-VIS-HIJO-1, R-OPD-OP-4, R-OPL-DISP-3 | Un solo hecho por enlace: agente, instrumento y efecto sin estado quedan en el **contorno** con lectura distributiva (sin copias); consumo, resultado, evento sistémico y TS3 migran (mismo id) o se escinden. La vista del OPD padre se **deriva** abstrayendo extremos internos al contenedor (§3.5). |
 | DR-14 | La tabla de distribución no cubre invocación ni excepción del proceso descompuesto (R-HIJO-2 «cuando la regla de copia lo exija»). | GAP-29 reglas-b | Permanecen en el contorno; sin migración. |
 | DR-15 | LF-03 (punto 6) escribe la visibilidad como «`Estado.suprimido` global **∧** local (global domina, local refina)», ambiguo; R-OPD-EST-8 la escribe bien: «visibilidad efectiva = ¬suprimido-global ∧ ¬suprimido-local» (≡ oculto ⇔ global ∨ local). R-VIS-SUPR-1 / R-OPD-EST-10 dicen «estados no referenciados NO se suprimen» (probable errata frente a LF-03/A3.6); supresión computada «solo en descomposición»; estatus del chip `⋯N` condicional. | LF-03, R-VIS-SUPR-1, R-OPD-EST-8/9/10, C-09 | Oculto ⇔ global ∨ local. Un estado enlazado en un OPD no se suprime ahí (LF-03). Sin supresión computada automática: la decide el modelador por OPD. El chip `⋯N` persiste en `canon-diagrama` (indicador normativo de reglas §3.10) y el OPL usa D6. |
-| DR-16 | Firma de frontera: checker «pasivo» sin definición computable. | R-OPD-REF-10, método A0.4a, GAP-16 | Con la vista del padre derivada del hijo, la frontera se preserva por construcción. Como R-ANEXO-CAT-0 exige que cada regla del Anexo C sea «ejecutable por una ley o checker verificable», se realiza como ley de test (firma de roles netos `entidad|tipoEnlace|rol` del contenedor en el padre = del hijo) y se identifica en el registro. |
-| DR-17 | Recomposición (out-zoom) canónica pero COND; «Eliminar refinamiento» destructivo; borrado con subárbol. | R-OPD-OP-2, método A1.5-d, GAP-21 | Solo se elimina un refinamiento cuyo OPD hijo es hoja. La confirmación lista lo que se pierde y PUEDE materializar en el padre la vista abstraída (recomposición simple); los conflictos R-PREC-3 se muestran para decisión del modelador. |
+| DR-16 | Firma de frontera: checker «pasivo» sin definición computable. | R-OPD-REF-10, perfil metodo-opforja §A0.4a, GAP-16 | Con la vista del padre derivada del hijo, la frontera se preserva por construcción. Como R-ANEXO-CAT-0 exige que cada regla del Anexo C sea «ejecutable por una ley o checker verificable», se realiza como ley de test (firma de roles netos `entidad|tipoEnlace|rol` del contenedor en el padre = del hijo) y se identifica en el registro. |
+| DR-17 | Recomposición (out-zoom) canónica pero COND; «Eliminar refinamiento» destructivo; borrado con subárbol. | R-OPD-OP-2, perfil metodo-opforja §A1.5-d, GAP-21 | Solo se elimina un refinamiento cuyo OPD hijo es hoja. La confirmación lista lo que se pierde y PUEDE materializar en el padre la vista abstraída (recomposición simple); los conflictos R-PREC-3 se muestran para decisión del modelador. |
 | DR-18 | Unidades de duración en inglés (`ms, sec, min…`) en canon es-CL; R-OPD-INV-6 dice que ese enum «fija solo la superficie visual» y delega la textual a spec-OPL §5.3, cuyos ejemplos normativos usan palabras es-CL (`excede 5 minutos`, `es menor que 30 segundos`) sin tabla de mapeo; EBNF fija el literal `unidades-tiempo` mientras §5.3 lo declara metavariable. | R-OPD-INV-6, spec-OPL §5.3, EBNF A.5, C-11 | OPD: token del enum (`[min]`). OPL: `<valor> <palabra es-CL>` con mapeo fijo mínimo `ms`→milisegundos, `sec`→segundos, `min`→minutos, `hour`→horas, `day`→días, `week`→semanas, `month`→meses, `year`→años (singular si el valor es 1). `unidades-tiempo` = metavariable; la EBNF se corrige así. Sin cota: frase de respaldo (R-EXC-DUR-1). El mapeo exacto es decisión pendiente menor del dueño (§10.3). |
 | DR-19 | Ruta: canónica sobre toda oración procedimental (A.5) pero «restricción de producto» a consumo/resultado; ¿qué hace el parser con ruta sobre habilitadores? | R-OPL-RUTA-3, C-25, GAP-08 | Se mantiene la restricción declarada: ruta solo en consumo/resultado; otras ⇒ `unsupported-canonical`. |
 | DR-20 | Valores de atributo: plantilla propia `**Atributo** de **Objeto** puede estar …` y D5 genérico. | reglas §4.13 vs D5 | Generador usa D5 (el atributo es un objeto); parser acepta ambas (la forma «de **Objeto**» crea la exhibición si falta). |
 | DR-21 | Multiplicidad: `*` → `opcional (cero o más)` no es derivable de la EBNF; rangos, intervalos y parámetros sin plantilla en prosa (GAP-RANGO-TEXTUAL); R-MULT-1 excluye exhibición pero RF2o la usa. | spec-OPL §10.1/§10.2 vs EBNF A.2, R-MULT-1 vs RF2o | `?`, `*`, `+` y default, con las frases de §10.1 (el parser acepta `opcional (cero o más)` como plantilla). DEC35 suma lo que la EBNF A.2 sí escribe en prosa: un entero exacto n ≥ 2 en cifras y `2..*` como «al menos dos» (también se lee «dos o más»). Todo lo demás, y la exhibición opcional, ⇒ `unsupported-canonical`. |
-| DR-22 | Unicidad nominal vs `referencia-ambigua` («más de una entidad con ese nombre») y «homónimos → cosas separadas». | método §9.15, R-OPL-FALLO-4, R-OPD-ROT-5 | Nombre único en todo el modelo (objetos y procesos); la ambigüedad es imposible; un cambio de tipo por OPL cae en R-IMPORT-7. |
+| DR-22 | Unicidad nominal vs `referencia-ambigua` («más de una entidad con ese nombre») y «homónimos → cosas separadas». | método A5.15, R-OPL-FALLO-4, R-OPD-ROT-5 | Nombre único en todo el modelo (objetos y procesos); la ambigüedad es imposible; un cambio de tipo por OPL cae en R-IMPORT-7. |
 | DR-23 | Descomposición de objeto: DEBE (R-OPL-CX-4) pero la EBNF le exige `, en esa secuencia`, contra «la posición NO es tiempo». | EBNF A.10 vs R-OPD-REF-2, R-CX-DESP-2, método A3.3 | Escalonable: se declara en el registro (las partes se modelan por despliegue de agregación). Si se implementa, sin marca temporal (corrige la EBNF). |
 | DR-24 | CX1 (sin OPDs) es plantilla-gate, pero R-OPL-CX-2/3 exigen declarar OPD padre/hijo en refinamiento en OPD nuevo; CX3 lleva etiqueta; spec-OPL emite con verbo de relación. | reglas §4.11, 9.2 vs R-OPL-CX-2/3, spec-OPL §7.2, GAP-A07 | Refinamiento siempre en OPD nuevo. Descomposición: CX1/CX2/mixta dentro del bloque del OPD hijo (el bloque declara OPD y padre). Despliegue: CX3 con la etiqueta del hijo; los enlaces del refinador van además en oraciones atómicas (R-CX-COMP-1). El parser acepta además las formas `desde SDp … en SDh en …` y `se despliega en` sin etiqueta. |
 | DR-25 | Cosa duplicada en el mismo OPD (silueta) sin soporte en v0. | reglas §3.10, GAP-OPD-DUPLICADO | No se ofrece: ≤1 apariencia por (cosa, OPD). |
@@ -2145,8 +2145,8 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | DR-39 | Partial-parse vs fail-fast; atomicidad no definida. | R-OPL-FALLO-2/7, G22 | Las líneas `aplicable` se aplican juntas, todo o nada, sobre una copia del modelo; ante el primer fallo se aborta sin cambios y se reporta. |
 | DR-40 | Tres taxonomías de severidad: reglas (bloqueo, advertencia, mejora metodológica, vista/UI, extensión pendiente), spec-OPD (5 familias), método (CRÍTICA/ALTA-MEDIA/BAJA), spec-OPL (error/warning/info). | reglas Definiciones, R-OPD-VAL-2, método A8.1, R-OPL-FALLO-1 | Un solo registro de diagnóstico con `severidad` (error/warning/info ≙ CRÍTICA/ALTA-MEDIA/BAJA) y `familia` (5 de spec-OPD); «vista/UI» y «extensión pendiente» se expresan como `info` con familia `sugerencia` o en el registro. |
 | DR-41 | El bundle del Apéndice F carece de campos para control, abanicos, rutas, orden en bandas, multiplicidad de origen, duración, régimen; `apariciones` vs `apariencias`; `opds.enlaces` ambiguo. | método F, GAP-6/6b | Se conserva el núcleo con sus nombres y se agregan campos opcionales (§1.2) como extensión declarada; `opds[].apariencias` y `opds[].enlaces` se escriben como listas derivadas. |
-| DR-42 | Bocetos/régimen: DEBE en reglas (R-CAN-BOCETO-*) pero extensión declarada PUEDE en spec-OPD; términos definidos solo en el método; campo `padreId` como detalle de implementación. | R-CAN-BOCETO-1..4 vs R-OPD-REF-20, método A1.5, GAP-10 reglas-b | Fuera del núcleo (PUEDE). Sin Bocetos: todo OPD no raíz es hijo de refinamiento; el régimen es siempre riguroso. Sus DEBE internos aplican solo si se implementa. |
-| DR-43 | Herencia no materializada (R-HER-8, AP-29) pero «DEBE aplicarse aunque los enlaces heredados no se dibujen» (R-VIS-HER-1, R-OPD-STR-6). R-HER-1 hereda partes, rasgos, etiquetados y procedimentales (no estados); método §9.9 añade «y estados». Sin cálculo de herencia, los validadores sobre-acusan (proceso especializado «sin transformación»; efecto a especialización «sin estados»), contra R-AP-0C. | R-HER-1/8, R-VIS-HER-1, R-OPD-STR-6 vs R-PROC-2, R-EFE-1, método §9.9 | Sin materializar nada: los validadores R-PROC-2 (T-263) y R-EFE-1 (T-044) consultan también la cadena de generales (transitiva, herencia múltiple incluida). Estados heredados solo cuentan para R-EFE-1 en efecto básico T3 (el método los hereda; negarlo sería prohibir sin contradicción explícita); el anclaje a estado (TS\*, HS\*, SSE\*) se limita a estados propios del objeto. No se emite OPL ni se dibuja lo heredado. |
+| DR-42 | Bocetos/régimen: DEBE en reglas (R-CAN-BOCETO-*) pero extensión declarada PUEDE en spec-OPD; términos definidos solo en el método; campo `padreId` como detalle de implementación. | R-CAN-BOCETO-1..4 vs R-OPD-REF-20, perfil metodo-opforja §A1.5, GAP-10 reglas-b | Fuera del núcleo (PUEDE). Sin Bocetos: todo OPD no raíz es hijo de refinamiento; el régimen es siempre riguroso. Sus DEBE internos aplican solo si se implementa. |
+| DR-43 | Herencia no materializada (R-HER-8, AP-29) pero «DEBE aplicarse aunque los enlaces heredados no se dibujen» (R-VIS-HER-1, R-OPD-STR-6). R-HER-1 hereda partes, rasgos, etiquetados y procedimentales (no estados); método A5.9 añade «y estados». Sin cálculo de herencia, los validadores sobre-acusan (proceso especializado «sin transformación»; efecto a especialización «sin estados»), contra R-AP-0C. | R-HER-1/8, R-VIS-HER-1, R-OPD-STR-6 vs R-PROC-2, R-EFE-1, método A5.9 | Sin materializar nada: los validadores R-PROC-2 (T-263) y R-EFE-1 (T-044) consultan también la cadena de generales (transitiva, herencia múltiple incluida). Estados heredados solo cuentan para R-EFE-1 en efecto básico T3 (el método los hereda; negarlo sería prohibir sin contradicción explícita); el anclaje a estado (TS\*, HS\*, SSE\*) se limita a estados propios del objeto. No se emite OPL ni se dibuja lo heredado. |
 | DR-44 | Multiplicidad sin hueco textual: R-COMB-6 dice que la multiplicidad «PUEDE combinarse con cualquier … modificador admisible», pero las producciones de condición (A.6) y el todo de la agregación (A.9) no admiten `restriccion_de_participacion`; el único camino del todo es el plural «por multiplicidad» (rechazado, DR-12). | R-COMB-6, R-MULT-COMB-1 vs EBNF A.6/A.9, DR-12 | No se ofrecen multiplicidad + `c` ni multiplicidad en el todo; si llegan por OPL/JSON ⇒ `unsupported-canonical` y registro (R-CONF-7). Evento sí la admite (A.5). |
 | DR-45 | Rastreo de refinadores: reglas R-OPD-OP-5 lo hace PUEDE («si lo hace, DEBE conservar trazabilidad de cada ajuste automático»); spec-OPD R-OPD-EDIT-6 lo hace DEBE. | R-OPD-OP-5 vs R-OPD-EDIT-6 | Se implementa (satisface ambas) y cada ajuste automático deja traza (diagnóstico `info` con la regla y el refinable afectados). |
 
@@ -2185,7 +2185,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | Frontmatter desactualizado, numeración de familias, huecos de IDs, versiones §23/§24, metadatos `legacy` vs `publicado`, «sincronizar con KORA v3.0.0». | C-03, GAP-03/11/12 reglas-a, GAP-30, T opl-c | Sin efecto en la herramienta. |
 | Errata `solापamiento` (R-COMP-ELEG-4); referencia cruzada rota de GAP-FAN-M. | G26/G27 | Sin efecto. |
 | Ejemplo «Lavado de Platos» (spec-OPD Apéndice B): «**Lavavajillas** (externo) distribuye su piruleta blanca a los tres» sugiere una piruleta por subproceso, mientras DR-13 deja un único instrumento en el contorno. | spec-OPD Apéndice B vs R-OPD-REF-11 | El ejemplo es ilustrativo; manda la lectura distributiva (R-OPD-REF-11). No se usa como fixture literal (T-304). |
-| Exención del gate >25 cosas «salvo vista tipificada o refinamiento declarado» sin definición operativa de «refinamiento declarado»; spec-OPD §21 reconoce que v0 bloquea todo OPD >25. | R-LAY-1, R-OPD-LAY-2 | Sin vistas tipificadas en producto: se bloquea todo OPD >25 (conservador) y se declara la exención no realizada en el registro. |
+| Exención del gate >25 cosas «salvo vista tipificada o refinamiento declarado» sin definición operativa de «refinamiento declarado»; perfil opd-opforja §21 reconoce que v0 bloquea todo OPD >25. | R-LAY-1, R-OPD-LAY-2 | Sin vistas tipificadas en producto: se bloquea todo OPD >25 (conservador) y se declara la exención no realizada en el registro. |
 | Bundle v0 «no acepta un único estado (≥2)» vs R-OBJ-2 (`s ≥ 1`). | método F vs reglas R-OBJ-2 | Manda reglas: se admite un único estado, sin advertencia (se retiró T-270). |
 | Multiplicidad en fans: R-MULT-COMB-2 la realiza «por rama», pero las plantillas de abanico (reglas §7.3) no muestran hueco. | spec-OPL §8.2 vs reglas §7.3 | Se antepone la frase al sustantivo de la rama como en la oración base (EBNF `objeto_procedimental`); si la plantilla no lo admite (condición) rige DR-44. |
 

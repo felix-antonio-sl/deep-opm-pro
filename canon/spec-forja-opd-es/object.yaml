@@ -1,29 +1,23 @@
 id: urn:fxsl:kb:spec-forja-opd-es
 kind: knowledge
 name: spec-forja-opd-es
-description: 'Spec-forja OPD — SSOT de la realización visual de OPFORJA: render, canvas
-  y materialización de la gramática OPD en el modelador deep-opm-pro.'
+description: 'Notación gráfica del OPD según ISO/PAS 19450:2015, en español: símbolos de cosas y estados, puntas y marcas de enlace, triángulos estructurales, operadores lógicos, multiplicidad y representación del refinamiento.'
 content: content.md
 requires:
 - urn:fxsl:kb:reglas-opm-estrictas-es
-- urn:fxsl:kb:opd-es
-- urn:fxsl:kb:opm-es
 relations:
   cita:
   - urn:fxsl:kb:spec-forja-opl-es
   - urn:fxsl:kb:metodologia-forja-opm-es
-  - urn:fxsl:kb:opm-categorial-es
-  - urn:fxsl:kb:opl-es
   depende:
   - urn:fxsl:kb:reglas-opm-estrictas-es
-  - urn:fxsl:kb:opd-es
-  - urn:fxsl:kb:opm-es
-  refina:
-  - urn:fxsl:kb:opd-es
 provenance:
   source_path: artefactos/conocimiento/fxsl/spec-forja-opd-es.md
   source_sha256: 8ce15bb0515aef31a63f83f4d5c4247c961a36ff2cc0ecb83cab52e1866c8cd8
   legacy_state: publicado
+  revision: 2.0.0 local (saneo cláusula por cláusula contra ISO/PAS 19450:2015, 2026-10-10)
+  norma: ISO/PAS 19450:2015 (texto del dueño, no versionado); alineación con ISO 19450:2024 pendiente
+  perfil: perfil/opd-opforja.md
 publication:
-  status: legacy
-  sha256: f7b2a55aca756532d6a5b92b1ff978e35a8930b8ef0ba7bcea05fc42ce87da46
+  status: local
+  sha256: 7a9ce98ca62dcef829ea7fafab21a354cecd74a0a767283debd0281a4d3f2af9

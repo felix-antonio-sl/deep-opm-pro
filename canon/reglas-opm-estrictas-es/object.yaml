@@ -1,34 +1,21 @@
 id: urn:fxsl:kb:reglas-opm-estrictas-es
 kind: knowledge
 name: reglas-opm-estrictas-es
-description: 'Reglas OPM estrictas — SSOT prescriptiva OPD/OPL de OPFORJA: canon de
-  reglas duras para tooling, validación mecánica y modelado estricto.'
+description: 'Reglas OPM estrictas según ISO/PAS 19450:2015, en español: ontología, clases de enlace y su validez, modificadores de control, abanicos, refinamiento, bimodalidad OPD↔OPL y consistencia de hechos.'
 content: content.md
-requires:
-- urn:fxsl:kb:opm-es
-- urn:fxsl:kb:opl-es
-- urn:fxsl:kb:opd-es
-- urn:fxsl:kb:manual-metodologico-opm-es
+requires: []
 relations:
   cita:
-  - urn:fxsl:kb:metodologia-forja-opm-es
   - urn:fxsl:kb:spec-forja-opd-es
   - urn:fxsl:kb:spec-forja-opl-es
-  - urn:fxsl:kb:opm-categorial-es
-  - urn:fxsl:kb:icas-sintesis
-  - urn:fxsl:kb:icas-composicion-estructura
-  - urn:fxsl:kb:icas-higher-categories
-  - urn:fxsl:kb:icas-comparacion
-  - urn:fxsl:kb:icas-universales
-  depende:
-  - urn:fxsl:kb:opm-es
-  - urn:fxsl:kb:opl-es
-  - urn:fxsl:kb:opd-es
-  - urn:fxsl:kb:manual-metodologico-opm-es
+  - urn:fxsl:kb:metodologia-forja-opm-es
 provenance:
   source_path: artefactos/conocimiento/fxsl/reglas-opm-estrictas-es.md
   source_sha256: b3d59d0de851447e11e2f95200edd706b1c5eb39d05f6f452a6ead022d8f1ac1
   legacy_state: publicado
+  revision: 2.0.0 local (saneo cláusula por cláusula contra ISO/PAS 19450:2015, 2026-10-10)
+  norma: ISO/PAS 19450:2015 (texto del dueño, no versionado); alineación con ISO 19450:2024 pendiente
+  perfil: perfil/reglas-opforja.md
 publication:
-  status: legacy
-  sha256: c71864e9c499edd5164ea69cabccaa595b525de276a8c19bf377e56388e2ec7d
+  status: local
+  sha256: 26ca831347210b441c98de948aff883ce13ff91597bc0d82bab322eed5d879f9

@@ -11,7 +11,7 @@ estas entradas explican el uso, la integración y las decisiones del producto.
 | Examinar lo cumplido y sus límites | [Conformidad](conformidad.md) |
 | Comprender decisiones y mitigaciones | [Decisiones](decisiones.md) |
 | Consultar requisitos T-NNN y DR-n | [Especificación derivada](especificacion.md) |
-| Consultar la autoridad OPM primaria | [Canon vendorizado](../canon/LEEME.md) |
+| Consultar la autoridad OPM primaria | [Canon](../canon/LEEME.md) y [perfil OpForja](../perfil/LEEME.md) |
 
 Las instrucciones operativas no autorizan despliegues, migraciones o acceso a datos.
 La historia del rehecho y sus fallos se conserva en Git hasta el publicado

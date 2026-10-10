@@ -5,9 +5,11 @@ Construir y mantener el modelador OPM/ISO 19450 de `app/`: un solo modelo, dos e
 (OPD y OPL) simétricas y persistencia fiable. Este repositorio no es fuente de modelos de dominio.
 
 ## Autoridad
-1. `canon/` (4 documentos vendorizados; versiones en `canon/LEEME.md`) es la autoridad OPM local.
-   Precedencia: reglas > spec-OPD / spec-OPL > metodología.
-2. `docs/especificacion.md` deriva del canon (T-NNN, DR-n); `docs/decisiones.md` fija las
+1. `canon/` (4 documentos 2.0, sólo ISO/PAS 19450:2015 en español; versiones en `canon/LEEME.md`) es la
+   autoridad OPM local. Precedencia: reglas > spec-OPD / spec-OPL > metodología.
+   `perfil/` reúne las reglas propias de OpForja (producto, extensiones, endurecimientos), con los IDs y la
+   numeración del canon 1.x; se subordina al canon y nunca lo contradice.
+2. `docs/especificacion.md` deriva del canon y del perfil (T-NNN, DR-n); `docs/decisiones.md` fija las
    decisiones del dueño y DS-n.
 3. `docs/conformidad.md` declara todo DEBE no cumplido. La brecha silenciosa está prohibida.
 No inventes reglas OPM locales. Si el canon no decide, aplica la válvula de simplicidad
@@ -29,21 +31,26 @@ interacción; `bun run golden` y revisión visual de cada SVG cambiado para rend
 para empaquetado; `bun test ../deploy` al tocar `deploy/`. No declares roundtrip ni fidelidad
 visual sin observarlos. El título de cada prueba de un requisito empieza por su T-ID.
 
-## Lista de cierre (reglas, Anexo A; R-ANEXO-CHECK-1)
+## Lista de cierre (canon reglas Anexo A y perfil reglas-opforja Anexo A; R-ANEXO-CHECK-1)
 Todo cambio de modelado, parser, generador OPL, import/export o render canónico se revisa contra:
-- Identidad: cosa, estado, enlace y OPD con id persistente, nunca `SDx.y` ni nombre (codec, forma).
-- Firma: familia, dirección y tipos de extremos; ningún procedimental objeto-objeto, estructural
-  a estado (salvo especialización de estado) ni invocación a objeto (matriz).
-- Estado: todo estado con objeto dueño; sin doble por defecto; `Current` nunca runtime (estados, forma).
+- Identidad (perfil): cosa, estado, enlace y OPD con id persistente, nunca `SDx.y` ni nombre (codec, forma).
+- Firma: clase, dirección y tipos de extremos; ningún procedimental objeto-objeto ni invocación o excepción a
+  objeto; estructural a estado sólo en las formas de ISO §10.4 y la especialización de estado; las que el
+  producto no ofrece están declaradas en conformidad (matriz).
+- Estado: todo estado con objeto dueño; sin doble por defecto; `Current` es extensión de perfil, nunca runtime
+  (estados, forma).
 - OPL: todo hecho nuclear visible emite plantilla canónica (generar, roundtrip-*).
-- Parseo: toda oración aceptada reconstruye el mismo hecho; nunca entidades plausibles (analizar, editor-opl).
-- Modificadores: `c/e` solo en entrada canónica; nunca en resultado, estructural, invocación ni mitad escindida (matriz).
+- Parseo (perfil): toda oración aceptada reconstruye el mismo hecho; nunca entidades plausibles (analizar, editor-opl).
+- Modificadores: `c/e` sólo en enlaces transformadores o habilitadores entrantes; nunca en resultado, estructural,
+  invocación, excepción ni mitad de entrada escindida; el producto los niega también en la mitad de salida
+  (endurecimiento declarado) (matriz).
 - Refinamiento: el hijo agrega detalle y no contradice al padre; sin ciclos (refinamiento, proyeccion, frontera).
-- Distribución: consumo/resultado no quedan en el contorno; TS3 escindido salvo con control o en abanico (refinamiento).
-- Vistas: no hay vistas tipificadas en el producto (registro B-16).
-- UI: handles, overlays, guías y validación separados del canon; sin grilla (exportar, golden, e2e 18–19).
-- Export: `canon-diagrama`/`canon-documento` declarados; una captura nunca es evidencia (exportar).
-- Deuda: toda zona no canonizada queda registrada.
+- Distribución: consumo/resultado no quedan en el contorno; ningún evento sistémico cruza el contorno; TS3 asignado
+  a uno o dos subprocesos (el producto lo escinde por defecto; el resultado va al último, DEC45) (refinamiento).
+- Vistas (perfil): no hay vistas tipificadas en el producto (registro B-16).
+- UI (perfil): handles, overlays, guías y validación separados del canon; sin grilla (exportar, golden, e2e 18–19).
+- Export (perfil): `canon-diagrama`/`canon-documento` declarados; una captura nunca es evidencia (exportar).
+- Deuda (perfil): toda zona no canonizada queda registrada.
 
 ## Registro de conformidad
 Todo diff que agregue, quite o cambie una fila de `NO_OFRECIDO`, `NO_SOPORTADAS`,

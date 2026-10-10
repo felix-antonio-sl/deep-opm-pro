@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test';
 import * as m from './marcadores';
 import { readFileSync } from 'node:fs';
-const canon = readFileSync(new URL('../../../canon/spec-forja-opd-es/content.md', import.meta.url), 'utf8').split('### §18.3')[1]!.split('### §18.4')[0]!;
+const canon = readFileSync(new URL('../../../perfil/opd-opforja.md', import.meta.url), 'utf8').split('### §18.3')[1]!.split('### §18.4')[0]!;
 const literales = {
   punta: 'M 0 0 L 23 8 L 12 0 L 23 -8 Z',
   piruletaNegra: 'M0,0 L7,0 M12,0 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0',

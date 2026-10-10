@@ -1,35 +1,28 @@
 id: urn:fxsl:kb:metodologia-forja-opm-es
 kind: knowledge
 name: metodologia-forja-opm-es
-description: 'Metodología Forja — método de modelamiento OPM en opforja: destilación
-  korificada del manual metodológico para la mesa de trabajo deep-opm-pro.'
+description: 'Metodología OPM según ISO/PAS 19450:2015, en español: principios de modelado, prueba objeto-proceso, construcción del SD, comprensión del modelo y guías informativas de los Anexos B y D.'
 content: content.md
 requires:
-- urn:fxsl:kb:opm-es
-- urn:fxsl:kb:opl-es
-- urn:fxsl:kb:opd-es
+- urn:fxsl:kb:reglas-opm-estrictas-es
+- urn:fxsl:kb:spec-forja-opd-es
+- urn:fxsl:kb:spec-forja-opl-es
 relations:
   cita:
-  - urn:fxsl:kb:opm-es
-  - urn:fxsl:kb:opl-es
-  - urn:fxsl:kb:opd-es
   - urn:fxsl:kb:reglas-opm-estrictas-es
   - urn:fxsl:kb:spec-forja-opd-es
   - urn:fxsl:kb:spec-forja-opl-es
-  - urn:fxsl:kb:opm-categorial-es
-  - urn:fxsl:kb:manual-metodologico-opm-es
-  - urn:fxsl:kb:icas-higher-categories
-  - urn:fxsl:kb:icas-procesos
-  - urn:fxsl:kb:icas-calidad-riesgo
-  - urn:fxsl:kb:icas-escala
   depende:
-  - urn:fxsl:kb:opm-es
-  - urn:fxsl:kb:opl-es
-  - urn:fxsl:kb:opd-es
+  - urn:fxsl:kb:reglas-opm-estrictas-es
+  - urn:fxsl:kb:spec-forja-opd-es
+  - urn:fxsl:kb:spec-forja-opl-es
 provenance:
   source_path: artefactos/conocimiento/fxsl/metodologia-forja-opm-es.md
   source_sha256: 6414104938129e3b0e07c43c1476fe71ff09e847333b0ebafda664a4560faeb2
   legacy_state: publicado
+  revision: 2.0.0 local (saneo cláusula por cláusula contra ISO/PAS 19450:2015, 2026-10-10)
+  norma: ISO/PAS 19450:2015 (texto del dueño, no versionado); alineación con ISO 19450:2024 pendiente
+  perfil: perfil/metodo-opforja.md
 publication:
-  status: legacy
-  sha256: 9de8e6b3da5f177454a0896a829d6e3b17728de738a14c8ec23284995ba2ee39
+  status: local
+  sha256: c0ebf16b95214485b2ef2085109fb110902687579cc469b9aa8906316b1e6813

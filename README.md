@@ -55,7 +55,7 @@ no sustituye el export canónico. Los artefactos de build no se versionan.
 | `app/src/editor/`, `app/src/ui/` | controlador, gestos, guardado e interfaz |
 | `app/servidor/`, `app/herramientas/` | cuenta, API, archivos y migrador |
 | `app/e2e/`, `app/fixtures/` | escenarios y documentos de prueba |
-| `canon/`, `docs/` | autoridad vendorizada y documentación vigente |
+| `canon/`, `perfil/`, `docs/` | autoridad OPM (sólo ISO 19450), reglas propias de OpForja y documentación vigente |
 | `deploy/` | circuito operativo sujeto a autorización |
 
 ## Contrato y límites
