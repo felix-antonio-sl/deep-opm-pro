@@ -1,5 +1,40 @@
 # Continuidad
 
+## Canon 2.0 y siguiente incremento
+
+Encargo vigente: «Puedes darle continuidad a esto ?». El canon 2.0 de
+`0d8ee595`, DEC39–44 (`94a73bb8`), DEC45 (`2936011c`) y la corrección documental
+B-37 (`ac163e50`) están integrados en `main` por avance rápido y publicados.
+HEAD, origin/main y el remoto coincidieron en `ac163e50` al verificar ese corte.
+Sus cuatro SHA256 coinciden con
+`canon/LEEME.md` y los metadatos. Las remisiones de IDs no son definiciones
+duplicadas. Se corrige B-37: RF5 y su glifo ya están definidos por el canon,
+aunque el producto aún no los ofrece. No se cambia el canon ni el producto
+en esta corrección documental.
+
+Verificación nueva de `0d8ee595`: TSC sin errores; 2984 pruebas aprobadas,
+cero fallos y 1.448.670 expectativas en 66 archivos (103,45 s). Los cinco
+fallos de entorno del informe anterior no se reprodujeron en este host.
+La comprobación final del árbol corregido también pasa: TSC sin errores,
+2984/0 y 1.448.670 expectativas en 66 archivos (105,25 s). La revisión documental
+contrasta B-37 con R-STRE-2, RF5 y R-OPD-STR-14; el código de producto permanece
+intacto y las cuatro huellas del canon siguen coincidiendo. La referencia
+disponible sigue siendo ISO/PAS 19450:2015; no se afirma alineación con la
+edición 2024 ni revisión íntegra de la norma a partir de estas comprobaciones.
+
+Próximo incremento: B-44. Una sonda con operaciones nativas reproduce que
+`crearEnlace` admite consumo con evento desde un objeto sistémico externo al
+primer subproceso, sin diagnóstico y con forma válida. Los cuatro controles
+(condición sistémica, evento/condición ambiental y evento sistémico interno)
+son aceptados. Evidencia: `/tmp/opforja-canon2.v7icmW/sonda-b44-antes.json`.
+Hay que impedir el cruce tanto en edición directa como en distribución y
+diagnóstico de modelos cargados, conservando los controles legales y DEC45.
+B-40 es el default elegido por el dueño y B-49 registra extensiones; no se
+eliminan como si fueran defectos. La selección de alcance para la siguiente
+ola sigue presentada al dueño; todavía no se aplica una corrección de producto.
+
+## Cierre histórico DEC35–38
+
 `main` incorpora los cuatro commits `3a3388d` → `7ccfb47`: DEC35–38, marca de control
 a 32 px, avisos de oclusión y multiplicidad exacta/«al menos dos». La reparación
 `d890ac7d` conserva cada cifra en matriz, OPL, JSON e inspector, sin una cota nueva.
