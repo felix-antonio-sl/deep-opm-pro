@@ -92,27 +92,26 @@ function ancestros(m: Modelo, p: Id, idx: Indice): ReadonlySet<Id> {
     }
     return vistos;
 }
+// ISO §14.2.2.4.2: un evento desde un objeto o estado sistémico no cruza desde fuera ningún
+// contorno para iniciar un subproceso. Desde uno ambiental cruza y el modelador DEBERÍA modelar
+// cómo se maneja la contingencia. La cláusula no nombra la invocación entre procesos.
 function eventoDesdeFuera(m: Modelo, e: Enlace, idx: Indice): boolean {
-    const origen = e.tipo === 'invocacion' ? e.origen : esProcedimental(e) && control(e) === 'e' ? e.objeto : undefined;
-    // ISO §14.2.2.4.2 prohíbe el cruce desde un origen sistémico; desde uno ambiental
-    // lo admite y el modelador DEBERÍA modelar cómo se maneja la contingencia.
-    if (origen === undefined || cosa(m, origen)?.afiliacion === 'ambiental') return false;
-    let destino = e.tipo === 'invocacion' ? e.destino : esProcedimental(e) ? e.proceso : undefined;
+    if (!esProcedimental(e) || control(e) !== 'e' || cosa(m, e.objeto)?.afiliacion === 'ambiental') return false;
     const interiores = new Set<Id>();
-    let dueño = idx.internoDe.get(origen);
+    let dueño = idx.internoDe.get(e.objeto);
     while (dueño !== undefined && !interiores.has(dueño)) {
         interiores.add(dueño);
         const o = opd(m, dueño);
         dueño = o && o.tipo !== 'raiz' ? o.padre : undefined;
     }
     const visitados = new Set<Id>();
+    let destino: Id | undefined = e.proceso;
     while (destino !== undefined && !visitados.has(destino)) {
         visitados.add(destino);
         const padre = idx.subprocesoDe.get(destino), o = padre ? opd(m, padre.opd) : undefined;
         if (!o || o.tipo !== 'descomposicion') break;
-        // §14.2.2.1 distingue la transferencia desde el propio contorno de una
-        // iniciación exterior; esta distinción no exime los contornos intermedios.
-        if (origen !== o.cosa && !interiores.has(o.id)) return true;
+        // Ser interno de un contorno ancestro no exime los contornos intermedios.
+        if (!interiores.has(o.id)) return true;
         destino = o.cosa;
     }
     return false;
@@ -230,7 +229,7 @@ export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
     regla({ id: 'R-ROL-UNIC-1', tipos: PROCEDIMENTALES, severidad: 'error', accion: 'Un solo rol por par objeto–proceso: edita el existente, completa el cambio o forma un abanico', viola(m, e, idx) { return colision(m, e, idx) ? 'Ya existe un rol procedimental para el objeto y el proceso.' : null; } }),
     regla({ id: 'R-ROL-3', tipos: PROCEDIMENTALES, severidad: 'error', accion: 'Modela el objeto como afectado también en el proceso abstracto', viola(m, e, idx) { return rolSinCambioArriba(m, e, idx) ? 'Un subproceso transforma el objeto, pero el proceso abstracto solo lo habilita: debe afectarlo también.' : null; } }),
     regla({ id: 'R-DIST-1', tipos: ['consumo', 'resultado'], severidad: 'error', accion: 'Migra al primer/último subproceso', reparacion: e => ({ op: 'distribuirEnlace', args: { enlace: e.id } }), viola(m, e, idx) { return esProcedimental(e) && subprocesos(m, e.proceso, idx).length > 0 ? 'Consumo y resultado no pueden quedar en el contorno descompuesto.' : null; } }),
-    regla({ id: 'R-CX-DIST-2', tipos: [...PRE, 'invocacion'], severidad: 'error', accion: 'Dirige el evento al proceso completo o a un origen interno; sólo un origen ambiental puede cruzar el contorno, con la contingencia modelada', viola(m, e, idx) { return eventoDesdeFuera(m, e, idx) ? 'Un evento sistémico externo no puede atravesar el contorno de un proceso descompuesto para iniciar un subproceso, a ningún nivel.' : null; } }),
+    regla({ id: 'R-CX-DIST-2', tipos: PRE, severidad: 'error', accion: 'Dirige el evento al proceso completo o a un origen interno; sólo un origen ambiental puede cruzar el contorno, con la contingencia modelada', viola(m, e, idx) { return eventoDesdeFuera(m, e, idx) ? 'Un evento sistémico externo no puede atravesar el contorno de un proceso descompuesto para iniciar un subproceso, a ningún nivel.' : null; } }),
     regla({ id: 'AP-07', tipos: ['efecto'], severidad: 'error', accion: 'Escinde: TS4 en el primero, TS5 en el último', reparacion: e => ({ op: 'distribuirEnlace', args: { enlace: e.id } }), viola(m, e, idx) { return e.tipo === 'efecto' && e.entrada !== undefined && e.salida !== undefined && subprocesos(m, e.proceso, idx).length >= 2 ? 'El cambio completo debe escindirse al descomponer.' : null; } }),
     regla({ id: 'AP-27', tipos: PRE, severidad: 'error', accion: 'Dirige el evento al primer subproceso o declara la omisión (c) de los previos', viola(m, e, idx) { const p = previos(m, e, idx); return p.evento && p.obligatorio ? 'El evento omite una banda anterior con transformación obligatoria.' : null; } }),
     regla({ id: 'AP-27', tipos: PRE, severidad: 'warning', accion: 'Dirige el evento al primer subproceso o declara la omisión (c) de los previos', viola(m, e, idx) { const p = previos(m, e, idx); return p.evento && !p.obligatorio ? 'El evento llega a una banda no primera; los previos son omisibles.' : null; } }),

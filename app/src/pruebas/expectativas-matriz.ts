@@ -71,7 +71,7 @@ export const EXPECTATIVAS_REGLAS = [
     { id: 'R-EFE-1', tipos: ['efecto'], regla: 'El objeto debe tener estados propios o heredados.' },
     { id: 'R-RES-1', tipos: ['resultado'], regla: 'El resultado nunca se ancla a un estado inicial.' },
     { id: 'R-DIST-1', tipos: ['consumo', 'resultado'], regla: 'Nunca en el contorno de proceso descompuesto.' },
-    { id: 'R-CX-DIST-2', tipos: ['consumo', 'efecto', 'agente', 'instrumento', 'invocacion'], regla: 'Ningún evento sistémico exterior al contorno inicia un subproceso, a ningún nivel; el ambiental puede.' },
+    { id: 'R-CX-DIST-2', tipos: ['consumo', 'efecto', 'agente', 'instrumento'], regla: 'Ningún evento sistémico exterior al contorno inicia un subproceso, a ningún nivel; el ambiental puede.' },
     { id: 'AP-27', tipos: ['consumo', 'efecto', 'agente', 'instrumento'], regla: 'Evento en banda no primera bloquea con previos obligatorios; advierte con previos omisibles.' },
     { id: 'R-INV-2B', tipos: ['invocacion'], regla: 'Impide duplicar transición de bandas adyacentes.' },
     { id: 'R-FAN-GEO-2', tipos: ['consumo', 'resultado', 'efecto', 'agente', 'instrumento', 'invocacion'], regla: 'Abanico mismo tipo, extremo común y ramas distintas.' },

@@ -94,24 +94,19 @@ for (const control of [undefined, 'c'] as const)
         expect(r.modelo.enlaces['e-100']).toEqual({ id: 'e-100', tipo: 'instrumento', objeto: 'o', proceso: 'l', ...(control ? { control } : {}) }); sano(r.modelo);
     });
 
-test('T-060 invocación externa es evento; invocación interna y excepción conservan su clase', () => {
-    const m = jerarquia(); sano(m);
-    const externo: Enlace = { id: 'e', tipo: 'invocacion', origen: 'q', destino: 'l' };
-    expect(frontera(m, externo)).toHaveLength(1);
-    rechazado(crearEnlace(m, { opd: 'da', candidato: { tipo: 'invocacion', origen: 'q', destino: 'l' } }), m, JSON.stringify(m));
-    expect(tiposLegales(m, { opd: 'da', desde: { cosa: 'q' }, hacia: { cosa: 'l' } }).find(o => o.tipo === 'invocacion' && o.sentido === 'directo')).toMatchObject({ legal: false });
-    const interno = must(crearEnlace(m, { opd: 'da', candidato: { tipo: 'invocacion', origen: 'r', destino: 'l' } })); sano(interno.modelo);
-    for (const tipo of ['excepcionSobretiempo', 'excepcionSubtiempo'] as const)
-        expect(frontera(m, { id: 'x', tipo, origen: 'q', destino: 'l' })).toEqual([]);
-});
-
-test('T-060 invocación desde un proceso ambiental externo cruza el contorno', () => {
-    const m = jerarquia('ambiental'); sano(m);
-    expect(frontera(m, { id: 'e', tipo: 'invocacion', origen: 'q', destino: 'l' })).toEqual([]);
-    expect(tiposLegales(m, { opd: 'da', desde: { cosa: 'q' }, hacia: { cosa: 'l' } }).find(o => o.tipo === 'invocacion' && o.sentido === 'directo')).toMatchObject({ legal: true });
-    const r = must(crearEnlace(m, { opd: 'da', candidato: { tipo: 'invocacion', origen: 'q', destino: 'l' } }));
-    expect(r.modelo.enlaces['e-100']).toEqual({ id: 'e-100', tipo: 'invocacion', origen: 'q', destino: 'l' }); sano(r.modelo);
-});
+for (const afiliacion of ['sistemica', 'ambiental'] as const)
+    test(`T-060 invocación exterior ${afiliacion} no es evento de objeto: cruza el contorno; excepción conserva su clase`, () => {
+        // ISO §14.2.2.4.2 sólo nombra eventos desde un objeto o estado.
+        const m = jerarquia(afiliacion); sano(m);
+        for (const origen of ['q', 'p', 'a', 'r'])
+            expect(frontera(m, { id: 'e', tipo: 'invocacion', origen, destino: 'l' })).toEqual([]);
+        expect(tiposLegales(m, { opd: 'da', desde: { cosa: 'q' }, hacia: { cosa: 'l' } }).find(o => o.tipo === 'invocacion' && o.sentido === 'directo')).toMatchObject({ legal: true });
+        const r = must(crearEnlace(m, { opd: 'da', candidato: { tipo: 'invocacion', origen: 'q', destino: 'l' } }));
+        expect(r.modelo.enlaces['e-100']).toEqual({ id: 'e-100', tipo: 'invocacion', origen: 'q', destino: 'l' }); sano(r.modelo);
+        const interno = must(crearEnlace(m, { opd: 'da', candidato: { tipo: 'invocacion', origen: 'r', destino: 'l' } })); sano(interno.modelo);
+        for (const tipo of ['excepcionSobretiempo', 'excepcionSubtiempo'] as const)
+            expect(frontera(m, { id: 'x', tipo, origen: 'q', destino: 'l' })).toEqual([]);
+    });
 
 test('T-060 cambiar control y reanclar rechazan sin alterar hechos ni secuencia', () => {
     const m = jerarquia('sistemica', [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'l', control: 'c' }]); sano(m);
@@ -161,13 +156,6 @@ for (const operador of ['XOR', 'OR'] as const) test(`T-060 control de abanico ${
     const n = must(fijarControlAbanico(m, { abanico: 'fan', control: 'e' })).modelo;
     expect([n.enlaces.e!, n.enlaces.f!].map(e => 'control' in e ? e.control : undefined)).toEqual(['e', 'e']);
     expect(n.abanicos.fan).toEqual(m.abanicos.fan); sano(n);
-});
-
-test('T-060 origen sobre el propio contorno conserva la distinción con un origen exterior', () => {
-    const m = jerarquia(); sano(m);
-    expect(frontera(m, { id: 'e', tipo: 'invocacion', origen: 'a', destino: 'l' })).toEqual([]);
-    expect(frontera(m, { id: 'e', tipo: 'invocacion', origen: 'p', destino: 'l' })).toHaveLength(1);
-    expect(frontera(m, { id: 'e', tipo: 'invocacion', origen: 'p', destino: 'a' })).toEqual([]);
 });
 
 for (const afiliacion of ['sistemica', 'ambiental'] as const)

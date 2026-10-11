@@ -50,5 +50,5 @@ en la 2.0.0, con su marca «no verificable» cuando la tenía.
 
 DEC48 («vuelve a admitir el evento ambiental. manda la norma») cambia el producto, no el canon. R-CX-DIST-2 rechaza
 sólo el cruce del evento sistémico y admite el ambiental, como reglas §8.5 y AP-21. Las notas de B-44 en el perfil y
-en `docs/conformidad.md` dejan de declarar endurecimiento el rechazo del ambiental. El único endurecimiento que
-queda en B-44 es la invocación desde un proceso sistémico exterior.
+en `docs/conformidad.md` dejan de declarar endurecimiento el rechazo del ambiental. DEC49 («retíralo, manda la
+norma») saca de la regla la invocación entre procesos, que la cláusula no nombra: B-44 queda sin endurecimiento.

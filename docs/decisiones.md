@@ -180,6 +180,11 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
     sistémico (ISO §14.2.2.4.2) y admite el ambiental; el modelador DEBERÍA modelar la contingencia y la herramienta
     no lo comprueba. La invocación desde un proceso sistémico exterior, que la cláusula no nombra, sigue rechazada
     como endurecimiento declarado en B-44; desde uno ambiental se admite. El canon no cambia.
+49. **La invocación queda fuera de la prohibición del cruce; manda la norma.** Instrucción directa del dueño,
+    role=user: «retíralo, manda la norma», en respuesta a la consulta sobre la invocación desde un proceso
+    sistémico exterior. Sustituye esa parte de DEC48: ISO §14.2.2.4.2 sólo nombra eventos desde un objeto o
+    estado, así que R-CX-DIST-2 deja de aplicarse a la invocación entre procesos, de cualquier afiliación. B-44
+    queda enforzada sin endurecimiento. El canon no cambia.
 
 ## Resoluciones directas posteriores — vigentes
 

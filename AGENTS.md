@@ -46,7 +46,7 @@ Todo cambio de modelado, parser, generador OPL, import/export o render canónico
   (endurecimiento declarado) (matriz).
 - Refinamiento: el hijo agrega detalle y no contradice al padre; sin ciclos (refinamiento, proyeccion, frontera).
 - Distribución: consumo/resultado no quedan en el contorno; ningún evento sistémico cruza el contorno (el ambiental puede,
-  con la contingencia modelada; el producto prohíbe además la invocación sistémica, B-44); TS3 asignado
+  con la contingencia modelada, B-44); TS3 asignado
   a uno o dos subprocesos (el producto lo escinde por defecto; el resultado va al último, DEC45) (refinamiento).
 - Vistas (perfil): no hay vistas tipificadas en el producto (registro B-16).
 - UI (perfil): handles, overlays, guías y validación separados del canon; sin grilla (exportar, golden, e2e 18–19).
