@@ -305,12 +305,10 @@ export function escena(m: Modelo, opd: Id): Escena {
             else
                 estadoA = e.estado;
         }
-        else if (e.tipo === 'etiquetado') {
+        else if (e.tipo === 'etiquetado' || e.tipo === 'etiquetadoBidireccional') {
             estadoA = e.estadoOrigen;
             estadoB = e.estadoDestino;
         }
-        else if (e.tipo === 'etiquetadoBidireccional')
-            estadoA = e.estadoOrigen;
         else if (e.tipo === 'reciproco') {
             estadoA = e.estados?.origen;
             estadoB = e.estados?.destino;

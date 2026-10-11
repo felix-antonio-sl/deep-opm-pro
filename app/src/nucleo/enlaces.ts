@@ -1,5 +1,5 @@
 import type { Id, Modelo, Enlace, EnlaceNuevo, Operador, TipoEnlace, Control, Multiplicidad, Ref, Objeto } from './tipos';
-import { extremos, esProcedimental } from './tipos';
+import { extremos, esProcedimental, reciprocoConEstados } from './tipos';
 import type { Operacion, Tx, CodigoRechazo } from './resultado';
 import { transaccion } from './resultado';
 import type { EstadosEnlace, ExtremoRef } from './operaciones';
@@ -88,8 +88,8 @@ function anclas(e: Enlace): readonly Id[] {
         case 'instrumento': return e.estado ? [e.estado] : [];
         case 'efecto': return [e.entrada, e.salida].filter((x): x is Id => x !== undefined);
         case 'generalizacion': return e.estados ? [e.estados.general, e.estados.especializacion] : [];
-        case 'etiquetado': return [e.estadoOrigen, e.estadoDestino].filter((x): x is Id => x !== undefined);
-        case 'etiquetadoBidireccional': return e.estadoOrigen ? [e.estadoOrigen] : [];
+        case 'etiquetado':
+        case 'etiquetadoBidireccional': return [e.estadoOrigen, e.estadoDestino].filter((x): x is Id => x !== undefined);
         case 'reciproco': return e.estados ? [e.estados.origen, ...(e.estados.destino ? [e.estados.destino] : [])] : [];
         default: return [];
     }
@@ -181,6 +181,10 @@ function valorHuerfano(tx: Tx, anterior: Enlace) {
     tx.traza({ regla: 'F-13', mensaje: `El valor ${valor} de **${c.nombre}** se quitó: ya no es atributo.`, refs: [{ tipo: 'cosa', id: c.id }, ref(anterior.id)] });
 }
 function guardar(tx: Tx, anterior: Enlace, candidato: Enlace, ensayarDistribucion = false) {
+    if (candidato.tipo === 'reciproco' && candidato.estados && !candidato.estados.origen) {
+        candidato = reciprocoConEstados(candidato, undefined, candidato.estados.destino);
+        tx.traza({ regla: 'R-EST-SSE-1', mensaje: 'El recíproco con un solo estado lo lleva en el origen: se invirtieron sus extremos.', refs: [ref(candidato.id)] });
+    }
     for (const id of anclas(anterior))
         if (!anclas(candidato).includes(id))
             tx.traza({ regla: 'R-OPD-OP-5', mensaje: 'La edición retiró un anclaje previo.', refs: [ref(anterior.id), { tipo: 'estado', id }] });
@@ -211,14 +215,18 @@ export const crearEnlace: Operacion<{
         operador: Operador;
     };
 }> = (m, a) => transaccion(m, tx => {
-    const normal = normalizarEtiquetas(a.candidato);
+    const c = a.candidato, invertir = c.tipo === 'reciproco' && c.estados !== undefined && !c.estados.origen;
+    const pedido = invertir && c.tipo === 'reciproco' ? reciprocoConEstados(c, undefined, c.estados!.destino) : c;
+    const normal = normalizarEtiquetas(pedido);
     if (!normal.ok)
-        return tx.rechazar({ ...normal.rechazo, refs: Object.values(extremos(a.candidato)).map(id => ({ tipo: 'cosa' as const, id })) });
+        return tx.rechazar({ ...normal.rechazo, refs: Object.values(extremos(pedido)).map(id => ({ tipo: 'cosa' as const, id })) });
     forma(tx, normal.valor);
     visible(tx, a.opd, normal.valor);
     const e: Enlace = { ...normal.valor, id: tx.nuevoId('e') };
     duplicado(tx, e);
     tx.poner('enlaces', e);
+    if (invertir)
+        tx.traza({ regla: 'R-EST-SSE-1', mensaje: 'El recíproco con un solo estado lo lleva en el origen: se invirtieron sus extremos.', refs: [ref(e.id)] });
     for (const t of normal.trazas)
         tx.traza({ ...t, refs: [ref(e.id), ...t.refs] });
     if (a.abanicoCon) {
@@ -255,15 +263,9 @@ export const fijarEstados: Operacion<{
         case 'origenDestino':
             n = cambiarCampo(cambiarCampo(e, 'estadoOrigen', s.origen), 'estadoDestino', s.destino);
             break;
-        case 'soloOrigen':
-            if (s.destino !== null)
-                negar(tx, 'forma', 'AP-11', 'El bidireccional solo admite estado en origen.', [ref(e.id)]);
-            n = cambiarCampo(e, 'estadoOrigen', s.origen);
-            break;
         case 'simetrico':
-            if (s.origen === null && s.destino !== null)
-                negar(tx, 'forma', 'AP-11', 'El recíproco no admite estado solo en destino.', [ref(e.id)]);
-            n = cambiarCampo(e, 'estados', s.origen === null ? null : { origen: s.origen, ...(s.destino !== null ? { destino: s.destino } : {}) });
+            // Con un solo estado en destino, guardar lo lleva al origen con traza (R-EST-SSE-1).
+            n = cambiarCampo(e, 'estados', s.origen === null && s.destino === null ? null : { ...(s.origen !== null ? { origen: s.origen } : {}), ...(s.destino !== null ? { destino: s.destino } : {}) });
             break;
     }
     guardar(tx, e, n);
@@ -352,7 +354,7 @@ export const cambiarTipoEnlace: Operacion<{
         permitidos.push('multOrigen', 'multDestino');
     else if (f.mult !== 'ninguno')
         permitidos.push('mult');
-    const porEstado = { ninguno: [], objeto: ['estado'], entradaSalida: ['entrada', 'salida'], parGeneralizacion: ['estados'], origenDestino: ['estadoOrigen', 'estadoDestino'], soloOrigen: ['estadoOrigen'], simetrico: ['estados'] } as const;
+    const porEstado = { ninguno: [], objeto: ['estado'], entradaSalida: ['entrada', 'salida'], parGeneralizacion: ['estados'], origenDestino: ['estadoOrigen', 'estadoDestino'], simetrico: ['estados'] } as const;
     if (MATRIZ[e.tipo].estados === f.estados)
         permitidos.push(...porEstado[f.estados]);
     for (const k of permitidos)
@@ -367,7 +369,7 @@ export const cambiarTipoEnlace: Operacion<{
     const trasladados = new Set<string>();
     if (MATRIZ[e.tipo].familia === 'etiquetada' && f.familia === 'etiquetada') {
         const origen = e.tipo === 'reciproco' ? e.estados?.origen : 'estadoOrigen' in e ? e.estadoOrigen : undefined;
-        const destino = e.tipo === 'reciproco' ? e.estados?.destino : e.tipo === 'etiquetado' ? e.estadoDestino : undefined;
+        const destino = e.tipo === 'reciproco' ? e.estados?.destino : 'estadoDestino' in e ? e.estadoDestino : undefined;
         for (const k of ['estadoOrigen', 'estadoDestino', 'estados'])
             delete campos[k];
         if (f.estados === 'origenDestino') {
@@ -376,15 +378,11 @@ export const cambiarTipoEnlace: Operacion<{
             if (destino)
                 campos.estadoDestino = destino;
         }
-        else if (f.estados === 'soloOrigen') {
-            if (origen)
-                campos.estadoOrigen = origen;
-        }
         else if (origen || destino)
             campos.estados = { ...(origen ? { origen } : {}), ...(destino ? { destino } : {}) };
         if (origen)
             trasladados.add(e.tipo === 'reciproco' ? 'estados' : 'estadoOrigen');
-        if (destino && f.estados !== 'soloOrigen')
+        if (destino)
             trasladados.add(e.tipo === 'reciproco' ? 'estados' : 'estadoDestino');
     }
     // Un estado simple conserva su papel al cambiar entre familias procedimentales compatibles.
@@ -431,11 +429,8 @@ export const cambiarTipoEnlace: Operacion<{
                 if (origen) campos.estadoOrigen = origen;
                 if (destino) campos.estadoDestino = destino;
                 break;
-            case 'soloOrigen':
-                if (origen) campos.estadoOrigen = origen;
-                break;
             case 'simetrico':
-                if (origen) campos.estados = { origen, ...(destino ? { destino } : {}) };
+                if (origen || destino) campos.estados = { ...(origen ? { origen } : {}), ...(destino ? { destino } : {}) };
                 break;
         }
         // Los roles siguen a sus extremos: un enlace reflexivo puede tener dos valores distintos.
@@ -523,21 +518,15 @@ export const reanclarExtremo: Operacion<{
         n = cambiarCampo(e, a.extremo, a.hacia.cosa);
         if (e.tipo === 'etiquetado')
             anclar(a.extremo === 'origen' ? 'estadoOrigen' : 'estadoDestino');
-        else if (e.tipo === 'etiquetadoBidireccional') {
-            if (a.extremo === 'destino' && a.hacia.estado)
-                negar(tx, 'forma', 'AP-11', 'El bidireccional solo ancla origen.', [ref(e.id)]);
-            if (a.extremo === 'origen')
-                anclar('estadoOrigen');
-        }
-        else if (e.tipo === 'reciproco') {
-            const estados = { ...e.estados } as Record<string, Id>;
+        else if (e.tipo === 'etiquetadoBidireccional')
+            anclar(a.extremo === 'origen' ? 'estadoOrigen' : 'estadoDestino');
+        else if (e.tipo === 'reciproco' && n.tipo === 'reciproco') {
+            const estados: { origen?: Id; destino?: Id } = { ...e.estados };
             if (a.hacia.estado)
                 estados[a.extremo] = a.hacia.estado;
             else
                 delete estados[a.extremo];
-            if (!estados.origen && estados.destino)
-                negar(tx, 'forma', 'AP-11', 'El recíproco no admite estado solo en destino.', [ref(e.id)]);
-            n = cambiarCampo(n, 'estados', estados.origen ? estados : null);
+            n = reciprocoConEstados(n, estados.origen, estados.destino);
         }
         else if (a.hacia.estado)
             negar(tx, 'forma', 'R-EDIT-2', 'Este enlace no tiene estado.', [ref(e.id)]);

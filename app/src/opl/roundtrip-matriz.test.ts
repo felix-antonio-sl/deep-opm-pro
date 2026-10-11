@@ -63,10 +63,11 @@ test('T-192 retención A/B/A conserva respuesta exacta hasta último uso y liber
 });
 
 test('T-192 corpus completo conserva todos los modelos y argumentos estrictos',()=>{
- expect(modelosVerificados).toBe(2996);
- expect(importsStrictExactos.size).toBe(2734);
- expect(pendientesStrict).toHaveLength(2992);
- expect(documentos.size).toBe(2736);
- expect(libro).toHaveLength(5786);
+ // B-39 (DEC50): el bidireccional con estado en destino o en ambos extremos suma 16 modelos admitidos.
+ expect(modelosVerificados).toBe(3012);
+ expect(importsStrictExactos.size).toBe(2746);
+ expect(pendientesStrict).toHaveLength(3008);
+ expect(documentos.size).toBe(2748);
+ expect(libro).toHaveLength(6042);
  console.log('WP9 corpus completo',{modelosVerificados,entradasStrictExactas:importsStrictExactos.size,documentos:documentos.size});
 });

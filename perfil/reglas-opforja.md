@@ -613,11 +613,11 @@ Al editar OPD:
 
 ### 11.1 Tabla maestra de anti-patrones
 
-> Corregida v2.0: AP-11 bloquea construcciones válidas en ISO (§10.4.2.5, §10.4.2.7; canon reglas §4.10): queda como [endurecimiento] de producto. AP-14, AP-22, AP-25 y AP-26 son heurísticas de método.
+> Corregida v2.0: AP-11 bloqueaba construcciones válidas en ISO (§10.4.2.5, §10.4.2.7; canon reglas §4.10); DEC50 la retiró. AP-14, AP-22, AP-25 y AP-26 son heurísticas de método.
 
 | # | Construcción no-canónica | Regla de rechazo | Acción canónica |
 |---|---|---|---|
-| AP-11 | **Bidireccional o recíproco con estado solo en destino** | DEBE bloquearse por `V-30`. | Usar unidireccional con estado en destino o agregar estado en origen. |
+| AP-11 | **Bidireccional o recíproco con estado solo en destino** | Retirado (DEC50): es válido; el recíproco lleva su único estado al origen (R-EST-SSE-1). | — |
 | AP-13 | **Refinamiento sin subprocesos ni refinadores** | DEBE bloquearse en cierre/export canónico; PUEDE persistir solo como placeholder de edición tipificado. | Eliminar, postergar o agregar al menos un hijo. |
 | AP-14 | **Duplicar estados para evitar inicial+final simultáneo** | DEBE bloquearse como sinónimo falso. | Marcar el estado único como inicial y final. |
 | AP-15 | **Instancia visual entre tipos distintos** | DEBE bloquearse por `V-102`. | Usar apariencia del mismo tipo o clasificación-instanciación lógica. |

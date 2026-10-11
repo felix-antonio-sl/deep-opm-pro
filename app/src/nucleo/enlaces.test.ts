@@ -130,9 +130,11 @@ for (const [nombre, e, estados, campos] of setters)
         expect(bien(op.fijarEstados(m, { enlace: e.id, estados })).enlaces[e.id]).toEqual({ ...e, ...campos } as Enlace);
         mal(op.fijarEstados(m, { enlace: e.id, estados: { estado: 's-99' } }), nombre === 'consumo' ? 'forma' : 'tipo-incompatible');
     });
-test('T-049 SSE y recíproco admiten retiro legal y rechazan estado solo destino/B-05', () => {
+test('T-049 SSE y recíproco admiten retiro legal; el estado solo en destino pasa al origen (R-EST-SSE-1)/B-05', () => {
     const m = con(base(), { id: 'e-20', tipo: 'reciproco', origen: 'o-2', destino: 'o-5', etiqueta: 'conoce' });
-    mal(op.fijarEstados(m, { enlace: 'e-20', estados: { origen: null, destino: 's-6' } }), 'forma', 'AP-11');
+    const destino = op.fijarEstados(m, { enlace: 'e-20', estados: { origen: null, destino: 's-6' } });
+    expect(bien(destino).enlaces['e-20']).toEqual({ id: 'e-20', tipo: 'reciproco', origen: 'o-5', destino: 'o-2', etiqueta: 'conoce', estados: { origen: 's-6' } });
+    if (destino.ok) expect(destino.trazas.some(t => t.regla === 'R-EST-SSE-1')).toBe(true);
     const n = bien(op.fijarEstados(m, { enlace: 'e-20', estados: { origen: 's-3', destino: 's-6' } }));
     mal(op.fijarEtiqueta(n, { enlace: 'e-20', etiqueta: null }), 'lexico');
     expect(bien(op.fijarEstados(n, { enlace: 'e-20', estados: { origen: null, destino: null } })).enlaces['e-20']).not.toHaveProperty('estados');
@@ -315,7 +317,8 @@ test('T-041 fijarEstados retira especialización y distingue estado ajeno del fo
     mal(op.fijarEstados(m, { enlace: 'e-20', estados: { generalizacion: { general: 's-6', especializacion: 's-3' } } }), 'forma', 'R-EDIT-2');
     const n = con(base(), { id: 'e-20', tipo: 'etiquetadoBidireccional', origen: 'o-2', destino: 'o-5', etiqueta: 'conoce', inversa: 'es-conocido' });
     expect(bien(op.fijarEstados(n, { enlace: 'e-20', estados: { origen: 's-3', destino: null } })).enlaces['e-20']).toHaveProperty('estadoOrigen', 's-3');
-    mal(op.fijarEstados(n, { enlace: 'e-20', estados: { origen: null, destino: 's-6' } }), 'forma', 'AP-11');
+    expect(bien(op.fijarEstados(n, { enlace: 'e-20', estados: { origen: null, destino: 's-6' } })).enlaces['e-20']).toEqual({ id: 'e-20', tipo: 'etiquetadoBidireccional', origen: 'o-2', destino: 'o-5', etiqueta: 'conoce', inversa: 'es-conocido', estadoDestino: 's-6' });
+    expect(bien(op.fijarEstados(n, { enlace: 'e-20', estados: { origen: 's-3', destino: 's-6' } })).enlaces['e-20']).toMatchObject({ estadoOrigen: 's-3', estadoDestino: 's-6' });
 });
 test('T-120 etiqueta opcional y requerida se retira o rechaza sin fabricación', () => {
     const m = con(base(), { id: 'e-20', tipo: 'etiquetado', origen: 'o-2', destino: 'o-5', etiqueta: 'conoce' });
@@ -387,7 +390,7 @@ for (const candidato of firmas)
 test('T-022 V3 datos atómicos conservan ID/seq y anclajes compatibles',()=>{
  const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce',estadoOrigen:'s-3',estadoDestino:'s-6'}),antes=JSON.stringify(m);expect(validarForma(m)).toEqual([]);
  const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',etiquetas:{etiqueta:'contiene',inversa:'pertenece'}}),n=bien(r);
- expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'etiquetadoBidireccional',origen:'o-2',destino:'o-5',etiqueta:'contiene',inversa:'pertenece',estadoOrigen:'s-3'});expect(n.secuencia).toBe(m.secuencia);expect(Object.keys(n.enlaces)).toEqual(['e-20']);if(r.ok)expect(r.trazas.some(t=>t.regla==='R-OPD-OP-5'&&t.mensaje.includes('estadoDestino'))).toBe(true);expect(JSON.stringify(m)).toBe(antes);
+ expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'etiquetadoBidireccional',origen:'o-2',destino:'o-5',etiqueta:'contiene',inversa:'pertenece',estadoOrigen:'s-3',estadoDestino:'s-6'});expect(n.secuencia).toBe(m.secuencia);expect(Object.keys(n.enlaces)).toEqual(['e-20']);if(r.ok)expect(r.trazas.some(t=>t.regla==='R-OPD-OP-5')).toBe(false);expect(JSON.stringify(m)).toBe(antes);
 });
 test('T-120 V3 mismo tipo conserva resto y reemplaza/retira sólo datos explícitos',()=>{
  const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',etiqueta:'conoce',estadoOrigen:'s-3'}),e=m.enlaces['e-20']! as Extract<Enlace,{tipo:'etiquetado'}>;
@@ -490,11 +493,11 @@ test('T-022 orientación conserva estados por dueño y multiplicidad compatible 
     expect(JSON.stringify(m)).toBe(antes);
 });
 
-test('T-120 orientación normaliza etiquetas iguales y retira sólo anclaje incompatible con traza',()=>{
+test('T-120 orientación normaliza etiquetas iguales y conserva ambos anclajes (ISO §10.4.2.8)',()=>{
     const m=con(base(),{id:'e-20',tipo:'etiquetado',origen:'o-2',destino:'o-5',estadoOrigen:'s-3',estadoDestino:'s-6'}),antes=JSON.stringify(m);
     const r=op.cambiarTipoEnlace(m,{enlace:'e-20',tipo:'etiquetadoBidireccional',sentido:'inverso',etiquetas:{etiqueta:'asociado',inversa:'asociado'}}),n=bien(r);
-    expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'reciproco',origen:'o-5',destino:'o-2',estados:{origen:'s-6'},etiqueta:'asociado'});
-    if(r.ok){expect(r.trazas.some(t=>t.regla==='R-STRE-1')).toBe(true);expect(r.trazas.some(t=>t.refs.some(r=>r.tipo==='estado'&&r.id==='s-3'))).toBe(true);expect(r.trazas.some(t=>t.mensaje.includes('retiró un anclaje')&&t.refs.some(r=>r.tipo==='estado'&&r.id==='s-6'))).toBe(false);}
+    expect(n.enlaces['e-20']).toEqual({id:'e-20',tipo:'reciproco',origen:'o-5',destino:'o-2',estados:{origen:'s-6',destino:'s-3'},etiqueta:'asociado'});
+    if(r.ok){expect(r.trazas.some(t=>t.regla==='R-STRE-1')).toBe(true);expect(r.trazas.some(t=>t.mensaje.includes('retiró un anclaje'))).toBe(false);}
     expect(JSON.stringify(m)).toBe(antes);expect(n.secuencia).toBe(m.secuencia);
 });
 

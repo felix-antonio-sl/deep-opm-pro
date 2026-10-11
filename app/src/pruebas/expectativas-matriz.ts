@@ -12,7 +12,7 @@ export interface ExpectativaMatriz {
         'origen',
         'destino'
     ];
-    readonly estados: 'ninguno' | 'objeto' | 'entradaSalida' | 'parGeneralizacion' | 'origenDestino' | 'soloOrigen' | 'simetrico';
+    readonly estados: 'ninguno' | 'objeto' | 'entradaSalida' | 'parGeneralizacion' | 'origenDestino' | 'simetrico';
     readonly etiquetas: 'ninguna' | 'opcional' | 'doble';
     readonly clases: readonly [
         'objeto' | 'proceso' | 'cosa',
@@ -39,7 +39,7 @@ export const EXPECTATIVAS_MATRIZ: Readonly<Record<TipoEnlace, ExpectativaMatriz>
     generalizacion: { familia: 'estructural', roles: ['refinable', 'refinador'], estados: 'parGeneralizacion', etiquetas: 'ninguna', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ninguno' },
     clasificacion: { familia: 'estructural', roles: ['refinable', 'refinador'], estados: 'ninguno', etiquetas: 'ninguna', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ninguno' },
     etiquetado: { familia: 'etiquetada', roles: ['origen', 'destino'], estados: 'origenDestino', etiquetas: 'opcional', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: true, control: false, abanico: false, ruta: false, mult: 'ambos' },
-    etiquetadoBidireccional: { familia: 'etiquetada', roles: ['origen', 'destino'], estados: 'soloOrigen', etiquetas: 'doble', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ambos' },
+    etiquetadoBidireccional: { familia: 'etiquetada', roles: ['origen', 'destino'], estados: 'origenDestino', etiquetas: 'doble', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ambos' },
     reciproco: { familia: 'etiquetada', roles: ['origen', 'destino'], estados: 'simetrico', etiquetas: 'opcional', clases: ['cosa', 'cosa'], mismoTipo: true, reflexivo: false, control: false, abanico: false, ruta: false, mult: 'ambos' },
 };
 // Dirección en v0 independiente de roles procedimentales (objeto, proceso).

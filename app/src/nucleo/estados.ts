@@ -1,4 +1,5 @@
 import type { Id, Objeto, Estado, Enlace, Designacion, Ref } from './tipos';
+import { reciprocoConEstados } from './tipos';
 import type { Operacion, Tx, CodigoRechazo } from './resultado';
 import { transaccion } from './resultado';
 import { indice, claveNombre } from './indice';
@@ -65,11 +66,15 @@ function sinAnclaje(e: Enlace, id: Id): Enlace {
             if (nuevo.estadoDestino === id) nuevo = sin(nuevo, 'estadoDestino');
             return nuevo;
         }
-        case 'etiquetadoBidireccional': return e.estadoOrigen === id ? sin(e, 'estadoOrigen') : e;
+        case 'etiquetadoBidireccional': {
+            let nuevo = e;
+            if (nuevo.estadoOrigen === id) nuevo = sin(nuevo, 'estadoOrigen');
+            if (nuevo.estadoDestino === id) nuevo = sin(nuevo, 'estadoDestino');
+            return nuevo;
+        }
         case 'reciproco':
-            if (e.estados?.origen === id) return sin(e, 'estados');
-            if (e.estados?.destino === id) return { ...e, estados: sin(e.estados, 'destino') };
-            return e;
+            if (!e.estados || e.estados.origen !== id && e.estados.destino !== id) return e;
+            return reciprocoConEstados(e, e.estados.origen === id ? undefined : e.estados.origen, e.estados.destino === id ? undefined : e.estados.destino);
         default: return e;
     }
 }
@@ -128,7 +133,7 @@ function ancla(e: Enlace, id: Id): boolean {
         case 'efecto': return e.entrada === id || e.salida === id;
         case 'generalizacion': return e.estados?.general === id || e.estados?.especializacion === id;
         case 'etiquetado': return e.estadoOrigen === id || e.estadoDestino === id;
-        case 'etiquetadoBidireccional': return e.estadoOrigen === id;
+        case 'etiquetadoBidireccional': return e.estadoOrigen === id || e.estadoDestino === id;
         case 'reciproco': return e.estados?.origen === id || e.estados?.destino === id;
         default: return false;
     }

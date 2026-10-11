@@ -218,7 +218,7 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
             const dest = et.destino, origen = id(et.origen), destino = id(dest), so = st(et.origen), sd = st(dest);
             const b = { origen, destino, ...(etiqueta ? { etiqueta } : {}), ...(et.origen.mult ? { multOrigen: et.origen.mult } : {}), ...(dest.mult ? { multDestino: dest.mult } : {}) };
             if (e.tipo === 'reciproco') return { ...b, tipo: e.tipo, ...(so ? { estados: { origen: so, ...(sd ? { destino: sd } : {}) } } : {}) };
-            if (e.tipo === 'etiquetadoBidireccional') return { ...b, tipo: e.tipo, etiqueta: e.etiqueta!, inversa: e.inversa!, ...(so ? { estadoOrigen: so } : {}) };
+            if (e.tipo === 'etiquetadoBidireccional') return { ...b, tipo: e.tipo, etiqueta: e.etiqueta!, inversa: e.inversa!, ...(so ? { estadoOrigen: so } : {}), ...(sd ? { estadoDestino: sd } : {}) };
             return { ...b, tipo: 'etiquetado', ...(so ? { estadoOrigen: so } : {}), ...(sd ? { estadoDestino: sd } : {}) };
         };
         const identidadEnlace = (e: Enlace | EnlaceNuevo) => {
@@ -239,7 +239,7 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
             if (exacto) return exacto.id;
             const viejo = originales.length === 1 ? originales[0] : undefined;
             if (viejo) {
-                const st = 'objeto' in c ? c.tipo === 'efecto' ? { entrada: c.entrada ?? null, salida: c.salida ?? null } : { estado: c.estado ?? null } : c.tipo === 'generalizacion' ? { generalizacion: c.estados ?? null } : c.tipo === 'etiquetado' ? { origen: c.estadoOrigen ?? null, destino: c.estadoDestino ?? null } : c.tipo === 'etiquetadoBidireccional' ? { origen: c.estadoOrigen ?? null, destino: null } : c.tipo === 'reciproco' ? { origen: c.estados?.origen ?? null, destino: c.estados?.destino ?? null } : null;
+                const st = 'objeto' in c ? c.tipo === 'efecto' ? { entrada: c.entrada ?? null, salida: c.salida ?? null } : { estado: c.estado ?? null } : c.tipo === 'generalizacion' ? { generalizacion: c.estados ?? null } : c.tipo === 'etiquetado' ? { origen: c.estadoOrigen ?? null, destino: c.estadoDestino ?? null } : c.tipo === 'etiquetadoBidireccional' ? { origen: c.estadoOrigen ?? null, destino: c.estadoDestino ?? null } : c.tipo === 'reciproco' ? { origen: c.estados?.origen ?? null, destino: c.estados?.destino ?? null } : null;
                 if (st) agregar(t, { op: 'fijarEstados', args: { enlace: viejo.id, estados: st } }, 'ajustar-enlace', 2, viejo.id);
                 if ('objeto' in c && c.tipo !== 'resultado' && (viejo as typeof c).control !== c.control) agregar(t, { op: 'fijarControl', args: { enlace: viejo.id, control: c.control ?? null } }, 'ajustar-enlace', 2, viejo.id);
                 if ((c.tipo === 'consumo' || c.tipo === 'resultado') && (viejo as typeof c).ruta !== c.ruta) agregar(t, { op: 'fijarRuta', args: { enlace: viejo.id, ruta: c.ruta ?? null } }, 'ajustar-enlace', 2, viejo.id);

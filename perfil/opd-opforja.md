@@ -242,7 +242,7 @@ Arbitraje: `ui-forja/08 §4.2/§10` prescribía exhibición=cuadrado outline 10�
 ### §7.2 Estructurales etiquetados (tagged)
 
 - **R-OPD-STR-8** [extensión]: la etiqueta de usuario se renderiza en **itálica** sobre el eje del enlace; es texto del modelador, no frase reservada. *(Rationale: §1.6 opd-es; figuras ISO; libro «tag en negrita» queda subordinado a la convención itálica de opd-es.)*
-- (R-OPD-STR-9, parte de producto) [endurecimiento] las variantes bidireccional y recíproco con estado solo-en-destino DEBEN bloquearse en el editor (AP-11); el canon admite el estado en un extremo cualquiera. *(Rationale: V-30, AP-11, R-EST-SSE-1.)*
+- (R-OPD-STR-9, parte de producto) el bidireccional admite estado en origen, en destino o en ambos; el recíproco con un solo estado lo lleva en su origen y, si llega en el destino, el producto invierte los extremos con traza (R-EST-SSE-1). DEC50 retiró el bloqueo AP-11. *(Rationale: V-30, AP-11, R-EST-SSE-1.)*
 - **R-OPD-STR-10** [extensión]: relación unaria = enlace de la cosa a sí misma; relaciones n-arias se descomponen en binarias. Un proceso que solo preserva estado (`soporta`, `contiene`) sin esfuerzo sostenido ni condición mantenida que forme parte del hecho (R-PROC-5/7) DEBE reemplazarse por tagged estructural (o atributo/estado) y su persistencia como elipse DEBE reportarse como mala clasificación metodológica; el persistente canónico que declara objeto afectado e invariancia neta conserva la elipse y se realiza como efecto con entrada=salida (`P cambia A de s a s`). *(Rationale: R-PROC-2A/5/6/7, AP-25; libro 14; metodologia §9.1 y su excepción «esfuerzo no trivial».)*
 
 Realización opforja: tagged uni = polyline abierta `0,0 20,-10 0,0 20,10`; bidireccional = arpón `0.5,0 20,±10` en source+target; etiqueta uni en `distance:0.5`, bi en 0.8 (ida) y 0.2 (vuelta), serif 12 ink en itálica (R-OPD-STR-8). Alineado. *(Traza: `linkAssets.ts`, `markers.ts`, `enlace.ts·etiquetaTextoTagged`.)*
@@ -424,7 +424,7 @@ El puente texto↔canvas está legislado en `spec-forja-opl-es §14` (tokens con
 | AP-06 | consumo/resultado en contorno exterior de descompuesto | R-OPD-REF-11 | runtime |
 | AP-07/08 | efecto entrada-salida sin asignar / mitad de entrada con `e`/`c` | R-OPD-TR-7 | runtime |
 | AP-09/10 | `e`/`c` sobre estructural / sobre invocación | R-OPD-CTL-3 | runtime |
-| AP-11 | bidireccional/recíproco con estado solo-en-destino | R-OPD-STR-9 | runtime |
+| AP-11 | (retirado, DEC50) bidireccional/recíproco con estado solo-en-destino | R-OPD-STR-9 | — |
 | AP-12 | estados dentro de proceso | R-OPD-COSA-7 | runtime |
 | AP-13 | refinamiento sin hijos | R-OPD-REF-7 | runtime |
 | AP-14 | duplicar estados para separar inicio/fin | R-OPD-EST-5 | runtime (diagnóstico) |

@@ -185,7 +185,7 @@ function estados(e: Enlace): readonly Id[] {
         case 'efecto': return [e.entrada, e.salida].filter((s): s is Id => s !== undefined);
         case 'generalizacion': return e.estados ? [e.estados.general, e.estados.especializacion] : [];
         case 'etiquetado': return [e.estadoOrigen, e.estadoDestino].filter((s): s is Id => s !== undefined);
-        case 'etiquetadoBidireccional': return e.estadoOrigen ? [e.estadoOrigen] : [];
+        case 'etiquetadoBidireccional': return [e.estadoOrigen, e.estadoDestino].filter((s): s is Id => s !== undefined);
         case 'reciproco': return e.estados ? [e.estados.origen, ...(e.estados.destino ? [e.estados.destino] : [])] : [];
         default: return [];
     }

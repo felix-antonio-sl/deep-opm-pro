@@ -54,7 +54,7 @@ function emitirEnlace(m: Modelo, opd: Id, v: EnlaceVisto): LineaOpl[] {
     let salida = [primera];
     if (e.tipo === 'etiquetadoBidireccional') {
         const segunda = linea(m, opd, datosEnlace(m, e, true), `${e.id}:inversa`, v.hechos);
-        salida = e.estadoOrigen ? [primera, segunda] : [{ ...primera, id: `${opd}#SE3a:${e.id}` }, { ...segunda, id: `${opd}#SE3b:${e.id}` }];
+        salida = e.estadoOrigen || e.estadoDestino ? [primera, segunda] : [{ ...primera, id: `${opd}#SE3a:${e.id}` }, { ...segunda, id: `${opd}#SE3b:${e.id}` }];
     }
     return salida;
 }

@@ -626,7 +626,7 @@ Rationale: `reglas §4.10` (RF4, RF4b, R-OPL-RF-4), `§5.5` (R-STRF-3, R-HER-6) 
 
 **Roundtrip**: origen, destino, dirección (uni/bi/recíproco), etiqueta de usuario y el orden (cuando aplica) DEBEN preservarse. GAP-FIXTURE-TAGGED: no hay fixture dedicado de etiquetado en `fixtures-roundtrip.ts`.
 
-**Edge cases**: SE3 con etiquetas idénticas colapsa a SE4 (R-STRE-1); la restricción V-30 (`reglas §4.10`) prohíbe las variantes bidireccional y recíproco para el caso de estado solo en destino (ver §6.6).
+**Edge cases**: SE3 con etiquetas idénticas colapsa a SE4 (R-STRE-1); la restricción histórica V-30 ya no rige (DEC50): el bidireccional con estado sólo en destino usa SSE4/SSE5 con el estado en ese extremo, con estado en ambos usa dos SSE3, y el recíproco lleva su único estado en el origen (SSE7; ver §6.6).
 
 **Traza a código**: generación `app/src/opl/generadores/procedural.ts·oracionEstructuralEtiquetada` (etiquetado/bidireccional, líneas ~152, ~168, ~239–244: `tag`/`se relaciona con`/`se relacionan`); parseo: GAP-TAG-PARSER (sin regex estructural dedicada en `parsear.ts·astEstructural`).
 

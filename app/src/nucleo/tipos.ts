@@ -131,7 +131,8 @@ export interface Bidireccional extends EtiquetadoBase {
     readonly tipo: 'etiquetadoBidireccional';
     readonly etiqueta: string;
     readonly inversa: string;
-    readonly estadoOrigen?: Id; // solo en el origen (V-30, AP-11)
+    readonly estadoOrigen?: Id;
+    readonly estadoDestino?: Id; // ISO §10.4.2.5–§10.4.2.6: en un extremo o en ambos
 }
 export interface Reciproco extends EtiquetadoBase {
     readonly tipo: 'reciproco';
@@ -139,7 +140,7 @@ export interface Reciproco extends EtiquetadoBase {
     readonly estados?: {
         readonly origen: Id;
         readonly destino?: Id;
-    }; // nunca solo destino (AP-11)
+    }; // con un solo estado, éste va en el origen (reciprocoConEstados, R-EST-SSE-1)
 }
 export type Enlace = Consumo | Resultado | Efecto | Agente | Instrumento | Invocacion | Excepcion | Agregacion | Exhibicion | Generalizacion | Clasificacion | Etiquetado | Bidireccional | Reciproco;
 export type TipoEnlace = Enlace['tipo']; // 15 literales
@@ -223,3 +224,13 @@ export type Ref = {
     readonly tipo: 'cosa' | 'estado' | 'enlace' | 'abanico' | 'opd';
     readonly id: Id;
 };
+/** R-EST-SSE-1, ISO §10.4.2.7: el recíproco es simétrico; con estado en un solo extremo, ese extremo es su
+ * origen (SSE7). Invertir los extremos conserva el hecho, su id y sus multiplicidades por extremo. */
+export function reciprocoConEstados<T extends Omit<Reciproco, 'id'>>(e: T, origen: Id | undefined, destino: Id | undefined): T {
+    const { estados, ...resto } = e; void estados;
+    if (origen !== undefined) return { ...resto, estados: { origen, ...(destino !== undefined ? { destino } : {}) } } as unknown as T;
+    if (destino === undefined) return resto as unknown as T;
+    const { multOrigen, multDestino, ...base } = resto;
+    return { ...base, origen: e.destino, destino: e.origen, estados: { origen: destino },
+        ...(multDestino !== undefined ? { multOrigen: multDestino } : {}), ...(multOrigen !== undefined ? { multDestino: multOrigen } : {}) } as unknown as T;
+}

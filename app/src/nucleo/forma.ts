@@ -94,6 +94,7 @@ export function validarForma(m: Modelo): readonly Violacion[] {
                 break;
             case 'etiquetadoBidireccional':
                 estado(e.estadoOrigen, e.origen, e.id);
+                estado(e.estadoDestino, e.destino, e.id);
                 if (!e.etiqueta.trim() || !e.inversa.trim() || e.etiqueta === e.inversa)
                     fallo('F-11', 'Las etiquetas deben ser distintas y no vacías.', [ref('enlace', e.id)]);
                 break;

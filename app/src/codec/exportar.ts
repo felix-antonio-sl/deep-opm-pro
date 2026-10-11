@@ -27,7 +27,7 @@ export function exportarV0(m: Modelo): string {
         const x=extremos(e); let origenId=extremo(x.origen),destinoId=extremo(x.destino),tipo:string=e.tipo;
         if('estado'in e&&e.estado) {if(e.tipo==='resultado')destinoId=extremo(x.destino,e.estado);else origenId=extremo(x.origen,e.estado);}
         if(e.tipo==='generalizacion'&&e.estados){origenId=extremo(e.refinable,e.estados.general);destinoId=extremo(e.refinador,e.estados.especializacion);}
-        if(e.tipo==='etiquetado'||e.tipo==='etiquetadoBidireccional'){if(e.estadoOrigen)origenId=extremo(e.origen,e.estadoOrigen);if(e.tipo==='etiquetado'&&e.estadoDestino)destinoId=extremo(e.destino,e.estadoDestino);}
+        if(e.tipo==='etiquetado'||e.tipo==='etiquetadoBidireccional'){if(e.estadoOrigen)origenId=extremo(e.origen,e.estadoOrigen);if(e.estadoDestino)destinoId=extremo(e.destino,e.estadoDestino);}
         if(e.tipo==='reciproco'){tipo='etiquetadoBidireccional';if(e.estados){origenId=extremo(e.origen,e.estados.origen);if(e.estados.destino)destinoId=extremo(e.destino,e.estados.destino);}}
         const fila:Registro={id,tipo,origenId,destinoId,etiqueta:'etiqueta'in e?e.etiqueta??'':''};
         if(e.tipo==='etiquetadoBidireccional')fila.backwardTag=e.inversa;

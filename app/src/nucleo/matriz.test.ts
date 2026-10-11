@@ -130,10 +130,10 @@ test('T-048 exhibición permite cuatro firmas; restantes exigen mismo tipo', () 
     expect(violacionesForma(m, { tipo: 'agregacion', refinable: ids(m)[0]!, refinador: ids(m)[3]! }).length).toBeGreaterThan(0);
 });
 test('T-049 etiquetado admite relación unaria y rechaza obj-proceso', () => { const m = base(), a = ids(m)[0]!; expect(violacionesForma(m, { tipo: 'etiquetado', origen: a, destino: a })).toEqual([]); expect(violacionesForma(m, { tipo: 'etiquetado', origen: a, destino: ids(m)[3]! }).length).toBeGreaterThan(0); });
-test('T-050 gesto con estado solo destino no ofrece bi ni recíproco', () => {
+test('T-050 gesto con estado solo destino ofrece bi y recíproco (ISO §10.4.2.5, §10.4.2.7)', () => {
     const m = base();
     for (const tipo of ['reciproco', 'etiquetadoBidireccional'])
-        expect(opciones(m, ids(m)[0]!, ids(m)[1]!, undefined, s(m, 1)).find(x => x.tipo === tipo && x.sentido === 'directo')?.legal).toBe(false);
+        expect(opciones(m, ids(m)[0]!, ids(m)[1]!, undefined, s(m, 1)).find(x => x.tipo === tipo && x.sentido === 'directo')?.legal).toBe('pendiente');
     expect(opciones(m, ids(m)[0]!, ids(m)[1]!, s(m), undefined).find(x => x.tipo === 'etiquetadoBidireccional' && x.sentido === 'directo')?.legal).toBe('pendiente');
 });
 test('T-051 escisión no admite control pero TS4 standalone sí', () => { const m = base(), e: EnlaceNuevo = { tipo: 'efecto', objeto: ids(m)[0]!, proceso: ids(m)[3]!, entrada: s(m), control: 'e' }; expect(violacionesForma(m, e)).toEqual([]); expect(violacionesForma(m, { ...e, escision: { par: 'e-102', mitad: 'entrada' } }).length).toBeGreaterThan(0); });
@@ -248,7 +248,7 @@ test('T-072 descomposición de objeto no ofrecida como consulta sin enlace artif
 test('T-054 ramas distintas semánticamente y ausencia de común se rechazan', () => { const m = base(), e: Enlace = { tipo: 'consumo', id: 'e-101', objeto: ids(m)[0]!, proceso: ids(m)[3]! }, f: Abanico = { id: 'f-110', operador: 'OR', enlaces: ['e-101', 'e-102'] }; expect(violacionesAbanico(poner(m, e, { ...e, id: 'e-102' }), f).length).toBeGreaterThan(0); expect(violacionesAbanico(poner(m, e, { ...e, id: 'e-102', objeto: ids(m)[1]!, proceso: ids(m)[4]! }), f).length).toBeGreaterThan(0); });
 test('T-041 import con campos de estado ajenos a la fila se rechaza', () => {
     const m = base();
-    for (const e of [{ ...enlace(m, 'agregacion'), estado: s(m) }, { ...enlace(m, 'invocacion'), estadoOrigen: s(m) }, { ...enlace(m, 'etiquetadoBidireccional'), estadoDestino: s(m, 1) }])
+    for (const e of [{ ...enlace(m, 'agregacion'), estado: s(m) }, { ...enlace(m, 'invocacion'), estadoOrigen: s(m) }, { ...enlace(m, 'etiquetadoBidireccional'), estados: { origen: s(m) } }])
         expect(violacionesForma(m, e as unknown as Enlace).length).toBeGreaterThan(0);
 });
 test('T-057 DEC35 la multiplicidad del etiquetado admite ?, *, +, 2..* y un entero desde 2; rechaza el resto', () => {
@@ -374,7 +374,7 @@ test('T-040 firma, anclajes y visibilidad inválidos rechazan antes de solicitar
         expect(o.legal).toBe(false);
         if (o.legal === false && o.sentido === 'directo') expect(o.motivo.codigo).toBe('no-visible');
     }
-    expect(opciones(m, a!, b!, undefined, s(m, 1)).find(o => o.tipo === 'etiquetadoBidireccional' && o.sentido === 'directo')?.legal).toBe(false);
+    expect(opciones(m, a!, b!, undefined, s(m, 1)).find(o => o.tipo === 'etiquetadoBidireccional' && o.sentido === 'directo')?.legal).toBe('pendiente');
 });
 test('T-049 T-120 etiquetas opcionales ausentes/null se omiten, léxico explícito se valida y menú discrimina tres estados', () => {
     const m = base(), [a, b] = ids(m);

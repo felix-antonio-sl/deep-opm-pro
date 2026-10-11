@@ -309,9 +309,25 @@ export function datosEnlace(m: Modelo, e: Enlace, inverso = false): HechoGenerab
         }
         else if (e.tipo === 'etiquetadoBidireccional') {
             h.t2 = { texto: e.inversa, hecho: e.id, ref: { tipo: 'enlace', id: e.id } };
-            if (e.estadoOrigen) {
+            if (e.estadoOrigen && e.estadoDestino) {
+                // ISO §10.4.2.6: dos oraciones SSE3, una por sentido.
                 h.a = s(e.estadoOrigen);
-                id = inverso ? 'SSE5' : 'SSE4';
+                h.b = s(e.estadoDestino);
+                id = 'SSE3';
+                if (inverso) {
+                    [h.O1, h.O2] = [h.O2!, h.O1!];
+                    [h.a, h.b] = [h.b, h.a];
+                    h.t = h.t2;
+                }
+            }
+            else if (e.estadoOrigen || e.estadoDestino) {
+                // R-EST-SSE-1: SSE4/SSE5 con el estado en el extremo que lo porta, origen o destino.
+                if (e.estadoDestino) {
+                    [h.O1, h.O2] = [h.O2!, h.O1!];
+                    [h.t, h.t2] = [h.t2, h.t];
+                }
+                h.a = s((e.estadoOrigen ?? e.estadoDestino)!);
+                id = inverso !== Boolean(e.estadoDestino) ? 'SSE5' : 'SSE4';
             }
             else {
                 id = 'SE3';

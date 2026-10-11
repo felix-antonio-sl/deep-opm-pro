@@ -138,15 +138,16 @@ for (const tipo of ['consumo', 'resultado', 'agente', 'instrumento', 'efecto', '
         const e1: Enlace = tipo === 'efecto' ? { id: 'e-8', tipo, objeto: 'o-2', proceso: 'p-7', entrada: 's-3', salida: 's-4' }
             : tipo === 'generalizacion' ? { id: 'e-8', tipo, refinable: 'o-2', refinador: 'o-5', estados: { general: 's-3', especializacion: 's-6' } }
             : tipo === 'reciproco' ? { id: 'e-8', tipo, origen: 'o-2', destino: 'o-5', etiqueta: 'conoce', estados: { origen: 's-3', destino: 's-6' } }
-            : tipo === 'etiquetadoBidireccional' ? { id: 'e-8', tipo, origen: 'o-2', destino: 'o-5', etiqueta: 'conoce', inversa: 'es-conocido', estadoOrigen: 's-3' }
+            : tipo === 'etiquetadoBidireccional' ? { id: 'e-8', tipo, origen: 'o-2', destino: 'o-5', etiqueta: 'conoce', inversa: 'es-conocido', estadoOrigen: 's-3', estadoDestino: 's-6' }
             : tipo === 'etiquetado' ? { id: 'e-8', tipo, origen: 'o-2', destino: 'o-5', estadoOrigen: 's-3', estadoDestino: 's-6' }
             : { id: 'e-8', tipo, objeto: 'o-2', proceso: 'p-7', estado: 's-3' };
         const m = conEnlace(base, e1); expect(validarForma(m)).toEqual([]);
         const n = bien(e.eliminarEstado(m, { estado: 's-3' }));
         const esperado: Enlace = tipo === 'efecto' ? { id: 'e-8', tipo, objeto: 'o-2', proceso: 'p-7', salida: 's-4' }
             : tipo === 'generalizacion' ? { id: 'e-8', tipo, refinable: 'o-2', refinador: 'o-5' }
-            : tipo === 'reciproco' ? { id: 'e-8', tipo, origen: 'o-2', destino: 'o-5', etiqueta: 'conoce' }
-            : tipo === 'etiquetadoBidireccional' ? { id: 'e-8', tipo, origen: 'o-2', destino: 'o-5', etiqueta: 'conoce', inversa: 'es-conocido' }
+            // R-EST-SSE-1: el recíproco conserva el estado restante en su origen invirtiendo extremos.
+            : tipo === 'reciproco' ? { id: 'e-8', tipo, origen: 'o-5', destino: 'o-2', etiqueta: 'conoce', estados: { origen: 's-6' } }
+            : tipo === 'etiquetadoBidireccional' ? { id: 'e-8', tipo, origen: 'o-2', destino: 'o-5', etiqueta: 'conoce', inversa: 'es-conocido', estadoDestino: 's-6' }
             : tipo === 'etiquetado' ? { id: 'e-8', tipo, origen: 'o-2', destino: 'o-5', estadoDestino: 's-6' }
             : { id: 'e-8', tipo, objeto: 'o-2', proceso: 'p-7' };
         expect(n.enlaces['e-8']).toEqual(esperado);

@@ -1,6 +1,6 @@
 import { validarForma } from './forma';
 import { planificarDistribucion } from './refinamiento';
-import { esProcedimental, extremos } from './tipos';
+import { esProcedimental, extremos, reciprocoConEstados } from './tipos';
 import { indice } from './indice';
 import { generales } from './herencia';
 import { validarEtiqueta } from './lexico';
@@ -13,7 +13,7 @@ type BorradorNuevo = EnlaceNuevo | Omit<Extract<EnlaceNuevo, { tipo: 'etiquetado
 type Borrador = Enlace | BorradorNuevo;
 export interface DatosEtiquetas { readonly etiqueta?: string | null; readonly inversa?: string | null }
 type Clase = 'objeto' | 'proceso' | 'cosa';
-export type EstadosFila = 'ninguno' | 'objeto' | 'entradaSalida' | 'parGeneralizacion' | 'origenDestino' | 'soloOrigen' | 'simetrico';
+export type EstadosFila = 'ninguno' | 'objeto' | 'entradaSalida' | 'parGeneralizacion' | 'origenDestino' | 'simetrico';
 export interface FilaMatriz {
     readonly familia: Familia;
     readonly roles: readonly [
@@ -57,7 +57,7 @@ export const MATRIZ: Readonly<Record<TipoEnlace, FilaMatriz>> = Object.freeze({
     generalizacion: fila({ familia: "estructural", roles: ["refinable", "refinador"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: false, estados: "parGeneralizacion", control: false, abanico: false, ruta: false, mult: "ninguno", etiquetas: "ninguna", plantillas: ["RF3", "RF3b", "RF3i", "RH1", "RFE"], menu: 9 }),
     clasificacion: fila({ familia: "estructural", roles: ["refinable", "refinador"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: false, estados: "ninguno", control: false, abanico: false, ruta: false, mult: "ninguno", etiquetas: "ninguna", plantillas: ["RF4", "RF4b"], menu: 10 }),
     etiquetado: fila({ familia: "etiquetada", roles: ["origen", "destino"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: true, estados: "origenDestino", control: false, abanico: false, ruta: false, mult: "ambos", etiquetas: "opcional", plantillas: ["SE1", "SE2", "SSE1", "SSE2", "SSE3"], menu: 11 }),
-    etiquetadoBidireccional: fila({ familia: "etiquetada", roles: ["origen", "destino"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: false, estados: "soloOrigen", control: false, abanico: false, ruta: false, mult: "ambos", etiquetas: "doble", plantillas: ["SE3", "SSE4", "SSE5"], menu: 12 }),
+    etiquetadoBidireccional: fila({ familia: "etiquetada", roles: ["origen", "destino"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: false, estados: "origenDestino", control: false, abanico: false, ruta: false, mult: "ambos", etiquetas: "doble", plantillas: ["SE3", "SSE3", "SSE4", "SSE5"], menu: 12 }),
     reciproco: fila({ familia: "etiquetada", roles: ["origen", "destino"], clases: ["cosa", "cosa"], mismoTipo: true, reflexivo: false, estados: "simetrico", control: false, abanico: false, ruta: false, mult: "ambos", etiquetas: "opcional", plantillas: ["SE4", "SE5", "SSE6", "SSE7"], menu: 12 }),
     excepcionSobretiempo: fila({ familia: "excepcion", roles: ["origen", "destino"], clases: ["proceso", "proceso"], mismoTipo: true, reflexivo: false, estados: "ninguno", control: false, abanico: false, ruta: false, mult: "ninguno", etiquetas: "ninguna", plantillas: ["EX1", "EX1r"], menu: 13 }),
     excepcionSubtiempo: fila({ familia: "excepcion", roles: ["origen", "destino"], clases: ["proceso", "proceso"], mismoTipo: true, reflexivo: false, estados: "ninguno", control: false, abanico: false, ruta: false, mult: "ninguno", etiquetas: "ninguna", plantillas: ["EX2", "EX2r"], menu: 14 }),
@@ -402,8 +402,8 @@ function anclajes(e: Borrador): readonly (readonly [
         case 'instrumento': return e.estado ? [[e.estado, e.objeto]] : [];
         case 'efecto': return [...(e.entrada ? [[e.entrada, e.objeto] as const] : []), ...(e.salida ? [[e.salida, e.objeto] as const] : [])];
         case 'generalizacion': return e.estados ? [[e.estados.general, e.refinable], [e.estados.especializacion, e.refinador]] : [];
-        case 'etiquetado': return [...(e.estadoOrigen ? [[e.estadoOrigen, e.origen] as const] : []), ...(e.estadoDestino ? [[e.estadoDestino, e.destino] as const] : [])];
-        case 'etiquetadoBidireccional': return e.estadoOrigen ? [[e.estadoOrigen, e.origen]] : [];
+        case 'etiquetado':
+        case 'etiquetadoBidireccional': return [...(e.estadoOrigen ? [[e.estadoOrigen, e.origen] as const] : []), ...(e.estadoDestino ? [[e.estadoDestino, e.destino] as const] : [])];
         case 'reciproco': return e.estados ? [[e.estados.origen, e.origen], ...(e.estados.destino ? [[e.estados.destino, e.destino] as const] : [])] : [];
         default: return [];
     }
@@ -424,7 +424,7 @@ function forma(m: Modelo, e: Borrador): readonly Violacion[] {
     const camposEstado: Readonly<Record<EstadosFila, readonly string[]>> = {
         ninguno: [], objeto: ['estado'], entradaSalida: ['entrada', 'salida'],
         parGeneralizacion: ['estados'], origenDestino: ['estadoOrigen', 'estadoDestino'],
-        soloOrigen: ['estadoOrigen'], simetrico: ['estados'],
+        simetrico: ['estados'],
     };
     if (['estado', 'entrada', 'salida', 'estadoOrigen', 'estadoDestino'].some(k => datos[k] !== undefined && (typeof datos[k] !== 'string' || !datos[k])))
         fallo('R-EDIT-2', 'El anclaje debe ser un id de estado no vacío.');
@@ -441,8 +441,9 @@ function forma(m: Modelo, e: Borrador): readonly Violacion[] {
         fallo('R-MULT-1', 'La multiplicidad debe ser ?, *, +, 2..* o un entero desde 2.');
     if (datos.mult !== undefined && !['objeto', 'refinador'].includes(f.mult) || (datos.multOrigen !== undefined || datos.multDestino !== undefined) && f.mult !== 'ambos')
         fallo('R-MULT-1', 'Multiplicidad en un rol no admitido.');
-    if (e.tipo === 'reciproco' && e.estados && !e.estados.origen || e.tipo === 'etiquetadoBidireccional' && datos.estadoDestino !== undefined)
-        fallo('AP-11', 'El enlace bidireccional o recíproco no admite estado solo en destino.');
+    // R-EST-SSE-1: el recíproco con un solo estado lo lleva en el origen (reciprocoConEstados).
+    if (e.tipo === 'reciproco' && e.estados && !e.estados.origen)
+        fallo('R-EST-SSE-1', 'El recíproco con un solo estado lo lleva en el origen.');
     return vs;
 }
 function candidato(tipo: TipoEnlace, desde: ExtremoRef, hacia: ExtremoRef, sentido: 'directo' | 'inverso'): BorradorNuevo {
@@ -462,8 +463,9 @@ function candidato(tipo: TipoEnlace, desde: ExtremoRef, hacia: ExtremoRef, senti
         case 'clasificacion': return { tipo, refinable: a.cosa, refinador: b.cosa };
         case 'generalizacion': return { tipo, refinable: a.cosa, refinador: b.cosa, ...(a.estado && b.estado ? { estados: { general: a.estado, especializacion: b.estado } } : {}) };
         case 'etiquetado': return { tipo, origen: a.cosa, destino: b.cosa, ...(a.estado ? { estadoOrigen: a.estado } : {}), ...(b.estado ? { estadoDestino: b.estado } : {}) };
-        case 'etiquetadoBidireccional': return { tipo, origen: a.cosa, destino: b.cosa, ...(a.estado ? { estadoOrigen: a.estado } : {}) };
-        case 'reciproco': return { tipo, origen: a.cosa, destino: b.cosa, ...(a.estado ? { estados: { origen: a.estado, ...(b.estado ? { destino: b.estado } : {}) } } : {}) };
+        case 'etiquetadoBidireccional': return { tipo, origen: a.cosa, destino: b.cosa, ...(a.estado ? { estadoOrigen: a.estado } : {}), ...(b.estado ? { estadoDestino: b.estado } : {}) };
+        // R-EST-SSE-1: con un solo estado, el recíproco lo lleva en su origen.
+        case 'reciproco': return a.estado || !b.estado ? { tipo, origen: a.cosa, destino: b.cosa, ...(a.estado ? { estados: { origen: a.estado, ...(b.estado ? { destino: b.estado } : {}) } } : {}) } : { tipo, origen: b.cosa, destino: a.cosa, estados: { origen: b.estado } };
         default: return { tipo, origen: a.cosa, destino: b.cosa };
     }
 }
@@ -508,8 +510,8 @@ export function normalizarEtiquetas(e: EnlaceNuevo): Respuesta<EnlaceNuevo> {
         const rechazo = rechazoEtiqueta(e.etiqueta, true) ?? rechazoEtiqueta(e.inversa, true);
         if (rechazo) return { ok: false, rechazo };
         if (e.etiqueta === e.inversa) {
-            const { tipo, inversa, estadoOrigen, ...resto } = e;
-            return { ok: true, valor: { ...resto, tipo: 'reciproco', ...(estadoOrigen !== undefined ? { estados: { origen: estadoOrigen } } : {}) },
+            const { tipo, inversa, estadoOrigen, estadoDestino, ...resto } = e;
+            return { ok: true, valor: reciprocoConEstados({ ...resto, tipo: 'reciproco' }, estadoOrigen, estadoDestino),
                 trazas: [{ regla: 'R-STRE-1', mensaje: `Etiquetas iguales «${e.etiqueta}» y «${inversa}»: normalizado a recíproco.`, refs: [] }] };
         }
     } else if (e.tipo === 'etiquetado' || e.tipo === 'reciproco') {

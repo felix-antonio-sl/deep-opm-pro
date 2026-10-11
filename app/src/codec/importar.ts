@@ -1,7 +1,7 @@
 import type { ResultadoImport } from './informe';
 import type { Entrada, Informe, DiffVisibilidad } from './informe';
-import type { Modelo, Cosa, Enlace, Opd, Abanico, Estado, Aparicion, Duracion, UnidadTiempo, Multiplicidad } from '../nucleo/tipos';
-import { esProcedimental, extremos } from '../nucleo/tipos';
+import type { Modelo, Cosa, Enlace, Opd, Abanico, Estado, Aparicion, Duracion, UnidadTiempo, Multiplicidad, Reciproco } from '../nucleo/tipos';
+import { esProcedimental, extremos, reciprocoConEstados } from '../nucleo/tipos';
 import { validarForma } from '../nucleo/forma';
 import { MATRIZ, noOfrecido, esMultiplicidad, violacionesContexto } from '../nucleo/matriz';
 import { indice, describirEnlace } from '../nucleo/indice';
@@ -493,19 +493,20 @@ function construirEnlaces(data:Record<Col,Record<string,Registro>>, cosas:Record
       if(tipo==='etiquetado')out={...out,...(tag?{etiqueta:tag}:{}),...(a.estado?{estadoOrigen:a.estado}:{}),...(b.estado?{estadoDestino:b.estado}:{})};
       else if(tag===back) {
         l.norm(r,'Etiquetas iguales → recíproco.','R-STRE-1');
-        out={...out,tipo:'reciproco',...(tag?{etiqueta:tag}:{}),...(a.estado?{estados:{origen:a.estado,...(b.estado?{destino:b.estado}:{})}}:{})};
-        if(!a.estado&&b.estado)l.perder(`${r}.destinoId`,b.estado,'AP-11','Recíproco no admite solo estado destino');
+        out={...out,tipo:'reciproco',...(tag?{etiqueta:tag}:{}),...(a.estado||b.estado?{estados:{...(a.estado?{origen:a.estado}:{}),...(b.estado?{destino:b.estado}:{})}}:{})};
+        if(!a.estado&&b.estado)l.norm(r,'Recíproco con estado sólo en destino → extremos invertidos.','R-EST-SSE-1');
       } else if(!tag||!back) {
         out={...out,tipo:'etiquetado',...(tag?{etiqueta:tag}:{}),...(a.estado?{estadoOrigen:a.estado}:{}),...(b.estado?{estadoDestino:b.estado}:{})};
         const secondId=Object.hasOwn(data.enlaces,`${id}~inv`)?nuevo('e'):`${id}~inv`;
         segundo={id:secondId,tipo:'etiquetado',origen:b.cosa,destino:a.cosa,...(back?{etiqueta:back}:{}),...(b.estado?{estadoOrigen:b.estado}:{}),...(a.estado?{estadoDestino:a.estado}:{}),...(md?{multOrigen:md}:{}),...(mo?{multDestino:mo}:{})};
         l.norm(r,`Etiqueta vacía → dos enlaces opuestos (${secondId}).`,'DS-13');
-      } else {out={...out,etiqueta:tag,inversa:back,...(a.estado?{estadoOrigen:a.estado}:{})};if(b.estado)l.perder(`${r}.destinoId`,b.estado,'AP-11','Bidireccional no admite estado destino');}
+      } else out={...out,etiqueta:tag,inversa:back,...(a.estado?{estadoOrigen:a.estado}:{}),...(b.estado?{estadoDestino:b.estado}:{})};
     }
     const internalTipo=out.tipo as Enlace['tipo'];
     if(ctrl) {if(MATRIZ[internalTipo].control)out.control=ctrl;else l.perder(`${r}.modificador`,e.modificador??e.subtipoModificador,'AP-01/02','Control ilegal retirado');}
     if(mo) {if(permiteOrigen)out[MATRIZ[internalTipo].familia==='etiquetada'?'multOrigen':'mult']=mo;else l.perder(`${r}.multiplicidadOrigen`,e.multiplicidadOrigen,'R-MULT-1A','Multiplicidad en extremo ilegal');}
     if(md) {if(permiteDestino)out[MATRIZ[internalTipo].familia==='etiquetada'?'multDestino':'mult']=md;else l.perder(`${r}.multiplicidadDestino`,e.multiplicidadDestino,'R-MULT-1A','Multiplicidad en extremo ilegal');}
+    if(out.tipo==='reciproco'){const x=out as unknown as Reciproco;out=reciprocoConEstados(x,x.estados?.origen,x.estados?.destino) as unknown as Registro;}
     if(e.rutaEtiqueta!==undefined) {if(internalTipo==='consumo'||internalTipo==='resultado')out.ruta=str(e.rutaEtiqueta);else l.perder(`${r}.rutaEtiqueta`,e.rutaEtiqueta,'DR-19');}
     if(MATRIZ[internalTipo].familia!=='etiquetada'&&typeof e.etiqueta==='string'&&e.etiqueta!=='')l.perder(`${r}.etiqueta`,e.etiqueta,'R-OPL-1');
     for(const k of ['probabilidad','demora','tasa','unidadesTasa','requisitos','mostrarRequisitos'])if(e[k]!==undefined)l.perder(`${r}.${k}`,e[k]);

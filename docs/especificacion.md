@@ -262,8 +262,8 @@ Dirección canónica (origen → destino) usada en el modelo. «Obj» admite anc
 | generalizacion | estructural fund. | general → especialización, mismo tipo | **ninguno o ambos** (especialización de estado, R-OPL-RF-3: `lista_de_objetos_con_estado " son " objeto_con_estado`); nunca uno solo | NO | NO | NO | NO | NO | RF3/RF3b/RH1 | R-STRF-1; RX1/RX2 diferidos (DR-10) |
 | clasificacion | estructural fund. | clase → instancia, mismo tipo | — | NO | NO | NO | NO | NO | RF4/RF4b | R-STRF-3 (sin colección incompleta) |
 | etiquetado | estructural etiq. | obj→obj o proc→proc; origen = destino admitido (relación unaria, R-OPD-STR-10) | origen (SSE1), destino (SSE2), ambos (SSE3) | NO | NO | NO | ambos extremos | NO | SE1/SE2 | R-OPL-SE-2 (obj↔proc = exhibición) |
-| etiquetadoBidireccional | estructural etiq. | obj→obj o proc→proc | origen (SSE4/SSE5); **nunca solo destino** | NO | NO | NO | ambos | NO | SE3 | AP-11; etiquetas iguales ⇒ normalizar a `reciproco` (R-STRE-1) |
-| reciproco | estructural etiq. | obj→obj o proc→proc | ambos (SSE6), origen (SSE7); **nunca solo destino** | NO | NO | NO | ambos | NO | SE4/SE5 | AP-11 |
+| etiquetadoBidireccional | estructural etiq. | obj→obj o proc→proc | origen o destino (SSE4/SSE5, con el estado en el extremo que lo porta) o ambos (dos SSE3) | NO | NO | NO | ambos | NO | SE3 | R-EST-SSE-1; etiquetas iguales ⇒ normalizar a `reciproco` (R-STRE-1) |
+| reciproco | estructural etiq. | obj→obj o proc→proc | ambos (SSE6), uno (SSE7): con estado sólo en destino se invierten los extremos para que lo lleve el origen | NO | NO | NO | ambos | NO | SE4/SE5 | R-EST-SSE-1 |
 
 Reglas transversales de la matriz:
 
@@ -288,7 +288,7 @@ Reglas transversales de la matriz:
 | AP-27 | Evento a subproceso no primero: bloquear si algún subproceso de una banda anterior tiene un enlace transformador sin `c` (efecto obligatorio no omitible); advertir si todos los previos son omisibles. | DEBE bloquearse / DEBE advertirse | impedir / advertir |
 | §3.11 | Estado no contiene nada; un proceso no contiene estados. | inf. DEBE | impedir |
 | R-OPL-SE-2, R-EST-TAG-1 | Etiquetados solo obj↔obj o proc↔proc. | DEBE | impedir |
-| V-30 / R-EST-SSE-1, AP-11 | Bidireccional y recíproco no existen con estado solo en destino. | NO DEBE / DEBE bloquearse | impedir |
+| V-30 / R-EST-SSE-1, AP-11 | Bidireccional y recíproco con estado en un solo extremo se expresan con SSE4/SSE5 o SSE7, con el estado en el extremo que lo porta, sea origen o destino (ISO §10.4.2.5, §10.4.2.7; DEC50). El recíproco, simétrico, lo lleva en su origen invirtiendo los extremos. | DEBE | normalizar con traza |
 
 ### 2.2 Abanicos (familias × dirección) — reglas §7.2 (textual)
 
@@ -734,7 +734,7 @@ Estructurales con estado especificado (reglas §4.10, textual):
 | SSE6 | Estado en ambos, recíproco | **Origen** en `sa` y **Destino** en `sb` son etiqueta. | C |
 | SSE7 | Estado en origen, recíproco | **Destino** y **Origen** en `sa` son etiqueta. | C |
 
-«Restricción `V-30`: las variantes bidireccional y recíproco NO existen para el caso de estado solo en destino.» Con etiqueta nula, SSE1–SSE3 usan `se relaciona con` en lugar de `etiqueta`.
+Desde DEC50 la restricción histórica `V-30` no rige: el bidireccional admite estado en origen, en destino o en ambos, y el recíproco con un solo estado lo lleva en su origen (R-EST-SSE-1). Con etiqueta nula, SSE1–SSE3 usan `se relaciona con` en lugar de `etiqueta`.
 
 #### 4.4.8 Abanicos (reglas §7.3, textual; gate)
 
@@ -1696,7 +1696,7 @@ Advertencias exigidas (no bloquean):
 | AP-08 | Escindido + `c`/`e` | DEBE bloquearse (no aplica a ETS3/ETS4 standalone) | Control sobre el TS3 completo | impedir por `escision` ★ |
 | AP-09 | `c`/`e` sobre estructural | DEBE bloquearse | — | imposible ★ |
 | AP-10 | `c`/`e` sobre invocación | DEBE bloquearse | Nodo de decisión booleano, fan de invocación | imposible ★ |
-| AP-11 | Bi/recíproco con estado solo en destino | DEBE bloquearse | Unidireccional o estado en origen | impedir |
+| AP-11 | Bi/recíproco con estado solo en destino | retirado (DEC50) | Ninguna: es válido en ISO §10.4.2.5, §10.4.2.7 | normalizar el recíproco al origen |
 | AP-12 | Estados de proceso | DEBE bloquearse | Subprocesos o atributo exhibido | imposible ★ |
 | AP-13 | Refinamiento sin hijos | DEBE bloquearse en cierre/export; PUEDE persistir como placeholder | al menos un hijo | advertir + bloquear export ★ |
 | AP-14 | Duplicar estados para inicial+final | DEBE bloquearse como sinónimo falso | Estado único inicial y final | permitir D10; método |
@@ -1843,7 +1843,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-047 | Excepción solo proceso fuente → proceso de manejo (impedir otra firma). Sobretiempo exige `duracion.max` y subtiempo `duracion.min` de la fuente: canónico condicionado ⇒ pedir el dato al crear o advertir; nunca inventar la cota. | DEBE | imp | R-EXC-1/2/3, R-EXC-DUR-1, R-OPD-CTL-6, reglas l.115 | ★ |
 | T-048 | Agregación, generalización y clasificación solo entre cosas del mismo tipo; exhibición admite las 4 combinaciones. | DEBE / PUEDE | imp | R-STRF-1/2/2A, R-EST-PERS-1/2, R-OPD-STR-3 | ★ |
 | T-049 | Etiquetados solo objeto↔objeto o proceso↔proceso. | DEBE | imp | R-OPL-SE-2, R-EST-TAG-1 | ★ |
-| T-050 | Bidireccional/recíproco con estado solo en destino: impedir. | NO DEBE / DEBE bloquearse | imp | V-30, R-EST-SSE-1, AP-11, R-OPD-STR-9 | |
+| T-050 | Bidireccional/recíproco con estado solo en destino: ofrecer; el recíproco lleva el estado a su origen con traza (DEC50). | DEBE | imp | V-30, R-EST-SSE-1, AP-11, R-OPD-STR-9 | |
 | T-051 | `e`/`c` solo en consumo, efecto, agente e instrumento (Pre(P)); nunca en resultado, estructural, invocación, excepción ni fragmento escindido. | NO DEBE / NUNCA | imp | R-MOD-1..4, R-MOD-INPUT-1/2, R-MOD-CAT-1/2, R-EXC-1B, AP-01/02/08/09/10 | ★ |
 | T-052 | A lo sumo un control por enlace (`c`+`e` imposible). | NO DEBE | imp | R-COMB-3, AP-28, R-§21-OPL-MOD | ★ |
 | T-053 | A lo sumo un enlace procedimental por par (objeto, proceso), salvo ramas de un mismo abanico; entre niveles rigen R-ROL-1/3 y la precedencia al abstraer (DEC33); sin auto-resolución en edición. | DEBE | imp | R-ROL-UNIC-1, R-HAB-AG-5, R-OPD-HAB-4, reglas §6.5, DR-6 | ★ |

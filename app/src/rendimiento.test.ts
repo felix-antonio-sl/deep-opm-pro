@@ -138,9 +138,9 @@ test('T-192 toda enumeración construcción análisis ensayo aplicación mediana
     const medidas = medir('T-192 corpus completo', 3000, prepararCorpusRoundtrip, r => {
         for (const comprobar of r.comprobaciones) comprobar();
         expect(r.casos).toBe(160);
-        expect(r.modelos).toBe(2996);
+        expect(r.modelos).toBe(3012);
         expect(r.admitidos).toBe(r.modelos);
-        expect(r.argumentosExactos).toBe(2734);
+        expect(r.argumentosExactos).toBe(2746);
         expect(r.importaciones).toBe(r.pendientes);
         expect(r.familias).toEqual(['CX', 'CX3', 'EX', 'FAN5', 'atributos-mixtos', 'atómico', 'fan', 'fan-por-rama']);
     });
