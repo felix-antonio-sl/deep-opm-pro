@@ -192,7 +192,7 @@ Requisitos ★ de CANON §9, con evidencia por superficie. Un título o inventar
 | T-185 | R-§19-DISP-1/2, R-§21-OPL-DISP | parcial | G·P; U pendiente | editor-opl: cabeceras display no producen acciones, sí contexto. |
 | T-190 | R-BI-DUAL-1, R-OPD-BIM-1 | parcial | G·P; U pendiente | roundtrip-matriz/Tabla 9.2: hechos visibles emiten y se reconocen; huérfanos no inventados. |
 | T-191 | R-§19-SIM-1 | parcial | G·P; U pendiente | roundtrip-matriz/azar y modelos WP-10: auto cero errores/acciones por cada OPD, 49 OPDs de seis fixtures+sintético+HODOM, identidad/JSON e informes intactos. |
-| T-192 | R-§19-SIM-3, R-BI-TAB-1 | parcial | G·P; U pendiente | roundtrip-matriz:2996 modelos/2734 imports reales,5786 propuestas y presupuesto 3000 ms intacto. WP-10 reconstruye cinco documentos ofrecidos desde base nueva; tres modelos conservan sus gates. |
+| T-192 | R-§19-SIM-3, R-BI-TAB-1 | parcial | G·P; U pendiente | roundtrip-matriz:2996 modelos/2734 imports reales,5786 propuestas y presupuesto 3000 ms intacto. WP-10 reconstruye cinco documentos ofrecidos desde base nueva; tres modelos conservan sus gates. roundtrip-proyeccion: el hecho de un subproceso que el padre muestra abstraído al contenedor no se duplica en el contorno al leer desde vacío (uno y dos niveles), y la oración del padre que repite esa proyección no edita. |
 | T-193 | R-§19-ROT-1 | parcial | G·P; U pendiente | lente: diez parciales explícitas reproducidas; permanecen pérdidas textuales, no cerradas. |
 | T-194 | R-§19-COMP-1, R-COMP-REV-1/2 | parcial | G·P; U pendiente | composicion:68 casos originales +136 vectores generativos semilla 0x1949; conjuntos de hechos. |
 | T-195 | R-BI-4 | parcial | G·P; U pendiente | editor-opl: COND-ALT preserva hecho y regenera superficie CT1 canónica. |

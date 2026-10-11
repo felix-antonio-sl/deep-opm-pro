@@ -108,6 +108,8 @@ function cosasEnlace(e: EnlaceTexto): NombreTipado[] {
     return [e.origen, e.destino as ExtremoTexto];
 }
 interface Trabajo { l: LineaAnalizada; hechos: readonly HechoTexto[]; etiqueta: string; }
+// SD es la raíz; SD1 y SD2 son hijos; SD1.1 es nieto.
+const profundidad = (etiqueta: string): number => etiqueta === 'SD' ? 0 : etiqueta.split('.').length;
 export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Plan {
     const ls = analizar(texto), trabajos: Trabajo[] = []; let etiqueta = alcance === 'modelo' ? 'SD' : indice(m).etiqueta.get(alcance) ?? alcance;
     const canonico=textoCanonico(alcance === 'modelo' ? generarModelo(m) : generarBloque(m,alcance));
@@ -159,6 +161,8 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
         }
     }
     let patches = new Map<number, Patch[]>(), acciones: Accion[] = [];
+    const proyeccionBase = new Map<Id, ReturnType<typeof proyectar>['enlaces']>();
+    const abstraidosBase = (o: Id) => { let v = proyeccionBase.get(o); if (!v) proyeccionBase.set(o, v = m.opds[o] ? proyectar(m, o).enlaces.filter(x => x.abstraido) : []); return v; };
     // Cada fallo quita la línea ENTERA y vuelve a ensayar desde la misma base; no reserva IDs.
     for (;;) {
         let actual = m, falla: { numero: number; error: Fallo } | null = null;
@@ -227,6 +231,9 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
             const o = oid(t), vistos = proyectar(actual, o).enlaces;
             const completo = vistos.find(v => comparable(v.enlace) === comparable(c));
             if (completo) return completo.enlace.id;
+            // Repetir la proyección abstraída de la base no edita: manda el hecho del hijo, ya ensayado.
+            const proyectado = abstraidosBase(o).find(v => comparable(v.enlace) === comparable(c));
+            if (proyectado) return proyectado.enlace.id;
             const originales = Object.values(actual.enlaces).filter(e => mismaPareja(e, c));
             const exacto = originales.find(e => comparable(e) === comparable(c));
             if (exacto) return exacto.id;
@@ -250,7 +257,7 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
         const activos = trabajos.filter(t => !prohibidas.has(t.l.numero));
         const intentar = (t: Trabajo, fn: () => void) => { if (falla) return; try { fn(); } catch (e) { if (!(e instanceof Fallo)) throw e; falla = { numero: t.l.numero, error: e }; } };
         // Contexto en preorden, antes de crear nombres que son internos de un hijo.
-        for (const t of [...activos].sort((a, b) => a.etiqueta.split('.').length - b.etiqueta.split('.').length || a.l.numero - b.l.numero)) for (const h of t.hechos) if (h.k === 'descomposicion' || h.k === 'despliegue') intentar(t, () => {
+        for (const t of [...activos].sort((a, b) => profundidad(a.etiqueta) - profundidad(b.etiqueta) || a.l.numero - b.l.numero)) for (const h of t.hechos) if (h.k === 'descomposicion' || h.k === 'despliegue') intentar(t, () => {
             const padreLabel = h.k === 'descomposicion' && h.opdPadre ? h.opdPadre : t.etiqueta.includes('.') ? t.etiqueta.slice(0, t.etiqueta.lastIndexOf('.')) : 'SD';
             const padre = labels.get(padreLabel); if (!padre) throw new Fallo('unknown-symbol', `OPD padre ${padreLabel} inexistente.`);
             const n = h.k === 'descomposicion' ? { nombre: h.proceso, tipo: 'proceso' as const } : h.cosa;
@@ -318,7 +325,7 @@ export function planificar(m: Modelo, alcance: Id | 'modelo', texto: string): Pl
             }
         }});
         // Hijos primero: el padre puede reutilizar sus hechos proyectados.
-        for (const t of [...activos].sort((a, b) => b.etiqueta.split('.').length - a.etiqueta.split('.').length || a.l.numero - b.l.numero)) intentar(t, () => {
+        for (const t of [...activos].sort((a, b) => profundidad(b.etiqueta) - profundidad(a.etiqueta) || a.l.numero - b.l.numero)) intentar(t, () => {
             for (const h of t.hechos) {
                 if (h.k === 'enlace') enlace(t, candidato(t, h.enlace));
                 if (h.k === 'abanico') {
