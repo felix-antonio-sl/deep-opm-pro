@@ -1,4 +1,4 @@
-Derivada de `canon/` 1.x (reglas OPM 1.5.0, spec-OPD 1.4.0, spec-OPL 1.4.1, metodología 1.7.0). Desde el canon 2.0.0 (ISO/PAS 19450:2015) y su revisión 2.1.0 (ISO 19450:2024, [alcance y reservas](../canon/CAMBIOS-2.1.md)) lo propio de OpForja vive en `perfil/`, con los mismos IDs y números de sección; «reglas §n» y sus pares designan la sección homónima del canon y, si se repartió, su parte del perfil, y «perfil <documento> §n» apunta a una sección que pasó entera al perfil ([canon/CAMBIOS-2.0.md](../canon/CAMBIOS-2.0.md)). Ante conflicto manda `canon/` y luego `perfil/`, con precedencia reglas > spec-OPD/spec-OPL > método; donde un requisito T-NNN difiere del canon vigente, la diferencia está declarada en [conformidad.md](conformidad.md) (B-39 en adelante). Las decisiones del dueño y DS se conservan en [decisiones.md](decisiones.md); los incumplimientos, en [conformidad.md](conformidad.md). El cuerpo que sigue reproduce íntegro CANON.md derivado del diseño; sus menciones al análisis histórico no añaden autoridad.
+Derivada de `canon/` 1.x (reglas OPM 1.5.0, spec-OPD 1.4.0, spec-OPL 1.4.1, metodología 1.7.0). Desde el canon 2.0.0 (ISO/PAS 19450:2015; la 2.2.0 restablece su contenido, DEC47) lo propio de OpForja vive en `perfil/`, con los mismos IDs y números de sección; «reglas §n» y sus pares designan la sección homónima del canon y, si se repartió, su parte del perfil, y «perfil <documento> §n» apunta a una sección que pasó entera al perfil ([canon/CAMBIOS-2.0.md](../canon/CAMBIOS-2.0.md)). Ante conflicto manda `canon/` y luego `perfil/`, con precedencia reglas > spec-OPD/spec-OPL > método; donde un requisito T-NNN difiere del canon vigente, la diferencia está declarada en [conformidad.md](conformidad.md) (B-39 en adelante). Las decisiones del dueño y DS se conservan en [decisiones.md](decisiones.md); los incumplimientos, en [conformidad.md](conformidad.md). El cuerpo que sigue reproduce íntegro CANON.md derivado del diseño; sus menciones al análisis histórico no añaden autoridad.
 
 # CANON — Especificación del producto opforja derivada del canon (ni más ni menos)
 
@@ -284,7 +284,7 @@ Reglas transversales de la matriz:
 | R-STRF-1/2/2A, R-EST-PERS-1/2, R-OPD-STR-3 | Salvo exhibición, refinable y refinadores de igual perseverancia (= mismo tipo). | DEBE | impedir |
 | R-EXC-1B | `e`/`c` NUNCA sobre excepción. | NUNCA DEBE | impedir |
 | R-DIST-1, AP-06 | Consumo/resultado nunca en el contorno de un proceso descompuesto. | NO DEBE | migrar automáticamente (§3.2); impedir anclaje directo al contorno |
-| R-CX-DIST-2, AP-21 | Ningún enlace de evento desde fuera del contorno de un proceso descompuesto inicia un subproceso a ningún nivel, sea sistémico o ambiental (ISO 2024 §14.2.2.4.2). Incluye invocación; no reclasifica condición ni excepción. | NO DEBE | comprobar todos los contornos ancestros; rechazar el cruce sin migrarlo ni quitar su control |
+| R-CX-DIST-2, AP-21 | Ningún enlace de evento desde fuera del contorno de un proceso descompuesto inicia un subproceso a ningún nivel, sea sistémico o ambiental: el sistémico por ISO §14.2.2.4.2; el ambiental, que la norma admite con el manejo de la contingencia, por endurecimiento de producto (B-44). Incluye invocación; no reclasifica condición ni excepción. | NO DEBE | comprobar todos los contornos ancestros; rechazar el cruce sin migrarlo ni quitar su control |
 | AP-27 | Evento a subproceso no primero: bloquear si algún subproceso de una banda anterior tiene un enlace transformador sin `c` (efecto obligatorio no omitible); advertir si todos los previos son omisibles. | DEBE bloquearse / DEBE advertirse | impedir / advertir |
 | §3.11 | Estado no contiene nada; un proceso no contiene estados. | inf. DEBE | impedir |
 | R-OPL-SE-2, R-EST-TAG-1 | Etiquetados solo obj↔obj o proc↔proc. | DEBE | impedir |
@@ -392,7 +392,7 @@ Distribución de enlaces al descomponer (reglas §8.5 = spec-OPL §7.6 = spec-OP
 | Agente | PERMITIDO | A todos los subprocesos |
 | Instrumento | PERMITIDO | A todos los subprocesos |
 | Estructural | NO se distribuye | Permanece asociado al contenedor |
-| Evento exterior, sistémico o ambiental | Puede iniciar el proceso completo; **PROHIBIDO** atravesar su contorno para iniciar hijos | Conserva iniciación del padre; nunca copia `e` a hijos |
+| Evento exterior, sistémico o ambiental | Puede iniciar el proceso completo; **PROHIBIDO** atravesar su contorno para iniciar hijos (el ambiental, por endurecimiento de producto, B-44) | Conserva iniciación del padre; nunca copia `e` a hijos |
 
 Realización mínima conforme (DR-13/DR-14):
 - «Permitido al contorno = a todos los subprocesos» se realiza dejando el enlace anclado al **contorno** del contenedor, con lectura distributiva («paréntesis algebraico», R-OPD-REF-11). No se crean copias por subproceso.
@@ -466,7 +466,7 @@ evento > sin control > condición
 | 11 | Instrumento |
 | 12 | Condición de instrumento |
 
-Matriz temporal de precedencia transformadora (canon reglas §6.6, ISO 19450:2024 Tabla 27; P1 anterior a P2, DEC31). La continuidad de identidad exigida por el perfil para R↔C se conserva:
+Matriz temporal de precedencia transformadora del producto (DEC31; P1 anterior a P2). El canon reglas §6.6 conserva sólo las combinaciones inválidas que verifica la PAS 2015 y marca la Tabla 27 como no verificable; la diferencia es B-53. La continuidad de identidad exigida por el perfil para R↔C se conserva:
 
 | P1 (primero) \ P2 (después) | Efecto | Resultado | Consumo |
 |---|---|---|---|
@@ -1749,7 +1749,7 @@ Campos del bundle (método F, textual): `entidades {id, tipo: objeto|proceso, no
 | El método no bloquea: lo que nace solo del método es advertencia. | declarativa | severidad ≤ warning | §0.1, §0.2 |
 | Middle-out: no forzar el orden de construcción. | inf. | la UI no impone SD-primero | A1.1 |
 | Refinamiento: in-zoom con orden vertical semántico y paralelismo por bordes superiores alineados; despliegue en 4 modos con colección incompleta; supresión global y por apariencia. | inf. DEBE | §3 | A3.1–A3.6, LF-03 |
-| Contorno del descompuesto: consumo y resultado PROHIBIDOS en el contorno; ningún evento exterior inicia directamente hijos; escisión sin modificador. Verificar cualquier migración automática sin fabricar el cruce. | PROHIBIDO / PUEDE | §3.2 | ISO 2024 §14.2.2.4.1–3, A3.4 |
+| Contorno del descompuesto: consumo y resultado PROHIBIDOS en el contorno; ningún evento exterior inicia directamente hijos; escisión sin modificador. Verificar cualquier migración automática sin fabricar el cruce. | PROHIBIDO / PUEDE | §3.2 | ISO §14.2.2.4.1–3, A3.4; el rechazo del evento ambiental es B-44 |
 | Alcance interno/externo persistido; reposicionar no cambia alcance. | DEBE | §3.2 | A3.3 |
 | Identidad: OPD con id ≠ `SDx.y`; solo OPDs hoja eliminables; 1:1 cosa↔nombre; reuso por nombre = nueva apariencia. | DEBE / invariante | §1, §3.4 | A4.3, §9.15 |
 | Estructurales homogéneos salvo exhibición (4 combinaciones); procedimentales obj↔proc (salvo invocación). | invariante | matriz §2 | §9.6, A8.2 |
@@ -1852,7 +1852,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-057 | Multiplicidad solo en etiquetados (ambos extremos), agregación (extremo parte) y procedimentales (extremo objeto); nunca en extremo proceso; valores `?`, `*`, `+`, `2..*` y un entero n ≥ 2 (DEC35; ausente = 1..1); no se ofrece junto con `c` (sin hueco en A.6, DR-44). | DEBE / NO DEBE / NUNCA | imp | R-MULT-1/1A, R-OPD-MUL-1, R-COMB-6, EBNF A.5/A.6/A.8/A.9, DR-21, DR-44 | |
 | T-058 | Ruta solo en consumo y resultado (restricción de producto declarada); etiqueta definida por el modelador, nunca autogenerada. | DEBE / NO DEBE | imp | R-OPL-RUTA-2/3, DR-19 | |
 | T-059 | Nada dentro de un estado; ningún estado dentro de un proceso. | inf. DEBE | imp | reglas §3.11, R-OPD-COSA-7, AP-12 | ★ |
-| T-060 | Consumo y resultado no quedan en un contorno con subprocesos. Ningún evento exterior al contorno, sistémico ni ambiental, inicia directamente un subproceso a ningún nivel; puede iniciar el proceso completo. | NO DEBE / PUEDE | imp | R-DIST-1, R-CX-DIST-1/2, AP-06, AP-21 | ★ |
+| T-060 | Consumo y resultado no quedan en un contorno con subprocesos. Ningún evento exterior al contorno, sistémico ni ambiental, inicia directamente un subproceso a ningún nivel; puede iniciar el proceso completo. El rechazo del ambiental es endurecimiento de producto (B-44). | NO DEBE / PUEDE | imp | R-DIST-1, R-CX-DIST-1/2, AP-06, AP-21 | ★ |
 | T-061 | Evento a subproceso no primero: impedir si un subproceso de banda anterior tiene transformador sin `c`; si no, advertir. | DEBE bloquearse / DEBE advertirse | imp | AP-27 | |
 | T-062 | Sin placeholders: cosa y estado nacen con el nombre que escribe el modelador (no hay «cosa sin nombrar» que emitir); R-ENT-2 queda satisfecho por construcción. No se rechazan nombres escritos por el usuario por parecerse a un patrón (`Objeto 2`, `Proceso`): eso es heurística de v0, no canon. | NO DEBE (emitir) | imp | R-ENT-2, spec-OPL Definiciones («Placeholder»), DR-11 | ★ |
 | T-063 | Cambio de tipo objeto↔proceso: recalcular y revisar enlaces; impedir si deja estados o enlaces inválidos. | DEBE | imp | R-EDIT-3, R-OPD-EDIT-2 | ★ |

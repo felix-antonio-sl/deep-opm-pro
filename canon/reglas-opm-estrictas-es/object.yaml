@@ -1,7 +1,7 @@
 id: urn:fxsl:kb:reglas-opm-estrictas-es
 kind: knowledge
 name: reglas-opm-estrictas-es
-description: 'Reglas OPM estrictas según ISO 19450:2024, en español: ontología, clases de enlace y su validez, modificadores de control, abanicos, refinamiento, bimodalidad OPD↔OPL y consistencia de hechos.'
+description: 'Reglas OPM estrictas según ISO/PAS 19450:2015, en español: ontología, clases de enlace y su validez, modificadores de control, abanicos, refinamiento, bimodalidad OPD↔OPL y consistencia de hechos.'
 content: content.md
 requires: []
 relations:
@@ -13,10 +13,9 @@ provenance:
   source_path: artefactos/conocimiento/fxsl/reglas-opm-estrictas-es.md
   source_sha256: b3d59d0de851447e11e2f95200edd706b1c5eb39d05f6f452a6ead022d8f1ac1
   legacy_state: publicado
-  revision: 2.1.0 local (recuperación de texto, figuras y citas ISO 19450:2024, 2026-10-11)
-  norma: ISO 19450:2024 (copia pública contrastada; fuente y reservas en canon/CAMBIOS-2.1.md)
-  norma_sha256: 9bb1be0510f2182cb6e31984941dca193da74517b3ee230e85cabd4da7f12203
+  revision: 2.2.0 local (contenido 2.0.0 sobre ISO/PAS 19450:2015; retira la 2.1.0, DEC47)
+  norma: ISO/PAS 19450:2015 (texto del dueño, no versionado); única fuente disponible
   perfil: perfil/reglas-opforja.md
 publication:
   status: local
-  sha256: b5495da638895402adda67655d0d9950ad687e35cf1874b35c7b42830578de68
+  sha256: a78ac6995e925b73314d798ce8ece1d8705c033689c722af4ed41cb1ab031107

@@ -1,10 +1,10 @@
 ---
 urn: urn:fxsl:kb:reglas-opm-estrictas-es
 nombre: reglas-opm-estrictas-es
-version: 2.1.0
+version: 2.2.0
 estado: local
-descripcion: "Reglas OPM estrictas según ISO 19450:2024, en español: ontología, clases de enlace y su validez, modificadores de control, abanicos, refinamiento, bimodalidad OPD↔OPL y consistencia de hechos."
-fuente: "ISO 19450:2024, texto y figuras recuperados; alcance y reservas en canon/CAMBIOS-2.1.md (2026-10-11)"
+descripcion: "Reglas OPM estrictas según ISO/PAS 19450:2015, en español: ontología, clases de enlace y su validez, modificadores de control, abanicos, refinamiento, bimodalidad OPD↔OPL y consistencia de hechos."
+fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47)"
 autor: FS
 creado: 2026-05-31
 lang: es
@@ -18,37 +18,24 @@ cita: [urn:fxsl:kb:spec-forja-opd-es, urn:fxsl:kb:spec-forja-opl-es, urn:fxsl:kb
 
 ## Definición
 
-Este documento fija, en español, las reglas de OPM que establece ISO 19450:2024: qué es una cosa, un estado y un enlace; qué enlaces son válidos entre qué extremos; cómo actúan los modificadores de control, los abanicos lógicos y la multiplicidad; cómo se refina y se abstrae un modelo; y qué exige la bimodalidad OPD↔OPL y la consistencia de hechos. Su alcance es sólo lo que la norma funda o lo que se integra orgánicamente a ella (la localización española de OPL). No contiene reglas de herramienta, de interfaz, de persistencia ni de método propio de un producto.
+Este documento fija, en español, las reglas de OPM que establece ISO/PAS 19450:2015: qué es una cosa, un estado y un enlace; qué enlaces son válidos entre qué extremos; cómo actúan los modificadores de control, los abanicos lógicos y la multiplicidad; cómo se refina y se abstrae un modelo; y qué exige la bimodalidad OPD↔OPL y la consistencia de hechos. Su alcance es sólo lo que la norma funda o lo que se integra orgánicamente a ella (la localización española de OPL). No contiene reglas de herramienta, de interfaz, de persistencia ni de método propio de un producto.
 
 ## Precedencia
 
 - Dentro del canon: reglas > spec-OPD / spec-OPL > metodología. Este documento es el dueño de la semántica y de la validez; spec-OPD es dueño de la notación gráfica, spec-OPL de la realización OPL-ES y metodología del método. Cuando una regla se define aquí, los demás documentos la citan por ID.
-- Ante duda sobre el sentido de una regla, manda la norma (ISO 19450:2024). Si el canon y la norma divergen sin declaración, se corrige el canon.
+- Ante duda sobre el sentido de una regla, manda la norma (ISO/PAS 19450:2015). Si el canon y la norma divergen sin declaración, se corrige el canon.
 - El perfil OpForja (`perfil/reglas-opforja`) se subordina a este canon: puede endurecerlo o extenderlo de forma declarada, nunca contradecirlo.
 
 ## Convenciones
 
-- Cita: `ISO §x.y` remite a la cláusula de ISO 19450:2024 con su numeración; «Tabla n», «Figura n» y «Anexo X» remiten a esa misma edición. El Anexo A (sintaxis OPL) es normativo; los Anexos B, C y D, las NOTAS y los EJEMPLOS son informativos.
+- Cita: `ISO §x.y` remite a la cláusula de ISO/PAS 19450:2015 con su numeración; «Tabla n», «Figura n» y «Anexo X» remiten a esa misma edición. El Anexo A (sintaxis OPL) es normativo; los Anexos B, C y D, las NOTAS y los EJEMPLOS son informativos.
 - Modalidad: shall → DEBE; shall not → NO DEBE; should → DEBERÍA; should not → NO DEBERÍA; may → PUEDE. Lo descriptivo («can», definiciones) se escribe en indicativo, sin palabra modal en mayúsculas.
-- Marcas: `[informativo]` = la regla sólo la funda un anexo informativo, una NOTA o un EJEMPLO; nunca lleva DEBE. `[localización]` = realización española de OPL sin contraparte literal en la norma; no cambia el hecho del modelo. `[guía]` = método que aplica construcciones ISO sin agregar reglas. Las reservas de fuente e interpretación se declaran en `canon/CAMBIOS-2.1.md`; disponer del PDF no acredita por sí solo exhaustividad ni conformidad del producto.
+- Marcas: `[informativo]` = la regla sólo la funda un anexo informativo, una NOTA o un EJEMPLO; nunca lleva DEBE. `[localización]` = realización española de OPL sin contraparte literal en la norma; no cambia el hecho del modelo. `[guía]` = método que aplica construcciones ISO sin agregar reglas. «No verificable» = la fuente disponible está resumida o le falta la figura que decide la regla.
 - Referencias cruzadas: por ID, o por documento y sección (`reglas §5.2`, `spec-OPL §11.1`). Una regla definida en otro documento se cita como `- **ID**: ver <doc> §n.`; una regla fusionada con otra, como `- **ID** = <ID>.`
-- Términos: un concepto, un término, según el glosario de la norma (cláusula 3). «Aparición» es cada presencia de una cosa en un OPD; «instancia» sólo significa instancia de modelo o instancia operacional (ISO §3.29, §3.30).
+- Términos: un concepto, un término, según el glosario de la norma (cláusula 3). «Aparición» es cada presencia de una cosa en un OPD; «instancia» sólo significa instancia de modelo o instancia operacional (ISO §3.28, §3.29).
 - La numeración de secciones conserva la de la versión 1.x; los huecos son secciones trasladadas.
 
 Secciones trasladadas al perfil: Mapa de familia Forja, Definiciones, §3.6, §4.1, §4.17, §7.6, §8.3, §8.7, §10 (salvo §10.1), §12 y Anexo C; parcialmente §2.3, §2.8, §2.9, §3.12, §8.6, §8.10, §8.11, §9.3, §11 y Anexos A y B.
-
-### Terminología recuperada de la edición 2024
-
-| Término | Distinción | Cláusula ISO |
-|---|---|---|
-| Abstracción / proceso de abstracción | Resultado / proceso que oculta detalle mediante mecanismos de abstracción; no son el mismo concepto. | §3.1–§3.2 |
-| Transformación | Crear, consumir o cambiar el estado de un objeto; la realiza un proceso. | §3.78 |
-| Transformado | Objeto que el proceso crea, consume o afecta. | §3.79 |
-| Enlace transformador | Consumo, resultado o efecto. | §3.80 |
-| Despliegue | Refinamiento que revela cosas y enlaces del refinable; sus cuatro clases son partes, rasgos, especializaciones e instancias. | §3.81 |
-| Valor de atributo | Estado de un objeto atributo. | §3.82 |
-| Valor funcional | Beneficio entregado por la función con un costo; no es un estado de atributo. | §3.83 |
-| Todo | Agregado de partes de su misma perseverancia. §3.84 dice dos o más; §10.3.2 dice una o más. La cardinalidad de un agregado completo de una sola parte se conserva como reserva de fuente, sin extender «dos» a otros refinamientos. | §3.84, §10.3.1–§10.3.2 |
 
 ### Conformidad OPM
 
@@ -68,69 +55,69 @@ Secciones trasladadas al perfil: Mapa de familia Forja, Definiciones, §3.6, §4
 
 - **R-PRIN-1** (ISO §6.1.1, §14.1): la función del sistema y el propósito de modelado DEBEN guiar el alcance y el grado de detalle del modelo.
 - **R-PRIN-2** (ISO §6.1.1, §14.1): toda decisión de alcance DEBE derivarse de la función del sistema, del propósito de modelado y de los interesados relevantes.
-- **R-PRIN-3** (ISO §6.1.2, §3.44): un modelo OPM DEBE unificar función, estructura y comportamiento en un único formalismo; un hecho OPM NO DEBE expresarse en una notación externa.
-- **R-PRIN-4** (ISO §3.24, §6.1.3): el proceso que provee el valor funcional DEBE expresar la función del sistema tal como la percibe su beneficiario principal.
+- **R-PRIN-3** (ISO §6.1.2, §3.43): un modelo OPM DEBE unificar función, estructura y comportamiento en un único formalismo; un hecho OPM NO DEBE expresarse en una notación externa.
+- **R-PRIN-4** (ISO §3.23, §6.1.3): el proceso que provee el valor funcional DEBE expresar la función del sistema tal como la percibe su beneficiario principal.
 - **R-PRIN-5** (ISO §6.1.4): el modelador DEBERÍA distinguir la función (valor para el beneficiario) del comportamiento (cómo opera el sistema).
 - **R-PRIN-6** (ISO §6.1.5, §7.3.3, §7.3.4): el límite del sistema separa las cosas sistémicas de las ambientales; toda cosa tiene afiliación, sistémica por defecto.
 - **R-PRIN-7** (ISO §6.1.5, §7.3.3): las cosas ambientales DEBEN formar una colección de cosas fuera del sistema que pueden interactuar con él.
-- **R-PRIN-8** (ISO §6.1.6, §14.1, §14.2.1): el grado de detalle DEBERÍA equilibrar claridad y completitud mediante los mecanismos de refinamiento y abstracción. Claridad es comprensión sin ambigüedad de estructura y comportamiento; completitud es especificación de los detalles del sistema.
+- **R-PRIN-8** (ISO §6.1.6, §14.1, §14.2.1): el grado de detalle DEBE equilibrar claridad y completitud mediante los mecanismos de refinamiento y abstracción.
 - **R-PRIN-9** (ISO §6.1.1, §14.2.3): todo OPD, también el orientado a un interesado, pertenece al mismo modelo y NO DEBE contradecir hechos de otro OPD.
 
 ---
 
 ## 2. Ontología de cosas y estados
 
-### 2.1 Cosas (ISO §3.77, §7.3.1)
+### 2.1 Cosas (ISO §3.76, §7.3.1)
 
 Una cosa es exactamente de una de dos clases:
 
-| Clase | Glosario | Símbolo | Perseverancia (ISO §3.51) |
+| Clase | Glosario | Símbolo | Perseverancia (ISO §3.50) |
 |---|---|---|---|
-| Objeto | ISO §3.40 | rectángulo | estática (en OPL, «persistente», ISO A.4.4.2) |
-| Proceso | ISO §3.59 | elipse | dinámica (en OPL, «transitoria», ISO A.4.4.2) |
+| Objeto | ISO §3.39 | rectángulo | estática (en OPL, «persistente», ISO A.4.4.2) |
+| Proceso | ISO §3.58 | elipse | dinámica (en OPL, «transitoria», ISO A.4.4.2) |
 
 - **R-COSA-1** (ISO §7.3.1, §6.2.2): una cosa DEBE ser un objeto o un proceso; no existe otra clase de cosa.
-- **R-COSA-2** (ISO §3.51, §7.3.3, §A.4.4.2): la perseverancia distingue objeto estático y proceso dinámico según §3.51. §7.3.3 enumera además «persistente», su NOTA contempla procesos persistentes y A.4.4.2 ofrece «persistente/transitoria»; esta diferencia de vocabulario se conserva como reserva de fuente, sin inventar una tercera clase de cosa ni excluir el mantenimiento de §7.2.1 NOTA 2.
-- **R-COSA-3** (ISO §3.77, §3.69): el estado no es una cosa: pertenece a un objeto y es una de las posiciones posibles de ese objeto (R-EST-1).
-- **R-COSA-4** (ISO §7.3.2, §7.2.1, §8.1.2): por defecto, un sustantivo DEBE identificar un objeto. Identifica un proceso sólo si satisface los tres criterios: asociación temporal, asociación verbal y actividad que transforma al menos un objeto o lo mantiene en su estado actual. El mantenimiento no elimina el objeto participante ni la exigencia transformadora de R-PROC-2; un proceso sólo con habilitadores sigue sin satisfacerla. La NOTA 2 de §7.2.1 contempla ejecución sin cambio neto.
+- **R-COSA-2** (ISO §3.50, §7.3.3, A.4.4.2): la perseverancia es la propiedad genérica que distingue la clase: estática para el objeto, dinámica para el proceso. No es un atributo gráfico ni un valor que se elija aparte de la clase.
+- **R-COSA-3** (ISO §3.76, §3.68): el estado no es una cosa: pertenece a un objeto y es una de las posiciones posibles de ese objeto (R-EST-1).
+- **R-COSA-4** (ISO §7.3.2): un sustantivo denota un proceso si cumple los tres criterios de la prueba objeto-proceso: asociación temporal, asociación verbal y transformación de al menos un objeto; si no los cumple, denota un objeto.
 
-### 2.2 Objetos (ISO §3.40)
+### 2.2 Objetos (ISO §3.39)
 
-- **R-OBJ-1** (ISO §3.40, §7.1.1): un objeto es una cosa que existe, o puede existir, física o informacionalmente.
-- **R-OBJ-2** (ISO §3.67, §3.68, §3.3, §3.16, §3.18): un objeto es con estados (al menos un estado) o sin estados. Un objeto sin estados no puede ser afectado: como transformado sólo puede crearse o consumirse; puede además ser habilitador.
-- **R-OBJ-3** (ISO §7.3.3, §7.3.4, A.4.4.2): toda cosa tiene tres propiedades genéricas: perseverancia (R-COSA-2), esencia ∈ {física, informacional} y afiliación ∈ {sistémica, ambiental}. La afiliación por defecto DEBE ser sistémica; la esencia por defecto dentro del sistema DEBE ser su esencia primaria (R-OBJ-5).
+- **R-OBJ-1** (ISO §3.39, §7.1.1): un objeto es una cosa que existe, o puede existir, física o informacionalmente.
+- **R-OBJ-2** (ISO §3.66, §3.67, §3.2, §3.15, §3.17): un objeto es con estados (al menos un estado) o sin estados. Un objeto sin estados no puede ser afectado: como transformado sólo puede crearse o consumirse; puede además ser habilitador.
+- **R-OBJ-3** (ISO §7.3.3, §7.3.4, A.4.4.2): toda cosa tiene tres propiedades genéricas: perseverancia (fijada por la clase, R-COSA-2), esencia ∈ {física, informacional}, con valor por defecto informacional, y afiliación ∈ {sistémica, ambiental}, con valor por defecto sistémica.
 - **R-OBJ-4** (ISO A.3.2, A.4.4.3): un objeto PUEDE declarar tipo ∈ {`boolean`, `string`, `integer` (con prefijo opcional `unsigned`), `float`, `double`, `short`, `long`, `enumerated`}; la oración es D18.
-- **R-OBJ-5** (ISO §3.56, §7.3.4): la esencia primaria del sistema DEBE ser la de la mayoría de las cosas dentro de su límite; el defecto de esencia de una cosa dentro de ese límite DEBE ser esa esencia primaria. La herramienta DEBERÍA permitir declararla. El comentario de A.4.4.2 conserva un defecto informacional; esta discrepancia interna se registra en `canon/CAMBIOS-2.1.md` y no sustituye la regla contextual explícita de §7.3.4.
+- **R-OBJ-5** (ISO §3.55, §7.3.4, A.4.4.2): la esencia por defecto de una cosa es informacional; la esencia primaria del sistema es la de la mayoría de sus cosas.
 - **R-OBJ-8** (ISO §7.1.1): desde el punto de vista temporal, la existencia de un objeto persiste salvo que un proceso actúe sobre él.
 
-### 2.3 Procesos (ISO §3.59)
+### 2.3 Procesos (ISO §3.58)
 
-- **R-PROC-1** (ISO §3.59, §7.2.1, §6.2.3): un proceso transforma uno o más objetos.
-- **R-PROC-2** (ISO §7.2.1, §7.3.2, §8.1.2, §3.18): todo proceso DEBE transformar al menos un objeto por consumo, resultado o efecto y conectarse con él mediante enlace transformador; un habilitador no satisface este requisito. El mantenimiento contemplado en §7.2.1 NOTA 2 puede ser efecto sin cambio neto.
+- **R-PROC-1** (ISO §3.58, §7.2.1, §6.2.3): un proceso transforma uno o más objetos.
+- **R-PROC-2** (ISO §7.2.1, §7.3.2, §3.17): todo proceso DEBE transformar al menos un objeto por consumo, resultado o efecto; un habilitador no satisface este requisito.
 - **R-PROC-3** (ISO §7.2.1): un proceso tiene duración positiva.
-- **R-PROC-4** (ISO §3.69) [informativo]: los procesos no tienen estados; para representar sus fases se PUEDE descomponer el proceso en subprocesos (ISO §3.69 NOTA 1).
+- **R-PROC-4** (ISO §3.68) [informativo]: los procesos no tienen estados; para representar sus fases se PUEDE descomponer el proceso en subprocesos (ISO §3.68 NOTA 1).
 
 ### 2.4 Nombres válidos (OPL-ES)
 
-- **R-NOM-OBJ-1** (ISO §A.3.3, §7.1.2, §B.6.2): un nombre de objeto DEBE ser una frase nominal capitalizada y DEBERÍA ser singular.
+- **R-NOM-OBJ-1** (ISO A.3.3, B.6.2, B.6.5): un nombre de objeto DEBE ser una frase nominal capitalizada y DEBERÍA ser singular.
 - **R-NOM-OBJ-2** (ISO B.6.2) [informativo]: un objeto de varios miembros DEBERÍA nombrarse con el núcleo «Conjunto de» (inanimados) o «Grupo de» (humanos) seguido del nombre de los miembros.
 - **R-NOM-PROC-1** (ISO A.3.3, B.6.3) [localización]: un nombre de proceso DEBE ser una frase capitalizada (verbal o nominal, ISO A.3.3) y DEBERÍA realizar el gerundio inglés que recomienda ISO B.6.3 con un infinitivo o un sustantivo deverbal que denote la acción (`Despachar`, `Despacho`, `Fabricación`); el gerundio español no se usa en nombres.
 - **R-NOM-PROC-2** (ISO B.6.3) [informativo]: un nombre de proceso DEBERÍA tener a lo sumo cuatro palabras.
-- **R-NOM-PROC-3** (ISO §A.3.3, §7.1.2, §7.2.2) [localización]: las palabras léxicas de los nombres de cosa DEBEN ir capitalizadas; los artículos y las preposiciones breves PUEDEN ir en minúscula.
+- **R-NOM-PROC-3** (ISO A.3.3, B.6.5) [localización]: las palabras léxicas de los nombres de cosa DEBEN ir capitalizadas; los artículos y las preposiciones breves PUEDEN ir en minúscula.
 - **R-NOM-EST-1** (ISO A.4.2, B.6.4): un nombre de estado DEBE comenzar en minúscula y DEBERÍA usar forma pasiva o descriptiva.
-- **R-NOM-ETIQ-1** (ISO §A.4.2): una etiqueta de enlace estructural DEBE ser una frase que comienza en minúscula; su uso en la oración lo fija R-OPL-SE-1.
+- **R-NOM-ETIQ-1** (ISO A.4.2, B.6.5): una etiqueta de enlace estructural DEBE ser una frase que comienza en minúscula; su uso en la oración lo fija R-OPL-SE-1.
 
 ### 2.5 Qué no puede ser una cosa
 
 | No es cosa | Por qué |
 |---|---|
-| Un estado aislado | El estado pertenece siempre a un objeto (ISO §3.77, §3.69). |
-| Un enlace | Elemento es cosa o enlace; son clases disjuntas (ISO §3.17, §6.2.2). |
-| Un atributo sin exhibidor | Un atributo es un objeto que caracteriza una cosa mediante exhibición-caracterización (ISO §3.5, §10.3.1). |
+| Un estado aislado | El estado pertenece siempre a un objeto (ISO §3.76, §3.68). |
+| Un enlace | Elemento es cosa o enlace; son clases disjuntas (ISO §3.16, §6.2.2). |
+| Un atributo sin exhibidor | Un atributo es un objeto que caracteriza una cosa mediante exhibición-caracterización (ISO §3.4, §10.3.1). |
 
-### 2.6 Estados (ISO §3.69)
+### 2.6 Estados (ISO §3.68)
 
-- **R-EST-1** (ISO §3.69, §7.3.5.2): un estado existe sólo dentro de su objeto dueño; no hay estados sin objeto.
+- **R-EST-1** (ISO §3.68, §7.3.5.2): un estado existe sólo dentro de su objeto dueño; no hay estados sin objeto.
 - **R-EST-2** (ISO §7.3.5.3, §7.3.5.4, A.4.4.4): un estado PUEDE designarse inicial, final o por defecto; los demás estados no llevan designación.
 
 | Designación | Símbolo (ISO §7.3.5.4) | Cuántos por objeto |
@@ -144,9 +131,9 @@ Una cosa es exactamente de una de dos clases:
 
 ### 2.7 Instancias
 
-- **R-INS-1** (ISO §10.3.5.1, §3.30) [informativo]: crear una cosa en el modelo conceptual implica que puede existir al menos una instancia operacional de ella o de una de sus especializaciones (ISO §10.3.5.1 NOTA 2).
-- **R-INS-2** (ISO §3.29, §3.30, B.4, B.5): DEBE distinguirse la instancia de modelo (ISO §3.29) de la instancia operacional (ISO §3.30); repetir una cosa en otro OPD o en el mismo es una aparición del mismo elemento (ISO B.4, B.5), no una instancia.
-- **R-INS-3** (ISO §10.3.5.1) [informativo]: el rótulo de una instancia PUEDE mostrar su nombre (Figura 26) y el de su clase debajo (Figura 27); las figuras no prescriben un separador «:». Su oración de clasificación-instanciación es RF4.
+- **R-INS-1** (ISO §10.3.5.1, §3.29) [informativo]: crear una cosa en el modelo conceptual implica que puede existir al menos una instancia operacional de ella o de una de sus especializaciones (ISO §10.3.5.1 NOTA 2).
+- **R-INS-2** (ISO §3.28, §3.29, B.4, B.5): DEBE distinguirse la instancia de modelo (ISO §3.28) de la instancia operacional (ISO §3.29); repetir una cosa en otro OPD o en el mismo es una aparición del mismo elemento (ISO B.4, B.5), no una instancia.
+- **R-INS-3** (ISO §10.3.5.1) [informativo]: el rótulo de una instancia PUEDE mostrarse como «Instancia : Clase» (ISO §10.3.5.1, Figuras 26–27); su oración es RF4.
 - **R-INS-4** (ISO §6.2.6.1): un enlace entre cosas del modelo conceptual no implica comportamiento ejecutado hasta que existen instancias operacionales.
 - **R-INS-7** (ISO §10.3.5.2): una clase de objeto y una clase de proceso son clases distintas; una instancia de proceso es una ocurrencia identificable de su clase, con su propio conjunto de instancias de objeto previas y posteriores.
 
@@ -156,8 +143,8 @@ R-INS-6 remite a R-HER-6 (reglas §5.5).
 
 - **R-EJEC-1** (ISO §6.2.6.1): el modelo conceptual DEBE describir patrones de estructura y comportamiento; NO DEBE confundirse con una ocurrencia operacional.
 - **R-EJEC-7** (ISO §9.5.3.1, §9.5.3.2, §8.2.1): si al activarse el proceso no existe la instancia operacional del objeto enlazado con `c` (o no está en el estado especificado), la precondición falla y el control omite el proceso, sin esperar.
-- **R-EJEC-8** (ISO §9.5.3.1, §8.2.2, §8.2.3): el proceso sólo se ejecuta si se satisface la precondición de todo su conjunto de objetos previo. Si fallan a la vez un enlace de condición y uno sin condición, la omisión DEBE prevalecer sobre la espera: el proceso no comienza ni genera excepción y el control pasa a los siguientes procesos mediante invocación.
-- **R-EJEC-9** (ISO §9.5.2.5.1, §8.2.3): al completarse un proceso, el control inicia de inmediato el proceso que invoca; la autoinvocación repite el mismo proceso. La omisión no dispara una invocación que dependa de completar el proceso (ISO §9.5.2.5.1 NOTA 1); sí hace avanzar el control secuencial como prescribe §8.2.3.
+- **R-EJEC-8** (ISO §9.5.3.1, §8.2.2): el proceso sólo se ejecuta si se satisface la precondición de todo su conjunto de objetos previo; la falta de cualquier objeto enlazado con `c` omite el proceso. La precedencia de la omisión frente a la espera no es verificable con la fuente disponible (ISO §8.2.2 está resumida).
+- **R-EJEC-9** (ISO §9.5.2.5.1): al completarse un proceso, el control inicia de inmediato el proceso que invoca; la autoinvocación repite el mismo proceso. Un proceso omitido no se completa y no invoca (ISO §9.5.2.5.1 NOTA 1).
 
 ### 2.9 Metamodelo OPM
 
@@ -167,7 +154,7 @@ R-INS-6 remite a R-HER-6 (reglas §5.5).
 - **R-META-5** (ISO §6.2.1): la dualidad OPD↔OPL DEBE preservarse íntegramente dentro de cada modelo.
 - **R-META-10** (ISO C.3) [informativo]: un constructo básico consta de exactamente dos cosas y un enlace.
 - **R-META-11** (ISO C.3) [informativo]: un constructo compuesto PUEDE contener abanicos de enlaces o más de dos refinados.
-- **R-META-13** (ISO C.4, §3.37) [informativo]: un enlace une dos cosas y consta de origen, destino y conector; el conector consta de línea, símbolo, etiqueta opcional y etiqueta de ruta opcional.
+- **R-META-13** (ISO C.4, §3.36) [informativo]: un enlace une dos cosas y consta de origen, destino y conector; el conector consta de línea, símbolo, etiqueta opcional y etiqueta de ruta opcional.
 - **R-META-14** = R-COSA-1.
 - **R-META-15** (ISO C.4) [informativo]: un objeto con `s` estados representa `s` objetos específicos de estado, cada uno especialización del objeto que refiere a uno de sus estados.
 - **R-META-16** (ISO C.4, §10.4.2.3) [informativo]: el objeto específico de estado se enlaza con un enlace estructural etiquetado «refiere a» cuyo destino es el estado (ISO C.4, Figura C.6).
@@ -344,8 +331,8 @@ Esta sección fija qué oraciones OPL-ES expresan cada hecho de la norma (la cor
 | D18 | spec-OPL §2.10 | A.4.4.3 |
 | D19 | spec-OPL §2.0 | A.4.4.2 |
 
-- D6 realiza la producción normativa «, and other states» de ISO A.4.4.4 como «, y otros estados» [localización], frase fija. ISO §14.2.1.1 escribe «or other states»: ambas superficies están en la edición 2024 y no coinciden; el canon conserva la realización de la EBNF, con reserva explícita en `canon/CAMBIOS-2.1.md`.
-- D11 y D12 realizan las alternativas «persistente/transitoria» de ISO A.4.4.2, cuyo comentario fija persistente por defecto. La producción usa identificador de cosa sin restringir esas alternativas a una clase. Su relación con estática/dinámica de §3.51 y con los casos límite de §7.3.3 se conserva como reserva de fuente (R-COSA-2); no se niega D11 a un proceso de mantenimiento por el mero hecho de ser proceso.
+- D6 realiza la producción normativa «, and other states» de ISO A.4.4.4 como «, y otros estados» [localización], frase fija. ISO §14.2.1.1 escribe «or other states» [informativo]: la PAS no es uniforme y el canon sigue la EBNF normativa.
+- D11 y D12 son la oración literal de ISO A.4.4.2 («Persistent» por defecto, «Transient»). La norma no da a la perseverancia otra semántica que la de ISO §3.50 (estática = objeto, dinámica = proceso): D11 sólo es verdadera de un objeto y D12 sólo de un proceso (R-COSA-2).
 - D19 PUEDE omitir cualquiera de las tres propiedades; cada una vale lo mismo que su oración simple (D1–D4, D11–D12).
 
 ### 4.5 Plantillas — enlaces transformadores (ISO §9.1, §9.3)
@@ -491,7 +478,7 @@ Nota: ISO A.4.5.4.3 escribe la condición de agente como «Process occurs if Age
 - **R-OPL-CX-1** (ISO A.4.7.2, §14.2.1.2): OPL-ES DEBE expresar el despliegue de objetos y de procesos por partes, rasgos, especializaciones o instancias.
 - **R-OPL-CX-2** (ISO §14.2.1.2, A.4.7.2): un despliegue en un OPD nuevo PUEDE declarar OPD padre, OPD hijo y clase de despliegue (CX10); la forma mínima es CX3.
 - **R-OPL-CX-3** (ISO A.4.7.4): una descomposición PUEDE ocurrir en el mismo diagrama o en un diagrama nuevo; en un diagrama nuevo, la oración declara OPD padre y OPD hijo (CX11).
-- **R-OPL-CX-4** (ISO A.4.7.4, §3.35, §3.36): OPL-ES DEBE expresar la descomposición de procesos y de objetos.
+- **R-OPL-CX-4** (ISO A.4.7.4, §3.34, §3.35): OPL-ES DEBE expresar la descomposición de procesos y de objetos.
 - **R-OPL-CX-5** (ISO §14.2.2.2, A.4.7.4): una descomposición PUEDE ser secuencial, paralela o mixta; la forma mixta conserva qué subprocesos son paralelos dentro de la secuencia (CX12).
 - **R-OPL-CX-6** (ISO A.4.7.4): una descomposición PUEDE incluir objetos o procesos internos mediante `así como`.
 - **R-OPL-CX-7** (ISO A.4.7.3, A.4.7.5): plegado y recomposición DEBEN referir al OPD hijo.
@@ -515,10 +502,10 @@ La etiqueta de ruta es una propiedad de un enlace procedimental que empareja un 
 | El rango de **Atributo** de **Objeto** es X a Y. | §11.3 |
 | **Atributo** de **Objeto** puede estar `valor1`, `valor2` o `valor3`. (D5 con el atributo como objeto) | A.4.4.4, §10.3.4.3 |
 
-- **R-ATR-1** (ISO §3.5, §10.3.3.1): un atributo es un objeto que caracteriza una cosa mediante exhibición-caracterización.
+- **R-ATR-1** (ISO §3.4, §10.3.3.1): un atributo es un objeto que caracteriza una cosa mediante exhibición-caracterización.
 - **R-ATR-2** (ISO §10.3.3.2.1, §7.3.5.5): los valores de un atributo son estados del atributo.
 - **R-ATR-3** (ISO §7.3.5.5, A.4.2): un atributo PUEDE especificar unidad de medida, escrita `**Atributo** en unidad`.
-- **R-ATR-6** (ISO §3.61): una propiedad es una anotación de un elemento del modelo y no un atributo: su valor no cambia durante la ejecución del modelo (ISO §3.61). Multiplicidades, etiquetas estructurales y etiquetas de ruta son propiedades.
+- **R-ATR-6** (ISO §3.60): una propiedad es una anotación de un elemento del modelo y no un atributo: su valor no cambia durante la ejecución del modelo (ISO §3.60). Multiplicidades, etiquetas estructurales y etiquetas de ruta son propiedades.
 - **R-ATR-7** (ISO §11.3): un rango de valores de atributo PUEDE expresarse con la oración de rango; su expresividad es la de la multiplicidad, sin opcionalidad (ISO §11.3 NOTA 2).
 
 ### 4.14 EBNF
@@ -528,7 +515,7 @@ La etiqueta de ruta es una propiedad de un enlace procedimental que empareja un 
 - **R-OPL-EBNF-5** (ISO A.4.1): toda oración OPL-ES formal DEBE terminar en punto.
 - **R-OPL-EBNF-6** (ISO A.4.1): una oración formal OPL-ES es de descripción de cosa, procedimental, estructural o de gestión de contexto.
 - **R-OPL-LEX-1** (ISO A.3.2) [localización]: el alfabeto de nombres OPL-ES admite, además de las letras A–Z y a–z de ISO A.3.2, las vocales con tilde, la `ü` y la `ñ`, en mayúscula y minúscula. Es una desviación declarada de la EBNF de la norma, necesaria para escribir nombres en español.
-- **R-OPL-LEX-2** (ISO A.3.2, B.6.2): un carácter de cadena es una letra, un dígito decimal, `_`, `-`, `&`, `/` o el espacio. El signo `|` separa alternativas en la EBNF: no es un carácter literal admitido por esta producción.
+- **R-OPL-LEX-2** (ISO A.3.2, B.6.2): un carácter de cadena es una letra, un dígito decimal, `-`, `|`, `&`, `/` o el espacio.
 - **R-OPL-LEX-3** (ISO A.3.2): un nombre comienza con una letra.
 - **R-OPL-TIPO-1** (ISO A.3.2): un identificador de tipo es `boolean`, `string`, un tipo numérico o `enumerated`.
 - **R-OPL-TIPO-2** (ISO A.3.2): el tipo `integer` PUEDE llevar el prefijo `unsigned`.
@@ -588,12 +575,11 @@ Esta clasificación no cambia la validez de ningún enlace: cada uno conserva su
 | Efecto con estados especificados | estado → proceso y proceso → estado | par de flechas de una punta (entrada y salida) | TS3 / TS4 / TS5 |
 
 - **R-CONS-1** (ISO §9.1.2, §9.3.1): el consumido es un objeto, con o sin estados.
-- **R-CONS-2** (ISO §9.1.2, §9.3.1): el consumo DEBE ser inmediato al activarse el proceso, salvo que se modele mediante una tasa a lo largo del tiempo.
-- **R-CONS-3** (ISO §9.1.2, §9.3.1): si el consumo ocurre a lo largo del tiempo, el enlace de consumo DEBE tener una propiedad de tasa de consumo y el consumido DEBE tener un atributo de cantidad disponible.
-- **R-CONS-4** (ISO §9.1.2, §9.3.1): si la cantidad disponible es menor que la tasa de consumo multiplicada por la duración esperada, se PUEDE crear una excepción. Esto no fija un símbolo de excepción distinto de los definidos por la norma.
+- **R-CONS-2** (ISO §9.3.1): el consumo es inmediato al activarse el proceso, salvo que el modelador modele un consumo a lo largo del tiempo.
+- **R-CONS-3** (ISO §9.3.1): si el consumo ocurre a lo largo del tiempo, el enlace de consumo DEBE tener una propiedad de tasa de consumo y el consumido DEBE tener un atributo de cantidad disponible.
 - **R-RES-1** (ISO §9.3.2, §12.7): un enlace de resultado hacia un objeto con estado inicial DEBERÍA unirse al rectángulo del objeto o a un estado distinto del inicial.
-- **R-RES-2** (ISO §9.1.3, §9.3.2): la generación DEBE ser inmediata al completarse el proceso, salvo que se modele a lo largo del tiempo; en ese caso, el enlace de resultado DEBE tener una tasa de generación y el resultante un atributo de cantidad disponible. En el caso con estado especificado se aplica la cantidad de ese estado (§9.3.2).
-- **R-EFE-1** (ISO §9.1.4, §3.3, §3.16): el efecto DEBE unirse a un objeto con al menos un estado.
+- **R-RES-2** (ISO §9.3.2): la generación del resultante es inmediata al completarse el proceso, salvo que se modele a lo largo del tiempo; en ese caso, el enlace de resultado DEBE tener una propiedad de tasa de generación y el resultante DEBE tener un atributo de cantidad disponible en el estado especificado.
+- **R-EFE-1** (ISO §9.1.4, §3.2, §3.15): el efecto DEBE unirse a un objeto con al menos un estado.
 - **R-EFE-2** (ISO §9.3.3.2) [informativo]: iniciado el proceso, el afectado sale de su estado de entrada (ISO §9.3.3.2 NOTA 1).
 - **R-EFE-2A** (ISO §9.3.3.2): el afectado alcanza el estado de salida sólo al completarse el proceso; entretanto está en tránsito entre estados.
 - **R-EFE-2B** (ISO §9.3.3.2) [informativo]: si el proceso se interrumpe antes de completarse, el estado del afectado queda indeterminado (ISO §9.3.3.2 NOTA 2).
@@ -603,11 +589,11 @@ Esta clasificación no cambia la validez de ningún enlace: cada uno conserva su
 
 | Enlace | Firma | Símbolo | Origen | OPL |
 |---|---|---|---|---|
-| Agente | agente → proceso | círculo negro relleno en el extremo del proceso | sólo un humano o un grupo de humanos (ISO §3.4) | H1 / HS1 |
-| Instrumento | instrumento → proceso | círculo blanco en el extremo del proceso | un habilitador no humano (ISO §3.31) | H2 / HS2 |
+| Agente | agente → proceso | círculo negro relleno en el extremo del proceso | sólo un humano o un grupo de humanos (ISO §3.3) | H1 / HS1 |
+| Instrumento | instrumento → proceso | círculo blanco en el extremo del proceso | un habilitador no humano (ISO §3.30) | H2 / HS2 |
 
-- **R-AG-1** (ISO §3.4, §9.2.2): el enlace de agente y el término «agente» se reservan a humanos y grupos de humanos.
-- **R-AG-1A** (ISO §3.31, §9.2.3): un habilitador no humano (robot, máquina, software autónomo) se une al proceso con enlace de instrumento.
+- **R-AG-1** (ISO §3.3, §9.2.2): el enlace de agente y el término «agente» se reservan a humanos y grupos de humanos.
+- **R-AG-1A** (ISO §3.30, §9.2.3): un habilitador no humano (robot, máquina, software autónomo) se une al proceso con enlace de instrumento.
 - **R-AG-2** (ISO §9.2.3, §9.4.1, §9.4.2, §9.3.3.2) [informativo]: si un habilitador deja de existir durante la ejecución, el proceso se detiene y el afectado queda en estado indeterminado (ISO §9.2.3 EJEMPLO 3; §9.3.3.2 NOTA 2).
 
 ### 5.4 Enlaces de invocación (ISO §9.5.2.5)
@@ -668,7 +654,7 @@ Esta clasificación no cambia la validez de ningún enlace: cada uno conserva su
 | Subtiempo | dos barras cortas oblicuas paralelas junto al proceso destino | la duración real es menor que la mínima | EX2 |
 
 - **R-EXC-1** (ISO §9.5.4.2, §9.5.4.3): un enlace de excepción DEBE unir el proceso fuente con el proceso de manejo; al producirse la excepción, un evento inicia el proceso de manejo.
-- **R-EXC-1B** (ISO §9.5.1, §3.14): la excepción es un enlace de control proceso → proceso; `e` y `c` sólo anotan enlaces entrantes objeto → proceso, nunca una excepción.
+- **R-EXC-1B** (ISO §9.5.1, §3.13): la excepción es un enlace de control proceso → proceso; `e` y `c` sólo anotan enlaces entrantes objeto → proceso, nunca una excepción.
 - **R-EXC-2** (ISO §9.5.4.2): un enlace de sobretiempo DEBE tener declarada la duración máxima del proceso fuente.
 - **R-EXC-3** (ISO §9.5.4.3): un enlace de subtiempo DEBE tener declarada la duración mínima del proceso fuente.
 - **R-EXC-4** (ISO §9.5.4.1): la duración de un proceso PUEDE especializarse en mínima, esperada y máxima, y PUEDE tener la propiedad distribución de duración; la mínima y la máxima DEBERÍAN ser las cotas admisibles y la esperada DEBERÍA ser la media estadística.
@@ -683,7 +669,7 @@ Esta clasificación no cambia la validez de ningún enlace: cada uno conserva su
 
 ## 6. Modificadores de control y combinaciones
 
-### 6.1 Naturaleza de los modificadores (ISO §3.14, §9.5.1, §8.1.1)
+### 6.1 Naturaleza de los modificadores (ISO §3.13, §9.5.1, §8.1.1)
 
 Los modificadores de control `e` (evento) y `c` (condición) anotan un enlace transformador o habilitador entrante (de un objeto o estado a un proceso) y lo convierten en el enlace de control correspondiente, de evento o de condición. El enlace conserva su semántica base y gana la de control.
 
@@ -693,9 +679,9 @@ Los modificadores de control `e` (evento) y `c` (condición) anotan un enlace tr
 | `c` (condición) | Introduce un mecanismo de omisión: el objeto o estado es necesario para ejecutar | El proceso se omite y el control pasa al siguiente (ISO §9.5.1) |
 | (ninguno) | Enlace transformador o habilitador sin control | El proceso espera a que se satisfaga la precondición (ISO §9.3.1; §9.5.1 NOTA 2) |
 
-- **R-ECA-1** (ISO §8.2.1, §9.5.1, §14.2.2.1): un proceso comienza sólo cuando ocurre el evento que lo inicia y se satisface su precondición. El evento puede ser explícito o implícito; la secuencia de una descomposición no exige dibujar un enlace de evento para cada subproceso.
-- **R-ECA-2** (ISO §8.2.2, §3.55): todo proceso DEBE tener un conjunto de objetos previo con al menos un objeto, posiblemente en un estado especificado; puede incluir consumidos, afectados y habilitadores y expresiones lógicas compuestas. Ese conjunto determina su precondición.
-- **R-ECA-3** (ISO §8.2.2, §3.53): todo proceso DEBE tener un conjunto de objetos posterior con al menos un objeto, posiblemente en un estado especificado; puede incluir resultantes y afectados y expresiones lógicas compuestas. Ese conjunto determina su postcondición. [informativo] La NOTA 1 incluye habilitadores y afectados en la intersección del previo y el posterior.
+- **R-ECA-1** (ISO §8.2.1): un proceso comienza sólo cuando ocurre el evento que lo inicia, si lo hay, y se satisface su precondición.
+- **R-ECA-2** (ISO §8.2.2, §3.54): el conjunto de objetos previo al proceso incluye los consumidos, los afectados y los habilitadores necesarios para iniciarlo.
+- **R-ECA-3** (ISO §8.2.2, §3.52): el conjunto de objetos posterior al proceso incluye los resultantes y los afectados tras completarlo.
 - **R-ECA-4** (ISO C.4, §9.5.2.1.1) [informativo]: un modificador `e` o `c` anota un enlace existente: no agrega cosa ni enlace al constructo.
 
 ### 6.2 Lado de aplicación: sólo enlaces entrantes (ISO §9.5.1)
@@ -727,7 +713,7 @@ La restricción misma es R-MOD-4.
 |---|---|---|
 | `c` con estado especificado | válida (CS1–CS6) | ISO §9.5.3.3, §9.5.3.4 |
 | `e` con estado especificado | válida (ETS1–ETS4, EHS1–EHS2) | ISO §9.5.2.3, §9.5.2.4 |
-| Modificador sobre enlace estructural | inválida | los modificadores sólo anotan enlaces procedimentales entrantes (ISO §9.5.1, §3.14) |
+| Modificador sobre enlace estructural | inválida | los modificadores sólo anotan enlaces procedimentales entrantes (ISO §9.5.1, §3.13) |
 | Modificador sobre invocación | inválida | `e` y `c` sólo se definen sobre enlaces entrantes objeto → proceso y la invocación ya es un enlace de evento (ISO §9.5.1, §9.5.2.5.1) |
 | Modificador sobre excepción | inválida | R-EXC-1B |
 | Modificador sobre la mitad de entrada de un efecto escindido | no definida | ISO Tabla 25 NOTA 1 [informativo]; R-ESC-1 |
@@ -736,19 +722,19 @@ La restricción misma es R-MOD-4.
 
 ### 6.5 Fuerza semántica y precedencia al abstraer (ISO §14.2.4)
 
-Al abstraer (recomponer o plegar), los enlaces procedimentales entre refinados y cosas que no son refinados migran al OPD del refinable; si un objeto queda unido al mismo proceso por dos enlaces de clases distintas, el de mayor fuerza semántica prevalece (ISO §14.2.4.1). Orden principal (ISO §14.2.4.1.2):
+Al abstraer (recomponer o plegar), los enlaces procedimentales entre refinados y cosas que no son refinados migran al OPD del refinable; si un objeto queda unido al mismo proceso por dos enlaces de clases distintas, el de mayor fuerza semántica prevalece (ISO §14.2.4.1). Orden principal (ISO §14.2.4.3):
 
 ```
 consumo = resultado > efecto > agente > instrumento
 ```
 
-Los enlaces con estado especificado preceden a los básicos (R-FUERZA-5). Orden secundario por modificador de control, dentro de cada clase (ISO §14.2.4.1.3):
+Los enlaces con estado especificado preceden a los básicos (R-FUERZA-5). Orden secundario por modificador de control, dentro de cada clase (ISO §14.2.4.4):
 
 ```
 evento > sin control > condición
 ```
 
-Orden completo (ISO §14.2.4.1.4):
+Orden completo (ISO §14.2.4.5):
 
 | Nivel | Enlace |
 |---|---|
@@ -765,27 +751,27 @@ Orden completo (ISO §14.2.4.1.4):
 | 11 | Instrumento |
 | 12 | Condición de instrumento |
 
-- **R-FUERZA-1** (ISO §14.2.4.1.4, §9.5.1): los niveles 1 y 3 sólo contienen consumo; el resultado no aparece con modificador.
-- **R-FUERZA-2** (ISO §14.2.4.1.4): la condición de instrumento es el enlace procedimental más débil.
-- **R-FUERZA-3** (ISO §14.2.4.1.3): el modificador de condición debilita la fuerza semántica respecto del enlace base.
-- **R-FUERZA-4** (ISO §14.2.4.1.3): el modificador de evento la fortalece respecto del enlace base.
-- **R-FUERZA-5** (ISO §14.2.4.1.2): un enlace con estado especificado DEBE tener precedencia sobre el enlace básico de la misma clase que no especifica estados.
+- **R-FUERZA-1** (ISO §14.2.4.5, §9.5.1): los niveles 1 y 3 sólo contienen consumo; el resultado no aparece con modificador.
+- **R-FUERZA-2** (ISO §14.2.4.5): la condición de instrumento es el enlace procedimental más débil.
+- **R-FUERZA-3** (ISO §14.2.4.4): el modificador de condición debilita la fuerza semántica respecto del enlace base.
+- **R-FUERZA-4** (ISO §14.2.4.4): el modificador de evento la fortalece respecto del enlace base.
+- **R-FUERZA-5** (ISO §14.2.4.3): un enlace con estado especificado DEBE tener precedencia sobre el enlace básico de la misma clase que no especifica estados.
 
-### 6.6 Precedencia entre transformadores al recomponer (ISO §14.2.4.1.1, Tabla 27)
+### 6.6 Precedencia entre transformadores al recomponer (ISO §14.2.4.2, Tabla 27)
 
-Al recomponer dos subprocesos enlazados al mismo objeto, P1 ocurre antes que P2. La Tabla 27 de ISO coloca P1 en columnas y P2 en filas; la tabla siguiente la transpone para leer P1 en filas y P2 en columnas. No es una matriz simétrica:
+Al recomponer subprocesos en su padre, si dos subprocesos tienen enlaces distintos hacia el mismo objeto:
 
-| P1 (primero) \ P2 (después) | Efecto | Resultado | Consumo |
+| B↔P1 \ B↔P2 | Efecto | Resultado | Consumo |
 |---|---|---|---|
-| **Efecto** | Efecto | **Inválido** | Consumo |
+| **Efecto** | Efecto | Resultado | Consumo |
 | **Resultado** | Resultado | **Inválido** | Efecto |
-| **Consumo** | **Inválido** | Efecto | **Inválido** |
+| **Consumo** | Consumo | Efecto | **Inválido** |
 
-Verificada sobre la Tabla 27 (página impresa 96): cuatro celdas son inválidas. El texto introductorio repite «P1» al describir las filas; se sigue la identificación P1/P2 de las cabeceras y de los diagramas de la tabla, no esa errata.
+No verificable: esta matriz depende de las figuras de la Tabla 27, ausentes en la fuente disponible; la Tabla 27 distingue P1 (arriba) de P2 y muestra cuatro celdas inválidas. Se conserva la matriz vigente hasta revisarla con ISO 19450:2024. Lo verificable en el texto de ISO §14.2.4.2 es que el resultado o el consumo prevalecen sobre el efecto y que, cuando compiten resultado y consumo, prevalece el efecto.
 
-- **R-PREC-1** (ISO §14.2.4.1.1, Tabla 27): para P1 anterior a P2, las combinaciones efecto→resultado, consumo→efecto, resultado→resultado y consumo→consumo sobre el mismo objeto son inválidas al recomponer.
-- **R-PREC-2** (ISO §14.2.4.1.1): cuando resultado y consumo compiten sobre el mismo objeto, prevalece el efecto.
-- **R-PREC-5** (ISO §14.2.4.1.2, Tabla 25): al recomponer, un enlace transformador DEBE prevalecer sobre uno habilitador, y el agente sobre el instrumento; la excepción es el objeto cuyo cambio neto en el proceso abstracto es nulo (estado inicial igual al final): en el OPD abstracto PUEDE figurar como instrumento (R-ROL-1; ISO Tabla 25 NOTA 2 [informativo]).
+- **R-PREC-1** (ISO §14.2.4.2, Tabla 27): resultado más resultado y consumo más consumo sobre el mismo objeto son inválidos al recomponer. No verificable (ver la nota anterior).
+- **R-PREC-2** (ISO §14.2.4.2): cuando resultado y consumo compiten sobre el mismo objeto, prevalece el efecto.
+- **R-PREC-5** (ISO §14.2.4.3, Tabla 25): al recomponer, un enlace transformador DEBE prevalecer sobre uno habilitador, y el agente sobre el instrumento; la excepción es el objeto cuyo cambio neto en el proceso abstracto es nulo (estado inicial igual al final): en el OPD abstracto PUEDE figurar como instrumento (R-ROL-1; ISO Tabla 25 NOTA 2 [informativo]).
 
 ### 6.7 Multiplicidad (ISO §11)
 
@@ -895,9 +881,9 @@ La norma define exactamente tres pares (ISO §14.2.1):
 
 | Par | Refinamiento | Abstracción | Alcance |
 |---|---|---|---|
-| Estados | expresión de estados | supresión de estados | estados de un objeto (ISO §14.2.1.1, §3.71, §3.72) |
-| Estructura | despliegue | plegado | estructura, sin transferencia de control; se aplica a objetos y procesos; en procesos modela el refinamiento asíncrono (ISO §14.2.1.2, §3.23) |
-| Descomposición | descomposición | recomposición | procesos: orden temporal parcial y control; objetos: orden espacial o lógico (ISO §14.2.1.3, §3.35, §3.36) |
+| Estados | expresión de estados | supresión de estados | estados de un objeto (ISO §14.2.1.1, §3.70, §3.71) |
+| Estructura | despliegue | plegado | estructura, sin transferencia de control; se aplica a objetos y procesos; en procesos modela el refinamiento asíncrono (ISO §14.2.1.2, §3.22) |
+| Descomposición | descomposición | recomposición | procesos: orden temporal parcial y control; objetos: orden espacial o lógico (ISO §14.2.1.3, §3.34, §3.35) |
 
 - **R-REF-MEC-1** (ISO §14.2.1.2, §10.3.1): el despliegue y el plegado se aplican por cada relación estructural fundamental: despliegue de partes y plegado de participación, de rasgos, de especializaciones y de instancias.
 - **R-REF-MEC-2** (ISO §14.2.1.2): el despliegue dentro del diagrama equivale, gráfica, sintáctica y semánticamente, a dibujar los enlaces estructurales fundamentales; el despliegue en un diagrama nuevo muestra el refinable y sus refinados en otro OPD, con contorno grueso en ambos (spec-OPD §10.1). El modelador PUEDE elegir qué refinados aparecen; el OPL del OPD expresa sólo los que aparecen (R-BR-1).
@@ -905,12 +891,12 @@ La norma define exactamente tres pares (ISO §14.2.1):
 ### 8.2 Descomposición síncrona y despliegue asíncrono (ISO §14.2.2.5)
 
 - **R-REF-SYNC-1** (ISO §14.2.2.5, §14.2.2.1): el refinamiento síncrono de un proceso DEBE modelarse con descomposición; el control vuelve al proceso descompuesto al completarse su último subproceso habilitado.
-- **R-REF-SYNC-2** (ISO §14.2.2.5, §3.23, §14.2.1.2): el refinamiento asíncrono de un proceso DEBE modelarse con el despliegue por agregación (en el diagrama o en uno nuevo); el despliegue revela estructura y no implica orden temporal (ISO §14.2.1.2 NOTA 5).
+- **R-REF-SYNC-2** (ISO §14.2.2.5, §3.22, §14.2.1.2): el refinamiento asíncrono de un proceso DEBE modelarse con el despliegue por agregación (en el diagrama o en uno nuevo); el despliegue revela estructura y no implica orden temporal (ISO §14.2.1.2 NOTA 5).
 
 ### 8.4 Enlaces escindidos (ISO §14.2.2.4.3, Tabla 25)
 
 - **R-ESCIND-0** (ISO §14.2.2.4.3, Tabla 25, §9.3.3.3, §9.3.3.4, §9.5.2.3, §9.5.3.3): TS4 es el efecto con estado de entrada especificado (ISO §9.3.3.3) y TS5 el efecto con estado de salida especificado (ISO §9.3.3.4); ambos admiten evento y condición (R-EFE-3, ETS3, ETS4, CS3, CS4). Al descomponer un TS3, sus dos partes escindidas (Tabla 25) se llaman mitad de entrada y mitad de salida y se escriben con la misma superficie que TS4 y TS5 (reglas §4.5). Sólo la mitad de entrada carece de versión de control (R-ESC-1). Las dos mitades se reconocen por el contexto: unen el mismo objeto con subprocesos distintos del mismo proceso descompuesto.
-- **R-ESCIND-1** (ISO §14.2.2.4.3): si un proceso que cambia un objeto de un estado de entrada a uno de salida se descompone, el OPD queda subespecificado hasta que el modelador asigne el enlace de entrada y el de salida a subprocesos de forma temporalmente factible: ambos a uno solo, o escindidos (mitad de entrada en uno temprano, mitad de salida en uno tardío).
+- **R-ESCIND-1** (ISO §14.2.2.4.3): si un proceso que cambia un objeto de un estado de entrada a uno de salida se descompone en más de un subproceso, el OPD queda subespecificado hasta que el modelador asigne el enlace de entrada y el de salida a subprocesos de forma temporalmente factible: ambos a uno solo, o escindidos (mitad de entrada en uno temprano, mitad de salida en uno tardío).
 - **R-ESCIND-2** (ISO Tabla 25): el subproceso temprano recibe la mitad de entrada y saca al objeto del estado de entrada.
 - **R-ESCIND-3** (ISO Tabla 25): el subproceso tardío recibe la mitad de salida y pone al objeto en el estado de salida.
 - **R-ESC-1** (ISO Tabla 25) [informativo]: no hay versiones con modificador de control de la mitad de entrada de un efecto escindido (ISO Tabla 25 NOTA 1).
@@ -927,13 +913,14 @@ Un enlace procedimental unido al contorno de un proceso descompuesto se distribu
 | Efecto con entrada y salida (TS3) | queda subespecificado | se asigna a uno o dos subprocesos de forma temporalmente factible; si son dos, mitad de entrada y mitad de salida (R-ESCIND-1) |
 | Agente | PUEDE quedar | se distribuye; DEBE alcanzar al menos un subproceso (R-DIST-2) |
 | Instrumento | PUEDE quedar | se distribuye; DEBE alcanzar al menos un subproceso (R-DIST-2) |
-| Evento desde fuera del proceso descompuesto, sistémico o ambiental | NO DEBE cruzar el contorno para iniciar ningún subproceso, en ningún nivel (ISO §14.2.2.4.2) | no hay excepción por afiliación del origen |
+| Evento desde un objeto o estado sistémico | NO DEBE cruzar el contorno hacia un subproceso (ISO §14.2.2.4.2) | — |
+| Evento desde un objeto o estado ambiental | PUEDE cruzar el contorno | el modelador DEBERÍA modelar cómo se maneja esa contingencia (ISO §14.2.2.4.2) |
 
 - **R-DIST-1** (ISO §14.2.2.4.1): el consumo y el resultado NO DEBEN unirse al contorno de un proceso descompuesto.
 - **R-DIST-1A** (ISO §14.2.2.4.1): el consumo y el resultado DEBEN unirse al subproceso que consume o genera (ISO Figura 51).
 - **R-DIST-2** (ISO §14.2.2.4.1): un habilitador unido al contorno de un proceso descompuesto DEBE unirse a al menos uno de sus subprocesos.
 - **R-DIST-3** (ISO §14.2.2.4.1): al descomponer un proceso, sus enlaces de consumo y de resultado DEBEN anclarse inicialmente, o por defecto, al primer subproceso; el modelador PUEDE reasignarlos (ISO §14.2.2.4.1 EJEMPLO 3). [informativo] Una herramienta puede fijar automáticamente esos valores por defecto, que el modelador modifica (ISO §14.2.2.4.1 NOTA 2).
-- **R-DIST-4** (ISO §14.2.2.4.4): como consecuencia de la distribución, cada instancia operacional consumida deja de existir al comienzo del subproceso más detallado que la consume; cada afectada sale de su estado de entrada al comienzo, y entra en su estado de salida al completarse, el subproceso más detallado que la cambia; cada resultante comienza a existir al completarse el subproceso más detallado que la genera.
+- **R-DIST-4** (ISO §14.2.2.4): como consecuencia de la distribución, cada instancia operacional consumida deja de existir al comienzo del subproceso más detallado que la consume; cada afectada sale de su estado de entrada al comienzo, y entra en su estado de salida al completarse, el subproceso más detallado que la cambia; cada resultante comienza a existir al completarse el subproceso más detallado que la genera.
 
 ### 8.6 Contenedor y refinados (ISO §14.2.1.2, §14.2.1.3)
 
@@ -944,19 +931,19 @@ Un enlace procedimental unido al contorno de un proceso descompuesto se distribu
 - **R-REF-1** (ISO §14.2.2.6.1.1, §14.2.1.2): el árbol de procesos OPD y la jerarquía de despliegue son árboles: NO DEBEN tener ciclos.
 - **R-REF-4** (ISO §14.2.3, B.4): esencia, afiliación, perseverancia y nombre de una cosa no cambian de un OPD a otro, porque toda aparición es el mismo elemento.
 
-### 8.9 Cambio de rol entre niveles (ISO Tabla 25, §14.2.4.1.2)
+### 8.9 Cambio de rol entre niveles (ISO Tabla 25, §14.2.4.3)
 
-- **R-ROL-1** (ISO Tabla 25, §14.2.4.1.2) [informativo]: un objeto puede figurar como instrumento en el OPD abstracto y como afectado en uno descendiente cuando su estado inicial coincide con el final en ese proceso (ISO Tabla 25 NOTA 2, Figura 53). Es la excepción a la precedencia del transformador sobre el habilitador (R-PREC-5).
-- **R-ROL-3** (ISO §14.2.4.1.2, §14.2.3): si el cambio neto del objeto en el proceso abstracto no es nulo, el objeto DEBE modelarse como afectado también en el OPD abstracto.
+- **R-ROL-1** (ISO Tabla 25, §14.2.4.3) [informativo]: un objeto puede figurar como instrumento en el OPD abstracto y como afectado en uno descendiente cuando su estado inicial coincide con el final en ese proceso (ISO Tabla 25 NOTA 2, Figura 53). Es la excepción a la precedencia del transformador sobre el habilitador (R-PREC-5).
+- **R-ROL-3** (ISO §14.2.4.3, §14.2.3): si el cambio neto del objeto en el proceso abstracto no es nulo, el objeto DEBE modelarse como afectado también en el OPD abstracto.
 
 ### 8.10 SD, árboles, vistas y OPL del sistema (ISO §14.1, §14.2.2.6)
 
 - **R-SD-1** (ISO §14.1): el SD DEBE modelar los interesados, los beneficiarios, el proceso que entrega el valor funcional y las cosas ambientales y sistémicas indispensables.
 - **R-SD-2** (ISO §14.1): el SD DEBERÍA contener sólo las cosas centrales, indispensables para comprender la función y el contexto del sistema.
 - **R-SD-3** (ISO §14.1): el valor funcional PUEDE ser explícito (estados de entrada y de salida del beneficiario, o valores inicial y final de sus atributos) o implícito (el beneficiario es afectado).
-- **R-SD-4** (ISO §14.2.2.6.1.3, §3.76): el SD DEBE contener exactamente un proceso sistémico, que representa la función del sistema; PUEDE contener procesos ambientales.
-- **R-ARB-1** (ISO §3.46, §14.2.2.6.1.1): el árbol de procesos OPD DEBE tener raíz SD y por nodos los OPDs creados en un diagrama nuevo por descomposición (subprocesos síncronos) o por despliegue de agregación (subprocesos asíncronos).
-- **R-ARB-2** (ISO §3.45, §14.2.2.6.1.2): el árbol de objetos OPD tiene raíz en un objeto y muestra su elaboración por refinamiento; hay un árbol por cada objeto refinable (un bosque).
+- **R-SD-4** (ISO §14.2.2.6.1.3, §3.75): el SD DEBE contener exactamente un proceso sistémico, que representa la función del sistema; PUEDE contener procesos ambientales.
+- **R-ARB-1** (ISO §3.45, §14.2.2.6.1.1): el árbol de procesos OPD DEBE tener raíz SD y por nodos los OPDs creados en un diagrama nuevo por descomposición (subprocesos síncronos) o por despliegue de agregación (subprocesos asíncronos).
+- **R-ARB-2** (ISO §3.44, §14.2.2.6.1.2): el árbol de objetos OPD tiene raíz en un objeto y muestra su elaboración por refinamiento; hay un árbol por cada objeto refinable (un bosque).
 - **R-ARB-3** (ISO §14.2.2.6.1.3): SD es la etiqueta del OPD raíz; las etiquetas SD1, SD1.1 y análogas nombran los OPDs del árbol.
 - **R-ARB-4** (ISO §14.2.2.6.1.4): toda arista del árbol de procesos OPD DEBE tener etiqueta y equivale a un enlace etiquetado `se refina por descomposición de NombreProceso en` o `se refina por despliegue de NombreProceso en`; su oración es CX4 o CX9.
 - **R-OPL-TOTAL-1** (ISO §14.2.2.6.2, Tabla 26): la especificación OPL del sistema es la sucesión de los párrafos OPL de todos sus OPDs; el orden habitual (SD y luego en anchura, salvo otro que elija el modelador) es informativo (ISO §14.2.2.6.2 NOTA 2).
@@ -989,7 +976,7 @@ Un enlace procedimental unido al contorno de un proceso descompuesto se distribu
 | Construcción gráfica | Plantilla OPL-ES |
 |---|---|
 | Rectángulo con sombra | D1: **Cosa** es física. |
-| Rectángulo sin sombra | D2: **Cosa** es informacional. Si coincide con la esencia primaria, se omite salvo para una cosa sin conexiones (ISO §7.3.4). |
+| Rectángulo sin sombra (por defecto) | D2: **Cosa** es informacional. (PUEDE omitirse: es el valor por defecto) |
 | Rectángulo o elipse con contorno discontinuo (a trazos) | D3: **Cosa** es ambiental. |
 | Elipse con sombra | D1: *Cosa* es física. |
 | Estados dentro de un objeto | D5: **Objeto** puede estar `estado1`, `estado2` o `estado3`. |
@@ -1048,17 +1035,17 @@ Un enlace procedimental unido al contorno de un proceso descompuesto se distribu
 | AP-02 | Resultado con modificador `e` | No existe enlace de evento de resultado (R-MOD-1; ISO §9.5.1). | Llevar el evento a un consumo, efecto, agente o instrumento. |
 | AP-03 | Abanico XOR u OR de resultado con `c` o `e` | Cada rama sigue siendo un resultado (R-MOD-1; ISO §9.5.1, §12.5). | Llevar el control al lado de entrada o usar un abanico probabilístico sin control. |
 | AP-04 | Resultado unido directamente al estado inicial | DEBERÍA unirse al rectángulo o a un estado no inicial (R-RES-1; ISO §9.3.2). | Unirlo al rectángulo del objeto o a un estado no inicial. |
-| AP-05 | Agente no humano (robot, máquina, software) | Un agente es un humano o un grupo de humanos; lo no humano es instrumento (R-AG-1, R-AG-1A; ISO §3.4, §9.2.2). | Usar enlace de instrumento. |
+| AP-05 | Agente no humano (robot, máquina, software) | Un agente es un humano o un grupo de humanos; lo no humano es instrumento (R-AG-1, R-AG-1A; ISO §3.3, §9.2.2). | Usar enlace de instrumento. |
 | AP-06 | Consumo o resultado en el contorno de un proceso descompuesto | R-DIST-1 (ISO §14.2.2.4.1). | Anclarlo por defecto al primer subproceso y reasignarlo al subproceso que consume o genera (R-DIST-3). |
 | AP-07 | Efecto con entrada y salida que queda subespecificado al descomponer | R-ESCIND-1 (ISO §14.2.2.4.3). | Asignar entrada y salida a un subproceso o escindirlas: mitad de entrada en uno temprano y mitad de salida en uno tardío. |
 | AP-08 | Mitad de entrada de un efecto escindido con `c` o `e` [informativo] | R-ESC-1 (ISO Tabla 25 NOTA 1); no se aplica a TS4 ni a TS5 (R-ESCIND-0). | Poner el control sobre el efecto completo antes de escindir o sobre otro enlace de entrada. |
-| AP-09 | `c` o `e` sobre un enlace estructural | Los modificadores sólo anotan enlaces procedimentales entrantes (ISO §9.5.1, §3.14). | Llevar el control a un enlace procedimental de entrada del proceso correspondiente. |
+| AP-09 | `c` o `e` sobre un enlace estructural | Los modificadores sólo anotan enlaces procedimentales entrantes (ISO §9.5.1, §3.13). | Llevar el control a un enlace procedimental de entrada del proceso correspondiente. |
 | AP-10 | `c` o `e` sobre una invocación | `e` y `c` sólo anotan enlaces entrantes objeto → proceso; la invocación ya es un enlace de evento entre procesos (ISO §9.5.1, §9.5.2.5.1). | Un proceso previo que genera un objeto cuyos estados condicionan a los procesos alternativos, o un abanico de invocación. |
-| AP-12 | Estados de proceso | Los estados sólo son de objetos (ISO §7.3.5.1, A.4.4.4, §3.71). | Descomponer el proceso en subprocesos (R-PROC-4). |
+| AP-12 | Estados de proceso | Los estados sólo son de objetos (ISO §7.3.5.1, A.4.4.4, §3.70). | Descomponer el proceso en subprocesos (R-PROC-4). |
 | AP-16 | Refinamiento cíclico | R-REF-1 (ISO §14.2.2.6.1.1). | Romper el ciclo. |
 | AP-20 | Triángulo estructural sin su interior | La exhibición lleva un triángulo negro interior y la clasificación un círculo negro interior (R-TRI-2; ISO §10.3.3.1, §10.3.5.1). | Dibujar el interior que corresponde a la relación. |
-| AP-21 | Evento desde fuera que cruza el contorno de un proceso descompuesto | NO DEBE ocurrir, sea sistémico o ambiental el origen (ISO §14.2.2.4.2). | Revisar el contexto y la iniciación del proceso completo; no eximir por afiliación. |
-| AP-30 | Combinación temporal inválida de transformadores sobre el mismo objeto al recomponer | Las cuatro celdas inválidas de R-PREC-1 (ISO §14.2.4.1.1, Tabla 27). | Corregir el nivel hijo antes de recomponer. |
+| AP-21 | Evento desde una cosa sistémica que cruza el contorno de un proceso descompuesto | NO DEBE ocurrir (ISO §14.2.2.4.2). | Llevar el evento dentro de la descomposición o, si la cosa es ambiental, modelar la contingencia. |
+| AP-30 | Resultado más resultado, o consumo más consumo, sobre el mismo objeto al recomponer | R-PREC-1 (ISO §14.2.4.2, Tabla 27). No verificable: las figuras de la Tabla 27 faltan en la fuente. | Corregir el nivel hijo antes de recomponer. |
 
 ### 11.2 Probabilidad fuera de un abanico
 
@@ -1079,7 +1066,7 @@ Un enlace procedimental unido al contorno de un proceso descompuesto se distribu
 | OPL | Todo hecho del OPD tiene su oración OPL-ES y toda oración denota el mismo constructo OPD (R-BI-DUAL-1; ISO §6.2.1). | un hecho visible no tiene oración, o una oración no reconstruye el mismo hecho. |
 | Modificadores | `e` y `c` sólo anotan enlaces transformadores o habilitadores entrantes (R-MOD-4; ISO §9.5.1, Tabla 25 NOTA 1). | un resultado, un estructural, una invocación, una excepción o la mitad de entrada de un efecto escindido llevan `e` o `c`. |
 | Refinamiento | Todo OPD hijo agrega detalle y no contradice al padre (R-CONSIST-1, R-REF-1, R-REF-4; ISO §14.2.3, §14.2.2.6.1.1). | un OPD contradice a otro, el árbol de OPDs tiene un ciclo o cambian el nombre, la esencia, la afiliación o la perseverancia de una cosa. |
-| Distribución | Al descomponer, los enlaces del padre se distribuyen según la norma (reglas §8.5; ISO §14.2.2.4). | un consumo o un resultado quedan en el contorno; un habilitador del contorno no alcanza ningún subproceso; un TS3 queda subespecificado (sin asignar entrada y salida a uno o dos subprocesos de forma temporalmente factible); un evento cruza el contorno desde fuera para iniciar un subproceso, cualquiera que sea la afiliación de su origen. |
+| Distribución | Al descomponer, los enlaces del padre se distribuyen según la norma (reglas §8.5; ISO §14.2.2.4). | un consumo o un resultado quedan en el contorno; un habilitador del contorno no alcanza ningún subproceso; un TS3 queda subespecificado (sin asignar entrada y salida a uno o dos subprocesos de forma temporalmente factible); un evento sistémico cruza el contorno. |
 
 ### Anexo B — Reglas gráficas
 

@@ -1,7 +1,7 @@
 id: urn:fxsl:kb:spec-forja-opd-es
 kind: knowledge
 name: spec-forja-opd-es
-description: 'Notación gráfica del OPD según ISO 19450:2024, en español: símbolos de cosas y estados, puntas y marcas de enlace, triángulos estructurales, operadores lógicos, multiplicidad y representación del refinamiento.'
+description: 'Notación gráfica del OPD según ISO/PAS 19450:2015, en español: símbolos de cosas y estados, puntas y marcas de enlace, triángulos estructurales, operadores lógicos, multiplicidad y representación del refinamiento.'
 content: content.md
 requires:
 - urn:fxsl:kb:reglas-opm-estrictas-es
@@ -15,10 +15,9 @@ provenance:
   source_path: artefactos/conocimiento/fxsl/spec-forja-opd-es.md
   source_sha256: 8ce15bb0515aef31a63f83f4d5c4247c961a36ff2cc0ecb83cab52e1866c8cd8
   legacy_state: publicado
-  revision: 2.1.0 local (recuperación de texto, figuras y citas ISO 19450:2024, 2026-10-11)
-  norma: ISO 19450:2024 (copia pública contrastada; fuente y reservas en canon/CAMBIOS-2.1.md)
-  norma_sha256: 9bb1be0510f2182cb6e31984941dca193da74517b3ee230e85cabd4da7f12203
+  revision: 2.2.0 local (contenido 2.0.0 sobre ISO/PAS 19450:2015; retira la 2.1.0, DEC47)
+  norma: ISO/PAS 19450:2015 (texto del dueño, no versionado); única fuente disponible
   perfil: perfil/opd-opforja.md
 publication:
   status: local
-  sha256: f3e3bd9647e4dade7d37671dd37b768b2ef0ee088b32fa149de3fa36176855c4
+  sha256: 09fdaedb9b77151d3132271821b38c0a5ba703a4de0e2b4424a337a182f96af4

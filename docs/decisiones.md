@@ -168,6 +168,12 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
     la Tabla 27 ya observada sustituye la matriz provisional documental, sin cambiar la matriz
     temporal del producto ni DEC31–32. Las nuevas diferencias del producto se declaran en
     conformidad; esta resolución documental no despliega ni altera modelos o políticas de producto.
+47. **La única fuente es ISO/PAS 19450:2015; se retira la revisión 2.1.0.** Declaración directa del dueño,
+    role=user: «nunca tuvimos la norma 2024 disponible. lo hicimos todo con el avance 2015. asegúrate que esté
+    en línea con eso». Sustituye a DEC46, que queda como historia: el canon 2.2.0 restablece el contenido 2.0.0
+    y cita sólo la PAS 2015 (`canon/CAMBIOS-2.2.md`). B-44 conserva el código de `941469d`: el rechazo del evento
+    sistémico cumple ISO §14.2.2.4.2 y el del ambiental queda como endurecimiento de producto declarado. La matriz
+    de precedencia del producto (DEC31) se declara en B-53 frente a la Tabla 27 no verificable del canon (DEC44).
 
 ## Resoluciones directas posteriores — vigentes
 

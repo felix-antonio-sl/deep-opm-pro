@@ -1,7 +1,7 @@
 id: urn:fxsl:kb:spec-forja-opl-es
 kind: knowledge
 name: spec-forja-opl-es
-description: 'Realización en español (OPL-ES) de la OPL de ISO 19450:2024: vocabulario reservado, plantillas de oración por construcción y gramática EBNF traducida del Anexo A.'
+description: 'Realización en español (OPL-ES) de la OPL de ISO/PAS 19450:2015: vocabulario reservado, plantillas de oración por construcción y gramática EBNF traducida del Anexo A.'
 content: content.md
 requires:
 - urn:fxsl:kb:reglas-opm-estrictas-es
@@ -15,10 +15,9 @@ provenance:
   source_path: artefactos/conocimiento/fxsl/spec-forja-opl-es.md
   source_sha256: 1dd9eca263340cb6cfeed361cf44329d2e6c677f03416d444e81bd847536fcc4
   legacy_state: publicado
-  revision: 2.1.0 local (recuperación de texto, figuras y citas ISO 19450:2024, 2026-10-11)
-  norma: ISO 19450:2024 (copia pública contrastada; fuente y reservas en canon/CAMBIOS-2.1.md)
-  norma_sha256: 9bb1be0510f2182cb6e31984941dca193da74517b3ee230e85cabd4da7f12203
+  revision: 2.2.0 local (contenido 2.0.0 sobre ISO/PAS 19450:2015; retira la 2.1.0, DEC47)
+  norma: ISO/PAS 19450:2015 (texto del dueño, no versionado); única fuente disponible
   perfil: perfil/opl-opforja.md
 publication:
   status: local
-  sha256: 02fb8c1fe3d6c03b15d17373d9256c0b8cf7628e5a51a12a9b93e1f7672f6d0f
+  sha256: 12db0911a9f6aec11f77768da7bcdd52c5f1caad71c9d218fbb1381bfd3cf3d0

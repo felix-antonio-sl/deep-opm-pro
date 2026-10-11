@@ -2,7 +2,7 @@
 
 Reglas propias de OpForja que no funda ISO 19450: realización de producto (render, lienzo, panel, parser,
 edición, importación, exportación, diagnósticos), extensiones y endurecimientos. Salieron del canon al publicar
-su versión 2.0.0 (DEC40 en `docs/decisiones.md`); ninguna se borró del producto. La revisión canónica 2.1.0 usa ISO 19450:2024; las diferencias nuevas y las reservas se declaran en `docs/conformidad.md` y `canon/CAMBIOS-2.1.md`, sin atribuir a ISO reglas del perfil.
+su versión 2.0.0 (DEC40 en `docs/decisiones.md`); ninguna se borró del producto.
 
 | Documento | Origen | Contenido |
 |---|---|---|

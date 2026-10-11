@@ -12,8 +12,9 @@ import { proyectar } from './proyeccion';
 import { exportarV0 } from '../codec/exportar';
 import { importarV0 } from '../codec/importar';
 
-// ISO 19450:2024 §14.2.2.4.2: la propiedad del origen, no su afiliación,
-// decide si inicia un subproceso desde fuera de cualquiera de sus contornos.
+// B-44: la propiedad del origen, no su afiliación, decide si inicia un subproceso desde fuera
+// de cualquiera de sus contornos. ISO §14.2.2.4.2 prohíbe el cruce sistémico; rechazar también
+// el ambiental es endurecimiento de producto (perfil opd-opforja §10.2).
 function jerarquia(afiliacion: Afiliacion = 'sistemica', enlaces: readonly Enlace[] = []): Modelo {
     const ap = (x: number, y = 80) => ({ x, y, ancho: 135, alto: 60 });
     const objeto = (id: string, nombre: string): Objeto => ({ id, nombre, tipo: 'objeto', esencia: 'fisica', afiliacion,

@@ -1,10 +1,10 @@
 ---
 urn: urn:fxsl:kb:metodologia-forja-opm-es
 nombre: metodologia-forja-opm-es
-version: 2.1.0
+version: 2.2.0
 estado: local
-descripcion: "Metodología OPM según ISO 19450:2024 en español: principios de modelado, prueba objeto-proceso, construcción del SD, comprensión del modelo y guías informativas de los Anexos B y D."
-fuente: "ISO 19450:2024, texto y figuras recuperados; alcance y reservas en canon/CAMBIOS-2.1.md (2026-10-11)"
+descripcion: "Metodología OPM según ISO/PAS 19450:2015 en español: principios de modelado, prueba objeto-proceso, construcción del SD, comprensión del modelo y guías informativas de los Anexos B y D."
+fuente: "ISO/PAS 19450:2015, revisión cláusula por cláusula (2026-10-10); 2.2.0 restablece el contenido 2.0.0 y retira la revisión 2.1.0 (DEC47)"
 autor: FS
 creado: 2026-05-31
 lang: es
@@ -21,7 +21,7 @@ cita: [urn:fxsl:kb:reglas-opm-estrictas-es, urn:fxsl:kb:spec-forja-opd-es, urn:f
 ### 0.1 Definición
 
 Este documento es la capa de método del canon: orienta cómo y en qué orden construir un
-modelo OPM conforme a ISO 19450:2024. Contiene sólo lo que la norma dice sobre el método
+modelo OPM conforme a ISO/PAS 19450:2015. Contiene sólo lo que la norma dice sobre el método
 —principios de modelado (ISO §6.1), prueba objeto-proceso (ISO §7.3.2), completar el SD
 (ISO §14.1), comprensión del modelo (ISO §14.2) y las guías informativas de los Anexos B y D—
 y, marcado `[guía]`, el método de Dori y del manual que aplica construcciones ISO sin agregar
@@ -43,15 +43,15 @@ declara `[endurecimiento]`, y cuando extiende ISO, `[extensión]`.
 
 ### 0.5 Convenciones
 
-- Cita: `ISO §x.y` remite a ISO 19450:2024 con su numeración; «Tabla n», «Figura n» y
+- Cita: `ISO §x.y` remite a ISO/PAS 19450:2015 con su numeración; «Tabla n», «Figura n» y
   «Anexo X» remiten a la misma edición. Anexo A es normativo; Anexos B, C y D son informativos.
 - **0.5a** (ISO §6.2.1): modalidad: shall → DEBE; shall not → NO DEBE; should → DEBERÍA;
   should not → NO DEBERÍA; may → PUEDE. Una posibilidad descriptiva (can) se escribe sin palabra
   modal en mayúsculas. En `[guía]` no hay DEBE.
 - Marcas: `[informativo]` = contenido de un anexo informativo, NOTA, EXAMPLE o figura (nunca DEBE);
   `[localización]` = realización española de una construcción ISO; `[guía]` = método que aplica
-  construcciones ISO sin agregar reglas. Las reservas de fuente e interpretación se registran en
-  `canon/CAMBIOS-2.1.md`.
+  construcciones ISO sin agregar reglas; «no verificable» = la fuente local está resumida o falta
+  la figura que lo decidiría.
 - **0.5b** (ISO §6.2.1): los ejemplos se dan en OPL-ES (spec-OPL) y, cuando conviene, con su OPD;
   en este documento los nombres de cosas van en negrita y los estados en negrita minúscula, sin que
   la tipografía porte el tipo de cosa.
@@ -69,7 +69,7 @@ Secciones trasladadas al perfil: §0.4, §A0.1, §A0.3, §A0.4, §A1.3, §A1.4, 
 
 ### A0.2 Función y comportamiento
 
-- **A0.2a** (ISO §3.24, §6.1.3): la función es el proceso que provee valor funcional al
+- **A0.2a** (ISO §3.23, §6.1.3): la función es el proceso que provee valor funcional al
   beneficiario; no es el valor mismo ni un objeto.
 - **A0.2b** (ISO §6.1.4): el modelador DEBERÍA distinguir función y comportamiento para obtener un
   modelo claro y sin ambigüedad. Cruzar un río es la misma función lograda por un puente o por un
@@ -133,22 +133,22 @@ Etapas:
 - **A2#0** (ISO §B.1) [guía]: clasificar el sistema (A1.2).
 - **A2#1** (ISO §6.1.3, §B.6.3): proceso principal: nombre de una acción transformadora, no de una
   clase ni de una etiqueta (✓ **Carga de Batería**; ✗ **Batería**, ✗ **Proceso Principal**).
-- **A2#2** (ISO §3.7, §B.6.2) [informativo]: interesado primario: el beneficiario, con nombre
+- **A2#2** (ISO §3.6, §B.6.2) [informativo]: interesado primario: el beneficiario, con nombre
   singular; un conjunto de humanos se nombra añadiendo «Grupo» a la forma singular, y uno de cosas
   inanimadas, «Conjunto».
 - **A2#3** (ISO §14.1): valor a transformar, explícito (estados de entrada y de salida del
   beneficiario, o valores inicial y final de uno o más de sus atributos) o implícito (el
   beneficiario es afectado por la función).
-- **A2#4** (ISO §3.24, §6.1.3): operando principal: la función es el proceso principal (A2#1); aquí
+- **A2#4** (ISO §3.23, §6.1.3): operando principal: la función es el proceso principal (A2#1); aquí
   se identifica el transformado que porta el valor y, si hay varios, cuál de ellos lo porta.
-- **A2#5** (ISO §3.4, §3.31, §9.2.2): agencia humana: un agente es un humano o un grupo de humanos;
+- **A2#5** (ISO §3.3, §3.30, §9.2.2): agencia humana: un agente es un humano o un grupo de humanos;
   robots, software e inteligencia artificial son instrumentos. La ausencia de agentes se registra
   como decisión.
 - **A2#6a** (ISO §14.2.2.6): delimitar el sistema: el nombre del sistema DEBE ser el nombre del
   modelo OPM que lo especifica.
-- **A2#6b** (ISO §10.3.3, §3.47) [guía]: el objeto que representa al sistema exhibe el proceso
+- **A2#6b** (ISO §10.3.3, §3.46) [guía]: el objeto que representa al sistema exhibe el proceso
   principal como operación (exhibición-caracterización).
-- **A2#7** (ISO §3.18, §3.31, §9.2.3): instrumentos: habilitadores no humanos necesarios durante
+- **A2#7** (ISO §3.17, §3.30, §9.2.3): instrumentos: habilitadores no humanos necesarios durante
   toda la ejecución; si un instrumento deja de existir durante el proceso, este se detiene
   (ISO §9.2.3, Ejemplo 3).
 - **A2#8** (ISO §7.2.1, §9.1.1, §9.3.3): transformados: consumo, resultado o efecto, con estados de
@@ -161,7 +161,7 @@ Etapas:
 
 ### A2.1 Desgaste del instrumento
 
-- **A2.1a** (ISO §3.18, Tabla 25 NOTA 2) [guía]: un habilitador no es transformado por el proceso.
+- **A2.1a** (ISO §3.17, Tabla 25 NOTA 2) [guía]: un habilitador no es transformado por el proceso.
   Si el desgaste o la degradación de un instrumento es relevante al alcance, el proceso lo cambia:
   pasa a ser afectado (✓ **Máquina** es afectada por **Corte de Metal** cuando su capacidad cambia;
   ✗ **Máquina** como instrumento cuando su desgaste explica la arquitectura). Un objeto puede ser
@@ -175,9 +175,9 @@ Etapas:
 - **A2.2b** (ISO §8.1.2, §14.2.4): respecto de un mismo proceso, un objeto o estado DEBE tener
   exactamente un rol; si el beneficiario es también transformado, prevalece el enlace transformador
   sobre el habilitador (ISO §14.2.4).
-- **A2.2c** (ISO §7.3.3, §3.4): un agente puede ser ambiental: agencia y afiliación son
+- **A2.2c** (ISO §7.3.3, §3.3): un agente puede ser ambiental: agencia y afiliación son
   independientes.
-- **A2.2d** (ISO §3.4, §3.7) [guía]: un mismo grupo humano puede ser agente y beneficiario; no se
+- **A2.2d** (ISO §3.3, §3.6) [guía]: un mismo grupo humano puede ser agente y beneficiario; no se
   crean dos objetos («operador» y «usuario») si el dominio no los distingue.
 
 ### A2.3 Nombres y esencia por defecto
@@ -195,7 +195,8 @@ Etapas:
 - **A2.3c** (ISO §B.6.1) [guía]: cuando un agregado o un atributo central no tiene término en
   lenguaje natural, el modelador inventa un nombre expresivo; el nombre condiciona la comunicación y
   la legibilidad de la OPL.
-- **A2.3d** (ISO §7.3.4, §3.56): la esencia primaria DEBE ser la de la mayoría de las cosas dentro del límite del sistema. La esencia por defecto de una cosa dentro de ese límite DEBE ser la primaria; la herramienta DEBERÍA permitir declararla (R-OBJ-5).
+- **A2.3d** (ISO §7.3.4, §3.55): la esencia primaria del sistema es la esencia de la mayoría de sus
+  cosas.
 
 ### A2.5 Ocurrencia del problema
 
@@ -216,7 +217,7 @@ Etapas:
 - **A2.7c** (ISO §14.1): el SD DEBERÍA contener sólo las cosas centrales, indispensables para
   entender la función y el contexto del sistema; el modelador DEBE usar los mecanismos de
   refinamiento para exponer gradualmente el detalle.
-- **A2.7d** (ISO §14.2.2.6, §3.76): el SD DEBE contener uno y sólo un proceso sistémico, que
+- **A2.7d** (ISO §14.2.2.6, §3.75): el SD DEBE contener uno y sólo un proceso sistémico, que
   representa la función; PUEDE contener uno o más procesos ambientales. Los OPD de niveles
   inferiores PUEDEN tener uno o más procesos.
 
@@ -233,7 +234,9 @@ Etapas:
 - **A2.8d** (ISO §B.6.4) [informativo] [localización]: los nombres de estado DEBERÍAN reflejar los
   modos relevantes en que puede encontrarse el objeto dueño; se prefieren formas pasivas (participio:
   **pintado**, **inspeccionado**) a la forma de proceso (**pintura**, **inspección**).
-- **A2.8e** (ISO §7.1.2, §7.2.2, §7.3.5.2, §A.4.2) [localización] [guía]: para los nombres capitalizados de cosas se recomienda mayúscula inicial por palabra, salvo artículos y preposiciones breves del español. Estados y etiquetas se escriben en minúscula. El antiguo puntero a B.6.5 no corresponde a una cláusula 2024 y se retira.
+- **A2.8e** (ISO §B.6.5) [informativo] [localización]: cada palabra del nombre de una cosa lleva
+  mayúscula inicial, salvo artículos y preposiciones breves; los nombres de estados y enlaces van en
+  minúscula.
 
 ## A3. Refinamiento
 
@@ -245,7 +248,7 @@ Etapas:
 - **A3.1b** (ISO §14.2.1.3, §14.2.2.1, §D.4): la línea de tiempo dentro del proceso descompuesto
   DEBE fluir de arriba abajo y representar la secuencia de invocaciones de los subprocesos; la
   posición vertical del punto más alto del símbolo de cada subproceso fija su orden.
-- **A3.1c** (ISO §3.59, §A.4.3, §A.4.7.4): todo subproceso transforma al menos un objeto. La norma no
+- **A3.1c** (ISO §3.58, §A.4.3, §A.4.7.4): todo subproceso transforma al menos un objeto. La norma no
   fija un mínimo de subprocesos: la oración de descomposición admite uno o más.
 - **A3.1d** (ISO §C.5.1) [guía]: secuencia de trabajo sugerida: agrandar el proceso, insertar los
   subprocesos, darles nombres del dominio, traer las cosas externas conectadas al padre, crear los
@@ -284,7 +287,7 @@ Etapas:
   al contexto desde fuera conserva su identidad y no es atributo del proceso. Simétricamente, la
   descomposición de un objeto expone partes y posiblemente procesos internos que son operaciones del
   objeto.
-- **A3.3b** (ISO §14.2.1.3, §3.35): en la descomposición de un objeto, la disposición de los
+- **A3.3b** (ISO §14.2.1.3, §3.34): en la descomposición de un objeto, la disposición de los
   objetos contenidos DEBE indicar orden espacial o lógico, no temporal (por ejemplo, un vector o una
   matriz), y no transfiere control de ejecución.
 - **A3.3c** (ISO §14.2.1.3, §C.5.1): el alcance de un proceso descompuesto DEBE ser el refinable, sus
@@ -296,17 +299,22 @@ Etapas:
 - **A3.4a** (ISO §14.2.2.4): un enlace procedimental anclado al contorno de un proceso descompuesto
   tiene semántica distributiva: se aplica a cada subproceso. Los enlaces de agente, de instrumento y de
   efecto sin estados especificados admiten el contorno.
-- **A3.4b** (ISO §14.2.2.4.3): un efecto con estados de entrada y salida no se distribuye indiscriminadamente: al descomponer DEBE asignarse temporalmente a uno o dos subprocesos; puede mantenerse entero en uno o escindirse según A3.4f.
+- **A3.4b** (ISO §14.2.2.4): un enlace de efecto con estado de entrada y estado de salida
+  especificados no se distribuye: al descomponer DEBE escindirse (A3.4f).
 - **A3.4c** (ISO §14.2.2.4): los enlaces de consumo y de resultado NO DEBEN anclarse al contorno de un
   proceso descompuesto. Al descomponer, DEBEN asignarse inicialmente, por defecto, al primer
   subproceso; el modelador los reasigna al subproceso que corresponda. Una herramienta puede
   establecer ese defecto automáticamente (NOTA 2); la reasignación habitual se da como guía en A3.4k.
 - **A3.4k** (ISO §14.2.2.4) [guía]: el resultado se reasigna al subproceso que lo genera, que en una
   secuencia es normalmente el último; el consumo, al que lo consume, normalmente el primero.
-- **A3.4d** (ISO §14.2.2.4.2): ningún enlace de evento DEBE cruzar desde fuera el contorno de un proceso descompuesto para iniciar un subproceso, en ningún nivel. La prohibición no distingue entre origen sistémico y ambiental.
+- **A3.4d** (ISO §14.2.2.4): un enlace de evento desde un objeto o estado sistémico NO DEBE cruzar el
+  contorno de un proceso descompuesto desde fuera para iniciar ninguno de sus subprocesos, en ningún
+  nivel. Si el evento proviene de un objeto o estado ambiental, el modelador DEBERÍA modelar cómo se
+  maneja esa contingencia.
 - **A3.4e** (ISO §14.2.2.4): cada enlace transformador se reasigna al subproceso que realmente
   consume, genera o completa el cambio.
-- **A3.4f** (ISO §14.2.2.4, Tabla 25): si **P** cambia **A** de **s1** a **s2** y se descompone, el modelador DEBE anclar el enlace de entrada y el de salida a subprocesos de modo
+- **A3.4f** (ISO §14.2.2.4, Tabla 25): si **P** cambia **A** de **s1** a **s2** y se descompone en más
+  de un subproceso, el modelador DEBE anclar el enlace de entrada y el de salida a subprocesos de modo
   temporalmente factible; el par escindido se lee «**P1** cambia **A** de **s1**» y «**P2** cambia
   **A** a **s2**».
 - **A3.4g** (Tabla 25 NOTA 1) [informativo]: no existen versiones de control (e, c) de la mitad
@@ -317,8 +325,8 @@ Etapas:
   y cosas externas DEBEN migrar al OPD del refinable; si quedan varios enlaces entre un mismo objeto y
   un mismo proceso, el modelador DEBE resolver el conflicto por fuerza semántica: consumo = resultado >
   efecto > agente > instrumento; los de estado especificado preceden a los básicos; dentro de cada
-  clase, evento > enlace sin modificador > condición (ISO §14.2.4.1.3–§14.2.4.1.4). La matriz de la Tabla 27
-  está verificada en reglas §6.5–§6.6: P1 precede a P2 y hay cuatro celdas inválidas; no es simétrica.
+  clase, evento > enlace sin modificador > condición (ISO §14.2.4.4–§14.2.4.5). La matriz de la Tabla 27
+  está en reglas §6.5–§6.6 y es no verificable: depende de figuras ausentes en la fuente.
 
 ### A3.5 Invocación implícita
 
@@ -367,7 +375,7 @@ Etapas:
 
 ### A3.10 Conflicto entre consumo y resultado al abstraer
 
-- **A3.10** (ISO §14.2.4.1.1): consumo y resultado tienen la misma fuerza semántica; cuando compiten al
+- **A3.10** (ISO §14.2.4.2): consumo y resultado tienen la misma fuerza semántica; cuando compiten al
   abstraer, DEBE prevalecer el enlace de efecto, que puede leerse como cambio implícito entre existente
   y no existente.
 
@@ -386,7 +394,7 @@ Etapas:
 
 ### A4.2 Profundidad y claridad
 
-- **A4.2a** (ISO §3.64, §B.3) [guía]: el refinamiento aumenta el detalle; si un OPD no agrega
+- **A4.2a** (ISO §3.63, §B.3) [guía]: el refinamiento aumenta el detalle; si un OPD no agrega
   transformados, estados ni enlaces respecto de su padre, no aporta refinamiento.
 - **A4.2b** (ISO §B.3) [informativo]: un OPD DEBERÍA no contener más de 20–25 cosas.
 
@@ -429,11 +437,11 @@ Etapas:
 
 ### A4.10 Árbol OPD y mapa del sistema
 
-- **A4.10a** (ISO §14.2.2.6, §3.46): el árbol de procesos OPD DEBE partir del SD; cada arista
+- **A4.10a** (ISO §14.2.2.6, §3.45): el árbol de procesos OPD DEBE partir del SD; cada arista
   apunta del OPD padre al OPD hijo que refina un proceso por descomposición (síncrono) o por despliegue
   de agregación (asíncrono), y DEBE llevar una etiqueta que exprese ese refinamiento (en ISO, «is
   refined by in-zooming … in» o «is refined by unfolding … in»; la oración española la fija spec-OPL).
-- **A4.10b** (ISO §14.2.2.6, §3.45): los árboles de objetos OPD forman un bosque, uno por cada objeto
+- **A4.10b** (ISO §14.2.2.6, §3.44): los árboles de objetos OPD forman un bosque, uno por cada objeto
   refinable, y encapsulan la información del objeto como jerarquía.
 - **A4.10c** (ISO §14.2.2.6): un mapa del sistema DEBE ser un árbol de procesos OPD que muestra el
   contenido de cada OPD. Las vistas de modelo DEBEN incluir la lista de cosas con los OPD donde
@@ -444,12 +452,10 @@ Etapas:
 
 ### A5.1 Relación persistente sin transformación
 
-- **A5.1a** (ISO §7.2.1 NOTA 2, §7.3.2, §7.3.3 NOTA, §10.2) [guía]: una relación invariante sin
-  actividad temporal relevante puede modelarse como enlace estructural etiquetado (✓ **Cimentación**
-  soporta **Casa**). Mantener un objeto en su estado actual también puede ser un proceso: §7.2.1
-  NOTA 2 y su ejemplo describen procesos persistentes, y §7.3.2 incluye mantenimiento en el criterio
-  objeto-proceso. La ausencia de cambio neto no basta para descartarlo. El proceso conserva el objeto
-  participante y el enlace transformador exigido por R-PROC-2; las notas no fijan una realización única.
+- **A5.1a** (ISO §3.58, §3.73, §10.2) [guía]: un candidato a proceso del tipo sostener, mantener,
+  almacenar o contener que no transforma ningún objeto no es proceso: se modela como enlace estructural
+  etiquetado entre los objetos (✓ **Cimentación** soporta **Casa**). Si el sostener exige un esfuerzo
+  que sí transforma objetos (un vuelo estacionario consume combustible), se modela como proceso.
 
 ### A5.2 Objeto transitorio e invocación
 
@@ -464,7 +470,7 @@ Etapas:
 
 ### A5.5 Clasificación de atributos
 
-- **A5.5** (ISO §3.5, §7.3.5.5) [guía]: cuatro dimensiones binarias orientan el tratamiento de un
+- **A5.5** (ISO §3.4, §7.3.5.5) [guía]: cuatro dimensiones binarias orientan el tratamiento de un
   atributo: explícito o implícito, cualitativo o cuantitativo, duro o blando (computable o no),
   inherente o emergente. Los blandos pueden no requerir seguimiento; los emergentes orientan la
   arquitectura.
@@ -492,15 +498,15 @@ Etapas:
 
 ### A5.11 Esencia de cosas mixtas
 
-- **A5.11** (ISO §7.3.3, §3.26) [guía]: una cosa con aspectos físicos e informacionales se clasifica por
+- **A5.11** (ISO §7.3.3, §3.25) [guía]: una cosa con aspectos físicos e informacionales se clasifica por
   su esencia tangible dominante: física.
 
 ### A5.12 Estados directos o atributo con valores
 
-- **A5.12a** (ISO §7.3.5.5, §3.5) [guía]: si un solo atributo es relevante, se usan estados directos
+- **A5.12a** (ISO §7.3.5.5, §3.4) [guía]: si un solo atributo es relevante, se usan estados directos
   del objeto (**Feto** puede estar **embrión** o **bebé**); si hay varios atributos, o el nombre del
   atributo es informativo, se modela el atributo con sus valores.
-- **A5.12b** (ISO §3.5, §10.3.3): un rasgo de una cosa se modela como atributo exhibido (un objeto que
+- **A5.12b** (ISO §3.4, §10.3.3): un rasgo de una cosa se modela como atributo exhibido (un objeto que
   caracteriza a la cosa), no como proceso (**Tener**, **Poseer**) ni como estado conjuntivo.
 
 ### A5.13 Generalización
@@ -520,8 +526,12 @@ Etapas:
 
 ### A5.14 Prueba objeto-proceso
 
-- **A5.14a** (ISO §7.3.2, §7.2.1, §8.1.2): un sustantivo es proceso sólo si cumple tres criterios: está asociado con el tiempo, está asociado con un verbo y transforma al menos un objeto o lo mantiene en su estado actual. **Vuelo** transforma la ubicación de un avión. El caso de mantenimiento conserva objeto y obligación transformadora (R-PROC-2; A5.1a); no justifica un proceso sin transformado o sólo con habilitadores.
-- **A5.14b** (ISO §7.3.2): por defecto un sustantivo DEBE identificar un objeto; sólo los tres criterios de A5.14a justifican identificar un proceso. [guía] Preguntar «¿qué objeto transforma?» ayuda a encontrar objetos omitidos; la forma del nombre por sí sola no sustituye el juicio sobre la transformación.
+- **A5.14a** (ISO §7.3.2): un sustantivo es proceso sólo si cumple tres criterios: está asociado con el
+  tiempo, está asociado con un verbo y transforma un objeto (**Vuelo** es proceso porque transforma la
+  ubicación de un avión).
+- **A5.14b** (ISO §7.3.2) [guía]: al modelar desde un texto, preguntar «¿qué objeto transforma este
+  proceso?» revela objetos omitidos. Que un sustantivo sea objeto por defecto es no verificable: la
+  fuente local de ISO §7.3.2 está resumida.
 
 ### A5.15 Sinónimos, homónimos y apariciones
 
@@ -533,7 +543,7 @@ Etapas:
 
 - **A5.18a** (ISO §12.1): varios enlaces de agente hacia un mismo proceso tienen semántica AND y DEBEN
   escribirse en una sola oración con «y».
-- **A5.18b** (ISO §3.4, §B.6.2): un grupo de humanos puede ser un único agente, nombrado con «Grupo»
+- **A5.18b** (ISO §3.3, §B.6.2): un grupo de humanos puede ser un único agente, nombrado con «Grupo»
   (A2.8a); se modelan agentes separados cuando sus roles o su identidad importan.
 - **A5.18c** (ISO §14.2.2.5) [guía]: si los agentes participan en momentos distintos, se descompone el
   proceso y cada agente se enlaza a su subproceso.
@@ -563,7 +573,7 @@ Etapas:
 
 ### A5.23 Relaciones entre más de dos cosas
 
-- **A5.23** (ISO §3.37, §10.1) [guía]: un enlace une dos cosas; una relación entre tres o más cosas se
+- **A5.23** (ISO §3.36, §10.1) [guía]: un enlace une dos cosas; una relación entre tres o más cosas se
   modela como conjunto de enlaces entre pares.
 
 ## A6. Control de flujo
@@ -573,7 +583,7 @@ Etapas:
 - **A6b** (ISO §9.5.3.1): si falta el objeto (o el estado) enlazado por condición, la evaluación de la
   precondición falla y el control omite el proceso, aunque los enlaces sin condición estén satisfechos:
   la omisión precede a la espera.
-- **A6c** (ISO §3.19, §9.5.1, §12.1): con varios enlaces de evento hacia un proceso, cada evento inicia
+- **A6c** (ISO §3.18, §9.5.1, §12.1): con varios enlaces de evento hacia un proceso, cada evento inicia
   por sí solo la evaluación de la precondición; la conjunción AND recae sobre los objetos de la
   precondición. Con varias condiciones, todas DEBEN satisfacerse para ejecutar y basta que una falle
   para omitir.
@@ -619,7 +629,7 @@ Etapas:
   la ejecución excede la duración máxima; el de subtiempo, si termina antes de la duración mínima.
 - **A7e** (ISO §9.5.4, §D.7) [guía]: el proceso de manejo lleva al afectado en transición a un estado
   admisible; un modelo pensado para simulación sin manejadores de excepción queda incompleto para ese fin.
-- **A7f** (ISO §10.1, §10.2, §3.37, §3.26) [guía]: un requisito puede modelarse como objeto
+- **A7f** (ISO §10.1, §10.2, §3.36, §3.25) [guía]: un requisito puede modelarse como objeto
   informacional, y su traza con otro objeto, como enlace estructural etiquetado entre objetos (p. ej.,
   «satisface»). Un enlace estructural no conecta un proceso con un objeto ni tiene un enlace como extremo,
   así que la traza desde procesos o desde enlaces queda fuera del modelo.
@@ -636,22 +646,25 @@ Etapas:
 
 Índice; la definición de validez vive en reglas.
 
-- **A8.2a** (ISO §14.2.2.6, §3.76): el SD tiene exactamente un proceso sistémico (A2.7d).
-- **A8.2b** (ISO §3.4, §3.31): un agente es un humano o un grupo de humanos; un instrumento es un
+- **A8.2a** (ISO §14.2.2.6, §3.75): el SD tiene exactamente un proceso sistémico (A2.7d).
+- **A8.2b** (ISO §3.3, §3.30): un agente es un humano o un grupo de humanos; un instrumento es un
   habilitador no humano.
-- **A8.2c** (ISO §3.18): el proceso no transforma a sus habilitadores.
+- **A8.2c** (ISO §3.17): el proceso no transforma a sus habilitadores.
 - **A8.2d** (ISO §10.3.3, §14.2.2.6) [guía]: el objeto que representa al sistema exhibe la función
   (A2#6b).
 - **A8.2e** (ISO §4, Figura C.10) [informativo]: los objetos ambientales se dibujan con contorno
   discontinuo.
 - **A8.2f** (ISO §14.2.2.4): ni consumo ni resultado se anclan al contorno de un proceso descompuesto
   (A3.4c).
-- **A8.2g** (ISO §3.59): todo subproceso transforma al menos un objeto.
+- **A8.2g** (ISO §3.58): todo subproceso transforma al menos un objeto.
 - **A8.2h** (ISO §6.2.1): todo OPD tiene un párrafo OPL equivalente.
 - **A8.2i** (ISO §6.2.1, §14.2.2.6): todo hecho del modelo aparece en al menos un OPD.
 - **A8.2j** (ISO §10.1, §10.3.1): los enlaces estructurales unen cosas de la misma perseverancia, salvo
   la exhibición-caracterización (A5.6).
-- **A8.2k** (ISO §3.53, §3.55, §8.2.2): todo proceso DEBE tener conjuntos previo y posterior no vacíos. El previo reúne objetos requeridos al iniciar y el posterior los que resultan o permanecen al completar, posiblemente en estados especificados. [informativo] Según la NOTA 1 de §8.2.2, los habilitadores y afectados están en ambos; los consumidos sólo en el previo y los resultantes sólo en el posterior.
+- **A8.2k** (ISO §3.52, §3.54, §8.2.2): el conjunto de objetos previo al proceso reúne los objetos a
+  evaluar antes de iniciarlo (consumidos, afectados y habilitadores); el posterior, los que permanecen o
+  resultan al terminar (resultantes y afectados). Si los habilitadores pertenecen también al posterior es
+  no verificable: ISO §3.52 («remaining») lo admitiría y la fuente local de ISO §8.2.2 está resumida.
 - **A8.2l** (ISO §14.2.2.6, §6.1.5): en el SD, todo proceso distinto de la función es ambiental.
 - **A8.2m** (ISO §7.3.5.3): un estado puede ser a la vez inicial y final (A5.19).
 - **A8.2n** (ISO §12.7): la generación sin estado especificado sigue A6i (1/n salvo estados iniciales).

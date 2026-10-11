@@ -1,13 +1,11 @@
 # Perfil OpForja — realización del OPD (opd-opforja)
 
-Autoridad vigente: canon 2.1.0, ISO 19450:2024; véase `canon/LEEME.md`. Las versiones 2.0/1.x citadas como origen se conservan como historia.
-
 **Qué es.** Reglas propias de OpForja sobre el diagrama objeto-proceso: realización gráfica (geometrías, medidas,
 colores, tokens, tipografía, capas, JointJS), layout, lienzo e interacción, edición, configuración, diagnósticos,
 simulación, export, trazabilidad, migración, y las extensiones y endurecimientos del producto respecto de
 ISO 19450.
 
-**Subordinación.** Este perfil se subordina al canon: `canon spec-OPD` (spec-forja-opd-es 2.1.0) y `canon reglas`
+**Subordinación.** Este perfil se subordina al canon: `canon spec-OPD` (spec-forja-opd-es 2.0.0) y `canon reglas`
 (reglas-opm-estrictas-es). No los contradice. Donde es más estricto que ISO 19450 lo marca `[endurecimiento]` y su
 brecha se declara en `docs/conformidad.md`; donde extiende la norma, `[extensión]`; donde se aparta de un default
 normativo por decisión del dueño, `[desviación declarada]` (también con su brecha en `docs/conformidad.md`). Lo no marcado es realización de
@@ -180,7 +178,7 @@ Realización opforja: doble nivel `estado.suprimido` (global) + `apariencia.esta
 ### §4.1 Familia y direcciones
 
 - (R-OPD-TR-1, parte de producto) la punta transformadora canónica de OPFORJA es el **swallowtail cerrado** `M 0 0 L 23 8 L 12 0 L 23 -8 Z` (bbox 23×16), fill paper, stroke ink 1. Es variante conforme de la punta cerrada del canon (R-OPD-TR-1). *(Rationale: §1.5 opd-es; figuras ISO closed arrowhead; V-240; JOYAS swallowtail; `linkAssets.ts`.)*
-- (R-OPD-TR-8, parte de producto) [política de producto] Los procesos de mantenimiento descritos en ISO §7.2.1 NOTA 2 siguen siendo elipses normales. El perfil exige declarar objeto afectado e invariancia neta, atributo o condición mantenida según R-PROC-2A/5..7; esa exigencia de realización no convierte la noción ISO en una extensión. *(Rationale histórico: V-115; opm-es §321; libro 9/10.)*
+- (R-OPD-TR-8, parte de producto) [extensión] Excepción: procesos persistentes que mantienen una condición (*Existir*, *Sostener*, *Esperar*…), que siguen siendo elipses normales solo si satisfacen el cierre canónico de R-PROC-2A: declarar objeto afectado e invariancia neta, atributo o condición mantenida, conforme a R-PROC-5..7. *(Rationale: V-115; opm-es §321; libro 9/10; reglas-opm-estrictas R-PROC-2A/5..7.)*
 
 ### §4.2 Variantes con estado especificado
 
@@ -305,7 +303,7 @@ Realización opforja: etiquetas serif 12 ink; origen en `distance:0.1` (procedim
 [desviación declarada] Fila «Resultado / salida con estado»: OpForja ancla por defecto el resultado al **último** subproceso (decisión del dueño); el default normativo es el primer subproceso, que el modelador reasigna (ISO §14.2.2.4.1; NOTE 2 [informativo]: una herramienta PUEDE fijar defaults que el modelador modifica). La prohibición de anclarlo al contorno se mantiene (canon spec-OPD R-OPD-REF-11). Brecha a declarar en `docs/conformidad.md`.
 
 - (R-OPD-REF-11, parte de producto) Sin subprocesos aún, el enlace al contenedor es respaldo temporal. *(Rationale: V-36..V-39, V-103..V-109, R-DIST-1, AP-06/21; libro 21/22.)*
-- Los eventos al proceso completo conservan ese destino. Una distribución de consumo o efecto con estado que crearía una iniciación desde fuera del contorno se rechaza atómicamente, sin retirar `e`, reclasificar afiliación ni fabricar hechos internos (canon reglas §8.5; ISO 2024 §14.2.2.4.2).
+- (R-CX-DIST-2, parte de producto) [endurecimiento] Los eventos al proceso completo conservan ese destino. Una distribución de consumo o efecto con estado que crearía una iniciación desde fuera del contorno se rechaza atómicamente, sin retirar `e`, reclasificar afiliación ni fabricar hechos internos. El canon prohíbe el cruce del evento sistémico (canon reglas §8.5; ISO §14.2.2.4.2); OpForja rechaza también el del evento ambiental, que la norma admite con el manejo de la contingencia (B-44).
 
 ### §10.4 Árbol de OPDs, identidad y categorías
 
@@ -435,7 +433,7 @@ El puente texto↔canvas está legislado en `spec-forja-opl-es §14` (tokens con
 | AP-17 | `SDx.y` como identificador externo estable | R-OPD-REF-15 | manual (auditoría de referencias) |
 | AP-19 | sombra decorativa en cosa informacional | R-OPD-COSA-3 | lint (design:governance) |
 | AP-20 | triángulo sin topología interna distinguible | R-OPD-STR-1 | eval (tests de markers) |
-| AP-21 | evento exterior al contorno inicia un subproceso a cualquier nivel, de cualquier afiliación | R-OPD-REF-11 | runtime |
+| AP-21 | evento exterior al contorno inicia un subproceso a cualquier nivel; el ambiental es endurecimiento de producto (B-44) | R-OPD-REF-11 | runtime |
 | AP-22 | sinónimos múltiples / unicidad nominal sin resolver | R-OPD-ROT-5 | runtime (diagnóstico) |
 | AP-23 | truncamiento silencioso de rótulo | R-OPD-COSA-6 | eval |
 | AP-24 | reutilizar canales semánticos para UI/validación | R-OPD-CAN-3 | lint (design:governance) |

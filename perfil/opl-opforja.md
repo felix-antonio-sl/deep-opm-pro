@@ -1,7 +1,5 @@
 # Perfil OpForja — realización de la OPL (opl-opforja)
 
-Autoridad vigente: canon 2.1.0, ISO 19450:2024; véase `canon/LEEME.md`. Las versiones 2.0/1.x citadas como origen se conservan como historia.
-
 **Qué es.** Reglas propias de OpForja sobre la OPL-ES: generadores y su traza a código, tokenización con `ref` e
 `hint`, reverse (parser), roundtrip como ley de producto, supresión de placeholders, presentación y plegado del panel,
 numeración, interacción OPL↔OPD, edición, configuración, modos de fallo del parser, composición de prosa (oración
@@ -849,7 +847,7 @@ Rationale: `reglas §6.4`–`§6.8`, `§7`, `§11.2` y `opm-opl-es §11`–`§13
 
 #### §8.3.1 Colisión de rol y precedencia de recomposición (delegación a `reglas §6.5`/`§6.6`)
 
-La resolución de colisión de rol (dos enlaces procedimentales entre el mismo **objeto** y el mismo *proceso*) y la precedencia transformadora al recomponer son **validez nuclear**: su ley vive en `urn:fxsl:kb:reglas-opm-estrictas-es` §6.5 (R-FUERZA-1..4: orden de 12 niveles, `consumo = resultado > efecto > agente > instrumento`, con `evento > sin control > condición` dentro de cada clase) y §6.6 (R-PREC-1..5: matriz temporal 3×3 de recomposición; para P1 anterior a P2, Efecto→Resultado, Consumo→Efecto, Resultado→Resultado y Consumo→Consumo inválidos; transformador prevalece sobre habilitador). Esta spec NO re-legisla esas tablas ni acuña IDs paralelos: la capa OPL solo refleja el resultado ya resuelto por el kernel (`modelo/**`, ver GAP-COL-RESOLUCION en §8.5) y no tiene obligación de emitir un reporte narrativo de colisión o precedencia.
+La resolución de colisión de rol (dos enlaces procedimentales entre el mismo **objeto** y el mismo *proceso*) y la precedencia transformadora al recomponer son **validez nuclear**: su ley vive en `urn:fxsl:kb:reglas-opm-estrictas-es` §6.5 (R-FUERZA-1..4: orden de 12 niveles, `consumo = resultado > efecto > agente > instrumento`, con `evento > sin control > condición` dentro de cada clase) y §6.6 (R-PREC-1..5: matriz 3×3 de recomposición; Resultado+Resultado y Consumo+Consumo inválidos; transformador prevalece sobre habilitador). Esta spec NO re-legisla esas tablas ni acuña IDs paralelos: la capa OPL solo refleja el resultado ya resuelto por el kernel (`modelo/**`, ver GAP-COL-RESOLUCION en §8.5) y no tiene obligación de emitir un reporte narrativo de colisión o precedencia.
 
 Rationale: `reglas §Mapa de familia` — cada regla vive una vez en su capa propietaria; las demás capas citan por URN y delegan la decisión.
 
