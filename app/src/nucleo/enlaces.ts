@@ -543,6 +543,24 @@ export const reanclarExtremo: Operacion<{
             negar(tx, 'forma', 'R-EDIT-2', 'Este enlace no tiene estado.', [ref(e.id)]);
     }
     visible(tx, a.opd, n);
+    // ISO §14.2.2.4.3: el modelador asigna el par completo a un subproceso o lo escinde. Reanclar
+    // una mitad sobre el subproceso de su par une ambas en el cambio completo.
+    if (e.tipo === 'efecto' && e.escision && n.tipo === 'efecto' && n.proceso !== e.proceso) {
+        const par = tx.m.enlaces[e.escision.par];
+        if (par?.tipo === 'efecto' && par.proceso === n.proceso) {
+            const idx = indice(tx.m);
+            if (idx.abanicoDeEnlace.has(e.id) || idx.abanicoDeEnlace.has(par.id))
+                negar(tx, 'abanico', 'R-ESCIND-1', 'Una mitad que forma parte de un abanico no se une; retira antes el abanico.', [ref(e.id), ref(par.id)]);
+            const [entrada, salida] = e.escision.mitad === 'entrada' ? [n, par] : [par, n];
+            const { escision, ...resto } = entrada; void escision;
+            const control = entrada.control ?? salida.control;
+            const unido: Extract<Enlace, { tipo: 'efecto' }> = { ...resto, proceso: n.proceso, salida: salida.salida!, ...(control ? { control } : {}) };
+            tx.quitar('enlaces', salida.id);
+            tx.traza({ regla: 'R-ESCIND-1', mensaje: `El cambio de **${tx.m.cosas[unido.objeto]!.nombre}** quedó entero en *${tx.m.cosas[n.proceso]!.nombre}*.`, refs: [ref(unido.id), ref(salida.id), { tipo: 'cosa', id: n.proceso }] });
+            guardar(tx, entrada.id === e.id ? e : par, unido, true);
+            return;
+        }
+    }
     guardar(tx, e, n, true);
 });
 export const distribuirEnlace: Operacion<{

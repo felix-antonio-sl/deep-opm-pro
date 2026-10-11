@@ -76,7 +76,7 @@ export function validarForma(m: Modelo): readonly Violacion[] {
                     existe(e.escision.par, 'enlace');
                     const p = m.enlaces[e.escision.par], mitad = e.escision.mitad;
                     const propia = mitad === 'entrada' ? e.entrada !== undefined && e.salida === undefined : e.salida !== undefined && e.entrada === undefined;
-                    if (!propia || e.control !== undefined || !p || p.tipo !== 'efecto' || p.objeto !== e.objeto || p.escision?.par !== e.id || p.escision.mitad === mitad)
+                    if (!propia || mitad === 'entrada' && e.control !== undefined || !p || p.tipo !== 'efecto' || p.objeto !== e.objeto || p.escision?.par !== e.id || p.escision.mitad === mitad)
                         fallo('F-4', 'La escisión debe formar un par bilateral de mitades opuestas.', [ref('enlace', e.id)]);
                 }
                 break;

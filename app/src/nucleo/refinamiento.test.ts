@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { esProcedimental } from './tipos';
 import type { Enlace, Modelo, OpdDescomposicion, Objeto } from './tipos';
 import { descomponer, agregarSubprocesos, moverSubproceso, fijarBandas, desplegar, agregarRefinadores, eliminarRefinamiento } from './refinamiento';
-import { crearEnlace, distribuirEnlace, cambiarTipoEnlace } from './enlaces';
+import { crearEnlace, distribuirEnlace, cambiarTipoEnlace, fijarControl, reanclarExtremo as reanclar } from './enlaces';
 import { crearCosa, traerCosa } from './cosas';
 import { validarForma } from './forma';
 import { erroresContexto, tiposLegales } from './matriz';
@@ -468,3 +468,24 @@ for (const anidado of [false, true]) test(`T-074 T-030 escisión invertida recha
     expect(validarForma(movido)).toEqual([]); expect(movido.enlaces).toEqual(modelo.enlaces);
     expect(JSON.stringify(modelo)).toBe(antes);
 });
+
+// ISO §14.2.2.4.3: el modelador asigna el par completo a un subproceso o lo escinde (B-46, DEC50).
+for (const [mitad, hacia] of [['e-100', 'a'], ['e', 'c']] as const)
+    test(`T-074 reanclar la mitad ${mitad === 'e' ? 'de entrada' : 'de salida'} sobre el subproceso de su par une el cambio completo`, () => {
+        const d = must(distribuirEnlace(refinado(3, { id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 's0', salida: 's1' }), { enlace: 'e' })).modelo;
+        expect(d.enlaces['e-100']).toMatchObject({ proceso: 'c', salida: 's1', escision: { par: 'e', mitad: 'salida' } });
+        const r = reanclar(d, { opd: 'dc', enlace: mitad, extremo: 'origen', hacia: { cosa: hacia } });
+        expect(r.ok).toBe(true); if (!r.ok) throw Error(r.rechazo.mensaje);
+        expect(r.valor.modelo.enlaces).toEqual({ e: { id: 'e', tipo: 'efecto', objeto: 'o', proceso: hacia, entrada: 's0', salida: 's1' } });
+        expect(r.trazas.some(t => t.regla === 'R-ESCIND-1')).toBe(true); sano(r.valor.modelo);
+    });
+
+test('T-074 la mitad de salida admite control y la de entrada no (ISO Tabla 25 NOTA 1)', () => {
+    const d = must(distribuirEnlace(refinado(3, { id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 's0', salida: 's1' }), { enlace: 'e' })).modelo;
+    const r = fijarControl(d, { enlace: 'e', control: 'c' }); expect(r.ok).toBe(false); if (!r.ok) expect(r.rechazo.regla).toBe('R-ESC-1');
+    const n = must(fijarControl(d, { enlace: 'e-100', control: 'c' })).modelo;
+    expect(n.enlaces['e-100']).toMatchObject({ control: 'c', escision: { par: 'e', mitad: 'salida' } }); sano(n);
+    const unido = must(reanclar(n, { opd: 'dc', enlace: 'e-100', extremo: 'origen', hacia: { cosa: 'a' } })).modelo;
+    expect(unido.enlaces).toEqual({ e: { id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'a', entrada: 's0', salida: 's1', control: 'c' } }); sano(unido);
+});
+

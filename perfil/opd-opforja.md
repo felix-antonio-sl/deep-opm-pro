@@ -182,7 +182,7 @@ Realización opforja: doble nivel `estado.suprimido` (global) + `apariencia.esta
 
 ### §4.2 Variantes con estado especificado
 
-- (R-OPD-TR-7, parte de producto) [endurecimiento] La escisión es el único mecanismo que ofrece el producto (R-ESC-1A); ISO §14.2.2.4.3 admite además asignar el par completo a un subproceso. *(Rationale: V-40, V-41, V-110, AP-07/08.)*
+- (R-OPD-TR-7, parte de producto) La escisión es el valor por defecto al descomponer (R-ESC-1A); reanclar una mitad sobre el subproceso de su par asigna el cambio completo a ese subproceso, como admite ISO §14.2.2.4.3. Sólo la mitad de entrada rechaza `e`/`c` (ISO Tabla 25 NOTA 1); la de salida los admite como un TS5 (DEC50). *(Rationale: V-40, V-41, V-110, AP-07/08.)*
 
 Realización opforja: consumo/resultado/efecto van con ancla `center` + connectionPoint `boundary` (recorte en el perímetro real de la forma); el extremo a estado usa ancla `midSide` sobre el sub-rect de la cápsula, sticky, z=20. El efecto monta el swallowtail en source y target. Alineado. *(Traza: `composers/enlace.ts`, `markers.ts`.)*
 
@@ -422,7 +422,7 @@ El puente texto↔canvas está legislado en `spec-forja-opl-es §14` (tokens con
 | AP-04 | resultado al estado inicial | R-OPD-TR-3 | runtime |
 | AP-05 | agente hacia no-humano | R-OPD-HAB-1 | runtime (proxy esencia física) |
 | AP-06 | consumo/resultado en contorno exterior de descompuesto | R-OPD-REF-11 | runtime |
-| AP-07/08 | efecto entrada-salida sin escindir / escisión con `e`/`c` | R-OPD-TR-7 | runtime |
+| AP-07/08 | efecto entrada-salida sin asignar / mitad de entrada con `e`/`c` | R-OPD-TR-7 | runtime |
 | AP-09/10 | `e`/`c` sobre estructural / sobre invocación | R-OPD-CTL-3 | runtime |
 | AP-11 | bidireccional/recíproco con estado solo-en-destino | R-OPD-STR-9 | runtime |
 | AP-12 | estados dentro de proceso | R-OPD-COSA-7 | runtime |

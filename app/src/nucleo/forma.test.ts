@@ -77,7 +77,10 @@ caso('T-015 T-032 T-028 positivos de estados, escisión, atributos y abanicos; m
             verificar('F-3', modificar(bueno, 'enlaces', e.id, { ...e, estadoOrigen: bb }));
         if (e.tipo === 'reciproco')
             verificar('F-3', modificar(bueno, 'enlaces', e.id, { ...e, estados: { origen: bb } }));
-        if (e.tipo === 'efecto')
+        // ISO Tabla 25 NOTA 1: sólo la mitad de entrada carece de versión con control.
+        if (e.tipo === 'efecto' && e.escision?.mitad === 'salida')
+            expect(validarForma(modificar(bueno, 'enlaces', e.id, { ...e, control: 'c' })).map(v => v.codigo)).not.toContain('F-4');
+        else if (e.tipo === 'efecto')
             verificar('F-4', modificar(bueno, 'enlaces', e.id, { ...e, control: 'c' }));
     }
     verificar('F-6', { ...bueno, abanicos: { ...bueno.abanicos, 'f-109': { id: 'f-109', operador: 'XOR', enlaces: ['e-100', 'e-101'] } } });

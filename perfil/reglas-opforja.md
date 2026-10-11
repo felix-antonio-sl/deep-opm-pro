@@ -449,7 +449,7 @@ R-CONF-1 a R-CONF-5 siguen en canon reglas, «Conformidad OPM».
 
 ### 8.4 Enlaces escindidos
 
-- **R-ESC-1A** (extensión local): `SSOT-metod §7.4` describe la escisión como *la* resolución de la subespecificación de efecto al descomponer, pero no afirma exclusividad. *Endurecimiento de implementación*: la escisión DEBE ser el único mecanismo canónico admitido por `deep-opm-pro` para esa resolución. La cláusula de unicidad es decisión de producto, no texto de `SSOT-metod §7.4`.
+- **R-ESC-1A** (realización de producto): al descomponer, la escisión es el valor por defecto que ofrece el producto para resolver la subespecificación del TS3; el modelador asigna el par completo a un subproceso reanclando una mitad sobre el subproceso de su par, que las une (ISO §14.2.2.4.3). DEC50 retiró la exclusividad de la escisión, que era endurecimiento.
 
 - Fragmento retirado de R-ESCIND-0 (canon reglas §8.4): un fragmento escindido NUNCA se origina por parseo de OPL aislado: solo se produce por la operación de descomposición y persiste con metadato de procedencia.
 

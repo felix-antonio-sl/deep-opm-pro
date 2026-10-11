@@ -42,8 +42,7 @@ Todo cambio de modelado, parser, generador OPL, import/export o render canónico
 - OPL: todo hecho nuclear visible emite plantilla canónica (generar, roundtrip-*).
 - Parseo (perfil): toda oración aceptada reconstruye el mismo hecho; nunca entidades plausibles (analizar, editor-opl).
 - Modificadores: `c/e` sólo en enlaces transformadores o habilitadores entrantes; nunca en resultado, estructural,
-  invocación, excepción ni mitad de entrada escindida; el producto los niega también en la mitad de salida
-  (endurecimiento declarado) (matriz).
+  invocación, excepción ni mitad de entrada escindida (matriz).
 - Refinamiento: el hijo agrega detalle y no contradice al padre; sin ciclos (refinamiento, proyeccion, frontera).
 - Distribución: consumo/resultado no quedan en el contorno; ningún evento sistémico cruza el contorno (el ambiental puede,
   con la contingencia modelada, B-44); TS3 asignado

@@ -203,7 +203,9 @@ test('T-032 par escindido preserva bilateralidad y borrar contraparte deja stand
     expect(bien(op.reanclarExtremo(m, { opd: m.raiz, enlace: 'e-20', extremo: 'origen', hacia: { cosa: 'p-11' } })).enlaces['e-20']).toHaveProperty('escision', { par: 'e-21', mitad: 'entrada' });
     mal(op.reanclarExtremo(m, { opd: m.raiz, enlace: 'e-20', extremo: 'destino', hacia: { cosa: 'o-5', estado: 's-6' } }), 'forma', 'F-4');
     mal(op.fijarEstados(m, { enlace: 'e-20', estados: { entrada: null, salida: null } }), 'forma', 'F-4');
-    mal(op.fijarControl(m, { enlace: 'e-20', control: 'c' }), 'forma', 'R-ESCIND-0');
+    mal(op.fijarControl(m, { enlace: 'e-20', control: 'c' }), 'forma', 'R-ESC-1');
+    // ISO Tabla 25 NOTA 1 sólo niega control a la mitad de entrada.
+    expect(bien(op.fijarControl(m, { enlace: 'e-21', control: 'e' })).enlaces['e-21']).toMatchObject({ control: 'e', escision: { par: 'e-20', mitad: 'salida' } });
     const r = op.eliminarEnlaces(m, { enlaces: ['e-20', 'e-20'] }), n = bien(r);
     expect(n.enlaces['e-21']).not.toHaveProperty('escision');
     expect(n.enlaces['e-21']).toHaveProperty('salida', 's-4');

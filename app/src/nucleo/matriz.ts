@@ -432,8 +432,9 @@ function forma(m: Modelo, e: Borrador): readonly Violacion[] {
         fallo('R-EDIT-2', 'El campo de estado no corresponde a esta fila de la matriz.');
     if (datos.control !== undefined && (!f.control || !['e', 'c'].includes(String(datos.control))))
         fallo('R-MOD-4', 'El control solo puede ser c o e y solo en una entrada canónica.');
-    if (e.tipo === 'efecto' && e.escision && e.control !== undefined)
-        fallo('R-ESCIND-0', 'La mitad escindida no admite control.');
+    // ISO Tabla 25 NOTA 1: sólo la mitad de entrada carece de versión con control (R-ESC-1).
+    if (e.tipo === 'efecto' && e.escision?.mitad === 'entrada' && e.control !== undefined)
+        fallo('R-ESC-1', 'La mitad de entrada escindida no admite control.');
     if (datos.ruta !== undefined && (!f.ruta || typeof datos.ruta !== 'string' || !datos.ruta.trim()))
         fallo('R-OPL-RUTA-2', 'La ruta debe tener nombre y solo se admite en consumo/resultado.');
     if (['mult', 'multOrigen', 'multDestino'].some(k => datos[k] !== undefined && !esMultiplicidad(datos[k])))
