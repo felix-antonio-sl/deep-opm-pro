@@ -122,6 +122,7 @@ export interface LineaAnalizada {
 import { PLANTILLAS } from './plantillas';
 import type { Plantilla, Hueco, Huecos, ValorHueco } from './plantillas';
 import { NO_SOPORTADAS, NO_CANONIZADAS } from './no-soportadas';
+import { validarEtiqueta } from '../nucleo/lexico';
 
 interface Span { readonly texto: string; readonly marca: 'objeto' | 'proceso' | 'estado'; }
 const atom = '§\\d+§';
@@ -200,7 +201,8 @@ function capturar(k: string, s: string, spans: readonly Span[]): ValorHueco | nu
         if (s.includes('§')) return null;
         if (name === 'n' && !/^\d+(?:\.\d+)?$/.test(s)) return null;
         if (name === 'v' && !/^(?:[\p{L}][\p{L}\d_-]*|-?(?:0|[1-9]\d*)(?:\.\d+)?)$/u.test(s)) return null;
-        if ((name === 't' || name === 't2') && !/^[\p{Ll}][\p{Ll}\d_-]*(?: [\p{Ll}][\p{Ll}\d_-]*)*$/u.test(s)) return null;
+        // El léxico de etiqueta vive en el núcleo (R-OPL-LEX-2); el analizador no lo duplica.
+        if ((name === 't' || name === 't2') && validarEtiqueta(s)) return null;
         if (name === 'esencia' && !/^(?:físico|física|informacional)$/.test(s)) return null;
         if (name === 'afiliacion' && !/^(?:ambiental|sistémico|sistémica)$/.test(s)) return null;
         return { texto: s };

@@ -4,19 +4,19 @@ import { modeloCon } from '../pruebas/constructores';
 import { validarForma } from './forma';
 const m = modeloCon({ objetos: [['Alfa', []]] });
 afterEach(() => expect(validarForma(m)).toEqual([]));
-test('T-025 EBNF nombres: letras españolas, dígitos internos, espacios exactos', () => {
-    for (const s of ['Árbol', 'Ñandú Uno_2', 'Ünico-1', 'Alfa uno'])
+test('T-025 EBNF nombres: letras españolas, dígitos internos, «-», «|», «&», «/» y espacios exactos (ISO A.3.2)', () => {
+    for (const s of ['Árbol', 'Ñandú Uno_2', 'Ünico-1', 'Alfa uno', 'Writing & Signing', 'Main I/O Output', 'Entrada|Salida', 'Alfa & 2'])
         expect(validarNombreCosa(s)).toBeNull();
-    for (const s of ['alfa', ' Alfa', 'Alfa ', 'Alfa  Uno', '2Alfa', 'Alfa Uno!'])
+    for (const s of ['alfa', ' Alfa', 'Alfa ', 'Alfa  Uno', '2Alfa', 'Alfa Uno!', "Object's", '&Alfa', '/Alfa'])
         expect(validarNombreCosa(s)).not.toBeNull();
-    for (const s of ['listo', 'á1', 'ñandú_2'])
+    for (const s of ['listo', 'á1', 'ñandú_2', 'muy listo', 'en curso', 'listo/ok', 'a|b', 'pago & envío'])
         expect(validarNombreEstado(s)).toBeNull();
-    for (const s of ['Listo', 'muy listo', '2listo'])
+    for (const s of ['Listo', '2listo', 'muy  listo', ' listo', 'listo ', 'listo!'])
         expect(validarNombreEstado(s)).not.toBeNull();
     expect(validarEtiqueta('relaciona')).toBeNull();
     expect(validarEtiqueta('')).not.toBeNull();
 });
-test('T-025 sugerencia normaliza solo al solicitar y evita colisiones', () => { expect(sugerirNombre(m, ' alfa ', 'cosa')).toBe('Alfa-2'); expect(sugerirNombre(m, '2 extraño!', 'cosa')).toBe('Extraño'); expect(sugerirNombre(m, 'Muy Listo', 'estado')).toBe('muy-listo'); });
+test('T-025 sugerencia normaliza solo al solicitar y evita colisiones', () => { expect(sugerirNombre(m, ' alfa ', 'cosa')).toBe('Alfa-2'); expect(sugerirNombre(m, '2 extraño!', 'cosa')).toBe('Extraño'); expect(sugerirNombre(m, 'Muy Listo', 'estado')).toBe('muy listo'); expect(sugerirNombre(m, 'I/O  & más!', 'cosa')).toBe('I/O & más'); });
 test('T-025 alomorfos y/e, o/u dependen del inicio de la palabra siguiente', () => {
     for (const s of ['Irene', 'Hijo', 'Índice', 'Hígado'])
         expect(conjuncionY(s)).toBe('e');

@@ -313,6 +313,7 @@ R-CONF-1 a R-CONF-5 siguen en canon reglas, «Conformidad OPM».
 - **R-OPL-EBNF-3**: los no terminales normativos del Apéndice A DEBEN escribirse en `snake_case`; nombres con espacios de §17 son explicativos.
 
 - Fragmento retirado de R-OPL-LEX-2 (canon reglas §4.14) [extensión]: `caracter_de_cadena` admite `_` (guion bajo).
+- (R-OPL-LEX-2, parte de producto) [endurecimiento]: un nombre, un estado, una etiqueta o una ruta no empieza ni termina en espacio ni tiene espacios dobles, porque el OPL no los conservaría (B-47). Fuera de eso rige el carácter de cadena de la norma: letra, dígito, `-`, `|`, `&`, `/` y espacio (DEC50).
 - Fragmento retirado de R-OPL-PART-1 (canon reglas §4.14) [extensión]: las restricciones de participación PUEDEN usar `exactamente un/una` y `dos o más`.
 - Fragmento retirado de R-OPL-RANGO-1 (canon reglas §4.14) [extensión]: intervalos `[..]`/`(..)` para límites parseables y `*` como límite abierto (ISO §11.1 exige rangos cerrados).
 - Fragmento retirado de R-OPL-RANGO-3 (canon reglas §4.14): los símbolos Unicode equivalentes DEBEN normalizarse o declararse como extensión de visualización.

@@ -5,6 +5,7 @@ import { escena } from './escena';
 import { exportarDiagrama, exportarDocumento, advertenciasEscena } from './exportar';
 import { gatesExportacion } from '../nucleo/diagnostico';
 import { generarBloque } from '../opl/generar';
+import { modeloCon } from '../pruebas/constructores';
 const obj = (id: string): Cosa => ({ id, nombre: `Objeto${id.replace(/\d/g, d => String.fromCharCode(65 + Number(d)))}`, tipo: 'objeto', estados: [], esencia: 'informacional', afiliacion: 'sistemica' });
 function m(n = 2): Modelo { return { id: 'modelo', nombre: 'Modelo <&>', raiz: 'sd', unidadTiempo: 'min', secuencia: 100, cosas: Object.fromEntries(Array.from({ length: n }, (_, i) => { const c = obj(`o${i}`); return [c.id, c]; })), enlaces: {}, abanicos: {}, opds: { sd: { id: 'sd', tipo: 'raiz', apariciones: Object.fromEntries(Array.from({ length: n }, (_, i) => [`o${i}`, { x: i * 220 - 40, y: 0, ancho: 135, alto: 60 }])) } } }; }
 test('T-280 T-285 SVG perfil viewBox fuente y fondo', () => {
@@ -255,4 +256,11 @@ test('T-284 DEC37 avisa la multiplicidad bajo otra cosa y la etiqueta sobre una 
     expect(refs('La etiqueta de un enlace se solapa con una punta')).toEqual([['e1', 'e2']]);
     expect(refs('La multiplicidad de un enlace se solapa con una punta')).toEqual([]);
     expect(JSON.stringify(e)).toBe(antes);
+});
+test('T-025 T-280 nombres con «&», «/» y «|» se escapan en el SVG canónico (ISO A.3.2)', () => {
+    const b = modeloCon({ objetos: [['Writing & Signing', ['en curso']], ['Entrada|Salida', []]], procesos: ['Main I/O Paying'] });
+    const r = exportarDiagrama(b, b.raiz, { version: 'v' }); expect(r.ok).toBe(true); if (!r.ok) throw Error(r.rechazo.mensaje);
+    expect(r.valor.svg).toContain('Writing &amp; Signing'); expect(r.valor.svg).toContain('Entrada|Salida'); expect(r.valor.svg).toContain('Main I/O');
+    expect(r.valor.svg).toContain('en curso');
+    expect(r.valor.svg.replace(/&(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-f]+);/gi, '')).not.toContain('&');
 });

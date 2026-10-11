@@ -2,16 +2,19 @@ import type { Modelo, Id } from './tipos';
 import type { Rechazo } from './resultado';
 import { claveNombre } from './indice';
 const letra = 'A-Za-zÁÉÍÓÚÑÜáéíóúñü';
-const palabra = `[${letra}][${letra}0-9_-]*`;
-const cosa = new RegExp(`^[A-ZÁÉÍÓÚÑÜ][${letra}0-9_-]*( ${palabra})*$`);
-const estado = new RegExp(`^[a-záéíóúñü][${letra}0-9_-]*$`);
-const etiqueta = new RegExp(`^[a-záéíóúñü][${letra}0-9_-]*( ${palabra})*$`);
+// R-OPL-LEX-2 (ISO A.3.2): carácter de cadena = letra, dígito, «-», «|», «&», «/» o espacio. El producto
+// admite además «_» (extensión, B-47) y no admite espacios al inicio, al final ni dobles, que el OPL perdería.
+const caracter = `${letra}0-9_\\-|&/`;
+const resto = `[${caracter}]*(?: [${caracter}]+)*`;
+const cosa = new RegExp(`^[A-ZÁÉÍÓÚÑÜ]${resto}$`);
+const estado = new RegExp(`^[a-záéíóúñü]${resto}$`);
+const etiqueta = estado;
 const rechazo = (mensaje: string): Rechazo => ({ codigo: 'lexico', regla: 'R-§18-LEX-1', mensaje, refs: [] });
 export function validarNombreCosa(nombre: string): Rechazo | null { return cosa.test(nombre) ? null : rechazo('El nombre de cosa no cumple el léxico canónico.'); }
 export function validarNombreEstado(nombre: string): Rechazo | null { return estado.test(nombre) ? null : rechazo('El estado requiere una palabra que empiece en minúscula.'); }
 export function validarEtiqueta(nombre: string): Rechazo | null { return etiqueta.test(nombre) ? null : rechazo('La etiqueta requiere palabras léxicas separadas por un espacio.'); }
 export function sugerirNombre(m: Modelo, nombre: string, tipo: 'cosa' | 'estado', excluir?: Id): string {
-    let limpio = nombre.normalize('NFC').replace(new RegExp(`[^${letra}0-9_ -]`, 'g'), '').trim().split(/\s+/).map(p => p.replace(new RegExp(`^[^${letra}]+`), '')).filter(Boolean).join(tipo === 'estado' ? '-' : ' ');
+    let limpio = nombre.normalize('NFC').replace(new RegExp(`[^${caracter} ]`, 'g'), '').trim().split(/\s+/).filter(Boolean).join(' ').replace(new RegExp(`^[^${letra}]+`), '');
     if (!limpio)
         limpio = tipo === 'cosa' ? 'Cosa' : 'estado';
     if (tipo === 'estado')

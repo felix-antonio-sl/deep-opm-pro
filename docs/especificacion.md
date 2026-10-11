@@ -110,7 +110,7 @@ Regla de no sobrebloqueo (R-AP-0C, R-APP-5, R-OPD-VAL-4, R-ZNC-1/2): solo se **b
 | Esencia | {física, informacional}, default **informacional**; propiedad de la cosa (todas sus apariencias). | inf. DEBE | R-OBJ-3, R-OPD-COSA-2, R-REF-4 |
 | Afiliación | {sistémica, ambiental}, default **sistémica**; persiste en todos los niveles. | inf. DEBE / DEBE | R-OBJ-3, R-CTRN-1/1A, R-OPD-COSA-4 |
 | Nombre | Único en el modelo (1:1 cosa↔nombre canónico); reusar un nombre = nueva apariencia de la misma cosa; conflicto nominal se resuelve explícitamente (reusar / renombrar / descartar); nunca reescritura silenciosa. | DEBE (invariante) | método A5.15/A8.2, R-OPD-ROT-5, R-VIS-NOM-1, AP-22 |
-| Léxico del nombre | Cosa: palabras separadas por un espacio, la primera capitalizada, caracteres = letra (incl. á é í ó ú ñ ü) · dígito · `-` · `_`, cada palabra empieza con letra. Estado: **una** palabra que empieza en minúscula. | DEBE (EBNF) | R-§18-LEX-1, R-OPL-LEX-1..3, EBNF A.2/A.3 (DR-8) |
+| Léxico del nombre | Cosa: empieza con mayúscula; caracteres = letra (incl. á é í ó ú ñ ü) · dígito · `-` · `\|` · `&` · `/` · espacio (ISO A.3.2), más `_` (extensión); sin espacios al inicio, al final ni dobles. Estado: empieza con minúscula y usa los mismos caracteres (DEC50). | DEBE (EBNF) | R-§18-LEX-1, R-OPL-LEX-1..3, EBNF A.2/A.3 (DR-8) |
 | Estado | Solo en objetos; atómico; nunca flotante ni de proceso. Orden persistido (roundtrip preserva la lista y su orden). | inf. NO DEBE / DEBE | R-EST-1, R-PROC-4, AP-12, R-OPD-EST-1/2, spec-OPL §2.3 |
 | Designaciones | Inicial 0..*, Final 0..* (combinables: D10), Por defecto 0..1, `Current` declarado 0..1 (persistente, distinto de runtime). | inf. DEBE | R-EST-2/3, R-OPD-EST-4..6 |
 | Supresión de estados | Dos niveles: global (en el estado) y local (por apariencia). Oculto ⇔ suprimido global ∨ suprimido local. Suprimir NO borra. Un estado enlazado en ese OPD no se suprime ahí. Conjunto completo = unión en todos los OPDs. | inf. DEBE | R-OPD-EST-8, LF-03, R-CX-EST-2, R-OPL-TOTAL-5 (DR-15) |
@@ -177,7 +177,7 @@ interface Entidad {
 interface Estado {
   id: Id;
   entidadId: Id;                          // entidad.tipo === 'objeto'
-  nombre: string;                         // una palabra en minúscula
+  nombre: string;                         // empieza en minúscula (ISO A.3.2)
   esInicial?: boolean;
   esFinal?: boolean;
   designaciones?: Array<'porDefecto' | 'current'>;  // ≤1 porDefecto y ≤1 current por objeto
@@ -1259,7 +1259,7 @@ oracion_con_etiqueta_de_enlace = oracion_opl_es, sufijo_de_etiqueta_de_enlace ; 
 
 Restricciones de §18 (textual):
 
-- **R-§18-LEX-1**: el alfabeto léxico ADMITE letras ASCII, vocales acentuadas, `ñ`, `ü` (mayúscula/minúscula); `caracter_de_cadena` SE LIMITA a letra, dígito decimal, `-` y `_`; `nombre_simple` COMIENZA con letra. Los no-terminales normativos SE ESCRIBEN en `snake_case`.
+- **R-§18-LEX-1**: el alfabeto léxico ADMITE letras ASCII, vocales acentuadas, `ñ`, `ü` (mayúscula/minúscula); `caracter_de_cadena` es letra, dígito decimal, `-`, `|`, `&`, `/` o espacio (ISO A.3.2), más `_` (extensión de perfil), sin espacios al inicio, al final ni dobles; `nombre_simple` COMIENZA con letra. Los no-terminales normativos SE ESCRIBEN en `snake_case`.
 - **R-§18-PART-1**: las restricciones de participación textuales PERTENECEN al conjunto cerrado `un/una`, `un/una opcional`, `al menos un/una`, `exactamente un/una`, `al menos dos`, `dos o más`, o límites numéricos/paramétricos (`0`, `m a n`).
 - **R-§18-RANGO-1**: el rango textual USA `valor`, `varía de X a Y`, o intervalos `[..]`/`(..)` con `*` exclusivamente como límite abierto; la restricción de expresión INICIA con `donde`; las operaciones lógicas SON el conjunto ASCII `=`, `<`, `>`, `<=`, `>=`. Cualquier símbolo Unicode equivalente DEBE normalizarse a ASCII o declararse como extensión de visualización.
 - **R-§18-CONJ-1**: la pertenencia a conjunto SE EMITE con `en { ... }`.
@@ -1816,7 +1816,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-022 | Id persistente opaco para cosa, estado, enlace y OPD, estable bajo renumeración; nunca `SDx.y` ni nombre. | DEBE | mod | R-IDP-0C/2/3, R-META-9, Anexo A «Identidad», AP-17 | ★ |
 | T-023 | Apariencia ≠ cosa: una cosa PUEDE aparecer en N OPDs; ≤1 apariencia por (cosa, OPD). | PUEDE / NO DEBE | mod | R-VIS-APP-1, R-PRIN-9, R-INS-2, DR-25 | ★ |
 | T-024 | Nombre único en el modelo (objetos y procesos comparten espacio); reuso de nombre = nueva apariencia. | invariante | mod | método A5.15/A8.2, R-VIS-NOM-1, DR-22 | ★ |
-| T-025 | Léxico de nombres: cosa = palabras (letra/dígito/`-`/`_`, acentos, ñ, ü) separadas por un espacio, cada una empieza con letra, la primera en mayúscula; estado = una palabra que empieza en minúscula. Si la herramienta normaliza (casing, espacios), NO DEBE hacerlo en silencio. | DEBE / NO DEBE | imp | R-§18-LEX-1, R-OPL-LEX-1..3, R-OPD-ROT-5, R-VIS-AUTOR-2, DR-8 | ★ |
+| T-025 | Léxico de nombres: cosa = empieza en mayúscula, caracteres letra/dígito/`-`/`\|`/`&`/`/`/espacio (más `_`), acentos, ñ, ü, sin espacios al inicio, al final ni dobles; estado = empieza en minúscula, mismos caracteres (DEC50). Si la herramienta normaliza (casing, espacios), NO DEBE hacerlo en silencio. | DEBE / NO DEBE | imp | R-§18-LEX-1, R-OPL-LEX-1..3, R-OPD-ROT-5, R-VIS-AUTOR-2, DR-8 | ★ |
 | T-026 | Enlace binario con tipo (familia derivada, 6 familias cerradas), origen, destino, estado de entrada/salida opcional, control, etiqueta(s), ruta y multiplicidad por extremo. | DEBE | mod | R-META-13, reglas §5.1, método A5.23 | ★ |
 | T-027 | Control `e`/`c` como atributo escalar del enlace (a lo sumo uno); no crea cosa ni enlace. | DEBE / PUEDE | mod | R-ECA-4, R-MOD-NAT-1, R-COMB-3, R-§21-OPL-MOD | ★ |
 | T-028 | Abanico XOR/OR como entidad explícita (n ≥ 2, mismo tipo, extremo común); AND = ausencia de abanico. | inf. DEBE | mod | spec-OPL §8.1, R-FAN-HAB-1, R-VIS-FAN-1 | ★ |
