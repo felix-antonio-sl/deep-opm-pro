@@ -20,8 +20,8 @@ canon; la especificación y el diseño se subordinan a ambos. Las versiones aqu�
 
 - Las citas ISO vigentes usan numeración **2024**. Las secciones internas del canon y del perfil conservan
   sus números 1.x; las citas históricas a 2015 no se reescriben como si ya hubieran usado 2024.
-- [CAMBIOS-2.1.md](CAMBIOS-2.1.md) identifica la copia pública, su ruta, tamaño y SHA256, el contraste con la
-  ficha oficial y la muestra, las cláusulas recuperadas y las figuras observadas. El texto de la norma y las
+- [CAMBIOS-2.1.md](CAMBIOS-2.1.md) identifica la copia de terceros por tamaño y SHA256 (sin su ubicación), el contraste
+  con la ficha oficial y la muestra, las cláusulas recuperadas y las figuras observadas. El texto de la norma y las
   imágenes de sus páginas se conservan fuera de Git.
 - Se resuelven la falta de Tabla 27 y las reservas por cláusulas resumidas o figuras ausentes. La obtención
   del PDF no acredita autenticidad editorial de cada byte ni auditoría exhaustiva de todas las capacidades;

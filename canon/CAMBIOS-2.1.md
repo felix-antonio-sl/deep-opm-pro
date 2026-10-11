@@ -9,11 +9,12 @@ aceptación funcional de OpForja frente a todas las construcciones de la norma.
 
 - Edición: ISO 19450:2024, primera edición 2024-01, inglés. La
   [ficha oficial de ISO](https://www.iso.org/standard/84612.html) identifica la edición vigente.
-- Copia pública recuperada de OrgPad, archivo `DQH7FK-EdNCbKCvLDXYvEp`, localizado mediante búsqueda web.
-  Es un alojamiento de terceros: no se presenta como una descarga de la tienda de ISO ni se infiere una
-  licencia de redistribución. Se conserva fuera de Git; no se versionan el PDF, su transcripción ni sus figuras.
-- Archivo local: `/home/felix/.local/state/opforja/fuentes/iso-19450-2024/norma-publica.pdf`.
-  Tamaño: 28.684.029 bytes; 168 páginas PDF, con el cuerpo numerado hasta 158 y los Anexos A–D.
+- Copia de terceros obtenida por búsqueda web. No proviene de la tienda de ISO ni tiene una licencia de
+  redistribución conocida, por lo que este registro no indica su ubicación. Se conserva fuera de Git; no se
+  versionan el PDF, su transcripción ni sus figuras. Para una referencia con autoridad editorial, la edición
+  oficial se adquiere en la ficha de ISO citada arriba.
+- Identificación de la copia: 28.684.029 bytes; 168 páginas PDF, con el cuerpo numerado hasta 158 y los
+  Anexos A–D.
 - SHA256: `9bb1be0510f2182cb6e31984941dca193da74517b3ee230e85cabd4da7f12203`.
 - Contraste: portada, edición, índice y términos observables de la
   [muestra oficial alojada por iTeh](https://cdn.standards.iteh.ai/samples/84612/fbeb6248f736438785e180262c1f6a53/ISO-19450-2024.pdf).
