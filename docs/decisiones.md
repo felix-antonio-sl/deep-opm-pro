@@ -174,6 +174,12 @@ que tenemos» (ISO/PAS 19450:2015; no se versiona en el repositorio). Se cita la
     y cita sólo la PAS 2015 (`canon/CAMBIOS-2.2.md`). B-44 conserva el código de `941469d`: el rechazo del evento
     sistémico cumple ISO §14.2.2.4.2 y el del ambiental queda como endurecimiento de producto declarado. La matriz
     de precedencia del producto (DEC31) se declara en B-53 frente a la Tabla 27 no verificable del canon (DEC44).
+48. **El evento ambiental vuelve a cruzar el contorno; manda la norma.** Instrucción directa del dueño,
+    role=user: «vuelve a admitir el evento ambiental. manda la norma». Sustituye la parte de DEC47 que conservaba
+    como endurecimiento el rechazo del evento ambiental. R-CX-DIST-2 prohíbe sólo el cruce desde un objeto o estado
+    sistémico (ISO §14.2.2.4.2) y admite el ambiental; el modelador DEBERÍA modelar la contingencia y la herramienta
+    no lo comprueba. La invocación desde un proceso sistémico exterior, que la cláusula no nombra, sigue rechazada
+    como endurecimiento declarado en B-44; desde uno ambiental se admite. El canon no cambia.
 
 ## Resoluciones directas posteriores — vigentes
 

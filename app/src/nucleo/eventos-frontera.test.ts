@@ -5,6 +5,7 @@ import { congelar, must } from '../pruebas/constructores';
 import { validarForma } from './forma';
 import { erroresContexto, tiposLegales, violacionesContexto } from './matriz';
 import { crearEnlace, fijarControl, reanclarExtremo } from './enlaces';
+import { fijarAfiliacion } from './cosas';
 import { fijarControlAbanico } from './abanicos';
 import { agregarSubprocesos, descomponer } from './refinamiento';
 import { diagnosticar, gatesExportacion } from './diagnostico';
@@ -12,9 +13,9 @@ import { proyectar } from './proyeccion';
 import { exportarV0 } from '../codec/exportar';
 import { importarV0 } from '../codec/importar';
 
-// B-44: la propiedad del origen, no su afiliación, decide si inicia un subproceso desde fuera
-// de cualquiera de sus contornos. ISO §14.2.2.4.2 prohíbe el cruce sistémico; rechazar también
-// el ambiental es endurecimiento de producto (perfil opd-opforja §10.2).
+// B-44: ISO §14.2.2.4.2 prohíbe que un evento de origen sistémico inicie un subproceso desde
+// fuera de cualquiera de sus contornos; el de origen ambiental cruza y el modelador DEBERÍA
+// modelar cómo se maneja la contingencia. La propiedad del origen fija qué contornos son exteriores.
 function jerarquia(afiliacion: Afiliacion = 'sistemica', enlaces: readonly Enlace[] = []): Modelo {
     const ap = (x: number, y = 80) => ({ x, y, ancho: 135, alto: 60 });
     const objeto = (id: string, nombre: string): Objeto => ({ id, nombre, tipo: 'objeto', esencia: 'fisica', afiliacion,
@@ -43,23 +44,34 @@ function rechazado(r: Respuesta<unknown>, m: Modelo, antes: string): void {
     expect(m.secuencia).toBe(100);
 }
 
-for (const afiliacion of ['sistemica', 'ambiental'] as const)
-    for (const tipo of ['consumo', 'agente', 'instrumento', 'efecto'] as const)
-        for (const proceso of ['a', 'l'])
-            test(`T-060 evento ${tipo} ${afiliacion} externo no inicia ${proceso}`, () => {
-                const m = jerarquia(afiliacion); sano(m);
-                const e: Enlace = { id: 'e', tipo, objeto: 'o', proceso, control: 'e' };
-                expect(frontera(m, e)).toEqual([expect.objectContaining({ refs: [{ tipo: 'enlace', id: 'e' }] })]);
-                rechazado(crearEnlace(m, { opd: proceso === 'a' ? 'dp' : 'da', candidato: { tipo, objeto: 'o', proceso, control: 'e' } }), m, JSON.stringify(m));
-            });
+for (const tipo of ['consumo', 'agente', 'instrumento', 'efecto'] as const)
+    for (const proceso of ['a', 'l'])
+        test(`T-060 evento ${tipo} sistemica externo no inicia ${proceso}`, () => {
+            const m = jerarquia('sistemica'); sano(m);
+            const e: Enlace = { id: 'e', tipo, objeto: 'o', proceso, control: 'e' };
+            expect(frontera(m, e)).toEqual([expect.objectContaining({ refs: [{ tipo: 'enlace', id: 'e' }] })]);
+            rechazado(crearEnlace(m, { opd: proceso === 'a' ? 'dp' : 'da', candidato: { tipo, objeto: 'o', proceso, control: 'e' } }), m, JSON.stringify(m));
+        });
+
+for (const tipo of ['consumo', 'agente', 'instrumento', 'efecto'] as const)
+    for (const proceso of ['a', 'l'])
+        test(`T-060 evento ${tipo} ambiental externo cruza el contorno e inicia ${proceso}`, () => {
+            const m = jerarquia('ambiental'); sano(m);
+            const e: Enlace = { id: 'e', tipo, objeto: 'o', proceso, control: 'e' };
+            expect(frontera(m, e)).toEqual([]);
+            const r = crearEnlace(m, { opd: proceso === 'a' ? 'dp' : 'da', candidato: { tipo, objeto: 'o', proceso, control: 'e' } });
+            // R-DIST-1 migra el consumo del contorno de Recibir a su primer subproceso.
+            const n = must(r).modelo, destino = tipo === 'consumo' && proceso === 'a' ? 'l' : proceso;
+            expect(n.enlaces).toEqual({ 'e-100': { id: 'e-100', tipo, objeto: 'o', proceso: destino, control: 'e' } }); sano(n);
+        });
 
 for (const afiliacion of ['sistemica', 'ambiental'] as const)
-    test(`T-060 pertenecer al abuelo ${afiliacion} no permite cruzar el contorno intermedio`, () => {
+    test(`T-060 pertenecer al abuelo ${afiliacion}: ${afiliacion === 'sistemica' ? 'no cruza' : 'cruza'} el contorno intermedio`, () => {
         const m = jerarquia(afiliacion); sano(m);
         const e: Enlace = { id: 'e', tipo: 'instrumento', objeto: 'ip', proceso: 'l', control: 'e' };
-        expect(frontera(m, e)).toHaveLength(1);
+        expect(frontera(m, e)).toHaveLength(afiliacion === 'sistemica' ? 1 : 0);
         const recuperado = jerarquia(afiliacion, [e]); expect(validarForma(recuperado)).toEqual([]);
-        expect(gatesExportacion(recuperado, 'modelo').some(d => d.regla === 'R-CX-DIST-2')).toBe(true);
+        expect(gatesExportacion(recuperado, 'modelo').some(d => d.regla === 'R-CX-DIST-2')).toBe(afiliacion === 'sistemica');
         // T-066 impide antes la edición entre internos de OPD distintos. El
         // hecho recuperado sigue necesitando diagnóstico de la frontera real.
         const antes = JSON.stringify(m), r = crearEnlace(m, { opd: 'da', candidato: { tipo: 'instrumento', objeto: 'ip', proceso: 'l', control: 'e' } });
@@ -93,6 +105,14 @@ test('T-060 invocación externa es evento; invocación interna y excepción cons
         expect(frontera(m, { id: 'x', tipo, origen: 'q', destino: 'l' })).toEqual([]);
 });
 
+test('T-060 invocación desde un proceso ambiental externo cruza el contorno', () => {
+    const m = jerarquia('ambiental'); sano(m);
+    expect(frontera(m, { id: 'e', tipo: 'invocacion', origen: 'q', destino: 'l' })).toEqual([]);
+    expect(tiposLegales(m, { opd: 'da', desde: { cosa: 'q' }, hacia: { cosa: 'l' } }).find(o => o.tipo === 'invocacion' && o.sentido === 'directo')).toMatchObject({ legal: true });
+    const r = must(crearEnlace(m, { opd: 'da', candidato: { tipo: 'invocacion', origen: 'q', destino: 'l' } }));
+    expect(r.modelo.enlaces['e-100']).toEqual({ id: 'e-100', tipo: 'invocacion', origen: 'q', destino: 'l' }); sano(r.modelo);
+});
+
 test('T-060 cambiar control y reanclar rechazan sin alterar hechos ni secuencia', () => {
     const m = jerarquia('sistemica', [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'l', control: 'c' }]); sano(m);
     rechazado(fijarControl(m, { enlace: 'e', control: 'e' }), m, JSON.stringify(m));
@@ -100,8 +120,23 @@ test('T-060 cambiar control y reanclar rechazan sin alterar hechos ni secuencia'
     rechazado(reanclarExtremo(entero, { opd: 'da', enlace: 'e', extremo: 'destino', hacia: { cosa: 'l' } }), entero, JSON.stringify(entero));
 });
 
+test('T-060 cambiar control y reanclar con origen ambiental conservan el evento al subproceso', () => {
+    const m = jerarquia('ambiental', [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'l', control: 'c' }]); sano(m);
+    const control = must(fijarControl(m, { enlace: 'e', control: 'e' })).modelo;
+    expect(control.enlaces.e).toEqual({ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'l', control: 'e' }); sano(control);
+    const entero = jerarquia('ambiental', [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'p', control: 'e' }]); sano(entero);
+    const reanclado = must(reanclarExtremo(entero, { opd: 'da', enlace: 'e', extremo: 'destino', hacia: { cosa: 'l' } })).modelo;
+    expect(reanclado.enlaces.e).toEqual({ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'l', control: 'e' }); sano(reanclado);
+});
+
+test('T-060 DS-20 volver sistémico el origen de un evento que cruza se rechaza sin alterar el modelo', () => {
+    const m = jerarquia('ambiental', [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'l', control: 'e' }]); sano(m);
+    rechazado(fijarAfiliacion(m, { cosa: 'o', afiliacion: 'sistemica' }), m, JSON.stringify(m));
+    const interno = must(fijarAfiliacion(m, { cosa: 'ia', afiliacion: 'sistemica' })).modelo; sano(interno);
+});
+
 test('T-060 DS-20 otro error previo del mismo enlace no encubre el nuevo cruce de evento', () => {
-    const b = jerarquia('ambiental', [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'l' }]), o = b.cosas.o!;
+    const b = jerarquia('sistemica', [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'l' }]), o = b.cosas.o!;
     if (o.tipo !== 'objeto') throw Error('Fixture sin objeto.');
     const m: Modelo = congelar({ ...b, cosas: { ...b.cosas, o: { ...o, estados: [] } } });
     expect(validarForma(m)).toEqual([]); expect(erroresContexto(m).map(v => v.regla)).toEqual(['R-EFE-1']);
@@ -109,13 +144,23 @@ test('T-060 DS-20 otro error previo del mismo enlace no encubre el nuevo cruce d
     expect(fijarControl(m, { enlace: 'e', control: 'c' }).ok).toBe(true);
 });
 
-for (const operador of ['XOR', 'OR'] as const) test(`T-060 control de abanico ${operador} rechaza todas las ramas en una transacción`, () => {
-    const base = jerarquia('ambiental', [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'l' }, { id: 'f', tipo: 'efecto', objeto: 'o', proceso: 'r' }]);
+function abanico(afiliacion: Afiliacion, operador: 'XOR' | 'OR'): Modelo {
+    const base = jerarquia(afiliacion, [{ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'l' }, { id: 'f', tipo: 'efecto', objeto: 'o', proceso: 'r' }]);
     const da = base.opds.da!; if (da.tipo !== 'descomposicion') throw Error('Fixture sin descomposición.');
-    const m: Modelo = congelar({ ...base, opds: { ...base.opds, da: { ...da, bandas: [['l', 'r']] } },
-        abanicos: { fan: { id: 'fan', operador, enlaces: ['e', 'f'] } } }); sano(m);
+    return congelar({ ...base, opds: { ...base.opds, da: { ...da, bandas: [['l', 'r']] } },
+        abanicos: { fan: { id: 'fan', operador, enlaces: ['e', 'f'] } } });
+}
+for (const operador of ['XOR', 'OR'] as const) test(`T-060 control de abanico ${operador} rechaza todas las ramas en una transacción`, () => {
+    const m = abanico('sistemica', operador), enlaces = m.enlaces; sano(m);
     rechazado(fijarControlAbanico(m, { abanico: 'fan', control: 'e' }), m, JSON.stringify(m));
-    expect(m.abanicos.fan!.operador).toBe(operador); expect(m.enlaces).toBe(base.enlaces);
+    expect(m.abanicos.fan!.operador).toBe(operador); expect(m.enlaces).toBe(enlaces);
+});
+
+for (const operador of ['XOR', 'OR'] as const) test(`T-060 control de abanico ${operador} ambiental marca todas las ramas como evento`, () => {
+    const m = abanico('ambiental', operador); sano(m);
+    const n = must(fijarControlAbanico(m, { abanico: 'fan', control: 'e' })).modelo;
+    expect([n.enlaces.e!, n.enlaces.f!].map(e => 'control' in e ? e.control : undefined)).toEqual(['e', 'e']);
+    expect(n.abanicos.fan).toEqual(m.abanicos.fan); sano(n);
 });
 
 test('T-060 origen sobre el propio contorno conserva la distinción con un origen exterior', () => {
@@ -150,8 +195,24 @@ for (const candidato of [
         expect(JSON.stringify(vacio)).toBe(antes); expect(vacio.secuencia).toBe(101);
     });
 
+for (const candidato of [
+    { tipo: 'consumo', objeto: 'o', proceso: 'p', control: 'e' },
+    { tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 'o-nuevo', control: 'e' },
+    { tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 'o-nuevo', salida: 'o-listo', control: 'e' },
+] satisfies EnlaceNuevo[])
+    test(`T-073 distribución ${candidato.tipo} ${'salida' in candidato ? 'TS3' : 'entrada'} de evento ambiental migra al primer subproceso con su control`, () => {
+        const j = jerarquia('ambiental'), { ip, ia, a, z, l, r, ...cosas } = j.cosas;
+        const m: Modelo = congelar({ ...j, cosas, opds: { sd: j.opds.sd! }, enlaces: { e: { ...candidato, id: 'e' } } }); sano(m);
+        const d = must(descomponer(m, { opd: 'sd', proceso: 'p', bandas: [['Recibir'], ['Despachar']] })).modelo; sano(d);
+        expect(d.cosas['p-101']!.nombre).toBe('Recibir');
+        expect(d.enlaces).toEqual({ e: { ...candidato, id: 'e', proceso: 'p-101' } });
+        const vacio = must(descomponer(m, { opd: 'sd', proceso: 'p' })).modelo; sano(vacio);
+        const agregado = must(agregarSubprocesos(vacio, { opd: 'opd-100', bandas: [['Recibir']], posicion: 'final' })).modelo; sano(agregado);
+        expect(agregado.enlaces).toEqual({ e: { ...candidato, id: 'e', proceso: 'p-101' } });
+    });
+
 test('T-060 códec conserva el evento inválido, muestra el diagnóstico y bloquea export canónico sin reparación automática', () => {
-    const m = jerarquia('ambiental', [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'l', control: 'e' }]);
+    const m = jerarquia('sistemica', [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'l', control: 'e' }]);
     expect(validarForma(m)).toEqual([]);
     const texto = exportarV0(m), r = importarV0(texto);
     expect(r.ok).toBe(true); if (!r.ok) throw Error(JSON.stringify(r.informe));
@@ -161,4 +222,13 @@ test('T-060 códec conserva el evento inválido, muestra el diagnóstico y bloqu
     expect(ds[0]!.reparacion).toBeUndefined();
     expect(gatesExportacion(r.modelo, 'modelo').some(d => d.regla === 'R-CX-DIST-2')).toBe(true);
     expect(gatesExportacion(r.modelo, { opd: 'da' }).some(d => d.regla === 'R-CX-DIST-2')).toBe(true);
+});
+
+test('T-060 códec conserva el evento ambiental que cruza el contorno sin diagnóstico ni bloqueo', () => {
+    const m = jerarquia('ambiental', [{ id: 'e', tipo: 'instrumento', objeto: 'o', proceso: 'l', control: 'e' }]); sano(m);
+    const texto = exportarV0(m), r = importarV0(texto);
+    expect(r.ok).toBe(true); if (!r.ok) throw Error(JSON.stringify(r.informe));
+    expect(exportarV0(r.modelo)).toBe(texto); expect(r.modelo.enlaces.e).toEqual(m.enlaces.e);
+    expect(diagnosticar(r.modelo).filter(d => d.regla === 'R-CX-DIST-2')).toEqual([]);
+    expect(gatesExportacion(r.modelo, 'modelo')).toEqual([]); expect(gatesExportacion(r.modelo, { opd: 'da' })).toEqual([]);
 });

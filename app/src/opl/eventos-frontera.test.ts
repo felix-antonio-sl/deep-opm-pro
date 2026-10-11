@@ -36,18 +36,39 @@ for (const afiliacion of ['sistemica', 'ambiental'] as const)
         expect(exportarV0(codec.modelo)).toBe(antes); expect(exportarV0(m)).toBe(antes);
     });
 
-for (const afiliacion of ['sistemica', 'ambiental'] as const)
-    test(`T-060 T-180 edición OPL ${afiliacion} informa cruce prohibido y conserva condición e identidad`, () => {
-        const b = modeloCon({ objetos: [['Pedido', []]], procesos: ['Procesar'] });
-        const base = { ...b, cosas: Object.fromEntries(Object.entries(b.cosas).map(([id, c]) => [id, { ...c, afiliacion }])) };
-        const e = must(crearEnlace(base, { opd: base.raiz, candidato: { tipo: 'instrumento', objeto: porNombre(base, 'Pedido').id, proceso: porNombre(base, 'Procesar').id, control: 'c' } }));
-        const d = must(descomponer(e.modelo, { opd: base.raiz, proceso: porNombre(base, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
-        const m = must(reanclarExtremo(d.modelo, { opd: d.creados[0]!, enlace: e.creados[0]!, extremo: 'destino', hacia: { cosa: porNombre(d.modelo, 'Inspeccionar').id } })).modelo;
-        const antes = exportarV0(m), t = generarDocumentoOpl(m), condicion = '*Inspeccionar* ocurre si **Pedido** existe, de lo contrario *Inspeccionar* se omite.';
-        expect(t).toContain(condicion);
-        const p = planificar(m, 'modelo', t.replace(condicion, '**Pedido** inicia *Inspeccionar*, que requiere **Pedido**.'));
-        expect(p.resumen.noAplicables).toBe(1);
-        expect(p.lineas.flatMap(l => l.diagnosticos).some(d => d.severidad === 'error' && d.mensaje.includes('Un evento externo no puede atravesar'))).toBe(true);
-        expect(p.acciones).toEqual([]);
-        const r = must(aplicarPlan(m, p)); expect(r.modelo).toBe(m); expect(exportarV0(r.modelo)).toBe(antes);
-    });
+function eventoReanclado(afiliacion: 'sistemica' | 'ambiental') {
+    const b = modeloCon({ objetos: [['Pedido', []]], procesos: ['Procesar'] });
+    const base = { ...b, cosas: Object.fromEntries(Object.entries(b.cosas).map(([id, c]) => [id, { ...c, afiliacion }])) };
+    const e = must(crearEnlace(base, { opd: base.raiz, candidato: { tipo: 'instrumento', objeto: porNombre(base, 'Pedido').id, proceso: porNombre(base, 'Procesar').id, control: 'c' } }));
+    const d = must(descomponer(e.modelo, { opd: base.raiz, proceso: porNombre(base, 'Procesar').id, bandas: [['Inspeccionar'], ['Aceptar']] }));
+    return { m: must(reanclarExtremo(d.modelo, { opd: d.creados[0]!, enlace: e.creados[0]!, extremo: 'destino', hacia: { cosa: porNombre(d.modelo, 'Inspeccionar').id } })).modelo, enlace: e.creados[0]! };
+}
+const condicion = '*Inspeccionar* ocurre si **Pedido** existe, de lo contrario *Inspeccionar* se omite.';
+const evento = '**Pedido** inicia *Inspeccionar*, que requiere **Pedido**.';
+
+test('T-060 T-180 edición OPL sistemica informa cruce prohibido y conserva condición e identidad', () => {
+    const { m } = eventoReanclado('sistemica'), antes = exportarV0(m), t = generarDocumentoOpl(m);
+    expect(t).toContain(condicion);
+    const p = planificar(m, 'modelo', t.replace(condicion, evento));
+    expect(p.resumen.noAplicables).toBe(1);
+    expect(p.lineas.flatMap(l => l.diagnosticos).some(d => d.severidad === 'error' && d.mensaje.includes('Un evento sistémico externo no puede atravesar'))).toBe(true);
+    expect(p.acciones).toEqual([]);
+    const r = must(aplicarPlan(m, p)); expect(r.modelo).toBe(m); expect(exportarV0(r.modelo)).toBe(antes);
+});
+
+test('T-060 T-180 edición OPL ambiental cruza el contorno, conserva identidad y alcanza punto fijo', () => {
+    const { m, enlace } = eventoReanclado('ambiental'), t = generarDocumentoOpl(m);
+    expect(t).toContain(condicion);
+    const editado = t.replace(condicion, evento), p = planificar(m, 'modelo', editado);
+    expect(p.resumen.noAplicables).toBe(0);
+    expect(p.lineas.flatMap(l => l.diagnosticos).filter(d => d.severidad === 'error')).toEqual([]);
+    const r = must(aplicarPlan(m, p));
+    expect(r.modelo.enlaces[enlace]).toEqual({ id: enlace, tipo: 'instrumento', objeto: porNombre(m, 'Pedido').id, proceso: porNombre(m, 'Inspeccionar').id, control: 'e' });
+    expect(validarForma(r.modelo)).toEqual([]); expect(gatesExportacion(r.modelo, 'modelo')).toEqual([]);
+    // SD proyecta el mismo enlace sobre el proceso completo: su oración sigue al hecho editado.
+    const t2 = generarDocumentoOpl(r.modelo);
+    expect(t2).toBe(editado.replace('*Procesar* ocurre si **Pedido** existe, de lo contrario *Procesar* se omite.', '**Pedido** inicia *Procesar*, que requiere **Pedido**.'));
+    const fijo = planificar(r.modelo, 'modelo', t2); expect(fijo.acciones).toEqual([]); expect(fijo.resumen.noAplicables).toBe(0);
+    const texto = exportarV0(r.modelo), codec = importarV0(texto); expect(codec.ok).toBe(true); if (!codec.ok) throw Error(JSON.stringify(codec.informe));
+    expect(exportarV0(codec.modelo)).toBe(texto);
+});

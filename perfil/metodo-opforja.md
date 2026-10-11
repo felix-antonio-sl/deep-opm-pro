@@ -529,7 +529,7 @@ Dependencias: **LF-02 presupone LF-01** (primero decides los ejes, luego los rea
 
 > **Corrección 2.0:** los subprocesos disparados por evento sin orden fijo van también a despliegue por agregación (ISO §14.2.2.5).
 
-5. **Liftea a** — spec-OPD (evento dentro de descomposición); A3.4 (evento de objeto ambiental cruza el contorno, con el manejo de la contingencia; ISO §14.2.2.4.2). OpForja rechaza ese cruce como endurecimiento de producto (B-44): en el producto el evento ambiental va al proceso completo.
+5. **Liftea a** — spec-OPD (evento dentro de descomposición); A3.4 (evento de objeto ambiental cruza el contorno, con el manejo de la contingencia; ISO §14.2.2.4.2). OpForja admite ese cruce (B-44); el manejo de la contingencia lo modela el modelador y la herramienta no lo comprueba.
 6. **Realización opforja** — un enlace de evento por subproceso; verificar render en opforja.
 7. **Ejemplo** — ✓ vigilancia 24/7: `deterioro detectado`→*Respuesta clínica*, `falla de equipo`→*Sustitución*, cada uno por su evento, sin orden vertical. *(HODOM, ilustrativo)*
 8. **Consecuencia si lo ignoras** — se impone una secuencia vertical falsa a procesos reactivos; el modelo miente sobre el orden de ejecución.

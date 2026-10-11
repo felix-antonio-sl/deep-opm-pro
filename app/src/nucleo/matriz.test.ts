@@ -178,7 +178,7 @@ test('T-057 multiplicidad con c, TS y SSE no ofrecida; mult ordinaria legal', ()
 });
 test('T-058 ruta solo consumo/resultado y no vacía', () => { const m = base(); expect(violacionesForma(m, { tipo: 'consumo', objeto: ids(m)[0]!, proceso: ids(m)[3]!, ruta: 'L' })).toEqual([]); expect(violacionesForma(m, { tipo: 'consumo', objeto: ids(m)[0]!, proceso: ids(m)[3]!, ruta: '' }).length).toBeGreaterThan(0); expect(violacionesForma(m, { ...enlace(m, 'instrumento'), ruta: 'L' } as unknown as Enlace).length).toBeGreaterThan(0); });
 test('T-059 estado no puede anclarse a proceso', () => { const m = base(); expect(opciones(m, ids(m)[3]!, ids(m)[4]!, s(m)).some(o => o.legal === true)).toBe(false); });
-test('T-060 consumo/resultado fuera del contorno; evento al proceso completo legal y a su hijo prohibido en ambas afiliaciones', () => {
+test('T-060 consumo/resultado fuera del contorno; evento al proceso completo legal y a su hijo sólo desde un origen ambiental', () => {
     const m = sano(refinar(base()));
     for (const t of ['consumo', 'resultado'] as const)
         expect(reglas(m, enlace(m, t))).toContain('R-DIST-1');
@@ -187,10 +187,10 @@ test('T-060 consumo/resultado fuera del contorno; evento al proceso completo leg
     const a = objeto(m), n = sano(congelar({ ...m, cosas: { ...m.cosas, [a.id]: { ...a, afiliacion: 'ambiental' as const } } }));
     expect(reglas(n, e)).not.toContain('R-CX-DIST-2');
     expect(reglas(m, { ...e, control: 'c' })).not.toContain('R-CX-DIST-2');
-    for (const x of [m, n]) {
-        expect(reglas(x, { ...e, proceso: ids(m)[4]! })).toContain('R-CX-DIST-2');
+    expect(reglas(m, { ...e, proceso: ids(m)[4]! })).toContain('R-CX-DIST-2');
+    expect(reglas(n, { ...e, proceso: ids(m)[4]! })).not.toContain('R-CX-DIST-2');
+    for (const x of [m, n])
         expect(reglas(x, { ...e, proceso: ids(m)[4]!, control: 'c' })).not.toContain('R-CX-DIST-2');
-    }
 });
 test('T-060 AP-07 TS3 bloqueado con dos bandas, TS4 y una banda legales', () => { const m = sano(refinar(base())), e: Enlace = { tipo: 'efecto', id: 'e-101', objeto: ids(m)[0]!, proceso: ids(m)[3]!, entrada: s(m), salida: s(m, 0, 1) }; expect(reglas(m, e)).toContain('AP-07'); expect(reglas(m, { tipo: 'efecto', id: e.id, objeto: e.objeto, proceso: e.proceso, entrada: e.entrada! })).not.toContain('AP-07'); expect(reglas(sano(refinar(base(), [[ids(m)[4]!]])), e)).not.toContain('AP-07'); });
 test('T-061 AP-27 error con previo obligatorio y warning si todos omisibles', () => { const m = sano(refinar(base())), [a, b, , , q, r] = ids(m), e: Enlace = { tipo: 'instrumento', id: 'e-102', objeto: b!, proceso: r!, control: 'e' }; const previo: Enlace = { tipo: 'consumo', id: 'e-101', objeto: a!, proceso: q! }; const n = sano(poner(m, previo)); expect(reglas(n, e)).toContain('AP-27'); expect(erroresContexto(poner(n, previo, e)).map(v => v.regla)).toContain('AP-27'); const c: Enlace = { ...previo, control: 'c' }, omisible = sano(poner(m, c)); expect(reglas(omisible, e)).toContain('AP-27'); expect(erroresContexto(sano(poner(m, c, e))).map(v => v.regla)).not.toContain('AP-27'); expect(reglas(m, { ...e, proceso: q! })).not.toContain('AP-27'); });

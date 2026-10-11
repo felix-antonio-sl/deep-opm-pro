@@ -45,3 +45,10 @@ en la 2.0.0, con su marca «no verificable» cuando la tenía.
   B-53 como diferencias declaradas.
 - El código del producto no cambia. El único texto tocado en `app/` es el comentario de
   `app/src/nucleo/eventos-frontera.test.ts`.
+
+## Después de la 2.2.0
+
+DEC48 («vuelve a admitir el evento ambiental. manda la norma») cambia el producto, no el canon. R-CX-DIST-2 rechaza
+sólo el cruce del evento sistémico y admite el ambiental, como reglas §8.5 y AP-21. Las notas de B-44 en el perfil y
+en `docs/conformidad.md` dejan de declarar endurecimiento el rechazo del ambiental. El único endurecimiento que
+queda en B-44 es la invocación desde un proceso sistémico exterior.

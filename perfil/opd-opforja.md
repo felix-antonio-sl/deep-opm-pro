@@ -303,7 +303,7 @@ Realización opforja: etiquetas serif 12 ink; origen en `distance:0.1` (procedim
 [desviación declarada] Fila «Resultado / salida con estado»: OpForja ancla por defecto el resultado al **último** subproceso (decisión del dueño); el default normativo es el primer subproceso, que el modelador reasigna (ISO §14.2.2.4.1; NOTE 2 [informativo]: una herramienta PUEDE fijar defaults que el modelador modifica). La prohibición de anclarlo al contorno se mantiene (canon spec-OPD R-OPD-REF-11). Brecha a declarar en `docs/conformidad.md`.
 
 - (R-OPD-REF-11, parte de producto) Sin subprocesos aún, el enlace al contenedor es respaldo temporal. *(Rationale: V-36..V-39, V-103..V-109, R-DIST-1, AP-06/21; libro 21/22.)*
-- (R-CX-DIST-2, parte de producto) [endurecimiento] Los eventos al proceso completo conservan ese destino. Una distribución de consumo o efecto con estado que crearía una iniciación desde fuera del contorno se rechaza atómicamente, sin retirar `e`, reclasificar afiliación ni fabricar hechos internos. El canon prohíbe el cruce del evento sistémico (canon reglas §8.5; ISO §14.2.2.4.2); OpForja rechaza también el del evento ambiental, que la norma admite con el manejo de la contingencia (B-44).
+- (R-CX-DIST-2, parte de producto) Los eventos al proceso completo conservan ese destino. Una distribución de consumo o efecto con estado que crearía una iniciación sistémica desde fuera del contorno se rechaza atómicamente, sin retirar `e`, reclasificar afiliación ni fabricar hechos internos. El canon prohíbe el cruce del evento sistémico y admite el del ambiental, cuya contingencia DEBERÍA modelar el modelador (canon reglas §8.5; ISO §14.2.2.4.2): con origen ambiental OpForja lleva el evento al subproceso y no comprueba la contingencia. [endurecimiento] OpForja aplica la prohibición también a la invocación desde un proceso sistémico exterior, que la norma no nombra (B-44).
 
 ### §10.4 Árbol de OPDs, identidad y categorías
 
@@ -433,7 +433,7 @@ El puente texto↔canvas está legislado en `spec-forja-opl-es §14` (tokens con
 | AP-17 | `SDx.y` como identificador externo estable | R-OPD-REF-15 | manual (auditoría de referencias) |
 | AP-19 | sombra decorativa en cosa informacional | R-OPD-COSA-3 | lint (design:governance) |
 | AP-20 | triángulo sin topología interna distinguible | R-OPD-STR-1 | eval (tests de markers) |
-| AP-21 | evento exterior al contorno inicia un subproceso a cualquier nivel; el ambiental es endurecimiento de producto (B-44) | R-OPD-REF-11 | runtime |
+| AP-21 | evento sistémico exterior al contorno inicia un subproceso a cualquier nivel; el producto incluye la invocación desde un proceso sistémico (endurecimiento, B-44) | R-OPD-REF-11 | runtime |
 | AP-22 | sinónimos múltiples / unicidad nominal sin resolver | R-OPD-ROT-5 | runtime (diagnóstico) |
 | AP-23 | truncamiento silencioso de rótulo | R-OPD-COSA-6 | eval |
 | AP-24 | reutilizar canales semánticos para UI/validación | R-OPD-CAN-3 | lint (design:governance) |

@@ -69,15 +69,28 @@ for (const afiliacion of ['sistemica', 'ambiental']) for (const variante of ['co
   expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]);
  });
 
-for (const afiliacion of ['sistemica', 'ambiental']) for (const origen of ['automatico','manual'])
- test(`T-060 T-287 evento ${afiliacion} derivado ${origen} conserva hecho y diagnóstico sin fabricar cruce`, () => {
+for (const origen of ['automatico','manual'])
+ test(`T-060 T-287 evento sistemica derivado ${origen} conserva hecho y diagnóstico sin fabricar cruce`, () => {
   const d=refinado([enlace('parent','consumo','o-1','p-2',{modificador:'evento'}),enlace('derivado','consumo','o-1','p-4',{
    modificador:'evento',derivado:{tipo:'enlace-externo-refinamiento',enlacePadreId:'parent',refinamientoId:'p-2',origen}})]);
-  d.modelo.entidades['o-1'].afiliacion=afiliacion;
+  d.modelo.entidades['o-1'].afiliacion='sistemica';
   const r=importarV0(JSON.stringify(d)); expect(r.ok).toBe(true); if(!r.ok)throw Error(JSON.stringify(r.informe));
   expect(r.modelo.enlaces.parent).toEqual({id:'parent',tipo:'consumo',objeto:'o-1',proceso:origen==='manual'?'p-4':'p-2',control:'e'});
   const ds=diagnosticar(r.modelo); expect(ds.some(d=>d.regla=== (origen==='manual'?'R-CX-DIST-2':'R-DIST-1'))).toBe(true);
   expect(ds.some(d=>d.regla==='R-CX-DIST-2')).toBe(origen==='manual');
+  expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]);
+  const texto=exportarV0(r.modelo), n=importarV0(texto); expect(n.ok).toBe(true); if(n.ok)expect(exportarV0(n.modelo)).toBe(texto);
+ });
+
+for (const origen of ['automatico','manual'])
+ test(`T-060 T-287 evento ambiental derivado ${origen} cruza el contorno hacia el primer subproceso sin diagnóstico`, () => {
+  const d=refinado([enlace('parent','consumo','o-1','p-2',{modificador:'evento'}),enlace('derivado','consumo','o-1','p-4',{
+   modificador:'evento',derivado:{tipo:'enlace-externo-refinamiento',enlacePadreId:'parent',refinamientoId:'p-2',origen}})]);
+  d.modelo.entidades['o-1'].afiliacion='ambiental';
+  const r=importarV0(JSON.stringify(d)); expect(r.ok).toBe(true); if(!r.ok)throw Error(JSON.stringify(r.informe));
+  expect(r.modelo.enlaces).toEqual({parent:{id:'parent',tipo:'consumo',objeto:'o-1',proceso:'p-4',control:'e'}});
+  expect(diagnosticar(r.modelo).filter(d=>['R-CX-DIST-2','R-DIST-1'].includes(d.regla))).toEqual([]);
+  expect(r.informe.normalizado.some(e=>e.regla==='R-CX-DIST-2')).toBe(false);
   expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]);
   const texto=exportarV0(r.modelo), n=importarV0(texto); expect(n.ok).toBe(true); if(n.ok)expect(exportarV0(n.modelo)).toBe(texto);
  });

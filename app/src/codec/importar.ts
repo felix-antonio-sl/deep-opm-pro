@@ -606,7 +606,7 @@ function mapearDerivados(data:Record<Col,Record<string,Registro>>, enlaces:Recor
       // El mismo criterio nuclear protege todos los contornos intermedios;
       // conserva las distribuciones legales de eventos de origen interno.
       if('control' in candidato&&candidato.control==='e'&&violacionesContexto(modelo(),candidato).some(v=>v.regla==='R-CX-DIST-2')) {
-        l.norm(`enlaces.${id}.derivado`,'Evento conservado en el proceso completo: la distribución automática crearía un cruce exterior prohibido.','R-CX-DIST-2');
+        l.norm(`enlaces.${id}.derivado`,'Evento conservado en el proceso completo: la distribución automática crearía un cruce sistémico exterior prohibido.','R-CX-DIST-2');
       } else enlaces[id]=candidato;
     };
     if(padre.tipo==='resultado') {reanclar(ultimo);continue;}
