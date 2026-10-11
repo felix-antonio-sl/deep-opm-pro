@@ -7,7 +7,7 @@ colores, tokens, tipografía, capas, JointJS), layout, lienzo e interacción, ed
 simulación, export, trazabilidad, migración, y las extensiones y endurecimientos del producto respecto de
 ISO 19450.
 
-**Subordinación.** Este perfil se subordina al canon: `canon spec-OPD` (spec-forja-opd-es 2.0.0) y `canon reglas`
+**Subordinación.** Este perfil se subordina al canon: `canon spec-OPD` (spec-forja-opd-es 2.1.0) y `canon reglas`
 (reglas-opm-estrictas-es). No los contradice. Donde es más estricto que ISO 19450 lo marca `[endurecimiento]` y su
 brecha se declara en `docs/conformidad.md`; donde extiende la norma, `[extensión]`; donde se aparta de un default
 normativo por decisión del dueño, `[desviación declarada]` (también con su brecha en `docs/conformidad.md`). Lo no marcado es realización de
@@ -305,6 +305,7 @@ Realización opforja: etiquetas serif 12 ink; origen en `distance:0.1` (procedim
 [desviación declarada] Fila «Resultado / salida con estado»: OpForja ancla por defecto el resultado al **último** subproceso (decisión del dueño); el default normativo es el primer subproceso, que el modelador reasigna (ISO §14.2.2.4.1; NOTE 2 [informativo]: una herramienta PUEDE fijar defaults que el modelador modifica). La prohibición de anclarlo al contorno se mantiene (canon spec-OPD R-OPD-REF-11). Brecha a declarar en `docs/conformidad.md`.
 
 - (R-OPD-REF-11, parte de producto) Sin subprocesos aún, el enlace al contenedor es respaldo temporal. *(Rationale: V-36..V-39, V-103..V-109, R-DIST-1, AP-06/21; libro 21/22.)*
+- Los eventos al proceso completo conservan ese destino. Una distribución de consumo o efecto con estado que crearía una iniciación desde fuera del contorno se rechaza atómicamente, sin retirar `e`, reclasificar afiliación ni fabricar hechos internos (canon reglas §8.5; ISO 2024 §14.2.2.4.2).
 
 ### §10.4 Árbol de OPDs, identidad y categorías
 
@@ -434,7 +435,7 @@ El puente texto↔canvas está legislado en `spec-forja-opl-es §14` (tokens con
 | AP-17 | `SDx.y` como identificador externo estable | R-OPD-REF-15 | manual (auditoría de referencias) |
 | AP-19 | sombra decorativa en cosa informacional | R-OPD-COSA-3 | lint (design:governance) |
 | AP-20 | triángulo sin topología interna distinguible | R-OPD-STR-1 | eval (tests de markers) |
-| AP-21 | evento sistémico cruzando frontera de descomposición | R-OPD-REF-11 | runtime |
+| AP-21 | evento exterior al contorno inicia un subproceso a cualquier nivel, de cualquier afiliación | R-OPD-REF-11 | runtime |
 | AP-22 | sinónimos múltiples / unicidad nominal sin resolver | R-OPD-ROT-5 | runtime (diagnóstico) |
 | AP-23 | truncamiento silencioso de rótulo | R-OPD-COSA-6 | eval |
 | AP-24 | reutilizar canales semánticos para UI/validación | R-OPD-CAN-3 | lint (design:governance) |

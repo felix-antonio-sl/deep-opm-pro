@@ -47,7 +47,7 @@ class Aborto {
     constructor(readonly rechazo: Rechazo) { }
 }
 const memoErrores = new WeakMap<Modelo, readonly Violacion[]>();
-const clave = (v: Violacion) => JSON.stringify([v.codigo, v.refs.map(r => `${r.tipo}:${r.id}`).sort()]);
+const clave = (v: Violacion) => JSON.stringify([v.codigo, v.regla, v.refs.map(r => `${r.tipo}:${r.id}`).sort()]);
 function errores(m: Modelo): readonly Violacion[] {
     const previo = memoErrores.get(m);
     if (previo)

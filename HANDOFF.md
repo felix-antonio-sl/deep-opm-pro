@@ -1,15 +1,62 @@
 # Continuidad
 
-## Canon 2.1 y siguiente incremento
+## B-44: reparación cerrada
+
+Continuación directa del dueño: «Ok. Vamos con eso», referida al incremento B-44 propuesto tras
+publicar canon 2.1. Base main `7edd80fa`, árbol limpio; una escritora y la misma revisora independiente.
+No constituye autorización de despliegue ni cierre de las otras brechas.
+
+La matriz distingue origen exterior por propiedad y todos los contornos ancestros, incluyendo
+invocación, sin usar afiliación ni confundir el propio contenedor con un origen exterior. Eventos
+al proceso completo, condiciones y eventos internos conservan las demás reglas. La distribución
+incompatible se rechaza sin alterar entrada, secuencia o control. El códec conserva el evento padre
+cuando un derivado automático crearía un cruce; conserva distribución interna legal y hechos
+manuales con su diagnóstico. No ofrece reparación automática del cruce.
+
+RED nuclear efectivo: 29 fallos/13 controles verdes; dos expectativas de montaje se precisaron
+contra T-066 y el OPD dueño, sin cambiar producto para admitirlas. RED adicional: seis distribuciones
+internas válidas que se detenían por una guarda demasiado amplia y una colisión de identidad de
+error DS-20. Reparados: regla en la clave de error, sin cambiar la excepción de moverSubproceso.
+Se mantienen las 200 semillas × 40 acciones y el generador histórico; las expectativas antiguas
+del permiso/migración de 2015 se sustituyen por las primarias 2024, conservando todos los casos.
+La primera suite completa del candidato intermedio dio 3029/0; no acredita los ajustes posteriores.
+El check posterior dio 3042/1: el caso histórico R-AG-1 → R-EFE-1 esperaba aceptación por
+código+refs. Contraste independiente con DS-20 (`docs/decisiones.md`, cierre de operaciones):
+no existe permiso de introducir una regla distinta. Se conserva el escenario y se exige rechazo
+R-EFE-1, comprobando además el candidato y la entrada byteexacta. El log fallido queda preservado.
+Interfaz real de ambas afiliaciones: rechazo visible, opción e deshabilitada, condición/revisión
+byteexactas y un deshacer legal, 2/2; dos montajes previos fallaron por prefijo de franja y matcher
+Playwright de OPTION, corregidos con observación DOM y propiedad/atributo disabled reales.
+
+Evidencia fuera de Git: `/home/felix/.local/state/opforja/validaciones/b44-5q4l79mx/`.
+Verificación del candidato final: TSC exit0; suite íntegra 3043/0, 1.449.119 expectativas,
+69 archivos, 103,89 s; builds web/servidor exit0 y 31/31 e2e (29 históricos y dos B-44).
+Se mantienen las 200×40 acciones; generador, recorridos históricos y golden/render permanecen byteexactos.
+Ambas capturas finales observadas individualmente; la opción deshabilitada se acredita por DOM.
+
+Dictamen independiente GLOBAL FAVORABLE y QUIETO_FIN_LECTURA: 21/21 archivos del freeze
+`7e599a42ee3ba08cc697a8c4d545e4b59736e0926513695336c32a84b16e0615`, sin diferencias;
+446 casos adversariales con tabla explícita de tres contornos, estados, ambas afiliaciones,
+condiciones, invocaciones, excepciones, DS-20, distribución, recuperación y OPL/JSON reales.
+`dictamen-independiente-b44.md` SHA256 `ddfa69267268a05062ede177b1cbcc056e9feb1bf3b328b090ae6d9af3306891`.
+Se acepta B-44 en las superficies ofrecidas N/I/U/G/P/X y el corpus contrastado. Esta entrega
+incluye código, pruebas y conformidad en un commit semántico sobre main, con la autorización
+textual de publicación citada abajo. La verificación de SHA remoto queda en la evidencia del cierre.
+No acredita ejecución operacional OPM, conformidad ISO exhaustiva ni despliegue.
+
+Siguiente incremento propuesto, no iniciado: B-39, enlaces estructurales con estado.
+Las otras reservas siguen declaradas; B-46 y DEC45 conservan sus límites de escisión/default.
+
+## Cierre documental previo: canon 2.1
 
 Encargo vigente, directo del dueño: «Trata de recuperar lo que falta de la ISO 2024 y resuelve lo pendiente»
 (DEC46). Base de este incremento: main `64046edd`; árbol limpio al comenzar. El canon 2.0, DEC39–45
 y su revisión contra la fuente 2015 permanecen en Git; no se duplican ni se reescribe esa historia.
 
 Se recuperó un PDF público de ISO 19450:2024 con 168 páginas, texto y figuras, conservado fuera de Git.
-Fuente, contraste, huella, alcance y reservas: `canon/CAMBIOS-2.1.md`. La revisión local 2.1 actualiza
+Fuente, contraste, huella, alcance y reservas: `canon/CAMBIOS-2.1.md`. La revisión local 2.1 actualizó
 las cuatro fuentes, metadatos, citas de glosario, Tabla 27, estados, excepciones, duración, léxico,
-esencia primaria y reglas de ejecución/refinamiento. No modifica código, pruebas ni datos de producto.
+esencia primaria y reglas de ejecución/refinamiento. Ese cierre no modificó código, pruebas ni datos de producto.
 
 Las reservas por fuente resumida o figura ausente se resuelven con evidencia. Las contradicciones
 internas de la norma quedan declaradas; no se afirma auditoría exhaustiva ni certificación ISO.
@@ -28,12 +75,12 @@ verificó 19/19 archivos del freeze `ecfdbc953359748f2c08e7d947cc02da7e51b7dc272
 y la huella de la fuente. Se acepta este cierre documental dentro del alcance declarado, sin dar
 por cerradas conformidad funcional, aceptación humana, autenticidad editorial exhaustiva o publicación KORA.
 
-Próximo incremento de producto: B-44 contra §14.2.2.4.2 de 2024, con RED y cobertura de creación,
-distribución, importación/diagnóstico y controles legales de condiciones y eventos internos. La sonda
+A continuación se acordó B-44 contra §14.2.2.4.2 de 2024, cerrado arriba con RED y cobertura de
+creación, distribución, importación/diagnóstico y controles de condiciones y eventos internos. La sonda
 histórica `/tmp/opforja-canon2.v7icmW/sonda-b44-antes.json` reprodujo el permiso de evento sistémico
 externo; sus controles ambientales correspondían a la fuente 2015 y no prueban el nuevo alcance.
-Conservar DEC45 y las identidades. La presente actualización documental no aplica esa reparación
-ni despliega. B-40 y B-49 conservan decisiones de producto y extensiones declaradas.
+Se conservaron DEC45 y las identidades. El cierre documental previo no aplicaba esa reparación
+ni desplegaba. B-40 y B-49 conservan decisiones de producto y extensiones declaradas.
 
 ## Cierre histórico DEC35–38
 

@@ -24,7 +24,6 @@ const casos: readonly [string, string, () => Modelo][] = [
     ['T-091', 'afiliacion-incoherente', () => modelo([{ ...o, afiliacion: 'ambiental' }, b], [{ id: 'e', tipo: 'exhibicion', refinable: 'o', refinador: 'b' }])],
     ['T-260', 'general-redundante', () => modelo([o, b, obj('t', 'Documento')], [{ id: 'e1', tipo: 'generalizacion', refinable: 'o', refinador: 't' }, { id: 'e2', tipo: 'generalizacion', refinable: 'b', refinador: 't' }, { id: 'e3', tipo: 'generalizacion', refinable: 'o', refinador: 'b' }])],
     ['T-075', 'R-DIST-1', () => refined({ id: 'e', tipo: 'consumo', objeto: 'o', proceso: 'p' })],
-    ['T-075', 'R-CX-DIST-2', () => refined({ id: 'e', tipo: 'agente', objeto: 'o', proceso: 'p', control: 'e' })],
     ['T-074', 'AP-07', () => refined({ id: 'e', tipo: 'efecto', objeto: 'o', proceso: 'p', entrada: 'o-nuevo', salida: 'o-listo' })],
     ['T-082', 'R-INV-2B', () => refined({ id: 'e', tipo: 'invocacion', origen: 'a', destino: 'z' })],
 ];
@@ -32,15 +31,23 @@ for (const [tid, codigo, construir] of casos) test(`${tid} CC-23 reparación rea
     const m = construir(), antes = JSON.stringify(m); expect(validarForma(m)).toEqual([]);
     const d = diagnosticar(m).find(d => (d.codigo === codigo || d.regla === codigo) && d.reparacion)!;
     expect(d).toBeDefined(); expect(d.reparacion).toBeDefined(); congelar(d.reparacion);
-    const previos = new Set(erroresContexto(m).map(v => JSON.stringify([v.codigo, v.refs]))), r = aplicarAccion(m, d.reparacion!);
+    const previos = new Set(erroresContexto(m).map(v => JSON.stringify([v.codigo, v.regla, v.refs]))), r = aplicarAccion(m, d.reparacion!);
     expect(r.ok, r.ok ? '' : JSON.stringify(r.rechazo)).toBe(true); if (!r.ok) throw Error(r.rechazo.mensaje);
     const out = r.valor.modelo; expect(validarForma(out)).toEqual([]);
     expect(diagnosticar(out).some(x => x.codigo === d.codigo && x.regla === d.regla && JSON.stringify(x.refs) === JSON.stringify(d.refs))).toBe(false);
-    expect(erroresContexto(out).filter(v => !previos.has(JSON.stringify([v.codigo, v.refs])))).toEqual([]);
+    expect(erroresContexto(out).filter(v => !previos.has(JSON.stringify([v.codigo, v.regla, v.refs])))).toEqual([]);
+    expect(JSON.stringify(m)).toBe(antes);
+});
+test('T-060 CC-23 un cruce de evento exige decisión del modelador y no ofrece la antigua migración automática', () => {
+    const m = refined({ id: 'e', tipo: 'agente', objeto: 'o', proceso: 'a', control: 'e' }), antes = JSON.stringify(m);
+    expect(validarForma(m)).toEqual([]);
+    const d = diagnosticar(m).find(d => d.regla === 'R-CX-DIST-2');
+    expect(d).toBeDefined(); expect(d!.severidad).toBe('error'); expect(d!.reparacion).toBeUndefined();
+    expect(REGLAS_CONTEXTO.find(r => r.id === 'R-CX-DIST-2')!.reparacion).toBeUndefined();
     expect(JSON.stringify(m)).toBe(antes);
 });
 test('T-261 CC-23 inventario cerrado: todas las reparaciones ejecutables tienen fixture real', () => {
-    expect(REGLAS_CONTEXTO.filter(r => r.reparacion).map(r => r.id)).toEqual(['R-DIST-1', 'R-CX-DIST-2', 'AP-07', 'R-INV-2B']);
+    expect(REGLAS_CONTEXTO.filter(r => r.reparacion).map(r => r.id)).toEqual(['R-DIST-1', 'AP-07', 'R-INV-2B']);
     const reales = new Set(casos.flatMap(([, , construir]) => diagnosticar(construir()).filter(d => d.reparacion).map(d => d.codigo)));
     expect([...reales].sort()).toEqual(['afiliacion-incoherente', 'enlace-invalido', 'estado-duplicado', 'estado-fuera-de-lexico', 'general-redundante', 'manejador-no-ambiental', 'nombre-duplicado', 'nombre-fuera-de-lexico']);
     expect(CATALOGO.filter(c => reales.has(c.codigo))).toHaveLength(8);

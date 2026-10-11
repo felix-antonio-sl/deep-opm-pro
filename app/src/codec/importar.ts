@@ -3,7 +3,7 @@ import type { Entrada, Informe, DiffVisibilidad } from './informe';
 import type { Modelo, Cosa, Enlace, Opd, Abanico, Estado, Aparicion, Duracion, UnidadTiempo, Multiplicidad } from '../nucleo/tipos';
 import { esProcedimental, extremos } from '../nucleo/tipos';
 import { validarForma } from '../nucleo/forma';
-import { MATRIZ, noOfrecido, esMultiplicidad } from '../nucleo/matriz';
+import { MATRIZ, noOfrecido, esMultiplicidad, violacionesContexto } from '../nucleo/matriz';
 import { indice, describirEnlace } from '../nucleo/indice';
 import { proyectar } from '../nucleo/proyeccion';
 import { colocar } from '../nucleo/colocacion';
@@ -277,7 +277,7 @@ function importarDocumento(texto:string,fusionar?:FusionarPares):ResultadoImport
   construirOpds(data,apps,slots,raiz,cosas,opds,l,modelo);
   const alias=new Map<string,string>(), remap=(id:string):string=> { const vistos=new Set<string>(); while(alias.has(id)&&!vistos.has(id)){vistos.add(id);id=alias.get(id)!;} return id; };
   construirEnlaces(data,cosas,enlaces,estadosRetirados,l,nuevo,modelo,alias,fusionar);
-  mapearDerivados(data,cosas,enlaces,opds,alias,remap,l,nuevo);
+  mapearDerivados(data,enlaces,opds,alias,remap,l,nuevo,modelo);
   fusionarDuplicados(data,enlaces,alias,remap,l);
   construirAbanicos(data,abanicos,enlaces,remap,l,modelo);
   for(const [id,c] of Object.entries(cosas)) if(c.tipo==='objeto'&&c.valor!==undefined&&!Object.values(enlaces).some(e=>e.tipo==='exhibicion'&&e.refinador===id)) { const {valor,...resto}=c; cosas[id]=resto; l.perder(`entidades.${id}.valorSlot.valor`,valor,'T-020','Valor sin exhibidor'); }
@@ -568,7 +568,7 @@ function fusionarDuplicados(data:Record<Col,Record<string,Registro>>,enlaces:Rec
   }
 }
 
-function mapearDerivados(data:Record<Col,Record<string,Registro>>, cosas:Record<string,Cosa>, enlaces:Record<string,Enlace>, opds:Record<string,Opd>, alias:Map<string,string>, remap:(id:string)=>string, l:Lectura, nuevo:(p:string)=>string):void {
+function mapearDerivados(data:Record<Col,Record<string,Registro>>, enlaces:Record<string,Enlace>, opds:Record<string,Opd>, alias:Map<string,string>, remap:(id:string)=>string, l:Lectura, nuevo:(p:string)=>string, modelo:()=>Modelo):void {
   const grupos=new Map<string,{id:string;raw:Registro;meta:Registro;hecho:Enlace|undefined}[]>();
   for(const [id,raw] of Object.entries(data.enlaces))if(registro(raw.derivado).tipo==='enlace-externo-refinamiento') {
     const meta=registro(raw.derivado),p=remap(str(meta.enlacePadreId)),grupo=grupos.get(p)??[];grupo.push({id,raw,meta,hecho:enlaces[id]});grupos.set(p,grupo);
@@ -599,10 +599,18 @@ function mapearDerivados(data:Record<Col,Record<string,Registro>>, cosas:Record<
     const bandas=ref?.tipo==='descomposicion'?ref.bandas.flat():[];
     const indicados=new Set(procesos);
     const primero=bandas.find(p=>indicados.has(p))??bandas[0],ultimo=[...bandas].reverse().find(p=>indicados.has(p))??bandas.at(-1);
-    if(padre.tipo==='resultado') {if(ultimo)enlaces[id]={...padre,proceso:ultimo};continue;}
-    if(padre.tipo==='consumo') {if(primero)enlaces[id]={...padre,proceso:primero};continue;}
-    // Etapa 8 / AP-21: el evento sistémico incluye habilitadores, no solo efecto.
-    if(padre.control==='e'&&cosas[padre.objeto]?.afiliacion==='sistemica') {if(primero)enlaces[id]={...padre,proceso:primero};continue;}
+    const reanclar = (proceso:string|undefined) => {
+      if(!proceso||!esProcedimental(padre!))return;
+      const candidato={...padre!,proceso};
+      // Un derivado automático no acredita una iniciación propia del hijo.
+      // El mismo criterio nuclear protege todos los contornos intermedios;
+      // conserva las distribuciones legales de eventos de origen interno.
+      if('control' in candidato&&candidato.control==='e'&&violacionesContexto(modelo(),candidato).some(v=>v.regla==='R-CX-DIST-2')) {
+        l.norm(`enlaces.${id}.derivado`,'Evento conservado en el proceso completo: la distribución automática crearía un cruce exterior prohibido.','R-CX-DIST-2');
+      } else enlaces[id]=candidato;
+    };
+    if(padre.tipo==='resultado') {reanclar(ultimo);continue;}
+    if(padre.tipo==='consumo') {reanclar(primero);continue;}
     if(padre.tipo!=='efecto')continue;
     const full=padre.entrada!==undefined&&padre.salida!==undefined;
     if(full&&padre.control===undefined&&!enFan.has(id)&&primero&&ultimo) {
@@ -613,9 +621,9 @@ function mapearDerivados(data:Record<Col,Record<string,Registro>>, cosas:Record<
       alias.delete(salidaId);
       for(const x of propios) if(str(x.meta.enlacePadreId)===resultadoOriginal||x.id===salidaId)alias.set(x.id,salidaId);
       l.norm(`enlaces.${id}.derivado`, `TS3 mapeado a mitades ${id}/${salidaId}.`,'T-032');
-    } else if(padre.entrada!==undefined&&padre.salida===undefined || full&&(padre.control!==undefined||enFan.has(id))) {if(primero)enlaces[id]={...padre,proceso:primero};}
-    else if(padre.salida!==undefined&&padre.entrada===undefined){if(ultimo)enlaces[id]={...padre,proceso:ultimo};}
-    // Efecto simple/agente/instrumento sin evento sistémico conserva contorno.
+    } else if(padre.entrada!==undefined&&padre.salida===undefined || full&&(padre.control!==undefined||enFan.has(id))) {reanclar(primero);}
+    else if(padre.salida!==undefined&&padre.entrada===undefined){reanclar(ultimo);}
+    // Efecto simple/agente/instrumento conserva contorno.
   }
 }
 

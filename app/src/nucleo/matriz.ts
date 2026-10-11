@@ -92,6 +92,29 @@ function ancestros(m: Modelo, p: Id, idx: Indice): ReadonlySet<Id> {
     }
     return vistos;
 }
+function eventoDesdeFuera(m: Modelo, e: Enlace, idx: Indice): boolean {
+    const origen = e.tipo === 'invocacion' ? e.origen : esProcedimental(e) && control(e) === 'e' ? e.objeto : undefined;
+    if (origen === undefined) return false;
+    let destino = e.tipo === 'invocacion' ? e.destino : esProcedimental(e) ? e.proceso : undefined;
+    const interiores = new Set<Id>();
+    let dueño = idx.internoDe.get(origen);
+    while (dueño !== undefined && !interiores.has(dueño)) {
+        interiores.add(dueño);
+        const o = opd(m, dueño);
+        dueño = o && o.tipo !== 'raiz' ? o.padre : undefined;
+    }
+    const visitados = new Set<Id>();
+    while (destino !== undefined && !visitados.has(destino)) {
+        visitados.add(destino);
+        const padre = idx.subprocesoDe.get(destino), o = padre ? opd(m, padre.opd) : undefined;
+        if (!o || o.tipo !== 'descomposicion') break;
+        // §14.2.2.1 distingue la transferencia desde el propio contorno de una
+        // iniciación exterior; esta distinción no exime los contornos intermedios.
+        if (origen !== o.cosa && !interiores.has(o.id)) return true;
+        destino = o.cosa;
+    }
+    return false;
+}
 // R-ROL-UNIC-1 es por proceso: un objeto tiene un solo rol respecto del mismo proceso.
 function colision(m: Modelo, e: Enlace, idx: Indice): Enlace | undefined {
     if (!esProcedimental(e))
@@ -205,7 +228,7 @@ export const REGLAS_CONTEXTO: readonly ReglaContexto[] = Object.freeze([
     regla({ id: 'R-ROL-UNIC-1', tipos: PROCEDIMENTALES, severidad: 'error', accion: 'Un solo rol por par objeto–proceso: edita el existente, completa el cambio o forma un abanico', viola(m, e, idx) { return colision(m, e, idx) ? 'Ya existe un rol procedimental para el objeto y el proceso.' : null; } }),
     regla({ id: 'R-ROL-3', tipos: PROCEDIMENTALES, severidad: 'error', accion: 'Modela el objeto como afectado también en el proceso abstracto', viola(m, e, idx) { return rolSinCambioArriba(m, e, idx) ? 'Un subproceso transforma el objeto, pero el proceso abstracto solo lo habilita: debe afectarlo también.' : null; } }),
     regla({ id: 'R-DIST-1', tipos: ['consumo', 'resultado'], severidad: 'error', accion: 'Migra al primer/último subproceso', reparacion: e => ({ op: 'distribuirEnlace', args: { enlace: e.id } }), viola(m, e, idx) { return esProcedimental(e) && subprocesos(m, e.proceso, idx).length > 0 ? 'Consumo y resultado no pueden quedar en el contorno descompuesto.' : null; } }),
-    regla({ id: 'R-CX-DIST-2', tipos: PRE, severidad: 'error', accion: 'Mueve el evento al primer subproceso o marca ambiental el objeto', reparacion: e => ({ op: 'distribuirEnlace', args: { enlace: e.id } }), viola(m, e, idx) { return esProcedimental(e) && control(e) === 'e' && cosa(m, e.objeto)?.afiliacion === 'sistemica' && subprocesos(m, e.proceso, idx).length > 0 ? 'El evento sistémico no cruza la frontera temporal.' : null; } }),
+    regla({ id: 'R-CX-DIST-2', tipos: [...PRE, 'invocacion'], severidad: 'error', accion: 'Dirige el evento al proceso completo o revisa su origen interno y la transferencia de control; cambiar afiliación no resuelve el cruce', viola(m, e, idx) { return eventoDesdeFuera(m, e, idx) ? 'Un evento externo no puede atravesar el contorno de un proceso descompuesto para iniciar un subproceso, a ningún nivel.' : null; } }),
     regla({ id: 'AP-07', tipos: ['efecto'], severidad: 'error', accion: 'Escinde: TS4 en el primero, TS5 en el último', reparacion: e => ({ op: 'distribuirEnlace', args: { enlace: e.id } }), viola(m, e, idx) { return e.tipo === 'efecto' && e.entrada !== undefined && e.salida !== undefined && subprocesos(m, e.proceso, idx).length >= 2 ? 'El cambio completo debe escindirse al descomponer.' : null; } }),
     regla({ id: 'AP-27', tipos: PRE, severidad: 'error', accion: 'Dirige el evento al primer subproceso o declara la omisión (c) de los previos', viola(m, e, idx) { const p = previos(m, e, idx); return p.evento && p.obligatorio ? 'El evento omite una banda anterior con transformación obligatoria.' : null; } }),
     regla({ id: 'AP-27', tipos: PRE, severidad: 'warning', accion: 'Dirige el evento al primer subproceso o declara la omisión (c) de los previos', viola(m, e, idx) { const p = previos(m, e, idx); return p.evento && !p.obligatorio ? 'El evento llega a una banda no primera; los previos son omisibles.' : null; } }),
@@ -582,7 +605,7 @@ export function tiposLegales(m: Modelo, a: {
             if (ensayo && !ensayo.ok) v = { codigo: ensayo.rechazo.codigo, regla: ensayo.rechazo.regla, mensaje: ensayo.rechazo.mensaje, refs: ensayo.rechazo.refs };
             const efectivo = ensayo?.ok ? ensayo.valor.modelo : m;
             if (!v) v = validarForma(efectivo)[0];
-            const claveError = (v: Violacion) => JSON.stringify([v.codigo, v.refs.map(r => `${r.tipo}:${r.id}`).sort()]);
+            const claveError = (v: Violacion) => JSON.stringify([v.codigo, v.regla, v.refs.map(r => `${r.tipo}:${r.id}`).sort()]);
             const previos = new Set(!v ? erroresContexto(m).map(claveError) : []);
             const vs = !v ? erroresContexto(efectivo).filter(v => !previos.has(claveError(v))) : [];
             const arista = efectivo.enlaces[id] ?? e;

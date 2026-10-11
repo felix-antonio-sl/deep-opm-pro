@@ -782,7 +782,7 @@ for (const estado of ['identidad', 'ausente', 'otro-ID', 'ajeno'] as const) {
         const base=modelo(), b=base.cosas.b!; if(b.tipo!=='objeto')throw Error('montaje');
         const m=modelo(es,estado==='otro-ID'?{cosas:{...base.cosas,b:{...b,estados:b.estados.map(s=>({...s,nombre:'igual'}))}}}:{}),antes=JSON.stringify(m),v=proyectar(m,'raiz');
         if(estado==='identidad'){
-            expect(validarForma(m)).toEqual([]);expect(Object.values(m.enlaces).flatMap(e=>violacionesContexto(m,e))).toEqual([]);
+            expect(validarForma(m)).toEqual([]);expect(Object.values(m.enlaces).flatMap(e=>violacionesContexto(m,e)).map(v=>[v.regla,v.refs[0]!.id])).toEqual([['R-CX-DIST-2','c']]);
             expect(v.enlaces.map(e=>e.enlace)).toEqual([{id:'c',tipo:'efecto',objeto:'b',proceso:'p',entrada:'b0',salida:'b0',control:'e',mult:'+'}]);expect(v.conflictos).toEqual([]);
         }else{expect(v.enlaces.map(e=>e.enlace.tipo)).toEqual(['consumo','resultado']);expect(v.conflictos[0]?.codigo).toBe('conflicto-resultado-consumo');}
         expect(v.enlaces.flatMap(e=>e.hechos)).toEqual(['c','r']);expect(JSON.stringify(m)).toBe(antes);

@@ -7,7 +7,7 @@ import { erroresContexto } from './matriz';
 import type { Violacion } from './resultado';
 const operacionesVistas = new Set<string>();
 const estadisticas: Record<string, { seleccionadas: number; aceptadas: number; rechazadas: number; cambios: number }> = {};
-const clave = (v: Violacion) => JSON.stringify([v.codigo, v.refs.map(r => `${r.tipo}:${r.id}`).sort()]);
+const clave = (v: Violacion) => JSON.stringify([v.codigo, v.regla, v.refs.map(r => `${r.tipo}:${r.id}`).sort()]);
 for (let semilla = 0; semilla < 200; semilla++) test(`T-064 DS20 secuencia ${semilla}: 40 acciones sin reintentos y entrada inmutable`, () => {
     let m = azar(semilla, 'completo'), estado = (semilla + 1) >>> 0;
     for (let paso = 0; paso < 40; paso++) {

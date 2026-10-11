@@ -2,6 +2,8 @@ import { expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { importarV0 } from './importar';
 import { validarForma } from '../nucleo/forma';
+import { diagnosticar } from '../nucleo/diagnostico';
+import { exportarV0 } from './exportar';
 import { proyectar } from '../nucleo/proyeccion';
 import { refinado, enlace, entidad, extremo } from './pruebas';
 const rows = [
@@ -38,13 +40,44 @@ for(const variante of ['TS4','TS5','TS3-control','TS3-fan','evento-sistemico'])t
  const fields=variante==='TS4'?{estadoEntradaId:'s-6'}:variante==='TS5'?{estadoSalidaId:'s-7'}:variante==='evento-sistemico'?{modificador:'evento'}:{estadoEntradaId:'s-6',estadoSalidaId:'s-7',...(variante==='TS3-control'?{modificador:'condicion'}:{})};
  const d=refinado([enlace('parent','efecto','p-2','o-1',fields),enlace('late','efecto','p-5','o-1',{...fields,derivado:{tipo:'enlace-externo-refinamiento',enlacePadreId:'parent',refinamientoId:'p-2'}}),enlace('early','efecto','p-4','o-1',{...fields,derivado:{tipo:'enlace-externo-refinamiento',enlacePadreId:'parent',refinamientoId:'p-2'}})]);d.modelo.estados={'s-6':{id:'s-6',entidadId:'o-1',nombre:'a'},'s-7':{id:'s-7',entidadId:'o-1',nombre:'b'}};
  if(variante==='TS3-fan'){d.modelo.enlaces.other=enlace('other','efecto','p-4','o-1',{estadoEntradaId:'s-6',estadoSalidaId:'s-7'});d.modelo.abanicos.f={id:'f',operador:'O',enlaceIds:['parent','other']};}
- const r=importarV0(JSON.stringify(d));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));expect(r.modelo.enlaces.parent).toMatchObject({proceso:variante==='TS5'?'p-5':'p-4'});expect('escision'in r.modelo.enlaces.parent!).toBe(false);expect(r.modelo.enlaces.late).toBeUndefined();expect(r.modelo.enlaces.early).toBeUndefined();
+ const r=importarV0(JSON.stringify(d));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));expect(r.modelo.enlaces.parent).toMatchObject({proceso:variante==='evento-sistemico'?'p-2':variante==='TS5'?'p-5':'p-4'});expect('escision'in r.modelo.enlaces.parent!).toBe(false);expect(r.modelo.enlaces.late).toBeUndefined();expect(r.modelo.enlaces.early).toBeUndefined();
 });
-for(const tipo of ['agente','instrumento'] as const)for(const afiliacion of ['sistemica','ambiental'])test(`T-060 derivado de evento ${tipo} ${afiliacion} recupera reanclaje indicado`,()=>{
+for(const tipo of ['agente','instrumento'] as const)for(const afiliacion of ['sistemica','ambiental'])test(`T-060 derivado automático de evento ${tipo} ${afiliacion} conserva iniciación del proceso completo`,()=>{
  const d=refinado([enlace('parent',tipo,'o-1','p-2',{modificador:'evento'}),enlace('early',tipo,'o-1','p-4',{modificador:'evento',derivado:{tipo:'enlace-externo-refinamiento',enlacePadreId:'parent',refinamientoId:'p-2',origen:'automatico'}})]);
  d.modelo.entidades['o-1'].esencia='fisica';d.modelo.entidades['o-1'].afiliacion=afiliacion;
- const r=importarV0(JSON.stringify(d));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));expect(r.modelo.enlaces.parent).toEqual({id:'parent',tipo,objeto:'o-1',proceso:afiliacion==='sistemica'?'p-4':'p-2',control:'e'});expect(r.modelo.enlaces.early).toBeUndefined();expect(validarForma(r.modelo)).toEqual([]);expect(r.informe.ignorado['enlaces.early.derivado']).toBe(1);expect(r.informe.normalizado.some(e=>e.ruta==='enlaces.early.derivado')).toBe(true);
+ const r=importarV0(JSON.stringify(d));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));expect(r.modelo.enlaces.parent).toEqual({id:'parent',tipo,objeto:'o-1',proceso:'p-2',control:'e'});expect(r.modelo.enlaces.early).toBeUndefined();expect(validarForma(r.modelo)).toEqual([]);expect(r.informe.ignorado['enlaces.early.derivado']).toBe(1);expect(r.informe.normalizado.some(e=>e.ruta==='enlaces.early.derivado')).toBe(true);
 });
 for(const tipo of ['agente','instrumento'] as const)test(`T-060 evento ${tipo} sistémico sin derivado no fabrica distribución`,()=>{
  const d=refinado([enlace('parent',tipo,'o-1','p-2',{modificador:'evento'})]);d.modelo.entidades['o-1'].esencia='fisica';const r=importarV0(JSON.stringify(d));expect(r.ok).toBe(true);if(!r.ok)throw Error(JSON.stringify(r.informe));expect(r.modelo.enlaces.parent).toEqual({id:'parent',tipo,objeto:'o-1',proceso:'p-2',control:'e'});expect(Object.keys(r.modelo.enlaces)).toEqual(['parent']);
 });
+
+for (const afiliacion of ['sistemica', 'ambiental']) for (const variante of ['consumo', 'TS4', 'TS3'] as const)
+ test(`T-060 T-287 distribución automática legal de evento interno ${variante} ${afiliacion} conserva destino y control`, () => {
+  const fields = {modificador:'evento', ...(variante==='TS4'?{estadoEntradaId:'s-6'}:variante==='TS3'?{estadoEntradaId:'s-6',estadoSalidaId:'s-7'}:{})};
+  const tipo = variante==='consumo'?'consumo':'efecto', desde = tipo==='consumo'?'o-1':'p-2', hacia = tipo==='consumo'?'p-2':'o-1';
+  const d = refinado([enlace('parent',tipo,desde,hacia,fields),enlace('auto',tipo,tipo==='consumo'?'o-1':'p-4',tipo==='consumo'?'p-4':'o-1',{
+   ...fields,derivado:{tipo:'enlace-externo-refinamiento',enlacePadreId:'parent',refinamientoId:'p-2',origen:'automatico'}})]);
+  d.modelo.entidades['o-1'].afiliacion=afiliacion;
+  delete d.modelo.opds['opd-1'].apariencias['a-opd-1-o-1'];
+  d.modelo.opds['opd-3'].apariencias['a-opd-3-o-1'].contextoRefinamiento.rol='interno';
+  d.modelo.estados={'s-6':{id:'s-6',entidadId:'o-1',nombre:'nuevo'},'s-7':{id:'s-7',entidadId:'o-1',nombre:'listo'}};
+  const r=importarV0(JSON.stringify(d)); expect(r.ok).toBe(true); if(!r.ok)throw Error(JSON.stringify(r.informe));
+  expect(r.modelo.enlaces.parent).toEqual({id:'parent',tipo,objeto:'o-1',proceso:'p-4',control:'e',
+   ...(variante==='consumo'?{}:{entrada:'s-6'}),...(variante==='TS3'?{salida:'s-7'}:{})});
+  expect(Object.keys(r.modelo.enlaces)).toEqual(['parent']); expect(validarForma(r.modelo)).toEqual([]);
+  expect(diagnosticar(r.modelo).filter(d=>['R-CX-DIST-2','R-DIST-1','AP-07'].includes(d.regla))).toEqual([]);
+  expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]);
+ });
+
+for (const afiliacion of ['sistemica', 'ambiental']) for (const origen of ['automatico','manual'])
+ test(`T-060 T-287 evento ${afiliacion} derivado ${origen} conserva hecho y diagnóstico sin fabricar cruce`, () => {
+  const d=refinado([enlace('parent','consumo','o-1','p-2',{modificador:'evento'}),enlace('derivado','consumo','o-1','p-4',{
+   modificador:'evento',derivado:{tipo:'enlace-externo-refinamiento',enlacePadreId:'parent',refinamientoId:'p-2',origen}})]);
+  d.modelo.entidades['o-1'].afiliacion=afiliacion;
+  const r=importarV0(JSON.stringify(d)); expect(r.ok).toBe(true); if(!r.ok)throw Error(JSON.stringify(r.informe));
+  expect(r.modelo.enlaces.parent).toEqual({id:'parent',tipo:'consumo',objeto:'o-1',proceso:origen==='manual'?'p-4':'p-2',control:'e'});
+  const ds=diagnosticar(r.modelo); expect(ds.some(d=>d.regla=== (origen==='manual'?'R-CX-DIST-2':'R-DIST-1'))).toBe(true);
+  expect(ds.some(d=>d.regla==='R-CX-DIST-2')).toBe(origen==='manual');
+  expect(r.informe.descartado).toEqual([]); expect(r.informe.rechazos).toEqual([]);
+  const texto=exportarV0(r.modelo), n=importarV0(texto); expect(n.ok).toBe(true); if(n.ok)expect(exportarV0(n.modelo)).toBe(texto);
+ });

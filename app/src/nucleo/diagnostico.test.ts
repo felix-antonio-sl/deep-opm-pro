@@ -150,7 +150,9 @@ test('T-263 transformación en nieto satisface proceso ancestro sin copiar enlac
 });
 test('T-260 AP-27 conserva warning omisible y error obligatorio con matriz real', () => {
     const evento: Enlace = { id: 'evento', tipo: 'instrumento', objeto: 'o', proceso: 'p2', control: 'e' };
-    const omisible = refinado([evento]);
+    const externo = refinado([evento]), h = externo.opds.h!; if (h.tipo !== 'descomposicion') throw Error('Fixture sin descomposición.');
+    const omisible = cambiar(externo, { opds: { ...externo.opds, sd: { ...externo.opds.sd!, apariciones: { p: ap } }, h: { ...h, objetosInternos: ['o'] } } });
+    expect(validarForma(omisible)).toEqual([]);
     expect(diagnosticar(omisible).filter(d => d.regla === 'AP-27')).toEqual([expect.objectContaining({ codigo: 'enlace-invalido', severidad: 'warning', refs: [{ tipo: 'enlace', id: 'evento' }] })]);
     expect(gatesExportacion(omisible, 'modelo')).toEqual([]);
     const obligatorio = añadir(omisible, [r('previo', 'p1')]);

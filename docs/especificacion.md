@@ -284,7 +284,7 @@ Reglas transversales de la matriz:
 | R-STRF-1/2/2A, R-EST-PERS-1/2, R-OPD-STR-3 | Salvo exhibición, refinable y refinadores de igual perseverancia (= mismo tipo). | DEBE | impedir |
 | R-EXC-1B | `e`/`c` NUNCA sobre excepción. | NUNCA DEBE | impedir |
 | R-DIST-1, AP-06 | Consumo/resultado nunca en el contorno de un proceso descompuesto. | NO DEBE | migrar automáticamente (§3.2); impedir anclaje directo al contorno |
-| R-CX-DIST-2, AP-21 | Evento desde objeto **sistémico** no cruza la frontera de un proceso descompuesto; desde objeto ambiental PUEDE. | NO DEBE / PUEDE | migrar al primer subproceso (§3.2); impedir anclaje al contorno |
+| R-CX-DIST-2, AP-21 | Ningún enlace de evento desde fuera del contorno de un proceso descompuesto inicia un subproceso a ningún nivel, sea sistémico o ambiental (ISO 2024 §14.2.2.4.2). Incluye invocación; no reclasifica condición ni excepción. | NO DEBE | comprobar todos los contornos ancestros; rechazar el cruce sin migrarlo ni quitar su control |
 | AP-27 | Evento a subproceso no primero: bloquear si algún subproceso de una banda anterior tiene un enlace transformador sin `c` (efecto obligatorio no omitible); advertir si todos los previos son omisibles. | DEBE bloquearse / DEBE advertirse | impedir / advertir |
 | §3.11 | Estado no contiene nada; un proceso no contiene estados. | inf. DEBE | impedir |
 | R-OPL-SE-2, R-EST-TAG-1 | Etiquetados solo obj↔obj o proc↔proc. | DEBE | impedir |
@@ -392,14 +392,14 @@ Distribución de enlaces al descomponer (reglas §8.5 = spec-OPL §7.6 = spec-OP
 | Agente | PERMITIDO | A todos los subprocesos |
 | Instrumento | PERMITIDO | A todos los subprocesos |
 | Estructural | NO se distribuye | Permanece asociado al contenedor |
-| Evento sistémico | **PROHIBIDO** cruzar frontera | — |
-| Evento ambiental | Permitido cruzar frontera | Con modelado de contingencia |
+| Evento exterior, sistémico o ambiental | Puede iniciar el proceso completo; **PROHIBIDO** atravesar su contorno para iniciar hijos | Conserva iniciación del padre; nunca copia `e` a hijos |
 
 Realización mínima conforme (DR-13/DR-14):
 - «Permitido al contorno = a todos los subprocesos» se realiza dejando el enlace anclado al **contorno** del contenedor, con lectura distributiva («paréntesis algebraico», R-OPD-REF-11). No se crean copias por subproceso.
-- Consumo/resultado/evento sistémico: el enlace **migra** (mismo `id`, R-OPD-OP-4) al primer subproceso (primera banda, primer elemento) / último (última banda, último elemento). Sin subprocesos aún, queda en el contorno como respaldo temporal (R-VIS-DIST-1) y migra al insertarse el primero; migraciones posteriores son responsabilidad del modelador (método A3.4: «es responsabilidad del modelador reasignarlos»).
+- Consumo/resultado: el enlace **migra** (mismo `id`, R-OPD-OP-4) al primer subproceso (primera banda, primer elemento) / último (última banda, último elemento). Sin subprocesos aún, queda en el contorno como respaldo temporal (R-VIS-DIST-1) y migra al insertarse el primero; migraciones posteriores son responsabilidad del modelador. Si la distribución de un consumo o efecto con estado y control `e` introduce un cruce prohibido, se rechaza toda la operación y se conserva la entrada; no se elimina el evento ni se inventa un origen interno.
 - TS3 con ≥2 subprocesos: se reemplaza por el par escindido TS4 (subproceso temprano, sale de `s-entrada`) + TS5 (tardío, entra en `s-salida`), ambos con `escision {parId}` (R-ESCIND-1..3, R-ESC-1A: único mecanismo). Con 1 subproceso, TS3 migra entero a él.
 - Invocación y excepción hacia/desde el proceso descompuesto: permanecen en el contorno (GAP no cubierto por la tabla; DR-14).
+- La exterioridad se decide por el OPD dueño del origen y sus ancestros, no por sus apariciones o afiliación. El contenedor no es exterior a su propio contorno (§14.2.2.1); esa distinción no exime otros contornos intermedios ni certifica cualquier invocación explícita contenedor→hijo. Eventos internos y condiciones conservan las demás reglas, incluidas AP-27 y R-INV-2B.
 - R-OPD-EDIT-5: al insertar subprocesos, los enlaces del padre migran automáticamente; el modelador reasigna al subproceso real (reanclaje).
 
 ### 3.3 Despliegue (unfold) de cosa
@@ -1628,6 +1628,10 @@ Más (producto, DR-35): `crear-refinamiento` / `fijar-orden` para `se descompone
 | R-OPL-EDIT-8 | Etiqueta, control y tiempos solo por las operaciones validadas del kernel (una sola API de mutación para OPD y OPL). | DEBE / NO DEBE |
 | R-OPL-EDIT-9 | Editar una oración compuesta (listas) = mutación por hecho: solo mutan los hechos cuyos sub-spans cambiaron. | DEBE |
 
+El cierre DS-20 distingue cada error de contexto por código, regla y referencias ordenadas. Conservar
+un error previo no autoriza añadir otro de distinta regla sobre el mismo enlace; la excepción explícita
+de `moverSubproceso` permanece. La oferta de tipos usa el mismo criterio que las transacciones.
+
 ### 6.3 Modos de fallo (perfil opl-opforja §17)
 
 | ID | Regla | Oblig. |
@@ -1701,7 +1705,7 @@ Advertencias exigidas (no bloquean):
 | AP-18 | Modificar referencia externa en consumidor | DEBE bloquearse | — | no aplica (sin sub-modelos) |
 | AP-19 | Sombra decorativa en informacional | DEBE suprimirse en canon | Sombra = física | por construcción del render ★ |
 | AP-20 | Triángulo sin topología | DEBE bloquearse | Interior correcto | por construcción ★ |
-| AP-21 | Evento sistémico cruza frontera | DEBE bloquearse | Mover dentro o reclasificar ambiental | migración/impedir ★ |
+| AP-21 | Evento exterior atraviesa un contorno para iniciar un subproceso | DEBE bloquearse | Revisar origen y transferencia de control o dirigirlo al proceso completo; cambiar afiliación no resuelve el cruce | rechazo/diagnóstico visible, sin reparación automática ★ |
 | AP-22 | Sinónimos múltiples | DEBE reportarse | Nombre canónico único | unicidad nominal + método |
 | AP-23 | Truncamiento de rótulo | DEBE bloquearse | Ajustar bbox | autosize por construcción ★ |
 | AP-24 | Canales semánticos para UI/validación | DEBE bloquearse | Canal UI reservado | por construcción ★ |
@@ -1745,7 +1749,7 @@ Campos del bundle (método F, textual): `entidades {id, tipo: objeto|proceso, no
 | El método no bloquea: lo que nace solo del método es advertencia. | declarativa | severidad ≤ warning | §0.1, §0.2 |
 | Middle-out: no forzar el orden de construcción. | inf. | la UI no impone SD-primero | A1.1 |
 | Refinamiento: in-zoom con orden vertical semántico y paralelismo por bordes superiores alineados; despliegue en 4 modos con colección incompleta; supresión global y por apariencia. | inf. DEBE | §3 | A3.1–A3.6, LF-03 |
-| Contorno del descompuesto: consumo, resultado y evento sistémico PROHIBIDOS en el contorno; escisión sin modificador; «Si la herramienta automatiza la migración, verificarlo». | PROHIBIDO / PUEDE | §3.2 | A3.4 |
+| Contorno del descompuesto: consumo y resultado PROHIBIDOS en el contorno; ningún evento exterior inicia directamente hijos; escisión sin modificador. Verificar cualquier migración automática sin fabricar el cruce. | PROHIBIDO / PUEDE | §3.2 | ISO 2024 §14.2.2.4.1–3, A3.4 |
 | Alcance interno/externo persistido; reposicionar no cambia alcance. | DEBE | §3.2 | A3.3 |
 | Identidad: OPD con id ≠ `SDx.y`; solo OPDs hoja eliminables; 1:1 cosa↔nombre; reuso por nombre = nueva apariencia. | DEBE / invariante | §1, §3.4 | A4.3, §9.15 |
 | Estructurales homogéneos salvo exhibición (4 combinaciones); procedimentales obj↔proc (salvo invocación). | invariante | matriz §2 | §9.6, A8.2 |
@@ -1848,7 +1852,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-057 | Multiplicidad solo en etiquetados (ambos extremos), agregación (extremo parte) y procedimentales (extremo objeto); nunca en extremo proceso; valores `?`, `*`, `+`, `2..*` y un entero n ≥ 2 (DEC35; ausente = 1..1); no se ofrece junto con `c` (sin hueco en A.6, DR-44). | DEBE / NO DEBE / NUNCA | imp | R-MULT-1/1A, R-OPD-MUL-1, R-COMB-6, EBNF A.5/A.6/A.8/A.9, DR-21, DR-44 | |
 | T-058 | Ruta solo en consumo y resultado (restricción de producto declarada); etiqueta definida por el modelador, nunca autogenerada. | DEBE / NO DEBE | imp | R-OPL-RUTA-2/3, DR-19 | |
 | T-059 | Nada dentro de un estado; ningún estado dentro de un proceso. | inf. DEBE | imp | reglas §3.11, R-OPD-COSA-7, AP-12 | ★ |
-| T-060 | Consumo, resultado y evento de objeto sistémico nunca anclados al contorno de un proceso descompuesto (evento de objeto ambiental sí). | NO DEBE / PUEDE | imp | R-DIST-1, R-CX-DIST-1/2, AP-06, AP-21 | ★ |
+| T-060 | Consumo y resultado no quedan en un contorno con subprocesos. Ningún evento exterior al contorno, sistémico ni ambiental, inicia directamente un subproceso a ningún nivel; puede iniciar el proceso completo. | NO DEBE / PUEDE | imp | R-DIST-1, R-CX-DIST-1/2, AP-06, AP-21 | ★ |
 | T-061 | Evento a subproceso no primero: impedir si un subproceso de banda anterior tiene transformador sin `c`; si no, advertir. | DEBE bloquearse / DEBE advertirse | imp | AP-27 | |
 | T-062 | Sin placeholders: cosa y estado nacen con el nombre que escribe el modelador (no hay «cosa sin nombrar» que emitir); R-ENT-2 queda satisfecho por construcción. No se rechazan nombres escritos por el usuario por parecerse a un patrón (`Objeto 2`, `Proceso`): eso es heurística de v0, no canon. | NO DEBE (emitir) | imp | R-ENT-2, spec-OPL Definiciones («Placeholder»), DR-11 | ★ |
 | T-063 | Cambio de tipo objeto↔proceso: recalcular y revisar enlaces; impedir si deja estados o enlaces inválidos. | DEBE | imp | R-EDIT-3, R-OPD-EDIT-2 | ★ |
@@ -1863,7 +1867,7 @@ Los ★ con obligación PUEDE o inferida son soportes necesarios de un DEBE ★ 
 | T-070 | Descomponer proceso (in-zoom) como operación atómica: crea OPD hijo con la cosa como contenedor agrandado y copia como externos todas las cosas conectadas al padre. | DEBE | ope | R-HIJO-1/3, R-OPD-REF-1/4, R-OPD-OP-1/3, R-VIS-INZOOM-1, R-ANID-1 | ★ |
 | T-071 | Desplegar cosa por un modo (agregación/exhibición/generalización/clasificación) en OPD hijo, copiando solo los hijos estructurales directos de ese modo. | DEBE | ope | R-REF-MEC-1, R-HIJO-4, R-CX-DESP-1 | ★ |
 | T-072 | Descomposición de objeto (in-zoom de objeto, posición no temporal). | DEBE | ope | R-OPL-CX-4, R-OPD-REF-1/2, DR-23 | |
-| T-073 | Distribución al descomponer: consumo → primer subproceso; resultado → último; efecto sin estado, agente e instrumento quedan en el contorno con lectura distributiva; estructurales en el contenedor; evento de objeto sistémico → primer subproceso. | DEBE / inf. | ope | R-DIST-1/1A, reglas §8.5, R-OPD-REF-11, R-OPD-EDIT-5, DR-13 | ★ |
+| T-073 | Distribución al descomponer: consumo → primero, resultado → último; efecto sin estado, agente e instrumento quedan en contorno con lectura distributiva; estructurales en contenedor. Evento al proceso completo permanece allí; distribución que introduce un cruce exterior se rechaza atómicamente. | DEBE / inf. | ope | R-DIST-1/1A, reglas §8.5, R-OPD-REF-11, R-OPD-EDIT-5, DR-13 | ★ |
 | T-074 | Escisión: TS3 al descomponer (≥2 subprocesos) ⇒ TS4 en el temprano + TS5 en el tardío, par acoplado sin `e`/`c`; único mecanismo. | DEBE | ope | R-ESCIND-1..3, R-ESC-1/1A, AP-07/08, R-OPD-TR-7 | ★ |
 | T-075 | Toda migración conserva el id del enlace. | DEBE | ope | R-OPD-OP-4, R-CX-DIST (efecto OPL) | ★ |
 | T-076 | Enlaces que quedan en el contorno sin subprocesos: respaldo temporal que migra al insertar el primero; luego la reasignación es del modelador. | inf. PUEDE | ope | R-VIS-DIST-1, método A3.4, DR-13 | ★ |
@@ -2116,7 +2120,7 @@ Criterio de resolución: (1) precedencia del canon (§0.3); (2) si el canon no d
 | DR-10 | Especialización XOR: plantillas RX1/RX2 ponen al especial como sujeto y a generales exclusivos; los ejemplos «Correcto» ponen al general como sujeto con especializaciones. | reglas §4.10 RX1/RX2 vs spec-OPL R-VERB-EST-2, R-EST-GEN-1, §6.3 | Semántica irresuelta: **diferir** (no se ofrece; parser `unsupported-canonical`; registro). Pedir decisión al dueño. |
 | DR-11 | Placeholders: R-ENT-2 prohíbe emitir OPL para nombres placeholder; solo se enumeran los de proceso; GAP-PLACEHOLDER-OBJETO. | R-ENT-2, GAP-A15 | La cosa/estado nace con nombre (edición inline al crear; si se cancela, no se crea). Placeholder = «marcador de span pendiente … sin nombre» (spec-OPL Definiciones): sin cosas sin nombre no hay placeholders; los nombres que escribe el usuario no se filtran por patrón (la lista `Objeto`/`Proceso N` es heurística de v0). R-ENT-2 queda vacío por construcción; R-ENT-2-APUNTE solo aplica si hay régimen Apunte (no ofrecido). |
 | DR-12 | Plural «por multiplicidad» (`*Proceso* consumen **Objetos**`, `*Procesos* generan …`) incoherente y contrario a R-MULT-1A; la EBNF mantiene verbos en singular. Género sin campo. | spec-OPL §3/§4, R-MULT-COMB-1 vs R-MULT-1A, EBNF A.5 | Nunca verbos en plural; la multiplicidad es frase antepuesta al objeto (EBNF). Formas plurales ⇒ `unsupported-canonical`. Género: campo opcional `genero: 'f'` (default masculino, R-OPL-1). |
-| DR-13 | Enlaces del padre tras descomponer: «permitido al contorno = a todos» vs «procedimentales al contenedor NO visibles directamente (se distribuyen)»; identidad del hecho a través de la migración; vista del padre. | reglas §8.5, R-OPD-REF-6/11, R-VIS-HIJO-1, R-OPD-OP-4, R-OPL-DISP-3 | Un solo hecho por enlace: agente, instrumento y efecto sin estado quedan en el **contorno** con lectura distributiva (sin copias); consumo, resultado, evento sistémico y TS3 migran (mismo id) o se escinden. La vista del OPD padre se **deriva** abstrayendo extremos internos al contenedor (§3.5). |
+| DR-13 | Enlaces del padre tras descomponer: lectura distributiva del contorno e identidad del hecho a través de la migración; vista del padre. | reglas §8.5, R-OPD-REF-6/11, R-VIS-HIJO-1, R-OPD-OP-4, R-OPL-DISP-3 | Un solo hecho por enlace: agente, instrumento y efecto sin estado quedan en **contorno** con lectura distributiva (sin copias); consumo, resultado y TS3 migran (mismo id) o se escinden. El evento inicia el proceso completo, sin propagar `e`; si una migración crearía un cruce exterior, se rechaza (§3.2). La vista padre se **deriva** abstrayendo extremos internos (§3.5). |
 | DR-14 | La tabla de distribución no cubre invocación ni excepción del proceso descompuesto (R-HIJO-2 «cuando la regla de copia lo exija»). | GAP-29 reglas-b | Permanecen en el contorno; sin migración. |
 | DR-15 | LF-03 (punto 6) escribe la visibilidad como «`Estado.suprimido` global **∧** local (global domina, local refina)», ambiguo; R-OPD-EST-8 la escribe bien: «visibilidad efectiva = ¬suprimido-global ∧ ¬suprimido-local» (≡ oculto ⇔ global ∨ local). R-VIS-SUPR-1 / R-OPD-EST-10 dicen «estados no referenciados NO se suprimen» (probable errata frente a LF-03/A3.6); supresión computada «solo en descomposición»; estatus del chip `⋯N` condicional. | LF-03, R-VIS-SUPR-1, R-OPD-EST-8/9/10, C-09 | Oculto ⇔ global ∨ local. Un estado enlazado en un OPD no se suprime ahí (LF-03). Sin supresión computada automática: la decide el modelador por OPD. El chip `⋯N` persiste en `canon-diagrama` (indicador normativo de reglas §3.10) y el OPL usa D6. |
 | DR-16 | Firma de frontera: checker «pasivo» sin definición computable. | R-OPD-REF-10, perfil metodo-opforja §A0.4a, GAP-16 | Con la vista del padre derivada del hijo, la frontera se preserva por construcción. Como R-ANEXO-CAT-0 exige que cada regla del Anexo C sea «ejecutable por una ley o checker verificable», se realiza como ley de test (firma de roles netos `entidad|tipoEnlace|rol` del contenedor en el padre = del hijo) y se identifica en el registro. |

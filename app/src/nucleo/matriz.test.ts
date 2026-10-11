@@ -178,15 +178,19 @@ test('T-057 multiplicidad con c, TS y SSE no ofrecida; mult ordinaria legal', ()
 });
 test('T-058 ruta solo consumo/resultado y no vacía', () => { const m = base(); expect(violacionesForma(m, { tipo: 'consumo', objeto: ids(m)[0]!, proceso: ids(m)[3]!, ruta: 'L' })).toEqual([]); expect(violacionesForma(m, { tipo: 'consumo', objeto: ids(m)[0]!, proceso: ids(m)[3]!, ruta: '' }).length).toBeGreaterThan(0); expect(violacionesForma(m, { ...enlace(m, 'instrumento'), ruta: 'L' } as unknown as Enlace).length).toBeGreaterThan(0); });
 test('T-059 estado no puede anclarse a proceso', () => { const m = base(); expect(opciones(m, ids(m)[3]!, ids(m)[4]!, s(m)).some(o => o.legal === true)).toBe(false); });
-test('T-060 contorno consumo/resultado y evento sistémico bloqueados; ambiental habilitador legal', () => {
+test('T-060 consumo/resultado fuera del contorno; evento al proceso completo legal y a su hijo prohibido en ambas afiliaciones', () => {
     const m = sano(refinar(base()));
     for (const t of ['consumo', 'resultado'] as const)
         expect(reglas(m, enlace(m, t))).toContain('R-DIST-1');
     const e: Enlace = { tipo: 'instrumento', id: 'e-101', objeto: ids(m)[0]!, proceso: ids(m)[3]!, control: 'e' };
-    expect(reglas(m, e)).toContain('R-CX-DIST-2');
+    expect(reglas(m, e)).not.toContain('R-CX-DIST-2');
     const a = objeto(m), n = sano(congelar({ ...m, cosas: { ...m.cosas, [a.id]: { ...a, afiliacion: 'ambiental' as const } } }));
     expect(reglas(n, e)).not.toContain('R-CX-DIST-2');
     expect(reglas(m, { ...e, control: 'c' })).not.toContain('R-CX-DIST-2');
+    for (const x of [m, n]) {
+        expect(reglas(x, { ...e, proceso: ids(m)[4]! })).toContain('R-CX-DIST-2');
+        expect(reglas(x, { ...e, proceso: ids(m)[4]!, control: 'c' })).not.toContain('R-CX-DIST-2');
+    }
 });
 test('T-060 AP-07 TS3 bloqueado con dos bandas, TS4 y una banda legales', () => { const m = sano(refinar(base())), e: Enlace = { tipo: 'efecto', id: 'e-101', objeto: ids(m)[0]!, proceso: ids(m)[3]!, entrada: s(m), salida: s(m, 0, 1) }; expect(reglas(m, e)).toContain('AP-07'); expect(reglas(m, { tipo: 'efecto', id: e.id, objeto: e.objeto, proceso: e.proceso, entrada: e.entrada! })).not.toContain('AP-07'); expect(reglas(sano(refinar(base(), [[ids(m)[4]!]])), e)).not.toContain('AP-07'); });
 test('T-061 AP-27 error con previo obligatorio y warning si todos omisibles', () => { const m = sano(refinar(base())), [a, b, , , q, r] = ids(m), e: Enlace = { tipo: 'instrumento', id: 'e-102', objeto: b!, proceso: r!, control: 'e' }; const previo: Enlace = { tipo: 'consumo', id: 'e-101', objeto: a!, proceso: q! }; const n = sano(poner(m, previo)); expect(reglas(n, e)).toContain('AP-27'); expect(erroresContexto(poner(n, previo, e)).map(v => v.regla)).toContain('AP-27'); const c: Enlace = { ...previo, control: 'c' }, omisible = sano(poner(m, c)); expect(reglas(omisible, e)).toContain('AP-27'); expect(erroresContexto(sano(poner(m, c, e))).map(v => v.regla)).not.toContain('AP-27'); expect(reglas(m, { ...e, proceso: q! })).not.toContain('AP-27'); });
@@ -254,15 +258,18 @@ test('T-057 DEC35 la multiplicidad del etiquetado admite ?, *, +, 2..* y un ente
 });
 test('T-054 FAN5 estados entrada común, salida común y prohibición ambas variables', () => { const m = base(), a = ids(m)[0]!, p = ids(m)[3]!, f: Abanico = { id: 'f-110', operador: 'XOR', enlaces: ['e-101', 'e-102'] }, e: Enlace = { tipo: 'efecto', id: 'e-101', objeto: a, proceso: p, entrada: s(m), salida: s(m, 0, 1) }; let n = poner(m, e, { ...e, id: 'e-102', entrada: s(m, 0, 1) }); expect(noOfrecido(n, e, f)?.registro).toBe('B-06'); n = poner(m, e, { ...e, id: 'e-102', entrada: s(m, 0, 1), salida: s(m) }); expect(noOfrecido(n, e, f)?.registro).toBe('B-06'); });
 test('T-044 herencia múltiple con ciclos termina y conserva estados propios', () => { const m = base(), [a, b, c, p] = ids(m), n = sano(poner(m, { tipo: 'generalizacion', id: 'e-101', refinable: a!, refinador: c! }, { tipo: 'generalizacion', id: 'e-102', refinable: b!, refinador: c! }, { tipo: 'generalizacion', id: 'e-103', refinable: c!, refinador: b! })); expect(reglas(n, { tipo: 'efecto', id: 'e-104', objeto: c!, proceso: p! })).not.toContain('R-EFE-1'); expect(objeto(n, 2).estados).toEqual([]); });
-test('T-064 DS20 identidad codigo+refs tolera cambiar regla con mismas referencias', () => {
+test('T-064 DS20 rechaza otra regla con el mismo codigo y referencias', () => {
     const m = base(), a = objeto(m, 2), n = sano(poner(congelar({ ...m, cosas: { ...m.cosas, [a.id]: { ...a, esencia: 'informacional' as const } } }), { tipo: 'agente', id: 'e-101', objeto: a.id, proceso: ids(m)[3]! }));
     expect(erroresContexto(n).map(v => v.regla)).toEqual(['R-AG-1']);
+    const antes = exportarV0(n);
+    const candidato = sano(poner(n, { tipo: 'efecto', id: 'e-101', objeto: a.id, proceso: ids(m)[3]! }));
+    expect(erroresContexto(candidato).map(v => v.regla)).toEqual(['R-EFE-1']);
     const r = transaccion(n, tx => tx.poner('enlaces', { tipo: 'efecto', id: 'e-101', objeto: a.id, proceso: ids(m)[3]! }));
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-        const nuevo = sano(congelar(r.valor.modelo));
-        expect(erroresContexto(nuevo).map(v => v.regla)).toEqual(['R-EFE-1']);
-    }
+    expect(r.ok).toBe(false);
+    if (!r.ok)
+        expect(r.rechazo).toMatchObject({ codigo: 'contexto', regla: 'R-EFE-1' });
+    expect(exportarV0(n)).toBe(antes);
+    expect(erroresContexto(n).map(v => v.regla)).toEqual(['R-AG-1']);
 });
 test('T-063 cambio de tipo reevalúa firma de enlaces incidentes', () => { const m = base(), a = objeto(m), e = enlace(m, 'consumo'), n = congelar({ ...m, cosas: { ...m.cosas, [a.id]: { id: a.id, tipo: 'proceso' as const, nombre: a.nombre, esencia: a.esencia, afiliacion: a.afiliacion } } }); expect(violacionesForma(m, e)).toEqual([]); expect(violacionesForma(n, e).length).toBeGreaterThan(0); });
 test('T-053 no propone abanicoCon que colisione con un abanico existente', () => {

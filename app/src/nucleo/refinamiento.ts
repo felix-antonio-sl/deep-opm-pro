@@ -5,7 +5,7 @@ import { transaccion } from './resultado';
 import { indice, claveNombre } from './indice';
 import { validarNombreCosa } from './lexico';
 import { validarForma } from './forma';
-import { noOfrecido, violacionesAbanico } from './matriz';
+import { noOfrecido, violacionesAbanico, violacionesContexto } from './matriz';
 import { colocarDescomposicion, colocarDespliegue } from './colocacion';
 import { proyectar, hechoDeMayorFuerza } from './proyeccion';
 const ref = (id: Id): Ref => ({ tipo: 'cosa', id });
@@ -54,10 +54,9 @@ export function planificarDistribucion(m: Modelo, a: { readonly opd: Id; readonl
         const llave = `${id}:${o.id}`; if (visitados.has(llave)) return; visitados.add(llave);
         copiar(o.id, e.objeto);
         const ss = o.bandas.flat(); if (!ss.length) return;
-        const evento = 'control' in e && e.control === 'e' && actual.cosas[e.objeto]?.afiliacion === 'sistemica';
         const fid = idx.abanicoDeEnlace.get(id), fan = fid ? actual.abanicos[fid] : undefined;
         const completo = e.tipo === 'efecto' && e.entrada !== undefined && e.salida !== undefined;
-        const mueve = evento || e.tipo === 'consumo' || e.tipo === 'resultado' || e.tipo === 'efecto' && (e.entrada !== undefined || e.salida !== undefined);
+        const mueve = e.tipo === 'consumo' || e.tipo === 'resultado' || e.tipo === 'efecto' && (e.entrada !== undefined || e.salida !== undefined);
         if (!mueve) return;
         // Las ramas con común P viajan juntas; común O con otros procesos no se arrastra.
         const grupo = fan ? fan.enlaces.filter(r => { const x = actual.enlaces[r]; return x && esProcedimental(x) && x.proceso === e.proceso; }) : [id];
@@ -71,7 +70,7 @@ export function planificarDistribucion(m: Modelo, a: { readonly opd: Id; readonl
                 trazas.push({ regla: 'R-ESCIND-1', mensaje: `El cambio de **${actual.cosas[rama.objeto]!.nombre}** quedó escindido entre el primer y último subproceso.`, refs: [re(rid), re(salida), ro(o.id)] });
                 distribuir(rid); distribuir(salida);
             } else {
-                const entrada = evento || completo || rama.tipo !== 'resultado' && !(rama.tipo === 'efecto' && !rama.entrada && rama.salida);
+                const entrada = completo || rama.tipo !== 'resultado' && !(rama.tipo === 'efecto' && !rama.entrada && rama.salida);
                 const destino = entrada ? ss[0]! : ss.at(-1)!;
                 ponerEnlace({ ...rama, proceso: destino });
                 trazas.push({ regla: ts3 && (rama.control || fan) ? 'DS-4' : 'R-DIST-1', mensaje: ts3 && (rama.control || fan) ? `El cambio de **${actual.cosas[rama.objeto]!.nombre}** quedó entero en *${actual.cosas[destino]!.nombre}*; para escindirlo, quita antes el control o abanico.` : `Enlace migrado a *${actual.cosas[destino]!.nombre}*.`, refs: [re(rid), ref(destino), ro(o.id)] });
@@ -82,6 +81,8 @@ export function planificarDistribucion(m: Modelo, a: { readonly opd: Id; readonl
     distribuir(a.enlace.id);
     for (const e of Object.values(actual.enlaces)) {
         if (m.enlaces[e.id] === e) continue;
+        const cruce = violacionesContexto(actual, e).find(v => v.regla === 'R-CX-DIST-2');
+        if (cruce) return { ok: false, rechazo: { codigo: 'contexto', regla: cruce.regla, mensaje: cruce.mensaje, refs: cruce.refs } };
         const fid = indice(actual).abanicoDeEnlace.get(e.id), fan = fid ? actual.abanicos[fid] : undefined, nf = noOfrecido(actual, e, fan);
         if (nf) return { ok: false, rechazo: { codigo: 'no-ofrecido', regla: nf.regla, mensaje: nf.motivo, refs: [re(e.id)] } };
         if (fan) { const mal = violacionesAbanico(actual, fan)[0]; if (mal) return { ok: false, rechazo: { codigo: 'abanico', regla: mal.regla, mensaje: mal.mensaje, refs: mal.refs } }; }

@@ -7,7 +7,7 @@ Apunte/Modelo, Bocetos), catálogo de lecciones forja (Parte B, LF-nn), heuríst
 externos, lentes ICAS, capacidades observadas en OPCloud, la realización en el formato de intercambio
 (Apéndice F) y la bitácora histórica.
 
-Subordinación: este perfil no contradice el canon (`canon/metodologia-forja-opm-es` 2.0.0 y, por
+Subordinación: este perfil no contradice el canon (`canon/metodologia-forja-opm-es` 2.1.0 y, por
 encima, reglas, spec-OPD y spec-OPL). Cuando es más estricto que ISO lo dice con `[endurecimiento]`
 y su brecha se declara en `docs/conformidad.md`; cuando extiende ISO, `[extensión]`. Las notas
 «Corrección 2.0» ajustan el texto heredado donde chocaba con el canon corregido.
@@ -531,7 +531,7 @@ Dependencias: **LF-02 presupone LF-01** (primero decides los ejes, luego los rea
 
 > **Corrección 2.0:** los subprocesos disparados por evento sin orden fijo van también a despliegue por agregación (ISO §14.2.2.5).
 
-5. **Liftea a** — spec-OPD (evento dentro de descomposición); A3.4 (evento de objeto ambiental cruza el contorno).
+5. **Liftea a** — spec-OPD (evento interno en descomposición); A3.4 y canon reglas §8.5: ningún evento exterior, ambiental ni sistémico, atraviesa el contorno para iniciar hijos. La afiliación ambiental no autoriza ese cruce (ISO 2024 §14.2.2.4.2).
 6. **Realización opforja** — un enlace de evento por subproceso; verificar render en opforja.
 7. **Ejemplo** — ✓ vigilancia 24/7: `deterioro detectado`→*Respuesta clínica*, `falla de equipo`→*Sustitución*, cada uno por su evento, sin orden vertical. *(HODOM, ilustrativo)*
 8. **Consecuencia si lo ignoras** — se impone una secuencia vertical falsa a procesos reactivos; el modelo miente sobre el orden de ejecución.
